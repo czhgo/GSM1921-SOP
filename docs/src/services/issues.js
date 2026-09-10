@@ -692,7 +692,7 @@ export const REPORT_CATEGORIES = {
  * @returns {{ key: string, label: string, badgeClass: string }}
  */
 export function deriveIssueDisplayState(issue) {
-  if (!issue) return { key: 'unknown', label: '未知', badgeClass: 'bg-gray-100 text-gray-500' };
+  if (!issue) return { key: 'unknown', label: '未知', badgeClass: 'bg-gray-100 text-gray-600' };
   if (issue.status === 'closed') {
     return { key: 'closed', label: '已关闭', badgeClass: 'bg-gray-100 text-gray-600' };
   }
@@ -830,9 +830,9 @@ export function renderMyDispatchTab(role, userId) {
       const ds = deriveIssueDisplayState(r);
       html += `<div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-report" data-issue-id="${r.id}">`;
       html += `<span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
-      html += `<span class="text-xs text-gray-400">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>`;
+      html += `<span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>`;
       html += `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>`;
-      html += `<span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt || '—'}</span>`;
+      html += `<span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>`;
       html += `</div>`;
     });
     html += `</div>`;
@@ -842,24 +842,24 @@ export function renderMyDispatchTab(role, userId) {
   // IA-C2 收敛（2026-09-06）：块标题与 ①/② 对齐、明示计数；超期优先不适用（issue/report 无 deadline 字段），
   // 排序沿用书记 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。
   html += `<p class="text-xs font-medium text-gray-700 mb-1">指派给我的反馈 · ${issues.length}</p>`;
-  html += `<p class="text-xs text-gray-400 mb-2">开放中指派，可评论或提交处置结果</p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">开放中指派，可评论或提交处置结果</p>`;
 
   if (issues.length === 0) {
-    html += `<p class="text-xs text-gray-400 text-center py-4">暂无待处置反馈</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-4">暂无待处置反馈</p>`;
   } else {
     issues.forEach(issue => {
       const ds = deriveIssueDisplayState(issue);
       const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
       html += `<div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">`;
       html += `<div class="flex items-center justify-between mb-1">`;
-      html += `<span class="text-xs text-gray-400 font-mono">#${issue.number}</span>`;
+      html += `<span class="text-xs text-gray-500 font-mono">#${issue.number}</span>`;
       html += `<span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
       html += `</div>`;
       html += `<p class="text-sm text-gray-800 font-medium">${issue.title}</p>`;
       if (dispatchNote?.note) {
         html += `<p class="text-xs text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
       }
-      html += `<div class="text-xs text-gray-400 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
+      html += `<div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
       html += `</div>`;
     });
   }
@@ -929,13 +929,13 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
   let html = `<div class="card rounded-xl p-6">`;
-  html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
-  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>${REPORT_CATEGORIES[issue.reportCategory] || '进度'}汇报</span>`;
   html += `<span>发出：${issue.submittedAt}</span>`;
   if (issue.closedAt) html += `<span>已闭环：${issue.closedAt}</span>`;
@@ -945,7 +945,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">对话</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-400">暂无对话，等待书记答复</p>`;
+    html += `<p class="text-xs text-gray-500">暂无对话，等待书记答复</p>`;
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
@@ -955,7 +955,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
       if (c.kind === 'reply') {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
       }
-      html += `<span class="text-xs text-gray-400 ml-1">${c.createdAt}</span>`;
+      html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
     });
   }
@@ -1008,13 +1008,13 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-6">`;
-  html += `<button data-mydispatch-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
   html += `</div>`;
   if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
-  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>#${issue.number}</span><span>提交人：${_displayName(issue.submittedBy)}</span><span>提交时间：${issue.submittedAt}</span>`;
   html += `</div>`;
 
@@ -1036,7 +1036,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
     const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
     html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
     html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
-    html += `<span class="text-xs text-gray-400 ml-1">${c.createdAt}</span>`;
+    html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
     html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
   });
   html += `</div></div>`;

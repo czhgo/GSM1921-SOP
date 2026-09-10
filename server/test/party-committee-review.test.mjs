@@ -111,6 +111,28 @@ async function decideOnCard(page, { title, decision, note }) {
   }, { title, decision, note });
 }
 
+/** 轮询 server 通知表直到出现目标通知（API 模式快照写穿 800ms 防抖 → 避免客户端/服务端竞态） */
+async function waitForServerNotice(title, contains, timeout = 8000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    try {
+      const rows = await (await fetch(`${base}/api/v1/notices`)).json();
+      if (Array.isArray(rows) && rows.some((n) => n.title === title && String(n.content || '').includes(contains))) return true;
+    } catch (_) { /* 忽略瞬时异常 */ }
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return false;
+}
+
+/** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
+async function pageHasNotice(page, title, contains) {
+  return page.evaluate(async ({ t, c }) => {
+    const { NoticeStore } = await import('/src/services/notice.js?v=20260910a');
+    NoticeStore.init();
+    return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
+  }, { t: title, c: contains });
+}
+
 test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（驳回须意见）', async () => {
   const titleA = `P3发展节点上报-${Date.now()}`;
   const noteA = `党委同意意见-${Date.now()}`;
@@ -127,6 +149,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(branchPage, '发起上报'); // 上报党委面板帧已渲染（发起上报按钮）
     await submitRequest(branchPage, { type: 'develop-node', title: titleA, content: '发展党员关键节点需党委知悉。' });
     await waitForBodyText(branchPage, '待党委批复');
+    // ① 提交通知（节点①）：server 落库党委待批复通知（快照防抖 → 轮询等待）
+    assert.ok(await waitForServerNotice('支部上报待批复', titleA), '提交上报应生成党委待批复通知');
 
     // ── ② 党委组织员（p_pc）登录党委工作台 → 上报审批 tab → 批准并带意见 ──
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
@@ -134,9 +158,13 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(partyPage, '上报关键事项'); // 上报审批面板帧已渲染（副标题）
     await waitForBodyText(partyPage, titleA); // 待批复队列出现该上报
     await waitForBodyText(partyPage, '批准');
+    // ①′ 党委侧站内可见该通知（带事项标题定位）
+    assert.ok(await pageHasNotice(partyPage, '支部上报待批复', titleA), '党委侧应可见「支部上报待批复」通知');
     await decideOnCard(partyPage, { title: titleA, decision: 'approve', note: noteA });
     await waitForBodyText(partyPage, noteA); // 结论即时回显（卡进入已处理区）
     assert.match(await partyPage.evaluate(() => document.body.textContent), /已处理/);
+    // ② 通知闭环：批准 → server 落库结论通知（轮询防抖）
+    assert.ok(await waitForServerNotice('上报已获党委批准', noteA), '批准应生成结论通知');
 
     // 支部侧刷新可见「党委批准 + 意见」（双向通道闭环）
     await branchPage.reload({ waitUntil: 'domcontentloaded' });
@@ -145,6 +173,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(branchPage, titleA);
     await waitForBodyText(branchPage, '党委批准');
     await waitForBodyText(branchPage, noteA);
+    // ②′ 结论通知回传发起书记侧站内可见
+    assert.ok(await pageHasNotice(branchPage, '上报已获党委批准', noteA), '批准结论应通知回传发起书记');
 
     // ── ③ 活动报备驳回路径：支部再发一条 → 党委空意见驳回不生效 → 带意见驳回 ──
     await submitRequest(branchPage, { type: 'activity-report', title: titleB, content: '拟赴香山开展主题党日，需报备。' });
@@ -167,6 +197,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     // 带意见驳回 → 结论回显
     await decideOnCard(partyPage, { title: titleB, decision: 'reject', note: noteB });
     await waitForBodyText(partyPage, noteB);
+    // ③ 通知闭环：驳回 → server 落库含意见的结论通知（轮询防抖）
+    assert.ok(await waitForServerNotice('上报被党委驳回', noteB), '驳回应生成含意见的结论通知');
 
     // 支部侧刷新可见「驳回 + 意见」
     await branchPage.reload({ waitUntil: 'domcontentloaded' });
@@ -175,6 +207,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(branchPage, titleB);
     await waitForBodyText(branchPage, '党委驳回');
     await waitForBodyText(branchPage, noteB);
+    // ③′ 驳回结论（含意见）回传发起书记侧站内可见
+    assert.ok(await pageHasNotice(branchPage, '上报被党委驳回', noteB), '驳回结论（含意见）应通知回传发起书记');
   } finally {
     await branchPage.close();
     await partyPage.close();

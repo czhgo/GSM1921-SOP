@@ -37,14 +37,14 @@ export function renderContent(ctx) {
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="org-insp-form-panel">
       <div class="text-xs font-bold text-gray-600 mb-3">上传专班考察表单</div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择专班 <span class="text-red-600">*</span></label>
         <select id="org-insp-tf-select" class="input-flat w-full">
           <option value="">请选择专班</option>
           ${activeTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}（${tf.status === 'active' ? '运行中' : '招募中'}）</option>`).join('')}
         </select>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-600">*</span></label>
         <div id="org-insp-person-picker-container"></div>
       </div>
       <div id="org-insp-content-rows" class="mb-3"></div>
@@ -52,18 +52,18 @@ export function renderContent(ctx) {
         <button id="org-insp-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考察</button>
         <button id="org-insp-form-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
-      <p class="text-[11px] text-gray-400 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
+      <p class="text-[11px] text-gray-500 mt-2">提交后自动投递：纪检确认 → 考察总表（组织委员建档），无需手动选择接收方</p>
     </div>
   ` : '';
 
-  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
+  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700' };
 
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班考察上传</h3>
-        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-org-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_orgInspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}
@@ -82,11 +82,11 @@ export function renderContent(ctx) {
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
           `).join('')}</tbody>
         </table>
-        ${tfInspection.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无专班考察记录</p>' : ''}
+        ${tfInspection.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无专班考察记录</p>' : ''}
         <div id="org-insp-detail" class="hidden mt-3"></div>
       </div>
     </div>
@@ -125,8 +125,8 @@ export function renderContent(ctx) {
       // 用 CSS 变量跟随主题——原 bg-gray-50/60 深色模式下无覆盖看不清；
       // 行列分隔线提升可读性，不再用高饱和实底+白字）
       const statusBadge = rec.status === 'confirmed'
-        ? '<span class="px-1.5 py-0.5 rounded-full bg-green-100 text-green-600 font-medium">已确认</span>'
-        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">待确认</span>';
+        ? '<span class="px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">已确认</span>'
+        : '<span class="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">待确认</span>';
       detailEl.innerHTML = `
         <div class="rounded-lg p-3" style="background:var(--neutral-50);border:1px solid var(--neutral-200);">
           <div class="flex items-center justify-between mb-2 pb-2" style="border-bottom:1px solid var(--neutral-200);">

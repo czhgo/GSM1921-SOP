@@ -57,7 +57,7 @@ function renderOverviewContent() {
     <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
       ${subTabs.map(t => `
         <button type="button"
-          class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-500 hover:text-gray-700'} "
+          class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-600 hover:text-gray-700'} "
           data-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -101,7 +101,7 @@ async function renderPersonView(container) {
       ${renderBlockerSection(people, today)}
       ${renderProgressSection(people)}
     </div>
-    <p class="text-[11px] text-gray-400 mt-3">
+    <p class="text-[11px] text-gray-500 mt-3">
       按人视图 = L1 条线视角：书记看各角色在办与汇报（知情边界，看 ≠ 做）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
     </p>
   `;
@@ -124,7 +124,7 @@ function renderReportSection(reports) {
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
-          <span class="text-xs text-gray-400">待答复收件箱</span>
+          <span class="text-xs text-gray-500">待答复收件箱</span>
         </div>
         ${emptyBox('暂无待答复汇报')}
       </div>`;
@@ -146,8 +146,8 @@ function renderReportSection(reports) {
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt}</span>
           ${requester}
           <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">去待办处理 →</span>
         </button>
@@ -158,11 +158,11 @@ function renderReportSection(reports) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
-        <span class="text-xs text-gray-400">${reports.length} 条待答复 · 只读摘要（答复到「待办」）</span>
+        <span class="text-xs text-gray-500">${reports.length} 条待答复 · 只读摘要（答复到「待办」）</span>
       </div>
       <div class="space-y-2">${rows}</div>
       ${sorted.length > shown.length ? `
-        <button type="button" class="sec-goto-todo w-full mt-2 text-xs text-gray-400 hover:text-gray-600 text-left px-1 py-1 transition-colors">全部 ${sorted.length} 条 → 去待办处理</button>` : ''}
+        <button type="button" class="sec-goto-todo w-full mt-2 text-xs text-gray-500 hover:text-gray-600 text-left px-1 py-1 transition-colors">全部 ${sorted.length} 条 → 去待办处理</button>` : ''}
     </div>`;
 }
 
@@ -212,7 +212,7 @@ function renderBlockerSection(people, today) {
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
-          <span class="text-xs text-gray-400">超期/缺口告警</span>
+          <span class="text-xs text-gray-500">超期/缺口告警</span>
         </div>
         <div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
           <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无超期卡点
@@ -225,7 +225,7 @@ function renderBlockerSection(people, today) {
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${r.role.label}</span>
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${r.title} 超期 ${r.count} 项</span>
-      <span class="text-[11px] tabular-nums text-red-500 font-medium flex-shrink-0">${r.deadline}</span>
+      <span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${r.deadline}</span>
       <button type="button" class="sec-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
         data-person-id="${r.role.personIds[0]}" data-role="${r.role.role}" data-note="${r.title} 已超期">了解进展</button>
     </div>`).join('');
@@ -234,7 +234,7 @@ function renderBlockerSection(people, today) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
-        <span class="text-xs text-gray-400">超期/缺口告警 · ${rows.length} 项</span>
+        <span class="text-xs text-gray-500">超期/缺口告警 · ${rows.length} 项</span>
       </div>
       <div class="space-y-1.5">${html}</div>
     </div>`;
@@ -261,9 +261,9 @@ function renderProgressSection(people) {
         <span class="text-sm font-semibold text-gray-800 w-24 flex-shrink-0">${p.label}</span>
         <span class="text-xs text-gray-500 flex-1 min-w-0 truncate">${p.names}</span>
         <span class="text-xs tabular-nums text-gray-600 flex-shrink-0">在办 ${totalActive}</span>
-        <span class="text-xs tabular-nums ${p.overdueCount ? 'text-red-500 font-medium' : 'text-gray-400'} w-16 text-right flex-shrink-0">超期 ${p.overdueCount}</span>
-        <span class="text-xs tabular-nums text-gray-400 w-16 text-right flex-shrink-0">活动 ${p.activities.length}</span>
-        <span class="text-xs tabular-nums text-gray-400 w-16 text-right flex-shrink-0">专班 ${p.taskforces.length}</span>
+        <span class="text-xs tabular-nums ${p.overdueCount ? 'text-red-600 font-medium' : 'text-gray-500'} w-16 text-right flex-shrink-0">超期 ${p.overdueCount}</span>
+        <span class="text-xs tabular-nums text-gray-500 w-16 text-right flex-shrink-0">活动 ${p.activities.length}</span>
+        <span class="text-xs tabular-nums text-gray-500 w-16 text-right flex-shrink-0">专班 ${p.taskforces.length}</span>
       </div>`;
   }).join('');
 
@@ -271,7 +271,7 @@ function renderProgressSection(people) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
-        <span class="text-xs text-gray-400">各角色在办聚合</span>
+        <span class="text-xs text-gray-500">各角色在办聚合</span>
       </div>
       <div class="space-y-1.5">${rows}</div>
     </div>`;
@@ -339,7 +339,7 @@ function renderDimensionView(container) {
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
-      <span class="text-xs text-gray-400 w-16 flex-shrink-0">${d.senderName}</span>
+      <span class="text-xs text-gray-500 w-16 flex-shrink-0">${d.senderName}</span>
       <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" data-ed-id="${d.id}">确认收到</button>
     </div>`);
 
@@ -357,7 +357,7 @@ function renderDimensionView(container) {
             <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dot};"></span>
             <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${e.label}</span>
             <span class="text-xs text-gray-500 flex-1 truncate">${e.detail}</span>
-            <span class="text-xs text-gray-400 w-16 flex-shrink-0">${e.owner}</span>
+            <span class="text-xs text-gray-500 w-16 flex-shrink-0">${e.owner}</span>
             ${actionHtml}
           </div>`;
       }).join('');
@@ -379,14 +379,14 @@ function renderDimensionView(container) {
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">异常优先队列</h4>
-          <span class="text-xs text-gray-400">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
+          <span class="text-xs text-gray-500">按紧急度排序 · ${exceptions.length + pendingDispatches.length} 项</span>
         </div>
         <div class="space-y-1.5">${exceptionsHtml}</div>
         <!-- 出勤迷你趋势（近 6 场活动出勤率；不并入 KPI、不新增出勤率指标卡） -->
         <div class="mt-3 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs text-gray-500">近 6 场活动出勤率</span>
-            ${trend.length ? `<span class="text-xs text-gray-400">最新一场 ${trend[trend.length - 1].rate}%</span>` : ''}
+            ${trend.length ? `<span class="text-xs text-gray-500">最新一场 ${trend[trend.length - 1].rate}%</span>` : ''}
           </div>
           ${_sparkline(trend)}
         </div>
@@ -455,18 +455,18 @@ function _renderDetainedReviewCard(stages = [], stageTotal = 1) {
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-800">${esc(p.name)}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">滞留</span>
-            <span class="text-xs text-gray-400">${esc(p.partyGroup || '')} · ${esc(p.developStage || '')}</span>
-            <span class="ml-auto text-[10px] text-gray-400">最近维护：${history.length ? esc(getPersonName(history[history.length - 1].updatedBy)) : '—'} · ${history.length ? (history[history.length - 1].updatedAt || '').slice(0, 10) : ''}</span>
+            <span class="text-xs text-gray-500">${esc(p.partyGroup || '')} · ${esc(p.developStage || '')}</span>
+            <span class="ml-auto text-[10px] text-gray-500">最近维护：${history.length ? esc(getPersonName(history[history.length - 1].updatedBy)) : '—'} · ${history.length ? (history[history.length - 1].updatedAt || '').slice(0, 10) : ''}</span>
           </div>
           ${rs.residenceNote ? `<div class="text-xs text-gray-500 mt-1">备注：${esc(rs.residenceNote)}</div>` : ''}
-          <div class="text-[10px] text-gray-400 mt-1">变更留痕：${histText}</div>
+          <div class="text-[10px] text-gray-500 mt-1">变更留痕：${histText}</div>
         </div>`;
       }).join('')}</div>`;
   return `
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">滞留党员复核</h4>
-        <span class="text-xs text-gray-400">会议应到 ${stats.expected} 人 = 在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span>
+        <span class="text-xs text-gray-500">会议应到 ${stats.expected} 人 = 在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2">滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。维护位：组织委员「人才库」成员档案；本卡只读复核（留痕随组织委员维护自动追加）。</p>
       ${stageBar}
@@ -493,7 +493,7 @@ function _attendanceTrend() {
 
 /** 迷你 sparkline（内联 SVG，无外部依赖，主题色描线） */
 function _sparkline(series) {
-  if (!series.length) return '<p class="text-xs text-gray-400 py-1">暂无考勤历史数据</p>';
+  if (!series.length) return '<p class="text-xs text-gray-500 py-1">暂无考勤历史数据</p>';
   const w = 560, h = 40, pad = 3;
   const max = Math.max(...series.map(s => s.rate), 1);
   const min = Math.min(...series.map(s => s.rate), 0);

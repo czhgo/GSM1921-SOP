@@ -89,7 +89,7 @@ export function renderContent(ctx) {
         <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
           <div class="flex items-center gap-3">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">成员名册</h3>
-            <span class="text-xs text-gray-400">${members.length} 人</span>
+            <span class="text-xs text-gray-500">${members.length} 人</span>
           </div>
           <div class="flex items-center gap-2">
             <input id="roster-kw" type="search" class="input-flat text-xs py-1.5 w-44" placeholder="搜索姓名 / 党小组…" value="${esc(_kw)}" aria-label="搜索成员">
@@ -98,21 +98,21 @@ export function renderContent(ctx) {
         </div>
         <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注即时生效；发展阶段与在册状态变更由组织委员发起、书记确认后生效。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
-          <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-400">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
-          ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-400">/${x.s.partyTotal}</span></span>`).join('')}
+          <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
+          ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
         </div>
         ${pendParts.length ? `
         <div class="flex items-center gap-1.5 flex-wrap mt-2">
-          <span class="text-[11px] text-gray-400">待书记确认：</span>
+          <span class="text-[11px] text-gray-500">待书记确认：</span>
           ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
-          <span class="text-[11px] text-gray-400">确认或退回在书记「待办」页处理</span>
+          <span class="text-[11px] text-gray-500">确认或退回在书记「待办」页处理</span>
         </div>` : ''}
       </div>
 
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
         ${_listHtml(members)}
       </div>
-      <p class="text-[11px] text-gray-400 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经书记确认后转「已转出」保留。</p>
+      <p class="text-[11px] text-gray-500 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经书记确认后转「已转出」保留。</p>
     </div>
   `;
 
@@ -135,11 +135,11 @@ function _listHtml(members) {
   const pend = _pendingMap();
   const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
   const header = `
-    <div class="grid text-[11px] text-gray-400 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
+    <div class="grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
       <span>姓名</span><span>党小组</span><span>发展阶段</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
     </div>`;
   const body = rows.length === 0
-    ? `<div class="py-8 text-center text-xs text-gray-400">${members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入'}</div>`
+    ? `<div class="py-8 text-center text-xs text-gray-500">${members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入'}</div>`
     : `<div class="space-y-1">${rows.map(p => _rowHtml(p, pend)).join('')}</div>`;
   return header + body;
 }
@@ -171,7 +171,7 @@ function _rowHtml(p, pend) {
           <span class="truncate">${esc(p.name)}</span>
           ${detained ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
         </div>
-        ${roleLabel ? `<div class="text-[10px] text-gray-400 truncate">${esc(roleLabel)}</div>` : ''}
+        ${roleLabel ? `<div class="text-[10px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
       <select class="input-flat text-xs roster-group w-full" aria-label="党小组">${groupOptions.join('')}</select>
       <div class="flex flex-col gap-0.5 min-w-0">
@@ -186,7 +186,7 @@ function _rowHtml(p, pend) {
         placeholder="${detained ? '滞留原因 / 起止（如 2026-09 起交换一学期）' : '在校状态无需备注'}" aria-label="滞留备注" ${detained ? '' : 'disabled'}>
       <div class="flex items-center justify-end gap-1.5">
         <button type="button" class="roster-save text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">保存</button>
-        <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-400 border border-gray-100' : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送书记确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
+        <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送书记确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
       </div>
     </div>`;
 }

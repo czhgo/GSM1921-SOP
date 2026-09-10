@@ -57,11 +57,11 @@ const params = new URLSearchParams(window.location.search);
 const sourceId = params.get('id') || '';
 
 if (!sourceId) {
-  if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">未指定专班</p>';
+  if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定专班</p>';
 } else {
   const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
   if (!tf) {
-    if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">专班不存在或已解散</p>';
+    if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">专班不存在或已解散</p>';
   } else {
     renderTaskforce(tf);
   }
@@ -85,7 +85,7 @@ function renderTaskforce(tf) {
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
         ${statusBadge(tf.status)}
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-600">专班</span>
-        <span class="text-xs text-gray-400">${tf.id}</span>
+        <span class="text-xs text-gray-500">${tf.id}</span>
         <span class="ml-auto">${renderShareButtonHtml()}</span>
       </div>
       <h2 class="font-title-cn text-xl font-bold text-gray-800 leading-snug">${tf.name || '未命名专班'}</h2>
@@ -95,19 +95,19 @@ function renderTaskforce(tf) {
     <!-- 基本信息 -->
     <div class="grid grid-cols-2 gap-3 mb-6">
       <div class="rounded-xl bg-gray-50 px-4 py-3">
-        <p class="text-xs text-gray-400 mb-0.5">发起人</p>
+        <p class="text-xs text-gray-500 mb-0.5">发起人</p>
         <p class="text-sm font-medium text-gray-800">${initiatorName}</p>
       </div>
       <div class="rounded-xl bg-gray-50 px-4 py-3">
-        <p class="text-xs text-gray-400 mb-0.5">名额</p>
+        <p class="text-xs text-gray-500 mb-0.5">名额</p>
         <p class="text-sm font-medium text-gray-800">${fullLabel}</p>
       </div>
       <div class="rounded-xl bg-gray-50 px-4 py-3">
-        <p class="text-xs text-gray-400 mb-0.5">报名截止</p>
+        <p class="text-xs text-gray-500 mb-0.5">报名截止</p>
         <p class="text-sm font-medium text-gray-800">${tf.deadline || '—'}</p>
       </div>
       <div class="rounded-xl bg-gray-50 px-4 py-3">
-        <p class="text-xs text-gray-400 mb-0.5">创建时间</p>
+        <p class="text-xs text-gray-500 mb-0.5">创建时间</p>
         <p class="text-sm font-medium text-gray-800">${tf.createdAt || '—'}</p>
       </div>
     </div>
@@ -121,12 +121,12 @@ function renderTaskforce(tf) {
     <div class="mt-6">
       <h3 class="text-sm font-semibold text-gray-700 mb-3">专班成员（${members.length}）</h3>
       ${members.length === 0
-        ? '<p class="text-sm text-gray-400">暂无成员</p>'
+        ? '<p class="text-sm text-gray-500">暂无成员</p>'
         : `<div class="flex flex-wrap gap-2.5">${members.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
               <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0" style="background:#8B5CF6;">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
-              <span class="text-[11px] text-gray-400">${roleLabel(x.role)}</span>
+              <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
     </div>
   `;

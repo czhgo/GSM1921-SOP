@@ -186,7 +186,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}" data-view="${key}">${label}</button>
+        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -233,7 +233,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
   let html = `<div class="mb-6">`;
   html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
   html += `<div class="${isMobile ? 'cal-mobile-grid' : ''}" style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
     html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
@@ -250,7 +250,7 @@ function _renderMonthView(grid, activeActivities, tasks, month, state) {
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls}" data-date="${k}">`;
-    html += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    html += `<div class=" ${isMobile ? 'text-xs' : 'text-[12px]'} font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
     if (isMobile) {
       html += _renderMobileDots(dayActs, ct, hasActivity, viaTasks, state);
     } else {
@@ -279,11 +279,11 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
   dayActs.slice(0, 3).forEach(act => {
     const color = getActivityColor(act);
     const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+    html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
             `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
             `<span>${shortLabel}</span></div>`;
   });
-  if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+  if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
   // 无活动时才显示任务标签（紧凑，最多 2 条，避免挤爆方形格）
   if (dayActs.length === 0) {
     // P1：viaTasks 已由日索引预分组（等价原 tasks.filter(!t.date && activityId∈当日)）
@@ -291,7 +291,7 @@ function _renderCompactCellContent(dateKey, dayActs, ct, viaTasks, state) {
     const filteredTasks = filterTasksByManagementRole(allDayTasks, managementRole);
     filteredTasks.slice(0, 2).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:${c.text};border:1px solid ${c.border};"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
+      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="truncate">${t.title}</span></div>`;
     });
   }
   return html;
@@ -333,7 +333,7 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   html += `</div></div>`;
 
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1 font-semibold">${d}</div>`; });
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart);
@@ -350,7 +350,7 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
     if (k === selectedDate) cls += ' selected';
 
     html += `<div class="${cls}" data-date="${k}" style="min-height:8rem;">`;
-    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${d.getDate()}</div>`;
+    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${d.getDate()}</div>`;
     html += _renderCellContent(k, dayActs, ct, hasActivity, viaTasks, state, 8);
     html += '</div>';
   }
@@ -401,7 +401,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {
-    html += `<p class="text-xs text-gray-400 text-center py-8">当日无活动或任务</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-8">当日无活动或任务</p>`;
   } else {
     // 活动卡片
     if (dayActivities.length > 0) {
@@ -409,7 +409,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       dayActivities.forEach(act => {
         const color = getActivityColor(act);
         html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(color)}background:${color.bg};border-color:${color.border};">`;
-        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium" style="${_accText(color)}color:${color.text};">${act.title || '未命名'}</span></div>`;
+        html += `<div class="flex items-center gap-2 mb-1"><span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span><span class="text-sm font-medium" style="${_accText(color)}color:color-mix(in srgb, ${color.text} 60%, #000);">${act.title || '未命名'}</span></div>`;
         html += `<div class="text-xs text-gray-500">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
         html += `</div>`;
       });
@@ -422,7 +422,7 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
       allTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="p-3 rounded-xl mb-2 border" style="${_accDark(c)}background:${c.bg};border-color:${c.border};">`;
-        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium" style="${_accText(c)}color:${c.text};">${t.title}</span></div>`;
+        html += `<div class="flex items-center gap-2"><span class="task-dot" style="${_accDot(c)}background:${c.text};"></span><span class="text-sm font-medium" style="${_accText(c)}color:color-mix(in srgb, ${c.text} 60%, #000);">${t.title}</span></div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -468,7 +468,7 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
   html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年${m}月 活动列表</div>`;
 
   if (monthActivities.length === 0) {
-    html += `<p class="text-xs text-gray-400 text-center py-8">本月无活动</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-8">本月无活动</p>`;
   } else {
     let lastDate = '';
     monthActivities.forEach(act => {
@@ -511,21 +511,21 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
   if (viewType === 'participant') {
     dayActs.slice(0, maxItems).forEach(act => {
       const color = getActivityColor(act);
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span class="truncate">${act.title || ''}</span></div>`;
     });
-    if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+    if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
   } else {
     // 非参与者模式：先渲染活动条目（可点击进入详情）
     if (dayActs.length > 0) {
       dayActs.slice(0, maxItems).forEach(act => {
         const color = getActivityColor(act);
-        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+        html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${dateKey}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
                 `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
                 `<span class="truncate">${act.title || ''}</span></div>`;
       });
-      if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
+      if (dayActs.length > maxItems) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - maxItems} 项活动</div>`;
     } else if (hasActivity) {
       // 仅有活动标记但无具体活动条目时，保留原角色点指示
       const dateActRoles = dayActs.map(a => a.executor || 'all');
@@ -549,11 +549,11 @@ function _renderCellContent(dateKey, dayActs, ct, hasActivity, viaTasks, state, 
       : filteredTasks;
     focusedTasks.slice(0, maxItems).forEach(t => {
       const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
-      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:${c.text};border:1px solid ${c.border};">` +
+      html += `<div class="cal-task-tag" style="${_accDark(c)}background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};">` +
               `<span class="task-dot" style="${_accDot(c)}background:${c.text};"></span>` +
               `<span class="truncate">${t.title}</span></div>`;
     });
-    if (focusedTasks.length > maxItems) html += `<div class=" text-[11px] text-gray-400 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
+    if (focusedTasks.length > maxItems) html += `<div class=" text-[11px] text-gray-500 mt-0.5">+${focusedTasks.length - maxItems} 项任务</div>`;
   }
   return html;
 }
@@ -679,7 +679,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
   html += `</div>`;
 
   if (dayActivities.length === 0 && filteredTasks.length === 0) {
-    html += `<p class="text-xs text-gray-400 text-center py-4">当日无活动或任务</p>`;
+    html += `<p class="text-xs text-gray-500 text-center py-4">当日无活动或任务</p>`;
   } else {
     if (dayActivities.length > 0) {
       html += `<div class="cal-mobile-detail-section"><div class="text-xs font-bold text-gray-500 mb-2">活动 (${dayActivities.length})</div>`;
@@ -698,7 +698,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
       filteredTasks.forEach(t => {
         const c = ROLE_COLORS[t.executor] || ROLE_COLORS.all;
         html += `<div class="cal-mobile-detail-card" style="border-left:3px solid ${c.text};">`;
-        html += `<div class="text-sm font-medium" style="color:${c.text};">${t.title}</div>`;
+        html += `<div class="text-sm font-medium" style="--acc-text-dark:${c.text};color:color-mix(in srgb, ${c.text} 60%, #000);">${t.title}</div>`;
         if (t.desc) html += `<div class="text-xs text-gray-500 mt-1">${t.desc}</div>`;
         html += `</div>`;
       });
@@ -873,11 +873,11 @@ function _showHoverPopover(anchor, dateKey, dayActs) {
     return `<div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="${_accDot(color)}background:${color.text};"></span>
       <span class="text-sm text-gray-700 flex-1">${act.title || '未命名'}</span>
-      <span class="text-xs text-gray-400 flex-shrink-0">${typeLabel}</span>
+      <span class="text-xs text-gray-500 flex-shrink-0">${typeLabel}</span>
     </div>`;
   }).join('');
   if (dayActs.length > maxShow) {
-    listHTML += `<div class="text-xs text-gray-400 text-center py-1">+${dayActs.length - maxShow} 项</div>`;
+    listHTML += `<div class="text-xs text-gray-500 text-center py-1">+${dayActs.length - maxShow} 项</div>`;
   }
 
   _hoverPopover.innerHTML = `
@@ -930,7 +930,7 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
   let html = `<div class="mb-6">`;
   html += `<div class=" text-sm font-bold text-gray-700 mb-3 pb-2 border-b border-gray-100">${y}年 ${MN[m - 1]}</div>`;
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:auto;gap:2px;">`;
-  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-400 text-center pb-1.5 font-semibold">${d}</div>`; });
+  DN.forEach(d => { html += `<div class=" text-[12px] text-gray-500 text-center pb-1.5 font-semibold">${d}</div>`; });
 
   for (let i = 0; i < firstDow; i++) {
     html += '<div class="cal-cell-large cal-cell-compact" style="background:transparent;border-color:transparent;"></div>';
@@ -945,15 +945,15 @@ function _renderMonthViewCompact(grid, activeActivities, month, state, mode) {
     if (isT) cls += ' is-today';
 
     html += `<div class="${cls} cal-cell-compact" data-date="${k}">`;
-    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-600' : 'text-gray-600'}">${day}</div>`;
+    html += `<div class=" text-[12px] font-semibold mb-1 ${isT ? 'text-red-700' : 'text-gray-600'}">${day}</div>`;
     dayActs.slice(0, 3).forEach(act => {
       const color = getActivityColor(act);
       const shortLabel = ACTIVITY_TYPE_SHORT[act.scenarioId] || ACTIVITY_TYPE_SHORT[act.type] || (act.type ? act.type.slice(0, 2) : '活动');
-      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" style="${_accDark(color)}background:${color.bg};color:${color.text};border:1px solid ${color.border};" title="${act.title || ''}">` +
+      html += `<div class="cal-activity-tag cal-activity-item cursor-pointer hover:brightness-95 transition-all" data-act-id="${act.id || ''}" data-date="${k}" style="${_accDark(color)}background:${color.bg};color:color-mix(in srgb, ${color.text} 60%, #000);border:1px solid ${color.border};" title="${act.title || ''}">` +
               `<span class="cal-activity-dot" style="${_accDot(color)}background:${color.text};"></span>` +
               `<span>${shortLabel}</span></div>`;
     });
-    if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-400 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
+    if (dayActs.length > 3) html += `<div class=" text-[11px] text-gray-500 text-center mt-0.5">+${dayActs.length - 3} 项</div>`;
     html += '</div>';
   }
   html += '</div></div>';

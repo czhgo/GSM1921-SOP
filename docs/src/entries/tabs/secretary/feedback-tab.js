@@ -106,7 +106,7 @@ function _renderFeedbackPager(total) {
   for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
   return `
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1">
         <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
@@ -125,7 +125,7 @@ function renderIssueManagement() {
     const drafts = IssueStore.getDrafts().filter(d => d.status === 'pending');
     if (draftsCountEl) draftsCountEl.textContent = drafts.length;
     if (drafts.length === 0) {
-      draftsEl.innerHTML = '<p class="text-xs text-gray-400">暂无待审核草稿</p>';
+      draftsEl.innerHTML = '<p class="text-xs text-gray-500">暂无待审核草稿</p>';
     } else {
       draftsEl.innerHTML = drafts.map(d => renderDraftRow(d)).join('');
       bindDraftEvents();
@@ -171,7 +171,7 @@ function renderIssueManagement() {
     if (pillEl) pillEl.textContent = `${issues.length} 条 · ${counts.open} 开放 · ${counts.assigned} 已指派 · ${counts['pending-review']} 待终审 · ${counts.closed} 已关闭`;
 
     if (filtered.length === 0) {
-      listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">无匹配反馈</p>';
+      listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">无匹配反馈</p>';
     } else {
       // 分页切片（T-234 F2：筛选变化后页码自动收敛）
       const fbPages = Math.max(1, Math.ceil(filtered.length / ISSUE_PAGE_SIZE));
@@ -186,7 +186,7 @@ function renderIssueManagement() {
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-issue-action="open-detail" data-issue-id="${i.id}">
             <div class="flex items-center justify-between mb-1">
-              <span class="text-xs text-gray-400 font-mono">#${i.number}</span>
+              <span class="text-xs text-gray-500 font-mono">#${i.number}</span>
               <div class="flex items-center gap-1.5">
                 ${isReviewUnread ? badgeHtml('待终审', 'warning') : ''}
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
@@ -194,7 +194,7 @@ function renderIssueManagement() {
               </div>
             </div>
             <p class="text-sm text-gray-800 font-medium">${i.title}</p>
-            <div class="text-xs text-gray-400 mt-1">${submitterTip
+            <div class="text-xs text-gray-500 mt-1">${submitterTip
               ? `<span class="tip-trigger" data-tip="${submitterTip}">${getPersonName(i.submittedBy)}</span>`
               : (getPersonName(i.submittedBy) || '匿名')} · ${i.commentCount || 0} 评论 · ${i.submittedAt}</div>
           </div>
@@ -318,7 +318,7 @@ function renderIssueDetail(issueId) {
 
   const issue = IssueStore.getById(issueId);
   if (!issue) {
-    panel.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">反馈不存在</p>';
+    panel.innerHTML = '<p class="text-xs text-gray-500 text-center py-8">反馈不存在</p>';
     return;
   }
 
@@ -333,10 +333,10 @@ function renderIssueDetail(issueId) {
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;
   html += `<div class="flex items-center gap-2">`;
-  html += `<button data-detail-action="back" class="text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1">`;
+  html += `<button data-detail-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1">`;
   html += icon('chevronLeft', { className: 'w-3.5 h-3.5' });
   html += `返回列表</button>`;
-  html += `<span class="text-xs text-gray-400 font-mono">#${issue.number}</span>`;
+  html += `<span class="text-xs text-gray-500 font-mono">#${issue.number}</span>`;
   html += `</div>`;
   html += `<div class="flex items-center gap-2">`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -354,7 +354,7 @@ function renderIssueDetail(issueId) {
   }
 
   // ── 元信息 ──
-  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>范围：${issue.scope || '—'}</span>`;
   html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span>`;
   html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
@@ -379,13 +379,13 @@ function renderIssueDetail(issueId) {
     issue.dispatchHistory.forEach(d => {
       const toLabel = ROLE_LABELS[d.to] || d.to;
       html += `<div class="text-xs text-gray-500 flex items-start gap-1">`;
-      html += `<span class="text-gray-300">●</span>`;
+      html += `<span class="text-gray-500">●</span>`;
       html += `<span>${d.at} · ${toLabel}${d.note ? '：' + d.note : ''}</span>`;
       html += `</div>`;
     });
     html += `</div>`;
   } else {
-    html += `<p class="text-xs text-gray-400">尚未指派</p>`;
+    html += `<p class="text-xs text-gray-500">尚未指派</p>`;
   }
   // 指派选择器（默认隐藏）
   html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100">`;
@@ -427,11 +427,11 @@ function renderIssueDetail(issueId) {
     if (mergeTargets.length > 0) {
       html += `<div class="space-y-1 max-h-32 overflow-y-auto">`;
       mergeTargets.forEach(t => {
-        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">${t.title} <span class="text-gray-400">#${t.number}</span></button>`;
+        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">${t.title} <span class="text-gray-600">#${t.number}</span></button>`;
       });
       html += `</div>`;
     } else {
-      html += `<p class="text-xs text-gray-400">无可用合并目标</p>`;
+      html += `<p class="text-xs text-gray-500">无可用合并目标</p>`;
     }
     html += `</div>`;
     html += `</div>`;
@@ -449,7 +449,7 @@ function renderIssueDetail(issueId) {
   html += `<span class="text-xs font-medium text-gray-700 block mb-3">评论与事件</span>`;
   const comments = issue.comments || [];
   if (comments.length === 0) {
-    html += `<p class="text-xs text-gray-400">暂无评论</p>`;
+    html += `<p class="text-xs text-gray-500">暂无评论</p>`;
   } else {
     html += `<div class="space-y-3">`;
     comments.forEach(c => {
@@ -464,7 +464,7 @@ function renderIssueDetail(issueId) {
       if (isReply) {
         html += `<span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
       }
-      html += `<span class="text-xs text-gray-400">${c.createdAt}</span>`;
+      html += `<span class="text-xs text-gray-500">${c.createdAt}</span>`;
       html += `</div>`;
       html += `<p class="text-xs text-gray-600">${c.body}</p>`;
       html += `</div>`;
@@ -627,7 +627,7 @@ function renderDraftRow(d) {
       </div>
     `;
   }
-  return `<div class="text-xs text-gray-400">未知草稿类型 ${DRAFT_TYPE_LABELS[d.type] || d.type}</div>`;
+  return `<div class="text-xs text-gray-500">未知草稿类型 ${DRAFT_TYPE_LABELS[d.type] || d.type}</div>`;
 }
 
 function bindDraftEvents() {

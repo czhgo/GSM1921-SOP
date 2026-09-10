@@ -9,10 +9,17 @@
 import { showToast } from '../../../core/utils.js?v=20260910a';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260910a';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260910a';
-import { REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260910a';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260910a';
 import { HandoffStore } from '../../../services/handoff.js?v=20260910a';
+import { PersonStore } from '../../../services/person.js?v=20260910a';
 import { openFormModal } from '../../../components/modal.js?v=20260910a';
 import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260910a';
+
+// 发展推进覆盖（组织台「发展数据」同源 localStorage 键）：成员 developStage + entryDate 派生发展节点提醒
+const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
+function _loadDevStageOverrides() {
+  try { return JSON.parse(localStorage.getItem(DEV_STAGE_OVERRIDES_KEY) || '{}'); } catch { return {}; }
+}
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
@@ -33,6 +40,12 @@ function _handleTodoAction(todo, ctx) {
   // member-approve 实时批量组：审批动作承载于左列批量块（勾选 → 「通过 N 项」）
   if (actionKey === 'member-approve') {
     showToast('info', '成员变更审批：在左列批量块勾选后点击「通过 N 项」，或点行进详情查看');
+    return;
+  }
+  // develop-node-remind 实时组：期满成员 → 直达「发展数据」tab 办理下一节点
+  if (actionKey === 'develop-node-remind') {
+    document.querySelector('.org-tab-btn[data-org-tab="development"]')?.click();
+    showToast('info', '已跳转到发展数据，请办理期满成员的下一节点');
     return;
   }
   // 根据 actionType 跳转到对应 tab
@@ -58,23 +71,33 @@ function _handleTodoAction(todo, ctx) {
 }
 
 /** 2026-09-08 裁决批一（D1/D3）：成员变更审批实时组（议程派生 pending-org-approval）——
- * 组带 bulkHtml（域内批量审批块，来源徽标=议程）；组行点行进详情，批量勾选「通过 N 项」。 */
+ * 组带 bulkHtml（域内批量审批块，来源徽标=议程）；组行点行进详情，批量勾选「通过 N 项」。
+ * 2026-09-10 增补：发展节点提醒实时组（组织委员流程指南附录A：培养考察期满/预备期满），
+ * 由 buildDevelopNodeRemindGroup 纯派生（成员 developStage + entryDate），域=成员发展。 */
 function _buildOrgRealtimeGroups(ctx) {
+  const groups = [];
   const pending = (getCachedMemberChangeRequests() || []).filter(r => r.status === 'pending-org-approval');
-  if (!pending.length) return [];
-  const rows = buildMcBulkRows('org-approve');
-  return [{
-    groupKey: 'org-commissioner:member-approve',
-    actionKey: 'member-approve',
-    // IA-C1 Task2：实时组标注业务域（成员发展；member-confirm 同域键复用）
-    domain: REALTIME_GROUP_DOMAIN['member-confirm'],
-    title: '成员变更待审批',
-    flow: '议程记录通过 → 组织委员审批（批量/逐项）→ 广播全体支委 → 书记确认更新阶段',
-    count: rows.length,
-    items: pending,
-    hideActionBtn: true,
-    bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'org-approve', accent: ctx?.accent }),
-  }];
+  if (pending.length) {
+    const rows = buildMcBulkRows('org-approve');
+    groups.push({
+      groupKey: 'org-commissioner:member-approve',
+      actionKey: 'member-approve',
+      // IA-C1 Task2：实时组标注业务域（成员发展；member-confirm 同域键复用）
+      domain: REALTIME_GROUP_DOMAIN['member-confirm'],
+      title: '成员变更待审批',
+      flow: '议程记录通过 → 组织委员审批（批量/逐项）→ 广播全体支委 → 书记确认更新阶段',
+      count: rows.length,
+      items: pending,
+      hideActionBtn: true,
+      bulkHtml: renderMcBulkRowsHtml(rows, { mode: 'org-approve', accent: ctx?.accent }),
+    });
+  }
+  const devGroup = buildDevelopNodeRemindGroup({
+    members: PersonStore.getMembers(),
+    overrides: _loadDevStageOverrides(),
+  });
+  if (devGroup) groups.push(devGroup);
+  return groups;
 }
 
 export const { renderContent } = createTodoTab({
@@ -94,9 +117,9 @@ export const { renderContent } = createTodoTab({
     <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 min-w-0">
         <span class="font-title-cn text-sm font-bold text-gray-800 flex-shrink-0">数据交接·考察建档</span>
-        <span class="text-[11px] text-gray-400 truncate">纪检→组织 考察记录提交：确认位=「考察」域折组行内「确认接收」</span>
+        <span class="text-[11px] text-gray-500 truncate">纪检→组织 考察记录提交：确认位=「考察」域折组行内「确认接收」</span>
       </div>
-      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
+      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
     </div>`,
   bindExtras: (container, ctx) => {
     // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）

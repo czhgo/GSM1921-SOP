@@ -72,7 +72,7 @@ if (!me) {
       <a href="./login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;">去登录</a>
       <a href="./index.html" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>
     </div>
-    <p class="text-[11px] text-gray-400 mt-3">开发演示：本地访问可用 <code class="text-[10px] bg-gray-100 px-1 py-0.5 rounded">?dev=party-staff</code> 或 <code class="text-[10px] bg-gray-100 px-1 py-0.5 rounded">?dev=secretary</code> 快速进入。</p>`);
+    <p class="text-[11px] text-gray-600 mt-3">开发演示：本地访问可用 <code class="text-[10px] bg-gray-100 px-1 py-0.5 rounded">?dev=party-staff</code> 或 <code class="text-[10px] bg-gray-100 px-1 py-0.5 rounded">?dev=secretary</code> 快速进入。</p>`);
 } else if (me.role === 'party-staff') {
   // 权限轨 B：党委（party-staff）→ 任意支部可选
   const target = reqBranch && getBranchById(reqBranch) ? reqBranch : null;

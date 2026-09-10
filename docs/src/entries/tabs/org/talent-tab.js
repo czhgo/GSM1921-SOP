@@ -86,7 +86,7 @@ function _devTip(person, counts, ctx) {
         return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期已满（${String(ch.at).slice(0, 10)} 起满一年），可启动转正流程`, jump: true };
       }
       if (months >= 9) {
-        return { cls: 'bg-green-50 text-green-600 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true };
+        return { cls: 'bg-green-50 text-green-700 border border-green-100', text: `预备期将满（${String(ch.at).slice(0, 10)} 起），可筹备转正申请`, jump: true };
       }
     }
   }
@@ -144,11 +144,11 @@ export function renderContent(ctx) {
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-semibold text-gray-800">${esc(p.name)}</span>
               <span class="text-[11px] px-1.5 py-0.5 rounded-full ${badgeCls}">${esc(p.developStage || s)}</span>
-              ${p.partyGroup ? `<span class="text-[11px] text-gray-400">${esc(p.partyGroup)}</span>` : ''}
+              ${p.partyGroup ? `<span class="text-[11px] text-gray-500">${esc(p.partyGroup)}</span>` : ''}
               ${_residenceChipHtml(p)}
             </div>
             ${last ? `
-              <div class="text-[11px] text-gray-400 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
+              <div class="text-[11px] text-gray-500 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
                 最近考察：${esc(_truncate(last.content || last.role || '', 28))}${last.recordedAt ? `（${esc(String(last.recordedAt).slice(0, 10))}）` : ''}
               </div>` : ''}
             ${tip ? (tip.jump
@@ -162,7 +162,7 @@ export function renderContent(ctx) {
           <div class="flex items-center gap-2 mb-2">
             <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:${dot};"></span>
             <span class="text-xs font-bold text-gray-700">${esc(s)}</span>
-            <span class="text-xs text-gray-400 tabular-nums">${members.length} 人</span>
+            <span class="text-xs text-gray-500 tabular-nums">${members.length} 人</span>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">${cardsHtml}</div>
         </div>`;
@@ -179,12 +179,12 @@ export function renderContent(ctx) {
           <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>
         </div>
       </div>
-      <div class="text-[11px] text-gray-400 leading-relaxed bg-gray-50 rounded-lg p-2.5 mb-1">
+      <div class="text-[11px] text-gray-500 leading-relaxed bg-gray-50 rounded-lg p-2.5 mb-1">
         人才库 = <b>发展观察</b>（只读画像，按发展阶段分组）——发展提示数据驱动推算（逐人考察 / 思想汇报明细见「发展数据」）。
         成员档案维护（新增 / 编辑 / 阶段 / 在册 / 滞留报送确权）= 「成员名册」（唯一全量写位）；
         发展推进与阶段变更 = 「发展数据」；思想汇报初阅 = 「思想汇报」；本页读侧数据不动写。
       </div>
-      ${stageGroupsHtml || '<p class="text-xs text-gray-400 text-center py-8">暂无成员档案</p>'}
+      ${stageGroupsHtml || '<p class="text-xs text-gray-500 text-center py-8">暂无成员档案</p>'}
     </div>`;
 
   // 「转正提示」→ 切「发展数据」tab 并定位该成员卡片（T-279 development-tab 定位）

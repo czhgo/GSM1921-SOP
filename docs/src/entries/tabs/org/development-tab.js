@@ -124,9 +124,9 @@ export function renderContent(ctx) {
       const sc = STAGE_COLOR[s];
       const count = stageCounts[s];
       const arrow = idx < STAGE_ORDER.length - 1
-        ? `<span class="text-gray-300 mx-0.5">→</span>`
+        ? `<span class="text-gray-500 mx-0.5">→</span>`
         : '';
-      return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[12px] text-gray-600">${s}</span><span class="text-xs font-bold" style="color:${sc.dot};">${count}</span></span>${arrow}`;
+      return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[12px] text-gray-600">${s}</span><span class="text-xs font-bold" style="--acc-text-dark:${sc.dot};color:color-mix(in srgb, ${sc.dot} 60%, #000);">${count}</span></span>${arrow}`;
     }).join('');
 
     // 筛选按钮
@@ -143,15 +143,15 @@ export function renderContent(ctx) {
 
     // 候选人卡片
     const cardsHtml = filtered.length === 0
-      ? '<p class="text-xs text-gray-400 text-center py-8">当前筛选无候选人</p>'
+      ? '<p class="text-xs text-gray-500 text-center py-8">当前筛选无候选人</p>'
       : filtered.map(c => {
           const sc = STAGE_COLOR[c.stage];
           const stageIdx = STAGE_ORDER.indexOf(c.stage);
           const isLast = stageIdx === STAGE_ORDER.length - 1;
           const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
           const advanceBtn = !isLast
-            ? `<button class="dev-advance-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
-            : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-600 border border-green-200">已转正</span>`;
+            ? `<button class="dev-advance-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-candidate-id="${c.id}" data-next-stage="${nextStage}">推进至${nextStage}</button>`
+            : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-200">已转正</span>`;
 
           // 进度条（当前阶段高亮）
           const progressDots = STAGE_ORDER.map((s, i) => {
@@ -167,8 +167,8 @@ export function renderContent(ctx) {
                   <div class="text-sm font-semibold text-gray-800">${c.name}</div>
                   <div class="flex items-center flex-wrap gap-2 mt-1">
                     <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
-                    ${c.partyGroup ? `<span class="text-xs text-gray-400">${c.partyGroup}</span>` : ''}
-                    <span class="text-xs text-gray-400">进入当前阶段：${c.entryDate}</span>
+                    ${c.partyGroup ? `<span class="text-xs text-gray-500">${c.partyGroup}</span>` : ''}
+                    <span class="text-xs text-gray-500">进入当前阶段：${c.entryDate}</span>
                     ${c.meeting ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" title="来源会议（只读）">来源会议：${c.meeting.title}${c.meeting.date ? `（${c.meeting.date}）` : ''} · ${c.meeting.result}</span>` : ''}
                     ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
                     ${c.reportCount > 0
@@ -188,7 +188,7 @@ export function renderContent(ctx) {
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
-          <span class="text-xs text-gray-400">${candidates.length} 人</span>
+          <span class="text-xs text-gray-500">${candidates.length} 人</span>
         </div>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">

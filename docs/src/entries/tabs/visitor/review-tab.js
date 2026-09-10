@@ -73,7 +73,7 @@ export function renderContent(ctx) {
     const { act, rev } = item;
     const isPending = bucket === 'pending';
     const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
-    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
+    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
     const isExpanded = _reviewExpandedId === act.id;
     const orgName = act.organizer ? (PEOPLE.find(p => p.id === act.organizer)?.name || act.organizer) : '—';
     // 展开区（复盘填写表单 / 复盘详情）常驻 DOM，展开态由 hidden 控制（保态折叠 2026-09-06）：
@@ -94,7 +94,7 @@ export function renderContent(ctx) {
           </div>
           <div class="flex items-center gap-2 ml-4">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-500">需修改</span>' : ''}
+            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-600">需修改</span>' : ''}
           </div>
         </div>
         ${bodyHtml}
@@ -106,22 +106,22 @@ export function renderContent(ctx) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">我的复盘</h3>
-        <span class="text-xs text-gray-400">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
+        <span class="text-xs text-gray-500">我担任组织者/深度参与者的活动 · 提交人即组织者</span>
       </div>
       <div class="text-xs text-gray-500 mb-4">提交活动复盘总结 → 纪检委员批注/确认 → 活动闭环</div>
 
       <div class="mb-4">
-        <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-2" id="visitor-review-pending">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无待复盘活动</p>' :
+          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-3">暂无待复盘活动</p>' :
             pending.map(item => renderActivityCard(item, 'pending')).join('')}
         </div>
       </div>
 
       <div class="pt-3 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
         <div class="space-y-2" id="visitor-review-completed">
-          ${completed.length === 0 ? '<p class="text-xs text-gray-400 text-center py-3">暂无已复盘活动</p>' :
+          ${completed.length === 0 ? '<p class="text-xs text-gray-500 text-center py-3">暂无已复盘活动</p>' :
             completed.map(item => renderActivityCard(item, 'completed')).join('')}
         </div>
       </div>
@@ -209,7 +209,7 @@ function _renderReviewForm(act, rev, accent, accentBorder) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       ${isRejected && rev.annotation ? `
         <div class="mb-2 p-2 rounded-lg bg-red-50 border border-red-100">
-          <div class="text-xs text-red-500 font-bold mb-1">纪检委员批注</div>
+          <div class="text-xs text-red-600 font-bold mb-1">纪检委员批注</div>
           <div class="text-xs text-red-700">${rev.annotation}</div>
         </div>
       ` : ''}
@@ -220,7 +220,7 @@ function _renderReviewForm(act, rev, accent, accentBorder) {
       </div>
       <div class="flex items-center gap-2 mt-2">
         <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交复盘</button>
-        <span class="text-xs text-gray-400">提交后纪检委员将在监督复盘tab收到通知</span>
+        <span class="text-xs text-gray-500">提交后纪检委员将在监督复盘tab收到通知</span>
       </div>
     </div>
   `;
@@ -236,7 +236,7 @@ function _renderReviewDetail(rev) {
         <div class="flex items-center gap-1.5 text-[11px] text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#F59E0B;"></span>提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
-      ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
+      ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
         <div class="mt-2 p-2 rounded-lg border border-blue-200" style="border-left:3px solid #3B82F6;">
           <div class="flex items-center gap-1.5 text-xs text-blue-600 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#3B82F6;"></span>纪检委员批注</div>

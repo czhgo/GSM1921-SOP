@@ -48,7 +48,7 @@ export function renderContent(ctx) {
       <div class="text-xs font-bold text-gray-600 mb-3">上传考察表单</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">来源类型 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">来源类型 <span class="text-red-600">*</span></label>
           <select id="insp-source-type" class="input-flat w-full">
             <option value="">请选择来源类型</option>
             <option value="activity">活动</option>
@@ -56,14 +56,14 @@ export function renderContent(ctx) {
           </select>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择具体来源 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择具体来源 <span class="text-red-600">*</span></label>
           <select id="insp-source-select" class="input-flat w-full" disabled>
             <option value="">请先选择来源类型</option>
           </select>
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-600">*</span></label>
         <div id="insp-person-picker-container"></div>
       </div>
       <div id="insp-content-rows" class="mb-3"></div>
@@ -78,7 +78,7 @@ export function renderContent(ctx) {
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
-        <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}

@@ -42,30 +42,30 @@ export function renderIssueForm() {
 
       <div class="space-y-4">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
           <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="一句话说清反馈的核心">
         </div>
 
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
           <textarea id="form-body" rows="6" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-red-600">*</span></label>
             <select id="form-scope" class="input-flat w-full text-sm rounded-lg p-2 font-sans">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">类型（多选）<span class="text-red-600">*</span></label>
             <div class="space-y-1">
               ${TYPE_OPTIONS.map(t => `
                 <label class="flex items-center gap-2 text-xs cursor-pointer font-sans">
                   <input type="checkbox" name="form-type" value="${t.value}" class="rounded">
-                  <span class="badge" style="background:${t.color}15;color:${t.color};--acc-bg-dark:${t.darkColor}24;--acc-text-dark:${t.darkColor}">${t.label}</span>
+                  <span class="badge" style="background:${t.color}15;color:color-mix(in srgb, ${t.color} 60%, #000);--acc-bg-dark:${t.darkColor}24;--acc-text-dark:${t.darkColor}">${t.label}</span>
                 </label>
               `).join('')}
             </div>

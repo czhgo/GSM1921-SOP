@@ -58,7 +58,7 @@ async function openReportModal() {
     <div class="card rounded-xl p-5 w-full" style="max-width:480px;margin:16px;">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
-        <button type="button" class="report-modal-close text-xs text-gray-400 hover:text-gray-600 transition-colors">关闭</button>
+        <button type="button" class="report-modal-close text-xs text-gray-500 hover:text-gray-600 transition-colors">关闭</button>
       </div>
       <p class="text-xs text-gray-500 mb-3">汇报将发往书记，答复后发回给你。请选择分类并填写内容。</p>
       <div class="flex items-center gap-2 mb-3">

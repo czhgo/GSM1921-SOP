@@ -218,14 +218,14 @@ export class DecisionTreeState {
   /** 渲染 SOP 预览（leader 专用） */
   renderSopPreview() {
     const { L1 } = this.selections;
-    if (!L1) return '<p class="text-gray-400">请先选择组织场景</p>';
+    if (!L1) return '<p class="text-gray-500">请先选择组织场景</p>';
 
     const scenarioId = this.getScenarioId();
     const scenario = getScenario(scenarioId);
-    if (!scenario) return '<p class="text-gray-400">未找到对应SOP模板</p>';
+    if (!scenario) return '<p class="text-gray-500">未找到对应SOP模板</p>';
 
     const tasks = scenario.tasks.filter(t => t.timeOffset !== null);
-    if (tasks.length === 0) return '<p class="text-gray-400">该场景无时间锚点任务</p>';
+    if (tasks.length === 0) return '<p class="text-gray-500">该场景无时间锚点任务</p>';
 
     const phases = [
       { label: '会前准备', test: t => t.timeOffset < 0 },
@@ -241,11 +241,11 @@ export class DecisionTreeState {
           <div class="font-medium text-gray-700 mb-1">${phase.label}（${phaseTasks.length}项）</div>
           ${phaseTasks.slice(0, 4).map(t => `
             <div class="pl-2 py-0.5 flex items-center gap-1">
-              <span class="text-gray-300">·</span>
+              <span class="text-gray-500">·</span>
               <span>T${t.timeOffset >= 0 ? '+' : ''}${t.timeOffset} ${t.title}</span>
             </div>
           `).join('')}
-          ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-400">...及其他${phaseTasks.length - 4}项</div>` : ''}
+          ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-500">...及其他${phaseTasks.length - 4}项</div>` : ''}
         </div>
       `;
     }).join('');
@@ -295,7 +295,7 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
       renderWorkflow(contentEl, definitionId, false);
     } catch (err) {
       console.warn(`[decision-tree] renderWorkflow failed:`, err);
-      contentEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">工作流渲染失败</p>';
+      contentEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">工作流渲染失败</p>';
     }
   }
 

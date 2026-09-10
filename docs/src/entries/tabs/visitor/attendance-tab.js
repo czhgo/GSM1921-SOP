@@ -35,14 +35,14 @@ export function renderContent(ctx) {
     const myMakeupTasks = loadMakeupTasks().filter(t => t.personId === meId);
     listEl.innerHTML = `
       <div class="space-y-2">
-        ${filtered.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">无匹配考勤数据</p>' :
+        ${filtered.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">无匹配考勤数据</p>' :
           filtered.map(act => {
             const records = loadActiveAttendanceRecords().filter(r => r.activityId === act.id);
             // 出勤口径统一（2026-08-07）：已补（made_up）计入出勤，与书记概况出勤率一致
             const present = records.filter(r => r.status === 'present' || r.status === 'made_up').length;
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-            const rateColor = rate >= 90 ? 'text-green-600' : rate >= 70 ? 'text-amber-600' : 'text-red-600';
+            const rateColor = rate >= 90 ? 'text-green-700' : rate >= 70 ? 'text-amber-700' : 'text-red-600';
             const myRecord = meId ? records.find(r => r.personId === meId) : null;
             const myMakeup = myMakeupTasks.find(t => t.activityId === act.id && t.status === 'pending');
             return `
@@ -50,7 +50,7 @@ export function renderContent(ctx) {
                 <div class="flex items-center justify-between p-3">
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">${act.title}</p>
-                    <p class="text-xs text-gray-400">${act.date}</p>
+                    <p class="text-xs text-gray-500">${act.date}</p>
                   </div>
                   <div class="text-xs font-medium ${rateColor}">出勤 ${present}/${total} · ${rate}%</div>
                 </div>
@@ -60,10 +60,10 @@ export function renderContent(ctx) {
                 </div>
                 <div class="visitor-att-detail hidden px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}">
                   <div class="text-[12px] text-gray-600 space-y-0.5">
-                    <div>我的出勤：${myRecord ? `<span class="font-medium text-gray-800">${ATTENDANCE_STATUS_LABELS[myRecord.status] || myRecord.status}</span>${myRecord.status === AttendanceStatus.ABSENT || myRecord.status === AttendanceStatus.LEAVE ? `（${myRecord.overdue ? '已超期' : '待补'}）` : ''}` : '<span class="text-gray-400">无你的出勤记录</span>'}</div>
+                    <div>我的出勤：${myRecord ? `<span class="font-medium text-gray-800">${ATTENDANCE_STATUS_LABELS[myRecord.status] || myRecord.status}</span>${myRecord.status === AttendanceStatus.ABSENT || myRecord.status === AttendanceStatus.LEAVE ? `（${myRecord.overdue ? '已超期' : '待补'}）` : ''}` : '<span class="text-gray-500">无你的出勤记录</span>'}</div>
                     ${myRecord && myRecord.absenceReason ? `<div>未到标因：${absenceReasonLabel(myRecord.absenceReason)}</div>` : ''}
                     ${myMakeup ? `<div>补课截止：${myMakeup.deadline || '—'}${myMakeup.isMandatory ? '（必修：自学+心得）' : '（选修：自学）'}</div>` : ''}
-                    ${myMakeup ? `<div>补课说明：${myMakeup.proofContent ? `<span class="text-gray-700 whitespace-pre-wrap">${myMakeup.proofContent}</span>` : '<span class="text-gray-400">未提交</span>'}</div>` : ''}
+                    ${myMakeup ? `<div>补课说明：${myMakeup.proofContent ? `<span class="text-gray-700 whitespace-pre-wrap">${myMakeup.proofContent}</span>` : '<span class="text-gray-500">未提交</span>'}</div>` : ''}
                   </div>
                 </div>
               </div>

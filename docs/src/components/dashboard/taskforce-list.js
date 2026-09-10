@@ -11,7 +11,7 @@ const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
   active:     { text: '运行中', cls: 'bg-green-100 text-green-700' },
   completed:  { text: '已完结', cls: 'bg-gray-100 text-gray-600' },
-  draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-500' },
+  draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-600' },
 };
 
 /** 渲染首页专班列表（活跃/招募中，前 5 条，新者在前） */
@@ -26,7 +26,7 @@ export function renderTaskforceList(taskforces) {
   const display = active.slice(0, 5);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400">暂无活跃专班</p>';
+    container.innerHTML = '<p class="text-sm text-gray-500">暂无活跃专班</p>';
     return;
   }
 
@@ -48,12 +48,12 @@ export function renderTaskforceList(taskforces) {
             <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div class="h-full rounded-full" style="width:${pct}%;background:${barColor};transition:width 0.3s;"></div>
             </div>
-            <span class="text-xs text-gray-400 whitespace-nowrap">${filled}/${r.capacity}</span>
+            <span class="text-xs text-gray-500 whitespace-nowrap">${filled}/${r.capacity}</span>
           </div>
         </div>
         <div class="text-right whitespace-nowrap flex-shrink-0">
-          <p class="text-xs text-gray-400">发起: ${getPersonName(r.initiator)}</p>
-          ${r.deadline ? `<p class="text-xs text-gray-400">截止 ${r.deadline}</p>` : ''}
+          <p class="text-xs text-gray-500">发起: ${getPersonName(r.initiator)}</p>
+          ${r.deadline ? `<p class="text-xs text-gray-500">截止 ${r.deadline}</p>` : ''}
         </div>
       </div>
     `;

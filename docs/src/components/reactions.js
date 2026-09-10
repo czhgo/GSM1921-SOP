@@ -30,7 +30,7 @@ export function renderReactions(issue) {
         // 深色双套色：选中 = 提亮底/亮字；未选中 = 深灰底/亮灰字（配合 styles.css --acc-*-dark 规则）
         const dk = isActive ? accDarkParts(r.activeColor) : null;
         const style = isActive
-          ? `--acc-bg-dark:${dk.bg};--acc-text-dark:${dk.text};--acc-border-dark:${dk.border};background:${r.activeColor}20;color:${r.activeColor};border:1px solid ${r.activeColor}40;`
+          ? `--acc-bg-dark:${dk.bg};--acc-text-dark:${dk.text};--acc-border-dark:${dk.border};background:${r.activeColor}20;color:color-mix(in srgb, ${r.activeColor} 60%, #000);border:1px solid ${r.activeColor}40;`
           : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:#F3F4F6;color:#6B7280;border:1px solid transparent;`;
         return `
           <button class="reaction-btn px-2 py-0.5 rounded-full text-xs flex items-center gap-1 transition-colors hover:bg-gray-100"

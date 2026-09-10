@@ -26,9 +26,10 @@ import { getAppliedAccentColors } from '../../../core/theme.js?v=20260910a';
 import { badgeHtml } from '../../../components/badges.js?v=20260910a';
 import { collectAgendaRows } from './agenda-form.js?v=20260910a';
 import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260910a';
-import { getAdapter } from '../../../core/data-adapter.js?v=20260910a';
 import { AuthStore } from '../../../services/auth.js?v=20260910a';
 import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260910a';
+// 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260910a';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
 import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260910a';
 
@@ -79,10 +80,10 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', to
       <div class="flex items-center gap-2">
         <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
         <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
-        <button type="button" data-action="agenda-remove" class="text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" title="删除该条">✕</button>
+        <button type="button" data-action="agenda-remove" class="text-gray-500 hover:text-red-600 text-sm px-1 shrink-0" title="删除该条">✕</button>
       </div>
       <div class="flex items-center gap-1.5">
-        <span class="text-[11px] text-gray-400 shrink-0">类型</span>
+        <span class="text-[11px] text-gray-500 shrink-0">类型</span>
         ${AGENDA_KIND_CHIPS.map((c) => `
           <button type="button" data-kind="${c.kind}" class="wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
         `).join('')}
@@ -91,7 +92,7 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', to
         <select class="wp-agenda-doc input-flat w-full text-xs">
           <option value="">加载会前草案…</option>
         </select>
-        <p class="wp-agenda-doc-hint text-[11px] text-gray-400 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
+        <p class="wp-agenda-doc-hint text-[11px] text-gray-500 mt-1 hidden">暂无会前草案，<a href="search.html" target="_blank" class="text-blue-600 hover:text-blue-800">去资料查询写入 →</a></p>
       </div>
       <div class="wp-agenda-member-slot flex items-center gap-2${memberVisible}">
         <select class="wp-agenda-to input-flat w-32 shrink-0">${targetOptions}</select>
@@ -123,7 +124,7 @@ const CALENDAR_TAB_HTML = `
         <div id="calendar-legend" class="mt-3"></div>
       </div>
       <div id="inspector-container" class="lg:col-span-2 rounded-xl bg-gray-50/50 border border-gray-100 p-3">
-        <div id="inspector-default" class="text-sm text-gray-400 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
+        <div id="inspector-default" class="text-sm text-gray-500 text-center py-8">点击日期查看活动详情，或点击活动条目直接进入详情</div>
         <div id="inspector-content" class="hidden">
           <h4 id="inspector-date-title" class="font-title-cn text-sm font-bold text-gray-800 mb-3"></h4>
           <div id="inspector-cards"></div>
@@ -138,7 +139,7 @@ const CALENDAR_TAB_HTML = `
   <div class="card rounded-xl">
     <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查询</h3>
-      <svg id="query-toggle-icon" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg id="query-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
       </svg>
     </button>
@@ -315,11 +316,11 @@ function _attendanceSummaryHtml(actId, recordsByActivity) {
     if (r.detainedMakeup) detained += 1;
   }
   const parts = [`应到 ${records.length}`, `实到 ${present}`];
-  if (absent > 0) parts.push('<span class="text-red-500">缺勤 ' + absent + '</span>');
+  if (absent > 0) parts.push('<span class="text-red-600">缺勤 ' + absent + '</span>');
   if (leave > 0) parts.push('<span class="text-orange-500">请假 ' + leave + '</span>');
   if (madeUp > 0) parts.push('<span class="text-teal-600">补课 ' + madeUp + '</span>');
   if (detained > 0) parts.push('<span class="text-blue-600">滞留补录 ' + detained + '</span>');
-  return `<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">考勤：${parts.join(' · ')}</div>`;
+  return `<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">考勤：${parts.join(' · ')}</div>`;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -394,9 +395,9 @@ function renderWritePanel(container) {
   // 面包屑（替代原 5 步指示器）
   const step1Active = wp.step === 1;
   html += `<div class="flex items-center gap-2 mb-5 text-xs">`;
-  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-400'}">① 选模板</span>`;
-  html += `<span class="text-gray-300">›</span>`;
-  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-400'}">② 填表单</span>`;
+  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-500'}">① 选模板</span>`;
+  html += `<span class="text-gray-500">›</span>`;
+  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-500'}">② 填表单</span>`;
   html += `</div>`;
 
   // 当前步骤内容
@@ -408,7 +409,7 @@ function renderWritePanel(container) {
 
   // 返回按钮（step 2 时显示，返回 step 1 重选模板）
   if (wp.step > 1) {
-    html += `<button data-action="wp-back" class="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-1">`;
+    html += `<button data-action="wp-back" class="mt-4 text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1">`;
     html += icon('chevronLeft', { className: 'w-3 h-3' });
     html += `返回选模板</button>`;
   }
@@ -463,7 +464,7 @@ function renderTemplateStep() {
   html += `</div>`;
   html += `</div>`;
   if (!themeBlockOn) {
-    html += `<p class="mt-3 text-[11px] text-gray-400">工作流块「主题党日组织块」已由支部配置停用——党委台「支部配置 · 工作流块」可恢复。</p>`;
+    html += `<p class="mt-3 text-[11px] text-gray-500">工作流块「主题党日组织块」已由支部配置停用——党委台「支部配置 · 工作流块」可恢复。</p>`;
   }
   return html;
 }
@@ -503,26 +504,26 @@ function renderFormStep() {
   const titleRequired = titleField ? !!titleField.required : true;
   const titleHint = titleField?.hint || '';
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-500">*</span>' : ''}</label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-600">*</span>' : ''}</label>`;
   html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="${titleLabel}">`;
-  if (titleHint) html += `<p class="text-[11px] text-gray-400 mt-1">${titleHint}</p>`;
+  if (titleHint) html += `<p class="text-[11px] text-gray-500 mt-1">${titleHint}</p>`;
   html += `</div>`;
 
   // 日期 + 时间
   html += `<div class="grid grid-cols-2 gap-3 mb-3">`;
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-600">*</span></label>`;
   html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
   html += `</div>`;
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
   html += `<input type="text" id="wp-time" class="input-flat w-full" placeholder="如 14:00-16:00">`;
   html += `</div>`;
   html += `</div>`;
 
   // 地点（必填）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-600">*</span></label>`;
   html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
   html += `</div>`;
 
@@ -533,7 +534,7 @@ function renderFormStep() {
 
   // 主持人（默认当前用户）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
   html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
   html += `</div>`;
 
@@ -548,7 +549,7 @@ function renderFormStep() {
   // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
   if (tpl.category === 'three-meetings') {
     html += `<div class="mb-3 card rounded-xl p-4">`;
-    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-300">（选填；类型可多选）</span></label>`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-500">（选填；类型可多选）</span></label>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
     html += _agendaRowHTML();
@@ -562,7 +563,7 @@ function renderFormStep() {
   if (tpl.category === 'theme-day') {
   const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌 <span class="text-gray-500">（选填）</span></label>`;
   html += `<div class="flex gap-2">`;
   html += `<button type="button" data-wp-brand="none" class="wp-brand-chip wp-brand-on text-xs px-3 py-1.5 rounded-lg border transition-colors">非品牌</button>`;
   html += `<button type="button" data-wp-brand="inherit" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">延续已有品牌</button>`;
@@ -579,20 +580,20 @@ function renderFormStep() {
 
   // 备注
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-300">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-500">（选填）</span></label>`;
   html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
   html += `</div>`;
 
   // 参与人选择（选填，多选，2026-08-05 与「发布专班招募」表单对齐）
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与人 <span class="text-gray-300">（选填，可多选）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与人 <span class="text-gray-500">（选填，可多选）</span></label>`;
   html += `<div id="wp-participants-slot"></div>`;
   html += `</div>`;
 
   // 自动发布通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
   // 自定义折叠（不用原生 details：保证跨浏览器折叠行为一致）
   html += `<div class="mb-4">`;
-  html += `<div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，创建活动后立即通知全体成员）</div>`;
+  html += `<div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，创建活动后立即通知全体成员）</div>`;
   html += `<div class="mt-2 space-y-3">`;
   html += `<div>`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题</label>`;
@@ -607,7 +608,7 @@ function renderFormStep() {
 
   // 高级选项（折叠）
   html += `<div class="mb-4">`;
-  html += `<div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">高级选项（发起方向 / 时长）</div>`;
+  html += `<div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">高级选项（发起方向 / 时长）</div>`;
   html += `<div class="mt-2 grid grid-cols-2 gap-3">`;
   // 发起方向
   html += `<div>`;
@@ -670,7 +671,7 @@ function renderThemeDayDimensions() {
 
   // 维度3 活动载体（多选）
   html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-300">（可多选）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-500">（可多选）</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   dims.carriers.forEach(opt => {
     html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
@@ -704,7 +705,7 @@ function renderVoteConfigSection(scenarioId) {
   if (scenarioId === 'branch-committee') {
     // 支委会：参与范围固定支委（只读文案，无选择项）
     html += `<p class="text-xs text-gray-600">参与范围：支委（${countOf('committee')} 人）</p>`;
-    html += `<p class="text-xs text-gray-400 mt-1">名单按现时「在校/滞留」状态自动剔除滞留支委；创建时固化快照</p>`;
+    html += `<p class="text-xs text-gray-500 mt-1">名单按现时「在校/滞留」状态自动剔除滞留支委；创建时固化快照</p>`;
   } else if (scenarioId === 'branch-party-meeting') {
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与范围</label>`;
     html += `<div class="flex gap-4 pt-0.5">`;
@@ -715,8 +716,8 @@ function renderVoteConfigSection(scenarioId) {
     html += `<input type="radio" name="wp-vote-scope" value="formal-plus-prep" class="radio-accent">正式党员 + 预备党员（${countOf('formal-plus-prep')} 人）`;
     html += `</label>`;
     html += `</div>`;
-    html += `<p class="text-xs text-gray-400 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
-    html += `<p class="text-xs text-gray-400 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员，创建时锁定名单</p>`;
+    html += `<p class="text-xs text-gray-500 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
+    html += `<p class="text-xs text-gray-500 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员，创建时锁定名单</p>`;
   }
   html += `</div>`;
   html += `</div>`;
@@ -772,7 +773,8 @@ async function _hydrateDraftDocs(row) {
   if (!select) return;
   const hint = row.querySelector('.wp-agenda-doc-hint');
   try {
-    const docs = await getAdapter().branchDocs.list();
+    // 经 branch-doc 服务读（按当前归属支部过滤；党委/无归属不过滤）——勿直读 adapter 全量
+    const docs = await listBranchDocs();
     const drafts = docs.filter(d => !d.status || d.status === 'draft');
     select.innerHTML = `<option value="">${drafts.length ? '选择会前草案…' : '暂无会前草案'}</option>`
       + drafts.map(d => `<option value="${d.id}">${d.title || d.fileName || '未命名草案'}</option>`).join('');

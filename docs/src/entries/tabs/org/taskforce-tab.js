@@ -69,30 +69,30 @@ export function renderContent(ctx) {
     kb.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;--acc-text-dark:#A5B4FC;color:var(--accent-indigo);">待支委会表决 (${fp.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;--acc-text-dark:#A5B4FC;color:color-mix(in srgb, var(--accent-indigo) 60%, #000);">待支委会表决 (${fp.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
-            ${fp.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待支委会表决专班</p>' :
+            ${fp.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待支委会表决专班</p>' :
               fp.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;--acc-text-dark:#FBBF24;color:#D97706;">招募中 (${fr.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;--acc-text-dark:#FBBF24;color:color-mix(in srgb, #D97706 60%, #000);">招募中 (${fr.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
-            ${fr.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无招募中专班</p>' :
+            ${fr.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无招募中专班</p>' :
               fr.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#8B5CF6;color:var(--accent-org-commissioner-light);">运行中 (${fa.length})</div>
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#8B5CF6;--acc-text-dark:#C4B5FD;color:color-mix(in srgb, #8B5CF6 60%, #000);">运行中 (${fa.length})</div>
           <div class="p-3 space-y-3 min-h-[120px]">
-            ${fa.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无运行中专班</p>' :
+            ${fa.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无运行中专班</p>' :
               fa.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
         </div>
       </div>
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
-        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:var(--accent-blue);">已完结 (${fc.length})</summary>
+        <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:color-mix(in srgb, var(--accent-blue) 60%, #000);">已完结 (${fc.length})</summary>
         <div class="p-3 space-y-3">
           ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
         </div>
@@ -239,12 +239,12 @@ function _tfContribMetaOf(c) {
 function _tfContribStatusOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">已入档${c.verifiedBy ? ' · 核验人 ' + getPersonName(c.verifiedBy) : ''}</span>`;
+    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · 核验人 ' + getPersonName(c.verifiedBy) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-500">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
+    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
   }
-  return '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">待核</span>';
+  return '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
 /** 打开专班详情：只读信息/状态区壳层 + 各写块独立容器（分块渲染） */
@@ -260,7 +260,7 @@ function _openTfDetail(tfId, ctx) {
   panel.innerHTML = `
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">${tf.name}</h3>
     <p class="text-xs text-gray-500 mb-2">${tf.task}</p>
-    <div class="flex gap-4 text-xs text-gray-400 mb-3">
+    <div class="flex gap-4 text-xs text-gray-500 mb-3">
       <span>${filled}/${tf.capacity}</span>
       ${tf.deadline ? `<span>${tf.deadline}</span>` : ''}
       <span>发起: ${getPersonName(tf.initiator)}</span>
@@ -319,15 +319,15 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <div class="text-[12px] text-gray-400 mb-1">组织者</div>
+          <div class="text-[12px] text-gray-500 mb-1">组织者</div>
           <div id="tf-org-picker"></div>
         </div>
         <div>
-          <div class="text-[12px] text-gray-400 mb-1">深度参与者</div>
+          <div class="text-[12px] text-gray-500 mb-1">深度参与者</div>
           <div id="tf-deep-picker"></div>
         </div>
       </div>
-      <p class="text-[12px] text-gray-400 mt-2">提示：修改将同步到专班，被赋权人将收到通知。</p>
+      <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到专班，被赋权人将收到通知。</p>
     </div>`;
 
   const tfAssigns = _tfAssignsOf(tf);
@@ -386,16 +386,16 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       const contribCount = (m.contributions || []).length;
       const contribList = (m.contributions || []).length > 0
         ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
-            `<li class="text-[12px] text-gray-400 pl-2">${_tfContribTextOf(c)}<span class="text-[10px] text-gray-300">${_tfContribMetaOf(c)}</span><span class="ml-1 align-middle">${_tfContribStatusOf(c)}</span></li>`
+            `<li class="text-[12px] text-gray-500 pl-2">${_tfContribTextOf(c)}<span class="text-[10px] text-gray-500">${_tfContribMetaOf(c)}</span><span class="ml-1 align-middle">${_tfContribStatusOf(c)}</span></li>`
           ).join('')}</ul>`
-        : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
+        : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
       return `
         <div class="py-2 border-b border-gray-50 last:border-b-0">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
             <div class="flex items-center gap-2">
               ${badgeHtml(m.role || '深度参与者', 'neutral')}
-              <span class="text-xs text-gray-400">贡献 ${contribCount} 项</span>
+              <span class="text-xs text-gray-500">贡献 ${contribCount} 项</span>
             </div>
           </div>
           ${contribList}
@@ -405,7 +405,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       <div class="mt-4 pt-3 border-t border-gray-100">
         <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">工作量汇总</h5>
         ${_tfAssignsOf(tf).length === 0
-          ? '<p class="text-xs text-gray-400">暂无成员</p>'
+          ? '<p class="text-xs text-gray-500">暂无成员</p>'
           : `<div class="rounded-lg px-3 py-1">${memberRows}</div>`
         }
       </div>`;
@@ -416,8 +416,8 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       // B批 R3-2：解散走支委会表决——报送后状态不变（active），表决通过才落 dissolved
       const dissolveArea = (tfPendReq && tfPendReq.kind === 'dissolve')
         ? `<div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
-            <span class="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-600">待解散表决</span>
-            <span class="text-[11px] text-gray-400">${tfPendReq.by ? getPersonName(tfPendReq.by) : '组织委员'} ${String(tfPendReq.at || '').slice(0, 16).replace('T', ' ')} 已报送支委会表决</span>
+            <span class="text-[11px] px-2 py-1 rounded-full bg-amber-50 text-amber-700">待解散表决</span>
+            <span class="text-[11px] text-gray-500">${tfPendReq.by ? getPersonName(tfPendReq.by) : '组织委员'} ${String(tfPendReq.at || '').slice(0, 16).replace('T', ' ')} 已报送支委会表决</span>
           </div>`
         : `<div class="mt-4 pt-3 border-t border-gray-100 flex justify-end">
             <button id="btn-dissolve-tf" class="btn-md btn-md-red">报送解散表决</button>
@@ -433,7 +433,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
         });
       });
       const verifyListHtml = contribVerifyRows.length === 0
-        ? '<p class="text-[12px] text-gray-400 pl-1 py-1">暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验</p>'
+        ? '<p class="text-[12px] text-gray-500 pl-1 py-1">暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验</p>'
         : `<div class="space-y-2 max-h-56 overflow-y-auto">${contribVerifyRows.map(c => {
             const actions = c.verifiedStatus ? '' : `
               <button class="tf-contrib-verify-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:#10B981;">同意入档</button>
@@ -442,8 +442,8 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
               <div class="flex items-start gap-2 rounded-lg bg-white px-2.5 py-1.5">
                 <div class="flex-1 min-w-0">
                   <p class="text-xs text-gray-700 leading-snug">${_tfContribTextOf(c)}</p>
-                  <p class="text-[11px] text-gray-400 mt-0.5">${c._memberName}${_tfContribMetaOf(c)}</p>
-                  ${c.rejectNote ? `<p class="text-[11px] text-red-500 mt-0.5">退回原因：${c.rejectNote}</p>` : ''}
+                  <p class="text-[11px] text-gray-500 mt-0.5">${c._memberName}${_tfContribMetaOf(c)}</p>
+                  ${c.rejectNote ? `<p class="text-[11px] text-red-600 mt-0.5">退回原因：${c.rejectNote}</p>` : ''}
                 </div>
                 <div class="flex items-center gap-1.5 flex-shrink-0">${_tfContribStatusOf(c)}${actions}</div>
               </div>`;
@@ -451,8 +451,8 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       html += `
         <div class="mt-4 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
-            <h6 class="font-title-cn text-xs font-bold text-gray-600">逐条核验 <span class="text-gray-300 font-normal">· 成员填报的产出由组织委员逐条核（同意入档 / 退回补料）</span></h6>
-            <span class="text-[11px] text-gray-400">共 ${contribVerifyRows.length} 条</span>
+            <h6 class="font-title-cn text-xs font-bold text-gray-600">逐条核验 <span class="text-gray-500 font-normal">· 成员填报的产出由组织委员逐条核（同意入档 / 退回补料）</span></h6>
+            <span class="text-[11px] text-gray-500">共 ${contribVerifyRows.length} 条</span>
           </div>
           <div class="rounded-lg bg-gray-50 p-2.5">${verifyListHtml}</div>
         </div>`;
@@ -501,7 +501,7 @@ function _tfRenderContribBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <!-- 组织委员代录（兜底）：单条 desc + 选人（B批 R3-3，代录后仍需逐条核） -->
     <div class="mt-3 rounded-lg bg-white p-2.5 border border-dashed border-gray-200">
-      <div class="text-[12px] text-gray-400 mb-1">组织委员代录（兜底）<span class="text-gray-300">· 单条代录成员产出，代录后仍需逐条核</span></div>
+      <div class="text-[12px] text-gray-500 mb-1">组织委员代录（兜底）<span class="text-gray-500">· 单条代录成员产出，代录后仍需逐条核</span></div>
       <div class="flex flex-col md:flex-row gap-2">
         <div id="tf-contrib-picker" class="w-48 flex-shrink-0"></div>
         <textarea id="tf-contrib-desc" rows="1" placeholder="贡献说明（必填），如：完成活动策划与执行排期…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
@@ -568,15 +568,15 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
   const signupRows = approvedSignups.map(s => `
     <div class="flex items-center gap-2 py-1.5">
       <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
-      <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
-      ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
+      <span class="text-[11px] text-gray-500">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
+      ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${s.note}</span>` : ''}
       ${badgeHtml('已通过', 'success')}
     </div>`).join('');
   const pendingRows = isTfReviewer && pendingSignups.length > 0 ? pendingSignups.map(s => `
     <div class="flex items-center gap-2 py-1.5">
       <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
-      <span class="text-[11px] text-gray-400">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
-      ${s.note ? `<span class="text-[11px] text-gray-400 truncate max-w-[120px]">${s.note}</span>` : ''}
+      <span class="text-[11px] text-gray-500">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
+      ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${s.note}</span>` : ''}
       <span class="ml-auto flex items-center gap-1.5">
         <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${s.id}" data-approve="1" style="background:#10B981;">通过</button>
         <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
@@ -589,13 +589,13 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <div class="mt-4 pt-3 border-t border-gray-100">
       <div class="flex items-center justify-between mb-2">
-        <h6 class="font-title-cn text-xs font-bold text-gray-600">报名名单（${approvedSignups.length}）<span class="text-gray-300 font-normal">· 名额 ${filled}/${tf.capacity}</span></h6>
+        <h6 class="font-title-cn text-xs font-bold text-gray-600">报名名单（${approvedSignups.length}）<span class="text-gray-500 font-normal">· 名额 ${filled}/${tf.capacity}</span></h6>
         ${applyBtn}
       </div>
       ${approvedSignups.length === 0 && !pendingRows
-        ? '<p class="text-[12px] text-gray-300 pl-2">暂无报名</p>'
+        ? '<p class="text-[12px] text-gray-500 pl-2">暂无报名</p>'
         : `<div>${signupRows}${pendingRows}</div>`}
-      ${otherSignupTxt ? `<p class="text-[11px] text-gray-300 mt-1">${otherSignupTxt}</p>` : ''}
+      ${otherSignupTxt ? `<p class="text-[11px] text-gray-500 mt-1">${otherSignupTxt}</p>` : ''}
     </div>`;
 
   // 报名/审核（通过后写主源 members → 名额/看板计数变化 → 整页刷新，行为不变）
@@ -638,19 +638,19 @@ function _tfSubTableHtml(type, items, readOnly) {
   const rows = items.map((item, idx) => `
     <tr class="border-b border-gray-50">
       ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-      ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+      ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
     </tr>
   `).join('');
   return `
     <div class="mt-3">
       <div class="flex items-center justify-between gap-2 mb-1.5">
-        <h5 class="text-xs font-bold font-title-cn" style="color:${color}">${label} (${items.length})</h5>
+        <h5 class="text-xs font-bold font-title-cn" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000)">${label} (${items.length})</h5>
         ${readOnly
-          ? '<span class="text-[11px] text-amber-600 text-right">专班考察请统一到组织台『考察上传』录入</span>'
-          : `<button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${color};border-color:${color}40" data-type="${type}">+ 添加</button>`}
+          ? '<span class="text-[11px] text-amber-700 text-right">专班考察请统一到组织台『考察上传』录入</span>'
+          : `<button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000);border-color:${color}40" data-type="${type}">+ 添加</button>`}
       </div>
       ${items.length === 0
-        ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
+        ? '<p class="text-[12px] text-gray-500 pl-2">暂无记录</p>'
         : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
             ${fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
             ${readOnly ? '' : '<th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>'}
@@ -746,7 +746,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
     // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
     const canDel = currentUserId && (!p.by || p.by === currentUserId);
     const delBtn = canDel
-      ? `<button class="tf-progress-del-btn text-[11px] text-red-400 hover:text-red-600" data-progress-id="${p.id}">删除</button>`
+      ? `<button class="tf-progress-del-btn text-[11px] text-red-600 hover:text-red-700" data-progress-id="${p.id}">删除</button>`
       : '';
     return `
       <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
@@ -754,8 +754,8 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             ${stageTag}
-            <span class="text-[11px] text-gray-400">${fmtTpAt(p.at)}</span>
-            <span class="text-[11px] text-gray-400">${p.by ? getPersonName(p.by) : ''}</span>
+            <span class="text-[11px] text-gray-500">${fmtTpAt(p.at)}</span>
+            <span class="text-[11px] text-gray-500">${p.by ? getPersonName(p.by) : ''}</span>
             <span class="ml-auto">${delBtn}</span>
           </div>
           <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
@@ -778,11 +778,11 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
   mount.innerHTML = `
     <div class="mt-4 pt-3 border-t border-gray-100">
       <div class="flex items-center justify-between mb-1">
-        <h6 class="font-title-cn text-xs font-bold text-gray-600">中间进度 <span class="text-gray-300 font-normal">· 运行期分阶段进展</span></h6>
-        ${tfProgressList.length > 0 ? `<span class="text-[11px] text-gray-400">${tfProgressList.length} 条</span>` : ''}
+        <h6 class="font-title-cn text-xs font-bold text-gray-600">中间进度 <span class="text-gray-500 font-normal">· 运行期分阶段进展</span></h6>
+        ${tfProgressList.length > 0 ? `<span class="text-[11px] text-gray-500">${tfProgressList.length} 条</span>` : ''}
       </div>
       ${tfProgressList.length === 0
-        ? '<p class="text-[12px] text-gray-300 pl-2 mb-1">暂无中间进度记录</p>'
+        ? '<p class="text-[12px] text-gray-500 pl-2 mb-1">暂无中间进度记录</p>'
         : `<div class="mt-1">${tfProgressRows}</div>`}
       ${progressFormHtml}
     </div>`;
@@ -825,10 +825,10 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="flex items-center justify-between mb-2">
           <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
-          <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">已提交</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已提交</span>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed">${tfReviewRecord.reviewContent || '（已提交，待纪检委员批注）'}</p>
-        ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-amber-600 mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
+        ${tfReviewRecord.issues?.length ? `<p class="text-[11px] text-amber-700 mt-1">问题：${tfReviewRecord.issues.join('；')}</p>` : ''}
       </div>`;
     return;
   }
@@ -837,7 +837,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
     <div class="mt-4 pt-3 border-t border-gray-100">
       <div class="flex items-center justify-between mb-2">
         <h6 class="font-title-cn text-xs font-bold text-gray-600">专班复盘</h6>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">未提交</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">未提交</span>
       </div>
       <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="input-flat w-full resize-none"></textarea>
       <div class="flex items-center gap-2 mt-2">
@@ -950,32 +950,32 @@ function _renderTfCard(t, statusLabel, statusColor) {
     // B 档 CRUD 补全：招募中可撤销（彻底删除），误建/取消招募的专班可清理
     statusBtn = `<div class="flex gap-2 mt-2">
       <button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
     </div>`;
   } else if (t.status === 'pending_review') {
     // B批 R3-1：pending_review=已报送发起、待支委会表决；无启动按钮，可撤销删除
     statusBtn = `<div class="flex gap-2 mt-2">
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
     </div>`;
   } else if (t.status === 'active') {
     // B批 R3-2：active 专班（含已报送解散表决）仍可归档；解散报送入口在专班详情内
-    statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+    statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   } else if (t.status === 'draft') {
     // B批 R3-1：draft=表决未通过退回草稿（可修改重报）；已重新报送等待审议时仅可撤销
     const resubmitBtn = pendReq ? '' : `<button class="tf-resubmit-btn text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新报送支委会表决</button>`;
     const deleteText = pendReq ? '撤销' : '删除';
     statusBtn = `<div class="flex gap-2 mt-2">${resubmitBtn}
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
     </div>`;
   }
   return `
     <div class="kanban-card p-4 rounded-xl bg-white cursor-pointer tf-store-card hover:shadow-sm transition-shadow" data-tf-id="${t.id}">
       <div class="flex items-start justify-between gap-2 mb-2">
         <span class="text-sm font-semibold text-gray-800 leading-snug">${t.name}</span>
-        <span class="badge" style="background:${color}15;color:${color};--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${badgeText}</span>
+        <span class="badge" style="background:${color}15;color:color-mix(in srgb, ${color} 60%, #000);--acc-bg-dark:${darkColor}24;--acc-text-dark:${darkColor};">${badgeText}</span>
       </div>
       <p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity}</span>
         ${t.deadline ? `<span>${t.deadline}</span>` : ''}
       </div>
@@ -1015,54 +1015,54 @@ export function openRecruitForm(ctx) {
 
     <form id="recruit-form" autocomplete="off">
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">专班名称 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">专班名称 <span class="text-red-600">*</span></label>
         <input type="text" id="rf-name" required placeholder="如：宣传专班（第三期）" class="input-flat w-full">
       </div>
 
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">任务描述 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">任务描述 <span class="text-red-600">*</span></label>
         <textarea id="rf-task" required rows="3" placeholder="描述专班的核心任务与目标" class="input-flat w-full"></textarea>
       </div>
 
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">所需人数 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">所需人数 <span class="text-red-600">*</span></label>
           <input type="number" id="rf-capacity" required min="1" max="50" placeholder="如：5" class="input-flat w-full">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">截止日期 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">截止日期 <span class="text-red-600">*</span></label>
           <input type="date" id="rf-deadline" required class="input-flat w-full">
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">技能要求 <span class="text-gray-300">（选填）</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">技能要求 <span class="text-gray-500">（选填）</span></label>
         <input type="text" id="rf-skills" placeholder="如：视频剪辑、文案撰写" class="input-flat w-full">
       </div>
 
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-300">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期起始 <span class="text-gray-500">（选填）</span></label>
           <input type="date" id="rf-period-start" class="input-flat w-full">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期结束 <span class="text-gray-300">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">周期结束 <span class="text-gray-500">（选填）</span></label>
           <input type="date" id="rf-period-end" class="input-flat w-full">
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">初始成员 <span class="text-gray-300">（选填）</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">初始成员 <span class="text-gray-500">（选填）</span></label>
         <div id="rf-members-picker"></div>
       </div>
 
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-300">（选填）</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">说明 <span class="text-gray-500">（选填）</span></label>
         <textarea id="rf-notes" rows="2" placeholder="补充说明" class="input-flat w-full"></textarea>
       </div>
 
       <div class="mb-4">
-        <div class="wp-collapse-toggle text-xs text-gray-400 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，发布专班后立即通知全体成员）</div>
+        <div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，发布专班后立即通知全体成员）</div>
         <div class="mt-2 space-y-3">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="rf-notice-title">通知标题</label>
@@ -1248,7 +1248,7 @@ function _renderActivityProgress(activities, ctx) {
         ? badgeHtml('已归档', 'neutral')
         : badgeHtml('已发布', 'success');
       const completeBtn = !isArchived
-        ? `<button class="track-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+        ? `<button class="track-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
         : '';
       return `
         <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">

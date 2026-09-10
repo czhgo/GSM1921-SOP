@@ -78,7 +78,7 @@ function renderAssignLeaders() {
   });
 
   if (rows.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">暂无党小组组长记录</p>';
+    listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">暂无党小组组长记录</p>';
     return;
   }
   listEl.innerHTML = rows.map(({ person, record, preset }) => {
@@ -91,9 +91,9 @@ function renderAssignLeaders() {
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
             ${badgeHtml('党小组组长', 'danger')}
-            ${preset ? '<span class="text-xs text-gray-400">预设</span>' : ''}
+            ${preset ? '<span class="text-xs text-gray-500">预设</span>' : ''}
           </div>
-          <p class="text-xs text-gray-400 mt-0.5">${groupName}${record ? ' · ' + record.authorizedAt : ''}</p>
+          <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + record.authorizedAt : ''}</p>
         </div>
       </div>
     `;
@@ -230,7 +230,7 @@ function renderProjectAuthRecords() {
   );
 
   if (records.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-400">暂无项目角色赋权记录</p>';
+    listEl.innerHTML = '<p class="text-xs text-gray-500">暂无项目角色赋权记录</p>';
     return;
   }
 
@@ -246,9 +246,9 @@ function renderProjectAuthRecords() {
           <span class="text-sm font-medium text-gray-700">${personName}</span>
           <span class="text-xs text-gray-500 ml-2">${projectName}</span>
           <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
-          <span class="text-xs text-gray-400 ml-2">${r.authorizedAt || ''}</span>
+          <span class="text-xs text-gray-500 ml-2">${r.authorizedAt || ''}</span>
         </div>
-        <button type="button" class="revoke-project-auth text-xs text-gray-400 hover:text-red-600" data-record-id="${r.id}">撤销</button>
+        <button type="button" class="revoke-project-auth text-xs text-gray-500 hover:text-red-600" data-record-id="${r.id}">撤销</button>
       </div>
     `;
   }).join('');
@@ -311,13 +311,13 @@ function renderAuthPanel(assignArea) {
 
   // 1. 人员选择
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择同志 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择同志 <span class="text-red-600">*</span></label>`;
   html += `<div id="auth-person-picker-slot"></div>`;
   html += `</div>`;
 
   // 2. 党小组选择
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">指定为党小组组长 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">指定为党小组组长 <span class="text-red-600">*</span></label>`;
   html += `<div class="flex gap-2">`;
   PARTY_GROUPS.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
@@ -454,7 +454,7 @@ function renderAuthRecords() {
   });
 
   if (rows.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">暂无党小组组长记录</p>`;
+    listEl.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">暂无党小组组长记录</p>`;
     return;
   }
 
@@ -462,8 +462,8 @@ function renderAuthRecords() {
     const personName = person.name || person.targetPersonId;
     const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
     const revokeBtn = record
-      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">撤销</button>`
-      : '<span class="text-xs text-gray-300 ml-2 flex-shrink-0">预设</span>';
+      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">撤销</button>`
+      : '<span class="text-xs text-gray-500 ml-2 flex-shrink-0">预设</span>';
 
     return `
       <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
@@ -476,7 +476,7 @@ function renderAuthRecords() {
               <span class="text-sm font-medium text-gray-700">${personName}</span>
               ${badgeHtml('党小组组长', 'danger')}
             </div>
-            <p class="text-xs text-gray-400 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>
+            <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>
           </div>
         </div>
         ${revokeBtn}

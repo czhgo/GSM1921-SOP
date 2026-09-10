@@ -63,7 +63,7 @@ export function renderContent(ctx) {
   const _accVars = accDarkVars(accent);
   const _dtSelDark = accDarkParts(accent);
   const _dtBtnStyle = (selected) => selected
-    ? `--acc-bg-dark:${_dtSelDark.bg};--acc-text-dark:${_dtSelDark.text};--acc-border-dark:${_dtSelDark.border};background:${accentRgba};color:${accent};border:1.5px solid ${accentBorder};`
+    ? `--acc-bg-dark:${_dtSelDark.bg};--acc-text-dark:${_dtSelDark.text};--acc-border-dark:${_dtSelDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1.5px solid ${accentBorder};`
     : `--acc-bg-dark:#1E293B;--acc-text-dark:#CBD5E1;--acc-border-dark:#334155;background:white;color:#6B7280;border:1.5px solid #E5E7EB;`;
 
   const activities = ctx.filteredActivities || [];
@@ -79,7 +79,7 @@ export function renderContent(ctx) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">活动写入</h3>
-        <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
+        <button class="btn-md" id="btn-leader-create" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${panelVisible ? '收起面板' : '创建活动'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">可创建党小组会与主题党日活动，创建后自动生成后续待办</div>
 
@@ -88,9 +88,9 @@ export function renderContent(ctx) {
       </div>
 
       <div class="mt-4 pt-3 border-t border-gray-100">
-        <div class="text-xs text-gray-400 mb-2">已有关联活动</div>
+        <div class="text-xs text-gray-500 mb-2">已有关联活动</div>
         <div class="space-y-2" id="leader-activity-list">
-          ${display.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">暂无关联活动</p>' :
+          ${display.length === 0 ? '<p class="text-xs text-gray-500 text-center py-4">暂无关联活动</p>' :
             display.map(a => `
               <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
@@ -150,7 +150,7 @@ export function renderContent(ctx) {
         const rows = items.map((item, idx) => `
           <tr class="border-b border-gray-50">
             ${cfg.fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-            ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-400 hover:text-red-600" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+            ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="act-sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
           </tr>
         `).join('');
 
@@ -159,11 +159,11 @@ export function renderContent(ctx) {
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
               ${readOnly
-                ? `<span class="text-[11px] text-amber-600 text-right">${type === 'attendance' ? '考勤请到「考勤上传」录入' : '考察请到「考察上传」录入'}</span>`
+                ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤上传」录入' : '考察请到「考察上传」录入'}</span>`
                 : `<button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
             ${items.length === 0
-              ? '<p class="text-[12px] text-gray-300 pl-2">暂无记录</p>'
+              ? '<p class="text-[12px] text-gray-500 pl-2">暂无记录</p>'
               : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
                   ${cfg.fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
                   ${readOnly ? '' : '<th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>'}
@@ -175,7 +175,7 @@ export function renderContent(ctx) {
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between mb-3">
           <h5 class="font-title-cn text-sm font-bold text-gray-700">${activity.title || '未命名'}</h5>
-          <button id="btn-close-act-detail" class="text-xs text-gray-400 hover:text-gray-600">收起</button>
+          <button id="btn-close-act-detail" class="text-xs text-gray-500 hover:text-gray-600">收起</button>
         </div>
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
 
@@ -187,21 +187,21 @@ export function renderContent(ctx) {
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <div class="text-[12px] text-gray-400 mb-1">组织者</div>
+              <div class="text-[12px] text-gray-500 mb-1">组织者</div>
               <div id="detail-org-picker"></div>
             </div>
             <div>
-              <div class="text-[12px] text-gray-400 mb-1">深度参与者</div>
+              <div class="text-[12px] text-gray-500 mb-1">深度参与者</div>
               <div id="detail-deep-picker"></div>
             </div>
           </div>
-          <p class="text-[12px] text-gray-400 mt-2">提示：修改将同步到活动，被赋权人将收到通知。</p>
+          <p class="text-[12px] text-gray-500 mt-2">提示：修改将同步到活动，被赋权人将收到通知。</p>
         </div>
 
         <div class="mt-3 pt-3 border-t border-gray-100">
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${visBlocks.length === 0
-            ? '<p class="text-[12px] text-gray-400 pl-2">本支部已停用全部活动产出块——如需启用请联系党委在「支部配置」开启</p>'
+            ? '<p class="text-[12px] text-gray-500 pl-2">本支部已停用全部活动产出块——如需启用请联系党委在「支部配置」开启</p>'
             : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [], type === 'attendance' || type === 'inspection')).join('')}
         </div>
       `;
@@ -279,7 +279,7 @@ export function renderContent(ctx) {
 
           // T-224 §5.5：投递去向由产出类型派生（系统内置），组织者只见「提交」不见「发送对象」
           const route = type === 'publicity' ? deriveOutputRoute(OutputType.PUBLICITY) : null;
-          const routeHint = route ? `<div class="text-[11px] text-gray-400 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
+          const routeHint = route ? `<div class="text-[11px] text-gray-500 mb-2">提交后自动投递：${route.route} → ${route.sink}</div>` : '';
 
           const formHtml = recordFormShell({
             title: `添加${type === 'publicity' ? '宣传' : '材料'}记录`,
@@ -348,8 +348,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         return `
           ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="--acc-dot-dark:${lineColor === accent ? _dtSelDark.text : '#475569'};background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:${dotColor};border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
-            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:${dotColor};">${s}</span>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:color-mix(in srgb, ${dotColor} 60%, #000);border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
+            <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:color-mix(in srgb, ${dotColor} 60%, #000);">${s}</span>
           </div>
         `;
       }).join('')}
@@ -359,7 +359,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L1 选择
   const l1Html = `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L1 组织场景 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L1 组织场景 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
@@ -372,7 +372,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // 承办党小组选择器（L1选择后显示）
   const hostGroupHtml = L1 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">承办党小组 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">承办党小组 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.HOST_GROUPS.map(g => {
           const selected = hostGroup === g;
@@ -386,7 +386,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   const l2Options = L1 ? (DECISION_TREE.L2[L1] || []) : [];
   const l2Html = L1 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L2 活动形式 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L2 活动形式 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
@@ -399,7 +399,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L3 选择（L2选择后显示）
   const l3Html = L2 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L3 时长 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L3 时长 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
@@ -412,7 +412,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   // L4 选择（L3选择后显示）
   const l4Html = L3 ? `
     <div class="mb-4">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L4 发起方向 <span class="text-red-500">*</span></div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">L4 发起方向 <span class="text-red-600">*</span></div>
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
@@ -429,20 +429,20 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="font-title-cn text-sm font-bold text-gray-700 mb-3">填写活动信息</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-600">*</span></label>
           <input type="date" id="dt-target-date" class="input-flat w-full" value="${escHtml(dtDraft.date)}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动地点 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动地点 <span class="text-red-600">*</span></label>
           <input type="text" id="dt-location" class="input-flat w-full" placeholder="活动地点" value="${escHtml(dtDraft.location)}">
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-600">*</span></label>
         <input type="text" id="dt-title" class="input-flat w-full" placeholder="活动名称" value="${escHtml(dtDraft.title)}">
       </div>
       <div class="mb-4">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述 <span class="text-gray-300">（选填）</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="dt-desc">活动描述 <span class="text-gray-500">（选填）</span></label>
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容">${escHtml(dtDraft.desc)}</textarea>
       </div>
 
@@ -451,11 +451,11 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动角色（创建即赋权，组织者默认组长本人）</label>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <div class="text-[12px] text-gray-400 mb-1">组织者（默认组长本人，可改）</div>
+            <div class="text-[12px] text-gray-500 mb-1">组织者（默认组长本人，可改）</div>
             <div id="dt-org-picker"></div>
           </div>
           <div>
-            <div class="text-[12px] text-gray-400 mb-1">深度参与者 <span class="text-gray-300">（选填）</span></div>
+            <div class="text-[12px] text-gray-500 mb-1">深度参与者 <span class="text-gray-500">（选填）</span></div>
             <div id="dt-deep-picker"></div>
           </div>
         </div>

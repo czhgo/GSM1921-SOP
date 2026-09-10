@@ -67,7 +67,7 @@ export function renderContent() {
   const countdownText = isOverdue
     ? `已超期 ${daysLeft}天${hoursLeft}小时`
     : `${daysLeft}天${hoursLeft}小时`;
-  const countdownColor = isOverdue ? 'text-red-600' : 'text-green-600';
+  const countdownColor = isOverdue ? 'text-red-700' : 'text-green-700';
   const countdownBg = isOverdue ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200';
 
   container.innerHTML = `
@@ -92,11 +92,11 @@ export function renderContent() {
               <div class="text-lg font-bold ${countdownColor}">${countdownText}</div>
             </div>
             <div class="text-right">
-              <div class="text-xs text-gray-500">上次查收</div>
+              <div class="text-xs text-gray-600">上次查收</div>
               <div class="text-xs text-gray-600">${_discFormatTime(mailboxConfig.lastCheckAt)}</div>
             </div>
           </div>
-          ${isOverdue ? '<div class="text-xs text-red-500 mt-2">已超期，请尽快查收公邮</div>' : ''}
+          ${isOverdue ? '<div class="text-xs text-red-700 mt-2">已超期，请尽快查收公邮</div>' : ''}
         </div>
         <div class="mt-3 flex gap-2">
           <button class="btn-md btn-md-green btn-disc-check-mailbox">标记已查收</button>
@@ -115,7 +115,7 @@ export function renderContent() {
                   <span class="text-xs px-1.5 py-0.5 rounded ${h.hasAction ? 'bg-amber-50 text-amber-700' : 'bg-gray-50 text-gray-500'}">${h.hasAction ? '有处理' : '无待办'}</span>
                   <span class="text-xs text-gray-600">${_discFormatTime(h.checkedAt)}</span>
                 </div>
-                <span class="text-xs text-gray-400">${getPersonName(h.checkedBy)}</span>
+                <span class="text-xs text-gray-500">${getPersonName(h.checkedBy)}</span>
               </div>
               <div class="text-xs text-gray-700">${h.summary}</div>
             </div>

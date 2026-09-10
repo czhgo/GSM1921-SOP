@@ -20,11 +20,18 @@ import {
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';
-const _on = 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]';
+// 选中态强调色字：同色系加深（60% 主题色 + 黑）保证浅底 AA；夜间由内联 --acc-text-dark 还原亮色
+const _on = 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]';
 const _off = 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50';
 
 function _btnCls(active) {
   return _base + (active ? _on : _off);
+}
+/** 选中态同步内联夜间变量（未选中移除，避免深色下误套亮色字） */
+function _applyBtnState(btn, active) {
+  btn.className = _btnCls(active);
+  if (active) btn.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)');
+  else btn.style.removeProperty('--acc-text-dark');
 }
 
 // ── 字号二档 ──
@@ -57,11 +64,11 @@ export function appearanceControlsHTML(opts = {}) {
   const accent = _effectiveAccent(accentFallbackRole);
 
   const fontBtns = FONT_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(font === o.value)}" data-font-size="${o.value}" title="${o.title}">${o.label}</button>
+    <button type="button" class="${_btnCls(font === o.value)}"${font === o.value ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-font-size="${o.value}" title="${o.title}">${o.label}</button>
   `).join('');
 
   const themeBtns = THEME_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(theme === o.value)}" data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
+    <button type="button" class="${_btnCls(theme === o.value)}"${theme === o.value ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
   `).join('');
 
   return `
@@ -72,7 +79,7 @@ export function appearanceControlsHTML(opts = {}) {
           <div class="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
             ${fontBtns}
           </div>
-          <span class="text-xs text-gray-400">系统默认中号 · 大号放大一档阅读</span>
+          <span class="text-xs text-gray-500">系统默认中号 · 大号放大一档阅读</span>
         </div>
       </div>
       <div class="appearance-row">
@@ -81,14 +88,14 @@ export function appearanceControlsHTML(opts = {}) {
           <div class="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
             ${themeBtns}
           </div>
-          <span class="text-xs text-gray-400">浅色 / 跟随系统 / 深色</span>
+          <span class="text-xs text-gray-500">浅色 / 跟随系统 / 深色</span>
         </div>
       </div>
       <div class="appearance-row">
         <div class="appearance-row-label">强调色</div>
         <div class="flex items-center gap-2">
           <button type="button" id="appearance-accent-swatch" class="accent-swatch" style="width:24px;height:24px;background:${accent.hex}" data-current-role="${accentFallbackRole || ''}" data-label="主题：${accent.label}" title="主题：${accent.label}（点击更换）"></button>
-          <span class="text-xs text-gray-400">全站按钮/标签/选中态的强调颜色 · 当前：${accent.label}</span>
+          <span class="text-xs text-gray-500">全站按钮/标签/选中态的强调颜色 · 当前：${accent.label}</span>
         </div>
       </div>
       ${scopeNote ? `<div class="appearance-note">${scopeNote}</div>` : ''}
@@ -105,7 +112,7 @@ export function bindAppearanceControls(hostEl) {
     btn.addEventListener('click', () => {
       setFontSizePreference(btn.dataset.fontSize);
       hostEl.querySelectorAll('[data-font-size]').forEach(b => {
-        b.className = _btnCls(b.dataset.fontSize === btn.dataset.fontSize);
+        _applyBtnState(b, b.dataset.fontSize === btn.dataset.fontSize);
       });
     });
   });
@@ -115,7 +122,7 @@ export function bindAppearanceControls(hostEl) {
     btn.addEventListener('click', () => {
       setThemePreference(btn.dataset.themeMode);
       hostEl.querySelectorAll('[data-theme-mode]').forEach(b => {
-        b.className = _btnCls(b.dataset.themeMode === btn.dataset.themeMode);
+        _applyBtnState(b, b.dataset.themeMode === btn.dataset.themeMode);
       });
     });
   });

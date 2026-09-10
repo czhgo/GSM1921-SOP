@@ -9,6 +9,8 @@
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
 import { getAdapter } from '../core/data-adapter.js?v=20260910a';
+// 支部归属判定收敛点（读侧隔离用；设计 §2.5「一个支部一片存储空间、按 branchId 分区、跨支部不可见」）
+import { getBoundBranch } from './branch.js?v=20260910a';
 
 /** 制度文本管理角色（书记/副书记）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];
@@ -26,6 +28,28 @@ function _purposeOf(doc) {
 async function _getDoc(id) {
   const list = await getAdapter().branchDocs.list();
   return list.find((d) => d.id === id) || null;
+}
+
+/**
+ * 当前登录人 personId（登录快照；node/未登录/异常 → null）。
+ * 与 branch.js._actorId / auth LOGIN_KEY 同键（跨模块约定，避免 import auth 循环依赖）。
+ */
+function _currentPersonId() {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem('gsm1921-login-user');
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    return d.personId || d.userId || d.id || null;
+  } catch (_) { return null; }
+}
+
+/**
+ * 生效支部 id：以 getBoundBranch 判定有效归属支部（无归属/党委级 party-staff → null）。
+ * null = 无支部语境（未登录 / party-staff / 档案缺 branchId）→ 读侧保持既有行为不过滤。
+ */
+function _boundBranchId(personId) {
+  return getBoundBranch(personId)?.id || null;
 }
 
 /**
@@ -72,6 +96,8 @@ export async function saveDoc(opts = {}) {
         return { ok: false, reason: '制度文本仅限书记（含副书记）发布' };
       }
       const now = new Date().toISOString();
+      // 写侧归属标注（最小守卫，不改 schema）：落当前归属支部 id；无归属/党委语境不写（读侧按 br-b1 兼容）
+      const instBranchId = _boundBranchId(by);
       const created = await getAdapter().branchDocs.create({
         purpose: 'institution',
         status: 'current',           // 现行
@@ -84,6 +110,7 @@ export async function saveDoc(opts = {}) {
         cat: 'institution',
         uploadedBy: by || null,
         uploadedAt: now,
+        ...(instBranchId ? { branchId: instBranchId } : {}),
         // 当前版本发布元数据（listVersions 合并视图用；v1 即创建动作）
         versionBy: by || null,
         versionAt: now,
@@ -92,6 +119,7 @@ export async function saveDoc(opts = {}) {
       return { ok: true, doc: created };
     }
     // 新建普通文件：维持既有文件语义（status draft=会前草案，资料查询现状不变）
+    const docBranchId = _boundBranchId(by);
     const created = await getAdapter().branchDocs.create({
       purpose: 'doc',
       title,
@@ -104,6 +132,7 @@ export async function saveDoc(opts = {}) {
       filePath: opts.filePath || null,
       fileData: opts.fileData || null,
       uploadedBy: by || null,
+      ...(docBranchId ? { branchId: docBranchId } : {}),
     });
     return { ok: true, doc: created };
   } catch (e) {
@@ -200,20 +229,28 @@ export async function setDocStatus(opts = {}) {
 /**
  * 读支部文件列表（含 versions 累计历史），按 updatedAt/uploadedAt 倒序。
  * 旧数据（无 purpose/versions）视为普通文件，完全兼容不报错。
+ * 支部隔离（读侧，设计 §2.5：一个支部一片存储空间、按 branchId 分区、跨支部不可见）：
+ *   按当前归属支部（getBoundBranch）过滤；无归属/党委语境（未登录 / party-staff / 档案缺 branchId）
+ *   → 保持既有行为（不过滤，可见全部）；老数据无 branchId 视为 br-b1（与 branch.js `withinBranch` 同口径）。
  * @param {Object} [filter]
  * @param {boolean} [filter.onlyInstitution] 只看制度文本
  * @param {string} [filter.status] 状态过滤（current/disabled；doc 类可为 draft/archived）
+ * @param {string|null} [filter.personId] 归属判定人（缺省 = 登录快照；显式 null = 无支部语境不过滤）
  * @returns {Promise<Object[]>}
  */
 export async function listDocs(filter = {}) {
-  const { onlyInstitution = false, status } = filter;
+  const { onlyInstitution = false, status, personId } = filter;
   const rows = await getAdapter().branchDocs.list();
+  const actorId = personId !== undefined ? personId : _currentPersonId();
+  const boundBranchId = _boundBranchId(actorId); // null = 无归属/党委语境 → 不过滤
   let list = rows.filter((d) => {
     const purpose = _purposeOf(d);
     if (onlyInstitution && purpose !== 'institution') return false;
     // 顶层不驻留 superseded（该值只出现在 versions 历史中；防御脏数据）
     if (purpose === 'institution' && d.status === 'superseded') return false;
     if (status && d.status !== status) return false;
+    // 支部隔离：仅已归属者过滤；老数据无 branchId 归 br-b1（惰性维度迁移兼容）
+    if (boundBranchId && (d.branchId || 'br-b1') !== boundBranchId) return false;
     return true;
   });
   return list.sort((a, b) =>

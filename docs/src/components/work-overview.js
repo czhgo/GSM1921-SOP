@@ -85,7 +85,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
     <div class="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-white border border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors" data-wo-open-reports title="去「我的处置」处理开放汇报">
       <span class="flex items-center gap-2 flex-1 min-w-0 text-xs text-gray-600">
         <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
-        <span class="truncate">我发起的开放汇报 ${openMine.length} 条${openGap > 0 ? `<span class="text-amber-600 font-medium"> · 待答复 ${openGap}</span>` : ''}</span>
+        <span class="truncate">我发起的开放汇报 ${openMine.length} 条${openGap > 0 ? `<span class="text-amber-700 font-medium"> · 待答复 ${openGap}</span>` : ''}</span>
       </span>
       <span class="text-xs text-blue-600 flex-shrink-0">去开放汇报 →</span>
     </div>`;
@@ -118,7 +118,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 
   const blockerRows = [];
   dispatchRows.forEach(r => blockerRows.push(r));
-  myBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-500 font-medium flex-shrink-0">${b.deadline}</span></div>`));
+  myBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></div>`));
   lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
   const blockerBody = blockerRows.length
@@ -159,8 +159,8 @@ export async function renderWorkOverview(container, { role, personId, accent = '
         <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="${dotDarkVars(hasOverdue ? '#EF4444' : accent)}background:${hasOverdue ? '#EF4444' : accent};"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
-          ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
-          ${hasOverdue ? `<span class="text-[11px] text-red-500 font-medium flex-shrink-0">含超期</span>` : ''}
+          ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
+          ${hasOverdue ? `<span class="text-[11px] text-red-600 font-medium flex-shrink-0">含超期</span>` : ''}
         </button>`,
     });
   });
@@ -176,7 +176,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
         <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
-          <span class="text-[11px] text-gray-400 flex-shrink-0">活动</span>
+          <span class="text-[11px] text-gray-500 flex-shrink-0">活动</span>
         </button>`,
     });
   });
@@ -192,7 +192,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
         <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#4F46E5;"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${tf.name}</span>
-          <span class="text-[11px] text-gray-400 flex-shrink-0">专班</span>
+          <span class="text-[11px] text-gray-500 flex-shrink-0">专班</span>
         </button>`,
     });
   });
@@ -208,7 +208,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   const shownItems = inProgressItems.slice(0, _MAX_INLINE);
   const inProgressRows = shownItems.map(it => it.html).join('');
   const inProgressMore = inProgressItems.length > _MAX_INLINE
-    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${inProgressItems.length} 项 · 前往待办 tab 查看全部 →</button>`
+    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${inProgressItems.length} 项 · 前往待办 tab 查看全部 →</button>`
     : '';
 
   const inProgressBody = inProgressRows
@@ -225,21 +225,21 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
-          <span class="text-xs text-gray-400">${requests.length + openMine.length} 条待行动 · 请我汇报行内填写 / 开放汇报到「我的处置」</span>
+          <span class="text-xs text-gray-500">${requests.length + openMine.length} 条待行动 · 请我汇报行内填写 / 开放汇报到「我的处置」</span>
         </div>
         ${reportBody}
       </div>
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
-          <span class="text-xs text-gray-400">我的超期 + 条线缺口 · ${blockerRows.length} 项</span>
+          <span class="text-xs text-gray-500">我的超期 + 条线缺口 · ${blockerRows.length} 项</span>
         </div>
         ${blockerBody}
       </div>
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">在办</h4>
-          <span class="text-xs text-gray-400">我的在办 · 点击条目直达详情</span>
+          <span class="text-xs text-gray-500">我的在办 · 点击条目直达详情</span>
         </div>
         ${inProgressBody}
         ${lineRows.length ? `<div class="space-y-1 mt-2 pt-2 border-t border-gray-100">${lineRows.join('')}</div>` : ''}
@@ -394,7 +394,7 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
     <div class="card rounded-lg p-4">
       <div class="flex items-center justify-between mb-3">
         <button type="button" class="wo-detail-back text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100" style="background:var(--neutral-100);color:var(--neutral-700);">← 返回工作概况</button>
-        <span class="text-xs text-gray-400">${detail.kind === 'activity' ? '活动详情 · 只读知情' : '专班详情 · 只读知情'}</span>
+        <span class="text-xs text-gray-500">${detail.kind === 'activity' ? '活动详情 · 只读知情' : '专班详情 · 只读知情'}</span>
       </div>
       <div id="wo-detail-host"></div>
     </div>`;

@@ -188,11 +188,11 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
   if (dateActivities.length === 0) {
     defEl.classList.remove('hidden');
     if (viewArchived) {
-      defEl.innerHTML = '<p class=" text-sm text-gray-400 text-center py-8">归档库暂无内容</p>';
+      defEl.innerHTML = '<p class=" text-sm text-gray-500 text-center py-8">归档库暂无内容</p>';
     } else if (dateKey) {
-      defEl.innerHTML = '<div class="text-center text-gray-400 py-8  text-sm">当日暂无活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">当日暂无活动</div>';
     } else {
-      defEl.innerHTML = '<div class="text-center text-gray-400 py-8  text-sm">点击日历日期查看活动</div>';
+      defEl.innerHTML = '<div class="text-center text-gray-500 py-8  text-sm">点击日历日期查看活动</div>';
     }
     contentEl.classList.add('hidden');
     return;
@@ -225,7 +225,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<p class=" font-bold text-sm text-gray-800 leading-snug flex-1">${act.title}</p>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
-      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-400">活动信息 · 点击查看</p></div>`;
+      html += `<div class="flex items-center gap-1.5">${brandTag}<p class=" text-xs text-gray-500">活动信息 · 点击查看</p></div>`;
       html += '</div>';
     } else {
       html += `<div class="inspector-card" style="cursor:pointer;${isBrand ? 'border-left:3px solid var(--party-gold);' : ''}" data-act-id="${act.id}">`;
@@ -233,7 +233,7 @@ export function renderInspectorList(activities, dateKey, viewType, viewArchived 
       html += `<div class="flex items-center gap-1.5 flex-1"><p class=" font-bold text-sm text-gray-800 leading-snug">${act.title}</p>${brandTag}</div>`;
       html += activityLifecycleBadgeHtml(act, allTasks);
       html += '</div>';
-      html += `<p class=" text-xs text-gray-400">点击查看任务详情 →</p>`;
+      html += `<p class=" text-xs text-gray-500">点击查看任务详情 →</p>`;
       html += '</div>';
     }
   });
@@ -294,7 +294,7 @@ function _buildOutputsSectionHTML(activity) {
     <div class="flex items-center gap-2 text-xs py-1">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${route && route.color || '#9CA3AF'};"></span>
       <span class="text-gray-600 flex-shrink-0">${label}</span>
-      <span class="text-gray-400 text-[11px] flex-1 truncate">${route ? route.route : ''}</span>
+      <span class="text-gray-500 text-[11px] flex-1 truncate">${route ? route.route : ''}</span>
       ${statusHtml}
     </div>`;
 
@@ -327,8 +327,8 @@ function _buildOutputsSectionHTML(activity) {
   return `
     <div class="mb-3 card rounded-xl p-3">
       <div class="flex items-center justify-between mb-1.5">
-        <p class="text-xs text-gray-400">产出物</p>
-        <span class="text-[11px] text-gray-300">投递去向由类型自动确定</span>
+        <p class="text-xs text-gray-500">产出物</p>
+        <span class="text-[11px] text-gray-500">投递去向由类型自动确定</span>
       </div>
       ${row('考勤', attRoute, attStatus)}
       ${row('考察', inspRoute, inspStatus)}
@@ -336,14 +336,14 @@ function _buildOutputsSectionHTML(activity) {
       ${row('复盘', reviewRoute, reviewStatus)}
       ${pubItems.length > 0 ? `
         <div class="mt-1.5 pt-1.5 border-t border-gray-100">
-          <div class="text-[11px] text-gray-400 mb-1">宣传材料预览：</div>
+          <div class="text-[11px] text-gray-500 mb-1">宣传材料预览：</div>
           ${pubItems.slice(0, 5).map(it => `
             <div class="flex items-center justify-between text-[11px] text-gray-600 py-0.5">
               <span class="truncate pr-2">${it.title}</span>
-              <span class="text-gray-400 flex-shrink-0">${it.meta ? it.meta + ' · ' : ''}${it.status}</span>
+              <span class="text-gray-500 flex-shrink-0">${it.meta ? it.meta + ' · ' : ''}${it.status}</span>
               ${it.fileName ? `<button type="button" class="insp-pub-dl text-blue-600 hover:text-blue-800 pl-2 flex-shrink-0" data-arc-id="${it.arcId}" title="下载 ${it.fileName}" style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;">下载</button>` : ''}
             </div>`).join('')}
-          ${pubItems.length > 5 ? `<div class="text-[11px] text-gray-400">…另有 ${pubItems.length - 5} 项</div>` : ''}
+          ${pubItems.length > 5 ? `<div class="text-[11px] text-gray-500">…另有 ${pubItems.length - 5} 项</div>` : ''}
         </div>` : ''}
     </div>`;
 }
@@ -443,6 +443,8 @@ function _agendaTypeBadges(a) {
   const badges = [];
   const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
   if (isKind('discussion-file')) {
+    // 按 id 解析本活动议程引用的草案（单条，非列表隔离面）：议程仅能引用同支部可选草案，
+    // 故不存在跨支部泄漏；且为同步渲染路径（改异步需重构渲染链）。豁免 listDocs 接线，保持不过滤。
     const doc = (mockDB.branchDocs || []).find(d => d.id === a.branchDocId);
     const docLabel = doc ? (doc.title || doc.fileName || '未命名草案') : '（草案已删除）';
     badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
@@ -615,7 +617,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   // T229：顶部徽章走生命周期态（进度+产出共同驱动；已归档由生命周期态覆盖，不再单独渲染）
   html += activityLifecycleBadgeHtml(activity, tasks);
   if (activity.date) {
-    html += `<span class=" text-xs text-gray-400">${activity.date}</span>`;
+    html += `<span class=" text-xs text-gray-500">${activity.date}</span>`;
   }
   html += '</div>';
 
@@ -649,12 +651,12 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (infoRows.length) {
     html += '<div class="mb-3 card rounded-xl p-3 space-y-1">';
     infoRows.forEach(r => {
-      html += `<div class="flex items-start gap-2 text-xs"><span class="text-gray-400 flex-shrink-0 w-14">${r.label}</span><span class="text-gray-700">${r.value}</span></div>`;
+      html += `<div class="flex items-start gap-2 text-xs"><span class="text-gray-500 flex-shrink-0 w-14">${r.label}</span><span class="text-gray-700">${r.value}</span></div>`;
     });
     html += '</div>';
   }
   if (activity.description) {
-    html += `<div class="mb-3 card rounded-xl p-3"><p class="text-xs text-gray-400 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
+    html += `<div class="mb-3 card rounded-xl p-3"><p class="text-xs text-gray-500 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
   // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑；2026-09-01：类型徽章 + 结果记录）──
@@ -664,7 +666,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     html += '<div class="mb-3 card rounded-xl p-3" id="agenda-block">';
     html += '<div class="flex items-center justify-between mb-1.5">';
-    html += '<p class="text-xs text-gray-400">会议议程</p>';
+    html += '<p class="text-xs text-gray-500">会议议程</p>';
     if (isSecretaryOrDeputy && !isArchived) {
       html += '<button id="inspector-agenda-edit-btn" class="text-xs text-blue-600 hover:text-blue-800 transition-colors" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
     }
@@ -689,7 +691,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         : '';
       const personPanel = (canRecord && perPerson) ? `
         <div class="mt-1.5 rounded-lg border border-gray-100 bg-white p-2 space-y-1" data-agenda-person-results="${a.id}">
-          <p class="text-[11px] text-gray-400">逐人结果（默认通过；取消勾选即未通过，可填备注）</p>
+          <p class="text-[11px] text-gray-500">逐人结果（默认通过；取消勾选即未通过，可填备注）</p>
           ${personIds.map(pid => `
             <label class="flex items-center gap-1.5 text-[11px]">
               <input type="checkbox" class="ap-pass shrink-0" data-person-id="${esc(pid)}" checked style="cursor:pointer;">
@@ -699,14 +701,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
           <button type="button" class="ap-submit text-[11px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
         </div>` : '';
       html += `<li class="flex items-start gap-2 text-xs">
-        <span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span>
+        <span class="text-gray-500 flex-shrink-0 w-4">${i + 1}.</span>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 flex-wrap">
             <span class="text-gray-700">${a.item}</span>
             ${typeBadges}
             ${resultBadge}
           </div>
-          <div class="text-gray-400 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
+          <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
           ${perPersonTally}
           ${isCommittee && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
           ${personPanel}
@@ -755,9 +757,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       html += '</div>';
     });
   } else if (tasks.length > 0) {
-    html += '<div class=" text-gray-400 text-center py-8">该角色在此活动中暂无专属任务节点</div>';
+    html += '<div class=" text-gray-500 text-center py-8">该角色在此活动中暂无专属任务节点</div>';
   } else {
-    html += '<p class=" text-xs text-gray-400 py-2">暂无关联任务</p>';
+    html += '<p class=" text-xs text-gray-500 py-2">暂无关联任务</p>';
   }
 
   if (isSecretary && !isArchived) {
@@ -1065,12 +1067,12 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
   ));
 
   const renderEditor = () => {
-    let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-400">编辑会议议程</p></div>';
+    let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-500">编辑会议议程</p></div>';
     html += '<div id="agenda-edit-list" class="space-y-1.5"></div>';
     html += '<div class="flex items-center gap-2 mt-2">';
     html += '<button id="agenda-edit-add" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors" style="cursor:pointer;">+ 添加议程</button>';
     html += '<button id="agenda-edit-save" class="text-xs px-3 py-1 rounded-lg text-white font-medium" style="background:var(--acc, #CE1126);cursor:pointer;">保存</button>';
-    html += '<button id="agenda-edit-cancel" class="text-xs px-2.5 py-1 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors" style="cursor:pointer;">取消</button>';
+    html += '<button id="agenda-edit-cancel" class="text-xs px-2.5 py-1 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors" style="cursor:pointer;">取消</button>';
     html += '</div>';
     block.innerHTML = html;
 
@@ -1089,7 +1091,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     const refreshRows = () => {
       syncFromDom();
       if (current.length === 0) {
-        list.innerHTML = '<p class="text-xs text-gray-400 py-1">暂无议程，点击「添加议程」填写</p>';
+        list.innerHTML = '<p class="text-xs text-gray-500 py-1">暂无议程，点击「添加议程」填写</p>';
         return;
       }
       // 行模板仅编辑 item/host 文本；含讨论文件/待讨论名单配置的行在输入区下方给只读提示
@@ -1098,7 +1100,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
           <div class="flex items-center gap-1.5">
             <input type="text" class="agenda-edit-item input-flat w-full text-xs" value="${a.item}" placeholder="议题">
             <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
-            <button type="button" class="agenda-edit-del text-gray-300 hover:text-red-500 text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
+            <button type="button" class="agenda-edit-del text-gray-500 hover:text-red-600 text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
           </div>
           ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[11px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
         </div>`).join('');
@@ -1163,29 +1165,29 @@ function _openActivityEditModal(activity, tasks, managementRole) {
     bodyHtml: `
       <div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动名称 <span class="text-red-600">*</span></label>
           <input type="text" id="ae-title" class="input-flat w-full" value="${activity.title || ''}">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-600">*</span></label>
             <input type="date" id="ae-date" class="input-flat w-full" value="${activity.date || ''}">
           </div>
           <div>
-            <label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-300">（选填）</span></label>
+            <label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>
             <input type="text" id="ae-time" class="input-flat w-full" value="${activity.time || ''}" placeholder="如 14:00-16:00">
           </div>
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-600">*</span></label>
           <input type="text" id="ae-location" class="input-flat w-full" value="${activity.location || ''}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-300">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>
           <input type="text" id="ae-host" class="input-flat w-full" value="${activity.host || ''}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-300">（选填）</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动详情 <span class="text-gray-500">（选填）</span></label>
           <textarea id="ae-desc" rows="3" class="input-flat w-full">${activity.description || ''}</textarea>
         </div>
       </div>

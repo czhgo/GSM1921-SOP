@@ -41,7 +41,7 @@ const TYPE_COLORS_DARK = {
 function typeBadgeStyle(t) {
   const c = TYPE_COLORS[t] || '#6B7280';
   const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
-  return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
 }
 
 let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all', keyword: '' };
@@ -60,7 +60,7 @@ function _renderIssuePager(total) {
   for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
   return `
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1.5">
         <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
@@ -87,7 +87,7 @@ export function renderIssueList() {
   container.innerHTML = `
     <div class="card rounded-xl p-6 mb-4">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-400">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">全部意见 <span class="text-xs font-normal text-gray-500">开放中 ${counts.open} · 已关闭 ${counts.closed}</span></h3>
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
@@ -116,7 +116,7 @@ export function renderIssueList() {
 
       <div id="issue-list" class="space-y-2">
         ${filtered.length === 0
-          ? '<p class="text-sm text-gray-400 text-center py-8">暂无匹配反馈。欢迎提交第一条！</p>'
+          ? '<p class="text-sm text-gray-500 text-center py-8">暂无匹配反馈。欢迎提交第一条！</p>'
           : pageItems.map(renderIssueRow).join('')}
       </div>
       ${_renderIssuePager(filtered.length)}
@@ -146,12 +146,12 @@ function renderIssueRow(issue) {
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-gray-400 font-mono">#${issue.number}</span>
+            <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             ${statusBadge}
             ${typeBadges}
           </div>
           <p class="text-sm font-medium text-gray-800 truncate">${issue.title || '(无标题)'}</p>
-          <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
+          <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
             <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
             <span>·</span>
             <span>${getPersonName(issue.submittedBy)}</span>
@@ -162,7 +162,7 @@ function renderIssueRow(issue) {
             ${reactions ? `<span class="ml-2 flex items-center gap-1">${reactions}</span>` : ''}
           </div>
         </div>
-        ${icon('chevronRight', { className: 'w-4 h-4 text-gray-400 flex-shrink-0 mt-2' })}
+        ${icon('chevronRight', { className: 'w-4 h-4 text-gray-500 flex-shrink-0 mt-2' })}
       </div>
     </div>
   `;

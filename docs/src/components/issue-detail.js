@@ -44,7 +44,7 @@ const TYPE_COLORS_DARK = {
 function typeBadgeStyle(t) {
   const c = TYPE_COLORS[t] || '#6B7280';
   const dc = TYPE_COLORS_DARK[t] || '#94A3B8';
-  return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
 }
 
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
@@ -60,7 +60,7 @@ export function renderIssueDetail(issueId) {
   if (!issue) {
     container.innerHTML = `
       <div class="card rounded-xl p-6 text-center">
-        <p class="text-sm text-gray-400 mb-3">反馈不存在或已被删除</p>
+        <p class="text-sm text-gray-500 mb-3">反馈不存在或已被删除</p>
         <a href="./feedback.html" class="text-xs text-blue-600 hover:text-blue-800">← 返回列表</a>
       </div>
     `;
@@ -85,7 +85,7 @@ export function renderIssueDetail(issueId) {
       <div class="lg:col-span-7 space-y-4">
         <div class="card rounded-xl p-6">
           <div class="flex items-center gap-2 mb-3">
-            <span class="text-xs text-gray-400 font-mono">#${issue.number}</span>
+            <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
             ${issue.status === 'open'
               ? badgeHtml('开放中', 'success')
               : badgeHtml(`已关闭 · ${ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || '已解决'}`, 'neutral')
@@ -115,14 +115,14 @@ export function renderIssueDetail(issueId) {
           <div class="mt-6 pt-4 border-t border-gray-100">
             <h3 class="font-title-cn text-sm font-semibold text-gray-700 mb-3">评论 (${issue.commentCount || 0})</h3>
             <div class="space-y-3">
-              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || '<p class="text-sm text-gray-400 font-sans">暂无评论</p>'}
+              ${(issue.comments || []).map(c => renderComment(c, canManage, issue.id)).join('') || '<p class="text-sm text-gray-500 font-sans">暂无评论</p>'}
             </div>
 
             <!-- 评论输入框 -->
             <div class="mt-4 pt-3 border-t border-gray-100">
               <textarea id="comment-input" rows="3" placeholder="添加评论...支持 @提及 与 #引用" class="input-flat w-full text-sm rounded-lg p-2 font-sans"></textarea>
               <div class="flex items-center justify-between mt-2">
-                <div class="text-xs text-gray-400 font-sans">
+                <div class="text-xs text-gray-500 font-sans">
                   <button id="btn-mention" class="text-blue-600 hover:text-blue-800">@提及</button>
                   <span class="mx-1">·</span>
                   <button id="btn-reference" class="text-blue-600 hover:text-blue-800">#引用</button>
@@ -138,12 +138,12 @@ export function renderIssueDetail(issueId) {
       <div class="lg:col-span-3 space-y-3">
         <div class="card rounded-xl p-4 text-xs">
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">提交者</p>
+            <p class="text-gray-500 mb-1">提交者</p>
             <p class="text-gray-700 font-medium font-sans">${getPersonName(issue.submittedBy)}</p>
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">状态</p>
+            <p class="text-gray-500 mb-1">状态</p>
             ${canManage
               ? `<select id="status-select" class="input-flat w-full text-xs rounded font-sans">
                   <option value="open" ${issue.status === 'open' ? 'selected' : ''}>开放中</option>
@@ -161,7 +161,7 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">标签</p>
+            <p class="text-gray-500 mb-1">标签</p>
             <div class="flex flex-wrap gap-1">
               ${badgeHtml(SCOPE_LABELS[issue.scope] || issue.scope, 'neutral')}
               ${(issue.types || []).map(t =>
@@ -171,28 +171,28 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">里程碑</p>
+            <p class="text-gray-500 mb-1">里程碑</p>
             <p class="text-gray-700 font-sans">${milestone ? milestone.title : '无'}</p>
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">指派人</p>
+            <p class="text-gray-500 mb-1">指派人</p>
             <p class="text-gray-700 font-sans">${issue.assignee || '无'}</p>
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">参与者</p>
+            <p class="text-gray-500 mb-1">参与者</p>
             <p class="text-gray-700 font-sans">${(issue.participants || []).map(pid => getPersonName(pid)).join(' · ') || '无'}</p>
           </div>
 
           <div class="mb-3">
-            <p class="text-gray-400 mb-1">创建时间</p>
+            <p class="text-gray-500 mb-1">创建时间</p>
             <p class="text-gray-700 font-sans">${issue.submittedAt}</p>
           </div>
 
           ${issue.closedAt ? `
             <div class="mb-3">
-              <p class="text-gray-400 mb-1">关闭时间</p>
+              <p class="text-gray-500 mb-1">关闭时间</p>
               <p class="text-gray-700 font-sans">${issue.closedAt}</p>
             </div>
           ` : ''}
@@ -207,11 +207,11 @@ export function renderIssueDetail(issueId) {
 function renderComment(comment, canManage, issueId) {
   const hiddenClass = comment.hidden ? 'opacity-50' : '';
   const hideButton = canManage && !comment.hidden
-    ? `<button class="btn-hide-comment text-xs text-orange-600 hover:text-orange-800 ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
+    ? `<button class="btn-hide-comment text-xs text-orange-700 hover:text-orange-800 ml-2 font-sans" data-issue-id="${issueId}" data-comment-id="${comment.id}">隐藏</button>`
     : '';
 
   const hiddenNote = comment.hidden
-    ? `<span class="text-xs text-orange-600 ml-2 font-sans">[已隐藏 · ${comment.hiddenReason || '原因未说明'}]</span>`
+    ? `<span class="text-xs text-orange-700 ml-2 font-sans">[已隐藏 · ${comment.hiddenReason || '原因未说明'}]</span>`
     : '';
 
   return `

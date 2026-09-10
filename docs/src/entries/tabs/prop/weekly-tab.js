@@ -159,14 +159,14 @@ function _renderWeeklyReportItem(report) {
       <div class="flex items-center justify-between mb-1">
         <div class="flex items-center gap-2">
           <span class="text-sm font-medium text-gray-800">${report.week}</span>
-          <span class="text-xs text-gray-400">${report.weekRange}</span>
+          <span class="text-xs text-gray-500">${report.weekRange}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${WEEKLY_STATUS_LABEL[report.status]}</span>
         </div>
         <div class="flex items-center gap-2">
-          ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-400">报送于 ${report.submittedAt}</span>` : ''}
-          ${report.content ? `<button class="weekly-detail-toggle text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">展开</button>` : ''}
+          ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-500">报送于 ${report.submittedAt}</span>` : ''}
+          ${report.content ? `<button class="weekly-detail-toggle text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">展开</button>` : ''}
         </div>
       </div>
-      ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-400 mt-1">暂无内容</p>'}
+      ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}
     </div>`;
 }

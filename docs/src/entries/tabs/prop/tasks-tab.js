@@ -57,23 +57,23 @@ export function renderContent() {
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:#d97706;border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(245,158,11,0.06);color:color-mix(in srgb, #d97706 60%, #000);border-bottom:2px solid rgba(245,158,11,0.15);">待接收 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待接收任务</p>' :
+          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待接收任务</p>' :
             pending.map(t => _renderTaskCard(t)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${inProgress.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, #3b82f6 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${inProgress.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${inProgress.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中任务</p>' :
+          ${inProgress.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无进行中任务</p>' :
             inProgress.map(t => _renderTaskCard(t)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:#10b981;border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(52,211,153,0.10);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.25);background:rgba(16,185,129,0.06);color:color-mix(in srgb, #10b981 60%, #000);border-bottom:2px solid rgba(16,185,129,0.15);">已提交 (${submitted.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${submitted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无已提交任务</p>' :
+          ${submitted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无已提交任务</p>' :
             submitted.map(t => _renderTaskCard(t)).join('')}
         </div>
       </div>
@@ -121,7 +121,7 @@ function _renderTaskCard(task) {
       </div>
       <div class="text-sm font-medium text-gray-800 mt-1">${task.summary}</div>
       <div class="flex items-center justify-between mt-1.5">
-        <span class="text-xs text-gray-400">来自：${task.source} · ${task.createdAt}</span>
+        <span class="text-xs text-gray-500">来自：${task.source} · ${task.createdAt}</span>
         ${advanceBtn}
       </div>
     </div>`;

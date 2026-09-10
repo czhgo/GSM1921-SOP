@@ -370,7 +370,7 @@ export function renderNoticeList(containerId, limit = 5) {
   const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date', retention: 'visible' });
 
   if (notices.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400">暂无通知</p>';
+    container.innerHTML = '<p class="text-sm text-gray-500">暂无通知</p>';
     return;
   }
 
@@ -393,7 +393,7 @@ export function renderNoticeList(containerId, limit = 5) {
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
         ${!n.read ? `<button class="notice-confirm-read text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
-        <span class="text-xs text-gray-400">${n.publishDate}</span>
+        <span class="text-xs text-gray-500">${n.publishDate}</span>
       </div>
     </div>
   `).join('');
@@ -449,9 +449,9 @@ function _showNoticePopover(notice, triggerBtn) {
           ${notice.source === 'committee' ? committeeSourceChip() : ''}
           <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
         </div>
-      <button id="notice-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="notice-popover-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
     </div>
-    <div class="text-xs text-gray-400 mb-3">${notice.publishDate || ''}</div>
+    <div class="text-xs text-gray-500 mb-3">${notice.publishDate || ''}</div>
     <div class="text-sm text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">${notice.content || '无内容'}</div>
     <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
       <button id="notice-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>

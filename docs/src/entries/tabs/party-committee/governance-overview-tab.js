@@ -121,30 +121,30 @@ function _renderGovernance(el, activities, branches, noticeCount) {
       <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between">
           <div class="min-w-0">
-            <p class="text-xs text-gray-400">院系党组织 · 治理总览</p>
+            <p class="text-xs text-gray-500">院系党组织 · 治理总览</p>
             <p class="font-title-cn text-lg font-bold text-gray-800 truncate">${esc(getCommitteeName())}</p>
           </div>
           <div class="text-right shrink-0">
             <p class="text-2xl font-bold text-red-600">${branches.length}</p>
-            <p class="text-xs text-gray-400">支部实例</p>
+            <p class="text-xs text-gray-500">支部实例</p>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-400">在册成员合计</p>
-            <p class="text-xl font-bold text-gray-800 mt-1">${totals.members}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+            <p class="text-xs text-gray-500">在册成员合计</p>
+            <p class="text-xl font-bold text-gray-800 mt-1">${totals.members}<span class="text-xs font-normal text-gray-500"> 人</span></p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-400">在册党员（正式+预备）</p>
-            <p class="text-xl font-bold text-gray-800 mt-1">${totals.party}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+            <p class="text-xs text-gray-500">在册党员（正式+预备）</p>
+            <p class="text-xl font-bold text-gray-800 mt-1">${totals.party}<span class="text-xs font-normal text-gray-500"> 人</span></p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-400">滞留党员（应到剔除）</p>
-            <p class="text-xl font-bold text-gray-800 mt-1">${totals.detained}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+            <p class="text-xs text-gray-500">滞留党员（应到剔除）</p>
+            <p class="text-xl font-bold text-gray-800 mt-1">${totals.detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-400">全院通知</p>
-            <p class="text-xl font-bold text-gray-800 mt-1">${noticeCount}<span class="text-xs font-normal text-gray-400"> 条</span></p>
+            <p class="text-xs text-gray-500">全院通知</p>
+            <p class="text-xl font-bold text-gray-800 mt-1">${noticeCount}<span class="text-xs font-normal text-gray-500"> 条</span></p>
           </div>
         </div>
       </div>
@@ -152,7 +152,7 @@ function _renderGovernance(el, activities, branches, noticeCount) {
       <!-- 支部概览卡列表（先骨架占位，rAF 后填充真实卡网格 → 「进入支部（演示）」） -->
       <div id="pc-branch-cards">${_branchCardsSkeleton()}</div>
 
-      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 在册成员合计 ${totals.members} 人</p>
+      <p class="text-xs text-gray-500">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 在册成员合计 ${totals.members} 人</p>
     </div>
   `;
 
@@ -161,34 +161,34 @@ function _renderGovernance(el, activities, branches, noticeCount) {
       <div class="flex items-start justify-between gap-2 mb-2">
         <div class="min-w-0">
           <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(r.name)}</p>
-          <p class="text-xs text-gray-400 mt-0.5">${esc(r.type)} · 现任书记：${esc(r.secretaryName)}</p>
+          <p class="text-xs text-gray-500 mt-0.5">${esc(r.type)} · 现任书记：${esc(r.secretaryName)}</p>
         </div>
-        <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${r.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}">${r.status === 'active' ? '运行中' : esc(r.status)}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full shrink-0 ${r.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${r.status === 'active' ? '运行中' : esc(r.status)}</span>
       </div>
       <div class="grid grid-cols-3 gap-3 mb-3">
         <div class="rounded-lg bg-gray-50 p-2.5">
-          <p class="text-xs text-gray-400">当前成员</p>
-          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.memberCount}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+          <p class="text-xs text-gray-500">当前成员</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.memberCount}<span class="text-xs font-normal text-gray-500"> 人</span></p>
         </div>
         <div class="rounded-lg bg-gray-50 p-2.5">
-          <p class="text-xs text-gray-400">在册党员</p>
-          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.partyTotal}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+          <p class="text-xs text-gray-500">在册党员</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span></p>
         </div>
         <div class="rounded-lg bg-gray-50 p-2.5">
-          <p class="text-xs text-gray-400">滞留</p>
-          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.detained}<span class="text-xs font-normal text-gray-400"> 人</span></p>
+          <p class="text-xs text-gray-500">滞留</p>
+          <p class="text-lg font-bold text-gray-800 mt-0.5">${r.detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
         </div>
       </div>
       <div class="mb-3">
-        <p class="text-xs text-gray-400 mb-2">近期动态（最近组织生活 ${r.activityCount} 场）</p>
+        <p class="text-xs text-gray-500 mb-2">近期动态（最近组织生活 ${r.activityCount} 场）</p>
         ${r.recent.length ? `
           <div class="flex flex-col gap-1.5">
             ${r.recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${esc(a.date?.slice(5) || '')} ${esc(a.title)}</span>`).join('')}
-          </div>` : `<p class="text-xs text-gray-400">暂无组织生活记录</p>`}
+          </div>` : `<p class="text-xs text-gray-500">暂无组织生活记录</p>`}
       </div>
       <div class="mt-auto flex items-center justify-between gap-2 pt-1 border-t border-gray-100">
-        <p class="text-xs text-gray-400">支部 ${esc(r.type)} · 组织生活共 ${r.activityCount} 场</p>
-        <button type="button" class="branch-demo-enter text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" data-branch-id="${esc(r.id)}"
+        <p class="text-xs text-gray-500">支部 ${esc(r.type)} · 组织生活共 ${r.activityCount} 场</p>
+        <button type="button" class="branch-demo-enter btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${esc(r.id)}"
           title="打开该支部书记工作台（演示视图）">进入支部（演示）</button>
       </div>
     </div>`).join('');

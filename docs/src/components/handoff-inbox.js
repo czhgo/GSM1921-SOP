@@ -29,7 +29,7 @@ export function renderHandoffInboxHtml({ to, accent, title = '数据交接', ext
             <span class="text-sm font-medium text-gray-800 truncate">${meta.label || h.type}：${h.refLabel || ''}</span>
             ${badgeHtml('待确认', 'warning')}
           </div>
-          <div class="text-xs text-gray-400 truncate">${h.note || `${HANDOFF_ROLE_LABELS[h.from] || h.from} → ${HANDOFF_ROLE_LABELS[h.to] || h.to}`} · ${(h.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
+          <div class="text-xs text-gray-500 truncate">${h.note || `${HANDOFF_ROLE_LABELS[h.from] || h.from} → ${HANDOFF_ROLE_LABELS[h.to] || h.to}`} · ${(h.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
         </div>
         <button type="button" class="handoff-confirm-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-handoff-id="${h.id}" style="${solidAccentStyle(accent)};cursor:pointer;">确认接收</button>
       </div>
@@ -41,9 +41,9 @@ export function renderHandoffInboxHtml({ to, accent, title = '数据交接', ext
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        ${items.length > 0 ? `<span class="text-xs text-gray-400 tabular-nums">${items.length} 条待确认</span>` : '<span class="text-xs text-gray-400">已清空</span>'}
+        ${items.length > 0 ? `<span class="text-xs text-gray-500 tabular-nums">${items.length} 条待确认</span>` : '<span class="text-xs text-gray-500">已清空</span>'}
       </div>
-      ${items.length > 0 ? `<div class="divide-y divide-gray-50">${rows}</div>` : '<p class="text-xs text-gray-400 py-1">暂无待确认的交接数据</p>'}
+      ${items.length > 0 ? `<div class="divide-y divide-gray-50">${rows}</div>` : '<p class="text-xs text-gray-500 py-1">暂无待确认的交接数据</p>'}
       ${extraActionHtml || ''}
     </div>
   `;

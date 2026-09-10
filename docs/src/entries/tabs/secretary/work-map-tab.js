@@ -32,7 +32,7 @@ function _modulesHtml(workforce) {
         const chips = (m.sub || []).map(s => `
           <span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
         const outputs = (m.outputs || []).map(o => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500">产出·${esc(o)}</span>`).join('');
+          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">产出·${esc(o)}</span>`).join('');
         return `
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
@@ -72,12 +72,12 @@ function _personsHtml(workforce) {
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' ? 'bg-red-600' : 'bg-blue-500'}"></span>
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(_ownerLabel(assign))}</p>
-            <span class="ml-auto text-[11px] text-gray-400">${modules.length} 个模块</span>
+            <span class="ml-auto text-[11px] text-gray-500">${modules.length} 个模块</span>
           </div>
           <div class="flex flex-wrap gap-1.5">
             ${modules.map(m => `
               <span class="text-xs px-2 py-1 rounded-lg bg-neutral-50 border border-gray-100 text-gray-700">
-                ${esc(m.name)}${(m.sub && m.sub.length) ? `<span class="text-[10px] text-gray-400 ml-1">（${esc(m.sub.join('·'))}）</span>` : ''}
+                ${esc(m.name)}${(m.sub && m.sub.length) ? `<span class="text-[10px] text-gray-500 ml-1">（${esc(m.sub.join('·'))}）</span>` : ''}
               </span>`).join('')}
           </div>
         </div>`).join('')}
@@ -107,10 +107,11 @@ export function renderContent() {
           { key: 'persons', label: '按人' },
         ].map(t => `
           <button type="button"
-            class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+            class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+            ${_view === t.key ? 'style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''}
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>
-      <p class="text-xs text-gray-400 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
+      <p class="text-xs text-gray-500 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
     </div>`;
   const body = _view === 'persons' ? _personsHtml(workforce) : _modulesHtml(workforce);
 

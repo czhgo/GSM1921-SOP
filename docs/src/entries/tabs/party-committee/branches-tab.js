@@ -47,7 +47,7 @@ export async function renderContent() {
       <div class="card rounded-xl p-4 flex items-center justify-between">
         <div>
           <p class="font-title-cn text-base font-bold text-gray-800">支部实例</p>
-          <p class="text-xs text-gray-400 mt-0.5">支部不预设名字——由党委按实际情况创建/改名（硕博等支部随时可加）</p>
+          <p class="text-xs text-gray-500 mt-0.5">支部不预设名字——由党委按实际情况创建/改名（硕博等支部随时可加）</p>
         </div>
         <button id="branch-add-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">+ 新建支部</button>
       </div>
@@ -78,19 +78,19 @@ export async function renderContent() {
             <div class="flex items-start justify-between mb-2">
               <div class="min-w-0">
                 <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(b.config?.headerTitle || b.name)}</p>
-                <p class="text-xs text-gray-400 mt-0.5">${esc(b.type || '支部')} · 现任书记：${esc(b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）')}</p>
+                <p class="text-xs text-gray-500 mt-0.5">${esc(b.type || '支部')} · 现任书记：${esc(b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）')}</p>
                 ${isEmpty
-                  ? '<p class="text-[11px] text-amber-600 mt-1">空支部 · 成员 0 名——可整表导入成员名册（导入后成员/应到统计即时可见）</p>'
-                  : `<p class="text-[11px] text-gray-400 mt-1">成员 ${inBranch.length} 名 · 在册党员 ${rStats.partyTotal} · 支部党员大会应到 ${rStats.expected} 人</p>`}
+                  ? '<p class="text-[11px] text-amber-700 mt-1">空支部 · 成员 0 名——可整表导入成员名册（导入后成员/应到统计即时可见）</p>'
+                  : `<p class="text-[11px] text-gray-500 mt-1">成员 ${inBranch.length} 名 · 在册党员 ${rStats.partyTotal} · 支部党员大会应到 ${rStats.expected} 人</p>`}
               </div>
-              <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-600 shrink-0">运行中</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 shrink-0">运行中</span>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <button class="branch-rename-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">改名</button>
               <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
               ${isEmpty
                 ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:#C8102E;" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
-                : `<span class="text-[11px] text-gray-400">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
+                : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
@@ -109,7 +109,7 @@ export async function renderContent() {
             </div>
             ${(() => { const h = listAppointments(bid); return h.length ? `
             <div class="mt-2 pt-2 border-t border-gray-100">
-              <p class="text-xs text-gray-400 mb-1">任期档案</p>
+              <p class="text-xs text-gray-500 mb-1">任期档案</p>
               ${h.slice(0, 3).map(r => `
                 <p class="text-xs text-gray-500 leading-5">${esc(getPersonName(r.secretaryId))} · ${String(r.from || '').slice(0, 10)}${r.to ? ' → ' + String(r.to).slice(0, 10) : ' · 现任'}${r.note ? ' · ' + esc(r.note) : ''}</p>`).join('')}
             </div>` : ''; })()}
@@ -117,7 +117,7 @@ export async function renderContent() {
           </div>`;
         }).join('')}
       </div>
-      <p class="text-xs text-gray-400">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放</p>
+      <p class="text-xs text-gray-500">党委组织：${esc(getCommitteeName())} · 支部 ${branches.length} 个 · 名册导入仅对空支部开放</p>
       <input type="file" id="branch-roster-file" accept=".json,application/json" class="hidden" aria-label="选择成员名册 JSON 文件">
     </div>
   `;
@@ -190,7 +190,7 @@ function _rosterPanelHtml(b) {
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-branch-roster-act="download" data-branch-id="${esc(bid)}">下载名册模板</button>
         <button type="button" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-branch-roster-act="pick" data-branch-id="${esc(bid)}">选择名册文件(JSON)…</button>
-        <span class="text-[11px] text-gray-400">${_rosterDrafts.has(bid) ? `已载入草稿（${esc(_rosterDrafts.get(bid).fileName || '')}）` : '未选择文件'}</span>
+        <span class="text-[11px] text-gray-500">${_rosterDrafts.has(bid) ? `已载入草稿（${esc(_rosterDrafts.get(bid).fileName || '')}）` : '未选择文件'}</span>
       </div>
       ${_rosterDraftHtml(bid)}
     </div>`;
@@ -199,9 +199,9 @@ function _rosterPanelHtml(b) {
 /** 统计单格（label + 主读数 + 副注）——风格与换组织向导预览卡一致 */
 function _rosterStatBox(label, main, sub) {
   return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
-    <p class="text-[11px] text-gray-400">${esc(label)}</p>
+    <p class="text-[11px] text-gray-500">${esc(label)}</p>
     <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
-    ${sub ? `<p class="text-[10px] text-gray-400 mt-0.5">${esc(sub)}</p>` : ''}
+    ${sub ? `<p class="text-[10px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
   </div>`;
 }
 
@@ -211,17 +211,17 @@ function _rosterDraftHtml(branchId) {
   if (!d) return '';
   const s = d.stats;
   const groupParts = Object.entries(s.perGroup || {}).map(([g, v]) =>
-    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[10px] text-gray-400"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[10px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
   return `
     <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p class="text-xs font-semibold text-gray-700">导入预览 · 确认前统计</p>
-        <span class="text-[11px] text-gray-400">${esc(d.fileName || '名册文件')} · 有效 ${d.people.length} 条${d.dropped ? ` · 已忽略 ${d.dropped} 条（不在现有成员档案/姓名为空）` : ''}</span>
+        <span class="text-[11px] text-gray-500">${esc(d.fileName || '名册文件')} · 有效 ${d.people.length} 条${d.dropped ? ` · 已忽略 ${d.dropped} 条（不在现有成员档案/姓名为空）` : ''}</span>
       </div>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        ${_rosterStatBox('在册党员（应到基数）', `${s.partyTotal}<span class="text-xs font-normal text-gray-400"> 人</span>`, `正式 ${s.official} + 预备 ${s.probationary}`)}
-        ${_rosterStatBox('滞留党员（剔除）', `${s.detained}<span class="text-xs font-normal text-gray-400"> 人</span>`, '组织关系保留、通知照发')}
-        ${_rosterStatBox('支部党员大会应到', `<span class="text-red-600">${s.expected}</span><span class="text-xs font-normal text-gray-400"> 人</span>`, `= 党员 ${s.partyTotal} − 滞留 ${s.detained}`)}
+        ${_rosterStatBox('在册党员（应到基数）', `${s.partyTotal}<span class="text-xs font-normal text-gray-500"> 人</span>`, `正式 ${s.official} + 预备 ${s.probationary}`)}
+        ${_rosterStatBox('滞留党员（剔除）', `${s.detained}<span class="text-xs font-normal text-gray-500"> 人</span>`, '组织关系保留、通知照发')}
+        ${_rosterStatBox('支部党员大会应到', `<span class="text-red-600">${s.expected}</span><span class="text-xs font-normal text-gray-500"> 人</span>`, `= 党员 ${s.partyTotal} − 滞留 ${s.detained}`)}
         ${_rosterStatBox('各党小组会应到', groupParts || '—', '组内党员 − 组内滞留')}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">

@@ -69,7 +69,7 @@ function _rowHtml(branchId, workforce, moduleId, ownerVal) {
     <div class="wf-row flex items-center gap-2">
       <select class="wf-module rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white min-w-[200px]">${moduleOpts}</select>
       <select class="wf-owner rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
-      <button type="button" class="wf-row-del px-2 py-1 rounded-lg text-xs text-gray-400 hover:text-red-600 hover:bg-red-50" title="删除此行">删除</button>
+      <button type="button" class="wf-row-del px-2 py-1 rounded-lg text-xs text-gray-500 hover:text-red-700 hover:bg-red-50" title="删除此行">删除</button>
     </div>`;
 }
 // ownerVal 回填：在 _fillRow 中以 JS 赋值（避免模板注入）
@@ -99,20 +99,20 @@ function _outcomeHtml(outcome) {
   const sum = `${tally.voted}/${needed} 表态 · 应到 ${tally.total} · 异议 ${tally.object}`;
   if (status === 'passed') {
     return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已通过·可采纳</span>
-      <p class="text-[11px] text-gray-400 mt-1">${sum}</p>`;
+      <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
   }
   if (status === 'failed') {
     return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">未通过·有异议</span>
-      <p class="text-[11px] text-gray-400 mt-1">${sum}</p>`;
+      <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
   }
   return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">待足额（差 ${needed - tally.voted} 票）</span>
-    <p class="text-[11px] text-gray-400 mt-1">${sum}</p>`;
+    <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
 }
 
 /** 议题列表卡（adoptable=通过判定实时；已生效=只读） */
 function _proposalCards(proposals, outcomesByAct) {
   if (!proposals.length) {
-    return `<p class="text-xs text-gray-400">暂无分工调整议题——发起后将在此跟踪表决与采纳。</p>`;
+    return `<p class="text-xs text-gray-500">暂无分工调整议题——发起后将在此跟踪表决与采纳。</p>`;
   }
   return proposals.map((a) => {
     const adopted = !!a.extras.adoptedAt;
@@ -132,14 +132,14 @@ function _proposalCards(proposals, outcomesByAct) {
             <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${esc(a.title)}</p>
             ${statusChip}
           </div>
-          <p class="text-[11px] text-gray-400 mt-0.5">${esc(a.date || '')} · 表决入口：本次支委会活动（交流式表态）</p>
+          <p class="text-[11px] text-gray-500 mt-0.5">${esc(a.date || '')} · 表决入口：本次支委会活动（交流式表态）</p>
           <div class="flex flex-wrap gap-1.5 mt-1.5">${lines.join('')}</div>
         </div>
         <div class="shrink-0 flex flex-col gap-1.5 items-end">
           <a href="secretary.html?activityId=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
           ${!adopted ? (adoptable
             ? `<button type="button" class="wf-adopt px-2.5 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700" data-id="${a.id}">采纳生效</button>`
-            : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-400 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
+            : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-500 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
         </div>
       </div>`;
   }).join('');
@@ -182,13 +182,13 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         </div>
         ${draft ? `<div class="flex items-center gap-2 text-[11px] text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>
-            <button type="button" id="wf-load-draft" class="px-2 py-0.5 rounded-md text-red-600 border border-red-200 hover:bg-red-50">载入编辑</button>
-            <button type="button" id="wf-del-draft" class="px-2 py-0.5 rounded-md text-gray-400 hover:text-red-600">删除草稿</button>
+            <button type="button" id="wf-load-draft" class="px-2 py-0.5 rounded-md text-red-700 border border-red-200 hover:bg-red-50">载入编辑</button>
+            <button type="button" id="wf-del-draft" class="px-2 py-0.5 rounded-md text-gray-500 hover:text-red-600">删除草稿</button>
           </div>` : ''}
         <div id="wf-rows" class="flex flex-col gap-2">
-          ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-400">至少一行（模块 → 新负责人）</div>'}
+          ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-500">至少一行（模块 → 新负责人）</div>'}
         </div>
-        <button type="button" id="wf-add-row" class="self-start text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50">＋ 加一行</button>
+        <button type="button" id="wf-add-row" class="self-start text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">＋ 加一行</button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <label class="flex flex-col gap-1 text-xs text-gray-500">支委会日期
             <input id="wf-date" type="date" value="${esc(date)}" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white">
@@ -198,8 +198,8 @@ export async function mountWorkforcePanel(branchId, hostEl) {
           </label>
         </div>
         <div class="flex justify-end gap-2">
-          <button type="button" id="wf-save-draft" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-500 hover:bg-gray-100">存草稿</button>
-          <button type="button" id="wf-cancel" class="px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:bg-gray-100">收起</button>
+          <button type="button" id="wf-save-draft" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-100">存草稿</button>
+          <button type="button" id="wf-cancel" class="px-3 py-1.5 rounded-lg text-xs text-gray-600 hover:bg-gray-100">收起</button>
           <button type="button" id="wf-submit" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">直接发起支委会议题</button>
         </div>
       </div>`;

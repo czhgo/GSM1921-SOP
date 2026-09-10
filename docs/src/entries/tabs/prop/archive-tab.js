@@ -57,7 +57,7 @@ export function renderContent(ctx) {
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center">
       <div class="relative flex-1 min-w-[200px]">
         <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat flex-1 pl-8" />
-        ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-400' })}
+        ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-500' })}
       </div>
       <div class="flex items-center gap-2 flex-wrap">
         <select id="archive-filter-category" class="input-flat">
@@ -177,7 +177,7 @@ export function renderContent(ctx) {
 
 function _renderArchiveList(records) {
   if (records.length === 0) {
-    return '<p class="text-xs text-gray-400 text-center py-8">无匹配的归档记录</p>';
+    return '<p class="text-xs text-gray-500 text-center py-8">无匹配的归档记录</p>';
   }
   // 按日期降序排列（新日期在前）
   const sorted = [...records].sort((a, b) => (b.archiveDate || '').localeCompare(a.archiveDate || ''));
@@ -196,12 +196,12 @@ function _renderArchiveList(records) {
       : '';
     // 已归档状态显示完成标记
     const doneHtml = isFinal
-      ? `<span class="text-xs text-green-600">✓</span>`
+      ? `<span class="text-xs text-green-700">✓</span>`
       : '';
     // 已归档材料（上传过文件）显示下载按钮
     const fileBtn = r.fileName
       ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
-        <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-500 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
+        <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
       : '';
     return `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
@@ -212,7 +212,7 @@ function _renderArchiveList(records) {
             <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
             ${progressHtml}${doneHtml}
           </div>
-          <span class="text-xs text-gray-400">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>
+          <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${advanceBtn}</div>
       </div>`;
@@ -319,7 +319,7 @@ function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
   html += `<div class="px-5 pt-4 pb-3 border-b border-gray-100">`;
   html += `<div class="flex items-center justify-between mb-1">`;
   html += `<h3 class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</h3>`;
-  html += `<button id="archive-popover-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>`;
+  html += `<button id="archive-popover-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>`;
   html += `</div>`;
   html += `<div class="text-xs text-gray-500">${record.activityName} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${record.category}</span></div>`;
   html += `</div>`;
@@ -464,11 +464,11 @@ function _showArchiveUploadModal(ctx) {
   card.innerHTML = `
     <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</h3>
-      <button id="upload-modal-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="upload-modal-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
     </div>
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">关联活动 <span class="text-red-600">*</span></label>
         <select id="upload-activity" class="input-flat w-full">${activityOptions}</select>
       </div>
       <div>
@@ -518,11 +518,11 @@ function _showArchiveUploadModal(ctx) {
         ${thumb}
         <div class="flex-1 min-w-0">
           <p class="text-xs text-gray-700 truncate">${f.name}</p>
-          <p class="text-[11px] text-gray-400">${(f.size / 1024).toFixed(1)} KB</p>
+          <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
         </div>
-        <button class="upload-file-remove text-gray-400 hover:text-red-500 text-sm leading-none" data-idx="${i}">&times;</button>
+        <button class="upload-file-remove text-gray-500 hover:text-red-600 text-sm leading-none" data-idx="${i}">&times;</button>
       </div>`;
-    }).join('') || '<p class="text-xs text-gray-400 text-center py-3">尚未选择文件</p>';
+    }).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择文件</p>';
   };
 
   // 文件选择：过滤超限文件并渲染预览
@@ -603,7 +603,7 @@ function _promptExternalDispatch(activityId, activityName, ctx) {
     <div class="card rounded-xl w-full max-w-md" style="max-height:80vh;overflow-y:auto;">
       <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
         <h3 class="font-title-cn text-sm font-semibold text-gray-800">文件外发确认</h3>
-        <button id="ed-modal-close" class="text-gray-400 hover:text-gray-600 text-sm leading-none">&times;</button>
+        <button id="ed-modal-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
       </div>
       <div class="px-5 py-4 space-y-3.5">
         <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">

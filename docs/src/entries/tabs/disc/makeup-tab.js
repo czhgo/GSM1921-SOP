@@ -43,7 +43,7 @@ export function renderContent() {
           </div>
         </div>
         <div class="text-xs text-gray-500 mb-3">缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成</div>
-        ${tasks.length === 0 ? '<div class="text-xs text-gray-400 py-6 text-center">暂无补课任务</div>' : `
+        ${tasks.length === 0 ? '<div class="text-xs text-gray-500 py-6 text-center">暂无补课任务</div>' : `
         <div class="overflow-x-auto">
           <table class="w-full text-xs">
             <thead><tr class="border-b border-gray-200">
@@ -64,7 +64,7 @@ export function renderContent() {
                 <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
                 <td class="py-2 px-3">${statusBadge(t)}</td>
-                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-400">—</span>'}</td>
+                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
               </tr>
             `}).join('')}</tbody>
           </table>

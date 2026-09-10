@@ -182,6 +182,7 @@ export const REALTIME_GROUP_DOMAIN = {
   'resolution-followup-remind': WORK_DOMAIN.RESOLUTION,
   'member-confirm': WORK_DOMAIN.MEMBER_DEV,
   'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
+  'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
 };
 
 /** 实时组对象 → 业务域标注（供 T4 域折组展示；先查 actionKey，未收录回退 inferDomain 兼容） */
@@ -203,6 +204,7 @@ const URGE_ROLE_BY_ACTION = {
   'inspection-remind': 'disc-commissioner',  // 考察超期未确认 → 纪检委员
   'archive-remind': 'prop-commissioner',     // 宣传材料待归档 → 宣传委员
   'semester-detained-remind': 'org-commissioner', // 学期末滞留维护 → 组织委员
+  'develop-node-remind': 'org-commissioner', // 发展节点期满（培养考察期满/预备期满）→ 组织委员
 };
 
 /**
@@ -246,6 +248,68 @@ export function urgeRolesOf(group, ctx = {}) {
   // ④ 实时派生组静态映射（复核类/成员确权等责任人=书记本人，不在表内 → []）
   const mapped = URGE_ROLE_BY_ACTION[key];
   return mapped ? [mapped] : [];
+}
+
+// ════════════════════════════════════════════════════════════════
+//  发展节点系统提醒（组织委员流程指南 附录A；2026-09-10）
+//  依据：组织委员工作流程指南 附录A「系统提示」列——积极分子培养考察期满提醒 / 预备期满提醒。
+//  派生口径（纯读实时组，不落库、不改数据模型；复用既有实时组模式与稳定键，天然幂等不重复提醒）：
+//    · developStage / entryDate 取成员档案既有字段（entryDate 与组织台「发展数据」同源：
+//      成员档案 person.entryDate 或发展推进覆盖 gsm1921-dev-stage-overrides[personId]，由调用方注入）；
+//    · 积极分子：entryDate + 培养考察期（≥1 年）已满 → 提醒组织委员推进「发展对象」；
+//    · 预备党员：entryDate + 预备期（1 年）已满 → 提醒组织委员办理「转正」。
+//  阈值属制度裁决固定项（《中国共产党发展党员工作细则》一年），非可调项 → 常量化，不走 policyOverrides。
+export const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
+
+/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区漂移；非法输入 → null） */
+function _addDays(dateStr, days) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return null;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + Number(days)));
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+}
+
+/**
+ * 派生组织委员「发展节点提醒」实时组（域=成员发展）。
+ * @param {Object} opts
+ * @param {Array} [opts.members]    成员档案（含 developStage）
+ * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源）
+ * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
+ * @returns {Object|null} 实时组；无期满成员 → null（不产生空组卡）
+ */
+export function buildDevelopNodeRemindGroup({ members = [], overrides = {}, today } = {}) {
+  const day = today || _todayStr();
+  const items = [];
+  for (const p of members || []) {
+    if (!p || !p.id) continue;
+    const ov = overrides[p.id] || {};
+    const stage = ov.stage || p.developStage;
+    const days = DEVELOP_NODE_THRESHOLDS[stage];
+    if (!days) continue;                       // 仅两类期满节点（发展对象/正式党员无期满动作）
+    const entryDate = ov.entryDate || p.entryDate || null;
+    if (!entryDate) continue;                  // 无阶段起始日期 → 不派生（避免误报）
+    const dueDate = _addDays(entryDate, days);
+    if (!dueDate || dueDate > day) continue;   // 未满期
+    items.push({
+      id: `dev-${p.id}`,
+      personId: p.id,
+      name: p.name,
+      stage,
+      entryDate,
+      dueDate,
+      title: stage === '预备党员' ? `${p.name} 预备期满（应办转正）` : `${p.name} 培养考察期满（应转发展对象）`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: 'org-commissioner:develop-node-remind',
+    actionKey: 'develop-node-remind',
+    domain: WORK_DOMAIN.MEMBER_DEV,
+    title: '发展节点提醒',
+    flow: '发展阶段进入期满 → 组织委员办理下一节点（积极分子→发展对象 / 预备党员→转正）',
+    count: items.length,
+    items,
+  };
 }
 
 // ── 待办状态枚举 ──────────────────────────────────────────────

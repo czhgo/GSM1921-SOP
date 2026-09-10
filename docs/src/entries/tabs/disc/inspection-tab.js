@@ -21,7 +21,7 @@ export function renderContent(ctx) {
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
-  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-600' };
+  const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
   const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
 
@@ -38,7 +38,7 @@ export function renderContent(ctx) {
         <div class="flex items-center flex-wrap justify-end gap-2">
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
           <div class="flex items-center gap-2">
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]" data-view="long">活动视图</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:var(--app-accent,#B91C1C)" data-view="long">活动视图</button>
             <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wide">人视图</button>
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
@@ -121,8 +121,8 @@ export function renderContent(ctx) {
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-500'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
             </tr>
           `}).join('')}</tbody>
         </table>
@@ -167,7 +167,7 @@ export function renderContent(ctx) {
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${wideData.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-400'}">${c.type}</div></th>`).join('')}
+            ${wideData.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-500'}">${c.type}</div></th>`).join('')}
           </tr></thead>
           <tbody>${rows.map(row => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
@@ -192,7 +192,8 @@ export function renderContent(ctx) {
         const on = b === btn;
         b.classList.toggle('bg-[var(--app-accent-bg)]', on);
         b.classList.toggle('border-[var(--app-accent)]', on);
-        b.classList.toggle('text-[var(--app-accent)]', on);
+        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
+        if (on) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !on);
         b.classList.toggle('border-neutral-200', !on);
         b.classList.toggle('text-gray-600', !on);
@@ -307,7 +308,7 @@ function _buildTaskforceRosterHTML() {
             ${workloadItems.length > 0 ? `
               <ul class="space-y-1.5 pl-3">
                 ${workloadItems.slice(0, 5).map(w => `<li class="text-[11px] text-gray-500 truncate">${w.name}：${w.item}</li>`).join('')}
-                ${workloadItems.length > 5 ? `<li class="text-[11px] text-gray-400">…另有 ${workloadItems.length - 5} 项</li>` : ''}
+                ${workloadItems.length > 5 ? `<li class="text-[11px] text-gray-500">…另有 ${workloadItems.length - 5} 项</li>` : ''}
               </ul>` : ''}
           </div>
         </div>

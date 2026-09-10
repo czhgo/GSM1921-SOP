@@ -17,9 +17,9 @@ const TYPE_META = {
   'activity-report': { label: '活动报备', desc: '重要活动/主题党日等需党委知悉的重大事项' },
 };
 const STATUS_META = {
-  pending: { label: '待党委批复', cls: 'bg-amber-50 text-amber-600' },
-  approved: { label: '已批准', cls: 'bg-green-50 text-green-600' },
-  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-500' },
+  pending: { label: '待党委批复', cls: 'bg-amber-50 text-amber-700' },
+  approved: { label: '已批准', cls: 'bg-green-50 text-green-700' },
+  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
 };
 
 // HTML 转义/日期格式化统一走 core/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
@@ -82,17 +82,17 @@ function renderForm(branchId, me, tc) {
     <label data-rq-type-label="${k}" class="flex-1 min-w-0 cursor-pointer rounded-lg border p-3 transition-colors ${i === 0 ? 'border-red-300 bg-red-50/40' : 'border-gray-200'}">
       <input type="radio" name="rq-type" value="${k}" class="hidden" ${i === 0 ? 'checked' : ''} />
       <p class="text-sm font-medium text-gray-700">${m.label}</p>
-      <p class="text-xs text-gray-400 mt-0.5 leading-5">${m.desc}</p>
+      <p class="text-xs text-gray-500 mt-0.5 leading-5">${m.desc}</p>
     </label>`).join('');
   wrap.innerHTML = `
     <p class="font-title-cn text-sm font-bold text-gray-800 mb-3">发起上报</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">${typeOptions}</div>
     <div class="mb-3">
-      <label class="text-xs text-gray-500 block mb-1">事项标题 <span class="text-red-500">*</span></label>
+      <label class="text-xs text-gray-500 block mb-1">事项标题 <span class="text-red-600">*</span></label>
       <input id="rq-title" type="text" class="input-flat w-full" placeholder="如：关于接收王同学为预备党员的请示 / 关于赴香山开展主题党日的报备" />
     </div>
     <div class="mb-4">
-      <label class="text-xs text-gray-500 block mb-1">事项说明（时间、对象、依据等）<span class="text-red-500">*</span></label>
+      <label class="text-xs text-gray-500 block mb-1">事项说明（时间、对象、依据等）<span class="text-red-600">*</span></label>
       <textarea id="rq-content" rows="4" class="input-flat w-full resize-none" placeholder="请说明关键信息，便于党委审批"></textarea>
     </div>
     <div class="flex justify-end gap-2">
@@ -135,26 +135,26 @@ function renderList(tc, branchId) {
     list.innerHTML = `
       <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
         <p class="text-sm text-gray-500">暂无上报记录</p>
-        <p class="text-xs text-gray-400 mt-1">支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里</p>
+        <p class="text-xs text-gray-500 mt-1">支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里</p>
       </div>`;
     return;
   }
   list.innerHTML = rows.map(r => {
     const t = TYPE_META[r.type] || { label: r.type || '上报' };
-    const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-500' };
+    const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
     return `
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <div class="flex items-center gap-2 flex-wrap mb-1.5">
-          <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
+          <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
           <span class="text-xs px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
-          <span class="text-xs text-gray-400 ml-auto">${esc(getPersonName(r.submittedBy) || r.submittedBy)} · ${fmtDt(r.createdAt)}</span>
+          <span class="text-xs text-gray-500 ml-auto">${esc(getPersonName(r.submittedBy) || r.submittedBy)} · ${fmtDt(r.createdAt)}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${esc(r.title)}</p>
         <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(r.content)}</p>
         ${r.status !== 'pending' ? `
         <div class="mt-2.5 rounded-lg bg-gray-50 p-2.5">
           <p class="text-xs text-gray-500 leading-5">
-            <span class="font-medium ${r.status === 'approved' ? 'text-green-600' : 'text-gray-600'}">党委${r.status === 'approved' ? '批准' : '驳回'}</span>
+            <span class="font-medium ${r.status === 'approved' ? 'text-green-700' : 'text-gray-600'}">党委${r.status === 'approved' ? '批准' : '驳回'}</span>
             · ${esc(getPersonName(r.decidedBy) || r.decidedBy || '党委')} · ${fmtDt(r.decidedAt)}
             ${r.decisionNote ? `<br/>${esc(r.decisionNote)}` : ''}
           </p>

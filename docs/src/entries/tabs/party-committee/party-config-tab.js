@@ -18,7 +18,7 @@ export function renderContent() {
     el.innerHTML = `
       <div class="space-y-4">
         <div class="rounded-lg border border-gray-200 bg-white p-4">
-          <p class="text-xs text-gray-400">党委侧 · 换组织向导（吸收合并原「支部配置」；部署期/调整期使用，不在支部日常台出现）</p>
+          <p class="text-xs text-gray-500">党委侧 · 换组织向导（吸收合并原「支部配置」；部署期/调整期使用，不在支部日常台出现）</p>
           <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">换组织向导 · 支部配置</p>
         </div>
         <div id="pc-wizard-host"></div>

@@ -40,7 +40,7 @@ await createWorkspaceShell({
       ? `
     <div class="mb-4 flex items-center gap-2.5">
       <span class="inline-block w-1 h-4 rounded-full flex-shrink-0" style="background:var(--party-red);"></span>
-      <p class="text-sm text-gray-700"><span class="font-semibold text-gray-800">欢迎回来，${userName}</span><span class="text-xs text-gray-400 ml-1">· 支部动态与个人成长一览</span></p>
+      <p class="text-sm text-gray-700"><span class="font-semibold text-gray-800">欢迎回来，${userName}</span><span class="text-xs text-gray-500 ml-1">· 支部动态与个人成长一览</span></p>
     </div>`
       : '';
   },

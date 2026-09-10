@@ -10,12 +10,12 @@
 
 /** 标签行（for 关联控件 id；必填星号；可选 hint 描述） */
 export function labelHtml({ id, text, required = false, hint = '' } = {}) {
-  return `<label for="${id}" class="text-xs text-gray-500 mb-1.5 block font-medium">${text}${required ? ' <span class="text-red-500">*</span>' : ''}</label>${hint ? `<p class="text-[11px] text-gray-400 mb-1.5 -mt-1">${hint}</p>` : ''}`;
+  return `<label for="${id}" class="text-xs text-gray-500 mb-1.5 block font-medium">${text}${required ? ' <span class="text-red-600">*</span>' : ''}</label>${hint ? `<p class="text-[11px] text-gray-500 mb-1.5 -mt-1">${hint}</p>` : ''}`;
 }
 
 /** 错误行（aria-describedby 关联到控件 id-err） */
 export function errorHtml(id, error) {
-  return error ? `<p class="text-[11px] text-red-500 mt-1" id="${id}-err">${error}</p>` : '';
+  return error ? `<p class="text-[11px] text-red-600 mt-1" id="${id}-err">${error}</p>` : '';
 }
 
 function _fieldShell({ id, label, required, hint, error, control }) {

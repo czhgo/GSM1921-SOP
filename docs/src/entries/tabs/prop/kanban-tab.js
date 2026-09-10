@@ -50,21 +50,21 @@ export function renderContent(ctx) {
       <div class="card rounded-xl p-0 overflow-hidden">
         <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:#2563eb;border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无待启动项目</p>' :
+          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待启动项目</p>' :
             pending.map(item => _renderKanbanItem(item)).join('')}
         </div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:#3b82f6;border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, #3b82f6 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]">
-          ${active.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无进行中项目</p>' :
+          ${active.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无进行中项目</p>' :
             active.map(item => _renderKanbanItem(item, true)).join('')}
         </div>
       </div>
     </div>
     ${completed.length > 0 ? `
     <details class="card rounded-xl p-0 overflow-hidden">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:#6B7280;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:#4B5563;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
       <div class="p-3 space-y-2">
         ${completed.map(item => _renderKanbanItem(item)).join('')}
       </div>
@@ -128,12 +128,12 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     ? badgeHtml('专班', 'success')
     : (item.type ? badgeHtml(item.type, 'info') : '');
   const subInfo = isTf
-    ? `<span class="text-xs text-gray-400">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
+    ? `<span class="text-xs text-gray-500">${item.filled}/${item.capacity} 人 × ${item.contributions} 产出</span>`
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
-      ? `<button class="tf-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
-      : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
+      ? `<button class="tf-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
+      : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
     <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer" data-kt="${item._type}" data-ki="${item.id}">
@@ -142,7 +142,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
         ${typeTag}
       </div>
       <div class="text-xs text-gray-500 mt-0.5">${item.date || ''} ${subInfo}</div>
-      ${isTf && item.task ? `<div class="text-[12px] text-gray-400 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
+      ${isTf && item.task ? `<div class="text-[12px] text-gray-500 mt-0.5 line-clamp-1">${item.task}</div>` : ''}
       ${completeBtn}
     </div>`;
 }

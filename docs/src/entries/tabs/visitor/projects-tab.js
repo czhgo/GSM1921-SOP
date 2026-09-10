@@ -83,7 +83,8 @@ export function renderContent(ctx) {
     <div class="flex items-center gap-2 mb-3">
       ${subTabs.map(t => `
         <button type="button"
-          class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+          class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+          ${_projSubView === t.key ? 'style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''}
           data-proj-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -102,7 +103,7 @@ export function renderContent(ctx) {
         ${partyGroups.map(g => `<option value="${g}">${g}</option>`).join('')}
       </select>
       <input type="text" id="visitor-proj-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
-      <span id="visitor-proj-count" class="text-xs text-gray-400 ml-1"></span>
+      <span id="visitor-proj-count" class="text-xs text-gray-500 ml-1"></span>
     </div>
     <div id="visitor-proj-list"></div>
   `;
@@ -137,7 +138,7 @@ export function renderContent(ctx) {
       ? '你暂未参与任何项目'
       : '无匹配项目';
     listEl.innerHTML = filtered.length === 0
-      ? `<p class="text-xs text-gray-400 text-center py-6">${emptyText}</p>`
+      ? `<p class="text-xs text-gray-500 text-center py-6">${emptyText}</p>`
       : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p, currentUserId)).join('')}</div>`;
 
     // T-304 第5轮 P8：专班卡片点击直达详情页（含报名入口）——补 visitor 报名可达性
@@ -182,7 +183,8 @@ export function renderContent(ctx) {
         const active = b === btn;
         b.classList.toggle('bg-[var(--app-accent-bg)]', active);
         b.classList.toggle('border-[var(--app-accent)]', active);
-        b.classList.toggle('text-[var(--app-accent)]', active);
+        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', active);
+        if (active) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !active);
         b.classList.toggle('border-neutral-200', !active);
         b.classList.toggle('text-gray-600', !active);
@@ -250,8 +252,8 @@ function _actStatusLabel(status) {
   return map[status] || status || '进行中';
 }
 function _actStatusColor(status) {
-  const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-600' };
-  return map[status] || 'bg-gray-100 text-gray-500';
+  const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-700' };
+  return map[status] || 'bg-gray-100 text-gray-600';
 }
 function _tfStatusLabel(status) {
   // 2026-09-02 书记裁决（漂移②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
@@ -260,8 +262,8 @@ function _tfStatusLabel(status) {
   return map[status] || status || '运行中';
 }
 function _tfStatusColor(status) {
-  const map = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', dissolved: 'bg-red-100 text-red-600', draft: 'bg-yellow-100 text-yellow-700' };
-  return map[status] || 'bg-gray-100 text-gray-500';
+  const map = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', dissolved: 'bg-red-100 text-red-700', draft: 'bg-yellow-100 text-yellow-700' };
+  return map[status] || 'bg-gray-100 text-gray-600';
 }
 
 function _personnelRoleLabel(role) {
@@ -273,7 +275,7 @@ function _personnelRoleColor(role) {
   // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（书记 2026-08-01 决策）
   // ROLE_COLORS 经 _applyDark 生成 bgDark/textDark/borderDark，一并输出做深色适配
   const c = ROLE_COLORS[role] || ROLE_COLORS.participant;
-  return `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
+  return `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};`;
 }
 
 function _renderProjectCard(project, currentUserId) {
@@ -307,7 +309,7 @@ function _renderProjectCard(project, currentUserId) {
           ${deepParticipants.map(p => badge(p, true)).join('')}
           ${others.map(p => badge(p, false)).join('')}
         </div>
-      ` : '<p class="text-xs text-gray-400">暂无人员</p>'}
+      ` : '<p class="text-xs text-gray-500">暂无人员</p>'}
     </div>
   `;
 }

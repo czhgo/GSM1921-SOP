@@ -13,7 +13,7 @@ const CPS_PREFIX = 'cps-';  // 单值参数前缀，与 SESSION_KEY 区隔
  * 每次更新 docs/src 下的 mock/服务代码时，将本常量 +1，所有页面首次打开会自动刷新一次加载新模块。
  * 自检逻辑见 bootstrapPage()。
  */
-const CODE_VERSION = 93; // 2026-09-10 收口批（活动写入 S-1~S-4 + 归属时序修复 + 待办催办/兜底 + 卡片普查合并 + 门面通用化 + 只读端对齐）+ 全站 ?v=20260910a
+const CODE_VERSION = 95; // 2026-09-10 收口批（活动写入 S-1~S-4 + 卡片普查合并 + 催办/兜底白名单 + 归属时序修复 + 门面通用化 + 只读端对齐 + 全站对比度 AA 收口 + 功能实现评议 8 项落地）+ 全站 ?v=20260910a
 
 export const CrossPageState = {
   save(session) {

@@ -14,7 +14,7 @@ export function renderContent(ctx) {
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">请先登录</p>';
+    tc.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">请先登录</p>';
     return;
   }
 
@@ -33,7 +33,7 @@ export function renderContent(ctx) {
     <div class="mb-3 p-3 rounded-lg bg-white flex items-center gap-4">
       <div class="flex-1">
         <p class="text-sm font-semibold text-gray-800">我的考察记录</p>
-        <p class="text-xs text-gray-400 mt-0.5">共 ${total} 条 · 已确认 ${confirmed} · 待确认 ${pending}</p>
+        <p class="text-xs text-gray-500 mt-0.5">共 ${total} 条 · 已确认 ${confirmed} · 待确认 ${pending}</p>
       </div>
     </div>
     <div id="visitor-insp-list" class="space-y-2"></div>
@@ -43,7 +43,7 @@ export function renderContent(ctx) {
   if (!listEl) return;
 
   if (sorted.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无考察记录</p>';
+    listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无考察记录</p>';
     return;
   }
 
@@ -67,15 +67,15 @@ export function renderContent(ctx) {
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center gap-2">
             ${badgeHtml(sourceLabel, 'neutral')}
-            <span class="badge" style="--acc-bg-dark:${lc.bgDark};--acc-text-dark:${lc.textDark};--acc-border-dark:${lc.borderDark};background:${lc.bg};color:${lc.text};border:1px solid ${lc.border};">${levelLabel}</span>
+            <span class="badge" style="--acc-bg-dark:${lc.bgDark};--acc-text-dark:${lc.textDark};--acc-border-dark:${lc.borderDark};background:${lc.bg};color:color-mix(in srgb, ${lc.text} 60%, #000);border:1px solid ${lc.border};">${levelLabel}</span>
           </div>
           <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
         <p class="text-sm font-medium text-gray-800">${sourceTitle}</p>
         ${r.role ? `<p class="text-xs text-gray-500 mt-1">工作内容：${r.role}</p>` : ''}
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
-          <p class="text-xs text-gray-400">录入人：${r.recordedByName || '—'}</p>
-          <p class="text-xs text-gray-400">${recordedDate}</p>
+          <p class="text-xs text-gray-500">录入人：${r.recordedByName || '—'}</p>
+          <p class="text-xs text-gray-500">${recordedDate}</p>
         </div>
       </div>
     `;

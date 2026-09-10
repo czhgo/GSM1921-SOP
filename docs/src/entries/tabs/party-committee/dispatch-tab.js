@@ -44,17 +44,17 @@ export function renderContent() {
             <p class="font-title-cn text-base font-bold text-gray-800">下发通知</p>
           </div>
           <div class="text-right shrink-0">
-            <p class="text-xs text-gray-400">送达范围</p>
+            <p class="text-xs text-gray-500">送达范围</p>
             <p class="text-sm font-medium text-gray-700">目标支部 · 支委层</p>
           </div>
         </div>
-        <p class="text-xs text-gray-400">通知直达支部委员会（支委层收件并已读反馈）；支部非支委党员不受打扰。支部动态创建后自动可选。</p>
+        <p class="text-xs text-gray-500">通知直达支部委员会（支委层收件并已读反馈）；支部非支委党员不受打扰。支部动态创建后自动可选。</p>
       </div>
 
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <p class="font-title-cn text-sm font-bold text-gray-800 mb-3">撰写下发通知</p>
         <div class="mb-3">
-          <p class="text-xs text-gray-500 block mb-1.5">目标支部（可多选）<span class="text-red-500">*</span></p>
+          <p class="text-xs text-gray-500 block mb-1.5">目标支部（可多选）<span class="text-red-600">*</span></p>
           <div id="dispatch-branches" class="flex flex-wrap gap-2"></div>
         </div>
         ${textField({ id: 'dispatch-title', label: '标题', required: true, value: prev.title || '', placeholder: '例：关于规范主题党日开展程序的工作提示…', autocomplete: 'off', compact: false })}
@@ -76,7 +76,7 @@ export function renderContent() {
       </div>
 
       <div>
-        <p class="text-xs text-gray-400 mb-2">下发历史（${esc(getCommitteeName())}）</p>
+        <p class="text-xs text-gray-500 mb-2">下发历史（${esc(getCommitteeName())}）</p>
         <div id="dispatch-history" class="space-y-3"></div>
       </div>
     </div>
@@ -180,16 +180,16 @@ function renderHistory(el) {
   if (!rows.length) {
     wrap.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
       <p class="text-sm text-gray-500">暂无下发记录</p>
-      <p class="text-xs text-gray-400 mt-1">撰写并下发后，此处留存党委下发历史</p>
+      <p class="text-xs text-gray-500 mt-1">撰写并下发后，此处留存党委下发历史</p>
     </div>`;
     return;
   }
   wrap.innerHTML = rows.map(n => `
     <div class="rounded-lg border border-gray-200 bg-white p-4">
       <div class="flex items-center gap-2 flex-wrap mb-1">
-        <span class="text-xs px-2 py-0.5 rounded-full ${n.priority === 'urgent' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}">${n.priority === 'urgent' ? '紧急' : '重要'}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">${esc(n.branchName || n.branchId || '—')}</span>
-        <span class="text-xs text-gray-400 ml-auto">${n.publishDate || ''}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full ${n.priority === 'urgent' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-600'}">${n.priority === 'urgent' ? '紧急' : '重要'}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">${esc(n.branchName || n.branchId || '—')}</span>
+        <span class="text-xs text-gray-500 ml-auto">${n.publishDate || ''}</span>
       </div>
       <p class="text-sm font-medium text-gray-800">${esc(n.title)}</p>
       <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(n.content)}</p>

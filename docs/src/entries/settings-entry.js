@@ -576,7 +576,7 @@ function _cfgHistoryRowHtml(h) {
   const brief = isRollback
     ? `回滚前：${esc(_cfgBrief(h.from))}　→　恢复为：${esc(_cfgBrief(h.to))}`
     : `从：${esc(_cfgBrief(h.from))}　→　到：${esc(_cfgBrief(h.to))}`;
-  const whyHtml = h.why ? `<div style="margin-top:2px;"><span class="text-[11px] text-gray-400">依据/出处：</span><span class="text-[11px]" style="color:var(--app-accent,#B91C1C);">${esc(h.why)}</span></div>` : '';
+  const whyHtml = h.why ? `<div style="margin-top:2px;"><span class="text-[11px] text-gray-500">依据/出处：</span><span class="text-[11px]" style="color:var(--app-accent,#B91C1C);">${esc(h.why)}</span></div>` : '';
   return `
     <li class="cfg-hist-row" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--neutral-200,#E5E7EB);border-radius:10px;background:#fff;">
       <div style="flex:1;min-width:0;">
@@ -584,7 +584,7 @@ function _cfgHistoryRowHtml(h) {
           <span class="cfg-hist-key" style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:9999px;color:var(--app-accent,#B91C1C);background:var(--app-accent-bg,rgba(185,28,28,0.08));">${esc(whatLabel)}</span>
           ${isRollback ? '<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#FEF3C7;color:#92400E;">已回滚</span>' : ''}
           <span class="text-[11px] font-medium text-gray-700">${esc(who)}</span>
-          <span class="text-[11px] text-gray-400">${esc(when)}</span>
+          <span class="text-[11px] text-gray-500">${esc(when)}</span>
         </div>
         <div class="text-[12px] text-gray-600" style="margin-top:4px;word-break:break-all;">${brief}</div>
         ${whyHtml}
@@ -964,7 +964,7 @@ function branchPolicyLockedCardHtml(branch) {
   const { role } = _session;
   const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
   const meetingChips = (POLICY_DEFAULTS.attendance.meetingTypes || []).map(t =>
-    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--app-accent-bg)] text-[var(--app-accent)] border border-[var(--app-accent-border)] whitespace-nowrap">${esc(t)}</span>`).join('');
+    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--app-accent-bg)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)] border border-[var(--app-accent-border)] whitespace-nowrap" style="--acc-text-dark:var(--app-accent,#B91C1C)">${esc(t)}</span>`).join('');
   const reasonChips = (POLICY_DEFAULTS.attendance.reasons || []).map(r =>
     `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">${esc(r.label)}</span>`).join('');
   const rows = [
@@ -1020,7 +1020,7 @@ function domainCardHtml(meta, branch, P) {
               <input type="number" id="pol-inp-disc-days" class="input-flat text-xs w-20 text-center" min="1" max="90" value="${cur}" inputmode="numeric">
               <span class="text-xs text-gray-600">天未确认判超期</span>
             </label>
-            <div class="text-[11px] text-gray-400 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+            <div class="text-[11px] text-gray-500 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
           </dd>
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
@@ -1050,21 +1050,21 @@ function domainCardHtml(meta, branch, P) {
           <div class="settings-kv-row">
             <dt>区间 1</dt>
             <dd class="flex items-center gap-1.5 flex-wrap">
-              ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-400">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-400">日 ～</span>
-              ${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-400">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-400">日</span>
-              <span class="text-[11px] text-gray-400">默认 ${winLabel(def[0] || w1, false)}</span>
+              ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>
+              ${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
+              <span class="text-[11px] text-gray-500">默认 ${winLabel(def[0] || w1, false)}</span>
             </dd>
           </div>
           <div class="settings-kv-row">
             <dt>区间 2</dt>
             <dd class="flex items-center gap-1.5 flex-wrap">
-              ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-400">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-400">日 ～</span>
-              ${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-400">月（次年）</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-400">日</span>
-              <span class="text-[11px] text-gray-400">默认 ${winLabel(def[1] || w2, true)}（止月小于起月 = 跨年）</span>
+              ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>
+              ${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-500">月（次年）</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span>
+              <span class="text-[11px] text-gray-500">默认 ${winLabel(def[1] || w2, true)}（止月小于起月 = 跨年）</span>
             </dd>
           </div>
         </div>
-        <div class="text-[11px] text-gray-400 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-org">保存</button>
           <button type="button" class="myws-btn-ghost" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1089,7 +1089,7 @@ function domainCardHtml(meta, branch, P) {
             <input type="checkbox" id="pol-leader-enabled" class="w-4 h-4 accent-[var(--app-accent,#B91C1C)]" ${curOn ? 'checked' : ''}>
             <span class="text-xs text-gray-700">开启「学期组员进展归集提醒」（默认开）</span>
           </label>
-          <div class="text-[11px] text-gray-400 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认（开）'}。</div>
+          <div class="text-[11px] text-gray-500 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认（开）'}。</div>
         </dd>
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">

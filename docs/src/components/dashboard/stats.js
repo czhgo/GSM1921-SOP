@@ -10,8 +10,8 @@ import { _fmtDate } from '../../core/utils.js?v=20260910a';
 import { icon } from '../../core/icons.js?v=20260910a';
 
 const ATTENDANCE_STATUS_DOT = {
-  present:  { text: '出勤', cls: 'text-green-600', dot: '#10B981' },
-  absent:   { text: '缺勤', cls: 'text-red-500',  dot: '#EF4444' },
+  present:  { text: '出勤', cls: 'text-green-700', dot: '#10B981' },
+  absent:   { text: '缺勤', cls: 'text-red-600',  dot: '#EF4444' },
   leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
   made_up:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
 };
@@ -132,15 +132,15 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
       });
 
       const listHTML = myRecords.length === 0
-        ? '<p class="text-xs text-gray-400 text-center py-4">本月暂无考勤记录</p>'
+        ? '<p class="text-xs text-gray-500 text-center py-4">本月暂无考勤记录</p>'
         : myRecords.map(r => {
             const act = activities.find(a => a.id === r.activityId);
-            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-400', dot: '#9CA3AF' };
+            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-500', dot: '#9CA3AF' };
             return `
               <div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
                 <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>
                 <span class="text-sm text-gray-700 truncate flex-1">${act?.title || r.activityId}</span>
-                <span class="text-xs text-gray-400 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
+                <span class="text-xs text-gray-500 flex-shrink-0">${act?.date ? _fmtDate(new Date(act.date)) : ''}</span>
                 <span class="text-xs font-medium ${s.cls} flex-shrink-0 w-8 text-right">${s.text}</span>
               </div>
             `;
@@ -149,7 +149,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
       popover.innerHTML = `
         <div class="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
           <h3 class="font-title-cn text-sm font-semibold text-gray-800">我的本月考勤</h3>
-          <span class="text-xs text-gray-400">${myRecords.length} 条记录</span>
+          <span class="text-xs text-gray-500">${myRecords.length} 条记录</span>
         </div>
         <div class="max-h-64 overflow-y-auto">${listHTML}</div>
       `;

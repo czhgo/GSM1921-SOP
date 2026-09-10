@@ -63,12 +63,12 @@ function _dateLabel(dateStr) {
 
 /** 块头数字（仅 n>0 显示，0 交由各块灰字空态表达） */
 function _count(n) {
-  return n > 0 ? `<span class="text-base font-bold ml-1.5 tabular-nums" style="color:${ACCENT};">${n}</span>` : '';
+  return n > 0 ? `<span class="text-base font-bold ml-1.5 tabular-nums" style="--acc-text-dark:${ACCENT};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${n}</span>` : '';
 }
 
 /** 每块右上「全部」小链接（点击经 onNav 跳对应 tab；onNav 未提供时为空操作，便于独立预览） */
 function _allBtn(kind) {
-  return `<button type="button" class="today-all text-[11px] text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
+  return `<button type="button" class="today-all text-[11px] text-gray-500 hover:text-gray-600 transition-colors flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
 }
 
 /** 今天有会（左大块 C 排法）：时间 / 名称 / 类型 行；点击 → activity.html */
@@ -79,8 +79,8 @@ function _meetingRows(items) {
       <span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${esc(m.title || '未命名会议')}</span>
-      ${m.type ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="background:${ACCENT_BG};color:${ACCENT};">${esc(m.type)}</span>` : ''}
-      <span class="text-xs text-gray-300 flex-shrink-0">›</span>
+      ${m.type ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(m.type)}</span>` : ''}
+      <span class="text-xs text-gray-500 flex-shrink-0">›</span>
     </button>`).join('');
 }
 
@@ -91,7 +91,7 @@ function _meetingBlock(s) {
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今天有会${_count(s.hasMeeting.length)}</h3>
       ${_allBtn('meeting')}
     </div>
-    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日无会</p>'}
+    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-500 px-1 py-1.5">今日无会</p>'}
   `;
 }
 
@@ -99,7 +99,7 @@ function _meetingBlock(s) {
 function _todoRows(items, overdue) {
   const titleCls = overdue ? 'text-red-600 font-medium' : 'text-gray-800';
   const dot = overdue ? 'background:#EF4444;' : 'background:#9CA3AF;';
-  const dateCls = overdue ? 'text-red-500 font-medium' : 'text-gray-400';
+  const dateCls = overdue ? 'text-red-600 font-medium' : 'text-gray-500';
   return items.map(t => `
     <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
       data-go="todo" title="${esc(t.title || '')}">
@@ -123,7 +123,7 @@ function _dueBlock(s) {
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今天到期${_count(s.dueToday.length)}</h3>
       ${_allBtn('todo')}
     </div>
-    ${empty ? '<p class="text-xs text-gray-400 px-1 py-1.5">今日无到期</p>'
+    ${empty ? '<p class="text-xs text-gray-500 px-1 py-1.5">今日无到期</p>'
       : overdueZone + (dueRows ? `<div class="space-y-1.5">${dueRows}</div>` : '')}
   `;
 }
@@ -136,8 +136,8 @@ function _dutyRows(items) {
       data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
-      ${d.role ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="background:${ACCENT_BG};color:${ACCENT};">${esc(d.role)}</span>` : ''}
-      <span class="text-xs text-gray-300 flex-shrink-0">›</span>
+      ${d.role ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(d.role)}</span>` : ''}
+      <span class="text-xs text-gray-500 flex-shrink-0">›</span>
     </button>`).join('');
 }
 
@@ -147,7 +147,7 @@ function _dutyBlock(s) {
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-title-cn text-sm font-bold text-gray-700">今日分工${_count(s.myDuties.length)}</h3>
     </div>
-    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-400 px-1 py-1.5">今日暂无分工安排</p>'}
+    ${rows ? `<div class="space-y-1.5">${rows}</div>` : '<p class="text-xs text-gray-500 px-1 py-1.5">今日暂无分工安排</p>'}
   `;
 }
 
@@ -157,7 +157,7 @@ function _allEmptyHtml() {
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-center gap-2 py-6">
         <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
-        <p class="text-sm text-gray-400">今天暂无安排</p>
+        <p class="text-sm text-gray-500">今天暂无安排</p>
       </div>
     </div>`;
 }

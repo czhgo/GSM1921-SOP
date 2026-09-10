@@ -47,7 +47,7 @@ export function renderActivityView(container, opts = {}) {
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-400">全支部活动一览 · 点击条目查看详情（只读）</span>
+            <span class="text-xs text-gray-500">全支部活动一览 · 点击条目查看详情（只读）</span>
             <button class="av-export-btn h-8 px-3.5 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
           </div>
         </div>
@@ -120,12 +120,12 @@ function _renderDetail(state, activities, tasks, highlightId) {
   if (!panel) return;
   const actId = state.selectedActivityId || highlightId;
   if (!actId) {
-    panel.innerHTML = '<div class="text-sm text-gray-400 text-center py-8">点击日历中的活动条目查看详情</div>';
+    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">点击日历中的活动条目查看详情</div>';
     return;
   }
   const act = activities.find(a => a.id === actId);
   if (!act) {
-    panel.innerHTML = '<div class="text-sm text-gray-400 text-center py-8">活动不存在或已归档</div>';
+    panel.innerHTML = '<div class="text-sm text-gray-500 text-center py-8">活动不存在或已归档</div>';
     return;
   }
   const actTasks = tasks.filter(t => t.activityId === act.id);
@@ -150,13 +150,13 @@ function _renderDetail(state, activities, tasks, highlightId) {
       <ol id="av-agenda-list" class="space-y-1.5">
         ${agendaList.map((a, i) => `
           <li class="flex items-start gap-1.5 text-xs">
-            <span class="text-gray-400 flex-shrink-0 w-4">${i + 1}.</span>
+            <span class="text-gray-500 flex-shrink-0 w-4">${i + 1}.</span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="text-gray-700">${esc(a.item)}</span>
                 ${resultBadgeHtml(a.result)}
               </div>
-              ${a.host ? `<div class="text-gray-400 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
+              ${a.host ? `<div class="text-gray-500 mt-0.5">（主持人：${esc(a.host)}）</div>` : ''}
               ${isAsyncVote && a.id ? `<div class="vote-widget-slot" data-vote-item-id="${esc(a.id)}"></div>` : ''}
             </div>
           </li>`).join('')}
@@ -170,16 +170,16 @@ function _renderDetail(state, activities, tasks, highlightId) {
       ${activityLifecycleBadgeHtml(act, tasks)}
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
-      ${act.date ? `<p><span class="text-gray-400">日期：</span>${_fmtDate(new Date(act.date))}${act.time ? ' · ' + act.time : ''}</p>` : ''}
-      ${act.location ? `<p><span class="text-gray-400">地点：</span>${act.location}</p>` : ''}
-      ${act.host ? `<p><span class="text-gray-400">主持人：</span>${act.host}</p>` : ''}
-      ${act.brandName ? `<p><span class="text-gray-400">品牌：</span>${act.brandName}</p>` : ''}
-      ${act.description ? `<p class="pt-1"><span class="text-gray-400">内容：</span>${act.description}</p>` : ''}
+      ${act.date ? `<p><span class="text-gray-500">日期：</span>${_fmtDate(new Date(act.date))}${act.time ? ' · ' + act.time : ''}</p>` : ''}
+      ${act.location ? `<p><span class="text-gray-500">地点：</span>${act.location}</p>` : ''}
+      ${act.host ? `<p><span class="text-gray-500">主持人：</span>${act.host}</p>` : ''}
+      ${act.brandName ? `<p><span class="text-gray-500">品牌：</span>${act.brandName}</p>` : ''}
+      ${act.description ? `<p class="pt-1"><span class="text-gray-500">内容：</span>${act.description}</p>` : ''}
     </div>
     ${agendaHtml}
     <div class="pt-3 border-t border-gray-100">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">任务节点</h5>
-      ${actTasks.length === 0 ? '<p class="text-xs text-gray-400">暂无任务节点</p>' : `
+      ${actTasks.length === 0 ? '<p class="text-xs text-gray-500">暂无任务节点</p>' : `
         <ul class="space-y-1.5">
           ${actTasks.map(t => {
             const st = _TASK_STATUS_META[t.status] || { label: t.status || '待处理', color: '#9CA3AF' };

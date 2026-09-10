@@ -78,7 +78,7 @@ function _renderPager(total, key) {
   for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
   return `
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-400">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
+      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1">
         <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
@@ -96,12 +96,12 @@ function renderActivityArchive() {
     .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档活动</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无已归档活动</p>';
     return;
   }
   const filtered = all.filter(a => _matchesQuery(a.title, a.date, a.type, (getPersonById(a.organizer) || {}).name));
   if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档活动</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档活动</p>';
     return;
   }
   const cur = Math.min(_pageState.activity, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
@@ -137,12 +137,12 @@ function renderTaskforceArchive() {
     .sort((a, b) => (b.deadline || b.createdAt || '').localeCompare(a.deadline || a.createdAt || '')); // 新日期在前
 
   if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无已归档专班</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无已归档专班</p>';
     return;
   }
   const filtered = all.filter(tf => _matchesQuery(tf.name, tf.createdAt, tf.deadline, (getPersonById(tf.initiator) || {}).name));
   if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档专班</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档专班</p>';
     return;
   }
   const cur = Math.min(_pageState.taskforce, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
@@ -178,12 +178,12 @@ function renderNoticeArchive() {
     .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));
 
   if (all.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">暂无归档通知</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">暂无归档通知</p>';
     return;
   }
   const filtered = all.filter(n => _matchesQuery(n.title, n.content, n.publishDate));
   if (filtered.length === 0) {
-    contentContainer.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">无匹配归档通知</p>';
+    contentContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">无匹配归档通知</p>';
     return;
   }
   const cur = Math.min(_pageState.notice, Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)));
@@ -204,7 +204,7 @@ function renderNoticeArchive() {
               <span class="text-sm font-medium text-gray-800">${n.title}</span>
               ${n.archived === true ? badgeHtml('已归档', 'neutral') : badgeHtml('已过期', 'neutral')}
             </div>
-            <span class="text-xs text-gray-400">${n.publishDate || ''}</span>
+            <span class="text-xs text-gray-500">${n.publishDate || ''}</span>
           </div>
           <p class="text-xs text-gray-500 line-clamp-2">${n.content || ''}</p>
         </div>
@@ -303,7 +303,7 @@ function _renderActivityDetail(activity) {
           </div>
           <h3 class="font-title-cn text-base font-semibold text-gray-800">${activity.title || '未命名活动'}</h3>
         </div>
-        <button data-close class="text-gray-400 hover:text-gray-600 ml-3 flex-shrink-0">
+        <button data-close class="text-gray-500 hover:text-gray-600 ml-3 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -312,26 +312,26 @@ function _renderActivityDetail(activity) {
 
       <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">活动日期</p>
+          <p class="text-gray-500 mb-1">活动日期</p>
           <p class="text-gray-800 font-medium">${activity.date || '未设定'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">活动地点</p>
+          <p class="text-gray-500 mb-1">活动地点</p>
           <p class="text-gray-800 font-medium">${activity.location || '未设定'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">组织者</p>
+          <p class="text-gray-500 mb-1">组织者</p>
           <p class="text-gray-800 font-medium">${organizer ? organizer.name : '未指派'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">活动状态</p>
+          <p class="text-gray-500 mb-1">活动状态</p>
           <p class="text-gray-800 font-medium">${badgeHtml('已归档', 'neutral')}</p>
         </div>
       </div>
 
       ${activity.description ? `
         <div class="mb-5">
-          <p class="text-xs text-gray-400 mb-2">活动说明</p>
+          <p class="text-xs text-gray-500 mb-2">活动说明</p>
           <p class="text-sm text-gray-700 leading-relaxed">${activity.description}</p>
         </div>
       ` : ''}
@@ -364,19 +364,19 @@ function _renderArchiveMaterials(activity) {
           const cb = catBadge[r.category] || catBadge.其他;
           return `
             <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-              <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
               </svg>
               <span class="text-sm text-gray-700 flex-1 truncate">${r.activityName || activity.title}${r.status === 'pending' ? '（待归档）' : ''}</span>
               ${badgeHtml(cb[1], cb[0])}
-              <span class="text-xs text-gray-400">${r.archiveDate || ''}</span>
+              <span class="text-xs text-gray-500">${r.archiveDate || ''}</span>
             </div>
           `;
         }).join('')}
       </div>
     `;
   }
-  return '<p class="text-xs text-gray-400 text-center py-4">暂无归档材料</p>';
+  return '<p class="text-xs text-gray-500 text-center py-4">暂无归档材料</p>';
 }
 
 function _renderTaskforceDetail(tf) {
@@ -393,7 +393,7 @@ function _renderTaskforceDetail(tf) {
           </div>
           <h3 class="font-title-cn text-base font-semibold text-gray-800">${tf.name || '未命名专班'}</h3>
         </div>
-        <button data-close class="text-gray-400 hover:text-gray-600 ml-3 flex-shrink-0">
+        <button data-close class="text-gray-500 hover:text-gray-600 ml-3 flex-shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -402,26 +402,26 @@ function _renderTaskforceDetail(tf) {
 
       <div class="grid grid-cols-2 gap-3 mb-5 text-xs">
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">发起日期</p>
+          <p class="text-gray-500 mb-1">发起日期</p>
           <p class="text-gray-800 font-medium">${tf.createdAt || '未设定'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">截止日期</p>
+          <p class="text-gray-500 mb-1">截止日期</p>
           <p class="text-gray-800 font-medium">${tf.deadline || '未设定'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">发起人</p>
+          <p class="text-gray-500 mb-1">发起人</p>
           <p class="text-gray-800 font-medium">${initiator ? initiator.name : '未指派'}</p>
         </div>
         <div class="bg-gray-50 rounded-lg p-3">
-          <p class="text-gray-400 mb-1">成员人数</p>
+          <p class="text-gray-500 mb-1">成员人数</p>
           <p class="text-gray-800 font-medium">${filledMembers.length}/${tf.capacity || 0}</p>
         </div>
       </div>
 
       ${tf.task ? `
         <div class="mb-5">
-          <p class="text-xs text-gray-400 mb-2">专班任务</p>
+          <p class="text-xs text-gray-500 mb-2">专班任务</p>
           <p class="text-sm text-gray-700 leading-relaxed">${tf.task}</p>
         </div>
       ` : ''}
@@ -437,7 +437,7 @@ function _renderTaskforceDetail(tf) {
                 <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
                   <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
                   <span class="text-sm text-gray-700 flex-1">${person ? person.name : (m.name || '未知成员')}</span>
-                  <span class="text-xs text-gray-400">${m.role || '成员'}</span>
+                  <span class="text-xs text-gray-500">${m.role || '成员'}</span>
                   <span class="text-xs text-gray-500">${contributions} 项贡献</span>
                 </div>
               `;

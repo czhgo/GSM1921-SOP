@@ -40,7 +40,7 @@ export function renderContent(ctx) {
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    tc.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">请先登录</p>';
+    tc.innerHTML = '<p class="text-sm text-gray-500 text-center py-6">请先登录</p>';
     return;
   }
   const personId = user.personId;
@@ -50,14 +50,14 @@ export function renderContent(ctx) {
     tc.innerHTML = `
       <div class="mb-3 p-3 rounded-lg bg-white">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
-        <p class="text-xs text-gray-400 mt-0.5">已提交 ${reports.length} 篇 · 组织初阅通过后自动归档至个人档案</p>
+        <p class="text-xs text-gray-500 mt-0.5">已提交 ${reports.length} 篇 · 组织初阅通过后自动归档至个人档案</p>
       </div>
       <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
         <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
         <div class="flex items-center justify-between mt-2">
-          <p class="text-[11px] text-gray-400">提交后由组织初阅归档，通过后自动归档至个人档案</p>
-          <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition-colors">提交</button>
+          <p class="text-[11px] text-gray-500">提交后由组织初阅归档，通过后自动归档至个人档案</p>
+          <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>
         </div>
       </div>
       <div id="tr-list" class="space-y-2"></div>
@@ -66,7 +66,7 @@ export function renderContent(ctx) {
     const listEl = document.getElementById('tr-list');
     if (!listEl) return;
     if (reports.length === 0) {
-      listEl.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无思想汇报记录</p>';
+      listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>';
     } else {
       listEl.innerHTML = reports.map(r => {
         const status = _effStatus(r);
@@ -77,22 +77,22 @@ export function renderContent(ctx) {
           <div class="flex items-center justify-between gap-2 flex-wrap">
             <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="text-xs font-medium text-gray-700 truncate">${esc(r.title || '思想汇报')}</span>
-              <span class="text-[11px] text-gray-400 flex-shrink-0">${_date(r.submittedAt)}</span>
+              <span class="text-[11px] text-gray-500 flex-shrink-0">${_date(r.submittedAt)}</span>
             </div>
             ${_statusBadgeHtml(status)}
           </div>
           <p class="text-[12px] text-gray-600 whitespace-pre-wrap mt-1.5">${esc(r.content || '')}</p>
-          ${rejectNote ? `<div class="mt-2 rounded-lg bg-red-50 border border-red-100 px-2 py-1.5 text-[11px] text-red-600 whitespace-pre-wrap">退回意见：${esc(rejectNote)}</div>` : ''}
+          ${rejectNote ? `<div class="mt-2 rounded-lg bg-red-50 border border-red-100 px-2 py-1.5 text-[11px] text-red-700 whitespace-pre-wrap">退回意见：${esc(rejectNote)}</div>` : ''}
           ${canRevise ? `
           <div class="mt-2 flex flex-col items-end gap-1.5">
-            <button type="button" class="tr-rev-toggle text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">修改并重新提交</button>
+            <button type="button" class="tr-rev-toggle text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">修改并重新提交</button>
             <div class="tr-rev-box hidden w-full" data-tr-box="${r.id}">
               <textarea rows="4" class="input-flat w-full resize-none" placeholder="请根据退回意见补充完善后重新提交">${esc(r.content || '')}</textarea>
               <div class="flex items-center justify-between mt-1.5 gap-2">
-                <p class="text-[11px] text-gray-400">重新提交后回到待初阅队列，由组织委员再次初阅</p>
+                <p class="text-[11px] text-gray-500">重新提交后回到待初阅队列，由组织委员再次初阅</p>
                 <div class="flex items-center gap-1.5 flex-shrink-0">
                   <button type="button" class="tr-rev-cancel text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">取消</button>
-                  <button type="button" class="tr-resubmit text-xs px-4 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">重新提交</button>
+                  <button type="button" class="tr-resubmit text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">重新提交</button>
                 </div>
               </div>
             </div>

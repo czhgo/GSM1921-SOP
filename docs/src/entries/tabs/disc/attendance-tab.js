@@ -256,7 +256,8 @@ export function renderContent(ctx) {
         const on = b === btn;
         b.classList.toggle('bg-[var(--app-accent-bg)]', on);
         b.classList.toggle('border-[var(--app-accent)]', on);
-        b.classList.toggle('text-[var(--app-accent)]', on);
+        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
+        if (on) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !on);
         b.classList.toggle('border-neutral-200', !on);
         b.classList.toggle('text-gray-600', !on);
@@ -373,7 +374,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
   const listHtml = total === 0
     ? `<div class="py-5 text-center">
         <div class="text-sm font-medium text-gray-700 mb-1">无待处理异常 ✓</div>
-        <div class="text-xs text-gray-400">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部确认</div>
+        <div class="text-xs text-gray-500">出勤/已补已源头审校自动确认${autoConfirmedCount > 0 ? `（${autoConfirmedCount} 条）` : ''}，缺勤/请假已全部确认</div>
       </div>`
     : `<div class="space-y-1.5">${visible.map(r => {
         const act = actById.get(r.activityId);
@@ -387,13 +388,13 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
               ${r.status === AttendanceStatus.ABSENT ? badgeHtml('缺勤', 'danger') : badgeHtml('请假', 'warning')}
               ${r.overdue || (act && act.date && new Date(act.date) < new Date()) ? badgeHtml('超期', 'danger') : ''}
             </div>
-            <div class="text-xs text-gray-400 truncate mt-0.5">${act ? act.title : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
+            <div class="text-xs text-gray-500 truncate mt-0.5">${act ? act.title : '活动已下架'}${act?.date ? ' · ' + act.date : ''}</div>
           </div>
           <button class="btn-confirm-att text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-record-id="${r.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>
         </div>`;
       }).join('')}
       ${total > QUEUE_VISIBLE ? `
-        <button id="att-queue-more" class="w-full text-xs text-gray-400 hover:text-gray-600 py-2 rounded-lg transition-colors" style="cursor:pointer;">
+        <button id="att-queue-more" class="w-full text-xs text-gray-500 hover:text-gray-600 py-2 rounded-lg transition-colors" style="cursor:pointer;">
           ${_queueExpanded ? '收起' : `展开全部（${total} 条）`}
         </button>` : ''}
       </div>`;
@@ -406,7 +407,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
           <span class="text-gray-600">请假 <span class="font-bold text-orange-700">${leaveCount}</span></span>
           <span class="text-gray-600">缺勤 <span class="font-bold text-red-700">${absentCount}</span></span>
           <span class="text-gray-600">超期 <span class="font-bold text-amber-700">${overdueCount}</span></span>
-          ${autoConfirmedCount > 0 ? `<span class="text-gray-400">出勤自动确认 <span class="font-bold text-green-600">${autoConfirmedCount}</span></span>` : ''}
+          ${autoConfirmedCount > 0 ? `<span class="text-gray-500">出勤自动确认 <span class="font-bold text-green-700">${autoConfirmedCount}</span></span>` : ''}
         </div>
       </div>
       ${listHtml}
@@ -429,18 +430,18 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   if (_meetFormVisible) {
     // 稳定容器 #disc-meet-body（保态折叠挂点）：收起/取消只切 hidden，不重建 innerHTML、不销毁 picker
     const bodyInner = meetings.length === 0
-      ? `<div class="py-3 text-xs text-gray-400">当前无会议类活动（党课/支部党员大会/组织生活会/支委会）可录入</div>`
+      ? `<div class="py-3 text-xs text-gray-500">当前无会议类活动（党课/支部党员大会/组织生活会/支委会）可录入</div>`
       : `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">会议活动 <span class="text-red-600">*</span></label>
           <select id="disc-meet-activity" class="input-flat w-full">
             ${meetings.map(m => `<option value="${m.id}">${m.title}（${m.date}）</option>`).join('')}
           </select>
         </div>
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="text-xs text-gray-500 block font-medium">参会人员（逐人状态） <span class="text-red-500">*</span></label>
+            <label class="text-xs text-gray-500 block font-medium">参会人员（逐人状态） <span class="text-red-600">*</span></label>
             <div class="flex gap-2">
               <button type="button" id="disc-meet-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="仅全选应到名单（党员正式+预备且非滞留）">全选应到名单</button>
               <button type="button" id="disc-meet-clear" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
@@ -449,14 +450,14 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
           <div id="disc-meet-picker"></div>
         </div>
       </div>
-      <div id="disc-meet-roster-hint" class="mb-2 text-[11px] text-gray-400 leading-5"></div>
+      <div id="disc-meet-roster-hint" class="mb-2 text-[11px] text-gray-500 leading-5"></div>
       <div id="disc-meet-makeup-strip" class="mb-3"></div>
       <div id="disc-meet-status-rows" class="space-y-2 mb-3"></div>
       <div class="flex items-center gap-3">
         <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
         <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-400">纪检直接录入即确认（recordedBy=纪检）；未到（缺勤/请假）者须选标因（请假/无故/其它，纪检认定·固定枚举）；滞留线下到场者勾选「到场补录」计入到席（落「滞留·到场」标记）；已录条目将覆盖（纪检更正）· 新增/更正/跳过计数见提交回执</div>`;
+      <div class="mt-3 text-[11px] text-gray-500">纪检直接录入即确认（recordedBy=纪检）；未到（缺勤/请假）者须选标因（请假/无故/其它，纪检认定·固定枚举）；滞留线下到场者勾选「到场补录」计入到席（落「滞留·到场」标记）；已录条目将覆盖（纪检更正）· 新增/更正/跳过计数见提交回执</div>`;
     body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 
@@ -496,7 +497,7 @@ function _renderDiscMeetRosterHint() {
   const disabledSet = new Set(disabledIds);
   const detained = candidates.filter(p => disabledSet.has(p.id));
   const detainedHtml = detained.length === 0
-    ? '<span class="text-gray-400">无滞留党员</span>'
+    ? '<span class="text-gray-500">无滞留党员</span>'
     : detained.map(p => `
       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
@@ -515,7 +516,7 @@ function _renderDiscMeetDetainedMakeup() {
   const disabledSet = new Set(disabledIds);
   const detained = candidates.filter(p => disabledSet.has(p.id));
   if (detained.length === 0) {
-    strip.innerHTML = '<div class="text-[11px] text-gray-400">滞留党员到场补录：本活动范围无滞留党员（无需补录）</div>';
+    strip.innerHTML = '<div class="text-[11px] text-gray-500">滞留党员到场补录：本活动范围无滞留党员（无需补录）</div>';
     return;
   }
   strip.innerHTML = `
@@ -616,12 +617,12 @@ function _renderDiscMeetStatusRows(selectedIds) {
             ${options.map(o => `<option value="${o.value}" ${curStatus === o.value ? 'selected' : ''}>${o.label}</option>`).join('')}
           </select>
           <span class="reason-group-${pid} inline-flex items-center gap-1 ${showReason ? '' : 'hidden'}">
-            <span class="text-[11px] text-gray-400 whitespace-nowrap">标因</span>
+            <span class="text-[11px] text-gray-500 whitespace-nowrap">标因</span>
             <select id="disc-meet-reason-${pid}" class="input-flat" title="未到标因（纪检认定：请假/无故/其它）">
               ${ABSENCE_REASONS.map(x => `<option value="${x.key}" ${reasonValue === x.key ? 'selected' : ''}>${x.label}</option>`).join('')}
             </select>
           </span>
-          ${preStatus ? '<span class="text-[10px] text-amber-600 whitespace-nowrap">已录·更正</span>' : ''}
+          ${preStatus ? '<span class="text-[10px] text-amber-700 whitespace-nowrap">已录·更正</span>' : ''}
         </div>`;
       }).join('')}
     </div>`;
@@ -659,7 +660,7 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
         <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
         <div class="flex items-center gap-2">
-          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]" data-view="byActivity">按活动</button>
+          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:var(--app-accent,#B91C1C)" data-view="byActivity">按活动</button>
           <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="byPerson">按人</button>
         </div>
       </div>
@@ -670,10 +671,10 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
         </select>
         <input type="text" id="att-mtx-search" class="input-flat min-w-[160px]" placeholder="活动名筛选...">
         <input type="date" id="att-mtx-from" class="input-flat" title="时间区间：起始日期">
-        <span class="text-xs text-gray-400 self-center">至</span>
+        <span class="text-xs text-gray-500 self-center">至</span>
         <input type="date" id="att-mtx-to" class="input-flat" title="时间区间：截止日期">
       </div>
-      <div class="text-[11px] text-gray-400 mb-2">色点 + 缩写：${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}</div>
+      <div class="text-[11px] text-gray-500 mb-2">色点 + 缩写：${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}</div>
       <div id="att-matrix-container"></div>
     </div>
   `;
@@ -710,7 +711,7 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
   // T-304 第5轮：矩阵回归只读分析（去确认操作/去待确认标记，职责单一化）
   const cellHtml = (personId, activityId) => {
     const rec = cellOf(personId, activityId);
-    if (!rec) return '<td class="py-1.5 px-2 text-center text-gray-300">—</td>';
+    if (!rec) return '<td class="py-1.5 px-2 text-center text-gray-500">—</td>';
     const m = CELL_META[rec.status];
     return `<td class="py-1.5 px-2 text-center" title="${getPersonName(rec.personId)} · ${ATTENDANCE_STATUS_LABELS[rec.status]}">
       <span class="inline-flex items-center gap-1">
@@ -725,7 +726,7 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
       <tr class="border-b border-gray-100 hover:bg-gray-50">
         <td class="py-2 px-3 whitespace-nowrap sticky left-0 bg-white">
           <div class="text-xs font-medium text-gray-800 max-w-[180px] truncate" title="${a.title}">${a.title}</div>
-          <div class="text-[11px] text-gray-400">${a.date || ''}</div>
+          <div class="text-[11px] text-gray-500">${a.date || ''}</div>
         </td>
         ${personIds.map(pid => cellHtml(pid, a.id)).join('')}
       </tr>`).join('');
@@ -736,7 +737,7 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
             <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">活动</th>
             ${personIds.map(pid => `<th class="py-2 px-2 text-center text-gray-500 font-medium whitespace-nowrap">${getPersonName(pid)}</th>`).join('')}
           </tr></thead>
-          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-400 text-xs" colspan="2">无匹配活动（请调整筛选）</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-500 text-xs" colspan="2">无匹配活动（请调整筛选）</td></tr>'}</tbody>
         </table>
       </div>`;
   } else {
@@ -751,9 +752,9 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${visibleActs.map(a => `<th class="py-2 px-2 text-center text-gray-500 font-medium whitespace-nowrap max-w-[96px]"><div class="truncate" title="${a.title}">${a.title}</div><div class="text-[10px] text-gray-300">${a.date || ''}</div></th>`).join('')}
+            ${visibleActs.map(a => `<th class="py-2 px-2 text-center text-gray-500 font-medium whitespace-nowrap max-w-[96px]"><div class="truncate" title="${a.title}">${a.title}</div><div class="text-[10px] text-gray-500">${a.date || ''}</div></th>`).join('')}
           </tr></thead>
-          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-400 text-xs" colspan="2">无考勤数据</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-500 text-xs" colspan="2">无考勤数据</td></tr>'}</tbody>
         </table>
       </div>`;
   }
@@ -776,7 +777,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           <div class="flex gap-2 text-xs">
             <span class="text-gray-600">共 <span class="font-bold text-gray-800">${total}</span> 条</span>
             <span class="text-gray-600">待确认 <span class="font-bold text-orange-700">${totalPending}</span></span>
-            ${totalAuto > 0 ? `<span class="text-gray-400">自动确认 <span class="font-bold text-green-600">${totalAuto}</span></span>` : ''}
+            ${totalAuto > 0 ? `<span class="text-gray-500">自动确认 <span class="font-bold text-green-700">${totalAuto}</span></span>` : ''}
             ${HandoffStore.hasPendingFor('attendance-archival', 'attendance') ? '<span class="text-teal-600 font-medium">待宣传备案</span>' : ''}
           </div>
         </div>
@@ -797,7 +798,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       </div>
       <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
       <div class="flex items-center justify-between mt-3">
-        <span class="text-xs text-gray-400" id="att-table-info"></span>
+        <span class="text-xs text-gray-500" id="att-table-info"></span>
         <div class="inline-flex items-center">
           <button id="att-table-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">上一页</button>
           <button id="att-table-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">下一页</button>
@@ -850,8 +851,8 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
             <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
             <td class="py-2 px-3 text-gray-600">${a.activity}</td>
             <td class="py-2 px-3"><span class="${statusColor}">${a.status}</span></td>
-            <td class="py-2 px-3 text-gray-500">${autoConfirmed ? '<span class="text-green-600">自动确认</span>' : (isPending ? '<span class="text-orange-600">待确认</span>' : `<span class="text-green-600">${a.confirmer}</span>`)}</td>
-            <td class="py-2 px-3">${isPending && !autoConfirmed ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : (autoConfirmed ? '<span class="text-xs text-gray-400">自动</span>' : '<span class="text-xs text-green-600">✓</span>')}</td>
+            <td class="py-2 px-3 text-gray-500">${autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`)}</td>
+            <td class="py-2 px-3">${isPending && !autoConfirmed ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : (autoConfirmed ? '<span class="text-xs text-gray-500">自动</span>' : '<span class="text-xs text-green-700">✓</span>')}</td>
           </tr>`;
         }).join('')}</tbody>
       </table>
@@ -892,35 +893,35 @@ function _buildGroupMeetingReadonlyHTML() {
     : s === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-orange-700';
   const recorderSemantic = recorderRolesOf('党小组会').map(r => ROLE_LABELS[r] || r).join('/');
   const listHtml = groups.length === 0
-    ? '<div class="py-5 text-center text-xs text-gray-400">暂无党小组会考勤记录（组长上传后此处只读展示）</div>'
+    ? '<div class="py-5 text-center text-xs text-gray-500">暂无党小组会考勤记录（组长上传后此处只读展示）</div>'
     : groups.map(g => {
         const abnormal = g.total - g.present;
         const trs = g.rows.map(r => `
           <tr class="border-b border-gray-50">
             <td class="py-1.5 px-3 text-xs font-medium text-gray-800">${esc(r.name)}</td>
             <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
-            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-300">—</span>')}</td>
+            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
           </tr>`).join('');
         const headerChips = [
           g.groupName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${esc(g.groupName)}</span>` : '',
           g.leaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">组长 ${esc(g.leaderName)}</span>` : '',
-          g.uploaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">上传 ${esc(g.uploaderName)}</span>` : '<span class="text-[11px] text-gray-300">上传 —</span>',
+          g.uploaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">上传 ${esc(g.uploaderName)}</span>` : '<span class="text-[11px] text-gray-600">上传 —</span>',
         ].filter(Boolean).join(' ');
         return `
         <div class="border border-gray-100 rounded-lg mb-2 overflow-hidden">
           <div class="flex items-center justify-between flex-wrap gap-1 px-3 py-2 bg-gray-50">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-xs font-semibold text-gray-800">${esc(g.title)}</span>
-              <span class="text-[11px] text-gray-400">${esc(g.date)}</span>
+              <span class="text-[11px] text-gray-500">${esc(g.date)}</span>
               ${headerChips}
             </div>
-            <div class="text-[11px] text-gray-500">到席 <b class="text-green-700">${g.present}</b> · 异常 <b class="${abnormal > 0 ? 'text-red-700' : 'text-gray-400'}">${abnormal}</b> · 共 ${g.total}</div>
+            <div class="text-[11px] text-gray-500">到席 <b class="text-green-700">${g.present}</b> · 异常 <b class="${abnormal > 0 ? 'text-red-700' : 'text-gray-500'}">${abnormal}</b> · 共 ${g.total}</div>
           </div>
           <table class="w-full text-xs">
             <thead><tr class="border-b border-gray-100 bg-white">
-              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">姓名</th>
-              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">状态</th>
-              <th class="py-1.5 px-3 text-left text-gray-400 font-medium">备注（标因/补录）</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">姓名</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">状态</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">备注（标因/补录）</th>
             </tr></thead>
             <tbody>${trs}</tbody>
           </table>
@@ -931,7 +932,7 @@ function _buildGroupMeetingReadonlyHTML() {
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组会考勤（纪检只读掌握）</h3>
       </div>
-      <div class="text-[11px] text-gray-400 leading-5 mb-3">党小组会考勤由<b>本组组长</b>上传（记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType）；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理，改/删走纪检确认流程</div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">党小组会考勤由<b>本组组长</b>上传（记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType）；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理，改/删走纪检确认流程</div>
       ${listHtml}
     </div>
   `;

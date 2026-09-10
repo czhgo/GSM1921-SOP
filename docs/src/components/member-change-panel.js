@@ -125,9 +125,9 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
         <span class="flex items-center gap-1.5 min-w-0 w-full">
           ${sourceBadge(r.source)}
           <span class="text-sm font-medium text-gray-800 truncate">${esc(r.personName)}</span>
-          <span class="text-[11px] text-gray-400 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
+          <span class="text-[11px] text-gray-500 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
         </span>
-        <span class="block text-[11px] text-gray-400 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>
+        <span class="block text-[11px] text-gray-500 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>
       </span>
     </label>`).join('');
   return `
@@ -137,12 +137,12 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
           <input type="checkbox" class="mcb-all shrink-0" style="cursor:pointer;" />
           全选（${list.length} 条）
         </label>
-        <span class="text-[11px] text-gray-400">勾选后批量${verb}，逐项处理见详情</span>
+        <span class="text-[11px] text-gray-500">勾选后批量${verb}，逐项处理见详情</span>
       </div>
       <div class="divide-y divide-gray-50 max-h-56 overflow-y-auto">${rowsHtml}</div>
       <div class="pt-2 flex items-center gap-2">
         <button type="button" class="mcb-apply text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed" style="background:${accent};cursor:pointer;" disabled>${verb} 0 项</button>
-        <span class="text-[11px] text-gray-400">批量${verb}同逐项同一写口（留痕不变）</span>
+        <span class="text-[11px] text-gray-500">批量${verb}同逐项同一写口（留痕不变）</span>
       </div>
     </div>`;
 }

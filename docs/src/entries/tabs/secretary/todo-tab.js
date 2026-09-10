@@ -96,11 +96,11 @@ function _extraTopHtml() {
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">专班待议（支委会）</h4>
-        <span class="text-xs text-gray-400 tabular-nums">${tfReqs.length} 项待议</span>
+        <span class="text-xs text-gray-500 tabular-nums">${tfReqs.length} 项待议</span>
       </div>
       <div class="space-y-2">
         ${tfReqs.length === 0
-          ? '<p class="text-xs text-gray-400 py-1">暂无待议专班</p>'
+          ? '<p class="text-xs text-gray-500 py-1">暂无待议专班</p>'
           : tfReqs.map(r => _committeeTfRowHtml(r, arrangedActByTf.get(r.id))).join('')}
       </div>
     </div>`;
@@ -330,7 +330,7 @@ function renderTodoDetail(todo) {
 function renderConfirmDetail(group) {
   const items = group.items || [];
   const rows = items.slice(0, 8).map(it => `<div class="text-xs text-gray-600 truncate">${_confirmItemLabel(group.actionKey, it)}</div>`).join('');
-  const more = items.length > 8 ? `<div class="text-xs text-gray-400">… 另有 ${items.length - 8} 条</div>` : '';
+  const more = items.length > 8 ? `<div class="text-xs text-gray-500">… 另有 ${items.length - 8} 条</div>` : '';
   return `
     <div class="space-y-3">
       <div class="flex items-center gap-2">
@@ -339,7 +339,7 @@ function renderConfirmDetail(group) {
       <p class="font-title-cn text-sm font-bold text-gray-800">${group.title}</p>
       ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
-        ${rows || '<div class="text-xs text-gray-400">无待复核记录</div>'}
+        ${rows || '<div class="text-xs text-gray-500">无待复核记录</div>'}
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
@@ -355,10 +355,10 @@ function renderRemindDetail(group) {
   const rows = items.slice(0, 8).map(it => `
     <div class="flex items-center justify-between gap-2">
       <span class="text-xs text-gray-600 truncate">${it.name || it.title || it.id}</span>
-      <span class="text-[11px] text-gray-400 flex-shrink-0">${it.date || ''}</span>
+      <span class="text-[11px] text-gray-500 flex-shrink-0">${it.date || ''}</span>
     </div>
   `).join('');
-  const more = items.length > 8 ? `<div class="text-xs text-gray-400">… 另有 ${items.length - 8} 项</div>` : '';
+  const more = items.length > 8 ? `<div class="text-xs text-gray-500">… 另有 ${items.length - 8} 项</div>` : '';
   // 兜底直执白名单（2026-09-10 书记裁定）：归档缺口/复盘缺口详情补「代归档 / 代提交复盘」入口
   const isArchiveGap = group.actionKey === 'archive-remind';
   const isReviewGap = group.actionKey === 'review-remind';
@@ -366,12 +366,12 @@ function renderRemindDetail(group) {
     <div class="space-y-3">
       <div class="flex items-center gap-2">
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${group.count} 项待跟进</span>
-        ${group.deadline ? `<span class="text-[11px] text-gray-400">最早 ${group.deadline}</span>` : ''}
+        ${group.deadline ? `<span class="text-[11px] text-gray-500">最早 ${group.deadline}</span>` : ''}
       </div>
       <p class="font-title-cn text-sm font-bold text-gray-800">${group.title}</p>
       ${group.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${group.flow}</p>` : ''}
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1.5 max-h-44 overflow-y-auto">
-        ${rows || '<div class="text-xs text-gray-400">暂无缺口</div>'}
+        ${rows || '<div class="text-xs text-gray-500">暂无缺口</div>'}
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
@@ -414,7 +414,7 @@ function renderSeedDetail(todo) {
     in_progress: 'bg-blue-100 text-blue-700',
     completed: 'bg-green-100 text-green-700',
     expired: 'bg-red-100 text-red-700',
-  }[todo.status] || 'bg-gray-100 text-gray-500';
+  }[todo.status] || 'bg-gray-100 text-gray-600';
 
   return `
     <div class="space-y-3">
@@ -427,7 +427,7 @@ function renderSeedDetail(todo) {
       </div>
       ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
-      <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
+      <div class="text-xs text-gray-500">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
       </div>
@@ -503,11 +503,11 @@ function renderMemberConfirmDetail(group) {
     <div class="space-y-3">
       <div class="flex items-center gap-2">
         <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums">${items.length} 条逐项待确认</span>
-        ${agendaCount > 0 ? `<span class="text-[11px] text-gray-400">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
+        ${agendaCount > 0 ? `<span class="text-[11px] text-gray-500">另 ${agendaCount} 条议程链项见左列批量块</span>` : ''}
       </div>
       <p class="font-title-cn text-sm font-bold text-gray-800">成员变更待确认</p>
       <p class="text-xs text-gray-600 leading-relaxed">组织委员发起的变更须书记确认后生效（或退回）。移出项将自动解除未开始引用，历史记录转「已转出」标注并保留（不删不匿名）。</p>
-      <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || `<div class="text-xs text-gray-400">${agendaCount > 0 ? '暂无名册逐项（议程链项请在上方批量块勾选确认）' : '暂无待确认请求'}</div>`}</div>
+      <div class="space-y-2 max-h-[26rem] overflow-y-auto">${rows || `<div class="text-xs text-gray-500">${agendaCount > 0 ? '暂无名册逐项（议程链项请在上方批量块勾选确认）' : '暂无待确认请求'}</div>`}</div>
     </div>
   `;
 }
@@ -518,7 +518,7 @@ function _mcReqCard(req) {
   const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');
   const kindCls = action === 'developStage' ? 'bg-sky-50 text-sky-700'
     : action === 'residence' ? 'bg-amber-50 text-amber-700'
-    : 'bg-red-50 text-red-600';
+    : 'bg-red-50 text-red-700';
   const byName = req.by ? (getPersonName(req.by) || req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   return `
@@ -526,11 +526,11 @@ function _mcReqCard(req) {
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${kindCls}">${kindLabel}</span>
         <span class="text-sm font-medium text-gray-800">${esc(req.name || req.personId)}</span>
-        <span class="text-[11px] text-gray-400 ml-auto">${esc(byName)} · ${atText}</span>
+        <span class="text-[11px] text-gray-500 ml-auto">${esc(byName)} · ${atText}</span>
       </div>
       <div class="text-xs text-gray-600 leading-relaxed">
         <span class="font-medium text-gray-700">${esc(req.from || '')} → ${esc(req.to || '')}</span>
-        ${req.note ? ` <span class="text-gray-400">· ${esc(req.note)}</span>` : ''}
+        ${req.note ? ` <span class="text-gray-500">· ${esc(req.note)}</span>` : ''}
       </div>
       ${(req.kind === 'transferOut' && req.refsSummary) ? _mcRefsSummaryHtml(req.refsSummary) : ''}
       <div class="flex items-center gap-2 pt-1">
@@ -554,10 +554,10 @@ function _mcRefsSummaryHtml(summary) {
       <p>保持记录摘要：自动解除 <span class="tabular-nums font-medium text-gray-700">${safeTotal}</span> 项 · 转已转出标注 <span class="tabular-nums font-medium text-gray-700">${keepTotal}</span> 条</p>
       ${(safeChips.length || keepChips.length) ? `
       <details>
-        <summary class="cursor-pointer text-gray-400 select-none">查看明细（安全解除 / 保留标注域名）</summary>
+        <summary class="cursor-pointer text-gray-500 select-none">查看明细（安全解除 / 保留标注域名）</summary>
         <div class="flex flex-wrap gap-1 pt-1.5">
-          ${safeChips.length ? `<span class="text-gray-400">自动解除：</span>${safeChips.join('')}` : ''}
-          ${keepChips.length ? `<span class="text-gray-400">保留标注：</span>${keepChips.join('')}` : ''}
+          ${safeChips.length ? `<span class="text-gray-500">自动解除：</span>${safeChips.join('')}` : ''}
+          ${keepChips.length ? `<span class="text-gray-500">保留标注：</span>${keepChips.join('')}` : ''}
         </div>
       </details>` : ''}
     </div>`;
@@ -568,7 +568,7 @@ function renderSemesterDetainedDetail(group) {
   const rows = (group.items || []).map(it => `
     <div class="flex items-start justify-between gap-2 py-0.5">
       <span class="text-xs text-gray-700 font-medium flex-shrink-0">${esc(it.name)}</span>
-      <span class="text-[11px] text-gray-400 text-right min-w-0 truncate" title="${esc(it.note)}">${esc(it.note || '滞留：组织关系保留、应到剔除、通知照发')}</span>
+      <span class="text-[11px] text-gray-500 text-right min-w-0 truncate" title="${esc(it.note)}">${esc(it.note || '滞留：组织关系保留、应到剔除、通知照发')}</span>
     </div>`).join('');
   return `
     <div class="space-y-3">
@@ -578,7 +578,7 @@ function renderSemesterDetainedDetail(group) {
       <p class="font-title-cn text-sm font-bold text-gray-800">学期末滞留集中复核</p>
       <p class="text-xs text-gray-600 leading-relaxed">延续或解除滞留：组织委员在「成员名册」发起变更。</p>
       <div class="rounded-lg bg-gray-50 p-2.5 space-y-1 max-h-44 overflow-y-auto">
-        ${rows || '<div class="text-xs text-gray-400">当前无在册滞留成员</div>'}
+        ${rows || '<div class="text-xs text-gray-500">当前无在册滞留成员</div>'}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
         <button type="button" class="mc-semester-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">知道了</button>
@@ -794,7 +794,7 @@ function _committeeTfRowHtml(req, act) {
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
-    ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 flex-shrink-0">已排入表决</span>
+    ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
        <button type="button" class="tf-cr-result text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#6366F1;" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
     : `<button type="button" class="tf-cr-arrange text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#CE1126;" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
@@ -804,7 +804,7 @@ function _committeeTfRowHtml(req, act) {
         <div class="flex-1 min-w-0">
           <p class="font-title-cn text-sm font-bold text-gray-800 truncate">${req.name || '未命名专班'}</p>
           ${req.task ? `<p class="text-xs text-gray-500 truncate mt-0.5">${req.task}</p>` : ''}
-          <p class="text-[11px] text-gray-400 mt-0.5">报送人 ${byName} · ${atText || ''}${req.note ? ` · ${req.note}` : ''}</p>
+          <p class="text-[11px] text-gray-500 mt-0.5">报送人 ${byName} · ${atText || ''}${req.note ? ` · ${req.note}` : ''}</p>
         </div>
         <div class="flex flex-col items-end gap-1.5 flex-shrink-0">${ops}</div>
       </div>
@@ -870,10 +870,10 @@ async function _openTfDecisionModal(req, activityId, api) {
     <p class="text-xs text-gray-500 mb-3">表决活动：线上支委会（${kindLabel}专班议案）</p>
     <div class="rounded-lg bg-gray-50 p-3 mb-3 text-xs space-y-1.5">
       <p class="text-gray-700">${sumLine}</p>
-      <p class="font-medium ${status === 'passed' ? 'text-green-600' : status === 'failed' ? 'text-red-600' : 'text-amber-600'}">结论：${conclusion}</p>
+      <p class="font-medium ${status === 'passed' ? 'text-green-700' : status === 'failed' ? 'text-red-600' : 'text-amber-700'}">结论：${conclusion}</p>
       ${status === 'pending'
-        ? '<p class="text-gray-400">判据（R2-3）：应到严格超过 2/3 出席且无反对（弃权允许）。未达标请等待委员表态/截止后再查看。</p>'
-        : '<p class="text-gray-400">确认后按此结论生效：' + (status === 'passed'
+        ? '<p class="text-gray-500">判据（R2-3）：应到严格超过 2/3 出席且无反对（弃权允许）。未达标请等待委员表态/截止后再查看。</p>'
+        : '<p class="text-gray-500">确认后按此结论生效：' + (status === 'passed'
             ? (req.kind === 'initiate' ? '专班转为招募中' : '专班解散（解散留痕）')
             : (req.kind === 'initiate' ? '退回草稿（可修改后重新报送）' : '专班继续运行')) + '。</p>'}
     </div>

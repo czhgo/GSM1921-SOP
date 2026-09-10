@@ -13,6 +13,7 @@
 // 运行：node --test test/branch-doc.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { mockDB } from '../../docs/src/core/domain.js?v=20260910a';
 import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260910a';
@@ -356,6 +357,46 @@ test('⑥ listDocs：只看制度 / 按状态过滤；updatedAt 倒序；旧 doc
   assert.equal(sorted[0].id, second.doc.id, '停用写入 updatedAt → 最新在前');
 });
 
+// ═══════════════ ⑥ 支部隔离（读侧过滤 §2.5：一个支部一片存储空间、跨支部不可见）═══════════════
+test('⑥c listDocs 按支部隔离：外支部文档对已归属者不可见（读侧过滤，数据不丢失）', async () => {
+  beginMockCase();
+  // 本支部（br-b1）新建 → 写侧归属标注 branchId（p3 归属 br-b1）
+  const mine = await saveDoc({
+    purpose: 'doc', title: '本支部考察表', fileName: 'a.pdf', filePath: '/f/a.pdf',
+    by: 'p3', role: 'org-commissioner',
+  });
+  assert.equal(mine.doc.branchId, 'br-b1', '写侧最小守卫：新建落当前归属支部 id');
+  // 直插一条外支部（br-b2）文档，模拟其它支部落库
+  mockDB.branchDocs = [...mockDB.branchDocs, {
+    id: 'bd-b2-1', title: '外支部文件', purpose: 'doc', status: 'archived',
+    branchId: 'br-b2', uploadedAt: '2026-09-01T00:00:00.000Z',
+  }];
+  // p13 归属 br-b1 → 只见本支部；定向隔离不因过滤隐藏而丢失数据
+  const visible = await listDocs({ personId: 'p13' });
+  assert.equal(visible.length, 1, '已归属者只见本支部文件');
+  assert.equal(visible[0].title, '本支部考察表');
+  assert.ok(!visible.some((d) => d.branchId === 'br-b2'), '外支部条目不得出现');
+  assert.equal((await rawRows()).length, 2, 'adapter 全量仍含外支部条目 → 纯读侧过滤');
+});
+
+test('⑥d listDocs 无归属不误伤：未登录 / 党委（party-staff）保持既有行为（不过滤）', async () => {
+  beginMockCase();
+  await saveDoc({
+    purpose: 'doc', title: '本支部文件', fileName: 'm.pdf', filePath: '/f/m.pdf',
+    by: 'p3', role: 'org-commissioner',
+  });
+  mockDB.branchDocs = [...mockDB.branchDocs, {
+    id: 'bd-b2-2', title: '外支部文件', purpose: 'doc', status: 'archived',
+    branchId: 'br-b2', uploadedAt: '2026-09-01T00:00:00.000Z',
+  }];
+  // 未登录（无登录快照）→ 不过滤，两支部条目都可见（既有行为）
+  assert.equal((await listDocs()).length, 2);
+  // 党委语境（p_pc，branchId:null → 无有效归属）→ 不过滤
+  assert.equal((await listDocs({ personId: 'p_pc' })).length, 2);
+  // 显式无归属 → 不过滤
+  assert.equal((await listDocs({ personId: null })).length, 2);
+});
+
 // ═══════════════ ⑦ 普通文件编辑兼容 ═══════════════
 test('⑦ 普通文件编辑（title/desc/替换附件）保留现状能力；旧数据可正常列出', async () => {
   beginMockCase();
@@ -426,4 +467,19 @@ test('isInstitutionManager 角色判定：书记/副书记 true；其余 false',
   assert.equal(isInstitutionManager('participant'), false);
   assert.equal(isInstitutionManager(null), false);
   assert.equal(isInstitutionManager(undefined), false);
+});
+
+// ═══════════════ ⑨ 消费端接线（防回归：UI 读侧经 listDocs 收敛，勿绕过直读 adapter 全量）═══════════════
+test('⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会前草案），不再直读 adapter 全量', async () => {
+  const cases = [
+    ['modules/references.js', '../../docs/src/modules/references.js?v=20260910a'],
+    ['secretary/calendar-tab.js', '../../docs/src/entries/tabs/secretary/calendar-tab.js?v=20260910a'],
+  ];
+  for (const [name, rel] of cases) {
+    const src = await readFile(new URL(rel, import.meta.url), 'utf8');
+    assert.match(src, /from\s+'[^']*services\/branch-doc\.js[^']*'/, `${name} 须由 services/branch-doc.js 引入读接口`);
+    assert.match(src, /import\s*\{[\s\S]*?\blistDocs\b[\s\S]*?\}\s*from/, `${name} 须 import listDocs`);
+    assert.match(src, /await\s+listDocs\s*\(|await\s+listBranchDocs\s*\(/, `${name} 读列表须经 listDocs()`);
+    assert.ok(!/getAdapter\(\)\.branchDocs\.list\(\)/.test(src), `${name} 不得再直读 getAdapter().branchDocs.list()`);
+  }
 });

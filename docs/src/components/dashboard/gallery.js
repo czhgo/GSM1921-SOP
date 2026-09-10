@@ -37,7 +37,7 @@ export function renderGallery(activities) {
   const display = [...sortByDate(candidates.filter(a => !isDone(a))), ...sortByDate(candidates.filter(a => isDone(a)))].slice(0, 6);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400">暂无风采展示</p>';
+    container.innerHTML = '<p class="text-sm text-gray-500">暂无风采展示</p>';
     return;
   }
 

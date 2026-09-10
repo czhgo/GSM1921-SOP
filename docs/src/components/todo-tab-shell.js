@@ -170,7 +170,7 @@ export function createTodoTab(opts) {
       in_progress: 'bg-blue-100 text-blue-700',
       completed: 'bg-green-100 text-green-700',
       expired: 'bg-red-100 text-red-700',
-    }[todo.status] || 'bg-gray-100 text-gray-500';
+    }[todo.status] || 'bg-gray-100 text-gray-600';
 
     return `
       <div class="space-y-3">
@@ -183,7 +183,7 @@ export function createTodoTab(opts) {
         </div>
         ${todo.description ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.description}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
-        <div class="text-xs text-gray-400">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
+        <div class="text-xs text-gray-500">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
         <div class="pt-3 border-t border-gray-100 flex gap-2">
           ${todo.actionType ? `<button class="${detailBtnClass} text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         </div>
@@ -201,7 +201,7 @@ export function createTodoTab(opts) {
         <div class="flex items-center gap-2 px-3 py-2 border-t border-gray-100">
           <span class="flex-1 min-w-0">
             <span class="block text-sm text-gray-800 truncate">${n.title || '未命名通知'}</span>
-            <span class="block text-[11px] text-gray-400">${timeText}</span>
+            <span class="block text-[11px] text-gray-500">${timeText}</span>
           </span>
           <button type="button" class="${prefix}-unread-open-btn text-xs px-2.5 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
           <button type="button" class="${prefix}-unread-read-btn text-xs px-2.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
@@ -211,7 +211,7 @@ export function createTodoTab(opts) {
       <div class="card rounded-xl px-4 py-2.5 mb-4">
         <button type="button" class="${prefix}-unread-toggle w-full flex items-center justify-between text-left bg-transparent border-0 cursor-pointer px-1 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" style="cursor:pointer;">
           <span class="flex items-center gap-2">
-            <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
             </svg>
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
@@ -332,7 +332,7 @@ export function createTodoTab(opts) {
       const detailHtml = selectedTodo
         ? (renderDetail ? renderDetail(selectedTodo, ctx) : _renderTodoDetail(selectedTodo, ctx))
         : `
-          <div class="text-center py-12 text-gray-400">
+          <div class="text-center py-12 text-gray-500">
             <p class="text-sm">点击左侧待办查看详情</p>
             <p class="text-xs mt-1">${emptyHint}</p>
           </div>

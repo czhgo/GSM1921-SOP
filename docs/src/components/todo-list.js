@@ -87,13 +87,13 @@ export function renderDomainTodoList(opts) {
       <div class="${prefix}-todo-group mb-3" data-domain="${domain.domain}">
         <button type="button" class="${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
           <div class="flex items-center gap-2">
-            <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-400 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg class="${prefix}-todo-arrow w-3 h-3 text-gray-500 transition-transform" style="transform:${isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
             </svg>
             <span class="font-title-cn text-sm font-bold text-gray-700">${domain.label || domain.domain}</span>
             ${(domain.expiredCount || 0) > 0 ? badgeHtml(`${domain.expiredCount} 条逾期`, 'danger') : ''}
           </div>
-          <span class="text-xs text-gray-400 tabular-nums">${domain.count || 0}</span>
+          <span class="text-xs text-gray-500 tabular-nums">${domain.count || 0}</span>
         </button>
         <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
           ${itemsHtml}
@@ -103,7 +103,7 @@ export function renderDomainTodoList(opts) {
   }).join('');
 
   const emptyHtml = list.length === 0 ? `
-    <div class="text-center py-12 text-gray-400">
+    <div class="text-center py-12 text-gray-500">
       <p class="text-sm">${emptyHint}</p>
     </div>
   ` : '';
@@ -220,7 +220,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
   // 催办入口状态（书记/副书记待办页；urgeStateOf 缺省 → 不渲染）
   const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
   const urgeBtn = urge ? `
-        <button type="button" class="${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-300 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';
+        <button type="button" class="${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';
 
   return `
     <div class="${prefix}-todo-item flex items-center border-b border-gray-50 last:border-b-0" data-group-key="${g.groupKey}">
@@ -231,16 +231,16 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
             <span class="text-sm font-medium text-gray-800 truncate">${g.title}</span>
             <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums flex-shrink-0">${g.count}</span>
           </span>
-          ${g.flow ? `<span class="block text-[11px] text-gray-400 truncate">${g.flow}</span>` : ''}
+          ${g.flow ? `<span class="block text-[11px] text-gray-500 truncate">${g.flow}</span>` : ''}
         </span>
         <span class="flex items-center gap-2 flex-shrink-0">
-          ${g.deadline ? `<span class="text-xs ${isTodoExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-400'}">${g.deadline}</span>` : ''}
+          ${g.deadline ? `<span class="text-xs ${isTodoExpired({ status: 'pending', deadline: g.deadline }, today) ? 'text-red-600' : 'text-gray-500'}">${g.deadline}</span>` : ''}
         </span>
       </button>
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${urgeBtn}
         ${g.hideActionBtn ? '' : `<button type="button" class="${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || solidAccentStyle(accent)}">${actionLabel}</button>`}
-        ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-300 hover:text-red-500 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-group-key="${g.groupKey}" title="删除该组待办" style="cursor:pointer;">✕</button>` : ''}
+        ${onDeleteTodo ? `<button type="button" class="${prefix}-todo-del-btn text-xs text-gray-500 hover:text-red-700 px-1.5 py-1 rounded hover:bg-red-50 transition-colors" data-group-key="${g.groupKey}" title="删除该组待办" style="cursor:pointer;">✕</button>` : ''}
       </div>
     </div>
   `;

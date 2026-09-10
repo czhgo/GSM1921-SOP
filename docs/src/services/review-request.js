@@ -3,9 +3,56 @@
 // 闭环：支部书记上报（发展党员关键节点 develop-node / 重要活动报备 activity-report）
 //       → 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果。
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）。
+// 通知闭环（2026-09-10，依据 COMMISSIONER_DUTY_FRAMEWORK §八「提交/通过/驳回均触发通知」）：
+//   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起书记（带结论/意见）。
+//   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
 import { mockDB } from '../core/domain.js?v=20260910a';
 import { getAdapter, persist } from '../core/data-adapter.js?v=20260910a';
+import { NoticeStore } from './notice.js?v=20260910a';
+import { getPersonName } from './person.js?v=20260910a';
+
+const TYPE_LABEL = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
+
+/** 支部显示名（通知定位用） */
+function _branchLabel(branchId) {
+  const b = (mockDB.branches || []).find(x => x.id === branchId);
+  return (b && (b.config?.headerTitle || b.name)) || branchId || '本支部';
+}
+
+/** 上报事项摘要（含类型/标题/编号，供通知回溯定位） */
+function _subject(row) {
+  return `${TYPE_LABEL[row.type] || '上报'}「${row.title || '未命名'}」（编号 ${row.id}）`;
+}
+
+/** 提交上报 → 定向通知党委（审批人） */
+function _notifySubmit(row) {
+  try {
+    NoticeStore.add({
+      title: '支部上报待批复',
+      content: `${_branchLabel(row.branchId)} 提交${_subject(row)}，由 ${getPersonName(row.submittedBy) || row.submittedBy || '支部'} 发起，请党委审批。`,
+      priority: 'normal',
+      targetUrl: 'workspace/party-committee.html',
+      actionRoles: ['party-staff'],
+      read: false,
+    });
+  } catch (e) { console.warn('[review-request] 上报通知失败（不影响上报）：', e); }
+}
+
+/** 审批结论 → 回传通知发起书记（带结论/意见） */
+function _notifyDecision(row) {
+  const approved = row.status === 'approved';
+  try {
+    NoticeStore.add({
+      title: approved ? '上报已获党委批准' : '上报被党委驳回',
+      content: `${_branchLabel(row.branchId)} 的${_subject(row)}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${row.decisionNote ? `。党委意见：${row.decisionNote}` : '。'}`,
+      priority: 'normal',
+      targetUrl: 'workspace/secretary.html',
+      actionRoles: ['secretary', 'deputy-secretary'],
+      read: false,
+    });
+  } catch (e) { console.warn('[review-request] 审批通知失败（不影响审批）：', e); }
+}
 
 /** 支部上报（书记/组织委员视角） */
 export async function submitReviewRequest({ branchId, type, title, content, submittedBy }) {
@@ -22,6 +69,7 @@ export async function submitReviewRequest({ branchId, type, title, content, subm
     mockDB.reviewRequests = [...(mockDB.reviewRequests || []), row];
   }
   persist();
+  _notifySubmit(row); // 节点①：提交 → 定向通知党委
   return row;
 }
 
@@ -39,6 +87,7 @@ export async function decideReviewRequest({ id, decision, decidedBy, decisionNot
     mockDB.reviewRequests = [...mockDB.reviewRequests.slice(0, idx), next, ...mockDB.reviewRequests.slice(idx + 1)];
   }
   persist();
+  _notifyDecision(next); // 节点②③：批准/驳回 → 回传通知发起书记（带结论/意见）
   return next;
 }
 

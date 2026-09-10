@@ -52,19 +52,19 @@ function renderNotificationForm() {
 
   // 通知标题
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>`;
   html += `<input type="text" id="notif-title" class="input-flat w-full" placeholder="通知标题">`;
   html += `</div>`;
 
   // 通知内容
   html += `<div class="mb-4">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>`;
   html += `<textarea id="notif-content" rows="4" class="input-flat w-full" placeholder="通知正文"></textarea>`;
   html += `</div>`;
 
   // 目标受众
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-500">*</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-600">*</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   NOTIFICATION_AUDIENCES.forEach(a => {
     html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg">${a.label}</button>`;
@@ -177,7 +177,7 @@ function renderNotificationList() {
     .sort((a, b) => (b.publishDate || '').localeCompare(a.publishDate || ''));
 
   if (notifications.length === 0) {
-    listArea.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">暂无已发布通知</p>';
+    listArea.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无已发布通知</p>';
     return;
   }
 
@@ -198,12 +198,12 @@ function renderNotificationList() {
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
             ${audienceBadges}
           </div>
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
-          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-300 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
-        <p class="text-xs text-gray-400 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
+        <p class="text-xs text-gray-500 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
       </div>
     `;
   }).join('<div class="border-b border-gray-100"></div>');
@@ -256,11 +256,11 @@ function _openNoticeEditModal(notice) {
     bodyHtml: `
       <div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知标题 <span class="text-red-600">*</span></label>
           <input type="text" id="ne-title" class="input-flat w-full" value="${notice.title || ''}">
         </div>
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">通知内容 <span class="text-red-600">*</span></label>
           <textarea id="ne-content" rows="4" class="input-flat w-full">${notice.content || ''}</textarea>
         </div>
         <div>

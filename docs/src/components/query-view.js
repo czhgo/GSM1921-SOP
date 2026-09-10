@@ -76,10 +76,10 @@ export function renderQueryView(container, config) {
         ${filtersHtml}
         ${categoryHtml}
         ${brandHtml}
-        <button id="${uid}-clear" class="text-xs text-gray-400 hover:text-gray-600 px-3 py-2 rounded-lg">清除</button>
+        <button id="${uid}-clear" class="text-xs text-gray-500 hover:text-gray-600 px-3 py-2 rounded-lg">清除</button>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
-      <div id="${uid}-count" class="text-xs text-gray-400 mt-2"></div>
+      <div id="${uid}-count" class="text-xs text-gray-500 mt-2"></div>
       <div id="${uid}-pager"></div>
     </div>
   `;
@@ -138,7 +138,7 @@ export function renderQueryView(container, config) {
     const paged = pageSize > 0 ? filtered.slice((page - 1) * pageSize, page * pageSize) : filtered;
 
     if (paged.length === 0) {
-      resultsEl.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">${emptyMessage}</p>`;
+      resultsEl.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">${emptyMessage}</p>`;
     } else {
       resultsEl.innerHTML = paged.map(renderRow).join('');
     }
@@ -201,7 +201,7 @@ export function renderQueryView(container, config) {
     if (subs.length === 0) { subChipsEl.classList.add('hidden'); subChipsEl.innerHTML = ''; return; }
     subChipsEl.classList.remove('hidden');
     subChipsEl.innerHTML = subs.map(s => `
-      <button type="button" data-sub="${s}" class="sub-chip text-xs px-2.5 py-1 rounded-full transition-colors ${s === activeSub ? 'sel-accent-on' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}">${s}</button>
+      <button type="button" data-sub="${s}" class="sub-chip text-xs px-2.5 py-1 rounded-full transition-colors ${s === activeSub ? 'sel-accent-on' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">${s}</button>
     `).join('');
     subChipsEl.querySelectorAll('.sub-chip').forEach(btn => {
       btn.addEventListener('click', () => {

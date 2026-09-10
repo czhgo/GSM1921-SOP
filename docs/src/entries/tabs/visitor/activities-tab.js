@@ -113,7 +113,7 @@ function _renderActListView(sorted, highlightId) {
 
   vc.innerHTML = `
     <div class="space-y-2">
-      ${sorted.length === 0 ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>' :
+      ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>' :
         pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
     ${totalPages > 1 ? `
@@ -154,7 +154,7 @@ function _renderActCalendarView(sorted, highlightId) {
   const months = Object.keys(byMonth).sort().reverse();
 
   vc.innerHTML = months.length === 0
-    ? '<p class="text-xs text-gray-400 text-center py-6">暂无活动</p>'
+    ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>'
     : months.map(m => {
       const acts = byMonth[m];
       const [y, mo] = m.split('-');
@@ -164,7 +164,7 @@ function _renderActCalendarView(sorted, highlightId) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
             ${icon('calendar', { stroke: 'var(--primary-700)', className: 'w-3.5 h-3.5' })}
             ${monthLabel}
-            <span class="text-xs font-normal text-gray-400">${acts.length} 场</span>
+            <span class="text-xs font-normal text-gray-500">${acts.length} 场</span>
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             ${acts.map(a => {
@@ -174,7 +174,7 @@ function _renderActCalendarView(sorted, highlightId) {
                 <a href="../activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
-                    <div class="text-xs text-gray-400">日</div>
+                    <div class="text-xs text-gray-500">日</div>
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>

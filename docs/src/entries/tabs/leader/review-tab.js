@@ -70,18 +70,18 @@ export function reviewStatusSectionHtml(ctx) {
   function renderPendingCard(item) {
     const { act, rev } = item;
     const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
-    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-500';
+    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
     return `
       <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
         <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
-            <div class="text-[11px] text-gray-400 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
+            <div class="text-[11px] text-gray-500 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
           </div>
           <div class="flex items-center gap-2 ml-4">
             <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-500">需修改</span>' : ''}
+            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-600">需修改</span>' : ''}
           </div>
         </div>
       </div>`;
@@ -91,7 +91,7 @@ export function reviewStatusSectionHtml(ctx) {
   function renderCompletedCard(item) {
     const { act, rev } = item;
     const statusLabel = REVIEW_STATUS_LABELS[rev?.reviewStatus];
-    const statusColor = reviewColorMap[rev?.reviewStatus] || 'bg-gray-100 text-gray-500';
+    const statusColor = reviewColorMap[rev?.reviewStatus] || 'bg-gray-100 text-gray-600';
     const isExpanded = _reviewExpandedId === act.id;
     return `
       <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
@@ -112,24 +112,24 @@ export function reviewStatusSectionHtml(ctx) {
     <div class="card rounded-lg p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
-        <span class="text-xs text-gray-400">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
+        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-400 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。</p>
+      <p class="text-[11px] text-gray-500 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。</p>
 
       <!-- 待复盘 -->
       <div class="mb-3">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5" id="leader-review-pending">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-400 py-1">暂无待复盘活动</p>' :
+          ${pending.length === 0 ? '<p class="text-xs text-gray-500 py-1">暂无待复盘活动</p>' :
             pending.map(item => renderPendingCard(item)).join('')}
         </div>
       </div>
 
       <!-- 已复盘 -->
       <div class="pt-2.5 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
         <div class="space-y-1.5" id="leader-review-completed">
-          ${completed.length === 0 ? '<p class="text-xs text-gray-400 py-1">暂无已复盘活动</p>' :
+          ${completed.length === 0 ? '<p class="text-xs text-gray-500 py-1">暂无已复盘活动</p>' :
             completed.map(item => renderCompletedCard(item)).join('')}
         </div>
       </div>
@@ -159,7 +159,7 @@ function _renderReviewDetail(rev) {
         <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
-      ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
+      ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
         <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
           <div class="text-xs text-blue-500 font-bold mb-1">纪检委员批注</div>

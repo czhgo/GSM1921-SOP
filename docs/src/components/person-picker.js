@@ -187,7 +187,7 @@ export class PersonPicker {
         btn.innerHTML = `<span class="person-picker-trigger-name">${selectedNames}</span>`;
       }
     } else {
-      btn.innerHTML = `<span class="person-picker-trigger-placeholder">${this._placeholder}</span>`;
+      btn.innerHTML = `<span class="person-picker-trigger-placeholder text-gray-500">${this._placeholder}</span>`;
     }
 
     // 下拉箭头
@@ -489,7 +489,7 @@ export class PersonPicker {
             <span class="person-picker-item-name-row">
               <span class="person-picker-item-name">${person.name}</span>
               ${isDisabled ? `<span class="person-picker-item-lock">${_escAttr(disabledLabel)}</span>` : ''}
-              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};--acc-border-dark:${stageColor.borderDark};background:${stageColor.bg};color:${stageColor.text};border:1px solid ${stageColor.border};">${stageLabel}</span>
+              <span class="person-picker-item-stage" style="--acc-bg-dark:${stageColor.bgDark};--acc-text-dark:${stageColor.textDark};--acc-border-dark:${stageColor.borderDark};background:${stageColor.bg};color:color-mix(in srgb, ${stageColor.text} 60%, #000);border:1px solid ${stageColor.border};">${stageLabel}</span>
             </span>
             <span class="person-picker-item-meta">
               <span class="person-picker-item-meta-text">${person.studentId}</span>

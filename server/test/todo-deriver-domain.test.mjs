@@ -28,6 +28,7 @@ import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
+  buildDevelopNodeRemindGroup,
 } from '../../docs/src/services/todo.js?v=20260910a';
 import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260910a';
 import { SignupStore } from '../../docs/src/services/signup.js?v=20260910a';
@@ -310,4 +311,40 @@ test('⑧ 实时组域标签：导出映射覆盖书记 8 组/决议逾期/成�
   assert.equal(g.actionKey, 'resolution-followup-remind');
   assert.equal(g.domain, 'resolution', '决议逾期提醒组 domain=决议上报');
   assert.equal(realtimeGroupDomainOf(g), 'resolution');
+});
+
+// ═══════════════ ⑨ 发展节点提醒（组织委员流程指南附录A；2026-09-10） ═══════════════
+
+test('⑨ 发展节点提醒：培养考察期满/预备期满派生组织委员实时组（域=成员发展 + 稳定键，幂等不重复）', () => {
+  const today = '2026-09-10';
+  const members = [
+    { id: 'p1', name: '甲', developStage: '积极分子' },
+    { id: 'p2', name: '乙', developStage: '预备党员' },
+    { id: 'p3', name: '丙', developStage: '积极分子' },   // 未满期
+    { id: 'p4', name: '丁', developStage: '发展对象' },   // 无期满节点
+    { id: 'p5', name: '戊', developStage: '预备党员' },   // 无 entryDate → 不派生
+  ];
+  const overrides = {
+    p1: { stage: '积极分子', entryDate: '2025-06-01' }, // +365 = 2026-06-01 ≤ today → 满期
+    p2: { stage: '预备党员', entryDate: '2025-08-01' }, // +365 = 2026-08-01 ≤ today → 满期
+    p3: { stage: '积极分子', entryDate: '2026-05-01' }, // +365 → 未满
+  };
+
+  const g = buildDevelopNodeRemindGroup({ members, overrides, today });
+  assert.ok(g, '存在期满成员 → 生成实时组');
+  assert.equal(g.actionKey, 'develop-node-remind', '稳定 actionKey');
+  assert.equal(g.groupKey, 'org-commissioner:develop-node-remind');
+  assert.equal(g.domain, WORK_DOMAIN.MEMBER_DEV, '域=成员发展');
+  assert.equal(g.count, 2, '仅满期且有日期者计入（p3 未满 / p4 无节点 / p5 无日期 不入）');
+  assert.deepEqual(g.items.map(i => i.personId).sort(), ['p1', 'p2']);
+  assert.equal(g.items.find(i => i.personId === 'p1').dueDate, '2026-06-01', '培养考察期 = entryDate + 365 天');
+  assert.match(g.items.find(i => i.personId === 'p2').title, /预备期满/);
+
+  // 稳定键已登记域映射（供 T4 域折组展示）
+  assert.equal(REALTIME_GROUP_DOMAIN['develop-node-remind'], WORK_DOMAIN.MEMBER_DEV);
+  assert.equal(realtimeGroupDomainOf({ actionKey: 'develop-node-remind' }), WORK_DOMAIN.MEMBER_DEV);
+
+  // 幂等：无期满/空输入 → null（不产生空组卡，避免重复提醒）
+  assert.equal(buildDevelopNodeRemindGroup({ members, overrides: { p3: overrides.p3 }, today }), null);
+  assert.equal(buildDevelopNodeRemindGroup({ members: [], overrides: {}, today }), null);
 });

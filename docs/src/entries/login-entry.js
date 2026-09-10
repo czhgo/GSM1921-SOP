@@ -49,7 +49,7 @@ function _renderDevCards() {
           <div style="${dotDarkVars(accent)}width:8px;height:8px;border-radius:50%;background:${accent};"></div>
           <span class="font-medium text-sm text-gray-800">${card.label}</span>
         </div>
-        <p class="text-xs text-gray-400 mb-2">${card.desc}</p>
+        <p class="text-xs text-gray-500 mb-2">${card.desc}</p>
         <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" style="${solidAccentStyle(accent, accentBorder)};">登录</button>
       </div>
     `;

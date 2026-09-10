@@ -34,7 +34,7 @@ const _statusBadgeHtml = (status) => {
 
 /** 初阅留痕摘要：「{by 姓名} 于 {at} 通过/退回{意见}」（reviewHistory 为空数组 → 空串） */
 const _historyHtml = (rec) => _hist(rec).map(h => `
-      <div class="text-[11px] text-gray-400">${esc(getPersonName(h.by) || h.by || '—')} 于 ${_dateTime(h.at)} ${_decisionLabel(h.decision)}${h.note ? `：${esc(h.note)}` : ''}</div>`).join('');
+      <div class="text-[11px] text-gray-500">${esc(getPersonName(h.by) || h.by || '—')} 于 ${_dateTime(h.at)} ${_decisionLabel(h.decision)}${h.note ? `：${esc(h.note)}` : ''}</div>`).join('');
 
 export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等共享只读配置；本 tab 不需消费）
   const container = document.getElementById('org-tab-content');
@@ -42,7 +42,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
 
   const user = AuthStore.getCurrentUser();
   if (!user) {
-    container.innerHTML = '<div class="card rounded-xl p-5"><p class="text-xs text-gray-400 text-center py-6">请先登录后使用</p></div>';
+    container.innerHTML = '<div class="card rounded-xl p-5"><p class="text-xs text-gray-500 text-center py-6">请先登录后使用</p></div>';
     return;
   }
   // 防御：非组织委员不渲染（提示无权限）
@@ -81,7 +81,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     byPerson.forEach(g => g.items.sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '')));
 
     const queueRowHtml = queue.length === 0
-      ? '<p class="text-xs text-gray-400 text-center py-8">暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅</p>'
+      ? '<p class="text-xs text-gray-500 text-center py-8">暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅</p>'
       : queue.map(r => {
           const who = esc(r.personName || getPersonName(r.personId) || r.personId);
           const title = esc(r.title || '思想汇报');
@@ -92,7 +92,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
                 <div class="flex items-center gap-2 flex-wrap">
                   <span class="text-xs font-semibold text-gray-800">${who}</span>
                   <span class="text-xs font-medium text-gray-600">《${title}》</span>
-                  <span class="text-[11px] text-gray-400">${_date(r.submittedAt)}</span>
+                  <span class="text-[11px] text-gray-500">${_date(r.submittedAt)}</span>
                 </div>
                 <p class="text-[12px] text-gray-500 mt-1">${esc(_brief(r.content))}</p>
               </div>
@@ -101,8 +101,8 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
             <div class="tr-detail hidden mt-3 pt-3 border-t border-gray-100" data-tr-detail="${r.id}">
               <p class="text-[12px] text-gray-600 whitespace-pre-wrap leading-relaxed mb-3">${esc(r.content || '（无正文）')}</p>
               <div class="flex items-center gap-2 flex-wrap">
-                <button type="button" class="tr-approve-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-600 border border-green-200 hover:bg-green-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">通过·归档</button>
-                <button type="button" class="tr-reject-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">退回·需补充</button>
+                <button type="button" class="tr-approve-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">通过·归档</button>
+                <button type="button" class="tr-reject-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">退回·需补充</button>
                 <input type="text" id="tr-note-${r.id}" class="input-flat flex-1 min-w-0" maxlength="120" placeholder="退回意见（退回必填，提交者可见并可修改重交）" aria-label="退回意见">
               </div>
             </div>
@@ -110,12 +110,12 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
         }).join('');
 
     const browseHtml = byPerson.length === 0
-      ? '<p class="text-xs text-gray-400 text-center py-6">暂无思想汇报记录</p>'
+      ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>'
       : byPerson.map(g => `
           <div class="mb-4 last:mb-0">
             <div class="flex items-center gap-2 mb-2">
               <span class="text-sm font-semibold text-gray-800">${esc(g.name)}</span>
-              <span class="text-[11px] text-gray-400">${g.items.length} 篇</span>
+              <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
             </div>
             <div class="space-y-2">
               ${g.items.map(item => {
@@ -125,7 +125,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
                   <div class="flex items-center justify-between gap-2 flex-wrap">
                     <div class="flex items-center gap-2 min-w-0 flex-1">
                       <span class="text-xs font-medium text-gray-700 truncate">${esc(item.title || '思想汇报')}</span>
-                      <span class="text-[11px] text-gray-400 flex-shrink-0">${_date(item.submittedAt)}</span>
+                      <span class="text-[11px] text-gray-500 flex-shrink-0">${_date(item.submittedAt)}</span>
                     </div>
                     ${_statusBadgeHtml(_effStatus(item))}
                   </div>
@@ -139,7 +139,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-1">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">待初阅队列</h3>
-          <span class="text-xs text-gray-400">${queue.length} 篇 · 先到先阅</span>
+          <span class="text-xs text-gray-500">${queue.length} 篇 · 先到先阅</span>
         </div>
         <p class="text-xs text-gray-500 mb-3">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
         <div class="space-y-2">${queueRowHtml}</div>
@@ -147,7 +147,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       <div class="card rounded-xl p-5 mt-3">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">按人浏览</h3>
-          <span class="text-xs text-gray-400">${byPerson.length} 人</span>
+          <span class="text-xs text-gray-500">${byPerson.length} 人</span>
         </div>
         ${browseHtml}
       </div>

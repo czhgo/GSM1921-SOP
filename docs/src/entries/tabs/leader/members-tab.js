@@ -35,7 +35,7 @@ export async function renderContent(ctx) {
   if (!targets.length) {
     container.innerHTML = `
       <div class="card rounded-lg p-6 text-center">
-        <p class="text-xs text-gray-400">本党小组暂无其他组员可查看</p>
+        <p class="text-xs text-gray-500">本党小组暂无其他组员可查看</p>
       </div>`;
     return;
   }
@@ -57,10 +57,10 @@ export async function renderContent(ctx) {
     const openRequest = allIssues.find(i => i.kind === 'report' && i.requestedBy && i.assignee === t.personId && i.status === 'open' && !i.hidden && !i.mergedInto);
 
     let reportState = '—';
-    let reportClass = 'text-gray-300';
+    let reportClass = 'text-gray-500';
     if (openReport) {
-      if (openReport.resultPending) { reportState = '待答复'; reportClass = 'text-amber-600 font-medium'; }
-      else if (openReport.reportCategory === 'blocked') { reportState = '卡点上报中'; reportClass = 'text-red-500 font-medium'; }
+      if (openReport.resultPending) { reportState = '待答复'; reportClass = 'text-amber-700 font-medium'; }
+      else if (openReport.reportCategory === 'blocked') { reportState = '卡点上报中'; reportClass = 'text-red-600 font-medium'; }
       else { reportState = '汇报中'; reportClass = 'text-blue-600'; }
     } else if (openRequest) {
       reportState = '待汇报'; reportClass = 'text-blue-500';
@@ -97,6 +97,7 @@ export async function renderContent(ctx) {
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
           <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
+            style="--acc-text-dark:var(--app-accent,#B91C1C);color:color-mix(in srgb, var(--app-accent,#B91C1C) 60%, #000);"
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
         </div>`).join('');
 
@@ -105,9 +106,9 @@ export async function renderContent(ctx) {
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
       <span class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0">${r.person.name}</span>
       <span class="text-xs tabular-nums text-gray-600 w-14 flex-shrink-0 text-right">在办 ${r.active}</span>
-      <span class="text-xs tabular-nums ${r.overdue ? 'text-red-500 font-medium' : 'text-gray-400'} w-14 flex-shrink-0 text-right">超期 ${r.overdue}</span>
-      <span class="text-xs tabular-nums ${r.absent ? 'text-red-500 font-medium' : 'text-gray-400'} w-14 flex-shrink-0 text-right">缺勤 ${r.absent}</span>
-      <span class="text-xs tabular-nums ${r.inspPending ? 'text-amber-600 font-medium' : 'text-gray-400'} w-16 flex-shrink-0 text-right">考察待 ${r.inspPending}</span>
+      <span class="text-xs tabular-nums ${r.overdue ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">超期 ${r.overdue}</span>
+      <span class="text-xs tabular-nums ${r.absent ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">缺勤 ${r.absent}</span>
+      <span class="text-xs tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : 'text-gray-500'} w-16 flex-shrink-0 text-right">考察待 ${r.inspPending}</span>
       <span class="text-xs ${r.reportClass} w-20 text-right flex-shrink-0">${r.reportState}</span>
     </div>`).join('');
 
@@ -133,14 +134,14 @@ export async function renderContent(ctx) {
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
-          <span class="text-xs text-gray-400">本组超期/上报/缺勤 · ${blockers.length} 项</span>
+          <span class="text-xs text-gray-500">本组超期/上报/缺勤 · ${blockers.length} 项</span>
         </div>
         <div class="space-y-1.5">${blockerHtml}</div>
       </div>
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
-          <span class="text-xs text-gray-400">本组组员在办聚合</span>
+          <span class="text-xs text-gray-500">本组组员在办聚合</span>
         </div>
         <div class="space-y-1.5">${progressRows}</div>
       </div>

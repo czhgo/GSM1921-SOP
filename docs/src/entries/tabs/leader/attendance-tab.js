@@ -65,7 +65,7 @@ export function renderContent(ctx) {
       <div class="text-xs font-bold text-gray-600 mb-3">上传考勤表单</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
-          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-500">*</span></label>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-600">*</span></label>
           <select id="att-activity-select" class="input-flat w-full">
             <option value="">请选择活动</option>
             ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）</option>`).join('')}
@@ -73,10 +73,10 @@ export function renderContent(ctx) {
         </div>
       </div>
       <div class="mb-3">
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择参会人员 <span class="text-red-500">*</span></label>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择参会人员 <span class="text-red-600">*</span></label>
         <div id="att-person-picker-container"></div>
       </div>
-      <div id="att-roster-hint" class="mb-3 text-[11px] text-gray-400 leading-5"></div>
+      <div id="att-roster-hint" class="mb-3 text-[11px] text-gray-500 leading-5"></div>
       <div id="att-status-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
         <button id="att-form-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">提交考勤</button>
@@ -89,7 +89,7 @@ export function renderContent(ctx) {
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
-        <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:${accent};border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
+        <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
@@ -106,7 +106,7 @@ export function renderContent(ctx) {
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
-              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-600">待确认</span>' : '<span class="text-green-600">已确认</span>'}</td>
+              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -297,7 +297,7 @@ function _renderAttRosterHint(activity, rosterCtx, myGroup) {
   const disabledSet = new Set(disabledIds);
   const detained = candidates.filter(p => disabledSet.has(p.id));
   const chips = detained.length === 0
-    ? '<span class="text-gray-400">无滞留成员</span>'
+    ? '<span class="text-gray-500">无滞留成员</span>'
     : detained.map(p => `
       <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');

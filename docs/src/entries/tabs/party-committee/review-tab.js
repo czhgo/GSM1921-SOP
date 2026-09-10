@@ -17,9 +17,9 @@ const TYPE_META = {
   'activity-report': { label: '活动报备' },
 };
 const STATUS_META = {
-  pending: { label: '待批复', cls: 'bg-amber-50 text-amber-600' },
-  approved: { label: '已批准', cls: 'bg-green-50 text-green-600' },
-  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-500' },
+  pending: { label: '待批复', cls: 'bg-amber-50 text-amber-700' },
+  approved: { label: '已批准', cls: 'bg-green-50 text-green-700' },
+  rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
 };
 
 // HTML 转义/日期格式化统一走 core/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
@@ -44,26 +44,26 @@ export function renderContent() {
       <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="font-title-cn text-base font-bold text-gray-800">上报审批</p>
-          <p class="text-xs text-gray-400 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部</p>
+          <p class="text-xs text-gray-500 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
-          <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">待批复 ${n('pending')}</span>
-          <span class="text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-600">已批准 ${n('approved')}</span>
-          <span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">已驳回 ${n('rejected')}</span>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">待批复 ${n('pending')}</span>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700">已批准 ${n('approved')}</span>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">已驳回 ${n('rejected')}</span>
         </div>
       </div>
       ${pending.length ? `
       <div>
-        <p class="text-xs text-gray-400 mb-2">待批复（${pending.length}）</p>
+        <p class="text-xs text-gray-500 mb-2">待批复（${pending.length}）</p>
         <div class="space-y-3">${pending.map(cardHtml).join('')}</div>
       </div>` : `
       <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
         <p class="text-sm text-gray-500">暂无待批复的上报</p>
-        <p class="text-xs text-gray-400 mt-1">支部发起上报后，将出现在这里等待党委审批</p>
+        <p class="text-xs text-gray-500 mt-1">支部发起上报后，将出现在这里等待党委审批</p>
       </div>`}
       ${done.length ? `
       <div>
-        <p class="text-xs text-gray-400 mb-2">已处理（${done.length}）</p>
+        <p class="text-xs text-gray-500 mb-2">已处理（${done.length}）</p>
         <div class="space-y-3">${done.map(cardHtml).join('')}</div>
       </div>` : ''}
     </div>
@@ -92,17 +92,17 @@ export function renderContent() {
 /** 单条上报卡（待批复带批/驳操作区） */
 function cardHtml(r) {
   const t = TYPE_META[r.type] || { label: r.type || '上报' };
-  const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-500' };
+  const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
   return `
     <div class="rounded-lg border border-gray-200 bg-white p-4" data-rq-card="${esc(r.id)}" data-rq-status="${r.status}">
       <div class="flex items-center gap-2 flex-wrap mb-1.5">
         <span class="text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-gray-500">${esc(branchName(r.branchId))}</span>
-        <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
         <span class="text-xs px-2 py-0.5 rounded-full ${s.cls}">${s.label}</span>
       </div>
       <p class="text-sm font-medium text-gray-800">${esc(r.title)}</p>
       <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(r.content)}</p>
-      <p class="text-xs text-gray-400 mt-1.5">${esc(getPersonName(r.submittedBy) || r.submittedBy)} 提交 · ${fmtDt(r.createdAt)}</p>
+      <p class="text-xs text-gray-500 mt-1.5">${esc(getPersonName(r.submittedBy) || r.submittedBy)} 提交 · ${fmtDt(r.createdAt)}</p>
       ${r.status === 'pending' ? `
       <div class="mt-2.5 pt-2.5 border-t border-gray-100">
         <textarea class="rq-decision input-flat w-full resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>

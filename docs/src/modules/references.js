@@ -10,7 +10,7 @@ import { PEOPLE } from '../mock/people.js?v=20260910a';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
-  buildDocVersionsView, renderDocBody,
+  buildDocVersionsView, renderDocBody, listDocs,
 } from '../services/branch-doc.js?v=20260910a';
 
 const SITE_GROUPS = [
@@ -221,7 +221,10 @@ export class ReferencesModule {
 
   static async _loadBranchDocs() {
     try {
-      ReferencesModule._branchDocs = await getAdapter().branchDocs.list();
+      // 支部隔离读侧收敛点（2026-09-10）：经 services/branch-doc.js listDocs 读取——
+      // 按当前归属支部过滤（书记/副书记/其它角色←本支部；党委/未登录无归属则不过滤）。
+      // 勿再直读 adapter 的 branchDocs 全量（那会绕过隔离、跨支部可见）。
+      ReferencesModule._branchDocs = await listDocs();
     } catch (e) {
       console.warn('[references] 支部文件加载失败：', e);
       ReferencesModule._branchDocs = [];

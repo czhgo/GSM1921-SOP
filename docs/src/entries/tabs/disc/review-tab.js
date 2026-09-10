@@ -8,7 +8,35 @@ import { reviewToDisplay } from '../../../services/review.js?v=20260910a';
 import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260910a';
 import { showToast } from '../../../core/utils.js?v=20260910a';
 import { openFormModal } from '../../../components/modal.js?v=20260910a';
+import { NoticeStore } from '../../../services/notice.js?v=20260910a';
+import { getPersonById } from '../../../services/person.js?v=20260910a';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260910a';
+
+// ── 超期提醒真实触达（2026-09-10）───────────────────────────────
+// 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
+//   「超期未提交考勤/考察/复盘时，纪检委员会通过邮件提醒你」。
+// 既有链路 = NoticeStore（站内信优先，辅以邮件；actionable → 通知待办派生）；
+//   remindedAt 留痕与既有按钮态保持原样（本函数只补通知，不改状态机）。
+// 受众定位：复盘记录人 = organizerId → 其成员角色（组长 leader / 组织者 participant 等）；
+//   普通参与者（participant）待办聚合键 = visitor（与 VisitorTodoDeriver 一致）。
+function _notifyReviewOrganizer(item, { title, content }) {
+  const person = getPersonById(item.organizerId);
+  const role = person?.role || 'leader';
+  const todoRole = role === 'participant' ? 'visitor' : role;
+  try {
+    NoticeStore.add({
+      title,
+      content,
+      priority: 'urgent',
+      // 活动复盘 → activity 模块；专班复盘 → workspace（避免 party 模块对正式党员的普通通知过滤）
+      targetModule: item.sourceType === 'taskforce' ? 'workspace' : 'activity',
+      actionable: true,
+      actionRoles: [todoRole],
+      actionTask: title,
+      read: false,
+    });
+  } catch (e) { console.warn('[disc-review] 提醒通知失败（不影响留痕）：', e); }
+}
 
 // ── 批量确认状态（2026-09-06 纪检批量评议确认）───────────────
 // 模块级状态：内部重渲染（renderContent）后仍保留「批量模式开关 + 勾选集合」。
@@ -30,7 +58,7 @@ export function renderContent(ctx) {
   if (!container) return;
 
   const progressColor = { '已完成':'bg-green-100 text-green-700', '超时':'bg-red-100 text-red-700', '进行中':'bg-blue-100 text-blue-700' };
-  const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-500' };
+  const reviewColor = { '已上传':'bg-orange-100 text-orange-700', '未提交':'bg-red-100 text-red-700', '—':'bg-gray-100 text-gray-600' };
   const reviewData = reviewToDisplay(loadActiveActivityReviews(), loadTaskforceReviews());
 
   // 批量勾选去重（2026-09-06）：仅在批量模式下生效——行被单行确认/打回或消失后，
@@ -64,7 +92,7 @@ export function renderContent(ctx) {
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
               </div>
               <div class="flex items-center gap-2 ml-4">
-                <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-500'}">${r.progress}</span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-600'}">${r.progress}</span>
                 ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">邮件提醒</button>` : ''}
               </div>
             </div>
@@ -101,7 +129,7 @@ export function renderContent(ctx) {
                   <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-500'}">${r.reviewStatus}</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded-full ${reviewColor[r.reviewStatus] || 'bg-gray-100 text-gray-600'}">${r.reviewStatus}</span>
                   ${r.reviewStatus === '已确认' ? `<span class="text-xs px-1.5 py-0.5 rounded-full ${hasDeposit(r) ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${hasDeposit(r) ? '已沉淀' : '未沉淀'}</span>` : ''}
                 </div>
               </div>
@@ -150,7 +178,12 @@ export function renderContent(ctx) {
   // ── 复盘真操作（2026-08-05 修复：批注/打回/确认/邮件提醒均落库，不再只弹 toast） ──
   container.querySelectorAll('.btn-disc-remind').forEach(btn => btn.addEventListener('click', () => {
     const id = btn.dataset.reviewId;
+    const item = reviewData.find(r => r.id === id);
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
+    if (item) _notifyReviewOrganizer(item, {
+      title: '活动流程超时提醒',
+      content: `「${item.activity}」时间流已超时，请及时更新进展并提交复盘总结（纪检委员提醒）。`,
+    });
     showToast('success', '超时邮件提醒已发送');
   }));
   container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => {
@@ -205,7 +238,12 @@ export function renderContent(ctx) {
   }));
   container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => {
     const id = btn.dataset.reviewId;
+    const item = reviewData.find(r => r.id === id);
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
+    if (item) _notifyReviewOrganizer(item, {
+      title: '复盘超期提醒',
+      content: `「${item.activity}」复盘尚未提交，请尽快提交复盘总结（纪检委员提醒）。`,
+    });
     showToast('success', '复盘超期邮件提醒已发送至组织者');
   }));
   // ── 批量确认（2026-09-06 纪检批量评议确认）───────────────────

@@ -30,14 +30,14 @@ backBtn?.addEventListener('click', () => {
 
 if (!noticeId) {
   if (cardEl) {
-    cardEl.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">未指定通知</p>';
+    cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定通知</p>';
   }
 } else {
   const notice = NoticeStore.list({ activeOnly: false }).find(n => n.id === noticeId);
 
   if (!notice) {
     if (cardEl) {
-      cardEl.innerHTML = '<p class="text-sm text-gray-400 text-center py-12">通知不存在或已过期</p>';
+      cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">通知不存在或已过期</p>';
     }
   } else {
     renderNoticeDetail(notice);
@@ -92,7 +92,7 @@ function renderNoticeDetail(n) {
     ? `<button id="notice-confirm-read-btn" class="inline-flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg font-medium transition-colors bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100">
         确认读取
       </button>`
-    : '<span class="inline-flex items-center gap-1 text-xs text-gray-400 px-4 py-2">已读</span>';
+    : '<span class="inline-flex items-center gap-1 text-xs text-gray-500 px-4 py-2">已读</span>';
 
   // 目标模块跳转（业务页直达优先，与全站统一 resolveNoticeUrl）
   let targetLink = '';
@@ -115,16 +115,16 @@ function renderNoticeDetail(n) {
       <!-- 通知者 / 被通知者 / 时间 —— 信息条，非邮箱 UI -->
       <div class="space-y-2 text-sm">
         <div class="flex items-start gap-3">
-          <span class="text-gray-400 flex-shrink-0 w-16 text-right text-xs leading-6">通知者</span>
+          <span class="text-gray-500 flex-shrink-0 w-16 text-right text-xs leading-6">通知者</span>
           <span class="text-gray-800 font-medium">${publisher}</span>
         </div>
         <div class="flex items-start gap-3">
-          <span class="text-gray-400 flex-shrink-0 w-16 text-right text-xs leading-6">被通知者</span>
+          <span class="text-gray-500 flex-shrink-0 w-16 text-right text-xs leading-6">被通知者</span>
           <span class="text-gray-700">${recipients}</span>
         </div>
         <div class="flex items-start gap-3">
-          <span class="text-gray-400 flex-shrink-0 w-16 text-right text-xs leading-6">时间</span>
-          <span class="text-gray-600">${n.publishDate || '—'}${n.expireDate ? ' <span class="text-gray-400">· 截止 ' + n.expireDate + '</span>' : ''}</span>
+          <span class="text-gray-500 flex-shrink-0 w-16 text-right text-xs leading-6">时间</span>
+          <span class="text-gray-600">${n.publishDate || '—'}${n.expireDate ? ' <span class="text-gray-500">· 截止 ' + n.expireDate + '</span>' : ''}</span>
         </div>
       </div>
     </div>
@@ -149,7 +149,7 @@ function renderNoticeDetail(n) {
       NoticeStore.markRead(n.id);
       confirmBtn.replaceWith(
         Object.assign(document.createElement('span'), {
-          className: 'inline-flex items-center gap-1 text-xs text-gray-400 px-4 py-2',
+          className: 'inline-flex items-center gap-1 text-xs text-gray-500 px-4 py-2',
           textContent: '已读',
         })
       );

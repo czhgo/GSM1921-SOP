@@ -20,7 +20,7 @@ const STATUS_COLOR_DARK = { pending_review: '#A5B4FC', recruiting: '#FBBF24', ac
 function statusBadgeStyle(status) {
   const c = STATUS_COLOR[status] || '#6B7280';
   const dc = STATUS_COLOR_DARK[status] || '#94A3B8';
-  return `background:${c}15;color:${c};--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
+  return `background:${c}15;color:color-mix(in srgb, ${c} 60%, #000);--acc-bg-dark:${dc}24;--acc-text-dark:${dc}`;
 }
 // B批：徽标文字（committeeRequest pending / draft 未通过 优先于纯状态映射）
 function statusText(t) {
@@ -50,7 +50,7 @@ export function renderTaskforceView(container, opts = {}) {
       <div class="card rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">专班查看</h3>
-          <span class="text-xs text-gray-400">全支部专班一览 · 点击卡片查看详情（只读）</span>
+          <span class="text-xs text-gray-500">全支部专班一览 · 点击卡片查看详情（只读）</span>
         </div>
         <div class="flex flex-wrap gap-2 mb-3">
           <input type="text" id="tfv-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
@@ -82,13 +82,13 @@ export function renderTaskforceView(container, opts = {}) {
   if (listEl) {
     const hasAny = groups.some(g => g.list.length > 0);
     listEl.innerHTML = !hasAny
-      ? '<p class="text-sm text-gray-400 text-center py-8">暂无专班</p>'
+      ? '<p class="text-sm text-gray-500 text-center py-8">暂无专班</p>'
       : groups.filter(g => g.list.length > 0).map(g => `
           <div class="mb-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="inline-block w-2 h-2 rounded-full" style="${dotDarkVars(g.color)}background:${g.color};"></span>
               <span class="font-title-cn text-sm font-bold text-gray-700">${g.label}</span>
-              <span class="text-xs text-gray-400">${g.list.length}</span>
+              <span class="text-xs text-gray-500">${g.list.length}</span>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               ${g.list.map(t => _renderTfCard(t)).join('')}
@@ -138,7 +138,7 @@ function _renderTfCard(t) {
         <span class="badge" style="${statusBadgeStyle(t.status)}">${statusText(t)}</span>
       </div>
       ${t.task ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${t.task}</p>` : ''}
-      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+      <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
         <span>${filled}/${t.capacity || 0} 人</span>
         ${t.deadline ? `<span>截止 ${t.deadline}</span>` : ''}
       </div>
@@ -149,12 +149,12 @@ function _renderTfCard(t) {
 function _contribTagOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-600">已入档${c.verifiedBy ? ' · ' + getPersonName(c.verifiedBy) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + getPersonName(c.verifiedBy) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-500">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
   }
-  return '<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600">待核</span>';
+  return '<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
 /** 只读详情：基本信息 + 成员工作量汇总 + （B批）本人产出填报入口 */
@@ -167,25 +167,25 @@ function _renderTfDetail(container, tf, highlightId) {
   const isMember = !!me && filled.some(m => m.personId === me);
 
   const memberRows = filled.length === 0
-    ? '<p class="text-xs text-gray-400">暂无成员</p>'
+    ? '<p class="text-xs text-gray-500">暂无成员</p>'
     : filled.map(m => {
         const contribs = (m.contributions || []).length;
         const list = contribs > 0
           ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
               const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
               const meta = (c && typeof c === 'object' && (c.by || c.at))
-                ? `<span class="text-[10px] text-gray-300"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
+                ? `<span class="text-[10px] text-gray-500"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
                 : '';
-              return `<li class="text-[12px] text-gray-400 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
+              return `<li class="text-[12px] text-gray-500 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
             }).join('')}</ul>`
-          : '<span class="text-[12px] text-gray-300 pl-2">暂无贡献记录</span>';
+          : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
         return `
           <div class="py-2 border-b border-gray-50 last:border-b-0">
             <div class="flex items-center justify-between">
               <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
               <div class="flex items-center gap-2">
                 ${badgeHtml(m.role || '深度参与者', 'neutral')}
-                <span class="text-xs text-gray-400">贡献 ${contribs} 项</span>
+                <span class="text-xs text-gray-500">贡献 ${contribs} 项</span>
               </div>
             </div>
             ${list}
@@ -197,7 +197,7 @@ function _renderTfDetail(container, tf, highlightId) {
   const tfProgressList = Array.isArray(tf.progressList) ? tf.progressList : [];
   const progressHtml = tfProgressList.length > 0 ? `
     <div class="pt-3 border-t border-gray-100 mt-3">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">中间进度 <span class="text-gray-300 font-normal">· ${tfProgressList.length} 条</span></h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">中间进度 <span class="text-gray-500 font-normal">· ${tfProgressList.length} 条</span></h5>
       <div>
         ${tfProgressList.map(p => `
           <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
@@ -205,8 +205,8 @@ function _renderTfDetail(container, tf, highlightId) {
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>` : ''}
-                <span class="text-[11px] text-gray-400">${(p.at || '').slice(0, 16).replace('T', ' ')}</span>
-                <span class="text-[11px] text-gray-400">${p.by ? getPersonName(p.by) : ''}</span>
+                <span class="text-[11px] text-gray-500">${(p.at || '').slice(0, 16).replace('T', ' ')}</span>
+                <span class="text-[11px] text-gray-500">${p.by ? getPersonName(p.by) : ''}</span>
               </div>
               <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
             </div>
@@ -217,7 +217,7 @@ function _renderTfDetail(container, tf, highlightId) {
   // B批 R3-3：专班成员本人对「本人」填报产出（仅运行中 + 当前登录人确为该专班成员）
   const myFillHtml = (tf.status === 'active' && isMember) ? `
     <div class="pt-3 border-t border-gray-100 mt-3">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">我的产出填报 <span class="text-gray-300 font-normal">· 本人逐条填报，由组织委员核验后入档</span></h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">我的产出填报 <span class="text-gray-500 font-normal">· 本人逐条填报，由组织委员核验后入档</span></h5>
       <div class="rounded-lg bg-gray-50 p-2.5">
         <textarea id="tfv-my-contrib-desc" rows="2" placeholder="本人产出说明（必填），如：完成专题稿件的采访与初稿撰写…" class="input-flat w-full resize-none"></textarea>
         <div class="flex justify-end mt-2">
@@ -232,10 +232,10 @@ function _renderTfDetail(container, tf, highlightId) {
       <span class="badge" style="${statusBadgeStyle(tf.status)}">${statusText(tf)}</span>
     </div>
     <div class="space-y-1.5 text-xs text-gray-600 mb-4">
-      ${tf.task ? `<p><span class="text-gray-400">任务：</span>${tf.task}</p>` : ''}
-      <p><span class="text-gray-400">人数：</span>${filled.length}/${tf.capacity || 0}</p>
-      ${tf.deadline ? `<p><span class="text-gray-400">截止：</span>${tf.deadline}</p>` : ''}
-      ${tf.initiator ? `<p><span class="text-gray-400">发起人：</span>${getPersonName(tf.initiator)}</p>` : ''}
+      ${tf.task ? `<p><span class="text-gray-500">任务：</span>${tf.task}</p>` : ''}
+      <p><span class="text-gray-500">人数：</span>${filled.length}/${tf.capacity || 0}</p>
+      ${tf.deadline ? `<p><span class="text-gray-500">截止：</span>${tf.deadline}</p>` : ''}
+      ${tf.initiator ? `<p><span class="text-gray-500">发起人：</span>${getPersonName(tf.initiator)}</p>` : ''}
     </div>
     ${myFillHtml}
     <div class="pt-3 border-t border-gray-100">

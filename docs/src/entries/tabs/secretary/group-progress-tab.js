@@ -59,7 +59,7 @@ function _renderAll(container) {
     container.innerHTML = `
       <div class="card rounded-xl p-8 text-center">
         <p class="text-sm text-gray-500">支部暂无党小组分组</p>
-        <p class="text-xs text-gray-400 mt-1">成员档案未设置 partyGroup 时，本页无可查看的党小组</p>
+        <p class="text-xs text-gray-500 mt-1">成员档案未设置 partyGroup 时，本页无可查看的党小组</p>
       </div>`;
     return;
   }
@@ -90,7 +90,7 @@ function _groupSwitchHtml(groups, activeGroup, issues) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组</h4>
-        <span class="text-xs text-gray-400">${groups.length} 个党小组 · 书记只读知情</span>
+        <span class="text-xs text-gray-500">${groups.length} 个党小组 · 书记只读知情</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
         ${groups.map(g => _groupCardHtml(g, activeGroup, issues)).join('')}
@@ -107,26 +107,26 @@ function _groupCardHtml(g, activeGroup, issues) {
       style="${isActive ? 'border-color:rgba(185,28,28,0.45);' : 'border-color:#F3F4F6;'}">
       <div class="flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-800">${esc(g.groupName)}</span>
-        <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}">
+        <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
           ${openCount === null ? '…' : `待答复 ${openCount}`}
         </span>
       </div>
-      <div class="text-xs text-gray-500 mt-1.5">组长：${g.leaderId ? esc(getPersonName(g.leaderId)) : '<span class="text-gray-400">未设置</span>'}</div>
-      <div class="text-[11px] text-gray-400 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</div>
+      <div class="text-xs text-gray-500 mt-1.5">组长：${g.leaderId ? esc(getPersonName(g.leaderId)) : '<span class="text-gray-500">未设置</span>'}</div>
+      <div class="text-[11px] text-gray-500 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</div>
     </button>`;
 }
 
 // ── ② 组员进展摘要（汇报区；首拉异步填充后增量刷新） ───────────
 function _memberProgressCardHtml(group, issues) {
   const inner = _issuesLoaded ? _reportsRowsHtml(issues, group) : _reportsLoadingHtml();
-  const leaderNote = group.leaderId ? '' : '<span class="text-xs text-gray-400">（本组暂无组长，「请组长关注」不可用）</span>';
+  const leaderNote = group.leaderId ? '' : '<span class="text-xs text-gray-500">（本组暂无组长，「请组长关注」不可用）</span>';
   return `
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">组员进展摘要</h4>
-        <span class="text-xs text-gray-400">组员向组长汇报 · 书记只读</span>
+        <span class="text-xs text-gray-500">组员向组长汇报 · 书记只读</span>
       </div>
-      <p class="text-[11px] text-gray-400 mb-2.5">书记不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
+      <p class="text-[11px] text-gray-500 mb-2.5">书记不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
       <div id="gp-reports" class="space-y-1.5">${inner}</div>
     </div>`;
 }
@@ -154,7 +154,7 @@ function _groupReportRows(allIssues, group) {
 
 /** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已闭环） */
 function _reportRowState(issue) {
-  if (issue.status === 'closed') return { label: '已闭环', cls: 'bg-gray-100 text-gray-500' };
+  if (issue.status === 'closed') return { label: '已闭环', cls: 'bg-gray-100 text-gray-600' };
   const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
   if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
   // 上级（书记/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
@@ -175,7 +175,7 @@ function _reportsRowsHtml(allIssues, group) {
   const rows = _groupReportRows(allIssues, group);
   if (!rows.length) {
     return `
-      <p class="text-xs text-gray-400 py-1 flex items-center gap-1.5">
+      <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
         暂无本组组员汇报，组员汇报答复在组长台完成
       </p>`;
@@ -195,7 +195,7 @@ function _reportsRowsHtml(allIssues, group) {
             <span class="text-sm font-medium text-gray-800 shrink-0">${esc(submitterName)}</span>
             <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(r.title)}</span>
           </div>
-          <div class="text-[11px] text-gray-400">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>
+          <div class="text-[11px] text-gray-500">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>
         </div>
         <span class="text-xs px-1.5 py-0.5 rounded-full ${st.cls} shrink-0">${st.label}</span>
         ${askBtn}
@@ -229,7 +229,7 @@ async function _fillReports(container, group, members) {
     const g = groups.find(x => x.groupName === gName);
     const n = g ? countOpenReportsByGroup(issues, g) : 0;
     badge.textContent = `待答复 ${n}`;
-    badge.className = `gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${n ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`;
+    badge.className = `gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${n ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`;
   });
 
   const listEl = container.querySelector('#gp-reports');
@@ -241,10 +241,10 @@ async function _fillReports(container, group, members) {
 function _reviewStatusCardHtml(group, members, activities, reviews) {
   const groupActs = groupActivitiesOf(activities, members, group.groupName);
   const { pending, completed } = reviewBucketOf(groupActs, reviews);
-  const statusColor = (st) => GROUP_REVIEW_COLOR[st] || 'bg-gray-100 text-gray-500';
+  const statusColor = (st) => GROUP_REVIEW_COLOR[st] || 'bg-gray-100 text-gray-600';
 
   const pendingRows = pending.length === 0
-    ? '<p class="text-xs text-gray-400 py-1">暂无待复盘活动</p>'
+    ? '<p class="text-xs text-gray-500 py-1">暂无待复盘活动</p>'
     : pending.map(({ act, rev }) => {
         const label = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
         return `
@@ -262,7 +262,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
       }).join('');
 
   const completedRows = completed.length === 0
-    ? '<p class="text-xs text-gray-400 py-1">暂无已复盘活动</p>'
+    ? '<p class="text-xs text-gray-500 py-1">暂无已复盘活动</p>'
     : completed.map(({ act, rev }) => {
         const isExpanded = _expandedReviewId === act.id;
         return `
@@ -274,7 +274,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor(rev?.reviewStatus)}">${REVIEW_STATUS_LABELS[rev?.reviewStatus]}</span>
-                <span class="text-xs text-gray-400">${isExpanded ? '收起' : '详情'}</span>
+                <span class="text-xs text-gray-500">${isExpanded ? '收起' : '详情'}</span>
               </div>
             </div>
             ${isExpanded && rev ? _reviewDetailHtml(rev) : ''}
@@ -285,15 +285,15 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-2">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
-        <span class="text-xs text-gray-400">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
+        <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-400 mb-3">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；书记只读查看，点击已复盘行可展开详情。</p>
+      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；书记只读查看，点击已复盘行可展开详情。</p>
       <div class="mb-3">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-400 font-normal">(${pending.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>
       </div>
       <div class="pt-2.5 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-400 font-normal">(${completed.length})</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
         <div class="space-y-1.5">${completedRows}</div>
       </div>
     </div>`;
@@ -309,7 +309,7 @@ function _reviewDetailHtml(rev) {
         <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${esc(i)}</li>`).join('')}</ul>
       </div>` : ''}
-      ${rev.submittedAt ? `<div class="text-xs text-gray-400 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
+      ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
       ${rev.annotation ? `
         <div class="mt-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
           <div class="text-xs text-blue-500 font-bold mb-1">纪检委员批注</div>
@@ -325,37 +325,37 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
   const today = new Date().toISOString().slice(0, 10);
 
   const recentRows = recentActs.length === 0
-    ? '<p class="text-xs text-gray-400 py-1">暂无本组活动</p>'
+    ? '<p class="text-xs text-gray-500 py-1">暂无本组活动</p>'
     : recentActs.map(a => `
         <div class="flex items-center gap-2.5 py-1.5">
-          <span class="text-xs text-gray-400 w-20 shrink-0">${esc(a.date || '')}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 shrink-0">${esc(a.type || '活动')}</span>
+          <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">${esc(a.type || '活动')}</span>
           <span class="text-xs text-gray-700 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
         </div>`).join('');
 
   // 已发生的本组党小组会 → 应到/实到概况（roster 组口径应到 + attendance 记录实到）
   const metRows = groupActs.filter(a => a.type === '党小组会' && a.date <= today);
   const attRowsHtml = metRows.length === 0
-    ? '<p class="text-xs text-gray-400 py-1">暂无已发生的党小组会（考勤生成后此处显示应到/实到）</p>'
+    ? '<p class="text-xs text-gray-500 py-1">暂无已发生的党小组会（考勤生成后此处显示应到/实到）</p>'
     : metRows.map(a => {
         const expected = getMeetingRosterIds({ type: '党小组会', groupId: group.groupName, branchId }).length;
         const recs = attRecords.filter(r => r.activityId === a.id);
         if (!recs.length) {
           return `
             <div class="flex items-center gap-2.5 py-1.5">
-              <span class="text-xs text-gray-400 w-20 shrink-0">${esc(a.date || '')}</span>
+              <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
               <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
-              <span class="text-xs text-gray-400 shrink-0">考勤未生成</span>
+              <span class="text-xs text-gray-500 shrink-0">考勤未生成</span>
             </div>`;
         }
         const present = recs.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
         const absent = recs.filter(r => r.status === AttendanceStatus.ABSENT || r.status === AttendanceStatus.LEAVE).length;
         return `
             <div class="flex items-center gap-2.5 py-1.5">
-              <span class="text-xs text-gray-400 w-20 shrink-0">${esc(a.date || '')}</span>
+              <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
               <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
               <span class="text-xs text-gray-600 shrink-0 tabular-nums">应到 ${expected} · 实到 ${present}</span>
-              <span class="text-xs text-gray-400 shrink-0 tabular-nums">未到 ${absent}</span>
+              <span class="text-xs text-gray-500 shrink-0 tabular-nums">未到 ${absent}</span>
             </div>`;
       }).join('');
 
@@ -363,15 +363,15 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-2">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动与考勤概览</h4>
-        <span class="text-xs text-gray-400">组织者属本组 · 只读</span>
+        <span class="text-xs text-gray-500">组织者属本组 · 只读</span>
       </div>
-      <p class="text-[11px] text-gray-400 mb-3">近期活动按日期降序${groupActs.length > 4 ? `，共 ${groupActs.length} 场，仅示最近 4 场` : ''}</p>
+      <p class="text-[11px] text-gray-500 mb-3">近期活动按日期降序${groupActs.length > 4 ? `，共 ${groupActs.length} 场，仅示最近 4 场` : ''}</p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">近期活动</div>
         <div class="space-y-0.5">${recentRows}</div>
       </div>
       <div class="pt-2.5 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">党小组会应到/实到 <span class="text-gray-400 font-normal">（本组党员口径，含已发生）</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">党小组会应到/实到 <span class="text-gray-500 font-normal">（本组党员口径，含已发生）</span></div>
         <div class="space-y-0.5">${attRowsHtml}</div>
       </div>
     </div>`;

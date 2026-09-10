@@ -58,7 +58,7 @@ export function dutyCardHtml(prefix) {
 
   const chips = items.map((m) => {
     const tab = landing[m.id] || '';
-    const sub = m.sub && m.sub.length ? `<span class="text-[10px] text-gray-400">（${esc(m.sub.join('·'))}）</span>` : '';
+    const sub = m.sub && m.sub.length ? `<span class="text-[10px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return tab
       ? `<button type="button" class="wfd-duty inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white border border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-700" data-prefix="${esc(prefix)}" data-tab="${esc(tab)}" title="去履职">${esc(m.name)}${sub} · 去履职</button>`
       : `<span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-neutral-50 border border-gray-100 text-gray-500" title="对应工作页入口待建">${esc(m.name)}${sub}</span>`;

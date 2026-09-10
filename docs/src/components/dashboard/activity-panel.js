@@ -62,8 +62,9 @@ export function switchActivityView(view) {
   document.querySelectorAll('.activity-tab-btn').forEach(btn => {
     const isActive = btn.dataset.view === view;
     btn.className = `activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] text-[var(--app-accent)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
+      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
     }`;
+    if (isActive) btn.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else btn.style.removeProperty('--acc-text-dark');
   });
 
   // 同步 URL
@@ -94,7 +95,7 @@ export function renderActivityList(activities, user) {
   const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, 10);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-400 p-4">暂无可展示的活动</p>';
+    container.innerHTML = '<p class="text-sm text-gray-500 p-4">暂无可展示的活动</p>';
     return;
   }
 

@@ -46,7 +46,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
     // 未登录：提示附「去登录」入口（书记 2026-09-07 U1 批准，样式同 wizard-entry 去登录小按钮）
     body = `
       <div class="flex items-center gap-2 flex-wrap">
-        <p class="text-sm text-gray-400">请登录后报名参与。</p>
+        <p class="text-sm text-gray-500">请登录后报名参与。</p>
         <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;text-decoration:none;">去登录</a>
       </div>`;
   } else if (!mySignup) {
@@ -112,20 +112,20 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
     <div class="flex items-center gap-2.5 py-2">
       <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#CE1126;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
       <span class="text-sm font-medium text-gray-700">${getPersonById(s.personId)?.name || s.personId}</span>
-      <span class="text-xs text-gray-400">${roleLabel(s.role)}</span>
-      ${s.note ? `<span class="text-xs text-gray-400 truncate max-w-[160px]">${s.note}</span>` : ''}
+      <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
+      ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
       <span class="ml-auto">${badgeHtml('已通过', 'success')}</span>
     </div>`).join('');
 
   const pendingRows = isReviewer && pendingList.length > 0 ? `
     <div class="mt-4 pt-3 border-t border-gray-100">
-      <p class="text-xs font-medium text-gray-400 mb-2">待审核申请（${pendingList.length}）</p>
+      <p class="text-xs font-medium text-gray-500 mb-2">待审核申请（${pendingList.length}）</p>
       ${pendingList.map(s => `
         <div class="flex items-center gap-2.5 py-2">
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#F59E0B;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <span class="text-sm font-medium text-gray-700">${getPersonById(s.personId)?.name || s.personId}</span>
-          <span class="text-xs text-gray-400">${roleLabel(s.role)}</span>
-          ${s.note ? `<span class="text-xs text-gray-400 truncate max-w-[140px]">${s.note}</span>` : ''}
+          <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
+          ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
             <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" data-signup-id="${s.id}" data-approve="1" style="background:#10B981;">通过</button>
             <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
@@ -145,9 +145,9 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
   return `
     <div>
       <h3 class="text-sm font-semibold text-gray-700 mb-3">报名名单（${approvedList.length}）</h3>
-      ${approvedList.length === 0 ? '<p class="text-sm text-gray-400">暂无已报名成员</p>' : rows}
+      ${approvedList.length === 0 ? '<p class="text-sm text-gray-500">暂无已报名成员</p>' : rows}
       ${pendingRows}
-      ${others ? `<p class="text-[11px] text-gray-400 mt-2">${others}</p>` : ''}
+      ${others ? `<p class="text-[11px] text-gray-500 mt-2">${others}</p>` : ''}
     </div>
   `;
 }

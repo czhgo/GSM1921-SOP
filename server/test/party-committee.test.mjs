@@ -72,6 +72,9 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     await waitForBodyText(page, '支部监控台账');
     await waitForBodyText(page, '光华管理学院本科生党支部');
     await waitForBodyText(page, '储子禾'); // 台账含现任书记（br-b1.secretaryId → p13 储子禾）与阶段分布聚合
+    // ⑧ 切到「支部监控台账」tab → 监控卡补「书记任期（起止/届满）」只读行
+    await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
+    await waitForBodyText(page, '书记任期');
 
     // 4. 切到「支部管理」tab → 新建支部（支部不预设名字——党委动态录入）
     await page.click('.ws-tab-scroll button:has-text("支部管理")');
@@ -137,6 +140,14 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
     // 2. 断言：br-b1.secretaryId=p5 + 任期记录存在且现任=p5（原书记记录已封口）
     if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
     if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
+
+    // ⑧ 监控台账补「书记任期」行：刷新 + 切监控 tab → 卡片显示新书记姓名 + 任期（起止/现任）
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
+    await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
+    await waitForBodyText(page, '书记任期');
+    await waitForBodyText(page, '宋佳宁');
+    await waitForBodyText(page, '至今');
 
     // 3. 新任书记宋佳宁(p5)登录 → 直达书记工作台 secretary.html
     const p5 = await browser.newPage();

@@ -44,10 +44,10 @@ export function renderReportInboxHtml({
   accent = '#B91C1C',
   emptyMsg = '暂无待答复汇报',
 } = {}) {
-  // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-400 py-1），
+  // 2026-09-08 顶卡排布统一：空态并入统一形态（text-xs text-gray-500 py-1），
   // 保留绿色圆点「已全部答复」语义（不突兀：与相邻卡空态行同高，无底色整条）
   const emptyBox = `
-    <p class="text-xs text-gray-400 py-1 flex items-center gap-1.5">
+    <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
       <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> ${emptyMsg}
     </p>`;
 
@@ -57,7 +57,7 @@ export function renderReportInboxHtml({
       <div class="card rounded-xl p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-          <span class="text-xs text-gray-400">${subtitle || '汇报答复'}</span>
+          <span class="text-xs text-gray-500">${subtitle || '汇报答复'}</span>
         </div>
         ${emptyBox}
       </div>`;
@@ -97,8 +97,8 @@ export function renderReportInboxHtml({
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
-          <span class="text-xs text-gray-400 flex-shrink-0">${r.submittedAt || '—'}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
           ${requester}
           <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
         </button>
@@ -112,7 +112,7 @@ export function renderReportInboxHtml({
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
-        <span class="text-xs text-gray-400">${subtitle || `${reports.length} 条待答复 · 行内答复`}</span>
+        <span class="text-xs text-gray-500">${subtitle || `${reports.length} 条待答复 · 行内答复`}</span>
       </div>
       <div class="space-y-2">${rows}</div>
     </div>`;
@@ -134,12 +134,12 @@ function _renderInboxDetail(r, accent, draft = '') {
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
           ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:#B91C1C;">正式答复</span>' : ''}
-          <span class="text-xs text-gray-400">${c.createdAt}</span>
+          <span class="text-xs text-gray-500">${c.createdAt}</span>
         </div>
         <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>
       </div>`;
   }).join('');
-  const timeline = comments || '<p class="text-xs text-gray-400 py-2">暂无对话</p>';
+  const timeline = comments || '<p class="text-xs text-gray-500 py-2">暂无对话</p>';
 
   return `
     ${r.body ? `<p class="text-xs text-gray-600 whitespace-pre-wrap mt-2">${r.body}</p>` : ''}
