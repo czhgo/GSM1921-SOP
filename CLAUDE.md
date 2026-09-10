@@ -625,13 +625,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
 | E-1~E-5 | 全部完成（2026-09-09，commits 30029993/27c5eb77/6140e23a/82c39508/40d8ef63），登记 T-2026-09-072，行已清 | H60.7 + 面板保态检查要点（REVIEW_QUEUE 附录⑧）+ 全前端冒泡报告（`.ctx/logs/2026-09-08-smoke-result.md`） | ✅ 已清 |
-| R-1 | **会话收口批**：EXECUTION_LOG 并条 T-077（本会话多批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次）+ 版本串 bump 20260909e→f（CODE_VERSION 90→91）+ 相关回归抽验 | H60.7 + 版本串纪律 + 少日志纪律 | 待办 |
+| R-1 | **会话收口批**：EXECUTION_LOG 并条 T-077（本会话多批：补验 12 例 / 两修复 / 测试对齐 / 两评议轮次 / README 通用化 / 黑话第 5 轮 / 活动写入 S-1~S-4）+ 版本串 bump 20260909e→f（CODE_VERSION 90→91）+ 相关回归抽验 | H60.7 + 版本串纪律 + 少日志纪律 | 待办 |
 | R-2 | **自验口径复核**：整跑 `npm test` 复核新基线（原「12 例环境受限」已跑通/对齐；Playwright 需以 `server/.tmp-pw` 作 TMP，跑后即删） | 测试系统 + H60.6 检查要点 | 待办 |
 | R-3 | **门面通用化推进（下一步）**：`about` / `help` / `index` 等门面页首屏补「本系统面向各类党支部与学生组织，各组织各自部署自己的实例」表述（根 README 门面通用化改写与功能地图前置已先行，2026-09-09） | H100 项目产出声明 + 文档同步纪律（README 功能说明随功能同步） | `docs/about.html` / `docs/help.html` / `docs/index.html` | 待办 |
-| S-1 | **活动写入改造·核心断点**：议程逐人「通过/未通过」（未通过留痕）+ 通过者自动生成成员变更申请（组织审批→书记确认，来源标「会议结果」）+ 修演示档阶段未落档 Bug（mock-adapter 确认写 users 而对象为 p*）+ 成员发展档案「来源会议」溯源；**书记 2026-09-09 特批改 inspector.js 议程结果区** | H60.7 + 面板保态/闭环检查要点 + 禁改特批 | `entries/inspector.js` / `services/agenda-follow-up.js` / `components/agenda-form.js` / `core/mock-adapter.js` / `services/member-confirmation.js` | 进行中 |
-| S-2 | **活动写入改造·简化**：发展议程界面只留「转为预备党员 / 转为正式党员」，对象自成员档案多选，`fromStage` 由当前阶段自动推导（字段保留兼容历史数据、仅界面隐藏） | 同上（一改具改、字段兼容） | `components/agenda-form.js` 及相关写入面板 | 进行中 |
-| S-3 | **活动写入改造·默认精简**：SOP 任务默认只写「标题+时限」骨架、长描述收进可展开详情；建群广播与系统描述瘦身；记录人规则/表决阈值/SOP 骨架等制度必需项保留 | 制度母本一致性 + README 功能说明随功能同步 | `workflow/sopData.js` / `services/decision-tree.js` / `services/taskforce.js` | 进行中 |
-| S-4 | **活动写入改造·UI 统一**：按 DESIGN_SYSTEM/COMPONENT_SPEC 统一标题层级 / 列表白底+gap（禁非标灰底卡）/ `input-flat` / chip 归并 / 底栏按钮同规格；**不动** styles.css 与 content/ | COMPONENT_SPEC + 禁改清单 | `entries/tabs/secretary/calendar-tab.js` / `entries/tabs/leader/write-tab.js` / `components/form-shell.js` / `entries/tabs/org/taskforce-tab.js` | 待办 |
+| S-1~S-4 | **已清（2026-09-09，commits `22120e64` / `60dfa271`）**——S-1 议程逐人「通过/未通过」（未通过留痕）+ 通过者自动进成员变更确认链（来源标「会议结果」）+ 修演示档 confirm 误写 users 致阶段未落档 + 发展档案「来源会议」溯源（**书记特批改 inspector.js 议程结果区**）；S-2 发展议程仅留目标阶段（转为预备党员/转为正式党员）、按人推导 fromStage；S-3 SOP 任务与通知默认精简（desc 均 55.5→18.3 字）；S-4 写入 UI 按规范统一（chip/底板/标题层级/input-flat/底栏）。回归 65/65 + 15/15 + module-load 148/148 绿 | H60.7 + 禁改特批 + COMPONENT_SPEC | ✅ 已清 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 
