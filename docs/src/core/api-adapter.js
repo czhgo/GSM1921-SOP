@@ -574,11 +574,30 @@ export const ApiAdapter = {
   },
 
   // C-2 方案 B（2026-09-11 书记批）：名册确权链「书记阶段写入」语义端点
-  // server POST /api/v1/members/:id/develop-stage —— requireRole(SECRETARY_ROLES) + 同支部 + 字段白名单(仅 developStage)；
-  // 通用 PATCH /users/:id 仅 party-staff 可写，书记确权链经此会被 403 阻断，故单列语义写口。
+  // server POST /api/v1/members/:id/develop-stage —— requireRole(SECRETARY_AND_DEPUTY_ROLES；副书同权 2026-09-11)
+  // + 同支部 + 字段白名单(仅 developStage)；通用 PATCH /users/:id 仅 party-staff 可写，书记确权链经此会被 403 阻断，故单列语义写口。
+  // R-10（2026-09-11 书记裁定）：名册三条写链语义端点补齐（角色/白名单见 server/routes/member.js）
+  //   · setResidenceStatus 在册状态镜像（书记/副书记）· updateProfile 名册档案维护（组织委员）
+  //   · create 名册新增（组织委员）· transferOut 移出软标记（组织委员发起 / 书记·副书记确认）
   members: {
     setDevelopStage(id, developStage) {
       return _post(`/api/v1/members/${id}/develop-stage`, { developStage });
+    },
+
+    setResidenceStatus(id, body) {
+      return _post(`/api/v1/members/${id}/residence-status`, body);
+    },
+
+    updateProfile(id, patch) {
+      return _patch(`/api/v1/members/${id}/profile`, patch);
+    },
+
+    create(data) {
+      return _post('/api/v1/members', data);
+    },
+
+    transferOut(id, body) {
+      return _post(`/api/v1/members/${id}/transfer-out`, body || {});
     },
   },
 

@@ -62,7 +62,7 @@ export function renderContent(ctx) {
     <div class="flex items-center justify-between mb-3">
       <span class="text-xs text-gray-500">${sorted.length} 条活动</span>
       <div class="flex gap-1">
-        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);">
+        <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="list" style="background:rgba(206,17,38,0.08);color:var(--primary-700);border:1px solid rgba(206,17,38,0.2);--acc-bg-dark:rgba(239,68,68,0.12);--acc-text-dark:#FCA5A5;--acc-border-dark:rgba(239,68,68,0.35);">
           ${icon('list', { className: 'w-3.5 h-3.5' })} 列表
         </button>
         <button class="visitor-view-btn px-3 py-1.5 text-xs rounded-lg border transition-colors" data-vview="calendar" style="background:var(--surface-card);color:var(--neutral-500);border:1px solid var(--neutral-200);">

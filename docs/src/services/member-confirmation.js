@@ -431,12 +431,15 @@ async function _applyApproved(req) {
       personId, actorId: decidedBy, status: req.to, note: req.note || '',
     });
     if (resView) {
+      // R-10（2026-09-11 书记裁定）：api 形态在册状态镜像走书记/副书记语义端点
+      // （POST /members/:id/residence-status）——通用 PATCH /users/:id 仅 party-staff 可写，
+      // 书记确认链经此会被 403 阻断。residenceMirror 标记仅 api 分流用；mock 形态行为不变。
       const mirror = await PersonStore.saveMember({
         id: personId,
         residenceStatus: resView.residenceStatus,
         residenceNote: resView.residenceNote,
         residenceHistory: resView.residenceHistory,
-      }, { by: decidedBy });
+      }, { by: decidedBy, residenceMirror: true });
       if (!mirror.ok) return { ok: false, reason: mirror.reason || '在册状态镜像落档失败' };
     }
     return { ok: true };

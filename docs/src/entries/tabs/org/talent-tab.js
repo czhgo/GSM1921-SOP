@@ -137,13 +137,15 @@ export function renderContent(ctx) {
       const dot = STAGE_DOT[s] || '#94A3B8';
       const cardsHtml = members.map(p => {
         const badgeCls = STAGE_BADGE[p.developStage] || 'bg-gray-50 text-gray-500 border border-gray-100';
+        // 深色适配（R-11）：bg-cyan-50 无深色分支（styles.css 未覆盖），补内联深色三件套
+        const badgeDark = p.developStage === '积极分子' ? ' --acc-bg-dark:rgba(6,182,212,0.16);--acc-text-dark:#67E8F9;--acc-border-dark:rgba(6,182,212,0.35);' : '';
         const last = lastInsp[p.id];
         const tip = tipByPerson.get(p.id);
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
             <div class="flex items-center gap-2 flex-wrap">
               <span class="text-sm font-semibold text-gray-800">${esc(p.name)}</span>
-              <span class="text-[11px] px-1.5 py-0.5 rounded-full ${badgeCls}">${esc(p.developStage || s)}</span>
+              <span class="text-[11px] px-1.5 py-0.5 rounded-full ${badgeCls}" style="${badgeDark}">${esc(p.developStage || s)}</span>
               ${p.partyGroup ? `<span class="text-[11px] text-gray-500">${esc(p.partyGroup)}</span>` : ''}
               ${_residenceChipHtml(p)}
             </div>

@@ -12,7 +12,7 @@ const _TEXT_DARK_MAP = {
   '#991B1B': '#F87171', '#A16207': '#FBBF24', '#4B5563': '#94A3B8',
   '#B91C1C': '#F87171', '#C2410C': '#FB923C', '#0369A1': '#38BDF8',
   '#7C3AED': '#A78BFA', '#6B7280': '#94A3B8', '#0E7490': '#22D3EE',
-  '#4F46E5': '#818CF8', '#22C55E': '#4ADE80', '#0EA5E9': '#38BDF8',
+  '#4F46E5': '#A5B4FC', '#22C55E': '#4ADE80', '#0EA5E9': '#38BDF8',
   '#2563EB': '#60A5FA',
   // 各组件内联标签补充映射（d8 深色适配：阶段徽章/看板头/操作按钮等）
   '#1D4ED8': '#60A5FA', '#047857': '#34D399', '#92400E': '#FBBF24',
@@ -199,6 +199,9 @@ export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含书记/副书记）
 export const SECRETARY_ROLES = ['secretary']; // 书记专属（副书记/委员不越权书记专属操作）
+// 副书同权（2026-09-11 书记裁定）：书记侧写链（名册在册镜像/发展阶段/移出确认等）副书记同权，
+// 与既有口径一致（议程结果区、编辑议程、支部 config §9h 副书同权）。server requireRole 与前端共用单一源。
+export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
 

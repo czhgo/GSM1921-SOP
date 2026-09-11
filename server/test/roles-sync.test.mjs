@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
-  BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
+  BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
 } from '../../docs/src/core/constants.js?v=20260911a';
 
@@ -17,7 +17,7 @@ const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
 test('授权语义角色集全部 ∈ ROLE_KEYS 业务角色枚举', () => {
   const keys = new Set([...ROLE_KEYS, ...ROLE_LEGACY_KEYS]);
-  [...BRANCH_COMMISSION_ROLES, ...SECRETARY_ROLES, ...PARTY_STAFF_ROLE].forEach((r) => {
+  [...BRANCH_COMMISSION_ROLES, ...SECRETARY_ROLES, ...SECRETARY_AND_DEPUTY_ROLES, ...PARTY_STAFF_ROLE].forEach((r) => {
     assert.ok(keys.has(r), `角色「${r}」不在 ROLE_KEYS/ROLE_LEGACY_KEYS 中`);
   });
 });
@@ -25,6 +25,7 @@ test('授权语义角色集全部 ∈ ROLE_KEYS 业务角色枚举', () => {
 test('授权支委集 = 5 支委且含书记/副书记；业务「条条三委员」为授权集子集（勿混淆语义）', () => {
   assert.equal(BRANCH_COMMISSION_ROLES.length, 5);
   assert.deepEqual([...SECRETARY_ROLES], ['secretary']);
+  assert.deepEqual([...SECRETARY_AND_DEPUTY_ROLES], ['secretary', 'deputy-secretary']); // 副书同权（2026-09-11 书记裁定）
   assert.ok(BRANCH_COMMISSION_ROLES.includes('secretary') && BRANCH_COMMISSION_ROLES.includes('deputy-secretary'));
   // 业务语义 COMMISSIONER_ROLES（条条集合，含遗留统称键 commissioner）⊆ 授权语义集（跳过遗留键）
   for (const r of COMMISSIONER_ROLES) {

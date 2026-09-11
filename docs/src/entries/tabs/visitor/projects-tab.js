@@ -287,7 +287,7 @@ function _renderProjectCard(project, currentUserId) {
   const badge = (p, withRole) => {
     const isMe = !!(currentUserId && p.personId && p.personId === currentUserId);
     return `
-      <span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}${isMe ? 'box-shadow:0 0 0 1.5px rgba(206,17,38,0.45);' : ''}">${p.name}${withRole ? '·' + _personnelRoleLabel(p.role) : ''}${isMe ? '<span class="text-[10px] font-bold" style="color:#CE1126;">·我</span>' : ''}</span>`;
+      <span class="badge inline-flex items-center gap-0.5" style="${_personnelRoleColor(p.role)}${isMe ? 'box-shadow:0 0 0 1.5px rgba(206,17,38,0.45);' : ''}">${p.name}${withRole ? '·' + _personnelRoleLabel(p.role) : ''}${isMe ? '<span class="text-[10px] font-bold" style="color:#CE1126;--acc-text-dark:#FCA5A5;">·我</span>' : ''}</span>`;
   };
 
   return `

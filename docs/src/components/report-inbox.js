@@ -129,8 +129,9 @@ function _renderInboxDetail(r, accent, draft = '') {
       : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
     const bg = c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'result' ? 'bg-green-50'
       : c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    const bgDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
     return `
-      <div class="rounded-lg p-2 ${bg}">
+      <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
           ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:#B91C1C;">正式答复</span>' : ''}

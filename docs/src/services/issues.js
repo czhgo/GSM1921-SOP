@@ -950,7 +950,8 @@ function _renderMyReportDetail(issueId, role, userId, container) {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
       const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+      const kindDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
+      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
         html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;

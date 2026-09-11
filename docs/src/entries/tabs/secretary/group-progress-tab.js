@@ -104,7 +104,7 @@ function _groupCardHtml(g, activeGroup, issues) {
   return `
     <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? 'bg-red-50/50' : 'bg-white hover:bg-gray-50'}"
       data-group="${esc(g.groupName)}"
-      style="${isActive ? 'border-color:rgba(185,28,28,0.45);' : 'border-color:#F3F4F6;'}">
+      style="${isActive ? 'border-color:rgba(185,28,28,0.45);--acc-bg-dark:rgba(239,68,68,0.12);' : 'border-color:#F3F4F6;'}">
       <div class="flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-800">${esc(g.groupName)}</span>
         <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
@@ -307,7 +307,7 @@ function _reviewDetailHtml(rev) {
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100 whitespace-pre-wrap">${esc(rev.reviewContent || '')}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
         <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
-        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800">· ${esc(i)}</li>`).join('')}</ul>
+        <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${esc(i)}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
       ${rev.annotation ? `

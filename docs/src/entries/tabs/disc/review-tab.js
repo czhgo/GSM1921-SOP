@@ -140,7 +140,7 @@ export function renderContent(ctx) {
               ${r.reviewContent ? `<div class="text-xs text-gray-600 mb-2 p-2 bg-white rounded-lg border border-gray-100">${r.reviewContent}</div>` : ''}
               ${(r.issues && r.issues.length) ? `<div class="mb-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
                 <div class="text-[11px] text-amber-700 font-bold mb-0.5">提出的真问题（${r.issues.length}）</div>
-                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-800">· ${i}</li>`).join('')}</ul>
+                <ul class="space-y-0.5">${r.issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
               </div>` : ''}
               <div class="flex gap-2">
                 ${r.reviewStatus === '已上传' ? `

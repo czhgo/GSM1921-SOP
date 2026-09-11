@@ -624,10 +624,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| R-10 | **遗留（API 形态写链）**：服务端 users 写权矩阵仅 party-staff（`server/routes/resources.js:67-72`）——本轮已按方案 B 新增「阶段变更」语义端点（`POST /api/v1/members/:id/develop-stage`）修好确权链，但**同款 403 隐患仍在**：在册状态镜像（`member-confirmation.js:434`）、名册即时字段/新增成员（`roster-tab.js:326/381`）、移出（`removeMember`→DELETE /users）——建议后续按同款语义端点逐个补齐 | 附录⑦ + 权限矩阵纪律 | 待办 |
-| R-11 | **遗留（深色对比度第三批）**：非本批目标残留——`text-gray-500`（1.37/2.56）、`bg-cyan-50 text-cyan-700`（1.39）、`text-amber-800`（1.95）等 | COMPONENT_SPEC + 附录⑦ 判据 | 待办 |
-
-> **闭环记录（2026-09-10 继续批，完整退出本表）**：**R-8**（深色残留第一批：`.btn-accent-soft`「催办」×4 + 浅底分工标签×3 → 组件侧 `--acc-text-dark` color-mix 覆盖，20 行 0 违规）、**R-9**（深色第二批：浅底徽标/work-map 标签/`.cal-view-btn`/`.ov-sub-tab`/`solidAccentStyle` → 组件侧 10 文件；`.tab-btn-active` + `.is-today` → **特批 styles.css 3 处最小改**，深色 1.74→8.31 等）、**C（名册确权链形态专项）**（诊断=users 写权矩阵 403；按**方案 B** 新增语义端点 + 修 `person.js` name 必填误伤；双形态实证与越权 403 用例全过）、**B**（拖拽调序改机测：Playwright 真实拖拽 16/16，实现无缺陷）、**D**（新一轮评议暂不启动，机制持续）——登记见 EXECUTION_LOG **T-2026-09-077**（追加批次 4）。
+| R-12 | **遗留（深色对比度第四轮）**：分数浅底类（如 `bg-gray-50/50`）在**未纳入前批扫描**的页面（归档等）可能仍有深色残留；前四批已收口项：`.btn-accent-soft`/浅底分工标签/浅底徽标/work-map 标签/`.cal-view-btn`/`.ov-sub-tab`/`solidAccentStyle`/`text-gray-500` 族/`bg-cyan-50` 徽标/`text-amber-800`/`.tab-btn-active`/`.is-today`。豁免项：头像首字（装饰·姓名紧邻）、向导 disabled 步骤 | COMPONENT_SPEC + 附录⑦ 判据 | 待办 |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 
@@ -659,18 +656,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------- |
 | T-118 | **治理文档完善+用户文档体系梳理**：基于Harness框架同步推进治理文档完善，梳理现有用户文档体系，识别缺失/冗余/过时（2026-08-03 根目录文档更新 + 2026-08-10 Agent 残留清理/主题色色盘表述/常态化评议制度化已推进）                                                                       | H30.2 母本子本 + H100 项目产出声明 + 书记 2026-08-10「开发的不同阶段会有不同的方法和观念」 | content/ + docs/                                                                               | 🔄 进行中   |
 | T-206 | **书记论述范式改革·书记继续调整**：SECRETARY\_DIRECTIVES.md 范式改革已落地（2026-08-04：书记原话作正文/多条原话无序列表/AI 扩充入引用块/去"书记原话："标签/后缀式日期，文件头部 L16 已写入"正文形式"条款，16 条带原话条目全部改造完成）。AI 自查（2026-08-14）已产出 14 项疑似待调整点清单（计数/日期矛盾、引号标点规则、AI 标注残留等）——**待书记逐条确认后 AI 修订** | H60 书记评议 + SECRETARY\_DIRECTIVES.md 头部"正文形式"条款          | content/01\_strategy/SECRETARY\_DIRECTIVES.md                                              | 🔄 待书记确认  |
-| T-281 | **扁平化与集中论断 refinement**：已解决（2026-08-28 书记以「战略模糊自觉」总纲裁决——AI 不替书记收口定性，保持战略模糊；P-005 已含 2026-08-28 书记合并原话"程序在所有人之上，所以扁平；但程序中，支委个人都因为更大的责任而被要求嵌入地更深"即"集中/程序/嵌入"关系的落地）——2026-08-30 复核确认：AI 草案（替书记定性）违反战略模糊自觉，已撤回不落地；本条目归档 | H60 书记评议 + 战略模糊自觉总纲 | content/01\_strategy/SECRETARY\_DIRECTIVES.md | ✅ 已完成（2026-08-28 总纲解决，2026-08-30 归档） |
-| T-237 | **制度层色值硬编码清理**：COMMISSIONER\_DUTY\_FRAMEWORK.md §C.3 旧固定角色色表已删（2026-08-14 书记裁决：身份不再保留既有固定颜色设定，引入自定义主题色色板），DESIGN\_SYSTEM.md 已补「主题色/功能色/品牌色三色区别」定义 + 读本文件指南（外包可读）；代码层 WORKFLOW\_ROLES 节点辨识色已对齐 §2.3.2 | H60 书记评议 + DESIGN\_SYSTEM.md 统一色板                    | content/02\_institution/COMMISSIONER\_DUTY\_FRAMEWORK.md + content/04\_web\_design/DESIGN\_SYSTEM.md | ✅ 已完成（2026-08-14） |
-
-> **注**：T-283 最小三成本第 4 轮（Mock 数据完整性 + 数据结构生命周期 + 点击成本 + 三会一课议程功能 + 编辑完整性共性问题全局化）已全部完成（2026-08-27 归档执行日志），乙部删除——三会一课【议程】写入/修改功能落地（DATA_MODEL agenda 字段 + 写入表单 + 详情行内编辑）；删除活动联动清理子记录三处同步；点击成本实测（创建 4 次/详情 2 次/待办 0 次）；新增 4 个审计文件入回归（mock-integrity/click-cost/agenda-flow/module-load，2026-08-30 统一命名规范化）；FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖判例）+ CHECKLIST「编辑完整性校验」章节。
-
-> **注**：T-280 网页逻辑全量梳理已全部完成（B1-B6，2026-08-24 归档执行日志），乙部删除——完整对账报告与收口记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`（L4777~5080），检查依据见 [DATA_CONSISTENCY_CHECKLIST.md](content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)（含 T-280-B1/T-280-B5 手动检查小节与各批新理念校验点）。
-
-> **注**：T-282 content 体系优化升级已全部完成（2026-08-24 归档执行日志 L5168~5208），乙部删除——三方向：①巨型文件拆分（原数据架构总文件 DATA_ARCHITECTURE（路由文件，2026-09-03 精简删除）→DATA_MODEL+DATA_FLOW、OPERATIONS_GUIDE→+PROCESS_GUIDE、DESIGN_SYSTEM→+COLOR_SYSTEM+COMPONENT_SPEC）；②04 部署类重组（SCHOOL_IT 并入 DEPLOYMENT_GUIDE）；③目录规范补缺（insights README、references 归位）。导航更新见 [DOC_MAP.md](content/03_doc_system/DOC_MAP.md) 与 [SSOT_INDEX.md](content/03_doc_system/SSOT_INDEX.md)。
-
-> **注**：T-279 轻量插件化实施已全部完成（M1-M4，2026-08-23 归档执行日志），乙部删除——完整记录见 `.ctx/logs/2026-08-EXECUTION_LOG.md`，历史结论见 [ARCHITECTURE\_EVOLUTION.md §二 历史结论](content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md)（M1~M8 全落地；现行评估与行动线见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」）。
 
 > **注**：常态化专项评议（反论/理论复用/黑话审查/原话复核/最小三成本）已制度化，由 W4 专项评议循环承接，不再驻留乙部——专项清单、侧重维度与轮次进度见 CLAUDE.md H60.5 + `.ctx/REVIEW_QUEUE.md` 附录（乙部清理不灭机制）。
+
+> **滞留清理（2026-09-11 书记裁定：完成项不滞留乙部）**：乙部只保留**未闭环的可执行项**；已完成工作一律不在此留注（其权威登记=EXECUTION_LOG 对应当条 + REVIEW_QUEUE 附录），如需再启动必须**重新注册**新条目/新轮次并标注轮次，不得以「已完成注记」形式滞留。
 
 ***
 
@@ -682,4 +671,4 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > **P.11/P.12/P.13（2026-09-08 归口）已于 2026-09-09 书记决策完毕**：P.11 全局评估总表 v1 AI 定案生效（REVIEW_QUEUE 总表已标定案）；P.12 概况侧只读复查特批执行（报告 .ctx/logs/archive/2026-09-09-P12-overview-audit.md，修复已于 2026-09-09 特批落地 ebf55d16）；P.13 Tailwind CDN 治理=保持现状关闭（E-5 页内优化已保留）。历史 P.8/P.9/P.10 已决策退出（D-270/271/272）。决策归档见执行日志 T-2026-09-073。
 
-- **P.14（2026-09-09 归口）push 放行**：本会话前 6 笔已随远端推进（`origin/main` = `665613c5` 起，推送非本地执行）；**本地现存领先 7 笔**——`ddaa320c`（黑话第 5 轮）、`22120e64`（活动写入 S-1~S-3）、`60dfa271`（S-4 写入 UI 统一）、`5138e638`（文档同步）、`dac678e4`（收口批）、`9e7a088f`（书记五项批次）、对比度收口批（`C-1`）；工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。
+- **P.14（2026-09-09 归口）push 放行**：本会话早期 6 笔已随远端推进（`origin/main` = `665613c5` 起，推送非本地执行）；**本地现存领先 10 笔**——`ddaa320c`（黑话第 5 轮）、`22120e64`（活动写入 S-1~S-3）、`60dfa271`（S-4 写入 UI 统一）、`5138e638`（文档同步）、`dac678e4`（收口批）、`9e7a088f`（书记五项批次）、`4245c31a`（对比度 C-1 + 功能实现评议 8 项）、`f25cd9cb`（A~E 第二批：R-6/R-7/C①~C⑥/门面口径）、`349e0679`（A~E 第三批：R-8/R-9/拖拽机测/确权链端点）、本批（A~D 第四批：R-10 三链语义端点+副书同权 / R-11 深色第三批 / 滞留清理）；工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。

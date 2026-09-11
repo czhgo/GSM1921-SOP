@@ -122,10 +122,12 @@ test('未设门资源（activities）写行为不变：登录即可创建，未�
 
 // C-2 方案 B（2026-09-11 书记批）：名册确权链「书记阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅书记（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
-test('确权链阶段端点：书记本支部 200 且落库；非书记 403；跨支部 403；白名单/枚举 400', async () => {
+test('确权链阶段端点：书记/副书记本支部 200 且落库；非书记侧 403；跨支部 403；白名单/枚举 400', async () => {
   const { token: secToken } = await login('p13');      // br-b1 书记
-  const { token: orgToken } = await login('p11');      // br-b1 组织委员（非书记）
-  const { token: pcToken } = await login('p_pc');      // 党委组织员（组织级，非书记）
+  const { token: depToken } = await login('p14');      // br-b1 副书记（副书同权 2026-09-11）
+  const { token: orgToken } = await login('p11');      // br-b1 组织委员（非书记侧）
+  const { token: partToken } = await login('p3');      // br-b1 普通成员
+  const { token: pcToken } = await login('p_pc');      // 党委组织员（组织级，非书记侧）
   const getStage = async (uid) => {
     const res = await fetch(`${base}/api/v1/users`, { headers: authHeaders(secToken) });
     return (await res.json()).find((u) => u.id === uid)?.developStage;
@@ -143,15 +145,28 @@ test('确权链阶段端点：书记本支部 200 且落库；非书记 403；�
   assert.equal(okRow.name, '罗文杰', '返回完整成员对象（未提供字段保留）');
   assert.equal(await getStage('p1'), '预备党员', 'users.developStage 实际变更落库');
 
-  // ② 非书记（组织委员 / 党委组织员）→ 403（requireRole(SECRETARY_ROLES)）
+  // ①b 副书记本支部推进 p2 阶段 → 200 + 实际落库（副书同权）
+  const depOk = await fetch(`${base}/api/v1/members/p2/develop-stage`, {
+    method: 'POST', headers: authHeaders(depToken),
+    body: JSON.stringify({ developStage: '预备党员' }),
+  });
+  assert.equal(depOk.status, 200, '副书记本支部可推进阶段（副书同权）');
+  assert.equal((await depOk.json()).developStage, '预备党员');
+  assert.equal(await getStage('p2'), '预备党员', '副书记推进实际落库');
+
+  // ② 非书记侧（组织委员 / 普通成员 / 党委组织员）→ 403（requireRole(SECRETARY_AND_DEPUTY_ROLES)）
   const org = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
     method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ developStage: '正式党员' }),
   });
-  assert.equal(org.status, 403, '组织委员不得走书记专属阶段端点');
+  assert.equal(org.status, 403, '组织委员不得走书记侧阶段端点');
+  const part = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(partToken), body: JSON.stringify({ developStage: '正式党员' }),
+  });
+  assert.equal(part.status, 403, '普通成员不得走书记侧阶段端点');
   const pc = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
     method: 'POST', headers: authHeaders(pcToken), body: JSON.stringify({ developStage: '正式党员' }),
   });
-  assert.equal(pc.status, 403, '党委组织员非书记亦 403（不扩大越权面）');
+  assert.equal(pc.status, 403, '党委组织员非书记侧亦 403（不扩大越权面）');
   assert.equal(await getStage('p1'), '预备党员', '越权请求未改动落库值');
 
   // ③ 跨支部：党委组织员建 br-x + 成员 p70 归属 br-x；br-b1 书记写 p70 → 403
@@ -168,8 +183,12 @@ test('确权链阶段端点：书记本支部 200 且落库；非书记 403；�
   });
   assert.equal(cross.status, 403, '书记不得推进异支部成员阶段');
   assert.match((await cross.json()).error, /本支部/);
+  const crossDep = await fetch(`${base}/api/v1/members/p70/develop-stage`, {
+    method: 'POST', headers: authHeaders(depToken), body: JSON.stringify({ developStage: '预备党员' }),
+  });
+  assert.equal(crossDep.status, 403, '副书记不得推进异支部成员阶段');
 
-  // ④ 字段白名单硬挡：含 role/branchId → 400
+  // ④ 字段白名单硬挡：含 role/branchId → 400（书记/副书记同挡）
   const roleInj = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({ developStage: '正式党员', role: 'secretary' }),
@@ -180,6 +199,11 @@ test('确权链阶段端点：书记本支部 200 且落库；非书记 403；�
     body: JSON.stringify({ developStage: '正式党员', branchId: 'br-x' }),
   });
   assert.equal(brInj.status, 400, '含治理字段 branchId 一律 400');
+  const depInj = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(depToken),
+    body: JSON.stringify({ developStage: '正式党员', role: 'secretary' }),
+  });
+  assert.equal(depInj.status, 400, '副书记注入 role 亦 400');
 
   // ⑤ 枚举外阶段 → 400；成员不存在 → 404（书记 token 已过门）
   const badStage = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
@@ -190,4 +214,196 @@ test('确权链阶段端点：书记本支部 200 且落库；非书记 403；�
     method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '预备党员' }),
   });
   assert.equal(ghost.status, 404);
+});
+
+// R-10（2026-09-11 书记裁定）：名册三条写链语义端点权限边界
+// POST /members/:id/residence-status（书记/副书记副书同权）· PATCH /members/:id/profile + POST /members（组织委员）
+// · POST /members/:id/transfer-out（组织委员发起 / 书记·副书记确认）——均 + 同支部 + 字段白名单。
+test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；枚举/空字段 400；成员不存在 404；跨支部 403', async () => {
+  const { token: secToken } = await login('p13');   // br-b1 书记
+  const { token: depToken } = await login('p14');   // br-b1 副书记（副书同权）
+  const { token: orgToken } = await login('p11');   // br-b1 组织委员
+  const { token: pcToken } = await login('p_pc');   // 党委组织员（组织级）
+  const { token: partToken } = await login('p1');   // br-b1 普通成员（党小组组长）
+  const usersOf = async (t) => (await fetch(`${base}/api/v1/users`, { headers: authHeaders(t) })).json();
+
+  // ① 组织委员新增（POST /members）→ 201 落库 + 强制归本支部 + 默认普通成员角色
+  const created = await fetch(`${base}/api/v1/members`, {
+    method: 'POST', headers: authHeaders(orgToken),
+    body: JSON.stringify({ id: 'p80', name: 'R10新增成员', partyGroup: '第一党小组', developStage: '积极分子' }),
+  });
+  assert.equal(created.status, 201, '组织委员可新增成员');
+  const cRow = await created.json();
+  assert.equal(cRow.branchId, 'br-b1', '强制归操作人支部');
+  assert.equal(cRow.role, 'participant', '默认普通成员角色');
+  assert.equal((await usersOf(orgToken)).find(u => u.id === 'p80')?.name, 'R10新增成员', '新增落库');
+
+  // ② 组织委员名册行内改字段（PATCH /members/:id/profile）→ 200 落库
+  const prof = await fetch(`${base}/api/v1/members/p80/profile`, {
+    method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'R10成员改', partyGroup: '第三党小组' }),
+  });
+  assert.equal(prof.status, 200, '组织委员可改名册档案');
+  const pRow = (await usersOf(orgToken)).find(u => u.id === 'p80');
+  assert.equal(pRow.name, 'R10成员改');
+  assert.equal(pRow.partyGroup, '第三党小组');
+
+  // ③ 组织委员行内维护在册属性（roster 即时字段）→ 200 落库
+  const resInline = await fetch(`${base}/api/v1/members/p80/profile`, {
+    method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ residenceStatus: '滞留', residenceNote: '备注' }),
+  });
+  assert.equal(resInline.status, 200);
+  assert.equal((await usersOf(orgToken)).find(u => u.id === 'p80').residenceStatus, '滞留');
+
+  // ④ 书记在册状态镜像（POST /members/:id/residence-status）→ 200 落库
+  const mirror = await fetch(`${base}/api/v1/members/p1/residence-status`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({ residenceStatus: '滞留', residenceNote: '交换', residenceHistory: [{ from: '在校', to: '滞留', updatedBy: 'p13', updatedAt: new Date().toISOString() }] }),
+  });
+  assert.equal(mirror.status, 200, '书记可写在册状态镜像');
+  assert.equal((await usersOf(secToken)).find(u => u.id === 'p1').residenceStatus, '滞留', '在册镜像落库');
+
+  // ④b 副书记在册状态镜像（POST /members/:id/residence-status）→ 200 落库（副书同权）
+  const mirrorDep = await fetch(`${base}/api/v1/members/p2/residence-status`, {
+    method: 'POST', headers: authHeaders(depToken),
+    body: JSON.stringify({ residenceStatus: '滞留', residenceNote: '副书记核录' }),
+  });
+  assert.equal(mirrorDep.status, 200, '副书记可写在册状态镜像（副书同权）');
+  assert.equal((await usersOf(depToken)).find(u => u.id === 'p2').residenceStatus, '滞留', '副书记在册镜像落库');
+
+  // ⑤ 移出软标记：组织委员发起 200（行保留不匿名）
+  const outOrg = await fetch(`${base}/api/v1/members/p80/transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(outOrg.status, 200, '组织委员可发起移出');
+  const oRow = (await usersOf(orgToken)).find(u => u.id === 'p80');
+  assert.equal(oRow.transferOut, true, 'users 行打转出标记');
+  assert.equal(oRow.name, 'R10成员改', '软标记保留姓名（不匿名）');
+
+  // ⑤b 移出软标记：副书记确认 200（副书同权；行保留不匿名）
+  const depCreated = await fetch(`${base}/api/v1/members`, {
+    method: 'POST', headers: authHeaders(orgToken),
+    body: JSON.stringify({ id: 'p82', name: 'R10副书记移出', partyGroup: '第一党小组' }),
+  });
+  assert.equal(depCreated.status, 201, '组织委员新增待移出成员');
+  const outDep = await fetch(`${base}/api/v1/members/p82/transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
+  assert.equal(outDep.status, 200, '副书记可确认移出（副书同权）');
+  const oDepRow = (await usersOf(depToken)).find(u => u.id === 'p82');
+  assert.equal(oDepRow.transferOut, true, 'users 行打转出标记');
+  assert.equal(oDepRow.name, 'R10副书记移出', '软标记保留姓名（不匿名）');
+
+  // ⑥ 越权 403
+  const denyPart = await fetch(`${base}/api/v1/members/p1/profile`, {
+    method: 'PATCH', headers: authHeaders(partToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
+  });
+  assert.equal(denyPart.status, 403, '普通成员不得维护名册');
+  const denyPc = await fetch(`${base}/api/v1/members/p1/profile`, {
+    method: 'PATCH', headers: authHeaders(pcToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
+  });
+  assert.equal(denyPc.status, 403, '党委组织员非组织委员 403（不扩大越权面）');
+  const denyRes = await fetch(`${base}/api/v1/members/p1/residence-status`, {
+    method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ residenceStatus: '在校' }),
+  });
+  assert.equal(denyRes.status, 403, '组织委员不得走书记在册镜像端点');
+  const denyCreate = await fetch(`${base}/api/v1/members`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ name: '书记越权新增' }),
+  });
+  assert.equal(denyCreate.status, 403, '书记非组织委员不得走名册新增端点');
+  const denyOut = await fetch(`${base}/api/v1/members/p1/transfer-out`, { method: 'POST', headers: authHeaders(partToken), body: '{}' });
+  assert.equal(denyOut.status, 403, '普通成员不得移出');
+  const denyDepProf = await fetch(`${base}/api/v1/members/p1/profile`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
+  });
+  assert.equal(denyDepProf.status, 403, '副书记非组织委员不得走名册档案端点（组织委员口径不变）');
+  const denyDepCreate = await fetch(`${base}/api/v1/members`, {
+    method: 'POST', headers: authHeaders(depToken), body: JSON.stringify({ name: '副书记越权新增' }),
+  });
+  assert.equal(denyDepCreate.status, 403, '副书记非组织委员不得走名册新增端点（组织委员口径不变）');
+
+  // ⑦ 注入字段 400（role/branchId；profile 另拒 developStage——阶段唯一写位 = develop-stage）
+  const injectCases = [
+    ['profile role', await fetch(`${base}/api/v1/members/p1/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ role: 'secretary' }) })],
+    ['profile branchId', await fetch(`${base}/api/v1/members/p1/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ branchId: 'br-x' }) })],
+    ['profile developStage', await fetch(`${base}/api/v1/members/p1/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ developStage: '预备党员' }) })],
+    ['create role', await fetch(`${base}/api/v1/members`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'x', role: 'secretary' }) })],
+    ['residence role', await fetch(`${base}/api/v1/members/p1/residence-status`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ residenceStatus: '在校', role: 'secretary' }) })],
+    ['residence role (deputy)', await fetch(`${base}/api/v1/members/p1/residence-status`, { method: 'POST', headers: authHeaders(depToken), body: JSON.stringify({ residenceStatus: '在校', role: 'secretary' }) })],
+  ];
+  for (const [label, res] of injectCases) assert.equal(res.status, 400, `${label} 注入应 400`);
+
+  // ⑧ 枚举非法 / 空字段 / 成员不存在
+  const badRes = await fetch(`${base}/api/v1/members/p1/residence-status`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ residenceStatus: '神秘状态' }) });
+  assert.equal(badRes.status, 400, '在册枚举非法 400');
+  const emptyProf = await fetch(`${base}/api/v1/members/p1/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(emptyProf.status, 400, '无可更新字段 400');
+  const ghost = await fetch(`${base}/api/v1/members/p_ghost2/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'x' }) });
+  assert.equal(ghost.status, 404, '成员不存在 404');
+
+  // ⑨ 跨支部 403：党委组织员建 br-x 成员 p81 → br-b1 组织委员/书记写均 403
+  await fetch(`${base}/api/v1/users`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ id: 'p81', name: '跨支部成员81', role: 'participant', branchId: 'br-x' }),
+  });
+  const crossProf = await fetch(`${base}/api/v1/members/p81/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'x' }) });
+  assert.equal(crossProf.status, 403, '组织委员不得改异支部成员档案');
+  const crossRes = await fetch(`${base}/api/v1/members/p81/residence-status`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ residenceStatus: '在校' }) });
+  assert.equal(crossRes.status, 403, '书记不得改异支部成员在册');
+  const crossOut = await fetch(`${base}/api/v1/members/p81/transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(crossOut.status, 403, '组织委员不得移出异支部成员');
+  const crossResDep = await fetch(`${base}/api/v1/members/p81/residence-status`, { method: 'POST', headers: authHeaders(depToken), body: JSON.stringify({ residenceStatus: '在校' }) });
+  assert.equal(crossResDep.status, 403, '副书记不得改异支部成员在册');
+  const crossOutDep = await fetch(`${base}/api/v1/members/p81/transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
+  assert.equal(crossOutDep.status, 403, '副书记不得移出异支部成员');
+});
+
+// 副书同权（2026-09-11 书记裁定）：成员变更确认端点一并纳入
+// POST /member-change-requests/:id/confirm —— requireRole(SECRETARY_AND_DEPUTY_ROLES) + 同支部校验；
+// 组织委员/普通成员/党委组织员一律 403（不扩大越权面），跨支部 403。
+test('成员变更确认端点：副书记本支部 200 且落库；组织委员/普通成员 403；跨支部 403', async () => {
+  const { token: secToken } = await login('p13');   // br-b1 书记
+  const { token: depToken } = await login('p14');   // br-b1 副书记（副书同权）
+  const { token: orgToken } = await login('p11');   // br-b1 组织委员（审批角色，非确认角色）
+  const { token: partToken } = await login('p6');   // br-b1 普通成员
+  const { token: pcToken } = await login('p_pc');   // 党委组织员
+
+  const post = (path, token) => fetch(`${base}${path}`, { method: 'POST', headers: authHeaders(token) });
+  const usersOf = async (t) => (await fetch(`${base}/api/v1/users`, { headers: authHeaders(t) })).json();
+  // 造一条 pending-secretary：书记创建 → 组织委员审批
+  const makePending = async (personId, agendaItemId, fromStage, toStage) => {
+    const create = await fetch(`${base}/api/v1/member-change-requests`, {
+      method: 'POST', headers: authHeaders(secToken),
+      body: JSON.stringify({ activityId: 'act-27', agendaItemId, personId, fromStage, toStage, meetingResult: 'passed' }),
+    });
+    assert.equal(create.status, 201, `创建申请（${personId}）`);
+    const row = await create.json();
+    assert.equal((await post(`/api/v1/member-change-requests/${row.id}/approve`, orgToken)).status, 200, `组织委员审批（${personId}）`);
+    return row.id;
+  };
+
+  // ① 副书记本支部确认 → 200 + 实际落库（副书同权）
+  const depId = await makePending('p6', 'agenda-confirm-deputy', '发展对象', '预备党员');
+  const depConfirm = await post(`/api/v1/member-change-requests/${depId}/confirm`, depToken);
+  assert.equal(depConfirm.status, 200, '副书记可确认成员变更（副书同权）');
+  assert.equal((await depConfirm.json()).status, 'completed');
+  assert.equal((await usersOf(secToken)).find((u) => u.id === 'p6').developStage, '预备党员', '副书记确认后阶段落库');
+
+  // ② 书记本支部确认 → 200（口径不回归）
+  const secId = await makePending('p2', 'agenda-confirm-secretary', '预备党员', '正式党员');
+  assert.equal((await post(`/api/v1/member-change-requests/${secId}/confirm`, secToken)).status, 200, '书记本支部可确认');
+
+  // ③ 组织委员 / 普通成员 → 403（不扩大越权面）
+  const denyId = await makePending('p3', 'agenda-confirm-deny', '积极分子', '发展对象');
+  assert.equal((await post(`/api/v1/member-change-requests/${denyId}/confirm`, orgToken)).status, 403, '组织委员不得确认成员变更');
+  assert.equal((await post(`/api/v1/member-change-requests/${denyId}/confirm`, partToken)).status, 403, '普通成员不得确认成员变更');
+
+  // ④ 跨支部 403：党委组织员建 br-xc 成员 p90；br-b1 书记/副书记确认 → 403（同支部校验）
+  const mkUser = await fetch(`${base}/api/v1/users`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ id: 'p90', name: '跨支部确认成员', developStage: '积极分子', role: 'participant', branchId: 'br-xc' }),
+  });
+  assert.equal(mkUser.status, 201, '党委组织员建跨支部成员');
+  const crossId = await makePending('p90', 'agenda-confirm-cross', '积极分子', '发展对象');
+  const crossSec = await post(`/api/v1/member-change-requests/${crossId}/confirm`, secToken);
+  assert.equal(crossSec.status, 403, '书记不得确认异支部成员变更');
+  assert.match((await crossSec.json()).error, /本支部/);
+  const crossDep = await post(`/api/v1/member-change-requests/${crossId}/confirm`, depToken);
+  assert.equal(crossDep.status, 403, '副书记不得确认异支部成员变更');
+  assert.equal((await usersOf(secToken)).find((u) => u.id === 'p90').developStage, '积极分子', '越权确认未改动阶段');
 });

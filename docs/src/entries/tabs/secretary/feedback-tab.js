@@ -24,7 +24,7 @@ const FEEDBACK_TAB_HTML = `
     <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；书记保留处置权（指派/审核/状态/隐藏/合并）</p>
 
     <!-- 待审核草稿 -->
-    <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details">
+    <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details" style="--acc-bg-dark:rgba(249,115,22,0.10);">
       <summary class="px-3 py-2 cursor-pointer text-sm font-medium text-orange-700 flex items-center justify-between">
         <span>待审核草稿</span>
         <span id="issue-drafts-count" class="badge ${badgeVariantClass('warning')}">0</span>
@@ -457,8 +457,9 @@ function renderIssueDetail(issueId) {
       const isReply = c.kind === 'reply';
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
       const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : isReply ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+      const kindDark = isReply ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
       const authorName = getPersonName(c.author) || '匿名';
-      html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
       html += `<div class="flex items-center gap-1.5 mb-1">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
       if (isReply) {

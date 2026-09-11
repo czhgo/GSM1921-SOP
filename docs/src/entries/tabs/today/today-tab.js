@@ -112,7 +112,7 @@ function _todoRows(items, overdue) {
 /** 今天到期（右上）：逾期红字置顶（逾期 m 项 · 已过期未办），下列今天到期（截止今日） */
 function _dueBlock(s) {
   const overdueZone = s.overdue.length ? `
-    <div class="rounded-lg bg-red-50/70 px-2 py-2 mb-4">
+    <div class="rounded-lg bg-red-50/70 px-2 py-2 mb-4" style="--acc-bg-dark:rgba(239,68,68,0.12);">
       <p class="text-[11px] font-semibold text-red-600 px-1 mb-2">逾期 ${s.overdue.length} 项 · 已过期未办</p>
       <div class="space-y-1.5">${_todoRows(s.overdue, true)}</div>
     </div>` : '';

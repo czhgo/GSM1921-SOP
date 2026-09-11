@@ -284,29 +284,36 @@ test('api ⑦：server users 通用 CRUD 落库断言（POST 新增 / PATCH 更�
   assert.ok(!(await getUsers(staffToken)).some(u => u.id === 'p60'), '删除落库：GET 列表不含');
 });
 
-test('api ⑧：PersonStore api 形态 saveMember/removeMember 经 ApiAdapter 写 server users 落库', async () => {
-  if (!staffToken) staffToken = await login('p_pc');
-  setDataSource('api', { apiBaseUrl: base, authToken: staffToken });
+test('api ⑧：PersonStore api 形态 saveMember/removeMember 经名册语义端点写 server（R-10 写链）', async () => {
+  const orgToken = await login('p11'); // br-b1 组织委员（名册维护角色）
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
   try {
     const saved = await PersonStore.saveMember({
       id: 'p61', name: '接口写入成员61', studentId: '2600000061', partyGroup: '第二党小组',
-      developStage: '积极分子', role: 'participant', branchId: 'br-b1',
-    }, { by: 'p_pc' });
+      developStage: '积极分子',
+    }, { by: 'p11' });
     assert.equal(saved.ok, true, JSON.stringify(saved));
-    assert.ok((await getUsers(staffToken)).some(u => u.id === 'p61'), 'saveMember(create) 落 server users');
+    const created = (await getUsers(orgToken)).find(u => u.id === 'p61');
+    assert.ok(created, 'saveMember(create) 落 server users（POST /members）');
+    assert.equal(created.branchId, 'br-b1', '新增强制归操作人支部（防跨支部注入）');
+    assert.equal(created.role, 'participant', '新增默认普通成员角色（治理字段不可注入）');
     assert.ok(mockDB.users.some(u => u.id === 'p61'), 'mockDB.users 缓存已同步');
 
-    // api 形态 saveMember 更新（exists → PATCH）
-    const upd = await PersonStore.saveMember({ id: 'p61', name: '接口写入成员61·改' }, { by: 'p_pc' });
+    // api 形态 saveMember 更新（exists → PATCH /members/:id/profile，组织委员）
+    const upd = await PersonStore.saveMember({ id: 'p61', name: '接口写入成员61·改' }, { by: 'p11' });
     assert.equal(upd.ok, true, JSON.stringify(upd));
-    const row = (await getUsers(staffToken)).find(u => u.id === 'p61');
-    assert.equal(row.name, '接口写入成员61·改', 'update 落 server users');
+    const row = (await getUsers(orgToken)).find(u => u.id === 'p61');
+    assert.equal(row.name, '接口写入成员61·改', 'update 经 profile 端点落 server users');
     assert.equal(row.developStage, '积极分子', '局部更新保留其它字段');
 
-    const removed = await PersonStore.removeMember('p61', { by: 'p_pc' });
+    // R-10：移出 = 软标记「已转出」（原行保留、不删不匿名；与 mock removedIds 记录同语义）
+    const removed = await PersonStore.removeMember('p61', { by: 'p11', transferOut: true });
     assert.equal(removed.ok, true, JSON.stringify(removed));
-    assert.ok(!(await getUsers(staffToken)).some(u => u.id === 'p61'), 'removeMember(delete) 落 server users');
-    assert.ok(!mockDB.users.some(u => u.id === 'p61'), 'mockDB.users 缓存同步移除');
+    const outRow = (await getUsers(orgToken)).find(u => u.id === 'p61');
+    assert.ok(outRow, '软标记：users 行保留（不删不匿名，历史可解析姓名）');
+    assert.equal(outRow.transferOut, true, 'users 行打 transferOut 标记');
+    assert.ok(outRow.transferredOutAt, '转出时间落库');
+    assert.ok(!mockDB.users.some(u => u.id === 'p61'), 'mockDB.users 缓存同步剔除');
   } finally {
     setDataSource('mock');
   }
@@ -316,19 +323,18 @@ test('api ⑧：PersonStore api 形态 saveMember/removeMember 经 ApiAdapter �
 // ① 局部更新未提供 name → 不得误报「成员姓名不能为空」（原 person.js:526 误伤）
 // ② 阶段写入经确权链走书记专属端点 POST /members/:id/develop-stage → 落 server users
 test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端点落库（确权链 API 形态）', async () => {
-  if (!staffToken) staffToken = await login('p_pc');
+  const orgToken = await login('p11'); // br-b1 组织委员（名册档案维护）
   const secToken = await login('p13'); // br-b1 书记
-  setDataSource('api', { apiBaseUrl: base, authToken: staffToken });
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
   try {
     // ① 局部更新（无 name）：原实现会因缺 name 先失败；现保留原姓名且落库
     const created = await PersonStore.saveMember({
-      id: 'p62', name: '局部更新成员62', partyGroup: '第一党小组',
-      developStage: '积极分子', role: 'participant', branchId: 'br-b1',
-    }, { by: 'p_pc' });
+      id: 'p62', name: '局部更新成员62', partyGroup: '第一党小组', developStage: '积极分子',
+    }, { by: 'p11' });
     assert.equal(created.ok, true, JSON.stringify(created));
-    const partial = await PersonStore.saveMember({ id: 'p62', partyGroup: '第三党小组' }, { by: 'p_pc' });
+    const partial = await PersonStore.saveMember({ id: 'p62', partyGroup: '第三党小组' }, { by: 'p11' });
     assert.equal(partial.ok, true, `局部更新缺 name 不应失败：${JSON.stringify(partial)}`);
-    const row = (await getUsers(staffToken)).find(u => u.id === 'p62');
+    const row = (await getUsers(orgToken)).find(u => u.id === 'p62');
     assert.equal(row.name, '局部更新成员62', '未提供 name → 保留原值（不覆盖）');
     assert.equal(row.partyGroup, '第三党小组', '提供的字段落库');
     assert.equal(row.developStage, '积极分子', '未提供字段保留');
@@ -341,6 +347,62 @@ test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端�
     assert.equal(stage.member.name, '罗文杰', '未提供 name → 服务端返回保留原值');
     assert.equal((await getUsers(secToken)).find(u => u.id === 'p1').developStage, '预备党员', '阶段落 server users');
     assert.equal(mockDB.users.find(u => u.id === 'p1').developStage, '预备党员', 'mockDB.users 缓存已同步');
+  } finally {
+    setDataSource('mock');
+  }
+});
+
+// R-10（2026-09-11 书记裁定）：名册三条写链 API 形态双形态实证（PersonStore 分流语义端点）
+// ① 在册状态镜像 = 确权链书记确认（residenceMirror）→ 书记专属 /members/:id/residence-status
+// ② 名册行内在册属性 = 组织委员 /members/:id/profile（含在册字段）
+// ③ 移出确认链（书记）→ /members/:id/transfer-out
+test('api ⑩：R-10 三条链——书记在册镜像 / 组织委员在册行内 / 书记移出软标记均落库', async () => {
+  const orgToken = await login('p11'); // br-b1 组织委员
+  const secToken = await login('p13'); // br-b1 书记
+  // ① 书记在册镜像（确权链 _applyApproved residence 形态）
+  setDataSource('api', { apiBaseUrl: base, authToken: secToken });
+  try {
+    const mirror = await PersonStore.saveMember({
+      id: 'p1', residenceStatus: '滞留', residenceNote: '交换一学期',
+      residenceHistory: [{ from: '在校', to: '滞留', updatedBy: 'p13', updatedAt: new Date().toISOString() }],
+    }, { by: 'p13', residenceMirror: true });
+    assert.equal(mirror.ok, true, `书记在册镜像不应 403：${JSON.stringify(mirror)}`);
+    const row = (await getUsers(secToken)).find(u => u.id === 'p1');
+    assert.equal(row.residenceStatus, '滞留', '在册状态镜像经 residence-status 端点落库');
+    assert.equal(row.residenceNote, '交换一学期');
+    assert.ok(Array.isArray(row.residenceHistory) && row.residenceHistory.length === 1, '留痕镜像落库');
+  } finally {
+    setDataSource('mock');
+  }
+
+  // ② 组织委员名册行内在册属性维护（roster-tab 即时字段形态：在册字段走 profile 端点）
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
+  try {
+    const inline = await PersonStore.saveMember({ id: 'p1', partyGroup: '第二党小组', residenceNote: '备注维护' }, { by: 'p11' });
+    assert.equal(inline.ok, true, `组织委员行内维护不应 403：${JSON.stringify(inline)}`);
+    const row = (await getUsers(orgToken)).find(u => u.id === 'p1');
+    assert.equal(row.partyGroup, '第二党小组', '行内党小组经 profile 端点落库');
+    assert.equal(row.residenceNote, '备注维护', '行内在册备注经 profile 端点落库');
+    assert.equal(row.residenceStatus, '滞留', '未提供的在册状态保留');
+  } finally {
+    setDataSource('mock');
+  }
+
+  // ③ 移出确认链（书记确认 approved → removeMember transferOut:true）→ 软标记
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
+  try {
+    const created = await PersonStore.saveMember({ id: 'p63', name: '待移出成员63', partyGroup: '第二党小组' }, { by: 'p11' });
+    assert.equal(created.ok, true, JSON.stringify(created));
+  } finally {
+    setDataSource('mock');
+  }
+  setDataSource('api', { apiBaseUrl: base, authToken: secToken });
+  try {
+    const out = await PersonStore.removeMember('p63', { by: 'p13', guardRefs: false, transferOut: true });
+    assert.equal(out.ok, true, `书记移出确认不应 403：${JSON.stringify(out)}`);
+    const outRow = (await getUsers(secToken)).find(u => u.id === 'p63');
+    assert.equal(outRow.transferOut, true, '书记确认移出软标记落库');
+    assert.equal(outRow.name, '待移出成员63', '原行保留姓名（不匿名）');
   } finally {
     setDataSource('mock');
   }

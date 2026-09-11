@@ -108,13 +108,15 @@ export const PersonStore = {
    * @param {Object} updates - 成员记录/局部补丁（含 id 时按 id 定位；name 新增必填）
    * @param {Object} [opts]
    * @param {string} [opts.by] - 操作人（审计预留；不写入成员档案字段）
+   * @param {boolean} [opts.residenceMirror] - api 形态：在册状态镜像写入走书记/副书记语义端点
+   *   （POST /members/:id/residence-status，确权链书记确认生效调用点；缺省 false → 走组织委员名册档案端点）
    * @returns {Promise<{ok:boolean, member?:Object, reason?:string}>}
    */
   async saveMember(updates, opts = {}) {
     if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
       return { ok: false, reason: '成员数据须为对象' };
     }
-    if (getDataSource() === 'api') return _apiSaveMember(updates);
+    if (getDataSource() === 'api') return _apiSaveMember(updates, opts);
     return _mockSaveMember(updates);
   },
 
@@ -124,7 +126,8 @@ export const PersonStore = {
    *    专班/报名/表态/思想汇报/复盘/成员变更/支委广播等，见 findMemberRefs）→ {ok:false, reason:'引用未清'}，
    *    仅空引用可删（先清业务引用再删）。
    *  - mock 形态：members 覆盖层标记删除（读链即时剔除；?reset=demo 回种子）；
-   *    api 形态：DELETE server users。
+   *    api 形态：POST server /members/:id/transfer-out 软标记「已转出」（原行保留、不删不匿名，
+   *    与 mock 覆盖层 removedIds 记录同语义；R-10 2026-09-11）。
    * @param {string} personId - 成员 id
    * @param {Object} [opts]
    * @param {string} [opts.by] - 操作人（审计预留；mock 形态记入 removedIds.decidedBy）
@@ -146,7 +149,7 @@ export const PersonStore = {
         };
       }
     }
-    if (getDataSource() === 'api') return _apiRemoveMember(personId);
+    if (getDataSource() === 'api') return _apiRemoveMember(personId, opts);
     // mock 形态：存在于当前成员档案（种子 + 覆盖层）才可删
     if (!_baseMemberRecords().some(p => p.id === personId)) {
       return { ok: false, reason: '成员不存在（档案中无该 id）' };
@@ -522,34 +525,62 @@ function _syncMockDBUsers(upsert, removeId) {
   mockDB.users = users;
 }
 
-async function _apiSaveMember(updates) {
+/** api 形态语义端点字段分组（与 server/routes/member.js 白名单同源，勿各自漂移） */
+const API_RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
+const API_PROFILE_FIELDS = ['name', 'studentId', 'partyGroup'];
+const API_CREATE_FIELDS = ['id', 'name', 'studentId', 'partyGroup', 'developStage', ...API_RESIDENCE_FIELDS];
+const API_GOVERNANCE_FIELDS = ['role', 'branchId'];
+
+/** 取对象中命名字段子集（纯，不改入参） */
+function _pick(obj, keys) {
+  const out = {};
+  for (const k of keys) if (Object.prototype.hasOwnProperty.call(obj, k)) out[k] = obj[k];
+  return out;
+}
+
+async function _apiSaveMember(updates, opts = {}) {
   try {
     const users = await _apiAdapterUsers();
+    const members = await _apiAdapterMembers();
     const list = await users.list();
     const rawId = updates.id !== undefined && updates.id !== null && String(updates.id).trim() ? String(updates.id) : null;
     const exists = rawId && list.some(u => u.id === rawId);
     const member = _cleanMemberRecord({ ...updates, ...(rawId ? { id: rawId } : {}) });
-    // 姓名校验（与 mock 分支口径一致）：新增必填；局部更新未提供 → 不校验/不覆盖（由 PATCH 合并保留原值）
+    // 姓名校验（与 mock 分支口径一致）：新增必填；局部更新未提供 → 不校验/不覆盖（由端点合并保留原值）
     if (member.name === undefined) {
       if (!exists) return { ok: false, reason: '成员姓名不能为空' };
     } else if (!String(member.name).trim()) {
       return { ok: false, reason: '成员姓名不能为空' };
     }
-    let saved;
+    let saved = null;
     if (exists) {
       const { id, ...patch } = member;
-      // C-2 方案 B（2026-09-11 书记批）：发展阶段写入走名册确权链书记专属端点
-      // （通用 PATCH /users/:id 仅 party-staff 可写，书记确权链经此会被 403 阻断）；
-      // 余下字段仍走通用 users 写口（无余量则不重复请求）。
+      // R-10（2026-09-11 书记裁定）：名册写链分流到语义端点（通用 PATCH /users/:id 仅 party-staff 可写，
+      // 组织委员/书记经此会被 403 阻断）。字段分组互斥，逐组按当前字段路由：
+      // ① 发展阶段 → 书记/副书记 develop-stage（唯一写位，不得由此改写）
       if (Object.prototype.hasOwnProperty.call(patch, 'developStage')) {
-        const { developStage, ...rest } = patch;
-        saved = await (await _apiAdapterMembers()).setDevelopStage(id, developStage);
-        if (Object.keys(rest).length > 0) saved = await users.update(id, rest);
-      } else {
-        saved = await users.update(id, patch);
+        saved = await members.setDevelopStage(id, patch.developStage);
       }
-    } else {
+      // ② 在册相关字段 → 确权链书记镜像走 residence-status；名册行内维护走 profile（组织委员）
+      const residence = _pick(patch, API_RESIDENCE_FIELDS);
+      if (Object.keys(residence).length > 0) {
+        saved = opts.residenceMirror
+          ? await members.setResidenceStatus(id, residence)
+          : await members.updateProfile(id, residence);
+      }
+      // ③ 治理字段（role/branchId）不改路线：仍走通用 users 写口（party-staff 门；任命链依赖，不扩大越权面）
+      const gov = _pick(patch, API_GOVERNANCE_FIELDS);
+      if (Object.keys(gov).length > 0) saved = await users.update(id, gov);
+      // ④ 名册档案属性（姓名/学号/党小组）→ 组织委员专属 profile
+      const profile = _pick(patch, API_PROFILE_FIELDS);
+      if (Object.keys(profile).length > 0) saved = await members.updateProfile(id, profile);
+      // 无字段可写（仅 id）→ 保留既有语义（通用 PATCH 回读行）
+      if (!saved) saved = await users.update(id, {});
+    } else if (Object.prototype.hasOwnProperty.call(member, 'role') || Object.prototype.hasOwnProperty.call(member, 'branchId')) {
+      // 带治理字段的新增仍走通用 users（party-staff 门）；名册 UI 新增不含治理字段 → 语义端点
       saved = await users.create(member);
+    } else {
+      saved = await members.create(_pick(member, API_CREATE_FIELDS));
     }
     _syncMockDBUsers(saved);
     return { ok: true, member: saved };
@@ -558,14 +589,15 @@ async function _apiSaveMember(updates) {
   }
 }
 
-async function _apiRemoveMember(personId) {
+async function _apiRemoveMember(personId, opts = {}) {
   try {
-    const users = await _apiAdapterUsers();
-    await users.delete(personId);
-    _syncMockDBUsers(null, personId);
+    const members = await _apiAdapterMembers();
+    // R-10：移出改为软标记「已转出」（原行保留、不删不匿名；与 mock removedIds 记录同语义）
+    await members.transferOut(personId, opts?.note ? { note: opts.note } : {});
+    _syncMockDBUsers(null, personId); // 服务器保留软标记行；本地缓存剔除 → 读链即时剔除
     return { ok: true, id: personId };
   } catch (e) {
-    return { ok: false, reason: e?.message || 'server users 删除失败' };
+    return { ok: false, reason: e?.message || 'server 成员移出失败' };
   }
 }
 
