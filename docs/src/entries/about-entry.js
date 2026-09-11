@@ -20,7 +20,7 @@ renderHeader('about', { staticShell: true });
 //  数据定义
 // ════════════════════════════════════════════════════════════════
 
-// 我们如何考察（全员三维度，党建贡献高亮——特别突出原创性贡献；2026-08-12 书记指令：不强调积极分子，所有人都受到这样的考察）
+// 我们如何考察（全员考察维度，党建贡献高亮——特别突出原创性贡献；2026-08-12 书记指令：不强调积极分子，所有人都受到这样的考察）
 const REVIEW_DIMENSIONS = [
   {
     id: 'party-class',
@@ -160,7 +160,7 @@ const ACTIVITY_SCENE = {
     {
       id: 4,
       title: '考察建档',
-      desc: '纪检委员将考察记录提交组织委员，组织委员据此更新支部人才库——活动闭环的落点。',
+      desc: '纪检委员将考察记录提交组织委员，组织委员据此更新支部人才库——活动至此办结。',
       flows: [
         { text: '纪检委员 → 组织委员（考察记录·更新人才库）', type: 'file' },
       ],
@@ -225,7 +225,7 @@ const TASKFORCE_SCENE = {
     {
       id: 2,
       title: '分工协调 + 归档',
-      desc: '组织者分工记录、协调推进；提交工作考察记录给纪检委员、工作量归档给组织委员——专班闭环。',
+      desc: '组织者分工记录、协调推进；提交工作考察记录给纪检委员、工作量归档给组织委员——专班至此办结。',
       flows: [
         { text: '组织者 → 深度参与者（分工记录·协调推进）', type: 'task' },
         { text: '组织者 → 纪检委员（工作考察记录）', type: 'file' },
@@ -390,7 +390,7 @@ function renderHero() {
   `;
 }
 
-/** Section 5: 我们如何考察（全员三维度卡片，党建贡献高亮） */
+/** Section 5: 我们如何考察（全员考察维度卡片，党建贡献高亮） */
 function renderReview() {
   const cards = REVIEW_DIMENSIONS.map((d, i) => `
     <div class="ab-review-card ${d.highlight ? 'ab-review-card--highlight' : ''}" data-stagger tabindex="0" role="button" aria-label="${d.name}：${d.tag}">
@@ -411,7 +411,7 @@ function renderReview() {
       <div class="ab-chapter ab-chapter--right">
         <div class="ab-chapter-eyebrow">全员考察</div>
         <h2 class="ab-chapter-title">我们如何考察</h2>
-        <p class="ab-chapter-sub">三项考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
+        <p class="ab-chapter-sub">考察内容——党课、贡献、评价，其中党建贡献特别看重原创性</p>
         <p class="ab-chapter-lead">先锋模范的作用必须在具体的工作中体现。</p>
         <div class="ab-review-grid">${cards}</div>
         <div class="ab-review-footer">党建贡献如何产生？→ 见第五章「工作流」中的活动与专班</div>

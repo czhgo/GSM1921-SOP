@@ -21,7 +21,7 @@ export const WORK_MAP_MODULES = [
   {
     id: 'three-meetings', name: '三会一课', defaultOwner: 'secretary',
     sub: ['支部党员大会', '支委会', '党小组会', '党课'],
-    desc: '支部会议制度：党员大会/支委会/党小组会/党课按频次召开，议程-记录-考勤闭环',
+    desc: '支部会议制度：党员大会/支委会/党小组会/党课按频次召开，议程-记录-考勤完整',
     outputs: ['考勤', '宣传', '材料'],
   },
   {

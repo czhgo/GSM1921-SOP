@@ -137,7 +137,7 @@ export function createTodoTab(opts) {
 
   /**
    * 详情渲染（内置缺省：聚合组 = 概要 + 处理入口；单项 = 状态 + 描述 + 处理）。
-   * 角色自定义详情经 opts.renderDetail 覆盖（如书记 confirm/remind/成员确权逐项面板）。
+   * 角色自定义详情经 opts.renderDetail 覆盖（如书记 confirm/remind/成员变更确认逐项面板）。
    */
   function _renderTodoDetail(todo, ctx) {
     const btnStyle = detailBtnStyle || solidAccentStyle(ctx.accent, ctx.accentBorder);

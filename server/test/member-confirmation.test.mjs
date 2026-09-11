@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
-// server/test/member-confirmation.test.mjs — 附录⑩ S4 名册生命周期·确权复核（C 批，2026-09-06）
+// server/test/member-confirmation.test.mjs — 附录⑩ S4 名册生命周期·成员变更确认复核（C 批，2026-09-06）
 // 纯 Node 测试（无浏览器、不起 server；mock 形态，localStorage 内存桩 + beginMockCase 恢复 seed，
-// 范式同 member-persist.test.mjs）：
+// 做法同 member-persist.test.mjs）：
 //   ① submitMemberChange 校验（person 存在 / kind 合法 / 枚举 / to=现值拒绝 / 同 person+kind pending 拒绝）
 //   ② developStage pending → decide approved 落档案；rejected 带 rejectNote 不生效
 //   ③ residence pending → decide approved：roster 覆盖 + 留痕（updatedBy=书记）+ 档案镜像
@@ -46,7 +46,7 @@ globalThis.localStorage = {
 };
 globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
-/** 每例独立现场：清业务域 + 清存储（含确权队列）→ 恢复 seed */
+/** 每例独立现场：清业务域 + 清存储（含成员变更确认队列）→ 恢复 seed */
 function beginMockCase() {
   _store.clear();
   delete globalThis.window;
@@ -392,7 +392,7 @@ test('decide approved（移出）：memberChangeRequests 非终态作废 cancell
 
 // ═══════════════ ⑥ 持久（刷新恢复）+ 旧数据兼容 ═══════════════
 
-test('确权队列跨刷新持久：清 mockDB 后经 localStorage 镜像恢复；已决策记录保留', async () => {
+test('成员变更确认队列跨刷新持久：清 mockDB 后经 localStorage 镜像恢复；已决策记录保留', async () => {
   beginMockCase();
   const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
   assert.ok(r.ok);

@@ -402,7 +402,7 @@ function renderDimensionView(container) {
   container.querySelectorAll('.sec-ed-confirm').forEach(btn => {
     btn.addEventListener('click', () => {
       confirmExternalDispatch(btn.dataset.edId);
-      showToast('success', '已确认收到，文件流转闭环完成');
+      showToast('success', '已确认收到，文件流转完成');
       renderDimensionView(container);
     });
   });

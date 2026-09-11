@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/perf-todo-agg-cache.test.mjs — P0 提速批护栏：TodoStore 聚合级 memo 失效正确性（2026-09-07）
 // 依据：.trae/specs/2026-09-07-perf/spec.md §二.1/§五（一致性护栏：写→读必须变化、未写→复用）
-// 覆盖（member-persist 桩范式；seed 用 TodoStore.create 构造记录）：
+// 覆盖（member-persist 桩做法；seed 用 TodoStore.create 构造记录）：
 //   ① 未写时连续两次 getDomainsWithGroups：结果一致（同引用）且内部聚合只执行一次
 //     （TodoStore._aggCacheStats.aggregateRuns 计数不变）
 //   ② create 后：结果变化（新引用、计数 +1）且聚合重算

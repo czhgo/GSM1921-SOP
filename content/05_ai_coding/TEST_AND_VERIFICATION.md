@@ -9,7 +9,7 @@ related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/
 
 # 测试验证纪律（05 AI 协作方法论层分篇）
 
-> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「测试验证纪律」分篇——2026-09-04 由原 KNOWN_PITFALLS（19 条总篇）按协作环节拆分而来，承接 Subagent 验证虚假确认、同一套数据原则盲区、代码复杂度标准、受限视觉验证三件套、共享状态版本分裂、e2e 写穿断言 6 类陷阱判例；并含「数据同源一致性校验」节，指针指向配套手册 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)。
+> **定位：** 本篇属 **05 AI 协作方法论层**（唯一 AI 协作方法论层，活跃上下文）「测试验证纪律」分篇——2026-09-04 由原 KNOWN_PITFALLS（总篇）按协作环节拆分而来，承接 Subagent 验证虚假确认、同一套数据原则盲区、代码复杂度标准、受限视觉验证三件套、共享状态版本分裂、e2e 写穿断言 6 类陷阱判例；并含「数据同源一致性校验」节，指针指向配套手册 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)。
 > **read_strategy: on-demand**——含义：非每次会话必读，不常驻活跃上下文，按环节触发后按需读取。
 > **何时读：** 涉及验证结论采信（subagent 报告/对话总结）、数据同源审计、代码复杂度评审、无视觉/受限视觉环境验证、`?v=` 版本链变更、浏览器 e2e 写穿断言等测试验证场景前；数据同源逐步校验执行时读 [DATA_CONSISTENCY_CHECKLIST.md](DATA_CONSISTENCY_CHECKLIST.md)。
 > **分篇索引与各篇 read_strategy 一览见 [README.md](README.md)。**

@@ -82,7 +82,7 @@ function _renderPager(total, key) {
       <div class="flex items-center gap-1">
         <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-archive-page="${n}">${n}</button>
+          <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-archive-page="${n}">${n}</button>
         `).join('')}
         <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>

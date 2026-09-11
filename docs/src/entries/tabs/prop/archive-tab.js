@@ -284,7 +284,7 @@ function _renderDispatchCell(r) {
   const label = `宣传材料：${r.activityName || '未命名活动'}`;
   const recs = loadExternalDispatches().filter(d => d.refType === 'publicity' && d.refLabel === label);
   if (recs.length === 0) {
-    return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" title="材料如已通过微信/对外发出，点击标记闭环" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
+    return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" title="材料如已通过微信/对外发出，点击标记已外发" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
   }
   const confirmed = recs.some(d => d.confirmedAt);
   return `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
@@ -681,7 +681,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
       <div class="px-5 py-4 space-y-3.5">
         <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
           宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送书记审核），
-          请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计闭环（谁 / 何时 / 发给谁 / 何时确认）。
+          请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计记录（谁 / 何时 / 发给谁 / 何时确认）。
         </div>
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="ed-receiver">接收方</label>
@@ -716,7 +716,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
       receiverRole,
       note,
     });
-    showToast('success', '已标记外发，对方确认后将闭环');
+    showToast('success', '已标记外发，对方确认后完成');
     close();
     if (typeof onSent === 'function') onSent();
   });

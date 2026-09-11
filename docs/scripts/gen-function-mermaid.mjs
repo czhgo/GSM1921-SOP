@@ -49,7 +49,7 @@ export function generateAll() {
   const arch = [
     '```mermaid',
     'flowchart TD',
-    '  A[前台 · 19 页面（12 根 + 7 工作台）] --> B[中台 · entries / components / core]',
+    '  A[前台 · 根页面 + 工作台（页面清单以 docs/ 实测为准）] --> B[中台 · entries / components / core]',
     '  B --> C[服务层 · services / mock]',
     '  C --> D[后端 · server / REST API]',
     '  D --> E[母本 · content/02_institution/sop]',

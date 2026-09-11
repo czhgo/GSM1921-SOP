@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  member-confirmation.js — 名册生命周期「确权复核」服务层（附录⑩ S4，C 批 2026-09-06 书记已批）
+//  member-confirmation.js — 名册生命周期「成员变更确认复核」服务层（附录⑩ S4，C 批 2026-09-06 书记已批）
 // ════════════════════════════════════════════════════════════════
 // 书记裁定（R4-1/R4-2/R4-3 + 学期末提醒，替代「直改即时生效 + 书记复核卡只读」）：
 //   · 发展阶段 / 在册滞留 = 组织委员发起 → 书记确认生效（双层留痕、可退回）；
@@ -30,7 +30,7 @@ import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } fr
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
 import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260911a';
 
-/** 确权请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
+/** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
 const MEMBER_CONFIRM_VERSION = 1;
 
@@ -38,7 +38,7 @@ const MEMBER_CONFIRM_VERSION = 1;
 // C①-补（2026-09-10 书记裁定）：原「发展数据」直写已改只读（唯一写位=名册发起→书记确认），
 // 但「进入当前阶段日期」需随阶段推进一并落档（供组织台 buildDevelopNodeRemindGroup 派生发展节点提醒）。
 // 存储键位/形态与既有读口同源（gsm1921-dev-stage-overrides，{ personId: { stage, entryDate } }），
-// 不新造存储/数据模型；写入点=确权链书记确认生效处（decideConfirmation → _applyApproved）。
+// 不新造存储/数据模型；写入点=成员变更确认链书记确认生效处（decideConfirmation → _applyApproved）。
 export const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
 
 /** 读取发展推进覆盖档案（不可用/损坏 → {}）。组织台待办发展节点提醒与确认生效写口共用。 */
@@ -219,7 +219,7 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
   // C①-补：阶段推进携带「进入当前阶段日期」（缺省=今日）→ 确认生效时同源落覆盖档案
   if (kind === 'developStage') request.entryDate = _normDate(entryDate) || _todayKey();
   mockDB.pendingMemberConfirmations = [..._all(), request];
-  bumpToken('memberConfirmation'); // P0：确权请求队列写口 bump（书记待办页成员确认组新鲜度）
+  bumpToken('memberConfirmation'); // P0：成员变更确认请求队列写口 bump（书记待办页成员确认组新鲜度）
   _save();
   return { ok: true, request };
 }
@@ -364,7 +364,7 @@ export async function submitTransferOut({ personId, by, note } = {}) {
     refsSummary: { safe: _summarize(safe), keep: _summarize(keep) },
   };
   mockDB.pendingMemberConfirmations = [..._all(), request];
-  bumpToken('memberConfirmation'); // P0：确权请求队列写口 bump
+  bumpToken('memberConfirmation'); // P0：成员变更确认请求队列写口 bump
   _save();
   return { ok: true, direct: false, request };
 }
@@ -397,7 +397,7 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
     req.rejectNote = (note === undefined || note === null ? '' : String(note).trim()) || '书记未确认生效，请求已退回';
     all[idx] = req;
     mockDB.pendingMemberConfirmations = all;
-    bumpToken('memberConfirmation'); // P0：确权决策（退回）写口 bump
+    bumpToken('memberConfirmation'); // P0：成员变更确认决策（退回）写口 bump
     _save();
     return { ok: true, request: { ...req } };
   }
@@ -406,7 +406,7 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
   req.status = 'approved';
   all[idx] = req;
   mockDB.pendingMemberConfirmations = all;
-  bumpToken('memberConfirmation'); // P0：确权决策（生效）写口 bump
+  bumpToken('memberConfirmation'); // P0：成员变更确认决策（生效）写口 bump
   _save();
   return { ok: true, request: { ...req } };
 }
@@ -552,7 +552,7 @@ export function listPendingConfirmations() {
 }
 
 /**
- * 读口：某人最后一次经确权链「书记确认生效」的发展阶段变更（D9 裁决批二 2026-09-08 发展观察用；
+ * 读口：某人最后一次经成员变更确认链「书记确认生效」的发展阶段变更（D9 裁决批二 2026-09-08 发展观察用；
  * 无记录 → null）。返回 { from, to, at }（at=生效时间 decidedAt 兜底发起时间）。
  * @param {string} personId
  * @returns {Object|null}

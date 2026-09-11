@@ -59,7 +59,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 ### 2.5 支部配置档案（开源通用性 · 2026-09-02 书记补充）
 
-> **2026-09-09 审定定稿**：modules 维护权/操作位随批3/批4 收口（副书同权 2026-09-09；操作位迁「设置 → 支部治理」+ 换组织向导内嵌），档案清单补 workforce/blocks/org 档案(desc/themePreset)/policyOverrides 与 configChangeHistory 留痕语义——颗粒度分层与变更流总述见新增 §2.6。
+> **2026-09-09 审定定稿**：modules 维护权/操作位随批3/批4 收口（副书同权 2026-09-09；操作位迁「设置 → 支部治理」+ 换组织向导内嵌），档案清单补 workforce/blocks/org 档案(desc/themePreset)/policyOverrides 与 configChangeHistory 留痕语义——配置写权与变更流分层总述见新增 §2.6。
 
 不同支部特点不同（本科/硕博），系统作为开源通用体，**支部 = 从已注册能力单元中排列组合出自己的工作流**。机制复用既有能力注册表（modules/capabilities/* 自注册 + scenario 引擎），不新造核心单体。
 
@@ -79,9 +79,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 > **远期形态**：config 的"清单/画布组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 modules 与场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
 
-### 2.6 配置颗粒度与变更流分层（2026-09-09 审定定稿）
+### 2.6 配置写权与变更流分层（2026-09-09 审定定稿）
 
-> **一句话**：支部 config 档案语义单一权威 = 什么能改、谁能改、改在哪留痕，按颗粒度分六层 + 党委治理字段旁路；「改得到」与「改不动」的分界由源码层固化（policy-defaults `kind` / `POLICY_OVERRIDABLE` / config-clean 白名单 / server 守卫），UI 层不写第二套规则。设置中心分层注释同口径（`settings-entry.js` 批4 注释：「支部制度参数（L3）= 制度默认只读锁定展示……域参数（L2）= 各域负责人可见可调自己域」）。
+> **一句话**：支部 config 档案语义单一权威 = 什么能改、谁能改、改在哪留痕，按写权分为六层 + 党委治理字段旁路；「改得到」与「改不动」的分界由源码层固化（policy-defaults `kind` / `POLICY_OVERRIDABLE` / config-clean 白名单 / server 守卫），UI 层不写第二套规则。设置中心分层注释同口径（`settings-entry.js` 批4 注释：「支部制度参数（L3）= 制度默认只读锁定展示……域参数（L2）= 各域负责人可见可调自己域」）。
 
 #### 分层矩阵（写权与留痕 · 自个人到制度逐层刚性递增）
 

@@ -11,7 +11,7 @@
 //  afterbegin 插条，把下方卡片整体下推（布局跳动）。现改为外壳「渲染前预留位」：
 //    ① beginOverviewShell(el)  外壳进入 overview 时调用：在内容容器上方预留 .overview-dispatch-slot
 //      （count>0 时条落此槽；count=0 槽收起为 0）；容器仍为壳骨架/空时兜底写入等高骨架卡
-//      （min-height + 轻 loading 文案，视觉沿用 dashboard/stats.js 骨架范式；styles.css 禁改不碰）。
+//      （min-height + 轻 loading 文案，视觉沿用 dashboard/stats.js 骨架做法；styles.css 禁改不碰）。
 //    ② 外壳 await 计数（countOwnPendingReports / 组长组员 open 计数，IssueStore 同一缓存）
 //    ③ mountOverviewDispatchBar(el,{...})  原地填充/收起槽位——条不推挤内容，与正文零位移；
 //       work-overview 内部 rerender（详情下钻返回/行内动作）只重建内容容器，槽在外层不受影响，

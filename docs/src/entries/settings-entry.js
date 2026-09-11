@@ -86,17 +86,17 @@ const SECTION_META = {
   },
   'branch-info-wizard': {
     title: '支部信息与向导', batch: '批 3', badge: '',
-    desc: '支部档案信息查看与「更换组织向导」入口（同源 embed 复用 org-setup-wizard，不改写其逻辑）。',
+    desc: '支部档案信息查看与「更换组织向导」入口（在本页直接打开组织配置向导）。',
     note: '书记 / 副书记（副书同权）在本页进入组织配置向导。',
   },
   'branch-default-tab-order': {
     title: '工作台默认顺序', batch: '批 3', badge: '',
     desc: '由书记 / 副书记设定支部工作台默认标签顺序；核心功能组只读带锁，个人覆盖在「我的工作台」中调整。',
-    note: '保存后全体成员下一刷新按新默认；恢复默认 = 系统默认（全开 + 注册序）。',
+    note: '保存后全体成员下一刷新按新默认；恢复默认即回到系统默认（全部开启 + 系统默认排序）。',
   },
   'branch-policy-params': {
     title: '支部制度参数', batch: '批 4', badge: '',
-    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数（L2）在各域负责人卡中可调。',
+    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数由各域负责人在专用卡片中调整。',
     note: '制度刚性锁定展示 + 职责参数按角色分发。',
   },
   'domain-disc': {
@@ -589,7 +589,7 @@ function _cfgHistoryRowHtml(h) {
         <div class="text-[12px] text-gray-600" style="margin-top:4px;word-break:break-all;">${brief}</div>
         ${whyHtml}
       </div>
-      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该键恢复到本次变更前的值并留痕" style="flex-shrink:0;">回滚此更改</button>` : ''}
+      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该项恢复到本次变更前的值并留痕" style="flex-shrink:0;">回滚此更改</button>` : ''}
     </li>`;
 }
 
@@ -609,7 +609,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h2 class="settings-card-title">配置变更记录</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
       </div>
-      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更键、前后值摘要与依据（why）。单键变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
+      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更内容、前后变化与变更理由。单项变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
       <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
       <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -630,7 +630,7 @@ function showCfgHistStatus(panel, msg, isErr = false) {
 async function runConfigHistoryRollback(panel, entryAt) {
   const { role, personId } = _session;
   if (!personId || !GOV_ROLES.has(role)) return;
-  if (!window.confirm('确认回滚此条配置更改？系统将把该配置键恢复到本次变更前的值，并追加一条回滚留痕（回滚本身可查不可再回滚）。')) return;
+  if (!window.confirm('确认回滚此条配置更改？系统将把该项恢复到本次变更前的值，并追加一条回滚留痕（回滚本身可查不可再回滚）。')) return;
   const seq = ++_govSeq;
   try {
     const br = await import('../services/branch.js?v=20260911a');
@@ -729,7 +729,7 @@ function branchOrderCardHtml(model) {
         </span>
       </div>
       <p class="settings-card-desc">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
-      <div class="bws-callout">${icon('bell', { className: 'icon-base w-3.5 h-3.5 myws-tag' })}<span>影响全体成员：此处变更写入支部默认配置（config.modules），全员工作台随之生效；行徽标「默认」= 与当前支部默认一致，「调整中」= 有未保存的位置调整。</span></div>
+      <div class="bws-callout">${icon('bell', { className: 'icon-base w-3.5 h-3.5 myws-tag' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
       <ul class="myws-list" data-bws-list="1">${rows}</ul>
       <p class="myws-status" data-bws-status aria-live="polite"></p>
       ${coreHint ? `<div class="myws-hint">${coreHint}</div>` : ''}
@@ -980,14 +980,14 @@ function branchPolicyLockedCardHtml(branch) {
         <h2 class="settings-card-title">支部制度参数</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部</span>
       </div>
-      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（数据单一源 = policy-defaults）。本页不开放直改：制度刚性锁定，如需按支部调整须书记/党委裁决后在系统层变更。</p>
+      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须书记/党委裁决后在系统层变更。</p>
       <dl class="settings-kv">${rows}</dl>
       <div class="settings-note" style="margin-top:14px;">
         <span class="settings-note-dot"></span>
         制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行口径（含开源部署调整面，均不在本页直改）。
       </div>
       <div class="myws-hint">
-        <b>支部制度可调参数：暂无。</b>当前 policy 覆盖白名单（POLICY_OVERRIDABLE）内均为「职责参数（L2）」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续被书记/党委裁决放开为支部可调，将在本区出现并登记白名单——后续按裁决扩展。
+        <b>支部制度可调参数：暂无。</b>当前本支部可调整的范围内均为「职责参数」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续由书记/党委裁决放开为支部可调，将在本区出现并开放调整——后续按裁决扩展。
       </div>
     </div>`;
 }
@@ -1020,7 +1020,7 @@ function domainCardHtml(meta, branch, P) {
               <input type="number" id="pol-inp-disc-days" class="input-flat text-xs w-20 text-center" min="1" max="90" value="${cur}" inputmode="numeric">
               <span class="text-xs text-gray-600">天未确认判超期</span>
             </label>
-            <div class="text-[11px] text-gray-500 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+            <div class="text-[11px] text-gray-500 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。</div>
           </dd>
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
@@ -1064,7 +1064,7 @@ function domainCardHtml(meta, branch, P) {
             </dd>
           </div>
         </div>
-        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认'}。</div>
+        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-org">保存</button>
           <button type="button" class="myws-btn-ghost" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1089,7 +1089,7 @@ function domainCardHtml(meta, branch, P) {
             <input type="checkbox" id="pol-leader-enabled" class="w-4 h-4 accent-[var(--app-accent,#B91C1C)]" ${curOn ? 'checked' : ''}>
             <span class="text-xs text-gray-700">开启「学期组员进展归集提醒」（默认开）</span>
           </label>
-          <div class="text-[11px] text-gray-500 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部覆盖值生效' : '= 制度默认（开）'}。</div>
+          <div class="text-[11px] text-gray-500 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致（开启）'}。</div>
         </dd>
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">

@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/todo-domain.test.mjs — IA 收敛 C1 Task1：待办「业务域」枚举与兼容推断（2026-09-07）
 // 依据：.trae/specs/2026-09-06-ia-todo-cards/spec.md（书记裁定 9 域 + NONE）+ plan-c1.md Task1
-// 覆盖（member-persist 桩范式；seed 用 mockDB.todos 直插构造记录）：
+// 覆盖（member-persist 桩做法；seed 用 mockDB.todos 直插构造记录）：
 //   ① WORK_DOMAIN 导出含 9 域 + {NONE}；WORK_DOMAIN_LABELS 中文齐全
 //   ② inferDomain：有 domain 原样返回（不覆盖）
 //   ③ inferDomain：无 domain 按 actionKey/actionType 推断——映射表逐条断言

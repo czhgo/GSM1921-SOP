@@ -9,7 +9,7 @@
 //      agendaVotes/reviewRequests 等 INIT_BLOB_CLEAR_DEFAULTS 全部键）置空默认（[]/{} / null）；
 //      未知扩展键原样保留；入参不被改动
 //   ② 空态自洽：init 后主库业务域零记录 → 零演示成员 id 引用；骨架键（账号/支部 config）非空
-//   ③ collectInitKeys（纯）：移除独立业务/过程键（issue 草稿/缓存/未读/提交、确权队列、决议跟进、
+//   ③ collectInitKeys（纯）：移除独立业务/过程键（issue 草稿/缓存/未读/提交、成员变更确认队列、决议跟进、
 //      向导草稿、预览、分工草稿、旧版单域遗留键等，精确+前缀）；白名单独立键
 //      （members-overlay/residence/login-user/theme/accent/font/auth-audit）与无关键不移除
 //   ④ handleInitResetIfRequested 执行（window/localStorage/sessionStorage 内存桩）：

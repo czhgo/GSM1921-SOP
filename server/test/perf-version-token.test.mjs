@@ -2,7 +2,7 @@
 // server/test/perf-version-token.test.mjs — P0 提速批护栏：域写版本戳 bump 正确性（2026-09-07）
 // 依据：.trae/specs/2026-09-07-perf/spec.md §二.3/§五（version-token 域缓存：各域写口至少一条
 // 「写 → tokenOf 递增 / 聚合读数变化；未写 → tokenOf 不变」+ resetAllTokens 生效）
-// 覆盖（member-persist 桩范式）：
+// 覆盖（member-persist 桩做法）：
 //   attendance / inspection / activityReview / taskforce / resolution / signup
 //   每域：① 未写时连续 tokenOf 读数不变；② 走 service 写口后 tokenOf 递增；
 //   ③ resetAllTokens 清空后全部归零、可重新 bump。

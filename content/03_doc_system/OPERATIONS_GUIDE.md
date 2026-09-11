@@ -346,7 +346,7 @@ H10.1.1 ← 三级章节（细则，仅在必要时使用）
 | H90 | 外部权威源索引 | 外部权威源导航表（按需参考层）                                 |
 | H100 | 项目产出声明  | 系统最最重要的产出/逻辑缺漏与书记亲补/引用流程                       |
 
-> **理论基石**已外移到 [SECRETARY\_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档，17 条论断，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱/纪律**见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（5 分篇索引）。
+> **理论基石**已外移到 [SECRETARY\_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档，论断清单以文件实际为准，P-002/P-003 为元命题）；**运行标准**即本文件（OPERATIONS\_GUIDE.md）；**日志规范**见本文件 §10；**已知陷阱/纪律**见 [05 AI 协作方法论层 README](../05_ai_coding/README.md)（5 分篇索引）。
 
 ### 9.2 乙部任务编号体系
 

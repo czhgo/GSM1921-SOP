@@ -9,7 +9,7 @@
 //   · 顶卡面板（renderMemberChangePanelHtml 等）移除——secretary/org 待办页顶部不再挂 member 面板卡，
 //     确认位唯一化 = 「成员发展」域实时组内批量块（secretary:member-confirm / org-commissioner:member-approve）；
 //   · buildMcBulkRows 统一两类来源行：agenda=会议待讨论名单（memberChangeRequests，来源徽标）
-//     / roster=名册报送确权（member-confirmation pending，来源徽标区分）；
+//     / roster=名册报送确认（member-confirmation pending，来源徽标区分）；
 //   · renderMcBulkRowsHtml：checkbox 列 + 全选 + 「确认/通过 N 项」+ 来源徽标 + 从→到 + 发起·时间；
 //   · bindMcBulk：全选/计数/批量写口 + onDone 重渲染；单条写口抽出
 //     approveMemberChangeRequest/confirmMemberChangeRequest 供逐项（详情）/批量共用——
@@ -28,7 +28,7 @@ import { loadActivities } from '../services/activity.js?v=20260911a';
 import { showToast, escHtml as esc } from '../core/utils.js?v=20260911a';
 import { NoticeStore } from '../services/notice.js?v=20260911a';
 import { AuthStore } from '../services/auth.js?v=20260911a';
-// roster=名册报送确权链（组织委员发起 → 书记确认/退回；bulk 行仅确认，退回留在详情逐项）
+// roster=名册报送确认链（组织委员发起 → 书记确认/退回；bulk 行仅确认，退回留在详情逐项）
 import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260911a';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
@@ -68,7 +68,7 @@ export function getCachedMemberChangeRequests() {
 /**
  * 汇总待处理批量行（同步纯计算；依赖 onBeforeRender 已 preload agenda 链缓存）。
  * agenda=会议待讨论名单（memberChangeRequests，pending-org-approval / pending-secretary 按 mode）
- * roster=名册报送确权（member-confirmation pending，仅书记 secretary-confirm 侧）。
+ * roster=名册报送确认（member-confirmation pending，仅书记 secretary-confirm 侧）。
  * @param {'secretary-confirm'|'org-approve'} [mode]
  * @returns {Array<{id:string, source:'agenda'|'roster', personName:string, from:string, to:string,
  *                   meta:string, byName:string, at:string}>}

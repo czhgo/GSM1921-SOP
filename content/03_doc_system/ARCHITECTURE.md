@@ -93,7 +93,7 @@ Layer 5: 经验沉淀（跨多类知识类型）
   └─ content/insights/                    [用户]+[AI] 经验沉淀（双文件）
 
 Layer 6: 实现层（代码实现与运行时）
-  └─ docs/                                [用户]+[AI] 前端代码层（12 根 HTML + workspace/ 7 工作台 + ESM 模块化源码）
+  └─ docs/                                [用户]+[AI] 前端代码层（根页面 + 工作台 + ESM 模块化源码，页面清单以 docs/ 实测为准）
   └─ server/                              [工程师]+[AI] Node 一体化后端（Express + better-sqlite3）
 
 Layer 7: 审计参考层（审计与参考）
@@ -112,7 +112,7 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── server.js / app.js / db.js / seed.js   [工程师]+[AI] 后端核心
 │   ├── routes/                        [工程师]+[AI] auth / committee / member / report / resources / uploads
 │   └── test/                          [工程师]+[AI] 测试
-├── docs/                              [工程师]+[AI] 前端代码层（12 根 HTML + workspace/ 7 工作台 + ESM 模块化源码）
+├── docs/                              [工程师]+[AI] 前端代码层（根页面 + 工作台 + ESM 模块化源码，页面清单以 docs/ 实测为准）
 │   ├── index.html                     [用户]+[AI] 主页（通知/招募/活动日历/待办）
 │   ├── notice.html                    [用户]+[AI] 通知独立页
 │   ├── about.html                     [用户]+[AI] 支部的故事
@@ -125,7 +125,7 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── taskforce.html                 [用户]+[AI] 专班详情独立页（通知直达详情）
 │   ├── wizard.html                    [用户]+[AI] 换组织向导独立页（书记/副书记本支部、党委任意支部；5 步换壳）
 │   ├── settings.html                  [用户]+[AI] 设置中心（外观/我的工作台/支部治理·域参数，按登录角色分区）
-│   ├── workspace/                     [用户]+[AI] 角色工作台页面（7 个 HTML）
+│   ├── workspace/                     [用户]+[AI] 角色工作台页面（HTML，清单见下）
 │   │   ├── secretary.html             [用户]+[AI] 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
 │   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
@@ -148,7 +148,7 @@ Layer 7: 审计参考层（审计与参考）
 ├── content/                           [用户]+[AI] 内容中心（按 5 类知识类型组织，见第四章）
 │   ├── 01_strategy/                  [用户]+[AI] 战略层（支部为什么存在、根本目标、战略路线）
 │   │   ├── DEVELOPMENT_PATH.md       [用户]+[AI] "管理事、服务人"战略
-│   │   ├── SECRETARY_DIRECTIVES.md [用户]+[AI] 党支书工作交接文档（项目顶级战略文档，17 条论断）
+│   │   ├── SECRETARY_DIRECTIVES.md [用户]+[AI] 党支书工作交接文档（项目顶级战略文档，论断清单以文件实际为准）
 │   │   ├── README.md                 [用户]+[AI] 战略层目录索引
 │   │   └── references/               [用户] 参考材料与模板（合规文件/历史会议材料/建设探索）
 │   ├── 02_institution/               [用户]+[AI] 制度层（组织架构、分工、SOP）

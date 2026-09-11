@@ -17,7 +17,7 @@ import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=202609
 // 背景：工作台首帧内容容器 0 高 + 懒加载 tab import 完成前内容区空 → 数据/模块到达时
 //       整块内容弹出造成布局弹跳。此处统一提供两类占位：
 //   1) 骨架卡（tabContentSkeletonHtml）：容器为空（首帧/壳期）→ 固定 min-height 灰块 pulse，
-//      视觉沿用首页正确范式 dashboard/stats.js 骨架（styles.css 禁改不碰，全 tailwind/内联）。
+//      视觉沿用首页正确做法 dashboard/stats.js 骨架（styles.css 禁改不碰，全 tailwind/内联）。
 //   2) 轻量 loading 行（TAB_LOADING_BAR_HTML）：已有旧内容（切 tab/数据刷新）→ 置灰 + 顶部加载行，
 //      避免旧内容硬留到新内容突然整块替换。
 // 两处共用：workspace-shell 壳顶层 await 期间注入骨架；tab-bar 每次渲染启动前按容器状态选择占位。

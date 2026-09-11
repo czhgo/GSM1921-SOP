@@ -4299,8 +4299,9 @@ label .text-red-500 {
   html.theme-dark .help-toc-dot-item:hover .help-toc-dot-mark {
     background: #94A3B8 !important;
   }
+  html.theme-dark .help-toc-item { color: #CBD5E1 !important; }
 
-  /* help 页（系统说明书 doc 静态页）深色适配——正文内联 .doc-*/.qn-*/.nav-tree 全硬编码浅色，逐一覆盖 */
+  /* help 页（系统说明书 doc 静态页）深色适配——正文内联 .doc-* / .qn-* / .nav-tree 全硬编码浅色，逐一覆盖 */
   html.theme-dark .doc-card { background: #141D2F !important; border-color: #334155 !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important; }
   html.theme-dark .doc-h2 { color: #F1F5F9 !important; }
   html.theme-dark .doc-h2 .doc-num { color: var(--party-red) !important; }

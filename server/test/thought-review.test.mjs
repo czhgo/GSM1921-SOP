@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/thought-review.test.mjs — R6-2 思想汇报「把关式初阅」状态机 服务层（2026-09-07）
-// 覆盖（mock 形态，纯 node + localStorage 内存桩，member-persist 同范式：
+// 覆盖（mock 形态，纯 node + localStorage 内存桩，member-persist 同做法：
 //   beginMockCase 清 mockDB 业务域 + MockAdapter.loadDB 回种子；registerMockAdapter 使
 //   persist() 真实落 localStorage 桩 → 可模拟「刷新重载」验证持久化）：
 //   ① addThoughtReport 新提交 → reviewStatus='pending'（待组织初阅）+ 站内通知文案含「待组织初阅」

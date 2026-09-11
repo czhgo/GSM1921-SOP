@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/branch-config-audit.test.mjs — 支部 config 审计内核（2026-09-09 书记批 B1/B2）
-// 纯 Node：mock 形态 + localStorage 内存桩（范式同 policy-config.test.mjs）+ 自包含 server HTTP：
+// 纯 Node：mock 形态 + localStorage 内存桩（做法同 policy-config.test.mjs）+ 自包含 server HTTP：
 //   ① why 透传：各写口（updateBranchModules/updateBranchBlocks/updateBranchWorkforce/
 //      savePolicyOverrides/updateBranchOrg）opts.why → 留痕行 why；默认 undefined 不写（向后兼容）
 //   ② rollbackBranchConfig：定位（targetEntryAt/index）、单键 to→from 写回、追加 rollback 留痕

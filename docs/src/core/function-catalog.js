@@ -75,7 +75,7 @@ export const FUNCTION_CATALOG = [
   { id: 'flow-makeup', name: '补课回写链路', group: '党建', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
   { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交 → 组织委员初阅把关（通过归档 / 退回附意见重交）→ 归集个人档案', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
-  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台 19 页（12 根 + 7 工作台） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
+  { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台（根页面 + 工作台，页面清单以 docs/ 实测为准） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },
   { id: 'arch-data-flow', name: '数据变更链路', group: '公共', desc: '制度母本 → 服务层 → 入口层 → 页面；UI 禁止直改数据源', related: ['arch-layers'], generic: true, kind: 'arch' },
 ];

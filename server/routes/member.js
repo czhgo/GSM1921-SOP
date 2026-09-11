@@ -141,10 +141,10 @@ export function createMemberRouter(db) {
     res.json(updated);
   });
 
-  // ── 名册确权链 · 书记阶段写入语义端点（C-2 方案 B，2026-09-11 书记批）──────────
-  // 背景：确权链「书记确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
+  // ── 名册成员变更确认链 · 书记阶段写入语义端点（C-2 方案 B，2026-09-11 书记批）──────────
+  // 背景：成员变更确认链「书记确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
   // 而 resources.js 的 users 写权矩阵仅 party-staff（RESOURCE_WRITE_GATE.users）→ 书记 role='secretary'
-  // 被 403 阻断，确权链在 API 形态断裂。本端点复用既有书记专属直写通道（语义同 member.js confirm）：
+  // 被 403 阻断，成员变更确认链在 API 形态断裂。本端点复用既有书记专属直写通道（语义同 member.js confirm）：
   //   · 权限 = requireRole(SECRETARY_AND_DEPUTY_ROLES)（副书同权 2026-09-11 书记裁定；
   //     委员/党委组织员一律 403，不扩大越权面）；
   //   · 同支部校验（actor 归属支部 vs 目标成员归属支部，缺省 br-b1，与 resources.js 口径一致）；
@@ -197,7 +197,7 @@ export function createMemberRouter(db) {
   };
   const firstOutside = (body, allowed) => Object.keys(body).find((k) => !allowed.includes(k));
 
-  // ① 在册状态镜像：确权链书记/副书记确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
+  // ① 在册状态镜像：成员变更确认链书记/副书记确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
   router.post('/members/:id/residence-status', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, RESIDENCE_FIELDS);

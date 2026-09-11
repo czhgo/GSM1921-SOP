@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/todo-domain-view.test.mjs — IA 收敛 C1 Task3：TodoStore 按业务域聚合视图（2026-09-07）
 // 依据：.trae/specs/2026-09-06-ia-todo-cards/plan-c1.md Task3 + spec.md 二节（聚合/分组输出域序固定）
-// 覆盖（member-persist 桩范式；seed 用 mockDB.todos 直插构造记录）：
+// 覆盖（member-persist 桩做法；seed 用 mockDB.todos 直插构造记录）：
 //   ① DOMAIN_ORDER 导出：9 域固定顺序（会务→活动项目→考勤纪律→考察→成员发展→专班→
 //      决议上报→归档宣传→汇报反馈），NONE 不入列；顺序与 WORK_DOMAIN_LABELS 齐全
 //   ② TodoStore.getDomainsWithGroups(role)：返回 [{domain,label,count,expiredCount,groups}]
@@ -321,7 +321,7 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
   assert.deepEqual(urgeRolesOf({ actionKey: 'archive-remind', items: [] }), ['prop-commissioner']);
   assert.deepEqual(urgeRolesOf({ actionKey: 'semester-detained-remind', items: [] }), ['org-commissioner']);
 
-  // 复核类/成员确权（责任人=书记本人，不在表内）→ 空
+  // 复核类/成员变更确认（责任人=书记本人，不在表内）→ 空
   assert.deepEqual(urgeRolesOf({ actionKey: 'attendance-confirm', items: [] }), []);
   assert.deepEqual(urgeRolesOf({ actionKey: 'inspection-confirm', items: [] }), []);
   assert.deepEqual(urgeRolesOf({ actionKey: 'review-confirm', items: [] }), []);

@@ -128,7 +128,7 @@ export async function createWorkspaceShell(opts) {
 
   // 注入骨架卡（固定 min-height）；_ensureTabBar 首建 innerHTML 时整体替换为 tab 栏 + 内容占位。
 
-  // 视觉沿用首页骨架范式（dashboard/stats.js）；styles.css 不改、?v= 不动。
+  // 视觉沿用首页骨架做法（dashboard/stats.js）；styles.css 不改、?v= 不动。
 
   const _shellRoot = document.getElementById(containerId);
 
@@ -411,7 +411,7 @@ export async function createWorkspaceShell(opts) {
 
     // 的二次整块替换/内容闪跳。守卫在 fallback 种子映射之前：LOADING 期不预填数据触发额外渲染轮。
 
-    // 参照正确范式 main-entry.js:55-59（isLoading 守卫；dashboard 因骨架渲染需求保留 LOADING 帧）。
+    // 参照正确做法 main-entry.js:55-59（isLoading 守卫；dashboard 因骨架渲染需求保留 LOADING 帧）。
 
     if (state.status === STATE.LOADING && activities.length === 0) return;
 

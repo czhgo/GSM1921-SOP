@@ -245,7 +245,7 @@ export function urgeRolesOf(group, ctx = {}) {
     }
     return [...roles];
   }
-  // ④ 实时派生组静态映射（复核类/成员确权等责任人=书记本人，不在表内 → []）
+  // ④ 实时派生组静态映射（复核类/成员变更确认等责任人=书记本人，不在表内 → []）
   const mapped = URGE_ROLE_BY_ACTION[key];
   return mapped ? [mapped] : [];
 }

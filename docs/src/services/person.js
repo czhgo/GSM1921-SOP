@@ -109,7 +109,7 @@ export const PersonStore = {
    * @param {Object} [opts]
    * @param {string} [opts.by] - 操作人（审计预留；不写入成员档案字段）
    * @param {boolean} [opts.residenceMirror] - api 形态：在册状态镜像写入走书记/副书记语义端点
-   *   （POST /members/:id/residence-status，确权链书记确认生效调用点；缺省 false → 走组织委员名册档案端点）
+   *   （POST /members/:id/residence-status，成员变更确认链书记确认生效调用点；缺省 false → 走组织委员名册档案端点）
    * @returns {Promise<{ok:boolean, member?:Object, reason?:string}>}
    */
   async saveMember(updates, opts = {}) {
@@ -506,7 +506,7 @@ async function _apiAdapterUsers() {
   return ApiAdapter.users;
 }
 
-/** 名册确权链写口（C-2 方案 B）：书记专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
+/** 名册成员变更确认链写口（C-2 方案 B）：书记专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
   const { ApiAdapter } = await import('../core/api-adapter.js?v=20260911a');
   return ApiAdapter.members;
@@ -561,7 +561,7 @@ async function _apiSaveMember(updates, opts = {}) {
       if (Object.prototype.hasOwnProperty.call(patch, 'developStage')) {
         saved = await members.setDevelopStage(id, patch.developStage);
       }
-      // ② 在册相关字段 → 确权链书记镜像走 residence-status；名册行内维护走 profile（组织委员）
+      // ② 在册相关字段 → 成员变更确认链书记镜像走 residence-status；名册行内维护走 profile（组织委员）
       const residence = _pick(patch, API_RESIDENCE_FIELDS);
       if (Object.keys(residence).length > 0) {
         saved = opts.residenceMirror

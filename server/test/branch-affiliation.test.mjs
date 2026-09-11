@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/branch-affiliation.test.mjs — 支部归属显式化（2026-09-09 书记批 A1/A2）
-// 纯 Node（无浏览器、不起 server；mock 形态 + localStorage 内存桩，范式同 policy-config.test.mjs）：
+// 纯 Node（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 policy-config.test.mjs）：
 //   ① getBoundBranch 归属判定矩阵（person 不存在 / branchId null/空 / branchId 查无 → null；查有 → branch；
 //      party-staff（branchId null）→ null）
 //   ② getBranchIdOfPerson 保留数据解析兜底语义（演示/存量兼容：undefined/查无档案/p_pc → 'br-b1'）

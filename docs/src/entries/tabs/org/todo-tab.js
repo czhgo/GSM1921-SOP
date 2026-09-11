@@ -14,7 +14,7 @@ import { HandoffStore } from '../../../services/handoff.js?v=20260911a';
 import { PersonStore } from '../../../services/person.js?v=20260911a';
 import { openFormModal } from '../../../components/modal.js?v=20260911a';
 import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260911a';
-// 发展推进覆盖（进入当前阶段日期）读口：与确权链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
+// 发展推进覆盖（进入当前阶段日期）读口：与成员变更确认链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
 import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260911a';
 
 function _handleTodoAction(todo, ctx) {

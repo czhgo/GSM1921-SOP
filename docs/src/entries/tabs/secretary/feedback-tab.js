@@ -110,7 +110,7 @@ function _renderFeedbackPager(total) {
       <div class="flex items-center gap-1">
         <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}" data-feedback-page="${n}">${n}</button>
+          <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-feedback-page="${n}">${n}</button>
         `).join('')}
         <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>
@@ -388,7 +388,7 @@ function renderIssueDetail(issueId) {
     html += `<p class="text-xs text-gray-500">尚未指派</p>`;
   }
   // 指派选择器（默认隐藏）
-  html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100">`;
+  html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">`;
   html += `<p class="text-xs text-blue-700 mb-2">选择指派目标</p>`;
   html += `<div class="flex flex-wrap gap-2">`;
   ASSIGNEE_OPTIONS.forEach(opt => {

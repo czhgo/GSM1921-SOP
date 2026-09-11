@@ -95,15 +95,15 @@ mindmap
 
 ## 三、功能说明
 
-### 3.1 页面构成：12 根页 + 7 工作台（共 19 页）
+### 3.1 页面构成（页面清单以 docs/ 实测为准）
 
 | 类型 | 页面 | 用途 |
 |------|------|------|
-| 根页（12） | [index.html](docs/index.html) / [login.html](docs/login.html) | 首页 / 登录（登录直达对应角色工作台「今天」页） |
+| 根页 | [index.html](docs/index.html) / [login.html](docs/login.html) | 首页 / 登录（登录直达对应角色工作台「今天」页） |
 | | search / feedback / archive | 资料查询（含支部文件） / 意见反馈 / 归档库 |
 | | activity / taskforce / notice | 活动与会议详情 / 专班详情 / 通知 |
-| | wizard / help / about / settings | 支部配置向导（5 步） / 帮助手册 / 关于 / 设置中心（外观 / 我的工作台 / 支部治理） |
-| 工作台（7） | secretary.html | 书记工作台（书记 / 副书记**共台**） |
+| | wizard / help / about / settings | 支部配置分步向导 / 帮助手册 / 关于 / 设置中心（外观 / 我的工作台 / 支部治理） |
+| 工作台 | secretary.html | 书记工作台（书记 / 副书记**共台**） |
 | | org / prop / disc | 组织 / 宣传 / 纪检委员工作台 |
 | | leader / visitor | 党小组组长 / 成员工作台 |
 | | party-committee.html | **党委工作台**（组织级：监控全院支部、管理支部实例，不参与支部内部事务） |
@@ -115,7 +115,7 @@ mindmap
 登录后直达对应工作台并落在「**今天**」页（置首 tab = 登录落点）；各工作台 tab 按「工作台 → 党建（职责）→ 反馈 → 对接党委」分组：
 
 - **今天** — 只读速览（今天有会 / 今天到期 / 今日分工），全部点击 ≤1 跳直达处理处
-- **待办** — 页顶「未读通知 N 条」轻量条 + **9 个工作域折组**：①会务 ②活动/项目 ③考勤纪律 ④考察 ⑤成员发展 ⑥专班 ⑦决议上报 ⑧归档宣传 ⑨汇报反馈（实时提醒组并入对应域）；域内提供批量确认，如「成员发展」域批量勾选确认/退回成员变更（发展阶段/在册状态/移出）
+- **待办** — 页顶「未读通知 N 条」轻量条 + **工作域折组**：会务、活动/项目、考勤纪律、考察、成员发展、专班、决议上报、归档宣传、汇报反馈等（实时提醒组并入对应域）；域内提供批量确认，如「成员发展」域批量勾选确认/退回成员变更（发展阶段/在册状态/移出）
 - **工作概况** — 汇报 / 卡点 / 在办三区总览（书记台为「全局概况」，按维度/按人）
 - **党建职责 tab 群** — 各角色职责域（见下）
 - **我的处置** — 意见反馈 / 汇报的收件处理位（组长台为「组员进展」内待答复）
@@ -139,7 +139,7 @@ mindmap
 - **上报党委双向通道**：支部关键事项（发展节点/活动报备）上报 → 党委逐项审批（通过/批驳）结论回传支部；党委侧另有下发通知通道
 - **资料查询与支部文件版本化**：全站资料查询（search）；支部文件支持**上传新版=旧版归档可查**、现行/停用态、制度文本仅书记可新建
 - **数据交接**：三委间固定交接协议（纪检→宣传 考勤备案 / 纪检→组织 考察记录提交 / 组织→纪检 补课需求回执），生成即自动为接收方派生待办、确认即销项，双向可追溯
-- **支部配置向导 5 步**：组织信息 → 模块/块组合 → 角色分工 → 术语制度指引+工作单 → 验证与重置（含完成报告），草稿可续走；入口=wizard.html + 设置→支部治理（书记 / 副书记，副书同权）+ 党委台「支部配置」（权限分轨）
+- **支部配置分步向导**：组织信息 → 模块/块组合 → 角色分工 → 术语制度指引+工作单 → 验证与重置（含完成报告），草稿可续走；入口=wizard.html + 设置→支部治理（书记 / 副书记，副书同权）+ 党委台「支部配置」（权限分轨）
 - **数据一键重置三档**：`?reset=demo`（回演示种子）/ `?reset=preview`（只清运行时预览草稿）/ `?reset=init`（**一键初始化**：清空业务过程数据、保留组织骨架——账号/成员档案/支部配置/分工/术语/主题，空支部起步）
 
 全站交互遵循书记倡导的 **closed-loop「确认闭环」表达文化**：动作必有回执与状态回读，不悬空（出处见 [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md)）。
@@ -189,7 +189,7 @@ npm start
 
 ### 技术形态
 
-原生 **ESM 模块**、**无打包器 / 无构建步骤**（浏览器直接加载 `docs/src/*.js`）；前端静态（`docs/`）+ 后端可选（`server/`，Express + better-sqlite3 单进程，同源托管页面与 `/api/v1` REST，26 个持久化域全量对称）。
+原生 **ESM 模块**、**无打包器 / 无构建步骤**（浏览器直接加载 `docs/src/*.js`）；前端静态（`docs/`）+ 后端可选（`server/`，Express + better-sqlite3 单进程，同源托管页面与 `/api/v1` REST，全部持久化域前后端对称，以对账清单为准）。
 
 ### 目录结构
 
@@ -215,7 +215,7 @@ content/ 文档是**书记批改的权威源**（制度先改文本、后同步�
 
 - 待办/今天域：`todo-domain` / `todo-deriver-domain` / `todo-domain-view` / `today-summary`
 - 性能守卫：`perf-render-guard` / `perf-todo-agg-cache` / `perf-version-token` / `perf-index-equivalence`
-- 确权/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
+- 成员确认/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
 - 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与锚点守护）/ `function-map-sync`（功能地图漂移守护）等
 
 子集回归：`npm run test:core` / `npm run test:fast`（清单见 [server/package.json](server/package.json)）。

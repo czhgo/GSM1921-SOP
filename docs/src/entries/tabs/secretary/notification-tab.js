@@ -67,7 +67,8 @@ function renderNotificationForm() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-600">*</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   NOTIFICATION_AUDIENCES.forEach(a => {
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg">${a.label}</button>`;
+    const on = _selectedAudience.includes(a.value);
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -106,6 +107,8 @@ function handleNotifAction(e) {
           b.className = isSelected
             ? 'chip-accent-on chip-option text-sm px-4 py-2 rounded-lg font-medium'
             : 'chip-option text-sm px-4 py-2 rounded-lg';
+          if (isSelected) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)');
+          else b.style.removeProperty('--acc-text-dark');
         });
       }
       break;
@@ -245,7 +248,7 @@ function _openNoticeEditModal(notice) {
   const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
   const chips = NOTIFICATION_AUDIENCES.map(a => {
     const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
-    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}">${a.label}</button>`;
+    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
   }).join('');
 
   openModal({

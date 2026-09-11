@@ -120,9 +120,9 @@ test('未设门资源（activities）写行为不变：登录即可创建，未�
   assert.equal(anon.status, 401, '未登录仍被拒');
 });
 
-// C-2 方案 B（2026-09-11 书记批）：名册确权链「书记阶段写入」语义端点权限边界
+// C-2 方案 B（2026-09-11 书记批）：名册成员变更确认链「书记阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅书记（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
-test('确权链阶段端点：书记/副书记本支部 200 且落库；非书记侧 403；跨支部 403；白名单/枚举 400', async () => {
+test('成员变更确认链阶段端点：书记/副书记本支部 200 且落库；非书记侧 403；跨支部 403；白名单/枚举 400', async () => {
   const { token: secToken } = await login('p13');      // br-b1 书记
   const { token: depToken } = await login('p14');      // br-b1 副书记（副书同权 2026-09-11）
   const { token: orgToken } = await login('p11');      // br-b1 组织委员（非书记侧）

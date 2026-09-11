@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/today-summary.test.mjs — R6-3「今天」页服务层 today-summary（2026-09-07）
-// 覆盖（mock 形态，纯 node + localStorage 内存桩，member-persist 同范式：
+// 覆盖（mock 形态，纯 node + localStorage 内存桩，member-persist 同做法：
 //   beginMockCase 清 mockDB 业务域 + MockAdapter.loadDB() 回种子）：
 //   ① 在册非滞留党员 → hasMeeting 含当日应到支部党员大会（roster 口径，项含
 //      {activityId,title,type,start}）；党小组会按本人所在小组应到命中

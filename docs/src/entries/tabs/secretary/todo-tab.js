@@ -36,7 +36,7 @@ import { renderReportInboxHtml, bindReportInbox } from '../../../components/repo
 import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260911a';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260911a';
 import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260911a';
-// C 批 附录⑩ S4：名册确权复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
+// C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
 import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260911a';
 import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260911a';
@@ -107,14 +107,14 @@ function _extraTopHtml() {
   return `${inboxHtml}${committeeTfHtml}`;
 }
 
-/** 详情区自定义按钮（一键确认复核 / 成员确权逐项确认·退回 / 学期末「知道了」）；
+/** 详情区自定义按钮（一键确认复核 / 成员变更确认逐项确认·退回 / 学期末「知道了」）；
  *  remind·seed 详情共用 secretary-todo-detail-action 由壳默认绑定 handleTodoAction */
 function bindTodoDetailExtras(container, api) {
   container.querySelector('.secretary-todo-detail-confirm')?.addEventListener('click', () => {
     const group = api.selectedTodo;
     if (group) confirmGroup(group, api);
   });
-  // C 批 附录⑩ S4：成员变更确权（确认生效 / 退回）+ 学期末提醒「知道了」
+  // C 批 附录⑩ S4：成员变更确认（确认生效 / 退回）+ 学期末提醒「知道了」
   container.querySelectorAll('.mc-decide').forEach(btn => {
     btn.addEventListener('click', () => _onMcDecide(btn, api));
   });
@@ -369,7 +369,7 @@ const _tab = createTodoTab({
   onUrgeTodo: _handleUrge,
   // IA-C1 Task4：实时组（书记派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
-  // 自定义详情（confirm/remind/成员确权逐项面板；种子行动类走内置概要）
+  // 自定义详情（confirm/remind/成员变更确认逐项面板；种子行动类走内置概要）
   renderDetail: renderTodoDetail,
   detailTitle: '待办详情',
   // 书记台以实时组为主（销项走一键确认/业务联动），不提供组删除
@@ -420,7 +420,7 @@ function _locatePendingTarget(container) {
 // ── 详情卡：按聚合类型分发（confirm / remind / 种子行动类；C 批自定义组优先） ────
 function renderTodoDetail(todo) {
   const actionKey = todo.actionKey || '';
-  // C 批 附录⑩ S4：成员变更确权（逐项 确认/退回）+ 学期末滞留集中复核（自定义详情）
+  // C 批 附录⑩ S4：成员变更确认（逐项 确认/退回）+ 学期末滞留集中复核（自定义详情）
   if (todo.groupKey === 'secretary:member-confirm') return renderMemberConfirmDetail(todo);
   if (todo.groupKey === 'secretary:semester-detained-remind') return renderSemesterDetainedDetail(todo);
   if (todo.kind === 'confirm' || actionKey.endsWith('-confirm')) return renderConfirmDetail(todo);
@@ -537,7 +537,7 @@ function renderSeedDetail(todo) {
   `;
 }
 
-// ── C 批 附录⑩ S4：成员变更确权（待确认组 + 逐项确认/退回） ────
+// ── C 批 附录⑩ S4：成员变更确认（待确认组 + 逐项确认/退回） ────
 
 /** 书记操作人（确认/退回留痕 decidedBy；兜底 p13 书记位） */
 function _secActorId() {
@@ -546,7 +546,7 @@ function _secActorId() {
 
 /** 待确认聚合组（两链皆空返回 null；kind=confirm 复用既有「点行进详情面板」交互）。
  * 裁决批一（D1/D3）：组带 bulkHtml（域内批量确认块）——agenda=会议待讨论名单（memberChangeRequests
- * pending-secretary）+ roster=名册报送确权（member-confirmation pending，来源徽标区分）；
+ * pending-secretary）+ roster=名册报送成员变更确认（member-confirmation pending，来源徽标区分）；
  * count=批量行总数（行尾角标与批量块一致）；items 保留 roster 供详情逐项确认/退回。 */
 function _mcConfirmAgg() {
   const rosterItems = listPendingConfirmations();
@@ -594,7 +594,7 @@ function _semesterRemindAgg() {
   };
 }
 
-/** 成员变更确权详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要）。
+/** 成员变更确认详情：逐项展示（kind 徽标 / 姓名 / from→to / 发起人 / 时间 / 备注 / 移出保持摘要）。
  * 裁决批一（D1/D3）：详情=名册报送逐项（确认/退回）；议程链（议程）项走左列批量块勾选确认，
  * agendaCount>0 时给出引导（避免「仅议程待确认」时详情误读为空）。 */
 function renderMemberConfirmDetail(group) {
@@ -614,7 +614,7 @@ function renderMemberConfirmDetail(group) {
   `;
 }
 
-/** 单条确权请求卡：展示 + 确认生效 / 退回 */
+/** 单条成员变更确认请求卡：展示 + 确认生效 / 退回 */
 function _mcReqCard(req) {
   const action = req.action;
   const kindLabel = MC_ACTION_LABEL[action] || (req.kind === 'transferOut' ? '移出' : '变更');

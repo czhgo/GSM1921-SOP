@@ -86,7 +86,7 @@ function renderAssignLeaders() {
     const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
     return `
       <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record ? record.id : ''}">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
@@ -322,7 +322,7 @@ function renderAuthPanel(assignArea) {
   PARTY_GROUPS.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
     const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
-    html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}">${group}</button>`;
+    html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${group}</button>`;
   });
   html += `</div>`;
   html += `</div>`;

@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/policy-config.test.mjs — 批4 域参数 policyOverrides（书记 2026-09-09 批）防漂移单测
-// 纯 Node 测试（无浏览器、不起 server；mock 形态 + localStorage 内存桩，范式同 member-confirmation.test）：
+// 纯 Node 测试（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 member-confirmation.test）：
 //   ① policy-defaults 批4 新节结构与默认值（memberConfirmation 窗 / leader 学期提醒 / attendance·review 阈值）
 //   ② sanitizeConfigPolicyOverrides 白名单/类型校验/数值范围钳制（天数 1..90、布尔严格、窗口合法月日/去重/限 2 窗）
 //   ③ 读侧注入 applyBranchPolicyOverrides：覆盖生效 / 无覆盖=保持默认 / 跨支部切换先复位不残留

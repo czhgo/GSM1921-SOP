@@ -152,9 +152,9 @@ function _groupReportRows(allIssues, group) {
     .slice(0, 8);
 }
 
-/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已闭环） */
+/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已办结） */
 function _reportRowState(issue) {
-  if (issue.status === 'closed') return { label: '已闭环', cls: 'bg-gray-100 text-gray-600' };
+  if (issue.status === 'closed') return { label: '已办结', cls: 'bg-gray-100 text-gray-600' };
   const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
   if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
   // 上级（书记/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复

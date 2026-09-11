@@ -72,7 +72,7 @@ export function renderContent(ctx) {
           <button id="weekly-add-btn" class="text-xs px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">+ 新增周次</button>
         </div>
         <!-- T-209 改进项②：新建周次内联表单（周次标签 + 日期范围） -->
-        <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100">
+        <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">
           <div class="text-[12px] font-bold text-gray-600 mb-2">新建周次</div>
           <div class="flex flex-col gap-2 mb-2">
             <input id="weekly-add-week" type="text" value="${weekDefaults.week}" placeholder="周次标签，如：第32周" class="input-flat w-full" />

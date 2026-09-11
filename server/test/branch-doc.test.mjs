@@ -23,7 +23,7 @@ import {
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
 } from '../../docs/src/services/branch-doc.js?v=20260911a';
 
-// ── localStorage 内存桩（member-persist 头 60 行同款范式）──
+// ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();
 globalThis.localStorage = {
   getItem: (k) => (_store.has(String(k)) ? _store.get(String(k)) : null),

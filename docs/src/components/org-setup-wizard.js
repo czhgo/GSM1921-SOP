@@ -310,7 +310,7 @@ function _headHtml(S, branch, org, isStaff) {
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p class="font-title-cn text-base font-bold text-gray-800">换组织向导</p>
-          <p class="text-xs text-gray-500">5 步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并留痕</p>
+          <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并留痕</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="text-[11px] px-2.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90" style="background:#C8102E;">新建支部…</button>` : ''}
@@ -400,7 +400,7 @@ function _createPanelHtml(S, isStaff) {
         </div>
       </div>
       ${appointSection}
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方 5 步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
@@ -528,7 +528,7 @@ function _stepperHtml(S) {
       : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
     return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'}
       class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-gray-100 text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
-      style="${isCur ? `background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
+      style="${isCur ? `--acc-text-dark:color-mix(in srgb, ${accent} 55%, #fff);background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
   }).join('');
   return `<div class="flex flex-wrap gap-2">${items}</div>`;
 }
@@ -1356,8 +1356,8 @@ async function _doCreate(S) {
     _persistDraft(S);
     _render(S);
     showToast('success', mode === 'copy'
-      ? `「${created.name}」已创建（配置复制自「${srcLabel || created.name}」）——新支部为空：在向导 5 步中确认组织信息/模块/分工，或按工作单补数据。${appointMsg}`
-      : `「${created.name}」已创建——新支部为空：在向导 5 步中填入组织信息/模块/分工，或按工作单补数据。${appointMsg}`);
+      ? `「${created.name}」已创建（配置复制自「${srcLabel || created.name}」）——新支部为空：在向导分步中确认组织信息/模块/分工，或按工作单补数据。${appointMsg}`
+      : `「${created.name}」已创建——新支部为空：在向导分步中填入组织信息/模块/分工，或按工作单补数据。${appointMsg}`);
   } catch (err) {
     console.error('[wizard] 新建支部失败', err);
     showToast('error', `新建支部失败：${(err && err.message) || err}`);

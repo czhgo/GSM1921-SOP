@@ -319,10 +319,10 @@ test('api ⑧：PersonStore api 形态 saveMember/removeMember 经名册语义�
   }
 });
 
-// C-2 方案 B（2026-09-11 书记批）：名册确权链 API 形态修复回归
+// C-2 方案 B（2026-09-11 书记批）：名册成员变更确认链 API 形态修复回归
 // ① 局部更新未提供 name → 不得误报「成员姓名不能为空」（原 person.js:526 误伤）
-// ② 阶段写入经确权链走书记专属端点 POST /members/:id/develop-stage → 落 server users
-test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端点落库（确权链 API 形态）', async () => {
+// ② 阶段写入经成员变更确认链走书记专属端点 POST /members/:id/develop-stage → 落 server users
+test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端点落库（成员变更确认链 API 形态）', async () => {
   const orgToken = await login('p11'); // br-b1 组织委员（名册档案维护）
   const secToken = await login('p13'); // br-b1 书记
   setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
@@ -339,7 +339,7 @@ test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端�
     assert.equal(row.partyGroup, '第三党小组', '提供的字段落库');
     assert.equal(row.developStage, '积极分子', '未提供字段保留');
 
-    // ② 书记阶段写入（确权链 _applyApproved 形态：仅 { id, developStage }，无 name）
+    // ② 书记阶段写入（成员变更确认链 _applyApproved 形态：仅 { id, developStage }，无 name）
     setDataSource('api', { apiBaseUrl: base, authToken: secToken });
     const stage = await PersonStore.saveMember({ id: 'p1', developStage: '预备党员' }, { by: 'p13' });
     assert.equal(stage.ok, true, `书记阶段写入不应 403：${JSON.stringify(stage)}`);
@@ -353,13 +353,13 @@ test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端�
 });
 
 // R-10（2026-09-11 书记裁定）：名册三条写链 API 形态双形态实证（PersonStore 分流语义端点）
-// ① 在册状态镜像 = 确权链书记确认（residenceMirror）→ 书记专属 /members/:id/residence-status
+// ① 在册状态镜像 = 成员变更确认链书记确认（residenceMirror）→ 书记专属 /members/:id/residence-status
 // ② 名册行内在册属性 = 组织委员 /members/:id/profile（含在册字段）
 // ③ 移出确认链（书记）→ /members/:id/transfer-out
 test('api ⑩：R-10 三条链——书记在册镜像 / 组织委员在册行内 / 书记移出软标记均落库', async () => {
   const orgToken = await login('p11'); // br-b1 组织委员
   const secToken = await login('p13'); // br-b1 书记
-  // ① 书记在册镜像（确权链 _applyApproved residence 形态）
+  // ① 书记在册镜像（成员变更确认链 _applyApproved residence 形态）
   setDataSource('api', { apiBaseUrl: base, authToken: secToken });
   try {
     const mirror = await PersonStore.saveMember({

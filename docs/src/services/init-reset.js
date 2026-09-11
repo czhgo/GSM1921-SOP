@@ -17,7 +17,7 @@
 //  在「可改 reset 触发链」落地：services/mock.js loadDB() 在委派 MockAdapter.loadDB()
 //  之前先执行 handleInitResetIfRequested()（?reset=init 命中即清库并整页导航，未命中
 //  返回 false 走既有 demo/preview 处理，互不冲突）。纯函数（trimInitBlob/collectInitKeys）
-//  供单测与执行共用，与 reset-tier 测试范式一致。
+//  供单测与执行共用，与 reset-tier 测试做法一致。
 //
 //  执行边界（与 demo/preview 同构）：仅无 API token 的本地演示形态执行；
 //  有 token（sessionStorage['gsm1921-api-token']）一律跳过——数据以服务器为权威，
@@ -64,7 +64,7 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
 
 /**
  * init 档移除的独立 localStorage 业务/过程键（精确匹配；不在白名单 → 清）：
- * 键名与各服务自管键一一对应（issue 草稿/缓存/未读/提交、里程碑缓存、成员确权队列、
+ * 键名与各服务自管键一一对应（issue 草稿/缓存/未读/提交、里程碑缓存、成员变更确认队列、
  * 成员基础数据预览、发展跟踪覆盖、分工配置草稿、决议跟进、旧版单域遗留键等）。
  * 说明：白名单独立键（gsm1921-members-overlay/gsm1921-residence-overrides/
  * gsm1921-login-user/workflowos_theme/workflowos_accent_role/workflowos_font_size/
@@ -77,7 +77,7 @@ export const INIT_EXACT_REMOVE_KEYS = [
   'gsm1921-issue-cache', 'gsm1921-feedback-submissions', 'gsm1921-feedback-migrated',
   // 里程碑缓存
   'gsm1921-milestone-cache',
-  // 成员确权请求队列（member-confirmation 自管键）
+  // 成员变更确认请求队列（member-confirmation 自管键）
   'gsm1921-member-confirmations',
   // 成员基础数据预览（org-base-data-preview）
   'gsm1921-base-data-preview',
@@ -236,7 +236,7 @@ export function collectInitKeys(presentKeys = []) {
 /**
  * URL ?reset=init 初始化执行（C3，2026-09-08）：
  * 1) 主库 workflowos_branch_db_v1：trimInitBlob 裁剪后写回（业务过程清空、白名单保留）；
- * 2) 独立业务/过程键（issue 提交/草稿/未读、确权队列、决议跟进、向导草稿、预览覆盖、
+ * 2) 独立业务/过程键（issue 提交/草稿/未读、成员变更确认队列、决议跟进、向导草稿、预览覆盖、
  *    旧版单域遗留键等）逐键移除；
  * 3) 去掉 URL 上的 reset 参数整页导航（replace），新页面不再触发（防重复执行）、恢复正常加载。
  *

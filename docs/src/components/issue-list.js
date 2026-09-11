@@ -64,7 +64,7 @@ function _renderIssuePager(total) {
       <div class="flex items-center gap-1.5">
         <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 min-w-8 px-2 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}" data-issue-page="${n}">${n}</button>
+          <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 min-w-8 px-2 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-issue-page="${n}">${n}</button>
         `).join('')}
         <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>

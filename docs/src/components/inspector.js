@@ -382,7 +382,7 @@ export function checkActivityCloseConditions(activity) {
     const leavePending = atts.filter(r => r.status === AttendanceStatus.LEAVE && !r.recordedBy).length;
     const absentUnclosed = atts.filter(r => r.status === AttendanceStatus.ABSENT).length;
     if (leavePending > 0) missing.push(`请假确认（${leavePending} 条待确认）`);
-    if (absentUnclosed > 0) missing.push(`缺勤补课闭环（${absentUnclosed} 人缺勤未补）`);
+    if (absentUnclosed > 0) missing.push(`缺勤补课（${absentUnclosed} 人缺勤未补）`);
     if ((actSubs.materials || []).length === 0) missing.push('会议纪要');
   } else if (type === '主题党日') {
     // 主题党日：考勤确认 + 考察确认 + 复盘确认 + 宣传归档

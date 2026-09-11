@@ -145,6 +145,10 @@ html.lenis, html.lenis body { height: auto; }
   height: 1px;
   background: var(--ab-paper-line);
 }
+/* 深色下 running header 对比不足（#7E7870 on #14161A ≈4.15），提亮至 AA；基础规则原色保留为回退 */
+html.theme-dark .ab-page-runner {
+  color: color-mix(in srgb, var(--ab-ink-faint) 80%, var(--ab-ink));
+}
 
 /* ── 封面 Hero ── */
 .ab-hero-title {
@@ -221,6 +225,10 @@ html.lenis, html.lenis body { height: auto; }
   height: 1px;
   background: var(--ab-red);
   opacity: 0.7;
+}
+/* 深色下 eyebrow 红字对比不足（#CE1126 on #14161A ≈3.22），提亮至 AA；基础规则原色保留为回退 */
+html.theme-dark .ab-chapter-eyebrow {
+  color: color-mix(in srgb, var(--ab-red) 55%, #fff);
 }
 .ab-chapter-title {
   font-family: var(--ab-display);

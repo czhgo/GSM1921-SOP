@@ -938,7 +938,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>${REPORT_CATEGORIES[issue.reportCategory] || '进度'}汇报</span>`;
   html += `<span>发出：${issue.submittedAt}</span>`;
-  if (issue.closedAt) html += `<span>已闭环：${issue.closedAt}</span>`;
+  if (issue.closedAt) html += `<span>已办结：${issue.closedAt}</span>`;
   html += `</div>`;
 
   // 对话时间线（kind 含 reply 正式答复）
@@ -993,7 +993,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
         _renderMyReportDetail(issueId, role, userId, container);
       } else if (action === 'confirm-received') {
         IssueStore.confirmReport(issueId);
-        showToast('success', '已确认收到，汇报闭环完成');
+        showToast('success', '已确认收到，汇报办结完成');
         _rerenderMyDispatch(container, role, userId);
       }
     });

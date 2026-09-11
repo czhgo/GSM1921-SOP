@@ -201,7 +201,7 @@ export function renderQueryView(container, config) {
     if (subs.length === 0) { subChipsEl.classList.add('hidden'); subChipsEl.innerHTML = ''; return; }
     subChipsEl.classList.remove('hidden');
     subChipsEl.innerHTML = subs.map(s => `
-      <button type="button" data-sub="${s}" class="sub-chip text-xs px-2.5 py-1 rounded-full transition-colors ${s === activeSub ? 'sel-accent-on' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}">${s}</button>
+      <button type="button" data-sub="${s}" class="sub-chip text-xs px-2.5 py-1 rounded-full transition-colors ${s === activeSub ? 'sel-accent-on' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}"${s === activeSub ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${s}</button>
     `).join('');
     subChipsEl.querySelectorAll('.sub-chip').forEach(btn => {
       btn.addEventListener('click', () => {
