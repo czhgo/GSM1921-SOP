@@ -3,16 +3,22 @@
 // 覆盖：resolveTabOrder（无偏好默认序 / 有偏好覆盖 / 核心组保护 / 新页签追加 / 过期快照自愈）、
 //       存储往返（键空间 gsm1921-pref-<personId>-tab-order-<workspaceKey>、恢复默认=删键）、
 //       缓存一致性（write/clear/save/reset 后 applyPersonalTabOrder 同步）。
-// 运行：node --test server/test/preferences.test.mjs（纯 node，无浏览器依赖；
+// 运行：node --test server/test/preferences.test.mjs（上半为纯 node，无浏览器依赖；
 //       存储函数经注入 localStorage stub 验证，模块本体零 import）。
+// 另含（2026-09-11 书记裁定「B. 以 Playwright 机测替代真机手测：设置页 tab 调序拖拽」）：
+//   文件末一条真实 Chromium HTML5 DnD 用例——登录书记 → 设置页「我的工作台」真实拖拽，
+//   断言 DOM 顺序 / localStorage 持久化 / reload 保持 / 核心锁定 / 越界回滚 / console error=0。
 
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { chromium } from 'playwright';
+import { createApp } from '../app.js';
+import { seedDatabase } from '../seed.js';
 import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/preferences.js?v=20260910a';
+} from '../../docs/src/services/preferences.js?v=20260911a';
 
 // ── 测试辅助 ──
 // 书记台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
@@ -176,4 +182,137 @@ test('sameIdOrder 等值判定', () => {
   assert.equal(sameIdOrder(['a', 'b'], ['a', 'b']), true);
   assert.equal(sameIdOrder(['a', 'b'], ['b', 'a']), false);
   assert.equal(sameIdOrder(['a'], ['a', 'b']), false);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// 真实拖拽 E2E（书记裁定 B：以 Playwright 机测替代真机手测）
+// 真实机制：entries/settings-entry.js bindMyWorkspace 绑定的 HTML5 DnD 事件链
+//   （dragstart → dragover 实时 insertBefore → drop/dragend → finishDrag →
+//    savePersonalTabOrder 落 localStorage）；本用例用 Playwright locator.dragTo
+//   触发 Chromium 真实鼠标序列，由浏览器派发原生 drag 事件（非脚本模拟）。
+// 自包含：createApp(:memory:) + seedDatabase + 账号密码登录书记（同 write-hover-e2e 口径）。
+// ══════════════════════════════════════════════════════════════════════════
+test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload/核心锁定/越界回滚/0 error）', async () => {
+  const app = createApp({ dbPath: ':memory:' });
+  await seedDatabase(app.locals.db);
+  const server = app.listen(0);
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const browser = await chromium.launch({ headless: true });
+  const errors = []; // console error + pageerror（须为 0）
+  try {
+    const page = await browser.newPage();
+    // 外部 CDN 以空 200 兑现：避免测试环境的 net::ERR 噪声污染「console error=0」断言
+    await page.route('**://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, body: '' }));
+    await page.route('**://fonts.gstatic.com/**', (r) => r.fulfill({ status: 200, body: '' }));
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+    page.on('pageerror', (e) => errors.push(`pageerror: ${String(e).slice(0, 200)}`));
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text().slice(0, 200)}`); });
+
+    // ① 登录书记 → 打开设置页「我的工作台」
+    await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#student-id', '2300010001');
+    await page.fill('#password', '123456');
+    await Promise.all([
+      page.waitForURL('**/workspace/secretary.html', { timeout: 15000 }),
+      page.click('button[type="submit"]'),
+    ]);
+    await page.goto(`${base}/settings.html`, { waitUntil: 'domcontentloaded' });
+    await page.click('.settings-group-item[data-section="my-workspace"]');
+    await page.waitForFunction(() => document.querySelectorAll('.myws-list .myws-row').length > 3, null, { timeout: 15000 });
+
+    const readRows = () => page.evaluate(() => {
+      const rows = [...document.querySelectorAll('.myws-list .myws-row')];
+      return {
+        all: rows.map((r) => r.dataset.id),
+        locked: rows.filter((r) => r.dataset.locked === '1').map((r) => r.dataset.id),
+        lockedAllDraggableFalse: rows.filter((r) => r.dataset.locked === '1').every((r) => r.getAttribute('draggable') === 'false'),
+        biz: rows.filter((r) => r.dataset.locked !== '1').map((r) => r.dataset.id),
+      };
+    });
+
+    const s0 = await readRows();
+    console.log('[drag] 初始 DOM:', s0.all.join(','));
+    assert.ok(s0.biz.length >= 3, `业务页签 ≥3（实际 ${s0.biz.length}）`);
+    assert.ok(s0.locked.length >= 1, '存在核心固定页签');
+    assert.equal(s0.lockedAllDraggableFalse, true, '核心固定页签 draggable=false（不可拖动）');
+    assert.deepEqual(s0.all.slice(0, s0.locked.length), s0.locked, '核心组页签置前');
+
+    const fromId = s0.biz[s0.biz.length - 1]; // 尾部业务页签（默认注册序末尾 = 上报党委）
+    const toId = s0.biz[0];                    // 首个业务页签（靠前落点）
+    const expectBiz = [fromId, ...s0.biz.slice(0, -1)];
+
+    // ② 真实拖拽：尾部 → 首个业务页签上半区（dragover 判定 before → insertBefore）
+    await page.locator(`.myws-row[data-id="${fromId}"]`).dragTo(
+      page.locator(`.myws-row[data-id="${toId}"]`),
+      { targetPosition: { x: 40, y: 2 } },
+    );
+
+    const s1 = await readRows();
+    console.log('[drag] 拖后 DOM:', s1.biz.join(','));
+    assert.deepEqual(s1.biz, expectBiz, '拖后 DOM 顺序：尾部页签移至业务首位');
+    assert.deepEqual(s1.locked, s0.locked, '核心组页签位置不受拖拽影响');
+
+    // ③ 持久化：写入 person 顺序偏好键（gsm1921-pref-<personId>-tab-order-workspace:secretary）
+    const stored = await page.evaluate(() => {
+      const k = Object.keys(localStorage).find((x) => x.includes('-tab-order-workspace:secretary'));
+      return k ? { key: k, val: JSON.parse(localStorage.getItem(k)) } : null;
+    });
+    console.log('[drag] 持久化键:', stored && `${stored.key} = ${stored.val.join(',')}`);
+    assert.ok(stored, '已写入个人顺序偏好键');
+    assert.deepEqual(stored.val, expectBiz, '存储值 = 拖后业务顺序');
+
+    // ④ reload 后顺序保持（真实持久化读回，非内存态）
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.click('.settings-group-item[data-section="my-workspace"]');
+    await page.waitForFunction((f) => {
+      const biz = [...document.querySelectorAll('.myws-list .myws-row')]
+        .filter((r) => r.dataset.locked !== '1').map((r) => r.dataset.id);
+      return biz[0] === f;
+    }, fromId, { timeout: 15000 });
+    const s2 = await readRows();
+    console.log('[drag] reload 后:', s2.biz.join(','));
+    assert.deepEqual(s2.biz, expectBiz, 'reload 后顺序保持（持久化生效）');
+    assert.deepEqual(s2.locked, s0.locked, 'reload 后核心组页签仍锁定置前');
+
+    // ⑤ 核心锁定：拖动核心页签 → 不产生任何重排
+    await page.locator(`.myws-row[data-id="${s0.locked[0]}"]`).dragTo(
+      page.locator(`.myws-row[data-id="${s2.biz[0]}"]`),
+      { targetPosition: { x: 40, y: 2 } },
+    );
+    const s3 = await readRows();
+    assert.deepEqual(s3.all, s2.all, '核心页签不可拖动：整体顺序不变');
+
+    // ⑥ 非法落点（核心锁定行不收）→ 回滚为原顺序、不改写存储
+    const valBefore = await page.evaluate((k) => localStorage.getItem(k), stored.key);
+    await page.locator(`.myws-row[data-id="${s3.biz[0]}"]`).dragTo(
+      page.locator(`.myws-row[data-id="${s0.locked[0]}"]`),
+      { targetPosition: { x: 40, y: 2 } },
+    );
+    const s4 = await readRows();
+    assert.deepEqual(s4.all, s3.all, '非法拖放（核心行落点）回滚：顺序不变');
+    assert.equal(await page.evaluate((k) => localStorage.getItem(k), stored.key), valBefore, '非法拖放未改写存储');
+
+    // ⑦ 越界拖放：按住尾部业务行向上拖出列表后松手 → 回滚为原顺序（原生鼠标序列，非元素落点）
+    const box = await page.locator(`.myws-row[data-id="${s4.biz[0]}"]`).boundingBox();
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx, cy - 10, { steps: 2 });   // 越过阈值 → 浏览器派发 dragstart
+    await page.mouse.move(cx, box.y - 50, { steps: 8 }); // 拖至列表上方（仅跨核心锁定行/列表外）
+    const dragStarted = await page.evaluate(() => !!document.querySelector('.myws-row.dragging'));
+    await page.mouse.up();
+    const s5 = await readRows();
+    assert.equal(dragStarted, true, '越界拖放：dragstart 已触发（真实 HTML5 事件链）');
+    assert.deepEqual(s5.all, s4.all, '越界拖放回滚：顺序不变');
+    assert.equal(await page.evaluate((k) => localStorage.getItem(k), stored.key), valBefore, '越界拖放未改写存储');
+
+    // ⑧ console / page error = 0
+    console.log('[drag] console/page errors =', JSON.stringify(errors));
+    assert.equal(errors.length, 0, 'console/page error 为 0');
+  } finally {
+    await browser.close();
+    server.closeAllConnections?.();
+    await new Promise((r) => server.close(r));
+  }
 });

@@ -7,6 +7,8 @@ import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
 import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS } from '../../docs/src/core/constants.js';
+// 发展阶段枚举单一源 = docs/src/services/org-base-data-preview.js（叶子模块，勿另写枚举）
+import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-preview.js';
 
 // 全体支委（广播对象：书记/副书记/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS / SECRETARY_ROLES（勿手写）
@@ -125,6 +127,39 @@ export function createMemberRouter(db) {
       db.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(existing.personId, JSON.stringify(merged));
     }
     res.json(updated);
+  });
+
+  // ── 名册确权链 · 书记阶段写入语义端点（C-2 方案 B，2026-09-11 书记批）──────────
+  // 背景：确权链「书记确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
+  // 而 resources.js 的 users 写权矩阵仅 party-staff（RESOURCE_WRITE_GATE.users）→ 书记 role='secretary'
+  // 被 403 阻断，确权链在 API 形态断裂。本端点复用既有书记专属直写通道（语义同 member.js confirm）：
+  //   · 权限 = requireRole(SECRETARY_ROLES)（与 confirm 同源；副书记/委员/党委组织员一律 403，不扩大越权面）；
+  //   · 同支部校验（actor 归属支部 vs 目标成员归属支部，缺省 br-b1，与 resources.js 口径一致）；
+  //   · 字段固定白名单 = 仅 developStage；含 role/branchId 等治理字段 → 400 硬挡（防自封/越支部）；
+  //   · 直接写 users.developStage，不触碰 resources.js 的 users 写权矩阵。
+  // 返回：200 { ...updatedUser }（单条成员对象，与其它写端点一致）；错误 400/401/403/404 { error }。
+  const DEVELOP_STAGE_FORBIDDEN = ['role', 'branchId'];
+  router.post('/members/:id/develop-stage', requireRole(db, SECRETARY_ROLES), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const forbidden = DEVELOP_STAGE_FORBIDDEN.find((k) => Object.prototype.hasOwnProperty.call(body, k));
+    if (forbidden) {
+      return res.status(400).json({ error: `字段 ${forbidden} 不在白名单（本端点仅可写 developStage）` });
+    }
+    const toStage = body.developStage;
+    if (typeof toStage !== 'string' || !DEVELOP_STAGE_OPTIONS.includes(toStage)) {
+      return res.status(400).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
+    }
+    const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(req.params.id);
+    if (!userRow) return res.status(404).json({ error: '成员不存在' });
+    const user = JSON.parse(userRow.data);
+    const myBranch = req.actor.branchId || 'br-b1';
+    const targetBranch = user.branchId || 'br-b1';
+    if (myBranch !== targetBranch) {
+      return res.status(403).json({ error: '无权限：仅可推进本支部成员的发展阶段' });
+    }
+    const merged = { ...user, developStage: toStage };
+    writeRow(db, 'users', merged);
+    res.json(merged);
   });
 
   // ── 广播记录（支委可见；按 requestId 过滤）──

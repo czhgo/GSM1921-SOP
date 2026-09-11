@@ -8,25 +8,25 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260910a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260911a';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 书记裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260910a';
-import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260910a';
-import { loadActivities } from '../../../services/activity.js?v=20260910a';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260910a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260910a';
-import { NoticeStore } from '../../../services/notice.js?v=20260910a';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260910a';
-import { badgeHtml } from '../../../components/badges.js?v=20260910a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260910a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260910a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260910a';
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260910a';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260911a';
+import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260911a';
+import { loadActivities } from '../../../services/activity.js?v=20260911a';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260911a';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260911a';
+import { NoticeStore } from '../../../services/notice.js?v=20260911a';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260911a';
+import { badgeHtml } from '../../../components/badges.js?v=20260911a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260911a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260911a';
+import { HandoffStore } from '../../../services/handoff.js?v=20260911a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260911a';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -259,7 +259,7 @@ export function renderContent(ctx) {
         b.classList.toggle('bg-[var(--app-accent-bg)]', on);
         b.classList.toggle('border-[var(--app-accent)]', on);
         b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
-        if (on) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
+        if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !on);
         b.classList.toggle('border-neutral-200', !on);
         b.classList.toggle('text-gray-600', !on);
@@ -662,7 +662,7 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
         <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
         <div class="flex items-center gap-2">
-          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:var(--app-accent,#B91C1C)" data-view="byActivity">按活动</button>
+          <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-view="byActivity">按活动</button>
           <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="byPerson">按人</button>
         </div>
       </div>

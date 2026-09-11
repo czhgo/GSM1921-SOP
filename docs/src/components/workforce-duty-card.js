@@ -4,10 +4,10 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../services/auth.js?v=20260910a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260910a';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260910a';
-import { escHtml as esc } from '../core/utils.js?v=20260910a';
+import { AuthStore } from '../services/auth.js?v=20260911a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260911a';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260911a';
+import { escHtml as esc } from '../core/utils.js?v=20260911a';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor） */
 const DUTY_TAB = {
@@ -61,7 +61,7 @@ export function dutyCardHtml(prefix) {
     const sub = m.sub && m.sub.length ? `<span class="text-[10px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return tab
       ? `<button type="button" class="wfd-duty inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white border border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-700" data-prefix="${esc(prefix)}" data-tab="${esc(tab)}" title="去履职">${esc(m.name)}${sub} · 去履职</button>`
-      : `<span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-neutral-50 border border-gray-100 text-gray-500" title="对应工作页入口待建">${esc(m.name)}${sub}</span>`;
+      : `<span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-50 border border-gray-100 text-gray-500" title="对应工作页入口待建">${esc(m.name)}${sub}</span>`;
   }).join('');
 
   return `

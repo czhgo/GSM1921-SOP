@@ -119,3 +119,75 @@ test('未设门资源（activities）写行为不变：登录即可创建，未�
   });
   assert.equal(anon.status, 401, '未登录仍被拒');
 });
+
+// C-2 方案 B（2026-09-11 书记批）：名册确权链「书记阶段写入」语义端点权限边界
+// POST /api/v1/members/:id/develop-stage —— 仅书记（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
+test('确权链阶段端点：书记本支部 200 且落库；非书记 403；跨支部 403；白名单/枚举 400', async () => {
+  const { token: secToken } = await login('p13');      // br-b1 书记
+  const { token: orgToken } = await login('p11');      // br-b1 组织委员（非书记）
+  const { token: pcToken } = await login('p_pc');      // 党委组织员（组织级，非书记）
+  const getStage = async (uid) => {
+    const res = await fetch(`${base}/api/v1/users`, { headers: authHeaders(secToken) });
+    return (await res.json()).find((u) => u.id === uid)?.developStage;
+  };
+
+  // ① 书记本支部推进 p1 阶段 → 200 + 实际落库
+  const ok = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({ developStage: '预备党员' }),
+  });
+  assert.equal(ok.status, 200, '书记本支部可推进阶段');
+  const okRow = await ok.json();
+  assert.equal(okRow.id, 'p1');
+  assert.equal(okRow.developStage, '预备党员');
+  assert.equal(okRow.name, '罗文杰', '返回完整成员对象（未提供字段保留）');
+  assert.equal(await getStage('p1'), '预备党员', 'users.developStage 实际变更落库');
+
+  // ② 非书记（组织委员 / 党委组织员）→ 403（requireRole(SECRETARY_ROLES)）
+  const org = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ developStage: '正式党员' }),
+  });
+  assert.equal(org.status, 403, '组织委员不得走书记专属阶段端点');
+  const pc = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(pcToken), body: JSON.stringify({ developStage: '正式党员' }),
+  });
+  assert.equal(pc.status, 403, '党委组织员非书记亦 403（不扩大越权面）');
+  assert.equal(await getStage('p1'), '预备党员', '越权请求未改动落库值');
+
+  // ③ 跨支部：党委组织员建 br-x + 成员 p70 归属 br-x；br-b1 书记写 p70 → 403
+  await fetch(`${base}/api/v1/branches`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ name: '跨支部校验测试支部', type: '测试' }),
+  });
+  await fetch(`${base}/api/v1/users`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ id: 'p70', name: '跨支部成员', developStage: '积极分子', role: 'participant', branchId: 'br-x' }),
+  });
+  const cross = await fetch(`${base}/api/v1/members/p70/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '预备党员' }),
+  });
+  assert.equal(cross.status, 403, '书记不得推进异支部成员阶段');
+  assert.match((await cross.json()).error, /本支部/);
+
+  // ④ 字段白名单硬挡：含 role/branchId → 400
+  const roleInj = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({ developStage: '正式党员', role: 'secretary' }),
+  });
+  assert.equal(roleInj.status, 400, '含治理字段 role 一律 400');
+  const brInj = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({ developStage: '正式党员', branchId: 'br-x' }),
+  });
+  assert.equal(brInj.status, 400, '含治理字段 branchId 一律 400');
+
+  // ⑤ 枚举外阶段 → 400；成员不存在 → 404（书记 token 已过门）
+  const badStage = await fetch(`${base}/api/v1/members/p1/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '神秘阶段' }),
+  });
+  assert.equal(badStage.status, 400);
+  const ghost = await fetch(`${base}/api/v1/members/p_ghost/develop-stage`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ developStage: '预备党员' }),
+  });
+  assert.equal(ghost.status, 404);
+});

@@ -14,30 +14,30 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260910a';
-import { getCapabilities } from '../core/registry.js?v=20260910a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260910a';
+import { mockDB } from '../core/domain.js?v=20260911a';
+import { getCapabilities } from '../core/registry.js?v=20260911a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260911a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
 import '../modules/capabilities/secretary-workspace.js?v=20260909e';
-import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260910a';
-import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260910a';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260910a';
+import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260911a';
+import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260911a';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260911a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../services/branch.js?v=20260910a';
-import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260910a';
+} from '../services/branch.js?v=20260911a';
+import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260911a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../services/org-base-data-preview.js?v=20260910a';
-import { getRosterStats, isDetained } from '../services/roster.js?v=20260910a';
-import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260910a';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260910a';
+} from '../services/org-base-data-preview.js?v=20260911a';
+import { getRosterStats, isDetained } from '../services/roster.js?v=20260911a';
+import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260911a';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260911a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../services/appointment.js?v=20260910a';
+import { appointInauguralOfficers } from '../services/appointment.js?v=20260911a';
 
 // ── 步骤元信息（书记已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [

@@ -3,12 +3,12 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PersonStore } from '../../../services/person.js?v=20260910a';
+import { PersonStore } from '../../../services/person.js?v=20260911a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260910a';
-import { flashHighlight } from '../../../core/utils.js?v=20260910a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260911a';
+import { flashHighlight } from '../../../core/utils.js?v=20260911a';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -84,7 +84,7 @@ export function renderContent(ctx) {
       ${subTabs.map(t => `
         <button type="button"
           class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
-          ${_projSubView === t.key ? 'style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''}
+          ${_projSubView === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}
           data-proj-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -184,7 +184,7 @@ export function renderContent(ctx) {
         b.classList.toggle('bg-[var(--app-accent-bg)]', active);
         b.classList.toggle('border-[var(--app-accent)]', active);
         b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', active);
-        if (active) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
+        if (active) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !active);
         b.classList.toggle('border-neutral-200', !active);
         b.classList.toggle('text-gray-600', !active);

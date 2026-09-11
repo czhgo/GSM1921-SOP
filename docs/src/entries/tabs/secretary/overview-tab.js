@@ -8,21 +8,21 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260910a';
-import { NoticeStore } from '../../../services/notice.js?v=20260910a';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260910a';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260910a';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260910a';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260911a';
+import { NoticeStore } from '../../../services/notice.js?v=20260911a';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260911a';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260911a';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260911a';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
-import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260910a';
-import { loadActivities } from '../../../services/activity.js?v=20260910a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260910a';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260910a';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260910a';
+import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260911a';
+import { loadActivities } from '../../../services/activity.js?v=20260911a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260911a';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260911a';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260911a';
 // D2 裁决批二（2026-09-08 书记特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260910a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260911a';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -227,6 +227,7 @@ function renderBlockerSection(people, today) {
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${r.title} 超期 ${r.count} 项</span>
       <span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${r.deadline}</span>
       <button type="button" class="sec-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
+        style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"
         data-person-id="${r.role.personIds[0]}" data-role="${r.role.role}" data-note="${r.title} 已超期">了解进展</button>
     </div>`).join('');
 
@@ -340,7 +341,7 @@ function renderDimensionView(container) {
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">${d.senderName}</span>
-      <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" data-ed-id="${d.id}">确认收到</button>
+      <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-ed-id="${d.id}">确认收到</button>
     </div>`);
 
   const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0)
@@ -350,8 +351,8 @@ function renderDimensionView(container) {
     : dispatchRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
-          ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" data-urge="${e.action.urge}">催办</button>`
-          : `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" data-direct="${e.action.direct}">直达处理</button>`;
+          ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
+          : `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-direct="${e.action.direct}">直达处理</button>`;
         return `
           <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
             <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dot};"></span>

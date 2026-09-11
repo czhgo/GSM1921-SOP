@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS } from '../core/constants.js?v=20260910a';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260911a';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——书记改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260910a';
-import { getBasePath } from '../core/utils.js?v=20260910a';
-import { icon } from '../core/icons.js?v=20260910a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260910a';
-import { badgeHtml } from './badges.js?v=20260910a';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260910a';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260911a';
+import { getBasePath } from '../core/utils.js?v=20260911a';
+import { icon } from '../core/icons.js?v=20260911a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260911a';
+import { badgeHtml } from './badges.js?v=20260911a';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260911a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260910a';
+import { getHeaderTitle } from '../services/branch.js?v=20260911a';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260910a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260910a');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260911a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260910a');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260911a');
   return _noticeModule;
 }
 
@@ -99,8 +99,12 @@ function _roleLabelHTML(role) {
   const label = ROLE_LABELS[role] || role;
   // 2026-08-11 四审纠正：header 身份显示 = 主题色实底（正常饱和度）+ 白字，
   // 与整个 header（深红底白字）一致；淡底深字/边框在 header 上突兀臃肿，日/夜一致。
+  // R-9 ①（2026-09-11 对比度收口）：亮色 accent（感知亮度 > 0.18，如翠绿 0.41/天蓝 0.33）
+  // 实底白字仅 2.28–2.77 → 底色压深一档（60% 原色 + 40% 黑），白字达 AA（≥ 5.0）；
+  // 深色 accent（党建红/深橙/海蓝/金）对比已达标，保持正常饱和度不动。
+  const chipBg = relativeLuminance(accent) > 0.18 ? `color-mix(in srgb, ${accent} 60%, #000)` : accent;
   return `
-    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${accent};color:#fff;">
+    <div class="role-label" id="role-label" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--radius-sm);background:${chipBg};color:#fff;">
       <span class="text-xs font-medium">${label}</span>
     </div>
   `;

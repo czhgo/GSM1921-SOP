@@ -624,9 +624,10 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| R-8 | **遗留（深色模式对比度）**：深色板下仍有 7 处残留违规（`.btn-accent-soft`「催办」×4 + 3 个浅底维度标签）；浅色板与本次特批两类（`.ov-sub-tab-active`/`.tint-pill`）均已 0 违规。待按同口径下批收口 | COMPONENT_SPEC + 附录⑦ 判据 | 待办 |
+| R-10 | **遗留（API 形态写链）**：服务端 users 写权矩阵仅 party-staff（`server/routes/resources.js:67-72`）——本轮已按方案 B 新增「阶段变更」语义端点（`POST /api/v1/members/:id/develop-stage`）修好确权链，但**同款 403 隐患仍在**：在册状态镜像（`member-confirmation.js:434`）、名册即时字段/新增成员（`roster-tab.js:326/381`）、移出（`removeMember`→DELETE /users）——建议后续按同款语义端点逐个补齐 | 附录⑦ + 权限矩阵纪律 | 待办 |
+| R-11 | **遗留（深色对比度第三批）**：非本批目标残留——`text-gray-500`（1.37/2.56）、`bg-cyan-50 text-cyan-700`（1.39）、`text-amber-800`（1.95）等 | COMPONENT_SPEC + 附录⑦ 判据 | 待办 |
 
-> **闭环记录（2026-09-10 完整退出本表）**：**R-6**（五项功能遗留：通知弱定位→对象级深链+守卫、代归档→深链+页面放行+待归档区、代填复盘→复用单一表单、催办文案→中性事务式定稿、党委进入支部→放开只读下钻）、**R-7**（styles.css 特批最小改 4 行：两类文字色 color-mix 深档 + 深色分支；浅/深两态 0 违规）、**C①~C⑥**（最小三成本下一轮全部落地：发展数据只读化+名册补阶段日期、组长建活动默认预选+高级折叠、无日期不显示、上传外发改行内、党委总览披数字/台账披明细、周报周次自动派生）——登记见 EXECUTION_LOG **T-2026-09-077**（追加批次 3）与 REVIEW_QUEUE 附录⑤ 轮次记录。
+> **闭环记录（2026-09-10 继续批，完整退出本表）**：**R-8**（深色残留第一批：`.btn-accent-soft`「催办」×4 + 浅底分工标签×3 → 组件侧 `--acc-text-dark` color-mix 覆盖，20 行 0 违规）、**R-9**（深色第二批：浅底徽标/work-map 标签/`.cal-view-btn`/`.ov-sub-tab`/`solidAccentStyle` → 组件侧 10 文件；`.tab-btn-active` + `.is-today` → **特批 styles.css 3 处最小改**，深色 1.74→8.31 等）、**C（名册确权链形态专项）**（诊断=users 写权矩阵 403；按**方案 B** 新增语义端点 + 修 `person.js` name 必填误伤；双形态实证与越权 403 用例全过）、**B**（拖拽调序改机测：Playwright 真实拖拽 16/16，实现无缺陷）、**D**（新一轮评议暂不启动，机制持续）——登记见 EXECUTION_LOG **T-2026-09-077**（追加批次 4）。
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 

@@ -3,14 +3,14 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260910a';
-import { showToast } from '../../../core/utils.js?v=20260910a';
-import { icon } from '../../../core/icons.js?v=20260910a';
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
-import { PersonStore } from '../../../services/person.js?v=20260910a';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260910a';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260911a';
+import { showToast } from '../../../core/utils.js?v=20260911a';
+import { icon } from '../../../core/icons.js?v=20260911a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
+import { PersonStore } from '../../../services/person.js?v=20260911a';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260911a';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -480,7 +480,7 @@ function renderIssueDetail(issueId) {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2">评论</button>`;
+    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">评论</button>`;
     html += `<button data-detail-action="add-verdict" class="btn-accent text-xs px-3 py-2">批复</button>`;
     html += `</div>`;
     html += `<div class="flex gap-2">`;

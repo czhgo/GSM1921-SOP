@@ -2,16 +2,16 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260910a';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260910a';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260910a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260911a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260911a';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260911a';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260910a';
-import { badgeHtml } from '../../../components/badges.js?v=20260910a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260910a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260910a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260911a';
+import { badgeHtml } from '../../../components/badges.js?v=20260911a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260911a';
+import { HandoffStore } from '../../../services/handoff.js?v=20260911a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -38,7 +38,7 @@ export function renderContent(ctx) {
         <div class="flex items-center flex-wrap justify-end gap-2">
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
           <div class="flex items-center gap-2">
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:var(--app-accent,#B91C1C)" data-view="long">活动视图</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-view="long">活动视图</button>
             <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wide">人视图</button>
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
@@ -193,7 +193,7 @@ export function renderContent(ctx) {
         b.classList.toggle('bg-[var(--app-accent-bg)]', on);
         b.classList.toggle('border-[var(--app-accent)]', on);
         b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
-        if (on) b.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)'); else b.style.removeProperty('--acc-text-dark');
+        if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !on);
         b.classList.toggle('border-neutral-200', !on);
         b.classList.toggle('text-gray-600', !on);

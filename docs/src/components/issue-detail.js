@@ -1,15 +1,15 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore } from '../services/issues.js?v=20260910a';
-import { MilestoneStore } from '../services/milestones.js?v=20260910a';
-import { AuthStore } from '../services/auth.js?v=20260910a';
-import { showToast } from '../core/utils.js?v=20260910a';
-import { icon } from '../core/icons.js?v=20260910a';
-import { getPersonName } from '../services/person.js?v=20260910a';
-import { renderReactions, bindReactions } from './reactions.js?v=20260910a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260910a';
-import { badgeHtml } from './badges.js?v=20260910a';
+import { IssueStore } from '../services/issues.js?v=20260911a';
+import { MilestoneStore } from '../services/milestones.js?v=20260911a';
+import { AuthStore } from '../services/auth.js?v=20260911a';
+import { showToast } from '../core/utils.js?v=20260911a';
+import { icon } from '../core/icons.js?v=20260911a';
+import { getPersonName } from '../services/person.js?v=20260911a';
+import { renderReactions, bindReactions } from './reactions.js?v=20260911a';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260911a';
+import { badgeHtml } from './badges.js?v=20260911a';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -155,7 +155,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans">应用</button>`
+                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>

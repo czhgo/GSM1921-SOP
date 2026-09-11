@@ -19,16 +19,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260910a';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260910a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260911a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260911a';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260910a';
+} from '../../docs/src/core/mock-adapter.js?v=20260911a';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260910a';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260910a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260910a';
+} from '../../docs/src/services/person.js?v=20260911a';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260911a';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260911a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -307,6 +307,40 @@ test('api ⑧：PersonStore api 形态 saveMember/removeMember 经 ApiAdapter �
     assert.equal(removed.ok, true, JSON.stringify(removed));
     assert.ok(!(await getUsers(staffToken)).some(u => u.id === 'p61'), 'removeMember(delete) 落 server users');
     assert.ok(!mockDB.users.some(u => u.id === 'p61'), 'mockDB.users 缓存同步移除');
+  } finally {
+    setDataSource('mock');
+  }
+});
+
+// C-2 方案 B（2026-09-11 书记批）：名册确权链 API 形态修复回归
+// ① 局部更新未提供 name → 不得误报「成员姓名不能为空」（原 person.js:526 误伤）
+// ② 阶段写入经确权链走书记专属端点 POST /members/:id/develop-stage → 落 server users
+test('api ⑨：局部更新缺 name 不再失败；书记阶段写入经新端点落库（确权链 API 形态）', async () => {
+  if (!staffToken) staffToken = await login('p_pc');
+  const secToken = await login('p13'); // br-b1 书记
+  setDataSource('api', { apiBaseUrl: base, authToken: staffToken });
+  try {
+    // ① 局部更新（无 name）：原实现会因缺 name 先失败；现保留原姓名且落库
+    const created = await PersonStore.saveMember({
+      id: 'p62', name: '局部更新成员62', partyGroup: '第一党小组',
+      developStage: '积极分子', role: 'participant', branchId: 'br-b1',
+    }, { by: 'p_pc' });
+    assert.equal(created.ok, true, JSON.stringify(created));
+    const partial = await PersonStore.saveMember({ id: 'p62', partyGroup: '第三党小组' }, { by: 'p_pc' });
+    assert.equal(partial.ok, true, `局部更新缺 name 不应失败：${JSON.stringify(partial)}`);
+    const row = (await getUsers(staffToken)).find(u => u.id === 'p62');
+    assert.equal(row.name, '局部更新成员62', '未提供 name → 保留原值（不覆盖）');
+    assert.equal(row.partyGroup, '第三党小组', '提供的字段落库');
+    assert.equal(row.developStage, '积极分子', '未提供字段保留');
+
+    // ② 书记阶段写入（确权链 _applyApproved 形态：仅 { id, developStage }，无 name）
+    setDataSource('api', { apiBaseUrl: base, authToken: secToken });
+    const stage = await PersonStore.saveMember({ id: 'p1', developStage: '预备党员' }, { by: 'p13' });
+    assert.equal(stage.ok, true, `书记阶段写入不应 403：${JSON.stringify(stage)}`);
+    assert.equal(stage.member.developStage, '预备党员');
+    assert.equal(stage.member.name, '罗文杰', '未提供 name → 服务端返回保留原值');
+    assert.equal((await getUsers(secToken)).find(u => u.id === 'p1').developStage, '预备党员', '阶段落 server users');
+    assert.equal(mockDB.users.find(u => u.id === 'p1').developStage, '预备党员', 'mockDB.users 缓存已同步');
   } finally {
     setDataSource('mock');
   }

@@ -5,18 +5,18 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { IssueStore } from '../../../services/issues.js?v=20260910a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260910a';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260910a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260910a';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260910a';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260910a';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
-import { showToast } from '../../../core/utils.js?v=20260910a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { IssueStore } from '../../../services/issues.js?v=20260911a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260911a';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260911a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260911a';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260911a';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260911a';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
+import { showToast } from '../../../core/utils.js?v=20260911a';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260910a';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260911a';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -97,7 +97,7 @@ export async function renderContent(ctx) {
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
           <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
-            style="--acc-text-dark:var(--app-accent,#B91C1C);color:color-mix(in srgb, var(--app-accent,#B91C1C) 60%, #000);"
+            style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);color:color-mix(in srgb, var(--app-accent,#B91C1C) 60%, #000);"
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
         </div>`).join('');
 

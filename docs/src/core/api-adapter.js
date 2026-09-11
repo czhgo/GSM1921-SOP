@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260910a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260911a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -570,6 +570,15 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/users/${id}`);
+    },
+  },
+
+  // C-2 方案 B（2026-09-11 书记批）：名册确权链「书记阶段写入」语义端点
+  // server POST /api/v1/members/:id/develop-stage —— requireRole(SECRETARY_ROLES) + 同支部 + 字段白名单(仅 developStage)；
+  // 通用 PATCH /users/:id 仅 party-staff 可写，书记确权链经此会被 403 阻断，故单列语义写口。
+  members: {
+    setDevelopStage(id, developStage) {
+      return _post(`/api/v1/members/${id}/develop-stage`, { developStage });
     },
   },
 

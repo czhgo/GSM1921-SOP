@@ -1777,6 +1777,8 @@ button:disabled { cursor: not-allowed; }
   border-color: var(--primary-200);
 }
 
+html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-today { background-color: color-mix(in srgb, var(--primary-700) 16%, #141D2F) !important; border-color: color-mix(in srgb, var(--primary-700) 45%, #334155) !important; }
+
 .cal-cell-mobile.selected {
   border-color: var(--primary-700) !important;
   background-color: var(--primary-50) !important;
@@ -1864,6 +1866,7 @@ button:disabled { cursor: not-allowed; }
 .tab-btn-active {
   background: var(--tab-accent-bg);
   color: var(--tab-accent);
+  color: color-mix(in srgb, var(--tab-accent, #B91C1C) 55%, #000);
   border: 1px solid var(--tab-accent-border);
 }
 
@@ -4390,7 +4393,7 @@ label .text-red-500 {
   html.theme-dark .tab-btn-active {
     background: color-mix(in srgb, var(--tab-accent) 18%, #141D2F) !important;
     border-color: color-mix(in srgb, var(--tab-accent) 60%, #334155) !important;
-    color: color-mix(in srgb, var(--tab-accent) 72%, white) !important;
+    color: color-mix(in srgb, var(--tab-accent) 55%, white) !important;
   }
 
   /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active #2A1A22 + 原红字 #CE1126 对比仅 2.94:1，

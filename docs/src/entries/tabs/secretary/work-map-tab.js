@@ -5,14 +5,14 @@
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260910a';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260910a';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260910a';
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260910a';
-import { getPersonName } from '../../../services/person.js?v=20260910a';
+import { escHtml as esc } from '../../../core/utils.js?v=20260911a';
+import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260911a';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260911a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260911a';
+import { getPersonName } from '../../../services/person.js?v=20260911a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅书记/副书记可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260910a';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260911a';
 
 let _view = 'modules'; // 视图 A 平铺模块 / 视图 B 按人（同一会话内保持）
 
@@ -32,7 +32,7 @@ function _modulesHtml(workforce) {
         const chips = (m.sub || []).map(s => `
           <span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
         const outputs = (m.outputs || []).map(o => `
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600">产出·${esc(o)}</span>`).join('');
+          <span class="text-[11px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600" style="--acc-text-dark:#CBD5E1">产出·${esc(o)}</span>`).join('');
         return `
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
@@ -108,7 +108,7 @@ export function renderContent() {
         ].map(t => `
           <button type="button"
             class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
-            ${_view === t.key ? 'style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''}
+            ${_view === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>
       <p class="text-xs text-gray-500 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>

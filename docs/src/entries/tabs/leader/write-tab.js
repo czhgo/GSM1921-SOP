@@ -3,20 +3,20 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState } from '../../../core/state.js?v=20260910a';
-import { BranchService } from '../../../services/runtime.js?v=20260910a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260910a';
-import { AuthStore } from '../../../services/auth.js?v=20260910a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260910a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260910a';
-import { persist } from '../../../core/data-adapter.js?v=20260910a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260910a';
-import { recordFormShell } from '../../../components/forms.js?v=20260910a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260910a';
-import { badgeHtml } from '../../../components/badges.js?v=20260910a';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260910a';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260910a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260910a';
+import { setState } from '../../../core/state.js?v=20260911a';
+import { BranchService } from '../../../services/runtime.js?v=20260911a';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260911a';
+import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260911a';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260911a';
+import { persist } from '../../../core/data-adapter.js?v=20260911a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260911a';
+import { recordFormShell } from '../../../components/forms.js?v=20260911a';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260911a';
+import { badgeHtml } from '../../../components/badges.js?v=20260911a';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260911a';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260911a';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260911a';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');

@@ -11,11 +11,11 @@
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260910a';
-import { persist } from '../core/data-adapter.js?v=20260910a';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260910a';
-import { NoticeStore } from './notice.js?v=20260910a';
-import { getPersonById } from './person.js?v=20260910a';
+import { mockDB } from '../core/domain.js?v=20260911a';
+import { persist } from '../core/data-adapter.js?v=20260911a';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260911a';
+import { NoticeStore } from './notice.js?v=20260911a';
+import { getPersonById } from './person.js?v=20260911a';
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）

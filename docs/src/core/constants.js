@@ -434,6 +434,9 @@ function _relativeLuminance(hex) {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+/** 感知亮度对外出口（header 身份标签等需按 accent 明暗分流白字对比的消费点复用，勿各自手写） */
+export const relativeLuminance = _relativeLuminance;
+
 /** 调亮：HSL 明度提到 targetL（0-100，饱和度不变） */
 function _lighten(hex, targetL) {
   const [h, s] = _hexToHsl(hex);
@@ -476,11 +479,14 @@ export function solidAccentStyle(accent, border) {
   const branded = DEEP_ACCENT_RULES[accent];
   // 深字（日/夜一致）：深色 accent（感知亮度 < 0.25）用本身；浅色 accent 调暗至 30% 明度（淡底可读）
   const text = branded ? accent : (_relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30));
+  // 夜间深字（R-9 ⑥ 2026-09-11 对比度收口）：夜间底色为不透明浅底，浅底上原深字对比仅 3.3–4.8，
+  // 统一再压深一档（65% 原字 + 35% 黑）——浅底仍为同色系淡底深字，全 accent ≥ 4.5（实测 5.99–9.79）。
+  const textDark = `color-mix(in srgb, ${text} 65%, #000)`;
   // 淡底（日）：accent 调亮至 84% 明度 @12% 透明
   const bg = _rgba(branded ? branded.light : _lighten(accent, 84), 0.12);
   // 淡底（夜）：accent 调亮至 86% 明度完全不透明——span 状态徽章风格（如 bg-cyan-100），叠深背景仍清晰可见
   const bgDark = branded ? branded.light : _lighten(accent, 86);
-  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${text};background:var(--acc-bg);color:var(--acc-text,#fff)`;
+  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${textDark};background:var(--acc-bg);color:var(--acc-text,#fff)`;
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────

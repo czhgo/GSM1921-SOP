@@ -7,8 +7,8 @@
 // 生效强调色 = resolveAppliedAccentRole（person-aware：覆盖仅取当前作用域键，绝不跨空间回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算。
 
-import { icon } from '../core/icons.js?v=20260910a';
-import { ACCENT_COLORS, ACCENT_PALETTE } from '../core/constants.js?v=20260910a';
+import { icon } from '../core/icons.js?v=20260911a';
+import { ACCENT_COLORS, ACCENT_PALETTE } from '../core/constants.js?v=20260911a';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -16,7 +16,7 @@ import {
   setThemePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../core/theme.js?v=20260910a';
+} from '../core/theme.js?v=20260911a';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';
@@ -30,7 +30,7 @@ function _btnCls(active) {
 /** 选中态同步内联夜间变量（未选中移除，避免深色下误套亮色字） */
 function _applyBtnState(btn, active) {
   btn.className = _btnCls(active);
-  if (active) btn.style.setProperty('--acc-text-dark', 'var(--app-accent,#B91C1C)');
+  if (active) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)');
   else btn.style.removeProperty('--acc-text-dark');
 }
 
@@ -64,11 +64,11 @@ export function appearanceControlsHTML(opts = {}) {
   const accent = _effectiveAccent(accentFallbackRole);
 
   const fontBtns = FONT_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(font === o.value)}"${font === o.value ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-font-size="${o.value}" title="${o.title}">${o.label}</button>
+    <button type="button" class="${_btnCls(font === o.value)}"${font === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-font-size="${o.value}" title="${o.title}">${o.label}</button>
   `).join('');
 
   const themeBtns = THEME_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(theme === o.value)}"${theme === o.value ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
+    <button type="button" class="${_btnCls(theme === o.value)}"${theme === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
   `).join('');
 
   return `

@@ -5,12 +5,12 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260910a';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260910a';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260910a';
-import { tokenOf } from '../core/version-token.js?v=20260910a'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole } from './inspector.js?v=20260910a';
-import { badgeHtml } from './badges.js?v=20260910a';
+import { getAppState, setState } from '../core/state.js?v=20260911a';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260911a';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260911a';
+import { tokenOf } from '../core/version-token.js?v=20260911a'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole } from './inspector.js?v=20260911a';
+import { badgeHtml } from './badges.js?v=20260911a';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -186,7 +186,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:var(--app-accent,#B91C1C)"' : ''} data-view="${key}">${label}</button>
+        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
