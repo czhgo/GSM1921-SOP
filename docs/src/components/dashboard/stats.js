@@ -69,17 +69,19 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   const myPresent = myMonthAttendance.filter(r => r.status === 'present' || r.status === 'made_up').length;
   const myTotal = myMonthAttendance.length;
   const myRate = myTotal > 0 ? Math.round((myPresent / myTotal) * 100) : 0;
-  const myColor = myTotal === 0 ? '#9CA3AF'
+  const myColor = myTotal === 0 ? 'var(--neutral-500)'
     : myRate >= 90 ? '#059669'
     : myRate >= 70 ? '#D97706'
     : '#DC2626';
 
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
   // 2026-08-10 书记两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
+  // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为既有色阶 --accent-amber #D97706（3.19）；
+  // 零值弱化色 #9CA3AF 不达 3:1，升档为 --neutral-500（浅 4.83 / 深 #94A3B8 6.57，深色不退化）
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero', interactive: false },
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#F59E0B', icon: 'usersGroup', interactive: false },
-    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : '#9CA3AF', icon: 'bellHero', interactive: false },
+    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#D97706', icon: 'usersGroup', interactive: false },
+    { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     { label: '个人考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];
 
@@ -92,8 +94,8 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
         ${icon(s.icon, { strokeWidth: 1.8, stroke: s.color, className: 'w-5 h-5' })}
       </div>
       <div>
-        <p class="text-2xl font-bold" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-400);">${s.unit}</span></p>
-        <p class="text-xs" style="color:var(--neutral-400);">${s.label}</p>
+        <p class="text-2xl font-bold" style="color:${s.color};line-height:1.2;">${s.value}<span class="text-xs font-normal ml-0.5" style="color:var(--neutral-500);">${s.unit}</span></p>
+        <p class="text-xs" style="color:var(--neutral-500);">${s.label}</p>
       </div>
     </div>
   `).join('');

@@ -602,7 +602,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
     : [];
   const rowsHtml = history.length
     ? [...history].slice(-50).reverse().map(_cfgHistoryRowHtml).join('')
-    : '<p class="text-sm" style="color:var(--neutral-400,#9CA3AF);padding:8px 2px;">暂无配置变更记录</p>';
+    : '<p class="text-sm" style="color:var(--neutral-500,#6B7280);padding:8px 2px;">暂无配置变更记录</p>';
   panel.innerHTML = `
     <div class="settings-card">
       <div class="settings-card-head">

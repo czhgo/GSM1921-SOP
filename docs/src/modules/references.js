@@ -490,7 +490,7 @@ export class ReferencesModule {
     if (bodyHtml) {
       parts.push(`<div style="font-size:0.8125rem;line-height:1.8;color:var(--neutral-700);word-break:break-word;">${bodyHtml}</div>`);
     } else {
-      parts.push('<p style="font-size:0.75rem;color:var(--neutral-400);margin:0;">本制度暂未录入网页正文，请查看附件（若有）或线下文本。</p>');
+      parts.push('<p style="font-size:0.75rem;color:var(--neutral-500);margin:0;">本制度暂未录入网页正文，请查看附件（若有）或线下文本。</p>');
     }
     return parts.join('');
   }
@@ -507,7 +507,7 @@ export class ReferencesModule {
       const isTop = v.version === (d.version || 1);
       const meta = [
         `<b style="color:var(--neutral-800);">v${v.version}</b>`,
-        `<span style="color:${statusText(v) === '现行' ? '#047857' : 'var(--neutral-400)'};">${statusText(v)}</span>`,
+        `<span style="color:${statusText(v) === '现行' ? '#047857' : 'var(--neutral-500)'};">${statusText(v)}</span>`,
         v.at ? _fmtDateTime(v.at) : '',
         v.by ? `${_personName(v.by)} 发布` : '',
         v.title && v.title !== d.title ? `《${_esc(v.title)}》` : '',
@@ -623,7 +623,7 @@ export class ReferencesModule {
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-body">正文（文本 / Markdown）</label>
           <textarea id="ref-modal-body" class="input-flat w-full" rows="10"
             placeholder="输入制度正文。支持简单 Markdown：# 标题、**加粗**、- 列表、1. 列表、行内 code、代码块"></textarea>
-          <p class="text-xs mt-1.5" style="color:var(--neutral-400);">保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。</p>
+          <p class="text-xs mt-1.5" style="color:var(--neutral-500);">保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。</p>
         </div>
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-note">版本说明（可选）</label>
@@ -781,7 +781,7 @@ export class ReferencesModule {
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-pub-note">版本说明（可选）</label>
           <input id="ref-pub-note" class="input-flat w-full" placeholder="如：根据 2026-09 支委会意见修订第三条" />
         </div>
-        <p class="text-xs" style="color:var(--neutral-400);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
+        <p class="text-xs" style="color:var(--neutral-500);">保存后：当前「现行版 v${doc.version || 1}」自动归档为历史版本（成员仍可展开查阅），正文更新为「现行版 v${(doc.version || 1) + 1}」。</p>
         <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">

@@ -34,7 +34,7 @@ function _syncTrigger(trigger, sel) {
   const valueEl = trigger.querySelector('.cs-value');
   if (valueEl) {
     valueEl.textContent = label || '请选择';
-    valueEl.style.color = label ? '' : 'var(--neutral-400)';
+    valueEl.style.color = label ? '' : 'var(--neutral-500)';
   }
 }
 

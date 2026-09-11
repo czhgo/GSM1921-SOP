@@ -56,7 +56,7 @@
 .person-picker-trigger-placeholder {
   flex: 1;
   text-align: left;
-  color: #9CA3AF;
+  color: var(--neutral-500);
 }
 
 .person-picker-trigger-badge {
@@ -205,7 +205,7 @@
 .person-picker-empty {
   text-align: center;
   padding: 32px 16px;
-  color: #9CA3AF;
+  color: var(--neutral-500);
   font-size: 0.8125rem;
 }
 
@@ -319,7 +319,7 @@
 
 .person-picker-item-meta-text {
   font-size: 0.6875rem;
-  color: #9CA3AF;
+  color: var(--neutral-500);
 }
 
 .person-picker-item-role {
@@ -352,7 +352,7 @@
 }
 .person-picker-batch-label {
   font-size: 0.6875rem;
-  color: #9CA3AF;
+  color: var(--neutral-500);
   flex-shrink: 0;
 }
 .person-picker-batch-chip {

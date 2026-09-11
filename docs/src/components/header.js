@@ -222,13 +222,13 @@ function _bindNotificationBell(header) {
       try {
         ({ NoticeStore, resolveNoticeUrl } = await loadNotice());
       } catch (err) {
-        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-400);" class="text-sm">通知数据不可用</div>';
+        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">通知数据不可用</div>';
         return;
       }
       // 保留策略（书记 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
       const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
       if (notices.length === 0) {
-        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-400);" class="text-sm">暂无通知</div>';
+        dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">暂无通知</div>';
         return;
       }
 
@@ -246,7 +246,7 @@ function _bindNotificationBell(header) {
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
             ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:var(--functional-info);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='var(--surface-hover)'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
-          <p style="color:var(--neutral-400);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
+          <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>
       `).join('');
 
@@ -261,7 +261,7 @@ function _bindNotificationBell(header) {
             // 视觉反馈：标题变浅 + 移除按钮
             const item = btn.closest('.notif-dropdown-item');
             const titleP = item?.querySelector('p[style*="color:#374151"]');
-            if (titleP) titleP.style.color = '#9CA3AF';
+            if (titleP) titleP.style.color = 'var(--neutral-500)';
             btn.remove();
           }
         });
@@ -283,7 +283,7 @@ function _bindNotificationBell(header) {
           _renderNotificationBadge();
           // 视觉反馈：点击后标题颜色变浅
           const titleP = item.querySelector('p[style*="color:#374151"]');
-          if (titleP) titleP.style.color = '#9CA3AF';
+          if (titleP) titleP.style.color = 'var(--neutral-500)';
           const dest = resolveNoticeUrl(notice);
           const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
           window.location.href = finalUrl;

@@ -99,7 +99,7 @@
     <!-- 默认模式: 账号密码登录 -->
     <div id="login-default" class="login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6">
       <h2 class="font-title text-base font-semibold text-gray-800 mb-1">登录</h2>
-      <p class="text-xs text-gray-400 mb-5">请使用学号和密码登录</p>
+      <p class="text-xs text-gray-500 mb-5">请使用学号和密码登录</p>
       <form id="login-form" class="space-y-4" novalidate>
         <div>
           <label for="student-id" class="block text-xs font-medium text-gray-600 mb-1.5">学号</label>
@@ -113,13 +113,13 @@
         <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg bg-party-700 text-white font-medium hover:bg-party-800">登录</button>
       </form>
       <div class="login-divider my-5"></div>
-      <p class="text-center text-xs text-gray-400">Mock 校验 · 开发阶段</p>
+      <p class="text-center text-xs text-gray-500">Mock 校验 · 开发阶段</p>
     </div>
 
     <!-- 开发模式: 身份卡片网格 -->
     <div id="login-dev" class="dev-mode-section login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6">
       <h2 class="font-title text-base font-semibold text-gray-800 mb-1">开发模式 · 选择身份</h2>
-      <p class="text-xs text-gray-400 mb-5">直接选择身份登录，仅本地开发使用</p>
+      <p class="text-xs text-gray-500 mb-5">直接选择身份登录，仅本地开发使用</p>
       <div class="grid grid-cols-2 gap-3" id="dev-cards">
         <!-- 7 张卡片由 JS 动态生成 -->
       </div>
@@ -127,14 +127,14 @@
 
     <!-- 开发模式开关 -->
     <div class="login-card-anim login-card-anim-delay-2 text-center mt-4">
-      <label class="inline-flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none">
+      <label class="inline-flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
         <input type="checkbox" id="dev-toggle" class="rounded">
         开发模式
       </label>
     </div>
     <!-- 返回主页（T-284：登录页跳转闭环，避免误入后无出口） -->
     <div class="text-center mt-3">
-      <a href="./index.html" class="text-xs text-gray-400 hover:text-gray-600 transition-colors">← 返回主页</a>
+      <a href="./index.html" class="text-xs text-gray-500 hover:text-gray-600 transition-colors">← 返回主页</a>
     </div>
   </div>
 

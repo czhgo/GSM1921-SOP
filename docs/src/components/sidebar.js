@@ -70,7 +70,7 @@ function getFooterItems() {
 // footer 图标按模块取（stroke 随 footer 弱化色；设置=齿轮）
 function _footerIcon(module) {
   const name = module === 'help' ? 'book' : module === 'settings' ? 'gear' : 'info';
-  return icon(name, { stroke: 'var(--neutral-400)' });
+  return icon(name, { stroke: 'var(--neutral-500)' });
 }
 
 export async function renderSidebar(activeModule, opts = {}) {
@@ -127,7 +127,7 @@ export async function renderSidebar(activeModule, opts = {}) {
 
   const footerItems = getFooterItems();
   const footerHTML = footerItems.map(item => `
-    <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);text-decoration:none;border:none;">
+    <a href="${item.href}" data-module="${item.module}" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);text-decoration:none;border:none;">
       ${_footerIcon(item.module)}
       <span>${item.label}</span>
     </a>
@@ -136,12 +136,12 @@ export async function renderSidebar(activeModule, opts = {}) {
   // 登录态对偶入口（书记 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
   const authEntryHTML = user ? `
-      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;">
-        ${icon('logout', { stroke: 'var(--neutral-400)' })}
+      <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);cursor:pointer;border:none;background:none;">
+        ${icon('logout', { stroke: 'var(--neutral-500)' })}
         <span>退出登录</span>
       </button>` : `
-      <a href="${getBasePath()}login.html" id="sidebar-login" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-400);cursor:pointer;border:none;background:none;text-decoration:none;">
-        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-400)' })}</span>
+      <a href="${getBasePath()}login.html" id="sidebar-login" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);cursor:pointer;border:none;background:none;text-decoration:none;">
+        <span style="display:inline-block;transform:scaleX(-1);">${icon('logout', { stroke: 'var(--neutral-500)' })}</span>
         <span>登录</span>
       </a>`;
 
