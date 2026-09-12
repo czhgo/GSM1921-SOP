@@ -1,4 +1,4 @@
-// server/test/roles-sync.test.mjs — P2c 防漂移：授权语义角色集单一源自洽（2026-09-03）
+// server/test/roles-sync.test.mjs — P2c 防失同步：授权语义角色集单一源自洽（2026-09-03）
 // 校验 docs/src/core/constants.js 的授权语义角色集（server requireRole 与前端 AuthStore.isCommissioner 共用）：
 //   ① 全部角色 ∈ ROLE_KEYS 枚举；
 //   ② 业务语义「条条三委员」⊆ 授权支委集（含书记/副书记），防止两套语义混淆（勿把授权集指向条条集）；

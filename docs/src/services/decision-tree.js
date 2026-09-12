@@ -225,7 +225,7 @@ export class DecisionTreeState {
     if (!scenario) return '<p class="text-gray-500">未找到对应SOP模板</p>';
 
     const tasks = scenario.tasks.filter(t => t.timeOffset !== null);
-    if (tasks.length === 0) return '<p class="text-gray-500">该场景无时间锚点任务</p>';
+    if (tasks.length === 0) return '<p class="text-gray-500">该场景暂无需按时间安排的事项</p>';
 
     const phases = [
       { label: '会前准备', test: t => t.timeOffset < 0 },

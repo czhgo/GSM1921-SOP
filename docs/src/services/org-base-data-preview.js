@@ -13,7 +13,7 @@
 //   （getEffectiveMembers/getRosterStats/getMeetingRoster）与姓名解析自动吃到预览效果。
 // 依赖方向（防循环）：本模块只 import mock/people.js + core/policy-defaults.js，
 //   不 import services/person.js / services/roster.js（person.js → preview 单向依赖）；
-//   居住状态字面量 RESIDENCE 与 roster.js 同值（单测断言防漂移）。
+//   居住状态字面量 RESIDENCE 与 roster.js 同值（单测断言防失同步）。
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
@@ -76,7 +76,7 @@ export function buildPreviewTemplate() {
     usage: '成员基础数据预览模板（换组织用）：每行只改五项基础字段——name 姓名（不可为空）、'
       + 'partyGroup 党小组归属（第一/第二/第三党小组）、developStage 发展阶段（正式党员/预备党员/发展对象/积极分子）、'
       + 'residenceStatus 在校|滞留、residenceNote 滞留备注（自由文本，可为空）。'
-      + 'id 为成员锚点不可改（白名单外整条忽略）；非法枚举回退该成员原值、空姓名整条忽略；'
+      + 'id 为成员唯一标识不可改（白名单外整条忽略）；非法枚举回退该成员原值、空姓名整条忽略；'
       + '删行不生效（该成员保持种子现状，预览不增减成员，正式减员走成员档案流程）。'
       + '注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按换壳工作单落仓库文件。',
     people: SEED_MEMBERS.map(p => ({

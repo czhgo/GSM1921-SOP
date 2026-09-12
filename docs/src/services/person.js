@@ -525,7 +525,7 @@ function _syncMockDBUsers(upsert, removeId) {
   mockDB.users = users;
 }
 
-/** api 形态语义端点字段分组（与 server/routes/member.js 白名单同源，勿各自漂移） */
+/** api 形态语义端点字段分组（与 server/routes/member.js 白名单同源，勿各自失同步） */
 const API_RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
 const API_PROFILE_FIELDS = ['name', 'studentId', 'partyGroup'];
 const API_CREATE_FIELDS = ['id', 'name', 'studentId', 'partyGroup', 'developStage', ...API_RESIDENCE_FIELDS];

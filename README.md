@@ -216,7 +216,7 @@ content/ 文档是**书记批改的权威源**（制度先改文本、后同步�
 - 待办/今天域：`todo-domain` / `todo-deriver-domain` / `todo-domain-view` / `today-summary`
 - 性能守卫：`perf-render-guard` / `perf-todo-agg-cache` / `perf-version-token` / `perf-index-equivalence`
 - 成员确认/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
-- 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与锚点守护）/ `function-map-sync`（功能地图漂移守护）等
+- 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与页面定位检查）/ `function-map-sync`（功能地图失同步检查）等
 
 子集回归：`npm run test:core` / `npm run test:fast`（清单见 [server/package.json](server/package.json)）。
 

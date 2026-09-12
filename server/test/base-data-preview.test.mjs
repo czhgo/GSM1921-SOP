@@ -37,7 +37,7 @@ const BRANCH_MEMBERS = PEOPLE.filter(p => p.branchId !== null && p.branchId !== 
 const PARTY_MEMBERS = BRANCH_MEMBERS.filter(p => PARTY_STAGES.includes(p.developStage));
 
 // ── a) 常量与模板结构 ─────────────────────────────────────
-test('常量：kind/version/键名与成员基底；RESIDENCE 与 roster.js 同值（防漂移）', () => {
+test('常量：kind/version/键名与成员基底；RESIDENCE 与 roster.js 同值（防失同步）', () => {
   assert.equal(PREVIEW_KIND, 'gsm1921-base-data');
   assert.equal(PREVIEW_VERSION, 1);
   assert.equal(PREVIEW_KEY, 'gsm1921-base-data-preview');

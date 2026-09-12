@@ -1,5 +1,5 @@
-// server/test/vote-option-sync.test.mjs — P1a 防漂移：server OPTION_ENUMS 键集 == 前端 vote-config OPTION_SETS options
-// 2026-09-03 建立：跨层表决枚举若两侧漂移（增删选项/改 optionSet 名），测试即红，须同步两端。
+// server/test/vote-option-sync.test.mjs — P1a 防失同步：server OPTION_ENUMS 键集 == 前端 vote-config OPTION_SETS options
+// 2026-09-03 建立：跨层表决枚举若两侧失同步（增删选项/改 optionSet 名），测试即红，须同步两端。
 // 前端为业务单一源（含 label/labels/objectRequiresNote），server 仅镜像 options 键集。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

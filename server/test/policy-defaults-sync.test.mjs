@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
-// server/test/policy-defaults-sync.test.mjs — P3c 防漂移：业务默认集中单一源（2026-09-05）
+// server/test/policy-defaults-sync.test.mjs — P3c 防失同步：业务默认集中单一源（2026-09-05）
 // 纯 Node 测试（无浏览器）：policy-defaults.js 与消费点导出保持同步，
-// 防止消费点在 policy 之外新写字面量导致两套默认漂移。
+// 防止消费点在 policy 之外新写字面量导致两套默认失同步。
 // 覆盖：考勤会议类型清单 / 票决门槛 / 考察超期默认天数（policy 默认值 + 缺省调用可运行）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

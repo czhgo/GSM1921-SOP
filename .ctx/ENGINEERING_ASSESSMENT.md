@@ -23,13 +23,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 维度 | 得分 | 一句话结论 |
 |------|------|-----------|
 | 模块化 | 75 / 100 | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖 |
-| 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防漂移测试未全落地 |
+| 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防失同步测试未全落地 |
 | 开源化 | 74 / 100 | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；残项=无 English 版、release 发布工作流未做 |
 | 超参数可调性 | 84 / 100 | policy-defaults 集中默认单一源逐项标注 branch-default 可调 / institutional 固定；2026-09-09 批4 已接 config 驱动：POLICY_OVERRIDABLE 白名单三键经设置「域参数」卡 UI 覆盖 +「支部制度参数」卡制度默认只读展示（放行程序唯一通道）；残项=全量 config 引擎未达（未登记项仍源码，放开须走放行程序） |
 | 组合能力（二开视角） | 80 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（书记/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；设置中心页签个人化 + 支部默认编排直存 + config 审计回滚（2026-09-09）；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
 | **综合（当前）** | **≈ 78 / 100** | 五维均值（75/75/74/84/80）——书记 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；2026-09-09 收尾批 AI 建议分上调拍定（超参 78→84、组合 78→80）；失分仍=requiredRoles 未消费、拖拽编排 L1→L5 未达、server 登录缺省口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版、制度项放行需裁决 |
 
-> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防漂移测试未全（插件化/组合能力）、全量 config 引擎未达（制度项放行需裁决，超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
+> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防失同步测试未全（插件化/组合能力）、全量 config 引擎未达（制度项放行需裁决，超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
 
 > 注（书记 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；三·3.3 R12 与行动线 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录（该运行安全项已由 P1b 于 2026-09-03 修复：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门；本条保留撤销口径原貌）。
 
@@ -59,7 +59,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 失分项 / 残项（后续跟踪）：
 - requiredRoles 门禁未被 workspace-shell 消费（仅元数据，组合后授权弱）。
-- manifest 防漂移测试未全落地。
+- manifest 防失同步测试未全落地。
 - module-compose 仅前端纯校验：服务端 config 校验留 v1（插件安装/卸载概念未立）。
 
 ### 2.3 开源化 —— 74/100
@@ -150,7 +150,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | R2 类型/阶段元数据多写 | 三会四子类清单三份；阶段枚举另见 CANDIDATE_STAGES 与各 seed | constants.js:481-492 / inspector.js:356,374 / makeup.js:13,44 / dashboard/gallery.js:23（色名） | ✅ 收口 + 2 项复核保留（P0b：MEETING_TYPES→`ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 派生；TYPE_META/STATUS_META、MANDATORY_ACTIVITY_TYPES 与 gallery 色名复核保留，见下） |
 | R3 产出块 id 消费端手写 | write-tab 重列 4 id 与 constants OUTPUT_BLOCK_DEFS 重复；calendar-tab 手写 THEME_DAY_BLOCK_ID 与 manifests.js blockId 重复 | write-tab.js:111,114-117,125-130 / constants.js:557-564 / calendar-tab.js:36 / manifests.js:26 | ✅ 已收敛（P0b：write-tab 产出块 4-id 字面量 → OUTPUT_BLOCK_DEFS 派生；calendar-tab `THEME_DAY_BLOCK_ID` → `THEME_PARTY_DAY_MANIFEST.blockId` 派生） |
 | R4 场景目录子集三处手写 | 6 个活动场景的 id+label+颜色在 constants.js、decision-tree.js、calendar-tab WRITE_TEMPLATES 各维护一份（全集唯一源=sopData.js 12 场景） | sopData.js:10-165 / constants.js:121-129 / decision-tree.js:36-96 / calendar-tab.js:394-418 | ✅ 已收敛（P2b：constants 新增 `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生；decision-tree 与 calendar-tab 改派生引用，scene-write-sync 测试兜底） |
-| R5 业务链路三写 | flow 语义在 function-catalog desc、mermaid-sources FLOW_LINKS、以及声称的 sopData 各一份；无键集比对测试（注释声称的「防漂移测试」不存在） | function-catalog.js:63-76 / mermaid-sources.js:29-106 / function-catalog.test.mjs:44-48 | ✅ 已收敛（P0c：新增 `server/test/flow-catalog-sync.test.mjs` 键集**双向**断言，任一侧增删即红） |
+| R5 业务链路三写 | flow 语义在 function-catalog desc、mermaid-sources FLOW_LINKS、以及声称的 sopData 各一份；无键集比对测试（注释声称的「防失同步测试」不存在） | function-catalog.js:63-76 / mermaid-sources.js:29-106 / function-catalog.test.mjs:44-48 | ✅ 已收敛（P0c：新增 `server/test/flow-catalog-sync.test.mjs` 键集**双向**断言，任一侧增删即红） |
 | R6 tab id 散落导航侧 | entry 的 defaultTab/onNavTarget 硬编码 tab id，与能力 tab 清单及 config.modules.hiddenTabIds 无同一性守卫；隐藏后导航静默 no-op | 8 个 ws-*-entry.js / tab-bar.js:198-200 / branch.js:47-53 | ✅ 已收敛（P2a：`core/tab-nav.js` 纯决策 + tab-bar 守卫——隐藏 tab 回退首个可见 tab、杜绝静默白屏，tab-nav 4 态测试绿） |
 | R7 跨层双净化 | 支部 config（modules/blocks）净化规则 server 与前端各一份，无互引注释、独立演化 | server/routes/resources.js:259-316 / docs/src/services/branch.js:132-176 | ✅ 已收敛（P1a：共享纯模块 `core/config-clean.js`，server 严格口径为单向权威，两端同源引用、本地净化实现删除） |
 | R8 表决规则跨层重复 | optionSet 枚举+「异议须附言」server 与前端各一份，仅注释声明「对齐」 | server/routes/committee.js:30-36,90-92 / docs/src/services/vote-config.js:7-18 | ✅ 已收敛（P1a：`OPTION_ENUMS` 从 committee.js 导出 + `test/vote-option-sync.test.mjs` 键集双向断言） |
@@ -161,7 +161,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 > 反例（无需拆分，防过度去重）：block manifest 校验唯一源在前端 manifests.js（server 测试经浏览器复用同文件），职责与 R7 的「config 形状净化」不同——勿误并。
 
-#### 复核保留（2026-09-03 定，防行为漂移）
+#### 复核保留（2026-09-03 定，防行为失同步）
 
 - ① TYPE_META/STATUS_META：支部侧（「待党委批复」+desc）与党委侧（「待批复」）文案不同，属**双视角差异**，暂不合并。
 - ② makeup `MANDATORY_ACTIVITY_TYPES`（刚性考勤子集+主题党日）与 gallery 色名：业务语义 ≠ 三会子类清单，不并入 subtypes。
@@ -184,7 +184,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P0·数据域接线 | tab/能力声明依赖的 service + mock 整体可替换（验收：新增 demo 分支或后端接入时 UI 零改动，data-adapter 双实现全量走通） | ✅ 收官：person 域/formatter/PEOPLE/机构/登录四批收口完成——UI 层 mock 直连清零，种子仅存 services/core 数据层（契约见三·3.2） |
 | P0a | R1 微工具建库：escHtml/fmtDt 收敛到唯一工具出口，10 处本地 `esc` 改 import | ✅ 已完成（2026-09-03；grep 本地 `function esc` 归零，module-load 全绿） |
 | P0b | R2/R3 元数据单一源：MEETING_TYPES、write-tab 4 id、calendar blockId 改为引用 constants/manifests（验收：全仓该类型/4 id 无第二份字面量，写路径零行为变化） | ✅ 收口（2026-09-03）；TYPE_META/STATUS_META 与 MANDATORY_ACTIVITY_TYPES/gallery 色名 2 项复核保留（见三·3.3 复核保留） |
-| P0c | R5 防漂移测试落地：断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | ✅ 已完成（2026-09-03；flow-catalog-sync 双向断言测试入 server/test 且绿） |
+| P0c | R5 防失同步测试落地：断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | ✅ 已完成（2026-09-03；flow-catalog-sync 双向断言测试入 server/test 且绿） |
 | P1·开源合规包 | LICENSE、示例账号外置 env、部署/贡献说明（验收：新机器按 README 可独立跑通并自建数据） | ✅ 部分→闭环：根 LICENSE + CONTRIBUTING.md + server/.env.example 已在仓（2026-09-04），数据真人化整体可替换（2026-09-06，P4a 换壳指南补验收）；残项=无 English 版、release 发布工作流（见二·2.3） |
 | P1a | R7/R8 跨层单源：config 净化与表决枚举改 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | ✅ 已完成（2026-09-03；config-clean.js 共享纯模块 + OPTION_ENUMS 双向断言，28 测试中相关全绿） |
 | P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | ✅ 已完成（2026-09-03；缺省 '123456' 可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门，auth-password 5 态测试绿；生产须显式换密） |
@@ -205,7 +205,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P4b | 换组织向导页（立项④，2026-09-06 立）：引导式完成 people/accounts/branches/policy 替换并生成组织配置包（验收：向导产出可一键应用的换壳配置） | ✅ 主体落地（T-2026-09-044~047：书记 R1–R4 裁定 + 阶段一/二/三目标1，wizard.html 上线——详见 REVIEW_QUEUE 附录⑧）；阶段三候选（数据层覆盖预览/党委默认模板抽象）登记后续 |
 | P4c | 演示数据与空组织模板分离（立项⑤，2026-09-06 立）：仓库随附「模板 + 示例组织」双形态、seed 完整性自动校验、一键重置分层服务化 | ✅ 落地（T-2026-09-047/048：空组织模板 + 建新支部正式能力 + ?reset 分层 demo/preview 与服务端对齐，详见 REVIEW_QUEUE 附录⑧）；域分区缺口（业务域非 branch 分区）已注释诚实边界 |
 | P4d | 组合能力补强（后续批次）：policy-defaults 接入 config 驱动（超参可调不改码）、requiredRoles 门禁消费、拖拽编排由主题党日推广全站（L1→L5） | ✅ 域参数 config 驱动已落地（2026-09-09 批4：POLICY_OVERRIDABLE 白名单 + 设置「域参数/制度参数」UI 覆盖 + 审计 why/回滚）；全量 config 引擎 / requiredRoles 门禁消费 / 拖拽推广全站 = 后续（残项见二·2.4/2.5 与一速览失分行） |
-| 后续·残项跟踪 | 组件出口继续收口（徽章/选择器等、服务层个别 UI 依赖）、manifest 防漂移测试补全、无 English 版、语义化 release 发布工作流 | 后续 |
+| 后续·残项跟踪 | 组件出口继续收口（徽章/选择器等、服务层个别 UI 依赖）、manifest 防失同步测试补全、无 English 版、语义化 release 发布工作流 | 后续 |
 
 ---
 

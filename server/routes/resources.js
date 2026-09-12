@@ -8,7 +8,7 @@ import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
-// 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防漂移）
+// 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防失同步）
 import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../docs/src/core/config-clean.js';
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
@@ -199,7 +199,7 @@ export function createResourcesRouter(db) {
   // ── 立项⑤ 阶段A：支部语义创建 POST /branches（2026-09-06）────────────
   // 空模板初始化 / 复制现有支部为模板——双形态口径与前端 services/branch.js createBranch
   // （EMPTY_BRANCH_TEMPLATE + buildNewBranchRecord）一致：server 内联同语义，
-  // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防两端漂移）。
+  // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防两端失同步）。
   // 门控：party-staff（与 PATCH /branches/:id/config 同风格 requireAuth + 角色判定）。
   // body：{ mode?: 'empty'|'copy', sourceId?, name?, type? }——
   //   name 缺省 = 占位名「新支部（待配置）」（名待填，向导步骤①可改）；

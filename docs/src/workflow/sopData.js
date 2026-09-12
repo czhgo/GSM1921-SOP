@@ -167,7 +167,7 @@ export const sopDatabase = {
       scenarioId: 'feedback-handling', title: '处理意见建议反馈',
       domain: 'organization', description: '支部全体成员可提出',
       tasks: [
-        { title: '全口径收集意见建议', executor: 'secretary', supervisor: null, timeOffset: null },
+        { title: '广泛收集意见建议', executor: 'secretary', supervisor: null, timeOffset: null },
         { title: '组织召开座谈会或支委会讨论', executor: 'secretary', supervisor: null, timeOffset: null },
         { title: '牵头制度修改与定稿', executor: 'secretary', supervisor: null, timeOffset: null },
         { title: '向党员大会反馈处理结果', executor: 'secretary', supervisor: null, timeOffset: null },

@@ -1,4 +1,4 @@
-// server/test/scene-write-sync.test.mjs — P2b 防漂移：写活动场景目录单一源自洽（2026-09-03）
+// server/test/scene-write-sync.test.mjs — P2b 防失同步：写活动场景目录单一源自洽（2026-09-03）
 // 校验 core/constants.js 的 SCENARIO_WRITE_IDS/SCENARIO_LABELS：
 //   ① 与 ACTIVITY_CLASSIFICATION.subtypes 中文名逐序一致（四子会）；
 //   ② 平铺 id 全集 == SCENARIO_LABELS 键集（决策树/日历模板只派生这两者，无第二份手写清单）；

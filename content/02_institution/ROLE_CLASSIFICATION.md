@@ -83,7 +83,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 
 | 文件 | 角色 | 判定理由 |
 |------|------|---------|
-| `README.md` | `[用户]` | 对外门面，用户第一接触点 |
+| `README.md` | `[用户]` | 对外门面，用户最先看到的内容 |
 | `ARCHITECTURE.md` | `[工程师]+[AI]` | 核心架构，工程师维护 + AI 上下文 |
 | `CLAUDE.md` | `[工程师]+[AI]` | 核心规则、执行路线图，工程师维护 + AI 执行依据 |
 | `SSOT_INDEX.md` | `[工程师]+[AI]` | 注册表，工程师溯源 + AI 配置参考 |

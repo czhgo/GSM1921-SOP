@@ -132,7 +132,7 @@ export const POLICY_DEFAULTS = _clone(_FACTORY);
  * config.policyOverrides 可覆盖白名单（域参数 L2，书记 2026-09-09 批；全覆盖路径均在
  * POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定）。
  * 净化/钳制唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides（本表唯一消费方，
- * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防两套校验漂移）。
+ * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防两套校验失同步）。
  */
 export const POLICY_OVERRIDABLE = [
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },

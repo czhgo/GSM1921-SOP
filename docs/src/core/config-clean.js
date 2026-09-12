@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  config-clean.js — 支部 config（modules/blocks）净化唯一实现（P1a 单向权威，2026-09-03）
-//  消费方（两端共用同一实现，防漂移）：
+//  消费方（两端共用同一实现，防失同步）：
 //    docs/src/services/branch.js（前端写路径：party-config 配置 UI / 书记操作）
 //    server/routes/resources.js（PATCH /branches/:id/config）
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
@@ -22,7 +22,7 @@ const BLOCKS_LIMIT = 50;
 
 // ── 配置变更留痕审计内核共享常量（2026-09-09 书记批：支部 config 审计 why+回滚+上限）────────
 // 单一源供两端消费：docs/src/services/branch.js（mock 直写形态）与 server/routes/resources.js
-// （PATCH /branches/:id/config 与 /branches/:id/config/rollback）——双形态同源，防漂移。
+// （PATCH /branches/:id/config 与 /branches/:id/config/rollback）——双形态同源，防失同步。
 // config.configChangeHistory 现逐键留痕 {by,at,what,from,to,why?}；why=依据/出处（可选，来源页回填
 // 如 REVIEW_QUEUE 附录编号）；单键回滚以 ROLLBACKABLE 键白名单收敛（跨键/聚合留痕不回滚）。
 export const CONFIG_HISTORY_MAX = 100; // 历史上限：保留最近 N 条（追加/回滚后裁剪最早）
@@ -137,7 +137,7 @@ export function sanitizeConfigOrg(org) {
 //   · 值校验：int=整数且钳 [min,max]（防负数/超长天数）；boolean=严格布尔；windows=窗口数组
 //     （每窗 [起月,起日,止月,止日]，月 1..12、日 1..31，至多保留前 2 窗、去重）。
 //   · 非法值/未知键一律丢弃（不写坏）；null/undefined 入参 → null（= 无 overrides / 整体恢复默认）。
-//   · 前端 branch.js savePolicyOverrides 与 server PATCH /branches/:id/config 共用本净化实现（防漂移）。
+//   · 前端 branch.js savePolicyOverrides 与 server PATCH /branches/:id/config 共用本净化实现（防失同步）。
 
 function _cleanPolicyValue(spec, raw) {
   if (spec.type === 'int') {

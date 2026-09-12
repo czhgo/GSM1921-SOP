@@ -3,7 +3,7 @@
 // 书记裁定：原「工作台配置」定位不对 + UI 过重 → 已移出书记日常台收拢党委台；本次再升级为
 // 5 步引导式「换组织向导」（组织信息/模块块组合/角色分工/术语制度+工作单/验证与重置），
 // 裸开关清单收进步骤②；主体渲染下沉共享组件 components/org-setup-wizard.js
-// （party-config 内容区 与 wizard.html 独立页 同源，防两处漂移）。
+// （party-config 内容区 与 wizard.html 独立页 同源，防两处失同步）。
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任书记走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任书记）+ 即时生效留痕。
 

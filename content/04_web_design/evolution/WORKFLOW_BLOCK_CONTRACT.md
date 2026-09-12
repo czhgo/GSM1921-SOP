@@ -102,7 +102,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
   // ── 校验（validation → 块级守卫）────────────────────────
   "validation": {
     "initiatorRoles": ["secretary"],     // 谁可发起（角色键）
-    "requiredSop": true,                 // 必须带 sopRef（防漂移）
+    "requiredSop": true,                 // 必须带 sopRef（防失同步）
     "enabledByDefault": true             // 支部 config 未显式配置时的缺省
   }
 }
@@ -131,7 +131,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 | depends | `string[]` | 本块依赖的其他块 `blockId`（组合内先满足的块） | 引用必须 ∈ 本组合块 id 集合；**不允许成环**（含自依赖，DFS 检出） |
 | conflictsWith | `string[]` | 与本块互斥的块 `blockId` | 引用必须 ∈ 本组合块 id 集合；**同一组合不得同时含互斥双方** |
 
-- **引用必须存在**：`depends`/`conflictsWith` 的每个引用都必须是组合内某块的 `blockId`（引用组合外 id = 声明即错误，防笔误/漂移）。
+- **引用必须存在**：`depends`/`conflictsWith` 的每个引用都必须是组合内某块的 `blockId`（引用组合外 id = 声明即错误，防笔误/失同步）。
 - **互斥同含拦截**：同一组合清单同时出现 `conflictsWith` 双方即不合规（互斥对按 id 序规范化、去重，不偏袒声明方）。
 - **depends 禁环**：`depends` 不允许成环——DFS（三色标记）检出并返回完整环路径。
 - **收集式体检**：`resolveConflicts(items)` 不抛错，一次返回 `{ missingRefs, mutual, cycles }` 三类问题全集；`assertComposeValid(items)` 任一非空即抛错——错误信息含缺失引用（`引用方 -> 缺失 id`）、互斥双方 id、环路径；全部干净返回 `true`。

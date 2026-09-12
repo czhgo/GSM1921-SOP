@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // services/branch.js — 支部服务（P1 党委后台，2026-09-02）
-// 支部边界收敛点（防漂移）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
+// 支部边界收敛点（防失同步）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
 import { mockDB } from '../core/domain.js?v=20260912a';
@@ -11,7 +11,7 @@ import { listCapabilities } from '../core/registry.js?v=20260912a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
 import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260912a';
 // 审计内核共享常量（2026-09-09 书记批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
-// （server resources.js 同源 import，双形态防漂移）
+// （server resources.js 同源 import，双形态防失同步）
 import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260912a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
 import { expandWorkforce } from '../core/work-map.js?v=20260912a';
@@ -537,7 +537,7 @@ export function getCommitteeName() {
 }
 
 /**
- * 支部内资源隔离过滤（收敛点，防各 tab 手写过滤漂移）：
+ * 支部内资源隔离过滤（收敛点，防各 tab 手写过滤失同步）：
  * 按当前人所属支部过滤行；老数据无 branchId 视为 br-b1（惰性维度迁移兼容）。
  * 单支部时代恒等（全部 br-b1）；党委创建新支部并挂入跨支部数据后自然生效。
  */
@@ -685,7 +685,7 @@ export async function createBranch({ mode = 'empty', sourceId, name, type, by, a
     let record;
     if (getDataSource() === 'api') {
       // API 模式：语义请求交服务端构造（server POST /branches 同源逻辑 + party-staff 门控净化），
-      // 以服务端返回为权威（防两端漂移；mock 模式本地同口径构造见下）。
+      // 以服务端返回为权威（防两端失同步；mock 模式本地同口径构造见下）。
       const created = await getAdapter().branches.create({
         mode: m,
         ...(m === 'copy' ? { sourceId } : {}),

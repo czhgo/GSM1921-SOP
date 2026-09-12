@@ -88,7 +88,7 @@ function _renderGovernance(el, branches, noticeCount) {
           <span class="font-semibold text-gray-700 tabular-nums">${totals.members}</span>
           <span>在册成员合计（人）</span>
         </span>
-        <span class="inline-flex items-center gap-1.5" title="全院在册党员（正式+预备，同会议应到口径）">
+        <span class="inline-flex items-center gap-1.5" title="全院在册党员（正式+预备，同会议应到名单）">
           <span class="font-semibold text-gray-700 tabular-nums">${totals.party}</span>
           <span>在册党员（正式+预备）（人）</span>
         </span>

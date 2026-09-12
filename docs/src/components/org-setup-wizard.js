@@ -310,7 +310,7 @@ function _headHtml(S, branch, org, isStaff) {
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p class="font-title-cn text-base font-bold text-gray-800">换组织向导</p>
-          <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并留痕</p>
+          <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并记录变更</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="text-[11px] px-2.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90" style="background:#C8102E;">新建支部…</button>` : ''}
@@ -400,7 +400,7 @@ function _createPanelHtml(S, isStaff) {
         </div>
       </div>
       ${appointSection}
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">留痕：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
@@ -439,7 +439,7 @@ function _basePanelHtml(S) {
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[10px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
-      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到数字 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等应到口径同源）；「清除预览」一键回种子。</p>
+      <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等的应到名单来源一致）；「清除预览」一键回种子。</p>
       <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按「换壳工作单」落仓库文件。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" data-wz-act="download-base-template" class="${subtle}">下载成员名单模板</button>
@@ -506,7 +506,7 @@ function _copyPanelHtml(S, branches) {
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>
-      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐目标留痕 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>。</p>
+      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐个支部记录变更来源（<code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>）。</p>
       <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-copy" class="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors">取消</button>
@@ -570,7 +570,7 @@ function _step1Html(S, branch, org, isStaff) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
         <p class="text-xs font-bold text-gray-700">① 组织信息</p>
-        <span class="text-[11px] text-gray-500">保存即写入支部档案并留痕（即时生效）</span>
+        <span class="text-[11px] text-gray-500">保存即写入支部档案并记录变更（即时生效）</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
@@ -680,7 +680,7 @@ function _step3Html(S, branch) {
         <p class="text-xs font-bold text-gray-700">③ 角色分工</p>
         <span class="text-[11px] text-gray-500">模块负责人归属 → config.workforce（保留既有数据结构）</span>
       </div>
-      <p class="text-[11px] text-gray-500">部署期/换壳期直接写库即时生效并留痕；日常分工调整请走书记台「支部分工」的支委会议题流程（M2）。</p>
+      <p class="text-[11px] text-gray-500">部署期/换壳期直接写入系统并立即生效、同时记录变更；日常分工调整请走书记台「支部分工」的支委会议题流程（M2）。</p>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">${rows}</div>
       <div class="flex gap-2 justify-end pt-1 border-t border-gray-100">
         <button type="button" data-wz-act="reset-workforce" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">恢复默认分工</button>
@@ -714,7 +714,7 @@ function _step4Html(S, branch) {
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-1">${guide}</div>
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5">
         <p class="text-xs font-semibold text-gray-700">生成「换壳工作单」（Markdown 下载）</p>
-        <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要（①②③现读数）+ 待手动替换文件清单 + 验证点（应到口径 / ?reset=1 / npm test）。</p>
+        <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要（①②③现读数）+ 待手动替换文件清单 + 检查项（应到名单 / ?reset=1 / npm test）。</p>
         <button type="button" data-wz-act="download-report" class="mt-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">生成并下载工作单</button>
       </div>
     </div>`;
@@ -729,10 +729,10 @@ function _step5Html(S, branch, org) {
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <p class="text-xs font-bold text-gray-700">⑤ 验证与重置</p>
       <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-        <p class="text-xs font-semibold text-gray-700">应到名单口径核对（现读数）</p>
+        <p class="text-xs font-semibold text-gray-700">应到名单核对（现读数）</p>
         <p class="text-[11px] text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
         <p class="text-xs text-gray-700 mt-2">在册党员 <b class="text-gray-900">${stats.partyTotal}</b> 人 − 滞留剔除 <b class="text-gray-900">${stats.detainedParty}</b> 人 = 应到 <b class="text-red-600">${stats.expected}</b> 人</p>
-        <p class="text-[10px] text-gray-500 mt-1">口径配置：docs/src/core/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
+        <p class="text-[10px] text-gray-500 mt-1">计算规则：docs/src/core/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">演示重置 ?reset=1</p>
@@ -775,7 +775,7 @@ function _completeHtml(S, branch, org) {
         <p class="font-title-cn text-base font-bold text-gray-800">完成 · ${esc(branch.name)}</p>
         <span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">配置已生效</span>
       </div>
-      <p class="text-xs text-gray-500">以下改动已即时写入支部 config 并留痕（可查 config.configChangeHistory）；未写入仓库文件的项见下载的工作单。</p>
+      <p class="text-xs text-gray-500">以下改动已即时写入支部 config 并记录变更（可查 config.configChangeHistory）；未写入仓库文件的项见下载的工作单。</p>
       <div class="flex flex-wrap gap-1.5">${summaryChips}</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
         <div class="rounded-lg bg-white border border-green-100 p-2.5">
@@ -1052,7 +1052,7 @@ async function _saveStep(S, step) {
     if (step === 2 || step === 3) _refreshStepState(S);
     _persistDraft(S);
     _render(S);
-    showToast('success', '已保存并即时生效（已留痕）');
+    showToast('success', '已保存并即时生效（已记录变更）');
     return true;
   } catch (err) {
     console.error('[wizard] 保存失败', err);
@@ -1240,7 +1240,7 @@ function _importPkgFile(S, file) {
       applyThemePreset(getBranchOrg(S.branchId).themePreset || 'red'); // 主题随导入即时生效
       _persistDraft(S);
       _render(S);
-      showToast('success', `已应用配置包：${_fieldsLabel(res.updatedFields)}（已留痕）`);
+      showToast('success', `已应用配置包：${_fieldsLabel(res.updatedFields)}（已记录变更）`);
     } catch (err) {
       console.error('[wizard] 导入配置包失败', err);
       showToast('error', `导入失败：${(err && err.message) || err}`);

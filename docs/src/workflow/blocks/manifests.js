@@ -152,7 +152,7 @@ export function validateBlockManifest(m) {
   return { ok: errors.length === 0, errors };
 }
 
-/** 全量清单体检（模块加载即自检；不合规打警告但不阻断——防契约漂移静默） */
+/** 全量清单体检（模块加载即自检；不合规打警告但不阻断——防契约失同步静默） */
 BLOCK_MANIFESTS.forEach((m) => {
   const res = validateBlockManifest(m);
   if (!res.ok) console.warn(`[workflow/blocks] manifest 不合规 ${m?.blockId}: ${res.errors.join('; ')}`);

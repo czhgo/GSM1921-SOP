@@ -985,7 +985,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
 | audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
-| branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发漂移） |
+| branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发失同步） |
 | publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 

@@ -26,7 +26,7 @@ const STORAGE_KEY = 'workflowos_branch_db_v1';
 
 // 历史遗留存储键（并入 workflowos_branch_db_v1 全量键架构前的旧单域键）：
 // SANDBOX_MODE 每刷清理与演示数据一键重置（?reset demo 档，见 handleResetIfRequested/collectResetKeys）
-// 共用同一清单，避免两处键集合漂移。
+// 共用同一清单，避免两处键集合失同步。
 const LEGACY_STORAGE_KEYS = [
   'assignment_records', 'attendance_records',
   'inspection_records', 'makeup_tasks', 'act_sub_records',

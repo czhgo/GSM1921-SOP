@@ -35,7 +35,7 @@ const REPLACE_ENTRIES = [
   },
   {
     group: '术语与使用策略（content/03_doc_system/USAGE_POLICY.md）',
-    desc: '系统内术语口径/使用策略的制度文档（含会议类型、考勤口径等说明）；配套 docs/src/core/policy-defaults.js 的 branch-default 项。',
+    desc: '系统内术语说明/使用策略的制度文档（含会议类型、考勤规则等说明）；配套 docs/src/core/policy-defaults.js 的 branch-default 项。',
     files: ['content/03_doc_system/USAGE_POLICY.md'],
   },
   {
@@ -50,7 +50,7 @@ const REPLACE_ENTRIES = [
   },
   {
     group: '支部默认策略（docs/src/core/policy-defaults.js）',
-    desc: 'branch-default 项可按支部制度调整（如 attendance.roster 应到口径 partyStages/excludeDetained、支委票决门槛 quorum）；institutional 项为制度裁决固定，改须书记裁决。',
+    desc: 'branch-default 项可按支部制度调整（如 attendance.roster 应到名单规则 partyStages/excludeDetained、支委票决门槛 quorum）；institutional 项为制度裁决固定，改须书记裁决。',
     files: ['docs/src/core/policy-defaults.js'],
   },
 ];
@@ -122,20 +122,20 @@ export function buildOrgWizardReport({
     L.push(`- 文件：\`${g.files.join('`、`')}\``);
     L.push('');
   }
-  L.push('## 三、验证点');
+  L.push('## 三、检查项');
   L.push('');
-  L.push('- 应到名单口径（三会+党课统一）：应到 = 在册党员（正式党员 + 预备党员）非滞留；当前现读数：');
+  L.push('- 应到名单规则（三会+党课统一）：应到 = 在册党员（正式党员 + 预备党员）非滞留；当前现读数：');
   L.push(`  - 在册党员 ${stats.partyTotal} 人；滞留剔除 ${stats.detainedParty} 人；应到 ${stats.expected} 人。`);
-  L.push('  - 口径配置在 docs/src/core/policy-defaults.js `attendance.roster`（partyStages / excludeDetained），改前核对 USAGE_POLICY 与制度 SOP。');
+  L.push('  - 计算规则见 docs/src/core/policy-defaults.js `attendance.roster`（partyStages / excludeDetained），改前核对 USAGE_POLICY 与制度 SOP。');
   L.push('');
-  L.push('- 配置即时生效说明：本向导每步改动即时写入支部 config 并留痕（branch.config.configChangeHistory 可查）；');
+  L.push('- 配置即时生效说明：本向导每步改动即时写入支部 config 并记录变更（branch.config.configChangeHistory 可查）；');
   L.push('  模块/块启停对支部成员「下次进入工作台/活动详情」生效，组织信息/主题即时生效。');
   L.push('');
   L.push('- 演示重置：浏览器演示在页面 URL 加 `?reset=1` 访问，一键清除本域演示存储并回到种子初始态（仅 mock 演示模式；生产数据不受影响）。');
   L.push('');
   L.push('- 回归验证：改仓库文件后在 `server` 目录执行 `npm test`（`node --test`）确认全绿，再行交付。');
   L.push('');
-  L.push('- 换壳口径自查：支部名/主题只动可调令牌与支部档案，不触碰 party-red/party-gold 固定令牌；');
+  L.push('- 换壳自查要点：支部名/主题只动可调令牌与支部档案，不触碰 party-red/party-gold 固定令牌；');
   L.push('  角色权限矩阵改前先走制度评审（SYSTEM_ROLE_PERMISSION.md 为单一源，代码侧同步 auth.js）。');
   L.push('');
   return L.join('\n');

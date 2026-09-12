@@ -261,7 +261,7 @@ export function urgeRolesOf(group, ctx = {}) {
 //  阈值属制度裁决固定项（《中国共产党发展党员工作细则》一年），非可调项 → 常量化，不走 policyOverrides。
 export const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
 
-/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区漂移；非法输入 → null） */
+/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区失同步；非法输入 → null） */
 function _addDays(dateStr, days) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
   if (!m) return null;
@@ -909,7 +909,7 @@ export const TodoStore = {
   // ── 过期检查 ──────────────────────────────────────────────
 
   /** 检查待办是否过期（历史兼容 API：仅 pending 逾期计过期；expired 态由调用方显式 || TodoStatus.EXPIRED 兜底）。
-   *  P1：deadline 判定收敛于 isTodoExpired（单一实现），本方法保留 pending 门禁防语义漂移 */
+   *  P1：deadline 判定收敛于 isTodoExpired（单一实现），本方法保留 pending 门禁防语义失同步 */
   _isExpired(todo) {
     if (!todo || todo.status !== TodoStatus.PENDING) return false;
     return isTodoExpired(todo);

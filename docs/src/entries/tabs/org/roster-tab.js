@@ -380,7 +380,7 @@ async function _addMember(val) {
   }
   const r = await PersonStore.saveMember(payload, { by: actorId });
   if (r.ok) {
-    showToast('success', `已新增成员「${(r.member && r.member.name) || val.name}」，名册与应到口径即时生效`);
+    showToast('success', `已新增成员「${(r.member && r.member.name) || val.name}」，名册与应到名单即时生效`);
     renderContent(_ctx);
   } else {
     showToast('error', r.reason || '新增失败，请重试');
@@ -422,7 +422,7 @@ async function _doRemove(personId, name) {
     if (r.direct) {
       showToast('success', r.clearedSafe > 0
         ? `已将「${name}」移出名册（自动解除安全引用 ${r.clearedSafe} 项）`
-        : `已将「${name}」移出名册（名单与应到口径即时更新）`);
+        : `已将「${name}」移出名册（名单与应到统计即时更新）`);
     } else {
       showToast('info', `「${name}」存在历史记录，已报送书记确认（确认后转「已转出」并移出）`);
     }

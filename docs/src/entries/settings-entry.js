@@ -96,7 +96,7 @@ const SECTION_META = {
   },
   'branch-policy-params': {
     title: '支部制度参数', batch: '批 4', badge: '',
-    desc: '支部级制度参数（票决门槛 / 应到口径 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数由各域负责人在专用卡片中调整。',
+    desc: '支部级制度参数（票决门槛 / 应到名单核对 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数由各域负责人在专用卡片中调整。',
     note: '制度刚性锁定展示 + 职责参数按角色分发。',
   },
   'domain-disc': {
@@ -495,7 +495,7 @@ function renderBranchInfoCard(panel, br, branch) {
         <h2 class="settings-card-title">支部信息与向导</h2>
         <span class="settings-badge">${roleLabel} · 本支部</span>
       </div>
-      <p class="settings-card-desc">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并留痕。</p>
+      <p class="settings-card-desc">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
       <dl class="settings-kv">${kv}</dl>
     </div>
     <div class="gov-wizard-card">
@@ -516,7 +516,7 @@ async function openWizardEmbed(panel) {
   panel.innerHTML = `
     <div class="gov-wizard-bar">
       <button type="button" class="gov-wizard-back" data-gov="wizard-close">${icon('arrowLeft', { className: 'icon-base w-3.5 h-3.5' })} 返回支部信息</button>
-      <span class="gov-wizard-tip">换组织向导 · 内嵌（同源组件；改动即时生效并留痕）</span>
+      <span class="gov-wizard-tip">换组织向导 · 内嵌（同源组件；改动即时生效并记录变更）</span>
     </div>
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
@@ -589,7 +589,7 @@ function _cfgHistoryRowHtml(h) {
         <div class="text-[12px] text-gray-600" style="margin-top:4px;word-break:break-all;">${brief}</div>
         ${whyHtml}
       </div>
-      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该项恢复到本次变更前的值并留痕" style="flex-shrink:0;">回滚此更改</button>` : ''}
+      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该项恢复到本次变更前的值并记录变更" style="flex-shrink:0;">回滚此更改</button>` : ''}
     </li>`;
 }
 
@@ -609,7 +609,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h2 class="settings-card-title">配置变更记录</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
       </div>
-      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更内容、前后变化与变更理由。单项变更可由书记 / 副书记（副书同权）回滚，回滚本身再留一痕；历史保留最近 100 条。</p>
+      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由书记 / 副书记（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
       <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
       <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -630,7 +630,7 @@ function showCfgHistStatus(panel, msg, isErr = false) {
 async function runConfigHistoryRollback(panel, entryAt) {
   const { role, personId } = _session;
   if (!personId || !GOV_ROLES.has(role)) return;
-  if (!window.confirm('确认回滚此条配置更改？系统将把该项恢复到本次变更前的值，并追加一条回滚留痕（回滚本身可查不可再回滚）。')) return;
+  if (!window.confirm('确认回滚此条配置更改？系统将把该项恢复到本次变更前的值，并追加一条回滚记录（回滚本身可查不可再回滚）。')) return;
   const seq = ++_govSeq;
   try {
     const br = await import('../services/branch.js?v=20260912a');
@@ -642,7 +642,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
     if (_currentSectionId !== 'branch-config-history' || seq !== _govSeq) return;
     const branch = br.getBranchById(_govBranchId);
     if (!branch) { panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT); return; }
-    renderConfigHistorySection(panel, br, branch, '已回滚并留痕');
+    renderConfigHistorySection(panel, br, branch, '已回滚并记录变更');
   } catch (e) {
     console.warn('[settings] 配置回滚失败', e);
     if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, '回滚失败，请刷新页面重试。', true);
@@ -969,7 +969,7 @@ function branchPolicyLockedCardHtml(branch) {
     `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">${esc(r.label)}</span>`).join('');
   const rows = [
     ['票决通过门槛', _quorumLabel()],
-    ['会议应到口径', _rosterLabel()],
+    ['会议应到名单核对', _rosterLabel()],
     ['会议考勤类型', `<span class="flex flex-wrap gap-1.5 pt-0.5">${meetingChips}</span>`],
     ['考勤记录人', _recorderLabel()],
     ['请假/缺席标因', `<span class="flex flex-wrap gap-1.5 pt-0.5">${reasonChips}</span>`],
@@ -984,7 +984,7 @@ function branchPolicyLockedCardHtml(branch) {
       <dl class="settings-kv">${rows}</dl>
       <div class="settings-note" style="margin-top:14px;">
         <span class="settings-note-dot"></span>
-        制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行口径（含开源部署调整面，均不在本页直改）。
+        制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行规则（含开源部署调整面，均不在本页直改）。
       </div>
       <div class="myws-hint">
         <b>支部制度可调参数：暂无。</b>当前本支部可调整的范围内均为「职责参数」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续由书记/党委裁决放开为支部可调，将在本区出现并开放调整——后续按裁决扩展。

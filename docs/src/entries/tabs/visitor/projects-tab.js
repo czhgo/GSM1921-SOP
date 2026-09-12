@@ -256,7 +256,7 @@ function _actStatusColor(status) {
   return map[status] || 'bg-gray-100 text-gray-600';
 }
 function _tfStatusLabel(status) {
-  // 2026-09-02 书记裁决（漂移②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
+  // 2026-09-02 书记裁决（失同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
   // 公共活动页此前误用任务态「进行中/已完成」，一并对齐
   const map = { recruiting: '招募中', active: '运行中', completed: '已完结', dissolved: '已解散', draft: '草稿' };
   return map[status] || status || '运行中';

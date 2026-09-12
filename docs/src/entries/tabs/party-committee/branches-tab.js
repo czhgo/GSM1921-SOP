@@ -139,7 +139,7 @@ export async function renderContent() {
       showToast('error', `创建失败：${(res && res.reason) || '未知原因'}`);
       return;
     }
-    showToast('success', `支部「${name}」已创建（空支部：业务为空，可「导入成员名册」整表落库或在「支部配置」向导填入组织信息/模块/分工）`);
+    showToast('success', `支部「${name}」已创建（空支部：业务为空，可「导入成员名册」整表保存或在「支部配置」向导填入组织信息/模块/分工）`);
     renderContent();
   });
 
@@ -185,8 +185,8 @@ function _rosterPanelHtml(b) {
   const bid = b.id;
   return `
     <div class="branch-roster-row ${_rosterOpenBranch === bid ? '' : 'hidden'} mt-2 rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">导入成员名册（整支部替换 · 一次落库）</p>
-      <p class="text-[11px] text-gray-500">仅空支部可整体替换：下载「成员名册模板(JSON)」→ 保留要迁入本支部的成员行、删去其余 → 「选择名册文件」导入：净化后先核对下方统计卡，确认后一次落库——成员/应到统计即时更新。有成员/历史的支部不可整表替换，成员调整由本支部组织委员在「成员名册」逐人维护。</p>
+      <p class="text-xs font-semibold text-gray-700">导入成员名册（整支部替换 · 一次保存）</p>
+      <p class="text-[11px] text-gray-500">仅空支部可整体替换：下载「成员名册模板(JSON)」→ 保留要迁入本支部的成员行、删去其余 → 「选择名册文件」导入：净化后先核对下方统计卡，确认后一次保存——成员/应到统计即时更新。有成员/历史的支部不可整表替换，成员调整由本支部组织委员在「成员名册」逐人维护。</p>
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-branch-roster-act="download" data-branch-id="${esc(bid)}">下载名册模板</button>
         <button type="button" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-branch-roster-act="pick" data-branch-id="${esc(bid)}">选择名册文件(JSON)…</button>
@@ -225,10 +225,10 @@ function _rosterDraftHtml(branchId) {
         ${_rosterStatBox('各党小组会应到', groupParts || '—', '组内党员 − 组内滞留')}
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <p class="text-[11px] text-gray-500">确认导入后：上述成员整体成为本支部成员（原属支部相应减员），成员名册与应到统计即时落库；「放弃」不写入。</p>
+        <p class="text-[11px] text-gray-500">确认导入后：上述成员整体成为本支部成员（原属支部相应减员），成员名册与应到统计即时保存；「放弃」不写入。</p>
         <div class="flex gap-2">
           <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors" data-branch-roster-act="discard" data-branch-id="${esc(branchId)}">放弃</button>
-          <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入落库</button>
+          <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入保存</button>
         </div>
       </div>
     </div>`;
@@ -335,7 +335,7 @@ async function _confirmRosterImport(branchId) {
   }
   const res = await PersonStore.replaceBranchMembers(draft.people, { branchId, by: _actorId() });
   if (!res || !res.ok) {
-    showToast('error', `导入未落库：${(res && res.reason) || '未知原因'}`);
+    showToast('error', `导入未保存：${(res && res.reason) || '未知原因'}`);
     return;
   }
   const after = getRosterStats({ branchId }); // mock 读链即时吃到覆盖层

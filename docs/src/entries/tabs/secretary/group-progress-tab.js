@@ -371,7 +371,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
         <div class="space-y-0.5">${recentRows}</div>
       </div>
       <div class="pt-2.5 border-t border-gray-100">
-        <div class="text-xs font-bold text-gray-600 mb-1.5">党小组会应到/实到 <span class="text-gray-500 font-normal">（本组党员口径，含已发生）</span></div>
+        <div class="text-xs font-bold text-gray-600 mb-1.5">党小组会应到/实到 <span class="text-gray-500 font-normal">（按本组党员统计，含已发生）</span></div>
         <div class="space-y-0.5">${attRowsHtml}</div>
       </div>
     </div>`;

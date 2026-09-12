@@ -1577,7 +1577,7 @@ html.theme-dark .ab-chapter-eyebrow {
     --ab-paper-line: #33383F;
     --ab-ink:       #E8E4DC;
     --ab-ink-sub:   #A9A398;
-    --ab-ink-faint: #7E7870;
+    --ab-ink-faint: #948E85; /* R-15：原 #7E7870 深底 4.15（.ab-tl-detail 3.82）不达 AA → 提亮至暖灰（深底 ≥5.0）；浅色档不变 */
     --ab-stage-from: #ABA191; /* R-14 特批二：深色态阶段灰保留原值（深底 7.11），不回退 */
   }
   /* R-14 特批二：时间轴决策序号深色态保留亮金（浅色态已改深金 #7C5C14） */
@@ -1595,7 +1595,7 @@ html.theme-dark .ab-chapter-eyebrow {
   }
   html.theme-dark .ab-toc-dot-item.is-active .ab-toc-dot-tooltip {
     background: rgba(206, 17, 38, 0.18) !important;
-    color: var(--ab-red) !important;
+    color: color-mix(in srgb, var(--ab-red) 55%, #fff) !important; /* R-15：红底上红字 2.92 → 同口径提亮（≥5.8） */
     border-color: rgba(206, 17, 38, 0.35) !important;
   }
   html.theme-dark .ab-toc-dot-item.is-active .ab-toc-dot-tooltip::after {
@@ -1611,6 +1611,19 @@ html.theme-dark .ab-chapter-eyebrow {
   html.theme-dark .ab-tl-sticky--decision {
     background: rgba(201, 162, 39, 0.16) !important;
     color: #E3C24F !important;
+  }
+
+  /* R-15：深色下小红字（<24px 非大字号）对比不足（党建红 3.22 / 深红 2.29-2.37）
+     → 与 .ab-chapter-eyebrow 深色分支同口径提亮；仅在 .theme-dark 生效，浅色态零变化 */
+  html.theme-dark .ab-review-card-tag,
+  html.theme-dark .ab-review-card--highlight .ab-review-card-name,
+  html.theme-dark .ab-dialogue-phase {
+    color: color-mix(in srgb, var(--ab-red) 55%, #fff);
+  }
+  html.theme-dark .ab-philosophy-opp-insight,
+  html.theme-dark .ab-philosophy-opp-point-label,
+  html.theme-dark .ab-dialogue-answer {
+    color: color-mix(in srgb, var(--ab-red-deep) 55%, #fff);
   }
 
 /* ═══════════════════════════════════════════════════════════════

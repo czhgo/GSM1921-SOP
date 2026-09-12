@@ -27,7 +27,7 @@ export function generateMindmapText() {
 
 // 业务链路 flowchart 步骤（12 条角色化链路；节点 = 执行者: 任务）
 // 权威来源：docs/src/workflow/sopData.js（executor/supervisor）+ 快速指南 + voteConfig 模型
-// 与 function-catalog.js 的 flow 条目 id 一一对应（防漂移测试以 catalog 为准）
+// 与 function-catalog.js 的 flow 条目 id 一一对应（防失同步测试以 catalog 为准）
 export const FLOW_LINKS = {
   // ── 活动型 ──
   'flow-branch-committee': [

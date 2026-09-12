@@ -11,7 +11,7 @@ import {
   COMMITTEE_IDS as BRANCH_COMMITTEE_IDS,
 } from '../../docs/src/core/constants.js';
 // 发展阶段/在册状态枚举单一源 = docs/src/services/org-base-data-preview.js（叶子模块，勿另写枚举；
-// RESIDENCE 与 services/roster.js 同值，单测断言防漂移）
+// RESIDENCE 与 services/roster.js 同值，单测断言防失同步）
 import { DEVELOP_STAGE_OPTIONS, RESIDENCE } from '../../docs/src/services/org-base-data-preview.js';
 
 // 全体支委（广播对象：书记/副书记/组织/宣传/纪检，与 member-change-flow 测试断言一致）

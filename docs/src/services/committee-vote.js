@@ -11,7 +11,7 @@ import { resolveVoterIds } from './vote-config.js?v=20260912a';
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
 // ——people.js role + AuthStore.isCommissioner、排除 u_*（auth.js COMMISSIONER_ROLES 为角色底层源），
-// 不再本地按角色/成员自算，消除与 vote-config 的漂移。
+// 不再本地按角色/成员自算，消除与 vote-config 的失同步。
 // 2026-09-06 附录⑩ B批：改为惰性求值（首用缓存）——resolveVoterIds 内部访问 AuthStore，
 //   顶层立即执行会在模块环初始化期（auth→taskforce→workforce→committee-vote）命中
 //   「AuthStore before initialization」；运行期首次调用时 AuthStore 已就绪。

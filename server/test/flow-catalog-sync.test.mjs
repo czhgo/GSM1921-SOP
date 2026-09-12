@@ -1,6 +1,6 @@
-// server/test/flow-catalog-sync.test.mjs — P0c 防漂移：FLOW_LINKS 键集 == function-catalog flow id 键集
-// 2026-09-03 建立：落实 mermaid-sources.js 注释「与 function-catalog 的 flow 条目 id 一一对应（防漂移测试以 catalog 为准）」
-// 双向断言：任一侧新增/删除 flow id，测试即红，须同步另一侧，杜绝"两份手写清单漂移"。
+// server/test/flow-catalog-sync.test.mjs — P0c 防失同步：FLOW_LINKS 键集 == function-catalog flow id 键集
+// 2026-09-03 建立：落实 mermaid-sources.js 注释「与 function-catalog 的 flow 条目 id 一一对应（防失同步测试以 catalog 为准）」
+// 双向断言：任一侧新增/删除 flow id，测试即红，须同步另一侧，杜绝"两份手写清单失同步"。
 // 与 function-catalog.test.mjs 相同的文本求值方式读取纯数据表达式（双环境可用，无需浏览器）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -17,7 +17,7 @@ function grab(relPath, name) {
   return new Function(`return (${m[1]})`)();
 }
 
-test('FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防漂移）', () => {
+test('FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防失同步）', () => {
   const groups = grab('docs/src/core/function-catalog.js?v=20260912a', 'FUNCTION_GROUPS');
   const catalog = grab('docs/src/core/function-catalog.js?v=20260912a', 'FUNCTION_CATALOG');
   const flowLinks = grab('docs/src/core/mermaid-sources.js?v=20260912a', 'FLOW_LINKS');
