@@ -624,7 +624,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 | ID | 事项 | 引用流程 | 状态 |
 | --- | --- | --- | --- |
-| R-14 | **遗留（浅色对比存量·需改样式表）**：①`docs/src/styles.css` `.ref-site-desc`/`.ref-doc-meta`（`--neutral-400`，浅 2.54；最小 proposal：升 `--neutral-500`，深色自动 #94A3B8 不退化）；②`docs/src/about.css` 浅色约 52 处（`--ab-ink-faint #94897A` 3.24、`.ab-tl-stage` `#ABA191` 2.40、`.ab-tl-no--decision` 2.28；proposal：升 `#6C6254`；装饰编号 `.ab-tl-no`/`.ab-review-card-no` 豁免）；③status-badge pending 单 token 双态难达标（浅 3.40 / 深 4.44）属独立议题 | COMPONENT_SPEC + 附录⑦ 判据 | 待办（需书记专批样式表） |
+| R-15 | **遗留（深色 about 灰字·需另行专批）**：`docs/src/about.css` 深色 `--ab-ink-faint:#7E7870` 在 **3 个无深色分支的 `ab-*` 元素**仍 4.15 / 3.82 / 4.15（<4.5，类 `.ab-tl-time` / `.ab-tl-detail-article` / `.ab-exploration-scene-note`）；修则波及约 52 处深色用法 | COMPONENT_SPEC + 附录⑦ 判据 | 待办（需另行专批样式表） |
 
 ## 评议轮次排期（H60.7 · C4 已批准，发起即删）
 
@@ -671,4 +671,4 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/SSO
 
 > **P.11/P.12/P.13（2026-09-08 归口）已于 2026-09-09 书记决策完毕**：P.11 全局评估总表 v1 AI 定案生效（REVIEW_QUEUE 总表已标定案）；P.12 概况侧只读复查特批执行（报告 .ctx/logs/archive/2026-09-09-P12-overview-audit.md，修复已于 2026-09-09 特批落地 ebf55d16）；P.13 Tailwind CDN 治理=保持现状关闭（E-5 页内优化已保留）。历史 P.8/P.9/P.10 已决策退出（D-270/271/272）。决策归档见执行日志 T-2026-09-073。
 
-- **P.14（2026-09-09 归口）push 放行**：本会话早期 6 笔已随远端推进（`origin/main` = `665613c5` 起，推送非本地执行）；**本地现存领先 12 笔**——`ddaa320c`（黑话第 5 轮）、`22120e64`（活动写入 S-1~S-3）、`60dfa271`（S-4 写入 UI 统一）、`5138e638`（文档同步）、`dac678e4`（收口批）、`9e7a088f`（书记五项批次）、`4245c31a`（对比度 C-1 + 功能实现评议 8 项）、`f25cd9cb`（A~E 第二批：R-6/R-7/C①~C⑥/门面口径）、`349e0679`（A~E 第三批：R-8/R-9/拖拽机测/成员变更确认链端点）、`b30bcd85`（A~D 第四批：R-10 三链语义端点+副书同权 / R-11 深色第三批 / 滞留清理）、`cce378da`（第五批：R-12 深色第四轮 + 黑话第 6 轮 + 数字不硬编码清扫）、本批（第六批：R-13 浅色对比存量核销）；工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。
+- **P.14（2026-09-09 归口）push 放行**：本会话早期 6 笔已随远端推进（`origin/main` = `665613c5` 起，推送非本地执行）；**本地现存领先 13 笔**——`ddaa320c`（黑话第 5 轮）、`22120e64`（活动写入 S-1~S-3）、`60dfa271`（S-4 写入 UI 统一）、`5138e638`（文档同步）、`dac678e4`（收口批）、`9e7a088f`（书记五项批次）、`4245c31a`（对比度 C-1 + 功能实现评议 8 项）、`f25cd9cb`（A~E 第二批：R-6/R-7/C①~C⑥/门面口径）、`349e0679`（A~E 第三批：R-8/R-9/拖拽机测/成员变更确认链端点）、`b30bcd85`（A~D 第四批：R-10 三链语义端点+副书同权 / R-11 深色第三批 / 滞留清理）、`cce378da`（第五批：R-12 深色第四轮 + 黑话第 6 轮 + 数字不硬编码清扫）、`620edbcf`（第六批：R-13 浅色对比存量核销）、本批（第七批：R-14 样式表专批）；工作区 clean；**待书记明确批准后 push，推送前先 `git status` 核对**。

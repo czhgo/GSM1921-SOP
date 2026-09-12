@@ -2251,6 +2251,12 @@ html.theme-dark .tf-section-head {
   user-select: none;
   transition: background-color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
+/* R-14 特批三：pending 灰阶按主题分档——浅色加深，使「色点+小字」双态对比度均 ≥4.5。
+   徽章色值由 JS 行内 style 写入 --sb-color，故此处需 !important 覆盖；仅命中 pending，
+   其它状态徽标（in_progress/completed/approved/rejected 等）取值不变。 */
+.status-badge[data-status="pending"] {
+  --sb-color: #7A838F !important;
+}
 .status-badge:hover {
   background-color: color-mix(in srgb, var(--sb-color) 15%, #fff);
   border-color: color-mix(in srgb, var(--sb-color) 45%, transparent);
@@ -2387,7 +2393,7 @@ html.theme-dark .tf-section-head {
 
 .ref-site-desc {
   font-size: 0.7rem;
-  color: var(--neutral-400);
+  color: var(--neutral-500);
 }
 
 .ref-doc-item {
@@ -2447,7 +2453,7 @@ html.theme-dark .tf-section-head {
 
 .ref-doc-meta {
   font-size: 0.7rem;
-  color: var(--neutral-400);
+  color: var(--neutral-500);
 }
 
 .ref-doc-right {
@@ -2460,7 +2466,7 @@ html.theme-dark .tf-section-head {
 
 .ref-doc-size {
   font-size: 0.7rem;
-  color: var(--neutral-400);
+  color: var(--neutral-500);
 }
 
 .ref-download-btn {
@@ -4268,6 +4274,10 @@ label .text-red-500 {
   html.theme-dark .status-badge:hover {
     background-color: color-mix(in srgb, var(--sb-color) 20%, #141D2F) !important;
     border-color: color-mix(in srgb, var(--sb-color) 58%, transparent) !important;
+  }
+  /* R-14 特批三：pending 深色态提亮（浅色态见 .status-badge[data-status="pending"]） */
+  html.theme-dark .status-badge[data-status="pending"] {
+    --sb-color: #AEB6C2 !important;
   }
   /* 状态徽章弹层 */
   html.theme-dark .status-badge-popover {

@@ -3,12 +3,12 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260911a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260911a';
-import { flashHighlight } from '../../../core/utils.js?v=20260911a';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260911a';
-import { canSignup } from '../../../components/signup-panel.js?v=20260911a';
-import { AuthStore } from '../../../services/auth.js?v=20260911a';
+import { icon } from '../../../core/icons.js?v=20260912a';
+import { renderQueryView } from '../../../components/query-view.js?v=20260912a';
+import { flashHighlight } from '../../../core/utils.js?v=20260912a';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260912a';
+import { canSignup } from '../../../components/signup-panel.js?v=20260912a';
+import { AuthStore } from '../../../services/auth.js?v=20260912a';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 

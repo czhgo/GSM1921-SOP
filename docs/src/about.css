@@ -45,7 +45,8 @@ html.lenis, html.lenis body { height: auto; }
   --ab-paper-line: #E6DFD2;
   --ab-ink:       #3B3226;
   --ab-ink-sub:   #6C6254;
-  --ab-ink-faint: #94897A;
+  --ab-ink-faint: #6C6254; /* R-14 特批二：原 #94897A 浅纸 3.24 不达 AA → 提深至暖灰 #6C6254（浅纸 ≥5.0）；深色态由 .theme-dark 分支另给 */
+  --ab-stage-from: #756B5D; /* R-14 特批二：时间轴阶段灰（ab-stage-hl 起始色），浅纸 4.93 达 AA */
   --ab-red:       #CE1126;
   --ab-red-deep:  #A80F1C;
   --ab-gold:      #C9A227;
@@ -1048,7 +1049,7 @@ html.theme-dark .ab-chapter-eyebrow {
   font-variant-numeric: tabular-nums;
 }
 .ab-tl-no--decision {
-  color: var(--ab-gold);
+  color: #7C5C14; /* R-14 特批二：原 var(--ab-gold) #C9A227 浅纸 2.28 → 深金 5.83；深色态另给亮金 */
 }
 .ab-tl-title {
   font-size: 14px;
@@ -1454,7 +1455,7 @@ html.theme-dark .ab-chapter-eyebrow {
 
 /* 6. development 阶段高亮（每个阶段进入时灰→红、滚出时红→灰——替代 onUpdate） */
 @keyframes ab-stage-hl {
-  from { color: #ABA191; }
+  from { color: var(--ab-stage-from, #756B5D); }
   to   { color: #CE1126; }
 }
 .ab-tl-stage {
@@ -1577,6 +1578,11 @@ html.theme-dark .ab-chapter-eyebrow {
     --ab-ink:       #E8E4DC;
     --ab-ink-sub:   #A9A398;
     --ab-ink-faint: #7E7870;
+    --ab-stage-from: #ABA191; /* R-14 特批二：深色态阶段灰保留原值（深底 7.11），不回退 */
+  }
+  /* R-14 特批二：时间轴决策序号深色态保留亮金（浅色态已改深金 #7C5C14） */
+  html.theme-dark .ab-tl-no--decision {
+    color: #C9A227;
   }
   html.theme-dark .ab-toc-dot-tooltip,
   html.theme-dark .ab-tl-detail {

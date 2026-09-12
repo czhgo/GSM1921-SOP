@@ -127,7 +127,7 @@ async function waitForServerNotice(title, contains, timeout = 8000) {
 /** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
 async function pageHasNotice(page, title, contains) {
   return page.evaluate(async ({ t, c }) => {
-    const { NoticeStore } = await import('/src/services/notice.js?v=20260911a');
+    const { NoticeStore } = await import('/src/services/notice.js?v=20260912a');
     NoticeStore.init();
     return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
   }, { t: title, c: contains });

@@ -2,19 +2,19 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260911a';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260911a';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260911a';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260911a';
-import { mockDB } from '../../../core/domain.js?v=20260911a';
-import { bumpToken } from '../../../core/version-token.js?v=20260911a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260911a';
-import { isApiMode } from '../../../services/runtime.js?v=20260911a';
-import { AuthStore } from '../../../services/auth.js?v=20260911a';
-import { getPersonName } from '../../../services/person.js?v=20260911a';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260911a';
+import { icon } from '../../../core/icons.js?v=20260912a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260912a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260912a';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260912a';
+import { mockDB } from '../../../core/domain.js?v=20260912a';
+import { bumpToken } from '../../../core/version-token.js?v=20260912a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260912a';
+import { isApiMode } from '../../../services/runtime.js?v=20260912a';
+import { AuthStore } from '../../../services/auth.js?v=20260912a';
+import { getPersonName } from '../../../services/person.js?v=20260912a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260912a';
 // A② 归档缺口判据单一源（书记台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities } from '../../../services/secretary-overview.js?v=20260911a';
+import { getArchiveGapActivities } from '../../../services/secretary-overview.js?v=20260912a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），

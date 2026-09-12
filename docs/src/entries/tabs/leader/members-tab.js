@@ -5,18 +5,18 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260911a';
-import { IssueStore } from '../../../services/issues.js?v=20260911a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260911a';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260911a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260911a';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260911a';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260911a';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260911a';
-import { getPersonName } from '../../../services/person.js?v=20260911a';
-import { showToast } from '../../../core/utils.js?v=20260911a';
+import { AuthStore } from '../../../services/auth.js?v=20260912a';
+import { IssueStore } from '../../../services/issues.js?v=20260912a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260912a';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260912a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912a';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260912a';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260912a';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260912a';
+import { getPersonName } from '../../../services/person.js?v=20260912a';
+import { showToast } from '../../../core/utils.js?v=20260912a';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260911a';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260912a';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;

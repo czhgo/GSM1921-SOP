@@ -2,16 +2,16 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260911a';
-import { loadActivities } from '../../../services/activity.js?v=20260911a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260911a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260911a';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260911a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260911a';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260911a';
-import { showToast } from '../../../core/utils.js?v=20260911a';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260911a';
-import { currentLeaderGroup } from './_shared.js?v=20260911a';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912a';
+import { loadActivities } from '../../../services/activity.js?v=20260912a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912a';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912a';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912a';
+import { showToast } from '../../../core/utils.js?v=20260912a';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912a';
+import { currentLeaderGroup } from './_shared.js?v=20260912a';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
