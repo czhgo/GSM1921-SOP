@@ -2,16 +2,16 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912b';
-import { loadActivities } from '../../../services/activity.js?v=20260912b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912b';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912b';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912b';
-import { showToast } from '../../../core/utils.js?v=20260912b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912b';
-import { currentLeaderGroup } from './_shared.js?v=20260912b';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912c';
+import { loadActivities } from '../../../services/activity.js?v=20260912c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912c';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912c';
+import { currentLeaderGroup } from './_shared.js?v=20260912c';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -43,6 +43,10 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const sourceTaskforces = TaskForceRecordStore.getAll()
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+  // dogfood R-18（2026-09-13）：明细表「按来源筛选」的数据源（长列表定位；默认全部）
+  const inspRows = inspectionToLong(myInspection);
+  const inspSources = [...new Set(inspRows.map(r => r.source).filter(Boolean))].sort();
 
   const formHtml = _inspFormVisible ? `
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
@@ -83,6 +87,15 @@ export function renderContent(ctx) {
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
+      ${inspSources.length > 1 ? `
+      <div class="flex items-center gap-2 mb-3">
+        <label class="text-xs text-gray-500" for="insp-filter-source">按来源筛选</label>
+        <select id="insp-filter-source" class="input-flat text-xs max-w-xs">
+          <option value="">全部来源（${inspRows.length} 条）</option>
+          ${inspSources.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+        </select>
+        <span id="insp-filter-count" class="text-xs text-gray-500"></span>
+      </div>` : ''}
       <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
@@ -91,8 +104,8 @@ export function renderContent(ctx) {
             <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
           </tr></thead>
-          <tbody>${inspectionToLong(myInspection).map(i => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
+          <tbody>${inspRows.map(i => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50" data-insp-source="${esc(i.source)}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.source}</td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
@@ -103,6 +116,23 @@ export function renderContent(ctx) {
       </div>
     </div>
   `;
+
+  // dogfood R-18（2026-09-13）：明细行按来源筛选（纯 DOM 过滤，不重渲染 → 不丢表单已选/已填）
+  const _inspFilter = container.querySelector('#insp-filter-source');
+  if (_inspFilter) {
+    const _inspRowsDom = [...container.querySelectorAll('tbody tr[data-insp-source]')];
+    _inspFilter.addEventListener('change', () => {
+      const v = _inspFilter.value;
+      let shown = 0;
+      _inspRowsDom.forEach(tr => {
+        const hit = !v || tr.dataset.inspSource === v;
+        tr.hidden = !hit;
+        if (hit) shown++;
+      });
+      const cnt = container.querySelector('#insp-filter-count');
+      if (cnt) cnt.textContent = v ? `显示 ${shown} / 共 ${_inspRowsDom.length} 条` : '';
+    });
+  }
 
   // 绑定上传按钮（保态折叠 2026-09-08：对齐纪检会议考勤录入/组长考勤表单判例——表单已渲染
   //（#insp-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁 _inspPickerInstance、

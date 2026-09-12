@@ -18,14 +18,14 @@ globalThis.localStorage = {
   clear: () => { _store.clear(); },
 };
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912b';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260912b';
-import { isPartyMember } from '../../docs/src/services/roster.js?v=20260912b';
-import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260912b';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912c';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260912c';
+import { isPartyMember } from '../../docs/src/services/roster.js?v=20260912c';
+import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260912c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/group-view.js?v=20260912b';
+} from '../../docs/src/services/group-view.js?v=20260912c';
 
 const MEMBERS = PersonStore.getMembers();
 

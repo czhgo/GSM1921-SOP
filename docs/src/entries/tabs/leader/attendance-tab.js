@@ -2,24 +2,24 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260912b';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260912b';
-import { loadActivities } from '../../../services/activity.js?v=20260912b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912b';
-import { PersonStore } from '../../../services/person.js?v=20260912b';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260912c';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260912c';
+import { loadActivities } from '../../../services/activity.js?v=20260912c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912c';
+import { PersonStore } from '../../../services/person.js?v=20260912c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260912b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912b';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912b';
-import { badgeHtml } from '../../../components/badges.js?v=20260912b';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260912c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912c';
+import { badgeHtml } from '../../../components/badges.js?v=20260912c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912c';
 // ③批（书记 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260912b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912b';
-import { currentLeaderGroup } from './_shared.js?v=20260912b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912b';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260912c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912c';
+import { currentLeaderGroup } from './_shared.js?v=20260912c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912c';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -61,6 +61,10 @@ export function renderContent(ctx) {
     myGroupMemberIds.includes(t.personId) && t.status !== 'completed'
   );
 
+  // dogfood R-18（2026-09-13）：明细表「按活动筛选」的数据源（长列表定位；默认全部）
+  const attRows = attendanceToLong(myAttendance);
+  const attActivities = [...new Set(attRows.map(r => r.activity).filter(Boolean))].sort();
+
   const formHtml = _attFormVisible ? `
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="att-form-panel">
       <div class="text-xs font-bold text-gray-600 mb-3">上传考勤表单</div>
@@ -94,6 +98,15 @@ export function renderContent(ctx) {
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
+      ${attActivities.length > 1 ? `
+      <div class="flex items-center gap-2 mb-3">
+        <label class="text-xs text-gray-500" for="att-filter-activity">按活动筛选</label>
+        <select id="att-filter-activity" class="input-flat text-xs max-w-xs">
+          <option value="">全部活动（${attRows.length} 条）</option>
+          ${attActivities.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+        </select>
+        <span id="att-filter-count" class="text-xs text-gray-500"></span>
+      </div>` : ''}
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <table class="w-full text-xs">
           <thead><tr class="border-b border-gray-200">
@@ -102,8 +115,8 @@ export function renderContent(ctx) {
             <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
           </tr></thead>
-          <tbody>${attendanceToLong(myAttendance).map(a => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
+          <tbody>${attRows.map(a => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50" data-att-activity="${esc(a.activity)}">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
               <td class="py-2 px-3 text-gray-600">${a.activity}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
@@ -140,6 +153,23 @@ export function renderContent(ctx) {
       ` : ''}
     </div>
   `;
+
+  // dogfood R-18（2026-09-13）：明细行按活动筛选（纯 DOM 过滤，不重渲染 → 不丢表单已选/已填）
+  const _attFilter = container.querySelector('#att-filter-activity');
+  if (_attFilter) {
+    const _attRowsDom = [...container.querySelectorAll('tbody tr[data-att-activity]')];
+    _attFilter.addEventListener('change', () => {
+      const v = _attFilter.value;
+      let shown = 0;
+      _attRowsDom.forEach(tr => {
+        const hit = !v || tr.dataset.attActivity === v;
+        tr.hidden = !hit;
+        if (hit) shown++;
+      });
+      const cnt = container.querySelector('#att-filter-count');
+      if (cnt) cnt.textContent = v ? `显示 ${shown} / 共 ${_attRowsDom.length} 条` : '';
+    });
+  }
 
   // 绑定上传按钮（保态折叠 2026-09-06：对齐纪检会议考勤录入判例——表单已渲染
   //（#att-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁

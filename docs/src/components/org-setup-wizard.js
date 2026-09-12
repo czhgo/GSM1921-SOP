@@ -14,30 +14,30 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912b';
-import { getCapabilities } from '../core/registry.js?v=20260912b';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260912b';
+import { mockDB } from '../core/domain.js?v=20260912c';
+import { getCapabilities } from '../core/registry.js?v=20260912c';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260912c';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
 import '../modules/capabilities/secretary-workspace.js?v=20260909e';
-import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260912b';
-import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260912b';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260912b';
+import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260912c';
+import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260912c';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260912c';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../services/branch.js?v=20260912b';
-import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260912b';
+} from '../services/branch.js?v=20260912c';
+import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260912c';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../services/org-base-data-preview.js?v=20260912b';
-import { getRosterStats, isDetained } from '../services/roster.js?v=20260912b';
-import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260912b';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260912b';
+} from '../services/org-base-data-preview.js?v=20260912c';
+import { getRosterStats, isDetained } from '../services/roster.js?v=20260912c';
+import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260912c';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260912c';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../services/appointment.js?v=20260912b';
+import { appointInauguralOfficers } from '../services/appointment.js?v=20260912c';
 
 // ── 步骤元信息（书记已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -295,12 +295,12 @@ function _headHtml(S, branch, org, isStaff) {
     `<option value="${esc(b.id)}" ${b.id === S.branchId ? 'selected' : ''}>${esc(b.name)}</option>`).join('');
   const whoBadge = S.actor.role === 'deputy-secretary' ? '本支部副书记' : '现任书记';
   const picker = S.canSwitch
-    ? `<div class="flex items-center gap-2">
+    ? `<div class="flex flex-wrap items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
-        <select id="wz-branch-select" class="input-flat w-full max-w-xs">${options}</select>
+        <select id="wz-branch-select" class="input-flat w-full max-w-xs min-w-0">${options}</select>
         <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">党委 · 任意支部</span>
       </div>`
-    : `<div class="flex items-center gap-2">
+    : `<div class="flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 shrink-0">目标支部</span>
         <span class="text-xs font-medium text-gray-800">${esc(branch.name)}</span>
         <span class="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100 shrink-0">${whoBadge} · 限本支部</span>
