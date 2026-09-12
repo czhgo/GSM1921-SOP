@@ -27,16 +27,16 @@
 //    书记确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../../../services/person.js?v=20260912c';
-import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260912c';
-import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260912c';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912c';
-import { AuthStore } from '../../../services/auth.js?v=20260912c';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260912c';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912c';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260912c';
+import { PersonStore } from '../../../services/person.js?v=20260912d';
+import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260912d';
+import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260912d';
+import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912d';
+import { AuthStore } from '../../../services/auth.js?v=20260912d';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260912d';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912d';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260912d';
 // 纯逻辑（可单测）：新增表单校验 / 行内保存 diff
-import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260912c';
+import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260912d';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;

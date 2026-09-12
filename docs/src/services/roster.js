@@ -16,8 +16,8 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、书记复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912c';
-import { PersonStore } from './person.js?v=20260912c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912d';
+import { PersonStore } from './person.js?v=20260912d';
 
 /** 居住/在册状态枚举值（成员档案 residenceStatus；缺省=在校） */
 export const RESIDENCE = {

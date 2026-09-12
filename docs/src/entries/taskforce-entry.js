@@ -5,19 +5,19 @@
 //  数据源 TaskForceRecordStore（独立持久化 workflowos_taskforces_v1），
 //  报名面板复用 signup-panel.js 组件（与活动详情页共用，避免重复散落）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260912c';
-import { renderHeader } from '../components/header.js?v=20260912c';
-import { BranchService } from '../services/runtime.js?v=20260912c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912c';
-import { NoticeStore } from '../services/notice.js?v=20260912c';
-import { SignupStore } from '../services/signup.js?v=20260912c';
-import { AuthStore } from '../services/auth.js?v=20260912c';
-import { getPersonById } from '../services/person.js?v=20260912c';
-import { getBasePath } from '../core/utils.js?v=20260912c';
-import { badgeHtml } from '../components/badges.js?v=20260912c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260912c';
-import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260912c';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260912c';
+import { renderSidebar } from '../components/sidebar.js?v=20260912d';
+import { renderHeader } from '../components/header.js?v=20260912d';
+import { BranchService } from '../services/runtime.js?v=20260912d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912d';
+import { NoticeStore } from '../services/notice.js?v=20260912d';
+import { SignupStore } from '../services/signup.js?v=20260912d';
+import { AuthStore } from '../services/auth.js?v=20260912d';
+import { getPersonById } from '../services/person.js?v=20260912d';
+import { getBasePath } from '../core/utils.js?v=20260912d';
+import { badgeHtml } from '../components/badges.js?v=20260912d';
+import { enhanceSelects } from '../components/custom-select.js?v=20260912d';
+import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260912d';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260912d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -44,7 +44,13 @@ const STATUS_BADGE = {
   archived: ['已归档', 'neutral'],
   dissolved: ['已解散', 'danger'],
 };
-function statusBadge(status) {
+/** 招募中但已过报名截止日（dogfood 党员#3：状态由截止日派生，与首页专班列表/成员端同口径） */
+function recruitClosed(tf) {
+  if (!tf || tf.status !== 'recruiting' || !tf.deadline) return false;
+  return tf.deadline < new Date().toISOString().slice(0, 10);
+}
+function statusBadge(status, tf) {
+  if (status === 'recruiting' && recruitClosed(tf)) return badgeHtml('报名已截止', 'neutral');
   const cfg = STATUS_BADGE[status];
   return cfg ? badgeHtml(cfg[0], cfg[1]) : badgeHtml(status || '—', 'neutral');
 }
@@ -83,7 +89,7 @@ function renderTaskforce(tf) {
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-        ${statusBadge(tf.status)}
+        ${statusBadge(tf.status, tf)}
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-violet-50 text-violet-600">专班</span>
         <span class="text-xs text-gray-500">${tf.id}</span>
         <span class="ml-auto">${renderShareButtonHtml()}</span>
@@ -112,7 +118,8 @@ function renderTaskforce(tf) {
       </div>
     </div>
 
-    ${openForSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, title: tf.name, signups, myId }) : ''}
+    ${openForSignup ? renderSignupSection({ sourceType: 'taskforce', sourceId: tf.id, title: tf.name, signups, myId })
+      : (recruitClosed(tf) ? `<div class="rounded-xl bg-gray-50 px-4 py-3 text-xs text-gray-600">报名已于 ${tf.deadline} 截止，不再接受新报名${myId ? '' : '（登录后可查看自己是否已报名）'}。</div>` : '')}
 
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'taskforce', sourceId: tf.id, signups, myId })}

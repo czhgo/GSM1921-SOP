@@ -3,20 +3,20 @@
 // 支部边界收敛点（防失同步）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260912c';
-import { getPersonById } from './person.js?v=20260912c';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260912c';
-import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260912c';
-import { listCapabilities } from '../core/registry.js?v=20260912c';
+import { mockDB } from '../core/domain.js?v=20260912d';
+import { getPersonById } from './person.js?v=20260912d';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260912d';
+import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260912d';
+import { listCapabilities } from '../core/registry.js?v=20260912d';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260912c';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260912d';
 // 审计内核共享常量（2026-09-09 书记批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防失同步）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260912c';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260912d';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../core/work-map.js?v=20260912c';
+import { expandWorkforce } from '../core/work-map.js?v=20260912d';
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260912c';
+import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260912d';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -291,7 +291,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912c');
+      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912d');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),

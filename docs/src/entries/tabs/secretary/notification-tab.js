@@ -3,12 +3,12 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260912c';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260912c';
-import { badgeHtml } from '../../../components/badges.js?v=20260912c';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260912c';
+import { NoticeStore } from '../../../services/notice.js?v=20260912d';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260912d';
+import { badgeHtml } from '../../../components/badges.js?v=20260912d';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260912d';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260912c';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260912d';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -209,9 +209,9 @@ function renderNotificationList() {
       : '';
     // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
     const writeBtns = isReadonlyBranchDrilldown() ? '' : `
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
-          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
     return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">

@@ -4,12 +4,12 @@
 // 书记裁定（卡片去留/合并批）：出勤行补入口——「查看个人明细」+「去补课/提交补课说明」。
 //   补课入口仅在存在本人待补课任务时出现（制度无「请假」入口，故不设）。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260912c';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260912c';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912c';
-import { AuthStore } from '../../../services/auth.js?v=20260912c';
-import { openFormModal } from '../../../components/modal.js?v=20260912c';
-import { showToast } from '../../../core/utils.js?v=20260912c';
+import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260912d';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260912d';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912d';
+import { AuthStore } from '../../../services/auth.js?v=20260912d';
+import { openFormModal } from '../../../components/modal.js?v=20260912d';
+import { showToast } from '../../../core/utils.js?v=20260912d';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
