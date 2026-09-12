@@ -72,9 +72,10 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
  * 「前缀整清」形成对照：init 档保白名单）。
  */
 export const INIT_EXACT_REMOVE_KEYS = [
-  // issue（意见反馈）域：草稿/缓存/版本/提交/迁移标记
+  // issue（意见反馈）域：草稿/缓存/版本/提交/迁移标记 + 真匿名防刷令牌
   'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-cache-version',
   'gsm1921-issue-cache', 'gsm1921-feedback-submissions', 'gsm1921-feedback-migrated',
+  'gsm1921-issue-submitter-token',
   // 里程碑缓存
   'gsm1921-milestone-cache',
   // 成员变更确认请求队列（member-confirmation 自管键）

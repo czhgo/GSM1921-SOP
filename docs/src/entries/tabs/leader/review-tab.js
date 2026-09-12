@@ -75,8 +75,10 @@ export function reviewStatusSectionHtml(ctx) {
       <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
         <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
-            <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+            <a href="../activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
+              <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
+              <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+            </a>
             <div class="text-[11px] text-gray-500 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
           </div>
           <div class="flex items-center gap-2 ml-4">

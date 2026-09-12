@@ -104,7 +104,7 @@ export async function renderContent(ctx) {
           <div>
             <p class="text-xs text-gray-500 mb-2">近期活动</p>
             <div class="flex flex-wrap gap-2">
-              ${recent.map(a => `<span class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1">${a.date?.slice(5) || ''} ${a.title}</span>`).join('')}
+              ${recent.map(a => `<a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
             </div>
           </div>` : ''}
           <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">

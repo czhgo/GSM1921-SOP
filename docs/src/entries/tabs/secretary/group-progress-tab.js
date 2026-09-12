@@ -251,8 +251,10 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
           <div class="p-2.5 rounded-lg bg-white border border-gray-50">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
-                <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
-                <div class="text-xs text-gray-500 mt-0.5">${esc(act.date || '')}${act.type ? ' · ' + esc(act.type) : ''}</div>
+                <a href="../activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
+                  <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
+                  <div class="text-xs text-gray-500 mt-0.5">${esc(act.date || '')}${act.type ? ' · ' + esc(act.type) : ''}</div>
+                </a>
               </div>
               <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor(rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED)} shrink-0">
                 ${label}${rev?.reviewStatus === ReviewStatus.REJECTED ? ' · 需修改' : ''}

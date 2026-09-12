@@ -25,17 +25,23 @@ export const OPTION_SETS = {
   },
 };
 
+// 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/constants.js
+// （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../core/constants.js?v=20260912a';
+
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
 export function isDecisionScenario(scenarioId) { return DECISION_SCENARIOS.has(scenarioId); }
 
 // 场景默认 voteConfig（创建活动预填）
+// ballotMode（2026-09-12 书记裁定）：正式表决（formal）按制度锁定无记名（UI 不可改、服务端校验）；
+//   事务性表决（deliberative）默认记名，发起人可选无记名（匿名模式可选）。
 export function defaultVoteConfig(scenarioId) {
   if (scenarioId === 'branch-party-meeting') {
-    return { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds: [], quorumCheck: true };
+    return { mode: 'async', optionSet: 'formal', ballotMode: 'anonymous', voterScope: 'formal-only', voterIds: [], quorumCheck: true };
   }
   if (scenarioId === 'branch-committee') {
-    return { mode: 'async', optionSet: 'deliberative', voterScope: 'committee', voterIds: [], quorumCheck: false };
+    return { mode: 'async', optionSet: 'deliberative', ballotMode: 'named', voterScope: 'committee', voterIds: [], quorumCheck: false };
   }
   return null; // 非决策类不支持线上表决
 }

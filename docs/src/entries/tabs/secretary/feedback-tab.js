@@ -358,9 +358,6 @@ function renderIssueDetail(issueId) {
   html += `<span>范围：${issue.scope || '—'}</span>`;
   html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span>`;
   html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
-  if (issue._realPersonId && issue._realPersonId !== issue.submittedBy) {
-    html += `<span style="color:var(--app-accent,#B91C1C);" title="该反馈为匿名提交，此为书记内部追溯信息">真实提交人（仅书记可见）：${getPersonName(issue._realPersonId)}</span>`;
-  }
   html += `<span>提交时间：${issue.submittedAt || '—'}</span>`;
   if (issue.closedAt) html += `<span>关闭时间：${issue.closedAt}</span>`;
   html += `</div>`;

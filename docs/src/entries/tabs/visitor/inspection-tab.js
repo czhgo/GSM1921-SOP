@@ -71,7 +71,9 @@ export function renderContent(ctx) {
           </div>
           <span class="px-1.5 py-0.5 text-xs font-medium rounded-full ${statusCls}">${statusText}</span>
         </div>
-        <p class="text-sm font-medium text-gray-800">${sourceTitle}</p>
+        ${r.activityId
+          ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情"><p class="text-sm font-medium text-gray-800">${sourceTitle}</p></a>`
+          : `<p class="text-sm font-medium text-gray-800">${sourceTitle}</p>`}
         ${r.role ? `<p class="text-xs text-gray-500 mt-1">工作内容：${r.role}</p>` : ''}
         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
           <p class="text-xs text-gray-500">录入人：${r.recordedByName || '—'}</p>

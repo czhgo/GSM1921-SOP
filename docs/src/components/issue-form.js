@@ -2,7 +2,6 @@
 // issue-form.js — 反馈新建表单
 
 import { IssueStore } from '../services/issues.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
 import { showToast } from '../core/utils.js?v=20260912a';
 import { icon } from '../core/icons.js?v=20260912a';
 import { badgeHtml } from './badges.js?v=20260912a';
@@ -21,11 +20,7 @@ const TYPE_OPTIONS = [
   { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
 ];
 
-/** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
-function _currentPersonId() {
-  return AuthStore.getCurrentUser()?.personId || '匿名';
-}
-
+/** 渲染新建反馈表单（默认匿名；提交经 IssueStore.submitIssue 走双形态真匿名写口） */
 export function renderIssueForm() {
   const container = document.getElementById('issue-form-container');
   if (!container) return;
@@ -73,8 +68,8 @@ export function renderIssueForm() {
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
-          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后对外显示「匿名」，书记内部仍可追溯真实提交人">
-            <input type="checkbox" id="form-anon" class="checkbox-accent">
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开，任何人（含书记）均无法追溯提交人">
+            <input type="checkbox" id="form-anon" class="checkbox-accent" checked>
             匿名提交
           </label>
           <div class="flex gap-2">
@@ -86,7 +81,7 @@ export function renderIssueForm() {
     </div>
   `;
 
-  document.getElementById('btn-submit-issue')?.addEventListener('click', () => {
+  document.getElementById('btn-submit-issue')?.addEventListener('click', async () => {
     const title = document.getElementById('form-title')?.value.trim();
     const body = document.getElementById('form-body')?.value.trim();
     const scope = document.getElementById('form-scope')?.value;
@@ -97,22 +92,17 @@ export function renderIssueForm() {
     if (!scope) { showToast('error', '请选择范围'); return; }
     if (types.length === 0) { showToast('error', '请至少选择一个类型'); return; }
 
-    const anon = document.getElementById('form-anon')?.checked;
-    const author = anon ? '匿名' : _currentPersonId();
+    const anon = document.getElementById('form-anon')?.checked ?? true;
 
-    // 添加草稿（书记审核后真正合并）
-    IssueStore.addDraft({
-      type: 'new-issue',
-      payload: {
-        title, body, scope, types,
-        submittedBy: author,
-        // 匿名提交时保留真实 personId，仅书记内部可追溯
-        _realPersonId: anon ? _currentPersonId() : null,
-        submittedAt: new Date().toISOString().slice(0, 10),
-      },
-    });
+    // 真匿名：匿名则不落任何可反查提交人的字段（书记侧亦不可见）；实名按现口径记真实 personId
+    try {
+      await IssueStore.submitIssue({ title, body, scope, types, anonymous: anon });
+    } catch (e) {
+      showToast('error', '提交失败：' + (e?.message || '网络错误'));
+      return;
+    }
 
-    showToast('success', '反馈已提交为草稿，待书记审核通过后公开');
+    showToast('success', anon ? '已匿名提交，待书记审核通过后公开' : '反馈已提交为草稿，待书记审核通过后公开');
     window.location.href = './feedback.html';
   });
 }

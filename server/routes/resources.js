@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
-import { requireAuth, requireCommissioner } from './auth.js';
+import { requireAuth, requireCommissioner, requireRole } from './auth.js';
 import { replaceCollection } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -106,6 +106,17 @@ const ID_PREFIX = {
   reviewRequests: 'rq',
 };
 
+// 表决计票方式写侧校验（2026-09-12 书记裁定）：正式表决（optionSet formal——发展党员/转正等）
+// 制度强制无记名，显式写 ballotMode='named' 一律 400（规则单一源 constants.js::isAnonymousForced）。
+// 仅在请求显式携带 voteConfig 时校验（不含则不动既有活动配置，防无关 patch 误拒）。
+function _ballotModeReject(voteConfig) {
+  if (!voteConfig || typeof voteConfig !== 'object') return null;
+  if (isAnonymousForced(voteConfig.optionSet) && voteConfig.ballotMode === 'named') {
+    return '正式表决须采用无记名投票（ballotMode=anonymous），不得设置为记名';
+  }
+  return null;
+}
+
 export function createResourcesRouter(db) {
   const router = Router();
 
@@ -134,6 +145,11 @@ export function createResourcesRouter(db) {
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
         }
+        // 计票方式强制校验（仅活动）：正式表决不得写 named
+        if (name === 'activities') {
+          const ballotErr = _ballotModeReject(row.voteConfig);
+          if (ballotErr) return res.status(400).json({ error: ballotErr });
+        }
         const id = row.id || `${ID_PREFIX[name] || 'x'}-${randomUUID().slice(0, 8)}`;
         const data = { ...row, id };
         db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(data));
@@ -152,6 +168,11 @@ export function createResourcesRouter(db) {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
+      // 计票方式强制校验（仅活动、且显式携带 voteConfig）：正式表决不得改为 named
+      if (name === 'activities' && req.body && req.body.voteConfig !== undefined) {
+        const ballotErr = _ballotModeReject(req.body.voteConfig);
+        if (ballotErr) return res.status(400).json({ error: ballotErr });
+      }
       const merged = { ...JSON.parse(existing.data), ...(req.body || {}), id };
       db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(id, JSON.stringify(merged));
       res.json(merged);
@@ -530,6 +551,107 @@ export function createResourcesRouter(db) {
     branch.config = nextConfig;
     db.prepare('UPDATE branches SET data = ? WHERE id = ?').run(JSON.stringify(branch), branch.id);
     res.json(branch);
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  //  意见反馈（真匿名）语义端点（2026-09-12 书记裁定）
+  //  · GET  /api/v1/issues      公开读（处置结果公开可见，所有人可见）
+  //  · POST /api/v1/issues      登录用户可提交；落库字段白名单，绝不存可反查提交人的字段
+  //  · PATCH /api/v1/issues/:id 处置/回复沿用既有口径（仅党支部书记）
+  //  防刷（真匿名下唯一手段）：客户端随机 token → 服务端仅存 tokenHash，仅用于判重/频率限制，
+  //  不含 personId、不可反查人（哈希算法与前端同源 = constants.hashSubmitterToken）。
+  // ════════════════════════════════════════════════════════════════
+  const SECRETARY_SET = new Set(SECRETARY_ROLES);
+  // 历史数据迁移：读取/回写时清理既有记录的 _realPersonId（保留其余内容）
+  const sanitizeIssue = (rec) => {
+    if (rec && typeof rec === 'object') delete rec._realPersonId;
+    return rec;
+  };
+  const listIssues = () => listTable(db, 'issues').map(sanitizeIssue);
+  // 处置可写字段白名单（不可写 submittedBy/anonymous/tokenHash/id/number/title/body/scope/types 等身份与内容字段）
+  const ISSUE_MUTABLE_KEYS = [
+    'status', 'closedReason', 'closedAt', 'assignee', 'assigneeRole', 'dispatchHistory',
+    'comments', 'commentCount', 'participants', 'hidden', 'mergedInto', 'resultPending', 'milestone',
+  ];
+  const RATE_WINDOW_MS = 10 * 60 * 1000; // 频率窗口
+  const RATE_MAX = 20;                   // 窗口内同 tokenHash 最大提交数
+  const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 判重窗口
+
+  router.get('/issues', (req, res) => res.json(listIssues()));
+
+  router.post('/issues', requireAuth(db), (req, res) => {
+    const actor = req.actor;
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    const text = typeof body.body === 'string' ? body.body.trim() : '';
+    const scope = typeof body.scope === 'string' ? body.scope.trim() : '';
+    const types = Array.isArray(body.types) ? body.types.filter((t) => typeof t === 'string') : [];
+    if (!title) return res.status(400).json({ error: '标题不能为空' });
+    if (!text) return res.status(400).json({ error: '正文不能为空' });
+    if (!scope) return res.status(400).json({ error: '范围不能为空' });
+    if (types.length === 0) return res.status(400).json({ error: '至少选择一个类型' });
+    const anonymous = body.anonymous !== false; // 缺省匿名（与前端开关默认一致）
+    // 客户端随机 token（不可由 personId 推导）；缺省则服务端随机化（不与他人共享哈希）
+    const rawToken = (typeof body.submitterToken === 'string' && body.submitterToken) ? body.submitterToken : randomUUID();
+    const tokenHash = hashSubmitterToken(rawToken);
+    const now = new Date();
+    const nowMs = now.getTime();
+
+    // 防刷：仅按 tokenHash 判重/限频（不含 personId，不可反查人）
+    const all = listTable(db, 'issues');
+    const recent = all.filter((r) => r.tokenHash === tokenHash && (nowMs - Date.parse(r.createdAt || r.submittedAt || 0)) < RATE_WINDOW_MS);
+    if (recent.length >= RATE_MAX) return res.status(429).json({ error: '提交过于频繁，请稍后再试' });
+    const isDup = recent.some((r) => r.title === title && r.body === text && (nowMs - Date.parse(r.createdAt || r.submittedAt || 0)) < DEDUP_WINDOW_MS);
+    if (isDup) return res.status(409).json({ error: '重复提交（内容与近期提交相同）' });
+
+    const number = all.reduce((m, r) => Math.max(m, r.number || 0), 0) + 1;
+    const id = 'issue-' + randomUUID().slice(0, 8);
+    // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空；实名 → 按现口径记 actor.id
+    const record = {
+      id,
+      number,
+      title,
+      body: text,
+      scope,
+      types,
+      status: 'open',
+      closedReason: null,
+      closedAt: null,
+      submittedBy: anonymous ? '匿名' : actor.id,
+      anonymous,
+      submittedAt: now.toISOString().slice(0, 10),
+      createdAt: now.toISOString(),
+      assignee: null,
+      assigneeRole: null,
+      dispatchHistory: [],
+      milestone: null,
+      hidden: false,
+      mergedInto: null,
+      resultPending: false,
+      reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
+      mentions: [],
+      references: [],
+      comments: [],
+      participants: anonymous ? [] : [actor.id],
+      commentCount: 0,
+      tokenHash, // 仅判重/限频用；不含 personId，不可反查提交人
+    };
+    db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(id, JSON.stringify(record));
+    res.status(201).json(sanitizeIssue(record));
+  });
+
+  // 处置/回复（仅党支部书记，沿用既有口径）：白名单字段局部合并；处置结果随公开 issue 一并可见
+  router.patch('/issues/:id', requireRole(db, SECRETARY_SET), (req, res) => {
+    const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ error: 'not found' });
+    const issue = sanitizeIssue(JSON.parse(row.data));
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    for (const k of ISSUE_MUTABLE_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(body, k)) issue[k] = body[k];
+    }
+    db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue));
+    res.json(sanitizeIssue(issue));
   });
 
   return router;

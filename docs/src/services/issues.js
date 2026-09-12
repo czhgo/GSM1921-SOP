@@ -5,6 +5,8 @@
 import { AuthStore } from './auth.js?v=20260912a';
 import { PersonStore } from './person.js?v=20260912a';
 import { bumpToken } from '../core/version-token.js?v=20260912a'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260912a';
+import { hashSubmitterToken } from '../core/constants.js?v=20260912a';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -19,8 +21,85 @@ const CACHE_KEY = 'gsm1921-issue-cache-v3';
 const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
 const CACHE_VERSION = '3';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
+// 真匿名防刷令牌（2026-09-12 书记裁定）：客户端首次提交生成随机 token 存本地，
+// 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人。
+const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
 
 let _issuesCache = null;
+
+/** 当前是否 API 形态（mock/api 双形态判定；data-adapter 为零静态依赖叶子模块） */
+function _isApiMode() {
+  return getDataSource() === 'api';
+}
+
+/** 生成与 personId 无关的随机提交令牌（crypto 优先，降级 Math.random+时间戳） */
+function _randomSubmitterToken() {
+  try {
+    const c = globalThis.crypto;
+    if (c && typeof c.getRandomValues === 'function') {
+      const a = new Uint8Array(16);
+      c.getRandomValues(a);
+      return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch {}
+  return 'r' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/** 读取（缺省则生成）本浏览器的随机提交令牌 */
+function _getSubmitterToken() {
+  try {
+    let t = localStorage.getItem(SUBMITTER_TOKEN_KEY);
+    if (!t) {
+      t = _randomSubmitterToken();
+      localStorage.setItem(SUBMITTER_TOKEN_KEY, t);
+    }
+    return t;
+  } catch {
+    return _randomSubmitterToken();
+  }
+}
+
+/**
+ * 历史数据迁移：删除既有记录 payload 里的 `_realPersonId`（保留其余内容）。
+ * 该字段为旧「匿名仅对书记可见真实提交人」机制残留——读取时一律清除/忽略，书记侧亦不可追溯。
+ * @returns {boolean} 是否有变更（有则调用方应回写缓存）
+ */
+function _stripLegacyIdentity(list) {
+  let changed = false;
+  for (const it of (list || [])) {
+    if (it && typeof it === 'object' && Object.prototype.hasOwnProperty.call(it, '_realPersonId')) {
+      delete it._realPersonId;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/**
+ * 处置写口双形态同步：API 形态下把变更后的 issue 处置字段 PATCH 回服务端（fire-and-forget）。
+ * mock 形态为本地 localStorage，无需同步。
+ */
+function _syncIssueToApi(issue) {
+  if (!_isApiMode() || !issue) return;
+  try {
+    getAdapter().issues.update(issue.id, {
+      status: issue.status,
+      closedReason: issue.closedReason ?? null,
+      closedAt: issue.closedAt ?? null,
+      assignee: issue.assignee ?? null,
+      assigneeRole: issue.assigneeRole ?? null,
+      dispatchHistory: issue.dispatchHistory || [],
+      comments: issue.comments || [],
+      commentCount: issue.commentCount || 0,
+      participants: issue.participants || [],
+      hidden: !!issue.hidden,
+      mergedInto: issue.mergedInto ?? null,
+      resultPending: !!issue.resultPending,
+    }).catch((e) => console.warn('[IssueStore] API 处置同步失败：', e));
+  } catch (e) {
+    console.warn('[IssueStore] API 处置同步异常：', e);
+  }
+}
 
 /**
  * P2（2026-09-07 · spec §四.1）：汇报/反馈写版本戳 +1。
@@ -43,6 +122,19 @@ export const IssueStore = {
    * @returns {Promise<Array>} issues 列表
    */
   async loadAll() {
+    // API 形态：以服务器为权威源（GET /api/v1/issues）；读取即清理历史 _realPersonId
+    if (_isApiMode()) {
+      try {
+        const rows = await getAdapter().issues.list();
+        _issuesCache = Array.isArray(rows) ? rows : [];
+        _stripLegacyIdentity(_issuesCache);
+        return _issuesCache;
+      } catch (e) {
+        console.warn('[IssueStore] API 形态加载反馈失败：', e);
+        _issuesCache = [];
+        return _issuesCache;
+      }
+    }
     // 优先从内存缓存读
     if (_issuesCache) return _issuesCache;
     // 缓存版本检查：版本不匹配则丢弃旧缓存，强制从 issues.json 重新加载
@@ -53,11 +145,14 @@ export const IssueStore = {
         localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
       }
     } catch {}
-    // 其次从 localStorage 缓存读
+    // 其次从 localStorage 缓存读（历史 _realPersonId 迁移：删除该字段后回写）
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         _issuesCache = JSON.parse(cached);
+        if (_stripLegacyIdentity(_issuesCache)) {
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+        }
         return _issuesCache;
       }
     } catch {}
@@ -66,6 +161,7 @@ export const IssueStore = {
       const resp = await fetch(ISSUES_JSON_PATH);
       const data = await resp.json();
       _issuesCache = data.issues || [];
+      _stripLegacyIdentity(_issuesCache);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
       return _issuesCache;
     } catch {
@@ -124,22 +220,35 @@ export const IssueStore = {
 
   // ── 草稿（localStorage）──
 
-  /** 读取个人草稿 */
+  /** 读取个人草稿（历史 _realPersonId 迁移：删除该字段后回写；匿名草稿作者为「匿名」，不落真实 personId） */
   getDrafts() {
     try {
-      return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]');
+      const list = JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]');
+      let changed = false;
+      list.forEach((d) => {
+        if (d && d.payload && Object.prototype.hasOwnProperty.call(d.payload, '_realPersonId')) {
+          delete d.payload._realPersonId;
+          changed = true;
+        }
+      });
+      if (changed) { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(list)); } catch {} }
+      return list;
     } catch { return []; }
   },
 
-  /** 添加草稿（新建/评论/反应都先进草稿） */
-  addDraft(draft) {
+  /**
+   * 添加草稿（新建/评论/反应都先进草稿）
+   * @param {Object} draft
+   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——不落真实 personId，防书记侧追溯）
+   */
+  addDraft(draft, authorOverride) {
     const list = this.getDrafts();
     const record = {
       draftId: 'dft-' + Date.now(),
       type: draft.type, // 'new-issue' | 'comment' | 'reaction'
       targetIssueId: draft.targetIssueId || null,
       payload: draft.payload,
-      author: _currentPersonId(),
+      author: authorOverride || _currentPersonId(),
       createdAt: new Date().toISOString().slice(0, 10),
       status: 'pending', // pending | approved | rejected
       reviewNote: null,
@@ -147,6 +256,40 @@ export const IssueStore = {
     list.push(record);
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(list)); } catch {}
     return record;
+  },
+
+  /**
+   * 提交意见反馈（真匿名，2026-09-12 书记裁定）
+   * 匿名：submittedBy='匿名' + anonymous:true，不存任何可反查提交人的字段（书记侧亦不可见）；
+   * 实名：按现口径记真实 personId（展示层经 PersonStore 解析姓名）。
+   * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
+   * @returns {Promise<Object>} API 形态返回落库记录；mock 形态返回新建草稿（待书记审核后公开）
+   */
+  async submitIssue({ title, body, scope, types = [], anonymous = true } = {}) {
+    const now = new Date().toISOString().slice(0, 10);
+    const token = _getSubmitterToken();
+    if (_isApiMode()) {
+      const record = await getAdapter().issues.create({
+        title, body, scope, types,
+        anonymous: !!anonymous,
+        submitterToken: token, // 服务端仅存其哈希（tokenHash），不留原始 token
+        submittedAt: now,
+      });
+      _issuesCache = _issuesCache || [];
+      _issuesCache.push(record);
+      _noteIssueChange();
+      return record;
+    }
+    return this.addDraft({
+      type: 'new-issue',
+      payload: {
+        title, body, scope, types,
+        submittedBy: anonymous ? '匿名' : _currentPersonId(),
+        anonymous: !!anonymous,
+        tokenHash: hashSubmitterToken(token),
+        submittedAt: now,
+      },
+    }, anonymous ? '匿名' : undefined);
   },
 
   /** 书记审核通过：合并到 issues.json（实际操作：本地更新+提示书记保存文件） */
@@ -172,7 +315,8 @@ export const IssueStore = {
         mentions: [],
         references: [],
         comments: [],
-        participants: [d.author],
+        // 匿名反馈不记录任何参与者（防止经 participants 反查提交人）
+        participants: d.payload.anonymous ? [] : [d.author],
         commentCount: 0,
       };
       _issuesCache = _issuesCache || [];
@@ -235,6 +379,7 @@ export const IssueStore = {
     }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：状态变更（含关闭/重开）→ 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端（mock 形态 no-op）
     return issue;
   },
 
@@ -250,6 +395,7 @@ export const IssueStore = {
     c.hiddenAt = new Date().toISOString().slice(0, 10);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论隐藏 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
     return issue;
   },
 
@@ -260,6 +406,7 @@ export const IssueStore = {
     Object.assign(issue, updates);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：编辑（隐藏/指派/隐藏/备注等汇聚点）→ 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
     return issue;
   },
 
@@ -304,6 +451,7 @@ export const IssueStore = {
     if (!issue.participants.includes(by)) issue.participants.push(by);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：指派 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
     // 触发通知：被指派人工作台「我的处置」Tab 角标 +1
     if (assigneeId && assigneeId !== by) {
       IssueNotify.markUnread(assigneeId, issueId);
@@ -343,15 +491,12 @@ export const IssueStore = {
       // 触发书记工作台「待终审」高亮
       IssueNotify.markSecretaryReviewPending(issueId);
     }
-    // 正式答复发回：通知汇报人（发回回路，汇报人「我的处置」角标 +1）
-    if (kind === 'reply') {
-      const recipient = issue.submittedBy;
-      if (recipient && recipient !== author) {
-        IssueNotify.markUnread(recipient, issueId);
-      }
-    }
+    // 真匿名（2026-09-12 书记裁定）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
+    // 若按 submittedBy 定向推送会泄露匿名提交人身份（书记追问只能公开留言）。
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（书记收件箱时间线渲染守卫失效）
+    // API 形态：书记处置（评论/批复/正式答复）写回服务端（成员汇报评论 authorRole !== 'secretary'，不触发）
+    if (authorRole === 'secretary') _syncIssueToApi(issue);
     return issue;
   },
 
@@ -376,6 +521,7 @@ export const IssueStore = {
     }
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：关闭 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
     return issue;
   },
 
@@ -389,6 +535,7 @@ export const IssueStore = {
     issue.resultPending = false;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：重开 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
     return issue;
   },
 
@@ -574,6 +721,8 @@ export const IssueStore = {
     target.commentCount = (target.commentCount || 0) + 1;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：合并 → 写版本 +1
+    _syncIssueToApi(source); // API 形态：处置写回服务端
+    _syncIssueToApi(target);
     return { source, target };
   },
 

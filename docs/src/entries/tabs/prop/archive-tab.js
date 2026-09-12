@@ -211,14 +211,14 @@ function _renderPendingArchiveSection(activities) {
     const typeLabel = a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : '';
     return `
       <div class="p-3 rounded-xl bg-amber-50/60 border border-dashed border-amber-200 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
-        <div class="flex-1 min-w-0">
+        <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${typeLabel}
             <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">待归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(dateLabel)} · 宣传材料未提交（归档缺口）</span>
-        </div>
+        </a>
       </div>`;
   }).join('');
   return `
@@ -262,17 +262,22 @@ function _renderArchiveList(records) {
       : '';
     // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
     const dispatchHtml = r.fileName ? _renderDispatchCell(r) : '';
+    // 实体条目可点（2026-09-12 书记裁定）：归档记录行关联活动 → 左区包一层活动详情深链
+    //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
+    const titleBlock = `
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
+          ${progressHtml}${doneHtml}
+        </div>
+        <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>`;
+    const leftBlock = r.activityId
+      ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
+      : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
     return `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
-            ${progressHtml}${doneHtml}
-          </div>
-          <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>
-        </div>
+        ${leftBlock}
         <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${dispatchHtml}${advanceBtn}</div>
       </div>`;
   }).join('');

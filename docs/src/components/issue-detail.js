@@ -105,7 +105,7 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="pl-3 mb-4">
-            <p class="text-xs text-gray-500 mb-1 font-sans">${getPersonName(issue.submittedBy)} · ${issue.submittedAt}</p>
+            <p class="text-xs text-gray-500 mb-1 font-sans">${getPersonName(issue.submittedBy) || '匿名'} · ${issue.submittedAt}</p>
             <p class="text-sm text-gray-700 whitespace-pre-wrap font-sans">${issue.body || '(无正文)'}</p>
           </div>
 
@@ -139,7 +139,7 @@ export function renderIssueDetail(issueId) {
         <div class="card rounded-xl p-4 text-xs">
           <div class="mb-3">
             <p class="text-gray-500 mb-1">提交者</p>
-            <p class="text-gray-700 font-medium font-sans">${getPersonName(issue.submittedBy)}</p>
+            <p class="text-gray-700 font-medium font-sans">${getPersonName(issue.submittedBy) || '匿名'}</p>
           </div>
 
           <div class="mb-3">

@@ -8,7 +8,7 @@
 // ════════════════════════════════════════════════════════════════
 import { showToast, escHtml as esc } from '../core/utils.js?v=20260912a';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912a';
-import { optionSetOf, OPTION_SETS } from '../services/vote-config.js?v=20260912a';
+import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912a';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -35,19 +35,26 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
   const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : OPTION_SETS.deliberative.options;
-  const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
-  // 可交互：已登录 + 应到表决人 + 未锁定（已表态仍可改投覆盖）
+  // 无记名（2026-09-12 书记裁定）：本人选项不落库、回显亦不展示（只提示已计入汇总）；
+  //   附言不落库故匿名态不提供附言输入（避免"写了却没存"的错觉）。
+  const anonymous = isAnonymousActivity(activity);
+  const mine = currentUserId
+    ? (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id)
+    : null;
+  // 可交互：已登录 + 应到表决人 + 未锁定（已表态仍可改投覆盖；无记名不可改票，重复提交幂等）
   const canInteract = !!currentUserId && canVote === true && !locked;
 
   container.innerHTML = `
     <div class="vote-panel">
-      <div class="vote-title">我的表态${locked ? '（已截止）' : ''}</div>
-      ${mine ? `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>` : ''}
+      <div class="vote-title">我的表态${locked ? '（已截止）' : ''}${anonymous ? '（无记名）' : ''}</div>
+      ${mine ? (anonymous
+        ? '<div class="vote-current">已表态（无记名，已计入汇总，不展示个人选项）</div>'
+        : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>`) : ''}
       ${canInteract ? `
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${esc(labelOf(pos))}</button>`).join('')}
         </div>
-        <textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>
+        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
         <button type="button" class="vote-submit">提交表态</button>` : ''}
       ${!locked && !canInteract && !mine ? '<div class="vote-current" style="opacity:.8;">仅应到表决人可表态</div>' : ''}
     </div>`;
@@ -77,8 +84,9 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.5';
       try {
-        await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note });
-        showToast('success', '表态已提交');
+        // 无记名不落附言（服务端亦丢弃）——统一传空串，避免"已填写却未保存"的歧义
+        await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note: anonymous ? '' : note });
+        showToast('success', anonymous ? '表态已提交（无记名）' : '表态已提交');
         // 自刷新：重拉该活动表态并重绘本面板（「已表态」即时可见，不依赖调用方刷新路径）
         try {
           const latest = await fetchVotes(activity.id);

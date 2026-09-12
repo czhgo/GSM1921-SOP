@@ -21,6 +21,9 @@ const RESOURCE_TABLES = [
   'appointment_records',
   // 2026-09-02 党委后台 P3：支部上报审批（发展节点/活动报备 → 党委批驳档案）
   'review_requests',
+  // 2026-09-12 意见反馈「真匿名」：issues 表（仅 server/routes/resources.js 语义端点读写，
+  // 不在 resources.js RESOURCE_TABLES 映射内 → 无通用 CRUD / 不进快照写穿；落库字段白名单）
+  'issues',
 ];
 
 const SCHEMA = `

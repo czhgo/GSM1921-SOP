@@ -34,6 +34,14 @@ function vote(personId, position) {
   return { activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, personId, position };
 }
 
+// 无记名（2026-09-12 书记裁定）行形态：参与记录（无 position）+ 计数行 tally（无 personId）
+function anonParticipation(personId) {
+  return { activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, personId, votedAt: '2026-09-12T00:00:00.000Z', ballotMode: 'anonymous' };
+}
+function anonTally(tally) {
+  return { id: `avt-${ACT_ID}-${AGENDA_ITEM_ID}`, activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, ballotMode: 'anonymous', tally };
+}
+
 const BASE_CALL = { agendaItemId: AGENDA_ITEM_ID, result: 'passed', adapter: {}, db: {}, actorId: 'p13' };
 
 test('quorumCheck=true：出席不足拦截（1/4 表态，少于 ceil(应到/2)=2），抛错且不写 result', async () => {
@@ -93,4 +101,35 @@ test('quorumCheck=false：不拦截（无任何表态也放行）', async () => 
     ...BASE_CALL,
   });
   assert.equal(updated.agenda[0].result, 'passed', 'quorumCheck=false 不做门禁');
+});
+
+// ── 无记名（2026-09-12 书记裁定）：门槛/结果按 应到/实到 + tally 计算，不依赖逐人选项 ──
+test('无记名：赞成取自 tally（无逐人 position 亦放行）', async () => {
+  // 应到 3：实到需 ≥2、赞成需 >1.5。2 条参与记录 + tally{approve:2} → 放行；
+  // 若误按逐人 position 计（无 position）则赞成 0 → 会被赞成门禁拦截，此断言即证明取自 tally。
+  mockDB.agendaVotes = [anonParticipation('p1'), anonParticipation('p2'), anonTally({ approve: 2 })];
+  const updated = await recordAgendaResultForActivity({ activity: makeActivity(3), ...BASE_CALL });
+  assert.equal(updated.agenda[0].result, 'passed', '无记名赞成取自 tally 应放行');
+});
+
+test('无记名：弃权计入实到、不计赞成（tally abstain）', async () => {
+  // 应到 3：2 参与（tally approve 1 + abstain 1）→ 实到 2 达标、赞成 1 ≤1.5 不足 → 按赞成拦截。
+  mockDB.agendaVotes = [
+    anonParticipation('p1'), anonParticipation('p2'), anonTally({ approve: 1, abstain: 1 }),
+  ];
+  await assert.rejects(
+    recordAgendaResultForActivity({ activity: makeActivity(3), ...BASE_CALL }),
+    (e) => e instanceof Error && e.message.includes('赞成未超过') && !e.message.includes('过半数出席方可表决'),
+  );
+});
+
+test('无记名：实到按参与记录判定（出席不足拦截，含可督促提示）', async () => {
+  // 应到 4：仅 1 条参与记录（tally 记 approve 1）→ 实到 1 < ceil(4/2)=2 → 出席门禁拦截。
+  mockDB.agendaVotes = [anonParticipation('p1'), anonTally({ approve: 1 })];
+  await assert.rejects(
+    recordAgendaResultForActivity({ activity: makeActivity(4), ...BASE_CALL }),
+    (e) => e instanceof Error
+      && e.message.includes('过半数出席方可表决（当前 1/4 已表态）')
+      && e.message.includes('可督促未表态党员表态'),
+  );
 });

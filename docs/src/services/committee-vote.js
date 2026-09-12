@@ -33,7 +33,8 @@ const notifiedCountByActivity = new Map(); // activityId -> 已通知表态人�
 async function notifySecretaryProgress(activityId) {
   try {
     const votes = await fetchVotes(activityId);
-    const n = new Set(votes.map((v) => v.personId)).size;
+    // 仅计参与记录（含 personId；无记名 tally 行无 personId，须剔除，否则人数虚增）
+    const n = new Set(votes.filter((v) => v && v.personId).map((v) => v.personId)).size;
     const notified = notifiedCountByActivity.get(activityId) || 0;
     if (n > notified) {
       NoticeStore.add({
@@ -74,6 +75,69 @@ function currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || null;
 }
 
+// ── 表态数据聚合助手（2026-09-12 书记裁定「正式表决无记名」）──────────────────
+// 无记名活动的 GET 列表含两类行（双形态同构，见 server/routes/committee.js：
+//   · 参与记录 {personId, votedAt, ballotMode:'anonymous'}（无 position/note —— 逐人选项不落库）
+//   · 计数行   {tally:{选项:次数}, ballotMode:'anonymous'}（逐人选项不可回溯）
+// 记名活动仍为逐人 {personId, position, note}（历史数据同形）——下述助手对两形态通用：
+//   有 tally 行 → 计票取 tally；否则由逐人 position 现算（记名/历史兼容）。
+
+/** 计数行判定（无记名 tally 行；记名逐人行无 tally 字段） */
+export function isTallyRow(v) {
+  return !!v && !!v.tally && typeof v.tally === 'object';
+}
+
+/** 参与记录（含 personId 的行；计数行无 personId 被剔除） */
+export function ballotsOf(votes) {
+  return (votes || []).filter((v) => v && v.personId);
+}
+
+/** 某议程项的参与人 id 列表（去重；无记名/记名通用，供人数核验与催办） */
+export function presentIdsForItem(votes, agendaItemId) {
+  return [...new Set(ballotsOf(votes).filter((v) => v.agendaItemId === agendaItemId).map((v) => v.personId))];
+}
+
+/** 某议程项的选项计数（无记名读 tally 行；记名由逐人 position 现算）→ { 选项: 次数 } */
+export function tallyForItem(votes, agendaItemId) {
+  const rows = (votes || []).filter((v) => v && v.agendaItemId === agendaItemId);
+  const tallyRow = rows.find(isTallyRow);
+  if (tallyRow) return { ...tallyRow.tally };
+  const count = {};
+  for (const v of rows) {
+    if (v.personId && v.position) count[v.position] = (count[v.position] || 0) + 1;
+  }
+  return count;
+}
+
+/** 整个活动的选项计数（多议程项合计；无记名合计各 tally 行，记名由逐人 position 现算） */
+export function tallyOf(votes) {
+  const count = {};
+  const tallyRows = (votes || []).filter(isTallyRow);
+  if (tallyRows.length > 0) {
+    for (const r of tallyRows) {
+      for (const [k, n] of Object.entries(r.tally || {})) {
+        count[k] = (count[k] || 0) + (Number(n) || 0);
+      }
+    }
+    return count;
+  }
+  for (const v of ballotsOf(votes)) {
+    if (v.position) count[v.position] = (count[v.position] || 0) + 1;
+  }
+  return count;
+}
+
+/** 活动的已表态人数（去重参与记录数） */
+export function votedCountOf(votes) {
+  return new Set(ballotsOf(votes).map((v) => v.personId)).size;
+}
+
+/** 单条议程是否已表态（按人） */
+export function hasVoted(votes, personId, agendaItemId) {
+  if (!personId) return false;
+  return ballotsOf(votes).some((v) => v.personId === personId && v.agendaItemId === agendaItemId);
+}
+
 /** 查询活动的表态列表（全量可见；API 模式走 REST，mock 模式读本地） */
 export async function fetchVotes(activityId) {
   if (getDataSource() === 'api' && getAuthToken()) {
@@ -103,7 +167,11 @@ export async function fetchVotesStrict(activityId) {
   return (mockDB.agendaVotes || []).filter((v) => v.activityId === activityId);
 }
 
-/** 提交/覆盖表态（同人同议题幂等：adapter 统一处理 upsert；API 提交 201/覆盖 200） */
+/**
+ * 提交/覆盖表态（同人同议题幂等：adapter 统一处理 upsert；API 提交 201/覆盖 200）。
+ * 计票方式由活动 voteConfig 决定（server/mock 同源判定）：记名 named 逐人选项落库（改票覆盖）；
+ * 无记名 anonymous 只落参与记录 + tally（不可改票，重复提交幂等返回原参与记录）。
+ */
 export async function submitVote({ activityId, agendaItemId, position, note = '' }) {
   if (getDataSource() === 'api' && getAuthToken()) {
     // API 模式：adapter 直写服务器（POST /api/v1/agenda-votes，personId 由服务端取 JWT）

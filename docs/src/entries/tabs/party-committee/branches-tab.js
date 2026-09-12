@@ -91,6 +91,8 @@ export async function renderContent() {
               ${isEmpty
                 ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:#C8102E;" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
                 : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
+              <button type="button" class="branch-demo-enter text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600 shrink-0" data-branch-id="${esc(bid)}"
+                title="打开该支部监控只读视图（演示形态，只读；不授予支部内部事务权限）">进入支部</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />

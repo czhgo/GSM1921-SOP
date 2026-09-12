@@ -141,21 +141,25 @@ export function renderContent(ctx) {
         const badgeDark = p.developStage === '积极分子' ? ' --acc-bg-dark:rgba(6,182,212,0.16);--acc-text-dark:#67E8F9;--acc-border-dark:rgba(6,182,212,0.35);' : '';
         const last = lastInsp[p.id];
         const tip = tipByPerson.get(p.id);
+        // 实体条目可点（2026-09-12 书记裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
+        //（复用既有深链 workspace/org.html?tab=roster&highlight=<personId>，与 development-tab「去名册发起变更」同源）
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm font-semibold text-gray-800">${esc(p.name)}</span>
-              <span class="text-[11px] px-1.5 py-0.5 rounded-full ${badgeCls}" style="${badgeDark}">${esc(p.developStage || s)}</span>
-              ${p.partyGroup ? `<span class="text-[11px] text-gray-500">${esc(p.partyGroup)}</span>` : ''}
-              ${_residenceChipHtml(p)}
-            </div>
-            ${last ? `
-              <div class="text-[11px] text-gray-500 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
-                最近考察：${esc(_truncate(last.content || last.role || '', 28))}${last.recordedAt ? `（${esc(String(last.recordedAt).slice(0, 10))}）` : ''}
-              </div>` : ''}
-            ${tip ? (tip.jump
+            <a href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(p.id)}" class="block" style="text-decoration:none;color:inherit;" title="查看成员档案（成员名册）">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-sm font-semibold text-gray-800">${esc(p.name)}</span>
+                <span class="text-[11px] px-1.5 py-0.5 rounded-full ${badgeCls}" style="${badgeDark}">${esc(p.developStage || s)}</span>
+                ${p.partyGroup ? `<span class="text-[11px] text-gray-500">${esc(p.partyGroup)}</span>` : ''}
+                ${_residenceChipHtml(p)}
+              </div>
+              ${last ? `
+                <div class="text-[11px] text-gray-500 mt-1 truncate" title="${esc(last.content || '')}${last.recordedAt ? '（' + esc(String(last.recordedAt).slice(0, 10)) + '）' : ''}">
+                  最近考察：${esc(_truncate(last.content || last.role || '', 28))}${last.recordedAt ? `（${esc(String(last.recordedAt).slice(0, 10))}）` : ''}
+                </div>` : ''}
+              ${tip && !tip.jump ? `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-md border ${tip.cls}">${esc(tip.text)}</div>` : ''}
+            </a>
+            ${tip && tip.jump
               ? `<button type="button" class="talent-dev-jump mt-1.5 text-[11px] px-2 py-1 rounded-md border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去发展数据 →</button>`
-              : `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-md border ${tip.cls}">${esc(tip.text)}</div>`)
               : ''}
           </div>`;
       }).join('');

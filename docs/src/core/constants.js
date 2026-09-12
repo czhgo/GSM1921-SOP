@@ -205,6 +205,32 @@ export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
 
+// ── 表决计票方式 ballotMode（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）──
+// 单一源：server（routes/resources.js 写侧校验、routes/committee.js 落库）与前端（vote-config 转出）共用本文件，
+//   mock 形态（core/mock-adapter.js）同源——三形态口径由本文件锁定，勿各自手写。
+// 制度依据（只读引用，勿改 content/）：《中国共产党发展党员工作细则（2026年）》「与会党员…采取无记名投票方式表决」
+//   （content/02_institution/sop/sop/…细则.md:103）、DEVELOPMENT_PATH.md:196、组织委员工作流程指南.md:209。
+/** 计票方式取值：named 记名（逐人选项可见）/ anonymous 无记名（只留参与记录 + 汇总计数） */
+export const BALLOT_MODES = ['named', 'anonymous'];
+export const BALLOT_MODE_LABELS = { named: '记名', anonymous: '无记名' };
+// 制度强制无记名的正式表决：optionSet 'formal'（支部党员大会正式表决——发展党员/转正等）。
+// 该场景下 ballotMode 强制锁定 anonymous，发起时 UI 不可改、服务端拒绝显式 named（400）。
+export const ANONYMOUS_FORCED_OPTION_SETS = ['formal'];
+export function isAnonymousForced(optionSet) { return ANONYMOUS_FORCED_OPTION_SETS.includes(optionSet); }
+/** 场景默认计票方式：正式表决无记名；事务性表决（deliberative）记名（可由发起人改选无记名） */
+export function defaultBallotMode(optionSet) { return isAnonymousForced(optionSet) ? 'anonymous' : 'named'; }
+/**
+ * 活动有效计票方式（读取侧单一源）：强制场景一律 anonymous（即便历史数据未写/写错）；
+ * 其余读 voteConfig.ballotMode，缺失或非法回落场景默认。旧活动（无 voteConfig）→ named（现状行为不变）。
+ */
+export function ballotModeOfActivity(activity) {
+  const os = activity?.voteConfig?.optionSet;
+  if (isAnonymousForced(os)) return 'anonymous';
+  const m = activity?.voteConfig?.ballotMode;
+  return BALLOT_MODES.includes(m) ? m : defaultBallotMode(os);
+}
+export function isAnonymousActivity(activity) { return ballotModeOfActivity(activity) === 'anonymous'; }
+
 export const ROLE_LABELS = {
   'secretary':         '党支部书记',
   'deputy-secretary':  '党支部副书记',
@@ -604,6 +630,25 @@ export const ISSUE_CLOSED_REASON_LABELS = {
   wontfix: '不修复',
   not_planned: '暂不计划',
 };
+
+// ── 意见反馈「真匿名」防刷令牌哈希（2026-09-12 书记裁定）──────────────
+// 客户端首次提交时生成随机 token（localStorage，不可由 personId 推导）；服务端仅存其哈希，
+// 只用于判重与频率限制。输入 = 随机 token 本身（不含 personId、不使用任何 salt/固定盐），
+// 故不可由 personId 推导、不可反查提交人。
+// 纯同步函数、node/browser 同源：server/routes/resources.js 与前端 services/issues.js 共用，
+// 防两端算法漂移（FNV-1a 双通道 → 16 hex，随机 128bit token 的判重/限频抗碰撞足够）。
+export function hashSubmitterToken(token) {
+  const s = String(token == null ? '' : token);
+  let h1 = 0x811c9dc5;
+  let h2 = 0x9e3779b9;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 16777619);
+    h2 = Math.imul(h2 ^ c, 2246822519);
+  }
+  const hex = (n) => (n >>> 0).toString(16).padStart(8, '0');
+  return 'th_' + hex(h1) + hex(h2);
+}
 
 // ── 活动产出块目录（块画布 v0，2026-09-03 书记裁定：活动产出记录=块；支部级 config.blocks 启停/排序）──
 // 消费点：活动详情「添加记录」按钮组（leader write-tab 等）；UI：党委工作台「支部配置」产出块区

@@ -2,9 +2,10 @@
 // server/test/async-vote.test.mjs — AV5 线上异步表决 E2E（支部党员大会真实 UI 表决 → 硬校验 → 通过）
 // 链路：书记创建线上党员大会（branch-party-meeting, formal + formal-only 12 应到 + quorumCheck）
 //   → 预备党员 p24（名单外）activity.html 只读（议程可见、无表决按钮、「仅应到表决人可表态」）+ API 403
-//   → 正式党员 p5 activity.html 点「赞成」→「已表态：赞成」→ 服务端登记 → node fetch 校验落库
-//   → 书记 inspector 汇总矩阵「应到 12 · 已表态 1」→ 记录「通过」被硬校验拦截（出席 1/12 < 6，toast 报错、不写 result）
-//   → node fetch 补足 p1/p2/p3/p4/p8/p9 赞成至出席 7/赞成 7（均 >6）→ 书记再记录「通过」成功
+//   → 正式党员 p5 activity.html 点「赞成」→「已表态（无记名…）」（正式表决强制无记名，不展示个人选项）
+//     → 服务端登记参与记录 + tally → node fetch 校验落库（且响应无 personId→选项 映射）
+//   → 书记 inspector 汇总矩阵「应到 12 · 已表态 1」→ 记录「通过」被硬校验拦截（实到 1/12 < 6，toast 报错、不写 result）
+//   → node fetch 补足 p1/p2/p3/p4/p8/p9 赞成至实到 7/赞成(tally) 7（均 >6）→ 书记再记录「通过」成功
 //   → node fetch 校验活动议程 result='passed'
 //
 // 平台事实（实证）：
@@ -172,15 +173,17 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   // UI 点赞成 → 提交
   await memberPage.click(`[data-vote-item-id="${AG1}"] .vote-btn[data-pos="approve"]`);
   await memberPage.click(`[data-vote-item-id="${AG1}"] .vote-submit`);
+  // 正式表决=无记名（2026-09-12 书记裁定）：UI 只回显「已表态（无记名…）」，不展示个人选项
   await memberPage.waitForFunction(
     (ag1) => {
       const el = document.querySelector(`[data-vote-item-id="${ag1}"] .vote-current`);
-      return !!el && el.textContent.includes('已表态：赞成');
+      return !!el && el.textContent.includes('已表态（无记名');
     },
     AG1, { timeout: 10000 },
   );
   const p5UiText = await memberPage.locator(`[data-vote-item-id="${AG1}"] .vote-current`).innerText();
-  assert.ok(p5UiText.includes('已表态：赞成'), `UI 应显示已表态：赞成，实际：${p5UiText}`);
+  assert.ok(p5UiText.includes('已表态（无记名'), `UI 应显示已表态（无记名），实际：${p5UiText}`);
+  assert.equal(await memberPage.locator(`[data-vote-item-id="${AG1}"] .vote-note`).count(), 0, '无记名不提供附言输入（附言不落库）');
 
   // 同页切 api 数据源后以 p5 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
@@ -190,10 +193,11 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
     const { submitVote } = await import('/src/services/committee-vote.js?v=20260912a');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
-  assert.equal(p5Row.personId, 'p5', '服务端登记 personId 应为 p5');
-  assert.equal(p5Row.position, 'approve', '服务端登记 position 应为 approve');
+  assert.equal(p5Row.personId, 'p5', '服务端登记参与记录 personId 应为 p5');
+  assert.equal(p5Row.ballotMode, 'anonymous', '正式表决应为无记名（ballotMode=anonymous）');
+  assert.equal(p5Row.position, undefined, '无记名不得回传逐人选项');
 
-  // node fetch 直连校验：GET /api/v1/agenda-votes 含 p5 approve（规避沙箱浏览器 fetch 缓存）
+  // node fetch 直连校验：GET /api/v1/agenda-votes 含 p5 参与记录 + tally（无逐人选项）
   const p5Token = await apiLogin('p5');
   const votesR = await fetch(`${base}/api/v1/agenda-votes?activityId=${actId}`, {
     headers: { Authorization: `Bearer ${p5Token}` },
@@ -201,8 +205,10 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   assert.equal(votesR.status, 200);
   const votes = await votesR.json();
   const mine = votes.filter((v) => v.personId === 'p5' && v.agendaItemId === AG1);
-  assert.equal(mine.length, 1, 'p5 approve 应已落库');
-  assert.equal(mine[0].position, 'approve');
+  assert.equal(mine.length, 1, 'p5 参与记录应已落库');
+  assert.equal(mine[0].position, undefined, '无记名不得落逐人选项');
+  assert.ok(!votes.some((v) => v.personId && v.position !== undefined), '任何 GET 响应都不得含 personId→选项 映射');
+  assert.deepEqual((votes.find((v) => v.tally && v.agendaItemId === AG1) || {}).tally, { approve: 1 }, 'tally 应记 approve 1');
   await memberCtx.close();
 
   // ════════════════════════════════════════════════════════════════
@@ -228,6 +234,11 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const summaryText = await secPage.locator('#vote-summary-slot').innerText();
   assert.ok(summaryText.includes('通过条件：出席'), 'formal + quorumCheck 应显示通过条件提示');
   assert.ok(summaryText.includes('赞成 1'), 'formal 票数统计应含赞成 1');
+  assert.ok(summaryText.includes('无记名'), '无记名活动汇总应标注无记名');
+  // 无记名显示层匿名性：书记端矩阵仅「已投/未投」，不得出现逐人选项标签
+  const matrixText = await secPage.locator('#vote-summary-slot .vs-matrix').innerText();
+  assert.ok(matrixText.includes('已投'), `无记名矩阵应显示已投，实际：${matrixText}`);
+  assert.ok(!/赞成|反对|弃权/.test(matrixText), `无记名矩阵不得显示逐人选项：${matrixText}`);
 
   // 记录「通过」→ 硬校验拦截（出席不足）→ error toast
   await secPage.click(`[data-agenda-item-id="${AG1}"][data-agenda-result="passed"]`);
@@ -264,9 +275,12 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
     headers: { Authorization: `Bearer ${p5Token}` },
   })).json();
   const ag1Votes = fullList.filter((v) => v.agendaItemId === AG1);
-  const approveCount = ag1Votes.filter((v) => v.position === 'approve').length;
-  assert.equal(approveCount, 7, '赞成应为 7（p5 + 补 6）');
-  assert.ok(ag1Votes.length >= 6, '出席（已表态）应 ≥ 6');
+  // 无记名：赞成取 tally 行（逐人选项不落库），实到取参与记录去重
+  const approveCount = Number(((fullList.find((v) => v.tally && v.agendaItemId === AG1) || {}).tally || {}).approve) || 0;
+  const presentCount = new Set(ag1Votes.filter((v) => v.personId).map((v) => v.personId)).size;
+  assert.equal(approveCount, 7, 'tally 赞成应为 7（p5 + 补 6）');
+  assert.ok(presentCount >= 6, '实到（参与记录）应 ≥ 6');
+  assert.ok(!fullList.some((v) => v.personId && v.position !== undefined), '补票后仍不得出现 personId→选项 映射');
 
   // ════════════════════════════════════════════════════════════════
   // 6. 书记再次记录「通过」→ 硬校验通过 → 活动议程 result='passed'（UI + 服务器双校验）

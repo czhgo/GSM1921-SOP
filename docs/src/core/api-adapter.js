@@ -553,11 +553,29 @@ export const ApiAdapter = {
     },
   },
 
+  // 意见反馈「真匿名」（2026-09-12 书记裁定）：语义端点（server/routes/resources.js）
+  //   GET   /api/v1/issues      公开读（处置结果公开可见）
+  //   POST  /api/v1/issues      登录用户可提交（落库不含身份字段；服务端仅存 tokenHash）
+  //   PATCH /api/v1/issues/:id  处置/回复（仅党支部书记）
+  issues: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/issues${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/issues', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/issues/${id}`, patch);
+    },
+  },
+
   users: {
     list() {
       return _get('/api/v1/users');
     },
-
     // 2026-09-06 立项⑥ A波：users 双形态写口补齐（server RESOURCE_TABLES 通用 CRUD 已存在：
     // POST /api/v1/users / PATCH /users/:id / DELETE /users/:id，party-staff 门）
     create(data) {

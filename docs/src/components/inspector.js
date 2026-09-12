@@ -25,7 +25,7 @@ import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
 import { NoticeStore } from '../services/notice.js?v=20260912a';
 import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912a';
-import { optionSetOf, resolveVoterIds, OPTION_SETS } from '../services/vote-config.js?v=20260912a';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912a';
 import { renderVoteSummary } from './vote-summary-panel.js?v=20260912a';
 import { loadAttendanceRecords } from '../services/attendance.js?v=20260912a';
 import { loadInspectionRecords } from '../services/inspection.js?v=20260912a';
@@ -503,16 +503,23 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
   const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : OPTION_SETS.deliberative.options;
-  const mine = (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id);
+  // 无记名（2026-09-12 书记裁定）：本人选项不落库、回显不展示（只提示已计入汇总）；
+  //   附言亦不落库，匿名态不提供附言输入（口径与公共端 vote-widget.js 一致）。
+  const anonymous = isAnonymousActivity(activity);
+  const mine = currentUserId
+    ? (votes || []).find(v => v.personId === currentUserId && v.agendaItemId === agendaItem.id)
+    : null;
   container.innerHTML = `
     <div class="vote-panel">
-      <div class="vote-title">我的表态${locked ? '（已截止）' : ''}</div>
-      ${mine ? `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>` : ''}
+      <div class="vote-title">我的表态${locked ? '（已截止）' : ''}${anonymous ? '（无记名）' : ''}</div>
+      ${mine ? (anonymous
+        ? '<div class="vote-current">已表态（无记名，已计入汇总，不展示个人选项）</div>'
+        : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>`) : ''}
       ${!locked && isCommittee ? `
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
         </div>
-        <textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>
+        ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
         <button type="button" class="vote-submit">提交表态</button>` : ''}
     </div>`;
 
@@ -532,7 +539,7 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
     submitBtn.addEventListener('click', async () => {
       const pos = container.querySelector('.vote-btn.active')?.dataset.pos;
       if (!pos) { showToast('error', `请先选择表态（${options.map((p) => labelOf(p)).join('/')}）`); return; }
-      const note = container.querySelector('.vote-note').value.trim();
+      const note = container.querySelector('.vote-note')?.value.trim() || '';
       // 「异议须附言」由选项集 objectRequiresNote 控制（deliberative 适用；formal 附言选填不强制）
       if (os.objectRequiresNote && pos === 'object' && !note) { showToast('error', `${labelOf('object')}须附言说明`); return; }
       // P1 防连点：提交期间禁用按钮（异步落库期间重复点击会重复请求）
@@ -541,8 +548,9 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.5';
       try {
-        await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note });
-        showToast('success', '表态已提交');
+        // 无记名不落附言（服务端亦丢弃）
+        await submitVote({ activityId: activity.id, agendaItemId: agendaItem.id, position: pos, note: anonymous ? '' : note });
+        showToast('success', anonymous ? '表态已提交（无记名）' : '表态已提交');
         // I2：仅重绘本议程表态区（其他议程已填草稿保留），detail 携带触发项 id
         container.dispatchEvent(new CustomEvent('vote-submitted', {
           bubbles: true,

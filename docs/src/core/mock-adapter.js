@@ -11,6 +11,8 @@
 
 import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260912a';
 import { generateId } from './id.js?v=20260912a';
+// 计票方式（ballotMode）单一源：正式表决无记名落库口径与 server/routes/committee.js 同源（constants.js）
+import { ballotModeOfActivity } from './constants.js?v=20260912a';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
@@ -1127,6 +1129,9 @@ export const MockAdapter = {
 
   // 2026-09-01 线上支委会表态（与 server/routes/committee.js 同构）
   // 闭环：委员异步表态（agree/object/comment）→ 书记汇总 → 截止锁定（votesLocked 写入 activities）
+  // 2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」：anonymous 活动落两段式——
+  //   参与记录 {personId, votedAt}（无 position/note，逐人选项不落库）+ tally 行 {tally:{选项:次数}}；
+  //   named 活动保持逐人选项落库（现状不变）。口径与 server 同源（ballotModeOfActivity）。
   agendaVotes: {
     list(params = {}) {
       return _withDelay(() => {
@@ -1137,7 +1142,35 @@ export const MockAdapter = {
     },
     create(data) {
       return _withDelay(() => {
-        // 幂等 upsert：同人同议题覆盖更新（与 committee 路由同构）
+        const activity = mockDB.activities.find(a => a.id === data.activityId);
+        // 无记名：参与记录 + tally（同人同议题幂等，无逐人选项可回退 → 不可改票、不重复计数）
+        if (ballotModeOfActivity(activity) === 'anonymous') {
+          const existing = mockDB.agendaVotes.find(v =>
+            v.activityId === data.activityId && v.agendaItemId === data.agendaItemId && v.personId === data.personId);
+          if (existing) return existing;
+          const now = new Date().toISOString();
+          const row = {
+            id: generateId('av'),
+            activityId: data.activityId,
+            agendaItemId: data.agendaItemId,
+            personId: data.personId,
+            votedAt: now,
+            ballotMode: 'anonymous',
+            createdAt: now,
+          };
+          const tallyId = `avt-${data.activityId}-${data.agendaItemId}`;
+          const prev = mockDB.agendaVotes.find(v => v.id === tallyId);
+          const tally = { ...((prev && prev.tally) || {}) };
+          tally[data.position] = (Number(tally[data.position]) || 0) + 1;
+          mockDB.agendaVotes = [
+            ...mockDB.agendaVotes.filter(v => v.id !== tallyId),
+            row,
+            { id: tallyId, activityId: data.activityId, agendaItemId: data.agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now },
+          ];
+          _saveToStorage();
+          return row;
+        }
+        // 记名：幂等 upsert（同人同议题覆盖更新，与 committee 路由同构）
         const idx = mockDB.agendaVotes.findIndex(v =>
           v.activityId === data.activityId && v.agendaItemId === data.agendaItemId && v.personId === data.personId);
         if (idx !== -1) {

@@ -25,7 +25,7 @@ import { ACTIVITY_CLASSIFICATION, classifyActivityType, dotDarkVars, SCENARIO_WR
 import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912a';
 import { badgeHtml } from '../../../components/badges.js?v=20260912a';
 import { collectAgendaRows } from './agenda-form.js?v=20260912a';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds } from '../../../services/vote-config.js?v=20260912a';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260912a';
 import { AuthStore } from '../../../services/auth.js?v=20260912a';
 import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260912a';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
@@ -244,15 +244,17 @@ function renderQueryPanel(displayActivities) {
     },
     brandChip: { key: 'brand', label: '只看品牌' },
     data: displayActivities,
+    // 实体条目可点（2026-09-12 书记裁定）：查询行 = 活动实体 → 点击直达活动详情页
+    // （复用既有深链 activity.html?id=，与 visitor 活动动态同一落点机制；非新增机制）
     renderRow: (a) => `
-      <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">
+      <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors hover:bg-gray-50" style="text-decoration:none;color:inherit;" title="查看活动详情" data-act-id="${a.id || ''}">
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
           <div class="text-xs text-gray-500 mt-0.5">${a.date || ''}${a.type ? ' · ' + a.type : ''}${a.carriers?.length ? ' · ' + a.carriers.join('/') : ''}</div>
           ${_attendanceSummaryHtml(a.id, recordsByActivity)}
         </div>
         ${badgeHtml(a.type || '活动', 'neutral')}
-      </div>
+      </a>
     `,
     emptyMessage: '暂无匹配活动',
     accentColor: _accentHex(),
@@ -686,10 +688,14 @@ function renderThemeDayDimensions() {
 /** 会议形式配置区（2026-09-02 线上异步表决泛化 A 期：仅决策类场景调用）
  *  参与范围按场景预填：支委会固定「支委」只读文案；支部党员大会可切换
  *  正式党员（默认）/ 正式党员+预备党员；人数经 resolveVoterIds 实时解析。
+ *  计票方式（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）：
+ *    正式表决（optionSet formal——发展党员/转正等）按制度强制无记名，UI 只读不可改；
+ *    事务性表决（支委会 deliberative）默认记名，发起人可选无记名。
  *  配置区默认隐藏，选「线上异步表决」后展开（事件见 bindWritePanelEvents）。
  */
 function renderVoteConfigSection(scenarioId) {
   const countOf = (scope) => resolveVoterIds(scope).length;
+  const forcedAnonymous = isAnonymousForced(defaultVoteConfig(scenarioId)?.optionSet);
   let html = `<div class="mb-3 card rounded-xl p-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议形式</label>`;
   html += `<div class="flex gap-4 pt-0.5">`;
@@ -719,6 +725,26 @@ function renderVoteConfigSection(scenarioId) {
     html += `<p class="text-xs text-gray-500 mt-2">表决选项：赞成 / 反对 / 弃权 + 可附言</p>`;
     html += `<p class="text-xs text-gray-500 mt-1">人数按现时「在校/滞留」状态自动剔除滞留成员，创建时锁定名单</p>`;
   }
+  // 计票方式
+  html += `<div class="mt-2.5">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">计票方式</label>`;
+  if (forcedAnonymous) {
+    // 制度强制无记名（发展党员/转正等正式表决）：只读锁定，不可改
+    html += `<input type="hidden" name="wp-ballot-mode" value="anonymous">`;
+    html += `<p class="text-xs text-gray-600">无记名投票（制度强制，不可更改）</p>`;
+    html += `<p class="text-xs text-gray-500 mt-1">正式表决按《中国共产党发展党员工作细则》采取无记名投票方式表决；仅记参与情况与汇总票数，不记录个人选项</p>`;
+  } else {
+    html += `<div class="flex gap-4 pt-0.5">`;
+    html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+    html += `<input type="radio" name="wp-ballot-mode" value="named" class="radio-accent" checked>记名（逐人可见）`;
+    html += `</label>`;
+    html += `<label class="flex items-center gap-2 text-xs cursor-pointer">`;
+    html += `<input type="radio" name="wp-ballot-mode" value="anonymous" class="radio-accent">无记名（只计汇总）`;
+    html += `</label>`;
+    html += `</div>`;
+    html += `<p class="text-xs text-gray-500 mt-1">无记名仅记参与情况与汇总票数，不记录个人选项；同场表决口径统一</p>`;
+  }
+  html += `</div>`;
   html += `</div>`;
   html += `</div>`;
   return html;
@@ -1047,7 +1073,17 @@ async function handleSubmitActivity() {
     const vc = defaultVoteConfig(scenarioId);
     if (vc) {
       const voterScope = voteFormArea?.querySelector('input[name="wp-vote-scope"]:checked')?.value || vc.voterScope;
-      voteConfig = { ...vc, voterScope, voterIds: resolveVoterIds(voterScope) };
+      const picked = voteFormArea?.querySelector('input[name="wp-ballot-mode"]:checked')?.value;
+      // 计票方式（2026-09-12 书记裁定）：正式表决制度强制无记名——UI 只读且此处兜底拦截；
+      // 事务性表决默认记名，发起人可选无记名（口径同场统一，固化写入活动 voteConfig）。
+      if (isAnonymousForced(vc.optionSet) && picked === 'named') {
+        showToast('error', '正式表决须采用无记名投票，不可改为记名');
+        return;
+      }
+      const ballotMode = isAnonymousForced(vc.optionSet)
+        ? 'anonymous'
+        : ((picked === 'anonymous' || picked === 'named') ? picked : vc.ballotMode);
+      voteConfig = { ...vc, ballotMode, voterScope, voterIds: resolveVoterIds(voterScope) };
     }
   }
 

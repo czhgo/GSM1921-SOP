@@ -3,7 +3,7 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示书记）。
 
-import { fetchVotesStrict } from './committee-vote.js?v=20260912a';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260912a';
 // S-1（2026-09-09 书记批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
 import { PersonStore } from './person.js?v=20260912a';
@@ -62,9 +62,12 @@ function resolveFromStage(agendaItem, personId) {
 
 /**
  * 正式表决硬校验（spec §3.4）：活动 voteConfig.quorumCheck === true 时，记录「通过」前校验
- *   (a) 出席过半数：已表态人数（含弃权，本议程项去重 personId）≥ ceil(应到/2)；
- *   (b) 赞成过半数：approve 人数 > 应到/2。
+ *   (a) 出席过半数：实到（参与记录去重 personId，含弃权）≥ ceil(应到/2)；
+ *   (b) 赞成过半数：approve 票数 > 应到/2。
  * 弃权计入出席、不计入赞成。返回拦截文案（含按场景拆分的可采取动作提示）；null = 校验通过。
+ * 无记名活动（2026-09-12 书记裁定）：实到取参与记录、赞成取 tally 行（逐人选项不落库，
+ *   门槛/结果一律按 应到/实到 + 计数 计算，不依赖逐人选项）；记名活动由逐人 position 现算
+ *   —— 两形态统一走 presentIdsForItem/tallyForItem（committee-vote.js）。
  * 表态取 fetchVotesStrict（fail-hard）：API 拉取失败直接抛错中止记录——
  * 硬校验若静默降级本地缓存，门禁将按失真数据放行（AV4 审查修复）。
  * 支委会（deliberative / quorumCheck 默认 false）不拦截（保持展示不拦截现状）。
@@ -76,9 +79,8 @@ async function quorumBlockMessage(activity, agendaItemId) {
   if (total <= 0) return '应到名单为空，无法校验过半数';
   const votes = await fetchVotesStrict(activity.id);
   // 按本议程项统计（一条议程一次表决；多议题各自独立判定出席/赞成）
-  const itemVotes = votes.filter((v) => v.agendaItemId === agendaItemId);
-  const present = new Set(itemVotes.map((v) => v.personId)).size;
-  const approve = itemVotes.filter((v) => v.position === 'approve').length;
+  const present = presentIdsForItem(votes, agendaItemId).length;
+  const approve = Number(tallyForItem(votes, agendaItemId).approve) || 0;
   if (present < Math.ceil(total / 2)) {
     return `应到会有表决权党员过半数出席方可表决（当前 ${present}/${total} 已表态），可督促未表态党员表态`;
   }

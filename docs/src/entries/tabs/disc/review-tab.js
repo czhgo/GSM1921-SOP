@@ -91,10 +91,15 @@ export function renderContent(ctx) {
         <div class="space-y-2">
           ${reviewData.map(r => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}">
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-gray-800">${r.activity}</div>
-                <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
-              </div>
+              ${r.activityId
+                ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+                     <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+                     <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
+                   </a>`
+                : `<div class="flex-1 min-w-0">
+                     <div class="text-sm font-medium text-gray-800">${r.activity}</div>
+                     <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
+                   </div>`}
               <div class="flex items-center gap-2 ml-4">
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-600'}">${r.progress}</span>
                 ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">邮件提醒</button>` : ''}

@@ -7,7 +7,9 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
-import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS } from '../../docs/src/core/constants.js';
+// 计票方式（ballotMode）同源（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）：
+//   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
+import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/constants.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
@@ -98,10 +100,45 @@ export function createCommitteeRouter(db) {
     if (actRow.votesLocked) {
       return res.status(400).json({ error: '表态已截止锁定，不可再提交' });
     }
+    // ===== 计票方式（ballotMode，2026-09-12 书记裁定）=====
+    // 正式表决（optionSet formal）制度强制无记名：活动配置遗留 named 亦按强制口径读取；
+    // 显式以 named 提交 → 400（防绕过制度，见 content/02_institution/sop/…发展党员工作细则:103）。
+    const ballotMode = ballotModeOfActivity(actRow);
+    if (req.body && req.body.ballotMode && req.body.ballotMode !== ballotMode) {
+      return res.status(400).json({ error: ballotMode === 'anonymous'
+        ? '正式表决须以无记名方式提交（不得记名）'
+        : '提交的计票方式与活动配置不一致' });
+    }
     const existing = listTable(db, 'agenda_votes').find((v) =>
       v.activityId === activityId && v.agendaItemId === agendaItemId && v.personId === req.actor.id);
+    const now = new Date().toISOString();
+
+    // 无记名（anonymous）：两段式落库 ——「参与记录」{personId, votedAt}（可判谁已投，供催办/人数核验）
+    //   +「选项计数」tally 行 {tally: {选项: 次数}}（逐人选项不落库、附言不落库）。
+    // 同人同议题重复提交：幂等返回原参与记录（无逐人选项可回退 → 不可改票，亦不重复计数）。
+    if (ballotMode === 'anonymous') {
+      if (existing) return res.json(existing);
+      const row = {
+        id: `av-${randomUUID().slice(0, 8)}`,
+        activityId, agendaItemId,
+        personId: req.actor.id,
+        votedAt: now,
+        ballotMode: 'anonymous',
+        createdAt: now,
+      };
+      writeRow(db, 'agenda_votes', row);
+      // tally 行 id 按（活动, 议程项）确定性生成，读改写计数（演示规模可接受）
+      const tallyId = `avt-${activityId}-${agendaItemId}`;
+      const prev = listTable(db, 'agenda_votes').find((v) => v.id === tallyId);
+      const tally = { ...((prev && prev.tally) || {}) };
+      tally[position] = (Number(tally[position]) || 0) + 1;
+      writeRow(db, 'agenda_votes', { id: tallyId, activityId, agendaItemId, ballotMode: 'anonymous', tally, updatedAt: now });
+      return res.status(201).json(row);
+    }
+
+    // 记名（named）：逐人选项落库（现状行为不变）
     if (existing) {
-      const updated = { ...existing, position, note, updatedAt: new Date().toISOString() };
+      const updated = { ...existing, position, note, updatedAt: now };
       writeRow(db, 'agenda_votes', updated);
       return res.json(updated);
     }
@@ -110,7 +147,7 @@ export function createCommitteeRouter(db) {
       activityId, agendaItemId,
       personId: req.actor.id,
       position, note,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
       updatedAt: null,
     };
     writeRow(db, 'agenda_votes', row);

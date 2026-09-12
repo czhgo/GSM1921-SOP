@@ -8,8 +8,8 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes } from '../services/committee-vote.js?v=20260912a';
-import { optionSetOf } from '../services/vote-config.js?v=20260912a';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../services/committee-vote.js?v=20260912a';
+import { optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260912a';
 import { showToast, escHtml as esc } from '../core/utils.js?v=20260912a';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
@@ -24,23 +24,25 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
   const votes = await fetchVotes(activity.id);
   const locked = activity.votesLocked === true;
   const items = Array.isArray(activity.agenda) ? activity.agenda : [];
-  const votedCount = new Set(votes.map((v) => v.personId)).size;
+  // 无记名（2026-09-12 书记裁定）：矩阵/结果页只呈现「已投 / 未投 + 汇总计数」，
+  //   逐人选项不落库亦不展示（参与记录仍可见，供催办与人数核验）；记名保持逐人现状。
+  const anonymous = isAnonymousActivity(activity);
+  const votedCount = votedCountOf(votes);
   // 应到总数：voteConfig.voterIds（创建时固化应到名单）优先；旧活动/线下无 voteConfig → committeeMembers.length
   const total = activity.voteConfig?.voterIds?.length ?? committeeMembers.length;
   const os = optionSetOf(activity);
   const optionSet = activity.voteConfig?.optionSet;
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
+  const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : [];
   const isFormal = optionSet === 'formal';
   const quorumCheck = activity.voteConfig?.quorumCheck === true;
 
-  // formal 票数统计（赞成/反对/弃权；已表态 = 去重 personId，与头部统计口径一致）
+  // 票数统计（计数行 tally：无记名直读、记名由逐人 position 现算；两形态同口径）
+  const tally = tallyOf(votes);
   let tallyHtml = '';
-  if (isFormal) {
-    const count = { approve: 0, oppose: 0, abstain: 0 };
-    for (const v of votes) {
-      if (Object.prototype.hasOwnProperty.call(count, v.position)) count[v.position] += 1;
-    }
-    tallyHtml = `<div class="vs-tally">票数统计：赞成 ${count.approve} · 反对 ${count.oppose} · 弃权 ${count.abstain} · 已表态 ${votedCount}/${total}</div>`;
+  if (isFormal || anonymous) {
+    const parts = options.map((p) => `${labelOf(p)} ${Number(tally[p]) || 0}`).join(' · ');
+    tallyHtml = `<div class="vs-tally">票数统计：${parts} · 已表态 ${votedCount}/${total}${anonymous ? ' · 无记名（不展示个人选项）' : ''}</div>`;
   }
   // quorumCheck（支部党员大会硬校验）时显示通过条件提示（spec §四：出席 ≥ ceil(应到/2)，赞成 > 应到/2）
   let quorumHtml = '';
@@ -68,6 +70,11 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
           <tbody>
             ${items.map((it) => {
               const row = committeeMembers.map((m) => {
+                // 无记名：只呈现已投/未投（无逐人选项可展示）；记名：逐格显示选项+附言（现状）
+                if (anonymous) {
+                  const voted = votes.some((x) => x.personId === m.id && x.agendaItemId === it.id);
+                  return voted ? '<td>已投</td>' : '<td class="vs-none">未投</td>';
+                }
                 const v = votes.find((x) => x.personId === m.id && x.agendaItemId === it.id);
                 if (!v) return '<td class="vs-none">—</td>';
                 const cls = v.position === 'object' ? 'vs-object' : '';
