@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/constants.js?v=20260912d';
+import { hashSubmitterToken } from '../../docs/src/core/constants.js?v=20260912f';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -177,8 +177,8 @@ test('mock 形态：匿名提交后存储/书记端界面均无提交人；实�
     const page = await browser.newPage();
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/issues.js?v=20260912d');
-      const { PersonStore } = await import('/src/services/person.js?v=20260912d');
+      const { IssueStore } = await import('/src/services/issues.js?v=20260912f');
+      const { PersonStore } = await import('/src/services/person.js?v=20260912f');
       localStorage.clear();
       const loginAs = (personId, role) => localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId, role }));
       loginAs('p5', 'participant');
@@ -195,7 +195,7 @@ test('mock 形态：匿名提交后存储/书记端界面均无提交人；实�
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20260912d');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20260912f');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';

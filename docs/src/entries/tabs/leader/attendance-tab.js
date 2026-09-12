@@ -2,24 +2,24 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260912d';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260912d';
-import { loadActivities } from '../../../services/activity.js?v=20260912d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912d';
-import { PersonStore } from '../../../services/person.js?v=20260912d';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260912f';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260912f';
+import { loadActivities } from '../../../services/activity.js?v=20260912f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912f';
+import { PersonStore } from '../../../services/person.js?v=20260912f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260912d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912d';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912d';
-import { badgeHtml } from '../../../components/badges.js?v=20260912d';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912d';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260912f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912f';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912f';
+import { badgeHtml } from '../../../components/badges.js?v=20260912f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912f';
 // ③批（书记 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260912d';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912d';
-import { currentLeaderGroup } from './_shared.js?v=20260912d';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912d';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260912f';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912f';
+import { currentLeaderGroup } from './_shared.js?v=20260912f';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912f';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -73,6 +73,7 @@ export function renderContent(ctx) {
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-600">*</span></label>
           <select id="att-activity-select" class="input-flat w-full">
             <option value="">请选择活动</option>
+            ${eligibleActivities.length === 0 ? '<option value="" disabled>本组暂无可上传活动（仅本组党小组会与本组承办活动可上传）</option>' : ''}
             ${eligibleActivities.map(a => `<option value="${a.id}">${a.title}（${a.date}）${myAttendance.some(r => r.activityId === a.id) ? ' · 已上传' : ''}</option>`).join('')}
           </select>
         </div>
@@ -118,7 +119,7 @@ export function renderContent(ctx) {
           <tbody>${attRows.map(a => `
             <tr class="border-b border-gray-50 hover:bg-gray-50" data-att-activity="${esc(a.activity)}">
               <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
-              <td class="py-2 px-3 text-gray-600">${a.activity}</td>
+              <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : a.activity}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
               <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
             </tr>

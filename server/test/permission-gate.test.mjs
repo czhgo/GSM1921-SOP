@@ -2,7 +2,7 @@
 // design §7 登记项落地验证：
 //   branches/appointmentRecords/users 写 → 仅 party-staff（403 for 支部成员）
 //   reviewRequests POST → 本支部支委层（同支部）；PATCH/DELETE → party-staff（防自批）
-//   activities 等未设门资源行为不变（默认 requireAuth）
+//   activities 写门（2026-09-13 dogfood 权限专项）：支委层可写、组长限党小组会/主题党日、其余 403
 //
 // 自包含：createApp(:memory:) + seedDatabase；HTTP 直连（无浏览器）。
 
@@ -106,13 +106,41 @@ test('reviewRequests：本支部支委可提交，党委可审批，异支部/�
   assert.equal(approved.status, 'approved');
 });
 
-test('未设门资源（activities）写行为不变：登录即可创建，未登录 401', async () => {
-  const { token } = await login('p13');
+// dogfood 权限专项（2026-09-13）：activities 已设写门——非支委层一律 403（此前「未设门＝登录即可创建」，
+// 真机探针实测普通成员可 POST 建「支委会」活动、可 PATCH 篡改 voteConfig.voterIds）；组长限党小组会/主题党日。
+test('活动写门：支委层可建；普通成员 403；组长限党小组会/主题党日；未登录 401', async () => {
+  const { token } = await login('p13'); // 书记（支委层）
   const ok = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: authHeaders(token),
     body: JSON.stringify({ title: '权限门回归活动', date: '2026-09-10', type: '主题党日' }),
   });
-  assert.equal(ok.status, 201, '支部成员仍可创建活动（未设门资源不受影响）');
+  assert.equal(ok.status, 201, '书记（支委层）可创建活动');
+
+  const { token: partToken } = await login('p3'); // 普通成员
+  const memberTry = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: authHeaders(partToken),
+    body: JSON.stringify({ title: '普通成员越权建支部党员大会', date: '2026-09-20', type: '支部党员大会' }),
+  });
+  assert.equal(memberTry.status, 403, '普通成员不得创建活动');
+
+  const memberPatch = await fetch(`${base}/api/v1/activities/act-31`, {
+    method: 'PATCH', headers: authHeaders(partToken),
+    body: JSON.stringify({ voteConfig: { optionSet: 'formal', ballotMode: 'anonymous', voterIds: ['p3'] } }),
+  });
+  assert.equal(memberPatch.status, 403, '普通成员不得篡改活动（含表决名单）');
+
+  const { token: leaderToken } = await login('p1'); // 党小组组长
+  const leaderBad = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: authHeaders(leaderToken),
+    body: JSON.stringify({ title: '组长越权建支委会', date: '2026-09-20', type: '支委会' }),
+  });
+  assert.equal(leaderBad.status, 403, '组长不得创建支委会（限党小组会/主题党日）');
+  const leaderOk = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: authHeaders(leaderToken),
+    body: JSON.stringify({ title: '组长建党小组会', date: '2026-09-20', type: '党小组会' }),
+  });
+  assert.equal(leaderOk.status, 201, '组长可创建党小组会');
+
   const anon = await fetch(`${base}/api/v1/activities`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title: 'x' }),

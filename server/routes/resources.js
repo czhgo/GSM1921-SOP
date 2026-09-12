@@ -90,6 +90,22 @@ function _assertResourceWrite(actor, name, method, body) {
   return true;
 }
 
+// ── 活动写门（dogfood 权限专项 2026-09-13 实证缺口）──────────────────────────
+// 缺口：POST/PATCH/DELETE /activities 此前仅 requireAuth → 任一登录成员可建「支委会」活动、
+//   并可改 voteConfig.voterIds 篡改表决名单（真机 API 探针实测：普通成员 POST 201、PATCH 200）。
+// 现行门：① 非支委层（普通成员/预备党员/积极分子等）一律拒；
+//   ② 党小组组长仅限「党小组会 / 主题党日」（对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册）。
+// 支委层既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行，不在此收口——是否进一步收紧为
+//   §9a 原文「仅书记/副书记/党小组组长」列入丙部待书记裁（避免误伤归档/议程链路）。
+const ACTIVITY_WRITE_ROLES = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+const LEADER_ACTIVITY_TYPES = new Set(['党小组会', '主题党日']);
+const ACTIVITY_WRITE_DENY_MSG = '无权限：活动写入仅限支委层与党小组组长（组长限党小组会/主题党日）';
+function _assertActivityWrite(actor, effectiveType) {
+  if (!actor || !ACTIVITY_WRITE_ROLES.has(actor.role)) return false;
+  if (actor.role === 'leader') return LEADER_ACTIVITY_TYPES.has(effectiveType);
+  return true;
+}
+
 // create 缺 id 时的前缀（与前端 mock 生成风格对齐：act-xxx / tsk-xxx ...）
 const ID_PREFIX = {
   activities: 'act', tasks: 'tsk', attendances: 'att', inspections: 'ins',
@@ -145,6 +161,10 @@ export function createResourcesRouter(db) {
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
           return res.status(400).json({ error: 'body 须为单条数据对象' });
         }
+        // 活动写门：非支委层拒；组长限党小组会/主题党日
+        if (name === 'activities' && !_assertActivityWrite(req.actor, row.type)) {
+          return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
+        }
         // 计票方式强制校验（仅活动）：正式表决不得写 named
         if (name === 'activities') {
           const ballotErr = _ballotModeReject(row.voteConfig);
@@ -168,6 +188,13 @@ export function createResourcesRouter(db) {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
+      // 活动写门：按「本次改后的类型」判定（未携带 type 时取既有类型）
+      if (name === 'activities') {
+        const effectiveType = (req.body && req.body.type) || JSON.parse(existing.data).type;
+        if (!_assertActivityWrite(req.actor, effectiveType)) {
+          return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
+        }
+      }
       // 计票方式强制校验（仅活动、且显式携带 voteConfig）：正式表决不得改为 named
       if (name === 'activities' && req.body && req.body.voteConfig !== undefined) {
         const ballotErr = _ballotModeReject(req.body.voteConfig);
@@ -182,6 +209,13 @@ export function createResourcesRouter(db) {
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
       if (!_assertResourceWrite(req.actor, name, 'delete', null)) {
         return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师' });
+      }
+      // 活动写门：删除同样受限（防普通成员清库）
+      if (name === 'activities') {
+        const actRow = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
+        if (actRow && !_assertActivityWrite(req.actor, JSON.parse(actRow.data).type)) {
+          return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
+        }
       }
       // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
       // （书记 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）

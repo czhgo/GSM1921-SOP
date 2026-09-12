@@ -5,16 +5,16 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912d';
-import { persist } from '../core/data-adapter.js?v=20260912d';
-import { bumpToken } from '../core/version-token.js?v=20260912d'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912d';
-import { isInitStateActive } from './init-reset.js?v=20260912d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912d';
-import { AuthStore } from './auth.js?v=20260912d';
-import { getPersonById } from './person.js?v=20260912d';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912d';
-import { badgeHtml } from '../components/badges.js?v=20260912d';
+import { mockDB } from '../core/domain.js?v=20260912f';
+import { persist } from '../core/data-adapter.js?v=20260912f';
+import { bumpToken } from '../core/version-token.js?v=20260912f'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260912f';
+import { isInitStateActive } from './init-reset.js?v=20260912f'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260912f';
+import { AuthStore } from './auth.js?v=20260912f';
+import { getPersonById } from './person.js?v=20260912f';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912f';
+import { badgeHtml } from '../components/badges.js?v=20260912f';
 
 function _loadNotices() {
   try {
@@ -62,17 +62,21 @@ function _noticeFromTodo(todo, id) {
 //  §D4 权限控制 — 通知发布/编辑/删除必须对接到角色白名单
 // ════════════════════════════════════════════════════════════════
 
+// dogfood 权限专项 2026-09-13：补 deputy-secretary——副书同权（2026-09-11 书记裁定）已在
+// member.js/constants.js 落地，但通知发布/管理层白名单漏了副书记（书记台为书记/副书共用）
 const MANAGE_NOTICE_ROLES = new Set([
   'org-commissioner',
   'prop-commissioner',
   'disc-commissioner',
   'secretary',
+  'deputy-secretary',
 ]);
 
 const PUBLISH_NOTICE_ROLES = new Set([
   'org-commissioner',
   'prop-commissioner',
   'secretary',
+  'deputy-secretary',
 ]);
 
 export const NoticePermission = {

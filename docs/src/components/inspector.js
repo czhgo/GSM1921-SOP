@@ -5,32 +5,32 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260912d';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260912d';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260912d';
-import { icon } from '../core/icons.js?v=20260912d';
-import { openModal, closeModal } from './modal.js?v=20260912d';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260912f';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260912f';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260912f';
+import { icon } from '../core/icons.js?v=20260912f';
+import { openModal, closeModal } from './modal.js?v=20260912f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../services/person.js?v=20260912d';
-import { BranchService } from '../services/runtime.js?v=20260912d';
-import { AuthStore } from '../services/auth.js?v=20260912d';
-import { PersonStore } from '../services/person.js?v=20260912d';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260912d';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260912d';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260912d';
+import { getPersonById } from '../services/person.js?v=20260912f';
+import { BranchService } from '../services/runtime.js?v=20260912f';
+import { AuthStore } from '../services/auth.js?v=20260912f';
+import { PersonStore } from '../services/person.js?v=20260912f';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260912f';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260912f';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260912f';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260912d';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260912f';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260912d';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912d';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912d';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260912d';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260912d';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260912d';
-import { loadActivityReviews } from '../services/review.js?v=20260912d';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260912d';
+import { NoticeStore } from '../services/notice.js?v=20260912f';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912f';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912f';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260912f';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260912f';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260912f';
+import { loadActivityReviews } from '../services/review.js?v=20260912f';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260912f';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -827,7 +827,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   //   支部党员大会/支委会通用）；无 voteConfig（旧活动/线下）→ 回退权威支委名单 resolveVoterIds('committee')
   //   （vote-config.js：people.js role + isCommissioner、排除 u_*）。再映射回 PersonStore 人员对象
   //   （渲染需姓名/角色；名单顺序仍以 PersonStore 原序为准，勿自行重写过滤口径）
-  // canLock 仅书记为 true（截止按钮仅书记可见，与 server requireRole(secretary) 三端一致）
+  // canLock：书记/副书记同权（2026-09-11 副书同权裁定 + 2026-09-13 dogfood 权限专项修正——
+  //   此前仅书记为 true，导致副书记看得到表态汇总却**无截止按钮且无任何提示**；
+  //   server 端已同源改为 requireRole(SECRETARY_AND_DEPUTY_ROLES)）
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     const vsSlot = cardsEl.querySelector('#vote-summary-slot');
     if (vsSlot) {
@@ -836,7 +838,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         : resolveVoterIds('committee');
       const memberIds = new Set(cfgIds);
       const committeeMembers = PersonStore.getAll().filter((p) => memberIds.has(p.id));
-      renderVoteSummary(vsSlot, { activity, committeeMembers, canLock: isSecretary })
+      renderVoteSummary(vsSlot, { activity, committeeMembers, canLock: true })
         .catch(e => console.warn('[inspector] 表态汇总加载失败：', e));
       vsSlot.addEventListener('votes-locked', () => {
         showToast('success', '表态已截止，请记录决议');

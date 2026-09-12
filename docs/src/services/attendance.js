@@ -3,16 +3,15 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260912d';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912d';
-import { persist } from '../core/data-adapter.js?v=20260912d';
-import { bumpToken } from '../core/version-token.js?v=20260912d'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260912d';
-import { ACTIVITIES } from '../mock/activities.js?v=20260912d';
-import { isInitStateActive } from './init-reset.js?v=20260912d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260912d';
-import { getRosterStats } from './roster.js?v=20260912d';
-import { loadActivities } from './activity.js?v=20260912d';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260912f';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912f';
+import { persist } from '../core/data-adapter.js?v=20260912f';
+import { bumpToken } from '../core/version-token.js?v=20260912f'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260912f';
+import { isInitStateActive } from './init-reset.js?v=20260912f'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260912f';
+import { getRosterStats } from './roster.js?v=20260912f';
+import { loadActivities } from './activity.js?v=20260912f';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -55,6 +54,19 @@ function isAttendanceLocked(r) {
 }
 
 /**
+ * 活动归属党小组（dogfood 权限专项 2026-09-13）
+ * 判据：优先活动 hostGroup（组长写入时固化）；缺省回退组织者所属小组（种子活动无 hostGroup）。
+ * 与之同判据的实现见 inspection.js::_activityPartyGroup（勿各自改口径）。
+ */
+function _activityPartyGroup(activity) {
+  if (!activity) return null;
+  if (activity.hostGroup) return activity.hostGroup;
+  const orgId = activity.organizer
+    || (Array.isArray(activity.assignments) ? (activity.assignments.find(x => x.role === 'organizer') || {}).personId : null);
+  return orgId ? ((getPersonById(orgId) || {}).partyGroup || null) : null;
+}
+
+/**
  * 考勤上传位门禁：谁可对某活动做「上传（追加提交）」
  * - 纪检委员：会议考勤上传位（CF §C.1a）；书记/副书记：例外承担（§9b 注）
  * - 党小组会：组长兼组织者（本组上传位）
@@ -69,9 +81,18 @@ export function canUploadAttendance(personId, activityId) {
   if (POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy.includes(role)) return true;
   if (role === 'disc-commissioner') {
     // 纪检：会议考勤上传位（CF §C.1a）；类型清单单源 = MEETING_ATTENDANCE_TYPES（policy-defaults 派生）
-    return MEETING_ATTENDANCE_TYPES.includes(activity.type);
+    if (MEETING_ATTENDANCE_TYPES.includes(activity.type)) return true;
+    // 非会议类：本人恰为该活动组织者时按「组织者上传位」放行（与考察上传位同口径）。
+    // dogfood 权限专项 2026-09-13：此前此处直接 return，导致纪检兼任组织者时
+    //   「考察页有上传位、考勤页没有」且无任何提示（同人同活动两页不一致）。
   }
-  if (role === 'leader' && activity.type === '党小组会') return true;
+  if (role === 'leader' && activity.type === '党小组会') {
+    // 本组上传位（组长手册 §2.1「上传本组考勤」）：仅本组活动；跨组只能督促（只读）。
+    // dogfood 权限专项 2026-09-13：此前仅判类型 → 任一组长可代录他组小组会考勤（实测下拉出现
+    //   别组小组会且可提交成功），与制度「本组」口径不符。
+    const myGroup = (getPersonById(personId) || {}).partyGroup;
+    return !!myGroup && _activityPartyGroup(activity) === myGroup;
+  }
   // 该活动组织者（组织者按活动身份，组长兼组织者同）
   const isOrg = (Array.isArray(activity.assignments) && activity.assignments.some(x => x.personId === personId && x.role === 'organizer'))
     || activity.organizer === personId;
@@ -164,14 +185,18 @@ export function appendAttendanceRecords({ actorId, actorRole, records = [] }) {
 
 // ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/attendance.js 原样提升）──
 const _personName = (id) => getPersonName(id);
-const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
-const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
+// R-16（2026-09-13）：改从 loadActivities()（mockDB 优先）取——API 模式下新建活动不在静态种子
+// ACTIVITIES 中，此前台账只显示 act-xxxx 原始 id（人会看不懂是哪场活动）
+const _activityTitle = (id) => loadActivities().find(a => a.id === id)?.title || id;
+const _activityType = (id) => loadActivities().find(a => a.id === id)?.type || '未知';
 
 /** 考勤记录展示长格式（记录 → 姓名/活动/状态/确认人） */
 export function attendanceToLong(records) {
   return records.map(r => ({
     id: r.id,
     name: _personName(r.personId),
+    // R-16：透出来源活动标识，供台账行补「查看该活动」链接（服务层唯一出口，勿在页面各自反查）
+    activityId: r.activityId || null,
     activity: _activityTitle(r.activityId),
     type: _activityType(r.activityId),
     status: ATTENDANCE_STATUS_LABELS[r.status] || r.status,

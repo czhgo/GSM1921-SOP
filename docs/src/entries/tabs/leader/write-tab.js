@@ -3,20 +3,34 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState } from '../../../core/state.js?v=20260912d';
-import { BranchService } from '../../../services/runtime.js?v=20260912d';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912d';
-import { AuthStore } from '../../../services/auth.js?v=20260912d';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912d';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912d';
-import { persist } from '../../../core/data-adapter.js?v=20260912d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912d';
-import { recordFormShell } from '../../../components/forms.js?v=20260912d';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912d';
-import { badgeHtml } from '../../../components/badges.js?v=20260912d';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260912d';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912d';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912d';
+import { setState } from '../../../core/state.js?v=20260912f';
+import { BranchService } from '../../../services/runtime.js?v=20260912f';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912f';
+import { AuthStore } from '../../../services/auth.js?v=20260912f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912f';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912f';
+import { persist } from '../../../core/data-adapter.js?v=20260912f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912f';
+import { recordFormShell } from '../../../components/forms.js?v=20260912f';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912f';
+import { badgeHtml } from '../../../components/badges.js?v=20260912f';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260912f';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912f';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912f';
+
+/**
+ * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
+ * 制度依据：组长手册 §5.2「只读，不可修改其他角色数据」、CF §D.1「活动赋权限于自己创建的活动」。
+ * 判据：书记/副书记全量；组长仅可编辑「非支部级（bottom-up 本组）」活动——
+ *   支部级(top-down：支委会/党员大会/上级部署)的组织者由书记侧定，组长只读。
+ * 实证缺口：此前保存角色直调 AuthStore.syncProjectRoles（该函数无角色校验）→ 组长可改派支委会角色。
+ */
+function _canEditActivityRoles(activity, me) {
+  if (!activity) return false;
+  const role = (me || {}).role;
+  if (role === 'secretary' || role === 'deputy-secretary') return true;
+  return (activity.direction || 'bottom-up') !== 'top-down';
+}
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');
@@ -221,6 +235,8 @@ export function renderContent(ctx) {
           </div>`;
       }
 
+      // dogfood 权限专项 2026-09-13：角色编辑权（支部级定向活动组长只读，与按钮禁用同源）
+      const roleEditable = _canEditActivityRoles(activity, AuthStore.getCurrentUser());
       detailPanel.innerHTML = `
         <div class="flex items-center justify-between mb-3">
           <h5 class="font-title-cn text-sm font-bold text-gray-700">${activity.title || '未命名'}</h5>
@@ -229,10 +245,11 @@ export function renderContent(ctx) {
         <div class="text-xs text-gray-500 mb-2">${activity.date || ''} ${activity.type ? '· ' + activity.type : ''}</div>
 
         <!-- T-190 活动角色内联编辑：主源 assignments 预填，保存走 syncProjectRoles 三合一 -->
+        <!-- dogfood 权限专项 2026-09-13：支部级(top-down)活动角色由书记侧确定 → 组长只读（按钮禁用 + 明示） -->
         <div class="mt-3 pt-3 border-t border-gray-100">
           <div class="flex items-center justify-between mb-2">
-            <h6 class="font-title-cn text-xs font-bold text-gray-600">活动角色</h6>
-            <button id="btn-save-activity-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">保存角色</button>
+            <h6 class="font-title-cn text-xs font-bold text-gray-600">${roleEditable ? '活动角色' : '活动角色（只读）'}</h6>
+            <button id="btn-save-activity-roles" ${roleEditable ? '' : 'disabled'} title="${roleEditable ? '' : '支部级（定向）活动的组织者由书记侧确定，组长此处只读'}" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed" style="${solidAccentStyle(accent, accentBorder)};">保存角色</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -284,6 +301,11 @@ export function renderContent(ctx) {
 
       // 保存角色：syncProjectRoles 三合一（写主源 + 快照 + 通知）
       detailPanel.querySelector('#btn-save-activity-roles')?.addEventListener('click', async () => {
+        // dogfood 权限专项 2026-09-13：支部级(top-down)活动的组织者由书记侧确定，组长不得改派
+        if (!_canEditActivityRoles(activity, AuthStore.getCurrentUser())) {
+          showToast('error', '支部级（定向）活动的组织者由书记侧确定，组长此处只读');
+          return;
+        }
         const orgIds = _detailOrgPicker ? _detailOrgPicker.getSelected() : [];
         const deepIds = _detailDeepPicker ? _detailDeepPicker.getSelected() : [];
         const newAssignments = [

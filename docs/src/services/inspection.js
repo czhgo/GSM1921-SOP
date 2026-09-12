@@ -3,16 +3,15 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260912d';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912d';
-import { persist } from '../core/data-adapter.js?v=20260912d';
-import { bumpToken } from '../core/version-token.js?v=20260912d'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260912d';
-import { ACTIVITIES } from '../mock/activities.js?v=20260912d';
-import { isInitStateActive } from './init-reset.js?v=20260912d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from './person.js?v=20260912d';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260912d';
-import { loadActivities } from './activity.js?v=20260912d';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260912f';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912f';
+import { persist } from '../core/data-adapter.js?v=20260912f';
+import { bumpToken } from '../core/version-token.js?v=20260912f'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260912f';
+import { isInitStateActive } from './init-reset.js?v=20260912f'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260912f';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260912f';
+import { loadActivities } from './activity.js?v=20260912f';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -42,6 +41,18 @@ export function saveInspectionRecords(records) {
 // ── A1 上传位门禁（2026-09-05 落代码，语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a 考察管理）──
 
 /**
+ * 活动归属党小组（dogfood 权限专项 2026-09-13）
+ * 判据与 attendance.js::_activityPartyGroup 同（勿各自改口径）：优先 hostGroup，缺省回退组织者所属小组。
+ */
+function _activityPartyGroup(activity) {
+  if (!activity) return null;
+  if (activity.hostGroup) return activity.hostGroup;
+  const orgId = activity.organizer
+    || (Array.isArray(activity.assignments) ? (activity.assignments.find(x => x.role === 'organizer') || {}).personId : null);
+  return orgId ? ((getPersonById(orgId) || {}).partyGroup || null) : null;
+}
+
+/**
  * 考察上传位门禁
  * - 活动类：上传/修改=该活动组织者（assignments organizer 或顶层 organizer 派生；组长兼组织者同）；
  *   组长非组织者=本组监督位（督促上传，见组长页监督提示）
@@ -55,7 +66,12 @@ export function canUploadInspection(personId, sourceType, sourceId) {
   if (sourceType === SourceType.TASKFORCE) return true; // 专班负责人位待身份编码，暂放行（见上）
   const activity = loadActivities().find(a => a.id === sourceId);
   if (!activity || activity.archived) return false;
-  if (role === 'leader' && activity.type === '党小组会') return true; // 组长兼组织者（本组上传位）
+  if (role === 'leader' && activity.type === '党小组会') {
+    // 本组上传位（组长手册 §2.1）：仅本组活动（dogfood 权限专项 2026-09-13 补「本组」约束，
+    // 此前仅判类型 → 任一组长可对他组小组会提交考察）
+    const myGroup = (getPersonById(personId) || {}).partyGroup;
+    return !!myGroup && _activityPartyGroup(activity) === myGroup;
+  }
   const isOrg = (Array.isArray(activity.assignments) && activity.assignments.some(x => x.personId === personId && x.role === 'organizer'))
     || activity.organizer === personId;
   return !!isOrg;
@@ -123,8 +139,9 @@ export function getRecordsBySource(sourceType, sourceId) {
 
 // ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/inspection.js 原样提升）──
 const _personName = (id) => getPersonName(id);
-const _activityTitle = (id) => ACTIVITIES.find(a => a.id === id)?.title || id;
-const _activityType = (id) => ACTIVITIES.find(a => a.id === id)?.type || '未知';
+// R-16（2026-09-13）：改从 loadActivities()（mockDB 优先）取（API 模式新建活动的标题此前回退成 id）
+const _activityTitle = (id) => loadActivities().find(a => a.id === id)?.title || id;
+const _activityType = (id) => loadActivities().find(a => a.id === id)?.type || '未知';
 
 /** 考察记录显示格式（以人为单位聚合展示） */
 export function inspectionToDisplay(records) {
@@ -154,6 +171,9 @@ export function inspectionToLong(records) {
   return records.map(r => ({
     id: r.id,
     name: _personName(r.personId),
+    // R-16：透出来源标识（活动 id / 专班名），供台账行补「查看该活动」链接
+    activityId: r.activityId || null,
+    sourceName: r.sourceName || null,
     source: r.activityId ? _activityTitle(r.activityId) : r.sourceName,
     sourceType: SOURCE_TYPE_LABELS[r.sourceType] || r.sourceType,
     level: PARTICIPATION_LEVEL_LABELS[r.level] || r.level,

@@ -2,16 +2,16 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912d';
-import { loadActivities } from '../../../services/activity.js?v=20260912d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912d';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912d';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912d';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912d';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912d';
-import { currentLeaderGroup } from './_shared.js?v=20260912d';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912f';
+import { loadActivities } from '../../../services/activity.js?v=20260912f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912f';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912f';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912f';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912f';
+import { currentLeaderGroup } from './_shared.js?v=20260912f';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -107,7 +107,7 @@ export function renderContent(ctx) {
           <tbody>${inspRows.map(i => `
             <tr class="border-b border-gray-50 hover:bg-gray-50" data-insp-source="${esc(i.source)}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
-              <td class="py-2 px-3 text-gray-600">${i.source}</td>
+              <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : i.source}</td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>
@@ -185,6 +185,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
       sourceSelect.disabled = !type;
       if (type === 'activity') {
         sourceSelect.innerHTML = `<option value="">请选择活动</option>` +
+          (sourceActivities.length === 0 ? '<option value="" disabled>本组暂无可上传活动（仅本组党小组会与本组承办活动可上传）</option>' : '') +
           sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）${myInspection.some(r => r.activityId === a.id) ? ' · 已上传' : ''}</option>`).join('');
       } else if (type === 'taskforce') {
         sourceSelect.innerHTML = `<option value="">请选择专班</option>` +

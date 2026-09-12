@@ -2,20 +2,20 @@
 // entries/tabs/secretary/assign-tab.js — 书记工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260912d';
-import { AuthStore } from '../../../services/auth.js?v=20260912d';
-import { PersonStore } from '../../../services/person.js?v=20260912d';
+import { showToast } from '../../../core/utils.js?v=20260912f';
+import { AuthStore } from '../../../services/auth.js?v=20260912f';
+import { PersonStore } from '../../../services/person.js?v=20260912f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../../../services/person.js?v=20260912d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912d';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260912d';
+import { getPersonById } from '../../../services/person.js?v=20260912f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912f';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260912f';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912d';
-import { loadActivities } from '../../../services/activity.js?v=20260912d';
-import { badgeHtml } from '../../../components/badges.js?v=20260912d';
-import { TodoStore } from '../../../services/todo.js?v=20260912d';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912f';
+import { loadActivities } from '../../../services/activity.js?v=20260912f';
+import { badgeHtml } from '../../../components/badges.js?v=20260912f';
+import { TodoStore } from '../../../services/todo.js?v=20260912f';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）

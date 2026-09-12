@@ -2,11 +2,11 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 书记汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../core/domain.js?v=20260912d';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260912d';
-import { AuthStore } from './auth.js?v=20260912d';
-import { NoticeStore } from './notice.js?v=20260912d';
-import { resolveVoterIds } from './vote-config.js?v=20260912d';
+import { mockDB } from '../core/domain.js?v=20260912f';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260912f';
+import { AuthStore } from './auth.js?v=20260912f';
+import { NoticeStore } from './notice.js?v=20260912f';
+import { resolveVoterIds } from './vote-config.js?v=20260912f';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
@@ -181,8 +181,20 @@ export async function submitVote({ activityId, agendaItemId, position, note = ''
     return row;
   }
   // mock 模式：adapter 幂等 upsert + 落盘（personId 取当前登录用户，见 AuthStore.getCurrentUser）
+  // 应到名单校验（dogfood 权限专项 2026-09-13 实证缺口：mock 侧此前无名单校验，非应到人可表态；
+  //   API 端点由 server/routes/committee.js 校验）——名单源 = 活动 voteConfig.voterIds，
+  //   缺省回退 resolveVoterIds(voterScope||'committee')（与 vote-config 单一源一致）
+  const voterId = currentPersonId();
+  const voteAct = (mockDB.activities || []).find((a) => a.id === activityId);
+  const listedIds = voteAct && voteAct.voteConfig ? voteAct.voteConfig.voterIds : null;
+  const eligibleIds = (Array.isArray(listedIds) && listedIds.length)
+    ? listedIds
+    : resolveVoterIds((voteAct && voteAct.voteConfig && voteAct.voteConfig.voterScope) || 'committee');
+  if (eligibleIds.length && !eligibleIds.includes(voterId)) {
+    throw new Error('你不在本次表决的应到名单内，无法表态');
+  }
   const row = await getAdapter().agendaVotes.create({
-    activityId, agendaItemId, position, note, personId: currentPersonId(),
+    activityId, agendaItemId, position, note, personId: voterId,
   });
   persist();
   // mock 模式同发书记汇总提醒（UI 反馈一致）
@@ -208,9 +220,11 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     if (act.votesLocked && !wasLocked) remindRecordDecision();
     return act;
   }
-  // mock 分支角色校验（与 server requireRole(secretary) 三端一致：截止仅书记可操作）
+  // mock 分支角色校验（dogfood 权限专项 2026-09-13）：副书同权（2026-09-11 书记裁定）——
+  // 副书记与书记共用书记台，截止表态应同权；此前 mock 侧硬判 role!=='secretary'，
+  // 与 server requireRole(书记+副书记) 不一致（三端一致）。
   const me = AuthStore.getCurrentUser();
-  if (!me || me.role !== 'secretary') throw new Error('仅书记可截止表态');
+  if (!me || !['secretary', 'deputy-secretary'].includes(me.role)) throw new Error('仅书记/副书记可截止表态');
   const activities = mockDB.activities || [];
   const act = activities.find((a) => a.id === activityId);
   // 截止提醒迁移守卫：锁前记录本地状态，仅「先前未锁」的新锁才 remind

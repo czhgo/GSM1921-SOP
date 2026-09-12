@@ -9,7 +9,7 @@ import { requireAuth, requireRole } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
 // 计票方式（ballotMode）同源（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
-import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/constants.js';
+import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/constants.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
@@ -17,8 +17,8 @@ import { SECRETARY_ROLES as SECRETARY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITT
 // 前端唯一源 = docs/src/services/vote-config.js resolveVoterIds('committee')
 //   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
 const COMMITTEE_IDS = new Set(BRANCH_COMMITTEE_IDS);
-// 书记角色（截止锁定仅书记可操作；单一源 = constants.js SECRETARY_ROLES）
-const SECRETARY_ROLES = new Set(SECRETARY_ROLE_KEYS);
+// 书记侧写权角色集（含副书记＝副书同权 2026-09-11 书记裁定；单一源 = constants.js）
+const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
 function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -154,8 +154,10 @@ export function createCommitteeRouter(db) {
     res.status(201).json(row);
   });
 
-  // 书记截止（不可逆）：置 votesLocked=true / voteDeadline；仅书记角色，截止后不可解锁
-  router.post('/agenda-votes/lock', requireRole(db, SECRETARY_ROLES), (req, res) => {
+  // 书记截止（不可逆）：置 votesLocked=true / voteDeadline；副书同权（2026-09-11 书记裁定），
+  // 截止后不可解锁。单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES（dogfood 权限专项 2026-09-13
+  // 实证：此前仅 SECRETARY_ROLES → 副书记虽共用书记台，操作被 403 挡下，与副书同权裁定冲突）
+  router.post('/agenda-votes/lock', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const { activityId, votesLocked, voteDeadline } = req.body || {};
     if (!activityId) return res.status(400).json({ error: '缺少 activityId' });
     if (voteDeadline !== undefined && (typeof voteDeadline !== 'string' || !voteDeadline.trim())) {
