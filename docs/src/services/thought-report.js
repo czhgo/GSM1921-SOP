@@ -11,11 +11,11 @@
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912a';
-import { persist } from '../core/data-adapter.js?v=20260912a';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912a';
-import { NoticeStore } from './notice.js?v=20260912a';
-import { getPersonById } from './person.js?v=20260912a';
+import { mockDB } from '../core/domain.js?v=20260912b';
+import { persist } from '../core/data-adapter.js?v=20260912b';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912b';
+import { NoticeStore } from './notice.js?v=20260912b';
+import { getPersonById } from './person.js?v=20260912b';
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）
@@ -198,4 +198,26 @@ export function resubmitThoughtReport({ id, content, by }) {
   mockDB.thoughtReports = list.map(r => (r.id === id ? updated : r));
   persist();
   return { ok: true, rec: updated };
+}
+
+/**
+ * 本人撤回（C1，2026-09-12）：仅提交人本人、仅 pending（待初阅、尚未被组织采纳）可撤回；
+ * 撤回即从个人归集移除该篇——补齐「提交后无法撤回」的断头路。
+ * @param {Object} arg
+ * @param {string} arg.id  — 思想汇报 id
+ * @param {string} arg.by  — 操作人（须为提交人本人）
+ * @returns {{ok:true}|{ok:false, reason:string}}
+ */
+export function withdrawThoughtReport({ id, by }) {
+  const list = loadThoughtReports();
+  const idx = list.findIndex(r => r.id === id);
+  if (idx === -1) return { ok: false, reason: '思想汇报不存在或已被移除' };
+  const cur = _effective(list[idx]);
+  if (cur.personId !== by) return { ok: false, reason: '仅本人可撤回思想汇报' };
+  if (cur.reviewStatus !== THOUGHT_REVIEW_STATUS.PENDING) {
+    return { ok: false, reason: '仅待初阅状态可撤回（已归档/已退回不可撤回）' };
+  }
+  mockDB.thoughtReports = list.filter(r => r.id !== id);
+  persist();
+  return { ok: true };
 }

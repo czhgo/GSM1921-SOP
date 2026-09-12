@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { icon } from '../core/icons.js?v=20260912a';
-import { getPersonName } from '../services/person.js?v=20260912a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260912a';
-import { badgeHtml } from './badges.js?v=20260912a';
+import { IssueStore } from '../services/issues.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { icon } from '../core/icons.js?v=20260912b';
+import { getPersonName } from '../services/person.js?v=20260912b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260912b';
+import { badgeHtml } from './badges.js?v=20260912b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -142,23 +142,23 @@ function renderIssueRow(issue) {
   }).join(' ');
 
   return `
-    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors" data-issue-id="${issue.id}">
+    <div class="issue-row p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-issue-id="${issue.id}" role="button" tabindex="0" aria-label="查看反馈 #${issue.number ?? '—'} ${issue.title || '(无标题)'}">
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
+            <span class="text-xs text-gray-500 font-mono">#${issue.number ?? '—'}</span>
             ${statusBadge}
             ${typeBadges}
           </div>
           <p class="text-sm font-medium text-gray-800 truncate">${issue.title || '(无标题)'}</p>
           <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
-            <span>${SCOPE_LABELS[issue.scope] || issue.scope}</span>
+            <span>${SCOPE_LABELS[issue.scope] || issue.scope || '—'}</span>
             <span>·</span>
-            <span>${getPersonName(issue.submittedBy)}</span>
+            <span>${getPersonName(issue.submittedBy) || '—'}</span>
             <span>·</span>
             <span>${issue.commentCount || 0} 评论</span>
             <span>·</span>
-            <span>${issue.submittedAt}</span>
+            <span>${issue.submittedAt || '—'}</span>
             ${reactions ? `<span class="ml-2 flex items-center gap-1">${reactions}</span>` : ''}
           </div>
         </div>
@@ -177,14 +177,18 @@ function bindEvents() {
     window.location.href = url.toString();
   });
 
-  // 列表行点击
+  // 列表行点击（C4 可访问性，2026-09-12：行语义化为可聚焦按钮，键盘 Enter/Space 等效点击）
   document.querySelectorAll('.issue-row').forEach(row => {
-    row.addEventListener('click', () => {
+    const open = () => {
       const id = row.dataset.issueId;
       const url = new URL(window.location.href);
       url.searchParams.set('id', id);
       url.searchParams.delete('new');
       window.location.href = url.toString();
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); open(); }
     });
   });
 

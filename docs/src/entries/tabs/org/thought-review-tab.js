@@ -7,10 +7,10 @@
 // 提交/修改重交在成员侧（visitor）完成。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260912a';
-import { getPersonName } from '../../../services/person.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912a';
+import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260912b';
+import { getPersonName } from '../../../services/person.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
 
 // ── R6-2 初阅状态：徽标样式 + 中文标签 ──
 // 读取侧归一与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -66,6 +66,11 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     const noteVals = new Map();
     container.querySelectorAll('input[id^="tr-note-"]').forEach(inp => {
       if (inp.value) noteVals.set(inp.id, inp.value);
+    });
+    // B6①（2026-09-12）：「按人浏览」已归档条目的展开态同样保态（阅看正文后重渲染不收起）
+    const openBrowseIds = new Set();
+    container.querySelectorAll('.trb-detail:not(.hidden)').forEach(d => {
+      if (d.dataset.trbDetail) openBrowseIds.add(d.dataset.trbDetail);
     });
 
     // 待初阅队列：先到先阅（服务层 listPendingReviews 已按提交时间升序）
@@ -127,9 +132,11 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
                       <span class="text-xs font-medium text-gray-700 truncate">${esc(item.title || '思想汇报')}</span>
                       <span class="text-[11px] text-gray-500 flex-shrink-0">${_date(item.submittedAt)}</span>
                     </div>
+                    ${item.content ? `<button type="button" class="trb-expand-btn text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors flex-shrink-0" data-trb-id="${item.id}" style="cursor:pointer;">阅看</button>` : ''}
                     ${_statusBadgeHtml(_effStatus(item))}
                   </div>
                   ${hist ? `<div class="mt-1.5 space-y-0.5">${hist}</div>` : ''}
+                  ${item.content ? `<div class="trb-detail hidden mt-2 pt-2 border-t border-gray-100" data-trb-detail="${item.id}"><p class="text-[12px] text-gray-600 whitespace-pre-wrap leading-relaxed">${esc(item.content)}</p></div>` : ''}
                 </div>`;
               }).join('')}
             </div>
@@ -157,6 +164,17 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     container.querySelectorAll('.tr-expand-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const detail = container.querySelector(`.tr-detail[data-tr-detail="${btn.dataset.trId}"]`);
+        if (!detail) return;
+        const collapsed = detail.classList.contains('hidden');
+        detail.classList.toggle('hidden', !collapsed);
+        btn.textContent = collapsed ? '收起' : '阅看';
+      });
+    });
+
+    // ── B6①（2026-09-12）：「按人浏览」已归档条目阅看正文（组织委员可见正文，不必等初阅队列）──
+    container.querySelectorAll('.trb-expand-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const detail = container.querySelector(`.trb-detail[data-trb-detail="${btn.dataset.trbId}"]`);
         if (!detail) return;
         const collapsed = detail.classList.contains('hidden');
         detail.classList.toggle('hidden', !collapsed);
@@ -197,6 +215,14 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     noteVals.forEach((v, id) => {
       const el = container.querySelector('#' + id);
       if (el) el.value = v; // 行仍在队列才回填；被处置行草稿随元素消失
+    });
+    // B6①：回填「按人浏览」展开态（正文阅看态不因初阅操作重渲染而收起）
+    openBrowseIds.forEach(id => {
+      const detail = container.querySelector(`.trb-detail[data-trb-detail="${id}"]`);
+      if (!detail) return;
+      detail.classList.remove('hidden');
+      const btn = container.querySelector(`.trb-expand-btn[data-trb-id="${id}"]`);
+      if (btn) btn.textContent = '收起';
     });
   }
 

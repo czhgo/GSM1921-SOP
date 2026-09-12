@@ -19,16 +19,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912a';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912b';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260912b';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260912a';
+} from '../../docs/src/core/mock-adapter.js?v=20260912b';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260912a';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260912a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912a';
+} from '../../docs/src/services/person.js?v=20260912b';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260912b';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912b';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 

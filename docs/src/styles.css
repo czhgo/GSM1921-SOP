@@ -4532,8 +4532,11 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
   html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
   /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
-     与 badge--neutral 同构覆盖 */
-  html.theme-dark .badge { background: #1E293B; color: #CBD5E1; }
+     与 badge--neutral 同构覆盖。
+     S7（2026-09-12，dogfood）：本条与上方 .badge--* 深色分支同特异性且位置在后 → 对带变体类的
+     元素逐条覆盖，深色下全部徽章退化为中性灰（红/琥珀色义丢失）。改以 :not([class*="badge--"])
+     限定「确实无变体类」的元素，与顺序解耦，变体色义恢复。 */
+  html.theme-dark .badge:not([class*="badge--"]) { background: #1E293B; color: #CBD5E1; }
 
   /* ── Tailwind 语义色补齐（T231 第二轮：700/500 级文字、50 级浅底、200 级边框）──
      深色下统一「深色半透明底 + 提亮文字」，与 badge--* 深色语义完全平行。 */

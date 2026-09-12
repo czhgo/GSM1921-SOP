@@ -5,7 +5,7 @@
 //  职责单一：活跃/招募中专班列表（前 5 条，进度条 + 状态徽章）。
 // ════════════════════════════════════════════════════════════════
 
-import { getPersonName } from '../../services/person.js?v=20260912a';
+import { getPersonName } from '../../services/person.js?v=20260912b';
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
@@ -13,6 +13,14 @@ const TF_STATUS_BADGE = {
   completed:  { text: '已完结', cls: 'bg-gray-100 text-gray-600' },
   draft:      { text: '草稿', cls: 'bg-gray-100 text-gray-600' },
 };
+
+/** 状态徽章（C3 2026-09-12：状态由截止日派生——招募中但已过截止日显示「报名已截止」，与报名入口可达性一致） */
+function tfBadge(status, deadline) {
+  if (status === 'recruiting' && deadline && deadline < new Date().toISOString().slice(0, 10)) {
+    return { text: '报名已截止', cls: 'bg-gray-100 text-gray-600' };
+  }
+  return TF_STATUS_BADGE[status] || TF_STATUS_BADGE.draft;
+}
 
 /** 渲染首页专班列表（活跃/招募中，前 5 条，新者在前） */
 export function renderTaskforceList(taskforces) {
@@ -31,7 +39,7 @@ export function renderTaskforceList(taskforces) {
   }
 
   container.innerHTML = display.map(r => {
-    const badge = TF_STATUS_BADGE[r.status] || TF_STATUS_BADGE.draft;
+    const badge = tfBadge(r.status, r.deadline);
     const filled = r.members.filter(m => m.personId).length;
     const pct = r.capacity > 0 ? Math.round((filled / r.capacity) * 100) : 0;
     const barColor = pct >= 80 ? 'var(--accent-emerald)' : pct >= 50 ? 'var(--accent-gold)' : 'var(--primary-400)';

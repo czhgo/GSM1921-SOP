@@ -4,17 +4,17 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260912a';
-import { renderCalendarByActivities } from './calendar.js?v=20260912a';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260912a';
-import { badgeHtml } from './badges.js?v=20260912a';
-import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260912a';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260912a';
-import { getPersonById } from '../services/person.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { fetchVotes } from '../services/committee-vote.js?v=20260912a';
+import { getAppState, setState } from '../core/state.js?v=20260912b';
+import { renderCalendarByActivities } from './calendar.js?v=20260912b';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260912b';
+import { badgeHtml } from './badges.js?v=20260912b';
+import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260912b';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260912b';
+import { getPersonById } from '../services/person.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { fetchVotes } from '../services/committee-vote.js?v=20260912b';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from './vote-widget.js?v=20260912a';
+import { renderVoteWidget } from './vote-widget.js?v=20260912b';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -31,6 +31,8 @@ const _TASK_STATUS_META = {
  * @param {Array}  [opts.tasks]      — 任务数据（缺省回退全局 state.tasks）
  * @param {string} [opts.highlightId] — URL 携带的 activityId（定位+高亮该活动）
  * @param {string} [opts.accent]     — 主题色 hex（装饰用）
+ * @param {boolean} [opts.readonly]  — true = 纯只读查看（不渲染表决组件，B6④ 2026-09-12：
+ *   组织台「活动查看（只读）」与只读标注统一，避免出现「我的表态…提交表态」写入口）
  */
 export function renderActivityView(container, opts = {}) {
   if (!container) return;
@@ -98,7 +100,7 @@ export function renderActivityView(container, opts = {}) {
   renderCalendarByActivities({ ...state, activities }, displayMonth);
 
   // ── 详情面板：URL 携带 activityId 时优先展示（兜底 state.selectedActivityId）──
-  _renderDetail(state, activities, tasks, highlightId);
+  _renderDetail(state, activities, tasks, highlightId, !!opts.readonly);
 
   // ── 定位高亮（定时自动褪去，书记 2026-08-08 裁定）──
   if (highlightId) {
@@ -115,7 +117,7 @@ export function renderActivityView(container, opts = {}) {
 }
 
 /** 只读详情面板：活动信息 + 生命周期 + 任务节点状态 */
-function _renderDetail(state, activities, tasks, highlightId) {
+function _renderDetail(state, activities, tasks, highlightId, readonly = false) {
   const panel = document.getElementById('av-detail-panel');
   if (!panel) return;
   const actId = state.selectedActivityId || highlightId;
@@ -140,13 +142,14 @@ function _renderDetail(state, activities, tasks, highlightId) {
   const viewer = AuthStore.getCurrentUser();
   const actVoterIds = (act.voteConfig && Array.isArray(act.voteConfig.voterIds)) ? act.voteConfig.voterIds : [];
   const canVote = !!viewer && actVoterIds.includes(viewer.personId);
-  const isAsyncVote = !!viewer && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
+  // B6④（2026-09-12）：readonly=true（组织台「活动查看（只读）」）→ 不挂表决组件，写法与只读标注统一
+  const isAsyncVote = !readonly && !!viewer && act.voteConfig?.mode === 'async' && voteAgenda.length > 0;
   const resultBadgeHtml = (r) => (r
     ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${r === 'passed' ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}">${r === 'passed' ? '已通过' : '未通过'}</span>`
     : '');
   const agendaHtml = agendaList.length === 0 ? '' : `
     <div class="pt-3 border-t border-gray-100">
-      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : ''}</h5>
+      <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5 flex-wrap">会议议程${isAsyncVote ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">线上异步表决</span>' : (readonly && voteAgenda.length ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 bg-gray-100">只读查看</span>' : '')}</h5>
       <ol id="av-agenda-list" class="space-y-1.5">
         ${agendaList.map((a, i) => `
           <li class="flex items-start gap-1.5 text-xs">

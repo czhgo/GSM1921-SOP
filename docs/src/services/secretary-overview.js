@@ -7,22 +7,22 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260912a';
-import { loadActivities } from './activity.js?v=20260912a';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260912a';
-import { TaskForceRecordStore } from './taskforce.js?v=20260912a';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260912a';
-import { NoticeStore } from './notice.js?v=20260912a';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260912a';
-import { tokenOf } from '../core/version-token.js?v=20260912a'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260912a';
-import { getPersonById } from './person.js?v=20260912a';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912a';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260912a';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260912b';
+import { loadActivities } from './activity.js?v=20260912b';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260912b';
+import { TaskForceRecordStore } from './taskforce.js?v=20260912b';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260912b';
+import { NoticeStore } from './notice.js?v=20260912b';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260912b';
+import { tokenOf } from '../core/version-token.js?v=20260912b'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260912b';
+import { getPersonById } from './person.js?v=20260912b';
+import { ROLE_LABELS } from '../core/constants.js?v=20260912b';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260912b';
 // 批4（2026-09-09 书记批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912b';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -346,8 +346,8 @@ export const SecretaryOverviewStore = {
       a.status === 'completed' || a.archived
     );
 
-    // 待归档活动数（已结束但未归档）
-    const pendingArchive = endedActivities.filter(a => !a.archived).length;
+    // 待归档活动数（已结束但未归档）——判据单一源 = getEndedUnarchivedActivities（归档页明细同源）
+    const pendingArchive = getEndedUnarchivedActivities().length;
 
     // 归档完成率
     const archivedCount = activities.filter(a => a.archived).length;
@@ -378,6 +378,16 @@ export const SecretaryOverviewStore = {
 export function getArchiveGapActivities() {
   const archivedIds = new Set((mockDB.archiveRecords || []).map(r => r.activityId));
   return loadActivities().filter(a => a.archived && !archivedIds.has(a.id));
+}
+
+/**
+ * 待归档活动（已结束但未归档）——**单一判据**：活动已结束（status==='completed' 或已 archived）
+ * 且尚未归档（!archived）。宣传概况「待归档活动 N 个」计数与宣传台归档页明细同一判据源，
+ * 消费方可列出明细并提供「直接归档」入口（计数与明细不得各自另立标准）。
+ * @returns {Array} 满足条件的活动（顺序同 loadActivities）
+ */
+export function getEndedUnarchivedActivities() {
+  return loadActivities().filter(a => (a.status === 'completed' || a.archived) && !a.archived);
 }
 
 export const SecretaryTodoDeriver = {

@@ -6,16 +6,16 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast } from '../../../core/utils.js?v=20260912a';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260912a';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260912a';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260912a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260912a';
-import { PersonStore } from '../../../services/person.js?v=20260912a';
-import { openFormModal } from '../../../components/modal.js?v=20260912a';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260912a';
+import { showToast, flashHighlight } from '../../../core/utils.js?v=20260912b';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260912b';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260912b';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260912b';
+import { HandoffStore } from '../../../services/handoff.js?v=20260912b';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
+import { openFormModal } from '../../../components/modal.js?v=20260912b';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260912b';
 // 发展推进覆盖（进入当前阶段日期）读口：与成员变更确认链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260912a';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260912b';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
@@ -109,15 +109,29 @@ export const { renderContent } = createTodoTab({
   },
   // 2026-09-08 裁决批一（D3/D6）：org 无队列顶卡（member 审批卡/交接箱移除）——
   // 仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）；交接确认=「考察」域折组行内「确认接收」
-  extraTopHtml: (ctx) => `
+  // B6②（2026-09-12）：指路改为「有 pending 才显示且可点」——旧实现常驻指路指向不存在的域折组；
+  //   现按 HandoffStore 待接收的 inspection-report 交接动态渲染，点击滚动高亮该域折组行。
+  extraTopHtml: () => {
+    const pending = HandoffStore.listByRole('org-commissioner').filter(h => h.type === 'inspection-report');
+    const guide = pending.length > 0
+      ? `<button type="button" id="org-handoff-guide" class="text-[11px] text-left text-blue-700 hover:text-blue-900 underline decoration-dotted truncate" style="cursor:pointer;">有 ${pending.length} 条考察记录待接收 —— 到「考察」域折组行内点「确认接收」→</button>`
+      : `<span class="text-[11px] text-gray-500 truncate">暂无待接收的考察记录（纪检提交后此处给出指路）</span>`;
+    return `
     <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2 min-w-0">
+      <div class="flex flex-col gap-0.5 min-w-0">
         <span class="font-title-cn text-sm font-bold text-gray-800 flex-shrink-0">数据交接·考察建档</span>
-        <span class="text-[11px] text-gray-500 truncate">纪检→组织 考察记录提交：确认位=「考察」域折组行内「确认接收」</span>
+        ${guide}
       </div>
       <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
-    </div>`,
+    </div>`;
+  },
   bindExtras: (container, ctx) => {
+    // B6②：指路可点 → 滚动定位并高亮「考察」域折组（handoff-inspection-report）
+    container.querySelector('#org-handoff-guide')?.addEventListener('click', () => {
+      const row = container.querySelector('[data-group-key="org-commissioner:handoff-inspection-report"]');
+      if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashHighlight(row); }
+      else showToast('info', '未找到「考察」域折组，请稍后重试');
+    });
     // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）
     bindMcBulk(container, { mode: 'org-approve', onDone: () => renderContent(ctx) });
     // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制；

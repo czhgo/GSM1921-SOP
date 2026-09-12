@@ -4,12 +4,12 @@
 // 书记裁定（卡片去留/合并批）：出勤行补入口——「查看个人明细」+「去补课/提交补课说明」。
 //   补课入口仅在存在本人待补课任务时出现（制度无「请假」入口，故不设）。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260912a';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260912a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { openFormModal } from '../../../components/modal.js?v=20260912a';
-import { showToast } from '../../../core/utils.js?v=20260912a';
+import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260912b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260912b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { openFormModal } from '../../../components/modal.js?v=20260912b';
+import { showToast } from '../../../core/utils.js?v=20260912b';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -43,6 +43,9 @@ export function renderContent(ctx) {
             const total = records.length;
             const rate = total > 0 ? Math.round((present / total) * 100) : 0;
             const rateColor = rate >= 90 ? 'text-green-700' : rate >= 70 ? 'text-amber-700' : 'text-red-600';
+            // C3（2026-09-12）：分母为 0 时不再显示「0/0 · 0%」（语义错误）——中性占位
+            const rateText = total > 0 ? `出勤 ${present}/${total} · ${rate}%` : '出勤 —（暂无考勤记录）';
+            const rateCls = total > 0 ? rateColor : 'text-gray-400';
             const myRecord = meId ? records.find(r => r.personId === meId) : null;
             const myMakeup = myMakeupTasks.find(t => t.activityId === act.id && t.status === 'pending');
             return `
@@ -52,7 +55,7 @@ export function renderContent(ctx) {
                     <p class="text-sm font-medium text-gray-800">${act.title}</p>
                     <p class="text-xs text-gray-500">${act.date}</p>
                   </div>
-                  <div class="text-xs font-medium ${rateColor}">出勤 ${present}/${total} · ${rate}%</div>
+                  <div class="text-xs font-medium ${rateCls}">${rateText}</div>
                 </div>
                 <div class="flex items-center gap-2 px-3 pb-3">
                   <button type="button" class="visitor-att-detail-btn text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>

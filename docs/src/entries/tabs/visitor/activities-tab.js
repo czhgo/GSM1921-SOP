@@ -3,12 +3,12 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260912a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912a';
-import { flashHighlight } from '../../../core/utils.js?v=20260912a';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260912a';
-import { canSignup } from '../../../components/signup-panel.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
+import { icon } from '../../../core/icons.js?v=20260912b';
+import { renderQueryView } from '../../../components/query-view.js?v=20260912b';
+import { flashHighlight } from '../../../core/utils.js?v=20260912b';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260912b';
+import { canSignup } from '../../../components/signup-panel.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -18,13 +18,13 @@ const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 function _actEntryHtml(a, href) {
   const btns = [];
   if (canSignup('activity', a)) {
-    btns.push(`<a href="${href}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0" style="background:#CE1126;text-decoration:none;">去报名</a>`);
+    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="background:#CE1126;text-decoration:none;">去报名</a>`);
   }
   const me = AuthStore.getCurrentUser();
   const voterIds = (a.voteConfig && Array.isArray(a.voteConfig.voterIds)) ? a.voteConfig.voterIds : [];
   const hasVoteAgenda = Array.isArray(a.agenda) && a.agenda.some(x => x && x.id);
   if (me && a.voteConfig?.mode === 'async' && hasVoteAgenda && voterIds.includes(me.personId)) {
-    btns.push(`<a href="${href}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0" style="text-decoration:none;">去表态</a>`);
+    btns.push(`<a href="${href}" aria-label="活动表态：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;">去表态</a>`);
   }
   return btns.length ? `<div class="flex items-center gap-1.5 flex-shrink-0">${btns.join('')}</div>` : '';
 }
@@ -35,7 +35,7 @@ function _activityRowHtml(a) {
   const href = `../activity.html?id=${a.id || ''}`;
   return `
     <div class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all" data-visitor-act-id="${a.id || ''}">
-      <a href="${href}" class="flex items-center gap-3 flex-1 min-w-0" style="text-decoration:none;color:inherit;">
+      <a href="${href}" class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;color:inherit;" aria-label="查看活动详情：${a.title || '未命名'}">
         <div class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${color.dot}${color.dotBorder ? `;border:1px solid ${color.dotBorder}` : ''}"></div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-800">${a.title || '未命名'}</p>

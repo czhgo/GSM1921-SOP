@@ -5,18 +5,18 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 书记确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912a';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912b';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912a';
-import { PersonStore } from '../../../services/person.js?v=20260912a';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912b';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
 // S-1（2026-09-09 书记批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260912a';
+import { loadActivities } from '../../../services/activity.js?v=20260912b';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260912a';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260912b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260912a';
+import { badgeHtml } from '../../../components/badges.js?v=20260912b';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -185,7 +185,7 @@ export function renderContent(ctx) {
       <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
-          <span class="text-xs text-gray-500">${candidates.length} 人</span>
+          <span class="text-xs text-gray-500" title="统计范围：本支部在册成员中尚在发展阶段的成员（积极分子/发展对象/预备党员），不含正式党员">${candidates.length} 人 · 发展中（不含正式党员）</span>
         </div>
         <p class="text-[11px] text-gray-500 mb-3">本页为只读追踪视图（发展阶段 / 进度 / 来源会议）。发展阶段变更请在「成员名册」发起、书记确认后生效——点卡片右侧「去名册发起变更」直达该成员。</p>
         <!-- 管线概览 -->

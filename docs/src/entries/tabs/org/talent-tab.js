@@ -7,13 +7,15 @@
 //   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
 // 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912a';
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912a';
-import { PersonStore } from '../../../services/person.js?v=20260912a';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912b';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912b';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260912a';
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260912a';
-import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912a';
+import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260912b';
+// B5（2026-09-12）：搜索 + 阶段/党小组筛选复用名册枚举（PARTY_GROUP_OPTIONS 单一源）
+import { PARTY_GROUP_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912b';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260912b';
+import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912b';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -97,7 +99,9 @@ export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
-  const people = PersonStore.getMembers();
+  // B5（2026-09-12）：统一统计范围 = 本支部在册成员（branchId 非空，不含党委组织员等非本支部人员），
+  // 与「成员名册」_branchMembers 同口径（旧实现直取 PersonStore.getMembers 多算 1 人）。
+  const people = PersonStore.getMembers().filter(p => p.branchId !== null && p.branchId !== undefined);
   const inspections = loadInspectionRecords();
   const thoughts = loadThoughtReports();
   const pendings = listPendingConfirmations();
@@ -144,7 +148,7 @@ export function renderContent(ctx) {
         // 实体条目可点（2026-09-12 书记裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
         //（复用既有深链 workspace/org.html?tab=roster&highlight=<personId>，与 development-tab「去名册发起变更」同源）
         return `
-          <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors">
+          <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors" data-talent-name="${esc(p.name)}" data-talent-group="${esc(p.partyGroup || '')}" data-talent-stage="${esc(p.developStage || STAGE_OTHER)}">
             <a href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(p.id)}" class="block" style="text-decoration:none;color:inherit;" title="查看成员档案（成员名册）">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-sm font-semibold text-gray-800">${esc(p.name)}</span>
@@ -164,7 +168,7 @@ export function renderContent(ctx) {
           </div>`;
       }).join('');
       return `
-        <div class="mt-4">
+        <div class="mt-4" data-talent-stage-group="${esc(s)}">
           <div class="flex items-center gap-2 mb-2">
             <span class="inline-block w-2 h-2 rounded-full flex-shrink-0" style="background:${dot};"></span>
             <span class="text-xs font-bold text-gray-700">${esc(s)}</span>
@@ -179,19 +183,61 @@ export function renderContent(ctx) {
       <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">人才库</h3>
         <div class="flex items-center flex-wrap justify-end gap-x-3 gap-y-0.5 text-xs text-gray-500">
-          <span>成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人</span>
+          <span title="统计范围：本支部在册成员（不含党委组织员等非本支部人员），与「成员名册」同口径">成员 <span class="tabular-nums font-medium text-gray-700">${people.length}</span> 人<sup class="ml-0.5 text-gray-400">†</sup></span>
           <span>考察摘要 <span class="tabular-nums font-medium text-gray-700">${inspections.filter(r => r && r.personId).length}</span> 条</span>
           <span>思想汇报已归档 <span class="tabular-nums font-medium text-gray-700">${thoughts.filter(t => t && t.personId).length}</span> 篇</span>
           <span>发展提示 <span class="tabular-nums font-medium ${tipCount > 0 ? 'text-amber-700' : 'text-gray-700'}">${tipCount}</span> 人</span>
         </div>
       </div>
-      <div class="text-[11px] text-gray-500 leading-relaxed bg-gray-50 rounded-lg p-2.5 mb-1">
+      <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员（不含党委组织员等非本支部人员）；「发展数据」仅统计尚在发展阶段的成员（不含正式党员）。</p>
+      <div class="text-[11px] text-gray-500 leading-relaxed bg-gray-50 rounded-lg p-2.5 mb-2">
         人才库 = <b>发展观察</b>（只读画像，按发展阶段分组）——发展提示数据驱动推算（逐人考察 / 思想汇报明细见「发展数据」）。
         成员档案维护（新增 / 编辑 / 阶段 / 在册 / 滞留报送成员变更确认）= 「成员名册」（唯一全量写位）；
         发展推进与阶段变更 = 「发展数据」；思想汇报初阅 = 「思想汇报」；本页读侧数据不动写。
       </div>
-      ${stageGroupsHtml || '<p class="text-xs text-gray-500 text-center py-8">暂无成员档案</p>'}
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <input id="talent-kw" type="search" class="input-flat text-xs py-1.5 w-44" placeholder="搜索姓名 / 党小组…" aria-label="搜索成员">
+        <select id="talent-stage" class="input-flat text-xs py-1.5" aria-label="按发展阶段筛选">
+          <option value="">全部阶段</option>
+          ${[...STAGE_ORDER, STAGE_OTHER].map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
+        </select>
+        <select id="talent-group" class="input-flat text-xs py-1.5" aria-label="按党小组筛选">
+          <option value="">全部党小组</option>
+          ${PARTY_GROUP_OPTIONS.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}
+        </select>
+      </div>
+      <div id="talent-groups">
+        ${stageGroupsHtml || '<p class="text-xs text-gray-500 text-center py-8">暂无成员档案</p>'}
+      </div>
+      <p id="talent-filter-empty" class="hidden text-xs text-gray-500 text-center py-6">无匹配成员</p>
     </div>`;
+
+  // B5（2026-09-12）：搜索 + 阶段/党小组筛选（复用名册交互；DOM 显隐过滤，输入不丢焦点）
+  const talentKw = container.querySelector('#talent-kw');
+  const talentStage = container.querySelector('#talent-stage');
+  const talentGroup = container.querySelector('#talent-group');
+  const applyTalentFilter = () => {
+    const kw = (talentKw?.value || '').trim();
+    const stage = talentStage?.value || '';
+    const group = talentGroup?.value || '';
+    let any = false;
+    container.querySelectorAll('#talent-groups [data-talent-stage-group]').forEach(sec => {
+      const secStage = sec.dataset.talentStageGroup;
+      let shown = 0;
+      sec.querySelectorAll('[data-talent-name]').forEach(card => {
+        const okKw = !kw || (card.dataset.talentName || '').includes(kw) || (card.dataset.talentGroup || '').includes(kw);
+        const show = okKw && (!stage || secStage === stage) && (!group || card.dataset.talentGroup === group);
+        card.classList.toggle('hidden', !show);
+        if (show) shown++;
+      });
+      sec.classList.toggle('hidden', shown === 0);
+      if (shown > 0) any = true;
+    });
+    container.querySelector('#talent-filter-empty')?.classList.toggle('hidden', any || !container.querySelector('#talent-groups [data-talent-stage-group]'));
+  };
+  talentKw?.addEventListener('input', applyTalentFilter);
+  talentStage?.addEventListener('change', applyTalentFilter);
+  talentGroup?.addEventListener('change', applyTalentFilter);
 
   // 「转正提示」→ 切「发展数据」tab 并定位该成员卡片（T-279 development-tab 定位）
   container.querySelectorAll('.talent-dev-jump').forEach(btn => {

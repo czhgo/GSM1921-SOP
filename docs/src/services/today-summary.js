@@ -17,12 +17,12 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912a';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260912a';
-import { TodoStore } from './todo.js?v=20260912a';
-import { tokenOf } from '../core/version-token.js?v=20260912a'; // P1 消费方会话缓存失效（spec §三.4）
+import { mockDB } from '../core/domain.js?v=20260912b';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260912b';
+import { TodoStore } from './todo.js?v=20260912b';
+import { tokenOf } from '../core/version-token.js?v=20260912b'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260912a';
+import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260912b';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 书记裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
@@ -94,10 +94,11 @@ export function approvedSignupHit(index, activityId, personId) {
  * @param {string} params.personId 当前登录人成员档案 id（如 p1/p13）
  * @param {string} params.role     待办角色键（TodoStore.getGroupedByAction 用；如 secretary/leader）
  * @param {Date}   [params.now]    可注入的"现在"（缺省=系统当前时间；测试注入固定日期）
- * @returns {{date:string, hasMeeting:Array, overdue:Array, dueToday:Array, myDuties:Array}}
+ * @returns {{date:string, hasMeeting:Array, overdue:Array, dueToday:Array, myDuties:Array, todoSummary:{total:number,overdue:number,dueToday:number}}}
  *   hasMeeting 项：{activityId, title, type, start}（start=活动 extras.time，无则 ''）
  *   overdue/dueToday 项：{id, title, deadline, action}（action=actionKey||actionType||''）
  *   myDuties 项：{activityId, activityTitle, role}
+ *   todoSummary：本岗未完成待办摘要（total=总数含无截止项；overdue/dueToday=按 deadline 划分）
  */
 export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   const dateKey = _localDateKey(now);
@@ -177,5 +178,13 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   overdue.sort(byDeadline);
   dueToday.sort(byDeadline);
 
-  return { date: dateKey, hasMeeting, overdue, dueToday, myDuties };
+  // S4（2026-09-12）：「今天」落点注入本岗待办摘要（含逾期/到期/待办数，使无截止的挂起待办
+  // 也能在今天露头并可直达待办；total 与待办 tab 同源 getByRole——已排除 completed，含无 deadline 项）。
+  const todoSummary = {
+    total: (TodoStore.getByRole(role) || []).length,
+    overdue: overdue.length,
+    dueToday: dueToday.length,
+  };
+
+  return { date: dateKey, hasMeeting, overdue, dueToday, myDuties, todoSummary };
 }

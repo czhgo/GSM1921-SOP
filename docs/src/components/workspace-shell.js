@@ -20,21 +20,21 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260912a';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260912b';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260912a';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260912a';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260912a';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260912a';
-import { getCapabilities } from '../core/registry.js?v=20260912a';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260912a';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260912b';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260912b';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260912b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260912b';
+import { getCapabilities } from '../core/registry.js?v=20260912b';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260912b';
 
-import { TodoStore } from '../services/todo.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { BranchService } from '../services/runtime.js?v=20260912a';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260912a';
+import { TodoStore } from '../services/todo.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { BranchService } from '../services/runtime.js?v=20260912b';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260912b';
 // 设置中心批2（2026-09-09 书记批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260912a';
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260912b';
 
 
 
@@ -294,11 +294,9 @@ export async function createWorkspaceShell(opts) {
 
     // 「今天」页已内建今天到期+逾期红标露头（待办必见新形态）；其余 defaultTab 语义不变。
 
-    const priorityTab = defaultTab === 'today'
-
-      ? undefined
-
-      : (loadOptions.role && TodoStore.getGroupedByAction(loadOptions.role).length > 0 ? 'todo' : undefined);
+    // S2（2026-09-12）：URL ?tab= 深链优先于「持久化记忆/默认 tab」——
+    // 初始激活即目标 tab，避免先渲旧 tab 再 activate 目标造成的懒加载竞态覆盖。
+    // （navTab/priorityTab 在下方 tabs 定稿后计算，避免 TDZ。）
 
 
 
@@ -332,6 +330,14 @@ export async function createWorkspaceShell(opts) {
     } catch (e) {
       console.warn('[ws-shell] 个人 tab 顺序偏好读取失败，按默认顺序渲染', e);
     }
+
+    // S2：tabs 定稿后计算初始激活优先级（URL ?tab= > 有待办必见待办 > 记忆/默认）
+    const navTab = (_navTarget && _navTarget.tab && tabs.some(t => t && t.id === _navTarget.tab))
+      ? _navTarget.tab
+      : undefined;
+    const priorityTab = navTab || (defaultTab === 'today'
+      ? undefined
+      : (loadOptions.role && TodoStore.getGroupedByAction(loadOptions.role).length > 0 ? 'todo' : undefined));
 
 
 
@@ -437,18 +443,10 @@ export async function createWorkspaceShell(opts) {
 
     if (!container) return;
 
-
-
-    beforeRender?.(state);
-
-    _ensureTabBar(state);
-
-
-
-    // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
-
-    // 目标保持到定位完成（loadWorkspaceData 双 setState 会重渲染），提取后立即清除 URL 参数。
-
+    // ── S2（2026-09-12）：URL 深链参数必须在首个 tab 初始化之前提取 ──
+    // 否则 _ensureTabBar 先按持久化/默认 tab 渲染内容，随后 activate(URL tab) 又触发第二次渲染；
+    // 两个懒加载动态 import 的完成顺序不定 → 旧 tab 内容后到、覆盖目标 tab → 「高亮目标、内容仍是旧 tab」。
+    // 提前提取后初始 tab 直接 = URL 指定 tab，全程只渲染一次，消除「持久化 tab 渲染」与「URL tab 渲染」竞态。
     if (!_navTarget) {
 
       const urlParams = CrossPageState.getURLParams();
@@ -481,12 +479,18 @@ export async function createWorkspaceShell(opts) {
 
     }
 
+    beforeRender?.(state);
+
+    _ensureTabBar(state);
+
     if (_navTarget) {
 
       _navSuppressUntil = Date.now() + NAV_SUPPRESS_MS; // B1-5：抑制后续 setState 重渲染冲掉直达高亮
 
-      // A① 通知对象级深链（2026-09-10）：先切 tab、再滚动/高亮目标对象（?tab=&highlight=）
-      if (_navTarget.tab && _tabBar && Array.isArray(_tabBar.tabs) && _tabBar.tabs.some(t => t.id === _navTarget.tab)) {
+      // A① ?tab=&highlight=：初始 tab 已由 _ensureTabBar 以 _navTarget.tab 优先激活（见壳内 navTab），
+      // 此处仅在「初始激活未落到目标」（如首次渲染缺数据）时兜底补激活；同一 tab 经 tab-bar 去重，不产生双渲染。
+      if (_navTarget.tab && _tabBar && Array.isArray(_tabBar.tabs) && _tabBar.tabs.some(t => t.id === _navTarget.tab)
+        && _currentTab !== _navTarget.tab) {
 
         _currentTab = _navTarget.tab;
 

@@ -6,9 +6,9 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912a';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912a';
-import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912a';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260912b';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912b';
+import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912b';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -49,7 +49,7 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
       <div class="vote-title">我的表态${locked ? '（已截止）' : ''}${anonymous ? '（无记名）' : ''}</div>
       ${mine ? (anonymous
         ? '<div class="vote-current">已表态（无记名，已计入汇总，不展示个人选项）</div>'
-        : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>`) : ''}
+        : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}${canInteract ? ' · 可改票（重新选择后再次提交）' : ''}</div>`) : ''}
       ${canInteract ? `
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${esc(labelOf(pos))}</button>`).join('')}

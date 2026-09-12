@@ -10,22 +10,24 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（书记裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260912a';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260912a';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260912a';
-import { IssueStore } from '../services/issues.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912a';
-import { loadActivities } from '../services/activity.js?v=20260912a';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260912a';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260912a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260912a';
-import { PersonStore } from '../services/person.js?v=20260912a';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260912b';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260912b';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260912b';
+import { IssueStore } from '../services/issues.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912b';
+import { loadActivities } from '../services/activity.js?v=20260912b';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260912b';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260912b';
+// S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/makeup.js）
+import { loadMakeupTasks } from '../services/makeup.js?v=20260912b';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260912b';
+import { PersonStore } from '../services/person.js?v=20260912b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../services/person.js?v=20260912a';
-import { AttendanceStatus } from '../core/domain.js?v=20260912a';
+import { getPersonName } from '../services/person.js?v=20260912b';
+import { AttendanceStatus } from '../core/domain.js?v=20260912b';
 
 // 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -118,7 +120,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 
   const blockerRows = [];
   dispatchRows.forEach(r => blockerRows.push(r));
-  myBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></div>`));
+  myBlockers.forEach(b => blockerRows.push(`<button type="button" class="wo-inline-item flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full text-left" data-wo-jump="todo-all" title="前往待办查看该超期项"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></button>`));
   lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
   const blockerBody = blockerRows.length
@@ -207,9 +209,21 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 
   const shownItems = inProgressItems.slice(0, _MAX_INLINE);
   const inProgressRows = shownItems.map(it => it.html).join('');
-  const inProgressMore = inProgressItems.length > _MAX_INLINE
-    ? `<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${inProgressItems.length} 项 · 前往待办 tab 查看全部 →</button>`
-    : '';
+  // S3①（2026-09-12）：概况「在办」为混合流（待办聚合组 + 活动 + 专班），旧「共 N 项 · 前往待办查看全部」
+  // 以待办落点承载非待办项 → 组织台点入待办为空（10 项全是活动/专班）。现按来源拆分：
+  //   待办部分与待办 tab 同源（TodoStore 聚合组），「前往待办」落同一批明细；
+  //   活动/专班部分（属他域 tab）仅报数并注明，下钻待他域配合。
+  const shownTodoCount = shownItems.filter(it => it.kind === 'todo').length;
+  const overflowTodo = myTodoItems.length - shownTodoCount;
+  const overflowOther = (myActs.length + myTfs.length) - (shownItems.length - shownTodoCount);
+  const moreRows = [];
+  if (overflowTodo > 0) {
+    moreRows.push(`<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${myTodoItems.length} 项待办 · 前往待办 tab 查看全部 →</button>`);
+  }
+  if (overflowOther > 0) {
+    moreRows.push(`<div class="flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 w-full text-left"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#CBD5E1;"></span>另有 ${overflowOther} 项活动/专班在办（在对应 tab 查看）</div>`);
+  }
+  const inProgressMore = moreRows.length ? moreRows.join('') : '';
 
   const inProgressBody = inProgressRows
     ? `<div class="space-y-1.5">${inProgressRows}${inProgressMore}</div>`
@@ -253,11 +267,11 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 function _lineBlockers(role) {
   const out = [];
   if (role === 'disc-commissioner') {
-    const att = loadActiveAttendanceRecords();
-    const absentIds = new Set(att.filter(r => r.status === AttendanceStatus.ABSENT).map(r => r.personId));
-    const madeUpIds = new Set(att.filter(r => r.status === AttendanceStatus.MADE_UP).map(r => r.personId));
-    const makeupPending = [...absentIds].filter(id => !madeUpIds.has(id)).length;
-    if (makeupPending) out.push(`补课未完成 ${makeupPending} 人`);
+    // S3③（2026-09-12）：补课口径统一——与「补课制度」表同源（loadMakeupTasks status=pending），
+    // 不再用考勤「缺勤集合 − 已补集合」差集（口径不同 → 概况「补课未完成 7 人」vs 表「待补课 1」）。
+    // 范围：仅统计补课任务表中待补课（含已超期）任务数。
+    const makeupPending = loadMakeupTasks().filter(t => t.status === 'pending').length;
+    if (makeupPending) out.push(`补课待完成 ${makeupPending} 项（补课任务表口径）`);
     const overdue = getOverdueRecords().length;
     if (overdue) out.push(`考察超期 ${overdue} 条`);
   } else if (role === 'prop-commissioner') {
@@ -405,10 +419,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260912a');
+    const { renderActivityView } = await import('./activity-view.js?v=20260912b');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260912a');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260912b');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

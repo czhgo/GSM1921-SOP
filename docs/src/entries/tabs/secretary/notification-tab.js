@@ -3,10 +3,12 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260912a';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260912a';
-import { badgeHtml } from '../../../components/badges.js?v=20260912a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260912a';
+import { NoticeStore } from '../../../services/notice.js?v=20260912b';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260912b';
+import { badgeHtml } from '../../../components/badges.js?v=20260912b';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260912b';
+// B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260912b';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -47,6 +49,12 @@ function renderNotificationPanel() {
 function renderNotificationForm() {
   const formArea = document.getElementById('notification-form-area');
   if (!formArea) return;
+
+  // B1（2026-09-12）：党委下钻只读视图 → 不渲染发布表单，改为只读说明
+  if (isReadonlyBranchDrilldown()) {
+    formArea.innerHTML = '<p class="text-xs text-gray-500 leading-relaxed">党委演示只读视图：本页仅供只读查看，不可发布/编辑/删除通知（写操作按角色权限拒绝）。</p>';
+    return;
+  }
 
   let html = '';
 
@@ -134,6 +142,11 @@ function _audienceLabels(values) {
 
 /** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
 function handlePublishNotification() {
+  // B1（2026-09-12）提交处显式拒绝兜底：党委下钻只读视图不得发布通知
+  if (isReadonlyBranchDrilldown()) {
+    showToast('error', '党委演示只读视图：不可发布通知（写操作按角色权限拒绝）');
+    return;
+  }
   const titleEl = document.getElementById('notif-title');
   const contentEl = document.getElementById('notif-content');
 
@@ -194,6 +207,11 @@ function renderNotificationList() {
     const dateStr = n.publishDate
       ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
       : '';
+    // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
+    const writeBtns = isReadonlyBranchDrilldown() ? '' : `
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
+          <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
     return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
@@ -201,9 +219,7 @@ function renderNotificationList() {
             <span class="text-sm font-medium text-gray-800">${n.title}</span>
             ${audienceBadges}
           </div>
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
-          <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
-          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>
+          ${writeBtns}
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
         <p class="text-xs text-gray-500 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>

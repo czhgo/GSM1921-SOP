@@ -3,20 +3,20 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState } from '../../../core/state.js?v=20260912a';
-import { BranchService } from '../../../services/runtime.js?v=20260912a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912a';
-import { persist } from '../../../core/data-adapter.js?v=20260912a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912a';
-import { recordFormShell } from '../../../components/forms.js?v=20260912a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912a';
-import { badgeHtml } from '../../../components/badges.js?v=20260912a';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260912a';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912a';
+import { setState } from '../../../core/state.js?v=20260912b';
+import { BranchService } from '../../../services/runtime.js?v=20260912b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912b';
+import { persist } from '../../../core/data-adapter.js?v=20260912b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912b';
+import { recordFormShell } from '../../../components/forms.js?v=20260912b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912b';
+import { badgeHtml } from '../../../components/badges.js?v=20260912b';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260912b';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912b';
 
 // 私有状态（随模块自持，不污染入口）
 const dt = new DecisionTreeState('leader');
@@ -32,9 +32,33 @@ let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面�
 // 步骤（L1-L4/承办党小组）重选或重进时会重建决策面板与输入框/角色 PersonPicker，
 // 已填 title/date/location/desc/角色选择若只存于 DOM 会被整段丢弃。
 // 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
-// 生命周期=模块内存级（不跨整页刷新持久化——避免陈旧草稿误提交），
+// C6（2026-09-12）起草稿落 localStorage 跨整页刷新保留 + beforeunload 提醒；
 // 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
 const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null };
+
+// C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
+// 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
+const DT_DRAFT_KEY = 'workflowos_leader_activity_draft';
+
+function _dtDraftDirty() {
+  return !!(dtDraft.date || dtDraft.location || dtDraft.title || dtDraft.desc
+    || (Array.isArray(dtDraft.orgIds) && dtDraft.orgIds.length > 0)
+    || (Array.isArray(dtDraft.deepIds) && dtDraft.deepIds.length > 0));
+}
+function _dtDraftSave() {
+  try { localStorage.setItem(DT_DRAFT_KEY, JSON.stringify(dtDraft)); } catch (e) { /* 隐私模式/配额失败忽略 */ }
+}
+/** 恢复刷新前草稿；返回是否有待提交内容（决定面板默认展开与离开提醒） */
+function _dtDraftRestore() {
+  try {
+    const raw = localStorage.getItem(DT_DRAFT_KEY);
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (!o || typeof o !== 'object') return false;
+    Object.keys(dtDraft).forEach(k => { if (k in o) dtDraft[k] = o[k]; });
+    return _dtDraftDirty();
+  } catch (e) { return false; }
+}
 
 function _dtDraftClear() {
   dtDraft.date = '';
@@ -43,6 +67,7 @@ function _dtDraftClear() {
   dtDraft.desc = '';
   dtDraft.orgIds = null;
   dtDraft.deepIds = null;
+  try { localStorage.removeItem(DT_DRAFT_KEY); } catch (e) { /* 忽略 */ }
 }
 
 /** 重建前兜底：把面板内已填表单值/角色选择捕获进草稿（正常时 input 事件已实时同步） */
@@ -55,7 +80,28 @@ function _dtDraftCapture(scope) {
   });
   if (_dtOrgPicker) dtDraft.orgIds = _dtOrgPicker.getSelected();
   if (_dtDeepPicker) dtDraft.deepIds = _dtDeepPicker.getSelected();
+  _dtDraftSave();
 }
+
+// 恢复刷新前草稿：有内容则默认展开撰写面板并套用默认步骤（保证表单字段渲染、值可见）
+if (_dtDraftRestore()) {
+  dt.showPanel = true;
+  _dtApplyDefaults();
+}
+
+// 未提交内容离开提醒（绑定一次；仅在草稿非空时拦截浏览器关闭/刷新）
+let _dtUnloadGuardBound = false;
+function _dtBindUnloadGuard() {
+  if (_dtUnloadGuardBound) return;
+  _dtUnloadGuardBound = true;
+  window.addEventListener('beforeunload', (e) => {
+    if (!_dtDraftDirty()) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
+}
+_dtBindUnloadGuard();
 
 export function renderContent(ctx) {
   const container = document.getElementById('leader-tab-content');
@@ -95,7 +141,7 @@ export function renderContent(ctx) {
         <div class="space-y-2" id="leader-activity-list">
           ${display.length === 0 ? '<p class="text-xs text-gray-500 text-center py-4">暂无关联活动</p>' :
             display.map(a => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer" data-act-id="${a.id}">
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
@@ -328,6 +374,10 @@ export function renderContent(ctx) {
           if (actEl) actEl.click();
         });
       });
+    });
+    // dogfood #13（2026-09-12）：行为 role=button 的 div，补 Enter/Space 键盘激活
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
     });
   });
 }
@@ -654,7 +704,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
     const el = wrap.querySelector(sel);
     if (!el) return;
     const key = draftFieldMap[sel];
-    el.addEventListener('input', () => { dtDraft[key] = el.value; });
+    el.addEventListener('input', () => { dtDraft[key] = el.value; _dtDraftSave(); });
   });
 
   // 决策树表单内联赋权 PersonPicker（initialIds 草稿回填；null=跟随默认——组织者默认组长本人）
@@ -667,7 +717,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
       placeholder: '选择组织者',
       accentColor: accent,
       initialIds: dtDraft.orgIds !== null ? dtDraft.orgIds : [currentLeaderId],
-      onSelect: (ids) => { dtDraft.orgIds = ids; },
+      onSelect: (ids) => { dtDraft.orgIds = ids; _dtDraftSave(); },
     });
     _dtOrgPicker.render(dtOrgEl);
   }
@@ -677,7 +727,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
       placeholder: '选择深度参与者',
       accentColor: accent,
       initialIds: dtDraft.deepIds !== null ? dtDraft.deepIds : [],
-      onSelect: (ids) => { dtDraft.deepIds = ids; },
+      onSelect: (ids) => { dtDraft.deepIds = ids; _dtDraftSave(); },
     });
     _dtDeepPicker.render(dtDeepEl);
   }

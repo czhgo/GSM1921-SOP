@@ -5,12 +5,12 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { getPersonName } from '../../../services/person.js?v=20260912a';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912a';
-import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260912a';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260912a';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { getPersonName } from '../../../services/person.js?v=20260912b';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912b';
+import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260912b';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260912b';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -117,9 +117,9 @@ function renderForm(branchId, me, tc) {
     const type = wrap.querySelector('input[name="rq-type"]:checked')?.value;
     const title = wrap.querySelector('#rq-title')?.value.trim();
     const content = wrap.querySelector('#rq-content')?.value.trim();
-    if (!type || !title || !content) { showToast('请填写事项类型、标题与说明'); return; }
+    if (!type || !title || !content) { showToast('error', '请填写事项类型、标题与说明'); return; }
     await submitReviewRequest({ branchId, type, title, content, submittedBy: me.personId });
-    showToast(`已提交：${TYPE_META[type].label}——等待党委批复`);
+    showToast('success', `已提交：${TYPE_META[type].label}——等待党委批复`);
     wrap.classList.add('hidden');
     delete wrap.dataset.built;
     renderContent();

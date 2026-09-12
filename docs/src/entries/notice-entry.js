@@ -1,16 +1,47 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260912a';
-import { renderHeader } from '../components/header.js?v=20260912a';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260912a';
-import { getBasePath, showToast } from '../core/utils.js?v=20260912a';
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { getPersonById } from '../services/person.js?v=20260912a';
-import { badgeHtml } from '../components/badges.js?v=20260912a';
+import { renderSidebar } from '../components/sidebar.js?v=20260912b';
+import { renderHeader } from '../components/header.js?v=20260912b';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260912b';
+import { getBasePath, showToast } from '../core/utils.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { getPersonById } from '../services/person.js?v=20260912b';
+import { badgeHtml } from '../components/badges.js?v=20260912b';
+// S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
+// 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260912b';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260912b';
+import { BranchService } from '../services/runtime.js?v=20260912b';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
+
+/** 通知详情页数据 hydrate：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+async function _hydrateData() {
+  try {
+    registerApiAdapter(ApiAdapter);
+    let token = null;
+    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
+    if (token) {
+      setDataSource('api', { apiBaseUrl: '', authToken: token });
+      try {
+        await dataInit();
+      } catch (e) {
+        console.warn('[notice-entry] API 数据加载失败，回退本地 mock', e);
+        setDataSource('mock');
+        BranchService.loadDB();
+      }
+    } else {
+      BranchService.loadDB();
+    }
+  } catch (e) {
+    console.warn('[notice-entry] 数据加载异常（仍尝试内存兜底）', e);
+  } finally {
+    // 通知角标等初始快照据实刷新
+    try { notifyDataLoaded(); } catch (_) { /* 静默 */ }
+  }
+}
 
 // 从 URL 参数获取通知 id
 const params = new URLSearchParams(window.location.search);
@@ -28,12 +59,18 @@ backBtn?.addEventListener('click', () => {
   }
 });
 
-if (!noticeId) {
-  if (cardEl) {
-    cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定通知</p>';
+(async () => {
+  await _hydrateData();
+
+  if (!noticeId) {
+    if (cardEl) {
+      cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定通知</p>';
+    }
+    return;
   }
-} else {
-  const notice = NoticeStore.list({ activeOnly: false }).find(n => n.id === noticeId);
+
+  // 单一取数口：已持久化通知直接命中；派生通知（仅在待办中）按 id 重建正文
+  const notice = NoticeStore.getById(noticeId);
 
   if (!notice) {
     if (cardEl) {
@@ -42,7 +79,7 @@ if (!noticeId) {
   } else {
     renderNoticeDetail(notice);
   }
-}
+})();
 
 // ── 通知者推断 ──
 // 根据 targetModule 推断通知的发布角色

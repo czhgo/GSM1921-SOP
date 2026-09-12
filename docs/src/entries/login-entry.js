@@ -2,8 +2,8 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260912a';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912a';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912b';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -106,3 +106,22 @@ if (loginForm) {
     });
   });
 }
+
+// ── C5③（2026-09-12）无动画兜底 ──────────────────────────────────
+// login.html 的登录卡片用 loginFadeUp 入场动画（animation-fill-mode:both → 起始 opacity:0）。
+// 后台标签页/浏览器节流时动画可能不推进，卡片会永久停在 opacity:0 不可见 → 表单不可达。
+// 兜底：动画应已结束的时刻（500ms 动画 + ≤120ms 延迟 → 900ms）若仍为 opacity:0，则强制显示；
+// 前台正常播完（opacity:1）时不做任何改动，不改变既定动效。
+function _ensureLoginVisible() {
+  document.querySelectorAll('.login-card-anim, .login-card-anim-delay-1, .login-card-anim-delay-2').forEach(el => {
+    if (parseFloat(getComputedStyle(el).opacity) === 0) {
+      el.style.animation = 'none';
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    }
+  });
+}
+setTimeout(_ensureLoginVisible, 900);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') _ensureLoginVisible();
+});

@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260912a';
-import { BranchService } from '../../../services/runtime.js?v=20260912a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912a';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912a';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912a'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912a';
-import { NoticeStore } from '../../../services/notice.js?v=20260912a';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260912a';
-import { showToast } from '../../../core/utils.js?v=20260912a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912a';
-import { icon } from '../../../core/icons.js?v=20260912a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912a';
-import { recordFormShell } from '../../../components/forms.js?v=20260912a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912a';
-import { badgeHtml } from '../../../components/badges.js?v=20260912a';
-import { getPersonName } from '../../../services/person.js?v=20260912a';
+import { setState } from '../../../core/state.js?v=20260912b';
+import { BranchService } from '../../../services/runtime.js?v=20260912b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912b';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912b';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912b'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912b';
+import { NoticeStore } from '../../../services/notice.js?v=20260912b';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260912b';
+import { showToast } from '../../../core/utils.js?v=20260912b';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260912b';
+import { icon } from '../../../core/icons.js?v=20260912b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912b';
+import { recordFormShell } from '../../../components/forms.js?v=20260912b';
+import { renderQueryView } from '../../../components/query-view.js?v=20260912b';
+import { badgeHtml } from '../../../components/badges.js?v=20260912b';
+import { getPersonName } from '../../../services/person.js?v=20260912b';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -150,7 +150,7 @@ export function renderContent(ctx) {
         }
       });
     });
-    // 撤销/删除专班（彻底删除 + 清理关联报名/待办）
+    // 撤销/删除专班（B6③ 2026-09-12：文案改「撤销并删除」+ 二次确认 + 软删除留痕）
     // 覆盖状态：recruiting（撤销招募）/ pending_review（待支委会表决撤销）/ draft（未通过草稿删除）
     container.querySelectorAll('.tf-delete-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -160,19 +160,20 @@ export function renderContent(ctx) {
         if (!tf) return;
         if (tf.status !== 'recruiting' && tf.status !== 'pending_review' && tf.status !== 'draft') return;
         const confirmMsg = tf.status === 'recruiting'
-          ? `确认撤销招募「${tf.name}」？专班将被彻底删除，关联报名与待办一并清理。`
+          ? `确认撤销并删除招募中的专班「${tf.name}」？删除后该专班及其关联报名/待办将从工作区移除（保留删除留痕，不可恢复）。`
           : tf.status === 'pending_review'
-            ? `确认撤销「${tf.name}」？专班仍在待支委会表决状态，撤销后将被彻底删除并清理关联待办。`
-            : `确认删除「${tf.name}」？该专班为表决未通过草稿，删除后不可恢复。`;
-        const confirmed = window.confirm(confirmMsg);
-        if (!confirmed) return;
-        TaskForceRecordStore.remove(tfId);
+            ? `确认撤销并删除「${tf.name}」？该专班仍在待支委会表决状态，删除后将从工作区移除并清理关联待办（保留删除留痕，不可恢复）。`
+            : `确认删除「${tf.name}」？该专班为表决未通过草稿，删除后将从工作区移除并清理关联待办（保留删除留痕，不可恢复）。`;
+        if (!window.confirm(confirmMsg)) return;
+        // 二次确认：不可恢复动作再确认一次（防误点）
+        if (!window.confirm(`再次确认：删除「${tf.name}」后不可恢复，是否继续？`)) return;
+        TaskForceRecordStore.softRemove(tfId, { by: AuthStore.getCurrentUser()?.personId || '' });
         // 清理关联报名（内存 + 落库同源）
         SignupStore._signups = SignupStore._signups.filter(s => !(s.sourceType === 'taskforce' && s.sourceId === tfId));
         mockDB.signups = [...SignupStore._signups];
         TodoStore.deleteBySource(TodoSourceType.TASKFORCE, tfId);
         persist();
-        showToast('success', `专班「${tf.name}」已删除`);
+        showToast('success', `专班「${tf.name}」已撤销并删除（保留删除留痕）`);
         setState({});
       });
     });
@@ -950,12 +951,12 @@ function _renderTfCard(t, statusLabel, statusColor) {
     // B 档 CRUD 补全：招募中可撤销（彻底删除），误建/取消招募的专班可清理
     statusBtn = `<div class="flex gap-2 mt-2">
       <button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
     </div>`;
   } else if (t.status === 'pending_review') {
     // B批 R3-1：pending_review=已报送发起、待支委会表决；无启动按钮，可撤销删除
     statusBtn = `<div class="flex gap-2 mt-2">
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销</button>
+      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
     </div>`;
   } else if (t.status === 'active') {
     // B批 R3-2：active 专班（含已报送解散表决）仍可归档；解散报送入口在专班详情内
@@ -963,7 +964,7 @@ function _renderTfCard(t, statusLabel, statusColor) {
   } else if (t.status === 'draft') {
     // B批 R3-1：draft=表决未通过退回草稿（可修改重报）；已重新报送等待审议时仅可撤销
     const resubmitBtn = pendReq ? '' : `<button class="tf-resubmit-btn text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新报送支委会表决</button>`;
-    const deleteText = pendReq ? '撤销' : '删除';
+    const deleteText = pendReq ? '撤销并删除' : '删除';
     statusBtn = `<div class="flex gap-2 mt-2">${resubmitBtn}
       <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
     </div>`;

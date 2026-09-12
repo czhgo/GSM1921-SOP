@@ -14,14 +14,17 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260912a';
-import { renderDomainTodoList } from './todo-list.js?v=20260912a';
-import { badgeHtml } from './badges.js?v=20260912a';
-import { showToast } from '../core/utils.js?v=20260912a';
-import { solidAccentStyle } from '../core/constants.js?v=20260912a';
-import { mockDB } from '../core/domain.js?v=20260912a';
-import { tokenOf } from '../core/version-token.js?v=20260912a'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260912a'; // P2 渲染守卫（spec §四.1）
+import { TodoStore } from '../services/todo.js?v=20260912b';
+// S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
+// 不再用「通知类待办」现算（口径不同致三处不一致）。
+import { NoticeStore } from '../services/notice.js?v=20260912b';
+import { renderDomainTodoList } from './todo-list.js?v=20260912b';
+import { badgeHtml } from './badges.js?v=20260912b';
+import { showToast } from '../core/utils.js?v=20260912b';
+import { solidAccentStyle } from '../core/constants.js?v=20260912b';
+import { mockDB } from '../core/domain.js?v=20260912b';
+import { tokenOf } from '../core/version-token.js?v=20260912b'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260912b'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -196,7 +199,7 @@ export function createTodoTab(opts) {
     const rows = notices.map(n => {
       const timeText = n.deadline
         ? `截止 ${n.deadline}`
-        : String(n.createdAt || '').slice(0, 16).replace('T', ' ');
+        : (n.expireDate ? `截止 ${n.expireDate}` : (n.publishDate || String(n.createdAt || '').slice(0, 16).replace('T', ' ')));
       return `
         <div class="flex items-center gap-2 px-3 py-2 border-t border-gray-100">
           <span class="flex-1 min-w-0">
@@ -258,7 +261,7 @@ export function createTodoTab(opts) {
       for (const d of domains) {
         if (Array.isArray(d.groups)) allGroups.push(...d.groups);
       }
-      const unreadNotices = TodoStore.getUnreadNotices(role);
+      const unreadNotices = NoticeStore.list({ activeOnly: true }).filter(n => !n.read);
       combo = { domains, allGroups, unreadNotices };
       _lastComboKey = comboKey;
       _lastCombo = combo;
@@ -384,7 +387,8 @@ export function createTodoTab(opts) {
         btn.addEventListener('click', () => {
           const id = btn.dataset.noticeId;
           if (!id) return;
-          TodoStore.complete(id);
+          // S3②：标记已读走 NoticeStore 单一写口（并联动销对应通知阅读待办）
+          NoticeStore.markRead(id);
           showToast('success', '已标记已读');
           renderContent(ctx);
         });

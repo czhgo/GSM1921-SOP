@@ -4,10 +4,10 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，书记 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260912a';
-import { getPersonById } from '../services/person.js?v=20260912a';
-import { getBasePath, showToast } from '../core/utils.js?v=20260912a';
-import { badgeHtml } from './badges.js?v=20260912a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260912b';
+import { getPersonById } from '../services/person.js?v=20260912b';
+import { getBasePath, showToast } from '../core/utils.js?v=20260912b';
+import { badgeHtml } from './badges.js?v=20260912b';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -189,6 +189,8 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
     btn.addEventListener('click', async () => {
       const signupId = btn.dataset.signupId;
       const approve = btn.dataset.approve === '1';
+      // C2 危险操作二次确认：拒绝不可撤销，先确认（2026-09-12）
+      if (!approve && !window.confirm('确认拒绝该报名申请？拒绝后申请人需重新提交。')) return;
       const res = await SignupStore.review(signupId, { approve, reviewer: myId });
       if (!res.ok) {
         showToast('error', res.reason || '操作失败');

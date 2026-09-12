@@ -5,16 +5,16 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912a';
-import { persist } from '../core/data-adapter.js?v=20260912a';
-import { bumpToken } from '../core/version-token.js?v=20260912a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912a';
-import { isInitStateActive } from './init-reset.js?v=20260912a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912a';
-import { AuthStore } from './auth.js?v=20260912a';
-import { getPersonById } from './person.js?v=20260912a';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType } from './todo.js?v=20260912a';
-import { badgeHtml } from '../components/badges.js?v=20260912a';
+import { mockDB } from '../core/domain.js?v=20260912b';
+import { persist } from '../core/data-adapter.js?v=20260912b';
+import { bumpToken } from '../core/version-token.js?v=20260912b'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260912b';
+import { isInitStateActive } from './init-reset.js?v=20260912b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260912b';
+import { AuthStore } from './auth.js?v=20260912b';
+import { getPersonById } from './person.js?v=20260912b';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912b';
+import { badgeHtml } from '../components/badges.js?v=20260912b';
 
 function _loadNotices() {
   try {
@@ -34,6 +34,28 @@ function _saveNotices(notices) {
   } catch (e) {
     console.warn('[NoticeStore] 保存失败：', e);
   }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  S1（2026-09-12）：通知 id 兜底重建——通知类待办未持久化到 NoticeStore 时，
+//  按 id（noticeId / sourceId / todo.id）从待办现算重建一条只读通知，
+//  使 notice.html?id=<id> 对任一入口都取得到正文（不新增第二份存储）。
+// ════════════════════════════════════════════════════════════════
+
+/** 待办 → 通知视图对象（正文重建；read=待办已办结） */
+function _noticeFromTodo(todo, id) {
+  if (!todo) return null;
+  return {
+    id,
+    title: todo.title || '通知',
+    content: todo.description || '',
+    priority: todo.priority || 'normal',
+    publishDate: String(todo.createdAt || '').slice(0, 10) || null,
+    expireDate: todo.deadline || null,
+    read: todo.status === TodoStatus.COMPLETED,
+    targetModule: (todo.actionData && todo.actionData.targetModule) || null,
+    derivedFromTodo: true, // 标记：正文由待办重建（确认读取=销对应待办）
+  };
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -225,6 +247,30 @@ export const NoticeStore = {
   },
 
   /**
+   * 按 id 取通知（S1 单一取数口，2026-09-12）：
+   * 先查 NoticeStore（含已归档，兼容过期）；未命中 → 从通知类待办按
+   * id / sourceId / actionData.noticeId 现算重建（派生通知未持久化的兜底），
+   * 使任一跳转入口（待办/铃铛/首页/通知发布）的 id 都能打开正文。
+   * @param {string} id
+   * @returns {Object|null}
+   */
+  getById(id) {
+    if (!id) return null;
+    const found = this.list({ activeOnly: false, includeArchived: true }).find(n => n.id === id);
+    if (found) return found;
+    try {
+      const all = TodoStore.getAll();
+      const todo = all.find(t => t && t.id === id)
+        || all.find(t => t && t.sourceType === TodoSourceType.NOTICE && t.sourceId === id)
+        || all.find(t => t && t.actionData && t.actionData.noticeId === id);
+      return _noticeFromTodo(todo, id);
+    } catch (e) {
+      console.warn('[NoticeStore] 派生通知重建失败：', e);
+      return null;
+    }
+  },
+
+  /**
    * 归档与来源（活动/专班）绑定的通知（2026-08-08 归档闭环）
    * 活动/专班归档后，其配套通知随之一并归档，退出工作区。
    * @param {'activity'|'taskforce'} targetType
@@ -257,9 +303,15 @@ export const NoticeStore = {
     if (notice) {
       notice.read = true;
       _saveNotices(this._notices);
-      // 做事即销待办：已读自动完成「通知阅读」待办
-      try { TodoStore.completeBySource(TodoSourceType.NOTICE, id); } catch (e) { console.warn('[notice] 销待办失败', e); }
+    } else {
+      // S1：派生通知（未持久化）确认读取 → 直接销对应通知类待办
+      try {
+        const todo = TodoStore.getById(id);
+        if (todo) TodoStore.complete(id);
+      } catch (e) { console.warn('[notice] 派生通知销待办失败', e); }
     }
+    // 做事即销待办：已读自动完成「通知阅读」待办
+    try { TodoStore.completeBySource(TodoSourceType.NOTICE, id); } catch (e) { console.warn('[notice] 销待办失败', e); }
   },
 
   markAllRead() {

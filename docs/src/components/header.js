@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260912a';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260912b';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——书记改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260912a';
-import { getBasePath } from '../core/utils.js?v=20260912a';
-import { icon } from '../core/icons.js?v=20260912a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260912a';
-import { badgeHtml } from './badges.js?v=20260912a';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260912a';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260912b';
+import { getBasePath } from '../core/utils.js?v=20260912b';
+import { icon } from '../core/icons.js?v=20260912b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260912b';
+import { badgeHtml } from './badges.js?v=20260912b';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260912b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260912a';
+import { getHeaderTitle } from '../services/branch.js?v=20260912b';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260912a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260912a');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260912b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260912a');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260912b');
   return _noticeModule;
 }
 
@@ -121,7 +121,7 @@ function _notificationBellHTML() {
   // （静态壳页不加载数据链 → 无角标；app 页渲染后即时补上，无感知延迟）
   return `
     <div id="notification-bell" style="position:relative;">
-      <button id="notif-btn" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <button id="notif-btn" aria-label="通知" aria-haspopup="true" aria-expanded="false" style="width:40px;height:40px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;cursor:pointer;">
         ${icon('bell', { stroke: '#FFFFFF', className: 'w-4 h-4' })}
       </button>
       <div id="notif-dropdown" class="hidden" style="position:absolute;top:calc(100% + 4px);right:0;width:320px;background:var(--surface-card);border-radius:var(--radius-sm);box-shadow:var(--shadow-dropdown);z-index:100;overflow:hidden;border:1px solid var(--neutral-200);"></div>
@@ -216,6 +216,7 @@ function _bindNotificationBell(header) {
   btn.addEventListener('click', async (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
     if (!dropdown.classList.contains('hidden')) {
       // 首次点击时按需加载通知数据链（静态壳页点开铃铛才会加载，平时零依赖）
       let NoticeStore, resolveNoticeUrl;
@@ -239,6 +240,7 @@ function _bindNotificationBell(header) {
 
       dropdown.innerHTML = notices.slice(0, 10).map(n => `
         <div class="notif-dropdown-item" data-notice-id="${n.id}" data-target="${n.targetModule || ''}" data-target-url="${n.targetUrl || ''}"
+             role="button" tabindex="0" aria-label="查看通知：${n.title || n.content || ''}"
              style="padding:12px;border-bottom:1px solid var(--neutral-200);cursor:pointer;transition:background 0.15s;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             ${priorityBadge[n.priority] || ''}
@@ -260,7 +262,7 @@ function _bindNotificationBell(header) {
             _renderNotificationBadge();
             // 视觉反馈：标题变浅 + 移除按钮
             const item = btn.closest('.notif-dropdown-item');
-            const titleP = item?.querySelector('p[style*="color:#374151"]');
+            const titleP = item?.querySelector('p[style*="color:var(--neutral-700)"]');
             if (titleP) titleP.style.color = 'var(--neutral-500)';
             btn.remove();
           }
@@ -268,6 +270,7 @@ function _bindNotificationBell(header) {
       });
 
       // 绑定点击：标记已读 + 统一跳转（resolveNoticeUrl 业务页直达优先，与全站一致）
+      // C4（2026-09-12）：条目为不可聚焦 div → 语义化为可聚焦按钮，鼠标/键盘 Enter/Space 等效
       dropdown.querySelectorAll('.notif-dropdown-item').forEach(item => {
         item.addEventListener('mouseenter', () => {
           item.style.background = 'var(--surface-hover)';
@@ -275,18 +278,28 @@ function _bindNotificationBell(header) {
         item.addEventListener('mouseleave', () => {
           item.style.background = 'transparent';
         });
-        item.addEventListener('click', (ev) => {
-          ev.stopPropagation();
+        const open = () => {
           const id = item.dataset.noticeId;
           const notice = NoticeStore._notices.find(n => n.id === id);
           if (id) NoticeStore.markRead(id);
           _renderNotificationBadge();
           // 视觉反馈：点击后标题颜色变浅
-          const titleP = item.querySelector('p[style*="color:#374151"]');
+          const titleP = item.querySelector('p[style*="color:var(--neutral-700)"]');
           if (titleP) titleP.style.color = 'var(--neutral-500)';
           const dest = resolveNoticeUrl(notice);
           const finalUrl = dest.direct ? dest.url : `${getBasePath()}notice.html?id=${id}`;
           window.location.href = finalUrl;
+        };
+        item.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          open();
+        });
+        item.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Spacebar') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            open();
+          }
         });
       });
     }

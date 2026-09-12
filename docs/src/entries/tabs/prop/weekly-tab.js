@@ -2,19 +2,21 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260912a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912a';
-import { showToast } from '../../../core/utils.js?v=20260912a';
-import { persist } from '../../../core/data-adapter.js?v=20260912a';
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
+import { icon } from '../../../core/icons.js?v=20260912b';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260912b';
+import { showToast } from '../../../core/utils.js?v=20260912b';
+import { persist } from '../../../core/data-adapter.js?v=20260912b';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
+// 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
+//（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 const WEEKLY_REPORTS_SEED = [
-  { id: 'wr1', week: '第30周', weekRange: '2026-07-21 ~ 2026-07-25', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-25' },
-  { id: 'wr2', week: '第29周', weekRange: '2026-07-14 ~ 2026-07-18', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-18' },
-  { id: 'wr3', week: '第28周', weekRange: '2026-07-07 ~ 2026-07-11', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-11' },
-  { id: 'wr4', week: '第31周', weekRange: '2026-07-28 ~ 2026-08-01', content: '', status: 'draft', submittedAt: null },
+  { id: 'wr1', week: '第30周', weekRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
+  { id: 'wr2', week: '第29周', weekRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
+  { id: 'wr3', week: '第28周', weekRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
+  { id: 'wr4', week: '第31周', weekRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
 ];
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
@@ -23,6 +25,17 @@ function _loadWeeklyReports() {
     mockDB.weeklyReports = WEEKLY_REPORTS_SEED.map(r => ({ ...r }));
   }
   return mockDB.weeklyReports;
+}
+
+/** 周次号（'第30周' → 30；非数字兜底 0），供下拉/历史按周次排序 */
+function _weekNo(r) {
+  const m = String((r && r.week) || '').match(/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+/** 周次降序（新周在前）——下拉与「报送历史」同一口径，避免旧实现按录入顺序（28→29→30→31）错乱 */
+function _sortedReports() {
+  return [..._loadWeeklyReports()].sort((a, b) => _weekNo(b) - _weekNo(a));
 }
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
@@ -56,7 +69,9 @@ export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
   if (!container) return;
 
-  const draftReport = _loadWeeklyReports().filter(r => r.status === 'draft').sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))[0] || null;
+  // 默认填写对象 = 待填写草稿（按周次降序取最新草稿）；无草稿回退最新周次（下拉已排序，最新周在前）
+  const sortedReports = _sortedReports();
+  const draftReport = sortedReports.find(r => r.status === 'draft') || null;
   // 书记 2026-09-10 裁定：新增周次的周次号/起止按当前日期自动派生预填（0 输入可直存，仍可手改）
   const weekDefaults = _weekDefaults();
 
@@ -87,7 +102,7 @@ export function renderContent(ctx) {
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-week">选择周次</label>
             <select id="weekly-week" class="input-flat w-full">
-              ${_loadWeeklyReports().map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
+              ${sortedReports.map(r => `<option value="${r.id}" ${draftReport && r.id === draftReport.id ? 'selected' : ''}>${r.week}（${r.weekRange}）</option>`).join('')}
             </select>
           </div>
           <div>
@@ -104,7 +119,7 @@ export function renderContent(ctx) {
           <h4 class="text-sm font-bold text-gray-700">报送历史</h4>
         </div>
         <div class="space-y-2">
-          ${_loadWeeklyReports().map(r => _renderWeeklyReportItem(r)).join('')}
+          ${sortedReports.map(r => _renderWeeklyReportItem(r)).join('')}
         </div>
       </div>
     </div>

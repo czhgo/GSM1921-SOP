@@ -12,14 +12,14 @@
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { PersonStore } from '../../../services/person.js?v=20260912a';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260912a';
-import { getCommitteeName } from '../../../services/branch.js?v=20260912a';
-import { escHtml as esc } from '../../../core/utils.js?v=20260912a';
-import { tokenOf } from '../../../core/version-token.js?v=20260912a'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260912a'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260912b';
+import { getCommitteeName } from '../../../services/branch.js?v=20260912b';
+import { escHtml as esc } from '../../../core/utils.js?v=20260912b';
+import { tokenOf } from '../../../core/version-token.js?v=20260912b'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260912b'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）
@@ -101,7 +101,14 @@ function _renderGovernance(el, branches, noticeCount) {
           <span>全院通知（条）</span>
         </span>
       </div>
-      <p class="text-xs text-gray-500">支部级明细统一见「支部监控台账」。</p>
+      <p class="text-xs text-gray-500">
+        <button type="button" id="gov-monitor-jump" class="text-blue-700 hover:text-blue-900 underline decoration-dotted" style="cursor:pointer;">支部级明细统一见「支部监控台账」→</button>
+      </p>
     </div>
   `;
+
+  // B8①（2026-09-12）：原文案为纯文本「支部级明细见…」无下钻入口 → 该行改为可点，跳「支部监控台账」
+  el.querySelector('#gov-monitor-jump')?.addEventListener('click', () => {
+    document.querySelector('.party-committee-tab-btn[data-party-committee-tab="monitor"]')?.click();
+  });
 }

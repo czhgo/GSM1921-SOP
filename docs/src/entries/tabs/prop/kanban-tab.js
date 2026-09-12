@@ -2,14 +2,14 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/badges.js?v=20260912a';
-import { BranchService } from '../../../services/runtime.js?v=20260912a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912a';
-import { NoticeStore } from '../../../services/notice.js?v=20260912a';
-import { persist } from '../../../core/data-adapter.js?v=20260912a';
-import { showToast } from '../../../core/utils.js?v=20260912a';
-import { setState } from '../../../core/state.js?v=20260912a';
+import { badgeHtml } from '../../../components/badges.js?v=20260912b';
+import { BranchService } from '../../../services/runtime.js?v=20260912b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912b';
+import { NoticeStore } from '../../../services/notice.js?v=20260912b';
+import { persist } from '../../../core/data-adapter.js?v=20260912b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
+import { setState } from '../../../core/state.js?v=20260912b';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -81,6 +81,10 @@ export function renderContent(ctx) {
         ? `${_detailBase}taskforce.html?id=${id}`
         : `${_detailBase}activity.html?id=${id}`;
     });
+    // dogfood #13（2026-09-12）：卡片为 role=button 的 div，补 Enter/Space 键盘激活
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
   });
 
   // ── "确认完成"按钮事件绑定 ──
@@ -136,7 +140,7 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
       : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
-    <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer" data-kt="${item._type}" data-ki="${item.id}">
+    <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">
       <div class="flex items-center gap-2 mb-0.5">
         <span class="text-sm font-medium text-gray-800">${item.title || '未命名'}</span>
         ${typeTag}

@@ -2,19 +2,21 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260912a';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260912a';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260912a';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260912a';
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { bumpToken } from '../../../core/version-token.js?v=20260912a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260912a';
-import { isApiMode } from '../../../services/runtime.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { getPersonName } from '../../../services/person.js?v=20260912a';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260912a';
+import { icon } from '../../../core/icons.js?v=20260912b';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260912b';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260912b';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260912b';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { bumpToken } from '../../../core/version-token.js?v=20260912b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260912b';
+import { isApiMode } from '../../../services/runtime.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { getPersonName } from '../../../services/person.js?v=20260912b';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260912b';
 // A② 归档缺口判据单一源（书记台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities } from '../../../services/secretary-overview.js?v=20260912a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260912b';
+// 活动归档写口（与书记台活动管理同源：软删 archived=true + 级联完成下属任务）
+import { BranchService } from '../../../services/runtime.js?v=20260912b';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -56,6 +58,8 @@ export function renderContent(ctx) {
   if (!container) return;
 
   const pendingArchives = getArchiveGapActivities();
+  // B4（2026-09-12）：宣传概况「待归档活动 N 个」判据 = 已结束未归档活动 → 归档页同判据列明细并可直接归档
+  const endedUnarchived = getEndedUnarchivedActivities();
   container.innerHTML = `
     ${_renderArchiveFallbackBanner()}
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center">
@@ -83,6 +87,8 @@ export function renderContent(ctx) {
         <span>上传材料</span>
       </button>
     </div>
+
+    ${_renderEndedUnarchivedSection(endedUnarchived)}
 
     ${_renderPendingArchiveSection(pendingArchives)}
 
@@ -132,15 +138,26 @@ export function renderContent(ctx) {
   filterCategory.addEventListener('change', applyFilter);
   filterStatus.addEventListener('change', applyFilter);
 
-  // 归档推进按钮：弹出材料确认浮窗而非直接推进
-  container.querySelectorAll('.archive-advance-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const recordId = btn.dataset.recordId;
-      const record = _loadArchiveRecords().find(r => r.id === recordId);
-      if (!record || record.status === 'archived') return;
-      _showArchiveAdvancePopover(record, btn, ctx);
-    });
+  // 归档推进按钮（B3 2026-09-12）：改用列表容器事件委托（见下方 #archive-list 委托）——
+  // 旧实现按渲染时一次性 querySelectorAll 绑定，筛选/搜索重写 #archive-list 后新按钮无监听 → 点击全失效。
+
+  // B4：待归档活动区「归档」按钮（容器委托；活动软归档写口）
+  container.querySelector('#archive-ended-list')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.archive-activity-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const activityId = btn.dataset.activityId;
+    if (!activityId) return;
+    btn.disabled = true;
+    try {
+      await BranchService.archiveActivity(activityId);
+      bumpToken('archiveRecord');
+      showToast('success', '活动已归档，请在上方「待归档」区补充宣传材料');
+      renderContent(ctx);
+    } catch (err) {
+      btn.disabled = false;
+      showToast('error', `归档失败：${(err && err.message) || err}`);
+    }
   });
 
   // 模板下载按钮（T-304 A 档：假提示 → 真实文件下载）
@@ -155,6 +172,15 @@ export function renderContent(ctx) {
 
   // 已归档材料下载（T-304 A 档：mock base64 直下 / server 带鉴权拉取；事件委托防搜索重渲染失效）
   container.querySelector('#archive-list')?.addEventListener('click', async (e) => {
+    // B3（2026-09-12）：归档推进按钮同走容器委托——筛选/搜索重写列表后仍可弹出材料确认浮窗
+    const advanceBtn = e.target.closest('.archive-advance-btn');
+    if (advanceBtn) {
+      e.stopPropagation();
+      const record = _loadArchiveRecords().find(r => r.id === advanceBtn.dataset.recordId);
+      if (!record || record.status === 'archived') return;
+      _showArchiveAdvancePopover(record, advanceBtn, ctx);
+      return;
+    }
     // C④ 2026-09-10 裁定：行内可选外发按钮（上传不再强制弹窗，点击此处才唤起外发确认）
     const dispatchBtn = e.target.closest('.archive-dispatch-btn');
     if (dispatchBtn) {
@@ -202,6 +228,34 @@ function _renderArchiveFallbackBanner() {
     </div>`;
 }
 
+/** 待归档活动区（B4 2026-09-12）：宣传概况「待归档活动 N 个」的明细——判据单一源
+ *  getEndedUnarchivedActivities（已结束未归档），每行可直接「归档」（活动软归档写口，
+ *  与书记台活动管理同源）。归档后活动进入上方「待归档（材料未提交）」区，形成闭环。 */
+function _renderEndedUnarchivedSection(activities) {
+  if (!activities || activities.length === 0) return '';
+  const items = activities.map(a => `
+      <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
+        <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
+            ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : ''}
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·待归档</span>
+          </div>
+          <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
+        </a>
+        <button type="button" class="archive-activity-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors flex-shrink-0" data-activity-id="${escHtml(a.id)}" style="cursor:pointer;">归档</button>
+      </div>`).join('');
+  return `
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-1.5">
+        <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-2">与「工作概况 · 待归档活动」同判据（活动已结束但未归档）——可直接归档；归档后请在上方「待归档」区补充宣传材料。</p>
+      <div class="space-y-2" id="archive-ended-list">${items}</div>
+    </div>`;
+}
+
 /** 待归档区（A② 2026-09-10）：归档缺口活动（已归档但宣传材料未提交），带 data-archive-id 锚点。
  *  与下方「归档记录」列表区分：此处是「缺材料」的活动，记录列表是已建的材料条目。 */
 function _renderPendingArchiveSection(activities) {
@@ -245,7 +299,7 @@ function _renderArchiveList(records) {
     const isInProgress = r.status === 'in_progress';
     const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
     const advanceBtn = !isFinal
-      ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+      ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" style="cursor:pointer;">${advanceLabel}</button>`
       : '';
     // 归档中状态显示进度
     const progressHtml = isInProgress && r._checklistState
@@ -261,7 +315,10 @@ function _renderArchiveList(records) {
         <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
       : '';
     // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
-    const dispatchHtml = r.fileName ? _renderDispatchCell(r) : '';
+    // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
+    const dispatchHtml = r.fileName
+      ? _renderDispatchCell(r)
+      : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
     // 实体条目可点（2026-09-12 书记裁定）：归档记录行关联活动 → 左区包一层活动详情深链
     //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
     const titleBlock = `

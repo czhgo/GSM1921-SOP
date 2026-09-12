@@ -4,9 +4,9 @@
 // 打回（needs_revision，附退回意见）→ 本人「修改并重新提交」→ 回待初阅队列。
 // 本人可查看自己的历史提交（状态徽标 + 退回意见）；组织委员在「发展数据」tab 初阅调用。
 
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport } from '../../../services/thought-report.js?v=20260912a';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912a';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport, withdrawThoughtReport } from '../../../services/thought-report.js?v=20260912b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -57,7 +57,10 @@ export function renderContent(ctx) {
         <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
         <div class="flex items-center justify-between mt-2">
           <p class="text-[11px] text-gray-500">提交后由组织初阅归档，通过后自动归档至个人档案</p>
-          <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span id="tr-count" class="text-[11px] text-gray-400 tabular-nums">0 字</span>
+            <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>
+          </div>
         </div>
       </div>
       <div id="tr-list" class="space-y-2"></div>
@@ -83,6 +86,10 @@ export function renderContent(ctx) {
           </div>
           <p class="text-[12px] text-gray-600 whitespace-pre-wrap mt-1.5">${esc(r.content || '')}</p>
           ${rejectNote ? `<div class="mt-2 rounded-lg bg-red-50 border border-red-100 px-2 py-1.5 text-[11px] text-red-700 whitespace-pre-wrap">退回意见：${esc(rejectNote)}</div>` : ''}
+          ${status === 'pending' ? `
+          <div class="mt-2 flex justify-end">
+            <button type="button" class="tr-withdraw text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">撤回</button>
+          </div>` : ''}
           ${canRevise ? `
           <div class="mt-2 flex flex-col items-end gap-1.5">
             <button type="button" class="tr-rev-toggle text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">修改并重新提交</button>
@@ -102,6 +109,12 @@ export function renderContent(ctx) {
     }
 
     // ── 提交新汇报（R6-2：入库 pending，组织初阅通过后才归档）──
+    // C1（2026-09-12）：字数统计实时更新（不设硬性拦截，仅提示篇幅）
+    const _contentEl = document.getElementById('tr-content');
+    const _countEl = document.getElementById('tr-count');
+    const _syncCount = () => { if (_countEl) _countEl.textContent = `${(_contentEl?.value || '').trim().length} 字`; };
+    _contentEl?.addEventListener('input', _syncCount);
+    _syncCount();
     document.getElementById('tr-submit')?.addEventListener('click', () => {
       const content = document.getElementById('tr-content')?.value || '';
       if (!content.trim()) { showToast('warning', '请填写思想汇报内容'); return; }
@@ -126,6 +139,17 @@ export function renderContent(ctx) {
         box.classList.add('hidden');
         const toggle = tc.querySelector(`.tr-rev-toggle[data-tr-id="${btn.dataset.trId}"]`);
         if (toggle) toggle.textContent = '修改并重新提交';
+      });
+    });
+
+    // ── 撤回（C1：仅待初阅 pending；本人可撤回，撤回后从归集移除可重新提交）──
+    tc.querySelectorAll('.tr-withdraw').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!window.confirm('确认撤回该思想汇报？撤回后该篇将从你的思想汇报归集移除。')) return;
+        const res = withdrawThoughtReport({ id: btn.dataset.trId, by: personId });
+        if (!res || !res.ok) { showToast('error', (res && res.reason) || '撤回失败，请稍后重试'); return; }
+        showToast('success', '思想汇报已撤回');
+        render();
       });
     });
 

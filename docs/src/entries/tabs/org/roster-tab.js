@@ -27,16 +27,16 @@
 //    书记确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../../../services/person.js?v=20260912a';
-import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260912a';
-import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260912a';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260912a';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912a';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260912a';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
+import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260912b';
+import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260912b';
+import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260912b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260912b';
 // 纯逻辑（可单测）：新增表单校验 / 行内保存 diff
-import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260912a';
+import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260912b';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -96,14 +96,14 @@ export function renderContent(ctx) {
         <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
           <div class="flex items-center gap-3">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">成员名册</h3>
-            <span class="text-xs text-gray-500">${members.length} 人</span>
+            <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
           </div>
           <div class="flex items-center gap-2">
             <input id="roster-kw" type="search" class="input-flat text-xs py-1.5 w-44" placeholder="搜索姓名 / 党小组…" value="${esc(_kw)}" aria-label="搜索成员">
             <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注即时生效；发展阶段与在册状态变更由组织委员发起、书记确认后生效。</p>
+        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注点「保存」即时生效；发展阶段与在册状态变更由组织委员发起、书记确认后生效。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
@@ -141,8 +141,9 @@ function _listHtml(members) {
     : members;
   const pend = _pendingMap();
   const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
+  // B6⑥（2026-09-12）：窄屏（<768px）列头隐藏、行内 6 列 grid 退化为单列卡片（不再横向滚动）
   const header = `
-    <div class="grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
+    <div class="hidden md:grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
       <span>姓名</span><span>党小组</span><span>发展阶段</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
     </div>`;
   const body = rows.length === 0
@@ -161,7 +162,6 @@ function _rowHtml(p, pend) {
   const rs = getResidenceOf(p);
   const detained = rs.residenceStatus === RESIDENCE.DETAINED;
   const roleLabel = p.role && p.role !== 'participant' ? (ROLE_LABELS[p.role] || p.role) : '';
-  const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
   const opt = (v, label, cur) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${label}</option>`;
   const groupOptions = (p.partyGroup ? [] : [opt('', '未分组', p.partyGroup)])
     .concat(PARTY_GROUP_OPTIONS.map(g => opt(g, g, p.partyGroup)));
@@ -172,7 +172,7 @@ function _rowHtml(p, pend) {
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
   return `
-    <div class="roster-row grid py-1.5 border-b border-gray-50 last:border-b-0" data-person-id="${esc(p.id)}" data-orig-stage="${esc(p.developStage || '')}" style="grid-template-columns:${COL};gap:8px;align-items:center;">
+    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}" data-orig-stage="${esc(p.developStage || '')}">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(p.name)}</span>

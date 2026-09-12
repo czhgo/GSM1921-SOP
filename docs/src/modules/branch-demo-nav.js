@@ -15,8 +15,10 @@
 // （auth.js ROLE_PERMISSIONS 无 party-staff 键）→ 可见 ≠ 可写；本模块只放开「进入支部」的可见性
 // 放行（只读），不放宽任何写权限（requiredRoles / 权限键一律不动）。
 
-import { getBranchById } from '../services/branch.js?v=20260912a';
-import { showToast } from '../core/utils.js?v=20260912a';
+import { getBranchById } from '../services/branch.js?v=20260912b';
+import { showToast } from '../core/utils.js?v=20260912b';
+import { AuthStore } from '../services/auth.js?v=20260912b';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260912b';
 
 // 演示目标页：支部书记工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
 const DEMO_PAGE = 'secretary.html';
@@ -76,6 +78,24 @@ export function isPartyStaffBranchDemoAllowed(role, page, branchId) {
   if (!branchId) return false;
   if (!LOCAL_HOSTS.has(window.location.hostname)) return false;
   return true;
+}
+
+/**
+ * 当前会话是否处于「党委下钻支部的演示只读视图」（B1 2026-09-12）。
+ * 判定单一源复用 isPartyStaffBranchDemoAllowed（role=当前登录角色 · page=当前页 · ?branch=），
+ * 供支部层页面（如书记台各 tab）隐藏/禁用写入口；提交处另加显式拒绝兜底。
+ * 浏览器外（无 window）返回 false（node 测试安全）。
+ * @returns {boolean}
+ */
+export function isReadonlyBranchDrilldown() {
+  try {
+    const role = AuthStore.getCurrentUser()?.role || null;
+    const page = (window.location.pathname.split('/').pop() || '');
+    const branchId = CrossPageState.getParam('branch');
+    return isPartyStaffBranchDemoAllowed(role, page, branchId);
+  } catch (_) {
+    return false;
+  }
 }
 
 /**

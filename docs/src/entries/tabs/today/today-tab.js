@@ -12,16 +12,16 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260912a';
-import { icon } from '../../../core/icons.js?v=20260912a';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260912a';
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { tokenOf } from '../../../core/version-token.js?v=20260912a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260912a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260912a'; // P2 渲染守卫（spec §四.1）
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260912b';
+import { icon } from '../../../core/icons.js?v=20260912b';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260912b';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { tokenOf } from '../../../core/version-token.js?v=20260912b'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260912b'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912b'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260912b'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 书记批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260912a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260912b';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
@@ -151,6 +151,26 @@ function _dutyBlock(s) {
   `;
 }
 
+/** S4（2026-09-12）：本岗待办摘要块（含逾期/到期/待办数；点击直达待办 tab）。
+ *  使「今天」落点不再因待办无 deadline/异常而不显示——注入本岗待办概况并可直接处理。 */
+function _todoSummaryBlock(s) {
+  const t = s.todoSummary || { total: 0, overdue: 0, dueToday: 0 };
+  if (!t.total) return '';
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-title-cn text-sm font-bold text-gray-700">本岗待办${_count(t.total)}</h3>
+        ${_allBtn('todo')}
+      </div>
+      <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+        data-go="todo" title="前往待办处理">
+        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${t.overdue ? '#EF4444' : '#9CA3AF'};"></span>
+        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">逾期 ${t.overdue} · 今日到期 ${t.dueToday} · 待办合计 ${t.total}</span>
+        <span class="text-xs text-gray-500 flex-shrink-0">›</span>
+      </button>
+    </div>`;
+}
+
 /** 三块全空 → 卡片不消失，仅示一句空态 */
 function _allEmptyHtml() {
   return `
@@ -270,7 +290,8 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
     const dateLabel = _dateLabel(summary.date) || _dateLabel(_fmtDate(new Date()));
 
     const total = summary.hasMeeting.length + summary.overdue.length
-      + summary.dueToday.length + summary.myDuties.length;
+      + summary.dueToday.length + summary.myDuties.length
+      + ((summary.todoSummary && summary.todoSummary.total) || 0);
 
     // 批4：组长开学周提醒条（仅组长角色；开关/窗口/防重复见 _leaderSemesterRemindHtml）
     const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
@@ -281,6 +302,7 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
           <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
           <div class="lg:col-span-1 min-w-0 space-y-5">
             ${_dueBlock(summary)}
+            ${_todoSummaryBlock(summary)}
             ${_dutyBlock(summary)}
           </div>
         </div>

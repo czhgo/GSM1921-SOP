@@ -5,21 +5,21 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912a';
-import { persist } from '../core/data-adapter.js?v=20260912a';
-import { bumpToken } from '../core/version-token.js?v=20260912a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260912a';
-import { isInitStateActive } from './init-reset.js?v=20260912a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from './person.js?v=20260912a';
-import { evaluateWorkforceVotes } from './workforce.js?v=20260912a';
+import { mockDB } from '../core/domain.js?v=20260912b';
+import { persist } from '../core/data-adapter.js?v=20260912b';
+import { bumpToken } from '../core/version-token.js?v=20260912b'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260912b';
+import { isInitStateActive } from './init-reset.js?v=20260912b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from './person.js?v=20260912b';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260912b';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from './runtime.js?v=20260912a';
-import { NoticeStore } from './notice.js?v=20260912a';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912a';
-import { loadActivities } from './activity.js?v=20260912a';
-import { AuthStore } from './auth.js?v=20260912a';
+import { BranchService } from './runtime.js?v=20260912b';
+import { NoticeStore } from './notice.js?v=20260912b';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912b';
+import { loadActivities } from './activity.js?v=20260912b';
+import { AuthStore } from './auth.js?v=20260912b';
 
 // 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -73,7 +73,8 @@ export const TaskForceRecordStore = {
   },
 
   list(filter = {}) {
-    let result = [...this._records];
+    // 软删除记录（deletedAt 留痕）不进入业务视图
+    let result = this._records.filter(r => !r.deletedAt);
 
     if (filter.status) {
       result = result.filter(r => r.status === filter.status);
@@ -106,7 +107,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260912a').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260912b').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }
@@ -145,6 +146,22 @@ export const TaskForceRecordStore = {
     const prev = this._records.length;
     this._records = this._records.filter(r => r.id !== id);
     if (this._records.length === prev) return false;
+    _saveTaskForces(this._records);
+    return true;
+  },
+
+  /**
+   * 软删除（B6③ 2026-09-12）：撤销并删除专班——记录保留 deletedAt/deletedBy 留痕（可审计），
+   * 从 list/getAll 业务视图剔除；替代不可恢复的物理删除。
+   */
+  softRemove(id, { by = null } = {}) {
+    const idx = this._records.findIndex(r => r.id === id);
+    if (idx === -1) return false;
+    this._records = [
+      ...this._records.slice(0, idx),
+      { ...this._records[idx], deletedAt: new Date().toISOString(), deletedBy: by || null },
+      ...this._records.slice(idx + 1),
+    ];
     _saveTaskForces(this._records);
     return true;
   },
@@ -228,7 +245,8 @@ export const TaskForceRecordStore = {
   },
 
   getAll() {
-    return [...this._records];
+    // 软删除记录（deletedAt 留痕）不进入业务视图
+    return this._records.filter(r => !r.deletedAt);
   },
 
   // ══════════════════════════════════════════════════════════════
@@ -365,7 +383,7 @@ export const TaskForceRecordStore = {
   /** 归集视图数据：全部「待支委会表决」的报送（供书记线上支委会纳入表决） */
   listCommitteeRequests() {
     return this._records
-      .filter(r => r.committeeRequest && r.committeeRequest.status === 'pending')
+      .filter(r => !r.deletedAt && r.committeeRequest && r.committeeRequest.status === 'pending')
       .map(r => ({
         id: r.id,
         name: r.name || '',

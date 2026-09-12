@@ -2,16 +2,16 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912a';
-import { loadActivities } from '../../../services/activity.js?v=20260912a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912a';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912a';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912a';
-import { showToast } from '../../../core/utils.js?v=20260912a';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912a';
-import { currentLeaderGroup } from './_shared.js?v=20260912a';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260912b';
+import { loadActivities } from '../../../services/activity.js?v=20260912b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912b';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912b';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912b';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912b';
+import { showToast } from '../../../core/utils.js?v=20260912b';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912b';
+import { currentLeaderGroup } from './_shared.js?v=20260912b';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -37,6 +37,7 @@ export function renderContent(ctx) {
   const sourceActivities = loadActivities()
     .filter(a =>
       (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会') &&
+      a.status !== 'cancelled' && // dogfood 组长#5（2026-09-12）：已取消活动不再出现在上传下拉（此前可选中提交，落为无效考察）
       canUploadInspection(leaderId, SourceType.ACTIVITY, a.id)
     )
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -121,11 +122,11 @@ export function renderContent(ctx) {
 
   // 如果表单可见，初始化事件绑定
   if (_inspFormVisible) {
-    _initInspForm(container, sourceActivities, sourceTaskforces, ctx);
+    _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myInspection);
   }
 }
 
-function _initInspForm(container, sourceActivities, sourceTaskforces, ctx) {
+function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myInspection) {
   const { accent } = ctx;
 
   // 初始化 PersonPicker
@@ -154,7 +155,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx) {
       sourceSelect.disabled = !type;
       if (type === 'activity') {
         sourceSelect.innerHTML = `<option value="">请选择活动</option>` +
-          sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）</option>`).join('');
+          sourceActivities.map(a => `<option value="${a.id}" data-name="${a.title}">${a.title}（${a.date}）${myInspection.some(r => r.activityId === a.id) ? ' · 已上传' : ''}</option>`).join('');
       } else if (type === 'taskforce') {
         sourceSelect.innerHTML = `<option value="">请选择专班</option>` +
           sourceTaskforces.map(tf => `<option value="${tf.id}" data-name="${tf.name}">${tf.name}</option>`).join('');

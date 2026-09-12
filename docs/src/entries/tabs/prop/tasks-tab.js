@@ -2,9 +2,9 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { persist } from '../../../core/data-adapter.js?v=20260912a';
-import { showToast, downloadCSV, _fmtDate } from '../../../core/utils.js?v=20260912a';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { persist } from '../../../core/data-adapter.js?v=20260912b';
+import { showToast, downloadCSV, _fmtDate } from '../../../core/utils.js?v=20260912b';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const PROP_TASKS_SEED = [
@@ -98,7 +98,7 @@ export function renderContent() {
       if (!nextStatus) return;
       task.status = nextStatus;
       persist();
-      showToast('success', `任务「${task.summary}」已${TASK_STATUS_LABEL[nextStatus]}`);
+      showToast('success', `任务「${task.summary}」状态已更新为「${TASK_STATUS_LABEL[nextStatus]}」`);
       renderContent();
     });
   });

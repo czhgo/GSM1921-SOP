@@ -11,24 +11,24 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260912b';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912b';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260912a';
+} from '../../docs/src/core/policy-defaults.js?v=20260912b';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260912a';
+} from '../../docs/src/core/config-clean.js?v=20260912b';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260912a';
+} from '../../docs/src/services/branch.js?v=20260912b';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260912a';
+} from '../../docs/src/services/member-confirmation.js?v=20260912b';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260912a';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260912b';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';

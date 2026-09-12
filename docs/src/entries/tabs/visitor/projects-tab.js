@@ -3,12 +3,12 @@
 // 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PersonStore } from '../../../services/person.js?v=20260912a';
+import { PersonStore } from '../../../services/person.js?v=20260912b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260912a';
-import { flashHighlight } from '../../../core/utils.js?v=20260912a';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260912b';
+import { flashHighlight } from '../../../core/utils.js?v=20260912b';
 
 // 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -53,8 +53,8 @@ export function renderContent(ctx) {
       type: '专班',
       typeBadge: '专班',
       group: '',
-      status: _tfStatusLabel(t.status),
-      statusColor: _tfStatusColor(t.status),
+      status: _tfStatusLabel(t.status, t.deadline),
+      statusColor: _tfStatusColor(t.status, t.deadline),
       date: t.deadline || t.createdAt || '',
       personnel,
       done: ['completed', 'archived', 'dissolved'].includes(t.status),
@@ -255,16 +255,20 @@ function _actStatusColor(status) {
   const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-700' };
   return map[status] || 'bg-gray-100 text-gray-600';
 }
-function _tfStatusLabel(status) {
+function _tfStatusLabel(status, deadline) {
   // 2026-09-02 书记裁决（失同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
   // 公共活动页此前误用任务态「进行中/已完成」，一并对齐
+  // C3（2026-09-12）：状态由截止日派生——招募中但已过截止日不再显示「招募中」（语义修正）
+  if (status === 'recruiting' && deadline && deadline < _todayKey()) return '报名已截止';
   const map = { recruiting: '招募中', active: '运行中', completed: '已完结', dissolved: '已解散', draft: '草稿' };
   return map[status] || status || '运行中';
 }
-function _tfStatusColor(status) {
+function _tfStatusColor(status, deadline) {
+  if (status === 'recruiting' && deadline && deadline < _todayKey()) return 'bg-gray-100 text-gray-600';
   const map = { recruiting: 'bg-orange-100 text-orange-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', dissolved: 'bg-red-100 text-red-700', draft: 'bg-yellow-100 text-yellow-700' };
   return map[status] || 'bg-gray-100 text-gray-600';
 }
+function _todayKey() { return new Date().toISOString().slice(0, 10); }
 
 function _personnelRoleLabel(role) {
   const map = { organizer: '组织者', deep: '深度参与', participant: '参与者', initiator: '发起人' };

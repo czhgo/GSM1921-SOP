@@ -7,12 +7,12 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260912a';
-import { AuthStore } from '../../../services/auth.js?v=20260912a';
-import { getCommitteeName } from '../../../services/branch.js?v=20260912a';
-import { NoticeStore } from '../../../services/notice.js?v=20260912a';
-import { textField, textareaField } from '../../../components/forms.js?v=20260912a';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912a';
+import { mockDB } from '../../../core/domain.js?v=20260912b';
+import { AuthStore } from '../../../services/auth.js?v=20260912b';
+import { getCommitteeName } from '../../../services/branch.js?v=20260912b';
+import { NoticeStore } from '../../../services/notice.js?v=20260912b';
+import { textField, textareaField } from '../../../components/forms.js?v=20260912b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912b';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -89,8 +89,8 @@ export function renderContent() {
     const title = el.querySelector('#dispatch-title')?.value.trim();
     const content = el.querySelector('#dispatch-content')?.value.trim();
     const priority = el.querySelector('input[name="dispatch-pri"]:checked')?.value || 'normal';
-    if (!branchIds.length) { showToast('请选择目标支部'); return; }
-    if (!title || !content) { showToast('请填写标题与正文'); return; }
+    if (!branchIds.length) { showToast('error', '请选择目标支部'); return; }
+    if (!title || !content) { showToast('error', '请填写标题与正文'); return; }
     branchIds.forEach(branchId => {
       const b = (mockDB.branches || []).find(x => x.id === branchId);
       NoticeStore.add({
@@ -107,7 +107,7 @@ export function renderContent() {
         recipients: '支部委员会（支委层）',
       });
     });
-    showToast(`已下发至 ${branchIds.length} 个支部的支委层`);
+    showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);
     el.querySelector('#dispatch-title').value = '';
     el.querySelector('#dispatch-content').value = '';
     renderContent();
