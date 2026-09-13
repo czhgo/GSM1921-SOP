@@ -7,22 +7,22 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260913e';
-import { loadActivities } from './activity.js?v=20260913e';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260913e';
-import { TaskForceRecordStore } from './taskforce.js?v=20260913e';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260913e';
-import { NoticeStore } from './notice.js?v=20260913e';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260913e';
-import { tokenOf } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260913e';
-import { getPersonById } from './person.js?v=20260913e';
-import { ROLE_LABELS } from '../core/constants.js?v=20260913e';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260913e';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260913f';
+import { loadActivities } from './activity.js?v=20260913f';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260913f';
+import { TaskForceRecordStore } from './taskforce.js?v=20260913f';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260913f';
+import { NoticeStore } from './notice.js?v=20260913f';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260913f';
+import { tokenOf } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260913f';
+import { getPersonById } from './person.js?v=20260913f';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260913f';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260913f';
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913e';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913f';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -177,7 +177,7 @@ export const SecretaryOverviewStore = {
 
       // ② 在办活动：未归档、非完结态，且本人为组织者或项目成员
       const relatedActivities = activities.filter(a =>
-        !a.archived &&
+        !isActivityArchived(a) &&
         a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
         (personIdSet.has(a.organizer) ||
           (Array.isArray(a.assignments) && a.assignments.some(x => personIdSet.has(x.personId))))
@@ -299,7 +299,7 @@ export const SecretaryOverviewStore = {
     const reviews    = loadActivityReviews();
 
     // 进行中活动数（未归档的）
-    const activeActivities = activities.filter(a => !a.archived).length;
+    const activeActivities = activities.filter(a => !isActivityArchived(a)).length;
 
     // 进行中专班数（status=active + recruiting）
     const taskforces = TaskForceRecordStore.list();
@@ -309,14 +309,14 @@ export const SecretaryOverviewStore = {
 
     // 待赋权活动数（bottom-up 且主源 assignments 中无组织者）
     const pendingAuth = activities.filter(a =>
-      !a.archived &&
+      !isActivityArchived(a) &&
       a.direction === 'bottom-up' &&
       !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
 
     // 复盘问题数（支书 2026-08-10 裁定：复盘率 100% 目标会诱导"随意提交凑数"→ 目标异化；
     // 从最初设定就只希望大家提交真问题——改问题导向，计量活跃活动复盘中提出的真问题数量）
-    const activeReviewIds = new Set(activities.filter(a => !a.archived).map(a => a.id));
+    const activeReviewIds = new Set(activities.filter(a => !isActivityArchived(a)).map(a => a.id));
     const reviewIssues = reviews
       .filter(r => activeReviewIds.has(r.activityId))
       .reduce((sum, r) => sum + (Array.isArray(r.issues) ? r.issues.length : 0), 0);
@@ -342,9 +342,7 @@ export const SecretaryOverviewStore = {
     ).length;
 
     // 已结束活动（completed 或 archived）
-    const endedActivities = activities.filter(a =>
-      a.status === 'completed' || a.archived
-    );
+    const endedActivities = activities.filter(a => isActivityEnded(a));
 
     // 待归档活动数（已结束但未归档）——判据单一源 = getEndedUnarchivedActivities（归档页明细同源）
     const pendingArchive = getEndedUnarchivedActivities().length;
@@ -387,7 +385,7 @@ export function getArchiveGapActivities() {
  * @returns {Array} 满足条件的活动（顺序同 loadActivities）
  */
 export function getEndedUnarchivedActivities() {
-  return loadActivities().filter(a => (a.status === 'completed' || a.archived) && !a.archived);
+  return loadActivities().filter(a => isActivityEnded(a) && !isActivityArchived(a));
 }
 
 export const SecretaryTodoDeriver = {
@@ -453,7 +451,7 @@ export const SecretaryTodoDeriver = {
       return !!bucket && bucket.length > 0;
     };
     const gaps = activities.filter(a =>
-      (a.status === 'completed' || a.archived) && a.date &&
+      isActivityEnded(a) && a.date &&
       _daysBetween(a.date, today) > POLICY_DEFAULTS.attendance.entryRemindDays &&
       !hasRecords(a.id)
     );
@@ -491,7 +489,7 @@ export const SecretaryTodoDeriver = {
     const today = _today();
     const reviewedIds = new Set(reviews.map(r => r.activityId));
     const gaps = activities
-      .filter(a => (a.status === 'completed' || a.archived) && a.date)
+      .filter(a => isActivityEnded(a) && a.date)
       .filter(a => _daysBetween(a.date, today) > POLICY_DEFAULTS.review.overdueDays)
       .filter(a => !reviewedIds.has(a.id));
     return this._mkGroup('review-remind', '复盘待提交', TodoCategory.SUBMIT, TodoActionType.SUBMIT,

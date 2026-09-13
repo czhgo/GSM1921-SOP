@@ -3,25 +3,29 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260913e';
-import { BranchService } from '../../../services/runtime.js?v=20260913e';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260913e';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913e'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260913e';
-import { NoticeStore } from '../../../services/notice.js?v=20260913e';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913e'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260913e';
-import { icon } from '../../../core/icons.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { recordFormShell } from '../../../components/forms.js?v=20260913e';
-import { renderQueryView } from '../../../components/query-view.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
+import { setState } from '../../../core/state.js?v=20260913f';
+import { BranchService } from '../../../services/runtime.js?v=20260913f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913f';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260913f';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913f'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260913f';
+import { NoticeStore } from '../../../services/notice.js?v=20260913f';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913f'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260913f';
+// 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
+import { isActivityEnded } from '../../../core/constants.js?v=20260913f';
+import { icon } from '../../../core/icons.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { recordFormShell } from '../../../components/forms.js?v=20260913f';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { getPersonName } from '../../../services/person.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -563,23 +567,12 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     ...cancelledSignups.map(s => `${getPersonName(s.personId)}（已取消）`),
   ].join('、');
 
-  const signupRows = approvedSignups.map(s => `
-    <div class="flex items-center gap-2 py-1.5">
-      <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
-      <span class="text-[11px] text-gray-500">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
-      ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${s.note}</span>` : ''}
-      ${badgeHtml('已通过', 'success')}
-    </div>`).join('');
-  const pendingRows = isTfReviewer && pendingSignups.length > 0 ? pendingSignups.map(s => `
-    <div class="flex items-center gap-2 py-1.5">
-      <span class="text-xs font-medium text-gray-700">${getPersonName(s.personId)}</span>
-      <span class="text-[11px] text-gray-500">${s.role === 'participant' ? '普通参与' : s.role === 'organizer' ? '组织者' : '深度参与'}</span>
-      ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${s.note}</span>` : ''}
-      <span class="ml-auto flex items-center gap-1.5">
-        <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${s.id}" data-approve="1" style="background:#10B981;">通过</button>
-        <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
-      </span>
-    </div>`).join('') : '';
+  const _roleText = (r) => (r === 'participant' ? '普通参与' : r === 'organizer' ? '组织者' : '深度参与');
+  // 统一检索引擎行数据：已通过 + （审批人视角）待审核，按人；≤8 行引擎自动不渲染检索条
+  const signupListRows = [
+    ...approvedSignups.map(s => ({ ...s, name: getPersonName(s.personId), role: _roleText(s.role), _pendingRow: false })),
+    ...(isTfReviewer ? pendingSignups.map(s => ({ ...s, name: getPersonName(s.personId), role: _roleText(s.role), _pendingRow: true })) : []),
+  ];
   const applyBtn = tfOpen && currentUserId && !myApplied
     ? `<button id="tf-signup-apply-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">报名加入</button>`
     : '';
@@ -590,11 +583,32 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         <h6 class="font-title-cn text-xs font-bold text-gray-600">报名名单（${approvedSignups.length}）<span class="text-gray-500 font-normal">· 名额 ${filled}/${tf.capacity}</span></h6>
         ${applyBtn}
       </div>
-      ${approvedSignups.length === 0 && !pendingRows
-        ? '<p class="text-[12px] text-gray-500 pl-2">暂无报名</p>'
-        : `<div>${signupRows}${pendingRows}</div>`}
+      <div id="tf-signup-list"></div>
       ${otherSignupTxt ? `<p class="text-[11px] text-gray-500 mt-1">${otherSignupTxt}</p>` : ''}
     </div>`;
+
+  const signupHost = mount.querySelector('#tf-signup-list');
+  renderFilteredList(signupHost, {
+    stateKey: `org-taskforce-signup-${tf.id}`,
+    rows: signupListRows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-0',
+    emptyMessage: '暂无报名',
+    rowHtml: (s) => `
+      <div class="flex items-center gap-2 py-1.5">
+        <span class="text-xs font-medium text-gray-700">${esc(s.name)}</span>
+        <span class="text-[11px] text-gray-500">${esc(s.role)}</span>
+        ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
+        ${s._pendingRow
+          ? `<span class="ml-auto flex items-center gap-1.5">
+              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:#10B981;">通过</button>
+              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
+            </span>`
+          : badgeHtml('已通过', 'success')}
+      </div>`,
+  });
 
   // 报名/审核（通过后写主源 members → 名额/看板计数变化 → 整页刷新，行为不变）
   mount.querySelector('#tf-signup-apply-btn')?.addEventListener('click', () => {
@@ -603,13 +617,14 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     showToast('success', '报名成功，已加入专班名单');
     setState({});
   });
-  mount.querySelectorAll('.tf-signup-review-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const res = await SignupStore.review(btn.dataset.signupId, { approve: btn.dataset.approve === '1', reviewer: currentUserId });
-      if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
-      showToast('success', btn.dataset.approve === '1' ? '已通过该报名' : '已拒绝该报名');
-      setState({});
-    });
+  // 审核按钮事件委托（引擎筛选重渲染后仍可点）
+  signupHost.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.tf-signup-review-btn');
+    if (!btn) return;
+    const res = await SignupStore.review(btn.dataset.signupId, { approve: btn.dataset.approve === '1', reviewer: currentUserId });
+    if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
+    showToast('success', btn.dataset.approve === '1' ? '已通过该报名' : '已拒绝该报名');
+    setState({});
   });
 }
 
@@ -1210,7 +1225,7 @@ function _renderActivityProgress(activities, ctx) {
   if (!progressEl) return;
 
   const typeOptions = [...new Set(activities.map(a => a.type).filter(Boolean))].map(t => ({ value: t, label: t }));
-  const queryData = activities.map(a => ({ ...a, archived: String(a.status === 'completed') }));
+  const queryData = activities.map(a => ({ ...a, archived: String(isActivityEnded(a)) }));
 
   progressEl.innerHTML = `
     <div class="card rounded-xl p-5">
@@ -1236,7 +1251,7 @@ function _renderActivityProgress(activities, ctx) {
     ],
     data: queryData,
     renderRow: (a) => {
-      const isArchived = a.status === 'completed';
+      const isArchived = isActivityEnded(a);
       const statusTag = isArchived
         ? badgeHtml('已归档', 'neutral')
         : badgeHtml('已发布', 'success');

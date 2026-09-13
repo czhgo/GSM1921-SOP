@@ -2,24 +2,27 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260913e';
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { PersonStore } from '../../../services/person.js?v=20260913e';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260913e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913e';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { attendanceToLong } from '../../../services/attendance.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913e';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913e';
-import { currentLeaderGroup } from './_shared.js?v=20260913e';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913e';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913f';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
+import { currentLeaderGroup } from './_shared.js?v=20260913f';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -61,9 +64,22 @@ export function renderContent(ctx) {
     myGroupMemberIds.includes(t.personId) && t.status !== 'completed'
   );
 
-  // dogfood R-18（2026-09-13）：明细表「按活动筛选」的数据源（长列表定位；默认全部）
-  const attRows = attendanceToLong(myAttendance);
-  const attActivities = [...new Set(attRows.map(r => r.activity).filter(Boolean))].sort();
+  // 统一检索引擎（table 模式）：明细行按人检索——关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册），
+  // 行数据按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)，禁用记录内 personName 快照）
+  const attRows = myAttendance.map(r => {
+    const long = attendanceToLong([r])[0];
+    const m = getPersonById(r.personId) || {};
+    return {
+      ...long,
+      personId: r.personId,
+      name: getPersonName(r.personId),
+      studentId: m.studentId || '',
+      partyGroup: m.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || '',
+      residenceStatus: m.residenceStatus || '',
+    };
+  });
 
   const formHtml = _attFormVisible ? `
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="att-form-panel">
@@ -99,32 +115,8 @@ export function renderContent(ctx) {
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
-      ${attActivities.length > 1 ? `
-      <div class="flex items-center gap-2 mb-3">
-        <label class="text-xs text-gray-500" for="att-filter-activity">按活动筛选</label>
-        <select id="att-filter-activity" class="input-flat text-xs max-w-xs">
-          <option value="">全部活动（${attRows.length} 条）</option>
-          ${attActivities.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
-        </select>
-        <span id="att-filter-count" class="text-xs text-gray-500"></span>
-      </div>` : ''}
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
-          </tr></thead>
-          <tbody>${attRows.map(a => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50" data-att-activity="${esc(a.activity)}">
-              <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
-              <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : a.activity}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.status === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.status === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${ATTENDANCE_STATUS_LABELS[a.status] || a.status}</span></td>
-              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
-            </tr>
-          `).join('')}</tbody>
-        </table>
+        <div id="att-list-host"></div>
       </div>
       ${myGroupMakeupTasks.length > 0 ? `
       <div class="mt-4 pt-3 border-t border-gray-100">
@@ -134,7 +126,7 @@ export function renderContent(ctx) {
           ${myGroupMakeupTasks.map(t => `
             <div class="flex items-center justify-between p-2 rounded-lg bg-white ${t.status === 'overdue' ? 'border border-red-100' : 'border border-orange-100'}">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-medium text-gray-800">${t.personName}</span>
+                <span class="text-xs font-medium text-gray-800">${getPersonName(t.personId)}</span>
                 <span class="text-xs text-gray-500">${t.activityName}</span>
               </div>
               <div class="flex items-center gap-2">
@@ -155,22 +147,34 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // dogfood R-18（2026-09-13）：明细行按活动筛选（纯 DOM 过滤，不重渲染 → 不丢表单已选/已填）
-  const _attFilter = container.querySelector('#att-filter-activity');
-  if (_attFilter) {
-    const _attRowsDom = [...container.querySelectorAll('tbody tr[data-att-activity]')];
-    _attFilter.addEventListener('change', () => {
-      const v = _attFilter.value;
-      let shown = 0;
-      _attRowsDom.forEach(tr => {
-        const hit = !v || tr.dataset.attActivity === v;
-        tr.hidden = !hit;
-        if (hit) shown++;
-      });
-      const cnt = container.querySelector('#att-filter-count');
-      if (cnt) cnt.textContent = v ? `显示 ${shown} / 共 ${_attRowsDom.length} 条` : '';
-    });
-  }
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
+  renderFilteredList(container.querySelector('#att-list-host'), {
+    stateKey: 'leader-attendance-list',
+    rows: attRows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'w-full text-xs',
+    emptyMessage: '暂无考勤明细',
+    table: {
+      colSpan: 4,
+      headHtml: `<tr class="border-b border-gray-200">
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
+          </tr>`,
+    },
+    // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
+    rowHtml: (a) => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+              <td class="py-2 px-3 font-medium text-gray-800">${esc(a.name)}</td>
+              <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
+              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
+            </tr>`,
+  });
 
   // 绑定上传按钮（保态折叠 2026-09-06：对齐纪检会议考勤录入判例——表单已渲染
   //（#att-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁

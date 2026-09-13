@@ -2,16 +2,18 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260913e';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260913e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913f';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260913f';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260913f';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260913e';
-import { HandoffStore } from '../../../services/handoff.js?v=20260913e';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260913f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -51,20 +53,10 @@ export function renderContent(ctx) {
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
-      <!-- U5b（2026-09-07）：搜索输入 + 来源/状态下拉统一 text-xs 紧凑档，与 h-8 工具钮同高 -->
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名或内容...">
-        <select id="insp-tag-filter" class="input-flat text-xs w-24">
-          <option value="">全部来源</option>
-          <option value="activity">活动</option>
-          <option value="taskforce">专班</option>
-        </select>
-        <select id="insp-status-filter" class="input-flat text-xs w-24">
-          <option value="">全部状态</option>
-          <option value="confirmed">已确认</option>
-          <option value="pending">待确认</option>
-          <option value="overdue">超期</option>
-        </select>
+      <!-- U5b（2026-09-07）：搜索输入统一 text-xs 紧凑档，与 h-8 工具钮同高。
+           来源/状态筛选已收敛为统一检索引擎分面（活动视图）；本行仅用于「人视图」姓名检索 -->
+      <div class="flex flex-wrap items-center gap-2 mb-3" id="insp-filter-row">
+        <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名...">
       </div>
       <div id="insp-table-container"></div>
     </div>
@@ -72,91 +64,115 @@ export function renderContent(ctx) {
 
   const overdueIds = new Set(overdueRecords.map(r => r.id));
 
-  function applyInspFilter(data) {
-    const searchEl = document.getElementById('insp-search-input');
-    const tagEl = document.getElementById('insp-tag-filter');
-    const statusEl = document.getElementById('insp-status-filter');
-    if (!searchEl) return data;
-    const q = searchEl.value.trim().toLowerCase();
-    const t = tagEl ? tagEl.value : '';
-    const s = statusEl ? statusEl.value : '';
-    return data.filter(r => {
-      if (q && !(r.name || '').toLowerCase().includes(q) && !(r.content || '').toLowerCase().includes(q) && !(r.role || '').toLowerCase().includes(q) && !(r.source || '').toLowerCase().includes(q)) return false;
-      if (t && r.sourceType !== t) return false;
-      if (s === 'overdue') return overdueIds.has(r.id);
-      if (s && r.status !== s) return false;
-      return true;
-    });
+  /** 考察行状态标签（单一口径；供引擎分面 get 与导出共用） */
+  const statusLabelOf = (i) => overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认');
+
+  // 统一检索引擎行数据：按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)，禁用记录内快照）
+  const longRows = allRecords.map(rec => {
+    const i = inspectionToLong([rec])[0];
+    const m = getPersonById(rec.personId) || {};
+    return {
+      ...i,
+      personId: rec.personId,
+      name: getPersonName(rec.personId),
+      studentId: m.studentId || '',
+      partyGroup: m.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || '',
+      residenceStatus: m.residenceStatus || '',
+    };
+  });
+
+  // 活动视图关键词（沿用原「姓名/内容/角色/来源」模糊命中，另加学号）
+  const inspKeyword = { keys: ['name', 'studentId', 'content', 'role', 'source'], placeholder: '搜索姓名 / 学号 / 内容 / 来源…' };
+  // 分面 = 按人分面 + 来源类别 + 状态（原「全部来源/全部状态」下拉收敛为 chips）
+  const inspFacets = [
+    ...personFacets({ roleLabel: roleLabelOf }),
+    { key: 'srcType', label: '来源类别', get: (r) => r.sourceType === '活动' ? '活动' : '专班' },
+    { key: 'statusLabel', label: '状态', get: (r) => statusLabelOf(r) },
+  ];
+
+  /** 导出用：按引擎当前筛选态（关键词 + 分面）复算行（引擎语义镜像，供 CSV 导出保持「所见即所得」） */
+  function _matchLongRow(r, st) {
+    if (!st) return true;
+    if (st.q && !inspKeyword.keys.some(k => String(r[k] ?? '').toLowerCase().includes(st.q))) return false;
+    if (st.facets.srcType && (r.sourceType === '活动' ? '活动' : '专班') !== st.facets.srcType) return false;
+    if (st.facets.statusLabel && statusLabelOf(r) !== st.facets.statusLabel) return false;
+    return true;
   }
 
   const inspSearchInput = document.getElementById('insp-search-input');
-  const inspTagSelect = document.getElementById('insp-tag-filter');
-  const inspStatusSelect = document.getElementById('insp-status-filter');
-  if (inspSearchInput) inspSearchInput.addEventListener('input', () => { renderLong(); });
-  if (inspTagSelect) inspTagSelect.addEventListener('change', () => { renderLong(); });
-  if (inspStatusSelect) inspStatusSelect.addEventListener('change', () => { renderLong(); });
+  // 本行仅服务「人视图」（活动视图自带引擎检索条，见 renderLong）
+  if (inspSearchInput) inspSearchInput.addEventListener('input', () => { renderWide(); });
 
+  let longHandle = null;
   function renderLong() {
     const tc = document.getElementById('insp-table-container');
     if (!tc) return;
-    const displayData = applyInspFilter(longData);
-    tc.innerHTML = `
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
+    // 活动视图：检索条由引擎内建 → 隐藏仅供人视图的搜索行
+    document.getElementById('insp-filter-row')?.classList.add('hidden');
+    longHandle = renderFilteredList(tc, {
+      stateKey: 'disc-inspection-long',
+      rows: longRows,
+      keyword: inspKeyword,
+      facets: inspFacets,
+      countUnit: '条',
+      listClass: 'w-full text-xs',
+      emptyMessage: '无匹配考察记录',
+      table: {
+        colSpan: 6,
+        headHtml: `<tr class="border-b border-gray-200">
             <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">来源</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">类别</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">内容</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
             <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
-          </tr></thead>
-          <tbody>${displayData.map(i => {
-            const isPending = i.status === 'pending';
-            const isOverdue = overdueIds.has(i.id);
-            const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
-            return `
+          </tr>`,
+      },
+      rowHtml: (i) => {
+        const isPending = i.status === 'pending';
+        const isOverdue = overdueIds.has(i.id);
+        const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
+        return `
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
               <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
               <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">${i.sourceType === 'activity' ? '活动' : '专班'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${isOverdue ? '超期' : i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${statusLabelOf(i)}</span></td>
               <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
-            </tr>
-          `}).join('')}</tbody>
-        </table>
-      </div>
-    `;
-
-    // 绑定确认按钮事件
-    tc.querySelectorAll('.btn-disc-confirm-insp').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const recordId = btn.dataset.recordId;
-        confirmInspectionRecord(recordId);
-        showToast('success', '考察记录已确认');
-        renderContent(ctx);
-      });
-    });
-
-    // 绑定删除按钮事件
-    tc.querySelectorAll('.btn-disc-delete-insp').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const recordId = btn.dataset.recordId;
-        if (!confirm('确认删除该考察记录？')) return;
-        if (deleteInspectionRecord(recordId)) {
-          showToast('success', '考察记录已删除');
-          renderContent(ctx);
-        } else {
-          showToast('error', '只能删除待确认状态的记录');
-        }
-      });
+            </tr>`;
+      },
     });
   }
+
+  // 确认/删除（事件委托：引擎筛选重渲染行后仍可点）
+  document.getElementById('insp-table-container')?.addEventListener('click', (e) => {
+    const confirmBtn = e.target.closest('.btn-disc-confirm-insp');
+    if (confirmBtn) {
+      confirmInspectionRecord(confirmBtn.dataset.recordId);
+      showToast('success', '考察记录已确认');
+      renderContent(ctx);
+      return;
+    }
+    const delBtn = e.target.closest('.btn-disc-delete-insp');
+    if (delBtn) {
+      const recordId = delBtn.dataset.recordId;
+      if (!confirm('确认删除该考察记录？')) return;
+      if (deleteInspectionRecord(recordId)) {
+        showToast('success', '考察记录已删除');
+        renderContent(ctx);
+      } else {
+        showToast('error', '只能删除待确认状态的记录');
+      }
+    }
+  });
 
   function renderWide() {
     const tc = document.getElementById('insp-table-container');
     if (!tc) return;
+    document.getElementById('insp-filter-row')?.classList.remove('hidden');
     const searchEl = document.getElementById('insp-search-input');
     const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
     const rows = q
@@ -203,12 +219,14 @@ export function renderContent(ctx) {
     });
   });
 
-  // T-304 A 档下载闭环：导出当前视图 CSV（随当前搜索/筛选）+ 打印
+  // T-304 A 档下载闭环：导出当前视图 CSV（活动视图随统一检索引擎当前筛选态；人视图随搜索文本）+ 打印
   container.querySelector('.insp-export-btn')?.addEventListener('click', () => {
     const stamp = _fmtDate(new Date());
-    const statusLabel = i => overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认');
     if (currentView === 'long') {
-      const rows = applyInspFilter(longData).map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, statusLabel(i)]);
+      // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
+      const st = longHandle ? longHandle.state : null;
+      const rows = longRows.filter(r => _matchLongRow(r, st))
+        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, statusLabelOf(i)]);
       downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '状态'], rows);
     } else {
       const searchEl = document.getElementById('insp-search-input');

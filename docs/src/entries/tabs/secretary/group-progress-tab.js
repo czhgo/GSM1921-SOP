@@ -19,20 +19,22 @@
 // 本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913e';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913e';
-import { IssueStore } from '../../../services/issues.js?v=20260913e';
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { loadActivityReviews } from '../../../services/review.js?v=20260913e';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913f';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913f';
+import { IssueStore } from '../../../services/issues.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { loadActivityReviews } from '../../../services/review.js?v=20260913f';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260913e';
+} from '../../../services/group-view.js?v=20260913f';
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名
@@ -81,6 +83,8 @@ function _renderAll(container) {
     </div>`;
 
   _bindEvents(container);
+  // 已载则先同步渲染（未载由 _fillReports 首拉后增量填充，避免 0 高后插）
+  if (_issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
   _fillReports(container, group, members);
 }
 
@@ -118,7 +122,8 @@ function _groupCardHtml(g, activeGroup, issues) {
 
 // ── ② 组员进展摘要（汇报区；首拉异步填充后增量刷新） ───────────
 function _memberProgressCardHtml(group, issues) {
-  const inner = _issuesLoaded ? _reportsRowsHtml(issues, group) : _reportsLoadingHtml();
+  // 已载：空宿主交由统一检索引擎渲染；未载：轻量加载行占位
+  const inner = _issuesLoaded ? '' : _reportsLoadingHtml();
   const leaderNote = group.leaderId ? '' : '<span class="text-xs text-gray-500">（本组暂无组长，「请组长关注」不可用）</span>';
   return `
     <div class="card rounded-xl p-4">
@@ -170,24 +175,25 @@ function _canAskLeader(issue, group) {
   return !(issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
 }
 
-/** 汇报行列表 HTML（含空态；不绑定事件——事件走 container 委托） */
-function _reportsRowsHtml(allIssues, group) {
-  const rows = _groupReportRows(allIssues, group);
-  if (!rows.length) {
-    return `
-      <p class="text-xs text-gray-500 py-1 flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
-        暂无本组组员汇报，组员汇报答复在组长台完成
-      </p>`;
-  }
-  return rows.map(r => {
-    const st = _reportRowState(r);
-    const submitterName = getPersonName(r.submittedBy) || '匿名';
-    const askBtn = _canAskLeader(r, group)
-      ? `<button type="button" class="gp-ask-leader text-xs px-2.5 py-1 rounded-lg shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
-           data-note="${esc(`本组组员汇报待跟进：${submitterName} · ${r.title}`)}">请组长关注</button>`
-      : '';
-    return `
+/** 组员进展摘要列表（统一检索引擎：关键词 + 分面；每组 ≤8 行 → 引擎自动不渲染检索条） */
+function _renderReportsList(hostEl, group, allIssues) {
+  if (!hostEl) return;
+  renderFilteredList(hostEl, {
+    stateKey: `secretary-group-progress-reports-${group.groupName}`,
+    rows: _groupReportRows(allIssues, group),
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1.5',
+    emptyMessage: '暂无本组组员汇报，组员汇报答复在组长台完成',
+    rowHtml: (r) => {
+      const st = _reportRowState(r);
+      const submitterName = getPersonName(r.submittedBy) || '匿名';
+      const askBtn = _canAskLeader(r, group)
+        ? `<button type="button" class="gp-ask-leader text-xs px-2.5 py-1 rounded-lg shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+             data-note="${esc(`本组组员汇报待跟进：${submitterName} · ${r.title}`)}">请组长关注</button>`
+        : '';
+      return `
       <div class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
         ${_reportDot(r)}
         <div class="min-w-0 flex-1">
@@ -200,7 +206,8 @@ function _reportsRowsHtml(allIssues, group) {
         <span class="text-xs px-1.5 py-0.5 rounded-full ${st.cls} shrink-0">${st.label}</span>
         ${askBtn}
       </div>`;
-  }).join('');
+    },
+  });
 }
 
 /** 类别色点（progress/blocked/ask，同汇报收件箱） */
@@ -234,7 +241,7 @@ async function _fillReports(container, group, members) {
 
   const listEl = container.querySelector('#gp-reports');
   if (!listEl) return;
-  listEl.innerHTML = _reportsRowsHtml(issues, curGroup);
+  _renderReportsList(listEl, curGroup, issues);
 }
 
 // ── ③ 本组活动复盘状态（只读；与组长台同口径同表） ─────────────

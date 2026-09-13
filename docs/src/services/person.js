@@ -25,19 +25,19 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913e';
+import { mockDB } from '../core/domain.js?v=20260913f';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../core/version-token.js?v=20260913e';
+import { bumpToken } from '../core/version-token.js?v=20260913f';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
-import { PEOPLE } from '../mock/people.js?v=20260913e';
+import { PEOPLE } from '../mock/people.js?v=20260913f';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260913e';
+import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260913f';
 // 双形态判定（mock/api）：data-adapter.js 为零静态依赖的叶子模块（无环）
-import { getDataSource } from '../core/data-adapter.js?v=20260913e';
+import { getDataSource } from '../core/data-adapter.js?v=20260913f';
 // 新成员 id 生成（mock 形态；'p_' + uuid，与种子 p1~p50/p_pc 不冲突）
-import { generateId } from '../core/id.js?v=20260913e';
+import { generateId } from '../core/id.js?v=20260913f';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -322,6 +322,42 @@ export function getBaseMemberRecords() {
   return applyMemberOverlay(PEOPLE, _loadMemberOverlay());
 }
 
+/**
+ * ════════════════════════════════════════════════════════════════
+ *  liveMembers() — 人员清单「实时视图」常量（2026-09-13 数据一致性专项）
+ * ════════════════════════════════════════════════════════════════
+ *  病灶（person-consistency 守卫 S1）：全站 15 个模块曾在**模块加载期**写
+ *    `const PEOPLE = PersonStore.getMembers();`
+ *  ——模块只求值一次，此后成员增删（名册新增/移出/在册变更/发展阶段调整）在该模块内**永久陈旧**。
+ *  这是「同一个人的信息对应不上」最隐蔽的一类来源：表里显示的还是旧名单/旧字段。
+ *
+ *  用法（零调用点改动的根治）：
+ *    const PEOPLE = liveMembers();      // ← 实时视图，不是快照
+ *    PEOPLE.find(p => p.id === id);     // 每次访问都取最新档案视图
+ *
+ *  实现：以空数组为壳的 Proxy，任何属性/下标访问都转发到**当次** getMembers() 结果。
+ *  只读语义：写入（push/sort/赋值）一律抛错（人员清单不可就地改，写口只有 saveMember/removeMember）。
+ * @returns {Array} 实时视图（Array 语义，只读）
+ */
+export function liveMembers() {
+  return new Proxy([], {
+    get(_, prop) {
+      const list = PersonStore.getMembers();
+      const v = list[prop];
+      return typeof v === 'function' ? v.bind(list) : v;
+    },
+    has(_, prop) {
+      return prop in PersonStore.getMembers();
+    },
+    set() {
+      throw new Error('liveMembers() 为只读实时视图：人员清单请经 PersonStore.saveMember/removeMember 写入');
+    },
+    deleteProperty() {
+      throw new Error('liveMembers() 为只读实时视图：人员清单请经 PersonStore 写口维护');
+    },
+  });
+}
+
 /** 字段级净化：仅保留成员档案字段白名单 + 强制 id 字符串 */
 function _cleanMemberRecord(record) {
   const out = {};
@@ -502,13 +538,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913e');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913f');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913e');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913f');
   return ApiAdapter.members;
 }
 
@@ -603,7 +639,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913e');
+    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913f');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

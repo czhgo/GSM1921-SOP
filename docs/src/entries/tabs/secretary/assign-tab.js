@@ -2,20 +2,23 @@
 // entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { PersonStore } from '../../../services/person.js?v=20260913e';
+import { showToast } from '../../../core/utils.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../../../services/person.js?v=20260913e';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260913f';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913e';
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { TodoStore } from '../../../services/todo.js?v=20260913e';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { TodoStore } from '../../../services/todo.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -68,23 +71,33 @@ function renderAssignLeaders() {
   granted.forEach(g => { grantedById[g.targetPersonId] = g; }); // 按人去重（后写覆盖）
 
   const rows = [];
-  presetLeaders.forEach(p => rows.push({ person: p, record: null, preset: true }));
+  presetLeaders.forEach(p => rows.push({ person: p, record: null, preset: true, name: getPersonName(p.id) || p.name || p.id }));
   Object.values(grantedById).forEach(g => {
     const person = getPersonById(g.targetPersonId);
     // 已预设组长不重复列出（与 renderAuthRecords 一致）
     if (!person || person.role !== 'leader') {
-      rows.push({ person: person || { id: g.targetPersonId, name: g.targetPersonId }, record: g, preset: false });
+      rows.push({
+        person: person || { id: g.targetPersonId, name: g.targetPersonId },
+        record: g,
+        preset: false,
+        name: getPersonName(g.targetPersonId) || (person && person.name) || g.targetPersonId,
+      });
     }
   });
 
-  if (rows.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">暂无党小组组长记录</p>';
-    return;
-  }
-  listEl.innerHTML = rows.map(({ person, record, preset }) => {
-    const personName = person.name || person.id;
-    const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
-    return `
+  // 统一检索引擎（按人；≤8 行引擎自动不渲染检索条）
+  renderFilteredList(listEl, {
+    stateKey: 'secretary-assign-leaders',
+    rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1',
+    emptyMessage: '暂无党小组组长记录',
+    rowHtml: ({ person, record, preset, name }) => {
+      const personName = name;
+      const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
+      return `
       <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record ? record.id : ''}">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
         <div class="min-w-0 flex-1">
@@ -97,7 +110,8 @@ function renderAssignLeaders() {
         </div>
       </div>
     `;
-  }).join('');
+    },
+  });
 }
 
 // ── 项目角色赋权（organizer/deep，2026-08-02 自 members.html 迁入支书工作台） ──
@@ -229,38 +243,50 @@ function renderProjectAuthRecords() {
     ['organizer', 'deep'].includes(r.role) && r.scopeRef
   );
 
-  if (records.length === 0) {
-    listEl.innerHTML = '<p class="text-xs text-gray-500">暂无项目角色赋权记录</p>';
-    return;
-  }
-
-  listEl.innerHTML = records.map(r => {
-    const person = getPersonById(r.targetPersonId);
+  // 统一检索引擎（按人：被赋权人姓名；≤8 行引擎自动不渲染检索条）
+  const rows = records.map(r => {
     const project = loadActivities().find(a => a.id === r.scopeRef) || TaskForceRecordStore.getAll().find(t => t.id === r.scopeRef);
-    const projectName = project ? (project.title || project.name) : r.scopeRef;
-    const roleLabel = ROLE_LABELS[r.role] || r.role;
-    const personName = person?.name || r.targetPersonId;
-    return `
+    return {
+      ...r,
+      name: getPersonName(r.targetPersonId) || r.targetPersonId,
+      _personName: getPersonName(r.targetPersonId) || r.targetPersonId,
+      _projectName: project ? (project.title || project.name) : r.scopeRef,
+      _roleLabel: ROLE_LABELS[r.role] || r.role,
+    };
+  });
+  renderFilteredList(listEl, {
+    stateKey: 'secretary-project-auth-records',
+    rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-0',
+    emptyMessage: '暂无项目角色赋权记录',
+    rowHtml: (r) => `
       <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
         <div>
-          <span class="text-sm font-medium text-gray-700">${personName}</span>
-          <span class="text-xs text-gray-500 ml-2">${projectName}</span>
-          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${roleLabel}</span>
+          <span class="text-sm font-medium text-gray-700">${r._personName}</span>
+          <span class="text-xs text-gray-500 ml-2">${r._projectName}</span>
+          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${r._roleLabel}</span>
           <span class="text-xs text-gray-500 ml-2">${r.authorizedAt || ''}</span>
         </div>
         <button type="button" class="revoke-project-auth text-xs text-gray-500 hover:text-red-600" data-record-id="${r.id}">撤销</button>
       </div>
-    `;
-  }).join('');
+    `,
+  });
 
-  listEl.querySelectorAll('.revoke-project-auth').forEach(btn => {
-    btn.addEventListener('click', async () => {
+  // 撤销事件委托（引擎筛选重渲染后仍可点）；dataset 守卫防重复绑定
+  if (!listEl.dataset.revokeBound) {
+    listEl.dataset.revokeBound = '1';
+    listEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.revoke-project-auth');
+      if (!btn) return;
       if (await AuthStore.revokeAuthorization(btn.dataset.recordId)) {
         showToast('success', '已撤销赋权');
         renderProjectAuthRecords();
       }
     });
-  });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -444,28 +470,36 @@ function renderAuthRecords() {
 
   const rows = [];
   presetLeaders.forEach(p => {
-    rows.push({ person: p, record: null });
+    rows.push({ person: p, record: null, name: getPersonName(p.id) || p.name || p.id });
   });
   grantedUnique.forEach(g => {
     const person = getPersonById(g.targetPersonId);
     if (!person || person.role !== 'leader') {
-      rows.push({ person: person || { id: g.targetPersonId, name: g.targetPersonId }, record: g });
+      rows.push({
+        person: person || { id: g.targetPersonId, name: g.targetPersonId },
+        record: g,
+        name: getPersonName(g.targetPersonId) || (person && person.name) || g.targetPersonId,
+      });
     }
   });
 
-  if (rows.length === 0) {
-    listEl.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">暂无党小组组长记录</p>`;
-    return;
-  }
+  // 统一检索引擎（按人；≤8 行引擎自动不渲染检索条）
+  renderFilteredList(listEl, {
+    stateKey: 'secretary-assign-leaders-panel',
+    rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1',
+    emptyMessage: '暂无党小组组长记录',
+    rowHtml: ({ person, record, name }) => {
+      const personName = name;
+      const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
+      const revokeBtn = record
+        ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">撤销</button>`
+        : '<span class="text-xs text-gray-500 ml-2 flex-shrink-0">预设</span>';
 
-  listEl.innerHTML = rows.map(({ person, record }) => {
-    const personName = person.name || person.targetPersonId;
-    const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
-    const revokeBtn = record
-      ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">撤销</button>`
-      : '<span class="text-xs text-gray-500 ml-2 flex-shrink-0">预设</span>';
-
-    return `
+      return `
       <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">
@@ -482,10 +516,15 @@ function renderAuthRecords() {
         ${revokeBtn}
       </div>
     `;
-  }).join('');
+    },
+  });
 
-  listEl.querySelectorAll('[data-auth-action="revoke"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
+  // 撤销事件委托（引擎筛选重渲染后仍可点）；dataset 守卫防重复绑定
+  if (!listEl.dataset.revokeBound) {
+    listEl.dataset.revokeBound = '1';
+    listEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-auth-action="revoke"]');
+      if (!btn) return;
       const recordId = btn.dataset.recordId;
       if (await AuthStore.revokeAuthorization(recordId)) {
         showToast('success', '已撤销党小组组长');
@@ -494,5 +533,5 @@ function renderAuthRecords() {
         showToast('error', '撤销失败');
       }
     });
-  });
+  }
 }

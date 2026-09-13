@@ -205,6 +205,20 @@ export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
 
+// ── 名单检索条出现门槛（单一源，2026-09-13 支书裁定）──────────────────
+// 语义：第一列是人/活动的表格，**当前视图行数 > 本阈值**才渲染「关键词 + 分面 chips」检索条；
+//   行数不足不渲染（3~7 行的小表加搜索框即过拟合——支书明确判据）。
+// 消费点：components/list-filter.js（人员表与活动表共用同一引擎）；勿在业务层另写字面量。
+export const SEARCH_FILTER_MIN_ROWS = 8;
+
+// ── 党员发展阶段序（单一源，2026-09-13 收敛）───────────────────────
+// 发展流程正向序（积极分子 → 发展对象 → 预备党员 → 正式党员）。
+// 原 entries/tabs/org/talent-tab.js 与 entries/tabs/org/development-tab.js 各自手写 STAGE_ORDER 副本
+// （两份，取值同、顺序同，属"同一口径两处维护"）——本项目统一收敛至此，消费点改 import。
+// 注：与 policy-defaults.attendance.roster.partyStages（应到口径 = ['正式党员','预备党员']）
+//   语义不同，勿混用——后者是"计应到"的党员子集，本常量是完整发展流程序。
+export const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
+
 // ── 通知发布/管理角色（2026-09-13 dogfood 权限专项：前后端「单一源」，勿各自手写）──
 // 发布 = 支委层中除纪检（纪检为会议纪律通报场景，只需管理位）；管理（编辑/删除）= 支委层全体。
 // 由 BRANCH_COMMISSION_ROLES 派生（勿再手写角色名单——roles-sync 守卫「5 支委授权列表只允许出现在授权集」会拦）。
@@ -583,6 +597,77 @@ export function classifyActivityType(type) {
   if (_THREE_MEETINGS_SUBTYPES.includes(type)) return 'three-meetings';
   if (type === '组织生活会') return 'three-meetings'; // 内容维度：以三会形式召开，大类仍属三会一课
   return 'theme-party'; // 主题党日 及未知类型兜底归主题党日系
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动「已结束 / 已归档 / 未开始」判据（单一源，2026-09-13 收敛）
+// ════════════════════════════════════════════════════════════════
+//  立项依据（支书 2026-09-13）：「涉及第一列是活动的表格，也要思考！」
+//  现状病灶（普查实测）：「已结束」判据 `status==='completed' || archived` 在全站至少 8 处各写一遍
+//    （work-overview ×2 / archive-entry / dashboard-gallery / member-confirmation /
+//     secretary-overview ×3 / server perf 测试），文案「已结束 / 已归档 / 待归档」四套不等价。
+//
+//  ⚠️ 与「活动生命周期展示态」的分工（**勿再造第二套生命周期词汇**）：
+//    · 本节的 is* 函数 = **存储态谓词**（只读 status / archived 两个存储字段），供筛选、集合过滤、
+//      统计口径使用——不依赖任务进度，纯函数、可在任意层调用。
+//    · 活动生命周期 **展示态**（草稿/已发布/进行中/待归档/已执行/已归档/已取消）的唯一源
+//      在 components/inspector.js：`ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus(activity, allTasks)`
+//      + `activityLifecycleBadgeHtml(...)`（执行态由任务进度派生，见 DATA_MODEL.md §2.1 与
+//      DATA_CONSISTENCY_CHECKLIST「活动生命周期展示态」条）。徽章/文案一律用那一套，
+//      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
+
+/** 活动是否已结束（单一源）：status==='completed' 或 archived 标记 */
+export function isActivityEnded(activity) {
+  const a = activity || {};
+  return a.archived === true || a.status === 'completed';
+}
+
+/** 活动是否已归档（单一源，仅看 archived 软删标记）——「排除已归档」场景勿再用 isActivityEnded */
+export function isActivityArchived(activity) {
+  return (activity || {}).archived === true;
+}
+
+/** 活动是否仍在办（未归档且未取消）——「当前活动清单」的通用过滤判据（全站 5 处手写 `!archived && status!=='cancelled'` 收敛至此） */
+export function isActivityLive(activity) {
+  const a = activity || {};
+  return a.archived !== true && a.status !== 'cancelled';
+}
+
+/** 活动是否未开始（单一源）：未结束，且无日期或不早于今天（member-confirmation 既有裁定字面一致） */
+export function isActivityNotStarted(activity) {
+  const a = activity || {};
+  if (isActivityEnded(a)) return false;
+  if (!a.date) return true;
+  return String(a.date) >= new Date().toISOString().slice(0, 10);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动类型取值规范化（单一源，2026-09-13 收敛）
+// ════════════════════════════════════════════════════════════════
+//  现状病灶（「第一列是活动的表格」专项普查）：写入侧 3 套不等价取值来源——
+//   ① 支书台写入子类中文名（'支部党员大会'）；
+//   ② 组长台写入 '${大类}·${子类}'（'三会一课·支部党员大会'）；
+//   ③ 种子为纯子类中文名。
+//  读取侧类型筛选三套口径：级联大类+子类 chips / 单一 type 下拉 / 数据动态生成。
+//  收敛口径：**权威取值 = 子类中文名**（ACTIVITY_CLASSIFICATION 的 subtypes 为权威序列）；
+//  任何历史写法经 normalizeActivityType() 归一后才进筛选与展示。
+
+/** 活动类型权威取值集（子类中文名）：三会一课 4 子类 + 主题党日 + 组织生活会（内容维度） */
+export const ACTIVITY_SUBTYPES = Object.freeze([
+  ..._THREE_MEETINGS_SUBTYPES, ACTIVITY_CLASSIFICATION['theme-party'].label, '组织生活会',
+]);
+
+/**
+ * 活动类型归一（唯一实现）：'大类·子类' → 子类；已是权威子类 → 原样；其余原样返回（不造新枚举）
+ * @param {string} type
+ * @returns {string}
+ */
+export function normalizeActivityType(type) {
+  const t = String(type || '').trim();
+  if (!t) return '';
+  if (t.includes('·')) return t.split('·').pop().trim();
+  if (t === ACTIVITY_CLASSIFICATION['three-meetings'].label) return t; // '三会一课' 大类名保留（无单一子类）
+  return t;
 }
 
 /**

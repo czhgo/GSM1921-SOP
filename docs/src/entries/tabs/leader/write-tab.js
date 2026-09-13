@@ -3,21 +3,25 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState } from '../../../core/state.js?v=20260913e';
-import { BranchService } from '../../../services/runtime.js?v=20260913e';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913e';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260913e';
-import { persist } from '../../../core/data-adapter.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { recordFormShell } from '../../../components/forms.js?v=20260913e';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260913e';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260913e';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260913e';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260913e';
+import { setState, getAppState } from '../../../core/state.js?v=20260913f';
+import { BranchService } from '../../../services/runtime.js?v=20260913f';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913f';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260913f';
+import { persist } from '../../../core/data-adapter.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { recordFormShell } from '../../../components/forms.js?v=20260913f';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+// 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260913f';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260913f';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260913f';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260913f';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260913f';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -133,9 +137,15 @@ export function renderContent(ctx) {
   _dtActivities = activities; // C② 默认预选数据源（本人既有同类活动）
 
   // T223 排序统一：未完成在前、已完成在后，组内按 date 降序（新者在前）
-  const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
+  // 已结束/已归档判据单一源 = isActivityEnded（已取消另行并入「已完成」档，保留原排序语义）
+  const isDone = a => isActivityEnded(a) || a.status === 'cancelled';
   const sorted = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))];
+
+  // 活动状态徽标：单一源 = components/inspector.js 的活动生命周期展示态
+  // （草稿/已发布/进行中/待归档/已执行/已归档/已取消；执行态由任务进度派生）。
+  // 2026-09-13 收敛：原为本地二档「已发布/草稿」，属口径漂移（与 DATA_MODEL §2.1 全站徽章统一要求不符）。
+  const _lifecycleBadge = (a) => activityLifecycleBadgeHtml(a, getAppState()?.tasks || []);
 
   const panelVisible = dt.showPanel;
 
@@ -153,28 +163,36 @@ export function renderContent(ctx) {
 
       <div class="mt-4 pt-3 border-t border-gray-100">
         <div class="text-xs text-gray-500 mb-2">已有关联活动</div>
-        <div class="space-y-2" id="leader-activity-list">
-          ${display.length === 0 ? '<p class="text-xs text-gray-500 text-center py-4">暂无关联活动</p>' :
-            display.map(a => `
-              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
-                <div class="flex-1 min-w-0">
-                  <div class="text-sm font-medium text-gray-800">${a.title || '未命名'}</div>
-                  <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
-                </div>
-                ${badgeHtml(a.status === 'published' ? '已发布' : '草稿', a.status === 'published' ? 'success' : 'warning')}
-              </div>
-            `).join('')}
-        </div>
+        <div class="space-y-2" id="leader-activity-list"></div>
         <div id="leader-act-detail" class="hidden mt-3 rounded-lg p-4"></div>
       </div>
     </div>
   `;
 
+  // 统一检索引擎（活动列表：关键词 名称/地点 + 分面 月份/类别/类型/状态；行数 ≤8 时自动不渲染检索条）
+  renderFilteredList(container.querySelector('#leader-activity-list'), {
+    stateKey: 'leader-write-activity-list',
+    rows: display,
+    keyword: activityKeyword(),
+    facets: activityFacets(),
+    countUnit: '条',
+    listClass: 'space-y-2',
+    emptyMessage: '暂无关联活动',
+    rowHtml: (a) => `
+              <div class="leader-act-item flex items-center justify-between p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="展开 ${escHtml(a.title || '未命名')} 详情与子记录" data-act-id="${a.id}">
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-gray-800">${escHtml(a.title || '未命名')}</div>
+                  <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+                </div>
+                ${_lifecycleBadge(a)}
+              </div>`,
+  });
+
   _bindDecisionTreeEvents(container, { accent, accentRgba, accentBorder, _dtBtnStyle, _dtSelDark });
 
   // ── 活动点击展开详情+子记录（P3-4） ──
-  container.querySelectorAll('.leader-act-item').forEach(item => {
-    item.addEventListener('click', () => {
+  // 事件委托：统一检索引擎筛选后会重渲染行，直接对行 addEventListener 会失效
+  const _openActivityDetail = (item) => {
       const actId = item.dataset.actId;
       const activity = activities.find(a => a.id === actId);
       if (!activity) return;
@@ -399,11 +417,19 @@ export function renderContent(ctx) {
           if (actEl) actEl.click();
         });
       });
-    });
-    // dogfood #13（2026-09-12）：行为 role=button 的 div，补 Enter/Space 键盘激活
-    item.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); }
-    });
+  };
+  const actListHost = container.querySelector('#leader-activity-list');
+  actListHost?.addEventListener('click', (e) => {
+    const item = e.target.closest('.leader-act-item');
+    if (item) _openActivityDetail(item);
+  });
+  // dogfood #13（2026-09-12）：行为 role=button 的 div，补 Enter/Space 键盘激活（事件委托版）
+  actListHost?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const item = e.target.closest('.leader-act-item');
+    if (!item) return;
+    e.preventDefault();
+    _openActivityDetail(item);
   });
 }
 
@@ -835,8 +861,9 @@ function _dtBindPanelArea(container, ctx, refresh) {
       const currentLeaderId = getCurrentLeaderId();
       const activityData = {
         title,
-        // L2 与 L1 同名时（党小组会无子分类）不重复拼接
-        type: l2Label && l2Label !== l1Label ? `${l1Label}·${l2Label}` : l1Label,
+        // 权威类型取值 = 子类中文名（单一源 ACTIVITY_SUBTYPES；组长台 L1 标签即权威子类名），
+        // 不再写 '大类·子类'（读取侧 normalizeActivityType 归一，写入侧须直接落权威值）
+        type: ACTIVITY_SUBTYPES.includes(l1Label) ? l1Label : normalizeActivityType(l2Label || l1Label),
         date: targetDate,
         targetDate,
         location,

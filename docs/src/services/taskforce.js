@@ -5,22 +5,22 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913e';
-import { persist } from '../core/data-adapter.js?v=20260913e';
-import { bumpToken } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260913e';
-import { isInitStateActive } from './init-reset.js?v=20260913e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from './person.js?v=20260913e';
-import { evaluateWorkforceVotes } from './workforce.js?v=20260913e';
+import { mockDB } from '../core/domain.js?v=20260913f';
+import { persist } from '../core/data-adapter.js?v=20260913f';
+import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES } from '../mock/index.js?v=20260913f';
+import { isInitStateActive } from './init-reset.js?v=20260913f'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName, liveMembers } from './person.js?v=20260913f';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260913f';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from './runtime.js?v=20260913e';
-import { NoticeStore } from './notice.js?v=20260913e';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260913e';
-import { loadActivities } from './activity.js?v=20260913e';
-import { AuthStore } from './auth.js?v=20260913e';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913e'; // 支委层应到名单单一源（勿手写）
+import { BranchService } from './runtime.js?v=20260913f';
+import { NoticeStore } from './notice.js?v=20260913f';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260913f';
+import { loadActivities } from './activity.js?v=20260913f';
+import { AuthStore } from './auth.js?v=20260913f';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913f'; // 支委层应到名单单一源（勿手写）
 
 // 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -31,6 +31,32 @@ import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913e'; // �
 //     committeeDecision[] = 历次表决留痕（append-only）。status/approvalStatus 沿用既有语义。
 
 const TASKFORCE_STORAGE_KEY = 'workflowos_taskforces_v1';
+
+/**
+ * 旧数据迁移：把 legacy 白名单条目解析为成员（**禁止凭姓名猜身份**，2026-09-13 数据一致性专项）
+ *  解析顺序：① 显式 id（personId / id）按 id 精确匹配（唯一权威键）；
+ *            ② 无 id 时按姓名匹配，**仅当唯一命中**（恰好 1 人）才采纳。
+ *  0 命中或重名（≥2 命中）一律返回 person=null——宁可留空（displayName 仍保留原文供人工核对），
+ *  也不张冠李戴（原实现 `.find(p => p.name === …)` 取首个命中，重名/改名即错配）。
+ * @param {string|Object} raw legacy 条目（字符串姓名 / {name, personId?}）
+ * @returns {{ person: Object|null, displayName: string }}
+ */
+function _resolveLegacyMember(raw) {
+  const rec = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  const name = typeof raw === 'string' ? raw : (rec.name || '');
+  const key = String(name || '').trim();
+  const members = liveMembers(); // 实时视图：含运行期新增/覆盖层成员，非模块加载期快照
+  const rawId = rec.personId || rec.id;
+  if (rawId) {
+    const byId = members.find(p => p.id === String(rawId));
+    if (byId) return { person: byId, displayName: byId.name };
+  }
+  if (key) {
+    const hits = members.filter(p => p.name === key);
+    if (hits.length === 1) return { person: hits[0], displayName: hits[0].name };
+  }
+  return { person: null, displayName: key };
+}
 
 function _loadTaskForces() {
   try {
@@ -108,7 +134,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260913e').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260913f').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }
@@ -295,10 +321,10 @@ export const TaskForceRecordStore = {
             manager: '组织委员',
             initiator: '宣传委员',
             members: value.map((name, idx) => {
-              const person = PEOPLE.find(p => p.name === (typeof name === 'string' ? name : name.name));
+              const { person, displayName } = _resolveLegacyMember(name);
               return {
                 personId: person ? person.id : null,
-                name: typeof name === 'string' ? name : (name.name || '成员' + (idx + 1)),
+                name: displayName || ('成员' + (idx + 1)),
                 role: 'deep',
                 contributions: [],
               };

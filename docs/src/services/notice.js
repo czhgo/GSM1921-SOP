@@ -5,18 +5,18 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913e';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913e';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913e';
-import { bumpToken } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260913e';
-import { isInitStateActive } from './init-reset.js?v=20260913e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260913e';
-import { AuthStore } from './auth.js?v=20260913e';
-import { getPersonById } from './person.js?v=20260913e';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913e';
-import { badgeHtml } from '../components/badges.js?v=20260913e';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913e';
+import { mockDB } from '../core/domain.js?v=20260913f';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913f';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913f';
+import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260913f';
+import { isInitStateActive } from './init-reset.js?v=20260913f'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260913f';
+import { AuthStore } from './auth.js?v=20260913f';
+import { getPersonById } from './person.js?v=20260913f';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913f';
+import { badgeHtml } from '../components/badges.js?v=20260913f';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913f';
 
 function _loadNotices() {
   try {

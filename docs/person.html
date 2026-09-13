@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+<script src="./src/theme-init.js?v=20260913f"></script>
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成员档案 — 示例组织（光华管理学院本科生党支部）</title>
+  <meta name="description" content="成员档案独立查阅页（只读全文，编辑走模态）">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="./src/tailwind-config.js?v=20260913f"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260913f">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+</head>
+<body>
+
+<header id="app-header"></header>
+<div id="sidebar-overlay"></div>
+<aside id="app-sidebar" class="sidebar-collapsed"></aside>
+
+<div class="sidebar-main-content pt-16 min-h-screen">
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <button id="person-back-btn" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 transition-colors">
+      ← 返回
+    </button>
+    <div id="person-archive-card" class="card rounded-xl p-8">
+      <!-- 动态渲染 -->
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./src/entries/person-entry.js?v=20260913f"></script>
+</body>
+</html>

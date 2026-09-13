@@ -5,7 +5,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
-  return import('../../../components/activity-view.js?v=20260913e').then(m => m.renderActivityView(el, {
+  return import('../../../components/activity-view.js?v=20260913f').then(m => m.renderActivityView(el, {
     highlightId: ctx?.highlightActId || null,
     // B6④（2026-09-12）：组织台「活动查看（只读）」传 readonly，禁表决写入口（我的表态/提交表态）
     readonly: true,

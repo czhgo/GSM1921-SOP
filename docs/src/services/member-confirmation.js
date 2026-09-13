@@ -19,16 +19,18 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913e';
-import { persist } from '../core/data-adapter.js?v=20260913e';
-import { bumpToken } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
+import { mockDB } from '../core/domain.js?v=20260913f';
+import { persist } from '../core/data-adapter.js?v=20260913f';
+import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913e';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260913e';
-import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260913e';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913f';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260913f';
+import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260913f';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260913e';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260913f';
+// 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
+import { isActivityNotStarted } from '../core/constants.js?v=20260913f';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -226,13 +228,11 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
 
 // ── 提交：成员移出（引用清单化；安全引用一键解除 / 历史记录报支书确认转「已转出」）──
 
-/** 活动是否「未开始」（裁定字面：status ∉ {completed, archived} 且（无 date 或 date >= 今天）） */
+/** 活动是否「未开始」（裁定字面：status ∉ {completed, archived} 且（无 date 或 date >= 今天））
+ *  口径单一源 = core/constants.js::isActivityNotStarted（2026-09-13 收敛；空值兜底保持原语义） */
 function _isNotStarted(a) {
   if (!a) return false;
-  if (a.archived || a.status === 'completed') return false;
-  if (!a.date) return true;
-  const today = new Date().toISOString().slice(0, 10);
-  return String(a.date).slice(0, 10) >= today;
+  return isActivityNotStarted(a);
 }
 
 /** 扫描某成员的引用并分类 safe（自动解除）/ keep（保留 + 转「已转出」标注） */

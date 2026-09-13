@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260913e"></script>
+<script src="./src/theme-init.js?v=20260913f"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260913e"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260913e">
+  <script src="./src/tailwind-config.js?v=20260913f"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260913f">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -265,6 +265,8 @@
               <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
               <tr><td><a href="./notice.html">通知详情</a></td><td>单条通知的正文（读后消未读需登录）</td><td>公共可看</td><td>首页通知区；工作台待办「未读通知」条</td></tr>
               <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 专班查看」行内链接</td></tr>
+              <tr><td><a href="./thought-report.html">思想汇报阅读</a></td><td>单篇思想汇报的<strong>长文阅读页</strong>：期次 / 提交人 / 状态 / 字数 + 正文 + 初阅留痕；组织委员可就地初阅（通过 / 退回），本人可就地撤回或改后重交；也可按人聚合（<code>?personId=</code>）看某人全部期次</td><td>需登录；<strong>仅本人与支委层</strong>可读</td><td>成员台 / 组织台「思想汇报」列表点击某篇；通知深链</td></tr>
+              <tr><td><a href="./person.html">成员档案</a></td><td>单个成员的<strong>完整档案页</strong>：基础档案 / 在册管理与变更留痕 / 关联概览（思想汇报、活动、专班、考勤、考察计数）；组织委员 / 支书 / 副支书可打开「档案编辑」模态</td><td>需登录</td><td>各「第一列是人」的表格点击姓名或「编辑」入口</td></tr>
               <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，支书反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
               <tr><td><a href="./help.html">帮助（本页）</a></td><td>系统说明书：目录树 + 搜索 + 章节讲解 + 功能地图</td><td>公共</td><td>侧边栏「帮助」</td></tr>
               <tr><td><a href="./about.html">关于</a></td><td>支部故事、成长路径与工作哲学（叙事性介绍）</td><td>公共</td><td>侧边栏「关于」（静态托管形态显示）</td></tr>
@@ -437,8 +439,8 @@
               <tr><td>专班管理</td><td>组织委员</td><td>专班唯一统筹节点：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「党建」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
               <tr><td>成员名册</td><td>组织委员</td><td>成员档案管理：新增 / 行内编辑 / 删除 / 分组</td><td>「党建」段；「+ 成员」录入；行内点编辑改档案</td></tr>
               <tr><td>人才库</td><td>组织委员</td><td>积极分子 / 发展对象档案与考察画像视图</td><td>「党建」段；点人看画像与考察材料归集</td></tr>
-              <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（含思想汇报只读展开）</td><td>「党建」段；按阶段列表查看 / 推进</td></tr>
-              <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报组织初阅把关：通过 → 正式归档；退回附意见（提交者可见并修改重交）</td><td>「党建」段；点开待初阅汇报 → 「通过 / 退回」；退回时填写意见</td></tr>
+              <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（每人的思想汇报篇数与期次，点进独立阅读页）</td><td>「党建」段；按阶段/党小组/发展分面筛选；点查看 / 推进</td></tr>
+              <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报组织初阅把关：通过 → 正式归档；退回附意见（提交者可见并修改重交）</td><td>「党建」段；点某篇 → 跳<strong>独立阅读页</strong> → 「通过 / 退回」；「按人浏览」可看某人全部期次</td></tr>
               <tr><td>活动查看</td><td>组织委员</td><td>全支部活动只读知情查看（无职责≠无知情权）</td><td>「党建」段；点活动卡看详情 / 议程</td></tr>
               <tr><td>我的处置</td><td>组织委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
             </tbody>
@@ -520,7 +522,7 @@
               <tr><td>活动动态</td><td>成员 / 组织者 / 深度参与者</td><td>支部活动浏览与报名（按阶段批量选人由组织侧配置）</td><td>「党建」段；点活动卡 → 「报名」/ 查看详情</td></tr>
               <tr><td>考勤概况</td><td>成员 / 组织者 / 深度参与者</td><td>个人考勤与补课状态</td><td>「党建」段；查看个人出勤 / 待补课任务</td></tr>
               <tr><td>我的考察</td><td>成员 / 组织者 / 深度参与者</td><td>个人考察材料（积极分子 / 发展对象）</td><td>「党建」段；查看 / 补充材料</td></tr>
-              <tr><td>思想汇报</td><td>成员 / 组织者 / 深度参与者</td><td>提交思想汇报：经组织委员初阅通过才正式归档；退回可修改重交</td><td>「党建」段；「+ 提交」写内容 → 提交 → 关注初阅结果</td></tr>
+              <tr><td>思想汇报</td><td>成员 / 组织者 / 深度参与者</td><td>按季度提交思想汇报（一期可多篇）：经组织委员初阅通过才正式归档；退回可修改重交</td><td>「党建」段；选期次 + 写正文（显示字数，1500 字为软提示）→ 提交；点列表某篇 → 独立阅读页查看 / 撤回 / 改后重交</td></tr>
               <tr><td>我的复盘</td><td>组织者 / 深度参与者为主</td><td>活动复盘提交与查看（复盘提交入口所在，普通成员在此查看自己参与的复盘）</td><td>「党建」段；选活动 → 填复盘 → 提交；组长 / 纪检在各自台复核</td></tr>
             </tbody>
           </table>
@@ -817,9 +819,9 @@
           <p class="help-card-desc"><strong>谁来用：</strong>党员 / 发展对象提交（正文篇幅建议充分详实）；组织委员初阅把关（通过才正式归档，退回须附意见）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员：思想汇报 tab 文本框写正文 →「提交」（状态 = 待初阅）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员：待初阅队列（先到先阅，按提交时间升序）→「阅看」全文 →「通过 · 归档」或「退回 · 需补充」（退回必填意见）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回后：提交人列表该篇标「已退回 · 需补充」并展示退回意见 →「修改并重新提交」→ 回待初阅队列。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员：思想汇报 tab 选<strong>期次</strong>（季度，如 2026-Q3）→ 写正文（实时显示字数，约 1500 字为<strong>软提示不拦截</strong>）→「提交」（状态 = 待初阅）。<strong>同一期次可多篇</strong>（补充稿并存）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员：待初阅队列（先到先阅，按提交时间升序）→ 点某篇进入<strong>独立阅读页</strong>（长文排版）→「通过并归档」或「打回」（打回必填意见）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回后：提交人在列表见「已退回 · 待修改」，点进独立阅读页 →「修改并重新提交」→ 回待初阅队列；本人对「待初阅」的篇目还可在阅读页「撤回」。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后自动通知组织委员（待初阅）；「通过」即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步）；每次初阅记录（谁于何时通过 / 退回 + 意见），组织侧「按人浏览」可按人查看全部汇报与记录；重交后刷新提交时间并回待初阅队列，历史记录保留。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>退回必填意见（否则拦截）；仅提交人本人可修改重交；已归档 / 非待初阅状态不可再初阅（重复处理拦截）；仅组织委员角色可初阅（其它角色打开仅提示无权限）。</p>
@@ -1249,9 +1251,9 @@
         <div class="help-card" id="card-chain-thought" data-search="业务链路 思想汇报 提交 待初阅 把关 初阅 通过归档 退回 重交 组织委员 个人档案">
           <h4 class="help-card-title">成员提交 → 组织初阅 → 归档 / 退回重交</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 提交：成员台「思想汇报」写正文提交（状态 = 待初阅），自动通知组织委员。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">把关：组织台「思想汇报」待初阅队列先到先阅 → 「通过 · 归档」或「退回 · 需补充」（退回必填意见），每次初阅记录（谁 / 何时 / 意见）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回重交：提交人见退回原因 → 修改后重新提交 → 回待初阅队列（历史记录保留，不重复归档）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 提交：成员台「思想汇报」选期次 + 写正文提交（状态 = 待初阅），自动通知组织委员（含期次）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">把关：组织台「思想汇报」待初阅队列先到先阅 → 点进<strong>独立阅读页</strong>长文阅读 → 「通过并归档」或「打回」（打回必填意见），每次初阅记录（谁 / 何时 / 意见）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回重交：提交人见退回原因 → 在阅读页修改后重新提交 → 回待初阅队列（历史记录保留，不重复归档）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点：通过即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步），供 4.4 考察与 4.5 发展调用。</li>
           </ol>
         </div>
@@ -1456,6 +1458,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260913e"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260913f"></script>
 </body>
 </html>

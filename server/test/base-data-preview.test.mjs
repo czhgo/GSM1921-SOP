@@ -6,20 +6,20 @@
 //     stats 与 roster 口径一致（支部党员大会应到 = 党员 − 滞留、小组按组）
 //   applyPreview / clearPreview 读写 localStorage 预览键；PersonStore / roster 应到链读取叠加即时变化
 // 口径单一源 = core/policy-defaults.js attendance.roster（与 services/roster.js 同源）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913e query（模块缓存键一致性）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913f query（模块缓存键一致性）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913e';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913e';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260913e';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913f';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913f';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260913f';
 import {
   getMeetingRosterIds, getRosterStats, RESIDENCE as ROSTER_RESIDENCE,
-} from '../../docs/src/services/roster.js?v=20260913e';
+} from '../../docs/src/services/roster.js?v=20260913f';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, RESIDENCE, MEMBER_IDS,
-} from '../../docs/src/services/org-base-data-preview.js?v=20260913e';
+} from '../../docs/src/services/org-base-data-preview.js?v=20260913f';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();

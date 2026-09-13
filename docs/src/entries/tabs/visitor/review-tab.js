@@ -3,17 +3,22 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260913e';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
-import { PersonStore } from '../../../services/person.js?v=20260913e';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260913f';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { showToast } from '../../../core/utils.js?v=20260913f';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260913f';
+// 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
+import { isActivityLive } from '../../../core/constants.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -42,7 +47,7 @@ export function renderContent(ctx) {
   }
 
   const myActivities = loadActivities()
-    .filter(a => myIds.has(a.id) && a.status !== 'cancelled' && !a.archived)
+    .filter(a => myIds.has(a.id) && isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   // 获取已有复盘记录
@@ -114,26 +119,75 @@ export function renderContent(ctx) {
 
       <div class="mb-4">
         <div class="text-xs font-bold text-gray-600 mb-2">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
-        <div class="space-y-2" id="visitor-review-pending">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-500 text-center py-3">暂无待复盘活动</p>' :
-            pending.map(item => renderActivityCard(item, 'pending')).join('')}
-        </div>
+        <div id="visitor-review-pending"></div>
       </div>
 
       <div class="pt-3 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-2">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
-        <div class="space-y-2" id="visitor-review-completed">
-          ${completed.length === 0 ? '<p class="text-xs text-gray-500 text-center py-3">暂无已复盘活动</p>' :
-            completed.map(item => renderActivityCard(item, 'completed')).join('')}
-        </div>
+        <div id="visitor-review-completed"></div>
       </div>
     </div>
   `;
 
+  // 统一检索引擎（第一列是活动的列表：关键词 名称/地点 + 分面 月份/类别/类型/状态；≤8 行自动不渲染检索条）
+  const _rvKeyword = activityKeyword();
+  const _rvFacets = activityFacets();
+  const pendingHost = container.querySelector('#visitor-review-pending');
+  const completedHost = container.querySelector('#visitor-review-completed');
+  if (pendingHost) {
+    renderFilteredList(pendingHost, {
+      stateKey: 'visitor-review-pending',
+      rows: pending.map(it => ({ ...it.act, rev: it.rev })),
+      keyword: _rvKeyword,
+      facets: _rvFacets,
+      countUnit: '条',
+      listClass: 'space-y-2',
+      emptyMessage: '暂无待复盘活动',
+      rowHtml: (r) => renderActivityCard({ act: r, rev: r.rev }, 'pending'),
+    });
+  }
+  if (completedHost) {
+    renderFilteredList(completedHost, {
+      stateKey: 'visitor-review-completed',
+      rows: completed.map(it => ({ ...it.act, rev: it.rev })),
+      keyword: _rvKeyword,
+      facets: _rvFacets,
+      countUnit: '条',
+      listClass: 'space-y-2',
+      emptyMessage: '暂无已复盘活动',
+      rowHtml: (r) => renderActivityCard({ act: r, rev: r.rev }, 'completed'),
+    });
+  }
+
   // 绑定活动卡片点击展开/收起（保态折叠 2026-09-06：直接切 .visitor-review-body 的 hidden，
   // 不整页重建——展开中填写的复盘总结在收起/切换时保留；仅提交复盘成功后走 renderContent 重置）
-  container.querySelectorAll('.review-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
+  // 事件委托：引擎筛选会重渲染行，故把监听挂在各列表宿主上（宿主随整页 innerHTML 重建，无监听堆积）
+  [pendingHost, completedHost].filter(Boolean).forEach(host => {
+    host.addEventListener('click', (e) => {
+      // 复盘提交（落库链路 = services/review.js::submitActivityReviewForm 单一源）
+      const submitBtn = e.target.closest('.btn-review-submit');
+      if (submitBtn) {
+        const actId = submitBtn.dataset.actId;
+        const textarea = container.querySelector(`#review-textarea-${actId}`);
+        const content = textarea?.value?.trim();
+        if (!content) {
+          showToast('error', '请填写复盘总结');
+          return;
+        }
+        const issuesEl = container.querySelector(`#review-issues-${actId}`);
+        const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+        const res = submitActivityReviewForm({ activityId: actId, content, issues, actorId: currentUserId });
+        if (!res.ok) { showToast('error', res.error); return; }
+
+        _reviewExpandedId = null;
+        showToast('success', '复盘总结已提交，等待纪检委员确认');
+        renderContent(ctx);
+        return;
+      }
+
+      const toggle = e.target.closest('.review-toggle');
+      if (!toggle) return;
       const item = toggle.closest('.visitor-review-item');
       const actId = item?.dataset.actId;
       const prevId = _reviewExpandedId;
@@ -158,28 +212,6 @@ export function renderContent(ctx) {
         // 补一次滚动让展开区可见（原先展开后底部内容跑到视口外，需手动下滚）
         scrollDetailIntoView(body, { block: 'nearest' });
       }
-    });
-  });
-
-  // 绑定复盘表单提交按钮（落库链路 = services/review.js::submitActivityReviewForm 单一源）
-  container.querySelectorAll('.btn-review-submit').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const actId = btn.dataset.actId;
-      const textarea = container.querySelector(`#review-textarea-${actId}`);
-      const content = textarea?.value?.trim();
-      if (!content) {
-        showToast('error', '请填写复盘总结');
-        return;
-      }
-      const issuesEl = container.querySelector(`#review-issues-${actId}`);
-      const issues = (issuesEl?.value || '').split('\n').map(s => s.trim()).filter(Boolean);
-
-      const res = submitActivityReviewForm({ activityId: actId, content, issues, actorId: currentUserId });
-      if (!res.ok) { showToast('error', res.error); return; }
-
-      _reviewExpandedId = null;
-      showToast('success', '复盘总结已提交，等待纪检委员确认');
-      renderContent(ctx);
     });
   });
 }

@@ -2,15 +2,18 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260913e';
-import { persist } from '../../../core/data-adapter.js?v=20260913e';
-import { reviewToDisplay } from '../../../services/review.js?v=20260913e';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { openFormModal } from '../../../components/modal.js?v=20260913e';
-import { NoticeStore } from '../../../services/notice.js?v=20260913e';
-import { getPersonById } from '../../../services/person.js?v=20260913e';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913e';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260913f';
+import { persist } from '../../../core/data-adapter.js?v=20260913f';
+import { reviewToDisplay } from '../../../services/review.js?v=20260913f';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { showToast } from '../../../core/utils.js?v=20260913f';
+import { openFormModal } from '../../../components/modal.js?v=20260913f';
+import { NoticeStore } from '../../../services/notice.js?v=20260913f';
+import { getPersonById } from '../../../services/person.js?v=20260913f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260913f';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -79,13 +82,18 @@ export function renderContent(ctx) {
   // 经验沉淀督促清单：已确认复盘但未沉淀的活动
   const unDepositedReviews = reviewData.filter(r => r.reviewStatus === '已确认' && !hasDeposit(r));
 
-  container.innerHTML = `
-    <div class="space-y-4">
-      <div class="card rounded-lg p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
-        <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
-        <div class="space-y-2">
-          ${reviewData.map(r => `
+  // ── 统一检索引擎行数据（第一列是活动）：按 activityId 补齐活动字段，供关键词/分面取用 ──
+  const _actById = new Map(loadActivities().map(a => [a.id, a]));
+  const _withAct = (r) => {
+    const a = r.activityId ? _actById.get(r.activityId) : null;
+    return { ...r, title: r.activity, date: a?.date || '', type: a?.type || '', status: a?.status, archived: a?.archived };
+  };
+  const flowRows = reviewData.map(_withAct);
+  const itemRows = reviewData.filter(r => r.reviewStatus !== '—').map(_withAct);
+  const depositRows = unDepositedReviews.map(_withAct);
+
+  /** 活动流程监督行 */
+  const flowRowHtml = (r) => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}">
               ${r.activityId
                 ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
@@ -100,29 +108,13 @@ export function renderContent(ctx) {
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-600'}">${r.progress}</span>
                 ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">邮件提醒</button>` : ''}
               </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      <div class="card rounded-lg p-5">
-        <div class="flex items-center justify-between gap-2 mb-1">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
-          ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
-          <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
-        </div>
-        <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回</div>
-        ${_batchModeOn ? `
-        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
-          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「已上传」复盘（已确认/打回/批注中/未提交行置灰不可勾）</span>
-          <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
-        </div>` : ''}
-        <div class="space-y-2">
-          ${reviewData.filter(r => r.reviewStatus !== '—').map(r => {
-            // 可确认口径与单行「确认」按钮一致：仅「已上传」行可勾（taskforce 与 activity
-            // 复盘在本 tab 均走 updateReviewById 同一确认语义落库，故一并纳入；其余状态置灰）。
-            const confirmable = r.reviewStatus === ReviewStatus.UPLOADED;
-            const checked = _batchCheckedIds.has(r.id);
-            return `
+            </div>`;
+
+  /** 活动复盘监督行（可确认口径与单行「确认」按钮一致：仅「已上传」行可勾） */
+  const itemRowHtml = (r) => {
+    const confirmable = r.reviewStatus === ReviewStatus.UPLOADED;
+    const checked = _batchCheckedIds.has(r.id);
+    return `
             <div class="p-3 rounded-xl bg-white">
               <div class="flex items-center justify-between gap-2 mb-2">
                 <div class="flex items-center gap-2 min-w-0">
@@ -156,98 +148,90 @@ export function renderContent(ctx) {
                   <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${r.id}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
                 ` : ''}
               </div>
-            </div>
-          `; }).join('')}
-        </div>
-      </div>
-      ${unDepositedReviews.length > 0 ? `
-      <div class="card rounded-lg p-5">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">经验沉淀督促清单</h3>
-        <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
-        <div class="space-y-2">
-          ${unDepositedReviews.map(r => `
+            </div>`;
+  };
+
+  /** 经验沉淀督促行 */
+  const depositRowHtml = (r) => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                 <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
               </div>
               <button class="text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 btn-disc-urge-deposit" style="cursor:pointer;" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
-            </div>
-          `).join('')}
+            </div>`;
+
+  container.innerHTML = `
+    <div class="space-y-4">
+      <div class="card rounded-lg p-5">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
+        <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
+        <div id="disc-review-flow-list"></div>
+      </div>
+      <div class="card rounded-lg p-5">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">活动复盘监督</h3>
+          ${(_batchModeOn || reviewData.some(r => r.reviewStatus === ReviewStatus.UPLOADED)) ? `
+          <button class="btn-action btn-action-gray js-batch-toggle" style="cursor:pointer;">${_batchModeOn ? '退出批量模式' : '批量确认'}</button>` : ''}
         </div>
+        <div class="text-xs text-gray-500 mb-3">复盘流转：已上传 → 批注中 → 确认/打回</div>
+        ${_batchModeOn ? `
+        <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 mb-3 text-xs text-gray-600">
+          <span>已勾选 <b class="js-batch-count tabular-nums">${_batchCheckedIds.size}</b> 条「已上传」复盘（已确认/打回/批注中/未提交行置灰不可勾）</span>
+          <button class="btn-action btn-action-green js-batch-confirm" style="cursor:${_batchCheckedIds.size ? 'pointer' : 'not-allowed'};${_batchCheckedIds.size ? '' : 'opacity:0.5;'}" ${_batchCheckedIds.size ? '' : 'disabled'}>批量确认所选（${_batchCheckedIds.size}）</button>
+        </div>` : ''}
+        <div id="disc-review-items-list"></div>
+      </div>
+      ${unDepositedReviews.length > 0 ? `
+      <div class="card rounded-lg p-5">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">经验沉淀督促清单</h3>
+        <div class="text-xs text-gray-500 mb-3">以下活动复盘已确认但尚未沉淀经验，请督促深度参与者提交</div>
+        <div id="disc-review-deposit-list"></div>
       </div>
       ` : ''}
     </div>
   `;
 
+  // 统一检索引擎（第一列是活动的列表：关键词 名称/地点 + 分面 月份/类别/类型/状态；≤8 行自动不渲染检索条）
+  const _rvKeyword = activityKeyword();
+  const _rvFacets = activityFacets();
+  renderFilteredList(container.querySelector('#disc-review-flow-list'), {
+    stateKey: 'disc-review-flow',
+    rows: flowRows,
+    keyword: _rvKeyword,
+    facets: _rvFacets,
+    countUnit: '条',
+    listClass: 'space-y-2',
+    emptyMessage: '无匹配复盘记录',
+    rowHtml: flowRowHtml,
+  });
+  renderFilteredList(container.querySelector('#disc-review-items-list'), {
+    stateKey: 'disc-review-items',
+    rows: itemRows,
+    keyword: _rvKeyword,
+    facets: _rvFacets,
+    countUnit: '条',
+    listClass: 'space-y-2',
+    emptyMessage: '无匹配复盘记录',
+    rowHtml: itemRowHtml,
+  });
+  if (container.querySelector('#disc-review-deposit-list')) {
+    renderFilteredList(container.querySelector('#disc-review-deposit-list'), {
+      stateKey: 'disc-review-deposit',
+      rows: depositRows,
+      keyword: _rvKeyword,
+      facets: _rvFacets,
+      countUnit: '条',
+      listClass: 'space-y-2',
+      emptyMessage: '无匹配待沉淀活动',
+      rowHtml: depositRowHtml,
+    });
+  }
+
   // ── 复盘真操作（2026-08-05 修复：批注/打回/确认/邮件提醒均落库，不再只弹 toast） ──
-  container.querySelectorAll('.btn-disc-remind').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.reviewId;
-    const item = reviewData.find(r => r.id === id);
-    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
-    if (item) _notifyReviewOrganizer(item, 'review-overdue-reminder');
-    showToast('success', '超时邮件提醒已发送');
-  }));
-  container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => {
-    const reviewId = btn.dataset.reviewId;
-    openFormModal({
-      id: 'annotation',
-      title: '添加批注',
-      fields: [
-        { key: 'type', label: '批注类型', type: 'select', required: true, options: [
-          { value: 'suggestion', label: '建议' },
-          { value: 'question', label: '疑问' },
-          { value: 'correction', label: '纠正' },
-          { value: 'praise', label: '肯定' }
-        ]},
-        { key: 'content', label: '批注内容', type: 'textarea', required: true, placeholder: '请输入批注内容...' }
-      ],
-      onSubmit: (values) => {
-        const updated = updateReviewById(reviewId, {
-          reviewStatus: ReviewStatus.ANNOTATING,
-          annotation: values.content,
-          annotationType: values.type,
-          annotatedBy: DISC_COMMISSIONER_ID,
-          annotatedAt: new Date().toISOString(),
-        });
-        if (!updated) { showToast('error', '复盘记录不存在'); return; }
-        showToast('success', '批注已添加，复盘状态更新为批注中');
-        renderContent(ctx);
-      },
-      accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
-    });
-  }));
-  container.querySelectorAll('.btn-disc-reject').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.reviewId;
-    const item = reviewData.find(r => r.id === id);
-    // C2 危险操作二次确认：打回即流转要求组织者重交，先确认再落库（2026-09-12）
-    if (!window.confirm(`确认打回「${(item && (item.sourceName || item.activity)) || '该复盘'}」？打回后要求组织者重新提交复盘总结。`)) return;
-    const updated = updateReviewById(id, {
-      reviewStatus: ReviewStatus.REJECTED,
-      annotatedBy: DISC_COMMISSIONER_ID,
-      annotatedAt: new Date().toISOString(),
-    });
-    if (!updated) { showToast('error', '复盘记录不存在'); return; }
-    showToast('success', '复盘已打回，要求重新提交');
-    renderContent(ctx);
-  }));
-  container.querySelectorAll('.btn-disc-confirm').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.reviewId;
-    const updated = updateReviewById(id, {
-      reviewStatus: ReviewStatus.CONFIRMED,
-      confirmedAt: new Date().toISOString(),
-    });
-    if (!updated) { showToast('error', '复盘记录不存在'); return; }
-    showToast('success', '复盘总结已确认，录入后台，活动结束');
-    renderContent(ctx);
-  }));
-  container.querySelectorAll('.btn-disc-remind-review').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.reviewId;
-    const item = reviewData.find(r => r.id === id);
-    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
-    if (item) _notifyReviewOrganizer(item, 'review-resubmit-reminder');
-    showToast('success', '复盘超期邮件提醒已发送至组织者');
-  }));
+  // 事件委托：引擎筛选会重渲染行，故把监听挂在各列表宿主上（宿主随整页 innerHTML 重建，无监听堆积）
+  const _reviewItemOf = (id) => reviewData.find(r => r.id === id);
+
   // ── 批量确认（2026-09-06 纪检批量评议确认）───────────────────
   // 勾选汇总刷新：更新工具条计数与「批量确认所选（N）」按钮态（初始态已在模板内渲染）
   const refreshBatchBar = () => {
@@ -261,44 +245,9 @@ export function renderContent(ctx) {
       b.style.opacity = n === 0 ? '0.5' : '';
     });
   };
-  // 批量模式开关：进入/退出均清空勾选后重渲染（单行批注/打回/确认交互不受影响）
-  container.querySelectorAll('.js-batch-toggle').forEach(btn => btn.addEventListener('click', () => {
-    _batchModeOn = !_batchModeOn;
-    _batchCheckedIds.clear();
-    renderContent(ctx);
-  }));
-  // 行勾选：disabled 行（已确认/打回/批注中/未提交）不会触发 change，天然置灰不可勾
-  container.querySelectorAll('.js-batch-check').forEach(cb => cb.addEventListener('change', () => {
-    const id = cb.dataset.reviewId;
-    if (!id) return;
-    if (cb.checked) _batchCheckedIds.add(id); else _batchCheckedIds.delete(id);
-    refreshBatchBar();
-  }));
-  // 批量确认：与单行「确认」同一服务路径 updateReviewById（写 reviewStatus=已确认 + confirmedAt 审计）
-  container.querySelectorAll('.js-batch-confirm').forEach(btn => btn.addEventListener('click', () => {
-    if (_batchCheckedIds.size === 0) return;
-    const now = new Date().toISOString();
-    // 落库前二次校验：行仍为「已上传」才确认，否则计为跳过
-    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
-    let ok = 0, skip = 0;
-    for (const id of [..._batchCheckedIds]) {
-      if (!confirmableIds.has(id)) { skip++; continue; }
-      const updated = updateReviewById(id, {
-        reviewStatus: ReviewStatus.CONFIRMED,
-        confirmedAt: now,
-      });
-      if (updated) ok++; else skip++;
-    }
-    _batchCheckedIds.clear();
-    if (ok > 0) {
-      showToast('success', skip > 0 ? `已确认 ${ok} 条（${skip} 条跳过）` : `已确认 ${ok} 条，复盘结束`);
-    } else {
-      showToast('error', '批量确认失败：所选复盘均已不可确认');
-    }
-    renderContent(ctx);
-  }));
-  // 督促沉淀按钮（B 档 CRUD 补全：督促 → 直接在本界面记录经验沉淀，落库同源）
-  container.querySelectorAll('.btn-disc-urge-deposit').forEach(btn => btn.addEventListener('click', () => {
+
+  /** 督促沉淀表单（复盘监督行 / 沉淀清单行共用；B 档 CRUD 补全：落库同源） */
+  const _openDepositForm = (btn) => {
     const reviewId = btn.dataset.reviewId;
     const activityName = btn.dataset.activityName || btn.dataset.organizer || '该活动';
     openFormModal({
@@ -331,5 +280,136 @@ export function renderContent(ctx) {
       },
       accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
     });
+  };
+
+  // 活动流程监督：超期邮件提醒
+  container.querySelector('#disc-review-flow-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-disc-remind');
+    if (!btn) return;
+    const id = btn.dataset.reviewId;
+    const item = _reviewItemOf(id);
+    if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
+    if (item) _notifyReviewOrganizer(item, 'review-overdue-reminder');
+    showToast('success', '超时邮件提醒已发送');
+  });
+
+  // 活动复盘监督：勾选（change）+ 行内动作（click）
+  const itemsHost = container.querySelector('#disc-review-items-list');
+  itemsHost?.addEventListener('change', (e) => {
+    const cb = e.target.closest('.js-batch-check');
+    if (!cb) return;
+    const id = cb.dataset.reviewId;
+    if (!id) return;
+    // disabled 行（已确认/打回/批注中/未提交）不触发 change，天然置灰不可勾
+    if (cb.checked) _batchCheckedIds.add(id); else _batchCheckedIds.delete(id);
+    refreshBatchBar();
+  });
+  itemsHost?.addEventListener('click', (e) => {
+    const annotate = e.target.closest('.btn-disc-annotate');
+    if (annotate) {
+      const reviewId = annotate.dataset.reviewId;
+      openFormModal({
+        id: 'annotation',
+        title: '添加批注',
+        fields: [
+          { key: 'type', label: '批注类型', type: 'select', required: true, options: [
+            { value: 'suggestion', label: '建议' },
+            { value: 'question', label: '疑问' },
+            { value: 'correction', label: '纠正' },
+            { value: 'praise', label: '肯定' }
+          ]},
+          { key: 'content', label: '批注内容', type: 'textarea', required: true, placeholder: '请输入批注内容...' }
+        ],
+        onSubmit: (values) => {
+          const updated = updateReviewById(reviewId, {
+            reviewStatus: ReviewStatus.ANNOTATING,
+            annotation: values.content,
+            annotationType: values.type,
+            annotatedBy: DISC_COMMISSIONER_ID,
+            annotatedAt: new Date().toISOString(),
+          });
+          if (!updated) { showToast('error', '复盘记录不存在'); return; }
+          showToast('success', '批注已添加，复盘状态更新为批注中');
+          renderContent(ctx);
+        },
+        accentColor: ctx.accent || 'var(--accent-disc-commissioner)'
+      });
+      return;
+    }
+    const reject = e.target.closest('.btn-disc-reject');
+    if (reject) {
+      const id = reject.dataset.reviewId;
+      const item = _reviewItemOf(id);
+      // C2 危险操作二次确认：打回即流转要求组织者重交，先确认再落库（2026-09-12）
+      if (!window.confirm(`确认打回「${(item && (item.sourceName || item.activity)) || '该复盘'}」？打回后要求组织者重新提交复盘总结。`)) return;
+      const updated = updateReviewById(id, {
+        reviewStatus: ReviewStatus.REJECTED,
+        annotatedBy: DISC_COMMISSIONER_ID,
+        annotatedAt: new Date().toISOString(),
+      });
+      if (!updated) { showToast('error', '复盘记录不存在'); return; }
+      showToast('success', '复盘已打回，要求重新提交');
+      renderContent(ctx);
+      return;
+    }
+    const confirmBtn = e.target.closest('.btn-disc-confirm');
+    if (confirmBtn) {
+      const id = confirmBtn.dataset.reviewId;
+      const updated = updateReviewById(id, {
+        reviewStatus: ReviewStatus.CONFIRMED,
+        confirmedAt: new Date().toISOString(),
+      });
+      if (!updated) { showToast('error', '复盘记录不存在'); return; }
+      showToast('success', '复盘总结已确认，录入后台，活动结束');
+      renderContent(ctx);
+      return;
+    }
+    const remind = e.target.closest('.btn-disc-remind-review');
+    if (remind) {
+      const id = remind.dataset.reviewId;
+      const item = _reviewItemOf(id);
+      if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
+      if (item) _notifyReviewOrganizer(item, 'review-resubmit-reminder');
+      showToast('success', '复盘超期邮件提醒已发送至组织者');
+      return;
+    }
+    const urge = e.target.closest('.btn-disc-urge-deposit');
+    if (urge) { _openDepositForm(urge); return; }
+  });
+
+  // 经验沉淀督促清单：督促沉淀
+  container.querySelector('#disc-review-deposit-list')?.addEventListener('click', (e) => {
+    const urge = e.target.closest('.btn-disc-urge-deposit');
+    if (urge) _openDepositForm(urge);
+  });
+
+  // 批量模式开关：进入/退出均清空勾选后重渲染（单行批注/打回/确认交互不受影响）
+  container.querySelectorAll('.js-batch-toggle').forEach(btn => btn.addEventListener('click', () => {
+    _batchModeOn = !_batchModeOn;
+    _batchCheckedIds.clear();
+    renderContent(ctx);
+  }));
+  // 批量确认：与单行「确认」同一服务路径 updateReviewById（写 reviewStatus=已确认 + confirmedAt 审计）
+  container.querySelectorAll('.js-batch-confirm').forEach(btn => btn.addEventListener('click', () => {
+    if (_batchCheckedIds.size === 0) return;
+    const now = new Date().toISOString();
+    // 落库前二次校验：行仍为「已上传」才确认，否则计为跳过
+    const confirmableIds = new Set(reviewData.filter(r => r.reviewStatus === ReviewStatus.UPLOADED).map(r => r.id));
+    let ok = 0, skip = 0;
+    for (const id of [..._batchCheckedIds]) {
+      if (!confirmableIds.has(id)) { skip++; continue; }
+      const updated = updateReviewById(id, {
+        reviewStatus: ReviewStatus.CONFIRMED,
+        confirmedAt: now,
+      });
+      if (updated) ok++; else skip++;
+    }
+    _batchCheckedIds.clear();
+    if (ok > 0) {
+      showToast('success', skip > 0 ? `已确认 ${ok} 条（${skip} 条跳过）` : `已确认 ${ok} 条，复盘结束`);
+    } else {
+      showToast('error', '批量确认失败：所选复盘均已不可确认');
+    }
+    renderContent(ctx);
   }));
 }

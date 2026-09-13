@@ -4,10 +4,12 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260913e';
-import { getPersonById } from '../services/person.js?v=20260913e';
-import { getBasePath, showToast } from '../core/utils.js?v=20260913e';
-import { badgeHtml } from './badges.js?v=20260913e';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260913f';
+import { getPersonById } from '../services/person.js?v=20260913f';
+import { getBasePath, showToast } from '../core/utils.js?v=20260913f';
+import { badgeHtml } from './badges.js?v=20260913f';
+// 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
+import { isActivityArchived } from '../core/constants.js?v=20260913f';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -20,7 +22,7 @@ function _today() { return new Date().toISOString().slice(0, 10); }
 /** 该来源是否可报名（与 signup.js _sourceOpen 同规则） */
 export function canSignup(sourceType, source) {
   if (sourceType === 'activity') {
-    if (!source || source.archived || source.status === 'cancelled' || source.status === 'draft') return false;
+    if (!source || isActivityArchived(source) || source.status === 'cancelled' || source.status === 'draft') return false;
     if (!source.date || source.date < _today()) return false;
     return true;
   }

@@ -5,16 +5,18 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/state.js?v=20260913e';
-import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260913e';
-import { getPersonName } from '../../services/person.js?v=20260913e';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260913e';
-import { AuthStore } from '../../services/auth.js?v=20260913e';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260913e';
-import { badgeHtml } from '../badges.js?v=20260913e';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913e';
-import { populateMonthSelector } from '../calendar.js?v=20260913e';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260913e';
+import { setState, getAppState } from '../../core/state.js?v=20260913f';
+import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260913f';
+import { getPersonName } from '../../services/person.js?v=20260913f';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260913f';
+import { AuthStore } from '../../services/auth.js?v=20260913f';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260913f';
+// 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
+import { isActivityArchived } from '../../core/constants.js?v=20260913f';
+import { badgeHtml } from '../badges.js?v=20260913f';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913f';
+import { populateMonthSelector } from '../calendar.js?v=20260913f';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260913f';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -90,7 +92,7 @@ export function renderActivityList(activities, user) {
   // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
   const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
   const sorted = [...activities]
-    .filter(a => a.date && !a.archived)
+    .filter(a => a.date && !isActivityArchived(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))].slice(0, 10);
 

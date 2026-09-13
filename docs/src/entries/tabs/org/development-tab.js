@@ -5,18 +5,22 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913e';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913f';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260913e';
-import { PersonStore } from '../../../services/person.js?v=20260913e';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260913f';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/person.js?v=20260913f';
 // S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260913e';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { getBasePath } from '../../../core/utils.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：候选人列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -83,9 +87,12 @@ function _buildCandidates() {
       return {
         id: `dc_${p.id}`,
         personId: p.id,
-        name: p.name,
+        name: getPersonName(p.id),
         partyGroup: p.partyGroup || '',
         stage: p.developStage,
+        // personFacets 取值字段（分面 auto 派生；字段缺失的维度不占位）
+        developStage: p.developStage,
+        role: p.role || '',
         // C③（2026-09-10 支书裁定）：无真实日期则**不显示**该行，禁止兜底假日期（原 `|| '2026-01-01'`）
         entryDate: (loadDevStageOverrides()[p.id] || {}).entryDate || null,
         inspCount,
@@ -100,14 +107,8 @@ export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
-  // 当前筛选状态（与单体一致：每次进入 tab 重置为 'all'）
-  let _devFilter = 'all';
-
   function render() {
     const candidates = _buildCandidates();
-    const filtered = _devFilter === 'all'
-      ? candidates
-      : candidates.filter(c => c.stage === _devFilter);
 
     // 阶段统计
     const stageCounts = {};
@@ -125,26 +126,14 @@ export function renderContent(ctx) {
       return `<span class="inline-flex items-center gap-1"><span style="width:8px;height:8px;border-radius:50%;background:${sc.dot};display:inline-block;"></span><span class="text-[12px] text-gray-600">${s}</span><span class="text-xs font-bold" style="--acc-text-dark:${sc.dot};color:color-mix(in srgb, ${sc.dot} 60%, #000);">${count}</span></span>${arrow}`;
     }).join('');
 
-    // 筛选按钮
-    const filterBtns = [
-      { value: 'all', label: '全部' },
-      ...STAGE_ORDER.map(s => ({ value: s, label: s })),
-    ].map(f => {
-      const isActive = _devFilter === f.value;
-      const activeCls = isActive
-        ? 'bg-sky-50 text-sky-700 border-sky-200'
-        : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50';
-      return `<button class="dev-filter-btn text-[12px] px-2.5 py-1 rounded-full border transition-colors ${activeCls}" data-filter="${f.value}">${f.label}</button>`;
-    }).join('');
-
-    // 候选人卡片
-    const cardsHtml = filtered.length === 0
-      ? '<p class="text-xs text-gray-500 text-center py-8">当前筛选无候选人</p>'
-      : filtered.map(c => {
+    // 候选人卡片（统一检索引擎：关键词 + 分面；行数 ≤8 时引擎自动不渲染检索条）
+    const rowHtml = (c) => {
           const sc = STAGE_COLOR[c.stage];
           const stageIdx = STAGE_ORDER.indexOf(c.stage);
           const isLast = stageIdx === STAGE_ORDER.length - 1;
           const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
+          // 姓名 → 成员档案独立页（同标签页；人名现取 getPersonName，不用记录内快照）
+          const archiveHref = `${getBasePath()}person.html?id=${encodeURIComponent(c.personId)}`;
           // C① 只读化（2026-09-10 支书裁定）：移除直写「推进至X」，改为名册深链——阶段变更经名册发起、支书确认。
           const actionHtml = !isLast
             ? `<a class="dev-goto-roster-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(c.personId)}" title="发展阶段变更需在成员名册发起，经支书确认后生效（下一节点：${nextStage}）" style="text-decoration:none;">去名册发起变更 →</a>`
@@ -161,7 +150,7 @@ export function renderContent(ctx) {
             <div class="p-4 rounded-lg bg-white border border-gray-50 hover:shadow-sm transition-shadow" data-dev-person-id="${c.personId}">
               <div class="flex items-start justify-between gap-3 mb-2">
                 <div>
-                  <div class="text-sm font-semibold text-gray-800">${c.name}</div>
+                  <div class="text-sm font-semibold text-gray-800"><a href="${archiveHref}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${c.name}</a></div>
                   <div class="flex items-center flex-wrap gap-2 mt-1">
                     <span class="text-xs px-1.5 py-0.5 rounded-full ${sc.bg} ${sc.text} font-medium">${c.stage}</span>
                     ${c.partyGroup ? `<span class="text-xs text-gray-500">${c.partyGroup}</span>` : ''}
@@ -179,7 +168,7 @@ export function renderContent(ctx) {
               <div class="flex items-center gap-0.5 mb-2">${progressDots}</div>
               <div class="text-[12px] text-gray-500">${c.note || ''}</div>
             </div>`;
-        }).join('');
+        };
 
     container.innerHTML = `
       <div class="card rounded-xl p-5">
@@ -192,23 +181,20 @@ export function renderContent(ctx) {
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}
         </div>
-        <!-- 筛选栏 -->
-        <div class="flex flex-wrap gap-1.5 mb-4">
-          ${filterBtns}
-        </div>
-        <!-- 候选人列表 -->
-        <div class="space-y-3">
-          ${cardsHtml}
-        </div>
+        <!-- 候选人列表（统一检索引擎；≤8 行不渲染检索条） -->
+        <div id="org-dev-list"></div>
       </div>
     `;
 
-    // 绑定筛选事件
-    container.querySelectorAll('.dev-filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        _devFilter = btn.dataset.filter;
-        render();
-      });
+    renderFilteredList(document.getElementById('org-dev-list'), {
+      stateKey: 'org-development-table',
+      rows: candidates,
+      keyword: personKeyword(),
+      facets: personFacets({ roleLabel: roleLabelOf }),
+      countUnit: '人',
+      listClass: 'space-y-3',
+      emptyMessage: '无匹配候选人',
+      rowHtml,
     });
 
     // C①（2026-09-10 支书裁定）：原「推进至X」直写事件（.dev-advance-btn → localStorage 覆盖档案）已移除，

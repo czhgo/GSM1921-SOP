@@ -9,13 +9,90 @@
 //    approve → archived（通过即归档）；reject（须附意见）→ needs_revision → 本人
 //    修改重交 → 回 pending。旧数据（R6-2 前算法归档产物，无 reviewStatus）
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
+//
+//  ── 2026-09-13 支书裁定：思想汇报改按「面板数据」建模 ──────────────
+//  支书原话：「思想汇报是一个面板数据——一个人可以在多个季度上传他的思想汇报。
+//    不强制！但是数据类型上要设定好同一个人 id 下的多个思想汇报。
+//    此外思想汇报一般而言 1500 字左右。我认为还是需要用一个界面来承载！而不是展开！」
+//  落地口径（grill-me 面谈定案）：
+//   ① 期次（period）：格式 `YYYY-Qn`（如 '2026-Q3'）；提交时**手填**（跨季补交可归对期次），
+//      服务层缺省按 submittedAt 推导兜底（存量数据/接口调用零破坏）。**不强制提交**。
+//   ② 一人多篇：同一 personId 同一期次**允许多篇**（补充稿/修改稿并存）——数据层无唯一性约束。
+//   ③ 篇幅：约 1500 字为**软提示**（界面显示实时字数 + 建议篇幅），不作硬性拦截；
+//      单一源 = policy-defaults.thoughtReport（原「界面不展示字数为宜」的口径冲突已裁定作废）。
+//   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913e';
-import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260913e';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260913e';
-import { NoticeStore } from './notice.js?v=20260913e';
-import { getPersonById } from './person.js?v=20260913e';
+import { mockDB } from '../core/domain.js?v=20260913f';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260913f';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260913f';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913f';
+// 期次纯函数单一源 = core/period.js（服务层与通知模板共用，避免 core→services 环依赖）
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
+// 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913f';
+import { NoticeStore } from './notice.js?v=20260913f';
+import { getPersonById } from './person.js?v=20260913f';
+
+/** 期次助手再导出（既有/新增消费方沿用 services/thought-report.js 入口，勿另建第二份实现） */
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260913f';
+
+// ════════════════════════════════════════════════════════════════
+//  访问门（单一源，2026-09-13）
+//  ════════════════════════════════════════════════════════════════
+//  思想汇报是个人思想材料：**仅本人与支委层可读**；把关式初阅为组织委员功能位。
+//  界面显隐（阅读页按钮/列表入口）与服务层校验（reviewThoughtReport）**必须同源**，
+//  否则会出现「按钮看得见、点了报无权限」的错位。故角色集合在此定义一次，两处引用。
+
+/** 初阅功能位角色（把关式初阅 = 组织委员） */
+export const THOUGHT_REVIEWER_ROLES = Object.freeze(['org-commissioner']);
+/** 可读他人思想汇报的角色（支委层；本人恒可读自己的） */
+export const THOUGHT_READER_ROLES = BRANCH_COMMISSION_ROLES;
+
+/**
+ * 是否可读某篇思想汇报（本人 或 支委层）
+ * @param {Object} rec 思想汇报记录
+ * @param {{personId?:string, role?:string}} viewer 当前用户
+ */
+export function canReadThoughtReport(rec, viewer) {
+  if (!rec || !viewer) return false;
+  if (rec.personId === viewer.personId) return true;
+  return THOUGHT_READER_ROLES.includes(viewer.role);
+}
+
+/** 是否可初阅（组织委员功能位；与 reviewThoughtReport 内部校验同源） */
+export function canReviewThoughtReport(viewer) {
+  return !!viewer && THOUGHT_REVIEWER_ROLES.includes(viewer.role);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  篇幅口径（软提示，单一源 = policy-defaults.thoughtReport）
+// ════════════════════════════════════════════════════════════════
+
+/** 建议篇幅（字）——仅供提示，不作拦截 */
+export function wordHint() {
+  return POLICY_DEFAULTS.thoughtReport.wordHint;
+}
+
+/** 「明显偏短」提示线（字）——低于此值提示补充，仍可提交 */
+export function wordSoftMin() {
+  return POLICY_DEFAULTS.thoughtReport.wordSoftMin;
+}
+
+/**
+ * 篇幅提示文案（提交侧/初阅侧共用；单一源）
+ * @param {string} content 正文
+ * @returns {{ count:number, level:'ok'|'short', hint:string }}
+ */
+export function wordCountHint(content) {
+  const count = String(content || '').trim().length;
+  const hint = wordHint();
+  const soft = wordSoftMin();
+  if (count >= soft) return { count, level: 'ok', hint: `建议 ${hint} 字左右（软提示，不作拦截）` };
+  return { count, level: 'short', hint: `当前偏短：建议 ${hint} 字左右（软提示，不作拦截，组织初阅会据此把关）` };
+}
+
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）
@@ -34,18 +111,22 @@ export const THOUGHT_REVIEW_STATUS = Object.freeze({
 const _REVIEW_STATUS_SET = new Set(Object.values(THOUGHT_REVIEW_STATUS));
 
 /**
- * 读取归一（旧数据兼容，R6-2）：无 reviewStatus / 状态非法的记录
- * （R6-2 前算法归档产物）按「已归档」处理——不入待初阅队列、不可再初阅。
+ * 读取归一（旧数据兼容，R6-2 + 2026-09-13 期次）：
+ *  · 无 reviewStatus / 状态非法（R6-2 前算法归档产物）→ 按「已归档」处理；
+ *  · 无 period / 格式非法（面板数据改造前的存量记录）→ 按 submittedAt 推导期次。
+ * 两条归一都保证「读到的记录字段完整」，调用方无需各自兜底（避免各处口径不一）。
  * @param {Object} r 原始记录
- * @returns {Object} 归一后副本（reviewStatus 恒为合法值）
+ * @returns {Object} 归一后副本
  */
 function _effective(r) {
+  const periodOk = PERIOD_RE.test(String((r && r.period) || ''));
   return {
     ...r,
     reviewStatus: _REVIEW_STATUS_SET.has(r && r.reviewStatus)
       ? r.reviewStatus
       : THOUGHT_REVIEW_STATUS.ARCHIVED,
     reviewHistory: Array.isArray(r && r.reviewHistory) ? r.reviewHistory : [],
+    period: periodOk ? String(r.period) : periodOf(r && r.submittedAt),
   };
 }
 
@@ -59,22 +140,31 @@ export function loadThoughtReports() {
 /**
  * 提交思想汇报（R6-2 把关式初阅：提交 → 待组织初阅 pending，组织委员初阅通过后归档；
  * 打回则本人修改重交。不再"提交即归档"）
+ * 2026-09-13 面板数据改造：新增期次（period）维度——手填优先，缺省按提交时间推导；
+ *   同一 personId 同一期次**允许多篇**（数据层无唯一性约束，支持补充稿/修改稿并存）。
  * @param {Object} rec
  * @param {string} rec.personId   — 提交人（党员/发展对象）
  * @param {string} rec.content    — 思想汇报正文
  * @param {string} [rec.title]    — 标题（可选，默认「思想汇报」）
- * @returns {Object} 新记录（含 reviewStatus='pending'）
+ * @param {string} [rec.period]   — 期次 `YYYY-Qn`（手填；缺省/非法 → 按提交时间推导）
+ * @returns {Object} 新记录（含 reviewStatus='pending'、period）
  */
-export function addThoughtReport({ personId, content, title }) {
-  // 篇幅惯例（常规要求约 1500 字以上）：仅后台知悉，不作硬性字数拦截（过短内容由组织初阅把关），界面不展示字数为宜
+export function addThoughtReport({ personId, content, title, period }) {
+  // 篇幅惯例（政策默认约 1500 字）：**软提示、不作硬性字数拦截**（过短内容由组织初阅把关）。
+  // 口径单一源 = policy-defaults.thoughtReport；界面按 wordCountHint() 显示实时字数与建议篇幅。
   const person = getPersonById(personId);
+  const submittedAt = new Date().toISOString();
+  const periodValue = PERIOD_RE.test(String(period || '')) ? String(period) : periodOf(submittedAt);
   const rec = {
-    id: 'tr_' + Date.now(),
+    // 唯一 id 走 core/id.js（crypto.randomUUID）；原 `'tr_' + Date.now()` 在**同毫秒连提两篇**
+    // 时产生同 id（重复主键 → 归集/初阅指向错乱），2026-09-13 由面板数据用例实测暴露并根治。
+    id: generateId('tr'),
     personId,
     personName: person?.name || personId,
     title: title || '思想汇报',
+    period: periodValue,
     content: (content || '').trim(),
-    submittedAt: new Date().toISOString(),
+    submittedAt,
     reviewStatus: THOUGHT_REVIEW_STATUS.PENDING,
   };
   mockDB.thoughtReports = [...loadThoughtReports(), rec];
@@ -88,6 +178,7 @@ export function addThoughtReport({ personId, content, title }) {
       NoticeStore.addSystem('thought-report-submitted', rec.id, {
         personId: rec.personId,
         personName: rec.personName,
+        period: rec.period,
       });
     } catch (e) {
       console.warn('[thought-report] 提交通知失败（不影响归档）：', e);
@@ -111,6 +202,23 @@ export function listThoughtReportsByPerson(personId) {
     .map(_effective)
     .filter(r => r.personId === personId)
     .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+}
+
+/**
+ * 按人 + 按期次归集（面板数据的阅读视图口径，2026-09-13）：
+ * 同一期次下的多篇聚为一组，组间按期次倒序——供独立阅读页与按人档案区使用。
+ * @param {string} personId
+ * @returns {Array<{period:string,label:string,items:Object[]}>}
+ */
+export function listThoughtReportsByPersonGrouped(personId) {
+  const map = new Map();
+  for (const r of listThoughtReportsByPerson(personId)) {
+    if (!map.has(r.period)) map.set(r.period, []);
+    map.get(r.period).push(r);
+  }
+  return [...map.entries()]
+    .map(([period, items]) => ({ period, label: periodLabel(period), items }))
+    .sort((a, b) => comparePeriodDesc(a.period, b.period));
 }
 
 /** 某人的思想汇报提交数（读取侧归一，供档案/列表角标） */
@@ -143,7 +251,7 @@ export function listPendingReviews() {
  * @returns {{ok:true, rec:Object}|{ok:false, reason:string}}
  */
 export function reviewThoughtReport({ id, decision, note, by, role }) {
-  if (role !== 'org-commissioner') {
+  if (!THOUGHT_REVIEWER_ROLES.includes(role)) {
     return { ok: false, reason: '无权限：仅组织委员可初阅思想汇报' };
   }
   const list = loadThoughtReports();

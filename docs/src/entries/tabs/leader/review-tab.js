@@ -6,36 +6,44 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { loadActivityReviews } from '../../../services/review.js?v=20260913e';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
-import { PersonStore } from '../../../services/person.js?v=20260913e';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { loadActivityReviews } from '../../../services/review.js?v=20260913f';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { currentLeaderGroup } from './_shared.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { currentLeaderGroup } from './_shared.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260913f';
+// 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
+import { isActivityLive } from '../../../core/constants.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
 
-/**
- * 本组活动复盘状态（只读）区块 HTML：
- *  - 待复盘：本组活动尚未提交复盘 / 已打回——行内提示「复盘由活动组织者/深度参与者提交」，无填写表单；
- *  - 已复盘：可展开查看复盘内容 / 纪检批注（只读）。
- * K2 登记：组长若同时是组织者 → 其复盘提交入口 = 成员端「我的复盘」（visitor/review-tab，勿改其规则）；
- *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
- *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
- */
-export function reviewStatusSectionHtml(ctx) {
-  // 当前组长所属党小组（数据驱动：AuthStore 当前用户 → partyGroup）
-  const { group: myGroup } = currentLeaderGroup();
+/** 复盘状态颜色映射 */
+const REVIEW_STATUS_COLOR = {
+  [ReviewStatus.NOT_SUBMITTED]: 'bg-red-100 text-red-700',
+  [ReviewStatus.UPLOADED]: 'bg-orange-100 text-orange-700',
+  [ReviewStatus.ANNOTATING]: 'bg-blue-100 text-blue-700',
+  [ReviewStatus.CONFIRMED]: 'bg-green-100 text-green-700',
+  [ReviewStatus.REJECTED]: 'bg-red-100 text-red-700',
+};
 
-  // 筛选本组活动（三会一课/主题党日等由本组组长组织的活动；已归档活动退出工作区）
-  // T223 排序统一：date 降序（新者在前）
+/**
+ * 本组活动 → 复盘分桶（待复盘 / 已复盘）。区块计数与检索列表共用同一计算（口径一致）。
+ * 活动筛选 = 本组组长组织的活动；仅「已取消」「已归档」退出工作区——
+ * 注意：此处**不得**改用 isActivityEnded（= archived || completed）——复盘状态意在活动结束后追踪，
+ *   completed 活动正是待复盘主体，若一并排除会使本区对常见数据整体空置（实测：默认组长组两活动皆 completed）。
+ */
+function _reviewBuckets() {
+  const { group: myGroup } = currentLeaderGroup();
   const myGroupActivities = loadActivities()
     .filter(a => {
       // 按组织者属于本组 或 按 hostGroup 匹配
       const organizer = PEOPLE.find(p => p.id === a.organizer);
-      return organizer && organizer.partyGroup === myGroup && a.status !== 'cancelled' && !a.archived;
+      return organizer && organizer.partyGroup === myGroup && isActivityLive(a);
     })
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
@@ -56,59 +64,64 @@ export function reviewStatusSectionHtml(ctx) {
       completed.push({ act, rev });
     }
   }
+  return { pending, completed };
+}
 
-  // 复盘状态颜色映射
-  const reviewColorMap = {
-    [ReviewStatus.NOT_SUBMITTED]: 'bg-red-100 text-red-700',
-    [ReviewStatus.UPLOADED]: 'bg-orange-100 text-orange-700',
-    [ReviewStatus.ANNOTATING]: 'bg-blue-100 text-blue-700',
-    [ReviewStatus.CONFIRMED]: 'bg-green-100 text-green-700',
-    [ReviewStatus.REJECTED]: 'bg-red-100 text-red-700',
-  };
-
-  /** 待复盘行（只读，行内提示提交人规则，无展开表单） */
-  function renderPendingCard(item) {
-    const { act, rev } = item;
-    const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
-    const statusColor = reviewColorMap[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
-    return `
-      <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
-        <div class="flex items-center justify-between">
-          <div class="flex-1 min-w-0">
-            <a href="../activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
-              <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
-              <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
-            </a>
-            <div class="text-[11px] text-gray-500 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
-          </div>
-          <div class="flex items-center gap-2 ml-4">
-            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-            ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-600">需修改</span>' : ''}
-          </div>
-        </div>
-      </div>`;
-  }
-
-  /** 已复盘行（只读；可展开查看复盘详情/批注） */
-  function renderCompletedCard(item) {
-    const { act, rev } = item;
-    const statusLabel = REVIEW_STATUS_LABELS[rev?.reviewStatus];
-    const statusColor = reviewColorMap[rev?.reviewStatus] || 'bg-gray-100 text-gray-600';
-    const isExpanded = _reviewExpandedId === act.id;
-    return `
-      <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
-        <div class="flex items-center justify-between">
-          <div class="flex-1 min-w-0">
+/** 待复盘行（只读，行内提示提交人规则，无展开表单） */
+function renderPendingCard(item) {
+  const { act, rev } = item;
+  const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
+  const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
+  return `
+    <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
+      <div class="flex items-center justify-between">
+        <div class="flex-1 min-w-0">
+          <a href="../activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
-          </div>
-          <div class="flex items-center gap-2 ml-4">
-            <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
-          </div>
+          </a>
+          <div class="text-[11px] text-gray-500 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
         </div>
-        ${isExpanded && rev ? _renderReviewDetail(rev) : ''}
-      </div>`;
-  }
+        <div class="flex items-center gap-2 ml-4">
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+          ${rev?.reviewStatus === ReviewStatus.REJECTED ? '<span class="text-xs text-red-600">需修改</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+/** 已复盘行（只读；可展开查看复盘详情/批注） */
+function renderCompletedCard(item) {
+  const { act, rev } = item;
+  const statusLabel = REVIEW_STATUS_LABELS[rev?.reviewStatus];
+  const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus] || 'bg-gray-100 text-gray-600';
+  const isExpanded = _reviewExpandedId === act.id;
+  return `
+    <div class="leader-review-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer review-toggle" data-act-id="${act.id}">
+      <div class="flex items-center justify-between">
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
+          <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
+        </div>
+        <div class="flex items-center gap-2 ml-4">
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
+        </div>
+      </div>
+      ${isExpanded && rev ? _renderReviewDetail(rev) : ''}
+    </div>`;
+}
+
+/**
+ * 本组活动复盘状态（只读）区块 HTML：
+ *  - 待复盘：本组活动尚未提交复盘 / 已打回——行内提示「复盘由活动组织者/深度参与者提交」，无填写表单；
+ *  - 已复盘：可展开查看复盘内容 / 纪检批注（只读）。
+ * 行列表由统一检索引擎在 bindReviewStatusSection 内渲染（关键词 + 分面；≤8 行不占检索条）。
+ * K2 登记：组长若同时是组织者 → 其复盘提交入口 = 成员端「我的复盘」（visitor/review-tab，勿改其规则）；
+ *  mock 种子中组长组织活动均带 assignments organizer 赋权行（如 act-4/9/16/17/21/23/26/29），
+ *  故其活动会出现在该组长「我的复盘」；运行时新建活动如缺 organizer 赋权行则需赋权补齐后才会出现。
+ */
+export function reviewStatusSectionHtml(ctx) {
+  const { pending, completed } = _reviewBuckets();
 
   return `
     <div class="card rounded-lg p-4">
@@ -121,19 +134,13 @@ export function reviewStatusSectionHtml(ctx) {
       <!-- 待复盘 -->
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
-        <div class="space-y-1.5" id="leader-review-pending">
-          ${pending.length === 0 ? '<p class="text-xs text-gray-500 py-1">暂无待复盘活动</p>' :
-            pending.map(item => renderPendingCard(item)).join('')}
-        </div>
+        <div id="leader-review-pending"></div>
       </div>
 
       <!-- 已复盘 -->
       <div class="pt-2.5 border-t border-gray-100">
         <div class="text-xs font-bold text-gray-600 mb-1.5">已复盘 <span class="text-gray-500 font-normal">(${completed.length})</span></div>
-        <div class="space-y-1.5" id="leader-review-completed">
-          ${completed.length === 0 ? '<p class="text-xs text-gray-500 py-1">暂无已复盘活动</p>' :
-            completed.map(item => renderCompletedCard(item)).join('')}
-        </div>
+        <div id="leader-review-completed"></div>
       </div>
     </div>
   `;
@@ -141,14 +148,46 @@ export function reviewStatusSectionHtml(ctx) {
 
 /** 绑定已复盘卡片展开/收起（只读；待复盘行无交互）。rerender = 宿主页整页重渲染回调（展开态模块级保持） */
 export function bindReviewStatusSection(container, rerender) {
-  container.querySelectorAll('.review-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
-      const item = toggle.closest('.leader-review-item');
-      const actId = item?.dataset.actId;
+  const { pending, completed } = _reviewBuckets();
+  const keyword = activityKeyword();
+  const facets = activityFacets();
+
+  // 待复盘列表（统一检索引擎；行数据扁平化以便关键词/分面取到活动字段）
+  const pendingHost = container.querySelector('#leader-review-pending');
+  if (pendingHost) {
+    renderFilteredList(pendingHost, {
+      stateKey: 'leader-review-pending',
+      rows: pending.map(it => ({ ...it.act, rev: it.rev })),
+      keyword,
+      facets,
+      countUnit: '条',
+      listClass: 'space-y-1.5',
+      emptyMessage: '无匹配待复盘活动',
+      rowHtml: (r) => renderPendingCard({ act: r, rev: r.rev }),
+    });
+  }
+
+  // 已复盘列表（统一检索引擎）；展开/收起用事件委托（引擎筛选重渲染后行仍可点）
+  const completedHost = container.querySelector('#leader-review-completed');
+  if (completedHost) {
+    renderFilteredList(completedHost, {
+      stateKey: 'leader-review-completed',
+      rows: completed.map(it => ({ ...it.act, rev: it.rev })),
+      keyword,
+      facets,
+      countUnit: '条',
+      listClass: 'space-y-1.5',
+      emptyMessage: '无匹配已复盘活动',
+      rowHtml: (r) => renderCompletedCard({ act: r, rev: r.rev }),
+    });
+    completedHost.addEventListener('click', (e) => {
+      const toggle = e.target.closest('.review-toggle');
+      if (!toggle) return;
+      const actId = toggle.closest('.leader-review-item')?.dataset.actId;
       _reviewExpandedId = _reviewExpandedId === actId ? null : actId;
       if (typeof rerender === 'function') rerender();
     });
-  });
+  }
 }
 
 /** 渲染复盘详情（已复盘活动展开时 · 只读） */

@@ -2,21 +2,23 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260913e';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260913e';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260913e';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260913e';
-import { mockDB } from '../../../core/domain.js?v=20260913e';
-import { bumpToken } from '../../../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { isApiMode } from '../../../services/runtime.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260913e';
+import { icon } from '../../../core/icons.js?v=20260913f';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260913f';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260913f';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260913f';
+import { mockDB } from '../../../core/domain.js?v=20260913f';
+import { bumpToken } from '../../../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { isApiMode } from '../../../services/runtime.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { getPersonName } from '../../../services/person.js?v=20260913f';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260913f';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260913e';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260913f';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260913e';
+import { BranchService } from '../../../services/runtime.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260913f';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -62,26 +64,7 @@ export function renderContent(ctx) {
   const endedUnarchived = getEndedUnarchivedActivities();
   container.innerHTML = `
     ${_renderArchiveFallbackBanner()}
-    <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center">
-      <div class="relative flex-1 min-w-[200px]">
-        <input id="archive-search" type="text" placeholder="搜索活动名称..." class="input-flat flex-1 pl-8" />
-        ${icon('search', { className: 'absolute left-2.5 top-2.5 w-3.5 h-3.5 text-gray-500' })}
-      </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <select id="archive-filter-category" class="input-flat">
-          <option value="">全部类别</option>
-          <option value="新闻稿">新闻稿</option>
-          <option value="照片">照片</option>
-          <option value="视频">视频</option>
-          <option value="其他">其他</option>
-        </select>
-        <select id="archive-filter-status" class="input-flat">
-          <option value="">全部状态</option>
-          <option value="pending">待归档</option>
-          <option value="in_progress">归档中</option>
-          <option value="archived">已归档</option>
-        </select>
-      </div>
+    <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center justify-end">
       <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">
         ${icon('upload', { className: 'w-3.5 h-3.5' })}
         <span>上传材料</span>
@@ -95,9 +78,7 @@ export function renderContent(ctx) {
     <div class="flex items-center gap-2 mb-2">
       <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
     </div>
-    <div id="archive-list" class="space-y-2 mb-6">
-      ${_renderArchiveList(_loadArchiveRecords())}
-    </div>
+    <div id="archive-list" class="mb-6"></div>
 
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2 mb-3">
@@ -118,25 +99,21 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 搜索/筛选事件
-  const searchInput = container.querySelector('#archive-search');
-  const filterCategory = container.querySelector('#archive-filter-category');
-  const filterStatus = container.querySelector('#archive-filter-status');
-  const applyFilter = () => {
-    const keyword = searchInput.value.trim().toLowerCase();
-    const cat = filterCategory.value;
-    const status = filterStatus.value;
-    const filtered = _loadArchiveRecords().filter(r => {
-      if (keyword && !r.activityName.toLowerCase().includes(keyword)) return false;
-      if (cat && r.category !== cat) return false;
-      if (status && r.status !== status) return false;
-      return true;
-    });
-    container.querySelector('#archive-list').innerHTML = _renderArchiveList(filtered);
-  };
-  searchInput.addEventListener('input', applyFilter);
-  filterCategory.addEventListener('change', applyFilter);
-  filterStatus.addEventListener('change', applyFilter);
+  // 归档记录列表：统一检索引擎（关键词 活动名/材料名 + 分面 类别/状态；≤8 行自动不渲染检索条）
+  renderFilteredList(container.querySelector('#archive-list'), {
+    stateKey: 'prop-archive-records',
+    rows: _loadArchiveRecords(),
+    keyword: { keys: ['activityName', 'fileName'], placeholder: '搜索活动名称 / 材料名…' },
+    facets: [
+      { key: 'category', label: '类别' },
+      { key: 'status', label: '状态', format: (v) => ARCHIVE_STATUS_LABEL[v] || v },
+    ],
+    countUnit: '条',
+    listClass: 'space-y-2',
+    emptyMessage: '无匹配的归档记录',
+    sort: (a, b) => String(b.archiveDate || '').localeCompare(String(a.archiveDate || '')),
+    rowHtml: _archiveRowHtml,
+  });
 
   // 归档推进按钮（B3 2026-09-12）：改用列表容器事件委托（见下方 #archive-list 委托）——
   // 旧实现按渲染时一次性 querySelectorAll 绑定，筛选/搜索重写 #archive-list 后新按钮无监听 → 点击全失效。
@@ -286,58 +263,52 @@ function _renderPendingArchiveSection(activities) {
     </div>`;
 }
 
-function _renderArchiveList(records) {
-  if (records.length === 0) {
-    return '<p class="text-xs text-gray-500 text-center py-8">无匹配的归档记录</p>';
-  }
-  // 按日期降序排列（新日期在前）
-  const sorted = [...records].sort((a, b) => (b.archiveDate || '').localeCompare(a.archiveDate || ''));
-  return sorted.map(r => {
-    const catStyle = ARCHIVE_CATEGORY_STYLE[r.category] || 'bg-gray-50 text-gray-600';
-    const statusStyle = ARCHIVE_STATUS_STYLE[r.status];
-    const isFinal = r.status === 'archived';
-    const isInProgress = r.status === 'in_progress';
-    const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
-    const advanceBtn = !isFinal
-      ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" style="cursor:pointer;">${advanceLabel}</button>`
-      : '';
-    // 归档中状态显示进度
-    const progressHtml = isInProgress && r._checklistState
-      ? `<span class="text-xs text-blue-600">材料 ${r._checklistState.checked}/${r._checklistState.total}</span>`
-      : '';
-    // 已归档状态显示完成标记
-    const doneHtml = isFinal
-      ? `<span class="text-xs text-green-700">✓</span>`
-      : '';
-    // 已归档材料（上传过文件）显示下载按钮 + 行内外发按钮/状态徽标
-    const fileBtn = r.fileName
-      ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
-        <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
-      : '';
-    // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
-    // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
-    const dispatchHtml = r.fileName
-      ? _renderDispatchCell(r)
-      : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
-    // 实体条目可点（2026-09-12 支书裁定）：归档记录行关联活动 → 左区包一层活动详情深链
-    //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
-    const titleBlock = `
-        <div class="flex items-center gap-2 mb-0.5">
-          <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
-          ${progressHtml}${doneHtml}
-        </div>
-        <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>`;
-    const leftBlock = r.activityId
-      ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
-      : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
-    return `
-      <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
-        ${leftBlock}
-        <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${dispatchHtml}${advanceBtn}</div>
-      </div>`;
-  }).join('');
+/** 单条归档记录行（第一列 = 活动名；行内操作按钮经 #archive-list 容器委托绑定，筛选重渲染后仍有效） */
+function _archiveRowHtml(r) {
+  const catStyle = ARCHIVE_CATEGORY_STYLE[r.category] || 'bg-gray-50 text-gray-600';
+  const statusStyle = ARCHIVE_STATUS_STYLE[r.status];
+  const isFinal = r.status === 'archived';
+  const isInProgress = r.status === 'in_progress';
+  const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
+  const advanceBtn = !isFinal
+    ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" style="cursor:pointer;">${advanceLabel}</button>`
+    : '';
+  // 归档中状态显示进度
+  const progressHtml = isInProgress && r._checklistState
+    ? `<span class="text-xs text-blue-600">材料 ${r._checklistState.checked}/${r._checklistState.total}</span>`
+    : '';
+  // 已归档状态显示完成标记
+  const doneHtml = isFinal
+    ? `<span class="text-xs text-green-700">✓</span>`
+    : '';
+  // 已归档材料（上传过文件）显示下载按钮 + 行内外发按钮/状态徽标
+  const fileBtn = r.fileName
+    ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
+      <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
+    : '';
+  // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
+  // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
+  const dispatchHtml = r.fileName
+    ? _renderDispatchCell(r)
+    : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
+  // 实体条目可点（2026-09-12 支书裁定）：归档记录行关联活动 → 左区包一层活动详情深链
+  //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
+  const titleBlock = `
+      <div class="flex items-center gap-2 mb-0.5">
+        <span class="text-sm font-medium text-gray-800 truncate">${r.activityName}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full ${catStyle} shrink-0">${r.category}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
+        ${progressHtml}${doneHtml}
+      </div>
+      <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>`;
+  const leftBlock = r.activityId
+    ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
+    : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
+  return `
+    <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
+      ${leftBlock}
+      <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${dispatchHtml}${advanceBtn}</div>
+    </div>`;
 }
 
 /** 行内外发单元（C④ 2026-09-10）：未外发 → 行内微操作按钮；已外发 → 状态徽标。
@@ -704,7 +675,7 @@ function _showArchiveUploadModal(ctx) {
       if (saved > 0) {
         showToast('success', `已归档 ${saved} 项宣传材料`);
         // C④ 2026-09-10 裁定：上传成功不再无条件弹「文件外发确认」二次浮窗，
-        // 外发改由归档行内「标记已发送（微信/对外）」按钮按需触发（见 _renderArchiveList）。
+        // 外发改由归档行内「标记已发送（微信/对外）」按钮按需触发（见 _archiveRowHtml）。
         closeModal();
         renderContent(ctx);
       }

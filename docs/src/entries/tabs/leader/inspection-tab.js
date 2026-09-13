@@ -2,16 +2,18 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260913e';
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260913e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913e';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913e';
-import { currentLeaderGroup } from './_shared.js?v=20260913e';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
+import { currentLeaderGroup } from './_shared.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -44,9 +46,22 @@ export function renderContent(ctx) {
   const sourceTaskforces = TaskForceRecordStore.getAll()
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
-  // dogfood R-18（2026-09-13）：明细表「按来源筛选」的数据源（长列表定位；默认全部）
-  const inspRows = inspectionToLong(myInspection);
-  const inspSources = [...new Set(inspRows.map(r => r.source).filter(Boolean))].sort();
+  // 统一检索引擎（table 模式）：明细行按人检索——关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册），
+  // 行数据按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)）
+  const inspRows = myInspection.map(r => {
+    const long = inspectionToLong([r])[0];
+    const m = getPersonById(r.personId) || {};
+    return {
+      ...long,
+      personId: r.personId,
+      name: getPersonName(r.personId),
+      studentId: m.studentId || '',
+      partyGroup: m.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || '',
+      residenceStatus: m.residenceStatus || '',
+    };
+  });
 
   const formHtml = _inspFormVisible ? `
     <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="insp-form-panel">
@@ -87,52 +102,39 @@ export function renderContent(ctx) {
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
-      ${inspSources.length > 1 ? `
-      <div class="flex items-center gap-2 mb-3">
-        <label class="text-xs text-gray-500" for="insp-filter-source">按来源筛选</label>
-        <select id="insp-filter-source" class="input-flat text-xs max-w-xs">
-          <option value="">全部来源（${inspRows.length} 条）</option>
-          ${inspSources.map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('')}
-        </select>
-        <span id="insp-filter-count" class="text-xs text-gray-500"></span>
-      </div>` : ''}
       <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
-          </tr></thead>
-          <tbody>${inspRows.map(i => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50" data-insp-source="${esc(i.source)}">
-              <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
-              <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : i.source}</td>
-              <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-            </tr>
-          `).join('')}</tbody>
-        </table>
+        <div id="insp-list-host"></div>
       </div>
     </div>
   `;
 
-  // dogfood R-18（2026-09-13）：明细行按来源筛选（纯 DOM 过滤，不重渲染 → 不丢表单已选/已填）
-  const _inspFilter = container.querySelector('#insp-filter-source');
-  if (_inspFilter) {
-    const _inspRowsDom = [...container.querySelectorAll('tbody tr[data-insp-source]')];
-    _inspFilter.addEventListener('change', () => {
-      const v = _inspFilter.value;
-      let shown = 0;
-      _inspRowsDom.forEach(tr => {
-        const hit = !v || tr.dataset.inspSource === v;
-        tr.hidden = !hit;
-        if (hit) shown++;
-      });
-      const cnt = container.querySelector('#insp-filter-count');
-      if (cnt) cnt.textContent = v ? `显示 ${shown} / 共 ${_inspRowsDom.length} 条` : '';
-    });
-  }
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
+  renderFilteredList(container.querySelector('#insp-list-host'), {
+    stateKey: 'leader-inspection-list',
+    rows: inspRows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'w-full text-xs',
+    emptyMessage: '暂无考察明细',
+    table: {
+      colSpan: 4,
+      headHtml: `<tr class="border-b border-gray-200">
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
+          </tr>`,
+    },
+    rowHtml: (i) => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+              <td class="py-2 px-3 font-medium text-gray-800">${esc(i.name)}</td>
+              <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
+              <td class="py-2 px-3 text-gray-600">${esc(i.content || i.role)}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            </tr>`,
+  });
 
   // 绑定上传按钮（保态折叠 2026-09-08：对齐纪检会议考勤录入/组长考勤表单判例——表单已渲染
   //（#insp-form-panel 在 DOM）时，收起/展开只切该容器 hidden，不销毁 _inspPickerInstance、

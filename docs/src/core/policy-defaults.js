@@ -118,6 +118,18 @@ const _FACTORY = {
     //   关闭；frequency 为展示口径（'semester'=每学期），不在覆盖白名单（固定学期制）。
     semesterReportReminder: { enabled: true, frequency: 'semester' },
   },
+  thoughtReport: {
+    // 思想汇报篇幅惯例（支书 2026-09-13 裁定：「思想汇报一般而言 1500 字左右」）
+    // kind 'branch-default'：**软提示口径**——界面实时显示字数并提示建议篇幅，
+    //   **不作硬性字数拦截**（过短内容由组织初阅把关，见 services/thought-report.js 状态机）。
+    //   wordHint      = 建议篇幅（提示文案「建议 N 字左右」）；
+    //   wordSoftMin   = 「明显偏短」提示线（低于此值提示补充，仍可提交）。
+    // 消费点：services/thought-report.js（提交/重交提示文案）+ 提交侧与初阅侧界面字数提示。
+    // 原 services/thought-report.js 注释「界面不展示字数为宜」与提交界面实际展示字数的口径冲突，
+    //   经支书 2026-09-13 裁定为「软提示 + 显示字数」，本常量即该口径的单一源。
+    wordHint: 1500,
+    wordSoftMin: 800,
+  },
 };
 
 /**

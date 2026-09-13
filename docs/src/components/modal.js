@@ -5,6 +5,11 @@
 //  设计原则：点击按钮→弹出浮窗→在浮窗中完成写入→关闭浮窗
 //  页面保持清爽，所有表单/编辑器都在浮窗中完成
 
+// 2026-09-13 修复（成员档案模态走查暴露）：Esc 监听原只在「按 Esc 关闭」这一条路径上注销，
+// 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
+// 监听（内存泄漏 + 多次无谓 closeModal）。现改为**按 id 登记**，closeModal 统一注销（全路径覆盖）。
+const _escHandlers = new Map();
+
 /**
  * 打开一个浮窗
  * @param {Object} options
@@ -48,10 +53,11 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   // 关闭按钮
   panel.querySelector(`[data-modal-close="${id}"]`).addEventListener('click', () => closeModal(id));
 
-  // ESC 关闭
+  // ESC 关闭（监听按 id 登记，closeModal 全路径统一注销）
   const escHandler = (e) => {
-    if (e.key === 'Escape') { closeModal(id); document.removeEventListener('keydown', escHandler); }
+    if (e.key === 'Escape') closeModal(id);
   };
+  _escHandlers.set(id, escHandler);
   document.addEventListener('keydown', escHandler);
 
   // 回调
@@ -65,6 +71,11 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
  * @param {string} id - 浮窗标识
  */
 export function closeModal(id) {
+  const escHandler = _escHandlers.get(id);
+  if (escHandler) {
+    document.removeEventListener('keydown', escHandler);
+    _escHandlers.delete(id);
+  }
   const overlay = document.getElementById(`modal-overlay-${id}`);
   if (overlay) overlay.remove();
 }

@@ -2,11 +2,14 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913e';
-import { inspectionToDisplay } from '../../../services/inspection.js?v=20260913e';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913f';
+import { inspectionToDisplay } from '../../../services/inspection.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260913f';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -52,7 +55,24 @@ export function renderContent(ctx) {
   // 考察等级本质是角色维度 → 复用 ROLE_COLORS 冷色系（organizer=天蓝 / deep=紫），不再用红（支书 2026-08-01）
   const LEVEL_ROLE = { organize: 'organizer', deep: 'deep' };
 
-  listEl.innerHTML = sorted.map(r => {
+  // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
+  const _actById = new Map(loadActivities().map(a => [a.id, a]));
+  /** 补活动字段（供关键词/分面取用；来源为专班或无活动的记录回退快照标题） */
+  const _withAct = (r) => {
+    const a = r.activityId ? _actById.get(r.activityId) : null;
+    return {
+      ...r,
+      title: r.activityTitle || r.sourceName || '—',
+      name: r.activityTitle || r.sourceName || '',
+      date: a?.date || '',
+      type: a?.type || '',
+      location: a?.location || '',
+      status: a?.status,
+      archived: a?.archived,
+    };
+  };
+
+  const rowHtml = (r) => {
     const statusCls = r.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
     const statusText = r.status === 'confirmed' ? '已确认' : '待确认';
     const sourceLabel = SOURCE_TYPE_LABEL[r.sourceType] || r.sourceType;
@@ -81,5 +101,16 @@ export function renderContent(ctx) {
         </div>
       </div>
     `;
-  }).join('');
+  };
+
+  renderFilteredList(listEl, {
+    stateKey: 'visitor-inspection',
+    rows: sorted.map(_withAct),
+    keyword: activityKeyword('搜索活动名称…'),
+    facets: activityFacets(),
+    countUnit: '条',
+    listClass: 'space-y-2',
+    emptyMessage: '无匹配考察记录',
+    rowHtml,
+  });
 }

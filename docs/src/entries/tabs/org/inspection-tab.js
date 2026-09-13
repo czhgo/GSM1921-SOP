@@ -2,16 +2,18 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260913e';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260913e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913e';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913e';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260913f';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913f';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -69,25 +71,7 @@ export function renderContent(ctx) {
       <div class="text-xs text-gray-500 mb-3">专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</div>
       ${formHtml}
       <div class="overflow-x-auto ${_orgInspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">专班</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">标签</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-          </tr></thead>
-          <tbody>${inspectionToLong(tfInspection).map(i => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" data-insp-detail="${i.id}" title="点击查看考察详情">
-              <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
-              <td class="py-2 px-3 text-gray-600">${i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
-              <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
-            </tr>
-          `).join('')}</tbody>
-        </table>
-        ${tfInspection.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无专班考察记录</p>' : ''}
+        <div id="org-insp-list-host"></div>
         <div id="org-insp-detail" class="hidden mt-3"></div>
       </div>
     </div>
@@ -109,9 +93,55 @@ export function renderContent(ctx) {
     if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
   });
 
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，避免把 <div> 塞进 <tbody>）——
+  // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；≤8 行引擎自动不渲染检索条
+  const inspRows = tfInspection.map((r) => {
+    const long = inspectionToLong([r])[0];
+    const m = getPersonById(r.personId) || {};
+    return {
+      ...long,
+      personId: r.personId,
+      name: getPersonName(r.personId),
+      partyGroup: m.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || '',
+    };
+  });
+  const listHost = container.querySelector('#org-insp-list-host');
+  renderFilteredList(listHost, {
+    stateKey: 'org-inspection-table',
+    rows: inspRows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '条',
+    listClass: 'w-full text-xs',
+    emptyMessage: '暂无专班考察记录',
+    table: {
+      colSpan: 5,
+      headHtml: `<tr class="border-b border-gray-200">
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">专班</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">标签</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
+            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+          </tr>`,
+    },
+    rowHtml: (i) => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
+              <td class="py-2 px-3 font-medium text-gray-800">${esc(i.name)}</td>
+              <td class="py-2 px-3 text-gray-600">${esc(i.source)}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
+              <td class="py-2 px-3 text-gray-600">${esc(i.content)}</td>
+              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            </tr>`,
+  });
+
   // 考察记录行 → 行下展开详情预览（支书 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
-  container.querySelectorAll('[data-insp-detail]').forEach(row => {
-    row.addEventListener('click', () => {
+  // 事件委托：引擎筛选重渲染后行仍可点
+  listHost.addEventListener('click', (e) => {
+    const row = e.target.closest('[data-insp-detail]');
+    if (!row) return;
+    {
       const rec = tfInspection.find(r => r.id === row.dataset.inspDetail);
       const detailEl = container.querySelector('#org-insp-detail');
       if (!rec || !detailEl) return;
@@ -153,7 +183,7 @@ export function renderContent(ctx) {
       //（此前单例面板固定在整张表之后，行数一多就要下滚寻找）
       anchorDetailToTrigger(detailEl, row);
       detailEl.dataset.openId = rec.id;
-    });
+    }
   });
 
   if (_orgInspFormVisible) {
@@ -242,8 +272,7 @@ function _renderOrgInspContentRows(selectedIds) {
     <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
     <div class="space-y-2 max-h-60 overflow-y-auto">
       ${selectedIds.map(pid => {
-        const person = getPersonById(pid);
-        const name = person ? person.name : pid;
+        const name = getPersonName(pid) || pid;
         return `
           <div class="flex items-start gap-2">
             <span class="text-xs font-medium text-gray-700 min-w-[3rem] pt-2">${name}</span>

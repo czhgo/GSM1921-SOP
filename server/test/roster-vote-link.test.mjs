@@ -6,19 +6,19 @@
 //   ② 表决 voterIds 与 roster 联动：resolveVoterIds 现时剔滞留（支部大会应到=formally-prep
 //      与 roster 同集；线上支委会=支委名单，若支委滞留则剔）；历史快照 act-31 保持原值；
 //   ③ 党小组会组内候选 = 组内党员（非滞留入应到、滞留禁选），与纪检同口径。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913e query（模块缓存键一致性，同 roster.test.mjs）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913f query（模块缓存键一致性，同 roster.test.mjs）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913e';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260913e';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913e';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913f';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260913f';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913f';
 import {
   getMeetingRosterCandidates, getMeetingRosterIds, getRosterStats,
   saveResidenceChange, getDetainedMembers, getResidenceOf,
   RESIDENCE, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260913e';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260913e';
+} from '../../docs/src/services/roster.js?v=20260913f';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260913f';
 
 // ── localStorage 内存桩（saveResidenceChange 运行期覆盖用例需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

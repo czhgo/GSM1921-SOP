@@ -8,25 +8,27 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260913e';
-import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260913e';
-import { loadActivities } from '../../../services/activity.js?v=20260913e';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913e';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913e';
-import { NoticeStore } from '../../../services/notice.js?v=20260913e';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260913e';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913e';
-import { HandoffStore } from '../../../services/handoff.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260913f';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260913f';
+import { loadActivities } from '../../../services/activity.js?v=20260913f';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913f';
+import { NoticeStore } from '../../../services/notice.js?v=20260913f';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -98,6 +100,9 @@ export function renderContent(ctx) {
     ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
     ${_buildGroupMeetingReadonlyHTML()}
   `;
+
+  // 党小组会考勤只读表（统一检索引擎：按人检索 + 分面；≤8 行自动不渲染检索条）
+  _renderGroupMeetingReadonly(container);
 
   // ── 队列确认：确认 → 计数递减 → 聚焦下一条 ──
   container.querySelector('.disc-clear-filter')?.addEventListener('click', () => {
@@ -419,7 +424,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
 // ════════════════════════════════════════════════════════════════
 function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   const meetings = loadActivities()
-    .filter(a => !a.archived && MEETING_TYPES.includes(a.type) && canUploadAttendance(DISC_COMMISSIONER_ID, a.id))
+    .filter(a => !isActivityArchived(a) && MEETING_TYPES.includes(a.type) && canUploadAttendance(DISC_COMMISSIONER_ID, a.id))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const accentStyle = solidAccentStyle(accent, accentBorder);
   const toggleBtn = `<button class="btn-md" id="disc-meet-toggle" style="${accentStyle}cursor:pointer;">${_meetFormVisible ? '收起' : '录入会议考勤'}</button>`;
@@ -699,7 +704,7 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
   if (!tc) return;
   // 时间降序：活动按日期最新在前（按活动视图最新在最上；按人视图最新在最左）
   const acts = loadActivities()
-    .filter(a => a.status !== 'cancelled' && !a.archived)
+    .filter(a => isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const visibleActs = _filterActivities(acts, actById);
   // 矩阵数据：人 × 活动 → 状态（无记录 = 空）
@@ -883,55 +888,74 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
 //  组长上传（记录人=本组组长，submittedBy 可辨）；纪检只读查看：不代传、不在此审改；
 //  异常（缺勤/请假）处理走上方「待确认考勤」队列。无写口；挂在考勤总表下方只读区，
 //  不新增工作台 tab（能力清单不变）。
+//  统一检索引擎（2026-09-13）：按人扁平为一行（姓名 / 党小组会 / 状态 / 备注），
+//    关键词 + 分面检索；组长/上传人信息以 title 悬浮保留（不改业务口径）。
 // ════════════════════════════════════════════════════════════════
 function _buildGroupMeetingReadonlyHTML() {
-  const groups = listGroupMeetingAttendance();
-  const statusColor = (s) => s === AttendanceStatus.PRESENT ? 'text-green-700'
-    : s === AttendanceStatus.MADE_UP ? 'text-teal-700'
-    : s === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-orange-700';
   const recorderSemantic = recorderRolesOf('党小组会').map(r => ROLE_LABELS[r] || r).join('/');
-  const listHtml = groups.length === 0
-    ? '<div class="py-5 text-center text-xs text-gray-500">暂无党小组会考勤记录（组长上传后此处只读展示）</div>'
-    : groups.map(g => {
-        const abnormal = g.total - g.present;
-        const trs = g.rows.map(r => `
-          <tr class="border-b border-gray-50">
-            <td class="py-1.5 px-3 text-xs font-medium text-gray-800">${esc(r.name)}</td>
-            <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
-            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
-          </tr>`).join('');
-        const headerChips = [
-          g.groupName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${esc(g.groupName)}</span>` : '',
-          g.leaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">组长 ${esc(g.leaderName)}</span>` : '',
-          g.uploaderName ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md bg-gray-100 text-gray-600">上传 ${esc(g.uploaderName)}</span>` : '<span class="text-[11px] text-gray-600">上传 —</span>',
-        ].filter(Boolean).join(' ');
-        return `
-        <div class="border border-gray-100 rounded-lg mb-2 overflow-hidden">
-          <div class="flex items-center justify-between flex-wrap gap-1 px-3 py-2 bg-gray-50">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-semibold text-gray-800">${esc(g.title)}</span>
-              <span class="text-[11px] text-gray-500">${esc(g.date)}</span>
-              ${headerChips}
-            </div>
-            <div class="text-[11px] text-gray-500">到席 <b class="text-green-700">${g.present}</b> · 异常 <b class="${abnormal > 0 ? 'text-red-700' : 'text-gray-500'}">${abnormal}</b> · 共 ${g.total}</div>
-          </div>
-          <table class="w-full text-xs">
-            <thead><tr class="border-b border-gray-100 bg-white">
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">姓名</th>
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">状态</th>
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">备注（标因/补录）</th>
-            </tr></thead>
-            <tbody>${trs}</tbody>
-          </table>
-        </div>`;
-      }).join('');
   return `
     <div class="card rounded-lg p-4">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组会考勤（纪检只读掌握）</h3>
       </div>
       <div class="text-[11px] text-gray-500 leading-5 mb-3">党小组会考勤由<b>本组组长</b>上传（记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType）；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理，改/删走纪检确认流程</div>
-      ${listHtml}
+      <div class="overflow-x-auto"><div id="disc-group-meeting-host"></div></div>
     </div>
   `;
+}
+
+/** 党小组会考勤只读表渲染（统一检索引擎 · table 模式；数据按人扁平，附活动/组长/上传人信息） */
+function _renderGroupMeetingReadonly(container) {
+  const host = container.querySelector('#disc-group-meeting-host');
+  if (!host) return;
+  const statusColor = (s) => s === AttendanceStatus.PRESENT ? 'text-green-700'
+    : s === AttendanceStatus.MADE_UP ? 'text-teal-700'
+    : s === AttendanceStatus.ABSENT ? 'text-red-700' : 'text-orange-700';
+  const groups = listGroupMeetingAttendance();
+  const rows = [];
+  for (const g of groups) {
+    for (const r of g.rows) {
+      const m = getPersonById(r.personId) || {};
+      rows.push({
+        ...r,
+        personId: r.personId,
+        // 人名一律取档案（禁用记录内快照）；分面字段按 personId 现取档案
+        name: getPersonName(r.personId),
+        studentId: m.studentId || '',
+        partyGroup: m.partyGroup || g.groupName || '',
+        developStage: m.developStage || '',
+        role: m.role || '',
+        residenceStatus: m.residenceStatus || '',
+        activityId: g.activityId,
+        groupTitle: `${g.title}（${g.date}）`,
+        recorderTitle: `组长 ${g.leaderName || '—'} · 上传 ${g.uploaderName || '—'}`,
+      });
+    }
+  }
+  renderFilteredList(host, {
+    stateKey: 'disc-group-meeting-attendance',
+    rows,
+    keyword: personKeyword(),
+    // 按人分面 + 党小组会（活动）分面——保留原「按活动分组查看」能力
+    facets: [...personFacets({ roleLabel: roleLabelOf }), { key: 'groupTitle', label: '党小组会' }],
+    countUnit: '人',
+    listClass: 'w-full text-xs',
+    emptyMessage: '暂无党小组会考勤记录（组长上传后此处只读展示）',
+    table: {
+      colSpan: 4,
+      headHtml: `<tr class="border-b border-gray-100 bg-white">
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">姓名</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">党小组会</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">状态</th>
+              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">备注（标因/补录）</th>
+            </tr>`,
+    },
+    rowHtml: (r) => `
+          <tr class="border-b border-gray-50" title="${esc(r.recorderTitle)}">
+            <td class="py-1.5 px-3 text-xs font-medium text-gray-800">${esc(r.name)}</td>
+            <td class="py-1.5 px-3 text-xs text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
+            <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
+            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
+          </tr>`,
+  });
 }

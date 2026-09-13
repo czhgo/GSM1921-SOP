@@ -3,15 +3,17 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260913e';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
-import { badgeHtml } from '../../../components/badges.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913e';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260913f';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { showToast } from '../../../core/utils.js?v=20260913f';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913f';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913e';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');
@@ -25,6 +27,35 @@ export function renderContent() {
     if (task.status === 'completed') return badgeHtml('已完成', 'success');
     if (new Date(task.deadline) < new Date()) return badgeHtml('已超期', 'danger');
     return badgeHtml('待补课', 'warning');
+  };
+
+  // 统一检索引擎（table 模式）：行数据按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)，禁用记录内快照）
+  const makeupRows = tasks.map(t => {
+    const m = getPersonById(t.personId) || {};
+    return {
+      ...t,
+      personId: t.personId,
+      name: getPersonName(t.personId),
+      studentId: m.studentId || '',
+      partyGroup: m.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || '',
+      residenceStatus: m.residenceStatus || '',
+    };
+  });
+
+  const rowHtml = (t) => {
+    const isOverdue = t.status === 'pending' && new Date(t.deadline) < new Date();
+    const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
+    return `
+              <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
+                <td class="py-2 px-3 font-medium text-gray-800">${t.name}</td>
+                <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
+                <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
+                <td class="py-2 px-3">${statusBadge(t)}</td>
+                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
+              </tr>`;
   };
 
   container.innerHTML = `
@@ -43,40 +74,42 @@ export function renderContent() {
           </div>
         </div>
         <div class="text-xs text-gray-500 mb-3">缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成</div>
-        ${tasks.length === 0 ? '<div class="text-xs text-gray-500 py-6 text-center">暂无补课任务</div>' : `
         <div class="overflow-x-auto">
-          <table class="w-full text-xs">
-            <thead><tr class="border-b border-gray-200">
+          <div id="disc-makeup-host"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
+  renderFilteredList(container.querySelector('#disc-makeup-host'), {
+    stateKey: 'disc-makeup-list',
+    rows: makeupRows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'w-full text-xs',
+    emptyMessage: '暂无补课任务',
+    table: {
+      colSpan: 6,
+      headHtml: `<tr class="border-b border-gray-200">
               <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
               <th class="py-2 px-3 text-left text-gray-500 font-medium">缺席活动</th>
               <th class="py-2 px-3 text-left text-gray-500 font-medium">补课方式</th>
               <th class="py-2 px-3 text-left text-gray-500 font-medium">截止日期</th>
               <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
               <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
-            </tr></thead>
-            <tbody>${tasks.map(t => {
-              const isOverdue = t.status === 'pending' && new Date(t.deadline) < new Date();
-              const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
-              return `
-              <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
-                <td class="py-2 px-3 font-medium text-gray-800">${t.personName || getPersonName(t.personId)}</td>
-                <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
-                <td class="py-2 px-3">${statusBadge(t)}</td>
-                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
-              </tr>
-            `}).join('')}</tbody>
-          </table>
-        </div>
-        `}
-      </div>
-    </div>
-  `;
+            </tr>`,
+    },
+    rowHtml,
+  });
 
-  // 绑定"确认完成"按钮事件
-  container.querySelectorAll('.btn-disc-confirm-makeup').forEach(btn => {
-    btn.addEventListener('click', () => {
+  // 绑定"确认完成"按钮事件（事件委托：引擎筛选重渲染行后仍可点）
+  container.querySelector('#disc-makeup-host')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-disc-confirm-makeup');
+    if (!btn) return;
+    {
       const taskId = btn.dataset.taskId;
       const tasks = loadMakeupTasks();
       const task = tasks.find(t => t.id === taskId);
@@ -96,10 +129,10 @@ export function renderContent() {
             saveAttendanceRecords(records);
           }
         }
-        showToast('success', `${task.personName || getPersonName(task.personId)} 的补课任务已确认完成，考勤已回写「已补」`);
+        showToast('success', `${getPersonName(task.personId)} 的补课任务已确认完成，考勤已回写「已补」`);
         renderContent();
       }
-    });
+    }
   });
 
   // T-304 C2 数据交接：纪检确认补课需求回执（组织标记材料缺失 → 纪检收到并闭环）

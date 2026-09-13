@@ -5,12 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260913e';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260913e';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260913e';
-import { tokenOf } from '../core/version-token.js?v=20260913e'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole } from './inspector.js?v=20260913e';
-import { badgeHtml } from './badges.js?v=20260913e';
+import { getAppState, setState } from '../core/state.js?v=20260913f';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260913f';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260913f';
+import { tokenOf } from '../core/version-token.js?v=20260913f'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20260913f';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -485,7 +484,9 @@ function _renderListView(grid, activeActivities, tasks, month, state) {
       html += `<div class="text-sm font-medium text-gray-800 truncate">${act.title || '未命名'}</div>`;
       html += `<div class="text-xs text-gray-500">${act.type || ''} ${act.location ? '· ' + act.location : ''}</div>`;
       html += `</div>`;
-      html += badgeHtml(act.status === 'published' ? '已发布' : '草稿', act.status === 'published' ? 'info' : 'neutral');
+      // 活动状态徽章：单一源 = 生命周期展示态（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
+      // 2026-09-13 收敛：原为本地二档「已发布/草稿」，与 DATA_MODEL §2.1「全站徽章统一」不符
+      html += activityLifecycleBadgeHtml(act, getAppState()?.tasks || []);
       html += `</div>`;
     });
   }

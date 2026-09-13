@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-05"
+last_updated: "2026-09-13"
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -72,6 +72,22 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 制度制定与迭代 | 制度文件走 `content/` 目录 | 系统内无「制度台账/版本」位 |
 
 > 判据：**规范类工作的「会议承载」已具备**（活动域 + 命名表达，与「组织生活会」同一裁定）；缺的是**流程明细/台账**——一律**显式登记**（work-map 描述或本表），**不用「占位卡」充数**（那正是过拟合）。
+
+**2026-09-13 批次 21（三表统一化：第一列是人的表格 / 第一列是活动的表格）追加**：
+
+过拟合（已处理）：
+
+| 过拟合实例 | 原状 | 现修 |
+|---|---|---|
+| 小表强加检索条 | 少量行的表也渲染检索条，成本大于收益 | 门槛 `SEARCH_FILTER_MIN_ROWS = 8` 统一拦截（人/活动共用，动态行数 `> 8` 才出现检索条） |
+| 活动类型/状态各页自造口径 | 各 tab 各写一套判据与状态文案 | 收敛为单一源——存储态判据 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`（`core/constants.js`）、生命周期展示态走 `components/inspector.js::deriveActivityLifecycleStatus`、类型写 `normalizeActivityType` 权威子类中文名 |
+| 模块加载期人员快照 ×13 | 模块顶层捕获人员清单，与后台写入失同步、有张冠李戴风险 | 改 `services/person.js::liveMembers()` 实时视图（只读 Proxy，写入走 PersonStore 写口） |
+
+欠拟合（已登记）：
+
+- 部分表「第一列是人」与「第一列是活动」同等重要（考勤矩阵、表态矩阵、考察人视图矩阵等）——本轮**不接入**统一检索（矩阵/转置结构，接入会破坏视图与分页），登记为**已知例外**；
+- `Date.now()` 生成实体 id 的全站排查（`services/external-dispatch.js` / `handoff.js` / `makeup.js` / `notice.js` / `issues.js` 等仍为「前缀 + `Date.now()`」，同毫秒写入存在撞 id 风险）——详见 `.ctx/REVIEW_QUEUE.md` 批次 21 归口（Q-21-2）；
+- `RESIDENCE` 常量两份同值定义（`services/roster.js` 与 `services/org-base-data-preview.js`）待收敛为单一定义。
 
 ---
 

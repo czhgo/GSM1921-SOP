@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-05"
+last_updated: "2026-09-13"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -990,5 +990,40 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
 **受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
+
+### 2.25 思想汇报数据 (ThoughtReport)
+
+> 类型定义位于 `docs/src/services/thought-report.js`；**期次纯函数单一源** `docs/src/core/period.js`。2026-09-13 批次 21 改造：思想汇报由「提交即归档的单条记录」升级为**面板数据**（同一 `personId` 名下可多期多篇），并由独立阅读页 `docs/thought-report.html` 承载。
+
+| 字段名 | 类型 | 必填 | 默认值 | 说明 |
+|---|---|---|---|---|
+| id | string | 是 | `generateId('tr')` | 唯一标识符（底层 `crypto.randomUUID()`；原 `'tr_' + Date.now()` 同毫秒连提两篇会撞 id，2026-09-13 根治） |
+| personId | string | 是 | -- | 提交人 ID（党员/发展对象） |
+| personName | string | 是 | 权威源姓名 | 人员姓名**冗余快照**（见下方注） |
+| title | string | 否 | `'思想汇报'` | 标题 |
+| period | string | 是 | 按 `submittedAt` 推导 | **期次（季度）**：格式 `YYYY-Qn`；提交时**手填**、缺省或非法按 `submittedAt` 推导；同一 `personId` 同一期次**允许多篇**（面板数据，数据层无唯一性约束） |
+| content | string | 是 | -- | 思想汇报正文（trim 后存储） |
+| submittedAt | string (ISO) | 是 | `new Date().toISOString()` | 提交时间 |
+| reviewStatus | `'pending'\|'needs_revision'\|'archived'` | 是 | `'pending'` | 组织初阅状态；读取侧归一：旧数据无该字段 → 归 `archived`（不进待初阅队列） |
+| reviewHistory | array | 否 | `[]` | 初阅留痕（读取侧归一为数组） |
+
+> **注（冗余快照字段）**：`personName` 为历史留痕用的冗余快照；**展示一律以 `getPersonName(personId)` 现取**，快照仅作历史留痕，不参与身份判定（数据一致性守卫 D2 断言各域 `personName` 与权威源一致）。
+
+---
+
+## 三、单一源清单（2026-09-13 批次 21 登记）
+
+> 本批次新增/确认的单一源集中登记于此；同源判据与「结构 + 数据双层断言」方法见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` §0。
+
+| 单一源 | 位置 | 口径 |
+|---|---|---|
+| 期次 | `docs/src/core/period.js` | 期次纯函数（`PERIOD_RE` / `periodOf` / `periodLabel` / `comparePeriodDesc` / `periodOptions` / `isValidPeriod`） |
+| 检索条门槛 | `docs/src/core/constants.js::SEARCH_FILTER_MIN_ROWS` | = 8，人/活动表共用；动态行数 `> 8` 才出现检索条 |
+| 活动存储态判据 | `docs/src/core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive` | 活动「已结束/已归档/未开始/仍在办」判据；全站禁止手写 `status==='completed' \|\| archived` |
+| 活动生命周期展示态 | `docs/src/components/inspector.js::ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` | 草稿/已发布/进行中/待归档/已执行/已归档/已取消（**本次确认唯一**） |
+| 统一名单检索引擎 | `docs/src/components/list-filter.js` | 关键词 + 分面 chips + 门槛显隐 + 同 `stateKey` 跨重渲染保筛选（人/活动共用） |
+| 成员档案编辑模态 | `docs/src/components/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
+| 人员清单实时视图 | `docs/src/services/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
+| 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 800 }`（界面显示字数，不作硬性拦截） |
 
 ---

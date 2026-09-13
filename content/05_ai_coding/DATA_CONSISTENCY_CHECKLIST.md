@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-13"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -20,6 +20,42 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > 本手册按数据类别组织，每种数据列出存储源、展示页面、同源校验点。
 > 校验方式：打开任意校验点涉及的页面，确认数据一致。
+
+---
+
+## 0. 数据一致性评议 · 两层法（2026-09-13 支书裁定推广）
+
+> **支书原话（2026-09-13）**：「结构+数据 双层断言！我觉得这次做的数据一致性评议很重要！我们要推广开来！」
+> **适用范围**：任何实体（人 / 活动 / 记录 / 文件 …）的同源一致性评议——本次范本见 §1「跨表一致性（自动化守卫）」与 `server/test/person-consistency.test.mjs`。
+
+**为何两层**
+
+- 只有**数据层**断言 → 新代码可绕开单源：今天对了，明天新写的模块又自造一份口径。
+- 只有**结构层**断言 → 数据本身可能已经不一致：口径只有一处，但那处的数据错了，或别的域的快照已经失同步。
+- **两层都要**：结构层守住「口径只有一处实现」，数据层守住「同一实体的同一字段在各域取值一致」。
+
+**结构层（静态扫描断言「口径只有一处实现」）**
+
+- [ ] 禁止**模块加载期人员快照**：`const X = PersonStore.getMembers();` 这类模块顶层一次性捕获一律改为 `liveMembers()`（实时视图，只读；写入走 `PersonStore` 写口）
+- [ ] 禁止**凭姓名认身份**：`.find(p => p.name === …)` 不得用作身份判定；姓名匹配只允许「**先按 id、姓名仅唯一命中才采纳**」，否则留空
+- [ ] 禁止**手写已成单一源的判据**：如活动存储态不得再写 `status==='completed' || archived`，一律走 `core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
+
+**数据层（以权威源为基准逐域断言）**
+
+- [ ] 同一实体的同一字段在各域取值一致；本次范本＝`server/test/person-consistency.test.mjs`：
+  - D1 引用存在性——各域引用的 `personId` 均存在于权威人员源
+  - D2 姓名快照一致——各域冗余字段 `personName` 与权威源姓名一致
+  - D3 档案字段快照一致——各域冗余的档案字段与权威档案值一致
+  - D4 同域双字段自洽——同一域内两字段指向同一实体时相互一致
+  - D5 唯一档案 + 账号可解析——每个在册人唯一档案且可由登录账号解析
+
+**推广方法（可套用到活动 / 记录 / 文件等任意实体）**
+
+1. **定权威源**：该实体字段的唯一权威出处（人员＝PersonStore；活动＝activities 域；…）
+2. **枚举所有引用该实体的域与字段路径**：逐域列出冗余快照字段与引用字段
+3. **写四类断言**：引用存在性 + 快照一致性 + 同域自洽 + 唯一性
+4. **写结构层静态扫描**：把「口径只有一处实现」固化为断言，防新代码回潮
+5. **实测暴露的问题一律根治**（改单一源）而非打补丁——补丁只会留下第二处实现
 
 ---
 
@@ -50,6 +86,17 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 登录页输入 accounts.js 中的学号+密码 → 成功登录后跳转首页，首页顶栏展示对应角色工作台入口（login-entry.js 登录后跳 index.html；main-entry.js 按角色改写 workspace 链接）
 - [ ] 支书工作台赋权管理 tab 中常设角色标签（支书/支委/组长）对应 PEOPLE 中 role 字段 + AuthStore 赋权记录
 - [ ] 发展党员追踪候选人（由 PEOPLE 中 developStage 非'正式党员' 的成员动态派生）的 stage 与 developStage 一致
+
+**跨表一致性（自动化守卫）**（`server/test/person-consistency.test.mjs`，2026-09-13 批次 21 新增，7/7 通过）：
+
+- [ ] **S1 结构层**：禁止模块加载期人员快照——模块顶层 `const X = PersonStore.getMembers()` 一律改 `liveMembers()` 实时视图
+- [ ] **S2 结构层**：禁止凭姓名认身份——`.find(p => p.name === …)` 不得作身份判据，须「先按 id、姓名仅唯一命中才采纳」
+- [ ] **S3 结构层**：禁止手写已成单一源的活动存储态判据——一律走 `core/constants.js` 的 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
+- [ ] **D1 数据层**：引用存在性——各域引用的 `personId` 均存在于权威人员源
+- [ ] **D2 数据层**：姓名快照一致——各域冗余 `personName` 与权威源姓名一致
+- [ ] **D3 数据层**：档案字段快照一致——各域冗余档案字段与权威档案值一致
+- [ ] **D4 数据层**：同域双字段自洽——同一域内两字段指向同一实体时相互一致
+- [ ] **D5 数据层**：唯一档案 + 账号可解析——每个在册人唯一档案且可由登录账号解析
 
 ---
 
@@ -396,7 +443,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 专班成员 personId ↔ people.js：专班 members 数组中 personId 在 PEOPLE 中存在
 - [ ] 活动写入→日历/统计联动：支书/组长写入活动后，首页日历和统计卡片同步更新
 - [ ] 首页统计卡口径（main-entry `_renderStats`）：本月活动=未归档且属本月 / 活跃专班=active+recruiting / 未读通知=activeOnly 且未读 / 个人考勤率=(present+made_up)/total（90/70 阈值三色）
-- [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值
+- [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
+- [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 25 个持久化域 + users ↔ server 26 表（`server/db.js` RESOURCE_TABLES）；resources.js 26 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 25 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态

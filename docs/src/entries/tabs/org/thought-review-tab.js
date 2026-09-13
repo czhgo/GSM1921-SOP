@@ -1,16 +1,15 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：思想汇报 初阅（R6-2 把关式初阅 UI 层，2026-09-07）
-// 承接 services/thought-report.js 把关式状态机（支书 2026-09-07 定案）：
-//   pending（待组织初阅）→ 组织委员初阅 approve → archived（通过即归档）
-//                             reject（须附意见）→ needs_revision → 本人修改重交 → pending
-// 职责边界：初阅操作收敛本 tab 单入口（development「发展数据」只读展开不动，不加操作，避免两处入口）；
-// 提交/修改重交在成员侧（visitor）完成。
+// 2026-09-13 面板数据改造（支书裁定「我认为还是需要用一个界面来承载！而不是展开！」）：
+//  本 tab 只做**入口导航**——待初阅队列/按人浏览逐条跳**独立阅读页** docs/thought-report.html
+//  （单篇 ?id= / 按人 ?personId=）；初阅动作（通过·归档 / 退回）、正文阅读均在该页完成，
+//  本 tab 不再行内展开（已删 .tr-detail/.tr-expand-btn 与就地初阅）。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
+import { loadThoughtReports, listPendingReviews } from '../../../services/thought-report.js?v=20260913f';
+import { getPersonName } from '../../../services/person.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { escHtml as esc } from '../../../core/utils.js?v=20260913f';
 
 // ── R6-2 初阅状态：徽标样式 + 中文标签 ──
 // 读取侧归一与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -53,33 +52,15 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       </div>`;
     return;
   }
-  const actor = { personId: user.personId, role: user.role };
 
   function render() {
-    // E-4（2026-09-09 · H60.7 面板保态复查④）：操作（通过/退回）后整 tab 重渲染，
-    // 原实现清其它已展开行的展开态与退回意见草稿 → 渲染前收集、渲染后回填；
-    // 被处置行已退出队列/归入浏览区 → 对应状态随元素消失自然清掉，不残留。
-    const openDetailIds = new Set();
-    container.querySelectorAll('.tr-detail:not(.hidden)').forEach(d => {
-      if (d.dataset.trDetail) openDetailIds.add(d.dataset.trDetail);
-    });
-    const noteVals = new Map();
-    container.querySelectorAll('input[id^="tr-note-"]').forEach(inp => {
-      if (inp.value) noteVals.set(inp.id, inp.value);
-    });
-    // B6①（2026-09-12）：「按人浏览」已归档条目的展开态同样保态（阅看正文后重渲染不收起）
-    const openBrowseIds = new Set();
-    container.querySelectorAll('.trb-detail:not(.hidden)').forEach(d => {
-      if (d.dataset.trbDetail) openBrowseIds.add(d.dataset.trbDetail);
-    });
-
     // 待初阅队列：先到先阅（服务层 listPendingReviews 已按提交时间升序）
     const queue = listPendingReviews();
-    // 按人浏览：全部思想汇报（含待初阅/已归档/已退回·需补充），按人归组
+    // 按人浏览：全部思想汇报（含待初阅/已归档/已退回·需补充），按人归组（人名一律 live getPersonName，勿用记录内快照）
     const groupMap = new Map();
     loadThoughtReports().forEach(r => {
       const pid = r.personId || 'unknown';
-      if (!groupMap.has(pid)) groupMap.set(pid, { name: r.personName || getPersonName(pid) || pid, items: [] });
+      if (!groupMap.has(pid)) groupMap.set(pid, { name: getPersonName(pid) || pid, items: [] });
       groupMap.get(pid).items.push(r);
     });
     const byPerson = [...groupMap.values()];
@@ -88,56 +69,44 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     const queueRowHtml = queue.length === 0
       ? '<p class="text-xs text-gray-500 text-center py-8">暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅</p>'
       : queue.map(r => {
-          const who = esc(r.personName || getPersonName(r.personId) || r.personId);
+          const who = esc(getPersonName(r.personId) || r.personId);
           const title = esc(r.title || '思想汇报');
           return `
-          <div class="p-3 rounded-xl bg-white border border-gray-50">
-            <div class="flex items-start gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-xs font-semibold text-gray-800">${who}</span>
-                  <span class="text-xs font-medium text-gray-600">《${title}》</span>
-                  <span class="text-[11px] text-gray-500">${_date(r.submittedAt)}</span>
-                </div>
-                <p class="text-[12px] text-gray-500 mt-1">${esc(_brief(r.content))}</p>
-              </div>
-              <button type="button" class="tr-expand-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">阅看</button>
-            </div>
-            <div class="tr-detail hidden mt-3 pt-3 border-t border-gray-100" data-tr-detail="${r.id}">
-              <p class="text-[12px] text-gray-600 whitespace-pre-wrap leading-relaxed mb-3">${esc(r.content || '（无正文）')}</p>
+          <a href="thought-report.html?id=${r.id}" data-tr-id="${r.id}" class="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+            <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
-                <button type="button" class="tr-approve-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">通过·归档</button>
-                <button type="button" class="tr-reject-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors whitespace-nowrap" data-tr-id="${r.id}" style="cursor:pointer;">退回·需补充</button>
-                <input type="text" id="tr-note-${r.id}" class="input-flat flex-1 min-w-0" maxlength="120" placeholder="退回意见（退回必填，提交者可见并可修改重交）" aria-label="退回意见">
+                <span class="text-xs font-semibold text-gray-800">${who}</span>
+                <span class="text-xs font-medium text-gray-600">《${title}》</span>
+                <span class="text-[11px] text-gray-500">${_date(r.submittedAt)}</span>
               </div>
+              <p class="text-[12px] text-gray-500 mt-1">${esc(_brief(r.content))}</p>
             </div>
-          </div>`;
+            <span class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap flex-shrink-0">阅读并初阅 →</span>
+          </a>`;
         }).join('');
 
     const browseHtml = byPerson.length === 0
       ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>'
       : byPerson.map(g => `
           <div class="mb-4 last:mb-0">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-sm font-semibold text-gray-800">${esc(g.name)}</span>
-              <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
-            </div>
+            <a href="thought-report.html?personId=${encodeURIComponent(g.items[0].personId || '')}" class="flex items-center gap-2 mb-2 group">
+              <span class="text-sm font-semibold text-gray-800 group-hover:text-sky-700 transition-colors">${esc(g.name)}</span>
+              <span class="text-[11px] text-gray-500">${g.items.length} 篇 · 全部阅读 →</span>
+            </a>
             <div class="space-y-2">
               ${g.items.map(item => {
                 const hist = _historyHtml(item);
                 return `
-                <div class="p-2.5 rounded-lg bg-white border border-gray-50">
+                <a href="thought-report.html?id=${item.id}" class="block p-2.5 rounded-lg bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
                   <div class="flex items-center justify-between gap-2 flex-wrap">
                     <div class="flex items-center gap-2 min-w-0 flex-1">
                       <span class="text-xs font-medium text-gray-700 truncate">${esc(item.title || '思想汇报')}</span>
                       <span class="text-[11px] text-gray-500 flex-shrink-0">${_date(item.submittedAt)}</span>
                     </div>
-                    ${item.content ? `<button type="button" class="trb-expand-btn text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors flex-shrink-0" data-trb-id="${item.id}" style="cursor:pointer;">阅看</button>` : ''}
                     ${_statusBadgeHtml(_effStatus(item))}
                   </div>
                   ${hist ? `<div class="mt-1.5 space-y-0.5">${hist}</div>` : ''}
-                  ${item.content ? `<div class="trb-detail hidden mt-2 pt-2 border-t border-gray-100" data-trb-detail="${item.id}"><p class="text-[12px] text-gray-600 whitespace-pre-wrap leading-relaxed">${esc(item.content)}</p></div>` : ''}
-                </div>`;
+                </a>`;
               }).join('')}
             </div>
           </div>`).join('');
@@ -148,7 +117,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
           <h3 class="font-title-cn text-base font-semibold text-gray-800">待初阅队列</h3>
           <span class="text-xs text-gray-500">${queue.length} 篇 · 先到先阅</span>
         </div>
-        <p class="text-xs text-gray-500 mb-3">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
+        <p class="text-xs text-gray-500 mb-3">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。点击任一条进入阅读页进行初阅。</p>
         <div class="space-y-2">${queueRowHtml}</div>
       </div>
       <div class="card rounded-xl p-5 mt-3">
@@ -159,71 +128,6 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
         ${browseHtml}
       </div>
     `;
-
-    // ── 阅看/收起：展开全文 + 初阅操作区 ──
-    container.querySelectorAll('.tr-expand-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const detail = container.querySelector(`.tr-detail[data-tr-detail="${btn.dataset.trId}"]`);
-        if (!detail) return;
-        const collapsed = detail.classList.contains('hidden');
-        detail.classList.toggle('hidden', !collapsed);
-        btn.textContent = collapsed ? '收起' : '阅看';
-      });
-    });
-
-    // ── B6①（2026-09-12）：「按人浏览」已归档条目阅看正文（组织委员可见正文，不必等初阅队列）──
-    container.querySelectorAll('.trb-expand-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const detail = container.querySelector(`.trb-detail[data-trb-detail="${btn.dataset.trbId}"]`);
-        if (!detail) return;
-        const collapsed = detail.classList.contains('hidden');
-        detail.classList.toggle('hidden', !collapsed);
-        btn.textContent = collapsed ? '收起' : '阅看';
-      });
-    });
-
-    // ── 通过·归档 / 退回·需补充 ──
-    const submitReview = (id, decision) => {
-      const rec = queue.find(x => x.id === id);
-      if (!rec) { showToast('error', '思想汇报不存在或已不在待初阅队列，请刷新后重试'); render(); return; }
-      const note = (container.querySelector(`#tr-note-${id}`)?.value || '').trim();
-      if (decision === 'reject' && !note) { showToast('error', '请填写退回意见'); return; }
-      const res = reviewThoughtReport({ id, decision, note: decision === 'reject' ? note : '', by: actor.personId, role: actor.role });
-      if (!res || !res.ok) { showToast('error', (res && res.reason) || '初阅失败，请稍后重试'); return; }
-      const who = rec.personName || getPersonName(rec.personId) || rec.personId;
-      const title = rec.title || '思想汇报';
-      showToast('success', decision === 'approve'
-        ? `《${title}》（${who}）初阅通过，已正式归档`
-        : `《${title}》（${who}）已退回并附意见，提交者可修改重交`);
-      render(); // 操作后刷新（队列与按人浏览同步）
-    };
-    container.querySelectorAll('.tr-approve-btn').forEach(btn => {
-      btn.addEventListener('click', () => submitReview(btn.dataset.trId, 'approve'));
-    });
-    container.querySelectorAll('.tr-reject-btn').forEach(btn => {
-      btn.addEventListener('click', () => submitReview(btn.dataset.trId, 'reject'));
-    });
-
-    // ── E-4：回填本次重渲染前仍存在的其它展开行（展开态 + 退回意见草稿）──
-    openDetailIds.forEach(id => {
-      const detail = container.querySelector(`.tr-detail[data-tr-detail="${id}"]`);
-      if (!detail) return; // 行已退出队列（被处置/已归档）→ 展开态自然丢弃
-      detail.classList.remove('hidden');
-      const btn = container.querySelector(`.tr-expand-btn[data-tr-id="${id}"]`);
-      if (btn) btn.textContent = '收起'; // 与展开态同步按钮文案
-    });
-    noteVals.forEach((v, id) => {
-      const el = container.querySelector('#' + id);
-      if (el) el.value = v; // 行仍在队列才回填；被处置行草稿随元素消失
-    });
-    // B6①：回填「按人浏览」展开态（正文阅看态不因初阅操作重渲染而收起）
-    openBrowseIds.forEach(id => {
-      const detail = container.querySelector(`.trb-detail[data-trb-detail="${id}"]`);
-      if (!detail) return;
-      detail.classList.remove('hidden');
-      const btn = container.querySelector(`.trb-expand-btn[data-trb-id="${id}"]`);
-      if (btn) btn.textContent = '收起';
-    });
   }
 
   render();

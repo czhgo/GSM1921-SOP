@@ -4,17 +4,17 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260913e';
-import { renderCalendarByActivities } from './calendar.js?v=20260913e';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260913e';
-import { badgeHtml } from './badges.js?v=20260913e';
-import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260913e';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260913e';
-import { getPersonById } from '../services/person.js?v=20260913e';
-import { AuthStore } from '../services/auth.js?v=20260913e';
-import { fetchVotes } from '../services/committee-vote.js?v=20260913e';
+import { getAppState, setState } from '../core/state.js?v=20260913f';
+import { renderCalendarByActivities } from './calendar.js?v=20260913f';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260913f';
+import { badgeHtml } from './badges.js?v=20260913f';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived } from '../core/constants.js?v=20260913f';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260913f';
+import { getPersonById } from '../services/person.js?v=20260913f';
+import { AuthStore } from '../services/auth.js?v=20260913f';
+import { fetchVotes } from '../services/committee-vote.js?v=20260913f';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from './vote-widget.js?v=20260913e';
+import { renderVoteWidget } from './vote-widget.js?v=20260913f';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -85,7 +85,7 @@ export function renderActivityView(container, opts = {}) {
   // 改为：先算唯一权威 month（选项内优先 state.displayMonth，否则回落当月/最新月），选择器与日历共用。
   const months = [...new Set(
     activities
-      .filter(a => !a.archived && typeof a.date === 'string' && a.date.length >= 7)
+      .filter(a => !isActivityArchived(a) && typeof a.date === 'string' && a.date.length >= 7)
       .map(a => a.date.slice(0, 7))
   )].sort().reverse();
   const fallbackMonth = months.includes(currentMonth) ? currentMonth : (months[0] || currentMonth);

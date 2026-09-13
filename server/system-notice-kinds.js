@@ -67,6 +67,16 @@ const KINDS = {
       if (!row) return false;
       return row.personId === actor.id || actor.role === 'org-commissioner';
     },
+    // 2026-09-13 面板数据改造：展示值（提交人姓名 / 期次）由服务端**按表复算**，与 authorize 同源——
+    // 原实现只转发客户端 payload.personName，等于允许「通知里写别人的名字」。现一律以表内行为准。
+    build(ctx) {
+      const row = rowOf(ctx.db, 'thought_reports', ctx.sourceId) || {};
+      return buildSystemNotice('thought-report-submitted', {
+        sourceId: ctx.sourceId,
+        personName: row.personName,
+        period: row.period,
+      });
+    },
   },
 
   // ── 考勤已确认并归档 ──────────────────────────────────────────

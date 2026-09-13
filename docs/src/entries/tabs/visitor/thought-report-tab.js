@@ -1,12 +1,16 @@
 // role: [工程师]+[AI]
 // 参与者工作台 Tab：我的思想汇报（2026-08-30 支书决策启动数字化；2026-09-07 R6-2 把关式初阅）
-// 党员/发展对象在系统内提交思想汇报 → 组织初阅：通过 → 自动归档归集至个人档案；
-// 打回（needs_revision，附退回意见）→ 本人「修改并重新提交」→ 回待初阅队列。
-// 本人可查看自己的历史提交（状态徽标 + 退回意见）；组织委员在「发展数据」tab 初阅调用。
-
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport, withdrawThoughtReport } from '../../../services/thought-report.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
+// 2026-09-13 面板数据改造（支书裁定「我认为还是需要用一个界面来承载！而不是展开！」）：
+//  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
+//  · 字数提示改用 wordCountHint（软提示、不拦截）；
+//  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
+//    只读正文、修改重交、撤回均收敛到该页，本 tab 不再行内展开/就地编辑。
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import {
+  addThoughtReport, listThoughtReportsByPersonGrouped,
+  wordCountHint, periodOf, periodOptions,
+} from '../../../services/thought-report.js?v=20260913f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -17,21 +21,11 @@ const STATUS_META = {
 };
 
 const _effStatus = (r) => (STATUS_META[r && r.reviewStatus] ? r.reviewStatus : 'archived');
-const _date = (iso) => (iso || '').slice(0, 10);
+const _dateTime = (iso) => { const s = (iso || ''); return s.length >= 16 ? s.slice(0, 16).replace('T', ' ') : s; };
 
 const _statusBadgeHtml = (status) => {
   const m = STATUS_META[status];
   return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
-};
-
-/** 最近一次退回意见：reviewHistory 自末往前第一条 decision==='reject' 的 note（可能为空数组 → ''） */
-const _lastRejectNote = (r) => {
-  const hist = Array.isArray(r && r.reviewHistory) ? r.reviewHistory : [];
-  for (let i = hist.length - 1; i >= 0; i--) {
-    const h = hist[i];
-    if (h && h.decision === 'reject') return (h.note || '').trim();
-  }
-  return '';
 };
 
 export function renderContent(ctx) {
@@ -46,124 +40,75 @@ export function renderContent(ctx) {
   const personId = user.personId;
 
   function render() {
-    const reports = listThoughtReportsByPerson(personId);
+    const groups = listThoughtReportsByPersonGrouped(personId);
+    const total = groups.reduce((n, g) => n + g.items.length, 0);
+    const nowPeriod = periodOf(new Date().toISOString());
+
+    const listHtml = total === 0
+      ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>'
+      : groups.map(g => `
+          <div class="mb-3 last:mb-0">
+            <div class="flex items-center gap-2 mb-1.5">
+              <span class="text-xs font-semibold text-gray-700">${esc(g.label)}</span>
+              <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
+            </div>
+            <div class="space-y-1.5">
+              ${g.items.map(r => `
+                <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+                  <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
+                  <span class="text-[11px] text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
+                  <span class="text-[11px] text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
+                  ${_statusBadgeHtml(_effStatus(r))}
+                </a>`).join('')}
+            </div>
+          </div>`).join('');
+
     tc.innerHTML = `
       <div class="mb-3 p-3 rounded-lg bg-white">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
-        <p class="text-xs text-gray-500 mt-0.5">已提交 ${reports.length} 篇 · 组织初阅通过后自动归档至个人档案</p>
+        <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇 · 组织初阅通过后自动归档至个人档案</p>
       </div>
       <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-[11px] text-gray-500 flex-shrink-0">期次</span>
+          <select id="tr-period" class="input-flat text-xs">
+            ${periodOptions().map(o => `<option value="${o.value}"${o.value === nowPeriod ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}
+          </select>
+        </div>
         <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
-        <div class="flex items-center justify-between mt-2">
+        <div class="flex items-center justify-between mt-2 gap-2">
           <p class="text-[11px] text-gray-500">提交后由组织初阅归档，通过后自动归档至个人档案</p>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <span id="tr-count" class="text-[11px] text-gray-400 tabular-nums">0 字</span>
+            <span id="tr-count" class="text-[11px] text-gray-500 tabular-nums">0 字</span>
             <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>
           </div>
         </div>
       </div>
-      <div id="tr-list" class="space-y-2"></div>
+      <div id="tr-list">${listHtml}</div>
     `;
 
-    const listEl = document.getElementById('tr-list');
-    if (!listEl) return;
-    if (reports.length === 0) {
-      listEl.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>';
-    } else {
-      listEl.innerHTML = reports.map(r => {
-        const status = _effStatus(r);
-        const rejectNote = _lastRejectNote(r);
-        const canRevise = status === 'needs_revision';
-        return `
-        <div class="p-3 rounded-lg bg-white border border-gray-50">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span class="text-xs font-medium text-gray-700 truncate">${esc(r.title || '思想汇报')}</span>
-              <span class="text-[11px] text-gray-500 flex-shrink-0">${_date(r.submittedAt)}</span>
-            </div>
-            ${_statusBadgeHtml(status)}
-          </div>
-          <p class="text-[12px] text-gray-600 whitespace-pre-wrap mt-1.5">${esc(r.content || '')}</p>
-          ${rejectNote ? `<div class="mt-2 rounded-lg bg-red-50 border border-red-100 px-2 py-1.5 text-[11px] text-red-700 whitespace-pre-wrap">退回意见：${esc(rejectNote)}</div>` : ''}
-          ${status === 'pending' ? `
-          <div class="mt-2 flex justify-end">
-            <button type="button" class="tr-withdraw text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">撤回</button>
-          </div>` : ''}
-          ${canRevise ? `
-          <div class="mt-2 flex flex-col items-end gap-1.5">
-            <button type="button" class="tr-rev-toggle text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">修改并重新提交</button>
-            <div class="tr-rev-box hidden w-full" data-tr-box="${r.id}">
-              <textarea rows="4" class="input-flat w-full resize-none" placeholder="请根据退回意见补充完善后重新提交">${esc(r.content || '')}</textarea>
-              <div class="flex items-center justify-between mt-1.5 gap-2">
-                <p class="text-[11px] text-gray-500">重新提交后回到待初阅队列，由组织委员再次初阅</p>
-                <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <button type="button" class="tr-rev-cancel text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">取消</button>
-                  <button type="button" class="tr-resubmit text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors" data-tr-id="${r.id}" style="cursor:pointer;">重新提交</button>
-                </div>
-              </div>
-            </div>
-          </div>` : ''}
-        </div>`;
-      }).join('');
-    }
-
-    // ── 提交新汇报（R6-2：入库 pending，组织初阅通过后才归档）──
-    // C1（2026-09-12）：字数统计实时更新（不设硬性拦截，仅提示篇幅）
+    // ── 提交新汇报（R6-2：入库 pending，组织初阅通过后才归档；期次手填，缺省当前期次）──
+    // 篇幅按 wordCountHint 实时软提示（单一源），**不设 maxlength/minlength、不拦截提交**
     const _contentEl = document.getElementById('tr-content');
     const _countEl = document.getElementById('tr-count');
-    const _syncCount = () => { if (_countEl) _countEl.textContent = `${(_contentEl?.value || '').trim().length} 字`; };
+    const _syncCount = () => {
+      const h = wordCountHint(_contentEl?.value || '');
+      if (_countEl) {
+        _countEl.textContent = `当前 ${h.count} 字 · ${h.hint}`;
+        _countEl.className = `text-[11px] tabular-nums ${h.level === 'short' ? 'text-amber-600' : 'text-gray-500'}`;
+      }
+    };
     _contentEl?.addEventListener('input', _syncCount);
     _syncCount();
+
     document.getElementById('tr-submit')?.addEventListener('click', () => {
       const content = document.getElementById('tr-content')?.value || '';
       if (!content.trim()) { showToast('warning', '请填写思想汇报内容'); return; }
-      addThoughtReport({ personId, content });
+      const period = document.getElementById('tr-period')?.value || nowPeriod;
+      addThoughtReport({ personId, content, period });
       showToast('success', '思想汇报已提交，待组织初阅');
       render();
-    });
-
-    // ── 已退回·需补充：展开/收起 修改重交编辑区 ──
-    tc.querySelectorAll('.tr-rev-toggle').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const box = tc.querySelector(`.tr-rev-box[data-tr-box="${btn.dataset.trId}"]`);
-        if (!box) return;
-        box.classList.toggle('hidden');
-        btn.textContent = box.classList.contains('hidden') ? '修改并重新提交' : '收起';
-      });
-    });
-    tc.querySelectorAll('.tr-rev-cancel').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const box = tc.querySelector(`.tr-rev-box[data-tr-box="${btn.dataset.trId}"]`);
-        if (!box) return;
-        box.classList.add('hidden');
-        const toggle = tc.querySelector(`.tr-rev-toggle[data-tr-id="${btn.dataset.trId}"]`);
-        if (toggle) toggle.textContent = '修改并重新提交';
-      });
-    });
-
-    // ── 撤回（C1：仅待初阅 pending；本人可撤回，撤回后从归集移除可重新提交）──
-    tc.querySelectorAll('.tr-withdraw').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (!window.confirm('确认撤回该思想汇报？撤回后该篇将从你的思想汇报归集移除。')) return;
-        const res = withdrawThoughtReport({ id: btn.dataset.trId, by: personId });
-        if (!res || !res.ok) { showToast('error', (res && res.reason) || '撤回失败，请稍后重试'); return; }
-        showToast('success', '思想汇报已撤回');
-        render();
-      });
-    });
-
-    // ── 修改并重新提交（仅本人 needs_revision 记录；失败透出服务层 reason）──
-    tc.querySelectorAll('.tr-resubmit').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const box = btn.closest('.tr-rev-box');
-        const content = (box?.querySelector('textarea')?.value || '').trim();
-        if (!content) { showToast('warning', '请填写修改后的思想汇报内容'); return; }
-        const res = resubmitThoughtReport({ id: btn.dataset.trId, content, by: personId });
-        if (!res || !res.ok) { showToast('error', (res && res.reason) || '重新提交失败，请稍后重试'); return; }
-        showToast('success', '已重新提交，待组织初阅');
-        render();
-      });
     });
   }
 

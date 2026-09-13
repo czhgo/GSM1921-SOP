@@ -12,6 +12,9 @@
 //  返回通知对象（不含 id/publishDate，由写入侧补齐）。
 // ════════════════════════════════════════════════════════════════
 
+// 期次标签单一源（core/period.js）——勿在本文件另写季度格式化
+import { periodLabel } from './period.js?v=20260913f';
+
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
   const out = {};
@@ -25,9 +28,10 @@ const TEMPLATES = {
   // ── 思想汇报已提交（thought-report.js 迁移） ──────────────────────
   // R-23（2026-09-13）：受众锁定组织委员（把关式初阅功能位）——原无 audience/actionRoles
   //   会经全站广播给所有成员（含提交人自己），与「待组织初阅」的业务指向不符。
-  'thought-report-submitted': ({ sourceId, personName }) => pick({
+  // 2026-09-13 面板数据改造：正文带**期次**（组织委员需知哪一季度的汇报）。
+  'thought-report-submitted': ({ sourceId, personName, period }) => pick({
     title: '思想汇报已提交',
-    content: `${personName} 已提交思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
+    content: `${personName} 已提交${period ? `（${periodLabel(period)}）` : ''}思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
     priority: 'normal',
     audience: ['org-commissioner'],
     targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,

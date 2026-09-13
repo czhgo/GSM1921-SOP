@@ -8,17 +8,22 @@
 //
 //  C 批（R4-1/R4-2/R4-3，支书裁定，2026-09-06）：
 //   · 发展阶段 / 在册滞留 = 组织委员发起 → 支书确认生效（双层留痕、可退回）——
-//     行内保存不再即时落档，改调 member-confirmation.submitMemberChange，行格显示「待确认」；
-//     C①-补（2026-09-10）：阶段变更时行内显「进入当前阶段日期」（默认今日），
-//     支书确认生效时同源写入 gsm1921-dev-stage-overrides，恢复组织台发展节点提醒派生；
-//   · 党小组 partyGroup / 滞留备注维护（不改状态）保持即时生效；
+//     提交经 member-confirmation.submitMemberChange，生效前行格显示「待确认」；
+//     C①-补（2026-09-10）：阶段变更时同源写入 gsm1921-dev-stage-overrides，
+//     恢复组织台发展节点提醒派生；
 //   · 「移出」= submitTransferOut：无历史直接移出；仅安全引用（未开始分工/未生效报名/未读广播）
 //     自动解除后移出；有历史 → 报支书确认（转「已转出」标注 + 移出），行显示「移出待确认」。
 //
+//  2026-09-13（支书 grill-me 面谈定案「模态内分流」）：
+//   行内不再就地编辑；行内「编辑」统一打开成员档案编辑模态 components/person-edit-modal.js——
+//   模态内按写路径分组：姓名/学号/党小组（档案属性）直改即时生效；发展阶段/在册状态/在册备注
+//   （制度变更）报支书确认后生效，逐行小标区分「立即生效」/「报支书确认」。本 Tab 仅保留入口
+//   与「待确认」可见性（listPendingConfirmations）。
+//
 //  本 Tab 职责边界（与「人才库」talent-tab 分工，避免重复建设）：
 //   · 人才库 = 成员浏览 + 考察记录画像 + 成员状态详情维护（保持现状，不动）；
-//   · 成员名册 = 名单管理主位：新增成员、行内改 分组/发展阶段/在册状态（含滞留备注）、
-//     移出（成员变更确认复核链路）。两处编辑同一数据链（PersonStore + roster 覆盖层），
+//   · 成员名册 = 名单管理主位：新增成员、经模态编辑档案、移出（成员变更确认复核链路）。
+//     两处编辑同一数据链（PersonStore + roster 覆盖层），
 //     任一改动即被应到口径（纪检考勤/支书复核卡）与对方界面读到。
 //  数据/枚举单一源：PersonStore.getMembers（含 members 持久覆盖层 + 预览叠加）；
 //    党小组/发展阶段枚举 = org-base-data-preview 的 PARTY_GROUP_OPTIONS / DEVELOP_STAGE_OPTIONS
@@ -27,21 +32,23 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../../../services/person.js?v=20260913e';
-import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260913e';
-import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913e';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260913e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913e';
-// 纯逻辑（可单测）：新增表单校验 / 行内保存 diff
-import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260913e';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913f';
+import { getRosterStats, getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260913f';
+import { submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913f';
+import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913f';
+// 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260913f';
+// 纯逻辑（可单测）：新增表单校验
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260913f';
+// 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
-// 搜索关键字（输入框 re-render 时保留）
-let _kw = '';
 
 /** 发展阶段展示排序（仅排序用，值仍出自 DEVELOP_STAGE_OPTIONS，不新增枚举） */
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
@@ -56,12 +63,7 @@ function _actorId() {
   return AuthStore.getCurrentUser()?.personId || 'p11';
 }
 
-/** 今日日期键 'YYYY-MM-DD'（阶段推进「进入当前阶段日期」默认值） */
-function _todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-/** 待支书确认索引（一致性刷新：渲染/保存/移出共用同一来源 listPendingConfirmations） */
+/** 待支书确认索引（一致性刷新：渲染/移出共用同一来源 listPendingConfirmations） */
 function _pendingMap() {
   const pends = listPendingConfirmations();
   return {
@@ -99,11 +101,10 @@ export function renderContent(ctx) {
             <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
           </div>
           <div class="flex items-center gap-2">
-            <input id="roster-kw" type="search" class="input-flat text-xs w-44" placeholder="搜索姓名 / 党小组…" value="${esc(_kw)}" aria-label="搜索成员">
             <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注点「保存」即时生效；发展阶段与在册状态变更由组织委员发起、支书确认后生效。</p>
+        <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
@@ -117,39 +118,36 @@ export function renderContent(ctx) {
       </div>
 
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
-        ${_listHtml(members)}
+        ${_listHeaderHtml()}
+        <div id="roster-list-host"></div>
       </div>
       <p class="text-[11px] text-gray-500 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经支书确认后转「已转出」保留。</p>
     </div>
   `;
 
   container.querySelector('#roster-add-btn')?.addEventListener('click', _openAddForm);
-  const kwInput = container.querySelector('#roster-kw');
-  kwInput?.addEventListener('input', (e) => {
-    _kw = e.target.value.trim();
-    const card = document.getElementById('roster-list-card');
-    if (card) { card.innerHTML = _listHtml(_branchMembers()); _bindList(card); }
+  // 统一检索引擎：关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）
+  const host = container.querySelector('#roster-list-host');
+  renderFilteredList(host, {
+    stateKey: 'org-roster-table',
+    rows: members,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1',
+    emptyMessage: members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入',
+    rowHtml: (p) => _rowHtml(p, _pendingMap()),
   });
-  _bindList(container);
+  _bindList(host);
 }
 
-/** 名单（含列头 + 行内编辑控件）；搜索命中 姓名/党小组 */
-function _listHtml(members) {
-  const kw = _kw;
-  const rows = kw
-    ? members.filter(p => (p.name || '').includes(kw) || (p.partyGroup || '').includes(kw))
-    : members;
-  const pend = _pendingMap();
+/** 名单列头（行内容由统一检索引擎渲染；窄屏 <768px 列头隐藏、行内 6 列 grid 退化为单列卡片） */
+function _listHeaderHtml() {
   const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
-  // B6⑥（2026-09-12）：窄屏（<768px）列头隐藏、行内 6 列 grid 退化为单列卡片（不再横向滚动）
-  const header = `
+  return `
     <div class="hidden md:grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
       <span>姓名</span><span>党小组</span><span>发展阶段</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
     </div>`;
-  const body = rows.length === 0
-    ? `<div class="py-8 text-center text-xs text-gray-500">${members.length ? '无匹配成员' : '名册暂无成员，点右上角「新增成员」录入'}</div>`
-    : `<div class="space-y-1">${rows.map(p => _rowHtml(p, pend)).join('')}</div>`;
-  return header + body;
 }
 
 /** 「待确认」小标（阶段/在册 pending 时显示；行内对应格下方） */
@@ -157,46 +155,36 @@ function _pendingPill(text, title) {
   return `<span class="inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
 }
 
-/** 行内可编辑行：党小组/发展阶段/在册状态 select + 滞留备注 + 保存/删除（pending 显示待确认小标） */
+/** 名单行（只读展示；编辑统一走成员档案模态，pending 显示「待确认」小标） */
 function _rowHtml(p, pend) {
   const rs = getResidenceOf(p);
   const detained = rs.residenceStatus === RESIDENCE.DETAINED;
   const roleLabel = p.role && p.role !== 'participant' ? (ROLE_LABELS[p.role] || p.role) : '';
-  const opt = (v, label, cur) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${label}</option>`;
-  const groupOptions = (p.partyGroup ? [] : [opt('', '未分组', p.partyGroup)])
-    .concat(PARTY_GROUP_OPTIONS.map(g => opt(g, g, p.partyGroup)));
-  const stageOptions = (p.developStage ? [] : [opt('', '待定', p.developStage)])
-    .concat(_orderedStages().map(s => opt(s, s, p.developStage)));
-  const resOptions = [opt(RESIDENCE.CAMPUS, '在校', rs.residenceStatus), opt(RESIDENCE.DETAINED, '滞留', rs.residenceStatus)];
   const stagePend = pend.stage.has(p.id);
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
   return `
-    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}" data-orig-stage="${esc(p.developStage || '')}">
+    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
-          <span class="truncate">${esc(p.name)}</span>
+          <span class="truncate">${esc(getPersonName(p.id))}</span>
           ${detained ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
         </div>
         ${roleLabel ? `<div class="text-[10px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
-      <select class="input-flat text-xs roster-group w-full" aria-label="党小组">${groupOptions.join('')}</select>
+      <div class="text-xs text-gray-800 truncate">${esc(p.partyGroup || '—')}</div>
       <div class="flex flex-col gap-0.5 min-w-0">
-        <select class="input-flat text-xs roster-stage w-full" aria-label="发展阶段" ${stagePend ? 'disabled' : ''}>${stageOptions.join('')}</select>
+        <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '待定')}</span>
         ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
-        <div class="roster-entry-wrap hidden flex-col gap-0.5 min-w-0" title="阶段变更生效后，以此日期计算发展节点提醒（默认今日）">
-          <span class="text-[10px] text-gray-500 whitespace-nowrap">进入当前阶段日期</span>
-          <input type="date" class="input-flat text-xs roster-entry-date w-full" value="${_todayKey()}" aria-label="进入当前阶段日期">
-        </div>
       </div>
       <div class="flex flex-col gap-0.5 min-w-0">
-        <select class="input-flat text-xs roster-res w-full" aria-label="在册状态" ${resPend ? 'disabled' : ''}>${resOptions.join('')}</select>
+        <span class="text-xs truncate ${detained ? 'text-amber-700' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
         ${resPend ? _pendingPill('在册状态·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
       </div>
-      <input type="text" class="input-flat text-xs roster-note w-full" maxlength="120" value="${esc(rs.residenceNote)}"
-        placeholder="${detained ? '滞留原因 / 起止（如 2026-09 起交换一学期）' : '在校状态无需备注'}" aria-label="滞留备注" ${detained ? '' : 'disabled'}>
+      <div class="text-xs text-gray-600 truncate" title="${esc(rs.residenceNote || '')}">${esc(rs.residenceNote || '—')}</div>
       <div class="flex items-center justify-end gap-1.5">
-        <button type="button" class="roster-save text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">保存</button>
+        <button type="button" class="roster-edit text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">编辑</button>
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="text-decoration:none;">档案</a>
         <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送支书确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
       </div>
     </div>`;
@@ -211,126 +199,28 @@ function _orderedStages() {
   });
 }
 
-/** 绑定名单卡交互：行内控件切换 / 保存 / 移出 */
+/** 绑定名单卡交互（事件委托，随引擎筛选重渲染仍有效）：行内「编辑」→ 档案模态 / 「移出」→ 二次确认 */
 function _bindList(root) {
-  const card = (root.querySelector && root.querySelector('#roster-list-card')) || root;
-  card.querySelectorAll('.roster-res').forEach(sel => {
-    sel.addEventListener('change', () => _syncNoteEnable(sel));
-  });
-  card.querySelectorAll('.roster-stage').forEach(sel => {
-    sel.addEventListener('change', () => _syncStageEntry(sel));
-  });
-  card.querySelectorAll('.roster-save').forEach(btn => {
-    btn.addEventListener('click', () => _saveRow(btn.dataset.personId));
-  });
-  card.querySelectorAll('.roster-del').forEach(btn => {
-    btn.addEventListener('click', () => _askRemove(btn.dataset.personId));
+  root.addEventListener('click', (e) => {
+    const edit = e.target.closest('.roster-edit');
+    if (edit) { _openEdit(edit.dataset.personId); return; }
+    const del = e.target.closest('.roster-del');
+    if (del) _askRemove(del.dataset.personId);
   });
 }
 
-/** 在册状态切换 → 备注输入可用性（在校 = 无需备注，禁编辑防错位） */
-function _syncNoteEnable(sel) {
-  const row = sel.closest('.roster-row');
-  const note = row && row.querySelector('.roster-note');
-  if (!note) return;
-  const detained = sel.value === RESIDENCE.DETAINED;
-  note.disabled = !detained;
-  note.placeholder = detained ? '滞留原因 / 起止（如 2026-09 起交换一学期）' : '在校状态无需备注';
-}
-
-/** 发展阶段切换 → 「进入当前阶段日期」字段显隐（仅阶段变更时显示；改回现值则隐藏） */
-function _syncStageEntry(sel) {
-  const row = sel.closest('.roster-row');
-  const wrap = row && row.querySelector('.roster-entry-wrap');
-  if (!wrap) return;
-  const orig = row.dataset.origStage || '';
-  const changed = !!sel.value && sel.value !== orig;
-  wrap.classList.toggle('hidden', !changed);
-}
-
-// ════════════════════════════════════════════════════════════════
-//  行内保存（C 批成员变更确认复核：阶段/在册切换 → 报支书确认；分组/滞留备注维护即时生效）
-// ════════════════════════════════════════════════════════════════
-
-async function _saveRow(personId) {
-  const card = document.getElementById('roster-list-card');
-  const row = card && card.querySelector(`.roster-row[data-person-id="${personId}"]`);
-  const member = PersonStore.getMembers().find(m => m.id === personId);
-  if (!row || !member) { showToast('error', '该成员已不在名册，请刷新后再试'); return; }
-
-  const ui = {
-    partyGroup: row.querySelector('.roster-group')?.value ?? '',
-    developStage: row.querySelector('.roster-stage')?.value ?? '',
-    residenceStatus: row.querySelector('.roster-res')?.value ?? RESIDENCE.CAMPUS,
-    residenceNote: row.querySelector('.roster-note')?.value ?? '',
-    entryDate: row.querySelector('.roster-entry-date')?.value ?? '',
-  };
-  const patch = diffMemberFields(member, ui); // 纯 diff：仅带变化字段
-  const actorId = _actorId();
-  if (!Object.keys(patch).length) { showToast('info', '未修改任何字段'); return; }
-
-  const rs = getResidenceOf(member);
-  const stageChanged = patch.developStage !== undefined;
-  const resToggled = patch.residenceStatus !== undefined && patch.residenceStatus !== rs.residenceStatus;
-  const noteOnly = patch.residenceNote !== undefined && !resToggled; // 状态未动、仅滞留备注维护
-  const pend = _pendingMap();
-  let submitted = 0;
-
-  // ① 发展阶段变更 → 报支书确认（双层留痕；同一人同字段 pending 拦截）
-  if (stageChanged) {
-    if (pend.stage.has(personId)) {
-      showToast('info', '该成员发展阶段变更已报送支书确认，生效前请勿重复提交');
-    } else {
-      const r = submitMemberChange({ personId, kind: 'developStage', to: patch.developStage, note: '', by: actorId, entryDate: ui.entryDate });
-      if (r.ok) {
-        showToast('success', `「${member.name}」发展阶段已报送支书确认，确认后生效`);
-        submitted++;
-      } else {
-        showToast('error', r.reason || '阶段变更报送失败，请重试');
-      }
-    }
-  }
-
-  // ② 在册状态切换 → 报支书确认（滞留备注随请求携带；同一人同字段 pending 拦截）
-  if (resToggled) {
-    if (pend.res.has(personId)) {
-      showToast('info', '该成员在册状态变更已报送支书确认，生效前请勿重复提交');
-    } else {
-      const r = submitMemberChange({
-        personId, kind: 'residence', to: patch.residenceStatus,
-        note: patch.residenceStatus === RESIDENCE.DETAINED ? (patch.residenceNote || '') : '',
-        by: actorId,
-      });
-      if (r.ok) {
-        showToast('success', `「${member.name}」在册状态已报送支书确认，确认后生效`);
-        submitted++;
-      } else {
-        showToast('error', r.reason || '在册状态报送失败，请重试');
-      }
-    }
-  }
-
-  // ③ 即时字段：党小组 / 滞留备注维护（备注不改状态 → 覆盖层 + 留痕 + 镜像档案即时生效）
-  const instant = {};
-  if (patch.partyGroup !== undefined) instant.partyGroup = patch.partyGroup;
-  if (noteOnly) {
-    const resView = saveResidenceChange({ personId, actorId, status: rs.residenceStatus, note: patch.residenceNote });
-    if (resView) {
-      instant.residenceStatus = resView.residenceStatus;
-      instant.residenceNote = resView.residenceNote;
-      instant.residenceHistory = resView.residenceHistory;
-    }
-  }
-  let instantSaved = false;
-  if (Object.keys(instant).length) {
-    const r = await PersonStore.saveMember({ id: member.id, ...instant }, { by: actorId });
-    if (r.ok) instantSaved = true;
-    else showToast('error', r.reason || '保存失败，请重试');
-  }
-  if (instantSaved && submitted === 0) {
-    showToast('success', `「${member.name}」已保存：党小组 / 备注即时生效`);
-  }
-  if (submitted > 0 || instantSaved) renderContent(_ctx); // 刷新后行格回现值 + 显示「待确认」
+/**
+ * 行内「编辑」→ 统一成员档案编辑模态（防张冠李戴：模态按 personId 现取档案真相）。
+ * 模态内按字段分流：姓名 / 学号 / 党小组立即生效；发展阶段 / 在册状态 / 在册备注报支书确认。
+ * onSaved 重新渲染本表（回现值 + 刷新「待确认」小标）。
+ */
+function _openEdit(personId) {
+  openPersonEditModal({
+    personId,
+    focusFields: ['name', 'studentId', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'],
+    sourceLabel: '成员名册',
+    onSaved: () => renderContent(_ctx),
+  });
 }
 
 // ════════════════════════════════════════════════════════════════

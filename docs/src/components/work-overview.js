@@ -10,24 +10,25 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260913e';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260913e';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260913e';
-import { IssueStore } from '../services/issues.js?v=20260913e';
-import { AuthStore } from '../services/auth.js?v=20260913e';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260913e';
-import { loadActivities } from '../services/activity.js?v=20260913e';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260913e';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260913e';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260913f';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260913f';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260913f';
+import { IssueStore } from '../services/issues.js?v=20260913f';
+import { AuthStore } from '../services/auth.js?v=20260913f';
+import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260913f';
+import { loadActivities } from '../services/activity.js?v=20260913f';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260913f';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260913f';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/makeup.js）
-import { loadMakeupTasks } from '../services/makeup.js?v=20260913e';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913e';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260913e';
-import { PersonStore } from '../services/person.js?v=20260913e';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260913f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913f';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260913f';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../services/person.js?v=20260913e';
-import { AttendanceStatus } from '../core/domain.js?v=20260913e';
+// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+const PEOPLE = liveMembers();
+import { getPersonName } from '../services/person.js?v=20260913f';
+import { AttendanceStatus } from '../core/domain.js?v=20260913f';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -131,7 +132,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
 
   // ── ③ 进度区：我的在办（可下钻，设计原则 11）+ 条线态势 ─────
   const myActs = loadActivities().filter(a =>
-    !a.archived && a.status !== 'completed' && a.status !== 'cancelled' && a.status !== 'draft' &&
+    !isActivityEnded(a) && a.status !== 'cancelled' && a.status !== 'draft' &&
     (a.organizer === personId || (Array.isArray(a.assignments) && a.assignments.some(x => x.personId === personId)))
   );
   const myTfs = TaskForceRecordStore.list().filter(tf =>
@@ -276,14 +277,14 @@ function _lineBlockers(role) {
     if (overdue) out.push(`考察超期 ${overdue} 条`);
   } else if (role === 'prop-commissioner') {
     const activities = loadActivities();
-    const ended = activities.filter(a => a.status === 'completed' || a.archived);
-    const pendingArchive = ended.filter(a => !a.archived).length;
+    const ended = activities.filter(a => isActivityEnded(a));
+    const pendingArchive = ended.filter(a => !isActivityArchived(a)).length;
     if (pendingArchive) out.push(`待归档活动 ${pendingArchive} 个`);
   } else if (role === 'org-commissioner') {
     const recruiting = TaskForceRecordStore.list().filter(t => t.status === 'recruiting').length;
     if (recruiting) out.push(`专班招募中 ${recruiting} 个`);
     const pendingAuth = loadActivities().filter(a =>
-      !a.archived && a.direction === 'bottom-up' && !(a.assignments || []).some(x => x.role === 'organizer')
+      !isActivityArchived(a) && a.direction === 'bottom-up' && !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
     if (pendingAuth) out.push(`待赋权活动 ${pendingAuth} 个`);
   }
@@ -304,14 +305,14 @@ function _lineProgress(role) {
   } else if (role === 'org-commissioner') {
     const tfs = TaskForceRecordStore.list().filter(t => t.status === 'active' || t.status === 'recruiting');
     rows.push(_lineRow('#4F46E5', '专班', `${tfs.length} 个在办`));
-    const acts = loadActivities().filter(a => !a.archived && a.status !== 'completed' && a.status !== 'cancelled');
+    const acts = loadActivities().filter(a => !isActivityEnded(a) && a.status !== 'cancelled');
     rows.push(_lineRow('#0EA5E9', '活动', `${acts.length} 个在办`));
   } else if (role === 'prop-commissioner') {
     // 设计原则 11：进度指标只显未完成类——「已归档 N」是存量统计（无信息增量），
     // 只显「待归档缺口」（与卡点区一致，0 时该行不渲染）。
     const activities = loadActivities();
-    const ended = activities.filter(a => a.status === 'completed' || a.archived);
-    const pendingArchive = ended.filter(a => !a.archived).length;
+    const ended = activities.filter(a => isActivityEnded(a));
+    const pendingArchive = ended.filter(a => !isActivityArchived(a)).length;
     if (pendingArchive > 0) rows.push(_lineRow('#F59E0B', '档案', `待归档 ${pendingArchive} 个`));
   }
   return rows;
@@ -419,10 +420,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260913e');
+    const { renderActivityView } = await import('./activity-view.js?v=20260913f');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260913e');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260913f');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

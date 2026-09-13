@@ -5,18 +5,20 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
-import { IssueStore } from '../../../services/issues.js?v=20260913e';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260913e';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260913e';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913e';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260913e';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260913e';
-import { getPersonName } from '../../../services/person.js?v=20260913e';
-import { showToast } from '../../../core/utils.js?v=20260913e';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { IssueStore } from '../../../services/issues.js?v=20260913f';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260913f';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260913f';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913f';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913f';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260913f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { showToast } from '../../../core/utils.js?v=20260913f';
+// 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260913e';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260913f';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -55,6 +57,7 @@ export async function renderContent(ctx) {
     const reports = allIssues.filter(i => i.kind === 'report' && i.submittedBy === t.personId && !i.hidden && !i.mergedInto);
     const openReport = reports.find(r => r.status === 'open');
     const openRequest = allIssues.find(i => i.kind === 'report' && i.requestedBy && i.assignee === t.personId && i.status === 'open' && !i.hidden && !i.mergedInto);
+    const m = getPersonById(t.personId) || {};
 
     let reportState = '—';
     let reportClass = 'text-gray-500';
@@ -68,6 +71,14 @@ export async function renderContent(ctx) {
 
     return {
       person: t,
+      personId: t.personId,
+      // 人名一律取档案（禁用记录内 personName 快照）；分面字段按 personId 现取档案
+      name: getPersonName(t.personId),
+      studentId: m.studentId || '',
+      partyGroup: m.partyGroup || t.partyGroup || '',
+      developStage: m.developStage || '',
+      role: m.role || t.role || '',
+      residenceStatus: m.residenceStatus || '',
       active: personTodos.length,
       overdue: overdueTodos.length,
       absent: absentCount,
@@ -79,12 +90,13 @@ export async function renderContent(ctx) {
   });
 
   // 卡点区（问题优先）：超期待办 + 上报卡点 + 缺勤 + 考察待确认
+  // 说明：本区为派生告警清单（同一人可命中多条），非逐人一览表，故不接入统一检索引擎（登记见批次报告）
   const blockers = [];
   rows.forEach(r => {
-    if (r.overdue > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `${r.overdue} 项待办超期`, role: r.person.role });
-    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.person.personId, name: r.person.name, title: `上报卡点：${r.openReport.title}`, role: r.person.role });
-    if (r.absent > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `缺勤未补 ${r.absent} 次`, role: r.person.role });
-    if (r.inspPending > 0) blockers.push({ personId: r.person.personId, name: r.person.name, title: `考察待确认 ${r.inspPending} 条`, role: r.person.role });
+    if (r.overdue > 0) blockers.push({ personId: r.personId, name: r.name, title: `${r.overdue} 项待办超期`, role: r.person.role });
+    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.personId, name: r.name, title: `上报卡点：${r.openReport.title}`, role: r.person.role });
+    if (r.absent > 0) blockers.push({ personId: r.personId, name: r.name, title: `缺勤未补 ${r.absent} 次`, role: r.person.role });
+    if (r.inspPending > 0) blockers.push({ personId: r.personId, name: r.name, title: `考察待确认 ${r.inspPending} 条`, role: r.person.role });
   });
 
   const blockerHtml = blockers.length === 0
@@ -101,16 +113,17 @@ export async function renderContent(ctx) {
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
         </div>`).join('');
 
-  const progressRows = rows.map(r => `
+  // 逐人进度行（统一检索引擎行模板：关键词 + 分面；行内无按钮）
+  const progressRowHtml = (r) => `
     <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
-      <span class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0">${r.person.name}</span>
+      <span class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0">${r.name}</span>
       <span class="text-xs tabular-nums text-gray-600 w-14 flex-shrink-0 text-right">在办 ${r.active}</span>
       <span class="text-xs tabular-nums ${r.overdue ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">超期 ${r.overdue}</span>
       <span class="text-xs tabular-nums ${r.absent ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">缺勤 ${r.absent}</span>
       <span class="text-xs tabular-nums ${r.inspPending ? 'text-amber-700 font-medium' : 'text-gray-500'} w-16 flex-shrink-0 text-right">考察待 ${r.inspPending}</span>
       <span class="text-xs ${r.reportClass} w-20 text-right flex-shrink-0">${r.reportState}</span>
-    </div>`).join('');
+    </div>`;
 
   // 汇报区（支书 2026-08-10 裁定：组长可答复本组组员汇报，块块内闭环；支书仍全局可见）
   // 本组组员发起的 open 汇报 → 行内正式答复；问题优先置顶
@@ -143,11 +156,23 @@ export async function renderContent(ctx) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700">进度</h4>
           <span class="text-xs text-gray-500">本组组员在办聚合</span>
         </div>
-        <div class="space-y-1.5">${progressRows}</div>
+        <div id="leader-progress-list"></div>
       </div>
       <!-- D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入组员进展页（原独立「复盘状态」tab 已删） -->
       ${reviewStatusSectionHtml(ctx)}
     </div>`;
+
+  // 统一检索引擎（逐人进度表：关键词 姓名/学号 + 分面 党小组/发展阶段/角色/在册；行数 ≤8 时自动不渲染检索条）
+  renderFilteredList(container.querySelector('#leader-progress-list'), {
+    stateKey: 'leader-members-progress',
+    rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1.5',
+    emptyMessage: '无匹配组员',
+    rowHtml: progressRowHtml,
+  });
 
   _bindMembersEvents(container);
 }

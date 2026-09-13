@@ -1,18 +1,20 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260913e';
-import { renderHeader } from '../components/header.js?v=20260913e';
-import { BranchService } from '../services/runtime.js?v=20260913e';
-import { mockDB } from '../core/domain.js?v=20260913e';
-import { getPersonById } from '../services/person.js?v=20260913e';
-import { loadActivities } from '../services/activity.js?v=20260913e';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913e';
-import { getActivityTypeColors } from '../core/constants.js?v=20260913e';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260913e';
-import { getBasePath } from '../core/utils.js?v=20260913e';
-import { AuthStore } from '../services/auth.js?v=20260913e';
-import { badgeHtml } from '../components/badges.js?v=20260913e';
+import { renderSidebar } from '../components/sidebar.js?v=20260913f';
+import { renderHeader } from '../components/header.js?v=20260913f';
+import { BranchService } from '../services/runtime.js?v=20260913f';
+import { mockDB } from '../core/domain.js?v=20260913f';
+import { getPersonById } from '../services/person.js?v=20260913f';
+import { loadActivities } from '../services/activity.js?v=20260913f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913f';
+import { getActivityTypeColors } from '../core/constants.js?v=20260913f';
+// 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
+import { isActivityEnded } from '../core/constants.js?v=20260913f';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260913f';
+import { getBasePath } from '../core/utils.js?v=20260913f';
+import { AuthStore } from '../services/auth.js?v=20260913f';
+import { badgeHtml } from '../components/badges.js?v=20260913f';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -92,7 +94,7 @@ function _renderPager(total, key) {
 // ── 活动归档 ──
 function renderActivityArchive() {
   const all = loadActivities()
-    .filter(a => a.status === 'completed' || a.archived)
+    .filter(a => isActivityEnded(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || '')); // 新日期在前
 
   if (all.length === 0) {

@@ -3,12 +3,14 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260913e';
-import { renderQueryView } from '../../../components/query-view.js?v=20260913e';
-import { flashHighlight } from '../../../core/utils.js?v=20260913e';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260913e';
-import { canSignup } from '../../../components/signup-panel.js?v=20260913e';
-import { AuthStore } from '../../../services/auth.js?v=20260913e';
+import { icon } from '../../../core/icons.js?v=20260913f';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913f';
+import { flashHighlight } from '../../../core/utils.js?v=20260913f';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260913f';
+// 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
+import { isActivityLive } from '../../../core/constants.js?v=20260913f';
+import { canSignup } from '../../../components/signup-panel.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913f';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -56,7 +58,7 @@ export function renderContent(ctx) {
 
   const activities = ctx.activities || [];
   const highlightId = ctx.highlightId || null;
-  const sorted = [...activities].filter(a => a.date && !a.archived && a.status !== 'cancelled').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const sorted = [...activities].filter(a => a.date && isActivityLive(a)).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   tc.innerHTML = `
     <div class="flex items-center justify-between mb-3">
