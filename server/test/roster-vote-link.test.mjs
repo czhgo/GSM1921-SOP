@@ -10,15 +10,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912h';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260912h';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912h';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912j';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260912j';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912j';
 import {
   getMeetingRosterCandidates, getMeetingRosterIds, getRosterStats,
   saveResidenceChange, getDetainedMembers, getResidenceOf,
   RESIDENCE, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260912h';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260912h';
+} from '../../docs/src/services/roster.js?v=20260912j';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260912j';
 
 // ── localStorage 内存桩（saveResidenceChange 运行期覆盖用例需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

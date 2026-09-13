@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260912h';
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { bumpToken } from '../core/version-token.js?v=20260912h';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260912h';
-import { loadActivities } from '../services/activity.js?v=20260912h';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912h';
-import { NoticeStore } from '../services/notice.js?v=20260912h';
-import { AuthStore } from '../services/auth.js?v=20260912h';
+import { getAdapter } from '../core/data-adapter.js?v=20260912j';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { bumpToken } from '../core/version-token.js?v=20260912j';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260912j';
+import { loadActivities } from '../services/activity.js?v=20260912j';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260912j';
+import { NoticeStore } from '../services/notice.js?v=20260912j';
+import { AuthStore } from '../services/auth.js?v=20260912j';
 // roster=名册报送确认链（组织委员发起 → 书记确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260912h';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260912j';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -224,15 +224,15 @@ export async function approveMemberChangeRequest(id) {
   await getAdapter().memberChangeRequests.approve(id);
   bumpToken('memberChangeRequests'); // P0（2026-09-08）：status 直写不改长度 → 显式 bump 供渲染守卫失效
   // P2（2026-09-01 代码审查）：审批通过后发全员通知 = 广播送达证据（书记点验链路 ③「确认全体支委收到广播」）
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案）
   try {
     const person = r && getPersonById(r.personId);
     const act = r && loadActivities().find(a => a.id === r.activityId);
-    NoticeStore.add({
-      title: '成员变更已审批通过',
-      content: `${person?.name || r?.personId || ''}：${r?.fromStage || ''}→${r?.toStage || ''} 已通过组织委员审批（${act?.title || '活动'}），待书记确认后更新发展阶段。`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：直达书记台待办 tab 的「成员变更」批量行（data-mcb-id 锚点）
-      targetUrl: `workspace/secretary.html?tab=todo&highlight=${id}`,
+    NoticeStore.addSystem('member-change-approved', id, {
+      personName: person?.name || r?.personId || '',
+      fromStage: r?.fromStage || '',
+      toStage: r?.toStage || '',
+      activityTitle: act?.title || '活动',
     });
   } catch (ne) {
     console.warn('[member-change-panel] 广播通知发送失败：', ne);

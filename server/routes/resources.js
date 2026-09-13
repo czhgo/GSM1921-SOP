@@ -93,11 +93,10 @@ function _assertResourceWrite(actor, name, method, body) {
     return myBranch === targetBranch;
   }
   if (need === 'notice-publish') {
-    // 人工发布：白名单角色；系统派生通知（客户端打标 systemDerived，任意登录角色触发）放行——
-    // 否则「成员提交思想汇报 → 通知组织委员初阅」「纪检确认考勤 → 通知组织委员」等业务副作用
-    // 在 API 模式会被写门静默拦掉（2026-09-13 连带风险核查实证）。
-    // 残留信任边界（登记 R-22）：该标记由客户端自述，服务端不复算；彻底方案 = 由各业务端点服务端派生。
-    if (body && body.systemDerived === true) return !!actor;
+    // 人工发布：白名单角色。
+    // R-22（2026-09-13）：系统派生通知不再走本通道——原「客户端打标 systemDerived 即放行」因
+    // 标记可伪造（任一登录成员可借此发任意广播通知）而移除，改由服务端注册表生成，
+    // 见 server/system-notice-kinds.js 与 POST /api/v1/system-notices。
     return !!actor && NOTICE_PUBLISH_ROLE_SET.has(actor.role);
   }
   if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);

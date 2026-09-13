@@ -11,11 +11,11 @@
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { persist } from '../core/data-adapter.js?v=20260912h';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { getPersonById } from './person.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { persist } from '../core/data-adapter.js?v=20260912j';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { getPersonById } from './person.js?v=20260912j';
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）
@@ -80,13 +80,11 @@ export function addThoughtReport({ personId, content, title }) {
   mockDB.thoughtReports = [...loadThoughtReports(), rec];
   persist();
   // 通知组织委员（把关式初阅）：提交 → 待组织初阅，通过后自动归档
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
   try {
-    NoticeStore.add({
-      title: '思想汇报已提交',
-      content: `${rec.personName} 已提交思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：直达组织委员「思想汇报」tab 并定位该条（data-tr-id 锚点）
-      targetUrl: `workspace/org.html?tab=thought-review&highlight=${rec.id}`,
+    NoticeStore.addSystem('thought-report-submitted', rec.id, {
+      personId: rec.personId,
+      personName: rec.personName,
     });
   } catch (e) {
     console.warn('[thought-report] 提交通知失败（不影响归档）：', e);

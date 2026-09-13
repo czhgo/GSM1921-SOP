@@ -5,17 +5,18 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { persist } from '../core/data-adapter.js?v=20260912h';
-import { bumpToken } from '../core/version-token.js?v=20260912h'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912h';
-import { isInitStateActive } from './init-reset.js?v=20260912h'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912h';
-import { AuthStore } from './auth.js?v=20260912h';
-import { getPersonById } from './person.js?v=20260912h';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912h';
-import { badgeHtml } from '../components/badges.js?v=20260912h';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES } from '../core/constants.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260912j';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260912j';
+import { bumpToken } from '../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260912j';
+import { isInitStateActive } from './init-reset.js?v=20260912j'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260912j';
+import { AuthStore } from './auth.js?v=20260912j';
+import { getPersonById } from './person.js?v=20260912j';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912j';
+import { badgeHtml } from '../components/badges.js?v=20260912j';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES } from '../core/constants.js?v=20260912j';
 
 function _loadNotices() {
   try {
@@ -180,12 +181,10 @@ export const NoticeStore = {
       console.warn(`[NoticeStore] 权限不足：角色 ${actorRole} 无权发布通知`);
       return null;
     }
-    // 系统派生通知（不传 actorRole）打标 systemDerived（2026-09-13 dogfood 权限专项）：
-    //   成员提交思想汇报、纪检确认考勤、赋权/表决进度等**业务副作用**产生的通知由任意角色触发，
-    //   与「人工发布」共享 POST /notices——服务端写门据此区分，避免把系统通知一并 403 误杀。
-    //   人为发布路径（通知发布表单）必传 actorRole，仍受白名单约束。
+    // 人工发布路径（通知发布表单等）必传 actorRole，仍受白名单约束。
+    // R-22（2026-09-13）：原「不传 actorRole 即打标 systemDerived」已随旧通道关闭而移除——
+    //   系统派生通知改由 addSystem() 走服务端生成（POST /api/v1/system-notices）。
     const newNotice = {
-      ...(actorRole ? {} : { systemDerived: true }),
       ...notice,
       id: notice.id || 'notice-' + Date.now(),
       publishDate: notice.publishDate || new Date().toISOString().slice(0, 10),
@@ -200,6 +199,99 @@ export const NoticeStore = {
       console.warn('[NoticeStore] 派生待办失败：', e);
     }
     return newNotice;
+  },
+
+  /**
+   * 系统派生通知统一入口（R-22，2026-09-13）
+   * 业务流程副作用（成员提交思想汇报、纪检确认考勤、赋权/表决进度、发起活动、专班/分工变更、
+   * 党委下发等）不再由前端自述可信标记，而是：
+   *   · mock 模式（无 API 会话）：复用与应用同一模板的本地 add()，演示/离线不受影响；
+   *   · API 模式：POST /api/v1/system-notices，由服务端按 kind 注册表复算授权并生成文案/落点。
+   * 失败时 console.warn 明确原因，不静默吞掉。
+   * @param {string} kind 注册表 kind（见 docs/src/core/system-notice-templates.js）
+   * @param {string|null} sourceId 业务对象 id（服务端据此复算授权与落点）
+   * @param {Object} [payload] 动态展示值（标题/正文/名称/计数等；不影响服务端安全判定）
+   * @returns {Promise<Object|null>|Object|null} 新通知（失败返回 null）
+   */
+  addSystem(kind, sourceId = null, payload = {}) {
+    const vars = { ...(payload || {}), sourceId };
+    // ① 本地镜像（**同步**，批 17 回归修复）：多个界面读的是本地存储（下发历史、铃铛本地快照、
+    //   以及「行动性通知 → 派生待办」），若只等服务端回包再并入，会出现「已提示下发成功但列表里没有」
+    //   ——实测 party-committee-dispatch / online-committee 两用例因此失败。故先本地生成（与应用同一
+    //   模板 system-notice-templates.js），再由服务端做权威复算与落库。
+    let mirror = null;
+    let built = null;
+    try {
+      built = buildSystemNotice(kind, vars);
+    } catch (e) {
+      console.warn(`[NoticeStore] 系统派生通知本地镜像失败（${kind}）：`, e);
+    }
+    // mock 模式（演示/离线）：无 API 会话 → 本地即权威（含"行动性通知→派生待办"，与既有行为一致）
+    if (getDataSource() !== 'api' || !getAuthToken()) {
+      return built ? this.add(built) : null;
+    }
+    // API 模式：仅做「可见性镜像」——**不在此派生待办**（成功后统一由服务端记录派生，避免同一通知派生两份待办）
+    if (built) {
+      mirror = {
+        ...built,
+        id: built.id || 'notice-' + Date.now(),
+        publishDate: built.publishDate || new Date().toISOString().slice(0, 10),
+      };
+      this._syncWithStore();
+      this._notices = [...this._notices, mirror];
+      mockDB.notices = [...(mockDB.notices || []), mirror];
+      _saveNotices(this._notices);
+      bumpToken('notice');
+    }
+    // ② API 模式：服务端为权威（按 kind 复算授权、生成落点），失败则回收本地镜像
+    return fetch(`${getApiBaseUrl()}/api/v1/system-notices`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
+      body: JSON.stringify({ kind, sourceId, payload: payload || {} }),
+    }).then(async (r) => {
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        console.warn(`[NoticeStore] 系统派生通知发送失败（${kind}，HTTP ${r.status}）：${body.error || r.statusText}`);
+        // 授权被拒/参数非法 → 回收本地镜像，避免留下"幻影通知"
+        if (mirror) this._dropLocalNotice(mirror.id);
+        return null;
+      }
+      const notice = await r.json();
+      // ③ 以服务端记录替换本地镜像（同一逻辑通知只保留一条，避免列表重复）
+      if (notice && notice.id) {
+        if (mirror) this._dropLocalNotice(mirror.id);
+        this._syncWithStore();
+        if (!this._notices.some((n) => n.id === notice.id)) {
+          this._notices = [...this._notices, notice];
+          mockDB.notices = [...(mockDB.notices || []), notice];
+          bumpToken('notice');
+        }
+        // 行动性通知本地派生对应角色待办（与 add() 一致；服务端仅存通知本身）
+        try {
+          NoticeTodoDeriver.deriveFromNotice(notice);
+        } catch (e) {
+          console.warn('[NoticeStore] 派生待办失败：', e);
+        }
+      }
+      return notice;
+    }).catch((e) => {
+      console.warn(`[NoticeStore] 系统派生通知发送失败（${kind}）：`, e);
+      if (mirror) this._dropLocalNotice(mirror.id);
+      return null;
+    });
+  },
+
+  /**
+   * 回收本地镜像通知（仅本地存储；服务端未落库或已被服务端记录替换时调用）。
+   * 注：派生的待办不做回收（错误路径极罕见，且回收待办涉及跨域写；已由 console.warn 明确留痕）。
+   */
+  _dropLocalNotice(id) {
+    if (!id) return;
+    this._syncWithStore();
+    this._notices = this._notices.filter((n) => n.id !== id);
+    mockDB.notices = (mockDB.notices || []).filter((n) => n.id !== id);
+    _saveNotices(this._notices);
+    bumpToken('notice');
   },
 
   update(id, patch, actorRole = null) {

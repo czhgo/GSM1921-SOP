@@ -7,12 +7,12 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260912h';
-import { AuthStore } from '../../../services/auth.js?v=20260912h';
-import { getCommitteeName } from '../../../services/branch.js?v=20260912h';
-import { NoticeStore } from '../../../services/notice.js?v=20260912h';
-import { textField, textareaField } from '../../../components/forms.js?v=20260912h';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912h';
+import { mockDB } from '../../../core/domain.js?v=20260912j';
+import { AuthStore } from '../../../services/auth.js?v=20260912j';
+import { getCommitteeName } from '../../../services/branch.js?v=20260912j';
+import { NoticeStore } from '../../../services/notice.js?v=20260912j';
+import { textField, textareaField } from '../../../components/forms.js?v=20260912j';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912j';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -93,18 +93,13 @@ export function renderContent() {
     if (!title || !content) { showToast('error', '请填写标题与正文'); return; }
     branchIds.forEach(branchId => {
       const b = (mockDB.branches || []).find(x => x.id === branchId);
-      NoticeStore.add({
-        source: 'committee',
-        audience: 'committee',
-        branchId,
-        branchName: b?.config?.headerTitle || b?.name || branchId,
+      // R-22（2026-09-13）：党委下发为系统派生通知（不再前端自述标记），
+      // 由服务端 kind 注册表复算授权（仅党委组织员）并生成落点（audience/branchId 由 sourceId 派生）
+      NoticeStore.addSystem('committee-dispatch', branchId, {
         title,
         content,
         priority,
-        targetModule: '',
-        read: false,
-        publisher: '院党委（组织员）',
-        recipients: '支部委员会（支委层）',
+        branchName: b?.config?.headerTitle || b?.name || branchId,
       });
     });
     showToast('success', `已下发至 ${branchIds.length} 个支部的支委层`);

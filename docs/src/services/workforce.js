@@ -9,16 +9,16 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=书记台暂存。
 // R2-3（2026-09-06 书记裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from './runtime.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912h';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912h';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912h';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot } from '../core/work-map.js?v=20260912h';
-import { getPersonName } from './person.js?v=20260912h';
-import { AuthStore } from './auth.js?v=20260912h';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260912h';
-import { fetchVotesStrict } from './committee-vote.js?v=20260912h';
+import { BranchService } from './runtime.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912j';
+import { ROLE_LABELS } from '../core/constants.js?v=20260912j';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912j';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot } from '../core/work-map.js?v=20260912j';
+import { getPersonName } from './person.js?v=20260912j';
+import { AuthStore } from './auth.js?v=20260912j';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260912j';
+import { fetchVotesStrict } from './committee-vote.js?v=20260912j';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -122,15 +122,9 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
   });
 
   // 站内通知全体支委（表决入口 = 各自工作台对本次支委会活动参与既有线上表决）
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案）
   try {
-    NoticeStore.add({
-      title: '支部分工调整议题待表决',
-      content: `「${activity.title}」已发起，请支委在本次支委会活动中参与线上表决（交流式表态）。`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：绑定来源支委会活动 → 点击直达该活动（在线表态）
-      targetType: 'activity',
-      targetId: activity.id,
-    });
+    NoticeStore.addSystem('workforce-proposal-created', activity.id, { activityTitle: activity.title });
   } catch (e) { console.warn('[workforce] 通知支委失败（不影响议题创建）：', e); }
   return activity;
 }
@@ -183,14 +177,7 @@ export async function adoptWorkforceProposal(branchId, activityId) {
     },
   });
   try {
-    NoticeStore.add({
-      title: '支部分工调整已生效',
-      content: `「${act.title}」已按支委会表决采纳，分工已更新。`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：绑定来源支委会活动（决议对象）
-      targetType: 'activity',
-      targetId: activityId,
-    });
+    NoticeStore.addSystem('workforce-proposal-adopted', activityId, { activityTitle: act.title });
   } catch (e) { console.warn('[workforce] 生效通知失败（不影响采纳）：', e); }
   return updated;
 }

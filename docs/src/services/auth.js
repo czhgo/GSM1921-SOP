@@ -9,17 +9,17 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912h';
-import { PEOPLE } from '../mock/index.js?v=20260912h';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912j';
+import { PEOPLE } from '../mock/index.js?v=20260912j';
 // 账号登录校验 mock 实现（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
-import { mockLogin } from '../mock/accounts.js?v=20260912h';
-import { getPersonById, getPersonName } from './person.js?v=20260912h';
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { updateActivity } from './mock.js?v=20260912h';
-import { TaskForceRecordStore } from './taskforce.js?v=20260912h';
-import { persist } from '../core/data-adapter.js?v=20260912h';
-import { enableApiMode } from './runtime.js?v=20260912h';
+import { mockLogin } from '../mock/accounts.js?v=20260912j';
+import { getPersonById, getPersonName } from './person.js?v=20260912j';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { updateActivity } from './mock.js?v=20260912j';
+import { TaskForceRecordStore } from './taskforce.js?v=20260912j';
+import { persist } from '../core/data-adapter.js?v=20260912j';
+import { enableApiMode } from './runtime.js?v=20260912j';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -195,11 +195,9 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
     NoticeStore.init();
   }
 
-  NoticeStore.add({
-    title: '赋权通知',
-    content: `${authorizerName} 已将您赋权为「${projectName}」的${roleLabel}。点击前往工作台。`,
-    priority: 'normal',
-    targetUrl: targetPage,
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
+  NoticeStore.addSystem('project-auth-granted', projectId, {
+    targetPage, authorizerName, projectName, roleLabel,
   });
 }
 

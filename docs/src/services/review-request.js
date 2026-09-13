@@ -7,10 +7,10 @@
 //   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起书记（带结论/意见）。
 //   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { getPersonName } from './person.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { getPersonName } from './person.js?v=20260912j';
 
 const TYPE_LABEL = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
 
@@ -28,14 +28,11 @@ function _subject(row) {
 /** 提交上报 → 定向通知党委（审批人） */
 function _notifySubmit(row) {
   try {
-    NoticeStore.add({
-      title: '支部上报待批复',
-      content: `${_branchLabel(row.branchId)} 提交${_subject(row)}，由 ${getPersonName(row.submittedBy) || row.submittedBy || '支部'} 发起，请党委审批。`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：直达党委「上报审批」tab 并定位该条上报（data-rq-card 锚点）
-      targetUrl: `workspace/party-committee.html?tab=review&highlight=${row.id}`,
-      actionRoles: ['party-staff'],
-      read: false,
+    // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
+    NoticeStore.addSystem('review-request-submitted', row.id, {
+      branchLabel: _branchLabel(row.branchId),
+      subject: _subject(row),
+      submitterName: getPersonName(row.submittedBy) || row.submittedBy || '支部',
     });
   } catch (e) { console.warn('[review-request] 上报通知失败（不影响上报）：', e); }
 }
@@ -44,14 +41,12 @@ function _notifySubmit(row) {
 function _notifyDecision(row) {
   const approved = row.status === 'approved';
   try {
-    NoticeStore.add({
-      title: approved ? '上报已获党委批准' : '上报被党委驳回',
-      content: `${_branchLabel(row.branchId)} 的${_subject(row)}已${approved ? '批准' : '驳回'}${approved ? '' : '，请按党委意见整改后重新上报'}${row.decisionNote ? `。党委意见：${row.decisionNote}` : '。'}`,
-      priority: 'normal',
-      // A① 对象级深链（2026-09-10）：直达书记「上报党委」tab 并定位该条上报（data-rq-id 锚点）
-      targetUrl: `workspace/secretary.html?tab=report-up&highlight=${row.id}`,
-      actionRoles: ['secretary', 'deputy-secretary'],
-      read: false,
+    // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
+    NoticeStore.addSystem('review-request-decided', row.id, {
+      branchLabel: _branchLabel(row.branchId),
+      subject: _subject(row),
+      approved,
+      decisionNote: row.decisionNote,
     });
   } catch (e) { console.warn('[review-request] 审批通知失败（不影响审批）：', e); }
 }

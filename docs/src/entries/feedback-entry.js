@@ -1,15 +1,16 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260912h';
-import { renderHeader } from '../components/header.js?v=20260912h';
-import { IssueStore } from '../services/issues.js?v=20260912h';
-import { MilestoneStore } from '../services/milestones.js?v=20260912h';
-import { showToast, getBasePath } from '../core/utils.js?v=20260912h';
-import { AuthStore } from '../services/auth.js?v=20260912h';
-import { renderIssueList } from '../components/issue-list.js?v=20260912h';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260912h';
-import { renderIssueForm } from '../components/issue-form.js?v=20260912h';
+import { renderSidebar } from '../components/sidebar.js?v=20260912j';
+import { renderHeader } from '../components/header.js?v=20260912j';
+import { IssueStore } from '../services/issues.js?v=20260912j';
+import { MilestoneStore } from '../services/milestones.js?v=20260912j';
+import { showToast, getBasePath } from '../core/utils.js?v=20260912j';
+import { AuthStore } from '../services/auth.js?v=20260912j';
+import { renderIssueList } from '../components/issue-list.js?v=20260912j';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260912j';
+import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260912j';
+import { renderIssueForm } from '../components/issue-form.js?v=20260912j';
 
 renderSidebar('feedback');
 renderHeader('feedback');
@@ -60,6 +61,9 @@ function showDetailView(id) {
   document.getElementById('issue-detail-view')?.classList.remove('hidden');
   document.getElementById('issue-new-view')?.classList.add('hidden');
   renderIssueDetail(id);
+  // 触点即落点（全局 UX 反思批次 2026-09-13）：列表被详情视图替换、详情 DOM 在列表上方，
+  // 点靠下的条目后用户需「反向向上」寻找 → 打开后把详情滚入视野
+  scrollDetailIntoView(document.getElementById('issue-detail-view'));
 }
 
 function showNewView() {

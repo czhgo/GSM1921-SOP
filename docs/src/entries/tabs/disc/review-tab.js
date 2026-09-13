@@ -2,15 +2,15 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260912h';
-import { persist } from '../../../core/data-adapter.js?v=20260912h';
-import { reviewToDisplay } from '../../../services/review.js?v=20260912h';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260912h';
-import { showToast } from '../../../core/utils.js?v=20260912h';
-import { openFormModal } from '../../../components/modal.js?v=20260912h';
-import { NoticeStore } from '../../../services/notice.js?v=20260912h';
-import { getPersonById } from '../../../services/person.js?v=20260912h';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260912h';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260912j';
+import { persist } from '../../../core/data-adapter.js?v=20260912j';
+import { reviewToDisplay } from '../../../services/review.js?v=20260912j';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260912j';
+import { showToast } from '../../../core/utils.js?v=20260912j';
+import { openFormModal } from '../../../components/modal.js?v=20260912j';
+import { NoticeStore } from '../../../services/notice.js?v=20260912j';
+import { getPersonById } from '../../../services/person.js?v=20260912j';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260912j';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -19,25 +19,21 @@ import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260912h';
 //   remindedAt 留痕与既有按钮态保持原样（本函数只补通知，不改状态机）。
 // 受众定位：复盘记录人 = organizerId → 其成员角色（组长 leader / 组织者 participant 等）；
 //   普通参与者（participant）待办聚合键 = visitor（与 VisitorTodoDeriver 一致）。
-function _notifyReviewOrganizer(item, { title, content }) {
+function _notifyReviewOrganizer(item, kind) {
   const person = getPersonById(item.organizerId);
   const role = person?.role || 'leader';
   const todoRole = role === 'participant' ? 'visitor' : role;
   try {
-    NoticeStore.add({
-      title,
-      content,
-      priority: 'urgent',
-      // 活动复盘 → activity 模块；专班复盘 → workspace（避免 party 模块对正式党员的普通通知过滤）
+    // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案）；
+    // 活动复盘 → activity 模块；专班复盘 → workspace（避免 party 模块对正式党员的普通通知过滤）。
+    // 落点：活动复盘绑定来源活动 activityId（服务端按 sourceId 派生 targetType/targetId）；
+    // 专班复盘记录无 taskforceId，保留 targetModule 角色自适应兜底。
+    NoticeStore.addSystem(kind, item.id, {
+      activity: item.activity,
       targetModule: item.sourceType === 'taskforce' ? 'workspace' : 'activity',
-      // A① 对象级深链（2026-09-10）：活动复盘绑定来源活动 activityId → 直达该活动详情；
-      // 专班复盘记录无 taskforceId，保留 targetModule 角色自适应兜底（明细见守卫白名单）。
       targetType: item.activityId ? 'activity' : null,
       targetId: item.activityId || null,
-      actionable: true,
       actionRoles: [todoRole],
-      actionTask: title,
-      read: false,
     });
   } catch (e) { console.warn('[disc-review] 提醒通知失败（不影响留痕）：', e); }
 }
@@ -189,10 +185,7 @@ export function renderContent(ctx) {
     const id = btn.dataset.reviewId;
     const item = reviewData.find(r => r.id === id);
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
-    if (item) _notifyReviewOrganizer(item, {
-      title: '活动流程超时提醒',
-      content: `「${item.activity}」时间流已超时，请及时更新进展并提交复盘总结（纪检委员提醒）。`,
-    });
+    if (item) _notifyReviewOrganizer(item, 'review-overdue-reminder');
     showToast('success', '超时邮件提醒已发送');
   }));
   container.querySelectorAll('.btn-disc-annotate').forEach(btn => btn.addEventListener('click', () => {
@@ -252,10 +245,7 @@ export function renderContent(ctx) {
     const id = btn.dataset.reviewId;
     const item = reviewData.find(r => r.id === id);
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
-    if (item) _notifyReviewOrganizer(item, {
-      title: '复盘超期提醒',
-      content: `「${item.activity}」复盘尚未提交，请尽快提交复盘总结（纪检委员提醒）。`,
-    });
+    if (item) _notifyReviewOrganizer(item, 'review-resubmit-reminder');
     showToast('success', '复盘超期邮件提醒已发送至组织者');
   }));
   // ── 批量确认（2026-09-06 纪检批量评议确认）───────────────────

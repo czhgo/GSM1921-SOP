@@ -2,15 +2,16 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912h';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912h';
-import { AuthStore } from '../../../services/auth.js?v=20260912h';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912h';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912h';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912h';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912h';
-import { showToast } from '../../../core/utils.js?v=20260912h';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912h';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912j';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912j';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912j';
+import { AuthStore } from '../../../services/auth.js?v=20260912j';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912j';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912j';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912j';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912j';
+import { showToast } from '../../../core/utils.js?v=20260912j';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912j';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -148,7 +149,9 @@ export function renderContent(ctx) {
           </div>
           <p class="text-[11px] mt-2 pt-2" style="color:var(--neutral-500);border-top:1px solid var(--neutral-200);">流程：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表</p>
         </div>`;
-      detailEl.classList.remove('hidden');
+      // 触点即落点（全局 UX 反思批次 2026-09-13）：详情紧贴被点的考察行展开并滚入视野
+      //（此前单例面板固定在整张表之后，行数一多就要下滚寻找）
+      anchorDetailToTrigger(detailEl, row);
       detailEl.dataset.openId = rec.id;
     });
   });

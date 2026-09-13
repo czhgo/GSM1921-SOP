@@ -5,21 +5,22 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { persist } from '../core/data-adapter.js?v=20260912h';
-import { bumpToken } from '../core/version-token.js?v=20260912h'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260912h';
-import { isInitStateActive } from './init-reset.js?v=20260912h'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from './person.js?v=20260912h';
-import { evaluateWorkforceVotes } from './workforce.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { persist } from '../core/data-adapter.js?v=20260912j';
+import { bumpToken } from '../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260912j';
+import { isInitStateActive } from './init-reset.js?v=20260912j'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from './person.js?v=20260912j';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260912j';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from './runtime.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912h';
-import { loadActivities } from './activity.js?v=20260912h';
-import { AuthStore } from './auth.js?v=20260912h';
+import { BranchService } from './runtime.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912j';
+import { loadActivities } from './activity.js?v=20260912j';
+import { AuthStore } from './auth.js?v=20260912j';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912j'; // 支委层应到名单单一源（勿手写）
 
 // 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -107,7 +108,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260912h').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260912j').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }
@@ -535,22 +536,14 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
   });
 
   // 给各支委角色发通知（+派生待办提示）：「有新的线上支委会表决（专班议案）待表态」。
-  // 参考 committee-vote.js 里 NoticeStore.add 的既有写法：actionable+actionRoles 派生待办；
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）；
   // 支委点通知（targetType/targetId）直达活动详情页在线表态。失败不阻断排入结果。
   try {
-    NoticeStore.add({
-      title: '线上支委会表决待表态（专班议案）',
-      content: `「${activity.title}」已发起，请支委在本次线上支委会活动中表态：同意 / 异议 / 附言（点击通知直达活动页）。`,
-      priority: 'normal',
-      publishDate: today,
-      targetType: 'activity',
-      targetId: activity.id,
-      audience: 'committee',
+    NoticeStore.addSystem('taskforce-vote-requested', activity.id, {
+      activityTitle: activity.title,
+      date: today,
       branchId: 'br-b1',
-      actionable: true,
-      actionRoles: ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
-      actionTask: '线上支委会表决待表态（专班议案）',
-      read: false,
+      actionRoles: [...BRANCH_COMMISSION_ROLES],
     });
   } catch (e) {
     console.warn('[TaskForceRecordStore] 支委通知失败（不影响排入表决）：', e);

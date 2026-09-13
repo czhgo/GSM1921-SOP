@@ -4,12 +4,13 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
 // 书记设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912h';
-import { getPersonName } from '../services/person.js?v=20260912h';
-import { AuthStore } from '../services/auth.js?v=20260912h';
-import { badgeHtml } from './badges.js?v=20260912h';
-import { dotDarkVars } from '../core/constants.js?v=20260912h';
-import { flashHighlight, showToast } from '../core/utils.js?v=20260912h';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912j';
+import { getPersonName } from '../services/person.js?v=20260912j';
+import { AuthStore } from '../services/auth.js?v=20260912j';
+import { badgeHtml } from './badges.js?v=20260912j';
+import { dotDarkVars } from '../core/constants.js?v=20260912j';
+import { flashHighlight, showToast } from '../core/utils.js?v=20260912j';
+import { anchorDetailToTrigger } from './detail-anchor.js?v=20260912j';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -104,7 +105,12 @@ export function renderTaskforceView(container, opts = {}) {
     card.addEventListener('click', () => {
       const tfId = card.dataset.tfId;
       const tf = taskforces.find(r => r.id === tfId);
-      if (tf) _renderTfDetail(container, tf, highlightId);
+      if (tf) {
+        _renderTfDetail(container, tf, highlightId);
+        // 触点即落点（全局 UX 反思批次 2026-09-13）：详情原先固定在看板末尾（跨 5 个工作台共用），
+        // 点第一张卡也要下滚才看得到 → 现紧贴被点卡片展开并滚入视野
+        anchorDetailToTrigger(container.querySelector('#tfv-detail'), card);
+      }
       // 点击即褪去定位高亮
       card.classList.remove('nav-flash-highlight');
     });

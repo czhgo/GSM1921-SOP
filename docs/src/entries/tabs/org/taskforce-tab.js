@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260912h';
-import { BranchService } from '../../../services/runtime.js?v=20260912h';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912h';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912h';
-import { AuthStore } from '../../../services/auth.js?v=20260912h';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912h';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912h'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912h';
-import { NoticeStore } from '../../../services/notice.js?v=20260912h';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912h'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260912h';
-import { showToast } from '../../../core/utils.js?v=20260912h';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912h';
-import { icon } from '../../../core/icons.js?v=20260912h';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912h';
-import { recordFormShell } from '../../../components/forms.js?v=20260912h';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912h';
-import { badgeHtml } from '../../../components/badges.js?v=20260912h';
-import { getPersonName } from '../../../services/person.js?v=20260912h';
+import { setState } from '../../../core/state.js?v=20260912j';
+import { BranchService } from '../../../services/runtime.js?v=20260912j';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912j';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912j';
+import { AuthStore } from '../../../services/auth.js?v=20260912j';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912j';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912j'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912j';
+import { NoticeStore } from '../../../services/notice.js?v=20260912j';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912j'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260912j';
+import { showToast } from '../../../core/utils.js?v=20260912j';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260912j';
+import { icon } from '../../../core/icons.js?v=20260912j';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912j';
+import { recordFormShell } from '../../../components/forms.js?v=20260912j';
+import { renderQueryView } from '../../../components/query-view.js?v=20260912j';
+import { badgeHtml } from '../../../components/badges.js?v=20260912j';
+import { getPersonName } from '../../../services/person.js?v=20260912j';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -1186,19 +1186,14 @@ function _submitRecruitForm(ctx) {
     }
     if (created && submitOk) showToast('success', `专班「${name}」发布成功，已报送支委会表决`);
 
-    // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，
-    // NoticeStore.add 单次调用，通知→待办仅派生一次，不重复发。
+    // 预拟通知「只跑一次」（2026-08-05）：仅在表单填写了标题时发布一条通知，单次调用不重复发。
+    // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 落点；标题/正文为发布人所填）
     if (noticeTitle) {
-      NoticeStore.add({
+      NoticeStore.addSystem('taskforce-notice-draft', created.id, {
         title: noticeTitle,
-        content: noticeContent || `专班「${name}」已报送支委会表决，表决通过后将开放招募（截止 ${deadline}），欢迎届时报名参与。`,
-        priority: 'normal',
-        publishDate: new Date().toISOString().slice(0, 10),
-        expireDate: deadline,
-        targetModule: 'workspace',
-        targetType: 'taskforce',
-        targetId: created.id,
-        read: false,
+        content: noticeContent,
+        deadline,
+        taskforceName: name,
       });
       showToast('success', '已自动发布通知');
     }

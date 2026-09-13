@@ -3,16 +3,17 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities } from '../../../services/activity.js?v=20260912h';
+import { loadActivities } from '../../../services/activity.js?v=20260912j';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
 // 成员端本 tab 与书记「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260912h';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260912h';
-import { PersonStore } from '../../../services/person.js?v=20260912h';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260912j';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260912j';
+import { PersonStore } from '../../../services/person.js?v=20260912j';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260912h';
-import { showToast } from '../../../core/utils.js?v=20260912h';
+import { AuthStore } from '../../../services/auth.js?v=20260912j';
+import { showToast } from '../../../core/utils.js?v=20260912j';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260912j';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -151,7 +152,12 @@ export function renderContent(ctx) {
       }
       _reviewExpandedId = actId;
       const body = item?.querySelector('.visitor-review-body');
-      if (body) body.classList.remove('hidden');
+      if (body) {
+        body.classList.remove('hidden');
+        // 触点即落点（全局 UX 反思批次 2026-09-13）：行内展开后若超出视口（复盘表单可达 265px+），
+        // 补一次滚动让展开区可见（原先展开后底部内容跑到视口外，需手动下滚）
+        scrollDetailIntoView(body, { block: 'nearest' });
+      }
     });
   });
 

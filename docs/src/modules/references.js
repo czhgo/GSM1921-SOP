@@ -1,17 +1,17 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260912h';
-import { getBasePath } from '../core/utils.js?v=20260912h';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260912h';
-import { AuthStore } from '../services/auth.js?v=20260912h';
-import { loadActivities } from '../services/activity.js?v=20260912h';
-import { PEOPLE } from '../mock/people.js?v=20260912h';
+import { icon } from '../core/icons.js?v=20260912j';
+import { getBasePath } from '../core/utils.js?v=20260912j';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260912j';
+import { AuthStore } from '../services/auth.js?v=20260912j';
+import { loadActivities } from '../services/activity.js?v=20260912j';
+import { PEOPLE } from '../mock/people.js?v=20260912j';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260912h';
+} from '../services/branch-doc.js?v=20260912j';
 
 const SITE_GROUPS = [
   {

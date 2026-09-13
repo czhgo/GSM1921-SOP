@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912h';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260912j';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260912h';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912h';
+} from '../../docs/src/core/mock-adapter.js?v=20260912j';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912j';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/todo.js?v=20260912h';
+} from '../../docs/src/services/todo.js?v=20260912j';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -380,9 +380,9 @@ function _walkJsFiles(dir, out = []) {
 }
 
 /** 抽取每处 `NoticeStore.add(` 的首个对象字面量参数文本（字符串感知的括号配对） */
-function _extractAddCalls(src) {
+function _extractAddCalls(src, calleeRe = /NoticeStore\.add\s*\(/g) {
   const out = [];
-  const re = /NoticeStore\.add\s*\(/g;
+  const re = new RegExp(calleeRe.source, calleeRe.flags.includes('g') ? calleeRe.flags : calleeRe.flags + 'g');
   let m;
   while ((m = re.exec(src))) {
     const after = m.index + m[0].length;
@@ -428,6 +428,18 @@ test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 
       const hasPair = /targetType\s*:/.test(call) && /targetId\s*:/.test(call);
       if (!hasUrl && !hasPair) violations.push(rel);
     }
+  }
+  // R-22（2026-09-13）：系统派生 actionable 通知的文案/锚点已迁至共享模板单一源
+  // （core/system-notice-templates.js，无 NoticeStore.add → 按 pick( 对象字面量抽取）。
+  // 守卫同步覆盖模板，防止对象级锚点随迁移失效。
+  const tplRel = 'core/system-notice-templates.js';
+  const tplSrc = readFileSync(join(root, 'core/system-notice-templates.js'), 'utf8');
+  for (const call of _extractAddCalls(tplSrc, /pick\s*\(/g)) {
+    if (!/actionable\s*:\s*true/.test(call)) continue;
+    actionableCount++;
+    const hasUrl = /targetUrl\s*:/.test(call);
+    const hasPair = /targetType\s*:/.test(call) && /targetId\s*:/.test(call);
+    if (!hasUrl && !hasPair) violations.push(tplRel);
   }
   assert.ok(actionableCount >= 3, `应扫描到至少 3 个 actionable 通知生产点，实际 ${actionableCount}`);
   assert.deepEqual(

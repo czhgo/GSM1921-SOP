@@ -2,11 +2,11 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 书记汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260912h';
-import { AuthStore } from './auth.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
-import { resolveVoterIds } from './vote-config.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260912j';
+import { AuthStore } from './auth.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
+import { resolveVoterIds } from './vote-config.js?v=20260912j';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
@@ -37,14 +37,8 @@ async function notifySecretaryProgress(activityId) {
     const n = new Set(votes.filter((v) => v && v.personId).map((v) => v.personId)).size;
     const notified = notifiedCountByActivity.get(activityId) || 0;
     if (n > notified) {
-      NoticeStore.add({
-        title: '线上支委会表态更新',
-        content: `「线上支委会」已有 ${n}/${committeeTotal()} 位委员表态`,
-        priority: 'normal',
-        // A① 对象级深链（2026-09-10）：activityId 定位本次线上支委会活动（复用首页 activityId 落点）
-        targetUrl: `workspace/secretary.html?activityId=${activityId}`,
-        actionRoles: ['secretary'],
-      });
+      // R-22（2026-09-13）：系统派生通知改由服务端生成（表决进度计数由服务端读表态复算）
+      NoticeStore.addSystem('committee-vote-progress', activityId, { voted: n, total: committeeTotal() });
       notifiedCountByActivity.set(activityId, n);
     }
   } catch (e) {
@@ -58,13 +52,8 @@ async function notifySecretaryProgress(activityId) {
 // 直达该活动 inspector（2026-09-05 补全，见 notice.js archiveBySource 活动号匹配）。
 function remindRecordDecision(activityId) {
   try {
-    NoticeStore.add({
-      title: '线上支委会表决截止',
-      content: '支委会议程已截止，请记录决议',
-      priority: 'normal',
-      targetUrl: `workspace/secretary.html?activityId=${activityId}`, // 活动定位锚点
-      actionRoles: ['secretary'],
-    });
+    // R-22（2026-09-13）：系统派生通知改由服务端生成；activityId 作为落点锚点由服务端派生
+    NoticeStore.addSystem('committee-vote-locked', activityId);
   } catch (e) {
     console.warn('[committee-vote] 记录决议提醒发送失败：', e);
   }
@@ -217,7 +206,7 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     if (!r.ok) throw new Error((await r.json()).error || '截止操作失败');
     const act = await r.json();
     // 通知闭环：截止成功后提醒书记记录决议（仅新锁触发）
-    if (act.votesLocked && !wasLocked) remindRecordDecision();
+    if (act.votesLocked && !wasLocked) remindRecordDecision(act.id);
     return act;
   }
   // mock 分支角色校验（dogfood 权限专项 2026-09-13）：副书同权（2026-09-11 书记裁定）——

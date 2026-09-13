@@ -6,10 +6,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912h';
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260912h';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260912h';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260912h';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912j';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260912j';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260912j';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260912j';
 
 test('policy 单一源：考察超期默认天数 = 7（branch-default 可覆盖）', () => {
   assert.equal(POLICY_DEFAULTS.inspection.overdueDays, 7);

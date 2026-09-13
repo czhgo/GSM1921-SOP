@@ -187,13 +187,78 @@ test('通知写门：书记/副书记/组织/宣传可发布；纪检仅可管�
   });
   assert.equal(anon.status, 401, '未登录仍被拒');
 
-  // 系统派生通道（业务副作用：成员提交思想汇报→通知组织初阅、纪检确认考勤→通知组织委员）：
-  // 客户端不传 actorRole 时打标 systemDerived，写门放行——否则 API 模式会被静默拦掉（2026-09-13 连带风险核查）
-  const sysDerived = await fetch(`${base}/api/v1/notices`, {
+  // R-22（2026-09-13）：旧「系统派生」放行通道已关闭——客户端自述 systemDerived 不再放行。
+  // 任一登录成员伪造该标记发广播通知一律 403（生成权改由服务端注册表 + POST /api/v1/system-notices）。
+  const forged = await fetch(`${base}/api/v1/notices`, {
     method: 'POST', headers: authHeaders(partTok),
-    body: JSON.stringify({ title: '系统派生-思想汇报已提交', content: 'x', systemDerived: true, targetUrl: 'workspace/org.html?tab=thought-review' }),
+    body: JSON.stringify({ title: '伪造系统派生-思想汇报已提交', content: 'x', systemDerived: true, targetUrl: 'workspace/org.html?tab=thought-review' }),
   });
-  assert.equal(sysDerived.status, 201, '系统派生通知（systemDerived）普通成员亦可写入');
+  assert.equal(forged.status, 403, '伪造 systemDerived 标记不再放行（403）');
+});
+
+// R-22（2026-09-13）：系统派生通知生成权收归服务端 —— POST /api/v1/system-notices
+//   · 合法 kind 且 actor 有资格 → 201（标题/落点来自服务端 build，不采信客户端 payload 同名伪造值）
+//   · 同 kind 但 actor 无资格 → 403；未知 kind → 400；未登录 → 401
+//   · 授权基于「业务对象是否存在 + actor 与该对象的关系」服务端复算（不信客户端）
+test('系统派生通知端点：合法 kind 201（服务端生成文案/落点）；无资格 403；未知 kind 400；未登录 401', async () => {
+  const { token: partTok } = await login('p3');    // 普通成员（也是思想汇报提交人本人）
+  const { token: discTok } = await login('p10');   // 纪检委员
+
+  // ① thought-report-submitted：提交人本人 + 客户端伪造 title/targetUrl → 201，且文案/落点取服务端模板
+  const okRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({
+      kind: 'thought-report-submitted',
+      sourceId: 'tr-20260913-1',
+      payload: { personId: 'p3', personName: '普通成员', title: '伪造标题', targetUrl: 'evil.html' },
+    }),
+  });
+  assert.equal(okRes.status, 201, '提交人本人可触发思想汇报系统通知');
+  const okNotice = await okRes.json();
+  assert.equal(okNotice.title, '思想汇报已提交', '标题来自服务端 build（不采信 payload 的 title）');
+  assert.equal(okNotice.targetUrl, 'workspace/org.html?tab=thought-review&highlight=tr-20260913-1', '落点由服务端按 sourceId 派生');
+  // 落库核对（非仅响应）
+  const list2 = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(partTok) })).json();
+  const stored = list2.find((n) => n.id === okNotice.id);
+  assert.ok(stored, '通知已落库 notices 表');
+  assert.equal(stored.title, '思想汇报已提交', '落库标题为服务端生成');
+
+  // ② 同 kind 但 actor 非提交人且非组织委员 → 403
+  const denyRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(discTok),
+    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: 'tr-2', payload: { personId: 'p3', personName: 'x' } }),
+  });
+  assert.equal(denyRes.status, 403, '非提交人/非组织委员不得触发该 kind');
+
+  // ③ db 类 kind（考勤确认）：纪检对存在的活动（act-31，organizer=p11）→ 201；普通成员 → 403
+  const attOk = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(discTok),
+    body: JSON.stringify({ kind: 'attendance-confirmed', sourceId: 'act-31', payload: { activityTitle: '被伪造的活动名' } }),
+  });
+  assert.equal(attOk.status, 201, '纪检委员可触发考勤确认系统通知（活动存在）');
+  const attNotice = await attOk.json();
+  assert.equal(attNotice.targetType, 'activity');
+  assert.equal(attNotice.targetId, 'act-31', '落点 targetId 由服务端 sourceId 派生');
+  const attDeny = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({ kind: 'attendance-confirmed', sourceId: 'act-31', payload: {} }),
+  });
+  assert.equal(attDeny.status, 403, '普通成员不得触发考勤确认系统通知');
+
+  // ④ 未知 kind → 400（附可懂文案）
+  const unknown = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({ kind: 'no-such-kind', sourceId: 'x', payload: {} }),
+  });
+  assert.equal(unknown.status, 400, '未知 kind → 400');
+  assert.match((await unknown.json()).error, /未知/);
+
+  // ⑤ 未登录 → 401
+  const anon = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: 'tr-3', payload: {} }),
+  });
+  assert.equal(anon.status, 401, '未登录 → 401');
 });
 
 // C-2 方案 B（2026-09-11 书记批）：名册成员变更确认链「书记阶段写入」语义端点权限边界

@@ -2,16 +2,16 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912h';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260912h';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260912h';
-import { getPersonName } from '../../../services/person.js?v=20260912h';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912h';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912j';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260912j';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260912j';
+import { getPersonName } from '../../../services/person.js?v=20260912j';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912j';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260912h';
-import { badgeHtml } from '../../../components/badges.js?v=20260912h';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260912h';
-import { HandoffStore } from '../../../services/handoff.js?v=20260912h';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260912j';
+import { badgeHtml } from '../../../components/badges.js?v=20260912j';
+import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260912j';
+import { HandoffStore } from '../../../services/handoff.js?v=20260912j';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');

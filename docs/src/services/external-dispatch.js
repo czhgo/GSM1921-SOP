@@ -8,9 +8,9 @@
 //  （"标记已发送" 演进为 "发送到对方微信"，"确认收到" 保持同构）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912h';
-import { persist } from '../core/data-adapter.js?v=20260912h';
-import { NoticeStore } from './notice.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912j';
+import { persist } from '../core/data-adapter.js?v=20260912j';
+import { NoticeStore } from './notice.js?v=20260912j';
 
 /** 读取外发确认记录（mockDB 持久化） */
 export function loadExternalDispatches() {
@@ -42,12 +42,13 @@ export function addExternalDispatch({ refType, refLabel, senderId, senderName, r
   mockDB.externalDispatches = [...loadExternalDispatches(), rec];
   persist();
   // 自动广播（混合模式落地·场景3）：标记外发后通知接收方——请前往微信群查收/发送
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
   try {
-    NoticeStore.add({
-      title: '材料外发待确认',
-      content: `${rec.senderName} 已标记通过微信外发「${rec.refLabel || '材料'}」${rec.receiverRole ? `给${rec.receiverRole}` : ''}。请前往微信群完成交接，收到后回系统确认。`,
-      priority: 'normal',
-      targetUrl: 'workspace/visitor.html',
+    NoticeStore.addSystem('external-dispatch-created', rec.id, {
+      senderId: rec.senderId,
+      senderName: rec.senderName,
+      refLabel: rec.refLabel || '材料',
+      receiverRole: rec.receiverRole,
     });
   } catch (e) {
     console.warn('[external-dispatch] 外发广播失败（不影响外发记录）：', e);
