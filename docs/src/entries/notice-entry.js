@@ -3,7 +3,7 @@
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
 import { renderSidebar } from '../components/sidebar.js?v=20260913f';
 import { renderHeader } from '../components/header.js?v=20260913f';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260913f';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260913f';
 import { getBasePath, showToast } from '../core/utils.js?v=20260913f';
 import { AuthStore } from '../services/auth.js?v=20260913f';
 import { getPersonById } from '../services/person.js?v=20260913f';
@@ -70,11 +70,21 @@ backBtn?.addEventListener('click', () => {
   }
 
   // 单一取数口：已持久化通知直接命中；派生通知（仅在待办中）按 id 重建正文
+  // （Q-22-1：取数已不带可见性门——可见性由 canReadNotice 单独判定）
   const notice = NoticeStore.getById(noticeId);
 
   if (!notice) {
     if (cardEl) {
       cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">通知不存在或已过期</p>';
+    }
+  } else if (!canReadNotice(notice)) {
+    // Q-22-1：不可读与「不存在」区分——不得把权限问题伪装成「不存在或已过期」
+    const noSession = !AuthStore.getCurrentUser();
+    if (cardEl) {
+      cardEl.innerHTML = `
+        <p class="text-sm text-gray-500 text-center py-12">无权查看该通知</p>
+        ${noSession ? `<div class="text-center pb-12"><a href="${getBasePath()}login.html" class="text-sm text-blue-600 hover:text-blue-800">去登录</a></div>` : ''}
+      `;
     }
   } else {
     renderNoticeDetail(notice);

@@ -59,6 +59,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第二范本（2026-09-13 批次 22 新增）**：`server/test/id-uniqueness.test.mjs`——实体 id 唯一性的两层法（结构层禁令扫描 + 数据层集合内/跨集合唯一性断言），与首个范本 `server/test/person-consistency.test.mjs` 并列。**推广路径（从个案到全站）**：同一缺陷形态可先用**一个实例**暴露（`thought-report.js` 的 `'tr_' + Date.now()` 同毫秒连提两篇撞 id），再**推广为全站扫描 + 守卫**（全仓 `Date.now()` 命中分四级台账 → 20 文件 38 处迁移 → 结构/数据两层断言防回潮）。
 
+> **第三范本（2026-09-13 批次 23 新增）**：`server/test/notice-audience.test.mjs`——通知受众口径分裂的两层法（发布侧写入值与消费侧判定同源 + 取数口与可见性门分离），是「**同一类缺陷（口径分裂）在第二处实体的复现**」（前有活动生命周期展示态、人员字段，这里是通知受众）。
+
 ---
 
 ## 1. 人员数据
@@ -452,6 +454,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 25 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords/mailboxConfig 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
 - [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
+- [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
+- [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
 
 ---
 

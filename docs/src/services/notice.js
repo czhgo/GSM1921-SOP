@@ -17,7 +17,10 @@ import { AuthStore } from './auth.js?v=20260913f';
 import { getPersonById } from './person.js?v=20260913f';
 import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913f';
 import { badgeHtml } from '../components/badges.js?v=20260913f';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913f';
+import {
+  NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
+  NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
+} from '../core/constants.js?v=20260913f';
 
 function _loadNotices() {
   try {
@@ -59,6 +62,92 @@ function _noticeFromTodo(todo, id) {
     targetModule: (todo.actionData && todo.actionData.targetModule) || null,
     derivedFromTodo: true, // 标记：正文由待办重建（确认读取=销对应待办）
   };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  受众判定单一源（Q-22-1，2026-09-13）
+//  发布侧写入 NOTICE_AUDIENCE_SENTINELS（core/constants.js）的 sentinel 值，
+//  消费端可见性判定（list() 受众门 / canReadNotice() 详情页读取权限）必须走这里，
+//  杜绝「发布侧写 sentinel / 消费端比角色键」的口径分裂（`['all']` 永不命中 → 无人可见）。
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 观看者上下文（list() 与 canReadNotice 共用）：角色 / 到人 personId / 发展阶段
+ * 发展阶段从人员档案取（勿新增重依赖；getPersonById 已是本模块既有依赖）。
+ * @param {{ role?:string, personId?:string }|null} user
+ * @returns {{ role:string|null, personId:string|null, developStage:string|null }}
+ */
+function _noticeViewerCtx(user) {
+  if (!user) return { role: null, personId: null, developStage: null };
+  const personId = user.personId || null;
+  return {
+    role: user.role || null,
+    personId,
+    developStage: personId ? (getPersonById(personId)?.developStage || null) : null,
+  };
+}
+
+/**
+ * audience 数组命中判定（sentinel 单一源 + 裸角色键兼容）
+ *  - sentinel broadcast（all）→ 恒命中（全员可见）
+ *  - sentinel roles 含当前角色 / developStages 含当前发展阶段 → 命中
+ *  - 未登记裸值 → 回退角色键直比（兼容 audience: ['org-commissioner'] 等既有写法）
+ * @param {Object} n 通知
+ * @param {{ role:string|null, developStage:string|null }} ctx
+ * @returns {boolean}
+ */
+function _audienceHit(n, ctx) {
+  if (!Array.isArray(n.audience) || !n.audience.length) return false;
+  // 裸角色键兼容（含既有 audience: ['org-commissioner'] 等写法；sentinel 值不会与真实角色键冲突）
+  if (ctx.role && n.audience.includes(ctx.role)) return true;
+  return n.audience.some((s) => {
+    const def = NOTICE_AUDIENCE_SENTINELS[s];
+    if (!def) return false;
+    if (def.broadcast) return true;
+    if (Array.isArray(def.roles) && ctx.role && def.roles.includes(ctx.role)) return true;
+    if (Array.isArray(def.developStages) && ctx.developStage && def.developStages.includes(ctx.developStage)) return true;
+    return false;
+  });
+}
+
+/** audiencePersons 到人定向命中（既有口径，不改） */
+function _audiencePersonsHit(n, ctx) {
+  return !!(ctx.personId && Array.isArray(n.audiencePersons) && n.audiencePersons.includes(ctx.personId));
+}
+
+/** actionRoles 行动角色命中（既有口径，不改） */
+function _audienceActionRolesHit(n, ctx) {
+  return !!(ctx.role && Array.isArray(n.actionRoles) && n.actionRoles.includes(ctx.role));
+}
+
+/**
+ * 该通知是否「有受众」（四类受众源任一非空）。
+ * sentinel 值（含 audience 为裸字符串 sentinel 的历史写法）也视为有受众——
+ * 但 broadcast sentinel（all）语义是广播，仍对所有人可见（见 _isBroadcastAudience）。
+ */
+function _hasAudience(n) {
+  return (Array.isArray(n.audience) && n.audience.length > 0)
+    || n.audience === 'committee'
+    || !!NOTICE_AUDIENCE_SENTINELS[n.audience]
+    || (Array.isArray(n.audiencePersons) && n.audiencePersons.length > 0)
+    || (Array.isArray(n.actionRoles) && n.actionRoles.length > 0);
+}
+
+/** audience 是否含广播 sentinel（all）→ 全员可见（含无登录会话） */
+function _isBroadcastAudience(n) {
+  const a = n.audience;
+  if (!a) return false;
+  const list = Array.isArray(a) ? a : [a];
+  return list.some((s) => NOTICE_AUDIENCE_SENTINELS[s] && NOTICE_AUDIENCE_SENTINELS[s].broadcast === true);
+}
+
+/** 观看者是否该通知的发布者（签发人恒可读自己的通知） */
+function _isPublisher(n, ctx) {
+  if (!ctx || !ctx.role) return false;
+  // UI 发布口径：publishedBy 存角色标签（ROLE_LABELS[角色]），无 personId；按其比对
+  if (n.publishedBy && ROLE_LABELS[ctx.role] && n.publishedBy === ROLE_LABELS[ctx.role]) return true;
+  // 显式签发人 id（数据若带则优先）
+  return !!(ctx.personId && (n.publisherId === ctx.personId || n.createdBy === ctx.personId));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -144,7 +233,9 @@ export const NoticeStore = {
     //   从未按受众过滤——签发人自己下发的催办又回到自己的未读里；且通知发布页所选受众（audience 数组）
     //   从未生效（选「党小组组长」实际全员可见）。
     // 规则：① audience==='committee' → 仅本支部支委层（党委下发通道，既有）
-    //       ② audience 为角色数组 → 仅该数组内角色可见
+    //       ② audience 为 sentinel 数组（发布侧写入「全体党员/党小组组长/入党积极分子/发展对象」）→
+    //          经 NOTICE_AUDIENCE_SENTINELS 单一源判定（广播 sentinel 全员可见；roles/developStages 命中即可见）；
+    //          未登记裸值回退角色键直比（兼容既有 audience:['org-commissioner'] 等写法）——Q-22-1 修正
     //       ③ audiencePersons 为 personId 数组 → 按人定向（2026-09-13 补：分工调整「信息自动传递」
     //          需把通知直接送到**到人负责人**，角色数组表达不了）
     //       ④ actionRoles 非空（行动性通知：催办/提醒/表决进度/分工履职等）→ 仅目标角色可见
@@ -155,17 +246,15 @@ export const NoticeStore = {
     {
       const _me = AuthStore.getCurrentUser();
       const _role = _me && _me.role;
-      const _pid = _me && _me.personId;
       const _isComm = !!_role && BRANCH_COMMISSION_ROLES.includes(_role);
       const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || 'br-b1') : null;
-      const _hitPersons = (n) => Array.isArray(n.audiencePersons) && n.audiencePersons.includes(_pid);
-      const _hitRoles = (n) => Array.isArray(n.audience) && n.audience.length && n.audience.includes(_role);
-      const _hitActions = (n) => Array.isArray(n.actionRoles) && n.actionRoles.length && n.actionRoles.includes(_role);
+      // 受众命中走单一源（Q-22-1）：sentinel 经 NOTICE_AUDIENCE_SENTINELS 判定，裸角色键回退直比
+      const _ctx = _noticeViewerCtx(_me);
+      const _hitPersons = (n) => _audiencePersonsHit(n, _ctx);
+      const _hitRoles = (n) => _audienceHit(n, _ctx);
+      const _hitActions = (n) => _audienceActionRolesHit(n, _ctx);
       result = result.filter((n) => {
-        const hasAudience = (Array.isArray(n.audience) && n.audience.length) || n.audience === 'committee'
-          || (Array.isArray(n.audiencePersons) && n.audiencePersons.length)
-          || (Array.isArray(n.actionRoles) && n.actionRoles.length);
-        if (!hasAudience) return true;   // 广播
+        if (!_hasAudience(n)) return true;   // 广播
         if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
         if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch) return true;
         if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
@@ -360,16 +449,19 @@ export const NoticeStore = {
   },
 
   /**
-   * 按 id 取通知（S1 单一取数口，2026-09-12）：
-   * 先查 NoticeStore（含已归档，兼容过期）；未命中 → 从通知类待办按
-   * id / sourceId / actionData.noticeId 现算重建（派生通知未持久化的兜底），
+   * 按 id 取通知（S1 单一取数口，2026-09-12；Q-22-1 2026-09-13 脱离可见性门）：
+   * 本函数**只负责「按 id 取数」**——含已归档/过期（不排除 archived，不按 expireDate 收窄）；
+   * 未命中 → 从通知类待办按 id / sourceId / actionData.noticeId 现算重建（派生通知未持久化的兜底），
    * 使任一跳转入口（待办/铃铛/首页/通知发布）的 id 都能打开正文。
+   * ⚠ 可见性判定**已移交 canReadNotice()**（详情页渲染前调用）——本函数不得再套消费端受众门，
+   *   否则签发人/受众都取不到自己的通知（Q-22-1 根因之二：详情页 100% 打不开）。
    * @param {string} id
    * @returns {Object|null}
    */
   getById(id) {
     if (!id) return null;
-    const found = this.list({ activeOnly: false, includeArchived: true }).find(n => n.id === id);
+    if (this._notices.length === 0) this.init(); // 与 list() 一致：确保初始化（_current 取 mockDB 优先、内存兜底）
+    const found = this._current().find(n => n.id === id);
     if (found) return found;
     try {
       const all = TodoStore.getAll();
@@ -433,6 +525,35 @@ export const NoticeStore = {
     _saveNotices(this._notices);
   },
 };
+
+/**
+ * 是否可读某条通知（详情页读取权限，单一源，Q-22-1 2026-09-13）
+ *
+ * 规则：
+ *   ① 无受众 / 广播 sentinel（all）→ 人人可读（含无登录会话）；
+ *   ② 无登录会话 → 仅广播/无受众可读（上一步已返回）；
+ *   ③ 发布者恒可读（签发人不应被自己的定向通知挡在门外）；
+ *   ④ 支委层（BRANCH_COMMISSION_ROLES）可读（治理信息）；
+ *   ⑤ 命中受众（audience sentinel / 裸角色键 / audiencePersons / actionRoles）可读；
+ *   ⑥ 其余不可读。
+ * 判定复用 list() 受众门**同一套** sentinel 判定（_audienceHit 等，勿写第二套规则）。
+ * 注：本函数与 getById() 分工——getById 只取数、本函数判可见性（详情页渲染前调用）。
+ * @param {Object} notice 通知对象
+ * @param {{ personId?:string, role?:string }|null} [viewer] 观看者；缺省取当前登录会话
+ * @returns {boolean}
+ */
+export function canReadNotice(notice, viewer) {
+  const n = notice;
+  if (!n) return false;
+  const ctx = _noticeViewerCtx(viewer === undefined ? AuthStore.getCurrentUser() : viewer);
+  if (!_hasAudience(n) || _isBroadcastAudience(n)) return true; // ① 无受众 / 广播 → 人人可读
+  if (!ctx.role) return false;                                  // ② 无登录会话：仅广播/无受众
+  if (_isPublisher(n, ctx)) return true;                        // ③ 发布者恒可读
+  if (BRANCH_COMMISSION_ROLES.includes(ctx.role)) return true;  // ④ 支委层可读
+  return _audiencePersonsHit(n, ctx)                            // ⑤ 命中受众可读
+    || _audienceHit(n, ctx)
+    || _audienceActionRolesHit(n, ctx);
+}
 
 // ════════════════════════════════════════════════════════════════
 //  通知跳转统一解析（业务页直达优先，2026-08-06）

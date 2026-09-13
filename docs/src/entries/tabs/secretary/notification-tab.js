@@ -8,6 +8,9 @@ import { AuthStore } from '../../../services/auth.js?v=20260913f';
 import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260913f';
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
 import { openModal, closeModal } from '../../../components/modal.js?v=20260913f';
+// Q-22-1（2026-09-13）：受众选项改引 core/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
+// 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
+import { NOTICE_AUDIENCE_OPTIONS } from '../../../core/constants.js?v=20260913f';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
 import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260913f';
 
@@ -32,13 +35,6 @@ export function renderContent() {
   }
   renderNotificationPanel();
 }
-
-const NOTIFICATION_AUDIENCES = [
-  { value: 'all', label: '全体党员' },
-  { value: 'leaders', label: '党小组组长' },
-  { value: 'activists', label: '入党积极分子' },
-  { value: 'candidates', label: '发展对象' },
-];
 
 /** 渲染通知发布面板（表单 + 列表） */
 function renderNotificationPanel() {
@@ -75,7 +71,7 @@ function renderNotificationForm() {
   html += `<div class="mb-5">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">目标受众 <span class="text-red-600">*</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
-  NOTIFICATION_AUDIENCES.forEach(a => {
+  NOTICE_AUDIENCE_OPTIONS.forEach(a => {
     const on = _selectedAudience.includes(a.value);
     html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
   });
@@ -136,7 +132,7 @@ function handleNotifAction(e) {
 /** 按受众值数组取标签列表 */
 function _audienceLabels(values) {
   return values.map(v => {
-    const found = NOTIFICATION_AUDIENCES.find(a => a.value === v);
+    const found = NOTICE_AUDIENCE_OPTIONS.find(a => a.value === v);
     return found ? found.label : v;
   });
 }
@@ -265,7 +261,7 @@ function renderNotificationList() {
 // ════════════════════════════════════════════════════════════════
 function _openNoticeEditModal(notice) {
   const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
-  const chips = NOTIFICATION_AUDIENCES.map(a => {
+  const chips = NOTICE_AUDIENCE_OPTIONS.map(a => {
     const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
     return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
   }).join('');

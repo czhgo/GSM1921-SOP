@@ -750,3 +750,17 @@ export const OUTPUT_BLOCK_DEFS = [
   { id: 'publicity', label: '宣传', desc: '宣传记录（标题/渠道）' },
   { id: 'materials', label: '材料', desc: '材料归档记录' },
 ];
+
+// ── 通知受众 sentinel（单一源，2026-09-13 Q-22-1）──────────────────
+// 发布侧写入值 ↔ 消费端可见性判定必须同源：原「发布侧写 sentinel / 消费端比角色键」
+// 口径分裂导致 `['all']` 永不命中 → 「全体党员」实际无人可见（见 REVIEW_QUEUE Q-22-1）。
+// broadcast=true → 全员可见（含无登录会话）；roles/developStages → 命中其一即可见。
+export const NOTICE_AUDIENCE_SENTINELS = {
+  all: { label: '全体党员', broadcast: true },
+  leaders: { label: '党小组组长', roles: ['leader'] },
+  activists: { label: '入党积极分子', developStages: ['积极分子'] },
+  candidates: { label: '发展对象', developStages: ['发展对象'] },
+};
+/** 发布表单受众选项（保持声明序；发布侧勿再手写 sentinel 列表） */
+export const NOTICE_AUDIENCE_OPTIONS = Object.entries(NOTICE_AUDIENCE_SENTINELS)
+  .map(([value, d]) => ({ value, label: d.label }));
