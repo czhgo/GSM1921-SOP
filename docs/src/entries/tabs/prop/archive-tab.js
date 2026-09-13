@@ -12,6 +12,7 @@ import { loadActivities } from '../../../services/activity.js?v=20260913f';
 import { isApiMode } from '../../../services/runtime.js?v=20260913f';
 import { AuthStore } from '../../../services/auth.js?v=20260913f';
 import { getPersonName } from '../../../services/person.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260913f';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
 import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260913f';
@@ -791,7 +792,7 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
         mockDB.fileSpaceRecords.push(metaRow);
         // 同步写入内存 archiveRecords → 产出物区/关闭校验同源联动
         mockDB.archiveRecords.push({
-          id: `ar-u-${Date.now()}-${saved}`, activityId, activityName,
+          id: generateId('ar-u', '-'), activityId, activityName,
           archiveDate: today, category, status: 'archived',
           fileName: file.name, fileSize: file.size, filePath: path,
         });
@@ -806,7 +807,7 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
       try {
         const dataUrl = await _readFileAsDataURL(file);
         mockDB.archiveRecords.push({
-          id: `ar-u-${Date.now()}-${saved}`, activityId, activityName,
+          id: generateId('ar-u', '-'), activityId, activityName,
           archiveDate: today, category, status: 'archived',
           fileName: file.name, fileSize: file.size, fileData: dataUrl,
         });

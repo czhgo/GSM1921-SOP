@@ -7,6 +7,7 @@
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
 import { showToast, flashHighlight } from '../../../core/utils.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260913f';
 import { tryDirectJump } from '../../../components/todo-jump.js?v=20260913f';
 import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260913f';
@@ -149,7 +150,7 @@ export const { renderContent } = createTodoTab({
             type: 'material-shortage',
             refType: 'activity',
             refLabel: values.source,
-            refId: 'shortage_' + Date.now(),
+            refId: generateId('shortage'),
             note: values.note,
           });
           showToast('success', '补课需求回执已发送至纪检委员');

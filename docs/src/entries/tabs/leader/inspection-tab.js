@@ -12,6 +12,7 @@ import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=202609
 import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
 import { currentLeaderGroup } from './_shared.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
@@ -232,7 +233,7 @@ function _initInspForm(container, sourceActivities, sourceTaskforces, ctx, myIns
       if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
 
       const record = {
-        id: 'insp_' + Date.now() + '_' + personId,
+        id: generateId('insp'),
         sourceType: sourceType === 'activity' ? SourceType.ACTIVITY : SourceType.TASKFORCE,
         activityId: sourceType === 'activity' ? sourceId : null,
         sourceName: sourceType === 'activity' ? null : (sourceOption?.dataset.name || sourceId),

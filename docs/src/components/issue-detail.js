@@ -10,6 +10,7 @@ import { getPersonName } from '../services/person.js?v=20260913f';
 import { renderReactions, bindReactions } from './reactions.js?v=20260913f';
 import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260913f';
 import { badgeHtml } from './badges.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -242,7 +243,7 @@ function bindDetailEvents(issue) {
 
     // 直接添加评论（实际生产应先进草稿，但 mock 项目简化为直接生效）
     const newComment = {
-      id: 'cmt-' + Date.now(),
+      id: generateId('cmt', '-'),
       author: _currentPersonId(),
       body: text,
       createdAt: new Date().toISOString().slice(0, 10),

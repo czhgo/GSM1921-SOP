@@ -13,6 +13,7 @@ import { ACTIVITIES } from '../mock/activities.js?v=20260913f';
 import { getPersonName } from './person.js?v=20260913f';
 import { loadActivities } from './activity.js?v=20260913f';
 import { solidAccentStyle } from '../core/constants.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -161,7 +162,7 @@ export function submitActivityReviewForm({ activityId, content, issues = [], act
     // 复盘提交人统一归组织者；代填（delegate）时取活动实际组织者，不冒认
     const organizerId = (delegate && act?.organizer) ? act.organizer : actorId;
     addActivityReview({
-      id: 'rev_' + Date.now(),
+      id: generateId('rev'),
       activityId,
       organizerId,
       progress: '已完成',

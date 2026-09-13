@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { mockDB } from '../core/domain.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913f';
 import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913f';
 import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
@@ -208,7 +209,7 @@ export const NoticeStore = {
     //   系统派生通知改由 addSystem() 走服务端生成（POST /api/v1/system-notices）。
     const newNotice = {
       ...notice,
-      id: notice.id || 'notice-' + Date.now(),
+      id: notice.id || generateId('notice', '-'),
       publishDate: notice.publishDate || new Date().toISOString().slice(0, 10),
     };
     this._syncWithStore();
@@ -256,7 +257,7 @@ export const NoticeStore = {
     if (built) {
       mirror = {
         ...built,
-        id: built.id || 'notice-' + Date.now(),
+        id: built.id || generateId('notice', '-'),
         publishDate: built.publishDate || new Date().toISOString().slice(0, 10),
       };
       this._syncWithStore();

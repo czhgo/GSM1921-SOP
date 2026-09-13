@@ -12,6 +12,7 @@ import { getPersonById, getPersonName } from '../../../services/person.js?v=2026
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913f';
 import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 
@@ -236,7 +237,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
       if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
 
       records.push({
-        id: 'insp_' + Date.now() + '_' + personId,
+        id: generateId('insp'),
         sourceType: SourceType.TASKFORCE,
         activityId: null,
         sourceName: tfName,

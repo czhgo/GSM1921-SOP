@@ -57,6 +57,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 4. **写结构层静态扫描**：把「口径只有一处实现」固化为断言，防新代码回潮
 5. **实测暴露的问题一律根治**（改单一源）而非打补丁——补丁只会留下第二处实现
 
+> **第二范本（2026-09-13 批次 22 新增）**：`server/test/id-uniqueness.test.mjs`——实体 id 唯一性的两层法（结构层禁令扫描 + 数据层集合内/跨集合唯一性断言），与首个范本 `server/test/person-consistency.test.mjs` 并列。**推广路径（从个案到全站）**：同一缺陷形态可先用**一个实例**暴露（`thought-report.js` 的 `'tr_' + Date.now()` 同毫秒连提两篇撞 id），再**推广为全站扫描 + 守卫**（全仓 `Date.now()` 命中分四级台账 → 20 文件 38 处迁移 → 结构/数据两层断言防回潮）。
+
 ---
 
 ## 1. 人员数据
@@ -449,6 +451,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 25 个持久化域 + users ↔ server 26 表（`server/db.js` RESOURCE_TABLES）；resources.js 26 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 25 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords/mailboxConfig 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
+- [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 
 ---
 

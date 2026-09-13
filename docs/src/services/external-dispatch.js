@@ -11,6 +11,7 @@
 import { mockDB } from '../core/domain.js?v=20260913f';
 import { persist } from '../core/data-adapter.js?v=20260913f';
 import { NoticeStore } from './notice.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 /** 读取外发确认记录（mockDB 持久化） */
 export function loadExternalDispatches() {
@@ -29,7 +30,7 @@ export function loadExternalDispatches() {
  */
 export function addExternalDispatch({ refType, refLabel, senderId, senderName, receiverRole, note }) {
   const rec = {
-    id: 'ed_' + Date.now(),
+    id: generateId('ed'),
     refType: refType || 'file',
     refLabel,
     senderId,

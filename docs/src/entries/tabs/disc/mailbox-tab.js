@@ -7,6 +7,7 @@ import { persist } from '../../../core/data-adapter.js?v=20260913f';
 import { getPersonName } from '../../../services/person.js?v=20260913f';
 import { showToast } from '../../../core/utils.js?v=20260913f';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 
 // ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const MAILBOX_CONFIG_SEED = {
@@ -129,7 +130,7 @@ export function renderContent() {
   container.querySelector('.btn-disc-check-mailbox')?.addEventListener('click', () => {
     const now = new Date().toISOString();
     const newRecord = {
-      id: 'mh_' + Date.now(),
+      id: generateId('mh'),
       checkedAt: now,
       checkedBy: DISC_COMMISSIONER_ID,
       summary: '已查收，暂无待处理邮件',

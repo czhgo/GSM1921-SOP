@@ -20,6 +20,7 @@ import { updateActivity } from './mock.js?v=20260913f';
 import { TaskForceRecordStore } from './taskforce.js?v=20260913f';
 import { persist } from '../core/data-adapter.js?v=20260913f';
 import { enableApiMode } from './runtime.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -34,7 +35,7 @@ function _getTabId() {
   let id = null;
   try { id = sessionStorage.getItem(TAB_KEY); } catch {}
   if (!id) {
-    id = 'tab-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    id = generateId('tab', '-');
     try { sessionStorage.setItem(TAB_KEY, id); } catch {}
   }
   return id;
@@ -220,7 +221,7 @@ function _appendAuditEntries(scopeRef, actorId, entries, action) {
   const records = _getAuthRecords();
   entries.forEach(e => {
     records.push({
-      id: 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      id: generateId('auth', '-'),
       targetPersonId: e.personId,
       role: e.role || null,
       scopeRef,
@@ -551,7 +552,7 @@ export const AuthStore = {
     }
 
     // ② 追加审计快照
-    const id = 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    const id = generateId('auth', '-');
     records.push({
       id,
       targetPersonId,
@@ -703,7 +704,7 @@ export const AuthStore = {
       const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
       if (latestDup && latestDup.action !== 'revoke') return;
       records.push({
-        id: 'auth-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+        id: generateId('auth', '-'),
         targetPersonId: a.personId,
         role: a.role,
         scopeRef,

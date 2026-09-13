@@ -919,7 +919,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | `generateId('br')` | 支部实例 ID（seed 为 `br-b1`） |
+| id | string | 是 | `'br-' + randomHex(4)` → `br-<8hex>` | 支部实例 ID（seed 为 `br-b1`；**形态 `/^br-[0-9a-f]{8}$/` 是测试断言契约**，随机段经唯一源 `core/id.js::randomHex`，勿改长度） |
 | name | string | 是 | -- | 支部名称（党委命名） |
 | type | string | 否 | `''` | 类型类别标签（自由文本，不预设枚举：如 硕士/博士/本科生） |
 | config | object | 是 | 见下 | 支部配置档案 |
@@ -1011,7 +1011,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ---
 
-## 三、单一源清单（2026-09-13 批次 21 登记）
+## 三、单一源清单（2026-09-13 批次 21–22 登记）
 
 > 本批次新增/确认的单一源集中登记于此；同源判据与「结构 + 数据双层断言」方法见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` §0。
 
@@ -1025,5 +1025,6 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 成员档案编辑模态 | `docs/src/components/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
 | 人员清单实时视图 | `docs/src/services/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
 | 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 800 }`（界面显示字数，不作硬性拦截） |
+| 实体 id 生成 | `docs/src/core/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
 
 ---

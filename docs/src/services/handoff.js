@@ -12,6 +12,7 @@ import { mockDB } from '../core/domain.js?v=20260913f';
 import { persist } from '../core/data-adapter.js?v=20260913f';
 import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
 import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——
@@ -64,7 +65,7 @@ export const HandoffStore = {
     const meta = HANDOFF_TYPES[type];
     if (!meta) return null;
     const handoff = {
-      id: 'ho_' + Date.now(),
+      id: generateId('ho'),
       type,
       from: meta.from,
       to: meta.to,

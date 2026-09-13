@@ -8,6 +8,7 @@ import { showToast } from '../../../core/utils.js?v=20260913f';
 import { persist } from '../../../core/data-adapter.js?v=20260913f';
 import { mockDB } from '../../../core/domain.js?v=20260913f';
 import { AuthStore } from '../../../services/auth.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
@@ -140,7 +141,7 @@ export function renderContent(ctx) {
     const reports = _loadWeeklyReports();
     if (reports.some(r => r.week === week)) { showToast('error', '该周次已存在'); return; }
     reports.push({
-      id: 'wr_' + Date.now(),
+      id: generateId('wr'),
       week,
       weekRange,
       content: '',

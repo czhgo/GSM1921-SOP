@@ -10,6 +10,7 @@ import { loadActivities } from '../../../services/activity.js?v=20260913f';
 import { showToast } from '../../../core/utils.js?v=20260913f';
 import { openFormModal } from '../../../components/modal.js?v=20260913f';
 import { NoticeStore } from '../../../services/notice.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { getPersonById } from '../../../services/person.js?v=20260913f';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
@@ -262,7 +263,7 @@ export function renderContent(ctx) {
       onSubmit: (values) => {
         const deposits = _loadDeposits();
         deposits.push({
-          id: 'exp_' + Date.now(),
+          id: generateId('exp'),
           sourceName: activityName,
           sourceType: 'activity',
           reviewId: reviewId || null,

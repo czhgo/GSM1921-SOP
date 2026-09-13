@@ -9,6 +9,7 @@
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
@@ -208,7 +209,7 @@ export function renderContent(ctx) {
     for (const pid of selectedIds) {
       const status = (container.querySelector(`#disc-meet-status-${pid}`)?.value) || AttendanceStatus.PRESENT;
       const r = {
-        id: 'att_' + Date.now() + '_' + pid,
+        id: generateId('att'),
         personId: pid,
         activityId,
         status,
@@ -224,7 +225,7 @@ export function renderContent(ctx) {
     // 计入到席 L；档案等既有读取按在场展示，不破坏）
     for (const pid of makeupIds) {
       records.push({
-        id: 'att_' + Date.now() + '_mk_' + pid,
+        id: generateId('att'),
         personId: pid,
         activityId,
         status: AttendanceStatus.PRESENT,

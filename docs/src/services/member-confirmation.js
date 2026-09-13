@@ -21,6 +21,8 @@
 
 import { mockDB } from '../core/domain.js?v=20260913f';
 import { persist } from '../core/data-adapter.js?v=20260913f';
+// 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
+import { generateId } from '../core/id.js?v=20260913f';
 import { bumpToken } from '../core/version-token.js?v=20260913f'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
@@ -136,14 +138,12 @@ function _save() {
   persist(); // 其余业务域（activities/signups/taskforces/…）随整库落盘
 }
 
-/** 请求 id：mc-<ts>（同毫秒追加序号防碰撞，与既有 generateId 风格兼容） */
-let _lastTs = 0;
-let _seq = 0;
-function _nextId() {
-  const ts = Date.now();
-  if (ts === _lastTs) _seq += 1; else { _lastTs = ts; _seq = 0; }
-  return _seq ? `mc-${ts}-${_seq}` : `mc-${ts}`;
-}
+/**
+ * 请求 id（2026-09-13 Q-21-2 收敛）：原为本地手写的 `mc-<ts>` + 同毫秒序号自增防碰撞
+ * （注释自称「与既有 generateId 风格兼容」，实为第二套实现 + 两个模块级可变变量）。
+ * 现统一经 `core/id.js::generateId('mc', '-')`（连字符保持既有 `mc-` 前缀形态）。
+ */
+const _nextId = () => generateId('mc', '-');
 
 function _person(personId) {
   return PersonStore.getMembers().find(p => p.id === personId) || null;

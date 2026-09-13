@@ -15,6 +15,7 @@ import { NoticeStore } from '../../../services/notice.js?v=20260913f';
 import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913f'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
 import { persist } from '../../../core/data-adapter.js?v=20260913f';
 import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260913f';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
 import { isActivityEnded } from '../../../core/constants.js?v=20260913f';
@@ -866,7 +867,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
     if (!content) { showToast('error', '请填写专班复盘内容'); return; }
     const issues = (mount.querySelector('#tf-review-issues')?.value || '').split(/[；;]/).map(s => s.trim()).filter(Boolean);
     addTaskforceReview({
-      id: 'tfrev_' + Date.now(),
+      id: generateId('tfrev'),
       sourceType: 'taskforce',
       sourceName: tf.name,
       taskforceId: tf.id,

@@ -17,6 +17,7 @@ import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '
 import { expandWorkforce } from '../core/work-map.js?v=20260913f';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
 import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260913f';
+import { randomHex } from '../core/id.js?v=20260913f';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -593,14 +594,6 @@ function _validateNewBranchName(name) {
   return { ok: true, value: t };
 }
 
-/** 新支部 id（br-<8hex>；浏览器/node 双端可用——不依赖 crypto.randomUUID） */
-function _newBranchId() {
-  const rand = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
-    ? crypto.randomUUID().slice(0, 8)
-    : Math.random().toString(16).slice(2, 10);
-  return `br-${rand}`;
-}
-
 function _cloneOrNull(v) {
   return v === undefined || v === null ? null : JSON.parse(JSON.stringify(v));
 }
@@ -656,7 +649,13 @@ export function buildNewBranchRecord({ id, name, mode = 'empty', sourceBranch = 
     status: 'active',
     createdAt: at,
   };
-  record.id = id || _newBranchId();
+  // 支部 id 形态 `br-<8hex>` 是**既有契约**（server/test/empty-template.test.mjs 与
+  //   branch-roster-import.test.mjs 均断言 /^br-[0-9a-f]{8}$/；支部 id 还会出现在
+  //   `?branch=br-…` URL 与配置留痕里）——故保留 8 位十六进制，随机段仍经唯一源
+  //   core/id.js::randomHex(4)（4 字节 → 8 位 hex）。**勿改长度**。
+  //   2026-09-13 Q-21-2：原 `_newBranchId()` 自建「randomUUID→Math.random」降级链，
+  //   已删除并收敛到 randomHex（同一降级链，且保证所有分支路径都产出真十六进制）。
+  record.id = id || ('br-' + randomHex(4));
   return record;
 }
 

@@ -21,6 +21,7 @@ import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260913f
 import { loadActivities } from './activity.js?v=20260913f';
 import { AuthStore } from './auth.js?v=20260913f';
 import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913f'; // 支委层应到名单单一源（勿手写）
+import { generateId } from '../core/id.js?v=20260913f';
 
 // 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
@@ -123,7 +124,7 @@ export const TaskForceRecordStore = {
   add(record) {
     const newRecord = {
       ...record,
-      id: record.id || 'tf-' + Date.now(),
+      id: record.id || generateId('tf', '-'),
       createdAt: record.createdAt || new Date().toISOString().slice(0, 10),
       members: record.members || [],
       status: record.status || 'recruiting',
@@ -208,7 +209,7 @@ export const TaskForceRecordStore = {
     if (!tf || !String(note || '').trim()) return null;
     const list = Array.isArray(tf.progressList) ? tf.progressList : [];
     const item = {
-      id: 'tp-' + Date.now(),
+      id: generateId('tp', '-'),
       stage: String(stage || '').trim(),
       note: String(note).trim(),
       by: by || null,
@@ -240,7 +241,7 @@ export const TaskForceRecordStore = {
   //  成员贡献录入/填报（立项③阶段b · 写入位补全）
   //  数据域：mockDB.taskforces[].members[].contributions
   //  数组项：种子为字符串摘要（历史只读形态）；本次写入为对象条目
-  //         { id:'tc-'+时间戳+'_'+personId, desc, by, at }
+  //         { id: generateId('tc','-'), desc, by, at }
   //  语义：附录⑩ B批（S3 R3-3，2026-09-06 支书裁定）起，写口=专班成员本人逐条填报
   //        （by=填报人）或组织委员代录，随后由组织委员 verifyContributions 逐条核
   //        （同意入档 / 退回补料，留痕）。历史字符串条目不参与核验（只读展示）。
@@ -256,14 +257,13 @@ export const TaskForceRecordStore = {
     // 校验：所选人员必须均为该专班成员（含历史数据无 personId 的成员条目过滤）
     const memberIds = (tf.members || []).map(m => m && m.personId);
     if (!ids.every(pid => memberIds.includes(pid))) return null;
-    const ts = Date.now();
     const at = new Date().toISOString();
     const members = (tf.members || []).map(m => {
       if (!m || !ids.includes(m.personId)) return m;
       const list = Array.isArray(m.contributions) ? m.contributions : [];
       return {
         ...m,
-        contributions: [...list, { id: 'tc-' + ts + '_' + m.personId, desc: note, by: by || null, at }],
+        contributions: [...list, { id: generateId('tc', '-'), desc: note, by: by || null, at }],
       };
     });
     const updated = this.update(taskforceId, { members });
@@ -337,7 +337,7 @@ export const TaskForceRecordStore = {
           };
         } else if (typeof value === 'object' && value !== null) {
           migrated = {
-            id: 'tf-legacy-' + Date.now().toString(36),
+            id: generateId('tf-legacy', '-'),
             name: value.name || '宣传专班（历史迁移）',
             task: value.task || '从旧 localStorage 键 ' + legacyKey + ' 迁移',
             status: 'dissolved',
@@ -554,7 +554,7 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
     // S-3（2026-09-10）默认描述精简：长文→一句（专班名/类型+报送人+时间+表态要求）
     description: `专班「${name}」${kindLabel}由${byName}${atText ? '（' + atText + '）' : ''}报送支委会表决，请支委表态（同意/异议/附言）。${note ? `说明：${note}。` : ''}`,
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds },
-    agenda: [{ id: 'ag-tf-' + Date.now(), item: `审议专班「${name}」（${kindLabel}）`, host: '支书' }],
+    agenda: [{ id: generateId('ag-tf', '-'), item: `审议专班「${name}」（${kindLabel}）`, host: '支书' }],
     extras: { taskforceProposal: { taskforceId: tf.id, kind: reqKind } },
     organizer: (me && me.personId) || 'p13',
     assignments: [{ personId: (me && me.personId) || 'p13', role: 'organizer' },

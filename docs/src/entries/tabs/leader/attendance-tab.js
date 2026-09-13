@@ -13,6 +13,7 @@ const PEOPLE = liveMembers();
 import { attendanceToLong } from '../../../services/attendance.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
+import { generateId } from '../../../core/id.js?v=20260913f';
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
 import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
@@ -281,7 +282,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
       const statusEl = container.querySelector(`#att-status-${personId}`);
       const status = statusEl ? statusEl.value : AttendanceStatus.PRESENT;
       records.push({
-        id: 'att_' + Date.now() + '_' + personId,
+        id: generateId('att'),
         personId: personId,
         activityId,
         status,

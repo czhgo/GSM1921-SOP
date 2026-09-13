@@ -7,6 +7,7 @@ import { PersonStore } from './person.js?v=20260913f';
 import { bumpToken } from '../core/version-token.js?v=20260913f'; // P2 渲染守卫失效（spec §四.1）
 import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260913f';
 import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260913f';
+import { generateId, randomHex } from '../core/id.js?v=20260913f';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -35,30 +36,17 @@ function _isApiMode() {
   return getDataSource() === 'api';
 }
 
-/** 生成与 personId 无关的随机提交令牌（crypto 优先，降级 Math.random+时间戳） */
-function _randomSubmitterToken() {
-  try {
-    const c = globalThis.crypto;
-    if (c && typeof c.getRandomValues === 'function') {
-      const a = new Uint8Array(16);
-      c.getRandomValues(a);
-      return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
-    }
-  } catch {}
-  return 'r' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
-
 /** 读取（缺省则生成）本浏览器的随机提交令牌 */
 function _getSubmitterToken() {
   try {
     let t = localStorage.getItem(SUBMITTER_TOKEN_KEY);
     if (!t) {
-      t = _randomSubmitterToken();
+      t = randomHex();
       localStorage.setItem(SUBMITTER_TOKEN_KEY, t);
     }
     return t;
   } catch {
-    return _randomSubmitterToken();
+    return randomHex();
   }
 }
 
@@ -261,7 +249,7 @@ export const IssueStore = {
   addDraft(draft, authorOverride) {
     const list = this.getDrafts();
     const record = {
-      draftId: 'dft-' + Date.now(),
+      draftId: generateId('dft', '-'),
       type: draft.type, // 'new-issue' | 'comment' | 'reaction'
       targetIssueId: draft.targetIssueId || null,
       payload: draft.payload,
@@ -322,7 +310,7 @@ export const IssueStore = {
     if (d.type === 'new-issue') {
       const issue = {
         ...d.payload,
-        id: 'issue-' + Date.now(),
+        id: generateId('issue', '-'),
         number: this.nextNumber(),
         status: 'open',
         closedReason: null,
@@ -359,7 +347,7 @@ export const IssueStore = {
       const issue = this.getById(d.targetIssueId);
       if (issue) {
         issue.comments.push({
-          id: 'cmt-' + Date.now(),
+          id: generateId('cmt', '-'),
           author: d.author,
           body: d.payload.body,
           createdAt: new Date().toISOString().slice(0, 10),
@@ -470,7 +458,7 @@ export const IssueStore = {
     // 同时作为评论时间线的一条 kind='dispatch' 事件
     if (!Array.isArray(issue.comments)) issue.comments = [];
     issue.comments.push({
-      id: 'cmt-' + Date.now(),
+      id: generateId('cmt', '-'),
       author: by,
       authorRole: _currentRole(),
       body: note ? `指派给 ${assigneeRole || assigneeId}：${note}` : `指派给 ${assigneeRole || assigneeId}`,
@@ -505,7 +493,7 @@ export const IssueStore = {
     if (!Array.isArray(issue.comments)) issue.comments = [];
     const at = new Date().toISOString().slice(0, 10);
     issue.comments.push({
-      id: 'cmt-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      id: generateId('cmt', '-'),
       author,
       authorRole: authorRole || null,
       body,
@@ -583,7 +571,7 @@ export const IssueStore = {
     const by = _currentPersonId();
     const now = new Date().toISOString().slice(0, 10);
     const issue = {
-      id: 'report-' + Date.now(),
+      id: generateId('report', '-'),
       number: this.nextNumber(),
       title: `【${REPORT_CATEGORIES[category] || '进度'}汇报】`,
       body: body.trim(),
@@ -629,7 +617,7 @@ export const IssueStore = {
     const now = new Date().toISOString().slice(0, 10);
     const noteText = (note || '').trim();
     const issue = {
-      id: 'report-req-' + Date.now(),
+      id: generateId('report-req', '-'),
       number: this.nextNumber(),
       title: noteText ? `了解进展：${noteText}` : '了解进展：请同步当前进度',
       body: noteText || '请同步当前进度',
@@ -670,7 +658,7 @@ export const IssueStore = {
     if (!issue) return null;
     if (!Array.isArray(issue.comments)) issue.comments = [];
     issue.comments.push({
-      id: 'cmt-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      id: generateId('cmt', '-'),
       author: _currentPersonId(),
       authorRole: null,
       body: '已收到答复',
@@ -742,7 +730,7 @@ export const IssueStore = {
     source.closedAt = new Date().toISOString().slice(0, 10);
     if (!Array.isArray(target.comments)) target.comments = [];
     target.comments.push({
-      id: 'cmt-merge-' + Date.now(),
+      id: generateId('cmt-merge', '-'),
       author: _currentPersonId(),
       authorRole: _currentRole(),
       body: `合并自 #${source.number || source.id}：${source.title || ''}`,

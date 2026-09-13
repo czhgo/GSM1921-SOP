@@ -9,6 +9,7 @@ import { PEOPLE } from '../mock/index.js?v=20260913f';
 import { getPersonById } from './person.js?v=20260913f';
 import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260913f';
 import { findActivityById } from '../services/activity.js?v=20260913f';
+import { generateId } from '../core/id.js?v=20260913f';
 
 const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
 
@@ -53,7 +54,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   deadline.setDate(deadline.getDate() + 7);
 
   const task = {
-    id: 'mk_' + Date.now() + '_' + personId,
+    id: generateId('mk'),
     personId,
     activityId,
     attendanceRecordId: attendanceRecord.id,
