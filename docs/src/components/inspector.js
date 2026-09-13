@@ -5,32 +5,32 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260912f';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260912f';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260912f';
-import { icon } from '../core/icons.js?v=20260912f';
-import { openModal, closeModal } from './modal.js?v=20260912f';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260912h';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260912h';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260912h';
+import { icon } from '../core/icons.js?v=20260912h';
+import { openModal, closeModal } from './modal.js?v=20260912h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../services/person.js?v=20260912f';
-import { BranchService } from '../services/runtime.js?v=20260912f';
-import { AuthStore } from '../services/auth.js?v=20260912f';
-import { PersonStore } from '../services/person.js?v=20260912f';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260912f';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260912f';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260912f';
+import { getPersonById } from '../services/person.js?v=20260912h';
+import { BranchService } from '../services/runtime.js?v=20260912h';
+import { AuthStore } from '../services/auth.js?v=20260912h';
+import { PersonStore } from '../services/person.js?v=20260912h';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260912h';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260912h';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260912h';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260912f';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260912h';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260912f';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912f';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912f';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260912f';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260912f';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260912f';
-import { loadActivityReviews } from '../services/review.js?v=20260912f';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260912f';
+import { NoticeStore } from '../services/notice.js?v=20260912h';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912h';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912h';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260912h';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260912h';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260912h';
+import { loadActivityReviews } from '../services/review.js?v=20260912h';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260912h';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {

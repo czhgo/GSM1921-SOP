@@ -205,6 +205,13 @@ export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
 
+// ── 通知发布/管理角色（2026-09-13 dogfood 权限专项：前后端「单一源」，勿各自手写）──
+// 发布 = 支委层中除纪检（纪检为会议纪律通报场景，只需管理位）；管理（编辑/删除）= 支委层全体。
+// 由 BRANCH_COMMISSION_ROLES 派生（勿再手写角色名单——roles-sync 守卫「5 支委授权列表只允许出现在授权集」会拦）。
+// 消费方：前端 services/notice.js::NoticePermission、server routes/resources.js 资源写门（notices）。
+export const NOTICE_PUBLISH_ROLES = BRANCH_COMMISSION_ROLES.filter((r) => r !== 'disc-commissioner');
+export const NOTICE_MANAGE_ROLES = [...BRANCH_COMMISSION_ROLES];
+
 // ── 表决计票方式 ballotMode（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）──
 // 单一源：server（routes/resources.js 写侧校验、routes/committee.js 落库）与前端（vote-config 转出）共用本文件，
 //   mock 形态（core/mock-adapter.js）同源——三形态口径由本文件锁定，勿各自手写。

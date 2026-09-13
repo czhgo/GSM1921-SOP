@@ -3,6 +3,7 @@
 //   branches/appointmentRecords/users 写 → 仅 party-staff（403 for 支部成员）
 //   reviewRequests POST → 本支部支委层（同支部）；PATCH/DELETE → party-staff（防自批）
 //   activities 写门（2026-09-13 dogfood 权限专项）：支委层可写、组长限党小组会/主题党日、其余 403
+//   notices 写门（2026-09-13 dogfood 权限专项）：发布=书记/副书记/组织/宣传；管理=发布者+纪检
 //
 // 自包含：createApp(:memory:) + seedDatabase；HTTP 直连（无浏览器）。
 
@@ -146,6 +147,53 @@ test('活动写门：支委层可建；普通成员 403；组长限党小组会/
     body: JSON.stringify({ title: 'x' }),
   });
   assert.equal(anon.status, 401, '未登录仍被拒');
+});
+
+// dogfood 权限专项（2026-09-13）：notices 写门——发布=书记/副书记/组织/宣传；管理（编辑/删除）=发布者+纪检；
+// 此前仅 requireAuth → 任一登录成员可直连写通知（前端有白名单、后端全开的前后端不一致），现同源 constants.js。
+test('通知写门：书记/副书记/组织/宣传可发布；纪检仅可管理；普通成员 403；未登录 401', async () => {
+  const { token: secTok } = await login('p13');
+  const { token: depTok } = await login('p14');
+  const { token: orgTok } = await login('p11');
+  const { token: propTok } = await login('p12');
+  const { token: discTok } = await login('p10');
+  const { token: partTok } = await login('p3');
+  const payload = JSON.stringify({ title: '权限门-通知', content: 'x', priority: 'normal' });
+  const cases = [
+    ['书记', secTok, 201], ['副书记', depTok, 201], ['组织委员', orgTok, 201],
+    ['宣传委员', propTok, 201], ['纪检委员', discTok, 403], ['普通成员', partTok, 403],
+  ];
+  for (const [who, tok, expect] of cases) {
+    const r = await fetch(`${base}/api/v1/notices`, { method: 'POST', headers: authHeaders(tok), body: payload });
+    assert.equal(r.status, expect, `${who}发布通知应为 ${expect}`);
+  }
+
+  // 纪检：管理位（编辑）应放行
+  const list = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(secTok) })).json();
+  const target = list.find((n) => n.title === '权限门-通知');
+  assert.ok(target, '通知已写入');
+  const patch = await fetch(`${base}/api/v1/notices/${target.id}`, {
+    method: 'PATCH', headers: authHeaders(discTok), body: JSON.stringify({ title: '权限门-通知（纪检改名）' }),
+  });
+  assert.equal(patch.status, 200, '纪检委员可管理（编辑）通知');
+  // 普通成员：删除应被拒
+  const del = await fetch(`${base}/api/v1/notices/${target.id}`, { method: 'DELETE', headers: authHeaders(partTok) });
+  assert.equal(del.status, 403, '普通成员不得删除通知');
+  const okDel = await fetch(`${base}/api/v1/notices/${target.id}`, { method: 'DELETE', headers: authHeaders(orgTok) });
+  assert.equal(okDel.status, 204, '组织委员（发布者层）可删除通知（204 No Content）');
+
+  const anon = await fetch(`${base}/api/v1/notices`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload,
+  });
+  assert.equal(anon.status, 401, '未登录仍被拒');
+
+  // 系统派生通道（业务副作用：成员提交思想汇报→通知组织初阅、纪检确认考勤→通知组织委员）：
+  // 客户端不传 actorRole 时打标 systemDerived，写门放行——否则 API 模式会被静默拦掉（2026-09-13 连带风险核查）
+  const sysDerived = await fetch(`${base}/api/v1/notices`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({ title: '系统派生-思想汇报已提交', content: 'x', systemDerived: true, targetUrl: 'workspace/org.html?tab=thought-review' }),
+  });
+  assert.equal(sysDerived.status, 201, '系统派生通知（systemDerived）普通成员亦可写入');
 });
 
 // C-2 方案 B（2026-09-11 书记批）：名册成员变更确认链「书记阶段写入」语义端点权限边界

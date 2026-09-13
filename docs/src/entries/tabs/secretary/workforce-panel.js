@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260912f';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260912f';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260912f';
-import { PersonStore } from '../../../services/person.js?v=20260912f';
+import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260912h';
+import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260912h';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260912h';
+import { PersonStore } from '../../../services/person.js?v=20260912h';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/workforce.js?v=20260912f';
-import { getBranchWorkforce } from '../../../services/branch.js?v=20260912f';
+} from '../../../services/workforce.js?v=20260912h';
+import { getBranchWorkforce } from '../../../services/branch.js?v=20260912h';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft';
 
@@ -99,11 +99,11 @@ function _outcomeHtml(outcome) {
   const sum = `${tally.voted}/${needed} 表态 · 应到 ${tally.total} · 异议 ${tally.object}`;
   if (status === 'passed') {
     return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已通过·可采纳</span>
-      <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
+      <p class="text-[11px] text-gray-500 mt-1" title="应到＝有表决权党员（预备党员无表决权）">${sum}</p>`;
   }
   if (status === 'failed') {
     return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">未通过·有异议</span>
-      <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;
+      <p class="text-[11px] text-gray-500 mt-1" title="应到＝有表决权党员（预备党员无表决权）">${sum}</p>`;
   }
   return `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">待足额（差 ${needed - tally.voted} 票）</span>
     <p class="text-[11px] text-gray-500 mt-1">${sum}</p>`;

@@ -7,15 +7,15 @@
 //   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
 // 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912f';
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912f';
-import { PersonStore } from '../../../services/person.js?v=20260912f';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912h';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912h';
+import { PersonStore } from '../../../services/person.js?v=20260912h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260912f';
+import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260912h';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选复用名册枚举（PARTY_GROUP_OPTIONS 单一源）
-import { PARTY_GROUP_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912f';
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260912f';
-import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912f';
+import { PARTY_GROUP_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912h';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260912h';
+import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912h';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];

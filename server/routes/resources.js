@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -64,11 +64,16 @@ function listTable(db, table) {
 // P2c（2026-09-03）：角色集单一源 = constants.js（勿手写）
 const PARTY_STAFF_ROLE = new Set(PARTY_STAFF_KEYS);
 const BRANCH_COMMITTEE_ROLES = new Set(BRANCH_COMMISSION_ROLES);
+const NOTICE_PUBLISH_ROLE_SET = new Set(NOTICE_PUBLISH_ROLES);
+const NOTICE_MANAGE_ROLE_SET = new Set(NOTICE_MANAGE_ROLES);
 const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
   users: 'party-staff',
   reviewRequests: { post: 'branch-committee', patch: 'party-staff', delete: 'party-staff' },
+  // 通知（2026-09-13 dogfood 权限专项）：发布=书记/副书记/组织/宣传，管理（编辑/删除）=发布者+纪检；
+  // 角色名单单一源 = constants.js::NOTICE_PUBLISH_ROLES / NOTICE_MANAGE_ROLES（与前端 NoticePermission 同源）
+  notices: { post: 'notice-publish', patch: 'notice-manage', delete: 'notice-manage' },
 };
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
@@ -87,7 +92,24 @@ function _assertResourceWrite(actor, name, method, body) {
     const targetBranch = (body && body.branchId) || 'br-b1';
     return myBranch === targetBranch;
   }
+  if (need === 'notice-publish') {
+    // 人工发布：白名单角色；系统派生通知（客户端打标 systemDerived，任意登录角色触发）放行——
+    // 否则「成员提交思想汇报 → 通知组织委员初阅」「纪检确认考勤 → 通知组织委员」等业务副作用
+    // 在 API 模式会被写门静默拦掉（2026-09-13 连带风险核查实证）。
+    // 残留信任边界（登记 R-22）：该标记由客户端自述，服务端不复算；彻底方案 = 由各业务端点服务端派生。
+    if (body && body.systemDerived === true) return !!actor;
+    return !!actor && NOTICE_PUBLISH_ROLE_SET.has(actor.role);
+  }
+  if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);
   return true;
+}
+
+/** 写门 403 文案（按资源给可懂原因，勿用一句万金油） */
+function _writeDenyMsg(name) {
+  if (name === 'notices') {
+    return '无权限：通知发布仅限书记/副书记/组织委员/宣传委员，编辑与删除另含纪检委员';
+  }
+  return '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
 
 // ── 活动写门（dogfood 权限专项 2026-09-13 实证缺口）──────────────────────────
@@ -155,7 +177,7 @@ export function createResourcesRouter(db) {
     if (name !== 'branches') {
       router.post(`/${name}`, writeAuth, (req, res) => {
         if (!_assertResourceWrite(req.actor, name, 'post', req.body)) {
-          return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师或本支部支委层' });
+          return res.status(403).json({ error: _writeDenyMsg(name) });
         }
         const row = req.body;
         if (!row || typeof row !== 'object' || Array.isArray(row)) {
@@ -183,7 +205,7 @@ export function createResourcesRouter(db) {
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
       if (!_assertResourceWrite(req.actor, name, 'patch', req.body)) {
-        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师' });
+        return res.status(403).json({ error: _writeDenyMsg(name) });
       }
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
@@ -208,7 +230,7 @@ export function createResourcesRouter(db) {
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
       if (!_assertResourceWrite(req.actor, name, 'delete', null)) {
-        return res.status(403).json({ error: '无权限：该写操作仅限党委组织员/党务老师' });
+        return res.status(403).json({ error: _writeDenyMsg(name) });
       }
       // 活动写门：删除同样受限（防普通成员清库）
       if (name === 'activities') {

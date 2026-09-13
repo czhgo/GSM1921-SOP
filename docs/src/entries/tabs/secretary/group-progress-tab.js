@@ -19,20 +19,20 @@
 // 本页禁用 SVG 图标（书记台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260912f';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260912f';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912f';
-import { IssueStore } from '../../../services/issues.js?v=20260912f';
-import { loadActivities } from '../../../services/activity.js?v=20260912f';
-import { loadActivityReviews } from '../../../services/review.js?v=20260912f';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912f';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260912f';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260912f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912f';
+import { AuthStore } from '../../../services/auth.js?v=20260912h';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260912h';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912h';
+import { IssueStore } from '../../../services/issues.js?v=20260912h';
+import { loadActivities } from '../../../services/activity.js?v=20260912h';
+import { loadActivityReviews } from '../../../services/review.js?v=20260912h';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912h';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260912h';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260912h';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912h';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260912f';
+} from '../../../services/group-view.js?v=20260912h';
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名
@@ -356,7 +356,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
             <div class="flex items-center gap-2.5 py-1.5">
               <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
               <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
-              <span class="text-xs text-gray-600 shrink-0 tabular-nums">应到 ${expected} · 实到 ${present}</span>
+              <span class="text-xs text-gray-600 shrink-0 tabular-nums" title="考勤应到＝正式＋预备党员（剔除滞留），与表决「应到（有表决权党员）」口径不同">应到 ${expected} · 实到 ${present}</span>
               <span class="text-xs text-gray-500 shrink-0 tabular-nums">未到 ${absent}</span>
             </div>`;
       }).join('');

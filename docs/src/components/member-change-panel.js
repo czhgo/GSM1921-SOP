@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260912f';
-import { mockDB } from '../core/domain.js?v=20260912f';
-import { bumpToken } from '../core/version-token.js?v=20260912f';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260912f';
-import { loadActivities } from '../services/activity.js?v=20260912f';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912f';
-import { NoticeStore } from '../services/notice.js?v=20260912f';
-import { AuthStore } from '../services/auth.js?v=20260912f';
+import { getAdapter } from '../core/data-adapter.js?v=20260912h';
+import { mockDB } from '../core/domain.js?v=20260912h';
+import { bumpToken } from '../core/version-token.js?v=20260912h';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260912h';
+import { loadActivities } from '../services/activity.js?v=20260912h';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260912h';
+import { NoticeStore } from '../services/notice.js?v=20260912h';
+import { AuthStore } from '../services/auth.js?v=20260912h';
 // roster=名册报送确认链（组织委员发起 → 书记确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260912f';
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260912h';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 

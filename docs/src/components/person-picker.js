@@ -7,12 +7,12 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../services/person.js?v=20260912f';
+import { PersonStore } from '../services/person.js?v=20260912h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../services/person.js?v=20260912f';
-import { icon } from '../core/icons.js?v=20260912f';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260912f';
+import { getPersonById } from '../services/person.js?v=20260912h';
+import { icon } from '../core/icons.js?v=20260912h';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260912h';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {

@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260912f';
-import { AuthStore } from '../services/auth.js?v=20260912f';
-import { icon } from '../core/icons.js?v=20260912f';
-import { getPersonName } from '../services/person.js?v=20260912f';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260912f';
-import { badgeHtml } from './badges.js?v=20260912f';
+import { IssueStore } from '../services/issues.js?v=20260912h';
+import { AuthStore } from '../services/auth.js?v=20260912h';
+import { icon } from '../core/icons.js?v=20260912h';
+import { getPersonName } from '../services/person.js?v=20260912h';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260912h';
+import { badgeHtml } from './badges.js?v=20260912h';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',

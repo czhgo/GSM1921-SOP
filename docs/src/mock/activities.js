@@ -49,7 +49,12 @@ export const ACTIVITIES = [
   // ── 8 月活动（暑期特色，与 notices.js 保持数据协调）────────────
   // 2026-08-05 书记裁决：已生成考勤的活动日期须已发生（≤ 8/5），
   // act-28「谈话考察」违背「删除考察活动类型」（5b2e4ea）已彻底删除。
-  { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-01', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
+  { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-01', type: '党小组会', organizer: 'p1', direction: 'bottom-up', hostGroup: '第一党小组', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
+  // R-21（2026-09-13）：补第二/第三党小组小组会——此前小组会种子只覆盖第一党小组，
+  // 「组长上传位＝本组」收紧后 p2/p4 的考勤/考察上传下拉为空（演示不完整）。
+  // hostGroup 显式固化 = 组长写入同一语义，服务层 _activityPartyGroup 直接取用。
+  { id: 'act-32', title: '8月党小组会：第二党小组理论学习', date: '2026-08-04', type: '党小组会', organizer: 'p2', direction: 'bottom-up', hostGroup: '第二党小组', location: '光华1号楼205会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p2', role: 'organizer' }] },
+  { id: 'act-33', title: '8月党小组会：第三党小组理论学习', date: '2026-08-05', type: '党小组会', organizer: 'p4', direction: 'bottom-up', hostGroup: '第三党小组', location: '光华1号楼207会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p4', role: 'organizer' }] },
   { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-03', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '新学期支部工作计划', host: '书记' }, { item: '迎新工作分工', host: '组织委员' }, { item: '九月主题党日策划', host: '宣传委员' }] },
   { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-04', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, brandName: '暑期实践', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
   // act-30 秋季学期工作部署会（published、无考勤，日期 8/28 保留——演示「已发布未生成考勤」路径）

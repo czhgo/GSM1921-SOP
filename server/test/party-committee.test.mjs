@@ -147,9 +147,9 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/appointment.js?v=20260912f');
+      const { appointSecretary } = await import('/src/services/appointment.js?v=20260912h');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain.js?v=20260912f');
+      const { mockDB } = await import('/src/core/domain.js?v=20260912h');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
@@ -265,7 +265,7 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
 
     // 5. 写权限不放宽：party-staff 写权限键仍全关（看≠做）；requiredRoles / 权限键未动
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/auth.js?v=20260912f');
+      const { AuthStore } = await import('/src/services/auth.js?v=20260912h');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

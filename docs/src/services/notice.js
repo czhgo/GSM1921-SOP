@@ -5,16 +5,17 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912f';
-import { persist } from '../core/data-adapter.js?v=20260912f';
-import { bumpToken } from '../core/version-token.js?v=20260912f'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912f';
-import { isInitStateActive } from './init-reset.js?v=20260912f'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912f';
-import { AuthStore } from './auth.js?v=20260912f';
-import { getPersonById } from './person.js?v=20260912f';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912f';
-import { badgeHtml } from '../components/badges.js?v=20260912f';
+import { mockDB } from '../core/domain.js?v=20260912h';
+import { persist } from '../core/data-adapter.js?v=20260912h';
+import { bumpToken } from '../core/version-token.js?v=20260912h'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260912h';
+import { isInitStateActive } from './init-reset.js?v=20260912h'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260912h';
+import { AuthStore } from './auth.js?v=20260912h';
+import { getPersonById } from './person.js?v=20260912h';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912h';
+import { badgeHtml } from '../components/badges.js?v=20260912h';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES } from '../core/constants.js?v=20260912h';
 
 function _loadNotices() {
   try {
@@ -62,22 +63,10 @@ function _noticeFromTodo(todo, id) {
 //  §D4 权限控制 — 通知发布/编辑/删除必须对接到角色白名单
 // ════════════════════════════════════════════════════════════════
 
-// dogfood 权限专项 2026-09-13：补 deputy-secretary——副书同权（2026-09-11 书记裁定）已在
-// member.js/constants.js 落地，但通知发布/管理层白名单漏了副书记（书记台为书记/副书共用）
-const MANAGE_NOTICE_ROLES = new Set([
-  'org-commissioner',
-  'prop-commissioner',
-  'disc-commissioner',
-  'secretary',
-  'deputy-secretary',
-]);
-
-const PUBLISH_NOTICE_ROLES = new Set([
-  'org-commissioner',
-  'prop-commissioner',
-  'secretary',
-  'deputy-secretary',
-]);
+// dogfood 权限专项 2026-09-13：改引 constants.js 单一源（NOTICE_PUBLISH_ROLES / NOTICE_MANAGE_ROLES）——
+// server routes/resources.js 的 notices 写门同源，杜绝「前端放行、后端全开」的前后端不一致。
+const MANAGE_NOTICE_ROLES = new Set(NOTICE_MANAGE_ROLES);
+const PUBLISH_NOTICE_ROLES = new Set(NOTICE_PUBLISH_ROLES);
 
 export const NoticePermission = {
   canPublish(role) {
@@ -191,7 +180,12 @@ export const NoticeStore = {
       console.warn(`[NoticeStore] 权限不足：角色 ${actorRole} 无权发布通知`);
       return null;
     }
+    // 系统派生通知（不传 actorRole）打标 systemDerived（2026-09-13 dogfood 权限专项）：
+    //   成员提交思想汇报、纪检确认考勤、赋权/表决进度等**业务副作用**产生的通知由任意角色触发，
+    //   与「人工发布」共享 POST /notices——服务端写门据此区分，避免把系统通知一并 403 误杀。
+    //   人为发布路径（通知发布表单）必传 actorRole，仍受白名单约束。
     const newNotice = {
+      ...(actorRole ? {} : { systemDerived: true }),
       ...notice,
       id: notice.id || 'notice-' + Date.now(),
       publishDate: notice.publishDate || new Date().toISOString().slice(0, 10),
