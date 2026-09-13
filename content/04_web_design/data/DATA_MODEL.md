@@ -642,7 +642,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 **通知机制**：指派 → 被指派人工作台「我的处置」Tab 角标 +1（personId 维度未读）；处置结果提交 → 书记工作台「待终审」高亮；书记终审关闭/重开 → 清除对应未读。
 
-> **人员 ID 规范（2026-08-01 T187）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存短 ID（`p*` 或 `u_sec`/`u_org`/`u_prop`/`u_disc`/`u_leader_*`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。issues.js 缓存版本已升 v3（`gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧长 ID 缓存。
+> **人员 ID 规范（2026-08-01 T187；2026-09-13 修订）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存**真实成员短 ID**（`p*`，如书记 `p13`／组织委员 `p11`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。**反馈指派/审计身份已于 2026-09-13 由演示占位 ID（`u_sec`/`u_org`/`u_leader_*`）统一迁到真实成员 ID**（原文允许 `u_*` 占位导致「了解进展」请求收不到、三组长共用同一 ID；`u_*` 仅保留为系统账号登录身份）。issues.js 缓存版本已递进（`CACHE_VERSION 4`，键名仍为 `gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧 ID 缓存。
 
 ### 2.16.1 复盘数据 (ReviewRecord) — D-242 本轮补建
 
