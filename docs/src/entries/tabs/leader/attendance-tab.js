@@ -14,7 +14,7 @@ import { attendanceToLong } from '../../../services/attendance.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
 import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913f';
@@ -169,7 +169,7 @@ export function renderContent(ctx) {
     // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
     rowHtml: (a) => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
-              <td class="py-2 px-3 font-medium text-gray-800">${esc(a.name)}</td>
+              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
               <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
               <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>

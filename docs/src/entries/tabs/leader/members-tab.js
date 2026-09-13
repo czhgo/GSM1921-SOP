@@ -14,7 +14,7 @@ import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=2
 import { AttendanceStatus } from '../../../core/domain.js?v=20260913f';
 import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
-import { showToast } from '../../../core/utils.js?v=20260913f';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
@@ -117,7 +117,7 @@ export async function renderContent(ctx) {
   const progressRowHtml = (r) => `
     <div class="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors">
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#60A5FA;"></span>
-      <span class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0">${r.name}</span>
+      <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-semibold text-gray-800 w-16 flex-shrink-0 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a>
       <span class="text-xs tabular-nums text-gray-600 w-14 flex-shrink-0 text-right">在办 ${r.active}</span>
       <span class="text-xs tabular-nums ${r.overdue ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">超期 ${r.overdue}</span>
       <span class="text-xs tabular-nums ${r.absent ? 'text-red-600 font-medium' : 'text-gray-500'} w-14 flex-shrink-0 text-right">缺勤 ${r.absent}</span>

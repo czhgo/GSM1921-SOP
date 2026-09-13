@@ -2,7 +2,7 @@
 // entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast } from '../../../core/utils.js?v=20260913f';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913f';
 import { AuthStore } from '../../../services/auth.js?v=20260913f';
 import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
@@ -265,7 +265,7 @@ function renderProjectAuthRecords() {
     rowHtml: (r) => `
       <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
         <div>
-          <span class="text-sm font-medium text-gray-700">${r._personName}</span>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.targetPersonId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r._personName)}</a>
           <span class="text-xs text-gray-500 ml-2">${r._projectName}</span>
           <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${r._roleLabel}</span>
           <span class="text-xs text-gray-500 ml-2">${r.authorizedAt || ''}</span>
@@ -507,7 +507,7 @@ function renderAuthRecords() {
           </div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm font-medium text-gray-700">${personName}</span>
+              <a href="${getBasePath()}person.html?id=${encodeURIComponent(person.id)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(personName)}</a>
               ${badgeHtml('党小组组长', 'danger')}
             </div>
             <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>

@@ -9,7 +9,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
 import { inspectionToLong } from '../../../services/inspection.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
 import { currentLeaderGroup } from './_shared.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
@@ -129,7 +129,7 @@ export function renderContent(ctx) {
     },
     rowHtml: (i) => `
             <tr class="border-b border-gray-50 hover:bg-gray-50">
-              <td class="py-2 px-3 font-medium text-gray-800">${esc(i.name)}</td>
+              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
               <td class="py-2 px-3 text-gray-600">${esc(i.content || i.role)}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>

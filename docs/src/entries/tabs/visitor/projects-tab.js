@@ -12,6 +12,10 @@ import { ROLE_COLORS } from '../../../core/constants.js?v=20260913f';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
 import { isActivityLive } from '../../../core/constants.js?v=20260913f';
 import { flashHighlight } from '../../../core/utils.js?v=20260913f';
+// 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
+// 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260913f';
+import { getAppState } from '../../../core/state.js?v=20260913f';
 
 // 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -26,6 +30,8 @@ export function renderContent(ctx) {
   const taskforces = ctx.allTf || [];
   const authRecords = ctx.authRecords || [];
   _highlightTfId = ctx.highlightTfId || null;
+  // 活动生命周期派生所需的全量任务（与 inspector/list-filter 同源取法）
+  const allTasks = getAppState()?.tasks || [];
 
   // 构建统一项目列表：活动 + 专班
   const actProjects = activities
@@ -34,13 +40,17 @@ export function renderContent(ctx) {
       // 人员：从 assignments + authRecords 合并
       const personnel = _buildPersonnel(a.id, a.assignments || [], authRecords);
       const organizer = PEOPLE.find(p => p.id === a.organizer);
+      // 支书裁定（2026-09-13）：「活动与专班是并列的概念，各走各的」——
+      // 活动的状态文案单一源 = components/inspector.js 生命周期展示态（草稿/已发布/进行中/待归档/已执行/已归档/已取消），
+      // 不再本地手写映射；专班分支沿用 _tfStatusLabel/_tfStatusColor，二者不强行统一。
+      const lifecycle = ACTIVITY_LIFECYCLE[deriveActivityLifecycleStatus(a, allTasks)] || ACTIVITY_LIFECYCLE.draft;
       return {
         id: a.id,
         name: a.title || '未命名',
         type: '活动',
         typeBadge: a.type || '活动',
         group: organizer ? organizer.partyGroup : '',
-        status: _actStatusLabel(a.status),
+        status: lifecycle.label,
         statusColor: _actStatusColor(a.status),
         date: a.date || '',
         personnel,
@@ -249,11 +259,8 @@ function _buildPersonnelFromTf(tf, authRecords) {
   return [...map.values()];
 }
 
-function _actStatusLabel(status) {
-  // 2026-08-07：活动状态与全站生命周期语义对齐（"已完成"不再是活动字面状态）
-  const map = { completed: '已执行', ongoing: '进行中', published: '已发布', draft: '草稿', cancelled: '已取消' };
-  return map[status] || status || '进行中';
-}
+// _actStatusLabel 已撤除（2026-09-13 支书裁定）：活动状态文案改走生命周期展示态单一源
+// （components/inspector.js::ACTIVITY_LIFECYCLE），本文件不再自持活动中文状态映射。
 function _actStatusColor(status) {
   const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-700' };
   return map[status] || 'bg-gray-100 text-gray-600';

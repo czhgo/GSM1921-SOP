@@ -28,7 +28,7 @@ import { loadActivityReviews } from '../../../services/review.js?v=20260913f';
 import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
 import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
 import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
 import {
@@ -198,7 +198,7 @@ function _renderReportsList(hostEl, group, allIssues) {
         ${_reportDot(r)}
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-sm font-medium text-gray-800 shrink-0">${esc(submitterName)}</span>
+            <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.submittedBy)}" class="text-sm font-medium text-gray-800 shrink-0 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(submitterName)}</a>
             <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(r.title)}</span>
           </div>
           <div class="text-[11px] text-gray-500">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>

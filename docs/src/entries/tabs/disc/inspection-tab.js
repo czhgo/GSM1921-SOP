@@ -10,7 +10,7 @@ import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
 import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260913f';
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
-import { showToast, downloadCSV, triggerPrint, _fmtDate } from '../../../core/utils.js?v=20260913f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { HandoffStore } from '../../../services/handoff.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
@@ -136,7 +136,7 @@ export function renderContent(ctx) {
         const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
         return `
             <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
-              <td class="py-2 px-3 font-medium text-gray-800">${i.name}</td>
+              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>

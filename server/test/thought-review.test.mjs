@@ -12,6 +12,7 @@
 //   ⑥ 闭环：pending → reject → resubmit(pending) → approve → archived，reviewHistory 全程两段留痕
 //   ⑦ 旧数据（无 reviewStatus，R6-2 前算法归档产物）经 _effective 归一为 archived：
 //      不计入待初阅队列、不可再初阅；新提交仍为 pending
+//      （2026-09-13 seed 新增 tr-4 演示用待初阅样本 → 「旧数据形态」断言收窄至 tr-1/tr-2/tr-3）
 //   ⑧ listPendingReviews：仅 pending，按 submittedAt 升序
 // 运行：node --test test/thought-review.test.mjs（server 目录）
 import { test } from 'node:test';
@@ -73,6 +74,8 @@ test('① addThoughtReport 新提交 → pending + 通知文案含「待组织�
   assert.equal(TR.THOUGHT_REVIEW_STATUS.NEEDS_REVISION, 'needs_revision');
   assert.equal(TR.THOUGHT_REVIEW_STATUS.ARCHIVED, 'archived');
 
+  // 2026-09-13：seed 含 1 条演示用待初阅（tr-4），待初阅队列基线做增量断言，不写死绝对值
+  const pendingBefore = TR.listPendingReviews().length;
   const rec = TR.addThoughtReport({
     personId: 'p6', title: '第三季度思想汇报', content: '本季度思想汇报正文（R6-2 初阅用例）。',
   });
@@ -91,8 +94,8 @@ test('① addThoughtReport 新提交 → pending + 通知文案含「待组织�
   );
 
   const pending = TR.listPendingReviews();
-  assert.equal(pending.length, 1, '新提交进入待初阅队列');
-  assert.equal(pending[0].id, rec.id);
+  assert.equal(pending.length, pendingBefore + 1, '新提交进入待初阅队列');
+  assert.ok(pending.some(x => x.id === rec.id), '新提交在待初阅队列中');
 });
 
 test('② reviewThoughtReport approve（组织委员）→ archived + reviewHistory[0]；刷新重载仍归档', () => {
@@ -162,7 +165,7 @@ test('④ reviewThoughtReport 非组织委员角色 → 拒绝且状态不动', 
   assert.equal(noRole.ok, false, '缺 role 不得初阅');
 
   assert.equal(TR.loadThoughtReports().find(r => r.id === rec.id).reviewStatus, 'pending', '越权尝试不改状态');
-  assert.equal(TR.listPendingReviews().length, 1, '越权尝试后仍在待初阅队列');
+  assert.ok(TR.listPendingReviews().some(x => x.id === rec.id), '越权尝试后仍在待初阅队列');
 });
 
 test('⑤ resubmitThoughtReport：仅 needs_revision 且仅本人；改 content 回 pending', async () => {
@@ -196,25 +199,29 @@ test('⑤ resubmitThoughtReport：仅 needs_revision 且仅本人；改 content 
 
 test('⑥ 闭环：pending → reject → resubmit(pending) → approve → archived（reviewHistory 全程两段）', async () => {
   beginMockCase();
+  // 2026-09-13：seed 常驻 1 条演示用待初阅（tr-4），闭环内计数以种子基线为底
+  const seedPending = TR.listPendingReviews().length;
   const rec = TR.addThoughtReport({ personId: 'p6', title: '季度思想汇报', content: 'v1 正文。' });
-  assert.equal(TR.listPendingReviews().length, 1, '闭环起点：1 篇待初阅（旧种子视为已归档，见⑦）');
+  assert.equal(TR.listPendingReviews().length, seedPending + 1, '闭环起点：新提交 1 篇待初阅（种子 tr-4 常驻）');
 
   const rejectR = TR.reviewThoughtReport({ id: rec.id, decision: 'reject', note: '第一轮意见：理论部分需联系实际', ...ORG });
   assert.equal(rejectR.ok, true);
   assert.equal(rejectR.rec.reviewStatus, 'needs_revision');
-  assert.equal(TR.listPendingReviews().length, 0);
+  assert.equal(TR.listPendingReviews().some(x => x.id === rec.id), false, '打回后该篇退出待初阅队列');
+  assert.equal(TR.listPendingReviews().length, seedPending, '打回后仅剩种子 tr-4');
 
   await sleep(3);
   const rs = TR.resubmitThoughtReport({ id: rec.id, content: 'v2 正文（已按意见修改）', by: 'p6' });
   assert.equal(rs.ok, true, JSON.stringify(rs));
   assert.equal(rs.rec.reviewStatus, 'pending');
-  assert.equal(TR.listPendingReviews().length, 1);
+  assert.equal(TR.listPendingReviews().length, seedPending + 1, '重交后回到待初阅（含种子 tr-4）');
 
   const approveR = TR.reviewThoughtReport({ id: rec.id, decision: 'approve', note: '修改到位，同意归档', ...ORG });
   assert.equal(approveR.ok, true);
   assert.equal(approveR.rec.reviewStatus, 'archived', '闭环终点：归档');
   assert.equal(approveR.rec.content, 'v2 正文（已按意见修改）', '归档保留终稿内容');
-  assert.equal(TR.listPendingReviews().length, 0, '闭环后待初阅队列清空');
+  assert.equal(TR.listPendingReviews().some(x => x.id === rec.id), false, '闭环后该篇退出待初阅队列');
+  assert.equal(TR.listPendingReviews().length, seedPending, '闭环后仅剩种子 tr-4');
   assert.deepEqual(approveR.rec.reviewHistory.map(h => h.decision), ['reject', 'approve'], '全程两段留痕');
   assert.equal(approveR.rec.reviewHistory[0].by, 'p11');
   assert.equal(approveR.rec.reviewHistory[1].by, 'p11');
@@ -222,28 +229,35 @@ test('⑥ 闭环：pending → reject → resubmit(pending) → approve → arch
 
 test('⑦ 旧数据（无 reviewStatus）经 _effective 归一为 archived：不进队列、不可初阅', () => {
   beginMockCase();
-  // seed 基线：tr-1(p6)/tr-2(p7)/tr-3(p16) 均为 R6-2 前算法归档产物，无 reviewStatus
+  // seed 基线：tr-1(p6)/tr-2(p7)/tr-3(p16) 均为 R6-2 前算法归档产物，无 reviewStatus；
+  // 另有 tr-4（演示用待初阅样本，见 mock/thought-reports.js），故「旧数据形态」断言收窄到 tr-1/tr-2/tr-3
+  const OLD_SEED_IDS = ['tr-1', 'tr-2', 'tr-3'];
   const seeds = TR.loadThoughtReports();
   assert.ok(seeds.length >= 3, 'seed 思想汇报存在');
-  assert.ok(seeds.every(r => !('reviewStatus' in r)), '种子均无 reviewStatus（旧数据形态）');
+  const oldSeeds = seeds.filter(r => OLD_SEED_IDS.includes(r.id));
+  assert.equal(oldSeeds.length, 3, '旧数据种子 tr-1/tr-2/tr-3 齐全');
+  assert.ok(oldSeeds.every(r => !('reviewStatus' in r)), '旧数据种子均无 reviewStatus（R6-2 前形态）');
 
   // 按人归集读侧归一
   for (const r of TR.listThoughtReportsByPerson('p6')) {
     assert.equal(r.reviewStatus, 'archived', '旧数据读取视为已归档');
   }
   assert.equal(TR.countThoughtReportsByPerson('p6'), 1, '旧数据仍计入个人归集');
-  assert.equal(TR.listPendingReviews().length, 0, '旧数据不入待初阅队列');
+  const queue0 = TR.listPendingReviews();
+  assert.equal(queue0.some(r => OLD_SEED_IDS.includes(r.id)), false, '旧数据（tr-1/tr-2/tr-3）不入待初阅队列');
+  assert.equal(queue0.length, 1, '队列中仅演示用待初阅种子 tr-4');
 
   // 旧数据（已归档语义）不可再初阅
   const rOld = TR.reviewThoughtReport({ id: 'tr-1', decision: 'approve', note: '补阅', ...ORG });
   assert.equal(rOld.ok, false, '已归档旧数据不可再初阅');
   assert.match(rOld.reason, /待初阅/);
 
-  // 新提交仍为 pending 进队列，与旧数据并存
+  // 新提交仍为 pending 进队列，与旧数据（及种子 tr-4）并存
   const rec = TR.addThoughtReport({ personId: 'p6', title: '新一季思想汇报', content: 'R6-2 模式下的新提交。' });
   assert.equal(rec.reviewStatus, 'pending');
-  assert.equal(TR.listPendingReviews().length, 1);
-  assert.equal(TR.listPendingReviews()[0].id, rec.id);
+  const queueAfter = TR.listPendingReviews();
+  assert.equal(queueAfter.length, 2, '新提交 1 篇 + 演示用待初阅种子 tr-4');
+  assert.ok(queueAfter.some(x => x.id === rec.id), '新提交在队列中（与旧数据并存）');
   assert.equal(TR.countThoughtReportsByPerson('p6'), 2, '新增计入个人归集');
 });
 
@@ -256,10 +270,12 @@ test('⑧ listPendingReviews：仅 pending 且按 submittedAt 升序', async () 
   const c = TR.addThoughtReport({ personId: 'p16', title: 'C 篇', content: 'C 正文。' });
   TR.reviewThoughtReport({ id: c.id, decision: 'reject', note: 'C 打回', ...ORG });
 
+  // 2026-09-13：seed 常驻 1 条演示用待初阅（tr-4），故在 A/B/C 域内取子集校验顺序与状态
   const pending = TR.listPendingReviews();
-  assert.equal(pending.length, 2, '打回的 C 不在队列，仅 A/B');
-  assert.deepEqual(pending.map(x => x.id), [a.id, b.id], '按提交时间升序：先提交在前');
-  const times = pending.map(x => x.submittedAt);
+  const mine = pending.filter(x => [a.id, b.id, c.id].includes(x.id));
+  assert.equal(pending.length, 3, '队列 = A/B + 演示用待初阅种子 tr-4（打回的 C 不在队列）');
+  assert.deepEqual(mine.map(x => x.id), [a.id, b.id], '按提交时间升序：先提交在前');
+  const times = mine.map(x => x.submittedAt);
   assert.ok(times[0] < times[1], `升序校验：${times[0]} < ${times[1]}`);
-  for (const x of pending) assert.equal(x.reviewStatus, 'pending');
+  for (const x of mine) assert.equal(x.reviewStatus, 'pending');
 });

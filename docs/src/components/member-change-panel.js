@@ -25,7 +25,7 @@ import { mockDB } from '../core/domain.js?v=20260913f';
 import { bumpToken } from '../core/version-token.js?v=20260913f';
 import { getPersonById, getPersonName } from '../services/person.js?v=20260913f';
 import { loadActivities } from '../services/activity.js?v=20260913f';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260913f';
 import { NoticeStore } from '../services/notice.js?v=20260913f';
 import { AuthStore } from '../services/auth.js?v=20260913f';
 // roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
@@ -83,6 +83,7 @@ export function buildMcBulkRows(mode = 'secretary-confirm') {
       return {
         id: r.id,
         source: 'agenda',
+        personId: r.personId,
         personName: person?.name || r.personId || '未知成员',
         from: r.fromStage || '',
         to: r.toStage || '',
@@ -94,6 +95,7 @@ export function buildMcBulkRows(mode = 'secretary-confirm') {
   const roster = mode === 'org-approve' ? [] : listPendingConfirmations().map(r => ({
     id: r.id,
     source: 'roster',
+    personId: r.personId,
     personName: r.name || r.personId || '未知成员',
     from: r.from || '',
     to: r.to || '',
@@ -124,7 +126,9 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
       <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
         <span class="flex items-center gap-1.5 min-w-0 w-full">
           ${sourceBadge(r.source)}
-          <span class="text-sm font-medium text-gray-800 truncate">${esc(r.personName)}</span>
+          ${r.personId
+            ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 truncate hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.personName)}</a>`
+            : `<span class="text-sm font-medium text-gray-800 truncate">${esc(r.personName)}</span>`}
           <span class="text-[11px] text-gray-500 truncate">${esc(r.from || '')} → ${esc(r.to || '')}</span>
         </span>
         <span class="block text-[11px] text-gray-500 truncate w-full">${esc(r.meta || '')}${r.byName ? ` · ${esc(r.byName)}` : ''}${r.at ? ` · ${String(r.at).slice(0, 16).replace('T', ' ')}` : ''}</span>

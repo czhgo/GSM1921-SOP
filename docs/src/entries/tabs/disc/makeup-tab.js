@@ -8,7 +8,7 @@ import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/
 import { AttendanceStatus } from '../../../core/domain.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
-import { showToast } from '../../../core/utils.js?v=20260913f';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913f';
 import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913f';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
 import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913f';
@@ -49,7 +49,7 @@ export function renderContent() {
     const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
     return `
               <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
-                <td class="py-2 px-3 font-medium text-gray-800">${t.name}</td>
+                <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
                 <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>

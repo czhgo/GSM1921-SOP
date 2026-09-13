@@ -14,7 +14,7 @@ import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../.
 import { NoticeStore } from '../../../services/notice.js?v=20260913f';
 import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913f'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
 import { persist } from '../../../core/data-adapter.js?v=20260913f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { solidAccentStyle } from '../../../core/constants.js?v=20260913f';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
 import { isActivityEnded } from '../../../core/constants.js?v=20260913f';
@@ -598,7 +598,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     emptyMessage: '暂无报名',
     rowHtml: (s) => `
       <div class="flex items-center gap-2 py-1.5">
-        <span class="text-xs font-medium text-gray-700">${esc(s.name)}</span>
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-xs font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(s.personId))}</a>
         <span class="text-[11px] text-gray-500">${esc(s.role)}</span>
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow

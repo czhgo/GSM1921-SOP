@@ -10,7 +10,7 @@ import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
 import { inspectionToLong } from '../../../services/inspection.js?v=20260913f';
 import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
 import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913f';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913f';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
@@ -128,7 +128,7 @@ export function renderContent(ctx) {
     },
     rowHtml: (i) => `
             <tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
-              <td class="py-2 px-3 font-medium text-gray-800">${esc(i.name)}</td>
+              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
               <td class="py-2 px-3 text-gray-600">${esc(i.source)}</td>
               <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
               <td class="py-2 px-3 text-gray-600">${esc(i.content)}</td>
@@ -139,6 +139,8 @@ export function renderContent(ctx) {
   // 考察记录行 → 行下展开详情预览（支书 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
   // 事件委托：引擎筛选重渲染后行仍可点
   listHost.addEventListener('click', (e) => {
+    // 姓名链接（→ 成员档案页）优先，不触发行点击展开考察详情
+    if (e.target.closest('a')) return;
     const row = e.target.closest('[data-insp-detail]');
     if (!row) return;
     {

@@ -5,7 +5,7 @@
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
 import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260913f';
-import { getPersonById } from '../services/person.js?v=20260913f';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260913f';
 import { getBasePath, showToast } from '../core/utils.js?v=20260913f';
 import { badgeHtml } from './badges.js?v=20260913f';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
@@ -113,7 +113,7 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
   const rows = approvedList.map(s => `
     <div class="flex items-center gap-2.5 py-2">
       <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#CE1126;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
-      <span class="text-sm font-medium text-gray-700">${getPersonById(s.personId)?.name || s.personId}</span>
+      <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
       <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
       ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
       <span class="ml-auto">${badgeHtml('已通过', 'success')}</span>
@@ -125,7 +125,7 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
       ${pendingList.map(s => `
         <div class="flex items-center gap-2.5 py-2">
           <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#F59E0B;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
-          <span class="text-sm font-medium text-gray-700">${getPersonById(s.personId)?.name || s.personId}</span>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">

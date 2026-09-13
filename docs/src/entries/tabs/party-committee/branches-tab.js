@@ -14,7 +14,7 @@ import { appointSecretary, listAppointments } from '../../../services/appointmen
 import { getRosterStats } from '../../../services/roster.js?v=20260913f';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
 import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260913f';
-import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260913f';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/utils.js?v=20260913f';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
 import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260913f';
 
@@ -113,7 +113,7 @@ export async function renderContent() {
             <div class="mt-2 pt-2 border-t border-gray-100">
               <p class="text-xs text-gray-500 mb-1">任期档案</p>
               ${h.slice(0, 3).map(r => `
-                <p class="text-xs text-gray-500 leading-5">${esc(getPersonName(r.secretaryId))} · ${String(r.from || '').slice(0, 10)}${r.to ? ' → ' + String(r.to).slice(0, 10) : ' · 现任'}${r.note ? ' · ' + esc(r.note) : ''}</p>`).join('')}
+                <p class="text-xs text-gray-500 leading-5"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.secretaryId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.secretaryId))}</a> · ${String(r.from || '').slice(0, 10)}${r.to ? ' → ' + String(r.to).slice(0, 10) : ' · 现任'}${r.note ? ' · ' + esc(r.note) : ''}</p>`).join('')}
             </div>` : ''; })()}
             ${isEmpty ? _rosterPanelHtml(b) : ''}
           </div>`;

@@ -24,7 +24,7 @@ import { enhanceSelects } from '../../../components/custom-select.js?v=20260913f
 import { badgeHtml } from '../../../components/badges.js?v=20260913f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260913f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
 import { HandoffStore } from '../../../services/handoff.js?v=20260913f';
 import { AuthStore } from '../../../services/auth.js?v=20260913f';
@@ -952,7 +952,7 @@ function _renderGroupMeetingReadonly(container) {
     },
     rowHtml: (r) => `
           <tr class="border-b border-gray-50" title="${esc(r.recorderTitle)}">
-            <td class="py-1.5 px-3 text-xs font-medium text-gray-800">${esc(r.name)}</td>
+            <td class="py-1.5 px-3 text-xs font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
             <td class="py-1.5 px-3 text-xs text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
             <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
             <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>

@@ -7,7 +7,7 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260913f';
+import { escHtml as esc, showToast, getBasePath } from '../../../core/utils.js?v=20260913f';
 import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/work-map.js?v=20260913f';
 import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260913f';
 import { PersonStore } from '../../../services/person.js?v=20260913f';
@@ -128,7 +128,11 @@ function _proposalCards(proposals, outcomesByAct) {
     const adoptable = !adopted && outcome && outcome.status === 'passed';
     const lines = (a.extras.proposal || []).map((c) => {
       const m = WORK_MAP_MODULES.find((x) => x.id === c.moduleId);
-      return `<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(m ? m.name : c.moduleId)} → ${esc(ownerDisplay(c.to))}</span>`;
+      // 负责人到人 → 姓名可点进成员档案页（角色类负责人无可链接的人 id，保持纯文本）
+      const ownerHtml = c.to && c.to.ownerType === 'person'
+        ? `<a href="${getBasePath()}person.html?id=${encodeURIComponent(c.to.ownerId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(ownerDisplay(c.to))}</a>`
+        : esc(ownerDisplay(c.to));
+      return `<span class="text-xs px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(m ? m.name : c.moduleId)} → ${ownerHtml}</span>`;
     });
     const statusChip = adopted
       ? '<span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已生效</span>'
