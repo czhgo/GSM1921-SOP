@@ -52,7 +52,7 @@ version: "4.1"
 
 - **视图路由（决策摘要，已落地）**：secretary/deputy-secretary 与 leader = 活动写入面板 + 日历；org-commissioner = 专班协调看板（2 列：待启动/进行中 + 发布招募表单 + 专班详情展开）；prop/disc-commissioner = 项目看板（2 列 + 卡片展开子任务）；participant/organizer/deep = 成员工作台（待办/项目分工/活动动态/考勤概况/我的考察）。
 - **看板细则**：仅两列（待启动 + 进行中），无"已完成"列；活动/专班完成后归档；子任务完成后灰显 + 删除线 + 绿色对勾 ✓ 沉底不消失；宣传蓝色调、纪检琥珀色调；宣传/纪检在党建维度**服务于**活动与专班，不直接写入活动。细则实现见 [COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)。
-- **写入门禁**：仅党支部书记、副书记、党小组组长可直接创建/修改活动数据；宣传/纪检委员经审核、确认、备案等流程间接参与（`create_activity` 仅 secretary/deputy-secretary/leader 持有；组织委员专班走 `initiate_taskforce`/`authorize_taskforce`）。权威源 = [系统角色权限矩阵 §9b](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
+- **写入门禁**：仅支书、副支书、党小组组长可直接创建/修改活动数据；宣传/纪检委员经审核、确认、备案等流程间接参与（`create_activity` 仅 secretary/deputy-secretary/leader 持有；组织委员专班走 `initiate_taskforce`/`authorize_taskforce`）。权威源 = [系统角色权限矩阵 §9b](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
 - **日历视图范围限定（T29 修正，规则仍有效）**：日历面向参与者、看板面向管理者——工作台 secretary/leader/organizer/deep 显示日历；org/prop/disc-commissioner 工作台不显示（只看看板）。权限判定统一 `AuthStore.canDo(personId, action, context)`（常设角色 + 项目角色并集）。
 
 ---
@@ -173,11 +173,11 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 > **（论断 原 P-029 退役说明，2026-08-09 自论断汇编迁出至 04）**：原论断「管理模式 / 管理者只读 / 参与者只读」视图模式三分类已随 2026-08-08 权限系统重构移除（现行判定为常设角色 + 项目角色 → canDo()，顶栏仅保留工作台切换）；"身份≠权限"作为一般原则仍然成立，本条在此保留为历史决策记录。
 
-### G.4 书记全局概览的补充意见入口（原 P-027②，2026-08-09 提出）
+### G.4 支书全局概览的补充意见入口（原 P-027②，2026-08-09 提出）
 
-**设计任务**（原话精神，UI 怎么设计值得仔细思考）：全局概览中，书记【默认】不介入已经进行的活动，但书记可以看到是否可以对于特定活动或者专班补充意见——即书记能否把握已有活动的审批信息，并提供方向性意见。
+**设计任务**（原话精神，UI 怎么设计值得仔细思考）：全局概览中，支书【默认】不介入已经进行的活动，但支书可以看到是否可以对于特定活动或者专班补充意见——即支书能否把握已有活动的审批信息，并提供方向性意见。
 
-> 论断 原 P-027 已拆解（2026-08-09）：报备/审批的"程序规范化"归 [COMMISSIONER_DUTY_FRAMEWORK.md §审批流程规范](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)；本条记录"书记对已开展活动/专班补充意见"的 UI 设计需求——书记的审批反馈是活动执行方向把握的关键环节（原 P-027②）。
+> 论断 原 P-027 已拆解（2026-08-09）：报备/审批的"程序规范化"归 [COMMISSIONER_DUTY_FRAMEWORK.md §审批流程规范](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)；本条记录"支书对已开展活动/专班补充意见"的 UI 设计需求——支书的审批反馈是活动执行方向把握的关键环节（原 P-027②）。
 
 ---
 

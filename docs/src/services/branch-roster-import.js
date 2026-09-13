@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  services/branch-roster-import.js — 空支部「整表导入/替换名册」服务（立项⑥ B波，2026-09-06）
 // ════════════════════════════════════════════════════════════════
-// 书记口径：整支部换名单在网页一次导入即可落库（不再「下载模板改文件」）；仅空支部可整体
+// 支书口径：整支部换名单在网页一次导入即可落库（不再「下载模板改文件」）；仅空支部可整体
 //   替换（有历史/成员的支部拒绝，提示改用逐人编辑成员档案）；导入后成员/应到统计即时可见。
 // 语义（与 services/person.js replaceBranchMembers 契约对齐——A波已备写口，本模块只做净化+预览）：
 //   · 名册行 = 现有成员档案成员（id 锚点，白名单 = 当前成员档案中属支部者，p_pc 党委组织员除外）。
@@ -21,11 +21,11 @@
 // 纯 ESM、无 DOM：localStorage 由 person.js 内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { getBaseMemberRecords } from './person.js?v=20260912k';
+import { getBaseMemberRecords } from './person.js?v=20260913c';
 import {
   RESIDENCE, PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS, buildPreviewTemplate,
-} from './org-base-data-preview.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
+} from './org-base-data-preview.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
 
 /** 空支部名册包类型标识（与预览包 kind 区分；净化时兼容两 kind——预览模板行结构同源） */
 export const BRANCH_ROSTER_KIND = 'gsm1921-branch-roster';

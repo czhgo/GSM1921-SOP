@@ -1,6 +1,6 @@
 export const ACTIVITIES = [
   // ════════════════════════════════════════════════════════════════════
-  //  2026-09-06 演示数据基线刷新（书记口径）：
+  //  2026-09-06 演示数据基线刷新（支书口径）：
   //  原 3–6 月旧批 20 场（act-1~act-20，含 act-20/act-18 等散序编号）按原日期升序
   //  k=0..19 整体重排至 2026-07-01 ~ 2026-07-24（新日期 = 07-01 + floor(k×1.25) 天，
   //  保留相对顺序、间隔等比压缩），id 全部不变；标题月份词随窗口改「7月」。
@@ -18,10 +18,10 @@ export const ACTIVITIES = [
   { id: 'act-4', title: '7月党小组会', date: '2026-07-06', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼203会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
   { id: 'act-5', title: '7月支委会', date: '2026-07-07', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'completed', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }] },
   { id: 'act-7', title: '7月主题党日：红色基地参访', date: '2026-07-08', type: '主题党日', organizer: 'p3', direction: 'bottom-up', location: '北大校史馆', status: 'completed', scenarioId: 'theme-party', domain: 'party-building', carriers: ['实践参访'], isOutdoor: true, assignments: [{ personId: 'p3', role: 'organizer' }, { personId: 'p9', role: 'deep' }] },
-  { id: 'act-6', title: '7月党课：新时代青年担当', date: '2026-07-09', type: '党课', organizer: 'p13', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'party-lecture', domain: 'party-building', assignments: [{ personId: 'p13', role: 'organizer' }, { personId: 'p12', role: 'deep' }], agenda: [{ item: '主题讲授：新时代青年担当', host: '书记' }] },
+  { id: 'act-6', title: '7月党课：新时代青年担当', date: '2026-07-09', type: '党课', organizer: 'p13', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'party-lecture', domain: 'party-building', assignments: [{ personId: 'p13', role: 'organizer' }, { personId: 'p12', role: 'deep' }], agenda: [{ item: '主题讲授：新时代青年担当', host: '支书' }] },
 
   // ── 原 5 月批次（重排 → 7/11~7/19）────────────────────────────
-  { id: 'act-8', title: '7月支部党员大会', date: '2026-07-11', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '通报 6 月支部工作情况', host: '书记' }, { item: '审议 7 月发展对象名单', host: '组织委员' }, { item: '民主评议党员', host: '书记' }] },
+  { id: 'act-8', title: '7月支部党员大会', date: '2026-07-11', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '通报 6 月支部工作情况', host: '支书' }, { item: '审议 7 月发展对象名单', host: '组织委员' }, { item: '民主评议党员', host: '支书' }] },
   { id: 'act-9', title: '7月党小组会', date: '2026-07-12', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼203会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
   // act-10 状态为 ongoing（2026-08-27 T-283 生命周期审计修正：原为 completed 字面值，
   // 但关联任务 tsk-007/tsk-008 未完成，执行态派生为 ongoing——存储字面值须与派生态自洽，
@@ -47,7 +47,7 @@ export const ACTIVITIES = [
   { id: 'act-22', title: '7月积极分子座谈会', date: '2026-07-28', type: '主题党日', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'theme-party', domain: 'party-building', carriers: ['交流座谈'], assignments: [{ personId: 'p11', role: 'organizer' }] },
 
   // ── 8 月活动（暑期特色，与 notices.js 保持数据协调）────────────
-  // 2026-08-05 书记裁决：已生成考勤的活动日期须已发生（≤ 8/5），
+  // 2026-08-05 支书裁决：已生成考勤的活动日期须已发生（≤ 8/5），
   // act-28「谈话考察」违背「删除考察活动类型」（5b2e4ea）已彻底删除。
   { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-01', type: '党小组会', organizer: 'p1', direction: 'bottom-up', hostGroup: '第一党小组', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
   // R-21（2026-09-13）：补第二/第三党小组小组会——此前小组会种子只覆盖第一党小组，
@@ -55,7 +55,7 @@ export const ACTIVITIES = [
   // hostGroup 显式固化 = 组长写入同一语义，服务层 _activityPartyGroup 直接取用。
   { id: 'act-32', title: '8月党小组会：第二党小组理论学习', date: '2026-08-04', type: '党小组会', organizer: 'p2', direction: 'bottom-up', hostGroup: '第二党小组', location: '光华1号楼205会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p2', role: 'organizer' }] },
   { id: 'act-33', title: '8月党小组会：第三党小组理论学习', date: '2026-08-05', type: '党小组会', organizer: 'p4', direction: 'bottom-up', hostGroup: '第三党小组', location: '光华1号楼207会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p4', role: 'organizer' }] },
-  { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-03', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '新学期支部工作计划', host: '书记' }, { item: '迎新工作分工', host: '组织委员' }, { item: '九月主题党日策划', host: '宣传委员' }] },
+  { id: 'act-27', title: '8月支委会：新学期筹备', date: '2026-08-03', type: '支委会', organizer: 'p11', direction: 'top-down', location: '光华1号楼305会议室', status: 'published', scenarioId: 'branch-committee', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '新学期支部工作计划', host: '支书' }, { item: '迎新工作分工', host: '组织委员' }, { item: '九月主题党日策划', host: '宣传委员' }] },
   { id: 'act-29', title: '暑期实践总结分享', date: '2026-08-04', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'published', isBrand: true, brandName: '暑期实践', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p8', role: 'deep' }, { personId: 'p5', role: 'participant' }] },
   // act-30 秋季学期工作部署会（published、无考勤，日期 8/28 保留——演示「已发布未生成考勤」路径）
   // 存量决策活动 voteConfig 迁移结论（2026-09-02，T-2026-09-006）：act-30 为普通工作部署会、无表决语义，
@@ -65,10 +65,10 @@ export const ACTIVITIES = [
   // act-31 线上异步表决样例（AV4.5 演示）：支部党员大会 voteConfig formal-only 固化应到名单，
   // voterIds = 正式党员（p1-p5、p8-p14，均非 u_*），
   // 预备党员/积极分子不在名单 → activity.html 只读提示「仅应到表决人可表态」
-  // ── 历史快照语义（书记 2026-09-06 ②批 voterIds 与 roster 联动）──
+  // ── 历史快照语义（支书 2026-09-06 ②批 voterIds 与 roster 联动）──
   //   voteConfig.voterIds = 活动创建时固化的名单快照，此后成员「在校/滞留」状态变更
   //   不回改历史活动（本快照固化于滞留剔除口径落地前，故仍含 p5/p9）；
   //   新创建活动的默认 voterIds 由 services/vote-config.js resolveVoterIds 现时生成
   //   （范围 + 剔除滞留，roster 口径单一源 = policy-defaults attendance.roster），本数据保持原值。
-  { id: 'act-31', title: '9月支部党员大会（线上异步表决）', date: '2026-09-10', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '线上（异步表决）', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds: ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'], quorumCheck: true }, assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p5', role: 'participant' }, { personId: 'p8', role: 'participant' }], agenda: [{ id: 'ag-mtg-1', item: '审议 2026 年秋季学期支部工作计划', host: '书记' }, { id: 'ag-mtg-2', item: '审议发展对象接收为预备党员的决议', host: '组织委员' }] },
+  { id: 'act-31', title: '9月支部党员大会（线上异步表决）', date: '2026-09-10', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '线上（异步表决）', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds: ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'], quorumCheck: true }, assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p5', role: 'participant' }, { personId: 'p8', role: 'participant' }], agenda: [{ id: 'ag-mtg-1', item: '审议 2026 年秋季学期支部工作计划', host: '支书' }, { id: 'ag-mtg-2', item: '审议发展对象接收为预备党员的决议', host: '组织委员' }] },
 ];

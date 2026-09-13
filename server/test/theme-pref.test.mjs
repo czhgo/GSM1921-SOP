@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/theme-pref.test.mjs — 外观偏好键空间隔离（设置中心 R1-A 裁决，2026-09-09）纯逻辑单测
-// 覆盖书记裁决「方案 A」四个断言面：
+// 覆盖支书裁决「方案 A」四个断言面：
 //   1) 登录用户 person 无键 → 出厂默认（主题=跟随系统默认档 / 字号=中 / 强调色=null），
 //      绝不回落读全局键、绝不「写一次」迁移（新账号首登不继承上一登录者外观）；
 //   2) 登录用户写入只落 person 键（gsm1921-pref-<personId>-{theme,font-size,accent-role}），
@@ -19,7 +19,7 @@ import {
   getAccentRolePreference, setAccentRolePreference,
   resolveAppliedAccentRole, personPrefKey, syncAppearanceForActiveUser,
   getAppliedAccentColors,
-} from '../../docs/src/core/theme.js?v=20260912k';
+} from '../../docs/src/core/theme.js?v=20260913c';
 
 const THEME_KEY = 'workflowos_theme';
 const FONT_KEY = 'workflowos_font_size';
@@ -130,7 +130,7 @@ test('R1-A：p13 与 p5 偏好互不污染；切号后读回各自 person 键（
   assert.equal(getAccentRolePreference(), null);
   logout();
 
-  loginAs('p13'); // 切回书记：person 键仍在
+  loginAs('p13'); // 切回支书：person 键仍在
   assert.equal(getThemePreference(), 'dark');
   assert.equal(getFontSizePreference(), 'large');
   assert.equal(getAccentRolePreference(), 'participant');

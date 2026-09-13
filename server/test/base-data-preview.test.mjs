@@ -1,25 +1,25 @@
 // role: [工程师]+[AI]
-// server/test/base-data-preview.test.mjs — 成员基础数据「预览 override」（立项④阶段三·目标1，2026-09-06 书记已认可）
+// server/test/base-data-preview.test.mjs — 成员基础数据「预览 override」（立项④阶段三·目标1，2026-09-06 支书已认可）
 // 纯 Node 测试（无浏览器、不起 server）：
 //   buildPreviewTemplate 导出本支部成员名册模板（50 名，id 白名单；p_pc 党委组织员不属于支部）
 //   sanitizePreview 净化：合法通过 / 非法党小组 / 非法发展阶段 / 非法滞留状态 / 空姓名与白名单外 id 丢弃；
 //     stats 与 roster 口径一致（支部党员大会应到 = 党员 − 滞留、小组按组）
 //   applyPreview / clearPreview 读写 localStorage 预览键；PersonStore / roster 应到链读取叠加即时变化
 // 口径单一源 = core/policy-defaults.js attendance.roster（与 services/roster.js 同源）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260903c query（模块缓存键一致性）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913c query（模块缓存键一致性）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912k';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260912k';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913c';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260913c';
 import {
   getMeetingRosterIds, getRosterStats, RESIDENCE as ROSTER_RESIDENCE,
-} from '../../docs/src/services/roster.js?v=20260912k';
+} from '../../docs/src/services/roster.js?v=20260913c';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, RESIDENCE, MEMBER_IDS,
-} from '../../docs/src/services/org-base-data-preview.js?v=20260912k';
+} from '../../docs/src/services/org-base-data-preview.js?v=20260913c';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();
@@ -209,7 +209,7 @@ test('applyPreview → PersonStore 叠加（仅基础字段）；roster 应到�
   assert.equal(PersonStore.getById('p13').partyGroup, '第二党小组');
   assert.equal(PersonStore.getMembers().length, PEOPLE.length, '成员数量不变（预览不增删成员；PersonStore 名单含党委组织员位 p_pc，预览行无 p_pc 故原样保留）');
   const u = PersonStore.getAll().find(p => p.id === 'u_sec');
-  assert.equal(u.name, '支部书记', '系统账号不受预览影响');
+  assert.equal(u.name, '支书', '系统账号不受预览影响');
 
   // roster 应到链即时变化：滞留仅剩 p5 → 支部大会应到 20；p9 回应到；p13 迁组后第一党小组党员少 1
   assert.equal(getRosterStats({ type: '支部党员大会' }).detainedParty, 1);

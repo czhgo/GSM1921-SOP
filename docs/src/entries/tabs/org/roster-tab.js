@@ -2,41 +2,41 @@
 // ════════════════════════════════════════════════════════════════
 //  组织委员工作台 Tab：成员名册（立项⑥ B波，2026-09-06；C 批成员变更确认复核接线）
 // ════════════════════════════════════════════════════════════════
-//  书记口径：名册全面网页化——网页上直接 新增/编辑 成员、改 分组/发展阶段/在册滞留、
-//  移出（历史记录经书记确认转「已转出」，不删不匿名）。操作双形态持久（A波 PersonStore 写口已就绪：
+//  支书口径：名册全面网页化——网页上直接 新增/编辑 成员、改 分组/发展阶段/在册滞留、
+//  移出（历史记录经支书确认转「已转出」，不删不匿名）。操作双形态持久（A波 PersonStore 写口已就绪：
 //  saveMember/removeMember，mock 持久 / api users 落库——本 Tab 只消费、不重复实现）。
 //
-//  C 批（R4-1/R4-2/R4-3，书记裁定，2026-09-06）：
-//   · 发展阶段 / 在册滞留 = 组织委员发起 → 书记确认生效（双层留痕、可退回）——
+//  C 批（R4-1/R4-2/R4-3，支书裁定，2026-09-06）：
+//   · 发展阶段 / 在册滞留 = 组织委员发起 → 支书确认生效（双层留痕、可退回）——
 //     行内保存不再即时落档，改调 member-confirmation.submitMemberChange，行格显示「待确认」；
 //     C①-补（2026-09-10）：阶段变更时行内显「进入当前阶段日期」（默认今日），
-//     书记确认生效时同源写入 gsm1921-dev-stage-overrides，恢复组织台发展节点提醒派生；
+//     支书确认生效时同源写入 gsm1921-dev-stage-overrides，恢复组织台发展节点提醒派生；
 //   · 党小组 partyGroup / 滞留备注维护（不改状态）保持即时生效；
 //   · 「移出」= submitTransferOut：无历史直接移出；仅安全引用（未开始分工/未生效报名/未读广播）
-//     自动解除后移出；有历史 → 报书记确认（转「已转出」标注 + 移出），行显示「移出待确认」。
+//     自动解除后移出；有历史 → 报支书确认（转「已转出」标注 + 移出），行显示「移出待确认」。
 //
 //  本 Tab 职责边界（与「人才库」talent-tab 分工，避免重复建设）：
 //   · 人才库 = 成员浏览 + 考察记录画像 + 成员状态详情维护（保持现状，不动）；
 //   · 成员名册 = 名单管理主位：新增成员、行内改 分组/发展阶段/在册状态（含滞留备注）、
 //     移出（成员变更确认复核链路）。两处编辑同一数据链（PersonStore + roster 覆盖层），
-//     任一改动即被应到口径（纪检考勤/书记复核卡）与对方界面读到。
+//     任一改动即被应到口径（纪检考勤/支书复核卡）与对方界面读到。
 //  数据/枚举单一源：PersonStore.getMembers（含 members 持久覆盖层 + 预览叠加）；
 //    党小组/发展阶段枚举 = org-base-data-preview 的 PARTY_GROUP_OPTIONS / DEVELOP_STAGE_OPTIONS
 //    （由静态种子派生，禁造新枚举）；在册状态 = roster.RESIDENCE。
-//  在册滞留写链（与纪检/书记复核同源，防覆盖层与档案互相遮蔽）：
-//    书记确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
+//  在册滞留写链（与纪检/支书复核同源，防覆盖层与档案互相遮蔽）：
+//    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../../../services/person.js?v=20260912k';
-import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260912k';
-import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260912k';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260912k';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
+import { getRosterStats, getResidenceOf, RESIDENCE, saveResidenceChange } from '../../../services/roster.js?v=20260913c';
+import { submitMemberChange, submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913c';
+import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913c';
 // 纯逻辑（可单测）：新增表单校验 / 行内保存 diff
-import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260912k';
+import { validateMemberForm, diffMemberFields } from '../../../services/roster-ui-logic.js?v=20260913c';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -61,7 +61,7 @@ function _todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** 待书记确认索引（一致性刷新：渲染/保存/移出共用同一来源 listPendingConfirmations） */
+/** 待支书确认索引（一致性刷新：渲染/保存/移出共用同一来源 listPendingConfirmations） */
 function _pendingMap() {
   const pends = listPendingConfirmations();
   return {
@@ -99,27 +99,27 @@ export function renderContent(ctx) {
             <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
           </div>
           <div class="flex items-center gap-2">
-            <input id="roster-kw" type="search" class="input-flat text-xs py-1.5 w-44" placeholder="搜索姓名 / 党小组…" value="${esc(_kw)}" aria-label="搜索成员">
+            <input id="roster-kw" type="search" class="input-flat text-xs w-44" placeholder="搜索姓名 / 党小组…" value="${esc(_kw)}" aria-label="搜索成员">
             <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注点「保存」即时生效；发展阶段与在册状态变更由组织委员发起、书记确认后生效。</p>
+        <p class="text-xs text-gray-500 mb-3">成员名册逐人新增、行内调整：分组与备注点「保存」即时生效；发展阶段与在册状态变更由组织委员发起、支书确认后生效。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
         </div>
         ${pendParts.length ? `
         <div class="flex items-center gap-1.5 flex-wrap mt-2">
-          <span class="text-[11px] text-gray-500">待书记确认：</span>
+          <span class="text-[11px] text-gray-500">待支书确认：</span>
           ${pendParts.map(t => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">${t}</span>`).join('')}
-          <span class="text-[11px] text-gray-500">确认或退回在书记「待办」页处理</span>
+          <span class="text-[11px] text-gray-500">确认或退回在支书「待办」页处理</span>
         </div>` : ''}
       </div>
 
       <div class="card rounded-xl p-4 overflow-x-auto" id="roster-list-card">
         ${_listHtml(members)}
       </div>
-      <p class="text-[11px] text-gray-500 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经书记确认后转「已转出」保留。</p>
+      <p class="text-[11px] text-gray-500 px-1">移出：未开始的分工/报名/通知自动解除；已开始或历史经支书确认后转「已转出」保留。</p>
     </div>
   `;
 
@@ -183,21 +183,21 @@ function _rowHtml(p, pend) {
       <select class="input-flat text-xs roster-group w-full" aria-label="党小组">${groupOptions.join('')}</select>
       <div class="flex flex-col gap-0.5 min-w-0">
         <select class="input-flat text-xs roster-stage w-full" aria-label="发展阶段" ${stagePend ? 'disabled' : ''}>${stageOptions.join('')}</select>
-        ${stagePend ? _pendingPill('阶段变更·待确认', '已报送书记确认，生效前保持现值；在书记「待办」页确认或退回') : ''}
+        ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
         <div class="roster-entry-wrap hidden flex-col gap-0.5 min-w-0" title="阶段变更生效后，以此日期计算发展节点提醒（默认今日）">
           <span class="text-[10px] text-gray-500 whitespace-nowrap">进入当前阶段日期</span>
-          <input type="date" class="input-flat text-[11px] roster-entry-date w-full" value="${_todayKey()}" aria-label="进入当前阶段日期">
+          <input type="date" class="input-flat text-xs roster-entry-date w-full" value="${_todayKey()}" aria-label="进入当前阶段日期">
         </div>
       </div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <select class="input-flat text-xs roster-res w-full" aria-label="在册状态" ${resPend ? 'disabled' : ''}>${resOptions.join('')}</select>
-        ${resPend ? _pendingPill('在册状态·待确认', '已报送书记确认，生效前保持现值；在书记「待办」页确认或退回') : ''}
+        ${resPend ? _pendingPill('在册状态·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
       </div>
       <input type="text" class="input-flat text-xs roster-note w-full" maxlength="120" value="${esc(rs.residenceNote)}"
         placeholder="${detained ? '滞留原因 / 起止（如 2026-09 起交换一学期）' : '在校状态无需备注'}" aria-label="滞留备注" ${detained ? '' : 'disabled'}>
       <div class="flex items-center justify-end gap-1.5">
         <button type="button" class="roster-save text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">保存</button>
-        <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送书记确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
+        <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送支书确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
       </div>
     </div>`;
 }
@@ -249,7 +249,7 @@ function _syncStageEntry(sel) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  行内保存（C 批成员变更确认复核：阶段/在册切换 → 报书记确认；分组/滞留备注维护即时生效）
+//  行内保存（C 批成员变更确认复核：阶段/在册切换 → 报支书确认；分组/滞留备注维护即时生效）
 // ════════════════════════════════════════════════════════════════
 
 async function _saveRow(personId) {
@@ -276,14 +276,14 @@ async function _saveRow(personId) {
   const pend = _pendingMap();
   let submitted = 0;
 
-  // ① 发展阶段变更 → 报书记确认（双层留痕；同一人同字段 pending 拦截）
+  // ① 发展阶段变更 → 报支书确认（双层留痕；同一人同字段 pending 拦截）
   if (stageChanged) {
     if (pend.stage.has(personId)) {
-      showToast('info', '该成员发展阶段变更已报送书记确认，生效前请勿重复提交');
+      showToast('info', '该成员发展阶段变更已报送支书确认，生效前请勿重复提交');
     } else {
       const r = submitMemberChange({ personId, kind: 'developStage', to: patch.developStage, note: '', by: actorId, entryDate: ui.entryDate });
       if (r.ok) {
-        showToast('success', `「${member.name}」发展阶段已报送书记确认，确认后生效`);
+        showToast('success', `「${member.name}」发展阶段已报送支书确认，确认后生效`);
         submitted++;
       } else {
         showToast('error', r.reason || '阶段变更报送失败，请重试');
@@ -291,10 +291,10 @@ async function _saveRow(personId) {
     }
   }
 
-  // ② 在册状态切换 → 报书记确认（滞留备注随请求携带；同一人同字段 pending 拦截）
+  // ② 在册状态切换 → 报支书确认（滞留备注随请求携带；同一人同字段 pending 拦截）
   if (resToggled) {
     if (pend.res.has(personId)) {
-      showToast('info', '该成员在册状态变更已报送书记确认，生效前请勿重复提交');
+      showToast('info', '该成员在册状态变更已报送支书确认，生效前请勿重复提交');
     } else {
       const r = submitMemberChange({
         personId, kind: 'residence', to: patch.residenceStatus,
@@ -302,7 +302,7 @@ async function _saveRow(personId) {
         by: actorId,
       });
       if (r.ok) {
-        showToast('success', `「${member.name}」在册状态已报送书记确认，确认后生效`);
+        showToast('success', `「${member.name}」在册状态已报送支书确认，确认后生效`);
         submitted++;
       } else {
         showToast('error', r.reason || '在册状态报送失败，请重试');
@@ -372,7 +372,7 @@ async function _addMember(val) {
     residenceStatus: val.residenceStatus,
     residenceNote: val.residenceNote,
   };
-  // 新成员直接录入「滞留」→ 档案自带首条留痕（from 在校 → to 滞留），书记复核卡可查
+  // 新成员直接录入「滞留」→ 档案自带首条留痕（from 在校 → to 滞留），支书复核卡可查
   if (payload.residenceStatus === RESIDENCE.DETAINED) {
     const entry = { from: RESIDENCE.CAMPUS, to: RESIDENCE.DETAINED, updatedBy: actorId, updatedAt: new Date().toISOString() };
     if (payload.residenceNote) entry.note = payload.residenceNote;
@@ -388,7 +388,7 @@ async function _addMember(val) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  移出名册（二次确认 → submitTransferOut 引用清单化：安全引用自动解除 / 历史报书记确认）
+//  移出名册（二次确认 → submitTransferOut 引用清单化：安全引用自动解除 / 历史报支书确认）
 // ════════════════════════════════════════════════════════════════
 
 function _askRemove(personId) {
@@ -400,7 +400,7 @@ function _askRemove(personId) {
     accentColor: '#EF4444',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-2">确认将「${esc(name)}」移出成员名册？</p>
-      <p class="text-xs text-gray-500 mb-4">系统将先检查引用：未开始的活动分工 / 未生效的报名 / 未读的广播接收将自动解除后移出；考勤、考察等已开始或历史记录将报送书记确认（转「已转出」标注，原记录保留、不删不匿名）。移出后该成员不再出现在成员名单 / 应到统计中。</p>
+      <p class="text-xs text-gray-500 mb-4">系统将先检查引用：未开始的活动分工 / 未生效的报名 / 未读的广播接收将自动解除后移出；考勤、考察等已开始或历史记录将报送支书确认（转「已转出」标注，原记录保留、不删不匿名）。移出后该成员不再出现在成员名单 / 应到统计中。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" data-roster-del-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
         <button type="button" data-roster-del-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#EF4444;cursor:pointer;">确认移出</button>
@@ -424,7 +424,7 @@ async function _doRemove(personId, name) {
         ? `已将「${name}」移出名册（自动解除安全引用 ${r.clearedSafe} 项）`
         : `已将「${name}」移出名册（名单与应到统计即时更新）`);
     } else {
-      showToast('info', `「${name}」存在历史记录，已报送书记确认（确认后转「已转出」并移出）`);
+      showToast('info', `「${name}」存在历史记录，已报送支书确认（确认后转「已转出」并移出）`);
     }
     renderContent(_ctx);
   } else {

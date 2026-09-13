@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
-// core/theme.js — 深色模式手动三态切换（T231 书记决策 2026-08-07）
+// core/theme.js — 深色模式手动三态切换（T231 支书决策 2026-08-07）
 // 三态：light（浅色）/ dark（深色）/ system（跟随系统，默认）
 // 实现：localStorage['workflowos_theme'] 存偏好；<html> 上 .theme-dark class 驱动全部深色 CSS；
 //       CSS 侧深色规则统一改为 html.theme-dark 前缀（替代 @media prefers-color-scheme）。
 // 防闪烁：各 HTML <head> 内联一段同步脚本（见 HTML），CSS 加载前即设好 class。
 //
-// 2026-09-09（设置中心 R1-A 裁决，书记）：外观偏好「按登录人彻底隔离」键空间适配层——
+// 2026-09-09（设置中心 R1-A 裁决，支书）：外观偏好「按登录人彻底隔离」键空间适配层——
 //   · 登录用户外观读写只走 person 键空间 gsm1921-pref-<personId>-{theme,font-size,accent-role}，
 //     绝不回落/写迁移全局键：person 无键 = 未设置 → 出厂默认（主题=跟随系统默认档、字号=中、
 //     强调色=null → 消费方按角色默认 resolveAccentRole(role) 语义，首登=出厂默认+角色配色）；
@@ -18,9 +18,9 @@
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from './login-snapshot.js?v=20260912k';
+import { readLoginSnapshot } from './login-snapshot.js?v=20260913c';
 // 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260912k';
+import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260913c';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）

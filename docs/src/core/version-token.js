@@ -3,7 +3,7 @@
 //  core/version-token.js — 域写版本戳（P0 提速批·缓存失效闭环，2026-09-07）
 //  依据：.trae/specs/2026-09-07-perf/spec.md §二.3（域聚合双键：写版本戳 + 长度指纹）
 //  用途：给各业务域（attendance/activity/inspection/activityReview/…）分配单调递增
-//        写版本戳；聚合入口（书记 8 组/全局概况/决议逾期/todo-tab 组合）以
+//        写版本戳；聚合入口（支书 8 组/全局概况/决议逾期/todo-tab 组合）以
 //        「tokenOf(各源) + 各源数组 length」为复合键做记忆化——未写 → 命中复用，
 //        写口 bumpToken → 键变 → 重算。
 //  语义：

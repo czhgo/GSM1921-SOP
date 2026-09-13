@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // server/test/todo-domain.test.mjs — IA 收敛 C1 Task1：待办「业务域」枚举与兼容推断（2026-09-07）
-// 依据：.trae/specs/2026-09-06-ia-todo-cards/spec.md（书记裁定 9 域 + NONE）+ plan-c1.md Task1
+// 依据：.trae/specs/2026-09-06-ia-todo-cards/spec.md（支书裁定 9 域 + NONE）+ plan-c1.md Task1
 // 覆盖（member-persist 桩做法；seed 用 mockDB.todos 直插构造记录）：
 //   ① WORK_DOMAIN 导出含 9 域 + {NONE}；WORK_DOMAIN_LABELS 中文齐全
 //   ② inferDomain：有 domain 原样返回（不覆盖）
@@ -16,14 +16,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912k';
+} from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, inferDomain, TodoStore,
-} from '../../docs/src/services/todo.js?v=20260912k';
+} from '../../docs/src/services/todo.js?v=20260913c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -108,7 +108,7 @@ test('③ inferDomain：无 domain 按 actionKey/actionType 推断（spec 三节
     // resolution → 决议上报
     [{ actionKey: 'resolution-followup' }, 'resolution'],
     [{ actionKey: 'resolution-followup-remind' }, 'resolution'],
-    // archive 前缀（书记 archive-remind/confirm）→ 归档宣传
+    // archive 前缀（支书 archive-remind/confirm）→ 归档宣传
     [{ actionKey: 'archive-remind' }, 'archive'],
     [{ actionKey: 'archive-confirm' }, 'archive'],
     // 遗留种子 activity-archive（活动材料归档，处理位=宣传）→ 归档宣传

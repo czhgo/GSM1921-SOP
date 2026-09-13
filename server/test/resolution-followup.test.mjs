@@ -6,17 +6,17 @@
 //      到期当天=催办窗口不算逾期；已销项不计；非 passed 决议不计）
 //   C. 存储闭环（mockDB 直写）：saveFollowups 落库+派生待办 → completeFollowup 销项 → reopenFollowup 恢复
 // 运行：node --test server/test/resolution-followup.test.mjs
-// 注意：mockDB/服务均带 ?v=20260903c 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
+// 注意：mockDB/服务均带 ?v=20260913c 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { TodoStore } from '../../docs/src/services/todo.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { TodoStore } from '../../docs/src/services/todo.js?v=20260913c';
 import {
   buildFollowupTodoPayloads,
   saveFollowups, completeFollowup, reopenFollowup,
   collectOverdueResolutionFollowups, buildOverdueRemindGroup,
   FOLLOWUP_STATUS,
-} from '../../docs/src/services/resolution-followup.js?v=20260912k';
+} from '../../docs/src/services/resolution-followup.js?v=20260913c';
 
 const ORIGINAL_ACTIVITIES = mockDB.activities;
 const ORIGINAL_TODOS = mockDB.todos;
@@ -95,7 +95,7 @@ test('B collectOverdue：deadline<today 未销项才计逾期；到期当天不�
   assert.equal(items[0].deadline, '2026-09-01');
 });
 
-test('B buildOverdueRemindGroup：无逾期返回 null；有逾期组装书记台提醒组', () => {
+test('B buildOverdueRemindGroup：无逾期返回 null；有逾期组装支书台提醒组', () => {
   const act = makePassedActivity(); // fu-1/fu-2 均未逾期（未来时限）
   assert.equal(buildOverdueRemindGroup([act], '2026-09-06'), null, '无逾期不展示空卡');
 

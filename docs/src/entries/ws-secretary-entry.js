@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
-// ws-secretary-entry.js — 书记工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
+// ws-secretary-entry.js — 支书工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260912k';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260912k';
-import { _currentYearMonth } from '../core/utils.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { BranchService } from '../services/runtime.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { SignupStore } from '../services/signup.js?v=20260912k';
-// T-304 Q3 权限收敛：副作用导入触发书记工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../modules/capabilities/secretary-workspace.js?v=20260909e';
+import { getAppState, setState } from '../core/state.js?v=20260913c';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913c';
+import { _currentYearMonth } from '../core/utils.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { BranchService } from '../services/runtime.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { SignupStore } from '../services/signup.js?v=20260913c';
+// T-304 Q3 权限收敛：副作用导入触发支书工作台能力注册（tab 清单，与其余 5 工作台对齐）
+import '../modules/capabilities/secretary-workspace.js?v=20260913c';
 
 await createWorkspaceShell({
   accentRole: 'secretary',
@@ -20,10 +20,10 @@ await createWorkspaceShell({
   prefix: 'secretary',
   storageKey: 'workflowos_tab_secretary',
   defaultTab: 'today',
-  // 角色特有渲染上下文：全局 appState（书记各 tab 依赖）
+  // 角色特有渲染上下文：全局 appState（支书各 tab 依赖）
   renderCtxExtras: (state, ctx) => ({ appState: getAppState(), activities: state.activities || [] }),
   // 空表回退映射省略：与 workspace-shell 缺省逐字一致（收敛 2026-09-02，删除内联副本）
-  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.tfId) {
       // 专班查看（无专班职责≠无知情权）：快照高亮目标

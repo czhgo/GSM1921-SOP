@@ -36,7 +36,7 @@ async function api(token, path, method = 'GET', body) {
   });
 }
 
-test('独立支委会话读取书记确认后的同一服务器数据', async () => {
+test('独立支委会话读取支书确认后的同一服务器数据', async () => {
   const secretary = await login('p13');
   const organizer = await login('p11');
   const independentCommissioner = await login('p10');

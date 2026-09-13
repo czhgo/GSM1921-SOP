@@ -2,25 +2,25 @@
 // ════════════════════════════════════════════════════════════════
 //  config-clean.js — 支部 config（modules/blocks）净化唯一实现（P1a 单向权威，2026-09-03）
 //  消费方（两端共用同一实现，防失同步）：
-//    docs/src/services/branch.js（前端写路径：party-config 配置 UI / 书记操作）
+//    docs/src/services/branch.js（前端写路径：party-config 配置 UI / 支书操作）
 //    server/routes/resources.js（PATCH /branches/:id/config）
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS } from './work-map.js?v=20260912k';
-// 批4（2026-09-09 书记批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
+import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260913c';
+// 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from './policy-defaults.js?v=20260912k';
+} from './policy-defaults.js?v=20260913c';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
 const BLOCKS_LIMIT = 50;
 
-// ── 配置变更留痕审计内核共享常量（2026-09-09 书记批：支部 config 审计 why+回滚+上限）────────
+// ── 配置变更留痕审计内核共享常量（2026-09-09 支书批：支部 config 审计 why+回滚+上限）────────
 // 单一源供两端消费：docs/src/services/branch.js（mock 直写形态）与 server/routes/resources.js
 // （PATCH /branches/:id/config 与 /branches/:id/config/rollback）——双形态同源，防失同步。
 // config.configChangeHistory 现逐键留痕 {by,at,what,from,to,why?}；why=依据/出处（可选，来源页回填
@@ -65,6 +65,11 @@ export function sanitizeConfigWorkforce(workforce) {
     if (!idSet.has(moduleId)) continue;
     const ownerType = assign?.ownerType;
     const ownerId = assign?.ownerId;
+    // 停用标记（2026-09-13 分层）：ownerType='none' 仅方法类可停用（规范类=必办，落库前拦掉）
+    if (ownerType === 'none') {
+      if (canDisableModule(moduleId)) out[moduleId] = { ownerType: 'none', ownerId: '' };
+      continue;
+    }
     if ((ownerType === 'role' || ownerType === 'person') &&
         typeof ownerId === 'string' && ownerId && ownerId.length <= MAX_ID_LEN) {
       out[moduleId] = { ownerType, ownerId };
@@ -91,7 +96,7 @@ export function sanitizeConfigBlocks(blocks) {
   return out;
 }
 
-// ── 换组织向导 · 支部组织档案字段（2026-09-06 书记 R4：可改即改 + 固定令牌不改）─────────
+// ── 换组织向导 · 支部组织档案字段（2026-09-06 支书 R4：可改即改 + 固定令牌不改）─────────
 // config.headerTitle（页眉显示名）/ config.desc（支部自述）/ config.themePreset（主题预设 id）。
 // 主题预设只提供「可调令牌」（角色识别层强调色 --app-accent 三件套）的 3-4 档；
 // 党建红 party-red 与党徽金 party-gold 为固定合规底线，不提供更改——预设 id 白名单即此口径的代码面。
@@ -130,7 +135,7 @@ export function sanitizeConfigOrg(org) {
   return out;
 }
 
-// ── 批4 域参数 policyOverrides（2026-09-09 书记批：config 独立域；白名单=policy-defaults POLICY_OVERRIDABLE）──
+// ── 批4 域参数 policyOverrides（2026-09-09 支书批：config 独立域；白名单=policy-defaults POLICY_OVERRIDABLE）──
 // 语义：
 //   · policyOverrides = { 节: { 叶: 值 } }——节/叶白名单单一源 = POLICY_OVERRIDABLE（path 行走），
 //     institutional（制度裁决固定）键不在表内 → 写不进来。

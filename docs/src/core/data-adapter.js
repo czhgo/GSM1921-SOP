@@ -201,7 +201,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260912k');
+      const { mockDB } = await import('./domain.js?v=20260913c');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -253,7 +253,7 @@ export async function init() {
           adapter.memberChangeRequests.list(),
           adapter.committeeBroadcasts.list(),
           adapter.agendaVotes.list(),
-          // P2 党委后台（2026-09-02）：书记任期记录随全量快照恢复
+          // P2 党委后台（2026-09-02）：支书任期记录随全量快照恢复
           adapter.appointmentRecords.list(),
           // P3 党委后台（2026-09-02）：支部上报审批随全量快照恢复（党委台/支部侧历史可见）
           adapter.reviewRequests.list(),
@@ -289,7 +289,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260912k');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260913c');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -308,8 +308,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260912k');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260912k');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260913c');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260913c');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -319,7 +319,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260912k');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260913c');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -359,7 +359,7 @@ export function persist() {
   notifyDataChanged();
 }
 
-// ── 数据变更事件总线（2026-08-05，响应书记"计算需手动刷新"）────────
+// ── 数据变更事件总线（2026-08-05，响应支书"计算需手动刷新"）────────
 // persist() 已覆盖 mockDB 系全部写路径；Issues/Milestones/Auth 审计等
 // 独立 localStorage 域不经过 persist，需在其写方法内显式调用 notifyDataChanged()。
 
@@ -510,7 +510,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260912k');
+    const { mockDB } = await import('./domain.js?v=20260913c');
     _cachedMockDB = mockDB;
     const payload = _collectDirty(mockDB);
     if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）

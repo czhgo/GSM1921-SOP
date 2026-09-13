@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// link-integrity.test.mjs — 全量链接审查（T-284：书记指令「所有链接，每一个都要查」；原 link-audit.mjs）
+// link-integrity.test.mjs — 全量链接审查（T-284：支书指令「所有链接，每一个都要查」；原 link-audit.mjs）
 // 覆盖：docs/**/*.html 全部 href/src（含 base href 解析）→ 文件存在性 + #锚点存在性
 //      docs/src/**/*.js 全部 location.href / window.location 跳转目标 → 文件存在性
 //      L3：HTTP 层每个链接 200（server 形态）+ 工作台门控跳转合理性

@@ -33,10 +33,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 按 kind 注册表复算授权并生成文案，不再依赖客户端自述的 systemDerived 标记。
   app.use('/api/v1', createSystemNoticesRouter(app.locals.db));
 
-  // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 书记确认更新阶段）
+  // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 支书确认更新阶段）
   app.use('/api/v1', createMemberRouter(app.locals.db));
 
-  // 线上支委会表态链路（异步表态 → 书记汇总/截止）
+  // 线上支委会表态链路（异步表态 → 支书汇总/截止）
   app.use('/api/v1', createCommitteeRouter(app.locals.db));
 
   app.use('/api/v1', createUploadsRouter(app.locals.db));

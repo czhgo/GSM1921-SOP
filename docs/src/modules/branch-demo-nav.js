@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // modules/branch-demo-nav.js — 党委「进入支部（演示）」导航门（立项⑦ B波，2026-09-06）
-// 语义：治理总览/支部管理 的支部卡「进入支部」→ 以分支上下文打开该支部书记工作台（演示视图）。
+// 语义：治理总览/支部管理 的支部卡「进入支部」→ 以分支上下文打开该支书工作台（演示视图）。
 // 演示形态 = 打开 secretary.html?branch=<id>（bootstrap 身份门放行 party-staff + branch 参数）。
 //
 // 放行边界（与 core/bootstrap.js 身份门同口径，双端一致）：
 //   · 仅本地开发环境（localhost/127.0.0.1/::1）放行；
-//   · 真实后端登录（API 会话）同样放行（书记 2026-09-10 裁定 A⑤：党委应能下钻查看支部只读视图）——
+//   · 真实后端登录（API 会话）同样放行（支书 2026-09-10 裁定 A⑤：党委应能下钻查看支部只读视图）——
 //     下钻视图为「只读查看」，写操作仍由角色权限层拒绝（见下「看≠做」口径）；
 //   · 页面侧 bootstrap 校验登录角色（仅 party-staff 可带 ?branch= 进入支部层页面）——
 //     本模块不自行放行任何未登录 / 非 party-staff 会话（按钮只渲染在党委工作台=party-staff 已就位）。
@@ -15,12 +15,12 @@
 // （auth.js ROLE_PERMISSIONS 无 party-staff 键）→ 可见 ≠ 可写；本模块只放开「进入支部」的可见性
 // 放行（只读），不放宽任何写权限（requiredRoles / 权限键一律不动）。
 
-import { getBranchById } from '../services/branch.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260912k';
+import { getBranchById } from '../services/branch.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260913c';
 
-// 演示目标页：支部书记工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
+// 演示目标页：支书工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
 const DEMO_PAGE = 'secretary.html';
 
 // 与 bootstrap DEV_HOSTNAME_WHITELIST 同源（本地回环 = dev/demo 形态判定）
@@ -38,7 +38,7 @@ function buildBranchDemoUrl(branchId) {
   if (!LOCAL_HOSTS.has(window.location.hostname)) {
     return { ok: false, reason: '「进入支部（演示）」仅本地开发环境可用（localhost/127.0.0.1）' };
   }
-  // API 会话不再拒绝（书记 2026-09-10 裁定 A⑤）：党委在真实后端登录下同样可下钻查看支部只读视图，
+  // API 会话不再拒绝（支书 2026-09-10 裁定 A⑤）：党委在真实后端登录下同样可下钻查看支部只读视图，
   // 写操作由角色权限层拒绝（party-staff 不在支部业务角色矩阵，无任何写权限键）。
   return {
     ok: true,
@@ -83,7 +83,7 @@ export function isPartyStaffBranchDemoAllowed(role, page, branchId) {
 /**
  * 当前会话是否处于「党委下钻支部的演示只读视图」（B1 2026-09-12）。
  * 判定单一源复用 isPartyStaffBranchDemoAllowed（role=当前登录角色 · page=当前页 · ?branch=），
- * 供支部层页面（如书记台各 tab）隐藏/禁用写入口；提交处另加显式拒绝兜底。
+ * 供支部层页面（如支书台各 tab）隐藏/禁用写入口；提交处另加显式拒绝兜底。
  * 浏览器外（无 window）返回 false（node 测试安全）。
  * @returns {boolean}
  */

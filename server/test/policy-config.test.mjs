@@ -1,34 +1,34 @@
 // role: [工程师]+[AI]
-// server/test/policy-config.test.mjs — 批4 域参数 policyOverrides（书记 2026-09-09 批）防失同步单测
+// server/test/policy-config.test.mjs — 批4 域参数 policyOverrides（支书 2026-09-09 批）防失同步单测
 // 纯 Node 测试（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 member-confirmation.test）：
 //   ① policy-defaults 批4 新节结构与默认值（memberConfirmation 窗 / leader 学期提醒 / attendance·review 阈值）
 //   ② sanitizeConfigPolicyOverrides 白名单/类型校验/数值范围钳制（天数 1..90、布尔严格、窗口合法月日/去重/限 2 窗）
 //   ③ 读侧注入 applyBranchPolicyOverrides：覆盖生效 / 无覆盖=保持默认 / 跨支部切换先复位不残留
-//   ④ savePolicyOverrides 角色守卫（书记/副/party-staff 全量；域负责人仅本域）+ 域保存/恢复默认落库
+//   ④ savePolicyOverrides 角色守卫（支书/副/party-staff 全量；域负责人仅本域）+ 域保存/恢复默认落库
 //   ⑤ 组长学期提醒纯判定（leaderSemesterReportTermKey / isLeaderSemesterRemindWindow）
 //   ⑥ 窗口文案单一源 semesterDetainedWindowsLabel（与政策窗一致）
-//   ⑦ HTTP 域：PATCH /branches/:id/config 支持 policyOverrides（书记全量 / 域负责人本域 / 普通成员 403）
+//   ⑦ HTTP 域：PATCH /branches/:id/config 支持 policyOverrides（支书全量 / 域负责人本域 / 普通成员 403）
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260913c';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260912k';
+} from '../../docs/src/core/policy-defaults.js?v=20260913c';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260912k';
+} from '../../docs/src/core/config-clean.js?v=20260913c';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260912k';
+} from '../../docs/src/services/branch.js?v=20260913c';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260912k';
+} from '../../docs/src/services/member-confirmation.js?v=20260913c';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260912k';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260913c';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -171,7 +171,7 @@ test('③ 读侧注入：覆盖生效；无覆盖=保持默认；跨支部切换
 });
 
 // ── ④ savePolicyOverrides 角色守卫 + 落库 ─────────────────────────────────
-test('④ 角色守卫：书记/副/party-staff 全量；纪检/组织/组长仅本域；普通成员拒绝', () => {
+test('④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅本域；普通成员拒绝', () => {
   beginMockCase();
   const perm = (actor) => canManagePolicyOverrides(actor, 'br-b1');
   assert.equal(perm({ personId: 'p13', role: 'secretary' }).ok, true);
@@ -221,7 +221,7 @@ test('④ 域保存：组织窗口 / 组长开关 / party-staff 全量（含 lea
   assert.equal(rStaff.ok, true);
   assert.equal(po().inspection.overdueDays, 9);
   assert.equal(po().leader.semesterReportReminder.enabled, false, 'party-staff 全量不丢其它节');
-  // 书记（副书同权同测一例）
+  // 支书（副书同权同测一例）
   const rSec = await savePolicyOverrides('br-b1', { inspection: null }, { actor: { personId: 'p13', role: 'secretary' } });
   assert.equal(rSec.ok, true);
   assert.equal(po().inspection, undefined);
@@ -286,13 +286,13 @@ async function _patchConfig(token, body) {
   });
 }
 
-test('⑦ HTTP：书记可写 policyOverrides（合并/整清）；域负责人仅本域节（越域 400、modules 403）', async () => {
+test('⑦ HTTP：支书可写 policyOverrides（合并/整清）；域负责人仅本域节（越域 400、modules 403）', async () => {
   const sec = await _login('p13');
   const r1 = await _patchConfig(sec, { config: { policyOverrides: { inspection: { overdueDays: 12 } } } });
-  assert.equal(r1.status, 200, '现任书记可写 policyOverrides');
+  assert.equal(r1.status, 200, '现任支书可写 policyOverrides');
   assert.equal((await r1.json()).config.policyOverrides.inspection.overdueDays, 12);
   const r2 = await _patchConfig(sec, { config: { policyOverrides: null } });
-  assert.equal(r2.status, 200, '书记可整体恢复默认（null）');
+  assert.equal(r2.status, 200, '支书可整体恢复默认（null）');
   assert.equal((await r2.json()).config.policyOverrides, null);
 
   const orgc = await _login('p11');

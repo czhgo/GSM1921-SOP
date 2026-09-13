@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/group-view.js — 支部党小组分组只读聚合（书记台「党小组进展」页签数据源，2026-09-08 D8）
+//  services/group-view.js — 支部党小组分组只读聚合（支书台「党小组进展」页签数据源，2026-09-08 D8）
 // ════════════════════════════════════════════════════════════════
-// 背景：书记/副书记共用书记工作台（secretary.html），跨组只读掌握各党小组进展（知情≠操作）；
+// 背景：支书/副支书共用支书工作台（secretary.html），跨组只读掌握各党小组进展（知情≠操作）；
 //   UI 层 = entries/tabs/secretary/group-progress-tab.js，本模块只提供纯聚合口径。
 // 口径与数据源（全部在可改消费方计算；services/roster.js 属禁改清单——只读复用其导出函数，
 //   组数据在成员档案 PersonStore.getMembers() 的 partyGroup 上聚合）：
@@ -13,17 +13,17 @@
 //   - 待答复汇报数（开放数）：本组「组员」发起的 kind='report' 且 open 的 issues 数（issues.js
 //     可改读接口数据以调用方传入为准，本模块不 import IssueStore → 纯逻辑可 node 单测）；
 //     「组员」= 组内非组长成员（与 visibility.js own-group 组长视角同集：组长看本组其他成员；
-//     无组长组 = 全组成员）→ 书记所见数量与组长台「组员汇报」收件箱同源；
+//     无组长组 = 全组成员）→ 支书所见数量与组长台「组员汇报」收件箱同源；
 //   - 本组活动：organizer 属本组（organizer.partyGroup===组名）且非取消/非归档——与组长台
-//     leader/review-tab「本组活动复盘状态」同口径 → 书记/组长两视图数据一致；
+//     leader/review-tab「本组活动复盘状态」同口径 → 支书/组长两视图数据一致；
 //   - 复盘分桶：pending = 无复盘记录 / 未提交 / 已打回；completed = 其余（ReviewStatus 枚举）。
 // 纯 ESM：仅依赖 person/roster/domain（roster → person/policy-defaults），无 DOM、
 //   localStorage 仅在成员档案读链内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from './person.js?v=20260912k';
-import { isPartyMember } from './roster.js?v=20260912k';
-import { ReviewStatus } from '../core/domain.js?v=20260912k';
+import { PersonStore } from './person.js?v=20260913c';
+import { isPartyMember } from './roster.js?v=20260913c';
+import { ReviewStatus } from '../core/domain.js?v=20260913c';
 
 /**
  * 支部内党小组清单（数据驱动：成员档案 partyGroup 聚合，缺省走 PersonStore 当前档案）

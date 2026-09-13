@@ -1,16 +1,16 @@
 // server/test/work-map.test.mjs — L4 支部工作地图 M0/M1（2026-09-03）
-// 覆盖：① 模块目录 11 项（书记裁决）唯一性/缺省主责 ∈ 角色枚举；② expandWorkforce 快照展开；
+// 覆盖：① 模块目录 11 项（支书裁决）唯一性/缺省主责 ∈ 角色枚举；② expandWorkforce 快照展开；
 //       ③ sanitizeConfigWorkforce 净化（未知模块/非法 owner 丢弃，null=恢复默认）；
-//       ④ HTTP PATCH /branches/:id/config 写 config.workforce（书记登录；含净化与恢复默认）。
+//       ④ HTTP PATCH /branches/:id/config 写 config.workforce（支书登录；含净化与恢复默认）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
-} from '../../docs/src/core/work-map.js?v=20260912k';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260912k';
-import { ROLE_KEYS } from '../../docs/src/core/constants.js?v=20260912k';
+} from '../../docs/src/core/work-map.js?v=20260913c';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260913c';
+import { ROLE_KEYS } from '../../docs/src/core/constants.js?v=20260913c';
 
 let server, base, token;
 
@@ -32,7 +32,7 @@ before(async () => {
 
 after(() => { server.close(); });
 
-test('模块目录：11 项（书记裁决），id 唯一，缺省主责 ∈ ROLE_KEYS', () => {
+test('模块目录：11 项（支书裁决），id 唯一，缺省主责 ∈ ROLE_KEYS', () => {
   assert.equal(WORK_MAP_MODULES.length, 11);
   assert.equal(new Set(WORK_MAP_IDS).size, 11);
   const keys = new Set(ROLE_KEYS);
@@ -80,7 +80,32 @@ test('sanitizeConfigWorkforce：null→null；合法保留；未知模块/非法
   assert.deepEqual(sanitizeConfigWorkforce([]), {});
 });
 
-test('HTTP：书记 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {
+test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；方法类可停用、规范类必办不可停用', () => {
+  const TIERS = new Set(['norm', 'method']);
+  for (const m of WORK_MAP_MODULES) {
+    assert.ok(TIERS.has(m.tier), `模块「${m.id}」缺 tier（须 norm|method）`);
+  }
+  // 方法类停用：expandWorkforce 不回落缺省负责人（否则停用失效）
+  const disabled = expandWorkforce({ taskforce: { ownerType: 'none', ownerId: '' } });
+  assert.deepEqual(disabled.taskforce, { ownerType: 'none', ownerId: '' });
+  // merge：方法类停用生效；规范类停用被拦（仍为缺省负责人）
+  const merged = mergeWorkforceSnapshot(expandWorkforce(null), [
+    { moduleId: 'taskforce', to: { ownerType: 'none', ownerId: '' } },
+    { moduleId: 'three-meetings', to: { ownerType: 'none', ownerId: '' } },
+  ]);
+  assert.deepEqual(merged.taskforce, { ownerType: 'none', ownerId: '' }, '方法类可停用');
+  assert.deepEqual(merged['three-meetings'], { ownerType: 'role', ownerId: 'secretary' }, '规范类必办：停用被拦');
+  // 落库净化：规范类停用被丢弃，方法类停用保留
+  assert.deepEqual(
+    sanitizeConfigWorkforce({
+      'three-meetings': { ownerType: 'none', ownerId: '' },
+      taskforce: { ownerType: 'none', ownerId: '' },
+    }),
+    { taskforce: { ownerType: 'none', ownerId: '' } },
+  );
+});
+
+test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢复默认', async () => {
   const put = await fetch(`${base}/api/v1/branches/br-b1/config`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

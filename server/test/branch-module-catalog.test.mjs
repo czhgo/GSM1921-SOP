@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260909e'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
+const V = '?v=20260913c'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
 
 test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源）', async () => {
   await import(`../../docs/src/modules/capabilities/secretary-workspace.js${V}`);
@@ -16,17 +16,17 @@ test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注�
   const catalog = branchMod.listBranchModuleCatalog();
   assert.ok(Array.isArray(catalog), '目录返回数组');
   const sec = catalog.find(c => c.capId === 'secretary-workspace');
-  assert.ok(sec, '目录含书记工作台能力');
-  assert.ok(sec.tabs.some(t => t.id === 'calendar'), '目录含书记工作台业务 tab 元数据');
-  // 书记 2026-08 裁定（party-config-tab.js:3）：书记工作台「工作台配置」定位不对 + UI 过重，
-  // 配置属党委/部署期职责——书记工作台不注册 module-config tab；此处锁定该裁定，勿再加回。
-  assert.ok(!sec.tabs.some(t => t.id === 'module-config'), '书记工作台不设「工作台配置」tab（配置归党委/部署期）');
+  assert.ok(sec, '目录含支书工作台能力');
+  assert.ok(sec.tabs.some(t => t.id === 'calendar'), '目录含支书工作台业务 tab 元数据');
+  // 支书 2026-08 裁定（party-config-tab.js:3）：支书工作台「工作台配置」定位不对 + UI 过重，
+  // 配置属党委/部署期职责——支书工作台不注册 module-config tab；此处锁定该裁定，勿再加回。
+  assert.ok(!sec.tabs.some(t => t.id === 'module-config'), '支书工作台不设「工作台配置」tab（配置归党委/部署期）');
 });
 
 test('L2：默认全开；配置子集后业务 tab 过滤/排序生效，核心组固定不可关（纯函数）', async () => {
   const branchMod = await import(`../../docs/src/services/branch.js${V}`);
 
-  // 模拟书记工作台 tabs（含核心组 + 三个业务组 tab）
+  // 模拟支书工作台 tabs（含核心组 + 三个业务组 tab）
   const tabs = [
     { id: 'todo', label: '待办', groupLabel: '工作台' },
     { id: 'overview', label: '全局概况', groupLabel: '工作台' },

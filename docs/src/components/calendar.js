@@ -5,12 +5,12 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../core/state.js?v=20260912k';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260912k';
-import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260912k';
-import { tokenOf } from '../core/version-token.js?v=20260912k'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole } from './inspector.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
+import { getAppState, setState } from '../core/state.js?v=20260913c';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../core/constants.js?v=20260913c';
+import { _fmtDate, _currentYearMonth } from '../core/utils.js?v=20260913c';
+import { tokenOf } from '../core/version-token.js?v=20260913c'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole } from './inspector.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -22,7 +22,7 @@ const VIEW_LABELS = { month: '月', week: '周', day: '日', list: '列表' };
 
 // 响应式：窗口宽度变化时重新渲染日历
 // 注意：首页使用紧凑渲染器（renderCalendarForDashboard），resize 时必须复用，
-//       否则会被 8rem 高格子覆盖（书记 2026-08-01 发现，浏览器实测复现）。
+//       否则会被 8rem 高格子覆盖（支书 2026-08-01 发现，浏览器实测复现）。
 // P1（2026-09-07）：typeof 守卫使本模块可在 node 直导（等价测试 import 纯分组 helper）
 let _resizeTimer = null;
 if (typeof window !== 'undefined') {
@@ -181,7 +181,7 @@ function _renderViewSwitcher(currentView) {
     grid.parentNode.insertBefore(switcher, grid);
   }
 
-  // 书记 2026-09-07：视图切换与月份选择器并排（calendar-tab 已把两者放同一工具行）；
+  // 支书 2026-09-07：视图切换与月份选择器并排（calendar-tab 已把两者放同一工具行）；
   // 无槽时（fallback，如首页紧凑月）仍插到网格前。
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
@@ -756,7 +756,7 @@ export function populateMonthSelector(activities, targetMonth) {
     } else if (months.includes(prev)) {
       sel.value = prev;
     } else if (months.includes(currentMonth)) {
-      sel.value = currentMonth; // 默认跟随当前月份（书记 2026-08-01：已进入8月，不得停留在旧月）
+      sel.value = currentMonth; // 默认跟随当前月份（支书 2026-08-01：已进入8月，不得停留在旧月）
     } else if (months.includes(appState.displayMonth)) {
       sel.value = appState.displayMonth;
     } else if (months.length > 0) {

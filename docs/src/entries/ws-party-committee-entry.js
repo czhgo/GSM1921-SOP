@@ -4,11 +4,11 @@
 // 职责与其余工作台一致：壳配置（capability tab 清单）+ 数据加载；角色特有逻辑仅保留。
 // 立项⑦ B波（2026-09-06）：登录落点 = 置首 tab「治理总览」（治理首页，先总览再进各业务 tab）。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
 // 副作用导入触发党委工作台能力注册（tab 清单）
-import '../modules/capabilities/party-committee-workspace.js?v=20260909e';
+import '../modules/capabilities/party-committee-workspace.js?v=20260913c';
 
 await createWorkspaceShell({
   accentRole: 'party-staff',
@@ -17,7 +17,7 @@ await createWorkspaceShell({
   containerId: 'party-committee-content',
   prefix: 'party-committee',
   // 立项⑦ B波（2026-09-06）：治理总览 = 党委登录落点/治理首页。
-  // 不设 tab 记忆（storageKey 缺省）——每次进入先落「治理总览」，与书记「首页放最前」口径一致。
+  // 不设 tab 记忆（storageKey 缺省）——每次进入先落「治理总览」，与支书「首页放最前」口径一致。
   defaultTab: 'governance-overview',
   renderCtxExtras: (state) => ({ activities: state.activities || [] }),
   loadOptions: {

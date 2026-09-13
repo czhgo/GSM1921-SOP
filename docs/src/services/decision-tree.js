@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
+import { BranchService } from './runtime.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260912k';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260913c';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260912k';
-import '../modules/capabilities/sop-scenarios.js?v=20260909e';
+import { getCapabilities } from '../core/registry.js?v=20260913c';
+import '../modules/capabilities/sop-scenarios.js?v=20260913c';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -56,7 +56,7 @@ export const DECISION_TREE_CONFIGS = {
         { value: '其他', label: '其他' },
       ],
     },
-    // L2 活动形式（书记 2026-08-01 活动分类：党小组会无子分类，主题党日 L2=活动载体）
+    // L2 活动形式（支书 2026-08-01 活动分类：党小组会无子分类，主题党日 L2=活动载体）
     L2: {
       'party-group-meeting': [
         { value: 'party-group-meeting', label: '党小组会' },
@@ -116,7 +116,7 @@ export const DECISION_TREE_CONFIGS = {
       { value: 'long', label: '长期', desc: '跨天或持续一段时间的活动' },
     ],
     L4: [
-      { value: 'top-down', label: '自上而下', desc: '支委/书记发起，向下部署' },
+      { value: 'top-down', label: '自上而下', desc: '支委/支书发起，向下部署' },
       { value: 'bottom-up', label: '自下而上', desc: '党小组/成员提议，向上申报' },
     ],
   },
@@ -350,9 +350,9 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   return { activity, taskCount: createdCount };
 }
 
-// ── 自动广播（2026-08-30 书记批准，混合模式落地）────────────────
+// ── 自动广播（2026-08-30 支书批准，混合模式落地）────────────────
 // 活动创建后：站内通知组织者/组长「请前往微信群建核心群」——现场协调在微信群，
-// 资料归档交接在系统（书记 2026-08-30 裁决）。通知失败不影响活动创建主流程。
+// 资料归档交接在系统（支书 2026-08-30 裁决）。通知失败不影响活动创建主流程。
 function _broadcastActivityCreated(activity) {
   try {
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权；活动锚点 targetType/targetId

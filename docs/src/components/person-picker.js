@@ -7,12 +7,12 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from '../services/person.js?v=20260912k';
+import { PersonStore } from '../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260912k';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260913c';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -71,7 +71,7 @@ export class PersonPicker {
    * @param {string[]}          [options.initialIds]- 初始选中的人员 ID 列表
    * @param {string}            [options.accentColor] - 主题色 hex，默认 '#CE1126'
    * @param {string[]}          [options.disabledIds] - 禁用（可见但不可勾选）的人员 ID 列表
-   *   （书记 2026-09-06 ①批：滞留者「可见但不可选」——灰态 + aria-disabled + title 备注，
+   *   （支书 2026-09-06 ①批：滞留者「可见但不可选」——灰态 + aria-disabled + title 备注，
    *    不再依赖 filter 把滞留者整体剔除；批量全选只选可用项）
    * @param {Function}          [options.disabledLabel] - (person)=>string 禁用项短标签（如「滞留」）
    * @param {Function}          [options.disabledTitle] - (person)=>string 禁用项悬浮备注（默认「该人员当前不可选」）
@@ -89,7 +89,7 @@ export class PersonPicker {
     this._activeGroup = '全部';
     this._panelOpen = false;
     this._accent = options.accentColor || '#CE1126';
-    // 2026-09-01 书记裁决：参与人/待讨论名单支持「按阶段批量选择」（正式党员/预备党员/发展对象/积极分子）
+    // 2026-09-01 支书裁决：参与人/待讨论名单支持「按阶段批量选择」（正式党员/预备党员/发展对象/积极分子）
     this._stageBatch = options.stageBatch || false;
 
     // 预计算主题色 CSS 变量（注入到 wrapper 上，供 person-picker.css 使用）
@@ -341,7 +341,7 @@ export class PersonPicker {
     listContainer.className = 'person-picker-list';
     panel.appendChild(listContainer);
 
-    // ── 按阶段批量选择（书记 2026-09-01：参与人/待讨论名单集体选项；multi + stageBatch 时显示）──
+    // ── 按阶段批量选择（支书 2026-09-01：参与人/待讨论名单集体选项；multi + stageBatch 时显示）──
     if (this._mode === 'multi' && this._stageBatch) {
       const batchBar = document.createElement('div');
       batchBar.className = 'person-picker-batch';

@@ -1,35 +1,35 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/resolution-followup.js — 决议「待落实」跟进子域（附录⑩ S2 R2-2，2026-09-06 书记批）
+//  services/resolution-followup.js — 决议「待落实」跟进子域（附录⑩ S2 R2-2，2026-09-06 支书批）
 //  落点：决议 = 议程项 result:'passed'（活动.agenda[]，recordAgendaResult 写入）；本子域把
 //  每条决议的「待落实」项存为该议程项的 followups[] 子数组（轻量并入决议结果对象，不新增顶层域）。
 //  闭环：记录决议后在同一决议视图勾选待落实（事项/责任人/时限）→ saveFollowups 落库并派生
 //  责任人跟进待办（其工作台待办=到期当天即见、逾期自动 expired，即「到期催办」）→ 逾期经
-//  书记台待办页「决议落实逾期」提醒组督办（collectOverdueResolutionFollowups 纯函数扫描，即
-//  「逾期进书记待办」）→ 书记在决议视图销项/恢复，闭环销账。
-//  责任人口径：ownerType 'role' = 支委角色（deputy-secretary 归书记台 secretary 键）；
+//  支书台待办页「决议落实逾期」提醒组督办（collectOverdueResolutionFollowups 纯函数扫描，即
+//  「逾期进支书待办」）→ 支书在决议视图销项/恢复，闭环销账。
+//  责任人口径：ownerType 'role' = 支委角色（deputy-secretary 归支书台 secretary 键）；
 //  'person' = 到人（participant 归 visitor 键——与 VisitorTodoDeriver 聚合键一致，见 todo.js 注释）。
 //  跟进待办采用 sourceType ACTIVITY + sourceId 活动号：复用 LifecycleTodoDeriver.deleteByActivity
 //  的活动删除联动（活动删除不残留孤儿待办）；以 actionKey 'resolution-followup' 与活动赋权等
 //  其它同源待办区分（待办聚合键 = role + actionKey，见 TodoStore.getGroupedByAction）。
-//  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与书记台聚合共用。
+//  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与支书台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../core/id.js?v=20260912k';
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../core/id.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20260912k';
-import { BranchService } from './runtime.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
-import { PersonStore } from './person.js?v=20260912k';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912k';
+} from './todo.js?v=20260913c';
+import { BranchService } from './runtime.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
+import { PersonStore } from './person.js?v=20260913c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260913c';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {
   PENDING: 'pending',       // 待落实
-  COMPLETED: 'completed',   // 已落实（书记销项）
+  COMPLETED: 'completed',   // 已落实（支书销项）
 };
 
 /** 跟进待办聚合 actionKey（与活动赋权/归档等其它 ACTIVITY 源待办区分） */
@@ -73,7 +73,7 @@ export function buildFollowupTodoPayload({ activity, agendaItem, followup }) {
   return {
     title: `落实决议：${followup.item}`,
     description: `决议「${agendaItem.item}」${activity.date ? `（${activity.date} 会议）` : ''}待落实。`
-      + `责任人：${ownerLabelOf(followup)}；请按时完成，完成后由书记/副书记在决议记录视图销项。`,
+      + `责任人：${ownerLabelOf(followup)}；请按时完成，完成后由支书/副支书在决议记录视图销项。`,
     role: todoRoleOf(followup),
     personId: followup.ownerType === 'person' ? followup.ownerId : null,
     category: TodoCategory.TRACK,
@@ -85,7 +85,7 @@ export function buildFollowupTodoPayload({ activity, agendaItem, followup }) {
     actionType: TodoActionType.TRACK,
     actionKey: RESOLUTION_FOLLOWUP_ACTION_KEY,
     actionData: { activityId: activity.id, agendaItemId: agendaItem.id, followupId: followup.id },
-    flow: '决议待落实 → 责任人执行 → 书记/副书记销项',
+    flow: '决议待落实 → 责任人执行 → 支书/副支书销项',
   };
 }
 
@@ -178,7 +178,7 @@ export async function saveFollowups({ activityId, agendaItemId, followups, actor
   return updated;
 }
 
-/** 销项（书记在决议视图确认「已落实」）：议程行标 completed + 责任人跟进待办销账 */
+/** 销项（支书在决议视图确认「已落实」）：议程行标 completed + 责任人跟进待办销账 */
 export async function completeFollowup({ activityId, agendaItemId, followupId, actorId = null, now = new Date().toISOString() }) {
   const updated = await _persistItem(activityId, agendaItemId, (item) => ({
     ...item,
@@ -209,7 +209,7 @@ export async function reopenFollowup({ activityId, agendaItemId, followupId, act
 }
 
 // ════════════════════════════════════════════════════════════════
-//  逾期扫描（纯：activities 数组入参；供书记台聚合与 node 单测）
+//  逾期扫描（纯：activities 数组入参；供支书台聚合与 node 单测）
 //  逾期口径 = 未销项且 deadline < today（到期当天仍属「到期催办」窗口，不算逾期）
 // ════════════════════════════════════════════════════════════════
 
@@ -234,7 +234,7 @@ export function collectOverdueResolutionFollowups(activities, today) {
           ownerType: f.ownerType,
           ownerId: f.ownerId,
           deadline: f.deadline,
-          // 书记台提醒卡展示字段（对齐 SecretaryTodoDeriver remind 组：name + date）
+          // 支书台提醒卡展示字段（对齐 SecretaryTodoDeriver remind 组：name + date）
           name: `落实「${f.item}」·${a.title || a.id}`,
           date: f.deadline,
         });
@@ -244,7 +244,7 @@ export function collectOverdueResolutionFollowups(activities, today) {
   return out;
 }
 
-/** 组装书记台「决议落实逾期」提醒组（无逾期返回 null；renderTodoList 直接可渲染） */
+/** 组装支书台「决议落实逾期」提醒组（无逾期返回 null；renderTodoList 直接可渲染） */
 export function buildOverdueRemindGroup(activities, today) {
   const items = collectOverdueResolutionFollowups(activities, today);
   if (items.length === 0) return null;
@@ -260,7 +260,7 @@ export function buildOverdueRemindGroup(activities, today) {
     title: '决议落实逾期',
     category: TodoCategory.TRACK,
     actionType: TodoActionType.TRACK,
-    flow: '支委会决议待落实 → 责任人执行 → 逾期书记督办销项',
+    flow: '支委会决议待落实 → 责任人执行 → 逾期支书督办销项',
     kind: 'remind',
     deadline: earliest,
     count: items.length,
@@ -268,7 +268,7 @@ export function buildOverdueRemindGroup(activities, today) {
   };
 }
 
-/** 供书记台聚合的现读入口（mockDB/种子活动都吃；未逾期返回 null）。
+/** 供支书台聚合的现读入口（mockDB/种子活动都吃；未逾期返回 null）。
  *  P0（2026-09-07 · spec §二.4）：复合键 = tokenOf('activity') + activities 长度 +
  *  tokenOf('resolution') + 日期 —— 未变返回上次结果（⚠️ 返回对象只读契约，调用方仅读）；
  *  变化经写口 bump（mock.js 活动写口 / 本文件 resolution 写口）或源数组长度指纹触发重算。 */

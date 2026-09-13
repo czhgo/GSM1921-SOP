@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
+import { IssueStore } from '../services/issues.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -68,7 +68,7 @@ export function renderIssueForm() {
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
-          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开，任何人（含书记）均无法追溯提交人">
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开，任何人（含支书）均无法追溯提交人">
             <input type="checkbox" id="form-anon" class="checkbox-accent" checked>
             匿名提交
           </label>
@@ -94,7 +94,7 @@ export function renderIssueForm() {
 
     const anon = document.getElementById('form-anon')?.checked ?? true;
 
-    // 真匿名：匿名则不落任何可反查提交人的字段（书记侧亦不可见）；实名按现口径记真实 personId
+    // 真匿名：匿名则不落任何可反查提交人的字段（支书侧亦不可见）；实名按现口径记真实 personId
     try {
       await IssueStore.submitIssue({ title, body, scope, types, anonymous: anon });
     } catch (e) {
@@ -102,7 +102,7 @@ export function renderIssueForm() {
       return;
     }
 
-    showToast('success', anon ? '已匿名提交，待书记审核通过后公开' : '反馈已提交为草稿，待书记审核通过后公开');
+    showToast('success', anon ? '已匿名提交，待支书审核通过后公开' : '反馈已提交为草稿，待支书审核通过后公开');
     window.location.href = './feedback.html';
   });
 }

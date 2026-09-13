@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // agenda-closure.test.mjs — 核心闭环端到端（TDD 红）：议程类型 → 记录通过 → 支部文件自动归档 → 资料查询展示
-// 链路：书记创建三会一课活动（议程行选「讨论文件」类型 + 选择会前草案）
+// 链路：支书创建三会一课活动（议程行选「讨论文件」类型 + 选择会前草案）
 //       → 详情页议程「记录通过」→ 草案自动归档 → 资料查询（search.html）展示「已归档」
 // 运行：node --test server/test/agenda-closure.test.mjs
 import { test, before, after } from 'node:test';
@@ -78,7 +78,7 @@ test('核心闭环：议程讨论文件类型 → 记录通过 → 自动归档 
     const draftDoc = await docResp.json();
     assert.equal(draftDoc.status, 'draft');
 
-    // ── 书记登录 → 活动管理 → 创建三会一课活动 ──
+    // ── 支书登录 → 活动管理 → 创建三会一课活动 ──
     const page = await loginAs(browser, 'secretary');
     await page.click('.secretary-tab-btn[data-secretary-tab="calendar"]');
     await page.waitForSelector('#month-selector', { timeout: 10000 });

@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
-// 组织委员工作台 Tab：人才库 = 发展观察（D9 裁决批二 2026-09-08 书记裁定收敛）
+// 组织委员工作台 Tab：人才库 = 发展观察（D9 裁决批二 2026-09-08 支书裁定收敛）
 // 原「全量成员档案平铺 + 点击展开考察记录汇总」双视图与「成员名册」重复 → 收敛为发展观察视角：
 //   · 不再平铺全量成员档案——成员档案维护（新增/编辑/删除/阶段/在册/滞留报送成员变更确认）=「成员名册」唯一全量写位；
 //   · 本页 = 按发展阶段分组的只读发展观察卡（每人：姓名/阶段徽标/考察摘要 N 条/思想汇报已归档 N/发展提示）；
-//   · 发展提示按 member-confirmation（待书记确认/已确认阶段变更留痕）+ thought-report + inspection 数据推算；
+//   · 发展提示按 member-confirmation（待支书确认/已确认阶段变更留痕）+ thought-report + inspection 数据推算；
 //   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
 // 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912k';
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913c';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260912k';
+import { getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260913c';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选复用名册枚举（PARTY_GROUP_OPTIONS 单一源）
-import { PARTY_GROUP_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260912k';
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260912k';
-import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912k';
+import { PARTY_GROUP_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913c';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member-confirmation.js?v=20260913c';
+import { escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260913c';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -60,7 +60,7 @@ function _monthsSince(dateStr, now = new Date()) {
 /**
  * 发展提示（按 member-confirmation / thought-report / inspection 数据推算；无依据返回 null）
  * 规则（全部可解释、不造假）：
- *  1. 有待书记确认的阶段/在册变更 → 「{…}变更待书记确认（from → to）」
+ *  1. 有待支书确认的阶段/在册变更 → 「{…}变更待支书确认（from → to）」
  *  2. 发展中（非正式党员）且无考察记录 → 「尚无考察记录，发展材料待积累」
  *  3. 发展中且无思想汇报归档 → 「尚未归档思想汇报」
  *  4. 预备党员：最后一次经成员变更确认进入预备党员阶段满一年 → 「预备期已满（起算日满一年），可启动转正流程」；
@@ -71,7 +71,7 @@ function _devTip(person, counts, ctx) {
   if (mc) {
     return {
       cls: 'bg-amber-50 text-amber-700 border border-amber-100',
-      text: `${mc.action === 'residence' ? '在册状态' : '发展阶段'}变更待书记确认（${mc.from || ''} → ${mc.to || ''}）`,
+      text: `${mc.action === 'residence' ? '在册状态' : '发展阶段'}变更待支书确认（${mc.from || ''} → ${mc.to || ''}）`,
     };
   }
   const inspCount = counts.insp[person.id] || 0;
@@ -145,7 +145,7 @@ export function renderContent(ctx) {
         const badgeDark = p.developStage === '积极分子' ? ' --acc-bg-dark:rgba(6,182,212,0.16);--acc-text-dark:#67E8F9;--acc-border-dark:rgba(6,182,212,0.35);' : '';
         const last = lastInsp[p.id];
         const tip = tipByPerson.get(p.id);
-        // 实体条目可点（2026-09-12 书记裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
+        // 实体条目可点（2026-09-12 支书裁定）：成员卡 = 成员实体 → 点击 1 跳直达「成员名册」并高亮该成员
         //（复用既有深链 workspace/org.html?tab=roster&highlight=<personId>，与 development-tab「去名册发起变更」同源）
         return `
           <div class="p-3 rounded-xl bg-white border border-gray-50 hover:border-gray-100 transition-colors" data-talent-name="${esc(p.name)}" data-talent-group="${esc(p.partyGroup || '')}" data-talent-stage="${esc(p.developStage || STAGE_OTHER)}">
@@ -196,12 +196,12 @@ export function renderContent(ctx) {
         发展推进与阶段变更 = 「发展数据」；思想汇报初阅 = 「思想汇报」；本页读侧数据不动写。
       </div>
       <div class="flex items-center gap-2 flex-wrap mb-3">
-        <input id="talent-kw" type="search" class="input-flat text-xs py-1.5 w-44" placeholder="搜索姓名 / 党小组…" aria-label="搜索成员">
-        <select id="talent-stage" class="input-flat text-xs py-1.5" aria-label="按发展阶段筛选">
+        <input id="talent-kw" type="search" class="input-flat text-xs w-44" placeholder="搜索姓名 / 党小组…" aria-label="搜索成员">
+        <select id="talent-stage" class="input-flat text-xs" aria-label="按发展阶段筛选">
           <option value="">全部阶段</option>
           ${[...STAGE_ORDER, STAGE_OTHER].map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}
         </select>
-        <select id="talent-group" class="input-flat text-xs py-1.5" aria-label="按党小组筛选">
+        <select id="talent-group" class="input-flat text-xs" aria-label="按党小组筛选">
           <option value="">全部党小组</option>
           ${PARTY_GROUP_OPTIONS.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}
         </select>

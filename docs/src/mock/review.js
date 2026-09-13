@@ -7,7 +7,7 @@
 // 本文件退化为纯复盘种子数据仓。
 // 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
 //   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
-import { ReviewStatus } from '../core/domain.js?v=20260912k';
+import { ReviewStatus } from '../core/domain.js?v=20260913c';
 
 /**
  * 活动复盘记录
@@ -86,7 +86,7 @@ export const REVIEW_RECORDS = [
     progress: '已完成',
     overdue: false,
     reviewStatus: ReviewStatus.UPLOADED,
-    reviewContent: '7月党课"新时代青年担当"由书记主讲，参与度高，深度参与者方文静完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
+    reviewContent: '7月党课"新时代青年担当"由支书主讲，参与度高，深度参与者方文静完成宣传稿。课后讨论环节延长至 40 分钟，建议后续党课预留更多讨论时间。',
     issues: ['党课课后讨论时间不足，需预留更多'],
     submittedAt: '2026-07-10T10:00:00',
   },

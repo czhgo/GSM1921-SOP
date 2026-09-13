@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
-// services/preferences.js — 个人偏好读写（设置中心批2，书记 2026-09-09 批准设计 v3）
+// services/preferences.js — 个人偏好读写（设置中心批2，支书 2026-09-09 批准设计 v3）
 // ─────────────────────────────────────────────────────────────
 // 键空间沿用批1（core/theme.js 适配约定）：gsm1921-pref-<personId>-…；本模块新增：
 //   tab 顺序键  gsm1921-pref-<personId>-tab-order-<workspaceKey>
 //   （workspaceKey = 工作台能力 scope，如 'workspace:secretary'；恢复默认 = 删该键）
 // 语义：
 //   · 个人顺序仅作用于业务 tab；核心组（tab.groupLabel==='工作台'，与 services/branch.js
-//     getCoreTabIds/_splitTabs 同义判定——书记 2026-08-10 裁定全员必有）保持注册相对顺序置前，
+//     getCoreTabIds/_splitTabs 同义判定——支书 2026-08-10 裁定全员必有）保持注册相对顺序置前，
 //     不可被个人隐藏或排序；默认声明序即核心置前，故无偏好时零 diff。
 //   · 无个人偏好 / 偏好与默认等效 → resolveTabOrder 原样返回（默认无 diff）。
 //   · 按 personId + workspaceKey 一次解析缓存（_orderMemo），避免逐帧重复读 localStorage；

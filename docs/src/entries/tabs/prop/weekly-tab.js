@@ -2,12 +2,12 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
-import { persist } from '../../../core/data-adapter.js?v=20260912k';
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
+import { persist } from '../../../core/data-adapter.js?v=20260913c';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
@@ -44,7 +44,7 @@ const WEEKLY_STATUS_STYLE = {
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };
 
-// 周次与起止自动派生（书记 2026-09-10 裁定：按当前日期预填，仍允许手动覆盖）
+// 周次与起止自动派生（支书 2026-09-10 裁定：按当前日期预填，仍允许手动覆盖）
 // 周号口径：ISO 周（周一为一周之始），与既有 seed/文案一致（第31周=2026-07-27 所在周）。
 // 起止口径：本周一 ~ 本周五，格式沿用既有示例 `YYYY-MM-DD ~ YYYY-MM-DD`。
 function _isoWeek(date) {
@@ -72,7 +72,7 @@ export function renderContent(ctx) {
   // 默认填写对象 = 待填写草稿（按周次降序取最新草稿）；无草稿回退最新周次（下拉已排序，最新周在前）
   const sortedReports = _sortedReports();
   const draftReport = sortedReports.find(r => r.status === 'draft') || null;
-  // 书记 2026-09-10 裁定：新增周次的周次号/起止按当前日期自动派生预填（0 输入可直存，仍可手改）
+  // 支书 2026-09-10 裁定：新增周次的周次号/起止按当前日期自动派生预填（0 输入可直存，仍可手改）
   const weekDefaults = _weekDefaults();
 
   container.innerHTML = `

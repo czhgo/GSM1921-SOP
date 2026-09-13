@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：思想汇报 初阅（R6-2 把关式初阅 UI 层，2026-09-07）
-// 承接 services/thought-report.js 把关式状态机（书记 2026-09-07 定案）：
+// 承接 services/thought-report.js 把关式状态机（支书 2026-09-07 定案）：
 //   pending（待组织初阅）→ 组织委员初阅 approve → archived（通过即归档）
 //                             reject（须附意见）→ needs_revision → 本人修改重交 → pending
 // 职责边界：初阅操作收敛本 tab 单入口（development「发展数据」只读展开不动，不加操作，避免两处入口）；
 // 提交/修改重交在成员侧（visitor）完成。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
+import { loadThoughtReports, listPendingReviews, reviewThoughtReport } from '../../../services/thought-report.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
 
 // ── R6-2 初阅状态：徽标样式 + 中文标签 ──
 // 读取侧归一与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档

@@ -46,10 +46,10 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
 | attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
-| isBrand | boolean | 否 | `false` | 品牌属性标签（由书记认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 书记标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（由支书认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 支书标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
 | carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐（2026-08-07） |
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
-| brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），书记认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
+| brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支书认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
 | agenda | `Array<{item: string, host?: string}>` | 否 | `[]` | 会议议程（三会一课专用：逐条议题 + 可选主持人）。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改（T-283 新增，2026-08-27） |
 
 > **设计注记（活动写入表单必有地点字段，承接原 insights §6.6，2026-09-04 分流）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的（原判例：活动写入表单最初只有日期没有地点，后补齐地点输入）。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
@@ -162,7 +162,7 @@ ActivityRecord (主记录)
   isJoint: false,           // 共建性质
   isOutdoor: false,         // 是否外出
   carriers: ['理论学习'],    // 活动载体（多选）
-  carrierOther: null,       // 其他载体（需书记权限）
+  carrierOther: null,       // 其他载体（需支书权限）
 }
 ```
 
@@ -172,8 +172,8 @@ ActivityRecord (主记录)
 
 | 入口 | 数据载体 | 写入时机 | 语义 | 派生影响 |
 |---|---|---|---|---|
-| **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 书记/组长创建活动表单勾选参与人 | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
-| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | 书记工作台「项目赋权」Tab 单独操作 | 授予"组织者/深度参与者"项目角色权限（活动/专班共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
+| **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 支书/组长创建活动表单勾选参与人 | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
+| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | 支书工作台「项目赋权」Tab 单独操作 | 授予"组织者/深度参与者"项目角色权限（活动/专班共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
 
 **边界规则**：
 1. 活动参与人是**活动级事实**，只回答"谁参加"；项目角色授权是**权限级事实**，只回答"谁能管这个项目"。
@@ -198,15 +198,15 @@ ActivityRecord (主记录)
 | `disc-commissioner` | 纪检委员 | manager | 支委 |
 | `organizer` | 组织者 | manager | 项目角色 |
 | `deep` | 深度参与者 | manager | 项目角色 |
-| `secretary` | 党支书 | manager | 支委（书记） |
-| `deputy-secretary` | 党支部副书记 | manager | 支委（副书记） |
+| `secretary` | 党支书 | manager | 支委（支书） |
+| `deputy-secretary` | 副支书 | manager | 支委（副支书） |
 | `party-staff` | 党委组织员 | -- | 组织级角色（院系党委，不属于任一支部） |
 | `commissioner` | 条条委员 | -- | 遗留键（ROLE_LEGACY_KEYS；业务语义见下方 COMMISSIONER_ROLES 集合） |
 | `initiator` | 发起人 | -- | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义，兼容兜底） |
 | `global` | 全局视图 | global | 参考指南专用（state.js ROLE_TYPES 键，非业务角色键） |
 | `all` | 全体相关 | participant | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义；参考指南显示兜底） |
 
-> 注：`deputy-secretary` / `party-staff` 已入 `constants.js ROLE_KEYS`（2026-08-29 起），但不在 state.js 首页日历 ROLE_TYPES 中——日历分组列对其按 `ROLE_PAGE_MAP` 归属展示（deputy-secretary → secretary.html 书记工作台；party-staff → party-committee.html 党委工作台，登录直达）。`organizer`/`deep` 无独立工作台页面（T-141 后归入首页「我的角色」区块）。
+> 注：`deputy-secretary` / `party-staff` 已入 `constants.js ROLE_KEYS`（2026-08-29 起），但不在 state.js 首页日历 ROLE_TYPES 中——日历分组列对其按 `ROLE_PAGE_MAP` 归属展示（deputy-secretary → secretary.html 支书工作台；party-staff → party-committee.html 党委工作台，登录直达）。`organizer`/`deep` 无独立工作台页面（T-141 后归入首页「我的角色」区块）。
 
 **管理角色集合** (`MANAGEMENT_ROLES`): `leader`, `org-commissioner`, `prop-commissioner`, `disc-commissioner`, `organizer`, `deep`, `secretary`
 
@@ -221,7 +221,7 @@ ActivityRecord (主记录)
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 「党建」Tab 分组面板按角色显示对应支委面板
-- 书记独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 SYSTEM_ROLE_PERMISSION.md §9b）
+- 支书独占能力：党课布置、主持大会、全局视角切换、赋权管理（详见 SYSTEM_ROLE_PERMISSION.md §9b）
 
 ### 2.3 专班数据 (TaskForceRecord)
 
@@ -275,7 +275,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 **三者关系**：
 - **短期活动** (ActivityRecord)：一次性事件，党小组组长写入
-- **系列活动** (SeriesRecord)：时间重复模式，党小组组长创建、书记审核
+- **系列活动** (SeriesRecord)：时间重复模式，党小组组长创建、支书审核
 - **专班** (TaskForceRecord)：人员组织结构，组织委员招募统筹
 
 ### 2.5 考勤数据 (AttendanceRecord)
@@ -579,14 +579,14 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | duration | `short-term` | 一次性完成（参访、线下学习等） |
 | duration | `long-term` | 长期打磨/多小组同步推进 |
 | direction | `bottom-up` | 自下而上：党小组/成员自发发起的活动 |
-| direction | `top-down` | 自上而下：支委/书记布置的任务 |
+| direction | `top-down` | 自上而下：支委/支书布置的任务 |
 | direction | `either` | 两种发起方式均可 |
 
 **活动属性标签：**
 
 | 属性 | 值 | 说明 |
 |---|---|---|
-| isBrand | `true` | 品牌活动（由书记认定标记，不影响工作流选择） |
+| isBrand | `true` | 品牌活动（由支书认定标记，不影响工作流选择） |
 | isBrand | `false` | 普通日常活动 |
 
 **3 套工作流定义模板：**
@@ -612,37 +612,37 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | `'completed'\|'duplicate'\|'wontfix'\|'not_planned'` / string\|null | 关闭原因 / 关闭时间 |
 | submittedBy / submittedAt | string | 提交人（短 ID，可匿名）/ 提交日期 |
-| assignee / assigneeRole | string \| null | 书记指派对象（personId / 角色键，如 `u_org` / `'org-commissioner'`） |
+| assignee / assigneeRole | string \| null | 支书指派对象（personId / 角色键，如 `u_org` / `'org-commissioner'`） |
 | dispatchHistory | {from, to, by, at, note}[] | 指派历史时间线（from→to 变更记录） |
 | milestone | string \| null | 里程碑 |
 | reactions | {thumbsUp[], thumbsDown[], eyes[], hooray[]} | 表态反应（按人列表） |
 | mentions / references | string[] | 提及 / 引用 |
 | participants / commentCount | string[] / number | 参与人 / 评论数 |
-| hidden / mergedInto | boolean / string\|null | 书记隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
-| comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（书记正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（书记终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
+| hidden / mergedInto | boolean / string\|null | 支书隐藏（不在公开列表显示）/ 合并去向（被合并的 source 置位） |
+| comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（支书正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（支书终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
 
-**处理流程（GitHub Issue 风格）**：提交(open) → 书记审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，书记工作台高亮）→ 书记终审：关闭(closed) / 重新开放(reopen)。
+**处理流程（GitHub Issue 风格）**：提交(open) → 支书审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，支书工作台高亮）→ 支书终审：关闭(closed) / 重新开放(reopen)。
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **书记处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归书记独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅书记可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（书记仲裁）的落点。
+> **支书处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归支书独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅支书可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（支书仲裁）的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|
 | 改状态/关闭 | `changeStatus` / `closeIssue` | 关闭原因 completed/duplicate/wontfix/not_planned；关闭备注记 verdict 评论；清除待终审未读 |
 | 重新开放 | `reopenIssue` | 清除 closedReason/closedAt/resultPending |
 | 指派 | `assignIssue` | 写 assignee/assigneeRole + dispatchHistory + kind=`dispatch` 评论 + 被指派人未读角标 +1 |
-| 设置里程碑 | `setMilestone` | milestone 归书记管理 |
+| 设置里程碑 | `setMilestone` | milestone 归支书管理 |
 | 隐藏/取消隐藏 | `hideIssue` / `unhideIssue` | hidden 置位，公开列表不显示 |
 | 合并 | `mergeIssue` | source 标记 mergedInto + hidden + closed(duplicate)；target 追加 merge verdict 事件 |
 | 软隐藏评论 | `hideComment` | 评论 hidden=true，记录 hiddenBy/hiddenReason/hiddenAt |
-| 编辑 | `editIssue` | 书记可编辑任意 issue |
+| 编辑 | `editIssue` | 支书可编辑任意 issue |
 | 草稿终审 | `approveDraft` / `rejectDraft` | new-issue/comment/reaction 三类型草稿：pending → approved（合并入 issues.json）/ rejected（含理由） |
 
-**通知机制**：指派 → 被指派人工作台「我的处置」Tab 角标 +1（personId 维度未读）；处置结果提交 → 书记工作台「待终审」高亮；书记终审关闭/重开 → 清除对应未读。
+**通知机制**：指派 → 被指派人工作台「我的处置」Tab 角标 +1（personId 维度未读）；处置结果提交 → 支书工作台「待终审」高亮；支书终审关闭/重开 → 清除对应未读。
 
-> **人员 ID 规范（2026-08-01 T187；2026-09-13 修订）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存**真实成员短 ID**（`p*`，如书记 `p13`／组织委员 `p11`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。**反馈指派/审计身份已于 2026-09-13 由演示占位 ID（`u_sec`/`u_org`/`u_leader_*`）统一迁到真实成员 ID**（原文允许 `u_*` 占位导致「了解进展」请求收不到、三组长共用同一 ID；`u_*` 仅保留为系统账号登录身份）。issues.js 缓存版本已递进（`CACHE_VERSION 4`，键名仍为 `gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧 ID 缓存。
+> **人员 ID 规范（2026-08-01 T187；2026-09-13 修订）**：`submittedBy`/`participants`/`assignee`/评论 `author`/`dispatchHistory` 等一律存**真实成员短 ID**（`p*`，如支书 `p13`／组织委员 `p11`），渲染层统一经 `PersonStore.getName()` 转中文姓名，禁止出现 `u_org_commissioner` 类长 ID 或直接展示原始 ID。**反馈指派/审计身份已于 2026-09-13 由演示占位 ID（`u_sec`/`u_org`/`u_leader_*`）统一迁到真实成员 ID**（原文允许 `u_*` 占位导致「了解进展」请求收不到、三组长共用同一 ID；`u_*` 仅保留为系统账号登录身份）。issues.js 缓存版本已递进（`CACHE_VERSION 4`，键名仍为 `gsm1921-issue-cache-v3`）强制清除用户浏览器残留旧 ID 缓存。
 
 ### 2.16.1 复盘数据 (ReviewRecord) — D-242 本轮补建
 
@@ -683,7 +683,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.16.2 周报数据 (WeeklyReport) — T-209 本轮补建
 
-> 宣传委员按周报送工作内容，报送历史供书记/宣传条线查阅。
+> 宣传委员按周报送工作内容，报送历史供支书/宣传条线查阅。
 > **写入入口**：宣传委员工作台·周报报送 tab（T-209 改进项②：支持「+ 新增周次」内联表单新建草稿周次）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -709,10 +709,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 | 写入端 | 存储层 | 查看端 | 验证点 |
 |--------|--------|--------|--------|
-| 书记工作台（决策树引导式写入） | mockDB.activities + localStorage | 日历视图（月/周/日/列表） | 新活动标记出现 |
-| 书记工作台 | 同上 | 主页统计卡片 | "活动总数"+1 |
-| 书记工作台 | 同上 | 主页近期活动列表 | 新活动条目出现 |
-| 书记工作台 | 同上 | 工作流可视化面板 | 流程节点图出现 |
+| 支书工作台（决策树引导式写入） | mockDB.activities + localStorage | 日历视图（月/周/日/列表） | 新活动标记出现 |
+| 支书工作台 | 同上 | 主页统计卡片 | "活动总数"+1 |
+| 支书工作台 | 同上 | 主页近期活动列表 | 新活动条目出现 |
+| 支书工作台 | 同上 | 工作流可视化面板 | 流程节点图出现 |
 | 党小组组长工作台 | 同上 | 日历视图 | 新活动标记出现（仅党小组会/主题党日） |
 | 党小组组长工作台 | 同上 | 党小组组长工作台活动列表 | 新活动条目出现 |
 
@@ -723,12 +723,12 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | 考察记录写入 | 组织者工作台 | 组织者已有记录表新记录行出现；纪检委员考察档案对应记录出现 |
 | 分工记录写入 | 组织者工作台 | 分工记录列表新记录行出现；分工统计数字更新 |
 | 专班招募写入 | 组织委员工作台 | 组织委员看板新专班卡片出现；主页专班进展新条目出现 |
-| 赋权写入 | 书记工作台 | 书记赋权记录列表新记录出现；被赋权者工作台出现对应角色页面 |
+| 赋权写入 | 支书工作台 | 支书赋权记录列表新记录出现；被赋权者工作台出现对应角色页面 |
 | 考勤上传 | 党小组组长工作台 | 纪检委员考勤总表新考勤记录出现 |
 | 考察上传 | 党小组组长工作台 | 纪检委员考察确认面板新考察记录出现（待确认状态） |
 | 确认考勤 | 纪检委员 | 党小组组长工作台缺勤列表状态更新；补课任务自动生成 |
 | 补课制度 | 纪检委员 | 补课制度Tab新补课任务出现；考勤记录缺勤状态→已补 |
-| 意见反馈 | 全员提交 issue + 评论 + 表态 | 书记处置（status/close/milestone/assignee/drafts）+ 新 issue 或新评论通知 |
+| 意见反馈 | 全员提交 issue + 评论 + 表态 | 支书处置（status/close/milestone/assignee/drafts）+ 新 issue 或新评论通知 |
 | 制度文件引用 | 组织委员 | 制度文件Tab新引用记录出现 |
 | 子记录写入 | 党小组组长/组织委员 | 对应详情面板新子记录行出现 |
 | 文件空间 | 组织者工作台 | 文件空间Tab新记录出现；统计概览卡片计数更新 |
@@ -784,7 +784,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 | 角色 | auth | archive | review | notice | submit | track |
 |---|---|---|---|---|---|---|
-| 书记 | 待设党小组组长 | -- | 待审批事项 | 通知未读超期 | -- | -- |
+| 支书 | 待设党小组组长 | -- | 待审批事项 | 通知未读超期 | -- | -- |
 | 党小组组长 | 待赋权活动 | -- | -- | 通知阅读 | 活动写入/考勤上传/考察上传/复盘提交 | -- |
 | 组织委员 | 待赋权专班 | -- | 考察审核 | 通知阅读 | 考察上传 | 发展党员追踪/材料催缴 |
 | 宣传委员 | -- | 待归档活动 | -- | 通知阅读 | 宣传任务/周报报送 | -- |
@@ -817,7 +817,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | actionTask | string | 否 | -- | 待办任务标题（actionable=true 时必填） |
 | actionDeadline | string (YYYY-MM-DD) | 否 | -- | 行动截止日期 |
 | readBy | string[] | 是 | `[]` | 已读人员 ID 列表（用于未读名单查看） |
-| reminderDays | number | 是 | `3` | 自动提醒触发天数（书记发布时配置） |
+| reminderDays | number | 是 | `3` | 自动提醒触发天数（支书发布时配置） |
 | reminders | Array&lt;{type, sentAt, sentBy, targetPersonIds}&gt; | 是 | `[]` | 提醒记录（auto/manual） |
 
 #### 2.19.2 派生规则
@@ -832,9 +832,9 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 提醒类型 | 触发条件 | 执行者 | 频率 |
 |---|---|---|---|
 | 自动提醒 | 发布后 `reminderDays` 天仍未读 | 系统 | 每条通知每用户仅触发一次 |
-| 手动催读 | 书记在通知管理中点击"催读" | 书记 | 可多次，记录写入 `reminders` 数组 |
+| 手动催读 | 支书在通知管理中点击"催读" | 支书 | 可多次，记录写入 `reminders` 数组 |
 
-**权限归属**：通知发布权=书记；自动提醒=系统；手动催读=书记。
+**权限归属**：通知发布权=支书；自动提醒=系统；手动催读=支书。
 
 #### 2.19.4 通知分类示例
 
@@ -923,7 +923,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | name | string | 是 | -- | 支部名称（党委命名） |
 | type | string | 否 | `''` | 类型类别标签（自由文本，不预设枚举：如 硕士/博士/本科生） |
 | config | object | 是 | 见下 | 支部配置档案 |
-| secretaryId | string \| null | 否 | `null` | 现任书记 personId（P2 起由任命链维护，访问书记工作台以本值为准） |
+| secretaryId | string \| null | 否 | `null` | 现任支书 personId（P2 起由任命链维护，访问支书工作台以本值为准） |
 | status | `'active'` | 是 | `'active'` | 支部状态 |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 
@@ -935,16 +935,16 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | accent | string \| null | 否 | `null` | 支部主题色（可选，默认党建红不变） |
 | desc | string | 否 | `''` | 支部自述（可选，≤500 截断；换组织向导步骤①可改，净化见 config-clean `sanitizeConfigOrg`） |
 | themePreset | string \| null | 否 | `null` | 支部主题预设 id（白名单 `THEME_PRESET_IDS` = red/green/sky/blue；`null` = 默认党建红调；向导①可改，净化同 `sanitizeConfigOrg`） |
-| modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；维护权=现任书记/副书记（副书同权，2026-09-09 书记批）——操作位=设置（侧边栏右下）→ 支部治理「工作台默认顺序」卡直存 / 换组织向导②内嵌 chips 启停；原「工作台配置」tab 表述废止；治理字段（name/type/secretaryId/status）不经此写 |
+| modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；维护权=现任支书/副支书（副书同权，2026-09-09 支书批）——操作位=设置（侧边栏右下）→ 支部治理「工作台默认顺序」卡直存 / 换组织向导②内嵌 chips 启停；原「工作台配置」tab 表述废止；治理字段（name/type/secretaryId/status）不经此写 |
 | blocks | object \| null | 否 | `null` | 产出块/工作流块显隐（2026-09-03）：`{ outputBlocks?: { hiddenBlockIds: string[], blockOrder: string[] }, workflowBlocks?: { hiddenBlockIds: string[] } }`——null=全开；与 modules 同维护权/操作位（换组织向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS` |
 | workforce | object \| null | 否 | `null` | 模块分工归属（L4 支部分工）：`{ [moduleId]: { ownerType: 'role'\|'person', ownerId } }`——null=缺省分工（SOP 责任人列）；日常调整走支委会议题（M2）表决后落库、换壳/部署期向导③直写（见 [BRANCH_WORK_MAP.md](../evolution/BRANCH_WORK_MAP.md)） |
-| policyOverrides | object \| null | 否 | `null` | 域参数覆盖（L2，2026-09-09 书记批）：`{ 节: { 叶: 值 } \| null }`——节=inspection/memberConfirmation/leader（白名单 `POLICY_OVERRIDABLE` 只定义于 policy-defaults）；值=覆盖、null=恢复该域默认、整体 null=全量恢复默认；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效（净化见 config-clean `sanitizeConfigPolicyOverrides`） |
+| policyOverrides | object \| null | 否 | `null` | 域参数覆盖（L2，2026-09-09 支书批）：`{ 节: { 叶: 值 } \| null }`——节=inspection/memberConfirmation/leader（白名单 `POLICY_OVERRIDABLE` 只定义于 policy-defaults）；值=覆盖、null=恢复该域默认、整体 null=全量恢复默认；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效（净化见 config-clean `sanitizeConfigPolicyOverrides`） |
 | configChangeHistory | array | 否 | `[]` | config 写留痕（2026-09-09 审计内核）：`{ by, at, what, from?, to?, why? }`——逐键 diff 追加、空变化不冗余；保留最近 100 条（`CONFIG_HISTORY_MAX`）；单键可回滚、回滚再留一痕、历史不改写（见 [PARTY_COMMITTEE_DESIGN.md §2.6 变更流](../evolution/PARTY_COMMITTEE_DESIGN.md)） |
 | fileSpaceIsolated | boolean | 是 | `true` | 支部文件（branchDocs）/附件一支部一独立存储空间——按 branchId 分区、跨支部不可见 |
 
-### 2.22 书记任期记录 (AppointmentRecord)
+### 2.22 支书任期记录 (AppointmentRecord)
 
-> 党委任命/撤换书记的任期档案；`to=null` 表示现任。任命即三写：`branches.secretaryId` + 双方 `users.role` 同步 + 本记录封口/新建。
+> 党委任命/撤换支书的任期档案；`to=null` 表示现任。任命即三写：`branches.secretaryId` + 双方 `users.role` 同步 + 本记录封口/新建。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -958,7 +958,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.23 支部上报审批记录 (ReviewRequest)
 
-> P3 双向治理通道·上报半侧：支部书记/副书记发起（发展节点/活动报备）→ 党委逐项批/驳（驳回须意见）→ 结论回传支部侧同页可见。
+> P3 双向治理通道·上报半侧：支书/副支书发起（发展节点/活动报备）→ 党委逐项批/驳（驳回须意见）→ 结论回传支部侧同页可见。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -968,7 +968,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | title | string | 是 | -- | 事项标题 |
 | content | string | 是 | -- | 事项说明（时间/对象/依据等） |
 | status | `'pending'\|'approved'\|'rejected'` | 是 | `'pending'` | 审批状态 |
-| submittedBy | string | 是 | -- | 提交人 personId（书记/副书记） |
+| submittedBy | string | 是 | -- | 提交人 personId（支书/副支书） |
 | decidedBy | string \| null | 否 | `null` | 审批人 personId（党委组织员） |
 | decidedAt | string (ISO) \| null | 否 | `null` | 审批时间 |
 | decisionNote | string | 否 | `''` | 审批意见（驳回必填；批准可附指导意见） |
@@ -976,7 +976,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.24 党委下发通知扩展（复用 Notice，不新建领域）
 
-> P3 双向治理通道·下发半侧：党委选目标支部下发 → **复用通知实体**，仅目标支部支委层成员在通知入口可见（书记 2026-09-03 裁定：能复用就复用，不新建「下发箱」领域）。
+> P3 双向治理通道·下发半侧：党委选目标支部下发 → **复用通知实体**，仅目标支部支委层成员在通知入口可见（支书 2026-09-03 裁定：能复用就复用，不新建「下发箱」领域）。
 
 §2.9 通知基础字段不变，下发时额外写入：
 
@@ -989,6 +989,6 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
-**受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（书记/副书记/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
+**受众过滤规则**（`NoticeStore.list()`）：`audience === 'committee'` 的通知仅对「目标 branchId 支部且角色为支委层（支书/副支书/组织/宣传/纪检）」的当前登录用户可见；普通党员、党委组织员（非支委）一律不可见。支部端「已发布通知」管理区不展示上级下发（只读治理信息，不可删改）。
 
 ---

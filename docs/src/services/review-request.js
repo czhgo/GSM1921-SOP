@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // services/review-request.js — 支部上报审批（P3 党委后台，2026-09-02）
-// 闭环：支部书记上报（发展党员关键节点 develop-node / 重要活动报备 activity-report）
+// 闭环：支书上报（发展党员关键节点 develop-node / 重要活动报备 activity-report）
 //       → 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果。
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）。
 // 通知闭环（2026-09-10，依据 COMMISSIONER_DUTY_FRAMEWORK §八「提交/通过/驳回均触发通知」）：
-//   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起书记（带结论/意见）。
+//   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起支书（带结论/意见）。
 //   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { getPersonName } from './person.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { getPersonName } from './person.js?v=20260913c';
 
 const TYPE_LABEL = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
 
@@ -37,7 +37,7 @@ function _notifySubmit(row) {
   } catch (e) { console.warn('[review-request] 上报通知失败（不影响上报）：', e); }
 }
 
-/** 审批结论 → 回传通知发起书记（带结论/意见） */
+/** 审批结论 → 回传通知发起支书（带结论/意见） */
 function _notifyDecision(row) {
   const approved = row.status === 'approved';
   try {
@@ -51,7 +51,7 @@ function _notifyDecision(row) {
   } catch (e) { console.warn('[review-request] 审批通知失败（不影响审批）：', e); }
 }
 
-/** 支部上报（书记/组织委员视角） */
+/** 支部上报（支书/组织委员视角） */
 export async function submitReviewRequest({ branchId, type, title, content, submittedBy }) {
   const row = await getAdapter().reviewRequests.create({
     branchId,
@@ -84,7 +84,7 @@ export async function decideReviewRequest({ id, decision, decidedBy, decisionNot
     mockDB.reviewRequests = [...mockDB.reviewRequests.slice(0, idx), next, ...mockDB.reviewRequests.slice(idx + 1)];
   }
   persist();
-  _notifyDecision(next); // 节点②③：批准/驳回 → 回传通知发起书记（带结论/意见）
+  _notifyDecision(next); // 节点②③：批准/驳回 → 回传通知发起支书（带结论/意见）
   return next;
 }
 

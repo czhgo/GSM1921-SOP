@@ -20,11 +20,11 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 | 维度 | 定义 |
 |------|------|
 | **标记** | `[用户]` |
-| **职责** | 涉及党支部具体建设的解释、思路、书记的具体表述 |
+| **职责** | 涉及党支部具体建设的解释、思路、支书的具体表述 |
 | **典型读者** | 党支书、党小组组长、支委、党员 |
 | **权限边界** | AI 只读引用，修改须 /ask 授权 |
 | **AI 读取规则** | AI 不主动加载，仅在被明确指向时读取 |
-| **典型场景** | 书记审阅党章原文、委员查阅 SOP 流程、党员学习建设思路 |
+| **典型场景** | 支书审阅党章原文、委员查阅 SOP 流程、党员学习建设思路 |
 
 ### [工程师] — 工程师文档
 
@@ -51,7 +51,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 
 | 内容性质 | 归属 |
 |---------|------|
-| 党支部具体建设的解释、思路、书记的具体表述 | `[用户]` |
+| 党支部具体建设的解释、思路、支书的具体表述 | `[用户]` |
 | 编程、系统设计、需求落地 | `[工程师]` |
 | AI 运行指令、配置、上下文 | `[AI]` |
 
@@ -94,7 +94,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 
 | 子目录 | 角色 | 判定理由 |
 |--------|------|---------|
-| `content/01_strategy/` | `[用户]+[AI]` | 党支部建设思路、书记表述 |
+| `content/01_strategy/` | `[用户]+[AI]` | 党支部建设思路、支书表述 |
 | `content/02_institution/sop/` | `[用户]+[AI]` | 党员操作指南、AI 溯源 |
 | `content/insights/` | `[用户]+[AI]` | 党支部建设经验沉淀、AI 沉淀 |
 | `content/01_strategy/references/合规文件/` | `[用户]` | 党员查阅党章原文，AI 只读不写入上下文 |
@@ -117,7 +117,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 | `SNAPSHOT.md` | `[AI]` | 系统快照、AI 快速同步入口 |
 | `TIMESTAMPS.md` | `[工程师]+[AI]` | 时间戳注册表，工程师可查 + AI 维护 |
 | `logs/` | `[工程师]+[AI]` | 执行日志，工程师审计追溯 + AI 写入 |
-| `REVIEW_QUEUE.md` | `[用户]+[AI]` | 书记评议用 + AI 维护 |
+| `REVIEW_QUEUE.md` | `[用户]+[AI]` | 支书评议用 + AI 维护 |
 | `snapshots/` | `[工程师]+[AI]` | 快照归档，工程师可查 + AI 维护 |
 
 ### 其他
@@ -172,7 +172,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 ### 信息流向
 
 ```
-[用户] 决策/授权（书记/委员）
+[用户] 决策/授权（支书/委员）
   ↓
 [工程师]+[AI] 执行/消费 ←→ [AI] 自动化/校验
   ↓
@@ -239,6 +239,6 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 
 - **2026-09-05**：§九 系统角色权限矩阵（角色键全表 9a0/权限矩阵 9a~9g/赋权链）已拆至 [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（名实分离——本文档回归纯文件角色分类；系统运行角色的键级权威见新文件，双轨约定见新文件 §9f）。同批清理 §六/§七 中已过时的实现断言（`dynamic_role` front matter、state.js `canAIModify()`、SNAPSHOT §3 均已不存在）。
 
-- **2026-07-11（v3.0）**：从旧三分类 `[人]/[人机]/[AI]` 升级为新三分类 `[用户]/[工程师]/[AI]` + 复合标记。书记明确指出"【人】可以划分为'用户'和'工程师'两种角色"，"涉及党支部具体建设的解释、思路、书记的具体表述是给用户看的，工程师看的只是跟编程、系统设计、需求落地相关的文档"。废弃"正交双维度"模型，合并为单一维度。strategy/sop/insights 从 [人机] 重新判定为 [用户]+[AI]（非 [工程师]+[AI]）。
+- **2026-07-11（v3.0）**：从旧三分类 `[人]/[人机]/[AI]` 升级为新三分类 `[用户]/[工程师]/[AI]` + 复合标记。支书明确指出"【人】可以划分为'用户'和'工程师'两种角色"，"涉及党支部具体建设的解释、思路、支书的具体表述是给用户看的，工程师看的只是跟编程、系统设计、需求落地相关的文档"。废弃"正交双维度"模型，合并为单一维度。strategy/sop/insights 从 [人机] 重新判定为 [用户]+[AI]（非 [工程师]+[AI]）。
 - **2026-05-02（v2.0）**：SA1 动态角色判定 + SA2 can-modify 白名单。
 - **2026-05-02（v1.0-v1.1）**：初始三分类 `[人]/[人机]/[AI]` + 全仓写入。

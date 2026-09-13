@@ -9,17 +9,17 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912k';
-import { PEOPLE } from '../mock/index.js?v=20260912k';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913c';
+import { PEOPLE } from '../mock/index.js?v=20260913c';
 // 账号登录校验 mock 实现（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
-import { mockLogin } from '../mock/accounts.js?v=20260912k';
-import { getPersonById, getPersonName } from './person.js?v=20260912k';
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { updateActivity } from './mock.js?v=20260912k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { enableApiMode } from './runtime.js?v=20260912k';
+import { mockLogin } from '../mock/accounts.js?v=20260913c';
+import { getPersonById, getPersonName } from './person.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { updateActivity } from './mock.js?v=20260913c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { enableApiMode } from './runtime.js?v=20260913c';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -60,8 +60,8 @@ if (typeof window !== 'undefined') {
 // ── 权限表 ──────────────────────────────────────
 // issue.* 权限项遵循 GitHub Issue 风格权限矩阵（spec §五）
 //   全员基础权限（view/create/comment/reaction/mention/reference/edit.own）通过 _ISSUE_PERMS_ALL 注入
-//   书记专属权限（status.change/close/comment.hide/edit.others/milestone.manage/assignee.set/drafts.merge/drafts.reject）
-//   仅 secretary 角色持有（spec §5.1：副书记虽权限较高，但 issue 处置权仍归书记，不可委托）
+//   支书专属权限（status.change/close/comment.hide/edit.others/milestone.manage/assignee.set/drafts.merge/drafts.reject）
+//   仅 secretary 角色持有（spec §5.1：副支书虽权限较高，但 issue 处置权仍归支书，不可委托）
 const _ISSUE_PERMS_ALL = [
   'issue.view', 'issue.create', 'issue.comment.add', 'issue.reaction.toggle',
   'issue.mention', 'issue.reference', 'issue.edit.own',
@@ -77,10 +77,10 @@ const ROLE_PERMISSIONS = {
   'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL],
   'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'dispatch_line', ..._ISSUE_PERMS_ALL],
   'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role', ..._ISSUE_PERMS_ALL],
-  'participant':       ['view_public', ..._ISSUE_PERMS_ALL], // record_inspection 已收敛（2026-09-05 书记裁：无「本人写」路径，矩阵 §9d 改 '--'，本人素材走活动参与记录）
+  'participant':       ['view_public', ..._ISSUE_PERMS_ALL], // record_inspection 已收敛（2026-09-05 支书裁：无「本人写」路径，矩阵 §9d 改 '--'，本人素材走活动参与记录）
 };
 // dispatch_line（条线下发，A1-2026-09-05 落代码）：组织线/宣传线/纪检线职能任务下发，授予对应支委；
-// 与 assign_task（书记/副书记/组长派执行）分两类——键级已入集（canDo 可判定），交互流消费侧待建。
+// 与 assign_task（支书/副支书/组长派执行）分两类——键级已入集（canDo 可判定），交互流消费侧待建。
 // 文档映射：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9f（权限名语义说明）+ CF §C.2。
 // 注：§9b 16 操作矩阵列不并该键（消费侧未建、不硬凑列），见该文件变更历史 2026-09-05 条目。
 
@@ -93,7 +93,7 @@ const PROJECT_PERMISSIONS = {
 // 统一记录"谁可以赋权什么角色"，由 authorize() 的 context 参数区分:
 //   context 为空 → 常设角色赋权（系统级，如支委赋权组长）
 //   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
-// 注: 支委（书记/副书记/三委员）由配置文件预设，不在系统赋权范围内
+// 注: 支委（支书/副支书/三委员）由配置文件预设，不在系统赋权范围内
 const AUTHORIZE_CHAIN = {
   'secretary':         ['leader', 'organizer', 'deep'],
   'deputy-secretary':  ['leader', 'organizer', 'deep'],
@@ -103,7 +103,7 @@ const AUTHORIZE_CHAIN = {
 };
 
 // ── 常设角色集合 ────────────────────────────────
-// 支委授权角色（书记/副书记/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
+// 支委授权角色（支书/副支书/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
 // （people.js role + isCommissioner），为前端支委名单的角色底层源；
 // P2c（2026-09-03）：授权集单一源 = constants.js BRANCH_COMMISSION_ROLES（勿手写，server requireRole 同源）
 const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
@@ -205,7 +205,7 @@ function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
 // 顶层 activity.organizer 是历史遗留字段，全仓 41 处读端（archive/main/inspector/todo/roles/
 // ws-leader-entry 等）仍消费它。T-190 主源为 activity.assignments，本函数保证二者一致：
 // activity.organizer = assignments 中首个 organizer 的 personId；无 organizer 时置 null。
-// 书记裁决（2026-08-02）：采用"同步派生字段"方案统一双轨，不迁移 41 处读端。
+// 支书裁决（2026-08-02）：采用"同步派生字段"方案统一双轨，不迁移 41 处读端。
 function _syncTopLevelOrganizer(activity) {
   if (!activity) return;
   const orgAssign = Array.isArray(activity.assignments)
@@ -299,7 +299,7 @@ export const AuthStore = {
   /**
    * 开发模式直接登录（选身份）
    * 附带清除各工作台 Tab 缓存记忆（workflowos_tab_*），
-   * 使开发模式打开页面始终显示默认 Tab（书记 2026-08-02 反馈"浏览器缓存干扰默认显示"）。
+   * 使开发模式打开页面始终显示默认 Tab（支书 2026-08-02 反馈"浏览器缓存干扰默认显示"）。
    * @param {string} role
    */
   devLogin(role) {

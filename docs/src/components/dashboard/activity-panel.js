@@ -5,16 +5,16 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/state.js?v=20260912k';
-import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260912k';
-import { getPersonName } from '../../services/person.js?v=20260912k';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260912k';
-import { AuthStore } from '../../services/auth.js?v=20260912k';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260912k';
-import { badgeHtml } from '../badges.js?v=20260912k';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260912k';
-import { populateMonthSelector } from '../calendar.js?v=20260912k';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260912k';
+import { setState, getAppState } from '../../core/state.js?v=20260913c';
+import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260913c';
+import { getPersonName } from '../../services/person.js?v=20260913c';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260913c';
+import { AuthStore } from '../../services/auth.js?v=20260913c';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260913c';
+import { badgeHtml } from '../badges.js?v=20260913c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913c';
+import { populateMonthSelector } from '../calendar.js?v=20260913c';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260913c';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });
@@ -99,7 +99,7 @@ export function renderActivityList(activities, user) {
     return;
   }
 
-  // 首页只展示前 10 条；「查看更多」跳转活动动态 tab（书记 2026-08-08 决策：首页截断 + 活动页分页）
+  // 首页只展示前 10 条；「查看更多」跳转活动动态 tab（支书 2026-08-08 决策：首页截断 + 活动页分页）
   // T-284：未登录时「查看更多」直达登录页（登录后进工作台活动 tab），消除「visitor→门控踢→login」绕路
   const moreUrl = user
     ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
@@ -137,16 +137,22 @@ export function renderActivityCalendar(state) {
   switchActivityView(currentView);
 
   if (currentView === 'calendar') {
-    const targetMonth = populateMonthSelector(state.activities || []);
-    if (!state.displayMonth) {
-      const initialMonth = getInitialMonth() || targetMonth;
-      setState({ displayMonth: initialMonth });
+    // ── 月份单一源（2026-09-13 月份口径彻查）───────────────────────────────
+    // 用户实报：「月份选择器显示 2026-09，下方日历却是 2026 年七月」——两者能共存。
+    // 根因＝选择器与日历**各自取月**：原代码 `populateMonthSelector(activities)` 未传 displayMonth，
+    //   选择器按自己的优先级（当日所在月优先于 displayMonth）自选 → 而日历永远按 state.displayMonth 渲染。
+    // 修法（与支书台 2026-08-08 同口径）：以 state.displayMonth 为权威传参给选择器 → 再用选择器
+    //   返回值回写 state → 二者恒等；日历用同一 month 渲染。
+    const wantMonth = state.displayMonth || getInitialMonth() || '';
+    const month = populateMonthSelector(state.activities || [], wantMonth || undefined);
+    if (month && month !== state.displayMonth) {
+      setState({ displayMonth: month });
     }
     // M7（2026-08-30）：dashboard 能力发现显式传 env/role，启用「按环境/角色选择性启用」机制
     // （activity-calendar 声明 env:null/requiredRoles:null，行为不变；机制对未来的 env/role 差异化能力生效）
     const cap = getCapabilities({ scope: 'dashboard', env: getRuntimeEnv(), role: AuthStore.getCurrentUser()?.role }).find(c => c.id === 'activity-calendar');
     if (cap) {
-      mountCapability('activity-calendar', null, { state, targetMonth: state.displayMonth || targetMonth });
+      mountCapability('activity-calendar', null, { state, targetMonth: month });
     }
   }
 }

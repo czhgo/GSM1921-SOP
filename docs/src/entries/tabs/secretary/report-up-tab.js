@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
-// 书记工作台 Tab：上报党委（P3 党委后台，2026-09-02）
-// 支部侧发起点（双向通道支部半侧）：书记/副书记对本支部关键事项向院党委上报
+// 支书工作台 Tab：上报党委（P3 党委后台，2026-09-02）
+// 支部侧发起点（双向通道支部半侧）：支书/副支书对本支部关键事项向院党委上报
 //  （发展节点 develop-node / 活动报备 activity-report），党委批/驳结论在本页可见。
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912k';
-import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260912k';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260912k';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913c';
+import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260913c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260913c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },

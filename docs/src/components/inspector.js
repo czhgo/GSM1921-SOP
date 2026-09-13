@@ -5,32 +5,32 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260912k';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260912k';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { openModal, closeModal } from './modal.js?v=20260912k';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260913c';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260913c';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { openModal, closeModal } from './modal.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { BranchService } from '../services/runtime.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { PersonStore } from '../services/person.js?v=20260912k';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260912k';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260912k';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260912k';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { BranchService } from '../services/runtime.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { PersonStore } from '../services/person.js?v=20260913c';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260913c';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260913c';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260913c';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260912k';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260913c';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260912k';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912k';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912k';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260912k';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260912k';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260912k';
-import { loadActivityReviews } from '../services/review.js?v=20260912k';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260912k';
+import { NoticeStore } from '../services/notice.js?v=20260913c';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260913c';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260913c';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260913c';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260913c';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260913c';
+import { loadActivityReviews } from '../services/review.js?v=20260913c';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260913c';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -39,11 +39,11 @@ const TASK_STATUSES = {
   completed:   { label: '已完成', color: '#16A34A' },
 };
 
-// T-218：活动执行态由任务进度派生（书记裁决 2026-08-05「进度驱动活动状态」）
+// T-218：活动执行态由任务进度派生（支书裁决 2026-08-05「进度驱动活动状态」）
 // - 有关联任务且全部 completed → 'completed'（已完成）
 // - 有关联任务且未全部完成 → 'ongoing'（进行中）
 // - 无关联任务 → 保持计划态（draft/published）原样
-// 以全活动任务为准（呼应书记「书记看全部任务」裁决）；展示与写联动统一走本函数。
+// 以全活动任务为准（呼应支书「支书看全部任务」裁决）；展示与写联动统一走本函数。
 export function deriveActivityExecutionStatus(activity, allTasks) {
   const actTasks = allTasks.filter(t => t.activityId === activity.id);
   if (actTasks.length === 0) return activity.status;
@@ -51,7 +51,7 @@ export function deriveActivityExecutionStatus(activity, allTasks) {
   return allDone ? 'completed' : 'ongoing';
 }
 
-// ── 活动生命周期态（2026-08-07 书记裁决：消除"已完成 vs 未归档"矛盾）──
+// ── 活动生命周期态（2026-08-07 支书裁决：消除"已完成 vs 未归档"矛盾）──
 // 草稿→已发布→进行中→已执行→待归档→已归档（+已取消）
 // "已完成"字样全站移除：执行完毕且产出齐备才为"已执行"，产出缺失为"待归档"。
 export const ACTIVITY_LIFECYCLE = {
@@ -91,7 +91,7 @@ export function activityLifecycleBadgeHtml(activity, allTasks) {
 // ════════════════════════════════════════════════════════════════
 export function filterTasksByManagementRole(tasks, managementRole) {
   if (managementRole === 'participant' || !managementRole) return tasks;
-  // 书记（党支书）为支部总负责人：活动详情展示该活动全部任务节点，便于全面监督（T-217 书记裁决 2026-08-05）
+  // 支书（党支书）为支部总负责人：活动详情展示该活动全部任务节点，便于全面监督（T-217 支书裁决 2026-08-05）
   if (managementRole === 'secretary') return tasks;
   return tasks.filter(t => {
     const ex  = t.executor  || '';
@@ -277,7 +277,7 @@ function _buildOutputsSectionHTML(activity) {
   const inspRoute = deriveOutputRoute(OutputType.INSPECTION);
 
   // 宣传材料（同源：leader actSubRecords.publicity + 宣传委员 archiveRecords）
-  // 归档记录以 activityId 为主关联键（2026-08-06 书记裁决），无 activityId 的兜底按活动标题匹配
+  // 归档记录以 activityId 为主关联键（2026-08-06 支书裁决），无 activityId 的兜底按活动标题匹配
   const actSubs = (mockDB.actSubRecords && mockDB.actSubRecords[actId]) || {};
   const publicitySubs = actSubs.publicity || [];
   const archiveRecs = (mockDB.archiveRecords || []).filter(r =>
@@ -350,9 +350,9 @@ function _buildOutputsSectionHTML(activity) {
 
 // ════════════════════════════════════════════════════════════════
 //  分类型关闭条件（T-224 §7）
-//  三会一课（党小组会/支委会/党课/支部党员大会）→ 书记关闭：
+//  三会一课（党小组会/支委会/党课/支部党员大会）→ 支书关闭：
 //    会议纪要 + 请假已确认（缺勤需补课闭环）
-//  主题党日 → 书记关闭：
+//  主题党日 → 支书关闭：
 //    考勤确认 + 考察确认 + 复盘确认 + 宣传归档
 //  专班 → 组织委员解散（另见 ws-org-commissioner-entry）：
 //    考察确认 + 工作量报告
@@ -438,7 +438,7 @@ const AGENDA_RESULT_META = {
   rejected: { label: '未通过',   cls: 'text-red-700 bg-red-50' },
 };
 
-/** 议程类型徽章（2026-09-01 书记点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与目标阶段（S-2 只显目标） */
+/** 议程类型徽章（2026-09-01 支书点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与目标阶段（S-2 只显目标） */
 function _agendaTypeBadges(a) {
   const badges = [];
   const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
@@ -461,7 +461,7 @@ function _agendaTypeBadges(a) {
   return badges.join('');
 }
 
-/** 议程结果记录（2026-09-01 书记点验链路 ②）：记录通过/未通过 → 归档草案/建成员变更申请 → 落库活动
+/** 议程结果记录（2026-09-01 支书点验链路 ②）：记录通过/未通过 → 归档草案/建成员变更申请 → 落库活动
  * outcome：字符串 'passed'/'rejected'（旧单值）或对象 { personResults }（S-1 逐人结果） */
 async function _recordAgendaResult(activity, agendaItemId, outcome) {
   const actor = AuthStore.getCurrentUser();
@@ -503,7 +503,7 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
   const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : OPTION_SETS.deliberative.options;
-  // 无记名（2026-09-12 书记裁定）：本人选项不落库、回显不展示（只提示已计入汇总）；
+  // 无记名（2026-09-12 支书裁定）：本人选项不落库、回显不展示（只提示已计入汇总）；
   //   附言亦不落库，匿名态不提供附言输入（口径与公共端 vote-widget.js 一致）。
   const anonymous = isAnonymousActivity(activity);
   const mine = currentUserId
@@ -591,9 +591,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   const isArchived   = activity.archived === true;
   const _user = AuthStore.getCurrentUser();
   const isSecretary = _user?.role === 'secretary';
-  // 书记/副书记可查看表态汇总（2026-09-01 线上支委会 Task4：书记端汇总矩阵+截止）
+  // 支书/副支书可查看表态汇总（2026-09-01 线上支委会 Task4：支书端汇总矩阵+截止）
   const isSecretaryOrDeputy = !!_user && (_user.role === 'secretary' || _user.role === 'deputy-secretary');
-  // 支委集合（书记/副书记/组织/宣传/纪检）→ 表态面板可见（AuthStore.isCommissioner 与 auth.js 授权语义一致）
+  // 支委集合（支书/副支书/组织/宣传/纪检）→ 表态面板可见（AuthStore.isCommissioner 与 auth.js 授权语义一致）
   const isCommittee = !!_user && AuthStore.isCommissioner(_user.role);
   const currentUserId = _user?.personId || null;
   const isBrandActive = !!activity.isBrand;
@@ -667,9 +667,9 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += `<div class="mb-3 card rounded-xl p-3"><p class="text-xs text-gray-500 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
-  // ── 会议议程（T-283：三会一课；显示 + 书记行内编辑；2026-09-01：类型徽章 + 结果记录）──
-  // 副书同权（2026-09-10 修复）：议程编辑/结果记录对副书记放开——依据
-  // content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」（书记/副书记共用书记工作台，
+  // ── 会议议程（T-283：三会一课；显示 + 支书行内编辑；2026-09-01：类型徽章 + 结果记录）──
+  // 副书同权（2026-09-10 修复）：议程编辑/结果记录对副支书放开——依据
+  // content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」（支书/副支书共用支书工作台，
   // 见 constants.js ROLE_PAGE_MAP secretary→secretary.html）；仅此区块，范围不外扩。
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     html += '<div class="mb-3 card rounded-xl p-3" id="agenda-block">';
@@ -704,7 +704,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
             <label class="flex items-center gap-1.5 text-[11px]">
               <input type="checkbox" class="ap-pass shrink-0" data-person-id="${esc(pid)}" checked style="cursor:pointer;">
               <span class="text-gray-700 w-14 shrink-0 truncate">${esc(getPersonById(pid)?.name || pid)}</span>
-              <input type="text" class="ap-note input-flat flex-1 text-[11px]" data-person-id="${esc(pid)}" placeholder="备注（选填）">
+              <input type="text" class="ap-note input-flat flex-1 text-xs" data-person-id="${esc(pid)}" placeholder="备注（选填）">
             </label>`).join('')}
           <button type="button" class="ap-submit text-[11px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
         </div>` : '';
@@ -732,7 +732,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '</div>';
   }
 
-  // ── 表态汇总（2026-09-01 线上支委会 Task4：书记/副书记专属，议程区下方） ──
+  // ── 表态汇总（2026-09-01 线上支委会 Task4：支书/副支书专属，议程区下方） ──
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     html += '<div id="vote-summary-slot" class="mb-3"></div>';
   }
@@ -741,7 +741,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   html += _buildOutputsSectionHTML(activity);
 
   if (visibleTasks.length > 0) {
-    // 2026-08-10 书记裁定（设计原则 11）：进度指标只显未完成类——「已完成 N/总数」无信息增量，
+    // 2026-08-10 支书裁定（设计原则 11）：进度指标只显未完成类——「已完成 N/总数」无信息增量，
     // 仅保留待完成数（>0 时有提示价值；全部完成时无未完成=无需提示，不渲染）。
     const pendingCount = visibleTasks.filter(t => t.status !== 'completed').length;
     if (pendingCount > 0) {
@@ -778,7 +778,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
   if (isSecretary && !isArchived) {
-    // B 档 CRUD 补全：活动信息编辑（书记持有 create_activity，含编辑权）
+    // B 档 CRUD 补全：活动信息编辑（支书持有 create_activity，含编辑权）
     html += '<button id="inspector-edit-btn"'
       + ' class=" text-xs text-blue-700 hover:text-blue-900 px-3 py-1.5 rounded-lg transition-colors"'
       + ' style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.35);background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.40);">编辑信息</button>';
@@ -821,14 +821,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     }
   }
 
-  // 书记端表态汇总（2026-09-01 线上支委会 Task4：书记/副书记可见）
+  // 支书端表态汇总（2026-09-01 线上支委会 Task4：支书/副支书可见）
   // 加载后 fetchVotes → 汇总矩阵；votes-locked 冒泡 → 提示记录决议 + setState 刷新锁定态
   // 矩阵名单 = 活动投票成员：有 voteConfig.voterIds（创建时固化应到名单）→ 按名单映射人员（AV4 泛化，
   //   支部党员大会/支委会通用）；无 voteConfig（旧活动/线下）→ 回退权威支委名单 resolveVoterIds('committee')
   //   （vote-config.js：people.js role + isCommissioner、排除 u_*）。再映射回 PersonStore 人员对象
   //   （渲染需姓名/角色；名单顺序仍以 PersonStore 原序为准，勿自行重写过滤口径）
-  // canLock：书记/副书记同权（2026-09-11 副书同权裁定 + 2026-09-13 dogfood 权限专项修正——
-  //   此前仅书记为 true，导致副书记看得到表态汇总却**无截止按钮且无任何提示**；
+  // canLock：支书/副支书同权（2026-09-11 副书同权裁定 + 2026-09-13 dogfood 权限专项修正——
+  //   此前仅支书为 true，导致副支书看得到表态汇总却**无截止按钮且无任何提示**；
   //   server 端已同源改为 requireRole(SECRETARY_AND_DEPUTY_ROLES)）
   if (isSecretaryOrDeputy && Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     const vsSlot = cardsEl.querySelector('#vote-summary-slot');
@@ -852,7 +852,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     }
   }
 
-  // 会议议程编辑入口（T-283：书记行内编辑，保存→persist→重渲染）
+  // 会议议程编辑入口（T-283：支书行内编辑，保存→persist→重渲染）
   const agendaEditBtn = document.getElementById('inspector-agenda-edit-btn');
   if (agendaEditBtn) {
     agendaEditBtn.addEventListener('click', () => {
@@ -860,7 +860,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     });
   }
 
-  // 议程结果记录（2026-09-01 书记点验链路 ②：通过/未通过 → 归档草案/建成员变更申请 → 重渲染）
+  // 议程结果记录（2026-09-01 支书点验链路 ②：通过/未通过 → 归档草案/建成员变更申请 → 重渲染）
   // P1 防连点：点击后禁用按钮（async 落库期间重复点击会重复建申请）
   cardsEl.querySelectorAll('.inspector-agenda-result').forEach(btn => {
     btn.addEventListener('click', async () => {
@@ -885,7 +885,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     });
   });
 
-  // 议程逐人结果记录（S-1 2026-09-09 书记批：待讨论名单逐人「通过/未通过」+ 备注 → 通过者自动派生成员变更申请）
+  // 议程逐人结果记录（S-1 2026-09-09 支书批：待讨论名单逐人「通过/未通过」+ 备注 → 通过者自动派生成员变更申请）
   // P1 防连点：提交期间禁用按钮
   cardsEl.querySelectorAll('[data-agenda-person-results]').forEach(box => {
     const submit = box.querySelector('.ap-submit');
@@ -918,7 +918,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     });
   });
 
-  // B 档 CRUD 补全：活动信息编辑入口（书记专属）
+  // B 档 CRUD 补全：活动信息编辑入口（支书专属）
   const editBtn = document.getElementById('inspector-edit-btn');
   if (editBtn) {
     editBtn.addEventListener('click', () => {
@@ -1054,7 +1054,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  会议议程行内编辑（T-283：三会一课；书记修改议程，保存→persist→重渲染）
+//  会议议程行内编辑（T-283：三会一课；支书修改议程，保存→persist→重渲染）
 //  数据安全（2026-09-06 点验结论）：编辑仅覆盖每行议程项的 item/host 文本，
 //  完整原对象（id/kinds/branchDocId/personIds/fromStage/toStage/result/recordedBy/recordedAt）
 //  按原 index 随行保留——保存时 {...原对象, item, host} 重建，杜绝清空结构化配置、
@@ -1159,7 +1159,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  B 档 CRUD 补全：活动信息编辑浮窗（书记预填 → BranchService.updateActivity）
+//  B 档 CRUD 补全：活动信息编辑浮窗（支书预填 → BranchService.updateActivity）
 //  仅编辑基础信息（名称/日期/时间/地点/主持人/详情），议程走行内编辑、状态走生命周期。
 // ════════════════════════════════════════════════════════════════
 function _openActivityEditModal(activity, tasks, managementRole) {

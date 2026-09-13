@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  vote-widget.js — 公共表决组件（AV4.5：activity.html 党员/委员端线上异步表决）
-//  与 inspector.js renderVotePanel 同构但独立：面向「公共活动详情页」这一非书记工作台入口，
+//  与 inspector.js renderVotePanel 同构但独立：面向「公共活动详情页」这一非支书工作台入口，
 //  授权不再按角色（isCommittee），改按活动 voteConfig.voterIds 应到名单（canVote 由调用方计算）。
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912k';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260912k';
-import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260912k';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260913c';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260913c';
+import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260913c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -35,7 +35,7 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
   const options = (Array.isArray(os.options) && os.options.length > 0) ? os.options : OPTION_SETS.deliberative.options;
-  // 无记名（2026-09-12 书记裁定）：本人选项不落库、回显亦不展示（只提示已计入汇总）；
+  // 无记名（2026-09-12 支书裁定）：本人选项不落库、回显亦不展示（只提示已计入汇总）；
   //   附言不落库故匿名态不提供附言输入（避免"写了却没存"的错觉）。
   const anonymous = isAnonymousActivity(activity);
   const mine = currentUserId

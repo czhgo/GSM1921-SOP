@@ -11,14 +11,14 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 # 工作流块封装契约
 
 > **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
-> **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 书记（交互与边界裁决人）
+> **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 支书（交互与边界裁决人）
 > **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §8（愿景与 §8.5 草案）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（行动线 P2）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理）。
 
 ---
 
-## 〇、书记裁定（2026-09-03，v1.1 吸收）：块差异化 = 三个可组装维度
+## 〇、支书裁定（2026-09-03，v1.1 吸收）：块差异化 = 三个可组装维度
 
-书记对「首批块选哪几条 SOP」的回应不是选择题，而是一条**框架性裁定**，本契约据此扩展：
+支书对「首批块选哪几条 SOP」的回应不是选择题，而是一条**框架性裁定**，本契约据此扩展：
 
 > 三会一课是所有支部共通的；专班是支部自己的制度尝试；组织者/深度参与者也是支部自己的组织尝试。**表单中有哪些条目、需要涉及到多少人——都是可以被模块化组装的。**
 
@@ -188,7 +188,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 }
 ```
 
-对应闭环：书记在日历新建主题党日（forms.js 渲染 title/date/type）→ 决策树引导 → 整卡点击进入写入侧（write-tab 语义，2026-09-03 定稿）→ 出勤记录走考勤产出块（支部 config.blocks 控制是否启用）。
+对应闭环：支书在日历新建主题党日（forms.js 渲染 title/date/type）→ 决策树引导 → 整卡点击进入写入侧（write-tab 语义，2026-09-03 定稿）→ 出勤记录走考勤产出块（支部 config.blocks 控制是否启用）。
 
 ## 五、示例二：专班运行块（支部自创制度类，验证差异维度 ②③）
 
@@ -223,7 +223,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 }
 ```
 
-> 该示例显式示范书记裁定的两块拼图：**表单条目可组装**（roles/quota 字段由支部配置收拢或扩展）与**参与人范围可组装**（组织者+深度参与者的组织模式来自支部自身实践，非上级制度统一规定）。
+> 该示例显式示范支书裁定的两块拼图：**表单条目可组装**（roles/quota 字段由支部配置收拢或扩展）与**参与人范围可组装**（组织者+深度参与者的组织模式来自支部自身实践，非上级制度统一规定）。
 
 ---
 
@@ -247,10 +247,10 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - ✅ manifest 数据栖身：`docs/src/workflow/blocks/manifests.js`（与引擎数据同目录）。
 - ✅ S3 配置面：党委台「支部配置」内展示块级启停与字段级收拢（不另设页面）。
 
-**S1~S4 落地进度（2026-09-03，按书记裁定路线图）**：
-- ✅ S1 已完成（书记点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
-- ⚪ S2 独立渲染桥（2026-09-03 曾落地）已于 **2026-09-09 代码减负撤回**（书记批）：`blocks/form-renderer.js` 及其单测 `server/test/block-form-renderer.test.mjs` 删除——表单渲染回归「forms.js 积木 + 消费方直读 manifest 元数据」（S4 试点为存活路径，见下），字段语义（kind 映射 / enabledDefault 收拢）不变。
-- ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，书记裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。
-- ✅ S4 已完成（2026-09-03，书记裁定挂载 主题党日创建侧）：calendar-tab（书记台写入面板）接入 manifest 驱动试点——①入口守卫：支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响）；②表单元数据单一源：主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST.inputs.fields.title（默认态渲染与既有完全一致）。测试 block-entry-guard-e2e（停用→消失+提示→恢复→回归）+ write-hover 回归（默认态整卡可点语义不变）全绿。
+**S1~S4 落地进度（2026-09-03，按支书裁定路线图）**：
+- ✅ S1 已完成（支书点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
+- ⚪ S2 独立渲染桥（2026-09-03 曾落地）已于 **2026-09-09 代码减负撤回**（支书批）：`blocks/form-renderer.js` 及其单测 `server/test/block-form-renderer.test.mjs` 删除——表单渲染回归「forms.js 积木 + 消费方直读 manifest 元数据」（S4 试点为存活路径，见下），字段语义（kind 映射 / enabledDefault 收拢）不变。
+- ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，支书裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。
+- ✅ S4 已完成（2026-09-03，支书裁定挂载 主题党日创建侧）：calendar-tab（支书台写入面板）接入 manifest 驱动试点——①入口守卫：支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响）；②表单元数据单一源：主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST.inputs.fields.title（默认态渲染与既有完全一致）。测试 block-entry-guard-e2e（停用→消失+提示→恢复→回归）+ write-hover 回归（默认态整卡可点语义不变）全绿。
 
 > L3 契约面 S1~S4 已落地（2026-09-03）；S2 独立渲染桥已于 2026-09-09 代码减负撤回（见上），S4 manifest 驱动为存活路径。L4 画布编辑器形态（拖拽→写 config.blocks.workflowBlocks）此前 YAGNI 排除，待后续批次。

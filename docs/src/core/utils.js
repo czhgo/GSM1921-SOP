@@ -78,7 +78,7 @@ export function showToast(type, message) {
     'pointer-events:none', 'max-width:22rem', 'word-break:break-word',
   ].join(';');
 
-  // 状态色圆形图标：状态色实底白字（书记 2026-08-11 裁定——toast 状态色本就三色平行，
+  // 状态色圆形图标：状态色实底白字（支书 2026-08-11 裁定——toast 状态色本就三色平行，
   // 不属于角色功能色 2×2 规则范围，保持实底白字醒目状态指示）+ 深色正文（textContent 防注入）
   const iconEl = document.createElement('span');
   iconEl.style.cssText = [
@@ -114,7 +114,7 @@ export function getBasePath() {
 }
 
 /**
- * 跳转定位高亮（书记 2026-08-08 裁定：高亮须自动褪去，不得一直亮着）
+ * 跳转定位高亮（支书 2026-08-08 裁定：高亮须自动褪去，不得一直亮着）
  * 首页跳转携带 activityId/taskforceId 等参数时，工作台定位元素后应用本高亮：
  *  - 定时自动褪去（默认 2.8s）
  *  - 用户点击该元素即提前褪去

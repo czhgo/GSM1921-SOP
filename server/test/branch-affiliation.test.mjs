@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// server/test/branch-affiliation.test.mjs — 支部归属显式化（2026-09-09 书记批 A1/A2）
+// server/test/branch-affiliation.test.mjs — 支部归属显式化（2026-09-09 支书批 A1/A2）
 // 纯 Node（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 policy-config.test.mjs）：
 //   ① getBoundBranch 归属判定矩阵（person 不存在 / branchId null/空 / branchId 查无 → null；查有 → branch；
 //      party-staff（branchId null）→ null）
@@ -10,13 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912k';
-import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/person.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260913c';
+import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/person.js?v=20260913c';
 import {
   getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName, isLoaded,
-} from '../../docs/src/services/branch.js?v=20260912k';
+} from '../../docs/src/services/branch.js?v=20260913c';
 
 // ── localStorage 内存桩 + mock 适配器注册（people 为静态种子，读链即时可用）──
 const _store = new Map();

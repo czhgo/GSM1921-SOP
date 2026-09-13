@@ -3,30 +3,30 @@
 // 三段式：① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
 //        ② 考勤矩阵（「按活动」/「按人」互为转置；活动名搜索 + 时间区间筛选）
 //        ③ 全量总表（分页铁律，低频操作：导出/打印/提交考勤至宣传）
-// 设计裁定（书记 2026-08-29）：
+// 设计裁定（支书 2026-08-29）：
 //   - 两个视图是转置关系，不是 long/wide 长表与矩阵的区别
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
-//   - 条目不得使用浅色底板（书记反感）→ 白底 + 左侧状态色条
+//   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912k';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-// S1–S4 滞留党员设计（2026-09-06 书记已批）：会议考勤「应到清点/全选范围」= 应到名单口径
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+// S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
-// 附录⑩ A批·S1（2026-09-06 书记裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260912k';
-import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260912k';
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912k';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912k';
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260912k';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260912k';
-import { HandoffStore } from '../../../services/handoff.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
+// 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260913c';
+import { solidAccentStyle, ROLE_LABELS } from '../../../core/constants.js?v=20260913c';
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913c';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc } from '../../../core/utils.js?v=20260913c';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -113,7 +113,7 @@ export function renderContent(ctx) {
       if (!record) return;
       record.recordedBy = DISC_COMMISSIONER_ID;
       saveAttendanceRecords(records);
-      // 做事即销待办：确认考勤 → 销书记「考勤待确认」/纪检提醒
+      // 做事即销待办：确认考勤 → 销支书「考勤待确认」/纪检提醒
       TodoStore.completeBySource(TodoSourceType.ACTIVITY, record.activityId);
       TodoStore.completeBySource(TodoSourceType.ACTIVITY, `review_${record.activityId}`);
       // 考勤确认后自动生成补课任务
@@ -168,7 +168,7 @@ export function renderContent(ctx) {
   if (_meetFormVisible) {
     _initMeetForm(container, accent);
   }
-  // 全选应到名单 / 清空（S1–S4 书记已批）：picker 无内置全选，按应到名单（党员非滞留）setSelected——
+  // 全选应到名单 / 清空（S1–S4 支书已批）：picker 无内置全选，按应到名单（党员非滞留）setSelected——
   // 不再全选支部 50 人（滞留/非党员/党课列席不计应到，党委组织员 p_pc 等非本支部党员亦不在候选）
   container.querySelector('#disc-meet-select-all')?.addEventListener('click', () => {
     if (!_meetPickerInstance) return;
@@ -465,7 +465,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长上传、纪检确认（记录人=本组组长）。应到计算规则（书记裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由纪检于下方单独勾选「到场补录」</div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长上传、纪检确认（记录人=本组组长）。应到计算规则（支书裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由纪检于下方单独勾选「到场补录」</div>
       ${body}
     </div>
   `;
@@ -546,7 +546,7 @@ function _initMeetForm(container, accent) {
   const pickerContainer = container.querySelector('#disc-meet-picker');
   if (!pickerContainer) return;
   if (_meetPickerInstance) { _meetPickerInstance.destroy(); _meetPickerInstance = null; }
-  // 书记 2026-09-06 ①批：滞留者「可见但不可选」（逐人禁用）——候选不再 filter 剔除滞留者，
+  // 支书 2026-09-06 ①批：滞留者「可见但不可选」（逐人禁用）——候选不再 filter 剔除滞留者，
   // 而是「党员（含滞留）全可见 + disabledIds 禁选」：纪检能看到"此人为何不在应到"（灰态 +
   // 「滞留」徽标 + title 备注）；党课列席/非党员仍不可见。候选随表单每次重建刷新（成员状态
   // 维护后即时生效）。「全选应到名单」按钮走 setSelected(rosterIds) → 只选可用项（picker 内

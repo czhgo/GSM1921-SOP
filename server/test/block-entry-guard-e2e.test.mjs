@@ -1,5 +1,5 @@
 // server/test/block-entry-guard-e2e.test.mjs — L3 S4 主题党日块入口守卫 E2E（2026-09-03）
-// 支部停用 theme-party-day（config.blocks.workflowBlocks）→ 书记台写入面板 Step1 主题党日模板卡消失 + 停用提示
+// 支部停用 theme-party-day（config.blocks.workflowBlocks）→ 支书台写入面板 Step1 主题党日模板卡消失 + 停用提示
 // → 恢复默认 → 模板卡回归（默认态与既有行为完全一致）。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录 + API 配置写口。
 
@@ -74,7 +74,7 @@ test('S4 主题党日块入口守卫：停用 → Step1 模板卡消失 → 恢�
     assert.ok(await page1.evaluate(() => !!document.querySelector('[data-tpl-click="1"]')), '默认主题党日模板卡存在');
   } finally { await page1.close(); }
 
-  // ② 支部停用 theme-party-day → 书记台模板卡消失 + 停用提示
+  // ② 支部停用 theme-party-day → 支书台模板卡消失 + 停用提示
   await patchBlocks(staffToken, {
     outputBlocks: { hiddenBlockIds: [], blockOrder: [] },
     workflowBlocks: { hiddenBlockIds: ['theme-party-day'] },

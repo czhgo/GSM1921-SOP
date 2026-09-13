@@ -5,18 +5,18 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain.js?v=20260912k';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260912k';
-import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260912k';
-import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260912k';
-import { getRosterStats } from '../../../services/roster.js?v=20260912k';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913c';
+import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch.js?v=20260913c';
+import { appointSecretary, listAppointments } from '../../../services/appointment.js?v=20260913c';
+import { getRosterStats } from '../../../services/roster.js?v=20260913c';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260912k';
-import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260912k';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/branch-roster-import.js?v=20260913c';
+import { showToast, escHtml as esc, downloadBlob } from '../../../core/utils.js?v=20260913c';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260912k';
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260913c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -78,7 +78,7 @@ export async function renderContent() {
             <div class="flex items-start justify-between gap-2 flex-wrap mb-2">
               <div class="min-w-0">
                 <p class="font-title-cn text-base font-bold text-gray-800 truncate">${esc(b.config?.headerTitle || b.name)}</p>
-                <p class="text-xs text-gray-500 mt-0.5">${esc(b.type || '支部')} · 现任书记：${esc(b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）')}</p>
+                <p class="text-xs text-gray-500 mt-0.5">${esc(b.type || '支部')} · 现任支书：${esc(b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）')}</p>
                 ${isEmpty
                   ? '<p class="text-[11px] text-amber-700 mt-1">空支部 · 成员 0 名——可整表导入成员名册（导入后成员/应到统计即时可见）</p>'
                   : `<p class="text-[11px] text-gray-500 mt-1">成员 ${inBranch.length} 名 · 在册党员 ${rStats.partyTotal} · 支部党员大会应到 ${rStats.expected} 人</p>`}
@@ -87,7 +87,7 @@ export async function renderContent() {
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <button class="branch-rename-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">改名</button>
-              <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命书记</button>
+              <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命支书</button>
               ${isEmpty
                 ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:#C8102E;" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
                 : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
@@ -100,7 +100,7 @@ export async function renderContent() {
             </div>
             <div class="branch-appoint-row hidden mt-2 space-y-2">
               <select class="branch-appoint-select input-flat w-full">
-                <option value="">— 选择本支部成员为新任书记 —</option>
+                <option value="">— 选择本支部成员为新任支书 —</option>
                 ${members.filter(p => p.branchId === bid && p.role !== 'party-staff').map(p =>
                   `<option value="${esc(p.id)}" ${p.id === b.secretaryId ? 'disabled' : ''}>${esc(p.name)}（${esc(p.developStage || '')}）${p.id === b.secretaryId ? '·现任' : ''}</option>`).join('')}
               </select>
@@ -158,20 +158,20 @@ export async function renderContent() {
       showToast('success', '支部名称已更新（header 已随配置更换）');
       renderContent();
     });
-    // 任命书记（P2：toggle 展开 → 选成员 → 确认任命）
+    // 任命支书（P2：toggle 展开 → 选成员 → 确认任命）
     card.querySelector('.branch-appoint-toggle')?.addEventListener('click', () => {
       card.querySelector('.branch-appoint-row')?.classList.toggle('hidden');
     });
     card.querySelector('.branch-appoint-save')?.addEventListener('click', async () => {
       const personId = card.querySelector('.branch-appoint-select')?.value;
-      if (!personId) { showToast('error', '请选择新任书记'); return; }
+      if (!personId) { showToast('error', '请选择新任支书'); return; }
       const note = card.querySelector('.branch-appoint-note')?.value.trim() || '';
       const name = card.querySelector('.branch-appoint-select')?.selectedOptions?.[0]?.textContent || personId;
-      // B8②（2026-09-12）：任命一步生效且原书记降回成员 → 加二次确认弹窗（防误操作）
+      // B8②（2026-09-12）：任命一步生效且原支书降回成员 → 加二次确认弹窗（防误操作）
       const curSecyName = b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）';
-      if (!window.confirm(`确认任命 ${name.split('（')[0]} 为「${b.config?.headerTitle || b.name}」新任支部书记？\n现任书记 ${curSecyName} 将降回普通成员，任命即时生效并记入任期档案。`)) return;
+      if (!window.confirm(`确认任命 ${name.split('（')[0]} 为「${b.config?.headerTitle || b.name}」新任支书？\n现任支书 ${curSecyName} 将降回普通成员，任命即时生效并记入任期档案。`)) return;
       await appointSecretary({ branchId, personId, note });
-      showToast('success', `已任命 ${name.split('（')[0]} 为支部书记（原书记已降回成员，任期档案已记录）`);
+      showToast('success', `已任命 ${name.split('（')[0]} 为支书（原支书已降回成员，任期档案已记录）`);
       renderContent();
     });
   });
@@ -331,7 +331,7 @@ async function _confirmRosterImport(branchId) {
   if (!draft || !draft.people || !draft.people.length) return;
   const branch = (mockDB.branches || []).find(x => x.id === branchId);
   const label = branch?.config?.headerTitle || branch?.name || branchId;
-  // 产品门槛（书记口径：仅空支部可整体替换）——导入后该支部已有成员 → 不提供二次整表覆盖
+  // 产品门槛（支书口径：仅空支部可整体替换）——导入后该支部已有成员 → 不提供二次整表覆盖
   if (PersonStore.getMembers().some(p => p.branchId === branchId)) {
     _rosterDrafts.delete(branchId);
     showToast('error', '该支部已有成员，不再提供整表替换——成员调整请逐人编辑（成员档案）');

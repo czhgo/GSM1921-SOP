@@ -1,20 +1,20 @@
 // role: [工程师]+[AI]
-// activity-view.js — 只读活动查看组件（知情权组件，书记 2026-08-08 裁定）
+// activity-view.js — 只读活动查看组件（知情权组件，支书 2026-08-08 裁定）
 // 供无活动 tab 的工作台（组织委员/宣传委员等）承载 activityId / view=activities 跳转落点：
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
-// 形态依据书记第四轮裁定：「书记的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
+// 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260912k';
-import { renderCalendarByActivities } from './calendar.js?v=20260912k';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
-import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260912k';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260912k';
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { fetchVotes } from '../services/committee-vote.js?v=20260912k';
+import { getAppState, setState } from '../core/state.js?v=20260913c';
+import { renderCalendarByActivities } from './calendar.js?v=20260913c';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
+import { ROLE_COLORS, dotDarkVars } from '../core/constants.js?v=20260913c';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260913c';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { fetchVotes } from '../services/committee-vote.js?v=20260913c';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from './vote-widget.js?v=20260912k';
+import { renderVoteWidget } from './vote-widget.js?v=20260913c';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {
@@ -79,17 +79,22 @@ export function renderActivityView(container, opts = {}) {
   // ── 月份选择器（activity-view 自管理，不依赖 calendar.js 的全局单绑）──
   const monthSel = container.querySelector('#month-selector');
   const currentMonth = _currentYearMonth();
-  const displayMonth = state.displayMonth || currentMonth;
+  // 月份单一源（2026-09-13 月份口径彻查）：选择器与日历必须用同一个 month。
+  // 原按 state.displayMonth 直接标 selected，若该月不在选项内（如早于最早活动月）则无 option
+  // 命中 → 浏览器落到首项「全部月份」，而日历仍按 displayMonth 渲染 → 选择器与网格月份不一致。
+  // 改为：先算唯一权威 month（选项内优先 state.displayMonth，否则回落当月/最新月），选择器与日历共用。
+  const months = [...new Set(
+    activities
+      .filter(a => !a.archived && typeof a.date === 'string' && a.date.length >= 7)
+      .map(a => a.date.slice(0, 7))
+  )].sort().reverse();
+  const fallbackMonth = months.includes(currentMonth) ? currentMonth : (months[0] || currentMonth);
+  const displayMonth = months.includes(state.displayMonth) ? state.displayMonth : fallbackMonth;
   if (monthSel) {
-    const months = [...new Set(
-      activities
-        .filter(a => !a.archived && typeof a.date === 'string' && a.date.length >= 7)
-        .map(a => a.date.slice(0, 7))
-    )].sort().reverse();
     monthSel.innerHTML = '<option value="">全部月份</option>'
       + months.map(m => `<option value="${m}" ${m === displayMonth ? 'selected' : ''}>${m}</option>`).join('');
     monthSel.onchange = () => setState({
-      displayMonth: monthSel.value || currentMonth,
+      displayMonth: monthSel.value || displayMonth,
       selectedActivityId: null,
       selectedDate: null,
       viewMode: 'list',
@@ -102,7 +107,7 @@ export function renderActivityView(container, opts = {}) {
   // ── 详情面板：URL 携带 activityId 时优先展示（兜底 state.selectedActivityId）──
   _renderDetail(state, activities, tasks, highlightId, !!opts.readonly);
 
-  // ── 定位高亮（定时自动褪去，书记 2026-08-08 裁定）──
+  // ── 定位高亮（定时自动褪去，支书 2026-08-08 裁定）──
   if (highlightId) {
     setTimeout(() => {
       const item = container.querySelector(`.cal-activity-item[data-act-id="${highlightId}"]`);

@@ -10,7 +10,7 @@ import { afterResourceWrite } from '../services/mailer-hooks.js';
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
 // 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防失同步）
 import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../docs/src/core/config-clean.js';
-// 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
+// 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
@@ -47,7 +47,7 @@ const RESOURCE_TABLES = {
   branchDocs: 'branch_docs',
   // P1 党委后台（2026-09-02）：支部实例（党委工作台支部管理；写权限默认 requireAuth，收紧留 P2）
   branches: 'branches',
-  // P2 党委后台（2026-09-02）：书记任期记录
+  // P2 党委后台（2026-09-02）：支书任期记录
   appointmentRecords: 'appointment_records',
   // P3 党委后台（2026-09-02）：支部上报审批（发展节点/活动报备 → 党委批驳）
   reviewRequests: 'review_requests',
@@ -73,7 +73,7 @@ const RESOURCE_WRITE_GATE = {
   appointmentRecords: 'party-staff',
   users: 'party-staff',
   reviewRequests: { post: 'branch-committee', patch: 'party-staff', delete: 'party-staff' },
-  // 通知（2026-09-13 dogfood 权限专项）：发布=书记/副书记/组织/宣传，管理（编辑/删除）=发布者+纪检；
+  // 通知（2026-09-13 dogfood 权限专项）：发布=支书/副支书/组织/宣传，管理（编辑/删除）=发布者+纪检；
   // 角色名单单一源 = constants.js::NOTICE_PUBLISH_ROLES / NOTICE_MANAGE_ROLES（与前端 NoticePermission 同源）
   notices: { post: 'notice-publish', patch: 'notice-manage', delete: 'notice-manage' },
 };
@@ -108,7 +108,7 @@ function _assertResourceWrite(actor, name, method, body) {
 /** 写门 403 文案（按资源给可懂原因，勿用一句万金油） */
 function _writeDenyMsg(name) {
   if (name === 'notices') {
-    return '无权限：通知发布仅限书记/副书记/组织委员/宣传委员，编辑与删除另含纪检委员';
+    return '无权限：通知发布仅限支书/副支书/组织委员/宣传委员，编辑与删除另含纪检委员';
   }
   return '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
@@ -119,7 +119,7 @@ function _writeDenyMsg(name) {
 // 现行门：① 非支委层（普通成员/预备党员/积极分子等）一律拒；
 //   ② 党小组组长仅限「党小组会 / 主题党日」（对齐 SYSTEM_ROLE_PERMISSION §9a 与组长手册）。
 // 支委层既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行，不在此收口——是否进一步收紧为
-//   §9a 原文「仅书记/副书记/党小组组长」列入丙部待书记裁（避免误伤归档/议程链路）。
+//   §9a 原文「仅支书/副支书/党小组组长」列入丙部待支书裁（避免误伤归档/议程链路）。
 const ACTIVITY_WRITE_ROLES = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
 const LEADER_ACTIVITY_TYPES = new Set(['党小组会', '主题党日']);
 const ACTIVITY_WRITE_DENY_MSG = '无权限：活动写入仅限支委层与党小组组长（组长限党小组会/主题党日）';
@@ -146,7 +146,7 @@ const ID_PREFIX = {
   thoughtReports: 'tr',
 };
 
-// 表决计票方式写侧校验（2026-09-12 书记裁定）：正式表决（optionSet formal——发展党员/转正等）
+// 表决计票方式写侧校验（2026-09-12 支书裁定）：正式表决（optionSet formal——发展党员/转正等）
 // 制度强制无记名，显式写 ballotMode='named' 一律 400（规则单一源 constants.js::isAnonymousForced）。
 // 仅在请求显式携带 voteConfig 时校验（不含则不动既有活动配置，防无关 patch 误拒）。
 function _ballotModeReject(voteConfig) {
@@ -242,7 +242,7 @@ export function createResourcesRouter(db) {
         }
       }
       // 文件类资源（支部文件/文件空间记录/图片记录）：删除记录前联动删除已上传的物理文件
-      // （书记 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
+      // （支书 2026-08-18 裁决「连物理文件一起删」；T-304 D 档扩展至文件空间/图片记录，杜绝孤儿文件）
       if (name === 'branchDocs' || name === 'fileSpaceRecords' || name === 'imageRecords') {
         const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(req.params.id);
         if (existing) {
@@ -340,7 +340,7 @@ export function createResourcesRouter(db) {
       name: finalName,
       type: isCopy ? (sourceBranch.type || '') : String(body.type || '').trim(),
       config,
-      secretaryId: null, // 空支部席位空缺待任命（复制不带走源书记）
+      secretaryId: null, // 空支部席位空缺待任命（复制不带走源支书）
       status: 'active',
       createdAt: at,
     };
@@ -416,12 +416,12 @@ export function createResourcesRouter(db) {
     res.status(204).end();
   });
 
-  // ── L2 支部工作流模块配置（2026-09-03 书记裁定：支部自治/书记操作/核心固定）────────
-  // 支部书记写自己支部 config.modules；党委组织员保留；body 白名单仅收 modules 两数组，
+  // ── L2 支部工作流模块配置（2026-09-03 支书裁定：支部自治/支书操作/核心固定）────────
+  // 支书写自己支部 config.modules；党委组织员保留；body 白名单仅收 modules 两数组，
   // 不触碰治理字段（name/type/secretaryId/status）——与通用 branches PATCH（party-staff）互补。
-  // 2026-09-06 换组织向导（书记 R4）：白名单扩 config.headerTitle/desc/themePreset（组织档案域，
+  // 2026-09-06 换组织向导（支书 R4）：白名单扩 config.headerTitle/desc/themePreset（组织档案域，
   // 仍在 config 内、非治理字段）；配置变更统一追加 config.configChangeHistory（by/at/what/from/to）。
-  // 2026-09-09 副书同权（书记批）：config 写权扩展本支部副书记（deputy-secretary 且归属该支部）——同现任书记。
+  // 2026-09-09 副书同权（支书批）：config 写权扩展本副支书（deputy-secretary 且归属该支部）——同现任支书。
   router.patch('/branches/:id/config', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
@@ -432,7 +432,7 @@ export function createResourcesRouter(db) {
     const isStaff = actor.role === 'party-staff';
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
-    // 批4（2026-09-09 书记批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节
+    // 批4（2026-09-09 支书批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节
     // policyOverrides（inspection=纪检 · memberConfirmation=组织 · leader=组长），与前端 branch.js 同口径。
     const DOMAIN_SECTION_BY_ROLE = { 'disc-commissioner': 'inspection', 'org-commissioner': 'memberConfirmation', leader: 'leader' };
     let domainSection = null;
@@ -441,7 +441,7 @@ export function createResourcesRouter(db) {
     }
     const fullRights = isStaff || isSecretary || isDeputyHere;
     if (!fullRights && !domainSection) {
-      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可配置（域负责人仅可改本域参数）' });
+      return res.status(403).json({ error: '无权限：仅本支部现任支书/副支书或党委组织员可配置（域负责人仅可改本域参数）' });
     }
 
     const cfg = req.body?.config;
@@ -518,7 +518,7 @@ export function createResourcesRouter(db) {
         }
       }
       if (p === null) {
-        nextConfig.policyOverrides = null; // 全量恢复默认（仅书记/副书记/党委）
+        nextConfig.policyOverrides = null; // 全量恢复默认（仅支书/副支书/党委）
       } else if (typeof p !== 'object' || Array.isArray(p)) {
         return res.status(400).json({ error: 'config.policyOverrides 须为对象（节 → 值/null）或 null' });
       } else {
@@ -537,7 +537,7 @@ export function createResourcesRouter(db) {
       }
     }
 
-    // 配置变更留痕（2026-09-06 书记 R4：即时生效 + 留痕；低频可回滚，不设审批闸）
+    // 配置变更留痕（2026-09-06 支书 R4：即时生效 + 留痕；低频可回滚，不设审批闸）
     // 逐键 diff prevConfig → nextConfig，有实质变化才追加 {by,at,what,from,to,why?}；空变化不产生冗余条目。
     // 2026-09-09 审计内核：body.why=依据/出处（可选，来源页回填如 REVIEW_QUEUE 附录编号）落到留痕行；
     // 历史保留最近 CONFIG_HISTORY_MAX 条（追加即裁剪最早）。
@@ -560,11 +560,11 @@ export function createResourcesRouter(db) {
     res.json(branch);
   });
 
-  // ── 配置单键回滚（2026-09-09 书记批「审计内核」B2：与前端 branch.js rollbackBranchConfig 同源）────────
+  // ── 配置单键回滚（2026-09-09 支书批「审计内核」B2：与前端 branch.js rollbackBranchConfig 同源）────────
   // PATCH /branches/:id/config/rollback —— body：{ targetEntryAt?, index?, why? }（定位二选一；
   // targetEntryAt=留痕条目 at；index=历史数组序号 0 起）。语义：定位一条单键变更 → 将其 to→from
   // 写回该配置键（跨键不动）→ 追加 { what:'rollback', from:回滚前该键现值, to:回滚值, by, why? } → 裁剪至上限。
-  // 角色门（与 PATCH /branches/:id/config 同口径）：party-staff / 本支部现任书记 / 本支部副书记（同支部）。
+  // 角色门（与 PATCH /branches/:id/config 同口径）：party-staff / 本支部现任支书 / 本副支书（同支部）。
   router.patch('/branches/:id/config/rollback', requireAuth(db), (req, res) => {
     const actor = req.actor;
     if (!actor) return res.status(401).json({ error: '未登录' });
@@ -575,7 +575,7 @@ export function createResourcesRouter(db) {
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
     if (!(isStaff || isSecretary || isDeputyHere)) {
-      return res.status(403).json({ error: '无权限：仅本支部现任书记/副书记或党委组织员可回滚配置' });
+      return res.status(403).json({ error: '无权限：仅本支部现任支书/副支书或党委组织员可回滚配置' });
     }
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const history = Array.isArray(branch.config && branch.config.configChangeHistory)
@@ -612,10 +612,10 @@ export function createResourcesRouter(db) {
   });
 
   // ════════════════════════════════════════════════════════════════
-  //  意见反馈（真匿名）语义端点（2026-09-12 书记裁定）
+  //  意见反馈（真匿名）语义端点（2026-09-12 支书裁定）
   //  · GET  /api/v1/issues      公开读（处置结果公开可见，所有人可见）
   //  · POST /api/v1/issues      登录用户可提交；落库字段白名单，绝不存可反查提交人的字段
-  //  · PATCH /api/v1/issues/:id 处置/回复沿用既有口径（仅党支部书记）
+  //  · PATCH /api/v1/issues/:id 处置/回复沿用既有口径（仅支书）
   //  防刷（真匿名下唯一手段）：客户端随机 token → 服务端仅存 tokenHash，仅用于判重/频率限制，
   //  不含 personId、不可反查人（哈希算法与前端同源 = constants.hashSubmitterToken）。
   // ════════════════════════════════════════════════════════════════
@@ -699,7 +699,7 @@ export function createResourcesRouter(db) {
     res.status(201).json(sanitizeIssue(record));
   });
 
-  // 处置/回复（仅党支部书记，沿用既有口径）：白名单字段局部合并；处置结果随公开 issue 一并可见
+  // 处置/回复（仅支书，沿用既有口径）：白名单字段局部合并；处置结果随公开 issue 一并可见
   router.patch('/issues/:id', requireRole(db, SECRETARY_SET), (req, res) => {
     const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ error: 'not found' });

@@ -1,15 +1,15 @@
 // role: [工程师]+[AI]
-// entries/tabs/secretary/notification-tab.js — 书记工作台·通知发布 tab（懒加载模块）
+// entries/tabs/secretary/notification-tab.js — 支书工作台·通知发布 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260912k';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260913c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260912k';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260913c';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -169,9 +169,9 @@ function handlePublishNotification() {
     read: false,
     audience: [..._selectedAudience],
     audienceLabel: audienceLabels.join('、'),
-    // 落款按实际发布角色（dogfood 权限专项 2026-09-13）：此前硬编码「书记」，
-    // 副书记发布也显示「书记」→ 审计失真；现按当前登录角色取「书记/副书记」
-    publishedBy: (AuthStore.getCurrentUser() || {}).role === 'deputy-secretary' ? '副书记' : '书记',
+    // 落款按实际发布角色（dogfood 权限专项 2026-09-13）：此前硬编码「支书」，
+    // 副支书发布也显示「支书」→ 审计失真；现按当前登录角色取「支书/副支书」
+    publishedBy: (AuthStore.getCurrentUser() || {}).role === 'deputy-secretary' ? '副支书' : '支书',
   };
 
   NoticeStore.add(notification, (AuthStore.getCurrentUser() || {}).role || 'secretary');
@@ -225,7 +225,7 @@ function renderNotificationList() {
           ${writeBtns}
         </div>
         <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${n.content}</p>
-        <p class="text-xs text-gray-500 mt-1.5">${n.publishedBy || '书记'} · ${dateStr}</p>
+        <p class="text-xs text-gray-500 mt-1.5">${n.publishedBy || '支书'} · ${dateStr}</p>
       </div>
     `;
   }).join('<div class="border-b border-gray-100"></div>');

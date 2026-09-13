@@ -53,7 +53,7 @@ const TEMPLATES = {
   // ── 成员变更已审批通过（member-change-panel.js 迁移） ──────────────
   'member-change-approved': ({ sourceId, personName, fromStage, toStage, activityTitle }) => pick({
     title: '成员变更已审批通过',
-    content: `${personName}：${fromStage}→${toStage} 已通过组织委员审批（${activityTitle}），待书记确认后更新发展阶段。`,
+    content: `${personName}：${fromStage}→${toStage} 已通过组织委员审批（${activityTitle}），待支书确认后更新发展阶段。`,
     priority: 'normal',
     targetUrl: `workspace/secretary.html?tab=todo&highlight=${sourceId}`,
   }),
@@ -68,12 +68,19 @@ const TEMPLATES = {
   }),
 
   // ── 支部分工调整已生效（workforce.js 迁移） ───────────────────────
-  'workforce-proposal-adopted': ({ sourceId, activityTitle }) => pick({
+  // 分工自动传递（2026-09-13 支书裁定）：actionRoles/actionable/actionTask 由**服务端**按
+  //   来源活动的 extras.proposal 复算注入（见 server/system-notice-kinds.js 的 build），
+  //   客户端不传；角色负责人据此派生「履职」待办（到人负责人由 workforce.js 直接派生）。
+  'workforce-proposal-adopted': ({ sourceId, activityTitle, actionRoles, actionable, actionTask }) => pick({
     title: '支部分工调整已生效',
-    content: `「${activityTitle}」已按支委会表决采纳，分工已更新。`,
+    content: `「${activityTitle}」已按支委会表决采纳，分工已更新，相关责任人可前往「支部分工」查看并履职。`,
     priority: 'normal',
     targetType: 'activity',
     targetId: sourceId,
+    actionRoles,
+    actionable,
+    actionTask,
+    targetUrl: 'workspace/secretary.html?tab=work-map',
   }),
 
   // ── 线上支委会表态更新（committee-vote.js 迁移；计数由服务端复算） ──

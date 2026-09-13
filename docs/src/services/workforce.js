@@ -1,30 +1,31 @@
 // role: [工程师]+[AI]
 // services/workforce.js — 支部分工提议与采纳（L4 M2 闭环，2026-09-03）
-// 链路：书记台「支部分工」改派提议（会前拟稿/直接发起）→ 生成「支委会」议题活动
+// 链路：支书台「支部分工」改派提议（会前拟稿/直接发起）→ 生成「支委会」议题活动
 //   （voteConfig = deliberative 交流式表决，应到支委）→ 支委经既有表决 UI 表态 →
-//   书记确认采纳 → 合并 config.workforce 落库 → 视图即时生效。
+//   支书确认采纳 → 合并 config.workforce 落库 → 视图即时生效。
 // 表决本身复用既有 agenda-votes 资产，本服务不重复实现投票 UI；采纳为人工确认动作
 // （表决结果在支委会活动详情查看），前置校验：票决通过判定（见 evaluateWorkforceVotes）方可采纳。
 // A1/M2 补齐（2026-09-05）：票决通过判定（2/3 出席且无异议）为采纳硬门槛；
-//   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=书记台暂存。
-// R2-3（2026-09-06 书记裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
+//   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
+// R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from './runtime.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912k';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot } from '../core/work-map.js?v=20260912k';
-import { getPersonName } from './person.js?v=20260912k';
-import { AuthStore } from './auth.js?v=20260912k';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260912k';
-import { fetchVotesStrict } from './committee-vote.js?v=20260912k';
+import { BranchService } from './runtime.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260913c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule } from '../core/work-map.js?v=20260913c';
+import { getPersonName } from './person.js?v=20260913c';
+import { AuthStore } from './auth.js?v=20260913c';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260913c';
+import { fetchVotesStrict } from './committee-vote.js?v=20260913c';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260913c';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
 /**
  * 支部默认票决门槛（P3c 单一源 = core/policy-defaults.js，派生导出保持名/形状不变）
- * 默认值 = 本科生党支部 2026-09-06 书记裁决「支委会从严：应到超过 2/3 且无反对，弃权允许」
+ * 默认值 = 本科生党支部 2026-09-06 支书裁决「支委会从严：应到超过 2/3 且无反对，弃权允许」
  *   （附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md；取代 2026-09-05 版裁决）；
  * 开源部署如需调整改 policy-defaults.js，勿在本文件新写字面量。
  */
@@ -70,9 +71,10 @@ function currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || AuthStore.getCurrentUser()?.id || null;
 }
 
-/** 目标 owner 显示名（role → 角色名；person → 姓名） */
+/** 目标 owner 显示名（role → 角色名；person → 姓名；none → 不开展） */
 export function ownerDisplay(assign) {
   if (!assign) return '未分工';
+  if (assign.ownerType === 'none') return '不开展（停用）';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
@@ -100,7 +102,10 @@ function _titleFor(changes) {
  */
 export async function createWorkforceProposalActivity(branchId, changes, note = '', date) {
   const clean = (Array.isArray(changes) ? changes : [])
-    .filter((c) => c && c.moduleId && c.to && (c.to.ownerType === 'role' || c.to.ownerType === 'person') && c.to.ownerId);
+    .filter((c) => c && c.moduleId && c.to && (
+      ((c.to.ownerType === 'role' || c.to.ownerType === 'person') && c.to.ownerId) ||
+      (c.to.ownerType === 'none' && canDisableModule(c.moduleId)) // 方法类停用（规范类必办，不容停用）
+    ));
   if (clean.length === 0) throw new Error('改派清单为空：请选择要调整的模块与目标负责人');
 
   const lines = clean.map((c) => `- ${moduleName(c.moduleId)}：现任 ${ownerDisplay(getBranchWorkforce(branchId)[c.moduleId])} → 拟改派 ${ownerDisplay(c.to)}`);
@@ -111,7 +116,7 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
     date: date || new Date().toISOString().slice(0, 10),
     status: 'published',
     visibility: 'group',
-    // 新支委会表决活动（书记 2026-09-06 ②批）：voterIds 固化 = 现时支委应到名单
+    // 新支委会表决活动（支书 2026-09-06 ②批）：voterIds 固化 = 现时支委应到名单
     // （支委若滞留则剔，roster 口径；历史活动快照不回改）
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }, // deliberative / committee / quorum=false
     agenda: [{
@@ -137,7 +142,7 @@ export async function listWorkforceProposals(branchId) {
     .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 }
 
-/** 拉取议题实时票决判定（应到=委员会名单；供采纳硬校验与书记台卡片共用） */
+/** 拉取议题实时票决判定（应到=委员会名单；供采纳硬校验与支书台卡片共用） */
 export async function getWorkforceVoteOutcome(activityId) {
   const roster = resolveVoterIds('committee');
   const votes = await fetchVotesStrict(activityId);
@@ -179,5 +184,59 @@ export async function adoptWorkforceProposal(branchId, activityId) {
   try {
     NoticeStore.addSystem('workforce-proposal-adopted', activityId, { activityTitle: act.title });
   } catch (e) { console.warn('[workforce] 生效通知失败（不影响采纳）：', e); }
+  _deriveDutyTodos(activityId, act.extras.proposal);
   return updated;
+}
+
+/** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY） */
+const DUTY_DOMAIN = {
+  'three-meetings': WORK_DOMAIN.MEETING,
+  'theme-party': WORK_DOMAIN.ACTIVITY,
+  taskforce: WORK_DOMAIN.TASKFORCE,
+  'joint-event': WORK_DOMAIN.ACTIVITY,
+  'develop-party-member': WORK_DOMAIN.MEMBER_DEV,
+  'democratic-review': WORK_DOMAIN.MEETING,
+  election: WORK_DOMAIN.MEETING,
+  'attendance-inspection': WORK_DOMAIN.ATTENDANCE,
+  'feedback-handling': WORK_DOMAIN.REPORT,
+  'rule-making': WORK_DOMAIN.ACTIVITY,
+  'info-platform': WORK_DOMAIN.ARCHIVE,
+};
+
+/**
+ * 分工自动传递（2026-09-13 支书裁定「通过线上的调整实现信息和任务的算法自动传递」）：
+ * 采纳后按**本次实际改派**的负责人逐条派生「履职」待办——
+ *   · 到人（ownerType='person'）→ personId 命中该成员待办页；
+ *   · 角色（ownerType='role'）→ 记 role，由该角色工作台待办页承接（并在通知侧 actionRoles 定向）。
+ * 停用（'none'）不派生。幂等：sourceId = `<activityId>:<moduleId>`，重复采纳不重复派生。
+ */
+function _deriveDutyTodos(activityId, proposal) {
+  try {
+    const existing = new Set(TodoStore.getAll().map((t) => t.sourceId));
+    const items = [];
+    for (const c of Array.isArray(proposal) ? proposal : []) {
+      const to = c && c.to;
+      if (!to || to.ownerType === 'none') continue;
+      const name = moduleName(c.moduleId);
+      const sourceId = `${activityId}:${c.moduleId}`;
+      if (existing.has(sourceId)) continue;
+      const base = {
+        title: `履职：${name}`,
+        description: `支委会已通过分工调整：「${name}」由你负责。请按对应工作台的规范与工作方法推进。`,
+        category: TodoCategory.TRACK,
+        priority: 'normal',
+        domain: DUTY_DOMAIN[c.moduleId] || WORK_DOMAIN.ACTIVITY,
+        sourceType: TodoSourceType.MANUAL,
+        sourceId,
+        actionKey: 'workforce-duty',
+        actionData: { moduleId: c.moduleId, activityId },
+        flow: '支委会表决通过 → 分工生效 → 责任人履职',
+      };
+      if (to.ownerType === 'person') items.push({ ...base, personId: to.ownerId });
+      else items.push({ ...base, role: to.ownerId });
+    }
+    if (items.length) TodoStore.createBatch(items);
+  } catch (e) {
+    console.warn('[workforce] 履职待办派生失败（不影响采纳）：', e);
+  }
 }

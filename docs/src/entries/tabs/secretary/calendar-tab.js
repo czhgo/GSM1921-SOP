@@ -1,40 +1,40 @@
 // role: [工程师]+[AI]
-// entries/tabs/secretary/calendar-tab.js — 书记工作台·活动管理 tab（懒加载模块）
+// entries/tabs/secretary/calendar-tab.js — 支书工作台·活动管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260912k';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260912k';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260912k';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260912k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260912k';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912k';
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912k';
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { getAppState, setState } from '../../../core/state.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260913c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260913c';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260913c';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260913c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260913c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260913c';
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913c';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { BranchService } from '../../../services/runtime.js?v=20260912k';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260912k';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { BranchService } from '../../../services/runtime.js?v=20260913c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260913c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
-import { collectAgendaRows } from './agenda-form.js?v=20260912k';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260912k';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
+import { collectAgendaRows } from './agenda-form.js?v=20260913c';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260913c';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260912k';
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260913c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260912k';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260913c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260912k';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260913c';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -60,12 +60,12 @@ function _themeField(fieldId) {
 }
 
 // 成员发展阶段（议程「待讨论名单」类型：与 people.js developStage 口径一致）
-// S-2（2026-09-09 书记批）：发展议程只留「转为预备党员 / 转为正式党员」两个目标；
+// S-2（2026-09-09 支书批）：发展议程只留「转为预备党员 / 转为正式党员」两个目标；
 // 「从什么」由系统按所选对象各自当前阶段自动取（界面不再让人选 fromStage）。
 const AGENDA_TARGET_STAGES = ['预备党员', '正式党员'];
 
-// 议程类型 chips（2026-09-01 书记裁决：类型不互斥，一条议程可多类型；按自增列表思路写入）
-// 「待讨论名单」替代原「成员变更」：多选人员 + 名单统一阶段转换（书记 2026-09-01 裁决）
+// 议程类型 chips（2026-09-01 支书裁决：类型不互斥，一条议程可多类型；按自增列表思路写入）
+// 「待讨论名单」替代原「成员变更」：多选人员 + 名单统一阶段转换（支书 2026-09-01 裁决）
 const AGENDA_KIND_CHIPS = [
   { kind: 'discussion-file', label: '讨论文件' },
   { kind: 'attendee-list', label: '待讨论名单' },
@@ -136,7 +136,7 @@ const CALENDAR_TAB_HTML = `
     </div>
   </div>
   <!-- D4 裁决批二（2026-09-08）：原「考勤概况」独立折叠卡已移除——
-       考勤作为该活动的字段出现在下方「活动查询」行内只读摘要（书记只读监督）；
+       考勤作为该活动的字段出现在下方「活动查询」行内只读摘要（支书只读监督）；
        纪检总表与全局概况 KPI 为专职读位不动；异常处理位 = 纪检考勤管理。 -->
   <!-- 活动查询（默认折叠，点击展开） -->
   <div class="card rounded-xl">
@@ -252,7 +252,7 @@ function renderQueryPanel(displayActivities) {
     },
     brandChip: { key: 'brand', label: '只看品牌' },
     data: displayActivities,
-    // 实体条目可点（2026-09-12 书记裁定）：查询行 = 活动实体 → 点击直达活动详情页
+    // 实体条目可点（2026-09-12 支书裁定）：查询行 = 活动实体 → 点击直达活动详情页
     // （复用既有深链 activity.html?id=，与 visitor 活动动态同一落点机制；非新增机制）
     renderRow: (a) => `
       <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors hover:bg-gray-50" style="text-decoration:none;color:inherit;" title="查看活动详情" data-act-id="${a.id || ''}">
@@ -299,9 +299,9 @@ function bindQueryToggle() {
   }
 }
 
-// ── D4 裁决批二（2026-09-08）：考勤并入活动字段（书记活动管理页）──
+// ── D4 裁决批二（2026-09-08）：考勤并入活动字段（支书活动管理页）──
 // 原「考勤概况」独立折叠卡（renderAttendanceSummary 及相关 HTML/折叠块）已移除：
-//   书记只读监督的考勤改作「该活动的字段」出现在「活动查询」行内只读摘要（inspector.js 禁改 →
+//   支书只读监督的考勤改作「该活动的字段」出现在「活动查询」行内只读摘要（inspector.js 禁改 →
 //   落点放查询行自有区，见下方 renderQueryPanel renderRow）；数据现读 attendance 记录。
 // 纪检考勤总表与全局概况 KPI 为专职读位，不动；异常处理位 = 纪检考勤管理。
 
@@ -452,7 +452,7 @@ function renderTemplateStep() {
   const visibleTemplates = WRITE_TEMPLATES.filter(tpl => tpl.category !== 'theme-day' || themeBlockOn);
   visibleTemplates.forEach(tpl => {
     const isUnique = tpl.subtypes.length === 0; // 主题党日：无子类型=唯一选项 → 整卡可点（点击热区=全卡）
-    // 2026-09-03 书记澄清：仍须【点击】进入，只是点击热区扩至整卡（不必精准命中文字按钮）——
+    // 2026-09-03 支书澄清：仍须【点击】进入，只是点击热区扩至整卡（不必精准命中文字按钮）——
     // 绝不是 hover 自动进入。卡内按钮区域直接点击走按钮；其余区域点击由 data-tpl-click 委托触发。
     html += `<div class="rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-sm hover:border-gray-300" data-tpl-click="${isUnique ? '1' : ''}" style="${isUnique ? 'cursor:pointer;' : ''}" title="${isUnique ? `选择${tpl.categoryLabel}` : ''}">`;
     // 类别标题色块
@@ -559,8 +559,8 @@ function renderFormStep() {
 
   // 会议形式（2026-09-02 线上异步表决泛化 A 期：仅决策类场景——支委会/支部党员大会；
   // 默认线下开会保持现状；选「线上异步表决」后展开参与范围配置，见 renderVoteConfigSection）
-  // 写侧约束（2026-09-02，T-2026-09-006）：本写入面板仅在书记/副书记工作台（secretary.html）
-  // 呈现——组长等其它角色工作台写活动无表决配置入口，voteConfig 只能由书记/副书记配置。
+  // 写侧约束（2026-09-02，T-2026-09-006）：本写入面板仅在支书/副支书工作台（secretary.html）
+  // 呈现——组长等其它角色工作台写活动无表决配置入口，voteConfig 只能由支书/副支书配置。
   if (isDecisionScenario(scenarioId)) {
     html += renderVoteConfigSection(scenarioId);
   }
@@ -577,7 +577,7 @@ function renderFormStep() {
     html += `</div>`;
   }
 
-  // 品牌（2026-08-07 书记原始意图：看是否延续旧品牌 / 创建新品牌）
+  // 品牌（2026-08-07 支书原始意图：看是否延续旧品牌 / 创建新品牌）
   // 2026-09-01：品牌概念仅主题党日适用（三会一课无品牌语义，隐藏该字段）
   if (tpl.category === 'theme-day') {
   const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
@@ -609,7 +609,7 @@ function renderFormStep() {
   html += `<div id="wp-participants-slot"></div>`;
   html += `</div>`;
 
-  // 自动发布通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  // 自动发布通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
   // 自定义折叠（不用原生 details：保证跨浏览器折叠行为一致）
   html += `<div class="mb-4">`;
   html += `<div class="wp-collapse-toggle text-xs text-gray-500 cursor-pointer hover:text-gray-600 select-none" onclick="this.nextElementSibling.classList.toggle('hidden')">自动发布通知（选填，创建活动后立即通知全体成员）</div>`;
@@ -705,7 +705,7 @@ function renderThemeDayDimensions() {
 /** 会议形式配置区（2026-09-02 线上异步表决泛化 A 期：仅决策类场景调用）
  *  参与范围按场景预填：支委会固定「支委」只读文案；支部党员大会可切换
  *  正式党员（默认）/ 正式党员+预备党员；人数经 resolveVoterIds 实时解析。
- *  计票方式（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）：
+ *  计票方式（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
  *    正式表决（optionSet formal——发展党员/转正等）按制度强制无记名，UI 只读不可改；
  *    事务性表决（支委会 deliberative）默认记名，发起人可选无记名。
  *  配置区默认隐藏，选「线上异步表决」后展开（事件见 bindWritePanelEvents）。
@@ -844,7 +844,7 @@ function bindWritePanelEvents(container) {
   }
   // 议程类型 chips（2026-09-01：多选不互斥；初始行绑定，新增行在 _addAgendaRow 内绑定）
   container.querySelectorAll('.wp-agenda-row').forEach((row) => _bindRowKindChips(row));
-  // 主题党日模板：整卡可点（2026-09-03 书记澄清——点击热区=全卡，仍须点击进入；绝非 hover 自动进入）。
+  // 主题党日模板：整卡可点（2026-09-03 支书澄清——点击热区=全卡，仍须点击进入；绝非 hover 自动进入）。
   // 卡内按钮区域直接点击走按钮自身（data-action）；其余区域（如标题色块）点击由本委托触发选择。
   container.querySelectorAll('[data-tpl-click="1"]').forEach((card) => {
     if (card.dataset.bound) return;
@@ -1040,7 +1040,7 @@ async function handleSubmitActivity() {
     return;
   }
 
-  // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  // 预拟通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
   const noticeTitle = document.getElementById('wp-notice-title')?.value?.trim();
   const noticeContent = document.getElementById('wp-notice-content')?.value?.trim();
 
@@ -1091,7 +1091,7 @@ async function handleSubmitActivity() {
     if (vc) {
       const voterScope = voteFormArea?.querySelector('input[name="wp-vote-scope"]:checked')?.value || vc.voterScope;
       const picked = voteFormArea?.querySelector('input[name="wp-ballot-mode"]:checked')?.value;
-      // 计票方式（2026-09-12 书记裁定）：正式表决制度强制无记名——UI 只读且此处兜底拦截；
+      // 计票方式（2026-09-12 支书裁定）：正式表决制度强制无记名——UI 只读且此处兜底拦截；
       // 事务性表决默认记名，发起人可选无记名（口径同场统一，固化写入活动 voteConfig）。
       if (isAnonymousForced(vc.optionSet) && picked === 'named') {
         showToast('error', '正式表决须采用无记名投票，不可改为记名');

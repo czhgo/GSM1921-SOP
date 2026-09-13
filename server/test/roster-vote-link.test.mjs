@@ -1,24 +1,24 @@
 // role: [工程师]+[AI]
-// server/test/roster-vote-link.test.mjs — 「应到口径三小遗留」①②③ 服务层单测（2026-09-06 书记已批）
+// server/test/roster-vote-link.test.mjs — 「应到口径三小遗留」①②③ 服务层单测（2026-09-06 支书已批）
 // 纯 Node 测试（无浏览器、不起 server）：
 //   ① 会议考勤候选「可见候选 + 禁用集合」：滞留者不再 filter 剔除，改为可见但不可选
 //      （getMeetingRosterCandidates → candidates=党员含滞留 / disabledIds=滞留党员）；
 //   ② 表决 voterIds 与 roster 联动：resolveVoterIds 现时剔滞留（支部大会应到=formally-prep
 //      与 roster 同集；线上支委会=支委名单，若支委滞留则剔）；历史快照 act-31 保持原值；
 //   ③ 党小组会组内候选 = 组内党员（非滞留入应到、滞留禁选），与纪检同口径。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260903c query（模块缓存键一致性，同 roster.test.mjs）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913c query（模块缓存键一致性，同 roster.test.mjs）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912k';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912k';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913c';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913c';
 import {
   getMeetingRosterCandidates, getMeetingRosterIds, getRosterStats,
   saveResidenceChange, getDetainedMembers, getResidenceOf,
   RESIDENCE, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260912k';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260912k';
+} from '../../docs/src/services/roster.js?v=20260913c';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260913c';
 
 // ── localStorage 内存桩（saveResidenceChange 运行期覆盖用例需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

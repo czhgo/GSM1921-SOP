@@ -1,22 +1,22 @@
 // role: [工程师]+[AI]
 // 组长工作台 Tab：组员进展（T-279 M2 拆分）
-// 书记 2026-08-10 裁定：全员可见性矩阵落地（visibility.js own-group）。
+// 支书 2026-08-10 裁定：全员可见性矩阵落地（visibility.js own-group）。
 // 三区思路从按人视图收敛：卡点区（问题优先）→ 进度区（每人一行聚合）。
-// P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由书记完成，不跳转他人工作台。
+// P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { IssueStore } from '../../../services/issues.js?v=20260912k';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260912k';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260912k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260912k';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260912k';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { IssueStore } from '../../../services/issues.js?v=20260913c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260913c';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260913c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913c';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260912k';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260913c';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -112,7 +112,7 @@ export async function renderContent(ctx) {
       <span class="text-xs ${r.reportClass} w-20 text-right flex-shrink-0">${r.reportState}</span>
     </div>`).join('');
 
-  // 汇报区（书记 2026-08-10 裁定：组长可答复本组组员汇报，块块内闭环；书记仍全局可见）
+  // 汇报区（支书 2026-08-10 裁定：组长可答复本组组员汇报，块块内闭环；支书仍全局可见）
   // 本组组员发起的 open 汇报 → 行内正式答复；问题优先置顶
   const memberIds = new Set(targets.map(t => t.personId));
   const memberReports = allIssues.filter(i =>
@@ -163,7 +163,7 @@ function _bindMembersEvents(container) {
       renderContent(_ctx);
     });
   });
-  // 组员汇报行内正式答复（书记 2026-08-10 裁定：组长可答复本组组员，块块闭环）
+  // 组员汇报行内正式答复（支书 2026-08-10 裁定：组长可答复本组组员，块块闭环）
   bindReportInbox(container, { role: 'leader', onAnswered: () => renderContent(_ctx) });
   // D8 裁决批二（2026-09-08）：复盘状态区块展开/收起（只读；rerender=本页整页重渲染）
   bindReviewStatusSection(container, () => renderContent(_ctx));

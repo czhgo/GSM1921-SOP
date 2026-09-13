@@ -1,15 +1,15 @@
 // role: [工程师]+[AI]
 // workflow/blocks/manifests.js — L3 工作流块清单（S1 试点，2026-09-03）
 // 契约权威源：content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md（v1.1）
-// 书记裁定（v1.1 §〇）：块差异化 = ①流程组合 ②表单条目（fields 可收拢）③参与人范围（participants 可配）；
+// 支书裁定（v1.1 §〇）：块差异化 = ①流程组合 ②表单条目（fields 可收拢）③参与人范围（participants 可配）；
 // 制度来源分层 provenance ∈ institution-common（三会一课等全党通用）| branch-custom（支部自创制度尝试）。
-// S1 试点块（书记点名）：主题党日（通用）+ 专班运行（自创，验 organizer-deep 组织模式）。
+// S1 试点块（支书点名）：主题党日（通用）+ 专班运行（自创，验 organizer-deep 组织模式）。
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260912k';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260913c';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260912k';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260913c';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -23,13 +23,17 @@ const CAPABILITY_PROVENANCE = {
   'taskforce': 'branch-custom',              // 专班 = 支部自创制度尝试
 };
 
+// 制度溯源断链修复（2026-09-13 content 自检）：原 sopRef 指向 content/02_institution/sop/theme_party_day.md
+// 与 .../taskforce.md，**两个文件均不存在**（制度溯源断链）。repoint 到真实存在的制度文件：
+//   主题党日 → 常见工作场景快速指南.md（主题党日为其中场景）；专班 → 组织委员工作流程指南.md（专班由组织委员主责）。
+
 // ── S1 试点块一：主题党日（通用制度源）────────────────────────────
 export const THEME_PARTY_DAY_MANIFEST = {
   blockId: 'theme-party-day',
   name: '主题党日组织块',
   version: '1.0.0',
   provenance: 'institution-common',
-  sopRef: 'content/02_institution/sop/theme_party_day.md',
+  sopRef: 'content/02_institution/sop/常见工作场景快速指南.md',
   capabilityId: 'activity-calendar',
   scope: ['workspace:secretary', 'workspace:leader'],
   // P3d v0 组合声明，见 WORKFLOW_BLOCK_CONTRACT
@@ -61,7 +65,7 @@ export const TASKFORCE_RUN_MANIFEST = {
   name: '专班运行块',
   version: '1.0.0',
   provenance: 'branch-custom',
-  sopRef: 'content/02_institution/sop/taskforce.md',
+  sopRef: 'content/02_institution/sop/组织委员工作流程指南.md',
   capabilityId: 'taskforce',
   scope: ['workspace:org-commissioner', 'workspace:secretary'],
   // P3d v0 组合声明，见 WORKFLOW_BLOCK_CONTRACT

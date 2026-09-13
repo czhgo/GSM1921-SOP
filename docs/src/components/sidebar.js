@@ -8,14 +8,14 @@
 // 原 footer 三块外观控件（字号/主题三态/强调色）迁往设置页外观区（components/appearance-controls.js，
 // 键位语义不变）；外观偏好读写改走 core/theme.js 键空间适配层（登录人 person 键 / 访客全局键）。
 // 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即把当前登录人 person 偏好应用到 DOM
-// （R1-A 2026-09-09 书记裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
+// （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260912k';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260912k';
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260912k';
+import { getBasePath } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260913c';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260913c';
+import { DEPLOY_MODE } from '../config/deploy.js?v=20260913c';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,16 +29,16 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260912k');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260913c');
   return _authModule;
 }
 
-// ── 党委视图全局导航收敛（书记立项⑦ A波，2026-09-06）────────────
+// ── 党委视图全局导航收敛（支书立项⑦ A波，2026-09-06）────────────
 // 产品口径：party-staff（党委组织员/党务老师）视图 = 全局治理面，不含支部运行功能入口
 // （首页/资料查询/意见反馈/归档库等支部数据浏览页）；仅保留治理/必要项——「工作台」按
 // ROLE_PAGE_MAP 直达 party-committee.html 党委工作台。判定依据：party-staff 登录直达
 // 党委工作台（login-entry），首页 dashboard 无其治理内容（均为支部运行区块），非落点必需。
-// 支部层各角色（书记/副书记/三委员/组长/成员）导航行为不变。
+// 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
 const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive']);
 
 function getNavItems() {
@@ -133,7 +133,7 @@ export async function renderSidebar(activeModule, opts = {}) {
     </a>
   `).join('');
 
-  // 登录态对偶入口（书记 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
+  // 登录态对偶入口（支书 2026-09-07 U1 批准）：已登录=「退出登录」；访客/未登录=「登录」→ login.html
   // （同位同样式同 hover；图标为 logout 镜像 → 「进入」感，不新增图标字典项）
   const authEntryHTML = user ? `
       <button id="sidebar-logout" style="display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:0.7rem;color:var(--neutral-500);cursor:pointer;border:none;background:none;">

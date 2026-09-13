@@ -5,8 +5,8 @@
 //       缓存一致性（write/clear/save/reset 后 applyPersonalTabOrder 同步）。
 // 运行：node --test server/test/preferences.test.mjs（上半为纯 node，无浏览器依赖；
 //       存储函数经注入 localStorage stub 验证，模块本体零 import）。
-// 另含（2026-09-11 书记裁定「B. 以 Playwright 机测替代真机手测：设置页 tab 调序拖拽」）：
-//   文件末一条真实 Chromium HTML5 DnD 用例——登录书记 → 设置页「我的工作台」真实拖拽，
+// 另含（2026-09-11 支书裁定「B. 以 Playwright 机测替代真机手测：设置页 tab 调序拖拽」）：
+//   文件末一条真实 Chromium HTML5 DnD 用例——登录支书 → 设置页「我的工作台」真实拖拽，
 //   断言 DOM 顺序 / localStorage 持久化 / reload 保持 / 核心锁定 / 越界回滚 / console error=0。
 
 import { test, beforeEach } from 'node:test';
@@ -18,10 +18,10 @@ import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/preferences.js?v=20260912k';
+} from '../../docs/src/services/preferences.js?v=20260913c';
 
 // ── 测试辅助 ──
-// 书记台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
+// 支书台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
 function secretaryTabs() {
   return [
     { id: 'today', label: '今天', groupLabel: '工作台', render: () => {} },
@@ -185,12 +185,12 @@ test('sameIdOrder 等值判定', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════
-// 真实拖拽 E2E（书记裁定 B：以 Playwright 机测替代真机手测）
+// 真实拖拽 E2E（支书裁定 B：以 Playwright 机测替代真机手测）
 // 真实机制：entries/settings-entry.js bindMyWorkspace 绑定的 HTML5 DnD 事件链
 //   （dragstart → dragover 实时 insertBefore → drop/dragend → finishDrag →
 //    savePersonalTabOrder 落 localStorage）；本用例用 Playwright locator.dragTo
 //   触发 Chromium 真实鼠标序列，由浏览器派发原生 drag 事件（非脚本模拟）。
-// 自包含：createApp(:memory:) + seedDatabase + 账号密码登录书记（同 write-hover-e2e 口径）。
+// 自包含：createApp(:memory:) + seedDatabase + 账号密码登录支书（同 write-hover-e2e 口径）。
 // ══════════════════════════════════════════════════════════════════════════
 test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload/核心锁定/越界回滚/0 error）', async () => {
   const app = createApp({ dbPath: ':memory:' });
@@ -208,7 +208,7 @@ test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload
     page.on('pageerror', (e) => errors.push(`pageerror: ${String(e).slice(0, 200)}`));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text().slice(0, 200)}`); });
 
-    // ① 登录书记 → 打开设置页「我的工作台」
+    // ① 登录支书 → 打开设置页「我的工作台」
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');

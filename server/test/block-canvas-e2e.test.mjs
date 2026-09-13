@@ -1,5 +1,5 @@
 // server/test/block-canvas-e2e.test.mjs — 块画布 v0 E2E（2026-09-03）
-// 书记在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 p1)活动详情
+// 支书在「工作台配置」停用「宣传」产出块 → 保存 → 组长(罗文杰 p1)活动详情
 // 「添加记录」按钮组不再含 publicity；恢复默认后回归。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录。
 
@@ -58,14 +58,14 @@ async function openActivityDetail(page) {
   await page.waitForFunction(() => document.querySelectorAll('.act-sub-add-btn').length > 0, { timeout: 8000 });
 }
 
-test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归（D7：考勤/考察子记录只读）', async () => {
-  // ① 书记登录 → 经服务层写 config.blocks（停用 publicity；写路径已由 module-config HTTP 单测覆盖）
+test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 → 恢复默认回归（D7：考勤/考察子记录只读）', async () => {
+  // ① 支书登录 → 经服务层写 config.blocks（停用 publicity；写路径已由 module-config HTTP 单测覆盖）
   const sec = await browser.newPage();
   blockRoutes(sec);
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260912k');
+    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260913c');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -85,9 +85,9 @@ test('产出块：书记停用宣传 → 组长活动详情无 publicity 按钮 
   const roHint = await lead.evaluate(() => document.body.textContent.includes('考勤请到「考勤上传」录入'));
   assert.ok(roHint, '考勤只读引导文案可见（去「考勤上传」录入）');
 
-  // ③ 书记恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
+  // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260912k');
+    const { updateBranchBlocks } = await import('/src/services/branch.js?v=20260913c');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

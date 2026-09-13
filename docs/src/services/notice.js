@@ -5,18 +5,18 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260912k';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912k';
-import { isInitStateActive } from './init-reset.js?v=20260912k'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912k';
-import { AuthStore } from './auth.js?v=20260912k';
-import { getPersonById } from './person.js?v=20260912k';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912k';
-import { badgeHtml } from '../components/badges.js?v=20260912k';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913c';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260913c';
+import { isInitStateActive } from './init-reset.js?v=20260913c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260913c';
+import { AuthStore } from './auth.js?v=20260913c';
+import { getPersonById } from './person.js?v=20260913c';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913c';
+import { badgeHtml } from '../components/badges.js?v=20260913c';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913c';
 
 function _loadNotices() {
   try {
@@ -139,7 +139,7 @@ export const NoticeStore = {
     }
 
     // ── 受众门（2026-09-13 彻查批次：消费端统一过滤）─────────────────────────────
-    // 背景（用户实报）：「书记的界面为什么会出现书记的催办？」根因＝消费端（铃铛/首页未读/角标/待办未读条）
+    // 背景（用户实报）：「支书的界面为什么会出现支书的催办？」根因＝消费端（铃铛/首页未读/角标/待办未读条）
     //   从未按受众过滤——签发人自己下发的催办又回到自己的未读里；且通知发布页所选受众（audience 数组）
     //   从未生效（选「党小组组长」实际全员可见）。
     // 规则：① audience==='committee' → 仅本支部支委层（党委下发通道，既有）
@@ -168,7 +168,7 @@ export const NoticeStore = {
       result = result.filter(n => !n.expireDate || n.expireDate >= now);
     }
 
-    // 书记裁决（2026-08-05）：「未读的重要；无论已读未读的紧急」
+    // 支书裁决（2026-08-05）：「未读的重要；无论已读未读的紧急」
     // 展示层保留策略：紧急通知全部保留展示，重要通知仅展示未读的（已读重要通知收起）。
     // 角标未读统计不走此过滤（仍统计全部未读），仅在列表展示处传 retention:'visible'。
     if (filter.retention === 'visible') {
@@ -386,7 +386,7 @@ export const NoticeStore = {
     let count = 0;
     this._notices = this._notices.map(n => {
       if (n.archived) return n;
-      // targetType/targetId 精确匹配；或活动源通知经 targetUrl 携带 activityId 定位参数（如书记台 inspector 直达）——
+      // targetType/targetId 精确匹配；或活动源通知经 targetUrl 携带 activityId 定位参数（如支书台 inspector 直达）——
       // 2026-09-05 补全：此类通知随活动归档不再成孤儿
       const urlCarriesActivity = targetType === 'activity' && typeof n.targetUrl === 'string'
         && n.targetUrl.includes(`activityId=${targetId}`);
@@ -431,8 +431,8 @@ export const NoticeStore = {
 
 // targetModule → 业务页（角色感知）：模块语义决定业务落点
 //  - activity（活动/主题党日）→ 首页活动日历（全员统一活动视图）
-//  - attendance（考勤）→ 纪检委员考勤管理 / 书记考勤概况
-//  - party（发展党员/考察）→ 组织委员档案与发展党员 / 纪检委员考察管理 / 书记工作台
+//  - attendance（考勤）→ 纪检委员考勤管理 / 支书考勤概况
+//  - party（发展党员/考察）→ 组织委员档案与发展党员 / 纪检委员考察管理 / 支书工作台
 //  - workspace（工作部署/筹备）→ 支委各归其位 / 组长工作台 / 其余首页
 // A①（2026-09-10）：导出供通知生产点复用同一映射计算对象级落点页（不改变下文 resolveNoticeUrl 兜底语义）。
 export const NOTICE_MODULE_ROLE_PAGES = {
@@ -521,8 +521,8 @@ export function renderNoticeList(containerId, limit = 5) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // 书记规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
-  // 书记裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示
+  // 支书规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
+  // 支书裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示
   const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date', retention: 'visible' });
 
   if (notices.length === 0) {

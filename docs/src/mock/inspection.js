@@ -9,7 +9,7 @@
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260912k';
+import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260913c';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────
@@ -37,7 +37,7 @@ export const INSPECTION_RECORDS = [
   // 共建座谈对接专班（p10 董建军 — tf-004 实际成员）
   { id: 'insp-12', sourceType: SourceType.TASKFORCE, activityId: null, sourceName: '共建座谈对接专班', personId: 'p10', level: ParticipationLevel.DEEP_PARTICIPATE, role: 'PPT设计',            recordedBy: 'p11', recordedAt: '2026-07-09T10:00:00', status: 'pending' },
 
-  // ── 各发展阶段人员考察记录（补齐书记全局概况"发展与考察"阶段人数）──
+  // ── 各发展阶段人员考察记录（补齐支书全局概况"发展与考察"阶段人数）──
   // 积极分子（p7 曾雨桐 / p15 丁嘉懿 / p18 谢晓东 / p26 朱欣怡）— 参与积极分子座谈会
   { id: 'insp-13', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p7',  level: ParticipationLevel.DEEP_PARTICIPATE, role: '发言准备',           recordedBy: 'p11', recordedAt: '2026-07-17T10:00:00', status: 'pending' },
   { id: 'insp-14', sourceType: SourceType.ACTIVITY, activityId: 'act-18', sourceName: null, personId: 'p15', level: ParticipationLevel.DEEP_PARTICIPATE, role: '会议记录',           recordedBy: 'p11', recordedAt: '2026-07-17T10:05:00', status: 'pending' },

@@ -1,17 +1,17 @@
 // role: [工程师]+[AI]
-// entries/tabs/secretary/feedback-tab.js — 书记工作台·反馈管理 tab（懒加载模块）
+// entries/tabs/secretary/feedback-tab.js — 支书工作台·反馈管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260912k';
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260912k';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260913c';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260913c';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -22,7 +22,7 @@ const FEEDBACK_TAB_HTML = `
         <span id="issue-summary-pill" class="badge ${badgeVariantClass('neutral')}">0 条</span>
       </div>
     </div>
-    <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；书记保留处置权（指派/审核/状态/隐藏/合并）</p>
+    <p class="text-xs text-gray-500 mb-4">开源讨论集思广益；支书保留处置权（指派/审核/状态/隐藏/合并）</p>
 
     <!-- 待审核草稿 -->
     <details class="mb-4 rounded-lg border border-orange-200 bg-orange-50/40" id="issue-drafts-details" style="--acc-bg-dark:rgba(249,115,22,0.10);">
@@ -46,7 +46,7 @@ const FEEDBACK_TAB_HTML = `
       <select id="issue-filter-assignee" class="input-flat w-32">
         <option value="all">全部指派</option>
         <option value="unassigned">未指派</option>
-        <option value="secretary">书记处置中</option>
+        <option value="secretary">支书处置中</option>
         <option value="org-commissioner">组织委员</option>
         <option value="prop-commissioner">宣传委员</option>
         <option value="disc-commissioner">纪检委员</option>
@@ -137,7 +137,7 @@ function renderIssueManagement() {
   const listEl = document.getElementById('issue-secretary-list');
   const pillEl = document.getElementById('issue-summary-pill');
   if (listEl) {
-    // 书记规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
+    // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
     let issues = IssueStore.getAll()
       .filter(i => !i.hidden && !i.mergedInto)
       .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
@@ -269,7 +269,7 @@ function renderIssueManagement() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  反馈详情面板（书记视角：指派/状态/评论/隐藏/合并）
+//  反馈详情面板（支书视角：指派/状态/评论/隐藏/合并）
 //  2026-07-30 新增：点击列表项 → 隐藏列表面板、显示详情面板
 // ════════════════════════════════════════════════════════════════
 
@@ -291,7 +291,7 @@ function _assigneeOptions() {
     .sort((a, b) => String(a.partyGroup || '').localeCompare(String(b.partyGroup || ''), 'zh'))
     .map((p) => ({ personId: p.id, role: 'leader', label: `${p.partyGroup || '党小组'}组长（${p.name}）` }));
   return [
-    ...single('secretary', '书记处置'),
+    ...single('secretary', '支书处置'),
     ...single('org-commissioner', '组织委员'),
     ...single('prop-commissioner', '宣传委员'),
     ...single('disc-commissioner', '纪检委员'),
@@ -469,7 +469,7 @@ function renderIssueDetail(issueId) {
   } else {
     html += `<div class="space-y-3">`;
     comments.forEach(c => {
-      if (c.hidden) return; // 书记可看隐藏评论，但默认不显示
+      if (c.hidden) return; // 支书可看隐藏评论，但默认不显示
       const isReply = c.kind === 'reply';
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
       const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : isReply ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
@@ -491,7 +491,7 @@ function renderIssueDetail(issueId) {
   html += `</div>`;
 
   // ── 评论/批复/正式答复 输入区 ──
-  // 颜色层级（书记 2026-08-08 指令 #4）：评论=次级操作(btn-accent-soft)，批复=主操作(btn-accent)，
+  // 颜色层级（支书 2026-08-08 指令 #4）：评论=次级操作(btn-accent-soft)，批复=主操作(btn-accent)，
   // 正式答复=以组织名义的公开回应，独立一行 + 时间线「正式答复」徽标区分。
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;

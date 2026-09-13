@@ -1,45 +1,45 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  components/org-setup-wizard.js — 换组织向导共享渲染器（阶段一，2026-09-06 书记 R1–R4）
+//  components/org-setup-wizard.js — 换组织向导共享渲染器（阶段一，2026-09-06 支书 R1–R4）
 // ════════════════════════════════════════════════════════════════
 // 定位：5 步引导式「支部配置」升级版——吸收合并原党委台 party-config（裸开关清单）：
 //   ① 组织信息（支部名/页眉名/自述/主题预设）  ② 模块/块组合（原 party-config 主体原样搬入）
 //   ③ 角色分工（workforce 模块负责人归属）     ④ 术语制度指引 + 换壳工作单（md 下载）
 //   ⑤ 验证与重置（roster stats / ?reset=1 / npm test）+ 完成报告（摘要/下载/重走）
 // 挂载点：party-config-tab 内容区 + wizard.html 独立页共用；样式沿用 card/input-flat/chip 体系。
-// 权限双轨（书记 R4）：party-staff = 任意支部（canSwitchBranch）；本支部现任书记/副书记 = 固定本支部
-//   （副书同权，2026-09-09 书记批——config 写权同现任书记）；其它角色/外支部 → 无权限卡。
-//   写口全走 branch 服务既有校验语义（config 写口 = party-staff / 本支部现任书记或副书记）。
+// 权限双轨（支书 R4）：party-staff = 任意支部（canSwitchBranch）；本支部现任支书/副支书 = 固定本支部
+//   （副书同权，2026-09-09 支书批——config 写权同现任支书）；其它角色/外支部 → 无权限卡。
+//   写口全走 branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书或副支书）。
 // 留痕：每次保存即时写入 branch.config.configChangeHistory（by/at/what/from/to，见 services/branch.js）。
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { getCapabilities } from '../core/registry.js?v=20260912k';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { getCapabilities } from '../core/registry.js?v=20260913c';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260913c';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../modules/capabilities/secretary-workspace.js?v=20260909e';
-import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260912k';
-import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260912k';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260912k';
+import '../modules/capabilities/secretary-workspace.js?v=20260913c';
+import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260913c';
+import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260913c';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260913c';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../services/branch.js?v=20260912k';
-import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260912k';
+} from '../services/branch.js?v=20260913c';
+import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260913c';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../services/org-base-data-preview.js?v=20260912k';
-import { getRosterStats, isDetained } from '../services/roster.js?v=20260912k';
-import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260912k';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260912k';
+} from '../services/org-base-data-preview.js?v=20260913c';
+import { getRosterStats, isDetained } from '../services/roster.js?v=20260913c';
+import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260913c';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260913c';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../services/appointment.js?v=20260912k';
+import { appointInauguralOfficers } from '../services/appointment.js?v=20260913c';
 
-// ── 步骤元信息（书记已批口径）────────────────────────────────────
+// ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
   { id: 1, label: '组织信息' },
   { id: 2, label: '模块/块组合' },
@@ -122,8 +122,8 @@ function _ownerLabel(assign) {
 const PROV_LABEL = { 'institution-common': '通用制度', 'branch-custom': '支部自创' };
 
 /**
- * 支部配置可编辑判定（纯；一处守卫 = 本组件内权限兜底唯一判据，副书同权 2026-09-09 书记批）：
- *   party-staff → 任意支部；secretary → 本支部现任书记（branch.secretaryId===本人）；
+ * 支部配置可编辑判定（纯；一处守卫 = 本组件内权限兜底唯一判据，副书同权 2026-09-09 支书批）：
+ *   party-staff → 任意支部；secretary → 本支部现任支书（branch.secretaryId===本人）；
  *   deputy-secretary → 本人归属该支部（与 server PATCH /branches/:id/config 门控同口径）。
  */
 function _canEditBranch(actor, branchId) {
@@ -142,7 +142,7 @@ function _canEditBranch(actor, branchId) {
  * @param {Object} opts
  * @param {{ personId: string, role: string }} opts.actor 当前登录用户
  * @param {boolean} [opts.canSwitchBranch] 是否可在支部间切换（party-staff）
- * @param {string} [opts.branchId] 初始目标支部（canSwitch=false 时必填 = 本支部：现任书记自己的支部 / 副书记归属支部）
+ * @param {string} [opts.branchId] 初始目标支部（canSwitch=false 时必填 = 本支部：现任支书自己的支部 / 副支书归属支部）
  * @param {boolean} [opts.embed] 是否内嵌到既有工作台 tab（party-config；true 时头部用卡片紧凑样式）
  */
 export function mountOrgSetupWizard(host, opts) {
@@ -178,7 +178,7 @@ export function mountOrgSetupWizard(host, opts) {
     appointOn: true,
   };
 
-  // 权限初始化：party-staff 可切支部；其余须落「本支部现任书记 / 本支部副书记」（副书同权）且仅本支部
+  // 权限初始化：party-staff 可切支部；其余须落「本支部现任支书 / 本副支书」（副书同权）且仅本支部
   if (actor.role === 'party-staff') {
     const branches = mockDB.branches || [];
     const wanted = opts.branchId && branches.some(b => b.id === opts.branchId) ? opts.branchId : (branches[0] && branches[0].id);
@@ -279,21 +279,21 @@ function _deniedHtml(S) {
   const branch = S.branchId ? getBranchById(S.branchId) : null;
   const reason = !S.branchId || !branch
     ? '目标支部不存在'
-    : (isStaff ? '' : (_canEditBranch(S.actor, S.branchId) ? '' : '仅本支部现任书记/副书记（同支部）可配置该支部'));
+    : (isStaff ? '' : (_canEditBranch(S.actor, S.branchId) ? '' : '仅本支部现任支书/副支书（同支部）可配置该支部'));
   return `<div class="rounded-xl border border-gray-200 bg-white p-6 max-w-xl">
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
-    <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；本支部现任书记/副书记（副书同权）仅可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
+    <p class="text-xs text-gray-500 mt-1">换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；本支部现任支书/副支书（副书同权）仅可配置自己的支部（config 写口校验同 branch 服务既有语义）。</p>
     <p class="text-xs text-amber-700 mt-2">${esc(reason || '当前账号无支部配置权限')}</p>
-    <p class="text-xs text-gray-500 mt-3">如需使用向导：以党委组织员账号（演示：9000000001 / 123456）或本支部现任书记/副书记账号登录。</p>
+    <p class="text-xs text-gray-500 mt-3">如需使用向导：以党委组织员账号（演示：9000000001 / 123456）或本支部现任支书/副支书账号登录。</p>
   </div>`;
 }
 
-/** 头部卡：说明 + 目标支部（party-staff 可选；现任书记/副书记固定） */
+/** 头部卡：说明 + 目标支部（party-staff 可选；现任支书/副支书固定） */
 function _headHtml(S, branch, org, isStaff) {
   const branches = (mockDB.branches || []).filter(b => b.id && b.id !== 'pc-gsm');
   const options = branches.map(b =>
     `<option value="${esc(b.id)}" ${b.id === S.branchId ? 'selected' : ''}>${esc(b.name)}</option>`).join('');
-  const whoBadge = S.actor.role === 'deputy-secretary' ? '本支部副书记' : '现任书记';
+  const whoBadge = S.actor.role === 'deputy-secretary' ? '本副支书' : '现任支书';
   const picker = S.canSwitch
     ? `<div class="flex flex-wrap items-center gap-2">
         <label for="wz-branch-select" class="text-xs text-gray-500 shrink-0">目标支部</label>
@@ -353,14 +353,14 @@ function _createPanelHtml(S, isStaff) {
       <div class="rounded-lg border border-blue-100 bg-white/70 p-2.5 space-y-2">
         <label class="flex items-center gap-1.5 text-xs font-semibold text-gray-700 cursor-pointer select-none">
           <input type="checkbox" id="wz-create-appoint" ${appointOn ? 'checked' : ''} class="shrink-0">
-          就地任命首任骨干（首任书记 + 组织委员各 1 人，任命后立即建册）
+          就地任命首任骨干（首任支书 + 组织委员各 1 人，任命后立即建册）
         </label>
-        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、书记席位空缺：勾选后创建时一并就地任命首任骨干——新任书记凭本人账号登录即可接管该支部（组织信息/模块/名册可在书记工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
+        <p class="text-[11px] text-gray-500 leading-relaxed">新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。</p>
         <div id="wz-create-appoint-fields" class="grid grid-cols-1 md:grid-cols-2 gap-2 ${appointOn ? '' : 'hidden'}">
           <div>
-            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任书记 <span class="text-red-600">*</span>（勾选时必选）</label>
+            <label class="text-[11px] text-gray-500 block mb-1" for="wz-create-appoint-secretary">首任支书 <span class="text-red-600">*</span>（勾选时必选）</label>
             <select id="wz-create-appoint-secretary" class="input-flat w-full" ${appointOn ? '' : 'disabled'}>
-              <option value="">请选择首任书记…</option>${secretaryOptions}
+              <option value="">请选择首任支书…</option>${secretaryOptions}
             </select>
           </div>
           <div>
@@ -370,7 +370,7 @@ function _createPanelHtml(S, isStaff) {
             </select>
           </div>
         </div>
-        <p id="wz-create-appoint-conflict" class="hidden text-[11px] text-red-600">首任书记与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
+        <p id="wz-create-appoint-conflict" class="hidden text-[11px] text-red-600">首任支书与组织委员不能为同一人——请更换人选，或取消勾选就地任命。</p>
       </div>`
     : `
       <div class="rounded-lg border border-amber-200 bg-amber-50/60 p-2.5">
@@ -400,7 +400,7 @@ function _createPanelHtml(S, isStaff) {
         </div>
       </div>
       ${appointSection}
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、书记席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任书记/组织委员者，创建后即建册、书记登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
@@ -574,7 +574,7 @@ function _step1Html(S, branch, org, isStaff) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
-          支部名称（官方名）${canEditName ? '' : '<span class="text-[10px] text-amber-700">党委管理，书记只读</span>'}
+          支部名称（官方名）${canEditName ? '' : '<span class="text-[10px] text-amber-700">党委管理，支书只读</span>'}
           <input id="wz-org-name" type="text" value="${esc(org.name)}" placeholder="支部官方名" ${canEditName ? '' : 'disabled'}
             class="input-flat w-full ${canEditName ? '' : 'bg-gray-50 text-gray-500'}">
         </label>
@@ -629,7 +629,7 @@ function _step2Html(S, branch) {
         <span class="text-[11px] text-gray-500">对支部工作台成员「下次进入」生效；点击开关 → 保存本步</span>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[10px] font-normal text-gray-500">（书记工作台 tab；核心组固定不可关）</span></p>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[10px] font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
         <div class="flex flex-wrap gap-2 mb-1">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-[10px] text-gray-500">固定</span></span>`).join('')}</div>
         <div class="flex flex-wrap gap-2 mt-2">${businessTabs.map(t => chip('module', t.id, t.label, !hidden.has(t.id))).join('')}</div>
       </div>
@@ -680,7 +680,7 @@ function _step3Html(S, branch) {
         <p class="text-xs font-bold text-gray-700">③ 角色分工</p>
         <span class="text-[11px] text-gray-500">模块负责人归属 → config.workforce（保留既有数据结构）</span>
       </div>
-      <p class="text-[11px] text-gray-500">部署期/换壳期直接写入系统并立即生效、同时记录变更；日常分工调整请走书记台「支部分工」的支委会议题流程（M2）。</p>
+      <p class="text-[11px] text-gray-500">部署期/换壳期直接写入系统并立即生效、同时记录变更；日常分工调整请走支书台「支部分工」的支委会议题流程（M2）。</p>
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">${rows}</div>
       <div class="flex gap-2 justify-end pt-1 border-t border-gray-100">
         <button type="button" data-wz-act="reset-workforce" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">恢复默认分工</button>
@@ -696,7 +696,7 @@ function _step4Html(S, branch) {
     ['系统常量', 'docs/src/core/constants.js（角色/文案/活动类型/产出块目录）'],
     ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
     ['术语/使用策略', 'content/03_doc_system/USAGE_POLICY.md + docs/src/core/policy-defaults.js'],
-    ['制度 SOP', 'content/02_institution/sop/（书记/组织/宣传/纪检/组长指南）'],
+    ['制度 SOP', 'content/02_institution/sop/（支书/组织/宣传/纪检/组长指南）'],
     ['配色系统', 'content/04_web_design/design-system/COLOR_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
     ['支部默认策略', 'docs/src/core/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],
   ].map(([t, d]) =>
@@ -936,7 +936,7 @@ function _onChange(S, e) {
     return;
   }
   // R5-1（2026-09-06）：「新建支部…」就地任命——勾选开关显隐任命字段并启停下拉；
-  // 书记/组织委员人选变更即时刷新「同人冲突」提示（提交时仍二次校验拦截，双保险；不整页重绘保表单值）
+  // 支书/组织委员人选变更即时刷新「同人冲突」提示（提交时仍二次校验拦截，双保险；不整页重绘保表单值）
   if (t.id === 'wz-create-appoint' || t.id === 'wz-create-appoint-secretary' || t.id === 'wz-create-appoint-org') {
     if (t.id === 'wz-create-appoint') {
       S.appointOn = t.checked;
@@ -1071,7 +1071,7 @@ async function _saveOrg(S) {
   const presetVal = S.host.querySelector('input[name="wz-theme"]:checked');
   if (!headerVal || !descVal || !presetVal) return false;
   const patch = {};
-  // 顶层 name 治理字段：仅 party-staff 可改（通用 branches PATCH 门）；现任书记只读
+  // 顶层 name 治理字段：仅 party-staff 可改（通用 branches PATCH 门）；现任支书只读
   if (isStaff && nameVal) {
     const name = nameVal.value.trim();
     if (name && name !== org.name) patch.name = name;
@@ -1284,7 +1284,7 @@ async function _doCopy(S) {
 // ── 立项⑤ 阶段A ·「新建支部」创建提交（2026-09-06）────────────
 // 读面板表单 → createBranch（空模板/复制双形态）→ 成功后把当前选中切到新支部并提示。
 // R5-1（2026-09-06）：勾选「就地任命首任骨干」时，createBranch 成功后按序就地任命
-// 首任书记/组织委员（appointment.js appointInauguralOfficers 收口）——任一步失败不阻断
+// 首任支书/组织委员（appointment.js appointInauguralOfficers 收口）——任一步失败不阻断
 // 建支部成功流程（toast 提示到支部管理/任命处补任）。
 async function _doCreate(S) {
   const nameInput = S.host.querySelector('#wz-create-name');
@@ -1296,7 +1296,7 @@ async function _doCreate(S) {
     showToast('error', '请选择源支部');
     return;
   }
-  // R5-1：就地任命表单读取 + 前置校验（勾选后首任书记必选；书记=组织委员同人拦截——均不建支部）
+  // R5-1：就地任命表单读取 + 前置校验（勾选后首任支书必选；支书=组织委员同人拦截——均不建支部）
   const appointBox = S.host.querySelector('#wz-create-appoint');
   const appointOn = !!(appointBox && appointBox.checked);
   const appointSecSel = S.host.querySelector('#wz-create-appoint-secretary');
@@ -1304,11 +1304,11 @@ async function _doCreate(S) {
   const appointSecretaryId = appointOn && appointSecSel ? String(appointSecSel.value || '') : '';
   const appointOrgId = appointOn && appointOrgSel ? String(appointOrgSel.value || '') : '';
   if (appointOn && !appointSecretaryId) {
-    showToast('error', '已勾选「就地任命首任骨干」，请选择首任书记（或取消勾选，仅创建空支部）');
+    showToast('error', '已勾选「就地任命首任骨干」，请选择首任支书（或取消勾选，仅创建空支部）');
     return;
   }
   if (appointOn && appointOrgId && appointOrgId === appointSecretaryId) {
-    showToast('error', '首任书记与组织委员不能为同一人——请更换组织委员人选');
+    showToast('error', '首任支书与组织委员不能为同一人——请更换组织委员人选');
     return;
   }
   try {
@@ -1340,8 +1340,8 @@ async function _doCreate(S) {
         });
         if (ap && ap.ok) {
           appointMsg = ap.org
-            ? `；已就地任命首任书记 ${getPersonName(appointSecretaryId)}、组织委员 ${getPersonName(appointOrgId)}（任命已建册，书记登录即可接管新支部）`
-            : `；已就地任命首任书记 ${getPersonName(appointSecretaryId)}（组织委员席位暂缺，可后续在任命处补任）`;
+            ? `；已就地任命首任支书 ${getPersonName(appointSecretaryId)}、组织委员 ${getPersonName(appointOrgId)}（任命已建册，支书登录即可接管新支部）`
+            : `；已就地任命首任支书 ${getPersonName(appointSecretaryId)}（组织委员席位暂缺，可后续在任命处补任）`;
         }
       } catch (err) {
         console.error('[wizard] 就地任命首任骨干失败（支部已创建，可到任命处补任）', err);

@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // 党委工作台 Tab：治理总览（立项⑦ B波，2026-09-06）
 // 党委「治理总览」= 治理面首页 / 登录落点（置首 tab，先总览再进监控/支部管理/审批/下发/配置）。
-// C⑤（2026-09-10 书记裁定）：本页只呈「全院级汇总数字」（支部数/在册成员合计/在册党员/滞留/全院通知），
-//   支部级明细（支部名/书记/成员数/党员数/滞留/近期活动/进入支部）全部收归「支部监控台账」一处，
+// C⑤（2026-09-10 支书裁定）：本页只呈「全院级汇总数字」（支部数/在册成员合计/在册党员/滞留/全院通知），
+//   支部级明细（支部名/支书/成员数/党员数/滞留/近期活动/进入支部）全部收归「支部监控台账」一处，
 //   避免同源字段两处呈现、用户自判权威源；内容仅剩汇总数字 → 合并进页首内联统计条，不设支部卡、不留空壳卡。
 // 数据口径（服务层统计，勿直读裸 seed）：
 //   · 支部实例 = mockDB.branches（branch.js 读写同一数据源；loadDB 后为实时实例）
@@ -12,14 +12,14 @@
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260912k';
-import { getCommitteeName } from '../../../services/branch.js?v=20260912k';
-import { escHtml as esc } from '../../../core/utils.js?v=20260912k';
-import { tokenOf } from '../../../core/version-token.js?v=20260912k'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912k'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260912k'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260913c';
+import { getCommitteeName } from '../../../services/branch.js?v=20260913c';
+import { escHtml as esc } from '../../../core/utils.js?v=20260913c';
+import { tokenOf } from '../../../core/version-token.js?v=20260913c'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260913c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260913c'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）

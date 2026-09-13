@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/init-reset.js — C3 一键初始化档（?reset=init，2026-09-08 书记裁定）
+//  services/init-reset.js — C3 一键初始化档（?reset=init，2026-09-08 支书裁定）
 //  语义：一键从「演示态 / 试用态」转为「新支部初始态」——
 //    清空业务过程数据（活动/考勤/考察/专班/通知/汇报/议程决议跟进/归档/交接/
 //    意见反馈提交等试用积累），保留白名单（组织骨架）：
@@ -33,7 +33,7 @@ export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
  *  - _schema            持久化 schema 版本（不可动）
  *  - users              账号与角色结构（u_* 演示账号行 + person 档案同步行）
  *  - branches           支部实例与 config 档案（header/模块组合/分工 workforce/术语主题等，向导可再改）
- *  - appointmentRecords 书记任期档案（账号「职务动态绑定」的在任留痕；随 branches.secretaryId 保留）
+ *  - appointmentRecords 支书任期档案（账号「职务动态绑定」的在任留痕；随 branches.secretaryId 保留）
  */
 export const INIT_BLOB_KEEP_KEYS = ['_schema', 'users', 'branches', 'appointmentRecords'];
 

@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  tab-nav.js — Tab 激活/回退纯决策（R6 导航守卫，2026-09-03 P2a）
-//  背景：tab 显隐由支部 config.modules.hiddenTabIds 决定（书记操作/L2），但 entry 导航侧
+//  背景：tab 显隐由支部 config.modules.hiddenTabIds 决定（支书操作/L2），但 entry 导航侧
 //    硬编码 defaultTab/onNavTarget id；目标 tab 被隐藏后旧实现静默无内容（白屏无高亮）。
 //  本模块把「初始 tab 决策 + 目标 tab 回退」收敛为纯函数（无 DOM 依赖），tab-bar 唯一消费，
 //  规则：非法请求一律回退到第一个可见 tab（核心组固定保证至少一个可见），并打印告警。

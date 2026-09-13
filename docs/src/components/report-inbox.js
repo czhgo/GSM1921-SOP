@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-inbox.js — 待答复汇报收件箱（行内答复零跳转）
-//  书记 2026-08-10 裁定：待办内建「答复类」置顶（汇报答复为书记最高频动作）
-//  复用方：① 书记待办 tab 顶部 ② 组长工作概况 tab 汇报区 ③ 各角色工作概况 tab
+//  支书 2026-08-10 裁定：待办内建「答复类」置顶（汇报答复为支书最高频动作）
+//  复用方：① 支书待办 tab 顶部 ② 组长工作概况 tab 汇报区 ③ 各角色工作概况 tab
 //  交互：行点击展开对话时间线 → 行内输入 → 正式答复（kind='reply'）发回汇报人
-//  可见性：展示谁的可答复汇报由调用方决定（书记=全部 open 汇报；组长=本组组员汇报）
-//  本组件禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
+//  可见性：展示谁的可答复汇报由调用方决定（支书=全部 open 汇报；组长=本组组员汇报）
+//  本组件禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { showToast, escHtml } from '../core/utils.js?v=20260912k';
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { showToast, escHtml } from '../core/utils.js?v=20260913c';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
-// 某行正式答复成功 → onAnswered → 调用方整块重渲染（书记待办/组长组员汇报），
+// 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
 // 原实现清掉其它已展开行的草稿与展开态。修法取「渲染前收集、渲染后回填」：
 // 以 reportId 为键的模块态在「展开/收起、行内输入」时持续收集（不依赖每次渲染
 // 前临时快照——渲染方与绑定方分属不同调用，模块态是唯一跨重建存活通道）；

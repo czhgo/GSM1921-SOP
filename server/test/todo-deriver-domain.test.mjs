@@ -12,31 +12,31 @@
 //   ⑤ handoff 三型 → 考勤纪律(attendance-archival/material-shortage)/考察(inspection-report) + handoff-*
 //   ⑥ signup-review 报名审核 → 按源活动(theme-party→活动/项目)/专班 归域；approved 报名 participate 同③
 //   ⑦ resolution-followup → 决议上报（稳定键已设，本批锁定）
-//   ⑧ 书记/纪检实时组（remind/confirm/成员组/决议逾期）导出 REALTIME_GROUP_DOMAIN 域标签，
+//   ⑧ 支书/纪检实时组（remind/confirm/成员组/决议逾期）导出 REALTIME_GROUP_DOMAIN 域标签，
 //     且组对象标注 domain（供 T4 域折组展示）
 // 构造方式：直接调用各服务/派生器（造业务数据），个别派生点对 TodoStore.create 断言兜底。
 // 运行：node --test test/todo-deriver-domain.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912k';
+} from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/todo.js?v=20260912k';
-import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260912k';
-import { SignupStore } from '../../docs/src/services/signup.js?v=20260912k';
-import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260912k';
+} from '../../docs/src/services/todo.js?v=20260913c';
+import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260913c';
+import { SignupStore } from '../../docs/src/services/signup.js?v=20260913c';
+import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260913c';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/resolution-followup.js?v=20260912k';
-import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260912k';
+} from '../../docs/src/services/resolution-followup.js?v=20260913c';
+import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260913c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -269,9 +269,9 @@ test('⑦ resolution-followup：责任人跟进待办 domain=决议上报 + 稳�
   assert.equal(t.domain, 'resolution', '决议跟进归决议上报域');
 });
 
-// ═══════════════ ⑧ 书记/纪检实时组域标签 ═══════════════
+// ═══════════════ ⑧ 支书/纪检实时组域标签 ═══════════════
 
-test('⑧ 实时组域标签：导出映射覆盖书记 8 组/决议逾期/成员组/纪检队列，组对象带 domain（供 T4）', () => {
+test('⑧ 实时组域标签：导出映射覆盖支书 8 组/决议逾期/成员组/纪检队列，组对象带 domain（供 T4）', () => {
   beginMockCase();
   const expectMap = {
     'attendance-remind': WORK_DOMAIN.ATTENDANCE,
@@ -290,14 +290,14 @@ test('⑧ 实时组域标签：导出映射覆盖书记 8 组/决议逾期/成�
     assert.equal(REALTIME_GROUP_DOMAIN[k], d, `REALTIME_GROUP_DOMAIN[${k}] = ${d}`);
     assert.equal(realtimeGroupDomainOf({ actionKey: k }), d, `realtimeGroupDomainOf({actionKey:'${k}'})`);
   }
-  // 组对象标注：书记实时聚合（造一条已结束且无考勤/复盘的活动，确保 remind 组出现）
+  // 组对象标注：支书实时聚合（造一条已结束且无考勤/复盘的活动，确保 remind 组出现）
   mockDB.activities = [{ id: 'act-old', title: '已结束活动', date: '2026-08-01', status: 'completed' }];
   mockDB.attendances = [];
   mockDB.inspections = [];
   mockDB.activityReviews = [];
   mockDB.archiveRecords = [];
   const aggs = SecretaryTodoDeriver.computeAggregates();
-  assert.ok(aggs.length > 0, '种子场景下书记提醒组非空（attendance/review-remind 至少出现）');
+  assert.ok(aggs.length > 0, '种子场景下支书提醒组非空（attendance/review-remind 至少出现）');
   for (const g of aggs) {
     assert.equal(g.domain, REALTIME_GROUP_DOMAIN[g.actionKey],
       `SecretaryTodoDeriver 组 ${g.actionKey} 已标注 domain`);

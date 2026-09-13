@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // server/test/async-vote.test.mjs — AV5 线上异步表决 E2E（支部党员大会真实 UI 表决 → 硬校验 → 通过）
-// 链路：书记创建线上党员大会（branch-party-meeting, formal + formal-only 12 应到 + quorumCheck）
+// 链路：支书创建线上党员大会（branch-party-meeting, formal + formal-only 12 应到 + quorumCheck）
 //   → 预备党员 p24（名单外）activity.html 只读（议程可见、无表决按钮、「仅应到表决人可表态」）+ API 403
 //   → 正式党员 p5 activity.html 点「赞成」→「已表态（无记名…）」（正式表决强制无记名，不展示个人选项）
 //     → 服务端登记参与记录 + tally → node fetch 校验落库（且响应无 personId→选项 映射）
-//   → 书记 inspector 汇总矩阵「应到 12 · 已表态 1」→ 记录「通过」被硬校验拦截（实到 1/12 < 6，toast 报错、不写 result）
-//   → node fetch 补足 p1/p2/p3/p4/p8/p9 赞成至实到 7/赞成(tally) 7（均 >6）→ 书记再记录「通过」成功
+//   → 支书 inspector 汇总矩阵「应到 12 · 已表态 1」→ 记录「通过」被硬校验拦截（实到 1/12 < 6，toast 报错、不写 result）
+//   → node fetch 补足 p1/p2/p3/p4/p8/p9 赞成至实到 7/赞成(tally) 7（均 >6）→ 支书再记录「通过」成功
 //   → node fetch 校验活动议程 result='passed'
 //
 // 平台事实（实证）：
@@ -13,7 +13,7 @@
 //   workspace 页（visitor/secretary）经 bootstrap 为 api 数据源（读/写服务器）。
 //   故「公共页 UI 演示」用 mock 本地（活动经 persist 备份进 localStorage 供 activity.html 恢复），
 //   「服务器登记/硬校验真值」用同身份页面 evaluate 调 service（committee-vote/agenda-follow-up）+ node fetch。
-// - 关键服务调用均在页面 evaluate 内以 ?v=20260901h 导入（与页面共享模块实例，防 mockDB 双实例分裂）。
+// - 关键服务调用均在页面 evaluate 内以 ?v=20260913c 导入（与页面共享模块实例，防 mockDB 双实例分裂）。
 // 运行：cd server; 设沙箱环境变量; node --test test/async-vote.test.mjs test/online-committee.test.mjs test/agenda-quorum.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -31,7 +31,7 @@ const AG2 = 'av5-ag-2'; // 议题 2（并列存在，验证多议题）
 const TITLE = 'AV5线上支部党员大会E2E';
 
 const ACCOUNTS = {
-  p13: { studentId: '2300010001', target: '**/workspace/secretary.html' }, // 书记 储子禾
+  p13: { studentId: '2300010001', target: '**/workspace/secretary.html' }, // 支书 储子禾
   p5:  { studentId: '2400012349', target: '**/workspace/visitor.html' },    // 宋佳宁（正式党员 participant）
   p24: { studentId: '2500010010', target: '**/workspace/visitor.html' },    // 曹雅婷（预备党员 participant）
 };
@@ -82,15 +82,15 @@ async function apiLogin(personId) {
   return (await r.json()).token;
 }
 
-test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正式党员 UI 表决 → 硬校验拦截 → 补足后通过', async () => {
+test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正式党员 UI 表决 → 硬校验拦截 → 补足后通过', async () => {
   // ════════════════════════════════════════════════════════════════
-  // 1. 书记登录 → adapter 创建支部党员大会（formal + formal-only 12 应到 + quorumCheck）
+  // 1. 支书登录 → adapter 创建支部党员大会（formal + formal-only 12 应到 + quorumCheck）
   //    adapter 直写只落服务器，本地 mockDB 无此活动 → 同步 push，防后续防抖快照以过期缓存抹掉
   // ════════════════════════════════════════════════════════════════
   const secCtx = await browser.newContext();
   const secPage = await login(secCtx, 'p13');
   const created = await secPage.evaluate(async ({ title, voterIds, ag1, ag2 }) => {
-    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260912k');
+    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260913c');
     const act = await getAdapter().activities.create({
       title,
       type: '支部党员大会',
@@ -103,12 +103,12 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
       domain: 'party-building',
       voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds, quorumCheck: true },
       agenda: [
-        { id: ag1, item: '审议 2026 年秋季学期支部工作计划（E2E）', host: '书记' },
+        { id: ag1, item: '审议 2026 年秋季学期支部工作计划（E2E）', host: '支书' },
         { id: ag2, item: '审议发展对象接收为预备党员（E2E）', host: '组织委员' },
       ],
     });
     // 同步本地 mockDB（防 800ms 防抖快照以过期缓存覆盖服务器活动，参照 online-committee.test.mjs）
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
     if (!mockDB.activities.some((a) => a.id === act.id)) mockDB.activities.push(act);
     return act;
   }, { title: TITLE, voterIds: FORMAL_IDS, ag1: AG1, ag2: AG2 });
@@ -127,7 +127,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const prepCtx = await browser.newContext();
   const prepPage = await login(prepCtx, 'p24');
   await prepPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260912k');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260913c');
     persist(); // api 模式：saveDB 本地备份（快照与服务器一致）
   });
   await prepPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -165,7 +165,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const memberCtx = await browser.newContext();
   const memberPage = await login(memberCtx, 'p5');
   await memberPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260912k');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260913c');
     persist(); // 本地备份（含服务器 act-xxx）供 activity.html mock 恢复
   });
   await memberPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -173,7 +173,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   // UI 点赞成 → 提交
   await memberPage.click(`[data-vote-item-id="${AG1}"] .vote-btn[data-pos="approve"]`);
   await memberPage.click(`[data-vote-item-id="${AG1}"] .vote-submit`);
-  // 正式表决=无记名（2026-09-12 书记裁定）：UI 只回显「已表态（无记名…）」，不展示个人选项
+  // 正式表决=无记名（2026-09-12 支书裁定）：UI 只回显「已表态（无记名…）」，不展示个人选项
   await memberPage.waitForFunction(
     (ag1) => {
       const el = document.querySelector(`[data-vote-item-id="${ag1}"] .vote-current`);
@@ -188,9 +188,9 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   // 同页切 api 数据源后以 p5 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
     const token = sessionStorage.getItem('gsm1921-api-token');
-    const { enableApiMode } = await import('/src/services/runtime.js?v=20260912k');
+    const { enableApiMode } = await import('/src/services/runtime.js?v=20260913c');
     enableApiMode(token);
-    const { submitVote } = await import('/src/services/committee-vote.js?v=20260912k');
+    const { submitVote } = await import('/src/services/committee-vote.js?v=20260913c');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
   assert.equal(p5Row.personId, 'p5', '服务端登记参与记录 personId 应为 p5');
@@ -212,7 +212,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   await memberCtx.close();
 
   // ════════════════════════════════════════════════════════════════
-  // 4. 书记 secretary.html 打开该活动详情（inspector）：汇总矩阵「应到 12 · 已表态 1」；
+  // 4. 支书 secretary.html 打开该活动详情（inspector）：汇总矩阵「应到 12 · 已表态 1」；
   //    记录「通过」被硬校验拦截（出席 1/12 < ceil(12/2)=6）→ error toast、不写 result
   // ════════════════════════════════════════════════════════════════
   await secPage.goto(`${base}/workspace/secretary.html?activityId=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -223,8 +223,8 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
     await secPage.click('.secretary-tab-btn[data-secretary-tab="calendar"]').catch(() => {});
     await secPage.waitForTimeout(800);
     await secPage.evaluate(async ({ id }) => {
-      const { setState } = await import('/src/core/state.js?v=20260912k');
-      const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+      const { setState } = await import('/src/core/state.js?v=20260913c');
+      const { mockDB } = await import('/src/core/domain.js?v=20260913c');
       setState({ activities: [...mockDB.activities], viewMode: 'detail', selectedActivityId: id });
     }, { id: actId });
     await secPage.waitForSelector('#vote-summary-slot .vs-stat', { timeout: 12000 });
@@ -235,7 +235,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   assert.ok(summaryText.includes('通过条件：出席'), 'formal + quorumCheck 应显示通过条件提示');
   assert.ok(summaryText.includes('赞成 1'), 'formal 票数统计应含赞成 1');
   assert.ok(summaryText.includes('无记名'), '无记名活动汇总应标注无记名');
-  // 无记名显示层匿名性：书记端矩阵仅「已投/未投」，不得出现逐人选项标签
+  // 无记名显示层匿名性：支书端矩阵仅「已投/未投」，不得出现逐人选项标签
   const matrixText = await secPage.locator('#vote-summary-slot .vs-matrix').innerText();
   assert.ok(matrixText.includes('已投'), `无记名矩阵应显示已投，实际：${matrixText}`);
   assert.ok(!/赞成|反对|弃权/.test(matrixText), `无记名矩阵不得显示逐人选项：${matrixText}`);
@@ -283,7 +283,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   assert.ok(!fullList.some((v) => v.personId && v.position !== undefined), '补票后仍不得出现 personId→选项 映射');
 
   // ════════════════════════════════════════════════════════════════
-  // 6. 书记再次记录「通过」→ 硬校验通过 → 活动议程 result='passed'（UI + 服务器双校验）
+  // 6. 支书再次记录「通过」→ 硬校验通过 → 活动议程 result='passed'（UI + 服务器双校验）
   // ════════════════════════════════════════════════════════════════
   await secPage.click(`[data-agenda-item-id="${AG1}"][data-agenda-result="passed"]`);
   await secPage.waitForFunction(
@@ -304,7 +304,7 @@ test('AV5 线上党员大会：书记发起 → 预备党员只读/403 → 正�
   const actFinal = actsFinal.find((a) => a.id === actId);
   const ag1Final = actFinal.agenda.find((x) => x.id === AG1);
   assert.equal(ag1Final.result, 'passed', '活动快照/结果应含该议程 result=passed');
-  assert.equal(ag1Final.recordedBy, 'p13', '记录人应为书记 p13');
+  assert.equal(ag1Final.recordedBy, 'p13', '记录人应为支书 p13');
 
   await secCtx.close();
 });

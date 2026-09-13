@@ -27,11 +27,11 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/init-reset.js?v=20260912k');
+} = await import('../../docs/src/services/init-reset.js?v=20260913c');
 // 接线冒烟（⑤）：走 services/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260912k');
+const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260913c');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain.js?v=20260912k');
+const { mockDB } = await import('../../docs/src/core/domain.js?v=20260913c');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -72,7 +72,7 @@ afterEach(() => {
 const BLOB = {
   _schema: 1,
   users: [
-    { id: 'u_sec', role: 'secretary', name: '支部书记' },
+    { id: 'u_sec', role: 'secretary', name: '支书' },
     { id: 'p13', role: 'secretary', name: '储子禾' },
   ],
   branches: [{
@@ -164,7 +164,7 @@ test('trimInitBlob：白名单主库键原样保留；全部业务过程域置�
   assert.equal(out._schema, 1);
   assert.deepEqual(out.users, BLOB.users, '账号与角色结构保留');
   assert.deepEqual(out.branches, BLOB.branches, '支部实例与 config（分工/术语/header）保留');
-  assert.deepEqual(out.appointmentRecords, BLOB.appointmentRecords, '书记任期档案保留');
+  assert.deepEqual(out.appointmentRecords, BLOB.appointmentRecords, '支书任期档案保留');
   // 业务过程域：数组 → [] / 聚合 → {} / 单对象 → null
   for (const [key, empty] of Object.entries(INIT_BLOB_CLEAR_DEFAULTS)) {
     if (Array.isArray(empty)) {
@@ -367,7 +367,7 @@ test('C2 修复：init 后浏览器加载链多轮 loadDB——业务域空 / �
   assert.ok(mockDB.users.some(u => u.id === 'u_sec'), '账号结构保留（空支部起步登录可用）');
   assert.ok(mockDB.branches.some(b => b.id === 'br-b1'), '支部实例 br-b1 保留');
   assert.ok(mockDB.branches[0].config.headerTitle && mockDB.branches[0].config.workforce, '支部 config（header/分工）保留');
-  assert.ok(mockDB.appointmentRecords.length >= 1, '书记任期档案保留');
+  assert.ok(mockDB.appointmentRecords.length >= 1, '支书任期档案保留');
 
   // ③ 第 3 轮 loadDB：仍空（多轮稳态，不回填）
   loadDB();
@@ -394,7 +394,7 @@ test('C2 修复：init 态用户后续真实写入（非种子 id）不被剔除
   win.location.search = '';
   win.location.href = 'http://127.0.0.1:3000/index.html';
   loadDB(); // ② 刷新后第 2 轮：稳态空
-  // ③ 新支部起步：书记新建一条真实活动（id=act_<uuid> 非种子形态）+ 一条真实通知（notice-<13位时间戳>）
+  // ③ 新支部起步：支书新建一条真实活动（id=act_<uuid> 非种子形态）+ 一条真实通知（notice-<13位时间戳>）
   mockDB.activities = [{ id: 'act_0f9a-1111', title: '新支部第一次党员大会', status: 'draft' }];
   mockDB.notices = [{ id: 'notice-' + Date.now(), title: '支部新通知' }];
   saveDB();
@@ -461,7 +461,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260912k');
+  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260913c');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

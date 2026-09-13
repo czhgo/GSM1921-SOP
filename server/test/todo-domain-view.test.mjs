@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912k';
+} from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/todo.js?v=20260912k';
+} from '../../docs/src/services/todo.js?v=20260913c';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -307,13 +307,13 @@ test('⑥ 向后兼容：getGroupedByAction 平铺语义不变（完成态排除
 // ═══════════════ ⑦ urgeRolesOf（催办责任人解析 · 2026-09-10） ═══════════════
 
 test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 owner/复盘组织者解析；无责任→空', () => {
-  // ① 持久化待办：条目自带 role（去重；书记本人返回 secretary，隐藏与否由调用方判定）
+  // ① 持久化待办：条目自带 role（去重；支书本人返回 secretary，隐藏与否由调用方判定）
   assert.deepEqual(
     urgeRolesOf({ groupKey: 'prop-commissioner:activity-archive', actionKey: 'activity-archive', items: [{ id: 'a1', role: 'prop-commissioner' }, { id: 'a2', role: 'prop-commissioner' }] }),
     ['prop-commissioner'], '持久化待办按条目 role 去重');
   assert.deepEqual(
     urgeRolesOf({ groupKey: 'secretary:authorize', actionKey: 'authorize', items: [{ id: 't1', role: 'secretary' }] }),
-    ['secretary'], '书记本人待办 → 返回 secretary（调用方按「本人」隐藏）');
+    ['secretary'], '支书本人待办 → 返回 secretary（调用方按「本人」隐藏）');
 
   // ② 实时派生组静态映射
   assert.deepEqual(urgeRolesOf({ actionKey: 'attendance-remind', items: [] }), ['disc-commissioner']);
@@ -321,7 +321,7 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
   assert.deepEqual(urgeRolesOf({ actionKey: 'archive-remind', items: [] }), ['prop-commissioner']);
   assert.deepEqual(urgeRolesOf({ actionKey: 'semester-detained-remind', items: [] }), ['org-commissioner']);
 
-  // 复核类/成员变更确认（责任人=书记本人，不在表内）→ 空
+  // 复核类/成员变更确认（责任人=支书本人，不在表内）→ 空
   assert.deepEqual(urgeRolesOf({ actionKey: 'attendance-confirm', items: [] }), []);
   assert.deepEqual(urgeRolesOf({ actionKey: 'inspection-confirm', items: [] }), []);
   assert.deepEqual(urgeRolesOf({ actionKey: 'review-confirm', items: [] }), []);
@@ -358,7 +358,7 @@ test('⑦ urgeRolesOf：持久化待办按 role；实时组静态映射/决议 o
   assert.deepEqual(urgeRolesOf({ actionKey: 'unknown-x', items: [] }), []);
 });
 
-// ═══════════════ ⑧ A① 通知对象级深链守卫（2026-09-10 书记裁定） ═══════════════
+// ═══════════════ ⑧ A① 通知对象级深链守卫（2026-09-10 支书裁定） ═══════════════
 // 口径：凡 actionable:true 的通知生产点，其 NoticeStore.add 调用内必须携带对象级锚点——
 //   · targetUrl 对象级深链（如 workspace/x.html?tab=<tab>&highlight=<对象id>、activity.html?id=），或
 //   · targetType + targetId（resolveNoticeUrl 优先级 0 → 直达 activity.html?id=/taskforce.html?id=）。
@@ -451,7 +451,7 @@ test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 
 // ═══════════════ ⑨ 演示下钻放行门 + 代提交复盘表单复用（2026-09-10） ═══════════════
 // 背景：① 党委「进入支部（演示）」下钻（secretary.html?branch=<id>）时，bootstrap 身份门调用
 //   未定义函数 _partyStaffBranchDemoAllowed → ReferenceError/白屏；② 演示横幅用 escHtml 未导入，
-//   同路径再次 ReferenceError；③ 书记「代提交复盘」须复用既有复盘表单，不得另写一套字段。
+//   同路径再次 ReferenceError；③ 支书「代提交复盘」须复用既有复盘表单，不得另写一套字段。
 // 口径：演示放行门单一源 = modules/branch-demo-nav.js；复盘表单单一源 = services/review.js。
 test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引用/字段分叉回归）', () => {
   const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
@@ -473,7 +473,7 @@ test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引�
       'workspace-shell 使用 escHtml 须导入（党委演示横幅 ReferenceError 回归）');
   }
 
-  // ③ 复盘表单单一源：review.js 导出渲染 + 提交；成员端/书记代填两处复用，不另写字段
+  // ③ 复盘表单单一源：review.js 导出渲染 + 提交；成员端/支书代填两处复用，不另写字段
   const review = read('services/review.js');
   assert.match(review, /export function renderActivityReviewFormHtml\(/, 'review.js 应导出复盘表单渲染');
   assert.match(review, /export function submitActivityReviewForm\(/, 'review.js 应导出复盘表单提交链路');
@@ -481,8 +481,8 @@ test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引�
   assert.match(visitor, /renderActivityReviewFormHtml/, '成员端「我的复盘」应复用共享表单');
   assert.doesNotMatch(visitor, /id="review-textarea-/, '成员端不得另写复盘字段（字段须单一源）');
   const todo = read('entries/tabs/secretary/todo-tab.js');
-  assert.match(todo, /renderActivityReviewFormHtml/, '书记「代提交复盘」应复用共享表单');
-  assert.match(todo, /submitActivityReviewForm\(/, '书记「代提交复盘」应走既有提交链路');
+  assert.match(todo, /renderActivityReviewFormHtml/, '支书「代提交复盘」应复用共享表单');
+  assert.match(todo, /submitActivityReviewForm\(/, '支书「代提交复盘」应走既有提交链路');
   assert.match(todo, /'fill_review'/, '代提交复盘入口应按既有 fill_review 权限门控');
 });
 

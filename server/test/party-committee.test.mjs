@@ -68,7 +68,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     }, { timeout: 10000 });
     assert.match(await page.title(), /党委工作台/);
 
-    // 3. C⑤（2026-09-10 书记裁定）：默认落点=治理总览，只留全院级汇总数字，无支部级明细
+    // 3. C⑤（2026-09-10 支书裁定）：默认落点=治理总览，只留全院级汇总数字，无支部级明细
     await waitForBodyText(page, '支部监控台账'); // tab 栏存在
     await page.waitForFunction(() => {
       const c = document.getElementById('party-committee-tab-content');
@@ -81,11 +81,11 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
     assert.ok(/支部数/.test(govText) && /在册成员合计/.test(govText) && /在册党员/.test(govText) && /滞留党员/.test(govText) && /全院通知/.test(govText),
       `治理总览应保留全院级汇总数字，实际：${govText.slice(0, 200)}`);
 
-    // 3′. 切到「支部监控台账」→ 支部级 8 项字段齐（支部名/书记/成员数/党员数/滞留/近期活动/进入支部）+ 书记任期
+    // 3′. 切到「支部监控台账」→ 支部级 8 项字段齐（支部名/支书/成员数/党员数/滞留/近期活动/进入支部）+ 支书任期
     await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
     await waitForBodyText(page, '光华管理学院本科生党支部');
-    await waitForBodyText(page, '储子禾'); // 台账含现任书记（br-b1.secretaryId → p13 储子禾）与阶段分布聚合
-    await waitForBodyText(page, '书记任期');
+    await waitForBodyText(page, '储子禾'); // 台账含现任支书（br-b1.secretaryId → p13 储子禾）与阶段分布聚合
+    await waitForBodyText(page, '支书任期');
     const monText = await page.evaluate(() => document.getElementById('party-committee-tab-content')?.textContent || '');
     assert.ok(/成员规模/.test(monText) && /在册党员/.test(monText) && /滞留党员/.test(monText), '台账应含成员规模 / 在册党员 / 滞留党员支部字段');
     assert.ok(/进入支部/.test(monText), '台账应含「进入支部」入口');
@@ -128,7 +128,7 @@ test('党委组织员登录直达党委工作台：台账见支部、可创建�
   }
 });
 
-test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记台、原书记储子禾(p13)降回成员', async () => {
+test('P2 支书任命：任命宋佳宁(p5)为支书 → p5 登录直达支书台、原支书储子禾(p13)降回成员', async () => {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -147,26 +147,26 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
       return h && h.textContent.includes('光华管理学院党委');
     }, { timeout: 10000 });
     const appoint = await page.evaluate(async () => {
-      const { appointSecretary } = await import('/src/services/appointment.js?v=20260912k');
+      const { appointSecretary } = await import('/src/services/appointment.js?v=20260913c');
       await appointSecretary({ branchId: 'br-b1', personId: 'p5', note: 'E2E 换届测试' });
-      const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+      const { mockDB } = await import('/src/core/domain.js?v=20260913c');
       const branch = (mockDB.branches || []).find(b => b.id === 'br-b1');
       const recs = (mockDB.appointmentRecords || []).filter(r => r.branchId === 'br-b1');
       return { secretaryId: branch?.secretaryId, recs: recs.length, currentTo: (recs.find(r => !r.to) || {}).secretaryId };
     });
-    // 2. 断言：br-b1.secretaryId=p5 + 任期记录存在且现任=p5（原书记记录已封口）
+    // 2. 断言：br-b1.secretaryId=p5 + 任期记录存在且现任=p5（原支支书录已封口）
     if (appoint.secretaryId !== 'p5') throw new Error(`任命后 secretaryId 应为 p5，实际 ${appoint.secretaryId}`);
     if (!(appoint.recs >= 1 && appoint.currentTo === 'p5')) throw new Error(`任期记录异常：${JSON.stringify(appoint)}`);
 
-    // ⑧ 监控台账补「书记任期」行：刷新 + 切监控 tab → 卡片显示新书记姓名 + 任期（起止/现任）
+    // ⑧ 监控台账补「支书任期」行：刷新 + 切监控 tab → 卡片显示新支书姓名 + 任期（起止/现任）
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(document.querySelector('.ws-tab-scroll button')), { timeout: 15000 });
     await page.click('.ws-tab-scroll button:has-text("支部监控台账")');
-    await waitForBodyText(page, '书记任期');
+    await waitForBodyText(page, '支书任期');
     await waitForBodyText(page, '宋佳宁');
     await waitForBodyText(page, '至今');
 
-    // 3. 新任书记宋佳宁(p5)登录 → 直达书记工作台 secretary.html
+    // 3. 新任支书宋佳宁(p5)登录 → 直达支书工作台 secretary.html
     const p5 = await browser.newPage();
     await p5.route('**://fonts.googleapis.com/**', (r) => r.abort());
     await p5.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -179,7 +179,7 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
       p5.click('button[type="submit"]'),
     ]);
 
-    // 4. 原书记储子禾(p13)登录 → 降回成员，直达 visitor.html
+    // 4. 原支书储子禾(p13)登录 → 降回成员，直达 visitor.html
     const p13 = await browser.newPage();
     await p13.route('**://fonts.googleapis.com/**', (r) => r.abort());
     await p13.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -199,7 +199,7 @@ test('P2 书记任命：任命宋佳宁(p5)为书记 → p5 登录直达书记�
 });
 
 // ════════════════════════════════════════════════════════════════
-// A⑤（2026-09-10 书记裁定）：党委「进入支部」放开 API 会话下钻（只读）
+// A⑤（2026-09-10 支书裁定）：党委「进入支部」放开 API 会话下钻（只读）
 // 旧语义：真实后端登录（API 会话）点击「进入支部」被拒（Toast「真实后端登录暂不支持演示视图」）；
 // 新语义：本地示例 / API 会话同口径放行 → 进入支部只读视图（演示只读横幅 + 无写控件），
 //         写权限不放宽（party-staff 不入 ROLE_PERMISSIONS 键集 → canDo 写操作全 false；requiredRoles 不动）。
@@ -265,7 +265,7 @@ test('A⑤ 党委「进入支部」API 会话下钻：进入支部只读视图�
 
     // 5. 写权限不放宽：party-staff 写权限键仍全关（看≠做）；requiredRoles / 权限键未动
     const perms = await page.evaluate(async () => {
-      const { AuthStore } = await import('/src/services/auth.js?v=20260912k');
+      const { AuthStore } = await import('/src/services/auth.js?v=20260913c');
       const me = AuthStore.getCurrentUser();
       return {
         role: me && me.role,

@@ -6,10 +6,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912k';
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260912k';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260912k';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260912k';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913c';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260913c';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260913c';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260913c';
 
 test('policy 单一源：考察超期默认天数 = 7（branch-default 可覆盖）', () => {
   assert.equal(POLICY_DEFAULTS.inspection.overdueDays, 7);
@@ -21,7 +21,7 @@ test('attendance 消费点：MEETING_ATTENDANCE_TYPES 深等于 policy attendanc
   assert.notEqual(MEETING_ATTENDANCE_TYPES, POLICY_DEFAULTS.attendance.meetingTypes);
 });
 
-test('attendance 消费点：书记/副书记例外角色数组与 policy attendance.uploaderExceptions.secretaryDeputy 一致', () => {
+test('attendance 消费点：支书/副支书例外角色数组与 policy attendance.uploaderExceptions.secretaryDeputy 一致', () => {
   assert.deepEqual(
     POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy,
     ['secretary', 'deputy-secretary'],

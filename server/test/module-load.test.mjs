@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// module-load.test.mjs — 模块加载完整性审计（原 edit-integrity-audit.mjs，T-283 书记指令：共性问题全局化）
+// module-load.test.mjs — 模块加载完整性审计（原 edit-integrity-audit.mjs，T-283 支书指令：共性问题全局化）
 // 背景判例（2026-08-27）：多轮 Edit 反复增删同一文件时出现系统性损坏——
 //   ①同作用域重复声明（agendaList ×2 → SyntaxError）
 //   ②函数被误删仍被调用（_addAgendaRow → ReferenceError）
@@ -65,7 +65,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260827a`);
+          await import(`/src/${rel}?v=20260913c`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }

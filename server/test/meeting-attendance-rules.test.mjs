@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
-// server/test/meeting-attendance-rules.test.mjs — 附录⑩ A批·S1 会务考勤规则域（2026-09-06 书记裁定）
+// server/test/meeting-attendance-rules.test.mjs — 附录⑩ A批·S1 会务考勤规则域（2026-09-06 支书裁定）
 // 纯 Node 测试（无浏览器、不起 server、无 localStorage stub——roster/person 均以 typeof 守卫惰性访问）：
 //   覆盖 ① recorderByType 记录人映射（正式化单一源）、② 未到标因 reasons 固定枚举、
 //   ③ 滞留到场补录（预应到 K → 补录 L → 实际应到 K+L）与落行字段（status=present + detainedMakeup；
 //   纪检更正清除标记）、④ 党小组会考勤只读视图数据（组长小组会列表归属，纪检纪律台只读掌握）。
 // 口径/枚举单一源 = core/policy-defaults.js attendance（recorderByType / reasons / roster）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260903c query（模块缓存键一致性，同 attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913c query（模块缓存键一致性，同 attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913c';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -21,12 +21,12 @@ import {
   absenceReasonLabel,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260912k';
+} from '../../docs/src/services/attendance.js?v=20260913c';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/roster.js?v=20260912k';
+} from '../../docs/src/services/roster.js?v=20260913c';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
@@ -53,7 +53,7 @@ function freshMeeting(type) {
 const savedOf = (activityId) => loadAttendanceRecords().filter(r => r.activityId === activityId);
 
 // ── a) recorderByType：记录人按活动类型（R1-1 正式化单一源）────────
-test('policy recorderByType：支部大会/组织生活会/支委会=纪检、党课=书记或纪检、党小组会=组长；未入表类型=空', () => {
+test('policy recorderByType：支部大会/组织生活会/支委会=纪检、党课=支书或纪检、党小组会=组长；未入表类型=空', () => {
   const rbt = POLICY_DEFAULTS.attendance.recorderByType;
   assert.deepEqual(rbt['支部党员大会'], ['disc-commissioner']);
   assert.deepEqual(rbt['组织生活会'], ['disc-commissioner']);

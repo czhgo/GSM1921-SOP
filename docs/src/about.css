@@ -5,20 +5,20 @@
    警示：本文件头部禁止使用行注释（CSS 不合法），必须使用块注释且块内不得出现注释定界符字样，否则后续规则（含 @font-face）会被解析器整体丢弃（2026-08-12 修复根因）。 */
 
 /* ═══════════════════════════════════════════════════════════════
-   ABOUT PAGE v3 — 暖纸印刷叙事册（2026-08-04 书记四轮重构）
+   ABOUT PAGE v3 — 暖纸印刷叙事册（2026-08-04 支书四轮重构）
    设计哲学：南西油墨宋（复古油墨印刷质感）· 暖纸底 · 墨色标题 · 党建红印章
    排版骨架：叙事册风——每章一"页"，巨型页码 + 章节眉线 + 册页翻入纵深
    动画：空间纵深（3D 翻页/推拉）+ 材质转场（墨迹/纸张/印章）
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 南西油墨宋（复古油墨印刷质感，专用于大字号展示）
-   权威字体源（书记指定，禁止更换）：D:\PPT模板\党支部汇报-Fonts\南西油墨宋_字库星球\南西油墨宋\南西油墨宋.ttf
+   权威字体源（支书指定，禁止更换）：D:\PPT模板\党支部汇报-Fonts\南西油墨宋_字库星球\南西油墨宋\南西油墨宋.ttf
    部署：docs/scripts/rebuild-nanxi-subset.py（正式工具，T-242 固化）→ fontTools.subset
    （仅保存 about 页系实际用字 692 字 + 去 hinting + 自检缺字/字形与权威源一致）→ woff2 子集
    ⚠️ 改 about 页文案新增汉字后，重跑该工具再 bump 版本号；禁止用其他字体文件冒充本字体 */
 @font-face {
   font-family: 'NanxiYoumosong';
-  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260828l') format('woff2');
+  src: url('../assets/fonts/nanxi-youmosong-subset.woff2?v=20260913c') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -66,7 +66,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 
 /* 纸张颗粒肌理：全局噪点叠加（印刷质感核心，web-design-guidelines：只叠一层、低透明度）
-   2026-08-13 书记补「油墨/纸纹」：拆为两层——
+   2026-08-13 支书补「油墨/纸纹」：拆为两层——
    ::before 细纸纹（高频小颗粒，模拟纸张纤维）；::after 油墨斑驳（低频大块，模拟油墨不均匀/水渍） */
 .ab-about::before {
   content: '';
@@ -241,7 +241,7 @@ html.theme-dark .ab-chapter-eyebrow {
   text-wrap: pretty;
   margin-bottom: 16px;
 }
-/* ── 组件排布规范（2026-08-13 书记重定义「章节标题可左中右、上中下，每章各自丰富」）：
+/* ── 组件排布规范（2026-08-13 支书重定义「章节标题可左中右、上中下，每章各自丰富」）：
    ① 章节标题体系默认靠左（正文叙事风）；各章通过修饰类错落——
       左（叙事/时间轴：组织性/发展党员/工作流）· 中（并列/环形/收束：成长机会/对话/终章）· 右（提问审视：全员考察）
       相邻章节不同对齐制造视觉节奏（非对称平衡 + 层级对比理论，非随机）
@@ -381,7 +381,7 @@ html.theme-dark .ab-chapter-eyebrow {
   border-radius: 6px;
 }
 
-/* ── Section: 三个成长机会（2026-08-13 书记重定义两机会非并列；2026-08-18 T-270 扩展为三机会：适应学习/探索创新/对话） ── */
+/* ── Section: 三个成长机会（2026-08-13 支书重定义两机会非并列；2026-08-18 T-270 扩展为三机会：适应学习/探索创新/对话） ── */
 .ab-philosophy-inner {
   display: flex;
   flex-direction: column;
@@ -394,7 +394,7 @@ html.theme-dark .ab-chapter-eyebrow {
   width: 100%;
   max-width: 760px;
 }
-/* 2026-08-14 T-250 书记「2 个点非并列 2 条」：去红框/阴影/底卡，错落散落（现代艺术留白）
+/* 2026-08-14 T-250 支书「2 个点非并列 2 条」：去红框/阴影/底卡，错落散落（现代艺术留白）
    2026-08-19 T-272 回归文字优先：满宽正常卡——去 58vh 空洞留白、去 ±1.2° 倾斜、去左/右/中错落，
    长文本正文左对齐直排（倾斜是海报语言，不适用于长文本；变化靠内容与结构，不靠装饰性倾斜）
    2026-08-28 全清歪斜：错落=高低左右散落（scatter），非旋转倾斜 */
@@ -488,7 +488,7 @@ html.theme-dark .ab-chapter-eyebrow {
 .ab-cognition-inner {
   text-align: left;
 }
-/* 章节原话题记（2026-08-28：身份/工作流/对话三章补书记中心句） */
+/* 章节原话题记（2026-08-28：身份/工作流/对话三章补支书中心句） */
 .ab-chapter-lead {
   font-family: 'Noto Serif SC', 'STZhongsong', serif;
   font-weight: 500;
@@ -502,14 +502,14 @@ html.theme-dark .ab-chapter-eyebrow {
 .ab-chapter--center .ab-chapter-lead { text-align: center; margin-left: auto; margin-right: auto; }
 .ab-chapter--right .ab-chapter-lead { text-align: right; margin-left: auto; }
 
-/* ── 第一章：左右分栏——左侧定格词区（sticky）+ 右侧期待卡滚动驱动 （2026-08-28 书记重排） ── */
+/* ── 第一章：左右分栏——左侧定格词区（sticky）+ 右侧期待卡滚动驱动 （2026-08-28 支书重排） ── */
 .ab-cognition-layout {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(0, 1.25fr);
   gap: clamp(40px, 6vw, 88px);
   align-items: start;
 }
-/* 左侧整列（章头 + 五词）：sticky 定格（2026-08-28 书记：章头只占左半，右侧内容上移） */
+/* 左侧整列（章头 + 五词）：sticky 定格（2026-08-28 支书：章头只占左半，右侧内容上移） */
 .ab-cognition-left {
   position: sticky;
   top: clamp(96px, 12vh, 140px);
@@ -522,9 +522,9 @@ html.theme-dark .ab-chapter-eyebrow {
 }
 .ab-cognition-left .ab-chapter-title {
   margin-bottom: 0;
-  width: fit-content; /* 2026-08-28 T-301 书记：标题偏安一隅但组件太长——缩小到只容纳字 */
+  width: fit-content; /* 2026-08-28 T-301 支书：标题偏安一隅但组件太长——缩小到只容纳字 */
 }
-/* 五词区：油墨宋墨色、无底（2026-08-28 书记：绝不允许有底，黑色的南西油墨宋） */
+/* 五词区：油墨宋墨色、无底（2026-08-28 支书：绝不允许有底，黑色的南西油墨宋） */
 .ab-cognition-sticky {
   display: flex;
   flex-direction: column;
@@ -532,7 +532,7 @@ html.theme-dark .ab-chapter-eyebrow {
   margin-top: clamp(36px, 6vh, 64px);
 }
 /* 五个词：南西油墨宋 + 墨色 + 上下左右参差错落（0° 位移散落）
-   2026-08-28 T-300 书记「左侧应当不动」：去 view() 升起动画，左栏纯静态定格 */
+   2026-08-28 T-300 支书「左侧应当不动」：去 view() 升起动画，左栏纯静态定格 */
 .ab-cognition-sticky .ab-keyword-word {
   font-family: var(--ab-display);
   font-weight: 400;
@@ -547,7 +547,7 @@ html.theme-dark .ab-chapter-eyebrow {
 .ab-cognition-sticky .ab-keyword-word:nth-of-type(3) { align-self: flex-start; margin-left: 48px; margin-top: 10px; }
 .ab-cognition-sticky .ab-keyword-word:nth-of-type(4) { align-self: center; margin-left: 20px; margin-top: -12px; }
 .ab-cognition-sticky .ab-keyword-word:nth-of-type(5) { align-self: flex-end; margin-left: 44px; margin-top: 14px; }
-/* 期待落点：右侧滚动驱动（书记：右侧的卡片随着滚动移动） */
+/* 期待落点：右侧滚动驱动（支书：右侧的卡片随着滚动移动） */
 .ab-cognition-layout .ab-expect-list {
   display: flex;
   flex-direction: column;
@@ -555,7 +555,7 @@ html.theme-dark .ab-chapter-eyebrow {
   width: 100%;
   max-width: min(720px, 100%);
 }
-/* 右栏滚动行程（2026-08-28 书记：左边刚停下右边已经滑完——加行程使 sticky 定格贯穿右侧滑完） */
+/* 右栏滚动行程（2026-08-28 支书：左边刚停下右边已经滑完——加行程使 sticky 定格贯穿右侧滑完） */
 .ab-cognition-layout .ab-expect-list::after {
   content: '';
   display: block;
@@ -582,7 +582,7 @@ html.theme-dark .ab-chapter-eyebrow {
   font-size: 16px;
   color: var(--ab-ink);
   line-height: 1.85;
-  background: var(--ab-paper-1); /* 原话用淡底圆角区分层级，不用竖线（书记红线） */
+  background: var(--ab-paper-1); /* 原话用淡底圆角区分层级，不用竖线（支书红线） */
   border-radius: 8px;
   padding: 20px 24px;
   margin: 0;
@@ -669,7 +669,7 @@ html.theme-dark .ab-chapter-eyebrow {
   letter-spacing: 0.02em;
 }
 /* 双列 sticky 布局：左关系图钉在视口（随右侧滚动演化点亮），右阶段说明滚动
-   2026-08-14 书记指令：左右分割 40%/60% → 左关系图 2fr、右阶段说明 3fr */
+   2026-08-14 支书指令：左右分割 40%/60% → 左关系图 2fr、右阶段说明 3fr */
 .ab-exploration-scene-body {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); /* 2026-08-18 T-270 SVG 加宽：原 2fr/3fr 左列太窄 */
@@ -695,9 +695,9 @@ html.theme-dark .ab-chapter-eyebrow {
   gap: 18px;
   margin-top: 22px;
 }
-/* 动画放慢（2026-08-13 书记指令：步骤分散、加长下滑）——每个 stage 卡片拉高，
+/* 动画放慢（2026-08-13 支书指令：步骤分散、加长下滑）——每个 stage 卡片拉高，
    让节点/边/镜头在每个 stage 内有充分的演化行程 */
-/* 2026-08-14 T-248 书记「无卡片底板的文字」：去背景/边框/圆角/阴影/内边距，文字直接印于暖纸页；
+/* 2026-08-14 T-248 支书「无卡片底板的文字」：去背景/边框/圆角/阴影/内边距，文字直接印于暖纸页；
    纵向行程由 min-height 保留（节点动画演化需要），无视觉底板 */
 .ab-exploration-stage {
   min-height: clamp(320px, 46vh, 440px);
@@ -780,7 +780,7 @@ html.theme-dark .ab-chapter-eyebrow {
   margin: 40px auto 0;
 }
 /* 日出日落舞台（2026-08-13 批判性重构·去轮毂）：
-   2026-08-14 书记指令「标题和动画视窗可以同时出现」：flow 改为 sticky 纵向容器——
+   2026-08-14 支书指令「标题和动画视窗可以同时出现」：flow 改为 sticky 纵向容器——
    章头（head）在顶部始终在场，下方方形舞台（stage）内四卡沿环公转；
    卡片本身不旋转 → 文字始终正立；地平线 = 视窗底边（不渲染视觉元素），
    卡片转到视窗下部消失带（elevation<0.35）即 opacity=0 消失（地下卡受 R 约束到不了底边，
@@ -840,7 +840,7 @@ html.theme-dark .ab-chapter-eyebrow {
   opacity: 1;
   animation: ab-pop-in 500ms var(--ab-ease);
 }
-/* 点击后卡片虚化（2026-08-28 T-303 书记：卡片虚化否则字看不清；apply 只写 transform/opacity 不写 filter，无覆盖冲突） */
+/* 点击后卡片虚化（2026-08-28 T-303 支书：卡片虚化否则字看不清；apply 只写 transform/opacity 不写 filter，无覆盖冲突） */
 .ab-dialogue-section[data-pop="open"] .ab-dialogue-card {
   filter: blur(2px) saturate(0.8);
 }
@@ -948,7 +948,7 @@ html.theme-dark .ab-chapter-eyebrow {
   line-height: 1.55;
 }
 
-/* 2026-08-28 已删：原工作流章末 coda（"程序在所有人之上…"）——书记裁定删去，民主集中讨论尊重书记原话 */
+/* 2026-08-28 已删：原工作流章末 coda（"程序在所有人之上…"）——支书裁定删去，民主集中讨论尊重支书原话 */
 
 
 /* ── Section: 从入党申请人到正式党员（13 步时间轴） ── */
@@ -1127,7 +1127,7 @@ html.theme-dark .ab-chapter-eyebrow {
   color: var(--ab-red);
 }
 
-/* ── 终章收束：三层小字自然收尾（2026-08-18 T-271 重构，去口号；2026-08-28 书记裁定放大一倍） ── */
+/* ── 终章收束：三层小字自然收尾（2026-08-18 T-271 重构，去口号；2026-08-28 支书裁定放大一倍） ── */
 .ab-conclusion-inner {
   display: flex;
   flex-direction: column;
@@ -1163,7 +1163,7 @@ html.theme-dark .ab-chapter-eyebrow {
 }
 
 /* ── 右侧圆点导航（小目录） ──
-   2026-08-14 断点 1024px → 768px（书记：中等窗格下目录消失，非移动端） */
+   2026-08-14 断点 1024px → 768px（支书：中等窗格下目录消失，非移动端） */
 .ab-toc-nav {
   display: none;
 }

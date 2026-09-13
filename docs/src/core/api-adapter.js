@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260912k';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260913c';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -553,10 +553,10 @@ export const ApiAdapter = {
     },
   },
 
-  // 意见反馈「真匿名」（2026-09-12 书记裁定）：语义端点（server/routes/resources.js）
+  // 意见反馈「真匿名」（2026-09-12 支书裁定）：语义端点（server/routes/resources.js）
   //   GET   /api/v1/issues      公开读（处置结果公开可见）
   //   POST  /api/v1/issues      登录用户可提交（落库不含身份字段；服务端仅存 tokenHash）
-  //   PATCH /api/v1/issues/:id  处置/回复（仅党支部书记）
+  //   PATCH /api/v1/issues/:id  处置/回复（仅支书）
   issues: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -591,12 +591,12 @@ export const ApiAdapter = {
     },
   },
 
-  // C-2 方案 B（2026-09-11 书记批）：名册成员变更确认链「书记阶段写入」语义端点
+  // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点
   // server POST /api/v1/members/:id/develop-stage —— requireRole(SECRETARY_AND_DEPUTY_ROLES；副书同权 2026-09-11)
-  // + 同支部 + 字段白名单(仅 developStage)；通用 PATCH /users/:id 仅 party-staff 可写，书记端成员变更确认链经此会被 403 阻断，故单列语义写口。
-  // R-10（2026-09-11 书记裁定）：名册三条写链语义端点补齐（角色/白名单见 server/routes/member.js）
-  //   · setResidenceStatus 在册状态镜像（书记/副书记）· updateProfile 名册档案维护（组织委员）
-  //   · create 名册新增（组织委员）· transferOut 移出软标记（组织委员发起 / 书记·副书记确认）
+  // + 同支部 + 字段白名单(仅 developStage)；通用 PATCH /users/:id 仅 party-staff 可写，支书端成员变更确认链经此会被 403 阻断，故单列语义写口。
+  // R-10（2026-09-11 支书裁定）：名册三条写链语义端点补齐（角色/白名单见 server/routes/member.js）
+  //   · setResidenceStatus 在册状态镜像（支书/副支书）· updateProfile 名册档案维护（组织委员）
+  //   · create 名册新增（组织委员）· transferOut 移出软标记（组织委员发起 / 支书·副支书确认）
   members: {
     setDevelopStage(id, developStage) {
       return _post(`/api/v1/members/${id}/develop-stage`, { developStage });
@@ -634,7 +634,7 @@ export const ApiAdapter = {
       return _patch(`/api/v1/branches/${id}`, patch);
     },
 
-    // L2/L3 支部工作流配置（2026-09-03）：config 子路由（本支部书记/party-staff 专属，防治理字段误写）
+    // L2/L3 支部工作流配置（2026-09-03）：config 子路由（本支书/party-staff 专属，防治理字段误写）
     // configPatch = { modules?: {...}|null, blocks?: {...}|null }——undefined key 不改
     // 2026-09-09 审计内核：opts.why=依据/出处（可选）→ PATCH body.why，由服务端落到留痕行
     updateConfig(id, configPatch, opts = {}) {
@@ -654,7 +654,7 @@ export const ApiAdapter = {
     },
   },
 
-  // P2 党委后台（2026-09-02）：书记任期记录 API 通路
+  // P2 党委后台（2026-09-02）：支书任期记录 API 通路
   appointmentRecords: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();

@@ -1,23 +1,23 @@
 // role: [工程师]+[AI]
-// vote-summary-panel.js — 书记端表态汇总矩阵（议题 × 应到成员）
+// vote-summary-panel.js — 支书端表态汇总矩阵（议题 × 应到成员）
 // 展示：应到/已表态/未表态统计 + 矩阵（选项标签随活动 optionSet：deliberative 同意/异议/附言、formal 赞成/反对/弃权；
 //   异议红底高亮、附言完整显示）+ formal 票数统计（赞成/反对/弃权）+ quorumCheck 通过条件提示
 // 操作：截止按钮（prompt 设置截止时间，留空立即截止 → lockVotes）→ votes-locked 事件冒泡
-// 权限：canLock = 书记/副书记（副书同权 2026-09-11 裁定；server 同源 SECRETARY_AND_DEPUTY_ROLES）；
-//   其余角色 canLock=false 时按钮位置改为明示「截止表态由书记/副书记操作」（不留静默空缺）
+// 权限：canLock = 支书/副支书（副书同权 2026-09-11 裁定；server 同源 SECRETARY_AND_DEPUTY_ROLES）；
+//   其余角色 canLock=false 时按钮位置改为明示「截止表态由支书/副支书操作」（不留静默空缺）
 // 应到总数 = activity.voteConfig.voterIds.length（AV2 创建时固化）；旧活动/线下无 voteConfig 回退
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../services/committee-vote.js?v=20260912k';
-import { optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260912k';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912k';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../services/committee-vote.js?v=20260913c';
+import { optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260913c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260913c';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../services/activity.js?v=20260912k';
+import { loadActivities } from '../services/activity.js?v=20260913c';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20260912k';
+} from './resolution-followup-manager.js?v=20260913c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -25,7 +25,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
   const votes = await fetchVotes(activity.id);
   const locked = activity.votesLocked === true;
   const items = Array.isArray(activity.agenda) ? activity.agenda : [];
-  // 无记名（2026-09-12 书记裁定）：矩阵/结果页只呈现「已投 / 未投 + 汇总计数」，
+  // 无记名（2026-09-12 支书裁定）：矩阵/结果页只呈现「已投 / 未投 + 汇总计数」，
   //   逐人选项不落库亦不展示（参与记录仍可见，供催办与人数核验）；记名保持逐人现状。
   const anonymous = isAnonymousActivity(activity);
   const votedCount = votedCountOf(votes);
@@ -53,7 +53,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
     quorumHtml = `<div class="vs-quorum">通过条件：出席（已表态，含弃权）需 ≥ ${needPresent}/${total}，通过需赞成 &gt; 应到/2（≥ ${needApprove} 人）</div>`;
   }
 
-  // R2-2 决议「待落实」区（仅含已记录「通过」的议程；书记/副书记可管理——canLock 副书同权 2026-09-13）
+  // R2-2 决议「待落实」区（仅含已记录「通过」的议程；支书/副支书可管理——canLock 副书同权 2026-09-13）
   const followupHtml = resolutionFollowupSectionHtml({ activity, canManage: canLock === true });
 
   container.innerHTML = `
@@ -61,7 +61,7 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
       <div class="vs-head">
         <strong>表态汇总</strong>
         <span class="vs-stat" title="应到＝有表决权党员（预备党员无表决权）">应到 ${total} · 已表态 ${votedCount} · 未表态 ${total - votedCount}</span>
-        ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="vs-lock" type="button">截止表态</button>' : '<span class="text-xs text-gray-500">截止表态由书记/副书记操作</span>')}
+        ${locked ? '<span class="vs-locked">已截止</span>' : (canLock === true ? '<button class="vs-lock" type="button">截止表态</button>' : '<span class="text-xs text-gray-500">截止表态由支书/副支书操作</span>')}
       </div>
       <!-- R-20（2026-09-13）：两处「应到」口径不同，明示避免误以为漏人 -->
       <div class="text-[11px] text-gray-500 -mt-1 mb-1">应到＝有表决权党员（预备党员无表决权）；考勤的「应到」为正式＋预备党员，两者口径不同</div>

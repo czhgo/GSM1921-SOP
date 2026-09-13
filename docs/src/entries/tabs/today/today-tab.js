@@ -2,26 +2,26 @@
 // ════════════════════════════════════════════════════════════════
 //  entries/tabs/today/today-tab.js — 「今天」共享渲染组件（R6-3，C 排法）
 // ════════════════════════════════════════════════════════════════
-// 六角色工作台（书记/副书、组织、宣传、纪检、组长、普通成员）共用；
+// 六角色工作台（支书/副书、组织、宣传、纪检、组长、普通成员）共用；
 // 数据源 = services/today-summary.js buildTodaySummary（实时同源派生，无第二份存储）。
 // 本组件只读：不内建任何处理能力，全部点击直达对应处理处（≤1 跳）——
 //   会议/分工行 → activity.html?id=…；到期/逾期行 → onNav('todo')（onNav 未提供则空操作）。
-// 顶部卡 C 排法（书记视觉对照已定）：左大块「今天有会 n」/右上「今天到期 n」/右下「我的分工 n」；
+// 顶部卡 C 排法（支书视觉对照已定）：左大块「今天有会 n」/右上「今天到期 n」/右下「我的分工 n」；
 //   逾期红字在到期块顶部置顶露头；每块空态一句 + 「全部」小链接；三块全空时卡片不消失、仅示「今天暂无安排」。
 // 主题色 = 各工作台 accent 的样式变量（--app-accent 等，不新造体系，同 overview/统计卡用法）。
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260912k';
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260912k';
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { tokenOf } from '../../../core/version-token.js?v=20260912k'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260912k'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260912k'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260912k'; // P2 渲染守卫（spec §四.1）
-// 批4（2026-09-09 书记批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260912k';
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260913c';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260913c';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { tokenOf } from '../../../core/version-token.js?v=20260913c'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260913c'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260913c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260913c'; // P2 渲染守卫（spec §四.1）
+// 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260913c';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
@@ -182,7 +182,7 @@ function _allEmptyHtml() {
     </div>`;
 }
 
-// ── 批4 组长学期组员进展归集提醒（leader.semesterReportReminder，书记 2026-09-09 批）────────
+// ── 批4 组长学期组员进展归集提醒（leader.semesterReportReminder，支书 2026-09-09 批）────────
 // 开关 = policy leader.semesterReportReminder.enabled（读侧注入后 = 当前支部有效默认）；
 // 窗口 = 每年两学期开学首周（3 月 / 9 月 1–7 日，简单实现——与滞留复核窗非同构故不引入学期窗表）；
 // 防重复弹 = 按人存 localStorage 键 gsm1921-pref-<personId>-semester-report-remind-<学期键>

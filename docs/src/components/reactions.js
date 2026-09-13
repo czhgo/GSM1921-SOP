@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // reactions.js — Issue 表态聚合组件
 
-import { IssueStore } from '../services/issues.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { accDarkParts } from '../core/constants.js?v=20260912k';
+import { IssueStore } from '../services/issues.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { accDarkParts } from '../core/constants.js?v=20260913c';
 
 const REACTIONS = [
   { key: 'thumbsUp', icon: 'thumbsUp', label: '赞同', activeColor: '#059669' },
@@ -63,7 +63,7 @@ export function bindReactions() {
         // 取消表态
         list.splice(idx, 1);
       } else {
-        // 添加表态（草稿，需书记审核后真正合并——但反应是即时的，直接生效）
+        // 添加表态（草稿，需支书审核后真正合并——但反应是即时的，直接生效）
         list.push(currentUserId);
       }
       issue.reactions[reactionKey] = list;

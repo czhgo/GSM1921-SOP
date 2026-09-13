@@ -1,7 +1,7 @@
-// server/routes/member.js — 成员变更审批链路（书记 2026-09-01 点验链路 ③④ 落地）
+// server/routes/member.js — 成员变更审批链路（支书 2026-09-01 点验链路 ③④ 落地）
 // 数据闭环：议程「记录通过」→ 前端创建成员变更申请（pending-org-approval）
 //          → 组织委员审批（approve）→ 自动广播全体支委（committee_broadcasts）
-//          → 书记/副书记确认（confirm；副书同权 2026-09-11）→ 更新成员发展阶段（users.developStage）
+//          → 支书/副支书确认（confirm；副书同权 2026-09-11）→ 更新成员发展阶段（users.developStage）
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
@@ -14,12 +14,12 @@ import {
 // RESIDENCE 与 services/roster.js 同值，单测断言防失同步）
 import { DEVELOP_STAGE_OPTIONS, RESIDENCE } from '../../docs/src/services/org-base-data-preview.js';
 
-// 全体支委（广播对象：书记/副书记/组织/宣传/纪检，与 member-change-flow 测试断言一致）
+// 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
 const COMMITTEE_IDS = BRANCH_COMMITTEE_IDS;
 
 const ORG_COMMISSIONER_ROLES = new Set(['org-commissioner']);
-// 副书同权（2026-09-11 书记裁定）：书记侧写链共享集合（单一源 constants.js，勿手写两套）——
+// 副书同权（2026-09-11 支书裁定）：支书侧写链共享集合（单一源 constants.js，勿手写两套）——
 // 名册阶段/在册镜像、移出确认、成员变更确认（本文件 confirm）一律复用本集合。
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
@@ -48,7 +48,7 @@ export function createMemberRouter(db) {
   });
 
   // ── 创建申请（支委；普通成员 403）──
-  // 来源：议程「记录通过」后的自动派生（agenda-follow-up），也可由书记直接发起
+  // 来源：议程「记录通过」后的自动派生（agenda-follow-up），也可由支书直接发起
   // 2026-09-01 代码审查修复（P1）：按 activityId+agendaItemId+personId 防重，
   // 已存在待审批/已完成申请时返回 409（防止 API 模式下前端查重失效导致的重复申请）
   router.post('/member-change-requests', requireCommissioner(db), (req, res) => {
@@ -94,7 +94,7 @@ export function createMemberRouter(db) {
     };
     writeRow(db, 'member_change_requests', updated);
 
-    // 广播全体支委（含组织委员自身与书记；状态 pending 待支委确认收到）
+    // 广播全体支委（含组织委员自身与支书；状态 pending 待支委确认收到）
     const already = listTable(db, 'committee_broadcasts').filter((b) => b.requestId === existing.id);
     for (const recipientId of COMMITTEE_IDS) {
       if (already.some((b) => b.recipientId === recipientId)) continue;
@@ -110,10 +110,10 @@ export function createMemberRouter(db) {
     res.json(updated);
   });
 
-  // ── 书记/副书记确认 → 更新成员发展阶段（users.developStage）──
-  // 副书同权（2026-09-11 书记裁定）：确认端点一并纳入，复用 SECRETARY_AND_DEPUTY_ROLES
-  // （与名册阶段/在册镜像、移出确认同口径，不在书记侧写链内再造第二套集合）。
-  // 同支部校验（与 develop-stage / residence-status 等书记侧写端点同口径）：跨支部一律 403。
+  // ── 支书/副支书确认 → 更新成员发展阶段（users.developStage）──
+  // 副书同权（2026-09-11 支书裁定）：确认端点一并纳入，复用 SECRETARY_AND_DEPUTY_ROLES
+  // （与名册阶段/在册镜像、移出确认同口径，不在支书侧写链内再造第二套集合）。
+  // 同支部校验（与 develop-stage / residence-status 等支书侧写端点同口径）：跨支部一律 403。
   router.post('/member-change-requests/:id/confirm', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const existing = getRow(db, 'member_change_requests', req.params.id);
     if (!existing) return res.status(404).json({ error: '申请不存在' });
@@ -141,11 +141,11 @@ export function createMemberRouter(db) {
     res.json(updated);
   });
 
-  // ── 名册成员变更确认链 · 书记阶段写入语义端点（C-2 方案 B，2026-09-11 书记批）──────────
-  // 背景：成员变更确认链「书记确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
-  // 而 resources.js 的 users 写权矩阵仅 party-staff（RESOURCE_WRITE_GATE.users）→ 书记 role='secretary'
-  // 被 403 阻断，成员变更确认链在 API 形态断裂。本端点复用既有书记专属直写通道（语义同 member.js confirm）：
-  //   · 权限 = requireRole(SECRETARY_AND_DEPUTY_ROLES)（副书同权 2026-09-11 书记裁定；
+  // ── 名册成员变更确认链 · 支书阶段写入语义端点（C-2 方案 B，2026-09-11 支书批）──────────
+  // 背景：成员变更确认链「支书确认生效」经 PersonStore.saveMember → ApiAdapter.users.update（PATCH /users/:id），
+  // 而 resources.js 的 users 写权矩阵仅 party-staff（RESOURCE_WRITE_GATE.users）→ 支书 role='secretary'
+  // 被 403 阻断，成员变更确认链在 API 形态断裂。本端点复用既有支书专属直写通道（语义同 member.js confirm）：
+  //   · 权限 = requireRole(SECRETARY_AND_DEPUTY_ROLES)（副书同权 2026-09-11 支书裁定；
   //     委员/党委组织员一律 403，不扩大越权面）；
   //   · 同支部校验（actor 归属支部 vs 目标成员归属支部，缺省 br-b1，与 resources.js 口径一致）；
   //   · 字段固定白名单 = 仅 developStage；含 role/branchId 等治理字段 → 400 硬挡（防自封/越支部）；
@@ -175,16 +175,16 @@ export function createMemberRouter(db) {
     res.json(merged);
   });
 
-  // ── 名册写链 · API 形态语义端点（R-10 全补三条写链，2026-09-11 书记裁定）────────────
+  // ── 名册写链 · API 形态语义端点（R-10 全补三条写链，2026-09-11 支书裁定）────────────
   // 背景：名册三条写链在 API 形态经通用 /users 写口（PATCH/POST/DELETE）落库，而 resources.js 的
-  // users 写权矩阵仅 party-staff（党委组织员/党务老师）→ 组织委员/书记被 403 阻断，写链断裂。
+  // users 写权矩阵仅 party-staff（党委组织员/党务老师）→ 组织委员/支书被 403 阻断，写链断裂。
   // 本组端点复用语义直写通道（与上方 develop-stage 同构），**不改 resources.js 的 users 写权矩阵**
   // （不扩大越权面），统一纪律：requireRole + 同支部校验 + 字段白名单（注入 role/branchId → 400；
   // 枚举非法 → 400；成员不存在 → 404；跨支部 → 403）。
-  //   · 在册状态镜像  POST  /members/:id/residence-status  书记/副书记（副书同权）+ 仅在册字段
-  //   · 名册档案维护  PATCH /members/:id/profile           组织委员（书记/副书记不越权；口径不变）+ 在册属性白名单
-  //   · 名册新增      POST  /members                       组织委员（同上；书记/副书记不越权）；强制归本支部、默认普通成员角色
-  //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 书记/副书记确认；原行保留不删不匿名
+  //   · 在册状态镜像  POST  /members/:id/residence-status  支书/副支书（副书同权）+ 仅在册字段
+  //   · 名册档案维护  PATCH /members/:id/profile           组织委员（支书/副支书不越权；口径不变）+ 在册属性白名单
+  //   · 名册新增      POST  /members                       组织委员（同上；支书/副支书不越权）；强制归本支部、默认普通成员角色
+  //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
   const PROFILE_FIELDS = ['name', 'studentId', 'partyGroup', ...RESIDENCE_FIELDS];
   const CREATE_FIELDS = ['id', 'name', 'studentId', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
@@ -197,7 +197,7 @@ export function createMemberRouter(db) {
   };
   const firstOutside = (body, allowed) => Object.keys(body).find((k) => !allowed.includes(k));
 
-  // ① 在册状态镜像：成员变更确认链书记/副书记确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
+  // ① 在册状态镜像：成员变更确认链支书/副支书确认生效 → 写 residenceStatus/Note/History（副书同权 + 同支部）
   router.post('/members/:id/residence-status', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, RESIDENCE_FIELDS);
@@ -263,7 +263,7 @@ export function createMemberRouter(db) {
     res.status(201).json(row);
   });
 
-  // ③ 移出（软标记「已转出」：原行保留、不删不匿名；组织委员发起 / 书记·副书记确认 + 同支部）
+  // ③ 移出（软标记「已转出」：原行保留、不删不匿名；组织委员发起 / 支书·副支书确认 + 同支部）
   router.post('/members/:id/transfer-out', requireRole(db, TRANSFER_OUT_ROLES), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, ['note']);

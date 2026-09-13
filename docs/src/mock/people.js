@@ -1,8 +1,8 @@
 export const PEOPLE = [
-  // ── 2026-09-06 基线刷新：p1~p15 全部姓名由「数字占位名」替换为常见真实人名（书记=储子禾 p13）──
-  // ── S1–S4 滞留党员示范（2026-09-06 书记已批）：成员档案可选字段 residenceStatus('在校'|'滞留')/
+  // ── 2026-09-06 基线刷新：p1~p15 全部姓名由「数字占位名」替换为常见真实人名（支书=储子禾 p13）──
+  // ── S1–S4 滞留党员示范（2026-09-06 支书已批）：成员档案可选字段 residenceStatus('在校'|'滞留')/
   //    residenceNote（备注·原因起止）/ residenceHistory（变更留痕 {from,to,updatedBy,updatedAt}，组织委员
-  //    维护、书记可复核）；未标注 = 默认「在校」。示范取 p5/p9 两名「正式党员/普通成员」（经自查：二人
+  //    维护、支书可复核）；未标注 = 默认「在校」。示范取 p5/p9 两名「正式党员/普通成员」（经自查：二人
   //    7~8 月历史活动/考勤均在滞留起始 2026-09-01 之前，无未来日期会议分工引用；滞留自 2026-09-01 起）。──
   { id: 'p1',  name: '罗文杰', studentId: '2400012345', partyGroup: '第一党小组', developStage: '正式党员', role: 'leader' },
   { id: 'p2',  name: '郭子睿', studentId: '2400012346', partyGroup: '第二党小组', developStage: '正式党员', role: 'leader' },
@@ -66,7 +66,7 @@ export const PEOPLE = [
   { id: 'p_pc', name: '党委组织员', studentId: '9000000001', partyGroup: '', developStage: '', role: 'party-staff', branchId: null },
 ];
 
-// ── P1 党委后台（2026-09-02，书记决策：党员严格单支部）──
+// ── P1 党委后台（2026-09-02，支书决策：党员严格单支部）──
 // 成员缺省归属本科生党支部 br-b1；党委级人员（party-staff，Step4 引入）显式 branchId: null（不属于支部）
 for (const p of PEOPLE) {
   if (p.branchId === undefined) p.branchId = 'br-b1';

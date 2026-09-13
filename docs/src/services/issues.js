@@ -2,11 +2,11 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260912k';
-import { PersonStore } from './person.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260912k';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260912k';
+import { AuthStore } from './auth.js?v=20260913c';
+import { PersonStore } from './person.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260913c';
+import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260913c';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -20,10 +20,11 @@ const DRAFT_KEY = 'gsm1921-issue-drafts';
 // 2026-09-13 v4：反馈指派/审计身份统一改真实成员 ID（u_org→p11 等），缓存版本号 +1 强制清旧缓存重拉
 //   （键名保持 v3 不变，仅版本号递进——reset 清理清单与既有测试零改动）
 const CACHE_KEY = 'gsm1921-issue-cache-v3';
+export const ISSUE_CACHE_KEY = CACHE_KEY; // 供其它模块（issue-detail 等）写回同一缓存键，防键名漂移
 const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
 const CACHE_VERSION = '4';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
-// 真匿名防刷令牌（2026-09-12 书记裁定）：客户端首次提交生成随机 token 存本地，
+// 真匿名防刷令牌（2026-09-12 支书裁定）：客户端首次提交生成随机 token 存本地，
 // 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人。
 const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
 
@@ -63,7 +64,7 @@ function _getSubmitterToken() {
 
 /**
  * 历史数据迁移：删除既有记录 payload 里的 `_realPersonId`（保留其余内容）。
- * 该字段为旧「匿名仅对书记可见真实提交人」机制残留——读取时一律清除/忽略，书记侧亦不可追溯。
+ * 该字段为旧「匿名仅对支书可见真实提交人」机制残留——读取时一律清除/忽略，支书侧亦不可追溯。
  * @returns {boolean} 是否有变更（有则调用方应回写缓存）
  */
 function _stripLegacyIdentity(list) {
@@ -105,7 +106,7 @@ function _syncIssueToApi(issue) {
 
 /**
  * P2（2026-09-07 · spec §四.1）：汇报/反馈写版本戳 +1。
- * 书记待办页 extraTopHtml「待答复收件箱/汇报时间线」等渲染守卫 key 以 tokenOf('issue')
+ * 支书待办页 extraTopHtml「待答复收件箱/汇报时间线」等渲染守卫 key 以 tokenOf('issue')
  * 为数据版本（IssueStore 走 localStorage，不在 mockDB length 指纹覆盖内 → 须写口显式 bump）：
  * 汇报被答复/状态变化后 → 键变 → 渲染守卫落重建，收件箱/时间线即时刷新。
  */
@@ -120,14 +121,14 @@ function _currentPersonId() {
 
 /**
  * 处置审计落款角色（2026-09-13 dogfood 同类彻查）：原 assignIssue/closeIssue/mergeIssues 一律
- * 硬编码 authorRole='secretary'，副书记（副书同权）经手时审计被记成书记——与「催办签发人写死」
+ * 硬编码 authorRole='secretary'，副支书（副书同权）经手时审计被记成支书——与「催办签发人写死」
  * 同类的身份错位。改为取当前登录用户真实角色；无会话（node 单测）回退 'secretary' 保持既有行为。
  */
 function _currentRole() {
   return AuthStore.getCurrentUser()?.role || 'secretary';
 }
 
-/** 是否书记侧处置（写回服务端的处置人；与 server PATCH /issues 的 SECRETARY_SET 同源单一源） */
+/** 是否支书侧处置（写回服务端的处置人；与 server PATCH /issues 的 SECRETARY_SET 同源单一源） */
 function _isSecretaryRole(role) {
   return !!role && SECRETARY_ROLES.includes(role);
 }
@@ -255,7 +256,7 @@ export const IssueStore = {
   /**
    * 添加草稿（新建/评论/反应都先进草稿）
    * @param {Object} draft
-   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——不落真实 personId，防书记侧追溯）
+   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——不落真实 personId，防支书侧追溯）
    */
   addDraft(draft, authorOverride) {
     const list = this.getDrafts();
@@ -275,11 +276,11 @@ export const IssueStore = {
   },
 
   /**
-   * 提交意见反馈（真匿名，2026-09-12 书记裁定）
-   * 匿名：submittedBy='匿名' + anonymous:true，不存任何可反查提交人的字段（书记侧亦不可见）；
+   * 提交意见反馈（真匿名，2026-09-12 支书裁定）
+   * 匿名：submittedBy='匿名' + anonymous:true，不存任何可反查提交人的字段（支书侧亦不可见）；
    * 实名：按现口径记真实 personId（展示层经 PersonStore 解析姓名）。
    * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
-   * @returns {Promise<Object>} API 形态返回落库记录；mock 形态返回新建草稿（待书记审核后公开）
+   * @returns {Promise<Object>} API 形态返回落库记录；mock 形态返回新建草稿（待支书审核后公开）
    */
   async submitIssue({ title, body, scope, types = [], anonymous = true } = {}) {
     const now = new Date().toISOString().slice(0, 10);
@@ -308,7 +309,7 @@ export const IssueStore = {
     }, anonymous ? '匿名' : undefined);
   },
 
-  /** 书记审核通过：合并到 issues.json（实际操作：本地更新+提示书记保存文件） */
+  /** 支书审核通过：合并到 issues.json（实际操作：本地更新+提示支书保存文件） */
   approveDraft(draftId) {
     const drafts = this.getDrafts();
     const d = drafts.find(x => x.draftId === draftId);
@@ -336,6 +337,20 @@ export const IssueStore = {
         commentCount: 0,
       };
       _issuesCache = _issuesCache || [];
+      // R-24（2026-09-13）：API 形态必须**落服务端**——原实现只写本地缓存，
+      // 随后 loadAll() 用服务端数据覆盖 → 表现为「点通过提示成功但列表仍 0 条」。
+      // 服务端不接受自述身份/编号字段（落库白名单），只提交内容字段，由服务端生成 id/number/时间。
+      if (_isApiMode()) {
+        getAdapter().issues.create({
+          title: issue.title, body: issue.body, scope: issue.scope, types: issue.types,
+          anonymous: issue.anonymous !== false,
+          submitterToken: (d.payload && d.payload.submitterToken) || undefined,
+        }).then((row) => {
+          if (row) _issuesCache = [row, ...(_issuesCache || []).filter(x => x.id !== issue.id)];
+          _noteIssueChange();
+        }).catch((e) => console.warn('[IssueStore] 草稿通过写入服务端失败：', e));
+        return issue;
+      }
       _issuesCache.push(issue);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
       return issue;
@@ -368,7 +383,7 @@ export const IssueStore = {
     return d;
   },
 
-  /** 书记驳回 */
+  /** 支书驳回 */
   rejectDraft(draftId, reason) {
     const drafts = this.getDrafts();
     const d = drafts.find(x => x.draftId === draftId);
@@ -379,9 +394,9 @@ export const IssueStore = {
     return d;
   },
 
-  // ── 书记专属操作（直接修改缓存，需书记手动同步到 issues.json） ──
+  // ── 支书专属操作（直接修改缓存，需支书手动同步到 issues.json） ──
 
-  /** 书记改状态 */
+  /** 支书改状态 */
   changeStatus(id, status, closedReason = null) {
     const issue = this.getById(id);
     if (!issue) return null;
@@ -399,7 +414,7 @@ export const IssueStore = {
     return issue;
   },
 
-  /** 书记软隐藏评论 */
+  /** 支书软隐藏评论 */
   hideComment(issueId, commentId, reason) {
     const issue = this.getById(issueId);
     if (!issue) return null;
@@ -415,7 +430,7 @@ export const IssueStore = {
     return issue;
   },
 
-  /** 书记编辑 issue */
+  /** 支书编辑 issue */
   editIssue(id, updates) {
     const issue = this.getById(id);
     if (!issue) return null;
@@ -426,7 +441,7 @@ export const IssueStore = {
     return issue;
   },
 
-  /** 书记设置 assignee（旧接口，保留兼容；新代码用 assignIssue） */
+  /** 支书设置 assignee（旧接口，保留兼容；新代码用 assignIssue） */
   setAssignee(id, personId) {
     return this.editIssue(id, { assignee: personId });
   },
@@ -434,7 +449,7 @@ export const IssueStore = {
   // ── 2026-07-30 新增：反馈分发与处置（spec §3.1） ──────────────
 
   /**
-   * 书记指派反馈给某人
+   * 支书指派反馈给某人
    * @param {string} issueId
    * @param {string} assigneeId   被指派人 personId（如 'p11'）
    * @param {string} assigneeRole 被指派人角色键（'org-commissioner' | 'leader' | 'secretary' | ...）
@@ -500,25 +515,25 @@ export const IssueStore = {
     });
     issue.commentCount = (issue.commentCount || 0) + 1;
     if (!issue.participants.includes(author)) issue.participants.push(author);
-    // 处置结果提交后，标记 issue 为「待终审」（resultPending=true），等待书记关闭
+    // 处置结果提交后，标记 issue 为「待终审」（resultPending=true），等待支书关闭
     if (kind === 'result') {
       issue.resultPending = true;
       issue.resultSubmittedAt = at;
-      // 触发书记工作台「待终审」高亮
+      // 触发支书工作台「待终审」高亮
       IssueNotify.markSecretaryReviewPending(issueId);
     }
-    // 真匿名（2026-09-12 书记裁定）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
-    // 若按 submittedBy 定向推送会泄露匿名提交人身份（书记追问只能公开留言）。
+    // 真匿名（2026-09-12 支书裁定）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
+    // 若按 submittedBy 定向推送会泄露匿名提交人身份（支书追问只能公开留言）。
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
-    _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（书记收件箱时间线渲染守卫失效）
-    // API 形态：书记侧处置（评论/批复/正式答复）写回服务端
-    //（成员汇报评论 authorRole ≠ 书记 → 不触发；与服务端 PATCH /issues 仅书记同源，单一源 SECRETARY_ROLES）
+    _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（支书收件箱时间线渲染守卫失效）
+    // API 形态：支书侧处置（评论/批复/正式答复）写回服务端
+    //（成员汇报评论 authorRole ≠ 支书 → 不触发；与服务端 PATCH /issues 仅支书同源，单一源 SECRETARY_ROLES）
     if (_isSecretaryRole(authorRole)) _syncIssueToApi(issue);
     return issue;
   },
 
   /**
-   * 书记关闭反馈
+   * 支书关闭反馈
    * @param {string} issueId
    * @param {string} reason  'completed' | 'duplicate' | 'wontfix' | 'not_planned'
    * @param {string} note    关闭备注（可选）
@@ -542,7 +557,7 @@ export const IssueStore = {
     return issue;
   },
 
-  /** 书记重新开放 */
+  /** 支书重新开放 */
   reopenIssue(issueId) {
     const issue = this.getById(issueId);
     if (!issue) return null;
@@ -559,7 +574,7 @@ export const IssueStore = {
   // ── 2026-08-10 新增：工作汇报闭环（kind='report'） ────────────
 
   /**
-   * 成员主动发起工作汇报（发往书记；三类：进度/卡点/请示）
+   * 成员主动发起工作汇报（发往支书；三类：进度/卡点/请示）
    * @param {{ category: 'progress'|'blocked'|'ask', body: string }} params
    * @returns {Object|null} 新建的汇报 issue
    */
@@ -581,7 +596,7 @@ export const IssueStore = {
       closedAt: null,
       submittedBy: by,
       submittedAt: now,
-      assignee: null, // 未指派 → 默认发往书记待答复
+      assignee: null, // 未指派 → 默认发往支书待答复
       assigneeRole: null,
       dispatchHistory: [],
       comments: [],
@@ -595,14 +610,14 @@ export const IssueStore = {
     _issuesCache = _issuesCache || [];
     _issuesCache.push(issue);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
-    _noteIssueChange(); // P2：发起汇报 → 写版本 +1（书记收件箱新条）
-    // 书记"待答复"高亮（复用 secretary-review 未读通道）
+    _noteIssueChange(); // P2：发起汇报 → 写版本 +1（支书收件箱新条）
+    // 支书"待答复"高亮（复用 secretary-review 未读通道）
     IssueNotify.markSecretaryReviewPending(issue.id);
     return issue;
   },
 
   /**
-   * 书记"了解进展"：请某人就某事项汇报（温和请求，界面措辞不用"要求"）
+   * 支书"了解进展"：请某人就某事项汇报（温和请求，界面措辞不用"要求"）
    * @param {string} targetPersonId — 被请汇报人 personId
    * @param {string} targetRole      — 被请汇报人角色键
    * @param {string} note            — 请汇报事项（选填）
@@ -625,7 +640,7 @@ export const IssueStore = {
       status: 'open',
       closedReason: null,
       closedAt: null,
-      submittedBy: by,       // 书记发起
+      submittedBy: by,       // 支书发起
       requestedBy: by,       // 标记"了解进展"来源
       requestedAt: now,
       requestedNote: noteText,
@@ -679,7 +694,7 @@ export const IssueStore = {
     );
   },
 
-  /** 书记请我汇报、尚未提交的请求 */
+  /** 支书请我汇报、尚未提交的请求 */
   getReportRequestsFor(userId) {
     return (_issuesCache || []).filter(i =>
       i.kind === 'report' && i.requestedBy && i.assignee === userId &&
@@ -687,7 +702,7 @@ export const IssueStore = {
     );
   },
 
-  /** 书记待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应） */
+  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应） */
   getSecretaryPendingReports() {
     return (_issuesCache || []).filter(i =>
       i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto
@@ -701,18 +716,18 @@ export const IssueStore = {
     );
   },
 
-  /** 书记隐藏反馈（不在公开列表显示） */
+  /** 支书隐藏反馈（不在公开列表显示） */
   hideIssue(issueId) {
     return this.editIssue(issueId, { hidden: true });
   },
 
-  /** 书记取消隐藏 */
+  /** 支书取消隐藏 */
   unhideIssue(issueId) {
     return this.editIssue(issueId, { hidden: false });
   },
 
   /**
-   * 书记合并反馈：将 sourceId 合并到 targetId
+   * 支书合并反馈：将 sourceId 合并到 targetId
    * - source 标记 mergedInto=targetId 并隐藏
    * - target 评论时间线追加一条 merge 事件
    */
@@ -757,12 +772,12 @@ export const IssueStore = {
     );
   },
 
-  /** 书记设置 milestone */
+  /** 支书设置 milestone */
   setMilestone(id, milestoneId) {
     return this.editIssue(id, { milestone: milestoneId });
   },
 
-  /** 导出为 JSON（供书记手动同步到 issues.json） */
+  /** 导出为 JSON（供支书手动同步到 issues.json） */
   exportJSON() {
     return JSON.stringify({
       version: 1,
@@ -836,9 +851,9 @@ export const IssueStore = {
 // ════════════════════════════════════════════════════════════════
 //  工作汇报（Report）——复用 Issue 结构，kind='report'
 //  与意见反馈（kind 缺省/'feedback'）同源同库，UI 以 kind 分流。
-//  分类（书记 2026-08-10 裁定）：进度 / 卡点 / 请示
-//  "了解进展"请求：书记主动请人汇报（requestedBy/requestedAt/requestedNote），
-//  界面措辞刻意避开"要求"二字（书记裁定），以温和请求语义呈现。
+//  分类（支书 2026-08-10 裁定）：进度 / 卡点 / 请示
+//  "了解进展"请求：支书主动请人汇报（requestedBy/requestedAt/requestedNote），
+//  界面措辞刻意避开"要求"二字（支书裁定），以温和请求语义呈现。
 // ════════════════════════════════════════════════════════════════
 
 export const REPORT_CATEGORIES = {
@@ -864,11 +879,11 @@ export function deriveIssueDisplayState(issue) {
   }
   // 工作汇报分支（kind='report'）
   if (issue.kind === 'report') {
-    // 书记"了解进展"请求、成员尚未回应 → 待汇报
+    // 支书"了解进展"请求、成员尚未回应 → 待汇报
     if (issue.requestedBy && !issue.resultPending) {
       return { key: 'to-report', label: '待汇报', badgeClass: 'bg-blue-100 text-blue-700' };
     }
-    // 成员已提交汇报内容，等待书记答复 → 待答复
+    // 成员已提交汇报内容，等待支书答复 → 待答复
     if (issue.resultPending) {
       return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-amber-700' };
     }
@@ -921,7 +936,7 @@ export const IssueNotify = {
   getUnreadCount(assigneeId) {
     return this.getUnread(assigneeId).length;
   },
-  /** 标记某 issue 为「待终审」未读（书记维度） */
+  /** 标记某 issue 为「待终审」未读（支书维度） */
   markSecretaryReviewPending(issueId) {
     try {
       const set = new Set(JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]'));
@@ -955,7 +970,7 @@ export const IssueNotify = {
  * @returns {string} HTML
  */
 export function renderMyDispatchTab(role, userId) {
-  // 书记规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
+  // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）
   const issues = IssueStore.getAssignedTo(userId)
     .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
   const unread = IssueNotify.getUnread(userId);
@@ -963,7 +978,7 @@ export function renderMyDispatchTab(role, userId) {
   // 标记全部已读
   unread.forEach(id => IssueNotify.markRead(userId, id));
 
-  // ── 我的汇报（2026-08-10 新增，书记裁定：信息双向互动）──
+  // ── 我的汇报（2026-08-10 新增，支书裁定：信息双向互动）──
   const reportRequests = IssueStore.getReportRequestsFor(userId)
     .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '')); // IA-C2：与 ②③ 同为时间倒序
   const myReports = IssueStore.getMyReports(userId)
@@ -971,7 +986,7 @@ export function renderMyDispatchTab(role, userId) {
 
   let html = `<div class="space-y-3">`;
 
-  // ① 上级"了解进展"请求（待我汇报，行内填写即发；发起人可能是书记或组长）
+  // ① 上级"了解进展"请求（待我汇报，行内填写即发；发起人可能是支书或组长）
   if (reportRequests.length) {
     const requesterName = _displayName(reportRequests[0].requestedBy) || '上级';
     html += `<div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3">`;
@@ -1006,7 +1021,7 @@ export function renderMyDispatchTab(role, userId) {
 
   // ③ 指派给我的反馈（原有）
   // IA-C2 收敛（2026-09-06）：块标题与 ①/② 对齐、明示计数；超期优先不适用（issue/report 无 deadline 字段），
-  // 排序沿用书记 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。
+  // 排序沿用支书 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。
   html += `<p class="text-xs font-medium text-gray-700 mb-1">指派给我的反馈 · ${issues.length}</p>`;
   html += `<p class="text-xs text-gray-500 mb-2">开放中指派，可评论或提交处置结果</p>`;
 
@@ -1023,7 +1038,7 @@ export function renderMyDispatchTab(role, userId) {
       html += `</div>`;
       html += `<p class="text-sm text-gray-800 font-medium">${issue.title}</p>`;
       if (dispatchNote?.note) {
-        html += `<p class="text-xs text-blue-600 mt-1">书记备注：${dispatchNote.note}</p>`;
+        html += `<p class="text-xs text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>`;
       }
       html += `<div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>`;
       html += `</div>`;
@@ -1067,7 +1082,7 @@ export function bindMyDispatchEvents(container, role, userId) {
       _renderMyReportDetail(el.dataset.issueId, role, userId, container);
     });
   });
-  // 书记"了解进展"请求 → 行内填写汇报内容即发
+  // 支书"了解进展"请求 → 行内填写汇报内容即发
   container.querySelectorAll('[data-mydispatch-action="submit-report"]').forEach(el => {
     el.addEventListener('click', () => {
       const id = el.dataset.issueId;
@@ -1078,13 +1093,13 @@ export function bindMyDispatchEvents(container, role, userId) {
       // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
       //（该行因 requestedBy+open 过滤在 ① 区仍保留，仅草稿清空）
       if (input) input.value = '';
-      showToast('success', '汇报已发出，等待书记答复');
+      showToast('success', '汇报已发出，等待支书答复');
       _rerenderMyDispatch(container, role, userId);
     });
   });
 }
 
-/** 我的汇报详情（对话时间线 + 书记答复确认收到） */
+/** 我的汇报详情（对话时间线 + 支书答复确认收到） */
 function _renderMyReportDetail(issueId, role, userId, container) {
   const detailEl = container.querySelector('#mydispatch-detail');
   if (!detailEl) return;
@@ -1111,7 +1126,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">对话</span><div class="space-y-2">`;
   const comments = (issue.comments || []).filter(c => !c.hidden);
   if (!comments.length) {
-    html += `<p class="text-xs text-gray-500">暂无对话，等待书记答复</p>`;
+    html += `<p class="text-xs text-gray-500">暂无对话，等待支书答复</p>`;
   } else {
     comments.forEach(c => {
       const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
@@ -1238,7 +1253,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
         const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
         if (!body) { showToast('error', '请输入处置结果内容'); return; }
         IssueStore.addComment(issueId, userId, role, body, 'result');
-        showToast('success', '处置结果已提交，等待书记终审');
+        showToast('success', '处置结果已提交，等待支书终审');
         _renderMyDispatchDetail(issueId, role, userId, container);
       }
     });

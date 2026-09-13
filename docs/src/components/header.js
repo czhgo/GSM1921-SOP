@@ -1,19 +1,19 @@
 // role: [工程师]+[AI]
 // components/header.js — 共享顶栏组件（重构版）
-// 变化: 去掉 mode 标签与只读视角切换；2026-08-10 书记裁定（原则12 工作台集成制）：
+// 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260912k';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260913c';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
-// 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——书记改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260912k';
-import { getBasePath } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260912k';
+// 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260913c';
+import { getBasePath } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260913c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260912k';
+import { getHeaderTitle } from '../services/branch.js?v=20260913c';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260912k';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260912k');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260913c');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260912k');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260913c');
   return _noticeModule;
 }
 
@@ -93,7 +93,7 @@ async function _refreshHeaderTitle() {
 
 function _roleLabelHTML(role) {
   if (!role) return '';
-  // 普通参与者默认无标记：没有标记就是普通参与者的标记（书记 2026-08-01 决策）
+  // 普通参与者默认无标记：没有标记就是普通参与者的标记（支书 2026-08-01 决策）
   if (role === 'participant') return '';
   const { accent } = getAccentColors(resolveAppliedAccentRole(role));
   const label = ROLE_LABELS[role] || role;
@@ -110,7 +110,7 @@ function _roleLabelHTML(role) {
   `;
 }
 
-// 未登录「登录」入口（书记 2026-09-07 U1 批准）：与身份徽章同位（铃铛左侧），
+// 未登录「登录」入口（支书 2026-09-07 U1 批准）：与身份徽章同位（铃铛左侧），
 // 复用既有 .header-action-btn（styles.css 内 header 动作按钮风格：白透底/细边/浅字 + hover 提亮）
 function _loginEntryHTML() {
   return `<a href="${getBasePath()}login.html" id="header-login-btn" class="header-action-btn" style="display:inline-flex;align-items:center;text-decoration:none;">登录</a>`;
@@ -226,7 +226,7 @@ function _bindNotificationBell(header) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">通知数据不可用</div>';
         return;
       }
-      // 保留策略（书记 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
+      // 保留策略（支书 2026-08-05）：紧急通知全部展示，重要通知仅展示未读
       const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
       if (notices.length === 0) {
         dropdown.innerHTML = '<div style="padding:16px;text-align:center;color:var(--neutral-500);" class="text-sm">暂无通知</div>';

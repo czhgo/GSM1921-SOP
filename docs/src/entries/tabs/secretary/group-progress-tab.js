@@ -1,13 +1,13 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  entries/tabs/secretary/group-progress-tab.js — 书记工作台·党小组进展 tab（2026-09-08 D8）
+//  entries/tabs/secretary/group-progress-tab.js — 支书工作台·党小组进展 tab（2026-09-08 D8）
 // ════════════════════════════════════════════════════════════════
-// 语义（书记 2026-09-08 新增裁：书记/副书记同界面共享；多党小组多套数据）：
-//   书记/副书记跨组只读掌握各党小组进展（知情≠操作），两层结构：
+// 语义（支书 2026-09-08 新增裁：支书/副支书同界面共享；多党小组多套数据）：
+//   支书/副支书跨组只读掌握各党小组进展（知情≠操作），两层结构：
 //   ① 组切换层（页顶）：支部内党小组卡片（组名/组长/组内党员数/待答复汇报数）；
 //   ② 组内数据层（选中组只读视角）：
 //       - 组员进展摘要：组员向组长提交的汇报最近若干条（谁/主题/时间/状态=组长已答复或待答复），
-//         书记不代组长答复；对「待答复」行提供「请组长关注」轻动作——复用书记「了解进展」请求
+//         支书不代组长答复；对「待答复」行提供「请组长关注」轻动作——复用支书「了解进展」请求
 //         通道 IssueStore.requestReport 向组长发请求（不落答复，组长在其「我的处置」跟进/汇报）；
 //       - 本组活动复盘状态：待复盘/已复盘 + 点击展开复盘详情（只读；与组长台 review-tab 同口径同表）；
 //       - 本组活动与考勤概览：近期活动 + 本组党小组会应到/实到（纯读 attendance/roster 口径）。
@@ -16,23 +16,23 @@
 // 纪律：同步渲染优先（activities/attendance/review/members 均同步源先渲），汇报区唯一异步源
 //   IssueStore.loadAll 首拉期间以轻量加载行占位（无 0 高后插）；空态统一 text-xs 灰字。
 // 事件：组切换/复盘展开/请组长均以 container 级委托绑定（fill 改写行 DOM 不重复绑定）。
-// 本页禁用 SVG 图标（书记台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
+// 本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260912k';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260912k';
-import { IssueStore } from '../../../services/issues.js?v=20260912k';
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { loadActivityReviews } from '../../../services/review.js?v=20260912k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260912k';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913c';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913c';
+import { IssueStore } from '../../../services/issues.js?v=20260913c';
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { loadActivityReviews } from '../../../services/review.js?v=20260913c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913c';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260912k';
+} from '../../../services/group-view.js?v=20260913c';
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名
@@ -90,7 +90,7 @@ function _groupSwitchHtml(groups, activeGroup, issues) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组</h4>
-        <span class="text-xs text-gray-500">${groups.length} 个党小组 · 书记只读知情</span>
+        <span class="text-xs text-gray-500">${groups.length} 个党小组 · 支书只读知情</span>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
         ${groups.map(g => _groupCardHtml(g, activeGroup, issues)).join('')}
@@ -124,9 +124,9 @@ function _memberProgressCardHtml(group, issues) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">组员进展摘要</h4>
-        <span class="text-xs text-gray-500">组员向组长汇报 · 书记只读</span>
+        <span class="text-xs text-gray-500">组员向组长汇报 · 支书只读</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">书记不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
+      <p class="text-[11px] text-gray-500 mb-2.5">支书不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
       <div id="gp-reports" class="space-y-1.5">${inner}</div>
     </div>`;
 }
@@ -157,7 +157,7 @@ function _reportRowState(issue) {
   if (issue.status === 'closed') return { label: '已办结', cls: 'bg-gray-100 text-gray-600' };
   const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
   if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
-  // 上级（书记/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
+  // 上级（支书/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
   if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', cls: 'bg-blue-100 text-blue-700' };
   if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
   if (issue.reportCategory === 'blocked') return { label: '卡点上报', cls: 'bg-red-100 text-red-700' };
@@ -289,7 +289,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；书记只读查看，点击已复盘行可展开详情。</p>
+      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；支书只读查看，点击已复盘行可展开详情。</p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>
@@ -399,7 +399,7 @@ function _bindEvents(container) {
     });
   });
 
-  // 「请组长关注」轻动作：复用书记「了解进展」请求通道（requestReport 直达组长），不落答复
+  // 「请组长关注」轻动作：复用支书「了解进展」请求通道（requestReport 直达组长），不落答复
   container.addEventListener('click', (e) => {
     const btn = e.target.closest('.gp-ask-leader');
     if (!btn) return;

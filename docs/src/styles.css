@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css');
+@import url('components/person-picker.css?v=20260913c');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -34,7 +34,7 @@
   --accent-blue:       #3B82F6;
   --accent-emerald:    #059669;
   --accent-secretary:        #B91C1C;  /* 党支书 — 党建红（不动） */
-  --accent-deputy-secretary: #B91C1C;  /* 党支副书记 — 党建红（同书记） */
+  --accent-deputy-secretary: #B91C1C;  /* 党支副支书 — 党建红（同支书） */
   --accent-leader:           #22C55E;  /* 党小组组长 — 翠绿 */
   --accent-org-commissioner: #0EA5E9;  /* 组织委员 — 天蓝 */
   --accent-prop-commissioner:#2563EB;  /* 宣传委员 — 海蓝 */
@@ -45,7 +45,7 @@
 
   /* ── 角色识别色 — Light 变体（用于 border-left / 浅底色等低饱和场景） ── */
   --accent-secretary-light:        #FCA5A5;  /* red-300 */
-  --accent-deputy-secretary-light: #FCA5A5;  /* red-300 （同书记） */
+  --accent-deputy-secretary-light: #FCA5A5;  /* red-300 （同支书） */
   --accent-leader-light:           #86EFAC;  /* green-200 */
   --accent-org-commissioner-light: #BAE6FD;  /* sky-200 */
   --accent-prop-commissioner-light:#93C5FD;  /* blue-300 */
@@ -593,6 +593,35 @@ textarea.input-flat {
   box-shadow: var(--shadow-dropdown);
   padding: 4px;
 }
+/* 分组标题（optgroup → 增强下拉）：2026-09-13 补——数据层有 optgroup（工作程序·规范 /
+   工作方法·支部自选 / 不开展…），此前渲染层拉平丢失，分组标题在 UI 中不可见。不可点、不参与选择。 */
+.cs-group-label {
+  padding: 6px 12px 2px;
+  font-size: 0.6875rem;
+  color: var(--neutral-400);
+  letter-spacing: 0.02em;
+  cursor: default;
+  user-select: none;
+}
+.cs-group-label:not(:first-child) {
+  margin-top: 4px;
+  border-top: 1px solid var(--neutral-100);
+  padding-top: 6px;
+}
+/* 紧凑档高度统一（2026-09-13 尺寸统一彻查）：日期类原生控件默认比同档文本框高 2px
+   （36 vs 34），是「同 tab 里有的高有的矮」的实际来源之一——统一到紧凑档 34px。 */
+input.input-flat.text-xs[type="date"],
+input.input-flat.text-xs[type="month"],
+input.input-flat.text-xs[type="week"],
+input.input-flat.text-xs[type="time"],
+input.input-flat.text-xs[type="datetime-local"] {
+  height: 34px;
+}
+/* 支部分工表单行（#wf-form-zone）：该行只有控件、无相邻操作按钮，无需 32px 按钮对齐档，
+   统一为紧凑档 34px，避免同行内 32/34/36 三值并存。 */
+#wf-form-zone .cs-trigger.input-flat.text-xs {
+  height: 34px;
+}
 .cs-option {
   padding: 8px 12px;
   border-radius: calc(var(--radius-sm) - 2px);
@@ -616,7 +645,7 @@ textarea.input-flat {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   L2 角色识别层 — 语义动作类（书记 2026-08-08 颜色对应法则）
+   L2 角色识别层 — 语义动作类（支书 2026-08-08 颜色对应法则）
    替代硬编码 bg-red-700 / bg-orange-* / border-red-*：
    · 主操作（确认赋权/发布/提交） → .btn-accent（主题色深化保对比度，白字）
    · 次级主操作（打开面板/写活动） → .btn-accent-soft（主题色浅底描边）
@@ -735,7 +764,7 @@ button:disabled { cursor: not-allowed; }
   z-index: 50;
 }
 .tip-trigger:hover::after { opacity: 1; }
-/* 内嵌搜索（选项数超阈值自动出现，书记指令 2026-08-06） */
+/* 内嵌搜索（选项数超阈值自动出现，支书指令 2026-08-06） */
 .cs-search {
   position: sticky;
   top: 0;
@@ -774,7 +803,7 @@ button:disabled { cursor: not-allowed; }
 
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Button
-   ── 按钮尺寸规范（书记指令 2026-08-06：全站一次规范，同一界面按钮高度差距不过大）──
+   ── 按钮尺寸规范（支书指令 2026-08-06：全站一次规范，同一界面按钮高度差距不过大）──
    四档（高度基准 = padding 上下 ×2 + 字号行高 + 边框 2px）：
    1. 微操作档  25px — .btn-action              → 表格行内 / 列表项内操作
    2. 默认档    30px — text-xs px-3 py-1.5      → 卡片内 / 模态内独立按钮
@@ -1197,8 +1226,8 @@ button:disabled { cursor: not-allowed; }
   border-color: var(--primary-200);
 }
 
-/* ── 主题三态切换按钮（T231 书记决策 2026-08-07：浅色/跟随系统/深色）──
-   2026-08-08 改造：与「工作台颜色」色块合并为同一排（书记指令），
+/* ── 主题三态切换按钮（T231 支书决策 2026-08-07：浅色/跟随系统/深色）──
+   2026-08-08 改造：与「工作台颜色」色块合并为同一排（支书指令），
    侧边栏选择器统一命名「工作台颜色选择」 */
 .sidebar-theme-toggle {
   display: flex;
@@ -1241,7 +1270,7 @@ button:disabled { cursor: not-allowed; }
   border-color: var(--primary-200);
 }
 
-/* ── 主题色切换（书记指令 2026-08-06：侧边栏设置，全站强调色个性化）──
+/* ── 主题色切换（支书指令 2026-08-06：侧边栏设置，全站强调色个性化）──
    2026-08-07 精简：侧边栏少写字——去掉「主题色」文字标签；hover 色块自动显示色名，不再写在下方 */
 .sidebar-accent-toggle {
   display: flex;
@@ -1274,7 +1303,7 @@ button:disabled { cursor: not-allowed; }
 /* hover 显示当前主题色名（不再写在侧边栏下方）
    2026-08-08 修复：tooltip 由 left:100%（向右展开）改为 right:100%（向左展开）。
    侧边栏 overflow-y:auto 会隐式触发 overflow-x:auto，向右的 tooltip 会被侧边栏
-   右边缘裁剪（书记反馈「面板往右看不见」）。色块在侧边栏右侧，向左弹出在容器内。 */
+   右边缘裁剪（支书反馈「面板往右看不见」）。色块在侧边栏右侧，向左弹出在容器内。 */
 .accent-swatch::after {
   content: attr(data-label);
   position: absolute;
@@ -1870,7 +1899,7 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   border: 1px solid var(--tab-accent-border);
 }
 
-/* ── Tab 栏单行横向平滑滚动（2026-08-23 书记裁定：tab 数量增加禁止随机换行成 2 行） ──
+/* ── Tab 栏单行横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行） ──
    由 tab-bar.js 的 ws-tab-scroll 容器承载：flex-nowrap 永不换行 + overflow-x 横向滑动。
    隐藏滚动条（视觉干净）；溢出时两侧渐隐遮罩（data-overflow 由 JS 在 scroll/resize 时更新）。 */
 .ws-tab-scroll {
@@ -2123,7 +2152,7 @@ html.theme-dark .tf-section-head {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   COMPONENT: Vote Summary — 书记端表态汇总矩阵（线上支委会 2026-09-01 Task4）
+   COMPONENT: Vote Summary — 支书端表态汇总矩阵（线上支委会 2026-09-01 Task4）
    议题 × 委员矩阵：应到/已表态/未表态统计 + 截止按钮；
    异议红底高亮（党建红系）、附言完整显示；token 驱动、圆角统一（--radius-*）、
    面板浅底无边框（无嵌套边线）
@@ -2217,7 +2246,7 @@ html.theme-dark .tf-section-head {
   white-space: normal;
   max-width: 150px;
 }
-/* AV4：formal 票数统计行 + quorumCheck 通过条件提示（书记端汇总，轻量弱化文字） */
+/* AV4：formal 票数统计行 + quorumCheck 通过条件提示（支书端汇总，轻量弱化文字） */
 .vs-tally {
   margin-top: 6px;
   font-size: 0.7rem;
@@ -3181,7 +3210,7 @@ html.theme-dark .tf-section-head {
 
 /* ═══════════════════════════════════════════════════════════════
    ACCESSIBILITY — Focus Visible
-   （书记 2026-08-07 指令：删去红边，改淡金替代——可点击组件聚焦圈统一为党徽金，
+   （支书 2026-08-07 指令：删去红边，改淡金替代——可点击组件聚焦圈统一为党徽金，
    避免与党建红主色混淆、视觉刺眼）
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
@@ -3198,7 +3227,7 @@ select.input-flat:focus-visible {
   outline: none;
 }
 
-/* 普通 input-flat 输入框聚焦（书记指令 2026-08-06）：只保留 .input-flat:focus
+/* 普通 input-flat 输入框聚焦（支书指令 2026-08-06）：只保留 .input-flat:focus
    的金色边框，去掉全局 input:focus-visible 的红色 outline 圈 */
 input.input-flat:focus,
 input.input-flat:focus-visible {
@@ -4156,7 +4185,7 @@ label .text-red-500 {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   DARK THEME — 系统跟随深色主题（T-207 D3，2026-08-06 书记决策）
+   DARK THEME — 系统跟随深色主题（T-207 D3，2026-08-06 支书决策）
    实现策略（三层覆盖）：
    ① CSS 变量反向（neutral / surface / functional）→ var() 自定义类自动适配
    ② 高频 Tailwind 类 !important 覆盖（Play CDN 运行时注入、样式序靠后，须提权）
@@ -4469,7 +4498,7 @@ label .text-red-500 {
   gap: 4px;
 }
 
-/* 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 四审纠正）：所有 accent 一律「淡底深字」，
+/* 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）：所有 accent 一律「淡底深字」，
    日间 = 12% 透明浅底深字（tab 风格）；夜间 = 完全不透明浅底深字（span 状态徽章风格，深色页面清晰可见），
    无边框不臃肿。状态徽章色族（bg-*-100/text-*-700 等）由上方 html.theme-dark 色族规则覆盖为提亮底+亮字。
    日/夜两套由元素内联 --acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜）驱动，
@@ -4627,7 +4656,7 @@ html.theme-dark .qv-page-btn:hover:not(:disabled) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   跳转定位高亮（书记 2026-08-08 裁定：高亮须定时自动褪去）
+   跳转定位高亮（支书 2026-08-08 裁定：高亮须定时自动褪去）
    首页携带 activityId/taskforceId 跳转后，工作台定位元素短暂高亮提示位置
    ═══════════════════════════════════════════════════════════════ */
 .nav-flash-highlight {

@@ -3,12 +3,12 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912k';
-import { flashHighlight } from '../../../core/utils.js?v=20260912k';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260912k';
-import { canSignup } from '../../../components/signup-panel.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913c';
+import { flashHighlight } from '../../../core/utils.js?v=20260913c';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260913c';
+import { canSignup } from '../../../components/signup-panel.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -46,7 +46,7 @@ function _activityRowHtml(a) {
     </div>`;
 }
 
-// 活动动态列表分页（书记 2026-08-08 决策：活动页分页，每页 10 条）
+// 活动动态列表分页（支书 2026-08-08 决策：活动页分页，每页 10 条）
 const ACTIVITY_PAGE_SIZE = 10;
 let _visitorActPage = 1; // 当前页（模块级，切换 列表/日历/查询 视图后保留）
 
@@ -135,7 +135,7 @@ function _renderActListView(sorted, highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }
   }
@@ -192,7 +192,7 @@ function _renderActCalendarView(sorted, highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }
   }
@@ -226,7 +226,7 @@ function _renderActQueryView(sorted, highlightId) {
     const el = vc.querySelector(`[data-visitor-act-id="${highlightId}"]`);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // 高亮定时自动褪去（书记 2026-08-08 裁定：2.5~3s CSS 过渡）
+      // 高亮定时自动褪去（支书 2026-08-08 裁定：2.5~3s CSS 过渡）
       flashHighlight(el);
     }
   }

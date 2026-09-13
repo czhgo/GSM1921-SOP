@@ -1,5 +1,5 @@
 // server/test/workflow-block-config.test.mjs — L3 S3 工作流块配置（2026-09-03）
-// 书记裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 仅书记/party-staff
+// 支书裁定：config.blocks 增 workflowBlocks（与 outputBlocks 平级）；PATCH /branches/:id/config 仅支书/party-staff
 // 覆盖：① 纯函数 policy（默认全开/隐藏过滤/兼容缺段） ② HTTP 写回/结构校验/恢复默认
 // 运行：node --test server/test/workflow-block-config.test.mjs（自包含 server）
 
@@ -39,7 +39,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20260909e';
+const V = '?v=20260913c';
 const BLOCK_IDS = ['theme-party-day', 'taskforce-run'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
@@ -63,10 +63,10 @@ test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺�
 });
 
 test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
-  const { token: sec } = await login('p13');    // 现任书记
+  const { token: sec } = await login('p13');    // 现任支书
   const { token: staff } = await login('p_pc'); // 党委组织员
 
-  // ① 书记写 workflowBlocks（与 outputBlocks 同包）→ 200 落库
+  // ① 支书写 workflowBlocks（与 outputBlocks 同包）→ 200 落库
   const r1 = await patchConfig(sec, {
     config: {
       blocks: {
@@ -75,7 +75,7 @@ test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
       },
     },
   });
-  assert.equal(r1.status, 200, '书记可写 workflowBlocks');
+  assert.equal(r1.status, 200, '支书可写 workflowBlocks');
   const b1 = await r1.json();
   assert.deepEqual(b1.config.blocks.workflowBlocks.hiddenBlockIds, ['theme-party-day'], 'workflowBlocks 写回');
   assert.ok(b1.config.blocks.outputBlocks, 'outputBlocks 保留');

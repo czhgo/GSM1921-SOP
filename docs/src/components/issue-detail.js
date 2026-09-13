@@ -1,15 +1,15 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore } from '../services/issues.js?v=20260912k';
-import { MilestoneStore } from '../services/milestones.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { renderReactions, bindReactions } from './reactions.js?v=20260912k';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
+import { IssueStore, ISSUE_CACHE_KEY } from '../services/issues.js?v=20260913c';
+import { MilestoneStore } from '../services/milestones.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { renderReactions, bindReactions } from './reactions.js?v=20260913c';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -254,14 +254,16 @@ function bindDetailEvents(issue) {
     issue.commentCount = (issue.commentCount || 0) + 1;
 
     try {
-      localStorage.setItem('gsm1921-issue-cache', JSON.stringify(IssueStore.getAll()));
+      // R-24（2026-09-13）：缓存键单一源（原写死旧键 'gsm1921-issue-cache'，与 issues.js 的
+      // CACHE_KEY 不同键 → 评论写回落在无人读的键上，列表/详情刷新后丢失）。
+      localStorage.setItem(ISSUE_CACHE_KEY, JSON.stringify(IssueStore.getAll()));
     } catch {}
 
     showToast('success', '评论已提交');
     renderIssueDetail(issue.id);
   });
 
-  // 状态变更（仅书记）
+  // 状态变更（仅支书）
   document.getElementById('btn-apply-status')?.addEventListener('click', () => {
     const status = document.getElementById('status-select').value;
     const reasonSelect = document.getElementById('closed-reason-select');
@@ -278,7 +280,7 @@ function bindDetailEvents(issue) {
     }
   });
 
-  // 隐藏评论（仅书记）
+  // 隐藏评论（仅支书）
   document.querySelectorAll('.btn-hide-comment').forEach(btn => {
     btn.addEventListener('click', () => {
       const issueId = btn.dataset.issueId;

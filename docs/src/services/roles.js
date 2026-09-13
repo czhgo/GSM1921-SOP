@@ -5,8 +5,8 @@
 //  assignedRoles 遗留键（sop_org_os_assigned_roles）已删除，启动时清一次存储残留
 // ================================================================
 
-import { PEOPLE } from '../mock/index.js?v=20260912k';
-import { AuthStore } from './auth.js?v=20260912k';
+import { PEOPLE } from '../mock/index.js?v=20260913c';
+import { AuthStore } from './auth.js?v=20260913c';
 
 // 遗留键清理（P2-6）：sop_org_os_assigned_roles 已无调用方，此处清一次存储残留
 try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}
@@ -14,7 +14,7 @@ try { localStorage.removeItem('sop_org_os_assigned_roles'); } catch (_) {}
 /**
  * 当前有效党小组组长数（数字一致性审计 2026-08-07）
  * 主源 = PEOPLE 预设 role:'leader' + 审计快照运行时授予（grant 且最新一条非 revoke），按人去重。
- * 与书记工作台"当前党小组组长"列表（renderAuthRecords/_renderAssignLeaders）同源，
+ * 与支书工作台"当前党小组组长"列表（renderAuthRecords/_renderAssignLeaders）同源，
  * 保证统计数字随赋权/撤销实时更新。
  */
 function _countActiveLeaders() {

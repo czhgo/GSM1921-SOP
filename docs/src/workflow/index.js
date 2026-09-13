@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // ── SOP 任务实例化（已有） ──
-export { sopDatabase } from './sopData.js?v=20260912k';
-export { instantiateSOP } from './sop.js?v=20260912k';
+export { sopDatabase } from './sopData.js?v=20260913c';
+export { instantiateSOP } from './sop.js?v=20260913c';
 
 // ── 工作流可视化渲染器（C1.1.3） ──
-export { renderWorkflow } from './renderer.js?v=20260912k';
+export { renderWorkflow } from './renderer.js?v=20260913c';

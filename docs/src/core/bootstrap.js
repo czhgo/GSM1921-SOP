@@ -4,29 +4,29 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { IssueStore } from '../services/issues.js?v=20260912k';
-import { MilestoneStore } from '../services/milestones.js?v=20260912k';
-import { CrossPageState } from './cross-page-state.js?v=20260912k';
-import { getBasePath } from './utils.js?v=20260912k';
-import { enhanceSelects } from '../components/custom-select.js?v=20260912k';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { IssueStore } from '../services/issues.js?v=20260913c';
+import { MilestoneStore } from '../services/milestones.js?v=20260913c';
+import { CrossPageState } from './cross-page-state.js?v=20260913c';
+import { getBasePath } from './utils.js?v=20260913c';
+import { enhanceSelects } from '../components/custom-select.js?v=20260913c';
 // 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
-import { isPartyStaffBranchDemoAllowed } from '../modules/branch-demo-nav.js?v=20260912k';
-// A② 归档兜底放行门（2026-09-10）：书记/副书记 archive=Y 兜底权限——可进入宣传台归档兜底面
-import { isArchiveFallbackPage } from './constants.js?v=20260912k';
+import { isPartyStaffBranchDemoAllowed } from '../modules/branch-demo-nav.js?v=20260913c';
+// A② 归档兜底放行门（2026-09-10）：支书/副支书 archive=Y 兜底权限——可进入宣传台归档兜底面
+import { isArchiveFallbackPage } from './constants.js?v=20260913c';
 // 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
 // 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20260912k';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260912k';
-import { ApiAdapter } from './api-adapter.js?v=20260912k';
-import { getCapabilities } from './registry.js?v=20260912k';
+import { getAppliedAccentColors } from './theme.js?v=20260913c';
+import { registerApiAdapter, init } from './data-adapter.js?v=20260913c';
+import { ApiAdapter } from './api-adapter.js?v=20260913c';
+import { getCapabilities } from './registry.js?v=20260913c';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260909e';
+import '../modules/capabilities/data-source.js?v=20260913c';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../modules/capabilities/components.js?v=20260909e';
+import '../modules/capabilities/components.js?v=20260913c';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -68,7 +68,7 @@ const DEV_ROLE_WHITELIST = new Set([
  * 页面初始化统一入口（重构版）
  *
  * 2026-07-30 起改为 async：在登录检查通过后，统一预加载所有 Service（IssueStore/MilestoneStore），
- * 消除跨页面数据不同步问题（如书记工作台 issue 列表为空）。
+ * 消除跨页面数据不同步问题（如支书工作台 issue 列表为空）。
  *
  * @param {Object} opts
  * @param {string} opts.module          — 模块名：'workspace' | 'dashboard' | 'members' | 'archive' | 'search' | 'feedback'
@@ -138,7 +138,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     document.documentElement.classList.add('font-size-large');
   }
 
-  // 页面身份校验（书记 2026-08-07 指令：右上角"身份"必须与当前工作台页面匹配）
+  // 页面身份校验（支书 2026-08-07 指令：右上角"身份"必须与当前工作台页面匹配）
   // 根因：header 直接读登录快照 user.role，未与当前页面做任何校验；同一服务器下跳转
   // workspace 时会出现"身份标签与页面错位"。修复：计算该用户"允许访问的工作台页面集合"
   // （登录快照角色页面 + 内存判定角色页面），当前页面不在集合内时自动跳转到身份对应页面。
@@ -157,7 +157,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
     const memPage = AuthStore.getPageForRole('workspace', memRole);
     if (memPage) allowedPages.add(norm(memPage));
 
-    // 立项⑦ B波：party-staff「进入支部（演示）」——身份门最小放行（A⑤ 2026-09-10 书记裁定：
+    // 立项⑦ B波：party-staff「进入支部（演示）」——身份门最小放行（A⑤ 2026-09-10 支书裁定：
     // 本地示例 / API 会话同口径放行，视图只读；不放宽任何写权限）。
     // 判定单一源 = modules/branch-demo-nav.js::isPartyStaffBranchDemoAllowed（与「进入支部（演示）」
     // 按钮同一放行门，双端一致）；此前此处调用未定义函数 _partyStaffBranchDemoAllowed，
@@ -167,9 +167,9 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       allowedPages.add(currentPage);
     }
 
-    // A② 归档兜底放行（2026-09-10 书记裁定）：书记/副书记持 archive=Y（§9b 矩阵）——
+    // A② 归档兜底放行（2026-09-10 支书裁定）：支书/副支书持 archive=Y（§9b 矩阵）——
     // 允许进入宣传台 prop.html，但仅归档兜底面（宣传台壳只呈现归档 tab，见 prop-workspace tabs）。
-    // 判定单一源 = constants.isArchiveFallbackPage（与书记台「代归档」入口同源），勿手写角色清单。
+    // 判定单一源 = constants.isArchiveFallbackPage（与支书台「代归档」入口同源），勿手写角色清单。
     if (!allowedPages.has(currentPage)
       && (isArchiveFallbackPage(user.role, currentPage) || isArchiveFallbackPage(memRole, currentPage))) {
       allowedPages.add(currentPage);
@@ -198,7 +198,7 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       ? getAppliedAccentColors(accentRole, accentAlpha[0], accentAlpha[1])
       : getAppliedAccentColors(accentRole));
     // 全局主题色变量（--app-accent 三件套）：cs-menu 选中项 / chips 选中态等
-    // 「统一主题色渲染」跟随当前用户主题色（书记 2026-08-08 三审定稿，弃用金实底）
+    // 「统一主题色渲染」跟随当前用户主题色（支书 2026-08-08 三审定稿，弃用金实底）
     const root = document.documentElement;
     root.style.setProperty('--app-accent', accent);
     root.style.setProperty('--app-accent-bg', accentRgba);

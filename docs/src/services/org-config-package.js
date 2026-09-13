@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/org-config-package.js — 支部配置 JSON 覆盖件（立项④阶段二，2026-09-06 书记裁范围）
+//  services/org-config-package.js — 支部配置 JSON 覆盖件（立项④阶段二，2026-09-06 支书裁范围）
 // ════════════════════════════════════════════════════════════════
 // 定位：把支部「当前配置现状」导出为一份可下载/可再导入的 JSON 覆盖件（kind 'gsm1921-org-config'），
 //  供开源用户跨实例搬运「换壳」配置；导入 = 本地预览应用（同浏览器会话内写回本支部）。
@@ -14,8 +14,8 @@
 //   what:'config-package-import'、from 记录包来源）——浏览器 / Node 双端可载、可单测。
 // ════════════════════════════════════════════════════════════════
 
-import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20260912k';
-import { sanitizeConfigOrg } from '../core/config-clean.js?v=20260912k';
+import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20260913c';
+import { sanitizeConfigOrg } from '../core/config-clean.js?v=20260913c';
 
 /** 覆盖件类型标识（apply 校验门槛，防误导入异类 JSON） */
 export const PACKAGE_KIND = 'gsm1921-org-config';

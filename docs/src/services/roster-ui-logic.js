@@ -7,19 +7,19 @@
 //   · 删除守卫 → 产品话术映射（引用清单只透出「业务类别」，不透出技术键/记录 id）；
 //   · 新增成员表单校验（姓名必填；党小组/发展阶段/在册状态枚举与数据源一致，禁造新枚举）；
 //   · 行内保存 diff（分组/阶段/滞留 变化 → 仅带变化字段的补丁）。
-// 语义（书记口径，2026-09-06）：滞留 = 组织关系保留但人不在校 → 成员身份保留、
+// 语义（支书口径，2026-09-06）：滞留 = 组织关系保留但人不在校 → 成员身份保留、
 //   应到剔除、通知照发；备注为「滞留备注」，在校状态下不保留备注（防错位）。
 // 依赖：roster.js（RESIDENCE 枚举 + getResidenceOf 读链）——两文件均纯 ESM、无 DOM。
 // 单测：server/test/roster-ui-logic.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { RESIDENCE, getResidenceOf } from './roster.js?v=20260912k';
+import { RESIDENCE, getResidenceOf } from './roster.js?v=20260913c';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/person.js）；
 // 展示只落「类别」+「条数」，不暴露 id / 域英文键（产品话术要求）。
 const GUARD_CATEGORY_OF = {
-  branches: '现任书记职务',
+  branches: '现任支书职务',
   activities: '活动分工',
   assignments: '活动分工',
   attendances: '考勤记录',
@@ -36,7 +36,7 @@ const GUARD_CATEGORY_OF = {
 
 /** 话术类别展示顺序（列表顺序与人员语义相关：职务 → 履职 → 记录） */
 const GUARD_CATEGORY_ORDER = [
-  '现任书记职务', '活动分工', '考勤记录', '考察记录', '专班成员',
+  '现任支书职务', '活动分工', '考勤记录', '考察记录', '专班成员',
   '报名记录', '支委会表态', '思想汇报', '复盘记录', '成员变更申请', '支委广播',
 ];
 
@@ -102,7 +102,7 @@ export function validateMemberForm(form = {}) {
  * 行内保存 diff：成员现档案 × 表单值 → 仅含变化字段的补丁（saveMember 入参）
  *   - partyGroup / developStage：与档案字段比较（字符串 trim）；
  *   - residenceStatus / residenceNote：与「合并读链」现值比较（getResidenceOf 覆盖优先，
- *     与纪检/书记复核同源），任一变化 → 同时带出两个字段（备注随状态保存/清空）。
+ *     与纪检/支书复核同源），任一变化 → 同时带出两个字段（备注随状态保存/清空）。
  * 注：滞留留痕（residenceHistory 追加）由 roster.saveResidenceChange 负责，
  *   本函数只产出「需持久化到成员档案」的字段差。
  * @param {Object} member 成员档案对象（含 id/partyGroup/developStage；residence 可缺省）

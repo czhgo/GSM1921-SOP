@@ -211,9 +211,9 @@ test('A3 详情编辑议程保存后更新并持久化', async () => {
   } finally { await browser.close(); }
 });
 
-// A4（副书同权 2026-09-10 修复）：副书记可见并可用「编辑议程」入口 + 议程结果记录
+// A4（副书同权 2026-09-10 修复）：副支书可见并可用「编辑议程」入口 + 议程结果记录
 // 依据 content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」；仅议程结果区/编辑界面放开。
-test('A4 副书记议程编辑 / 结果记录可用（副书同权）', async () => {
+test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'deputy-secretary');
@@ -236,15 +236,15 @@ test('A4 副书记议程编辑 / 结果记录可用（副书同权）', async ()
     await page.waitForSelector('#agenda-block', { timeout: 10000 });
 
     // ① 编辑议程入口可见
-    assert.equal(await page.locator('#inspector-agenda-edit-btn').count(), 1, '副书记应见「编辑议程」入口');
+    assert.equal(await page.locator('#inspector-agenda-edit-btn').count(), 1, '副支书应见「编辑议程」入口');
     // ② 议程结果记录按钮可见
     const resultBtns = await page.locator('.inspector-agenda-result').count();
-    assert.ok(resultBtns >= 1, `副书记应见议程结果记录按钮（实际 ${resultBtns}）`);
+    assert.ok(resultBtns >= 1, `副支书应见议程结果记录按钮（实际 ${resultBtns}）`);
     // ③ 点「通过」应可记录（结果徽章出现）
     await page.locator('.inspector-agenda-result[data-agenda-result="passed"]').first().click();
     await page.waitForTimeout(1200);
     const txt = await page.locator('#agenda-block').innerText();
-    assert.ok(txt.includes('通过'), '副书记应能记录议程结果');
+    assert.ok(txt.includes('通过'), '副支书应能记录议程结果');
     console.log(`[A4] editBtn=1 resultBtns=${resultBtns} ✅ 副书同权通过`);
   } finally { await browser.close(); }
 });

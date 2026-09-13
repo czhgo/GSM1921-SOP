@@ -17,7 +17,7 @@ status: active
 ### 一、运行标准与使用规范
 
 - [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) — 运行标准·文档规范（YAML/术语/角色/编码/文档关系/编号/文档层级/一致性检查）
-- [PROCESS_GUIDE.md](PROCESS_GUIDE.md) — 运行标准·流程机制（甲部修改流程/吸收外部输入/周期性任务/书记评议）
+- [PROCESS_GUIDE.md](PROCESS_GUIDE.md) — 运行标准·流程机制（甲部修改流程/吸收外部输入/周期性任务/支书评议）
 - [USAGE_POLICY.md](USAGE_POLICY.md) — P0 强制执行的使用规范（术语 §一 + AI 展开原则 §二 + Emoji 边界 §三）
 - [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
 - [SERVICE_CATALOG.md](SERVICE_CATALOG.md) — 统一服务目录（系统所有服务功能 + 角色权限映射）

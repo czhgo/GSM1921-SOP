@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { generateId } from '../core/id.js?v=20260912k';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { generateId } from '../core/id.js?v=20260913c';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260913c';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -32,7 +32,7 @@ export const TODO_CATEGORY_LABELS = {
 };
 
 // ── 待办业务域枚举（工作类型 9 域 + NONE）────────────────────
-//  2026-09-07 IA-C1：书记裁定「待办按工作类型（业务域）分类，不按动作动词分」。
+//  2026-09-07 IA-C1：支书裁定「待办按工作类型（业务域）分类，不按动作动词分」。
 //  依据 spec: .trae/specs/2026-09-06-ia-todo-cards/spec.md §一（9 域逐节批准）
 export const WORK_DOMAIN = {
   MEETING: 'meeting',       // ① 会务（三会一课：参与 + 考勤记录闭环，无复盘）
@@ -165,7 +165,7 @@ export function _effDomain(todo) {
 }
 
 /**
- * 实时派生组（不落库：书记/纪检提醒·复核、决议逾期 remind、成员变更确认等）actionKey → 业务域标签。
+ * 实时派生组（不落库：支书/纪检提醒·复核、决议逾期 remind、成员变更确认等）actionKey → 业务域标签。
  * 2026-09-07 IA-C1 Task2：供 T4「9 域折组」把实时组按域归类展示；键由各实时组生成处统一引用
  * （SecretaryTodoDeriver 8 组 / buildOverdueRemindGroup / 纪检 todo-tab 队列 / secretary 成员组）。
  * 复盘相关（review-remind/confirm）归「活动/项目」域——spec 三节：活动复盘提交/确认在活动域。
@@ -193,10 +193,10 @@ export function realtimeGroupDomainOf(group) {
   return inferDomain(group);
 }
 
-// ── 催办责任人解析（书记/副书记待办页「催办」入口单一事实源 · 2026-09-10 书记裁定）────
+// ── 催办责任人解析（支书/副支书待办页「催办」入口单一事实源 · 2026-09-10 支书裁定）────
 // 口径：返回该条待办（聚合组）的责任角色键数组（去重）；无明确责任角色 → []（调用方隐藏入口）。
 // 不可代做域（考勤/考察原始上传、组员汇报答复、报名审核）与复核类（考勤/考察/复盘/归档确认）
-// 责任人=书记/副书记本人 → 不在表内，返回 []，由调用方按「责任人即本人」隐藏。
+// 责任人=支书/副支书本人 → 不在表内，返回 []，由调用方按「责任人即本人」隐藏。
 // 优先级：① 持久化待办条目自带 role（getByRole 聚合，条目同角色）；② 决议跟进逐条 owner；
 //         ③ 复盘待提交 → 活动组织者角色；④ 其余实时派生组按 actionKey 静态映射。
 const URGE_ROLE_BY_ACTION = {
@@ -208,7 +208,7 @@ const URGE_ROLE_BY_ACTION = {
 };
 
 /**
- * 待办/聚合组的责任角色（含实时组）；纯函数，供书记待办页与 node 单测共用。
+ * 待办/聚合组的责任角色（含实时组）；纯函数，供支书待办页与 node 单测共用。
  * @param {Object} group
  * @param {{activities?:Array, people?:Array}} [ctx] 到人/复盘责任人解析所需（缺省该情形返回 []）
  * @returns {string[]} 角色键数组（去重；可能含 secretary——是否「本人」由调用方判定）
@@ -245,7 +245,7 @@ export function urgeRolesOf(group, ctx = {}) {
     }
     return [...roles];
   }
-  // ④ 实时派生组静态映射（复核类/成员变更确认等责任人=书记本人，不在表内 → []）
+  // ④ 实时派生组静态映射（复核类/成员变更确认等责任人=支书本人，不在表内 → []）
   const mapped = URGE_ROLE_BY_ACTION[key];
   return mapped ? [mapped] : [];
 }
@@ -396,7 +396,7 @@ function _todoVersion() {
 }
 
 // mergeRealtimeDomains 的实时组来源域指纹（域 token + mockDB 源数组长度）：
-// 实时组内容（如书记 8 组/纪检队列）可能在其 groupKey/count/deadline 不变时内容已变
+// 实时组内容（如支书 8 组/纪检队列）可能在其 groupKey/count/deadline 不变时内容已变
 // （写口 bump → token 变 / 禁改路径 → 长度变）——合并缓存键必须纳入本指纹，杜绝陈旧命中。
 const _MERGE_SOURCE_LENS = [
   ['attendance', 'attendances'],
@@ -825,7 +825,7 @@ export const TodoStore = {
 
   /**
    * 未读通知（页顶「未读 N 条」轻量区数据源，C1 Task3/Task4）：domain=NONE 的「通知阅读」
-   * 类未完成待办（category=notice），按 deadline（无则 createdAt）倒序——书记规则：带时间字段
+   * 类未完成待办（category=notice），按 deadline（无则 createdAt）倒序——支书规则：带时间字段
    * 列示一律时间倒序（最新在前）；同位次 createdAt 倒序保稳定。
    * P0：同 getDomainsWithGroups 复合键缓存（⚠️ 返回值只读引用契约，禁止调用方修改）。
    * @param {string} role
@@ -851,7 +851,7 @@ export const TodoStore = {
   },
 
   /**
-   * 实时组并入域视图（C1 Task4 融合点，最小实现）：书记/纪检等不落库的实时聚合组
+   * 实时组并入域视图（C1 Task4 融合点，最小实现）：支书/纪检等不落库的实时聚合组
    * （组对象带 domain 标注，缺省按 realtimeGroupDomainOf 推断）并入 getDomainsWithGroups 输出——
    * 纯实时域按 DOMAIN_ORDER 新增、域内组按同一排序规则归位、同 groupKey 去重、domain=NONE 不入。
    * P0：基准 getDomainsWithGroups 走同轮缓存（不再内部重复全扫）；并入在克隆后的基准上进行
@@ -1122,7 +1122,7 @@ export const LifecycleTodoDeriver = {
 //  幂等：按 sourceType+sourceId 去重，可安全重复调用
 // ════════════════════════════════════════════════════════════════
 
-// 待办聚合键 'visitor' 与角色键 participant 的映射（S9 文档登记，书记 2026-08-30 裁定：不改代码）
+// 待办聚合键 'visitor' 与角色键 participant 的映射（S9 文档登记，支书 2026-08-30 裁定：不改代码）
 // 语义：'visitor' 是「普通参与者工作台（participant.html）」的待办聚合键，对应角色 participant；
 // 与「访客（未登录）」无关。设计文档 ROLE_PERMISSION_DESIGN.md S9 已登记映射，保留 'visitor' 键不动。
 export const VisitorTodoDeriver = {
@@ -1314,7 +1314,7 @@ export const SEED_TODOS = [
     // E2 数据上下游标注
     flow: '宣传材料 → 宣传委员归档 → 产出物区',
   },
-  // 书记待办
+  // 支书待办
   {
     id: 'todo_seed_7',
     title: '设置第三党小组组长',

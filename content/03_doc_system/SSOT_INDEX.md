@@ -47,7 +47,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/, content/04_web
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | 战略→设计。FLAT_ORGANIZATION_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
 | `content/04_web_design/data/DATA_FLOW.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | 数据流→支委系统。DATA_FLOW 定义三级参与者数据流，COMMISSIONER_DUTY_FRAMEWORK 细化支委系统设计 |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
-| `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交书记决策 |
+| `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交支书决策 |
 
 ### content/ → docs/src/（设计/制度 → 代码）
 

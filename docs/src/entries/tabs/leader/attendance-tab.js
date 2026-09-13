@@ -2,24 +2,24 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260912k';
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260913c';
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260912k';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912k';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
-// ③批（书记 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
+import { attendanceToLong } from '../../../services/attendance.js?v=20260913c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
+// ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260912k';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912k';
-import { currentLeaderGroup } from './_shared.js?v=20260912k';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260912k';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913c';
+import { currentLeaderGroup } from './_shared.js?v=20260913c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913c';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -219,7 +219,7 @@ function _initAttForm(container, eligibleActivities, ctx) {
     const activityId = activitySelect?.value;
     const activity = eligibleActivities.find(a => a.id === activityId) || null;
     const rosterCtx = rosterCtxFor(activity);
-    // ③批（书记 2026-09-06）：党小组会候选 = 本组应到名单（组内党员 非滞留），
+    // ③批（支书 2026-09-06）：党小组会候选 = 本组应到名单（组内党员 非滞留），
     // 滞留者「可见但不可选」；未选活动 → 空候选（引导先选活动，避免先选人后切活动丢选择）
     _attPickerInstance = new PersonPicker({
       mode: 'multi',

@@ -41,10 +41,10 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 12 个内置场景，驱动任务生成和工作流 |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与 DATA_MODEL §2.15 一致） |
 | 应用状态 (appState) | core/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（书记/副书记/三支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/三支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
 | 赋权审计 (AuthRecord) | localStorage `sop_org_os_auth_audit`（审计快照）+ 主源内嵌（活动 `assignments` / 专班 `members`） | 跨会话持久化 | AuthStore.authorize 写主源 + 追加快照（旧键 `sop_org_os_assigned_roles` 已删除） |
 | 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（10 业务 + 3 遗留）的中文标签与视觉配色 |
-| 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，书记维护 issues.json 权威源 |
+| 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，支书维护 issues.json 权威源 |
 
 ### 1.3 端到端数据流交织图
 
@@ -76,7 +76,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 **主线三：赋权 → 工作台 → 入档**
 
 ```
-赋权记录 AuthRecord（书记赋权，§2.18）
+赋权记录 AuthRecord（支书赋权，§2.18）
  └─→ 项目角色（organizer/deep）工作台出现对应模块
       └─→ 工作量记录（专班/活动运行期）
            └─→ 专班解散 → 工作量汇总报告 → 写入个人档案
@@ -246,7 +246,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | `handoffs` | Object[] | 三委数据交接记录（T-304 C2） |
 | `thoughtReports` | Object[] | 思想汇报记录 |
 | `branches` | BranchRecord[] | 支部实例（含 config 配置档案） |
-| `appointmentRecords` | AppointmentRecord[] | 书记任期记录 |
+| `appointmentRecords` | AppointmentRecord[] | 支书任期记录 |
 | `reviewRequests` | ReviewRequest[] | 支部上报审批记录 |
 
 #### 4.2.2 UI 状态独立键

@@ -9,12 +9,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912k';
-import { RESIDENCE } from '../../docs/src/services/roster.js?v=20260912k';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913c';
+import { RESIDENCE } from '../../docs/src/services/roster.js?v=20260913c';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/roster-ui-logic.js?v=20260912k';
+} from '../../docs/src/services/roster-ui-logic.js?v=20260913c';
 
 const p1 = PEOPLE.find(p => p.id === 'p1'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
 const p5 = PEOPLE.find(p => p.id === 'p5'); // 种子示范滞留党员（第二党小组·正式党员）
@@ -45,15 +45,15 @@ test('guardCategoryList：同类别多域合并计数、按话术顺序、未知
 // ── b) 守卫话术（产品措辞；只透类别，不透技术键/记录 id）────────────
 test('buildGuardMessage：多类措辞含类别清单、标题含姓名、不泄技术键；无引用 → null', () => {
   const refs = [
-    { domain: 'branches', id: 'br-b1', label: '支部现任书记' },
+    { domain: 'branches', id: 'br-b1', label: '支部现任支书' },
     { domain: 'attendances', id: 'p5-2026-09', label: '考勤记录' },
   ];
   const msg = buildGuardMessage('宋佳宁', refs);
   assert.ok(msg, '有引用应产出话术');
   assert.equal(msg.title, '暂无法删除「宋佳宁」');
-  assert.ok(msg.reason.includes('现任书记职务') && msg.reason.includes('考勤记录'), '原因含类别产品话术');
+  assert.ok(msg.reason.includes('现任支书职务') && msg.reason.includes('考勤记录'), '原因含类别产品话术');
   assert.ok(msg.reason.includes('解除或迁移'), '原因给出行动指引');
-  assert.deepEqual(msg.categories.map(c => c.category), ['现任书记职务', '考勤记录']);
+  assert.deepEqual(msg.categories.map(c => c.category), ['现任支书职务', '考勤记录']);
   // 不透出技术键：域英文键 / 记录 id / 成员 id
   assert.ok(!/branches|attendances|br-b1|p5-2026-09/.test(msg.reason), `原因不应含技术键，实际：${msg.reason}`);
   assert.ok(!/p5/.test(msg.reason), '原因不应泄成员 id');

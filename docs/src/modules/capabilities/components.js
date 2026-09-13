@@ -5,7 +5,7 @@
 //       消费点接入（从清单动态发现组件）按真实场景逐步启用，避免大面积 import 改造的回归风险。
 // 自注册模式：import 本模块即触发注册（与 data-source/sop-scenarios 一致）。
 
-import { registerCapability } from '../../core/registry.js?v=20260912k';
+import { registerCapability } from '../../core/registry.js?v=20260913c';
 
 // 待办列表组件（todo-list）：多工作台待办 tab 共享
 registerCapability({
@@ -18,7 +18,7 @@ registerCapability({
   deps: ['todo', 'state'],
 });
 
-// 日历组件（calendar）：首页/书记/组长等日历视图共享
+// 日历组件（calendar）：首页/支书/组长等日历视图共享
 registerCapability({
   id: 'component:calendar',
   name: '日历组件',

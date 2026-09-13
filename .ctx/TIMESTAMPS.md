@@ -42,7 +42,7 @@ dynamic_role:
 |---------|-------------|------|------|
 | .ctx/TIMESTAMPS.md | 2026-08-22 | [工程师]+[AI] | 本文件（T-279 M2 时间戳批量刷新） |
 | .ctx/SNAPSHOT.md | 2026-08-11 | [AI] | 当前基线（v17） |
-| .ctx/REVIEW_QUEUE.md | 2026-08-11 | [工程师]+[AI] | 书记评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
+| .ctx/REVIEW_QUEUE.md | 2026-08-11 | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-05-03 | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-05-02 | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-05-02 | [工程师]+[AI] | 日志索引 |
@@ -67,7 +67,7 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/01_strategy/DEVELOPMENT_PATH.md | 2026-08-19 | [用户]+[AI] | 发展路径（原 MANAGE_SERVE.md→strategy/DEVELOPMENT_PATH.md，文档逻辑顺序重组后迁至01_strategy/；P.10 清理「不是…而是」句式 10 处） |
-| content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-08-05 | [用户]+[AI] | 书记论断（项目顶级战略文档） |
+| content/01_strategy/SECRETARY_PRONOUNCEMENTS.md | 2026-08-05 | [用户]+[AI] | 支书论断（项目顶级战略文档） |
 | content/01_strategy/README.md | 2026-08-24 | [用户]+[AI] | 01_strategy 目录索引（2026-08-24 补充 references 子目录性质划分） |
 | content/01_strategy/references/历史会议材料/ | 2026-08-24 | [用户] | 只读（2026-08-24 党支部工作记录.docx 归位于此） |
 | content/01_strategy/references/合规文件/ | 2026-02-17 | [用户] | 只读 |
@@ -95,8 +95,8 @@ dynamic_role:
 | 文件路径 | last_updated | 角色 | 备注 |
 |---------|-------------|------|------|
 | content/03_doc_system/OPERATIONS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·文档规范（§1-14：权威层级/术语/关系/角色/YAML/编码/排版/有机性/编号/日志/反论/命名/面向用户/角色操作；2026-08-24 T-282 拆分 §15-18 至 PROCESS_GUIDE） |
-| content/03_doc_system/PROCESS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·流程机制（§15 甲部修改/§16 吸收外部输入/§17 周期性任务含 W4 五专项/§18 书记评议细节；T-282 自 OPERATIONS_GUIDE 拆分） |
-| content/03_doc_system/USAGE_POLICY.md | 2026-09-03 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §三；2026-09-03 书记裁定废止「党建工作×党务工作」二分） |
+| content/03_doc_system/PROCESS_GUIDE.md | 2026-08-24 | [工程师]+[AI] | 运行标准·流程机制（§15 甲部修改/§16 吸收外部输入/§17 周期性任务含 W4 五专项/§18 支书评议细节；T-282 自 OPERATIONS_GUIDE 拆分） |
+| content/03_doc_system/USAGE_POLICY.md | 2026-09-03 | [工程师]+[AI] | 使用规范（术语 §一 + Emoji §三；2026-09-03 支书裁定废止「党建工作×党务工作」二分） |
 | content/03_doc_system/ARCHITECTURE.md | 2026-09-03 | [工程师]+[AI] | 核心架构说明（2026-09-03 删除党建/党务分类节） |
 | content/03_doc_system/DOC_MAP.md | 2026-08-19 | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-08-05 | [工程师]+[AI] | 母本子本注册表 |
@@ -189,7 +189,7 @@ dynamic_role:
 | docs/help.html | 2026-08-12 | [用户]+[AI] | 帮助页（系统说明书；静态壳模式） |
 | docs/notice.html | 2026-07-31 | [用户]+[AI] | 通知页 |
 | docs/search.html | 2026-07-31 | [用户]+[AI] | 搜索页 |
-| docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 书记工作台 |
+| docs/workspace/secretary.html | 2026-07-31 | [用户]+[AI] | 支书工作台 |
 | docs/workspace/org.html | 2026-08-23 | [用户]+[AI] | 组织委员工作台（T-279 M3 入口版本 bump 20260823d） |
 | docs/workspace/prop.html | 2026-07-31 | [用户]+[AI] | 宣传委员工作台 |
 | docs/workspace/disc.html | 2026-07-31 | [用户]+[AI] | 纪检委员工作台 |
@@ -250,7 +250,7 @@ dynamic_role:
 | docs/src/entries/notice-entry.js | 2026-08-06 | [工程师]+[AI] | 通知页入口 |
 | docs/src/entries/search-entry.js | 2026-07-31 | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/workspace-entry.js | 2026-07-31 | [工程师]+[AI] | 🗑️ 已删除（2026-08 P0 死模块清理） |
-| docs/src/entries/ws-secretary-entry.js | 2026-08-24 | [工程师]+[AI] | 书记工作台入口（T-280 B1-5 条件抑制重渲染+高亮存活） |
+| docs/src/entries/ws-secretary-entry.js | 2026-08-24 | [工程师]+[AI] | 支书工作台入口（T-280 B1-5 条件抑制重渲染+高亮存活） |
 | docs/src/entries/ws-org-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 组织委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+轮询定位） |
 | docs/src/entries/ws-prop-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 宣传委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+轮询定位） |
 | docs/src/entries/ws-disc-commissioner-entry.js | 2026-08-24 | [工程师]+[AI] | 纪检委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+高亮存活） |
@@ -340,7 +340,7 @@ dynamic_role:
 | docs/src/services/milestones.js | 2026-07-31 | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/notice.js | 2026-08-12 | [工程师]+[AI] | 通知服务（含通知→待办派生） |
 | docs/src/services/person.js | 2026-08-03 | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
-| docs/src/services/secretary-overview.js | 2026-08-06 | [工程师]+[AI] | 书记全局概况服务（T-143，E2 派生待办 flow） |
+| docs/src/services/secretary-overview.js | 2026-08-06 | [工程师]+[AI] | 支书全局概况服务（T-143，E2 派生待办 flow） |
 | docs/src/services/review.js | 2026-07-31 | [工程师]+[AI] | 审查服务 |
 | docs/src/services/roles.js | 2026-07-31 | [工程师]+[AI] | 角色服务 |
 | docs/src/services/runtime.js | 2026-07-31 | [工程师]+[AI] | 运行时插槽 |
@@ -402,7 +402,7 @@ dynamic_role:
 |------|------|---------|---------|------|
 | W1 | 执行日志扫描 | 2026-07-31 | 2026-08-07 | OK |
 | W2 | Emoji 合规扫描 | 2026-07-31 | 2026-08-07 | OK |
-| W3 | 书记内容评议 | 2026-07-31 | 2026-08-07 | 待书记触发 |
+| W3 | 支书内容评议 | 2026-07-31 | 2026-08-07 | 待支书触发 |
 | W4 | 专项评议循环 | 2026-08-10 | 2026-08-17 | OK（T-209 建立；反论 T-116/理论复用 T-117/黑话审查 T-195/原话复核 T-200 四专项承接） |
 | M1 | CLAUDE.md 清理 | 2026-07-31 | 2026-08-31 | OK |
 | M2 | SNAPSHOT 更新 | 2026-08-10 | 2026-08-31 | OK（v16 升版） |
@@ -480,7 +480,7 @@ dynamic_role:
 | .vscode/ | 2026-07-21 | 工具配置删除 |
 | ARCHITECTURE.md (根目录) | 2026-07-21 | 迁至 content/03_doc_system/ARCHITECTURE.md |
 | content/insights/党支部管理与实务经验沉淀.md (旧路径 content/strategy/...) | 2026-07-21 | 目录重组，路径不变但旧引用过时 |
-| docs/members.html | 2026-08-02 | T-189 删除，项目赋权迁入书记工作台「赋权管理」tab |
+| docs/members.html | 2026-08-02 | T-189 删除，项目赋权迁入支书工作台「赋权管理」tab |
 | docs/src/entries/members-entry.js | 2026-08-02 | 随 members.html 删除 |
 | docs/src/mock/party.js | 2026-07-29 | v13 角色单页制重构移除 party/ 体系 |
 | docs/src/modules/party.js | 2026-07-29 | v13 角色单页制重构移除 party/ 体系 |

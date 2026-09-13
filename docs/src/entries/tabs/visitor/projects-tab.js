@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // 参与者工作台 Tab：项目分工（T-279 M3 拆分，照 M2 样板）
-// 书记 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
+// 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260912k';
-import { flashHighlight } from '../../../core/utils.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260913c';
+import { flashHighlight } from '../../../core/utils.js?v=20260913c';
 
-// 项目分工子视图（书记 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
+// 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
 // 首页专班跳转定位目标（快照自 ctx，一次性消费后清除）
 let _highlightTfId = null;
@@ -74,7 +74,7 @@ export function renderContent(ctx) {
   // 首页专班跳转定位：目标专班可能不在「我的分工」中 → 强制切全局分工视图后再定位
   if (_highlightTfId) _projSubView = 'all';
 
-  // 子视图切换（书记 2026-08-10 裁定第5点）：我的分工（以人为中心）/ 全局分工（全局查询）
+  // 子视图切换（支书 2026-08-10 裁定第5点）：我的分工（以人为中心）/ 全局分工（全局查询）
   const subTabs = [
     { key: 'mine', label: '我的分工' },
     { key: 'all', label: '全局分工' },
@@ -153,7 +153,7 @@ export function renderContent(ctx) {
       });
     });
 
-    // 书记裁定（卡片去留/合并批 D7）：活动卡点击直达活动详情（与专班卡行为一致）
+    // 支书裁定（卡片去留/合并批 D7）：活动卡点击直达活动详情（与专班卡行为一致）
     listEl.querySelectorAll('.visitor-proj-card[data-act-id]').forEach(card => {
       if (!card.dataset.actId) return;
       card.style.cursor = 'pointer';
@@ -256,7 +256,7 @@ function _actStatusColor(status) {
   return map[status] || 'bg-gray-100 text-gray-600';
 }
 function _tfStatusLabel(status, deadline) {
-  // 2026-09-02 书记裁决（失同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
+  // 2026-09-02 支书裁决（失同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
   // 公共活动页此前误用任务态「进行中/已完成」，一并对齐
   // C3（2026-09-12）：状态由截止日派生——招募中但已过截止日不再显示「招募中」（语义修正）
   if (status === 'recruiting' && deadline && deadline < _todayKey()) return '报名已截止';
@@ -276,7 +276,7 @@ function _personnelRoleLabel(role) {
 }
 function _personnelRoleColor(role) {
   // 角色色统一来自 ROLE_COLORS（organizer=天蓝 / deep=紫 / participant=灰 / initiator=靛蓝），
-  // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（书记 2026-08-01 决策）
+  // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（支书 2026-08-01 决策）
   // ROLE_COLORS 经 _applyDark 生成 bgDark/textDark/borderDark，一并输出做深色适配
   const c = ROLE_COLORS[role] || ROLE_COLORS.participant;
   return `--acc-bg-dark:${c.bgDark};--acc-text-dark:${c.textDark};--acc-border-dark:${c.borderDark};background:${c.bg};color:color-mix(in srgb, ${c.text} 60%, #000);border:1px solid ${c.border};`;

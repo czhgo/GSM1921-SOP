@@ -1,10 +1,10 @@
-// thought-reports.js — 思想汇报 Mock 数据（2026-08-30 书记决策启动数字化，算法归档）
+// thought-reports.js — 思想汇报 Mock 数据（2026-08-30 支书决策启动数字化，算法归档）
 // 数据模型对齐 domain.js mockDB.thoughtReports
 // 提交人：党员/发展对象（p6 发展对象 / p7 积极分子 / p16 预备党员）
 // 算法归档原则：提交即入库即归档，按 personId 自动归集至个人档案，组织委员查看调用
 // 2026-09-06 基线刷新：submittedAt 随全局时间函数 f 压缩至 7 月下旬（见 activities.js 头注规则）
 
-import { getPersonName } from '../services/person.js?v=20260912k';
+import { getPersonName } from '../services/person.js?v=20260913c';
 
 const _personName = (id) => getPersonName(id) || id;
 

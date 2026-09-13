@@ -7,7 +7,7 @@ const rec = (name, ok, detail = '') => { results.push({ name, ok, detail }); con
 
 const ACC = {
   p1:  { id: '2400012345', name: '罗文杰(组长)' },
-  p13: { id: '2300010001', name: '储子禾(书记)' },
+  p13: { id: '2300010001', name: '储子禾(支书)' },
   p10: { id: '2400012354', name: '董建军(纪检)' },
   ppc: { id: '9000000001', name: '党委组织员' },
 };
@@ -166,7 +166,7 @@ async function main() {
     await ctx.close();
   }
 
-  // ════════ p13（书记）：C1③ 上报空表单 toast ════════
+  // ════════ p13（支书）：C1③ 上报空表单 toast ════════
   {
     const ctx = await browser.newContext();
     const page = await login(ctx, 'p13', '**/workspace/secretary.html');
@@ -177,7 +177,7 @@ async function main() {
     await page.click('#rq-form-submit');
     await page.waitForTimeout(400);
     const t = await toastText(page);
-    rec('C1③ 书记台上报空表单 toast 有文字', /填写/.test(t), `toast="${t.replace(/\n/g, ' ')}"`);
+    rec('C1③ 支书台上报空表单 toast 有文字', /填写/.test(t), `toast="${t.replace(/\n/g, ' ')}"`);
     await ctx.close();
   }
 

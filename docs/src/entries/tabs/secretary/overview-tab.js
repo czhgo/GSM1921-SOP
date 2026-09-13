@@ -1,29 +1,29 @@
 // role: [工程师]+[AI]
-// entries/tabs/secretary/overview-tab.js — 书记工作台·全局概况 tab（懒加载模块）
+// entries/tabs/secretary/overview-tab.js — 支书工作台·全局概况 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
-// 设计初衷（书记 2026-08-02 确认方向后记录）：
-//   为什么有全局概况——书记需同步各支委/组长/委员工作进度，形成党支部整体运行态势总览；
-//   解决什么问题——书记只看"进行时和未完成"的工作，快速掌握各维度进度与人员参与总体情况；
-//   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为书记待办。
+// 设计初衷（支书 2026-08-02 确认方向后记录）：
+//   为什么有全局概况——支书需同步各支委/组长/委员工作进度，形成党支部整体运行态势总览；
+//   解决什么问题——支书只看"进行时和未完成"的工作，快速掌握各维度进度与人员参与总体情况；
+//   数据选取原则——同一套底层数据统一自动渲染，异常数据标橙并派生为支书待办。
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
-// 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
+// 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260912k';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260912k';
-// S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
-import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260912k';
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260912k';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260912k';
-// D2 裁决批二（2026-09-08 书记特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260912k';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260913c';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260913c';
+// S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
+import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260913c';
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913c';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260913c';
+// D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
+import { PendingTarget } from '../../../core/pending-target.js?v=20260913c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -49,7 +49,7 @@ function renderOverviewContent() {
 
   // 子视图切换条（按维度 / 按人）——信息密度精确原则（P-012 分工的运行保障·做与看）：
   // 按维度 = 态势总览；按人 = L1 条线视角，看各角色在办概览（不含操作细节）
-  // 2026-08-10 书记裁定：本页禁用 SVG 图标，切换条为纯文字（避免图标选取丑）
+  // 2026-08-10 支书裁定：本页禁用 SVG 图标，切换条为纯文字（避免图标选取丑）
   const subTabs = [
     { key: 'dimension', label: '按维度' },
     { key: 'person', label: '按人' },
@@ -82,13 +82,13 @@ function renderOverviewContent() {
   }
 }
 
-/** 按人视图 v2：三区上下排布（问题优先）——2026-08-10 书记裁定重设计
+/** 按人视图 v2：三区上下排布（问题优先）——2026-08-10 支书裁定重设计
  *  ① 汇报区（最上）：待答复只读摘要（D2 裁决批二 2026-09-08 降级）——计数 + 最近 3 条
  *     （谁/主题/时间）+「去待办处理 →」定位跳转；行内答复位只留待办页「待答复」顶卡
  *  ② 卡点区（次上）：各角色超期/缺口告警，行内"了解进展"（温和请求，措辞不用"要求"）
  *  ③ 进度区（最下）：角色×状态紧凑聚合表（一行一人，数据驱动，非卡片平铺）
- *  监管不插手：书记只答复/了解进展，无任何编辑他人待办入口（看 ≠ 做）
- *  本页禁用 SVG 图标（书记裁定），类别用色点+文字标签区分
+ *  监管不插手：支书只答复/了解进展，无任何编辑他人待办入口（看 ≠ 做）
+ *  本页禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
  */
 async function renderPersonView(container) {
   await IssueStore.loadAll();
@@ -103,14 +103,14 @@ async function renderPersonView(container) {
       ${renderProgressSection(people)}
     </div>
     <p class="text-[11px] text-gray-500 mt-3">
-      按人视图 = L1 条线视角：书记看各角色在办与汇报（知情边界，看 ≠ 做）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
+      按人视图 = L1 条线视角：支书看各角色在办与汇报（知情边界，看 ≠ 做）。汇报为只读摘要（答复到「待办」）；卡点行内可温和了解进展，不跳转他人工作台。
     </p>
   `;
   bindReportSection(container);
   bindBlockerSection(container);
 }
 
-/** 汇报区：待答复只读摘要（D2 裁决批二 2026-09-08 书记特批降级）
+/** 汇报区：待答复只读摘要（D2 裁决批二 2026-09-08 支书特批降级）
  *  待答复收件箱（原行内答复零跳转）→ 只读摘要：计数 + 最近 3 条（谁/主题/时间，无答复表单）
  *  + 「去待办处理 →」（跳待办页并打开该答复详情定位，PendingTarget 一次性消费）；
  *  行内答复位只留待办页「待答复」顶卡（批一保留，B2 唯一终答位）；本区无答复表单/无行内展开。 */
@@ -285,8 +285,8 @@ function renderDimensionView(container) {
   const { attendance, inspection, activity, propaganda } = data;
 
   // ════════════════════════════════════════════════════════════
-  //  管理科学·执行层仪表盘（书记 2026-08-08 重设计）
-  //  2026-09-10 书记裁定（卡片去留/合并）：取消 KPI 五连卡体系——
+  //  管理科学·执行层仪表盘（支书 2026-08-08 重设计）
+  //  2026-09-10 支书裁定（卡片去留/合并）：取消 KPI 五连卡体系——
   //   ① 必要指标（复盘问题/归档完成率/考察积压/待办异常）= 内联统计条（沿用活动管理内联条样式），
   //      置于异常队列上方；不做出勤率 KPI（出勤数据改由 ③ 内联迷你趋势承载）。
   //   ② 异常优先队列：按紧急度排序（超期>待处理>常规），各带负责人+直达；
@@ -308,7 +308,7 @@ function renderDimensionView(container) {
     // 2026-09-13 彻查批次：原「归档完成率（%）· 目标 100%」＝KPI 式表述（用户明确要求不得出现）
     // → 改为「待归档材料（条）」，与「考察积压/待办异常」同口径：只报缺口，不设完成率目标
     { label: '待归档材料', value: propaganda.pendingArchive, unit: '条', status: metricStatusOf(!propaganda.pendingArchive, propaganda.pendingArchive <= 3), title: '待归档条数（只报缺口，不设比率目标）' },
-    // 2026-08-10 书记裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
+    // 2026-08-10 支书裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
     { label: '待办异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '异常优先管理 · 目标 0' },
   ];
@@ -323,7 +323,7 @@ function renderDimensionView(container) {
   if (attendance.makeupPending) pushEx(2, '补课未完成', `${attendance.makeupPending} 人`, '纪检委员', { urge: 'attendance-makeup' });
   if (inspection.overdueInspections) pushEx(3, '考察超期', `${inspection.overdueInspections} 条`, '纪检委员', { urge: 'inspection-overdue' });
   if (inspection.pendingInspections) pushEx(2, '考察待确认', `${inspection.pendingInspections} 条`, '纪检委员', { urge: 'inspection-pending' });
-  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '书记', { direct: 'assign' });
+  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'assign' });
   if (propaganda.pendingArchive) pushEx(1, '待归档', `${propaganda.pendingArchive} 个活动`, '宣传委员', { urge: 'archive-pending' });
   exceptions.sort((a, b) => b.level - a.level);
 
@@ -336,7 +336,7 @@ function renderDimensionView(container) {
   ];
   const stageTotal = stages.reduce((s, x) => s + x.value, 0) || 1;
 
-  // 文件流外发确认（书记 2026-08-10 裁定）：微信外发文件到达书记后在此确认，形成闭环
+  // 文件流外发确认（支书 2026-08-10 裁定）：微信外发文件到达支书后在此确认，形成闭环
   const pendingDispatches = listPendingByReceiver('secretary');
   const dispatchRows = pendingDispatches.map(d => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
@@ -423,8 +423,8 @@ function renderDimensionView(container) {
   });
 }
 
-/** 滞留党员复核卡（书记只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案）
- *  2026-09-10 书记裁定：「党员发展阶段分布」并入本卡，作为迷你比例条 + 图例字段（原独立分布卡取消）。 */
+/** 滞留党员复核卡（支书只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案）
+ *  2026-09-10 支书裁定：「党员发展阶段分布」并入本卡，作为迷你比例条 + 图例字段（原独立分布卡取消）。 */
 function _renderDetainedReviewCard(stages = [], stageTotal = 1) {
   const stats = getRosterStats({ type: '支部党员大会' }); // 支部大会口径 = 三会+党课统一口径
   const detained = getDetainedMembers();
@@ -518,7 +518,7 @@ function _sparkline(series) {
 }
 
 // t5b：催办映射——全局概况异常指标 → 对应委员（现以系统通知+待办落地，未来接入北大学生邮箱发送）
-// A④ 文案定稿（2026-09-10 书记裁定：中性事务式）——统一「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
+// A④ 文案定稿（2026-09-10 支书裁定：中性事务式）——统一「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
 const URGE_MAP = {
   'attendance-absent': {
     role: 'disc-commissioner',
@@ -561,7 +561,7 @@ function handleUrge(urgeKey) {
   const cfg = URGE_MAP[urgeKey];
   if (!cfg) return;
   // 签发人取当前真实角色（2026-09-13 彻查批次：此前 actorRole 硬编码 'secretary'、
-  //   正文写死「书记提醒：」→ 副书记签发也被记成书记，审计失真）
+  //   正文写死「支书提醒：」→ 副支书签发也被记成支书，审计失真）
   const me = AuthStore.getCurrentUser() || {};
   const actorRole = me.role || 'secretary';
   NoticeStore.add({
@@ -573,7 +573,7 @@ function handleUrge(urgeKey) {
     actionable: true,
     actionRoles: [cfg.role],
     actionTask: cfg.title,
-    publishedBy: ROLE_LABELS[actorRole] || '书记',
+    publishedBy: ROLE_LABELS[actorRole] || '支书',
   }, actorRole);
   const roleLabel = ROLE_LABELS[cfg.role] || cfg.role;
   showToast('success', `已向${roleLabel}发送催办通知`);

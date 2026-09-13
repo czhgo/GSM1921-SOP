@@ -2,16 +2,16 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912k';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912k';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912k';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912k';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912k';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260913c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913c';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260913c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913c';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -109,7 +109,7 @@ export function renderContent(ctx) {
     if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
   });
 
-  // 考察记录行 → 行下展开详情预览（书记 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
+  // 考察记录行 → 行下展开详情预览（支书 2026-08-11 裁定：卡片主体可点，展示该条考察记录详情）
   container.querySelectorAll('[data-insp-detail]').forEach(row => {
     row.addEventListener('click', () => {
       const rec = tfInspection.find(r => r.id === row.dataset.inspDetail);
@@ -122,7 +122,7 @@ export function renderContent(ctx) {
         return;
       }
       const long = inspectionToLong([rec])[0];
-      // 考察记录详情（书记 2026-08-11 四审纠正：深色=黑底白字 / 浅色=白底黑字，
+      // 考察记录详情（支书 2026-08-11 四审纠正：深色=黑底白字 / 浅色=白底黑字，
       // 用 CSS 变量跟随主题——原 bg-gray-50/60 深色模式下无覆盖看不清；
       // 行列分隔线提升可读性，不再用高饱和实底+白字）
       const statusBadge = rec.status === 'confirmed'

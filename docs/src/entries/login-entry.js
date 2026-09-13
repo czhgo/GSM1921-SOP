@@ -2,8 +2,8 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912k';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260913c';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -27,8 +27,8 @@ function _goToWorkspace(role) {
 // ── 开发模式卡片数据 ──────────────────────────────
 const DEV_CARDS = [
   { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 治理总览·监控全院支部' },
-  { role: 'secretary',         label: '党支部书记',   desc: '组织统筹决策' },
-  { role: 'deputy-secretary',  label: '党支部副书记', desc: '协助书记工作' },
+  { role: 'secretary',         label: '支书',   desc: '组织统筹决策' },
+  { role: 'deputy-secretary',  label: '副支书', desc: '协助支书工作' },
   { role: 'org-commissioner',  label: '组织委员',     desc: '发展数据' },
   { role: 'prop-commissioner', label: '宣传委员',     desc: '宣传档案' },
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },

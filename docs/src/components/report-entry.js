@@ -1,19 +1,19 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/report-entry.js — 一键汇报入口（各工作台顶部常驻按钮）
-//  书记 2026-08-10 裁定：
+//  支书 2026-08-10 裁定：
 //  ① 复用 Issue 体系（kind='report'），三类分类（进度/卡点/请示）
-//  ② 发往书记 → 书记答复 → 发回 → 汇报人确认闭环
-//  ③ 界面措辞温和："了解进展"请求来自书记时直接展示，不使用"要求"字样
-//  角标来源：IssueNotify.getUnreadCount(当前用户) = 书记请我汇报 + 书记答复发回
+//  ② 发往支书 → 支书答复 → 发回 → 汇报人确认闭环
+//  ③ 界面措辞温和："了解进展"请求来自支书时直接展示，不使用"要求"字样
+//  角标来源：IssueNotify.getUnreadCount(当前用户) = 支书请我汇报 + 支书答复发回
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../services/issues.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）
@@ -60,7 +60,7 @@ async function openReportModal() {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
         <button type="button" class="report-modal-close text-xs text-gray-500 hover:text-gray-600 transition-colors">关闭</button>
       </div>
-      <p class="text-xs text-gray-500 mb-3">汇报将发往书记，答复后发回给你。请选择分类并填写内容。</p>
+      <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
       <div class="flex items-center gap-2 mb-3">
         ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
           <button type="button" class="report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
@@ -99,7 +99,7 @@ async function openReportModal() {
     if (!body) { showToast('error', '请填写汇报内容'); return; }
     const issue = IssueStore.submitReport({ category, body });
     if (!issue) { showToast('error', '汇报发送失败'); return; }
-    showToast('success', '汇报已发出，等待书记答复');
+    showToast('success', '汇报已发出，等待支书答复');
     close();
     try {
       const me = AuthStore.getCurrentUser();

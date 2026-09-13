@@ -1,18 +1,18 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260912k';
-import { getBasePath, showToast } from '../core/utils.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { badgeHtml } from '../components/badges.js?v=20260912k';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260913c';
+import { getBasePath, showToast } from '../core/utils.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { badgeHtml } from '../components/badges.js?v=20260913c';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260912k';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260912k';
-import { BranchService } from '../services/runtime.js?v=20260912k';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260913c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260913c';
+import { BranchService } from '../services/runtime.js?v=20260913c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -85,9 +85,9 @@ backBtn?.addEventListener('click', () => {
 // 根据 targetModule 推断通知的发布角色
 function inferPublisher(n) {
   const modulePublisherMap = {
-    activity: '书记',
+    activity: '支书',
     party: '组织委员',
-    workspace: '书记',
+    workspace: '支书',
     attendance: '纪检委员',
   };
   return n.publisher || modulePublisherMap[n.targetModule] || '系统';

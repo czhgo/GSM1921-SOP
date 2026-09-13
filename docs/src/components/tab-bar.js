@@ -8,17 +8,17 @@
 
 
 
-import { accDarkParts } from '../core/constants.js?v=20260912k';
+import { accDarkParts } from '../core/constants.js?v=20260913c';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=20260912k';
+import { resolveInitialTab, resolveTargetTab } from '../core/tab-nav.js?v=20260913c';
 
 
 
-// 角色识别层：tab 激活态 = 主题色三件套渲染（书记 2026-08-08 三审定稿）。
+// 角色识别层：tab 激活态 = 主题色三件套渲染（支书 2026-08-08 三审定稿）。
 
-// 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），书记全部否决——
+// 背景：前三轮把 tab 强行为品牌金（半透明 0.14/0.30 → 实色 #FFD700），支书全部否决——
 
 // 金是品牌合规色，含义多、受对比度牵制反复变色。回归「每个人各自的主题色」：
 
@@ -92,7 +92,7 @@ export function tabContentSkeletonHtml(text = '加载中…') {
 
 const FALLBACK_ACCENT = {
 
-  accent: '#B91C1C',                  // 党建红（默认兜底，与书记主题色同源）
+  accent: '#B91C1C',                  // 党建红（默认兜底，与支书主题色同源）
 
   accentRgba: 'rgba(185, 28, 28, 0.1)',
 
@@ -138,7 +138,7 @@ const FALLBACK_ACCENT = {
 
  * @param {string} [opts.priorityTab]    — 优先激活的 Tab ID（覆盖 localStorage 记忆）。
 
- *                                        语义 = "有待办必见待办"（书记 2026-08-10 裁定）：
+ *                                        语义 = "有待办必见待办"（支书 2026-08-10 裁定）：
 
  *                                        调用方仅在首次渲染时传入（一次性消费），
 
@@ -158,7 +158,7 @@ const FALLBACK_ACCENT = {
 
  */
 
-// 单行滚动提示（2026-08-23 书记裁定）：溢出时两侧渐隐遮罩，滚动到边缘自动消失。
+// 单行滚动提示（2026-08-23 支书裁定）：溢出时两侧渐隐遮罩，滚动到边缘自动消失。
 
 // 元素级标记防重复绑定（单体式入口每次 setState 重建 tabBar 会多次调用 bindEvents）。
 
@@ -290,7 +290,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
 
 
-  // 单行 + 横向平滑滚动（2026-08-23 书记裁定：tab 数量增加禁止随机换行成 2 行）——
+  // 单行 + 横向平滑滚动（2026-08-23 支书裁定：tab 数量增加禁止随机换行成 2 行）——
 
   // flex-nowrap 永不换行，overflow-x-auto 超宽时横向滑动；ws-tab-scroll 样式在 styles.css 统一维护
 

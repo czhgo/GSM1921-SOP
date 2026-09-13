@@ -3,15 +3,15 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260912k';
-import { isInitStateActive } from './init-reset.js?v=20260912k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from './person.js?v=20260912k';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260913c';
+import { isInitStateActive } from './init-reset.js?v=20260913c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260913c';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -56,13 +56,13 @@ function _activityPartyGroup(activity) {
  * 考察上传位门禁
  * - 活动类：上传/修改=该活动组织者（assignments organizer 或顶层 organizer 派生；组长兼组织者同）；
  *   组长非组织者=本组监督位（督促上传，见组长页监督提示）
- * - 专班类：上传=专班实际负责人——身份（指派到人/角色）待书记另裁（§9b 组织委员行注）；
+ * - 专班类：上传=专班实际负责人——身份（指派到人/角色）待支书另裁（§9b 组织委员行注）；
  *   裁决前暂按页面可达放行（组委/组长既有入口保留），recordedBy 记真实操作人
  */
 export function canUploadInspection(personId, sourceType, sourceId) {
   if (!personId || !sourceType || !sourceId) return false;
   const role = (getPersonById(personId) || {}).role;
-  if (role === 'secretary' || role === 'deputy-secretary') return true; // 书记/副书记例外承担
+  if (role === 'secretary' || role === 'deputy-secretary') return true; // 支书/副支书例外承担
   if (sourceType === SourceType.TASKFORCE) return true; // 专班负责人位待身份编码，暂放行（见上）
   const activity = loadActivities().find(a => a.id === sourceId);
   if (!activity || activity.archived) return false;

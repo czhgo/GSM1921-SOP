@@ -4,7 +4,7 @@
 //  依据 P-011 知情边界（content/01_strategy/SECRETARY_DIRECTIVES.md）：
 //    "能赋权的人，才能看对应条线的在办（L1 条线视角）"
 //    "任何角色的信息可见范围，应精确等于其职责空间所需的最小充分信息"
-//    L0 个人视角（自己）/ L1 条线视角（上级看下级的条线在办）/ L2 全局视角（书记看全部）
+//    L0 个人视角（自己）/ L1 条线视角（上级看下级的条线在办）/ L2 全局视角（支书看全部）
 //  数据源：
 //    auth.js AUTHORIZE_CHAIN（赋权链 → L1 条线可见性投影）
 //    SYSTEM_ROLE_PERMISSION.md §9b 常设角色权限矩阵（view_all → 数据维度投影）
@@ -12,9 +12,9 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260912k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
+import { PEOPLE } from '../mock/people.js?v=20260913c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
@@ -34,7 +34,7 @@ export const VISIBLE_DIMENSIONS = {
 
 // ── 角色可见性配置表（数据驱动，不硬编码人）───────────────────────
 //  targets 语义：
-//    'all'               — L2 全局（书记/副书记看全部条线+块块）
+//    'all'               — L2 全局（支书/副支书看全部条线+块块）
 //    'own-group'         — 块块（组长看本党小组组员）
 //    ['organizer','deep']— 条线（AUTHORIZE_CHAIN：组织委员→专班成员）
 //    []                  — 无下级条线（仅 L0 自我）

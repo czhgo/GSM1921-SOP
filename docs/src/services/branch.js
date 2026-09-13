@@ -3,28 +3,28 @@
 // 支部边界收敛点（防失同步）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { getPersonById } from './person.js?v=20260912k';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260912k';
-import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260912k';
-import { listCapabilities } from '../core/registry.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { getPersonById } from './person.js?v=20260913c';
+import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260913c';
+import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260913c';
+import { listCapabilities } from '../core/registry.js?v=20260913c';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260912k';
-// 审计内核共享常量（2026-09-09 书记批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260913c';
+// 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防失同步）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260912k';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260913c';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（11 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../core/work-map.js?v=20260912k';
-// 批4（2026-09-09 书记批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260912k';
+import { expandWorkforce } from '../core/work-map.js?v=20260913c';
+// 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
+import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260913c';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
 }
 
-// ── 工作流模块配置 L2（2026-09-03 书记裁定：支部自治/书记操作/清单+画布并用/tab 级/核心固定）──
+// ── 工作流模块配置 L2（2026-09-03 支书裁定：支部自治/支书操作/清单+画布并用/tab 级/核心固定）──
 // config.modules = { hiddenTabIds: string[], tabOrder: string[] }；null = 默认全开（兼容现有演示）。
-// 核心组 tab（groupLabel==='工作台'：待办/概况等，书记 2026-08-10 裁定全员必有）固定显示、
+// 核心组 tab（groupLabel==='工作台'：待办/概况等，支书 2026-08-10 裁定全员必有）固定显示、
 // 不可隐藏、不参与排序；业务组（党建/反馈/对接党委…）可隐藏、可按画布顺序调整。
 
 /** 支部可勾选的工作流能力目录（派生自能力注册表 workspace:* 能力 + 其 tab 元数据；画布/清单数据源） */
@@ -120,7 +120,7 @@ export function applyOutputBlockPolicy(defIds, blocks) {
   return visible;
 }
 
-// ── 工作流块策略（L3 S3，2026-09-03 书记裁定：config.blocks 增 workflowBlocks）──────
+// ── 工作流块策略（L3 S3，2026-09-03 支书裁定：config.blocks 增 workflowBlocks）──────
 // config.blocks.workflowBlocks = { hiddenBlockIds: string[] }；null/缺省=全开。
 // 目录单一源：workflow/blocks/manifests.js BLOCK_MANIFESTS（主题党日/专班等整条 SOP 入口块）。
 
@@ -143,7 +143,7 @@ function _sanitizeBlocks(blocks) {
   return sanitizeConfigBlocks(blocks);
 }
 
-/** 保存支部产出块配置（书记/副书记操作，副书同权 2026-09-09 书记批；blocks=null=恢复默认；opts.why=依据出处） */
+/** 保存支部产出块配置（支书/副支书操作，副书同权 2026-09-09 支书批；blocks=null=恢复默认；opts.why=依据出处） */
 export async function updateBranchBlocks(branchId, blocks, opts = {}) {
   return updateBranchModules(branchId, undefined, [], blocks, opts);
 }
@@ -153,9 +153,9 @@ export function getCoreTabIds(tabs) {
   return _splitTabs(tabs).core.map(t => t.id);
 }
 
-// ── 配置变更留痕（2026-09-06 换组织向导书记 R4：即时生效 + 留痕，低频可回滚）─────────
+// ── 配置变更留痕（2026-09-06 换组织向导支书 R4：即时生效 + 留痕，低频可回滚）─────────
 // config.configChangeHistory: Array<{ by, at, what, from?, to?, why? }>——谁/何时/改了什么配置键。
-// 2026-09-09 书记批「审计内核」：why=依据/出处（可选，来源页回填如 REVIEW_QUEUE 附录编号；
+// 2026-09-09 支书批「审计内核」：why=依据/出处（可选，来源页回填如 REVIEW_QUEUE 附录编号；
 //   默认 undefined 不写、向后兼容）；保留上限 CONFIG_HISTORY_MAX（追加即裁剪最早）；
 //   what ∈ CONFIG_ROLLBACK_KEYS（单一源 = config-clean）的单键留痕可回滚（见 rollbackBranchConfig）。
 // 现有审计风格对照：roster.saveResidenceChange.residenceHistory（{from,to,updatedBy,updatedAt}）
@@ -217,11 +217,11 @@ async function _saveBranchConfig(branchId, payload, opts = {}) {
   return next;
 }
 
-// ── 配置回滚原语（2026-09-09 书记批「审计内核」B2：单键回滚 + 回滚留痕 + 上限裁剪）────────
+// ── 配置回滚原语（2026-09-09 支书批「审计内核」B2：单键回滚 + 回滚留痕 + 上限裁剪）────────
 // 定位历史一条单键变更 → 将其 to→from 写回该配置键（跨键不动）→ 追加 {what:'rollback', from:回滚前该键
 // 现值, to:回滚值, by, why?} 并裁剪至 CONFIG_HISTORY_MAX。mock（本地直写）与 server
 // （PATCH /branches/:id/config/rollback）两形态同源语义（同 CONFIG_ROLLBACK_KEYS 白名单与行结构）。
-// 角色门（同 config 写权口径，2026-09-09 副书同权书记批）：party-staff / 本支部现任书记 / 本支部副书记。
+// 角色门（同 config 写权口径，2026-09-09 副书同权支书批）：party-staff / 本支部现任支书 / 本副支书。
 function _syncBranchRecord(branchId, next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === branchId);
   if (idx >= 0) {
@@ -233,7 +233,7 @@ function _syncBranchRecord(branchId, next) {
   return next;
 }
 
-/** 纯判定：某人能否回滚该支部 config（party-staff / 本支部现任书记 / 本支部副书记；供 UI 可见性共用） */
+/** 纯判定：某人能否回滚该支部 config（party-staff / 本支部现任支书 / 本副支书；供 UI 可见性共用） */
 export function canRollbackBranchConfig(actor, branchId) {
   const personId = actor && actor.personId;
   const branch = getBranchById(branchId);
@@ -242,13 +242,13 @@ export function canRollbackBranchConfig(actor, branchId) {
   if (role === 'party-staff') return { ok: true, reason: '' };
   if (role === 'secretary') {
     if (branch.secretaryId && branch.secretaryId === personId) return { ok: true, reason: '' };
-    return { ok: false, reason: '仅本支部现任书记/副书记或党委组织员可回滚配置' };
+    return { ok: false, reason: '仅本支部现任支书/副支书或党委组织员可回滚配置' };
   }
   if (role === 'deputy-secretary') {
     if (getBranchIdOfPerson(personId) === branch.id) return { ok: true, reason: '' };
-    return { ok: false, reason: '仅本支部现任书记/副书记或党委组织员可回滚配置' };
+    return { ok: false, reason: '仅本支部现任支书/副支书或党委组织员可回滚配置' };
   }
-  return { ok: false, reason: '无该配置回滚权（仅书记/副书记或党委组织员可调）' };
+  return { ok: false, reason: '无该配置回滚权（仅支书/副支书或党委组织员可调）' };
 }
 
 /**
@@ -259,7 +259,7 @@ export function canRollbackBranchConfig(actor, branchId) {
  *   by 缺省取登录快照（mock 直写留痕 by）；api 形态操作者以服务端会话为准。
  * @param {string} [why] 回滚依据/出处（可选）
  * @returns {Promise<{ok:boolean, branch?:Object, reason?:string}>}
- *   约束：仅 书记/副书记/party-staff 可调；单键写回（what ∈ CONFIG_ROLLBACK_KEYS，
+ *   约束：仅 支书/副支书/party-staff 可调；单键写回（what ∈ CONFIG_ROLLBACK_KEYS，
  *   跨键/聚合留痕如 branch-created/config-copied 拒绝）；回滚后裁剪至历史上限。
  */
 export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt, index } = {}, why) {
@@ -291,7 +291,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912k');
+      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913c');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -316,8 +316,8 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
 }
 
 /**
- * 保存支部工作流配置（支部书记/副书记操作——config 写权 = party-staff / 本支部现任书记或
- * 副书记（同支部），2026-09-09 副书同权书记批；server PATCH /branches/:id/config 同口径门控）：
+ * 保存支部工作流配置（支书/副支书操作——config 写权 = party-staff / 本支部现任支书或
+ * 副支书（同支部），2026-09-09 副书同权支书批；server PATCH /branches/:id/config 同口径门控）：
  *   modules —— config.modules：模块/业务 tab 配置（null=恢复默认全开；undefined=不改）；
  *   blocks  —— config.blocks：活动产出块配置（null=恢复默认；undefined=不改）
  * tabs 仅用于防御核心 tab 不可隐藏。
@@ -348,7 +348,7 @@ export function getBranchWorkforce(branchId) {
   return expandWorkforce(branch?.config?.workforce);
 }
 
-/** 保存支部分工（书记/副书记操作，副书同权 2026-09-09 书记批/议题通过后落库；workforce=null 恢复缺省分工；opts.why=依据出处） */
+/** 保存支部分工（支书/副支书操作，副书同权 2026-09-09 支书批/议题通过后落库；workforce=null 恢复缺省分工；opts.why=依据出处） */
 export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
   const payload = workforce === null
     ? { workforce: null }
@@ -356,11 +356,11 @@ export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
   return _saveBranchConfig(branchId, payload, opts);
 }
 
-// ── 批4 域参数 policyOverrides（2026-09-09 书记批「域参数」L2 下放；config 独立域）────────
+// ── 批4 域参数 policyOverrides（2026-09-09 支书批「域参数」L2 下放；config 独立域）────────
 // config.policyOverrides = { 节: { 叶: 值 } }（节/叶白名单单一源 = policy-defaults POLICY_OVERRIDABLE；
 // 净化唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides，与 server PATCH /branches/:id/config 同源）。
 // 角色守卫（批3 副书同权谓词同口径扩展）：
-//   · party-staff / 本支部现任书记 / 本支部副书记 → 全量 policyOverrides；
+//   · party-staff / 本支部现任支书 / 本副支书 → 全量 policyOverrides；
 //   · 本支部域负责人（纪检=inspection · 组织=memberConfirmation · 组长=leader）→ 仅自己域节（含 null=恢复该域默认）。
 // 消费点：设置中心「支部治理 · 域参数」卡（L2）保存/恢复默认；读侧注入 = applyEffectivePolicyDefaultsForPerson。
 
@@ -382,7 +382,7 @@ function _actorRoleOf(actor) {
  * @param {{ personId: string, role?: string }} actor
  * @param {string} branchId
  * @returns {{ ok: boolean, scope: 'all'|string|null, reason?: string }}
- *   scope='all'=书记/副书记/party-staff 全量；scope=域节=仅该域；null=无权
+ *   scope='all'=支书/副支书/party-staff 全量；scope=域节=仅该域；null=无权
  */
 export function canManagePolicyOverrides(actor, branchId) {
   const personId = actor && actor.personId;
@@ -392,11 +392,11 @@ export function canManagePolicyOverrides(actor, branchId) {
   if (role === 'party-staff') return { ok: true, scope: 'all' };
   if (role === 'secretary') {
     if (branch.secretaryId && branch.secretaryId === personId) return { ok: true, scope: 'all' };
-    return { ok: false, scope: null, reason: '仅本支部现任书记/副书记或党委组织员可改全量域参数' };
+    return { ok: false, scope: null, reason: '仅本支部现任支书/副支书或党委组织员可改全量域参数' };
   }
   if (role === 'deputy-secretary') {
     if (getBranchIdOfPerson(personId) === branch.id) return { ok: true, scope: 'all' };
-    return { ok: false, scope: null, reason: '仅本支部现任书记/副书记或党委组织员可改全量域参数' };
+    return { ok: false, scope: null, reason: '仅本支部现任支书/副支书或党委组织员可改全量域参数' };
   }
   const own = POLICY_SECTION_BY_DOMAIN_ROLE[role];
   if (own && getBranchIdOfPerson(personId) === branch.id) return { ok: true, scope: own };
@@ -405,7 +405,7 @@ export function canManagePolicyOverrides(actor, branchId) {
 
 /**
  * 保存域参数覆盖（批4 写口；overrides = { 节: 值 | null }——节值 null=恢复该域默认（删除该节覆盖）；
- * 书记/副书记/party-staff 可全量；域负责人自动收窄到自己的域节；净化走 sanitizeConfigPolicyOverrides，
+ * 支书/副支书/party-staff 可全量；域负责人自动收窄到自己的域节；净化走 sanitizeConfigPolicyOverrides，
  * 非法值/未知键丢弃不写坏；留痕与 modules/blocks/workforce 同 config.configChangeHistory。
  * @param {Object} [opts] opts.actor=操作者；opts.why=依据/出处（可选，来源页回填；undefined 不写）
  * @returns {Promise<{ ok: boolean, changed: boolean, reason?: string }>}
@@ -458,7 +458,7 @@ export function applyEffectivePolicyDefaultsForPerson(personId) {
 }
 
 /**
- * 人 → 有效归属支部（2026-09-09 书记批「支部归属显式化」A1）：
+ * 人 → 有效归属支部（2026-09-09 支书批「支部归属显式化」A1）：
  *   person 不存在 / person.branchId 为 null 或空 / branchId 查无该支部 → null；否则返回该支部记录。
  * 支部语境判定（"我属于哪个支部 / 是否存在我的支部"）一律用本函数——不再回退示例支部；
  * getBranchIdOfPerson 仅为数据解析兜底（演示/存量兼容），勿用于归属语境判定。
@@ -472,7 +472,7 @@ export function getBoundBranch(personId) {
 }
 
 /**
- * 人 → 所属支部 id ——【数据解析兜底】（2026-09-09 书记批 A1 定位说明）：
+ * 人 → 所属支部 id ——【数据解析兜底】（2026-09-09 支书批 A1 定位说明）：
  * 无档案/档案缺 branchId（含党委级 party-staff）→ 兜底 'br-b1'（演示/存量兼容惰性维度迁移用，
  * 如 withinBranch 行过滤、工作流策略按支部读取等纯数据读写位）。
  * ⚠️ 支部语境判定（"是否存在我的支部 / header 归属 / 治理区是否可达"）一律用 getBoundBranch，
@@ -488,7 +488,7 @@ export function getBranchIdOfPerson(personId) {
 // 接入真实支部数据后由各支部 config.headerTitle/name 覆盖）
 const STATIC_HEADER_FALLBACK = '光华管理学院本科生党支部';
 
-// 未登录中性占位（2026-09-10 书记批「归属显示不一致」修复）：未登录/查无档案时不再走
+// 未登录中性占位（2026-09-10 支书批「归属显示不一致」修复）：未登录/查无档案时不再走
 // getBranchIdOfPerson 的 br-b1 数据解析兜底（那会显示"示例支部名"像是真有归属），
 // 改中性占位并保留「示例」含义；与 STATIC_HEADER_FALLBACK（数据未加载兜底）分别处理。
 const GUEST_HEADER_PLACEHOLDER = '示例组织（未登录）';
@@ -499,7 +499,7 @@ export function isLoaded() {
 }
 
 /**
- * header 品牌软编码（2026-09-09 书记批「支部归属显式化」A2；2026-09-10 时序/占位修复）：
+ * header 品牌软编码（2026-09-09 支书批「支部归属显式化」A2；2026-09-10 时序/占位修复）：
  *   config.headerTitle → branch.name；支部名随支部配置档案更换显示——不硬编码示例支部名。
  * 判定顺序：
  *   1) party-staff（党委级角色，不属于任一支部）→ 院系党委名（前置不变）；
@@ -522,7 +522,7 @@ export function getHeaderTitle(personId, opts = {}) {
   if (bound) return bound.config?.headerTitle || bound.name || STATIC_HEADER_FALLBACK;
   // 分支数据尚未加载（时序）：静态兜底名，而非误报「未绑定支部」
   if (person && !isLoaded()) return STATIC_HEADER_FALLBACK;
-  // 登录且有 person 档案、但无有效归属支部 → 中性占位（书记语义：真无支部不显示示例支部名）
+  // 登录且有 person 档案、但无有效归属支部 → 中性占位（支书语义：真无支部不显示示例支部名）
   if (person) return placeholder;
   // 未登录 / 查无档案（静态壳）：中性占位（示例组织，不泄漏示例支部名）
   return GUEST_HEADER_PLACEHOLDER;
@@ -724,13 +724,13 @@ export async function renameBranch(id, name) {
   return next;
 }
 
-// ── 换组织向导 · 支部组织档案写口（2026-09-06 书记 R3/R4：向导吸收合并 party-config）────────
+// ── 换组织向导 · 支部组织档案写口（2026-09-06 支书 R3/R4：向导吸收合并 party-config）────────
 // org = { name?, headerTitle?, desc?, themePreset? }（undefined=不改；净化唯一实现 = config-clean sanitizeConfigOrg）。
-// 权限轨（沿用既有校验语义；2026-09-09 书记批副书同权——本支部现任书记/副书记均视同支部层配置权）：
+// 权限轨（沿用既有校验语义；2026-09-09 支书批副书同权——本支部现任支书/副支书均视同支部层配置权）：
 //   · name（顶层治理字段）→ adapter.branches.update（server 端 = 通用 branches PATCH，仅 party-staff）；
-//     mock 模式无门控、UI 层已按角色禁用（书记/副书记均不可改官方支部名）。
+//     mock 模式无门控、UI 层已按角色禁用（支书/副支书均不可改官方支部名）。
 //   · headerTitle/desc/themePreset（config 域）→ adapter.updateConfig（server 端 = PATCH /branches/:id/config，
-//     party-staff / 本支部现任书记或副书记（同支部）均可写；设置中心支部治理与向导即走此轨）。
+//     party-staff / 本支部现任支书或副支书（同支部）均可写；设置中心支部治理与向导即走此轨）。
 // 留痕：与 modules/blocks/workforce 同一 config.configChangeHistory 数组（{by,at,what,from?,to?,why?}）。
 // opts.why=依据/出处（可选，来源页回填；undefined 不写行）。
 export async function updateBranchOrg(branchId, org = {}, opts = {}) {
@@ -771,7 +771,7 @@ export async function updateBranchOrg(branchId, org = {}, opts = {}) {
 
   history = _trimHistory(history);
   const nextConfig = { ...prev, ...cfgPatch, configChangeHistory: history };
-  // 含顶层 name → 通用 branches PATCH（party-staff）；仅 config 域 → PATCH /branches/:id/config（书记/党委均可）
+  // 含顶层 name → 通用 branches PATCH（party-staff）；仅 config 域 → PATCH /branches/:id/config（支书/党委均可）
   // why 一并透传适配器（api 形态 PATCH body.why → 服务端同源落行）
   const next = Object.keys(topPatch).length
     ? await getAdapter().branches.update(branchId, { ...topPatch, config: nextConfig })

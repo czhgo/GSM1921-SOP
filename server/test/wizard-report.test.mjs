@@ -3,12 +3,12 @@
 // 纯 Node 测试（不起 server、无浏览器）：
 //   report 纯函数 buildOrgWizardReport → markdown 断言关键片段（支部名/模块摘要/文件清单/验证点）；
 //   roster 衔接：可 import roster getRosterStats（现读数 ≥0 且应到 = 党员 − 滞留）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260903c query（模块缓存键一致性，同 roster/attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913c query（模块缓存键一致性，同 roster/attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260912k';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260912k';
+import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260913c';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260913c';
 
 const SAMPLE = {
   branchInfo: {
@@ -32,7 +32,7 @@ const SAMPLE = {
     wbHiddenLabels: [],
   },
   workforce: [
-    { module: '三会一课', owner: '党支部书记' },
+    { module: '三会一课', owner: '支书' },
     { module: '发展党员', owner: '组织委员' },
   ],
   rosterStats: { expected: 19, partyTotal: 21, detainedParty: 2 },
@@ -54,21 +54,21 @@ test('report：模块/块摘要与角色分工行入文', () => {
   assert.ok(md.includes('停用：反馈管理'), '停用模块标签');
   assert.ok(md.includes('活动产出块：共 4 项'), '产出块摘要');
   assert.ok(md.includes('停用：宣传'), '停用产出块标签');
-  assert.ok(md.includes('三会一课 → 党支部书记'), '分工行');
+  assert.ok(md.includes('三会一课 → 支书'), '分工行');
   assert.ok(md.includes('发展党员 → 组织委员'), '分工行 2');
 });
 
 test('report：待手动替换文件清单要点齐全（mock/constants/权限/术语/制度/配色/policy）', () => {
   const md = buildOrgWizardReport(SAMPLE);
   for (const frag of [
-    'docs/src/mock/people.js?v=20260912k',
-    'docs/src/core/constants.js?v=20260912k',
+    'docs/src/mock/people.js?v=20260913c',
+    'docs/src/core/constants.js?v=20260913c',
     'SYSTEM_ROLE_PERMISSION.md',
     'USAGE_POLICY.md',
     'content/02_institution/sop/',
     'COLOR_SYSTEM.md',
     'docs/src/styles.css',
-    'docs/src/core/policy-defaults.js?v=20260912k',
+    'docs/src/core/policy-defaults.js?v=20260913c',
   ]) {
     assert.ok(md.includes(frag.split('?')[0]), `文件清单应含：${frag.split('?')[0]}`);
   }

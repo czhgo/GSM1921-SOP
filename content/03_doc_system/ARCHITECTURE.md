@@ -123,16 +123,16 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── login.html                     [用户]+[AI] 登录页
 │   ├── activity.html                  [用户]+[AI] 活动详情独立页（访客动态 / 通知直达详情）
 │   ├── taskforce.html                 [用户]+[AI] 专班详情独立页（通知直达详情）
-│   ├── wizard.html                    [用户]+[AI] 换组织向导独立页（书记/副书记本支部、党委任意支部；5 步换壳）
+│   ├── wizard.html                    [用户]+[AI] 换组织向导独立页（支书/副支书本支部、党委任意支部；5 步换壳）
 │   ├── settings.html                  [用户]+[AI] 设置中心（外观/我的工作台/支部治理·域参数，按登录角色分区）
 │   ├── workspace/                     [用户]+[AI] 角色工作台页面（HTML，清单见下）
-│   │   ├── secretary.html             [用户]+[AI] 书记工作台（工作台+赋权管理+issue管理+通知发布+待办）
+│   │   ├── secretary.html             [用户]+[AI] 支书工作台（工作台+赋权管理+issue管理+通知发布+待办）
 │   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
 │   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
 │   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
 │   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理+监督复盘+考察管理+补课制度+公邮管理+待办）
 │   │   ├── visitor.html               [用户]+[AI] 成员工作台（含待办）
-│   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+书记任命+上报审批，P1-P3）
+│   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+支书任命+上报审批，P1-P3）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
 │       ├── entries/                   [工程师]+[AI] 页面入口（基础页 entry + ws-* 工作台入口 + tabs/ 角色 Tab，非全量）
 │       ├── components/                [工程师]+[AI] 共享组件（含 todo-list/custom-select/tab-bar/workspace-shell 等，非全量）
@@ -198,7 +198,7 @@ Layer 7: 审计参考层（审计与参考）
 ├── .ctx/                              [AI] 运行时上下文（审计底座）
 │   ├── TIMESTAMPS.md                  [工程师]+[AI] 文件时间戳注册表
 │   ├── SNAPSHOT.md                    [AI] 当前基线快照
-│   ├── REVIEW_QUEUE.md                [工程师]+[AI] 书记评议队列
+│   ├── REVIEW_QUEUE.md                [工程师]+[AI] 支书评议队列
 │   ├── ENGINEERING_ASSESSMENT.md     [工程师]+[AI] 工程化评估与改造行动线（原 MODULARIZATION_ASSESSMENT；2026-09-08 自 04_web_design/evolution 迁入、2026-09-09 更名，评估职能归审计底座）
 │   ├── snapshots/                     [AI] 历史快照归档
 │   └── logs/                          [工程师]+[AI] 月度执行日志与决策日志

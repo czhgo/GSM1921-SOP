@@ -11,7 +11,7 @@ status: active
 > **定位：** 本目录存放**知识类型 4：网站系统的设计想法**——回答"网站功能、数据架构、UI 设计"。
 > **受众：** [工程师]（系统维护者、开发者）
 > **结构：** 2026-08-27（T-286）按主题分子目录分组，各子目录文件间可互相引用；跨组引用使用相对路径（`../组名/`）。
-> **归类原则（书记 2026-09-03）：** content 与 spec/台账的边界**不是机械等式**，而是逐份**实时判断**——判断标准：是否承载"为什么这样做、选了哪个方向、模型长什么样"的设计价值。有设计价值（含必要字段模型与行为口径）→ 留 content；纯执行步骤/测试清单/过程台账 → `.trae/specs/`（用后即删）或 `.ctx/logs/`。
+> **归类原则（支书 2026-09-03）：** content 与 spec/台账的边界**不是机械等式**，而是逐份**实时判断**——判断标准：是否承载"为什么这样做、选了哪个方向、模型长什么样"的设计价值。有设计价值（含必要字段模型与行为口径）→ 留 content；纯执行步骤/测试清单/过程台账 → `.trae/specs/`（用后即删）或 `.ctx/logs/`。
 
 ---
 
@@ -54,7 +54,7 @@ status: active
 | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统规范（设计哲学/排版/交互/响应式/深色模式/设计资产/快速参考） | **唯一权威**——前端视觉规范（2026-08-24 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
 | [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则） | **唯一权威**——查色值优先（2026-08-24 拆分） |
 | [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章等） | **唯一权威**——写组件优先（2026-08-24 拆分） |
-| [CLICK_ROUTING.md](design-system/CLICK_ROUTING.md) | 点击落点映射表（什么地方可点击、点击落在哪里——分层原则 2026-08-29 书记裁定） | **唯一权威**——点击落点规范 |
+| [CLICK_ROUTING.md](design-system/CLICK_ROUTING.md) | 点击落点映射表（什么地方可点击、点击落在哪里——分层原则 2026-08-29 支书裁定） | **唯一权威**——点击落点规范 |
 
 ### 部署与集成（deploy/）
 
@@ -81,8 +81,8 @@ status: active
 | [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
 | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | 历史探索与愿景定位（现行方向判断依据 = .ctx/ENGINEERING_ASSESSMENT.md） |
 | [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
-| [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，书记 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |
-| [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
+| [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，支书 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |
+| [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发） | **唯一权威**——党委两级治理架构与方向选择说明 |
 | [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生） | **已落地 2026-09-03**（S1~S10 已验收达成，设计论证档案）；权威源 = [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0/§9b/§9c + 代码 `ROLE_KEYS` |
 
 > **注（2026-09-08/09）**：工程化评估（原「模块化 / 插件化 / 开源化评估」，2026-09-09 更名「工程化评估与改造行动线」）随评估职能迁入 `.ctx/`（审计底座），见 `.ctx/ENGINEERING_ASSESSMENT.md`——本表不再单列该文件行。

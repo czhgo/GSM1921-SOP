@@ -1,7 +1,7 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20260912k';
-import { AttendanceStatus } from '../core/domain.js?v=20260912k';
+import { PEOPLE } from './people.js?v=20260913c';
+import { AttendanceStatus } from '../core/domain.js?v=20260913c';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -77,19 +77,19 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att43', personId: 'p8',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
 ];
 
-// ── 8 月考勤全覆盖（2026-08-05 书记裁决「补全 5 场全覆盖」；次日修订）────
-// 2026-08-05 修订（书记裁决）：
+// ── 8 月考勤全覆盖（2026-08-05 支书裁决「补全 5 场全覆盖」；次日修订）────
+// 2026-08-05 修订（支书裁决）：
 //   1. act-28「谈话考察」违背 5b2e4ea「删除考察活动类型」，已彻底删除（活动/考勤/通知）
 //   2. 已生成考勤的活动日期前移至已发生（≤ 8/5）：act-26 8/1、act-27 8/3、act-29 8/4；
 //      未来活动 act-30（8/28 draft）不生成考勤——「8 月底活动不可能已出勤」语义自洽
 //   3. 原 act-26 显式段（att44~60）并入生成器统一覆盖（去重），ID 从 att44 起连续
 // 覆盖规则（确定性生成，非随机——刷新与跨会话结果稳定）：
 //   act-26 8/1  党小组会（暑期线上）          → 全员 50 人
-//   act-27 8/3  支委会：新学期筹备            → 支委班子 8 人（书记/副书记/组织/宣传/纪检 + 三组长）
+//   act-27 8/3  支委会：新学期筹备            → 支委班子 8 人（支书/副支书/组织/宣传/纪检 + 三组长）
 //   act-29 8/4  暑期实践总结分享（主题党日）   → 全员 50 人
 // 状态分布：出勤为主；按 (idx + 事件偏移) 确定性抽取请假/缺勤，统一待纪检确认（recordedBy null）。
 
-// 支委班子出席快照（书记/副书记/三委员/三组长 共 8 人）——系 act-27 考勤出席名单，非支委集合定义：
+// 支委班子出席快照（支书/副支书/三委员/三组长 共 8 人）——系 act-27 考勤出席名单，非支委集合定义：
 // 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/vote-config.js resolveVoterIds('committee')），
 // p1/p2/p4 = 三组长；勿据此名单增删支委，成员变更请改 vote-config 权威源。
 const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];

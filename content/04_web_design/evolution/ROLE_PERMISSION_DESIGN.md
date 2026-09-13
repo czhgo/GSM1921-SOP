@@ -10,7 +10,7 @@ status: landed
 
 > **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 
-> **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（书记 2026-08-29 全收敛裁定 + 2026-08-29 实施）。
+> **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（支书 2026-08-29 全收敛裁定 + 2026-08-29 实施）。
 > 角色权限矩阵的**业务权威源**见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表与 §9b/9c 权限矩阵。
 
 ## 1. 背景：四处分散声明
@@ -19,16 +19,16 @@ status: landed
 
 | 声明 | 位置 | 现状（收敛前） |
 |------|------|----------------|
-| 能力注册表 requiredRoles | `core/registry.js` + `modules/capabilities/*.js` | 全仓无任何非空值（死代码）；书记工作台无能力注册 |
+| 能力注册表 requiredRoles | `core/registry.js` + `modules/capabilities/*.js` | 全仓无任何非空值（死代码）；支书工作台无能力注册 |
 | sidebar/导航可见性 | `components/sidebar.js` | 读 `auth.js` ROLE_PAGE_MAP，不读能力清单 |
 | auth 角色判定 | `services/auth.js` | 无单一 ROLES 常量，4 表 1 集合散落 |
 | constants 角色色彩 | `core/constants.js` | 4 张表键集不一致，色值冲突 |
 
 ## 2. 差异清单（收敛前审计结论）
 
-1. **COMMISSIONER_ROLES 双定义语义冲突**：auth.js:114-116（含书记/副书记，授权语义）vs constants.js:194-196（不含，条条委员语义）→ `inspector.js` 与 `assign-tab.js` 消费结果不同。
+1. **COMMISSIONER_ROLES 双定义语义冲突**：auth.js:114-116（含支书/副支书，授权语义）vs constants.js:194-196（不含，条条委员语义）→ `inspector.js` 与 `assign-tab.js` 消费结果不同。
 2. **workflow requiredRoles 游离硬编码**：`workflow/definitions.js:83,137` 硬编码 `['organizer','leader','secretary','disc-commissioner','prop-commissioner']`，缺 org/deputy/participant/deep，且与能力 requiredRoles 同名易误读。
-3. **能力注册表不对称**：书记工作台无 `secretary-workspace` 能力（tab 硬编码入口）；5 个 workspace 能力未声明 requiredRoles；全部 `getCapabilities` 调用未传 role（死代码）。
+3. **能力注册表不对称**：支书工作台无 `secretary-workspace` 能力（tab 硬编码入口）；5 个 workspace 能力未声明 requiredRoles；全部 `getCapabilities` 调用未传 role（死代码）。
 4. **语义色 vs 强调色值不一致**：organizer（#0369A1 vs #7DD3FC）、deep（#7C3AED vs #94a3b8），注释自称同源但值不同。
 5. **ROLE_LABELS 缺 initiator**（ROLE_COLORS 有键，标签表无对应）。
 6. **ROLE_THEME_CLASS 仅 5 键**（缺三委员/participant/deputy-secretary）。
@@ -64,24 +64,24 @@ status: landed
 |------|------|------|
 | S1 | constants.js 新增 `ROLE_KEYS`（9 业务键，2026-09-02 增补 `party-staff` 后现为 10 业务键）+ `ROLE_LEGACY_KEYS`（3 遗留键） | ✅ |
 | S2 | 6 个工作台能力声明 `requiredRoles`（visitor/leader/org/prop/disc + 新建 `secretary-workspace`） | ✅ |
-| S3 | 书记入口 tab 清单从硬编码改为经能力注册表读取（renderCtx 模式，与组长入口同构） | ✅ |
+| S3 | 支书入口 tab 清单从硬编码改为经能力注册表读取（renderCtx 模式，与组长入口同构） | ✅ |
 | S4 | COMMISSIONER_ROLES 双定义语义注释区分（constants 条条委员 / auth 授权链），代码不改行为 | ✅ |
 | S5 | SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表入库（13 键 = 10 业务键 + 3 遗留键；含 2026-09-02 增补 `party-staff`；2026-09-05 随 §九 迁入该文件，原 ROLE_CLASSIFICATION.md §9a0）+ 访客不属于角色 + 语义约定 | ✅ |
 
-### 4.2 后续步骤（书记 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
+### 4.2 后续步骤（支书 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
 
 | 步骤 | 内容 | 状态 |
 |------|------|------|
 | S6 | 色值统一：organizer/deep 的语义色与强调色同源（消除差异 4）——deep 强调色 #94a3b8 → #A78BFA（violet-400，与语义色 #7C3AED 同色系）；organizer 亮天蓝与语义色 sky-700 同源关系显式注释 | ✅（2026-08-30） |
-| S7 | ROLE_LABELS 补 `initiator`；ROLE_THEME_CLASS 补全三委员/participant/deputy-secretary（deputy 同书记红） | ✅（2026-08-30） |
+| S7 | ROLE_LABELS 补 `initiator`；ROLE_THEME_CLASS 补全三委员/participant/deputy-secretary（deputy 同支书红） | ✅（2026-08-30） |
 | S8 | ACCENT_PALETTE 与 ACCENT_COLORS 键集对齐：色板键集 ⊆ ACCENT_COLORS 显式注释；purple 标记为色板专用别名键（非角色键）；deep 色板标签 灰→雾紫 | ✅（2026-08-30） |
-| S9 | `visitor` 待办聚合键去歧义 → 按书记裁定**文档登记映射，不改代码**：todo.js 派生处注释 + 本文档登记 participant↔visitor 映射（归档后该注记的现行载体 = SYSTEM_ROLE_PERMISSION.md §9a0 访客非角色注记） | ✅ 文档登记（2026-08-30，行为零变更） |
+| S9 | `visitor` 待办聚合键去歧义 → 按支书裁定**文档登记映射，不改代码**：todo.js 派生处注释 + 本文档登记 participant↔visitor 映射（归档后该注记的现行载体 = SYSTEM_ROLE_PERMISSION.md §9a0 访客非角色注记） | ✅ 文档登记（2026-08-30，行为零变更） |
 | S10 | workflow/definitions.js requiredRoles 从 ROLE_KEYS 校验：引入 WORKFLOW_ROLES 白名单 + 运行时键集校验 + 业务依据注释（组织委员不参与活动筹备的业务说明） | ✅（2026-08-30） |
 
 ## 5. 验收标准（全部达成，2026-08-30）
 
 - [x] 全仓能力 requiredRoles 无死代码（6 工作台全覆盖）
-- [x] 书记/副书记共用书记工作台（secretary-workspace requiredRoles）
+- [x] 支书/副支书共用支书工作台（secretary-workspace requiredRoles）
 - [x] 角色键全表内容层 + 代码层双源对齐
 - [x] COMMISSIONER_ROLES 语义区分文档化
 - [x] 色值/标签键集完全对齐（S6-S8）

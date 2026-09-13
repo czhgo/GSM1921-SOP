@@ -10,7 +10,7 @@
 //
 // 说明：
 // - 登录必须走账号密码表单（#student-id / #password），不走 dev 卡片（devLogin 不产生 API token）。
-// - 合法账号 2300010001/123456 → personId 'p13'（党支部书记 储子禾），p13 在种子 users 表中。
+// - 合法账号 2300010001/123456 → personId 'p13'（支书 储子禾），p13 在种子 users 表中。
 // - fresh browser context 下 localStorage 为空：登录页不会因已登录自动跳转；
 //   首页首次加载会触发 CODE_VERSION 自检 reload 一次，sessionStorage（含 API token）在 reload 间保留。
 //
@@ -99,7 +99,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     // 1. 打开登录页（fresh context，无历史登录态）
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
 
-    // 2. 通过账号密码表单登录（2300010001/123456 → p13 书记）
+    // 2. 通过账号密码表单登录（2300010001/123456 → p13 支书）
     //    P2 修复（最小三成本）：登录后直达角色工作台 secretary.html，不再跳首页
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
@@ -112,10 +112,10 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     const token = await page.evaluate(() => sessionStorage.getItem('gsm1921-api-token'));
     assert.ok(token, '登录成功后 sessionStorage 应存在 gsm1921-api-token');
 
-    // 4. 工作台正常渲染：等待 header 渲染出书记身份标签（“党支部书记”）
+    // 4. 工作台正常渲染：等待 header 渲染出支书身份标签（“支书”）
     await page.waitForFunction(() => {
       const header = document.getElementById('app-header');
-      return header && header.textContent.includes('党支部书记');
+      return header && header.textContent.includes('支书');
     }, { timeout: 10000 });
     assert.match(await page.title(), /工作台/);
 
@@ -150,8 +150,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
       // 版本串与当前全库一致（20260901c）：确保 import 的是页面主模块实例，
       // push/persist 作用于真实 mockDB（版本串不一致会加载孤儿实例，写穿落服务器但本地不渲染）
-      const { mockDB } = await import('/src/core/domain.js?v=20260912k');
-      const { persist } = await import('/src/core/data-adapter.js?v=20260912k');
+      const { mockDB } = await import('/src/core/domain.js?v=20260913c');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260913c');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
@@ -180,7 +180,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         if (!landed) await new Promise((r) => setTimeout(r, 300));
       }
       if (!landed) {
-        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260912k').then((m) => m.persist()));
+        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260913c').then((m) => m.persist()));
       }
     }
     if (!landed) {
@@ -226,17 +226,17 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     );
 
     // 9. 真实 UI 写穿闭环（P1 审查 M5 验收补强，T-232/T-209 适配）：不直接 fetch POST snapshot，
-    //    而是操作书记工作台待办 tab 的真实 UI 元素（复核确认聚合卡：行动按钮 → 详情面板 →
+    //    而是操作支书工作台待办 tab 的真实 UI 元素（复核确认聚合卡：行动按钮 → 详情面板 →
     //    一键确认 → confirmGroup → persist() → 防抖快照写穿）→ reload 后状态保持已变更
-    //    （服务端读回 + DOM 双断言）。T-232 动态聚合改造后书记待办已无「完成」实体按钮，
+    //    （服务端读回 + DOM 双断言）。T-232 动态聚合改造后支书待办已无「完成」实体按钮，
     //    复核类聚合卡（attendance/inspection/review/archive-confirm）为唯一可一键写穿的 UI 路径。
     await page.goto(`${base}/workspace/secretary.html`, { waitUntil: 'domcontentloaded' });
 
-    // 9a. 等待工作台渲染出书记身份 + 默认落点「今天」面板（R6-3：defaultTab='today'，
+    // 9a. 等待工作台渲染出支书身份 + 默认落点「今天」面板（R6-3：defaultTab='today'，
     //     待办不再 0 跳直达；今天面板渲染 = 工作台可达 + 前端渲染成功）
     await page.waitForFunction(() => {
       const header = document.getElementById('app-header');
-      return header && header.textContent.includes('党支部书记');
+      return header && header.textContent.includes('支书');
     }, { timeout: 15000 });
     await page.waitForFunction(() => {
       const memo = document.querySelector('[data-ws-memo="today"]');
@@ -281,7 +281,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
       await page.reload({ waitUntil: 'domcontentloaded' });
       await page.waitForFunction(() => {
         const header = document.getElementById('app-header');
-        return header && header.textContent.includes('党支部书记');
+        return header && header.textContent.includes('支书');
       }, { timeout: 15000 });
       // 9e'. reload 后默认落点仍受 localStorage 记忆影响（此前点击已记忆 todo）；
       //     保险起见显式确保处于待办 tab 并等待办条目渲染（旧 .secretary-todo-list

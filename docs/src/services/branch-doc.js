@@ -5,17 +5,17 @@
 // modules/references.js 负责（references.js 同款 adapter 调法：getAdapter().branchDocs）。
 //   - mock 形态：create/update/list → 整库 localStorage 持久（沿用既有持久键）
 //   - api 形态：读侧兼容（缺省字段视为普通文件）；写增强（新字段/版本语义落 server 表）登记二期
-// 纪律：新建「制度文本」条目仅书记（含副书记）可操作；普通文件写权限维持现状（支委可写，
+// 纪律：新建「制度文本」条目仅支书（含副支书）可操作；普通文件写权限维持现状（支委可写，
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260912k';
+import { getAdapter } from '../core/data-adapter.js?v=20260913c';
 // 支部归属判定收敛点（读侧隔离用；设计 §2.5「一个支部一片存储空间、按 branchId 分区、跨支部不可见」）
-import { getBoundBranch } from './branch.js?v=20260912k';
+import { getBoundBranch } from './branch.js?v=20260913c';
 
-/** 制度文本管理角色（书记/副书记）——与既有写权限门一致做法：UI 与 service 双重校验 */
+/** 制度文本管理角色（支书/副支书）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];
 
-/** 判断角色是否为制度文本管理者（书记含副书记） */
+/** 判断角色是否为制度文本管理者（支书含副支书） */
 export function isInstitutionManager(role) {
   return INSTITUTION_MANAGER_ROLES.includes(role);
 }
@@ -63,7 +63,7 @@ function _boundBranchId(personId) {
  * @param {string} [opts.note]     版本说明（可选）
  * @param {string} [opts.fileName] 附件文件名（doc 新建沿用 UI 必填校验现状；institution 可不上传附件）
  * @param {string} [opts.by]       操作人 personId
- * @param {string} [opts.role]     操作人角色（新建 institution 仅书记，service 双重校验）
+ * @param {string} [opts.role]     操作人角色（新建 institution 仅支书，service 双重校验）
  * @returns {Promise<{ok:boolean, doc?:Object, reason?:string}>}
  */
 export async function saveDoc(opts = {}) {
@@ -91,9 +91,9 @@ export async function saveDoc(opts = {}) {
       return { ok: true, doc: updated };
     }
     if (docPurpose === 'institution') {
-      // 新建制度文本 = 现行版 v1（网页发布即权威；仅书记/副书记）
+      // 新建制度文本 = 现行版 v1（网页发布即权威；仅支书/副支书）
       if (!isInstitutionManager(role)) {
-        return { ok: false, reason: '制度文本仅限书记（含副书记）发布' };
+        return { ok: false, reason: '制度文本仅限支书（含副支书）发布' };
       }
       const now = new Date().toISOString();
       // 写侧归属标注（最小守卫，不改 schema）：落当前归属支部 id；无归属/党委语境不写（读侧按 br-b1 兼容）
@@ -141,7 +141,7 @@ export async function saveDoc(opts = {}) {
 }
 
 /**
- * 上传新版：仅书记/副书记，且条目为制度文本且现行（status=current）。
+ * 上传新版：仅支书/副支书，且条目为制度文本且现行（status=current）。
  * 现条目（v{n}）归档入 versions（status:'superseded'，含版本号/标题/正文/说明/操作人/时间），
  * 条目更新为 v{n+1}、status:'current'，versions 保留累计历史。
  * @param {Object} opts { id, title?, bodyText, note?, by, role }
@@ -151,7 +151,7 @@ export async function publishNewVersion(opts = {}) {
   const { id, title, bodyText, note = '', by, role } = opts;
   try {
     if (!isInstitutionManager(role)) {
-      return { ok: false, reason: '上传新版仅限书记（含副书记）操作' };
+      return { ok: false, reason: '上传新版仅限支书（含副支书）操作' };
     }
     const cur = await _getDoc(id);
     if (!cur) return { ok: false, reason: '支部文件不存在或已删除' };
@@ -196,7 +196,7 @@ export async function publishNewVersion(opts = {}) {
 }
 
 /**
- * 停用 / 重新启用：仅书记/副书记且制度文本；历史版本列表（versions）不改。
+ * 停用 / 重新启用：仅支书/副支书且制度文本；历史版本列表（versions）不改。
  * current→disabled 停用；disabled→current 重新启用。
  * @param {Object} opts { id, status:'current'|'disabled', by, role }
  * @returns {Promise<{ok:boolean, doc?:Object, changed?:boolean, reason?:string}>}
@@ -205,7 +205,7 @@ export async function setDocStatus(opts = {}) {
   const { id, status, by, role } = opts;
   try {
     if (!isInstitutionManager(role)) {
-      return { ok: false, reason: '停用/重新启用仅限书记（含副书记）操作' };
+      return { ok: false, reason: '停用/重新启用仅限支书（含副支书）操作' };
     }
     if (status !== 'current' && status !== 'disabled') {
       return { ok: false, reason: '非法状态：仅支持 current（现行）/ disabled（停用）' };

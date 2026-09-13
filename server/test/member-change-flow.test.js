@@ -36,7 +36,7 @@ async function requestAs(token, path, method, body) {
   });
 }
 
-test('组织委员审批后广播，书记确认后更新成员资料', async () => {
+test('组织委员审批后广播，支书确认后更新成员资料', async () => {
   const secretaryToken = await tokenFor('p13');
   const orgToken = await tokenFor('p11');
   const participantToken = await tokenFor('p6');

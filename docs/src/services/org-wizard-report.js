@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/org-wizard-report.js — 换组织向导「换壳工作单」生成（阶段一，2026-09-06 书记裁定）
+//  services/org-wizard-report.js — 换组织向导「换壳工作单」生成（阶段一，2026-09-06 支书裁定）
 // ════════════════════════════════════════════════════════════════
 // 定位：向导步骤④「生成换壳工作单」的纯函数实现。可即时改的（组织信息/模块块组合/角色分工）
 //      已由向导直写 branch config 生效；数据/制度/术语/角色权限等仓库文件内容改不了，
@@ -40,7 +40,7 @@ const REPLACE_ENTRIES = [
   },
   {
     group: '制度 SOP（content/02_institution/sop/）',
-    desc: '支部运行制度 SOP（书记/组织/宣传/纪检/组长等岗位工作指南与常见场景），换组织的制度文本按需整组替换；INDEX.md 为目录。',
+    desc: '支部运行制度 SOP（支书/组织/宣传/纪检/组长等岗位工作指南与常见场景），换组织的制度文本按需整组替换；INDEX.md 为目录。',
     files: ['content/02_institution/sop/'],
   },
   {
@@ -50,7 +50,7 @@ const REPLACE_ENTRIES = [
   },
   {
     group: '支部默认策略（docs/src/core/policy-defaults.js）',
-    desc: 'branch-default 项可按支部制度调整（如 attendance.roster 应到名单规则 partyStages/excludeDetained、支委票决门槛 quorum）；institutional 项为制度裁决固定，改须书记裁决。',
+    desc: 'branch-default 项可按支部制度调整（如 attendance.roster 应到名单规则 partyStages/excludeDetained、支委票决门槛 quorum）；institutional 项为制度裁决固定，改须支书裁决。',
     files: ['docs/src/core/policy-defaults.js'],
   },
 ];
@@ -89,7 +89,7 @@ export function buildOrgWizardReport({
   L.push(`- 支部名称：${name}${info.id ? `（${info.id}）` : ''}`);
   if (info.headerTitle && info.headerTitle !== name) L.push(`- 页眉显示名：${info.headerTitle}`);
   if (info.type) L.push(`- 支部类型：${info.type}`);
-  if (info.secretaryName) L.push(`- 现任书记：${info.secretaryName}`);
+  if (info.secretaryName) L.push(`- 现任支书：${info.secretaryName}`);
   L.push(`- 支部自述：${(info.desc || '').trim() ? (info.desc || '').trim().replace(/\n+/g, ' / ') : '（未填写）'}`);
   L.push(`- 主题预设：${_themeLabel(theme)}`);
   L.push('  - 可调范围仅限角色识别层强调色（--app-accent 三件套）；固定令牌不改：党建红 party-red `#CE1126` 与党徽金 party-gold `#FFD700`（COLOR_SYSTEM.md §2.1 合规底线）。');

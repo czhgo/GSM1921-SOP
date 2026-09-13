@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  services/external-dispatch.js — 文件流「外发确认」闭环服务
-//  书记 2026-08-10 裁定（文件流内控）：任务/材料需通过微信外发给对方确认时，
+//  支书 2026-08-10 裁定（文件流内控）：任务/材料需通过微信外发给对方确认时，
 //  发送方在系统中标记「已通过微信发送给 XX」→ 接收方在工作台「确认收到」→
 //  形成可审计闭环（系统内记录 谁 / 何时 / 发给谁 / 何时确认）。
-//  书记目标：未来做成小程序/服务号后与微信原生功能协同——本记录模型可低成本迁移
+//  支书目标：未来做成小程序/服务号后与微信原生功能协同——本记录模型可低成本迁移
 //  （"标记已发送" 演进为 "发送到对方微信"，"确认收到" 保持同构）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
 
 /** 读取外发确认记录（mockDB 持久化） */
 export function loadExternalDispatches() {
@@ -25,7 +25,7 @@ export function loadExternalDispatches() {
  * @param {string} rec.senderId   — 发送方 personId
  * @param {string} rec.senderName — 发送方姓名/角色
  * @param {string} rec.receiverRole — 接收方角色（secretary / disc-commissioner / org-commissioner / leader / prop-commissioner / participant）
- * @param {string} [rec.note]     — 备注（如「新闻稿已微信发给书记审核」）
+ * @param {string} [rec.note]     — 备注（如「新闻稿已微信发给支书审核」）
  */
 export function addExternalDispatch({ refType, refLabel, senderId, senderName, receiverRole, note }) {
   const rec = {

@@ -86,7 +86,7 @@ export function dotDarkVars(hex) {
 // ── 角色颜色 ────────────────────────────────────────────────────
 
 export const ROLE_COLORS = _applyDark({
-  'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同书记）
+  'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同支书）
   leader:              { bg: 'rgba(34, 197, 94, 0.15)',  text: '#22C55E',  border: 'rgba(34, 197, 94, 0.40)' },  // 翠绿#22C55E
   commissioner:        { bg: 'rgba(194, 65, 12, 0.15)',  text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 同纪检#C2410C
   'org-commissioner':  { bg: 'rgba(14, 165, 233, 0.10)',  text: '#0EA5E9',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0EA5E9
@@ -101,7 +101,7 @@ export const ROLE_COLORS = _applyDark({
 });
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
-// 书记 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
+// 支书 2026-07-31 指示：活动顶层分类为两大类，三会一课固定分类，主题党日使用正交维度
 
 const ACTIVITY_CAT_COLOR = _applyDark({
   // ── 三会一课系（党建红 #CE1126）──
@@ -109,7 +109,7 @@ const ACTIVITY_CAT_COLOR = _applyDark({
   'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
   'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
   'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党课
-  // ── 主题党日系（党徽金 #FFD700，2026-08-01 书记要求"再亮一些"，原 #D4AF37 偏灰/脏）──
+  // ── 主题党日系（党徽金 #FFD700，2026-08-01 支书要求"再亮一些"，原 #D4AF37 偏灰/脏）──
   'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#A16207', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
   'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
@@ -123,7 +123,7 @@ const SCENARIO_TO_CATEGORY = {
   'branch-committee':     'branch-committee',
   'party-group-meeting':  'party-group-meeting',
   'party-lecture':        'party-lecture',
-  // 组织生活会：会议内容（批评与自我批评），由党小组会等三会形式召开（书记 2026-08-01/2026-08-07 决策）
+  // 组织生活会：会议内容（批评与自我批评），由党小组会等三会形式召开（支书 2026-08-01/2026-08-07 决策）
   'org-life':             'party-group-meeting',
   'theme-party':          'theme-party',
 };
@@ -163,7 +163,7 @@ export const ACTIVITY_TYPE_LABELS = {
 
 /**
  * 首页日历格子内2字缩写（格子宽度受限，完整标签显示不下）
- * 书记 2026-07-31 指示：日历简称使用"党会""党课""党日"
+ * 支书 2026-07-31 指示：日历简称使用"党会""党课""党日"
  */
 export const ACTIVITY_TYPE_SHORT = {
   // ── 三会一课 ──
@@ -192,14 +192,14 @@ export const ROLE_KEYS = [
 export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留键：无独立角色，保留兼容
 
 // ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
-// 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含书记/副书记）」区分——
-// 授权语义含书记/副书记（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
+// 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含支书/副支书）」区分——
+// 授权语义含支书/副支书（写活动/发任务等全局授权门），是 server requireRole 与前端 isCommissioner 的依据。
 // 名单与 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表一致；成员名单 COMMITTEE_IDS 对应演示支部支委（p10~p14）。
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
-]; // 授权支委（含书记/副书记）
-export const SECRETARY_ROLES = ['secretary']; // 书记专属（副书记/委员不越权书记专属操作）
-// 副书同权（2026-09-11 书记裁定）：书记侧写链（名册在册镜像/发展阶段/移出确认等）副书记同权，
+]; // 授权支委（含支书/副支书）
+export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权支书专属操作）
+// 副书同权（2026-09-11 支书裁定）：支书侧写链（名册在册镜像/发展阶段/移出确认等）副支书同权，
 // 与既有口径一致（议程结果区、编辑议程、支部 config §9h 副书同权）。server requireRole 与前端共用单一源。
 export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
@@ -212,7 +212,7 @@ export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支�
 export const NOTICE_PUBLISH_ROLES = BRANCH_COMMISSION_ROLES.filter((r) => r !== 'disc-commissioner');
 export const NOTICE_MANAGE_ROLES = [...BRANCH_COMMISSION_ROLES];
 
-// ── 表决计票方式 ballotMode（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）──
+// ── 表决计票方式 ballotMode（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）──
 // 单一源：server（routes/resources.js 写侧校验、routes/committee.js 落库）与前端（vote-config 转出）共用本文件，
 //   mock 形态（core/mock-adapter.js）同源——三形态口径由本文件锁定，勿各自手写。
 // 制度依据（只读引用，勿改 content/）：《中国共产党发展党员工作细则（2026年）》「与会党员…采取无记名投票方式表决」
@@ -239,8 +239,8 @@ export function ballotModeOfActivity(activity) {
 export function isAnonymousActivity(activity) { return ballotModeOfActivity(activity) === 'anonymous'; }
 
 export const ROLE_LABELS = {
-  'secretary':         '党支部书记',
-  'deputy-secretary':  '党支部副书记',
+  'secretary':         '支书',
+  'deputy-secretary':  '副支书',
   'org-commissioner':  '组织委员',
   'prop-commissioner': '宣传委员',
   'disc-commissioner': '纪检委员',
@@ -270,9 +270,9 @@ export const ROLE_PAGE_MAP = {
   },
 };
 
-// ── 归档兜底页面放行门（A② 2026-09-10 书记裁定：代归档闭环）──────────────
-// 依据 SYSTEM_ROLE_PERMISSION.md §9b 矩阵：党支部书记/副书记持 archive=Y（归档兜底权限）。
-// ROLE_PAGE_MAP 中宣传台（prop.html）默认仅宣传委员可达；为打通书记/副书记「代归档」闭环，
+// ── 归档兜底页面放行门（A② 2026-09-10 支书裁定：代归档闭环）──────────────
+// 依据 SYSTEM_ROLE_PERMISSION.md §9b 矩阵：支书/副支书持 archive=Y（归档兜底权限）。
+// ROLE_PAGE_MAP 中宣传台（prop.html）默认仅宣传委员可达；为打通支书/副支书「代归档」闭环，
 // 额外放行二者进入宣传台——但仅限归档兜底面：宣传台壳（modules/capabilities/prop-workspace.js
 // 的 tabs）对二者只呈现「档案归档」tab，不呈现/不启用其它 tab（不扩大任何写权限）。
 // 消费点单一源：core/bootstrap.js 身份门（放行页面）+ entries/tabs/secretary/todo-tab.js
@@ -296,14 +296,14 @@ export function rolesForPage(page) {
   return out;
 }
 
-// 条条委员集合（业务语义：三委员，不含书记/副书记）——与 auth.js 的 COMMISSIONER_ROLES（授权语义：含书记/副书记）
+// 条条委员集合（业务语义：三委员，不含支书/副支书）——与 auth.js 的 COMMISSIONER_ROLES（授权语义：含支书/副支书）
 // 语义不同、键集不同，T-304 Q3 已注明区分，勿混用。消费方：inspector.js 执行人/监督人「是否委员」判定。
 export const COMMISSIONER_ROLES = new Set([
   'commissioner', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]);
 
 // inspector 角色横幅主题类契约（消费方：inspector.js 管理视图横幅；CSS 类规则在各页样式按需定义）
-// S7 补全三委员/participant/deputy-secretary：deputy 同书记（党建红），与 ROLE_COLORS/ACCENT_COLORS 键集对齐
+// S7 补全三委员/participant/deputy-secretary：deputy 同支书（党建红），与 ROLE_COLORS/ACCENT_COLORS 键集对齐
 export const ROLE_THEME_CLASS = {
   'deputy-secretary':  'role-theme-secretary',
   leader:              'role-theme-leader',
@@ -335,7 +335,7 @@ function hexToRgba(hex, alpha) {
 
 export const ACCENT_COLORS = {
   secretary:           { hex: '#B91C1C' },  // 党建红（不动）
-  'deputy-secretary':  { hex: '#B91C1C' },  // 党建红（同书记）
+  'deputy-secretary':  { hex: '#B91C1C' },  // 党建红（同支书）
   leader:              { hex: '#22C55E' },  // 翠绿
   'org-commissioner':  { hex: '#0EA5E9' },  // 天蓝
   'prop-commissioner': { hex: '#2563EB' },  // 海蓝
@@ -348,14 +348,14 @@ export const ACCENT_COLORS = {
   purple:              { hex: '#7C3AED' },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
 };
 
-// ── 主题色个性化（书记指令 2026-08-06：侧边栏设置，所有角色均可选）──
+// ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
 // 语义色（ROLE_COLORS：日历任务色点/考察等级/参与者标识/活动类别色）全站固定，不受此设置影响；
 // 强调色（ACCENT_COLORS：按钮/标签/卡片强调）可通过侧边栏「主题色」选择器个性化。
 
 /**
- * 侧边栏「主题色」选色板的可选色（书记指令 2026-08-06：颜色就是颜色，不与人挂钩）
+ * 侧边栏「主题色」选色板的可选色（支书指令 2026-08-06：颜色就是颜色，不与人挂钩）
  * 按色相规律排列，2 行 × 5 个；key = 色板键（映射 ACCENT_COLORS 取衍生色），label = 颜色名
- * S8 键集对齐：色板键集 ⊂ ACCENT_COLORS——deputy-secretary（同书记红）、commissioner（遗留键）
+ * S8 键集对齐：色板键集 ⊂ ACCENT_COLORS——deputy-secretary（同支书红）、commissioner（遗留键）
  * 不入色板；participant 金为专用胶囊三件套；purple 为 deep 语义色别名（紫罗兰）。色板键若
  * 被 resolveAccentRole 读取后写入 ACCENT_COLORS，须保证二者键集一致。
  */
@@ -397,14 +397,14 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
   return {
     accent: entry.hex,
     // 覆盖字段优先：participant「金」主题色 = 主题党日胶囊（亮金底 + 深金字 + 亮金边框，
-    // 书记 2026-08-08 四审定稿——金色就该和主题党日胶囊一致）
+    // 支书 2026-08-08 四审定稿——金色就该和主题党日胶囊一致）
     accentRgba: entry.bg || hexToRgba(entry.hex, bgAlpha),
     accentBorder: entry.border || hexToRgba(entry.hex, borderAlpha),
   };
 }
 
-// ── 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 四审纠正）────────────────
-// 书记：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
+// ── 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）────────────────
+// 支书：亮色和暗色的处理逻辑我不太理解——因为金色和亮蓝我认为都很亮。
 // 二审：统一都变成 tab 风格的「浅底深字」；浅色才应该浅底深字，之前想反了。
 // 三审（深色模式反馈）：夜间「提亮字」在深色页面上看不清——淡底深字应像 span 状态徽章
 // （bg-cyan-100+text-cyan-700）一样保持「淡底 + 深字」，否则看不见。
@@ -416,12 +416,12 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
 //   · 浅色 accent（感知亮度 ≥ 0.25，如天蓝/翠绿/亮蓝/灰）：深字 = accent 调暗至 30% 明度（保证可读对比度）
 // 日/夜两套由元素内联 CSS 变量驱动：--acc-bg/--acc-text（日）+ --acc-bg-dark/--acc-text-dark（夜），
 // 夜间切换由 styles.css `html.theme-dark [style*="--acc-bg-dark"]` 规则完成（!important 覆盖内联）。
-// 背景：2026-08-08 书记裁定金色浅底深字；2026-08-10 曾改为实底白字；
+// 背景：2026-08-08 支书裁定金色浅底深字；2026-08-10 曾改为实底白字；
 // 2026-08-11 上午 T-218 二审为「深浅分流（深色浅底深字/浅色实底白字）」；
-// 2026-08-11 下午书记再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支；
+// 2026-08-11 下午支书再判「想反了——浅色才应该浅底深字」→ 统一浅底深字，废除实底白字分支；
 // 2026-08-11 三审「夜间提亮字看不清」→ 夜间近不透明淡底+边框；四审「边框臃肿」→ 去掉边框，改完全不透明浅底。
 
-// 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，书记 2026-08-08 四审定稿）
+// 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，支书 2026-08-08 四审定稿）
 const DEEP_ACCENT_RULES = {
   '#A16207': { light: '#FFD700' },
 };
@@ -494,10 +494,10 @@ function _rgba(hex, alpha) {
 }
 
 /**
- * 功能色「统一 tab 风格」规则（书记 2026-08-11 二审裁定 + 四审纠正）
+ * 功能色「统一 tab 风格」规则（支书 2026-08-11 二审裁定 + 四审纠正）
  * 所有 accent（不分深浅）一律「同色系高亮浅底 + 深色字」；夜间改为「完全不透明浅底深字」——
  * span 状态徽章风格（如 bg-cyan-100+text-cyan-700），深色页面清晰可见、无边框不臃肿
- * （书记：「淡底深字应该变成 span 类似这样的淡底深字」；「你的做法让视觉非常臃肿」→ 去边框）：
+ * （支书：「淡底深字应该变成 span 类似这样的淡底深字」；「你的做法让视觉非常臃肿」→ 去边框）：
  *   · 底（日）：accent 调亮至 84% 明度 @12% 透明（tab 风格浅底）
  *   · 字（日/夜一致）：深色 accent 用 accent 本身；浅色 accent 调暗至 30% 明度（保证可读）
  *   · 底（夜）：accent 调亮至 86% 明度完全不透明（span 徽章实底，叠深背景仍为淡底 chip）
@@ -544,7 +544,7 @@ const _ACTIVITY_TYPE_BASE = {
 
 // ── 活动权威分类（2026-08-07 类型体系归一：两大顶层，非并列关系用层级表达）──
 // 三会一课：固定子类（支部党员大会/支委会/党小组会/党课）。
-// 组织生活会：是内容（批评与自我批评），不是三会子类——由三会之一召开（书记 2026-08-07 纠正），
+// 组织生活会：是内容（批评与自我批评），不是三会子类——由三会之一召开（支书 2026-08-07 纠正），
 // 不进查询子类 chips、不进写入表单，活动名称写"XX组织生活会"即可表达。
 export const ACTIVITY_CLASSIFICATION = {
   'three-meetings': {
@@ -562,7 +562,7 @@ export const ACTIVITY_CLASSIFICATION = {
 const _THREE_MEETINGS_SUBTYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
 
 // ── 活动写入可选项目录（单一源 2026-09-03 P2b）──────────────────────
-// 供 services/decision-tree.js（书记/组长写活动场景选择）与 entries/tabs/secretary/calendar-tab.js
+// 供 services/decision-tree.js（支书/组长写活动场景选择）与 entries/tabs/secretary/calendar-tab.js
 //  WRITE_TEMPLATES 共用——id 顺序与中文名均派生自上方 ACTIVITY_CLASSIFICATION（subtypes 为权威中文名序列），
 //  主题党日 id 与 SCENARIO_TO_CATEGORY 键对齐；消费端不再各自手写场景清单（一改具改）。
 export const SCENARIO_WRITE_IDS = {
@@ -638,7 +638,7 @@ export const ISSUE_CLOSED_REASON_LABELS = {
   not_planned: '暂不计划',
 };
 
-// ── 意见反馈「真匿名」防刷令牌哈希（2026-09-12 书记裁定）──────────────
+// ── 意见反馈「真匿名」防刷令牌哈希（2026-09-12 支书裁定）──────────────
 // 客户端首次提交时生成随机 token（localStorage，不可由 personId 推导）；服务端仅存其哈希，
 // 只用于判重与频率限制。输入 = 随机 token 本身（不含 personId、不使用任何 salt/固定盐），
 // 故不可由 personId 推导、不可反查提交人。
@@ -657,7 +657,7 @@ export function hashSubmitterToken(token) {
   return 'th_' + hex(h1) + hex(h2);
 }
 
-// ── 活动产出块目录（块画布 v0，2026-09-03 书记裁定：活动产出记录=块；支部级 config.blocks 启停/排序）──
+// ── 活动产出块目录（块画布 v0，2026-09-03 支书裁定：活动产出记录=块；支部级 config.blocks 启停/排序）──
 // 消费点：活动详情「添加记录」按钮组（leader write-tab 等）；UI：党委工作台「支部配置」产出块区
 export const OUTPUT_BLOCK_DEFS = [
   { id: 'attendance', label: '考勤', desc: '出勤记录（同步正式考勤库）' },

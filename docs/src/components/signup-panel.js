@@ -2,12 +2,12 @@
 // ════════════════════════════════════════════════════════════════
 //  component.signup-panel.js — 报名面板组件（T233 报名渠道）
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
-//  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，书记 2026-08-11 裁定专班独立页面）。
+//  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260912k';
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { getBasePath, showToast } from '../core/utils.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260913c';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { getBasePath, showToast } from '../core/utils.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -43,7 +43,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
 
   let body;
   if (!myId) {
-    // 未登录：提示附「去登录」入口（书记 2026-09-07 U1 批准，样式同 wizard-entry 去登录小按钮）
+    // 未登录：提示附「去登录」入口（支书 2026-09-07 U1 批准，样式同 wizard-entry 去登录小按钮）
     body = `
       <div class="flex items-center gap-2 flex-wrap">
         <p class="text-sm text-gray-500">请登录后报名参与。</p>

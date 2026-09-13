@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // entries/tabs/secretary/workforce-panel.js — 支部分工调整工具（L4 M2，2026-09-03 / 补齐 2026-09-05）
-// 挂载在「支部分工」tab 底部（仅书记/副书记可见）：
+// 挂载在「支部分工」tab 底部（仅支书/副支书可见）：
 //   ① 发起分工调整：多行（模块 → 新负责人）＋说明/日期 → 「存草稿」或「直接发起支委会议题表决」；
-//   ② 草稿（书记台暂存 localStorage 'gsm1921-workforce-draft'，每支部一份）可载入编辑/删除；
+//   ② 草稿（支书台暂存 localStorage 'gsm1921-workforce-draft'，每支部一份）可载入编辑/删除；
 //   ③ 议题列表：实时显示票决判定（应到超过 2/3 且无反对=通过，附录⑩ S2 R2-3）徽标与统计——
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260912k';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260912k';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { escHtml as esc, showToast } from '../../../core/utils.js?v=20260913c';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/work-map.js?v=20260913c';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/workforce.js?v=20260912k';
-import { getBranchWorkforce } from '../../../services/branch.js?v=20260912k';
+} from '../../../services/workforce.js?v=20260913c';
+import { getBranchWorkforce } from '../../../services/branch.js?v=20260913c';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft';
 
@@ -23,7 +23,7 @@ function _today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// ── 草稿暂存（书记台本地，每支部一份）─────────────────────────────
+// ── 草稿暂存（支书台本地，每支部一份）─────────────────────────────
 function _readDraftMap() {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
@@ -56,19 +56,25 @@ function _ownerOptionsHtml() {
     .join('');
   return `
     <optgroup label="支委角色">${roles}</optgroup>
-    <optgroup label="具体成员（到人）">${members}</optgroup>`;
+    <optgroup label="具体成员（到人）">${members}</optgroup>
+    <optgroup label="不开展（仅方法类可用）"><option value="none:">不开展（本支部停用此项工作）</option></optgroup>`;
 }
 
-/** 单行（模块 → 新负责人），行可删；moduleId/ownerVal 用于回填（草稿载入） */
+/** 单行（模块 → 新负责人），行可删；moduleId/ownerVal 用于回填（草稿载入）
+ *  模块下拉按「工作程序/规范」与「工作方法」分层（optgroup）——支书一眼看清
+ *  哪些是必办不可停用的，哪些是本支部自选可停用/可复用的。 */
 function _rowHtml(branchId, workforce, moduleId, ownerVal) {
-  const moduleOpts = WORK_MAP_MODULES.map((m) => {
-    const cur = ownerDisplay(workforce[m.id]);
-    return `<option value="${m.id}" ${moduleId === m.id ? 'selected' : ''}>${esc(m.name)}（现：${esc(cur)}）</option>`;
+  const moduleOpts = ['norm', 'method'].map((tier) => {
+    const opts = WORK_MAP_MODULES.filter((m) => m.tier === tier).map((m) => {
+      const cur = ownerDisplay(workforce[m.id]);
+      return `<option value="${m.id}" ${moduleId === m.id ? 'selected' : ''}>${esc(m.name)}（现：${esc(cur)}）</option>`;
+    }).join('');
+    return `<optgroup label="${esc(WORK_MAP_TIER_LABELS[tier] || tier)}">${opts}</optgroup>`;
   }).join('');
   return `
     <div class="wf-row flex items-center gap-2">
-      <select class="wf-module rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white min-w-[200px]">${moduleOpts}</select>
-      <select class="wf-owner rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
+      <select class="wf-module input-flat text-xs min-w-[200px]">${moduleOpts}</select>
+      <select class="wf-owner input-flat text-xs min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
       <button type="button" class="wf-row-del px-2 py-1 rounded-lg text-xs text-gray-500 hover:text-red-700 hover:bg-red-50" title="删除此行">删除</button>
     </div>`;
 }
@@ -79,17 +85,19 @@ function _fillRowOwner(rowEl, ownerVal) {
   if (sel) sel.value = ownerVal;
 }
 
-/** 收集表单行 → 改派清单数组 */
+/** 收集表单行 → 改派清单数组；过滤「规范类被误设为停用」的行并提示（规范类必办不可停用） */
 function _collectRows(formWrap) {
   const rows = [];
+  let badDisable = 0;
   formWrap.querySelectorAll('.wf-row').forEach((rowEl) => {
     const moduleId = rowEl.querySelector('.wf-module')?.value;
     const ownerVal = rowEl.querySelector('.wf-owner')?.value || '';
     if (!moduleId || !ownerVal) return;
     const [ownerType, ownerId] = ownerVal.split(':');
+    if (ownerType === 'none' && !canDisableModule(moduleId)) { badDisable += 1; return; }
     rows.push({ moduleId, to: { ownerType, ownerId } });
   });
-  return rows;
+  return { rows, badDisable };
 }
 
 /** 议题卡徽标 + 统计（非已生效议题实时判定） */
@@ -191,10 +199,10 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         <button type="button" id="wf-add-row" class="self-start text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">＋ 加一行</button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <label class="flex flex-col gap-1 text-xs text-gray-500">支委会日期
-            <input id="wf-date" type="date" value="${esc(date)}" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white">
+            <input id="wf-date" type="date" value="${esc(date)}" class="input-flat text-xs">
           </label>
           <label class="flex flex-col gap-1 text-xs text-gray-500">议题说明（理由）
-            <input id="wf-note" type="text" value="${esc(note)}" placeholder="如：发展工作由副书记统筹" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white">
+            <input id="wf-note" type="text" value="${esc(note)}" placeholder="如：发展工作由副支书统筹" class="input-flat text-xs">
           </label>
         </div>
         <div class="flex justify-end gap-2">
@@ -222,29 +230,34 @@ export async function mountWorkforcePanel(branchId, hostEl) {
 
     wrap.querySelector('#wf-add-row').addEventListener('click', () => addRow());
     wrap.querySelector('#wf-cancel').addEventListener('click', () => wrap.classList.add('hidden'));
-    wrap.querySelector('#wf-del-draft').addEventListener('click', () => { removeDraft(branchId); renderForm(wrap); });
-    wrap.querySelector('#wf-load-draft').addEventListener('click', () => { /* 行已按草稿回填，仅提示 */ showToast('已载入草稿，可编辑后提交', 'info'); });
+    // 防御（2026-09-13 走查实报）：草稿按钮仅在「有草稿」时才渲染，无草稿时为 null——
+    // 原代码无条件 addEventListener 会抛 TypeError，**中断后续绑定**，导致「存草稿/直接发起」
+    // 按钮全部无响应（已实测：点存草稿无提示、草稿键未写入）。改为可选链，只绑存在的节点。
+    wrap.querySelector('#wf-del-draft')?.addEventListener('click', () => { removeDraft(branchId); renderForm(wrap); });
+    wrap.querySelector('#wf-load-draft')?.addEventListener('click', () => { /* 行已按草稿回填，仅提示 */ showToast('info', '已载入草稿，可编辑后提交'); });
     wrap.querySelector('#wf-save-draft').addEventListener('click', () => {
-      const rows = _collectRows(wrap);
-      if (!rows.length) { showToast('请至少填写一行（模块与新负责人）', 'warn'); return; }
+      const { rows, badDisable } = _collectRows(wrap);
+      if (badDisable) { showToast('warn', '「工作程序·规范」类不可停用：请为它们指定负责人'); return; }
+      if (!rows.length) { showToast('warn', '请至少填写一行（模块与新负责人）'); return; }
       persistDraft(branchId, { rows, note: wrap.querySelector('#wf-note').value.trim(), date: wrap.querySelector('#wf-date').value || _today() });
-      showToast('草稿已保存', 'success');
+      showToast('success', '草稿已保存');
       renderBody();
     });
     wrap.querySelector('#wf-submit').addEventListener('click', async () => {
-      const rows = _collectRows(wrap);
-      if (!rows.length) { showToast('请至少填写一行（模块与新负责人）', 'warn'); return; }
+      const { rows, badDisable } = _collectRows(wrap);
+      if (badDisable) { showToast('warn', '「工作程序·规范」类不可停用：请为它们指定负责人'); return; }
+      if (!rows.length) { showToast('warn', '请至少填写一行（模块与新负责人）'); return; }
       const note = wrap.querySelector('#wf-note').value.trim();
       const date = wrap.querySelector('#wf-date').value || _today();
       try {
         await createWorkforceProposalActivity(branchId, rows, note, date);
-        showToast('已发起支委会议题，等待表决');
+        showToast('success', '已发起支委会议题，等待表决');
         removeDraft(branchId);
         formZone.innerHTML = ''; // 发起成功后重置表单（下次展开为全新表单）
         renderBody();
       } catch (e) {
         console.error('[workforce] 发起失败', e);
-        showToast(`发起失败：${e.message || e}`, 'error');
+        showToast('error', `发起失败：${e.message || e}`);
       }
     });
   }
@@ -253,7 +266,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
     // 发起表单（默认收起）＋ 议题列表（实时票决判定）
     const proposals = await listWorkforceProposals(branchId);
     // 对未生效议题并行求票决判定：Promise.allSettled 并发，单条失败 console.warn 不阻断其余卡片；
-    // 理由：多议题时缩短书记等待（最小操作成本，见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 8.7-②）
+    // 理由：多议题时缩短支书等待（最小操作成本，见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 8.7-②）
     const pending = proposals.filter((a) => !(a.extras && a.extras.adoptedAt));
     const outcomesByAct = {};
     const settled = await Promise.allSettled(pending.map((a) => getWorkforceVoteOutcome(a.id)));
@@ -268,11 +281,11 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         if (!window.confirm('确认按支委会表决结果采纳该分工调整？')) return;
         try {
           await adoptWorkforceProposal(branchId, btn.dataset.id);
-          showToast('分工已生效');
+          showToast('success', '分工已生效');
           renderBody();
         } catch (e) {
           console.error('[workforce] 采纳失败', e);
-          showToast(`采纳失败：${e.message || e}`, 'error');
+          showToast('error', `采纳失败：${e.message || e}`);
         }
       });
     });

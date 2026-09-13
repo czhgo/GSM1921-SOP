@@ -1,5 +1,5 @@
 // server/routes/committee.js — 线上表决：异步表态（agenda_votes）
-// 闭环：书记创建表决活动+议题 → 通知应到成员 → 成员异步表态 → 书记汇总/截止 → 记录决议（复用 agenda）
+// 闭环：支书创建表决活动+议题 → 通知应到成员 → 成员异步表态 → 支书汇总/截止 → 记录决议（复用 agenda）
 // 表态可见性：先全量可见（信息同步开放），边界后续评议
 // 泛化（AV3）：position 按活动 voteConfig.optionSet 枚举校验、应到按 voteConfig.voterIds 校验；
 //   旧活动（无 voteConfig）回退 deliberative + 支委白名单（现状行为零变化）。
@@ -7,7 +7,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
-// 计票方式（ballotMode）同源（2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」）：
+// 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
 import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/constants.js';
 
@@ -17,7 +17,7 @@ import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS
 // 前端唯一源 = docs/src/services/vote-config.js resolveVoterIds('committee')
 //   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
 const COMMITTEE_IDS = new Set(BRANCH_COMMITTEE_IDS);
-// 书记侧写权角色集（含副书记＝副书同权 2026-09-11 书记裁定；单一源 = constants.js）
+// 支书侧写权角色集（含副支书＝副书同权 2026-09-11 支书裁定；单一源 = constants.js）
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
 
 function listTable(db, table) {
@@ -69,10 +69,10 @@ export function createCommitteeRouter(db) {
     // ===== 表决授权解析（AV3，fail-closed）=====
     // 信任模型：表决授权（optionSet 选项枚举 + voterIds 应到名单）存于活动 voteConfig，
     //   由前端创建活动时经 vote-config 固化写入（客户端写）。
-    // 写侧约束（2026-09-02 收敛，T-2026-09-006）：voteConfig 配置 UI 仅在书记/副书记工作台
+    // 写侧约束（2026-09-02 收敛，T-2026-09-006）：voteConfig 配置 UI 仅在支书/副支书工作台
     //   （secretary.html calendar 写入面板）呈现——组长等其它角色写活动无表决配置入口；
     //   「服务端强制」（活动写 REST 化后按角色校验 voteConfig / 名单按 scope 从 users 推导）
-    //   已登记架构 spec，与双 Mock 引擎合并同批排期。当前信任模型 = 书记/副书记操作 + 演示场景。
+    //   已登记架构 spec，与双 Mock 引擎合并同批排期。当前信任模型 = 支书/副支书操作 + 演示场景。
     // 旧活动兼容：仅当活动完全无 voteConfig 时回退 deliberative + 支委白名单（现状行为零变化）；
     //   活动带 voteConfig 即须完整合法 —— optionSet 缺失/不受支持、voterIds 缺失/非数组/空数组
     //   一律 400（fail-closed，不回退默认值）。
@@ -100,7 +100,7 @@ export function createCommitteeRouter(db) {
     if (actRow.votesLocked) {
       return res.status(400).json({ error: '表态已截止锁定，不可再提交' });
     }
-    // ===== 计票方式（ballotMode，2026-09-12 书记裁定）=====
+    // ===== 计票方式（ballotMode，2026-09-12 支书裁定）=====
     // 正式表决（optionSet formal）制度强制无记名：活动配置遗留 named 亦按强制口径读取；
     // 显式以 named 提交 → 400（防绕过制度，见 content/02_institution/sop/…发展党员工作细则:103）。
     const ballotMode = ballotModeOfActivity(actRow);
@@ -154,9 +154,9 @@ export function createCommitteeRouter(db) {
     res.status(201).json(row);
   });
 
-  // 书记截止（不可逆）：置 votesLocked=true / voteDeadline；副书同权（2026-09-11 书记裁定），
+  // 支书截止（不可逆）：置 votesLocked=true / voteDeadline；副书同权（2026-09-11 支书裁定），
   // 截止后不可解锁。单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES（dogfood 权限专项 2026-09-13
-  // 实证：此前仅 SECRETARY_ROLES → 副书记虽共用书记台，操作被 403 挡下，与副书同权裁定冲突）
+  // 实证：此前仅 SECRETARY_ROLES → 副支书虽共用支书台，操作被 403 挡下，与副书同权裁定冲突）
   router.post('/agenda-votes/lock', requireRole(db, SECRETARY_AND_DEPUTY_ROLES), (req, res) => {
     const { activityId, votesLocked, voteDeadline } = req.body || {};
     if (!activityId) return res.status(400).json({ error: '缺少 activityId' });

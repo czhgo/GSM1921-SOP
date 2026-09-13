@@ -5,10 +5,10 @@
 //  两个分类依据：时长 / 发起方向（品牌为属性标签 isBrand，非工作流分类依据）
 // ════════════════════════════════════════════════════════════════
 
-import { ROLE_KEYS } from '../core/constants.js?v=20260912k';
+import { ROLE_KEYS } from '../core/constants.js?v=20260913c';
 
 // 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 SYSTEM_ROLE_PERMISSION.md §9a0）
-// 筹备/协调阶段参与方：组织者、党小组组长、书记、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
+// 筹备/协调阶段参与方：组织者、党小组组长、支书、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
 // 组织委员负责发展事务不参与活动筹备；participant/deputy/deep 非授权执行方（可经赋权/报名进入）。
 const WORKFLOW_ROLES = ['organizer', 'leader', 'secretary', 'disc-commissioner', 'prop-commissioner'];
 if (WORKFLOW_ROLES.some(r => !ROLE_KEYS.includes(r))) {
@@ -378,11 +378,11 @@ export const LONG_TERM_DEFINITION = {
  *
  * 2. 发起维度 (direction)
  *    - bottom-up（自下而上）：党小组/成员自发创造性活动，组织方式更灵活
- *    - top-down  （自上而下）：支委/书记布置的任务，强调规范落实
+ *    - top-down  （自上而下）：支委/支书布置的任务，强调规范落实
  *    - either    （未限定）：两种发起方式均可
  *
  * 属性标签：
- * - isBrand（品牌标签）：布尔属性，由书记认定标记。品牌是活动的属性标签，
+ * - isBrand（品牌标签）：布尔属性，由支书认定标记。品牌是活动的属性标签，
  *   不是独立活动类型，不影响工作流选择。被赋予品牌标签的活动可有更多归档、展示方面的制度探索。
  */
 

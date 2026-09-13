@@ -1,8 +1,8 @@
 // role: [工程师]+[AI]
 // server/test/branch-doc.test.mjs — E 批立项⑧：支部文件增强——制度文本（版本+现行态+网页读）
 // 覆盖（验收判据：纯逻辑 + 旧数据兼容 + 权限双重校验）：
-//   ① 新建 institution = 现行版 v1（仅书记/副书记；支委角色拒绝）
-//   ② publishNewVersion：旧版入 versions 历史（status:'superseded'）→ 新版 current v2/v3；非书记/非现行拒绝
+//   ① 新建 institution = 现行版 v1（仅支书/副支书；支委角色拒绝）
+//   ② publishNewVersion：旧版入 versions 历史（status:'superseded'）→ 新版 current v2/v3；非支书/非现行拒绝
 //   ③ setDocStatus：停用（current→disabled）/ 重新启用（disabled→current）；历史版本列表不改；权限/对象拦截
 //   ④ listVersions：条目自身 + 历史合并、按版本号升序，每条含 by/at/note 全量；旧数据（无新字段）单条兼容
 //   ⑤ renderDocBody 安全：<script>/onerror 注入不执行、无 href 产物；md 子集（#/##/###/**/-/1./`/```/段落）；
@@ -15,13 +15,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
-} from '../../docs/src/services/branch-doc.js?v=20260912k';
+} from '../../docs/src/services/branch-doc.js?v=20260913c';
 
 // ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();
@@ -61,8 +61,8 @@ function rawRows() {
   return getAdapter().branchDocs.list();
 }
 
-// ═══════════════ ① 新建 institution（书记/非书记）═══════════════
-test('① 书记新建制度文本 = 现行版 v1（purpose/status/version/bodyText/versions 结构正确）', async () => {
+// ═══════════════ ① 新建 institution（支书/非支书）═══════════════
+test('① 支书新建制度文本 = 现行版 v1（purpose/status/version/bodyText/versions 结构正确）', async () => {
   beginMockCase();
   const res = await saveDoc({
     purpose: 'institution', title: '支部例会制度', desc: '例会频次与议程',
@@ -85,20 +85,20 @@ test('① 书记新建制度文本 = 现行版 v1（purpose/status/version/bodyT
   assert.equal(rows[0].id, d.id);
 });
 
-test('①b 副书记可新建；非书记（组织委员）新建制度被拒；普通文件新建不受影响', async () => {
+test('①b 副支书可新建；非支书（组织委员）新建制度被拒；普通文件新建不受影响', async () => {
   beginMockCase();
   const dep = await saveDoc({
     purpose: 'institution', title: '支部经费管理办法', bodyText: '正文',
     by: 'p14', role: 'deputy-secretary',
   });
-  assert.equal(dep.ok, true, '副书记属管理者可建');
+  assert.equal(dep.ok, true, '副支书属管理者可建');
 
   const denied = await saveDoc({
     purpose: 'institution', title: '越权制度', bodyText: '正文',
     by: 'p3', role: 'org-commissioner',
   });
-  assert.equal(denied.ok, false, '非书记（组织委员）新建制度必须拒绝');
-  assert.match(denied.reason, /书记/);
+  assert.equal(denied.ok, false, '非支书（组织委员）新建制度必须拒绝');
+  assert.match(denied.reason, /支书/);
 
   const doc = await saveDoc({
     purpose: 'doc', title: '积极分子考察表模板', desc: '模板',
@@ -152,7 +152,7 @@ test('② 上传新版：旧版入历史（superseded 全量元数据）→ 新�
   assert.equal(d3.versionBy, 'p14');
 });
 
-test('②b 上传新版权限与前置拦截：非书记拒绝 / 普通文件拒绝 / 已停用拒绝', async () => {
+test('②b 上传新版权限与前置拦截：非支书拒绝 / 普通文件拒绝 / 已停用拒绝', async () => {
   beginMockCase();
   const v1 = await saveDoc({
     purpose: 'institution', title: '制度A', bodyText: '正文',
@@ -162,7 +162,7 @@ test('②b 上传新版权限与前置拦截：非书记拒绝 / 普通文件拒
     id: v1.doc.id, bodyText: 'x', by: 'p3', role: 'org-commissioner',
   });
   assert.equal(noRole.ok, false);
-  assert.match(noRole.reason, /书记/);
+  assert.match(noRole.reason, /支书/);
 
   const doc = await saveDoc({
     purpose: 'doc', title: '普通文件', fileName: 'a.pdf', filePath: '/f/a.pdf',
@@ -202,7 +202,7 @@ test('③ 停用（current→disabled）与重新启用（disabled→current）�
 
   const noRole = await setDocStatus({ id: v1.doc.id, status: 'disabled', by: 'p3', role: 'org-commissioner' });
   assert.equal(noRole.ok, false);
-  assert.match(noRole.reason, /书记/);
+  assert.match(noRole.reason, /支书/);
 
   const bad = await setDocStatus({ id: v1.doc.id, status: 'superseded', by: 'p13', role: 'secretary' });
   assert.equal(bad.ok, false);
@@ -460,7 +460,7 @@ test('⑧ mock 刷新持久：新建+新版+停用后重 loadDB（模拟刷新�
 });
 
 // 权限辅助断言
-test('isInstitutionManager 角色判定：书记/副书记 true；其余 false', () => {
+test('isInstitutionManager 角色判定：支书/副支书 true；其余 false', () => {
   assert.equal(isInstitutionManager('secretary'), true);
   assert.equal(isInstitutionManager('deputy-secretary'), true);
   assert.equal(isInstitutionManager('org-commissioner'), false);
@@ -472,8 +472,8 @@ test('isInstitutionManager 角色判定：书记/副书记 true；其余 false',
 // ═══════════════ ⑨ 消费端接线（防回归：UI 读侧经 listDocs 收敛，勿绕过直读 adapter 全量）═══════════════
 test('⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会前草案），不再直读 adapter 全量', async () => {
   const cases = [
-    ['modules/references.js', '../../docs/src/modules/references.js?v=20260912k'],
-    ['secretary/calendar-tab.js', '../../docs/src/entries/tabs/secretary/calendar-tab.js?v=20260912k'],
+    ['modules/references.js', '../../docs/src/modules/references.js?v=20260913c'],
+    ['secretary/calendar-tab.js', '../../docs/src/entries/tabs/secretary/calendar-tab.js?v=20260913c'],
   ];
   for (const [name, rel] of cases) {
     const src = await readFile(new URL(rel, import.meta.url), 'utf8');

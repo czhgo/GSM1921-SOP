@@ -34,7 +34,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页日历中的组织者信息 | 全部 |
-| workspace/secretary.html | 赋权管理 tab：常设赋权（设组长）+项目赋权（organizer/deep）；人员选择器、统计卡片 | 书记 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设组长）+项目赋权（organizer/deep）；人员选择器、统计卡片 | 支书 |
 | workspace/org.html | 人员选择器、发展党员追踪 | 组织委员 |
 | workspace/prop.html | 宣传任务关联人员 | 宣传委员 |
 | workspace/disc.html | 考勤/考察/补课涉及人员 | 纪检委员 |
@@ -44,11 +44,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **同源校验点**：
 
-- [ ] 书记工作台赋权管理 tab 中被赋权人候选列表对应 PEOPLE 中非支委成员
-- [ ] 各工作台人员选择器中的列表对应 PEOPLE 全部成员（PersonPicker 默认可注入 filter；特定场景由调用方传过滤，如发展党员候选为非正式党员、书记赋权被赋权人为非支委）
+- [ ] 支书工作台赋权管理 tab 中被赋权人候选列表对应 PEOPLE 中非支委成员
+- [ ] 各工作台人员选择器中的列表对应 PEOPLE 全部成员（PersonPicker 默认可注入 filter；特定场景由调用方传过滤，如发展党员候选为非正式党员、支书赋权被赋权人为非支委）
 - [ ] 人员发展阶段在各页面中一致（正式党员/预备党员/发展对象/积极分子），与 people.js 定义相同
 - [ ] 登录页输入 accounts.js 中的学号+密码 → 成功登录后跳转首页，首页顶栏展示对应角色工作台入口（login-entry.js 登录后跳 index.html；main-entry.js 按角色改写 workspace 链接）
-- [ ] 书记工作台赋权管理 tab 中常设角色标签（书记/支委/组长）对应 PEOPLE 中 role 字段 + AuthStore 赋权记录
+- [ ] 支书工作台赋权管理 tab 中常设角色标签（支书/支委/组长）对应 PEOPLE 中 role 字段 + AuthStore 赋权记录
 - [ ] 发展党员追踪候选人（由 PEOPLE 中 developStage 非'正式党员' 的成员动态派生）的 stage 与 developStage 一致
 
 ---
@@ -64,7 +64,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页日历标记+活动列表+招募区 | 全部 |
-| workspace/secretary.html | 决策树活动写入+统计卡片+日历 | 书记 |
+| workspace/secretary.html | 决策树活动写入+统计卡片+日历 | 支书 |
 | workspace/org.html | 专班管理+活动列表 | 组织委员 |
 | workspace/prop.html | 活动/专班看板 | 宣传委员 |
 | workspace/disc.html | 考勤关联活动 | 纪检委员 |
@@ -75,8 +75,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 **同源校验点**：
 
 - [ ] 首页日历/列表中的活动数量 = ACTIVITIES 中未归档的记录数（仅过滤 archived；已取消活动如 act-20 仍显示并带「已取消」徽章，成员可感知取消事实）
-- [ ] 书记工作台全局概况「活动与专班进度」= 未归档活动数（activeActivities）+ 进行中/招募中专班数（activeTaskforces）+ 待赋权活动数（pendingAuth，bottom-up 且 assignments 无 organizer）+ 复盘问题数（reviewIssues，活跃活动复盘 issues 总条数）
-- [ ] 首页统计卡「本月活动」= 未归档且日期属本月（main-entry `_renderStats`，与书记概况口径同源）
+- [ ] 支书工作台全局概况「活动与专班进度」= 未归档活动数（activeActivities）+ 进行中/招募中专班数（activeTaskforces）+ 待赋权活动数（pendingAuth，bottom-up 且 assignments 无 organizer）+ 复盘问题数（reviewIssues，活跃活动复盘 issues 总条数）
+- [ ] 首页统计卡「本月活动」= 未归档且日期属本月（main-entry `_renderStats`，与支书概况口径同源）
 - [ ] 活动状态在各页面中一致：draft/published/ongoing/completed/cancelled
 - [ ] 品牌活动在日历/看板中标有品牌标记（isBrand=true 的活动；isBrand 为属性标签，无独立计数统计）
 - [ ] 活动的 organizer 字段（如 p3=王五）在首页和各工作台中一致
@@ -95,7 +95,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | index.html | 首页招募区（recruiting 状态专班） | 全部 |
-| workspace/secretary.html | 专班总览+赋权管理 tab（专班成员赋权记录） | 书记 |
+| workspace/secretary.html | 专班总览+赋权管理 tab（专班成员赋权记录） | 支书 |
 | workspace/org.html | 专班看板（待启动/进行中/已完成）+发布招募 | 组织委员 |
 | workspace/prop.html | 专班看板 | 宣传委员 |
 | workspace/disc.html | 专班考察记录 | 纪检委员 |
@@ -194,7 +194,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/secretary.html | 待办 tab（双栏布局：分类+列表） | 书记 |
+| workspace/secretary.html | 待办 tab（双栏布局：分类+列表） | 支书 |
 | workspace/org.html | 待办 tab | 组织委员 |
 | workspace/prop.html | 待办 tab | 宣传委员 |
 | workspace/disc.html | 待办 tab | 纪检委员 |
@@ -205,10 +205,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [ ] 通知类待办（TodoCategory.NOTICE）= actionable=true 且 actionRoles 非空的通知，为每个角色派生一条（NoticeTodoDeriver，字段驱动而非关键词判断）
 - [ ] 审核类待办（TodoCategory.REVIEW）= 待审核的考勤/考察/复盘记录派生
-- [ ] 赋权类待办（TodoCategory.AUTH）= 活动创建→组长赋权待办（LifecycleTodoDeriver.deriveFromActivityCreate）+ 专班创建→组织委员赋权待办（deriveFromTaskforceCreate）+ 书记待赋权活动派生
+- [ ] 赋权类待办（TodoCategory.AUTH）= 活动创建→组长赋权待办（LifecycleTodoDeriver.deriveFromActivityCreate）+ 专班创建→组织委员赋权待办（deriveFromTaskforceCreate）+ 支书待赋权活动派生
 - [ ] 各角色工作台的待办列表仅含与该角色相关的待办
 - [ ] 待办状态流转：pending → in_progress → completed（或 expired）
-- [ ] 书记待办 8 组动态聚合（SecretaryTodoDeriver.computeAggregates）：4 提醒类（考勤>3天未录入/考察超期/复盘>7天未提交/归档材料缺失）+ 4 复核类（考勤/考察/复盘/归档 secretaryConfirmedAt 为空），空组不展示
+- [ ] 支书待办 8 组动态聚合（SecretaryTodoDeriver.computeAggregates）：4 提醒类（考勤>3天未录入/考察超期/复盘>7天未提交/归档材料缺失）+ 4 复核类（考勤/考察/复盘/归档 secretaryConfirmedAt 为空），空组不展示
 
 ---
 
@@ -224,13 +224,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 书记 |
+| workspace/secretary.html | 赋权管理 tab：常设赋权（设为/取消组长）+项目赋权（organizer/deep） | 支书 |
 | workspace/leader.html | 活动详情内联编辑角色（保存走 syncProjectRoles） | 组长 |
 | workspace/org.html | 专班详情内联编辑成员角色（保存走 syncProjectRoles） | 组织委员 |
 
 **同源校验点**：
 
-- [ ] 书记工作台赋权管理 tab 的「已赋权记录」= 审计快照 `sop_org_os_auth_audit`
+- [ ] 支书工作台赋权管理 tab 的「已赋权记录」= 审计快照 `sop_org_os_auth_audit`
 - [ ] 活动/专班项目角色（organizer/deep）主源 = `activity.assignments` / `taskforce.members`，新建数据在主源可查
 - [ ] 赋权记录中 targetPersonId 在 PEOPLE 中存在
 - [ ] 被赋权角色（organizer/deep/leader）在 auth.js AUTHORIZE_CHAIN 中有赋权链定义
@@ -250,13 +250,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | feedback.html | GitHub Issue 风格反馈列表+提交表单 | 全部 |
-| workspace/secretary.html | 反馈统计（书记专属：状态变更/关闭/隐藏/编辑） | 书记 |
+| workspace/secretary.html | 反馈统计（支书专属：状态变更/关闭/隐藏/编辑） | 支书 |
 
 **同源校验点**：
 
 - [ ] feedback.html 的反馈列表 = issues.json 中的记录
-- [ ] 书记面板的反馈统计 = IssueStore.countByStatus() 的结果
-- [ ] 书记专属权限（关闭 issue/隐藏评论/编辑他人 issue）= auth.js 中的 _ISSUE_PERMS_SECRETARY
+- [ ] 支书面板的反馈统计 = IssueStore.countByStatus() 的结果
+- [ ] 支书专属权限（关闭 issue/隐藏评论/编辑他人 issue）= auth.js 中的 _ISSUE_PERMS_SECRETARY
 - [ ] 旧 FeedbackStore.getAll() 返回数据 = IssueStore 数据的兼容映射
 
 ---
@@ -306,7 +306,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 复盘状态流转覆盖 5 种：未提交→已上传→批注中→已确认/已打回
 - [ ] 已打回复盘（rev7 act-7）有 annotation 和 annotatedBy 字段
 - [ ] 复盘的 organizerId = 对应活动/专班的 organizer 字段
-- [ ] 复盘提交后持久化（P1-4 固化）：刷新页面后记录仍在；书记全局概况按**复盘问题数**（reviewIssues，活跃活动复盘中 issues 数组总条数）统计——2026-08-10 裁定复盘改问题导向，复盘完成率已废弃
+- [ ] 复盘提交后持久化（P1-4 固化）：刷新页面后记录仍在；支书全局概况按**复盘问题数**（reviewIssues，活跃活动复盘中 issues 数组总条数）统计——2026-08-10 裁定复盘改问题导向，复盘完成率已废弃
 
 ---
 
@@ -320,7 +320,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/secretary.html | 分工记录总览 | 书记 |
+| workspace/secretary.html | 分工记录总览 | 支书 |
 
 **同源校验点**：
 
@@ -394,10 +394,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动 assignments → 考察记录：assignments 中 role=organizer/deep 的人员**应有**对应考察记录（业务期望，手工录入；非自动派生）
 - [ ] 发展党员候选人 stage ↔ people.js developStage：候选人阶段与人员发展阶段一致
 - [ ] 专班成员 personId ↔ people.js：专班 members 数组中 personId 在 PEOPLE 中存在
-- [ ] 活动写入→日历/统计联动：书记/组长写入活动后，首页日历和统计卡片同步更新
+- [ ] 活动写入→日历/统计联动：支书/组长写入活动后，首页日历和统计卡片同步更新
 - [ ] 首页统计卡口径（main-entry `_renderStats`）：本月活动=未归档且属本月 / 活跃专班=active+recruiting / 未读通知=activeOnly 且未读 / 个人考勤率=(present+made_up)/total（90/70 阈值三色）
 - [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值
-- [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副书记除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
+- [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 25 个持久化域 + users ↔ server 26 表（`server/db.js` RESOURCE_TABLES）；resources.js 26 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 25 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords/mailboxConfig 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
@@ -416,8 +416,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | # | 角色 | 访问 URL | 预期行为 | 第2轮冒烟结果 | 第3轮实测（2026-08-24 Playwright） |
 |---|------|----------|----------|---------------|---------------|
-| 1 | 书记 | `/workspace/secretary.html?activityId=act-15` | 落「活动管理」tab + 月份切到 2026-06 + 详情面板打开 act-15「6月共建」 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原死循环已修） | ✅ PASS（tab/月份/详情/参数消费） |
-| 2 | 书记 | `/workspace/secretary.html?taskforceId=tf-001` | 落「专班查看」tab + tf-001 卡片高亮褪去（不得被「待办」内容覆盖） | ❌ 修复后待人工复核（原懒加载竞态已修） | ✅ PASS（tab/高亮） |
+| 1 | 支书 | `/workspace/secretary.html?activityId=act-15` | 落「活动管理」tab + 月份切到 2026-06 + 详情面板打开 act-15「6月共建」 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原死循环已修） | ✅ PASS（tab/月份/详情/参数消费） |
+| 2 | 支书 | `/workspace/secretary.html?taskforceId=tf-001` | 落「专班查看」tab + tf-001 卡片高亮褪去（不得被「待办」内容覆盖） | ❌ 修复后待人工复核（原懒加载竞态已修） | ✅ PASS（tab/高亮） |
 | 3 | 组织委员 | `/workspace/org.html?activityId=act-15` | 落「活动查看」tab + 月份切到 2026-06 + 详情面板打开 act-15 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原月份未跟随已修） | ✅ PASS（tab/详情） |
 | 4 | 组织委员 | `/workspace/org.html?taskforceId=tf-002` | 落「专班管理」tab + tf-002 卡片高亮 + 详情展开 | ✅ PASS | ✅ PASS（卡片存在+高亮） |
 | 5 | 宣传委员 | `/workspace/prop.html?activityId=act-1` | 落「项目看板」tab + act-1 看板卡片高亮褪去 | ✅ PASS | ✅ PASS（卡片高亮） |
@@ -446,11 +446,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > ② 赋权待办聚合对象无 sourceId + 懒加载 tab 渲染异步 → 同步 querySelector 找不到活动条目、直达详情失效，已改为 items[0] 取 sourceId + 以「详情面板打开」为完成条件的轮询点击。
 
 - [x] **通知阅读待办**：点击「去阅读」→ 跳转 `notice.html?id=xxx` 打开对应通知详情（各角色 todo-tab 聚合时取首条 noticeId）——实测：leader 构造 actionable 通知 → 按钮「去阅读」→ URL=notice.html?id=ntc-b1test ✅
-- [x] **报名审核待办**（组织/组长）：点击「去审核」→ 跳转 `activity.html?id=xxx` 或 `taskforce.html?id=xxx`（sourceId 以 tf- 前缀判定专班）——实测：书记真实数据 signup-review→taskforce.html?id=tf-005；组织构造活动报名→activity.html?id=act-15 ✅
+- [x] **报名审核待办**（组织/组长）：点击「去审核」→ 跳转 `activity.html?id=xxx` 或 `taskforce.html?id=xxx`（sourceId 以 tf- 前缀判定专班）——实测：支书真实数据 signup-review→taskforce.html?id=tf-005；组织构造活动报名→activity.html?id=act-15 ✅
 - [x] **组长赋权待办**：点击「去赋权」→ 切到「活动管理」tab 并直达该活动详情内联编辑（≤2 跳，T-190 兜底）——实测：聚合卡「处理」→ write tab 激活 + act-2 详情面板自动打开 ✅
 - [x] **组长考勤上传待办**：点击「去提交」→ 切到「考勤上传」tab——实测：构造 submit 待办 → attendance tab 激活 ✅
 - [x] **组长复盘待办**：点击「去提交」→ 切到「复盘提交」tab——实测：构造 review-submit 待办 → review tab 激活（修复①后）✅
-- [x] **书记通知发布 tab**：点击通知条目 → 跳转 `notice.html?id=xxx` 直达详情——实测：notification tab 点击行 → notice.html?id=notice-110（id 与行一致）✅
+- [x] **支书通知发布 tab**：点击通知条目 → 跳转 `notice.html?id=xxx` 直达详情——实测：notification tab 点击行 → notice.html?id=notice-110（id 与行一致）✅
 - [x] **聚合卡直达一致性**：聚合卡「处理」按钮与明细待办行动按钮跳转行为一致——实测：同 actionKey 聚合卡「处理」→ 与明细「去赋权」同一处理函数（onActionTodo → _handleTodoAction），行为一致 ✅
 
 ## T-280-B5 前后端数据模型对账（2026-08-24 新增，B5-2）
@@ -476,16 +476,16 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] **党小组组长「考勤上传」选择活动下拉**：选项按 date 降序（新者在前）（ws-leader-entry L994-999，2026-08-09 修复）
 - [ ] **党小组组长「考察上传」选择具体来源下拉**：活动选项按 date 降序（ws-leader-entry L1238-1242，2026-08-09 修复）
 - [ ] **党小组组长「复盘提交」待复盘/已复盘分桶**：桶内按 date 降序（ws-leader-entry L1459-1465，2026-08-09 修复）
-- [ ] **专班查看组件（书记/组长「专班查看」tab）**：各状态桶内按 createdAt 降序（taskforce-view.js，2026-08-09 修复）
+- [ ] **专班查看组件（支书/组长「专班查看」tab）**：各状态桶内按 createdAt 降序（taskforce-view.js，2026-08-09 修复）
 - [ ] **宣传委员「上传宣传材料」关联活动下拉**：选项按 date 降序（新者在前）
 - [ ] **首页活动列表/日历**：未完成在前、已完成在后，组内 date 降序（main-entry L293-298 / calendar.js L352）
 - [ ] **访客「活动动态」**：date 降序且仅显示未取消未归档（ws-visitor-entry L324）
 - [ ] **各角色项目/专班看板**：宣传/组织委员看板桶内新者在前（ws-prop L369-383 / ws-org L92-93）
-- [ ] **书记「专班总览」**：专班按 createdAt 降序（新者在前）
+- [ ] **支书「专班总览」**：专班按 createdAt 降序（新者在前）
 
 ## 编辑完整性校验（T-283 新增，2026-08-27）
 
-> 背景：T-283 功能开发中多次出现「多轮 Edit 导致误删/重复」系统性损坏——重复声明（SyntaxError）、函数/绑定被误删（ReferenceError 或点击静默失效）、声明误删。书记指令：此类共性问题须成为 checklist 重要部分并全局检查。机制与判例详见 [FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖）](FILE_OPERATION_RULES.md)。
+> 背景：T-283 功能开发中多次出现「多轮 Edit 导致误删/重复」系统性损坏——重复声明（SyntaxError）、函数/绑定被误删（ReferenceError 或点击静默失效）、声明误删。支书指令：此类共性问题须成为 checklist 重要部分并全局检查。机制与判例详见 [FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖）](FILE_OPERATION_RULES.md)。
 
 - [ ] **GetDiagnostics 全仓零错误**（每次多文件修改后的最低检查：语法错误/未定义引用/重复声明）
 - [ ] **模块加载完整性审计**：`node --test server/test/module-load.test.mjs`（浏览器 import 全部 docs/src 模块全量通过——模块数随演进变化，不在本文维护具体数值；已入 npm test 回归）
@@ -496,7 +496,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 链接完整性校验（T-284 新增，2026-08-27）
 
-> 书记指令「所有链接的审查，每一个都要查」。四层法：静态存在与跳转合理相区分。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
+> 支书指令「所有链接的审查，每一个都要查」。四层法：静态存在与跳转合理相区分。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
 
 - [ ] **L1 静态链接**：全部 HTML href/src 目标文件存在 + `#锚点` 有效（含 `<base href>` 解析与 `?v=` 剥离）
 - [ ] **L2 JS 导航**：`location.href`/`replace`/`assign` 目标存在（模板插值动态跳转抽取 `.html` 字面量片段校验）

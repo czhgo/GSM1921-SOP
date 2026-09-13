@@ -1,50 +1,50 @@
 // role: [工程师]+[AI]
-// entries/settings-entry.js — 设置中心页（批1骨架，书记 2026-09-09 批准设计 v3）
+// entries/settings-entry.js — 设置中心页（批1骨架，支书 2026-09-09 批准设计 v3）
 // 左分组栏依据当前登录角色显隐（本批即生效）：
 //   访客                    → 仅「外观」
-//   书记 / 副书记             → 个人设置(外观/我的工作台) + 支部治理(支部信息与向导/工作台默认顺序/支部制度参数)
+//   支书 / 副支书             → 个人设置(外观/我的工作台) + 支部治理(支部信息与向导/工作台默认顺序/支部制度参数)
 //   纪检(dis)/组织(org)/组长  → 个人设置 + 支部治理(域参数·纪检/组织/组长)
 //   宣传(prop)/成员(participant等) → 个人设置（无支部治理分组）
 //   党委(party-staff)        → 个人设置 + 支部治理(快捷块说明)
 // 右内容区随左栏选中切换：外观（批1）/ 我的工作台（批2）/ 支部治理（批3：支部信息与向导 + 工作台默认顺序，
-// 副书同权 2026-09-09 书记批；批4：支部制度参数只读卡 + 域参数三卡）已功能开放；仅党委台
+// 副书同权 2026-09-09 支书批；批4：支部制度参数只读卡 + 域参数三卡）已功能开放；仅党委台
 // 「支部治理·快捷块说明」仍建设中（分组结构可见性即角色化验收点）。
 // 登录态：非纯静态——readLoginSnapshot() + 动态 import auth（同 sidebar.js 模式）。
 
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260912k';
-import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.js?v=20260912k';
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260912k';
-import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
-import { escHtml as esc } from '../core/utils.js?v=20260912k';
-import { getCapabilities } from '../core/registry.js?v=20260912k';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260913c';
+import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.js?v=20260913c';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260913c';
+import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
+import { escHtml as esc } from '../core/utils.js?v=20260913c';
+import { getCapabilities } from '../core/registry.js?v=20260913c';
 import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
-} from '../services/preferences.js?v=20260912k';
-// 批4（2026-09-09 书记批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
+} from '../services/preferences.js?v=20260913c';
+// 批4（2026-09-09 支书批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
 // 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
 // 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
 // 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
-import { BranchService } from '../services/runtime.js?v=20260912k';
-import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260912k';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260912k';
+import { BranchService } from '../services/runtime.js?v=20260913c';
+import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260913c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260913c';
 
 // 2026-09-09 支部归属显式化/审计内核：变更记录展示与回滚按钮需要操作者姓名、单键回滚白名单
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260912k';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260913c';
 
-// 支部治理区归属缺失统一文案（2026-09-09 书记批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
+// 支部治理区归属缺失统一文案（2026-09-09 支书批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
 // 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
 const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『支部管理』中确认归属。';
 
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260912k');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260913c');
   return _authModule;
 }
 
@@ -87,26 +87,26 @@ const SECTION_META = {
   'branch-info-wizard': {
     title: '支部信息与向导', batch: '批 3', badge: '',
     desc: '支部档案信息查看与「更换组织向导」入口（在本页直接打开组织配置向导）。',
-    note: '书记 / 副书记（副书同权）在本页进入组织配置向导。',
+    note: '支书 / 副支书（副书同权）在本页进入组织配置向导。',
   },
   'branch-default-tab-order': {
     title: '工作台默认顺序', batch: '批 3', badge: '',
-    desc: '由书记 / 副书记设定支部工作台默认标签顺序；核心功能组只读带锁，个人覆盖在「我的工作台」中调整。',
+    desc: '由支书 / 副支书设定支部工作台默认标签顺序；核心功能组只读带锁，个人覆盖在「我的工作台」中调整。',
     note: '保存后全体成员下一刷新按新默认；恢复默认即回到系统默认（全部开启 + 系统默认排序）。',
   },
   'branch-policy-params': {
     title: '支部制度参数', batch: '批 4', badge: '',
-    desc: '支部级制度参数（票决门槛 / 应到名单核对 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须书记/党委裁决后在系统层变更）。职责参数由各域负责人在专用卡片中调整。',
+    desc: '支部级制度参数（票决门槛 / 应到名单核对 / 会议类型等）制度默认只读展示；参数不在设置页直改（改须支书/党委裁决后在系统层变更）。职责参数由各域负责人在专用卡片中调整。',
     note: '制度刚性锁定展示 + 职责参数按角色分发。',
   },
   'domain-disc': {
     title: '纪检职责参数', batch: '批 4', badge: '',
-    desc: '纪检职责参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/书记台考察提醒随参数生效。',
+    desc: '纪检职责参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/支书台考察提醒随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-org': {
     title: '组织职责参数', batch: '批 4', badge: '',
-    desc: '组织职责参数（学期末滞留集中复核窗口）——组织委员可调，书记待办提醒窗口与文案随参数生效。',
+    desc: '组织职责参数（学期末滞留集中复核窗口）——组织委员可调，支书待办提醒窗口与文案随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-leader': {
@@ -183,7 +183,7 @@ function renderPanel(panel) {
     return;
   }
 
-  // 批4（2026-09-09 书记批「域参数」）：支部制度参数（L3 锁定展示）+ 域参数三卡（L2 按角色可调）
+  // 批4（2026-09-09 支书批「域参数」）：支部制度参数（L3 锁定展示）+ 域参数三卡（L2 按角色可调）
   if (_currentSectionId === 'branch-policy-params' || _currentSectionId === 'domain-disc'
     || _currentSectionId === 'domain-org' || _currentSectionId === 'domain-leader') {
     renderPolicySection(panel, _currentSectionId);
@@ -226,7 +226,7 @@ async function buildMyWorkspaceModel(role, personId) {
   const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
-  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260912k');
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260913c');
   // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
   let base = rawTabs;
   if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
@@ -426,7 +426,7 @@ async function renderMyWorkspacePanel(panel) {
 }
 
 // ═══════════════ 支部治理（批3）：支部信息与向导 + 工作台默认顺序 ═══════════════
-// 可见角色 = SECRETARY_GOV（书记/副书记）；副书同权（2026-09-09 书记批）：config 写权同现任书记。
+// 可见角色 = SECRETARY_GOV（支书/副支书）；副书同权（2026-09-09 支书批）：config 写权同现任支书。
 // 数据链：当前人 → 有效归属支部（branch.getBoundBranch，2026-09-09 归属显式化——不再 getBranchIdOfPerson
 //       回退示例支部；无归属 → 统一「未找到您所属支部」提示卡）→ config 各读/写口。
 let _govSeq = 0;      // 支部治理区异步加载序号（切区块防串写）
@@ -444,12 +444,12 @@ async function renderBranchGovSection(panel, sectionId) {
   const seq = ++_govSeq;
   const { role, personId } = _session;
   if (!role || !personId || !GOV_ROLES.has(role)) {
-    panel.innerHTML = govEmptyHtml('支部书记 / 副书记登录后可用（其它角色无支部治理分组）。');
+    panel.innerHTML = govEmptyHtml('支书 / 副支书登录后可用（其它角色无支部治理分组）。');
     return;
   }
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     const branch = br.getBoundBranch(personId);
     if (!branch) {
       panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT);
@@ -461,9 +461,9 @@ async function renderBranchGovSection(panel, sectionId) {
       if (_currentSectionId !== 'branch-info-wizard') return;
       renderBranchInfoCard(panel, br, branch);
     } else if (_currentSectionId === 'branch-default-tab-order') {
-      // 2026-09-09 冒烟修复：先注册书记工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
+      // 2026-09-09 冒烟修复：先注册支书工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
       // 设置页独立加载，不先经 workspace-shell/我的工作台则能力未注册 → 误显「未能读取…页签清单」）
-      await import('../modules/capabilities/secretary-workspace.js?v=20260912k');
+      await import('../modules/capabilities/secretary-workspace.js?v=20260913c');
       if (seq !== _govSeq) return;
       const model = buildBranchOrderModel(br, branch);
       if (!model) { panel.innerHTML = govEmptyHtml('未能读取该支部工作台页签清单。'); return; }
@@ -482,7 +482,7 @@ async function renderBranchGovSection(panel, sectionId) {
 function renderBranchInfoCard(panel, br, branch) {
   const { role } = _session;
   const org = br.getBranchOrg(branch.id);
-  const roleLabel = role === 'deputy-secretary' ? '党支部副书记' : '党支部书记';
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const kv = [
     ['支部名称', org.name || '—'],
     ['类别', org.type || '—'],
@@ -502,7 +502,7 @@ function renderBranchInfoCard(panel, br, branch) {
       <span class="gov-wizard-ic">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
       <div class="gov-wizard-t">
         <b>换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>
-        <span>把支部配置收进 4 步引导：填写支部信息 → 组合模块 → 定分工 → 校准术语。书记 / 副书记（副书同权）限本支部；党委组织员可切任意支部。</span>
+        <span>把支部配置收进 4 步引导：填写支部信息 → 组合模块 → 定分工 → 校准术语。支书 / 副支书（副书同权）限本支部；党委组织员可切任意支部。</span>
       </div>
       <button type="button" class="bws-btn-primary" data-gov="wizard-open">打开换组织向导（内嵌）</button>
     </div>`;
@@ -521,7 +521,7 @@ async function openWizardEmbed(panel) {
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
   try {
-    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260912k');
+    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260913c');
     if (seq !== _govSeq || !host) return;
     mountOrgSetupWizard(host, { actor: { personId, role }, branchId: _govBranchId, embed: true });
   } catch (e) {
@@ -533,7 +533,7 @@ async function openWizardEmbed(panel) {
 // ═══════════════ 配置变更记录（2026-09-09 审计内核 B3：支部治理新增只读列表 + 单键回滚）═══════════
 // 数据源 = branch.config.configChangeHistory（{by,at,what,from,to,why?}；上限 100，见 config-clean 共享常量）。
 // 展示：人 / 时间（格式化）/ 键（what 标签）/ 前后值摘要 / 依据 why；what ∈ CONFIG_ROLLBACK_KEYS 的
-// 单键变更可「回滚此更改」（书记/副书记副书同权；party-staff 在党委台治理，本设置页无此路径）。
+// 单键变更可「回滚此更改」（支书/副支书副书同权；party-staff 在党委台治理，本设置页无此路径）。
 const CONFIG_HISTORY_LABELS = {
   modules: '工作台模块', blocks: '产出块', workforce: '支部分工', policyOverrides: '职责参数',
   headerTitle: '页眉显示名', desc: '支部自述', themePreset: '主题',
@@ -596,7 +596,7 @@ function _cfgHistoryRowHtml(h) {
 /** 渲染「配置变更记录」卡（只读列表；最新在前，展示最近 50 条；0 条给空态） */
 function renderConfigHistorySection(panel, br, branch, statusMsg) {
   const { role } = _session;
-  const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const history = Array.isArray(branch.config && branch.config.configChangeHistory)
     ? branch.config.configChangeHistory
     : [];
@@ -609,7 +609,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h2 class="settings-card-title">配置变更记录</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
       </div>
-      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由书记 / 副书记（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
+      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由支书 / 副支书（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
       <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
       <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -633,7 +633,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
   if (!window.confirm('确认回滚此条配置更改？系统将把该项恢复到本次变更前的值，并追加一条回滚记录（回滚本身可查不可再回滚）。')) return;
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     const res = await br.rollbackBranchConfig(_govBranchId, { by: personId, targetEntryAt: entryAt });
     if (!res.ok) {
       if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, res.reason || '回滚失败。', true);
@@ -655,7 +655,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
  * 有效 tab = applyTabPolicyPure（同 workspace-shell 支部策略口径）；核心组锁定置前不参与排序。
  */
 function buildBranchOrderModel(br, branch) {
-  // 能力目录 = 书记工作台 tab（书记/副书记共台；同 org-setup-wizard _branchTabs / workspace-shell）
+  // 能力目录 = 支书工作台 tab（支书/副支书共台；同 org-setup-wizard _branchTabs / workspace-shell）
   const cap = getCapabilities({ scope: 'workspace:secretary' }).find(c => c.id === 'secretary-workspace');
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
@@ -692,7 +692,7 @@ function bwsRowBadgeHtml(model, tab, i) {
 
 function branchOrderCardHtml(model) {
   const { role } = _session;
-  const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const coreNames = model.coreRows.map(t => t.label).filter(Boolean);
   const coreHint = coreNames.length
     ? `核心页签「${coreNames.join(' / ')}」为支部固定项，全员始终保留，锁定置前、不可拖动或排序。`
@@ -753,7 +753,7 @@ async function saveBranchOrder(panel) {
   const hidden = Array.isArray(m.modules?.hiddenTabIds) ? m.modules.hiddenTabIds : [];
   const canNull = !hidden.length && sameIdOrder(cur, m.baseBizIds);
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     await br.updateBranchModules(m.branchId, canNull ? null : { hiddenTabIds: hidden, tabOrder: cur }, m.rawTabs);
     await refreshBranchOrder(panel, canNull
       ? '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。'
@@ -769,7 +769,7 @@ async function resetBranchOrder(panel) {
   const m = _bwsModel;
   if (!m) return;
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     await br.updateBranchModules(m.branchId, null, m.rawTabs);
     await refreshBranchOrder(panel, '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。');
   } catch (e) {
@@ -782,7 +782,7 @@ async function resetBranchOrder(panel) {
 async function refreshBranchOrder(panel, msg) {
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     const branch = br.getBranchById(_govBranchId);
     if (!branch || seq !== _govSeq) return;
     const model = buildBranchOrderModel(br, branch);
@@ -877,10 +877,10 @@ function bindBranchOrderDnD(panel) {
   list.addEventListener('dragend', (e) => { if (e.target.closest('.myws-row')) finishDrag(); });
 }
 
-// ═══════════════ 批4 支部制度参数 + 域参数（policy 收编接线，2026-09-09 书记批）═══════════════
+// ═══════════════ 批4 支部制度参数 + 域参数（policy 收编接线，2026-09-09 支书批）═══════════════
 // 分层：支部制度参数（L3）= 制度默认只读锁定展示（票决门槛/应到口径/会议考勤类型/记录人/标因），
-//   改须书记/党委裁决（本设置页不开放直改）；域参数（L2）= 纪检/组织/组长各自可见可调自己域，
-//   保存走 branch.savePolicyOverrides（白名单净化 + 角色守卫：书记/副/party-staff 全量、域负责人本域）。
+//   改须支书/党委裁决（本设置页不开放直改）；域参数（L2）= 纪检/组织/组长各自可见可调自己域，
+//   保存走 branch.savePolicyOverrides（白名单净化 + 角色守卫：支书/副/party-staff 全量、域负责人本域）。
 // 数据链：制度默认与输入默认值 = POLICY_DEFAULTS（工厂值，本页不注入覆盖 → 展示「制度默认」）；
 //   当前生效覆盖 = branch.config.policyOverrides；保存后写入 config（留痕同 configChangeHistory）。
 const DOMAIN_CARD_META = {
@@ -888,13 +888,13 @@ const DOMAIN_CARD_META = {
   'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', section: 'memberConfirmation', sectionLabel: '组织域' },
   'domain-leader': { role: 'leader', roleLabel: '党小组组长', section: 'leader', sectionLabel: '组长域' },
 };
-const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 书记/副视角
+const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
 function policyEmptyHtml(title, text) {
   return `<div class="settings-card"><h2 class="settings-card-title">${title}</h2><p class="settings-card-desc">${text}</p></div>`;
 }
 
-/** 统一入口：支部制度参数（书记/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
+/** 统一入口：支部制度参数（支书/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
 async function renderPolicySection(panel, sectionId) {
   const seq = ++_govSeq;
   const { role, personId } = _session;
@@ -904,7 +904,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   if (sectionId === 'branch-policy-params') {
     if (!LOCKED_POLICY_ROLES.has(role)) {
-      panel.innerHTML = policyEmptyHtml('支部制度参数', '支部书记 / 副书记（副书同权）可查看本区块；其它角色无此分组。');
+      panel.innerHTML = policyEmptyHtml('支部制度参数', '支书 / 副支书（副书同权）可查看本区块；其它角色无此分组。');
       return;
     }
   } else {
@@ -916,7 +916,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     // 2026-09-09 归属显式化：支部语境用 getBoundBranch（无归属 → 统一提示，不兜底示例支部）
     const branch = br.getBoundBranch(personId);
     if (!branch) {
@@ -938,7 +938,7 @@ async function renderPolicySection(panel, sectionId) {
   }
 }
 
-// ── 支部制度参数（L3 锁定展示 · 书记/副视角）──────────────────────────
+// ── 支部制度参数（L3 锁定展示 · 支书/副视角）──────────────────────────
 function _quorumLabel() {
   const t = POLICY_DEFAULTS.workforce.voteThreshold;
   const strict = Math.round(t.quorum * 100);
@@ -954,7 +954,7 @@ function _rosterLabel() {
 function _recorderLabel() {
   const m = POLICY_DEFAULTS.attendance.recorderByType || {};
   const parts = Object.entries(m).map(([type, roles]) => {
-    const names = roles.map(rc => ({ secretary: '书记', 'deputy-secretary': '副书记', 'disc-commissioner': '纪检', leader: '组长' }[rc] || rc)).join('/');
+    const names = roles.map(rc => ({ secretary: '支书', 'deputy-secretary': '副支书', 'disc-commissioner': '纪检', leader: '组长' }[rc] || rc)).join('/');
     return `${type}→${names}`;
   });
   return parts.join('；') + '（主题党日等组织者位活动：记录人=该活动组织者）';
@@ -962,7 +962,7 @@ function _recorderLabel() {
 
 function branchPolicyLockedCardHtml(branch) {
   const { role } = _session;
-  const roleLabel = role === 'deputy-secretary' ? '副书记' : '书记';
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const meetingChips = (POLICY_DEFAULTS.attendance.meetingTypes || []).map(t =>
     `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--app-accent-bg)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)] border border-[var(--app-accent-border)] whitespace-nowrap" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">${esc(t)}</span>`).join('');
   const reasonChips = (POLICY_DEFAULTS.attendance.reasons || []).map(r =>
@@ -980,14 +980,14 @@ function branchPolicyLockedCardHtml(branch) {
         <h2 class="settings-card-title">支部制度参数</h2>
         <span class="settings-badge">${esc(roleLabel)} · 本支部</span>
       </div>
-      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须书记/党委裁决后在系统层变更。</p>
+      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须支书/党委裁决后在系统层变更。</p>
       <dl class="settings-kv">${rows}</dl>
       <div class="settings-note" style="margin-top:14px;">
         <span class="settings-note-dot"></span>
-        制度刚性锁定 · 改须党委/书记裁决。上方展示值即当前支部现行规则（含开源部署调整面，均不在本页直改）。
+        制度刚性锁定 · 改须党委/支书裁决。上方展示值即当前支部现行规则（含开源部署调整面，均不在本页直改）。
       </div>
       <div class="myws-hint">
-        <b>支部制度可调参数：暂无。</b>当前本支部可调整的范围内均为「职责参数」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续由书记/党委裁决放开为支部可调，将在本区出现并开放调整——后续按裁决扩展。
+        <b>支部制度可调参数：暂无。</b>当前本支部可调整的范围内均为「职责参数」，归纪检 / 组织 / 组长各自在左栏「职责参数」卡中调整；制度项若后续由支书/党委裁决放开为支部可调，将在本区出现并开放调整——后续按裁决扩展。
       </div>
     </div>`;
 }
@@ -1011,7 +1011,7 @@ function domainCardHtml(meta, branch, P) {
           <h2 class="settings-card-title">纪检职责参数</h2>
           <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
         </div>
-        <p class="settings-card-desc">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、书记台「考察超期未确认」提醒 deadline 同源生效。</p>
+        <p class="settings-card-desc">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、支书台「考察超期未确认」提醒 deadline 同源生效。</p>
         <div class="settings-kv-row">
           <dt>考察确认超期</dt>
           <dd>
@@ -1045,7 +1045,7 @@ function domainCardHtml(meta, branch, P) {
           <h2 class="settings-card-title">组织职责参数</h2>
           <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
         </div>
-        <p class="settings-card-desc">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：书记台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
+        <p class="settings-card-desc">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：支书台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
         <div class="space-y-3">
           <div class="settings-kv-row">
             <dt>区间 1</dt>
@@ -1151,7 +1151,7 @@ async function runPolicyAction(panel, cardId, action) {
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260912k');
+    const br = await import('../services/branch.js?v=20260913c');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);

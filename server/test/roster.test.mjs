@@ -1,20 +1,20 @@
 // role: [工程师]+[AI]
-// server/test/roster.test.mjs — 会议「应到名单」口径单测（S1–S4 滞留党员设计，2026-09-06 书记已批）
+// server/test/roster.test.mjs — 会议「应到名单」口径单测（S1–S4 滞留党员设计，2026-09-06 支书已批）
 // 纯 Node 测试（无浏览器、不起 server）：
 //   覆盖 支部大会/党课应到 = 党员（正式+预备）非滞留；滞留剔除（示范 p5/p9）；党课列席不计应到；
 //   党小组会按组口径（本组党员非滞留）；无小组语境不猜测；全选/候选集一致性；p_pc 非党员不入选；
 //   policy 常量单一源；组织委员维护（saveResidenceChange）写覆盖+留痕、应到即时剔除。
 // 口径单一源 = core/policy-defaults.js attendance.roster（partyStages / excludeDetained）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260903c query（模块缓存键一致性，同 attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913c query（模块缓存键一致性，同 attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260912k';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913c';
 import {
   getMeetingRoster, getMeetingRosterIds, getDetainedMembers, getRosterStats,
   getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260912k';
+} from '../../docs/src/services/roster.js?v=20260913c';
 
 // ── localStorage 内存桩（仅 roster 运行期覆盖路径需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

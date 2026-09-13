@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// server/test/branch-config-audit.test.mjs — 支部 config 审计内核（2026-09-09 书记批 B1/B2）
+// server/test/branch-config-audit.test.mjs — 支部 config 审计内核（2026-09-09 支书批 B1/B2）
 // 纯 Node：mock 形态 + localStorage 内存桩（做法同 policy-config.test.mjs）+ 自包含 server HTTP：
 //   ① why 透传：各写口（updateBranchModules/updateBranchBlocks/updateBranchWorkforce/
 //      savePolicyOverrides/updateBranchOrg）opts.why → 留痕行 why；默认 undefined 不写（向后兼容）
@@ -12,15 +12,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912k';
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/core/config-clean.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260913c';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/core/config-clean.js?v=20260913c';
 import {
   getBranchById, updateBranchModules, updateBranchBlocks, updateBranchWorkforce,
   savePolicyOverrides, updateBranchOrg, createBranch,
   canRollbackBranchConfig, rollbackBranchConfig,
-} from '../../docs/src/services/branch.js?v=20260912k';
+} from '../../docs/src/services/branch.js?v=20260913c';
 // HTTP 域
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -139,11 +139,11 @@ test('② rollback：回滚最近一条单键变更 → to→from 写回，追�
   assert.equal(rb4.why, '附录⑨ 复核纠正', 'rollback why 透传');
 });
 
-test('② rollback：角色门（书记现任/副书/party-staff 可；普通成员不可；非现任书记不可）', async () => {
+test('② rollback：角色门（支书现任/副书/party-staff 可；普通成员不可；非现任支书不可）', async () => {
   beginMockCase();
   const perm = (personId) => canRollbackBranchConfig({ personId }, 'br-b1');
-  assert.equal(perm('p13').ok, true, '现任书记（secretaryId 匹配）');
-  assert.equal(perm('p14').ok, true, '本支部副书记（副书同权）');
+  assert.equal(perm('p13').ok, true, '现任支书（secretaryId 匹配）');
+  assert.equal(perm('p14').ok, true, '本副支书（副书同权）');
   assert.equal(perm('p_pc').ok, true, 'party-staff');
   assert.equal(perm('p3').ok, false, '普通成员无回滚权');
   assert.equal(perm('p_ghost').ok, false, '未登录/查无档案不可');
@@ -157,12 +157,12 @@ test('② rollback：角色门（书记现任/副书/party-staff 可；普通成
   const bad2 = await rollbackBranchConfig('br-b1', { by: 'p_ghost', targetEntryAt: at });
   assert.equal(bad2.ok, false);
 
-  // 非现任书记：新支部席位空缺（secretaryId null），书记角色也不能回滚
+  // 非现任支书：新支部席位空缺（secretaryId null），支书角色也不能回滚
   const created = await createBranch({ name: '测试新支部', by: 'p_pc', actorRole: 'party-staff' });
   assert.equal(created.ok, true);
   const bx = getBranchById(created.branch.id);
   assert.equal(bx.secretaryId, null);
-  assert.equal(canRollbackBranchConfig({ personId: 'p13' }, bx.id).ok, false, '席位空缺支部：书记角色非现任书记不可回滚');
+  assert.equal(canRollbackBranchConfig({ personId: 'p13' }, bx.id).ok, false, '席位空缺支部：支书角色非现任支书不可回滚');
 });
 
 test('② rollback：跨键/聚合留痕（branch-created/config-copied 等）拒绝；未找到定位拒绝', async () => {
@@ -171,7 +171,7 @@ test('② rollback：跨键/聚合留痕（branch-created/config-copied 等）�
   // 注入聚合留痕场景：复制配置到 br-b1 前先建一个源支部（applyConfigCopy 会写 config-copied 聚合行）
   const src = await createBranch({ name: '源支部（复制）', by: 'p_pc', actorRole: 'party-staff' });
   assert.equal(src.ok, true);
-  const { applyConfigCopy } = await import('../../docs/src/services/branch.js?v=20260912k');
+  const { applyConfigCopy } = await import('../../docs/src/services/branch.js?v=20260913c');
   const rCopy = await applyConfigCopy(src.branch.id, ['br-b1'], { by: 'p13' });
   assert.equal(rCopy[0].ok, true);
   const copiedRow = lastRow();
@@ -262,7 +262,7 @@ async function _rollback(token, body) {
   });
 }
 
-test('④ HTTP：PATCH /branches/:id/config 带 body.why → 服务端留痕行落 why；书记可写', async () => {
+test('④ HTTP：PATCH /branches/:id/config 带 body.why → 服务端留痕行落 why；支书可写', async () => {
   const sec = await _login('p13');
   const r = await _patchConfig(sec, { config: { themePreset: 'sky' }, why: '附录①-4 HTTP' });
   assert.equal(r.status, 200);
@@ -274,8 +274,8 @@ test('④ HTTP：PATCH /branches/:id/config 带 body.why → 服务端留痕行�
   assert.equal(theme.to, 'sky');
 });
 
-test('④ HTTP：rollback 端点（现任书记 200 → 单键写回 + rollback 留痕）；副书同权；party-staff 亦可', async () => {
-  // 书记路径
+test('④ HTTP：rollback 端点（现任支书 200 → 单键写回 + rollback 留痕）；副书同权；party-staff 亦可', async () => {
+  // 支书路径
   const sec = await _login('p13');
   const r1 = await _patchConfig(sec, { config: { desc: '审计测试自述' } });
   assert.equal(r1.status, 200);
@@ -284,7 +284,7 @@ test('④ HTTP：rollback 端点（现任书记 200 → 单键写回 + rollback 
   assert.ok(descRow && descRow.to === '审计测试自述');
 
   const rr = await _rollback(sec, { targetEntryAt: descRow.at });
-  assert.equal(rr.status, 200, '现任书记可回滚');
+  assert.equal(rr.status, 200, '现任支书可回滚');
   const b2 = await rr.json();
   assert.equal(b2.config.desc, null, 'desc 恢复为变更前（null=无自述）');
   const rb = b2.config.configChangeHistory[b2.config.configChangeHistory.length - 1];
@@ -299,7 +299,7 @@ test('④ HTTP：rollback 端点（现任书记 200 → 单键写回 + rollback 
   assert.equal(r2.status, 200);
   const hRow = (await r2.json()).config.configChangeHistory.find((h) => h.what === 'headerTitle');
   const rr2 = await _rollback(dep, { targetEntryAt: hRow.at });
-  assert.equal(rr2.status, 200, '本支部副书记可回滚（副书同权）');
+  assert.equal(rr2.status, 200, '本副支书可回滚（副书同权）');
 
   // party-staff 全量
   const staff = await _login('p_pc');

@@ -1,5 +1,5 @@
 // server/test/write-hover-e2e.test.mjs — 主题党日模板卡「整卡可点」E2E（2026-09-03）
-// 书记澄清：仍须【点击】进入，点击热区扩至整卡（不必精准命中文字按钮）；hover 不自动进入。
+// 支书澄清：仍须【点击】进入，点击热区扩至整卡（不必精准命中文字按钮）；hover 不自动进入。
 // 断言：hover 卡片上部色块不进入 Step2；click 色块 → 进入 Step2（#wp-date）。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录。
 
@@ -32,7 +32,7 @@ test('写入向导 Step1：hover 色块不进入，click 色块（非文字按�
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   try {
-    // 登录书记
+    // 登录支书
     await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.fill('#student-id', '2300010001');
     await page.fill('#password', '123456');
@@ -65,7 +65,7 @@ test('写入向导 Step1：hover 色块不进入，click 色块（非文字按�
     await page.mouse.move(box.x, box.y);
     await new Promise((r) => setTimeout(r, 600));
     const enteredByHover = await page.evaluate(() => !!document.getElementById('wp-date'));
-    assert.equal(enteredByHover, false, 'hover 不自动进入——书记要求仍须点击');
+    assert.equal(enteredByHover, false, 'hover 不自动进入——支书要求仍须点击');
 
     // ② click 卡片色块（非文字按钮）→ 整卡点击热区生效 → 进入 Step2
     await page.mouse.click(box.x, box.y);

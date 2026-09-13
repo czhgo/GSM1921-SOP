@@ -1,9 +1,9 @@
 // server/test/online-committee.test.mjs — 线上支委会全链路 E2E
-// 闭环：书记创建支委会+议题 → 组织委员表态（异议+附言）→ 书记截止 → 锁定后拒绝 → 通知闭环
+// 闭环：支书创建支委会+议题 → 组织委员表态（异议+附言）→ 支书截止 → 锁定后拒绝 → 通知闭环
 //
 // 登录说明（以代码实际为准）：
 // - 页面表单填学号（#student-id），login-entry.js 经 mockLogin 映射 personId 后调后端 token 会话；
-//   2300010001 → p13（书记），2400012355 → p11（组织委员），密码 123456。
+//   2300010001 → p13（支书），2400012355 → p11（组织委员），密码 123456。
 // - /api/v1/auth/login 直接接收 personId（node fetch 直连校验时用 p13/p11）。
 //
 // 校验模式：关键断言用 node fetch 直连服务器（TRAE 沙箱会拦截浏览器 fetch 缓存，见 e2e-login.test.js）；
@@ -47,8 +47,8 @@ async function login(page, studentId, targetUrl) {
   ]);
 }
 
-test('线上支委会：书记发起→委员表态→书记截止→通知闭环→API 校验', async () => {
-  // 1. 书记登录，经前端 adapter 创建线上支委会活动 + 议程（API 写穿服务器 activities 表）
+test('线上支委会：支书发起→委员表态→支书截止→通知闭环→API 校验', async () => {
+  // 1. 支书登录，经前端 adapter 创建线上支委会活动 + 议程（API 写穿服务器 activities 表）
   //    e2e-login 同款坑：adapter 直写只落服务器，本地 mockDB 无此活动——后续防抖快照
   //    （persist → POST /api/v1/snapshot 全量覆盖）会以过期缓存把活动从服务器抹掉，
   //    故创建后立即同步本地 mockDB，保证快照与服务器一致。
@@ -56,42 +56,42 @@ test('线上支委会：书记发起→委员表态→书记截止→通知闭�
   const secPage = await secCtx.newPage();
   await login(secPage, '2300010001', '**/workspace/secretary.html');
   const created = await secPage.evaluate(async () => {
-    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260912k');
+    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260913c');
     const act = await getAdapter().activities.create({
       title: '线上支委会E2E', type: '支委会', scenarioId: 'branch-committee', date: '2026-09-10',
-      agenda: [{ id: 'e2e-ai-1', kind: 'normal', item: '审议九月活动安排', host: '书记' }],
+      agenda: [{ id: 'e2e-ai-1', kind: 'normal', item: '审议九月活动安排', host: '支书' }],
       voteDeadline: '2026-09-10T12:00:00',
     });
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
     if (!mockDB.activities.some((a) => a.id === act.id)) mockDB.activities.push(act);
     return act;
   });
   assert.ok(created && created.id, '活动创建成功');
 
-  // 2. 组织委员登录表态（异议+附言），成功后触发书记汇总通知（NoticeStore.add）
+  // 2. 组织委员登录表态（异议+附言），成功后触发支书汇总通知（NoticeStore.add）
   const orgCtx = await browser.newContext();
   const orgPage = await orgCtx.newPage();
   await login(orgPage, '2400012355', '**/workspace/org.html');
   const { vote, notified } = await orgPage.evaluate(async ({ activityId }) => {
-    // 同步本地缓存：服务器此刻必有该活动（书记已直写落库），补齐本地 mockDB
+    // 同步本地缓存：服务器此刻必有该活动（支书已直写落库），补齐本地 mockDB
     // 防 submitVote 后通知 persist 的快照以过期缓存覆盖服务器活动
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
     try {
       const acts = await (await fetch('/api/v1/activities')).json();
       const act = acts.find((a) => a.id === activityId);
       if (act && !mockDB.activities.some((a) => a.id === activityId)) mockDB.activities.push(act);
     } catch (_) {}
-    const { submitVote } = await import('/src/services/committee-vote.js?v=20260912k');
+    const { submitVote } = await import('/src/services/committee-vote.js?v=20260913c');
     const v = await submitVote({ activityId, agendaItemId: 'e2e-ai-1', position: 'object', note: '建议调整时间' });
     // 通知闭环证据：submitVote → notifySecretaryProgress → NoticeStore.add 已写入本页
     // mockDB.notices（本地通知存储断言；API 模式通知靠快照全量覆盖跨用户传播，多页
-    // 快照会互相覆盖，故不断言"书记端可见/已送达"，仅断言"本页已写入本地通知存储"）
+    // 快照会互相覆盖，故不断言"支书端可见/已送达"，仅断言"本页已写入本地通知存储"）
     const n = (mockDB.notices || []).some((x) => (x.title + ' ' + x.content).includes('线上支委会'));
     return { vote: v, notified: n };
   }, { activityId: created.id });
   assert.equal(vote.personId, 'p11', '组织委员已表态（p11）');
   assert.equal(vote.position, 'object', '表态为异议');
-  assert.equal(notified, true, '表态后已写入本地通知存储（书记汇总通知）');
+  assert.equal(notified, true, '表态后已写入本地通知存储（支书汇总通知）');
 
   // 3. 服务端读回：node fetch 直连校验表态已落库（规避 TRAE 沙箱浏览器 fetch 缓存；
   //    GET /api/v1/agenda-votes 受 requireAuth 保护，先登录取 token）
@@ -109,12 +109,12 @@ test('线上支委会：书记发起→委员表态→书记截止→通知闭�
   assert.equal(mine[0].position, 'object');
   assert.equal(mine[0].note, '建议调整时间');
 
-  // 4. 书记截止（lockVotes → 服务端置 votesLocked），成功后提醒书记记录决议
+  // 4. 支书截止（lockVotes → 服务端置 votesLocked），成功后提醒支支书录决议
   const { locked, reminded } = await secPage.evaluate(async ({ activityId }) => {
-    const { lockVotes } = await import('/src/services/committee-vote.js?v=20260912k');
+    const { lockVotes } = await import('/src/services/committee-vote.js?v=20260913c');
     const act = await lockVotes({ activityId, votesLocked: true });
     // 同步本地锁定态（防后续通知 persist 的快照以旧 votesLocked 覆盖服务器锁）
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
     const local = mockDB.activities.find((a) => a.id === activityId);
     if (local) local.votesLocked = true;
     // 记录决议提醒：lockVotes → remindRecordDecision → NoticeStore.add 写入本页
@@ -127,10 +127,10 @@ test('线上支委会：书记发起→委员表态→书记截止→通知闭�
 
   // 快照竞态修复：orgPage 仍在 step2 submitVote 时排程了 800ms 防抖全量快照，
   // 其本地活动 votesLocked 仍为 false——若 flush 晚于本步，会以过期缓存整体覆盖
-  // 服务器、抹掉书记刚加的锁。立即把 orgPage 本地活动对齐锁态，使后续快照
+  // 服务器、抹掉支书刚加的锁。立即把 orgPage 本地活动对齐锁态，使后续快照
   // payload 携带 votesLocked=true，与服务器一致（不触发 persist，仅修正内存态）。
   await orgPage.evaluate(async ({ activityId }) => {
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
     const local = mockDB.activities.find((a) => a.id === activityId);
     if (local) local.votesLocked = true;
   }, { activityId: created.id });

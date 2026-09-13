@@ -70,7 +70,7 @@ const KINDS = {
   },
 
   // ── 考勤已确认并归档 ──────────────────────────────────────────
-  // 对象：活动必须存在；actor 为该活动纪检确认人（纪检委员）、该活动组织者，或书记/副书记。
+  // 对象：活动必须存在；actor 为该活动纪检确认人（纪检委员）、该活动组织者，或支书/副支书。
   'attendance-confirmed': {
     authorize({ actor, sourceId, db }) {
       if (!actor) return false;
@@ -101,7 +101,7 @@ const KINDS = {
   },
 
   // ── 支部分工调整议题待表决 / 已生效 ─────────────────────────────
-  // 对象：来源支委会活动必须存在；发起/采纳分工议题为书记/副书记（副书同权）。
+  // 对象：来源支委会活动必须存在；发起/采纳分工议题为支书/副支书（副书同权）。
   'workforce-proposal-created': {
     authorize({ actor, sourceId, db }) {
       if (!actor || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
@@ -112,6 +112,23 @@ const KINDS = {
     authorize({ actor, sourceId, db }) {
       if (!actor || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
       return !!rowOf(db, 'activities', sourceId);
+    },
+    // 分工自动传递（2026-09-13 支书裁定）：行动计划由服务端按来源活动的 extras.proposal
+    // **复算**（不信客户端自述）——取变更后由「角色」承担的负责人 → actionRoles 定向派生
+    // 「履职」待办；到人（person）负责人的待办由前端 workforce.js 直接派生。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId);
+      const proposal = act && act.extras && Array.isArray(act.extras.proposal) ? act.extras.proposal : [];
+      const roles = [...new Set(proposal
+        .map((c) => (c && c.to && c.to.ownerType === 'role' ? c.to.ownerId : null))
+        .filter(Boolean))];
+      if (roles.length) {
+        vars.actionRoles = roles;
+        vars.actionable = true;
+        vars.actionTask = '支部分工已生效，请按新分工履职';
+      }
+      return buildSystemNotice('workforce-proposal-adopted', vars);
     },
   },
 
@@ -138,7 +155,7 @@ const KINDS = {
       return buildSystemNotice('committee-vote-progress', vars);
     },
   },
-  // 表决截止：对象=活动存在；截止表态为书记/副书记（副书同权）功能位。
+  // 表决截止：对象=活动存在；截止表态为支书/副支书（副书同权）功能位。
   'committee-vote-locked': {
     authorize({ actor, sourceId, db }) {
       if (!actor || !SECRETARY_DEPUTY_SET.has(actor.role)) return false;
@@ -147,7 +164,7 @@ const KINDS = {
   },
 
   // ── 赋权通知 ──────────────────────────────────────────────────
-  // 对象：来源项目（活动/专班）必须存在；赋权动作属支委层（书记/副书记/组织/宣传/纪检）。
+  // 对象：来源项目（活动/专班）必须存在；赋权动作属支委层（支书/副支书/组织/宣传/纪检）。
   'project-auth-granted': {
     authorize({ actor, sourceId, db }) {
       if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
@@ -197,7 +214,7 @@ const KINDS = {
   },
 
   // ── 专班议案排入线上支委会待表态 ───────────────────────────────
-  // 对象：排入的支委会活动必须存在；报送发起属支委层（组织委员/书记等）。
+  // 对象：排入的支委会活动必须存在；报送发起属支委层（组织委员/支书等）。
   'taskforce-vote-requested': {
     authorize({ actor, sourceId, db }) {
       if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;

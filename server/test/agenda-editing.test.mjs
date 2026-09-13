@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createEditableAgenda, normalizeEditedAgenda } from '../../docs/src/services/agenda-editing.js?v=20260912k';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../docs/src/services/agenda-editing.js?v=20260913c';
 
 test('编辑议程文字时保留成员变更和文件讨论的结构字段', () => {
   const editing = createEditableAgenda([
@@ -23,7 +23,7 @@ test('编辑议程文字时保留成员变更和文件讨论的结构字段', ()
     },
   ]);
   editing[0].item = '讨论张同学的发展事项';
-  editing[1].host = '书记';
+  editing[1].host = '支书';
 
   const saved = normalizeEditedAgenda(editing);
 
@@ -38,5 +38,5 @@ test('编辑议程文字时保留成员变更和文件讨论的结构字段', ()
     result: 'passed',
   });
   assert.equal(saved[1].branchDocId, 'bd-1');
-  assert.equal(saved[1].host, '书记');
+  assert.equal(saved[1].host, '支书');
 });

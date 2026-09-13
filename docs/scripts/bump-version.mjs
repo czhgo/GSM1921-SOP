@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  bump-version.mjs — 全站共享模块版本号 stamping（缓存治理）
 // ════════════════════════════════════════════════════════════════
-// 问题背景（书记 2026-08-07）：
+// 问题背景（支书 2026-08-07）：
 //   entry JS（各 html 的 <script type="module" src="...?v=">）带版本号，
 //   但 entry 内部 import 的共享模块（../components/*.js 等）全部无版本号。
 //   浏览器按 URL 缓存 ES Module → 部署后旧模块与新代码混用 → "数据一会显示一会不显示"。
@@ -49,10 +49,18 @@ function isCommentLine(line) {
 
 // ── 行内替换相对路径 import 的版本号 ──
 // 覆盖：from './x.js' / from "../x.js" / export ... from / import('./x.js') 动态导入
+//       + 副作用导入 import './x.js'（无 from）——2026-09-13 补：原漏此类，
+//         导致 bootstrap/各 ws-*-entry 的 `import '../modules/capabilities/x.js?v=旧戳'`
+//         长期停在旧版本（browser 按 URL 分裂出第二个模块实例：注册表/共享状态读空的根因）。
 function stampLine(line, version) {
   // 静态 import / export ... from（单双引号皆可；已带 ?v= 则替换，未带则追加）
   line = line.replace(
     /(from\s+['"])(\.{1,2}\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
+    (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
+  );
+  // 副作用导入（无 from）：import './x.js' / import "../x.js"
+  line = line.replace(
+    /(\bimport\s+['"])(\.{1,2}\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
     (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
   );
   // 动态 import('...')
@@ -96,9 +104,10 @@ for (const file of htmlFiles) {
       return `${pre}?v=${VERSION}${end}`;
     }
   );
-  // styles.css：href="...styles.css?v=..." → 统一为新版本
+  // 样式表：href="...*.css?v=..." → 统一为新版本
+  //（2026-09-13 扩展：原只覆盖 styles.css，about.css 等长年停在旧戳 20260828l）
   content = content.replace(
-    /(href="[^"?]*styles\.css)(\?[^"]*)?(")/g,
+    /(href="[^"?]*\.css)(\?[^"]*)?(")/g,
     (m, pre, _q, end) => {
       changed = true;
       return `${pre}?v=${VERSION}${end}`;
@@ -116,6 +125,21 @@ for (const file of htmlFiles) {
   if (changed) {
     writeFileSync(file, content, 'utf8');
     htmlCount++;
+  }
+}
+
+// ── 处理 src 下所有 .css：url(...)?v= 资源戳（字体/图片）──
+//（2026-09-13 补：about.css 的字体 url 曾长年停在 20260828l）
+let cssCount = 0;
+for (const file of collectFiles(SRC_DIR, '.css')) {
+  const content = readFileSync(file, 'utf8');
+  const next = content.replace(
+    /(url\(\s*['"]?[^'")?]*\.(?:woff2?|ttf|otf|eot|css|png|jpe?g|svg|webp))(\?[^'")]*)?(['"]?\s*\))/g,
+    (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+  );
+  if (next !== content) {
+    writeFileSync(file, next, 'utf8');
+    cssCount++;
   }
 }
 
@@ -151,6 +175,11 @@ if (existsSync(testDir)) {
     const next = content.replace(
       /(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
       (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+    ).replace(
+      // 硬编码版本字面量（如 `const V = '?v=20260909e'`）——2026-09-13 补：
+      // 原漏此类，branch-module-catalog.test.mjs 的 V 停在旧戳 → 模块实例分裂。
+      /(\?v=)[0-9]{8}[a-z]/g,
+      (m, pre) => `${pre}${VERSION}`
     );
     if (next !== content) {
       writeFileSync(file, next, 'utf8');
@@ -162,5 +191,6 @@ if (existsSync(testDir)) {
 console.log(`[bump-version] 版本号：${VERSION}`);
 console.log(`[bump-version] 更新 JS 文件：${jsCount} 个`);
 console.log(`[bump-version] 更新 HTML 文件：${htmlCount} 个`);
+if (cssCount > 0) console.log(`[bump-version] 更新 CSS 资源戳：${cssCount} 个`);
 if (codeVersionChanged) console.log(`[bump-version] CODE_VERSION +1（cross-page-state.js）`);
 if (testCount > 0) console.log(`[bump-version] 同步 server/test 版本戳：${testCount} 个`);

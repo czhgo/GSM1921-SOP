@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  thought-report.js — 思想汇报服务（2026-08-30 书记决策启动数字化）
-//  算法归档原则（书记 2026-08-30 强调）：党员/发展对象在系统内提交，
+//  thought-report.js — 思想汇报服务（2026-08-30 支书决策启动数字化）
+//  算法归档原则（支书 2026-08-30 强调）：党员/发展对象在系统内提交，
 //  提交即入库即归档——算法按 personId 自动归集至个人档案，无人工归档环节，
 //  组织委员只做查看/调用（考察发展党员时直接调用思想汇报记录）。
-//  2026-09-07 R6-2「把关式初阅」（书记定案：组织初阅归档、必要时反馈）：
+//  2026-09-07 R6-2「把关式初阅」（支书定案：组织初阅归档、必要时反馈）：
 //    提交流程改为把关式状态机——pending（待组织初阅）→ 组织委员初阅：
 //    approve → archived（通过即归档）；reject（须附意见）→ needs_revision → 本人
 //    修改重交 → 回 pending。旧数据（R6-2 前算法归档产物，无 reviewStatus）
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260912k';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { getPersonById } from './person.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260913c';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { getPersonById } from './person.js?v=20260913c';
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）

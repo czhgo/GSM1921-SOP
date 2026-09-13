@@ -1,38 +1,38 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  components/work-overview.js — 各角色「工作概况」tab
-//  书记 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
-//  三区上下排布、问题优先（数据结构定 UI，参考书记按人视图 v2）：
+//  支书 2026-08-10 裁定：全部角色新增工作概况 tab（组长走组员进展升级版）
+//  三区上下排布、问题优先（数据结构定 UI，参考支书按人视图 v2）：
 //    ① 汇报区（最上）：待我行动——请我汇报（行内填写即发）+ 我发起的开放汇报
-//       （D2 裁决批二 2026-09-08 书记特批：开放汇报压缩为计数+缺口，处理位=「我的处置」）
+//       （D2 裁决批二 2026-09-08 支书特批：开放汇报压缩为计数+缺口，处理位=「我的处置」）
 //    ② 卡点区（次上）：我的超期待办 + 条线缺口（按角色注入）
 //    ③ 进度区（最下）：我的在办聚合 + 条线态势（按角色注入）
-//  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（书记裁定）
+//  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260912k';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260912k';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260912k';
-import { IssueStore } from '../services/issues.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260912k';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260912k';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260913c';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260913c';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260913c';
+import { IssueStore } from '../services/issues.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260913c';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260913c';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/makeup.js）
-import { loadMakeupTasks } from '../services/makeup.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260912k';
-import { PersonStore } from '../services/person.js?v=20260912k';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260913c';
+import { PersonStore } from '../services/person.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { AttendanceStatus } from '../core/domain.js?v=20260912k';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { AttendanceStatus } from '../core/domain.js?v=20260913c';
 
-// 在办下钻详情目标（书记 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
+// 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
 
-// P12 特批修复（2026-09-09 书记批准改受保护组件）：「请我汇报」行内草稿保态。
+// P12 特批修复（2026-09-09 支书批准改受保护组件）：「请我汇报」行内草稿保态。
 // 概况为全容器重建式渲染，同容器其它动作（他行提交/卡点确认收到/在办下钻-返回）会
 // 重置未提交的输入 → 违背附录⑧ 面板保态判据「仅提交成功才重置」。模块级草稿表 + 渲染回填：
 // 仅当该 issue 提交成功或从请求列表消失时清除。
@@ -53,7 +53,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   TodoStore.refreshExpiredStatus();
   const today = new Date().toISOString().slice(0, 10);
 
-  // 在办下钻模式（书记 2026-08-10 裁定）：活动/专班只读详情，返回按钮回概况
+  // 在办下钻模式（支书 2026-08-10 裁定）：活动/专班只读详情，返回按钮回概况
   if (_woDetail) {
     await _renderOverviewDetail(container, _woDetail, accent, () => renderWorkOverview(container, { role, personId, accent, prefix }));
     return;
@@ -80,7 +80,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       </div>
     </div>`).join('');
 
-  // D2 裁决批二（2026-09-08 书记特批）：「我发起的开放汇报」行级列表 → 压缩为计数+缺口一行
+  // D2 裁决批二（2026-09-08 支书特批）：「我发起的开放汇报」行级列表 → 压缩为计数+缺口一行
   // （处理位 = 「我的处置」；与 D5 概况=催办口径一致——概况只报缺口不列全行，逐条处理去处置页）
   const openGap = openMine.filter(r => r.resultPending).length;
   const openSummaryHtml = openMine.length === 0 ? '' : `
@@ -108,7 +108,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   }));
   const lineBlockers = _lineBlockers(role);
 
-  // 文件流外发确认（书记 2026-08-10 裁定）：微信外发的文件到达后，接收方在此确认，形成闭环
+  // 文件流外发确认（支书 2026-08-10 裁定）：微信外发的文件到达后，接收方在此确认，形成闭环
   const pendingDispatches = listPendingByReceiver(role);
   const dispatchRows = pendingDispatches.map(d => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
@@ -140,7 +140,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   );
 
   // 在办条目（可点击，点击直达详情/待办 tab 定位）
-  // 书记 2026-08-11 裁定：在办统一业务优先级排序——待办聚合组/活动/专班合并为一条流，
+  // 支书 2026-08-11 裁定：在办统一业务优先级排序——待办聚合组/活动/专班合并为一条流，
   // 组间与组内统一按「过期优先 → 截止升序 → 无截止排后」排序，跨类对齐时间紧迫度。
   const _MAX_INLINE = 5;
   const inProgressItems = [];
@@ -351,7 +351,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
     });
   });
 
-  // 文件流外发确认（书记 2026-08-10 裁定）：接收方确认收到 → 闭环记录
+  // 文件流外发确认（支书 2026-08-10 裁定）：接收方确认收到 → 闭环记录
   container.querySelectorAll('.ed-confirm-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       confirmExternalDispatch(btn.dataset.edId);
@@ -376,7 +376,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
     });
   });
 
-  // 我发起的开放汇报压缩行（D2 裁决批二 2026-09-08 书记特批）→ 跳转「我的处置」tab（处理位）；
+  // 我发起的开放汇报压缩行（D2 裁决批二 2026-09-08 支书特批）→ 跳转「我的处置」tab（处理位）；
   // 概况只报计数+缺口不列全行（D5 概况=催办口径：逐条处理去处置页）
   container.querySelectorAll('[data-wo-open-reports]').forEach(row => {
     row.addEventListener('click', () => {
@@ -419,10 +419,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260912k');
+    const { renderActivityView } = await import('./activity-view.js?v=20260913c');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260912k');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260913c');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

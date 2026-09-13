@@ -1,10 +1,10 @@
 // server/test/agenda-votes.test.mjs — 线上表态 API 单元测试（AV3：voteConfig 泛化）
 // 登录以代码实际为准：/api/v1/auth/login 的 personId 为 people id（docs/src/mock/people.js），
 // 账号密码（studentId）由前端 mockLogin 映射后再调后端，测试直接传 people id：
-//   p13=书记（secretary，studentId 2300010001）
+//   p13=支书（secretary，studentId 2300010001）
 //   p11=组织委员（org-commissioner，studentId 2400012355）
 //   p3=正式党员（participant，studentId 2400012347）
-//   p14=副书记（deputy-secretary，studentId 2300010002）
+//   p14=副支书（deputy-secretary，studentId 2300010002）
 // 旧活动回退用例用 act-27（8月支委会：新学期筹备，真实存在且含 agenda，见 docs/src/mock/activities.js）；
 // agendaItemId 'ai-1' 为测试虚构值——agenda 项无 id 字段，后端不校验议程存在性为有意设计。
 // AV3 formal 用例用 act-formal-test（before 中直接 db 写入含 voteConfig 的党员大会 fixture）。
@@ -30,7 +30,7 @@ before(async () => {
   await seedDatabase(app.locals.db);
   db = app.locals.db;
   // AV3 fixture：支部党员大会（formal 正式表决），voteConfig 固化应到名单
-  // （含正式党员 p3，不含副书记 p14 —— 验证名单驱动而非角色白名单）
+  // （含正式党员 p3，不含副支书 p14 —— 验证名单驱动而非角色白名单）
   db.prepare('INSERT INTO activities (id, data) VALUES (?, ?)').run('act-formal-test', JSON.stringify({
     id: 'act-formal-test',
     title: '支部党员大会：发展党员审议（测试）',
@@ -45,7 +45,7 @@ before(async () => {
       voterIds: ['p3', 'p5', 'p8'],
       quorumCheck: true,
     },
-    agenda: [{ item: '审议发展党员事项', host: '书记' }],
+    agenda: [{ item: '审议发展党员事项', host: '支书' }],
   }));
   server = app.listen(0);
   base = `http://127.0.0.1:${server.address().port}`;
@@ -101,7 +101,7 @@ test('表态不存在的活动返回 404', async () => {
   assert.equal(r.status, 404);
 });
 
-test('非书记调 lock 返回 403', async () => {
+test('非支书调 lock 返回 403', async () => {
   const r = await fetch(`${base}/api/v1/agenda-votes/lock`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenOrg}` },
     body: JSON.stringify({ activityId: 'act-27', votesLocked: true }),
@@ -144,7 +144,7 @@ test('未登录访问返回 401', async () => {
 });
 
 // ===== AV3：voteConfig 泛化（formal 党员大会：optionSet 枚举 + voterIds 名单驱动）=====
-// 2026-09-12 书记裁定「正式表决无记名 + 匿名模式可选」：formal（正式表决）强制 anonymous——
+// 2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」：formal（正式表决）强制 anonymous——
 //   落库两段式（参与记录 {personId, votedAt} + 计数行 tally），逐人选项/附言不落库、响应亦不可见。
 const FORMAL_VOTE = { activityId: 'act-formal-test', agendaItemId: 'ai-formal-1', note: '' };
 
@@ -330,8 +330,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260912k');
-  const { MockAdapter } = await import('../../docs/src/core/mock-adapter.js?v=20260912k');
+  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260913c');
+  const { MockAdapter } = await import('../../docs/src/core/mock-adapter.js?v=20260913c');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;

@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// server/test/group-view.test.mjs — 党小组分组只读聚合口径单测（书记台「党小组进展」D8，2026-09-08）
+// server/test/group-view.test.mjs — 党小组分组只读聚合口径单测（支书台「党小组进展」D8，2026-09-08）
 // 纯 Node 测试（无浏览器、不起 server）：
 //   覆盖 组清单（partyGroup 聚合顺序/组长/党员数/成员数）、branch 过滤、组员口径（不含组长）、
 //   待答复汇报开放数（open/closed/hidden/merged/组长自身排除）、本组活动判定（organizer 属组/
@@ -18,14 +18,14 @@ globalThis.localStorage = {
   clear: () => { _store.clear(); },
 };
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260912k';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260912k';
-import { isPartyMember } from '../../docs/src/services/roster.js?v=20260912k';
-import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260912k';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913c';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260913c';
+import { isPartyMember } from '../../docs/src/services/roster.js?v=20260913c';
+import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/group-view.js?v=20260912k';
+} from '../../docs/src/services/group-view.js?v=20260913c';
 
 const MEMBERS = PersonStore.getMembers();
 

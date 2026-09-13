@@ -10,5 +10,5 @@ test('seedDatabase 写入 users 与 activities', async () => {
   const acts = db.prepare('SELECT data FROM activities').all().map(r => JSON.parse(r.data));
   assert.ok(users.length >= 50, `人员应 >= 50，实际 ${users.length}`);
   assert.ok(acts.length >= 25, `活动应 >= 25，实际 ${acts.length}`);
-  assert.ok(users.some(u => u.role === 'secretary'), '应包含书记角色');
+  assert.ok(users.some(u => u.role === 'secretary'), '应包含支书角色');
 });

@@ -12,13 +12,13 @@
 const ICON_CHEVRON =
   '<svg class="cs-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
-// 内嵌搜索（书记指令 2026-08-06）：选项数量超过阈值时，菜单顶部自动出现搜索框。
+// 内嵌搜索（支书指令 2026-08-06）：选项数量超过阈值时，菜单顶部自动出现搜索框。
 // 适用所有「随时间增长、查找困难」的下拉（活动/专班/人员等），一次改造全站受益。
 const ICON_SEARCH =
   '<svg class="cs-search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
 const SEARCH_THRESHOLD = 10; // 选项数超过此值自动内嵌搜索
 
-// ── 全局浮层互斥（书记指令 2026-08-06）：任何下拉/色板浮层打开时，先自动收起其他已打开的浮层 ──
+// ── 全局浮层互斥（支书指令 2026-08-06）：任何下拉/色板浮层打开时，先自动收起其他已打开的浮层 ──
 if (!window.__popoverClosers) window.__popoverClosers = new Set();
 window.__closeOtherPopovers = (keep) => {
   window.__popoverClosers.forEach((fn) => { if (fn !== keep) fn(); });
@@ -39,7 +39,7 @@ function _syncTrigger(trigger, sel) {
 }
 
 /**
- * 下拉菜单智能定位（书记指令 2026-08-06）：不再一律向下展开，
+ * 下拉菜单智能定位（支书指令 2026-08-06）：不再一律向下展开，
  * 按触发器在视口中的实际位置决定向下/向上，并限制高度避免溢出视口。
  * 定位策略（2026-08-08 修复）：改用 position:absolute 相对 .cs-select 容器定位。
  *   根因：.view-section 的恒等 transform:translateY(0) 会创建 containing block，
@@ -114,7 +114,11 @@ function _openMenu(wrapper, menu, trigger, sel) {
     frag.appendChild(search);
   }
 
-  Array.from(sel.options).forEach((opt) => {
+  // 选项与分组标题渲染（2026-09-13 修复）：原 `Array.from(sel.options)` 会**拉平** options，
+  //   optgroup 的分组标题被丢弃 → 支部分工面板的「工作程序·规范 / 工作方法·支部自选」「不开展」
+  //   等分组在增强下拉里完全不可见（数据层有分组、渲染层丢分组）。改为遍历 sel.children：
+  //   OPTGROUP → 渲染不可选的分组标题行（.cs-group-label），OPTION → 渲染选项。
+  const appendOption = (opt, parent) => {
     const item = document.createElement('div');
     item.className = 'cs-option';
     item.dataset.value = opt.value;
@@ -122,8 +126,25 @@ function _openMenu(wrapper, menu, trigger, sel) {
     item.setAttribute('role', 'option');
     if (opt.disabled) item.classList.add('is-disabled');
     if (opt.selected) item.classList.add('is-selected');
-    frag.appendChild(item);
-  });
+    parent.appendChild(item);
+  };
+  const childNodes = Array.from(sel.children || []);
+  if (childNodes.some((n) => n.tagName === 'OPTGROUP')) {
+    childNodes.forEach((node) => {
+      if (node.tagName === 'OPTGROUP') {
+        const head = document.createElement('div');
+        head.className = 'cs-group-label';
+        head.textContent = node.label || '';
+        head.setAttribute('role', 'presentation');
+        frag.appendChild(head);
+        Array.from(node.children).forEach((o) => appendOption(o, frag));
+      } else if (node.tagName === 'OPTION') {
+        appendOption(node, frag);
+      }
+    });
+  } else {
+    Array.from(sel.options).forEach((opt) => appendOption(opt, frag));
+  }
   menu.appendChild(frag);
 
   menu.classList.remove('hidden');

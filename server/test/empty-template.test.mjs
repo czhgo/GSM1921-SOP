@@ -14,11 +14,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
   createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
-} from '../../docs/src/services/branch.js?v=20260912k';
+} from '../../docs/src/services/branch.js?v=20260913c';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -127,7 +127,7 @@ test('copy：config/workforce/org 复制到新支部、源不动、留痕 from=b
   const b = res.branch;
   assert.equal(b.name, '光华管理学院博士党支部');
   assert.equal(b.type, '本科生', 'type 随源');
-  assert.equal(b.secretaryId, null, '复制不带走书记任命');
+  assert.equal(b.secretaryId, null, '复制不带走支书任命');
   // config 域复制（深拷贝等值）
   assert.deepEqual(b.config.modules, src.config.modules);
   assert.deepEqual(b.config.blocks, src.config.blocks);
@@ -189,7 +189,7 @@ test('校验：name 显式空（空白串/空串）/超长拒绝；缺省键 →
 
 test('校验：非 party-staff（actorRole 入参）→ {ok:false, reason 无权限}；party-staff 放行', async () => {
   seedBranches([]);
-  const r1 = await createBranch({ name: '书记越权支部', by: 'p13', actorRole: 'secretary' });
+  const r1 = await createBranch({ name: '支书越权支部', by: 'p13', actorRole: 'secretary' });
   assert.equal(r1.ok, false);
   assert.match(r1.reason, /无权限/);
   assert.equal(mockDB.branches.length, 0, '越权不落库');
@@ -249,7 +249,7 @@ test('HTTP：POST /branches 门控——party-staff 201；secretary 403；name �
   const staff = await login('p_pc');
   const sec = await login('p13');
   // secretary（非 party-staff）→ 403
-  const r0 = await postBranch(sec, { mode: 'empty', name: '书记越权支部' });
+  const r0 = await postBranch(sec, { mode: 'empty', name: '支书越权支部' });
   assert.equal(r0.status, 403, '非 party-staff 不得创建支部');
   // name 显式空 → 400 原因
   const r1 = await postBranch(staff, { mode: 'empty', name: '   ' });

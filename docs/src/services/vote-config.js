@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // vote-config.js — 线上异步表决配置（voteConfig）解析与场景默认
 // 泛化：支委会 deliberative / 支部党员大会 formal+硬校验；optionSet/voterScope/quorumCheck 参数化
-// ── voterIds 与「应到名单」联动（书记 2026-09-06 ②批，出处见 mock/activities.js act-31 注释）──
+// ── voterIds 与「应到名单」联动（支书 2026-09-06 ②批，出处见 mock/activities.js act-31 注释）──
 //   新活动创建线上表决时固化的 voterIds = 按 voterScope 取现时「应到表决人」：
 //     仅党员/支委范围 + 剔除滞留成员（运行期「在校/滞留」覆盖优先，缺省静态在校），
 //   实现同型最小改：范围规则沿用本文件（formal-only/formal-plus-prep/committee），
 //   滞留剔除复用 services/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from './person.js?v=20260912k';
-import { AuthStore } from './auth.js?v=20260912k';
-import { isDetained } from './roster.js?v=20260912k';
+import { PersonStore } from './person.js?v=20260913c';
+import { AuthStore } from './auth.js?v=20260913c';
+import { isDetained } from './roster.js?v=20260913c';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -27,14 +27,14 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../core/constants.js?v=20260912k';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../core/constants.js?v=20260913c';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
 export function isDecisionScenario(scenarioId) { return DECISION_SCENARIOS.has(scenarioId); }
 
 // 场景默认 voteConfig（创建活动预填）
-// ballotMode（2026-09-12 书记裁定）：正式表决（formal）按制度锁定无记名（UI 不可改、服务端校验）；
+// ballotMode（2026-09-12 支书裁定）：正式表决（formal）按制度锁定无记名（UI 不可改、服务端校验）；
 //   事务性表决（deliberative）默认记名，发起人可选无记名（匿名模式可选）。
 export function defaultVoteConfig(scenarioId) {
   if (scenarioId === 'branch-party-meeting') {

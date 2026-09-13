@@ -6,7 +6,7 @@
 
 //       _renderCurrentTab 懒加载渲染、renderXxxUI 的数据兜底 + URL 导航落点 + B1-5 抑制），
 
-//       书记 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
+//       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 
 // 设计：createWorkspaceShell(opts) 工厂，每个角色一个实例（导航/抑制/高亮状态随壳实例自持）。
 
@@ -20,21 +20,21 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260912k';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260913c';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260912k';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260912k';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260912k';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260912k';
-import { getCapabilities } from '../core/registry.js?v=20260912k';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260912k';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260913c';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260913c';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260913c';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260913c';
+import { getCapabilities } from '../core/registry.js?v=20260913c';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260913c';
 
-import { TodoStore } from '../services/todo.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { BranchService } from '../services/runtime.js?v=20260912k';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260912k';
-// 设置中心批2（2026-09-09 书记批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260912k';
+import { TodoStore } from '../services/todo.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { BranchService } from '../services/runtime.js?v=20260913c';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260913c';
+// 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260913c';
 
 
 
@@ -88,7 +88,7 @@ const NAV_SUPPRESS_MS = 3000;
 
  * @param {(a:Object)=>Object} [opts.mapFallbackActivities] 空表回退映射（缺省=leader 版通用映射）
 
- * @param {Object} [opts.fallbackExtras] 空表回退时随 activities 一并 setState 的附加状态（如书记 viewType/managementRole）
+ * @param {Object} [opts.fallbackExtras] 空表回退时随 activities 一并 setState 的附加状态（如支书 viewType/managementRole）
 
  */
 
@@ -180,7 +180,7 @@ export async function createWorkspaceShell(opts) {
 
   // 在内容区顶部给出「支部层 × 演示只读」标识与返回党委总览入口。
 
-  // 本地示例 / 真实后端 API 会话同口径（书记 2026-09-10 裁定 A⑤）：横幅一律渲染「只读查看」提示。
+  // 本地示例 / 真实后端 API 会话同口径（支书 2026-09-10 裁定 A⑤）：横幅一律渲染「只读查看」提示。
 
   // 仅 party-staff + branch 参数 + 支部层壳（scope ≠ party-committee）触发；其余角色/页面无横幅。
 
@@ -200,7 +200,7 @@ export async function createWorkspaceShell(opts) {
 
         return `<div class="rounded-xl border border-dashed bg-red-50 text-red-700 px-4 py-2.5 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color:rgba(248,113,113,0.4);">
 
-  <span><b>党委演示只读视图 · ${escHtml(_branchName)}</b> — 该支部书记工作台（branch 上下文）；以党委组织员会话只读查看，写操作按角色权限拒绝</span>
+  <span><b>党委演示只读视图 · ${escHtml(_branchName)}</b> — 该支书工作台（branch 上下文）；以党委组织员会话只读查看，写操作按角色权限拒绝</span>
 
   <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:#C8102E;">← 返回党委治理总览</a>
 
@@ -286,9 +286,9 @@ export async function createWorkspaceShell(opts) {
 
 
 
-    // 有待办必见待办（书记 2026-08-10 裁定）：tab bar 仅构建一次，天然一次性消费
+    // 有待办必见待办（支书 2026-08-10 裁定）：tab bar 仅构建一次，天然一次性消费
 
-    // R6-3「今天」置首（2026-09-06 书记裁：登录落点=今天、待办降第二页）后：
+    // R6-3「今天」置首（2026-09-06 支书裁：登录落点=今天、待办降第二页）后：
 
     // 显式 defaultTab='today' 的工作台不再被旧 priorityTab（任意未处理待办即跳待办）抢占——
 
@@ -306,7 +306,7 @@ export async function createWorkspaceShell(opts) {
 
     const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
 
-    // L2 支部工作流模块配置（2026-09-03 书记裁定：书记操作/tab 级/核心固定）：
+    // L2 支部工作流模块配置（2026-09-03 支书裁定：支书操作/tab 级/核心固定）：
 
     // 本支部 config.modules 决定业务 tab 显隐与顺序；党委工作台（party-committee）不受支部配置影响
 
@@ -322,7 +322,7 @@ export async function createWorkspaceShell(opts) {
     } catch (e) {
       console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
     }
-    // 个人 tab 顺序偏好（设置中心批2，2026-09-09 书记批准 v3）：个人顺序仅作用于业务组，
+    // 个人 tab 顺序偏好（设置中心批2，2026-09-09 支书批准 v3）：个人顺序仅作用于业务组，
     // 核心组（groupLabel='工作台'）保持注册序置前、不参与排序；无偏好/与默认等效 → 原样（默认零 diff）。
     // 党委工作台（party-committee）无核心组，业务页签同样支持个人顺序（不受支部配置影响）。
     try {
@@ -509,7 +509,7 @@ export async function createWorkspaceShell(opts) {
       }
 
       // 既有首页导航落点（activityId/taskforceId/view）：仅旧参数在场时交角色特定 onNavTarget 消费，
-      // 避免 tab/highlight 独占时被各台默认落点（如书记台默认 activate('calendar')）覆盖。
+      // 避免 tab/highlight 独占时被各台默认落点（如支书台默认 activate('calendar')）覆盖。
       const hasLegacyNav = !!(_navTarget.tfId || _navTarget.actId || _navTarget.view);
 
       const handled = (hasLegacyNav && typeof onNavTarget === 'function')

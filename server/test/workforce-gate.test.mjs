@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // server/test/workforce-gate.test.mjs — L4 M2 分工调整·票决判定/合并快照
-// 判据（附录⑩ S2 R2-3，2026-09-06 书记裁）：门槛 = 应到会人数超过 2/3 且无反对
+// 判据（附录⑩ S2 R2-3，2026-09-06 支书裁）：门槛 = 应到会人数超过 2/3 且无反对
 //   （>2/3 出席——2/3 整界不过；反对=0——object 异议/oppose 反对同口径；弃权允许，计出席不计赞成/反对）。
 // 纯 Node 测试（无浏览器）：evaluateWorkforceVotes + mergeWorkforceSnapshot。
 // 服务链（create→表决→adopt）依赖浏览器/登录态，见沙盒外 E2E 补跑项。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260912k';
-import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260912k';
+import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260913c';
+import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260913c';
 
 const ROSTER = ['p1', 'p2', 'p3', 'p4', 'p5']; // 应到支委 5 人（演示）
 const v = (posArr) => posArr.map((position, i) => ({ personId: ROSTER[i], position }));

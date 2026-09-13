@@ -2,17 +2,17 @@
 // 党委工作台 Tab：下发通知（P3 党委后台，2026-09-02）
 // 党委侧发起点（双向通道下发半侧）：选目标支部（可全选/单选，支部动态创建后自动可选）→
 // 下发「党委通知」到目标支部的支委层（送达=通知流 audience='committee' 过滤 + 来源徽标）。
-// 复用既有通知实体（书记 2026-09-02 裁定：能复用就复用，不新建「下发箱」领域）。
+// 复用既有通知实体（支书 2026-09-02 裁定：能复用就复用，不新建「下发箱」领域）。
 // 重绘纪律：party-committee 各 tab 每次整容器重绘（无 dataset.currentTab 约定），
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { getCommitteeName } from '../../../services/branch.js?v=20260912k';
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { textField, textareaField } from '../../../components/forms.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { getCommitteeName } from '../../../services/branch.js?v=20260913c';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { textField, textareaField } from '../../../components/forms.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 

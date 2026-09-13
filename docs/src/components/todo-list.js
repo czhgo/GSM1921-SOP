@@ -11,10 +11,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from './badges.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
+import { badgeHtml } from './badges.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../services/todo.js?v=20260912k';
+import { isTodoExpired } from '../services/todo.js?v=20260913c';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -35,8 +35,8 @@ import { isTodoExpired } from '../services/todo.js?v=20260912k';
  * @param {Function} [opts.onActionTodo]— 行动按钮回调 (group) => void
  * @param {Function|null} [opts.onDeleteTodo] — 删除组回调（null=不渲染删除键；实时组台禁用）
  * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
- *        — 催办入口状态解析（2026-09-10 书记/副书记待办页逐条催办）：返回 null 不渲染；
- *          仅书记台传入（opt-in），其余工作台缺省 undefined → 无催办入口。
+ *        — 催办入口状态解析（2026-09-10 支书/副支书待办页逐条催办）：返回 null 不渲染；
+ *          仅支书台传入（opt-in），其余工作台缺省 undefined → 无催办入口。
  * @param {(group:Object)=>void} [opts.onUrgeTodo] — 催办按钮回调
  * @param {string} [opts.actionBtnStyle]— 行动按钮自定义内联样式（visitor 金色系）
  * @param {string} [opts.emptyHint]     — 空态引导文案
@@ -159,7 +159,7 @@ export function renderDomainTodoList(opts) {
       });
     }
 
-    // 催办入口（书记/副书记待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
+    // 催办入口（支书/副支书待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
     if (typeof onUrgeTodo === 'function') {
       container.querySelectorAll(`.${prefix}-todo-urge-btn[data-group-key]`).forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -217,7 +217,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
   };
   const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
 
-  // 催办入口状态（书记/副书记待办页；urgeStateOf 缺省 → 不渲染）
+  // 催办入口状态（支书/副支书待办页；urgeStateOf 缺省 → 不渲染）
   const urge = typeof urgeStateOf === 'function' ? urgeStateOf(g) : null;
   const urgeBtn = urge ? `
         <button type="button" class="${prefix}-todo-urge-btn text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${urge.state === 'urged' ? 'border-gray-100 text-gray-500 cursor-not-allowed' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}" data-group-key="${g.groupKey}" ${urge.state === 'urged' ? 'disabled' : ''} title="${urge.title || '催办责任人'}" style="cursor:${urge.state === 'urged' ? 'not-allowed' : 'pointer'};">${urge.label}</button>` : '';

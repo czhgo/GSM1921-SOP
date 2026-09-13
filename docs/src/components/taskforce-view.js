@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
-// taskforce-view.js — 只读专班查看组件（知情权组件，书记 2026-08-08 裁定）
+// taskforce-view.js — 只读专班查看组件（知情权组件，支书 2026-08-08 裁定）
 // 供无专班 tab 的工作台（党支书/党小组组长/纪检委员等）承载 taskforceId 跳转落点：
-// 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据书记第五轮裁定「新建专班查看组件（列表+详情）」。
-// 书记设计原则：「无职责 不代表 没有知情权」。
+// 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
+// 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { getPersonName } from '../services/person.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
-import { dotDarkVars } from '../core/constants.js?v=20260912k';
-import { flashHighlight, showToast } from '../core/utils.js?v=20260912k';
-import { anchorDetailToTrigger } from './detail-anchor.js?v=20260912k';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { getPersonName } from '../services/person.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
+import { dotDarkVars } from '../core/constants.js?v=20260913c';
+import { flashHighlight, showToast } from '../core/utils.js?v=20260913c';
+import { anchorDetailToTrigger } from './detail-anchor.js?v=20260913c';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -119,7 +119,7 @@ export function renderTaskforceView(container, opts = {}) {
   // 搜索输入即时过滤
   if (searchEl) searchEl.oninput = () => renderTaskforceView(container, opts);
 
-  // 定位高亮（定时自动褪去，书记 2026-08-08 裁定）
+  // 定位高亮（定时自动褪去，支书 2026-08-08 裁定）
   if (highlightId) {
     setTimeout(() => {
       const card = container.querySelector(`.tfv-card[data-tf-id="${highlightId}"]`);

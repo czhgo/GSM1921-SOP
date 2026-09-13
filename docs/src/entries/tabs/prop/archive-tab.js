@@ -2,21 +2,21 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260912k';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260912k';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260912k';
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { bumpToken } from '../../../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
-import { isApiMode } from '../../../services/runtime.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260912k';
-// A② 归档缺口判据单一源（书记台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260912k';
-// 活动归档写口（与书记台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260912k';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260913c';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260913c';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260913c';
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { bumpToken } from '../../../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
+import { isApiMode } from '../../../services/runtime.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260913c';
+// A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260913c';
+// 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
+import { BranchService } from '../../../services/runtime.js?v=20260913c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -218,19 +218,19 @@ export function renderContent(ctx) {
   });
 }
 
-/** 归档兜底横幅（A② 2026-09-10）：书记/副书记进入宣传台仅用于「代归档」兜底，只呈现归档面 */
+/** 归档兜底横幅（A② 2026-09-10）：支书/副支书进入宣传台仅用于「代归档」兜底，只呈现归档面 */
 function _renderArchiveFallbackBanner() {
   const me = AuthStore.getCurrentUser();
   if (!me || !ARCHIVE_FALLBACK_ROLES.includes(me.role)) return '';
   return `
     <div class="rounded-xl border border-dashed px-4 py-2.5 mb-3 text-xs leading-relaxed" style="border-color:rgba(185,28,28,0.35);background:rgba(185,28,28,0.05);color:#B91C1C;">
-      <b>归档兜底视图</b> — 书记/副书记进入宣传台仅用于「代归档」兜底：本页只呈现「档案归档」，其余宣传台功能不可用；完成归档后请返回书记工作台。
+      <b>归档兜底视图</b> — 支书/副支书进入宣传台仅用于「代归档」兜底：本页只呈现「档案归档」，其余宣传台功能不可用；完成归档后请返回支书工作台。
     </div>`;
 }
 
 /** 待归档活动区（B4 2026-09-12）：宣传概况「待归档活动 N 个」的明细——判据单一源
  *  getEndedUnarchivedActivities（已结束未归档），每行可直接「归档」（活动软归档写口，
- *  与书记台活动管理同源）。归档后活动进入上方「待归档（材料未提交）」区，形成闭环。 */
+ *  与支书台活动管理同源）。归档后活动进入上方「待归档（材料未提交）」区，形成闭环。 */
 function _renderEndedUnarchivedSection(activities) {
   if (!activities || activities.length === 0) return '';
   const items = activities.map(a => `
@@ -319,7 +319,7 @@ function _renderArchiveList(records) {
     const dispatchHtml = r.fileName
       ? _renderDispatchCell(r)
       : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
-    // 实体条目可点（2026-09-12 书记裁定）：归档记录行关联活动 → 左区包一层活动详情深链
+    // 实体条目可点（2026-09-12 支书裁定）：归档记录行关联活动 → 左区包一层活动详情深链
     //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
     const titleBlock = `
         <div class="flex items-center gap-2 mb-0.5">
@@ -721,14 +721,14 @@ function _showArchiveUploadModal(ctx) {
   card.addEventListener('click', e => e.stopPropagation());
 }
 
-/** 文件流外发确认（书记 2026-08-10 裁定；C④ 2026-09-10 改为行内按需触发）：
+/** 文件流外发确认（支书 2026-08-10 裁定；C④ 2026-09-10 改为行内按需触发）：
  *  材料已归档，如需微信外发则系统内标记闭环。「暂不外发」= 不写入任何记录（语义不变）。
  *  @param {Function} [onSent] 标记成功后的回调（行内场景用于重渲染显示状态徽标） */
 function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
   const user = AuthStore.getCurrentUser();
   if (!user) return;
   const receiverOptions = [
-    { value: 'secretary', label: '党支部书记（审核）' },
+    { value: 'secretary', label: '支书（审核）' },
     { value: 'disc-commissioner', label: '纪检委员（留档）' },
     { value: 'org-commissioner', label: '组织委员' },
   ];
@@ -742,7 +742,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
       </div>
       <div class="px-5 py-4 space-y-3.5">
         <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
-          宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送书记审核），
+          宣传材料已归档到系统。若还需通过<b>微信</b>把文件发给对方确认（如新闻稿送支书审核），
           请在此标记「已外发」——对方收到后会在其工作台确认，形成可审计记录（谁 / 何时 / 发给谁 / 何时确认）。
         </div>
         <div>

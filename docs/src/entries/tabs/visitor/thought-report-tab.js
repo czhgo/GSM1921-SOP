@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
-// 参与者工作台 Tab：我的思想汇报（2026-08-30 书记决策启动数字化；2026-09-07 R6-2 把关式初阅）
+// 参与者工作台 Tab：我的思想汇报（2026-08-30 支书决策启动数字化；2026-09-07 R6-2 把关式初阅）
 // 党员/发展对象在系统内提交思想汇报 → 组织初阅：通过 → 自动归档归集至个人档案；
 // 打回（needs_revision，附退回意见）→ 本人「修改并重新提交」→ 回待初阅队列。
 // 本人可查看自己的历史提交（状态徽标 + 退回意见）；组织委员在「发展数据」tab 初阅调用。
 
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport, withdrawThoughtReport } from '../../../services/thought-report.js?v=20260912k';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { addThoughtReport, listThoughtReportsByPerson, resubmitThoughtReport, withdrawThoughtReport } from '../../../services/thought-report.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档

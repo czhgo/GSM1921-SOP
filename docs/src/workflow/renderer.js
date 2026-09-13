@@ -5,13 +5,13 @@
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine } from './engine.js?v=20260912k';
+import { WorkflowEngine } from './engine.js?v=20260913c';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-} from './definitions.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
+} from './definitions.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {
@@ -264,7 +264,7 @@ class WorkflowRenderer {
       'prop-commissioner': '宣传委员',
       'leader':           '党小组组长',
       'organizer':        '组织者',
-      'secretary':        '书记',
+      'secretary':        '支书',
       'committee':        '支委会',
       'expanded-committee': '支委扩大会',
       'global':           '全局管理员',

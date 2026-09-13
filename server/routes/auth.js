@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
 import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/constants.js';
 
-// ── 登录口令校验（2026-09-03 P1b 运行安全；书记裁定「做，可开关」）────────────
+// ── 登录口令校验（2026-09-03 P1b 运行安全；支书裁定「做，可开关」）────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
 // 现状：默认校验口令。口令 = 支部统一登录口令，env LOGIN_PASSWORD 可换，缺省 '123456'
 //   （与前端演示账号密码一致，登录体验不变；同时堵住「直连 API 猜 personId」通道）。
@@ -82,7 +82,7 @@ export function requireRole(db, roles) {
   };
 }
 
-// 支委授权角色集合（含书记/副书记；授权语义，与前端 AuthStore.isCommissioner 口径一致）
+// 支委授权角色集合（含支书/副支书；授权语义，与前端 AuthStore.isCommissioner 口径一致）
 // P2c（2026-09-03）：单一源 = constants.js BRANCH_COMMISSION_ROLES（勿在此手写）
 const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 

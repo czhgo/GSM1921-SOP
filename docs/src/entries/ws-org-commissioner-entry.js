@@ -2,18 +2,18 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260912k';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260912k';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260912k';
-import { flashHighlight } from '../core/utils.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { SignupStore } from '../services/signup.js?v=20260912k';
-import { seedTodos } from '../services/todo.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260912k';
+import { getAppState, setState } from '../core/state.js?v=20260913c';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260913c';
+import { flashHighlight } from '../core/utils.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { SignupStore } from '../services/signup.js?v=20260913c';
+import { seedTodos } from '../services/todo.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260913c';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../modules/capabilities/org-workspace.js?v=20260909e';
+import '../modules/capabilities/org-workspace.js?v=20260913c';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -40,10 +40,10 @@ await createWorkspaceShell({
     '<button id="btn-publish-tf" style="' + solidAccentStyle(accent, accentBorder) + ';border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">发布招募</button>' +
     renderReportEntryHtml({ accent, accentRgba }),
   bindExtras: (container, shell) => {
-    bindReportEntry(container); // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
+    bindReportEntry(container); // 一键汇报入口（支书 2026-08-10 裁定：复用 Issue 体系）
     container.querySelector('#btn-publish-tf')?.addEventListener('click', () => openRecruitForm(shell.renderCtx(getAppState())));
   },
-  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.actId || nav.view) {
       // 活动查看（组织无活动 tab，知情权组件承载）

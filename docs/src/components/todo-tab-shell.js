@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // components/todo-tab-shell.js — 待办 tab 公共壳（T-304 代码减负 2026-08-30；IA-C1 Task4 域化重构 2026-09-07）
 // 背景：6 个工作台 todo-tab 骨架逐字重复（选中首条 / renderTodoList / 两栏 HTML / 删除 / 详情按钮绑定），
-//       书记 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
+//       支书 2026-08-30：「模块化只见代码增多少见代码减少」→ 共性抽壳。
 // 设计：createTodoTab(opts) 工厂，每个角色一个实例（状态自持，与原模块级私有状态等价）。
 // IA-C1 Task4（按工作类型 9 域折组，spec .trae/specs/2026-09-06-ia-todo-cards/spec.md）：
 //   输出区 = ① 页顶「未读通知 N 条」轻量条（getUnreadNotices；点击展开阅读列表，点读即消）
@@ -14,17 +14,17 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260912k';
+import { TodoStore } from '../services/todo.js?v=20260913c';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore } from '../services/notice.js?v=20260912k';
-import { renderDomainTodoList } from './todo-list.js?v=20260912k';
-import { badgeHtml } from './badges.js?v=20260912k';
-import { showToast } from '../core/utils.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { tokenOf } from '../core/version-token.js?v=20260912k'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260912k'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore } from '../services/notice.js?v=20260913c';
+import { renderDomainTodoList } from './todo-list.js?v=20260913c';
+import { badgeHtml } from './badges.js?v=20260913c';
+import { showToast } from '../core/utils.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { tokenOf } from '../core/version-token.js?v=20260913c'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260913c'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -46,7 +46,7 @@ const _COMBO_LEN_KEYS = [
   // 2026-09-08 顶卡同步化：成员变更申请（member-change-panel 产物内容源）并入守卫键。
   //   · 长度指纹覆盖 议程记录通过/组织委员建档 等直写新建（adapter.create，mock-adapter 禁改无 bump）；
   //   · approve/confirm 仅改 status、长度不变 → 由 member-change-panel 写口成功后显式
-  //     bumpToken('memberChangeRequests') 兜底（见该组件头注）→ 书记确认/组织审批后重建而非命中跳过。
+  //     bumpToken('memberChangeRequests') 兜底（见该组件头注）→ 支书确认/组织审批后重建而非命中跳过。
   ['memberChangeRequests', 'memberChangeRequests'],
   ['notice', 'notices'],
 ];
@@ -70,17 +70,17 @@ function _comboKeyOf(role) {
  * @param {string} opts.role                待办角色键（getByRole/getUnreadNotices 用）
  * @param {(todo:Object, ctx:Object)=>void} opts.onAction  角色特有动作处理（必填）
  * @param {(ctx:Object)=>Array} [opts.buildRealtimeGroups] 各台自定义「不落库」实时聚合组
- *        （书记 SecretaryTodoDeriver 组/决议逾期/成员变更/纪检队列等；壳统一
+ *        （支书 SecretaryTodoDeriver 组/决议逾期/成员变更/纪检队列等；壳统一
  *        mergeRealtimeDomains 并入对应业务域；缺省=[] 纯持久化域视图）
  *        ——2026-09-08 裁决批一（D1/D3）：实时组可携带 bulkHtml（组行批量块，见 todo-list.js
  *        组行渲染扩展；勾选批量与详情逐项并行）与 hideActionBtn（批量组无行尾单键）；
  *        写口均须 bumpToken 对应域（memberChangeRequests/memberConfirmation 等）使
  *        _comboKeyOf 复合键变化 → 批量块内容随重建刷新。
  * @param {(todo:Object, ctx:Object)=>string} [opts.renderDetail] 自定义详情渲染
- *        （书记按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
+ *        （支书按 kind/groupKey 分发；缺省=壳内置概要「去处理」）
  * @param {async (ctx:Object)=>void} [opts.onBeforeRender] 渲染前钩子（seedTodos/异步预载；await）
  * @param {async (container:Element, ctx:Object, api:Object)=>void} [opts.onAfterRender] 渲染后钩子
- *        （异步面板挂载，如书记成员变更确认面板；api={renderContent,clearSelection,selectedTodo}）
+ *        （异步面板挂载，如支书成员变更确认面板；api={renderContent,clearSelection,selectedTodo}）
  * @param {string|(ctx:Object)=>string} [opts.extraTopHtml] 列表上方额外区块 HTML（数据交接/收件箱/专班区等）
  * @param {(container:Element, ctx:Object, api:Object)=>void} [opts.bindExtras] 额外绑定
  *        （handoff/成员变更/详情自定义按钮等；api 见 onAfterRender）
@@ -88,10 +88,10 @@ function _comboKeyOf(role) {
  * @param {string} [opts.detailTitle]       右侧详情卡标题（缺省='详情'）
  * @param {string} [opts.detailBtnClass]    内置详情按钮 class（缺省=prefix-todo-detail-action）
  * @param {string} [opts.detailBtnStyle]    内置详情按钮内联样式（缺省=solidAccentStyle 主题色）
- * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（书记等实时组台）；
+ * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（支书等实时组台）；
  *        函数=自定义；缺省=内置确认删除（聚合组删整组）
  * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
- *        逐条「催办」入口状态（2026-09-10 书记/副书记待办页；opt-in，缺省不渲染）；
+ *        逐条「催办」入口状态（2026-09-10 支书/副支书待办页；opt-in，缺省不渲染）；
  *        null=该条无催办入口（无责任人或责任人即本人）
  * @param {(group:Object, ctx:Object)=>void} [opts.onUrgeTodo] 催办按钮回调（需与 urgeStateOf 同传）
  */
@@ -140,7 +140,7 @@ export function createTodoTab(opts) {
 
   /**
    * 详情渲染（内置缺省：聚合组 = 概要 + 处理入口；单项 = 状态 + 描述 + 处理）。
-   * 角色自定义详情经 opts.renderDetail 覆盖（如书记 confirm/remind/成员变更确认逐项面板）。
+   * 角色自定义详情经 opts.renderDetail 覆盖（如支书 confirm/remind/成员变更确认逐项面板）。
    */
   function _renderTodoDetail(todo, ctx) {
     const btnStyle = detailBtnStyle || solidAccentStyle(ctx.accent, ctx.accentBorder);
@@ -241,7 +241,7 @@ export function createTodoTab(opts) {
       delete container.dataset.memoKey;
     }
 
-    // 渲染前钩子（书记：seedTodos + 异步预载待答复汇报等）
+    // 渲染前钩子（支书：seedTodos + 异步预载待答复汇报等）
     if (onBeforeRender) await onBeforeRender(ctx);
 
     // 刷新过期状态（P0 渲染链去重后唯一入口：各 todo-tab 的 onBeforeRender 不再重复调用；
@@ -268,7 +268,7 @@ export function createTodoTab(opts) {
     }
     const { domains, allGroups, unreadNotices } = combo;
 
-    // 自动选中首条（书记 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
+    // 自动选中首条（支书 2026-08-10 裁定推广）：进入待办即见第一条详情，减一次点击
     if (!_selectedTodoId && allGroups.length > 0) {
       _selectedTodoId = allGroups[0].groupKey;
     }
@@ -281,7 +281,7 @@ export function createTodoTab(opts) {
     // 现 DOM 原样保留（域折组折叠/组行选中/面板内交互状态不丢，旧事件绑定仍在）。
     // key = P0 组合复合键 comboKey（各域 token+length 指纹 + todo/member + 日期 + role）
     //   + 本卡自持交互状态（选中项 _selectedTodoId：换行选中须走重建）
-    //   + issue 版本（书记 extraTopHtml「待答复收件箱/汇报时间线」依赖 IssueStore，
+    //   + issue 版本（支书 extraTopHtml「待答复收件箱/汇报时间线」依赖 IssueStore，
     //     其写口 bumpToken('issue') 见 services/issues.js——保证 extraTopHtml 内容随键覆盖；
     //     命中跳过时 bindExtras/onAfterRender/extraTopHtml 不再重跑，内容仍正确）。
     const renderKey = `${comboKey}|sel=${_selectedTodoId || ''}|issue=${tokenOf('issue')}`;
@@ -394,7 +394,7 @@ export function createTodoTab(opts) {
         });
       });
 
-      // 详情面板按钮事件（内置概要详情 / 书记 remind·seed 详情共用 detailBtnClass）
+      // 详情面板按钮事件（内置概要详情 / 支书 remind·seed 详情共用 detailBtnClass）
       container.querySelector(`.${detailBtnClass}`)?.addEventListener('click', () => {
         if (!_selectedTodoId) return;
         const group = allGroups.find(g => g.groupKey === _selectedTodoId);

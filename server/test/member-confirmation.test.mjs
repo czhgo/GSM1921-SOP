@@ -4,8 +4,8 @@
 // 做法同 member-persist.test.mjs）：
 //   ① submitMemberChange 校验（person 存在 / kind 合法 / 枚举 / to=现值拒绝 / 同 person+kind pending 拒绝）
 //   ② developStage pending → decide approved 落档案；rejected 带 rejectNote 不生效
-//   ③ residence pending → decide approved：roster 覆盖 + 留痕（updatedBy=书记）+ 档案镜像
-//   ④ submitTransferOut：现任书记拒绝 / 有 pending 其它请求拦截 / 无引用 direct / 仅安全引用 direct+clearedSafe
+//   ③ residence pending → decide approved：roster 覆盖 + 留痕（updatedBy=支书）+ 档案镜像
+//   ④ submitTransferOut：现任支书拒绝 / 有 pending 其它请求拦截 / 无引用 direct / 仅安全引用 direct+clearedSafe
 //   ⑤ 有保留历史 → transferOut pending（refsSummary 分类）→ decide approved：
 //       安全解除、保留记录 transferredOutAt、专班普通成员移除 / 专班负责人保留+提示、
 //       memberChangeRequests 非终态作废、成员移除 + removedIds 对象含 name（getName 不匿名）、
@@ -16,23 +16,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260912k';
+} from '../../docs/src/core/mock-adapter.js?v=20260913c';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/person.js?v=20260912k';
+} from '../../docs/src/services/person.js?v=20260913c';
 import {
   RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260912k';
+} from '../../docs/src/services/roster.js?v=20260913c';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, DEV_STAGE_OVERRIDES_KEY, loadDevStageOverrides,
-} from '../../docs/src/services/member-confirmation.js?v=20260912k';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260912k';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260912k';
+} from '../../docs/src/services/member-confirmation.js?v=20260913c';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260913c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();
@@ -113,7 +113,7 @@ test('submitMemberChange：同 person+kind 已有 pending 拒绝；不同 kind �
   // 同 kind 重复 → 拒绝
   const dup = submitMemberChange({ personId: 'p1', kind: 'developStage', to: '发展对象', by: 'p11' });
   assert.equal(dup.ok, false);
-  assert.match(dup.reason, /待书记确认/);
+  assert.match(dup.reason, /待支书确认/);
   // 不同 kind（residence）不受影响（p1 在校 → 滞留）
   const res = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, note: '交换一学期', by: 'p11' });
   assert.equal(res.ok, true);
@@ -151,7 +151,7 @@ test('decideConfirmation rejected：rejectNote 透传 + 默认提示；不生效
   // 空 note → 默认提示
   const r2 = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
   const d2 = await decideConfirmation(r2.request.id, { decision: 'rejected', by: 'p13' });
-  assert.equal(d2.request.rejectNote, '书记未确认生效，请求已退回');
+  assert.equal(d2.request.rejectNote, '支书未确认生效，请求已退回');
   // 非 pending / 已决策请求 → 不可重复决策
   const again = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
   assert.equal(again.ok, false);
@@ -200,34 +200,34 @@ test('C①-补：entryDate 缺省 → 今日；退回不写覆盖档案；非阶
 
 // ═══════════════ ③ decide：在册滞留 approved（覆盖层+留痕+档案镜像） ═══════════════
 
-test('decideConfirmation approved（在册滞留）：roster 覆盖 + 留痕 updatedBy=书记 + 档案镜像', async () => {
+test('decideConfirmation approved（在册滞留）：roster 覆盖 + 留痕 updatedBy=支书 + 档案镜像', async () => {
   beginMockCase();
   const r = submitMemberChange({ personId: 'p1', kind: 'residence', to: RESIDENCE.DETAINED, note: '2026-09 起交换一学期', by: 'p11' });
   const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
   assert.equal(decided.ok, true, JSON.stringify(decided));
   const p1 = PersonStore.getMembers().find(p => p.id === 'p1');
-  assert.equal(getResidenceOf(p1).residenceStatus, RESIDENCE.DETAINED, 'roster 覆盖层即时生效（纪检/书记复核同源）');
+  assert.equal(getResidenceOf(p1).residenceStatus, RESIDENCE.DETAINED, 'roster 覆盖层即时生效（纪检/支书复核同源）');
   const history = getResidenceOf(p1).residenceHistory || [];
   const last = history[history.length - 1];
   assert.equal(last.from, RESIDENCE.CAMPUS);
   assert.equal(last.to, RESIDENCE.DETAINED);
-  assert.equal(last.updatedBy, 'p13', '双层留痕：生效留痕人 = 书记');
+  assert.equal(last.updatedBy, 'p13', '双层留痕：生效留痕人 = 支书');
   assert.equal(PersonStore.getById('p1').residenceStatus, RESIDENCE.DETAINED, '档案镜像已写');
   assert.ok(getDetainedMembers().some(p => p.id === 'p1'), '滞留名单即时包含 p1');
 });
 
 // ═══════════════ ④ submitTransferOut：拦截 / direct ═══════════════
 
-test('submitTransferOut：现任书记（p13）拒绝需先交接；已有 pending 其它请求拦截', async () => {
+test('submitTransferOut：现任支书（p13）拒绝需先交接；已有 pending 其它请求拦截', async () => {
   beginMockCase();
   const sec = await submitTransferOut({ personId: 'p13', by: 'p11' });
   assert.equal(sec.ok, false);
-  assert.match(sec.reason, /现任书记/);
+  assert.match(sec.reason, /现任支书/);
   // 先有阶段 pending → 移出被拦截
   submitMemberChange({ personId: 'p1', kind: 'developStage', to: '预备党员', by: 'p11' });
   const blocked = await submitTransferOut({ personId: 'p1', by: 'p11' });
   assert.equal(blocked.ok, false);
-  assert.match(blocked.reason, /已有待书记确认的请求/);
+  assert.match(blocked.reason, /已有待支书确认的请求/);
 });
 
 test('submitTransferOut：无任何引用 → direct 直接移出（removedIds 对象含 name；不匿名）', async () => {
@@ -301,7 +301,7 @@ test('submitTransferOut：有保留历史 → transferOut pending（refsSummary 
   // 成员还在 → 再发起（重复 pending）被拦截
   const dup = await submitTransferOut({ personId: 'p5', by: 'p11' });
   assert.equal(dup.ok, false);
-  assert.match(dup.reason, /待书记确认/);
+  assert.match(dup.reason, /待支书确认/);
 });
 
 test('decide approved（移出）：安全解除 + keep 标注 transferredOutAt + 专班普通成员移除 + 不匿名', async () => {

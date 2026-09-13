@@ -25,19 +25,19 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-// P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（书记台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../core/version-token.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+// P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
+import { bumpToken } from '../core/version-token.js?v=20260913c';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
-import { PEOPLE } from '../mock/people.js?v=20260912k';
+import { PEOPLE } from '../mock/people.js?v=20260913c';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260912k';
+import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260913c';
 // 双形态判定（mock/api）：data-adapter.js 为零静态依赖的叶子模块（无环）
-import { getDataSource } from '../core/data-adapter.js?v=20260912k';
+import { getDataSource } from '../core/data-adapter.js?v=20260913c';
 // 新成员 id 生成（mock 形态；'p_' + uuid，与种子 p1~p50/p_pc 不冲突）
-import { generateId } from '../core/id.js?v=20260912k';
+import { generateId } from '../core/id.js?v=20260913c';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -108,8 +108,8 @@ export const PersonStore = {
    * @param {Object} updates - 成员记录/局部补丁（含 id 时按 id 定位；name 新增必填）
    * @param {Object} [opts]
    * @param {string} [opts.by] - 操作人（审计预留；不写入成员档案字段）
-   * @param {boolean} [opts.residenceMirror] - api 形态：在册状态镜像写入走书记/副书记语义端点
-   *   （POST /members/:id/residence-status，成员变更确认链书记确认生效调用点；缺省 false → 走组织委员名册档案端点）
+   * @param {boolean} [opts.residenceMirror] - api 形态：在册状态镜像写入走支书/副支书语义端点
+   *   （POST /members/:id/residence-status，成员变更确认链支书确认生效调用点；缺省 false → 走组织委员名册档案端点）
    * @returns {Promise<{ok:boolean, member?:Object, reason?:string}>}
    */
   async saveMember(updates, opts = {}) {
@@ -122,7 +122,7 @@ export const PersonStore = {
 
   /**
    * 移除成员（双形态同规则）：
-   *  - 引用守卫（guardRefs 默认开）：该人在任一业务域被引用（支部现任书记/活动分工/考勤/考察/
+   *  - 引用守卫（guardRefs 默认开）：该人在任一业务域被引用（支部现任支书/活动分工/考勤/考察/
    *    专班/报名/表态/思想汇报/复盘/成员变更/支委广播等，见 findMemberRefs）→ {ok:false, reason:'引用未清'}，
    *    仅空引用可删（先清业务引用再删）。
    *  - mock 形态：members 覆盖层标记删除（读链即时剔除；?reset=demo 回种子）；
@@ -382,7 +382,7 @@ function _mockRemoveMember(personId, opts = {}) {
 
 /**
  * 引用守卫核心集：该人在业务域的引用清单（双形态同规则；api 形态经 mockDB 缓存同函数判定）。
- * 域 = 既有 mockDB/持久链集合：支部现任书记 / 活动分工（内嵌 assignments）/ 分工记录 /
+ * 域 = 既有 mockDB/持久链集合：支部现任支书 / 活动分工（内嵌 assignments）/ 分工记录 /
  * 考勤 / 考察 / 专班成员 / 报名 / 支委会表态 / 思想汇报 / 活动·专班复盘 / 成员变更申请 / 支委广播。
  * @param {string} personId
  * @returns {Array<{domain:string, id:string, label:string}>} 空数组 = 无引用（可删）
@@ -391,9 +391,9 @@ export function findMemberRefs(personId) {
   if (!personId) return [];
   const refs = [];
   const hit = (domain, id, label) => refs.push({ domain, id, label });
-  // 支部现任书记（branches.secretaryId）
+  // 支部现任支书（branches.secretaryId）
   for (const b of mockDB.branches || []) {
-    if (b.secretaryId === personId) hit('branches', b.id, '支部现任书记');
+    if (b.secretaryId === personId) hit('branches', b.id, '支部现任支书');
   }
   // 活动内嵌分工（activities.assignments[].personId，含 organizer/deep/participant）
   for (const a of mockDB.activities || []) {
@@ -451,7 +451,7 @@ export function findMemberRefs(personId) {
 
 /**
  * 支部是否已有业务历史（replaceBranchMembers 前置守卫；缺省归属 br-b1 与 monitor-tab 口径一致）
- * 域 = 活动（含其考勤/考察/报名子记录经 activityId 归属）/ 专班 / 思想汇报 / 支部文件 / 书记任期 / 上报审批
+ * 域 = 活动（含其考勤/考察/报名子记录经 activityId 归属）/ 专班 / 思想汇报 / 支部文件 / 支书任期 / 上报审批
  * @param {string} branchId
  * @returns {boolean} true = 有历史（拒绝整支部替换）
  */
@@ -502,13 +502,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912k');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913c');
   return ApiAdapter.users;
 }
 
-/** 名册成员变更确认链写口（C-2 方案 B）：书记专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
+/** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912k');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913c');
   return ApiAdapter.members;
 }
 
@@ -555,13 +555,13 @@ async function _apiSaveMember(updates, opts = {}) {
     let saved = null;
     if (exists) {
       const { id, ...patch } = member;
-      // R-10（2026-09-11 书记裁定）：名册写链分流到语义端点（通用 PATCH /users/:id 仅 party-staff 可写，
-      // 组织委员/书记经此会被 403 阻断）。字段分组互斥，逐组按当前字段路由：
-      // ① 发展阶段 → 书记/副书记 develop-stage（唯一写位，不得由此改写）
+      // R-10（2026-09-11 支书裁定）：名册写链分流到语义端点（通用 PATCH /users/:id 仅 party-staff 可写，
+      // 组织委员/支书经此会被 403 阻断）。字段分组互斥，逐组按当前字段路由：
+      // ① 发展阶段 → 支书/副支书 develop-stage（唯一写位，不得由此改写）
       if (Object.prototype.hasOwnProperty.call(patch, 'developStage')) {
         saved = await members.setDevelopStage(id, patch.developStage);
       }
-      // ② 在册相关字段 → 成员变更确认链书记镜像走 residence-status；名册行内维护走 profile（组织委员）
+      // ② 在册相关字段 → 成员变更确认链支书镜像走 residence-status；名册行内维护走 profile（组织委员）
       const residence = _pick(patch, API_RESIDENCE_FIELDS);
       if (Object.keys(residence).length > 0) {
         saved = opts.residenceMirror
@@ -603,7 +603,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260912k');
+    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260913c');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

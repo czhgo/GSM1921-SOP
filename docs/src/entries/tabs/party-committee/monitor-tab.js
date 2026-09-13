@@ -1,23 +1,23 @@
 // role: [工程师]+[AI]
 // 党委工作台 Tab：支部监控台账（P1 党委后台，2026-09-02）
-// 党委见全院：各支部运行概览（支部名/书记/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
-// C⑤（2026-09-10 书记裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
+// 党委见全院：各支部运行概览（支部名/支书/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
+// C⑤（2026-09-10 支书裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
-// C⑤（2026-09-10 书记裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
+import { mockDB } from '../../../core/domain.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
+// C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
 // 复用 services/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/roster.js?v=20260912k';
+import { getRosterStats } from '../../../services/roster.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getCommitteeName } from '../../../services/branch.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
-// P2（2026-09-10）：监控卡补「书记任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/appointment.js?v=20260912k';
+import { getCommitteeName } from '../../../services/branch.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
+// P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
+import { listAppointments } from '../../../services/appointment.js?v=20260913c';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（modules/branch-demo-nav.js）：
 // 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260912k';
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260913c';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 
@@ -38,13 +38,13 @@ export async function renderContent(ctx) {
     activities.forEach(a => { if (a.branchId === undefined || (a.branchId || 'br-b1') === b.id) { typeCounts[a.type] = (typeCounts[a.type] || 0) + 1; } });
     const recent = activities.filter(a => (a.branchId || 'br-b1') === b.id).sort((x, y) => (y.date || '').localeCompare(x.date || '')).slice(0, 5);
     const secretaryName = b.secretaryId ? getPersonName(b.secretaryId) : '（待任命）';
-    // 书记任期行（只读）：复用 listAppointments（倒序，现任在前）——现任（to null）=「至今（现任）」，
+    // 支书任期行（只读）：复用 listAppointments（倒序，现任在前）——现任（to null）=「至今（现任）」，
     // 无在任记录时回退最近一条历史，全无 → 暂无任期记录（起止 = from → to）。
     const appts = listAppointments(b.id);
     const term = appts.find(a => !a.to) || appts[0] || null;
     const termText = term
-      ? `书记任期：${String(term.from || '').slice(0, 10) || '—'}${term.to ? ` → ${String(term.to).slice(0, 10)}` : ' · 至今（现任）'}`
-      : '书记任期：（暂无任期记录）';
+      ? `支书任期：${String(term.from || '').slice(0, 10) || '—'}${term.to ? ` → ${String(term.to).slice(0, 10)}` : ' · 至今（现任）'}`
+      : '支书任期：（暂无任期记录）';
     return {
       b, members: members.length, stageRows, typeCounts, recent, secretaryName, termText,
       partyTotal: roster.partyTotal,   // 在册党员（正式+预备）
@@ -69,7 +69,7 @@ export async function renderContent(ctx) {
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-title-cn text-base font-bold text-gray-800">${b.config?.headerTitle || b.name}</p>
-              <p class="text-xs text-gray-500 mt-0.5">${b.type || '支部'} · 现任书记：${secretaryName}</p>
+              <p class="text-xs text-gray-500 mt-0.5">${b.type || '支部'} · 现任支书：${secretaryName}</p>
               <p class="text-xs text-gray-500 mt-0.5">${termText}</p>
             </div>
             <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : b.status}</span>

@@ -5,26 +5,26 @@
 //  关联 ActivityRecordStore 用于活动维度的专班关联
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260912k';
-import { isInitStateActive } from './init-reset.js?v=20260912k'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonName } from './person.js?v=20260912k';
-import { evaluateWorkforceVotes } from './workforce.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { MOCK_TASKFORCES, PEOPLE } from '../mock/index.js?v=20260913c';
+import { isInitStateActive } from './init-reset.js?v=20260913c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonName } from './person.js?v=20260913c';
+import { evaluateWorkforceVotes } from './workforce.js?v=20260913c';
 // 附录⑩ B批（3.3）专班议案排入支委会表决所需的活动/通知基建：
 // 与 services/workforce.js 同路径（BranchService.createActivity + NoticeStore.add），
 // 仅函数体内使用（懒加载语义），不新增模块初始化期副作用。
-import { BranchService } from './runtime.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
-import { AuthStore } from './auth.js?v=20260912k';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912k'; // 支委层应到名单单一源（勿手写）
+import { BranchService } from './runtime.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
+import { AuthStore } from './auth.js?v=20260913c';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913c'; // 支委层应到名单单一源（勿手写）
 
-// 附录⑩ B批（S3 专班生命周期 · 书记裁定 2026-09-06）：
+// 附录⑩ B批（S3 专班生命周期 · 支书裁定 2026-09-06）：
 //   R3-1/R3-2：专班发起与中途解散一律走「支委会表决」（报送归集·例会表决形态），
-//     不再由书记单人批准/组织委员直接解散；表决判据与 R2-3 一致（见 applyCommitteeDecision 顶部注释）。
+//     不再由支书单人批准/组织委员直接解散；表决判据与 R2-3 一致（见 applyCommitteeDecision 顶部注释）。
 //   R3-3：成员贡献=成员填报（addContributions 写口，by=填报成员）、组织委员逐条核
 //     （verifyContributions：同意入档 / 退回补料，全程留痕）；纪检结项复盘兜底。
 //   数据形态（无新顶层域）：专班记录字段 committeeRequest = 当前待表决请求，
@@ -108,7 +108,7 @@ export const TaskForceRecordStore = {
     // T-190：招募时已内联选初始成员（members 非空）则不再派生；未选人保留待办兜底
     // 使用 dynamic import 避免与 todo.js 的潜在循环依赖
     if (!newRecord.members || newRecord.members.length === 0) {
-      import('./todo.js?v=20260912k').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260913c').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromTaskforceCreate(newRecord);
       }).catch(e => console.warn('[TaskForceRecordStore] 派生专班赋权待办失败：', e));
     }
@@ -215,7 +215,7 @@ export const TaskForceRecordStore = {
   //  数据域：mockDB.taskforces[].members[].contributions
   //  数组项：种子为字符串摘要（历史只读形态）；本次写入为对象条目
   //         { id:'tc-'+时间戳+'_'+personId, desc, by, at }
-  //  语义：附录⑩ B批（S3 R3-3，2026-09-06 书记裁定）起，写口=专班成员本人逐条填报
+  //  语义：附录⑩ B批（S3 R3-3，2026-09-06 支书裁定）起，写口=专班成员本人逐条填报
   //        （by=填报人）或组织委员代录，随后由组织委员 verifyContributions 逐条核
   //        （同意入档 / 退回补料，留痕）。历史字符串条目不参与核验（只读展示）。
   //  兼容旧数据：老成员无 contributions 字段（undefined）按 [] 处理。
@@ -345,10 +345,10 @@ export const TaskForceRecordStore = {
   },
 
   // ══════════════════════════════════════════════════════════════
-  //  专班支委会表决域（附录⑩ B批 · S3 R3-1/R3-2 · 书记裁定 2026-09-06）
+  //  专班支委会表决域（附录⑩ B批 · S3 R3-1/R3-2 · 支书裁定 2026-09-06）
   //  数据域：mockDB.taskforces[].committeeRequest / committeeDecision[]
   //  形态：报送归集·例会表决——申请方将发起或解散「报送支委会」，归集为待议；
-  //        书记召开线上支委会时纳入表决（判据=R2-3：应到严格 >2/3 出席且无反对，
+  //        支书召开线上支委会时纳入表决（判据=R2-3：应到严格 >2/3 出席且无反对，
   //        object/oppose 均视为反对、弃权允许——透传 services/workforce.js
   //        evaluateWorkforceVotes 单一判据），达标后 applyCommitteeDecision 落结果。
   //  语义：committeeRequest.status='pending' 期间专班保持现态（只读等待）；
@@ -381,7 +381,7 @@ export const TaskForceRecordStore = {
     return evaluateWorkforceVotes({ roster, votes });
   },
 
-  /** 归集视图数据：全部「待支委会表决」的报送（供书记线上支委会纳入表决） */
+  /** 归集视图数据：全部「待支委会表决」的报送（供支书线上支委会纳入表决） */
   listCommitteeRequests() {
     return this._records
       .filter(r => !r.deletedAt && r.committeeRequest && r.committeeRequest.status === 'pending')
@@ -440,7 +440,7 @@ export const TaskForceRecordStore = {
   },
 
   // ══════════════════════════════════════════════════════════════
-  //  成员贡献逐条核（附录⑩ B批 · S3 R3-3 · 书记裁定 2026-09-06）
+  //  成员贡献逐条核（附录⑩ B批 · S3 R3-3 · 支书裁定 2026-09-06）
   //  语义：成员在专班内逐条填报产出（addContributions，by=填报人）→ 组织委员逐条核
   //    （verifyContributions：同意入档 / 退回补料，全程留痕）；纪检结项复盘兜底。
   //  仅作用于对象形态条目 { id, desc, by, at }；历史字符串摘要不参与核验（只读展示）。
@@ -476,7 +476,7 @@ export const TaskForceRecordStore = {
 
 // ══════════════════════════════════════════════════════════════
 //  专班议案 → 线上支委会表决活动（附录⑩ B批 · 3.2-3 / 3.3）
-//  书记在待办页「专班待议（支委会）」将专班报送（发起/解散）排入表决：
+//  支书在待办页「专班待议（支委会）」将专班报送（发起/解散）排入表决：
 //  以 BranchService.createActivity（services/mock.js 的通用创建口，禁用的
 //  calendar-tab UI 向导不是服务函数）创建一场 type='支委会' 的线上表决活动；
 //  委员沿用既有「活动详情在线表态」（activity.html / inspector），本服务不实现投票 UI。
@@ -516,7 +516,7 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
   const byName = req.by ? getPersonName(req.by) : '组织委员';
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ') || '';
   // assignments 非空 → BranchService.createActivity 不再派生「组长赋权」待办（最小噪音）；
-  // 组织者 = 当前排入人（书记工作台操作），参与者 = 应到支委（表决名单由 voteConfig.voterIds 固化）
+  // 组织者 = 当前排入人（支书工作台操作），参与者 = 应到支委（表决名单由 voteConfig.voterIds 固化）
   const activity = await BranchService.createActivity({
     type: '支委会',
     scenarioId: 'branch-committee',
@@ -528,7 +528,7 @@ export async function createTaskforceVoteActivity({ taskforceId, kind = 'initiat
     // S-3（2026-09-10）默认描述精简：长文→一句（专班名/类型+报送人+时间+表态要求）
     description: `专班「${name}」${kindLabel}由${byName}${atText ? '（' + atText + '）' : ''}报送支委会表决，请支委表态（同意/异议/附言）。${note ? `说明：${note}。` : ''}`,
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds },
-    agenda: [{ id: 'ag-tf-' + Date.now(), item: `审议专班「${name}」（${kindLabel}）`, host: '书记' }],
+    agenda: [{ id: 'ag-tf-' + Date.now(), item: `审议专班「${name}」（${kindLabel}）`, host: '支书' }],
     extras: { taskforceProposal: { taskforceId: tf.id, kind: reqKind } },
     organizer: (me && me.personId) || 'p13',
     assignments: [{ personId: (me && me.personId) || 'p13', role: 'organizer' },

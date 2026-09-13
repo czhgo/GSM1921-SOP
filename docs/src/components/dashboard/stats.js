@@ -5,9 +5,9 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/notice.js?v=20260912k';
-import { _fmtDate } from '../../core/utils.js?v=20260912k';
-import { icon } from '../../core/icons.js?v=20260912k';
+import { NoticeStore } from '../../services/notice.js?v=20260913c';
+import { _fmtDate } from '../../core/utils.js?v=20260913c';
+import { icon } from '../../core/icons.js?v=20260913c';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: '#10B981' },
@@ -64,7 +64,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
         return act && act.date && act.date.startsWith(thisMonth);
       })
     : [];
-  // 数字一致性审计（2026-08-07）：出勤率口径与书记概况统一 = (出勤 + 已补) / 总记录；
+  // 数字一致性审计（2026-08-07）：出勤率口径与支书概况统一 = (出勤 + 已补) / 总记录；
   // 补课语义为"最终出勤"，made_up 记录计入出勤数。颜色阈值全站统一 90/70。
   const myPresent = myMonthAttendance.filter(r => r.status === 'present' || r.status === 'made_up').length;
   const myTotal = myMonthAttendance.length;
@@ -75,7 +75,7 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
     : '#DC2626';
 
   // A-01 修复：color 统一为 hex 常量，图标底色用 8 位 hex（${hex}15），var+hex 拼接无法解析
-  // 2026-08-10 书记两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
+  // 2026-08-10 支书两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
   // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为既有色阶 --accent-amber #D97706（3.19）；
   // 零值弱化色 #9CA3AF 不达 3:1，升档为 --neutral-500（浅 4.83 / 深 #94A3B8 6.57，深色不退化）
   const stats = [

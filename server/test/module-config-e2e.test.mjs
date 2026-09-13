@@ -1,8 +1,8 @@
 // server/test/module-config-e2e.test.mjs — 支部模块停用 E2E（回炉 v3，对齐换组织向导，2026-09-09）
 // 党委组织员(p_pc)登录党委工作台 →「支部配置」tab（换组织向导 embed，步骤②「模块/块组合」）
 // → 目标支部 br-b1 → 停用「活动管理」(calendar) 业务模块 → 保存本步（即时生效 + 留痕）
-// → 书记(p13)工作台「活动管理」tab 消失、核心组「待办」仍固定
-// → 党委台「恢复默认（全开）」→ 书记台刷新「活动管理」回归。
+// → 支书(p13)工作台「活动管理」tab 消失、核心组「待办」仍固定
+// → 党委台「恢复默认（全开）」→ 支书台刷新「活动管理」回归。
 // 现行 UI 事实：原 #pc-branch-select/[data-pc-module]/#pc-save/#pc-reset 已并入向导；
 //   业务模块 chips = data-wz-chip="module" data-id=<secretary 工作台 tab id>；
 //   保存/恢复默认 = data-wz-act="save-step" data-step="2" / data-wz-act="reset-modules"。
@@ -107,7 +107,7 @@ async function waitNoSecretaryTab(page, label) {
   }, label, { timeout: 15000 });
 }
 
-test('党委「支部配置」向导：停用业务模块 → 书记台消失（核心组仍在）→ 恢复默认回归', async () => {
+test('党委「支部配置」向导：停用业务模块 → 支书台消失（核心组仍在）→ 恢复默认回归', async () => {
   const party = await newPage();
   try {
     // ① 党委登录 → 支部配置（换组织向导）→ 步骤② 业务模块 chips（br-b1 默认全开）
@@ -130,12 +130,12 @@ test('党委「支部配置」向导：停用业务模块 → 书记台消失（
       return b && b.classList.contains('opacity-45');
     }, null, { timeout: 8000 });
 
-    // ③ 书记(p13)登录书记台 →「活动管理」tab 消失、核心组「待办」仍固定（跨会话 = 服务端已持久化）
+    // ③ 支书(p13)登录支书台 →「活动管理」tab 消失、核心组「待办」仍固定（跨会话 = 服务端已持久化）
     const sec = await newPage();
     await login(sec, '2300010001', 'secretary');
     await waitNoSecretaryTab(sec, '活动管理');
     let labels = await secretaryTabLabels(sec);
-    assert.ok(!labels.includes('活动管理'), `停用后书记台无活动管理，实际：${labels.join('/')}`);
+    assert.ok(!labels.includes('活动管理'), `停用后支书台无活动管理，实际：${labels.join('/')}`);
     assert.ok(labels.includes('待办'), '核心待办仍固定');
     await sec.close();
 
@@ -144,7 +144,7 @@ test('党委「支部配置」向导：停用业务模块 → 书记台消失（
     await gotoWizardStep2(party);
     assert.equal((await chipState(party, 'module', 'calendar'))?.dimmed, true, '重进配置页：活动管理仍停用（持久化）');
 
-    // ⑤ 恢复默认（全开）→ 书记台刷新「活动管理」回归
+    // ⑤ 恢复默认（全开）→ 支书台刷新「活动管理」回归
     party.once('dialog', (d) => d.accept());
     const resetResp = configPatchPromise(party);
     await party.click('[data-wz-act="reset-modules"]');
@@ -161,7 +161,7 @@ test('党委「支部配置」向导：停用业务模块 → 书记台消失（
     assert.ok(labels.includes('活动管理'), `恢复默认后活动管理回归，实际：${labels.join('/')}`);
     await sec2.close();
 
-    console.log('[module-config] 停用「活动管理」→ 书记台消失/核心组在 → 恢复默认回归 闭环通过');
+    console.log('[module-config] 停用「活动管理」→ 支书台消失/核心组在 → 恢复默认回归 闭环通过');
   } finally {
     await party.close();
   }

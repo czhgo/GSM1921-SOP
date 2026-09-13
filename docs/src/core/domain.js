@@ -28,7 +28,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
  * @property {'leader'|'disc-commissioner'} [attendanceQROwner] - 考勤二维码发布方（组织生活会专用：现场组织的党小组组长） - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
- * @property {boolean} [isBrand]  - 品牌属性标签（由书记认定，不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
+ * @property {boolean} [isBrand]  - 品牌属性标签（由支书认定，不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
  * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
  *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
  *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。
@@ -43,7 +43,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
  * @property {string}  recordedAt  - 记录时间 ISO 字符串
  * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
- * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
+ * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
  * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#组织生活会
  */
 
@@ -53,15 +53,15 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  name        - 姓名
  * @property {string}  studentId   - 学号
  * @property {string}  partyGroup  - 所属党小组（如 '第一党小组'）
- * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 书记决策移除【入党申请人】）
+ * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】）
  * @property {string}  role        - 角色键（secretary/org-commissioner/participant…，与 core/constants.js ROLE_KEYS 对齐）
  * @property {string}  [branchId]  - 所属支部（缺省 br-b1；p_pc 党委组织员=null 不属于支部）
- * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 书记已批）：
+ * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 支书已批）：
  *   滞留 = 组织关系在本支部但人不在校、不参加日常会议；成员身份保留、应到剔除、通知照发。
  *   未标注 = 默认「在校」。
  * @property {string}  [residenceNote] - 状态备注（原因/起止文字；组织委员维护）
  * @property {Array<{from:'在校'|'滞留', to:'在校'|'滞留', updatedBy:string, updatedAt:string, note?:string}>} [residenceHistory]
- *   - 状态变更留痕（组织委员维护时追加，书记可复核查看；运行期覆盖存 services/roster.js RESIDENCE_KEY）
+ *   - 状态变更留痕（组织委员维护时追加，支书可复核查看；运行期覆盖存 services/roster.js RESIDENCE_KEY）
  */
 
 /**
@@ -218,8 +218,8 @@ export const mockDB = {
   // 禁止 saveDB/persist 写入——防止加载早期以空数据覆盖用户已保存的数据（2026-08-05 修复）
   _loaded: false,
   users: [
-    { id: 'u_sec',  role: 'secretary',         name: '支部书记' },
-    { id: 'u_dep',  role: 'deputy-secretary',  name: '支部副书记' },
+    { id: 'u_sec',  role: 'secretary',         name: '支书' },
+    { id: 'u_dep',  role: 'deputy-secretary',  name: '副支书' },
     { id: 'u_org',  role: 'org-commissioner',  name: '组织委员' },
     { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
     { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
@@ -284,20 +284,20 @@ export const mockDB = {
   /** @type {Object[]} 纪检公邮查收历史（disc-commissioner 党建 Tab） */
   mailboxHistory: [],
   // ── 2026-08-10 文件流内控新增持久化域 ──
-  /** @type {Object[]} 文件流外发确认记录（ExternalDispatch，书记 2026-08-10 裁定） */
+  /** @type {Object[]} 文件流外发确认记录（ExternalDispatch，支书 2026-08-10 裁定） */
   externalDispatches: [],
   // ── 2026-08-18 支部文件新增持久化域 ──
   /** @type {Object[]} 支部文件（资料查询页，支委写入/全员下载） */
   branchDocs: [],
-  // ── 2026-09-01 成员变更审批链路（书记点验链路 ③④ 落地）──
-  /** @type {Object[]} 成员变更申请（议程记录通过 → 组织委员审批 → 书记确认 → 更新阶段） */
+  // ── 2026-09-01 成员变更审批链路（支书点验链路 ③④ 落地）──
+  /** @type {Object[]} 成员变更申请（议程记录通过 → 组织委员审批 → 支书确认 → 更新阶段） */
   memberChangeRequests: [],
   /** @type {Object[]} 支委广播记录（组织委员审批通过后广播全体支委确认收到） */
   committeeBroadcasts: [],
   // ── 2026-09-01 线上支委会表态（异步表态闭环）──
-  /** @type {Object[]} 支委表态记录（委员异步表态：agree 同意 / object 异议 / comment 附言；书记截止后 votesLocked 锁定） */
+  /** @type {Object[]} 支委表态记录（委员异步表态：agree 同意 / object 异议 / comment 附言；支书截止后 votesLocked 锁定） */
   agendaVotes: [],
-  // ── 2026-08-30 思想汇报数字化（书记决策，算法归档原则）──
+  // ── 2026-08-30 思想汇报数字化（支书决策，算法归档原则）──
   /** @type {Object[]} 思想汇报（党员/发展对象系统内提交，算法自动归集至个人档案，组织委员查看调用） */
   thoughtReports: [],
   // ── 2026-09-02 党委后台 P1：支部多实例 ──
@@ -305,8 +305,8 @@ export const mockDB = {
    *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；
    *  config.fileSpaceIsolated=支部文件（branchDocs）/附件一支部一独立存储空间 */
   branches: [],
-  // ── 2026-09-02 党委后台 P2：书记任命与任期 ──
-  /** @type {Object[]} 书记任期记录（党委任命/撤换；换届改选档案）
+  // ── 2026-09-02 党委后台 P2：支书任命与任期 ──
+  /** @type {Object[]} 支书任期记录（党委任命/撤换；换届改选档案）
    *  { id, branchId, secretaryId, appointedBy, note, from, to(null=现任) } */
   appointmentRecords: [],
   // ── 2026-09-02 党委后台 P3：支部上报审批 ──
@@ -315,7 +315,7 @@ export const mockDB = {
    *    status:'pending'|'approved'|'rejected', submittedBy, decidedBy, decidedAt, decisionNote, createdAt } */
   reviewRequests: [],
   // ── 2026-09-06 附录⑩ S4 名册生命周期·成员变更确认复核（C 批）：成员变更/移出确认请求队列 ──
-  // 组织委员发起（发展阶段 / 在册滞留 / 移出）→ 书记确认生效或退回（双层留痕、可退回）；
+  // 组织委员发起（发展阶段 / 在册滞留 / 移出）→ 支书确认生效或退回（双层留痕、可退回）；
   // 终态（approved/rejected）保留供审计追溯。mock-adapter 域清单禁改 → 本数组仅承载内存读链；
   // 跨刷新持久化由 member-confirmation 服务自管 localStorage 键 gsm1921-member-confirmations
   // （gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子）。

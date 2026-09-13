@@ -83,7 +83,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准·文档规范类（权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14） | CLAUDE.md（H90 指针）、全仓库 |
-| `content/03_doc_system/PROCESS_GUIDE.md` | [工程师]+[AI] | 运行标准·流程机制类（§15 甲部修改流程、§16 吸收外部输入、§17 周期性任务、§18 书记评议工作流细节；2026-08-24 自 OPERATIONS_GUIDE 拆分） | CLAUDE.md H60/H30.1 |
+| `content/03_doc_system/PROCESS_GUIDE.md` | [工程师]+[AI] | 运行标准·流程机制类（§15 甲部修改流程、§16 吸收外部输入、§17 周期性任务、§18 支书评议工作流细节；2026-08-24 自 OPERATIONS_GUIDE 拆分） | CLAUDE.md H60/H30.1 |
 | `content/03_doc_system/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + AI 展开原则 §二 + Emoji 边界 §三，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
@@ -103,7 +103,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范（设计哲学/排版/交互反馈/响应式/深色模式/设计资产/快速参考；2026-08-24 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） | docs/src/styles.css |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
-| `content/04_web_design/design-system/CLICK_ROUTING.md` | [工程师]+[AI] | 点击落点映射表（「什么地方可点击、点击后落在哪里」全局规范：分层原则 + 活动/专班/通知条目落点映射；2026-08-29 书记分层原则裁定） | docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/notice.js（resolveNoticeUrl） |
+| `content/04_web_design/design-system/CLICK_ROUTING.md` | [工程师]+[AI] | 点击落点映射表（「什么地方可点击、点击后落在哪里」全局规范：分层原则 + 活动/专班/通知条目落点映射；2026-08-29 支书分层原则裁定） | docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/notice.js（resolveNoticeUrl） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
@@ -114,9 +114,9 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、DATA_FLOW.md、SOP_WEBSITE_GUIDE.md |
 | `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/、2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座） | [工程师]+[AI] | 工程化评估与改造行动线（五维评分=模块化 75/插件化 75/开源化 74/超参数 78/组合 78·综合≈76 + 工程做法纪律 + 行动线 P0~P4 执行状态；2026-09-03 建，覆盖式维护） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
-| `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；书记 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
+| `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md、COMPONENT_SPEC.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
-| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 书记任命 / P3 上报审批+下发；书记逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
+| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发；支书逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
 | `content/04_web_design/deploy/AUTHENTICATION_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
 | `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
@@ -131,7 +131,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/05_ai_coding/FILE_OPERATION_RULES.md` | [工程师]+[AI] | 文件操作纪律分篇（持久化/临时文件/工具选择/版本参数/连续编辑/沙箱脚本 + 删除三铁律/架构迁移四步/仓库卫生；原 KNOWN §1/§3/§6/§13/§14/§18 + insights §2.3/§5.1/§5.11；read_strategy: on-demand） | CLAUDE.md H90 |
 | `content/05_ai_coding/TEST_AND_VERIFICATION.md` | [工程师]+[AI] | 测试验证纪律分篇（Subagent 虚假确认/同一套数据盲区/受限视觉三件套/版本分裂/e2e 写穿 + 模拟数据一致性/人工检查写法/修复前 Grep 定位/排序覆盖下拉/兜底模式/CSS 注释陷阱；原 KNOWN §11/§12/§15/§16/§17/§19 + insights §4.12.2/§5.10/§6.17/§6.25/§6.26/§6.29；read_strategy: on-demand） | DATA_CONSISTENCY_CHECKLIST.md（配套手册） |
 | `content/05_ai_coding/DOCUMENT_GOVERNANCE.md` | [工程师]+[AI] | 文档治理与一改具改分篇（一改具改执行/分层体系冲突/遗漏场景 + 命名/SSOT/单一表达/历史不可变/文件归置/工具隔离/文件夹治理/阶段适应性/spec 全流程/治理审计/全仓验证/被否决残留；原 KNOWN §2/§7/§10 + insights §1.1/§1.2/§1.3/§3.6/§4.8/§4.18/§5.2-§5.4/§5.9/§6.4/§6.15/§6.27；read_strategy: on-demand） | OPERATIONS_GUIDE.md §1.4 |
-| `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失/制度推断/对话总结虚假 + 减负/只留当前/决策三分/看板归档/交接协议/核心原则三分层/上下文工程/轮值推定/丙部触发 + 书记裁决落活层闭环规则；原 KNOWN §4/§8/§9 + insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11；**read_strategy: active**） | CLAUDE.md H90 + H26 |
+| `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | [工程师]+[AI] | 上下文管理与防失忆分篇（上下文丢失/制度推断/对话总结虚假 + 减负/只留当前/决策三分/看板归档/交接协议/核心原则三分层/上下文工程/轮值推定/丙部触发 + 支书裁决落活层闭环规则；原 KNOWN §4/§8/§9 + insights §2.1/§2.2/§2.5/§2.6/§3.1/§3.2/§3.3/§6.1/§6.5/§6.11；**read_strategy: active**） | CLAUDE.md H90 + H26 |
 | `content/05_ai_coding/REVIEW_AND_EXPRESSION.md` | [工程师]+[AI] | 评议与表达纪律分篇（沉淀位置 + 内容归属/沉淀闭环/复盘理念/提级机制/Skill 检验/正反两面论/反论审核/尺度三分类/消歧写法/总分并列/打破重组/孤段落/叙述表达/零补丁/讲解三层/AI 概括层级/T3 行话；原 KNOWN §5 + insights §1.6/§3.4/§3.7/§4.5/§4.6/§4.7/§4.8/§4.12.6/§4.15/§5.10/§6.2/§6.18/§7.1-§7.5；read_strategy: on-demand） | insights/ |
 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | [工程师]+[AI] | 数据同源一致性校验手册（工程质检流程，按数据类别逐步检查；机器检查+人工检查分工；2026-09-04 自 04 evolution 迁入，AI 方法论归 05） | DATA_MODEL.md、ARCHITECTURE.md |
 
@@ -231,4 +231,4 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
 | 查看母本子本关系 | content/03_doc_system/SSOT_INDEX.md | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
-| 查看书记重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |
+| 查看支书重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |

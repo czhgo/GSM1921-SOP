@@ -1,18 +1,18 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { BranchService } from '../services/runtime.js?v=20260912k';
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { getPersonById } from '../services/person.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { getActivityTypeColors } from '../core/constants.js?v=20260912k';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260912k';
-import { getBasePath } from '../core/utils.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { badgeHtml } from '../components/badges.js?v=20260912k';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { BranchService } from '../services/runtime.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { getPersonById } from '../services/person.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { getActivityTypeColors } from '../core/constants.js?v=20260913c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260913c';
+import { getBasePath } from '../core/utils.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { badgeHtml } from '../components/badges.js?v=20260913c';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -57,7 +57,7 @@ function renderContent() {
   else if (_activeTab === 'notice') renderNoticeArchive();
 }
 
-// ── 分页（书记 2026-08-08：归档数据无上限增长 → 前端分页，复用 query-view 分页模式）──
+// ── 分页（支书 2026-08-08：归档数据无上限增长 → 前端分页，复用 query-view 分页模式）──
 const PAGE_SIZE = 10;
 const _pageState = { activity: 1, taskforce: 1, notice: 1 };
 
@@ -172,7 +172,7 @@ function renderNoticeArchive() {
   // 2026-08-08 归档闭环：归档库只承载「已退出工作区」的通知——
   //   ① 随活动/专班归档的通知（archived=true）
   //   ② 自然过期（expireDate < 今天）的历史通知
-  // 工作区（首页/书记通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
+  // 工作区（首页/支书通知发布/全局概况）仅保留未归档的有效通知，杜绝列表爆炸。
   const today = new Date().toISOString().slice(0, 10);
   const all = NoticeStore.getAll({ includeArchived: true })
     .filter(n => n.archived === true || (n.expireDate && n.expireDate < today));

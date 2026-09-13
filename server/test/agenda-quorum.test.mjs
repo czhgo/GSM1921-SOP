@@ -5,12 +5,12 @@
 //   校验不通过抛错中止（不写 result）；弃权计入出席不计赞成；quorumCheck=false 不拦截。
 //   经 recordAgendaResultForActivity 走完整校验链（与 agenda-closure-core 同入口），
 //   表态数据注入 mockDB.agendaVotes —— 须与 committee-vote.js 内部同一 mockDB 实例
-//   （模块缓存键含 ?v= 查询串，故此处同样带 ?v=20260901h 导入）。
+//   （模块缓存键含 ?v= 查询串，故此处同样带 ?v=20260913c 导入）。
 // 运行：node --test server/test/agenda-quorum.test.mjs
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260913c';
 
 const ACT_ID = 'act-quorum';
 const AGENDA_ITEM_ID = 'a1';
@@ -26,7 +26,7 @@ function makeActivity(total, { quorumCheck = true } = {}) {
   return {
     id: ACT_ID,
     voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds, quorumCheck },
-    agenda: [{ id: AGENDA_ITEM_ID, item: '审议发展党员事项', host: '书记', result: null }],
+    agenda: [{ id: AGENDA_ITEM_ID, item: '审议发展党员事项', host: '支书', result: null }],
   };
 }
 
@@ -34,7 +34,7 @@ function vote(personId, position) {
   return { activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, personId, position };
 }
 
-// 无记名（2026-09-12 书记裁定）行形态：参与记录（无 position）+ 计数行 tally（无 personId）
+// 无记名（2026-09-12 支书裁定）行形态：参与记录（无 position）+ 计数行 tally（无 personId）
 function anonParticipation(personId) {
   return { activityId: ACT_ID, agendaItemId: AGENDA_ITEM_ID, personId, votedAt: '2026-09-12T00:00:00.000Z', ballotMode: 'anonymous' };
 }
@@ -103,7 +103,7 @@ test('quorumCheck=false：不拦截（无任何表态也放行）', async () => 
   assert.equal(updated.agenda[0].result, 'passed', 'quorumCheck=false 不做门禁');
 });
 
-// ── 无记名（2026-09-12 书记裁定）：门槛/结果按 应到/实到 + tally 计算，不依赖逐人选项 ──
+// ── 无记名（2026-09-12 支书裁定）：门槛/结果按 应到/实到 + tally 计算，不依赖逐人选项 ──
 test('无记名：赞成取自 tally（无逐人 position 亦放行）', async () => {
   // 应到 3：实到需 ≥2、赞成需 >1.5。2 条参与记录 + tally{approve:2} → 放行；
   // 若误按逐人 position 计（无 position）则赞成 0 → 会被赞成门禁拦截，此断言即证明取自 tally。

@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260912k';
-import { BranchService } from '../../../services/runtime.js?v=20260912k';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912k';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912k';
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912k';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912k'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912k';
-import { NoticeStore } from '../../../services/notice.js?v=20260912k';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912k'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260912k';
-import { showToast } from '../../../core/utils.js?v=20260912k';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912k';
-import { icon } from '../../../core/icons.js?v=20260912k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
-import { recordFormShell } from '../../../components/forms.js?v=20260912k';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
-import { getPersonName } from '../../../services/person.js?v=20260912k';
+import { setState } from '../../../core/state.js?v=20260913c';
+import { BranchService } from '../../../services/runtime.js?v=20260913c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913c';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260913c';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260913c';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260913c';
+import { NoticeStore } from '../../../services/notice.js?v=20260913c';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260913c';
+import { showToast } from '../../../core/utils.js?v=20260913c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260913c';
+import { icon } from '../../../core/icons.js?v=20260913c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
+import { recordFormShell } from '../../../components/forms.js?v=20260913c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
+import { getPersonName } from '../../../services/person.js?v=20260913c';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -919,7 +919,7 @@ async function _dissolveTaskforce(tf) {
   }
 
   // B批 R3-2：前置校验通过后「报送解散表决」，不再由组织委员直接解散；
-  // 表决通过后由书记侧 applyCommitteeDecision 落 dissolved（解散留痕），未通过专班继续运行
+  // 表决通过后由支书侧 applyCommitteeDecision 落 dissolved（解散留痕），未通过专班继续运行
   const currentUserId = AuthStore.getCurrentUser()?.personId || '';
   const confirmed = window.confirm(`确认将「${tf.name}」报送解散表决？将提交支委会表决，表决通过后专班才会解散（当前仍运行中）。`);
   if (!confirmed) return;
@@ -1004,7 +1004,7 @@ export function openRecruitForm(ctx) {
   const panel = document.createElement('div');
   panel.className = 'card rounded-xl';
   panel.style.cssText = 'width:560px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;padding:24px;position:relative;';
-  // 统一表单基建（2026-08-05 书记裁决「统一表单基建」）：与「写入活动」表单对齐
+  // 统一表单基建（2026-08-05 支书裁决「统一表单基建」）：与「写入活动」表单对齐
   // input-flat / text-xs 标签 / 红色必填星号 / 同规格按钮
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
@@ -1116,7 +1116,7 @@ function _closeRecruitForm() {
   if (overlay) overlay.remove();
 }
 
-// ── 专班发起表单提交（B批 R3-1：创建即自动报送支委会表决，不再派生书记单人审批待办） ──
+// ── 专班发起表单提交（B批 R3-1：创建即自动报送支委会表决，不再派生支书单人审批待办） ──
 
 function _submitRecruitForm(ctx) {
   const name = document.getElementById('rf-name')?.value?.trim();
@@ -1128,7 +1128,7 @@ function _submitRecruitForm(ctx) {
   const periodEnd = document.getElementById('rf-period-end')?.value || '';
   const notes = document.getElementById('rf-notes')?.value?.trim() || '';
 
-  // 预拟通知（选填，2026-08-05 书记裁决「表单内预拟通知·只跑一次」）
+  // 预拟通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
   const noticeTitle = document.getElementById('rf-notice-title')?.value?.trim();
   const noticeContent = document.getElementById('rf-notice-content')?.value?.trim();
 
@@ -1148,7 +1148,7 @@ function _submitRecruitForm(ctx) {
 
   // 构建专班记录
   // B批 R3-1：发起即置 pending_review（待支委会表决），随后自动报送支委会表决；
-  // 表决通过后由书记侧 applyCommitteeDecision 写 recruiting（进入招募中），不再单人审批
+  // 表决通过后由支书侧 applyCommitteeDecision 写 recruiting（进入招募中），不再单人审批
   const record = {
     name,
     task,

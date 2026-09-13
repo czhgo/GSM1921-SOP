@@ -1,22 +1,22 @@
 // role: [工程师]+[AI]
 // 组织委员工作台 Tab：发展数据（T-279 M3 拆分，照 M2 样板）
 // 从入党积极分子到正式党员的完整发展路径数据（管线概览 + 阶段筛选 + 只读追踪）。
-// C①（2026-09-10 书记裁定）：本页为只读追踪视图，不承载任何写操作——「推进至X」直写已移除，
-//   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 书记确认后生效
+// C①（2026-09-10 支书裁定）：本页为只读追踪视图，不承载任何写操作——「推进至X」直写已移除，
+//   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912k';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913c';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260912k';
-import { PersonStore } from '../../../services/person.js?v=20260912k';
-// S-1（2026-09-09 书记批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260912k';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260913c';
+import { PersonStore } from '../../../services/person.js?v=20260913c';
+// S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
+import { loadActivities } from '../../../services/activity.js?v=20260913c';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260912k';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260913c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -34,8 +34,8 @@ const STAGE_COLOR = {
 // 发展党员追踪 — 数据源：PEOPLE（唯一人员数据源）+ 考察记录（只读派生）
 // 2026-08-01 重构：废弃硬编码名单（原 6 条模拟字段），从 PEOPLE 派生所有非正式党员
 // （积极分子/发展对象/预备党员），与人员库全系统同源一致。
-// C①（2026-09-10 书记裁定）：原「推进覆盖档案」localStorage 直写（gsm1921-dev-stage-overrides）已移除——
-//   阶段唯一来源 = 人员库 developStage（名册发起变更 → 书记确认 → PersonStore.saveMember 落档）。
+// C①（2026-09-10 支书裁定）：原「推进覆盖档案」localStorage 直写（gsm1921-dev-stage-overrides）已移除——
+//   阶段唯一来源 = 人员库 developStage（名册发起变更 → 支书确认 → PersonStore.saveMember 落档）。
 
 function _isAgendaKind(a, k) {
   return (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
@@ -86,7 +86,7 @@ function _buildCandidates() {
         name: p.name,
         partyGroup: p.partyGroup || '',
         stage: p.developStage,
-        // C③（2026-09-10 书记裁定）：无真实日期则**不显示**该行，禁止兜底假日期（原 `|| '2026-01-01'`）
+        // C③（2026-09-10 支书裁定）：无真实日期则**不显示**该行，禁止兜底假日期（原 `|| '2026-01-01'`）
         entryDate: (loadDevStageOverrides()[p.id] || {}).entryDate || null,
         inspCount,
         reportCount,
@@ -145,9 +145,9 @@ export function renderContent(ctx) {
           const stageIdx = STAGE_ORDER.indexOf(c.stage);
           const isLast = stageIdx === STAGE_ORDER.length - 1;
           const nextStage = isLast ? null : STAGE_ORDER[stageIdx + 1];
-          // C① 只读化（2026-09-10 书记裁定）：移除直写「推进至X」，改为名册深链——阶段变更经名册发起、书记确认。
+          // C① 只读化（2026-09-10 支书裁定）：移除直写「推进至X」，改为名册深链——阶段变更经名册发起、支书确认。
           const actionHtml = !isLast
-            ? `<a class="dev-goto-roster-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(c.personId)}" title="发展阶段变更需在成员名册发起，经书记确认后生效（下一节点：${nextStage}）" style="text-decoration:none;">去名册发起变更 →</a>`
+            ? `<a class="dev-goto-roster-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(c.personId)}" title="发展阶段变更需在成员名册发起，经支书确认后生效（下一节点：${nextStage}）" style="text-decoration:none;">去名册发起变更 →</a>`
             : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-200">已转正</span>`;
 
           // 进度条（当前阶段高亮）
@@ -187,7 +187,7 @@ export function renderContent(ctx) {
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
           <span class="text-xs text-gray-500" title="统计范围：本支部在册成员中尚在发展阶段的成员（积极分子/发展对象/预备党员），不含正式党员">${candidates.length} 人 · 发展中（不含正式党员）</span>
         </div>
-        <p class="text-[11px] text-gray-500 mb-3">本页为只读追踪视图（发展阶段 / 进度 / 来源会议）。发展阶段变更请在「成员名册」发起、书记确认后生效——点卡片右侧「去名册发起变更」直达该成员。</p>
+        <p class="text-[11px] text-gray-500 mb-3">本页为只读追踪视图（发展阶段 / 进度 / 来源会议）。发展阶段变更请在「成员名册」发起、支书确认后生效——点卡片右侧「去名册发起变更」直达该成员。</p>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}
@@ -211,8 +211,8 @@ export function renderContent(ctx) {
       });
     });
 
-    // C①（2026-09-10 书记裁定）：原「推进至X」直写事件（.dev-advance-btn → localStorage 覆盖档案）已移除，
-    //   阶段变更唯一入口 = 名册卡片「去名册发起变更」深链（?tab=roster&highlight=<personId>）→ submitMemberChange → 书记确认。
+    // C①（2026-09-10 支书裁定）：原「推进至X」直写事件（.dev-advance-btn → localStorage 覆盖档案）已移除，
+    //   阶段变更唯一入口 = 名册卡片「去名册发起变更」深链（?tab=roster&highlight=<personId>）→ submitMemberChange → 支书确认。
     // IA-C3 收敛只读展开 2026-09-06：原「思想汇报」展开（.dev-reports-btn/.dev-reports-panel）
     // 渲染与切换代码已随上方计数文本改造移除——思想汇报详细查看去 组织台「思想汇报」tab / 成员档案。
   }

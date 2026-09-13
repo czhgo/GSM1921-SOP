@@ -2,13 +2,13 @@
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260912k';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { seedTodos } from '../services/todo.js?v=20260912k';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { seedTodos } from '../services/todo.js?v=20260913c';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
-import '../modules/capabilities/disc-workspace.js?v=20260909e';
+import '../modules/capabilities/disc-workspace.js?v=20260913c';
 
 await createWorkspaceShell({
   accentRole: 'disc-commissioner',
@@ -19,10 +19,10 @@ await createWorkspaceShell({
   storageKey: 'workflowos_tab_disc',
   defaultTab: 'today',
   renderCtxExtras: (state) => ({ activities: state.activities || [] }),
-  // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
+  // 一键汇报入口（支书 2026-08-10 裁定：复用 Issue 体系）
   extraRightHtml: ({ accent, accentRgba }) => renderReportEntryHtml({ accent, accentRgba }),
   bindExtras: (container) => bindReportEntry(container),
-  // ── 首页跳转落点（书记 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
+  // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.tfId) {
       // 专班查看（纪检无专班职责≠无知情权）：快照高亮目标

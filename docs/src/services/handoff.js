@@ -4,14 +4,14 @@
 //  落地 content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §E.2 数据交接协议：
 //    纪检→宣传 考勤备案 / 纪检→组织 考察记录提交 / 组织→纪检 补课需求回执
 //  （组织→纪检 专班名单同步已在纪检考察 tab 落地，不重复建模）
-//  后台同步机制（书记强调「信息流最畅通」）：交接生成 → 自动为接收方派生待办；
+//  后台同步机制（支书强调「信息流最畅通」）：交接生成 → 自动为接收方派生待办；
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260913c';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——
@@ -26,7 +26,7 @@ export const HANDOFF_ROLE_LABELS = {
   'disc-commissioner': '纪检委员',
   'prop-commissioner': '宣传委员',
   'org-commissioner':  '组织委员',
-  'secretary': '党支部书记',
+  'secretary': '支书',
 };
 
 function _load() {

@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // mock/accounts.js — Mock 登录账号（模拟 IAAA 校验）
-// 2026-09-06 基线刷新：注释中 p1~p15 显示名与 people.js 同步（书记=储子禾 p13）
+// 2026-09-06 基线刷新：注释中 p1~p15 显示名与 people.js 同步（支书=储子禾 p13）
 
 export const MOCK_ACCOUNTS = [
-  { studentId: '2300010001', password: '123456', personId: 'p13' },  // 书记 储子禾
-  { studentId: '2300010002', password: '123456', personId: 'p14' },  // 副书记 潘振华
+  { studentId: '2300010001', password: '123456', personId: 'p13' },  // 支书 储子禾
+  { studentId: '2300010002', password: '123456', personId: 'p14' },  // 副支书 潘振华
   { studentId: '2400012355', password: '123456', personId: 'p11' },  // 组织委员 高翔宇
   { studentId: '2400012356', password: '123456', personId: 'p12' },  // 宣传委员 方文静
   { studentId: '2400012354', password: '123456', personId: 'p10' },  // 纪检委员 董建军

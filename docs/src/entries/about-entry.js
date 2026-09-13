@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { getBasePath } from '../core/utils.js?v=20260912k';
-import { icon } from '../core/icons.js?v=20260912k';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { getBasePath } from '../core/utils.js?v=20260913c';
+import { icon } from '../core/icons.js?v=20260913c';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -20,7 +20,7 @@ renderHeader('about', { staticShell: true });
 //  数据定义
 // ════════════════════════════════════════════════════════════════
 
-// 我们如何考察（全员考察维度，党建贡献高亮——特别突出原创性贡献；2026-08-12 书记指令：不强调积极分子，所有人都受到这样的考察）
+// 我们如何考察（全员考察维度，党建贡献高亮——特别突出原创性贡献；2026-08-12 支书指令：不强调积极分子，所有人都受到这样的考察）
 const REVIEW_DIMENSIONS = [
   {
     id: 'party-class',
@@ -52,7 +52,7 @@ const REVIEW_DIMENSIONS = [
 // 信息集中：核心高频节点（党小组组长/组织者/组织委员/纪检委员）权重更高、视觉更重。
 
 // 角色元数据：name（完整 T1 名，圆下方）+ short（圆内名，5 字内用完整名）+ color（工作流图节点辨识色）
-// 颜色规则（书记 2026-08-13「先用还没被清理掉的硬编码颜色」；2026-08-14 §C.3 已迁移）：
+// 颜色规则（支书 2026-08-13「先用还没被清理掉的硬编码颜色」；2026-08-14 §C.3 已迁移）：
 //   工作流图节点辨识色对齐 DESIGN_SYSTEM §2.3.2 角色识别色系（organizer=天蓝系 / disc-commissioner=深橙 / org-commissioner=天蓝 / prop-commissioner=海蓝）；
 //   职能色——发起方党建红 / 审批方深绿 / 执行核心深青 / 参与层灰 / 动作节点紫。
 //   注：此处为「身份标识场景」默认辨识色；工作台内强调一律走主题色（可自选），见 DESIGN_SYSTEM §2.7/§2.8。
@@ -186,7 +186,7 @@ const TASKFORCE_SCENE = {
     {
       id: 0,
       title: '发起 + 支委会审议',
-      desc: '发起人（书记/党小组组长/支委等，可多人）提出专班需求；支委会审议立项（线上或线下），通过后交组织委员招募。',
+      desc: '发起人（支书/党小组组长/支委等，可多人）提出专班需求；支委会审议立项（线上或线下），通过后交组织委员招募。',
       flows: [
         { text: '发起人 → 支委会（提出需求）', type: 'info' },
         { text: '支委会 → 组织委员（审议通过·交招募）', type: 'task' },
@@ -262,7 +262,7 @@ const DIALOGUE_STAGES = [
     question: '工作中遇到问题怎么办？',
     answer: '及时和组织沟通',
     desc: '反馈要在过程中进行——遇到偏差及时和组织对话、调整，避免事倍功半。',
-    // 2026-08-28 T-303 书记：只保留 02 点击；03 高要求交接负责归属 02（往复交流——双向）
+    // 2026-08-28 T-303 支书：只保留 02 点击；03 高要求交接负责归属 02（往复交流——双向）
     quote: [
       '交流解决方案，而不是交流问题——我们不期待听到“这里有一个问题”，我们期待听到的是“我认为解决问题的思路是这样，为什么是这样，支委会能否提供支持……”',
       '支部成员也要多多体谅支委同样作为学生参与工作的压力，要给予同理心——特别体现在时间紧、任务重的工作中，实践中的尊重是困难的，也恰恰是我们最需要的！',
@@ -307,7 +307,7 @@ const DEVELOPMENT_TIMELINE = [
 ];
 
 // 小目录条目（8 个 section 对应 8 个圆点，2026-08-18 T-270 删「党建+科研」独立项）
-// 主线（书记 2026-08-12 定序 + 2026-08-18 重构）：开篇 → 组织性（组织向大家讲述）→
+// 主线（支书 2026-08-12 定序 + 2026-08-18 重构）：开篇 → 组织性（组织向大家讲述）→
 // 三个成长机会 → 身份阶段（明线：积极分子怎么发展）→ 考察维度 → 工作流 → 行百里者半九十 → 收束（致谢与期待）
 const TOC_ITEMS = [
   { id: 'hero',         label: '开篇' },
@@ -425,13 +425,13 @@ function renderReview() {
  *
  * 母本：SECRETARY_DIRECTIVES.md「三、人的成长」P-014/P-015/P-016——
  * 适应学习 / 探索创新 / 对话 三个并列成长机会。党建+科研（P-016 对话）从独立章并入此处。
- * blockquote 直接展示书记原话全文（延续既有风格）。
+ * blockquote 直接展示支书原话全文（延续既有风格）。
  */
 function renderPhilosophy() {
   const opportunities = [
     {
       title: '适应、学习的机会',
-      // 2026-08-28 书记：从党支书工作交接文档撷取关联原话补全完整表达（P-014 主体 + P-005 程序/嵌入关联，无术语）
+      // 2026-08-28 支书：从党支书工作交接文档撷取关联原话补全完整表达（P-014 主体 + P-005 程序/嵌入关联，无术语）
       quoteLines: [
         '“民主集中制”下感受真实的组织的两个向度：“赋权”背景下的程序性 和 “探索”背景下的扁平化。',
         '这也就意味着真实的组织，不能只靠程序性令人凝聚在一起，也不能只靠“扁平化”而不去形成共识、带来效率。',
@@ -439,16 +439,16 @@ function renderPhilosophy() {
         '提高生涯发展中对于所处组织的适应能力和开放心态。',
       ],
       points: [
-        // 2026-08-28 书记彻查：回归 P-014 官方 AI 扩充（分工流程记录复盘让人凝聚 / 平等协商让人创新），
-        // 弃用 P-005/P-009 内容（上版张冠李戴，不尊重书记原意）
+        // 2026-08-28 支书彻查：回归 P-014 官方 AI 扩充（分工流程记录复盘让人凝聚 / 平等协商让人创新），
+        // 弃用 P-005/P-009 内容（上版张冠李戴，不尊重支书原意）
         { label: '程序性', desc: '“赋权”背景下——组织通过分工、流程、记录、复盘让人凝聚' },
         { label: '扁平化', desc: '“探索”背景下——组织通过平等协商让人创新' },
       ],
-      // insight 已删（2026-08-28 书记：不是很好）
+      // insight 已删（2026-08-28 支书：不是很好）
     },
     {
       title: '探索、创新的机会',
-      // 2026-08-28 书记：撷取 P-015 关联原话补全（①② + 组织高度赞赏创新 + 方兴未艾意见创新弥足珍贵）
+      // 2026-08-28 支书：撷取 P-015 关联原话补全（①② + 组织高度赞赏创新 + 方兴未艾意见创新弥足珍贵）
       quoteLines: [
         '作为AI时代中一个建设方兴未艾的学生组织，',
         '①可以真实地参与组织制度和组织文化的构建；',
@@ -511,15 +511,15 @@ function renderPhilosophy() {
 }
 
 /**
- * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 + 2026-08-28 书记重排，第一章）
+ * Section 2: 组织性——组织向大家讲述（2026-08-18 T-271 + 2026-08-28 支书重排，第一章）
  *
- * 布局（2026-08-28 书记裁定）：章头在上 → 左右分栏——
+ * 布局（2026-08-28 支书裁定）：章头在上 → 左右分栏——
  * 左侧 sticky 定格五个属性词（学生组织/政治组织/具体/方兴未艾/提供成长，统一 h3、等大、高低错落），
- * 右侧三个期待落点卡随滚动驱动移动；lead 已删（书记：不喜欢这句话）。
- * 三条期待落点：标题 + 书记原话 blockquote（不写编号/日期/「书记」字样）。
+ * 右侧三个期待落点卡随滚动驱动移动；lead 已删（支书：不喜欢这句话）。
+ * 三条期待落点：标题 + 支书原话 blockquote（不写编号/日期/「支书」字样）。
  */
 function renderCognition() {
-  // 组织属性词（书记 2026-08-28：只要定语，不要'一个……的'；与关键词统一 h3 模式）
+  // 组织属性词（支书 2026-08-28：只要定语，不要'一个……的'；与关键词统一 h3 模式）
   const words = ['学生组织', '政治组织', '具体', '方兴未艾', '提供成长'];
 
   const expects = [
@@ -531,7 +531,7 @@ function renderCognition() {
     },
     {
       title: '你可以期待的做事方式',
-      // 2026-08-28 书记：有先例和没先例的工作原话都写进去（P-006 + P-007）
+      // 2026-08-28 支书：有先例和没先例的工作原话都写进去（P-006 + P-007）
       quotes: [
         '事情的运作固然有管理的科学和既往的经验。作为支部成员，在执行已沉淀的工作流的基础上，本身便可以得到成长和锻炼。',
         '支部的建设方兴未艾，所以需要大家都发挥主人翁意识来创新、沉淀新的经验。',
@@ -539,7 +539,7 @@ function renderCognition() {
     },
     {
       title: '你可以期待的表达空间',
-      // 2026-08-28 书记：多找相关句子突出「期待」（P-008 + P-004 职责所在）
+      // 2026-08-28 支书：多找相关句子突出「期待」（P-008 + P-004 职责所在）
       quotes: [
         '我们不反对批评意见，但要求要在组织的框架内提出批评意见……我特别怕大家因为认为是‘党支部’，所以怕说错话，而选择不‘真实表达’！因为这样自己既没有真实的交互体验，组织也没办法持续进步。',
         '支委和支书的职责所在包含了开放心态，积极交流，维护团结。也因此要充分吸收意见建议、帮助支部成员按照组织程序进行组织表达。',
@@ -547,7 +547,7 @@ function renderCognition() {
     },
   ];
 
-  // 左侧定格词区：五个徽标（2026-08-28 书记：小标题徽标，上下左右参差错落）
+  // 左侧定格词区：五个徽标（2026-08-28 支书：小标题徽标，上下左右参差错落）
   const wordsHTML = words.map((w, i) => `
     <h3 class="ab-keyword-word" data-stagger data-i="${i}">${w}</h3>
   `).join('');
@@ -565,7 +565,7 @@ function renderCognition() {
       <span class="ab-page-runner">第一章 · 组织性</span>
       <div class="ab-chapter ab-cognition-inner">
         <div class="ab-cognition-layout">
-          <!-- 2026-08-28 书记：章头只占左半（eyebrow/title 并入左列 sticky，右侧内容上移）
+          <!-- 2026-08-28 支书：章头只占左半（eyebrow/title 并入左列 sticky，右侧内容上移）
                ⚠️ 曾因并行编辑竞态回滚为旧结构导致 sticky 失效（左列 .ab-cognition-sticky 无 position:sticky），
                2026-08-28 T-301b 浏览器实测确认后恢复此结构 -->
           <div class="ab-cognition-left">
@@ -739,7 +739,7 @@ function renderExploration() {
 /** Section 7: 和组织对话——行百里者半九十（第六章，四阶段日出日落，滚动驱动公转，文字始终正立，闭环表达） */
 function renderDialogue() {
   const stepsHTML = DIALOGUE_STAGES.map((s, i) => {
-    // 2026-08-28 T-302 书记：双向交流原话点击卡片后淡入淡出于页面其他位置（卡内不留内容）
+    // 2026-08-28 T-302 支书：双向交流原话点击卡片后淡入淡出于页面其他位置（卡内不留内容）
     const hasQuote = Array.isArray(s.quote) && s.quote.length;
     return `
       <article class="ab-dialogue-card" data-state="future" data-open="false" data-index="${i}" data-has-quote="${hasQuote}">
@@ -757,14 +757,14 @@ function renderDialogue() {
       <span class="ab-page-no">06</span>
       <span class="ab-page-runner">第六章 · 行百里者半九十</span>
       <div class="ab-chapter ab-dialogue-inner">
-        <!-- 2026-08-14 书记指令「标题和动画视窗可以同时出现，而不是只有几个卡片在空转」：
+        <!-- 2026-08-14 支书指令「标题和动画视窗可以同时出现，而不是只有几个卡片在空转」：
              章头（eyebrow/title/sub）移入 sticky flow 内——滚动旋转期间标题始终在场，与视窗同屏 -->
         <div class="ab-dialogue-flow">
           <div class="ab-dialogue-head">
             <div class="ab-chapter-eyebrow">善始善终</div>
             <h2 class="ab-chapter-title">行百里者半九十</h2>
             <p class="ab-chapter-sub">活动完成后，对话与复盘仍在继续——在实践中持续改进</p>
-            <!-- 2026-08-28 T-299 书记：删 head 滚动联动原话区；T-302 双向交流原话点击卡片后淡入淡出于此（页面其他位置，卡内不留） -->
+            <!-- 2026-08-28 T-299 支书：删 head 滚动联动原话区；T-302 双向交流原话点击卡片后淡入淡出于此（页面其他位置，卡内不留） -->
           </div>
           <div class="ab-dialogue-stage">
             ${stepsHTML}
@@ -780,7 +780,7 @@ function renderDialogue() {
 
 /** Section 8: 收束——小字自然收尾（2026-08-18 T-271 重构）
  *  三层小字由大到小居中：感谢你读到这里 → 期待我们的共同成长 → 实践是检验真理的唯一标准
- *  去口号：删除「管理事，服务人」大字与「爱具体的人/组织」echo（书记裁决：已内化、矫情） */
+ *  去口号：删除「管理事，服务人」大字与「爱具体的人/组织」echo（支书裁决：已内化、矫情） */
 function renderConclusion() {
   return `
     <section id="conclusion" class="ab-page ab-page--closing ab-conclusion-section" data-toc-id="conclusion">
@@ -1055,7 +1055,7 @@ function bindTOC() {
  *  废弃「镜组层叠淡入淡出（幻灯片轮播）」；改为单一画布 + 连续插值——
  *  viewBox 固定（停留稳态），节点位置在镜组间 lerp（走进/走出视野），
  *  边连续淡入 + 起终点渐变（颜色补箭头方向）。滚动 scrub 连续驱动，可逆。
- *  【动/静自觉清单】（书记 2026-08-13 强调）
+ *  【动/静自觉清单】（支书 2026-08-13 强调）
  *   静：视窗（viewBox 固定，不推近）
  *   静：卡片三态（data-state past/current/future，离散切换非连续）
  *   动：节点（位置镜组间 lerp + 入场/离场 opacity）
@@ -1326,7 +1326,7 @@ function bindCognitionScrollDriven() {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  电影化滚动叙事（2026-08-04 书记三轮裁决后重构）
+//  电影化滚动叙事（2026-08-04 支书三轮裁决后重构）
 //  ① 滚动驱动的场景切换（Hero 退场 + Dialogue/Exploration 章节点亮）
 //  ② 章节镜头交接 + 叠层转场（旧场景后拉 → 新场景驶入，演示式逐步揭示）
 //  ③ 终章温和落位（大字收束）
@@ -1426,7 +1426,7 @@ function initParticleCanvas(canvas, opts = {}) {
 
 /** Dialogue 四阶段滚动驱动（2026-08-13 批判性重构：去轮毂 + 公转文字正立 + 非 90° 四相位）
  *  滚动 progress → 转盘角 θ（顺时针一圈，四卡各经历一次日出日落，首尾闭合）
- *  2026-08-14 书记设计指导落地：
+ *  2026-08-14 支书设计指导落地：
  *    - 地平线 = sticky 视窗最下端（不渲染视觉元素，卡片落到视窗底边即 opacity→0 消失）
  *    - 进入/退出旋转：滚动进入章节时卡片线性旋转着进入（θ -45°→0°），sticky 固定瞬间卡①恰在正午；
  *      退出时旋转着离开（θ 0°→+45°）
@@ -1435,7 +1435,7 @@ function initParticleCanvas(canvas, opts = {}) {
  *  亮度由「角度高度 angleH」决定（b = angleH^1.5——正午 1 全亮、侧卡 ≈0.35 半透明、地下 0 完全隐去），
  *  地下判定 angleH<0.35；「3 太阳」模型——视窗内恒 3 张可见（正午+左右）+ 1 张地下隐去
  *  亮度渲染 = opacity + scale + border-color + zIndex（filter 为最贵属性已移除）
- *  【动/静自觉清单】（书记 2026-08-13 强调）
+ *  【动/静自觉清单】（支书 2026-08-13 强调）
  *   静：视窗（.ab-dialogue-flow/stage 容器尺寸，固定不缩放不平移；sticky 期间位置固定在 stickyTop）
  *   静：卡片文字（不 rotate，文字始终正立）
  *   静：地平线（= 视窗底边，无视觉元素，界定卡片消失线）
@@ -1453,9 +1453,9 @@ function bindDialogueScrollActivation() {
   const smooth = (t) => t * t * (3 - 2 * t);
   const lerp = (a, b, t) => a + (b - a) * t;
   const DEG = Math.PI / 180;
-  // 阶梯停顿（书记 2026-08-13「静 + 卡片正午停留」）：每张卡转到正午（progress=i/4）停留，其余平滑过渡
-  // 2026-08-14 书记「动画不丝滑」：PLATEAU 0.75→0.70——停留仍可感知、过渡更长更柔（丝滑）
-  // 2026-08-19 T-272 书记「正常转动太快」：PLATEAU 0.70→0.55——转动段 30%→45%，90° 分摊更多行程，转速约降 1/3
+  // 阶梯停顿（支书 2026-08-13「静 + 卡片正午停留」）：每张卡转到正午（progress=i/4）停留，其余平滑过渡
+  // 2026-08-14 支书「动画不丝滑」：PLATEAU 0.75→0.70——停留仍可感知、过渡更长更柔（丝滑）
+  // 2026-08-19 T-272 支书「正常转动太快」：PLATEAU 0.70→0.55——转动段 30%→45%，90° 分摊更多行程，转速约降 1/3
   const PLATEAU = 0.55;
   // 2026-08-19 T-272 三段角速度统一基准：正常转动段每 90° 分摊 (1-PLATEAU)/4 单位 progress，
   //   进入/退出段按同一速率（ROT_RATE = 90°/((1-PLATEAU)/4) ≈ 800°/progress 单位）旋转，观感连续不突兀
@@ -1476,21 +1476,21 @@ function bindDialogueScrollActivation() {
     const S = stage ? stage.clientWidth : 600;
     // ⚠️ querySelectorAll 返回 NodeList（无 .map），须 Array.from 转数组（2026-08-14 复验抓到的致命 bug）
     const maxCardH = cards.length ? Math.max(...Array.from(cards, c => c.offsetHeight)) : 240;
-    // 2026-08-14 T-247 环半径放宽（书记「半径非常充裕，不要有压力」）：
+    // 2026-08-14 T-247 环半径放宽（支书「半径非常充裕，不要有压力」）：
     //   正午停留四卡 90° 间隔、相邻中心距 = 1.414R ≥ 卡宽 → 互不重叠；
     //   R 允许正午卡超出 stage 顶进入 head 与 stage 间留白区（flow gap 56px 容纳「升起」感）
     const cardW = 192; // 与 CSS .ab-dialogue-card width 一致（T-248 卡略窄）
     // 2026-08-14 T-249 环内切舞台 + 空间给足：R 上限 0.5S、不溢出余量 121（gap 同步 121，正午卡升起恰到 head 底不遮副标题 p）
     // 2026-08-18 T-271 行百里者半九十转动半径加大：R 上限 0.5S → 0.56S（环更贴近舞台边缘，公转幅度更大）
     const R = Math.min(S * 0.56, Math.max(S / 2 - maxCardH / 2 + 121, cardW / 1.414));
-    // 2026-08-18 T-271 椭圆轨迹（书记「长轴稍微长一点」）：长轴水平 rx = 1.2R（页面宽度充裕，横向扫过范围更舒展），
+    // 2026-08-18 T-271 椭圆轨迹（支书「长轴稍微长一点」）：长轴水平 rx = 1.2R（页面宽度充裕，横向扫过范围更舒展），
     //   短轴垂直 ry = R（正午升起逻辑不变、不遮章头）；相邻 90° 卡中心距 = R*√(1.2²+1²) = R*1.562 ≥ 卡宽 → 互不重叠
     const rx = R * 1.2;
     const ry = R;
     // 四相位（间隔 90°，第 1 张卡初始在正午 -90°）：正午(顶)·日出(左)·地下(底)·日落(右)
     // 屏幕坐标 y 向下，正角 = 顺时针；θ 递增即顺时针公转
     const baseAngle = [-90, 180, 90, 0];
-    // 2026-08-14 进入/退出旋转（书记：旋转着进出 + sticky 固定瞬间卡①正午）：
+    // 2026-08-14 进入/退出旋转（支书：旋转着进出 + sticky 固定瞬间卡①正午）：
     //   progress<0 → 进入段线性旋转（θ -45°→0°）；sticky 固定瞬间 progress=0 → θ=0 → 卡①正午
     //   0≤progress≤1 → 阶梯公转（每阶段正午停留）
     //   progress>1 → 退出段线性旋转（θ 0°→+45°）
@@ -1507,7 +1507,7 @@ function bindDialogueScrollActivation() {
 
       // 定位：卡片中心对齐圆心（translate -50% -50%）+ 偏移到环上 (x,y)；不 rotate → 文字正立
       if (angleH < 0.35) {
-        // 地下（环底部扇区）：彻底消失（书记裁决「消失的卡片也就消失了」）
+        // 地下（环底部扇区）：彻底消失（支书裁决「消失的卡片也就消失了」）
         card.style.transform = `translate(-50%, -50%) translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(0.92)`;
         card.style.opacity = '0';
         card.style.zIndex = card.dataset.open === 'true' ? '30' : '0';
@@ -1533,7 +1533,7 @@ function bindDialogueScrollActivation() {
     });
   };
 
-  // 2026-08-13 sticky 固定视窗（书记裁决）：flow 变 sticky——滚动时视窗固定，卡片在内公转 + 正午停留。
+  // 2026-08-13 sticky 固定视窗（支书裁决）：flow 变 sticky——滚动时视窗固定，卡片在内公转 + 正午停留。
   // progress 计算（2026-08-14 二轮根治「完全不转 + 起点跳变」，浏览器实测定位根因）：
   //   不能用 flow 顶相对视口（sticky 期间它恒 = stickyTop，分子恒 0 → progress 恒 0）。
   //   改为基于 parent 底相对视口 + 静态章头高度：
@@ -1569,14 +1569,14 @@ function bindDialogueScrollActivation() {
     const traveled = startBottom - parentRect.bottom;
     let progress;
     if (flowTop > stickyTop) {
-      // 2026-08-14 进入段（书记「旋转着进入」）：flow 顶从视口底部滚到 stickyTop → progress →0，
+      // 2026-08-14 进入段（支书「旋转着进入」）：flow 顶从视口底部滚到 stickyTop → progress →0，
       // 卡片线性旋转进入；sticky 固定瞬间 progress=0 → θ=0 → 卡①恰在正午（锚定）
       // 2026-08-19 T-272 角速度统一：45° 旋转对应 (45/ROT_RATE) 单位 progress（原 -0.125 过慢）
       progress = clamp01((flowTop - stickyTop) / Math.max(1, vh - stickyTop)) * -(45 / ROT_RATE);
     } else {
       progress = clamp01(traveled / travelTotal);
       if (progress >= 1) {
-        // 2026-08-14 退出段（书记「旋转着离开」）：flow 被推出后继续线性旋转 45°（progress 1→1+45/ROT_RATE）
+        // 2026-08-14 退出段（支书「旋转着离开」）：flow 被推出后继续线性旋转 45°（progress 1→1+45/ROT_RATE）
         const over = stickyTop + flowH - parentRect.bottom;
         progress = 1 + (over > 0 ? clamp01(over / Math.max(1, vh)) * (45 / ROT_RATE) : 0);
       }

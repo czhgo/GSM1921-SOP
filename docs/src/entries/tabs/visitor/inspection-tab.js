@@ -2,11 +2,11 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260912k';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260912k';
-import { inspectionToDisplay } from '../../../services/inspection.js?v=20260912k';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260912k';
-import { badgeHtml } from '../../../components/badges.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260913c';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260913c';
+import { inspectionToDisplay } from '../../../services/inspection.js?v=20260913c';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260913c';
+import { badgeHtml } from '../../../components/badges.js?v=20260913c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -49,7 +49,7 @@ export function renderContent(ctx) {
 
   const SOURCE_TYPE_LABEL = { activity: '活动', taskforce: '专班' };
   const LEVEL_LABEL = { organize: '组织者', deep: '深度参与者' };
-  // 考察等级本质是角色维度 → 复用 ROLE_COLORS 冷色系（organizer=天蓝 / deep=紫），不再用红（书记 2026-08-01）
+  // 考察等级本质是角色维度 → 复用 ROLE_COLORS 冷色系（organizer=天蓝 / deep=紫），不再用红（支书 2026-08-01）
   const LEVEL_ROLE = { organize: 'organizer', deep: 'deep' };
 
   listEl.innerHTML = sorted.map(r => {

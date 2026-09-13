@@ -1,17 +1,17 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260912k';
-import { getBasePath } from '../core/utils.js?v=20260912k';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { PEOPLE } from '../mock/people.js?v=20260912k';
+import { icon } from '../core/icons.js?v=20260913c';
+import { getBasePath } from '../core/utils.js?v=20260913c';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { PEOPLE } from '../mock/people.js?v=20260913c';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260912k';
+} from '../services/branch-doc.js?v=20260913c';
 
 const SITE_GROUPS = [
   {
@@ -196,7 +196,7 @@ export class ReferencesModule {
   static _branchDocs = [];
   static _currentUser = null;
   static _isCommissioner = false;
-  /** 制度文本管理者（书记/副书记）：制度类条目发布/停用/上传新版仅其可操作 */
+  /** 制度文本管理者（支书/副支书）：制度类条目发布/停用/上传新版仅其可操作 */
   static _isInstitutionManager = false;
   /** 「只看制度」过滤开关（默认全部） */
   static _onlyInstitution = false;
@@ -222,7 +222,7 @@ export class ReferencesModule {
   static async _loadBranchDocs() {
     try {
       // 支部隔离读侧收敛点（2026-09-10）：经 services/branch-doc.js listDocs 读取——
-      // 按当前归属支部过滤（书记/副书记/其它角色←本支部；党委/未登录无归属则不过滤）。
+      // 按当前归属支部过滤（支书/副支书/其它角色←本支部；党委/未登录无归属则不过滤）。
       // 勿再直读 adapter 的 branchDocs 全量（那会绕过隔离、跨支部可见）。
       ReferencesModule._branchDocs = await listDocs();
     } catch (e) {
@@ -319,8 +319,8 @@ export class ReferencesModule {
 
     ReferencesModule._ensureBranchFilterToolbar();
 
-    // 保持匿名可访：支部文件需登录后可见（书记 2026-08-18 裁决）；
-    // 匿名提示附「去登录」入口（书记 2026-09-07 U1 批准；静态文案位在 search.html，此处 JS 补链）
+    // 保持匿名可访：支部文件需登录后可见（支书 2026-08-18 裁决）；
+    // 匿名提示附「去登录」入口（支书 2026-09-07 U1 批准；静态文案位在 search.html，此处 JS 补链）
     if (!ReferencesModule._currentUser) {
       list.innerHTML = '';
       ReferencesModule._setBranchFilterVisible(false);
@@ -367,7 +367,7 @@ export class ReferencesModule {
       if (empty) {
         empty.textContent = ReferencesModule._onlyInstitution
           ? (ReferencesModule._isInstitutionManager
-            ? '暂无制度文本——可在「写入文件」中选择「制度文本」发布（书记/副书记）'
+            ? '暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）'
             : '暂无制度文本')
           : '暂无支部文件';
         empty.classList.remove('hidden');
@@ -413,7 +413,7 @@ export class ReferencesModule {
     `;
   }
 
-  /** 制度文本行：制度徽标 + 现行/停用态 + 网页内读正文 + 历史版本折叠 + 书记操作（上传新版/停用/重新启用） */
+  /** 制度文本行：制度徽标 + 现行/停用态 + 网页内读正文 + 历史版本折叠 + 支书操作（上传新版/停用/重新启用） */
   static _renderInstitutionRow(d) {
     const uid = String(d.id).replace(/[^\w-]/g, '_');
     const href = d.filePath || d.fileData || '#';
@@ -606,7 +606,7 @@ export class ReferencesModule {
     const card = document.createElement('div');
     card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:480px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:88vh;display:flex;flex-direction:column;';
 
-    // 用途：仅新增时可选（制度文本仅书记/副书记可见该选项）；编辑普通文件维持现状，不含转制度入口
+    // 用途：仅新增时可选（制度文本仅支书/副支书可见该选项）；编辑普通文件维持现状，不含转制度入口
     const purposeOptions = ['doc'].concat(ReferencesModule._isInstitutionManager ? ['institution'] : []);
     const purposeSelectHtml = editing ? '' : `
       <div>
@@ -725,7 +725,7 @@ export class ReferencesModule {
     });
   }
 
-  /** 保存统一走 services/branch-doc.js saveDoc（含用途/状态/版本语义 + 书记权限校验） */
+  /** 保存统一走 services/branch-doc.js saveDoc（含用途/状态/版本语义 + 支书权限校验） */
   static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file }) {
     const by = ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null;
     const role = ReferencesModule._currentUser ? ReferencesModule._currentUser.role : null;
@@ -748,7 +748,7 @@ export class ReferencesModule {
     ReferencesModule.render();
   }
 
-  /** 上传新版（仅书记/副书记入口）：正文表单预填现行版 → publishNewVersion */
+  /** 上传新版（仅支书/副支书入口）：正文表单预填现行版 → publishNewVersion */
   static _openPublishModal(docId) {
     const doc = ReferencesModule._branchDocs.find((d) => d.id === docId);
     if (!doc || !_isInstitutionDoc(doc)) return;
@@ -830,7 +830,7 @@ export class ReferencesModule {
     });
   }
 
-  /** 停用 / 重新启用（仅书记/副书记入口） */
+  /** 停用 / 重新启用（仅支书/副支书入口） */
   static async _setInstitutionStatus(id, status) {
     const doc = ReferencesModule._branchDocs.find((d) => d.id === id);
     if (!doc || !_isInstitutionDoc(doc)) return;

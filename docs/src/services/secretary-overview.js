@@ -1,28 +1,28 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  secretary-overview.js — 书记全局概况服务层
+//  secretary-overview.js — 支书全局概况服务层
 //  四维度信息面板：考勤与纪律 / 发展与考察 / 活动与专班进度 / 宣传与档案
-//  SecretaryTodoDeriver：异常数据自动派生书记待办
+//  SecretaryTodoDeriver：异常数据自动派生支书待办
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18-§2.20
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260912k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260912k';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260912k';
-import { NoticeStore } from './notice.js?v=20260912k';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260912k';
-import { tokenOf } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260912k';
-import { getPersonById } from './person.js?v=20260912k';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912k';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260912k';
-// 批4（2026-09-09 书记批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260913c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260913c';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260913c';
+import { NoticeStore } from './notice.js?v=20260913c';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260913c';
+import { tokenOf } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260913c';
+import { getPersonById } from './person.js?v=20260913c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260913c';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260913c';
+// 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -107,7 +107,7 @@ function _personFp() {
 export const SecretaryOverviewStore = {
 
   /**
-   * 获取书记全局概况（四维度）
+   * 获取支书全局概况（四维度）
    * P0：复合键缓存（读源 token + 长度指纹；⚠️ 返回值只读契约，调用方仅读）。
    * @returns {{ attendance: Object, inspection: Object, activity: Object, propaganda: Object }}
    */
@@ -124,15 +124,15 @@ export const SecretaryOverviewStore = {
   },
 
   // ── 按人视图：各角色在办概览（P-011 知情边界 / L1 条线视角） ──────
-  //  书记看各角色"在办什么、有无异常"，不暴露操作细节（看 ≠ 做）。
+  //  支书看各角色"在办什么、有无异常"，不暴露操作细节（看 ≠ 做）。
   //  聚合口径：未完成待办（TodoStore）+ 未归档在办活动 + 进行中/招募中专班。
   //  Source: DESIGN_SYSTEM.md §一 原则9（信息密度精确原则）
-  //  2026-08-10 书记裁定：
-  //  ① 副书记不入按人视图——非所有支部都有副书记，且实现上与书记无职责差异；
+  //  2026-08-10 支书裁定：
+  //  ① 副支书不入按人视图——非所有支部都有副支书，且实现上与支书无职责差异；
   //  ② 卡片按职责差异化（每角色只投影职责空间在办类型，不平行）；
   //  ③ 专班归组织委员统筹（P-012 招募统筹分离），其他角色仅以发起/成员参与时标注。
 
-  /** 按人视图的角色（4 个，数据驱动：副书记除外），含工作台直达入口 */
+  /** 按人视图的角色（4 个，数据驱动：副支书除外），含工作台直达入口 */
   PERSON_ROLES: [
     { role: 'org-commissioner',  url: 'org.html' },
     { role: 'prop-commissioner', url: 'prop.html' },
@@ -314,7 +314,7 @@ export const SecretaryOverviewStore = {
       !(a.assignments || []).some(x => x.role === 'organizer')
     ).length;
 
-    // 复盘问题数（书记 2026-08-10 裁定：复盘率 100% 目标会诱导"随意提交凑数"→ 目标异化；
+    // 复盘问题数（支书 2026-08-10 裁定：复盘率 100% 目标会诱导"随意提交凑数"→ 目标异化；
     // 从最初设定就只希望大家提交真问题——改问题导向，计量活跃活动复盘中提出的真问题数量）
     const activeReviewIds = new Set(activities.filter(a => !a.archived).map(a => a.id));
     const reviewIssues = reviews
@@ -364,14 +364,14 @@ export const SecretaryOverviewStore = {
 };
 
 // ════════════════════════════════════════════════════════════════
-//  SecretaryTodoDeriver — 书记待办动态聚合（computeAggregates）
+//  SecretaryTodoDeriver — 支书待办动态聚合（computeAggregates）
 //  实时计算（不创建实体）：4 条提醒类缺口 + 4 条复核类缺口
-//  复核类：纪检/宣传已完成动作但书记未复核 → 批次汇总 + 一键确认
+//  复核类：纪检/宣传已完成动作但支书未复核 → 批次汇总 + 一键确认
 // ════════════════════════════════════════════════════════════════
 
 /**
  * 归档缺口活动（宣传材料未归档）——**单一判据**：活动已归档（archived=true）但无任何归档记录。
- * 消费点：① 书记台待办「宣传材料待归档」实时组（_aggArchiveRemind）；② 宣传台「档案归档」
+ * 消费点：① 支书台待办「宣传材料待归档」实时组（_aggArchiveRemind）；② 宣传台「档案归档」
  * tab 的「待归档」区（entries/tabs/prop/archive-tab.js）。两处必须同源，勿各自另立标准。
  * @returns {Array} 满足归档缺口条件的活动（顺序同 loadActivities）
  */
@@ -392,7 +392,7 @@ export function getEndedUnarchivedActivities() {
 
 export const SecretaryTodoDeriver = {
 
-  /** 计算书记全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡）
+  /** 计算支书全部待办聚合卡（8 组；空组不展示，避免 0 条占位卡）
    *  P0：复合键缓存（读源 token + 长度指纹；⚠️ 返回数组只读契约——调用方仅读，
    *  需改（如加 hideActionBtn 标记）先浅拷贝——todo-tab 已按此消费）。 */
   computeAggregates() {
@@ -516,31 +516,31 @@ export const SecretaryTodoDeriver = {
       'remind');
   },
 
-  // ── 复核类1：纪检已确认考勤但书记未复核 ────────────────
+  // ── 复核类1：纪检已确认考勤但支书未复核 ────────────────
   _aggAttendanceConfirm() {
     const records = loadActiveAttendanceRecords().filter(r => r.recordedBy && !r.secretaryConfirmedAt);
     return this._mkGroup('attendance-confirm', '考勤待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      '纪检已确认考勤 → 书记复核 → 考勤总表', records, 'confirm');
+      '纪检已确认考勤 → 支书复核 → 考勤总表', records, 'confirm');
   },
 
-  // ── 复核类2：纪检已确认考察但书记未复核 ────────────────
+  // ── 复核类2：纪检已确认考察但支书未复核 ────────────────
   _aggInspectionConfirm() {
     const records = loadInspectionRecords().filter(r => r.status === 'confirmed' && !r.secretaryConfirmedAt);
     return this._mkGroup('inspection-confirm', '考察待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      '纪检已确认考察 → 书记复核 → 组织建档', records, 'confirm');
+      '纪检已确认考察 → 支书复核 → 组织建档', records, 'confirm');
   },
 
-  // ── 复核类3：纪检已确认复盘但书记未复核 ────────────────
+  // ── 复核类3：纪检已确认复盘但支书未复核 ────────────────
   _aggReviewConfirm() {
     const reviews = loadActiveActivityReviews().filter(r => r.reviewStatus === ReviewStatus.CONFIRMED && !r.secretaryConfirmedAt);
     return this._mkGroup('review-confirm', '复盘待复核', TodoCategory.REVIEW, TodoActionType.REVIEW,
-      '纪检已确认复盘 → 书记复核 → 经验沉淀', reviews, 'confirm');
+      '纪检已确认复盘 → 支书复核 → 经验沉淀', reviews, 'confirm');
   },
 
-  // ── 复核类4：宣传已归档材料但书记未复核 ────────────────
+  // ── 复核类4：宣传已归档材料但支书未复核 ────────────────
   _aggArchiveConfirm() {
     const records = (mockDB.archiveRecords || []).filter(r => r.status === 'archived' && !r.secretaryConfirmedAt);
     return this._mkGroup('archive-confirm', '归档待复核', TodoCategory.ARCHIVE, TodoActionType.ARCHIVE,
-      '宣传已归档材料 → 书记复核 → 产出物区', records, 'confirm');
+      '宣传已归档材料 → 支书复核 → 产出物区', records, 'confirm');
   },
 };

@@ -1,11 +1,11 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  services/org-base-data-preview.js — 成员基础数据「预览 override」（立项④阶段三·目标1，2026-09-06 书记已认可）
+//  services/org-base-data-preview.js — 成员基础数据「预览 override」（立项④阶段三·目标1，2026-09-06 支书已认可）
 // ════════════════════════════════════════════════════════════════
 // 定位：给「换组织管理员」补齐「成员基础数据先看效果」——把成员名册（姓名/党小组归属/发展阶段/
 //   在校·滞留）导出模板（JSON）→ 本地改 → 导入本地预览：应到数字 / 党员分布即时可见变化；
 //   可一键清除回种子。
-// 边界（书记口径，与换壳工作单一致）：预览只作用于「成员基础视图」五项基础字段，绝不写 mockDB /
+// 边界（支书口径，与换壳工作单一致）：预览只作用于「成员基础视图」五项基础字段，绝不写 mockDB /
 //   静态种子持久；业务历史（活动/考勤/议程/专班等）不迁移——仍关联演示成员，正式换数据
 //   请按「换壳工作单」落仓库文件（UI 已注明）。
 // 覆盖字段与 mock/people.js 档案字段同名：name/partyGroup/developStage/residenceStatus/residenceNote。
@@ -17,8 +17,8 @@
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
+import { PEOPLE } from '../mock/people.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';

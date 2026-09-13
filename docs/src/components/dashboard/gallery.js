@@ -5,12 +5,12 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/state.js?v=20260912k';
-import { _fmtDate } from '../../core/utils.js?v=20260912k';
-import { getPersonName } from '../../services/person.js?v=20260912k';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260912k';
-import { badgeHtml } from '../badges.js?v=20260912k';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260912k';
+import { getAppState } from '../../core/state.js?v=20260913c';
+import { _fmtDate } from '../../core/utils.js?v=20260913c';
+import { getPersonName } from '../../services/person.js?v=20260913c';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260913c';
+import { badgeHtml } from '../badges.js?v=20260913c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913c';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',

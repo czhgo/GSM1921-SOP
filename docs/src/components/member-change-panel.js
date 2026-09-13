@@ -20,16 +20,16 @@
 //     预载后经缓存读取（签名未变秒回、变才 await 拉取）——todo-tab-shell _comboKeyOf 已并入
 //     该 token+长度指纹 → 确认/审批后渲染守卫键变化 → 重建而非命中跳过。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260912k';
-import { mockDB } from '../core/domain.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260912k';
-import { NoticeStore } from '../services/notice.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-// roster=名册报送确认链（组织委员发起 → 书记确认/退回；bulk 行仅确认，退回留在详情逐项）
-import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260912k';
+import { getAdapter } from '../core/data-adapter.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260913c';
+import { NoticeStore } from '../services/notice.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+// roster=名册报送确认链（组织委员发起 → 支书确认/退回；bulk 行仅确认，退回留在详情逐项）
+import { listPendingConfirmations, decideConfirmation, MC_ACTION_LABEL } from '../services/member-confirmation.js?v=20260913c';
 
 const _pendingStatusOf = (mode) => (mode === 'org-approve' ? 'pending-org-approval' : 'pending-secretary');
 
@@ -68,7 +68,7 @@ export function getCachedMemberChangeRequests() {
 /**
  * 汇总待处理批量行（同步纯计算；依赖 onBeforeRender 已 preload agenda 链缓存）。
  * agenda=会议待讨论名单（memberChangeRequests，pending-org-approval / pending-secretary 按 mode）
- * roster=名册报送确认（member-confirmation pending，仅书记 secretary-confirm 侧）。
+ * roster=名册报送确认（member-confirmation pending，仅支书 secretary-confirm 侧）。
  * @param {'secretary-confirm'|'org-approve'} [mode]
  * @returns {Array<{id:string, source:'agenda'|'roster', personName:string, from:string, to:string,
  *                   meta:string, byName:string, at:string}>}
@@ -150,7 +150,7 @@ export function renderMcBulkRowsHtml(rows, { mode = 'secretary-confirm', accent 
 /**
  * 绑定批量块交互（全选 / 计数 / 批量写口 + onDone 重渲染；无面板 → no-op）。
  * 写口：agenda 链 = approveMemberChangeRequest/confirmMemberChangeRequest（adapter 直写 + 显式 bump）；
- * roster 链 = decideConfirmation approved（decidedBy/decidedAt 留痕，决策人=当前用户兜底书记位）。
+ * roster 链 = decideConfirmation approved（decidedBy/decidedAt 留痕，决策人=当前用户兜底支书位）。
  * @param {HTMLElement|null} container — 壳根容器（含 [data-mcb-panel=…]）
  * @param {{mode:string, onDone?:()=>void}} opts
  */
@@ -223,7 +223,7 @@ export async function approveMemberChangeRequest(id) {
   const r = (Array.isArray(_cache.requests) ? _cache.requests : []).find(x => x.id === id);
   await getAdapter().memberChangeRequests.approve(id);
   bumpToken('memberChangeRequests'); // P0（2026-09-08）：status 直写不改长度 → 显式 bump 供渲染守卫失效
-  // P2（2026-09-01 代码审查）：审批通过后发全员通知 = 广播送达证据（书记点验链路 ③「确认全体支委收到广播」）
+  // P2（2026-09-01 代码审查）：审批通过后发全员通知 = 广播送达证据（支书点验链路 ③「确认全体支委收到广播」）
   // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案）
   try {
     const person = r && getPersonById(r.personId);
@@ -240,7 +240,7 @@ export async function approveMemberChangeRequest(id) {
 }
 
 /**
- * 书记确认单条（agenda 链；confirm → completed + confirmedAt + 更新成员发展阶段 + 显式 bump）。
+ * 支书确认单条（agenda 链；confirm → completed + confirmedAt + 更新成员发展阶段 + 显式 bump）。
  * @param {string} id — memberChangeRequests 申请 id
  */
 export async function confirmMemberChangeRequest(id) {

@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // 会议议程的会后衔接：只处理结果记录与其直接派生的文件、成员变更动作。
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
-//（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示书记）。
+//（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260912k';
-// S-1（2026-09-09 书记批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260913c';
+// S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from './person.js?v=20260912k';
+import { PersonStore } from './person.js?v=20260913c';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -15,7 +15,7 @@ function replaceById(records, record) {
     : records.map((item) => item.id === record.id ? record : item);
 }
 
-// 议程类型判定：新议程用 kinds 数组（一条议程可多类型，书记 2026-09-01 裁决），
+// 议程类型判定：新议程用 kinds 数组（一条议程可多类型，支书 2026-09-01 裁决），
 // 兼容旧单值 kind 字段（seed/历史数据）。
 function hasKind(agendaItem, kind) {
   return (Array.isArray(agendaItem.kinds) && agendaItem.kinds.includes(kind))
@@ -30,7 +30,7 @@ function findMemberChangeRequest(db, activityId, agendaItemId, personId) {
   ) || null;
 }
 
-/** 待讨论名单的成员列表：新模型 personIds 数组（书记 2026-09-01 多选裁决）；兼容旧单值 personId */
+/** 待讨论名单的成员列表：新模型 personIds 数组（支书 2026-09-01 多选裁决）；兼容旧单值 personId */
 function agendaPersonIds(agendaItem) {
   if (Array.isArray(agendaItem.personIds)) return agendaItem.personIds;
   if (agendaItem.personId) return [agendaItem.personId];
@@ -38,7 +38,7 @@ function agendaPersonIds(agendaItem) {
 }
 
 /**
- * 逐人结果 → 整条 result 汇总规则（S-1，2026-09-09 书记批）：
+ * 逐人结果 → 整条 result 汇总规则（S-1，2026-09-09 支书批）：
  *   全部通过 → 'passed'；部分通过 → 'partial'；全部未通过 → 'rejected'。
  * 与下方「只有通过者才生成成员变更申请」一致——partial 仅对通过者建申请，未通过者仅留痕（personResults）。
  * @param {Array<{passed:boolean}>} list 逐人结果
@@ -65,7 +65,7 @@ function resolveFromStage(agendaItem, personId) {
  *   (a) 出席过半数：实到（参与记录去重 personId，含弃权）≥ ceil(应到/2)；
  *   (b) 赞成过半数：approve 票数 > 应到/2。
  * 弃权计入出席、不计入赞成。返回拦截文案（含按场景拆分的可采取动作提示）；null = 校验通过。
- * 无记名活动（2026-09-12 书记裁定）：实到取参与记录、赞成取 tally 行（逐人选项不落库，
+ * 无记名活动（2026-09-12 支书裁定）：实到取参与记录、赞成取 tally 行（逐人选项不落库，
  *   门槛/结果一律按 应到/实到 + 计数 计算，不依赖逐人选项）；记名活动由逐人 position 现算
  *   —— 两形态统一走 presentIdsForItem/tallyForItem（committee-vote.js）。
  * 表态取 fetchVotesStrict（fail-hard）：API 拉取失败直接抛错中止记录——
@@ -94,7 +94,7 @@ async function quorumBlockMessage(activity, agendaItemId) {
  * 记录一个结构化议程项的会议结果，并执行其唯一的后续动作。
  * 该函数不写活动本身，调用方在取得返回的 activity 后负责落库。
  *
- * S-1（2026-09-09 书记批）：支持逐人结果 `personResults`（[{ personId, passed, note? }]）——
+ * S-1（2026-09-09 支书批）：支持逐人结果 `personResults`（[{ personId, passed, note? }]）——
  *   · 写入议程项 personResults（含未通过留痕：passed:false + 可选 note）；
  *   · 整条 result 由逐人结果汇总（全通过=passed / 部分=partial / 全未通过=rejected，见 summarizePersonResults）；
  *   · 仅「通过者」生成成员变更申请（partial 亦只建通过者，未通过者零申请、仅留痕）。
@@ -156,7 +156,7 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
     db.branchDocs = replaceById(db.branchDocs || [], archived);
   }
 
-  // 待讨论名单（书记 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。
+  // 待讨论名单（支书 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。
   // S-1：有逐人结果 → 只建通过者；无逐人结果 → 整条通过时建全部名单对象（旧行为）。
   const isAttendeeList = hasKind(agendaItem, 'attendee-list') || hasKind(agendaItem, 'member-change');
   if (isAttendeeList) {
@@ -182,6 +182,6 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
   return updatedActivity;
 }
 
-// 详情页「记录通过」接线（书记 2026-09-01 点验链路 ② 落地）：
+// 详情页「记录通过」接线（支书 2026-09-01 点验链路 ② 落地）：
 // 与 recordAgendaResult 同逻辑，命名面向 UI 调用方（inspector 详情页）。
 export const recordAgendaResultForActivity = recordAgendaResult;

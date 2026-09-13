@@ -1,19 +1,19 @@
 // role: [工程师]+[AI]
-// entries/wizard-entry.js — 换组织向导独立页入口（2026-09-06 书记 R3/R4 裁定）
+// entries/wizard-entry.js — 换组织向导独立页入口（2026-09-06 支书 R3/R4 裁定）
 // 登录态感知（权限轨 A/B，写口校验同 branch 服务既有语义）：
-//   · 现任书记（role=secretary 且为目标支部 secretaryId）→ 限本支部（?branch=br-b1 直达；不新增书记台常驻 tab）
+//   · 现任支书（role=secretary 且为目标支部 secretaryId）→ 限本支部（?branch=br-b1 直达；不新增支书台常驻 tab）
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
-//   · 未登录 / 其它角色 / 非现任书记 → 提示卡（无权限不渲染向导）
+//   · 未登录 / 其它角色 / 非现任支书 → 提示卡（无权限不渲染向导）
 // 主体共用 components/org-setup-wizard.js（party-config tab 同源）。
-import { BranchService } from '../services/runtime.js?v=20260912k'; // 副作用注册适配器 + BranchService 绑定（loadDB）
-import { registerApiAdapter, setDataSource, init } from '../core/data-adapter.js?v=20260912k';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260912k';
-import { AuthStore } from '../services/auth.js?v=20260912k';
-import { getBranchById, getBranchIdOfPerson } from '../services/branch.js?v=20260912k';
-import { mountOrgSetupWizard } from '../components/org-setup-wizard.js?v=20260912k';
-import { renderSidebar } from '../components/sidebar.js?v=20260912k';
-import { renderHeader } from '../components/header.js?v=20260912k';
-import { escHtml as esc } from '../core/utils.js?v=20260912k';
+import { BranchService } from '../services/runtime.js?v=20260913c'; // 副作用注册适配器 + BranchService 绑定（loadDB）
+import { registerApiAdapter, setDataSource, init } from '../core/data-adapter.js?v=20260913c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260913c';
+import { AuthStore } from '../services/auth.js?v=20260913c';
+import { getBranchById, getBranchIdOfPerson } from '../services/branch.js?v=20260913c';
+import { mountOrgSetupWizard } from '../components/org-setup-wizard.js?v=20260913c';
+import { renderSidebar } from '../components/sidebar.js?v=20260913c';
+import { renderHeader } from '../components/header.js?v=20260913c';
+import { escHtml as esc } from '../core/utils.js?v=20260913c';
 
 renderSidebar('wizard');
 renderHeader('wizard');
@@ -58,7 +58,7 @@ if (!me) {
   }
 }
 
-/** 提示卡渲染（未登录/无权限/非现任书记共用） */
+/** 提示卡渲染（未登录/无权限/非现任支书共用） */
 function showNotice(html) {
   if (!content) return;
   content.innerHTML = `<div class="rounded-xl border border-gray-200 bg-white p-6 max-w-xl">${html}</div>`;
@@ -67,7 +67,7 @@ function showNotice(html) {
 if (!me) {
   showNotice(`
     <p class="font-title-cn text-sm font-bold text-gray-800">请先登录</p>
-    <p class="text-xs text-gray-500 mt-1">换组织向导需要登录态：党委组织员可配置任意支部；现任书记可直达本支部（wizard.html?branch=自己的支部）。</p>
+    <p class="text-xs text-gray-500 mt-1">换组织向导需要登录态：党委组织员可配置任意支部；现任支书可直达本支部（wizard.html?branch=自己的支部）。</p>
     <div class="flex gap-2 mt-3">
       <a href="./login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;">去登录</a>
       <a href="./index.html" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>
@@ -78,32 +78,32 @@ if (!me) {
   const target = reqBranch && getBranchById(reqBranch) ? reqBranch : null;
   mountOrgSetupWizard(content, { actor: me, canSwitchBranch: true, branchId: target, embed: false });
 } else if (me.role === 'secretary') {
-  // 权限轨 A：现任书记 → 限本支部（独立 URL 直达；非本支部 → 提示）
+  // 权限轨 A：现任支书 → 限本支部（独立 URL 直达；非本支部 → 提示）
   const own = getBranchIdOfPerson(me.personId);
   const branch = getBranchById(own);
   if (reqBranch && reqBranch !== own) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">仅限本支部</p>
-      <p class="text-xs text-gray-500 mt-1">现任书记只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
+      <p class="text-xs text-gray-500 mt-1">现任支书只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
       <a href="./wizard.html?branch=${esc(own)}" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;">进入本支部向导</a>`);
   } else if (!branch || branch.secretaryId !== me.personId) {
     showNotice(`
-      <p class="font-title-cn text-sm font-bold text-gray-800">非现任书记</p>
-      <p class="text-xs text-gray-500 mt-1">本支部的配置权限归现任书记（secretaryId 匹配）；当前账号不满足，无法进入向导。</p>`);
+      <p class="font-title-cn text-sm font-bold text-gray-800">非现任支书</p>
+      <p class="text-xs text-gray-500 mt-1">本支部的配置权限归现任支书（secretaryId 匹配）；当前账号不满足，无法进入向导。</p>`);
   } else {
     mountOrgSetupWizard(content, { actor: me, canSwitchBranch: false, branchId: own, embed: false });
   }
 } else {
   showNotice(`
     <p class="font-title-cn text-sm font-bold text-gray-800">无配置权限</p>
-    <p class="text-xs text-gray-500 mt-1">换组织向导配置权限：党委组织员（party-staff）任意支部、现任书记本支部；当前角色（${esc(ROLE_LABEL(me.role))}）不在权限范围。</p>
+    <p class="text-xs text-gray-500 mt-1">换组织向导配置权限：党委组织员（party-staff）任意支部、现任支书本支部；当前角色（${esc(ROLE_LABEL(me.role))}）不在权限范围。</p>
     <a href="./index.html" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>`);
 }
 
 /** 角色名（轻量本地映射，避免整表 import constants——与 auth 展示一致） */
 function ROLE_LABEL(role) {
   const MAP = {
-    'secretary': '党支部书记', 'deputy-secretary': '党支部副书记',
+    'secretary': '支书', 'deputy-secretary': '副支书',
     'org-commissioner': '组织委员', 'prop-commissioner': '宣传委员',
     'disc-commissioner': '纪检委员', 'leader': '党小组组长',
     'participant': '普通参与者', 'party-staff': '党委组织员',

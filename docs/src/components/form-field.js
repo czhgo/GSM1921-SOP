@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // components/form-field.js — 表单字段积木（B2 表单美学批次，2026-09-03）
-// 书记美学四要素落点：
+// 支书美学四要素落点：
 //   字体 —— label 统一 text-xs text-gray-500、控件 input-flat 0.875rem、紧凑 text-xs
 //   方框 —— 全部 input-flat 体系（圆角 --radius-sm/边框 --neutral-200/聚焦金框，见 styles.css .input-flat）
 //   交互 —— label 与控件 for/id 关联（点击聚焦）、必填星号、错误行 aria 关联、placeholder 以 … 结尾

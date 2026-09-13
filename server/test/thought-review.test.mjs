@@ -7,7 +7,7 @@
 //   ② reviewThoughtReport approve（组织委员 by=p11 role=org-commissioner）→ archived + reviewHistory[0]
 //      {decision,note,by,at} 留痕；模拟刷新重载后仍 archived（持久化）
 //   ③ reviewThoughtReport reject：空意见（含纯空白）拒绝且状态不动；非空意见 → needs_revision
-//   ④ reviewThoughtReport 非组织委员角色（书记 / 提交人本人）→ {ok:false} 且状态不动
+//   ④ reviewThoughtReport 非组织委员角色（支书 / 提交人本人）→ {ok:false} 且状态不动
 //   ⑤ resubmitThoughtReport：仅 needs_revision 且仅本人可重交；改 content 回 pending（submittedAt 刷新、历史保留）
 //   ⑥ 闭环：pending → reject → resubmit(pending) → approve → archived，reviewHistory 全程两段留痕
 //   ⑦ 旧数据（无 reviewStatus，R6-2 前算法归档产物）经 _effective 归一为 archived：
@@ -17,11 +17,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260912k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260912k';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260912k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260913c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260913c';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TR from '../../docs/src/services/thought-report.js?v=20260912k';
+import * as TR from '../../docs/src/services/thought-report.js?v=20260913c';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();
@@ -147,9 +147,9 @@ test('④ reviewThoughtReport 非组织委员角色 → 拒绝且状态不动', 
   beginMockCase();
   const rec = TR.addThoughtReport({ personId: 'p6', title: '思想汇报', content: '正文内容。' });
 
-  // 书记（p13）代初阅 → 拒绝
+  // 支书（p13）代初阅 → 拒绝
   const bySecretary = TR.reviewThoughtReport({ id: rec.id, decision: 'approve', note: '代批', by: 'p13', role: 'secretary' });
-  assert.equal(bySecretary.ok, false, '书记非组织委员不得初阅');
+  assert.equal(bySecretary.ok, false, '支书非组织委员不得初阅');
   assert.match(bySecretary.reason, /组织委员|权限/);
 
   // 提交人本人（participant）自审 → 拒绝

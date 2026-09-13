@@ -2,14 +2,14 @@
 // ws-prop-commissioner-entry.js — 宣传委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260912k';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260912k';
-import { flashHighlight } from '../core/utils.js?v=20260912k';
-import { loadActivities } from '../services/activity.js?v=20260912k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260912k';
-import { seedTodos } from '../services/todo.js?v=20260912k';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913c';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260913c';
+import { flashHighlight } from '../core/utils.js?v=20260913c';
+import { loadActivities } from '../services/activity.js?v=20260913c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
+import { seedTodos } from '../services/todo.js?v=20260913c';
 // 副作用导入触发宣传委员工作台能力注册（tab 清单）
-import '../modules/capabilities/prop-workspace.js?v=20260909e';
+import '../modules/capabilities/prop-workspace.js?v=20260913c';
 
 await createWorkspaceShell({
   accentRole: 'prop-commissioner',
@@ -27,10 +27,10 @@ await createWorkspaceShell({
       propTf: taskforces.filter(t => t.name.includes('宣传') || t.initiator === 'p12'),
     };
   },
-  // 一键汇报入口（书记 2026-08-10 裁定：复用 Issue 体系）
+  // 一键汇报入口（支书 2026-08-10 裁定：复用 Issue 体系）
   extraRightHtml: ({ accent, accentRgba }) => renderReportEntryHtml({ accent, accentRgba }),
   bindExtras: (container) => bindReportEntry(container),
-  // ── 首页跳转落点（书记 2026-08-08 裁定）：宣传无活动/专班专属 tab，由「项目看板」承载（现状即权限），定位高亮卡片
+  // ── 首页跳转落点（支书 2026-08-08 裁定）：宣传无活动/专班专属 tab，由「项目看板」承载（现状即权限），定位高亮卡片
   onNavTarget: (nav, state, shell) => {
     shell.activate('kanban');
     if (nav.tfId || nav.actId) {

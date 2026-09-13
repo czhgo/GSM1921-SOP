@@ -3,15 +3,15 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260912k';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260912k';
-import { isInitStateActive } from './init-reset.js?v=20260912k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260912k';
-import { getRosterStats } from './roster.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260913c';
+import { isInitStateActive } from './init-reset.js?v=20260913c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260913c';
+import { getRosterStats } from './roster.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -68,7 +68,7 @@ function _activityPartyGroup(activity) {
 
 /**
  * 考勤上传位门禁：谁可对某活动做「上传（追加提交）」
- * - 纪检委员：会议考勤上传位（CF §C.1a）；书记/副书记：例外承担（§9b 注）
+ * - 纪检委员：会议考勤上传位（CF §C.1a）；支书/副支书：例外承担（§9b 注）
  * - 党小组会：组长兼组织者（本组上传位）
  * - 其余类型：仅该活动组织者（assignments organizer 或顶层 organizer 派生）
  */
@@ -77,7 +77,7 @@ export function canUploadAttendance(personId, activityId) {
   const activity = loadActivities().find(a => a.id === activityId);
   if (!activity || activity.archived) return false;
   const role = (getPersonById(personId) || {}).role;
-  // 书记/副书记例外承担（§9b 注）：角色数组单源 = policy-defaults attendance.uploaderExceptions.secretaryDeputy
+  // 支书/副支书例外承担（§9b 注）：角色数组单源 = policy-defaults attendance.uploaderExceptions.secretaryDeputy
   if (POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy.includes(role)) return true;
   if (role === 'disc-commissioner') {
     // 纪检：会议考勤上传位（CF §C.1a）；类型清单单源 = MEETING_ATTENDANCE_TYPES（policy-defaults 派生）
@@ -102,7 +102,7 @@ export function canUploadAttendance(personId, activityId) {
 /**
  * 纪检会议考勤直接录入（上传位即确认，recordedBy=纪检；CF §C.1a 会议考勤：上传/修改/确认/录入）
  * - 默认（不传 opts.overwrite）：同人同活动已有记录（含待复核异常）→ 跳过（不可覆盖已有记录，改走纪检确认界面）
- * - 纪检更正（opts.overwrite=true，书记已批方案A 2026-09-06）：
+ * - 纪检更正（opts.overwrite=true，支书已批方案A 2026-09-06）：
  *   批量上传时，若该 (activityId,personId) 已有记录且为本人权威所录（recordedBy===actorId，即纪检本人
  *   此前经会议考勤位录入/确认），按本次状态覆盖更正，并写 updatedBy/updatedAt；
  *   他人权威所录记录仍跳过（不可覆盖非本人录入，改走纪检确认界面）。
@@ -207,7 +207,7 @@ export function attendanceToLong(records) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  附录⑩ A批·S1 会务考勤规则域（书记裁定 2026-09-06）
+//  附录⑩ A批·S1 会务考勤规则域（支书裁定 2026-09-06）
 //  派生出口均以 core/policy-defaults.js attendance 为单一源，业务层勿新写字面量
 // ════════════════════════════════════════════════════════════════
 
@@ -232,7 +232,7 @@ export function absenceReasonLabel(key) {
 }
 
 /**
- * 纪检应到清点（含滞留到场补录，R1-3 书记裁定）：
+ * 纪检应到清点（含滞留到场补录，R1-3 支书裁定）：
  * K = 会前预应到 = 口径统计 expected（在册党员 − 滞留剔除）；
  * L = 该活动滞留到场补录人数（落行标记 detainedMakeup=true 的记录数）；
  * 实际应到 = K + L（补录者计「到席」，档案按在场展示）。

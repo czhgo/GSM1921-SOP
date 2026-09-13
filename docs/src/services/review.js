@@ -5,14 +5,14 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260912k';
-import { persist } from '../core/data-adapter.js?v=20260912k';
-import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260912k';
-import { ACTIVITIES } from '../mock/activities.js?v=20260912k';
-import { getPersonName } from './person.js?v=20260912k';
-import { loadActivities } from './activity.js?v=20260912k';
-import { solidAccentStyle } from '../core/constants.js?v=20260912k';
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260913c';
+import { persist } from '../core/data-adapter.js?v=20260913c';
+import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260913c';
+import { ACTIVITIES } from '../mock/activities.js?v=20260913c';
+import { getPersonName } from './person.js?v=20260913c';
+import { loadActivities } from './activity.js?v=20260913c';
+import { solidAccentStyle } from '../core/constants.js?v=20260913c';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -46,7 +46,7 @@ export function updateActivityReview(activityId, patch) {
   if (idx === -1) return null;
   records[idx] = { ...records[idx], ...patch };
   mockDB.activityReviews = records;
-  bumpToken('activityReview'); // P0：活动复盘写口 bump（批注/确认/书记复核等）
+  bumpToken('activityReview'); // P0：活动复盘写口 bump（批注/确认/支书复核等）
   persist();
   return records[idx];
 }
@@ -89,8 +89,8 @@ export function addTaskforceReview(record) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  复盘表单（唯一实现：成员端「我的复盘」与书记「代提交复盘」共用）
-//  —— 字段/校验/提交链路单一源，杜绝两处各写一套字段（2026-09-10 A③ 书记裁定）
+//  复盘表单（唯一实现：成员端「我的复盘」与支书「代提交复盘」共用）
+//  —— 字段/校验/提交链路单一源，杜绝两处各写一套字段（2026-09-10 A③ 支书裁定）
 // ════════════════════════════════════════════════════════════════
 
 /**
@@ -98,7 +98,7 @@ export function addTaskforceReview(record) {
  * @param {Object} act - 活动对象（提供 id/title）
  * @param {Object|null} rev - 现有复盘记录（预填内容/打回批注）
  * @param {{ accent?: string, accentBorder?: string, delegateHint?: string, footHint?: string }} [opts]
- *   delegateHint：代填说明（仅书记代提交时传入）；footHint：提交后提示文案
+ *   delegateHint：代填说明（仅支书代提交时传入）；footHint：提交后提示文案
  * @returns {string}
  */
 export function renderActivityReviewFormHtml(act, rev, opts = {}) {
@@ -143,7 +143,7 @@ export function submitActivityReviewForm({ activityId, content, issues = [], act
   if (!text) return { ok: false, error: '请填写复盘总结' };
 
   const act = loadActivities().find(a => a.id === activityId) || null;
-  const marker = delegate ? `【由${delegate.roleLabel || '书记'}代填】` : '';
+  const marker = delegate ? `【由${delegate.roleLabel || '支书'}代填】` : '';
   const finalContent = (marker && !text.startsWith(marker)) ? marker + text : text;
 
   const idx = findActivityReviewIndex(activityId);

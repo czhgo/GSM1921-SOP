@@ -5,13 +5,13 @@
 // 运行：node --test server/test/agenda-closure-core.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20260912k';
-import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260912k';
+import { collectAgendaRows } from '../../docs/src/entries/tabs/secretary/agenda-form.js?v=20260913c';
+import { recordAgendaResultForActivity } from '../../docs/src/services/agenda-follow-up.js?v=20260913c';
 
 test('collectAgendaRows：议程行多类型不互斥，产出 kinds 数组与结构化字段', () => {
   const rows = [
     // 普通议程（无类型）
-    { item: '学习《中国共产党章程》', host: '书记', kinds: [] },
+    { item: '学习《中国共产党章程》', host: '支书', kinds: [] },
     // 讨论文件 + 待讨论名单（多类型并存，同一行两种属性）
     {
       item: '讨论关于 2 名发展对象转为预备党员', host: '组织委员',

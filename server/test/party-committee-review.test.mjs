@@ -1,6 +1,6 @@
 // server/test/party-committee-review.test.mjs — P3 党委后台「支部上报审批」E2E（2026-09-02）
 // 验收（设计 §5 P3 双向通道闭环）：
-//   ① 支部书记登录书记工作台「上报党委」发起上报（发展节点）→ 待党委批复
+//   ① 支书登录支书工作台「上报党委」发起上报（发展节点）→ 待党委批复
 //   ② 党委组织员登录党委工作台「上报审批」逐项批准（带意见）→ 支部侧可见批准结论
 //   ③ 活动报备驳回路径：驳回须填意见（空意见不生效）；带意见驳回 → 支部侧可见驳回与意见
 //
@@ -127,7 +127,7 @@ async function waitForServerNotice(title, contains, timeout = 8000) {
 /** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
 async function pageHasNotice(page, title, contains) {
   return page.evaluate(async ({ t, c }) => {
-    const { NoticeStore } = await import('/src/services/notice.js?v=20260912k');
+    const { NoticeStore } = await import('/src/services/notice.js?v=20260913c');
     NoticeStore.init();
     return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
   }, { t: title, c: contains });
@@ -143,7 +143,7 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
   const partyPage = await newPage();
 
   try {
-    // ── ① 书记（储子禾 p13）登录书记工作台 → 上报党委 tab → 发起发展节点上报 ──
+    // ── ① 支书（储子禾 p13）登录支书工作台 → 上报党委 tab → 发起发展节点上报 ──
     await loginAs(branchPage, { studentId: '2300010001', expectUrlPart: 'secretary.html' });
     await activateTab(branchPage, '上报党委');
     await waitForBodyText(branchPage, '发起上报'); // 上报党委面板帧已渲染（发起上报按钮）
@@ -173,8 +173,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(branchPage, titleA);
     await waitForBodyText(branchPage, '党委批准');
     await waitForBodyText(branchPage, noteA);
-    // ②′ 结论通知回传发起书记侧站内可见
-    assert.ok(await pageHasNotice(branchPage, '上报已获党委批准', noteA), '批准结论应通知回传发起书记');
+    // ②′ 结论通知回传发起支书侧站内可见
+    assert.ok(await pageHasNotice(branchPage, '上报已获党委批准', noteA), '批准结论应通知回传发起支书');
 
     // ── ③ 活动报备驳回路径：支部再发一条 → 党委空意见驳回不生效 → 带意见驳回 ──
     await submitRequest(branchPage, { type: 'activity-report', title: titleB, content: '拟赴香山开展主题党日，需报备。' });
@@ -207,8 +207,8 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     await waitForBodyText(branchPage, titleB);
     await waitForBodyText(branchPage, '党委驳回');
     await waitForBodyText(branchPage, noteB);
-    // ③′ 驳回结论（含意见）回传发起书记侧站内可见
-    assert.ok(await pageHasNotice(branchPage, '上报被党委驳回', noteB), '驳回结论（含意见）应通知回传发起书记');
+    // ③′ 驳回结论（含意见）回传发起支书侧站内可见
+    assert.ok(await pageHasNotice(branchPage, '上报被党委驳回', noteB), '驳回结论（含意见）应通知回传发起支书');
   } finally {
     await branchPage.close();
     await partyPage.close();

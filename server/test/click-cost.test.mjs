@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
-// click-cost.test.mjs — 点击成本实测（T-283 方向3，书记强调"点击是最重要的"；原 click-cost-audit.mjs）
-// 覆盖：书记创建三会一课活动全流程点击数 + 活动详情查看点击数 + 待办行动点击数
+// click-cost.test.mjs — 点击成本实测（T-283 方向3，支书强调"点击是最重要的"；原 click-cost-audit.mjs）
+// 覆盖：支书创建三会一课活动全流程点击数 + 活动详情查看点击数 + 待办行动点击数
 // 基线：REVIEW_QUEUE 附录⑤（进入工作台→可执行事项 ≤2 跳 / 待办行动按钮 1 次直达）
 // 运行：node --test server/test/click-cost.test.mjs（server 需在 3000 端口）
 import { test } from 'node:test';
@@ -20,8 +20,8 @@ async function loginAs(browser, role) {
   return page;
 }
 
-// 场景 A：书记创建三会一课（党小组会）活动
-test('C1 书记创建三会一课活动：点击次数统计（目标 ≤5 次）', async () => {
+// 场景 A：支书创建三会一课（党小组会）活动
+test('C1 支书创建三会一课活动：点击次数统计（目标 ≤5 次）', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'secretary');
@@ -77,7 +77,7 @@ test('C1 书记创建三会一课活动：点击次数统计（目标 ≤5 次�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/state.js?v=20260912k');
+      const m = await import('/src/core/state.js?v=20260913c');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,
@@ -102,7 +102,7 @@ test('C1 书记创建三会一课活动：点击次数统计（目标 ≤5 次�
 });
 
 // 场景 B：活动详情查看点击数
-test('C2 书记查看活动详情：进入工作台后 ≤2 次点击可见', async () => {
+test('C2 支书查看活动详情：进入工作台后 ≤2 次点击可见', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'secretary');
@@ -130,8 +130,8 @@ test('C2 书记查看活动详情：进入工作台后 ≤2 次点击可见', as
   } finally { await browser.close(); }
 });
 
-// 场景 C：书记待办可见（R6-3「今天」置首新语义：默认落点=「今天」，待办必见=今天页 + ≤1 跳待办 tab）
-test('C3 书记待办可见：默认落点「今天」，切待办 tab ≤1 次点击即见待办', async () => {
+// 场景 C：支书待办可见（R6-3「今天」置首新语义：默认落点=「今天」，待办必见=今天页 + ≤1 跳待办 tab）
+test('C3 支书待办可见：默认落点「今天」，切待办 tab ≤1 次点击即见待办', async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await loginAs(browser, 'secretary');
@@ -161,7 +161,7 @@ test('C3 书记待办可见：默认落点「今天」，切待办 tab ≤1 次�
 });
 
 // ════════════════════════════════════════════════════════════════
-//  组长台：C② 组长建活动「默认预选 + 高级层折叠」（2026-09-10 书记裁定）
+//  组长台：C② 组长建活动「默认预选 + 高级层折叠」（2026-09-10 支书裁定）
 //  裁定前：L1→承办党小组→L2→L3→L4 逐层点选（≥5 次）才出表单，内部术语 L1–L4 直接暴露；
 //  裁定后：进入面板即按上下文派生默认值 → 0 次决策点选即可填表提交；术语区收进「高级设置（可选）」。
 // ════════════════════════════════════════════════════════════════
@@ -193,7 +193,7 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
       (document.getElementById('dt-panel-wrap').innerText.split('\n').find(l => l.includes('当前设置')) || '').trim());
     console.log(`[C4] 首屏默认摘要：${summary}`);
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260912k');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260913c');
       return m.currentLeaderGroup().group;
     });
     assert.ok(summary.includes('活动类型'), '首屏应显示白话「活动类型」摘要');
@@ -249,7 +249,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     await page.locator('.dt-l4-btn[data-value="top-down"]').click();
     // L1 变更会重置承办党小组 → 回选组长本组
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260912k');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260913c');
       return m.currentLeaderGroup().group;
     });
     await page.waitForSelector(`.dt-host-btn[data-value="${myGroup}"]`, { timeout: 5000 });

@@ -1,7 +1,7 @@
 // server/test/roles-sync.test.mjs — P2c 防失同步：授权语义角色集单一源自洽（2026-09-03）
 // 校验 docs/src/core/constants.js 的授权语义角色集（server requireRole 与前端 AuthStore.isCommissioner 共用）：
 //   ① 全部角色 ∈ ROLE_KEYS 枚举；
-//   ② 业务语义「条条三委员」⊆ 授权支委集（含书记/副书记），防止两套语义混淆（勿把授权集指向条条集）；
+//   ② 业务语义「条条三委员」⊆ 授权支委集（含支书/副支书），防止两套语义混淆（勿把授权集指向条条集）；
 //   ③ server/routes 与前端 services/auth.js 不再手写 5 支委授权列表（特征串只允许出现在 constants.js）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/constants.js?v=20260912k';
+} from '../../docs/src/core/constants.js?v=20260913c';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
@@ -22,10 +22,10 @@ test('授权语义角色集全部 ∈ ROLE_KEYS 业务角色枚举', () => {
   });
 });
 
-test('授权支委集 = 5 支委且含书记/副书记；业务「条条三委员」为授权集子集（勿混淆语义）', () => {
+test('授权支委集 = 5 支委且含支书/副支书；业务「条条三委员」为授权集子集（勿混淆语义）', () => {
   assert.equal(BRANCH_COMMISSION_ROLES.length, 5);
   assert.deepEqual([...SECRETARY_ROLES], ['secretary']);
-  assert.deepEqual([...SECRETARY_AND_DEPUTY_ROLES], ['secretary', 'deputy-secretary']); // 副书同权（2026-09-11 书记裁定）
+  assert.deepEqual([...SECRETARY_AND_DEPUTY_ROLES], ['secretary', 'deputy-secretary']); // 副书同权（2026-09-11 支书裁定）
   assert.ok(BRANCH_COMMISSION_ROLES.includes('secretary') && BRANCH_COMMISSION_ROLES.includes('deputy-secretary'));
   // 业务语义 COMMISSIONER_ROLES（条条集合，含遗留统称键 commissioner）⊆ 授权语义集（跳过遗留键）
   for (const r of COMMISSIONER_ROLES) {
@@ -40,8 +40,8 @@ test('演示支部支委名单 COMMITTEE_IDS = 5 人（p10~p14）', () => {
 
 test('server 路由与前端鉴权不再手写 5 支委授权列表（特征串仅在 constants.js 出现 1 次）', () => {
   const files = [
-    'docs/src/core/constants.js?v=20260912k',
-    'docs/src/services/auth.js?v=20260912k',
+    'docs/src/core/constants.js?v=20260913c',
+    'docs/src/services/auth.js?v=20260913c',
     'server/routes/auth.js',
     'server/routes/member.js',
     'server/routes/committee.js',

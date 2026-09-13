@@ -45,8 +45,8 @@ async function login(page, sid) {
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入一条记录 */
 async function pushAndPersist(page, collection, row) {
   await page.evaluate(async ({ collection, row }) => {
-    const { mockDB } = await import('/src/core/domain.js?v=20260912k');
-    const { persist } = await import('/src/core/data-adapter.js?v=20260912k');
+    const { mockDB } = await import('/src/core/domain.js?v=20260913c');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260913c');
     mockDB[collection].push(row);
     persist();
   }, { collection, row });
@@ -65,7 +65,7 @@ test('多用户并发写：跨集合互不覆盖（脏集合增量快照）', as
   const pageA = await ctxA.newPage();
   const pageB = await ctxB.newPage();
 
-  // A(书记) 与 B(组织委员) 同时在线，内存均停在各自 init 时刻
+  // A(支书) 与 B(组织委员) 同时在线，内存均停在各自 init 时刻
   await login(pageA, '2300010001');
   await login(pageB, '2400012355');
 
