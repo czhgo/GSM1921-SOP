@@ -8,43 +8,43 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912j';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260912k';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260912j';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260912j';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260912j';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260912j';
-import { badgeHtml } from '../../../components/badges.js?v=20260912j';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260912j';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912j';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260912j';
-import { loadActivities } from '../../../services/activity.js?v=20260912j';
-import { mockDB } from '../../../core/domain.js?v=20260912j';
-import { persist } from '../../../core/data-adapter.js?v=20260912j';
-import { bumpToken } from '../../../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260912j';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260912j';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260912k';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260912k';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260912k';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260912k';
+import { badgeHtml } from '../../../components/badges.js?v=20260912k';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912k';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260912k';
+import { loadActivities } from '../../../services/activity.js?v=20260912k';
+import { mockDB } from '../../../core/domain.js?v=20260912k';
+import { persist } from '../../../core/data-adapter.js?v=20260912k';
+import { bumpToken } from '../../../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260912k';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260912k';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912j';
-import { IssueStore } from '../../../services/issues.js?v=20260912j';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260912j';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260912j';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260912j';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260912j';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260912k';
+import { IssueStore } from '../../../services/issues.js?v=20260912k';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260912k';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260912k';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260912k';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260912k';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260912j';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260912j';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260912j';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260912k';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260912k';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260912k';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 书记确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260912j';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260912j';
-import { AuthStore } from '../../../services/auth.js?v=20260912j';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260912k';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
 // 逐条催办（2026-09-10 书记裁定）：复用 NoticeStore 通知链路（按责任角色定向通知，不改数据模型）
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../../services/notice.js?v=20260912j';
-import { setState } from '../../../core/state.js?v=20260912j';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260912j';
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../../services/notice.js?v=20260912k';
+import { setState } from '../../../core/state.js?v=20260912k';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260912k';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -179,19 +179,24 @@ function _handleUrge(group, ctx) {
   // 并高亮被催办聚合组（data-group-key）；页面缺省时退 targetModule 角色自适应兜底。
   const roleMap = NOTICE_MODULE_ROLE_PAGES[targetModule] || {};
   const hlId = group.groupKey || ((group.items && group.items[0]) || {}).id;
+  // 签发人取当前真实角色（2026-09-13 彻查批次：此前正文写死「书记提醒：」且 actorRole 传 'secretary'
+  //   → 副书记催办被记为书记；正文改为裁定原定的中性事务式，签发人落到 publishedBy）
+  const _me = AuthStore.getCurrentUser() || {};
+  const _actorRole = _me.role || 'secretary';
   for (const role of roles) {
     const page = roleMap[role] || roleMap['*'];
     NoticeStore.add({
       title: '待办催办',
       // A④ 文案定稿（2026-09-10 书记裁定：中性事务式）——「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
-      content: `书记提醒：关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
+      content: `关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
       priority: 'urgent',
       targetModule,
       targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
       actionable: true,
       actionRoles: [role],
       actionTask: group.title,
-    }, 'secretary'); // 副书同权：本台同权签发（NoticePermission 以书记台口径放行）
+      publishedBy: ROLE_LABELS[_actorRole] || '书记',
+    }, _actorRole); // 副书同权：本台同权签发（NoticePermission 以书记台口径放行）
   }
   _urgeState.set(group.groupKey, Date.now());
   showToast('success', `已向${roles.map(r => ROLE_LABELS[r] || r).join('、')}发送催办通知`);

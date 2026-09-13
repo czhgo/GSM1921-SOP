@@ -11,11 +11,11 @@
 //    读取侧归一为 archived（已归档语义），不进待初阅队列。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912j';
-import { persist } from '../core/data-adapter.js?v=20260912j';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912j';
-import { NoticeStore } from './notice.js?v=20260912j';
-import { getPersonById } from './person.js?v=20260912j';
+import { mockDB } from '../core/domain.js?v=20260912k';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260912k';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260912k';
+import { NoticeStore } from './notice.js?v=20260912k';
+import { getPersonById } from './person.js?v=20260912k';
 
 // ════════════════════════════════════════════════════════════════
 //  R6-2 把关式初阅 状态机（2026-09-07）
@@ -81,13 +81,22 @@ export function addThoughtReport({ personId, content, title }) {
   persist();
   // 通知组织委员（把关式初阅）：提交 → 待组织初阅，通过后自动归档
   // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
-  try {
-    NoticeStore.addSystem('thought-report-submitted', rec.id, {
-      personId: rec.personId,
-      personName: rec.personName,
-    });
-  } catch (e) {
-    console.warn('[thought-report] 提交通知失败（不影响归档）：', e);
+  // R-23（2026-09-13）：服务端按 thought_reports 表复算授权 → API 模式须**先冲刷快照**把本次
+  //   提交落服务端表，再触发系统通知（否则 800ms 防抖窗口内服务端尚无该行 → 授权 403 无通知）。
+  const fireNotice = () => {
+    try {
+      NoticeStore.addSystem('thought-report-submitted', rec.id, {
+        personId: rec.personId,
+        personName: rec.personName,
+      });
+    } catch (e) {
+      console.warn('[thought-report] 提交通知失败（不影响归档）：', e);
+    }
+  };
+  if (getDataSource() === 'api') {
+    flushSnapshot().then(fireNotice).catch(fireNotice);
+  } else {
+    fireNotice();
   }
   return rec;
 }

@@ -2,11 +2,15 @@
 // 宣传委员工作台 Tab：我的处置（T-279 M3 拆分，照 M2 样板）
 // 过程性汇报/问题处置：宣传委员答复提交人，书记仍全局可见。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../services/issues.js?v=20260912j';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../services/issues.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
 
 export function renderContent() {
   const el = document.getElementById('prop-tab-content');
   if (!el) return;
-  el.innerHTML = renderMyDispatchTab('prop-commissioner', 'u_prop');
-  bindMyDispatchEvents(el, 'prop-commissioner', 'u_prop');
+  // 2026-09-13 dogfood 同类彻查：身份取真实登录成员 personId（原写死占位 ID 'u_prop'）
+  const uid = AuthStore.getCurrentUser()?.personId;
+  if (!uid) { el.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">请先登录</p>'; return; }
+  el.innerHTML = renderMyDispatchTab('prop-commissioner', uid);
+  bindMyDispatchEvents(el, 'prop-commissioner', uid);
 }

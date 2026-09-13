@@ -5,14 +5,14 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260912j';
-import { persist } from '../core/data-adapter.js?v=20260912j';
-import { bumpToken } from '../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260912j';
-import { ACTIVITIES } from '../mock/activities.js?v=20260912j';
-import { getPersonName } from './person.js?v=20260912j';
-import { loadActivities } from './activity.js?v=20260912j';
-import { solidAccentStyle } from '../core/constants.js?v=20260912j';
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260912k';
+import { persist } from '../core/data-adapter.js?v=20260912k';
+import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../mock/index.js?v=20260912k';
+import { ACTIVITIES } from '../mock/activities.js?v=20260912k';
+import { getPersonName } from './person.js?v=20260912k';
+import { loadActivities } from './activity.js?v=20260912k';
+import { solidAccentStyle } from '../core/constants.js?v=20260912k';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -117,7 +117,7 @@ export function renderActivityReviewFormHtml(act, rev, opts = {}) {
       ${opts.delegateHint ? `<div class="mb-2 text-xs text-gray-500">${opts.delegateHint}</div>` : ''}
       <textarea id="review-textarea-${act.id}" class="input-flat w-full text-xs resize-none" rows="4" placeholder="请填写复盘总结（活动成效、经验教训、改进建议等）">${existingContent}</textarea>
       <div class="mt-2">
-        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，书记 KPI 以此计量）</label>
+        <label class="text-xs text-gray-500 block mb-1">提出的真问题（每行一条，便于汇总改进）</label>
         <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
       </div>
       <div class="flex items-center gap-2 mt-2">

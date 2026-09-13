@@ -15,16 +15,16 @@
 //  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与书记台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../core/id.js?v=20260912j';
-import { mockDB } from '../core/domain.js?v=20260912j';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../core/id.js?v=20260912k';
+import { mockDB } from '../core/domain.js?v=20260912k';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20260912j';
-import { BranchService } from './runtime.js?v=20260912j';
-import { loadActivities } from './activity.js?v=20260912j';
-import { PersonStore } from './person.js?v=20260912j';
-import { ROLE_LABELS } from '../core/constants.js?v=20260912j';
+} from './todo.js?v=20260912k';
+import { BranchService } from './runtime.js?v=20260912k';
+import { loadActivities } from './activity.js?v=20260912k';
+import { PersonStore } from './person.js?v=20260912k';
+import { ROLE_LABELS } from '../core/constants.js?v=20260912k';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {
@@ -73,7 +73,7 @@ export function buildFollowupTodoPayload({ activity, agendaItem, followup }) {
   return {
     title: `落实决议：${followup.item}`,
     description: `决议「${agendaItem.item}」${activity.date ? `（${activity.date} 会议）` : ''}待落实。`
-      + `责任人：${ownerLabelOf(followup)}；请按时完成，完成后由书记在决议记录视图销项。`,
+      + `责任人：${ownerLabelOf(followup)}；请按时完成，完成后由书记/副书记在决议记录视图销项。`,
     role: todoRoleOf(followup),
     personId: followup.ownerType === 'person' ? followup.ownerId : null,
     category: TodoCategory.TRACK,
@@ -85,7 +85,7 @@ export function buildFollowupTodoPayload({ activity, agendaItem, followup }) {
     actionType: TodoActionType.TRACK,
     actionKey: RESOLUTION_FOLLOWUP_ACTION_KEY,
     actionData: { activityId: activity.id, agendaItemId: agendaItem.id, followupId: followup.id },
-    flow: '决议待落实 → 责任人执行 → 书记销项',
+    flow: '决议待落实 → 责任人执行 → 书记/副书记销项',
   };
 }
 

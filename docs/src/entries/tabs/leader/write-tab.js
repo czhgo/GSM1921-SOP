@@ -3,21 +3,21 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState } from '../../../core/state.js?v=20260912j';
-import { BranchService } from '../../../services/runtime.js?v=20260912j';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912j';
-import { AuthStore } from '../../../services/auth.js?v=20260912j';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912j';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912j';
-import { persist } from '../../../core/data-adapter.js?v=20260912j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912j';
-import { recordFormShell } from '../../../components/forms.js?v=20260912j';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912j';
-import { badgeHtml } from '../../../components/badges.js?v=20260912j';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260912j';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912j';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912j';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912j';
+import { setState } from '../../../core/state.js?v=20260912k';
+import { BranchService } from '../../../services/runtime.js?v=20260912k';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260912k';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260912k';
+import { persist } from '../../../core/data-adapter.js?v=20260912k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
+import { recordFormShell } from '../../../components/forms.js?v=20260912k';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260912k';
+import { badgeHtml } from '../../../components/badges.js?v=20260912k';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260912k';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS } from '../../../core/constants.js?v=20260912k';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260912k';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912k';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）

@@ -24,6 +24,9 @@ const RESOURCE_TABLES = [
   // 2026-09-12 意见反馈「真匿名」：issues 表（仅 server/routes/resources.js 语义端点读写，
   // 不在 resources.js RESOURCE_TABLES 映射内 → 无通用 CRUD / 不进快照写穿；落库字段白名单）
   'issues',
+  // R-23（2026-09-13）：思想汇报建服务端表——原「服务端无表」使系统通知 authorize 只能采信
+  //   客户端自述的 personId（无法验对象）。建表后 authorize 可据表复算「提交人本人或有权阅处角色」。
+  'thought_reports',
 ];
 
 const SCHEMA = `

@@ -201,34 +201,59 @@ test('通知写门：书记/副书记/组织/宣传可发布；纪检仅可管�
 //   · 同 kind 但 actor 无资格 → 403；未知 kind → 400；未登录 → 401
 //   · 授权基于「业务对象是否存在 + actor 与该对象的关系」服务端复算（不信客户端）
 test('系统派生通知端点：合法 kind 201（服务端生成文案/落点）；无资格 403；未知 kind 400；未登录 401', async () => {
-  const { token: partTok } = await login('p3');    // 普通成员（也是思想汇报提交人本人）
-  const { token: discTok } = await login('p10');   // 纪检委员
+  const { token: partTok } = await login('p3');    // 普通成员（思想汇报提交人本人）
+  const { token: orgTok } = await login('p11');    // 组织委员（有权阅处角色）
+  const { token: discTok } = await login('p10');   // 纪检委员（非提交人/非阅处角色）
 
-  // ① thought-report-submitted：提交人本人 + 客户端伪造 title/targetUrl → 201，且文案/落点取服务端模板
+  // R-23（2026-09-13）：思想汇报已建服务端表 thought_reports → authorize 按表复算（不再采信客户端自述）。
+  // 先写入汇报行（随快照同步的同一张表；此处用通用资源写口落一行做授权对象）。
+  const trId = 'tr-20260913-1';
+  const createTr = await fetch(`${base}/api/v1/thoughtReports`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({ id: trId, personId: 'p3', personName: '普通成员', title: '思想汇报', reviewStatus: 'pending' }),
+  });
+  assert.equal(createTr.status, 201, '思想汇报落服务端表 thought_reports');
+
+  // ① 提交人本人 + 表内存在该汇报 → 201，且文案/落点取服务端模板（不采信客户端伪造 title/targetUrl）
   const okRes = await fetch(`${base}/api/v1/system-notices`, {
     method: 'POST', headers: authHeaders(partTok),
     body: JSON.stringify({
       kind: 'thought-report-submitted',
-      sourceId: 'tr-20260913-1',
+      sourceId: trId,
       payload: { personId: 'p3', personName: '普通成员', title: '伪造标题', targetUrl: 'evil.html' },
     }),
   });
-  assert.equal(okRes.status, 201, '提交人本人可触发思想汇报系统通知');
+  assert.equal(okRes.status, 201, '提交人本人可触发思想汇报系统通知（表内存在该汇报）');
   const okNotice = await okRes.json();
   assert.equal(okNotice.title, '思想汇报已提交', '标题来自服务端 build（不采信 payload 的 title）');
-  assert.equal(okNotice.targetUrl, 'workspace/org.html?tab=thought-review&highlight=tr-20260913-1', '落点由服务端按 sourceId 派生');
+  assert.equal(okNotice.targetUrl, `workspace/org.html?tab=thought-review&highlight=${trId}`, '落点由服务端按 sourceId 派生');
+  assert.deepEqual(okNotice.audience, ['org-commissioner'], 'R-23：受众锁定组织委员（阅处功能位），不再全站广播');
   // 落库核对（非仅响应）
   const list2 = await (await fetch(`${base}/api/v1/notices`, { headers: authHeaders(partTok) })).json();
   const stored = list2.find((n) => n.id === okNotice.id);
   assert.ok(stored, '通知已落库 notices 表');
   assert.equal(stored.title, '思想汇报已提交', '落库标题为服务端生成');
 
-  // ② 同 kind 但 actor 非提交人且非组织委员 → 403
+  // ①b 组织委员（有权阅处角色）+ 表内存在该汇报 → 201
+  const orgRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(orgTok),
+    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: trId, payload: {} }),
+  });
+  assert.equal(orgRes.status, 201, '组织委员（有权阅处角色）可触发（表内存在该汇报）');
+
+  // ② 表内存在该汇报，但 actor 既非提交人也非阅处角色（纪检委员）→ 403
   const denyRes = await fetch(`${base}/api/v1/system-notices`, {
     method: 'POST', headers: authHeaders(discTok),
-    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: 'tr-2', payload: { personId: 'p3', personName: 'x' } }),
+    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: trId, payload: { personId: 'p3', personName: 'x' } }),
   });
-  assert.equal(denyRes.status, 403, '非提交人/非组织委员不得触发该 kind');
+  assert.equal(denyRes.status, 403, '非提交人/非阅处角色不得触发该 kind');
+
+  // ②b R-23 收紧：服务端表中**无**该汇报 → 403（即便自述 personId 等于本人，杜绝凭空伪造）
+  const ghostRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(partTok),
+    body: JSON.stringify({ kind: 'thought-report-submitted', sourceId: 'tr-does-not-exist', payload: { personId: 'p3', personName: '普通成员' } }),
+  });
+  assert.equal(ghostRes.status, 403, '服务端无该汇报 → 403（不再采信客户端自述 personId）');
 
   // ③ db 类 kind（考勤确认）：纪检对存在的活动（act-31，organizer=p11）→ 201；普通成员 → 403
   const attOk = await fetch(`${base}/api/v1/system-notices`, {

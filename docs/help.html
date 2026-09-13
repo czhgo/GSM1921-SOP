@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260912j"></script>
+<script src="./src/theme-init.js?v=20260912k"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260912j"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260912j">
+  <script src="./src/tailwind-config.js?v=20260912k"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260912k">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -319,7 +319,7 @@
             <li><strong>支部治理</strong>（书记 / 副书记，副书同权）：支部信息与换组织向导、工作台默认顺序（为全体成员设默认页签顺序）、支部制度参数（票决门槛 / 应到名单核对等<strong>制度默认只读</strong>，不在此直改）——原书记工作台「支部配置 / 模块」入口已收口于此，书记工作台不再有该页签。</li>
             <li><strong>职责参数</strong>（各域负责人，可管则见）：纪检（考察确认超期天数）/ 组织（学期末滞留复核窗口）/ 组长（学期组员进展归集提醒）各自只见可调自己那一域；访客仅见外观。</li>
           </ul>
-          <p class="help-card-desc" style="margin-top:8px;"><strong>配置变更可查可回滚</strong>：支部配置每次保存自动留痕——书记 / 副书记在 支部治理 →「配置变更记录」查看（人 / 时间 / 变更键 / 前后值 / 依据 why），单键更改可「回滚此更改」（回滚本身再留一痕；历史保留最近 100 条）。<strong>登录后若无支部归属</strong>（账号尚未被党委绑定支部）：页眉显示中性「未绑定支部」，设置内支部治理 / 职责参数区提示「未找到您所属支部——请先由党委在『支部管理』中确认归属」，换组织向导不唤起。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><strong>配置变更可查可回滚</strong>：支部配置每次保存自动记录——书记 / 副书记在 支部治理 →「配置变更记录」查看（人 / 时间 / 变更键 / 前后值 / 依据 why），单键更改可「回滚此更改」（回滚本身再留一痕；历史保留最近 100 条）。<strong>登录后若无支部归属</strong>（账号尚未被党委绑定支部）：页眉显示中性「未绑定支部」，设置内支部治理 / 职责参数区提示「未找到您所属支部——请先由党委在『支部管理』中确认归属」，换组织向导不唤起。</p>
         </div>
       </section>
 
@@ -555,7 +555,7 @@
         <p class="doc-p">系统全部功能一览。通用能力（任何组织可复用）与支部特有以标签区分。</p>
         <div id="sec-funcmap">
           <div id="mermaid-funcmap" class="mermaid-host">
-            <p class="mermaid-fallback">功能地图加载中…（离线时此处降级为文本目录，功能章节卡片不受影响）</p>
+            <p class="mermaid-fallback">功能地图加载中…（离线时此处显示文字目录，功能章节卡片不受影响）</p>
           </div>
         </div>
       </section>
@@ -599,7 +599,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">创建表单「会议议程」区：填「议题 + 主持人」，可「＋ 添加议程」多条；一条议题可同时打两种类型签（不互斥）——「讨论文件」：关联会前草案（支部文件下拉；无草案时引导去资料查询页写入）；「待讨论名单」：选名单统一阶段转换（从阶段 → 到阶段 + 多选人员，如讨论 N 名发展对象转预备）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">会后在活动详情页对该条议程「记录通过 / 记录未通过」。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>「讨论文件」记录「通过」→ 该会前草案自动转为「已归档」并记录讨论来源（资料查询页展示「经《会议》讨论通过」），宣传档案线无需二次上传；「待讨论名单」记录「通过」→ 名单内每人自动生成一条成员变更申请，走「组织委员审批 → 书记确认 → 更新发展阶段」留痕链（发展链路，见 3.5 与 4.5 发展党员链路）；支部党员大会线上表决场景下记录「通过」前先做出席 / 赞成过半数硬校验（见下条）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>「讨论文件」记录「通过」→ 该会前草案自动转为「已归档」并记录讨论来源（资料查询页展示「经《会议》讨论通过」），宣传档案线无需二次上传；「待讨论名单」记录「通过」→ 名单内每人自动生成一条成员变更申请，走「组织委员审批 → 书记确认 → 更新发展阶段」记录链（发展链路，见 3.5 与 4.5 发展党员链路）；支部党员大会线上表决场景下记录「通过」前先做出席 / 赞成过半数硬校验（见下条）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>记录「未通过」不触发上述任何派生；应到会有表决权党员出席未过半数、或赞成未过半数时系统拦截「记录通过」并给出可采取动作提示（督促未表态党员表态 / 继续沟通争取赞成票），不能强行记为通过。</p>
         </div>
 
@@ -670,7 +670,7 @@
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员台「我的复盘」→ 待复盘区（未提交 / 已打回）列出本人任组织者 / 深度参与者的活动 → 点开活动卡。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">填「复盘总结」+ 「提出的真问题」（每行一条，书记以此计量）→ 提交。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">填「复盘总结」+ 「提出的真问题」（每行一条，便于汇总改进）→ 提交。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「活动监督复盘」对「已上传」复盘行：批注（转「批注中」）/ 打回 / 确认（可开「批量确认」多选一次确认）——确认后复盘办结、活动结束。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后状态 =「已上传」并自动进入纪检监督列表；组长台「复盘状态」同步可见；复盘确认后若未沉淀经验，纪检台出现「经验沉淀督促」清单（已确认未沉淀 → 督促深度参与者提交沉淀）。</p>
@@ -720,7 +720,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">总表：姓名 / 活动搜索 + 状态下拉（出勤 / 缺勤 / 请假 / 已补），每页 20 条；确认人列显示「自动确认 / 待确认 / 纪检姓名」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">低频操作行：「导出 CSV / 打印」（导出按当前筛选，含月份列与确认状态）。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>已确认记录写确认人并留痕；出勤 / 已补无确认人记为「自动确认」；缺勤 / 请假未确认记为「待确认」——规则全站统一（出勤率含「已补」）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>已确认记录写确认人并记录；出勤 / 已补无确认人记为「自动确认」；缺勤 / 请假未确认记为「待确认」——规则全站统一（出勤率含「已补」）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>活动归档后其考勤随活动退出工作区（历史数据仍在档案可查）；总表确认与队列确认同路径，操作后自动刷新。</p>
         </div>
 
@@ -764,7 +764,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">选人员 → 逐人填写考察内容描述 → 提交。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:6px;"><strong>几步（组织 · 专班侧）：</strong>「上传考察表单」→ 选专班（招募中 / 运行中）→ 选人员 → 逐人考察内容 → 提交（提示「自动投递：纪检确认 → 考察总表（组织委员建档），无需选择接收方」）。</p>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传后记录状态 = 待确认（留痕上传人），自动进入纪检「考察管理」考察总表（活动视图 / 人视图均可查）；本页下方列表回显本人上传记录与确认状态（待确认 / 已确认）；专班考察行可点开查看详情（上传人 / 时间 / 参与层级 / 内容）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传后记录状态 = 待确认（记录上传人），自动进入纪检「考察管理」考察总表（活动视图 / 人视图均可查）；本页下方列表回显本人上传记录与确认状态（待确认 / 已确认）；专班考察行可点开查看详情（上传人 / 时间 / 参与层级 / 内容）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>仅限本人上传位（非本组党小组会 / 非本人组织活动提交被拦）；逐人考察内容为空不允许提交。</p>
         </div>
 
@@ -778,7 +778,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">对「待确认 / 超期」行「确认」（误传可「删除」，仅待确认可删）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>确认后状态 = 已确认并自动销「考察超期 / 待确认」类待办；超期判定：待确认记录超过 7 天 → 顶部「超期提醒」红块 + 表中标「超期」（默认 7 天，支部可调）；专班名单区实时显示各专班考察确认进度（确认 X / 总数）。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>已确认记录不可删（历史留痕，只能走档案维护）；删除仅限待确认（误传）记录。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>已确认记录不可删（历史记录，只能走档案维护）；删除仅限待确认（误传）记录。</p>
         </div>
 
         <div class="help-card" id="card-dom34-handoff" data-search="考察 交接 提交考察至支委会 组织委员 接收 建档 归集 考察档案 人才库">
@@ -821,7 +821,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员：待初阅队列（先到先阅，按提交时间升序）→「阅看」全文 →「通过 · 归档」或「退回 · 需补充」（退回必填意见）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回后：提交人列表该篇标「已退回 · 需补充」并展示退回意见 →「修改并重新提交」→ 回待初阅队列。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后自动通知组织委员（待初阅）；「通过」即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步）；每次初阅留痕（谁于何时通过 / 退回 + 意见），组织侧「按人浏览」可按人查看全部汇报与留痕；重交后刷新提交时间并回待初阅队列，历史留痕保留。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后自动通知组织委员（待初阅）；「通过」即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步）；每次初阅记录（谁于何时通过 / 退回 + 意见），组织侧「按人浏览」可按人查看全部汇报与记录；重交后刷新提交时间并回待初阅队列，历史记录保留。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>退回必填意见（否则拦截）；仅提交人本人可修改重交；已归档 / 非待初阅状态不可再初阅（重复处理拦截）；仅组织委员角色可初阅（其它角色打开仅提示无权限）。</p>
         </div>
 
@@ -836,7 +836,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记确认：书记台「待办」→「成员变更待确认」组逐项「确认生效 / 退回」（退回可填原因）；行内恢复可编辑并回现值。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">移出：行尾「移出」→ 弹窗说明引用检查 → 确认移出（有历史则行显「移出待确认」，待书记确认）。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>新增 / 即时字段保存 → 名册与应到名单即时生效（支部应到 = 在册党员 − 滞留剔除，页头实时显示支部与各组应到）；发展阶段、在册滞留变更经书记「确认生效」后落地并留痕（滞留含备注，纪检考勤 / 会议应到随之剔除、通知照发）；移出 = 引用清单化：无历史或仅安全引用（未开始活动分工 / 未生效报名 / 未读广播）→ 自动解除后直接移出；有历史（考勤 / 考察 / 思想汇报 / 复盘 / 表态 / 长期分工等）→ 书记确认后转「已转出」标注并移出（原记录保留、不删不匿名，专班负责人保留提示先移交）；学期末窗口（6/15–7/15、12/15–次年 1/15）书记台自动出现「学期末滞留集中复核」提醒（滞留名单一览，延续或解除由组织委员在名册发起）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>新增 / 即时字段保存 → 名册与应到名单即时生效（支部应到 = 在册党员 − 滞留剔除，页头实时显示支部与各组应到）；发展阶段、在册滞留变更经书记「确认生效」后落地并记录（滞留含备注，纪检考勤 / 会议应到随之剔除、通知照发）；移出 = 引用清单化：无历史或仅安全引用（未开始活动分工 / 未生效报名 / 未读广播）→ 自动解除后直接移出；有历史（考勤 / 考察 / 思想汇报 / 复盘 / 表态 / 长期分工等）→ 书记确认后转「已转出」标注并移出（原记录保留、不删不匿名，专班负责人保留提示先移交）；学期末窗口（6/15–7/15、12/15–次年 1/15）书记台自动出现「学期末滞留集中复核」提醒（滞留名单一览，延续或解除由组织委员在名册发起）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>书记退回的变更不生效（组织委员可重新发起）；同一人同字段已有待确认请求 → 重复发起拦截；移出待确认期间禁重复操作；现任书记（或任一支部书记）不可移出（须先完成书记交接）；移出后读链不匿名——姓名仍可解析并标「已转出」。</p>
         </div>
 
@@ -867,7 +867,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记对未排入的行点「排入支委会表决」→ 自动创建「线上支委会：审议专班『名』（发起 / 解散）」活动并通知各支委（通知直达详情页表态）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">表态完成后书记点「查看表决结果并生效」→ 弹窗汇总（出席 x / y · 同意 · 异议 / 反对 · 附言）→ 点「按表决结果生效」。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>判据与线上支委会一致（R2-3：应到严格超过 2/3 出席且无反对，弃权允许）；发起通过 → 专班转「招募中」；发起未通过 → 退回草稿（可修改后重新报送）；解散通过 → 专班置「已解散」并落解散日期（历次表决 append-only 留痕：谁 / 何时 / 结论 / 来源活动）；解散未通过 → 专班继续运行。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>判据与线上支委会一致（R2-3：应到严格超过 2/3 出席且无反对，弃权允许）；发起通过 → 专班转「招募中」；发起未通过 → 退回草稿（可修改后重新报送）；解散通过 → 专班置「已解散」并落解散日期（历次表决 append-only 记录：谁 / 何时 / 结论 / 来源活动）；解散未通过 → 专班继续运行。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>未达门槛（出席不足或有异议 / 反对）弹窗明示「表决未达门槛 / 尚未截止」并给判据说明，不能强行生效；已排入的行变「已排入表决」；同一报送重复排入被拦。</p>
         </div>
 
@@ -910,7 +910,7 @@
         <div class="help-card" id="card-dom36-contrib" data-search="专班 产出 填报 贡献 逐条核验 同意入档 退回补料 待核 代录 工作量">
           <h4 class="help-card-title">运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台专班查看展开详情，条件 = 运行中 + 本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>专班成员本人逐条填报本人产出（by = 填报人）；组织委员逐条核验（同意入档 / 退回补料，全程留痕），另有「组织委员代录（兜底）」位（单条代录后仍须逐条核）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>专班成员本人逐条填报本人产出（by = 填报人）；组织委员逐条核验（同意入档 / 退回补料，全程记录），另有「组织委员代录（备用入口）」位（单条代录后仍须逐条核）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员在「我的产出填报」填本人产出说明（必填，如「完成专题稿件的采访与初稿撰写」）→「填报本条产出」。</li>
@@ -944,7 +944,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">校验通过 → 确认弹窗（明示「报送后提交支委会表决，通过后才会解散，当前仍运行中」）→ 确认 → 专班行标「待解散表决」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记在待办「专班待议（支委会）」排入表决：通过 → 专班置「已解散」（落解散日期）；未通过 → 专班继续运行。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>解散结论落 dissolved + 解散日期并写历次表决留痕（append-only：谁 / 何时 / 结论 / 来源活动）；组织委员不再单人直接解散（决议走支委会表决，2026-09-06 书记裁定）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>解散结论落 dissolved + 解散日期并写历次表决记录（append-only：谁 / 何时 / 结论 / 来源活动）；组织委员不再单人直接解散（决议走支委会表决，2026-09-06 书记裁定）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>仅运行中可报送解散（其它状态被拦）；已报送待审议期间重复报送被拦（提示等待支委会审议）。</p>
         </div>
 
@@ -955,7 +955,7 @@
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">专班查看 = 全支部专班一览：状态分组（待支委会表决 / 招募中 / 运行中 / 已完结——含已解散），可搜索名称 / 任务；点卡展开只读详情（任务 / 人数 / 截止 / 发起人 / 成员与角色 / 贡献条目核验态 / 中间进度时间线；本人若为运行中成员另见「我的产出填报」）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织台看板（组织侧管理）：运行中卡「归档」（active → archived，归档不回收赋权、不生成解散留痕；解散语义走表决）；招募中 / 待表决 / 表决未通过草稿可「撤销 / 删除」（彻底删除并清理关联报名与待办）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织台看板（组织侧管理）：运行中卡「归档」（active → archived，归档不回收赋权、不生成解散记录；解散语义走表决）；招募中 / 待表决 / 表决未通过草稿可「撤销 / 删除」（彻底删除并清理关联报名与待办）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>归档即销「专班归档」待办并将专班配套通知一并归档（退出工作区）；各台「待办」专班折组与通知直达本查看页并高亮定位专班卡（flash 高亮后自动褪去）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>纪检 / 组长台专班查看无任何流转按钮（看 ≠ 做）；专班进度 / 贡献只读知情，需要写的操作一律回组织台。</p>
@@ -963,7 +963,7 @@
 
         <!-- 3.7 决议上报 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.7</span>决议上报</h3>
-        <p class="doc-p">决议上报域的工作分两条流程：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进书记台待办督办 → 书记销项；<strong>② 支部关键事项上报党委</strong>——书记台「上报党委」发起（发展节点 / 活动报备）→ 党委台上报审批逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（书记）；上报在书记台「对接党委」段「上报党委」，党委侧在党委工作台「上报审批」（组织级；党委台全量操作见第 5 章 5.1）。</p>
+        <p class="doc-p">决议上报域的工作分两条流程：<strong>① 会议决议「待落实」跟踪</strong>——会议记录「通过」的决议可登记待落实项 → 自动生成责任人跟进待办（到期当天催办）→ 逾期自动进书记工作台待办督办 → 书记/副书记销项；<strong>② 支部关键事项上报党委</strong>——书记台「上报党委」发起（发展节点 / 活动报备）→ 党委台上报审批逐项批复（驳回必带意见）→ 结论回传支部侧本页。处理位提示：决议落实写在活动详情页记录决议视图（书记/副书记）；上报在书记台「对接党委」段「上报党委」，党委侧在党委工作台「上报审批」（组织级；党委台全量操作见第 5 章 5.1）。</p>
 
         <div class="help-card" id="card-dom37-resolution" data-search="决议 落实 待落实 责任人 时限 跟进待办 到期催办 逾期 书记督办 销项 恢复 决议落实逾期">
           <h4 class="help-card-title">会议决议落实（登记待落实 → 责任人跟进 → 逾期书记督办 → 销项）</h4>
@@ -976,7 +976,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">责任人完成后反馈书记 → 书记在该条决议卡上点「销项」（误销可点「恢复」回待落实）→ 该条办结。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>保存即自动生成责任人跟进待办（责任人在本人工作台「决议上报」域折组可见；到期当天 = 催办窗口，不算逾期）；逾期未落实 → 书记台待办自动出现「决议落实逾期」提醒组（事项 / 会议 / 责任人 / 时限，直达决议视图督办销项）；销项 → 责任人跟进待办同步完成、逾期提醒消失；到期日之后待办自动转「已超期」。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>决议未记录「通过」不出现本卡；待落实项缺事项 / 责任人或时限不可保存；销项与恢复均留痕（谁 / 何时）。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>决议未记录「通过」不出现本卡；待落实项缺事项 / 责任人或时限不可保存；销项与恢复均记录（谁 / 何时）。</p>
         </div>
 
         <div class="help-card" id="card-dom37-report-up" data-search="决议上报 上报党委 发展节点 活动报备 书记 发起上报 待党委批复 已批准 已驳回">
@@ -1008,7 +1008,7 @@
 
         <!-- 3.8 归档与宣传 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.8</span>归档与宣传</h3>
-        <p class="doc-p">宣传线把支部工作<strong>留痕成册、对外发声</strong>：宣传任务三栏接单推进、项目看板（活动 + 专班合并卡与专班工作量）、周报报送、档案归档（待归档 → 归档中 → 已归档，材料标准清单 + 上传 / 下载）、支部文件与官方文件查询（公共页「资料查询」search.html，支部文件版本化在此页）。已覆盖相关：会议「讨论文件」记录通过自动归档走 3.1；活动复盘后的宣传产出要求见 3.2；支部公邮属纪检线（纪检台「公邮管理」，见 2.4），对外报送如需走公邮由纪检统一处理，本域不展开。宣传侧「待办」归档宣传折组负责提醒（活动归档 / 专班归档 / 材料归档均点「去处理」直达对应 tab）。</p>
+        <p class="doc-p">宣传线把支部工作<strong>记录成册、对外发声</strong>：宣传任务三栏接单推进、项目看板（活动 + 专班合并卡与专班工作量）、周报报送、档案归档（待归档 → 归档中 → 已归档，材料标准清单 + 上传 / 下载）、支部文件与官方文件查询（公共页「资料查询」search.html，支部文件版本化在此页）。已覆盖相关：会议「讨论文件」记录通过自动归档走 3.1；活动复盘后的宣传产出要求见 3.2；支部公邮属纪检线（纪检台「公邮管理」，见 2.4），对外报送如需走公邮由纪检统一处理，本域不展开。宣传侧「待办」归档宣传折组负责提醒（活动归档 / 专班归档 / 材料归档均点「去处理」直达对应 tab）。</p>
 
         <div class="help-card" id="card-dom38-tasks" data-search="归档宣传 宣传任务 待接收 进行中 已提交 接单 提交 素材归档 新闻稿 推送排版 周报报送 导出CSV">
           <h4 class="help-card-title">宣传任务（三栏接单 → 进行中 → 已提交）</h4>
@@ -1065,7 +1065,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">页下两块：左侧「材料标准」对照（新闻稿 / 照片 / 视频 / 其他）；右侧「模板下载」——活动新闻稿模板（Word）、照片归档清单 / 视频元数据表模板（Excel）真实生成下载。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传材料写库并同步产出物区 / 关闭校验（同源读取）；材料删除联动清理文件（服务端模式删物理文件）；上传成功自动弹「文件外发确认」（可选标记微信外发、进入接收方确认，见 3.9）；已归档内容在公共「归档库」页（archive.html）与「资料查询」页可检索浏览。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>开始归档未全勾时状态照推（提醒后续补齐）；删除仅作用于本页材料行（有留痕记录，勿随意删）；无匹配记录时列表给空态提示。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>开始归档未全勾时状态照推（提醒后续补齐）；删除仅作用于本页材料行（有记录记录，勿随意删）；无匹配记录时列表给空态提示。</p>
         </div>
 
         <div class="help-card" id="card-dom38-branch-doc" data-search="归档宣传 资料查询 支部文件 官方文件 制度文本 现行版 上传新版 历史版本 停用 重新启用 阅读正文 网页正文 会前草案 书记发布">
@@ -1080,7 +1080,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记 / 副书记维护版本链：行操作「上传新版」（表单预填现行版 → 发布后旧版自动归档为历史版本、正文更新为现行版 vN+1）；「停用」结束效力（列表不再标「现行」，历史版本仍可展开查阅）；停用后可随时「重新启用」。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>支部文件按更新时间倒序；已归档普通文件全员可读 / 下载；会议「讨论文件」通过 → 草案自动转已归档并在本页展示讨论来源（3.1 链路）；停用文本正文区自动标注「该制度当前已停用，以下为最近版本正文（仅供查阅）」。未录网页正文的制度文本给附件 / 线下文本提示。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>制度文本不提供删除（版本链留痕，结束效力请用「停用」）；上传新版 / 停用仅书记 / 副书记入口，其余角色不显示这些操作；匿名（未登录）不开放支部文件板块。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>制度文本不提供删除（版本链记录，结束效力请用「停用」）；上传新版 / 停用仅书记 / 副书记入口，其余角色不显示这些操作；匿名（未登录）不开放支部文件板块。</p>
         </div>
 
         <!-- 3.9 汇报与反馈 -->
@@ -1095,7 +1095,7 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">点「一键汇报」→ 选分类：进度 / 卡点 / 请示 → 填正文（必填）→「发出汇报」→ 入书记「待答复收件箱」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记在收件箱对每条行内「正式答复」发回（答复类置顶书记待办）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">汇报人在「我的处置 · 我发起的汇报」/「工作概况」看到答复 → 详情内点「确认已收到答复」→ 该汇报办结（留痕：发出 / 答复 / 确认，含时间线）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">汇报人在「我的处置 · 我发起的汇报」/「工作概况」看到答复 → 详情内点「确认已收到答复」→ 该汇报办结（记录：发出 / 答复 / 确认，含时间线）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>发起即通知书记（待答复收件箱 + 高亮）；书记答复发回 → 汇报人「一键汇报」角标 +1；成员视角汇报状态徽章：待答复 / 待汇报 / 进行中 / 卡点上报中。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>汇报正文必填；未答复不自动关闭；卡点类（blocked）汇报在收件与组长卡点区以问题优先置顶。</p>
@@ -1111,7 +1111,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">被请人在「我的处置 · XX请汇报」区看到请求（事项 + 时间）→ 行内填汇报内容 →「汇报」即发回。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记 / 组长在收件箱正式答复 → 汇报人确认收到 → 即办结（流程同上条双向汇报）。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>发起即给被请人「我的处置」角标 +1（未读）；请求与回应全程留痕（发起人 / 事项 / 时间 / 回应 / 答复）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>发起即给被请人「我的处置」角标 +1（未读）；请求与回应全程记录（发起人 / 事项 / 时间 / 回应 / 答复）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>界面措辞为「了解进展」温和请求（不写「要求」）；组长只能请本组组员（块块边界，见 1.3）。</p>
         </div>
 
@@ -1126,7 +1126,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">书记处置详情：批复（主操作）/ 评论（公开交流）/ 指派（选支委 / 组长 + 指派备注，生成指派时间线并通知被指派人）/ 关闭反馈（选关闭理由）/ 隐藏 / 合并到…。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">列表页：状态筛选（开放中 / 已指派 / 待终审 / 已关闭）+ 指派人筛选 + 关键词搜索 + 计数摘要；工具区「导出反馈数据 / 清除缓存」。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>草稿通过即公开（GitHub Issue 风格：编号 #N + 评论时间线 + 提交人信息卡）；指派 → 被指派人「我的处置」角标 +1；被指派人评论 / 提交处置结果 → 状态 =「待终审」提醒书记；关闭留痕（谁 / 何时 / 理由，作为批复评论写入）；隐藏评论仅书记可见。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>草稿通过即公开（GitHub Issue 风格：编号 #N + 评论时间线 + 提交人信息卡）；指派 → 被指派人「我的处置」角标 +1；被指派人评论 / 提交处置结果 → 状态 =「待终审」提醒书记；关闭记录（谁 / 何时 / 理由，作为批复评论写入）；隐藏评论仅书记可见。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>反馈提交先进草稿、书记审核后才公开（防止不实内容上墙）；驳回草稿不入公开列表；合并 = 来源隐藏并入目标（目标评论时间线记「合并自 #N」）。</p>
         </div>
 
@@ -1154,7 +1154,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「卡点」区：本组 超期待办 / 上报卡点 / 缺勤未补 / 考察待确认 逐条列出（每条含人 + 事项 + 日期），行内「了解进展」可请该组员汇报。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「进度」区：一人一行聚合 在办 / 超期 / 缺勤 / 考察待 / 汇报状态；无卡点时显示「本组无卡点，全部正常」。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>组员汇报 / 进展变化即时反映（数据同源聚合）；答复与请求全程留痕；答复本组组员无需转书记（组内即可办结）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>组员汇报 / 进展变化即时反映（数据同源聚合）；答复与请求全程记录；答复本组组员无需转书记（组内即可办结）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>组长只读组员维度数据（考勤 / 考察明细的改写在纪检 / 组织台，见 3.3 / 3.5）；非本组组员不可见（块块边界）。</p>
         </div>
 
@@ -1176,7 +1176,7 @@
         <h2 class="doc-h2"><span class="doc-num">4</span>业务链路</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-lead">
-          第 3 章讲「单个功能怎么用」；本章讲<strong>从起点到终点的先后顺序与交接点</strong>——每条链路按「谁 → 在哪做 → 系统自动发生什么 → 下一步去哪」写清，共 10 条（4.1—4.10）。紧下方总览图由功能目录驱动（12 条角色化链路，节点 = 执行者：任务；离线自动降级为文字说明）；同一条业务在文字里的端到端顺序与交接点，比图的节点串更细、以文字为准。
+          第 3 章讲「单个功能怎么用」；本章讲<strong>从起点到终点的先后顺序与交接点</strong>——每条链路按「谁 → 在哪做 → 系统自动发生什么 → 下一步去哪」写清，共 10 条（4.1—4.10）。紧下方总览图由功能目录驱动（12 条角色化链路，节点 = 执行者：任务；离线自动显示文字说明）；同一条业务在文字里的端到端顺序与交接点，比图的节点串更细、以文字为准。
         </p>
         <div id="mermaid-flows"></div>
 
@@ -1213,7 +1213,7 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条录入线：党小组会 = 组长台「考勤上传」（候选取本组应到名单，可批量设状态）；党课 / 支部党员大会 / 支委会 = 纪检台「考勤管理 · 会议考勤录入」（滞留党员线下到场单独补录、计到席）——纪检录入即确认。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动分流：出勤 / 已补 = 源头审校自动确认，不进纪检队列；异常（缺勤 / 请假）自动生成补课任务（截止 = 活动日 + 7 天）并入纪检「待确认」队列，党小组会异常同样等纪检复核。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤总表按状态筛选逐行确认）→ 写确认人留痕，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤总表按状态筛选逐行确认）→ 写确认人记录，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课办结：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「补课制度」确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 备案交接：纪检「提交考勤至宣传」→ 宣传委员待办收件箱确认接收（双向可追溯）；活动归档后其考勤退出工作区、历史仍在档案可查。</li>
           </ol>
@@ -1224,7 +1224,7 @@
         <div class="help-card" id="card-chain-inspection" data-search="业务链路 考察 考察上传 党小组 专班 纪检确认 超期提醒 提交考察至支委会 组织建档 人才库 素材">
           <h4 class="help-card-title">考察上传 → 纪检确认 → 交接组织建档（供发展使用）</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 上传位：活动侧 = 组长（本组党小组会 / 本人组织的活动）；专班侧 = 组织委员 / 专班负责人——在「考察上传」选来源对象、逐人填考察内容 → 自动入纪检台「考察管理」考察总表（状态 = 待确认，留痕上传人）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 上传位：活动侧 = 组长（本组党小组会 / 本人组织的活动）；专班侧 = 组织委员 / 专班负责人——在「考察上传」选来源对象、逐人填考察内容 → 自动入纪检台「考察管理」考察总表（状态 = 待确认，记录上传人）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考察管理」对「待确认 / 超期」行「确认」（待确认超过 7 天自动标「超期」入顶部红块）；误传仅待确认可删。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">交接建档：纪检「提交考察至支委会」→ 组织委员待办收件箱确认接收 → 自动建档归集（人才库 / 考察档案即时可用，双向可追溯）；未确认条不阻塞已确认流转。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 供发展：归集后的考察材料成为发展党员的判断素材（接 4.5）；活动类考勤确认同样自动归档至考察档案（4.3 第 3 步同口）。</li>
@@ -1233,7 +1233,7 @@
 
         <!-- 4.5 发展党员链路 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.5</span>发展党员链路</h3>
-        <div class="help-card" id="card-chain-development" data-search="业务链路 发展党员 发展数据 管线 积极分子 发展对象 预备党员 转正 待讨论名单 成员变更审批 名册变更 书记确认 应到口径">
+        <div class="help-card" id="card-chain-development" data-search="业务链路 发展党员 发展数据 管线 积极分子 发展对象 预备党员 转正 待讨论名单 成员变更审批 名册变更 书记确认 应到名单规则">
           <h4 class="help-card-title">管线推进 / 名册变更 → 书记确认（材料自动归集）</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">素材积累（自动）：思想汇报归档（4.6）与考察确认建档（4.4）自动归集到人，发展卡片上的考察条数 / 汇报归档数同步刷新。</li>
@@ -1250,8 +1250,8 @@
           <h4 class="help-card-title">成员提交 → 组织初阅 → 归档 / 退回重交</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 提交：成员台「思想汇报」写正文提交（状态 = 待初阅），自动通知组织委员。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">把关：组织台「思想汇报」待初阅队列先到先阅 → 「通过 · 归档」或「退回 · 需补充」（退回必填意见），每次初阅留痕（谁 / 何时 / 意见）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回重交：提交人见退回原因 → 修改后重新提交 → 回待初阅队列（历史留痕保留，不重复归档）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">把关：组织台「思想汇报」待初阅队列先到先阅 → 「通过 · 归档」或「退回 · 需补充」（退回必填意见），每次初阅记录（谁 / 何时 / 意见）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">退回重交：提交人见退回原因 → 修改后重新提交 → 回待初阅队列（历史记录保留，不重复归档）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点：通过即正式归档并自动归集至个人档案（人才库 / 发展数据归档计数同步），供 4.4 考察与 4.5 发展调用。</li>
           </ol>
         </div>
@@ -1264,9 +1264,9 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 发起：组织台「发布招募」填名称 / 任务 / 人数 / 截止（可带初始成员与预拟通知）→ 创建即自动报送支委会表决（不派生单人审批待办）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支委会表决：书记台待办「专班待议（支委会）」排入线上支委会 → 固化名单支委表态 → 书记「查看表决结果并生效」——通过转「招募中」，未通过退草稿可改后重新报送。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">招募与分工：成员在专班详情页报名（普通即通过；深度参与 / 组织者待发起人审核）；组织启动专班转「运行中」→ 配置成员角色（组织者 / 深度参与者），保存即同步赋权链并通知本人。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（留痕）；中间进度由组织侧填时间线；书记 / 组长 / 纪检「专班查看」只读知情（看 ≠ 做）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（记录）；中间进度由组织侧填时间线；书记 / 组长 / 纪检「专班查看」只读知情（看 ≠ 做）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘：组织侧在专班详情提交复盘 → 纪检「活动监督复盘」批注 / 打回 / 确认，确认后办结。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 解散表决：组织「报送解散表决」（前置：成员考察已确认 + 有工作量报告）→ 书记排入支委会表决 → 通过置「已解散」并落日期、未通过继续运行（历次表决 append-only 留痕）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 解散表决：组织「报送解散表决」（前置：成员考察已确认 + 有工作量报告）→ 书记排入支委会表决 → 通过置「已解散」并落日期、未通过继续运行（历次表决 append-only 记录）。</li>
           </ol>
         </div>
 
@@ -1278,7 +1278,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 登记：书记 / 副书记在活动详情页对已记录「通过」的议程，于「决议落实」卡添加待落实项（事项 + 责任人 + 时限）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动派生：保存即生成责任人跟进待办（责任人在本人工作台「决议上报」域折组可见）；到期当天 = 催办窗口，到期后待办自动转「已超期」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">逾期督办：逾期未落实 → 书记台待办自动出现「决议落实逾期」提醒组（事项 / 会议 / 责任人 / 时限），点击直达决议视图督办。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 销项：责任人完成后反馈书记 → 书记销项（误销可恢复）→ 责任人跟进待办同步完成、逾期提醒消失；销项与恢复均留痕。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 销项：责任人完成后反馈书记/副书记 → 书记/副书记销项（误销可恢复）→ 责任人跟进待办同步完成、逾期提醒消失；销项与恢复均记录。</li>
           </ol>
         </div>
 
@@ -1335,7 +1335,7 @@
 
         <!-- 5.2 支部配置向导 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.2</span>支部配置向导（分步 · 3 入口）</h3>
-        <p class="doc-p">支部配置向导 = 换组织 / 初始化 / 换届换壳的统一工具：把「支部改头换面」要动的东西收进分步流程，每步保存即生效并留痕（可查 config 变更记录），中断可续走（草稿存档）。原党委台「支部配置」的模块启停裸开关清单已收进步骤②。</p>
+        <p class="doc-p">支部配置向导 = 换组织 / 初始化 / 换届换壳的统一工具：把「支部改头换面」要动的东西收进分步流程，每步保存即生效并记录（可查 config 变更记录），中断可续走（草稿存档）。原党委台「支部配置」的模块启停裸开关清单已收进步骤②。</p>
         <div class="help-card" id="card-admin-wizard-entries" data-search="支部配置 换组织向导 入口 权限 党委台 书记台 wizard.html 独立页 现任书记 党委组织员 同源">
           <h4 class="help-card-title">三个入口：从哪进、谁能进</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1343,7 +1343,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">设置中心（侧边栏右下角「设置」）→ 支部治理 → 支部信息与向导：现任书记 / 副书记（副书同权）可用，固定本人所属支部内嵌（纯点击可达，无需记 URL）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">独立页 <a href="./wizard.html">wizard.html</a>：直接访问；党委组织员任意支部（?branch=目标支部直达）、现任书记 / 副书记本支部（?branch=本支部，副书同权）；无权限时显示提示卡、不渲染向导。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;">三入口共用同一渲染器与同一份支部 config——任一处改动即时生效并写留痕，另两处看到一致结果；非本支部书记 / 副书记（副书同权）且非党委组织员的角色只看到无权限提示。</p>
+          <p class="help-card-desc" style="margin-top:8px;">三入口共用同一渲染器与同一份支部 config——任一处改动即时生效并写记录，另两处看到一致结果；非本支部书记 / 副书记（副书同权）且非党委组织员的角色只看到无权限提示。</p>
         </div>
         <div class="help-card" id="card-admin-wizard-steps" data-search="支部配置 向导 分步 组织信息 模块 块组合 角色分工 术语制度 换壳工作单 验证 重置 主题预设 复制配置">
           <h4 class="help-card-title">各步分别做什么（保存即生效 / 出工作单）</h4>
@@ -1351,28 +1351,28 @@
             <table class="doc-table">
               <thead><tr><th style="width:14%;">步骤</th><th style="width:52%;">做什么</th><th>生效 / 产物</th></tr></thead>
               <tbody>
-                <tr><td>① 组织信息</td><td>支部名（官方名；党委可改，书记只读）、页眉显示名、支部自述 / 口号、主题预设（角色识别层强调色四选一；党建红与党徽金为固定合规底色，不提供更改）</td><td>「保存本步」即时写入支部档案并留痕</td></tr>
+                <tr><td>① 组织信息</td><td>支部名（官方名；党委可改，书记只读）、页眉显示名、支部自述 / 口号、主题预设（角色识别层强调色四选一；党建红与党徽金为固定合规底色，不提供更改）</td><td>「保存本步」即时写入支部档案并记录</td></tr>
                 <tr><td>② 模块 / 块组合</td><td>业务模块（书记工作台 tab，核心组固定不可关）、活动产出块（详情页「添加记录」按钮集）、工作流块（整条 SOP 入口）三组开关——决定成员下次进入工作台哪些 tab / 模板 / 按钮可见，如停用「主题党日组织块」→ 主题党日模板卡隐藏（见 3.2）</td><td>点开关后「保存本步」即时生效；「恢复默认（全开）」</td></tr>
-                <tr><td>③ 角色分工</td><td>各工作模块负责人归属（支委角色位 / 到人位）</td><td>部署期 / 换壳期直接写库即时生效并留痕；日常分工调整请走书记台「支部分工」的支委会议题流程</td></tr>
+                <tr><td>③ 角色分工</td><td>各工作模块负责人归属（支委角色位 / 到人位）</td><td>部署期 / 换壳期直接写库即时生效并记录；日常分工调整请走书记台「支部分工」的支委会议题流程</td></tr>
                 <tr><td>④ 术语制度指引 + 工作单</td><td>只读查看「换壳需人工替换内容」总表（术语 / 制度 / 数据 / 配色指引），说明哪些内容需按新组织人工替换</td><td>「生成并下载换壳工作单」（Markdown：已完成配置摘要 + 待人工替换文件清单 + 验证点）</td></tr>
                 <tr><td>⑤ 验证与重置</td><td>应到名单核对（支部党员大会应到 = 在册党员 − 滞留剔除，现读数）+ 演示重置档位说明 + 回归验证</td><td>步骤完成情况存档草稿可续走；完成后出「完成报告」（摘要 / 下载工作单 / 去验证 / 重走向导）</td></tr>
               </tbody>
             </table>
           </div>
-          <p class="help-card-desc" style="margin-top:8px;">党委组织员另可用工具条「复制配置到支部…」：把当前支部的模块 / 块组合、角色分工与组织档案（页眉 / 自述 / 主题）整体复制给勾选的目标支部（逐目标留痕）——适合新支部沿用成熟配置。另可「导出 / 导入 JSON 配置包」在支部间迁移配置。</p>
+          <p class="help-card-desc" style="margin-top:8px;">党委组织员另可用工具条「复制配置到支部…」：把当前支部的模块 / 块组合、角色分工与组织档案（页眉 / 自述 / 主题）整体复制给勾选的目标支部（逐目标记录）——适合新支部沿用成熟配置。另可「导出 / 导入 JSON 配置包」在支部间迁移配置。</p>
         </div>
 
         <!-- 5.3 数据保留与重置档位 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.3</span>数据保留与重置档位</h3>
         <div class="help-card" id="card-admin-reset" data-search="数据保留 重置 档位 演示 reset demo preview init 初始化 空支部 API 换壳不换档 历史数据 种子 预览 草稿 持久化">
           <h4 class="help-card-title">重置会清什么、保留什么（面向使用者说明）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>换壳不换档：</strong>向导 ①②③ 改的是支部的「壳」——名称 / 模块 / 分工 / 主题。成员档案（名册 / 发展阶段 / 在册滞留）、考勤考察、思想汇报、支部文件、档案与决议、专班历史等业务数据<strong>全部保留</strong>，随支部继续生效（历史留痕只追加、不覆盖）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>换壳不换档：</strong>向导 ①②③ 改的是支部的「壳」——名称 / 模块 / 分工 / 主题。成员档案（名册 / 发展阶段 / 在册滞留）、考勤考察、思想汇报、支部文件、档案与决议、专班历史等业务数据<strong>全部保留</strong>，随支部继续生效（历史记录只追加、不覆盖）。</p>
           <p class="help-card-desc"><strong>验证第⑤步的「重置」档位（本地演示形态，浏览器演示时使用）：</strong></p>
           <ul class="doc-list" style="margin-top:6px;">
             <li><strong>?reset=demo</strong>（?reset=1 为其旧写法同义）：把全部演示数据复位到「种子初始态」——向导里试改的配置也会被清掉。用于演示前整体复位。</li>
             <li><strong>?reset=preview</strong>：只清理「运行痕迹」——向导草稿与成员基础数据预览等临时状态，演示数据本身保留。用于试走向导后想从头再走、但不想丢已演示的数据。</li>
             <li><strong>?reset=init</strong>：一键初始化为「新支部初始态」——清空试用期积累的<strong>业务过程数据</strong>（活动 / 考勤 / 考察 / 专班 / 通知 / 汇报 / 议程决议跟进 / 归档 / 交接 / 意见反馈提交等），<strong>保留组织骨架</strong>：账号与角色结构、成员档案（名册，可后续在名册再调）、支部配置 / 分工 / 术语（向导可再改）、成员在册状态（在校 / 滞留）与主题外观。用于「演示 / 试用结束、正式投入使用前」的干净起步——已配好的壳不丢、过程数据清零、空支部起步。</li>
-            <li><strong>API（正式对接）形态</strong>：以上三档 URL 参数均不生效——数据经登录认证后写入系统持久保存（换届不丢档、操作有留痕）；正式数据不提供页面级清空入口（初始化 / 清档属管理员级操作：重建种子库或走管理端，见 README 快速开始 reset 说明）。</li>
+            <li><strong>API（正式对接）形态</strong>：以上三档 URL 参数均不生效——数据经登录认证后写入系统持久保存（换届不丢档、操作有记录）；正式数据不提供页面级清空入口（初始化 / 清档属管理员级操作：重建种子库或走管理端，见 README 快速开始 reset 说明）。</li>
           </ul>
         </div>
       </section>
@@ -1396,7 +1396,7 @@
           系统页面分为根页面（首页、登录、资料查询、归档库、活动 / 通知 / 专班详情、意见反馈、帮助、关于、设置、换组织向导）与角色工作台（书记、组织委员、宣传委员、纪检委员、党小组组长、成员、党委工作台；副书记与书记共台，组织者 / 深度参与者归入成员工作台）。每个角色登录后直达自己的工作台，该工作台就是该角色的全部工作视图——各项功能按 tab 分组，无需在页面之间来回跳转；所有角色共享同一套数据，看到的是同一数据的不同视角。
         </p>
         <p class="doc-p">
-          系统采用「静态前端 + 一体化后端」：界面在浏览器渲染，数据经登录认证后写入系统持久保存——换届不丢档、操作有留痕。谁负责哪块、谁能看到哪层，由<strong>赋权链</strong>计算：书记向下委托执行边界，其余角色的操作权限与知情范围随之派生（详见第 1 章 1.3「权限知情边界」）。
+          系统采用「静态前端 + 一体化后端」：界面在浏览器渲染，数据经登录认证后写入系统持久保存——换届不丢档、操作有记录。谁负责哪块、谁能看到哪层，由<strong>赋权链</strong>计算：书记向下委托执行边界，其余角色的操作权限与知情范围随之派生（详见第 1 章 1.3「权限知情边界」）。
         </p>
       </section>
 
@@ -1456,6 +1456,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260912j"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260912k"></script>
 </body>
 </html>

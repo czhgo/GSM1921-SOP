@@ -8,21 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 书记裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912j';
-import { NoticeStore } from '../../../services/notice.js?v=20260912j';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260912j';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260912j';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260912j';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260912k';
+import { NoticeStore } from '../../../services/notice.js?v=20260912k';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260912k';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260912k';
 // S1–S4 滞留党员设计（2026-09-06 书记已批）：书记复核卡（只读查看徽标/备注/变更留痕）
-import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260912j';
-import { loadActivities } from '../../../services/activity.js?v=20260912j';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912j';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260912j';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260912j';
+import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260912k';
+import { loadActivities } from '../../../services/activity.js?v=20260912k';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260912k';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260912k';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260912k';
 // D2 裁决批二（2026-09-08 书记特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260912j';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260912j';
-import { getPersonName } from '../../../services/person.js?v=20260912j';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260912k';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260912k';
+import { getPersonName } from '../../../services/person.js?v=20260912k';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -304,7 +305,9 @@ function renderDimensionView(container) {
   // 必要指标（取消 KPI 五连卡：只保留少量必要指标，数字内联呈现；status 以圆点色表达，目标/口径入 title）
   const metrics = [
     { label: '复盘问题', value: activity.reviewIssues, unit: '条', status: activity.reviewIssues > 0 ? 'ok' : 'warn', title: '真问题导向' },
-    { label: '归档完成率', value: propaganda.archiveRate, unit: '%', status: metricStatusOf(propaganda.archiveRate >= 100, propaganda.archiveRate >= 80), title: '目标 100%' },
+    // 2026-09-13 彻查批次：原「归档完成率（%）· 目标 100%」＝KPI 式表述（用户明确要求不得出现）
+    // → 改为「待归档材料（条）」，与「考察积压/待办异常」同口径：只报缺口，不设完成率目标
+    { label: '待归档材料', value: propaganda.pendingArchive, unit: '条', status: metricStatusOf(!propaganda.pendingArchive, propaganda.pendingArchive <= 3), title: '待归档条数（只报缺口，不设比率目标）' },
     // 2026-08-10 书记裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
     { label: '待办异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '异常优先管理 · 目标 0' },
@@ -520,35 +523,35 @@ const URGE_MAP = {
   'attendance-absent': {
     role: 'disc-commissioner',
     title: '考勤催办',
-    content: '书记提醒：关于「考勤纪律 · 本月缺勤核实」，请及时跟进（无明确时限）。',
+    content: '关于「考勤纪律 · 本月缺勤核实」，请及时跟进（无明确时限）。',
     targetModule: 'attendance',
     targetUrl: 'workspace/disc.html?tab=attendance',
   },
   'attendance-makeup': {
     role: 'disc-commissioner',
     title: '补课催办',
-    content: '书记提醒：关于「考勤纪律 · 未完成补课任务」，请及时跟进（无明确时限）。',
+    content: '关于「考勤纪律 · 未完成补课任务」，请及时跟进（无明确时限）。',
     targetModule: 'attendance',
     targetUrl: 'workspace/disc.html?tab=makeup',
   },
   'inspection-pending': {
     role: 'disc-commissioner',
     title: '考察确认催办',
-    content: '书记提醒：关于「考察 · 待确认考察记录」，请及时跟进（无明确时限）。',
+    content: '关于「考察 · 待确认考察记录」，请及时跟进（无明确时限）。',
     targetModule: 'party',
     targetUrl: 'workspace/disc.html?tab=inspection',
   },
   'inspection-overdue': {
     role: 'disc-commissioner',
     title: '考察超期催办',
-    content: '书记提醒：关于「考察 · 超期考察记录」，请及时跟进（无明确时限）。',
+    content: '关于「考察 · 超期考察记录」，请及时跟进（无明确时限）。',
     targetModule: 'party',
     targetUrl: 'workspace/disc.html?tab=inspection',
   },
   'archive-pending': {
     role: 'prop-commissioner',
     title: '归档催办',
-    content: '书记提醒：关于「归档宣传 · 待归档材料」，请及时跟进（无明确时限）。',
+    content: '关于「归档宣传 · 待归档材料」，请及时跟进（无明确时限）。',
     targetModule: 'workspace',
     targetUrl: 'workspace/prop.html?tab=archive',
   },
@@ -557,6 +560,10 @@ const URGE_MAP = {
 function handleUrge(urgeKey) {
   const cfg = URGE_MAP[urgeKey];
   if (!cfg) return;
+  // 签发人取当前真实角色（2026-09-13 彻查批次：此前 actorRole 硬编码 'secretary'、
+  //   正文写死「书记提醒：」→ 副书记签发也被记成书记，审计失真）
+  const me = AuthStore.getCurrentUser() || {};
+  const actorRole = me.role || 'secretary';
   NoticeStore.add({
     title: cfg.title,
     content: cfg.content,
@@ -566,7 +573,8 @@ function handleUrge(urgeKey) {
     actionable: true,
     actionRoles: [cfg.role],
     actionTask: cfg.title,
-  }, 'secretary');
+    publishedBy: ROLE_LABELS[actorRole] || '书记',
+  }, actorRole);
   const roleLabel = ROLE_LABELS[cfg.role] || cfg.role;
   showToast('success', `已向${roleLabel}发送催办通知`);
 }

@@ -56,13 +56,16 @@ function voterIdsOf(act) {
 
 const KINDS = {
   // ── 思想汇报已提交 ────────────────────────────────────────────
-  // 思想汇报为前端本地归集域（服务端无对应表，无法验对象）→ 以「actor 即提交人」判定：
-  // personId 必须等于登录人（不可冒充他人提交）；组织委员有权阅处，一并放行。
+  // R-23（2026-09-13）：思想汇报已建服务端表（thought_reports，随快照写穿同步）——
+  //   原「服务端无表」只能采信客户端自述 personId（无法验对象）。现改为按 sourceId 读表复算：
+  //   ① 表内无该汇报 → 403（杜绝凭空伪造「已提交」通知）；
+  //   ② 提交人本人（row.personId === actor.id，不可冒充他人）或有权阅处角色（组织委员=把关式初阅功能位）→ 放行。
   'thought-report-submitted': {
-    authorize({ actor, payload }) {
+    authorize({ actor, sourceId, db }) {
       if (!actor) return false;
-      const p = payloadOf({ payload });
-      return actor.id === p.personId || actor.role === 'org-commissioner';
+      const row = rowOf(db, 'thought_reports', sourceId);
+      if (!row) return false;
+      return row.personId === actor.id || actor.role === 'org-commissioner';
     },
   },
 

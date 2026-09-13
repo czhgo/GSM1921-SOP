@@ -58,13 +58,13 @@
       "closedAt": null,
       "submittedBy": "p3",
       "submittedAt": "2026-07-22",
-      "assignee": "u_org",
+      "assignee": "p11",
       "assigneeRole": "org-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "u_org",
-          "by": "u_sec",
+          "to": "p11",
+          "by": "p13",
           "at": "2026-07-23",
           "note": "请组织委员核实并补充模板字段"
         }
@@ -84,7 +84,7 @@
       "comments": [
         {
           "id": "cmt-002",
-          "author": "u_sec",
+          "author": "p13",
           "authorRole": "secretary",
           "body": "指派给 org-commissioner：请组织委员核实并补充模板字段",
           "createdAt": "2026-07-23",
@@ -96,7 +96,7 @@
         },
         {
           "id": "cmt-003",
-          "author": "u_org",
+          "author": "p11",
           "authorRole": "org-commissioner",
           "body": "已与宣传委员沟通，确认模板需要在「讨论记录」后追加「下一步行动」「责任人」「完成时限」三列。预计本周内提交修订版。",
           "createdAt": "2026-07-26",
@@ -107,7 +107,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p3", "u_sec", "u_org"],
+      "participants": ["p3", "p13", "p11"],
       "commentCount": 2
     },
     {
@@ -122,13 +122,13 @@
       "closedAt": null,
       "submittedBy": "p8",
       "submittedAt": "2026-07-25",
-      "assignee": "u_leader_1",
+      "assignee": "p1",
       "assigneeRole": "leader",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "u_leader_1",
-          "by": "u_sec",
+          "to": "p1",
+          "by": "p13",
           "at": "2026-07-26",
           "note": "请第一党小组组长评估在本小组试点的可行性"
         }
@@ -148,7 +148,7 @@
       "comments": [
         {
           "id": "cmt-004",
-          "author": "u_sec",
+          "author": "p13",
           "authorRole": "secretary",
           "body": "指派给 leader：请第一党小组组长评估在本小组试点的可行性",
           "createdAt": "2026-07-26",
@@ -160,7 +160,7 @@
         },
         {
           "id": "cmt-005",
-          "author": "u_leader_1",
+          "author": "p1",
           "authorRole": "leader",
           "body": "已与组内同志讨论，可在 8 月党小组会试点扫码签到，需 IT 支持生成专属二维码。建议先用现有问卷工具，后续再集成。",
           "createdAt": "2026-07-29",
@@ -171,7 +171,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p8", "u_sec", "u_leader_1"],
+      "participants": ["p8", "p13", "p1"],
       "commentCount": 2
     },
     {
@@ -186,13 +186,13 @@
       "closedAt": "2026-07-20",
       "submittedBy": "p15",
       "submittedAt": "2026-07-12",
-      "assignee": "u_prop",
+      "assignee": "p12",
       "assigneeRole": "prop-commissioner",
       "dispatchHistory": [
         {
           "from": null,
-          "to": "u_prop",
-          "by": "u_sec",
+          "to": "p12",
+          "by": "p13",
           "at": "2026-07-13",
           "note": "请宣传委员设计系统内报名登记方案"
         }
@@ -212,7 +212,7 @@
       "comments": [
         {
           "id": "cmt-006",
-          "author": "u_sec",
+          "author": "p13",
           "authorRole": "secretary",
           "body": "指派给 prop-commissioner：请宣传委员设计系统内报名登记方案",
           "createdAt": "2026-07-13",
@@ -224,7 +224,7 @@
         },
         {
           "id": "cmt-007",
-          "author": "u_prop",
+          "author": "p12",
           "authorRole": "prop-commissioner",
           "body": "已完成活动报名功能设计，在「活动写入」中增加「参与人」字段，活动详情页可查看报名列表。",
           "createdAt": "2026-07-18",
@@ -236,7 +236,7 @@
         },
         {
           "id": "cmt-008",
-          "author": "u_sec",
+          "author": "p13",
           "authorRole": "secretary",
           "body": "关闭反馈（completed）：方案已采纳并实施，下次主题党日起启用。",
           "createdAt": "2026-07-20",
@@ -259,7 +259,7 @@
           "hiddenAt": null
         }
       ],
-      "participants": ["p15", "u_sec", "u_prop", "p12"],
+      "participants": ["p15", "p13", "p12", "p12"],
       "commentCount": 4
     }
   ]

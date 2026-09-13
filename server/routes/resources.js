@@ -51,6 +51,8 @@ const RESOURCE_TABLES = {
   appointmentRecords: 'appointment_records',
   // P3 党委后台（2026-09-02）：支部上报审批（发展节点/活动报备 → 党委批驳）
   reviewRequests: 'review_requests',
+  // R-23（2026-09-13）：思想汇报（建表后随快照同步；系统通知 authorize 据本表复算提交人）
+  thoughtReports: 'thought_reports',
 };
 
 function listTable(db, table) {
@@ -141,6 +143,7 @@ const ID_PREFIX = {
   branches: 'br',
   appointmentRecords: 'appt',
   reviewRequests: 'rq',
+  thoughtReports: 'tr',
 };
 
 // 表决计票方式写侧校验（2026-09-12 书记裁定）：正式表决（optionSet formal——发展党员/转正等）

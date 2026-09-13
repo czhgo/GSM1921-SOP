@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260912j';
-import { BranchService } from '../../../services/runtime.js?v=20260912j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912j';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912j';
-import { AuthStore } from '../../../services/auth.js?v=20260912j';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912j';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912j'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912j';
-import { NoticeStore } from '../../../services/notice.js?v=20260912j';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912j'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260912j';
-import { showToast } from '../../../core/utils.js?v=20260912j';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260912j';
-import { icon } from '../../../core/icons.js?v=20260912j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912j';
-import { recordFormShell } from '../../../components/forms.js?v=20260912j';
-import { renderQueryView } from '../../../components/query-view.js?v=20260912j';
-import { badgeHtml } from '../../../components/badges.js?v=20260912j';
-import { getPersonName } from '../../../services/person.js?v=20260912j';
+import { setState } from '../../../core/state.js?v=20260912k';
+import { BranchService } from '../../../services/runtime.js?v=20260912k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912k';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260912k';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260912k'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260912k';
+import { NoticeStore } from '../../../services/notice.js?v=20260912k';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260912k'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260912k';
+import { showToast } from '../../../core/utils.js?v=20260912k';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260912k';
+import { icon } from '../../../core/icons.js?v=20260912k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
+import { recordFormShell } from '../../../components/forms.js?v=20260912k';
+import { renderQueryView } from '../../../components/query-view.js?v=20260912k';
+import { badgeHtml } from '../../../components/badges.js?v=20260912k';
+import { getPersonName } from '../../../services/person.js?v=20260912k';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

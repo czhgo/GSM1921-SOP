@@ -23,10 +23,13 @@ function pick(obj) {
 
 const TEMPLATES = {
   // ── 思想汇报已提交（thought-report.js 迁移） ──────────────────────
+  // R-23（2026-09-13）：受众锁定组织委员（把关式初阅功能位）——原无 audience/actionRoles
+  //   会经全站广播给所有成员（含提交人自己），与「待组织初阅」的业务指向不符。
   'thought-report-submitted': ({ sourceId, personName }) => pick({
     title: '思想汇报已提交',
     content: `${personName} 已提交思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
     priority: 'normal',
+    audience: ['org-commissioner'],
     targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,
   }),
 

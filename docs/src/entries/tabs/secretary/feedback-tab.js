@@ -3,15 +3,15 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260912j';
-import { showToast } from '../../../core/utils.js?v=20260912j';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260912j';
-import { icon } from '../../../core/icons.js?v=20260912j';
-import { AuthStore } from '../../../services/auth.js?v=20260912j';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260912j';
-import { getPersonName } from '../../../services/person.js?v=20260912j';
-import { PersonStore } from '../../../services/person.js?v=20260912j';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260912j';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260912k';
+import { showToast } from '../../../core/utils.js?v=20260912k';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260912k';
+import { icon } from '../../../core/icons.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260912k';
+import { getPersonName } from '../../../services/person.js?v=20260912k';
+import { PersonStore } from '../../../services/person.js?v=20260912k';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260912k';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -273,16 +273,31 @@ function renderIssueManagement() {
 //  2026-07-30 新增：点击列表项 → 隐藏列表面板、显示详情面板
 // ════════════════════════════════════════════════════════════════
 
-/** 指派目标选项 */
-const ASSIGNEE_OPTIONS = [
-  { personId: 'u_sec', role: 'secretary', label: '书记处置' },
-  { personId: 'u_org', role: 'org-commissioner', label: '组织委员' },
-  { personId: 'u_prop', role: 'prop-commissioner', label: '宣传委员' },
-  { personId: 'u_disc', role: 'disc-commissioner', label: '纪检委员' },
-  { personId: 'u_leader_1', role: 'leader', label: '第一党小组组长' },
-  { personId: 'u_leader_2', role: 'leader', label: '第二党小组组长' },
-  { personId: 'u_leader_3', role: 'leader', label: '第三党小组组长' },
-];
+/**
+ * 指派目标选项（动态解析本支部真实成员；2026-09-13 dogfood 同类彻查）
+ * 原为写死的演示占位 ID（u_sec/u_org/u_prop/u_disc/u_leader_1~3），与真实登录账号（p13/p11/…）不同源：
+ *   ①「了解进展」请求以真实 personId 落库，而「我的处置」按占位 ID 读取 → 委员/组长收不到请求；
+ *   ② 三个组长共用 u_leader_1 → 第二/第三组长看到第一组长的指派。
+ * 现改为按角色/党小组解析本支部成员（单一源 PersonStore.getMembers），指派与接收两侧同源。
+ */
+function _assigneeOptions() {
+  const all = PersonStore.getMembers();
+  const single = (role, label) => {
+    const p = all.find((x) => x.role === role);
+    return p ? [{ personId: p.id, role, label: `${label}（${p.name}）` }] : [];
+  };
+  const leaders = all
+    .filter((x) => x.role === 'leader')
+    .sort((a, b) => String(a.partyGroup || '').localeCompare(String(b.partyGroup || ''), 'zh'))
+    .map((p) => ({ personId: p.id, role: 'leader', label: `${p.partyGroup || '党小组'}组长（${p.name}）` }));
+  return [
+    ...single('secretary', '书记处置'),
+    ...single('org-commissioner', '组织委员'),
+    ...single('prop-commissioner', '宣传委员'),
+    ...single('disc-commissioner', '纪检委员'),
+    ...leaders,
+  ];
+}
 
 /** 关闭理由选项 */
 const CLOSE_REASONS = [
@@ -392,7 +407,7 @@ function renderIssueDetail(issueId) {
   html += `<div id="issue-assign-selector" class="hidden mt-2 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">`;
   html += `<p class="text-xs text-blue-700 mb-2">选择指派目标</p>`;
   html += `<div class="flex flex-wrap gap-2">`;
-  ASSIGNEE_OPTIONS.forEach(opt => {
+  _assigneeOptions().forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
     html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-xs px-3 py-1.5 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
   });
@@ -554,7 +569,9 @@ function bindIssueDetailActions(issueId) {
           const body = document.getElementById('issue-comment-input')?.value?.trim();
           if (!body) { showToast('error', '请输入评论内容'); return; }
           const user = AuthStore.getCurrentUser();
-          IssueStore.addComment(issueId, user?.personId || 'u_sec', 'secretary', body, 'comment');
+          if (!user?.personId) { showToast('error', '登录状态失效，请重新登录'); return; }
+          // 2026-09-13 dogfood 同类彻查：作者身份/角色取真实登录账号（原 personId 兜底 'u_sec'、角色写死 'secretary'）
+          IssueStore.addComment(issueId, user.personId, user.role || 'secretary', body, 'comment');
           showToast('success', '评论已添加');
           renderIssueDetail(issueId);
           break;
@@ -563,7 +580,8 @@ function bindIssueDetailActions(issueId) {
           const body = document.getElementById('issue-comment-input')?.value?.trim();
           if (!body) { showToast('error', '请输入批复内容'); return; }
           const user = AuthStore.getCurrentUser();
-          IssueStore.addComment(issueId, user?.personId || 'u_sec', 'secretary', body, 'verdict');
+          if (!user?.personId) { showToast('error', '登录状态失效，请重新登录'); return; }
+          IssueStore.addComment(issueId, user.personId, user.role || 'secretary', body, 'verdict');
           showToast('success', '批复已添加');
           renderIssueDetail(issueId);
           break;
@@ -572,7 +590,8 @@ function bindIssueDetailActions(issueId) {
           const body = document.getElementById('issue-reply-input')?.value?.trim();
           if (!body) { showToast('error', '请输入正式答复内容'); return; }
           const user = AuthStore.getCurrentUser();
-          IssueStore.addComment(issueId, user?.personId || 'u_sec', 'secretary', body, 'reply');
+          if (!user?.personId) { showToast('error', '登录状态失效，请重新登录'); return; }
+          IssueStore.addComment(issueId, user.personId, user.role || 'secretary', body, 'reply');
           showToast('success', '正式答复已发布');
           renderIssueDetail(issueId);
           break;

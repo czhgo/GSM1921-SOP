@@ -2,16 +2,16 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912j';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912j';
-import { AuthStore } from '../../../services/auth.js?v=20260912j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260912j';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260912j';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912j';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912j';
-import { showToast } from '../../../core/utils.js?v=20260912j';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912j';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260912k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260912k';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260912k';
+import { AuthStore } from '../../../services/auth.js?v=20260912k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260912k';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260912k';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260912k';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260912k';
+import { showToast } from '../../../core/utils.js?v=20260912k';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260912k';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;

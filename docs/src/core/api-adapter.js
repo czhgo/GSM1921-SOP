@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260912j';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260912k';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -683,6 +683,15 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/reviewRequests/${id}`, patch);
+    },
+  },
+
+  // R-23（2026-09-13）：思想汇报（服务端建表 thought_reports 后随快照写穿同步；
+  //   init() 拉取本资源填充 mockDB.thoughtReports，系统通知 authorize 据服务端表复算提交人）
+  thoughtReports: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/thoughtReports${query ? '?' + query : ''}`);
     },
   },
 

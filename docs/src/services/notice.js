@@ -5,18 +5,18 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260912j';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260912j';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260912j';
-import { bumpToken } from '../core/version-token.js?v=20260912j'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260912j';
-import { isInitStateActive } from './init-reset.js?v=20260912j'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260912j';
-import { AuthStore } from './auth.js?v=20260912j';
-import { getPersonById } from './person.js?v=20260912j';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912j';
-import { badgeHtml } from '../components/badges.js?v=20260912j';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES } from '../core/constants.js?v=20260912j';
+import { mockDB } from '../core/domain.js?v=20260912k';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260912k';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260912k';
+import { bumpToken } from '../core/version-token.js?v=20260912k'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260912k';
+import { isInitStateActive } from './init-reset.js?v=20260912k'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260912k';
+import { AuthStore } from './auth.js?v=20260912k';
+import { getPersonById } from './person.js?v=20260912k';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260912k';
+import { badgeHtml } from '../components/badges.js?v=20260912k';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260912k';
 
 function _loadNotices() {
   try {
@@ -138,16 +138,29 @@ export const NoticeStore = {
       result = result.filter(n => !n.archived);
     }
 
-    // P3 党委下发（2026-09-02，书记裁定送达范围=支部委员会/支委层）：
-    // audience==='committee' 的党委下发通知，仅对目标支部的支委层成员可见；
-    // 普通党员/党委组织员（非支委）不消费本通道，其余通知行为不变。
+    // ── 受众门（2026-09-13 彻查批次：消费端统一过滤）─────────────────────────────
+    // 背景（用户实报）：「书记的界面为什么会出现书记的催办？」根因＝消费端（铃铛/首页未读/角标/待办未读条）
+    //   从未按受众过滤——签发人自己下发的催办又回到自己的未读里；且通知发布页所选受众（audience 数组）
+    //   从未生效（选「党小组组长」实际全员可见）。
+    // 规则：① audience==='committee' → 仅本支部支委层（党委下发通道，既有）
+    //       ② audience 为角色数组 → 仅该数组内角色可见
+    //       ③ actionRoles 非空（行动性通知：催办/提醒/表决进度等）→ 仅目标角色可见（签发人不再收自己的下发件）
+    //       ④ 无受众/无 actionRoles → 全员可见（如活动通知广播）
+    // 注：无登录会话（node 单测/匿名）时不收窄，保持既有行为。
     {
       const _me = AuthStore.getCurrentUser();
-      const _isComm = _me && ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'].includes(_me.role);
+      const _role = _me && _me.role;
+      const _isComm = !!_role && BRANCH_COMMISSION_ROLES.includes(_role);
       const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || 'br-b1') : null;
-      result = result.filter(n =>
-        n.audience !== 'committee' || (_isComm && _myBranch && (n.branchId || 'br-b1') === _myBranch)
-      );
+      result = result.filter((n) => {
+        if (n.audience === 'committee') {
+          return _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch;
+        }
+        if (!_role) return true; // 无会话：不按受众收窄（保持既有行为）
+        if (Array.isArray(n.audience) && n.audience.length) return n.audience.includes(_role);
+        if (Array.isArray(n.actionRoles) && n.actionRoles.length) return n.actionRoles.includes(_role);
+        return true;
+      });
     }
 
     if (filter.activeOnly !== false) {
