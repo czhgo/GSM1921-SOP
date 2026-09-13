@@ -5,7 +5,7 @@
 //  职责单一：活跃/招募中专班列表（前 5 条，进度条 + 状态徽章）。
 // ════════════════════════════════════════════════════════════════
 
-import { getPersonName } from '../../services/person.js?v=20260913c';
+import { getPersonName } from '../../services/person.js?v=20260913e';
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
@@ -34,9 +34,13 @@ export function renderTaskforceList(taskforces) {
   const display = active.slice(0, 5);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-500">暂无活跃专班</p>';
+    // 过拟合修正（2026-09-13）：专班＝本支部自创工作方法，首页不为其保留常驻空卡
+    //（原空态「暂无活跃专班」恒占位）。无活跃专班 → **整卡不出**（含标题与「查看全部」）。
+    document.getElementById('dashboard-taskforce-card')?.classList.add('hidden');
+    container.innerHTML = '';
     return;
   }
+  document.getElementById('dashboard-taskforce-card')?.classList.remove('hidden');
 
   container.innerHTML = display.map(r => {
     const badge = tfBadge(r.status, r.deadline);

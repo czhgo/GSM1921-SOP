@@ -123,6 +123,12 @@ const KINDS = {
       const roles = [...new Set(proposal
         .map((c) => (c && c.to && c.to.ownerType === 'role' ? c.to.ownerId : null))
         .filter(Boolean))];
+      // 到人负责人（角色数组表达不了）→ 按人定向送达；支委层照旧知晓（支部内政）
+      const persons = [...new Set(proposal
+        .map((c) => (c && c.to && c.to.ownerType === 'person' ? c.to.ownerId : null))
+        .filter(Boolean))];
+      vars.audience = 'committee';
+      if (persons.length) vars.audiencePersons = persons;
       if (roles.length) {
         vars.actionRoles = roles;
         vars.actionable = true;

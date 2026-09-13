@@ -5,12 +5,12 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/state.js?v=20260913c';
-import { _fmtDate } from '../../core/utils.js?v=20260913c';
-import { getPersonName } from '../../services/person.js?v=20260913c';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260913c';
-import { badgeHtml } from '../badges.js?v=20260913c';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913c';
+import { getAppState } from '../../core/state.js?v=20260913e';
+import { _fmtDate } from '../../core/utils.js?v=20260913e';
+import { getPersonName } from '../../services/person.js?v=20260913e';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260913e';
+import { badgeHtml } from '../badges.js?v=20260913e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260913e';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',
@@ -37,9 +37,13 @@ export function renderGallery(activities) {
   const display = [...sortByDate(candidates.filter(a => !isDone(a))), ...sortByDate(candidates.filter(a => isDone(a)))].slice(0, 6);
 
   if (display.length === 0) {
-    container.innerHTML = '<p class="text-sm text-gray-500">暂无风采展示</p>';
+    // 过拟合修正（2026-09-13）：活动风采为支部自创展示位（品牌活动），首页不为其保留常驻空卡
+    //（原空态「暂无风采展示」恒占位）。无内容 → 整卡不出（含标题）。
+    document.getElementById('dashboard-gallery-card')?.classList.add('hidden');
+    container.innerHTML = '';
     return;
   }
+  document.getElementById('dashboard-gallery-card')?.classList.remove('hidden');
 
   container.innerHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">' +
     display.map(a => {

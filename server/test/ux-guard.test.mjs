@@ -103,7 +103,11 @@ test('④ 通知消费端（NoticeStore.list）必须按受众/行动角色过�
   const src = readFileSync(join(DOCS, 'src/services/notice.js'), 'utf8');
   assert.match(src, /actionRoles\.includes\(/, 'NoticeStore.list 缺少 actionRoles 受众过滤');
   assert.match(src, /audience\.includes\(/, 'NoticeStore.list 缺少 audience 角色数组过滤');
-  assert.match(src, /audience === 'committee'/, 'NoticeStore.list 缺少 audience===\'committee\'（党委下发通道）过滤');
+  assert.match(src, /audience === 'committee'/, "NoticeStore.list 缺少 audience==='committee'（党委下发通道）过滤");
+  // 2026-09-13 补：按人定向（分工调整「信息自动传递」需送到**到人负责人**，角色数组表达不了），
+  // 且多受众必须**并存命中**（原 if/return 短路：committee 会吞掉 audiencePersons/actionRoles）
+  assert.match(src, /audiencePersons/, 'NoticeStore.list 缺少 audiencePersons 按人定向过滤');
+  assert.match(src, /_hitPersons\(n\)\) return true|_hitPersons\(n\)/, '多受众须并存命中（不得被 committee 短路吞掉）');
 });
 
 // ── ⑥ showToast 调用约定（2026-09-13 走查实报：workforce-panel 10 处参数写反）──

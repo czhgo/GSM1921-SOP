@@ -10,24 +10,24 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260913c';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260913c';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260913c';
-import { IssueStore } from '../services/issues.js?v=20260913c';
-import { AuthStore } from '../services/auth.js?v=20260913c';
-import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260913c';
-import { loadActivities } from '../services/activity.js?v=20260913c';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260913c';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260913c';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260913e';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260913e';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260913e';
+import { IssueStore } from '../services/issues.js?v=20260913e';
+import { AuthStore } from '../services/auth.js?v=20260913e';
+import { solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260913e';
+import { loadActivities } from '../services/activity.js?v=20260913e';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260913e';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260913e';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/makeup.js）
-import { loadMakeupTasks } from '../services/makeup.js?v=20260913c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913c';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260913c';
-import { PersonStore } from '../services/person.js?v=20260913c';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260913e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913e';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260913e';
+import { PersonStore } from '../services/person.js?v=20260913e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { getPersonName } from '../services/person.js?v=20260913c';
-import { AttendanceStatus } from '../core/domain.js?v=20260913c';
+import { getPersonName } from '../services/person.js?v=20260913e';
+import { AttendanceStatus } from '../core/domain.js?v=20260913e';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -419,10 +419,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260913c');
+    const { renderActivityView } = await import('./activity-view.js?v=20260913e');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260913c');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260913e');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

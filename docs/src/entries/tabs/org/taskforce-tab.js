@@ -3,25 +3,25 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260913c';
-import { BranchService } from '../../../services/runtime.js?v=20260913c';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913c';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260913c';
-import { AuthStore } from '../../../services/auth.js?v=20260913c';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260913c';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260913c';
-import { NoticeStore } from '../../../services/notice.js?v=20260913c';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260913c';
-import { showToast } from '../../../core/utils.js?v=20260913c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260913c';
-import { icon } from '../../../core/icons.js?v=20260913c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
-import { recordFormShell } from '../../../components/forms.js?v=20260913c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260913c';
-import { badgeHtml } from '../../../components/badges.js?v=20260913c';
-import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { setState } from '../../../core/state.js?v=20260913e';
+import { BranchService } from '../../../services/runtime.js?v=20260913e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913e';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260913e';
+import { AuthStore } from '../../../services/auth.js?v=20260913e';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260913e';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260913e'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260913e';
+import { NoticeStore } from '../../../services/notice.js?v=20260913e';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260913e'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260913e';
+import { showToast } from '../../../core/utils.js?v=20260913e';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260913e';
+import { icon } from '../../../core/icons.js?v=20260913e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
+import { recordFormShell } from '../../../components/forms.js?v=20260913e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260913e';
+import { badgeHtml } from '../../../components/badges.js?v=20260913e';
+import { getPersonName } from '../../../services/person.js?v=20260913e';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -66,37 +66,34 @@ export function renderContent(ctx) {
     const fr = q ? recruiting.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : recruiting;
     const fa = q ? active.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : active;
     const fc = q ? completed.filter(t => (t.name || '').toLowerCase().includes(q) || (t.task || '').toLowerCase().includes(q)) : completed;
+    // 过拟合修正（2026-09-13 支书裁定「专班只是工作的一部分」）：专班＝本支部自创工作方法
+    //（workflow/blocks/manifests.js: provenance='branch-custom'），看板**空分桶不保留常驻占位卡**
+    //（原三桶恒渲染、空桶显「暂无…专班」并撑 min-h-[120px]）。改为只渲染**有内容**的分桶，列数随桶数自适应。
+    const BUCKETS = [
+      { title: '待支委会表决', list: fp, tint: '#6366F1', tintDark: '#A5B4FC' },
+      { title: '招募中', list: fr, tint: '#D97706', tintDark: '#FBBF24' },
+      { title: '运行中', list: fa, tint: '#8B5CF6', tintDark: '#C4B5FD' },
+    ].filter((b) => b.list.length > 0);
+    const colsClass = BUCKETS.length >= 3 ? 'md:grid-cols-3' : BUCKETS.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1';
+    const emptyAll = BUCKETS.length === 0 && fc.length === 0;
     kb.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      ${BUCKETS.length ? `<div class="grid grid-cols-1 ${colsClass} gap-4 mb-4">
+        ${BUCKETS.map((b) => `
         <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#6366F1;--acc-text-dark:#A5B4FC;color:color-mix(in srgb, var(--accent-indigo) 60%, #000);">待支委会表决 (${fp.length})</div>
-          <div class="p-3 space-y-3 min-h-[120px]">
-            ${fp.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无待支委会表决专班</p>' :
-              fp.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
+          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:${b.tint};--acc-text-dark:${b.tintDark};color:color-mix(in srgb, ${b.tint} 60%, #000);">${b.title} (${b.list.length})</div>
+          <div class="p-3 space-y-3">
+            ${b.list.map((t) => _renderTfCard(t, statusLabel, statusColor)).join('')}
           </div>
-        </div>
-        <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#D97706;--acc-text-dark:#FBBF24;color:color-mix(in srgb, #D97706 60%, #000);">招募中 (${fr.length})</div>
-          <div class="p-3 space-y-3 min-h-[120px]">
-            ${fr.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无招募中专班</p>' :
-              fr.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
-          </div>
-        </div>
-        <div class="card rounded-xl p-0 overflow-hidden">
-          <div class="px-4 py-3 font-title-cn text-sm font-bold tf-section-head" style="--tint:#8B5CF6;--acc-text-dark:#C4B5FD;color:color-mix(in srgb, #8B5CF6 60%, #000);">运行中 (${fa.length})</div>
-          <div class="p-3 space-y-3 min-h-[120px]">
-            ${fa.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无运行中专班</p>' :
-              fa.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
-          </div>
-        </div>
-      </div>
+        </div>`).join('')}
+      </div>` : ''}
       ${fc.length > 0 ? `
       <details class="card rounded-xl p-0 overflow-hidden">
         <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none tf-section-head" style="--tint:#3B82F6;--acc-text-dark:#60A5FA;color:color-mix(in srgb, var(--accent-blue) 60%, #000);">已完结 (${fc.length})</summary>
         <div class="p-3 space-y-3">
-          ${fc.map(t => _renderTfCard(t, statusLabel, statusColor)).join('')}
+          ${fc.map((t) => _renderTfCard(t, statusLabel, statusColor)).join('')}
         </div>
       </details>` : ''}
+      ${emptyAll ? '<p class="text-xs text-gray-500 text-center py-6">暂无专班——本支部当前未开展专班工作；如需开展，可在「支部分工」把「专班」列为工作方法并指定负责人。</p>' : ''}
     `;
     bindCardClicks();
     bindStatusButtons();

@@ -5,18 +5,18 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913c';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913c';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913c';
-import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260913c';
-import { isInitStateActive } from './init-reset.js?v=20260913c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260913c';
-import { AuthStore } from './auth.js?v=20260913c';
-import { getPersonById } from './person.js?v=20260913c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913c';
-import { badgeHtml } from '../components/badges.js?v=20260913c';
-import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913c';
+import { mockDB } from '../core/domain.js?v=20260913e';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260913e';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260913e';
+import { bumpToken } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260913e';
+import { isInitStateActive } from './init-reset.js?v=20260913e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260913e';
+import { AuthStore } from './auth.js?v=20260913e';
+import { getPersonById } from './person.js?v=20260913e';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260913e';
+import { badgeHtml } from '../components/badges.js?v=20260913e';
+import { NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913e';
 
 function _loadNotices() {
   try {
@@ -144,22 +144,31 @@ export const NoticeStore = {
     //   从未生效（选「党小组组长」实际全员可见）。
     // 规则：① audience==='committee' → 仅本支部支委层（党委下发通道，既有）
     //       ② audience 为角色数组 → 仅该数组内角色可见
-    //       ③ actionRoles 非空（行动性通知：催办/提醒/表决进度等）→ 仅目标角色可见（签发人不再收自己的下发件）
-    //       ④ 无受众/无 actionRoles → 全员可见（如活动通知广播）
+    //       ③ audiencePersons 为 personId 数组 → 按人定向（2026-09-13 补：分工调整「信息自动传递」
+    //          需把通知直接送到**到人负责人**，角色数组表达不了）
+    //       ④ actionRoles 非空（行动性通知：催办/提醒/表决进度/分工履职等）→ 仅目标角色可见
+    //       ⚠ 同一通知可**并存多种受众**（如「committee + audiencePersons + actionRoles」），
+    //          命中任一即可见——原实现按 if/return 短路，committee 会吞掉其余受众。
+    //       ⑤ 无受众/无 actionRoles → 全员可见（如活动通知广播）
     // 注：无登录会话（node 单测/匿名）时不收窄，保持既有行为。
     {
       const _me = AuthStore.getCurrentUser();
       const _role = _me && _me.role;
+      const _pid = _me && _me.personId;
       const _isComm = !!_role && BRANCH_COMMISSION_ROLES.includes(_role);
       const _myBranch = _me ? (getPersonById(_me.personId)?.branchId || 'br-b1') : null;
+      const _hitPersons = (n) => Array.isArray(n.audiencePersons) && n.audiencePersons.includes(_pid);
+      const _hitRoles = (n) => Array.isArray(n.audience) && n.audience.length && n.audience.includes(_role);
+      const _hitActions = (n) => Array.isArray(n.actionRoles) && n.actionRoles.length && n.actionRoles.includes(_role);
       result = result.filter((n) => {
-        if (n.audience === 'committee') {
-          return _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch;
-        }
-        if (!_role) return true; // 无会话：不按受众收窄（保持既有行为）
-        if (Array.isArray(n.audience) && n.audience.length) return n.audience.includes(_role);
-        if (Array.isArray(n.actionRoles) && n.actionRoles.length) return n.actionRoles.includes(_role);
-        return true;
+        const hasAudience = (Array.isArray(n.audience) && n.audience.length) || n.audience === 'committee'
+          || (Array.isArray(n.audiencePersons) && n.audiencePersons.length)
+          || (Array.isArray(n.actionRoles) && n.actionRoles.length);
+        if (!hasAudience) return true;   // 广播
+        if (!_role) return true;         // 无会话：不按受众收窄（保持既有行为）
+        if (n.audience === 'committee' && _isComm && !!_myBranch && (n.branchId || 'br-b1') === _myBranch) return true;
+        if (_hitPersons(n) || _hitRoles(n) || _hitActions(n)) return true;
+        return false;
       });
     }
 

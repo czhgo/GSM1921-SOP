@@ -19,16 +19,16 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260913c';
-import { persist } from '../core/data-adapter.js?v=20260913c';
-import { bumpToken } from '../core/version-token.js?v=20260913c'; // P0 域缓存失效（spec §二.3）
+import { mockDB } from '../core/domain.js?v=20260913e';
+import { persist } from '../core/data-adapter.js?v=20260913e';
+import { bumpToken } from '../core/version-token.js?v=20260913e'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913c';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260913c';
-import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260913c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913e';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260913e';
+import { RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260913e';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260913c';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260913e';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';

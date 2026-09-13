@@ -2,24 +2,24 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260913c';
-import { loadActivities } from '../../../services/activity.js?v=20260913c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913c';
-import { PersonStore } from '../../../services/person.js?v=20260913c';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260913e';
+import { loadActivities } from '../../../services/activity.js?v=20260913e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913e';
+import { PersonStore } from '../../../services/person.js?v=20260913e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 const PEOPLE = PersonStore.getMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260913c';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913c';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913c';
-import { badgeHtml } from '../../../components/badges.js?v=20260913c';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260913e';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913e';
+import { badgeHtml } from '../../../components/badges.js?v=20260913e';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913c';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913c';
-import { currentLeaderGroup } from './_shared.js?v=20260913c';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913c';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260913e';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260913e';
+import { currentLeaderGroup } from './_shared.js?v=20260913e';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913e';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;

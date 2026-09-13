@@ -16,23 +16,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260913c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260913e';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260913c';
+} from '../../docs/src/core/mock-adapter.js?v=20260913e';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/person.js?v=20260913c';
+} from '../../docs/src/services/person.js?v=20260913e';
 import {
   RESIDENCE, getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260913c';
+} from '../../docs/src/services/roster.js?v=20260913e';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, DEV_STAGE_OVERRIDES_KEY, loadDevStageOverrides,
-} from '../../docs/src/services/member-confirmation.js?v=20260913c';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260913c';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913c';
+} from '../../docs/src/services/member-confirmation.js?v=20260913e';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260913e';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260913e';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();

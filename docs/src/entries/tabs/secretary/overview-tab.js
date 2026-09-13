@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913c';
-import { NoticeStore } from '../../../services/notice.js?v=20260913c';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260913c';
-import { AuthStore } from '../../../services/auth.js?v=20260913c';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260913c';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260913c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260913e';
+import { NoticeStore } from '../../../services/notice.js?v=20260913e';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260913e';
+import { AuthStore } from '../../../services/auth.js?v=20260913e';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260913e';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260913e';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getDetainedMembers, getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260913c';
-import { loadActivities } from '../../../services/activity.js?v=20260913c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260913c';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260913c';
+import { getRosterStats } from '../../../services/roster.js?v=20260913e';
+import { loadActivities } from '../../../services/activity.js?v=20260913e';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913e';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913e';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260913e';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260913c';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260913c';
-import { getPersonName } from '../../../services/person.js?v=20260913c';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260913e';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260913e';
+import { getPersonName } from '../../../services/person.js?v=20260913e';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -302,12 +302,17 @@ function renderDimensionView(container) {
   const anomalyTotal = attendance.makeupPending + inspection.pendingInspections
     + inspection.overdueInspections + activity.pendingAuth + propaganda.pendingArchive;
 
+  // 会议应到口径（R-28，2026-09-13 支书裁定）：原「滞留党员复核」只读卡删除 →
+  // 「应到＝在册党员 − 滞留剔除」降为指标条一行；滞留维护位仍在组织委员「成员名册」（→支书确认链）。
+  const rosterStats = getRosterStats({ type: '支部党员大会' });
+
   // 必要指标（取消 KPI 五连卡：只保留少量必要指标，数字内联呈现；status 以圆点色表达，目标/口径入 title）
   const metrics = [
     { label: '复盘问题', value: activity.reviewIssues, unit: '条', status: activity.reviewIssues > 0 ? 'ok' : 'warn', title: '真问题导向' },
     // 2026-09-13 彻查批次：原「归档完成率（%）· 目标 100%」＝KPI 式表述（用户明确要求不得出现）
     // → 改为「待归档材料（条）」，与「考察积压/待办异常」同口径：只报缺口，不设完成率目标
     { label: '待归档材料', value: propaganda.pendingArchive, unit: '条', status: metricStatusOf(!propaganda.pendingArchive, propaganda.pendingArchive <= 3), title: '待归档条数（只报缺口，不设比率目标）' },
+    { label: '会议应到', value: rosterStats.expected, unit: '人', status: 'ok', title: `在册党员 ${rosterStats.partyTotal} − 滞留剔除 ${rosterStats.detainedParty}（滞留＝组织关系保留但不参加日常会议）` },
     // 2026-08-10 支书裁定：考察积压/待办异常无既定目标值，不设虚假目标（状态由圆点色表达）
     { label: '考察积压', value: inspection.pendingInspections + inspection.overdueInspections, unit: '条', status: inspection.overdueInspections ? 'danger' : inspection.pendingInspections ? 'warn' : 'ok', title: '待确认 + 超期' },
     { label: '待办异常', value: anomalyTotal, unit: '项', status: anomalyTotal ? 'danger' : 'ok', title: '异常优先管理 · 目标 0' },
@@ -396,8 +401,24 @@ function renderDimensionView(container) {
         </div>
       </div>
 
-      <!-- S1–S4 滞留党员复核（并入党员发展阶段分布；只读复核：徽标 / 备注 / 变更留痕） -->
-      ${_renderDetainedReviewCard(stages, stageTotal)}
+      <!-- R-28（2026-09-13 支书裁定）：原「滞留党员复核」只读卡删除——
+           ① 应到口径已降为上方指标条一行（会议应到）；
+           ② 党员发展阶段分布降为下方内联迷你条（不占卡）；
+           ③ 滞留人数并入口径说明 + 名册入口（写动作在组织委员「成员名册」→ 支书确认；学期末待办提醒保留）。 -->
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-gray-500 py-1">
+        <span>
+          滞留 <span class="font-semibold text-gray-700 tabular-nums">${rosterStats.detainedParty}</span> 人已从会议应到剔除（身份保留 · 通知照发 · 表决快照剔除）
+          —— 维护在组织委员「成员名册」
+          <a href="./workspace/org.html?tab=roster" class="text-blue-600 hover:text-blue-800">去查看 →</a>
+        </span>
+        <span class="inline-flex items-center gap-2.5 flex-wrap">
+          <span>党员结构</span>
+          <span class="inline-flex h-1.5 w-20 rounded-full bg-neutral-100 overflow-hidden">
+            ${stages.map(s => s.value > 0 ? `<span style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${esc(s.label)} ${s.value}人"></span>` : '').join('')}
+          </span>
+          ${stages.map(s => `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background:${s.color};"></span>${esc(s.label)} <span class="tabular-nums">${s.value}</span></span>`).join('')}
+        </span>
+      </div>
     </div>
   `;
 
@@ -421,61 +442,6 @@ function renderDimensionView(container) {
       showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });
-}
-
-/** 滞留党员复核卡（支书只读复核：徽标/备注/变更留痕；维护位 = 组织委员「人才库」成员档案）
- *  2026-09-10 支书裁定：「党员发展阶段分布」并入本卡，作为迷你比例条 + 图例字段（原独立分布卡取消）。 */
-function _renderDetainedReviewCard(stages = [], stageTotal = 1) {
-  const stats = getRosterStats({ type: '支部党员大会' }); // 支部大会口径 = 三会+党课统一口径
-  const detained = getDetainedMembers();
-  const stageBar = stages.length ? `
-        <div class="mb-3">
-          <div class="flex items-center gap-3">
-            <span class="text-xs text-gray-500 flex-shrink-0">发展阶段分布</span>
-            <div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden flex">
-              ${stages.map(s => s.value > 0 ? `<div style="width:${(s.value / stageTotal * 100).toFixed(1)}%;background:${s.color};" title="${s.label} ${s.value}人"></div>` : '').join('')}
-            </div>
-          </div>
-          <div class="flex items-center gap-2.5 flex-wrap justify-end mt-1.5">
-            ${stages.map(s => `
-              <span class="inline-flex items-center gap-1 text-xs text-gray-600">
-                <span class="w-2 h-2 rounded-full" style="background:${s.color};"></span>${s.label} ${s.value}
-              </span>
-            `).join('')}
-          </div>
-        </div>` : '';
-  const rowsHtml = detained.length === 0
-    ? `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
-         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 无滞留党员
-       </div>`
-    : `<div class="space-y-1.5">${detained.map(p => {
-        const rs = getResidenceOf(p);
-        const history = rs.residenceHistory || [];
-        const histText = history.length === 0
-          ? '—'
-          : history.map(h => `${esc(h.from || '')} → ${esc(h.to || '')}（${esc(h.updatedBy ? getPersonName(h.updatedBy) : '—')} · ${(h.updatedAt || '').slice(0, 10)}${h.note ? ' · ' + esc(h.note) : ''}）`).join('；');
-        return `
-        <div class="rounded-lg bg-white border border-gray-50 p-2.5">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-sm font-medium text-gray-800">${esc(p.name)}</span>
-            <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">滞留</span>
-            <span class="text-xs text-gray-500">${esc(p.partyGroup || '')} · ${esc(p.developStage || '')}</span>
-            <span class="ml-auto text-[10px] text-gray-500">最近维护：${history.length ? esc(getPersonName(history[history.length - 1].updatedBy)) : '—'} · ${history.length ? (history[history.length - 1].updatedAt || '').slice(0, 10) : ''}</span>
-          </div>
-          ${rs.residenceNote ? `<div class="text-xs text-gray-500 mt-1">备注：${esc(rs.residenceNote)}</div>` : ''}
-          <div class="text-[10px] text-gray-500 mt-1">变更留痕：${histText}</div>
-        </div>`;
-      }).join('')}</div>`;
-  return `
-    <div class="card rounded-xl p-4">
-      <div class="flex items-center justify-between mb-1">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">滞留党员复核</h4>
-        <span class="text-xs text-gray-500">会议应到 ${stats.expected} 人 = 在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span>
-      </div>
-      <p class="text-xs text-gray-500 mb-2">滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。维护位：组织委员「人才库」成员档案；本卡只读复核（留痕随组织委员维护自动追加）。</p>
-      ${stageBar}
-      ${rowsHtml}
-    </div>`;
 }
 
 /** 近 6 场有考勤记录活动的出勤率序列（趋势线数据源） */

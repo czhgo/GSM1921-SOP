@@ -5,9 +5,9 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/notice.js?v=20260913c';
-import { _fmtDate } from '../../core/utils.js?v=20260913c';
-import { icon } from '../../core/icons.js?v=20260913c';
+import { NoticeStore } from '../../services/notice.js?v=20260913e';
+import { _fmtDate } from '../../core/utils.js?v=20260913e';
+import { icon } from '../../core/icons.js?v=20260913e';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: '#10B981' },
@@ -78,9 +78,15 @@ export function renderDashboardStats({ activities, taskforces, notices, attendan
   // 2026-08-10 支书两次裁定·首页统计卡最终配色：活动=蓝 #3B82F6 / 专班=亮金 #F59E0B / 未读通知=红 #DC2626 / 考勤=状态三色
   // 2026-09-12 R-13 浅色对比收口：专班亮金 #F59E0B 在浅底 2.15 不达大字 3:1，升档为既有色阶 --accent-amber #D97706（3.19）；
   // 零值弱化色 #9CA3AF 不达 3:1，升档为 --neutral-500（浅 4.83 / 深 #94A3B8 6.57，深色不退化）
+  // 卡片过拟合修正（2026-09-13 支书裁定「专班只是工作的一部分；三会一课是规范表达，专班是本支部自己的表达」）：
+  // 「活跃专班」是**本支部自创工作方法**（workflow/blocks/manifests.js: provenance='branch-custom'），
+  // 非党内统一规范动作——原无论有无专班恒渲染（无专班的支部永远显示「0 个」）属**过拟合**。
+  // 改为：仅在**确有活跃/招募中专班**时出现（规范类统计「本月活动」不受影响，始终保留）。
   const stats = [
     { label: '本月活动', value: monthActivities.length, unit: '场', color: '#3B82F6', icon: 'calendarHero', interactive: false },
-    { label: '活跃专班', value: activeTFs.length, unit: '个', color: '#D97706', icon: 'usersGroup', interactive: false },
+    ...(activeTFs.length > 0
+      ? [{ label: '活跃专班', value: activeTFs.length, unit: '个', color: '#D97706', icon: 'usersGroup', interactive: false }]
+      : []),
     { label: '未读通知', value: unreadNotices, unit: '条', color: unreadNotices > 0 ? '#DC2626' : 'var(--neutral-500)', icon: 'bellHero', interactive: false },
     { label: '个人考勤', value: myTotal > 0 ? `${myPresent}/${myTotal}` : '—', unit: '', color: myColor, icon: 'clipboard', interactive: true },
   ];

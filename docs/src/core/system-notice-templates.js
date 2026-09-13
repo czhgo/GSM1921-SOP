@@ -68,13 +68,17 @@ const TEMPLATES = {
   }),
 
   // ── 支部分工调整已生效（workforce.js 迁移） ───────────────────────
-  // 分工自动传递（2026-09-13 支书裁定）：actionRoles/actionable/actionTask 由**服务端**按
-  //   来源活动的 extras.proposal 复算注入（见 server/system-notice-kinds.js 的 build），
-  //   客户端不传；角色负责人据此派生「履职」待办（到人负责人由 workforce.js 直接派生）。
-  'workforce-proposal-adopted': ({ sourceId, activityTitle, actionRoles, actionable, actionTask }) => pick({
+  // 分工自动传递（2026-09-13 支书裁定）：受众与行动计划均由**服务端**按来源活动的
+  //   extras.proposal 复算注入（见 server/system-notice-kinds.js 的 build），客户端不传：
+  //   · audience='committee'（支部内政，支委层应知晓）；
+  //   · audiencePersons=[到人负责人 personId]（角色数组表达不了「到人」，按人定向送达）；
+  //   · actionRoles=[角色负责人] + actionable/actionTask（据此派生「履职」待办）。
+  'workforce-proposal-adopted': ({ sourceId, activityTitle, audience, audiencePersons, actionRoles, actionable, actionTask }) => pick({
     title: '支部分工调整已生效',
     content: `「${activityTitle}」已按支委会表决采纳，分工已更新，相关责任人可前往「支部分工」查看并履职。`,
     priority: 'normal',
+    audience,
+    audiencePersons,
     targetType: 'activity',
     targetId: sourceId,
     actionRoles,

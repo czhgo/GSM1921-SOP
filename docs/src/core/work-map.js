@@ -55,11 +55,16 @@ export const WORK_MAP_MODULES = [
   },
   {
     id: 'democratic-review', name: '民主评议党员', tier: 'norm', defaultOwner: 'secretary',
-    desc: '年度民主评议党员（评议明细后续按 L3 manifest 补齐）',
+    // 欠拟合说明（2026-09-13 全局审计）：本项为党内统一规范动作，当前**承载＝以「支部党员大会」形式
+    // 召开并在活动命名中表达**（沿用「组织生活会」同一裁定：内容是命名表达、不进子类 chips/写入表单）；
+    // 「评议明细」（评议表/格次/汇总）尚未建，待按 L3 manifest 补齐。
+    desc: '年度民主评议党员（以支部党员大会形式召开、活动命名表达；评议明细待按 L3 补齐）',
   },
   {
     id: 'election', name: '换届选举', tier: 'norm', defaultOwner: 'secretary',
-    desc: '换届选举（任命机制 + 票决；完整流程后续按 L3 manifest 补齐）',
+    // 欠拟合说明（2026-09-13 全局审计）：当前**承载＝任命机制 + 支委会票决**（党委台「任命支书」+
+    // 线上表决）；「换届完整流程」（酝酿提名/请示上级/选举大会/报批备案）尚未建，待按 L3 manifest 补齐。
+    desc: '换届选举（现由任命机制 + 票决承载；完整流程待按 L3 补齐）',
   },
   {
     id: 'attendance-inspection', name: '考勤考察', tier: 'norm', defaultOwner: 'disc-commissioner',

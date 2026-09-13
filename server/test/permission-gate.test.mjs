@@ -573,3 +573,39 @@ test('成员变更确认端点：副支书本支部 200 且落库；组织委员
   assert.equal(crossDep.status, 403, '副支书不得确认异支部成员变更');
   assert.equal((await usersOf(secToken)).find((u) => u.id === 'p90').developStage, '积极分子', '越权确认未改动阶段');
 });
+
+test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受众与行动计划由服务端按 extras.proposal 复算', async () => {
+  const { token: secToken } = await login('p13');   // br-b1 支书
+
+  // ① 造一条「支部分工调整」支委会议题活动：一个到人负责人（p3）+ 一个角色负责人（leader）
+  const actRes = await fetch(`${base}/api/v1/activities`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({
+      title: '支部分工调整（测试）', date: '2026-09-13', type: '支委会', status: 'in-progress',
+      extras: {
+        proposal: [
+          { moduleId: 'taskforce', to: { ownerType: 'person', ownerId: 'p3' } },
+          { moduleId: 'theme-party', to: { ownerType: 'role', ownerId: 'leader' } },
+        ],
+      },
+    }),
+  });
+  assert.equal(actRes.status, 201, '支书可创建支委会分工议题活动');
+  const act = await actRes.json();
+
+  // ② 触发「分工调整已生效」系统通知——payload 故意伪造受众/行动计划，验证服务端**不采信客户端自述**
+  const nRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({
+      kind: 'workforce-proposal-adopted', sourceId: act.id,
+      payload: { activityTitle: act.title, audiencePersons: ['伪造'], actionRoles: ['伪造'] },
+    }),
+  });
+  assert.equal(nRes.status, 201, '支书可触发分工生效通知');
+  const n = await nRes.json();
+  assert.equal(n.audience, 'committee', '受众锁定本支部支委层（支部内政）');
+  assert.deepEqual(n.audiencePersons, ['p3'], '到人负责人按 personId 定向送达（覆盖客户端自述）');
+  assert.deepEqual(n.actionRoles, ['leader'], '角色负责人进 actionRoles（覆盖客户端自述）→ 派生履职待办');
+  assert.equal(n.actionable, true, '标记可行动（供待办派生）');
+  assert.equal(n.targetUrl, 'workspace/secretary.html?tab=work-map', '落点指向支部分工');
+});
