@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-13"
+last_updated: "2026-09-14"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -454,14 +454,18 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
 - [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
-- [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 25 个持久化域 + users ↔ server 26 表（`server/db.js` RESOURCE_TABLES）；resources.js 26 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
-- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 25 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
+- [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 27 个持久化域 + users ↔ server 28 表（`server/db.js` RESOURCE_TABLES）；resources.js 28 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
+- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 27 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
+  > **2026-09-14 批次 25**：新增 `partyGroups`（党小组）与 `memberFlows`（成员流动台账）两域，两侧同步建表（域数/表数/快照覆盖数各 +2，**不含 users 与 branchDocs** 的排除说明不变）。**上述 27 域 / 28 表 / 快照 27 域为批次 25 的目标态**，落地前以代码实测为准。
+  > **2026-09-14 实测差异（待专项对账）**：`server/db.js` 实为 34 表、`resources.js` 实为 30 个资源名、`_buildSnapshotPayload` 实为 25 个键——与「25 域 / 26 表」历史口径存在差异（`issues` 等语义端点域不在资源名映射内、`branches`/`branchDocs` 等按纪律排除）。本行口径的历史差异已登记为待办，勿据旧数照做。
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords/mailboxConfig 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
 - [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 - [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
 - [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/roster.js` 与 `services/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
 - [ ] 版本戳同值（缓存键一致性）：全站 `?v=<release>` 与本次发布版本**处处一致**——`docs/scripts/bump-version.mjs` 收尾自检须报「陈旧戳 0 处残留」；任一 `?v=` 落后即会让浏览器按 URL 分裂出第二个模块实例（注册表/共享状态读空）。**注意**：注释里的版本号是人工注记、不算缓存键（自检与改写同源跳过注释行）；**模板字符串动态 import**（`` import(`…/${stem}-workspace.js?v=…`) ``）也在覆盖范围内
+- [ ] 党小组清单单一源（2026-09-14 收敛）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
+- [ ] 账号与成员档案同源（2026-09-14）：账号由学号派生（账号即学号），成员新增/流出与账号建号/停用必须成对发生；禁出现「档案有此人、账号层没有」或反向的孤项
 
 ---
 
@@ -478,11 +482,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | # | 角色 | 访问 URL | 预期行为 | 第2轮冒烟结果 | 第3轮实测（2026-08-24 Playwright） |
 |---|------|----------|----------|---------------|---------------|
 | 1 | 支书 | `/workspace/secretary.html?activityId=act-15` | 落「活动管理」tab + 月份切到 2026-06 + 详情面板打开 act-15「6月共建」 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原死循环已修） | ✅ PASS（tab/月份/详情/参数消费） |
-| 2 | 支书 | `/workspace/secretary.html?taskforceId=tf-001` | 落「专班查看」tab + tf-001 卡片高亮褪去（不得被「待办」内容覆盖） | ❌ 修复后待人工复核（原懒加载竞态已修） | ✅ PASS（tab/高亮） |
-| 3 | 组织委员 | `/workspace/org.html?activityId=act-15` | 落「活动查看」tab + 月份切到 2026-06 + 详情面板打开 act-15 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原月份未跟随已修） | ✅ PASS（tab/详情） |
+| 2 | 支书 | `/workspace/secretary.html?taskforceId=tf-001` | 落「知情查看」tab + tf-001 卡片高亮褪去（不得被「待办」内容覆盖）〔2026-09-14 合并为知情查看（活动/专班分段），tab id 仍为 tf-view〕 | ❌ 修复后待人工复核（原懒加载竞态已修） | ✅ PASS（tab/高亮） |
+| 3 | 组织委员 | `/workspace/org.html?activityId=act-15` | 落「知情查看」tab（默认「活动」分段）+ 月份切到 2026-06 + 详情面板打开 act-15 + 日历条目高亮褪去〔2026-09-14 原「活动查看」并入知情查看（活动/专班分段），tab id 由 activity-view 改为 tf-view〕 | ❌ 修复后待人工复核（原月份未跟随已修） | ✅ PASS（tab/详情） |
 | 4 | 组织委员 | `/workspace/org.html?taskforceId=tf-002` | 落「专班管理」tab + tf-002 卡片高亮 + 详情展开 | ✅ PASS | ✅ PASS（卡片存在+高亮） |
 | 5 | 宣传委员 | `/workspace/prop.html?activityId=act-1` | 落「项目看板」tab + act-1 看板卡片高亮褪去 | ✅ PASS | ✅ PASS（卡片高亮） |
-| 6 | 纪检委员 | `/workspace/disc.html?taskforceId=tf-001` | 落「专班查看」tab + tf-001 卡片高亮褪去 | ✅ PASS | ✅ PASS（高亮） |
+| 6 | 纪检委员 | `/workspace/disc.html?taskforceId=tf-001` | 落「知情查看」tab + tf-001 卡片高亮褪去〔2026-09-14 合并为知情查看（活动/专班分段），tab id 仍为 tf-view〕 | ✅ PASS | ✅ PASS（高亮） |
 | 7 | 党小组组长 | `/workspace/leader.html?activityId=act-2` | 落「活动管理」tab + act-2 详情展开 + 条目高亮褪去（注：act-1 属 p3 bottom-up，组长不可见属正常权限） | ❌ 修复后待人工复核（原 SignupStore 未导入已修，改用 act-2） | ✅ PASS（条目存在+高亮） |
 | 8 | 访客 | `/workspace/visitor.html?activityId=act-1` | 落「活动动态」tab + act-1 条目高亮**自动褪去**（修复"一直亮着"） | ✅ PASS | ✅ PASS（条目存在+高亮+褪去） |
 
@@ -492,7 +496,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ### 附加检查项
 
-- [ ] **view=activities 参数**：`/workspace/secretary.html?view=activities` 落「活动管理」tab；`/workspace/org.html?view=activities` 落「活动查看」tab；其余角色同理
+- [ ] **view=activities 参数**：`/workspace/secretary.html?view=activities` 落「活动管理」tab；`/workspace/org.html?view=activities` 落「知情查看」tab（默认「活动」分段）；其余角色同理
 - [ ] **首页日历条目点击**：首页日历中点击任一活动条目 → 跳转工作台并直达该活动（与活动列表卡片行为一致，J3）
 - [ ] **首页专班卡片点击**：首页招募区点击专班卡片 → 跳转工作台并直达该专班（J2）
 - [ ] **首页活动列表卡片点击**：点击「查看更多」外的活动卡片 → 跳转工作台直达该活动（J1）
@@ -517,7 +521,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## T-280-B5 前后端数据模型对账（2026-08-24 新增，B5-2）
 
 > 检查方式：对照 `server/db.js` / `server/routes/resources.js` / `server/seed.js` 与前端 `data-adapter.js` / `mock-adapter.js` 的持久化域，逐表核对映射与写穿边界。
-> 背景：T-280 B5 前后端对账——server 26 表（users + 25 业务）与前端 mockDB 25 个持久化域一一映射；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
+> 背景：T-280 B5 前后端对账——server 28 表（users + 27 业务）与前端 mockDB 27 个持久化域一一映射；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
 > **2026-08-24 实测：6/6 全过**——API 级代码断言（无浏览器依赖；专项脚本已随 2026-08-30 脚本清理归档）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
 
 - [x] **表↔域映射**：26 资源 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES 26 名全通）✅
@@ -537,7 +541,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] **党小组组长「考勤上传」选择活动下拉**：选项按 date 降序（新者在前）（ws-leader-entry L994-999，2026-08-09 修复）
 - [ ] **党小组组长「考察上传」选择具体来源下拉**：活动选项按 date 降序（ws-leader-entry L1238-1242，2026-08-09 修复）
 - [ ] **党小组组长「复盘提交」待复盘/已复盘分桶**：桶内按 date 降序（ws-leader-entry L1459-1465，2026-08-09 修复）
-- [ ] **专班查看组件（支书/组长「专班查看」tab）**：各状态桶内按 createdAt 降序（taskforce-view.js，2026-08-09 修复）
+- [ ] **知情查看组件（支书/组长「知情查看」的「专班」分段）**：各状态桶内按 createdAt 降序（taskforce-view.js，2026-08-09 修复；2026-09-14 原「专班查看」合并为知情查看（活动/专班分段）)
 - [ ] **宣传委员「上传宣传材料」关联活动下拉**：选项按 date 降序（新者在前）
 - [ ] **首页活动列表/日历**：未完成在前、已完成在后，组内 date 降序（main-entry L293-298 / calendar.js L352）
 - [ ] **访客「活动动态」**：date 降序且仅显示未取消未归档（ws-visitor-entry L324）

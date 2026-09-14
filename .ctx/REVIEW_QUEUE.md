@@ -260,3 +260,40 @@
 - **待裁定 Q-21-7**（来源：批次 21 收尾走查）——**事项**：`entries/tabs/disc/attendance-tab.js` 的「**考勤总表**」与「待确认考勤队列」第一列亦为姓名，本批按文件括注只接线了「党小组会考勤只读单表」，未擅自扩大；另有 `org/taskforce-tab.js`「工作量汇总」成员行、`org/inspection-tab.js` 详情面板内姓名未接线。**处置（2026-09-14 批次 24，支书指令「请都进行处理」）**：四处一并接 `person.html?id=<personId>` 档案页入口（口径同已完成的 20 处）——① 纪检台「考勤总表」姓名列（`services/attendance.js::attendanceToLong` **透出 `personId`** 作服务层唯一出口，与既有 `activityId` 同型，勿在页面各自反查记录）；② 纪检台「待确认考勤队列」姓名；③ 组织台「工作量汇总」成员行（`#tf-sec-work`，该行非整行可点、无嵌套冲突）；④ 组织台考察详情面板「姓名」（详情面板在可点考察行之外，且 `listHost` 行点击委托已先判 `closest('a')` → 点姓名不抢行点击）。**维持不接**：考勤矩阵 / 表态矩阵 / 考察人视图矩阵（转置结构）、非人的第一列表、外层为 `<button>` 的嵌套位置（Q-21-6 已裁定例外）。**真机串行复核**：考勤总表 20 个链接 / 待确认队列 8 个，点击首条直达 `person.html?id=p1` 并渲染姓名与「在册状态」；组织台 8 个专班卡逐卡扫，有成员的 5 个各见 2/2/4/2/2 个链接（无成员者空块，符合预期）、考察详情面板 1 个链接；`PAGEERRORS: []`。**状态**：已闭环。
 - **待裁定 Q-22-1 · 高（来源：批次 22 真机串行复核发现，非本批引入）**——**事项**：**支书经 UI 发布的任何通知，其详情页均打不开**（`notice.html?id=<该 id>` 显示「通知不存在或已过期」）。**根因（已亲验两处，互为因果）**：① **受众口径分裂**——发布侧 `entries/tabs/secretary/notification-tab.js:37-40` 写入的是 **sentinel**（`audience: ['all'|'leaders'|'activists'|'candidates']`），而消费端受众门（`services/notice.js` 的 `_hitRoles`）拿 `n.audience.includes(_role)` 与**角色键**（`secretary`/`leader`…）比对 → `['all']` 永不命中 → 「全体党员」实际等于**无人可见**（批次 18 加受众门之前是「全员可见但过滤没生效」，加门后变为「谁都看不到」）；② **取数口误用可见性门**——`NoticeStore.getById(id)` 走 `this.list({activeOnly:false,includeArchived:true})`，即把「消费端可见性过滤」套在「按 id 取数」上，**与该函数自身注释「使任一跳转入口（待办/铃铛/首页/通知发布）的 id 都能打开正文」直接矛盾** → 连发布者都取不到自己发的通知。**对照证据**：种子 `notice-101`（`audience: null`＝广播）用同一页面同一会话渲染正常，证明 id 形态与链路本身没问题。**处置（2026-09-13 批次 23，三处同做——只拆可见性门会引入隐私回归：任何人拿到 id 就能读定向催办）**：① `core/constants.js` 新增 `NOTICE_AUDIENCE_SENTINELS`（`all`→broadcast；`leaders`→roles:['leader']；`activists`→developStages:['积极分子']；`candidates`→developStages:['发展对象']）与派生的 `NOTICE_AUDIENCE_OPTIONS`（发布表单消费，消除 sentinel 两处维护）；② `services/notice.js` 新增**受众判定单一源**（`list()` 与 `canReadNotice` 同源、无第二套规则）——先保留**裸角色键兼容回退**（`audience:['org-commissioner']` 等既有写法仍生效），再逐值查 sentinel（broadcast 命中 / roles 含角色 / developStages 含阶段），`audience==='committee'` 既有分支与 `audiencePersons`/`actionRoles` 路径**未削弱**；新增导出 `canReadNotice(notice, viewer)`（详情页读取权限单一源：无受众/广播→人人可读；无会话→仅广播可读；发布者恒可读；支委层可读；命中受众可读；其余不可读），`getById(id)` 改为**按 id 直取、不经可见性门**（保留「含已归档」与「未命中时从通知类待办按 id/sourceId/actionData.noticeId 重建」兜底）；③ `entries/notice-entry.js` 渲染前用 `canReadNotice` 判定——不可读显示「**无权查看该通知**」（不再伪装「不存在」）、无会话附去 `login.html` 入口，`getById` 返回 null（确实不存在）仍显示「通知不存在或已过期」；另 `entries/tabs/secretary/notification-tab.js` 删本地 `NOTIFICATION_AUDIENCES` → 导入 `NOTICE_AUDIENCE_OPTIONS`。**安全前提（已核）**：`NoticeStore.getById` 全仓**唯一生产调用点**为 `entries/notice-entry.js:74`，且该处已挂 `canReadNotice` → 拆门不产生泄露。**新守卫**：`server/test/notice-audience.test.mjs`（两层法，N1–N8，**8/8 通过**）——N1 广播（支书/组长/成员/无会话均可见）/ N2 leaders / N3 activists·candidates 按阶段 / N4 裸角色键兼容回退 / N5 **getById 契约**（`['all']` 通知发布者可取到＝核心回归位；定向通知取数不受门限制）/ N6 canReadNotice 六面 / N7 无受众（含真种子 `notice-101`）/ N8 actionRoles 不受影响。**真机实测（真 Chromium）**：支书发布「全体党员」通知 → 支书/组长/**无登录会话**打开详情页**均正常渲染标题与正文**（修复前为「通知不存在或已过期」）；发表「党小组组长」通知 → 组长可正常打开、**普通成员与无会话显示「无权查看该通知」**；`PAGEERRORS: []`。**验证**：全量 `node --test --test-concurrency=1` **513/513 通过（0 失败）**（较上批 505 多 8 例＝新守卫）；定向 `notice-audience` 8/8、`module-load` 153/153、`ux-guard` 6/6（其 ④ 受众门静态守卫仍在位）、`reset-tier-init` 14/14、`today-summary` 6/6、`permission-gate` 9/9（需 `DISABLE_PASSWORD_CHECK=1`）。**过程留痕**：下发任务时主流程的规格**自相矛盾**（一处要求「支书打开组长定向通知应显示无权查看」，另一处规则写「发布者恒可读 + 支委层可读」）——支书既是发布者又属支委层、两规则任一都放行；执行侧按**规则**实现（支书可读）并**如实报出该矛盾**、未擅自改动规则（「规格冲突时以规则为准 + 显式上报」的正例）。版本戳仍为 `?v=20260913f`（本批未 bump）；CODE_VERSION 136。**状态**：已闭环。
 
+***
+
+## 批次 25 裁定与遗留（2026-09-14）
+
+> **来源**：第二十五批（党小组一等实体 + tab 全盘重设第一批 + 核心组显式声明），权威见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 25。
+> **体例**：每条含「事项 / 来源 / 状态」三项。
+
+### Q-23-1 域数与表数对账口径差异
+
+- **事项**：文档记「25 域 / 26 表」，实测为 `server/db.js` 34 表、`server/routes/resources.js` 30 资源名、`_buildSnapshotPayload` 25 键；批次 25 新增 `partyGroups`（+1）后目标态口径为 27 域 / 28 表 / 快照 27 域。请在批次 26 做一次专项对账，并在 `DATA_CONSISTENCY_CHECKLIST.md` 收敛为实测口径。
+- **来源**：批次 25 归档时对账发现（三处口径并列，未统一）。
+- **状态**：登记待办。
+
+### Q-23-2 `docs/help.html` §2.5 组长台陈旧（D8 2026-09-08 遗留漂移）
+
+- **事项**：`docs/help.html` §2.5 组长台仍写「10 tab」且含已删的「复盘状态」行，代码实为 9 tab。
+- **来源**：D8 2026-09-08 遗留漂移（历史登记，本批未动）。
+- **状态**：登记待办。
+
+### Q-23-3 其余 6 台 tab 分组尚未按「按行为性质四组」重排
+
+- **事项**：纪检 / 组长 / 组织 / 宣传 / 成员 / 党委六台的 tab 分组尚未按「按行为性质四组」重排；本批仅支书台落地，纪检台已做薄壳合并。
+- **来源**：批次 25 tab 全盘重设（第一批）。
+- **状态**：登记待办（第二批或第三批）。
+
+### Q-23-4 筛选行统一尚未全站替换
+
+- **事项**：筛选行统一（禁 chip、一律下拉、统一 34px / 12px、样式抽 `styles.css` 单一源、表格 th/td 抽共享片段）规范已写入 `COMPONENT_SPEC §4.3 / §4.10 / §4.12`，代码尚未全站替换。
+- **来源**：批次 25 定案（R-41）。
+- **状态**：登记待办（第三批）。
+
+### 特批记录：`docs/src/core/mock-adapter.js`（禁改清单文件）
+
+- **事项**：因批次 25 新增 `partyGroups` 域，`docs/src/core/mock-adapter.js` 被改动 3 处（整库键写入 / 水合 / niche 回退）并新增资源组；该文件属禁改清单，已获支书特批。
+- **来源**：批次 25 落地。
+- **状态**：已特批（登记留痕）。
+

@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-13"
+last_updated: "2026-09-14"
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -144,3 +144,4 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 - ✅ **M2 闭环补齐（2026-09-05，支书批准「批准，开工」）**：①票决通过判定 `evaluateWorkforceVotes`（应到支委 2/3 出席且无异议=通过）为采纳硬门槛，议题 extras 记 `voteOutcome`；②面板表单升级多行（模块→新负责人）+「存草稿/直接发起」，草稿=支书台本地暂存（`gsm1921-workforce-draft`）；③生效消费端 `components/workforce-duty-card.js`——各工作台概况常驻「支部安排·我的分工」履职卡（实时读 config.workforce，可去履职跳本台对应 tab）；④`server/test/workforce-gate.test.mjs` 判定/合并快照纯测试 5 项全绿。演示验收闭环（改派发展党员→副支书）目视复核待浏览器环境。
 - 测试：`server/test/work-map.test.mjs`（目录唯一性/快照展开/**合并白名单**/净化/HTTP PATCH 含恢复默认）5 项绿；module-load 全量加载绿。
 - **可复用文档件已补**：`server/.env.example` 环境模板、根 `CONTRIBUTING.md` 贡献指南、README 演示账号指引修正 + 贡献引用。
+- ✅ **落地注记（2026-09-14 落地）· 党小组升为一等实体，本项不新增工作地图模块**：党小组由「成员档案 `partyGroup` 字段取值集合」升为一等实体——组清单持久化（`partyGroups` 域，活组取状态为 `active` 者、按 `seq` 排序）+ 新增/改名/解散 + 留痕；支书台「**党小组**」tab（由原「党小组进展」升级：清单 + 管理写口 + 进展只读 + 未分组提示）。**落点文件**：`docs/src/services/party-group.js`（写口单一源）、`docs/src/entries/tabs/secretary/group-progress-tab.js`、`docs/src/modules/capabilities/secretary-workspace.js`、`docs/src/mock/party-groups.js`（种子三组）、`server/routes/resources.js`（资源名 / `ID_PREFIX:'pg'` / 写门）。**测试证据**：`server/test/party-group.test.mjs` **9/9 通过**（结构层 S1-S3 + 数据层 D1-D6）；全量 `node --test --test-concurrency=1` **523/523 通过（0 失败）**；真机**串行**复核——党小组 tab 清单 3 行且进展区保留、写口链路（新增「第四党小组」→ 改名「（试改）」→ 解散空组转「已解散」→ 解散非空组「第三党小组」16 人转「未分组」→ 行内下拉归组 1 人后未分组 16 降到 15）、`PAGEERRORS: []`。**本项不新增工作地图模块**——理由：组织结构维护属既有模块的「职责有入口」（党的组织设置本就在三会一课/专班等既有模块的运行中承载），故模块清单维持 11 项、`docs/src/core/work-map.js` 的模块目录不增删，`server/test/work-map.test.mjs:36` 的模块数断言（11 项）不受影响。**状态：已落地（2026-09-14）**。

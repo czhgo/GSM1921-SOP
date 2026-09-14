@@ -12,7 +12,7 @@
 //   若不补此条则组织台「待初阅队列」恒为空、独立阅读页的「通过并归档 / 打回」无法现场演示。
 //   由此 `seed 全部无 reviewStatus` 的旧数据归一断言须收窄到 tr-1/tr-2/tr-3。
 
-import { getPersonName } from '../services/person.js?v=20260913v';
+import { getPersonName } from '../services/person.js?v=20260914a';
 
 const _personName = (id) => getPersonName(id) || id;
 

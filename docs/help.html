@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260913v"></script>
+<script src="./src/theme-init.js?v=20260914a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260913v"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260913v">
+  <script src="./src/tailwind-config.js?v=20260914a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260914a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -264,7 +264,7 @@
               <tr><td><a href="./archive.html">归档库</a></td><td>历届已归档工作成果的浏览与检索</td><td>公共</td><td>侧边栏「归档库」</td></tr>
               <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
               <tr><td><a href="./notice.html">通知详情</a></td><td>单条通知的正文（读后消未读需登录）</td><td>公共可看</td><td>首页通知区；工作台待办「未读通知」条</td></tr>
-              <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 专班查看」行内链接</td></tr>
+              <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 知情查看（专班分段）」行内链接</td></tr>
               <tr><td><a href="./thought-report.html">思想汇报阅读</a></td><td>单篇思想汇报的<strong>长文阅读页</strong>：期次 / 提交人 / 状态 / 字数 + 正文 + 初阅留痕；组织委员可就地初阅（通过 / 退回），本人可就地撤回或改后重交；也可按人聚合（<code>?personId=</code>）看某人全部期次</td><td>需登录；<strong>仅本人与支委层</strong>可读</td><td>成员台 / 组织台「思想汇报」列表点击某篇；通知深链</td></tr>
               <tr><td><a href="./person.html">成员档案</a></td><td>单个成员的<strong>完整档案页</strong>：基础档案 / 在册管理与变更留痕 / 关联概览（思想汇报、活动、专班、考勤、考察计数）；组织委员 / 支书 / 副支书可打开「档案编辑」模态</td><td>需登录</td><td>各「第一列是人」的表格点击姓名或「编辑」入口</td></tr>
               <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，支书反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
@@ -404,7 +404,7 @@
 
         <!-- 2.1 支书工作台 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>支书工作台（支书 / 副支书共台 · 11 tab）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/secretary.html">secretary.html</a>。tab 条分段：工作台 / 党建 / 反馈 / 对接党委。</p>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/secretary.html">secretary.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
@@ -412,14 +412,14 @@
               <tr><td>今天</td><td>支书 / 副支书</td><td>登录落点速览（1.2）</td><td>打开工作台即此页；行内跳转待办 / 活动详情</td></tr>
               <tr><td>待办</td><td>支书 / 副支书</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>全局概况</td><td>支书 / 副支书</td><td>汇报 / 卡点 / 在办三区 + 按人视图（各角色在办，可点击直达）+ 维度态势</td><td>「工作台」段第 3 位；点某人行看其条线在办</td></tr>
-              <tr><td>活动管理</td><td>支书 / 副支书</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名</td><td>「党建」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录</td></tr>
-              <tr><td>支部分工</td><td>支书 / 副支书</td><td>支部工作地图：各模块定人定责定岗，平铺 / 按人双视图</td><td>「党建」段；切「平铺 / 按人」视图查看分工与空缺</td></tr>
-              <tr><td>赋权管理</td><td>支书 / 副支书</td><td>向下赋权（组长 / 组织者 / 深度参与者），赋权链计算知情边界</td><td>「党建」段；「添加赋权」选人 + 选权限 → 保存；需要撤销时点该条撤销</td></tr>
-              <tr><td>通知发布</td><td>支书 / 副支书</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「党建」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
-              <tr><td>专班查看</td><td>支书 / 副支书</td><td>全院专班进展只读（知情权，无职责≠无知情权）</td><td>「党建」段；点专班卡看分工 / 进展</td></tr>
-              <tr><td>党小组进展</td><td>支书 / 副支书</td><td>各党小组组员进展跨组只读掌握（知情≠操作，看 ≠ 做）；组内待答复汇报可「请组长关注」，支书不代组长答复</td><td>「党建」段；点组名查看进展 / 行内「请组长关注」请求组长答复</td></tr>
-              <tr><td>反馈管理</td><td>支书 / 副支书</td><td>收阅成员意见反馈并跟进处理（开放 / 关闭）</td><td>「反馈」段；点开反馈 → 回复 / 标记关闭</td></tr>
-              <tr><td>上报党委</td><td>支书 / 副支书</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「对接党委」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
+              <tr><td>活动管理</td><td>支书 / 副支书</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名</td><td>「我的职责」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录</td></tr>
+              <tr><td>赋权管理</td><td>支书 / 副支书</td><td>向下赋权（组长 / 组织者 / 深度参与者），赋权链计算知情边界</td><td>「我的职责」段；「添加赋权」选人 + 选权限 → 保存；需要撤销时点该条撤销</td></tr>
+              <tr><td>通知发布</td><td>支书 / 副支书</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「我的职责」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
+              <tr><td>上报党委</td><td>支书 / 副支书</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「我的职责」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
+              <tr><td>党小组</td><td>支书 / 副支书</td><td>党小组清单与管理写口（新增 / 改名 / 解散，写权归支书与副支书）+ 未分组成员的归组入口；各党小组组员进展跨组只读掌握（知情不代操作）；组内待答复汇报可「请组长关注」，支书不代组长答复。解散非空组时组内成员转为「未分组」（党小组会应到不计、支部大会应到照计）</td><td>「我的职责」段；「+ 新增」建组 / 行内改名 / 解散组；未分组行内下拉逐个归组；点组名查看进展 / 行内「请组长关注」请求组长答复</td></tr>
+              <tr><td>知情查看</td><td>支书 / 副支书</td><td>活动与专班进展只读知情（知情权：无职责亦有知情权），内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段查看，点活动卡 / 专班卡看详情</td></tr>
+              <tr><td>支部分工</td><td>支书 / 副支书</td><td>支部工作地图：各模块定人定责定岗，平铺 / 按人双视图</td><td>「知情查看」段；切「平铺 / 按人」视图查看分工与空缺</td></tr>
+              <tr><td>反馈管理</td><td>支书 / 副支书</td><td>收阅成员意见反馈并跟进处理（开放 / 关闭）</td><td>「制度与答复」段；点开反馈 → 回复 / 标记关闭</td></tr>
             </tbody>
           </table>
         </div>
@@ -427,7 +427,7 @@
 
         <!-- 2.2 组织委员工作台 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（11 tab）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/org.html">org.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/org.html">org.html</a>。tab 条分段：工作台 / 党建 / 知情查看 / 反馈。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
@@ -441,7 +441,7 @@
               <tr><td>人才库</td><td>组织委员</td><td>积极分子 / 发展对象档案与考察画像视图</td><td>「党建」段；点人看画像与考察材料归集</td></tr>
               <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（每人的思想汇报篇数与期次，点进独立阅读页）</td><td>「党建」段；按阶段/党小组/发展分面筛选；点查看 / 推进</td></tr>
               <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报组织初阅把关：通过 → 正式归档；退回附意见（提交者可见并修改重交）</td><td>「党建」段；点某篇 → 跳<strong>独立阅读页</strong> → 「通过 / 退回」；「按人浏览」可看某人全部期次</td></tr>
-              <tr><td>活动查看</td><td>组织委员</td><td>全支部活动只读知情查看（无职责≠无知情权）</td><td>「党建」段；点活动卡看详情 / 议程</td></tr>
+              <tr><td>知情查看</td><td>组织委员</td><td>全支部活动与专班只读知情查看（无职责亦有知情权），内部分段切换「活动 / 专班」，默认「活动」分段</td><td>「知情查看」段；切「活动」分段点活动卡看详情 / 议程；切「专班」分段看专班卡</td></tr>
               <tr><td>我的处置</td><td>组织委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
             </tbody>
           </table>
@@ -467,8 +467,8 @@
         </div>
 
         <!-- 2.4 纪检委员工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.4</span>纪检委员工作台（10 tab）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/disc.html">disc.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.4</span>纪检委员工作台（9 tab）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/disc.html">disc.html</a>。tab 条分段：工作台 / 党建 / 制度与答复 / 知情查看 / 反馈。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
@@ -479,9 +479,8 @@
               <tr><td>考勤管理</td><td>纪检委员</td><td>全支部考勤管理与活动签到数据（与组织侧同源共享）</td><td>「党建」段；按活动 / 人员查考勤 → 缺勤记录生成补课（见补课制度）</td></tr>
               <tr><td>活动监督复盘</td><td>纪检委员</td><td>活动监督（纪检视角）与复盘评议记录</td><td>「党建」段；点开活动 → 记录监督结论 / 评议</td></tr>
               <tr><td>考察管理</td><td>纪检委员</td><td>考察材料在纪检线的查看 / 汇总</td><td>「党建」段；按对象查看考察记录</td></tr>
-              <tr><td>补课制度</td><td>纪检委员</td><td>缺勤成员补课任务管理：生成任务 → 成员完成 → 考勤回写 / 逾期处理</td><td>「党建」段；对缺勤记录「发起补课」→ 跟进完成回写</td></tr>
-              <tr><td>公邮管理</td><td>纪检委员</td><td>支部公邮登录与邮件处理入口</td><td>「党建」段；按提示登录公邮处理邮件</td></tr>
-              <tr><td>专班查看</td><td>纪检委员</td><td>专班进展只读知情查看</td><td>「党建」段；点专班卡查看</td></tr>
+              <tr><td>制度与文本</td><td>纪检委员</td><td>内部分段切换「补课制度 / 公邮」：补课制度为缺勤成员补课任务管理（生成任务 → 成员完成 → 考勤回写 / 逾期处理）；公邮为支部公邮登录与邮件处理入口</td><td>「制度与答复」段；切「补课制度」分段对缺勤记录「发起补课」→ 跟进完成回写；切「公邮」分段按提示登录公邮处理邮件</td></tr>
+              <tr><td>知情查看</td><td>纪检委员</td><td>活动与专班进展只读知情查看，内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
               <tr><td>我的处置</td><td>纪检委员</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
             </tbody>
           </table>
@@ -489,7 +488,7 @@
 
         <!-- 2.5 党小组组长工作台 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">2.5</span>党小组组长工作台（10 tab）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/leader.html">leader.html</a>。tab 条分段：工作台 / 党建 / 反馈。</p>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/leader.html">leader.html</a>。tab 条分段：工作台 / 党建 / 知情查看 / 反馈。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
@@ -502,7 +501,7 @@
               <tr><td>考察上传</td><td>党小组组长</td><td>本组组员考察记录上传（日常观察素材）</td><td>「党建」段；选组员 → 填观察记录 → 上传</td></tr>
               <tr><td>复盘状态</td><td>党小组组长</td><td>本组复盘状态只读查看（复盘提交已归组织者 / 深度参与者，本页不代提交）</td><td>「党建」段；点开活动看复盘完成情况</td></tr>
               <tr><td>组员进展</td><td>党小组组长</td><td>本组组员进展：进度 / 考勤 / 考察（块块视角，看 ≠ 做）</td><td>「党建」段；点组员行展开其维度数据</td></tr>
-              <tr><td>专班查看</td><td>党小组组长</td><td>专班进展只读知情查看</td><td>「党建」段；点专班卡查看</td></tr>
+              <tr><td>知情查看</td><td>党小组组长</td><td>活动与专班进展只读知情查看，内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
               <tr><td>我的处置</td><td>党小组组长</td><td>经手反馈的处理记录</td><td>「反馈」段</td></tr>
             </tbody>
           </table>
@@ -580,7 +579,7 @@
 
         <div class="help-card" id="card-dom31-meeting-create" data-search="会务 三会一课 支部党员大会 支委会 党小组会 党课 会议创建 写入活动 模板">
           <h4 class="help-card-title">创建会议活动（支部党员大会 / 支委会 / 党课 / 党小组会）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书工作台 →「党建」段「活动管理」→ 活动日历卡右上「写入活动」；党小组组长工作台 →「党建」段「活动管理」（「写活动」决策树）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书工作台 →「我的职责」段「活动管理」→ 活动日历卡右上「写入活动」；党小组组长工作台 →「党建」段「活动管理」（「写活动」决策树）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书（天然写入权，建四类会议均可）；党小组组长建<strong>本组党小组会</strong>（组内场景；组长独立创建本组活动的知情约束见 1.3）。组织、宣传、纪检委员无活动写入权。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步（支书台，两步式）：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -681,7 +680,7 @@
 
         <!-- 3.3 考勤纪律 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.3</span>考勤纪律</h3>
-        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检录入 / 确认、未到标因、滞留到场补录、补课任务与完成回写、考勤备案交接宣传</strong>全部落在纪检台「考勤管理」与「补课制度」两个 tab；组长上传位在 3.1 已讲，此处承接纪检侧的确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
+        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检录入 / 确认、未到标因、滞留到场补录、补课任务与完成回写、考勤备案交接宣传</strong>全部落在纪检台「考勤管理」与「制度与文本」（补课制度分段）两个 tab；组长上传位在 3.1 已讲，此处承接纪检侧的确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
 
         <div class="help-card" id="card-dom33-meet-record" data-search="考勤 会议考勤录入 纪检 全选应到名单 标因 请假 无故 其它 滞留到场补录 到席 更正">
           <h4 class="help-card-title">纪检会议考勤录入（会议类：党课 / 支部党员大会 / 组织生活会 / 支委会）</h4>
@@ -728,11 +727,11 @@
 
         <div class="help-card" id="card-dom33-makeup" data-search="考勤 补课 补课制度 回写 已补 必修 自学 心得 选修 超期提醒 需求回执">
           <h4 class="help-card-title">补课任务与完成回写</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台 →「党建」段「补课制度」；成员线下完成补课后由纪检确认；组长台「考勤上传」页下方可见本组待补课名单。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台 →「制度与答复」段「制度与文本」切「补课制度」分段；成员线下完成补课后由纪检确认；组长台「考勤上传」页下方可见本组待补课名单。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（确认完成、督办超期）；缺勤成员（线下自学 / 自学 + 心得后反馈）；组长督促本组。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「补课制度」查看补课任务表：姓名 / 缺席活动 / 补课方式（必修：自学 + 心得 / 选修：自学）/ 截止日期 / 状态（待补课 · 已超期 · 已完成）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「制度与文本」的「补课制度」分段查看补课任务表：姓名 / 缺席活动 / 补课方式（必修：自学 + 心得 / 选修：自学）/ 截止日期 / 状态（待补课 · 已超期 · 已完成）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员完成并反馈后，纪检对相应任务点「确认完成」。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>「确认完成」→ 对应考勤自动<strong>回写「已补」</strong>（打卡化判定：完成必须对应真实产物），逾期标记清除、缺勤办结（出勤率规则含已补）；超期任务自动汇总为「超期提醒」红块并单独列条；顶部收件箱接收组织委员发来的「补课需求回执」（组织标记材料缺失 → 纪检收到确认即办结并自动销待办）。</p>
@@ -903,15 +902,15 @@
         <div class="help-card" id="card-dom36-progress" data-search="专班 中间进度 分阶段 进展 筹备中 执行中 攻坚中 收尾 组织委员 时间线">
           <h4 class="help-card-title">运行中：中间进度填报（组织侧分阶段进展）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台专班详情「中间进度」区（仅运行中专班显示填报表单）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>组织委员填报（运行期分阶段进展，专班进度写口 = 组织侧）；支书 / 组长 / 纪检经「专班查看」只读同源可见。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>组织委员填报（运行期分阶段进展，专班进度写口在组织侧）；支书 / 组长 / 纪检经「知情查看」（专班分段）只读同源可见。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong>选阶段（筹备中 / 执行中 / 攻坚中 / 收尾）+ 进度说明（必填）→「添加进度」；本人填报的条目可「删除」。</p>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>进度入时间线（阶段标签 + 时间 + 填报人），只读专班查看（支书 / 组长 / 纪检）展示同一时间线；删除仅本人可删（旧数据无填报人由组织委员兜底）。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>进度说明为空则不保存；成员侧「了解进度」靠专班查看时间线（成员个人产出填报走下条）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>进度入时间线（阶段标签 + 时间 + 填报人），只读知情查看（专班分段，支书 / 组长 / 纪检）展示同一时间线；删除仅本人可删（旧数据无填报人由组织委员兜底）。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>进度说明为空则不保存；成员侧「了解进度」靠知情查看的专班分段时间线（成员个人产出填报走下条）。</p>
         </div>
 
         <div class="help-card" id="card-dom36-contrib" data-search="专班 产出 填报 贡献 逐条核验 同意入档 退回补料 待核 代录 工作量">
           <h4 class="help-card-title">运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台专班查看展开详情，条件 = 运行中 + 本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台知情查看（专班分段）展开详情，条件为运行中且本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>专班成员本人逐条填报本人产出（by = 填报人）；组织委员逐条核验（同意入档 / 退回补料，全程记录），另有「组织委员代录（备用入口）」位（单条代录后仍须逐条核）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -919,7 +918,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员在「待核条目」对每条点「同意入档 / 退回补料」（退回必填原因）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">被退回的成员可再次填报（原退回原因展示在条目上），重新进入核验。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>填报条目带填报人 / 时间落「待核」；同意 →「已入档 · 核验人 XXX」；退回 →「已退回 · 原因」；已核条目自动跳过（不重复入档）；成员「贡献 N 项」与工作量汇总在看板详情 / 专班查看实时可见（解散前置也要读它，见下条）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>填报条目带填报人 / 时间落「待核」；同意 →「已入档 · 核验人 XXX」；退回 →「已退回 · 原因」；已核条目自动跳过（不重复入档）；成员「贡献 N 项」与工作量汇总在看板详情 / 知情查看（专班分段）实时可见（解散前置也要读它，见下条）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>填报仅限本人（所选人员非专班成员被拦）；代录所选人员亦须均为专班成员；历史字符串摘要条目只读展示、不参与核验。</p>
         </div>
 
@@ -951,16 +950,16 @@
         </div>
 
         <div class="help-card" id="card-dom36-view" data-search="专班 查看 知情 只读 支书 组长 纪检 撤销招募 归档 删除草稿 状态分组">
-          <h4 class="help-card-title">专班查看（支书 / 组长 / 纪检只读知情）与归档撤销（组织台）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 组长 / 纪检台「党建」段「专班查看」；组织台「专班管理」看板卡（启动 / 归档 / 撤销按钮）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书、党小组组长、纪检委员只读（无职责 ≠ 无知情权，见 1.3）；组织委员（管理主位）。</p>
+          <h4 class="help-card-title">知情查看（支书 / 组长 / 纪检只读知情 · 分段切换「活动 / 专班」）与归档撤销（组织台）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 组长 / 纪检台「知情查看」段「知情查看」切「专班」分段；组织台「专班管理」看板卡（启动 / 归档 / 撤销按钮）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书、党小组组长、纪检委员只读（无职责亦有知情权，见 1.3）；组织委员（管理主位）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">专班查看 = 全支部专班一览：状态分组（待支委会表决 / 招募中 / 运行中 / 已完结——含已解散），可搜索名称 / 任务；点卡展开只读详情（任务 / 人数 / 截止 / 发起人 / 成员与角色 / 贡献条目核验态 / 中间进度时间线；本人若为运行中成员另见「我的产出填报」）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">知情查看的「专班」分段展示全支部专班一览：状态分组（待支委会表决 / 招募中 / 运行中 / 已完结——含已解散），可搜索名称 / 任务；点卡展开只读详情（任务 / 人数 / 截止 / 发起人 / 成员与角色 / 贡献条目核验态 / 中间进度时间线；本人若为运行中成员另见「我的产出填报」）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织台看板（组织侧管理）：运行中卡「归档」（active → archived，归档不回收赋权、不生成解散记录；解散语义走表决）；招募中 / 待表决 / 表决未通过草稿可「撤销 / 删除」（彻底删除并清理关联报名与待办）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>归档即销「专班归档」待办并将专班配套通知一并归档（退出工作区）；各台「待办」专班折组与通知直达本查看页并高亮定位专班卡（flash 高亮后自动褪去）。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>纪检 / 组长台专班查看无任何流转按钮（看 ≠ 做）；专班进度 / 贡献只读知情，需要写的操作一律回组织台。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>纪检 / 组长台知情查看无任何流转按钮（看与做分开）；专班进度 / 贡献只读知情，需要写的操作一律回组织台。</p>
         </div>
 
         <!-- 3.7 决议上报 -->
@@ -1010,7 +1009,7 @@
 
         <!-- 3.8 归档与宣传 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.8</span>归档与宣传</h3>
-        <p class="doc-p">宣传线把支部工作<strong>记录成册、对外发声</strong>：宣传任务三栏接单推进、项目看板（活动 + 专班合并卡与专班工作量）、周报报送、档案归档（待归档 → 归档中 → 已归档，材料标准清单 + 上传 / 下载）、支部文件与官方文件查询（公共页「资料查询」search.html，支部文件版本化在此页）。已覆盖相关：会议「讨论文件」记录通过自动归档走 3.1；活动复盘后的宣传产出要求见 3.2；支部公邮属纪检线（纪检台「公邮管理」，见 2.4），对外报送如需走公邮由纪检统一处理，本域不展开。宣传侧「待办」归档宣传折组负责提醒（活动归档 / 专班归档 / 材料归档均点「去处理」直达对应 tab）。</p>
+        <p class="doc-p">宣传线把支部工作<strong>记录成册、对外发声</strong>：宣传任务三栏接单推进、项目看板（活动 + 专班合并卡与专班工作量）、周报报送、档案归档（待归档 → 归档中 → 已归档，材料标准清单 + 上传 / 下载）、支部文件与官方文件查询（公共页「资料查询」search.html，支部文件版本化在此页）。已覆盖相关：会议「讨论文件」记录通过自动归档走 3.1；活动复盘后的宣传产出要求见 3.2；支部公邮属纪检线（纪检台「制度与文本」的「公邮」分段，见 2.4），对外报送如需走公邮由纪检统一处理，本域不展开。宣传侧「待办」归档宣传折组负责提醒（活动归档 / 专班归档 / 材料归档均点「去处理」直达对应 tab）。</p>
 
         <div class="help-card" id="card-dom38-tasks" data-search="归档宣传 宣传任务 待接收 进行中 已提交 接单 提交 素材归档 新闻稿 推送排版 周报报送 导出CSV">
           <h4 class="help-card-title">宣传任务（三栏接单 → 进行中 → 已提交）</h4>
@@ -1216,7 +1215,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条录入线：党小组会 = 组长台「考勤上传」（候选取本组应到名单，可批量设状态）；党课 / 支部党员大会 / 支委会 = 纪检台「考勤管理 · 会议考勤录入」（滞留党员线下到场单独补录、计到席）——纪检录入即确认。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动分流：出勤 / 已补 = 源头审校自动确认，不进纪检队列；异常（缺勤 / 请假）自动生成补课任务（截止 = 活动日 + 7 天）并入纪检「待确认」队列，党小组会异常同样等纪检复核。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤总表按状态筛选逐行确认）→ 写确认人记录，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课办结：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「补课制度」确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课办结：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「制度与文本」的「补课制度」分段确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 备案交接：纪检「提交考勤至宣传」→ 宣传委员待办收件箱确认接收（双向可追溯）；活动归档后其考勤退出工作区、历史仍在档案可查。</li>
           </ol>
         </div>
@@ -1266,7 +1265,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 发起：组织台「发布招募」填名称 / 任务 / 人数 / 截止（可带初始成员与预拟通知）→ 创建即自动报送支委会表决（不派生单人审批待办）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支委会表决：支书台待办「专班待议（支委会）」排入线上支委会 → 固化名单支委表态 → 支书「查看表决结果并生效」——通过转「招募中」，未通过退草稿可改后重新报送。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">招募与分工：成员在专班详情页报名（普通即通过；深度参与 / 组织者待发起人审核）；组织启动专班转「运行中」→ 配置成员角色（组织者 / 深度参与者），保存即同步赋权链并通知本人。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（记录）；中间进度由组织侧填时间线；支书 / 组长 / 纪检「专班查看」只读知情（看 ≠ 做）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（记录）；中间进度由组织侧填时间线；支书 / 组长 / 纪检「知情查看」的「专班」分段只读知情（看与做分开）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘：组织侧在专班详情提交复盘 → 纪检「活动监督复盘」批注 / 打回 / 确认，确认后办结。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 解散表决：组织「报送解散表决」（前置：成员考察已确认 + 有工作量报告）→ 支书排入支委会表决 → 通过置「已解散」并落日期、未通过继续运行（历次表决 append-only 记录）。</li>
           </ol>
@@ -1458,6 +1457,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260913v"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260914a"></script>
 </body>
 </html>

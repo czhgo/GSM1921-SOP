@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -53,6 +53,8 @@ const RESOURCE_TABLES = {
   reviewRequests: 'review_requests',
   // R-23（2026-09-13）：思想汇报（建表后随快照同步；系统通知 authorize 据本表复算提交人）
   thoughtReports: 'thought_reports',
+  // 2026-09-14 批次 25：党小组一等实体（支书特批；写门 = secretary，见 RESOURCE_WRITE_GATE）
+  partyGroups: 'party_groups',
 };
 
 function listTable(db, table) {
@@ -68,6 +70,8 @@ const PARTY_STAFF_ROLE = new Set(PARTY_STAFF_KEYS);
 const BRANCH_COMMITTEE_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 const NOTICE_PUBLISH_ROLE_SET = new Set(NOTICE_PUBLISH_ROLES);
 const NOTICE_MANAGE_ROLE_SET = new Set(NOTICE_MANAGE_ROLES);
+// 2026-09-14 批次 25：党小组管理角色集（支书含副支书）单一源 = constants.js::SECRETARY_AND_DEPUTY_ROLES（勿手写）
+const SECRETARY_AND_DEPUTY_ROLE_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
 const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
@@ -76,6 +80,8 @@ const RESOURCE_WRITE_GATE = {
   // 通知（2026-09-13 dogfood 权限专项）：发布=支书/副支书/组织/宣传，管理（编辑/删除）=发布者+纪检；
   // 角色名单单一源 = constants.js::NOTICE_PUBLISH_ROLES / NOTICE_MANAGE_ROLES（与前端 NoticePermission 同源）
   notices: { post: 'notice-publish', patch: 'notice-manage', delete: 'notice-manage' },
+  // 党小组（2026-09-14 批次 25 支书裁定）：管理（建/改组/解散/归组）仅限支书（含副支书）
+  partyGroups: 'secretary',
 };
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
@@ -102,6 +108,8 @@ function _assertResourceWrite(actor, name, method, body) {
     return !!actor && NOTICE_PUBLISH_ROLE_SET.has(actor.role);
   }
   if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);
+  // 党小组管理：仅支书（含副支书）——角色名单单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES
+  if (need === 'secretary') return !!actor && SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role);
   return true;
 }
 
@@ -109,6 +117,9 @@ function _assertResourceWrite(actor, name, method, body) {
 function _writeDenyMsg(name) {
   if (name === 'notices') {
     return '无权限：通知发布仅限支书/副支书/组织委员/宣传委员，编辑与删除另含纪检委员';
+  }
+  if (name === 'partyGroups') {
+    return '党小组管理仅限支书（含副支书）';
   }
   return '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
@@ -144,6 +155,8 @@ const ID_PREFIX = {
   appointmentRecords: 'appt',
   reviewRequests: 'rq',
   thoughtReports: 'tr',
+  // 2026-09-14 批次 25：党小组（id 形态 pg-<uuid>，与前端 generateId('pg','-') 对齐）
+  partyGroups: 'pg',
 };
 
 // 表决计票方式写侧校验（2026-09-12 支书裁定）：正式表决（optionSet formal——发展党员/转正等）

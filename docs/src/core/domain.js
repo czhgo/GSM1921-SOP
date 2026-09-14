@@ -223,6 +223,9 @@ export const mockDB = {
     { id: 'u_org',  role: 'org-commissioner',  name: '组织委员' },
     { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
     { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
+    // 演示账号（mockDB users 种子）：下列 name 为演示文案，**不是组清单判定源**——
+    // 名册/赋权等处的组数/组名一律以 services/party-group.js::groupOptions() 为准；
+    // 新增/解散党小组不改动本演示账号（保持演示账号登录稳定，勿改为动态派生）。
     { id: 'u_leader_1', role: 'leader',        name: '第一党小组组长' },
     { id: 'u_leader_2', role: 'leader',        name: '第二党小组组长' },
     { id: 'u_leader_3', role: 'leader',        name: '第三党小组组长' },
@@ -300,6 +303,10 @@ export const mockDB = {
   // ── 2026-08-30 思想汇报数字化（支书决策，算法归档原则）──
   /** @type {Object[]} 思想汇报（党员/发展对象系统内提交，算法自动归集至个人档案，组织委员查看调用） */
   thoughtReports: [],
+  // ── 2026-09-14 批次 25 党小组一等实体（支书特批；组长由成员档案派生）──
+  /** @type {Object[]} 党小组（{ id, branchId, name, seq, status:'active'|'dissolved',
+   *  createdAt, createdBy, note, history[], dissolvedAt?, dissolvedBy? }） */
+  partyGroups: [],
   // ── 2026-09-02 党委后台 P1：支部多实例 ──
   /** @type {Object[]} 支部实例（br-b1 本科生党支部；硕博等由党委动态创建不预设名字）
    *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；

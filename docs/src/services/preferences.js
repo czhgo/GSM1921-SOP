@@ -5,18 +5,21 @@
 //   tab 顺序键  gsm1921-pref-<personId>-tab-order-<workspaceKey>
 //   （workspaceKey = 工作台能力 scope，如 'workspace:secretary'；恢复默认 = 删该键）
 // 语义：
-//   · 个人顺序仅作用于业务 tab；核心组（tab.groupLabel==='工作台'，与 services/branch.js
-//     getCoreTabIds/_splitTabs 同义判定——支书 2026-08-10 裁定全员必有）保持注册相对顺序置前，
-//     不可被个人隐藏或排序；默认声明序即核心置前，故无偏好时零 diff。
+//   · 个人顺序仅作用于业务 tab；核心组（注册表显式声明 coreTab: true，判定单一源 =
+//     core/constants.js::isCoreTab，services/branch.js 同源共用——支书 2026-08-10 裁定全员必有）
+//     保持注册相对顺序置前，不可被个人隐藏或排序；默认声明序即核心置前，故无偏好时零 diff。
 //   · 无个人偏好 / 偏好与默认等效 → resolveTabOrder 原样返回（默认无 diff）。
 //   · 按 personId + workspaceKey 一次解析缓存（_orderMemo），避免逐帧重复读 localStorage；
 //     写入/清键同步失效缓存（顺序解析稳定，见 perf-render-guard/perf-todo-agg-cache 关注点）。
-// 零依赖纯模块（不 import 任何浏览器模块）：resolveTabOrder/coreTabIdsOf/sameIdOrder 等纯函数
+// 纯模块（仅 import 无浏览器 API 的叶子 core/constants.js；不 import 任何浏览器模块）：
+// resolveTabOrder/coreTabIdsOf/sameIdOrder 等纯函数
 // 可被 server/test/preferences.test.mjs 在 node 直接导入；存储函数对 localStorage 全程守卫
 // （node 无 localStorage 时安全返回；测试可注入 stub 测持久化往返）。
 
+import { isCoreTab } from '../core/constants.js?v=20260914a';
+
 const PREF_PREFIX = 'gsm1921-pref-'; // person 键空间前缀（沿用批1 theme.js 约定）
-const CORE_GROUP_LABEL = '工作台';   // 核心组判定（与 branch.js getCoreTabIds 同义，勿另写规则）
+// 核心组判定（2026-09-14 支书裁定·tab 全盘重设）：原为本地常量比对 groupLabel，现共用注册表显式声明
 
 /** tab 顺序存储键：gsm1921-pref-<personId>-tab-order-<workspaceKey> */
 export function tabOrderStorageKey(personId, workspaceKey) {
@@ -41,10 +44,10 @@ function cleanIds(list) {
   return out;
 }
 
-/** 核心 tab id（groupLabel='工作台'；供设置 UI 行锁定与测试断言） */
+/** 核心 tab id（注册表 coreTab 显式声明；供设置 UI 行锁定与测试断言） */
 export function coreTabIdsOf(tabs) {
   if (!Array.isArray(tabs)) return [];
-  return tabs.filter(t => t && t.groupLabel === CORE_GROUP_LABEL).map(t => t.id);
+  return tabs.filter(isCoreTab).map(t => t.id);
 }
 
 /**
@@ -62,7 +65,7 @@ export function resolveTabOrder(tabs, personalOrder) {
   const core = [];
   const business = [];
   for (const t of tabs) {
-    (t && t.groupLabel === CORE_GROUP_LABEL ? core : business).push(t);
+    (isCoreTab(t) ? core : business).push(t);
   }
   if (business.length === 0) return tabs;
   const businessIds = business.map(t => t.id);

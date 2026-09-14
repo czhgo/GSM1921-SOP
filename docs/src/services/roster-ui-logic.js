@@ -14,8 +14,8 @@
 // ════════════════════════════════════════════════════════════════
 
 // Q-21-3 收敛（2026-09-13）：RESIDENCE 单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../core/constants.js?v=20260913v';
-import { getResidenceOf } from './roster.js?v=20260913v';
+import { RESIDENCE } from '../core/constants.js?v=20260914a';
+import { getResidenceOf } from './roster.js?v=20260914a';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/person.js）；

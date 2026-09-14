@@ -2,18 +2,18 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260913v';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260913v';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260913v';
-import { flashHighlight } from '../core/utils.js?v=20260913v';
-import { loadActivities } from '../services/activity.js?v=20260913v';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913v';
-import { SignupStore } from '../services/signup.js?v=20260913v';
-import { seedTodos } from '../services/todo.js?v=20260913v';
-import { solidAccentStyle } from '../core/constants.js?v=20260913v';
-import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260913v';
+import { getAppState, setState } from '../core/state.js?v=20260914a';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260914a';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260914a';
+import { flashHighlight } from '../core/utils.js?v=20260914a';
+import { loadActivities } from '../services/activity.js?v=20260914a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914a';
+import { SignupStore } from '../services/signup.js?v=20260914a';
+import { seedTodos } from '../services/todo.js?v=20260914a';
+import { solidAccentStyle } from '../core/constants.js?v=20260914a';
+import { openRecruitForm } from './tabs/org/taskforce-tab.js?v=20260914a';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../modules/capabilities/org-workspace.js?v=20260913v';
+import '../modules/capabilities/org-workspace.js?v=20260914a';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',
@@ -46,16 +46,16 @@ await createWorkspaceShell({
   // ── 首页跳转落点（支书 2026-08-08 裁定：activityId / view=activities / taskforceId 必须消费）──
   onNavTarget: (nav, state, shell) => {
     if (nav.actId || nav.view) {
-      // 活动查看（组织无活动 tab，知情权组件承载）
-      shell.activate('activity-view');
+      // 活动查看（组织台 2026-09-14 起由「知情查看」承载——活动/专班分段，原独立 activity-view 已合并）
+      shell.activate('tf-view');
       if (nav.actId) {
         shell.setHighlight(nav.actId, `[data-act-id="${nav.actId}"], [data-activity-id="${nav.actId}"]`);
         // 2026-08-08 修复：activity-view 组件默认渲染当前月，URL 活动在旧月时日历无该条目 → 高亮无目标。
         const act = (state.activities || []).find(a => a.id === nav.actId);
         setState({ displayMonth: act?.date?.slice(0, 7) || undefined, selectedActivityId: nav.actId });
-        return { tabId: 'activity-view', highlightId: nav.actId };
+        return { tabId: 'tf-view', highlightId: nav.actId };
       }
-      return { tabId: 'activity-view' };
+      return { tabId: 'tf-view' };
     }
     if (nav.tfId) {
       // 专班定位：轮询直至卡片出现再展开详情+高亮（B1-5）

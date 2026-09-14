@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260913v';
-import { showToast } from '../core/utils.js?v=20260913v';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260913v';
-import { icon } from '../core/icons.js?v=20260913v';
-import { NoticeStore } from './notice.js?v=20260913v';
+import { BranchService } from './runtime.js?v=20260914a';
+import { showToast } from '../core/utils.js?v=20260914a';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260914a';
+import { icon } from '../core/icons.js?v=20260914a';
+import { NoticeStore } from './notice.js?v=20260914a';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260913v';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260914a';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260913v';
-import '../modules/capabilities/sop-scenarios.js?v=20260913v';
+import { getCapabilities } from '../core/registry.js?v=20260914a';
+import '../modules/capabilities/sop-scenarios.js?v=20260914a';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -76,7 +76,8 @@ export const DECISION_TREE_CONFIGS = {
       { value: 'top-down', label: '自上而下' },
       { value: 'bottom-up', label: '自下而上' },
     ],
-    HOST_GROUPS: ['第二党小组', '第三党小组'],
+    // 承办党小组选项不再在配置里写死组名——运行时由调用方传入活组清单（见 hostGroups 函数），
+    // 口径单一源 = services/party-group.js::groupOptions()。
     SCENARIO_MAP: {
       'party-group-meeting': 'party-group-meeting',
       'theme-party': 'theme-party',
@@ -121,6 +122,21 @@ export const DECISION_TREE_CONFIGS = {
     ],
   },
 };
+
+/**
+ * 承办党小组选项（不再写死组名）：活组清单由调用方传入（口径单一源 =
+ * services/party-group.js::groupOptions()，新增/改名/解散后随渲染即时可见）。
+ * 保留「组长本组必在选项内」的既有语义：本组若不在活组清单（如历史数据），补入，
+ * 保证默认预选命中本组、改选后仍能回选本组（不改权限）。
+ * @param {string[]} [options] 活组名清单
+ * @param {string} [myGroup]   组长所属党小组（可缺省）
+ * @returns {string[]} 承办党小组可选项
+ */
+export function hostGroups(options = [], myGroup = '') {
+  const list = Array.isArray(options) ? [...options] : [];
+  if (myGroup && !list.includes(myGroup)) list.push(myGroup);
+  return list;
+}
 
 // ════════════════════════════════════════════════════════════════
 //  DecisionTreeState — 决策树状态管理

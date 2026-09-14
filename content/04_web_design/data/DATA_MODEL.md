@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-13"
+last_updated: "2026-09-14"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -1009,9 +1009,88 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > **注（冗余快照字段）**：`personName` 为历史留痕用的冗余快照；**展示一律以 `getPersonName(personId)` 现取**，快照仅作历史留痕，不参与身份判定（数据一致性守卫 D2 断言各域 `personName` 与权威源一致）。
 
+### 2.26 成员档案（PersonRecord）
+
+> **落地状态（2026-09-14）：本节为第二批（成员流动登记）的设计定案，尚未落代码；本批已落地的是 §2.27 党小组（见 BRANCH_WORK_MAP 落地注）。**
+
+> 支部成员的**主数据实体**，是名册、应到、考勤、表决、通知受众、党小组归组共同的上游（此前只在 §2.5 考勤快照与代码 `server/routes/member.js` 的白名单里零散出现，本节为其正式模型）。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | string | 主键，由 `generateId('p')` 派生（形如 `p_<hex>`） |
+| name | string | 姓名（必填） |
+| studentId | string | 学号；**新增成员时采集**（此前表单不采集、落档为空串）；支部内唯一；**同时作为登录账号** |
+| enrollYear | string | **届别/入学年份（本轮新增字段）**；用于识别毕业批次，登记流入时采集 |
+| partyGroup | string | 党小组归属；**空字符串即「未分组」**（不属任何党小组） |
+| developStage | string | 发展阶段；枚举单一源见 `core/constants.js::DEVELOP_STAGES` |
+| role | string | 角色键；枚举单一源见 `core/constants.js::ROLE_KEYS` |
+| branchId | string | 所属支部 |
+| residenceStatus | string | 在册状态；枚举单一源见 `core/constants.js::RESIDENCE`（在校/滞留） |
+| residenceNote | string | 滞留备注（仅滞留态保留） |
+| residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
+
+**行为口径：**
+
+1. 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`（新增 `enrollYear` 须同步两处 + 前端 `docs/src/services/person.js` 的字段白名单与档案编辑模态）。
+2. **账号联动（本轮新增）**：新增成员即**自动建号**——**账号取学号**，口令取支部统一默认口令（沿用既有登录口令机制），不需人工另行注册；账号层由「硬编码静态账号表」升级为「可持久化账号层（种子账号 + 成员账号）」，成员加入支部即可登录该支部；账号随学号变更而变更，随成员流出一并停用。
+3. 变更分流：姓名/学号/党小组**立即生效**；发展阶段/在册状态须走成员变更确认链（组织委员发起 → 支书确认）。**流出登记（§2.28）登记即生效，不再走确认链。**
+4. `partyGroup` 为空即「未分组」：不属任何党小组——党小组会应到名单**不含**（按组名精确匹配），支部大会应到**照计**（党员且非滞留口径不变），表决名单**照计**（按发展阶段口径不变）。
+
+### 2.27 党小组（PartyGroup）
+
+> 党小组由「成员档案字段的取值集合」**升为一等实体**（本轮定案）——清单独立持久化，支持新增/改名/解散与留痕，不再硬编码三组。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | string | 主键 |
+| branchId | string | 所属支部（**支部级**清单：党委台多支部场景下每支部各一份） |
+| name | string | 组名；新增默认「第N党小组」（N 由 seq 派生），可改名；同一支部内唯一 |
+| seq | number | 序号；用于排序与默认命名 |
+| status | string | `active` / `dissolved` |
+| createdAt / createdBy | string | 成立时间与经手人 |
+| dissolvedAt / dissolvedBy | string | 解散时间与经手人 |
+| note | string | 备注（解散原因等） |
+| history | array | 变更留痕（新增/改名/解散/组长变更） |
+
+**行为口径：**
+
+1. 写口：支书工作台「党小组」tab（由原「党小组进展」升级，含清单 + 新增/改名/解散）；写权归支书与副支书（与既往「副书同权」一致）。
+2. **解散**：允许解散**非空**党小组 → 组内成员 `partyGroup` 批量置空（转为「未分组」）+ `status='dissolved'` + 留痕；已解散组不可再被选用、不出现在任何下拉与统计。
+3. **改名**：同步批量改写组内成员档案的 `partyGroup`（避免档案与清单脱节）。
+4. **未分组口径**：见 §2.26 行为口径 4；支书台「党小组」tab 顶部显示「未分组 N 人」并提供**行内下拉逐个归组**（名册中未分组成员显示「未分组」标注）。
+5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/group-view.js::listPartyGroups`）；指派入口维持既有「赋权管理」，本实体只展示组长。
+6. **硬编码收敛**：原三处写死清单（支书台赋权管理的组清单、组长建活动的承办党小组选项、演示用户域）一律改为读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
+7. **与工作地图的关系**：党小组管理**不新增**工作地图模块（模块数维持 11），按「职责有入口」原则（COMPONENT_SPEC §4.6）落地为支书台一个 tab。
+
+### 2.28 成员流动台账（MemberFlow）
+
+> **落地状态（2026-09-14）：本节为第二批（成员流动登记）的设计定案，尚未落代码；本批已落地的是 §2.27 党小组（见 BRANCH_WORK_MAP 落地注）。**
+
+> 成员**流入/流出的复式记账**——每发生一次进出各记一笔，使名册随时可对账「谁在我们名册、谁不在」。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | string | 主键 |
+| branchId | string | 所属支部 |
+| kind | string | `in`（流入）/ `out`（流出） |
+| personId | string | 关联成员档案 id |
+| name / studentId / enrollYear | string | 登记时快照（人档案变更后仍可回看当时口径） |
+| date | string | 流动发生日期 |
+| operatorId | string | 登记人 |
+| note | string | 备注（毕业去向、转入来源等自由文本） |
+| revokedAt / revokedBy | string | 撤销留痕（撤销后不计入对账） |
+
+**行为口径：**
+
+1. **对账恒等式**：期初在册，加上流入合计、减去流出合计，即得当前在册；台账页表头固定展示该对账行。
+2. **流入登记**：逐人表单或**粘贴多行批量**（一行一人，Tab/逗号分隔：姓名/学号/届别/党小组）；登记成功后自动建号（§2.26 口径 2）。
+3. **流出登记**：台账内**勾选多人批量**（毕业季一次到位）；**登记即生效**（不再需要支书二次确认）；原成员记录**软标记保留**（`transferOut=true` + 转出时间/经手人），历史考勤与考察读数不变。
+4. **撤销**：台账行可撤销（写 `revoked*` 留痕并回滚成员在册状态），使「登记错误」可纠正而不留脏数据。
+5. **承载位置**：组织委员工作台「成员名册」页内的「成员流动」面板（登记 + 台账 + 对账行），不新增独立页面。
+
 ---
 
-## 三、单一源清单（2026-09-13 批次 21–22 登记）
+## 三、单一源清单（2026-09-13 批次 21–22；2026-09-14 批次 25 补登记）
 
 > 本批次新增/确认的单一源集中登记于此；同源判据与「结构 + 数据双层断言」方法见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` §0。
 
@@ -1026,5 +1105,10 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 人员清单实时视图 | `docs/src/services/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
 | 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 800 }`（界面显示字数，不作硬性拦截） |
 | 实体 id 生成 | `docs/src/core/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
+| 党小组清单 | `docs/src/services/party-group.js` | `partyGroups` 域（党小组清单）唯一源；原三处硬编码组清单（支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域）已收敛为派生 |
+| 成员流动台账 | `docs/src/services/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
+| 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/person.js` 字段白名单与档案编辑模态须同步） |
+| 「未分组」口径 | `partyGroup === ''` | 未分组 = 党小组归属为空串；**禁在各页自行判断别名** |
+| 账号与学号同值 | 账号层服务（成员新增/流出时同步） | 账号派生单一源：账号 = 学号 |
 
 ---

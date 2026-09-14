@@ -27,6 +27,8 @@ const RESOURCE_TABLES = [
   // R-23（2026-09-13）：思想汇报建服务端表——原「服务端无表」使系统通知 authorize 只能采信
   //   客户端自述的 personId（无法验对象）。建表后 authorize 可据表复算「提交人本人或有权阅处角色」。
   'thought_reports',
+  // 2026-09-14 批次 25：党小组一等实体（支书特批；组长由成员档案派生，本表仅落组级留痕）
+  'party_groups',
 ];
 
 const SCHEMA = `

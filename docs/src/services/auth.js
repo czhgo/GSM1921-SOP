@@ -9,18 +9,18 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260913v';
-import { PEOPLE } from '../mock/index.js?v=20260913v';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260914a';
+import { PEOPLE } from '../mock/index.js?v=20260914a';
 // 账号登录校验 mock 实现（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
-import { mockLogin } from '../mock/accounts.js?v=20260913v';
-import { getPersonById, getPersonName } from './person.js?v=20260913v';
-import { mockDB } from '../core/domain.js?v=20260913v';
-import { NoticeStore } from './notice.js?v=20260913v';
-import { updateActivity } from './mock.js?v=20260913v';
-import { TaskForceRecordStore } from './taskforce.js?v=20260913v';
-import { persist } from '../core/data-adapter.js?v=20260913v';
-import { enableApiMode } from './runtime.js?v=20260913v';
-import { generateId } from '../core/id.js?v=20260913v';
+import { mockLogin } from '../mock/accounts.js?v=20260914a';
+import { getPersonById, getPersonName } from './person.js?v=20260914a';
+import { mockDB } from '../core/domain.js?v=20260914a';
+import { NoticeStore } from './notice.js?v=20260914a';
+import { updateActivity } from './mock.js?v=20260914a';
+import { TaskForceRecordStore } from './taskforce.js?v=20260914a';
+import { persist } from '../core/data-adapter.js?v=20260914a';
+import { enableApiMode } from './runtime.js?v=20260914a';
+import { generateId } from '../core/id.js?v=20260914a';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }

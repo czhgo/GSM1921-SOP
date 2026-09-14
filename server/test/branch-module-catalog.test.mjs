@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260913v'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
+const V = '?v=20260914a'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
 
 test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源）', async () => {
   await import(`../../docs/src/modules/capabilities/secretary-workspace.js${V}`);
@@ -27,10 +27,11 @@ test('L2：默认全开；配置子集后业务 tab 过滤/排序生效，核心
   const branchMod = await import(`../../docs/src/services/branch.js${V}`);
 
   // 模拟支书工作台 tabs（含核心组 + 三个业务组 tab）
+  // 2026-09-14：核心组判定由「显示标签反推」改为注册表显式声明 → fixture 必须带 coreTab: true
   const tabs = [
-    { id: 'todo', label: '待办', groupLabel: '工作台' },
-    { id: 'overview', label: '全局概况', groupLabel: '工作台' },
-    { id: 'module-config', label: '工作台配置', groupLabel: '工作台' },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true },
+    { id: 'overview', label: '全局概况', groupLabel: '工作台', coreTab: true },
+    { id: 'module-config', label: '工作台配置', groupLabel: '工作台', coreTab: true },
     { id: 'calendar', label: '活动管理', groupLabel: '党建' },
     { id: 'notification', label: '通知发布', groupLabel: '党建' },
     { id: 'feedback', label: '反馈管理', groupLabel: '反馈' },

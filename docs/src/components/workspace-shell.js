@@ -20,21 +20,21 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260913v';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260914a';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260913v';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260913v';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260913v';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260913v';
-import { getCapabilities } from '../core/registry.js?v=20260913v';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260913v';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260914a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260914a';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260914a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260914a';
+import { getCapabilities } from '../core/registry.js?v=20260914a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260914a';
 
-import { TodoStore } from '../services/todo.js?v=20260913v';
-import { AuthStore } from '../services/auth.js?v=20260913v';
-import { BranchService } from '../services/runtime.js?v=20260913v';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260913v';
+import { TodoStore } from '../services/todo.js?v=20260914a';
+import { AuthStore } from '../services/auth.js?v=20260914a';
+import { BranchService } from '../services/runtime.js?v=20260914a';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260914a';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260913v';
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260914a';
 
 
 
@@ -323,7 +323,8 @@ export async function createWorkspaceShell(opts) {
       console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
     }
     // 个人 tab 顺序偏好（设置中心批2，2026-09-09 支书批准 v3）：个人顺序仅作用于业务组，
-    // 核心组（groupLabel='工作台'）保持注册序置前、不参与排序；无偏好/与默认等效 → 原样（默认零 diff）。
+    // 核心组（注册表显式声明 coreTab: true，判定单一源 core/constants.js::isCoreTab）保持注册序置前、
+    // 不参与排序；无偏好/与默认等效 → 原样（默认零 diff）。
     // 党委工作台（party-committee）无核心组，业务页签同样支持个人顺序（不受支部配置影响）。
     try {
       if (personId) tabs = applyPersonalTabOrder(tabs, personId, scope);

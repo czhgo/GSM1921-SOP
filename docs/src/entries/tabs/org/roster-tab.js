@@ -26,27 +26,30 @@
 //     两处编辑同一数据链（PersonStore + roster 覆盖层），
 //     任一改动即被应到口径（纪检考勤/支书复核卡）与对方界面读到。
 //  数据/枚举单一源：PersonStore.getMembers（含 members 持久覆盖层 + 预览叠加）；
-//    党小组/发展阶段枚举 = org-base-data-preview 的 PARTY_GROUP_OPTIONS / DEVELOP_STAGE_OPTIONS
-//    （由静态种子派生，禁造新枚举）；在册状态 = core/constants.js.RESIDENCE（单一源）。
+//    党小组 = services/party-group.js::groupOptions()（活组，按 seq 升序；运行时为准，禁写死组名）；
+//    发展阶段 = org-base-data-preview 的 DEVELOP_STAGE_OPTIONS（由静态种子派生，禁造新枚举）；
+//    在册状态 = core/constants.js.RESIDENCE（单一源）。
 //  在册滞留写链（与纪检/支书复核同源，防覆盖层与档案互相遮蔽）：
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913v';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260913v';
-import { submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913v';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913v';
-import { AuthStore } from '../../../services/auth.js?v=20260913v';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914a';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914a';
+import { submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914a';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914a';
+// 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
+import { groupOptions } from '../../../services/party-group.js?v=20260914a';
+import { AuthStore } from '../../../services/auth.js?v=20260914a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260913v';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913v';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913v';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914a';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914a';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260913v';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914a';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260913v';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914a';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -86,7 +89,9 @@ export function renderContent(ctx) {
 
   const members = _branchMembers();
   const stats = getRosterStats({ type: '支部党员大会' }); // 支部三会+党课统一口径
-  const groupStats = PARTY_GROUP_OPTIONS.map(g => ({ g, s: getRosterStats({ type: '党小组会', groupId: g }) }));
+  // 组统计以活组清单（groupOptions）为准；未分组 = 档案 partyGroup 为空（不属任何党小组）
+  const groupStats = groupOptions().map(g => ({ g, s: getRosterStats({ type: '党小组会', groupId: g }) }));
+  const ungroupedCount = members.filter(p => !p.partyGroup).length;
   const pend = _pendingMap();
   const pendParts = [];
   if (pend.stage.size) pendParts.push(`阶段变更 ×${pend.stage.size}`);
@@ -109,6 +114,7 @@ export function renderContent(ctx) {
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
+          <span class="text-gray-500">未分组 <span class="text-gray-700 font-medium">${ungroupedCount}</span> 人</span>
         </div>
         ${pendParts.length ? `
         <div class="flex items-center gap-1.5 flex-wrap mt-2">
@@ -173,7 +179,7 @@ function _rowHtml(p, pend) {
         </div>
         ${roleLabel ? `<div class="text-[10px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
-      <div class="text-xs text-gray-800 truncate">${esc(p.partyGroup || '—')}</div>
+      <div class="text-xs text-gray-800 truncate">${p.partyGroup ? esc(p.partyGroup) : '<span class="text-gray-400">未分组</span>'}</div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '待定')}</span>
         ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
@@ -237,7 +243,7 @@ function _openAddForm() {
     fields: [
       { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名（必填）' },
       { key: 'partyGroup', label: '党小组', type: 'select',
-        options: [emptyOpt, ...PARTY_GROUP_OPTIONS.map(g => ({ value: g, label: g }))] },
+        options: [emptyOpt, ...groupOptions().map(g => ({ value: g, label: g }))] },
       { key: 'developStage', label: '发展阶段', type: 'select',
         options: [emptyOpt, ..._orderedStages().map(s => ({ value: s, label: s }))] },
       { key: 'residenceStatus', label: '在册状态', type: 'select',

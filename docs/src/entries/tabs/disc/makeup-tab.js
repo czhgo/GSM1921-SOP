@@ -3,20 +3,24 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260913v';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260913v';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260913v';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913v';
-import { badgeHtml } from '../../../components/badges.js?v=20260913v';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913v';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913v';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260914a';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260914a';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260914a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914a';
+import { badgeHtml } from '../../../components/badges.js?v=20260914a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914a';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260914a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913v';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914a';
 
-export function renderContent() {
-  const container = document.getElementById('disc-tab-content');
+/**
+ * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
+ *   2026-09-14 支书裁定「制度与文本」合并后，本块作为该 tab 的一个分段子块挂载。
+ */
+export function renderContent(containerEl) {
+  const container = containerEl || document.getElementById('disc-tab-content');
   if (!container) return;
 
   const tasks = loadMakeupTasks();
@@ -130,11 +134,11 @@ export function renderContent() {
           }
         }
         showToast('success', `${getPersonName(task.personId)} 的补课任务已确认完成，考勤已回写「已补」`);
-        renderContent();
+        renderContent(container);
       }
     }
   });
 
   // T-304 C2 数据交接：纪检确认补课需求回执（组织标记材料缺失 → 纪检收到并闭环）
-  bindHandoffInbox(container, { to: 'disc-commissioner', onDone: () => { showToast('success', '补课需求回执已确认'); renderContent(); } });
+  bindHandoffInbox(container, { to: 'disc-commissioner', onDone: () => { showToast('success', '补课需求回执已确认'); renderContent(container); } });
 }

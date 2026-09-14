@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260913v';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -692,6 +692,27 @@ export const ApiAdapter = {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
       return _get(`/api/v1/thoughtReports${query ? '?' + query : ''}`);
+    },
+  },
+
+  // 2026-09-14 批次 25：党小组一等实体（服务端 party_groups 表；写门 = 支书/副支书，
+  //   服务端 RESOURCE_WRITE_GATE.partyGroups='secretary' 同源把关）
+  partyGroups: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/partyGroups${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/partyGroups', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/partyGroups/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/partyGroups/${id}`);
     },
   },
 

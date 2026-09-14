@@ -2,12 +2,12 @@
 // 纪检委员工作台 Tab：公邮管理（T-279 M3 拆分）
 // 支部公邮配置/查收周期倒计时 + 查收历史；配置与历史经 mockDB 持久化（seed 兜底注入一次）。
 
-import { mockDB } from '../../../core/domain.js?v=20260913v';
-import { persist } from '../../../core/data-adapter.js?v=20260913v';
-import { getPersonName } from '../../../services/person.js?v=20260913v';
-import { showToast } from '../../../core/utils.js?v=20260913v';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913v';
-import { generateId } from '../../../core/id.js?v=20260913v';
+import { mockDB } from '../../../core/domain.js?v=20260914a';
+import { persist } from '../../../core/data-adapter.js?v=20260914a';
+import { getPersonName } from '../../../services/person.js?v=20260914a';
+import { showToast } from '../../../core/utils.js?v=20260914a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914a';
+import { generateId } from '../../../core/id.js?v=20260914a';
 
 // ── 公邮管理 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 const MAILBOX_CONFIG_SEED = {
@@ -47,8 +47,12 @@ function _discFormatTime(isoStr) {
   return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function renderContent() {
-  const container = document.getElementById('disc-tab-content');
+/**
+ * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
+ *   2026-09-14 支书裁定「制度与文本」合并后，本块作为该 tab 的一个分段子块挂载。
+ */
+export function renderContent(containerEl) {
+  const container = containerEl || document.getElementById('disc-tab-content');
   if (!container) return;
 
   const mailboxConfig = _loadMailboxConfig();
@@ -140,6 +144,6 @@ export function renderContent() {
     mailboxConfig.lastCheckAt = now;
     persist();
     showToast('success', '公邮查收已记录');
-    renderContent();
+    renderContent(container);
   });
 }

@@ -18,11 +18,14 @@
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260913v';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913v';
+import { PEOPLE } from '../mock/people.js?v=20260914a';
+// 2026-09-14 批次 25：党小组枚举改由 mock/party-groups.js 种子派生（该文件为无 import 的叶子数据模块，
+//   不会引入 person→preview→party-group 成环；运行时活组清单以 services/party-group.js::groupOptions() 为准）。
+import { PARTY_GROUPS } from '../mock/party-groups.js?v=20260914a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自写一份与 roster 同值的
 //   副本；constants.js 无 import → 可安全被本模块与 roster.js 双向共用，person→preview→roster 成环问题消解）。
-import { RESIDENCE } from '../core/constants.js?v=20260913v';
+import { RESIDENCE } from '../core/constants.js?v=20260914a';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';
@@ -43,8 +46,12 @@ const SEED_MEMBERS = PEOPLE.filter(p => p.branchId !== null && p.branchId !== un
 const SEED_MAP = new Map(SEED_MEMBERS.map(p => [p.id, p]));
 /** 现有成员 id 白名单（id 在名单外 → 整条丢弃） */
 export const MEMBER_IDS = SEED_MEMBERS.map(p => p.id);
-/** 党小组枚举（由静态种子派生，加组不落新字面量） */
-export const PARTY_GROUP_OPTIONS = [...new Set(SEED_MEMBERS.map(p => p.partyGroup).filter(Boolean))];
+/** 党小组枚举（2026-09-14 批次 25：由党小组种子派生——活组按 seq 升序；种子派生以保持本模块为叶子，
+ *  防 person→preview→party-group 成环；运行时活组清单以 services/party-group.js::groupOptions() 为准） */
+export const PARTY_GROUP_OPTIONS = PARTY_GROUPS
+  .filter(g => g.status === 'active')
+  .sort((a, b) => a.seq - b.seq)
+  .map(g => g.name);
 /** 发展阶段枚举（由静态种子派生，四阶段） */
 export const DEVELOP_STAGE_OPTIONS = [...new Set(SEED_MEMBERS.map(p => p.developStage).filter(Boolean))];
 

@@ -8,19 +8,19 @@
 //   - localStorage 内存桩（branch 服务 _actorId 读登录快照键）
 //   - registerMockAdapter 注入与 mock-adapter branches.update/updateConfig 同语义的假适配器
 //     （branch 写口经 getAdapter() 落库 + mockDB 同步；persist 在未注入时缺省空安全）
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913v query（模块缓存键一致性）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260914a query（模块缓存键一致性）。
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260913v';
-import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260913v';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914a';
+import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260914a';
 import {
   buildConfigPackage,
   applyConfigPackage,
   PACKAGE_KIND,
   PACKAGE_VERSION,
-} from '../../docs/src/services/org-config-package.js?v=20260913v';
-import { getBranchById } from '../../docs/src/services/branch.js?v=20260913v';
+} from '../../docs/src/services/org-config-package.js?v=20260914a';
+import { getBranchById } from '../../docs/src/services/branch.js?v=20260914a';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务在函数体内惰性访问）──
 const _store = new Map();

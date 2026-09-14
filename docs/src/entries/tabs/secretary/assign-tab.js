@@ -2,23 +2,25 @@
 // entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913v';
-import { AuthStore } from '../../../services/auth.js?v=20260913v';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260913v';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914a';
+import { AuthStore } from '../../../services/auth.js?v=20260914a';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913v';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260913v';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913v';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260913v';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914a';
+// 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
+import { groupOptions } from '../../../services/party-group.js?v=20260914a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914a';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260914a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913v';
-import { loadActivities } from '../../../services/activity.js?v=20260913v';
-import { badgeHtml } from '../../../components/badges.js?v=20260913v';
-import { TodoStore } from '../../../services/todo.js?v=20260913v';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914a';
+import { loadActivities } from '../../../services/activity.js?v=20260914a';
+import { badgeHtml } from '../../../components/badges.js?v=20260914a';
+import { TodoStore } from '../../../services/todo.js?v=20260914a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914a';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -303,9 +305,6 @@ const authPanel = {
   personPicker: null,
 };
 
-/** 党小组列表 */
-const PARTY_GROUPS = ['第一党小组', '第二党小组', '第三党小组'];
-
 /** 切换赋权面板展开/收起 */
 function toggleAuthPanel(assignArea) {
   authPanel.open = !authPanel.open;
@@ -341,11 +340,12 @@ function renderAuthPanel(assignArea) {
   html += `<div id="auth-person-picker-slot"></div>`;
   html += `</div>`;
 
-  // 2. 党小组选择
+  // 2. 党小组选择（组清单渲染时现取 groupOptions()，新增/改名的组立刻可见；此处属表单字段选择，保留 chip 形态）
+  const partyGroups = groupOptions();
   html += `<div class="mb-5">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">指定为党小组组长 <span class="text-red-600">*</span></label>`;
   html += `<div class="flex gap-2">`;
-  PARTY_GROUPS.forEach(group => {
+  partyGroups.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
     const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
     html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${group}</button>`;

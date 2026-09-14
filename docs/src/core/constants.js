@@ -230,6 +230,17 @@ export const RESIDENCE = {
   DETAINED: '滞留',
 };
 
+// ── 核心组 tab 判定（单一源，2026-09-14 支书裁定·tab 全盘重设）────────
+// 语义：核心组（今天/待办/工作概况，支书 2026-08-10 裁定全员必有）固定显示、不可隐藏、不参与排序。
+// 原实现以**显示标签**反推核心组（判据写死为「groupLabel 内容为『工作台』」），后果有二：
+//   ① 党委台只能把自己的核心组改名为「首页」，再靠整台豁免绕开判定——一物两名；
+//   ② 任何改标签文案的动作都会悄悄改动**权限语义**（哪些 tab 可被支部配置隐藏）。
+// 现改为**注册表显式声明**：tab 对象上写 `coreTab: true`（见各台 capabilities/*-workspace.js），
+// 显示标签只负责显示。判定函数唯一源在本文件，services/branch.js 与 services/preferences.js 共用。
+export function isCoreTab(tab) {
+  return !!(tab && tab.coreTab === true);
+}
+
 // ── 通知发布/管理角色（2026-09-13 dogfood 权限专项：前后端「单一源」，勿各自手写）──
 // 发布 = 支委层中除纪检（纪检为会议纪律通报场景，只需管理位）；管理（编辑/删除）= 支委层全体。
 // 由 BRANCH_COMMISSION_ROLES 派生（勿再手写角色名单——roles-sync 守卫「5 支委授权列表只允许出现在授权集」会拦）。

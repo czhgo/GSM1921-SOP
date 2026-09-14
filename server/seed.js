@@ -25,13 +25,14 @@ function seedIssues() {
 }
 
 export async function seedDatabase(db) {
-  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod] = await Promise.all([
+  const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod] = await Promise.all([
     import('../docs/src/mock/people.js'),
     import('../docs/src/mock/activities.js'),
     import('../docs/src/mock/notices.js'),
     import('../docs/src/mock/taskforces.js'),
     import('../docs/src/mock/seed.js'),
     import('../docs/src/mock/branches.js'),
+    import('../docs/src/mock/party-groups.js'),
   ]);
 
   replaceCollection(db, 'users', peopleMod.PEOPLE);
@@ -49,4 +50,6 @@ export async function seedDatabase(db) {
   // 注：issues 是真匿名域（仅语义端点读写、不进快照写穿），但表本身在 db.js RESOURCE_TABLES 内，
   //   故与其它集合同走 replaceCollection 落库。
   replaceCollection(db, 'issues', seedIssues());
+  // 2026-09-14 批次 25：党小组一等实体种子（br-b1 现有三组；组长由成员档案派生不落本表）
+  replaceCollection(db, 'party_groups', partyGroupsMod.PARTY_GROUPS);
 }

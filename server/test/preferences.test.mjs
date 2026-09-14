@@ -18,15 +18,15 @@ import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/preferences.js?v=20260913v';
+} from '../../docs/src/services/preferences.js?v=20260914a';
 
 // ── 测试辅助 ──
 // 支书台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
 function secretaryTabs() {
   return [
-    { id: 'today', label: '今天', groupLabel: '工作台', render: () => {} },
-    { id: 'todo', label: '待办', groupLabel: '工作台', render: () => {} },
-    { id: 'overview', label: '全局概况', groupLabel: '工作台', render: () => {} },
+    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: () => {} },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: () => {} },
+    { id: 'overview', label: '全局概况', groupLabel: '工作台', coreTab: true, render: () => {} },
     { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => {} },
     { id: 'work-map', label: '支部分工', groupLabel: '党建', render: () => {} },
     { id: 'assign', label: '赋权管理', groupLabel: '党建', render: () => {} },

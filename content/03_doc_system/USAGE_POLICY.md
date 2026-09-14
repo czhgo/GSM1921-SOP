@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-14"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -397,6 +397,12 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **制度刚性（锁定）**：L3 制度项（票决门槛 / 应到口径 / 会议类型 / 记录人 / 标因）在设置页**只读锁定展示、不开放直改**——改须支书/党委裁决后在系统层变更（[settings-entry.js](../../docs/src/entries/settings-entry.js) 批4 分层注释同口径）
 - **POLICY_OVERRIDABLE**：域参数覆盖**白名单**（`policy-defaults.js` 导出数组，每项 = path/type/钳制范围/domain 域节）——**只定义于 policy-defaults**，config-clean 为其唯一净化消费方；白名单 = 可经 UI 覆盖的域参数全集，白名单外一律不可经 UI 写
 - **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/org-wizard-report.js)）
+
+> **2026-09-14 补录**（成员流动与党小组相关黑话，随 [SYSTEM_ROLE_PERMISSION.md §9i](../02_institution/SYSTEM_ROLE_PERMISSION.md) 党小组管理/成员流动登记写权与 [BRANCH_WORK_MAP.md](../04_web_design/evolution/BRANCH_WORK_MAP.md) 党小组一等实体落地注记同期定案）：
+
+- **未分组**：成员档案 `partyGroup` 为空字符串的状态。语义是**不属任何党小组**（非"第五个组"）：党小组会应到名单不含、支部大会应到照计、表决名单照计；名册与相关页面显示为「未分组」并提供归组入口。禁写「无党小组」「非党小组」等他名。
+- **成员流动台账**：成员流入/流出的记账表。
+- **复式记账（成员流动）**：本系统对成员进出的记账口径——**每发生一次流入或流出各记一笔**，口径为「期初在册 加 Σ流入、减 Σ流出，得到当前在册」；登记即生效、可撤销并留痕。用于回答"谁在我们名册、谁不在"。
 
 > **用词纪律（2026-09-05 起）**：新文档/文件名用词先自查本节；工程层文件名禁用内部代号（行业词按行业全称或规范名使用，自造词不得作文件名）。
 
