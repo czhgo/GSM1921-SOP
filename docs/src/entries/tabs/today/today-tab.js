@@ -12,16 +12,16 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260914i';
-import { icon } from '../../../core/icons.js?v=20260914i';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260914i';
-import { mockDB } from '../../../core/domain.js?v=20260914i';
-import { tokenOf } from '../../../core/version-token.js?v=20260914i'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260914i'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260914i'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260914i'; // P2 渲染守卫（spec §四.1）
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260914k';
+import { icon } from '../../../core/icons.js?v=20260914k';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260914k';
+import { mockDB } from '../../../core/domain.js?v=20260914k';
+import { tokenOf } from '../../../core/version-token.js?v=20260914k'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260914k'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260914k'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260914k'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914i';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914k';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';

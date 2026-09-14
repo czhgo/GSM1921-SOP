@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260914i');
+@import url('components/person-picker.css?v=20260914k');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -379,6 +379,9 @@ body {
   border-radius: var(--radius-sm);
   padding: 12px 16px;
   font-size: 0.875rem;
+  /* 档位算式的行高项必须显式声明（2026-09-14 批次 31）：标准档 = 12+12+16+2 = 42px。
+     原先靠 UA / CDN 工具类给行高，同一表单里出现过 42 / 43 / 47 三值并存（裸 input 取继承行高 21px）。 */
+  line-height: 1rem;
   color: var(--neutral-800);
   outline: none;
   transition: border-color var(--transition-fast), background-color var(--transition-fast);
@@ -399,6 +402,8 @@ input.input-flat.text-xs {
   padding-top: 8px;
   padding-bottom: 8px;
   font-size: 0.75rem;
+  /* 紧凑档 = 8+8+16+2 = 34px（与 .cs-trigger.text-xs / select.text-xs 同式同高） */
+  line-height: 1rem;
 }
 
 /* 主题党日正交维度选项（共建性质/是否外出/活动载体多选） */
@@ -470,6 +475,7 @@ select.input-flat {
 select.input-flat.text-xs {
   padding: 8px 28px 8px 10px;
   font-size: 0.75rem;
+  line-height: 1rem;
 }
 
 select.input-flat:focus {
@@ -506,13 +512,16 @@ textarea.input-flat {
 /* w-full 布局继承（2026-08-08 指令 #6）：原 select 带 w-full 时包装器必须 100% 宽，
    否则 inline-block + width:auto 会收缩成内容宽（70px），与同卡片 PersonPicker/输入框（544px）严重不齐 */
 .cs-select.w-full { width: 100%; }
-/* 触发器继承原 select 的 input-flat 类时，校正 padding 档位以与原 select 外观一致 */
+/* 触发器继承原 select 的 input-flat 类时，档位算式与输入框严格同式（2026-09-14 批次 31）：
+   标准档 = 12+12+16+2 = 42px —— 原 padding 10px 使触发器得 43px，与同排输入框 42px 差 1px */
 .cs-trigger.input-flat {
-  padding: 10px 12px;
+  padding: 12px;
+  line-height: 1rem;
 }
 .cs-trigger.input-flat.text-xs {
   padding: 8px 12px;
   font-size: 0.75rem;
+  line-height: 1rem;
 }
 .cs-select select.cs-native {
   position: absolute;
@@ -800,6 +809,9 @@ button:disabled { cursor: not-allowed; }
    ③ 取值**可穷举且多选** → 表单内的 chip（.chip-option）；**筛选行一律禁止 chip**（支书裁定）
    ④ 需选**具体人** → PersonPicker（禁 select 罗列人名）
    ── 档位（唯一）：高 34px / 字号 12px —— 与 .input-flat.text-xs、.cs-trigger.text-xs 严格同高 ──
+   ── 高度算式（批次 31 起显式声明，勿靠 UA / CDN 工具类给行高）──
+      紧凑档 = 8 + 8 + 16（line-height 1rem） + 2（边框） = 34px
+      标准档 = 12 + 12 + 16 + 2 = 42px
    ═══════════════════════════════════════════════════════════════ */
 .lf-bar {
   display: flex;

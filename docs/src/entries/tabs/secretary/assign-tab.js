@@ -2,25 +2,25 @@
 // entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914i';
-import { AuthStore } from '../../../services/auth.js?v=20260914i';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914i';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914k';
+import { AuthStore } from '../../../services/auth.js?v=20260914k';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914i';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914k';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/party-group.js?v=20260914i';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914i';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914i';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260914i';
+import { groupOptions } from '../../../services/party-group.js?v=20260914k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914k';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260914k';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914i';
-import { loadActivities } from '../../../services/activity.js?v=20260914i';
-import { badgeHtml } from '../../../components/badges.js?v=20260914i';
-import { TodoStore } from '../../../services/todo.js?v=20260914i';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914k';
+import { loadActivities } from '../../../services/activity.js?v=20260914k';
+import { badgeHtml } from '../../../components/badges.js?v=20260914k';
+import { TodoStore } from '../../../services/todo.js?v=20260914k';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914i';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914k';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）

@@ -1,18 +1,18 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260914i';
-import { renderHeader } from '../components/header.js?v=20260914i';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260914i';
-import { getBasePath, showToast } from '../core/utils.js?v=20260914i';
-import { AuthStore } from '../services/auth.js?v=20260914i';
-import { getPersonById } from '../services/person.js?v=20260914i';
-import { badgeHtml } from '../components/badges.js?v=20260914i';
+import { renderSidebar } from '../components/sidebar.js?v=20260914k';
+import { renderHeader } from '../components/header.js?v=20260914k';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260914k';
+import { getBasePath, showToast } from '../core/utils.js?v=20260914k';
+import { AuthStore } from '../services/auth.js?v=20260914k';
+import { getPersonById } from '../services/person.js?v=20260914k';
+import { badgeHtml } from '../components/badges.js?v=20260914k';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260914i';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260914i';
-import { BranchService } from '../services/runtime.js?v=20260914i';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260914k';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260914k';
+import { BranchService } from '../services/runtime.js?v=20260914k';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

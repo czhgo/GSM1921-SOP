@@ -39,6 +39,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 禁止**模块加载期人员快照**：`const X = PersonStore.getMembers();` 这类模块顶层一次性捕获一律改为 `liveMembers()`（实时视图，只读；写入走 `PersonStore` 写口）
 - [ ] 禁止**凭姓名认身份**：`.find(p => p.name === …)` 不得用作身份判定；姓名匹配只允许「**先按 id、姓名仅唯一命中才采纳**」，否则留空
 - [ ] 禁止**手写已成单一源的判据**：如活动存储态不得再写 `status==='completed' || archived`，一律走 `core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
+- [ ] 禁止**把控件档位高度交给环境**（2026-09-14 批次 31）：高度须由 `docs/src/styles.css` 的「上下内边距 + **显式行高** + 边框」算式决定（紧凑 `8+8+16+2 = 34px`、标准 `12+12+16+2 = 42px`）；靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供行高时，环境一变同表单内会出现 42 / 43 / 47 三值并存。**同理：量尺规类真机复核必须在生产同构环境**（Tailwind / 字体 CDN 一律不得 abort——缺 preflight 会让行高退化，量出的尺寸全是伪证；本批曾据此误报「27 处 32px」，后经生产同构复测证伪）
 
 **数据层（以权威源为基准逐域断言）**
 

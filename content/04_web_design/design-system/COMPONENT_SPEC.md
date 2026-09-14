@@ -135,6 +135,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 > ③ **禁止**在 `input-flat` 上叠 `py-1.5`（被 `.input-flat.text-xs` 的 padding 覆盖，属无效类，会误导维护）；
 > ④ **禁止** `text-[11px]`/`text-[10px]` 控件字号（与规范 Caption 档冲突）；
 > ⑤ 同一 tab 内同一层级（工具条筛选/表单正文）的控件必须同档同字号。
+> ⑥ **高度算式显式**（2026-09-14 批次 31）：档位高度 = 上下内边距 + **显式行高** + 边框，五处载体（标准/紧凑 × 输入框 / 原生下拉 / 增强下拉触发器）同一算式——紧凑档 `8+8+16+2 = 34px`、标准档 `12+12+16+2 = 42px`。**行高必须由 `docs/src/styles.css` 声明，不得靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供**：原先靠外部提供时，同一表单内实测出 42 / 43 / 47 三值并存（增强下拉触发器 43px、无 text 类的裸 `input-flat` 取继承行高 21px 得 47px）。守卫 `server/test/filter-row.test.mjs::D2`。
 
 #### 筛选行规范（2026-09-14 支书裁定）
 
@@ -153,7 +154,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 **硬规范**
 
 - **筛选行禁止 chip**：分面（党小组 / 角色 / 阶段 / 类型 / 状态等维度）一律下拉，每维一个「全部 + 取值」；chip 只作展示与表单多选，不承担筛选载体。
-- **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **34px 高、12px 字**（`.input-flat.text-xs`）；增强下拉同为 34px，不允许 34 与 32 差 2px 并存（原状反面案例：统一引擎同一行出现 42、34、约 26、约 24 四个高度）。
+- **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **34px 高、12px 字**（`.input-flat.text-xs`）；增强下拉同为 34px（算式见 §4.3「输入组件统一原则」⑥：`8+8+16+2`）。
 - **载体单一源**：筛选行样式统一落 `docs/src/styles.css` 的 `.lf-bar`（弹性行，gap 8px）/ `.lf-kw`（关键词输入）/ `.lf-select`（维度下拉）/ `.lf-btn`（清除钮，34px）；调用点只声明这三个类，不得再内联拼装 `flex flex-wrap items-center gap-2` + `flex-1 min-w-[140px]` 一类散值。
 - **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.75rem` / 行高 `1rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明；专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。
 - 维度取值只有 1 种时该维度自动隐藏；行数不超过 8 行不出筛选行（`SEARCH_FILTER_MIN_ROWS`，口径不变）。
@@ -390,6 +391,19 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 2. **禁止用 select 下拉罗列人名**
 3. 表单内选人同样走 PersonPicker（嵌入表单渲染）
 4. 候选范围过滤用 PersonPicker 的 `filter` 选项（如排除支委），不得预生成 select option
+
+**例外：「任命 / 指派到人」可用下拉（2026-09-14 批次 31 支书裁定）**
+
+> 判据是**语义两分**，不是载体偏好：**「选名单里的成员」**（参与人、流出对象、批量处理、候选人）→ 必走 PersonPicker；**「把某职责任命/指派给谁」**（任命支书、分工到人、落实责任人）→ 允许下拉。理由有二：① 指派类字段常是**混合取值**（「支委角色」或「具体成员」二选一），PersonPicker 只表达「具体人」，硬换会丢掉「按角色指派」这一档；② 任命类候选集合小且需并列显示「现任/发展阶段」等旁注，下拉反而读得更快。
+
+**已登记例外（全站共 4 处，守卫 `filter-row.test.mjs::S9` 锁白名单）**：
+
+| 位置 | 语义 |
+|------|------|
+| `entries/tabs/party-committee/branches-tab.js` | 党委台「支部管理」任命支书（候选附「现任」标注） |
+| `components/org-setup-wizard.js` | 换组织向导内任命 |
+| `entries/tabs/secretary/workforce-panel.js` | 支书台分工到人（支委角色 或 具体成员） |
+| `components/resolution-followup-manager.js` | 决议落实「责任人」（与分工同口径） |
 
 **已落实案例**：项目赋权选人（原 select 罗列人名 → PersonPicker 搜索选择，2026-08-05）。
 

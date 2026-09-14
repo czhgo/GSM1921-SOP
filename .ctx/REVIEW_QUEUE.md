@@ -364,5 +364,33 @@
 
 - 本批未改动任何禁改清单文件（`styles.css` / `mock-adapter.js` 等）；仅 `content/` 与业务模块 + `server/`，无需特批。
 
+## 批次 31（2026-09-14）：全站「表格 / 筛选控件」尺规收口（目标②的直接回应）
+
+> **来源**：支书指令「现在的表格，涉及筛选器的部分都很丑；下拉框、选择器究竟什么时候用什么；**字体大小，组件大小都要重新审视！所有的【表】**」。批次 27/28 已做类族与档位单一源，本批以「逐 tab 真机量尺」收口并核对规范是否真的落地。权威见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 31。
+
+### Q-23-11 尺规复核的首跑「伪证」更正：27 处 32px 系量测环境失真，非真实缺陷
+
+- **事项**：本批首跑真机量尺（照抄既有 e2e 的写法，abort 了 `cdn.tailwindcss.com` 与字体 CDN），量出「筛选行关键词输入框 32px、同排下拉 34px」共 27 处，并据此判为「规范未落地」上报。**经生产同构复测（Tailwind 正常加载）证伪**：`input.input-flat.text-xs` 实测 34px / 行高 16px —— 32px 系**缺 Tailwind preflight 时行高退化为 UA 默认**所致，属**量测环境的伪证**，非产品缺陷。
+- **来源**：批次 31 首跑量尺（本批自查）。
+- **状态**：**已更正并留痕**（2026-09-14 批次 31）——① 正确结论以生产同构复测为准（8 台工作台 / 74 个 tab 访问 / Tailwind 8/8 加载成功）；② 纪律写进 `DATA_CONSISTENCY_CHECKLIST §0 结构层` 与 `CLAUDE.md R-51`：**量尺规类复核一律不得 abort Tailwind / 字体 CDN**；③ 支书首轮批的 `styles.css` 改动据此改按「真缺陷」（见 Q-23-12）执行，未按伪证动样式。
+
+### Q-23-12 档位高度里的「行高」项未显式声明 → 标准档实测 42 / 43 / 47 三值并存
+
+- **事项**：生产同构实测标准档控件出现三个值——`input.input-flat` 42px、增强下拉触发器 `.cs-trigger.input-flat` **43px**（其 `padding: 10px` 使 `10+10+21+2`）、无 `text-*` 工具类的裸 `input-flat` **47px**（行高取继承 21px，`12+12+21+2`）。根因：档位高度算式里的**行高一项没有在 `styles.css` 声明**，标准档靠 UA 默认、紧凑档靠 Tailwind 的 `text-*` 工具类供给 → 环境或类组合一变即漂移。
+- **来源**：批次 31 生产同构量尺（同一表单内三值并存，正中「同一层级控件必须同档同字号」之禁）。
+- **状态**：**已闭环（2026-09-14 批次 31，支书特批改禁改文件 `docs/src/styles.css`）**——五处载体（标准/紧凑 × 输入框 / 原生下拉 / 增强下拉触发器）补 `line-height: 1rem`；`.cs-trigger.input-flat` 的 `padding: 10px 12px` 校为 `12px`，使触发器与输入框严格同式。复测：紧凑档 79 处全部 34px、标准档 11 处全部 42px，43 / 47 消失。守卫 `server/test/filter-row.test.mjs::D2`（按算式核算五处载体高度 + 禁无行高声明；已对 HEAD 版样式做**病灶复现**，五处皆判红）。
+
+### Q-23-13 规范 §4.13「禁止用 select 罗列人名」与实现有 4 处口径差
+
+- **事项**：复核选型规则时全站实测到 **4 处仍用下拉列人名**——① 党委台「支部管理」任命支书（`party-committee/branches-tab.js`，候选附「现任」标注，有 `branch-appoint-inline` 测试守着）；② 换组织向导内任命（`components/org-setup-wizard.js`）；③ 支书台分工到人（`entries/tabs/secretary/workforce-panel.js`，取值是「支委角色 或 具体成员」的混合）；④ 决议落实「责任人」（`components/resolution-followup-manager.js`，与③同口径）。③④硬换 PersonPicker 会丢掉「按角色指派」这一档，且与既有测试/口径绑定。
+- **来源**：批次 31 复核 §4.13 时实测（属「规范写得过宽、实现另有正当例外」的口径差，非实现缺陷）。
+- **状态**：**已闭环（2026-09-14 批次 31，支书裁定「写清例外，保留下拉」）**——`COMPONENT_SPEC §4.13` 改为**语义两分**（「选名单里的成员」→ 必走 PersonPicker；「把职责任命/指派给谁」→ 允许下拉，理由：混合取值 + 候选小且需并列旁注），并据实登记 4 处例外表；守卫 `server/test/filter-row.test.mjs` 新增 **S9**（逐行判 `<option>` 是否直接插值人名变量，非白名单即红；并防「白名单僵尸」——四处若不再列人名须从白名单移除）。**过程留痕**：S9 首版按「文件里既有 `<select>` 又有人源」判，实测 **8 处假阳性**（下拉选活动/类型而同文件另有 PersonPicker 或姓名展示的正常页面），改判据为「逐行看 `<option>` 内容」后转绿。
+
+### 特批记录：`docs/src/styles.css`（禁改清单文件，第三次）
+
+- **事项**：批次 31 改 `docs/src/styles.css` —— 5 处补 `line-height: 1rem`（`.input-flat` / `input.input-flat.text-xs` / `select.input-flat.text-xs` / `.cs-trigger.input-flat` / `.cs-trigger.input-flat.text-xs`），并把 `.cs-trigger.input-flat` 的 `padding: 10px 12px` 校为 `12px`；另更新 §COMPONENT: Filter Row 的算式注释。已获支书特批（本轮 AskUserQuestion 明确选定「批准：两档都按公式固定」）。
+- **来源**：批次 31 落地。
+- **状态**：已特批（登记留痕）。
+
 
 

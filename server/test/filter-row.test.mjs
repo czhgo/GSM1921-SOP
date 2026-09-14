@@ -9,7 +9,9 @@
 //     S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）
 //     S7 自写搜索框必须落在 .lf-kw（筛选行载体单一源）
 //     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
+//     S9 选人载体：select 列人名只允许「任命 / 指派到人」四处例外（§4.13 语义两分）
 //   口径层 D1：档位数值三处同源（.lf-btn / .data-table / .input-flat.text-xs 均为 34px×12px 一套）
+//   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 42 / 34），禁靠 UA 或 CDN 工具类给行高
 // node-only（不启浏览器）：纯静态扫描 + 样式文本解析。
 //
 // 例外说明：docs/help.html 的 <table class="doc-table"> 属帮助页专用文档样式（支书裁定帮助页
@@ -154,6 +156,38 @@ test('S8 分页控件单一源（禁借 chip 选中态）', () => {
   assert.deepEqual(offenders, [], '分页控件不得再借 .chip-accent-on 表当前页（应写 .page-num.is-current）');
 });
 
+// S9（2026-09-14 批次 31，支书裁定）
+// §4.13 原写「禁止用 select 下拉罗列人名」，而全站实测有 4 处仍在用下拉列人名，且其中两处是
+//   「支委角色 或 具体成员」的混合指派（分工到人 / 落实责任人），硬换 PersonPicker 会丢掉
+//   「按角色指派」这一档。支书裁定把口径写成**语义两分**（选名单成员 → PersonPicker；
+//   任命 / 指派到人 → 允许下拉），据实登记 4 处例外并锁白名单，禁新代码再长出第 5 处。
+test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」四处例外（详见 COMPONENT_SPEC §4.13）', () => {
+  const ALLOW = new Set([
+    'entries/tabs/party-committee/branches-tab.js',  // 党委台任命支书
+    'components/org-setup-wizard.js',                // 换组织向导内任命
+    'entries/tabs/secretary/workforce-panel.js',     // 支书台分工到人（角色 或 到人）
+    'components/resolution-followup-manager.js',     // 决议落实责任人（同口径）
+  ]);
+  // 判据：某行 `<option>` 的内容直接插值「人名变量」（p / m / person / member 的 .name）。
+  // 注：不可按「文件里既有 <select> 又有人源」判——那样会把「下拉选活动/类型 + 同一文件另有
+  //     PersonPicker / 姓名展示」的正常页面全判为违规（实测 8 处假阳性），故必须逐行看选项内容。
+  const OPT_NAME = /<option[^>]*>\$\{[^}]*\b(p|m|person|member)\.name\b/;
+  const readByRel = (r) => read(join(SRC_DIR, ...r.split('/')));
+  const offenders = [];
+  for (const f of walkJs(SRC_DIR)) {
+    const r = rel(f);
+    if (ALLOW.has(r)) continue;
+    lines(f).forEach((line, i) => {
+      if (OPT_NAME.test(line)) offenders.push(`${r}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [],
+    `select 列人名只允许 §4.13 登记的四处例外；新代码请改用 PersonPicker（选名单成员）或先登记例外：\n${offenders.join('\n')}`);
+  // 白名单防僵尸：四处若已不再用下拉列人名，须从白名单移除（否则白名单会长期掩盖回潮）
+  const stale = [...ALLOW].filter((r) => !lines(join(SRC_DIR, ...r.split('/'))).some((l) => OPT_NAME.test(l)));
+  assert.deepEqual(stale, [], `以下文件已不再用下拉列人名，应从 S9 白名单移除：\n${stale.join('\n')}`);
+});
+
 // ── 口径层 ──────────────────────────────────────────────────────────
 
 test('D1 档位数值三处同源（34px 高 / 12px 字）', () => {
@@ -165,4 +199,61 @@ test('D1 档位数值三处同源（34px 高 / 12px 字）', () => {
   // 输入框档：input.input-flat.text-xs 上下 8px + 行高 16px + 边框 2px = 34px
   assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-top:\s*8px/, '搜索框档须为 8px 上内边距（34px 档）');
   assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-bottom:\s*8px/, '搜索框档须为 8px 下内边距（34px 档）');
+});
+
+// D2（2026-09-14 批次 31）
+// 病灶：S1–S8 与 D1 只比对「CSS 里写的数字」（都写着 34px / 42px），而实际渲染高度由
+//   「内边距 + 行高 + 边框」算出——行高一项原先没显式声明，靠 UA 默认或 Tailwind CDN 的
+//   text-* 工具类提供：环境一变（离线、CDN 被挡、裸 input 取继承行高）就退化，
+//   同一表单内曾实测出 42 / 43 / 47 三值并存（触发器 43、无 text 类的裸输入框 47）。
+//   故把算式本身锁死：五处载体的高度必须由显式行高算出，且等于规范档位。
+test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 42 / 34），禁靠 UA 或 CDN 工具类给行高', () => {
+  // 去注释：说明文字里含「行高」「42px」等字样，不剥掉会被当成声明误读
+  const css = read(CSS).replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const bodyOf = (sel) => {
+    const m = css.match(new RegExp(`(?:^|[}\\n;])\\s*${escRe(sel)}\\s*\\{([^}]*)\\}`));
+    return m ? m[1] : null;
+  };
+  const decl = (body, prop) => {
+    const m = body.match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`));
+    return m ? m[1].trim() : null;
+  };
+  const num = (v) => {
+    const s = String(v).trim();
+    const n = parseFloat(s);
+    return /rem\b/.test(s) ? Math.round(n * 16) : Math.round(n); // rem 按根字号 16px 折算
+  };
+  const vpad = (body) => {
+    const top = decl(body, 'padding-top');
+    const bottom = decl(body, 'padding-bottom');
+    if (top && bottom) return [num(top), num(bottom)];
+    const sh = decl(body, 'padding');
+    if (!sh) return null;
+    const parts = sh.split(/\s+/).map(num);
+    return [parts[0], parts.length >= 3 ? parts[2] : parts[0]];
+  };
+
+  const CASES = [
+    ['.input-flat', 42, '标准档输入框'],
+    ['input.input-flat.text-xs', 34, '紧凑档输入框（筛选行关键词框）'],
+    ['select.input-flat.text-xs', 34, '紧凑档原生下拉'],
+    ['.cs-trigger.input-flat', 42, '标准档下拉触发器'],
+    ['.cs-trigger.input-flat.text-xs', 34, '紧凑档下拉触发器'],
+  ];
+  const bad = [];
+  for (const [sel, want, label] of CASES) {
+    const b = bodyOf(sel);
+    if (!b) { bad.push(`${sel}（${label}）未在 styles.css 定义`); continue; }
+    const lh = decl(b, 'line-height');
+    const vp = vpad(b);
+    if (!vp) { bad.push(`${sel}（${label}）未声明内边距`); continue; }
+    if (!lh) {
+      bad.push(`${sel}（${label}）未显式声明 line-height —— 高度将随 UA / CDN 工具类漂移`);
+      continue;
+    }
+    const h = num(lh) + vp[0] + vp[1] + 2; // 边框上下各 1px
+    if (h !== want) bad.push(`${sel}（${label}）算式得 ${h}px，应为 ${want}px（内边距 ${vp[0]}/${vp[1]} + 行高 ${num(lh)} + 边框 2）`);
+  }
+  assert.deepEqual(bad, [], `档位算式须与规范一致，两载体同式：\n${bad.join('\n')}`);
 });
