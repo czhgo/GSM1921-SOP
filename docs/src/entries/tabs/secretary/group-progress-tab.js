@@ -19,22 +19,22 @@
 // 本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分；?v= 沿用统一收口版本号。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260913f';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913f';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913f';
-import { IssueStore } from '../../../services/issues.js?v=20260913f';
-import { loadActivities } from '../../../services/activity.js?v=20260913f';
-import { loadActivityReviews } from '../../../services/review.js?v=20260913f';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913f';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
+import { AuthStore } from '../../../services/auth.js?v=20260913v';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913v';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260913v';
+import { IssueStore } from '../../../services/issues.js?v=20260913v';
+import { loadActivities } from '../../../services/activity.js?v=20260913v';
+import { loadActivityReviews } from '../../../services/review.js?v=20260913v';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260913v';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260913v';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260913v';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913v';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260913f';
+} from '../../../services/group-view.js?v=20260913v';
 
 // ── 模块级状态（随模块自持；tab 切走再回保持，页面刷新回退首组） ──
 let _selectedGroup = null;      // 当前选中党小组名

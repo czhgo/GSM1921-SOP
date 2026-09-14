@@ -28,19 +28,19 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from './modal.js?v=20260913f';
-import { PersonStore } from '../services/person.js?v=20260913f';
-import { getBranchById } from '../services/branch.js?v=20260913f';
-import { ROLE_LABELS, DEVELOP_STAGES } from '../core/constants.js?v=20260913f';
-import { RESIDENCE } from '../services/org-base-data-preview.js?v=20260913f';
-import { submitMemberChange } from '../services/member-confirmation.js?v=20260913f';
-import { AuthStore } from '../services/auth.js?v=20260913f';
-import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260913f';
+import { openModal, closeModal } from './modal.js?v=20260913v';
+import { PersonStore } from '../services/person.js?v=20260913v';
+import { getBranchById } from '../services/branch.js?v=20260913v';
+// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../core/constants.js?v=20260913v';
+import { submitMemberChange } from '../services/member-confirmation.js?v=20260913v';
+import { AuthStore } from '../services/auth.js?v=20260913v';
+import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260913v';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
 
-/** 在册状态取值（单一源 = org-base-data-preview 的 RESIDENCE；勿另写「在校/滞留」字面量） */
+/** 在册状态取值（单一源 = core/constants.js 的 RESIDENCE；勿另写「在校/滞留」字面量） */
 const RESIDENCE_OPTIONS = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
 
 /**

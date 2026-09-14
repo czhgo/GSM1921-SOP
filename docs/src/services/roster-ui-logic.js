@@ -9,11 +9,13 @@
 //   · 行内保存 diff（分组/阶段/滞留 变化 → 仅带变化字段的补丁）。
 // 语义（支书口径，2026-09-06）：滞留 = 组织关系保留但人不在校 → 成员身份保留、
 //   应到剔除、通知照发；备注为「滞留备注」，在校状态下不保留备注（防错位）。
-// 依赖：roster.js（RESIDENCE 枚举 + getResidenceOf 读链）——两文件均纯 ESM、无 DOM。
+// 依赖：core/constants.js（RESIDENCE 枚举，单一源）+ roster.js（getResidenceOf 读链）——均纯 ESM、无 DOM。
 // 单测：server/test/roster-ui-logic.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { RESIDENCE, getResidenceOf } from './roster.js?v=20260913f';
+// Q-21-3 收敛（2026-09-13）：RESIDENCE 单一源 = core/constants.js（原经 roster.js 转出）
+import { RESIDENCE } from '../core/constants.js?v=20260913v';
+import { getResidenceOf } from './roster.js?v=20260913v';
 
 // ── 删除守卫：业务域 → 产品话术类别（removeMember 引用守卫 refs 的展示映射）──
 // 映射键 = PersonStore.findMemberRefs 的 domain（详见 services/person.js）；

@@ -61,6 +61,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第三范本（2026-09-13 批次 23 新增）**：`server/test/notice-audience.test.mjs`——通知受众口径分裂的两层法（发布侧写入值与消费侧判定同源 + 取数口与可见性门分离），是「**同一类缺陷（口径分裂）在第二处实体的复现**」（前有活动生命周期展示态、人员字段，这里是通知受众）。
 
+> **第四范本（2026-09-14 批次 24 新增）**：`RESIDENCE` 枚举「两份同值定义」收敛（`services/roster.js` & `services/org-base-data-preview.js` → `core/constants.js` 单一源），守卫落 `person-consistency.test.mjs` **S4**。要点三条：① **定义点放在依赖图的叶子**（无 import 的模块）——原先「为避免循环依赖只能两处维护」的说法，本质是把枚举放在了依赖图的中间层（`person → preview → roster` 成环），移到叶子即消解；② 原定义点**不保留 re-export 兼容层**（两条 import 路径＝隐性两源）；③ 守卫必须两层——旧的「两份同值断言」在单一源下**恒真＝假绿**，须替换为数据层**取值契约断言** + 结构层**唯一性静态扫描**（全仓只允许一处 `export const X =`，并断言原定义点仍在 import 它）。
+
+> **第五范本（2026-09-14 批次 24 新增·非实体类一致性）**：**版本戳（缓存键）同值**——同一模块被多处 import 时若 `?v=` 不一致，浏览器会按 URL **分裂出第二个模块实例**（注册表/共享状态读空）。守卫＝`docs/scripts/bump-version.mjs` 的**收尾自检**：改写后扫描全仓 `?v=`，报告与本版本不一致的残留（**要守的是「改完有无陈旧残留」，不是「本次改了几个」**）；自检须与改写**同源跳过注释行**（注释里的版本号是人工注记、不是缓存键），且 stamper 须覆盖全部动态导入形态（含**模板字符串** `` import(`…/${stem}-workspace.js?v=…`) ``）。**推广**：凡「同一 URL/键必须在全站同值」的口径（版本戳、资源戳、CSS `url()` 资源），都适用于「生成 → 自检残留」这一对动作。
+
 ---
 
 ## 1. 人员数据
@@ -456,6 +460,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 - [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
+- [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/roster.js` 与 `services/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
+- [ ] 版本戳同值（缓存键一致性）：全站 `?v=<release>` 与本次发布版本**处处一致**——`docs/scripts/bump-version.mjs` 收尾自检须报「陈旧戳 0 处残留」；任一 `?v=` 落后即会让浏览器按 URL 分裂出第二个模块实例（注册表/共享状态读空）。**注意**：注释里的版本号是人工注记、不算缓存键（自检与改写同源跳过注释行）；**模板字符串动态 import**（`` import(`…/${stem}-workspace.js?v=…`) ``）也在覆盖范围内
 
 ---
 

@@ -13,12 +13,16 @@
 //   （getEffectiveMembers/getRosterStats/getMeetingRoster）与姓名解析自动吃到预览效果。
 // 依赖方向（防循环）：本模块只 import mock/people.js + core/policy-defaults.js，
 //   不 import services/person.js / services/roster.js（person.js → preview 单向依赖）；
-//   居住状态字面量 RESIDENCE 与 roster.js 同值（单测断言防失同步）。
+//   居住状态字面量 RESIDENCE 已收敛单一源 = core/constants.js（Q-21-3，2026-09-13；本模块 import 后自用，
+//   不再对外重复导出——消费点一律直取 constants.js）。
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260913f';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913f';
+import { PEOPLE } from '../mock/people.js?v=20260913v';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260913v';
+// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自写一份与 roster 同值的
+//   副本；constants.js 无 import → 可安全被本模块与 roster.js 双向共用，person→preview→roster 成环问题消解）。
+import { RESIDENCE } from '../core/constants.js?v=20260913v';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';
@@ -28,8 +32,6 @@ export const PREVIEW_VERSION = 1;
 export const PREVIEW_KEY = 'gsm1921-base-data-preview';
 /** 预览仅覆盖的基础字段（其余档案字段 studentId/role/branchId 一律不碰） */
 export const BASE_FIELDS = ['name', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'];
-/** 居住状态字面量（与 services/roster.js RESIDENCE 同值；本模块不 import roster 防 person→preview→roster 循环） */
-export const RESIDENCE = { CAMPUS: '在校', DETAINED: '滞留' };
 
 // 应到口径单一源 = policy-defaults attendance.roster（勿在业务层新写字面量）
 const ROSTER_CFG = POLICY_DEFAULTS.attendance.roster;

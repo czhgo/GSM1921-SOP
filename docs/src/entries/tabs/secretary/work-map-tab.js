@@ -5,14 +5,14 @@
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260913f';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260913f';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260913f';
-import { AuthStore } from '../../../services/auth.js?v=20260913f';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260913f';
-import { getPersonName } from '../../../services/person.js?v=20260913f';
+import { escHtml as esc } from '../../../core/utils.js?v=20260913v';
+import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260913v';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260913v';
+import { AuthStore } from '../../../services/auth.js?v=20260913v';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260913v';
+import { getPersonName } from '../../../services/person.js?v=20260913v';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260913f';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260913v';
 
 let _view = 'modules'; // 视图 A 平铺模块 / 视图 B 按人（同一会话内保持）
 

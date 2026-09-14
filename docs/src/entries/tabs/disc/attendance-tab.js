@@ -8,28 +8,28 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913f';
-import { generateId } from '../../../core/id.js?v=20260913f';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913f';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260913v';
+import { generateId } from '../../../core/id.js?v=20260913v';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260913v';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913v';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260913f';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260913f';
-import { loadActivities } from '../../../services/activity.js?v=20260913f';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913f';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913f';
-import { NoticeStore } from '../../../services/notice.js?v=20260913f';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260913f';
-import { badgeHtml } from '../../../components/badges.js?v=20260913f';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260913v';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260913v';
+import { loadActivities } from '../../../services/activity.js?v=20260913v';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260913v';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260913v';
+import { NoticeStore } from '../../../services/notice.js?v=20260913v';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260913v';
+import { badgeHtml } from '../../../components/badges.js?v=20260913v';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913f';
-import { HandoffStore } from '../../../services/handoff.js?v=20260913f';
-import { AuthStore } from '../../../services/auth.js?v=20260913f';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260913f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913v';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260913v';
+import { HandoffStore } from '../../../services/handoff.js?v=20260913v';
+import { AuthStore } from '../../../services/auth.js?v=20260913v';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260913v';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -388,7 +388,7 @@ function _buildQueueHTML(items, leaveCount, absentCount, overdueCount, autoConfi
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${color}"></span>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-800">${getPersonName(r.personId)}</span>
+              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a>
               ${r.status === AttendanceStatus.ABSENT ? badgeHtml('缺勤', 'danger') : badgeHtml('请假', 'warning')}
               ${r.overdue || (act && act.date && new Date(act.date) < new Date()) ? badgeHtml('超期', 'danger') : ''}
             </div>
@@ -852,7 +852,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
           const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
           return `
           <tr class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="py-2 px-3 font-medium text-gray-800">${a.name}</td>
+            <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${a.name}</a></td>
             <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${a.activity}</a>` : a.activity}</td>
             <td class="py-2 px-3"><span class="${statusColor}">${a.status}</span></td>
             <td class="py-2 px-3 text-gray-500">${autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`)}</td>

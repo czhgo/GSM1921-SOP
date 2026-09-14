@@ -2,26 +2,26 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260913f';
-import { renderHeader } from '../components/header.js?v=20260913f';
-import { BranchService } from '../services/runtime.js?v=20260913f';
-import { mockDB } from '../core/domain.js?v=20260913f';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913f';
-import { NoticeStore } from '../services/notice.js?v=20260913f';
-import { SignupStore } from '../services/signup.js?v=20260913f';
-import { AuthStore } from '../services/auth.js?v=20260913f';
-import { getPersonById } from '../services/person.js?v=20260913f';
-import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260913f';
-import { getActivityTypeColors } from '../core/constants.js?v=20260913f';
-import { getAppState } from '../core/state.js?v=20260913f';
-import { badgeHtml } from '../components/badges.js?v=20260913f';
+import { renderSidebar } from '../components/sidebar.js?v=20260913v';
+import { renderHeader } from '../components/header.js?v=20260913v';
+import { BranchService } from '../services/runtime.js?v=20260913v';
+import { mockDB } from '../core/domain.js?v=20260913v';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913v';
+import { NoticeStore } from '../services/notice.js?v=20260913v';
+import { SignupStore } from '../services/signup.js?v=20260913v';
+import { AuthStore } from '../services/auth.js?v=20260913v';
+import { getPersonById } from '../services/person.js?v=20260913v';
+import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260913v';
+import { getActivityTypeColors } from '../core/constants.js?v=20260913v';
+import { getAppState } from '../core/state.js?v=20260913v';
+import { badgeHtml } from '../components/badges.js?v=20260913v';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260913f';
-import { enhanceSelects } from '../components/custom-select.js?v=20260913f';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260913f';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260913f';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260913f';
-import { fetchVotes } from '../services/committee-vote.js?v=20260913f';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260913v';
+import { enhanceSelects } from '../components/custom-select.js?v=20260913v';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260913v';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260913v';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260913v';
+import { fetchVotes } from '../services/committee-vote.js?v=20260913v';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

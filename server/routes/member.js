@@ -6,13 +6,15 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
 // P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
+// Q-21-3（2026-09-13）：在册状态枚举 RESIDENCE 同源 = constants.js（原先经 org-base-data-preview 转出，
+//   而 preview 与 roster 各持一份同值字面量；现全站唯一源）
 import {
   SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS,
   COMMITTEE_IDS as BRANCH_COMMITTEE_IDS,
+  RESIDENCE,
 } from '../../docs/src/core/constants.js';
-// 发展阶段/在册状态枚举单一源 = docs/src/services/org-base-data-preview.js（叶子模块，勿另写枚举；
-// RESIDENCE 与 services/roster.js 同值，单测断言防失同步）
-import { DEVELOP_STAGE_OPTIONS, RESIDENCE } from '../../docs/src/services/org-base-data-preview.js';
+// 发展阶段枚举单一源 = docs/src/services/org-base-data-preview.js（静态种子派生，勿另写枚举）
+import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-preview.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）

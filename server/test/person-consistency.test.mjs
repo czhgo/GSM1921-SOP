@@ -33,15 +33,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913f';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260913f';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260913f';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260913f';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260913f';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260913f';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260913f';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260913f';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260913f';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913v';
+import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260913v';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260913v';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260913v';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260913v';
+import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260913v';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260913v';
+import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260913v';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260913v';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -251,4 +251,28 @@ test('S2 禁止凭姓名认身份：find(p => p.name === …)（重名/改名即
 test('S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落点）', () => {
   const src = readFileSync(join(SRC_DIR, 'services', 'person.js'), 'utf8');
   assert.match(src, /export function liveMembers\s*\(/, 'services/person.js 必须导出 liveMembers()（人员清单实时视图）');
+});
+
+test('S4 RESIDENCE 单一源：全站只允许 core/constants.js 一处定义（Q-21-3 防回潮）', () => {
+  // 病灶（2026-09-13 收敛前）：services/roster.js 与 services/org-base-data-preview.js 各写一份同值
+  //   { CAMPUS:'在校', DETAINED:'滞留' }——preview 不能 import roster（person→preview→roster 成环），
+  //   于是「为避免循环依赖」长期默认两处维护、仅靠单测断言同值。现收敛至无 import 的叶子模块
+  //   core/constants.js，本守卫拦「再长出第二份定义」。
+  const defs = [];
+  for (const file of walkJs(SRC_DIR)) {
+    const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
+    readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      if (isCommentLine(line)) return; // 注释里可引用该定义做说明
+      if (/^\s*export\s+const\s+RESIDENCE\s*=/.test(line)) defs.push(rel);
+    });
+  }
+  assert.deepEqual(defs, ['core/constants.js'],
+    'RESIDENCE 只允许在 core/constants.js 定义一次；roster.js / org-base-data-preview.js 等一律 import 该单一源'
+    + '（防循环依赖说明见 constants.js 该常量注释）');
+  // 两个原定义点必须仍在消费（防「守卫绿了但模块不认这个枚举」的假绿）
+  for (const rel of ['services/roster.js', 'services/org-base-data-preview.js']) {
+    const src = readFileSync(join(SRC_DIR, rel), 'utf8');
+    assert.match(src, /import \{[^}]*\bRESIDENCE\b[^}]*\} from '\.\.\/core\/constants\.js/,
+      `${rel} 必须从 core/constants.js 导入 RESIDENCE`);
+  }
 });

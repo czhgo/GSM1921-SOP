@@ -27,25 +27,26 @@
 //     任一改动即被应到口径（纪检考勤/支书复核卡）与对方界面读到。
 //  数据/枚举单一源：PersonStore.getMembers（含 members 持久覆盖层 + 预览叠加）；
 //    党小组/发展阶段枚举 = org-base-data-preview 的 PARTY_GROUP_OPTIONS / DEVELOP_STAGE_OPTIONS
-//    （由静态种子派生，禁造新枚举）；在册状态 = roster.RESIDENCE。
+//    （由静态种子派生，禁造新枚举）；在册状态 = core/constants.js.RESIDENCE（单一源）。
 //  在册滞留写链（与纪检/支书复核同源，防覆盖层与档案互相遮蔽）：
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913f';
-import { getRosterStats, getResidenceOf, RESIDENCE } from '../../../services/roster.js?v=20260913f';
-import { submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913f';
-import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913f';
-import { AuthStore } from '../../../services/auth.js?v=20260913f';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260913f';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913f';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913f';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260913v';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260913v';
+import { submitTransferOut, listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260913v';
+import { PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260913v';
+import { AuthStore } from '../../../services/auth.js?v=20260913v';
+// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260913v';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260913v';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260913v';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260913f';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260913v';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260913f';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260913v';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;

@@ -9,22 +9,22 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260913f';
-import { renderHeader } from '../components/header.js?v=20260913f';
-import { BranchService } from '../services/runtime.js?v=20260913f';
-import { AuthStore } from '../services/auth.js?v=20260913f';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260913f';
-import { getBranchById } from '../services/branch.js?v=20260913f';
-import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260913f';
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260913f';
-import { RESIDENCE } from '../services/org-base-data-preview.js?v=20260913f';
-import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260913f';
-import { badgeHtml } from '../components/badges.js?v=20260913f';
-import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260913f';
-import { loadActivities } from '../services/activity.js?v=20260913f';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913f';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260913f';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260913f';
+import { renderSidebar } from '../components/sidebar.js?v=20260913v';
+import { renderHeader } from '../components/header.js?v=20260913v';
+import { BranchService } from '../services/runtime.js?v=20260913v';
+import { AuthStore } from '../services/auth.js?v=20260913v';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260913v';
+import { getBranchById } from '../services/branch.js?v=20260913v';
+import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260913v';
+// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260913v';
+import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260913v';
+import { badgeHtml } from '../components/badges.js?v=20260913v';
+import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260913v';
+import { loadActivities } from '../services/activity.js?v=20260913v';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260913v';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260913v';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260913v';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

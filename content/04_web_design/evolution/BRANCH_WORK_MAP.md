@@ -86,8 +86,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 欠拟合（已登记）：
 
 - 部分表「第一列是人」与「第一列是活动」同等重要（考勤矩阵、表态矩阵、考察人视图矩阵等）——本轮**不接入**统一检索（矩阵/转置结构，接入会破坏视图与分页），登记为**已知例外**；
-- `Date.now()` 生成实体 id 的全站排查（`services/external-dispatch.js` / `handoff.js` / `makeup.js` / `notice.js` / `issues.js` 等仍为「前缀 + `Date.now()`」，同毫秒写入存在撞 id 风险）——详见 `.ctx/REVIEW_QUEUE.md` 批次 21 归口（Q-21-2）；
-- `RESIDENCE` 常量两份同值定义（`services/roster.js` 与 `services/org-base-data-preview.js`）待收敛为单一定义。
+- 上述清单中「`Date.now()` 生成实体 id 的全站排查」与「`RESIDENCE` 常量两份同值定义」两项**已于 2026-09-14 批次 24 闭环**（id 收敛 `core/id.js` 单一源＋两层守卫；`RESIDENCE` 收敛 `core/constants.js` 单一源＋S4 结构层守卫）——权威留痕见 `.ctx/REVIEW_QUEUE.md`（Q-21-2 / Q-21-3）与 `CLAUDE.md`（R-35 / R-37）。
 
 ---
 

@@ -3,17 +3,17 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260913f';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260913f';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260913f';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913f';
-import { badgeHtml } from '../../../components/badges.js?v=20260913f';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913f';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913f';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260913v';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260913v';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260913v';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260913v';
+import { badgeHtml } from '../../../components/badges.js?v=20260913v';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260913v';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260913v';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913f';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260913v';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260913v';
 
 export function renderContent() {
   const container = document.getElementById('disc-tab-content');

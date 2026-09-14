@@ -6,20 +6,24 @@
 //     stats 与 roster 口径一致（支部党员大会应到 = 党员 − 滞留、小组按组）
 //   applyPreview / clearPreview 读写 localStorage 预览键；PersonStore / roster 应到链读取叠加即时变化
 // 口径单一源 = core/policy-defaults.js attendance.roster（与 services/roster.js 同源）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913f query（模块缓存键一致性）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260913v query（模块缓存键一致性）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913f';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913f';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260913f';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260913v';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260913v';
+// Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原分别在 roster.js 与
+//   org-base-data-preview.js 各写一份同值字面量；现全站唯一源，结构层唯一性守卫见
+//   person-consistency.test.mjs S4）
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260913v';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260913v';
 import {
-  getMeetingRosterIds, getRosterStats, RESIDENCE as ROSTER_RESIDENCE,
-} from '../../docs/src/services/roster.js?v=20260913f';
+  getMeetingRosterIds, getRosterStats,
+} from '../../docs/src/services/roster.js?v=20260913v';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
-  PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, RESIDENCE, MEMBER_IDS,
-} from '../../docs/src/services/org-base-data-preview.js?v=20260913f';
+  PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, MEMBER_IDS,
+} from '../../docs/src/services/org-base-data-preview.js?v=20260913v';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();
@@ -37,12 +41,13 @@ const BRANCH_MEMBERS = PEOPLE.filter(p => p.branchId !== null && p.branchId !== 
 const PARTY_MEMBERS = BRANCH_MEMBERS.filter(p => PARTY_STAGES.includes(p.developStage));
 
 // ── a) 常量与模板结构 ─────────────────────────────────────
-test('常量：kind/version/键名与成员基底；RESIDENCE 与 roster.js 同值（防失同步）', () => {
+test('常量：kind/version/键名与成员基底；RESIDENCE 取值契约（单一源 = core/constants.js）', () => {
   assert.equal(PREVIEW_KIND, 'gsm1921-base-data');
   assert.equal(PREVIEW_VERSION, 1);
   assert.equal(PREVIEW_KEY, 'gsm1921-base-data-preview');
   assert.deepEqual(BASE_FIELDS, ['name', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote']);
-  assert.deepEqual(RESIDENCE, ROSTER_RESIDENCE, '居住状态字面量与 roster 同值');
+  // 数据层：取值契约（结构层「全站只此一处定义」守卫 = person-consistency.test.mjs S4）
+  assert.deepEqual(RESIDENCE, { CAMPUS: '在校', DETAINED: '滞留' }, '在册状态枚举取值契约');
   assert.equal(BRANCH_MEMBERS.length, 50, '本支部成员 50 名（不含 p_pc 党委组织员）');
   assert.equal(MEMBER_IDS.length, 50);
 });

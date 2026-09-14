@@ -219,6 +219,17 @@ export const SEARCH_FILTER_MIN_ROWS = 8;
 //   语义不同，勿混用——后者是"计应到"的党员子集，本常量是完整发展流程序。
 export const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '正式党员'];
 
+// ── 在册状态枚举（单一源，2026-09-13 收敛 Q-21-3）───────────────────
+// 语义：组织关系在本支部、人是否在校（成员档案 residenceStatus；缺省=在校）。
+// 原 services/roster.js 与 services/org-base-data-preview.js 各写一份同值字面量
+// （roster 的语义主场在 roster，而 preview 不能 import roster——person.js → preview 是单向依赖，
+//   preview 反向 import 即成环），属「同一口径两处维护」。本项目统一收敛至本文件（无任何 import 的
+//   叶子模块，双端可载），roster / preview 与全部消费点一律 import 本文件，防循环依赖问题自然消解。
+export const RESIDENCE = {
+  CAMPUS: '在校',
+  DETAINED: '滞留',
+};
+
 // ── 通知发布/管理角色（2026-09-13 dogfood 权限专项：前后端「单一源」，勿各自手写）──
 // 发布 = 支委层中除纪检（纪检为会议纪律通报场景，只需管理位）；管理（编辑/删除）= 支委层全体。
 // 由 BRANCH_COMMISSION_ROLES 派生（勿再手写角色名单——roles-sync 守卫「5 支委授权列表只允许出现在授权集」会拦）。

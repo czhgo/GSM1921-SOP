@@ -42,9 +42,16 @@ function collectFiles(dir, ext, out = []) {
 }
 
 // ── 判断是否注释行（跳过 JSDoc 类型 import，如 @param {import('../core/domain.js').Activity}）──
+// 语义（2026-09-13 Q-21-4）：注释里的 `?v=xxx` 是人写的历史注记，不是浏览器缓存键 → 既不改写、也不算陈旧。
+/** 行首即是注释（整行注释）——stamper 跳过、扫描器也不视为缓存键 */
 function isCommentLine(line) {
   const t = line.trimStart();
-  return t.startsWith('*') || t.startsWith('//') || t.startsWith('/*');
+  return t.startsWith('*') || t.startsWith('//') || t.startsWith('/*') || t.startsWith('<!--');
+}
+
+/** 去掉行尾注释后的代码部分（扫描 `?v=` 用：代码行尾追注的历史版本号同样是人工注记，不是缓存键） */
+function codePartOf(line) {
+  return line.replace(/\/\/.*$/, '').replace(/\/\*.*?\*\//g, '');
 }
 
 // ── 行内替换相对路径 import 的版本号 ──
@@ -63,29 +70,30 @@ function stampLine(line, version) {
     /(\bimport\s+['"])(\.{1,2}\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
     (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
   );
-  // 动态 import('...')
+  // 动态 import('...') —— 同时覆盖模板字符串形式 `import(\`../modules/capabilities/${stem}-workspace.js?v=旧戳\`)`
+  //（2026-09-13 Q-21-4 收尾自检暴露：settings-entry.js 的 capabilities 动态加载因「只认引号」漏戳，长年停在
+  //  20260909e → 浏览器按 URL 分裂出第二个 workspace 模块实例。故本行同时接受 ` / ' / "）
   line = line.replace(
-    /(import\(\s*['"])(\.{1,2}\/[^'"?]*\.js)(\?[^'"]*)?(['"]\s*\))/g,
+    /(import\(\s*[`'"])(\.{1,2}\/[^`'"?]*\.js)(\?[^`'"]*)?([`'"]\s*\))/g,
     (m, pre, path, _q, end) => `${pre}${path}?v=${version}${end}`
   );
   return line;
 }
 
 // ── 处理 src 下所有 .js ──
+// 计数口径（2026-09-13 Q-21-4 修正）：以**改写前后内容是否真的不同**为唯一判据。
+//   原实现用「在 map 回调里置 changed 标志」判断，实测出现「文件已改写却报 0 个」的不可靠计数
+//   （badges.js 已变 ?v=新戳，脚本仍打印 0），故改为直接比对字符串——避免依赖跨闭包的标志位。
 let jsCount = 0;
 const jsFiles = collectFiles(SRC_DIR, '.js');
 for (const file of jsFiles) {
-  let content = readFileSync(file, 'utf8');
-  let changed = false;
-  const lines = content.split('\n');
-  const out = lines.map((line) => {
-    if (isCommentLine(line)) return line;
-    const next = stampLine(line, VERSION);
-    if (next !== line) changed = true;
-    return next;
-  });
-  if (changed) {
-    writeFileSync(file, out.join('\n'), 'utf8');
+  const before = readFileSync(file, 'utf8');
+  const after = before
+    .split('\n')
+    .map((line) => (isCommentLine(line) ? line : stampLine(line, VERSION)))
+    .join('\n');
+  if (after !== before) {
+    writeFileSync(file, after, 'utf8');
     jsCount++;
   }
 }
@@ -94,36 +102,29 @@ for (const file of jsFiles) {
 let htmlCount = 0;
 const htmlFiles = collectFiles(HTML_DIR, '.html');
 for (const file of htmlFiles) {
-  let content = readFileSync(file, 'utf8');
-  let changed = false;
-  // entry script：src="...?v=..." → 统一为新版本
-  content = content.replace(
-    /(<script type="module" src="[^"?]*\.js)(\?[^"]*)?(")/g,
-    (m, pre, _q, end) => {
-      changed = true;
-      return `${pre}?v=${VERSION}${end}`;
-    }
-  );
-  // 样式表：href="...*.css?v=..." → 统一为新版本
-  //（2026-09-13 扩展：原只覆盖 styles.css，about.css 等长年停在旧戳 20260828l）
-  content = content.replace(
-    /(href="[^"?]*\.css)(\?[^"]*)?(")/g,
-    (m, pre, _q, end) => {
-      changed = true;
-      return `${pre}?v=${VERSION}${end}`;
-    }
-  );
-  // 公共脚本（theme-init/tailwind-config 等，HTML 公共资源抽取 2026-08-29 方案A）：
-  // 普通 <script src=".../src/*.js"> 版本统一（不匹配 type="module" 的 entry——其 src 前有 type 属性）
-  content = content.replace(
-    /(<script src="[^"?]*\/src\/[^"?]*\.js)(\?[^"]*)?(")/g,
-    (m, pre, _q, end) => {
-      changed = true;
-      return `${pre}?v=${VERSION}${end}`;
-    }
-  );
-  if (changed) {
-    writeFileSync(file, content, 'utf8');
+  const before = readFileSync(file, 'utf8');
+  // 计数口径（Q-21-4 修正）：原实现在 replace 回调里无条件置 changed=true → 「正则命中」即计数，
+  //   空跑（已是当前戳）也会报「更新 N 个」，属假阳性计数。现一律以内容比对为准。
+  const next = before
+    // entry script：src="...?v=..." → 统一为新版本
+    .replace(
+      /(<script type="module" src="[^"?]*\.js)(\?[^"]*)?(")/g,
+      (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+    )
+    // 样式表：href="...*.css?v=..." → 统一为新版本
+    //（2026-09-13 扩展：原只覆盖 styles.css，about.css 等长年停在旧戳 20260828l）
+    .replace(
+      /(href="[^"?]*\.css)(\?[^"]*)?(")/g,
+      (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+    )
+    // 公共脚本（theme-init/tailwind-config 等，HTML 公共资源抽取 2026-08-29 方案A）：
+    // 普通 <script src=".../src/*.js"> 版本统一（不匹配 type="module" 的 entry——其 src 前有 type 属性）
+    .replace(
+      /(<script src="[^"?]*\/src\/[^"?]*\.js)(\?[^"]*)?(")/g,
+      (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
+    );
+  if (next !== before) {
+    writeFileSync(file, next, 'utf8');
     htmlCount++;
   }
 }
@@ -188,9 +189,43 @@ if (existsSync(testDir)) {
   }
 }
 
+// ── 收尾自检（2026-09-13 Q-21-4）：扫描全仓 `?v=` 戳，报告与本版本不一致的残留 ──
+// 这才是真正要保证的量：**不只是本次改了多少，而是改完后有没有陈旧残留**——陈旧戳会让浏览器按
+// URL 分裂出第二个模块实例（注册表/共享状态读空的根因，见 TEST_AND_VERIFICATION §17）。
+const STALE_RE = /\?v=([0-9]{8}[a-z])/g;
+const staleFiles = [];
+function scanStale(dir, exts) {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) {
+      if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
+      scanStale(full, exts);
+      continue;
+    }
+    if (!exts.some((e) => name.endsWith(e))) continue;
+    // 注释行不算缓存键（如 cross-page-state.js 里「本批次全站 ?v=20260911a」的历史注记）——
+    // 与 stamper 的跳过规则同源，避免把人工注记报成陈旧残留。
+    const hits = [];
+    for (const raw of readFileSync(full, 'utf8').split(/\r?\n/)) {
+      if (isCommentLine(raw)) continue;
+      for (const m of codePartOf(raw).matchAll(STALE_RE)) if (m[1] !== VERSION) hits.push(m[1]);
+    }
+    if (hits.length) staleFiles.push(`${full.slice(ROOT.length + 1)} (${[...new Set(hits)].join(', ')})`);
+  }
+}
+scanStale(SRC_DIR, ['.js', '.css']);
+scanStale(HTML_DIR, ['.html']);
+const serverTestDir = join(ROOT, '..', 'server', 'test');
+if (existsSync(serverTestDir)) scanStale(serverTestDir, ['.mjs', '.test.js']);
+
 console.log(`[bump-version] 版本号：${VERSION}`);
-console.log(`[bump-version] 更新 JS 文件：${jsCount} 个`);
-console.log(`[bump-version] 更新 HTML 文件：${htmlCount} 个`);
-if (cssCount > 0) console.log(`[bump-version] 更新 CSS 资源戳：${cssCount} 个`);
-if (codeVersionChanged) console.log(`[bump-version] CODE_VERSION +1（cross-page-state.js）`);
-if (testCount > 0) console.log(`[bump-version] 同步 server/test 版本戳：${testCount} 个`);
+console.log(`[bump-version] 实际改写：JS ${jsCount} 个 / HTML ${htmlCount} 个 / CSS ${cssCount} 个 / server-test ${testCount} 个`);
+console.log(`[bump-version] CODE_VERSION ${codeVersionChanged ? '+1（cross-page-state.js）' : '未变'}`);
+if (staleFiles.length === 0) {
+  console.log('[bump-version] 陈旧戳自检：0 处残留 ✅');
+} else {
+  console.log(`[bump-version] ⚠ 陈旧戳自检：${staleFiles.length} 个文件仍有非本版本戳——`);
+  for (const f of staleFiles.slice(0, 20)) console.log(`  - ${f}`);
+  if (staleFiles.length > 20) console.log(`  …另有 ${staleFiles.length - 20} 个未列出`);
+}

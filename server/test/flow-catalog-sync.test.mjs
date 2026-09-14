@@ -18,9 +18,9 @@ function grab(relPath, name) {
 }
 
 test('FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防失同步）', () => {
-  const groups = grab('docs/src/core/function-catalog.js?v=20260913f', 'FUNCTION_GROUPS');
-  const catalog = grab('docs/src/core/function-catalog.js?v=20260913f', 'FUNCTION_CATALOG');
-  const flowLinks = grab('docs/src/core/mermaid-sources.js?v=20260913f', 'FLOW_LINKS');
+  const groups = grab('docs/src/core/function-catalog.js?v=20260913v', 'FUNCTION_GROUPS');
+  const catalog = grab('docs/src/core/function-catalog.js?v=20260913v', 'FUNCTION_CATALOG');
+  const flowLinks = grab('docs/src/core/mermaid-sources.js?v=20260913v', 'FLOW_LINKS');
 
   const flowIds = catalog.filter((i) => i.kind === 'flow').map((i) => i.id);
   const linkKeys = Object.keys(flowLinks);
