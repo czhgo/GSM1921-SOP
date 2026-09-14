@@ -58,7 +58,7 @@ export function renderContent() {
   container.querySelector('#policy-text-body').replaceWith(body);
 
   return (_view === 'mailbox'
-    ? import('./mailbox-tab.js?v=20260914q')
-    : import('./makeup-tab.js?v=20260914q')
+    ? import('./mailbox-tab.js?v=20260914s')
+    : import('./makeup-tab.js?v=20260914s')
   ).then(m => m.renderContent(body));
 }

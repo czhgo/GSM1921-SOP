@@ -3,15 +3,15 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914q';
-import { showToast } from '../../../core/utils.js?v=20260914q';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914q';
-import { icon } from '../../../core/icons.js?v=20260914q';
-import { AuthStore } from '../../../services/auth.js?v=20260914q';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914q';
-import { getPersonName } from '../../../services/person.js?v=20260914q';
-import { PersonStore } from '../../../services/person.js?v=20260914q';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914q';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914s';
+import { showToast } from '../../../core/utils.js?v=20260914s';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914s';
+import { icon } from '../../../core/icons.js?v=20260914s';
+import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914s';
+import { getPersonName } from '../../../services/person.js?v=20260914s';
+import { PersonStore } from '../../../services/person.js?v=20260914s';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914s';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->

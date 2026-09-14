@@ -5,22 +5,22 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914q';
-import { generateId } from '../core/id.js?v=20260914q';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260914q';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260914q';
-import { bumpToken } from '../core/version-token.js?v=20260914q'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260914q';
-import { isInitStateActive } from './init-reset.js?v=20260914q'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260914q';
-import { AuthStore } from './auth.js?v=20260914q';
-import { getPersonById } from './person.js?v=20260914q';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260914q';
-import { badgeHtml } from '../components/badges.js?v=20260914q';
+import { mockDB } from '../core/domain.js?v=20260914s';
+import { generateId } from '../core/id.js?v=20260914s';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260914s';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260914s';
+import { bumpToken } from '../core/version-token.js?v=20260914s'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260914s';
+import { isInitStateActive } from './init-reset.js?v=20260914s'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260914s';
+import { AuthStore } from './auth.js?v=20260914s';
+import { getPersonById } from './person.js?v=20260914s';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260914s';
+import { badgeHtml } from '../components/badges.js?v=20260914s';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../core/constants.js?v=20260914q';
+} from '../core/constants.js?v=20260914s';
 
 function _loadNotices() {
   try {

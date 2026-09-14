@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260914q"></script>
+<script src="./src/theme-init.js?v=20260914s"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260914q"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260914q">
+  <script src="./src/tailwind-config.js?v=20260914s"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260914s">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -711,14 +711,15 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>活动日期已过仍未确认的异常自动标「超期」（红标）置于队列优先处理；党小组会考勤在纪检台只读掌握（下方只读块：组别 / 组长 / 上传人 / 到席 · 异常），改删走本队列 / 录入更正，不代传。</p>
         </div>
 
-        <div class="help-card" id="card-dom33-matrix-table" data-search="考勤 矩阵 总表 按活动 按人 筛选 导出 CSV 打印 自动确认 待确认 分页">
-          <h4 class="help-card-title">考勤矩阵与总表（查看 / 筛选 / 导出）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台「考勤管理」→「考勤矩阵」卡与「考勤总表」卡。</p>
+        <div class="help-card" id="card-dom33-matrix-table" data-search="考勤 矩阵 宽表 明细 总表 按活动 按人 按项目 最近6项 筛选 导出 CSV 打印 自动确认 待确认 分页">
+          <h4 class="help-card-title">考勤矩阵与明细（查看 / 筛选 / 导出）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台「考勤管理」→「考勤矩阵」卡与「考勤明细（导出 / 打印）」卡。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（管理主位）；组织侧与支书侧同源共享同一份数据（支书台「考勤概况」只读监督）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">矩阵：「按活动 / 按人」互为转置（色点 + 出 / 缺 / 假 / 补缩写），活动名搜索 + 时间区间筛选，快速看清全支部出勤。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">总表：姓名 / 活动搜索 + 状态下拉（出勤 / 缺勤 / 请假 / 已补），每页 20 条；确认人列显示「自动确认 / 待确认 / 纪检姓名」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>矩阵（默认「按人」宽表）</strong>：「按人 / 按活动」互为<strong>转置</strong>——按人＝第一列是人、横看是他参加过的活动；按活动＝第一列是活动、横看是这场都有谁。色点 + 出 / 缺 / 假 / 补缩写。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">列只取<strong>最近 6 项</strong>（活动逐年累积，列不能无限长）；要看更早点「<strong>显示全部 N 项</strong>」展开，或用活动名搜索 + 时间区间筛选收窄；横向滑动时第一列会吸附住。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">明细（原「考勤总表」）：姓名 / 活动搜索 + 状态下拉（出勤 / 缺勤 / 请假 / 已补），<strong>每页 10 条</strong>（翻页位置会记住）；确认人列显示「自动确认 / 待确认 / 纪检姓名」。逐条核对、导出、打印都在这张明细表里。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">低频操作行：「导出 CSV / 打印」（导出按当前筛选，含月份列与确认状态）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>已确认记录写确认人并记录；出勤 / 已补无确认人记为「自动确认」；缺勤 / 请假未确认记为「待确认」——规则全站统一（出勤率含「已补」）。</p>
@@ -775,7 +776,7 @@
           <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（考察总表确认 / 删除）；专班名单区只读同步组织委员管理的专班及考察确认进度。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">考察总表（活动视图 / 人视图互切）按来源（活动 / 专班）、状态（待确认 / 已确认 / 超期）筛选或搜索姓名 / 内容。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>默认宽表「按人」</strong>（每人参加过的考察来源横向列出），可切「<strong>按项目</strong>」（某来源都有谁被考察）与「<strong>明细</strong>」（原按人次长表）：三者是同一份数据的换视角 + 下钻。列只取最近 6 项，可「显示全部 N 项」；明细表按来源 / 状态（待确认 / 已确认 / 超期）筛选或搜索姓名 / 内容，每页 10 条。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">对「待确认 / 超期」行「确认」（误传可「删除」，仅待确认可删）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>确认后状态 = 已确认并自动销「考察超期 / 待确认」类待办；超期判定：待确认记录超过 7 天 → 顶部「超期提醒」红块 + 表中标「超期」（默认 7 天，支部可调）；专班名单区实时显示各专班考察确认进度（确认 X / 总数）。</p>
@@ -1457,6 +1458,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260914q"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260914s"></script>
 </body>
 </html>

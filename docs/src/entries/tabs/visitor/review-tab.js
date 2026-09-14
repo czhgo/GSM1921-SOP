@@ -3,22 +3,22 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities } from '../../../services/activity.js?v=20260914q';
+import { loadActivities } from '../../../services/activity.js?v=20260914s';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260914q';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914q';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914q';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260914s';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914s';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914s';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914q';
-import { showToast } from '../../../core/utils.js?v=20260914q';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914q';
+import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { showToast } from '../../../core/utils.js?v=20260914s';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914s';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260914q';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260914s';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/constants.js?v=20260914q';
+import { isActivityLive } from '../../../core/constants.js?v=20260914s';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

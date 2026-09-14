@@ -22,12 +22,12 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 | 得分 | 一句话结论 |
 |------|------|-----------|
-| 模块化 | 75 / 100 | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖 |
+| 模块化 | 78 / 100 | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；**2026-09-14 一轮再上台阶：三项「能力/口径散落在调用点」的病灶收成单一源**——版本号推导 `version-next.mjs`（纯函数）、**分页收进统一检索引擎**（28 处一次受益）、**人×项目矩阵 `relation-matrix.js`**（3 处各自实现 → 1 处，且互为转置双视图）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖、矩阵推广到其余二元关系域待迁（Q-23-18） |
 | 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 防失同步测试未全落地 |
 | 开源化 | 74 / 100 | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；残项=无 English 版、release 发布工作流未做 |
 | 超参数可调性 | 84 / 100 | policy-defaults 集中默认单一源逐项标注 branch-default 可调 / institutional 固定；2026-09-09 批4 已接 config 驱动：POLICY_OVERRIDABLE 白名单三键经设置「域参数」卡 UI 覆盖 +「支部制度参数」卡制度默认只读展示（放行程序唯一通道）；残项=全量 config 引擎未达（未登记项仍源码，放开须走放行程序） |
 | 组合能力（二开视角） | 80 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（支书/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；设置中心页签个人化 + 支部默认编排直存 + config 审计回滚（2026-09-09）；残项=requiredRoles 未消费、拖拽编排仅主题党日一处（L1→L5 未达） |
-| **综合（当前）** | **≈ 78 / 100** | 五维均值（75/75/74/84/80）——支书 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；2026-09-09 收尾批 AI 建议分上调拍定（超参 78→84、组合 78→80）；失分仍=requiredRoles 未消费、拖拽编排 L1→L5 未达、server 登录缺省口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版、制度项放行需裁决 |
+| **综合（当前）** | **≈ 79 / 100** | 五维均值（78/75/74/84/80）——支书 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」；2026-09-09 收尾批 AI 建议分上调拍定（超参 78→84、组合 78→80）；**2026-09-14（批次 25–35）模块化 75→78**（三项引擎化/单一源证据见三·3.4，测试 541→566）；失分仍=requiredRoles 未消费、拖拽编排 L1→L5 未达、server 登录缺省口令弱（行动线 P1b 已加口令校验，缺省 123456 + dev/demo 免密路径在，生产须显式换密）、无 English 版、制度项放行需裁决 |
 
 > **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——组件出口仍散（徽章/选择器等）与服务层个别 UI 依赖（模块化）、requiredRoles 门禁未消费与 manifest 防失同步测试未全（插件化/组合能力）、全量 config 引擎未达（制度项放行需裁决，超参数）、拖拽编排仅主题党日一处 L1→L5 未达（组合能力）、无 English 版与 release 发布工作流（开源化）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。
 
@@ -37,17 +37,23 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ## 二、评分依据（逐维：得分项 / 失分项 / 残项；口径唯一=一速览，沿革见附）
 
-### 2.1 模块化 —— 75/100
+### 2.1 模块化 —— 78/100
 
 得分项：
 - 五层分层清晰：core / services / components / modules(capabilities) / entries(tabs)；tab 动态 import 懒加载、capability 自注册。
-- 组件积木化已落地：徽章全站统一、表单字段/外壳（forms.js）、收件箱、汇报域（reporting.js）等；表单 B1~B4 后输入件已全局收编（input-flat 14px、label for 关联、aria）。
+- 组件积木化已落地：徽章全站统一、表单字段/外壳（forms.js）、收件箱、汇报域（reporting.js）等；表单 B1~B4 后输入件已全局收编（input-flat 13px 单档、label for 关联、aria）。
 - 组件平铺层同域多文件已收敛：forms.js / badges.js / reporting.js 三库出口建成（聚合重导出、实现不搬运、零行为变化）。
 - esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛，近三轮新代码引入重复趋零（去重证据与去向见三·3.3）。
+- **2026-09-14（批次 25–35）三项「能力/口径散落在调用点」的病灶收成单一源**（详表见三·3.4）：
+  - **版本号推导**：`docs/scripts/version-next.mjs` 纯函数单一源（同日续号 / 只允许前进 / 注释排除两级规则），发版脚本与守卫共用；
+  - **分页**：收进统一检索引擎 `components/list-filter.js`（每页 10、页码并入 `stateKey`、页数 ≤1 不出控件），**一处实现、28 处按人/按活动表一次受益**（此前全站仅 5 处各自实现，引擎自身无分页）；
+  - **人×项目矩阵**：新建 `components/relation-matrix.js`（`byPerson`／`byItem` 互为转置、项目维列上限 6 + 一键展开、横向滚动 + 首列吸附），考勤矩阵与考察宽表由「各自实现」改为接入，`.vs-matrix` 等未迁实现入守卫白名单台账。
+  - 另：控件档位/表格/筛选行/分页样式落 `styles.css` 类族单一源（档位算式显式，同表单 42/43/47 三值并存 → 单档 38px×13px）；成员流动「同一实现体挂两个写门」取代复制实现。
 
 失分项 / 残项（后续跟踪）：
 - 徽章/选择器等组件出口仍散：除三库外，query-view/picker/modal 等仍被各层逐文件直连。
 - 服务层个别 UI 依赖（如 services/notice.js import badgeHtml 生成 HTML）。
+- **矩阵推广未竟**：其余二元关系域（表决矩阵 / 专班报名 / 支部分工 / 思想汇报台账）待迁到 `relation-matrix`，迁移须逐域定「项目维＝谁、cell 语义＝什么」（Q-23-18）。
 
 ### 2.2 插件化 —— 75/100
 
@@ -160,6 +166,23 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | R12 运行安全 | server 登录不验密码（凭 personId 发 token）；18 个账号明文 123456；demo 态/信任模型注释自认。**支书 2026-09-03 口径：.ctx 与历史材料为内部资产保留上传，非风险项；本条仅保留运行安全部分** | server/routes/auth.js:8-17 / docs/src/mock/accounts.js:4-26 | ✅ 出仓子项撤销 + 运行安全项已修复（行动线 P1b：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门） |
 
 > 反例（无需拆分，防过度去重）：block manifest 校验唯一源在前端 manifests.js（server 测试经浏览器复用同文件），职责与 R7 的「config 形状净化」不同——勿误并。
+
+### 3.4 单一源 / 引擎化收敛台账（2026-09-14 集中一轮）
+
+> **定位**：接 3.3 去重队列的**方法论升级**。3.3 处理的是「同一事实被抄了几份」；本轮支书连续下达的整改（见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 25–35）暴露了**更高一层的同类病灶**：**能力与口径散落在调用点**——20 余处各写一份分页、三处各写一套矩阵、档位高度靠外部环境供给、组清单在模块加载期被物化成快照。故本台账记的是「**把能力收到单一源 / 引擎层**」的条目，判据与守卫一并登记。
+
+| 组 | 病灶形态（可证实的现状） | 收敛去向（单一源） | 守卫 |
+|----|----------------------|-----------------|------|
+| R13 版本号推导三处各写 | `bump-version.mjs` 内联「当天日期 + a」且无参运行会把同日戳往回写；注释排除规则只在一处置信 | `docs/scripts/version-next.mjs` 纯函数单一源（`nextVersionFor` / `isForward` / `isCommentLine` + `codePartOf`），发版脚本与守卫共用 | `version-stamp.test.mjs` S1–S3 + D1–D6（含「全站活动戳取值集合规模为 1」） |
+| R14 分页散落 5 处、引擎无分页 | 全站分页只在 issue-list / query-view / archive-entry / 反馈 / 活动动态 各写一版；**统一检索引擎自身没有分页** → 其承载的 28 处按人/按活动表无分页 | `components/list-filter.js` **引擎内置分页**（每页 10、页码并入 `stateKey`、筛选回第 1 页、页数 ≤1 不出控件），28 处一次受益 | `filter-row.test.mjs::S10`（含「全站调用点零 `pageSize: 0`」） |
+| R15 矩阵三处各自为政 + 列无上限 | 考勤矩阵 / 考察人视图 / 表决 `.vs-matrix` 各写一套；宽表列随项目累积无限增长 | `components/relation-matrix.js`（`byPerson`／`byItem` 互为转置、项目维列上限 6 + 一键展开、横向滚动 + 首列吸附） | `relation-matrix.test.mjs` S1–S4 + 真机①；S4 把未迁矩阵设为白名单红线 |
+| R16 组清单「派生化快照 / 种子枚举代跑」 | 批次 25 已禁组名字面量；批次 29 又揪出**等价绕过**：模块顶层 `[...new Set(PEOPLE.map(p => p.partyGroup))]`（展开 Proxy 即冻结）、运行时用 `PARTY_GROUP_OPTIONS` 净化导入与统计 | `services/party-group.js::groupOptions()`（活组实体唯一条出口）；种子枚举归位「预览种子期口径」 | `party-group.test.mjs` S1–S4 |
+| R17 控件档位/表格/分页样式各写 | 表格表头 7 处各写一份、档位高度靠 UA 与 CDN 工具类供给（同表单实测 42/43/47 三值并存）、分页钮借 chip 表当前页 | `docs/src/styles.css` 类族单一源：`.data-table` / `.lf-*`（筛选行）/ `.page-btn`+`.page-num`+`.is-current`；档位算式显式（单档 38px×13px） | `filter-row.test.mjs` S1–S8 + D1/D2 |
+| R18 选人载体口径过宽 | §4.13「禁止 select 列人名」与实现有 4 处口径差（任命支书 / 向导内任命 / 分工到人 / 落实责任人） | 规范改**语义两分**（选名单成员 → PersonPicker；任命/指派到人 → 允许下拉）+ 例外台账 | `filter-row.test.mjs::S9`（逐行判 `option` 插值人名变量 + 白名单防僵尸） |
+| R19 同一业务动作两个写门 | 成员流动「流入登记」与「名册新增」在 API 形态角色门冲突（支书登记流入被 403），修法易复制出第二份实现 | `server/routes/member.js` **同一实现体 `createMemberRow` 挂两个写门**（`/members` 组织委员专属、`/members/intake` 流动登记角色集） | `member-flow.test.mjs::S4`、`permission-gate.test.mjs` ⑤d/⑥/⑦、`member-persist.test.mjs` api ⑫ |
+| R20 状态与载体失配（非闭环） | 多选人员后关面板即「已选」，但依赖回调渲染的逐人填写框从未出现 → 提交报必填而框不存在；`destroy()` 内关面板与「回调→重渲染→再销毁」成环（用例由 11 秒劣化为 17.6 分钟超时） | `person-picker.js` 多选**点选即回调 + 关面板再回调**、调用方**重建前保态**、**销毁前先摘回调** | `inspection-loop-e2e.test.mjs`（真机闭环）、`ux-guard.test.mjs::⑦` |
+
+> **本轮方法论要点（可迁移）**：①「**同一事实几份**」→ 3.3 去重；「**同一能力几处**」→ 本台账**引擎化**（R14/R15）；②「**口径寄生环境**」→ 算式显式（R17）与「量尺规须生产同构」；③「**绕过守卫的等价写法**」→ 守卫须按**语义**判而非按字面判（R16 快照 / R18 人名变量 / R13 注释两级规则）；④「**为修一个 bug 复制一份实现**」→ 同一实现体挂多门（R19）。
 
 #### 复核保留（2026-09-03 定，防行为失同步）
 

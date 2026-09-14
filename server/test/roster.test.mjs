@@ -5,18 +5,18 @@
 //   党小组会按组口径（本组党员非滞留）；无小组语境不猜测；全选/候选集一致性；p_pc 非党员不入选；
 //   policy 常量单一源；组织委员维护（saveResidenceChange）写覆盖+留痕、应到即时剔除。
 // 口径单一源 = core/policy-defaults.js attendance.roster（partyStages / excludeDetained）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260914q query（模块缓存键一致性，同 attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260914s query（模块缓存键一致性，同 attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914q';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260914q';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914s';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260914s';
 import {
   getMeetingRoster, getMeetingRosterIds, getDetainedMembers, getRosterStats,
   getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260914q';
+} from '../../docs/src/services/roster.js?v=20260914s';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914q';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914s';
 
 // ── localStorage 内存桩（仅 roster 运行期覆盖路径需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

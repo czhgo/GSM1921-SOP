@@ -13,7 +13,7 @@
 //     可一键「显示全部 N 项」；行维保持全量 + 横向滚动 + 首列吸附。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../core/utils.js?v=20260914q';
+import { escHtml as esc } from '../core/utils.js?v=20260914s';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;

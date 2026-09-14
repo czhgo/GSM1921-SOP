@@ -3,30 +3,30 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260914q';
-import { BranchService } from '../../../services/runtime.js?v=20260914q';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914q';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260914q';
-import { AuthStore } from '../../../services/auth.js?v=20260914q';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260914q';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260914q'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260914q';
-import { NoticeStore } from '../../../services/notice.js?v=20260914q';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260914q'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260914q';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914q';
-import { generateId } from '../../../core/id.js?v=20260914q';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260914q';
+import { setState } from '../../../core/state.js?v=20260914s';
+import { BranchService } from '../../../services/runtime.js?v=20260914s';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914s';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260914s';
+import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260914s';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260914s'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260914s';
+import { NoticeStore } from '../../../services/notice.js?v=20260914s';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260914s'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260914s';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914s';
+import { generateId } from '../../../core/id.js?v=20260914s';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260914s';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/constants.js?v=20260914q';
-import { icon } from '../../../core/icons.js?v=20260914q';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914q';
-import { recordFormShell } from '../../../components/forms.js?v=20260914q';
-import { renderQueryView } from '../../../components/query-view.js?v=20260914q';
-import { badgeHtml } from '../../../components/badges.js?v=20260914q';
-import { getPersonName } from '../../../services/person.js?v=20260914q';
+import { isActivityEnded } from '../../../core/constants.js?v=20260914s';
+import { icon } from '../../../core/icons.js?v=20260914s';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914s';
+import { recordFormShell } from '../../../components/forms.js?v=20260914s';
+import { renderQueryView } from '../../../components/query-view.js?v=20260914s';
+import { badgeHtml } from '../../../components/badges.js?v=20260914s';
+import { getPersonName } from '../../../services/person.js?v=20260914s';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914q';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914s';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

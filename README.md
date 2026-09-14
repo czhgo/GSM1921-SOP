@@ -120,6 +120,13 @@ mindmap
 - **党建职责 tab 群** — 各角色职责域（见下）
 - **我的处置** — 意见反馈 / 汇报的收件处理位（组长台为「组员进展」内待答复）
 
+**表格与宽表（全站统一口径）**：
+
+- **凡「人 × 项目」这类二元关系默认宽表**——同一份数据两个正交视图，互为**转置**：**按人**（第一列＝人，列＝他参加的活动/专班）与**按项目**（第一列＝项目，列＝参加的人）；切换只换视角，不是两张表。典型的「按人明细」长表（每人次一行）降为**「明细 / 导出」**下钻位，不再当主页。
+- **项目维列封顶「最近 6 项」**（活动/专班逐年累积，列不能无限长），可一键「显示全部 N 项」；横向滚动时**首列吸附**，维度名不丢。
+- **筛选器与表格同一档字号/组件**（全站单档 **13px / 38px**）；筛选行只在结果多于 8 行时出现，空维度自动隐藏。
+- **凡数据可能无限增长的列表一律分页**（每页 10 条，页码记住；不足一页不出翻页控件）。
+
 ### 3.3 支书工作台（支书 / 副支书共台）
 
 全局概况、活动管理（会务日历）、赋权管理、通知发布、上报党委（见 3.5）、党小组（组清单与新增 / 改名 / 解散写权归支书与副支书，未分组行内归组；跨组切换只读掌握·组内待答复可「请组长关注」，支书不代组长答复）、知情查看（活动 / 专班分段只读，知情权：无职责亦有知情权）、支部分工（工作地图，平铺/按人）、反馈管理。待办含「待答复」「专班待议」置顶入口。支部治理类操作（换组织向导 / 模块组合 / 工作台默认顺序等）已从工作台迁出，统一收口于侧边栏右下角「设置 → 支部治理」（支书 / 副支书共台同权，见 3.1 设置中心说明）。
@@ -197,15 +204,17 @@ npm start
 docs/src/
   core/       常量/主题/能力注册表/版本令牌/数据适配（mock-adapter 禁改）
   services/   数据 CRUD 与权限计算（UI 层禁止直改数据源）
-  components/ 视图组件（含共享渲染器：向导/批量确认/汇报/决议督办…）
+  components/ 视图组件（含共享渲染器：向导/批量确认/汇报/决议督办/统一检索引擎 list-filter/人×项目矩阵 relation-matrix…）
   modules/capabilities/  工作台能力注册（每台一张 tab 清单声明）
   entries/    页面入口与 tabs/{各台 tab}（today 共享「今天」渲染）
   mock/       演示数据（整体替换即换组织）
 content/      分层权威源：01_strategy（支书战略与批改）/ 02_institution（制度母本）
               / 03_doc_system（文档治理）/ 04_web_design（设计档案）/ 05_ai_coding（协作方法论）/ insights（经验沉淀）
-.ctx/         过程记录：logs（执行/决策日志）、REVIEW_QUEUE、SNAPSHOT、TIMESTAMPS
+.ctx/         过程记录：logs（执行/决策日志）、REVIEW_QUEUE、SNAPSHOT、TIMESTAMPS、ENGINEERING_ASSESSMENT（工程化评估与改造行动线）
 server/       可选后端 + 测试套件（server/test）
 ```
+
+**单一源组件（新增件在此登记，防各处另写一版）**：`components/list-filter.js`（统一检索引擎：关键词 + 分面 + 计数 + **分页**，全站按人/按活动表共用）、`components/relation-matrix.js`（**人 × 项目矩阵**：按人 / 按项目互为转置、项目维列上限 6 + 一键展开、横向滚动 + 首列吸附）、`components/person-picker.js`（选人载体）、`services/party-group.js`（党小组活组清单 `groupOptions()`）、`services/member-flow.js`（成员流动登记与复式记账对账）、`docs/scripts/version-next.mjs`（版本号推导纯函数）。
 
 content/ 文档是**支书批改的权威源**（制度先改文本、后同步代码）；.ctx/ 是逐次工作的审计底座（执行日志记「做了什么/改了哪些文件」，决策日志记「为什么选 A 不选 B」）。
 
@@ -217,6 +226,7 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 - 性能守卫：`perf-render-guard` / `perf-todo-agg-cache` / `perf-version-token` / `perf-index-equivalence`
 - 成员确认/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
 - 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与页面定位检查）/ `function-map-sync`（功能地图失同步检查）等
+- 口径/单一源守卫（2026-09 集中一轮新增）：`filter-row`（筛选行 / 表格 / 分页控件 / 档位算式 / 选人载体，S1–S10 + D1–D2）/ `relation-matrix`（人×项目矩阵单一源 + 宽表默认 + 真机转置）/ `party-group`（党小组活组清单，S1–S4）/ `version-stamp`（版本戳同值，S1–S3 + D1–D6）/ `ux-guard`（三向失同步 + 回调保态）/ `inspection-loop-e2e`（考察上传真机闭环）/ `member-flow`（成员流动复式记账）
 
 子集回归：`npm run test:core` / `npm run test:fast`（清单见 [server/package.json](server/package.json)）。
 
