@@ -2,19 +2,19 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260914k';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914k';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260914k';
-import { AuthStore } from '../../../services/auth.js?v=20260914k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914k';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260914k';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914k';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914k';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914k';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914k';
-import { generateId } from '../../../core/id.js?v=20260914k';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260914m';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914m';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260914m';
+import { AuthStore } from '../../../services/auth.js?v=20260914m';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914m';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260914m';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914m';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914m';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914m';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914m';
+import { generateId } from '../../../core/id.js?v=20260914m';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914m';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -270,6 +270,12 @@ function _renderOrgInspContentRows(selectedIds) {
     return;
   }
 
+  // 保态（2026-09-14 批次 32）：同组长台考察上传——重建前收下已填内容，改选人员不清空已写内容
+  const kept = {};
+  rowsContainer.querySelectorAll('textarea[id^="org-insp-content-"]').forEach((t) => {
+    kept[t.id.slice('org-insp-content-'.length)] = t.value;
+  });
+
   rowsContainer.innerHTML = `
     <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
     <div class="space-y-2 max-h-60 overflow-y-auto">
@@ -278,7 +284,7 @@ function _renderOrgInspContentRows(selectedIds) {
         return `
           <div class="flex items-start gap-2">
             <span class="text-xs font-medium text-gray-700 min-w-[3rem] pt-2">${name}</span>
-            <textarea id="org-insp-content-${pid}" class="input-flat-sm w-full resize-none" rows="2" placeholder="请填写考察内容描述"></textarea>
+            <textarea id="org-insp-content-${pid}" class="input-flat-sm w-full resize-none" rows="2" placeholder="请填写考察内容描述">${esc(kept[pid] || '')}</textarea>
           </div>
         `;
       }).join('')}

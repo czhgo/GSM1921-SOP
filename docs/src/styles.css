@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260914k');
+@import url('components/person-picker.css?v=20260914m');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -377,10 +377,12 @@ body {
   background-color: var(--neutral-0);
   border: 1px solid var(--neutral-200);
   border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  font-size: 0.875rem;
-  /* 档位算式的行高项必须显式声明（2026-09-14 批次 31）：标准档 = 12+12+16+2 = 42px。
-     原先靠 UA / CDN 工具类给行高，同一表单里出现过 42 / 43 / 47 三值并存（裸 input 取继承行高 21px）。 */
+  /* 单档口径（2026-09-14 批次 33，支书裁定「折中」值）：全站正文 13px、控件 38px——
+     表格正文、筛选器控件、表单控件一律同档，不再有「表格小/表单大」的落差。
+     控件高 = 内边距 10 + 10 + 显式行高 16 + 边框 2 = 38px；行高必须显式声明，不得靠 UA
+     或 CDN 工具类供给（批次 31 曾因此出现 42 / 43 / 47 三值并存）。 */
+  padding: 10px 16px;
+  font-size: 0.8125rem;
   line-height: 1rem;
   color: var(--neutral-800);
   outline: none;
@@ -396,13 +398,12 @@ body {
   color: var(--neutral-400);
 }
 
-/* 34px 行内对齐档：input-flat.text-xs 与 select/cs-trigger 同档收窄（否则 42px 会把同 flex 行按钮撑高）。
+/* 单档化后 .text-xs 不再是「更小一档」，仅作历史类名保留：与 .input-flat 同高同字号（38px / 13px）。
    注意：只覆盖垂直 padding，不得用 padding 简写——否则会覆盖 pl-8/pr-* 等水平留白工具类（搜索图标与文字重叠） */
 input.input-flat.text-xs {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  font-size: 0.75rem;
-  /* 紧凑档 = 8+8+16+2 = 34px（与 .cs-trigger.text-xs / select.text-xs 同式同高） */
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 0.8125rem;
   line-height: 1rem;
 }
 
@@ -473,8 +474,8 @@ select.input-flat {
 }
 
 select.input-flat.text-xs {
-  padding: 8px 28px 8px 10px;
-  font-size: 0.75rem;
+  padding: 10px 28px 10px 10px;
+  font-size: 0.8125rem;
   line-height: 1rem;
 }
 
@@ -487,7 +488,8 @@ select.input-flat:focus {
 /* Input — small variant (table-embedded, compact forms) */
 .input-flat-sm {
   padding: 6px 12px;
-  font-size: 0.75rem;
+  /* 字号已随单档统一为 13px；此处只保留较小内边距（表格行内编辑位，不与行高抢空间） */
+  font-size: 0.8125rem;
   border-radius: var(--radius-sm);
 }
 
@@ -512,15 +514,15 @@ textarea.input-flat {
 /* w-full 布局继承（2026-08-08 指令 #6）：原 select 带 w-full 时包装器必须 100% 宽，
    否则 inline-block + width:auto 会收缩成内容宽（70px），与同卡片 PersonPicker/输入框（544px）严重不齐 */
 .cs-select.w-full { width: 100%; }
-/* 触发器继承原 select 的 input-flat 类时，档位算式与输入框严格同式（2026-09-14 批次 31）：
-   标准档 = 12+12+16+2 = 42px —— 原 padding 10px 使触发器得 43px，与同排输入框 42px 差 1px */
+/* 触发器继承原 select 的 input-flat 类时，档位算式与输入框严格同式（批次 31 定式、批次 33 并入单档）：
+   单档 = 10+10+16+2 = 38px —— 与 .input-flat 完全同高，同排不会错位 */
 .cs-trigger.input-flat {
-  padding: 12px;
+  padding: 10px 12px;
   line-height: 1rem;
 }
 .cs-trigger.input-flat.text-xs {
-  padding: 8px 12px;
-  font-size: 0.75rem;
+  padding: 10px 12px;
+  font-size: 0.8125rem;
   line-height: 1rem;
 }
 .cs-select select.cs-native {
@@ -607,19 +609,18 @@ textarea.input-flat {
   border-top: 1px solid var(--neutral-100);
   padding-top: 6px;
 }
-/* 紧凑档高度统一（2026-09-13 尺寸统一彻查）：日期类原生控件默认比同档文本框高 2px
-   （36 vs 34），是「同 tab 里有的高有的矮」的实际来源之一——统一到紧凑档 34px。 */
+/* 日期类原生控件高度统一（2026-09-13 尺寸统一彻查；2026-09-14 批次 33 并档为 38px）：
+   日期类控件的内部编辑框自带高度，不随 padding 走算式，会与同排文本框差 2px——显式钉死。 */
 input.input-flat.text-xs[type="date"],
 input.input-flat.text-xs[type="month"],
 input.input-flat.text-xs[type="week"],
 input.input-flat.text-xs[type="time"],
 input.input-flat.text-xs[type="datetime-local"] {
-  height: 34px;
+  height: 38px;
 }
-/* 支部分工表单行（#wf-form-zone）：该行只有控件、无相邻操作按钮，无需 32px 按钮对齐档，
-   统一为紧凑档 34px，避免同行内 32/34/36 三值并存。 */
+/* 支部分工表单行（#wf-form-zone）：统一为单档 38px，避免同行内多值并存。 */
 #wf-form-zone .cs-trigger.input-flat.text-xs {
-  height: 34px;
+  height: 38px;
 }
 .cs-option {
   padding: 8px 12px;
@@ -808,10 +809,11 @@ button:disabled { cursor: not-allowed; }
       首项固定为「全部」；脚本经 bootstrap 全局 MutationObserver 自动增强为圆角下拉）
    ③ 取值**可穷举且多选** → 表单内的 chip（.chip-option）；**筛选行一律禁止 chip**（支书裁定）
    ④ 需选**具体人** → PersonPicker（禁 select 罗列人名）
-   ── 档位（唯一）：高 34px / 字号 12px —— 与 .input-flat.text-xs、.cs-trigger.text-xs 严格同高 ──
-   ── 高度算式（批次 31 起显式声明，勿靠 UA / CDN 工具类给行高）──
-      紧凑档 = 8 + 8 + 16（line-height 1rem） + 2（边框） = 34px
-      标准档 = 12 + 12 + 16 + 2 = 42px
+   ── 档位（唯一，2026-09-14 批次 33 起全站单档）：高 38px / 字号 13px ──
+      筛选行控件、表格正文、表单控件一律同档；.input-flat.text-xs 与 .cs-trigger.text-xs
+      只是历史类名，不再是「更小一档」。
+   ── 高度算式（批次 31 起显式声明，批次 33 并档，勿靠 UA / CDN 工具类给行高）──
+      单档 = 10（上内边距） + 10（下内边距） + 16（line-height 1rem） + 2（边框） = 38px
    ═══════════════════════════════════════════════════════════════ */
 .lf-bar {
   display: flex;
@@ -830,14 +832,14 @@ button:disabled { cursor: not-allowed; }
   width: auto;
   min-width: 104px;
 }
-/* 筛选行按钮（清除/重置等）：与同排输入框精确同高 */
+/* 筛选行按钮（清除/重置等）：与同排输入框精确同高（单档 38px） */
 .lf-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 34px;
+  height: 38px;
   padding: 0 12px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1;
   background: var(--neutral-0);
   border: 1px solid var(--neutral-200);
@@ -857,7 +859,7 @@ button:disabled { cursor: not-allowed; }
 }
 /* 结果计数行（配合筛选行使用） */
 .lf-count {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--neutral-500);
 }
 
@@ -870,8 +872,10 @@ button:disabled { cursor: not-allowed; }
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.75rem;
-  line-height: 1rem;
+  /* 单档口径（2026-09-14 批次 33）：表格正文 13px 与筛选器/表单同档；
+     行高 20px + 上下内边距 8px = 36px 行高（表头与数据行同式） */
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .data-table thead tr {
   border-bottom: 1px solid var(--neutral-200);

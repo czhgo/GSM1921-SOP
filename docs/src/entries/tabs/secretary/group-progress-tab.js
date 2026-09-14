@@ -27,29 +27,29 @@
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260914k';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914k';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914k';
-import { IssueStore } from '../../../services/issues.js?v=20260914k';
-import { loadActivities } from '../../../services/activity.js?v=20260914k';
-import { loadActivityReviews } from '../../../services/review.js?v=20260914k';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914k';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914k';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260914k';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914k';
+import { AuthStore } from '../../../services/auth.js?v=20260914m';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914m';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914m';
+import { IssueStore } from '../../../services/issues.js?v=20260914m';
+import { loadActivities } from '../../../services/activity.js?v=20260914m';
+import { loadActivityReviews } from '../../../services/review.js?v=20260914m';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914m';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914m';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260914m';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914m';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260914k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914m';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260914m';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/party-group.js?v=20260914k';
+} from '../../../services/party-group.js?v=20260914m';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260914k';
+} from '../../../services/group-view.js?v=20260914m';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';

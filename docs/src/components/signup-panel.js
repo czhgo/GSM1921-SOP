@@ -4,12 +4,12 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260914k';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260914k';
-import { getBasePath, showToast } from '../core/utils.js?v=20260914k';
-import { badgeHtml } from './badges.js?v=20260914k';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260914m';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260914m';
+import { getBasePath, showToast } from '../core/utils.js?v=20260914m';
+import { badgeHtml } from './badges.js?v=20260914m';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../core/constants.js?v=20260914k';
+import { isActivityArchived } from '../core/constants.js?v=20260914m';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -54,11 +54,11 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
   } else if (!mySignup) {
     body = `
       <div class="flex items-start gap-3 flex-wrap">
-        <select id="signup-role-select" class="input-flat text-sm min-w-[180px]">
+        <select id="signup-role-select" class="input-flat min-w-[180px]">
           ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
-          class="input-flat text-sm flex-1 min-w-[200px]">
+          class="input-flat flex-1 min-w-[200px]">
         <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
           报名
         </button>
@@ -79,11 +79,11 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
     body = `
       <div class="flex items-start gap-3 flex-wrap">
         ${badgeHtml('已拒绝 · ' + roleLabel(mySignup.role), 'danger')}
-        <select id="signup-role-select" class="input-flat text-sm min-w-[180px]">
+        <select id="signup-role-select" class="input-flat min-w-[180px]">
           ${roleOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
-          class="input-flat text-sm flex-1 min-w-[200px]">
+          class="input-flat flex-1 min-w-[200px]">
         <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
           重新申请
         </button>

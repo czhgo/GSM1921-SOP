@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260914k';
-import { showToast } from '../core/utils.js?v=20260914k';
-import { icon } from '../core/icons.js?v=20260914k';
-import { badgeHtml } from './badges.js?v=20260914k';
+import { IssueStore } from '../services/issues.js?v=20260914m';
+import { showToast } from '../core/utils.js?v=20260914m';
+import { icon } from '../core/icons.js?v=20260914m';
+import { badgeHtml } from './badges.js?v=20260914m';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -38,18 +38,18 @@ export function renderIssueForm() {
       <div class="space-y-4">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">标题 <span class="text-red-600">*</span></label>
-          <input type="text" id="form-title" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="一句话说清反馈的核心">
+          <input type="text" id="form-title" class="input-flat w-full font-sans" placeholder="一句话说清反馈的核心">
         </div>
 
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">正文 <span class="text-red-600">*</span></label>
-          <textarea id="form-body" rows="6" class="input-flat w-full text-sm rounded-lg p-2 font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
+          <textarea id="form-body" rows="6" class="input-flat w-full font-sans" placeholder="详细描述：背景/痛点/期望/参考资料"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-gray-500 mb-1.5 block font-medium">范围（单选）<span class="text-red-600">*</span></label>
-            <select id="form-scope" class="input-flat w-full text-sm rounded-lg p-2 font-sans">
+            <select id="form-scope" class="input-flat w-full font-sans">
               ${SCOPE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
             </select>
           </div>

@@ -5,13 +5,13 @@
 //     S2 唯一检索引擎不得再出现 chip 分面（改下拉）
 //     S3 全站表格只允许 .data-table / .vs-matrix 两种类
 //     S4 表头/单元格重复声明不得回潮（各表勿再各写一遍）
-//     S5 档位唯一（清 10px 下拉死规则 / 触发器不再补 h-8）
+//     S5 单档统一（清 10px 下拉死规则 / 触发器不再补 h-8）
 //     S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）
 //     S7 自写搜索框必须落在 .lf-kw（筛选行载体单一源）
 //     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
 //     S9 选人载体：select 列人名只允许「任命 / 指派到人」四处例外（§4.13 语义两分）
-//   口径层 D1：档位数值三处同源（.lf-btn / .data-table / .input-flat.text-xs 均为 34px×12px 一套）
-//   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 42 / 34），禁靠 UA 或 CDN 工具类给行高
+//   口径层 D1：单档口径同源（.lf-btn / .data-table / .input-flat 全站只剩 38px 高 × 13px 字一套）
+//   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高
 // node-only（不启浏览器）：纯静态扫描 + 样式文本解析。
 //
 // 例外说明：docs/help.html 的 <table class="doc-table"> 属帮助页专用文档样式（支书裁定帮助页
@@ -101,7 +101,7 @@ test('S5 控件档位唯一：清 10px 下拉死规则 + 触发器不再补 32px
     'styles.css 不得残留 text-[10px] 下拉档死规则（已被规范禁止；大字模式字号覆盖规则不属此列）');
   const cs = read(join(SRC_DIR, 'components', 'custom-select.js'));
   assert.ok(!/classList\.add\('h-8'\)/.test(cs),
-    '下拉触发器不得再补 h-8（32px）——须与 input-flat.text-xs 同为 34px，否则同排底部错位 2px');
+    '下拉触发器不得再补 h-8（32px）——须与 input-flat 同为 38px，否则同排底部错位');
 });
 
 test('S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）', () => {
@@ -190,25 +190,29 @@ test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人
 
 // ── 口径层 ──────────────────────────────────────────────────────────
 
-test('D1 档位数值三处同源（34px 高 / 12px 字）', () => {
+test('D1 单档口径同源：全站只剩「38px 高 / 13px 字」一套（2026-09-14 批次 33 支书裁定折中值）', () => {
   const css = read(CSS);
-  assert.match(css, /\.lf-btn\s*\{[^}]*height:\s*34px/, '.lf-btn 高度须为 34px');
-  assert.match(css, /\.data-table\s*\{[^}]*font-size:\s*0\.75rem/, '.data-table 字号须与 text-xs 同（0.75rem）');
-  assert.match(css, /\.data-table\s*\{[^}]*line-height:\s*1rem/, '.data-table 行高须与 text-xs 同（1rem）');
-  assert.match(css, /\.lf-btn\s*\{[^}]*font-size:\s*0\.75rem/, '.lf-btn 字号须为 0.75rem');
-  // 输入框档：input.input-flat.text-xs 上下 8px + 行高 16px + 边框 2px = 34px
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-top:\s*8px/, '搜索框档须为 8px 上内边距（34px 档）');
-  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-bottom:\s*8px/, '搜索框档须为 8px 下内边距（34px 档）');
+  assert.match(css, /\.lf-btn\s*\{[^}]*height:\s*38px/, '.lf-btn 高度须为 38px（单档）');
+  assert.match(css, /\.data-table\s*\{[^}]*font-size:\s*0\.8125rem/, '.data-table 字号须与全站正文同（0.8125rem）');
+  assert.match(css, /\.data-table\s*\{[^}]*line-height:\s*1\.25rem/, '.data-table 行高须为 1.25rem（13px 正文配 20px 行高）');
+  assert.match(css, /\.lf-btn\s*\{[^}]*font-size:\s*0\.8125rem/, '.lf-btn 字号须为 0.8125rem');
+  // 输入框档：input.input-flat.text-xs 上下 10px + 行高 16px + 边框 2px = 38px
+  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-top:\s*10px/, '输入框须为 10px 上内边距（38px 档）');
+  assert.match(css, /input\.input-flat\.text-xs\s*\{[^}]*padding-bottom:\s*10px/, '输入框须为 10px 下内边距（38px 档）');
+  // 并档断言：旧的「第二档」数值不得回潮（34px 控件 / 12px 表格正文 / 14px 表单控件）
+  assert.ok(!/\.lf-btn\s*\{[^}]*height:\s*34px/.test(css), '不得残留 34px 旧档（批次 33 已并档为 38px）');
+  assert.ok(!/\.data-table\s*\{[^}]*font-size:\s*0\.75rem/.test(css), '不得残留 12px 表格正文（批次 33 已并为 13px）');
+  assert.ok(!/\.input-flat\s*\{[^}]*font-size:\s*0\.875rem/.test(css), '不得残留 14px 表单控件（批次 33 已并为 13px）');
 });
 
-// D2（2026-09-14 批次 31）
-// 病灶：S1–S8 与 D1 只比对「CSS 里写的数字」（都写着 34px / 42px），而实际渲染高度由
+// D2（2026-09-14 批次 31；批次 33 并为单档 38px）
+// 病灶：S1–S8 与 D1 只比对「CSS 里写的数字」，而实际渲染高度由
 //   「内边距 + 行高 + 边框」算出——行高一项原先没显式声明，靠 UA 默认或 Tailwind CDN 的
 //   text-* 工具类提供：环境一变（离线、CDN 被挡、裸 input 取继承行高）就退化，
 //   同一表单内曾实测出 42 / 43 / 47 三值并存（触发器 43、无 text 类的裸输入框 47）。
 //   故把算式本身锁死：五处载体的高度必须由显式行高算出，且等于规范档位。
-test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 42 / 34），禁靠 UA 或 CDN 工具类给行高', () => {
-  // 去注释：说明文字里含「行高」「42px」等字样，不剥掉会被当成声明误读
+test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高', () => {
+  // 去注释：说明文字里含「行高」「38px」等字样，不剥掉会被当成声明误读
   const css = read(CSS).replace(/\/\*[\s\S]*?\*\//g, ' ');
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const bodyOf = (sel) => {
@@ -235,11 +239,11 @@ test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 42 / 34），�
   };
 
   const CASES = [
-    ['.input-flat', 42, '标准档输入框'],
-    ['input.input-flat.text-xs', 34, '紧凑档输入框（筛选行关键词框）'],
-    ['select.input-flat.text-xs', 34, '紧凑档原生下拉'],
-    ['.cs-trigger.input-flat', 42, '标准档下拉触发器'],
-    ['.cs-trigger.input-flat.text-xs', 34, '紧凑档下拉触发器'],
+    ['.input-flat', 38, '表单输入框'],
+    ['input.input-flat.text-xs', 38, '筛选行关键词框'],
+    ['select.input-flat.text-xs', 38, '原生下拉'],
+    ['.cs-trigger.input-flat', 38, '下拉触发器'],
+    ['.cs-trigger.input-flat.text-xs', 38, '下拉触发器（带 text-xs 类名）'],
   ];
   const bad = [];
   for (const [sel, want, label] of CASES) {

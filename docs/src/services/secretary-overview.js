@@ -7,22 +7,22 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260914k';
-import { loadActivities } from './activity.js?v=20260914k';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260914k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260914k';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260914k';
-import { NoticeStore } from './notice.js?v=20260914k';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260914k';
-import { tokenOf } from '../core/version-token.js?v=20260914k'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260914k';
-import { getPersonById } from './person.js?v=20260914k';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260914k';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260914k';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260914m';
+import { loadActivities } from './activity.js?v=20260914m';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260914m';
+import { TaskForceRecordStore } from './taskforce.js?v=20260914m';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260914m';
+import { NoticeStore } from './notice.js?v=20260914m';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260914m';
+import { tokenOf } from '../core/version-token.js?v=20260914m'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260914m';
+import { getPersonById } from './person.js?v=20260914m';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260914m';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260914m';
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914k';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914m';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

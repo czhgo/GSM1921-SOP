@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../services/person.js?v=20260914k';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260914m';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260914k';
+import { getPersonById } from '../services/person.js?v=20260914m';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../services/party-group.js?v=20260914k';
-import { icon } from '../core/icons.js?v=20260914k';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260914k';
+import { groupOptions } from '../services/party-group.js?v=20260914m';
+import { icon } from '../core/icons.js?v=20260914m';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260914m';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -243,6 +243,9 @@ export class PersonPicker {
 
   _closePanel() {
     if (!this._panelOpen) return;
+    // 闭环修复（2026-09-14 批次 32）：多选关闭面板 = 用户认为「选完了」，把当前选中集再回调一次，
+    //   覆盖不经过 item 点选的变更路径（「按阶段批量」chips）；单选在该路径已回调，不重复。
+    if (this._mode === 'multi') this._fireOnSelect();
     this._panelOpen = false;
     this._triggerBtn?.setAttribute('aria-expanded', 'false');
 
@@ -554,6 +557,11 @@ export class PersonPicker {
       this._updateFooterCount();
       // 多选模式下也实时更新触发按钮
       this._renderTrigger();
+      // 闭环修复（2026-09-14 批次 32）：点选即回调。
+      //   触发器徽标在点选时已经变化（用户据此认为「已选好」），若回调仍压到「确认选择」才触发，
+      //   依赖回调渲染的从属输入行（如考察的「逐人考察内容」）就会与「已选 N 人」脱节——
+      //   提交时才报必填，而填写框从未出现（支书实报的考察上传非闭环）。
+      this._fireOnSelect();
     }
   }
 
@@ -628,6 +636,9 @@ export class PersonPicker {
    * 销毁组件，清理 DOM 和事件
    */
   destroy() {
+    // 销毁前先断回调（2026-09-14 批次 32 实测）：多选模式 _closePanel() 会回调 onSelect，
+    // 而「回调 → 调用方整体重渲染 → 销毁旧实例」会绕回本函数成环（表现为页面卡死到超时）。
+    this._onSelect = null;
     this._closePanel();
     if (this._container) {
       this._container.innerHTML = '';

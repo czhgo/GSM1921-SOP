@@ -9,22 +9,22 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260914k';
-import { renderHeader } from '../components/header.js?v=20260914k';
-import { BranchService } from '../services/runtime.js?v=20260914k';
-import { AuthStore } from '../services/auth.js?v=20260914k';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260914k';
-import { getBranchById } from '../services/branch.js?v=20260914k';
-import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260914k';
+import { renderSidebar } from '../components/sidebar.js?v=20260914m';
+import { renderHeader } from '../components/header.js?v=20260914m';
+import { BranchService } from '../services/runtime.js?v=20260914m';
+import { AuthStore } from '../services/auth.js?v=20260914m';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260914m';
+import { getBranchById } from '../services/branch.js?v=20260914m';
+import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260914m';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260914k';
-import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260914k';
-import { badgeHtml } from '../components/badges.js?v=20260914k';
-import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260914k';
-import { loadActivities } from '../services/activity.js?v=20260914k';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914k';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260914k';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260914k';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260914m';
+import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260914m';
+import { badgeHtml } from '../components/badges.js?v=20260914m';
+import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260914m';
+import { loadActivities } from '../services/activity.js?v=20260914m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914m';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260914m';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260914m';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

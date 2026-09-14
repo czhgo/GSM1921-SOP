@@ -41,34 +41,34 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914k';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914k';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914k';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914k';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914m';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914m';
+import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914m';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914m';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260914k';
-import { AuthStore } from '../../../services/auth.js?v=20260914k';
+import { groupOptions } from '../../../services/party-group.js?v=20260914m';
+import { AuthStore } from '../../../services/auth.js?v=20260914m';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914k';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914k';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914k';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914m';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914m';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914m';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914k';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914m';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914k';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914m';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914m';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260914k';
+} from '../../../services/member-flow.js?v=20260914m';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914m';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914k';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914m';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914k';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260914m';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;

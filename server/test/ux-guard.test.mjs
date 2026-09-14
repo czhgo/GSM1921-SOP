@@ -127,6 +127,19 @@ test('⑥ showToast 调用约定：首参必须是类型（success|warn|error|in
   assert.deepEqual(hits, [], `showToast 参数顺序写反（应为 showToast(type, message)）：\n${hits.join('\n')}`);
 });
 
+// ── ⑦ 从属输入行闭环（2026-09-14 批次 32）──────────────────────────────────
+// 判例：考察上传「逐人考察内容」由 PersonPicker 的 onSelect 回调渲染；重建时若不先收下已填内容，
+//   改选人员就会把已写内容清空（用户视角＝填了白填）。凡「回调渲染逐人输入行」的组件必须保态。
+test('⑦ 由 onSelect 渲染的「逐人输入行」必须保态（改选不得清空已填内容）', () => {
+  const hits = [];
+  for (const { file, text } of collectSources()) {
+    if (!/onSelect:/.test(text)) continue;
+    if (!/querySelectorAll\('textarea\[id\^="/.test(text)) continue; // 只约束「逐人输入行」这一形态
+    if (!/kept\[/.test(text)) hits.push(file);
+  }
+  assert.deepEqual(hits, [], `以下文件用 onSelect 渲染逐人输入行但重建前未保态（会清空已填内容）：\n${hits.join('\n')}`);
+});
+
 // ── ⑤ R-23 哨兵：思想汇报系统通知 authorize 必须按服务端 thought_reports 表复算 ──
 test('⑤ 思想汇报系统通知 authorize 按服务端表复算（不采信客户端自述 personId）', () => {
   const src = readFileSync(join(ROOT, 'server/system-notice-kinds.js'), 'utf8');

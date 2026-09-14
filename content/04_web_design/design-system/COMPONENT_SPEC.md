@@ -97,9 +97,9 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 | 背景 | `var(--neutral-0)` |
 | 边框 | `1px solid var(--neutral-200)` |
 | 圆角 | `8px`（`--radius-sm`） |
-| 高度 | 标准档 **42px**（`.input-flat`，`padding: 12px 16px` + `0.875rem`）/ 紧凑档 **34px**（`.input-flat.text-xs`，`padding: 8px 16px` + `0.75rem`）；表格内嵌可用 `.input-flat-sm`（`6px 12px`） |
-| 内边距 | `12px 16px`（标准）/ `8px 16px`（紧凑，见 `.input-flat.text-xs`） |
-| 字号 | 标准 `0.875rem` / 紧凑 `0.75rem`（**仅此两档，禁用 `text-[11px]`/`text-[10px]` 第三档**） |
+| 高度 | **单档 38px**（`.input-flat` / `.input-flat.text-xs` / 下拉触发器 同高：`padding: 10px` + 行高 16px + 边框 2px）；表格行内编辑位可用 `.input-flat-sm`（`6px 12px`，字号同档） |
+| 内边距 | `10px 16px`（输入框）/ `10px 12px`（下拉触发器）；表格行内编辑位 `6px 12px` |
+| 字号 | **单档 `0.8125rem`（13px）**——2026-09-14 批次 33 并档；禁用 `text-[11px]`/`text-[10px]` 控件字号 |
 | 聚焦边框 | `var(--party-gold)`（`input-flat:focus`；无外发光） |
 | 占位符 | `color: var(--neutral-400)` |
 | 禁用态 | 背景 `var(--neutral-100)`，文字 `var(--neutral-400)` |
@@ -129,13 +129,18 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。
 
-> **尺寸/字号单一源（2026-09-13 尺寸统一彻查，支书实报「有的高有的矮、字有的大有的小」）**：
-> ① 只允许三档——标准 `input-flat`（42px/14px）、紧凑 `input-flat text-xs`（34px/12px；下拉增强后同为 34px）、表格内嵌 `input-flat-sm`；
+> **口径变更（2026-09-14 批次 33，支书裁定「折中」值）——全站并为一档：正文 13px、控件 38px。**
+> 支书原话：「考勤、考察的人作为第一列的表格字体都很小，搜索框和筛选器的组件都很小。而同一页的表单字体却又很大……**全部统一，但是目前表格与筛选器太小；表单太大。可以折中一下！**」
+> 并档后：严格说只剩**一档**（38px / 13px），外加一个「表格行内编辑位」保留较小内边距（`.input-flat-sm`，字号同档）。
+
+> **尺寸/字号单一源（2026-09-13 起；批次 33 并档为单档）**：
+> ① **唯一档位**——正文 13px、控件 38px：`input-flat` / `input-flat text-xs`（`.text-xs` 只是历史类名，**不再是更小一档**）/ 原生与增强下拉 / `.lf-btn` / `.data-table` 正文，全部同档；表格内嵌 `.input-flat-sm` 仅保留较小内边距（6px 12px），字号同档 13px；
 > ② **禁止**「自制 Tailwind 控件」再出现（`rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white` 一类）；
-> ③ **禁止**在 `input-flat` 上叠 `py-1.5`（被 `.input-flat.text-xs` 的 padding 覆盖，属无效类，会误导维护）；
+> ③ **禁止**在 `input-flat` 上叠尺寸类（`py-1.5` / `p-2` / `text-sm` / `rounded-lg`）——会覆盖单一源口径（批次 33 已清 8 处此类残留）；
 > ④ **禁止** `text-[11px]`/`text-[10px]` 控件字号（与规范 Caption 档冲突）；
-> ⑤ 同一 tab 内同一层级（工具条筛选/表单正文）的控件必须同档同字号。
-> ⑥ **高度算式显式**（2026-09-14 批次 31）：档位高度 = 上下内边距 + **显式行高** + 边框，五处载体（标准/紧凑 × 输入框 / 原生下拉 / 增强下拉触发器）同一算式——紧凑档 `8+8+16+2 = 34px`、标准档 `12+12+16+2 = 42px`。**行高必须由 `docs/src/styles.css` 声明，不得靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供**：原先靠外部提供时，同一表单内实测出 42 / 43 / 47 三值并存（增强下拉触发器 43px、无 text 类的裸 `input-flat` 取继承行高 21px 得 47px）。守卫 `server/test/filter-row.test.mjs::D2`。
+> ⑤ 同一 tab 内同一层级（工具条筛选/表单正文）的控件必须同档同字号——并档后此项自动成立；
+> ⑥ **高度算式显式**（2026-09-14 批次 31 定式，批次 33 并档）：控件高 = 上下内边距 + **显式行高** + 边框，五处载体（输入框 / 原生下拉 / 增强下拉触发器 × 带不带 `.text-xs` 类名）同一算式——`10+10+16+2 = 38px`。**行高必须由 `docs/src/styles.css` 声明，不得靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供**：批次 31 曾因此实测出 42 / 43 / 47 三值并存（增强下拉触发器 43px、无 text 类的裸 `input-flat` 取继承行高 21px 得 47px）。守卫 `server/test/filter-row.test.mjs::D1 / D2`。
+> ⑦ **表格正文与筛选器/表单同档**：`.data-table` 字号 13px、行高 1.25rem（行高 20px + 上下内边距 8px = 36px 行高）；Caption/徽标（`text-xs` 12px）不在本口径内，仍可用于状态徽标等附注文字。
 
 #### 筛选行规范（2026-09-14 支书裁定）
 
@@ -154,9 +159,9 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 **硬规范**
 
 - **筛选行禁止 chip**：分面（党小组 / 角色 / 阶段 / 类型 / 状态等维度）一律下拉，每维一个「全部 + 取值」；chip 只作展示与表单多选，不承担筛选载体。
-- **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **34px 高、12px 字**（`.input-flat.text-xs`）；增强下拉同为 34px（算式见 §4.3「输入组件统一原则」⑥：`8+8+16+2`）。
-- **载体单一源**：筛选行样式统一落 `docs/src/styles.css` 的 `.lf-bar`（弹性行，gap 8px）/ `.lf-kw`（关键词输入）/ `.lf-select`（维度下拉）/ `.lf-btn`（清除钮，34px）；调用点只声明这三个类，不得再内联拼装 `flex flex-wrap items-center gap-2` + `flex-1 min-w-[140px]` 一类散值。
-- **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.75rem` / 行高 `1rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明；专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。
+- **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **38px 高、13px 字**（并档后与表单控件、表格正文同档；算式见 §4.3「输入组件统一原则」⑥：`10+10+16+2`）。
+- **载体单一源**：筛选行样式统一落 `docs/src/styles.css` 的 `.lf-bar`（弹性行，gap 8px）/ `.lf-kw`（关键词输入）/ `.lf-select`（维度下拉）/ `.lf-btn`（清除钮，38px）；调用点只声明这三个类，不得再内联拼装 `flex flex-wrap items-center gap-2` + `flex-1 min-w-[140px]` 一类散值。
+- **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.8125rem` 13px / 行高 `1.25rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明；专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。
 - 维度取值只有 1 种时该维度自动隐藏；行数不超过 8 行不出筛选行（`SEARCH_FILTER_MIN_ROWS`，口径不变）。
 
 **已落地点位（批次 27）**：统一检索引擎 `components/list-filter.js`（chips → 下拉 + `.data-table`）、`components/query-view.js`（级联大类/子类/品牌三处 chip 与散值下拉 → `.lf-select`）、`components/issue-list.js`（状态分组 chip → 下拉）、`components/taskforce-view.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/org/{roster,taskforce}-tab.js`、`entries/tabs/disc/{attendance,inspection}-tab.js`、`entries/tabs/visitor/projects-tab.js` 及 6 处 `renderFilteredList` 调用点的表头重写。
