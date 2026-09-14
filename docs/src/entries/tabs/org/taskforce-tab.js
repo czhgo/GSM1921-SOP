@@ -3,30 +3,30 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260914b';
-import { BranchService } from '../../../services/runtime.js?v=20260914b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914b';
-import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260914b';
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260914b';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260914b'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260914b';
-import { NoticeStore } from '../../../services/notice.js?v=20260914b';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260914b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { generateId } from '../../../core/id.js?v=20260914b';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260914b';
+import { setState } from '../../../core/state.js?v=20260914c';
+import { BranchService } from '../../../services/runtime.js?v=20260914c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914c';
+import { SignupStore, resolveSignupReviewer, SignupStatus } from '../../../services/signup.js?v=20260914c';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260914c';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260914c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260914c';
+import { NoticeStore } from '../../../services/notice.js?v=20260914c';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260914c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { generateId } from '../../../core/id.js?v=20260914c';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260914c';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/constants.js?v=20260914b';
-import { icon } from '../../../core/icons.js?v=20260914b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
-import { recordFormShell } from '../../../components/forms.js?v=20260914b';
-import { renderQueryView } from '../../../components/query-view.js?v=20260914b';
-import { badgeHtml } from '../../../components/badges.js?v=20260914b';
-import { getPersonName } from '../../../services/person.js?v=20260914b';
+import { isActivityEnded } from '../../../core/constants.js?v=20260914c';
+import { icon } from '../../../core/icons.js?v=20260914c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
+import { recordFormShell } from '../../../components/forms.js?v=20260914c';
+import { renderQueryView } from '../../../components/query-view.js?v=20260914c';
+import { badgeHtml } from '../../../components/badges.js?v=20260914c';
+import { getPersonName } from '../../../services/person.js?v=20260914c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -55,8 +55,8 @@ export function renderContent(ctx) {
     .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
 
   container.innerHTML = `
-    <div class="flex flex-wrap gap-2 mb-3">
-      <input type="text" id="org-tf-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索专班名称或任务...">
+    <div class="lf-bar mb-3">
+      <input type="text" id="org-tf-search" class="input-flat text-xs lf-kw" placeholder="搜索专班名称或任务...">
     </div>
     <div id="org-tf-kanban"></div>
     <div id="tf-detail-panel" class="hidden card rounded-xl p-5"></div>
@@ -650,9 +650,9 @@ function _tfSubTableHtml(type, items, readOnly) {
     return item[key] || '-';
   };
   const rows = items.map((item, idx) => `
-    <tr class="border-b border-gray-50">
-      ${fields.map(f => `<td class="px-2 py-1.5 text-xs text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-      ${readOnly ? '' : `<td class="px-2 py-1.5 text-center"><button class="sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+    <tr>
+      ${fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
+      ${readOnly ? '' : `<td class="text-center"><button class="sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
     </tr>
   `).join('');
   return `
@@ -665,9 +665,9 @@ function _tfSubTableHtml(type, items, readOnly) {
       </div>
       ${items.length === 0
         ? '<p class="text-[12px] text-gray-500 pl-2">暂无记录</p>'
-        : `<table class="w-full text-left"><thead><tr class="border-b border-gray-200">
-            ${fields.map(f => `<th class="px-2 py-1 text-xs font-medium text-gray-500">${f.label}</th>`).join('')}
-            ${readOnly ? '' : '<th class="px-2 py-1 text-xs font-medium text-gray-500 w-12"></th>'}
+        : `<table class="data-table"><thead><tr>
+            ${fields.map(f => `<th>${f.label}</th>`).join('')}
+            ${readOnly ? '' : '<th class="w-12"></th>'}
           </tr></thead><tbody>${rows}</tbody></table>`
       }
     </div>`;
@@ -1243,9 +1243,9 @@ function _renderActivityProgress(activities, ctx) {
     searchPlaceholder: '搜索活动名称...',
     searchKey: 'title',
     filters: [
+      // 分面一律下拉（首项「<维度>：全部」由组件统一补，勿在 options 里再放空值「全部」项）
       { key: 'type', label: '活动类型', options: typeOptions },
       { key: 'archived', label: '状态', options: [
-        { value: '', label: '全部' },
         { value: 'false', label: '进行中' },
         { value: 'true', label: '已归档' },
       ]},

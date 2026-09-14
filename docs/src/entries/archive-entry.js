@@ -1,20 +1,20 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260914b';
-import { renderHeader } from '../components/header.js?v=20260914b';
-import { BranchService } from '../services/runtime.js?v=20260914b';
-import { mockDB } from '../core/domain.js?v=20260914b';
-import { getPersonById } from '../services/person.js?v=20260914b';
-import { loadActivities } from '../services/activity.js?v=20260914b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914b';
-import { getActivityTypeColors } from '../core/constants.js?v=20260914b';
+import { renderSidebar } from '../components/sidebar.js?v=20260914c';
+import { renderHeader } from '../components/header.js?v=20260914c';
+import { BranchService } from '../services/runtime.js?v=20260914c';
+import { mockDB } from '../core/domain.js?v=20260914c';
+import { getPersonById } from '../services/person.js?v=20260914c';
+import { loadActivities } from '../services/activity.js?v=20260914c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914c';
+import { getActivityTypeColors } from '../core/constants.js?v=20260914c';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260914b';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260914b';
-import { getBasePath } from '../core/utils.js?v=20260914b';
-import { AuthStore } from '../services/auth.js?v=20260914b';
-import { badgeHtml } from '../components/badges.js?v=20260914b';
+import { isActivityEnded } from '../core/constants.js?v=20260914c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260914c';
+import { getBasePath } from '../core/utils.js?v=20260914c';
+import { AuthStore } from '../services/auth.js?v=20260914c';
+import { badgeHtml } from '../components/badges.js?v=20260914c';
 
 renderSidebar('archive');
 renderHeader('archive');

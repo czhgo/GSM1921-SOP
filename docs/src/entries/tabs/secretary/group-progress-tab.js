@@ -22,34 +22,34 @@
 //   IssueStore.loadAll 首拉期间以轻量加载行占位（无 0 高后插）；空态统一 text-xs 灰字。
 // 事件：组切换/复盘展开以元素级绑定（元素随 innerHTML 重建，幂等）；容器级委托只注册一次
 //   （dataset 标记）——归组下拉 change / 新增 / 改名 / 解散 / 留痕折叠 / 请组长关注，防多次渲染累积监听。
-// 规范：筛选一律用下拉（禁 chip 筛选）；表格样式单一源（表头 py-2 px-3 text-left text-gray-500 font-medium、
-//   数据格 py-2 px-3、表 w-full text-xs、容器 overflow-x-auto）；弹窗走 components/modal.js；
+// 规范：筛选一律用下拉（禁 chip 筛选）；表格样式单一源（styles.css::.data-table 提供表头/行线/悬停/内边距，
+//   数据格与表头一律由该 CSS 类族提供，各表勿再重复声明）；弹窗走 components/modal.js；
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914b';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914b';
-import { IssueStore } from '../../../services/issues.js?v=20260914b';
-import { loadActivities } from '../../../services/activity.js?v=20260914b';
-import { loadActivityReviews } from '../../../services/review.js?v=20260914b';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914b';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914b';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914c';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914c';
+import { IssueStore } from '../../../services/issues.js?v=20260914c';
+import { loadActivities } from '../../../services/activity.js?v=20260914c';
+import { loadActivityReviews } from '../../../services/review.js?v=20260914c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914c';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260914c';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260914c';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/party-group.js?v=20260914b';
+} from '../../../services/party-group.js?v=20260914c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260914b';
+} from '../../../services/group-view.js?v=20260914c';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -193,16 +193,16 @@ function _manageCardHtml(entities, statOf, canManage) {
       </div>
       <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案（组长身份 + 组内归属）派生，指派入口在「赋权管理」；改名会同步改写该组全部成员的档案归属；解散允许非空组，组内成员转为「未分组」。</p>
       <div class="overflow-x-auto">
-        <table class="w-full text-xs">
+        <table class="data-table">
           <thead>
             <tr>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">组名</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">序号</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">组长</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">人数</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">党员数</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+              <th>组名</th>
+              <th>序号</th>
+              <th>组长</th>
+              <th>人数</th>
+              <th>党员数</th>
+              <th>状态</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -221,14 +221,14 @@ function _manageRowHtml(g, stat, canManage) {
       </div>`
     : '<span class="text-gray-500">—</span>';
   return `
-    <tr class="border-t border-gray-100">
-      <td class="py-2 px-3 text-gray-800 font-medium">${esc(g.name)}</td>
-      <td class="py-2 px-3 text-gray-600 tabular-nums">${Number(g.seq) || 0}</td>
-      <td class="py-2 px-3 text-gray-600">${esc(leader)}</td>
-      <td class="py-2 px-3 text-gray-600 tabular-nums">${stat ? stat.memberCount : 0}</td>
-      <td class="py-2 px-3 text-gray-600 tabular-nums">${stat ? stat.partyCount : 0}</td>
-      <td class="py-2 px-3"><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
-      <td class="py-2 px-3">${actions}</td>
+    <tr>
+      <td class="text-gray-800 font-medium">${esc(g.name)}</td>
+      <td class="text-gray-600 tabular-nums">${Number(g.seq) || 0}</td>
+      <td class="text-gray-600">${esc(leader)}</td>
+      <td class="text-gray-600 tabular-nums">${stat ? stat.memberCount : 0}</td>
+      <td class="text-gray-600 tabular-nums">${stat ? stat.partyCount : 0}</td>
+      <td><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
+      <td>${actions}</td>
     </tr>`;
 }
 

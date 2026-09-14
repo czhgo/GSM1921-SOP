@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260914b';
-import { AuthStore } from '../services/auth.js?v=20260914b';
-import { icon } from '../core/icons.js?v=20260914b';
-import { getPersonName } from '../services/person.js?v=20260914b';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260914b';
-import { badgeHtml } from './badges.js?v=20260914b';
+import { IssueStore } from '../services/issues.js?v=20260914c';
+import { AuthStore } from '../services/auth.js?v=20260914c';
+import { icon } from '../core/icons.js?v=20260914c';
+import { getPersonName } from '../services/person.js?v=20260914c';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260914c';
+import { badgeHtml } from './badges.js?v=20260914c';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -91,27 +91,24 @@ export function renderIssueList() {
         ${canCreate ? `<button id="btn-new-issue" class="text-sm px-4 py-[7px] rounded-lg font-medium text-white transition-colors" style="background:#CE1126;" onmouseover="this.style.background='#991B1B'" onmouseout="this.style.background='#CE1126'">+ 新反馈</button>` : ''}
       </div>
 
-      <!-- U5b（2026-09-07）+ UI-B（2026-09-07）：筛选条分组——搜索｜状态筛选｜范围/类型+清除，组内 gap-2、组间 gap-3 -->
-      <div class="flex items-center gap-3 mb-3 flex-wrap text-xs">
-        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-          <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs px-2 py-1 rounded flex-1 min-w-[140px]">
-        </div>
-        <div class="flex items-center gap-2">
-          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'all' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="all">全部 (${counts.total})</button>
-          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'open' ? 'text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" style="${_filterState.status === 'open' ? 'background:#CE1126' : ''}" data-status="open">开放中 (${counts.open})</button>
-          <button class="filter-btn px-3 py-2 rounded-lg transition-colors ${_filterState.status === 'closed' ? 'bg-gray-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}" data-status="closed">已关闭 (${counts.closed})</button>
-        </div>
-        <div class="flex items-center gap-2">
-          <select id="filter-scope" class="input-flat text-xs px-2 py-1 rounded">
-            <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>所有范围</option>
-            ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
-          </select>
-          <select id="filter-type" class="input-flat text-xs px-2 py-1 rounded">
-            <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>所有类型</option>
-            ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
-          </select>
-          <button id="filter-clear" type="button" class="h-8 px-3 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
-        </div>
+      <!-- 筛选行（2026-09-14 批次 27 统一：载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn；
+           分面一律下拉，禁 chip；控件统一 34px 高 / 12px 字） -->
+      <div class="lf-bar mb-3">
+        <input type="text" id="filter-keyword" placeholder="搜索标题/正文..." value="${_filterState.keyword}" class="input-flat text-xs lf-kw">
+        <select id="filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
+          <option value="all" ${_filterState.status === 'all' ? 'selected' : ''}>状态：全部 (${counts.total})</option>
+          <option value="open" ${_filterState.status === 'open' ? 'selected' : ''}>开放中 (${counts.open})</option>
+          <option value="closed" ${_filterState.status === 'closed' ? 'selected' : ''}>已关闭 (${counts.closed})</option>
+        </select>
+        <select id="filter-scope" class="input-flat text-xs lf-select" aria-label="范围筛选">
+          <option value="all" ${_filterState.scope === 'all' ? 'selected' : ''}>范围：全部</option>
+          ${Object.entries(SCOPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.scope === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <select id="filter-type" class="input-flat text-xs lf-select" aria-label="类型筛选">
+          <option value="all" ${_filterState.type === 'all' ? 'selected' : ''}>类型：全部</option>
+          ${Object.entries(TYPE_LABELS).map(([v, l]) => `<option value="${v}" ${_filterState.type === v ? 'selected' : ''}>${l}</option>`).join('')}
+        </select>
+        <button id="filter-clear" type="button" class="lf-btn">清除</button>
       </div>
 
       <div id="issue-list" class="space-y-2">
@@ -200,13 +197,11 @@ function bindEvents() {
     });
   });
 
-  // 筛选器（T-234 F2 铁律：搜索/筛选变化页码归 1）
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _filterState.status = btn.dataset.status;
-      _pageState = 1;
-      renderIssueList();
-    });
+  // 筛选器（T-234 F2 铁律：搜索/筛选变化页码归 1）——状态分面统一下拉（禁 chip，2026-09-14 批次 27）
+  document.getElementById('filter-status')?.addEventListener('change', (e) => {
+    _filterState.status = e.target.value || 'all';
+    _pageState = 1;
+    renderIssueList();
   });
 
   // 清除筛选（搜索框 + 状态 + 范围/类型 全部复位）

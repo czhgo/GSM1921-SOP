@@ -104,7 +104,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 | 占位符 | `color: var(--neutral-400)` |
 | 禁用态 | 背景 `var(--neutral-100)`，文字 `var(--neutral-400)` |
 
-> **档位单一源（2026-09-13 尺寸统一彻查）**：上表以 `docs/src/styles.css` 的 `.input-flat` / `input.input-flat.text-xs` / `select.input-flat` 实际声明为权威（原文档写「40px/36px、padding 10px 14px」与实现不符，已校正）。同一 flex 行内的按钮须与控件同档（`text-xs px-3 py-2` = 34px 行内对齐档，见 `styles.css` 按钮尺寸规范）；`select.input-flat.text-xs` 由 `custom-select.js` 自动补 `h-8`（32px）与相邻按钮精确同高。
+> **档位单一源（2026-09-13 尺寸统一彻查）**：上表以 `docs/src/styles.css` 的 `.input-flat` / `input.input-flat.text-xs` / `select.input-flat` 实际声明为权威（原文档写「40px/36px、padding 10px 14px」与实现不符，已校正）。同一 flex 行内的按钮须与控件同档（`text-xs px-3 py-2` = 34px 行内对齐档，见 `styles.css` 按钮尺寸规范）；`select.input-flat.text-xs` 经 `custom-select.js` 增强后仍为 **34px**，与同行输入框精确同高（2026-09-14 批次 27 起不再补 `h-8`——原 32px 与输入框 34px 同排错位 2px 且压字）。
 
 #### Select 统一规则
 
@@ -130,7 +130,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 所有 `<input>`/`<select>`/`<textarea>` 使用 `input-flat` 体系，禁用内联 Tailwind input 样式（如 `border border-gray-200 rounded-lg px-3 py-2 focus:border-red-300` 等）。紧凑场景使用 `input-flat-sm`，多行文本使用 `textarea.input-flat`。
 
 > **尺寸/字号单一源（2026-09-13 尺寸统一彻查，支书实报「有的高有的矮、字有的大有的小」）**：
-> ① 只允许三档——标准 `input-flat`（42px/14px）、紧凑 `input-flat text-xs`（34px/12px；select 增强后 32px）、表格内嵌 `input-flat-sm`；
+> ① 只允许三档——标准 `input-flat`（42px/14px）、紧凑 `input-flat text-xs`（34px/12px；下拉增强后同为 34px）、表格内嵌 `input-flat-sm`；
 > ② **禁止**「自制 Tailwind 控件」再出现（`rounded-lg border border-gray-200 px-2 py-1.5 text-xs bg-white` 一类）；
 > ③ **禁止**在 `input-flat` 上叠 `py-1.5`（被 `.input-flat.text-xs` 的 padding 覆盖，属无效类，会误导维护）；
 > ④ **禁止** `text-[11px]`/`text-[10px]` 控件字号（与规范 Caption 档冲突）；
@@ -138,12 +138,29 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 #### 筛选行规范（2026-09-14 支书裁定）
 
-> 沉淀：支书实报「涉及筛选器的部分都很丑；下拉框、选择器究竟什么时候用什么，你真的有自觉吗」，叠加现状彻查：筛选控件 6 套形态并存（统一检索引擎 chips / 增强下拉 / query-view 混合条 / 自写 filter-btn 组 / 分段钮三变体 / PersonPicker 搜索框），字号 6 档、控件高度 8 个值。
+> 沉淀：支书实报「涉及筛选器的部分都很丑；下拉框、选择器究竟什么时候用什么，你真的有自觉吗」，叠加现状彻查：筛选控件 6 套形态并存（统一检索引擎 chips / 增强下拉 / query-view 混合条 / 自写 filter-btn 组 / 分段钮三变体 / PersonPicker 搜索框），字号 6 档、控件高度 8 个值。批次 27 一次全量收敛。
 
-- **筛选行禁止 chip**：分面筛选（党小组 / 角色 / 阶段 / 类型 / 状态等维度）一律改为**下拉**，每个维度一个「全部 + 取值」下拉；chip 不得再承担筛选载体（状态徽标等展示用途不受此限，即「chip 只作展示、不作筛选」）。
-- **筛选行统一档位**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一为 **34px 高、12px 字**（`.input-flat.text-xs` 紧凑档）；增强下拉须与本档精确同高，不允许 34 与 32 差 2px 并存（原状反面案例：统一引擎同一行出现 34、约 26、约 24 三个高度）。
-- **样式单一源**：筛选行样式统一到 `styles.css`（`.lf-*` 类不得再零定义、靠调用点内联 Tailwind 拼装）。
+**控件选型判断规则（先判「取值能否穷举」，再判「单选还是多选」）**
+
+| 情形 | 判定 | 载体 |
+|------|------|------|
+| 取值**不可穷举**（姓名 / 学号 / 标题 / 正文 / 地点 / 活动名） | 模糊匹配 | 文本输入 `.input-flat.text-xs.lf-kw` |
+| 取值**可穷举且单选**（状态 / 类别 / 月份 / 党小组 / 发展阶段 / 角色 / 在册 / 来源） | 枚举单选 | 下拉 `.input-flat.text-xs.lf-select`（首项固定「<维度>：全部」） |
+| 取值**可穷举且多选**（活动载体 / 共建性质 / 通知受众） | 枚举多选 | 表单内 chip（`.chip-option` / `.chip-accent-on`） |
+| 需要选择**具体人** | 实体选择 | `PersonPicker`（禁 select 罗列人名，见 §4.13） |
+| **互斥视图切换**（活动视图 / 人视图；按活动 / 按人） | 非筛选 | 分段钮（`px-3 py-1.5 text-xs` 组） |
+
+**硬规范**
+
+- **筛选行禁止 chip**：分面（党小组 / 角色 / 阶段 / 类型 / 状态等维度）一律下拉，每维一个「全部 + 取值」；chip 只作展示与表单多选，不承担筛选载体。
+- **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **34px 高、12px 字**（`.input-flat.text-xs`）；增强下拉同为 34px，不允许 34 与 32 差 2px 并存（原状反面案例：统一引擎同一行出现 42、34、约 26、约 24 四个高度）。
+- **载体单一源**：筛选行样式统一落 `docs/src/styles.css` 的 `.lf-bar`（弹性行，gap 8px）/ `.lf-kw`（关键词输入）/ `.lf-select`（维度下拉）/ `.lf-btn`（清除钮，34px）；调用点只声明这三个类，不得再内联拼装 `flex flex-wrap items-center gap-2` + `flex-1 min-w-[140px]` 一类散值。
+- **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.75rem` / 行高 `1rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明；专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。
 - 维度取值只有 1 种时该维度自动隐藏；行数不超过 8 行不出筛选行（`SEARCH_FILTER_MIN_ROWS`，口径不变）。
+
+**已落地点位（批次 27）**：统一检索引擎 `components/list-filter.js`（chips → 下拉 + `.data-table`）、`components/query-view.js`（级联大类/子类/品牌三处 chip 与散值下拉 → `.lf-select`）、`components/issue-list.js`（状态分组 chip → 下拉）、`components/taskforce-view.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/org/{roster,taskforce}-tab.js`、`entries/tabs/disc/{attendance,inspection}-tab.js`、`entries/tabs/visitor/projects-tab.js` 及 6 处 `renderFilteredList` 调用点的表头重写。
+
+**未纳入本批（待支书裁定）**：分页控件（`.page-btn` / `.page-num`）目前 5 处形态不一（26 / 32px 与「借用 `.chip-accent-on` 表选中态」），属「表下控件」而非筛选行，另批处理。
 
 #### 表单字段条件显示与批量选择（2026-09-01 支书裁决）
 
@@ -299,7 +316,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 **无上限数据分页铁律（2026-08-08 指令 #3）**：凡数据量随使用无限增长的列表一律分页。模式：每页 10 条 + 上一页/下一页 + 页码窗口（5 页）+ 「共 N 条 · 第 x/y 页」摘要；搜索/筛选/翻页触发整段重渲染，搜索时页码归 1。已落地：归档库三分页（党建活动/专班/通知）、查询视图（query-view.js）；后续新增无限增长列表必须自带分页。
 
-**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**——表头单元格统一 `py-2 px-3 text-left text-gray-500 font-medium`，数据单元格统一 `py-2 px-3`，表格统一 `w-full text-xs`；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；表格横向滚动容器由承载组件统一提供 `overflow-x-auto`，不由调用点各自决定。
+**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.75rem`／行高 `1rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。守卫见 `server/test/filter-row.test.mjs` S3/S4。
 
 **执行层仪表盘（2026-08-08 指令 #2，管理科学视角重设计支书「全局概况」）**：弃用"各模块数字罗列"，改为执行层决策视图：
 - **KPI 顶栏**（5 项）：本月出勤率 / 复盘完成率 / 归档完成率 / 考察积压 / 待办异常——各带「目标 vs 实际」对比、达标徽章、进度条；

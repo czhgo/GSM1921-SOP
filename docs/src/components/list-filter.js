@@ -7,15 +7,17 @@
 //   ·「只读情形实现最小查阅成本；可操作情形实现最小操作成本」
 //   ·「搜索框/分面本身也可能过拟合——3~7 行的小表加搜索框是负担」
 //
-//  设计裁决（2026-09-13 grill-me 面谈定案，共 15 问）：
+//  设计裁决（2026-09-13 grill-me 面谈定案，共 15 问；2026-09-14 批次 27 修订筛选行载体）：
 //   ① 单一引擎：28 张按人表 + 32 张活动表共用本组件，勿各页手写搜索（现状：按人表 0 复用）。
-//   ② 能力 = 关键词（多字段模糊）+ 分面 chips + 结果计数；
-//      芯片用 .chip-option/.chip-accent-on 主题色语义类，**不用原生 select**；
+//   ② 能力 = 关键词（多字段模糊）+ 分面下拉 + 结果计数；
+//      分面**一律下拉**（.lf-select，首项「全部」，走全局 enhanceSelects 圆角增强），
+//      **筛选行禁用 chip**（支书 2026-09-14 裁定）——chip 只属表单多选；
 //      分面取值可 auto 派生（免各表手写枚举），取值 ≤1 种时该维度自动隐藏（空维度不占位）。
 //   ③ 出现门槛：当前视图行数 ≤ SEARCH_FILTER_MIN_ROWS（单一源 constants.js）→ **不渲染检索条**；
 //      行数变化自动出现/隐藏（动态，非静态按表判定）。
 //   ④ 状态保持：同一 stateKey 跨重渲染保留关键词与已选分面——
 //      表格因写入而重渲染时筛选不丢（最小操作成本的关键）。
+//   ⑤ 档位唯一：筛选行控件统一 34px 高 / 12px 字（input-flat text-xs 与 cs-trigger.text-xs 同档）。
 //
 //  用法（替换原「container.innerHTML = rows.map(...)」）：
 //    renderFilteredList(bodyEl, {
@@ -29,14 +31,14 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../core/utils.js?v=20260914b';
+import { escHtml as esc } from '../core/utils.js?v=20260914c';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../core/constants.js?v=20260914b';
+} from '../core/constants.js?v=20260914c';
 // 活动生命周期**展示态**单一源 = components/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260914b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260914c';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -87,10 +89,11 @@ function _keywordHit(item, q, keyword) {
  * @param {number} [cfg.minRows] 检索条出现门槛（缺省 = SEARCH_FILTER_MIN_ROWS 单一源）
  * @param {string} [cfg.emptyMessage] 空结果文案
  * @param {Function} [cfg.sort] 排序比较器（缺省保持传入顺序）
- * @param {string} [cfg.listClass] 结果区 class
+ * @param {string} [cfg.listClass] 结果区 class（列表模式：行容器）
  * @param {string} [cfg.countUnit] 计数单位（'人' / '条'）
- * @param {{headHtml:string,colSpan:number}} [cfg.table] 表格模式：结果区渲染为
- *   `<table><thead>headHtml</thead><tbody>…</tbody></table>`（rowHtml 须返回 `<tr>`）——
+ * @param {{headHtml:string,colSpan:number,className?:string}} [cfg.table] 表格模式：结果区渲染为
+ *   `<table class="data-table">`（表头/行线/悬停/内边距由 styles.css 单一源提供；
+ *   rowHtml 须返回 `<tr>`，表头 `<th>` 不要再写 py-2 px-3 text-left 等重复类）——
  *   避免把 `<div>` 塞进 `<tbody>`（非法 HTML）。不传则为 div 列表模式。
  * @returns {{visible:boolean, state:Object, apply:Function, update:Function}}
  */
@@ -117,15 +120,15 @@ export function renderFilteredList(container, cfg) {
   let facetDefs = [];
 
   container.innerHTML = `
-    <div class="lf-root space-y-2">
+    <div class="lf-root">
       <div class="lf-bar"></div>
       <div class="lf-list"></div>
-      <div class="lf-count text-xs text-gray-500" role="status" aria-live="polite"></div>
+      <div class="lf-count" role="status" aria-live="polite"></div>
     </div>`;
   const barEl = container.querySelector('.lf-bar');
   const listEl = container.querySelector('.lf-list');
   const countEl = container.querySelector('.lf-count');
-  // 表格模式下 class 作用于 <table>；列表模式下作用于行容器
+  // 表格模式：class 作用于 <table>（.data-table 单一源）；列表模式：作用于行容器
   listEl.className = config.table ? 'lf-list' : 'lf-list ' + config.listClass;
 
   /** 分面解析：auto = 首现序派生；取值 ≤1 种 → 该维度隐藏（空维度不占位） */
@@ -153,36 +156,29 @@ export function renderFilteredList(container, cfg) {
     barEl.hidden = !visible;
     if (!visible) { barEl.innerHTML = ''; return; }
     const qHtml = config.keyword
-      ? `<input type="text" id="${uid}-q" class="input-flat text-xs flex-1 min-w-[160px]"
+      ? `<input type="text" id="${uid}-q" class="input-flat text-xs lf-kw"
              placeholder="${esc(config.keyword.placeholder || '搜索…')}"
              aria-label="${esc(config.keyword.placeholder || '搜索')}" value="${esc(st.q)}" />`
       : '';
+    // 分面 = 下拉（首项「全部」承载维度名，自身即状态显示位，故改动无需重绘）
     const facetsHtml = facetDefs.map(f => {
       const sel = st.facets[f.key] || '';
-      const on = (hit) => (hit ? ' chip-accent-on' : '');
-      const chips = [
-        `<button type="button" class="lf-chip chip-option text-xs px-2.5 py-1 rounded-full${on(sel === '')}"
-           data-facet="${esc(f.key)}" data-value="" aria-pressed="${sel === ''}">全部</button>`,
-        ...f.options.map(o => `
-          <button type="button" class="lf-chip chip-option text-xs px-2.5 py-1 rounded-full${on(sel === o.value)}"
-            data-facet="${esc(f.key)}" data-value="${esc(o.value)}" aria-pressed="${sel === o.value}">${esc(o.label)}</button>`),
-      ].join('');
-      return `<span class="inline-flex flex-wrap items-center gap-1.5" role="group" aria-label="${esc(f.label)}">
-        <span class="text-[11px] text-gray-500">${esc(f.label)}</span>${chips}</span>`;
+      return `<select id="${uid}-f-${esc(f.key)}" class="input-flat text-xs lf-select"
+                data-facet="${esc(f.key)}" aria-label="${esc(f.label)}筛选">
+        <option value="">${esc(f.label)}：全部</option>
+        ${f.options.map(o => `<option value="${esc(o.value)}"${sel === o.value ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}
+      </select>`;
     }).join('');
     barEl.innerHTML = `${qHtml}${facetsHtml}
-      <button type="button" class="lf-clear text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded-lg">清除</button>`;
+      <button type="button" class="lf-clear lf-btn">清除</button>`;
 
     barEl.querySelector(`#${uid}-q`)?.addEventListener('input', (e) => {
       st.q = String(e.target.value || '').trim().toLowerCase();
       renderList();
     });
-    barEl.querySelectorAll('.lf-chip').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.dataset.facet;
-        const val = btn.dataset.value;
-        st.facets[key] = st.facets[key] === val ? '' : val;
-        renderBar();
+    barEl.querySelectorAll('.lf-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        st.facets[sel.dataset.facet] = sel.value || '';
         renderList();
       });
     });
@@ -205,8 +201,9 @@ export function renderFilteredList(container, cfg) {
     });
     if (typeof config.sort === 'function') filtered = filtered.sort(config.sort);
     if (config.table) {
-      const empty = `<tr><td colspan="${config.table.colSpan || 1}" class="text-xs text-gray-500 text-center py-4">${esc(config.emptyMessage)}</td></tr>`;
-      listEl.innerHTML = `<table class="${config.listClass}">
+      const empty = `<tr class="is-empty"><td colspan="${config.table.colSpan || 1}" class="is-empty">${esc(config.emptyMessage)}</td></tr>`;
+      // 表格样式单一源：表头/行线/悬停/内边距全部由 styles.css::.data-table 提供（各表勿再重复声明）
+      listEl.innerHTML = `<table class="data-table ${config.table.className || ''}">
         ${config.table.headHtml ? `<thead>${config.table.headHtml}</thead>` : ''}
         <tbody>${filtered.length === 0 ? empty : filtered.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
       </table>`;

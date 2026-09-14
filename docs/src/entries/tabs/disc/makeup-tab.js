@@ -3,17 +3,17 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260914b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260914b';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
-import { badgeHtml } from '../../../components/badges.js?v=20260914b';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914b';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260914b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260914c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260914c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { badgeHtml } from '../../../components/badges.js?v=20260914c';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260914c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914b';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -52,13 +52,13 @@ export function renderContent(containerEl) {
     const isOverdue = t.status === 'pending' && new Date(t.deadline) < new Date();
     const rowBg = isOverdue ? 'bg-red-50/40' : t.status === 'completed' ? '' : 'bg-orange-50/20';
     return `
-              <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
-                <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
-                <td class="py-2 px-3 text-gray-600">${t.activityName || '—'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
-                <td class="py-2 px-3 text-gray-600">${t.deadline || '—'}</td>
-                <td class="py-2 px-3">${statusBadge(t)}</td>
-                <td class="py-2 px-3">${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
+              <tr${rowBg ? ` class="${rowBg}"` : ''}>
+                <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(t.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(t.personId))}</a></td>
+                <td class="text-gray-600">${t.activityName || '—'}</td>
+                <td class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
+                <td class="text-gray-600">${t.deadline || '—'}</td>
+                <td>${statusBadge(t)}</td>
+                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
               </tr>`;
   };
 
@@ -85,7 +85,7 @@ export function renderContent(containerEl) {
     </div>
   `;
 
-  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，表格样式由 styles.css::.data-table 单一源提供）：
   // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
   renderFilteredList(container.querySelector('#disc-makeup-host'), {
     stateKey: 'disc-makeup-list',
@@ -93,17 +93,16 @@ export function renderContent(containerEl) {
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     countUnit: '人',
-    listClass: 'w-full text-xs',
     emptyMessage: '暂无补课任务',
     table: {
       colSpan: 6,
-      headHtml: `<tr class="border-b border-gray-200">
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">缺席活动</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">补课方式</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">截止日期</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-              <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+      headHtml: `<tr>
+              <th>姓名</th>
+              <th>缺席活动</th>
+              <th>补课方式</th>
+              <th>截止日期</th>
+              <th>状态</th>
+              <th>操作</th>
             </tr>`,
     },
     rowHtml,

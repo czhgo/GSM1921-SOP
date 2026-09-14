@@ -8,28 +8,28 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914b';
-import { generateId } from '../../../core/id.js?v=20260914b';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914c';
+import { generateId } from '../../../core/id.js?v=20260914c';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260914b';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260914b';
-import { loadActivities } from '../../../services/activity.js?v=20260914b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914b';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914b';
-import { NoticeStore } from '../../../services/notice.js?v=20260914b';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914b';
-import { badgeHtml } from '../../../components/badges.js?v=20260914b';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260914c';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260914c';
+import { loadActivities } from '../../../services/activity.js?v=20260914c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914c';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914c';
+import { NoticeStore } from '../../../services/notice.js?v=20260914c';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260914c';
+import { badgeHtml } from '../../../components/badges.js?v=20260914c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914b';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914b';
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260914c';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -668,15 +668,15 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
           <button class="att-mtx-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="byPerson">按人</button>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <select id="att-activity-select" class="input-flat min-w-[180px]">
-          <option value="">全部活动</option>
+      <div class="lf-bar mb-3">
+        <select id="att-activity-select" class="input-flat text-xs lf-select">
+          <option value="">活动：全部</option>
           ${actOptions}
         </select>
-        <input type="text" id="att-mtx-search" class="input-flat min-w-[160px]" placeholder="活动名筛选...">
-        <input type="date" id="att-mtx-from" class="input-flat" title="时间区间：起始日期">
+        <input type="text" id="att-mtx-search" class="input-flat text-xs lf-kw" placeholder="活动名筛选...">
+        <input type="date" id="att-mtx-from" class="input-flat text-xs" title="时间区间：起始日期">
         <span class="text-xs text-gray-500 self-center">至</span>
-        <input type="date" id="att-mtx-to" class="input-flat" title="时间区间：截止日期">
+        <input type="date" id="att-mtx-to" class="input-flat text-xs" title="时间区间：截止日期">
       </div>
       <div class="text-[11px] text-gray-500 mb-2">色点 + 缩写：${Object.entries(CELL_META).map(([k, m]) => `<span class="inline-flex items-center gap-1 mr-2"><span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span>${ATTENDANCE_STATUS_LABELS[k]}</span>`).join('')}</div>
       <div id="att-matrix-container"></div>
@@ -715,9 +715,9 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
   // T-304 第5轮：矩阵回归只读分析（去确认操作/去待确认标记，职责单一化）
   const cellHtml = (personId, activityId) => {
     const rec = cellOf(personId, activityId);
-    if (!rec) return '<td class="py-1.5 px-2 text-center text-gray-500">—</td>';
+    if (!rec) return '<td class="text-center text-gray-500">—</td>';
     const m = CELL_META[rec.status];
-    return `<td class="py-1.5 px-2 text-center" title="${getPersonName(rec.personId)} · ${ATTENDANCE_STATUS_LABELS[rec.status]}">
+    return `<td class="text-center" title="${getPersonName(rec.personId)} · ${ATTENDANCE_STATUS_LABELS[rec.status]}">
       <span class="inline-flex items-center gap-1">
         <span class="w-2 h-2 rounded-full" style="background:${m.dot}"></span><span class="text-xs text-gray-600">${m.label}</span>
       </span>
@@ -727,8 +727,8 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
   if (matrixView === 'byActivity') {
     // 行 = 活动，列 = 人
     const rows = visibleActs.map(a => `
-      <tr class="border-b border-gray-100 hover:bg-gray-50">
-        <td class="py-2 px-3 whitespace-nowrap sticky left-0 bg-white">
+      <tr>
+        <td class="whitespace-nowrap sticky left-0 bg-white">
           <div class="text-xs font-medium text-gray-800 max-w-[180px] truncate" title="${a.title}">${a.title}</div>
           <div class="text-[11px] text-gray-500">${a.date || ''}</div>
         </td>
@@ -736,29 +736,29 @@ function _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorde
       </tr>`).join('');
     tc.innerHTML = `
       <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">活动</th>
-            ${personIds.map(pid => `<th class="py-2 px-2 text-center text-gray-500 font-medium whitespace-nowrap">${getPersonName(pid)}</th>`).join('')}
+        <table class="data-table">
+          <thead><tr>
+            <th class="sticky left-0">活动</th>
+            ${personIds.map(pid => `<th class="text-center whitespace-nowrap">${getPersonName(pid)}</th>`).join('')}
           </tr></thead>
-          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-500 text-xs" colspan="2">无匹配活动（请调整筛选）</td></tr>'}</tbody>
+          <tbody>${rows || '<tr class="is-empty"><td class="is-empty" colspan="2">无匹配活动（请调整筛选）</td></tr>'}</tbody>
         </table>
       </div>`;
   } else {
     // 行 = 人，列 = 活动（与「按活动」互为转置）
     const rows = personIds.map(pid => `
-      <tr class="border-b border-gray-100 hover:bg-gray-50">
-        <td class="py-2 px-3 font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white">${getPersonName(pid)}</td>
+      <tr>
+        <td class="font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white">${getPersonName(pid)}</td>
         ${visibleActs.map(a => cellHtml(pid, a.id)).join('')}
       </tr>`).join('');
     tc.innerHTML = `
       <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${visibleActs.map(a => `<th class="py-2 px-2 text-center text-gray-500 font-medium whitespace-nowrap max-w-[96px]"><div class="truncate" title="${a.title}">${a.title}</div><div class="text-[10px] text-gray-500">${a.date || ''}</div></th>`).join('')}
+        <table class="data-table">
+          <thead><tr>
+            <th class="sticky left-0">姓名</th>
+            ${visibleActs.map(a => `<th class="text-center whitespace-nowrap max-w-[96px]"><div class="truncate" title="${a.title}">${a.title}</div><div class="text-[10px] text-gray-500">${a.date || ''}</div></th>`).join('')}
           </tr></thead>
-          <tbody>${rows || '<tr><td class="py-6 text-center text-gray-500 text-xs" colspan="2">无考勤数据</td></tr>'}</tbody>
+          <tbody>${rows || '<tr class="is-empty"><td class="is-empty" colspan="2">无考勤数据</td></tr>'}</tbody>
         </table>
       </div>`;
   }
@@ -792,11 +792,12 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
           <button class="att-handoff-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">提交考勤至宣传</button>
         </div>
       </div>
-      <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档，与 h-8 工具钮同高 -->
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="att-table-search" class="input-flat text-xs flex-1 min-w-[160px]" placeholder="搜索姓名或活动...">
-        <select id="att-table-status" class="input-flat text-xs w-24">
-          <option value="">全部状态</option>
+      <!-- U5b（2026-09-07）：搜索输入 + 状态下拉（enhanceSelects 后为 cs-trigger）统一 text-xs 紧凑档；
+           2026-09-14 批次 27：载体收敛为 lf-bar/lf-kw/lf-select，控件统一 34px 高 / 12px 字 -->
+      <div class="lf-bar mb-3">
+        <input type="text" id="att-table-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或活动...">
+        <select id="att-table-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
+          <option value="">状态：全部</option>
           ${Object.values(AttendanceStatus).map(s => `<option value="${s}">${ATTENDANCE_STATUS_LABELS[s]}</option>`).join('')}
         </select>
       </div>
@@ -836,13 +837,13 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
 
   tc.innerHTML = `
     <div class="overflow-x-auto">
-      <table class="w-full text-xs">
-        <thead><tr class="border-b border-gray-200">
-          <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-          <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-          <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-          <th class="py-2 px-3 text-left text-gray-500 font-medium">确认人</th>
-          <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+      <table class="data-table">
+        <thead><tr>
+          <th>姓名</th>
+          <th>活动</th>
+          <th>状态</th>
+          <th>确认人</th>
+          <th>操作</th>
         </tr></thead>
         <tbody>${pageRows.map(a => {
           const rec = allRecords.find(r => r.id === a.id);
@@ -851,12 +852,12 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
           const autoConfirmed = isPending && isRegularRec; // 出勤/已补源头审校自动确认
           const statusColor = a.status === AttendanceStatus.PRESENT ? 'text-green-700' : a.status === AttendanceStatus.ABSENT ? 'text-red-700' : a.status === AttendanceStatus.MADE_UP ? 'text-teal-700' : 'text-orange-700';
           return `
-          <tr class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${a.name}</a></td>
-            <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${a.activity}</a>` : a.activity}</td>
-            <td class="py-2 px-3"><span class="${statusColor}">${a.status}</span></td>
-            <td class="py-2 px-3 text-gray-500">${autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`)}</td>
-            <td class="py-2 px-3">${isPending && !autoConfirmed ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : (autoConfirmed ? '<span class="text-xs text-gray-500">自动</span>' : '<span class="text-xs text-green-700">✓</span>')}</td>
+          <tr>
+            <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${a.name}</a></td>
+            <td class="text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${a.activity}</a>` : a.activity}</td>
+            <td><span class="${statusColor}">${a.status}</span></td>
+            <td class="text-gray-500">${autoConfirmed ? '<span class="text-green-700">自动确认</span>' : (isPending ? '<span class="text-orange-700">待确认</span>' : `<span class="text-green-700">${a.confirmer}</span>`)}</td>
+            <td>${isPending && !autoConfirmed ? `<button class="btn-confirm-att text-xs px-2.5 py-1 rounded-lg text-white transition-colors hover:opacity-90" data-record-id="${a.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认</button>` : (autoConfirmed ? '<span class="text-xs text-gray-500">自动</span>' : '<span class="text-xs text-green-700">✓</span>')}</td>
           </tr>`;
         }).join('')}</tbody>
       </table>
@@ -940,23 +941,22 @@ function _renderGroupMeetingReadonly(container) {
     // 按人分面 + 党小组会（活动）分面——保留原「按活动分组查看」能力
     facets: [...personFacets({ roleLabel: roleLabelOf }), { key: 'groupTitle', label: '党小组会' }],
     countUnit: '人',
-    listClass: 'w-full text-xs',
     emptyMessage: '暂无党小组会考勤记录（组长上传后此处只读展示）',
     table: {
       colSpan: 4,
-      headHtml: `<tr class="border-b border-gray-100 bg-white">
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">姓名</th>
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">党小组会</th>
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">状态</th>
-              <th class="py-1.5 px-3 text-left text-gray-500 font-medium">备注（标因/补录）</th>
+      headHtml: `<tr>
+              <th>姓名</th>
+              <th>党小组会</th>
+              <th>状态</th>
+              <th>备注（标因/补录）</th>
             </tr>`,
     },
     rowHtml: (r) => `
-          <tr class="border-b border-gray-50" title="${esc(r.recorderTitle)}">
-            <td class="py-1.5 px-3 text-xs font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
-            <td class="py-1.5 px-3 text-xs text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
-            <td class="py-1.5 px-3 text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
-            <td class="py-1.5 px-3 text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
+          <tr title="${esc(r.recorderTitle)}">
+            <td class="text-xs font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
+            <td class="text-xs text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
+            <td class="text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
+            <td class="text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
           </tr>`,
   });
 }

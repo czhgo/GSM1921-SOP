@@ -3,19 +3,19 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914b';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260914b';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260914c';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914b';
-import { flashHighlight } from '../../../core/utils.js?v=20260914b';
+import { isActivityLive } from '../../../core/constants.js?v=20260914c';
+import { flashHighlight, escHtml as esc } from '../../../core/utils.js?v=20260914c';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914b';
-import { getAppState } from '../../../core/state.js?v=20260914b';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914c';
+import { getAppState } from '../../../core/state.js?v=20260914c';
 
 // 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -105,18 +105,18 @@ export function renderContent(ctx) {
 
   tc.innerHTML = `
     ${subTabsHtml}
-    <div class="flex flex-wrap gap-2 mb-3 items-center">
-      <select id="visitor-proj-type" class="input-flat w-20">
-        <option value="">全部</option>
+    <div class="lf-bar mb-3">
+      <select id="visitor-proj-type" class="input-flat text-xs lf-select" aria-label="类型筛选">
+        <option value="">类型：全部</option>
         <option value="活动">活动</option>
         <option value="专班">专班</option>
       </select>
-      <select id="visitor-proj-group" class="input-flat w-28">
-        <option value="">全部党小组</option>
-        ${partyGroups.map(g => `<option value="${g}">${g}</option>`).join('')}
+      <select id="visitor-proj-group" class="input-flat text-xs lf-select" aria-label="党小组筛选">
+        <option value="">党小组：全部</option>
+        ${partyGroups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}
       </select>
-      <input type="text" id="visitor-proj-search" class="input-flat flex-1 min-w-[140px]" placeholder="搜索项目名称或人员...">
-      <span id="visitor-proj-count" class="text-xs text-gray-500 ml-1"></span>
+      <input type="text" id="visitor-proj-search" class="input-flat text-xs lf-kw" placeholder="搜索项目名称或人员...">
+      <span id="visitor-proj-count" class="text-xs text-gray-500"></span>
     </div>
     <div id="visitor-proj-list"></div>
   `;

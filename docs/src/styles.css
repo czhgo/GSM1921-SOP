@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260914b');
+@import url('components/person-picker.css?v=20260914c');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -472,12 +472,6 @@ select.input-flat.text-xs {
   font-size: 0.75rem;
 }
 
-select.input-flat.text-\[10px\] {
-  padding: 2px 22px 2px 6px;
-  font-size: 10px;
-  border-radius: var(--radius-sm);
-}
-
 select.input-flat:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-color: var(--neutral-0);
@@ -519,10 +513,6 @@ textarea.input-flat {
 .cs-trigger.input-flat.text-xs {
   padding: 8px 12px;
   font-size: 0.75rem;
-}
-.cs-trigger.input-flat.text-\[10px\] {
-  padding: 2px 8px;
-  font-size: 10px;
 }
 .cs-select select.cs-native {
   position: absolute;
@@ -799,6 +789,108 @@ button:disabled { cursor: not-allowed; }
   font-size: 0.75rem;
   color: var(--neutral-400);
   text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Filter Row（筛选行）——全站单一源，2026-09-14 批次 27 裁定
+   ── 控件选型规则（什么时候用什么，勿凭手感）──
+   ① 取值**不可穷举**（姓名/学号/标题/正文/地点） → 文本输入 .lf-kw（input-flat text-xs）
+   ② 取值**可穷举且单选**（状态/类别/月份/党小组/发展阶段…） → 下拉 .lf-select（原生 select，
+      首项固定为「全部」；脚本经 bootstrap 全局 MutationObserver 自动增强为圆角下拉）
+   ③ 取值**可穷举且多选** → 表单内的 chip（.chip-option）；**筛选行一律禁止 chip**（支书裁定）
+   ④ 需选**具体人** → PersonPicker（禁 select 罗列人名）
+   ── 档位（唯一）：高 34px / 字号 12px —— 与 .input-flat.text-xs、.cs-trigger.text-xs 严格同高 ──
+   ═══════════════════════════════════════════════════════════════ */
+.lf-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* 关键词输入：占满剩余宽度，窄屏最小 160px */
+.lf-kw {
+  flex: 1 1 160px;
+  min-width: 160px;
+}
+/* 分面下拉：内容宽自适应，避免各表另写 min-w-* 散值 */
+.lf-select {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 104px;
+}
+/* 筛选行按钮（清除/重置等）：与同排输入框精确同高 */
+.lf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+  line-height: 1;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  color: var(--neutral-600);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.lf-btn:hover {
+  background: var(--neutral-50);
+  color: var(--neutral-700);
+}
+.lf-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* 结果计数行（配合筛选行使用） */
+.lf-count {
+  font-size: 0.75rem;
+  color: var(--neutral-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Data Table（数据表格）——全站单一源，2026-09-14 批次 27 裁定
+   口径：<table class="data-table"> 一处声明，行内不再重复写表头/行/悬停类；
+   例外（保留专用类，不套用本族）：.vs-matrix（表决矩阵，自带边框语义）。
+   列级特例（sticky 固定列、whitespace-nowrap、truncate）仍在行内按需声明。
+   ═══════════════════════════════════════════════════════════════ */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+.data-table thead tr {
+  border-bottom: 1px solid var(--neutral-200);
+}
+.data-table th {
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--neutral-500);
+  background-color: var(--neutral-0);
+}
+.data-table tbody tr {
+  border-bottom: 1px solid var(--neutral-100);
+}
+.data-table tbody tr:last-child {
+  border-bottom: none;
+}
+.data-table tbody tr:hover {
+  background-color: var(--neutral-50);
+}
+.data-table td {
+  padding: 8px 12px;
+}
+/* 空结果行（colspan 占满）：不参与悬停高亮 */
+.data-table tbody tr.is-empty:hover {
+  background-color: transparent;
+}
+.data-table td.is-empty {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--neutral-500);
 }
 
 /* ═══════════════════════════════════════════════════════════════

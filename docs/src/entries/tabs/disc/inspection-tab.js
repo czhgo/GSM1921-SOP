@@ -2,18 +2,18 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914b';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260914b';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260914b';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914c';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260914c';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260914c';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914b';
-import { badgeHtml } from '../../../components/badges.js?v=20260914b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914b';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914c';
+import { badgeHtml } from '../../../components/badges.js?v=20260914c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { HandoffStore } from '../../../services/handoff.js?v=20260914c';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -53,10 +53,10 @@ export function renderContent(ctx) {
         </div>
       </div>
       <div class="text-xs text-gray-500 mb-3">纪检委员管理考察记录，党小组组长/组织委员上传 → 纪检确认 → 录入考察总表</div>
-      <!-- U5b（2026-09-07）：搜索输入统一 text-xs 紧凑档，与 h-8 工具钮同高。
-           来源/状态筛选已收敛为统一检索引擎分面（活动视图）；本行仅用于「人视图」姓名检索 -->
-      <div class="flex flex-wrap items-center gap-2 mb-3" id="insp-filter-row">
-        <input type="text" id="insp-search-input" class="input-flat text-xs flex-1 min-w-[140px]" placeholder="搜索姓名...">
+      <!-- U5b（2026-09-07）：搜索输入统一 text-xs 紧凑档；2026-09-14 批次 27：载体收敛 lf-bar/lf-kw（34px/12px）。
+           来源/状态筛选已收敛为统一检索引擎分面下拉（活动视图）；本行仅用于「人视图」姓名检索 -->
+      <div class="lf-bar mb-3" id="insp-filter-row">
+        <input type="text" id="insp-search-input" class="input-flat text-xs lf-kw" placeholder="搜索姓名...">
       </div>
       <div id="insp-table-container"></div>
     </div>
@@ -117,17 +117,16 @@ export function renderContent(ctx) {
       keyword: inspKeyword,
       facets: inspFacets,
       countUnit: '条',
-      listClass: 'w-full text-xs',
       emptyMessage: '无匹配考察记录',
       table: {
         colSpan: 6,
-        headHtml: `<tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">来源</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">类别</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">内容</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+        headHtml: `<tr>
+            <th>姓名</th>
+            <th>来源</th>
+            <th>类别</th>
+            <th>内容</th>
+            <th>状态</th>
+            <th>操作</th>
           </tr>`,
       },
       rowHtml: (i) => {
@@ -135,13 +134,13 @@ export function renderContent(ctx) {
         const isOverdue = overdueIds.has(i.id);
         const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
         return `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 ${rowBg}">
-              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
-              <td class="py-2 px-3 text-gray-600">${i.content || i.role}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${statusLabelOf(i)}</span></td>
-              <td class="py-2 px-3">${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
+            <tr${rowBg ? ` class="${rowBg}"` : ''}>
+              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
+              <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
+              <td class="text-gray-600">${i.content || i.role}</td>
+              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${statusLabelOf(i)}</span></td>
+              <td>${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
             </tr>`;
       },
     });
@@ -180,17 +179,17 @@ export function renderContent(ctx) {
       : wideData.rows;
     tc.innerHTML = `
       <div class="overflow-x-auto">
-        <table class="w-full text-xs">
-          <thead><tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium sticky left-0 bg-white">姓名</th>
-            ${wideData.columns.map(c => `<th class="py-2 px-3 text-center text-gray-500 font-medium"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-500'}">${c.type}</div></th>`).join('')}
+        <table class="data-table">
+          <thead><tr>
+            <th class="sticky left-0">姓名</th>
+            ${wideData.columns.map(c => `<th class="text-center"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-500'}">${c.type}</div></th>`).join('')}
           </tr></thead>
           <tbody>${rows.map(row => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
-              <td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white">${row.name}</td>
+            <tr>
+              <td class="font-medium text-gray-800 sticky left-0 bg-white">${row.name}</td>
               ${wideData.columns.map(c => {
                 const val = row.cells[c.key] || '—';
-                return `<td class="py-2 px-3 text-center text-xs text-gray-600">${val}</td>`;
+                return `<td class="text-center text-xs text-gray-600">${val}</td>`;
               }).join('')}
             </tr>
           `).join('')}</tbody>

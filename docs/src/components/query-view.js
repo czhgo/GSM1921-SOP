@@ -14,6 +14,11 @@
  *   });
  */
 
+/** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
+function _esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 /**
  * 渲染查询视图
  * @param {HTMLElement} container - 挂载容器
@@ -48,35 +53,39 @@ export function renderQueryView(container, config) {
   // 生成唯一 ID
   const uid = 'qv-' + Math.random().toString(36).slice(2, 8);
 
-  // 搜索栏 + 筛选器 HTML
+  // 搜索栏 + 筛选器 HTML（筛选行载体单一源：styles.css::.lf-bar / .lf-kw / .lf-select / .lf-btn；
+  // 分面一律下拉，禁 chip —— 2026-09-14 批次 27 支书裁定）
   const filtersHtml = filters.map(f => `
-    <select id="${uid}-filter-${f.key}" class="input-flat text-xs min-w-[100px]">
-      <option value="">${f.label}</option>
-      ${f.options.map(o => `<option value="${o.value}">${o.label}</option>`).join('')}
+    <select id="${uid}-filter-${f.key}" class="input-flat text-xs lf-select" aria-label="${_esc(f.label)}筛选">
+      <option value="">${_esc(f.label)}：全部</option>
+      ${f.options.map(o => `<option value="${_esc(o.value)}">${_esc(o.label)}</option>`).join('')}
     </select>
   `).join('');
 
-  // T229：级联大类下拉 + 子类 chips + 品牌 chip（活动类型体系层级化表达）
+  // T229：级联大类下拉 + 子类下拉（活动类型体系层级化表达；子类下拉随大类联动重建）
   const categoryHtml = category ? `
-    <select id="${uid}-cat" class="input-flat text-xs min-w-[110px]">
+    <select id="${uid}-cat" class="input-flat text-xs lf-select">
       <option value="">${category.label}</option>
       ${Object.keys(category.groups).map(g => `<option value="${g}">${g}</option>`).join('')}
     </select>
-    <div id="${uid}-subchips" class="hidden flex-wrap gap-1.5 w-full"></div>
+    <span id="${uid}-sub-host" class="hidden"></span>
   ` : '';
   const brandHtml = brandChip ? `
-    <button id="${uid}-brand" type="button" class="text-xs px-3 py-1.5 rounded-full border transition-colors bg-gray-100 text-gray-600 border-gray-200">${brandChip.label}</button>
+    <select id="${uid}-brand" class="input-flat text-xs lf-select" aria-label="${_esc(brandChip.label)}筛选">
+      <option value="">${_esc(brandChip.label)}：全部</option>
+      <option value="1">只看${_esc(brandChip.label)}</option>
+    </select>
   ` : '';
 
   container.innerHTML = `
     <div class="query-view">
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="${uid}-search" class="input-flat text-xs flex-1 min-w-[160px]"
+      <div class="lf-bar mb-3">
+        <input type="text" id="${uid}-search" class="input-flat text-xs lf-kw"
                placeholder="${searchPlaceholder}" />
         ${filtersHtml}
         ${categoryHtml}
         ${brandHtml}
-        <button id="${uid}-clear" class="text-xs text-gray-500 hover:text-gray-600 px-3 py-2 rounded-lg">清除</button>
+        <button id="${uid}-clear" class="lf-btn">清除</button>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-500 mt-2"></div>
@@ -189,42 +198,38 @@ export function renderQueryView(container, config) {
     el?.addEventListener('change', resetPageAndApply);
   });
 
-  // ── T229：级联大类 + 子类 chips + 品牌 chip 事件 ──
+  // ── T229：级联大类 + 子类下拉 + 品牌下拉（筛选行一律下拉，禁 chip）──
   const catEl = document.getElementById(`${uid}-cat`);
-  const subChipsEl = document.getElementById(`${uid}-subchips`);
+  const subHostEl = document.getElementById(`${uid}-sub-host`);
   let activeCategory = '';
   let activeSub = '';
 
-  function renderSubChips() {
-    if (!catEl || !subChipsEl) return;
+  /** 子类下拉：随大类联动重建（宿主整段重建 → 全局 MutationObserver 自动重新增强为圆角下拉） */
+  function renderSubOptions() {
+    if (!catEl || !subHostEl) return;
     const subs = activeCategory ? category.groups[activeCategory] || [] : [];
-    if (subs.length === 0) { subChipsEl.classList.add('hidden'); subChipsEl.innerHTML = ''; return; }
-    subChipsEl.classList.remove('hidden');
-    subChipsEl.innerHTML = subs.map(s => `
-      <button type="button" data-sub="${s}" class="sub-chip text-xs px-2.5 py-1 rounded-full transition-colors ${s === activeSub ? 'sel-accent-on' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}"${s === activeSub ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${s}</button>
-    `).join('');
-    subChipsEl.querySelectorAll('.sub-chip').forEach(btn => {
-      btn.addEventListener('click', () => {
-        activeSub = btn.dataset.sub === activeSub ? '' : btn.dataset.sub;
-        renderSubChips();
-        resetPageAndApply();
-      });
+    if (subs.length === 0) { subHostEl.classList.add('hidden'); subHostEl.innerHTML = ''; return; }
+    subHostEl.classList.remove('hidden');
+    subHostEl.innerHTML = `<select id="${uid}-sub" class="input-flat text-xs lf-select" aria-label="子类筛选">
+      <option value="">子类：全部</option>
+      ${subs.map(s => `<option value="${_esc(s)}"${s === activeSub ? ' selected' : ''}>${_esc(s)}</option>`).join('')}
+    </select>`;
+    document.getElementById(`${uid}-sub`)?.addEventListener('change', (e) => {
+      activeSub = e.target.value || '';
+      resetPageAndApply();
     });
   }
 
   catEl?.addEventListener('change', () => {
     activeCategory = catEl.value;
     activeSub = '';
-    renderSubChips();
+    renderSubOptions();
     resetPageAndApply();
   });
   const brandEl = document.getElementById(`${uid}-brand`);
   let brandOn = false;
-  brandEl?.addEventListener('click', () => {
-    brandOn = !brandOn;
-    brandEl.className = brandOn
-      ? 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-amber-50 text-amber-700 border-amber-200'
-      : 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-gray-100 text-gray-600 border-gray-200';
+  brandEl?.addEventListener('change', () => {
+    brandOn = brandEl.value === '1';
     resetPageAndApply();
   });
 
@@ -237,8 +242,8 @@ export function renderQueryView(container, config) {
     // T229：重置级联与品牌
     activeCategory = ''; activeSub = '';
     if (catEl) catEl.value = '';
-    renderSubChips();
-    if (brandEl) { brandOn = false; brandEl.className = 'text-xs px-3 py-1.5 rounded-full border transition-colors bg-gray-100 text-gray-600 border-gray-200'; }
+    renderSubOptions();
+    if (brandEl) { brandOn = false; brandEl.value = ''; }
     resetPageAndApply();
   });
 

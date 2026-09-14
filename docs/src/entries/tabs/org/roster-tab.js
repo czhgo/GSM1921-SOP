@@ -41,34 +41,34 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914b';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914b';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914b';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914b';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914c';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914c';
+import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914c';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260914b';
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
+import { groupOptions } from '../../../services/party-group.js?v=20260914c';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914b';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914c';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914b';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914c';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914b';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260914b';
+} from '../../../services/member-flow.js?v=20260914c';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914b';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914b';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260914c';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -416,9 +416,9 @@ function _flowCardHtml(canRegister) {
         <span class="text-[11px] text-gray-500">流入 / 流出登记仅限组织委员与支书/副支书；此处只读查看台账</span>`}
       </div>
       <div id="flow-reconcile-host" class="mb-3"></div>
-      <div class="flex flex-wrap items-center gap-2 mb-3">
-        <input type="text" id="flow-search" class="input-flat text-xs flex-1 min-w-[160px]" placeholder="搜索姓名或学号…" value="${esc(_flowFilter.q)}">
-        <select id="flow-dir" class="input-flat text-xs w-28">
+      <div class="lf-bar mb-3">
+        <input type="text" id="flow-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或学号…" value="${esc(_flowFilter.q)}">
+        <select id="flow-dir" class="input-flat text-xs lf-select">
           <option value="" ${dirSel('')}>全部</option>
           <option value="in" ${dirSel('in')}>流入</option>
           <option value="out" ${dirSel('out')}>流出</option>
@@ -469,16 +469,16 @@ function _flowTableHtml(rows) {
     return `<div class="py-6 text-center text-xs text-gray-500">${hasAny ? '无匹配台账记录' : '台账暂无记录，点上方「登记流入 / 登记流出」录入'}</div>`;
   }
   return `
-    <table class="w-full text-xs">
-      <thead><tr class="border-b border-gray-200">
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">类型</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">学号</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">届别</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">日期</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">经手人</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">备注</th>
-        <th class="py-2 px-3 text-left text-gray-500 font-medium">操作</th>
+    <table class="data-table">
+      <thead><tr>
+        <th>类型</th>
+        <th>姓名</th>
+        <th>学号</th>
+        <th>届别</th>
+        <th>日期</th>
+        <th>经手人</th>
+        <th>备注</th>
+        <th>操作</th>
       </tr></thead>
       <tbody>${rows.map(_flowRowHtml).join('')}</tbody>
     </table>`;
@@ -491,15 +491,15 @@ function _flowRowHtml(f) {
   const tdc = revoked ? 'text-gray-400' : 'text-gray-700';
   const operator = f.by ? (getPersonName(f.by) || f.by) : '—';
   return `
-    <tr class="border-b border-gray-50 last:border-b-0">
-      <td class="py-2 px-3 ${revoked ? 'text-gray-400' : (inDir ? 'text-sky-700' : 'text-red-700')}">${inDir ? '流入' : '流出'}</td>
-      <td class="py-2 px-3 ${tdc}">${esc(f.name || '—')}</td>
-      <td class="py-2 px-3 ${tdc}">${esc(f.studentId || '—')}</td>
-      <td class="py-2 px-3 ${tdc}">${esc(f.enrollYear || '—')}</td>
-      <td class="py-2 px-3 ${tdc}">${esc(f.date || '—')}</td>
-      <td class="py-2 px-3 ${tdc}">${esc(operator)}</td>
-      <td class="py-2 px-3 ${tdc}" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
-      <td class="py-2 px-3">${revoked
+    <tr>
+      <td class="${revoked ? 'text-gray-400' : (inDir ? 'text-sky-700' : 'text-red-700')}">${inDir ? '流入' : '流出'}</td>
+      <td class="${tdc}">${esc(f.name || '—')}</td>
+      <td class="${tdc}">${esc(f.studentId || '—')}</td>
+      <td class="${tdc}">${esc(f.enrollYear || '—')}</td>
+      <td class="${tdc}">${esc(f.date || '—')}</td>
+      <td class="${tdc}">${esc(operator)}</td>
+      <td class="${tdc}" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
+      <td>${revoked
         ? `<span class="text-gray-400" title="已于 ${esc(String(f.revokedAt).slice(0, 10))} 撤销">已撤销</span>`
         : `<button type="button" class="flow-revoke text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors whitespace-nowrap" data-flow-id="${esc(f.id)}" style="cursor:pointer;">撤销</button>`}</td>
     </tr>`;

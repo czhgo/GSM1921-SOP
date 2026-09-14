@@ -2,19 +2,19 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260914b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914b';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260914b';
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914b';
-import { generateId } from '../../../core/id.js?v=20260914b';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260914c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914c';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260914c';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914c';
+import { generateId } from '../../../core/id.js?v=20260914c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -115,25 +115,24 @@ export function renderContent(ctx) {
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     countUnit: '条',
-    listClass: 'w-full text-xs',
     emptyMessage: '暂无专班考察记录',
     table: {
       colSpan: 5,
-      headHtml: `<tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">专班</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">标签</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
+      headHtml: `<tr>
+            <th>姓名</th>
+            <th>专班</th>
+            <th>标签</th>
+            <th>考察内容</th>
+            <th>状态</th>
           </tr>`,
     },
     rowHtml: (i) => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
-              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="py-2 px-3 text-gray-600">${esc(i.source)}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
-              <td class="py-2 px-3 text-gray-600">${esc(i.content)}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            <tr class="cursor-pointer" data-insp-detail="${esc(i.id)}" title="点击查看考察详情">
+              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td class="text-gray-600">${esc(i.source)}</td>
+              <td><span class="px-1.5 py-0.5 rounded text-xs ${tagColor[i.sourceType] || 'bg-gray-50 text-gray-500'}">专班</span></td>
+              <td class="text-gray-600">${esc(i.content)}</td>
+              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>`,
   });
 

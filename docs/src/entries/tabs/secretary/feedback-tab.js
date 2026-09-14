@@ -3,15 +3,15 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914b';
-import { showToast } from '../../../core/utils.js?v=20260914b';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914b';
-import { icon } from '../../../core/icons.js?v=20260914b';
-import { AuthStore } from '../../../services/auth.js?v=20260914b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914b';
-import { getPersonName } from '../../../services/person.js?v=20260914b';
-import { PersonStore } from '../../../services/person.js?v=20260914b';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914c';
+import { showToast } from '../../../core/utils.js?v=20260914c';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914c';
+import { icon } from '../../../core/icons.js?v=20260914c';
+import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914c';
+import { getPersonName } from '../../../services/person.js?v=20260914c';
+import { PersonStore } from '../../../services/person.js?v=20260914c';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914c';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -33,18 +33,19 @@ const FEEDBACK_TAB_HTML = `
       <div id="issue-drafts-list" class="px-3 pb-3 space-y-2"></div>
     </details>
 
-    <!-- 筛选条（T-217 §2.5 统一顺序：搜索框 → 筛选器们 → 清除） -->
-    <div class="flex flex-wrap items-center gap-2 mb-3">
-      <input type="text" id="issue-filter-keyword" class="input-flat flex-1 min-w-[140px]" placeholder="搜索标题或正文...">
-      <select id="issue-filter-status" class="input-flat w-24">
-        <option value="all">全部状态</option>
+    <!-- 筛选条（统一顺序：搜索框 → 筛选器们 → 清除；载体 styles.css::.lf-bar/.lf-kw/.lf-select/.lf-btn，
+         控件统一 34px 高 / 12px 字 —— 2026-09-14 批次 27） -->
+    <div class="lf-bar mb-3">
+      <input type="text" id="issue-filter-keyword" class="input-flat text-xs lf-kw" placeholder="搜索标题或正文...">
+      <select id="issue-filter-status" class="input-flat text-xs lf-select" aria-label="状态筛选">
+        <option value="all">状态：全部</option>
         <option value="open">开放中</option>
         <option value="assigned">已指派</option>
         <option value="pending-review">待终审</option>
         <option value="closed">已关闭</option>
       </select>
-      <select id="issue-filter-assignee" class="input-flat w-32">
-        <option value="all">全部指派</option>
+      <select id="issue-filter-assignee" class="input-flat text-xs lf-select" aria-label="指派筛选">
+        <option value="all">指派：全部</option>
         <option value="unassigned">未指派</option>
         <option value="secretary">支书处置中</option>
         <option value="org-commissioner">组织委员</option>
@@ -52,7 +53,7 @@ const FEEDBACK_TAB_HTML = `
         <option value="disc-commissioner">纪检委员</option>
         <option value="leader">党小组组长</option>
       </select>
-      <button id="issue-filter-clear" type="button" class="text-xs px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">清除</button>
+      <button id="issue-filter-clear" type="button" class="lf-btn">清除</button>
     </div>
 
     <!-- 全部反馈 -->

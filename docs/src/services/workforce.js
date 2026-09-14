@@ -9,17 +9,17 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from './runtime.js?v=20260914b';
-import { NoticeStore } from './notice.js?v=20260914b';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260914b';
-import { ROLE_LABELS } from '../core/constants.js?v=20260914b';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914b';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule } from '../core/work-map.js?v=20260914b';
-import { getPersonName } from './person.js?v=20260914b';
-import { AuthStore } from './auth.js?v=20260914b';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260914b';
-import { fetchVotesStrict } from './committee-vote.js?v=20260914b';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260914b';
+import { BranchService } from './runtime.js?v=20260914c';
+import { NoticeStore } from './notice.js?v=20260914c';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260914c';
+import { ROLE_LABELS } from '../core/constants.js?v=20260914c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914c';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule } from '../core/work-map.js?v=20260914c';
+import { getPersonName } from './person.js?v=20260914c';
+import { AuthStore } from './auth.js?v=20260914c';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260914c';
+import { fetchVotesStrict } from './committee-vote.js?v=20260914c';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260914c';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 

@@ -289,7 +289,7 @@
 
 - **事项**：筛选行统一（禁 chip、一律下拉、统一 34px / 12px、样式抽 `styles.css` 单一源、表格 th/td 抽共享片段）规范已写入 `COMPONENT_SPEC §4.3 / §4.10 / §4.12`，代码尚未全站替换。
 - **来源**：批次 25 定案（R-41）。
-- **状态**：登记待办（第三批）。（2026-09-14 批次 26 仍未做，待第二批/第三批）
+- **状态**：**已闭环（2026-09-14 批次 27）**——统一检索引擎 chips → 下拉、8 张真表格 → `.data-table` 单一类、4 处自写筛选条 + 6 处搜索框 → `.lf-*` 载体，守卫 `server/test/filter-row.test.mjs`（S1–S7 + D1）8/8。
 
 ### Q-23-5 API 形态下「撤销流出」未清除 server `users` 行的 `transferOut` 软标记
 
@@ -308,4 +308,27 @@
 - **事项**：因批次 25 新增 `partyGroups` 域，`docs/src/core/mock-adapter.js` 被改动 3 处（整库键写入 / 水合 / niche 回退）并新增资源组；该文件属禁改清单，已获支书特批。
 - **来源**：批次 25 落地。
 - **状态**：已特批（登记留痕）。
+
+## 批次 27 裁定与遗留（2026-09-14）
+
+> **来源**：第三批（全站筛选行与表格样式单一源），权威见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 27。
+
+### Q-23-7 分页控件 5 处形态不一（「表下控件」，本批未纳入）
+
+- **事项**：全站 5 处分页控件形态不一——`components/issue-list.js`（32px）、`entries/archive-entry.js`（约 26px）、`entries/tabs/secretary/feedback-tab.js`（约 26px）、`components/query-view.js`（约 26px）、`entries/tabs/disc/attendance-tab.js`（32px 连体分段钮）；且前四处借用 `.chip-accent-on` 表选中态（语义借壳，`.chip-accent-on` 的 `!important` 掩盖了基础边框/底色缺失）。
+- **来源**：批次 27 筛选行彻查时发现（分类上属「表下控件」而非筛选行，未擅自扩围）。
+- **状态**：登记待办（待支书裁定是否统一为 `.page-btn` / `.page-num` 单一源）。
+
+### Q-23-8 `bump-version.mjs` 不带参运行会「同日版本号回退」
+
+- **事项**：脚本默认版本号为 `当天日期 + 'a'`（`DEFAULT_VERSION`），**不含当日已发字母的续号逻辑**。同日第二次发版若忘记显式传参，会把全站戳从 `20260914b` **回退**改写成 `20260914a`——而脚本自检只比对「是否等于本次 VERSION」，回退后自检照样报「0 处残留 ✅」，静默通过。本批实测踩中（首跑无参 → 全站降为 a；改以 `20260914c` 重跑后正常）。
+- **来源**：批次 27 收尾 bump 时发现。
+- **状态**：登记待办（建议：无参时读现有戳取 max 并按同日字母序 +1；或自检增加「新版本号必须大于现有戳」断言）。
+
+### 特批记录：`docs/src/styles.css`（禁改清单文件）
+
+- **事项**：批次 27 需把筛选行与表格样式抽为单一源，改动 `docs/src/styles.css`——新增 §「COMPONENT: Filter Row（`.lf-bar`/`.lf-kw`/`.lf-select`/`.lf-btn`/`.lf-count`）」与 §「COMPONENT: Data Table（`.data-table` 类族）」两段，删除已被规范禁止的 `select.input-flat.text-[10px]` / `.cs-trigger.input-flat.text-[10px]` 死规则两条；该文件属禁改清单，已获支书特批（“特批：允许改”）。
+- **来源**：批次 27 落地。
+- **状态**：已特批（登记留痕）。
+
 

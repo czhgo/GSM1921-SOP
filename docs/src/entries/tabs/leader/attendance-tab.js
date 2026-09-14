@@ -2,28 +2,28 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260914b';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260914b';
-import { loadActivities } from '../../../services/activity.js?v=20260914b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914b';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260914c';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260914c';
+import { loadActivities } from '../../../services/activity.js?v=20260914c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914b';
-import { generateId } from '../../../core/id.js?v=20260914b';
-import { badgeHtml } from '../../../components/badges.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914c';
+import { generateId } from '../../../core/id.js?v=20260914c';
+import { badgeHtml } from '../../../components/badges.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260914b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914b';
-import { currentLeaderGroup } from './_shared.js?v=20260914b';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914b';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260914c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914c';
+import { currentLeaderGroup } from './_shared.js?v=20260914c';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -148,7 +148,7 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，表格样式由 styles.css::.data-table 单一源提供）：
   // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
   renderFilteredList(container.querySelector('#att-list-host'), {
     stateKey: 'leader-attendance-list',
@@ -156,24 +156,23 @@ export function renderContent(ctx) {
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     countUnit: '人',
-    listClass: 'w-full text-xs',
     emptyMessage: '暂无考勤明细',
     table: {
       colSpan: 4,
-      headHtml: `<tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">状态</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
+      headHtml: `<tr>
+            <th>姓名</th>
+            <th>活动</th>
+            <th>状态</th>
+            <th>确认状态</th>
           </tr>`,
     },
     // 状态色按 statusKey（英文枚举）判定——attendanceToLong 的 status 为中文标签
     rowHtml: (a) => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
-              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
-              <td class="py-2 px-3 text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
-              <td class="py-2 px-3 text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
+            <tr>
+              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a></td>
+              <td class="text-gray-600">${a.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${a.activityId}">${esc(a.activity)}</a>` : esc(a.activity)}</td>
+              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${a.statusKey === AttendanceStatus.PRESENT ? 'bg-green-100 text-green-700' : a.statusKey === AttendanceStatus.ABSENT ? 'bg-red-100 text-red-700' : a.statusKey === AttendanceStatus.MADE_UP ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${esc(a.status)}</span></td>
+              <td class="text-gray-500">${a.confirmer === '—' ? '<span class="text-orange-700">待确认</span>' : '<span class="text-green-700">已确认</span>'}</td>
             </tr>`,
   });
 

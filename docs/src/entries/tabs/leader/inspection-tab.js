@@ -2,19 +2,19 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260914b';
-import { loadActivities } from '../../../services/activity.js?v=20260914b';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914b';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914b';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260914b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914b';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914b';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914b';
-import { currentLeaderGroup } from './_shared.js?v=20260914b';
-import { generateId } from '../../../core/id.js?v=20260914b';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260914c';
+import { loadActivities } from '../../../services/activity.js?v=20260914c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914c';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260914c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914c';
+import { currentLeaderGroup } from './_shared.js?v=20260914c';
+import { generateId } from '../../../core/id.js?v=20260914c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -109,7 +109,7 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，listClass 作用于 <table>）：
+  // 统一检索引擎（table 模式：rowHtml 返回 <tr>，表格样式由 styles.css::.data-table 单一源提供）：
   // 关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）；行数 ≤8 时引擎自动不渲染检索条。
   renderFilteredList(container.querySelector('#insp-list-host'), {
     stateKey: 'leader-inspection-list',
@@ -117,23 +117,22 @@ export function renderContent(ctx) {
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     countUnit: '人',
-    listClass: 'w-full text-xs',
     emptyMessage: '暂无考察明细',
     table: {
       colSpan: 4,
-      headHtml: `<tr class="border-b border-gray-200">
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">姓名</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">活动</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">考察内容</th>
-            <th class="py-2 px-3 text-left text-gray-500 font-medium">确认状态</th>
+      headHtml: `<tr>
+            <th>姓名</th>
+            <th>活动</th>
+            <th>考察内容</th>
+            <th>确认状态</th>
           </tr>`,
     },
     rowHtml: (i) => `
-            <tr class="border-b border-gray-50 hover:bg-gray-50">
-              <td class="py-2 px-3 font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="py-2 px-3 text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
-              <td class="py-2 px-3 text-gray-600">${esc(i.content || i.role)}</td>
-              <td class="py-2 px-3"><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
+            <tr>
+              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
+              <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${esc(i.source)}</a>` : esc(i.source)}</td>
+              <td class="text-gray-600">${esc(i.content || i.role)}</td>
+              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}">${i.status === 'confirmed' ? '已确认' : '待确认'}</span></td>
             </tr>`,
   });
 
