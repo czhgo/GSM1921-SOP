@@ -325,7 +325,25 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 **分页控件样式单一源（2026-09-14 批次 28 支书裁定）**：分页控件（表下「上一页 / 页码 / 下一页」）统一落 `docs/src/styles.css` 的 `.page-btn`（翻页钮）与 `.page-num`（页码钮）——同高 **30px**（按钮规范「默认档」）、同边框、同圆角、同字号 **12px**；**当前页用自有类 `.is-current`**，禁止再借 `.chip-accent-on` 表选中态（原状四处借用，其 `!important` 掩盖了「当前页按钮缺基础边框与底色」，且 chip 语义被挪用）；颜色一律取主题变量（`--neutral-*` / `--app-accent-*`），深色主题自动跟随，**不再各写深色覆盖**（原 `.qv-page-btn` 深色补丁已删）。原状 6 处形态不一（26 / 32px）已一并收敛：`components/issue-list.js`、`components/query-view.js`、`entries/archive-entry.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/disc/attendance-tab.js`（连体分段钮改两枚独立按钮）、`entries/tabs/visitor/activities-tab.js`。守卫见 `server/test/filter-row.test.mjs`。
 
-**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.75rem`／行高 `1rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。守卫见 `server/test/filter-row.test.mjs` S3/S4。
+**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.8125rem` 13px／行高 `1.25rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。守卫见 `server/test/filter-row.test.mjs` S3/S4。
+
+**「人 × 项目」矩阵＝宽表单一源（2026-09-14 批次 35 支书裁定）**
+
+> 支书原话：「活动的考勤考察，还是以 long form 为主，也就是每人次一行。wide form 是不是一个更加简明的表现方式呢？人和活动/专班/别的……分离开后，其实存在一种**转置**方式！第一列是人的话，就可以展示他参加的项目；如果第一列是项目，那就可以看有哪些人。这是一个**很全局性的**需要思考和改进工程！」
+> 支书裁定：① **宽表默认**（long form 降为「明细 / 导出」下钻）；② 矩阵**推广到其它二元关系域**。
+
+凡「人 × 项目」这类**二元关系**（考勤、考察；后续的分工、专班报名、思想汇报台账…）一律走单一源组件 [components/relation-matrix.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/relation-matrix.js)：
+
+1. **转置双视图**——`byPerson`（行＝人，列＝项目，看「某人参加了哪些」）与 `byItem`（行＝项目，列＝人，看「某项目有哪些人」）**互为转置**：同一份数据、同一 cell 口径，切换只换视角，不是两张表；
+2. **项目维列上限 6**（`MATRIX_COL_LIMIT`）——项目（活动/专班/工作项）随年份无限累积，列不能无限长；超限时给「**显示全部 N 项**」一键展开（展开态按 `stateKey` 记忆，跨重渲染不丢），行维保持全量；
+3. **横向滚动 + 首列吸附**（`overflow-x-auto` + `sticky left-0`）——宽表横向滑动时维度名不丢；
+4. **筛选归调用方**（活动名/时间区间/姓名/分面），组件只负责「列取哪几项 + 转置 + 展开」——筛选是各域口径，矩阵是共同载体；
+5. **载体不另造样式**——表格用 `.data-table`，展开钮用 `.lf-btn`（全站单档 38px/13px），不为矩阵新增类族（`styles.css` 属禁改文件）；
+6. **默认视图＝宽表**（long form 的定位改为「明细 / 导出 / 打印」下钻）。
+
+**已迁移**：`entries/tabs/disc/attendance-tab.js`（考勤矩阵，默认「按人」，`byActivity`＝转置视图）、`entries/tabs/disc/inspection-tab.js`（考察，默认「按人」，新增「按项目」＝转置）。
+**待迁（登记在案，防悄悄长第四套）**：`components/vote-summary-panel.js`（`.vs-matrix` 表决矩阵＝议题×人，另属域）、专班报名、支部分工、思想汇报台账。
+**守卫**：`server/test/relation-matrix.test.mjs`（S1 组件单一源 / S2 参与方不得自造矩阵（`<th class="sticky left-0">` 只允许出现在组件内）/ S3 宽表默认且 long form 降为「明细」/ S4 矩阵类实现收敛台账 / ① 真机：默认宽表 → 列上限 6 → 一键展开 → 切转置视图行列互换）。
 
 **执行层仪表盘（2026-08-08 指令 #2，管理科学视角重设计支书「全局概况」）**：弃用"各模块数字罗列"，改为执行层决策视图：
 - **KPI 顶栏**（5 项）：本月出勤率 / 复盘完成率 / 归档完成率 / 考察积压 / 待办异常——各带「目标 vs 实际」对比、达标徽章、进度条；

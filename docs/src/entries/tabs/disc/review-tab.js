@@ -2,19 +2,19 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260914o';
-import { persist } from '../../../core/data-adapter.js?v=20260914o';
-import { reviewToDisplay } from '../../../services/review.js?v=20260914o';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260914o';
-import { loadActivities } from '../../../services/activity.js?v=20260914o';
-import { showToast } from '../../../core/utils.js?v=20260914o';
-import { openFormModal } from '../../../components/modal.js?v=20260914o';
-import { NoticeStore } from '../../../services/notice.js?v=20260914o';
-import { generateId } from '../../../core/id.js?v=20260914o';
-import { getPersonById } from '../../../services/person.js?v=20260914o';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914o';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260914q';
+import { persist } from '../../../core/data-adapter.js?v=20260914q';
+import { reviewToDisplay } from '../../../services/review.js?v=20260914q';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260914q';
+import { loadActivities } from '../../../services/activity.js?v=20260914q';
+import { showToast } from '../../../core/utils.js?v=20260914q';
+import { openFormModal } from '../../../components/modal.js?v=20260914q';
+import { NoticeStore } from '../../../services/notice.js?v=20260914q';
+import { generateId } from '../../../core/id.js?v=20260914q';
+import { getPersonById } from '../../../services/person.js?v=20260914q';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914q';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260914o';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260914q';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册

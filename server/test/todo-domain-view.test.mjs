@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914o';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914q';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260914o';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914o';
+} from '../../docs/src/core/mock-adapter.js?v=20260914q';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914q';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/todo.js?v=20260914o';
+} from '../../docs/src/services/todo.js?v=20260914q';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';

@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath } from '../../../core/utils.js?v=20260914o';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/work-map.js?v=20260914o';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260914o';
-import { PersonStore } from '../../../services/person.js?v=20260914o';
+import { escHtml as esc, showToast, getBasePath } from '../../../core/utils.js?v=20260914q';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/work-map.js?v=20260914q';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/constants.js?v=20260914q';
+import { PersonStore } from '../../../services/person.js?v=20260914q';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/workforce.js?v=20260914o';
-import { getBranchWorkforce } from '../../../services/branch.js?v=20260914o';
+} from '../../../services/workforce.js?v=20260914q';
+import { getBranchWorkforce } from '../../../services/branch.js?v=20260914q';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft';
 

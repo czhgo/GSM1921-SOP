@@ -5,12 +5,12 @@
 //  · 字数提示改用 wordCountHint（软提示、不拦截）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文、修改重交、撤回均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/auth.js?v=20260914o';
+import { AuthStore } from '../../../services/auth.js?v=20260914q';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, periodOf, periodOptions,
-} from '../../../services/thought-report.js?v=20260914o';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260914o';
+} from '../../../services/thought-report.js?v=20260914q';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260914q';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档

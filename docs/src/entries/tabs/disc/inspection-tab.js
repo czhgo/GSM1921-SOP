@@ -2,18 +2,20 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914o';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260914o';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260914o';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914o';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260914o';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914q';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260914q';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260914q';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914q';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260914q';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914o';
-import { badgeHtml } from '../../../components/badges.js?v=20260914o';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914o';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914o';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260914q';
+import { badgeHtml } from '../../../components/badges.js?v=20260914q';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914q';
+import { HandoffStore } from '../../../services/handoff.js?v=20260914q';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914o';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914q';
+// 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260914q';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -39,9 +41,11 @@ export function renderContent(ctx) {
         </div>
         <div class="flex items-center flex-wrap justify-end gap-2">
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
+          <!-- 批次 35（2026-09-14 支书裁定）：宽表默认（按人）＋补「按项目」＝与「按人」互为转置；long form 降为「明细」下钻 -->
           <div class="flex items-center gap-2">
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-view="long">活动视图</button>
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wide">人视图</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-view="wide">按人</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wideItem">按项目</button>
+            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="long">明细</button>
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
           <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
@@ -106,6 +110,7 @@ export function renderContent(ctx) {
   if (inspSearchInput) inspSearchInput.addEventListener('input', () => { renderWide(); });
 
   let longHandle = null;
+  let matrixHandle = null;
   function renderLong() {
     const tc = document.getElementById('insp-table-container');
     if (!tc) return;
@@ -168,38 +173,47 @@ export function renderContent(ctx) {
     }
   });
 
-  function renderWide() {
+  function renderWide(view = currentView) {
     const tc = document.getElementById('insp-table-container');
     if (!tc) return;
     document.getElementById('insp-filter-row')?.classList.remove('hidden');
     const searchEl = document.getElementById('insp-search-input');
     const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
-    const rows = q
-      ? wideData.rows.filter(r => (r.name || '').toLowerCase().includes(q))
-      : wideData.rows;
-    tc.innerHTML = `
-      <div class="overflow-x-auto">
-        <table class="data-table">
-          <thead><tr>
-            <th class="sticky left-0">姓名</th>
-            ${wideData.columns.map(c => `<th class="text-center"><div class="text-xs">${c.title}</div><div class="text-[11px] ${tagColor[c.type] || 'text-gray-500'}">${c.type}</div></th>`).join('')}
-          </tr></thead>
-          <tbody>${rows.map(row => `
-            <tr>
-              <td class="font-medium text-gray-800 sticky left-0 bg-white">${row.name}</td>
-              ${wideData.columns.map(c => {
-                const val = row.cells[c.key] || '—';
-                return `<td class="text-center text-xs text-gray-600">${val}</td>`;
-              }).join('')}
-            </tr>
-          `).join('')}</tbody>
-        </table>
-      </div>
-    `;
+    // 人维＝全量行（受姓名检索收窄）；项目维＝来源列，**按最近记录时间倒序**（列上限＝最近 6 项的口径）
+    const persons = wideData.rows
+      .filter(r => !q || (r.name || '').toLowerCase().includes(q))
+      .map(r => ({ id: r.personId, name: r.name }));
+    const latestOf = new Map();
+    allRecords.forEach(r => {
+      const k = r.activityId || r.sourceName;
+      const d = r.date || r.createdAt || r.updatedAt || '';
+      if (!latestOf.has(k) || d > latestOf.get(k)) latestOf.set(k, d);
+    });
+    const items = wideData.columns
+      .map(c => ({ id: c.key, title: c.title, sub: c.type, _d: latestOf.get(c.key) || '' }))
+      .sort((a, b) => String(b._d).localeCompare(String(a._d)))
+      .map(c => ({ id: c.id, title: c.title, sub: c.sub }));
+    const rowOf = new Map(wideData.rows.map(r => [r.personId, r]));
+
+    // 人×项目矩阵单一源（批次 35）：wide＝行=人/列=来源；wideItem＝行=来源/列=人（互为转置）
+    matrixHandle = renderRelationMatrix(tc, {
+      stateKey: 'disc-inspection-matrix',
+      mode: view === 'wideItem' ? 'byItem' : 'byPerson',
+      persons,
+      items,
+      cell: (pid, iid) => {
+        const v = rowOf.get(pid)?.cells?.[iid];
+        return v ? `<span class="text-xs text-gray-600" title="${esc(v)}">${esc(v)}</span>` : null;
+      },
+      personLabel: '姓名',
+      itemLabel: '来源',
+      emptyText: '无考察记录（请调整筛选）',
+    });
   }
 
   // T-304 A 档下载闭环：当前视图跟踪（导出 CSV 按当前视图导出）
-  let currentView = 'long';
+  // 批次 35（2026-09-14 支书裁定）：**宽表默认**（按人），long form 降为「明细」
+  let currentView = 'wide';
   container.querySelectorAll('.insp-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       // UI-A（2026-09-07）：激活态=主题浅底+主题色字/边框（独立小圆角钮，无衬不再用 ov-sub-tab-active）
@@ -214,11 +228,11 @@ export function renderContent(ctx) {
         b.classList.toggle('text-gray-600', !on);
       });
       currentView = btn.dataset.view;
-      if (btn.dataset.view === 'long') renderLong(); else renderWide();
+      if (btn.dataset.view === 'long') renderLong(); else renderWide(btn.dataset.view);
     });
   });
 
-  // T-304 A 档下载闭环：导出当前视图 CSV（活动视图随统一检索引擎当前筛选态；人视图随搜索文本）+ 打印
+  // T-304 A 档下载闭环：导出当前视图 CSV（明细随统一检索引擎当前筛选态；宽表随姓名检索 + 矩阵当前列上限）+ 打印
   container.querySelector('.insp-export-btn')?.addEventListener('click', () => {
     const stamp = _fmtDate(new Date());
     if (currentView === 'long') {
@@ -228,18 +242,26 @@ export function renderContent(ctx) {
         .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, statusLabelOf(i)]);
       downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '状态'], rows);
     } else {
+      // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');
       const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
-      const rows = q
-        ? wideData.rows.filter(r => (r.name || '').toLowerCase().includes(q))
-        : wideData.rows;
-      downloadCSV(
-        `考察人视图_${stamp}.csv`,
-        ['姓名', ...wideData.columns.map(c => `${c.title}（${c.type}）`)],
-        rows.map(row => [row.name, ...wideData.columns.map(c => row.cells[c.key] || '')])
-      );
+      const cols = matrixHandle?.state?.showAll ? wideData.columns : wideData.columns.slice(0, MATRIX_COL_LIMIT);
+      const rows = wideData.rows.filter(r => !q || (r.name || '').toLowerCase().includes(q));
+      if (currentView === 'wideItem') {
+        downloadCSV(
+          `考察宽表_按项目_${stamp}.csv`,
+          ['来源', ...rows.map(r => r.name)],
+          cols.map(c => [`${c.title}（${c.type}）`, ...rows.map(r => r.cells[c.key] || '')])
+        );
+      } else {
+        downloadCSV(
+          `考察宽表_按人_${stamp}.csv`,
+          ['姓名', ...cols.map(c => `${c.title}（${c.type}）`)],
+          rows.map(row => [row.name, ...cols.map(c => row.cells[c.key] || '')])
+        );
+      }
     }
-    showToast('success', `考察表已导出（${currentView === 'long' ? '活动视图' : '人视图'}）`);
+    showToast('success', `考察表已导出（${currentView === 'long' ? '明细' : currentView === 'wideItem' ? '按项目' : '按人'}）`);
   });
   container.querySelector('.insp-print-btn')?.addEventListener('click', () => {
     triggerPrint();
@@ -269,7 +291,7 @@ export function renderContent(ctx) {
     renderContent(ctx);
   });
 
-  renderLong();
+  renderWide();
 }
 
 // ── 专班名单区（组织→纪检 自动同步，纪检只读同源 + 考察确认进度） ──

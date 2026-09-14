@@ -15,13 +15,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914o';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260914o';
-import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914o';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914q';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260914q';
+import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914q';
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
-} from '../../docs/src/services/branch-doc.js?v=20260914o';
+} from '../../docs/src/services/branch-doc.js?v=20260914q';
 
 // ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();
@@ -472,8 +472,8 @@ test('isInstitutionManager 角色判定：支书/副支书 true；其余 false',
 // ═══════════════ ⑨ 消费端接线（防回归：UI 读侧经 listDocs 收敛，勿绕过直读 adapter 全量）═══════════════
 test('⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会前草案），不再直读 adapter 全量', async () => {
   const cases = [
-    ['modules/references.js', '../../docs/src/modules/references.js?v=20260914o'],
-    ['secretary/calendar-tab.js', '../../docs/src/entries/tabs/secretary/calendar-tab.js?v=20260914o'],
+    ['modules/references.js', '../../docs/src/modules/references.js?v=20260914q'],
+    ['secretary/calendar-tab.js', '../../docs/src/entries/tabs/secretary/calendar-tab.js?v=20260914q'],
   ];
   for (const [name, rel] of cases) {
     const src = await readFile(new URL(rel, import.meta.url), 'utf8');
