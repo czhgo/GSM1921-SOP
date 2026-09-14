@@ -58,6 +58,16 @@ const countTextareas = (page, prefix) => page.evaluate(
 const textareaValues = (page, prefix) => page.evaluate(
   (p) => [...document.querySelectorAll(`textarea[id^="${p}-content-"]`)].map((t) => t.value), prefix);
 
+// 明细总数读取：引擎内置分页（批次 34）后，tbody 只渲染当页；故优先读翻页行/计数行的「共 N 条」，
+// 无分页控件（≤1 页）时才退回数行。
+const READ_TOTAL = () => {
+  const m = document.querySelector('#insp-list-host .lf-pager .lf-count');
+  if (m) return parseFloat((m.textContent.match(/共 (\d+)/) || [])[1]);
+  const c = document.querySelector('#insp-list-host .lf-count');
+  if (c && /共 \d+/.test(c.textContent)) return parseFloat((c.textContent.match(/共 (\d+)/) || [])[1]);
+  return document.querySelectorAll('#insp-list-host tbody tr').length;
+};
+
 test('组长台·考察上传：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
   const page = await loginAs('2400012345', 'leader');
   try {
@@ -71,7 +81,7 @@ test('组长台·考察上传：点选后「关面板即已选」也必须出现
     assert.ok(srcId, '演示数据里应至少有一个可上传活动（否则本测试的前提不成立）');
     await page.selectOption('#insp-source-select', srcId);
 
-    const rowsBefore = await page.evaluate(() => document.querySelectorAll('#insp-list-host tbody tr').length);
+    const rowsBefore = await page.evaluate(READ_TOTAL);
 
     // ① 点选 2 人 → 直接关闭面板（不点「确认选择」）
     await page.evaluate(() => document.querySelector('#insp-person-picker-container .person-picker-trigger').click());
@@ -117,8 +127,8 @@ test('组长台·考察上传：点选后「关面板即已选」也必须出现
     await page.waitForFunction(() => (document.getElementById('toast-container')?.textContent || '').includes('考察上传成功'), { timeout: 8000 });
     await page.waitForTimeout(400);
 
-    const rowsAfter = await page.evaluate(() => document.querySelectorAll('#insp-list-host tbody tr').length);
-    assert.equal(rowsAfter, rowsBefore + 3, `提交后明细表应新增 3 行（前 ${rowsBefore} → 后 ${rowsAfter}）`);
+    const rowsAfter = await page.evaluate(READ_TOTAL);
+    assert.equal(rowsAfter, rowsBefore + 3, `提交后明细总数应新增 3（前 ${rowsBefore} → 后 ${rowsAfter}）`);
   } finally {
     await page.close();
   }

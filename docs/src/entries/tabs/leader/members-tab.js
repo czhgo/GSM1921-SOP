@@ -5,20 +5,20 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260914m';
-import { IssueStore } from '../../../services/issues.js?v=20260914m';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260914m';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260914m';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914m';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260914m';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260914m';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260914m';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914m';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914m';
+import { AuthStore } from '../../../services/auth.js?v=20260914o';
+import { IssueStore } from '../../../services/issues.js?v=20260914o';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260914o';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260914o';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914o';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260914o';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260914o';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260914o';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914o';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914o';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914m';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914o';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260914m';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260914o';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;

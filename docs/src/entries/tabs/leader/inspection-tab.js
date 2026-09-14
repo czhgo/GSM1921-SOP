@@ -2,19 +2,19 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260914m';
-import { loadActivities } from '../../../services/activity.js?v=20260914m';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914m';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914m';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260914m';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914m';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914m';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914m';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914m';
-import { currentLeaderGroup } from './_shared.js?v=20260914m';
-import { generateId } from '../../../core/id.js?v=20260914m';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260914o';
+import { loadActivities } from '../../../services/activity.js?v=20260914o';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260914o';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914o';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260914o';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914o';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260914o';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914o';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914o';
+import { currentLeaderGroup } from './_shared.js?v=20260914o';
+import { generateId } from '../../../core/id.js?v=20260914o';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914m';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914o';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;

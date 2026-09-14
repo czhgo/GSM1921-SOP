@@ -10,6 +10,7 @@
 //     S7 自写搜索框必须落在 .lf-kw（筛选行载体单一源）
 //     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
 //     S9 选人载体：select 列人名只允许「任命 / 指派到人」四处例外（§4.13 语义两分）
+//     S10 分页内置统一引擎（凡经引擎渲染的表一律分页；翻页控件走 .page-btn/.page-num 单一源）
 //   口径层 D1：单档口径同源（.lf-btn / .data-table / .input-flat 全站只剩 38px 高 × 13px 字一套）
 //   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高
 // node-only（不启浏览器）：纯静态扫描 + 样式文本解析。
@@ -186,6 +187,28 @@ test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人
   // 白名单防僵尸：四处若已不再用下拉列人名，须从白名单移除（否则白名单会长期掩盖回潮）
   const stale = [...ALLOW].filter((r) => !lines(join(SRC_DIR, ...r.split('/'))).some((l) => OPT_NAME.test(l)));
   assert.deepEqual(stale, [], `以下文件已不再用下拉列人名，应从 S9 白名单移除：\n${stale.join('\n')}`);
+});
+
+// S10（2026-09-14 批次 34，支书实报「涉及人/活动等可能无限增长的表格仍有部分没分页」）
+// 判据：分页必须是**引擎级能力**（一处实现、N 处受益），而不是各页各写一版；
+//   凡经 renderFilteredList 渲染的表一律分页（禁调用点私自关掉），翻页控件走 .page-btn/.page-num 单一源。
+test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私自关掉分页）', () => {
+  const src = read(join(SRC_DIR, 'components', 'list-filter.js'));
+  assert.match(src, /pageSize:\s*10/, '统一引擎须内置分页缺省 10 条/页');
+  assert.match(src, /data-lf-page/, '统一引擎须渲染翻页控件（data-lf-page）');
+  assert.match(src, /class="page-btn"|class="page-num/, '翻页控件须走 .page-btn / .page-num 单一源（批次 28）');
+  assert.ok(src.includes('if (pages <= 1)'), '页数 ≤1 须不渲染翻页控件（小表零负担）');
+  assert.ok(!/chip-accent-on/.test(src), '引擎不得借 .chip-accent-on 表当前页');
+  // 调用点不得私自关掉分页：全站 renderFilteredList 调用点零 `pageSize: 0`
+  const optOut = [];
+  for (const f of walkJs(SRC_DIR)) {
+    const text = read(f);
+    if (!/renderFilteredList\(/.test(text)) continue;
+    text.split(/\r?\n/).forEach((line, i) => {
+      if (/pageSize:\s*0\b/.test(line)) optOut.push(`${rel(f)}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(optOut, [], `经统一引擎渲染的表一律分页；如需例外须先在规范里登记：\n${optOut.join('\n')}`);
 });
 
 // ── 口径层 ──────────────────────────────────────────────────────────

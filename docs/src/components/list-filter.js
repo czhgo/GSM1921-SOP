@@ -9,15 +9,19 @@
 //
 //  设计裁决（2026-09-13 grill-me 面谈定案，共 15 问；2026-09-14 批次 27 修订筛选行载体）：
 //   ① 单一引擎：28 张按人表 + 32 张活动表共用本组件，勿各页手写搜索（现状：按人表 0 复用）。
-//   ② 能力 = 关键词（多字段模糊）+ 分面下拉 + 结果计数；
+//   ② 能力 = 关键词（多字段模糊）+ 分面下拉 + 结果计数 + **分页**；
 //      分面**一律下拉**（.lf-select，首项「全部」，走全局 enhanceSelects 圆角增强），
 //      **筛选行禁用 chip**（支书 2026-09-14 裁定）——chip 只属表单多选；
 //      分面取值可 auto 派生（免各表手写枚举），取值 ≤1 种时该维度自动隐藏（空维度不占位）。
 //   ③ 出现门槛：当前视图行数 ≤ SEARCH_FILTER_MIN_ROWS（单一源 constants.js）→ **不渲染检索条**；
 //      行数变化自动出现/隐藏（动态，非静态按表判定）。
-//   ④ 状态保持：同一 stateKey 跨重渲染保留关键词与已选分面——
-//      表格因写入而重渲染时筛选不丢（最小操作成本的关键）。
-//   ⑤ 档位唯一：筛选行控件统一 34px 高 / 12px 字（input-flat text-xs 与 cs-trigger.text-xs 同档）。
+//   ④ 状态保持：同一 stateKey 跨重渲染保留关键词、已选分面与**当前页码**——
+//      表格因写入而重渲染时筛选与翻页位置不丢（最小操作成本的关键）。
+//   ⑤ 档位唯一：全站单档（2026-09-14 批次 33）——控件 38px 高 / 正文 13px；
+//      分页控件走 .page-btn / .page-num 单一源（批次 28），本引擎不得自造第二套翻页样式。
+//   ⑥ 分页（2026-09-14 批次 34，支书实报「涉及人/活动等可能无限增长的表格仍有部分没分页」）：
+//      **引擎内置**——凡经本引擎渲染的表一律分页，`pageSize` 缺省 10（与 issue-list / 归档库同口径），
+//      传 0 表示不分页；筛选/关键词变化自动回到第 1 页；页数 ≤1 不渲染翻页控件（零负担）。
 //
 //  用法（替换原「container.innerHTML = rows.map(...)」）：
 //    renderFilteredList(bodyEl, {
@@ -31,21 +35,21 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../core/utils.js?v=20260914m';
+import { escHtml as esc } from '../core/utils.js?v=20260914o';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../core/constants.js?v=20260914m';
+} from '../core/constants.js?v=20260914o';
 // 活动生命周期**展示态**单一源 = components/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260914m';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260914o';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
 let _seq = 0;
 
 function _stateOf(key) {
-  if (!_states.has(key)) _states.set(key, { q: '', facets: {} });
+  if (!_states.has(key)) _states.set(key, { q: '', facets: {}, page: 1 });
   return _states.get(key);
 }
 
@@ -87,6 +91,7 @@ function _keywordHit(item, q, keyword) {
  * @param {Object} [cfg.keyword] { keys:[字段], placeholder, get?(item,key) }
  * @param {Array} [cfg.facets] [{ key, label, options?:[{value,label}]|'auto', get?, format?(v) }]
  * @param {number} [cfg.minRows] 检索条出现门槛（缺省 = SEARCH_FILTER_MIN_ROWS 单一源）
+ * @param {number} [cfg.pageSize] 每页条数（缺省 10；传 0 = 不分页）。页数 ≤1 时不渲染翻页控件。
  * @param {string} [cfg.emptyMessage] 空结果文案
  * @param {Function} [cfg.sort] 排序比较器（缺省保持传入顺序）
  * @param {string} [cfg.listClass] 结果区 class（列表模式：行容器）
@@ -106,6 +111,7 @@ export function renderFilteredList(container, cfg) {
     keyword: null,
     facets: [],
     minRows: SEARCH_FILTER_MIN_ROWS,
+    pageSize: 10,
     emptyMessage: '无匹配结果',
     sort: null,
     listClass: 'space-y-1',
@@ -115,6 +121,7 @@ export function renderFilteredList(container, cfg) {
 
   const st = _stateOf(config.stateKey);
   const uid = 'lf' + (_seq += 1);
+  const pageSize = Math.max(0, Number(config.pageSize) || 0);
   let data = Array.isArray(config.rows) ? [...config.rows] : [];
   let visible = data.length > config.minRows;
   let facetDefs = [];
@@ -124,10 +131,12 @@ export function renderFilteredList(container, cfg) {
       <div class="lf-bar"></div>
       <div class="lf-list"></div>
       <div class="lf-count" role="status" aria-live="polite"></div>
+      <div class="lf-pager"></div>
     </div>`;
   const barEl = container.querySelector('.lf-bar');
   const listEl = container.querySelector('.lf-list');
   const countEl = container.querySelector('.lf-count');
+  const pagerEl = container.querySelector('.lf-pager');
   // 表格模式：class 作用于 <table>（.data-table 单一源）；列表模式：作用于行容器
   listEl.className = config.table ? 'lf-list' : 'lf-list ' + config.listClass;
 
@@ -174,17 +183,20 @@ export function renderFilteredList(container, cfg) {
 
     barEl.querySelector(`#${uid}-q`)?.addEventListener('input', (e) => {
       st.q = String(e.target.value || '').trim().toLowerCase();
+      st.page = 1; // 筛选变化回到第 1 页（否则会停在空页）
       renderList();
     });
     barEl.querySelectorAll('.lf-select').forEach(sel => {
       sel.addEventListener('change', () => {
         st.facets[sel.dataset.facet] = sel.value || '';
+        st.page = 1;
         renderList();
       });
     });
     barEl.querySelector('.lf-clear')?.addEventListener('click', () => {
       st.q = '';
       st.facets = {};
+      st.page = 1;
       renderBar();
       renderList();
     });
@@ -200,17 +212,23 @@ export function renderFilteredList(container, cfg) {
       return true;
     });
     if (typeof config.sort === 'function') filtered = filtered.sort(config.sort);
+
+    // 分页（批次 34）：页码收敛 → 取当页切片；pageSize 为 0 表示不分页
+    const pages = pageSize > 0 ? Math.max(1, Math.ceil(filtered.length / pageSize)) : 1;
+    st.page = Math.min(Math.max(1, Number(st.page) || 1), pages);
+    const shown = pageSize > 0 ? filtered.slice((st.page - 1) * pageSize, st.page * pageSize) : filtered;
+
     if (config.table) {
       const empty = `<tr class="is-empty"><td colspan="${config.table.colSpan || 1}" class="is-empty">${esc(config.emptyMessage)}</td></tr>`;
       // 表格样式单一源：表头/行线/悬停/内边距全部由 styles.css::.data-table 提供（各表勿再重复声明）
       listEl.innerHTML = `<table class="data-table ${config.table.className || ''}">
         ${config.table.headHtml ? `<thead>${config.table.headHtml}</thead>` : ''}
-        <tbody>${filtered.length === 0 ? empty : filtered.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
+        <tbody>${filtered.length === 0 ? empty : shown.map((item, i) => config.rowHtml(item, i)).join('')}</tbody>
       </table>`;
     } else {
       listEl.innerHTML = filtered.length === 0
         ? `<p class="text-xs text-gray-500 text-center py-4">${esc(config.emptyMessage)}</p>`
-        : filtered.map((item, i) => config.rowHtml(item, i)).join('');
+        : shown.map((item, i) => config.rowHtml(item, i)).join('');
     }
     countEl.hidden = !visible;
     if (visible) {
@@ -219,7 +237,35 @@ export function renderFilteredList(container, cfg) {
         ? `筛选出 ${filtered.length} / ${data.length} ${config.countUnit}`
         : `共 ${data.length} ${config.countUnit}`;
     }
+    renderPager(pages, filtered.length);
   }
+
+  /** 翻页控件：走 .page-btn / .page-num 单一源（批次 28），页数 ≤1 不出控件 */
+  function renderPager(pages, total) {
+    if (pages <= 1) { pagerEl.hidden = true; pagerEl.innerHTML = ''; return; }
+    pagerEl.hidden = false;
+    const cur = st.page;
+    const nums = [];
+    const end = Math.min(pages, Math.max(cur, 3) + 2);
+    for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
+    pagerEl.innerHTML = `
+      <div class="flex items-center justify-between pt-3">
+        <span class="lf-count">共 ${total} ${esc(config.countUnit)} · 第 ${cur} / ${pages} 页</span>
+        <div class="flex items-center gap-1.5">
+          <button type="button" class="page-btn" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+          ${nums.map(n => `<button type="button" class="page-num${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
+          <button type="button" class="page-btn" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+        </div>
+      </div>`;
+  }
+
+  // 翻页事件（委托一次即可：pagerEl 由根模板持有、内容重绘不影响绑定）
+  pagerEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-lf-page]');
+    if (!btn || btn.disabled) return;
+    st.page = Number(btn.dataset.lfPage) || 1;
+    renderList();
+  });
 
   function renderAll() {
     facetDefs = resolveFacets();

@@ -4,9 +4,9 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../../core/registry.js?v=20260914m';
-import { rolesForPage } from '../../core/constants.js?v=20260914m';
-import { AuthStore } from '../../services/auth.js?v=20260914m';
+import { registerCapability } from '../../core/registry.js?v=20260914o';
+import { rolesForPage } from '../../core/constants.js?v=20260914o';
+import { AuthStore } from '../../services/auth.js?v=20260914o';
 
 // 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/disc/）
 // tab 私有状态随模块自持；共享只读配置（accent/activities/导航目标）经 ctx 传入。
@@ -20,7 +20,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（纪检台=考勤管理 attendance）
-    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260914m').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260914o').then(m => {
       const el = document.getElementById('disc-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -32,20 +32,20 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/disc/todo-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/disc/todo-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/disc/overview-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
-    { id: 'attendance', label: '考勤管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/attendance-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
-    { id: 'review', label: '活动监督复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/review-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
-    { id: 'inspection', label: '考察管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/inspection-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/disc/overview-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
+    { id: 'attendance', label: '考勤管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/attendance-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
+    { id: 'review', label: '活动监督复盘', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/review-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
+    { id: 'inspection', label: '考察管理', groupLabel: '党建', render: (ctx) => import('../../entries/tabs/disc/inspection-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
     // D8 裁决批二（2026-09-08）：补课制度（静态制度为主）后移至公邮管理之后（表 C 纪检台调序裁定）
     // 支书 2026-09-14 裁定（同质薄壳合并）：「公邮管理」与「补课制度」合并为「制度与文本」一个 tab，
     // 内部分段切换两块内容（各块原样复用 makeup-tab / mailbox-tab 的渲染函数）；id 保留既有 mailbox。
-    { id: 'mailbox', label: '制度与文本', groupLabel: '制度与答复', render: (ctx) => import('../../entries/tabs/disc/policy-text-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
+    { id: 'mailbox', label: '制度与文本', groupLabel: '制度与答复', render: (ctx) => import('../../entries/tabs/disc/policy-text-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
     // 知情查看（支书 2026-09-14 裁定：同质薄壳合并——原「专班查看」+「活动查看」并入本 tab 分段切换；
     //   id 保留 tf-view，免动 ?tab= 深链与支部 config 的 hiddenTabIds/tabOrder 键）
     // 分组「知情查看」= 2026-09-14 裁定按行为性质四组之一（工作台/我的职责/知情查看/制度与答复）
-    { id: 'tf-view', label: '知情查看', groupLabel: '知情查看', render: (ctx) => import('../../entries/tabs/disc/tf-view-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
-    { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/disc/my-dispatch-tab.js?v=20260914m').then(m => m.renderContent(ctx)) },
+    { id: 'tf-view', label: '知情查看', groupLabel: '知情查看', render: (ctx) => import('../../entries/tabs/disc/tf-view-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
+    { id: 'my-dispatch', label: '我的处置', groupLabel: '反馈', render: (ctx) => import('../../entries/tabs/disc/my-dispatch-tab.js?v=20260914o').then(m => m.renderContent(ctx)) },
   ],
 });
