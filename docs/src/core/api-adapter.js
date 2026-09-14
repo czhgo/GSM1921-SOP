@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914b';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -713,6 +713,23 @@ export const ApiAdapter = {
 
     delete(id) {
       return _delete(`/api/v1/partyGroups/${id}`);
+    },
+  },
+
+  // 2026-09-14 批次 25：成员流动台账（服务端 member_flows 表；写门 = 组织委员 + 支书/副支书，
+  //   服务端 RESOURCE_WRITE_GATE.memberFlows='member-flow' 同源把关）
+  memberFlows: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/memberFlows${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/memberFlows', data);
+    },
+
+    update(id, patch) {
+      return _patch(`/api/v1/memberFlows/${id}`, patch);
     },
   },
 

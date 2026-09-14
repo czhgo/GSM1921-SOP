@@ -6,35 +6,35 @@
 //   ② developStage pending → decide approved 落档案；rejected 带 rejectNote 不生效
 //   ③ residence pending → decide approved：roster 覆盖 + 留痕（updatedBy=支书）+ 档案镜像
 //   ④ submitTransferOut：现任支书拒绝 / 有 pending 其它请求拦截 / 无引用 direct / 仅安全引用 direct+clearedSafe
-//   ⑤ 有保留历史 → transferOut pending（refsSummary 分类）→ decide approved：
-//       安全解除、保留记录 transferredOutAt、专班普通成员移除 / 专班负责人保留+提示、
-//       memberChangeRequests 非终态作废、成员移除 + removedIds 对象含 name（getName 不匿名）、
-//       isTransferredOut true
+//   ⑤ submitTransferOut（**登记即生效**，2026-09-14 支书裁定）：
+//       有保留历史 → 直接生效（不建 pending）：安全解除、保留记录标注 transferredOutAt、
+//       专班普通成员移除 / 专班负责人保留+提示、memberChangeRequests 非终态作废、
+//       成员移除 + removedIds 对象含 name（getName 不匿名）、isTransferredOut true
 //   ⑥ 刷新持久（localStorage 镜像 → 清 mockDB 后 list 仍可恢复）；旧 string removedIds 兼容
 //   ⑦ listPendingConfirmations 仅 pending；学期末提醒窗口函数
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914b';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260914a';
+} from '../../docs/src/core/mock-adapter.js?v=20260914b';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/person.js?v=20260914a';
+} from '../../docs/src/services/person.js?v=20260914b';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260914a';
+} from '../../docs/src/services/roster.js?v=20260914b';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914a';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914b';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, DEV_STAGE_OVERRIDES_KEY, loadDevStageOverrides,
-} from '../../docs/src/services/member-confirmation.js?v=20260914a';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260914a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914a';
+} from '../../docs/src/services/member-confirmation.js?v=20260914b';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260914b';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914b';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();
@@ -269,9 +269,9 @@ test('submitTransferOut：仅安全引用（未开始分工/未生效报名/未�
   assert.equal(PersonStore.getMembers().some(p => p.id === 'p50'), false);
 });
 
-// ═══════════════ ⑤ transferOut pending：分类 + approve 执行 ═══════════════
+// ═══════════════ ⑤ transferOut：登记即生效（有保留历史也直接生效，不建 pending）═══════════════
 
-test('submitTransferOut：有保留历史 → transferOut pending（refsSummary 分类）→ 成员仍在册', async () => {
+test('submitTransferOut：有保留历史 → 登记即生效（安全解除 + keep 标注 + 成员即时移出；不建 pending）', async () => {
   beginMockCase();
   // p5 种子活动分工（act-29 过去 / act-31 未来）会随系统日期归入 keep/safe → 先摘除，改受控数据：
   mockDB.activities = mockDB.activities.map(a => ({
@@ -285,28 +285,21 @@ test('submitTransferOut：有保留历史 → transferOut pending（refsSummary 
   }];
   const r = await submitTransferOut({ personId: 'p5', by: 'p11', note: '毕业转出' });
   assert.equal(r.ok, true, JSON.stringify(r));
-  assert.equal(r.direct, false);
-  assert.equal(listPendingConfirmations().length, 1);
-  assert.equal(PersonStore.getMembers().some(p => p.id === 'p5'), true, '未确认前成员仍在册');
-  const req = listPendingConfirmations()[0];
-  assert.equal(req.kind, 'transferOut');
-  assert.equal(req.action, 'transferOut');
-  assert.equal(req.from, '在册');
-  assert.equal(req.to, '已转出');
-  assert.equal(req.name, '宋佳宁');
-  assert.ok(req.refsSummary, '移出请求带 refsSummary');
-  const keepDomains = req.refsSummary.keep.map(x => x.domain);
-  assert.ok(keepDomains.includes('activities'), '活动分工在 keep');
-  assert.ok(keepDomains.includes('assignments'), '分工记录在 keep');
-  assert.ok(keepDomains.includes('taskforces'), '专班成员在 keep');
-  assert.equal(req.refsSummary.safe.length, 0, '无未开始引用 → safe 为空');
-  // 成员还在 → 再发起（重复 pending）被拦截
-  const dup = await submitTransferOut({ personId: 'p5', by: 'p11' });
-  assert.equal(dup.ok, false);
-  assert.match(dup.reason, /待支书确认/);
+  assert.equal(r.direct, true, '登记即生效（direct）');
+  assert.ok(r.annotatedKeep > 0, '保留历史被标注');
+  assert.equal(listPendingConfirmations().length, 0, '不再建 transferOut 待支书确认请求');
+  assert.equal(PersonStore.getMembers().some(p => p.id === 'p5'), false, '成员即时移出（无需二次确认）');
+  // keep 行标注 transferredOutAt（不删不匿名）
+  const startedAct = mockDB.activities.find(a => a.id === 'act-c-keep1');
+  assert.ok(startedAct.assignments[0].transferredOutAt, 'keep 活动分工行标注 transferredOutAt');
+  assert.equal(getPersonName('p5'), '宋佳宁', '移出后历史读链仍可解析姓名');
+  // 已在册者再次流出 → 拒绝（档案中已无此人）
+  const again = await submitTransferOut({ personId: 'p5', by: 'p11' });
+  assert.equal(again.ok, false);
+  assert.match(again.reason, /成员不存在/);
 });
 
-test('decide approved（移出）：安全解除 + keep 标注 transferredOutAt + 专班普通成员移除 + 不匿名', async () => {
+test('submitTransferOut（登记即生效）：安全解除 + keep 标注 transferredOutAt + 专班普通成员移除 + 不匿名', async () => {
   beginMockCase();
   // 构造：p5 一个未来活动内嵌分工行（safe）+ 一个过去/已开始分工行（keep）+ 考勤（keep）+ 专班普通成员（移除）
   const future = _addActivity('act-c-future2');
@@ -319,9 +312,8 @@ test('decide approved（移出）：安全解除 + keep 标注 transferredOutAt 
     id: 'tf-c-1', name: '测试专班', task: '测试', status: 'active', members: [{ personId: 'p5', role: 'participant' }],
   }];
   const r = await submitTransferOut({ personId: 'p5', by: 'p11' });
-  assert.equal(r.ok, true);
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
-  assert.equal(decided.ok, true, JSON.stringify(decided));
+  assert.equal(r.ok, true, JSON.stringify(r));
+  assert.equal(r.direct, true, '登记即生效');
   // 安全行解除；keep 行标注
   assert.equal(mockDB.activities.find(a => a.id === 'act-c-future2').assignments.length, 0, 'safe 活动分工行解除');
   const startedAct = mockDB.activities.find(a => a.id === 'act-c-started');
@@ -343,7 +335,7 @@ test('decide approved（移出）：安全解除 + keep 标注 transferredOutAt 
   assert.equal(listPendingConfirmations().length, 0);
 });
 
-test('decide approved（移出）：专班负责人保留行 + 提示 note + refsSummary 提示条；不阻塞移出', async () => {
+test('submitTransferOut（登记即生效）：专班负责人保留行 + 提示 note；不阻塞移出', async () => {
   beginMockCase();
   // p7 为自建专班 tf-c-org 负责人（organizer）；su-001（taskforce tf-005 approved 报名）→ keep
   mockDB.taskforces = [...mockDB.taskforces, {
@@ -352,12 +344,7 @@ test('decide approved（移出）：专班负责人保留行 + 提示 note + ref
   }];
   const r = await submitTransferOut({ personId: 'p7', by: 'p11' });
   assert.equal(r.ok, true, JSON.stringify(r));
-  assert.equal(r.direct, false);
-  const req = listPendingConfirmations()[0];
-  const orgHint = req.refsSummary.keep.find(x => /专班负责人/.test(x.label));
-  assert.ok(orgHint, 'keep 摘要含「专班负责人（转出前须先移交）」提示条');
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
-  assert.equal(decided.ok, true, JSON.stringify(decided));
+  assert.equal(r.direct, true);
   const tfOrg = mockDB.taskforces.find(t => t.id === 'tf-c-org');
   const orgRow = tfOrg.members.find(m => m.personId === 'p7');
   assert.ok(orgRow, '专班负责人成员行保留（不因转出被移除）');
@@ -372,7 +359,7 @@ test('decide approved（移出）：专班负责人保留行 + 提示 note + ref
   assert.equal(getPersonName('p7'), '曾雨桐');
 });
 
-test('decide approved（移出）：memberChangeRequests 非终态作废 cancelled + 终态标注', async () => {
+test('submitTransferOut（登记即生效）：memberChangeRequests 非终态作废 cancelled + 终态标注', async () => {
   beginMockCase();
   mockDB.memberChangeRequests = [
     { id: 'mcr-c-pending', personId: 'p1', activityId: 'act-x', fromStage: '正式党员', toStage: '预备党员', status: 'pending-secretary', createdAt: new Date().toISOString() },
@@ -380,8 +367,7 @@ test('decide approved（移出）：memberChangeRequests 非终态作废 cancell
   ];
   const r = await submitTransferOut({ personId: 'p1', by: 'p11' });
   assert.equal(r.ok, true, JSON.stringify(r));
-  const decided = await decideConfirmation(r.request.id, { decision: 'approved', by: 'p13' });
-  assert.equal(decided.ok, true, JSON.stringify(decided));
+  assert.equal(r.direct, true);
   const pend = mockDB.memberChangeRequests.find(x => x.id === 'mcr-c-pending');
   assert.equal(pend.status, 'cancelled');
   assert.ok(pend.cancelledAt);

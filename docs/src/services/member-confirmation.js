@@ -4,10 +4,13 @@
 // ════════════════════════════════════════════════════════════════
 // 支书裁定（R4-1/R4-2/R4-3 + 学期末提醒，替代「直改即时生效 + 支书复核卡只读」）：
 //   · 发展阶段 / 在册滞留 = 组织委员发起 → 支书确认生效（双层留痕、可退回）；
-//   · 成员移出 = 引用清单化：
+//   · 成员移出 = 引用清单化 + **登记即生效**（2026-09-14 支书裁定，不再要求二次确认）：
 //       - 未开始引用（未开始的活动分工 / 未生效的报名 / 未读的广播接收）→ 一键自动解除后移出；
 //       - 已开始或历史的记录（考勤 / 考察 / 思想汇报 / 复盘 / 表态 / 长期分工等）→
-//         经支书确认后转「已转出」标注（transferredOutAt），原记录保留、不删不匿名；
+//         保留并标注「已转出」（transferredOutAt），原记录保留、不删不匿名；
+//       - 一律直接生效（不再建「待支书确认」的 transferOut pending 请求）；登错由成员流动台账
+//         撤销（services/member-flow.js::revokeFlow，台账 revokedAt/revokedBy 留痕 + 回滚在册状态）纠正。
+//       仅「发展阶段变更 / 在册状态变更」仍走支书确认链（那两类不属本次范围）。
 //   · 请求队列 = mockDB.pendingMemberConfirmations（内存读链；domain.js 已声明顶层数组）。
 //     跨刷新持久化：本模块自管 localStorage 键 gsm1921-member-confirmations
 //     （gsm1921- 前缀 → ?reset=demo 档自动清除 = 回种子；mock-adapter 域清单禁改，勿并入整库键）。
@@ -19,21 +22,21 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914a';
-import { persist } from '../core/data-adapter.js?v=20260914a';
+import { mockDB } from '../core/domain.js?v=20260914b';
+import { persist } from '../core/data-adapter.js?v=20260914b';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../core/id.js?v=20260914a';
-import { bumpToken } from '../core/version-token.js?v=20260914a'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../core/id.js?v=20260914b';
+import { bumpToken } from '../core/version-token.js?v=20260914b'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914a';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260914a';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260914a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914b';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260914b';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260914b';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260914a';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260914b';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260914a';
+import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260914b';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -314,18 +317,17 @@ function _summarize(entries) {
 }
 
 /**
- * 组织委员发起「成员移出」（引用清单化）：
+ * 组织委员发起「成员移出」（引用清单化 + **登记即生效**，2026-09-14 支书裁定）：
  *  - 现任支书（任一支部）→ 拒绝（需先交接）；
- *  - 无任何引用 → 直接移出 {ok:true, direct:true}（无历史可标注）；
- *  - 仅有安全引用（未开始分工/未生效报名/未读广播）→ 自动解除后直接移出
- *    {ok:true, direct:true, clearedSafe:n}；
- *  - 存在保留历史（考勤/考察/思想汇报/长期分工等）→ 建 transferOut pending
- *    {ok:true, direct:false, request}，支书确认后执行（安全引用解除 + 历史转「已转出」标注 + 移出）。
+ *  - 已有其它待支书确认请求（阶段/在册）→ 拦截（防流程交错）；
+ *  - 其余一律直接生效：安全引用（未开始分工/未生效报名/未读广播）自动解除 →
+ *    保留历史记录标注 transferredOutAt（原记录保留、不删不匿名）→ 成员档案软标记移出。
+ *    不再建 transferOut pending 请求（登错由成员流动台账撤销纠正）。
  * @param {Object} params
  * @param {string} params.personId 成员 id
  * @param {string} [params.by] 发起人（组织委员）
- * @param {string} [params.note] 移出原因/备注
- * @returns {Promise<{ok:boolean, direct?:boolean, clearedSafe?:number, request?:Object, reason?:string}>}
+ * @param {string} [params.note] 移出原因/备注（由调用方记入流动台账；本函数不改档案）
+ * @returns {Promise<{ok:boolean, direct?:boolean, clearedSafe?:number, annotatedKeep?:number, reason?:string}>}
  */
 export async function submitTransferOut({ personId, by, note } = {}) {
   const person = _person(personId);
@@ -336,38 +338,15 @@ export async function submitTransferOut({ personId, by, note } = {}) {
   }
   const pendAny = _findPendingAny(personId);
   if (pendAny) {
-    return { ok: false, reason: '该成员已有待支书确认的请求（阶段/在册/移出），处理完成后再发起移出' };
+    return { ok: false, reason: '该成员已有待支书确认的请求（阶段/在册），处理完成后再发起移出' };
   }
   const { safe, keep } = _scanRefs(personId);
-  const cleanNote = note === undefined || note === null ? '' : String(note).trim();
-  if (keep.length === 0) {
-    // 无保留历史：安全引用先自动解除，随后直接移出（无历史可标注）
-    if (safe.length > 0) _clearSafeRefs(safe);
-    const r = await PersonStore.removeMember(personId, { by: by || null, guardRefs: false, transferOut: true });
-    if (!r.ok) return { ok: false, reason: r.reason || '移出执行失败' };
-    return { ok: true, direct: true, clearedSafe: safe.length };
-  }
-  const request = {
-    id: _nextId(),
-    kind: 'transferOut',
-    action: 'transferOut',
-    personId,
-    name: person.name || personId,
-    from: '在册',
-    to: '已转出',
-    note: cleanNote,
-    by: by || null,
-    at: new Date().toISOString(),
-    status: 'pending',
-    decidedBy: null,
-    decidedAt: null,
-    rejectNote: '',
-    refsSummary: { safe: _summarize(safe), keep: _summarize(keep) },
-  };
-  mockDB.pendingMemberConfirmations = [..._all(), request];
-  bumpToken('memberConfirmation'); // P0：成员变更确认请求队列写口 bump
-  _save();
-  return { ok: true, direct: false, request };
+  const at = new Date().toISOString();
+  // 登记即生效：安全引用解除 + 保留历史标注 + 成员软标记移出（原 decide approved 的执行原语）
+  _executeTransferOut(personId, at);
+  const r = await PersonStore.removeMember(personId, { by: by || null, guardRefs: false, transferOut: true });
+  if (!r.ok) return { ok: false, reason: r.reason || '移出执行失败' };
+  return { ok: true, direct: true, clearedSafe: safe.length, annotatedKeep: keep.length };
 }
 
 // ── 支书决策 ────────────────────────────────────────────────────

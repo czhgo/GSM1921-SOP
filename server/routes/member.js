@@ -12,6 +12,8 @@ import {
   SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS,
   COMMITTEE_IDS as BRANCH_COMMITTEE_IDS,
   RESIDENCE,
+  // 2026-09-14：组织委员职能位单一源（原本文件手写的组委角色数组收敛至 constants.js）
+  ORG_COMMISSIONER_ROLES as ORG_COMMISSIONER_ROLE_KEYS,
 } from '../../docs/src/core/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-preview.js';
@@ -20,7 +22,7 @@ import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-pre
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
 const COMMITTEE_IDS = BRANCH_COMMITTEE_IDS;
 
-const ORG_COMMISSIONER_ROLES = new Set(['org-commissioner']);
+const ORG_COMMISSIONER_ROLES = new Set(ORG_COMMISSIONER_ROLE_KEYS);
 // 副书同权（2026-09-11 支书裁定）：支书侧写链共享集合（单一源 constants.js，勿手写两套）——
 // 名册阶段/在册镜像、移出确认、成员变更确认（本文件 confirm）一律复用本集合。
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
@@ -188,8 +190,8 @@ export function createMemberRouter(db) {
   //   · 名册新增      POST  /members                       组织委员（同上；支书/副支书不越权）；强制归本支部、默认普通成员角色
   //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
-  const PROFILE_FIELDS = ['name', 'studentId', 'partyGroup', ...RESIDENCE_FIELDS];
-  const CREATE_FIELDS = ['id', 'name', 'studentId', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
+  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', ...RESIDENCE_FIELDS];
+  const CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
   const RESIDENCE_VALUES = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
   const TRANSFER_OUT_ROLES = new Set(['org-commissioner', ...SECRETARY_DEPUTY_ROLE_KEYS]);
   const branchOf = (u) => (u && u.branchId) || 'br-b1';

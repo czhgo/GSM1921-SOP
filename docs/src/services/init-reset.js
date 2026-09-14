@@ -57,6 +57,8 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
   experienceDeposits: [], complianceReferences: [],
   // 党小组（2026-09-14 批次 25 一等实体）：清空回种子（loadPartyGroups 空集合回退 PARTY_GROUPS）
   partyGroups: [],
+  // 成员流动台账（2026-09-14 批次 25）：业务过程数据，随初始化清空
+  memberFlows: [],
   // 公邮域（纪检工具配置 + 查收历史）
   mailboxConfig: null, mailboxHistory: [],
   // 内控/交接/审批：文件流外发确认/三委数据交接/成员变更申请/支委广播/表态/支部上报审批

@@ -29,6 +29,8 @@ const RESOURCE_TABLES = [
   'thought_reports',
   // 2026-09-14 批次 25：党小组一等实体（支书特批；组长由成员档案派生，本表仅落组级留痕）
   'party_groups',
+  // 2026-09-14 批次 25：成员流动台账（流入/流出复式记账；登记即生效、可撤销留痕）
+  'member_flows',
 ];
 
 const SCHEMA = `

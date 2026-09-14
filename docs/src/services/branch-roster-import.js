@@ -21,13 +21,13 @@
 // 纯 ESM、无 DOM：localStorage 由 person.js 内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { getBaseMemberRecords } from './person.js?v=20260914a';
+import { getBaseMemberRecords } from './person.js?v=20260914b';
 import {
   PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS, buildPreviewTemplate,
-} from './org-base-data-preview.js?v=20260914a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914a';
+} from './org-base-data-preview.js?v=20260914b';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914b';
 // Q-21-3 收敛（2026-09-13）：枚举单一源 = core/constants.js（原经 org-base-data-preview 转出，现直取）
-import { RESIDENCE } from '../core/constants.js?v=20260914a';
+import { RESIDENCE } from '../core/constants.js?v=20260914b';
 
 /** 空支部名册包类型标识（与预览包 kind 区分；净化时兼容两 kind——预览模板行结构同源） */
 export const BRANCH_ROSTER_KIND = 'gsm1921-branch-roster';

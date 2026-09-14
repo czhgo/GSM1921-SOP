@@ -3,19 +3,19 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914a';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914a';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260914a';
+import { AuthStore } from '../../../services/auth.js?v=20260914b';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260914b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914a';
-import { flashHighlight } from '../../../core/utils.js?v=20260914a';
+import { isActivityLive } from '../../../core/constants.js?v=20260914b';
+import { flashHighlight } from '../../../core/utils.js?v=20260914b';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914a';
-import { getAppState } from '../../../core/state.js?v=20260914a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914b';
+import { getAppState } from '../../../core/state.js?v=20260914b';
 
 // 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'

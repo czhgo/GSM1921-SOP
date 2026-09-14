@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -55,6 +55,8 @@ const RESOURCE_TABLES = {
   thoughtReports: 'thought_reports',
   // 2026-09-14 批次 25：党小组一等实体（支书特批；写门 = secretary，见 RESOURCE_WRITE_GATE）
   partyGroups: 'party_groups',
+  // 2026-09-14 批次 25：成员流动台账（写门 = 组织委员 + 支书/副支书，见 RESOURCE_WRITE_GATE）
+  memberFlows: 'member_flows',
 };
 
 function listTable(db, table) {
@@ -72,6 +74,8 @@ const NOTICE_PUBLISH_ROLE_SET = new Set(NOTICE_PUBLISH_ROLES);
 const NOTICE_MANAGE_ROLE_SET = new Set(NOTICE_MANAGE_ROLES);
 // 2026-09-14 批次 25：党小组管理角色集（支书含副支书）单一源 = constants.js::SECRETARY_AND_DEPUTY_ROLES（勿手写）
 const SECRETARY_AND_DEPUTY_ROLE_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
+// 2026-09-14 批次 25：成员流动登记角色集（组织委员 + 支书/副支书）单一源 = constants.js::MEMBER_FLOW_ROLES
+const MEMBER_FLOW_ROLE_SET = new Set(MEMBER_FLOW_ROLES);
 const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
@@ -82,6 +86,8 @@ const RESOURCE_WRITE_GATE = {
   notices: { post: 'notice-publish', patch: 'notice-manage', delete: 'notice-manage' },
   // 党小组（2026-09-14 批次 25 支书裁定）：管理（建/改组/解散/归组）仅限支书（含副支书）
   partyGroups: 'secretary',
+  // 成员流动台账（2026-09-14 批次 25 支书裁定）：流入/流出登记 = 组织委员 + 支书/副支书
+  memberFlows: 'member-flow',
 };
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
@@ -110,6 +116,8 @@ function _assertResourceWrite(actor, name, method, body) {
   if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);
   // 党小组管理：仅支书（含副支书）——角色名单单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES
   if (need === 'secretary') return !!actor && SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role);
+  // 成员流动登记：组织委员 + 支书/副支书——单一源 constants.js::MEMBER_FLOW_ROLES（勿手写）
+  if (need === 'member-flow') return !!actor && MEMBER_FLOW_ROLE_SET.has(actor.role);
   return true;
 }
 
@@ -120,6 +128,9 @@ function _writeDenyMsg(name) {
   }
   if (name === 'partyGroups') {
     return '党小组管理仅限支书（含副支书）';
+  }
+  if (name === 'memberFlows') {
+    return '无权限：成员流入/流出登记仅限组织委员或支书/副支书';
   }
   return '无权限：该写操作仅限党委组织员/党务老师或本支部支委层';
 }
@@ -157,6 +168,8 @@ const ID_PREFIX = {
   thoughtReports: 'tr',
   // 2026-09-14 批次 25：党小组（id 形态 pg-<uuid>，与前端 generateId('pg','-') 对齐）
   partyGroups: 'pg',
+  // 2026-09-14 批次 25：成员流动台账（id 形态 mf-<uuid>，与前端 generateId('mf','-') 对齐）
+  memberFlows: 'mf',
 };
 
 // 表决计票方式写侧校验（2026-09-12 支书裁定）：正式表决（optionSet formal——发展党员/转正等）

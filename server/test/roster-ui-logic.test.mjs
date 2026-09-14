@@ -9,13 +9,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914b';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914a';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260914b';
 import {
   guardCategoryList, buildGuardMessage,
   validateMemberForm, diffMemberFields,
-} from '../../docs/src/services/roster-ui-logic.js?v=20260914a';
+} from '../../docs/src/services/roster-ui-logic.js?v=20260914b';
 
 const p1 = PEOPLE.find(p => p.id === 'p1'); // 在校党员（第一党小组·正式党员，无种子滞留字段）
 const p5 = PEOPLE.find(p => p.id === 'p5'); // 种子示范滞留党员（第二党小组·正式党员）
@@ -73,7 +73,22 @@ test('validateMemberForm：姓名必填（含纯空格）；合法输入 trim �
 
   const v = validateMemberForm({ name: ' 张三 ', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: RESIDENCE.CAMPUS, residenceNote: ' 备注 ' });
   assert.equal(v.ok, true);
-  assert.deepEqual(v.value, { name: '张三', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: '在校', residenceNote: '' });
+  assert.deepEqual(v.value, { name: '张三', studentId: '', enrollYear: '', partyGroup: '第一党小组', developStage: '积极分子', residenceStatus: '在校', residenceNote: '' });
+});
+
+test('validateMemberForm：学号唯一性（非空且与既有学号重复 → 拒绝；空学号放行；未传清单不判定）', () => {
+  const existing = ['2400012345', '2600010001'];
+  const dup = validateMemberForm({ name: '王五', studentId: '2600010001' }, { existingStudentIds: existing });
+  assert.equal(dup.ok, false);
+  assert.match(dup.message, /已存在/);
+  const okNew = validateMemberForm({ name: '王五', studentId: '2600010999', enrollYear: '2026' }, { existingStudentIds: existing });
+  assert.equal(okNew.ok, true);
+  assert.equal(okNew.value.studentId, '2600010999');
+  assert.equal(okNew.value.enrollYear, '2026');
+  // 学号可选：空学号放行
+  assert.equal(validateMemberForm({ name: '王五' }, { existingStudentIds: existing }).ok, true);
+  // 未传既有清单 → 不做唯一性判定（向后兼容）
+  assert.equal(validateMemberForm({ name: '王五', studentId: '2600010001' }).ok, true);
 });
 
 test('validateMemberForm：在册状态枚举外拒绝（禁造新枚举）；在校清备注、滞留保备注且截断 120', () => {

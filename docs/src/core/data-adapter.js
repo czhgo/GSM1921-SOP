@@ -201,7 +201,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260914a');
+      const { mockDB } = await import('./domain.js?v=20260914b');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -234,6 +234,7 @@ export async function init() {
           reviewRequests,
           thoughtReports,
           partyGroups,
+          memberFlows,
           actSubRecordsRows, tfSubRecordsRows, mailboxConfigRows,
         ] = await Promise.all([
           adapter.experienceDeposits.list(),
@@ -262,6 +263,8 @@ export async function init() {
           adapter.thoughtReports.list(),
           // 2026-09-14 批次 25：党小组一等实体随全量快照恢复（服务端表 party_groups）
           adapter.partyGroups.list(),
+          // 2026-09-14 批次 25：成员流动台账随全量快照恢复（服务端表 member_flows）
+          adapter.memberFlows.list(),
           adapter.actSubRecords.list(),
           adapter.tfSubRecords.list(),
           adapter.mailboxConfig.list(),
@@ -285,6 +288,8 @@ export async function init() {
         mockDB.thoughtReports        = thoughtReports || [];
         // 2026-09-14 批次 25：党小组一等实体随全量快照恢复
         mockDB.partyGroups           = partyGroups || [];
+        // 2026-09-14 批次 25：成员流动台账随全量快照恢复
+        mockDB.memberFlows           = memberFlows || [];
         mockDB.memberChangeRequests  = memberChangeRequests || [];
         mockDB.committeeBroadcasts    = committeeBroadcasts || [];
         mockDB.agendaVotes           = agendaVotes || [];
@@ -294,7 +299,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260914a');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260914b');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -313,8 +318,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260914a');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260914a');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260914b');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260914b');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -324,7 +329,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260914a');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260914b');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -502,6 +507,8 @@ function _buildSnapshotPayload(mockDB) {
     thoughtReports: mockDB.thoughtReports,
     // 2026-09-14 批次 25：党小组一等实体（服务端 party_groups 表随快照写穿）
     partyGroups: mockDB.partyGroups,
+    // 2026-09-14 批次 25：成员流动台账（服务端 member_flows 表随快照写穿）
+    memberFlows: mockDB.memberFlows,
     actSubRecords:  [{ id: '__root__', body: mockDB.actSubRecords || {} }],
     tfSubRecords:   [{ id: '__root__', body: mockDB.tfSubRecords || {} }],
     mailboxConfig:  [{ id: '__root__', body: mockDB.mailboxConfig ?? null }],
@@ -517,7 +524,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260914a');
+    const { mockDB } = await import('./domain.js?v=20260914b');
     _cachedMockDB = mockDB;
     const payload = _collectDirty(mockDB);
     if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）

@@ -297,8 +297,8 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
 | 发展党员追踪 | `PEOPLE.developStage` + localStorage 推进覆盖档案 `gsm1921-dev-stage-overrides` | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落覆盖档案 |
 | 反馈系统人员 ID | 真实成员短 ID（`p*`，如 `p13`/`p11`/`p1`；2026-09-13 起不再用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
-| `partyGroups` | `docs/src/services/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab、赋权管理组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；解散 = 组内成员转「未分组」+ 留痕（`memberFlows` 为第二批设计定案、尚未落代码；`partyGroups` 已于 2026-09-14 批次 25 落地） |
-| `memberFlows` | `docs/src/services/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」（`memberFlows` 为第二批设计定案、尚未落代码；`partyGroups` 已于 2026-09-14 批次 25 落地） |
+| `partyGroups` | `docs/src/services/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab、赋权管理组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；解散 = 组内成员转「未分组」+ 留痕（已于 2026-09-14 批次 25 落地；落点与测试证据见 BRANCH_WORK_MAP 批次 25 落地注记） |
+| `memberFlows` | `docs/src/services/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」（已于 2026-09-14 批次 26 落地；落点与测试证据见 BRANCH_WORK_MAP 批次 26 落地注记） |
 
 > 关联缓存版本链：`cross-page-state.js CODE_VERSION` + HTML `?v=` 参数 + `issues.js CACHE_VERSION` 三者任一升级都会强制用户浏览器丢弃旧 localStorage 缓存重新拉取，保证"数据干净、唯一数据源"落地（T187）。
 
@@ -410,8 +410,8 @@ UI 层零改动。
 
 #### 4.5.1 成员流入/流出写路径（2026-09-14 批次 25）
 
-> **成员流入 → 台账 + 档案 + 账号（三写同源）**：一次登记三处一致——`memberFlows` 记一笔（`kind='in'`）+ `PersonRecord` 建档（采集姓名/学号/届别/党小组）+ 账号层建号（账号 = 学号，口令 = 支部统一默认口令）。
-> **成员流出 → 台账 + 档案软标记 + 账号停用**：`memberFlows` 记一笔（`kind='out'`）+ `PersonRecord` 软标记保留（`transferOut=true` + 转出时间/经手人）+ 账号随流出一并停用。
+> **成员流入 → 台账 + 档案 + 账号（三写同源）**：一次登记三处一致——`memberFlows` 记一笔（`direction='in'`）+ `PersonRecord` 建档（采集姓名/学号/届别/党小组）+ 账号层建号（账号 = 学号，口令 = 支部统一默认口令）。
+> **成员流出 → 台账 + 档案软标记 + 账号停用**：`memberFlows` 记一笔（`direction='out'`）+ `PersonRecord` 软标记保留（`transferOut=true` + 转出时间/经手人）+ 账号随流出一并停用。
 
 ### 4.6 写穿透缓存模式（T-142 Phase 2B）
 

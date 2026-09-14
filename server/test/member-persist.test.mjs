@@ -19,16 +19,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914a';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914b';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914b';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260914a';
+} from '../../docs/src/core/mock-adapter.js?v=20260914b';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260914a';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914a';
+} from '../../docs/src/services/person.js?v=20260914b';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914b';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914b';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -55,6 +55,8 @@ function beginMockCase() {
     'appointmentRecords', 'reviewRequests', 'archiveRecords',
     // 2026-09-14 批次 25：党小组一等实体域（每例独立现场需重置回种子）
     'partyGroups',
+    // 2026-09-14 批次 25：成员流动台账（每例独立现场需重置）
+    'memberFlows',
   ]) {
     mockDB[k] = [];
   }

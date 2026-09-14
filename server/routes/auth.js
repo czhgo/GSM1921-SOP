@@ -28,6 +28,8 @@ export function createAuthRouter(db) {
       return res.status(401).json({ error: '口令错误' });
     }
     const user = JSON.parse(userRow.data);
+    // 2026-09-14 批次 25：成员流出/转出 → 账号停用（软标记行保留，登录一律拒绝）
+    if (user.transferOut === true) return res.status(401).json({ error: '账号已停用（该成员已流出）' });
     const token = randomUUID();
     db.prepare('INSERT INTO sessions (token, person_id, created_at) VALUES (?, ?, ?)')
       .run(token, personId, new Date().toISOString());
@@ -68,7 +70,10 @@ function getSessionUser(db, req) {
   if (!session) return null;
   const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(session.person_id);
   if (!userRow) return null;
-  return { session, user: JSON.parse(userRow.data) };
+  const user = JSON.parse(userRow.data);
+  // 2026-09-14 批次 25：停用账号（成员已流出）的在途会话一并失效
+  if (user.transferOut === true) return null;
+  return { session, user };
 }
 
 export function requireRole(db, roles) {

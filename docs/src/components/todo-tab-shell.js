@@ -14,17 +14,17 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260914a';
+import { TodoStore } from '../services/todo.js?v=20260914b';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore } from '../services/notice.js?v=20260914a';
-import { renderDomainTodoList } from './todo-list.js?v=20260914a';
-import { badgeHtml } from './badges.js?v=20260914a';
-import { showToast } from '../core/utils.js?v=20260914a';
-import { solidAccentStyle } from '../core/constants.js?v=20260914a';
-import { mockDB } from '../core/domain.js?v=20260914a';
-import { tokenOf } from '../core/version-token.js?v=20260914a'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260914a'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore } from '../services/notice.js?v=20260914b';
+import { renderDomainTodoList } from './todo-list.js?v=20260914b';
+import { badgeHtml } from './badges.js?v=20260914b';
+import { showToast } from '../core/utils.js?v=20260914b';
+import { solidAccentStyle } from '../core/constants.js?v=20260914b';
+import { mockDB } from '../core/domain.js?v=20260914b';
+import { tokenOf } from '../core/version-token.js?v=20260914b'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260914b'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

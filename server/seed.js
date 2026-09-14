@@ -52,4 +52,6 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'issues', seedIssues());
   // 2026-09-14 批次 25：党小组一等实体种子（br-b1 现有三组；组长由成员档案派生不落本表）
   replaceCollection(db, 'party_groups', partyGroupsMod.PARTY_GROUPS);
+  // 2026-09-14 批次 25：成员流动台账（member_flows）种子为空数组（运行时业务过程数据，
+  // 无演示历史）→ 不灌库；服务端表由 db.js RESOURCE_TABLES 建表，写入走快照/CRUD 通道。
 }

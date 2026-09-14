@@ -28,14 +28,14 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from './modal.js?v=20260914a';
-import { PersonStore } from '../services/person.js?v=20260914a';
-import { getBranchById } from '../services/branch.js?v=20260914a';
+import { openModal, closeModal } from './modal.js?v=20260914b';
+import { PersonStore } from '../services/person.js?v=20260914b';
+import { getBranchById } from '../services/branch.js?v=20260914b';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../core/constants.js?v=20260914a';
-import { submitMemberChange } from '../services/member-confirmation.js?v=20260914a';
-import { AuthStore } from '../services/auth.js?v=20260914a';
-import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260914a';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../core/constants.js?v=20260914b';
+import { submitMemberChange } from '../services/member-confirmation.js?v=20260914b';
+import { AuthStore } from '../services/auth.js?v=20260914b';
+import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260914b';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -53,6 +53,7 @@ const RESIDENCE_OPTIONS = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
 const FIELD_OWNER = {
   name: '档案资料',
   studentId: '档案资料',
+  enrollYear: '档案资料',
   partyGroup: '档案资料',
   developStage: '支部治理',
   role: '治理字段',
@@ -155,6 +156,7 @@ export function openPersonEditModal(opts = {}) {
   const archiveRows = [
     archiveRow({ label: '姓名', valueHtml: esc(member.name || '—'), field: 'name', highlight: hits('name') }),
     archiveRow({ label: '学号', valueHtml: esc(member.studentId || '—'), field: 'studentId', highlight: hits('studentId') }),
+    archiveRow({ label: '届别', valueHtml: esc(member.enrollYear || '—'), field: 'enrollYear', highlight: hits('enrollYear') }),
     archiveRow({ label: '党小组', valueHtml: esc(member.partyGroup || '—'), field: 'partyGroup', highlight: hits('partyGroup') }),
     archiveRow({ label: '发展阶段', valueHtml: esc(member.developStage || '—'), field: 'developStage', highlight: hits('developStage') }),
     archiveRow({ label: '角色', valueHtml: esc(ROLE_LABELS[member.role] || member.role || '—'), field: 'role', highlight: hits('role') }),

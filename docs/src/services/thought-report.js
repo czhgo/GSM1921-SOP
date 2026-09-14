@@ -23,20 +23,20 @@
 //   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914a';
-import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260914a';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260914a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914a';
+import { mockDB } from '../core/domain.js?v=20260914b';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260914b';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260914b';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914b';
 // 期次纯函数单一源 = core/period.js（服务层与通知模板共用，避免 core→services 环依赖）
-import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260914a';
-import { generateId } from '../core/id.js?v=20260914a';
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260914b';
+import { generateId } from '../core/id.js?v=20260914b';
 // 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260914a';
-import { NoticeStore } from './notice.js?v=20260914a';
-import { getPersonById } from './person.js?v=20260914a';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260914b';
+import { NoticeStore } from './notice.js?v=20260914b';
+import { getPersonById } from './person.js?v=20260914b';
 
 /** 期次助手再导出（既有/新增消费方沿用 services/thought-report.js 入口，勿另建第二份实现） */
-export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260914a';
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260914b';
 
 // ════════════════════════════════════════════════════════════════
 //  访问门（单一源，2026-09-13）

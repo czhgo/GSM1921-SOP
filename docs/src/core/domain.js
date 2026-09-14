@@ -307,6 +307,10 @@ export const mockDB = {
   /** @type {Object[]} 党小组（{ id, branchId, name, seq, status:'active'|'dissolved',
    *  createdAt, createdBy, note, history[], dissolvedAt?, dissolvedBy? }） */
   partyGroups: [],
+  // ── 2026-09-14 批次 25：成员流动台账（流入/流出复式记账，支书裁定）──
+  /** @type {Object[]} 成员流动台账（{ id, branchId, direction:'in'|'out', personId, name,
+   *  studentId, enrollYear, partyGroup, date, note, by, at, revokedAt, revokedBy }） */
+  memberFlows: [],
   // ── 2026-09-02 党委后台 P1：支部多实例 ──
   /** @type {Object[]} 支部实例（br-b1 本科生党支部；硕博等由党委动态创建不预设名字）
    *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；

@@ -205,6 +205,17 @@ export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）
 
+// ── 组织委员职能位（单一源，2026-09-14）────────────────────────────
+// 「组织委员」专属写链（名册档案维护/名册新增/成员流入登记等）的角色判定单一源。
+// 原散见 server/routes/member.js 的 new Set(['org-commissioner'])——本次收敛至此，勿在各路由/服务手写第二份。
+export const ORG_COMMISSIONER_ROLES = ['org-commissioner'];
+
+// ── 成员流入/流出登记角色集（单一源，2026-09-14 支书裁定）────────────
+// 登记（成员流动台账 + 成员建档/建号/流出停用）权限 = 组织委员 + 支书/副支书。
+// 由既有角色集派生（勿另写角色名单数组——roles-sync 守卫拦「5 支委授权列表」副本）。
+// 消费方：server/routes/resources.js 写门（memberFlows）与前端 services/member-flow.js::canRegisterFlow 同源。
+export const MEMBER_FLOW_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, ...ORG_COMMISSIONER_ROLES];
+
 // ── 名单检索条出现门槛（单一源，2026-09-13 支书裁定）──────────────────
 // 语义：第一列是人/活动的表格，**当前视图行数 > 本阈值**才渲染「关键词 + 分面 chips」检索条；
 //   行数不足不渲染（3~7 行的小表加搜索框即过拟合——支书明确判据）。
