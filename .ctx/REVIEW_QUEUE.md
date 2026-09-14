@@ -317,18 +317,25 @@
 
 - **事项**：全站 5 处分页控件形态不一——`components/issue-list.js`（32px）、`entries/archive-entry.js`（约 26px）、`entries/tabs/secretary/feedback-tab.js`（约 26px）、`components/query-view.js`（约 26px）、`entries/tabs/disc/attendance-tab.js`（32px 连体分段钮）；且前四处借用 `.chip-accent-on` 表选中态（语义借壳，`.chip-accent-on` 的 `!important` 掩盖了基础边框/底色缺失）。
 - **来源**：批次 27 筛选行彻查时发现（分类上属「表下控件」而非筛选行，未擅自扩围）。
-- **状态**：登记待办（待支书裁定是否统一为 `.page-btn` / `.page-num` 单一源）。
+- **状态**：**已闭环（2026-09-14 批次 28）**——支书裁定「统一为 `.page-btn` / `.page-num`」。实测为 **6 处**（原登记漏 `entries/tabs/visitor/activities-tab.js` 一处），已全部换装：新增分页类族（30px / 12px，当前页 `.is-current`，颜色取主题变量、删 `.qv-page-btn` 深色补丁）；守卫 `server/test/filter-row.test.mjs` S8。
 
 ### Q-23-8 `bump-version.mjs` 不带参运行会「同日版本号回退」
 
 - **事项**：脚本默认版本号为 `当天日期 + 'a'`（`DEFAULT_VERSION`），**不含当日已发字母的续号逻辑**。同日第二次发版若忘记显式传参，会把全站戳从 `20260914b` **回退**改写成 `20260914a`——而脚本自检只比对「是否等于本次 VERSION」，回退后自检照样报「0 处残留 ✅」，静默通过。本批实测踩中（首跑无参 → 全站降为 a；改以 `20260914c` 重跑后正常）。
 - **来源**：批次 27 收尾 bump 时发现。
-- **状态**：登记待办（建议：无参时读现有戳取 max 并按同日字母序 +1；或自检增加「新版本号必须大于现有戳」断言）。
+- **状态**：**已闭环（2026-09-14 批次 28）**——① 版本号推导抽为纯函数单一源 `docs/scripts/version-next.mjs`（`nextVersionFor` 同日续号 / `isForward` 只允许前进 / `isCommentLine` + `codePartOf` 注释排除规则，与 stamper、自检、守卫三处共用）；② 无参运行改按「读仓库现有戳 → 同日 max 字母 +1」推导；③ 显式传参时若小于现有最大戳 → 报错并以退出码 1 中止（实测 `20260914a` 被拒）；④ 新增两层法守卫 `server/test/version-stamp.test.mjs`（S1–S3 + D1–D6，含「全站活动版本戳取值集合规模为 1」的陈旧戳守卫）。
 
 ### 特批记录：`docs/src/styles.css`（禁改清单文件）
 
 - **事项**：批次 27 需把筛选行与表格样式抽为单一源，改动 `docs/src/styles.css`——新增 §「COMPONENT: Filter Row（`.lf-bar`/`.lf-kw`/`.lf-select`/`.lf-btn`/`.lf-count`）」与 §「COMPONENT: Data Table（`.data-table` 类族）」两段，删除已被规范禁止的 `select.input-flat.text-[10px]` / `.cs-trigger.input-flat.text-[10px]` 死规则两条；该文件属禁改清单，已获支书特批（“特批：允许改”）。
 - **来源**：批次 27 落地。
 - **状态**：已特批（登记留痕）。
+
+### 特批记录：`docs/src/styles.css`（续，2026-09-14 批次 28）
+
+- **事项**：批次 28 追加改动同一禁改文件——新增 §「COMPONENT: Pagination（`.page-btn` / `.page-num` / `.page-num.is-current`）」一段，删除已失效的 `html.theme-dark .qv-page-btn` 深色覆盖补丁三条（分页控件改走主题变量）；已获支书特批（“统一为 .page-btn / .page-num（推荐）”）。
+- **来源**：批次 28 落地。
+- **状态**：已特批（登记留痕）。
+
 
 

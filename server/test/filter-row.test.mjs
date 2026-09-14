@@ -8,6 +8,7 @@
 //     S5 档位唯一（清 10px 下拉死规则 / 触发器不再补 h-8）
 //     S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）
 //     S7 自写搜索框必须落在 .lf-kw（筛选行载体单一源）
+//     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
 //   口径层 D1：档位数值三处同源（.lf-btn / .data-table / .input-flat.text-xs 均为 34px×12px 一套）
 // node-only（不启浏览器）：纯静态扫描 + 样式文本解析。
 //
@@ -133,6 +134,24 @@ test('S7 自写搜索框须落在 .lf-kw（筛选行载体单一源）', () => {
     });
   }
   assert.deepEqual(offenders, [], '筛选行搜索框须写 class="input-flat text-xs lf-kw"');
+});
+
+test('S8 分页控件单一源（禁借 chip 选中态）', () => {
+  // 原状 6 处分页控件形态不一（26 / 32px），其中四处借 .chip-accent-on 表当前页——
+  // 该类的 !important 反而掩盖了「当前页按钮缺基础边框与底色」，且 chip 语义被挪用。
+  const css = read(CSS);
+  for (const cls of ['.page-btn,', '.page-num {', '.page-num.is-current {']) {
+    assert.ok(css.includes(cls), `styles.css 须定义分页类族（缺 ${cls}）`);
+  }
+  assert.ok(!/html\.theme-dark \.qv-page-btn/.test(css),
+    '分页控件颜色取主题变量即可，不应再有 .qv-page-btn 深色覆盖补丁');
+  const offenders = [];
+  for (const f of walkJs(SRC_DIR)) {
+    lines(f).forEach((line, i) => {
+      if (/page-btn|page-num/.test(line) && /chip-accent-on/.test(line)) offenders.push(`${rel(f)}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [], '分页控件不得再借 .chip-accent-on 表当前页（应写 .page-num.is-current）');
 });
 
 // ── 口径层 ──────────────────────────────────────────────────────────

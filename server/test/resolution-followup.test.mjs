@@ -6,17 +6,17 @@
 //      到期当天=催办窗口不算逾期；已销项不计；非 passed 决议不计）
 //   C. 存储闭环（mockDB 直写）：saveFollowups 落库+派生待办 → completeFollowup 销项 → reopenFollowup 恢复
 // 运行：node --test server/test/resolution-followup.test.mjs
-// 注意：mockDB/服务均带 ?v=20260914c 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
+// 注意：mockDB/服务均带 ?v=20260914e 导入，保证与 services 模块缓存同一实例（见 agenda-quorum.test 头注）。
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914c';
-import { TodoStore } from '../../docs/src/services/todo.js?v=20260914c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914e';
+import { TodoStore } from '../../docs/src/services/todo.js?v=20260914e';
 import {
   buildFollowupTodoPayloads,
   saveFollowups, completeFollowup, reopenFollowup,
   collectOverdueResolutionFollowups, buildOverdueRemindGroup,
   FOLLOWUP_STATUS,
-} from '../../docs/src/services/resolution-followup.js?v=20260914c';
+} from '../../docs/src/services/resolution-followup.js?v=20260914e';
 
 const ORIGINAL_ACTIVITIES = mockDB.activities;
 const ORIGINAL_TODOS = mockDB.todos;

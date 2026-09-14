@@ -160,7 +160,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 **已落地点位（批次 27）**：统一检索引擎 `components/list-filter.js`（chips → 下拉 + `.data-table`）、`components/query-view.js`（级联大类/子类/品牌三处 chip 与散值下拉 → `.lf-select`）、`components/issue-list.js`（状态分组 chip → 下拉）、`components/taskforce-view.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/org/{roster,taskforce}-tab.js`、`entries/tabs/disc/{attendance,inspection}-tab.js`、`entries/tabs/visitor/projects-tab.js` 及 6 处 `renderFilteredList` 调用点的表头重写。
 
-**未纳入本批（待支书裁定）**：分页控件（`.page-btn` / `.page-num`）目前 5 处形态不一（26 / 32px 与「借用 `.chip-accent-on` 表选中态」），属「表下控件」而非筛选行，另批处理。
+**未纳入本批（批次 28 已补）**：分页控件（`.page-btn` / `.page-num`）已按支书裁定统一（详见 §4.10「分页控件样式单一源」）。
 
 #### 表单字段条件显示与批量选择（2026-09-01 支书裁决）
 
@@ -315,6 +315,8 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 | 归档分页列表 | 归档库（活动/专班/通知） | 每页 10 条 + 页码窗口 + 搜索重渲染 | ✅ 已实现（archive-entry.js） |
 
 **无上限数据分页铁律（2026-08-08 指令 #3）**：凡数据量随使用无限增长的列表一律分页。模式：每页 10 条 + 上一页/下一页 + 页码窗口（5 页）+ 「共 N 条 · 第 x/y 页」摘要；搜索/筛选/翻页触发整段重渲染，搜索时页码归 1。已落地：归档库三分页（党建活动/专班/通知）、查询视图（query-view.js）；后续新增无限增长列表必须自带分页。
+
+**分页控件样式单一源（2026-09-14 批次 28 支书裁定）**：分页控件（表下「上一页 / 页码 / 下一页」）统一落 `docs/src/styles.css` 的 `.page-btn`（翻页钮）与 `.page-num`（页码钮）——同高 **30px**（按钮规范「默认档」）、同边框、同圆角、同字号 **12px**；**当前页用自有类 `.is-current`**，禁止再借 `.chip-accent-on` 表选中态（原状四处借用，其 `!important` 掩盖了「当前页按钮缺基础边框与底色」，且 chip 语义被挪用）；颜色一律取主题变量（`--neutral-*` / `--app-accent-*`），深色主题自动跟随，**不再各写深色覆盖**（原 `.qv-page-btn` 深色补丁已删）。原状 6 处形态不一（26 / 32px）已一并收敛：`components/issue-list.js`、`components/query-view.js`、`entries/archive-entry.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/disc/attendance-tab.js`（连体分段钮改两枚独立按钮）、`entries/tabs/visitor/activities-tab.js`。守卫见 `server/test/filter-row.test.mjs`。
 
 **表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.75rem`／行高 `1rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。守卫见 `server/test/filter-row.test.mjs` S3/S4。
 

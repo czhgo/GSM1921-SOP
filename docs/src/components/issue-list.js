@@ -1,12 +1,12 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260914c';
-import { AuthStore } from '../services/auth.js?v=20260914c';
-import { icon } from '../core/icons.js?v=20260914c';
-import { getPersonName } from '../services/person.js?v=20260914c';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260914c';
-import { badgeHtml } from './badges.js?v=20260914c';
+import { IssueStore } from '../services/issues.js?v=20260914e';
+import { AuthStore } from '../services/auth.js?v=20260914e';
+import { icon } from '../core/icons.js?v=20260914e';
+import { getPersonName } from '../services/person.js?v=20260914e';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260914e';
+import { badgeHtml } from './badges.js?v=20260914e';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -62,11 +62,11 @@ function _renderIssuePager(total) {
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
       <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1.5">
-        <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        <button type="button" class="issue-page-btn page-btn" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 min-w-8 px-2 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-issue-page="${n}">${n}</button>
+          <button type="button" class="issue-page-btn page-num${n === cur ? ' is-current' : ''}" data-issue-page="${n}">${n}</button>
         `).join('')}
-        <button type="button" class="issue-page-btn inline-flex items-center justify-center text-xs h-8 px-3 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+        <button type="button" class="issue-page-btn page-btn" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>
     </div>`;
 }

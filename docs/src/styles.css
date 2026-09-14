@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260914c');
+@import url('components/person-picker.css?v=20260914e');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -891,6 +891,52 @@ button:disabled { cursor: not-allowed; }
   padding: 24px 12px;
   text-align: center;
   color: var(--neutral-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Pagination（分页控件）——全站单一源，2026-09-14 批次 28 裁定
+   口径（§COMPONENT: Button「默认档 30px」）：翻页钮 .page-btn 与页码钮 .page-num
+   同高（30px）、同边框、同圆角、同字号（12px）；当前页用 **自有类 .is-current**——
+   原状四处借 `.chip-accent-on` 表选中态，其 `!important` 反而掩盖了「当前页按钮缺基础边框与底色」
+   的缺陷，且 chip 语义被借用（chip 只属表单多选与展示）。
+   颜色一律走主题变量（--neutral-* / --app-accent-*），深色主题自动跟随，无需再写深色覆盖。
+   ═══════════════════════════════════════════════════════════════ */
+.page-btn,
+.page-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--neutral-600);
+  background-color: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.page-num {
+  min-width: 30px;
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.page-btn:hover,
+.page-num:hover {
+  background-color: var(--neutral-50);
+  color: var(--neutral-700);
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-num.is-current {
+  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3));
+  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
+  color: var(--app-accent, #B91C1C);
+  font-weight: 500;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4723,9 +4769,10 @@ html.theme-dark [style*="--acc-dot-dark"] {
   }
 
 /* ═══════════════════════════════════════════════════════════════
-   待办聚合卡角标 + 查询视图分页控件（2026-08-07）
+   待办聚合卡角标（2026-08-07）
    聚合角标沿 badge--danger 语义（红底红字，警示待处理数量）
-   分页按钮深色主题：半透明底 + 提亮文字（与 btn-action-* 对齐）
+   （2026-09-14 批次 28：原 `.qv-page-btn` 深色覆盖已删——分页控件改走
+     .page-btn / .page-num 单一源，颜色取主题变量，深色主题自动跟随）
    ═══════════════════════════════════════════════════════════════ */
 .agg-count-badge {
   background: #FEE2E2;
@@ -4734,17 +4781,6 @@ html.theme-dark [style*="--acc-dot-dark"] {
 html.theme-dark .agg-count-badge {
   background: rgba(248, 113, 113, 0.16);
   color: #F87171;
-}
-.qv-page-btn {
-  font-variant-numeric: tabular-nums;
-}
-html.theme-dark .qv-page-btn {
-  background: #1E293B !important;
-  color: #CBD5E1 !important;
-  border-color: #334155 !important;
-}
-html.theme-dark .qv-page-btn:hover:not(:disabled) {
-  background: #334155 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════

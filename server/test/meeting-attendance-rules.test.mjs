@@ -5,12 +5,12 @@
 //   ③ 滞留到场补录（预应到 K → 补录 L → 实际应到 K+L）与落行字段（status=present + detainedMakeup；
 //   纪检更正清除标记）、④ 党小组会考勤只读视图数据（组长小组会列表归属，纪检纪律台只读掌握）。
 // 口径/枚举单一源 = core/policy-defaults.js attendance（recorderByType / reasons / roster）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260914c query（模块缓存键一致性，同 attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260914e query（模块缓存键一致性，同 attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914c';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260914c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260914e';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -21,12 +21,12 @@ import {
   absenceReasonLabel,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260914c';
+} from '../../docs/src/services/attendance.js?v=20260914e';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/roster.js?v=20260914c';
+} from '../../docs/src/services/roster.js?v=20260914e';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

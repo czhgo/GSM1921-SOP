@@ -3,15 +3,15 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914c';
-import { showToast } from '../../../core/utils.js?v=20260914c';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914c';
-import { icon } from '../../../core/icons.js?v=20260914c';
-import { AuthStore } from '../../../services/auth.js?v=20260914c';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914c';
-import { getPersonName } from '../../../services/person.js?v=20260914c';
-import { PersonStore } from '../../../services/person.js?v=20260914c';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914c';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914e';
+import { showToast } from '../../../core/utils.js?v=20260914e';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914e';
+import { icon } from '../../../core/icons.js?v=20260914e';
+import { AuthStore } from '../../../services/auth.js?v=20260914e';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914e';
+import { getPersonName } from '../../../services/person.js?v=20260914e';
+import { PersonStore } from '../../../services/person.js?v=20260914e';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914e';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -110,11 +110,11 @@ function _renderFeedbackPager(total) {
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
       <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1">
-        <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        <button type="button" class="feedback-page-btn page-btn" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-feedback-page="${n}">${n}</button>
+          <button type="button" class="feedback-page-btn page-num${n === cur ? ' is-current' : ''}" data-feedback-page="${n}">${n}</button>
         `).join('')}
-        <button type="button" class="feedback-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-feedback-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+        <button type="button" class="feedback-page-btn page-btn" data-feedback-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>
     </div>`;
 }

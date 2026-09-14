@@ -1,20 +1,20 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260914c';
-import { renderHeader } from '../components/header.js?v=20260914c';
-import { BranchService } from '../services/runtime.js?v=20260914c';
-import { mockDB } from '../core/domain.js?v=20260914c';
-import { getPersonById } from '../services/person.js?v=20260914c';
-import { loadActivities } from '../services/activity.js?v=20260914c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260914c';
+import { renderSidebar } from '../components/sidebar.js?v=20260914e';
+import { renderHeader } from '../components/header.js?v=20260914e';
+import { BranchService } from '../services/runtime.js?v=20260914e';
+import { mockDB } from '../core/domain.js?v=20260914e';
+import { getPersonById } from '../services/person.js?v=20260914e';
+import { loadActivities } from '../services/activity.js?v=20260914e';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914e';
+import { getActivityTypeColors } from '../core/constants.js?v=20260914e';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260914c';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260914c';
-import { getBasePath } from '../core/utils.js?v=20260914c';
-import { AuthStore } from '../services/auth.js?v=20260914c';
-import { badgeHtml } from '../components/badges.js?v=20260914c';
+import { isActivityEnded } from '../core/constants.js?v=20260914e';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260914e';
+import { getBasePath } from '../core/utils.js?v=20260914e';
+import { AuthStore } from '../services/auth.js?v=20260914e';
+import { badgeHtml } from '../components/badges.js?v=20260914e';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -82,11 +82,11 @@ function _renderPager(total, key) {
     <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
       <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
       <div class="flex items-center gap-1">
-        <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+        <button type="button" class="archive-page-btn page-btn" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
         ${nums.map(n => `
-          <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border ${n === cur ? 'chip-accent-on' : 'border-gray-200 hover:bg-gray-50'}"${n === cur ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-archive-page="${n}">${n}</button>
+          <button type="button" class="archive-page-btn page-num${n === cur ? ' is-current' : ''}" data-archive-page="${n}">${n}</button>
         `).join('')}
-        <button type="button" class="archive-page-btn text-xs px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-archive-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+        <button type="button" class="archive-page-btn page-btn" data-archive-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
       </div>
     </div>`;
 }

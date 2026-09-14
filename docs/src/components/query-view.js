@@ -161,9 +161,9 @@ export function renderQueryView(container, config) {
         <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
           <span class="tabular-nums">${total} 条</span>
           <div class="flex items-center gap-1">
-            <button type="button" class="qv-page-btn px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} aria-label="上一页">上一页</button>
+            <button type="button" class="qv-page-btn page-btn" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} aria-label="上一页">上一页</button>
             <span class="px-2 tabular-nums">${page} / ${pages}</span>
-            <button type="button" class="qv-page-btn px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed" data-page="${page + 1}" ${page >= pages ? 'disabled' : ''} aria-label="下一页">下一页</button>
+            <button type="button" class="qv-page-btn page-btn" data-page="${page + 1}" ${page >= pages ? 'disabled' : ''} aria-label="下一页">下一页</button>
           </div>
         </div>`;
       pagerEl.querySelectorAll('.qv-page-btn').forEach(btn => {

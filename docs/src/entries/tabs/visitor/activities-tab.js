@@ -3,14 +3,14 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260914c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260914c';
-import { flashHighlight } from '../../../core/utils.js?v=20260914c';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260914c';
+import { icon } from '../../../core/icons.js?v=20260914e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260914e';
+import { flashHighlight } from '../../../core/utils.js?v=20260914e';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260914e';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914c';
-import { canSignup } from '../../../components/signup-panel.js?v=20260914c';
-import { AuthStore } from '../../../services/auth.js?v=20260914c';
+import { isActivityLive } from '../../../core/constants.js?v=20260914e';
+import { canSignup } from '../../../components/signup-panel.js?v=20260914e';
+import { AuthStore } from '../../../services/auth.js?v=20260914e';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -120,9 +120,9 @@ function _renderActListView(sorted, highlightId) {
     </div>
     ${totalPages > 1 ? `
       <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-        <button type="button" class="visitor-act-page-btn inline-flex items-center justify-center text-xs h-8 px-3.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors ${page <= 1 ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page - 1}">‹ 上一页</button>
+        <button type="button" class="visitor-act-page-btn page-btn" data-act-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>‹ 上一页</button>
         <span class="text-xs text-gray-500">第 ${page} / ${totalPages} 页</span>
-        <button type="button" class="visitor-act-page-btn inline-flex items-center justify-center text-xs h-8 px-3.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors ${page >= totalPages ? 'opacity-40 pointer-events-none' : ''}" data-act-page="${page + 1}">下一页 ›</button>
+        <button type="button" class="visitor-act-page-btn page-btn" data-act-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}>下一页 ›</button>
       </div>` : ''}
   `;
 

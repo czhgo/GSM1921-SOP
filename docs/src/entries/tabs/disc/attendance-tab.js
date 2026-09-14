@@ -8,28 +8,28 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914c';
-import { generateId } from '../../../core/id.js?v=20260914c';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260914c';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914e';
+import { generateId } from '../../../core/id.js?v=20260914e';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260914e';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914e';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260914c';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260914c';
-import { loadActivities } from '../../../services/activity.js?v=20260914c';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914c';
-import { NoticeStore } from '../../../services/notice.js?v=20260914c';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914c';
-import { badgeHtml } from '../../../components/badges.js?v=20260914c';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260914e';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260914e';
+import { loadActivities } from '../../../services/activity.js?v=20260914e';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914e';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914e';
+import { NoticeStore } from '../../../services/notice.js?v=20260914e';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260914e';
+import { badgeHtml } from '../../../components/badges.js?v=20260914e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914c';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914c';
-import { AuthStore } from '../../../services/auth.js?v=20260914c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914e';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914e';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914e';
+import { HandoffStore } from '../../../services/handoff.js?v=20260914e';
+import { AuthStore } from '../../../services/auth.js?v=20260914e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914e';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -804,9 +804,9 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
       <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
       <div class="flex items-center justify-between mt-3">
         <span class="text-xs text-gray-500" id="att-table-info"></span>
-        <div class="inline-flex items-center">
-          <button id="att-table-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">上一页</button>
-          <button id="att-table-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer">下一页</button>
+        <div class="inline-flex items-center gap-1.5">
+          <button id="att-table-prev" class="page-btn">上一页</button>
+          <button id="att-table-next" class="page-btn">下一页</button>
         </div>
       </div>
     </div>

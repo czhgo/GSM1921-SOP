@@ -10,21 +10,63 @@
 //   同时统一各 html 的 entry script 与 styles.css 版本号，使每次发布 bump 一次即彻底换新。
 //
 // 用法：
-//   node docs/scripts/bump-version.mjs            # 默认用当天日期版本，如 20260807a
-//   node docs/scripts/bump-version.mjs 20260807b  # 显式指定版本号
+//   node docs/scripts/bump-version.mjs            # 无参：读仓库现有戳推导「同日续号」（如已有 20260914b → 20260914c）
+//   node docs/scripts/bump-version.mjs 20260807b  # 显式指定版本号（须不小于仓库现有最大戳，否则报错退出）
 // ════════════════════════════════════════════════════════════════
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { nextVersionFor, isForward, isCommentLine, codePartOf } from './version-next.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC_DIR = join(ROOT, 'src');
 const HTML_DIR = ROOT;
+const TEST_DIR = join(ROOT, '..', 'server', 'test');
 
-const DEFAULT_VERSION =
-  new Date().toISOString().slice(0, 10).replace(/-/g, '') + 'a';
-const VERSION = process.argv[2] || DEFAULT_VERSION;
+const TODAY = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+// ── 收集仓库现有版本戳（用于「同日续号」推导与「只允许前进」断言）──
+// 与收尾自检同源跳过注释行：注释里的版本号是人工历史注记，不是缓存键。
+function collectExistingStamps() {
+  const found = new Set();
+  const RE = /\?v=(\d{8}[a-z])/g;
+  const scan = (dir, exts) => {
+    if (!existsSync(dir)) return;
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name);
+      const st = statSync(full);
+      if (st.isDirectory()) {
+        if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
+        scan(full, exts);
+        continue;
+      }
+      if (!exts.some((e) => name.endsWith(e))) continue;
+      for (const raw of readFileSync(full, 'utf8').split(/\r?\n/)) {
+        if (isCommentLine(raw)) continue;
+        for (const m of codePartOf(raw).matchAll(RE)) found.add(m[1]);
+      }
+    }
+  };
+  scan(SRC_DIR, ['.js', '.css']);
+  scan(HTML_DIR, ['.html']);
+  scan(TEST_DIR, ['.mjs', '.test.js']);
+  return [...found];
+}
+
+const EXISTING = collectExistingStamps();
+const PREV_MAX = EXISTING.slice().sort().pop() || '';
+const VERSION = process.argv[2] || nextVersionFor(TODAY, EXISTING);
+
+// 版本号只允许前进（2026-09-14 批次 28，Q-23-8）：原无参默认「当天日期 + a」缺续号逻辑，
+// 同日第二次发版会把全站戳往回写，而收尾自检只比对「是否等于本次 VERSION」故仍报 0 残留。
+if (!isForward(VERSION, PREV_MAX)) {
+  console.error(
+    `[bump-version] ✖ 版本号不得回退：本次 ${VERSION} 小于仓库现有最大戳 ${PREV_MAX}。\n` +
+      `  请改用更大的版本号（无参运行即按「同日续号」自动推导）。`
+  );
+  process.exit(1);
+}
 
 // ── 递归收集 .js / .html 文件 ──
 function collectFiles(dir, ext, out = []) {
@@ -42,17 +84,8 @@ function collectFiles(dir, ext, out = []) {
 }
 
 // ── 判断是否注释行（跳过 JSDoc 类型 import，如 @param {import('../core/domain.js').Activity}）──
-// 语义（2026-09-13 Q-21-4）：注释里的 `?v=xxx` 是人写的历史注记，不是浏览器缓存键 → 既不改写、也不算陈旧。
-/** 行首即是注释（整行注释）——stamper 跳过、扫描器也不视为缓存键 */
-function isCommentLine(line) {
-  const t = line.trimStart();
-  return t.startsWith('*') || t.startsWith('//') || t.startsWith('/*') || t.startsWith('<!--');
-}
-
-/** 去掉行尾注释后的代码部分（扫描 `?v=` 用：代码行尾追注的历史版本号同样是人工注记，不是缓存键） */
-function codePartOf(line) {
-  return line.replace(/\/\/.*$/, '').replace(/\/\*.*?\*\//g, '');
-}
+// 注释排除规则（isCommentLine / codePartOf）已抽到 version-next.mjs 单一源，
+// 与 stamper / 收尾自检 / 守卫测试三处共用——勿在本文件再写一套。
 
 // ── 行内替换相对路径 import 的版本号 ──
 // 覆盖：from './x.js' / from "../x.js" / export ... from / import('./x.js') 动态导入
@@ -167,7 +200,7 @@ if (codeVersionChanged) {
 // 2026-08-30 扩展：*.test.js 一并纳入（e2e-login.test.js 硬编码 ?v= 曾漏同步，
 // 上一轮 bump 后仍持旧戳 20260829r → 模块分裂 → 写穿闭环误报超时）。
 let testCount = 0;
-const testDir = join(ROOT, '..', 'server', 'test');
+const testDir = TEST_DIR;
 if (existsSync(testDir)) {
   for (const name of readdirSync(testDir)) {
     if (!name.endsWith('.mjs') && !name.endsWith('.test.js')) continue;
@@ -216,10 +249,9 @@ function scanStale(dir, exts) {
 }
 scanStale(SRC_DIR, ['.js', '.css']);
 scanStale(HTML_DIR, ['.html']);
-const serverTestDir = join(ROOT, '..', 'server', 'test');
-if (existsSync(serverTestDir)) scanStale(serverTestDir, ['.mjs', '.test.js']);
+if (existsSync(TEST_DIR)) scanStale(TEST_DIR, ['.mjs', '.test.js']);
 
-console.log(`[bump-version] 版本号：${VERSION}`);
+console.log(`[bump-version] 版本号：${VERSION}（仓库现有最大戳 ${PREV_MAX || '无'}）`);
 console.log(`[bump-version] 实际改写：JS ${jsCount} 个 / HTML ${htmlCount} 个 / CSS ${cssCount} 个 / server-test ${testCount} 个`);
 console.log(`[bump-version] CODE_VERSION ${codeVersionChanged ? '+1（cross-page-state.js）' : '未变'}`);
 if (staleFiles.length === 0) {

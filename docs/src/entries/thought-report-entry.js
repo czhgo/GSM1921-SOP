@@ -9,19 +9,19 @@
 //  访问门与服务层同源（canReadThoughtReport / canReviewThoughtReport），
 //  界面显隐不自判角色字面量；初阅/撤回/重交动作均调用服务层并透出 {ok:false, reason}。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260914c';
-import { renderHeader } from '../components/header.js?v=20260914c';
-import { BranchService } from '../services/runtime.js?v=20260914c';
-import { AuthStore } from '../services/auth.js?v=20260914c';
-import { getPersonName } from '../services/person.js?v=20260914c';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260914c';
-import { badgeHtml } from '../components/badges.js?v=20260914c';
+import { renderSidebar } from '../components/sidebar.js?v=20260914e';
+import { renderHeader } from '../components/header.js?v=20260914e';
+import { BranchService } from '../services/runtime.js?v=20260914e';
+import { AuthStore } from '../services/auth.js?v=20260914e';
+import { getPersonName } from '../services/person.js?v=20260914e';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260914e';
+import { badgeHtml } from '../components/badges.js?v=20260914e';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   listPendingReviews, canReadThoughtReport, canReviewThoughtReport,
   reviewThoughtReport, resubmitThoughtReport, withdrawThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260914c';
+} from '../services/thought-report.js?v=20260914e';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
