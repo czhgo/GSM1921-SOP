@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914g';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914i';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -597,6 +597,8 @@ export const ApiAdapter = {
   // R-10（2026-09-11 支书裁定）：名册三条写链语义端点补齐（角色/白名单见 server/routes/member.js）
   //   · setResidenceStatus 在册状态镜像（支书/副支书）· updateProfile 名册档案维护（组织委员）
   //   · create 名册新增（组织委员）· transferOut 移出软标记（组织委员发起 / 支书·副支书确认）
+  //   · intake 成员流动流入登记（组织委员 + 支书/副支书；2026-09-14 批次 30 裁定 Q-23-10）
+  //   · undoTransferOut 撤销流出清软标记（同 transferOut 角色集；2026-09-14 批次 29，Q-23-5）
   // R-11（2026-09-14 批次 29，Q-23-5）：撤销流出语义端点 —— 清除 transferOut 软标记使账号恢复；
   //   仅走 profile 补丁不会清除该标记（/login 仍按停用 401），故单列。
   members: {
@@ -614,6 +616,13 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/members', data);
+    },
+
+    // 2026-09-14 批次 30（支书裁定 Q-23-10）：成员流动「流入登记」语义端点 ——
+    // 与 create 同一实现体、写门为 MEMBER_FLOW_ROLES（组织委员 + 支书/副支书，§9i）；
+    // 名册新增仍走 create（R-10 组织委员专属），不扩大名册越权面。
+    intake(data) {
+      return _post('/api/v1/members/intake', data);
     },
 
     transferOut(id, body) {

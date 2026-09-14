@@ -159,7 +159,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 > 注：① **登记即生效，不再需要支书二次确认**——此为与既往口径的**差异点**，必须分清：既往「成员变更（发展阶段变更/在册状态/移出）经组织委员报送 → 支书确认方生效」（见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）针对的是**发展节点审批链**；本条 **2026-09-14 裁定**只覆盖**成员流动登记（流入/流出/撤销）**——登记即生效、可撤销并留痕，支书不再做二次确认。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 USAGE_POLICY.md 词典节，本节不重复定义。
 
-> 注：④ **API 形态写门现状与一处待裁差异（2026-09-14 批次 29 复核）**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记，批次 29 新增）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。但**流入建档**在 API 形态仍走 `POST /members`，其门为 R-10 口径的「组织委员专属（支书/副支书不越权）」——即上表「支书/副支书亦可登记流入」目前只在 mock 形态成立，API 形态对其返回 403。差异已登记 [REVIEW_QUEUE Q-23-10](../../.ctx/REVIEW_QUEUE.md) 待支书裁定（维持 R-10 名册新增专属并为成员流动单列语义端点，或改判角色门）。
+> 注：④ **API 形态写门与两处语义端点（2026-09-14 批次 29 复核、批次 30 裁定落地）**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记，批次 29 新增）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。**流入建档**则一分为二——`POST /members`（名册新增）保持 R-10 口径的「组织委员专属」，`POST /members/intake`（成员流动·流入登记）写门为上表的「组织委员 + 支书/副支书」。**裁定来源（Q-23-10）**：R-10 与 R-42/§9i 曾在 API 形态直接冲突（支书登记流入经 `/members` 被 403）；2026-09-14 支书裁定**维持 §9i**，故为成员流动单列语义端点、**不放宽** `/members` 的名册越权面。两处端点为**同一实现体、两个写门**（`server/routes/member.js::createMemberRow`）。
 
 ## 变更历史
 

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { FUNCTION_CATALOG } from '../../docs/src/core/function-catalog.js?v=20260914g';
+import { FUNCTION_CATALOG } from '../../docs/src/core/function-catalog.js?v=20260914i';
 
 let server, base, browser;
 

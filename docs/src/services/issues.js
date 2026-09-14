@@ -2,12 +2,12 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260914g';
-import { PersonStore } from './person.js?v=20260914g';
-import { bumpToken } from '../core/version-token.js?v=20260914g'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260914g';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260914g';
-import { generateId, randomHex } from '../core/id.js?v=20260914g';
+import { AuthStore } from './auth.js?v=20260914i';
+import { PersonStore } from './person.js?v=20260914i';
+import { bumpToken } from '../core/version-token.js?v=20260914i'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260914i';
+import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260914i';
+import { generateId, randomHex } from '../core/id.js?v=20260914i';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {

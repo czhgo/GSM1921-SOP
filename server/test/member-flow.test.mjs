@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260914g';
+const V = '?v=20260914i';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -118,6 +118,13 @@ test('S4 撤销流出须清 server 软标记（Q-23-5；三处接线齐备）', 
 
   const svc = read(join(SRC_DIR, 'services', 'member-flow.js'));
   assert.match(svc, /restoreFromTransferOut:\s*true/, 'revokeFlow 复活成员须带 restoreFromTransferOut（接线单一源）');
+  // 2026-09-14 批次 30（支书裁定 Q-23-10）：流入建档须走成员流动专用端点
+  assert.match(svc, /memberFlowIntake:\s*true/, 'registerIntake 建档须带 memberFlowIntake（走 /members/intake）');
+  assert.match(member, /router\.post\('\/members\/intake'/, 'server 须有流入登记语义端点 /members/intake');
+  assert.match(member, /intake'[\s\S]{0,120}?MEMBER_FLOW_ROLES/, '流入登记端点须用 MEMBER_FLOW_ROLES 单一源角色集');
+  assert.match(member, /router\.post\('\/members',\s*requireRole\(db,\s*ORG_COMMISSIONER_ROLES\)/,
+    '名册新增 /members 须保持 R-10 组织委员专属门（不因流入端点而放宽）');
+  assert.match(adapter, /intake\(data\)/, 'api-adapter.members 须暴露 intake');
 });
 
 // ═══════════════ 数据层 ═══════════════

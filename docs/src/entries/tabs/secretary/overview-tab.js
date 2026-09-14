@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260914g';
-import { NoticeStore } from '../../../services/notice.js?v=20260914g';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260914g';
-import { AuthStore } from '../../../services/auth.js?v=20260914g';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260914g';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260914g';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260914i';
+import { NoticeStore } from '../../../services/notice.js?v=20260914i';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260914i';
+import { AuthStore } from '../../../services/auth.js?v=20260914i';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260914i';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260914i';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/roster.js?v=20260914g';
-import { loadActivities } from '../../../services/activity.js?v=20260914g';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914g';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260914g';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260914g';
+import { getRosterStats } from '../../../services/roster.js?v=20260914i';
+import { loadActivities } from '../../../services/activity.js?v=20260914i';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260914i';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260914i';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260914i';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260914g';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260914g';
-import { getPersonName } from '../../../services/person.js?v=20260914g';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260914i';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260914i';
+import { getPersonName } from '../../../services/person.js?v=20260914i';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>

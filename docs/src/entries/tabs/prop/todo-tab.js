@@ -4,10 +4,10 @@
 // 2026-09-08 REVIEW_QUEUE 裁决批一（D3 宣传侧交接去顶卡）：顶部「数据交接·考勤备案」卡移除，
 // 确认位唯一化 = 「考勤纪律」域折组行内「确认接收」（纪检→宣传 考勤备案）。
 
-import { showToast, flashHighlight } from '../../../core/utils.js?v=20260914g';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260914g';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260914g';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914g';
+import { showToast, flashHighlight } from '../../../core/utils.js?v=20260914i';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260914i';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260914i';
+import { HandoffStore } from '../../../services/handoff.js?v=20260914i';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1）已收敛于 components/todo-jump.js（2026-09-04）

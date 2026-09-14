@@ -17,16 +17,16 @@
 //  依赖：core(domain/data-adapter/id/version-token/constants) + services(person/member-confirmation/accounts)。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914g';
-import { persist, getDataSource } from '../core/data-adapter.js?v=20260914g';
-import { generateId } from '../core/id.js?v=20260914g';
-import { bumpToken } from '../core/version-token.js?v=20260914g';
+import { mockDB } from '../core/domain.js?v=20260914i';
+import { persist, getDataSource } from '../core/data-adapter.js?v=20260914i';
+import { generateId } from '../core/id.js?v=20260914i';
+import { bumpToken } from '../core/version-token.js?v=20260914i';
 // 登记角色集单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { MEMBER_FLOW_ROLES } from '../core/constants.js?v=20260914g';
-import { MEMBER_FLOWS } from '../mock/index.js?v=20260914g';
-import { PersonStore } from './person.js?v=20260914g';
-import { submitTransferOut } from './member-confirmation.js?v=20260914g';
-import { createAccount, deactivateAccount, reactivateAccount } from './accounts.js?v=20260914g';
+import { MEMBER_FLOW_ROLES } from '../core/constants.js?v=20260914i';
+import { MEMBER_FLOWS } from '../mock/index.js?v=20260914i';
+import { PersonStore } from './person.js?v=20260914i';
+import { submitTransferOut } from './member-confirmation.js?v=20260914i';
+import { createAccount, deactivateAccount, reactivateAccount } from './accounts.js?v=20260914i';
 
 /** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -118,10 +118,11 @@ export async function registerIntake({ name, studentId, enrollYear, partyGroup, 
   const dup = PersonStore.getMembers().find(p => String(p.studentId || '') === sid);
   if (dup) return { ok: false, reason: `学号 ${sid} 已存在（成员「${dup.name || dup.id}」），不可重复建档` };
   // 建成员档案（治理字段 role/branchId 不入 api 语义端点 → 仅 mock 形态携带 branchId；
-  //   api 形态由 server POST /members 强制归操作人支部 + 默认 role=participant）
+  //   api 形态走成员流动专用流入端点 POST /members/intake：强制归操作人支部 + 默认 role=participant，
+  //   写门＝组织委员 + 支书/副支书，与 canRegisterFlow 同源 —— 2026-09-14 批次 30 裁定 Q-23-10）
   const payload = { name: nm, studentId: sid, enrollYear: year, partyGroup: group };
   if (getDataSource() === 'mock') payload.branchId = branch;
-  const saved = await PersonStore.saveMember(payload, { by });
+  const saved = await PersonStore.saveMember(payload, { by, memberFlowIntake: true });
   if (!saved.ok) return { ok: false, reason: saved.reason || '成员建档失败' };
   const person = saved.member;
   // 自动建号（账号 = 学号，口令 = 支部统一默认口令；成员生命周期成对）

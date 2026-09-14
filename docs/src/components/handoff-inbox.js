@@ -6,9 +6,9 @@
 //  挂载点：宣传/组织工作台待办列表顶部、纪检补课 tab 顶部。
 // ════════════════════════════════════════════════════════════════
 
-import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../services/handoff.js?v=20260914g';
-import { badgeHtml } from './badges.js?v=20260914g';
-import { solidAccentStyle } from '../core/constants.js?v=20260914g';
+import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../services/handoff.js?v=20260914i';
+import { badgeHtml } from './badges.js?v=20260914i';
+import { solidAccentStyle } from '../core/constants.js?v=20260914i';
 
 /**
  * 渲染数据交接收件箱 HTML

@@ -4,13 +4,13 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914g';
-import { getPersonName } from '../services/person.js?v=20260914g';
-import { AuthStore } from '../services/auth.js?v=20260914g';
-import { badgeHtml } from './badges.js?v=20260914g';
-import { dotDarkVars } from '../core/constants.js?v=20260914g';
-import { flashHighlight, showToast } from '../core/utils.js?v=20260914g';
-import { anchorDetailToTrigger } from './detail-anchor.js?v=20260914g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914i';
+import { getPersonName } from '../services/person.js?v=20260914i';
+import { AuthStore } from '../services/auth.js?v=20260914i';
+import { badgeHtml } from './badges.js?v=20260914i';
+import { dotDarkVars } from '../core/constants.js?v=20260914i';
+import { flashHighlight, showToast } from '../core/utils.js?v=20260914i';
+import { anchorDetailToTrigger } from './detail-anchor.js?v=20260914i';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };

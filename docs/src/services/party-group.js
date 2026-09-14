@@ -15,14 +15,14 @@
 //   （preview 的组枚举由 mock/party-groups.js 种子派生，保持其为叶子，防 person→preview→party-group 成环）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914g';
-import { persist } from '../core/data-adapter.js?v=20260914g';
-import { generateId } from '../core/id.js?v=20260914g';
+import { mockDB } from '../core/domain.js?v=20260914i';
+import { persist } from '../core/data-adapter.js?v=20260914i';
+import { generateId } from '../core/id.js?v=20260914i';
 // 支委层角色集合单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260914g';
-import { bumpToken } from '../core/version-token.js?v=20260914g';
-import { PARTY_GROUPS } from '../mock/index.js?v=20260914g';
-import { PersonStore } from './person.js?v=20260914g';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260914i';
+import { bumpToken } from '../core/version-token.js?v=20260914i';
+import { PARTY_GROUPS } from '../mock/index.js?v=20260914i';
+import { PersonStore } from './person.js?v=20260914i';
 
 /** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';

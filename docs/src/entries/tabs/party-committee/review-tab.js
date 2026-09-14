@@ -5,12 +5,12 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260914g';
-import { AuthStore } from '../../../services/auth.js?v=20260914g';
-import { getPersonName } from '../../../services/person.js?v=20260914g';
-import { getBranchById } from '../../../services/branch.js?v=20260914g';
-import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260914g';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260914g';
+import { mockDB } from '../../../core/domain.js?v=20260914i';
+import { AuthStore } from '../../../services/auth.js?v=20260914i';
+import { getPersonName } from '../../../services/person.js?v=20260914i';
+import { getBranchById } from '../../../services/branch.js?v=20260914i';
+import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260914i';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260914i';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },

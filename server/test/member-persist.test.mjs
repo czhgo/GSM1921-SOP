@@ -19,16 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914g';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914g';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914i';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914i';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260914g';
+} from '../../docs/src/core/mock-adapter.js?v=20260914i';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260914g';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914g';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914g';
+} from '../../docs/src/services/person.js?v=20260914i';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914i';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914i';
+// Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
+import { registerIntake } from '../../docs/src/services/member-flow.js?v=20260914i';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -460,6 +462,61 @@ test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤�
       body: JSON.stringify({ personId: 'p64', password: '123456' }),
     });
     assert.equal(resumed.status, 200, '★ 撤销后账号恢复可登录（成员真的回来了）');
+  } finally {
+    setDataSource('mock');
+  }
+});
+
+// R-12（2026-09-14 批次 30，Q-23-10 闭环）：API 形态「流入登记」角色门实证——
+// 病灶：流入建档原走 POST /members（R-10 组织委员专属）→ 支书/副支书登记流入被 403 阻断
+//   （§9i/R-42 却写明「成员流动登记 = 组织委员 + 支书/副支书」，两条裁定在 api 形态冲突）。
+// 裁定「维持 §9i」→ 单列语义端点 POST /members/intake（写门 MEMBER_FLOW_ROLES），
+//   **不动 POST /members 的 R-10 专属门**（不扩大名册越权面）。
+test('api ⑫：Q-23-10 流入登记三角色皆可（/members/intake）；名册新增仍守 R-10 专属', async () => {
+  const secToken = await login('p13'); // 支书
+  const depToken = await login('p14'); // 副支书（副书同权）
+  const orgToken = await login('p11'); // 组织委员（原路径不回归）
+
+  // ① 支书登记流入（修复点：修复前此处 403 Forbidden）
+  setDataSource('api', { apiBaseUrl: base, authToken: secToken });
+  try {
+    const r = await registerIntake({
+      name: '支书登记流入', studentId: '2699000002', enrollYear: '2026', by: 'p13', role: 'secretary',
+    });
+    assert.equal(r.ok, true, `★ 支书登记流入不应 403：${JSON.stringify(r)}`);
+    const row = (await getUsers(secToken)).find((u) => u.id === r.person.id);
+    assert.ok(row, '流入建档落 server users');
+    assert.equal(row.name, '支书登记流入');
+    assert.equal(row.branchId, 'br-b1', '强制归操作人支部（防跨支部注入）');
+    assert.equal(row.role, 'participant', '默认普通成员角色（防注入治理字段）');
+    assert.equal(row.studentId, '2699000002', '学号落档（账号派生依据）');
+    // 名册新增仍守 R-10：支书直调 /members 依旧 403（不因流入端点而放宽）
+    const deny = await fetch(`${base}/api/v1/members`, {
+      method: 'POST', headers: auth(secToken), body: JSON.stringify({ name: '支书越权名册新增' }),
+    });
+    assert.equal(deny.status, 403, '名册新增仍为组织委员专属（R-10 未被放宽）');
+  } finally {
+    setDataSource('mock');
+  }
+
+  // ② 副支书登记流入（副书同权）
+  setDataSource('api', { apiBaseUrl: base, authToken: depToken });
+  try {
+    const r = await registerIntake({
+      name: '副支书登记流入', studentId: '2699000003', enrollYear: '2026', by: 'p14', role: 'deputy-secretary',
+    });
+    assert.equal(r.ok, true, `副支书登记流入不应 403：${JSON.stringify(r)}`);
+  } finally {
+    setDataSource('mock');
+  }
+
+  // ③ 组织委员登记流入（原路径不回归）
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
+  try {
+    const r = await registerIntake({
+      name: '组织委员登记流入', studentId: '2699000004', enrollYear: '2026', by: 'p11', role: 'org-commissioner',
+    });
+    assert.equal(r.ok, true, `组织委员登记流入不应 403：${JSON.stringify(r)}`);
   } finally {
     setDataSource('mock');
   }

@@ -14,6 +14,8 @@ import {
   RESIDENCE,
   // 2026-09-14：组织委员职能位单一源（原本文件手写的组委角色数组收敛至 constants.js）
   ORG_COMMISSIONER_ROLES as ORG_COMMISSIONER_ROLE_KEYS,
+  // 2026-09-14 批次 30（支书裁定 Q-23-10）：成员流动登记角色集单一源 —— 承载「流入登记」一路写门
+  MEMBER_FLOW_ROLES as MEMBER_FLOW_ROLE_KEYS,
 } from '../../docs/src/core/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-preview.js';
@@ -23,6 +25,8 @@ import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-pre
 const COMMITTEE_IDS = BRANCH_COMMITTEE_IDS;
 
 const ORG_COMMISSIONER_ROLES = new Set(ORG_COMMISSIONER_ROLE_KEYS);
+// 成员流动登记角色集（组织委员 + 支书/副支书；单一源 constants.js，勿手写）
+const MEMBER_FLOW_ROLES = new Set(MEMBER_FLOW_ROLE_KEYS);
 // 副书同权（2026-09-11 支书裁定）：支书侧写链共享集合（单一源 constants.js，勿手写两套）——
 // 名册阶段/在册镜像、移出确认、成员变更确认（本文件 confirm）一律复用本集合。
 const SECRETARY_AND_DEPUTY_ROLES = new Set(SECRETARY_DEPUTY_ROLE_KEYS);
@@ -188,6 +192,7 @@ export function createMemberRouter(db) {
   //   · 在册状态镜像  POST  /members/:id/residence-status  支书/副支书（副书同权）+ 仅在册字段
   //   · 名册档案维护  PATCH /members/:id/profile           组织委员（支书/副支书不越权；口径不变）+ 在册属性白名单
   //   · 名册新增      POST  /members                       组织委员（同上；支书/副支书不越权）；强制归本支部、默认普通成员角色
+  //   · 流入登记      POST  /members/intake                组织委员 + 支书/副支书（§9i 成员流动登记写权；批次 30 裁定 Q-23-10）
   //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
   //   · 撤销流出      POST  /members/:id/undo-transfer-out  同 ③ 角色集；清除软标记使账号恢复（Q-23-5 批次 29）
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
@@ -246,7 +251,12 @@ export function createMemberRouter(db) {
   });
 
   // ②b 名册新增：组织委员；id 缺省服务端生成；强制归本支部 + 默认 role=participant（防注入）
-  router.post('/members', requireRole(db, ORG_COMMISSIONER_ROLES), (req, res) => {
+  // ②c 成员流动流入登记（2026-09-14 批次 30，支书裁定 Q-23-10）：**同一实现体、两个写门**——
+  //   · POST /members        组织委员专属（R-10 口径：支书/副支书不越权，名册 tab 所在岗位）
+  //   · POST /members/intake 组织委员 + 支书/副支书（§9i/R-42 口径：成员流动登记写权）
+  //   裁定背景：两条裁定在 API 形态直接冲突（支书经 /members 登记流入会被 403）；裁定「维持 §9i」，
+  //   故为成员流动单列语义端点，**不改 /members 的 R-10 专属门**（不扩大名册越权面）。
+  const createMemberRow = (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     const bad = firstOutside(body, CREATE_FIELDS);
     if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（新增成员仅可写 ${CREATE_FIELDS.join(' / ')}）` });
@@ -266,7 +276,9 @@ export function createMemberRouter(db) {
     const row = { ...body, id, name: body.name.trim(), role: 'participant', branchId: branchOf(req.actor) };
     writeRow(db, 'users', row);
     res.status(201).json(row);
-  });
+  };
+  router.post('/members', requireRole(db, ORG_COMMISSIONER_ROLES), createMemberRow);
+  router.post('/members/intake', requireRole(db, MEMBER_FLOW_ROLES), createMemberRow);
 
   // ③ 移出（软标记「已转出」：原行保留、不删不匿名；组织委员发起 / 支书·副支书确认 + 同支部）
   router.post('/members/:id/transfer-out', requireRole(db, TRANSFER_OUT_ROLES), (req, res) => {

@@ -468,6 +468,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 账号与成员档案同源（2026-09-14）：账号由学号派生（账号即学号），成员新增/流出与账号建号/停用必须成对发生；禁出现「档案有此人、账号层没有」或反向的孤项
 - [ ] 档案「软标记」与撤销同源（2026-09-14 批次 29）：凡以**软标记**表达的状态（`transferOut` 等）都必须有**对称的清除口**，且清除须走**语义端点**——只打标记不清标记，会出现「撤销后账号仍 401 / 读链仍排除该行＝成员实际回不来」（实测病灶：API 形态撤销流出）。**口径**：mock 形态「save 即复活」自动清 `removedIds`，API 形态须 `POST /members/:id/undo-transfer-out`（与打标记端**同角色集** + 同支部 + 幂等 + 不接收字段）；接线选项 `saveMember(record, { restoreFromTransferOut: true })`。断言方式＝`member-persist.test.mjs` api ⑪（含病灶复现）+ `permission-gate.test.mjs` ⑤c + `member-flow.test.mjs` S4
 - [ ] 版本戳单一源（2026-09-14 批次 29 常态守卫）：除发版脚本的收尾自检外，**「全站活动版本戳取值集合规模为 1」已升为测试常驻守卫**（`version-stamp.test.mjs::S3`）；发版脚本无参运行须按「读仓库现有戳 → 同日 max 字母 +1」推导，且**只允许前进**（小于现有最大戳即报错退出，防「同日版本号回退」静默通过）
+- [ ] 「同一实现体、两个写门」须显式声明（2026-09-14 批次 30）：当同一业务动作因**入口不同而角色门不同**时（如名册新增 `/members` 组织委员专属 vs 成员流动流入 `/members/intake` 组织委员+支书/副支书），须抽同一实现体并分别挂门（`createMemberRow` 挂两次 `requireRole`），**禁用复制粘贴出第二份实现**；且须断言「原门未被放宽」（守卫：`member-flow.test.mjs::S4` 断言 `/members` 仍为 `ORG_COMMISSIONER_ROLES`）
 - [ ] 「死代码清理」须先验存量兼容（2026-09-14 批次 29 处置原则）：删任何分支前先查**本地存储持久层能否带出该分支的旧数据**（如 `gsm1921-member-confirmations` 可跨刷新带出旧版 pending）——若该分支是其唯一出口，删除会造成「既处理不掉又持续拦截」的死锁；正确做法＝**真死代码删（无调用方者）、存量兼容留并原地加注**，保留者一处不少
 
 ---

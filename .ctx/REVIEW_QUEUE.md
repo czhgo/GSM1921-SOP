@@ -307,13 +307,13 @@
 
 - **事项**：`services/person.js::_baseMemberRecords()` 在 api 形态返回 `[...PEOPLE]`（静态种子，注释自陈「api 读侧保持现状（服务器权威读回归 C 波）」），而 api 新建成员只进 `mockDB.users` 缓存（`_syncMockDBUsers`）。而 `member-flow.js::_branchMembers()` 走 `PersonStore.getMembers()` → **刚登记流入的成员不在「本支部在册名册」里**：立即登记流出会被判「成员不在本支部在册名册」（`skipped`），名册读链同样看不到。实测证据：批次 29 编写 api 形态全链测试时首跑即命中 `{ok:false, movedCount:0, skipped:[{reason:'成员不在本支部在册名册'}]}`（故该测试改为直接验证端点与接线；mock 形态全链已由 `member-flow.test.mjs` D1–D10 覆盖）。
 - **来源**：批次 29 复核 Q-23-5 时顺带发现（属 api 形态 roster 读链整体未回归的一部分，非本批改动引入）。
-- **状态**：登记待办（建议随「服务器权威读回归 C 波」一并处理：`getMembers()` 在 api 形态合并 `mockDB.users`，或 `_branchMembers` 改走权威读链——需先在 C 波定口径，避免一处打补丁）。
+- **状态**：登记待办（**2026-09-14 批次 30 定序**：支书裁定**保持登记、随「服务器权威读回归 C 波」一并处理**——单点为 `_branchMembers` 打补丁会留下第二套读链，与彻查根治纪律相背。建议随 C 波统一：`getMembers()` 在 api 形态合并 `mockDB.users`，或全站改走权威读链）。
 
 ### Q-23-10 裁定冲突：R-10「名册新增＝组织委员专属」与 R-42/§9i「支书·副支书亦可登记流入」
 
 - **事项**：`MEMBER_FLOW_ROLES`（前端门 + `memberFlows` 资源写门）= 组织委员 + 支书/副支书，§9i 矩阵亦如此；但**流入建档**在 API 形态走 `POST /members`，其门为 R-10 口径「组织委员专属（支书/副支书不越权）」，且 `permission-gate.test.mjs` 有断言「支书非组织委员不得走名册新增端点 403」。两处裁定在 api 形态下直接冲突（mock 形态无感，因为 mock 分支不区分）。
 - **来源**：批次 29 编写 api 形态全链测试时首跑命中 403（`registerIntake` 以 secretary 身份 → `API 请求失败: 403 Forbidden`）。
-- **状态**：**登记待裁**（需支书裁定二选一：① 维持 R-10——「成员流动登记」的流入一路只授组织委员，同步收窄 §9i 矩阵与 `MEMBER_FLOW_ROLES`；② 维持 §9i——为成员流动登记单列语义端点 `POST /members/intake`（`requireRole(MEMBER_FLOW_ROLES)`），不动 `POST /members` 的 R-10 专属门）。现状已在 `SYSTEM_ROLE_PERMISSION.md §9i 注④` 如实写明。
+- **状态**：**已闭环（2026-09-14 批次 30）**——支书裁定**维持 §9i**：为成员流动单列语义端点 `POST /members/intake`（`requireRole(MEMBER_FLOW_ROLES)`），**不动** `POST /members` 的 R-10 专属门（同一实现体、两个写门；不放宽名册越权面）。接线 `saveMember(record, { memberFlowIntake: true })`（仅 `registerIntake`）。证据：`permission-gate.test.mjs` ⑤d + ⑥/⑦ 扩容（组织委员/支书/副支书 201；普通成员与党委组织员 403；支书直调 `/members` 仍 403；注入 role/branchId 400）、`member-persist.test.mjs` api ⑫、`member-flow.test.mjs` S4；文档同步 `SYSTEM_ROLE_PERMISSION.md §9i 注④` 与 `DATA_FLOW §4.5.1`。
 
 ### 特批记录：`docs/src/core/mock-adapter.js`（禁改清单文件）
 

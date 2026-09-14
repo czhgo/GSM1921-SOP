@@ -467,6 +467,27 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   const undoAgain = await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
   assert.equal(undoAgain.status, 200, '幂等：本就在册再撤销 → 200 不改写');
 
+  // ⑤d 流入登记端点（POST /members/intake；2026-09-14 批次 30 裁定 Q-23-10 闭环）：
+  //     成员流动登记写权 = 组织委员 + 支书/副支书（§9i）；而名册新增 /members 仍守 R-10 专属。
+  //     修复前：支书/副支书登记流入只能走 /members → 403（两条裁定在 api 形态冲突）。
+  const intakeOrg = await fetch(`${base}/api/v1/members/intake`, {
+    method: 'POST', headers: authHeaders(orgToken),
+    body: JSON.stringify({ id: 'p83', name: '流入登记83', studentId: '2699000083', enrollYear: '2026' }),
+  });
+  assert.equal(intakeOrg.status, 201, '组织委员可经 /members/intake 登记流入（原路径不回归）');
+  const intakeSec = await fetch(`${base}/api/v1/members/intake`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ id: 'p84', name: '流入登记84' }),
+  });
+  assert.equal(intakeSec.status, 201, '★ 支书亦可登记流入（修复点：原经 /members 被 403 阻断）');
+  const iRow = (await usersOf(secToken)).find(u => u.id === 'p84');
+  assert.equal(iRow.branchId, 'br-b1', '流入登记强制归操作人支部');
+  assert.equal(iRow.role, 'participant', '流入登记默认普通成员角色（防注入治理字段）');
+  // 名册新增仍守 R-10（不因新增流入端点而放宽）
+  const secMemberStill = await fetch(`${base}/api/v1/members`, {
+    method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ name: '支书名册新增' }),
+  });
+  assert.equal(secMemberStill.status, 403, '名册新增 /members 仍为组织委员专属（R-10 未被放宽）');
+
   // ⑥ 越权 403
   const denyPart = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(partToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
@@ -488,6 +509,14 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(denyOut.status, 403, '普通成员不得移出');
   const denyUndo = await fetch(`${base}/api/v1/members/p80/undo-transfer-out`, { method: 'POST', headers: authHeaders(partToken), body: '{}' });
   assert.equal(denyUndo.status, 403, '普通成员不得撤销流出');
+  const denyIntake = await fetch(`${base}/api/v1/members/intake`, {
+    method: 'POST', headers: authHeaders(partToken), body: JSON.stringify({ name: '越权流入' }),
+  });
+  assert.equal(denyIntake.status, 403, '普通成员不得登记流入');
+  const denyIntakePc = await fetch(`${base}/api/v1/members/intake`, {
+    method: 'POST', headers: authHeaders(pcToken), body: JSON.stringify({ name: '党委越权流入' }),
+  });
+  assert.equal(denyIntakePc.status, 403, '党委组织员非成员流动登记角色 403（不扩大越权面）');
   const denyDepProf = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
   });
@@ -508,6 +537,8 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
     // 撤销流出端点不接收任何字段（白名单为空 → 任何字段均 400）
     ['undo-transfer-out note', await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ note: 'x' }) })],
     ['undo-transfer-out transferOut', await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ transferOut: false }) })],
+    ['intake role', await fetch(`${base}/api/v1/members/intake`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ name: 'x', role: 'secretary' }) })],
+    ['intake branchId', await fetch(`${base}/api/v1/members/intake`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ name: 'x', branchId: 'br-x' }) })],
   ];
   for (const [label, res] of injectCases) assert.equal(res.status, 400, `${label} 注入应 400`);
 
