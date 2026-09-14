@@ -189,6 +189,7 @@ export function createMemberRouter(db) {
   //   · 名册档案维护  PATCH /members/:id/profile           组织委员（支书/副支书不越权；口径不变）+ 在册属性白名单
   //   · 名册新增      POST  /members                       组织委员（同上；支书/副支书不越权）；强制归本支部、默认普通成员角色
   //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
+  //   · 撤销流出      POST  /members/:id/undo-transfer-out  同 ③ 角色集；清除软标记使账号恢复（Q-23-5 批次 29）
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
   const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', ...RESIDENCE_FIELDS];
   const CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
@@ -281,6 +282,30 @@ export function createMemberRouter(db) {
     const at = new Date().toISOString();
     const merged = { ...user, transferOut: true, transferredOutAt: at, removedAt: at, removedBy: req.actor.id };
     if (typeof body.note === 'string' && body.note.trim()) merged.transferOutNote = body.note.trim();
+    writeRow(db, 'users', merged);
+    res.json(merged);
+  });
+
+  // ④ 撤销流出（登记即生效的纠错口；2026-09-14 批次 29 支书裁定，Q-23-5 闭环）
+  //    语义：清除 ③ 打上的 transferOut 软标记——原行本就在库（软标记不删行），故无需重建；
+  //    不清除则 /login 仍按「账号已停用（该成员已流出）」401，且 listUsers 读链仍过滤该行。
+  //    与 ③ 同角色集、同支部校验；不接收任何字段（幂等：本就在册 → 原样返回）。
+  router.post('/members/:id/undo-transfer-out', requireRole(db, TRANSFER_OUT_ROLES), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const bad = firstOutside(body, []);
+    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点不接收任何字段）` });
+    const user = readUser(req.params.id);
+    if (!user) return res.status(404).json({ error: '成员不存在' });
+    if (branchOf(req.actor) !== branchOf(user)) {
+      return res.status(403).json({ error: '无权限：仅可撤销本支部成员的流出' });
+    }
+    if (user.transferOut !== true) return res.json(user); // 幂等：本就在册，不重复改写
+    const merged = { ...user };
+    delete merged.transferOut;
+    delete merged.transferredOutAt;
+    delete merged.removedAt;
+    delete merged.removedBy;
+    delete merged.transferOutNote;
     writeRow(db, 'users', merged);
     res.json(merged);
   });

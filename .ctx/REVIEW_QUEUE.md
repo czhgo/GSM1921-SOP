@@ -295,13 +295,25 @@
 
 - **事项**：API 形态下「撤销流出」只回滚档案与客户端账号，未清除 server `users` 行的 `transferOut` 软标记（该标记使服务端 `/login` 拒绝停用账号；撤销后不会自动恢复登录）——需新增服务端语义端点。
 - **来源**：批次 26 落地时发现（客户端账号层与服务端 `users` 行两处状态未同步）。
-- **状态**：登记待办。
+- **状态**：**已闭环（2026-09-14 批次 29）**——新增语义端点 `POST /members/:id/undo-transfer-out`（清 `transferOut`/`transferredOutAt`/`removedAt`/`removedBy`/`transferOutNote`；与 `/transfer-out` 同角色集 + 同支部 + 幂等 + 不接收任何字段）；`api-adapter.members.undoTransferOut` 暴露；接线 `PersonStore.saveMember(record, { restoreFromTransferOut: true })`（api 形态先清标记，mock 形态忽略——mock「save 即复活」本就清 removedIds）。证据：`member-persist.test.mjs` api ⑪（**含病灶复现**：不带该选项的常规补丁清不掉标记 → 撤销后 `/login` 仍 401）、`permission-gate.test.mjs` ⑤c（授权/越权 403/字段注入 400/不存在 404/跨支部 403/幂等）、`member-flow.test.mjs` S4（三处接线齐备）。
 
 ### Q-23-6 流出改登记即生效后的死显示代码与未用私有 helper
 
 - **事项**：名册行内仍保留 `pend.out` 的「移出待确认」渲染分支（流出改为登记即生效后恒不命中，属死显示代码）；另 `member-confirmation.js` 的 `_summarize`/`DOMAIN_LABEL` 因 pending 分支移除已成未用私有 helper。
 - **来源**：批次 26 落地时发现（清理项）。
-- **状态**：登记待办（清理项）。
+- **状态**：**已闭环（2026-09-14 批次 29，处置与原登记不完全一致，理由如下）**——① `_summarize` + `DOMAIN_LABEL` 确为死代码（无任何调用方：产出方已随 pending 分支移除），**已删**；② 但 `pend.out` 行内小标、汇总计数、`_applyApproved` 的 `kind === 'transferOut'` 分支、`todo-tab` 的 refsSummary 渲染与 `_mcRefsSummaryHtml`、`submitMemberChange` 的 transferOut 拦截，**经复核保留为「存量兼容」**——本地存储键 `gsm1921-member-confirmations` 可跨刷新带出旧版落库的 pending；若连显示与决策口一并删掉，旧请求将既无法被支书处理、又持续拦截该成员的阶段/在册变更（**死锁**）。故按「同源一致」原则：保留者一处不少、删除者仅限无调用方的产出方，并在四处加注说明存量兼容理由（roster-tab `_pendingMap`、member-confirmation 拦截处与 `_applyApproved`、todo-tab 渲染行）。
+
+### Q-23-9 API 形态名册读链未回归：`getMembers()` 不含 server 新建成员（登记流入后无法立即流出）
+
+- **事项**：`services/person.js::_baseMemberRecords()` 在 api 形态返回 `[...PEOPLE]`（静态种子，注释自陈「api 读侧保持现状（服务器权威读回归 C 波）」），而 api 新建成员只进 `mockDB.users` 缓存（`_syncMockDBUsers`）。而 `member-flow.js::_branchMembers()` 走 `PersonStore.getMembers()` → **刚登记流入的成员不在「本支部在册名册」里**：立即登记流出会被判「成员不在本支部在册名册」（`skipped`），名册读链同样看不到。实测证据：批次 29 编写 api 形态全链测试时首跑即命中 `{ok:false, movedCount:0, skipped:[{reason:'成员不在本支部在册名册'}]}`（故该测试改为直接验证端点与接线；mock 形态全链已由 `member-flow.test.mjs` D1–D10 覆盖）。
+- **来源**：批次 29 复核 Q-23-5 时顺带发现（属 api 形态 roster 读链整体未回归的一部分，非本批改动引入）。
+- **状态**：登记待办（建议随「服务器权威读回归 C 波」一并处理：`getMembers()` 在 api 形态合并 `mockDB.users`，或 `_branchMembers` 改走权威读链——需先在 C 波定口径，避免一处打补丁）。
+
+### Q-23-10 裁定冲突：R-10「名册新增＝组织委员专属」与 R-42/§9i「支书·副支书亦可登记流入」
+
+- **事项**：`MEMBER_FLOW_ROLES`（前端门 + `memberFlows` 资源写门）= 组织委员 + 支书/副支书，§9i 矩阵亦如此；但**流入建档**在 API 形态走 `POST /members`，其门为 R-10 口径「组织委员专属（支书/副支书不越权）」，且 `permission-gate.test.mjs` 有断言「支书非组织委员不得走名册新增端点 403」。两处裁定在 api 形态下直接冲突（mock 形态无感，因为 mock 分支不区分）。
+- **来源**：批次 29 编写 api 形态全链测试时首跑命中 403（`registerIntake` 以 secretary 身份 → `API 请求失败: 403 Forbidden`）。
+- **状态**：**登记待裁**（需支书裁定二选一：① 维持 R-10——「成员流动登记」的流入一路只授组织委员，同步收窄 §9i 矩阵与 `MEMBER_FLOW_ROLES`；② 维持 §9i——为成员流动登记单列语义端点 `POST /members/intake`（`requireRole(MEMBER_FLOW_ROLES)`），不动 `POST /members` 的 R-10 专属门）。现状已在 `SYSTEM_ROLE_PERMISSION.md §9i 注④` 如实写明。
 
 ### 特批记录：`docs/src/core/mock-adapter.js`（禁改清单文件）
 
@@ -336,6 +348,21 @@
 - **事项**：批次 28 追加改动同一禁改文件——新增 §「COMPONENT: Pagination（`.page-btn` / `.page-num` / `.page-num.is-current`）」一段，删除已失效的 `html.theme-dark .qv-page-btn` 深色覆盖补丁三条（分页控件改走主题变量）；已获支书特批（“统一为 .page-btn / .page-num（推荐）”）。
 - **来源**：批次 28 落地。
 - **状态**：已特批（登记留痕）。
+
+## 批次 29（2026-09-14）：① 硬编码审查评议全局复查 + ② 成员流动收口
+
+> **来源**：目标 ①「党小组数量是否硬编码、能否与支书工作台增/解散直接相关（硬编码审查评议！全局性地要进行）」与 ②「方便登记操作」的收口轮。权威见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 29。
+
+### ① 复查结论：字面量清单已收敛（批次 25），但存在两类**等价病灶**，本批一并根治
+
+`party-group.test.mjs` S1（禁组名字面量数组）本已覆盖「写死清单」；本批彻查发现两类绕过它的等价病灶，均已收敛 + 加守卫 S4：
+
+- **病灶 A：模块加载期「派生快照」**——`components/person-picker.js` 原 `const PARTY_GROUPS = [...new Set(PEOPLE.map(p => p.partyGroup))]`。展开 `liveMembers()` 的 Proxy 即把实时视图物化成**加载期快照**（与 2026-09-13 揪出的 `const PEOPLE = PersonStore.getMembers()` 同病）。后果：**PersonPicker 的党小组筛选 Tab 不随支书台增/改名/解散联动**，且新增的空组永远缺席。已改 `groupOptions()` 现取；真机复核：新增「复核临时党小组」后 Tab 立刻多出该项（证据见执行日志批次 29）。
+- **病灶 B：运行时用「种子枚举」代跑活组清单**——`services/branch-roster-import.js` 原用 `PARTY_GROUP_OPTIONS`（种子派生）做导入行净化与「按组应到」统计；`entries/tabs/visitor/projects-tab.js` 原从成员档案派生筛选项。后果：新增组的行被判非法回退、统计缺组、筛选项漏空组。已一并改 `groupOptions()`。种子枚举 `PARTY_GROUP_OPTIONS` 归位为「预览种子期口径」，守卫 S4 禁止运行时消费（白名单仅定义方与清档注释）。
+
+### 特批记录：无新增禁改文件
+
+- 本批未改动任何禁改清单文件（`styles.css` / `mock-adapter.js` 等）；仅 `content/` 与业务模块 + `server/`，无需特批。
 
 
 

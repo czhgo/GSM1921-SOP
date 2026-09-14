@@ -22,21 +22,21 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914e';
-import { persist } from '../core/data-adapter.js?v=20260914e';
+import { mockDB } from '../core/domain.js?v=20260914g';
+import { persist } from '../core/data-adapter.js?v=20260914g';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../core/id.js?v=20260914e';
-import { bumpToken } from '../core/version-token.js?v=20260914e'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../core/id.js?v=20260914g';
+import { bumpToken } from '../core/version-token.js?v=20260914g'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914e';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260914e';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260914e';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914g';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260914g';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260914g';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260914e';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260914g';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260914e';
+import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260914g';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -95,21 +95,12 @@ export const MC_ACTION_LABEL = {
   transferOut: '移出',
 };
 
-/** 引用域 → 摘要文案（refsSummary 的 label 用；活动分工/分工记录分开，展示更精确） */
-const DOMAIN_LABEL = {
-  activities: '活动分工',
-  assignments: '分工记录',
-  attendances: '考勤记录',
-  inspections: '考察记录',
-  taskforces: '专班成员',
-  signups: '报名记录',
-  agendaVotes: '支委会表态',
-  thoughtReports: '思想汇报',
-  activityReviews: '复盘记录',
-  taskforceReviews: '复盘记录',
-  memberChangeRequests: '成员变更申请',
-  committeeBroadcasts: '支委广播',
-};
+/**
+ * 引用域 → 摘要文案 与 摘要计数（`_summarize`）已随「移出登记即生效」移除——
+ * 2026-09-14 批次 26 起 submitTransferOut 不再构造 pending 请求，故无 refsSummary 产出方；
+ * 批次 29 据 Q-23-6 删除这两个无调用方的私有件。
+ * 存量 pending 里已落库的 refsSummary 仍由读侧渲染（secretary/todo-tab.js::_mcRefsSummaryHtml）。
+ */
 
 // ── 队列存取（内存读链 = mockDB.pendingMemberConfirmations；localStorage 兜跨刷新）──
 
@@ -200,7 +191,10 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
       return { ok: false, reason: '该成员已有待支书确认的在册状态变更，处理完成前请勿重复发起' };
     }
   }
-  // 该成员已有移出待确认 → 拦截并行（防阶段/在册与移出流程交错）
+  // 存量兼容（Q-23-6，批次 29 复核保留）：本条拦截**只对旧版已落库的 transferOut pending 生效**——
+  // 新版本不再产生该形态请求，但 localStorage 键 gsm1921-member-confirmations 可跨刷新带出旧请求；
+  // 保留拦截 + 保留 _applyApproved 的 transferOut 分支，才能让旧请求仍可被支书处理完（否则该成员
+  // 会被永久拦截却又无从消解 = 死锁）。
   const pendAny = _findPendingAny(personId);
   if (pendAny && pendAny.action === 'transferOut') {
     return { ok: false, reason: '该成员移出已报送支书待确认，处理完成前请勿再发起阶段/在册变更' };
@@ -294,27 +288,7 @@ function _scanRefs(personId) {
   return { safe, keep };
 }
 
-/** 分类条目 → 摘要计数（{domain,label,count}；专班负责人单独一条提示 label） */
-function _summarize(entries) {
-  const out = [];
-  const idx = new Map();
-  const push = (domain, label) => {
-    const key = `${domain}|${label}`;
-    if (idx.has(key)) out[idx.get(key)].count += 1;
-    else {
-      idx.set(key, out.length);
-      out.push({ domain, label, count: 1 });
-    }
-  };
-  for (const e of entries) {
-    if (e.domain === 'taskforces') {
-      push('taskforces', e.organizer ? '专班负责人（转出前须先移交）' : '专班成员');
-    } else {
-      push(e.domain, DOMAIN_LABEL[e.domain] || e.label || '其他引用');
-    }
-  }
-  return out;
-}
+/** 分类条目 → 摘要计数已删（Q-23-6，批次 29）：详见上方说明。 */
 
 /**
  * 组织委员发起「成员移出」（引用清单化 + **登记即生效**，2026-09-14 支书裁定）：
@@ -424,6 +398,8 @@ async function _applyApproved(req) {
     }
     return { ok: true };
   }
+  // 存量兼容（Q-23-6，批次 29 复核保留）：新版本不再产生 kind=transferOut 的 pending，
+  // 但旧版落库请求经 localStorage 跨刷新仍在队列里，此分支是其唯一出口（删则旧请求死锁）。
   if (kind === 'transferOut') {
     _executeTransferOut(personId, req.decidedAt);
     const r = await PersonStore.removeMember(personId, { by: decidedBy, guardRefs: false, transferOut: true });

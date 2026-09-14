@@ -3,19 +3,21 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914e';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914e';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260914e';
+import { AuthStore } from '../../../services/auth.js?v=20260914g';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260914g';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914e';
-import { flashHighlight, escHtml as esc } from '../../../core/utils.js?v=20260914e';
+import { isActivityLive } from '../../../core/constants.js?v=20260914g';
+import { flashHighlight, escHtml as esc } from '../../../core/utils.js?v=20260914g';
+// 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
+import { groupOptions } from '../../../services/party-group.js?v=20260914g';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914e';
-import { getAppState } from '../../../core/state.js?v=20260914e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914g';
+import { getAppState } from '../../../core/state.js?v=20260914g';
 
 // 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -80,8 +82,8 @@ export function renderContent(ctx) {
     return (b.date || '').localeCompare(a.date || '');
   });
 
-  // 党小组列表（用于筛选）
-  const partyGroups = [...new Set(PEOPLE.map(p => p.partyGroup).filter(Boolean))].sort();
+  // 党小组筛选项：活组清单单一源（2026-09-14 批次 29 收敛——原从成员档案现取，新增的空组会漏项）
+  const partyGroups = groupOptions();
 
   const currentUserId = AuthStore.getCurrentUser()?.personId || '';
   // 首页专班跳转定位：目标专班可能不在「我的分工」中 → 强制切全局分工视图后再定位

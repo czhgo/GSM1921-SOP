@@ -17,16 +17,16 @@
 //  依赖：core(domain/data-adapter/id/version-token/constants) + services(person/member-confirmation/accounts)。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914e';
-import { persist, getDataSource } from '../core/data-adapter.js?v=20260914e';
-import { generateId } from '../core/id.js?v=20260914e';
-import { bumpToken } from '../core/version-token.js?v=20260914e';
+import { mockDB } from '../core/domain.js?v=20260914g';
+import { persist, getDataSource } from '../core/data-adapter.js?v=20260914g';
+import { generateId } from '../core/id.js?v=20260914g';
+import { bumpToken } from '../core/version-token.js?v=20260914g';
 // 登记角色集单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { MEMBER_FLOW_ROLES } from '../core/constants.js?v=20260914e';
-import { MEMBER_FLOWS } from '../mock/index.js?v=20260914e';
-import { PersonStore } from './person.js?v=20260914e';
-import { submitTransferOut } from './member-confirmation.js?v=20260914e';
-import { createAccount, deactivateAccount, reactivateAccount } from './accounts.js?v=20260914e';
+import { MEMBER_FLOW_ROLES } from '../core/constants.js?v=20260914g';
+import { MEMBER_FLOWS } from '../mock/index.js?v=20260914g';
+import { PersonStore } from './person.js?v=20260914g';
+import { submitTransferOut } from './member-confirmation.js?v=20260914g';
+import { createAccount, deactivateAccount, reactivateAccount } from './accounts.js?v=20260914g';
 
 /** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -267,7 +267,9 @@ export async function revokeFlow({ flowId, by, role } = {}) {
       partyGroup: snapshot.partyGroup || flow.partyGroup,
     };
     if (getDataSource() === 'mock') restore.branchId = flow.branchId || DEFAULT_BRANCH_ID;
-    const r = await PersonStore.saveMember(restore, { by });
+    // api 形态：server「转出」是软标记，须经 undo-transfer-out 语义端点清除后账号方可恢复
+    // （2026-09-14 批次 29，Q-23-5）；mock 形态该选项被忽略（save 即复活，removedIds 自动清除）
+    const r = await PersonStore.saveMember(restore, { by, restoreFromTransferOut: true });
     if (!r.ok) return { ok: false, reason: r.reason || '恢复成员在册状态失败' };
     reactivateAccount(flow.personId, { studentId: flow.studentId });
   }

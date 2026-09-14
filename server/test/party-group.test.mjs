@@ -10,7 +10,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260914e';
+const V = '?v=20260914g';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const CAP_DIR = join(SRC_DIR, 'modules', 'capabilities');
@@ -100,6 +100,43 @@ test('S3 核心组由注册表显式声明（不再以显示标签反推）', ()
     assert.ok(coreDecls >= 3, `${ws} 台核心三件套须显式声明 coreTab（实测 ${coreDecls} 处）`);
   }
   // 党委台按裁定保持自身命名（无核心组），不要求 coreTab
+});
+
+test('S4 组清单不得「派生化快照」或「用种子枚举代跑」（全局硬编码审查评议 · 2026-09-14 批次 29）', () => {
+  // S1 只拦「组名字面量数组」，拦不住两类等价病灶：
+  //   ① 模块加载期从成员档案派生 → `const X = [...new Set(PEOPLE.map(p => p.partyGroup))]`
+  //      （liveMembers 的 Proxy 被展开即物化成加载期快照 —— 与「const PEOPLE = getMembers()」同病），
+  //      后果：支书台改名/解散后组筛选项永久陈旧，新增的空组永远缺席（实测病灶：PersonPicker 组筛选 Tab）。
+  //   ② 运行时用**种子枚举** PARTY_GROUP_OPTIONS 代跑活组清单（实测病灶：整支部名单导入的
+  //      逐行净化与按组应到统计 —— 新增组的行被判非法回退、统计缺组）。
+  // 唯一正解：运行时一律 groupOptions()（活组按 seq 升序）。
+  const ALLOW_SEED_ENUM = new Set([
+    'services/org-base-data-preview.js', // 种子期/预览期口径的定义方（含循环依赖规避说明）
+    'services/init-reset.js',            // 清档回种子的注释引用
+  ]);
+  const offenders = [];
+  for (const f of walkJs(SRC_DIR)) {
+    const r = rel(f);
+    const src = read(f);
+    // ① 模块顶层派生快照（顶格 const；函数体内的即时派生属数据驱动统计，不拦）
+    src.split(/\r?\n/).forEach((line, i) => {
+      const t = line.trimStart();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return;
+      if (/^const\s+\w+\s*=[\s\S]*new Set\([\s\S]*partyGroup/.test(line)) {
+        offenders.push(`${r}:${i + 1} 模块顶层派生组清单快照`);
+      }
+    });
+    // ② 运行时消费种子枚举（只看非注释行——注释里的历史说明不算）
+    const usesSeedEnum = src.split(/\r?\n/).some((line) => {
+      const t = line.trimStart();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return false;
+      return line.includes('PARTY_GROUP_OPTIONS');
+    });
+    if (usesSeedEnum && !ALLOW_SEED_ENUM.has(r)) {
+      offenders.push(`${r} 运行时消费种子枚举 PARTY_GROUP_OPTIONS（应改 groupOptions()）`);
+    }
+  }
+  assert.deepEqual(offenders, [], '组清单只有一条活路：groupOptions()');
 });
 
 // ── 数据层 ──────────────────────────────────────────────────────────

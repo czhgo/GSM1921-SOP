@@ -14,20 +14,24 @@
 //   · stats = 净化行（即目标空支部导入后的全支部成员）套应到口径（正式党员/预备党员非滞留，
 //     与 services/roster.js / org-base-data-preview 同源 policy-defaults），供「确认前统计卡」。
 // 复用点（禁改 org-base-data-preview.js / person.js，只读消费）：
-//   · 枚举/字面量单一源：org-base-data-preview 导出的 RESIDENCE / PARTY_GROUP_OPTIONS /
-//     DEVELOP_STAGE_OPTIONS（种子派生）；partyStages/excludeDetained = policy-defaults attendance.roster。
+//   · 枚举/字面量单一源：党小组 = services/party-group.js::groupOptions()（活组，运行时为准；
+//     2026-09-14 批次 29 收敛——原用 org-base-data-preview 的种子枚举，不随支书台增/改名/解散联动）；
+//     发展阶段 = org-base-data-preview 导出的 DEVELOP_STAGE_OPTIONS（种子派生）；
+//     partyStages/excludeDetained = policy-defaults attendance.roster。
 //   · 档案白名单 = person.js getBaseMemberRecords（含 members 覆盖层，mock 读链同视图）。
 //   · 模板行复用 buildPreviewTemplate().people（下载 json 名册模板），kind/usage 换成导入口径。
 // 纯 ESM、无 DOM：localStorage 由 person.js 内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { getBaseMemberRecords } from './person.js?v=20260914e';
-import {
-  PARTY_GROUP_OPTIONS, DEVELOP_STAGE_OPTIONS, buildPreviewTemplate,
-} from './org-base-data-preview.js?v=20260914e';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914e';
+import { getBaseMemberRecords } from './person.js?v=20260914g';
+import { DEVELOP_STAGE_OPTIONS, buildPreviewTemplate } from './org-base-data-preview.js?v=20260914g';
+// 党小组活组清单单一源（2026-09-14 批次 29 硬编码审查评议）：原用种子枚举 PARTY_GROUP_OPTIONS
+// 校验导入行/派生按组统计 → 支书台「新增 / 改名 / 解散党小组」后导入侧不联动（新组名被回退、统计缺组）。
+// 种子枚举仍归 org-base-data-preview 的**预览种子期**口径，运行时消费一律走 groupOptions()。
+import { groupOptions } from './party-group.js?v=20260914g';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914g';
 // Q-21-3 收敛（2026-09-13）：枚举单一源 = core/constants.js（原经 org-base-data-preview 转出，现直取）
-import { RESIDENCE } from '../core/constants.js?v=20260914e';
+import { RESIDENCE } from '../core/constants.js?v=20260914g';
 
 /** 空支部名册包类型标识（与预览包 kind 区分；净化时兼容两 kind——预览模板行结构同源） */
 export const BRANCH_ROSTER_KIND = 'gsm1921-branch-roster';
@@ -52,8 +56,9 @@ function _movableArchiveMap() {
   return map;
 }
 
-/** 应到口径统计（与 org-base-data-preview 同公式：应到 = 党员非滞留；党小组按组保序）——纯函数入参行 */
-function _computeStats(rows) {
+/** 应到口径统计（与 org-base-data-preview 同公式：应到 = 党员非滞留；党小组按活组清单保序）——
+ *  groups 缺省现取 groupOptions()（活组单一源；支书台增/改名/解散即时反映） */
+function _computeStats(rows, groups = groupOptions()) {
   const isParty = p => ROSTER_CFG.partyStages.includes(p.developStage);
   const isDetained = p => p.residenceStatus === RESIDENCE.DETAINED;
   const party = rows.filter(isParty);
@@ -62,7 +67,7 @@ function _computeStats(rows) {
   const detained = party.filter(isDetained).length;
   const expected = party.length - (ROSTER_CFG.excludeDetained ? detained : 0);
   const perGroup = {};
-  for (const g of PARTY_GROUP_OPTIONS) {
+  for (const g of groups) {
     const gp = party.filter(p => p.partyGroup === g);
     const gd = gp.filter(isDetained).length;
     perGroup[g] = {
@@ -107,7 +112,7 @@ function _cleanRow(row, movable) {
   if (!rec) return null;                 // 白名单外（不在现有成员档案 / 党委组织员）→ 丢弃
   const name = typeof row.name === 'string' ? row.name.trim() : '';
   if (!name) return null;                // 姓名空 → 丢弃
-  const partyGroup = PARTY_GROUP_OPTIONS.includes(row.partyGroup) ? row.partyGroup : (rec.partyGroup || '');
+  const partyGroup = groupOptions().includes(row.partyGroup) ? row.partyGroup : (rec.partyGroup || '');
   const developStage = DEVELOP_STAGE_OPTIONS.includes(row.developStage) ? row.developStage : (rec.developStage || '');
   const statusOk = row.residenceStatus === RESIDENCE.CAMPUS || row.residenceStatus === RESIDENCE.DETAINED;
   const residenceStatus = statusOk ? row.residenceStatus : (rec.residenceStatus || RESIDENCE.CAMPUS);

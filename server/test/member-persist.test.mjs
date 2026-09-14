@@ -19,16 +19,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914e';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260914e';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260914g';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260914g';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260914e';
+} from '../../docs/src/core/mock-adapter.js?v=20260914g';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260914e';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914e';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914e';
+} from '../../docs/src/services/person.js?v=20260914g';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260914g';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260914g';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -407,6 +407,59 @@ test('api ⑩：R-10 三条链——支书在册镜像 / 组织委员在册行�
     const outRow = (await getUsers(secToken)).find(u => u.id === 'p63');
     assert.equal(outRow.transferOut, true, '支书确认移出软标记落库');
     assert.equal(outRow.name, '待移出成员63', '原行保留姓名（不匿名）');
+  } finally {
+    setDataSource('mock');
+  }
+});
+
+// R-11（2026-09-14 批次 29，Q-23-5 闭环）：API 形态「撤销流出」清 server 软标记实证——
+// 病灶复现：server 侧「转出」是软标记（原行保留），仅走 profile 补丁**不会**清除它，
+//   /login 仍按「账号已停用」401、listUsers 读链仍排除该行 = 撤销后成员实际回不来。
+// 修复：PersonStore.saveMember({ restoreFromTransferOut:true }) 先经
+//   POST /members/:id/undo-transfer-out 清标记（revokeFlow 已接线；mock 形态忽略该选项）。
+test('api ⑪：Q-23-5 撤销流出清 server 软标记（流出后 401 → 撤销后恢复可登录）', async () => {
+  const orgToken = await login('p11'); // br-b1 组织委员
+  setDataSource('api', { apiBaseUrl: base, authToken: orgToken });
+  try {
+    // ① 建档 + 流出（登记即生效的写原语：软标记 + 账号停用）
+    const created = await PersonStore.saveMember({
+      id: 'p64', name: '撤销流出测试', studentId: '2026999901', enrollYear: '2026',
+    }, { by: 'p11' });
+    assert.equal(created.ok, true, `建档应成功：${JSON.stringify(created)}`);
+    const out = await PersonStore.removeMember('p64', { by: 'p11', guardRefs: false, transferOut: true });
+    assert.equal(out.ok, true, `流出应成功：${JSON.stringify(out)}`);
+    const outRow = (await getUsers(orgToken)).find(u => u.id === 'p64');
+    assert.equal(outRow.transferOut, true, '流出后 users 行打 transferOut 软标记（原行保留）');
+    const denied = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'p64', password: '123456' }),
+    });
+    assert.equal(denied.status, 401, '流出后账号停用：服务端登录拒绝（server 权威）');
+
+    // ② 病灶复现：不带 restoreFromTransferOut 的常规档案补丁**清不掉**软标记
+    const plain = await PersonStore.saveMember({ id: 'p64', name: '撤销流出测试' }, { by: 'p11' });
+    assert.equal(plain.ok, true, `常规补丁应成功：${JSON.stringify(plain)}`);
+    assert.equal((await getUsers(orgToken)).find(u => u.id === 'p64').transferOut, true,
+      '仅走 profile 补丁不会清软标记（Q-23-5 病灶：撤销后成员仍回不来）');
+
+    // ③ 撤销流出（revokeFlow 的实际调用形态）→ 清 server 软标记
+    const restored = await PersonStore.saveMember({
+      id: 'p64', name: '撤销流出测试', studentId: '2026999901', enrollYear: '2026',
+    }, { by: 'p11', restoreFromTransferOut: true });
+    assert.equal(restored.ok, true, `撤销应成功：${JSON.stringify(restored)}`);
+    const backRow = (await getUsers(orgToken)).find(u => u.id === 'p64');
+    assert.ok(backRow, '撤销后原行仍在库（软标记语义不删行）');
+    assert.equal(backRow.transferOut, undefined, '★ Q-23-5 修复点：transferOut 软标记已清除');
+    assert.equal(backRow.removedAt, undefined, 'removedAt 一并清除');
+    assert.equal(backRow.transferredOutAt, undefined, 'transferredOutAt 一并清除');
+    assert.equal(backRow.name, '撤销流出测试', '档案字段保留');
+
+    // ④ 账号恢复（服务端权威：软标记已清 → 登录恢复）
+    const resumed = await fetch(`${base}/api/v1/auth/login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ personId: 'p64', password: '123456' }),
+    });
+    assert.equal(resumed.status, 200, '★ 撤销后账号恢复可登录（成员真的回来了）');
   } finally {
     setDataSource('mock');
   }

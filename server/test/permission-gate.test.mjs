@@ -455,6 +455,18 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(oDepRow.transferOut, true, 'users 行打转出标记');
   assert.equal(oDepRow.name, 'R10副支书移出', '软标记保留姓名（不匿名）');
 
+  // ⑤c 撤销流出（POST /members/:id/undo-transfer-out；2026-09-14 批次 29，Q-23-5）：
+  //     清 transferOut 软标记 → 账号方可恢复（原仅走 profile 补丁不清标记，撤销后 /login 仍 401）
+  const undoDep = await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
+  assert.equal(undoDep.status, 200, '副支书可撤销流出（副书同权）');
+  const uRow = (await usersOf(depToken)).find(u => u.id === 'p82');
+  assert.equal(uRow.transferOut, undefined, 'transferOut 软标记已清除');
+  assert.equal(uRow.removedAt, undefined, 'removedAt 一并清除');
+  assert.equal(uRow.transferredOutAt, undefined, 'transferredOutAt 一并清除');
+  assert.equal(uRow.name, 'R10副支书移出', '档案字段不受影响（原行保留）');
+  const undoAgain = await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(undoAgain.status, 200, '幂等：本就在册再撤销 → 200 不改写');
+
   // ⑥ 越权 403
   const denyPart = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(partToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
@@ -474,6 +486,8 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(denyCreate.status, 403, '支书非组织委员不得走名册新增端点');
   const denyOut = await fetch(`${base}/api/v1/members/p1/transfer-out`, { method: 'POST', headers: authHeaders(partToken), body: '{}' });
   assert.equal(denyOut.status, 403, '普通成员不得移出');
+  const denyUndo = await fetch(`${base}/api/v1/members/p80/undo-transfer-out`, { method: 'POST', headers: authHeaders(partToken), body: '{}' });
+  assert.equal(denyUndo.status, 403, '普通成员不得撤销流出');
   const denyDepProf = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
   });
@@ -491,6 +505,9 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
     ['create role', await fetch(`${base}/api/v1/members`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'x', role: 'secretary' }) })],
     ['residence role', await fetch(`${base}/api/v1/members/p1/residence-status`, { method: 'POST', headers: authHeaders(secToken), body: JSON.stringify({ residenceStatus: '在校', role: 'secretary' }) })],
     ['residence role (deputy)', await fetch(`${base}/api/v1/members/p1/residence-status`, { method: 'POST', headers: authHeaders(depToken), body: JSON.stringify({ residenceStatus: '在校', role: 'secretary' }) })],
+    // 撤销流出端点不接收任何字段（白名单为空 → 任何字段均 400）
+    ['undo-transfer-out note', await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ note: 'x' }) })],
+    ['undo-transfer-out transferOut', await fetch(`${base}/api/v1/members/p82/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: JSON.stringify({ transferOut: false }) })],
   ];
   for (const [label, res] of injectCases) assert.equal(res.status, 400, `${label} 注入应 400`);
 
@@ -501,6 +518,8 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(emptyProf.status, 400, '无可更新字段 400');
   const ghost = await fetch(`${base}/api/v1/members/p_ghost2/profile`, { method: 'PATCH', headers: authHeaders(orgToken), body: JSON.stringify({ name: 'x' }) });
   assert.equal(ghost.status, 404, '成员不存在 404');
+  const ghostUndo = await fetch(`${base}/api/v1/members/p_ghost2/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(ghostUndo.status, 404, '撤销流出：成员不存在 404');
 
   // ⑨ 跨支部 403：党委组织员建 br-x 成员 p81 → br-b1 组织委员/支书写均 403
   await fetch(`${base}/api/v1/users`, {
@@ -517,6 +536,10 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   assert.equal(crossResDep.status, 403, '副支书不得改异支部成员在册');
   const crossOutDep = await fetch(`${base}/api/v1/members/p81/transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
   assert.equal(crossOutDep.status, 403, '副支书不得移出异支部成员');
+  const crossUndo = await fetch(`${base}/api/v1/members/p81/undo-transfer-out`, { method: 'POST', headers: authHeaders(orgToken), body: '{}' });
+  assert.equal(crossUndo.status, 403, '组织委员不得撤销异支部成员的流出');
+  const crossUndoDep = await fetch(`${base}/api/v1/members/p81/undo-transfer-out`, { method: 'POST', headers: authHeaders(depToken), body: '{}' });
+  assert.equal(crossUndoDep.status, 403, '副支书不得撤销异支部成员的流出');
 });
 
 // 副书同权（2026-09-11 支书裁定）：成员变更确认端点一并纳入

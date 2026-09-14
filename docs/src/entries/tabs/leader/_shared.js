@@ -2,11 +2,11 @@
 // 组长工作台共享上下文（T-279 M2 拆分样板）
 // 各 tab 模块复用的只读配置与纯函数：accent 三件套、当前组长组、活动按角色过滤。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914e';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914e';
+import { AuthStore } from '../../../services/auth.js?v=20260914g';
 
 /** 当前组长身份（数据驱动：AuthStore 当前用户 + partyGroup，不硬编码人） */
 export function currentLeaderGroup() {

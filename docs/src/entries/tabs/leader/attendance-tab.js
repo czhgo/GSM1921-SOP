@@ -2,28 +2,28 @@
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260914e';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260914e';
-import { loadActivities } from '../../../services/activity.js?v=20260914e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914e';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914e';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260914g';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260914g';
+import { loadActivities } from '../../../services/activity.js?v=20260914g';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914g';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260914e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914e';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914e';
-import { generateId } from '../../../core/id.js?v=20260914e';
-import { badgeHtml } from '../../../components/badges.js?v=20260914e';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914e';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260914g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914g';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914g';
+import { generateId } from '../../../core/id.js?v=20260914g';
+import { badgeHtml } from '../../../components/badges.js?v=20260914g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914g';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260914e';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914e';
-import { currentLeaderGroup } from './_shared.js?v=20260914e';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914e';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260914g';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914g';
+import { currentLeaderGroup } from './_shared.js?v=20260914g';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914g';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;

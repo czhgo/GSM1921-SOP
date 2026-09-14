@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260914e';
-import { renderHeader } from '../components/header.js?v=20260914e';
-import { IssueStore } from '../services/issues.js?v=20260914e';
-import { MilestoneStore } from '../services/milestones.js?v=20260914e';
-import { showToast, getBasePath } from '../core/utils.js?v=20260914e';
-import { AuthStore } from '../services/auth.js?v=20260914e';
-import { renderIssueList } from '../components/issue-list.js?v=20260914e';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260914e';
-import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260914e';
-import { renderIssueForm } from '../components/issue-form.js?v=20260914e';
+import { renderSidebar } from '../components/sidebar.js?v=20260914g';
+import { renderHeader } from '../components/header.js?v=20260914g';
+import { IssueStore } from '../services/issues.js?v=20260914g';
+import { MilestoneStore } from '../services/milestones.js?v=20260914g';
+import { showToast, getBasePath } from '../core/utils.js?v=20260914g';
+import { AuthStore } from '../services/auth.js?v=20260914g';
+import { renderIssueList } from '../components/issue-list.js?v=20260914g';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260914g';
+import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260914g';
+import { renderIssueForm } from '../components/issue-form.js?v=20260914g';
 
 renderSidebar('feedback');
 renderHeader('feedback');

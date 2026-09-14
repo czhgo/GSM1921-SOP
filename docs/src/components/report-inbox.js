@@ -8,11 +8,11 @@
 //  本组件禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260914e';
-import { AuthStore } from '../services/auth.js?v=20260914e';
-import { showToast, escHtml } from '../core/utils.js?v=20260914e';
-import { getPersonName } from '../services/person.js?v=20260914e';
-import { solidAccentStyle } from '../core/constants.js?v=20260914e';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260914g';
+import { AuthStore } from '../services/auth.js?v=20260914g';
+import { showToast, escHtml } from '../core/utils.js?v=20260914g';
+import { getPersonName } from '../services/person.js?v=20260914g';
+import { solidAccentStyle } from '../core/constants.js?v=20260914g';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），

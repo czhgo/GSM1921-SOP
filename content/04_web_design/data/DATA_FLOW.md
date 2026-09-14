@@ -408,10 +408,11 @@ UI 层零改动。
 > 实现细节见 `docs/src/` 对应文件（`services/mock.js`、`core/state.js`、`entries/main-entry.js`）。
 > 写入数据验证设计见 §2.17。
 
-#### 4.5.1 成员流入/流出写路径（2026-09-14 批次 25）
+#### 4.5.1 成员流入/流出写路径（2026-09-14 批次 25；撤销流出补于批次 29）
 
 > **成员流入 → 台账 + 档案 + 账号（三写同源）**：一次登记三处一致——`memberFlows` 记一笔（`direction='in'`）+ `PersonRecord` 建档（采集姓名/学号/届别/党小组）+ 账号层建号（账号 = 学号，口令 = 支部统一默认口令）。
 > **成员流出 → 台账 + 档案软标记 + 账号停用**：`memberFlows` 记一笔（`direction='out'`）+ `PersonRecord` 软标记保留（`transferOut=true` + 转出时间/经手人）+ 账号随流出一并停用。
+> **撤销流出 → 台账留痕 + 档案复活 + 账号恢复（2026-09-14 批次 29，Q-23-5）**：撤销不改写台账行、只补 `revokedAt/revokedBy` 留痕（台账只增不删）；档案复活按台账 `personSnapshot` 回滚。**双形态分叉点**：mock 形态档案存于覆盖层，`PersonStore.saveMember` 语义即「save 即复活」（自动清除 `removedIds` 删除标记）；**API 形态档案存于 server `users` 行且「转出」是软标记（原行保留不删不匿名）——仅走档案补丁不会清标记，该行仍被 `/login`（账号已停用）与用户读链排除，成员实际回不来**。故 API 形态须先经语义端点 `POST /members/:id/undo-transfer-out`（清 `transferOut`/`transferredOutAt`/`removedAt`/`removedBy`/`transferOutNote`；与 `/transfer-out` 同角色集 + 同支部校验 + 幂等）——接线方式：`PersonStore.saveMember(record, { restoreFromTransferOut: true })`（与 R-10 的 `residenceMirror` 同为「api 形态分流语义端点」选项；mock 形态忽略）。证据：`server/test/member-persist.test.mjs` api ⑪（含病灶复现：不带该选项的常规补丁清不掉标记）、`server/test/permission-gate.test.mjs` ⑤c（端点授权/越权/注入/404/跨支部/幂等）。
 
 ### 4.6 写穿透缓存模式（T-142 Phase 2B）
 

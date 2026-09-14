@@ -464,8 +464,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
 - [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/roster.js` 与 `services/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
 - [ ] 版本戳同值（缓存键一致性）：全站 `?v=<release>` 与本次发布版本**处处一致**——`docs/scripts/bump-version.mjs` 收尾自检须报「陈旧戳 0 处残留」；任一 `?v=` 落后即会让浏览器按 URL 分裂出第二个模块实例（注册表/共享状态读空）。**注意**：注释里的版本号是人工注记、不算缓存键（自检与改写同源跳过注释行）；**模板字符串动态 import**（`` import(`…/${stem}-workspace.js?v=…`) ``）也在覆盖范围内
-- [ ] 党小组清单单一源（2026-09-14 收敛）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
+- [ ] 党小组清单单一源（2026-09-14 收敛，批次 29 加固）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序，读口 `services/party-group.js::groupOptions()`）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；**且须防两类绕过「字面量扫描」的等价病灶**——① 模块加载期**派生快照**（`const X = [...new Set(PEOPLE.map(p => p.partyGroup))]`：展开 `liveMembers()` 的 Proxy 即把实时视图冻结，与 `const PEOPLE = getMembers()` 同病；实测病灶 `components/person-picker.js`）；② 运行时用**种子枚举代跑**（`org-base-data-preview::PARTY_GROUP_OPTIONS` 只属预览种子期口径，运行时一律 `groupOptions()`；实测病灶 `services/branch-roster-import.js` 的导入行净化与按组应到统计、`entries/tabs/visitor/projects-tab.js` 的筛选项）。断言方式＝结构层 `party-group.test.mjs::S4`；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
 - [ ] 账号与成员档案同源（2026-09-14）：账号由学号派生（账号即学号），成员新增/流出与账号建号/停用必须成对发生；禁出现「档案有此人、账号层没有」或反向的孤项
+- [ ] 档案「软标记」与撤销同源（2026-09-14 批次 29）：凡以**软标记**表达的状态（`transferOut` 等）都必须有**对称的清除口**，且清除须走**语义端点**——只打标记不清标记，会出现「撤销后账号仍 401 / 读链仍排除该行＝成员实际回不来」（实测病灶：API 形态撤销流出）。**口径**：mock 形态「save 即复活」自动清 `removedIds`，API 形态须 `POST /members/:id/undo-transfer-out`（与打标记端**同角色集** + 同支部 + 幂等 + 不接收字段）；接线选项 `saveMember(record, { restoreFromTransferOut: true })`。断言方式＝`member-persist.test.mjs` api ⑪（含病灶复现）+ `permission-gate.test.mjs` ⑤c + `member-flow.test.mjs` S4
+- [ ] 版本戳单一源（2026-09-14 批次 29 常态守卫）：除发版脚本的收尾自检外，**「全站活动版本戳取值集合规模为 1」已升为测试常驻守卫**（`version-stamp.test.mjs::S3`）；发版脚本无参运行须按「读仓库现有戳 → 同日 max 字母 +1」推导，且**只允许前进**（小于现有最大戳即报错退出，防「同日版本号回退」静默通过）
+- [ ] 「死代码清理」须先验存量兼容（2026-09-14 批次 29 处置原则）：删任何分支前先查**本地存储持久层能否带出该分支的旧数据**（如 `gsm1921-member-confirmations` 可跨刷新带出旧版 pending）——若该分支是其唯一出口，删除会造成「既处理不掉又持续拦截」的死锁；正确做法＝**真死代码删（无调用方者）、存量兼容留并原地加注**，保留者一处不少
 
 ---
 

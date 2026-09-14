@@ -41,34 +41,34 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914e';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914e';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914e';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914e';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914g';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914g';
+import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914g';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914g';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260914e';
-import { AuthStore } from '../../../services/auth.js?v=20260914e';
+import { groupOptions } from '../../../services/party-group.js?v=20260914g';
+import { AuthStore } from '../../../services/auth.js?v=20260914g';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914e';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914e';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914e';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914g';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914g';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914e';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914g';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914e';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914g';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260914e';
+} from '../../../services/member-flow.js?v=20260914g';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260914g';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914e';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914g';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914e';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260914g';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -101,7 +101,10 @@ function _branchId() {
   return getBranchIdOfPerson(_actorId());
 }
 
-/** 待支书确认索引（一致性刷新：渲染/移出共用同一来源 listPendingConfirmations） */
+/** 待支书确认索引（一致性刷新：渲染/移出共用同一来源 listPendingConfirmations）
+ *  · out 集为**存量兼容**（Q-23-6，批次 29 复核保留）：移出改「登记即生效」（批次 26）后不再产生
+ *    transferOut pending，但旧版落库请求经 localStorage 跨刷新仍会出现在队列里，
+ *    故保留行内「移出待确认」小标与上方汇总计数，与 member-confirmation 的存量分支同源。 */
 function _pendingMap() {
   const pends = listPendingConfirmations();
   return {

@@ -7,13 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../services/person.js?v=20260914e';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260914g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260914e';
-import { icon } from '../core/icons.js?v=20260914e';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260914e';
+import { getPersonById } from '../services/person.js?v=20260914g';
+// 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
+import { groupOptions } from '../services/party-group.js?v=20260914g';
+import { icon } from '../core/icons.js?v=20260914g';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260914g';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {
@@ -39,8 +41,13 @@ function _escAttr(s) {
     .replace(/>/g, '&gt;');
 }
 
-// ── 党小组列表（从数据中动态提取） ──────────────────────────────
-const PARTY_GROUPS = [...new Set(PEOPLE.map(p => p.partyGroup))];
+// ── 党小组清单：**不再在模块加载期派生**（2026-09-14 批次 29 硬编码审查评议·全局彻查）──
+// 原状：`const PARTY_GROUPS = [...new Set(PEOPLE.map(p => p.partyGroup))]` ——
+//   ① 展开 liveMembers() 的 Proxy 会把**实时视图物化成加载期快照**（与 2026-09-13 揪出的
+//      「const PEOPLE = PersonStore.getMembers()」同属一类病灶：此后增删/改名永久陈旧）；
+//   ② 组清单的真正单一源是党小组一等实体（services/party-group.js::groupOptions()，活组按 seq 升序）。
+// 现改为每次开面板现取 groupOptions()：支书台「新增 / 改名 / 解散党小组」即时反映，
+//   且无成员的活组也能出现在筛选项里（原派生法会漏掉它）。
 
 // ── 发展阶段标签映射 ───────────────────────────────────────────
 const STAGE_LABELS = {
@@ -312,7 +319,8 @@ export class PersonPicker {
     const tabBar = document.createElement('div');
     tabBar.className = 'person-picker-tabs';
 
-    const groups = ['全部', ...PARTY_GROUPS];
+    // 组清单现取（活组单一源）：支书台增/改名/解散即时反映（见文件头「党小组清单」说明）
+    const groups = ['全部', ...groupOptions()];
     groups.forEach(group => {
       const tab = document.createElement('button');
       tab.type = 'button';

@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260914e';
+const V = '?v=20260914g';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -103,6 +103,21 @@ test('S3 写门角色集来自单一源（不得手写角色字符串）', () =>
 
   const member = read(join(ROOT, 'server', 'routes', 'member.js'));
   assert.ok(!/new Set\(\['org-commissioner'\]\)/.test(member), 'member.js 组织委员集合须取单一源，不得手写');
+});
+
+test('S4 撤销流出须清 server 软标记（Q-23-5；三处接线齐备）', () => {
+  // server 侧「转出」是软标记（原行保留），仅走 profile 补丁**清不掉** →
+  // 撤销后 /login 仍 401、listUsers 读链仍排除该行（成员回不来）。故须三处齐备：
+  const member = read(join(ROOT, 'server', 'routes', 'member.js'));
+  assert.match(member, /router\.post\('\/members\/:id\/undo-transfer-out'/, 'server 须有撤销流出语义端点');
+  assert.match(member, /undo-transfer-out'[\s\S]{0,200}?TRANSFER_OUT_ROLES/, '撤销端点须用与移出同源的角色集');
+  assert.match(member, /delete merged\.transferOut/, '撤销端点须清除 transferOut 软标记');
+
+  const adapter = read(join(SRC_DIR, 'core', 'api-adapter.js'));
+  assert.match(adapter, /undoTransferOut\(id\)/, 'api-adapter.members 须暴露 undoTransferOut');
+
+  const svc = read(join(SRC_DIR, 'services', 'member-flow.js'));
+  assert.match(svc, /restoreFromTransferOut:\s*true/, 'revokeFlow 复活成员须带 restoreFromTransferOut（接线单一源）');
 });
 
 // ═══════════════ 数据层 ═══════════════
