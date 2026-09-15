@@ -7,19 +7,19 @@
 //   全部纯 node 可载（先例 server/test/policy-defaults-sync.test.mjs 已直接导入 attendance.js 并跑绿）；
 //   data-adapter persist() 在未注册 mock 适配器时空安全（_mockAdapter?.saveDB），
 //   模块顶层 pagehide 注册带 typeof window 守卫 → node 下自动跳过，无需任何全局注入。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260915d query：
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260915e query：
 //   Node ESM 以「含 query 的完整 URL」为模块缓存键——不带 query 会得到第二个 domain.js 实例，
 //   本文件的 mockDB 重置将不作用于被测 attendance.js 所见状态（实测：同 query 共享实例、异 query 分裂）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260915d';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260915d';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260915e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260915e';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   loadAttendanceRecords,
-} from '../../docs/src/services/attendance.js?v=20260915d';
+} from '../../docs/src/services/attendance.js?v=20260915e';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

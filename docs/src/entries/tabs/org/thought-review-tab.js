@@ -11,14 +11,14 @@
 //  期次列取自台账**实有期次**（不臆造空期次）；本域只给「按人」视图（按期次转置视图未开，需要再定）。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listPendingReviews, listAllThoughtReports, comparePeriodDesc } from '../../../services/thought-report.js?v=20260915d';
-import { getPersonName, liveMembers } from '../../../services/person.js?v=20260915d';
-import { AuthStore } from '../../../services/auth.js?v=20260915d';
-import { escHtml as esc } from '../../../core/utils.js?v=20260915d';
+import { listPendingReviews, listAllThoughtReports, comparePeriodDesc } from '../../../services/thought-report.js?v=20260915e';
+import { getPersonName, liveMembers } from '../../../services/person.js?v=20260915e';
+import { AuthStore } from '../../../services/auth.js?v=20260915e';
+import { escHtml as esc } from '../../../core/utils.js?v=20260915e';
 // 统一检索引擎（2026-09-14 批次 37）：待初阅队列接一个实例（仅分页）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915e';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915d';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915e';
 
 // ── R6-2 初阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（状态缺省/非法 → 已归档），本处只做展示与「最需处理」排序

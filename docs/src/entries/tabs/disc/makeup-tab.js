@@ -4,17 +4,17 @@
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260915d';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260915d';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260915d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915d';
-import { badgeHtml } from '../../../components/badges.js?v=20260915d';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915d';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260915d';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260915e';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260915e';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260915e';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915e';
+import { badgeHtml } from '../../../components/badges.js?v=20260915e';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915e';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260915e';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260915d';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260915e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915e';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。

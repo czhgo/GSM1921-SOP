@@ -9,21 +9,21 @@
 //  访问门与服务层同源（canReadThoughtReport / canReviewThoughtReport），
 //  界面显隐不自判角色字面量；初阅/撤回/重交动作均调用服务层并透出 {ok:false, reason}。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260915d';
-import { renderHeader } from '../components/header.js?v=20260915d';
-import { BranchService } from '../services/runtime.js?v=20260915d';
-import { AuthStore } from '../services/auth.js?v=20260915d';
-import { getPersonName } from '../services/person.js?v=20260915d';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260915d';
-import { badgeHtml } from '../components/badges.js?v=20260915d';
+import { renderSidebar } from '../components/sidebar.js?v=20260915e';
+import { renderHeader } from '../components/header.js?v=20260915e';
+import { BranchService } from '../services/runtime.js?v=20260915e';
+import { AuthStore } from '../services/auth.js?v=20260915e';
+import { getPersonName } from '../services/person.js?v=20260915e';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260915e';
+import { badgeHtml } from '../components/badges.js?v=20260915e';
 // 统一检索引擎（支书 2026-09-14 裁定）：待初阅队列可无限累积 → 关键词 + 分页一站式
-import { renderFilteredList } from '../components/list-filter.js?v=20260915d';
+import { renderFilteredList } from '../components/list-filter.js?v=20260915e';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   listPendingReviews, canReadThoughtReport, canReviewThoughtReport,
   reviewThoughtReport, resubmitThoughtReport, withdrawThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260915d';
+} from '../services/thought-report.js?v=20260915e';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

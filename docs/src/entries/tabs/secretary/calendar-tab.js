@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260915d';
-import { showToast } from '../../../core/utils.js?v=20260915d';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260915d';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260915d';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260915d';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260915d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260915d';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260915d';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260915d';
-import { loadActivities } from '../../../services/activity.js?v=20260915d';
-import { renderQueryView } from '../../../components/query-view.js?v=20260915d';
-import { icon } from '../../../core/icons.js?v=20260915d';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260915d';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260915d';
+import { getAppState, setState } from '../../../core/state.js?v=20260915e';
+import { showToast } from '../../../core/utils.js?v=20260915e';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260915e';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260915e';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260915e';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260915e';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915e';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260915e';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260915e';
+import { loadActivities } from '../../../services/activity.js?v=20260915e';
+import { renderQueryView } from '../../../components/query-view.js?v=20260915e';
+import { icon } from '../../../core/icons.js?v=20260915e';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260915e';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260915e';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260915d';
-import { BranchService } from '../../../services/runtime.js?v=20260915d';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260915d';
+import { NoticeStore } from '../../../services/notice.js?v=20260915e';
+import { BranchService } from '../../../services/runtime.js?v=20260915e';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260915e';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260915d';
-import { badgeHtml } from '../../../components/badges.js?v=20260915d';
-import { collectAgendaRows } from './agenda-form.js?v=20260915d';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260915d';
-import { AuthStore } from '../../../services/auth.js?v=20260915d';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260915d';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260915e';
+import { badgeHtml } from '../../../components/badges.js?v=20260915e';
+import { collectAgendaRows } from './agenda-form.js?v=20260915e';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260915e';
+import { AuthStore } from '../../../services/auth.js?v=20260915e';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260915e';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260915d';
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260915e';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260915d';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260915e';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260915d';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260915e';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）

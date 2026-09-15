@@ -3,12 +3,12 @@
 // 纯 Node 测试（不起 server、无浏览器）：
 //   report 纯函数 buildOrgWizardReport → markdown 断言关键片段（支部名/模块摘要/文件清单/验证点）；
 //   roster 衔接：可 import roster getRosterStats（现读数 ≥0 且应到 = 党员 − 滞留）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260915d query（模块缓存键一致性，同 roster/attendance-batch）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260915e query（模块缓存键一致性，同 roster/attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260915d';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260915d';
+import { buildOrgWizardReport } from '../../docs/src/services/org-wizard-report.js?v=20260915e';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260915e';
 
 const SAMPLE = {
   branchInfo: {
@@ -61,14 +61,14 @@ test('report：模块/块摘要与角色分工行入文', () => {
 test('report：待手动替换文件清单要点齐全（mock/constants/权限/术语/制度/配色/policy）', () => {
   const md = buildOrgWizardReport(SAMPLE);
   for (const frag of [
-    'docs/src/mock/people.js?v=20260915d',
-    'docs/src/core/constants.js?v=20260915d',
+    'docs/src/mock/people.js?v=20260915e',
+    'docs/src/core/constants.js?v=20260915e',
     'SYSTEM_ROLE_PERMISSION.md',
     'USAGE_POLICY.md',
     'content/02_institution/sop/',
     'COLOR_SYSTEM.md',
     'docs/src/styles.css',
-    'docs/src/core/policy-defaults.js?v=20260915d',
+    'docs/src/core/policy-defaults.js?v=20260915e',
   ]) {
     assert.ok(md.includes(frag.split('?')[0]), `文件清单应含：${frag.split('?')[0]}`);
   }
