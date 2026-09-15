@@ -1,12 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { icon } from '../core/icons.js?v=20260914s';
-import { getPersonName } from '../services/person.js?v=20260914s';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260914s';
-import { badgeHtml } from './badges.js?v=20260914s';
+import { IssueStore } from '../services/issues.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { icon } from '../core/icons.js?v=20260915d';
+import { getPersonName } from '../services/person.js?v=20260915d';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260915d';
+import { badgeHtml } from './badges.js?v=20260915d';
+// 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
+import { pagerHtml } from './pager.js?v=20260915d';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -50,25 +52,11 @@ let _filterState = { status: 'all', scope: 'all', type: 'all', milestone: 'all',
 const PAGE_SIZE = 10;
 let _pageState = 1;
 
-/** 分页控件（复用归档库模式） */
+/** 分页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 页码窗口；页数 ≤1 返回空串） */
 function _renderIssuePager(total) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const cur = Math.min(_pageState, pages);
-  if (pages <= 1) return '';
-  const nums = [];
-  const end = Math.min(pages, Math.max(cur, 3) + 2);
-  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
-  return `
-    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
-      <div class="flex items-center gap-1.5">
-        <button type="button" class="issue-page-btn page-btn" data-issue-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-        ${nums.map(n => `
-          <button type="button" class="issue-page-btn page-num${n === cur ? ' is-current' : ''}" data-issue-page="${n}">${n}</button>
-        `).join('')}
-        <button type="button" class="issue-page-btn page-btn" data-issue-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
-      </div>
-    </div>`;
+  return pagerHtml({ page: cur, pages, total, unit: '条' });
 }
 
 export function renderIssueList() {
@@ -189,10 +177,12 @@ function bindEvents() {
     });
   });
 
-  // 分页按钮（T-234 F2：翻页重渲染；数据变化后页码自动收敛于 _renderIssuePager）
-  document.querySelectorAll('.issue-page-btn').forEach(btn => {
+  // 分页按钮（T-234 F2：翻页重渲染；标记由统一检索引擎 pagerHtml 单一源产出，读 data-lf-page）
+  const listContainer = document.getElementById('issue-list-container');
+  listContainer?.querySelectorAll('[data-lf-page]').forEach(btn => {
     btn.addEventListener('click', () => {
-      _pageState = parseInt(btn.dataset.issuePage, 10) || 1;
+      if (btn.disabled) return;
+      _pageState = parseInt(btn.dataset.lfPage, 10) || 1;
       renderIssueList();
     });
   });

@@ -25,8 +25,9 @@
 //   本 Tab 新增「成员流动」面板（名册卡之后）——流入/流出登记（登记即生效）、对账行、台账表、撤销。
 //   名册行内「移出」改接 member-flow.js::registerOutflow（单人即登记流出：软标记移出 + 账号停用 +
 //   记台账 + 留痕），旧的「已报送支书确认」分支已随流出登记即生效而移除。
-//   硬规范：台账筛选只用「关键词 + 类型下拉」（34px/12px 紧凑档，禁分面 chip）；登记流出选人用
-//   PersonPicker（禁 select 罗列人名）；登记/撤销角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
+//   硬规范：台账筛选/分页统一走检索引擎 components/list-filter.js（关键词：姓名/学号/经手人；
+//   方向分面：流入/流出；筛选行禁 chip）；登记流出选人用 PersonPicker（禁 select 罗列人名）；
+//   登记/撤销角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 //
 //  本 Tab 职责边界（与「人才库」talent-tab 分工，避免重复建设）：
 //   · 人才库 = 成员浏览 + 考察记录画像 + 成员状态详情维护（保持现状，不动）；
@@ -41,40 +42,38 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260914s';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260914s';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260914s';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260914s';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260915d';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260915d';
+import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260915d';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260915d';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { groupOptions } from '../../../services/party-group.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260914s';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914s';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260914s';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260915d';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260915d';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260915d';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260914s';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260915d';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260914s';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260915d';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914s';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915d';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260914s';
+} from '../../../services/member-flow.js?v=20260915d';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914s';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915d';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914s';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260915d';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914s';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260915d';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
 
-/** 成员流动台账筛选（跨重渲染保留；仅关键词 + 类型，勿接入分面 chip 引擎） */
-let _flowFilter = { q: '', dir: '' };
 /** 登记流出弹窗的 PersonPicker 实例（提交/取消时销毁，防浮层泄漏） */
 let _outflowPicker = null;
 
@@ -187,24 +186,16 @@ export function renderContent(ctx) {
   });
   _bindList(host);
 
-  // ── 成员流动面板：登记按钮 + 台账筛选 + 撤销（对账行/台账内容由 _renderFlowBody 局部渲染）──
+  // ── 成员流动面板：登记按钮 + 台账（引擎渲染）+ 撤销（对账行/台账内容由 _renderFlowBody 局部渲染）──
   container.querySelector('#flow-intake-btn')?.addEventListener('click', _openIntakeModal);
   container.querySelector('#flow-outflow-btn')?.addEventListener('click', _openOutflowModal);
-  container.querySelector('#flow-search')?.addEventListener('input', (e) => {
-    _flowFilter.q = e.target.value;
-    _renderFlowBody();
-  });
-  container.querySelector('#flow-dir')?.addEventListener('change', (e) => {
-    _flowFilter.dir = e.target.value;
-    _renderFlowBody();
-  });
-  // 撤销：事件委托（台账随筛选局部重渲染，委托挂在卡片容器上仍有效）
+  // 撤销：事件委托（台账随引擎筛选/翻页重绘，委托挂在卡片容器上仍有效）
   container.querySelector('#flow-card')?.addEventListener('click', (e) => {
     const btn = e.target.closest('.flow-revoke');
     if (btn) _askRevoke(btn.dataset.flowId);
   });
+  _renderFlowBody(); // 先渲染引擎（其分面 select 随后统一走 enhanceSelects 圆角增强）
   enhanceSelects(container);
-  _renderFlowBody();
 }
 
 /** 名单列头（行内容由统一检索引擎渲染；窄屏 <768px 列头隐藏、行内 6 列 grid 退化为单列卡片） */
@@ -397,13 +388,12 @@ async function _doRemove(personId, name) {
 //  成员流动面板（流入/流出登记 + 对账 + 台账；2026-09-14 批次 25）
 // ════════════════════════════════════════════════════════════════
 //  口径：登记即生效；台账只增不删，登错由「撤销」留痕（revokedAt/revokedBy）+ 回滚在册状态。
-//  筛选硬规范：只用「关键词输入 + 类型下拉」（同为 34px / 12px 紧凑档），禁分面 chip；
+//  筛选/分页统一走检索引擎（关键词：姓名/学号/经手人；方向分面：流入/流出；筛选行禁 chip）；
 //  选人硬规范：登记流出/撤销一律用 PersonPicker（禁 select 罗列人名）。
 // ════════════════════════════════════════════════════════════════
 
-/** 「成员流动」卡片骨架（对账行 + 筛选 + 台账表由 _renderFlowBody 局部填充） */
+/** 「成员流动」卡片骨架（对账行 + 台账表由 _renderFlowBody 局部填充；台账筛选/翻页由统一检索引擎提供） */
 function _flowCardHtml(canRegister) {
-  const dirSel = (v) => (_flowFilter.dir === v ? 'selected' : '');
   return `
     <div class="card rounded-xl p-4" id="flow-card">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
@@ -419,33 +409,16 @@ function _flowCardHtml(canRegister) {
         <span class="text-[11px] text-gray-500">流入 / 流出登记仅限组织委员与支书/副支书；此处只读查看台账</span>`}
       </div>
       <div id="flow-reconcile-host" class="mb-3"></div>
-      <div class="lf-bar mb-3">
-        <input type="text" id="flow-search" class="input-flat text-xs lf-kw" placeholder="搜索姓名或学号…" value="${esc(_flowFilter.q)}">
-        <select id="flow-dir" class="input-flat text-xs lf-select">
-          <option value="" ${dirSel('')}>全部</option>
-          <option value="in" ${dirSel('in')}>流入</option>
-          <option value="out" ${dirSel('out')}>流出</option>
-        </select>
-      </div>
       <div class="overflow-x-auto" id="flow-table-host"></div>
     </div>`;
 }
 
-/** 台账行（按筛选条件过滤；新→旧由数据层排序保证） */
+/** 台账数据（同支部；筛选/分页由统一检索引擎处理，新→旧由数据层排序保证） */
 function _flowRows() {
-  const q = _flowFilter.q.trim().toLowerCase();
-  const dir = _flowFilter.dir;
-  return loadMemberFlows({ branchId: _branchId() }).filter((f) => {
-    if (dir && f.direction !== dir) return false;
-    if (q) {
-      const hay = `${f.name || ''} ${f.studentId || ''}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
+  return loadMemberFlows({ branchId: _branchId() });
 }
 
-/** 局部渲染：对账行 + 台账表（筛选输入时只重绘这两块，不整页重载） */
+/** 局部渲染：对账行 + 台账表（台账表交统一检索引擎：姓名/学号/经手人关键词 + 方向分面 + 分页） */
 function _renderFlowBody() {
   const recHost = document.getElementById('flow-reconcile-host');
   const tableHost = document.getElementById('flow-table-host');
@@ -462,29 +435,24 @@ function _renderFlowBody() {
       <span class="text-gray-500">当前在册 <span class="text-gray-700 font-medium">${r.currentCount}</span></span>
       ${r.balanced ? '' : '<span class="text-gray-500">台账流水与在册人数暂不一致，请核对下方记录与撤销留痕</span>'}
     </div>`;
-  tableHost.innerHTML = _flowTableHtml(_flowRows());
-}
-
-/** 台账表（真表格；表头/数据格遵守项目表格硬规范） */
-function _flowTableHtml(rows) {
-  if (!rows.length) {
-    const hasAny = loadMemberFlows({ branchId: _branchId() }).length > 0;
-    return `<div class="py-6 text-center text-xs text-gray-500">${hasAny ? '无匹配台账记录' : '台账暂无记录，点上方「登记流入 / 登记流出」录入'}</div>`;
-  }
-  return `
-    <table class="data-table">
-      <thead><tr>
-        <th>类型</th>
-        <th>姓名</th>
-        <th>学号</th>
-        <th>届别</th>
-        <th>日期</th>
-        <th>经手人</th>
-        <th>备注</th>
-        <th>操作</th>
-      </tr></thead>
-      <tbody>${rows.map(_flowRowHtml).join('')}</tbody>
-    </table>`;
+  const flows = _flowRows();
+  renderFilteredList(tableHost, {
+    stateKey: 'org-member-flow-table',
+    rows: flows,
+    keyword: {
+      keys: ['name', 'studentId', 'by'],
+      placeholder: '搜索姓名 / 学号 / 经手人…',
+      get: (f, k) => (k === 'by' ? (getPersonName(f.by) || f.by) : f[k]),
+    },
+    facets: [{ key: 'direction', label: '方向', options: [{ value: 'in', label: '流入' }, { value: 'out', label: '流出' }] }],
+    countUnit: '条',
+    table: {
+      headHtml: '<tr><th>类型</th><th>姓名</th><th>学号</th><th>届别</th><th>日期</th><th>经手人</th><th>备注</th><th>操作</th></tr>',
+      colSpan: 8,
+    },
+    emptyMessage: flows.length ? '无匹配台账记录' : '台账暂无记录，点上方「登记流入 / 登记流出」录入',
+    rowHtml: (f) => _flowRowHtml(f),
+  });
 }
 
 /** 台账单行（已撤销行中性灰显示「已撤销」并保留在表中留痕） */

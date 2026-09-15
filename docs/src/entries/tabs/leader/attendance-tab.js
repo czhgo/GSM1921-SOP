@@ -1,29 +1,29 @@
 // role: [工程师]+[AI]
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
-// 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。
+// 党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤明细。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260914s';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260914s';
-import { loadActivities } from '../../../services/activity.js?v=20260914s';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914s';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914s';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords } from '../../../services/attendance.js?v=20260915d';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260915d';
+import { loadActivities } from '../../../services/activity.js?v=20260915d';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915d';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260915d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260914s';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914s';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914s';
-import { generateId } from '../../../core/id.js?v=20260914s';
-import { badgeHtml } from '../../../components/badges.js?v=20260914s';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914s';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260915d';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915d';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915d';
+import { generateId } from '../../../core/id.js?v=20260915d';
+import { badgeHtml } from '../../../components/badges.js?v=20260915d';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260915d';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260914s';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260914s';
-import { currentLeaderGroup } from './_shared.js?v=20260914s';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914s';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260915d';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260915d';
+import { currentLeaderGroup } from './_shared.js?v=20260915d';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260915d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914s';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915d';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -114,7 +114,7 @@ export function renderContent(ctx) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
+      <div class="text-xs text-gray-500 mb-3">党小组活动考勤：党小组组长上传 → 纪检委员确认 → 录入考勤明细。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="att-list-host"></div>

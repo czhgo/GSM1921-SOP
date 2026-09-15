@@ -1,20 +1,22 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260914s';
-import { renderHeader } from '../components/header.js?v=20260914s';
-import { BranchService } from '../services/runtime.js?v=20260914s';
-import { mockDB } from '../core/domain.js?v=20260914s';
-import { getPersonById } from '../services/person.js?v=20260914s';
-import { loadActivities } from '../services/activity.js?v=20260914s';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914s';
-import { getActivityTypeColors } from '../core/constants.js?v=20260914s';
+import { renderSidebar } from '../components/sidebar.js?v=20260915d';
+import { renderHeader } from '../components/header.js?v=20260915d';
+import { BranchService } from '../services/runtime.js?v=20260915d';
+import { mockDB } from '../core/domain.js?v=20260915d';
+import { getPersonById } from '../services/person.js?v=20260915d';
+import { loadActivities } from '../services/activity.js?v=20260915d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260915d';
+import { getActivityTypeColors } from '../core/constants.js?v=20260915d';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260914s';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260914s';
-import { getBasePath } from '../core/utils.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { badgeHtml } from '../components/badges.js?v=20260914s';
+import { isActivityEnded } from '../core/constants.js?v=20260915d';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260915d';
+import { getBasePath } from '../core/utils.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { badgeHtml } from '../components/badges.js?v=20260915d';
+// 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
+import { pagerHtml } from '../components/pager.js?v=20260915d';
 
 renderSidebar('archive');
 renderHeader('archive');
@@ -70,25 +72,11 @@ function _matchesQuery(...fields) {
   return fields.some(f => (f || '').toLowerCase().includes(q));
 }
 
-/** 分页控件（共 N 条 · 第 x/y 页 + 上一页/页码/下一页） */
+/** 分页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 上一页/页码/下一页；页数 ≤1 返回空串） */
 function _renderPager(total, key) {
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const cur = Math.min(_pageState[key], pages);
-  if (pages <= 1) return '';
-  const nums = [];
-  const end = Math.min(pages, Math.max(cur, 3) + 2);
-  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
-  return `
-    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
-      <div class="flex items-center gap-1">
-        <button type="button" class="archive-page-btn page-btn" data-archive-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-        ${nums.map(n => `
-          <button type="button" class="archive-page-btn page-num${n === cur ? ' is-current' : ''}" data-archive-page="${n}">${n}</button>
-        `).join('')}
-        <button type="button" class="archive-page-btn page-btn" data-archive-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
-      </div>
-    </div>`;
+  return pagerHtml({ page: cur, pages, total, unit: '条' });
 }
 
 // ── 活动归档 ──
@@ -453,11 +441,11 @@ function _renderTaskforceDetail(tf) {
 
 // 事件委托：分页按钮 / 点击归档条目弹出详情浮窗
 contentContainer?.addEventListener('click', (e) => {
-  // 分页翻页（每页 10 条，2026-08-08）
-  const pageBtn = e.target.closest('[data-archive-page]');
+  // 分页翻页（每页 10 条，控件标记由 pagerHtml 单一源产出）
+  const pageBtn = e.target.closest('[data-lf-page]');
   if (pageBtn) {
     if (pageBtn.disabled) return;
-    _pageState[_activeTab] = Number(pageBtn.dataset.archivePage) || 1;
+    _pageState[_activeTab] = Number(pageBtn.dataset.lfPage) || 1;
     renderContent();
     return;
   }

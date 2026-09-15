@@ -282,10 +282,6 @@ export const mockDB = {
   weeklyReports: [],
   /** @type {Object[]} 档案归档记录（prop-commissioner 工作台） */
   archiveRecords: [],
-  /** @type {Object} 纪检公邮配置（disc-commissioner 党建 Tab） */
-  mailboxConfig: null,
-  /** @type {Object[]} 纪检公邮查收历史（disc-commissioner 党建 Tab） */
-  mailboxHistory: [],
   // ── 2026-08-10 文件流内控新增持久化域 ──
   /** @type {Object[]} 文件流外发确认记录（ExternalDispatch，支书 2026-08-10 裁定） */
   externalDispatches: [],
@@ -365,9 +361,9 @@ export const OutputType = {
 const OUTPUT_ROUTES = {
   [OutputType.ATTENDANCE]: {
     label: '考勤数据',
-    route: '纪检确认 → 考勤总表',
+    route: '纪检确认 → 考勤明细',
     owner: '纪检委员',
-    sink: '考勤总表（组织/宣传只读同源）',
+    sink: '考勤明细（组织/宣传只读同源）',
   },
   [OutputType.INSPECTION]: {
     label: '工作考察记录',

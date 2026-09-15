@@ -7,13 +7,13 @@
 // 文案由 components/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/utils.js?v=20260914s';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260914s';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260914s';
-import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260914s';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260914s';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260914s';
-import { getPersonName } from '../../../services/person.js?v=20260914s';
+import { showToast } from '../../../core/utils.js?v=20260915d';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/todo.js?v=20260915d';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260915d';
+import { loadActiveAttendanceRecords } from '../../../services/attendance.js?v=20260915d';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260915d';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260915d';
+import { getPersonName } from '../../../services/person.js?v=20260915d';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -35,7 +35,7 @@ function _buildDiscRealtimeGroups() {
       title: '考勤待确认',
       category: TodoCategory.REVIEW,
       actionType: TodoActionType.REVIEW,
-      flow: '考勤上传 → 纪检确认 → 考勤总表',
+      flow: '考勤上传 → 纪检确认 → 考勤明细',
       deadline: null,
       count: pendingAtt.length,
       items: pendingAtt.map(r => ({ id: r.id, title: `确认考勤：${getPersonName(r.personId)}`, sourceType: TodoSourceType.ACTIVITY, sourceId: r.activityId })),
@@ -66,17 +66,28 @@ function _handleTodoAction(todo) {
   // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：review-submit/review-confirm/submit/confirm 旧键
   // 均无派生器移除（纪检台现派生=实时考勤/考察待确认组 + handoff-material-shortage 补课回执，
   // 均带 actionKey；actionType 兜底仅余 review 供 signup-review 未直跳等边界）——未知键落 else「请处理」。
+  // 2026-09-15：补课并入「考勤管理」（原「制度与文本」tab 已废止）——补课回执落「考勤管理」的「补课」分段。
   const jump = {
     'attendance-confirm': { tab: 'attendance', label: '考勤管理' },
     'inspection-confirm': { tab: 'inspection', label: '考察管理' },
-    'handoff-material-shortage': { tab: 'mailbox', label: '制度与文本' },
+    'handoff-material-shortage': { tab: 'attendance', label: '考勤管理', segment: 'makeup' },
     review:   { tab: 'review', label: '活动监督复盘' },
   };
   const target = jump[todo.actionKey] || jump[todo.actionType];
   if (target) {
-    const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
-    if (btn) btn.click();
-    showToast('info', `已跳转到${target.label}，请处理：${todo.title}`);
+    const go = () => {
+      const btn = document.querySelector(`.disc-tab-btn[data-disc-tab="${target.tab}"]`);
+      if (btn) btn.click();
+      showToast('info', `已跳转到${target.label}，请处理：${todo.title}`);
+    };
+    if (target.segment) {
+      // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
+      import('../../../entries/tabs/disc/attendance-tab.js?v=20260915d')
+        .then(m => { m.focusSegment(target.segment); go(); })
+        .catch(go);
+    } else {
+      go();
+    }
   } else {
     showToast('info', `请处理：${todo.title}`);
   }

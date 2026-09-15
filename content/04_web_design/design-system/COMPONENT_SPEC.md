@@ -161,8 +161,8 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 - **筛选行禁止 chip**：分面（党小组 / 角色 / 阶段 / 类型 / 状态等维度）一律下拉，每维一个「全部 + 取值」；chip 只作展示与表单多选，不承担筛选载体。
 - **档位唯一**：同一筛选行内所有控件（关键词输入 / 各维度下拉 / 清除钮）统一 **38px 高、13px 字**（并档后与表单控件、表格正文同档；算式见 §4.3「输入组件统一原则」⑥：`10+10+16+2`）。
 - **载体单一源**：筛选行样式统一落 `docs/src/styles.css` 的 `.lf-bar`（弹性行，gap 8px）/ `.lf-kw`（关键词输入）/ `.lf-select`（维度下拉）/ `.lf-btn`（清除钮，38px）；调用点只声明这三个类，不得再内联拼装 `flex flex-wrap items-center gap-2` + `flex-1 min-w-[140px]` 一类散值。
-- **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.8125rem` 13px / 行高 `1.25rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明；专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。
-- **分页内置统一引擎（2026-09-14 批次 34）**：凡经 `components/list-filter.js::renderFilteredList` 渲染的表（28 处）**一律分页**——缺省 **10 条/页**（与 `issue-list` / 归档库同口径），`pageSize: 0` 仅供特批例外；**页数 ≤1 不渲染翻页控件**（小表零负担）；筛选/关键词变化自动回第 1 页；同一 `stateKey` 跨重渲染保留**当前页码**。翻页控件走 `.page-btn` / `.page-num` **单一源**（样式见 §4.10「分页控件」），引擎与各页均不得自造第二套翻页样式，也不得借 `.chip-accent-on` 表当前页。守卫 `server/test/filter-row.test.mjs::S10`。
+- **表格样式单一源（覆盖所有【表】）**：全站表格统一 `.data-table` 单一类——表头（`8px 12px` 内边距、左对齐、`--neutral-500` 中灰、`--neutral-0` 底）、表体行线（`--neutral-100`）、行悬停（`--neutral-50`）、数据格（`8px 12px`）、表宽与字号（`100%` / `0.8125rem` 13px / 行高 `1.25rem`）全部由该类族提供；**各 tab 不得再各写一份表头行**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可在行内按需声明。**全站表格类族已收成 `.data-table` 一套**（2026-09-14 批次 39 支书特批）——原「专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族」的例外表述作废：表决矩阵已并入「人 × 项目」矩阵单一源，「人 × 项目」矩阵与表态矩阵均走 `.data-table`。
+- **分页内置统一引擎（2026-09-14 批次 34；批次 37 全量收口）**：凡经 `components/list-filter.js::renderFilteredList` 渲染的表（28 处）**一律分页**——缺省 **10 条/页**（与 `issue-list` / 归档库同口径），`pageSize: 0` 仅供特批例外；**页数 ≤1 不渲染翻页控件**（小表零负担）；筛选/关键词变化自动回第 1 页；同一 `stateKey` 跨重渲染保留**当前页码**。批次 37 再把原先未接引擎的手写渲染（全量审计发现仍有 13 处以上：表格 4 处 + 卡片列表 9 处以上）在 **21 个文件**全量接入（含「筛选 + 分页」一站式）。翻页**标记**单一源＝[`components/pager.js`](file:///d:/GitHub/GSM1921-SOP/docs/src/components/pager.js) 的 `pagerHtml`（2026-09-14 批次 38 自 `list-filter.js` 下沉为叶子件，统一检索引擎与「人 × 项目」矩阵共用；**页数 ≤1 返回空串**即不出控件），样式单一源仍是 `.page-btn` / `.page-num`（见 §4.10「分页控件」）——引擎与各页均不得自造第二套翻页标记或样式，也不得借 `.chip-accent-on` 表当前页。守卫 `server/test/filter-row.test.mjs::S10`（断言 `pager.js` 内 `if (pages <= 1)`）/ `S11`（`class="page-btn"` / `page-num` 只允许由 `pager.js` 产出）。
 - 维度取值只有 1 种时该维度自动隐藏；行数不超过 8 行不出筛选行（`SEARCH_FILTER_MIN_ROWS`，口径不变）。
 
 **已落地点位（批次 27）**：统一检索引擎 `components/list-filter.js`（chips → 下拉 + `.data-table`）、`components/query-view.js`（级联大类/子类/品牌三处 chip 与散值下拉 → `.lf-select`）、`components/issue-list.js`（状态分组 chip → 下拉）、`components/taskforce-view.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/org/{roster,taskforce}-tab.js`、`entries/tabs/disc/{attendance,inspection}-tab.js`、`entries/tabs/visitor/projects-tab.js` 及 6 处 `renderFilteredList` 调用点的表头重写。
@@ -228,20 +228,20 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 #### 工作台分组主轴（2026-09-14 支书裁定·全盘重设）
 
-> 沉淀：支书实报「tab 怎么划分，要做一次全部重新的考虑」，叠加现状彻查（7 台共 64 个 tab）：原分组把「职责写操作」「只读知情报」「个人自助」「静态制度」混装在同一组「党建」下——纪检台「考勤管理（写）」与「专班查看（纯只读）」同组，成员台「党建」组 6 项全为本人只读，组名无法说明「这一屏是干什么的」。
+> 沉淀：支书实报「tab 怎么划分，要做一次全部重新的考虑」，叠加现状彻查（7 台共 65 个 tab）：原分组把「职责写操作」「只读知情报」「个人自助」「静态制度」混装在同一组「党建」下——纪检台「考勤管理（写）」与「专班查看（纯只读）」同组，成员台「党建」组 6 项全为本人只读，组名无法说明「这一屏是干什么的」。
 
-**主轴：按行为性质分四组**（不按业务域分），同一分组名在 7 台语义完全一致：
+**主轴：按行为性质分四组**（不按业务域分）——四组标准适用**支部角色工作台**（支书 / 组织 / 宣传 / 纪检 / 组长 / 成员六台）；**党委台为院级三组例外**（首页 → 全院治理 → 支部治理，见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)）：
 
 | 组 | 判定问句 | 典型成员 |
 |---|---|---|
-| 工作台 | 今天先看哪 | 今天 / 待办 / 工作概况（六台同构的核心三件套） |
-| 我的职责 | 我要动手做什么（写操作） | 活动管理 / 考勤上传 / 考察上传·管理 / 专班管理 / 成员名册 / 通知发布 / 赋权管理 / 上报党委 / 党小组 |
-| 知情查看 | 我可以看什么（纯只读） | 知情查看（活动与专班分段）/ 支部分工 / 人才库 / 发展数据 / 组员进展 |
-| 制度与答复 | 哪些是必守与要回的 | 制度与文本（补课制度与公邮）/ 我的处置 / 反馈管理 |
+| 工作台 | 今天先看哪 | 今天 / 待办 / 工作概况（各台同构的核心三件套） |
+| 我的职责 | 我要动手做什么（写操作） | 活动管理 / 考勤上传 / 考察上传·管理 / 专班管理 / 成员名册 / 人才库 / 发展数据 / 组员进展 / 通知发布 / 赋权管理 / 上报党委 / 党小组 / 补课（并入「考勤管理」一级分段） |
+| 知情查看 | 我可以看什么（纯只读） | 知情查看（活动与专班分段）/ 支部分工 |
+| 制度与答复 | 哪些是必守与要回的 | 我的处置 / 反馈管理 |
 
 组内仍按「增量 > 存量」排序（见本节排序原则）：「我的职责」内先排产生新数据的写操作。
 
-**减法规则·同质薄壳合并（同批裁定）**：功能同质、仅作薄包装的 tab 合并为一个 tab，内部用分段钮切换视图——「专班查看」（纪检/组长/支书三台）与组织台「活动查看」合并为单个**知情查看**承载 tab（内部分段：活动 / 专班）；纪检台「补课制度」与「公邮管理」合并为**制度与文本**。判定沿用本节「功能融入优于独立」。
+**减法规则·同质薄壳合并（同批裁定）**：功能同质、仅作薄包装的 tab 合并为一个 tab，内部用分段钮切换视图——「专班查看」（纪检 / 组长 / 支书三台）与组织台「活动查看」合并为单个**知情查看**承载 tab（内部分段：活动 / 专班；单一源 `components/insight-view.js`）；纪检台原「补课制度」并入「考勤管理」的一级分段（内部分段：考勤 / 补课），原「制度与文本」tab 及其支部邮件查收分段已废止。判定沿用本节「功能融入优于独立」。
 
 **核心组改为显式声明**：原实现以显示标签反推核心组（判据写死为「分组名等于『工作台』」），导致党委台须把自己的核心组改名为「首页」再靠整台豁免绕开判定，一物两名。现改为**注册表显式声明核心组**（固定项声明，不再以显示标签反推）；党委台保持「首页 / 治理总览」命名，无需特例。
 
@@ -325,25 +325,32 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 **分页控件样式单一源（2026-09-14 批次 28 支书裁定）**：分页控件（表下「上一页 / 页码 / 下一页」）统一落 `docs/src/styles.css` 的 `.page-btn`（翻页钮）与 `.page-num`（页码钮）——同高 **30px**（按钮规范「默认档」）、同边框、同圆角、同字号 **12px**；**当前页用自有类 `.is-current`**，禁止再借 `.chip-accent-on` 表选中态（原状四处借用，其 `!important` 掩盖了「当前页按钮缺基础边框与底色」，且 chip 语义被挪用）；颜色一律取主题变量（`--neutral-*` / `--app-accent-*`），深色主题自动跟随，**不再各写深色覆盖**（原 `.qv-page-btn` 深色补丁已删）。原状 6 处形态不一（26 / 32px）已一并收敛：`components/issue-list.js`、`components/query-view.js`、`entries/archive-entry.js`、`entries/tabs/secretary/feedback-tab.js`、`entries/tabs/disc/attendance-tab.js`（连体分段钮改两枚独立按钮）、`entries/tabs/visitor/activities-tab.js`。守卫见 `server/test/filter-row.test.mjs`。
 
-**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.8125rem` 13px／行高 `1.25rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族。守卫见 `server/test/filter-row.test.mjs` S3/S4。
+**翻页标记单一源＝[`components/pager.js`](file:///d:/GitHub/GSM1921-SOP/docs/src/components/pager.js)（2026-09-14 批次 38 支书裁定）**：导出 `pagerHtml({ page, pages, total, unit })`，是全站**唯一**产出 `.page-btn` / `.page-num` 标记的地方（样式仍归 `styles.css` 的 `.page-btn` / `.page-num`，本文件只产标记）；自 `list-filter.js` 内部**下沉为叶子件**是为断掉模块环（`relation-matrix → list-filter → inspector → vote-summary-panel`），供统一检索引擎与「人 × 项目」矩阵共用；**页数 ≤1 返回空串**（小表零负担）。批次 38 另把 6 处手写翻页控件并轨到 `pagerHtml`（各自类名/属性撤除，改读 `data-lf-page`）：归档库 `entries/archive-entry.js`、`components/issue-list.js`、支书台 `entries/tabs/secretary/feedback-tab.js`、通用查询视图 `components/query-view.js`、成员活动列表 `entries/tabs/visitor/activities-tab.js`、考勤明细 `entries/tabs/disc/attendance-tab.js`（原 `id="att-table-prev/next"` 撤除）。守卫 `server/test/filter-row.test.mjs::S11`（`class="page-btn"` / `page-num` 只允许由 `pager.js` 产出）。
 
-**「人 × 项目」矩阵＝宽表单一源（2026-09-14 批次 35 支书裁定）**
+**表格样式单一源（2026-09-14 支书裁定·覆盖所有【表】）**：全站表格的表头与行样式**只允许一套**，落 `docs/src/styles.css` 的 `.data-table` 类族（表头 `8px 12px`／左对齐／`--neutral-500`／`--neutral-0` 底，表体行线 `--neutral-100`，行悬停 `--neutral-50`，数据格 `8px 12px`，表宽 `100%`／字号 `0.8125rem` 13px／行高 `1.25rem`）；**表头不得再由各 tab 各写一遍**（原状：7 个文件各写一份 headHtml、三种表头模式，其中一处独用 `py-1.5`、两处独用 `px-2 py-1`）；调用点只写 `<table class="data-table">`，行内不得再补 `w-full`/`text-xs`；列级特例（sticky 固定列、`whitespace-nowrap`、`truncate`）可按需在行内声明；表格横向滚动容器由承载组件提供 `overflow-x-auto`。**全站表格类族收成 `.data-table` 一套**（2026-09-14 批次 39 支书特批）——原「专用矩阵（表决矩阵 `.vs-matrix`）保留自身类族」的例外表述作废，5 条已成为死样式的 `.vs-matrix*` 规则已删。守卫见 `server/test/filter-row.test.mjs` S3/S4、`S12`（**手写表格收敛台账**：`<table` 只允许出现在 4 个登记位置——`components/list-filter.js` / `components/relation-matrix.js` / `entries/tabs/disc/attendance-tab.js`（考勤明细）/ `entries/tabs/secretary/group-progress-tab.js`（党小组清单），带防僵尸）。
+
+**「人 × 项目」矩阵＝宽表单一源（2026-09-14 批次 35 立项 / 批次 39 推广三域）**
 
 > 支书原话：「活动的考勤考察，还是以 long form 为主，也就是每人次一行。wide form 是不是一个更加简明的表现方式呢？人和活动/专班/别的……分离开后，其实存在一种**转置**方式！第一列是人的话，就可以展示他参加的项目；如果第一列是项目，那就可以看有哪些人。这是一个**很全局性的**需要思考和改进工程！」
-> 支书裁定：① **宽表默认**（long form 降为「明细 / 导出」下钻）；② 矩阵**推广到其它二元关系域**。
+> 支书裁定：① **宽表默认**（long form 降为「明细 / 导出」下钻）；② 矩阵**推广到其它二元关系域**（批次 39 落地：支部分工、专班报名总表、表态汇总）。
 
-凡「人 × 项目」这类**二元关系**（考勤、考察；后续的分工、专班报名、思想汇报台账…）一律走单一源组件 [components/relation-matrix.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/relation-matrix.js)：
+凡「人 × 项目」这类**二元关系**（考勤、考察、支部分工、专班报名总表、表态汇总、思想汇报台账）一律走单一源组件 [components/relation-matrix.js](file:///d:/GitHub/GSM1921-SOP/docs/src/components/relation-matrix.js)：
 
 1. **转置双视图**——`byPerson`（行＝人，列＝项目，看「某人参加了哪些」）与 `byItem`（行＝项目，列＝人，看「某项目有哪些人」）**互为转置**：同一份数据、同一 cell 口径，切换只换视角，不是两张表；
 2. **项目维列上限 6**（`MATRIX_COL_LIMIT`）——项目（活动/专班/工作项）随年份无限累积，列不能无限长；超限时给「**显示全部 N 项**」一键展开（展开态按 `stateKey` 记忆，跨重渲染不丢），行维保持全量；
 3. **横向滚动 + 首列吸附**（`overflow-x-auto` + `sticky left-0`）——宽表横向滑动时维度名不丢；
 4. **筛选归调用方**（活动名/时间区间/姓名/分面），组件只负责「列取哪几项 + 转置 + 展开」——筛选是各域口径，矩阵是共同载体；
 5. **载体不另造样式**——表格用 `.data-table`，展开钮用 `.lf-btn`（全站单档 38px/13px），不为矩阵新增类族（`styles.css` 属禁改文件）；
-6. **默认视图＝宽表**（long form 的定位改为「明细 / 导出 / 打印」下钻）。
+6. **默认视图＝宽表**（long form 的定位改为「明细 / 导出 / 打印」下钻）；
+7. **人维分页**（批次 38）——`MATRIX_ROW_LIMIT = 10`（每页 10 人），`cfg.rowLimit` 可配、**0＝不分页**；人维无论落在行（按人）还是列（按项目）都按同一页切片，页控件走 `components/pager.js::pagerHtml`（翻页标记单一源，见 §4.10「翻页标记单一源」）；
+8. **`cfg.cellClass(pid, iid)` 单元格附加类钩子**（批次 38）——单元格语义经既有语义类复用（如表态矩阵的「异议」红底 /「未投」灰字复用 `.vs-object` / `.vs-none`），**不为矩阵新增样式类族**。
 
-**已迁移**：`entries/tabs/disc/attendance-tab.js`（考勤矩阵，默认「按人」，`byActivity`＝转置视图）、`entries/tabs/disc/inspection-tab.js`（考察，默认「按人」，新增「按项目」＝转置）。
-**待迁（登记在案，防悄悄长第四套）**：`components/vote-summary-panel.js`（`.vs-matrix` 表决矩阵＝议题×人，另属域）、专班报名、支部分工、思想汇报台账。
-**守卫**：`server/test/relation-matrix.test.mjs`（S1 组件单一源 / S2 参与方不得自造矩阵（`<th class="sticky left-0">` 只允许出现在组件内）/ S3 宽表默认且 long form 降为「明细」/ S4 矩阵类实现收敛台账 / ① 真机：默认宽表 → 列上限 6 → 一键展开 → 切转置视图行列互换）。
+**转置双视图的调用点清单（批次 35 + 39 + 41 + 43）**：考勤（`disc/attendance-tab.js`，按人 / 按活动）、考察（`disc/inspection-tab.js`，按人 / 按项目）、支部分工（`secretary/work-map-tab.js`，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、专班报名总表（`org/taskforce-tab.js`，人 × 专班，列封顶最近 6 个专班可展开）、表态汇总（`components/vote-summary-panel.js`，行＝议题、列＝应到成员）、思想汇报台账（`org/thought-review-tab.js`，人 × 期次，列封顶最近 6 期可展开，**可按人 / 按期次互转**）。
+
+**已迁移**：`entries/tabs/disc/attendance-tab.js`（考勤矩阵，默认「按人」，`byActivity`＝转置视图）、`entries/tabs/disc/inspection-tab.js`（考察，默认「按人」，新增「按项目」＝转置）；批次 39 再推广三域：`entries/tabs/secretary/work-map-tab.js`（支部分工，平铺模块 / 按人 / 按项目三视图，缺省「按人」宽表）、`entries/tabs/org/taskforce-tab.js`（专班报名总表，人 × 专班）、`components/vote-summary-panel.js`（表态汇总，行＝议题、列＝应到成员）；批次 41 末域收口：`entries/tabs/org/thought-review-tab.js`（思想汇报台账，行＝支部在册成员、列＝期次 `YYYY-Qn` 新→旧，cell＝该期最需处理状态徽标＋多篇「N 篇」，未提交＝「—」；原按人分组 + 组内每篇一行的列表随之撤除，「待初阅队列」保留作按篇下钻）。
+**口径例外（两处，经支书批准并在守卫登记）**：表态汇总走 `colLimit: 0`（议题维＝单场议程，有界，不需「最近 6 项」封顶）与 `rowLimit: 0`（人维＝本场应到名单，须一屏看全表决分布）；二者由 `relation-matrix.test.mjs::S5` 锁白名单防僵尸。
+**待迁**：**（空）**——各二元关系域已全部迁入；如需新增域，按「项目维＝谁、cell 语义＝什么」先定口径再接组件，**不得各写一版**。
+**守卫**：`server/test/relation-matrix.test.mjs`（S1 组件单一源 + 人维分页 + 引用 `pager.js` / S2 参与方不得自造矩阵（`<th class="sticky left-0">` 只允许出现在组件内）/ S3 宽表默认且 long form 降为「明细」/ S4 矩阵类实现收敛台账（白名单已清空——表态矩阵已并入）/ S5 `rowLimit: 0` 须登记备案 + 白名单防僵尸 / **S6 思想汇报台账＝人 × 期次（接入单一源 + 列维＝期次 + 期次排序走单一源 + 行维取实时视图 + 禁回潮按人分组自建列表）** / ① 真机：默认宽表 → 列上限 6 → 一键展开 → 切转置视图行列互换 / **② 真机：思想汇报台账（首列「姓名」/ 人维 ≤10 / 列头 `YYYY-Qn` 新→旧 / 有可下钻 cell 与「—」/ 待初阅队列仍在 / **切「按期次」首列变期次、切回「按人」复原**）**）；**分页全覆盖另有真机全站普查守卫 `server/test/page-sweep.test.mjs`**（批次 43：七个工作台 × 全部 tab 逐一进页面——P1 引擎列表渲染行数 > 10 必须有翻页控件 / P2 矩阵人维 ≤ 10 行且计数口径为「共 N 人 · 第 x / y 页」/ P3 手写表格 > 10 行须有翻页 / P4 首列是人的引擎表须有搜索框（引擎门槛 `SEARCH_FILTER_MIN_ROWS` 之内不要求）/ P5 零 pageerror）。
 
 **执行层仪表盘（2026-08-08 指令 #2，管理科学视角重设计支书「全局概况」）**：弃用"各模块数字罗列"，改为执行层决策视图：
 - **KPI 顶栏**（5 项）：本月出勤率 / 复盘完成率 / 归档完成率 / 考察积压 / 待办异常——各带「目标 vs 实际」对比、达标徽章、进度条；

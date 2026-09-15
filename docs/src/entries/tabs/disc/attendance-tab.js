@@ -1,6 +1,8 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台 Tab：考勤管理（T-279 M3 拆分 · T-304 重设计）
-// 三段式：① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
+// 一级分段（2026-09-15 支书裁定）：考勤 / 补课——互斥分段钮置顶。
+//   「补课」分段整段复用 makeup-tab 渲染（补课原为独立 tab，并入本 tab）；「?tab=makeup」旧深链兼容见 renderContent 首段。
+// 「考勤」分段三段式：① 待确认队列（卡片式，进入即见，确认即闭环+聚焦下一条）
 //        ② 考勤矩阵（人×活动 二元关系单一源组件 relation-matrix：行=人/列=活动 与 行=活动/列=人 互为转置；
 //           **默认「按人」宽表**——支书 2026-09-14 批次 35 裁定「long form 不该为主」；项目维列封顶最近 6 项，
 //           可一键展开全部；活动名搜索 + 时间区间筛选）
@@ -10,33 +12,78 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260914s';
-import { generateId } from '../../../core/id.js?v=20260914s';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260914s';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914s';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915d';
+import { generateId } from '../../../core/id.js?v=20260915d';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260915d';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915d';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260914s';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260914s';
-import { loadActivities } from '../../../services/activity.js?v=20260914s';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260914s';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914s';
-import { NoticeStore } from '../../../services/notice.js?v=20260914s';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260914s';
-import { badgeHtml } from '../../../components/badges.js?v=20260914s';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260915d';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260915d';
+import { loadActivities } from '../../../services/activity.js?v=20260915d';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260915d';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260915d';
+import { NoticeStore } from '../../../services/notice.js?v=20260915d';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260915d';
+import { badgeHtml } from '../../../components/badges.js?v=20260915d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914s';
+// pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915d';
+import { pagerHtml } from '../../../components/pager.js?v=20260915d';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260914s';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260914s';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260914s';
-import { HandoffStore } from '../../../services/handoff.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914s';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915d';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260915d';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260915d';
+import { HandoffStore } from '../../../services/handoff.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915d';
+// 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260915d';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
+
+// ── 一级分段（考勤 / 补课）——模块级记忆（沿既有 tab 内 _view 模式）──
+// 「考勤」分段保留原有全部视图钮（待确认队列/会议录入/矩阵/总表/党小组会只读）；
+// 「补课」分段渲染 makeup-tab 全部功能（补课任务清单/确认回写考勤/交接回执/检索分页）。
+let _segment = 'attendance';
+// 深链一次性消费标记：?tab=makeup（补课原为独立 tab）→ 落「补课」分段；
+// 同一导航对象只应用一次，用户随后切分段不再被回置（见 renderContent 首段）。
+let _deepLinkNavTarget = null;
+
+/** 分段钮激活态类（沿用本台矩阵视图钮笔法：主题浅底 + 主题色字/边框，不新增 CSS 类族） */
+const SEG_ON_CLASSES = ['bg-[var(--app-accent-bg)]', 'border-[var(--app-accent)]', '[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]'];
+const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
+
+/** 一级分段钮组 HTML（考勤 / 补课，互斥） */
+function _segmentBarHtml() {
+  const btn = (seg, label) => {
+    const on = _segment === seg;
+    const cls = on ? SEG_ON_CLASSES.join(' ') : `${SEG_OFF_CLASSES.join(' ')} hover:bg-gray-50`;
+    const style = on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : '';
+    return `<button type="button" class="att-seg-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${cls}" data-seg="${seg}"${style}>${label}</button>`;
+  };
+  return `<div class="flex items-center gap-2 mb-4">${btn('attendance', '考勤')}${btn('makeup', '补课')}</div>`;
+}
+
+function _bindSegmentBtns(container, ctx) {
+  container.querySelectorAll('.att-seg-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      if (b.dataset.seg === _segment) return;
+      _segment = b.dataset.seg;
+      renderContent(ctx);
+    });
+  });
+}
+
+/**
+ * 供其它入口（待办跳转等）指定一级分段（模块级记忆；调用方在切本 tab 之前调用）。
+ * @param {'attendance'|'makeup'} seg
+ */
+export function focusSegment(seg) {
+  if (seg === 'attendance' || seg === 'makeup') _segment = seg;
+}
 
 /** U3（2026-09-07）：矩阵/总表容器首帧骨架占位行（真实表格 rAF 后渐进填充，防整块弹出） */
 function _attSectionSkeletonHtml() {
@@ -55,6 +102,21 @@ const CELL_META = {
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
   if (!container) return;
+
+  // 深链兼容（?tab=makeup，补课原为独立 tab）：一次性消费导航目标 → 直落「补课」分段。
+  const navObj = ctx && ctx.navTarget;
+  if (navObj && navObj.tab === 'makeup' && _deepLinkNavTarget !== navObj) {
+    _deepLinkNavTarget = navObj;
+    _segment = 'makeup';
+  }
+
+  // 「补课」分段：整段复用 makeup-tab 渲染（补课任务清单／确认完成回写考勤／交接回执／统一检索分页）
+  if (_segment === 'makeup') {
+    container.innerHTML = `${_segmentBarHtml()}<div id="att-segment-body"></div>`;
+    _bindSegmentBtns(container, ctx);
+    renderMakeupContent(container.querySelector('#att-segment-body'));
+    return;
+  }
 
   const { accent, accentRgba, accentBorder } = ctx;
   const filterActivityId = ctx?.attendanceFilterActId || null;
@@ -98,13 +160,17 @@ export function renderContent(ctx) {
   //  三段式渲染
   // ════════════════════════════════════════════════════════════════
   container.innerHTML = `
-    ${filterBanner}
-    ${_buildQueueHTML(queueItems, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
-    ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
-    ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
-    ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
-    ${_buildGroupMeetingReadonlyHTML()}
+    ${_segmentBarHtml()}
+    <div id="att-segment-body">
+      ${filterBanner}
+      ${_buildQueueHTML(queueItems, queueLeave, queueAbsent, queueOverdue, autoConfirmedCount, accent, accentBorder, actById)}
+      ${_buildMeetingCardHTML(ctx, accent, accentBorder, actById)}
+      ${_buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent, accentRgba, accentBorder)}
+      ${_buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityId, accent, accentRgba, accentBorder)}
+      ${_buildGroupMeetingReadonlyHTML()}
+    </div>
   `;
+  _bindSegmentBtns(container, ctx);
 
   // 党小组会考勤只读表（统一检索引擎：按人检索 + 分面；≤8 行自动不渲染检索条）
   _renderGroupMeetingReadonly(container);
@@ -289,8 +355,13 @@ export function renderContent(ctx) {
   const renderTable = () => _renderTable(longData, allRecords, actById, accent, accentBorder, ctx);
   container.querySelector('#att-table-search')?.addEventListener('input', () => { _page = 1; renderTable(); });
   container.querySelector('#att-table-status')?.addEventListener('change', () => { _page = 1; renderTable(); });
-  container.querySelector('#att-table-prev')?.addEventListener('click', () => { _page = Math.max(1, _page - 1); renderTable(); });
-  container.querySelector('#att-table-next')?.addEventListener('click', () => { _page += 1; renderTable(); });
+  // 翻页（委托一次：`#att-table-pager` 由卡片模板持有、内容重绘不影响绑定；读 data-lf-page）
+  container.querySelector('#att-table-pager')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-lf-page]');
+    if (!btn || btn.disabled) return;
+    _page = parseInt(btn.dataset.lfPage, 10) || 1;
+    renderTable();
+  });
 
   // ── 低频操作行：导出 / 打印 / 提交考勤至宣传 ──
   container.querySelector('.att-export-btn')?.addEventListener('click', () => {
@@ -301,8 +372,8 @@ export function renderContent(ctx) {
       const autoConfirmed = rec && !rec.recordedBy && (rec.status === AttendanceStatus.PRESENT || rec.status === AttendanceStatus.MADE_UP);
       return [act?.date ? act.date.slice(0, 7) : '未排期', a.name, a.activity, a.type, a.status, autoConfirmed ? '自动确认' : a.confirmer];
     });
-    downloadCSV(`考勤总表_${stamp}.csv`, ['月份', '姓名', '活动', '类别', '状态', '确认人'], rows);
-    showToast('success', `考勤总表已导出（${rows.length} 条）`);
+    downloadCSV(`考勤明细_${stamp}.csv`, ['月份', '姓名', '活动', '类别', '状态', '确认人'], rows);
+    showToast('success', `考勤明细已导出（${rows.length} 条）`);
   });
   container.querySelector('.att-print-btn')?.addEventListener('click', () => triggerPrint());
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
@@ -318,9 +389,9 @@ export function renderContent(ctx) {
     HandoffStore.create({
       type: 'attendance-archival',
       refType: 'attendance',
-      refLabel: '考勤总表',
+      refLabel: '考勤明细',
       refId: 'attendance',
-      note: `考勤总表共 ${allRecords.length} 条，纪检确认后提交宣传备案`,
+      note: `考勤明细共 ${allRecords.length} 条，纪检确认后提交宣传备案`,
     });
     showToast('success', '考勤已提交至宣传委员，等待备案确认');
     renderContent(ctx);
@@ -777,13 +848,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
         </select>
       </div>
       <div id="att-table-container">${_attSectionSkeletonHtml()}</div>
-      <div class="flex items-center justify-between mt-3">
-        <span class="text-xs text-gray-500" id="att-table-info"></span>
-        <div class="inline-flex items-center gap-1.5">
-          <button id="att-table-prev" class="page-btn">上一页</button>
-          <button id="att-table-next" class="page-btn">下一页</button>
-        </div>
-      </div>
+      <div id="att-table-pager"></div>
     </div>
   `;
 }
@@ -838,9 +903,9 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
       </table>
     </div>
   `;
-  document.getElementById('att-table-info') && (document.getElementById('att-table-info').textContent = `${display.length} 条 · 第 ${_page}/${totalPages} 页`);
-  document.getElementById('att-table-prev') && (document.getElementById('att-table-prev').disabled = _page <= 1);
-  document.getElementById('att-table-next') && (document.getElementById('att-table-next').disabled = _page >= totalPages);
+  // 翻页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 上一页/页码/下一页；页数 ≤1 返回空串）
+  const pagerEl = document.getElementById('att-table-pager');
+  if (pagerEl) pagerEl.innerHTML = pagerHtml({ page: _page, pages: totalPages, total: display.length, unit: '条' });
 
   // 总表确认按钮（复用队列确认逻辑，绑定到对应记录）
   tc.querySelectorAll('.btn-confirm-att').forEach(btn => {
@@ -863,7 +928,7 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
 // ════════════════════════════════════════════════════════════════
 //  ④ 党小组会考勤（纪检纪律台只读掌握）— 附录⑩ A批·S1 裁定④（2026-09-06）
 //  组长上传（记录人=本组组长，submittedBy 可辨）；纪检只读查看：不代传、不在此审改；
-//  异常（缺勤/请假）处理走上方「待确认考勤」队列。无写口；挂在考勤总表下方只读区，
+//  异常（缺勤/请假）处理走上方「待确认考勤」队列。无写口；挂在考勤明细下方只读区，
 //  不新增工作台 tab（能力清单不变）。
 //  统一检索引擎（2026-09-13）：按人扁平为一行（姓名 / 党小组会 / 状态 / 备注），
 //    关键词 + 分面检索；组长/上传人信息以 title 悬浮保留（不改业务口径）。

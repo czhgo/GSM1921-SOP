@@ -5,12 +5,14 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { getPersonName } from '../../../services/person.js?v=20260914s';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260914s';
-import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260914s';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260914s';
+import { mockDB } from '../../../core/domain.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { getPersonName } from '../../../services/person.js?v=20260915d';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260915d';
+import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260915d';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -126,23 +128,24 @@ function renderForm(branchId, me, tc) {
   });
 }
 
-/** 上报记录列表（每次重绘，取最新数据） */
+/** 上报记录列表（每次重绘，取最新数据；统一检索引擎：关键词 + 状态分面 + 分页，行内只读无按钮） */
 function renderList(tc, branchId) {
   const list = tc.querySelector('#rq-list');
   if (!list) return;
   const rows = listReviewRequests({ branchId });
-  if (!rows.length) {
-    list.innerHTML = `
-      <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
-        <p class="text-sm text-gray-500">暂无上报记录</p>
-        <p class="text-xs text-gray-500 mt-1">支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里</p>
-      </div>`;
-    return;
-  }
-  list.innerHTML = rows.map(r => {
-    const t = TYPE_META[r.type] || { label: r.type || '上报' };
-    const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
-    return `
+  renderFilteredList(list, {
+    stateKey: 'secretary-report-up-list',
+    rows,
+    keyword: { keys: ['title', 'content'], placeholder: '搜索事项标题 / 说明…' },
+    facets: [{ key: 'status', label: '状态', format: (v) => (STATUS_META[v] || {}).label || v }],
+    countUnit: '条',
+    listClass: 'space-y-3',
+    // 原空态两行文案（标题 + 说明）一并迁移为 emptyMessage
+    emptyMessage: '暂无上报记录 · 支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里',
+    rowHtml: (r) => {
+      const t = TYPE_META[r.type] || { label: r.type || '上报' };
+      const s = STATUS_META[r.status] || { label: r.status, cls: 'bg-gray-100 text-gray-600' };
+      return `
       <div class="rounded-lg border border-gray-200 bg-white p-4" data-rq-id="${esc(r.id)}">
         <div class="flex items-center gap-2 flex-wrap mb-1.5">
           <span class="text-xs px-2 py-0.5 rounded-full ${r.type === 'develop-node' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-600'}">${t.label}</span>
@@ -160,5 +163,6 @@ function renderList(tc, branchId) {
           </p>
         </div>` : ''}
       </div>`;
-  }).join('');
+    },
+  });
 }

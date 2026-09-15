@@ -39,7 +39,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 禁止**模块加载期人员快照**：`const X = PersonStore.getMembers();` 这类模块顶层一次性捕获一律改为 `liveMembers()`（实时视图，只读；写入走 `PersonStore` 写口）
 - [ ] 禁止**凭姓名认身份**：`.find(p => p.name === …)` 不得用作身份判定；姓名匹配只允许「**先按 id、姓名仅唯一命中才采纳**」，否则留空
 - [ ] 禁止**手写已成单一源的判据**：如活动存储态不得再写 `status==='completed' || archived`，一律走 `core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
-- [ ] 禁止**把控件档位高度交给环境**（2026-09-14 批次 31）：高度须由 `docs/src/styles.css` 的「上下内边距 + **显式行高** + 边框」算式决定（紧凑 `8+8+16+2 = 34px`、标准 `12+12+16+2 = 42px`）；靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供行高时，环境一变同表单内会出现 42 / 43 / 47 三值并存。**同理：量尺规类真机复核必须在生产同构环境**（Tailwind / 字体 CDN 一律不得 abort——缺 preflight 会让行高退化，量出的尺寸全是伪证；本批曾据此误报「27 处 32px」，后经生产同构复测证伪）
+- [ ] 禁止**把控件档位高度交给环境**（2026-09-14 批次 31，**批次 33 已并档**）：高度须由 `docs/src/styles.css` 的「上下内边距 + **显式行高** + 边框」算式决定——**自批次 33 起并为一档：`10+10+16+2 = 38px`，正文 13px**（批次 31 曾分「紧凑 `34px` / 标准 `42px`」两档，已废止）；靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供行高时，环境一变同表单内会出现 42 / 43 / 47 三值并存。**同理：量尺规类真机复核必须在生产同构环境**（Tailwind / 字体 CDN 一律不得 abort——缺 preflight 会让行高退化，量出的尺寸全是伪证；本批曾据此误报「27 处 32px」，后经生产同构复测证伪）
 
 **数据层（以权威源为基准逐域断言）**
 
@@ -76,11 +76,16 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第十范本（2026-09-14 批次 30 新增·「为修一个 bug 复制一份实现」类）**：同一业务动作（流入登记建档）因**入口不同**而角色门不同（名册新增＝组织委员专属；成员流动登记＝组织委员 + 支书/副支书），直接放宽门会破坏另一条既有断言，而「再写一份实现」会留下两套口径。**修法**：**同一实现体、两个写门**——处理体抽为具名函数，分别挂不同 `requireRole`。**判据**：凡「同一动作 + 不同入口 + 不同门」的组合，先问「能不能同一个实现体挂多门」，再考虑拆实现；拆实现须在规范里显式声明两处语义与同步责任（本批落 `SYSTEM_ROLE_PERMISSION §9i 注④` 与 `DATA_FLOW §4.5.1`）。**守卫**：`member-flow.test.mjs::S4`、`permission-gate.test.mjs` ⑤d/⑥/⑦、`member-persist.test.mjs` api ⑫。
 
----
+> **第十一范本（2026-09-14 批次 37–38 新增·「能力已收进引擎 ≠ 已收口」类）**：批次 34 把分页做进统一检索引擎后，**26 处调用点受益**——但批次 37 全量审计发现**未接引擎的手写渲染仍有 13 处以上**（表格 4 处 + 卡片列表 9 处以上），批次 38 又发现 **6 处手写翻页控件**（归档库 `.archive-page-btn` / 反馈列表 `.issue-page-btn` / 支书台反馈 `.feedback-page-btn` / 通用查询视图 `.qv-page-btn` / 成员活动列表 `.visitor-act-page-btn` / 考勤明细 `id="att-table-prev/next"`），类名与属性各写一遍。**判据**：**「能力已收进引擎」只覆盖「已在引擎内的调用点」，覆盖不了「绕过引擎、各写一版」的地方**——所以判定方法必须是**反向枚举**：不只查「谁在用这个单一源」，还要查「**谁在做同一件事却没走单一源**」（前者查的是**单一源的使用点**，后者查的才是**同一能力的全部实现点**）。**处置（批次 37）**：支书裁定「全量收口（表格 + 卡片列表一并接引擎）」＋「同时补筛选（筛选 + 分页一站式）」，**21 个文件接入引擎**；引擎补一条：**既无关键词也无分面时不渲染检索条**（供「只需分页」的桶/分组子列表复用，避免每组顶一条空检索条）。**边界判断**：看板分桶 / 待办域折组 / 按期次分组这类**分组结构**，做法是「每组一个引擎实例、只给分页、保留分组与折叠观感」，而不是推平成单层列表。**守卫**：`filter-row.test.mjs` 的 S3 收紧为「全站表格只允许 `.data-table`」、S10 改断言 `components/pager.js` 内 `if (pages <= 1)`、**新增 S11**（翻页标记 `class="page-btn"`/`page-num` 只允许由 `pager.js` 产出）、**新增 S12**（手写表格收敛台账：`<table` 只允许出现在 4 个登记位置，带防僵尸断言）。
 
-## 0.1 AI 自查问句（每批任务开始前扫一遍；命中即先问支书再动手）
+> **第十二范本（2026-09-14 批次 38 新增·「移动单一源的位置 = 一次全仓改签」类）**：批次 38 把 `pagerHtml` 从 `components/list-filter.js` **移出**到 `components/pager.js`（理由是 `relation-matrix → list-filter → inspector → vote-summary-panel → relation-matrix` 会成**模块环**，单一源必须落在**不依赖任何业务模块的叶子件**上），但只改了 `relation-matrix.js` 与新写的 `pager.js`，**忘了同步另外 6 个刚从 `list-filter.js` 引入 `pagerHtml` 的文件** → 运行时 `SyntaxError: The requested module './list-filter.js' does not provide an export named 'pagerHtml'`，**一次性打红 17 个测试（含 5 个 e2e）**。**判据**：单一源**换文件 / 换名字**时，必须 grep **旧路径的全量引用**（含 `?v=` 版本戳形式）**逐一改签**，并在改完后断言「旧路径 **0 命中**」；**「改了引用方 A 就以为改完了」是典型遗漏**，且**静态守卫 S11 全绿**（它只查标记字面量）、**单文件局部跑也不报错**——**只有全量 e2e 才暴露**，与既有「同一套数据原则执行盲区」（只查被删字段、不查读端）**同源**。
 
-> **用法（2026-09-14 支书指令）**：「这些经验是要推广开，**让 AI 以此为案例发现新问题来继续询问我的**」。故把上列范本压成**可复述的问句**——AI 每次接到「改表格 / 改控件 / 改数据 / 加能力」的任务时，先自问以下十句；**只要有一句的答案是「不清楚」或「大概吧」，就必须用 AskUserQuestion 问支书，不得自行决断**（本仓已有代价：批次 31 因环境伪证误报缺陷、批次 33 因没问清「统一所指」而反复返工）。
+> **第十三范本（2026-09-15 批次 44 新增·「同一病灶只修一处 = 没修完」类）**：支书批次 32 实报的「考察上传报必填、框却不在位」修好后，**同一个病灶类在全站还有 ≥50 处**（提交动作的字段级必填校验点；实测登记 **92 处**，分布 20+ 文件）——**只修了支书点名的那一处，等于没修这一类**。**判据**：**病灶不是「一处 bug」，而是「一类形态」**——修完一处后必须立刻回答「**同一形态在全站还有几处**」（用**语义**特征去枚举，不是按文件名/关键词猜），并按规模决定处置：>1 处即须建**台账**（逐条登记 file / 字段 / 流程 / 可自动化与否 + 理由）＋**真机覆盖**（能自动化的流程逐条跑闭环，不能自动化的必须写清**为什么**），再由守卫把「新增一处未纳入覆盖」变成红灯（防再次只修一处）。**本批落地**：`server/test/form-loop-registry.mjs`（92 条校验点台账，21 条真机可驱动、71 条逐条写明 reason）＋ `server/test/form-loop-sweep.test.mjs`（10 条真机闭环流程 + S0–S4 台账守卫：规模不得静默缩水 / 白名单必带 reason / machine:true 全部纳入覆盖 / 无僵尸条目 / 出处文案存在）。**核心判据（真机）**：**报「请填写 X」时 X 的可见载体必须在位**；载体不在位却报字段级必填 ⇒ 违规（正是支书实报的那类）；既无提示也无提交成功后 ⇒ 静默失败，同样违规。
+
+
+> **用法（2026-09-14 支书指令）**：「这些经验是要推广开，**让 AI 以此为案例发现新问题来继续询问我的**」。故把上列范本压成**可复述的问句**——AI 每次接到「改表格 / 改控件 / 改数据 / 加能力」的任务时，先自问以下十三句（2026-09-14 批次 37–39 由十问扩为十二问；2026-09-15 批次 44 增第十三问「同类规模」）；**只要有一句的答案是「不清楚」或「大概吧」，就必须用 AskUserQuestion 问支书，不得自行决断**（本仓已有代价：批次 31 因环境伪证误报缺陷、批次 33 因没问清「统一所指」而反复返工）。
+>
+> **理论口述版**见 `.ctx/ENGINEERING_ASSESSMENT.md §3.4`（含可迁移要点 ①–⑫）；**本处是可执行版**（范本与问句）。「规则 → 守卫 → 状态」的可查索引见下节 §0.2。
 
 1. **口径唯一性**——这个数/这份清单，全站有几处在算？我要新增的是第几处？（→ 单一源）
 2. **能力归属**——我要加的是「一处能力」还是「一处调用点」？它该在引擎层还是各页各写？（→ 引擎化）
@@ -92,6 +97,52 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 8. **多门同一动作**——这是不是「同一动作、不同入口、不同门」？能不能同一实现体挂多门，而不是再写一份？
 9. **规范 vs 实现**——规范里这句话，写的时候想表达什么语义？现在全站有哪几处与它不一致？是**实现错**还是**规范写太宽**？（→ 前者改实现，后者改写规范并登记例外）
 10. **无限增长**——这个列表/矩阵/列/页会不会随年份无限长？分页或封顶了吗？（→ 分页铁律 / 列上限）
+11. **引用完整性**——我要动的东西（搬迁 / 重命名 / 删除），**除我已知的引用方之外**还有谁在用？我是否**全仓 grep 过旧路径 / 旧名**（含 `?v=` 版本戳形式）？改完后旧路径是否确认 **0 命中**？（→ 单一源搬迁须全仓改签）
+12. **反向枚举**——我是否查过「**有没有人绕过这个单一源、自己在写同一件事**」？我扫的是「**单一源的使用点**」还是「**同一能力的全部实现点**」？（→ 能力收进引擎 ≠ 已收口）
+13. **同类规模**——我这次修的是「**一处**」还是「**一类**」？同一形态在全站**还有几处**（我数过没有）？>1 处时我建了台账与真机覆盖吗？新增同类时守卫会变红吗？（→ 同类病灶须先数规模再动手；只修一处＝没修完）
+
+---
+
+## 0.2 规则 → 守卫 → 状态 总索引（每批任务先扫本表）
+
+> **本表要解决的问题**：同一条规则「**由哪个守卫守 → 当前守没守住**」，此前分散在 **5 处**——① `.ctx/ENGINEERING_ASSESSMENT.md §3.4` 收敛台账（R13–R27）、② `README.md` 的「口径/单一源守卫」清单、③ 各 `server/test/*.test.mjs` 守卫文件、④ `.ctx/REVIEW_QUEUE.md` 的状态行、⑤ 各详述文档。**没有任何一处能一次答全**。本表把它们收成**一处可查**（2026-09-15 立表；支书原话「便于 check」）。
+
+**主从关系（避免重复维护）**
+
+- 方法论「口述版」权威 ＝ `.ctx/ENGINEERING_ASSESSMENT.md §3.4`（含可迁移要点 ①–⑫）。
+- 可执行版（范本与问句）权威 ＝ 本文件 §0 / §0.1。
+- **守卫实现唯一处** ＝ `server/test/*.test.mjs`；**本表只是索引，不是判据**，断言号以守卫文件实测为准。
+- 单一源组件登记处权威 ＝ `README.md`（本表**不重复登记**组件清单）。
+
+| 规则/口径 | 权威判据出处 | 守卫（文件::断言号） | 状态 | 详述处 |
+|---|---|---|---|---|
+| R13 版本号推导单一源（同日只允许前进） | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`） | `version-stamp.test.mjs::S1–S3 + D1–D6` | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
+| R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/list-filter.js`（引擎内置分页）· `components/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
+| R17 表格类族与控件档位算式显式（单档 38px × 13px） | `docs/src/styles.css`（`.data-table` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S12 + D1–D2` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15` |
+| R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/COMPONENT_SPEC.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
+| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `COMPONENT_SPEC.md §4.10` |
+| R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
+| R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
+| R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
+| R26 说明文件里的「数字与名称」须指到代码出处 | 各说明文件 ↔ 代码注册数组 | `doc-consistency.test.mjs::S1–S8` | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24` |
+| R27 静态断言锁形态、真机全站普查锁体验（七台 × 全 tab） | `server/test/page-sweep.test.mjs` | `page-sweep.test.mjs::S0 / S1 + 七台真机普查` | 已闭环 | `§3.4 R27` · `REVIEW_QUEUE Q-23-28` |
+| 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/mock/people.js`（PEOPLE）· `services/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
+| 实体 id 唯一 + 生成单一源（第二范本） | `core/id.js::generateId / randomHex` | `id-uniqueness.test.mjs::S1–S3 + D1–D4` | 已闭环 | 本文件 §0 第二范本 · §跨类别同源校验 |
+| 通知受众写入值与判定同源（第三范本） | `core/constants.js::NOTICE_AUDIENCE_SENTINELS` | `notice-audience.test.mjs::N1–N8` | 已闭环 | 本文件 §0 第三范本 · §6 |
+| issue 支部归属（写入取本人支部、读侧单一源 `withinBranch`） | `services/branch.js::getBranchIdOfPerson` | `issue-branch.test.mjs::S1–S4 + D1–D3` | 已闭环 | `REVIEW_QUEUE Q-23-27` |
+| 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
+| 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
+| 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
+| 功能地图标记块与生成器不失同步 | `docs/src/core/function-catalog.js` | `function-map-sync.test.mjs`（1 条，无编号） | 已闭环 | `README.md` 顶部功能地图 |
+| 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
+| Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
+| 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
+
+**使用说明**
+
+1. **本表是索引，不是判据**——判据在守卫文件（`server/test/*.test.mjs`）与「详述处」所指文档；本表只回答「一条规则由谁守、守没守住、去哪看」。
+2. **新增 / 修改规则必须同时更新本表**（谁改谁负责）——漏更本表即视为该规则未登记。
+3. **本表的数字由 `server/test/doc-consistency.test.mjs::S9` 守卫**——该断言由批次 44 的另一条工作流落地（立表时实测 `doc-consistency` 仅存 S1–S8，尚无 S9）。**在 S9 落地前，本表断言号为人工维护**：改表须重新实测上列守卫文件的断言，不得凭记忆写。
 
 ---
 
@@ -204,13 +255,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
-| workspace/disc.html | 考勤总表（宽格式/长格式切换）+考勤确认 | 纪检委员 |
+| workspace/disc.html | 考勤明细（宽格式/长格式切换）+考勤确认 | 纪检委员 |
 | workspace/leader.html | 考勤上传（党小组组长） | 党小组组长 |
 | workspace/visitor.html | 只读考勤视图 | 访客 |
 
 **同源校验点**：
 
-- [ ] 纪检委员考勤总表中某活动的出勤人数 = ATTENDANCE_RECORDS 中该 activityId 且 status=present 的记录数
+- [ ] 纪检委员考勤明细中某活动的出勤人数 = ATTENDANCE_RECORDS 中该 activityId 且 status=present 的记录数
 - [ ] 考勤记录的 personId 在 PEOPLE 中存在
 - [ ] 考勤记录的 activityId 在 ACTIVITIES 中存在
 - [ ] 已补课考勤记录（status='made_up'）= 补课任务中 status='completed' 的记录对应（att27/att14 已完成补课）
@@ -482,11 +533,17 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
 - [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
-- [ ] 前端持久化域 ↔ server 表对账（B5-2 2026-08-24）：mockDB 27 个持久化域 + users ↔ server 28 表（`server/db.js` RESOURCE_TABLES）；resources.js 28 个资源名 ↔ 表名 ↔ 前端快照 payload 键名一一映射
-- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 27 个持久化域，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
-  > **2026-09-14 批次 25**：新增 `partyGroups`（党小组）与 `memberFlows`（成员流动台账）两域，两侧同步建表（域数/表数/快照覆盖数各 +2，**不含 users 与 branchDocs** 的排除说明不变）。**上述 27 域 / 28 表 / 快照 27 域为批次 25 的目标态**，落地前以代码实测为准。
-  > **2026-09-14 实测差异（待专项对账）**：`server/db.js` 实为 34 表、`resources.js` 实为 30 个资源名、`_buildSnapshotPayload` 实为 25 个键——与「25 域 / 26 表」历史口径存在差异（`issues` 等语义端点域不在资源名映射内、`branches`/`branchDocs` 等按纪律排除）。本行口径的历史差异已登记为待办，勿据旧数照做。
-- [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords/mailboxConfig 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
+- [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
+  - **mockDB 顶层业务域** ＝ `docs/src/core/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 35**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`）
+  - **localStorage 持久化域** ＝ `docs/src/core/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 34**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域）
+  - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 34**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` 四张语义端点表——不进通用资源名映射）
+  - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 30**
+  - **快照 payload 键** ＝ `docs/src/core/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 25**
+  - 四数之差有据：资源名 30 ＋ 语义端点表 4 ＝ server 表 34；持久化域 34 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 25。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。
+- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 **25** 个键，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
+  > **2026-09-14 批次 25**：新增 `partyGroups`（党小组）与 `memberFlows`（成员流动台账）两域，两侧同步建表（域数/表数/快照覆盖数各 +2，**不含 users 与 branchDocs** 的排除说明不变）。
+  > **2026-09-15 收口（Q-23-1 结案）**：以步骤化的实测口径替换此前「25 域 / 26 表 / 27 域 / 28 表」等并列旧数——实测值以本节上列五行为唯一口径（`mockDB` 35 / `mock-adapter` 34 / `db.js` 34 / 资源名 30 / 快照 25）。此后新增域须同步更新本节五个实测值，勿只改其中一处。
+- [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
 - [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 - [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
@@ -553,10 +610,10 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## T-280-B5 前后端数据模型对账（2026-08-24 新增，B5-2）
 
 > 检查方式：对照 `server/db.js` / `server/routes/resources.js` / `server/seed.js` 与前端 `data-adapter.js` / `mock-adapter.js` 的持久化域，逐表核对映射与写穿边界。
-> 背景：T-280 B5 前后端对账——server 28 表（users + 27 业务）与前端 mockDB 27 个持久化域一一映射；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
+> 背景：T-280 B5 前后端对账——server 表 / 资源名 / 快照 payload 三者口径已于 2026-09-15 收敛（见 §跨类别同源校验「前端持久化域 ↔ server 表对账」：`db.js` 34 表 / 资源名 30 / 快照 25 / 持久化域 34 / `mockDB` 35）；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
 > **2026-08-24 实测：6/6 全过**——API 级代码断言（无浏览器依赖；专项脚本已随 2026-08-30 脚本清理归档）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
 
-- [x] **表↔域映射**：26 资源 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES 26 名全通）✅
+- [x] **表↔域映射**：资源名 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES **当前 30 名**全通；本条为 2026-08-24 当时的 **26 名**实测记录，口径详见 §跨类别同源校验）✅
 - [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
 - [x] **空表回退**：代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅
 - [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅

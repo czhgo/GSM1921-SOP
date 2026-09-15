@@ -9,19 +9,21 @@
 //  访问门与服务层同源（canReadThoughtReport / canReviewThoughtReport），
 //  界面显隐不自判角色字面量；初阅/撤回/重交动作均调用服务层并透出 {ok:false, reason}。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260914s';
-import { renderHeader } from '../components/header.js?v=20260914s';
-import { BranchService } from '../services/runtime.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { getPersonName } from '../services/person.js?v=20260914s';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260914s';
-import { badgeHtml } from '../components/badges.js?v=20260914s';
+import { renderSidebar } from '../components/sidebar.js?v=20260915d';
+import { renderHeader } from '../components/header.js?v=20260915d';
+import { BranchService } from '../services/runtime.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { getPersonName } from '../services/person.js?v=20260915d';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260915d';
+import { badgeHtml } from '../components/badges.js?v=20260915d';
+// 统一检索引擎（支书 2026-09-14 裁定）：待初阅队列可无限累积 → 关键词 + 分页一站式
+import { renderFilteredList } from '../components/list-filter.js?v=20260915d';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   listPendingReviews, canReadThoughtReport, canReviewThoughtReport,
   reviewThoughtReport, resubmitThoughtReport, withdrawThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260914s';
+} from '../services/thought-report.js?v=20260915d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -87,9 +89,29 @@ function renderDefault() {
     return;
   }
   const queue = listPendingReviews();
-  const rowsHtml = queue.length === 0
-    ? '<p class="text-sm text-gray-500 text-center py-8">暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅</p>'
-    : queue.map(r => `
+
+  cardEl.innerHTML = `
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-xl font-semibold text-gray-900">待初阅队列</h2>
+      <span class="text-xs text-gray-500">${queue.length} 篇 · 先到先阅</span>
+    </div>
+    <p class="text-xs text-gray-500 mb-4">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
+    <div id="tr-queue-host"></div>
+  `;
+
+  // 统一检索引擎（支书 2026-09-14 裁定）：关键词（姓名 / 标题 / 日期 / 正文摘要）+ 分页（≤8 篇不渲染检索条）
+  renderFilteredList(cardEl.querySelector('#tr-queue-host'), {
+    stateKey: 'tr-pending-queue',
+    rows: queue,
+    keyword: {
+      keys: ['personName', 'title', 'submittedAt', 'content'],
+      placeholder: '搜索姓名 / 标题…',
+      get: (r, k) => (k === 'personName' ? getPersonName(r.personId) : k === 'submittedAt' ? fmtDt(r.submittedAt) : r[k]),
+    },
+    listClass: 'space-y-2',
+    countUnit: '篇',
+    emptyMessage: '暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅',
+    rowHtml: (r) => `
         <a href="thought-report.html?id=${r.id}" data-tr-id="${r.id}" class="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
@@ -100,16 +122,8 @@ function renderDefault() {
             <p class="text-[12px] text-gray-500 mt-1">${esc(brief(r.content))}</p>
           </div>
           <span class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap flex-shrink-0">阅读并初阅 →</span>
-        </a>`).join('');
-
-  cardEl.innerHTML = `
-    <div class="flex items-center justify-between mb-1">
-      <h2 class="text-xl font-semibold text-gray-900">待初阅队列</h2>
-      <span class="text-xs text-gray-500">${queue.length} 篇 · 先到先阅</span>
-    </div>
-    <p class="text-xs text-gray-500 mb-4">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
-    <div class="space-y-2">${rowsHtml}</div>
-  `;
+        </a>`,
+  });
 }
 
 /** 摘要截断（列表预览用；正文阅读走独立页） */

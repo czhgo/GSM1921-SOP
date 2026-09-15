@@ -10,25 +10,27 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../core/utils.js?v=20260914s';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260914s';
-import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260914s';
-import { IssueStore } from '../services/issues.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260914s';
-import { loadActivities } from '../services/activity.js?v=20260914s';
-import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260914s';
-import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260914s';
+import { showToast, flashHighlight } from '../core/utils.js?v=20260915d';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260915d';
+import { TodoStore, seedTodos, TodoStatus } from '../services/todo.js?v=20260915d';
+import { IssueStore } from '../services/issues.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260915d';
+import { loadActivities } from '../services/activity.js?v=20260915d';
+import { loadActiveAttendanceRecords } from '../services/attendance.js?v=20260915d';
+import { loadInspectionRecords, getOverdueRecords } from '../services/inspection.js?v=20260915d';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/makeup.js）
-import { loadMakeupTasks } from '../services/makeup.js?v=20260914s';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914s';
-import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260914s';
-import { liveMembers, PersonStore } from '../services/person.js?v=20260914s';
+import { loadMakeupTasks } from '../services/makeup.js?v=20260915d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260915d';
+import { listPendingByReceiver, confirmExternalDispatch } from '../services/external-dispatch.js?v=20260915d';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260915d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonName } from '../services/person.js?v=20260914s';
-import { AttendanceStatus } from '../core/domain.js?v=20260914s';
+import { getPersonName } from '../services/person.js?v=20260915d';
+import { AttendanceStatus } from '../core/domain.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：「请我汇报」行接入（关键词 汇报人/事项 + 引擎内置分页）
+import { renderFilteredList } from './list-filter.js?v=20260915d';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -71,15 +73,9 @@ export async function renderWorkOverview(container, { role, personId, accent = '
     if (!requests.some(r => r.id === k)) delete _reqDraftByIssue[k];
   }
 
-  const requestRows = requests.map(r => `
-    <div class="rounded-lg border border-blue-200 bg-blue-50/40 p-3">
-      <p class="text-xs font-medium text-blue-700">${getPersonName(r.requestedBy) || '上级'}请汇报：${r.title}</p>
-      ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
-      <div class="flex gap-2 mt-2">
-        <input type="text" id="wo-req-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…" aria-label="汇报内容">
-        <button type="button" class="wo-req-submit text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-issue-id="${r.id}" style="${solidAccentStyle(accent)};">汇报</button>
-      </div>
-    </div>`).join('');
+  // 「请我汇报」行改由统一检索引擎渲染（本处只出宿主 div；引擎在 innerHTML 就位后挂载，见下方）；
+  // 无请求时不渲染宿主（保持「空/仅有开放汇报」两态的既有观感）
+  const requestRows = requests.length ? `<div id="wo-req-list-host"></div>` : '';
 
   // D2 裁决批二（2026-09-08 支书特批）：「我发起的开放汇报」行级列表 → 压缩为计数+缺口一行
   // （处理位 = 「我的处置」；与 D5 概况=催办口径一致——概况只报缺口不列全行，逐条处理去处置页）
@@ -261,6 +257,33 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       </div>
     </div>`;
 
+  // 「请我汇报」行接统一检索引擎（关键词 汇报人 / 事项，硬约束⑨「第一列是人」；行数 ≤8 不渲染检索条，
+  // 页数 ≤1 不出翻页控件）；行内输入/汇报钮改事件委托（见 _bindWorkOverviewEvents）。
+  const reqHost = container.querySelector('#wo-req-list-host');
+  if (reqHost) {
+    renderFilteredList(reqHost, {
+      stateKey: 'work-overview-report-requests',
+      rows: requests,
+      keyword: {
+        keys: ['name', 'title'],
+        placeholder: '搜索汇报人 / 事项…',
+        get: (r, k) => (k === 'name' ? (getPersonName(r.requestedBy) || '') : r[k]),
+      },
+      countUnit: '条',
+      listClass: 'space-y-2', // 原外层 .space-y-2 的行间距（宿主迁入后由结果区承载）
+      emptyMessage: '暂无待我行动的汇报',
+      rowHtml: (r) => `
+        <div class="rounded-lg border border-blue-200 bg-blue-50/40 p-3">
+          <p class="text-xs font-medium text-blue-700">${getPersonName(r.requestedBy) || '上级'}请汇报：${r.title}</p>
+          ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
+          <div class="flex gap-2 mt-2">
+            <input type="text" id="wo-req-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…" aria-label="汇报内容">
+            <button type="button" class="wo-req-submit text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-issue-id="${r.id}" style="${solidAccentStyle(accent)};">汇报</button>
+          </div>
+        </div>`,
+    });
+  }
+
   _bindWorkOverviewEvents(container, role, personId, prefix, () => renderWorkOverview(container, { role, personId, accent, prefix }));
 }
 
@@ -333,15 +356,22 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
   container.querySelectorAll('input[id^="wo-req-"]').forEach((inp) => {
     const issueId = inp.id.replace('wo-req-', '');
     if (issueId && _reqDraftByIssue[issueId]) inp.value = _reqDraftByIssue[issueId];
-    inp.addEventListener('input', () => {
+  });
+
+  // 「请我汇报」行内输入/提交改事件委托（引擎筛选/翻页重绘行后仍生效；宿主每次渲染新建，不叠加监听）
+  const reqHost = container.querySelector('#wo-req-list-host');
+  if (reqHost) {
+    reqHost.addEventListener('input', (e) => {
+      const inp = e.target.closest('input[id^="wo-req-"]');
+      if (!inp) return;
+      const issueId = inp.id.replace('wo-req-', '');
       const v = inp.value.trim();
       if (v) _reqDraftByIssue[issueId] = v;
       else delete _reqDraftByIssue[issueId];
     });
-  });
-
-  container.querySelectorAll('.wo-req-submit').forEach(btn => {
-    btn.addEventListener('click', () => {
+    reqHost.addEventListener('click', (e) => {
+      const btn = e.target.closest('.wo-req-submit');
+      if (!btn) return;
       const id = btn.dataset.issueId;
       const body = document.getElementById('wo-req-' + id)?.value?.trim();
       if (!body) { showToast('error', '请填写汇报内容'); return; }
@@ -350,7 +380,7 @@ function _bindWorkOverviewEvents(container, role, personId, prefix, rerender) {
       showToast('success', '汇报已发出，等待上级答复');
       rerender();
     });
-  });
+  }
 
   // 文件流外发确认（支书 2026-08-10 裁定）：接收方确认收到 → 闭环记录
   container.querySelectorAll('.ed-confirm-btn').forEach(btn => {
@@ -420,10 +450,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('./activity-view.js?v=20260914s');
+    const { renderActivityView } = await import('./activity-view.js?v=20260915d');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260914s');
+    const { renderTaskforceView } = await import('./taskforce-view.js?v=20260915d');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

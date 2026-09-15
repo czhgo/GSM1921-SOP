@@ -39,8 +39,7 @@ export const INIT_BLOB_KEEP_KEYS = ['_schema', 'users', 'branches', 'appointment
 
 /**
  * init 档清空的业务过程域 → 空默认值（键名与 mock-adapter _saveToStorage / domain.js mockDB 对齐）：
- * 数组域 → []；聚合域（actSubRecords/tfSubRecords）→ {}；单对象域（mailboxConfig）→ null
- * （mailboxConfig 清空后由纪检公邮页 seed 兜底注入默认配置，见 mailbox-tab）。
+ * 数组域 → []；聚合域（actSubRecords/tfSubRecords）→ {}
  */
 export const INIT_BLOB_CLEAR_DEFAULTS = {
   // 活动域与派生：活动/任务/考勤/考察/分工/补课
@@ -59,8 +58,6 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
   partyGroups: [],
   // 成员流动台账（2026-09-14 批次 25）：业务过程数据，随初始化清空
   memberFlows: [],
-  // 公邮域（纪检工具配置 + 查收历史）
-  mailboxConfig: null, mailboxHistory: [],
   // 内控/交接/审批：文件流外发确认/三委数据交接/成员变更申请/支委广播/表态/支部上报审批
   externalDispatches: [], handoffs: [], memberChangeRequests: [],
   committeeBroadcasts: [], agendaVotes: [], reviewRequests: [],

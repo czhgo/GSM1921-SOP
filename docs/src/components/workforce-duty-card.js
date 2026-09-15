@@ -4,16 +4,16 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260914s';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260914s';
-import { escHtml as esc } from '../core/utils.js?v=20260914s';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260915d';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260915d';
+import { escHtml as esc } from '../core/utils.js?v=20260915d';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor） */
 const DUTY_TAB = {
   secretary: { 'three-meetings': 'calendar', 'theme-party': 'calendar', 'joint-event': 'calendar' },
   org: { taskforce: 'taskforce', 'develop-party-member': 'development', 'democratic-review': 'talent' },
-  disc: { taskforce: 'tf-view', 'attendance-inspection': 'attendance', 'feedback-handling': 'mailbox' },
+  disc: { taskforce: 'tf-view', 'attendance-inspection': 'attendance', 'feedback-handling': 'my-dispatch' },
   prop: { 'info-platform': 'tasks', 'theme-party': 'kanban' },
   leader: { 'three-meetings': 'write', 'theme-party': 'write', taskforce: 'tf-view', 'attendance-inspection': 'attendance' },
   visitor: { 'three-meetings': 'activities', 'theme-party': 'activities', taskforce: 'projects' },

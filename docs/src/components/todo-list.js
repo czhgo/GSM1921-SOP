@@ -7,14 +7,18 @@
 //  2026-09-07 IA-C1 Task5：旧 renderTodoList（按分类/actionType 大列表）已无调用者移除
 //  （六台待办页 C1 Task4 已改挂 renderDomainTodoList）；按钮文案表去无生产者死键
 //  （taskforce-archive/notice-read/review-submit，详见 _renderAggregateItem 登记注释）
+//  2026-09-14 支书裁定：域折组「组内行」接入统一检索引擎（list-filter.js）——每域一个实例，
+//  只给分页（keyword null + facets [] → 引擎不渲染检索条；组内行数 ≤8 的域不出翻页控件，观感不变）；
+//  行 HTML（含 bulk 批量块）逐字保留，行内按钮改事件委托挂域列表根（引擎翻页重绘行后绑定仍有效）。
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18.2
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from './badges.js?v=20260914s';
-import { solidAccentStyle } from '../core/constants.js?v=20260914s';
+import { badgeHtml } from './badges.js?v=20260915d';
+import { renderFilteredList } from './list-filter.js?v=20260915d';
+import { solidAccentStyle } from '../core/constants.js?v=20260915d';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../services/todo.js?v=20260914s';
+import { isTodoExpired } from '../services/todo.js?v=20260915d';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -73,16 +77,8 @@ export function renderDomainTodoList(opts) {
 
   const groupsHtml = list.map(domain => {
     const isExpanded = expandedDomains.has(domain.domain);
-    // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
-    // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
-    const itemsHtml = (domain.groups || [])
-      .map(g => {
-        const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf);
-        return g.bulkHtml
-          ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
-          : row;
-      })
-      .join('');
+    // 组内行不再在此处 map+join：改由统一检索引擎在 bindEvents 时渲染进
+    // `${prefix}-todo-group-items` 宿主（域头/折叠/组内层级结构逐字保留）。
     return `
       <div class="${prefix}-todo-group mb-3" data-domain="${domain.domain}">
         <button type="button" class="${prefix}-todo-group-header w-full text-left flex items-center justify-between px-3 py-2 rounded-t-lg cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition-colors">
@@ -95,9 +91,7 @@ export function renderDomainTodoList(opts) {
           </div>
           <span class="text-xs text-gray-500 tabular-nums">${domain.count || 0}</span>
         </button>
-        <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg">
-          ${itemsHtml}
-        </div>
+        <div class="${prefix}-todo-group-items ${isExpanded ? '' : 'hidden'} rounded-b-lg"></div>
       </div>
     `;
   }).join('');
@@ -118,7 +112,7 @@ export function renderDomainTodoList(opts) {
   function bindEvents(container) {
     if (!container) return;
 
-    // 域折组展开/收起（与既有分类折叠同交互）
+    // 域折组展开/收起（与既有分类折叠同交互）——域头不属引擎重绘范围，绑定方式不变
     container.querySelectorAll(`.${prefix}-todo-group-header`).forEach(header => {
       header.addEventListener('click', () => {
         const group = header.closest(`.${prefix}-todo-group`);
@@ -131,45 +125,72 @@ export function renderDomainTodoList(opts) {
       });
     });
 
-    // 组行点击 → 选中进详情
-    container.querySelectorAll(`.${prefix}-todo-item-main[data-group-key]`).forEach(main => {
-      main.addEventListener('click', () => {
+    // 每域一个统一检索引擎实例（2026-09-14 裁定）：keyword null + facets [] →
+    // 引擎不渲染检索条，只出分页；组内行数 ≤8 的域不出翻页控件（短列表观感与改前一致）。
+    // 组内行 HTML 逐字保留（原 map+join 只改写为 rowHtml）。
+    container.querySelectorAll(`.${prefix}-todo-group[data-domain]`).forEach(groupEl => {
+      const host = groupEl.querySelector(`.${prefix}-todo-group-items`);
+      const domain = list.find(d => d.domain === groupEl.dataset.domain);
+      if (!host || !domain) return;
+      renderFilteredList(host, {
+        stateKey: `${prefix}-todo-domain-${domain.domain}`,
+        rows: domain.groups || [],
+        keyword: null,
+        facets: [],
+        countUnit: '条',
+        listClass: '',
+        emptyMessage: '该业务域暂无待办',
+        rowHtml: (g) => {
+          // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
+          // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
+          const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf);
+          return g.bulkHtml
+            ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
+            : row;
+        },
+      });
+    });
+
+    // 组行选中 / 处理 / 删除 / 催办：事件委托挂「不随列表重绘」的域列表根
+    // （引擎翻页重绘组内行后原先的逐元素绑定会失效；域列表根每次重建为新元素，不会累积重复绑定）
+    const listRoot = container.querySelector(`.${prefix}-todo-domain-list`);
+    listRoot?.addEventListener('click', (e) => {
+      // 催办入口（支书/副支书待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
+      const urgeBtn = e.target.closest(`.${prefix}-todo-urge-btn[data-group-key]`);
+      if (urgeBtn) {
+        e.stopPropagation();
+        if (urgeBtn.disabled) return;
+        const g = _findGroupInDomains(list, urgeBtn.dataset.groupKey);
+        if (g && typeof onUrgeTodo === 'function') onUrgeTodo(g);
+        return;
+      }
+
+      // 组行动按钮（"处理"）
+      const actionBtn = e.target.closest(`.${prefix}-todo-action-btn[data-group-key]`);
+      if (actionBtn) {
+        e.stopPropagation();
+        const g = _findGroupInDomains(list, actionBtn.dataset.groupKey);
+        if (g) onActionTodo(g);
+        return;
+      }
+
+      // 删除按钮（域折组内删除 = 删除整组；实时组台 onDeleteTodo=null 不渲染）
+      const delBtn = e.target.closest(`.${prefix}-todo-del-btn[data-group-key]`);
+      if (delBtn) {
+        e.stopPropagation();
+        if (typeof onDeleteTodo !== 'function') return;
+        const g = _findGroupInDomains(list, delBtn.dataset.groupKey);
+        if (g) onDeleteTodo(g);
+        return;
+      }
+
+      // 组行点击 → 选中进详情
+      const main = e.target.closest(`.${prefix}-todo-item-main[data-group-key]`);
+      if (main) {
         const g = _findGroupInDomains(list, main.dataset.groupKey);
         if (g) onSelectTodo(g);
-      });
+      }
     });
-
-    // 组行动按钮（"处理"）
-    container.querySelectorAll(`.${prefix}-todo-action-btn[data-group-key]`).forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const g = _findGroupInDomains(list, btn.dataset.groupKey);
-        if (g) onActionTodo(g);
-      });
-    });
-
-    // 删除按钮（域折组内删除 = 删除整组；实时组台 onDeleteTodo=null 不渲染）
-    if (typeof onDeleteTodo === 'function') {
-      container.querySelectorAll(`.${prefix}-todo-del-btn[data-group-key]`).forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const g = _findGroupInDomains(list, btn.dataset.groupKey);
-          if (g) onDeleteTodo(g);
-        });
-      });
-    }
-
-    // 催办入口（支书/副支书待办页逐条催办；opt-in——未传 onUrgeTodo 不渲染）
-    if (typeof onUrgeTodo === 'function') {
-      container.querySelectorAll(`.${prefix}-todo-urge-btn[data-group-key]`).forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (btn.disabled) return;
-          const g = _findGroupInDomains(list, btn.dataset.groupKey);
-          if (g) onUrgeTodo(g);
-        });
-      });
-    }
   }
 
   return { html, bindEvents };
@@ -213,7 +234,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
     // 2026-09-08 裁决批一（D3/D6 交接去顶卡入域折组）：数据交接行内确认/跳转
     'handoff-attendance-archival': '确认接收',
     'handoff-inspection-report': '确认接收',
-    'handoff-material-shortage': '去补课制度',
+    'handoff-material-shortage': '去补课',
   };
   const actionLabel = actionLabels[g.actionKey] || actionLabels[g.actionType] || '处理';
 

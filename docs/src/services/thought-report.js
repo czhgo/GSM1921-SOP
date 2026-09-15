@@ -23,20 +23,20 @@
 //   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914s';
-import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260914s';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260914s';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914s';
+import { mockDB } from '../core/domain.js?v=20260915d';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260915d';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260915d';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260915d';
 // 期次纯函数单一源 = core/period.js（服务层与通知模板共用，避免 core→services 环依赖）
-import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260914s';
-import { generateId } from '../core/id.js?v=20260914s';
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260915d';
+import { generateId } from '../core/id.js?v=20260915d';
 // 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260914s';
-import { NoticeStore } from './notice.js?v=20260914s';
-import { getPersonById } from './person.js?v=20260914s';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260915d';
+import { NoticeStore } from './notice.js?v=20260915d';
+import { getPersonById } from './person.js?v=20260915d';
 
 /** 期次助手再导出（既有/新增消费方沿用 services/thought-report.js 入口，勿另建第二份实现） */
-export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260914s';
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260915d';
 
 // ════════════════════════════════════════════════════════════════
 //  访问门（单一源，2026-09-13）
@@ -193,6 +193,16 @@ export function addThoughtReport({ personId, content, title, period }) {
 }
 
 /**
+ * 全量思想汇报（读取侧经 _effective 归一：期次与状态字段一律补全，调用方不必各自兜底）
+ * 2026-09-14 批次 41（Q-23-18 余项）：组织台「思想汇报台账」＝人 × 期次宽表需要
+ *   **跨人**的全量归一集合（此前只有按人/待初阅两个归一出口，无全量出口）。
+ * @returns {Object[]} 归一后记录（原顺序）
+ */
+export function listAllThoughtReports() {
+  return loadThoughtReports().map(_effective);
+}
+
+/**
  * 按人归集查询（读取侧经 _effective 归一：给定个人档案 → 返回其全部思想汇报，
  * 含 pending/needs_revision/archived，按提交时间倒序）
  * @param {string} personId
@@ -232,8 +242,7 @@ export function countThoughtReportsByPerson(personId) {
  * @returns {Object[]}
  */
 export function listPendingReviews() {
-  return loadThoughtReports()
-    .map(_effective)
+  return listAllThoughtReports()
     .filter(r => r.reviewStatus === THOUGHT_REVIEW_STATUS.PENDING)
     .sort((a, b) => (a.submittedAt || '').localeCompare(b.submittedAt || ''));
 }

@@ -3,27 +3,27 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260914s';
-import { BranchService } from '../../../services/runtime.js?v=20260914s';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260914s';
+import { setState, getAppState } from '../../../core/state.js?v=20260915d';
+import { BranchService } from '../../../services/runtime.js?v=20260915d';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260915d';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260914s';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260914s';
-import { persist } from '../../../core/data-adapter.js?v=20260914s';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260914s';
-import { recordFormShell } from '../../../components/forms.js?v=20260914s';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260914s';
-import { badgeHtml } from '../../../components/badges.js?v=20260914s';
+import { groupOptions } from '../../../services/party-group.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260915d';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260915d';
+import { persist } from '../../../core/data-adapter.js?v=20260915d';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915d';
+import { recordFormShell } from '../../../components/forms.js?v=20260915d';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260915d';
+import { badgeHtml } from '../../../components/badges.js?v=20260915d';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260914s';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260914s';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260914s';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260914s';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260914s';
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260915d';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260915d';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260915d';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260915d';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260915d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260914s';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260915d';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -221,7 +221,9 @@ export function renderContent(ctx) {
       // D7 裁决批二（2026-09-08）：子记录区只读化——考勤/考察类 readOnly=true（双写口消除，
       // 统一走对应「上传」页：考勤上传 / 考察上传，与专班详情只读化先例同款）；宣传/材料记录
       // 无对应上传页，保留内联添加/删除（readOnly=false）。
-      function renderActSubTable(type, items, readOnly) {
+      // 子记录表：统一检索引擎（支书 2026-09-14 裁定）——table 模式（rowHtml 返回 <tr>）+ 关键词 + 分页；
+      // 行数 ≤8 不渲染检索条；表头/行线/悬停由 styles.css::.data-table 单一源提供（勿在行内重复声明）。
+      function renderActSubTable(hostEl, type, items, readOnly) {
         const configs = {
           attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
           inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
@@ -233,14 +235,7 @@ export function renderContent(ctx) {
           if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
           return item[key] || '-';
         };
-        const rows = items.map((item, idx) => `
-          <tr>
-            ${cfg.fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-            ${readOnly ? '' : `<td class="text-center"><button class="act-sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
-          </tr>
-        `).join('');
-
-        return `
+        hostEl.insertAdjacentHTML('beforeend', `
           <div class="mt-3">
             <div class="flex items-center justify-between gap-2 mb-1.5">
               <h5 class="text-xs font-bold font-title-cn" style="color:${cfg.color}">${cfg.label} (${items.length})</h5>
@@ -248,14 +243,29 @@ export function renderContent(ctx) {
                 ? `<span class="text-[11px] text-amber-700 text-right">${type === 'attendance' ? '考勤请到「考勤上传」录入' : '考察请到「考察上传」录入'}</span>`
                 : `<button class="act-sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="color:${cfg.color};border-color:${cfg.color}40" data-type="${type}">+ 添加</button>`}
             </div>
-            ${items.length === 0
-              ? '<p class="text-[12px] text-gray-500 pl-2">暂无记录</p>'
-              : `<table class="data-table"><thead><tr>
-                  ${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}
-                  ${readOnly ? '' : '<th class="w-12"></th>'}
-                </tr></thead><tbody>${rows}</tbody></table>`
-            }
-          </div>`;
+            <div class="act-sub-table-host"></div>
+          </div>`);
+        renderFilteredList(hostEl.lastElementChild.querySelector('.act-sub-table-host'), {
+          stateKey: `leader-act-sub-${actId}-${type}`,
+          rows: items,
+          keyword: { keys: cfg.fields.map(f => (f.key === 'time' ? 'recordedAt' : f.key)), placeholder: `搜索${cfg.label}…` },
+          countUnit: '条',
+          emptyMessage: '暂无记录',
+          table: {
+            headHtml: `<tr>${cfg.fields.map(f => `<th>${f.label}</th>`).join('')}${readOnly ? '' : '<th class="w-12"></th>'}</tr>`,
+            colSpan: cfg.fields.length + (readOnly ? 0 : 1),
+          },
+          rowHtml: (item) => {
+            // 删除按全量下标（分页切片下 i 只是页内序，故用 indexOf 取原下标，语义与改前一致）
+            const idx = items.indexOf(item);
+            return `
+              <tr>
+                ${cfg.fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
+                ${readOnly ? '' : `<td class="text-center"><button class="act-sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+              </tr>
+            `;
+          },
+        });
       }
 
       // dogfood 权限专项 2026-09-13：角色编辑权（支部级定向活动组长只读，与按钮禁用同源）
@@ -291,9 +301,26 @@ export function renderContent(ctx) {
           <h6 class="font-title-cn text-xs font-bold text-gray-600 mb-1">子记录</h6>
           ${visBlocks.length === 0
             ? '<p class="text-[12px] text-gray-500 pl-2">本支部已停用全部活动产出块——如需启用请联系党委在「支部配置」开启</p>'
-            : visBlocks.map(type => renderActSubTable(type, actSubs[type] || [], type === 'attendance' || type === 'inspection')).join('')}
+            : '<div id="act-subs-host"></div>'}
         </div>
       `;
+
+      // 子记录表逐块接入统一检索引擎（每块一实例，stateKey 带活动+类型 → 跨重渲染保筛选/页码）
+      const subsHost = detailPanel.querySelector('#act-subs-host');
+      if (subsHost) {
+        visBlocks.forEach(type => renderActSubTable(subsHost, type, actSubs[type] || [], type === 'attendance' || type === 'inspection'));
+        // 删除子记录（D7：仅宣传/材料有删除按钮）：事件委托——引擎筛选/翻页会重绘行，行内直接绑定会失效
+        subsHost.addEventListener('click', (e) => {
+          const btn = e.target.closest('.act-sub-del-btn');
+          if (!btn) return;
+          const type = btn.dataset.type;
+          const idx = parseInt(btn.dataset.idx);
+          actSubs[type].splice(idx, 1);
+          saveActSubs();
+          const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
+          if (actEl) actEl.click();
+        });
+      }
 
       // 初始化详情角色 PersonPicker（预填主源 assignments）
       if (_detailOrgPicker) { _detailOrgPicker.destroy(); _detailOrgPicker = null; }
@@ -405,18 +432,6 @@ export function renderContent(ctx) {
             const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
             if (actEl) actEl.click();
           });
-        });
-      });
-
-      // 删除子记录（D7：仅宣传/材料记录有删除按钮——考勤/考察只读无此列）
-      detailPanel.querySelectorAll('.act-sub-del-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const type = btn.dataset.type;
-          const idx = parseInt(btn.dataset.idx);
-          actSubs[type].splice(idx, 1);
-          saveActSubs();
-          const actEl = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
-          if (actEl) actEl.click();
         });
       });
   };

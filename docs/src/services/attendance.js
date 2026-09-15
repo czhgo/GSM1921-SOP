@@ -3,15 +3,15 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260914s';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260914s';
-import { persist } from '../core/data-adapter.js?v=20260914s';
-import { bumpToken } from '../core/version-token.js?v=20260914s'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260914s';
-import { isInitStateActive } from './init-reset.js?v=20260914s'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260914s';
-import { getRosterStats } from './roster.js?v=20260914s';
-import { loadActivities } from './activity.js?v=20260914s';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260915d';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260915d';
+import { persist } from '../core/data-adapter.js?v=20260915d';
+import { bumpToken } from '../core/version-token.js?v=20260915d'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260915d';
+import { isInitStateActive } from './init-reset.js?v=20260915d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260915d';
+import { getRosterStats } from './roster.js?v=20260915d';
+import { loadActivities } from './activity.js?v=20260915d';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -195,7 +195,7 @@ export function attendanceToLong(records) {
   return records.map(r => ({
     id: r.id,
     name: _personName(r.personId),
-    // Q-21-7（2026-09-13）：透出 personId 供「考勤总表」姓名列接成员档案页入口（与 activityId 同型——
+    // Q-21-7（2026-09-13）：透出 personId 供「考勤明细」姓名列接成员档案页入口（与 activityId 同型——
     // 服务层唯一出口，勿在页面各自反查记录）
     personId: r.personId,
     // R-16：透出来源活动标识，供台账行补「查看该活动」链接（服务层唯一出口，勿在页面各自反查）

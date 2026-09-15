@@ -24,9 +24,9 @@ await p.waitForTimeout(3000);
 // 2. 注入合成补课任务（指向 att38 = ABSENT），持久化
 await p.evaluate(async () => {
   // 版本串与全库一致（20260901c）：import 页面主模块实例（不一致会注入孤儿实例，页面读不到）
-  const { mockDB } = await import('/src/core/domain.js?v=20260914s');
-  const { persist } = await import('/src/core/data-adapter.js?v=20260914s');
-  const { loadAttendanceRecords, saveAttendanceRecords } = await import('/src/services/attendance.js?v=20260914s');
+  const { mockDB } = await import('/src/core/domain.js?v=20260915d');
+  const { persist } = await import('/src/core/data-adapter.js?v=20260915d');
+  const { loadAttendanceRecords, saveAttendanceRecords } = await import('/src/services/attendance.js?v=20260915d');
   // R-5 测试隔离（自重置前置态）：把 att38 回「未补课/逾期」初态，使回写分支每次都真实执行。
   // 不依赖共享 data.db 上一轮残留——上轮已 made_up 时回写会被服务端守卫短路（rec.status 非
   // ABSENT/LEAVE），断言退化为恒真；loadAttendanceRecords 在库为空时回退演示种子，保证可重置。
@@ -56,13 +56,15 @@ await p.evaluate(async () => {
   // 确认 att38 当前状态已复位为 absent
   return att ? att.status : 'missing';
 });
-// 重载使补课 tab 读到注入任务
+// 重载使「补课」分段读到注入任务
 await p.goto(`${BASE}/workspace/disc.html`, { waitUntil: 'domcontentloaded' });
 await p.waitForTimeout(2500);
 
-// 3. 切到补课制度 tab
-await p.click('.disc-tab-btn[data-disc-tab="mailbox"]').catch(() => {});
-await p.waitForTimeout(1500);
+// 3. 切到「考勤管理」tab 的「补课」分段（补课原为独立 tab，2026-09-15 并入考勤管理）
+await p.click('.disc-tab-btn[data-disc-tab="attendance"]').catch(() => {});
+await p.waitForTimeout(1200);
+await p.click('.att-seg-btn[data-seg="makeup"]').catch(() => {});
+await p.waitForTimeout(1200);
 
 // 4. 找到注入任务并点击"确认完成"
 const taskVisible = await p.evaluate(() => !!document.querySelector('.btn-disc-confirm-makeup[data-task-id="mk_b31_test"]'));
@@ -74,7 +76,7 @@ if (taskVisible) {
 
 // 5. 验证 att38 回写为 made_up
 const st = await p.evaluate(async () => {
-  const { mockDB } = await import('/src/core/domain.js?v=20260914s');
+  const { mockDB } = await import('/src/core/domain.js?v=20260915d');
   const att = mockDB.attendances.find(r => r.id === 'att38');
   const task = (mockDB.makeupTasks || []).find(t => t.id === 'mk_b31_test');
   return { attStatus: att ? att.status : 'missing', taskStatus: task ? task.status : 'missing', attOverdue: att ? att.overdue : null };

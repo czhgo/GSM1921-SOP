@@ -66,7 +66,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 ```
 考勤（挂靠 activityId）
  ├─ 缺勤/请假 ──→ 补课任务 MakeupTask ──→ 补课完成 ──→ 考勤回写「已补」（§2.8）
- └─ 跨活动聚合 ──→ 考勤总表（纪检维护）──→ 个人/支部考勤统计
+ └─ 跨活动聚合 ──→ 考勤明细（纪检维护）──→ 个人/支部考勤统计
 
 考察（挂靠 activityId / taskforceId）
  ├─ 纪检确认录入总表 ──→ 组织委员每月建档（考察档案）──→ 人才库/发展党员依据（§3.3）
@@ -86,7 +86,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 | 数据 | 上下文挂靠（副产物） | 聚合去向（总数据） | 关键字段 |
 |---|---|---|---|
-| 考勤 | 活动 `activityId` | 考勤总表 → 个人考勤统计 | `activityId` |
+| 考勤 | 活动 `activityId` | 考勤明细 → 个人考勤统计 | `activityId` |
 | 考察 | 活动/专班 | 考察总表 → 组织委员建档 → 人才库 | `activityId`/`taskforceId` |
 | 分工 | 活动/专班 | 分工汇总 → 工作量统计 | `assignmentId` |
 | 补课 | 考勤（缺勤/请假触发） | 回写考勤「已补」 | `makeupTask`→考勤回写 |
@@ -144,7 +144,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 **要点**：考勤为 0-1 变量（出勤/请假/缺勤），对象为党员+预备党员，适用三会一课；考察为工作量记录（组织/深度参与），对象为深度参与者和组织者，适用所有支部工作。系统记录字段：考勤见 DATA_MODEL §2.5 AttendanceRecord；考察见 DATA_MODEL §2.5.1 InspectionRecord（`level`/`role`/`recordedBy`/`recordedAt`/`status`，持久化域 `mockDB.inspections`）。
 
-> **（论断 P-026，2026-08-09 自论断汇编迁出）：人才库（组织委员维护）是画像数据库，基于考察信息更新——装的是"画像"（某同志擅长什么、表现如何、有何特长），不是原始材料本身；原始材料库（纪检委员持有）是考勤总表、考察总表等原始记录。纪检委员把考察信息给组织委员，原始材料留在纪检委员处——不是副本关系。**
+> **（论断 P-026，2026-08-09 自论断汇编迁出）：人才库（组织委员维护）是画像数据库，基于考察信息更新——装的是"画像"（某同志擅长什么、表现如何、有何特长），不是原始材料本身；原始材料库（纪检委员持有）是考勤明细、考察总表等原始记录。纪检委员把考察信息给组织委员，原始材料留在纪检委员处——不是副本关系。**
 
 ### 3.4 登录态说明
 
@@ -236,8 +236,6 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | `propTasks` | Object[] | 宣传任务（prop-commissioner 工作台） |
 | `weeklyReports` | WeeklyReport[] | 宣传周报记录 |
 | `archiveRecords` | ArchiveRecord[] | 档案归档记录（prop-commissioner 工作台） |
-| `mailboxConfig` | Object \| null | 纪检公邮配置 |
-| `mailboxHistory` | Object[] | 纪检公邮查收历史 |
 | `externalDispatches` | Object[] | 文件流外发确认记录 |
 | `branchDocs` | Object[] | 支部文件（一支部一存储空间，挂 branchId） |
 | `memberChangeRequests` | Object[] | 成员变更审批申请 |
@@ -472,6 +470,6 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 
 **根因**：看板视图的 mock 数据（KANBAN\_MOCKS）和正式数据层（TaskForceRecordStore）在不同时期独立创建，从未对接。KANBAN\_MOCKS 是早期设计原型，TaskForceRecordStore 是后来实现的正式数据服务——两者并行存在但互不关联。
 
-**为什么看板必须从正式数据源动态派生？** 因为看板是视图层，不是数据层——同一数据源原则（原 insights §1.3 同一概念只在一个地方表达）要求同一份数据，不同切面展示。看板展示的专班状态必须与专班管理页面的数据一致：如果看板显示"招募中"而管理页面显示"已启动"，用户会失去对系统的信任。两套数据意味着两套真相——当专班名称、状态、成员在 KANBAN\_MOCKS 和 TaskForceRecordStore 中不一致时，用户看到哪个？看板视图应从 TaskForceRecordStore 动态派生，正如考勤总表从 AttendanceRecordStore 派生、考察总表从 InspectionRecordStore 派生。数据一致性是视图的底线要求。
+**为什么看板必须从正式数据源动态派生？** 因为看板是视图层，不是数据层——同一数据源原则（原 insights §1.3 同一概念只在一个地方表达）要求同一份数据，不同切面展示。看板展示的专班状态必须与专班管理页面的数据一致：如果看板显示"招募中"而管理页面显示"已启动"，用户会失去对系统的信任。两套数据意味着两套真相——当专班名称、状态、成员在 KANBAN\_MOCKS 和 TaskForceRecordStore 中不一致时，用户看到哪个？看板视图应从 TaskForceRecordStore 动态派生，正如考勤明细从 AttendanceRecordStore 派生、考察总表从 InspectionRecordStore 派生。数据一致性是视图的底线要求。
 
 **生效条件**：适用于所有从正式数据源派生的视图（看板、甘特、表格等）。独立 mock 数据仅在开发初期作为原型使用，正式数据层就绪后必须清除。

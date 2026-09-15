@@ -9,20 +9,20 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260914s';
-import { generateId } from './id.js?v=20260914s';
+import { mockDB, SCHEMA_VERSION } from './domain.js?v=20260915d';
+import { generateId } from './id.js?v=20260915d';
 // 计票方式（ballotMode）单一源：正式表决无记名落库口径与 server/routes/committee.js 同源（constants.js）
-import { ballotModeOfActivity } from './constants.js?v=20260914s';
+import { ballotModeOfActivity } from './constants.js?v=20260915d';
 // 修复（T175）：直接从 ../mock/activities.js 导入 ACTIVITIES，
 // 绕过 ../mock/index.js 的 re-export 转发（与 services/mock.js 对齐，
 // 消除循环依赖/TDZ 导致的 seed 失败风险）
-import { ACTIVITIES } from '../mock/activities.js?v=20260914s';
-import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260914s';
+import { ACTIVITIES } from '../mock/activities.js?v=20260915d';
+import { SEED_TASKS, SEED_ASSIGNMENTS, SEED_ARCHIVE_RECORDS, SEED_SIGNUPS } from '../mock/seed.js?v=20260915d';
 // Seed 增量合并用（2026-08-05）：attendance.js/notices.js 为纯数据模块，
 // 经 services/person.js（只依赖 domain/people）→ 无指向本文件的循环依赖
-import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260914s';
-import { MOCK_NOTICES } from '../mock/notices.js?v=20260914s';
-import { BRANCHES } from '../mock/branches.js?v=20260914s';
+import { ATTENDANCE_RECORDS } from '../mock/attendance.js?v=20260915d';
+import { MOCK_NOTICES } from '../mock/notices.js?v=20260915d';
+import { BRANCHES } from '../mock/branches.js?v=20260915d';
 
 const STORAGE_KEY = 'workflowos_branch_db_v1';
 
@@ -73,14 +73,12 @@ function _saveToStorage() {
       todos:       mockDB.todos,
       // T233 报名渠道：报名记录持久化（2026-08-08 修复：此前漏写导致刷新即丢）
       signups:     mockDB.signups,
-      // 2026-08-05 假操作修复：复盘/宣传/公邮域补入持久化（刷新不再丢失）
+      // 2026-08-05 假操作修复：复盘/宣传域补入持久化（刷新不再丢失）
       activityReviews: mockDB.activityReviews,
       taskforceReviews: mockDB.taskforceReviews,
       propTasks:     mockDB.propTasks,
       weeklyReports: mockDB.weeklyReports,
       archiveRecords: mockDB.archiveRecords,
-      mailboxConfig:  mockDB.mailboxConfig,
-      mailboxHistory: mockDB.mailboxHistory,
       // 2026-08-10 文件流内控：外发确认记录持久化
       externalDispatches: mockDB.externalDispatches,
       // 2026-08-18 支部文件：持久化
@@ -257,14 +255,12 @@ function _loadFromStorage() {
     if (Array.isArray(parsed.notices))     mockDB.notices     = parsed.notices;
     if (Array.isArray(parsed.todos))       mockDB.todos       = parsed.todos;
     if (Array.isArray(parsed.signups))     mockDB.signups     = parsed.signups;
-    // 2026-08-05 假操作修复：复盘/宣传/公邮域恢复（刷新不再丢失）
+    // 2026-08-05 假操作修复：复盘/宣传域恢复（刷新不再丢失）
     if (Array.isArray(parsed.activityReviews))  mockDB.activityReviews  = parsed.activityReviews;
     if (Array.isArray(parsed.taskforceReviews)) mockDB.taskforceReviews = parsed.taskforceReviews;
     if (Array.isArray(parsed.propTasks))     mockDB.propTasks     = parsed.propTasks;
     if (Array.isArray(parsed.weeklyReports)) mockDB.weeklyReports = parsed.weeklyReports;
     if (Array.isArray(parsed.archiveRecords)) mockDB.archiveRecords = parsed.archiveRecords;
-    if (parsed.mailboxConfig && typeof parsed.mailboxConfig === 'object') mockDB.mailboxConfig = parsed.mailboxConfig;
-    if (Array.isArray(parsed.mailboxHistory)) mockDB.mailboxHistory = parsed.mailboxHistory;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;
@@ -462,7 +458,7 @@ export const MockAdapter = {
     if (merged) _saveToStorage();
     // 数据加载完成广播：通知 header 角标等初始快照据实刷新（与 data-loader 的
     // notifyDataLoaded 双保险；此处覆盖 data-adapter.init() mock 分支等直连路径）
-    import('./data-adapter.js?v=20260914s').then(({ notifyDataLoaded }) => notifyDataLoaded())
+    import('./data-adapter.js?v=20260915d').then(({ notifyDataLoaded }) => notifyDataLoaded())
       .catch(() => {});
   },
 
@@ -491,7 +487,7 @@ export const MockAdapter = {
         mockDB.activities = [...mockDB.activities, newItem];
         _saveToStorage();
         // 派生赋权待办（dynamic import 避免循环依赖）
-        import('../services/todo.js?v=20260914s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
         }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
         return newItem;
@@ -524,7 +520,7 @@ export const MockAdapter = {
         if (Array.isArray(mockDB.signups)) mockDB.signups = mockDB.signups.filter(s => !(s.sourceType === 'activity' && s.sourceId === id));
         if (Array.isArray(mockDB.notices)) mockDB.notices = mockDB.notices.filter(n => !(n.targetType === 'activity' && n.targetId === id));
         _saveToStorage();
-        import('../services/todo.js?v=20260914s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByActivity(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -545,11 +541,11 @@ export const MockAdapter = {
           t.activityId === id && t.status !== 'completed' ? { ...t, status: 'completed' } : t
         );
         _saveToStorage();
-        import('../services/todo.js?v=20260914s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromActivityArchive(archived);
         }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
         // 2026-08-08 归档闭环：活动归档 → 配套通知随之一并归档，退出工作区
-        import('../services/notice.js?v=20260914s').then(({ NoticeStore }) => {
+        import('../services/notice.js?v=20260915d').then(({ NoticeStore }) => {
           NoticeStore.archiveBySource('activity', id);
         }).catch(e => console.warn('[MockAdapter] 归档关联通知失败：', e));
         return archived;
@@ -653,7 +649,7 @@ export const MockAdapter = {
         const tf = { ...data, id: generateId('tf'), createdAt: new Date().toISOString() };
         mockDB.taskforces = [...mockDB.taskforces, tf];
         _saveToStorage();
-        import('../services/todo.js?v=20260914s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deriveFromTaskforceCreate(tf);
         }).catch(e => console.warn('[MockAdapter] 派生专班赋权待办失败：', e));
         return tf;
@@ -676,7 +672,7 @@ export const MockAdapter = {
       return _withDelay(() => {
         mockDB.taskforces = mockDB.taskforces.filter(t => t.id !== id);
         _saveToStorage();
-        import('../services/todo.js?v=20260914s').then(({ LifecycleTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ LifecycleTodoDeriver }) => {
           LifecycleTodoDeriver.deleteByTaskforce(id);
         }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
         return { id };
@@ -691,7 +687,7 @@ export const MockAdapter = {
         const notice = { ...data, id: data.id || generateId('notice'), publishDate: data.publishDate || new Date().toISOString().slice(0, 10) };
         mockDB.notices = [...mockDB.notices, notice];
         _saveToStorage();
-        import('../services/todo.js?v=20260914s').then(({ NoticeTodoDeriver }) => {
+        import('../services/todo.js?v=20260915d').then(({ NoticeTodoDeriver }) => {
           NoticeTodoDeriver.deriveFromNotice(notice);
         }).catch(e => console.warn('[MockAdapter] 通知派生待办失败：', e));
         return notice;
@@ -959,13 +955,13 @@ export const MockAdapter = {
   // 的 mock 分支（动态 import 防静态环，与 todo.js 同法）。
   users: {
     list() {
-      return _withDelay(() => import('../services/person.js?v=20260914s')
+      return _withDelay(() => import('../services/person.js?v=20260915d')
         .then(({ getBaseMemberRecords }) => getBaseMemberRecords()));
     },
 
     create(data) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260914s');
+        const { PersonStore } = await import('../services/person.js?v=20260915d');
         const r = await PersonStore.saveMember(data, { by: data?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -974,7 +970,7 @@ export const MockAdapter = {
 
     update(id, patch) {
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260914s');
+        const { PersonStore } = await import('../services/person.js?v=20260915d');
         const r = await PersonStore.saveMember({ id, ...patch }, { by: patch?.by });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return r.member;
@@ -984,7 +980,7 @@ export const MockAdapter = {
     delete(id) {
       // adapter 层为数据原语（PersonStore.removeMember 为带引用守卫的业务口；此处直删由守卫在业务层把关）
       return _withDelay(async () => {
-        const { PersonStore } = await import('../services/person.js?v=20260914s');
+        const { PersonStore } = await import('../services/person.js?v=20260915d');
         const r = await PersonStore.removeMember(id, { guardRefs: false });
         if (!r.ok) throw Object.assign(new Error(r.reason), { type: 'BadRequestError' });
         return { id };
@@ -1192,7 +1188,7 @@ export const MockAdapter = {
         // （与 services/member-confirmation.js `_applyApproved` 同法；动态 import 防静态环）。
         // API 模式由 server/routes/member.js 写 users 表（已正确），本分支仅 mock 形态生效。
         if (row.toStage) {
-          const { PersonStore } = await import('../services/person.js?v=20260914s');
+          const { PersonStore } = await import('../services/person.js?v=20260915d');
           const saved = await PersonStore.saveMember(
             { id: row.personId, developStage: row.toStage },
             { by: row.confirmedBy || null },
@@ -1297,7 +1293,7 @@ export const MockAdapter = {
  * API 模式下 10 个主服务端集合（activities/tasks/attendances/inspections/
  * taskforces/notices/todos/assignments/makeupTasks + users）以服务器为准
  * （由 init() 拉取覆盖），但 niche 集合与 T-209 新域（文件空间/经验沉淀/
- * 合规引用/子记录/报名/复盘/宣传/档案/公邮/外发确认等）在服务器瞬时不可达或
+ * 合规引用/子记录/报名/复盘/宣传/档案/外发确认等）在服务器瞬时不可达或
  * 旧版服务器缺表时，从 localStorage 备份恢复它们，避免 API 模式下这些功能空态。
  *
  * 注意：绝不动 10 个主服务端集合。
@@ -1323,8 +1319,6 @@ export function restoreNicheCollections() {
     if (Array.isArray(parsed.propTasks))       mockDB.propTasks       = parsed.propTasks;
     if (Array.isArray(parsed.weeklyReports))   mockDB.weeklyReports   = parsed.weeklyReports;
     if (Array.isArray(parsed.archiveRecords))  mockDB.archiveRecords  = parsed.archiveRecords;
-    if (parsed.mailboxConfig && typeof parsed.mailboxConfig === 'object') mockDB.mailboxConfig = parsed.mailboxConfig;
-    if (Array.isArray(parsed.mailboxHistory))  mockDB.mailboxHistory  = parsed.mailboxHistory;
     if (Array.isArray(parsed.externalDispatches)) mockDB.externalDispatches = parsed.externalDispatches;
     if (Array.isArray(parsed.branchDocs)) mockDB.branchDocs = parsed.branchDocs;
     if (Array.isArray(parsed.memberChangeRequests)) mockDB.memberChangeRequests = parsed.memberChangeRequests;

@@ -9,7 +9,9 @@ import { replaceCollection } from './db.js';
  * 现以 issues.json 为**内容单一源**播种，并按真匿名口径脱敏：
  *   · submittedBy 一律 '匿名'、anonymous=true、participants=[]（防止经参与者反查提交人）；
  *   · 不写 tokenHash（仅判重/限频用，种子无此需求）；
- *   · 保留处置类字段（assignee/assigneeRole/dispatchHistory/comments/reactions）用于演示指派与处置链路。
+ *   · 保留处置类字段（assignee/assigneeRole/dispatchHistory/comments/reactions）用于演示指派与处置链路；
+ *   · 支部归属 branchId（每个组织独立 issue 空间，2026-09-15 支书裁定）：取 issues.json 所载；
+ *     存量缺省按部署默认支部 'br-b1'（与前端 services/issues.js 写入口径 getBranchIdOfPerson 同源）。
  */
 function seedIssues() {
   let raw;
@@ -20,7 +22,7 @@ function seedIssues() {
   }
   return (raw.issues || []).map((r) => {
     const { tokenHash: _t, participants: _p, submittedBy: _s, ...rest } = r;
-    return { ...rest, submittedBy: '匿名', anonymous: true, participants: [] };
+    return { ...rest, branchId: r.branchId || 'br-b1', submittedBy: '匿名', anonymous: true, participants: [] };
   });
 }
 

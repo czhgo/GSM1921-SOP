@@ -44,8 +44,6 @@
  * - propTasks: 宣传任务
  * - weeklyReports: 宣传周报
  * - archiveRecords: 档案归档
- * - mailboxConfig: 公邮配置（单对象聚合域，__root__ 单行）
- * - mailboxHistory: 公邮查收历史
  * - externalDispatches: 文件流外发确认（T-208）
  * - actSubRecords: 活动子记录（聚合域，__root__ 单行）
  * - tfSubRecords: 专班子记录（聚合域，__root__ 单行）
@@ -201,7 +199,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260914s');
+      const { mockDB } = await import('./domain.js?v=20260915d');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -218,15 +216,15 @@ export async function init() {
 
       // T-218：niche 集合（经验沉淀/合规引用/文件空间/图片记录）从后端拉取填充，
       // 拉取失败时回退本地备份（不影响主集合；旧行为是纯本地恢复）
-      // T-209 全栈同步：再补拉 8 个数组域（报名/活动复盘/专班复盘/宣传任务/周报/档案/公邮历史/外发确认）
-      // + 3 个聚合域（活动子记录/专班子记录/公邮配置，以 __root__ 单行存储，拉取后解包）。
+      // T-209 全栈同步：再补拉 7 个数组域（报名/活动复盘/专班复盘/宣传任务/周报/档案/外发确认）
+      // + 2 个聚合域（活动子记录/专班子记录，以 __root__ 单行存储，拉取后解包）。
       try {
         const [
           experienceDeposits, complianceReferences,
           fileSpaceRecords, imageRecords,
           signups, activityReviews, taskforceReviews,
           propTasks, weeklyReports, archiveRecords,
-          mailboxHistory, externalDispatches,
+          externalDispatches,
           branchDocs,
           branches,
           memberChangeRequests, committeeBroadcasts, agendaVotes,
@@ -235,7 +233,7 @@ export async function init() {
           thoughtReports,
           partyGroups,
           memberFlows,
-          actSubRecordsRows, tfSubRecordsRows, mailboxConfigRows,
+          actSubRecordsRows, tfSubRecordsRows,
         ] = await Promise.all([
           adapter.experienceDeposits.list(),
           adapter.complianceReferences.list(),
@@ -247,7 +245,6 @@ export async function init() {
           adapter.propTasks.list(),
           adapter.weeklyReports.list(),
           adapter.archiveRecords.list(),
-          adapter.mailboxHistory.list(),
           adapter.externalDispatches.list(),
           adapter.branchDocs.list(),
           // P1 党委后台（2026-09-02）：支部实例随全量快照恢复（党委台账/支部管理数据通路）
@@ -267,7 +264,6 @@ export async function init() {
           adapter.memberFlows.list(),
           adapter.actSubRecords.list(),
           adapter.tfSubRecords.list(),
-          adapter.mailboxConfig.list(),
         ]);
         mockDB.experienceDeposits    = experienceDeposits || [];
         mockDB.complianceReferences  = complianceReferences || [];
@@ -279,7 +275,6 @@ export async function init() {
         mockDB.propTasks             = propTasks || [];
         mockDB.weeklyReports         = weeklyReports || [];
         mockDB.archiveRecords        = archiveRecords || [];
-        mockDB.mailboxHistory        = mailboxHistory || [];
         mockDB.externalDispatches    = externalDispatches || [];
         mockDB.branchDocs            = branchDocs || [];
         mockDB.branches              = branches || [];
@@ -295,11 +290,10 @@ export async function init() {
         mockDB.agendaVotes           = agendaVotes || [];
         mockDB.actSubRecords         = _unwrapRootRows(actSubRecordsRows, {});
         mockDB.tfSubRecords          = _unwrapRootRows(tfSubRecordsRows, {});
-        mockDB.mailboxConfig         = _unwrapRootRows(mailboxConfigRows, null);
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260914s');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260915d');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -318,8 +312,8 @@ export async function init() {
       // makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260914s');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260914s');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260915d');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260915d');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -329,7 +323,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260914s');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260915d');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -418,9 +412,9 @@ const SNAPSHOT_DEBOUNCE_MS = 800;
 let _cachedMockDB = null;
 
 /**
- * 聚合域解包（T-209 全栈同步）：actSubRecords/tfSubRecords/mailboxConfig 在服务端
+ * 聚合域解包（T-209 全栈同步）：actSubRecords/tfSubRecords 在服务端
  * 以「__root__ 单行」模式存储（{ id:'__root__', body:<原对象> }），init() 拉取时
- * 解包回原对象/单对象；空表回退默认值。
+ * 解包回原对象；空表回退默认值。
  * @param {Array} rows - list() 返回的行数组
  * @param {*} fallback - 空表时的默认值
  */
@@ -476,9 +470,9 @@ function _scheduleSnapshot() {
 }
 
 /**
- * 构造全量快照 payload（T-209 全栈同步：覆盖 mockDB 全部 26 个持久化域，不含 users）
+ * 构造全量快照 payload（T-209 全栈同步：覆盖 25 个快照域，不含 users 与 branchDocs 等按纪律排除项）
  * agendaVotes 为 REST 直写域，不进快照 payload（防防抖窗口以陈旧缓存覆盖服务器新表态）
- * 聚合域（actSubRecords/tfSubRecords/mailboxConfig）包装为「__root__ 单行」，
+ * 聚合域（actSubRecords/tfSubRecords）包装为「__root__ 单行」，
  * 与 init() 的 _unwrapRootRows 解包对称。
  */
 function _buildSnapshotPayload(mockDB) {
@@ -502,7 +496,6 @@ function _buildSnapshotPayload(mockDB) {
     propTasks:      mockDB.propTasks,
     weeklyReports:  mockDB.weeklyReports,
     archiveRecords: mockDB.archiveRecords,
-    mailboxHistory: mockDB.mailboxHistory,
     externalDispatches: mockDB.externalDispatches,
     thoughtReports: mockDB.thoughtReports,
     // 2026-09-14 批次 25：党小组一等实体（服务端 party_groups 表随快照写穿）
@@ -511,7 +504,6 @@ function _buildSnapshotPayload(mockDB) {
     memberFlows: mockDB.memberFlows,
     actSubRecords:  [{ id: '__root__', body: mockDB.actSubRecords || {} }],
     tfSubRecords:   [{ id: '__root__', body: mockDB.tfSubRecords || {} }],
-    mailboxConfig:  [{ id: '__root__', body: mockDB.mailboxConfig ?? null }],
   };
 }
 
@@ -524,7 +516,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260914s');
+    const { mockDB } = await import('./domain.js?v=20260915d');
     _cachedMockDB = mockDB;
     const payload = _collectDirty(mockDB);
     if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）

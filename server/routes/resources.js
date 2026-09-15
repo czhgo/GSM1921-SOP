@@ -39,8 +39,6 @@ const RESOURCE_TABLES = {
   propTasks: 'prop_tasks',
   weeklyReports: 'weekly_reports',
   archiveRecords: 'archive_records',
-  mailboxConfig: 'mailbox_config',
-  mailboxHistory: 'mailbox_history',
   externalDispatches: 'external_dispatches',
   actSubRecords: 'act_sub_records',
   tfSubRecords: 'tf_sub_records',
@@ -159,7 +157,7 @@ const ID_PREFIX = {
   complianceReferences: 'cr', fileSpaceRecords: 'fs', imageRecords: 'img',
   signups: 'su', activityReviews: 'arw', taskforceReviews: 'tfr',
   propTasks: 'ppt', weeklyReports: 'wr', archiveRecords: 'ar',
-  mailboxConfig: 'mbx', mailboxHistory: 'mbh', externalDispatches: 'ed',
+  externalDispatches: 'ed',
   actSubRecords: 'asr', tfSubRecords: 'tfs',
   branchDocs: 'bd',
   branches: 'br',
@@ -644,6 +642,9 @@ export function createResourcesRouter(db) {
   //  · PATCH /api/v1/issues/:id 处置/回复沿用既有口径（仅支书）
   //  防刷（真匿名下唯一手段）：客户端随机 token → 服务端仅存 tokenHash，仅用于判重/频率限制，
   //  不含 personId、不可反查人（哈希算法与前端同源 = constants.hashSubmitterToken）。
+  //  支部归属（2026-09-15 支书裁定「每个组织独立的 issue 空间」）：写入取登录人所属支部（actor.branchId，
+  //  缺省 'br-b1'，见 POST）；读取过滤在**前端** services/issues.js（withinBranch，单一源），
+  //  GET 仍返回全量（公开读口径不变），跨支部不可见由客户端按 viewer 所属支部收敛。
   // ════════════════════════════════════════════════════════════════
   const SECRETARY_SET = new Set(SECRETARY_ROLES);
   // 历史数据迁移：读取/回写时清理既有记录的 _realPersonId（保留其余内容）
@@ -691,10 +692,15 @@ export function createResourcesRouter(db) {
 
     const number = all.reduce((m, r) => Math.max(m, r.number || 0), 0) + 1;
     const id = 'issue-' + randomUUID().slice(0, 8);
+    // 支部归属（每个组织独立 issue 空间，2026-09-15 支书裁定）：服务端权威取登录人所属支部，
+    // 不采信客户端自述（防伪造跨支部）；无支部/党委级人员 → 部署默认支部 'br-b1'
+    //（与前端 services/issues.js 写入口径 getBranchIdOfPerson / 读过滤 withinBranch 同源）。
+    const branchId = actor.branchId || 'br-b1';
     // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空；实名 → 按现口径记 actor.id
     const record = {
       id,
       number,
+      branchId,
       title,
       body: text,
       scope,

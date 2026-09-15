@@ -82,7 +82,7 @@ const _FACTORY = {
     // kind 'branch-default'：域=纪检监督侧（支书待办派生消费）。批4 副本收编（2026-09-09 支书批）：
     //   secretary-overview _aggAttendanceRemind 由字面量 3 改引用本常量，勿在业务层另写字面量。
     entryRemindDays: 3,
-    // 考勤总表录入期限（同一提醒项 deadline = 活动日 + summaryDeadlineDays）
+    // 考勤明细录入期限（同一提醒项 deadline = 活动日 + summaryDeadlineDays）
     // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggAttendanceRemind 消费；勿另写字面量）。
     summaryDeadlineDays: 5,
   },

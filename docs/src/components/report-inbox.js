@@ -8,11 +8,13 @@
 //  本组件禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { showToast, escHtml } from '../core/utils.js?v=20260914s';
-import { getPersonName } from '../services/person.js?v=20260914s';
-import { solidAccentStyle } from '../core/constants.js?v=20260914s';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { showToast, escHtml } from '../core/utils.js?v=20260915d';
+import { getPersonName } from '../services/person.js?v=20260915d';
+import { solidAccentStyle } from '../core/constants.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
+import { renderFilteredList } from './list-filter.js?v=20260915d';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -24,6 +26,11 @@ import { solidAccentStyle } from '../core/constants.js?v=20260914s';
 // 自然移出列表后状态随之清掉。跨复用方（todo-tab/members-tab）共享同一模块态，
 // 同一 reportId 不会同屏出现在两个容器，无串扰。
 const _rowUi = new Map(); // reportId → { open: boolean, draft: string }
+
+// 引擎行数据交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
+//（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）。bind 侧调用方只传 role，拿不到 reports，
+// 故 render 按 role 暂存本轮「排序后行 + 强调色」，bind 取回后即挂载（同 role 不会同屏两份收件箱）。
+const _listPayload = new Map(); // role → { accent, rows }
 
 /**
  * 待答复收件箱 HTML
@@ -80,33 +87,9 @@ export function renderReportInboxHtml({
     for (const k of _rowUi.keys()) if (!alive.has(k)) _rowUi.delete(k);
   }
 
-  const rows = sorted.map(r => {
-    const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
-    const catColor = r.reportCategory === 'blocked' ? '#EF4444'
-      : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
-    const ds = deriveIssueDisplayState(r);
-    const requester = r.requestedBy
-      ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
-      : '';
-    // E-3：模块态回填（整块重渲染后仍保持展开/输入；只保留仍在列表中的行）
-    const ui = _rowUi.get(r.id);
-    const rowOpen = !!(ui && ui.open);
-    return `
-      <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
-        <button type="button" class="rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
-          <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
-          <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
-          <span class="text-xs text-gray-500 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
-          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
-          ${requester}
-          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
-        </button>
-        <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">
-          ${_renderInboxDetail(r, accent, (ui && ui.draft) || '')}
-        </div>
-      </div>`;
-  }).join('');
+  // 行内容迁至统一检索引擎（rowHtml 见 bindReportInbox——引擎须 DOM 就位后才可挂载）；
+  // 本轮排序后行与强调色按 role 交接给 bind（行 HTML 原样保留，仅换承载）
+  _listPayload.set(role, { accent, rows: sorted });
 
   return `
     <div class="card rounded-xl p-4 mb-4">
@@ -114,7 +97,7 @@ export function renderReportInboxHtml({
         <h4 class="font-title-cn text-sm font-bold text-gray-800">${title}</h4>
         <span class="text-xs text-gray-500">${subtitle || `${reports.length} 条待答复 · 行内答复`}</span>
       </div>
-      <div class="space-y-2">${rows}</div>
+      <div id="rep-inbox-list-host"></div>
     </div>`;
 }
 
@@ -169,37 +152,82 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
     if (!s) { s = { open: false, draft: '' }; _rowUi.set(id, s); }
     return s;
   };
+  // 待答复汇报列表接统一检索引擎（行 HTML 原样迁为 rowHtml；关键词 事项/汇报人，分页由引擎内置）。
+  // 行内动作一律事件委托于宿主：宿主由 renderReportInboxHtml 每次新建、引擎只重绘其内部，
+  // 故筛选/翻页后仍有效，且不随每次渲染叠加监听。
+  const host = container.querySelector('#rep-inbox-list-host');
+  const payload = host ? _listPayload.get(role) : null;
+  if (host && payload) {
+    renderFilteredList(host, {
+      stateKey: `report-inbox-${role}`,
+      rows: payload.rows,
+      keyword: {
+        keys: ['title', 'name'],
+        placeholder: '搜索汇报事项 / 汇报人…',
+        get: (r, k) => (k === 'name' ? (getPersonName(r.submittedBy) || '') : r[k]),
+      },
+      countUnit: '条',
+      listClass: 'space-y-2', // 原行容器 .space-y-2
+      emptyMessage: '无匹配汇报',
+      rowHtml: (r) => {
+        const cat = REPORT_CATEGORIES[r.reportCategory] || '进度';
+        const catColor = r.reportCategory === 'blocked' ? '#EF4444'
+          : r.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
+        const ds = deriveIssueDisplayState(r);
+        const requester = r.requestedBy
+          ? '<span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600 flex-shrink-0">了解进展</span>'
+          : '';
+        // E-3：模块态回填（引擎重绘后仍保持展开/输入；只保留仍在列表中的行）
+        const ui = _rowUi.get(r.id);
+        const rowOpen = !!(ui && ui.open);
+        return `
+      <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
+        <button type="button" class="rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
+          <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
+          <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${getPersonName(r.submittedBy) || '匿名'}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
+          ${requester}
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
+        </button>
+        <div id="rep-inbox-detail-${r.id}" class="px-3 pb-3 border-t border-gray-100${rowOpen ? '' : ' hidden'}">
+          ${_renderInboxDetail(r, payload.accent, (ui && ui.draft) || '')}
+        </div>
+      </div>`;
+      },
+    });
+  }
   // 展开/收起详情（展开态写入模块态 → 整块重渲染后仍保持）
-  container.querySelectorAll('.rep-inbox-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const detail = document.getElementById('rep-inbox-detail-' + btn.dataset.reportId);
+  host?.addEventListener('click', (e) => {
+    const toggle = e.target.closest('.rep-inbox-toggle');
+    if (toggle) {
+      const detail = document.getElementById('rep-inbox-detail-' + toggle.dataset.reportId);
       if (!detail) return;
       detail.classList.toggle('hidden');
-      rowState(btn.dataset.reportId).open = !detail.classList.contains('hidden');
-    });
+      rowState(toggle.dataset.reportId).open = !detail.classList.contains('hidden');
+      return;
+    }
+    // 正式答复（kind='reply' → 发回汇报人，通知未读）
+    const btn = e.target.closest('.rep-inbox-reply');
+    if (!btn) return;
+    const id = btn.dataset.reportId;
+    const input = document.getElementById('rep-inbox-input-' + id);
+    const body = input?.value?.trim();
+    if (!body) { showToast('error', '请填写答复内容'); return; }
+    const user = AuthStore.getCurrentUser();
+    IssueStore.addComment(id, user?.personId || '匿名', role, body, 'reply');
+    showToast('success', '正式答复已发回');
+    // E-3：本行草稿清零、保留展开态（重建后时间线直接可见新答复）；其它行态不受影响
+    const s = rowState(id);
+    s.draft = '';
+    s.open = true;
+    onAnswered();
   });
-  // 行内答复草稿输入（每次键入即写入模块态，重建后回填不丢）
-  container.querySelectorAll('input[id^="rep-inbox-input-"]').forEach(inp => {
-    inp.addEventListener('input', () => {
-      const id = inp.id.slice('rep-inbox-input-'.length);
-      rowState(id).draft = inp.value;
-    });
-  });
-  // 正式答复（kind='reply' → 发回汇报人，通知未读）
-  container.querySelectorAll('.rep-inbox-reply').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.reportId;
-      const input = document.getElementById('rep-inbox-input-' + id);
-      const body = input?.value?.trim();
-      if (!body) { showToast('error', '请填写答复内容'); return; }
-      const user = AuthStore.getCurrentUser();
-      IssueStore.addComment(id, user?.personId || '匿名', role, body, 'reply');
-      showToast('success', '正式答复已发回');
-      // E-3：本行草稿清零、保留展开态（重建后时间线直接可见新答复）；其它行态不受影响
-      const s = rowState(id);
-      s.draft = '';
-      s.open = true;
-      onAnswered();
-    });
+  // 行内答复草稿输入（每次键入即写入模块态，重绘制后回填不丢）
+  host?.addEventListener('input', (e) => {
+    const inp = e.target.closest('input[id^="rep-inbox-input-"]');
+    if (!inp) return;
+    rowState(inp.id.slice('rep-inbox-input-'.length)).draft = inp.value;
   });
 }

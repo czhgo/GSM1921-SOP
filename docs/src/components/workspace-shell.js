@@ -20,21 +20,21 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260914s';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260915d';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260914s';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260914s';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260914s';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260914s';
-import { getCapabilities } from '../core/registry.js?v=20260914s';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260914s';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260915d';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260915d';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260915d';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260915d';
+import { getCapabilities } from '../core/registry.js?v=20260915d';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260915d';
 
-import { TodoStore } from '../services/todo.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { BranchService } from '../services/runtime.js?v=20260914s';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260914s';
+import { TodoStore } from '../services/todo.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { BranchService } from '../services/runtime.js?v=20260915d';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260915d';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260914s';
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260915d';
 
 
 
@@ -332,9 +332,20 @@ export async function createWorkspaceShell(opts) {
       console.warn('[ws-shell] 个人 tab 顺序偏好读取失败，按默认顺序渲染', e);
     }
 
+    // tab 合并/改名后的旧深链兼容（2026-09-15 纪检台：「补课」并入「考勤管理」）：
+    // 旧 ?tab=<旧id> 落到承接 tab；仅当清单不含该 id 时按别名解析（清单命中优先，零影响现行 id）。
+    // 已废止的旧 id（如纪检台「制度与文本」mailbox）不设别名。
+    const _legacyTabAliases = { 'workspace:disc': { makeup: 'attendance' } }[scope] || {};
+    const _resolveTabId = (id) => {
+      if (!id) return id;
+      if (tabs.some(t => t && t.id === id)) return id;
+      return _legacyTabAliases[id] || id;
+    };
+
     // S2：tabs 定稿后计算初始激活优先级（URL ?tab= > 有待办必见待办 > 记忆/默认）
-    const navTab = (_navTarget && _navTarget.tab && tabs.some(t => t && t.id === _navTarget.tab))
-      ? _navTarget.tab
+    const navTabId = _navTarget && _navTarget.tab ? _resolveTabId(_navTarget.tab) : undefined;
+    const navTab = (navTabId && tabs.some(t => t && t.id === navTabId))
+      ? navTabId
       : undefined;
     const priorityTab = navTab || (defaultTab === 'today'
       ? undefined

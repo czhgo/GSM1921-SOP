@@ -4,13 +4,16 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260914s';
-import { getPersonName } from '../services/person.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { badgeHtml } from './badges.js?v=20260914s';
-import { dotDarkVars } from '../core/constants.js?v=20260914s';
-import { flashHighlight, showToast } from '../core/utils.js?v=20260914s';
-import { anchorDetailToTrigger } from './detail-anchor.js?v=20260914s';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260915d';
+import { getPersonName } from '../services/person.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { badgeHtml } from './badges.js?v=20260915d';
+import { dotDarkVars } from '../core/constants.js?v=20260915d';
+import { flashHighlight, showToast } from '../core/utils.js?v=20260915d';
+import { anchorDetailToTrigger } from './detail-anchor.js?v=20260915d';
+// 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
+// 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
+import { renderFilteredList } from './list-filter.js?v=20260915d';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };
@@ -172,31 +175,11 @@ function _renderTfDetail(container, tf, highlightId) {
   const me = AuthStore.getCurrentUser()?.personId || null;
   const isMember = !!me && filled.some(m => m.personId === me);
 
+  // 成员贡献行改由统一检索引擎渲染（第一列是人 → 配姓名关键词；≤8 人不渲染检索条，观感不变）；
+  // 空态（无成员）留在引擎外，逐字保留原文案
   const memberRows = filled.length === 0
     ? '<p class="text-xs text-gray-500">暂无成员</p>'
-    : filled.map(m => {
-        const contribs = (m.contributions || []).length;
-        const list = contribs > 0
-          ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
-              const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
-              const meta = (c && typeof c === 'object' && (c.by || c.at))
-                ? `<span class="text-[10px] text-gray-500"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
-                : '';
-              return `<li class="text-[12px] text-gray-500 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
-            }).join('')}</ul>`
-          : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
-        return `
-          <div class="py-2 border-b border-gray-50 last:border-b-0">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
-              <div class="flex items-center gap-2">
-                ${badgeHtml(m.role || '深度参与者', 'neutral')}
-                <span class="text-xs text-gray-500">贡献 ${contribs} 项</span>
-              </div>
-            </div>
-            ${list}
-          </div>`;
-      }).join('');
+    : '<div id="tfv-member-host"></div>';
 
   // ── 立项③阶段a：专班中间进度只读时间线（有记录才渲染，减少噪音） ──
   // 谁可看：本组件承载纪检/组长/全员只读专班查看，凡可展开详情者即可见，无额外权限过滤
@@ -204,20 +187,7 @@ function _renderTfDetail(container, tf, highlightId) {
   const progressHtml = tfProgressList.length > 0 ? `
     <div class="pt-3 border-t border-gray-100 mt-3">
       <h5 class="font-title-cn text-xs font-bold text-gray-600 mb-2">中间进度 <span class="text-gray-500 font-normal">· ${tfProgressList.length} 条</span></h5>
-      <div>
-        ${tfProgressList.map(p => `
-          <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>` : ''}
-                <span class="text-[11px] text-gray-500">${(p.at || '').slice(0, 16).replace('T', ' ')}</span>
-                <span class="text-[11px] text-gray-500">${p.by ? getPersonName(p.by) : ''}</span>
-              </div>
-              <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
-            </div>
-          </div>`).join('')}
-      </div>
+      <div id="tfv-progress-host"></div>
     </div>` : '';
 
   // B批 R3-3：专班成员本人对「本人」填报产出（仅运行中 + 当前登录人确为该专班成员）
@@ -249,6 +219,69 @@ function _renderTfDetail(container, tf, highlightId) {
       ${memberRows}
     </div>
     ${progressHtml}`;
+
+  // ── 统一检索引擎两处接入（2026-09-14 裁定）─────────────────────
+  // ① 成员贡献：第一列是人 → 姓名关键词（成员对象无 name 字段，取 personId 经 getPersonName 命中）；
+  //    stateKey 带专班 id：详情面板换专班时搜索/页码不串台（同一专班重渲染仍保持）。
+  if (filled.length > 0) {
+    renderFilteredList(panel.querySelector('#tfv-member-host'), {
+      stateKey: `tfv-member-contrib-${tf.id}`,
+      rows: filled,
+      keyword: { keys: ['personId'], placeholder: '搜索成员姓名…', get: (m) => getPersonName(m.personId) },
+      facets: [],
+      countUnit: '人',
+      listClass: '',
+      emptyMessage: '无匹配成员',
+      rowHtml: (m) => {
+        const contribs = (m.contributions || []).length;
+        const list = contribs > 0
+          ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
+              const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
+              const meta = (c && typeof c === 'object' && (c.by || c.at))
+                ? `<span class="text-[10px] text-gray-500"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
+                : '';
+              return `<li class="text-[12px] text-gray-500 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
+            }).join('')}</ul>`
+          : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
+        return `
+          <div class="py-2 border-b border-gray-50 last:border-b-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-medium text-gray-700">${getPersonName(m.personId)}</span>
+              <div class="flex items-center gap-2">
+                ${badgeHtml(m.role || '深度参与者', 'neutral')}
+                <span class="text-xs text-gray-500">贡献 ${contribs} 项</span>
+              </div>
+            </div>
+            ${list}
+          </div>`;
+      },
+    });
+  }
+
+  // ② 中间进度（时间线）：只给分页（keyword null + facets [] → 不渲染检索条；≤8 条不出翻页控件）
+  if (tfProgressList.length > 0) {
+    renderFilteredList(panel.querySelector('#tfv-progress-host'), {
+      stateKey: `tfv-progress-${tf.id}`,
+      rows: tfProgressList,
+      keyword: null,
+      facets: [],
+      countUnit: '条',
+      listClass: '',
+      emptyMessage: '暂无进度记录',
+      rowHtml: (p) => `
+          <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>` : ''}
+                <span class="text-[11px] text-gray-500">${(p.at || '').slice(0, 16).replace('T', ' ')}</span>
+                <span class="text-[11px] text-gray-500">${p.by ? getPersonName(p.by) : ''}</span>
+              </div>
+              <p class="text-xs text-gray-600 leading-relaxed mt-0.5">${p.note || ''}</p>
+            </div>
+          </div>`,
+    });
+  }
 
   // B批 R3-3：本人填报提交（写口 addContributions，by=填报人=本人）
   panel.querySelector('#tfv-contrib-add')?.addEventListener('click', () => {

@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914s';
-import { persist } from '../core/data-adapter.js?v=20260914s';
-import { generateId } from '../core/id.js?v=20260914s';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260914s';
+import { mockDB } from '../core/domain.js?v=20260915d';
+import { persist } from '../core/data-adapter.js?v=20260915d';
+import { generateId } from '../core/id.js?v=20260915d';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260915d';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -499,7 +499,7 @@ function _buildTodo(data) {
     actionData: data.actionData || null,
     // 业务动作标识（聚合键组成：role+actionKey，区分同 actionType 的不同业务域）
     actionKey: data.actionKey || null,
-    // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤总表」；无则列表不显示）
+    // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤明细」；无则列表不显示）
     flow: data.flow || null,
   };
 }
@@ -998,7 +998,7 @@ export const NoticeTodoDeriver = {
   /** 根据通知 targetModule 推断数据流（E2：无明确上下游的通知不标注） */
   _inferFlow(notice) {
     const flowMap = {
-      attendance: '考勤上传 → 纪检确认 → 考勤总表',
+      attendance: '考勤上传 → 纪检确认 → 考勤明细',
       party: '发展材料 → 组织委员建档 → 人才库',
     };
     return flowMap[notice.targetModule] || null;

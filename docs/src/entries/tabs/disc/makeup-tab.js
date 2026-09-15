@@ -1,23 +1,25 @@
 // role: [工程师]+[AI]
-// 纪检委员工作台 Tab：补课制度（T-279 M3 拆分）
+// 纪检委员工作台：补课（「考勤管理」tab 的「补课」一级分段渲染模块；2026-09-15 支书裁定并入考勤管理，
+// 由 attendance-tab 传入分段容器调用；原为独立 tab，内部逻辑原样保留）。
 // 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260914s';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260914s';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260914s';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260914s';
-import { badgeHtml } from '../../../components/badges.js?v=20260914s';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260914s';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260914s';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260915d';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260915d';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260915d';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915d';
+import { badgeHtml } from '../../../components/badges.js?v=20260915d';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915d';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260915d';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260914s';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260915d';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260914s';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915d';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
- *   2026-09-14 支书裁定「制度与文本」合并后，本块作为该 tab 的一个分段子块挂载。
+ *   2026-09-15 支书裁定「补课并入考勤管理」后，本模块作为「考勤管理」tab 的「补课」分段子块，
+ *   由 attendance-tab 传入分段容器调用。
  */
 export function renderContent(containerEl) {
   const container = containerEl || document.getElementById('disc-tab-content');

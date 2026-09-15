@@ -3,14 +3,16 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260914s';
-import { renderQueryView } from '../../../components/query-view.js?v=20260914s';
-import { flashHighlight } from '../../../core/utils.js?v=20260914s';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260914s';
+import { icon } from '../../../core/icons.js?v=20260915d';
+import { renderQueryView } from '../../../components/query-view.js?v=20260915d';
+import { flashHighlight } from '../../../core/utils.js?v=20260915d';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260915d';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914s';
-import { canSignup } from '../../../components/signup-panel.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { isActivityLive } from '../../../core/constants.js?v=20260915d';
+import { canSignup } from '../../../components/signup-panel.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+// 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
+import { pagerHtml } from '../../../components/pager.js?v=20260915d';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -118,17 +120,14 @@ function _renderActListView(sorted, highlightId) {
       ${sorted.length === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无活动</p>' :
         pageItems.map(a => _activityRowHtml(a)).join('')}
     </div>
-    ${totalPages > 1 ? `
-      <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
-        <button type="button" class="visitor-act-page-btn page-btn" data-act-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}>‹ 上一页</button>
-        <span class="text-xs text-gray-500">第 ${page} / ${totalPages} 页</span>
-        <button type="button" class="visitor-act-page-btn page-btn" data-act-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}>下一页 ›</button>
-      </div>` : ''}
+    ${pagerHtml({ page, pages: totalPages, total: sorted.length, unit: '条' })}
   `;
 
-  vc.querySelectorAll('.visitor-act-page-btn').forEach(btn => {
+  // 翻页（标记由统一检索引擎 pagerHtml 单一源产出，读 data-lf-page）
+  vc.querySelectorAll('[data-lf-page]').forEach(btn => {
     btn.addEventListener('click', () => {
-      _visitorActPage = parseInt(btn.dataset.actPage, 10) || 1;
+      if (btn.disabled) return;
+      _visitorActPage = parseInt(btn.dataset.lfPage, 10) || 1;
       _renderActListView(sorted, highlightId);
     });
   });

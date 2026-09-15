@@ -55,7 +55,7 @@ export const MOCK_NOTICES = [
   {
     id: 'notice-106',
     title: '考勤记录待纪检委员确认',
-    content: '7月各项活动考勤记录已上传，请纪检委员于7月20日前完成考勤确认与录入考勤总表工作。',
+    content: '7月各项活动考勤记录已上传，请纪检委员于7月20日前完成考勤确认与录入考勤明细工作。',
     priority: 'normal',
     publishDate: '2026-07-10',
     expireDate: '2026-07-20',

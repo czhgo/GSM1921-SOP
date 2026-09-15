@@ -3,16 +3,18 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260914s';
-import { badgeHtml } from '../../../components/badges.js?v=20260914s';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260914s';
+import { NoticeStore } from '../../../services/notice.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260915d';
+import { badgeHtml } from '../../../components/badges.js?v=20260915d';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
 // Q-22-1（2026-09-13）：受众选项改引 core/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS } from '../../../core/constants.js?v=20260914s';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../../core/constants.js?v=20260915d';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260914s';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260915d';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -191,27 +193,32 @@ function renderNotificationList() {
     .filter(n => n.source !== 'committee')
     .sort((a, b) => (b.publishDate || '').localeCompare(a.publishDate || ''));
 
-  if (notifications.length === 0) {
-    listArea.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">暂无已发布通知</p>';
-    return;
-  }
-
-  listArea.innerHTML = notifications.map(n => {
-    // 受众徽章：兼容旧数据（audience 为字符串）与新数据（audience 为数组），按受众各渲染一枚徽章
-    const audienceValues = Array.isArray(n.audience) ? n.audience : (n.audience ? [n.audience] : []);
-    const audienceBadges = audienceValues.length > 0
-      ? _audienceLabels(audienceValues).map(l => badgeHtml(l, 'warning')).join('')
-      : badgeHtml(n.audienceLabel || '全体党员', 'warning');
-    // publishDate 为字符串（'2026-07-15'）时直接切片，兼容 Date 对象走 _fmtDate
-    const dateStr = n.publishDate
-      ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
-      : '';
-    // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
-    const writeBtns = isReadonlyBranchDrilldown() ? '' : `
+  // 统一检索引擎（2026-09-14 批次 37）：关键词（标题/正文）+ 分页一站式；
+  // 空态文案迁移为 emptyMessage，原「暂无已发布通知」分支删除。
+  // #notification-list-area 由本页模板持有、跨重渲染复用，故委托监听只挂一次（dataset 守卫）。
+  renderFilteredList(listArea, {
+    stateKey: 'secretary-notification-published',
+    rows: notifications,
+    keyword: { keys: ['title', 'content'], placeholder: '搜索通知标题 / 正文…' },
+    countUnit: '条',
+    listClass: 'divide-y divide-gray-100',
+    emptyMessage: '暂无已发布通知',
+    rowHtml: (n) => {
+      // 受众徽章：兼容旧数据（audience 为字符串）与新数据（audience 为数组），按受众各渲染一枚徽章
+      const audienceValues = Array.isArray(n.audience) ? n.audience : (n.audience ? [n.audience] : []);
+      const audienceBadges = audienceValues.length > 0
+        ? _audienceLabels(audienceValues).map(l => badgeHtml(l, 'warning')).join('')
+        : badgeHtml(n.audienceLabel || '全体党员', 'warning');
+      // publishDate 为字符串（'2026-07-15'）时直接切片，兼容 Date 对象走 _fmtDate
+      const dateStr = n.publishDate
+        ? (typeof n.publishDate === 'string' ? n.publishDate.slice(0, 10) : _fmtDate(n.publishDate))
+        : '';
+      // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
+      const writeBtns = isReadonlyBranchDrilldown() ? '' : `
           <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
           <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
-    return `
+      return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center gap-2">
@@ -224,36 +231,31 @@ function renderNotificationList() {
         <p class="text-xs text-gray-500 mt-1.5">${n.publishedBy || '支书'} · ${dateStr}</p>
       </div>
     `;
-  }).join('<div class="border-b border-gray-100"></div>');
-
-  // 绑定删除事件（NoticeStore 删除联动清理关联待办；stopPropagation 防止误触行跳转）
-  listArea.querySelectorAll('[data-notif-action="delete"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const notifId = btn.dataset.notifId;
-      NoticeStore.remove(notifId, 'secretary');
-      showToast('success', '通知已删除');
-      renderNotificationList();
-    });
+    },
   });
 
-  // B 档 CRUD 补全：通知编辑（打开预填编辑浮窗 → NoticeStore.update）
-  listArea.querySelectorAll('[data-notif-action="edit"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const notifId = btn.dataset.notifId;
-      const notice = NoticeStore.getAll().find(n => n.id === notifId);
-      if (notice) _openNoticeEditModal(notice);
+  // 行内「删除 / 编辑」与整卡「查看详情」改事件委托（引擎翻页/筛选会重绘列表，行内直接绑定会失效）：
+  // 挂在持久容器 #notification-list-area 上；先判按钮后判整卡，等效原 stopPropagation（按钮不触发跳转）。
+  if (!listArea.dataset.notifDelegated) {
+    listArea.dataset.notifDelegated = '1';
+    listArea.addEventListener('click', (e) => {
+      const delBtn = e.target.closest('[data-notif-action="delete"]');
+      if (delBtn) {
+        NoticeStore.remove(delBtn.dataset.notifId, 'secretary');
+        showToast('success', '通知已删除');
+        renderNotificationList();
+        return;
+      }
+      const editBtn = e.target.closest('[data-notif-action="edit"]');
+      if (editBtn) {
+        const notice = NoticeStore.getAll().find(n => n.id === editBtn.dataset.notifId);
+        if (notice) _openNoticeEditModal(notice);
+        return;
+      }
+      const row = e.target.closest('[data-notif-row="1"]');
+      if (row) window.location.href = `${getBasePath()}notice.html?id=${row.dataset.notifId}`;
     });
-  });
-
-  // 绑定行点击：预览已发布通知（跳通知详情页，可回退）
-  listArea.querySelectorAll('[data-notif-row="1"]').forEach(row => {
-    row.addEventListener('click', () => {
-      const notifId = row.dataset.notifId;
-      window.location.href = `${getBasePath()}notice.html?id=${notifId}`;
-    });
-  });
+  }
 }
 
 // ════════════════════════════════════════════════════════════════

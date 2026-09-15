@@ -35,14 +35,16 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../core/utils.js?v=20260914s';
+import { escHtml as esc } from '../core/utils.js?v=20260915d';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../core/constants.js?v=20260914s';
+} from '../core/constants.js?v=20260915d';
 // 活动生命周期**展示态**单一源 = components/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260914s';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from './inspector.js?v=20260915d';
+// 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
+import { pagerHtml } from './pager.js?v=20260915d';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -162,6 +164,9 @@ export function renderFilteredList(container, cfg) {
   }
 
   function renderBar() {
+    // 无检索能力（既无关键词也无分面）= 调用方只要分页（如看板分桶 / 分组子列表）→ 不渲染检索条
+    // （批次 37：分页多为「桶 / 分组」所共用，避免每组各顶一条空检索条）
+    if (!config.keyword && facetDefs.length === 0) { barEl.hidden = true; barEl.innerHTML = ''; return; }
     barEl.hidden = !visible;
     if (!visible) { barEl.innerHTML = ''; return; }
     const qHtml = config.keyword
@@ -242,21 +247,9 @@ export function renderFilteredList(container, cfg) {
 
   /** 翻页控件：走 .page-btn / .page-num 单一源（批次 28），页数 ≤1 不出控件 */
   function renderPager(pages, total) {
-    if (pages <= 1) { pagerEl.hidden = true; pagerEl.innerHTML = ''; return; }
-    pagerEl.hidden = false;
-    const cur = st.page;
-    const nums = [];
-    const end = Math.min(pages, Math.max(cur, 3) + 2);
-    for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
-    pagerEl.innerHTML = `
-      <div class="flex items-center justify-between pt-3">
-        <span class="lf-count">共 ${total} ${esc(config.countUnit)} · 第 ${cur} / ${pages} 页</span>
-        <div class="flex items-center gap-1.5">
-          <button type="button" class="page-btn" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-          ${nums.map(n => `<button type="button" class="page-num${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
-          <button type="button" class="page-btn" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
-        </div>
-      </div>`;
+    const html = pagerHtml({ page: st.page, pages, total, unit: config.countUnit });
+    pagerEl.hidden = !html;
+    pagerEl.innerHTML = html;
   }
 
   // 翻页事件（委托一次即可：pagerEl 由根模板持有、内容重绘不影响绑定）
@@ -288,6 +281,11 @@ export function renderFilteredList(container, cfg) {
     },
   };
 }
+
+/**
+ * 翻页控件单一源已下沉到 components/pager.js（批次 38；避免与 relation-matrix 成环）——
+ * 本引擎与「人 × 项目」矩阵共用同一 `pagerHtml`，勿在任何调用点另写翻页标记。
+ */
 
 /**
  * 人名检索分面描述符（按人表共用；取值 auto 派生）

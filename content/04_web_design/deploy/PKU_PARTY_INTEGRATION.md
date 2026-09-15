@@ -89,7 +89,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 | 培训 | `notices` / `experience_deposits` | 通知、经验沉淀 → 党校「学习圈/院系活动」参照 |
 | 组织 | `taskforces` / `tf_sub_records` | 专班工作 → 智慧党建「工作专班」 |
 | 文档 | `branch_docs` / `file_space_records` / `archive_records` | 支部文件/档案 → 智慧党建「党支部工作手册」导出素材 |
-| 协同 | `external_dispatches` / `mailbox_*` / `weekly_reports` / `signups` / `activity_reviews` / `taskforce_reviews` / `prop_tasks` / `compliance_references` / `image_records` | 无直接对接（内部工作流） |
+| 协同 | `external_dispatches` / `weekly_reports` / `signups` / `activity_reviews` / `taskforce_reviews` / `prop_tasks` / `compliance_references` / `image_records` | 无直接对接（内部工作流） |
 
 ### 3.2 关键映射字段（设计原则）
 

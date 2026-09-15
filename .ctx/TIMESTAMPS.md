@@ -282,7 +282,6 @@ dynamic_role:
 | docs/src/entries/tabs/org/taskforce-tab.js | 2026-08-23 | [工程师]+[AI] | 组织委员专班管理 tab（含发布招募，T-279 M3 新建） |
 | docs/src/entries/tabs/org/talent-tab.js | 2026-08-23 | [工程师]+[AI] | 组织委员人才库 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/org/development-tab.js | 2026-08-23 | [工程师]+[AI] | 组织委员发展数据 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/org/activity-view-tab.js | 2026-08-23 | [工程师]+[AI] | 组织委员活动查看 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/org/my-dispatch-tab.js | 2026-08-23 | [工程师]+[AI] | 组织委员我的处置 tab（T-279 M3 新建） |
 
 ### docs/src/entries/tabs/prop/ (宣传委员工作台 Tab 模块层)
@@ -308,7 +307,6 @@ dynamic_role:
 | docs/src/entries/tabs/disc/review-tab.js | 2026-08-23 | [工程师]+[AI] | 活动监督复盘 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/inspection-tab.js | 2026-08-23 | [工程师]+[AI] | 考察管理 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/makeup-tab.js | 2026-08-24 | [工程师]+[AI] | 补课制度 tab（T-279 M3 新建 + T-280 B3-1 确认完成回写考勤 made_up） |
-| docs/src/entries/tabs/disc/mailbox-tab.js | 2026-08-23 | [工程师]+[AI] | 公邮管理 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/tf-view-tab.js | 2026-08-23 | [工程师]+[AI] | 纪检委员专班查看 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/my-dispatch-tab.js | 2026-08-23 | [工程师]+[AI] | 纪检委员我的处置 tab（T-279 M3 新建） |
 

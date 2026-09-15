@@ -4,12 +4,14 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260914s';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260914s';
-import { getBasePath, showToast } from '../core/utils.js?v=20260914s';
-import { badgeHtml } from './badges.js?v=20260914s';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260915d';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260915d';
+import { getBasePath, showToast } from '../core/utils.js?v=20260915d';
+import { badgeHtml } from './badges.js?v=20260915d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../core/constants.js?v=20260914s';
+import { isActivityArchived } from '../core/constants.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
+import { renderFilteredList } from './list-filter.js?v=20260915d';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -110,14 +112,8 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
   const rejectedList = signups.filter(s => s.status === SignupStatus.REJECTED);
   const cancelledList = signups.filter(s => s.status === SignupStatus.CANCELLED);
 
-  const rows = approvedList.map(s => `
-    <div class="flex items-center gap-2.5 py-2">
-      <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#CE1126;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
-      <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
-      <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
-      ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
-      <span class="ml-auto">${badgeHtml('已通过', 'success')}</span>
-    </div>`).join('');
+  // 已通过名单改由统一检索引擎渲染（宿主 div 见下方 return；引擎挂载在 bindSignupEvents —— 那是
+  // entry 侧 innerHTML 就位后的钩子）。行 HTML 与角色标签保持原样，仅迁为 rowHtml。
 
   const pendingRows = isReviewer && pendingList.length > 0 ? `
     <div class="mt-4 pt-3 border-t border-gray-100">
@@ -147,7 +143,7 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
   return `
     <div>
       <h3 class="text-sm font-semibold text-gray-700 mb-3">报名名单（${approvedList.length}）</h3>
-      ${approvedList.length === 0 ? '<p class="text-sm text-gray-500">暂无已报名成员</p>' : rows}
+      <div data-signup-list-host></div>
       ${pendingRows}
       ${others ? `<p class="text-[11px] text-gray-500 mt-2">${others}</p>` : ''}
     </div>
@@ -185,6 +181,35 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
     showToast('success', '已取消报名');
     setTimeout(() => window.location.reload(), 400);
   });
+
+  // 报名名单（已通过）接统一检索引擎：需在 DOM 就位后挂载，故放在本函数（entry 侧均先 innerHTML 再调用）。
+  // 行内无按钮；待审核申请的「通过 / 拒绝」在引擎宿主之外，不受翻页重绘影响，绑定保持原样。
+  const signupListHost = cardEl?.querySelector('[data-signup-list-host]');
+  if (signupListHost) {
+    const approvedRows = SignupStore.getAll()
+      .filter(s => s.sourceType === sourceType && s.sourceId === sourceId && s.status === SignupStatus.APPROVED);
+    renderFilteredList(signupListHost, {
+      stateKey: `signup-list-${sourceType}-${sourceId}`,
+      rows: approvedRows,
+      keyword: {
+        keys: ['name', 'role'],
+        placeholder: '搜索姓名 / 角色…',
+        get: (s, k) => (k === 'name' ? getPersonName(s.personId) : roleLabel(s.role)),
+      },
+      countUnit: '人',
+      listClass: 'space-y-0',
+      // 原空态文案迁移为 emptyMessage
+      emptyMessage: '暂无已报名成员',
+      rowHtml: (s) => `
+        <div class="flex items-center gap-2.5 py-2">
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#CE1126;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
+          <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
+          <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
+          ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
+          <span class="ml-auto">${badgeHtml('已通过', 'success')}</span>
+        </div>`,
+    });
+  }
 
   // 审核：通过/拒绝（事件委托，绑定于 cardEl）
   cardEl?.querySelectorAll('.signup-review-btn').forEach(btn => {

@@ -160,7 +160,7 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/02_institution/SYSTEM_ROLE_P
 
 ### 引用渲染机制
 
-当系统功能模块（如「党建」Tab 分组）需要在界面上展示 `[用户]` 角色文件的内容时：
+当系统功能模块（如工作台「我的职责」Tab 分组）需要在界面上展示 `[用户]` 角色文件的内容时：
 
 - AI 可读取 `content/01_strategy/references/合规文件/` 下的文件内容
 - 将内容渲染到 HTML 界面的只读展示区

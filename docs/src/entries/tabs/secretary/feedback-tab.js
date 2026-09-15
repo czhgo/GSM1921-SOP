@@ -3,15 +3,17 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260914s';
-import { showToast } from '../../../core/utils.js?v=20260914s';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260914s';
-import { icon } from '../../../core/icons.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260914s';
-import { getPersonName } from '../../../services/person.js?v=20260914s';
-import { PersonStore } from '../../../services/person.js?v=20260914s';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260914s';
+import { IssueStore, deriveIssueDisplayState, IssueNotify } from '../../../services/issues.js?v=20260915d';
+import { showToast } from '../../../core/utils.js?v=20260915d';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260915d';
+import { icon } from '../../../core/icons.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260915d';
+import { getPersonName } from '../../../services/person.js?v=20260915d';
+import { PersonStore } from '../../../services/person.js?v=20260915d';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260915d';
+// 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
+import { pagerHtml } from '../../../components/pager.js?v=20260915d';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -98,25 +100,10 @@ function _submitterTip(personId) {
 const ISSUE_PAGE_SIZE = 10;
 let _issuePageState = 1;
 
-/** 分页控件（复用公开 issue-list / 归档库模式） */
+/** 分页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 页码窗口；页数 ≤1 返回空串） */
 function _renderFeedbackPager(total) {
   const pages = Math.max(1, Math.ceil(total / ISSUE_PAGE_SIZE));
-  const cur = Math.min(_issuePageState, pages);
-  if (pages <= 1) return '';
-  const nums = [];
-  const end = Math.min(pages, Math.max(cur, 3) + 2);
-  for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
-  return `
-    <div class="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-      <span class="text-xs text-gray-500">共 ${total} 条 · 第 ${cur} / ${pages} 页</span>
-      <div class="flex items-center gap-1">
-        <button type="button" class="feedback-page-btn page-btn" data-feedback-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-        ${nums.map(n => `
-          <button type="button" class="feedback-page-btn page-num${n === cur ? ' is-current' : ''}" data-feedback-page="${n}">${n}</button>
-        `).join('')}
-        <button type="button" class="feedback-page-btn page-btn" data-feedback-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
-      </div>
-    </div>`;
+  return pagerHtml({ page: _issuePageState, pages, total, unit: '条' });
 }
 
 function renderIssueManagement() {
@@ -211,10 +198,11 @@ function renderIssueManagement() {
         });
       });
 
-      // 绑定分页按钮（T-234 F2）
-      listEl.querySelectorAll('.feedback-page-btn').forEach(btn => {
+      // 绑定分页按钮（T-234 F2；标记由统一检索引擎 pagerHtml 单一源产出，读 data-lf-page）
+      listEl.querySelectorAll('[data-lf-page]').forEach(btn => {
         btn.addEventListener('click', () => {
-          _issuePageState = parseInt(btn.dataset.feedbackPage, 10) || 1;
+          if (btn.disabled) return;
+          _issuePageState = parseInt(btn.dataset.lfPage, 10) || 1;
           renderIssueManagement();
         });
       });

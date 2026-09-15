@@ -6,7 +6,7 @@
 //   ① trimInitBlob（纯）：白名单主库键（_schema/users/branches/appointmentRecords）原样保留；
 //      业务过程域（activities/attendances/activityReviews/inspections/taskforces/notices/
 //      archiveRecords/handoffs/signups/thoughtReports/memberChangeRequests/committeeBroadcasts/
-//      agendaVotes/reviewRequests 等 INIT_BLOB_CLEAR_DEFAULTS 全部键）置空默认（[]/{} / null）；
+//      agendaVotes/reviewRequests 等 INIT_BLOB_CLEAR_DEFAULTS 全部键）置空默认（[] / {}）；
 //      未知扩展键原样保留；入参不被改动
 //   ② 空态自洽：init 后主库业务域零记录 → 零演示成员 id 引用；骨架键（账号/支部 config）非空
 //   ③ collectInitKeys（纯）：移除独立业务/过程键（issue 草稿/缓存/未读/提交、成员变更确认队列、决议跟进、
@@ -27,11 +27,11 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/init-reset.js?v=20260914s');
+} = await import('../../docs/src/services/init-reset.js?v=20260915d');
 // 接线冒烟（⑤）：走 services/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260914s');
+const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260915d');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain.js?v=20260914s');
+const { mockDB } = await import('../../docs/src/core/domain.js?v=20260915d');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -106,8 +106,6 @@ const BLOB = {
   propTasks: [{ id: 'pt1', title: '宣传任务' }],
   weeklyReports: [{ id: 'wr1', title: '宣传周报' }],
   archiveRecords: [{ id: 'ar1', title: '归档材料' }],
-  mailboxConfig: { email: 'demo-disc@gsm.pku.edu.cn', checkCycleDays: 7 },
-  mailboxHistory: [{ id: 'mh1', at: '2026-09-01' }],
   externalDispatches: [{ id: 'ed1' }],
   branchDocs: [{ id: 'bd1', branchId: 'br-b1', fileName: '支部文件.pdf' }],
   memberChangeRequests: [{ id: 'mcr1', personId: 'p1', status: 'pending-org-approval' }],
@@ -269,7 +267,6 @@ test('执行：?reset=init 静态形态——主库裁剪写回（白名单保�
   assert.equal(blob.thoughtReports.length, 0, '思想汇报清空');
   assert.equal(blob.agendaVotes.length, 0, '表态记录清空');
   assert.equal(blob.reviewRequests.length, 0, '上报审批清空');
-  assert.equal(blob.mailboxConfig, null, '公邮配置清空（seed 兜底默认）');
   // 独立业务/过程键移除
   for (const k of [
     'gsm1921-issue-drafts', 'gsm1921-issue-cache-v3', 'gsm1921-issue-unread-p13',
@@ -461,7 +458,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260914s');
+  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260915d');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

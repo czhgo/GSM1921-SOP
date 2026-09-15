@@ -5,12 +5,14 @@
 //  · 字数提示改用 wordCountHint（软提示、不拦截）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文、修改重交、撤回均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, periodOf, periodOptions,
-} from '../../../services/thought-report.js?v=20260914s';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260914s';
+} from '../../../services/thought-report.js?v=20260915d';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260915d';
+// 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
 
 // ── R6-2 初阅状态徽标（与 org 侧 thought-review-tab 同体系：琥珀待初阅 / 绿已归档 / 红已退回）──
 // 读取侧与服务层 _effective 同语义：reviewStatus 缺省/非法（R6-2 前算法归档产物）→ 已归档
@@ -44,23 +46,16 @@ export function renderContent(ctx) {
     const total = groups.reduce((n, g) => n + g.items.length, 0);
     const nowPeriod = periodOf(new Date().toISOString());
 
-    const listHtml = total === 0
-      ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>'
-      : groups.map(g => `
+    // 按期次分组渲染（保持不变）：每组一个引擎实例——仅分页、不渲染检索条
+    // （支书2026-09-14 批次37：无 keyword/facets 的桶/分组子列表复用引擎分页）；
+    // stateKey 带期次标识 → 跨重渲染保页码，分组观感零改动
+    const groupsHtml = groups.map(g => `
           <div class="mb-3 last:mb-0">
             <div class="flex items-center gap-2 mb-1.5">
               <span class="text-xs font-semibold text-gray-700">${esc(g.label)}</span>
               <span class="text-[11px] text-gray-500">${g.items.length} 篇</span>
             </div>
-            <div class="space-y-1.5">
-              ${g.items.map(r => `
-                <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
-                  <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
-                  <span class="text-[11px] text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
-                  <span class="text-[11px] text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
-                  ${_statusBadgeHtml(_effStatus(r))}
-                </a>`).join('')}
-            </div>
+            <div data-tr-group-host="${esc(g.period)}"></div>
           </div>`).join('');
 
     tc.innerHTML = `
@@ -85,8 +80,26 @@ export function renderContent(ctx) {
           </div>
         </div>
       </div>
-      <div id="tr-list">${listHtml}</div>
+      <div id="tr-list">${total === 0 ? '<p class="text-xs text-gray-500 text-center py-6">暂无思想汇报记录</p>' : groupsHtml}</div>
     `;
+
+    // 逐期次接入统一检索引擎（行 HTML 原样；每组仅分页，页数 ≤1 不出翻页控件）
+    groups.forEach(g => {
+      renderFilteredList(tc.querySelector(`[data-tr-group-host="${g.period}"]`), {
+        stateKey: `visitor-tr-group-${g.period}`,
+        rows: g.items,
+        listClass: 'space-y-1.5',
+        countUnit: '篇',
+        emptyMessage: '暂无思想汇报记录',
+        rowHtml: (r) => `
+                <a href="thought-report.html?id=${r.id}" class="flex items-center gap-2 p-3 rounded-lg bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
+                  <span class="text-xs font-medium text-gray-700 truncate flex-1">${esc(r.title || '思想汇报')}</span>
+                  <span class="text-[11px] text-gray-500 flex-shrink-0">${_dateTime(r.submittedAt)}</span>
+                  <span class="text-[11px] text-gray-400 tabular-nums flex-shrink-0">${wordCountHint(r.content).count} 字</span>
+                  ${_statusBadgeHtml(_effStatus(r))}
+                </a>`,
+      });
+    });
 
     // ── 提交新汇报（R6-2：入库 pending，组织初阅通过后才归档；期次手填，缺省当前期次）──
     // 篇幅按 wordCountHint 实时软提示（单一源），**不设 maxlength/minlength、不拦截提交**

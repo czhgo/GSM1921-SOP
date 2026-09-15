@@ -5,8 +5,8 @@
 //  资源级 CRUD 为 P2）
 //
 //  P1 已实现能力：
-//  1. 25 个服务端资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB）
-//     —— 10 主集合 + 8 niche + 7 新域（报名/复盘/宣传/档案/公邮/外发确认/子记录聚合域，T-209 全栈同步）
+//  1. 35 个资源分组的 list()（供 data-adapter init() 拉取全量数据填充 mockDB；= server 资源名映射 30 + issues / members / memberChangeRequests / committeeBroadcasts / agendaVotes 5 个语义端点组）
+//     —— 10 主集合 + 8 niche + 新域（报名/复盘/宣传/档案/外发确认/子记录聚合域，T-209 全栈同步）
 //  2. snapshot()：全量快照写穿（POST /api/v1/snapshot，认证保护，供 persist() 防抖调度）
 //  3. _request()：统一 fetch + Bearer token 认证（token 由 getAuthToken() 提供）
 //
@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260914s';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260915d';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -157,7 +157,7 @@ export const ApiAdapter = {
   },
 
   /**
-   * 全量快照写穿：将当前 mockDB 的 25 个持久化域整体覆盖写入后端（认证保护）。
+   * 全量快照写穿：将当前 mockDB 的 25 个快照域整体覆盖写入后端（认证保护）。
    * 由 data-adapter 的 persist() 防抖调度调用；P2 资源级 CRUD 落地前，
    * 这是服务层写入穿透到服务器的唯一通道。
    * @param {Object} payload - 快照 payload（不含 users，含聚合域 __root__ 单行）
@@ -470,29 +470,6 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/archiveRecords/${id}`, patch);
-    },
-  },
-
-  mailboxConfig: {
-    // 单对象聚合域（null 或配置对象）：list 返回 [ { id:'__root__', body } ] 或 []
-    list() {
-      return _get('/api/v1/mailboxConfig');
-    },
-
-    // 整体替换配置对象
-    update(body) {
-      return _patch(`/api/v1/mailboxConfig/__root__`, { body });
-    },
-  },
-
-  mailboxHistory: {
-    list(params = {}) {
-      const query = new URLSearchParams(params).toString();
-      return _get(`/api/v1/mailboxHistory${query ? '?' + query : ''}`);
-    },
-
-    create(data) {
-      return _post('/api/v1/mailboxHistory', data);
     },
   },
 

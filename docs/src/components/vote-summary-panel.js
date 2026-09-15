@@ -9,15 +9,17 @@
 //   committeeMembers.length。矩阵成员由调用方传入（有 voteConfig → voterIds 映射人员；无 → 权威支委名单
 //   resolveVoterIds('committee')，过滤见 inspector.js；server/routes/committee.js COMMITTEE_IDS 仅作旧活动
 //   回退白名单，勿再本地罗列支委成员）。选项集/标签权威 = vote-config.js OPTION_SETS（勿再本地硬编码）
-import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../services/committee-vote.js?v=20260914s';
-import { optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260914s';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260914s';
+import { fetchVotes, lockVotes, votedCountOf, tallyOf } from '../services/committee-vote.js?v=20260915d';
+import { optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260915d';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260915d';
 // R2-2（2026-09-06）：决议「待落实」跟进管理器（记录决议视图内勾选/保存/销项；本文件保留原版本串——
 //   唯一引用方 components/inspector.js 属禁改文件无法同步 ?v=，改动经子模块新版本串保证取新代码）
-import { loadActivities } from '../services/activity.js?v=20260914s';
+import { loadActivities } from '../services/activity.js?v=20260915d';
 import {
   resolutionFollowupSectionHtml, bindResolutionFollowupSection,
-} from './resolution-followup-manager.js?v=20260914s';
+} from './resolution-followup-manager.js?v=20260915d';
+// 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（原 .vs-matrix 自建实现撤除，Q-23-18 收敛）
+import { renderRelationMatrix } from './relation-matrix.js?v=20260915d';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
@@ -67,29 +69,42 @@ export async function renderVoteSummary(container, { activity, committeeMembers,
       <div class="text-[11px] text-gray-500 -mt-1 mb-1">应到＝有表决权党员（预备党员无表决权）；考勤的「应到」为正式＋预备党员，两者口径不同</div>
       ${tallyHtml}
       ${quorumHtml}
-      <div class="vs-matrix-wrap">
-        <table class="vs-matrix">
-          <thead><tr><th>议题</th>${committeeMembers.map((m) => `<th>${esc(m.name)}</th>`).join('')}</tr></thead>
-          <tbody>
-            ${items.map((it) => {
-              const row = committeeMembers.map((m) => {
-                // 无记名：只呈现已投/未投（无逐人选项可展示）；记名：逐格显示选项+附言（现状）
-                if (anonymous) {
-                  const voted = votes.some((x) => x.personId === m.id && x.agendaItemId === it.id);
-                  return voted ? '<td>已投</td>' : '<td class="vs-none">未投</td>';
-                }
-                const v = votes.find((x) => x.personId === m.id && x.agendaItemId === it.id);
-                if (!v) return '<td class="vs-none">—</td>';
-                const cls = v.position === 'object' ? 'vs-object' : '';
-                return `<td class="${cls}">${esc(labelOf(v.position))}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}</td>`;
-              }).join('');
-              return `<tr><td>${esc(it.item || '(无标题议题)')}</td>${row}</tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
+      <!-- 批次 39：表态矩阵并入单一源「人 × 项目」矩阵（relation-matrix）——行＝议题、列＝应到成员，
+           与既有 .vs-matrix 同向（转置由组件的「按人/按项目」能力天然具备）；异议红底/未投灰字经 cellClass 保留 -->
+      <div id="vs-matrix-host"></div>
     </div>
     ${followupHtml}`;
+
+  // 表态矩阵（批次 39 并入单一源 relation-matrix）：行＝议题 / 列＝应到成员，与既有 .vs-matrix 同向
+  renderRelationMatrix(container.querySelector('#vs-matrix-host'), {
+    stateKey: `vote-summary-${activity.id}`,
+    mode: 'byItem',
+    persons: committeeMembers.map((m) => ({ id: m.id, name: m.name })),
+    items: items.map((it) => ({ id: it.id, title: it.item || '(无标题议题)' })),
+    // colLimit 0＝不封顶：议题维＝本场活动的议程条数（有界，不随年份累积），不需要「最近 6 项」上限；
+    // rowLimit 0＝人维不分页：本域人维是**列**（应到成员＝本场活动一份固定名单，单场有界），
+    //   与「会随年份累积的人维」（考勤/考察/分工/报名）不同——表态矩阵须一屏看全表决分布，
+    //   分页会把应到成员切到别的页，反而看不出全局（例外已在 relation-matrix.test.mjs S5 登记备案）。
+    colLimit: 0,
+    rowLimit: 0,
+    personLabel: '成员',
+    itemLabel: '议题',
+    emptyText: '本活动暂无议程',
+    cell: (pid, iid) => {
+      const v = votes.find((x) => x.personId === pid && x.agendaItemId === iid);
+      // 无记名：只呈现已投/未投（无逐人选项可展示）；记名：逐格显示选项 + 附言
+      if (anonymous) return v ? '已投' : '未投';
+      if (!v) return '—';
+      return `${esc(labelOf(v.position))}${v.note ? `<span class="vs-note">${esc(v.note)}</span>` : ''}`;
+    },
+    // 「异议」红底 / 「未投」灰字：复用 styles.css 既有语义类 .vs-object / .vs-none（本组件不写样式）
+    cellClass: (pid, iid) => {
+      const v = votes.find((x) => x.personId === pid && x.agendaItemId === iid);
+      if (!v) return 'vs-none';
+      if (!anonymous && v.position === 'object') return 'vs-object';
+      return '';
+    },
+  });
 
   // R2-2 决议落实事件绑定；操作完成后重取最新活动并整卡重绘（含矩阵票数刷新）
   const rerenderSummary = async () => {

@@ -3,7 +3,7 @@
 //   结构层 S1–S7：静态扫描防回潮
 //     S1 类族在位（styles.css 必须定义 .lf-* 与 .data-table 族）
 //     S2 唯一检索引擎不得再出现 chip 分面（改下拉）
-//     S3 全站表格只允许 .data-table / .vs-matrix 两种类
+//     S3 全站表格只允许 .data-table 一种类（2026-09-14 批次 39：原专用 .vs-matrix 已并入矩阵单一源）
 //     S4 表头/单元格重复声明不得回潮（各表勿再各写一遍）
 //     S5 单档统一（清 10px 下拉死规则 / 触发器不再补 h-8）
 //     S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）
@@ -11,6 +11,8 @@
 //     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
 //     S9 选人载体：select 列人名只允许「任命 / 指派到人」四处例外（§4.13 语义两分）
 //     S10 分页内置统一引擎（凡经引擎渲染的表一律分页；翻页控件走 .page-btn/.page-num 单一源）
+//     S11 翻页标记单一源（class="page-btn"/"page-num" 只允许由 components/pager.js 产出）
+//     S12 手写表格收敛台账（`<table` 只允许出现在登记在案的位置）
 //   口径层 D1：单档口径同源（.lf-btn / .data-table / .input-flat 全站只剩 38px 高 × 13px 字一套）
 //   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高
 // node-only（不启浏览器）：纯静态扫描 + 样式文本解析。
@@ -63,9 +65,10 @@ test('S2 统一检索引擎的分面已是下拉（不得再出现 chip 分面�
   assert.match(src, /<table class="data-table/, '结果区表格须用 .data-table 单一源');
 });
 
-test('S3 全站表格只用单一源类（.data-table / 专用 .vs-matrix）', () => {
+test('S3 全站表格只用单一源类（.data-table）', () => {
   // 原状：8 张真表格各写一遍 w-full text-xs / w-full text-left，表头三套模式并存 → 必收敛。
-  const ALLOW = new Set(['data-table', 'vs-matrix']);
+  // 批次 39：原「专用 .vs-matrix」已并入 relation-matrix，全站表格类族收成 .data-table 一套，白名单不再保留第二项。
+  const ALLOW = new Set(['data-table']);
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {
     lines(f).forEach((line, i) => {
@@ -75,7 +78,7 @@ test('S3 全站表格只用单一源类（.data-table / 专用 .vs-matrix）', (
       }
     });
   }
-  assert.deepEqual(offenders, [], '表格 class 必须以 data-table（或专用 vs-matrix）打头；行内不得再补 w-full/text-xs');
+  assert.deepEqual(offenders, [], '表格 class 必须以 data-table 打头；行内不得再补 w-full/text-xs，也不得再自造专用表格类');
 });
 
 test('S4 表头/单元格重复声明不得回潮', () => {
@@ -194,10 +197,11 @@ test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人
 //   凡经 renderFilteredList 渲染的表一律分页（禁调用点私自关掉），翻页控件走 .page-btn/.page-num 单一源。
 test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私自关掉分页）', () => {
   const src = read(join(SRC_DIR, 'components', 'list-filter.js'));
+  const pager = read(join(SRC_DIR, 'components', 'pager.js'));
   assert.match(src, /pageSize:\s*10/, '统一引擎须内置分页缺省 10 条/页');
-  assert.match(src, /data-lf-page/, '统一引擎须渲染翻页控件（data-lf-page）');
-  assert.match(src, /class="page-btn"|class="page-num/, '翻页控件须走 .page-btn / .page-num 单一源（批次 28）');
-  assert.ok(src.includes('if (pages <= 1)'), '页数 ≤1 须不渲染翻页控件（小表零负担）');
+  assert.match(pager, /data-lf-page/, '翻页控件单一源（pager.js）须渲染翻页控件（data-lf-page）');
+  assert.match(pager, /class="page-btn"|class="page-num/, '翻页控件须走 .page-btn / .page-num 单一源（批次 28）');
+  assert.ok(pager.includes('if (pages <= 1)'), '页数 ≤1 须不渲染翻页控件（小表零负担）');
   assert.ok(!/chip-accent-on/.test(src), '引擎不得借 .chip-accent-on 表当前页');
   // 调用点不得私自关掉分页：全站 renderFilteredList 调用点零 `pageSize: 0`
   const optOut = [];
@@ -209,6 +213,59 @@ test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私�
     });
   }
   assert.deepEqual(optOut, [], `经统一引擎渲染的表一律分页；如需例外须先在规范里登记：\n${optOut.join('\n')}`);
+});
+
+// S11（2026-09-14 批次 38，支书裁定「分页须是引擎级能力，不得各页各写一版」）
+// 判例：批次 34 把分页做进引擎后，全站**仍有 6 处手写翻页控件**（归档库 / 反馈列表 / 查询视图 /
+//   成员活动列表 / 考勤总表 / 支书台反馈），形态与类名各写一遍（.archive-page-btn / .issue-page-btn /
+//   .qv-page-btn / .feedback-page-btn / .visitor-act-page-btn / att-table-prev…）——即「能力散落在调用点」。
+// 判据：翻页**标记**（class="page-btn" / class="page-num"）全站只允许由 components/pager.js 产出；
+//   消费方只能读 `[data-lf-page]`，不得自带标记字面量。
+test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/pager.js 产出', () => {
+  const ALLOW = new Set(['components/pager.js']);
+  const offenders = [];
+  for (const f of walkJs(SRC_DIR)) {
+    const r = rel(f);
+    if (ALLOW.has(r)) continue;
+    lines(f).forEach((line, i) => {
+      const t = line.trimStart();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return; // 注释里的历史说明不算
+      if (/class="page-btn"|class="page-num/.test(line)) offenders.push(`${r}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [],
+    `翻页标记须由 components/pager.js 单一源产出（消费方只读 [data-lf-page]）：\n${offenders.join('\n')}`);
+  // 防僵尸：单一源本身须仍在产出标记
+  const pager = read(join(SRC_DIR, 'components', 'pager.js'));
+  assert.match(pager, /class="page-btn"/, 'pager.js 须仍产出翻页标记（否则白名单掩盖了回潮）');
+});
+
+// S12（2026-09-14 批次 39）
+// 判例：批次 37 全量审计时发现「未接引擎的手写渲染」仍有 13 处以上（表格 4 处 + 卡片列表 9 处以上），
+//   其中表格各自手写 `<table>` 外壳——即「表格渲染能力散落在调用点」。
+// 判据：全站 `<table` 只允许出现在**登记在案**的位置；新写一处表必须先进本台账（而不是各页各写一遍）。
+test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的位置', () => {
+  const ALLOW = new Map([
+    ['components/list-filter.js', '统一检索引擎（表格模式单一源：.data-table 外壳由本件产出）'],
+    ['components/relation-matrix.js', '「人 × 项目」矩阵单一源'],
+    ['entries/tabs/disc/attendance-tab.js', '考勤明细（导出 / 打印专用明细表；分页已走单一源 pager.js）'],
+    ['entries/tabs/secretary/group-progress-tab.js', '党小组清单（行数＝党小组数，天然有界）'],
+  ]);
+  const offenders = [];
+  for (const f of walkJs(SRC_DIR)) {
+    const r = rel(f);
+    if (ALLOW.has(r)) continue;
+    lines(f).forEach((line, i) => {
+      const t = line.trimStart();
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return; // 注释里的历史说明不算
+      if (/<table\b/.test(line)) offenders.push(`${r}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [],
+    `新写的表格须先进 S12 台账（或接入 list-filter / relation-matrix 单一源）：\n${offenders.join('\n')}`);
+  // 防僵尸：台账里的位置须确实仍是手写表，否则应从台账移除
+  const stale = [...ALLOW.keys()].filter((r) => !read(join(SRC_DIR, ...r.split('/'))).includes('<table'));
+  assert.deepEqual(stale, [], `以下位置已不再手写表格，应从 S12 台账移除：\n${stale.join('\n')}`);
 });
 
 // ── 口径层 ──────────────────────────────────────────────────────────

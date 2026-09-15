@@ -14,6 +14,9 @@
  *   });
  */
 
+// 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
+import { pagerHtml } from './pager.js?v=20260915d';
+
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -155,31 +158,21 @@ export function renderQueryView(container, config) {
       ? `第 ${page}/${pages} 页 · ${total} / ${data.length} 条`
       : `${total} / ${data.length} 条`;
 
-    // 分页控件（>1 页时渲染；数值用 tabular-nums，按钮带 aria-label）
-    if (pages > 1) {
-      pagerEl.innerHTML = `
-        <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
-          <span class="tabular-nums">${total} 条</span>
-          <div class="flex items-center gap-1">
-            <button type="button" class="qv-page-btn page-btn" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''} aria-label="上一页">上一页</button>
-            <span class="px-2 tabular-nums">${page} / ${pages}</span>
-            <button type="button" class="qv-page-btn page-btn" data-page="${page + 1}" ${page >= pages ? 'disabled' : ''} aria-label="下一页">下一页</button>
-          </div>
-        </div>`;
-      pagerEl.querySelectorAll('.qv-page-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const p = Number(btn.dataset.page);
-          if (p < 1 || p > pages) return;
-          const u = new URL(window.location.href);
-          u.searchParams.set(pageParam, String(p));
-          window.history.replaceState(null, '', u);
-          applyFilters();
-        });
-      });
-    } else {
-      pagerEl.innerHTML = '';
-    }
+    // 分页控件（单一源 pagerHtml：共 N 条 · 第 x/y 页 + 上一页/页码/下一页；页数 ≤1 返回空串）
+    pagerEl.innerHTML = pagerHtml({ page, pages, total, unit: '条' });
   }
+
+  // 翻页（委托一次：pagerEl 内容由 applyFilters 重绘，绑定不随之丢失；标记由 pagerHtml 单一源产出）
+  pagerEl?.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-lf-page]');
+    if (!btn || btn.disabled) return;
+    const p = Number(btn.dataset.lfPage);
+    if (!(p >= 1)) return;
+    const u = new URL(window.location.href);
+    u.searchParams.set(pageParam, String(p));
+    window.history.replaceState(null, '', u);
+    applyFilters();
+  });
 
   // 筛选/搜索变化 → 页码重置 1（删除 URL page 参数后重渲染）
   function resetPageAndApply() {

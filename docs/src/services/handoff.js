@@ -8,11 +8,11 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260914s';
-import { persist } from '../core/data-adapter.js?v=20260914s';
-import { bumpToken } from '../core/version-token.js?v=20260914s'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260914s';
-import { generateId } from '../core/id.js?v=20260914s';
+import { mockDB } from '../core/domain.js?v=20260915d';
+import { persist } from '../core/data-adapter.js?v=20260915d';
+import { bumpToken } from '../core/version-token.js?v=20260915d'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260915d';
+import { generateId } from '../core/id.js?v=20260915d';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——

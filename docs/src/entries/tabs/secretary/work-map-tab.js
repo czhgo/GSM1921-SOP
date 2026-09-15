@@ -1,20 +1,25 @@
 // role: [工程师]+[AI]
 // entries/tabs/secretary/work-map-tab.js — 支书工作台·支部分工 tab（L4 支部工作地图，2026-09-03）
 // 支书三重裁定落地：党建/党务二分取消、不设分类筐、平铺模块 + 按人 双视图。
+// 2026-09-14 批次 35（支书裁定「矩阵推广到其它二元关系域」）：本页扩为三视图——
+//   平铺模块（原卡视图，承载 desc/子项/产出完整信息）+ 按人 / 按项目（「人 × 工作项」宽表，二者互为转置）。
+//   宽表默认「按人」（与全站考勤/考察宽表默认同口径）；矩阵一律走单一源 relation-matrix.js（勿自造 table/翻页/横向滚动）。
 // 模块目录单一源 = core/work-map.js（11 项既有工作形式）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260914s';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260914s';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260914s';
-import { getPersonName } from '../../../services/person.js?v=20260914s';
+import { escHtml as esc } from '../../../core/utils.js?v=20260915d';
+import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260915d';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260915d';
+import { getPersonName } from '../../../services/person.js?v=20260915d';
+// 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915d';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260914s';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260915d';
 
-let _view = 'modules'; // 视图 A 平铺模块 / 视图 B 按人（同一会话内保持）
+let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 
 /** 负责人显示名：role → ROLE_LABELS；person → 姓名 */
 function _ownerLabel(assign) {
@@ -47,41 +52,51 @@ function _modulesHtml(workforce) {
     </div>`;
 }
 
-/** 视图 B：按人分组（每位负责人名下挂其负责模块） */
-function _personsHtml(workforce) {
-  // 按人聚合：role/person 负责人 → 模块列表（顺序保持模块目录序）
-  const byOwner = new Map();
+/** 视图 B/C：人 × 工作项宽表（按人＝行=负责人、列=工作项；按项目＝转置，行=工作项、列=负责人） */
+function _renderMatrix(workforce) {
+  const host = document.getElementById('work-map-matrix');
+  if (!host) return;
+  // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN`）；顺序沿用原「按人」卡视图的排序意图：
+  // 支书/副支书/组织/宣传/纪检 在前，其余（党小组组长、到人负责人等）按 99 排后
+  const ownerMap = new Map();
   for (const m of WORK_MAP_MODULES) {
     const assign = workforce[m.id];
+    // 停用项（ownerType:'none'）无负责人 → 不入人维（其工作项在矩阵中整列/整行渲染为「—」）
+    if (assign.ownerType !== 'role' && assign.ownerType !== 'person') continue;
     const key = `${assign.ownerType}:${assign.ownerId}`;
-    if (!byOwner.has(key)) byOwner.set(key, { assign, modules: [] });
-    byOwner.get(key).modules.push(m);
+    if (!ownerMap.has(key)) ownerMap.set(key, assign);
   }
   const order = [
     'role:secretary', 'role:deputy-secretary',
     'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
   ];
-  const sorted = [...byOwner.entries()].sort((a, b) => {
-    const ia = order.indexOf(a[0]); const ib = order.indexOf(b[0]);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  const persons = [...ownerMap.entries()]
+    .sort((a, b) => {
+      const ia = order.indexOf(a[0]); const ib = order.indexOf(b[0]);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    })
+    .map(([id, assign]) => ({ id, name: _ownerLabel(assign) }));
+
+  renderRelationMatrix(host, {
+    stateKey: 'secretary-work-map-matrix',
+    mode: _view === 'items' ? 'byItem' : 'byPerson',
+    persons,
+    // 工作项维＝WORK_MAP_MODULES 模块目录原序（顺序即平铺视图 A 顺序，勿打乱）
+    items: WORK_MAP_MODULES.map(m => ({ id: m.id, title: m.name, sub: (m.sub || []).join('·') })),
+    // 列上限 0＝不限：工作项是本支部 11 项固定目录（有界，单一源 core/work-map.js），
+    // 不随年份累积，故不需要矩阵缺省的「最近 6 项」封顶
+    colLimit: 0,
+    cell: (personKey, moduleId) => {
+      const assign = workforce[moduleId];
+      // 命中该工作项负责人 → 「主责」徽标（朴素文本标记，本页禁 SVG）；否则 null → 组件渲染灰色「—」
+      return `${assign.ownerType}:${assign.ownerId}` === personKey
+        ? '<span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">主责</span>'
+        : null;
+    },
+    personLabel: '负责人',
+    itemLabel: '工作项',
+    emptyText: '无分工数据',
   });
-  return `
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      ${sorted.map(([, { assign, modules }]) => `
-        <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' ? 'bg-red-600' : 'bg-blue-500'}"></span>
-            <p class="font-title-cn text-sm font-bold text-gray-800">${esc(_ownerLabel(assign))}</p>
-            <span class="ml-auto text-[11px] text-gray-500">${modules.length} 个模块</span>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            ${modules.map(m => `
-              <span class="text-xs px-2 py-1 rounded-lg bg-neutral-50 border border-gray-100 text-gray-700">
-                ${esc(m.name)}${(m.sub && m.sub.length) ? `<span class="text-[10px] text-gray-500 ml-1">（${esc(m.sub.join('·'))}）</span>` : ''}
-              </span>`).join('')}
-          </div>
-        </div>`).join('')}
-    </div>`;
 }
 
 /** 渲染支部分工 tab（tab-bar 懒加载调用） */
@@ -105,6 +120,7 @@ export function renderContent() {
         ${[
           { key: 'modules', label: '平铺模块' },
           { key: 'persons', label: '按人' },
+          { key: 'items', label: '按项目' },
         ].map(t => `
           <button type="button"
             class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
@@ -113,9 +129,11 @@ export function renderContent() {
       </div>
       <p class="text-xs text-gray-500 ml-auto">分工由本支部自行调整（缺省按 SOP 责任人，改派走支委会议题）</p>
     </div>`;
-  const body = _view === 'persons' ? _personsHtml(workforce) : _modulesHtml(workforce);
+  const body = _view === 'modules' ? _modulesHtml(workforce) : `<div id="work-map-matrix"></div>`;
 
   root.innerHTML = `${switchBar}${body}`;
+  // 宽表视图（按人 / 按项目）：矩阵挂到宿主容器（_view → mode 映射在 _renderMatrix 内）
+  if (_view !== 'modules') _renderMatrix(workforce);
   // 视图切换（纯排列切换，不换数据）；复用 overview 的 ov-sub-tab 激活样式
   root.querySelectorAll('.ov-sub-tab').forEach(btn => {
     btn.addEventListener('click', () => {

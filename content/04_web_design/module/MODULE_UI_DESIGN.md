@@ -14,6 +14,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 > **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/COMPONENT_SPEC.md + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
+> **现状注记（2026-09-15）**：工作台 Tab 分组已按行为性质重排为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组（党委台为院级三组「首页 / 全院治理 / 支部治理」）——本文中「党建」Tab 分组即该组的历史组名，对应现行「我的职责」组；下文属设计论证原文，保留当时表述。
 > **受众：** [工程师]+[AI] —— 供前端开发决策参考。
 > **视觉规范**：色彩、字体、间距等视觉规范见 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)，本文档不重复。
 
@@ -29,7 +30,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 本文档涵盖两个功能模块的界面设计：
 
-- **「党建」Tab 分组**：角色工作台内的功能板块，涵盖发展党员全流程追踪、补课制度跟踪、意见反馈、公邮查收提醒等子功能。
+- **「党建」Tab 分组**：角色工作台内的功能板块，涵盖发展党员全流程追踪、补课制度跟踪、意见反馈等子功能。
 - **日历功能模块**：工作台的核心视图组件，涵盖月/周/日/列表多视图展示、文本溢出处理、活动数据存储、快速聚焦视图等设计。
 
 角色权限与逻辑层面请参阅 [DATA_FLOW.md](../data/DATA_FLOW.md)（三级管理架构数据流）和 [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（支委系统设计）。日历视图范围限定（仅对参与者/组织者/支书/党小组组长展示，支委不展示日历）的已落地规则见 [SOP_WEBSITE_GUIDE.md §B.3](SOP_WEBSITE_GUIDE.md)。
@@ -58,7 +59,6 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 | 发展党员全流程追踪 | 积极分子 -> 发展对象 -> 预备党员 -> 正式党员，各阶段时间节点与材料完成状态 | 组织委员工作流程指南 |
 | 补课制度跟踪 | 请假/缺勤人员补课安排、完成情况追踪、补课完成后在考勤记录中标注"已补" | 纪检委员工作流程指南 1.4 |
 | 意见反馈 | GitHub Issue 风格开源讨论+支书处置权（双轨数据层：issues.json 权威源 + localStorage 草稿；两类标签：scope 单选 + type 多选；权限：支书独占 8 项处置权，全员共享 7 项基础操作） | D-244 职能动作隐喻 + T105 实施 |
-| 公邮查收提醒 | 每周查看支部公邮 1 次，汇总并转发思想汇报与发展党员材料至组织委员（2026-08-30 数字化后：思想汇报由党员系统内提交，公邮转交的线下材料由组织委员补录系统，算法归集） | 纪检委员工作流程指南 §补课制度与公邮管理 |
 
 #### 考勤与考察的核心区别（数据模型依据）
 
@@ -118,7 +118,6 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 | **发展党员追踪看板** | Service 层候选人列表 | 点击阶段展开详情，查看材料清单 |
 | **补课完成度** | Service 层补课任务列表 | 点击人员查看补课详情，标记完成 |
 | **意见建议状态** | Service 层反馈列表 | 支书角色可操作状态流转 |
-| **公邮定时提醒** | Service 层邮箱状态 | 点击"确认查收"重置计时器 |
 | **制度文件** | AI 读取 `content/01_strategy/references/合规文件/` | 只读展开，源文件不可变 |
 
 ### 与其他模块的关联关系

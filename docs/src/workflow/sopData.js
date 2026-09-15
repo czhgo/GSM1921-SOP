@@ -150,8 +150,7 @@ export const sopDatabase = {
       domain: 'organization', description: '提前至少2天联系',
       tasks: [
         { taskId: '5-1', title: '提出信息平台支持需求',         executor: 'all',              supervisor: null,     timeOffset: -2 },
-        { taskId: '5-2', title: '公邮定时查收与分发',           executor: 'disc-commissioner',supervisor: 'leader', timeOffset: null, desc: '每周查公邮一次，汇总转交组织委员归档。' },
-        { taskId: '5-2b', title: '每周一报送学工周报',         executor: 'prop-commissioner',supervisor: 'leader', timeOffset: null, desc: '每周一向学工周报报送上周活动信息。' },
+        { taskId: '5-2', title: '每周一报送学工周报',         executor: 'prop-commissioner',supervisor: 'leader', timeOffset: null, desc: '每周一向学工周报报送上周活动信息。' },
         { taskId: '5-3', title: '材料复核督办与档案维护',       executor: 'org-commissioner', supervisor: 'leader', timeOffset: null, desc: '组织委员提醒协调进度（审核由党办）。' },
       ],
     },

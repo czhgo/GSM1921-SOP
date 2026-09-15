@@ -1,17 +1,19 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260914s';
-import { getBasePath } from '../core/utils.js?v=20260914s';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260914s';
-import { AuthStore } from '../services/auth.js?v=20260914s';
-import { loadActivities } from '../services/activity.js?v=20260914s';
-import { PEOPLE } from '../mock/people.js?v=20260914s';
+import { icon } from '../core/icons.js?v=20260915d';
+import { getBasePath } from '../core/utils.js?v=20260915d';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260915d';
+import { AuthStore } from '../services/auth.js?v=20260915d';
+import { loadActivities } from '../services/activity.js?v=20260915d';
+import { PEOPLE } from '../mock/people.js?v=20260915d';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260914s';
+} from '../services/branch-doc.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
+import { renderFilteredList } from '../components/list-filter.js?v=20260915d';
 
 const SITE_GROUPS = [
   {
@@ -48,13 +50,6 @@ const SITE_GROUPS = [
     url: 'https://www.xuexi.cn/',
     cat: 'tools',
     icon: 'book',
-  },
-  {
-    title: '北大邮箱系统',
-    desc: '支部公邮登录入口',
-    url: 'https://mail.pku.edu.cn/',
-    cat: 'tools',
-    icon: 'mail',
   },
 ];
 
@@ -205,6 +200,8 @@ export class ReferencesModule {
     ReferencesModule._onlyInstitution = false;
     ReferencesModule._bindSearch();
     ReferencesModule._bindBranchDocAdd();
+    // 支部文件行内动作：宿主 #ref-branch-docs-list 常驻、行由引擎重绘 → 事件委托只挂一次
+    ReferencesModule._bindBranchDocList();
     ReferencesModule._loadAuth();
     ReferencesModule._loadBranchDocs().then(() => ReferencesModule.render());
   }
@@ -261,7 +258,19 @@ export class ReferencesModule {
       sites = sites.filter(s => s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q));
     }
 
-    grid.innerHTML = sites.map(s => `
+    // 站点卡片接统一检索引擎（人工维护的短列表：≤8 行 → 不渲染检索条、页数 ≤1 不出翻页控件，观感不变）。
+    // 宿主原为网格容器（grid grid-cols-… gap-4）：引擎会在宿主内再包 .lf-root/.lf-list 两层，
+    // 网格类须随行容器下移（否则卡片会挤在网格首列）→ 清宿主类、网格布局交 listClass 承载。
+    grid.className = '';
+    renderFilteredList(grid, {
+      stateKey: 'references-sites',
+      rows: sites,
+      keyword: null, // 检索仍由页头「搜索资料」统一筛三列（引擎此处只需分页口径统一）
+      facets: [],
+      countUnit: '个',
+      listClass: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4',
+      emptyMessage: '未找到匹配的站点',
+      rowHtml: (s) => `
       <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="ref-site-card">
         <div class="ref-site-icon">${_iconSVG(s.icon)}</div>
         <div class="ref-site-info">
@@ -269,7 +278,8 @@ export class ReferencesModule {
           <span class="ref-site-desc">${s.desc}</span>
         </div>
       </a>
-    `).join('');
+    `,
+    });
   }
 
   static _renderOfficialDocs() {
@@ -293,7 +303,16 @@ export class ReferencesModule {
     }
     if (empty) empty.classList.add('hidden');
 
-    list.innerHTML = docs.map(d => `
+    // 官方文件列表接统一检索引擎（人工维护的短列表：≤8 行 → 无检索条/翻页控件；空态与计数仍在引擎外）
+    renderFilteredList(list, {
+      stateKey: 'references-official-docs',
+      rows: docs,
+      keyword: null, // 检索仍由页头「搜索资料」统一筛（含 desc）
+      facets: [],
+      countUnit: '项',
+      listClass: 'space-y-3',
+      emptyMessage: '未找到匹配的资料',
+      rowHtml: (d) => `
       <div class="ref-doc-item">
         <div class="ref-doc-left">
           <div class="ref-doc-info">
@@ -305,7 +324,8 @@ export class ReferencesModule {
           <a class="ref-download-btn" href="${d.url}" target="_blank" rel="noopener noreferrer">查看官方原文</a>
         </div>
       </div>
-    `).join('');
+    `,
+    });
   }
 
   // ═══════════════ 支部文件列表（普通文件 + 制度文本，立项⑧）═══════════════
@@ -376,13 +396,20 @@ export class ReferencesModule {
     }
     if (empty) empty.classList.add('hidden');
 
-    list.innerHTML = docs.map(d =>
-      _isInstitutionDoc(d)
+    // 支部文件列表接统一检索引擎（keyword null + facets [] → 只出分页，检索仍由页头「搜索资料」统一筛；
+    // 行 HTML 原样迁为 rowHtml；行内动作已由 _bindBranchDocList 委托在宿主上，不随引擎重绘失效）
+    renderFilteredList(list, {
+      stateKey: 'references-branch-docs',
+      rows: docs,
+      keyword: null,
+      facets: [],
+      countUnit: '条',
+      listClass: 'space-y-3',
+      emptyMessage: '暂无支部文件',
+      rowHtml: (d) => (_isInstitutionDoc(d)
         ? ReferencesModule._renderInstitutionRow(d)
-        : ReferencesModule._renderDocRow(d)
-    ).join('');
-
-    ReferencesModule._bindBranchDocList(list);
+        : ReferencesModule._renderDocRow(d)),
+    });
   }
 
   /** 普通文件行（维持现状模板：类型徽标 + 标题/元信息 + 下载 + 支委修改/删除） */
@@ -528,30 +555,29 @@ export class ReferencesModule {
     }).join('');
   }
 
-  /** 列表事件绑定：普通文件修改/删除 + 制度（上传新版/停用/重新启用）+ 正文/历史面板切换 */
-  static _bindBranchDocList(list) {
-    list.querySelectorAll('.ref-doc-action-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        if (action === 'edit') ReferencesModule._openEditor(id);
-        else if (action === 'delete') ReferencesModule._deleteDoc(id);
-        else if (action === 'publish-version') ReferencesModule._openPublishModal(id);
-        else if (action === 'disable') ReferencesModule._setInstitutionStatus(id, 'disabled');
-        else if (action === 'enable') ReferencesModule._setInstitutionStatus(id, 'current');
-      });
-    });
-    list.querySelectorAll('[data-toggle-panel]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+  /** 列表事件委托（2026-09-14 批次 37：宿主 #ref-branch-docs-list 常驻、行由统一检索引擎重绘 →
+   *  委托只挂一次，见 init；覆盖普通文件修改/删除 + 制度（上传新版/停用/重新启用）+ 正文/历史面板切换） */
+  static _bindBranchDocList() {
+    const list = document.getElementById('ref-branch-docs-list');
+    if (!list) return;
+    list.addEventListener('click', (e) => {
+      const btn = e.target.closest('.ref-doc-action-btn');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if (action === 'edit') ReferencesModule._openEditor(id);
+      else if (action === 'delete') ReferencesModule._deleteDoc(id);
+      else if (action === 'publish-version') ReferencesModule._openPublishModal(id);
+      else if (action === 'disable') ReferencesModule._setInstitutionStatus(id, 'disabled');
+      else if (action === 'enable') ReferencesModule._setInstitutionStatus(id, 'current');
+      else if (btn.dataset.togglePanel) {
         const panel = document.getElementById(btn.dataset.togglePanel);
         if (!panel) return;
         const closed = panel.classList.toggle('hidden');
         btn.textContent = closed ? btn.dataset.labelClose : btn.dataset.labelOpen;
-      });
+      }
     });
   }
 

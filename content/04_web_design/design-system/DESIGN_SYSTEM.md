@@ -128,7 +128,7 @@ related_files: [COLOR_SYSTEM.md, COMPONENT_SPEC.md, docs/src/styles.css]
 |---------|------|---------|------|
 | 页面主标题（header） | `h2` | `font-title-cn text-xl font-bold text-gray-800` | 各工作台头部「XXX工作台」 |
 | 区块标题（首页区块） | `h2` | `font-title-cn text-2xl font-bold text-gray-800` | index.html「光华…管理引擎」 |
-| 卡片面板标题 | `h3` | `font-title-cn text-base font-semibold text-gray-800` | 工作台「我的待办」「考勤总表」「活动查询」 |
+| 卡片面板标题 | `h3` | `font-title-cn text-base font-semibold text-gray-800` | 工作台「我的待办」「考勤明细」「活动查询」 |
 | 弹窗/浮层面板标题 | `h3` | `font-title-cn text-sm font-semibold text-gray-800` | modal/归档弹窗/通知详情标题 |
 | 卡片内分组标题 | `h4` | `font-title-cn text-sm font-bold text-gray-700` | 「当前党小组组长」「材料标准」「报送历史」、月份分组 |
 | 卡片内更小分组（活动角色/子记录） | `h5`/`h6` | `text-xs font-bold text-gray-600` | 活动角色分组、子记录分组 |

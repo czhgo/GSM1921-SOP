@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260914s');
+@import url('components/person-picker.css?v=20260915d');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -866,7 +866,8 @@ button:disabled { cursor: not-allowed; }
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Data Table（数据表格）——全站单一源，2026-09-14 批次 27 裁定
    口径：<table class="data-table"> 一处声明，行内不再重复写表头/行/悬停类；
-   例外（保留专用类，不套用本族）：.vs-matrix（表决矩阵，自带边框语义）。
+   无例外（2026-09-14 批次 39 支书特批）：原专用 .vs-matrix 已并入统一矩阵组件，
+   全站表格类族收成 .data-table 一套。
    列级特例（sticky 固定列、whitespace-nowrap、truncate）仍在行内按需声明。
    ═══════════════════════════════════════════════════════════════ */
 .data-table {
@@ -2354,36 +2355,9 @@ html.theme-dark .tf-section-head {
   font-weight: 600;
   color: var(--party-red);
 }
-/* 移动端矩阵横向溢出：外包滚动容器（议题 × 委员列数多时窄屏可横滑） */
-.vs-matrix-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  max-width: 100%;
-}
-.vs-matrix {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.72rem;
-  line-height: 1.5;
-}
-.vs-matrix th,
-.vs-matrix td {
-  padding: 5px 8px;
-  text-align: center;
-  border: 1px solid var(--neutral-200);
-}
-.vs-matrix thead th {
-  font-weight: 500;
-  color: var(--neutral-500);
-  background-color: var(--neutral-0);
-}
-.vs-matrix th:first-child,
-.vs-matrix td:first-child {
-  text-align: left;
-  white-space: normal;
-  min-width: 110px;
-  color: var(--neutral-700);
-}
+/* 批次 39（2026-09-14 支书特批）：原 .vs-matrix-wrap / .vs-matrix 系 5 条规则已随
+   「表态矩阵并入统一矩阵组件」删除（该表改用 .data-table 单档口径，横滑由组件自带容器提供）。
+   下列 .vs-* 为**语义类**（异议红底 / 未投灰字 / 附言 / 票数 / 通过条件 / 已截止），仍在用，保留。 */
 .vs-none {
   color: var(--neutral-300);
 }

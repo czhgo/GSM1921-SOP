@@ -3,21 +3,23 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260914s';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260915d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260914s';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260915d';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260914s';
-import { flashHighlight, escHtml as esc } from '../../../core/utils.js?v=20260914s';
+import { isActivityLive } from '../../../core/constants.js?v=20260915d';
+import { flashHighlight } from '../../../core/utils.js?v=20260915d';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/party-group.js?v=20260914s';
+import { groupOptions } from '../../../services/party-group.js?v=20260915d';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260914s';
-import { getAppState } from '../../../core/state.js?v=20260914s';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260915d';
+import { getAppState } from '../../../core/state.js?v=20260915d';
+// 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
 
 // 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
 let _projSubView = 'mine'; // 'mine' | 'all'
@@ -107,81 +109,45 @@ export function renderContent(ctx) {
 
   tc.innerHTML = `
     ${subTabsHtml}
-    <div class="lf-bar mb-3">
-      <select id="visitor-proj-type" class="input-flat text-xs lf-select" aria-label="类型筛选">
-        <option value="">类型：全部</option>
-        <option value="活动">活动</option>
-        <option value="专班">专班</option>
-      </select>
-      <select id="visitor-proj-group" class="input-flat text-xs lf-select" aria-label="党小组筛选">
-        <option value="">党小组：全部</option>
-        ${partyGroups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('')}
-      </select>
-      <input type="text" id="visitor-proj-search" class="input-flat text-xs lf-kw" placeholder="搜索项目名称或人员...">
-      <span id="visitor-proj-count" class="text-xs text-gray-500"></span>
-    </div>
-    <div id="visitor-proj-list"></div>
+    <div id="visitor-proj-host"></div>
   `;
+  const host = tc.querySelector('#visitor-proj-host');
 
   function renderList() {
-    const listEl = document.getElementById('visitor-proj-list');
-    const countEl = document.getElementById('visitor-proj-count');
-    if (!listEl) return;
-    const typeFilter = document.getElementById('visitor-proj-type')?.value || '';
-    const groupFilter = document.getElementById('visitor-proj-group')?.value || '';
-    const q = (document.getElementById('visitor-proj-search')?.value || '').trim().toLowerCase();
-
     // 子视图基准：我的分工 = 我参与的项目（以人为中心）；全局分工 = 全部项目
     const base = _projSubView === 'mine'
       ? allProjects.filter(p => p.personnel.some(pm => pm.personId === currentUserId))
       : allProjects;
 
-    const filtered = base.filter(p => {
-      if (typeFilter && p.type !== typeFilter) return false;
-      if (groupFilter && p.group !== groupFilter) return false;
-      if (q) {
-        const nameMatch = p.name.toLowerCase().includes(q);
-        const personnelMatch = p.personnel.some(pm => pm.name.toLowerCase().includes(q));
-        if (!nameMatch && !personnelMatch) return false;
-      }
-      return true;
+    // 统一检索引擎（支书 2026-09-14 裁定）：原手写 lf-bar（类型 / 党小组 / 搜索框）与「N 个项目」计数
+    // 整体收敛为引擎的 keyword + facets（引擎自带分页）；数据随子视图切换重取。
+    const engine = renderFilteredList(host, {
+      stateKey: 'visitor-proj-list',
+      rows: base,
+      keyword: {
+        keys: ['name', 'personnel'],
+        placeholder: '搜索项目名称或人员…',
+        get: (p, k) => (k === 'personnel' ? p.personnel.map(pm => pm.name).join(' ') : p[k]),
+      },
+      facets: [
+        { key: 'type', label: '类型', options: [{ value: '活动', label: '活动' }, { value: '专班', label: '专班' }] },
+        { key: 'group', label: '党小组', options: partyGroups.map(g => ({ value: g, label: g })) },
+      ],
+      countUnit: '个',
+      listClass: 'space-y-2',
+      emptyMessage: _projSubView === 'mine' ? '你暂未参与任何项目' : '无匹配项目',
+      rowHtml: (p) => _renderProjectCard(p, currentUserId),
     });
 
-    if (countEl) countEl.textContent = `${filtered.length} 个项目`;
-
-    const emptyText = _projSubView === 'mine' && !filtered.length
-      ? '你暂未参与任何项目'
-      : '无匹配项目';
-    listEl.innerHTML = filtered.length === 0
-      ? `<p class="text-xs text-gray-500 text-center py-6">${emptyText}</p>`
-      : `<div class="space-y-2">${filtered.map(p => _renderProjectCard(p, currentUserId)).join('')}</div>`;
-
-    // T-304 第5轮 P8：专班卡片点击直达详情页（含报名入口）——补 visitor 报名可达性
-    // （此前报名入口仅独立页 taskforce.html 可达，工作台内卡片无跳转 = 报名断链）
-    listEl.querySelectorAll('.visitor-proj-card[data-tf-id]').forEach(card => {
-      if (!card.dataset.tfId) return; // 活动卡 data-tf-id 为空串 → 跳过（活动走下方 activity 跳转）
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', () => {
-        const tfId = card.dataset.tfId;
-        const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-        window.location.href = `${base}taskforce.html?id=${tfId}`;
-      });
-    });
-
-    // 支书裁定（卡片去留/合并批 D7）：活动卡点击直达活动详情（与专班卡行为一致）
-    listEl.querySelectorAll('.visitor-proj-card[data-act-id]').forEach(card => {
-      if (!card.dataset.actId) return;
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', () => {
-        const actId = card.dataset.actId;
-        const base = window.location.pathname.includes('/workspace/') ? '../' : '';
-        window.location.href = `${base}activity.html?id=${actId}`;
-      });
-    });
+    // 卡片可点（所有项目卡都带 tf/act id）：cursor 一次落在 .lf-list 上——该容器跨引擎重绘复用
+    host.querySelector('.lf-list')?.style.setProperty('cursor', 'pointer');
 
     // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片
+    // 分页下目标可能不在第 1 页 → 先按其在基准列表中的位置定位到所在页（引擎缺省 10 条/页）
     if (_highlightTfId) {
-      const target = listEl.querySelector(`.visitor-proj-card[data-tf-id="${_highlightTfId}"]`);
+      const idx = base.findIndex(p => p.type === '专班' && p.id === _highlightTfId);
+      if (idx >= 0) { engine.state.page = Math.floor(idx / 10) + 1; engine.apply(); }
+      const target = host.querySelector(`.visitor-proj-card[data-tf-id="${_highlightTfId}"]`);
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         flashHighlight(target);
@@ -190,6 +156,18 @@ export function renderContent(ctx) {
       if (typeof ctx.onNavLocated === 'function') ctx.onNavLocated();
     }
   }
+
+  // 卡片点击直达详情页（T-304 第5轮 P8 专班报名可达性 / D7 活动卡一致行为）：
+  // 事件委托挂在 host 上——引擎筛选/翻页会重绘行，行内直接绑定会失效
+  host.addEventListener('click', (e) => {
+    const card = e.target.closest('.visitor-proj-card');
+    if (!card) return;
+    const tfId = card.dataset.tfId;
+    const actId = card.dataset.actId;
+    if (!tfId && !actId) return;
+    const basePath = window.location.pathname.includes('/workspace/') ? '../' : '';
+    window.location.href = tfId ? `${basePath}taskforce.html?id=${tfId}` : `${basePath}activity.html?id=${actId}`;
+  });
 
   tc.querySelectorAll('.visitor-proj-sub').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -208,9 +186,6 @@ export function renderContent(ctx) {
     });
   });
 
-  document.getElementById('visitor-proj-type')?.addEventListener('change', renderList);
-  document.getElementById('visitor-proj-group')?.addEventListener('change', renderList);
-  document.getElementById('visitor-proj-search')?.addEventListener('input', renderList);
   renderList();
 }
 

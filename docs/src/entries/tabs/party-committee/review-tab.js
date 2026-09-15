@@ -5,12 +5,14 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260914s';
-import { AuthStore } from '../../../services/auth.js?v=20260914s';
-import { getPersonName } from '../../../services/person.js?v=20260914s';
-import { getBranchById } from '../../../services/branch.js?v=20260914s';
-import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260914s';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260914s';
+import { mockDB } from '../../../core/domain.js?v=20260915d';
+import { AuthStore } from '../../../services/auth.js?v=20260915d';
+import { getPersonName } from '../../../services/person.js?v=20260915d';
+import { getBranchById } from '../../../services/branch.js?v=20260915d';
+import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260915d';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260915d';
+// 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915d';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -52,40 +54,68 @@ export function renderContent() {
           <span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">已驳回 ${n('rejected')}</span>
         </div>
       </div>
-      ${pending.length ? `
       <div>
         <p class="text-xs text-gray-500 mb-2">待批复（${pending.length}）</p>
-        <div class="space-y-3">${pending.map(cardHtml).join('')}</div>
-      </div>` : `
-      <div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
-        <p class="text-sm text-gray-500">暂无待批复的上报</p>
-        <p class="text-xs text-gray-500 mt-1">支部发起上报后，将出现在这里等待党委审批</p>
-      </div>`}
-      ${done.length ? `
+        <div id="pc-review-pending-host"></div>
+      </div>
       <div>
         <p class="text-xs text-gray-500 mb-2">已处理（${done.length}）</p>
-        <div class="space-y-3">${done.map(cardHtml).join('')}</div>
-      </div>` : ''}
+        <div id="pc-review-done-host"></div>
+      </div>
     </div>
   `;
 
-  el.querySelectorAll('[data-rq-card]').forEach(card => {
-    const id = card.dataset.rqCard;
-    const status = card.dataset.rqStatus;
-    if (status !== 'pending') return;
-    card.querySelector('[data-rq-act="approve"]')?.addEventListener('click', async () => {
+  // 两区各接一个引擎实例（stateKey 各异；行内「批准/驳回」改事件委托，挂在待批复宿主上）
+  const pendingHost = el.querySelector('#pc-review-pending-host');
+  renderFilteredList(pendingHost, {
+    stateKey: 'party-committee-review-pending',
+    rows: pending,
+    keyword: { keys: ['title', 'content'], placeholder: '搜索事项标题 / 说明…' },
+    facets: [
+      { key: 'type', label: '类型', format: (v) => (TYPE_META[v] || {}).label || v },
+      { key: 'status', label: '状态', format: (v) => (STATUS_META[v] || {}).label || v },
+    ],
+    countUnit: '条',
+    listClass: 'space-y-3',
+    // 原「暂无待批复的上报」空态块迁移为 emptyMessage（两行文案合并）
+    emptyMessage: '暂无待批复的上报 · 支部发起上报后，将出现在这里等待党委审批',
+    rowHtml: cardHtml,
+  });
+  // 行内批准/驳回：事件委托（引擎翻页/筛选会重绘行，行内直接绑定会失效）；
+  // 驳回须填意见的守卫保持原样。
+  pendingHost.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-rq-act]');
+    if (!btn) return;
+    const card = btn.closest('[data-rq-card]');
+    const id = card?.dataset.rqCard;
+    if (!id) return;
+    if (btn.dataset.rqAct === 'approve') {
       const note = card.querySelector('.rq-decision')?.value.trim() || '';
       await decideReviewRequest({ id, decision: 'approved', decidedBy: me.personId, decisionNote: note });
       showToast('已批准该上报（批复已送达支部）');
       renderContent();
-    });
-    card.querySelector('[data-rq-act="reject"]')?.addEventListener('click', async () => {
-      const note = card.querySelector('.rq-decision')?.value.trim();
-      if (!note) { showToast('驳回请填写意见，便于支部知悉整改方向'); return; }
-      await decideReviewRequest({ id, decision: 'rejected', decidedBy: me.personId, decisionNote: note });
-      showToast('已驳回该上报（意见已反馈支部）');
-      renderContent();
-    });
+      return;
+    }
+    const note = card.querySelector('.rq-decision')?.value.trim();
+    if (!note) { showToast('驳回请填写意见，便于支部知悉整改方向'); return; }
+    await decideReviewRequest({ id, decision: 'rejected', decidedBy: me.personId, decisionNote: note });
+    showToast('已驳回该上报（意见已反馈支部）');
+    renderContent();
+  });
+
+  const doneHost = el.querySelector('#pc-review-done-host');
+  renderFilteredList(doneHost, {
+    stateKey: 'party-committee-review-done',
+    rows: done,
+    keyword: { keys: ['title', 'content'], placeholder: '搜索事项标题 / 说明…' },
+    facets: [
+      { key: 'type', label: '类型', format: (v) => (TYPE_META[v] || {}).label || v },
+      { key: 'status', label: '状态', format: (v) => (STATUS_META[v] || {}).label || v },
+    ],
+    countUnit: '条',
+    listClass: 'space-y-3',
+    emptyMessage: '暂无已处理的上报',
+    rowHtml: cardHtml,
   });
 }
 
