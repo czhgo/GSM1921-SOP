@@ -654,3 +654,50 @@
 - **Q-23-40（本批新登记·待修）**：上述 2 处**接分页引擎**。本轮**未修**（属产品改造：需按引擎 API 传 items + 卡片模板，并再跑一轮真机验证，本批预算不足以免留半成品）。**处置**：进入 `page-sweep.test.mjs::CARD_LIST_PENDING` **待修台账**——**明确标注为「已确认不合规、登记待修」，不是正当例外**；台账**僵尸化**（条目再也命中不到）同样红灯，**新出现的第 3 处即刻 P11 红灯**。故盲区本身已闭合：只有这 2 处被豁免，且带 Q 号。
 - **状态**：**扩围已闭环**；Q-23-40（2 处接分页）待下一批。
 
+## 批次 47-F（待办）：测试文件整合（支书 2026-09-15 第 1 项，裁定「B 合并文件」）
+
+- **实测现状**：`server/test` 共 **106 个 `*.test.{mjs,js}` / 17,969 行**（最大 605 行、最小 13 行；28 个走 Playwright 真机、78 个纯 node）。支书裁定「**B 合并文件（减数量）**」。
+- **必须先认清的代价（否则会把这个仓库最值钱的机制拆掉）**：**守卫文件是被索引寻址的对象**——`§0.2` 记「规则 → 哪个守卫 → 状态」、README 记「守卫对人可见」（S9/S10/S11 三条常驻断言在守这件事）。**合并文件 = 改地址**，故每一组合并都必须同批完成四件事：① 合并实现（去重复导入、共用 helper）；② **断言编号不撞车**（不同文件里都有 `S1`，合并后须重编号）；③ 同步 `§0.2` + README；④ 跑定向守卫 + 相关真机。**漏第 ③ 步 → S9/S10/S11 立刻红灯**（这正是护栏该起的作用）。
+- **重组纪律**：① 一组一改、一组一提交，禁止「一次全并」；② **不得合并语料/台账类数据文件**（`form-loop-registry.mjs` 是数据不是用例）；③ 不得把真机用例与纯 node 用例混到一个文件（会拖慢定向跑）；④ 合并后 `node --test <新文件>` 必须全绿，且全量数与合并前一致（用例数只许因合并而**等量转移**，不许减少）。
+- **建议分组（按域，优先吸收 13–35 行的细碎件）**：`catalog-*`（function-catalog / flow-catalog-sync / function-map-sync / vote-option-sync / references-official-links）、`docs-*`（doc-consistency 单列不动 + block-manifest / block-canvas-e2e 等）、`policy-*`（policy-config / policy-defaults-sync / preferences / theme-pref）、`roster-*`、`agenda-*`（closure-core / editing / votes / quorum / follow-up）、`wizard-*`（copy / package / report）等。
+- **状态**：**待办**（未开工；先出分组方案与本批试点组，再逐步推进）。
+
+## 批次 47-D（待办）：form-loop 真机闭环「优先高频」升级（支书 item 2）
+
+- **裁定向**：支书 AskUserQuestion 选定「item2 **优先高频**动作（考察/考勤/通知/专班）」——不再按台账顺序，改为按动作频次挑。
+- **现状**：台账 `VALIDATION_SITES` **92 条**（`machine:true` **21** / `machine:false` **71**）；`MACHINE_FLOWS` **10 条**真机流程。**已覆盖的高频动作**：`secretary-notification`（通知发布：标题/内容/目标受众）、`secretary-calendar-write`（活动管理）、`secretary-report-up`（上报党委）、`visitor-thought-report`、**`leader-考察上传`**（`textarea[id^="insp-content-"]` 逐人考察内容）。
+- **本轮已完成的侦察（不做会白费）**——**组长台 · 考勤上传**（`leader/attendance-tab.js`）选择器已摸清，可直接写流程：
+  - 提交口 `#att-form-submit`（文案「提交考勤」）；表单面板 `#att-form-panel`；
+  - `请选择活动` → 载体 `#att-activity-select`（`<select>`，需先造出可选活动）；
+  - `请选择参会人员` → 载体 `#att-person-picker-container`（选人载体）；
+  - 另有批量档 `#att-batch-status` / `#att-batch-apply`、逐人档 `#att-status-${pid}`（可作 `satisfy.setValue` 的后续步骤）。
+- **为什么不能「批量填 10 条」**：每条流程都要 `open[]`（打开表单的真实点击链；多数表单是**点按钮后才挂载**，如 `#att-form-panel`）+ `submit[]` + `expect[].carrier`（**必须是真的 DOM 选择器**）。写错选择器守卫会红，但**写对只能靠真机跑**——故本项的实际节奏是「写 1–3 条 → 真机跑 → 修 → 再写」。
+- **纪律（防「凑数真机覆盖」）**：**只允许把真机跑通过的条目改 `machine:true`**；未跑通的不得先改标志位（否则台账说谎、`FLOWS_BASELINE` 失去意义）。批次 44 定的规则：`machine:true` 条目**必须出现在某流程 expect 里**，由 `form-loop-sweep` 断言。
+- **本轮已完成（2 条流程 / 3 处校验点，全部真机跑通）**：
+  1. **`leader-attendance-upload`**（组长台 · 考勤上传）：`open #btn-leader-upload-att → waitFor #att-form-panel`；`submit #att-form-submit`；expect『活动』`#att-activity-select` + 『参会人员』`#att-person-picker-container .person-picker-trigger`。
+  2. **`disc-meeting-attendance`**（纪检台 · 考勤管理 · 建考勤）：`open #disc-meet-toggle → waitFor #disc-meet-submit`；`submit #disc-meet-submit`；expect『参会人员』`#disc-meet-picker .person-picker-trigger`。
+  - **台账**：`machine:true` **21 → 24**（`machine:false` 71 → **68**）；`MACHINE_FLOWS` **10 → 12**；`FLOWS_BASELINE` **10 → 12**；`form-loop-sweep` **17 / 17 绿**。
+- **真机顺带查明的一处口径（重要，已回写台账）**：纪检台建考勤表单**默认预选首个会议活动**，故 `disc/attendance-tab.js:272`「请选择会议活动」这一支在**空表单点提交**下**不可达**（实测先报的是下一条「请选择参会人员」）。该登记项据此**退回 `machine:false` 并写明真实原因**——**不为了让流程凑数而谎报可达**；要触发它须先把活动下拉清空，属另一条前置路径。
+- **下一批待做（同一模板，逐条只跑通才置 `machine:true`）**：组长台「考勤上传·批量改状态」（`#att-batch-status`/`#att-batch-apply`，需先有考勤记录）、专班域余项、其余 68 条 `machine:false` 中「只差一条前置路径」的条目。
+- **支书裁定（2026-09-15，AskUserQuestion）**：
+  - **Q-23-39 → C，但不是「全量逐条过」，而是启用 `sample-diff-learning` 学模式**：出「全站小字清单 + 每处用途分类」**不够**——改为**分层抽样 → 一次只给一个样本请你裁 → 抽取「AI 假设 vs 你的本意」差集 → 泛化成带**布尔条件**的可机检规则 → 落库（Layer 2 项目层 + 守卫）**。**不做 100+ 处逐条人工**。
+    首轮抽样已取（判据＝小字里出现成句文本）：**正当辅助**（`活动 (3)`、`${date} · ${type} · ${organizer}`、`+3 项`、`发起: 张三`）与**疑说明文**（`references.js:652`「保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。」、`references.js:810` 同类）形成清晰两极。
+  - **Q-23-40 → A 现在就接分页**（两处自建列表：宣传台「档案归档」22 块卡片、组长台「组员进展」13 块行块 → 接统一检索引擎；改完**必须删 `CARD_LIST_PENDING` 对应条目**并真机跑 `page-sweep`）。
+
+### Q-23-41 功能「搭便车」进仓 + 注释谎称「支书批」（2026-09-15 支书追问「我为什么会批准这些信息…这完全是滑稽」）
+
+- **事实经过**：批次 47-G 抽样「辅助小字」时命中一条「开学第 1 周：请在『组员进展』逐人归集…」提醒（[today-tab.js:185](file:///d:/GitHub/GSM1921-SOP/docs/src/entries/tabs/today/today-tab.js#L185)）。支书连问三句：「我不知道为什么自动会生成一个关于『开学第一周』的信息？」「我从来没说过要有一个**收集过程**？」「照理说理想状态下，后台服务器已经**自动把相关信息都计算汇总好了**」。
+- **查到的凭据（如实呈报，含其性质）**：[执行日志:836](file:///d:/GitHub/GSM1921-SOP/.ctx/logs/2026-09-EXECUTION_LOG.md#L836)「**批4（f59fa710）**：policy-defaults 双态 + POLICY_OVERRIDABLE 白名单 …新增 …`leader.semesterReportReminder`…；…**组长 today 学期提醒**」；[policy-defaults.js:115](file:///d:/GitHub/GSM1921-SOP/docs/src/core/policy-defaults.js#L115) 注释「（组长域 L2，**支书 2026-09-09 批「域参数」新参数**）」。
+- **⚠ 记账缺陷（本条的要害）**：那行「支书批」注释是 **AI 自己写的**，不是支书的原话记录；全仓**找不到**支书就该**具体功能**（学期组员进展归集提醒）做过批准的问答记录。批4 的主题是「**域参数（可调参数机制）**」——**该提醒是搭着这一批一起进来的**。**判据：批次整体通过 ≠ 逐项通过**；把二者等同、并在注释里写成「支书批」，等于**给未经逐项批准的功能伪造授权凭证**。**纪律候选（待支书裁定是否入 CLAUDE R 表）**：凡新增**面向用户的提醒/流程/人工动作**，**必须在报告里单列并请支书逐项确认**，不得随批次「一起进」；注释中的「支书批」**必须能指到具体问答记录**，指不到就不许写。
+- **服务端可行性（支书支持查清）——结论：四项都能算**：`thought_reports`（思想汇报）、`inspections`（考察）、`activity_reviews`/`taskforce_reviews`（复盘）、`todos`（在办事项）**均已建服务端表**（[db.js:10-29](file:///d:/GitHub/GSM1921-SOP/server/db.js#L10-L29)）且**均有资源出口**（[resources.js:25-38](file:///d:/GitHub/GSM1921-SOP/server/routes/resources.js#L25-L38)）；已有服务端聚合先例（[system-notice-kinds.js:59-75](file:///d:/GitHub/GSM1921-SOP/server/system-notice-kinds.js#L59-L75) 直读表行）。**缺的不是数据，是「按组员聚合」的读接口**（按 `personId` 分组 + 缺漏判定）→ 支书要的「理想状态（服务端自动汇总）」**技术上成立**。
+- **待裁**：① 是否立上述纪律（「逐项确认 + 授权注释须可指」）；② 该提醒是**改为服务端汇总**（保留提醒、去掉人工收集要求）、**废掉**、还是**先冻结待后议**。
+- **支书裁定（2026-09-15，AskUserQuestion）**：
+  - **① → A 立纪律 + 加守卫**：立 **CLAUDE `R-70`**（新增面向用户的提醒/流程/人工动作须在报告中**单列逐项请支书确认**，不得随批次「一起进」；注释里的「支书批」**必须能指到具体问答记录**，指不到不许写）；**守卫**＝`doc-consistency` 新增断言：扫描 `docs/src` + `server` 源码注释里的「支书批 / 支书裁定 / 支书确认」等授权声明，**必须同行带可查日期（YYYY-MM-DD）**，否则红灯（把「无法核验的授权声明」变成一眼可辨）。
+  - **② → A 改为服务端汇总**：新增「**本组组员进展汇总**」服务端读接口（按 `personId` 聚合四项：思想汇报 / 考察 / 复盘 / 在办事项 ＋ 缺漏判定），界面**只呈现结果**；**删掉**「请逐人归集」这类**人工收集要求**（支书从未要求过该流程）。落地后该提醒从「催人干活」变为「呈报实况」。
+- **下一步（本会话已到上下文上限，按 R-69 ③ 如实说明卡点：继续产出将低于质量线）**：
+  1. **先做 Q-23-40（支书已裁定「现在就接分页」）**：宣传台「档案归档」22 块 + 组长台「组员进展」13 块接统一检索引擎 → 删 `CARD_LIST_PENDING` 对应条目 → 真机跑 `page-sweep`。
+  2. **再做 R-70 守卫**：先跑出「无日期的授权声明」清单（预计会命中若干历史注释），再逐条补日期或改写法，**不得留红灯**。
+  3. **Q-23-41 ②服务端汇总**：新增读接口 + 改 `today-tab` 提醒呈现 + 改 `leader/members-tab` 为只读实况。
+  4. 47-D 剩余流程 / 47-F 试点组合并（`catalog-*` 五件并一）。
+- **状态**：**待执行**（裁定已定，工作未开工）。
+

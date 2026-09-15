@@ -27,7 +27,7 @@
 
 /** 台账规模基线（守卫据此断言「不得静默缩水」；重构致减少须在同提交显式更新本基线并说明） */
 export const SITES_BASELINE = 92;
-export const FLOWS_BASELINE = 10;
+export const FLOWS_BASELINE = 12;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -62,16 +62,16 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 580, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: false, msg: '请输入正式答复内容', reason: '入口在议题详情内联答复区，需先有议题并进入详情' },
 
   // ── 纪检委员台 ──
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 272, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, msg: '请选择会议活动', reason: '考勤表单按会议活动联动加载，需先进入建考勤态（存在可选活动）' },
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 276, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: false, msg: '请选择参会人员', reason: '需先选定会议活动并进入人员勾选态' },
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 272, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, msg: '请选择会议活动', reason: '【批次 47-D 真机实测】表单默认预选首个会议活动（activityId 非空），故「空表单点提交」永远不触发该分支——实测先报的是下一条「请选择参会人员」；要触发须先把活动下拉清空，属另一条前置路径，本批不纳入' },
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 276, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: true, msg: '请选择参会人员' },
 
   // ── 组长台 ──
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 212, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 216, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 219, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 232, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 272, field: '活动', flow: 'leader/考勤上传', machine: false, msg: '请选择活动', reason: '需先进入考勤上传表单态（本组可上传活动列表非空）' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 275, field: '参会人员', flow: 'leader/考勤上传', machine: false, msg: '请选择参会人员', reason: '需先选定活动并进入人员勾选态' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 272, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 275, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 388, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: false, msg: '请先选择要应用的状态', reason: '需先有考勤记录并进入批量状态操作态' },
   { file: SRC + 'entries/tabs/leader/write-tab.js', line: 423, field: '宣传标题/材料名称', flow: 'leader/活动管理·子记录', machine: false, msg: '材料名称', reason: '需先打开活动的子记录内联表单（先有活动并进入详情）' },
   { file: SRC + 'entries/tabs/leader/write-tab.js', line: 868, field: 'T-0 日期', flow: 'leader/活动管理·发起活动', machine: false, msg: '请填写 T-0 日期', reason: '发起活动为「活动类型→形式→时长→发起方向」多步向导，前置交互复杂' },
@@ -291,6 +291,41 @@ export const MACHINE_FLOWS = [
       { file: SRC + 'entries/tabs/org/inspection-tab.js', field: '专班', msg: '请选择专班', carrier: '#org-insp-tf-select', satisfy: { selectFirstOption: '#org-insp-tf-select' } },
       { file: SRC + 'entries/tabs/org/inspection-tab.js', field: '人员', msg: '请选择人员', carrier: '#org-insp-person-picker-container .person-picker-trigger', satisfy: { openPicker: { trigger: '#org-insp-person-picker-container .person-picker-trigger', count: 1 } } },
       { file: SRC + 'entries/tabs/org/inspection-tab.js', field: '考察内容（逐人）', msg: '的考察内容', carrier: 'textarea[id^="org-insp-content-"]' },
+    ],
+  },
+  {
+    // 批次 47-D（支书裁定「item2 优先高频」）：**考勤上传**是本支部最高频的提交动作之一。
+    // 原两条登记为 machine:false（reason：「需先进入考勤上传表单态」「需先选定活动并进入人员勾选态」）；
+    // 47-D 侦察确认「进入表单态」有确定的真机路径：点 `#btn-leader-upload-att` → `#att-form-panel` 入 DOM。
+    id: 'leader-attendance-upload',
+    page: 'leader',
+    tab: '考勤上传',
+    open: [
+      { click: '#btn-leader-upload-att' },
+      { waitFor: '#att-form-panel' },
+    ],
+    submit: [{ click: '#att-form-submit' }],
+    expect: [
+      { file: SRC + 'entries/tabs/leader/attendance-tab.js', field: '活动', msg: '请选择活动', carrier: '#att-activity-select', satisfy: { selectFirstOption: '#att-activity-select' } },
+      { file: SRC + 'entries/tabs/leader/attendance-tab.js', field: '参会人员', msg: '请选择参会人员', carrier: '#att-person-picker-container .person-picker-trigger' },
+    ],
+  },
+  {
+    // 批次 47-D：**纪检台 · 考勤管理 · 建考勤**（与组长台同属「考勤」高频动作，但**表单不同构**——
+    // 纪检台是「分段式」页签（`#att-segment-body`）+ 翻转开关 `#disc-meet-toggle`（模块级 `_meetFormVisible`
+    // 初值 false，故点一次即展开，与组长台一致）；载体 id 前缀是 `disc-meet-*` 而非 `att-*`，勿混用。
+    id: 'disc-meeting-attendance',
+    page: 'disc',
+    tab: '考勤管理',
+    open: [
+      { click: '#disc-meet-toggle' },
+      { waitFor: '#disc-meet-submit' },
+    ],
+    submit: [{ click: '#disc-meet-submit' }],
+    // 注：**「请选择会议活动」一支不可达**——表单默认预选首个活动（`#disc-meet-activity` 非空），
+    // 故本流程只断可达的那条（参会人员）；该条登记项已据实测退回 machine:false 并写明原因（见 VALIDATION_SITES）。
+    expect: [
+      { file: SRC + 'entries/tabs/disc/attendance-tab.js', field: '参会人员', msg: '请选择参会人员', carrier: '#disc-meet-picker .person-picker-trigger' },
     ],
   },
 ];
