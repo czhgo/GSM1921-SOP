@@ -226,6 +226,7 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 - 性能守卫：`perf-render-guard` / `perf-todo-agg-cache` / `perf-version-token` / `perf-index-equivalence`
 - 成员确认/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
 - 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与页面定位检查）/ `function-map-sync`（功能地图失同步检查）等
+- **同类病灶规模 / 真机闭环守卫（2026-09-15 批次 44 新增）**：`form-loop-sweep`（S0–S4 台账守卫 + **10 条真机闭环**：空必填点提交须报**可见**提示，且**提示点名的字段必须有可见载体**；台账 `form-loop-registry.mjs` 共 92 处校验点、其中 71 条非自动化逐条写明 reason）；`doc-consistency` 增 **S9**（§0.2 总索引里的守卫引用必须真实存在，防「文档写 S1–S5、实际已到 S6」）
 - 口径/单一源守卫（2026-09 集中一轮新增）：`filter-row`（筛选行 / 表格 / 分页控件 / 档位算式 / 选人载体，S1–S12 + D1–D2；S3 全站表格只允许 `.data-table` 一种类、S10 断言 `components/pager.js` 内 `if (pages <= 1)`、S11 翻页标记单一源、S12 手写表格收敛台账）/ `relation-matrix`（人×项目矩阵单一源 + 宽表默认 + **人维分页** + 真机转置，S1–S6；S5 锁 `rowLimit: 0` 白名单防僵尸、S6 锁思想汇报台账接入与「按人/按期次」转置）/ `party-group`（党小组活组清单，S1–S4 + D1–D6）/ `version-stamp`（版本戳同值，S1–S3 + D1–D6）/ `ux-guard`（三向失同步 + 回调保态）/ `inspection-loop-e2e`（考察上传真机闭环）/ `member-flow`（成员流动复式记账）
 
 子集回归：`npm run test:core` / `npm run test:fast`（清单见 [server/package.json](server/package.json)）。
@@ -246,6 +247,8 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 ### 开发纪律
 
 - **禁改清单**：`content/`（支书批改层）、`docs/src/styles.css`、`docs/src/core/mock-adapter.js`、`inspector.js`、`roster.js`、`work-overview.js`、`secretary/overview-tab.js` 等须**支书特批**才内改（读链可只读复用其导出）
+- **测试节奏（2026-09-15 支书定）**：**日常只跑与改动面相关的定向守卫**（如 `node --test test/filter-row.test.mjs test/relation-matrix.test.mjs`，秒级到分钟级）；**只在交付/提交前**跑一次全量 `npm test`（真机普查 `page-sweep` / `form-loop` 耗时最长，受机器负载影响可到数十分钟——本机若开着大量浏览器进程会致 e2e 超时，须以「单独复跑」取证区分「环境负载」与「回归」）
+- **提交节奏（2026-09-15 支书定）**：**小步提交**——每完成一个可独立验证的小步即提交（守卫绿 → 提交 → 再下一步），不积压；**AI 侧不能写 `.git`（沙箱权限），提交命令由 AI 给出、支书本机执行**；每批交付报告**第一屏**须给「提交命令 + HEAD 哈希 + 未提交规模」（未提交＝支书看不见＝等于没做，见 `CLAUDE.md` R-66）
 - **push 须支书批准**（分支 ahead 待批时不得自行推送）
 - **README 功能说明随功能同步**：功能/页面/机制变更须同步本文档与 [README-members.md](README-members.md)；**功能地图位于本文顶部**（`<!--FUNC-MAP:ANCHOR-->` 锚点后的标记块），由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 [function-catalog.js](docs/src/core/function-catalog.js) 生成，勿手改
 - 更多工程纪律见 [CONTRIBUTING.md](CONTRIBUTING.md)、[CLAUDE.md](CLAUDE.md)（AI 协作治理）、[TEST_AND_VERIFICATION.md](content/05_ai_coding/TEST_AND_VERIFICATION.md)

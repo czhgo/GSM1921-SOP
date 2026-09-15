@@ -38,5 +38,6 @@ npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止�
 - **全量跑**：`npm test`（等价 `npm run test:full`）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。
 - **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
 - **运行形态**：大多数测试自包含——测试内 `createApp({ dbPath: ':memory:' })` + 种子起真实服务并监听随机端口（如 `e2e-login.test.js`）；部分审计/E2E 需先 `npm start` 起外部 server 于 3000 端口（如 `click-cost` / `mock-integrity`，各自文件头注释有运行说明）。
-- **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。
+- **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。**注意**：该脚本按「字符串含 `/src/….js` 且以引号收尾」判定（宽是必要的——测试里有 `from '../../docs/src/…js'` 这类相对路径 import），因此会命中**数据字符串**：凡把 `docs/src/…js` 路径当**数据**存的文件，请写成 `SRC + '相对路径'`（见 `test/form-loop-registry.mjs`），否则补戳会把数据改坏（2026-09-15 批次 44 真实事故，见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 范本第十四与 `REVIEW_QUEUE Q-23-33`）。
+- **测试节奏（2026-09-15 支书定）**：**日常只跑与改动面相关的定向守卫**，例如 `node --test test/filter-row.test.mjs test/relation-matrix.test.mjs`、`node --test test/form-loop-sweep.test.mjs test/version-stamp.test.mjs`（真机项秒级到十余秒一项）；**全量只在交付/提交前跑**。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 10 条闭环）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」。
 - **Playwright**：锁定 `1.60.0`（配套 chromium 二进制随本机缓存）；全新环境需先 `npx playwright install chromium` 下载浏览器。

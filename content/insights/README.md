@@ -20,8 +20,9 @@ status: active
 |------|-----------|------------|
 | [党支部管理与实务经验沉淀.md](党支部管理与实务经验沉淀.md) | 组织性（管理事、服务人）、条块二元结构、三支委角色设计、活动分类体系、专班经验 | \[1]支部战略 + \[2]支部制度 |
 
-> **工程类经验（2026-09-14/15 集中沉淀）**：本轮整改（分页引擎化 / 人×项目矩阵单一源 / 档位口径 / 非闭环修复 / 仲裁落地 / 同类病灶规模扩大 / 口径守卫化）提炼的**判例与可复用判据**集中在 [content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)（**第六~第十三范本** + **§0.2 规则 → 守卫 → 状态 总索引**）与 [content/05_ai_coding/TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md)（判例立规），并把它们压成 **[§0.1 AI 自查问句十三问](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)**——AI 每接一个「改表格/改控件/改数据/加能力/改说明文件」的任务先自问，**答不实就问支书**。此处不另开文件，避免与 05 域重复维护。
+> **工程类经验（2026-09-14/15 集中沉淀）**：本轮整改（分页引擎化 / 人×项目矩阵单一源 / 档位口径 / 非闭环修复 / 仲裁落地 / 同类病灶规模扩大 / 口径守卫化）提炼的**判例与可复用判据**集中在 [content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)（**第六~第十四范本** + **§0.2 规则 → 守卫 → 状态 总索引**）与 [content/05_ai_coding/TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md)（判例立规），并把它们压成 **[§0.1 AI 自查问句十四问](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)**——AI 每接一个「改表格/改控件/改数据/加能力/改说明文件」的任务先自问，**答不实就问支书**。此处不另开文件，避免与 05 域重复维护。
 > **2026-09-14 批次 37–39 追加**：新增**第十一范本「能力已收进引擎 ≠ 已收口」**（单一源只覆盖「已在单一源内的调用点」，覆盖不了「绕过单一源、各写一版」的地方，须**反向枚举**「谁在做同一件事却没走单一源」）与**第十二范本「移动单一源的位置 = 一次全仓改签」**（搬迁前 grep 旧路径全量引用、搬迁后旧路径 0 命中；局部绿、全量红），同址刊于 [DATA_CONSISTENCY_CHECKLIST.md](../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md)；[TEST_AND_VERIFICATION.md](../05_ai_coding/TEST_AND_VERIFICATION.md) 新增对应判例「单一源搬迁后的引用改签遗漏（局部绿、全量红）」。**§0.1 自查问句由十问扩为十二问**（新增「引用完整性」「反向枚举」两问）。
+> **2026-09-15 批次 44 追加**：新增**第十三范本「同一病灶只修一处＝没修完」**（病灶是「一类形态」不是「一处 bug」：修完须先数同类规模，>1 处即建台账 + 真机覆盖，`form-loop-registry` 92 条 / `form-loop-sweep` S0–S4 + 10 条真机闭环）与**第十四范本「工具脚本会把数据当代码改写」**（补戳正则把台账里的路径数据补上 `?v=` 致 113 条被改坏 → 构造免疫 + 防污染断言）；**§0.1 自查问句扩为十四问**（新增「同类规模」「工具脚本的改写面」）；并新建 **§0.2 规则 → 守卫 → 状态 总索引**（21+ 行，由 `doc-consistency.test.mjs::S9` 守卫其引用真实性）。历史整合与沿革见 `.ctx/ENGINEERING_ASSESSMENT.md §五「经验索引与沿革」`。
 
 ---
 
