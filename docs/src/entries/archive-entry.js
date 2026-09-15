@@ -1,22 +1,22 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260915e';
-import { renderHeader } from '../components/header.js?v=20260915e';
-import { BranchService } from '../services/runtime.js?v=20260915e';
-import { mockDB } from '../core/domain.js?v=20260915e';
-import { getPersonById } from '../services/person.js?v=20260915e';
-import { loadActivities } from '../services/activity.js?v=20260915e';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260915e';
-import { getActivityTypeColors } from '../core/constants.js?v=20260915e';
+import { renderSidebar } from '../components/sidebar.js?v=20260915f';
+import { renderHeader } from '../components/header.js?v=20260915f';
+import { BranchService } from '../services/runtime.js?v=20260915f';
+import { mockDB } from '../core/domain.js?v=20260915f';
+import { getPersonById } from '../services/person.js?v=20260915f';
+import { loadActivities } from '../services/activity.js?v=20260915f';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260915f';
+import { getActivityTypeColors } from '../core/constants.js?v=20260915f';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260915e';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260915e';
-import { getBasePath } from '../core/utils.js?v=20260915e';
-import { AuthStore } from '../services/auth.js?v=20260915e';
-import { badgeHtml } from '../components/badges.js?v=20260915e';
+import { isActivityEnded } from '../core/constants.js?v=20260915f';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260915f';
+import { getBasePath } from '../core/utils.js?v=20260915f';
+import { AuthStore } from '../services/auth.js?v=20260915f';
+import { badgeHtml } from '../components/badges.js?v=20260915f';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../components/pager.js?v=20260915e';
+import { pagerHtml } from '../components/pager.js?v=20260915f';
 
 renderSidebar('archive');
 renderHeader('archive');

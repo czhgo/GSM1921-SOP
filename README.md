@@ -222,12 +222,12 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 `cd server && npm test` —— **node:test** 全量套件（`node --test` 自动发现 `server/test/*.test.{js,mjs}`，纯 node 部分沙箱可跑；浏览器类/E2E（Playwright，锁定 1.60.0）需常规终端）。重点文件集（随功能演进持续增长）：
 
-- 待办/今天域：`todo-domain` / `todo-deriver-domain` / `todo-domain-view` / `today-summary`
-- 性能守卫：`perf-render-guard` / `perf-todo-agg-cache` / `perf-version-token` / `perf-index-equivalence`
-- 成员确认/报送：`member-confirmation` / `reset-tier` / `reset-tier-init` / `thought-review` / `roster` / `roster-ui-logic` / `group-view`
-- 治理/审计：`resolution-followup` / `workforce-gate` / `link-integrity`（死链与页面定位检查）/ `function-map-sync`（功能地图失同步检查）等
-- **同类病灶规模 / 真机闭环守卫（2026-09-15 批次 44 新增）**：`form-loop-sweep`（S0–S4 台账守卫 + **10 条真机闭环**：空必填点提交须报**可见**提示，且**提示点名的字段必须有可见载体**；台账 `form-loop-registry.mjs` 共 92 处校验点、其中 71 条非自动化逐条写明 reason）；`doc-consistency` 增 **S9**（§0.2 总索引里的守卫引用必须真实存在，防「文档写 S1–S5、实际已到 S6」）
-- 口径/单一源守卫（2026-09 集中一轮新增）：`filter-row`（筛选行 / 表格 / 分页控件 / 档位算式 / 选人载体，S1–S12 + D1–D2；S3 全站表格只允许 `.data-table` 一种类、S10 断言 `components/pager.js` 内 `if (pages <= 1)`、S11 翻页标记单一源、S12 手写表格收敛台账）/ `relation-matrix`（人×项目矩阵单一源 + 宽表默认 + **人维分页** + 真机转置，S1–S6；S5 锁 `rowLimit: 0` 白名单防僵尸、S6 锁思想汇报台账接入与「按人/按期次」转置）/ `party-group`（党小组活组清单，S1–S4 + D1–D6）/ `version-stamp`（版本戳同值，S1–S3 + D1–D6）/ `ux-guard`（三向失同步 + 回调保态）/ `inspection-loop-e2e`（考察上传真机闭环）/ `member-flow`（成员流动复式记账）
+- 待办/今天域：`todo-domain.test.mjs` / `todo-deriver-domain.test.mjs` / `todo-domain-view.test.mjs` / `today-summary.test.mjs`
+- 性能守卫：`perf-render-guard.test.mjs` / `perf-todo-agg-cache.test.mjs` / `perf-version-token.test.mjs` / `perf-index-equivalence.test.mjs`
+- 成员确认/报送：`member-confirmation.test.mjs` / `reset-tier.test.mjs` / `reset-tier-init.test.mjs` / `thought-review.test.mjs` / `roster.test.mjs` / `roster-ui-logic.test.mjs` / `group-view.test.mjs`
+- 治理/审计：`resolution-followup.test.mjs` / `workforce-gate.test.mjs` / `link-integrity.test.mjs`（死链与页面定位）/ `function-map-sync.test.mjs`（功能地图失同步）
+- **真机普查 / 同类病灶规模守卫**：`page-sweep.test.mjs`（**七台 × 全部 tab 真机普查**：分页 · 宽表人维（含**转置视图**——人维落在列上时按同一页切片口径断言）· 手写表格 · 检索 · 零脚本错误 ＋ **真机尺规**（控件 38px / 数据格 13px / 裸控件 / 分页钮 30px 例外；规则编号见文件头（**非断言名**））＋ **二级视图审次**（矩阵「显示全部 N 项」展开态、视图切换钮——原只审默认视图）＋ **自建列表分页**（卡片 / 行块 ≥ 12 同构块须有翻页；2 处已确认不合规并登记待修 `Q-23-40`，台账僵尸化同样红灯）；**S0** 门槛取单一源、**S1** 分页非空转、**S2** 环境自检（静音的外部资源须逐条登记理由——真机 ≠ 真环境）、**S3** 尺规非空转）· `form-loop-sweep.test.mjs`（S0–S4 台账守卫 + 10 条真机闭环：空必填点提交须报**可见**提示，且**提示点名的字段必须有可见载体**；台账 `form-loop-registry.mjs` 共 92 处校验点、71 条非自动化逐条写明 reason）
+- 口径 / 单一源 / 说明文件守卫（**凡 `DATA_CONSISTENCY_CHECKLIST.md §0.2` 索引引用的守卫都必须登记在本清单**，由 `doc-consistency.test.mjs::S10` 常驻断言——守卫存在却没人看得见＝半个没做，批 43 的 `page-sweep` 即长期缺席）：`filter-row.test.mjs`（S1–S13 + D1–D3）/ `relation-matrix.test.mjs`（S1–S6）/ `party-group.test.mjs`（S1–S4）/ `version-stamp.test.mjs`（S1–S6 + D1–D9）/ `doc-consistency.test.mjs`（S1–S11）/ `ux-guard.test.mjs` / `inspection-loop-e2e.test.mjs` / `member-flow.test.mjs` / `member-persist.test.mjs` / `permission-gate.test.mjs` / `person-consistency.test.mjs` / `id-uniqueness.test.mjs` / `notice-audience.test.mjs` / `issue-branch.test.mjs` / `module-load.test.mjs` / `click-cost.test.mjs` / `mock-integrity.test.mjs`
 
 子集回归：`npm run test:core` / `npm run test:fast`（清单见 [server/package.json](server/package.json)）。
 

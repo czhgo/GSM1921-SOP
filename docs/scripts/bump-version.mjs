@@ -17,7 +17,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nextVersionFor, isForward, isCommentLine, codePartOf } from './version-next.mjs';
+import { nextVersionFor, isForward, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps } from './version-next.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC_DIR = join(ROOT, 'src');
@@ -199,22 +199,21 @@ if (codeVersionChanged) {
 // 导致回归误报（m4 回归 22/31 即为 20260824b 未随 bump 至 20260824c 的误报）。
 // 2026-08-30 扩展：*.test.js 一并纳入（e2e-login.test.js 硬编码 ?v= 曾漏同步，
 // 上一轮 bump 后仍持旧戳 20260829r → 模块分裂 → 写穿闭环误报超时）。
+//
+// 2026-09-15 批次 46（Q-23-33 根治）：改写实现改走 version-next.mjs 的**缓存键语境判据**。
+//   原判据 `/(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g` 只认「出现 /src/….js 且引号收尾」，
+//   把**数据字符串**也当 import 规格符补戳——批 44 新增的 form-loop-registry 台账 113 条 `file`
+//   即被改写成 `…x.js?v=…`（守卫 S4 随即报「文件不存在」）。
+//   收紧后只改两类语境：① import/from/副作用 import 行；② 独立版本字面量（`const V = '?v=…'`）。
+//   非语境行（注释 / `new URL(…?v=)` / `grab('…?v=')` / 路径字符串列表 / 台账 `SRC + '相对路径'`）逐字不变。
 let testCount = 0;
 const testDir = TEST_DIR;
 if (existsSync(testDir)) {
   for (const name of readdirSync(testDir)) {
     if (!name.endsWith('.mjs') && !name.endsWith('.test.js')) continue;
     const file = join(testDir, name);
-    let content = readFileSync(file, 'utf8');
-    const next = content.replace(
-      /(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g,
-      (m, pre, _q, end) => `${pre}?v=${VERSION}${end}`
-    ).replace(
-      // 硬编码版本字面量（如 `const V = '?v=20260909e'`）——2026-09-13 补：
-      // 原漏此类，branch-module-catalog.test.mjs 的 V 停在旧戳 → 模块实例分裂。
-      /(\?v=)[0-9]{8}[a-z]/g,
-      (m, pre) => `${pre}${VERSION}`
-    );
+    const content = readFileSync(file, 'utf8');
+    const next = stampTestFileContent(content, VERSION);
     if (next !== content) {
       writeFileSync(file, next, 'utf8');
       testCount++;
@@ -225,31 +224,37 @@ if (existsSync(testDir)) {
 // ── 收尾自检（2026-09-13 Q-21-4）：扫描全仓 `?v=` 戳，报告与本版本不一致的残留 ──
 // 这才是真正要保证的量：**不只是本次改了多少，而是改完后有没有陈旧残留**——陈旧戳会让浏览器按
 // URL 分裂出第二个模块实例（注册表/共享状态读空的根因，见 TEST_AND_VERIFICATION §17）。
-const STALE_RE = /\?v=([0-9]{8}[a-z])/g;
+//
+// 判据分区（批次 46，Q-23-33）：**自检必须与补戳同判据**，否则「补戳已收紧、自检仍按旧宽判据」
+//   会把非缓存键位置（Node 读取语境 / 注释）的旧戳永久误报成陈旧残留。
+//   · src / html：全量 `?v=`（这两区的戳本就只出现在模块 URL 与样式表 href 上）
+//   · server/test：**缓存键语境**（与补戳共用 version-next.mjs 的 cacheKeyStamps）
 const staleFiles = [];
-function scanStale(dir, exts) {
+function broadStamps(content) {
+  const found = [];
+  for (const raw of content.split(/\r?\n/)) {
+    if (isCommentLine(raw)) continue;
+    for (const m of codePartOf(raw).matchAll(/\?v=([0-9]{8}[a-z])/g)) found.push(m[1]);
+  }
+  return [...new Set(found)];
+}
+function scanStale(dir, exts, stampsOf) {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
     const st = statSync(full);
     if (st.isDirectory()) {
       if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
-      scanStale(full, exts);
+      scanStale(full, exts, stampsOf);
       continue;
     }
     if (!exts.some((e) => name.endsWith(e))) continue;
-    // 注释行不算缓存键（如 cross-page-state.js 里「本批次全站 ?v=20260911a」的历史注记）——
-    // 与 stamper 的跳过规则同源，避免把人工注记报成陈旧残留。
-    const hits = [];
-    for (const raw of readFileSync(full, 'utf8').split(/\r?\n/)) {
-      if (isCommentLine(raw)) continue;
-      for (const m of codePartOf(raw).matchAll(STALE_RE)) if (m[1] !== VERSION) hits.push(m[1]);
-    }
-    if (hits.length) staleFiles.push(`${full.slice(ROOT.length + 1)} (${[...new Set(hits)].join(', ')})`);
+    const hits = stampsOf(readFileSync(full, 'utf8')).filter((s) => s !== VERSION);
+    if (hits.length) staleFiles.push(`${full.slice(ROOT.length + 1)} (${hits.join(', ')})`);
   }
 }
-scanStale(SRC_DIR, ['.js', '.css']);
-scanStale(HTML_DIR, ['.html']);
-if (existsSync(TEST_DIR)) scanStale(TEST_DIR, ['.mjs', '.test.js']);
+scanStale(SRC_DIR, ['.js', '.css'], broadStamps);
+scanStale(HTML_DIR, ['.html'], broadStamps);
+if (existsSync(TEST_DIR)) scanStale(TEST_DIR, ['.mjs', '.test.js'], cacheKeyStamps);
 
 console.log(`[bump-version] 版本号：${VERSION}（仓库现有最大戳 ${PREV_MAX || '无'}）`);
 console.log(`[bump-version] 实际改写：JS ${jsCount} 个 / HTML ${htmlCount} 个 / CSS ${cssCount} 个 / server-test ${testCount} 个`);

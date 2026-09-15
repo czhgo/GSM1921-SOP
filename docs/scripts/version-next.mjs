@@ -57,3 +57,91 @@ export function isForward(candidate, prevMax) {
   if (!prevMax) return true;
   return String(candidate) >= String(prevMax);
 }
+
+// ════════════════════════════════════════════════════════════════
+//  server/test 段：补戳「缓存键语境」判据（批次 46，Q-23-33 根治）
+// ════════════════════════════════════════════════════════════════
+// 为什么需要语境判据：原判据是
+//   /(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g
+// ——只认「出现 `/src/….js` 且引号收尾」，**分不清 import 规格符与数据字符串**。
+// 批 44 新增 `form-loop-registry.mjs`（字段级校验点台账，file 里写 `docs/src/…/x.js` 路径）后，
+// 跑一次 bump 即把 **113 条 `file` 改成 …x.js?v=20260915d**，守卫 S4 随即报「文件不存在」。
+// 而 `?v=` 只在**浏览器模块缓存键**位置才有意义（同一 query → 同一模块实例，防 ES Module 分裂）。
+//
+// 判据（只有下列两类语境随版本推进改写）：
+//   ① 缓存键语境行——`import(…)` / 副作用 `import '…'` / `from '…'`（覆盖绝对 `/src/…` 与相对 `../../docs/src/…`）
+//   ② 独立版本字面量——字符串内容**恰为** `?v=xxxxxxxxx`（如 `const V = '?v=…'`，供页面拼 import URL）
+// 其余**一律逐字不变**：整行注释、Node 侧读取语境（`new URL(…?v=)` / `grab('…?v=')` / 路径字符串列表）、
+//   台账形态（`SRC + '相对路径'`）。这些 `?v=` 对 fs 读取无意义（`fileURLToPath` 忽略 query），
+//   是旧判据的误留；严格形态下不再由脚本管理（批次 46 已同批去掉存量）。
+//
+// 单一源纪律：**补戳与收尾自检必须共用本文件的判据**（守卫 `version-stamp.test.mjs::S4/S5` 断言），
+//   否则会出现「补戳已收紧、自检仍按旧宽判据」→ 冻结戳被永久误报为陈旧残留。
+
+/** 缓存键语境行：`import(` / 副作用 `import '` / `from '` */
+export const CACHE_KEY_LINE_RE = /(?:\bimport\(\s*['"`]|\bimport\s+['"`]|\bfrom\s+['"`])/;
+
+/** 独立版本字面量：字符串内容恰为 `?v=xxxxxxxxx` */
+export const VERSION_LITERAL_RE = /(['"`])\?v=[0-9]{8}[a-z]\1/;
+
+/** 任意版本戳（含前导 `?v=` 捕获组，供兜底替换与自检共用） */
+export const ANY_STAMP_RE = /(\?v=)[0-9]{8}[a-z]/g;
+
+/** import 规格符（含 `/src/` 的 .js 路径）+ 可选既有戳 */
+const SPECIFIER_RE = /(\bimport\(\s*|\bimport\s+|from\s+)(['"`])([^'"`]*\/src\/[^'"`?]*\.js)(\?[^'"`]*)?(['"`])/g;
+
+/**
+ * 该行是否处于缓存键语境（整行注释一律不算——注释里的版本号是人工历史注记）。
+ * @param {string} line 单行源码
+ * @returns {boolean}
+ */
+export function isCacheKeyLine(line) {
+  const raw = String(line);
+  if (isCommentLine(raw)) return false;
+  const code = codePartOf(raw);
+  return VERSION_LITERAL_RE.test(code) || CACHE_KEY_LINE_RE.test(code);
+}
+
+/**
+ * 改写单行的版本戳：**仅缓存键语境行**改写，其余逐字返回。
+ * @param {string} line 单行源码
+ * @param {string} version 本次版本号
+ * @returns {string} 改写后的行
+ */
+export function stampCacheKeyLine(line, version) {
+  if (!isCacheKeyLine(line)) return line;
+  const withSpecifier = String(line).replace(
+    SPECIFIER_RE,
+    (m, pre, q1, path, _q, q2) => `${pre}${q1}${path}?v=${version}${q2}`
+  );
+  // 兜底：规格符正则覆盖不到的缓存键形态（如 `import(\`/src/${rel}?v=旧戳\`)`——路径含插值、不以 .js 收尾）
+  return withSpecifier.replace(ANY_STAMP_RE, (m, pre) => `${pre}${version}`);
+}
+
+/**
+ * 补戳整个 server/test 文件内容（逐行、行判据）。
+ * @param {string} content 文件全文
+ * @param {string} version 本次版本号
+ * @returns {string} 改写后的全文（非缓存键语境行逐字不变）
+ */
+export function stampTestFileContent(content, version) {
+  return String(content)
+    .split('\n')
+    .map((line) => stampCacheKeyLine(line, version))
+    .join('\n');
+}
+
+/**
+ * 提取文本「缓存键语境」下的全部版本戳（收尾自检与补戳同判据的入口）。
+ * @param {string} content 文件全文
+ * @returns {string[]} 去重后的版本戳
+ */
+export function cacheKeyStamps(content) {
+  const found = [];
+  for (const line of String(content).split('\n')) {
+    if (!isCacheKeyLine(line)) continue;
+    for (const m of codePartOf(line).matchAll(/\?v=([0-9]{8}[a-z])/g)) found.push(m[1]);
+  }
+  return [...new Set(found)];
+}
+

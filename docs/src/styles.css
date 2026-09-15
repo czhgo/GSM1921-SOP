@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260915e');
+@import url('components/person-picker.css?v=20260915f');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -875,6 +875,17 @@ button:disabled { cursor: not-allowed; }
   border-collapse: collapse;
   /* 单档口径（2026-09-14 批次 33）：表格正文 13px 与筛选器/表单同档；
      行高 20px + 上下内边距 8px = 36px 行高（表头与数据行同式） */
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+/* 单档「直接声明」（2026-09-15 批次 47-B，支书特批第 6 次）：把正文档直接声明到 th/td 上。
+   原因：本站在 workspace 页依赖 CDN Tailwind，其上表规则 `.text-xs`（12px）与本文件同特异性，
+   而 CDN 注入的样式表在 styles.css 之后 → 数据格挂 `class="text-xs"` 时生产环境实际渲染 12px，
+   与单档 13px 不符（支书实报「人作首列的表格字体很小」，考勤明细三处即此）。
+   只把 font-size 写在 <table> 上（被继承）永远输给写在 <td> 上的直接声明；
+   故这里改为 `th/td` 直接声明（特异性 0,1,1 > 单类工具类 0,1,0），不论 Tailwind 在场与否，渲染一致。 */
+.data-table th,
+.data-table td {
   font-size: 0.8125rem;
   line-height: 1.25rem;
 }

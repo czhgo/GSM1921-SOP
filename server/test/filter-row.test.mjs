@@ -341,3 +341,34 @@ test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠
   }
   assert.deepEqual(bad, [], `档位算式须与规范一致，两载体同式：\n${bad.join('\n')}`);
 });
+
+// D3（2026-09-15 批次 47-B，支书特批第 6 次改 styles.css）
+// 病灶（支书实报「人作首列的表格字体很小」）：表格正文 13px 只声明在 `<table>`（`.data-table`）上，
+//   数据格**继承**它；而 workspace 页依赖 CDN Tailwind，其 `.text-xs`(12px) 与本文件同特异性（0,1,0），
+//   CDN 注入的样式表在 styles.css 之后 → 数据格挂 `class="text-xs"` 时**生产环境实际渲染 12px**。
+//   继承永远输给直接声明，故单档必须**直接声明到 th/td 上**（特异性 0,1,1 > 单类工具类），
+//   这样不论 Tailwind 在场与否，渲染一致——这也是「离线真机量测」重新有效的前提。
+test('D3 表格单档须直接声明到 th/td（禁只靠 <table> 继承，防 CDN 工具类压过）', () => {
+  const css = read(CSS);
+  const m = /\.data-table\s+th\s*,\s*\.data-table\s+td\s*\{([^}]*)\}/.exec(css);
+  assert.ok(m, 'styles.css 须有 `.data-table th, .data-table td { … }` 规则（单档直接声明）');
+  const body = m[1];
+  assert.match(body, /font-size:\s*0\.8125rem/, 'th/td 须直接声明 font-size: 0.8125rem（13px，单档）');
+  assert.match(body, /line-height:\s*1\.25rem/, 'th/td 须直接声明 line-height: 1.25rem（20px）');
+});
+
+// S13（2026-09-15 批次 47-B）：数据格**元素自身**不得挂小字类。
+// 口径：「辅助小字」只允许出现在单元格**内部**（副标题 / 徽标），一旦挂到 `<td>`/`<th>` 自身，
+//   就把「数据」降到了辅助档（支书实报的那类）。命中即违规，无例外台账（新正当例外须先来登记）。
+test('S13 数据格不得挂小字类（text-xs / text-[1Npx] 只许出现在单元格内部）', () => {
+  const hits = [];
+  for (const f of walkJs(SRC_DIR)) {
+    read(f).split(/\r?\n/).forEach((line, i) => {
+      if (/<(td|th)\s[^>]*class="[^"]*\btext-(?:xs|\[1[0-9]px\])\b/.test(line)) {
+        hits.push(`${rel(f)}:${i + 1}  ${line.trim().slice(0, 110)}`);
+      }
+    });
+  }
+  assert.deepEqual(hits, [],
+    `数据格自身不得挂辅助小字类（把「数据」降到辅助档；支书实报的「表格字体小」即此）：\n${hits.join('\n')}`);
+});

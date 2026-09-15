@@ -4,14 +4,14 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260915e';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260915e';
-import { getBasePath, showToast } from '../core/utils.js?v=20260915e';
-import { badgeHtml } from './badges.js?v=20260915e';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260915f';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260915f';
+import { getBasePath, showToast } from '../core/utils.js?v=20260915f';
+import { badgeHtml } from './badges.js?v=20260915f';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../core/constants.js?v=20260915e';
+import { isActivityArchived } from '../core/constants.js?v=20260915f';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from './list-filter.js?v=20260915e';
+import { renderFilteredList } from './list-filter.js?v=20260915f';
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {

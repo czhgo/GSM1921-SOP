@@ -6,13 +6,13 @@
 //   includeOrg=false 不动 org；目标不存在/源=目标/源不存在 → 返回原因（不 throw）。
 // 注入方式与 wizard-package.test.mjs 一致：localStorage 内存桩 + 假 mock 适配器
 // （branch 服务写口 getAdapter() 落库 + mockDB 同步，语义对齐 mock-adapter branches.update）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v=20260915e query（模块缓存键一致性）。
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）。
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260915e';
-import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260915e';
-import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch.js?v=20260915e';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260915f';
+import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260915f';
+import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch.js?v=20260915f';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务 _actorId 惰性访问）──
 const _store = new Map();

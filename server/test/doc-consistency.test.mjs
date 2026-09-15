@@ -17,6 +17,8 @@
 //   S7 单一源组件登记处：登记路径须真实存在，且至少被一处 import（防僵尸登记）
 //   S8 公邮（mailbox）废止防回潮：代码与数据侧零残留
 //   S9 §0.2「规则 → 守卫 → 状态 总索引」里的守卫引用必须真实存在（断言号不得写过时 / 写超前）
+//   S10 §0.2 引用的守卫必须登记进 README 测试清单（堵「守卫悄悄缺席」——批 43 的 page-sweep 即长期缺席）
+//   S11 README 里的守卫条目必须指到真实存在的文件与断言号（口径同 S9，覆盖 README）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -272,4 +274,49 @@ test('S9 §0.2 总索引里的守卫引用必须真实存在（断言号不得�
   }
   assert.ok(checked.size >= 15, `§0.2 只校验到 ${checked.size} 个守卫文件（基线 15）：解析或表结构异常`);
   assert.deepEqual(problems, [], `§0.2 规则 → 守卫 → 状态 总索引与实现不符：\n${problems.join('\n')}`);
+});
+
+// ── S10/S11（2026-09-15 批次 47-A）：README 侧的同一盲区 ──────────────────────────
+// 来源（支书第 4 项复核 + 本批实测）：批 43 为「分页」建了真机普查守卫 `page-sweep.test.mjs`，
+//   **但它至今没进 README 的守卫清单**——守卫存在、却没人看得见（等于半个没做）。
+//   根因：S1–S9 把 tab 数 / 名称 / 分组轴 / 旧界面名 / 数据五数 / 页面数 / 单一源路径 / 废止域
+//   都变成了常驻断言，**唯独「守卫本身有没有被登记」无人管**——新守卫可以悄悄缺席。
+// 另实测：README 的守卫条目写「`version-stamp`（版本戳同值，S1–S3 + D1–D6）」，而该文件实际已到
+//   S1–S6 + D1–D9（批次 46① 新增）——**断言号没有守卫，只能靠人记得同步**（与 S9 对 §0.2 的病灶同源）。
+// 口径：§0.2 是「规则 → 守卫」的权威索引，README 是「守卫对人类可见」的清单 →
+//   断言 §0.2 引用的每个守卫文件都必须在 README 出现，且 README 写的断言号必须真实存在。
+
+test('S10 §0.2 引用的守卫必须登记进 README 测试清单（防「守卫悄悄缺席」）', () => {
+  const refs = new Set([...read(CHECKLIST).matchAll(/`([\w.-]+\.test\.(?:mjs|js))::/g)].map((m) => m[1]));
+  assert.ok(refs.size >= 15, `§0.2 只解析到 ${refs.size} 个守卫文件（基线 15）：解析或表结构异常`);
+  // 只在「### 测试」小节内认登记——README 别处（如测试节奏的命令示例）顺带提及不算「登记」（否则断言被偶然提及污染）
+  const lines = read(README).split(/\r?\n/);
+  const start = lines.findIndex((l) => /^###\s*测试/.test(l));
+  assert.ok(start >= 0, 'README 未找到「### 测试」小节（守卫清单的登记处）');
+  const nextHead = lines.findIndex((l, i) => i > start && /^#{1,3}\s/.test(l));
+  const section = lines.slice(start, nextHead < 0 ? lines.length : nextHead).join('\n');
+  const listed = new Set([...section.matchAll(/\b([\w.-]+\.test\.(?:mjs|js))\b/g)].map((m) => m[1]));
+  const missing = [...refs].filter((f) => !listed.has(f)).sort();
+  assert.deepEqual(missing, [],
+    `§0.2 索引引用的守卫未登记进 README 测试清单（守卫存在但无人可见；批 43 的 page-sweep 即长期缺席）：\n  ${missing.join('\n  ')}`);
+});
+
+test('S11 README 里的守卫断言号必须真实存在（口径同 S9，覆盖 README）', () => {
+  const problems = [];
+  const checked = new Set();
+  for (const m of read(README).matchAll(/`([\w.-]+\.test\.(?:mjs|js))`([^`\n]{0,200})/g)) {
+    const [, file, tail] = m;
+    const abs = join(ROOT, 'server', 'test', file);
+    if (!existsSync(abs)) { problems.push(`README 引用了不存在的守卫文件：${file}`); continue; }
+    checked.add(file);
+    const body = read(abs);
+    for (const id of tail.matchAll(/\b([SDNPMECL]\d+)\b/g)) {
+      const re = new RegExp("test\\(\\s*['\"`]\\[?" + id[1] + '\\b');
+      if (!re.test(body)) {
+        problems.push(`README 写「${file}${tail.slice(0, 30).trim()}…」，但该文件里没有断言号 ${id[1]}`);
+      }
+    }
+  }
+  assert.ok(checked.size >= 8, `README 只校验到 ${checked.size} 个守卫引用（基线 8）：守卫清单被删减，或条目未用完整文件名（形如 xxx.test.mjs）`);
+  assert.deepEqual(problems, [], `README 守卫引用与实现不符：\n${problems.join('\n')}`);
 });

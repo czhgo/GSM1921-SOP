@@ -12,34 +12,34 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915e';
-import { generateId } from '../../../core/id.js?v=20260915e';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260915e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915e';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915f';
+import { generateId } from '../../../core/id.js?v=20260915f';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260915f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915f';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260915e';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260915e';
-import { loadActivities } from '../../../services/activity.js?v=20260915e';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260915e';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260915e';
-import { NoticeStore } from '../../../services/notice.js?v=20260915e';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260915e';
-import { badgeHtml } from '../../../components/badges.js?v=20260915e';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260915f';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260915f';
+import { loadActivities } from '../../../services/activity.js?v=20260915f';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260915f';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260915f';
+import { NoticeStore } from '../../../services/notice.js?v=20260915f';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260915f';
+import { badgeHtml } from '../../../components/badges.js?v=20260915f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915e';
-import { pagerHtml } from '../../../components/pager.js?v=20260915e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915f';
+import { pagerHtml } from '../../../components/pager.js?v=20260915f';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915e';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260915e';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260915e';
-import { HandoffStore } from '../../../services/handoff.js?v=20260915e';
-import { AuthStore } from '../../../services/auth.js?v=20260915e';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260915e';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260915f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260915f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260915f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260915f';
+import { AuthStore } from '../../../services/auth.js?v=20260915f';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260915f';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260915e';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260915f';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -993,10 +993,10 @@ function _renderGroupMeetingReadonly(container) {
     },
     rowHtml: (r) => `
           <tr title="${esc(r.recorderTitle)}">
-            <td class="text-xs font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
-            <td class="text-xs text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
-            <td class="text-xs"><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
-            <td class="text-[11px] text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
+            <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(r.personId))}</a></td>
+            <td class="text-gray-600">${r.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${r.activityId}">${esc(r.groupTitle)}</a>` : esc(r.groupTitle)}</td>
+            <td><span class="${statusColor(r.status)}">${esc(r.statusLabel)}</span></td>
+            <td class="text-gray-500">${r.detainedMakeup ? badgeHtml('滞留·到场', 'warning') : (r.absenceReasonLabel ? esc(r.absenceReasonLabel) : '<span class="text-gray-500">—</span>')}</td>
           </tr>`,
   });
 }
