@@ -12,16 +12,20 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260915g';
-import { icon } from '../../../core/icons.js?v=20260915g';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260915g';
-import { mockDB } from '../../../core/domain.js?v=20260915g';
-import { tokenOf } from '../../../core/version-token.js?v=20260915g'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260915g'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260915g'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260915g'; // P2 渲染守卫（spec §四.1）
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260916a';
+import { icon } from '../../../core/icons.js?v=20260916a';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260916a';
+// 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
+// api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
+import { loadMemberProgress } from '../../../services/member-progress.js?v=20260916a';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260916a';
+import { mockDB } from '../../../core/domain.js?v=20260916a';
+import { tokenOf } from '../../../core/version-token.js?v=20260916a'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260916a'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260916a'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260916a'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260915g';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260916a';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
@@ -182,7 +186,13 @@ function _allEmptyHtml() {
     </div>`;
 }
 
-// ── 批4 组长学期组员进展归集提醒（leader.semesterReportReminder，支书 2026-09-09 批）────────
+// ── 批4 组长学期组员进展提醒（leader.semesterReportReminder）────────────────────────────────
+// ⚠ **授权说明（Q-23-41，2026-09-15 支书追问「我为什么会批准这些信息…这完全是滑稽！」）**：
+//   本提醒**随批4「域参数」批次一起进仓**，全仓**没有**支书就该**具体功能**逐项批准的记录；
+//   原注释写的「支书 2026-09-09 批」指的是**批4 这个批次整体**，**不等于逐项批准**（纪律见 CLAUDE.md **R-70**）。
+// 2026-09-15 支书裁定（AskUserQuestion）：**保留提醒、改为服务端汇总**——
+//   原「请在『组员进展』逐人归集…形成小组学期进展底稿」是**人工收集要求**（支书：「我从来没说过
+//   要有一个**收集过程**」），**已删除**；现由服务端汇总四项（在办/超期/缺勤/考察待确认）**呈报实况**。
 // 开关 = policy leader.semesterReportReminder.enabled（读侧注入后 = 当前支部有效默认）；
 // 窗口 = 每年两学期开学首周（3 月 / 9 月 1–7 日，简单实现——与滞留复核窗非同构故不引入学期窗表）；
 // 防重复弹 = 按人存 localStorage 键 gsm1921-pref-<personId>-semester-report-remind-<学期键>
@@ -235,10 +245,11 @@ function _leaderSemesterRemindHtml(personId) {
       <div class="flex items-start gap-3">
         <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:${ACCENT};">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
-          <p class="font-title-cn text-sm font-bold text-gray-800">本学期组员进展归集提醒</p>
-          <p class="text-xs text-gray-600 leading-relaxed mt-1">开学第 1 周：请在「组员进展」逐人归集本组组员本学期进展（思想汇报 / 考察 / 复盘 / 在办事项），形成小组学期进展底稿并跟进缺漏项。</p>
+          <p class="font-title-cn text-sm font-bold text-gray-800">本学期组员进展（系统汇总）</p>
+          <p class="text-xs text-gray-600 leading-relaxed mt-1">本组组员本学期进展由系统汇总（思想汇报 / 考察 / 复盘 / 在办事项），无需逐人手工归集；缺漏项以「需跟进」人数示出，进「组员进展」可看逐人明细。</p>
+          <p class="text-xs text-gray-700 mt-1.5" data-lsr-facts>正在汇总…</p>
           <div class="flex flex-wrap items-center gap-2 mt-2.5">
-            <button type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors hover:opacity-90" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」归集</button>
+            <button type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors hover:opacity-90" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」看汇总</button>
             <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-lsr-act="later">本学期已处理，不再提醒</button>
           </div>
         </div>
@@ -246,10 +257,35 @@ function _leaderSemesterRemindHtml(personId) {
     </div>`;
 }
 
+/** 呈报实况（批次 47-I，Q-23-41 ②）：展示**服务端汇总**的四项实况（不再要人手工归集）。
+ *  api 态由服务端计算、mock 态同一纯函数；读取失败降级为文字提示，不崩页。
+ *  `data-lsr-source` 标出数据来源（api / mock），供真机普查核对。 */
+async function _fillLeaderSemesterFacts(block, personId) {
+  const host = block.querySelector('[data-lsr-facts]');
+  if (!host) return;
+  try {
+    const targets = resolveVisibleTargets('leader', personId);
+    const { rows, source } = await loadMemberProgress({ personIds: targets.map(t => t.personId) });
+    const sum = rows.reduce((a, r) => ({
+      active: a.active + (r.active || 0),
+      overdue: a.overdue + (r.overdue || 0),
+      absent: a.absent + (r.absent || 0),
+      inspPending: a.inspPending + (r.inspPending || 0),
+    }), { active: 0, overdue: 0, absent: 0, inspPending: 0 });
+    const gap = rows.filter(r => r.overdue > 0 || r.absent > 0 || r.inspPending > 0).length;
+    host.textContent = `本组 ${rows.length} 人：在办 ${sum.active} 项 · 超期 ${sum.overdue} 项 · 缺勤未补 ${sum.absent} 次 · 考察待确认 ${sum.inspPending} 条 · 需跟进 ${gap} 人`;
+    host.dataset.lsrSource = source;
+  } catch (err) {
+    console.warn('[today-tab] 组员进展汇总读取失败：', err);
+    host.textContent = '汇总暂时读取失败（可稍后重试）';
+  }
+}
+
 /** 开学提醒条交互：标记已提醒并收掉条（go=跳组员进展 tab；onNav 缺省则仅收条） */
 function bindLeaderSemesterRemind(container, personId, onNav) {
   const block = container.querySelector('[data-leader-sem-remind]');
   if (!block) return;
+  _fillLeaderSemesterFacts(block, personId); // 异步呈报实况（不阻塞首屏渲染）
   const dismiss = () => {
     const key = _lsrMarkKey(personId);
     if (key) _lsrMark(key);

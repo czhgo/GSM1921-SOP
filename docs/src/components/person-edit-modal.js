@@ -28,14 +28,14 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from './modal.js?v=20260915g';
-import { PersonStore } from '../services/person.js?v=20260915g';
-import { getBranchById } from '../services/branch.js?v=20260915g';
+import { openModal, closeModal } from './modal.js?v=20260916a';
+import { PersonStore } from '../services/person.js?v=20260916a';
+import { getBranchById } from '../services/branch.js?v=20260916a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../core/constants.js?v=20260915g';
-import { submitMemberChange } from '../services/member-confirmation.js?v=20260915g';
-import { AuthStore } from '../services/auth.js?v=20260915g';
-import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260915g';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../core/constants.js?v=20260916a';
+import { submitMemberChange } from '../services/member-confirmation.js?v=20260916a';
+import { AuthStore } from '../services/auth.js?v=20260916a';
+import { showToast, escHtml as esc, getBasePath } from '../core/utils.js?v=20260916a';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';

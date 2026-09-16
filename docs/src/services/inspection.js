@@ -3,15 +3,15 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260915g';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260915g';
-import { persist } from '../core/data-adapter.js?v=20260915g';
-import { bumpToken } from '../core/version-token.js?v=20260915g'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260915g';
-import { isInitStateActive } from './init-reset.js?v=20260915g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from './person.js?v=20260915g';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260915g';
-import { loadActivities } from './activity.js?v=20260915g';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260916a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260916a';
+import { persist } from '../core/data-adapter.js?v=20260916a';
+import { bumpToken } from '../core/version-token.js?v=20260916a'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260916a';
+import { isInitStateActive } from './init-reset.js?v=20260916a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260916a';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260916a';
+import { loadActivities } from './activity.js?v=20260916a';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];

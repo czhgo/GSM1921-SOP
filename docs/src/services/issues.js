@@ -2,15 +2,15 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260915g';
-import { PersonStore } from './person.js?v=20260915g';
-import { bumpToken } from '../core/version-token.js?v=20260915g'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260915g';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260915g';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260915g';
-import { generateId, randomHex } from '../core/id.js?v=20260915g';
+import { AuthStore } from './auth.js?v=20260916a';
+import { PersonStore } from './person.js?v=20260916a';
+import { bumpToken } from '../core/version-token.js?v=20260916a'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260916a';
+import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260916a';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260916a';
+import { generateId, randomHex } from '../core/id.js?v=20260916a';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260915g';
+import { renderFilteredList } from '../components/list-filter.js?v=20260916a';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {

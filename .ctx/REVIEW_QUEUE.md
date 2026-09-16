@@ -660,7 +660,15 @@
 - **必须先认清的代价（否则会把这个仓库最值钱的机制拆掉）**：**守卫文件是被索引寻址的对象**——`§0.2` 记「规则 → 哪个守卫 → 状态」、README 记「守卫对人可见」（S9/S10/S11 三条常驻断言在守这件事）。**合并文件 = 改地址**，故每一组合并都必须同批完成四件事：① 合并实现（去重复导入、共用 helper）；② **断言编号不撞车**（不同文件里都有 `S1`，合并后须重编号）；③ 同步 `§0.2` + README；④ 跑定向守卫 + 相关真机。**漏第 ③ 步 → S9/S10/S11 立刻红灯**（这正是护栏该起的作用）。
 - **重组纪律**：① 一组一改、一组一提交，禁止「一次全并」；② **不得合并语料/台账类数据文件**（`form-loop-registry.mjs` 是数据不是用例）；③ 不得把真机用例与纯 node 用例混到一个文件（会拖慢定向跑）；④ 合并后 `node --test <新文件>` 必须全绿，且全量数与合并前一致（用例数只许因合并而**等量转移**，不许减少）。
 - **建议分组（按域，优先吸收 13–35 行的细碎件）**：`catalog-*`（function-catalog / flow-catalog-sync / function-map-sync / vote-option-sync / references-official-links）、`docs-*`（doc-consistency 单列不动 + block-manifest / block-canvas-e2e 等）、`policy-*`（policy-config / policy-defaults-sync / preferences / theme-pref）、`roster-*`、`agenda-*`（closure-core / editing / votes / quorum / follow-up）、`wizard-*`（copy / package / report）等。
-- **状态**：**待办**（未开工；先出分组方案与本批试点组，再逐步推进）。
+- **试点组已闭环（2026-09-15 批次 47-F）**：`catalog-*` 五件并一 → **`server/test/catalog-sync.test.mjs`（T1–T5）**，文件数 **5 → 1**。五条断言**逐条保留语义、无削弱**（它们都是描述性测试名、**无 S 编号**，故本组无需重编号——这也是选它当试点的原因）。
+  - **合并的真实收益（不只是文件少）**：三份**重复的文本求值 helper**（`loadCatalog` / `grab(relPath,name)` / `grabOptionSets`）收敛为**同一个** `grabExport()`。
+  - **引用链同步（漏一处就会被 S9/S10/S11 拦）**：README 守卫清单、`§0.2` 行、`CONTRIBUTING.md` 示例、`server/package.json::test:fast`、`server/routes/committee.js` 注释、`§3.4 R5/R8` 两行——**共 7 处**全部同批改净；**执行日志按「历史记录不可变」保留原样**。
+  - **验证**：`catalog-sync` **5/5**、`doc-consistency` **12/12**（S9/S10/S11 在改名后仍绿＝引用链确未断）。
+- **下一组候选（按同法推进）**：`policy-*`（`policy-config` / `policy-defaults-sync` / `preferences` / `theme-pref`）、`roster-*`、`wizard-*`——**均为纯 node、无 S 编号**，与试点组同形态。
+- **⚠ 经 grill 后收紧的顺序与判据（2026-09-15）**：
+  - **试点成功能否外推？——不能。** 试点组（`catalog-*`）是**最简形态**：全纯 node、**全无 S 编号**、风格一致。而实测 **`agenda-*` 组含真机文件**（`agenda-flow.test.mjs` / `agenda-closure.test.mjs` 均 `chromium.launch`）→ 与本区区纪律「**真机用例不与纯 node 混一文件**」**正面冲突**。故：**先合「纯 node 且无 S 编号」的组**；`agenda-*` 这类**暂缓**，须**先立「真机文件的归属口径」**（合并后它算真机守卫还是逻辑守卫？README 的守卫分类怎么标？）再动。
+  - **判据不是「文件数少」**：若把 20 个文件并成 1 个 800 行的巨物，**检索反而更难**。真判据是「**一个域一个可寻址入口**」；单文件宜 ≤ ~300 行，超出则**只按域合、不硬塞**。
+- **状态**：**试点组已闭环**；其余组待办。
 
 ## 批次 47-D（待办）：form-loop 真机闭环「优先高频」升级（支书 item 2）
 
@@ -673,12 +681,29 @@
   - 另有批量档 `#att-batch-status` / `#att-batch-apply`、逐人档 `#att-status-${pid}`（可作 `satisfy.setValue` 的后续步骤）。
 - **为什么不能「批量填 10 条」**：每条流程都要 `open[]`（打开表单的真实点击链；多数表单是**点按钮后才挂载**，如 `#att-form-panel`）+ `submit[]` + `expect[].carrier`（**必须是真的 DOM 选择器**）。写错选择器守卫会红，但**写对只能靠真机跑**——故本项的实际节奏是「写 1–3 条 → 真机跑 → 修 → 再写」。
 - **纪律（防「凑数真机覆盖」）**：**只允许把真机跑通过的条目改 `machine:true`**；未跑通的不得先改标志位（否则台账说谎、`FLOWS_BASELINE` 失去意义）。批次 44 定的规则：`machine:true` 条目**必须出现在某流程 expect 里**，由 `form-loop-sweep` 断言。
-- **本轮已完成（2 条流程 / 3 处校验点，全部真机跑通）**：
+- **本轮已完成（3 条流程 / 5 处校验点，全部真机跑通）**：
   1. **`leader-attendance-upload`**（组长台 · 考勤上传）：`open #btn-leader-upload-att → waitFor #att-form-panel`；`submit #att-form-submit`；expect『活动』`#att-activity-select` + 『参会人员』`#att-person-picker-container .person-picker-trigger`。
   2. **`disc-meeting-attendance`**（纪检台 · 考勤管理 · 建考勤）：`open #disc-meet-toggle → waitFor #disc-meet-submit`；`submit #disc-meet-submit`；expect『参会人员』`#disc-meet-picker .person-picker-trigger`。
-  - **台账**：`machine:true` **21 → 24**（`machine:false` 71 → **68**）；`MACHINE_FLOWS` **10 → 12**；`FLOWS_BASELINE` **10 → 12**；`form-loop-sweep` **17 / 17 绿**。
+  - **台账（② 完成时点值，最终值见本节末「台账」行）**：`machine:true` 21 → 24 · `MACHINE_FLOWS` 10 → 12 · `form-loop-sweep` 17/17 绿。
 - **真机顺带查明的一处口径（重要，已回写台账）**：纪检台建考勤表单**默认预选首个会议活动**，故 `disc/attendance-tab.js:272`「请选择会议活动」这一支在**空表单点提交**下**不可达**（实测先报的是下一条「请选择参会人员」）。该登记项据此**退回 `machine:false` 并写明真实原因**——**不为了让流程凑数而谎报可达**；要触发它须先把活动下拉清空，属另一条前置路径。
-- **下一批待做（同一模板，逐条只跑通才置 `machine:true`）**：组长台「考勤上传·批量改状态」（`#att-batch-status`/`#att-batch-apply`，需先有考勤记录）、专班域余项、其余 68 条 `machine:false` 中「只差一条前置路径」的条目。
+- **流程 ③（新增，2026-09-15）`secretary-notice-edit`（支书台 · 通知编辑浮窗）**：`open` = 点 `[data-notif-action="edit"]` → `#ne-save` 就位 → **再清空** `#ne-title` / `#ne-content`（`setValue`）；`submit` = `#ne-save`；expect 『通知标题』→『通知内容』。
+  - **关键发现（值得推广）**：编辑浮窗**预填原值** → 若不在 `open[]` 里先清空，「请填写…」两支**根本不可达**——**空表单也非空**。「浮窗类表单须先清空预填值」与 47-D ② 的「默认预选活动」是**同一类**：**预置值会把必填分支藏起来**，写流程前必须先问「这个表单有什么默认值」。
+- **流程 ④⑤（新增，2026-09-15）组织台 · 专班管理**：
+  - ④ **`org-taskforce-contribution`（代录贡献）**：`open` = 点 `#tf-bucket-active .tf-store-card`（**「运行中」专班**，分区 key 见 `BUCKETS`）→ `#btn-add-tf-contrib` 就位；`submit` = `#btn-add-tf-contrib`；expect 『贡献说明』`#tf-contrib-desc`（`satisfy` 填值）→『要代录的成员』`#tf-contrib-picker .person-picker-trigger`。**一个表单覆盖 2 处校验点**。
+  - ⑤ **`org-taskforce-progress`（添加进度）**：**与 ④ 共用同一条 `open` 链**（同一详情面板的另一块）；expect 『进度说明』`#tf-progress-note`。**边际成本极低**——这是本批「**一个面板多块**」的收益点：**选流程时优先选「同一面板/同一表单里有多个校验点」的**，一次真机跑覆盖多处。
+- **下一批待做（同一模板，逐条只跑通才置 `machine:true`）**：**专班复盘**（`#tf-review-content`，与 ④⑤ 同面板，但提交钮 id 待取）· **专班材料**（`#…` 材料上传内联态）· 组长台「考勤上传·批量改状态」（`#att-batch-status`/`#att-batch-apply`，需先有考勤记录）· 支书台「活动管理·发起活动」多步向导 · 其余 **63** 条 `machine:false` 中「只差一条前置路径」的条目。
+- **流程 ⑥（新增，2026-09-15）`org-taskforce-review`（组织台 · 专班提交复盘）**：与 ④⑤ **同一条 open 链 × 三块**（`#tf-bucket-active .tf-store-card` 一次打开即覆盖代录 / 进度 / 复盘）；expect 『专班复盘内容』`#tf-review-content`，提交钮 `#btn-submit-tf-review`。
+- **⚠ 经 grill 后收紧的口径（2026-09-15，本节最重要的一条）**：`machine: true` 的含义**仅**是「该字段的**必填校验分支**已在真机验证：空提交会报出**可见提示**、且该提示的**载体在位**」——**不保证成功路径**（填对后能否提交成功、是否落库、列表是否刷新，**均未覆盖**，登记 `Q-23-44`）。此前台账写 `machine:true` 极易被读成「这条流程整体已被真机验证通过」，那是夸大、是本仓库反复打击的「口径不实」——**已改口径并写进 `form-loop-registry.mjs` 头部**。
+- **⚙️ 经 grill 后改变的取法（原取法是错的）**：原先我按「**同面板多块省事**」挑流程——那只优化了「省事」一个轴，会漏掉**更高频但更难写**的动作。**正确顺序：先按「高频」排清单，再在清单内用「同面板多块」省事**。「目标 10 条」是**我编的数、不是判据**，已降为参考。
+- **台账（最终值）**：`machine:true` **21 → 30**（`machine:false` 71 → **62**）· `MACHINE_FLOWS` **10 → 16** · `FLOWS_BASELINE` **10 → 16** · `form-loop-sweep` **21/21 真机绿**。
+
+### Q-23-44 form-loop 只覆盖「必填校验分支」，**成功路径未覆盖**（2026-09-15 批次 47-D grill 时发现）
+
+- **事实**：`form-loop-sweep` 的判据是「空必填点提交 → 须报**可见提示** + 该提示的**载体在位**」。**填对之后的路**完全没走：能否提交成功、是否落库、列表是否刷新、是否闭环。
+- **为何要紧**：支书实报的「非闭环」有两种——① **没有框**（载体缺失）→ 本守卫**能抓** ✓；② **提交后不闭环**（数据没落、列表不刷、状态没变）→ 本守卫**抓不到**。而 ② 恰是「考察上传没有考察框」之外的常见形态。
+- **已做的处置（不假装覆盖）**：`machine:true` 的口径在 `form-loop-registry.mjs` 头部**逐字写明**只保证必填分支；`§0.2 R27` 与 `README` 同步标注。
+- **待办**：新增一条**成功路径**真机守卫（采样 N 个高频表单：填对 → 提交 → 断言落库 + 列表刷新 + toast 成功），或把它并入 `page-sweep` 的二级动作审次。**状态：待办**。
+
 - **支书裁定（2026-09-15，AskUserQuestion）**：
   - **Q-23-39 → C，但不是「全量逐条过」，而是启用 `sample-diff-learning` 学模式**：出「全站小字清单 + 每处用途分类」**不够**——改为**分层抽样 → 一次只给一个样本请你裁 → 抽取「AI 假设 vs 你的本意」差集 → 泛化成带**布尔条件**的可机检规则 → 落库（Layer 2 项目层 + 守卫）**。**不做 100+ 处逐条人工**。
     首轮抽样已取（判据＝小字里出现成句文本）：**正当辅助**（`活动 (3)`、`${date} · ${type} · ${organizer}`、`+3 项`、`发起: 张三`）与**疑说明文**（`references.js:652`「保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。」、`references.js:810` 同类）形成清晰两极。
@@ -699,7 +724,10 @@
   2. **再做 R-70 守卫**：先跑出「无日期的授权声明」清单（预计会命中若干历史注释），再逐条补日期或改写法，**不得留红灯**。
   3. **Q-23-41 ②服务端汇总**：新增读接口 + 改 `today-tab` 提醒呈现 + 改 `leader/members-tab` 为只读实况。
   4. 47-D 剩余流程 / 47-F 试点组合并（`catalog-*` 五件并一）。
-- **状态**：**① 已闭环（批次 47-H，2026-09-15）**——纪律 **R-70** 已入 `CLAUDE.md`（含 R-69 交叉校正）；守卫 **`doc-consistency.test.mjs::S12`** 已常驻（判据收窄到「支书作为批准者的断言」；基线 13 条为迁移台账，只减不增、僵尸化红灯；12/12 绿）。**② 待执行**——「本组组员进展汇总」服务端读接口尚未开写。
+- **状态**：**①② 均已闭环（批次 47-I，2026-09-15/16）**——
+  - **① 纪律 + 守卫**：`CLAUDE.md R-70` 已入（含 R-69 交叉校正）；`doc-consistency.test.mjs::S12` 常驻（12/12 绿）。**守卫首日就抓到两处**：本批新写的 3 条注释缺日期、以及 `member-progress.js` jsdoc 里「符合支书裁定的…」漏日期（13→14）→ 均当场补 `2026-09-15`。
+  - **② 服务端汇总**：纯聚合 `docs/src/services/member-progress.js`（**服务端同源 import**，Node 导入实测通过）+ 读接口 `GET /api/v1/leader/member-progress`（`requireAuth`；`today` 由参数给定防两端时区漂移）+ 守卫 `member-progress.test.mjs::S1–S4`（**4/4 首跑即绿**）；**前端已改**：组长台改走双态载入器（四项判定**移出** tab 文件）、`today` 提醒**删掉「请逐人归集」人工要求**、改为**呈报实况**（服务端汇总的四项数字 + 需跟进人数；`data-lsr-source` 标出来源）。
+  - **验证**：全量 **631/631**、`page-sweep` **11/11**（七台全部 tab 零脚本错误）、定向 31/31。
 
 ### Q-23-42 S12 迁移台账：13 条「无日期的授权声明」待补证（2026-09-15 批次 47-H 登记）
 

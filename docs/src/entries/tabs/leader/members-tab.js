@@ -5,20 +5,21 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260915g';
-import { IssueStore } from '../../../services/issues.js?v=20260915g';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260915g';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260915g';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260915g';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260915g';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260915g';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260915g';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915g';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915g';
+import { AuthStore } from '../../../services/auth.js?v=20260916a';
+import { IssueStore } from '../../../services/issues.js?v=20260916a';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260916a';
+// 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
+// `services/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
+// 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
+// loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member-progress.js?v=20260916a';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260916a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260916a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260916a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915g';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260916a';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260915g';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260916a';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -42,32 +43,24 @@ export async function renderContent(ctx) {
     return;
   }
 
-  const allTodos = TodoStore.getAll();
-  const attRecords = loadAttendanceRecords();
-  const inspRecords = loadActiveInspectionRecords();
-  const allIssues = IssueStore.getAll();
+  const allIssues = IssueStore.getAll(); // 仅供「组员汇报收件箱」，与进度聚合无关
 
-  // 每人聚合（progress/blocker/report/attendance/inspection 五维）
+  // 每人聚合（在办 / 超期 / 缺勤 / 考察待确认 + 汇报态）：**载入器单一入口**（批次 47-I）——
+  // api 态由服务端汇总接口返回，mock 态本地算，两支同一份口径。
+  const progress = await loadMemberProgress({ personIds: targets.map(t => t.personId), today });
+  const aggOf = new Map(progress.rows.map(r => [r.personId, r]));
+  const REPORT_CLASS = {
+    [REPORT_KIND.PENDING_ANSWER]: 'text-amber-700 font-medium',
+    [REPORT_KIND.BLOCKED]: 'text-red-600 font-medium',
+    [REPORT_KIND.REPORTING]: 'text-blue-600',
+    [REPORT_KIND.REQUESTED]: 'text-blue-500',
+    [REPORT_KIND.NONE]: 'text-gray-500',
+  };
+
   const rows = targets.map(t => {
-    const personTodos = allTodos.filter(td => td.personId === t.personId && td.status !== TodoStatus.COMPLETED);
-    // P1：内联过期判定收敛于 isTodoExpired（与域 expiredCount/渲染红点同口径）
-    const overdueTodos = personTodos.filter(td => isTodoExpired(td, today));
-    const absentCount = attRecords.filter(r => r.personId === t.personId && r.status === AttendanceStatus.ABSENT).length;
-    const inspPending = inspRecords.filter(r => r.personId === t.personId && r.status === 'pending').length;
-    const reports = allIssues.filter(i => i.kind === 'report' && i.submittedBy === t.personId && !i.hidden && !i.mergedInto);
-    const openReport = reports.find(r => r.status === 'open');
-    const openRequest = allIssues.find(i => i.kind === 'report' && i.requestedBy && i.assignee === t.personId && i.status === 'open' && !i.hidden && !i.mergedInto);
+    const a = aggOf.get(t.personId)
+      || { active: 0, overdue: 0, absent: 0, inspPending: 0, reportState: '—', reportKind: REPORT_KIND.NONE, reportTitle: '' };
     const m = getPersonById(t.personId) || {};
-
-    let reportState = '—';
-    let reportClass = 'text-gray-500';
-    if (openReport) {
-      if (openReport.resultPending) { reportState = '待答复'; reportClass = 'text-amber-700 font-medium'; }
-      else if (openReport.reportCategory === 'blocked') { reportState = '卡点上报中'; reportClass = 'text-red-600 font-medium'; }
-      else { reportState = '汇报中'; reportClass = 'text-blue-600'; }
-    } else if (openRequest) {
-      reportState = '待汇报'; reportClass = 'text-blue-500';
-    }
 
     return {
       person: t,
@@ -79,27 +72,22 @@ export async function renderContent(ctx) {
       developStage: m.developStage || '',
       role: m.role || t.role || '',
       residenceStatus: m.residenceStatus || '',
-      active: personTodos.length,
-      overdue: overdueTodos.length,
-      absent: absentCount,
-      inspPending,
-      reportState,
-      reportClass,
-      openReport,
+      active: a.active,
+      overdue: a.overdue,
+      absent: a.absent,
+      inspPending: a.inspPending,
+      reportState: a.reportState,
+      reportClass: REPORT_CLASS[a.reportKind] || 'text-gray-500',
+      reportKind: a.reportKind,
+      reportTitle: a.reportTitle || '',
     };
   });
 
-  // 卡点区（问题优先）：超期待办 + 上报卡点 + 缺勤 + 考察待确认
-  // 批次 47-H（支书 2026-09-15 裁定「Q-23-40 现在就接分页」）：**取消上一批的「不接入统一检索引擎」例外**。
-  // 原例外的理由是「派生告警清单、非逐人一览表」——那说的是**分面预设**不适用（不该套 personFacets），
-  // 不等于引擎不适用；而卡点数量随组员数增长（真机实测 13 块、P11 命中）→ 不分页即触红线。
-  // 现接入引擎（关键词按姓名/卡点、分面按**卡点类型**），并补 `kind` 字段供分面用。
-  const blockers = [];
-  rows.forEach(r => {
-    if (r.overdue > 0) blockers.push({ personId: r.personId, name: r.name, title: `${r.overdue} 项待办超期`, kind: '超期待办', role: r.person.role });
-    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.personId, name: r.name, title: `上报卡点：${r.openReport.title}`, kind: '上报卡点', role: r.person.role });
-    if (r.absent > 0) blockers.push({ personId: r.personId, name: r.name, title: `缺勤未补 ${r.absent} 次`, kind: '缺勤未补', role: r.person.role });
-    if (r.inspPending > 0) blockers.push({ personId: r.personId, name: r.name, title: `考察待确认 ${r.inspPending} 条`, kind: '考察待确认', role: r.person.role });
+  // 卡点区（问题优先）：**由聚合结果派生**（`blockersOf`，口径与进度同源——批次 47-I 起本文件
+  // 不再重写四项判定）。批次 47-H：接入统一检索引擎（关键词按姓名/卡点、分面按**卡点类型**）。
+  const blockers = blockersOf(progress.rows, (pid) => {
+    const t = targets.find(x => x.personId === pid);
+    return { name: getPersonName(pid), role: (getPersonById(pid) || {}).role || t?.role || 'participant' };
   });
 
   // 引擎行渲染器（批次 47-H）：卡点一条。行内「了解进展」由容器委托（见 _bindMembersEvents），

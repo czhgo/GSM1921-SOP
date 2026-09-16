@@ -6,17 +6,17 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/utils.js?v=20260915g';
-import { generateId } from '../../../core/id.js?v=20260915g';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260915g';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260915g';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260915g';
-import { HandoffStore } from '../../../services/handoff.js?v=20260915g';
-import { PersonStore } from '../../../services/person.js?v=20260915g';
-import { openFormModal } from '../../../components/modal.js?v=20260915g';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260915g';
+import { showToast, flashHighlight } from '../../../core/utils.js?v=20260916a';
+import { generateId } from '../../../core/id.js?v=20260916a';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260916a';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260916a';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup } from '../../../services/todo.js?v=20260916a';
+import { HandoffStore } from '../../../services/handoff.js?v=20260916a';
+import { PersonStore } from '../../../services/person.js?v=20260916a';
+import { openFormModal } from '../../../components/modal.js?v=20260916a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260916a';
 // 发展推进覆盖（进入当前阶段日期）读口：与成员变更确认链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260915g';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260916a';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）

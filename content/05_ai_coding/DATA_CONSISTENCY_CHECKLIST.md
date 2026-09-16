@@ -154,10 +154,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
 | R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
 | R26 说明文件里的「数字与名称」须指到代码出处（**含「守卫自身须登记进 README 测试清单」**——守卫存在却无人可见＝半个没做） | 各说明文件 ↔ 代码注册数组 · `README.md` 测试清单 | `doc-consistency.test.mjs::S1–S12` | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24 / Q-23-37` |
-| R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（92 条校验点台账，21 条可自动化 / 71 条逐条 reason） | `form-loop-sweep.test.mjs::S0–S4` + 10 条真机闭环 | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31` |
+| R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（92 条校验点台账，**30** 条可自动化 / **62** 条逐条 reason） | `form-loop-sweep.test.mjs::S0–S4` + **16 条真机闭环** | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44` |
 | R28-附 工具脚本会把「数据」当「代码」改写（补戳正则命中路径数据） | `docs/scripts/version-next.mjs::isCacheKeyLine`（缓存键语境单一源；`bump-version.mjs` 补戳与自检同判据） | `form-loop-sweep.test.mjs::S4`（防污染断言：数据里不得出现 `?v=`）· `version-stamp.test.mjs::S4–S6 / D7–D9` | 已闭环（批次 46 ① 根治 Q-23-33） | `范本第十四` · `REVIEW_QUEUE Q-23-33` |
-| R27 静态断言锁形态、真机全站普查锁体验（七台 × 全 tab，含真机尺规与**二级视图审次**、**自建列表分页**）+ **普查须与生产同环境** | `server/test/page-sweep.test.mjs` | `page-sweep.test.mjs::S0–S3 + 七台真机普查` | 已闭环（`Q-23-40` 两处**已接引擎**、台账清空） | `§3.4 R27` · `CLAUDE.md R-68` · `REVIEW_QUEUE Q-23-28 / Q-23-34 / Q-23-40` |
+| R27 静态断言锁形态、真机全站普查锁体验（七台 × 全 tab，含真机尺规与**二级视图审次**、**自建列表分页**）+ **普查须与生产同环境** | `server/test/page-sweep.test.mjs` · `server/test/form-loop-sweep.test.mjs` | `page-sweep.test.mjs::S0–S3 + 七台真机普查` · `form-loop-sweep.test.mjs::S0–S4 + 16 条真机流程` | 已闭环（`Q-23-40` 两处**已接引擎**、台账清空） | `§3.4 R27` · `CLAUDE.md R-68` · `REVIEW_QUEUE Q-23-28 / Q-23-34 / Q-23-40 / Q-23-44`（⚠ **`machine:true` 只保证「必填校验分支」，成功路径未覆盖**） |
 | R29 授权声明必须可核验：**功能不得随批次「一起进」**；注释里的「支书批 / 裁定」须**同行带日期**（防止给未逐项批准的功能伪造授权凭证） | 各源码注释（`docs/src` + `server`；判据**收窄**到「支书作为批准者的断言」，业务语汇如「报支书确认」不计） | `doc-consistency.test.mjs::S12` | 已闭环（基线 13 条待补证 → `Q-23-42`；**日期能否指到问答记录机器查不了**，该半截靠支书复核） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41 / Q-23-42` |
+| R30 面向用户的「人工收集 / 归集 / 汇总」类要求，凡数据可由服务端算出者**须由服务端代劳**；聚合口径**单一源**（两端不得各写一套） | 纯聚合 `docs/src/services/member-progress.js::aggregateMemberProgress`（服务端同源 import）· 读接口 `server/routes/leader-progress.js` · 前端双态入口 `loadMemberProgress` | `member-progress.test.mjs::S1–S4`（S1＝**结构单一源**：接口源码不得出现自写判定） | 已闭环（`Q-23-41 ②`；47-I 已落 `today` 呈报实况 + 组长台改走载入器） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41` |
 | 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/mock/people.js`（PEOPLE）· `services/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
 | 实体 id 唯一 + 生成单一源（第二范本） | `core/id.js::generateId / randomHex` | `id-uniqueness.test.mjs::S1–S3 + D1–D4` | 已闭环 | 本文件 §0 第二范本 · §跨类别同源校验 |
 | 通知受众写入值与判定同源（第三范本） | `core/constants.js::NOTICE_AUDIENCE_SENTINELS` | `notice-audience.test.mjs::N1–N8` | 已闭环 | 本文件 §0 第三范本 · §6 |
@@ -165,7 +166,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
 | 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
 | 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
-| 功能地图标记块与生成器不失同步 | `docs/src/core/function-catalog.js` | `function-map-sync.test.mjs`（1 条，无编号） | 已闭环 | `README.md` 顶部功能地图 |
+| 清单类同步（功能目录结构 / 链路键集 / 功能地图 / 表决枚举 / 官方制度链接） | `docs/src/core/function-catalog.js` · `mermaid-sources.js` · `vote-config.js` · `modules/references.js` | `catalog-sync.test.mjs::T1–T5`（批次 47-F 五件并一） | 已闭环 | `README.md` 顶部功能地图 · `REVIEW_QUEUE` 批次 47-F |
 | 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
 | Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
 | 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |

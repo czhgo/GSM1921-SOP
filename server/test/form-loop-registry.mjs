@@ -24,10 +24,15 @@
 //                   需多角色同时在线、需先造复杂前置数据/进入详情浮态、字段默认预填故空表单不触发该分支、入口在议题详情内联区等。
 //
 // 注：file 为仓库根相对路径（正斜杠）；line 为登记时的近似行号（守卫**只按 file+field 断**，不按行号，容忍行号漂移）。
+//
+// ⚠ **保证范围（2026-09-15 批次 47-D 经 grill 后如实收紧）**：`machine: true` 的含义**仅**是——
+//   「该字段的**必填校验分支**已在真机验证：**空提交会报出可见提示**，且该提示的**载体在位**」。
+//   **它不保证成功路径**：填对后能否提交成功、是否落库、列表是否刷新——**均未覆盖**（已知盲区，`Q-23-44`）。
+//   故读台账时**不得**把它读成「这条流程整体已被真机验证通过」：那是夸大，正是本仓库反复打击的「口径不实」。
 
 /** 台账规模基线（守卫据此断言「不得静默缩水」；重构致减少须在同提交显式更新本基线并说明） */
 export const SITES_BASELINE = 92;
-export const FLOWS_BASELINE = 12;
+export const FLOWS_BASELINE = 16;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -43,8 +48,8 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 155, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 156, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 157, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 311, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: false, msg: '请填写通知标题', reason: '编辑浮窗需先有已发布通知并点「编辑」进入浮态，非空表单路径' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 312, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: false, msg: '请填写通知内容', reason: '编辑浮窗需先有已发布通知并点「编辑」进入浮态，非空表单路径' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 311, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 312, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1076, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1077, field: '日期', flow: 'secretary/写入活动', machine: false, msg: '请选择日期', reason: '表单日期字段默认预填当日，空表单不会触发该分支' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1078, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
@@ -87,11 +92,11 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1320, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1321, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 626, field: '退回原因', flow: 'org/专班管理·退回', machine: false, msg: '请填写退回原因', reason: '退回原因取自原生 window.prompt 输入，页面无 DOM 载体可断言' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 674, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: false, msg: '请填写贡献说明', reason: '需先进入代录贡献内联态（先有在办专班）' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 676, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: false, msg: '请选择要代录的成员', reason: '同上：代录贡献内联态' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 674, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 676, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 886, field: '材料名称', flow: 'org/专班管理·材料', machine: false, msg: '请填写材料名称', reason: '需先进入专班材料上传内联态' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 977, field: '进度说明', flow: 'org/专班管理·添加进度', machine: false, msg: '请填写进度说明', reason: '需先进入添加进度内联态（先有在办专班）' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1036, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: false, msg: '请填写专班复盘内容', reason: '需先进入专班的复盘内联态（先有在办专班）' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 977, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1036, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
   { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 139, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: false, msg: '请填写周次标签', reason: '周次标签默认按当前日期预填，空表单不触发该分支' },
@@ -326,6 +331,73 @@ export const MACHINE_FLOWS = [
     // 故本流程只断可达的那条（参会人员）；该条登记项已据实测退回 machine:false 并写明原因（见 VALIDATION_SITES）。
     expect: [
       { file: SRC + 'entries/tabs/disc/attendance-tab.js', field: '参会人员', msg: '请选择参会人员', carrier: '#disc-meet-picker .person-picker-trigger' },
+    ],
+  },
+  {
+    // 批次 47-D：**支书台 · 通知编辑浮窗**——支书点名的高频「通知」域（发布已在册，编辑是其二）。
+    // ⚠ 关键：编辑浮窗**预填**原值 → 必须在 open 里**先清空**标题与正文，否则「请填写…」两支
+    //   都**不可达**（空表单也非空）。runStep 支持 `setValue`（设 .value 并发 input 事件）。
+    id: 'secretary-notice-edit',
+    page: 'secretary',
+    tab: '通知发布',
+    open: [
+      { click: '[data-notif-action="edit"]' },
+      { waitFor: '#ne-save' },
+      { setValue: { selector: '#ne-title', value: '' } },
+      { setValue: { selector: '#ne-content', value: '' } },
+    ],
+    submit: [{ click: '#ne-save' }],
+    expect: [
+      { file: SRC + 'entries/tabs/secretary/notification-tab.js', field: '通知标题', msg: '请填写通知标题', carrier: '#ne-title', satisfy: { setValue: { selector: '#ne-title', value: '临时标题' } } },
+      { file: SRC + 'entries/tabs/secretary/notification-tab.js', field: '通知内容', msg: '请填写通知内容', carrier: '#ne-content' },
+    ],
+  },
+  {
+    // 批次 47-D：**组织台 · 专班管理 · 代录贡献**——一个表单覆盖 **2 处**校验点（贡献说明 → 代录成员）。
+    // 前置：代录块只在**「运行中」专班**的详情面板里出现 → open 先点 `#tf-bucket-active` 里的卡片
+    //   （看板分区 key 见 taskforce-tab.js::BUCKETS；发布前该面板 `#tf-detail-panel` 是 hidden）。
+    // 判据顺序（源码 674 先于 676）：说明先判、成员后判 → expect 顺序即此。
+    id: 'org-taskforce-contribution',
+    page: 'org',
+    tab: '专班管理',
+    open: [
+      { click: '#tf-bucket-active .tf-store-card' },
+      { waitFor: '#btn-add-tf-contrib' },
+    ],
+    submit: [{ click: '#btn-add-tf-contrib' }],
+    expect: [
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', field: '贡献说明', msg: '请填写贡献说明', carrier: '#tf-contrib-desc', satisfy: { setValue: { selector: '#tf-contrib-desc', value: '代录：完成活动策划与执行排期' } } },
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', field: '要代录的成员', msg: '请选择要代录的成员', carrier: '#tf-contrib-picker .person-picker-trigger' },
+    ],
+  },
+  {
+    // 批次 47-D：**组织台 · 专班管理 · 添加进度**——与「代录贡献」**共用同一条 open 链**
+    // （同为「运行中」专班的详情面板），故边际成本极低；这是本批「一个面板多块」的收益点。
+    id: 'org-taskforce-progress',
+    page: 'org',
+    tab: '专班管理',
+    open: [
+      { click: '#tf-bucket-active .tf-store-card' },
+      { waitFor: '#btn-add-tf-progress' },
+    ],
+    submit: [{ click: '#btn-add-tf-progress' }],
+    expect: [
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', field: '进度说明', msg: '请填写进度说明', carrier: '#tf-progress-note' },
+    ],
+  },
+  {
+    // 批次 47-D：**组织台 · 专班管理 · 提交复盘**——与 ④⑤ **同面板**（「运行中」专班详情），
+    // 一并覆盖即「一个 open 链 × 三块」，是本批最省的取法。提交钮 `#btn-submit-tf-review`（源码 1028）。
+    id: 'org-taskforce-review',
+    page: 'org',
+    tab: '专班管理',
+    open: [
+      { click: '#tf-bucket-active .tf-store-card' },
+      { waitFor: '#btn-submit-tf-review' },
+    ],
+    submit: [{ click: '#btn-submit-tf-review' }],
+    expect: [
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', field: '专班复盘内容', msg: '请填写专班复盘内容', carrier: '#tf-review-content' },
     ],
   },
 ];

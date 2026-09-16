@@ -41,7 +41,7 @@ npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_P
 1. **统一扎口**：同一业务事实只允许一份可编辑副本。新增/发现重复 → 先在库/单一源出口收敛（如 `components/forms.js`、`core/constants.js`、`core/config-clean.js`），再删第二份。判据：同一事实出现第二份即扎口。
 2. **数据域接线**：人员/名单/种子一律经 `services/*` 获取，UI 层不得从 `mock/*` 直接 import 数据常量。
 3. **跨端共享**：server 与前端要共用的净化/校验/清单 → 放 `docs/src/core/`（零依赖纯 ESM），server 直接 import；**不得在两端各写一份**。
-4. **防失同步测试**：任何"双端/多处同义清单"收敛后，补键集双向断言测试（示例：`server/test/flow-catalog-sync.test.mjs`、`roles-sync`、`scene-write-sync`、`vote-option-sync`）。
+4. **防失同步测试**：任何"双端/多处同义清单"收敛后，补键集双向断言测试（示例：`server/test/catalog-sync.test.mjs`（T2 链路键集 / T4 表决枚举）、`roles-sync`、`scene-write-sync`）。
 5. **文件头注释**：沿用 `// role: [工程师]+[AI]` 头注释与中文注释；改动留日期与缘由。
 6. **`?v=` 版本戳**：docs/src 内部 import 带 `?v=YYYYMMDDx`（module-load 按同 query 取同实例）。整体失效才 bump（`docs/scripts/bump-version.mjs`），不要为单点改动随意 bump。
 7. **不改动的存量**：支书裁定的「历史记录不可变」——`.ctx` 记录、已发生的事态日志等保留原样。

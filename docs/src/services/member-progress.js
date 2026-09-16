@@ -6,10 +6,13 @@
 //   逐人归集…」提醒，支书连问三句——「为什么自动生成」「我从来没说过要有一个**收集过程**」
 //   「照理说理想状态下，后台服务器已经**自动把相关信息都计算汇总好了**」→ 裁定「**改为服务端汇总**」。
 //
-// 本模块是**纯函数**（不碰 DOM / localStorage / fetch / 网络），因此：
-//   · **服务端可直接 import**（与 `core/constants.js` / `core/config-clean.js` / `core/policy-defaults.js`
-//     同一惯例，见 `server/routes/*.js` 既有写法）→ 由服务端做汇总；
-//   · mock 态前端调用**同一个函数** → **接口态与 mock 态共用一份聚合口径，不存在第二套**。
+// 本文件两部分：
+//   · `aggregateMemberProgress` / `blockersOf` —— **纯函数**（不碰 DOM / localStorage / fetch），
+//     故**服务端可直接 import**（与 `core/constants.js` / `core/config-clean.js` 同一惯例，
+//     见 `server/routes/leader-progress.js`）→ 由服务端做汇总；
+//   · `loadMemberProgress` —— **IO 载入器**（api 态走服务端汇总接口、mock 态读本地 store 后调纯函数），
+//     **仅前端使用，服务端不调用它**（服务端只用纯函数部分）。
+//   两支共用同一个聚合函数 → **接口态与 mock 态不存在第二套口径**。
 //
 // 四项判据的**单一源**（禁止在本文件重写判定逻辑）：
 //   · 超期        = `services/todo.js::isTodoExpired`（与域 expiredCount / 红点同口径）
@@ -18,8 +21,10 @@
 //   · 考察待确认  = 考察记录 `status === 'pending'`
 // ════════════════════════════════════════════════════════════════
 
-import { isTodoExpired, TodoStatus } from './todo.js?v=20260915g';
-import { AttendanceStatus } from '../core/domain.js?v=20260915g';
+import { isTodoExpired, TodoStatus } from './todo.js?v=20260916a';
+import { AttendanceStatus } from '../core/domain.js?v=20260916a';
+import { isApiMode } from './runtime.js?v=20260916a';
+import { getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260916a';
 
 /** 汇报态 → 稳定判别键（渲染文案随时可改，键不动；与 members-tab 原口径逐条对齐） */
 export const REPORT_KIND = {
@@ -116,4 +121,49 @@ export function blockersOf(rows = [], metaOf = () => ({ name: '', role: '' })) {
     if (r.inspPending > 0) out.push({ ...base, title: `考察待确认 ${r.inspPending} 条`, kind: '考察待确认' });
   }
   return out;
+}
+
+/**
+ * 载入「本组组员进展」四项 + 汇报态（**双态单一入口**，2026-09-15 批次 47-I）。
+ * · api 态 → 打服务端汇总接口（**汇总在服务端算**，符合支书 2026-09-15 裁定的「理想状态」）；
+ * · mock 态 → 读本地各 store 后调**同一个** `aggregateMemberProgress`（口径同源）。
+ *
+ * @param {Object} input
+ * @param {string[]} input.personIds 目标组员 id（**输出顺序即此顺序**）
+ * @param {string} [input.today] `YYYY-MM-DD`；缺省取本地当日（与页面渲染同一口径，避免 UTC 跨日错位）
+ * @returns {Promise<{rows: Array<Object>, today: string, source: 'api'|'mock'}>}
+ */
+export async function loadMemberProgress({ personIds = [], today } = {}) {
+  const day = today || new Date().toISOString().slice(0, 10);
+  const api = isApiMode();
+  if (!personIds.length) return { rows: [], today: day, source: api ? 'api' : 'mock' };
+
+  if (api) {
+    const qs = new URLSearchParams({ personIds: personIds.join(','), today: day });
+    const res = await fetch(`${getApiBaseUrl()}/api/v1/leader/member-progress?${qs.toString()}`, {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    });
+    if (!res.ok) throw new Error(`服务端汇总读取失败（HTTP ${res.status}）`);
+    const body = await res.json();
+    return { rows: body.rows || [], today: body.today || day, source: 'api' };
+  }
+
+  // mock 态：动态引入各 store（保持服务端静态依赖图不被撑大）→ 调**同一个**纯函数
+  const [{ TodoStore }, { loadAttendanceRecords }, { loadActiveInspectionRecords }, { IssueStore }] =
+    await Promise.all([
+      import('./todo.js?v=20260916a'),
+      import('./attendance.js?v=20260916a'),
+      import('./inspection.js?v=20260916a'),
+      import('./issues.js?v=20260916a'),
+    ]);
+  if (typeof IssueStore.loadAll === 'function') await IssueStore.loadAll();
+  const rows = aggregateMemberProgress({
+    persons: personIds.map((personId) => ({ personId })),
+    todos: TodoStore.getAll(),
+    attendance: loadAttendanceRecords(),
+    inspections: loadActiveInspectionRecords(),
+    issues: IssueStore.getAll(),
+    today: day,
+  });
+  return { rows, today: day, source: 'mock' };
 }
