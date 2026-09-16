@@ -82,13 +82,16 @@ const MUTED_EXTERNALS = [
  *  （视图切换按钮 `[data-view]` 由下方按取值逐一点过去，不在此列——它不具「点一次再点一次即复位」的语义。） */
 const SUBVIEW_TRIGGERS = [{ name: '矩阵·显示全部', sel: '[data-rm-toggle]' }];
 
-/** 自建列表（不走引擎、非 `<table>`）的**待修台账**（批次 47-C 首次扩围实测 2 处）。
+/** 自建列表（不走引擎、非 `<table>`）的**待修台账**（批次 47-C 首次扩围实测 2 处 → **批次 47-H 全部闭环、清空**）。
  *  ⚠ 这**不是**「正当例外」，而是「已确认不合规、已登记待修」——接分页后必须逐条删除本台账；
- *  台账若僵尸化（条目再也命中不到）同样红灯。台账本身不豁免新出现的同类（第 3 处即刻 P11 红灯）。 */
-const CARD_LIST_PENDING = [
-  { sig: 'DIV|p-3 rounded-xl bg-white border border-gray-100', where: '宣传台 · 档案归档 · 归档活动卡片 22 块（prop/archive-tab.js::_renderEndedUnarchivedSection）', q: 'Q-23-40' },
-  { sig: 'DIV|flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-', where: '组长台 · 组员进展 · 组员行块 13 块（leader/members-tab.js）', q: 'Q-23-40' },
-];
+ *  台账若僵尸化（条目再也命中不到）同样红灯。台账本身不豁免新出现的同类（新出现的同级即刻 P11 红灯）。
+ *  47-H 闭环记录（支书裁定「现在就接分页」）：两处均改接统一检索引擎（`renderFilteredList`），
+ *  · 宣传台「档案归档」归档活动卡片 22 块 → `prop/archive-tab.js` 改 `_endedUnarchivedCardHtml` 行渲染器；
+ *  · 组长台「组员进展」卡点行块 13 块 → `leader/members-tab.js` 改 `blockerRowHtml` 行渲染器
+ *    （并**取消**上一批「派生清单不接引擎」的例外：那条理由说的是**分面预设**不适用，不是引擎不适用），
+ *    同时把「了解进展」按钮由 querySelectorAll 绑定改**容器委托**（引擎重绘后按钮不再失效）。
+ *  → 故本次 2 条**全部删除**；本台账保持为空 = 「当前无已确认待修项」。 */
+const CARD_LIST_PENDING = [];
 
 /** 当前 tab 内容的 DOM 普查（纯只读断言，返回 {violations, stats, probe}） */
 const AUDIT = (cfg) => {
@@ -202,10 +205,11 @@ const AUDIT = (cfg) => {
   // ── P11（批次 47-C）自建列表必须分页：不走引擎、又不是 <table> 的「卡片 / 行块列表」原不在覆盖内 ——
   //   判据：容器直接子元素 ≥ 12 且**同构**（同 tag + 同 class）、不在已登记载体里、容器内无翻页控件。
   //   取证（2026-09-15 首次扩围实测，65 tab）：全站命中 **2 处**，均无翻页——
-  //     · 宣传台「档案归档」归档活动卡片 **22 块**（prop/archive-tab.js::_renderEndedUnarchivedSection）
-  //     · 组长台「组员进展」组员行块 **13 块**（leader/members-tab.js）
-  //   这 2 处进入 `CARD_LIST_PENDING` **待修台账**（**不是正当例外**，接分页后须逐条删除；台账僵尸化即红灯）。
-  //   任何**第 3 处**新出现即刻红灯 —— 这正是支书实报「还有表格没分页」的那一类。
+  //     · 宣传台「档案归档」归档活动卡片 **22 块**（prop/archive-tab.js）
+  //     · 组长台「组员进展」卡点行块 **13 块**（leader/members-tab.js）
+  //   这 2 处进了 `CARD_LIST_PENDING` 待修台账（**不是正当例外**）；**批次 47-H 已全部接统一检索引擎闭环**，
+  //   台账随之清空（僵尸化检查会强制这条一致性）。
+  //   任何**新出现**的同类即刻红灯 —— 这正是支书实报「还有表格没分页」的那一类。
   const pending = cfg.pending || [];
   const pendingSeen = [];
   const probe = [];

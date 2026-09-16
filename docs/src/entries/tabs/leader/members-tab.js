@@ -5,20 +5,20 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260915f';
-import { IssueStore } from '../../../services/issues.js?v=20260915f';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260915f';
-import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260915f';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260915f';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260915f';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260915f';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260915f';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915f';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915f';
+import { AuthStore } from '../../../services/auth.js?v=20260915g';
+import { IssueStore } from '../../../services/issues.js?v=20260915g';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260915g';
+import { TodoStore, TodoStatus, isTodoExpired } from '../../../services/todo.js?v=20260915g';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260915g';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260915g';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260915g';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260915g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260915g';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260915g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915f';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260915g';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260915f';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260915g';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;
@@ -90,20 +90,21 @@ export async function renderContent(ctx) {
   });
 
   // 卡点区（问题优先）：超期待办 + 上报卡点 + 缺勤 + 考察待确认
-  // 说明：本区为派生告警清单（同一人可命中多条），非逐人一览表，故不接入统一检索引擎（登记见批次报告）
+  // 批次 47-H（支书 2026-09-15 裁定「Q-23-40 现在就接分页」）：**取消上一批的「不接入统一检索引擎」例外**。
+  // 原例外的理由是「派生告警清单、非逐人一览表」——那说的是**分面预设**不适用（不该套 personFacets），
+  // 不等于引擎不适用；而卡点数量随组员数增长（真机实测 13 块、P11 命中）→ 不分页即触红线。
+  // 现接入引擎（关键词按姓名/卡点、分面按**卡点类型**），并补 `kind` 字段供分面用。
   const blockers = [];
   rows.forEach(r => {
-    if (r.overdue > 0) blockers.push({ personId: r.personId, name: r.name, title: `${r.overdue} 项待办超期`, role: r.person.role });
-    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.personId, name: r.name, title: `上报卡点：${r.openReport.title}`, role: r.person.role });
-    if (r.absent > 0) blockers.push({ personId: r.personId, name: r.name, title: `缺勤未补 ${r.absent} 次`, role: r.person.role });
-    if (r.inspPending > 0) blockers.push({ personId: r.personId, name: r.name, title: `考察待确认 ${r.inspPending} 条`, role: r.person.role });
+    if (r.overdue > 0) blockers.push({ personId: r.personId, name: r.name, title: `${r.overdue} 项待办超期`, kind: '超期待办', role: r.person.role });
+    if (r.openReport && r.openReport.reportCategory === 'blocked') blockers.push({ personId: r.personId, name: r.name, title: `上报卡点：${r.openReport.title}`, kind: '上报卡点', role: r.person.role });
+    if (r.absent > 0) blockers.push({ personId: r.personId, name: r.name, title: `缺勤未补 ${r.absent} 次`, kind: '缺勤未补', role: r.person.role });
+    if (r.inspPending > 0) blockers.push({ personId: r.personId, name: r.name, title: `考察待确认 ${r.inspPending} 条`, kind: '考察待确认', role: r.person.role });
   });
 
-  const blockerHtml = blockers.length === 0
-    ? `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
-         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 本组无卡点，全部正常
-       </div>`
-    : blockers.map(b => `
+  // 引擎行渲染器（批次 47-H）：卡点一条。行内「了解进展」由容器委托（见 _bindMembersEvents），
+  // 故引擎翻页/筛选重绘行后按钮依旧有监听。
+  const blockerRowHtml = (b) => `
         <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
@@ -111,7 +112,7 @@ export async function renderContent(ctx) {
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
             style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);color:color-mix(in srgb, var(--app-accent,#B91C1C) 60%, #000);"
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
-        </div>`).join('');
+        </div>`;
 
   // 逐人进度行（统一检索引擎行模板：关键词 + 分面；行内无按钮）
   const progressRowHtml = (r) => `
@@ -149,7 +150,7 @@ export async function renderContent(ctx) {
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
           <span class="text-xs text-gray-500">本组超期/上报/缺勤 · ${blockers.length} 项</span>
         </div>
-        <div class="space-y-1.5">${blockerHtml}</div>
+        <div id="leader-blockers-list"></div>
       </div>
       <div class="card rounded-lg p-4">
         <div class="flex items-center justify-between mb-3">
@@ -174,19 +175,43 @@ export async function renderContent(ctx) {
     rowHtml: progressRowHtml,
   });
 
+  // 卡点区接引擎（批次 47-H）：空态保留原有绿色「全部正常」块；有卡点则走引擎（行数达门槛出检索条+分页）
+  const blockersHost = container.querySelector('#leader-blockers-list');
+  if (blockersHost) {
+    if (blockers.length === 0) {
+      blockersHost.innerHTML = `<div class="flex items-center gap-2 py-2 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
+         <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 本组无卡点，全部正常
+       </div>`;
+    } else {
+      renderFilteredList(blockersHost, {
+        stateKey: 'leader-members-blockers',
+        rows: blockers,
+        keyword: { keys: ['name', 'title'], placeholder: '搜索姓名 / 卡点…' },
+        facets: [{ key: 'kind', label: '卡点类型' }],
+        countUnit: '项',
+        listClass: 'space-y-1.5',
+        emptyMessage: '无匹配卡点',
+        rowHtml: blockerRowHtml,
+      });
+    }
+  }
+
   _bindMembersEvents(container);
 }
 
 function _bindMembersEvents(container) {
-  container.querySelectorAll('.leader-ask-report').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const personId = btn.dataset.personId;
-      const role = btn.dataset.role || 'participant';
-      const note = btn.dataset.note || '';
-      IssueStore.requestReport(personId, role, note);
-      showToast('success', `已请${getPersonName(personId)}同步进展`);
-      renderContent(_ctx);
-    });
+  // 批次 47-H：卡点区接入引擎后行会重绘（翻页/筛选）→ 「了解进展」必须改**容器委托**；
+  // 旧实现按渲染时 querySelectorAll 一次性绑定，重绘后新按钮无监听、点击全失效
+  // （与 archive-tab.js 里已记录的同名病灶同类）。
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.leader-ask-report');
+    if (!btn) return;
+    const personId = btn.dataset.personId;
+    const role = btn.dataset.role || 'participant';
+    const note = btn.dataset.note || '';
+    IssueStore.requestReport(personId, role, note);
+    showToast('success', `已请${getPersonName(personId)}同步进展`);
+    renderContent(_ctx);
   });
   // 组员汇报行内正式答复（支书 2026-08-10 裁定：组长可答复本组组员，块块闭环）
   bindReportInbox(container, { role: 'leader', onAnswered: () => renderContent(_ctx) });

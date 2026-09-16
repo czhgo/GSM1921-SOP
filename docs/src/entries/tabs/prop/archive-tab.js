@@ -2,24 +2,24 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260915f';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260915f';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260915f';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260915f';
-import { mockDB } from '../../../core/domain.js?v=20260915f';
-import { bumpToken } from '../../../core/version-token.js?v=20260915f'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260915f';
-import { isApiMode } from '../../../services/runtime.js?v=20260915f';
-import { AuthStore } from '../../../services/auth.js?v=20260915f';
-import { getPersonName } from '../../../services/person.js?v=20260915f';
-import { generateId } from '../../../core/id.js?v=20260915f';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260915f';
+import { icon } from '../../../core/icons.js?v=20260915g';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260915g';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260915g';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260915g';
+import { mockDB } from '../../../core/domain.js?v=20260915g';
+import { bumpToken } from '../../../core/version-token.js?v=20260915g'; // P0 域缓存失效（spec §二.3）
+import { loadActivities } from '../../../services/activity.js?v=20260915g';
+import { isApiMode } from '../../../services/runtime.js?v=20260915g';
+import { AuthStore } from '../../../services/auth.js?v=20260915g';
+import { getPersonName } from '../../../services/person.js?v=20260915g';
+import { generateId } from '../../../core/id.js?v=20260915g';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260915g';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260915f';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260915g';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260915f';
+import { BranchService } from '../../../services/runtime.js?v=20260915g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260915f';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260915g';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -120,6 +120,21 @@ export function renderContent(ctx) {
   // 旧实现按渲染时一次性 querySelectorAll 绑定，筛选/搜索重写 #archive-list 后新按钮无监听 → 点击全失效。
 
   // B4：待归档活动区「归档」按钮（容器委托；活动软归档写口）
+  // 待归档活动：接统一检索引擎（批次 47-H / Q-23-40）——行数达门槛即出检索条并分页；
+  // 空数据时 _renderEndedUnarchivedSection 返回 ''，故须判宿主存在再挂。
+  const endedHost = container.querySelector('#archive-ended-list');
+  if (endedHost) {
+    renderFilteredList(endedHost, {
+      stateKey: 'archive-ended-unarchived',
+      rows: endedUnarchived,
+      keyword: { keys: ['title', 'type', 'date'], placeholder: '搜索活动名称 / 类型…' },
+      facets: [{ key: 'type', label: '类型', format: (v) => v || '未标类型' }],
+      countUnit: '个',
+      listClass: 'space-y-2',
+      emptyMessage: '无待归档活动',
+      rowHtml: _endedUnarchivedCardHtml,
+    });
+  }
   container.querySelector('#archive-ended-list')?.addEventListener('click', async (e) => {
     const btn = e.target.closest('.archive-activity-btn');
     if (!btn) return;
@@ -211,7 +226,23 @@ function _renderArchiveFallbackBanner() {
  *  与支书台活动管理同源）。归档后活动进入上方「待归档（材料未提交）」区，形成闭环。 */
 function _renderEndedUnarchivedSection(activities) {
   if (!activities || activities.length === 0) return '';
-  const items = activities.map(a => `
+  // 批次 47-H（支书 2026-09-15 裁定「Q-23-40 现在就接分页」）：本区原为纯 `.map()` 卡片列表——22 条时既不分页
+  // 也搜不得，真机 P11 命中。现**接统一检索引擎**（行由 `_endedUnarchivedCardHtml` 渲染）；
+  // 「归档」按钮仍是事件委托（挂在 #archive-ended-list 上），引擎翻页重绘不影响。
+  return `
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-1.5">
+        <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-2">与「工作概况 · 待归档活动」同判据（活动已结束但未归档）——可直接归档；归档后请在上方「待归档」区补充宣传材料。</p>
+      <div id="archive-ended-list"></div>
+    </div>`;
+}
+
+/** 引擎行渲染器（批次 47-H）：待归档活动一卡 */
+function _endedUnarchivedCardHtml(a) {
+  return `
       <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
         <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
@@ -222,16 +253,7 @@ function _renderEndedUnarchivedSection(activities) {
           <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
         </a>
         <button type="button" class="archive-activity-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors flex-shrink-0" data-activity-id="${escHtml(a.id)}" style="cursor:pointer;">归档</button>
-      </div>`).join('');
-  return `
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-1.5">
-        <h4 class="text-sm font-bold text-gray-700">待归档活动</h4>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">${activities.length} 个活动已结束未归档</span>
-      </div>
-      <p class="text-xs text-gray-500 mb-2">与「工作概况 · 待归档活动」同判据（活动已结束但未归档）——可直接归档；归档后请在上方「待归档」区补充宣传材料。</p>
-      <div class="space-y-2" id="archive-ended-list">${items}</div>
-    </div>`;
+      </div>`;
 }
 
 /** 待归档区（A② 2026-09-10）：归档缺口活动（已归档但宣传材料未提交），带 data-archive-id 锚点。

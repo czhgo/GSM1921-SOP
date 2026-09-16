@@ -9,6 +9,7 @@ import { createReportRouter } from './routes/report.js';
 import { createMemberRouter } from './routes/member.js';
 import { createCommitteeRouter } from './routes/committee.js';
 import { createSystemNoticesRouter } from './routes/system-notices.js';
+import { createLeaderProgressRouter } from './routes/leader-progress.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DOCS_DIR = path.resolve(__dirname, '../docs');
@@ -32,6 +33,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 系统派生通知（R-22，2026-09-13）：POST /api/v1/system-notices —— 生成权在服务端，
   // 按 kind 注册表复算授权并生成文案，不再依赖客户端自述的 systemDerived 标记。
   app.use('/api/v1', createSystemNoticesRouter(app.locals.db));
+
+  // 组长台「组员进展」服务端汇总（2026-09-15 批次 47-I，Q-23-41 ②）：支书裁定把「逐人归集」改为
+  // 服务端汇总。聚合口径单一源 = docs/src/services/member-progress.js（前端 mock 态同一函数）。
+  app.use('/api/v1', createLeaderProgressRouter(app.locals.db));
 
   // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 支书确认更新阶段）
   app.use('/api/v1', createMemberRouter(app.locals.db));

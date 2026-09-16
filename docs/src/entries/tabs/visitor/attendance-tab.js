@@ -4,16 +4,16 @@
 // 支书裁定（卡片去留/合并批）：出勤行补入口——「查看个人明细」+「去补课/提交补课说明」。
 //   补课入口仅在存在本人待补课任务时出现（制度无「请假」入口，故不设）。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260915f';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260915f';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915f';
-import { AuthStore } from '../../../services/auth.js?v=20260915f';
-import { openFormModal } from '../../../components/modal.js?v=20260915f';
-import { showToast } from '../../../core/utils.js?v=20260915f';
+import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260915g';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260915g';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260915g';
+import { AuthStore } from '../../../services/auth.js?v=20260915g';
+import { openFormModal } from '../../../components/modal.js?v=20260915g';
+import { showToast } from '../../../core/utils.js?v=20260915g';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/constants.js?v=20260915f';
+import { isActivityArchived } from '../../../core/constants.js?v=20260915g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260915f';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260915g';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

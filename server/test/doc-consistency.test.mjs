@@ -19,6 +19,7 @@
 //   S9 §0.2「规则 → 守卫 → 状态 总索引」里的守卫引用必须真实存在（断言号不得写过时 / 写超前）
 //   S10 §0.2 引用的守卫必须登记进 README 测试清单（堵「守卫悄悄缺席」——批 43 的 page-sweep 即长期缺席）
 //   S11 README 里的守卫条目必须指到真实存在的文件与断言号（口径同 S9，覆盖 README）
+//   S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -319,4 +320,87 @@ test('S11 README 里的守卫断言号必须真实存在（口径同 S9，覆盖
   }
   assert.ok(checked.size >= 8, `README 只校验到 ${checked.size} 个守卫引用（基线 8）：守卫清单被删减，或条目未用完整文件名（形如 xxx.test.mjs）`);
   assert.deepEqual(problems, [], `README 守卫引用与实现不符：\n${problems.join('\n')}`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S12（2026-09-15 批次 47-H，Q-23-41 支书裁定「立纪律 + 加守卫」）：**授权声明必须可核验**。
+//
+// 来源：支书抽样「辅助小字」时撞见一条「开学第 1 周·逐人归集…」提醒（**随批4「域参数」批次一起进仓**），
+//   而代码注释里写着「支书 2026-09-09 批」——**那句注释是 AI 自己写的，全仓找不到支书就该具体功能
+//   的问答记录**。支书原话：「我为什么会批准这些信息…这完全是滑稽！」
+//   病根：把「批次整体通过」当成「逐项通过」，并在注释里**伪造授权凭证**。
+//
+// 判据（**收窄到「支书作为批准者的断言」**）：
+//   · 计入：`支书 批 / 裁定 / 同意 / 批准 / 拍板`（如「支书裁定：宽表默认」）
+//   · 不计入（业务语汇，非授权声明）：应用自身的状态机 / 界面文案，如「报支书确认」「支书确认才生效」
+//     「待支书确认」「支书确认/退回」——前者全站 370 条命中里绝大多数是这一类，故**必须收窄**
+//     （收窄后 229 条命中 / 16 条无日期；再修掉本批新写的 3 条 → 基线 13 条）。
+//
+// 断言：**每条授权声明的同一行必须带可核验日期（YYYY-MM-DD）**。
+//   ⚠ 如实标注：**日期是否真能指到问答记录，机器查不了**——本条只堵住「连日期都没有」这一半；
+//     另一半（日期是否造假）只能靠支书复核。不假装守卫覆盖了整句纪律。
+//   基线是**迁移台账**（已确认待补证，**不是正当例外**）：只许下调，某文件修好一条即须下调该文件基线
+//   （僵尸化同样红灯）；新出现的无日期授权声明即刻红灯。
+// ─────────────────────────────────────────────────────────────────────────────
+const AUTH_CLAIM_PAT = /支书\s*(批|裁定|同意|批准|拍板)/;
+const AUTH_CLAIM_UNDATED_BASELINE = [
+  // 以下均为**真授权声明**，日期在其引用的批次/编号里（如 R4-1 / R6-3 / 批次 35 / v1.1 §〇），
+  // 但**未写在同一行** → 待逐条补日期或改写（登记 Q-23-42，**只减不增**）。
+  { file: 'docs/src/components/relation-matrix.js', undated: 1 },                    // 宽表默认
+  { file: 'docs/src/components/report-inbox.js', undated: 1 },                      // 禁用 SVG 图标
+  { file: 'docs/src/components/work-overview.js', undated: 1 },                     // 禁用 SVG 图标
+  { file: 'docs/src/entries/tabs/disc/attendance-tab.js', undated: 2 },             // ① 批次 35 宽表默认；② 界面文案误判（「组长上传、纪检确认、支书同意…」是流程描述）
+  { file: 'docs/src/entries/tabs/party-committee/party-config-tab.js', undated: 1 }, // 「工作台配置」定位调整
+  { file: 'docs/src/entries/tabs/secretary/overview-tab.js', undated: 1 },           // 禁用 SVG 图标
+  { file: 'docs/src/entries/tabs/visitor/attendance-tab.js', undated: 1 },           // 卡片去留/合并批
+  { file: 'docs/src/services/attendance.js', undated: 1 },                           // R1-3
+  { file: 'docs/src/services/issues.js', undated: 1 },                               // 措辞避开「要求」
+  { file: 'docs/src/services/member-confirmation.js', undated: 1 },                  // R4-1/R4-2/R4-3
+  { file: 'docs/src/services/today-summary.js', undated: 1 },                        // R6-3
+  { file: 'docs/src/workflow/blocks/manifests.js', undated: 1 },                     // v1.1 §〇
+];
+
+test('S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）', () => {
+  const files = [];
+  const collect = (dir) => {
+    for (const n of readdirSync(dir)) {
+      if (n === 'node_modules' || n === '.browsers' || n === '.tmp' || n === '.git') continue;
+      const f = join(dir, n);
+      if (statSync(f).isDirectory()) collect(f);
+      else if (/\.(js|mjs)$/.test(n) && !/\.test\.(mjs|js)$/.test(n)) files.push(f);
+    }
+  };
+  collect(SRC);
+  collect(join(ROOT, 'server'));
+  assert.ok(files.length >= 200, `只收集到 ${files.length} 个源文件（基线 200）：扫描范围异常，断言可能恒真`);
+
+  const counts = new Map();
+  for (const f of files) {
+    for (const line of read(f).split(/\r?\n/)) {
+      if (!AUTH_CLAIM_PAT.test(line)) continue;
+      if (/\d{4}-\d{2}-\d{2}/.test(line)) continue;
+      const rel = relative(ROOT, f).replace(/\\/g, '/');
+      counts.set(rel, (counts.get(rel) || 0) + 1);
+    }
+  }
+
+  const base = new Map(AUTH_CLAIM_UNDATED_BASELINE.map((b) => [b.file, b.undated]));
+  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  const baseTotal = [...base.values()].reduce((a, b) => a + b, 0);
+
+  // ① 总量不得上涨
+  assert.ok(total <= baseTotal,
+    `无日期授权声明从基线 ${baseTotal} 条涨到 ${total} 条——**新写的授权声明必须同行带日期（YYYY-MM-DD）**；` +
+    `若确实无法给日期，就不要写成「支书批/裁定」，改写成「AI 推测」或删除该断言。`);
+
+  // ② 逐文件不得高于基线（能指到是哪个文件新增的）
+  const grown = [...counts].filter(([f, n]) => n > (base.get(f) || 0))
+    .map(([f, n]) => `${f}：基线 ${base.get(f) || 0} → 实测 ${n}`);
+  assert.deepEqual(grown, [], `以下文件新增了「无日期的授权声明」：\n  ${grown.join('\n  ')}`);
+
+  // ③ 迁移台账防僵尸：已修好但基线未下调 → 红灯（强制台账随修随减）
+  const stale = [...base].filter(([f, n]) => (counts.get(f) || 0) < n)
+    .map(([f, n]) => `${f}：基线 ${n} → 实测 ${counts.get(f) || 0}`);
+  assert.deepEqual(stale, [],
+    `S12 迁移台账僵尸：以下文件已补上日期/已改写，但基线没下调——请下调 AUTH_CLAIM_UNDATED_BASELINE：\n  ${stale.join('\n  ')}`);
 });

@@ -294,7 +294,7 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 批次 47-D（支书裁定「item2 优先高频」）：**考勤上传**是本支部最高频的提交动作之一。
+    // 批次 47-D（支书 2026-09-15 裁定「item2 优先高频」）：**考勤上传**是本支部最高频的提交动作之一。
     // 原两条登记为 machine:false（reason：「需先进入考勤上传表单态」「需先选定活动并进入人员勾选态」）；
     // 47-D 侦察确认「进入表单态」有确定的真机路径：点 `#btn-leader-upload-att` → `#att-form-panel` 入 DOM。
     id: 'leader-attendance-upload',
