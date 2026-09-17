@@ -341,24 +341,20 @@ test('S11 README 里的守卫断言号必须真实存在（口径同 S9，覆盖
 //     另一半（日期是否造假）只能靠支书复核。不假装守卫覆盖了整句纪律。
 //   基线是**迁移台账**（已确认待补证，**不是正当例外**）：只许下调，某文件修好一条即须下调该文件基线
 //   （僵尸化同样红灯）；新出现的无日期授权声明即刻红灯。
+//
+// ✅ **迁移台账已清空（2026-09-16 批次 47-J，Q-23-42 闭环）**：原 13 条（12 文件）**逐条回查到真实日期并写进同一行**——
+//   回查源＝`.ctx/REVIEW_QUEUE.md` 的批次台账与 Q-xx 裁定记录、`.ctx/logs/2026-08|09-EXECUTION_LOG.md` 的批次条目号，
+//   另有同文件内已带日期的同源注释与 `content/` 契约文档（如 `WORKFLOW_BLOCK_CONTRACT.md §〇`）双向印证。
+//   落库日期：宽表默认 2026-09-14（批次 35）· S1/R1-3 2026-09-06（附录⑩ A 批）· S4/R4-x 2026-09-06（C 批）·
+//   S6/R6-3 2026-09-06 · 禁用 SVG 图标 2026-08-10（T-203/204/205）· issues 措辞 2026-08-10（T-204）·
+//   工作台配置定位 2026-09-03（T-026③）· v1.1 §〇 块差异化 2026-09-03 · 卡片去留/合并批 2026-09-10（追加批次②）。
+//   **台账现为空数组＝零容忍**：此后任何一条无日期授权声明都会直接红灯。
+//   ⚠ 回查中另发现两处**与本次无关的历史瑕疵**，据实登记不擅改（见 REVIEW_QUEUE Q-23-42 注）：
+//     ① `work-overview.js` 注释里的「P-011 知情边界」编号有误（知情边界实为 P-015／原则 9；P-011 已于 2026-08-09 并入 P-010 弃用）；
+//     ② 本守卫原批注把 `disc/attendance-tab.js` 第 2 条判为「界面文案误判」，实测该行后半「应到计算规则」是**真授权**（R1-3）。
 // ─────────────────────────────────────────────────────────────────────────────
 const AUTH_CLAIM_PAT = /支书\s*(批|裁定|同意|批准|拍板)/;
-const AUTH_CLAIM_UNDATED_BASELINE = [
-  // 以下均为**真授权声明**，日期在其引用的批次/编号里（如 R4-1 / R6-3 / 批次 35 / v1.1 §〇），
-  // 但**未写在同一行** → 待逐条补日期或改写（登记 Q-23-42，**只减不增**）。
-  { file: 'docs/src/components/relation-matrix.js', undated: 1 },                    // 宽表默认
-  { file: 'docs/src/components/report-inbox.js', undated: 1 },                      // 禁用 SVG 图标
-  { file: 'docs/src/components/work-overview.js', undated: 1 },                     // 禁用 SVG 图标
-  { file: 'docs/src/entries/tabs/disc/attendance-tab.js', undated: 2 },             // ① 批次 35 宽表默认；② 界面文案误判（「组长上传、纪检确认、支书同意…」是流程描述）
-  { file: 'docs/src/entries/tabs/party-committee/party-config-tab.js', undated: 1 }, // 「工作台配置」定位调整
-  { file: 'docs/src/entries/tabs/secretary/overview-tab.js', undated: 1 },           // 禁用 SVG 图标
-  { file: 'docs/src/entries/tabs/visitor/attendance-tab.js', undated: 1 },           // 卡片去留/合并批
-  { file: 'docs/src/services/attendance.js', undated: 1 },                           // R1-3
-  { file: 'docs/src/services/issues.js', undated: 1 },                               // 措辞避开「要求」
-  { file: 'docs/src/services/member-confirmation.js', undated: 1 },                  // R4-1/R4-2/R4-3
-  { file: 'docs/src/services/today-summary.js', undated: 1 },                        // R6-3
-  { file: 'docs/src/workflow/blocks/manifests.js', undated: 1 },                     // v1.1 §〇
-];
+const AUTH_CLAIM_UNDATED_BASELINE = [];
 
 test('S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）', () => {
   const files = [];

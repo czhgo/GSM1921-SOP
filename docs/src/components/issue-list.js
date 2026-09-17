@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../services/issues.js?v=20260916a';
-import { AuthStore } from '../services/auth.js?v=20260916a';
-import { icon } from '../core/icons.js?v=20260916a';
-import { getPersonName } from '../services/person.js?v=20260916a';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260916a';
-import { badgeHtml } from './badges.js?v=20260916a';
+import { IssueStore } from '../services/issues.js?v=20260917b';
+import { AuthStore } from '../services/auth.js?v=20260917b';
+import { icon } from '../core/icons.js?v=20260917b';
+import { getPersonName } from '../services/person.js?v=20260917b';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260917b';
+import { badgeHtml } from './badges.js?v=20260917b';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from './pager.js?v=20260916a';
+import { pagerHtml } from './pager.js?v=20260917b';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -63,8 +63,12 @@ export function renderIssueList() {
   const container = document.getElementById('issue-list-container');
   if (!container) return;
 
-  const filtered = IssueStore.filter(_filterState);
-  const counts = IssueStore.countByStatus();
+  // 批次 47-Q（2026-09-16，支书裁定「加过滤 + 种进同源」）：**本页是公开匿名反馈页，只显示匿名反馈**。
+  // 理由：`issues` 域混装两类——公开匿名反馈（无 `kind`）与**内部汇报**（`kind:'report'`，带真人归属
+  // 与内部事项）。本页无需登录即可访问 ⇒ 必须显式传 `kind:'feedback'` 把内部汇报挡在公开面之外。
+  // ⚠ 两处（列表与统计）**必须同一个 kind**，否则「筛选后的条数」与「开放中/已关闭徽标」会各算一套。
+  const filtered = IssueStore.filter({ ..._filterState, kind: 'feedback' });
+  const counts = IssueStore.countByStatus({ kind: 'feedback' });
   const canCreate = true; // 全支部成员可创建
 
   // 分页切片（筛选变化后页码自动收敛）

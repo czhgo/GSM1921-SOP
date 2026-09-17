@@ -3,27 +3,27 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260916a';
-import { BranchService } from '../../../services/runtime.js?v=20260916a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260916a';
+import { setState, getAppState } from '../../../core/state.js?v=20260917b';
+import { BranchService } from '../../../services/runtime.js?v=20260917b';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260917b';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260916a';
-import { AuthStore } from '../../../services/auth.js?v=20260916a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260916a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260916a';
-import { persist } from '../../../core/data-adapter.js?v=20260916a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260916a';
-import { recordFormShell } from '../../../components/forms.js?v=20260916a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260916a';
-import { badgeHtml } from '../../../components/badges.js?v=20260916a';
+import { groupOptions } from '../../../services/party-group.js?v=20260917b';
+import { AuthStore } from '../../../services/auth.js?v=20260917b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260917b';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260917b';
+import { persist } from '../../../core/data-adapter.js?v=20260917b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260917b';
+import { recordFormShell } from '../../../components/forms.js?v=20260917b';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260917b';
+import { badgeHtml } from '../../../components/badges.js?v=20260917b';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260916a';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260916a';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260916a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260916a';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260916a';
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260917b';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260917b';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260917b';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260917b';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260917b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260916a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260917b';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -873,6 +873,28 @@ function _dtBindPanelArea(container, ctx, refresh) {
     const l2Label = DECISION_TREE.L2[L1]?.find(o => o.value === L2)?.label || L2;
     const scenarioId = dt.getScenarioId();
 
+    // 「提交中」反馈（2026-09-16 批次 47-S，支书裁定「现在就加」）。
+    // 依据（真机实测，非推测）：本链 `writeActivityWithSOP` 会**串行创建 16 个 SOP 任务**，
+    //   每个写口固定 600ms 延迟 ⇒ 从点提交到弹「创建成功」**约 10 秒**，而此前中途**毫无反馈**
+    //   （按钮看起来像坏的，用户会重复点 ⇒ 重复建活动）。故在**校验通过之后、进入写链之前**
+    //   就地给出进行态反馈：禁用按钮 + 改文案，写链结束（成功/失败）一律在 finally 复原。
+    // ⚠ 放在校验之后：校验失败是**即时返回**，若提前禁用会让按钮在校验错误后一直灰着。
+    // ⚠ 用「按钮态」而不是再弹一条 info toast：toast 会**先占住提示容器**，使成功路径守卫的
+    //   「有提示＝非静默失败」这一判据失去区分度（容器非空但未必是成功提示）——守卫强度不为此让步。
+    const submitBtn = wrap.querySelector('#dt-submit');
+    const _btnLabel = submitBtn ? submitBtn.textContent : '';
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.cursor = 'wait';
+      submitBtn.textContent = '写入中…（正在生成后续待办）';
+    }
+    const _restoreBtn = () => {
+      if (!submitBtn || !submitBtn.isConnected) return; // 成功后整区重渲染，旧节点已摘除，无需复原
+      submitBtn.disabled = false;
+      submitBtn.style.cursor = 'pointer';
+      submitBtn.textContent = _btnLabel;
+    };
+
     try {
       const currentLeaderId = getCurrentLeaderId();
       const activityData = {
@@ -937,6 +959,9 @@ function _dtBindPanelArea(container, ctx, refresh) {
     } catch (err) {
       console.error('[ws-leader] 创建活动失败：', err);
       showToast('error', `创建失败：${err.message}`);
+    } finally {
+      // 进行态必须**无例外复原**：失败后按钮若一直灰着，等于把「可重试」变成「不能试」。
+      _restoreBtn();
     }
   });
 }

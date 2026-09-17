@@ -5,16 +5,16 @@
 //  复用方：① 支书待办 tab 顶部 ② 组长工作概况 tab 汇报区 ③ 各角色工作概况 tab
 //  交互：行点击展开对话时间线 → 行内输入 → 正式答复（kind='reply'）发回汇报人
 //  可见性：展示谁的可答复汇报由调用方决定（支书=全部 open 汇报；组长=本组组员汇报）
-//  本组件禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
+//  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260916a';
-import { AuthStore } from '../services/auth.js?v=20260916a';
-import { showToast, escHtml } from '../core/utils.js?v=20260916a';
-import { getPersonName } from '../services/person.js?v=20260916a';
-import { solidAccentStyle } from '../core/constants.js?v=20260916a';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260917b';
+import { AuthStore } from '../services/auth.js?v=20260917b';
+import { showToast, escHtml } from '../core/utils.js?v=20260917b';
+import { getPersonName } from '../services/person.js?v=20260917b';
+import { solidAccentStyle } from '../core/constants.js?v=20260917b';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from './list-filter.js?v=20260916a';
+import { renderFilteredList } from './list-filter.js?v=20260917b';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），

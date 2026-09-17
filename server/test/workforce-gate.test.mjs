@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260916a';
-import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260916a';
+import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260917b';
+import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260917b';
 
 const ROSTER = ['p1', 'p2', 'p3', 'p4', 'p5']; // 应到支委 5 人（演示）
 const v = (posArr) => posArr.map((position, i) => ({ personId: ROSTER[i], position }));

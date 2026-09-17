@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260916a';
-import { NoticeStore } from '../../../services/notice.js?v=20260916a';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260916a';
-import { AuthStore } from '../../../services/auth.js?v=20260916a';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260916a';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260916a';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260917b';
+import { NoticeStore } from '../../../services/notice.js?v=20260917b';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260917b';
+import { AuthStore } from '../../../services/auth.js?v=20260917b';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260917b';
+import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260917b';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/roster.js?v=20260916a';
-import { loadActivities } from '../../../services/activity.js?v=20260916a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260916a';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260916a';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260916a';
+import { getRosterStats } from '../../../services/roster.js?v=20260917b';
+import { loadActivities } from '../../../services/activity.js?v=20260917b';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260917b';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260917b';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260917b';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260916a';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260916a';
-import { getPersonName } from '../../../services/person.js?v=20260916a';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260917b';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260917b';
+import { getPersonName } from '../../../services/person.js?v=20260917b';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -88,7 +88,7 @@ function renderOverviewContent() {
  *  ② 卡点区（次上）：各角色超期/缺口告警，行内"了解进展"（温和请求，措辞不用"要求"）
  *  ③ 进度区（最下）：角色×状态紧凑聚合表（一行一人，数据驱动，非卡片平铺）
  *  监管不插手：支书只答复/了解进展，无任何编辑他人待办入口（看 ≠ 做）
- *  本页禁用 SVG 图标（支书裁定），类别用色点+文字标签区分
+ *  本页禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
  */
 async function renderPersonView(container) {
   await IssueStore.loadAll();

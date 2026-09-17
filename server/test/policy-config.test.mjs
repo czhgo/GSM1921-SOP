@@ -8,27 +8,40 @@
 //   ⑤ 组长学期提醒纯判定（leaderSemesterReportTermKey / isLeaderSemesterRemindWindow）
 //   ⑥ 窗口文案单一源 semesterDetainedWindowsLabel（与政策窗一致）
 //   ⑦ HTTP 域：PATCH /branches/:id/config 支持 policyOverrides（支书全量 / 域负责人本域 / 普通成员 403）
+//
+// 2026-09-15 批次 47-F 第二组：**纳入同域另一半**（原 `policy-defaults-sync.test.mjs`，5 条 → 下方 **T1–T5**）。
+//   同域＝「制度默认值」：本文件原覆盖**支部覆盖**（overrides 的净化/守卫/落库/HTTP），并入部分覆盖
+//   **出厂默认 ↔ 消费点同源**（policy-defaults.js 与 attendance/workforce/inspection 导出面一致）。
+//   ⚠ **顺序敏感（合并时必须置于最前）**：T1–T5 断言的是**出厂默认值**（如 `inspection.overdueDays === 7`），
+//   而 ③ 会注入 `overdueDays: 12` 再复位——若把 T1–T5 排在 ③ 之后，会读到被前序用例改过的单例状态。
+//   故它们**固定在最前**（`node --test` 按文件内声明序执行）。
+//   **未并入**（同前缀但形态/域不同，按 47-F 纪律不合）：`preferences.test.mjs`（**真机** chromium，与本文件
+//   纯 node 形态冲突）、`theme-pref.test.mjs`（偏好域，非制度域）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260916a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260916a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260916a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260917b';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260917b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260917b';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260916a';
+} from '../../docs/src/core/policy-defaults.js?v=20260917b';
+// 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260917b';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260917b';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260917b';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260916a';
+} from '../../docs/src/core/config-clean.js?v=20260917b';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260916a';
+} from '../../docs/src/services/branch.js?v=20260917b';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260916a';
+} from '../../docs/src/services/member-confirmation.js?v=20260917b';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260916a';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260917b';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -67,6 +80,39 @@ function beginMockCase() {
 
 const BR = () => getBranchById('br-b1');
 const po = (b = BR()) => (b && b.config && b.config.policyOverrides) || null;
+
+// ── T1–T5（原 policy-defaults-sync，批次 47-F 并入）：出厂默认 ↔ 消费点同源 ──────
+// ⚠ 固定在**最前**：这些断言读的是出厂默认值，而 ③/④ 会注入并复位单例（详见文件头顺序说明）。
+test('T1 policy 单一源：考察超期默认天数 = 7（branch-default 可覆盖）', () => {
+  assert.equal(POLICY_DEFAULTS.inspection.overdueDays, 7);
+});
+
+test('T2 attendance 消费点：MEETING_ATTENDANCE_TYPES 深等于 policy attendance.meetingTypes（导出去重冻结导出面）', () => {
+  assert.deepEqual(MEETING_ATTENDANCE_TYPES, POLICY_DEFAULTS.attendance.meetingTypes);
+  // 派生拷贝而非同一引用：消费点数组被改不穿透 policy 单一源
+  assert.notEqual(MEETING_ATTENDANCE_TYPES, POLICY_DEFAULTS.attendance.meetingTypes);
+});
+
+test('T3 attendance 消费点：支书/副支书例外角色数组与 policy attendance.uploaderExceptions.secretaryDeputy 一致', () => {
+  assert.deepEqual(
+    POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy,
+    ['secretary', 'deputy-secretary'],
+  );
+});
+
+test('T4 workforce 消费点：WORKFORCE_VOTE_DEFAULT 与 policy voteThreshold 一致（quorum/vetoOnObject）', () => {
+  assert.deepEqual(WORKFORCE_VOTE_DEFAULT, POLICY_DEFAULTS.workforce.voteThreshold);
+  assert.equal(WORKFORCE_VOTE_DEFAULT.quorum, 2 / 3);
+  assert.equal(WORKFORCE_VOTE_DEFAULT.vetoOnObject, true);
+});
+
+test('T5 inspection 消费点：getOverdueRecords 缺省调用可运行（默认参数引用 policy 单一源）且与显式 7 天口径一致', () => {
+  assert.equal(typeof getOverdueRecords, 'function');
+  // 缺省参数求值路径 = POLICY_DEFAULTS.inspection.overdueDays（若引用断裂会在此抛错）
+  assert.doesNotThrow(() => getOverdueRecords());
+  // 默认阈值与显式 7 天结果一致（默认行为零变化）
+  assert.deepEqual(getOverdueRecords(), getOverdueRecords(7));
+});
 
 // ── ① policy-defaults 批4 结构 ────────────────────────────────────────────
 test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/leader/attendance/review）', () => {

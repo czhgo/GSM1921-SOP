@@ -11,13 +11,13 @@
 //        （不清 sessionStorage 登录会话、不清服务器远端数据，保留边界）
 //      · demo 档（含 ?reset=1 别名）：清演示键后去参整页导航
 //      · preview 档：只清 preview 键、演示键保留，去参整页导航（保留其它 URL 参数）
-// 纯 Node + 内存桩，无浏览器/服务器依赖；mock-adapter 经 ?v= query 导入（与 empty-template/wizard-copy 同法）。
+// 纯 Node + 内存桩，无浏览器/服务器依赖；mock-adapter 经 ?v= query 导入（与 empty-template/wizard-config 同法）。
 // 运行：node --test test/reset-tier.test.mjs（server 目录）
 import { test, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 const { resolveResetTier, collectResetKeys, handleResetIfRequested } =
-  await import('../../docs/src/core/mock-adapter.js?v=20260916a');
+  await import('../../docs/src/core/mock-adapter.js?v=20260917b');
 
 // ── 内存桩 ─────────────────────────────────────────────────────
 function makeStorage(seed = {}) {

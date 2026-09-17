@@ -1,7 +1,7 @@
 // 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20260916a';
-import { AttendanceStatus } from '../core/domain.js?v=20260916a';
+import { PEOPLE } from './people.js?v=20260917b';
+import { AttendanceStatus } from '../core/domain.js?v=20260917b';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -75,6 +75,22 @@ export const ATTENDANCE_RECORDS = [
   { id: 'att41', personId: 'p6',  activityId: 'act-19', status: AttendanceStatus.PRESENT,  recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012350', developStage: '发展对象', partyGroup: '第一党小组' },
   { id: 'att42', personId: 'p7',  activityId: 'act-19', status: AttendanceStatus.ABSENT,   recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012351', developStage: '积极分子', partyGroup: '第三党小组' },
   { id: 'att43', personId: 'p8',  activityId: 'act-19', status: AttendanceStatus.LEAVE,    recordedBy: 'p10', recordedAt: '2026-07-19T18:00:00Z', overdue: false, studentId: '2400012352', developStage: '正式党员', partyGroup: '第二党小组' },
+
+  // ── act-31 (2026-09-10) 9月支部党员大会：线上异步表决 ──────────
+  // 批次 47-Y（2026-09-16，承 R-78 口径）：**9 月**缺勤一条——为成员台「考勤概况 · 去补课 → 补课说明」造可达前置。
+  // **为什么必须是 9 月**：该页只列**当月**活动（`entries/tabs/visitor/attendance-tab.js:24-25` 的 `thisMonth` 过滤），
+  //   而 9 月此前**只有 act-31 且它一条考勤记录都没有** ⇒ 补课入口在 9 月没有任何可挂的行
+  //   （原登记说「日期耦合」，其实还是**结构性不可达**：换任何月份都会撞上同一个问题）。
+  // **为什么 `recordedBy: 'p10'`（已确认）而不是 `null`（待确认）**：补课任务由「**纪检确认考勤**」时才
+  //   派生（`autoGenerateMakeupTask()`）——若这条记录还是待确认态，却已经存在补课任务，两者**自相矛盾**。
+  //   与 `att38`（p5 · 缺勤 · recordedBy p10）同形，故本条与 `mock/seed.js::SEED_MAKEUP_TASKS` 互为因果、自洽。
+  // ⚠⚠ **id 必须是 `att` + 纯数字**（本批首跑被 `reset-tier-init::C2` 当场抓住）：本仓的**种子识别口径**
+  //   是 `init-reset.js::INIT_SEED_ID_PATTERNS.attendances = /^att\d+$/`（`mock-adapter.js` 的 merge 同判据），
+  //   `?reset=init` 靠它把演示种子从库里剔除。本条初版 id 写成 `att-sep-1`（**不匹配**）⇒ 剔除漏掉它
+  //   ⇒ 空态不空（`attendances.length` 1 !== 0）。**「造种子」不只是造出内容，还要落在既有的种子 id 空间里。**
+  // ⚠ 取 `att900`（**隔离段**）：避开 8 月生成器的连续区间（现 `att44`–`att153`，随 `_AUGUST_EVENTS` 增长而增长），
+  //   留足余量以免将来撞号（真撞了 M1 的唯一性断言也会红，不会静默）。
+  { id: 'att900', personId: 'p5', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: 'p10', recordedAt: '2026-09-10T18:00:00Z', overdue: false },
 ];
 
 // ── 8 月考勤全覆盖（2026-08-05 支书裁决「补全 5 场全覆盖」；次日修订）────

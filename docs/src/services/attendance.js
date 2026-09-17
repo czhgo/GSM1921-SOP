@@ -3,15 +3,15 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260916a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260916a';
-import { persist } from '../core/data-adapter.js?v=20260916a';
-import { bumpToken } from '../core/version-token.js?v=20260916a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260916a';
-import { isInitStateActive } from './init-reset.js?v=20260916a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260916a';
-import { getRosterStats } from './roster.js?v=20260916a';
-import { loadActivities } from './activity.js?v=20260916a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260917b';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260917b';
+import { persist } from '../core/data-adapter.js?v=20260917b';
+import { bumpToken } from '../core/version-token.js?v=20260917b'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260917b';
+import { isInitStateActive } from './init-reset.js?v=20260917b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260917b';
+import { getRosterStats } from './roster.js?v=20260917b';
+import { loadActivities } from './activity.js?v=20260917b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -235,7 +235,7 @@ export function absenceReasonLabel(key) {
 }
 
 /**
- * 纪检应到清点（含滞留到场补录，R1-3 支书裁定）：
+ * 纪检应到清点（含滞留到场补录，R1-3 支书 2026-09-06 裁定）：
  * K = 会前预应到 = 口径统计 expected（在册党员 − 滞留剔除）；
  * L = 该活动滞留到场补录人数（落行标记 detainedMakeup=true 的记录数）；
  * 实际应到 = K + L（补录者计「到席」，档案按在场展示）。

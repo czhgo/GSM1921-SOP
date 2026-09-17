@@ -2,15 +2,26 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260916a';
-import { PersonStore } from './person.js?v=20260916a';
-import { bumpToken } from '../core/version-token.js?v=20260916a'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260916a';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260916a';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260916a';
-import { generateId, randomHex } from '../core/id.js?v=20260916a';
+import { AuthStore } from './auth.js?v=20260917b';
+import { PersonStore } from './person.js?v=20260917b';
+import { bumpToken } from '../core/version-token.js?v=20260917b'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260917b';
+import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260917b';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260917b';
+import { generateId, randomHex } from '../core/id.js?v=20260917b';
+// 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
+//   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
+//   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
+//     · 校验失败那几处（「请我汇报」行内 / 我发起汇报详情 / 待处置详情两处 / 我提交反馈详情）——
+//       **抛在 `return` 之前**，于是「点提交后既无提示、也没反应」，用户看到的是一个死按钮，
+//       而病灶（缺必填）连一句话都没说；
+//     · 成功那几处（汇报已发出 / 评论已添加 / 已确认收到 / 处置结果已提交 / 说明已提交）——
+//       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
+//   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
+//   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
+import { showToast } from '../core/utils.js?v=20260917b';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260916a';
+import { renderFilteredList } from '../components/list-filter.js?v=20260917b';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -219,12 +230,19 @@ export const IssueStore = {
   },
 
   /** 过滤（按 viewer 所属支部过滤后再按维度筛选） */
-  filter({ status, scope, type, milestone, keyword } = {}) {
+  filter({ status, scope, type, milestone, keyword, kind } = {}) {
     let list = _withinViewerBranch(_issuesCache || []);
     if (status && status !== 'all') list = list.filter(i => i.status === status);
     if (scope && scope !== 'all') list = list.filter(i => i.scope === scope);
     if (type && type !== 'all') list = list.filter(i => (i.types || []).includes(type));
     if (milestone && milestone !== 'all') list = list.filter(i => i.milestone === milestone);
+    // 批次 47-Q（2026-09-16，支书裁定「加过滤 + 种进同源」）：**按题种类过滤**。
+    // 本域混装两类东西，语义判别字段就是 `kind`：
+    //   · 公开匿名反馈（`docs/data/issues.json` 的 issue-001~004）——**无 `kind` 字段**（历史形态）；
+    //   · 内部汇报（`kind: 'report'`，由「一键汇报 / 了解进展」生成）——**带名**（submittedBy/assignee 指向真人）。
+    // 公开匿名反馈页**只应显示前者**（内部汇报含真人归属与内部事项），故该页查询一律传 `kind: 'feedback'`
+    // （`= 无 kind 或 kind!=='report'`）。**不传则不筛**——既有调用方行为一字不变（当前仅公开页在用）。
+    if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
     if (keyword) {
       const kw = keyword.toLowerCase();
       list = list.filter(i =>
@@ -235,9 +253,10 @@ export const IssueStore = {
     return list;
   },
 
-  /** 统计（按 viewer 所属支部过滤） */
-  countByStatus() {
-    const list = _withinViewerBranch(_issuesCache || []);
+  /** 统计（按 viewer 所属支部过滤；`kind` 语义同 filter） */
+  countByStatus({ kind } = {}) {
+    let list = _withinViewerBranch(_issuesCache || []);
+    if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
     return {
       total: list.length,
       open: list.filter(i => i.status === 'open').length,
@@ -887,7 +906,7 @@ export const IssueStore = {
 //  与意见反馈（kind 缺省/'feedback'）同源同库，UI 以 kind 分流。
 //  分类（支书 2026-08-10 裁定）：进度 / 卡点 / 请示
 //  "了解进展"请求：支书主动请人汇报（requestedBy/requestedAt/requestedNote），
-//  界面措辞刻意避开"要求"二字（支书裁定），以温和请求语义呈现。
+//  界面措辞刻意避开"要求"二字（支书 2026-08-10 裁定），以温和请求语义呈现。
 // ════════════════════════════════════════════════════════════════
 
 export const REPORT_CATEGORIES = {

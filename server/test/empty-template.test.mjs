@@ -9,16 +9,16 @@
 //   ④ 引用审计分层：空模板/新建空支部不含业务域键与演示成员 id（p1…）、席位空缺
 //   ⑤ server POST /branches（org-config 同款 HTTP 风格）双形态与前端本地构造一致
 //      （party-staff 可建；secretary 403；name 空/超长 400）
-// 纯 Node + localStorage 桩（前端模块经 ?v= query 导入，与 wizard-copy.test.mjs 同法）。
+// 纯 Node + localStorage 桩（前端模块经 ?v= query 导入，与 wizard-config.test.mjs 同法）。
 // 运行：node --test test/empty-template.test.mjs（server 自包含 :memory:）
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260916a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260917b';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
   createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
-} from '../../docs/src/services/branch.js?v=20260916a';
+} from '../../docs/src/services/branch.js?v=20260917b';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 

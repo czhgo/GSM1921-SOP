@@ -12,34 +12,34 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260916a';
-import { generateId } from '../../../core/id.js?v=20260916a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260916a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260916a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260917b';
+import { generateId } from '../../../core/id.js?v=20260917b';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, recorderRolesOf, listGroupMeetingAttendance } from '../../../services/attendance.js?v=20260917b';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260917b';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260916a';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260916a';
-import { loadActivities } from '../../../services/activity.js?v=20260916a';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260916a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260916a';
-import { NoticeStore } from '../../../services/notice.js?v=20260916a';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260916a';
-import { badgeHtml } from '../../../components/badges.js?v=20260916a';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260917b';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260917b';
+import { loadActivities } from '../../../services/activity.js?v=20260917b';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260917b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260917b';
+import { NoticeStore } from '../../../services/notice.js?v=20260917b';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260917b';
+import { badgeHtml } from '../../../components/badges.js?v=20260917b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260916a';
-import { pagerHtml } from '../../../components/pager.js?v=20260916a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260917b';
+import { pagerHtml } from '../../../components/pager.js?v=20260917b';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260916a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260916a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260916a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260916a';
-import { AuthStore } from '../../../services/auth.js?v=20260916a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260916a';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260917b';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260917b';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260917b';
+import { HandoffStore } from '../../../services/handoff.js?v=20260917b';
+import { AuthStore } from '../../../services/auth.js?v=20260917b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260917b';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260916a';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260917b';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -321,7 +321,7 @@ export function renderContent(ctx) {
   });
 
   // ── 矩阵转置切换 + 活动名/时间区间筛选 ──
-  // 批次 35（支书裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
+  // 批次 35（支书 2026-09-14 裁定「宽表默认」）：默认「按人」——一进 tab 先看「谁参加了哪些活动」
   let matrixView = 'byPerson'; // byPerson（行=人，列=活动，宽表默认）| byActivity（行=活动，列=人）
   const renderMatrix = () => _renderMatrix(matrixView, actById, allRecords, ctx, accent, accentBorder);
   container.querySelectorAll('.att-mtx-view-btn').forEach(btn => {
@@ -547,7 +547,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长上传、纪检确认（记录人=本组组长）。应到计算规则（支书裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由纪检于下方单独勾选「到场补录」</div>
+      <div class="text-xs text-gray-500 mb-3">会议类考勤（党课/支部党员大会/组织生活会/支委会）由纪检直接上传并录入总表；党小组会考勤由组长上传、纪检确认（记录人=本组组长）。应到计算规则（支书 2026-09-06 裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由纪检于下方单独勾选「到场补录」</div>
       ${body}
     </div>
   `;

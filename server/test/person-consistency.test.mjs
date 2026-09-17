@@ -7,7 +7,8 @@
 //      信息对应，切忌张冠李戴！因为每一个表格都只展现了每个人的字段的子集！数据一致性的审查很重要！」
 //   ·「结构+数据 双层断言！……这次做的数据一致性评议很重要！我们要推广开来！」
 //
-//  既有守卫的空档（普查实测）：mock-integrity 只查「引用是否存在」，roles-sync / policy-defaults-sync /
+//  既有守卫的空档（普查实测）：mock-integrity 只查「引用是否存在」，roles-sync / policy-config（含原
+//  policy-defaults-sync 的 T1–T5）/
 //  base-data-preview 只查「口径单一源」——全仓**没有任何断言「同一 personId 的字段在各表之间取值一致」**。
 //  本文件补上这个空档，并把「数据一致性评议」固化为可复用的两层方法（可推广到活动/记录等实体）。
 //
@@ -33,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260916a';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260916a';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260916a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260916a';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260916a';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260916a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260916a';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260916a';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260916a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260917b';
+import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260917b';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260917b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260917b';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260917b';
+import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260917b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260917b';
+import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260917b';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260917b';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');

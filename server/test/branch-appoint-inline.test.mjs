@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/branch-appoint-inline.test.mjs — 附录⑩ S5 R5-1：建空支部「就地任命首任骨干」（2026-09-06）
 // 覆盖（纯 node；localStorage 内存桩复用 member-persist 头 60 行模式，种子经 MockAdapter.loadDB；
-// 任命写口走假 mock 适配器（wizard-copy 同法，同步零延迟）——语义对齐 mock-adapter branches/appointmentRecords）：
+// 任命写口走假 mock 适配器（wizard-config 同法，同步零延迟）——语义对齐 mock-adapter branches/appointmentRecords）：
 //   ① 空支部创建成功 → 就地任命首任支书：branches[new].secretaryId===支书 id、
 //      appointmentRecords 新增现任记录（branchId=new、无 to、note 就任命）、
 //      person.role==='secretary'（PersonStore 读链）、users 对应行 role==='secretary'（注入行存在 → 正路径）
@@ -13,12 +13,12 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260916a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260916a';
-import { registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260916a';
-import { createBranch, getBranchById } from '../../docs/src/services/branch.js?v=20260916a';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260916a';
-import { appointInauguralOfficers } from '../../docs/src/services/appointment.js?v=20260916a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260917b';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260917b';
+import { registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260917b';
+import { createBranch, getBranchById } from '../../docs/src/services/branch.js?v=20260917b';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260917b';
+import { appointInauguralOfficers } from '../../docs/src/services/appointment.js?v=20260917b';
 
 // ── localStorage 内存桩（member-persist 同款；key/length 供 handleResetIfRequested 枚举）──
 const _store = new Map();

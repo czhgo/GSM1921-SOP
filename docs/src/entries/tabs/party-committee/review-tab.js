@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260916a';
-import { AuthStore } from '../../../services/auth.js?v=20260916a';
-import { getPersonName } from '../../../services/person.js?v=20260916a';
-import { getBranchById } from '../../../services/branch.js?v=20260916a';
-import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260916a';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260916a';
+import { mockDB } from '../../../core/domain.js?v=20260917b';
+import { AuthStore } from '../../../services/auth.js?v=20260917b';
+import { getPersonName } from '../../../services/person.js?v=20260917b';
+import { getBranchById } from '../../../services/branch.js?v=20260917b';
+import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260917b';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260917b';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260916a';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260917b';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -92,14 +92,18 @@ export function renderContent() {
     if (btn.dataset.rqAct === 'approve') {
       const note = card.querySelector('.rq-decision')?.value.trim() || '';
       await decideReviewRequest({ id, decision: 'approved', decidedBy: me.personId, decisionNote: note });
-      showToast('已批准该上报（批复已送达支部）');
+      showToast('success', '已批准该上报（批复已送达支部）');
       renderContent();
       return;
     }
     const note = card.querySelector('.rq-decision')?.value.trim();
-    if (!note) { showToast('驳回请填写意见，便于支部知悉整改方向'); return; }
+    // 批次 47-P（2026-09-16）：**三处单参 showToast 已修**（原为 `showToast('文案')`）——
+    // `showToast(type, message)` 是两参接口，单参会把整句文案当成 **type**（不在 COLORS 表 ⇒ 回落 `info`），
+    // 而 `message` 为 undefined ⇒ 用户看到的是一条**只有图标、没有文字**的蓝点气泡：
+    //   驳回失败时「为什么不让驳回」一字不说，批准/驳回成功后也**看不到任何结论**。
+    if (!note) { showToast('error', '驳回请填写意见，便于支部知悉整改方向'); return; }
     await decideReviewRequest({ id, decision: 'rejected', decidedBy: me.personId, decisionNote: note });
-    showToast('已驳回该上报（意见已反馈支部）');
+    showToast('success', '已驳回该上报（意见已反馈支部）');
     renderContent();
   });
 

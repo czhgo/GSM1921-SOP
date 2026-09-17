@@ -9,20 +9,20 @@
 //   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
 //   - party 页面已移除，organizer/deep 内容归入首页"我的角色"区块
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260916a';
-import { PEOPLE } from '../mock/index.js?v=20260916a';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260917b';
+import { PEOPLE } from '../mock/index.js?v=20260917b';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20260916a';
-import { getPersonById, getPersonName } from './person.js?v=20260916a';
-import { mockDB } from '../core/domain.js?v=20260916a';
-import { NoticeStore } from './notice.js?v=20260916a';
-import { updateActivity } from './mock.js?v=20260916a';
-import { TaskForceRecordStore } from './taskforce.js?v=20260916a';
-import { persist } from '../core/data-adapter.js?v=20260916a';
-import { enableApiMode } from './runtime.js?v=20260916a';
-import { generateId } from '../core/id.js?v=20260916a';
+import { verifyLogin } from './accounts.js?v=20260917b';
+import { getPersonById, getPersonName } from './person.js?v=20260917b';
+import { mockDB } from '../core/domain.js?v=20260917b';
+import { NoticeStore } from './notice.js?v=20260917b';
+import { updateActivity } from './mock.js?v=20260917b';
+import { TaskForceRecordStore } from './taskforce.js?v=20260917b';
+import { persist } from '../core/data-adapter.js?v=20260917b';
+import { enableApiMode } from './runtime.js?v=20260917b';
+import { generateId } from '../core/id.js?v=20260917b';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }

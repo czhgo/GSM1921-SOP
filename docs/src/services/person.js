@@ -25,19 +25,19 @@
 //  Source: content/04_web_design/data/DATA_ARCHITECTURE.md
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260916a';
+import { mockDB } from '../core/domain.js?v=20260917b';
 // P0 域缓存失效（spec §二.3）：成员覆盖层写口 bump（支书台 semester-remind/成员组等读数新鲜度）
-import { bumpToken } from '../core/version-token.js?v=20260916a';
+import { bumpToken } from '../core/version-token.js?v=20260917b';
 // 修复（T175）：直接从 mock/people.js 导入 PEOPLE，
 // 断开 person.js ↔ mock/index.js 双向循环依赖（person.js 不再依赖 mock/index.js）
-import { PEOPLE } from '../mock/people.js?v=20260916a';
+import { PEOPLE } from '../mock/people.js?v=20260917b';
 // 成员基础数据预览叠加（立项④阶段三·目标1）：PersonStore 读取时套预览 override；
 // 依赖方向单向（person → preview，preview 不 import person/roster，无循环）
-import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260916a';
+import { overlayPreviewMembers } from './org-base-data-preview.js?v=20260917b';
 // 双形态判定（mock/api）：data-adapter.js 为零静态依赖的叶子模块（无环）
-import { getDataSource } from '../core/data-adapter.js?v=20260916a';
+import { getDataSource } from '../core/data-adapter.js?v=20260917b';
 // 新成员 id 生成（mock 形态；'p_' + uuid，与种子 p1~p50/p_pc 不冲突）
-import { generateId } from '../core/id.js?v=20260916a';
+import { generateId } from '../core/id.js?v=20260917b';
 
 // ════════════════════════════════════════════════════════════════
 //  PersonStore — 人员数据统一服务接口
@@ -310,12 +310,24 @@ export function applyMemberOverlay(base, overlay) {
 }
 
 /**
- * 当前成员档案视图（mock 形态 = PEOPLE 基底 + 覆盖层；api 形态 = PEOPLE 现状链）。
+ * 当前成员档案视图（mock 形态 = PEOPLE 基底 + 覆盖层；api 形态 = 服务端已同步 users 缓存）。
  * getMembers/getAll 的公共基底；本函数读 localStorage（覆盖层）仅 mock 形态生效。
+ *
+ * ⚠ **api 分支 2026-09-16 批次 47-S 修正（支书裁定「现在补齐 api 读链」，Q-23-45）**：
+ *   原为 `return [...PEOPLE]`（注释自述「api 读侧保持现状（服务器权威读回归 C 波）」）——
+ *   而**写侧**早已是服务端权威：`saveMember/removeMember` 在 api 形态走 `/api/v1/members*` 语义端点，
+ *   随后 `_syncMockDBUsers()` 把结果同步进 `mockDB.users`（api-adapter 初始化也把
+ *   `adapter.users.list()` 灌进同一处）。**读侧却写死静态种子** ⇒ 名册的「新增 / 编辑 / 移出」
+ *   在 api 形态下**全部读不出效果**：提示说「已新增成员」、名册人数不变、刷新后依旧不变。
+ *   真机坐实（批次 47-S 一次性探针）：服务端 users 表确有新行（`branchId=br-b1`），前端名册仍是 50 人。
+ *   **修正口径 = 「服务器权威读」的本义：api 形态读服务端同步缓存，不读静态种子**；
+ *   `PEOPLE` 退回它本来的角色——**mock 形态的基底**（`getBaseMemberRecords()` 亦同此语义）。
+ * ⚠ 不再保留「api 读缓存为空时回退 PEOPLE」的兜底：**静态种子冒充真相正是本次病灶的成因**，
+ *   静默兜底会把「服务端没数据」伪装成「有 51 人」。初始化完成前的渲染由壳层 LOADING→IDLE 闸门负责。
  * @returns {Array} 成员数组（未套 org-base-data-preview 预览）
  */
 function _baseMemberRecords() {
-  if (getDataSource() === 'api') return [...PEOPLE]; // api 读侧保持现状（服务器权威读回归 C 波）
+  if (getDataSource() === 'api') return Array.isArray(mockDB.users) ? [...mockDB.users] : [];
   return applyMemberOverlay(PEOPLE, _loadMemberOverlay());
 }
 
@@ -544,13 +556,13 @@ function _mockReplaceBranchMembers(records, branchId) {
 // ── api 形态实现（server users 表；ApiAdapter 动态导入防 mock 侧加载面扩大）──
 
 async function _apiAdapterUsers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260916a');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260917b');
   return ApiAdapter.users;
 }
 
 /** 名册成员变更确认链写口（C-2 方案 B）：支书专属阶段语义端点（ApiAdapter.members.setDevelopStage） */
 async function _apiAdapterMembers() {
-  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260916a');
+  const { ApiAdapter } = await import('../core/api-adapter.js?v=20260917b');
   return ApiAdapter.members;
 }
 
@@ -656,7 +668,7 @@ async function _apiRemoveMember(personId, opts = {}) {
 
 async function _apiReplaceBranchMembers(records, branchId) {
   try {
-    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260916a');
+    const { ApiAdapter } = await import('../core/api-adapter.js?v=20260917b');
     const users = ApiAdapter.users;
     // 存在性（服务器权威）：branches 表须有该实例
     const branches = await ApiAdapter.branches.list();

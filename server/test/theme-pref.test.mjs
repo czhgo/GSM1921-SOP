@@ -19,7 +19,7 @@ import {
   getAccentRolePreference, setAccentRolePreference,
   resolveAppliedAccentRole, personPrefKey, syncAppearanceForActiveUser,
   getAppliedAccentColors,
-} from '../../docs/src/core/theme.js?v=20260916a';
+} from '../../docs/src/core/theme.js?v=20260917b';
 
 const THEME_KEY = 'workflowos_theme';
 const FONT_KEY = 'workflowos_font_size';

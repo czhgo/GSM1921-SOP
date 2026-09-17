@@ -125,6 +125,26 @@ test('⑥ showToast 调用约定：首参必须是类型（success|warn|error|in
     }
   }
   assert.deepEqual(hits, [], `showToast 参数顺序写反（应为 showToast(type, message)）：\n${hits.join('\n')}`);
+
+  // ── 参数个数：**原判据的盲区**（2026-09-16 批次 47-P 真机抓到）────────────────
+  // 原判据只匹配**两参**形态（`showToast('文案', 'error')`）⇒ 专门抓「写反」，
+  // 于是**单参**（`showToast('文案')`）从它眼皮底下走过去。而单参的后果是**静默的**：
+  //   整句文案被当成 `type`（不在 COLORS 表 ⇒ 回落 `info`），`message` 为 `undefined`
+  //   ⇒ 用户看到的是一条**只有图标、没有文字**的蓝点气泡（`textContent` 恰为 `'i'`）。
+  // 判例：`party-committee/review-tab.js` 批准/驳回三处（驳回失败时「为什么不让驳回」一字不说，
+  //   批准/驳回成功后也看不到任何结论）。
+  // ⚠ 这类病灶**三类判据都会漏**：不是异常（`pageerror` 看不见）、不是缺导入、
+  //   连「成功提示」判据也只会把它记成「提示不符」——**只有把「提示文案」当断言对象的真机判据**才抓得住
+  //   （机器读到空文本，人才会说「怎么只弹了个 i」）。故**静态判据必须在此补齐参数个数这一维**。
+  const arityRe = /showToast\(\s*(`[^`]*`|'[^']*'|"[^"]*")\s*\)/g;
+  const arityHits = [];
+  for (const { file, text } of collectSources()) {
+    let m;
+    while ((m = arityRe.exec(text))) {
+      arityHits.push(`${file} → showToast(${m[1].slice(0, 24)}…) ← 只有 1 个参数`);
+    }
+  }
+  assert.deepEqual(arityHits, [], `showToast 必须两参（type, message）；单参会把整句文案当成类型 ⇒ 用户只看到空提示：\n${arityHits.join('\n')}`);
 });
 
 // ── ⑦ 从属输入行闭环（2026-09-14 批次 32）──────────────────────────────────

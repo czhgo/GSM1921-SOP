@@ -4,7 +4,7 @@
 //   覆盖 upsertMeetingAttendance 批量语义——新增 / 旧语义跳过 / 纪检本人覆盖更正 /
 //   他人权威拒盖 / 批量混合计数 / MEETING_ATTENDANCE_TYPES 单一源。
 // 导入链说明：attendance.js → core(domain/data-adapter/policy-defaults)/mock/person/activity
-//   全部纯 node 可载（先例 server/test/policy-defaults-sync.test.mjs 已直接导入 attendance.js 并跑绿）；
+//   全部纯 node 可载（先例 server/test/policy-config.test.mjs 的 T2/T3 已直接导入 attendance.js 并跑绿）；
 //   data-adapter persist() 在未注册 mock 适配器时空安全（_mockAdapter?.saveDB），
 //   模块顶层 pagehide 注册带 typeof window 守卫 → node 下自动跳过，无需任何全局注入。
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query：
@@ -13,13 +13,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260916a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260916a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260917b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260917b';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   loadAttendanceRecords,
-} from '../../docs/src/services/attendance.js?v=20260916a';
+} from '../../docs/src/services/attendance.js?v=20260917b';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

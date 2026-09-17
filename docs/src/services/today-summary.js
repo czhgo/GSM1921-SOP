@@ -17,14 +17,14 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260916a';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260916a';
-import { TodoStore } from './todo.js?v=20260916a';
-import { tokenOf } from '../core/version-token.js?v=20260916a'; // P1 消费方会话缓存失效（spec §三.4）
+import { mockDB } from '../core/domain.js?v=20260917b';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260917b';
+import { TodoStore } from './todo.js?v=20260917b';
+import { tokenOf } from '../core/version-token.js?v=20260917b'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260916a';
+import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260917b';
 
-/** 按 roster 应到口径判定的会议类型（R6-3 支书裁定：今天有会 = 我应出席/参与） */
+/** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
 
 /** 本地时区 YYYY-MM-DD（pad 于 _fmtDate 同式；勿用 UTC 偏移错误） */
