@@ -1,19 +1,19 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260917b';
-import { getBasePath } from '../core/utils.js?v=20260917b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260917b';
-import { AuthStore } from '../services/auth.js?v=20260917b';
-import { loadActivities } from '../services/activity.js?v=20260917b';
-import { PEOPLE } from '../mock/people.js?v=20260917b';
+import { icon } from '../core/icons.js?v=20260917c';
+import { getBasePath, showToast } from '../core/utils.js?v=20260917c';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260917c';
+import { AuthStore } from '../services/auth.js?v=20260917c';
+import { loadActivities } from '../services/activity.js?v=20260917c';
+import { PEOPLE } from '../mock/people.js?v=20260917c';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260917b';
+} from '../services/branch-doc.js?v=20260917c';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../components/list-filter.js?v=20260917b';
+import { renderFilteredList } from '../components/list-filter.js?v=20260917c';
 
 const SITE_GROUPS = [
   {
@@ -743,6 +743,12 @@ export class ReferencesModule {
       confirmBtn.disabled = true;
       try {
         await ReferencesModule._saveDoc({ docId, purpose, title, desc, bodyText, note, file });
+        // 批次 48（2026-09-17，支书裁定 Q-23-46「补一条成功提示」）：**原先成功分支只有 `closeModal()`**
+        //   ——浮窗一关，用户**没有任何「存成了」的反馈**（而失败分支有 `showStatus`，形成单边）。
+        //   这是**用户可见**的静默：本仓的「成功路径」三段判据里第 ① 段（成功提示）在此**结构上不可能满足**。
+        //   修法＝补一条 toast（浮窗随即关闭，故提示须落在全局 toast 而非面板内状态区）。
+        //   ⚠ 同文件「上传新版」分支是**同一形态**（成功仅 `closeModal()`），按 R-67「同一病灶只修一处＝没修完」**同批一并修**。
+        showToast('success', `已保存「${title}」`);
         closeModal();
       } catch (e) {
         confirmBtn.disabled = false;
@@ -848,6 +854,9 @@ export class ReferencesModule {
         if (!res.ok || !res.doc) throw new Error(res.reason || '发布失败');
         ReferencesModule._branchDocs = ReferencesModule._branchDocs.map((d) => (d.id === docId ? res.doc : d));
         ReferencesModule.render();
+        // 批次 48（2026-09-17）：与上方「制度写入」成功分支**同一形态的静默**（原只有 `closeModal()`），
+        //   按 R-67 同批一并补提示（两分支同源，见上处注释的支书裁定 Q-23-46，2026-09-17）。
+        showToast('success', `已发布「${title}」新版本`);
         closeModal();
       } catch (e) {
         confirmBtn.disabled = false;

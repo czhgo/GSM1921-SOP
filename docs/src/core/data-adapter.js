@@ -199,7 +199,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260917b');
+      const { mockDB } = await import('./domain.js?v=20260917c');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -293,7 +293,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260917b');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260917c');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -317,8 +317,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260917b');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260917b');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260917c');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260917c');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -328,7 +328,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260917b');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260917c');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -521,7 +521,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') return;
   try {
-    const { mockDB } = await import('./domain.js?v=20260917b');
+    const { mockDB } = await import('./domain.js?v=20260917c');
     _cachedMockDB = mockDB;
     const payload = _collectDirty(mockDB);
     if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）

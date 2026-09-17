@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260917b"></script>
+<script src="./src/theme-init.js?v=20260917c"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260917b"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260917b">
+  <script src="./src/tailwind-config.js?v=20260917c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260917c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -523,7 +523,7 @@
               <tr><td>思想汇报</td><td>成员 / 组织者 / 深度参与者</td><td>按季度提交思想汇报（一期可多篇）：经组织委员初阅通过才正式归档；退回可修改重交</td><td>「我的职责」段；选期次 + 写正文（显示字数，1500 字为软提示）→ 提交；点列表某篇 → 独立阅读页查看 / 撤回 / 改后重交</td></tr>
               <tr><td>我的复盘</td><td>组织者 / 深度参与者为主</td><td>活动复盘提交与查看（复盘提交入口所在，普通成员在此查看自己参与的复盘）</td><td>「我的职责」段；选活动 → 填复盘 → 提交；组长 / 纪检在各自台复核</td></tr>
               <tr><td>知情查看</td><td>成员 / 组织者 / 深度参与者</td><td>全支部活动与专班只读知情查看（无职责亦有知情权），内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
-              <tr><td>我的处置</td><td>成员 / 组织者 / 深度参与者</td><td>答复入口：显示「我提交 / 参与的反馈」并可追加说明（comment）——成员侧不具处置写权</td><td>「制度与答复」段；点开反馈 → 追加说明</td></tr>
+              <tr><td>我的处置</td><td>成员 / 组织者 / 深度参与者</td><td>答复入口：显示「我提交 / 参与的反馈」并可追加说明（comment）——成员侧不具处置写权。<strong>该区只在本地演示模式有数据</strong>：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认</td><td>「制度与答复」段；点开反馈 → 追加说明</td></tr>
             </tbody>
           </table>
         </div>
@@ -1135,8 +1135,8 @@
 
         <div class="help-card" id="card-dom39-my-dispatch" data-search="汇报反馈 我的处置 请我汇报 我发起的汇报 指派给我的反馈 支委 组织委员 宣传委员 纪检委员 组长 处置结果 待终审">
           <h4 class="help-card-title">我的处置（组织 / 宣传 / 纪检 / 党小组组长 / 成员五台：请我汇报 / 我发起的汇报 / 指派给我的反馈；成员台为答复入口）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织 / 宣传 / 纪检 / 党小组组长台「制度与答复」段「我的处置」；成员台「制度与答复」段「我的处置」（成员侧为答复入口：显示「我提交 / 参与的反馈」并允许追加说明，不给处置写权）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>组织 / 宣传 / 纪检委员、党小组组长（被请汇报人 / 汇报发起人 / 被指派人三合一）；成员（答复自己提交 / 参与的反馈）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织 / 宣传 / 纪检 / 党小组组长台「制度与答复」段「我的处置」；成员台「制度与答复」段「我的处置」（成员侧为答复入口：显示「我提交 / 参与的反馈」并允许追加说明，不给处置写权）。<strong>该区只在本地演示模式有数据</strong>——正式部署下公开反馈按「真匿名」口径脱敏（服务端把提交人 / 参与人一律抹为「匿名」），无法按人回认，故该区为空。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>组织 / 宣传 / 纪检委员、党小组组长（被请汇报人 / 汇报发起人 / 被指派人三合一）；成员（答复自己提交 / 参与的反馈——<strong>仅本地演示模式</strong>；正式部署下公开反馈真匿名，无按人回认）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">①「XX请汇报」块：支书 / 组长发来的「了解进展」请求，行内填汇报内容 →「汇报」即发回（对应方收到）。</li>
@@ -1459,6 +1459,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260917b"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260917c"></script>
 </body>
 </html>

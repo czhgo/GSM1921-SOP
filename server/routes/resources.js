@@ -411,7 +411,7 @@ export function createResourcesRouter(db) {
 
   // 全量快照写穿透：认证后整表替换（data-adapter persist() 的落库目标）
   // 2026-09-01：支持 gzip 压缩体（前端 CompressionStream 压缩，规避大 payload 传输限制）；
-  // 兼容未压缩 JSON（snapshot.test.js 等直连用例）。
+  // 兼容未压缩 JSON（server-base.test.mjs 等直连用例；批次 48 由 snapshot.test.js 等五件合并而来）。
   router.post('/snapshot', requireAuth(db), (req, res) => {
     let payload = req.body;
     try {

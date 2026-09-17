@@ -138,7 +138,11 @@ test('组织台·专班考察上传：同一条闭环（选专班 + 点选人员
   const page = await loginAs('2400012355', 'org');
   try {
     await page.evaluate(() => document.getElementById('btn-org-upload-insp')?.click());
-    await page.waitForFunction(() => !!document.getElementById('org-insp-form-panel'), { timeout: 8000 });
+    // 批次 48（2026-09-17，支书裁定 Q-23-47「只按需放宽这两处」）：**满载下等待窗口不足**——
+    //   47-Z 的收尾全量里本条超时（实测耗时 33.5s），而**单文件独立跑绿（2/2，4.2s / 6.2s）**。
+    //   「等面板挂载」与 AV5 的「等区块渲染」是同一族：**满载时浏览器上下文累积**最先撑不住它们。
+    //   按裁定**只放宽这一处**（同文件其余 `timeout: 8000` 不动），并写明**满载实测耗时**。
+    await page.waitForFunction(() => !!document.getElementById('org-insp-form-panel'), { timeout: 40000 }); // 满载实测 33.5s
 
     const tfId = await page.evaluate(() => [...document.querySelectorAll('#org-insp-tf-select option')].map((o) => o.value).filter(Boolean)[0]);
     assert.ok(tfId, '演示数据里应至少有一个在办专班（否则本测试的前提不成立）');

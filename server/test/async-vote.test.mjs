@@ -90,7 +90,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const secCtx = await browser.newContext();
   const secPage = await login(secCtx, 'p13');
   const created = await secPage.evaluate(async ({ title, voterIds, ag1, ag2 }) => {
-    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260917b');
+    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260917c');
     const act = await getAdapter().activities.create({
       title,
       type: '支部党员大会',
@@ -108,7 +108,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
       ],
     });
     // 同步本地 mockDB（防 800ms 防抖快照以过期缓存覆盖服务器活动，参照 online-committee.test.mjs）
-    const { mockDB } = await import('/src/core/domain.js?v=20260917b');
+    const { mockDB } = await import('/src/core/domain.js?v=20260917c');
     if (!mockDB.activities.some((a) => a.id === act.id)) mockDB.activities.push(act);
     return act;
   }, { title: TITLE, voterIds: FORMAL_IDS, ag1: AG1, ag2: AG2 });
@@ -127,11 +127,16 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const prepCtx = await browser.newContext();
   const prepPage = await login(prepCtx, 'p24');
   await prepPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260917b');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260917c');
     persist(); // api 模式：saveDB 本地备份（快照与服务器一致）
   });
   await prepPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
-  await prepPage.waitForSelector('#async-vote-section', { timeout: 10000 });
+  // 批次 48（2026-09-17，支书裁定 Q-23-47「只按需放宽这两处」）：**满载下等待窗口不足**——
+  //   本条在 47-T 的收尾全量里超时（`TimeoutError`），而**单文件独立跑绿（25.1s）**。
+  //   ⇒ 判据本身没错，错的是窗口：全量连跑时浏览器上下文累积，**「等区块渲染」最先撑不住**。
+  //   按裁定**只放宽这一处**（其余 62 处 `timeout: 10000` 不动，规模仍以 Q-23-47 原登记为准），
+  //   并把**满载实测耗时**写在同行（形制同 `SUCCESS_FLOWS[].toastTimeoutMs`）——放宽的是窗口，不是判据。
+  await prepPage.waitForSelector('#async-vote-section', { timeout: 30000 }); // 满载实测 >10s（单跑 25.1s 全绿）
   const prepUi = await prepPage.evaluate(async ({ ag1 }) => {
     const section = document.querySelector('#async-vote-section');
     const slot = section ? section.querySelector(`[data-vote-item-id="${ag1}"]`) : null;
@@ -165,7 +170,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const memberCtx = await browser.newContext();
   const memberPage = await login(memberCtx, 'p5');
   await memberPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260917b');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260917c');
     persist(); // 本地备份（含服务器 act-xxx）供 activity.html mock 恢复
   });
   await memberPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -188,9 +193,9 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   // 同页切 api 数据源后以 p5 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
     const token = sessionStorage.getItem('gsm1921-api-token');
-    const { enableApiMode } = await import('/src/services/runtime.js?v=20260917b');
+    const { enableApiMode } = await import('/src/services/runtime.js?v=20260917c');
     enableApiMode(token);
-    const { submitVote } = await import('/src/services/committee-vote.js?v=20260917b');
+    const { submitVote } = await import('/src/services/committee-vote.js?v=20260917c');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
   assert.equal(p5Row.personId, 'p5', '服务端登记参与记录 personId 应为 p5');
@@ -223,8 +228,8 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
     await secPage.click('.secretary-tab-btn[data-secretary-tab="calendar"]').catch(() => {});
     await secPage.waitForTimeout(800);
     await secPage.evaluate(async ({ id }) => {
-      const { setState } = await import('/src/core/state.js?v=20260917b');
-      const { mockDB } = await import('/src/core/domain.js?v=20260917b');
+      const { setState } = await import('/src/core/state.js?v=20260917c');
+      const { mockDB } = await import('/src/core/domain.js?v=20260917c');
       setState({ activities: [...mockDB.activities], viewMode: 'detail', selectedActivityId: id });
     }, { id: actId });
     await secPage.waitForSelector('#vote-summary-slot .vs-stat', { timeout: 12000 });

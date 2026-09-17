@@ -7,7 +7,7 @@
     "start": "node server.js",
     "test": "set DISABLE_PASSWORD_CHECK=1&& node --test --test-concurrency=1",
     "test:full": "set DISABLE_PASSWORD_CHECK=1&& node --test --test-concurrency=1",
-    "test:fast": "set DISABLE_PASSWORD_CHECK=1&& node --test --test-concurrency=1 test/auth.test.js test/db.test.js test/report.test.js test/resources.test.js test/seed.test.js test/skeleton.test.js test/snapshot.test.js test/uploads.test.js test/catalog-sync.test.mjs test/link-integrity.test.mjs",
+    "test:fast": "set DISABLE_PASSWORD_CHECK=1&& node --test --test-concurrency=1 test/auth.test.js test/report.test.js test/skeleton.test.js test/server-base.test.mjs test/catalog-sync.test.mjs test/link-integrity.test.mjs",
     "test:core": "set DISABLE_PASSWORD_CHECK=1&& node --test --test-concurrency=1 test/agenda-closure-core.test.mjs test/agenda-flow.test.mjs test/online-committee.test.mjs test/agenda-votes.test.mjs test/member-change-flow.test.js test/multi-user-write.test.mjs test/module-load.test.mjs test/help-e2e.test.mjs",
     "clean:tmp": "cmd /c \"rmdir /s /q .tmp\""
   },

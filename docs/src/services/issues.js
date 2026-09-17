@@ -2,13 +2,13 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260917b';
-import { PersonStore } from './person.js?v=20260917b';
-import { bumpToken } from '../core/version-token.js?v=20260917b'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260917b';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260917b';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260917b';
-import { generateId, randomHex } from '../core/id.js?v=20260917b';
+import { AuthStore } from './auth.js?v=20260917c';
+import { PersonStore } from './person.js?v=20260917c';
+import { bumpToken } from '../core/version-token.js?v=20260917c'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260917c';
+import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260917c';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260917c';
+import { generateId, randomHex } from '../core/id.js?v=20260917c';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -19,9 +19,9 @@ import { generateId, randomHex } from '../core/id.js?v=20260917b';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../core/utils.js?v=20260917b';
+import { showToast } from '../core/utils.js?v=20260917c';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260917b';
+import { renderFilteredList } from '../components/list-filter.js?v=20260917c';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -1067,8 +1067,14 @@ export function renderMyDispatchTab(role, userId) {
   html += `<div id="mydispatch-issues-host"></div>`;
 
   // ④ 我提交 / 参与的反馈（每个人都可以参与答复——成员亦可对自己提交/参与的反馈追加说明）
+  // ⚠ 口径说明（2026-09-17 支书裁定 `Q-23-48`「接受缺口 + 改文案」）：**本区只在 mock（本地演示）形态有数据**——
+  //   api 形态下 `GET /api/v1/issues` 按「**真匿名**」口径把公开反馈的 `submittedBy`/`participants`
+  //   一律脱敏成 `匿名`/`[]`（`server/seed.js::seedIssues`），而 `getMyIssues` 靠这两个字段认人、
+  //   且排除 `kind:'report'` ⇒ **正式部署下本区结构上恒为空**。故此处**显式写出该口径、不假装它是全形态可用功能**；
+  //   若将来要恢复「按人回认」，须先解决隐私承诺与**不可反查标识**（两条路见 `REVIEW_QUEUE Q-23-48`）。
   html += `<div class="rounded-xl border border-gray-100 bg-white p-3 mt-3">`;
-  html += `<p class="text-xs font-medium text-gray-700 mb-2">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
+  html += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认</p>`;
   html += `<div id="mydispatch-myissues-host"></div>`;
   html += `</div>`;
 
