@@ -3,7 +3,7 @@ title: "部署与对外对接总案——系统形态、四条落地路径与学
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-05"
+last_updated: "2026-09-13"
 status: active
 related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
@@ -74,7 +74,7 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 
 ### 3.1 对接总叙事与决策矩阵
 
-**总叙事（一段话）**：支部建设方兴未艾，「管理事、服务人」需要把成员培养、考察、发展的全过程做成可信台账（战略母本见文件头）。这套台账由我方系统承载后，**对学校只有三类协同诉求**——①**托管**：请计算中心提供数据库/API/HTTPS 等运行环境，让系统正式上线（路径 C）；②**读取外部依据**：党校培训进度、智慧党建记载是支部考察/发展判断的外部依据，需单向读入；③**回写与上报**：支部活动记载、考察结论、发展进度经审核后回写智慧党建平台、按日上报供平台收录。对接授权已获**党委组织部**支持（2026-08-19 确认）——这是组织部门认可的协同工作，不是支部私下的爬取。
+**总叙事（一段话）**：支部建设方兴未艾，「管理事、服务人」需要把成员培养、考察、发展的全过程做成可信台账（战略母本见文件头）。这套台账由我方系统承载后，**对学校只有三类协同诉求**——①**托管**：请计算中心提供数据库/API/HTTPS 等运行环境，让系统正式上线（路径 C）；②**读取外部依据**：党校培训进度、智慧党建记载是支部考察/发展判断的外部依据，需单向读入；③**回写与上报**：支部活动记载、考察结论、发展进度经审核后回写北京大学智慧党建平台（党旗飘飘）、按日上报供平台收录。对接授权已获**党委组织部**支持（2026-08-19 确认）——这是组织部门认可的协同工作，不是支部私下的爬取。
 
 **决策矩阵（对接对象 × 我方诉求 × 数据边界 × 承接能力 × 状态）**：
 
@@ -427,7 +427,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），根页面 + 工作台（页面清单以 docs/ 实测为准，含 wizard/settings） |
 | 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
 | API 适配器 | `api-adapter.js` P1 已实现：25 服务端资源 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（25 资源 + auth/login/logout + snapshot + uploads + health/bootstrap） |
-| 后端服务 | `server/` Express + better-sqlite3：**32 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/docx/xlsx ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
+| 后端服务 | `server/` Express + better-sqlite3：**32 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
 | 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
 | 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（构建时注入）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |
@@ -456,6 +456,8 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 4. 备份 = 复制 `server/data.db`（先停服务更稳妥；正常停止后单文件即完整快照）
 5. 恢复 = 停服务 → 用备份文件替换 `data.db` → 启动（users 表非空不会重新 seed）
 6. 更新 = 覆盖 `docs/` 与 `server/` 代码（保留 `data.db` 不动）→ `npm start`
+7. 上传目录 = 附件物理文件所在处（缺省 `server/uploads/`，可由 `UPLOAD_DIR` 改；服务首次启动会自动建目录）：**该目录须可写**（不可写则所有上传失败），且**须与 `data.db` 一并纳入备份**——附件文件只在磁盘上，丢库可重建、丢文件不可恢复
+8. 反向代理的**请求体上限须 ≥ 上传上限**（上传上限＝**10MB**，见 `server/routes/uploads.js` 的 `MAX_SIZE`）：如 nginx 的 `client_max_body_size` 至少设 `10m`（低于此值时，大图在**代理层**就被拦下，表现为 413 或连接中断，与后端 413 是两层不同的失败）
 
 ### A.3 风险与依赖
 

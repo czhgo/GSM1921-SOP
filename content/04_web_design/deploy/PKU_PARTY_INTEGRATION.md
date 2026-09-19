@@ -3,7 +3,7 @@ title: "北大党校与智慧党建系统对接设计——爬取、双向同步
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-05"
+last_updated: "2026-09-15"
 status: draft
 related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../../server/db.js, ../../docs/src/core/api-adapter.js]
 ---
@@ -12,7 +12,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 
 > **对外画像总览见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署与对外对接总案）**；本篇为专项设计细节。
 >
-> **定位**：北大党校系统与智慧党建平台的对接总体设计——「嫁接什么 API / 爬取什么数据 / 系统内部数据类型字段 / 双向同步机制」的一张全图（微信小程序为独立问题，见 [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)）。**提前想全面**，避免实际对接时被动（2026-08-19 提出：「等到我们实际对接的时候，已经是太晚了」）。
+> **定位**：北大党校系统与北京大学智慧党建平台（党旗飘飘）的对接总体设计——「嫁接什么 API / 爬取什么数据 / 系统内部数据类型字段 / 双向同步机制」的一张全图（微信小程序为独立问题，见 [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)）。**提前想全面**，避免实际对接时被动（2026-08-19 提出：「等到我们实际对接的时候，已经是太晚了」）。
 > **受众**：支书（决策）+ [工程师]+[AI]（对接实施）+ 北大党校办公室/信息中心（待确认清单 §九 的沟通对象）
 > **关联**：[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)（部署与对外对接总案——部署四路径与部署决策在其 §二；与学校/党校对接总叙事与决策矩阵在其 §三；本文件是「北大侧数据对接」的专项细目）、[WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md)（小程序方案权威源，对接数据在小程序端的展示归位其 §八）、[DATA_MODEL.md](../data/DATA_MODEL.md)（我们系统数据模型权威源）。
 

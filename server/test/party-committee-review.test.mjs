@@ -111,12 +111,25 @@ async function decideOnCard(page, { title, decision, note }) {
   }, { title, decision, note });
 }
 
+/** 服务端读口 token（2026-09-18 批次 81：资源读口收紧＝默认要登录）——本文件只做服务端轮询校验，取一次复用 */
+let _serverToken = null;
+async function serverToken() {
+  if (_serverToken) return _serverToken;
+  const r = await fetch(`${base}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ personId: 'p_pc', password: '123456' }),
+  });
+  _serverToken = (await r.json()).token;
+  return _serverToken;
+}
+
 /** 轮询 server 通知表直到出现目标通知（API 模式快照写穿 800ms 防抖 → 避免客户端/服务端竞态） */
 async function waitForServerNotice(title, contains, timeout = 8000) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     try {
-      const rows = await (await fetch(`${base}/api/v1/notices`)).json();
+      const tk = await serverToken();
+      const rows = await (await fetch(`${base}/api/v1/notices`, { headers: { Authorization: `Bearer ${tk}` } })).json();
       if (Array.isArray(rows) && rows.some((n) => n.title === title && String(n.content || '').includes(contains))) return true;
     } catch (_) { /* 忽略瞬时异常 */ }
     await new Promise((r) => setTimeout(r, 200));
@@ -127,7 +140,7 @@ async function waitForServerNotice(title, contains, timeout = 8000) {
 /** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
 async function pageHasNotice(page, title, contains) {
   return page.evaluate(async ({ t, c }) => {
-    const { NoticeStore } = await import('/src/services/notice.js?v=20260917c');
+    const { NoticeStore } = await import('/src/services/notice.js?v=20260919g');
     NoticeStore.init();
     return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
   }, { t: title, c: contains });

@@ -24,7 +24,7 @@ export function createLeaderProgressRouter(db) {
 
   // GET /api/v1/leader/member-progress?personIds=p4,p5&today=YYYY-MM-DD
   // 返回：{ rows: [{ personId, active, overdue, absent, inspPending, reportState, reportKind, reportTitle }], today }
-  // 「今天」由查询参数给定（缺省取服务端当日）——避免两端各自取时区导致超期判定口径漂移。
+  // 「今天」由查询参数给定（缺省取服务端当日）——避免两端各自取时区导致超期判定口径未同步。
   router.get('/leader/member-progress', requireAuth(db), (req, res) => {
     const personIds = String(req.query.personIds || '')
       .split(',')

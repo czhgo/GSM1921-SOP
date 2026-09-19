@@ -6,8 +6,11 @@ import { replaceCollection } from './db.js';
  * 反馈域基线种子（R-24，2026-09-13 支书裁定「分形态各接各的源」）：
  * 服务端 issues 表原先**无种子** → API 形态下支书台「反馈管理」恒 0 条，
  * 而公开反馈页走本地 docs/data/issues.json 有 4 条 → 同域两口径。
- * 现以 issues.json 为**内容单一源**播种，并按真匿名口径脱敏：
- *   · submittedBy 一律 '匿名'、anonymous=true、participants=[]（防止经参与者反查提交人）；
+ * 现以 issues.json 为**内容单一源**播种，并按**对外匿名**口径脱敏（2026-09-17 支书改裁后的表述）：
+ *   ⚠ **本函数的「行为」未变、也不该变**——demo 种子**本就没有真实提交人**，故不写 `_realPersonId`
+ *   **不算旧口径的遗留**：正式使用时后台**会**记真身（`POST /issues` 落 `_realPersonId`）；
+ *   因而**党委核查页对种子项会显示「（未记录真实提交人）」**（读的正是本函数播下的这几条）。
+ *   · submittedBy 一律 '匿名'、anonymous=true、participants=[]（**公开面不出现提交人**：participants 不含提交人；真身另有 `_realPersonId` 一栏、仅党委核查出口可见）；
  *   · 不写 tokenHash（仅判重/限频用，种子无此需求）；
  *   · 保留处置类字段（assignee/assigneeRole/dispatchHistory/comments/reactions）用于演示指派与处置链路；
  *   · 支部归属 branchId（每个组织独立 issue 空间，2026-09-15 支书裁定）：取 issues.json 所载；
@@ -23,7 +26,8 @@ function seedIssues() {
   return (raw.issues || []).map((r) => {
     // 批次 47-Q（2026-09-16，支书裁定「加过滤 + 种进同源」）：**内部汇报不脱敏**。
     // 本文件同时承载两类：公开匿名反馈（无 kind）与内部汇报（kind:'report'）。
-    //   「真匿名」是**公开反馈**的口径（防经提交人/参与者反查）——它对**内部汇报不成立**：
+    //   「对外匿名」（2026-09-12 旧称「真匿名」，2026-09-17 支书改裁后改称）是**公开反馈**的面口径
+    //   （**出口脱敏**；后台另记真身 `_realPersonId`、仅党委核查可见）——它对**内部汇报不成立**：
     //   内部汇报按设计就是**带名**的（submittedBy/assignee/participants 指向真人），
     //   支书台「汇报收件箱」与成员台「我发起的汇报」全靠这些字段成立。
     //   若照旧一律脱敏，api 形态会把这些字段抹掉 ⇒ 两形态不一致（mock 直读原文件带名、api 全匿名）
@@ -56,8 +60,9 @@ export async function seedDatabase(db) {
   // 保证 API 模式首启时宣传档案区与报名渠道有基线数据
   replaceCollection(db, 'archive_records', seedMod.SEED_ARCHIVE_RECORDS);
   replaceCollection(db, 'signups', seedMod.SEED_SIGNUPS);
-  // R-24：反馈域基线（与公开反馈页同内容、按真匿名口径脱敏）。
-  // 注：issues 是真匿名域（仅语义端点读写、不进快照写穿），但表本身在 db.js RESOURCE_TABLES 内，
+  // R-24：反馈域基线（与公开反馈页同内容、按**对外匿名**口径脱敏——2026-09-17 改裁后的表述）。
+  // 注：issues 是**语义端点域**（仅语义端点读写、不进快照写穿；匿名真身 `_realPersonId` 由写口落、
+  //   由党委核查出口 `GET /api/v1/issues/reveal` 单点可见），但表本身在 db.js RESOURCE_TABLES 内，
   //   故与其它集合同走 replaceCollection 落库。
   replaceCollection(db, 'issues', seedIssues());
   // 批次 47-P（2026-09-16，支书「允许改种子」裁定）：支部上报审批基线。

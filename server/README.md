@@ -23,7 +23,7 @@ npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止�
 | 项 | 位置 | 说明 |
 |---|---|---|
 | SQLite 数据库 | `server/data.db` | 单文件库，备份即复制该文件；未启动时不存在，首次 `npm start` 自动创建并导入种子 |
-| 附件目录 | `server/uploads/` | 登录用户上传的附件（jpg/png/pdf/docx/xlsx，单文件 ≤10MB），首次启动自动创建 |
+| 附件目录 | `server/uploads/`（可用 `UPLOAD_DIR` 改） | 支委层上传的附件（jpg/jpeg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤10MB），首次启动自动创建；**下载需登录，并按上传人所属支部隔离**（党委跨支部可见） |
 | 前端静态文件 | `docs/`（仓库根目录） | 由 Express 静态托管，与后端同源部署 |
 
 ## 部署对接

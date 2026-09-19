@@ -238,7 +238,7 @@ const SWEEP_KEYS = Object.keys(SWEEP).filter((k) => k !== 'tabs' && k !== 'views
 /** 待修台账命中集合（跨工作台累积；用于断言「台账不僵尸」） */
 const PENDING_SEEN = new Set();
 
-// S0：普查口径的单一源守卫——普查用的门槛值必须是引擎单一源的值（改门槛须同步本普查，防口径漂移）
+// S0：普查口径的单一源守卫——普查用的门槛值必须是引擎单一源的值（改门槛须同步本普查，防止口径未同步的情况）
 test('S0 普查门槛取值来自单一源（core/constants.js::SEARCH_FILTER_MIN_ROWS）', () => {
   const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'core', 'constants.js'), 'utf8');
   const m = /SEARCH_FILTER_MIN_ROWS\s*=\s*(\d+)/.exec(src);

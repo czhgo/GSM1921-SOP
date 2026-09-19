@@ -5,7 +5,7 @@
 //   docs/src/modules/help-catalog.js（浏览器：help 页功能地图/业务链路 mermaid 源）
 // 数据源：docs/src/core/function-catalog.js（单一事实源；纯数据表达式，node 可直接 import）
 // 约定：本文件为纯 ESM，不依赖任何 node API / 浏览器 API，双端可加载
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20260917c';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20260919g';
 
 function tag(it) {
   return it.generic ? '通用' : '特有';
@@ -27,7 +27,7 @@ export function generateMindmapText() {
 
 // 业务链路 flowchart 步骤（12 条角色化链路；节点 = 执行者: 任务）
 // 权威来源：docs/src/workflow/sopData.js（executor/supervisor）+ 快速指南 + voteConfig 模型
-// 与 function-catalog.js 的 flow 条目 id 一一对应（防失同步测试以 catalog 为准）
+// 与 function-catalog.js 的 flow 条目 id 一一对应（防止未同步的情况的测试以 catalog 为准）
 export const FLOW_LINKS = {
   // ── 活动型 ──
   'flow-branch-committee': [
@@ -53,7 +53,7 @@ export const FLOW_LINKS = {
     'A[支书: 发布党课通知与学习材料] --> B[支书: 提醒缺席党员补课]',
   ],
   'flow-theme-party': [
-    'A[组织者: 策划并发起活动] --> B[支委扩大会: 讨论通过]',
+    'A[组织者: 策划并发起活动] --> B[支委扩大群: 活动报备]',
     'B --> C[组织者: 建群·发布通知·联系委员]',
     'C --> D[纪检委员: 对接考勤要求与复盘底线]',
     'D --> E[组织者: 活动实施（签到/拍照/记录）]',

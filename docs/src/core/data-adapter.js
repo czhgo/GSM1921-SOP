@@ -18,6 +18,11 @@
 //  Source: content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §3.2.4/§3.7.2（与学校对接：API 设计要求与交付清单）
 // ════════════════════════════════════════════════════════════════
 
+// 2026-09-17 批次 49：成功提示的统一等待点。本文件刻意**全部使用动态 import** 以避开
+// 环依赖，此处是唯一静态 import —— 因 pending-writes 是**叶子模块**（零依赖），静态引入不成环，
+// 且必须同步可用（persist() 在排程那一刻就要登记，不能等一个 await）。
+import { trackWrite } from './pending-writes.js?v=20260919g';
+
 /**
  * DataAdapter Interface — 统一数据访问接口
  *
@@ -199,7 +204,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260917c');
+      const { mockDB } = await import('./domain.js?v=20260919g');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -293,7 +298,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260917c');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260919g');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -317,8 +322,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (!mockDB.attendances.length || !mockDB.inspections.length) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260917c');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260917c');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260919g');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260919g');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
@@ -328,7 +333,7 @@ export async function init() {
       }
       if (!mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260917c');
+          const { SEED_TODOS } = await import('../services/todo.js?v=20260919g');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
@@ -356,11 +361,24 @@ export async function init() {
  */
 export function persist() {
   if (DATA_SOURCE === 'mock') {
-    _mockAdapter?.saveDB();
+    // 2026-09-17 批次 49：mock 形态是**同步** localStorage 写，写失败（配额/隐私模式）
+    // 原实现会把异常抛给调用点、而调用点多在 showToast 之前 ⇒ 用户拿到的是「成功」。
+    // 改为登记失败、由成功提示侧统一改报失败（不静默、也不中断业务流）。
+    try {
+      _mockAdapter?.saveDB();
+    } catch (e) {
+      console.error('[DataAdapter] mock 落库失败：', e);
+      trackWrite(Promise.reject(e));
+    }
   } else {
     // API 模式：本地备份（服务器瞬时不可达不丢数据；mockDB 内容在 API 模式
     // 由 init() 从服务器填充，本地备份不参与读）+ 防抖全量快照写穿
-    _mockAdapter?.saveDB();
+    try {
+      _mockAdapter?.saveDB();
+    } catch (e) {
+      console.warn('[DataAdapter] API 模式本地备份失败（不影响快照写穿）：', e);
+      trackWrite(Promise.reject(e));
+    }
     _scheduleSnapshot();
   }
   // 数据变更广播（2026-08-05）：persist() 是全部业务写路径的汇聚点，
@@ -408,6 +426,9 @@ export function notifyDataLoaded() {
 // ── API 模式全量快照写穿（防抖）──────────────────────────────
 
 let _snapshotTimer = null;
+
+/** 当前排程对应的结算器（批次 49）：flush 落地/失败时结算，供成功提示侧等待 */
+let _flushDeferred = null;
 
 /** 快照写穿防抖间隔（ms）：多次连续写合并为一次全量快照 */
 const SNAPSHOT_DEBOUNCE_MS = 800;
@@ -468,10 +489,22 @@ function _commitBase(mockDB, keys) {
   for (const k of keys) _base[k] = _serKey(mockDB[k]);
 }
 
-/** 调度一次防抖快照写穿（已有排程则合并） */
+/**
+ * 调度一次防抖快照写穿（已有排程则合并）。
+ *
+ * 2026-09-17 批次 49（支书裁定「存好了才报成功」全站统一）：**排程即登记**——
+ * 若等到 flush 真正执行时才登记，紧随其后的成功提示会在「排程刚建好、flush 还没跑」的
+ * 空窗里看到「无在途写」而**立即报成功**，判据就白设了。故此处同步建一个 deferred、
+ * 交给 `trackWrite` 登记，`_flushSnapshot` 完成（或失败）时结算它。
+ * 防抖合并天然生效：同一窗口内的多次写共用同一个 deferred。
+ */
 function _scheduleSnapshot() {
   if (_snapshotTimer) return;
-  _snapshotTimer = setTimeout(_flushSnapshot, SNAPSHOT_DEBOUNCE_MS);
+  let resolve, reject;
+  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+  _flushDeferred = { resolve, reject };
+  trackWrite(promise);
+  _snapshotTimer = setTimeout(() => { _flushSnapshot().catch(() => {}); }, SNAPSHOT_DEBOUNCE_MS);
 }
 
 /**
@@ -514,21 +547,32 @@ function _buildSnapshotPayload(mockDB) {
 
 /**
  * 执行全量快照写穿：读取 mockDB 的全部持久化域（不含 users），
- * 整体 POST /api/v1/snapshot 覆盖写服务器。失败仅告警不抛出（不阻断 UI）。
+ * 整体 POST /api/v1/snapshot 覆盖写服务器。
+ *
+ * 失败处理（2026-09-17 批次 49 改）：**告警 + 向上抛**。原实现「失败仅告警不抛出」，
+ * 结果是「未落库」这件事对等待方不可见 —— 成功提示照样弹。现改为：
+ * ① 先结算本次排程的 deferred（失败即 reject，`trackWrite` 会记下这条失败，
+ *    成功提示侧据此改报失败）；② 再抛出，让显式调用 `flushSnapshot()` 的调用方也能感知。
+ * 防抖路径（setTimeout）已挂 `.catch(() => {})`，不会产生 unhandledrejection。
  */
 async function _flushSnapshot() {
   _snapshotTimer = null;
+  const deferred = _flushDeferred;
+  _flushDeferred = null;
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
-  if (DATA_SOURCE !== 'api') return;
+  if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('./domain.js?v=20260917c');
+    const { mockDB } = await import('./domain.js?v=20260919g');
     _cachedMockDB = mockDB;
     const payload = _collectDirty(mockDB);
-    if (!payload) return; // 无脏集合：跳过上传（2026-09-02 增量快照）
+    if (!payload) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
     await getAdapter().snapshot(payload);
     _commitBase(mockDB, Object.keys(payload)); // 上传成功 → 基线推进
+    deferred?.resolve();
   } catch (e) {
     console.warn('[DataAdapter] 增量快照写穿失败（已保留本地备份，下次 flush 自动重试）：', e);
+    deferred?.reject(e);
+    throw e;
   }
 }
 
@@ -556,18 +600,25 @@ export async function flushSnapshot() {
 function _flushSnapshotSync() {
   if (DATA_SOURCE !== 'api') return;
   if (!_cachedMockDB) {
-    _flushSnapshot();
+    // 批次 49：这条兜底路径也抛失败 ⇒ 必须自挂 catch（此路径无等待方）
+    _flushSnapshot().catch(() => {});
     return;
   }
   try {
     // snapshot() 内部为 async：fetch 在同步调用栈内发出（keepalive），
     // 卸载后剩余 await 可忽略；rejection 兜底避免 unhandledrejection
     const payload = _collectDirty(_cachedMockDB);
-    if (!payload) return; // 无脏集合：跳过（2026-09-02 增量快照）
+    if (!payload) { _flushDeferred?.resolve(); _flushDeferred = null; return; } // 无脏集合：跳过（2026-09-02 增量快照）
+    // 批次 49：卸载路径由浏览器接管请求完成，本上下文无法再观测结果 ⇒ **结算排程**，
+    // 否则 deferred 永远挂着、`settleWrites()` 会在它上面空等（真机表现为成功提示不出）。
+    _flushDeferred?.resolve();
+    _flushDeferred = null;
     getAdapter().snapshot(payload).catch((e) => {
       console.warn('[DataAdapter] 增量快照写穿失败（pagehide，已保留本地备份）：', e);
     });
   } catch (e) {
+    _flushDeferred?.resolve();
+    _flushDeferred = null;
     console.warn('[DataAdapter] pagehide 快照发起失败（已保留本地备份）：', e);
   }
 }

@@ -268,14 +268,44 @@ async function submitFlow(page, flow, override) {
   for (const s of (override ? [override] : flow.submit)) await runStep(page, s);
 }
 
-/** 读取本次提交产生的提示（默认 #toast-container；可指定面板内状态区）；超时无提示返回 ''（＝静默失败候选） */
+/** 过渡态文案 —— **不是裁决**（2026-09-17 批次 49）。
+ *  本批把成功提示改成「先等落库真正落地、再报成功」（`core/pending-writes.js` + `showToast` 的
+ *  success 分支），等待期间会先渲染一条过渡提示 ⇒ **「容器里有字」不再等于「已有裁决」**：
+ *  过渡态会**抢在**裁决之前把「等到有字」这个条件满足掉，于是断言读到的是过渡文案。
+ *  实测（批次 49 全量）：`leader-write-activity-save` 读到「i保存中…i保存中…」——
+ *  看着像「提示不符」，其实**裁决还没出**。
+ *  ⚠ 修法不是放宽判据、也不是把等待窗口调长：是把判据从「有字」收紧为「有裁决」，
+ *  并另立一条「一直停在过渡态」的独立违规（见 `sweepSuccessFlow`）——过渡态**不得冒充**成功/失败
+ *  （R-77「判据之间不得互相冒充」：失败的证据不得被成功吞没，**未出的裁决同样不得被过渡态冒充**）。 */
+const TOAST_PENDING_MARK = '保存中…';
+
+/** 载体内的逐条提示文本：全局 toast 容器里**一条提示一个子元素** ⇒ 可逐条区分过渡态与裁决；
+ *  其它载体（面板内状态区，如 `#ref-modal-status`）整块文本就是它的全部内容 ⇒ 按一条返回。 */
+async function readToastTexts(page, sel) {
+  return page.evaluate((s) => {
+    const host = document.querySelector(s);
+    if (!host) return [];
+    const norm = (t) => (t || '').replace(/\s+/g, ' ').trim();
+    if (host.id === 'toast-container' && host.children.length) {
+      return [...host.children].map((el) => norm(el.textContent)).filter(Boolean);
+    }
+    const whole = norm(host.textContent);
+    return whole ? [whole] : [];
+  }, sel);
+}
+
+/** 读取本次提交产生的提示（默认 #toast-container；可指定面板内状态区）；超时无提示返回 ''（＝静默失败候选）
+ *  **只认裁决**：等到出现非过渡态的提示才返回；等到超时仍只有过渡态时**原样返回它**，
+ *  由调用方如实报「一直停在过渡态」，而不是误报成「文案不符」（两者要查的东西不一样）。 */
 async function readToast(page, sel = NOTICE_SEL_DEFAULT, timeoutMs = 4000) {
-  await page.waitForFunction(
-    (s) => (document.querySelector(s)?.textContent || '').trim().length > 0,
-    sel,
-    { timeout: timeoutMs },
-  ).catch(() => {});
-  return page.evaluate((s) => (document.querySelector(s)?.textContent || '').replace(/\s+/g, ' ').trim(), sel);
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const list = await readToastTexts(page, sel);
+    const verdicts = list.filter((m) => !m.includes(TOAST_PENDING_MARK));
+    if (verdicts.length) return verdicts.join(' ');
+    if (Date.now() >= deadline) return list.join(' ');
+    await page.waitForTimeout(200);
+  }
 }
 
 /** 打开到目标表单：点 tab → 执行 open 步骤 → 等到「就位标记」；抗负载抖动重试一次
@@ -328,7 +358,12 @@ async function sweepFlow(page, flow) {
     }
     const { visible } = await page.evaluate(CARRIER_PROBE, e.carrier);
     if (!visible) v.push(`【载体不在位】报「${e.msg}」但载体「${e.carrier}」不可见/不存在（${at}）`);
-    if (e.satisfy) await runStep(page, e.satisfy);
+    // satisfy 支持「多步」（2026-09-18 批次 83）：SOP-B-2 落地后，考勤表单会**默认选中本场报名者**
+    //   ⇒ 「请选择参会人员」这一支不再天然可达，须在放行第一步（选定活动）之后再**清空**一次默认选中，
+    //   否则本判据会**因默认值而静默失效**（绿得毫无证据）。数组形态与 submit[] 同规。
+    if (e.satisfy) {
+      for (const s of (Array.isArray(e.satisfy) ? e.satisfy : [e.satisfy])) await runStep(page, s);
+    }
   }
   return v;
 }
@@ -432,7 +467,7 @@ async function sweepSuccessFlow(page, flow) {
   const v = [];
   const noticeSel = flow.noticeSel || NOTICE_SEL_DEFAULT;
   for (const s of flow.fill) await runStep(page, s);
-  // ⓪a **增量类断言（`countUp`）须先取动作前的基线**——绝对值会随种子与**同批其它流程**漂移
+  // ⓪a **增量类断言（`countUp`）须先取动作前的基线**——绝对值会随种子与**同批其它流程**变动
   //   （本条：定向跑「共 54 人」绿、全量跑「共 55 人」红）。基线在**动作之前**读，`reload` 前后共用。
   const base = {};
   for (const a of flow.asserts) {
@@ -441,10 +476,13 @@ async function sweepSuccessFlow(page, flow) {
   }
   await page.evaluate((s) => { document.querySelector(s)?.replaceChildren(); }, noticeSel);
   for (const s of flow.act) await runStep(page, s);
-  // ⓪ 落库窗口（`settleMs`）：多处写口的 `persist()` 是 **fire-and-forget**（`persist(); showToast(...)`
-  //   不 await），成功提示**先于**写落地 → 立刻重载会**打断在途写**，于是 ③ 量到的其实是
-  //   「写有没有被打断」而不是「写有没有落库」。留窗口不改判据强度，只把测错的对象扳回来。
-  //   ⚠ 反向也成立：**产品自身**在「提交后立刻关页/重载」下同样可能丢写——该脆弱性已如实登记
+  // ⓪ 落库窗口（`settleMs`）：**批次 49 前**，多处写口的 `persist()` 是 fire-and-forget
+  //   （`persist(); showToast(...)` 不 await），成功提示**先于**写落地 → 立刻重载会**打断在途写**，
+  //   于是 ③ 量到的其实是「写有没有被打断」而不是「写有没有落库」。留窗口不改判据强度，只把测错的对象扳回来。
+  //   ⚠ 批次 49（2026-09-17）起，成功提示改为「落库真正落地后才报成功」⇒ **读到裁决时就已在途写结算完毕**，
+  //   本窗口退化为**冗余保险**。**保留不删**：不因口径变好就顺手削弱 ③ 的独立性（③ 要证的是「真落库」，
+  //   不该把它的前提托付给别的机制）；但**它的存在理由已从「必需」降为「保险」**，故在此如实改写。
+  //   ⚠ 反向仍成立：**产品自身**在「提交后立刻关页/重载」下可能丢写——该脆弱性已如实登记
   //   `Q-23-44`，**未擅改产品**（不为了让守卫变绿而改产品，也不为了避开它而删掉 ③）。
   if (flow.settleMs) await page.waitForTimeout(flow.settleMs);
   // ① 成功提示（须在 reload 之前读——重载会清掉 toast 容器）
@@ -453,9 +491,14 @@ async function sweepSuccessFlow(page, flow) {
   //   （`MockAdapter` 每个写口固定 600ms 延迟）⇒ 从点提交到弹「创建成功」**约 10s**；
   //   而本函数只等 4s ⇒ 报「静默失败」。**「写得太慢」与「写不成」是两回事**，等待窗口不足
   //   会把前者误判成后者（且方向最坏：会去怀疑产品没写库）。故窗口缺省沿用 4s，长链显式声明。
+  // ⚠ 批次 49（2026-09-17）：窗口等的是**裁决**而非「有字」（`readToast` 已改，见其注释）。
   const toast = await readToast(page, noticeSel, flow.toastTimeoutMs || 4000);
   if (!toast) v.push(`静默失败：触发动作后无任何提示（既无成功也无失败，需人工确认是否真生效）`);
-  else if (!toast.includes(flow.toast)) v.push(`成功提示不符：应含「${flow.toast}」实测「${toast}」`);
+  else if (!toast.includes(flow.toast)) {
+    // 「一直停在过渡态」与「文案不符」要查的东西不同，**分开报**（合报会把读的人引去改断言字）
+    if (toast.includes(TOAST_PENDING_MARK)) v.push(`一直停在过渡态：等满 ${flow.toastTimeoutMs || 4000}ms 仍只有「${TOAST_PENDING_MARK}」、始终没出裁决 —— 过渡态不得冒充成功，须查为何落库迟迟没结算`);
+    else v.push(`成功提示不符：应含「${flow.toast}」实测「${toast}」`);
+  }
   // ② 当场真生效（带重试 → 同时充当「等列表刷新」）
   for (const a of flow.asserts) {
     const r = await checkAssert(page, a, base);
@@ -526,7 +569,7 @@ test('S3 无僵尸条目：每个 expect 条目必须对应 machine:true 校验�
   assert.deepEqual(zombie, [], `下列 expect 条目没有对应的 machine:true 校验点：\n${zombie.join('\n')}`);
 });
 
-test('S4 出处文案存在：每条登记项的 file 存在且含所登记文案（防漂移/僵尸）', () => {
+test('S4 出处文案存在：每条登记项的 file 存在且含所登记文案（防止未同步的情况 / 僵尸）', () => {
   const bad = [];
   for (const s of VALIDATION_SITES) {
     // 防污染：数据里绝不该出现 `?v=`——2026-09-15 批次 44 真实事故：bump-version.mjs 的 test 补戳正则
@@ -593,6 +636,26 @@ test('S5 成功路径清单（Q-23-44）不得静默缩水，且每条字段齐�
     }
   }
   assert.deepEqual([...new Set(dup)], [], `成功路径断言标记互相包含（会互相冒充成立）：\n${[...new Set(dup)].join('\n')}`);
+});
+
+test('S6 台账行号未同步即红灯：每条登记项的 line 必须真的落在该文案那一行', () => {
+  // 2026-09-17 批次 49 立。**病灶**：S4 只核「文件存在 + 文件里含这条文案」，**从不核行号** ⇒
+  //   `line` 成了台账里**唯一没人核的那一半**：实测 93 条里 **11 条行号未同步**（本次改动下移 5 条 +
+  //   历史上悄悄跑偏的 6 条），而 **S0–S5 全绿** —— 台账指错了地方，读的人照样会读歪
+  //   （这正是「写下的东西本身也要核」的又一次实例；同族：R-78 的「登记的理由本身也要核」）。
+  // 判据取**精确命中**（`line` 那一行本身含 `msg`），**不给容差**：给了容差就等于放任它继续走偏。
+  // 为什么能精确：本仓的校验写法一律「同一行 `if (!x) { showToast('error', '文案'); return; }`」，
+  //   S4 已保证文案在文件内，故「行号错了」与「文案行不好定」是两件事，后者不成立。
+  const bad = [];
+  for (const s of VALIDATION_SITES) {
+    const abs = join(ROOT, s.file.split('?')[0]);
+    if (!existsSync(abs)) continue;                     // 文件缺失由 S4 报，不在此重复报同一条
+    const lines = readFileSync(abs, 'utf8').split(/\r?\n/);
+    if ((lines[s.line - 1] || '').includes(s.msg)) continue;
+    const hits = lines.map((l, i) => (l.includes(s.msg) ? i + 1 : 0)).filter(Boolean);
+    bad.push(`${s.file}:${s.line} ${s.field}（文案「${s.msg}」实际在第 ${hits.join(' / ') || '—（全文未见，见 S4）'} 行）`);
+  }
+  assert.deepEqual(bad, [], `台账行号未同步，请改为实际行号（台账指错地方＝读的人一定读歪）：\n${bad.join('\n')}`);
 });
 
 /** 真机闭环普查（逐流程）────────────────────────────────────────────── */

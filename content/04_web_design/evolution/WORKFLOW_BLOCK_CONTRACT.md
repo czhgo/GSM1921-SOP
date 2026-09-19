@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-05"
+last_updated: "2026-09-17"
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
@@ -102,7 +102,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
   // ── 校验（validation → 块级守卫）────────────────────────
   "validation": {
     "initiatorRoles": ["secretary"],     // 谁可发起（角色键）
-    "requiredSop": true,                 // 必须带 sopRef（防失同步）
+    "requiredSop": true,                 // 必须带 sopRef（防止未同步的情况）
     "enabledByDefault": true             // 支部 config 未显式配置时的缺省
   }
 }
@@ -131,7 +131,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 | depends | `string[]` | 本块依赖的其他块 `blockId`（组合内先满足的块） | 引用必须 ∈ 本组合块 id 集合；**不允许成环**（含自依赖，DFS 检出） |
 | conflictsWith | `string[]` | 与本块互斥的块 `blockId` | 引用必须 ∈ 本组合块 id 集合；**同一组合不得同时含互斥双方** |
 
-- **引用必须存在**：`depends`/`conflictsWith` 的每个引用都必须是组合内某块的 `blockId`（引用组合外 id = 声明即错误，防笔误/失同步）。
+- **引用必须存在**：`depends`/`conflictsWith` 的每个引用都必须是组合内某块的 `blockId`（引用组合外 id = 声明即错误，防止笔误与未同步的情况）。
 - **互斥同含拦截**：同一组合清单同时出现 `conflictsWith` 双方即不合规（互斥对按 id 序规范化、去重，不偏袒声明方）。
 - **depends 禁环**：`depends` 不允许成环——DFS（三色标记）检出并返回完整环路径。
 - **收集式体检**：`resolveConflicts(items)` 不抛错，一次返回 `{ missingRefs, mutual, cycles }` 三类问题全集；`assertComposeValid(items)` 任一非空即抛错——错误信息含缺失引用（`引用方 -> 缺失 id`）、互斥双方 id、环路径；全部干净返回 `true`。
@@ -198,7 +198,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
   "name": "专班运行块",
   "version": "1.0.0",
   "provenance": "branch-custom",            // 专班 = 支部自己的制度尝试
-  "sopRef": "02_institution/sop/组织委员工作流程指南.md", // 专班招募/运行 SOP（组织委员 = 唯一专班管理节点）；制度定义另见 COMMISSIONER_DUTY_FRAMEWORK.md §A.4~A.7
+  "sopRef": "02_institution/sop/组织委员工作流程指南.md", // 专班招募/运行 SOP（专班管理节点：支书 / 副支书 / 组织委员）；制度定义另见 COMMISSIONER_DUTY_FRAMEWORK.md §A.4~A.7
   "capabilityId": "taskforce",
   "scope": ["workspace:org-commissioner", "workspace:secretary"],
   "inputs": {

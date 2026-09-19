@@ -3,7 +3,7 @@ title: "组件规范"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-14"
+last_updated: "2026-09-15"
 status: active
 split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
 related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
@@ -62,7 +62,7 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 #### 边线语义（Border-Left Semantics）
 
-> 沉淀：2026-08-02，反馈"纯白卡片 vs 左侧边线是否有逻辑"。经全仓抽样（styles.css + 6 个工作台 + help/about 页）确认：**边线承担"强调/可交互/角色归属"的视觉编码语义，纯白代表中性内容**。本规范为成文依据，防止未来加边线时语义失同步。
+> 沉淀：2026-08-02，反馈"纯白卡片 vs 左侧边线是否有逻辑"。经全仓抽样（styles.css + 6 个工作台 + help/about 页）确认：**边线承担"强调/可交互/角色归属"的视觉编码语义，纯白代表中性内容**。本规范为成文依据，防止未来加边线时语义未同步。
 
 **适用范围**：卡片/区块级元素（容器）。**列表项（行级元素）仍遵循"列表项白底原则"不加边线**——行内区分靠圆点，容器级区分靠边线，两层不混用。
 
@@ -449,11 +449,12 @@ related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]
 
 ### 4.15 反馈管理规范（2026-08-08 指令 #7 增强）
 
-> 反馈采用 GitHub Issue 风格：草稿审核（支书通过/驳回）→ 公开 → 指派 → 处置 → 待终审 → 关闭。2026-08-08 按指令三项增强定稿。
+> 反馈采用 GitHub Issue 风格：草稿审核（支书通过/驳回）→ 公开 → 指派 → 处置（归支委会，由支书主持支委会）→ 待终审 → 关闭。2026-08-08 按指令三项增强定稿。
 
 **提交侧（issue-form.js）**：
 - **人名化**：提交人/评论人/指派人一律经 `PersonStore` 解析为姓名，禁止显示 mock 字段/角色键；
-- **匿名提交开关**：checkbox（`.checkbox-accent`）勾选后对外显示「匿名」，payload 保留 `_realPersonId` 仅支书内部可追溯（详情面板以主题色标注「真实提交人（仅支书可见）」）。
+- **匿名提交开关**：checkbox（`.checkbox-accent`）勾选后**对外显示「匿名」**（列表/详情提交人均显示「匿名」，详情面板**不**标注真身），后台（服务端 `issues` 表 / mock 本地库）**保留真实提交人 `_realPersonId`**。
+  - **2026-09-17 支书改裁**：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，查看匿名的权限只有党委有。」⇒ **查看真身的权限只有党委**（党委台「匿名反馈核查」页签；服务端 `GET /api/v1/issues/reveal`，**每次查看留痕** `issue_reveals`）；**党支部内部（含支书）不可见**——「处置」与「查看真身」是两项分开的权限（本行旧文「仅支书内部可追溯 / 详情面板标注『真实提交人（仅支书可见）』」随本次改裁作废）。适用范围：本改裁只落在意见反馈，「正式表决无记名」维持原裁定不变。
 
 **处置侧（feedback-tab.js 支书工作台）**：
 - **正式答复栏**：独立输入行 + `btn-accent` 按钮，以 `kind='reply'` 写入时间线；时间线以主题色浅底 + 「正式答复」徽标显著区分，作者经 `getPersonName` 解析为支书姓名；

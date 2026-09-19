@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260917c';
-import { showToast } from '../core/utils.js?v=20260917c';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
-import { NoticeStore } from './notice.js?v=20260917c';
+import { BranchService } from './runtime.js?v=20260919g';
+import { showToast } from '../core/utils.js?v=20260919g';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
+import { NoticeStore } from './notice.js?v=20260919g';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260917c';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260919g';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260917c';
-import '../modules/capabilities/sop-scenarios.js?v=20260917c';
+import { getCapabilities } from '../core/registry.js?v=20260919g';
+import '../modules/capabilities/sop-scenarios.js?v=20260919g';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -330,8 +330,18 @@ export function renderWorkflowPanel(panelId, anchorId, definitionId, activityTit
  * @returns {Promise<{activity: object, taskCount: number}>}
  */
 export async function writeActivityWithSOP(activityData, scenarioId, targetDate) {
+  // 0. 原则7（同一套数据）：本次创建若已内联赋权组织者，顶层 organizer 随之派生同步。
+  //   与 services/auth.js::_syncTopLevelOrganizer 同一口径（取 assignments 中首个 organizer 的 personId）。
+  //   全仓 41 处读端（归档 / 首页 / 复盘卡 / inspector 等）消费顶层 activity.organizer；
+  //   此前本链未做同步 ⇒ 组长指定他人为组织者后顶层仍是创建组长本人，同一台内两处显示互相矛盾
+  //   （2026-09-17 批次 64 dogfood 实测）。**未指定组织者时保持调用方传入值不变**（原行为）。
+  const orgAssign = Array.isArray(activityData.assignments)
+    ? activityData.assignments.find(a => a.role === 'organizer')
+    : null;
+  const payload = orgAssign ? { ...activityData, organizer: orgAssign.personId } : activityData;
+
   // 1. 创建活动
-  const activity = await BranchService.createActivity(activityData);
+  const activity = await BranchService.createActivity(payload);
   console.info('[DecisionTree] createActivity 成功, id=' + activity.id);
 
   // 2. 实例化 SOP 任务节点

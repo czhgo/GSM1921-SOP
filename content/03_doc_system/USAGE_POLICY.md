@@ -2,7 +2,7 @@
 title: "使用规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-14"
+last_updated: "2026-09-15"
 status: active
 related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/03_doc_system/OPERATIONS_GUIDE.md]
 ---
@@ -26,13 +26,15 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 T1 官方表达"入党积极分子"可简化为"积极分子"——这是发展党员系列中唯一的简化特例。其余阶段（入党申请人、发展对象、预备党员、正式党员）必须使用全称，不得简化。
 
-### 1.2 三支委职责定位
+### 1.2 支委职责定位
 
 | 委员 | 职责全集 |
 |------|---------|
-| **组织委员** | 专班管理（最高优先级）—— 所有专班的创建、招募、运行、解散；发展党员与考察 —— 考察档案、材料催缴、思想汇报查看调用 |
+| **组织委员** | 专班管理（最高优先级）—— 所有专班的创建、招募、运行、解散；发展党员的考察与材料准备 —— 考察档案、材料催缴、思想汇报查看调用 |
 | **宣传委员** | 活动记录、归档、整理的充分记录；宣传与档案制度建设 |
 | **纪检委员** | 考勤管理、考察管理、活动监督复盘（覆盖活动与专班）；补课制度执行（并入「考勤管理」一级分段） |
+
+> 发展党员的责任在支委会——必须集体决策，不落实到具体个人；组织委员承担其中的考察与材料准备。
 
 ---
 

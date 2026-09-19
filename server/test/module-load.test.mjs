@@ -10,7 +10,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
@@ -65,7 +65,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260917c`);
+          await import(`/src/${rel}?v=20260919g`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -83,4 +83,47 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
   } finally {
     await browser.close();
   }
+});
+
+// ── E2 独立页数据源装配断言（2026-09-19 批次 93 · `SOP-B-44` 方案 A）────────────
+// 病灶（`D-485` / `D-486`，批次 87 普查）：`docs/*.html` 独立页漏注册数据源 ⇒ **api 形态下静默退回本地**
+//   （种子能开、服务端新数据打不开，写只落本机）。**已有守卫为何没拦住**：E1（本文件）收集模块时
+//   **显式排除 `docs/src/entries/**`**（见上方 collectJsFiles）；`page-sweep` **只进 7 个工作台、不进独立页**。
+// 判据（静态装配断言 · 方案 A）：每个**顶层** `docs/*.html` 所引入口，其源码须命中「装配形」之一——
+//   **形甲（自装配）**：`registerApiAdapter` 且 `init(`（`D-485` 标准形）；
+//     ⚠ 标准形里 `init` 常按 `init as dataInit` 引入（`archive/feedback/notice/...` 皆是）⇒ 判据同时认
+//     `dataInit(` 与裸 `init(` 两种写法（**只认这两个装配名，认 `xxx.init()` 会把无关调用放进来**）。
+//   **形乙（经共享入口装配）**：`bootstrapPage(`（`core/bootstrap.js` 内即 `registerApiAdapter` + `init`，
+//     首页 `main-entry.js` 走这一形）。
+// 白名单（免检；**逐条写明理由**）：`about.html`（纯说明页，不读业务数据）· `help.html`（纯说明页）·
+//   `login.html`（登录页，登录前无支部数据可装配）。
+// ⚠ 本项只加这一条静态断言；**未扩 `page-sweep`、未把 `entries/**` 纳入 E1**（那属方案 B / C）。
+test('E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装配数据源（白名单 about/help/login）', () => {
+  const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url));
+  const WHITELIST = new Set(['about.html', 'help.html', 'login.html']);
+  const pages = readdirSync(docsDir, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith('.html'))
+    .map((e) => e.name)
+    .sort();
+  assert.ok(pages.length > 8, `顶层独立页应不少于 9 个，实测 ${pages.length}`);
+
+  const problems = [];
+  const checked = [];
+  for (const page of pages) {
+    if (WHITELIST.has(page)) continue;
+    const html = readFileSync(join(docsDir, page), 'utf8');
+    const m = /<script type="module" src="\.\/src\/entries\/([\w-]+\.js)/.exec(html);
+    if (!m) { problems.push(`${page} 未找到 entries 入口脚本`); continue; }
+    const entry = m[1];
+    const src = readFileSync(join(docsDir, 'src', 'entries', entry), 'utf8');
+    const selfHydrate = /registerApiAdapter\s*\(/.test(src) && /(?:dataInit|\binit)\s*\(/.test(src);
+    const viaBootstrap = /bootstrapPage\s*\(/.test(src);
+    if (!selfHydrate && !viaBootstrap) {
+      problems.push(`${page} → ${entry}：既未自装配（registerApiAdapter + init），也未经 core/bootstrap.js 装配（bootstrapPage）`);
+      continue;
+    }
+    checked.push(`${page}(${selfHydrate ? '自装配' : '经 bootstrap'})`);
+  }
+  console.log(`[E2] 独立页装配：受检 ${checked.length} 页 / 白名单 ${WHITELIST.size} 页 → ${checked.join(' ')}`);
+  assert.deepEqual(problems, [], `独立页数据源装配缺失（api 形态下会静默退回本地）：\n${problems.join('\n')}`);
 });

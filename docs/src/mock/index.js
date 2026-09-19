@@ -1,4 +1,4 @@
-import { PEOPLE } from './people.js?v=20260917c';
+import { PEOPLE } from './people.js?v=20260919g';
 
 // ════════════════════════════════════════════════════════════════
 //  种子数据仓（re-export 收口，2026-09-03 数据域接线试点）
@@ -9,12 +9,12 @@ import { PEOPLE } from './people.js?v=20260917c';
 
 export { PEOPLE };
 
-export { ACTIVITIES } from './activities.js?v=20260917c';
-export { ATTENDANCE_RECORDS } from './attendance.js?v=20260917c';
-export { INSPECTION_RECORDS } from './inspection.js?v=20260917c';
-export { THOUGHT_REPORTS } from './thought-reports.js?v=20260917c';
-export { PARTY_GROUPS } from './party-groups.js?v=20260917c';
-export { MEMBER_FLOWS } from './member-flows.js?v=20260917c';
-export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from './review.js?v=20260917c';
-export { MOCK_NOTICES } from './notices.js?v=20260917c';
-export { MOCK_TASKFORCES } from './taskforces.js?v=20260917c';
+export { ACTIVITIES } from './activities.js?v=20260919g';
+export { ATTENDANCE_RECORDS } from './attendance.js?v=20260919g';
+export { INSPECTION_RECORDS } from './inspection.js?v=20260919g';
+export { THOUGHT_REPORTS } from './thought-reports.js?v=20260919g';
+export { PARTY_GROUPS } from './party-groups.js?v=20260919g';
+export { MEMBER_FLOWS } from './member-flows.js?v=20260919g';
+export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from './review.js?v=20260919g';
+export { MOCK_NOTICES } from './notices.js?v=20260919g';
+export { MOCK_TASKFORCES } from './taskforces.js?v=20260919g';

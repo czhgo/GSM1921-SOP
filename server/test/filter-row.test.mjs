@@ -333,7 +333,7 @@ test('D2 档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠
     const vp = vpad(b);
     if (!vp) { bad.push(`${sel}（${label}）未声明内边距`); continue; }
     if (!lh) {
-      bad.push(`${sel}（${label}）未显式声明 line-height —— 高度将随 UA / CDN 工具类漂移`);
+      bad.push(`${sel}（${label}）未显式声明 line-height —— 高度将随 UA / CDN 工具类变动`);
       continue;
     }
     const h = num(lh) + vp[0] + vp[1] + 2; // 边框上下各 1px

@@ -3,7 +3,7 @@ title: "数据流设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-14"
+last_updated: "2026-09-15"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/sop/纪检委员工作流程指南.md]
@@ -41,10 +41,10 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 12 个内置场景，驱动任务生成和工作流 |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与 DATA_MODEL §2.15 一致） |
 | 应用状态 (appState) | core/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/三支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
 | 赋权审计 (AuthRecord) | localStorage `sop_org_os_auth_audit`（审计快照）+ 主源内嵌（活动 `assignments` / 专班 `members`） | 跨会话持久化 | AuthStore.authorize 写主源 + 追加快照（旧键 `sop_org_os_assigned_roles` 已删除） |
 | 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（10 业务 + 3 遗留）的中文标签与视觉配色 |
-| 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，支书维护 issues.json 权威源 |
+| 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
 
 ### 1.3 端到端数据流交织图
 
@@ -91,6 +91,16 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | 分工 | 活动/专班 | 分工汇总 → 工作量统计 | `assignmentId` |
 | 补课 | 考勤（缺勤/请假触发） | 回写考勤「已补」 | `makeupTask`→考勤回写 |
 | 任务 | 活动 | 完成状态汇总 → 活动进度 | `activityId` |
+
+### 1.4 归档由系统自动同步（2026-09-17 支书裁定）
+
+> **需求**：**归档在系统中自动同步完成，不依赖任何人的重复劳动。**
+> **支书原话（2026-09-17）**：「**归档这件事情应该在 系统中自动实现同步，而不需要依靠个人重复劳动！【我认为删去更好】**」
+> **状态**：**待落地**（产品裁定已定；本节只登记**需求与口径**，具体做法待设计）。
+
+- **与既有设计的关系**：§1.3 主线三「赋权 → 工作台 → 入档」与 §3.1.1「归档层」把归档写成**由人执行的数据交接环节**（如「纪检委员（执行人）汇总考勤 / 考察记录」）。本裁定要求该环节**不再由人手工传递**——数据在其产生处即归位，归档成为系统的自动结果。
+- **为什么**：手工归档会产生「谁归档」的口径冲突（考勤归档归组织委员还是纪检委员），并把同一份数据反复传递，增加重复劳动与出错面。
+- **用户得到什么**：各身份都**不再需要做「归档」这个动作**；归档状态由系统自动呈现，人只做自己职责之内的事。
 
 ---
 
@@ -286,7 +296,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | Mock 数据生成（seed 阶段） | `ACTIVITIES` | — | mock/index.js 中 `_activityTitle`/`_activityType` 辅助函数在 seed 阶段使用静态数据，正确 |
 | 服务层查找 | `mockDB.activities` | `ACTIVITIES` | auth.js/makeup.js/party.js 等服务层应读取运行时数据 |
 
-**已禁用 `_maybeError` 随机错误模拟**（D-248）：原设计 10% 错误率触发 fallback 返回静态 ACTIVITIES，导致跨页面数据失同步。后端接入后真实错误由后端返回。
+**已禁用 `_maybeError` 随机错误模拟**（D-248）：原设计 10% 错误率触发 fallback 返回静态 ACTIVITIES，导致跨页面数据未同步。后端接入后真实错误由后端返回。
 
 **唯一数据源原则（2026-08-01 T187）：**
 

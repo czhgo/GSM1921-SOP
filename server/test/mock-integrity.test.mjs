@@ -12,9 +12,9 @@ const BASE = 'http://localhost:3000';
 // 浏览器内收集全部 mock 数据（结构化克隆返回）
 async function collectAll(page) {
   return page.evaluate(async () => {
-    const mock = await import('/src/mock/index.js?v=20260917c');
-    const seed = await import('/src/mock/seed.js?v=20260917c');
-    const accounts = await import('/src/mock/accounts.js?v=20260917c');
+    const mock = await import('/src/mock/index.js?v=20260919g');
+    const seed = await import('/src/mock/seed.js?v=20260919g');
+    const accounts = await import('/src/mock/accounts.js?v=20260919g');
     return {
       PEOPLE: mock.PEOPLE,
       ACTIVITIES: mock.ACTIVITIES,
@@ -180,7 +180,7 @@ function auditLifecycle(data) {
   //    起因：为解锁成员台「考勤概况 · 去补课」造了一条 9 月缺勤（`att-sep-1` @ act-31 · 2026-09-10），
   //    被本规则判为「未来活动已有考勤」——**但 9-10 相对今天是过去**，是**锚点过期**而非数据有错。
   //    锚点语义＝「今天」；**它不是自动取系统时间而是写死**：本守卫是纯 node 确定性断言，
-  //    `new Date()` 会让结果随运行日漂移（今天绿、明天红，等于没有判据）。
+  //    `new Date()` 会让结果随运行日变动（今天绿、明天红，等于没有判据）。
   //    ⇒ 刷新锚点是**既定动作**（08-05 → 09-05 → 09-17 已是第三次），每次都必须随之复核种子里的未来活动。
   for (const att of data.ATTENDANCE_RECORDS) {
     const act = actById(att.activityId);

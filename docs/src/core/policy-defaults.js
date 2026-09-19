@@ -73,10 +73,17 @@ const _FACTORY = {
     // 未到（请假/缺席）标因固定枚举（附录⑩ A批·S1 · R1-2，支书裁定 2026-09-06）
     // kind 'institutional'：出处 REVIEW_QUEUE 附录⑩ S1 R1-2——请假/缺席由纪检认定、系统标因=固定枚举，
     //   禁造新枚举（新增须支书裁决）。key=英文（落 attendance.absenceReason 字段），label=中文标签（界面显示）。
+    // 2026-09-19 批次 94（SOP-B-16 ⑤「请假分事假 / 病假两档 + 请假时提示时效」）：
+    //   R1-2 要求「新增枚举须支书裁决」——支书本批指令已把 ⑤ 列入落地清单 ⇒ 视为该新增已裁决；
+    //   出处＝母本《常见工作场景快速指南》「事假必须提前 1 天申请，病假可以事后补假」。
+    //   `note` = 该档的时效要求（**界面提示用，不是校验、不拦提交**；消费点 = absenceReasonNote）。
+    //   ⚠ 旧键 `leave`（请假）**不再出现在可选枚举**，但标签保留为兼容别名
+    //     （存量记录 + 线上参会代记 `declareOnlineAttend` 仍用它，显示照旧「请假」）。
     reasons: [
-      { key: 'leave',     label: '请假' },
-      { key: 'unexcused', label: '无故' },
-      { key: 'other',     label: '其它' },
+      { key: 'leave_personal', label: '事假', note: '须提前 1 天申请' },
+      { key: 'leave_sick',     label: '病假', note: '可事后补' },
+      { key: 'unexcused',      label: '无故', note: '' },
+      { key: 'other',          label: '其它', note: '' },
     ],
     // 考勤录入提醒阈值（支书台自动提醒：活动结束 >entryRemindDays 天仍无考勤记录 → 提醒纪检录入）
     // kind 'branch-default'：域=纪检监督侧（支书待办派生消费）。批4 副本收编（2026-09-09 支书批）：
@@ -85,6 +92,12 @@ const _FACTORY = {
     // 考勤明细录入期限（同一提醒项 deadline = 活动日 + summaryDeadlineDays）
     // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggAttendanceRemind 消费；勿另写字面量）。
     summaryDeadlineDays: 5,
+    // 出勤率偏低**提示线**（SOP-B-15 / SOP-B-7，2026-09-18 批次 85）
+    // kind 'branch-default'：**只作提示、不触发任何动作**（不生成补课 / 不影响评优 / 不生成处置）。
+    //   ⚠ 它是**提示线、不是制度门槛**——母本不设达标线（存量无出处的「学期出勤率低于 80%」已删）；
+    //   本参数只用来「让相关成员知道出勤率偏低这件事」，支部可自行调整（同 §9l 制度参数可调口径）。
+    //   消费点：services/attendance.js::listLowAttendanceSessions（勿在业务层另写字面量）。
+    lowRateHint: 80,
   },
   inspection: {
     // 考察超期默认天数（待确认 + 超过 N 天判超期）
@@ -119,16 +132,22 @@ const _FACTORY = {
     semesterReportReminder: { enabled: true, frequency: 'semester' },
   },
   thoughtReport: {
-    // 思想汇报篇幅惯例（支书 2026-09-13 裁定：「思想汇报一般而言 1500 字左右」）
-    // kind 'branch-default'：**软提示口径**——界面实时显示字数并提示建议篇幅，
-    //   **不作硬性字数拦截**（过短内容由组织初阅把关，见 services/thought-report.js 状态机）。
-    //   wordHint      = 建议篇幅（提示文案「建议 N 字左右」）；
-    //   wordSoftMin   = 「明显偏短」提示线（低于此值提示补充，仍可提交）。
-    // 消费点：services/thought-report.js（提交/重交提示文案）+ 提交侧与初阅侧界面字数提示。
-    // 原 services/thought-report.js 注释「界面不展示字数为宜」与提交界面实际展示字数的口径冲突，
-    //   经支书 2026-09-13 裁定为「软提示 + 显示字数」，本常量即该口径的单一源。
+    // 思想汇报篇幅（`SOP-B-11`，2026-09-18 批次 86 落地；依支书 2026-09-17 裁定，
+    //   母本 `常见工作场景快速指南.md:342`·`:354` 逐字为：
+    //   「建议篇幅 1500 字以上；篇幅少于 1200 字触发警告审阅，不影响提交」）。
+    // kind 'branch-default'（**字数类**，与 §9l「简讯字数 / 活动照片张数」同族）：
+    //   属**支部可调**的制度参数，**母本所写数字即默认值**。
+    // ⚠ 三个数各是各的，不得混用：
+    //   · wordHint    ＝ **建议**篇幅（1500）——只写在提示文案里，**不参与任何判定**；
+    //   · wordSoftMin ＝ **警告审阅线**（1200）——低于它触发「警告审阅」（提醒相关人去看一眼），
+    //                     **≠ 门槛、≠ 达标线**；
+    //   · 「**不影响提交**」＝**硬约束**——低于任何数字都**照常提交、照常入库归档**，
+    //                     系统**不拦截、不自动退回、不自动打回**（见 services/thought-report.js）。
+    // 消费点：services/thought-report.js::wordCountHint（提交侧 / 重交侧 / 阅读侧字数提示唯一出口）。
+    //   ⚠ 2026-09-18 批次 86：`wordSoftMin` 由 800 跟到 1200（D-387 落地），
+    //     并补齐「警告审阅」语义；此前「组织初阅会据此把关」的措辞随初阅门取消一并删除。
     wordHint: 1500,
-    wordSoftMin: 800,
+    wordSoftMin: 1200,
   },
 };
 
@@ -144,7 +163,7 @@ export const POLICY_DEFAULTS = _clone(_FACTORY);
  * config.policyOverrides 可覆盖白名单（域参数 L2，支书 2026-09-09 批；全覆盖路径均在
  * POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定）。
  * 净化/钳制唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides（本表唯一消费方，
- * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防两套校验失同步）。
+ * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防止两套校验未同步的情况）。
  */
 export const POLICY_OVERRIDABLE = [
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },

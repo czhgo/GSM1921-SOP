@@ -3,6 +3,8 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
+import { hasPendingWrites, settleWrites } from './pending-writes.js?v=20260919g';
+
 // ── 日期格式化 ─────────────────────────────────────────────────
 function _pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -38,10 +40,34 @@ let _toastContainer = null;
 
 /**
  * 显示一条浮层 Toast 通知
+ *
+ * 全站统一「存好了才报成功」（2026-09-17 批次 49，支书裁定）：`success` 是对用户的
+ * **承诺**——必须先等这次动作的后台落库真正落地才报；任一落库失败，改报失败，
+ * 绝不出现「提示成功、其实没存上」。机制与由来见 `core/pending-writes.js`。
+ * · 无在途写（mock 形态常是同步落盘）⇒ 立即渲染，零延迟、与改造前行为一致。
+ * · 等待超过 `SUCCESS_TOAST_MAX_WAIT_MS` ⇒ 报「保存超时」而非成功（**不许在未确认时声称成功**）。
  * @param {'success'|'error'|'info'} type
  * @param {string} message
+ * @returns {Promise<void>|void}
  */
 export function showToast(type, message) {
+  if (type !== 'success') return _renderToast(type, message);
+  if (hasPendingWrites()) _renderToast('info', '保存中…');   // 超过一瞬的等待先给过渡态，防用户以为卡住而重复点
+  let failed = false;
+  const settled = settleWrites().catch(() => { failed = true; });
+  const timeout = new Promise((res) => setTimeout(res, SUCCESS_TOAST_MAX_WAIT_MS));
+  return Promise.race([settled, timeout]).then(() => {
+    if (failed) return _renderToast('error', '未保存成功，请稍后重试');
+    if (hasPendingWrites()) return _renderToast('error', '保存超时，请检查网络后重试');
+    return _renderToast('success', message);
+  });
+}
+
+/** 成功提示前的最长确认等待（ms）：等不到确认就报超时，不报成功 */
+const SUCCESS_TOAST_MAX_WAIT_MS = 15000;
+
+/** Toast 实际渲染（成功提示的等待逻辑在 `showToast` 收口，见上） */
+function _renderToast(type, message) {
   if (!_toastContainer) {
     _toastContainer = document.createElement('div');
     _toastContainer.id = 'toast-container';

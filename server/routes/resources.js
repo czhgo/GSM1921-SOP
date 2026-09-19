@@ -8,7 +8,7 @@ import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
-// 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防失同步）
+// 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防止未同步的情况）
 import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../docs/src/core/config-clean.js';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
@@ -184,9 +184,19 @@ function _ballotModeReject(voteConfig) {
 export function createResourcesRouter(db) {
   const router = Router();
 
+  // ── 读口收紧（2026-09-18 批次 81；支书 2026-09-18 裁定「授权收紧」）──────────────
+  // 病灶（批次 80 实测）：未登录 GET 30 张资源表一律 200，`users`（含姓名/学号/角色/联系方式）
+  //   可被全量列举。裁定：**默认要登录**，**只给「明写公开」的留白名单**（宁严勿松）。
+  // 白名单口径＝「**有明确裁定公开的才公开**」：现**只有 `issues`** —— 它是本文件下游的语义端点
+  //   （见本文件意见反馈一节注释原文「GET /api/v1/issues 公开读（处置结果公开可见，所有人可见）」），
+  //   且**不走在下方循环里**，故本循环的白名单集合当前为空集也正确；保留该集合是为了让
+  //   「哪几张放行」在代码里显式可见（改口径时只动这一处）。
+  // **不放行 `branches`**：批次 80 对它的判断标注为「判断存疑」⇒ 本批按「不放行」处理。
+  const PUBLIC_READ = new Set(['issues']);
   // 每个资源 GET list
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
-    router.get(`/${name}`, (req, res) => res.json(listTable(db, table)));
+    const readAuth = PUBLIC_READ.has(name) ? [] : [requireAuth(db)];
+    router.get(`/${name}`, ...readAuth, (req, res) => res.json(listTable(db, table)));
   }
 
   // 资源级 CRUD（2026-08-06 扎口修复 Z2：此前前端 ApiAdapter 暴露的
@@ -302,7 +312,7 @@ export function createResourcesRouter(db) {
   // ── 立项⑤ 阶段A：支部语义创建 POST /branches（2026-09-06）────────────
   // 空模板初始化 / 复制现有支部为模板——双形态口径与前端 services/branch.js createBranch
   // （EMPTY_BRANCH_TEMPLATE + buildNewBranchRecord）一致：server 内联同语义，
-  // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防两端失同步）。
+  // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防止两端未同步的情况）。
   // 门控：party-staff（与 PATCH /branches/:id/config 同风格 requireAuth + 角色判定）。
   // body：{ mode?: 'empty'|'copy', sourceId?, name?, type? }——
   //   name 缺省 = 占位名「新支部（待配置）」（名待填，向导步骤①可改）；
@@ -400,8 +410,10 @@ export function createResourcesRouter(db) {
     res.json(act);
   });
 
-  // 全量引导：一次拉取全部资源（data-adapter init() 在 api 模式的填充来源）
-  router.get('/bootstrap', (req, res) => {
+  // 全量引导：一次拉取全部资源（供外部对接/测试；前端 init() 实走逐表读口，不走本口）
+  // 2026-09-18 批次 81：本口与逐表读等价（一次给全 30 张表）⇒ **与逐表同门 requireAuth**；
+  //   否则「逐表收紧」形同虚设（未登录改调本口即可拿到同一份数据）。
+  router.get('/bootstrap', requireAuth(db), (req, res) => {
     const out = {};
     for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
       out[name] = listTable(db, table);
@@ -636,23 +648,41 @@ export function createResourcesRouter(db) {
   });
 
   // ════════════════════════════════════════════════════════════════
-  //  意见反馈（真匿名）语义端点（2026-09-12 支书裁定）
-  //  · GET  /api/v1/issues      公开读（处置结果公开可见，所有人可见）
-  //  · POST /api/v1/issues      登录用户可提交；落库字段白名单，绝不存可反查提交人的字段
-  //  · PATCH /api/v1/issues/:id 处置/回复沿用既有口径（仅支书）
-  //  防刷（真匿名下唯一手段）：客户端随机 token → 服务端仅存 tokenHash，仅用于判重/频率限制，
-  //  不含 personId、不可反查人（哈希算法与前端同源 = constants.hashSubmitterToken）。
-  //  支部归属（2026-09-15 支书裁定「每个组织独立的 issue 空间」）：写入取登录人所属支部（actor.branchId，
-  //  缺省 'br-b1'，见 POST）；读取过滤在**前端** services/issues.js（withinBranch，单一源），
-  //  GET 仍返回全量（公开读口径不变），跨支部不可见由客户端按 viewer 所属支部收敛。
+  //  意见反馈语义端点（2026-09-12 首裁「真匿名」→ **2026-09-17 支书改裁**）
+  //  · GET  /api/v1/issues          公开读（处置结果公开可见，所有人可见）——**一律脱敏，不含提交人**
+  //  · POST /api/v1/issues          登录用户可提交；**匿名亦落库真实提交人**
+  //  · PATCH /api/v1/issues/:id     处置/回复沿用既有口径（**仅支书**）——**支书也看不到提交人**
+  //  · GET  /api/v1/issues/reveal   **仅党委（party-staff）**：可看匿名反馈的真实提交人，**每次查看留痕**
+  //  ── 口径变更依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+  //     查看匿名的权限只有党委有。**」 ──
+  //  · 匿名 = **前端展示层匿名**：后台记真实提交人（`_realPersonId`），前端与一切常规读出口都看不出是谁。
+  //  · **可见范围＝仅党委**：支书**不可见**——「处置」与「查看真身」是**两项分开的权限**，
+  //    不能因为支书有处置权就顺带把真身给他（这正是本次改裁与旧实现「仅支书可追溯」的关键差别）。
+  //  · **适用范围（重要）**：本改裁**只落在意见反馈一处**。「正式表决无记名」**维持 2026-09-12 原裁定不变**
+  //    （两段式：参与记录 + tally，**逐人选项不落库**）——支书同日就「无记名表决是否一并改」单独裁定为
+  //    「**表决保持真无记名**」⇒ 那句「对所有匿名都成立」在**表决**这一处**由支书本人豁免**。
+  //  · 防刷：仍**只按 tokenHash** 判重/限频（与 personId 无关），与「后台记真身」互不影响。
+  //  · 支部归属（2026-09-15 裁定）：写入取 actor.branchId（缺省 'br-b1'）；读取过滤在前端 withinBranch。
   // ════════════════════════════════════════════════════════════════
   const SECRETARY_SET = new Set(SECRETARY_ROLES);
-  // 历史数据迁移：读取/回写时清理既有记录的 _realPersonId（保留其余内容）
+  // 真身同族键：任何常规读出口都不得带出
+  const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
+  // **脱敏序列化（默认出口）**：拷贝后剥掉真身键。**一切常规读（公开 / 支书 / 提交回执 / 处置回执）都走它**。
+  // ⚠ 2026-09-17 改裁前，本函数是「读取/回写时清理既有记录的 `_realPersonId`」（历史数据迁移，删了就没了）；
+  //   改裁后改为**只剥不外泄、不回写**——库里要留真身，出口要脱敏，两者从此分开。
   const sanitizeIssue = (rec) => {
-    if (rec && typeof rec === 'object') delete rec._realPersonId;
-    return rec;
+    if (!rec || typeof rec !== 'object') return rec;
+    const out = { ...rec };
+    for (const k of ISSUE_IDENTITY_KEYS) delete out[k];
+    return out;
   };
   const listIssues = () => listTable(db, 'issues').map(sanitizeIssue);
+  // **留痕序列化（唯一例外）**：只给党委出口用。**不得用于任何其他路由**。
+  const revealIssue = (rec) => {
+    const out = sanitizeIssue(rec);
+    out.realPersonId = (rec && rec._realPersonId) || null;
+    return out;
+  };
   // 处置可写字段白名单（不可写 submittedBy/anonymous/tokenHash/id/number/title/body/scope/types 等身份与内容字段）
   const ISSUE_MUTABLE_KEYS = [
     'status', 'closedReason', 'closedAt', 'assignee', 'assigneeRole', 'dispatchHistory',
@@ -663,6 +693,32 @@ export function createResourcesRouter(db) {
   const DEDUP_WINDOW_MS = 5 * 60 * 1000; // 判重窗口
 
   router.get('/issues', (req, res) => res.json(listIssues()));
+
+  // **仅党委**：查看匿名反馈的真实提交人（2026-09-17 支书改裁）。**每次查看留痕**（AI 建议、无异议即执行）：
+  //  留痕的意义＝「**只有党委能看**」这条承诺**可被事后核对**（否则「只有党委能看」只是一句声明，
+  //  没有任何东西能证伪它）。留痕表见 server/db.js 的 RESOURCE_TABLES（issue_reveals）。
+  router.get('/issues/reveal', requireAuth(db), (req, res) => {
+    const actor = req.actor;
+    if (!actor) return res.status(401).json({ error: '未登录' });
+    if (!PARTY_STAFF_ROLE.has(actor.role)) {
+      return res.status(403).json({ error: '仅党委可查看匿名反馈的真实提交人' });
+    }
+    const rows = listTable(db, 'issues').map(revealIssue);
+    const at = new Date().toISOString();
+    const traceId = 'reveal-' + randomUUID().slice(0, 8);
+    db.prepare('INSERT OR REPLACE INTO issue_reveals (id, data) VALUES (?, ?)').run(
+      traceId,
+      JSON.stringify({
+        id: traceId,
+        by: actor.id,
+        byRole: actor.role,
+        at,
+        // 留痕记「看了哪些**匿名**条目」——实名条目的真身本就公开，不计入
+        revealedIds: rows.filter((r) => r.anonymous).map((r) => r.id),
+      }),
+    );
+    res.json(rows);
+  });
 
   router.post('/issues', requireAuth(db), (req, res) => {
     const actor = req.actor;
@@ -696,7 +752,8 @@ export function createResourcesRouter(db) {
     // 不采信客户端自述（防伪造跨支部）；无支部/党委级人员 → 部署默认支部 'br-b1'
     //（与前端 services/issues.js 写入口径 getBranchIdOfPerson / 读过滤 withinBranch 同源）。
     const branchId = actor.branchId || 'br-b1';
-    // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空；实名 → 按现口径记 actor.id
+    // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空，**但落真实提交人 `_realPersonId`**
+    //（2026-09-17 支书改裁「后台记录真实情况」）；实名 → 按现口径记 actor.id（真身即 submittedBy，不重复存）
     const record = {
       id,
       number,
@@ -710,6 +767,7 @@ export function createResourcesRouter(db) {
       closedAt: null,
       submittedBy: anonymous ? '匿名' : actor.id,
       anonymous,
+      ...(anonymous ? { _realPersonId: actor.id } : {}),
       submittedAt: now.toISOString().slice(0, 10),
       createdAt: now.toISOString(),
       assignee: null,
@@ -725,17 +783,24 @@ export function createResourcesRouter(db) {
       comments: [],
       participants: anonymous ? [] : [actor.id],
       commentCount: 0,
-      tokenHash, // 仅判重/限频用；不含 personId，不可反查提交人
+      // 仅判重/限频用（与 personId 无关、不可反推人）。⚠ 2026-09-17 后**不再等于「本条不含身份」**——
+      // 真身在 `_realPersonId`（匿名时才落）；防刷仍只认 tokenHash，两条线互不影响。
+      tokenHash,
     };
     db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(id, JSON.stringify(record));
     res.status(201).json(sanitizeIssue(record));
   });
 
   // 处置/回复（仅支书，沿用既有口径）：白名单字段局部合并；处置结果随公开 issue 一并可见
+  // ⚠ 2026-09-17 批次 51 修一处**会抹掉匿名真身**的缺陷：本路由原先读记录时先过 `sanitizeIssue`
+  //   （它剥掉 `_realPersonId`）再把整个对象 `INSERT OR REPLACE` 写回 ⇒ **支书每处置一次（指派 / 关闭 /
+  //   评论 / 合并），库里那条匿名反馈的真实提交人就永久没了**，而该路由的注释还自称「只剥不外泄、不回写」。
+  //   修法：**读原始记录 → 只合并白名单字段 → 原样写回**；脱敏**只发生在出口**（`res.json`）。
+  //   ——这与本批 R-80 是同一族：「**有一个出口脱敏，就要有一个写口保证不顺手把库里的东西擦掉**」。
   router.patch('/issues/:id', requireRole(db, SECRETARY_SET), (req, res) => {
     const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ error: 'not found' });
-    const issue = sanitizeIssue(JSON.parse(row.data));
+    const issue = JSON.parse(row.data); // 原始记录（含真身键，不得在此脱敏）
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
     for (const k of ISSUE_MUTABLE_KEYS) {
       if (Object.prototype.hasOwnProperty.call(body, k)) issue[k] = body[k];

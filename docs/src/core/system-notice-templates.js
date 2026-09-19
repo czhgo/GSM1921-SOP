@@ -5,7 +5,7 @@
 //  由服务端写门放行，但该标记是客户端自述、可伪造——任一登录成员可发任意广播通知。
 //  本表把系统派生通知的**生成权收回服务端**：文案/受众/落点集中在本模板单一源，
 //  服务端 kind 注册表（server/system-notice-kinds.js）与前端 mock/离线模式
-//  （services/notice.js::addSystem）复用同一模板，杜绝「前端一套文案、后端一套文案」失同步。
+//  （services/notice.js::addSystem）复用同一模板，杜绝「前端一套文案、后端一套文案」未同步。
 //
 //  约定：每个模板入参 vars = { sourceId, ...动态展示值 }；落点（targetUrl/targetType/targetId）
 //  一律由 sourceId 派生，客户端同名传入字段会被服务端 build 覆盖（不可伪造）。
@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from './period.js?v=20260917c';
+import { periodLabel } from './period.js?v=20260919g';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -26,15 +26,27 @@ function pick(obj) {
 
 const TEMPLATES = {
   // ── 思想汇报已提交（thought-report.js 迁移） ──────────────────────
-  // R-23（2026-09-13）：受众锁定组织委员（把关式初阅功能位）——原无 audience/actionRoles
-  //   会经全站广播给所有成员（含提交人自己），与「待组织初阅」的业务指向不符。
+  // R-23（2026-09-13）：受众锁定组织委员（思想汇报归口）——原无 audience/actionRoles
+  //   会经全站广播给所有成员（含提交人自己），与新提交的业务指向不符。
+  //   2026-09-18 批次 86：**取消初阅门**后，这条通知不再是「待办提醒」而是**归口知会**
+  //   （该篇已入库归档）——文案随 `SOP-B-28` 改准，受众与落点不变。
   // 2026-09-13 面板数据改造：正文带**期次**（组织委员需知哪一季度的汇报）。
   'thought-report-submitted': ({ sourceId, personName, period }) => pick({
     title: '思想汇报已提交',
-    content: `${personName} 已提交${period ? `（${periodLabel(period)}）` : ''}思想汇报，待组织初阅，通过后系统将自动归档至其个人档案，可前往「发展数据」初阅调用。`,
+    content: `${personName} 已提交${period ? `（${periodLabel(period)}）` : ''}思想汇报，系统已自动归档归集至其个人档案，可前往「思想汇报」台账查看调用。`,
     priority: 'normal',
     audience: ['org-commissioner'],
     targetUrl: `workspace/org.html?tab=thought-review&highlight=${sourceId}`,
+  }),
+
+  // ── 宣传周报已报送待支书审核（weekly-tab.js 迁移 · SOP-B-40 ②，2026-09-19 批次 94）──
+  // 受众锁定支书/副支书（审核位在支书台「全局概况」的异常优先队列里）；落点带 highlight 供直达定位。
+  'weekly-report-submitted': ({ sourceId, week, weekRange, submitterName }) => pick({
+    title: '宣传周报待审核',
+    content: `${submitterName} 已报送${week || '本周'}周报${weekRange ? `（${weekRange}）` : ''}，请审核（通过 / 退回）。`,
+    priority: 'normal',
+    audience: ['secretary', 'deputy-secretary'],
+    targetUrl: `workspace/secretary.html?tab=overview&highlight=${sourceId}`,
   }),
 
   // ── 考勤已确认并归档（disc/attendance-tab.js 迁移） ────────────────

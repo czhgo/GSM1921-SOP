@@ -90,7 +90,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const secCtx = await browser.newContext();
   const secPage = await login(secCtx, 'p13');
   const created = await secPage.evaluate(async ({ title, voterIds, ag1, ag2 }) => {
-    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260917c');
+    const { getAdapter } = await import('/src/core/data-adapter.js?v=20260919g');
     const act = await getAdapter().activities.create({
       title,
       type: '支部党员大会',
@@ -108,7 +108,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
       ],
     });
     // 同步本地 mockDB（防 800ms 防抖快照以过期缓存覆盖服务器活动，参照 online-committee.test.mjs）
-    const { mockDB } = await import('/src/core/domain.js?v=20260917c');
+    const { mockDB } = await import('/src/core/domain.js?v=20260919g');
     if (!mockDB.activities.some((a) => a.id === act.id)) mockDB.activities.push(act);
     return act;
   }, { title: TITLE, voterIds: FORMAL_IDS, ag1: AG1, ag2: AG2 });
@@ -127,7 +127,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const prepCtx = await browser.newContext();
   const prepPage = await login(prepCtx, 'p24');
   await prepPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260917c');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260919g');
     persist(); // api 模式：saveDB 本地备份（快照与服务器一致）
   });
   await prepPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -170,7 +170,7 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   const memberCtx = await browser.newContext();
   const memberPage = await login(memberCtx, 'p5');
   await memberPage.evaluate(async () => {
-    const { persist } = await import('/src/core/data-adapter.js?v=20260917c');
+    const { persist } = await import('/src/core/data-adapter.js?v=20260919g');
     persist(); // 本地备份（含服务器 act-xxx）供 activity.html mock 恢复
   });
   await memberPage.goto(`${base}/activity.html?id=${actId}`, { waitUntil: 'domcontentloaded' });
@@ -193,9 +193,9 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   // 同页切 api 数据源后以 p5 身份经 submitVote 服务登记服务器（公共页 mock 不落服务器，见文件头注释）
   const p5Row = await memberPage.evaluate(async ({ activityId, ag1 }) => {
     const token = sessionStorage.getItem('gsm1921-api-token');
-    const { enableApiMode } = await import('/src/services/runtime.js?v=20260917c');
+    const { enableApiMode } = await import('/src/services/runtime.js?v=20260919g');
     enableApiMode(token);
-    const { submitVote } = await import('/src/services/committee-vote.js?v=20260917c');
+    const { submitVote } = await import('/src/services/committee-vote.js?v=20260919g');
     return submitVote({ activityId, agendaItemId: ag1, position: 'approve', note: '' });
   }, { activityId: actId, ag1: AG1 });
   assert.equal(p5Row.personId, 'p5', '服务端登记参与记录 personId 应为 p5');
@@ -228,8 +228,8 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
     await secPage.click('.secretary-tab-btn[data-secretary-tab="calendar"]').catch(() => {});
     await secPage.waitForTimeout(800);
     await secPage.evaluate(async ({ id }) => {
-      const { setState } = await import('/src/core/state.js?v=20260917c');
-      const { mockDB } = await import('/src/core/domain.js?v=20260917c');
+      const { setState } = await import('/src/core/state.js?v=20260919g');
+      const { mockDB } = await import('/src/core/domain.js?v=20260919g');
       setState({ activities: [...mockDB.activities], viewMode: 'detail', selectedActivityId: id });
     }, { id: actId });
     await secPage.waitForSelector('#vote-summary-slot .vs-stat', { timeout: 12000 });
@@ -259,7 +259,10 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
   assert.ok(toastText.includes('可督促未表态党员表态'), '拦截提示应含可采取动作建议');
 
   // node fetch 校验：活动议程 result 未被写入（拦截不落库）
-  const actsAfterBlock = await (await fetch(`${base}/api/v1/activities`)).json();
+  // 2026-09-18 批次 81：资源读口收紧（默认要登录）⇒ 读口带 token
+  const actsAfterBlock = await (await fetch(`${base}/api/v1/activities`, {
+    headers: { Authorization: `Bearer ${p5Token}` },
+  })).json();
   const actAfterBlock = actsAfterBlock.find((a) => a.id === actId);
   const ag1AfterBlock = actAfterBlock.agenda.find((x) => x.id === AG1);
   assert.ok(ag1AfterBlock.result == null, '硬校验拦截时不得写入 result（实际 ' + String(ag1AfterBlock.result) + '）');
@@ -306,7 +309,9 @@ test('AV5 线上党员大会：支书发起 → 预备党员只读/403 → 正�
 
   // 等 updateActivity(600ms) + 防抖快照(800ms) 写穿服务器后，node fetch 校验活动快照
   await secPage.waitForTimeout(1800);
-  const actsFinal = await (await fetch(`${base}/api/v1/activities`)).json();
+  const actsFinal = await (await fetch(`${base}/api/v1/activities`, {
+    headers: { Authorization: `Bearer ${p5Token}` },
+  })).json();
   const actFinal = actsFinal.find((a) => a.id === actId);
   const ag1Final = actFinal.agenda.find((x) => x.id === AG1);
   assert.equal(ag1Final.result, 'passed', '活动快照/结果应含该议程 result=passed');

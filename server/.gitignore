@@ -1,6 +1,8 @@
 node_modules/
 data.db
 data.db-*
-uploads/
+# 上传目录内容不入库；目录本身不忽略，以便放占位文件（目录不存在时服务启动会自动创建）
+uploads/*
+!uploads/.gitkeep
 .browsers/
 .tmp/

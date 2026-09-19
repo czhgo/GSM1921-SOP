@@ -2,7 +2,7 @@
 title: "SOP 系统优化与同步指南"
 type: guide
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-13"
 version: "4.1"
 ---
 
@@ -40,13 +40,13 @@ version: "4.1"
 
 ## B. 系统架构设计（权威见 ARCHITECTURE / DATA_MODEL / DATA_FLOW / AUTHENTICATION_MODEL）
 
-> **2026-09-03 收敛**：本节原 B.1~B.6 展开（MPA 页面结构 / canDo() 权限判定 / 三支委看板路由与细则 / 日历范围限定 / 赋权链 / 数据模型全家福）均已由权威源表达，不再在本指南重复：
+> **2026-09-03 收敛**：本节原 B.1~B.6 展开（MPA 页面结构 / canDo() 权限判定 / 支委看板路由与细则 / 日历范围限定 / 赋权链 / 数据模型全家福）均已由权威源表达，不再在本指南重复：
 > - 页面/组件/服务分层、`AuthStore.canDo()` 权限判定、`AUTHORIZE_CHAIN`、数据模型 → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（静态模型权威）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（动态数据流权威）
 > - 角色权限矩阵 / 写入门禁 / 赋权链 → [系统角色权限矩阵](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md，权限矩阵唯一权威）+ [COMMISSIONER_DUTY_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（逐操作位视图）
 > - 部署形态 / 登录态 / 门控 → [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)
 > 以下仅保留本指南独有的决策摘要与历史注记。
 
-### B.3 三支委看板视图体系
+### B.3 支委看板视图体系
 
 > **T29 核心创新：支委在管理工作台不需要日历，需要任务看板。**
 
@@ -181,4 +181,4 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / DATA_FLOW / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、三支委看板体系、日历限定、赋权链全量重写、系列活动模型。*
+*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / DATA_FLOW / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、支委看板体系、日历限定、赋权链全量重写、系列活动模型。*

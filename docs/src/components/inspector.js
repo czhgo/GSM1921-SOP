@@ -5,33 +5,33 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260917c';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260917c';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
-import { openModal, closeModal } from './modal.js?v=20260917c';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260919g';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260919g';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
+import { openModal, closeModal } from './modal.js?v=20260919g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260917c';
-import { BranchService } from '../services/runtime.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { liveMembers, PersonStore } from '../services/person.js?v=20260917c';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260917c';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260917c';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260917c';
+import { getPersonById } from '../services/person.js?v=20260919g';
+import { BranchService } from '../services/runtime.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260919g';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260919g';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260919g';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260919g';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260917c';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260919g';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260917c';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260917c';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260917c';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260917c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260917c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260917c';
-import { loadActivityReviews } from '../services/review.js?v=20260917c';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260917c';
+import { NoticeStore } from '../services/notice.js?v=20260919g';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260919g';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260919g';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260919g';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260919g';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260919g';
+import { loadActivityReviews } from '../services/review.js?v=20260919g';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260919g';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -439,7 +439,13 @@ const AGENDA_RESULT_META = {
   rejected: { label: '未通过',   cls: 'text-red-700 bg-red-50' },
 };
 
-/** 议程类型徽章（2026-09-01 支书点验链路 ①/②）：讨论文件 → 草案标题；待讨论名单 → 人数与目标阶段（S-2 只显目标） */
+/** 草案已附材料件数（SOP-B-13 第 4 项 · D-305）：过程材料跟草案走（附件 / 网页正文各计 1 件），
+ *  不新增「材料包」——议程项只做数量只读提示，材料本体仍归那份草案。 */
+function _draftMaterialCount(doc) {
+  return (doc && doc.fileName ? 1 : 0) + (doc && String(doc.bodyText || '').trim() ? 1 : 0);
+}
+
+/** 议程类型徽章（2026-09-01 支书点验链路 ①/②）：讨论文件 → 草案标题 ＋ 已附材料件数；待讨论名单 → 人数与目标阶段（S-2 只显目标） */
 function _agendaTypeBadges(a) {
   const badges = [];
   const isKind = (k) => (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
@@ -449,6 +455,10 @@ function _agendaTypeBadges(a) {
     const doc = (mockDB.branchDocs || []).find(d => d.id === a.branchDocId);
     const docLabel = doc ? (doc.title || doc.fileName || '未命名草案') : '（草案已删除）';
     badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">讨论文件：${docLabel}</span>`);
+    // SOP-B-13 第 4 项（D-305）：草案还在时给一条只读提示，不提供第二个材料库入口
+    if (doc) {
+      badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 bg-gray-100" title="过程材料（试点意见 / 征求意见 / 修改说明）随草案归档，本处只作数量提示">已附材料 ${_draftMaterialCount(doc)} 件</span>`);
+    }
   }
   if (isKind('attendee-list') || isKind('member-change')) {
     const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);

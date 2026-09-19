@@ -1,16 +1,15 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore, ISSUE_CACHE_KEY } from '../services/issues.js?v=20260917c';
-import { MilestoneStore } from '../services/milestones.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { showToast } from '../core/utils.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
-import { getPersonName } from '../services/person.js?v=20260917c';
-import { renderReactions, bindReactions } from './reactions.js?v=20260917c';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260917c';
-import { badgeHtml } from './badges.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
+import { IssueStore } from '../services/issues.js?v=20260919g';
+import { MilestoneStore } from '../services/milestones.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { showToast } from '../core/utils.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
+import { getPersonName } from '../services/person.js?v=20260919g';
+import { renderReactions, bindReactions } from './reactions.js?v=20260919g';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260919g';
+import { badgeHtml } from './badges.js?v=20260919g';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -51,6 +50,11 @@ function typeBadgeStyle(t) {
 /** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
 function _currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || '匿名';
+}
+
+/** 获取当前登录用户角色键（评论写链透传给服务层；无会话 → null，与 services/issues.js 同口径） */
+function _currentRole() {
+  return AuthStore.getCurrentUser()?.role || null;
 }
 
 export function renderIssueDetail(issueId) {
@@ -232,7 +236,11 @@ function bindDetailEvents(issue) {
   // 反应按钮
   bindReactions();
 
-  // 评论提交
+  // 评论提交（2026-09-18 批次 88 · D-486）：改走**服务层单一写口** IssueStore.addComment——
+  // 原实现手工取原始记录 + 就地 push + persistCacheFromWrite()，**从不调服务层**（其内含 _syncIssueToApi）
+  // ⇒ api 形态下点「提交评论」网络面只有 GET、没有任何 PATCH，评论只进本地缓存、一重载即丢。
+  // ⚠ 本处**只改「落到哪儿」**：谁能评、能否隐藏、匿名口径（后台记真身 / 常规出口脱敏）一律照旧——
+  //   addComment 内部口径原样透传（含「仅支书角色触达服务端」的既有已裁口径），未引入任何权限或可见性变化。
   document.getElementById('btn-submit-comment')?.addEventListener('click', () => {
     const input = document.getElementById('comment-input');
     const text = input?.value.trim() || '';
@@ -240,26 +248,8 @@ function bindDetailEvents(issue) {
       showToast('error', '请输入评论内容');
       return;
     }
-
-    // 直接添加评论（实际生产应先进草稿，但 mock 项目简化为直接生效）
-    const newComment = {
-      id: generateId('cmt', '-'),
-      author: _currentPersonId(),
-      body: text,
-      createdAt: new Date().toISOString().slice(0, 10),
-      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
-    };
-    issue.comments = issue.comments || [];
-    issue.comments.push(newComment);
-    if (!issue.participants.includes(newComment.author)) issue.participants.push(newComment.author);
-    issue.commentCount = (issue.commentCount || 0) + 1;
-
-    try {
-      // R-24（2026-09-13）：缓存键单一源（原写死旧键 'gsm1921-issue-cache'，与 issues.js 的
-      // CACHE_KEY 不同键 → 评论写回落在无人读的键上，列表/详情刷新后丢失）。
-      localStorage.setItem(ISSUE_CACHE_KEY, JSON.stringify(IssueStore.getAll()));
-    } catch {}
-
+    const res = IssueStore.addComment(issue.id, _currentPersonId(), _currentRole(), text, 'comment');
+    if (!res) { showToast('error', '评论提交失败，请稍后重试'); return; }
     showToast('success', '评论已提交');
     renderIssueDetail(issue.id);
   });

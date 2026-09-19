@@ -2,24 +2,24 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260917c';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260917c';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260917c';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260917c';
-import { mockDB } from '../../../core/domain.js?v=20260917c';
-import { bumpToken } from '../../../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { loadActivities } from '../../../services/activity.js?v=20260917c';
-import { isApiMode } from '../../../services/runtime.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { getPersonName } from '../../../services/person.js?v=20260917c';
-import { generateId } from '../../../core/id.js?v=20260917c';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260917c';
+import { icon } from '../../../core/icons.js?v=20260919g';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260919g';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260919g';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260919g';
+import { mockDB } from '../../../core/domain.js?v=20260919g';
+import { bumpToken } from '../../../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260919g';
+import { isApiMode } from '../../../services/runtime.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { getPersonName } from '../../../services/person.js?v=20260919g';
+import { generateId } from '../../../core/id.js?v=20260919g';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260919g';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260917c';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260919g';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260917c';
+import { BranchService } from '../../../services/runtime.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260919g';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -73,6 +73,8 @@ export function renderContent(ctx) {
     </div>
 
     ${_renderEndedUnarchivedSection(endedUnarchived)}
+
+    ${_renderPublicityDraftSection(listPublicityDrafts())}
 
     ${_renderPendingArchiveSection(pendingArchives)}
 
@@ -151,6 +153,31 @@ export function renderContent(ctx) {
       btn.disabled = false;
       showToast('error', `归档失败：${(err && err.message) || err}`);
     }
+  });
+
+  // ── SOP-B-38 宣传初稿审核位（2026-09-19 批次 94）：定稿 / 退回修改 ──
+  // 状态位与写口单一源 = services/activity.js::setPublicityDraftStatus（勿在此另写状态名）。
+  container.querySelector('#prop-publicity-draft-list')?.addEventListener('click', (e) => {
+    const finalizeBtn = e.target.closest('.pdraft-finalize');
+    const returnBtn = e.target.closest('.pdraft-return');
+    if (!finalizeBtn && !returnBtn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const btn = finalizeBtn || returnBtn;
+    const activityId = btn.dataset.activityId;
+    const index = parseInt(btn.dataset.idx);
+    const actorId = AuthStore.getCurrentUser()?.personId;
+    let res;
+    if (finalizeBtn) {
+      res = setPublicityDraftStatus({ activityId, index, status: PUBLICITY_DRAFT_STATUS.FINALIZED, actorId });
+      if (res.ok) showToast('success', '已定稿——该宣传成稿可走归档（材料标准检查清单照既有流程）');
+    } else {
+      const note = window.prompt('退回说明（可留空）——将随留痕显示给撰写人：', '') || '';
+      res = setPublicityDraftStatus({ activityId, index, status: PUBLICITY_DRAFT_STATUS.DRAFT, actorId, note });
+      if (res.ok) showToast('success', '已退回修改（回到初稿状态）');
+    }
+    if (!res.ok) { showToast('error', `操作失败：${res.reason}`); return; }
+    renderContent(ctx);
   });
 
   // 模板下载按钮（T-304 A 档：假提示 → 真实文件下载）
@@ -256,6 +283,36 @@ function _endedUnarchivedCardHtml(a) {
       </div>`;
 }
 
+/** SOP-B-38 宣传初稿（待审核）：被分工者交上来的初稿在这里审核 → 定稿 / 退回修改。
+ *  判据与状态标签单一源 = services/activity.js（listPublicityDrafts 缺省只列待审核）。
+ *  定稿后的去向＝既有宣传材料归档链（OutputType.PUBLICITY），本区块不新开落点。 */
+function _renderPublicityDraftSection(rows) {
+  if (!rows || rows.length === 0) return '';
+  const items = rows.map(r => `
+      <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
+        <a href="../activity.html?id=${encodeURIComponent(r.activity.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-medium text-gray-800 truncate">${escHtml(r.rec.title || '未命名初稿')}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200 shrink-0">待审核</span>
+          </div>
+          <span class="text-xs text-gray-500">${escHtml(r.activity.title || '未命名活动')} · 撰写人 ${escHtml(r.rec.author || '—')}${r.rec.channel ? ' · 渠道 ' + escHtml(r.rec.channel) : ''}</span>
+        </a>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button type="button" class="pdraft-finalize text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">定稿</button>
+          <button type="button" class="pdraft-return text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">退回修改</button>
+        </div>
+      </div>`).join('');
+  return `
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-1.5">
+        <h4 class="text-sm font-bold text-gray-700">宣传初稿（待审核）</h4>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">${rows.length} 条待审核</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-2">被分工者写好的宣传初稿在这里审核：<b>定稿</b>即成为可归档的宣传成稿，<b>退回</b>则回到初稿状态（可写一句退回说明给撰写人）。</p>
+      <div class="space-y-2" id="prop-publicity-draft-list">${items}</div>
+    </div>`;
+}
+
 /** 待归档区（A② 2026-09-10）：归档缺口活动（已归档但宣传材料未提交），带 data-archive-id 锚点。
  *  与下方「归档记录」列表区分：此处是「缺材料」的活动，记录列表是已建的材料条目。 */
 function _renderPendingArchiveSection(activities) {
@@ -306,7 +363,7 @@ function _archiveRowHtml(r) {
     : '';
   // 已归档材料（上传过文件）显示下载按钮 + 行内外发按钮/状态徽标
   const fileBtn = r.fileName
-    ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${r.fileName}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
+    ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${escHtml(r.fileName)}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
       <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
     : '';
   // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
@@ -323,7 +380,7 @@ function _archiveRowHtml(r) {
         <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle} shrink-0">${ARCHIVE_STATUS_LABEL[r.status]}</span>
         ${progressHtml}${doneHtml}
       </div>
-      <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${r.fileName}` : ''}</span>`;
+      <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${escHtml(r.fileName)}` : ''}</span>`;
   const leftBlock = r.activityId
     ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
     : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
@@ -607,13 +664,13 @@ function _showArchiveUploadModal(ctx) {
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="upload-file">选择文件（可多选）</label>
         <input id="upload-file" type="file" multiple
-          accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.mp4,.mov"
+          accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
           class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
         <div id="upload-preview" class="mt-2 space-y-1.5"></div>
       </div>
       <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed ${apiMode ? 'bg-teal-50 text-teal-700 border border-teal-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}">
         ${apiMode
-          ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/docx/xlsx，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
+          ? '服务端模式：文件落服务器磁盘（jpg/png/pdf/doc/docx/xlsx/mp4，单文件 ≤' + maxMB + 'MB），元数据写入文件空间记录，产出物区同步可见。'
           : '本地模式：文件以 base64 存入本地存储（单文件 ≤' + maxMB + 'MB），刷新不丢失；产出物区/关闭校验同步可见。'}
       </div>
     </div>
@@ -644,7 +701,7 @@ function _showArchiveUploadModal(ctx) {
       return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
         ${thumb}
         <div class="flex-1 min-w-0">
-          <p class="text-xs text-gray-700 truncate">${f.name}</p>
+          <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
           <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
         </div>
         <button class="upload-file-remove text-gray-500 hover:text-red-600 text-sm leading-none" data-idx="${i}">&times;</button>

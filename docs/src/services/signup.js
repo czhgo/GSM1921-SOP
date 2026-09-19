@@ -9,16 +9,16 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
-import { persist } from '../core/data-adapter.js?v=20260917c';
-import { bumpToken } from '../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../mock/seed.js?v=20260917c';
-import { isInitStateActive } from './init-reset.js?v=20260917c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from './person.js?v=20260917c';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260917c';
-import { AuthStore } from './auth.js?v=20260917c';
-import { TaskForceRecordStore } from './taskforce.js?v=20260917c';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { generateId } from '../core/id.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g';
+import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../mock/seed.js?v=20260919g';
+import { isInitStateActive } from './init-reset.js?v=20260919g'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from './person.js?v=20260919g';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260919g';
+import { AuthStore } from './auth.js?v=20260919g';
+import { TaskForceRecordStore } from './taskforce.js?v=20260919g';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -90,7 +90,10 @@ function _sourceOpen(sourceType, sourceId) {
   if (sourceType === 'activity') {
     const act = mockDB.activities.find(a => a.id === sourceId);
     if (!act) return { ok: false, reason: '活动不存在' };
-    if (act.archived || act.status === 'cancelled' || act.status === 'draft') return { ok: false, reason: '该活动当前不可报名' };
+    if (act.archived || act.status === 'cancelled') return { ok: false, reason: '该活动当前不可报名' };
+    // 草稿活动默认不可报名；写入活动时勾「开放报名」（signupEnabled）者例外——
+    // 这样「活动可开报名」是写入侧的一次显式动作，而不是把所有草稿一律放开（SOP-B-2）。
+    if (act.status === 'draft' && act.signupEnabled !== true) return { ok: false, reason: '该活动当前不可报名' };
     if (!act.date || act.date < _today()) return { ok: false, reason: '活动已结束' };
     return { ok: true };
   }
@@ -190,7 +193,7 @@ async function _writeSource(sourceType, sourceId, personId, role) {
       await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
     } else {
       // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('./mock.js?v=20260917c');
+      const { updateActivity } = await import('./mock.js?v=20260919g');
       await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
     }
   } else {
@@ -367,7 +370,7 @@ export const SignupStore = {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
         if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
           const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('./mock.js?v=20260917c').then(({ updateActivity }) => {
+          import('./mock.js?v=20260919g').then(({ updateActivity }) => {
             updateActivity(s.sourceId, { assignments: remaining });
             persist(); // updateActivity 不自动落盘，须显式 persist
           });
@@ -393,3 +396,19 @@ export const SignupStore = {
     return { ok: true };
   },
 };
+
+/**
+ * 某来源「已通过」报名者 personId 列表 —— **考勤候选默认选中的来源**（D-288 / SOP-B-2）。
+ * 口径（D-288「优先默认报名者选中，但保留组织者的调整空间」）：
+ *   · 只认 `approved`（已通过）——待审核/已拒绝/已取消不进默认值；
+ *   · 它只是**默认值**：候选范围不限报名者（未报名而实际参加者照样由组织者/纪检手选补进），
+ *     组织者仍可增删（两套逻辑同时成立）。
+ * @param {'activity'|'taskforce'} sourceType
+ * @param {string} sourceId
+ * @returns {string[]}
+ */
+export function getApprovedSignupPersonIds(sourceType, sourceId) {
+  return SignupStore.getAll()
+    .filter(s => s.sourceType === sourceType && s.sourceId === sourceId && s.status === SignupStatus.APPROVED)
+    .map(s => s.personId);
+}

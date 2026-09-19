@@ -2,16 +2,57 @@
 // ════════════════════════════════════════════════════════════════
 //  makeup.js — 补课任务 CRUD 服务
 // ════════════════════════════════════════════════════════════════
+// 补课判据（现行口径 = 制度，2026-09-18 批次 83 落地；出处 `D-293` / `D-306` / `D-399`）：
+//   ① 范围（制度默认）＝**支部党员大会 + 党课**（不是整个三会一课）；
+//   ② **支委会不补课**；**主题党日不强制补课**（不在补课名单内）；
+//   ③ **党小组会不默认补课**——该场活动**写入时勾选**「本次要求补课」（`activity.requireMakeup`）才补；
+//   ④ 判据三分：请假 + **线上参会** → 不补课；请假 + 未参会 → 须补课；未请假而缺席 → 须补课。
+//   线上参会的落点＝考勤记录 `onlineAttend` 标记（发布三会一课通知 → 确认收到时申报，`SOP-B-5`），
+//   线上参会**不计入出席**（记「请假」）、**只免补课**。
 
-import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260917c';
-import { persist } from '../core/data-adapter.js?v=20260917c';
-import { PEOPLE } from '../mock/index.js?v=20260917c';
-import { getPersonById } from './person.js?v=20260917c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260917c';
-import { findActivityById } from '../services/activity.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
+import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g';
+import { PEOPLE } from '../mock/index.js?v=20260919g';
+import { getPersonById } from './person.js?v=20260919g';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260919g';
+import { findActivityById } from '../services/activity.js?v=20260919g';
+import { generateId } from '../core/id.js?v=20260919g';
 
-const MANDATORY_ACTIVITY_TYPES = ['支部党员大会', '党小组会', '党课'];
+/**
+ * 补课范围的**制度默认**活动类型（单一源；消费点勿另写字面量）。
+ * 现行口径 = 支部党员大会 + 党课（`D-293` / `D-306`）；支委会、党小组会、主题党日**不在**默认范围内。
+ * 党小组会等「按该次活动情形定」的场合，走活动级勾选 `activity.requireMakeup`（`SOP-B-6`）。
+ */
+export const MAKEUP_DEFAULT_ACTIVITY_TYPES = ['支部党员大会', '党课'];
+
+/**
+ * 该场活动是否要求补课（补课范围判据的**单一出口**）
+ * · `activity.requireMakeup === true` → 要求（活动级勾选：党小组会等按需，写入活动时勾选）；
+ * · 其余按制度默认范围（仅支部党员大会 / 党课）。
+ * @param {Object|null} activity
+ * @returns {boolean}
+ */
+export function isMakeupRequired(activity) {
+  if (!activity) return false;
+  if (activity.requireMakeup === true) return true;
+  return MAKEUP_DEFAULT_ACTIVITY_TYPES.includes(activity.type);
+}
+
+/**
+ * 该条考勤记录是否触发补课任务（判据三分，单一出口）
+ * · 出勤 / 已补 → 不补；
+ * · 请假 + **线上参会**（`onlineAttend`）→ 不补（线上参会只免补课、不计出席）；
+ * · 请假 + 未参会 / 未请假而缺席 → 补（且该场活动在补课范围内）。
+ * @param {Object} attendanceRecord
+ * @param {Object|null} activity
+ * @returns {boolean}
+ */
+export function shouldGenerateMakeupTask(attendanceRecord, activity) {
+  const status = (attendanceRecord || {}).status;
+  if (status !== AttendanceStatus.ABSENT && status !== AttendanceStatus.LEAVE) return false;
+  if ((attendanceRecord || {}).onlineAttend === true) return false;
+  return isMakeupRequired(activity);
+}
 
 export function loadMakeupTasks() {
   if (!mockDB.makeupTasks) mockDB.makeupTasks = [];
@@ -31,18 +72,19 @@ function addMakeupTask(task) {
 
 /**
  * 自动生成补课任务
- * 在考勤确认时触发，为缺勤/请假人员生成补课任务
+ * 在考勤确认时触发，为「该场活动在补课范围内、且判据成立」的缺勤/请假人员生成补课任务。
+ * 判据单一出口 = shouldGenerateMakeupTask（范围 D-293 / 判据三分 D-293）。
  *
- * @param {Object} attendanceRecord — 考勤记录
+ * @param {Object} attendanceRecord — 考勤记录（含可选 onlineAttend 标记）
  */
 export function autoGenerateMakeupTask(attendanceRecord) {
-  const { personId, activityId, status } = attendanceRecord;
-  if (status !== AttendanceStatus.ABSENT && status !== AttendanceStatus.LEAVE) return;
+  const { personId, activityId } = attendanceRecord;
 
   const activity = findActivityById(activityId);
   if (!activity) return;
 
-  const isMandatory = MANDATORY_ACTIVITY_TYPES.includes(activity.type) || activity.type === '主题党日';
+  if (!shouldGenerateMakeupTask(attendanceRecord, activity)) return;
+
   const tasks = loadMakeupTasks();
 
   // 防重复：同一人员同一活动已有补课任务则跳过
@@ -63,7 +105,8 @@ export function autoGenerateMakeupTask(attendanceRecord) {
     absentDate,
     deadline: deadline.toISOString().split('T')[0],
     status: 'pending',
-    isMandatory,
+    // 生成即「要求补课」（范围判据已收敛）：走进名单的一律必修
+    isMandatory: true,
     proofContent: null,
     completedAt: null,
     createdAt: new Date().toISOString(),

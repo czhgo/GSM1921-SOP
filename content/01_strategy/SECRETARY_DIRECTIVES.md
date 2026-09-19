@@ -2,7 +2,7 @@
 title: "党支书工作交接文档"
 type: governance
 role: "[用户]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-09"
 status: active
 related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---

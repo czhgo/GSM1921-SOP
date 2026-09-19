@@ -67,9 +67,9 @@ test('T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验
   }
 });
 
-// ── T2（原 flow-catalog-sync）：两份手写清单不得失同步（双向） ─────────────────
+// ── T2（原 flow-catalog-sync）：两份手写清单不得未同步（双向） ─────────────────
 // 2026-09-03 建立：落实 mermaid-sources.js 注释「与 function-catalog 的 flow 条目 id 一一对应」。
-test('T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防失同步）', () => {
+test('T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防止未同步的情况）', () => {
   const groups = grabExport(CATALOG, 'FUNCTION_GROUPS');
   const catalog = grabExport(CATALOG, 'FUNCTION_CATALOG');
   const flowLinks = grabExport('docs/src/core/mermaid-sources.js', 'FLOW_LINKS');
@@ -93,7 +93,7 @@ test('T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防
 // ── T3（原 function-map-sync）：README 顶部功能地图 = 实时生成 ──────────────────
 // 2026-09-03 起：独立 FUNCTION_MAP.md 不再随仓库维护，仅校验 README 标记块。
 // 2026-09-09 起：功能地图迁至**根 README.md 顶部**（通用化门面；锚点 <!--FUNC-MAP:ANCHOR-->）。
-test('T3 根 README.md 功能地图标记块与实时生成一致（防失同步）', () => {
+test('T3 根 README.md 功能地图标记块与实时生成一致（防止未同步的情况）', () => {
   const readme = readFileSync(`${ROOT}README.md`, 'utf8');
   assert.ok(readme.includes('<!--FUNC-MAP:ANCHOR-->'), 'README.md 含功能地图锚点');
   const m = /<!--FUNC-MAP:START-->([\s\S]*?)<!--FUNC-MAP:END-->/.exec(readme);
@@ -102,7 +102,7 @@ test('T3 根 README.md 功能地图标记块与实时生成一致（防失同步
   assert.equal(norm(m[1]), norm(generateMindmap()), '标记块内容 = 实时生成');
 });
 
-// ── T4（原 vote-option-sync）：跨层表决枚举不得失同步（双向） ──────────────────
+// ── T4（原 vote-option-sync）：跨层表决枚举不得未同步（双向） ──────────────────
 // 前端为业务单一源（含 label/labels/objectRequiresNote），server 仅镜像 options 键集。
 test('T4 server OPTION_ENUMS 与前端 vote-config OPTION_SETS 键集双向一致', () => {
   const optionSets = grabExport('docs/src/services/vote-config.js', 'OPTION_SETS');

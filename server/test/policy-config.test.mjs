@@ -1,5 +1,5 @@
 // role: [工程师]+[AI]
-// server/test/policy-config.test.mjs — 批4 域参数 policyOverrides（支书 2026-09-09 批）防失同步单测
+// server/test/policy-config.test.mjs — 批4 域参数 policyOverrides（支书 2026-09-09 批）防止未同步的情况的单测
 // 纯 Node 测试（无浏览器、不起 server；mock 形态 + localStorage 内存桩，做法同 member-confirmation.test）：
 //   ① policy-defaults 批4 新节结构与默认值（memberConfirmation 窗 / leader 学期提醒 / attendance·review 阈值）
 //   ② sanitizeConfigPolicyOverrides 白名单/类型校验/数值范围钳制（天数 1..90、布尔严格、窗口合法月日/去重/限 2 窗）
@@ -20,28 +20,28 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260917c';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260917c';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260917c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919g';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919g';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260919g';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260917c';
+} from '../../docs/src/core/policy-defaults.js?v=20260919g';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260917c';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260917c';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260917c';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260919g';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260919g';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260919g';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260917c';
+} from '../../docs/src/core/config-clean.js?v=20260919g';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260917c';
+} from '../../docs/src/services/branch.js?v=20260919g';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260917c';
+} from '../../docs/src/services/member-confirmation.js?v=20260919g';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260917c';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260919g';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';

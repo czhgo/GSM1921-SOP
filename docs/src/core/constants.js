@@ -756,12 +756,13 @@ export const ISSUE_CLOSED_REASON_LABELS = {
   not_planned: '暂不计划',
 };
 
-// ── 意见反馈「真匿名」防刷令牌哈希（2026-09-12 支书裁定）──────────────
+// ── 意见反馈「对外匿名（后台记真身）」防刷令牌哈希（2026-09-12 裁定；2026-09-17 改裁更正措辞）──
 // 客户端首次提交时生成随机 token（localStorage，不可由 personId 推导）；服务端仅存其哈希，
 // 只用于判重与频率限制。输入 = 随机 token 本身（不含 personId、不使用任何 salt/固定盐），
-// 故不可由 personId 推导、不可反查提交人。
+// 故不可由 personId 推导、不可反查提交人——与「后台记真实提交人 `_realPersonId`」**互不影响**：
+// 防刷判重仍只认 tokenHash；真身另行落库，仅党委在必要时可查、每次查看留痕。
 // 纯同步函数、node/browser 同源：server/routes/resources.js 与前端 services/issues.js 共用，
-// 防两端算法漂移（FNV-1a 双通道 → 16 hex，随机 128bit token 的判重/限频抗碰撞足够）。
+// 防止两端算法未同步的情况（FNV-1a 双通道 → 16 hex，随机 128bit token 的判重/限频抗碰撞足够）。
 export function hashSubmitterToken(token) {
   const s = String(token == null ? '' : token);
   let h1 = 0x811c9dc5;

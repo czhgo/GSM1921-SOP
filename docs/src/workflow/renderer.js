@@ -5,13 +5,13 @@
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine } from './engine.js?v=20260917c';
+import { WorkflowEngine } from './engine.js?v=20260919g';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-} from './definitions.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
+} from './definitions.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {
@@ -316,7 +316,7 @@ class WorkflowRenderer {
 //  模拟工作流引擎（演示用）
 // ════════════════════════════════════════════════════════════════
 
-const MOCK_OPERATORS = ['韩思宁', '侯嘉嵘', '闫鑫岳', '王奕铭', '系统'];
+const MOCK_OPERATORS = ['纪检委员', '组织委员', '宣传委员', '党小组组长', '系统'];
 const MOCK_EVENT_CHAINS = {
   'theme-party-day': [
     { type: 'INIT', target: 'DRAFT' },

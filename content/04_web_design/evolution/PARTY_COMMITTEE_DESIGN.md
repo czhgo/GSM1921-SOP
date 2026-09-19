@@ -55,7 +55,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 ```
 
 - 新表 `branches`：`id`（br-*）、`name`（党委命名）、`type`（可选类别标签，不预设枚举则留自由文本）、`secretaryId`（现任支书 personId，P2 后由任命驱动）、`createdAt`、`status`。
-- 核心数据域挂 `branchId`（users/people/activities/taskforces 等）；**落地口径**：存量数据迁入 br-b1，老数据缺省视为 br-b1（惰性维度迁移，不逐行回填）；支部内隔离一律收敛于 `services/branch.js`（`getBranchIdOfPerson`/`withinBranch`），各 tab 不手写过滤（防失同步）。
+- 核心数据域挂 `branchId`（users/people/activities/taskforces 等）；**落地口径**：存量数据迁入 br-b1，老数据缺省视为 br-b1（惰性维度迁移，不逐行回填）；支部内隔离一律收敛于 `services/branch.js`（`getBranchIdOfPerson`/`withinBranch`），各 tab 不手写过滤（防止未同步的情况）。
 
 ### 2.5 支部配置档案（开源通用性 · 2026-09-02 支书补充）
 
@@ -164,7 +164,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 - **最大改动面**：全数据域加 branchId（触及 46 功能的数据读写）——P1 只做"维度落地 + 隔离生效"，功能行为不变。
 - **支书身份判定**：P2 起支书工作台访问以 `branches.secretaryId`（党委任命链，见 §3）为准，不再依赖固定演示账号 u_sec。
-- 隔离在 services 层收敛，勿在各 tab 手写过滤（防失同步）。
+- 隔离在 services 层收敛，勿在各 tab 手写过滤（防止未同步的情况）。
 - 新能力注册式（modules/capabilities/ 新增 party-committee-workspace），勿增核心单体。
 - **上线前待收紧（P3 落地时登记）**：服务端资源级写权限仍为通用 requireAuth——任何登录用户理论上可写 branches/appointmentRecords/reviewRequests（含自批风险）；当前以 UI 层角色收敛 + 数据为演示态接受，上线部署前须按角色收紧（requireRole: party-staff / 本支部支委层）。
 

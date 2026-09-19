@@ -14,17 +14,18 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore } from '../services/todo.js?v=20260917c';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../services/todo.js?v=20260919g';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore } from '../services/notice.js?v=20260917c';
-import { renderDomainTodoList } from './todo-list.js?v=20260917c';
-import { badgeHtml } from './badges.js?v=20260917c';
-import { showToast } from '../core/utils.js?v=20260917c';
-import { solidAccentStyle } from '../core/constants.js?v=20260917c';
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { tokenOf } from '../core/version-token.js?v=20260917c'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260917c'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../services/notice.js?v=20260919g';
+import { renderDomainTodoList } from './todo-list.js?v=20260919g';
+import { badgeHtml } from './badges.js?v=20260919g';
+import { showToast } from '../core/utils.js?v=20260919g';
+import { solidAccentStyle, ROLE_LABELS } from '../core/constants.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { tokenOf } from '../core/version-token.js?v=20260919g'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260919g'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -415,4 +416,130 @@ export function createTodoTab(opts) {
   }
 
   return { renderContent };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  逐条催办控制器（2026-09-18 批次 88 · SOP-B-29 / D-391）
+//  口径来源（**判据未改**）：`urgeRolesOf`（services/todo.js 单一源）——「这件事谁来跟进」由它定；
+//  本工厂只承载「**催办主位**」的呈现与发起动作——支书台与组织委员台**共用同一实现**
+//  （原私有实现在 secretary/todo-tab.js，本批抽到共享壳以便组织台复用；行为逐字保持）。
+//  · 责任人 = urgeRolesOf；无责任人，或责任人即本人（`selfRoles`）→ 不渲染入口
+//  · 动作：按责任角色经 NoticeStore 发定向通知（复用既有通知链路，不改数据模型；通知记录即留痕）
+//  · 节流：会话内同 groupKey 冷却 5 分钟（按钮呈「已催办 hh:mm」禁用态），冷却后可再次催办
+// ════════════════════════════════════════════════════════════════
+const URGE_COOLDOWN_MS = 5 * 60 * 1000;
+
+/** A④：催办主文 = 〈业务域 · 待办事项〉 */
+function _urgeSubject(group) {
+  const label = WORK_DOMAIN_LABELS[realtimeGroupDomainOf(group)] || '';
+  return label ? `${label} · ${group.title}` : group.title;
+}
+
+/** A④：截止时间文案（取条目常见时限字段；无则空串 → 显示「无明确时限」） */
+function _urgeDueText(group) {
+  const first = (group.items && group.items[0]) || {};
+  const raw = first.dueAt || first.deadline || first.due || group.dueAt;
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return String(raw);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
+function _urgeTargetModule(group) {
+  const d = realtimeGroupDomainOf(group);
+  if (d === WORK_DOMAIN.ATTENDANCE) return 'attendance';
+  if (d === WORK_DOMAIN.INSPECTION || d === WORK_DOMAIN.MEMBER_DEV) return 'party';
+  if (d === WORK_DOMAIN.ACTIVITY || d === WORK_DOMAIN.MEETING) return 'activity';
+  return 'workspace';
+}
+
+/** 时间戳 → HH:MM */
+function _hhmm(ts) {
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/**
+ * 创建逐条催办控制器（各工作台一个实例，状态自持）
+ * @param {Object} opts
+ * @param {string[]} [opts.selfRoles] 本台「本人」角色键（责任人属于本集合 → 入口隐藏；缺省空集）
+ * @param {()=>({activities?:Array, people?:Array})} [opts.context] 到人 / 复盘责任人解析所需（缺省空）
+ * @param {(ctx:Object)=>void} [opts.onDone] 催办成功后的重渲染回调（缺省不重渲染）
+ * @param {string} [opts.titleSuffix] 入口 title 后缀（如支书台标注「催办一般归组织委员 · 本条为例外」，缺省空）
+ * @returns {{urgeStateOf:(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null),
+ *            onUrgeTodo:(group:Object, ctx:Object)=>void}}
+ */
+export function createUrgeController({ selfRoles = [], context, onDone, titleSuffix = '' } = {}) {
+  const state = new Map(); // groupKey → 最近催办时间戳（会话内，不落库）
+  const selfSet = new Set(selfRoles);
+
+  /** 当前用户是否本台「本人」角色（显式自守，防越权渲染）；非本人 → 不催 */
+  const _canUrge = () => {
+    const me = AuthStore.getCurrentUser();
+    return !!me && selfSet.has(me.role);
+  };
+
+  /** 责任角色（过滤「责任人即本人」） */
+  const _urgeRoles = (group) =>
+    urgeRolesOf(group, context ? context() : {}).filter(r => !selfSet.has(r));
+
+  /** 催办入口状态：available=可催办（含再次催办）｜urged=冷却中（节流）｜null=不渲染 */
+  function urgeStateOf(group) {
+    if (!group || !group.groupKey || !_canUrge()) return null;
+    const roles = _urgeRoles(group);
+    if (!roles.length) return null; // 无责任人或责任人即本人 → 隐藏
+    const at = state.get(group.groupKey);
+    if (at && Date.now() - at < URGE_COOLDOWN_MS) {
+      return { state: 'urged', label: `已催办 ${_hhmm(at)}`, title: '催办冷却中（5 分钟后可再次催办）' };
+    }
+    return {
+      state: 'available',
+      label: at ? '再次催办' : '催办',
+      title: `提醒责任人：${roles.map(r => ROLE_LABELS[r] || r).join('、')}${titleSuffix}`,
+    };
+  }
+
+  /** 催办动作：按责任角色发定向通知；成功后按钮转「已催办」态（会话内） */
+  function onUrgeTodo(group, ctx) {
+    if (!group || !group.groupKey) return;
+    const at = state.get(group.groupKey);
+    if (at && Date.now() - at < URGE_COOLDOWN_MS) {
+      showToast('info', '该待办刚已催办，请稍后再试');
+      return;
+    }
+    const roles = _urgeRoles(group);
+    if (!roles.length) { showToast('info', '该待办无明确责任人，无法催办'); return; }
+    const targetModule = _urgeTargetModule(group);
+    // A① 对象级深链（2026-09-10）：按责任人角色复用 notice.js 同源模块→页面映射，落到该角色待办 tab
+    // 并高亮被催办聚合组（data-group-key）；页面缺省时退 targetModule 角色自适应兜底。
+    const roleMap = NOTICE_MODULE_ROLE_PAGES[targetModule] || {};
+    const hlId = group.groupKey || ((group.items && group.items[0]) || {}).id;
+    // 签发人取当前真实角色（2026-09-13 彻查批次：此前正文写死「支书提醒：」且 actorRole 传 'secretary'
+    //   → 副支书催办被记为支书；正文改为裁定原定的中性事务式，签发人落到 publishedBy）
+    const _me = AuthStore.getCurrentUser() || {};
+    const _actorRole = _me.role || (selfSet.values().next().value || 'secretary');
+    for (const role of roles) {
+      const page = roleMap[role] || roleMap['*'];
+      NoticeStore.add({
+        title: '待办催办',
+        // A④ 文案定稿（2026-09-10 支书裁定：中性事务式）——「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
+        content: `关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
+        priority: 'urgent',
+        targetModule,
+        targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
+        actionable: true,
+        actionRoles: [role],
+        actionTask: group.title,
+        publishedBy: ROLE_LABELS[_actorRole] || '支书',
+      }, _actorRole);
+    }
+    state.set(group.groupKey, Date.now());
+    showToast('success', `已向${roles.map(r => ROLE_LABELS[r] || r).join('、')}发送催办通知`);
+    if (typeof onDone === 'function') onDone(ctx);
+  }
+
+  return { urgeStateOf, onUrgeTodo };
 }

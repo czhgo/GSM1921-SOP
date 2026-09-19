@@ -4,16 +4,16 @@
 // 支书 2026-09-10 裁定（卡片去留/合并批）：出勤行补入口——「查看个人明细」+「去补课/提交补课说明」。
 //   补课入口仅在存在本人待补课任务时出现（制度无「请假」入口，故不设）。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel } from '../../../services/attendance.js?v=20260917c';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260917c';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { openFormModal } from '../../../components/modal.js?v=20260917c';
-import { showToast } from '../../../core/utils.js?v=20260917c';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal } from '../../../services/attendance.js?v=20260919g';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260919g';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { openFormModal } from '../../../components/modal.js?v=20260919g';
+import { showToast } from '../../../core/utils.js?v=20260919g';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/constants.js?v=20260917c';
+import { isActivityArchived } from '../../../core/constants.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260919g';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -53,6 +53,7 @@ export function renderContent(ctx) {
         <div class="flex items-center gap-2 px-3 pb-3">
           <button type="button" class="visitor-att-detail-btn text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>
           ${myMakeup ? `<button type="button" class="visitor-att-makeup-btn text-xs px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
+          ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="visitor-att-appeal-btn text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
         </div>
         <div class="visitor-att-detail hidden px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}">
           <div class="text-[12px] text-gray-600 space-y-0.5">
@@ -115,6 +116,32 @@ export function renderContent(ctx) {
         if (t) { t.proofContent = proof; saveMakeupTasks(tasks); }
         showToast('success', '补课说明已提交，待纪检确认后考勤回写「已补」');
         renderList();
+        return true;
+      },
+    });
+  });
+
+  // 我参加了但没记上（SOP-B-42 / D-456）：同学反映漏记 → 交纪检委员先核实（属实再交活动组织方确认）
+  listEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.visitor-att-appeal-btn');
+    if (!btn) return;
+    const actId = btn.dataset.actId;
+    const act = monthActs.find(a => a.id === actId);
+    openFormModal({
+      id: 'visitor-att-appeal',
+      title: `我参加了但没记上 · ${act?.title || '活动'}`,
+      fields: [{ key: 'note', label: '说明（什么情况）', type: 'textarea', required: true, placeholder: '如：我当天到场签到，但考勤里没有我' }],
+      submitLabel: '提交给纪检委员',
+      accentColor: ctx.accent || '#3B82F6',
+      onSubmit: (values) => {
+        const note = (values.note || '').trim();
+        if (!note) { showToast('error', '请填写说明'); return false; }
+        const res = createAttendanceAppeal({ personId: meId, activityId: actId, note });
+        if (!res.ok) {
+          showToast('error', res.reason === 'already' ? '你已经提过这条，纪检正在核实' : '提交失败，请稍后再试');
+          return false;
+        }
+        showToast('success', '已提交给纪检委员，纪检会先核实再处理');
         return true;
       },
     });

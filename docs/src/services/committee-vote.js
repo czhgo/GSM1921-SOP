@@ -2,16 +2,16 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260917c';
-import { AuthStore } from './auth.js?v=20260917c';
-import { NoticeStore } from './notice.js?v=20260917c';
-import { resolveVoterIds } from './vote-config.js?v=20260917c';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../core/data-adapter.js?v=20260919g';
+import { AuthStore } from './auth.js?v=20260919g';
+import { NoticeStore } from './notice.js?v=20260919g';
+import { resolveVoterIds } from './vote-config.js?v=20260919g';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
 // ——people.js role + AuthStore.isCommissioner、排除 u_*（auth.js COMMISSIONER_ROLES 为角色底层源），
-// 不再本地按角色/成员自算，消除与 vote-config 的失同步。
+// 不再本地按角色/成员自算，消除与 vote-config 的未同步。
 // 2026-09-06 附录⑩ B批：改为惰性求值（首用缓存）——resolveVoterIds 内部访问 AuthStore，
 //   顶层立即执行会在模块环初始化期（auth→taskforce→workforce→committee-vote）命中
 //   「AuthStore before initialization」；运行期首次调用时 AuthStore 已就绪。

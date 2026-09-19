@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260917c';
-import { showToast } from '../core/utils.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
-import { badgeHtml } from './badges.js?v=20260917c';
+import { IssueStore } from '../services/issues.js?v=20260919g';
+import { showToast } from '../core/utils.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
+import { badgeHtml } from './badges.js?v=20260919g';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -20,7 +20,7 @@ const TYPE_OPTIONS = [
   { value: 'question', label: '疑问', color: '#6B7280', darkColor: '#94A3B8' },
 ];
 
-/** 渲染新建反馈表单（默认匿名；提交经 IssueStore.submitIssue 走双形态真匿名写口） */
+/** 渲染新建反馈表单（默认匿名；提交经 IssueStore.submitIssue 走双形态对外匿名写口——后台记真实提交人 `_realPersonId`，一切常规读出口脱敏） */
 export function renderIssueForm() {
   const container = document.getElementById('issue-form-container');
   if (!container) return;
@@ -68,7 +68,7 @@ export function renderIssueForm() {
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
-          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开，任何人（含支书）均无法追溯提交人">
+          <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开——列表与详情一律显示匿名；真实提交人仅党委在必要时可查，且每次查看都会留痕">
             <input type="checkbox" id="form-anon" class="checkbox-accent" checked>
             匿名提交
           </label>
@@ -94,7 +94,8 @@ export function renderIssueForm() {
 
     const anon = document.getElementById('form-anon')?.checked ?? true;
 
-    // 真匿名：匿名则不落任何可反查提交人的字段（支书侧亦不可见）；实名按现口径记真实 personId
+    // 对外匿名（后台记真身）：匿名时对外出口一律脱敏（支部内部含支书不可见），但库里留真实提交人
+    // `_realPersonId`——真实提交人仅党委在必要时可查、每次查看留痕；实名按现口径记真实 personId
     try {
       await IssueStore.submitIssue({ title, body, scope, types, anonymous: anon });
     } catch (e) {

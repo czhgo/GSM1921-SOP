@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260917c';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260919g';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260917c';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260919g';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -156,7 +156,7 @@ export function validateBlockManifest(m) {
   return { ok: errors.length === 0, errors };
 }
 
-/** 全量清单体检（模块加载即自检；不合规打警告但不阻断——防契约失同步静默） */
+/** 全量清单体检（模块加载即自检；不合规打警告但不阻断——防止契约未同步被静默吞掉） */
 BLOCK_MANIFESTS.forEach((m) => {
   const res = validateBlockManifest(m);
   if (!res.ok) console.warn(`[workflow/blocks] manifest 不合规 ${m?.blockId}: ${res.errors.join('; ')}`);

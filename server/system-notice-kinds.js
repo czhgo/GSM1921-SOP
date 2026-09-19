@@ -7,7 +7,7 @@
 //  本注册表把生成权收回服务端：
 //    · authorize(ctx) —— 服务端按「业务对象是否存在 + actor 与该对象的关系」自行复算，不信客户端；
 //    · build(ctx)     —— 标题/正文/受众/落点由服务端生成；模板单一源 =
-//                        docs/src/core/system-notice-templates.js（前端 mock 模式复用，文案零失同步）。
+//                        docs/src/core/system-notice-templates.js（前端 mock 模式复用，两处文案不会未同步）。
 //  端点：POST /api/v1/system-notices（server/routes/system-notices.js；未登录 401 / 未知 kind 400 /
 //        authorize 不通过 403 / 通过 201 并落库 notices 表）。
 //  ctx = { actor, sourceId, payload, db }
@@ -59,7 +59,7 @@ const KINDS = {
   // R-23（2026-09-13）：思想汇报已建服务端表（thought_reports，随快照写穿同步）——
   //   原「服务端无表」只能采信客户端自述 personId（无法验对象）。现改为按 sourceId 读表复算：
   //   ① 表内无该汇报 → 403（杜绝凭空伪造「已提交」通知）；
-  //   ② 提交人本人（row.personId === actor.id，不可冒充他人）或有权阅处角色（组织委员=把关式初阅功能位）→ 放行。
+  //   ② 提交人本人（row.personId === actor.id，不可冒充他人）或有权阅处角色（组织委员＝思想汇报归口）→ 放行。
   'thought-report-submitted': {
     authorize({ actor, sourceId, db }) {
       if (!actor) return false;
@@ -196,6 +196,18 @@ const KINDS = {
       const rec = rowOf(db, 'external_dispatches', sourceId);
       const senderId = rec ? rec.senderId : payloadOf({ payload }).senderId;
       return !!senderId && actor.id === senderId;
+    },
+  },
+
+  // ── 宣传周报已报送待支书审核（SOP-B-40 ②，2026-09-19 批次 94）────────────────
+  // 对象：周报表必须存在（表 weekly_reports，随快照写穿）；授权＝提交人本人或宣传委员归口
+  //   （与 thought-report-submitted 同款：不信客户端自述的姓名/周次，展示值由模板按表内容传参）。
+  'weekly-report-submitted': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor) return false;
+      const row = rowOf(db, 'weekly_reports', sourceId);
+      if (!row) return false;
+      return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
     },
   },
 

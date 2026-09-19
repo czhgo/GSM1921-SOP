@@ -2,10 +2,10 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
-version: "2.4"
+last_updated: "2026-09-17"
+version: "2.5"
 status: active
-related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
+related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md]
 ---
 
 # 文档导航映射
@@ -15,6 +15,26 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 > **母本子本关系注册表**见 [SSOT_INDEX.md](SSOT_INDEX.md)。
 > 三者关系：§1.1 定义层级 → DOC_MAP 标注层级 → SSOT_INDEX 注册关系。
 > **受众：** [工程师]+[AI]
+
+---
+
+## §〇.1 常读文件职能速查（2026-09-17 立）
+
+> **本表是什么**：**常读文件**（每次会话必读 / 每次开工必扫 / 每次收尾必核者）**各自唯一要回答的那一个问题**。规范见 [OPERATIONS_GUIDE.md §5.1](OPERATIONS_GUIDE.md)。每份文件头下都有一段**完整职能声明**（含「不回答什么 + 去向」与「谁什么时候读」），本表只是**索引**。
+> **为什么单列**：审查一处改动该写进哪个文件、或某句话该不该留在某文件时，**先看本表**——「一文件一职能」的纪律在这里一眼可核。
+
+| 常读文件 | 回答什么问题（唯一职责） | 读的时机 | 读取策略 |
+|---|---|---|---|
+| `CLAUDE.md` | AI 每次开工**必须遵守什么**（甲部 Harness / 乙部执行 / 丙部待裁） | 每次会话 | **active** |
+| `content/05_ai_coding/CONTEXT_MANAGEMENT.md` | 上下文怎么管、防失忆怎么做 | 每次会话 | **active** |
+| `.ctx/REVIEW_QUEUE.md` | **哪些评议与裁定还没闭环** | 每批开工前必扫 | on-demand |
+| `.ctx/ENGINEERING_ASSESSMENT.md` | 现在工程化到几成、**下一步该改哪里** | 定「下一批做什么」前 | on-demand |
+| `.ctx/SNAPSHOT.md` | **这个系统现在长什么样** | 新会话开局 / 换人接手 | on-demand |
+| `.ctx/TIMESTAMPS.md` | 各文件**何时动过** + 周期性任务到期没 | 批次收尾核对 / M2 任务 | on-demand |
+| `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | **当时到底做了什么**（不可变时间胶囊；**已闭环评议项与逐批沿革的唯一归处**） | 追溯成因、复核授权 | on-demand |
+| `README.md` / `README-members.md` | 系统是什么、怎么用（对外门面 / 使用者视角） | 首次接触 / 对外说明 | on-demand |
+
+> ⚠ **本表 2026-09-17 才立，此前不存在**——所以四份 `.ctx` 文件的职能声明此前**无处可指**。本表的建立与那四份声明**同批**完成（否则就是**死指针**：声明写着「见 DOC_MAP 职能列」而那一列并不存在）。
 
 ---
 
@@ -112,7 +132,8 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针；2026-09-04 按阅读对象重构，原计算中心对接全案并入 §三） | AUTHENTICATION_MODEL.md、WECHAT_INTEGRATION.md、PKU_PARTY_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_GUIDE.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、DATA_FLOW.md、SOP_WEBSITE_GUIDE.md |
-| `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/、2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座） | [工程师]+[AI] | 工程化评估与改造行动线（五维评分=模块化 75/插件化 75/开源化 74/超参数 78/组合 78·综合≈76 + 工程做法纪律 + 行动线 P0~P4 执行状态；2026-09-03 建，覆盖式维护） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
+| `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座；2026-09-17 收敛：逐批沿革迁入月度日志，本体只维护**当前值**） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「现在工程化到几成、下一步该改哪里」**：五维**当前**打分（模块化 **97** / 插件化 75 / 开源化 **75** / 超参数 78 / 组合 78）+ 工程做法纪律 + 行动线 P0~P4 的**当前**状态。⚠ **逐批沿革与「为何 +1」论证已于 2026-09-17 迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md`**（原行曾写「综合≈76」，现状见文件本体 §5.2） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
+| `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md、COMPONENT_SPEC.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
@@ -142,7 +163,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/insights/README.md` | [用户]+[工程师] | 经验沉淀层目录索引（含 2026-09-04 工程方法论分流承接声明） | — |
-| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、三支委角色设计、活动分类体系、专班） | AI（经验提炼） |
+| `content/insights/党支部管理与实务经验沉淀.md` | [用户]+[AI] | 经验沉淀（组织性/管理事服务人、条块二元结构、支委角色设计、活动分类体系、专班） | AI（经验提炼） |
 
 ### 跨多类：根目录 + 审计底座 + 实现层
 
@@ -178,7 +199,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md]
 
 **精简合并策略**：合并时仅合并核心独有章节，重叠章节以链接替代——控制合并后文件长度，避免「合并即变大」；合并前判断文件定位：若文件内部存在主题分裂（如"当前打桩实现"与"未来系统设计"），应拆分为两个独立文件而非强行合并。
 
-**为什么不是"逐文件审查"？** 逐文件审查缺乏全局视角，无法发现跨文件的一致性问题（引用断裂、术语失同步）；5 维度审查以"维度"为单位扫描整个目录，能系统性发现同类问题。
+**为什么不是"逐文件审查"？** 逐文件审查缺乏全局视角，无法发现跨文件的一致性问题（引用断裂、术语未同步）；5 维度审查以"维度"为单位扫描整个目录，能系统性发现同类问题。
 
 **为什么不是"一次性全部改"？** content/ 各知识类型目录存在依赖——上游路径变更后下游引用都要跟着改；同时全改会使一改具改的搜索范围爆炸、遗漏概率上升。分批执行让每批完成后形成稳定基线，下一批基于稳定基线工作。
 

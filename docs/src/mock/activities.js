@@ -22,7 +22,7 @@ export const ACTIVITIES = [
 
   // ── 原 5 月批次（重排 → 7/11~7/19）────────────────────────────
   { id: 'act-8', title: '7月支部党员大会', date: '2026-07-11', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '光华1号楼101报告厅', status: 'completed', scenarioId: 'branch-party-meeting', domain: 'party-building', assignments: [{ personId: 'p11', role: 'organizer' }], agenda: [{ item: '通报 6 月支部工作情况', host: '支书' }, { item: '审议 7 月发展对象名单', host: '组织委员' }, { item: '民主评议党员', host: '支书' }] },
-  // 批次 47-R（2026-09-16，支书裁定「过程态种子都补」）：act-9 增补 p5（普通成员 宋佳宁，演示账号 2400012349）
+  // 批次 47-R（2026-09-16，支书裁定「过渡态种子都补」）：act-9 增补 p5（普通成员 宋佳宁，演示账号 2400012349）
   //   为 `deep`。**为什么必须补**：成员台「我的复盘」按定义只在「**本人在某活动中挂了复盘责任**」时出行卡
   //   （`visitor/review-tab.js:42` 的 `['organizer','deep'].includes(role)`），而原种子中 p5 未挂在任何活动上
   //   ⇒ 该 tab 恒为两空列，「请填写复盘总结」这处校验点在真机上**永远够不到**（批 47-M 实测 `.visitor-review-item` 计数 0）。
@@ -81,7 +81,7 @@ export const ACTIVITIES = [
   //   （范围 + 剔除滞留，roster 口径单一源 = policy-defaults attendance.roster），本数据保持原值。
   { id: 'act-31', title: '9月支部党员大会（线上异步表决）', date: '2026-09-10', type: '支部党员大会', organizer: 'p11', direction: 'top-down', location: '线上（异步表决）', status: 'published', scenarioId: 'branch-party-meeting', domain: 'party-building', voteConfig: { mode: 'async', optionSet: 'formal', voterScope: 'formal-only', voterIds: ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'], quorumCheck: true }, assignments: [{ personId: 'p11', role: 'organizer' }, { personId: 'p5', role: 'participant' }, { personId: 'p8', role: 'participant' }], agenda: [{ id: 'ag-mtg-1', item: '审议 2026 年秋季学期支部工作计划', host: '支书' }, { id: 'ag-mtg-2', item: '审议发展对象接收为预备党员的决议', host: '组织委员' }] },
 
-  // 批次 47-W（2026-09-16，支书裁定「过程态种子都补」同口径）：为「决议落实」
+  // 批次 47-W（2026-09-16，支书裁定「过渡态种子都补」同口径）：为「决议落实」
   //   （`resolution-followup-manager.js` 三处必填：待落实事项 / 责任人 / 落实时限）造一条**可达且自洽**的种子。
   // **为什么必须新造、而不是给既有活动挂 `result`**：
   //   ① 「决议落实」区**只在存在 `result:'passed'` 的议程项时挂载**，而原种子**没有任何活动带 `result`**

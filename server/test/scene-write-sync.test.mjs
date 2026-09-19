@@ -1,4 +1,4 @@
-// server/test/scene-write-sync.test.mjs — P2b 防失同步：写活动场景目录单一源自洽（2026-09-03）
+// server/test/scene-write-sync.test.mjs — P2b 防止未同步的情况：写活动场景目录单一源自洽（2026-09-03）
 // 校验 core/constants.js 的 SCENARIO_WRITE_IDS/SCENARIO_LABELS：
 //   ① 与 ACTIVITY_CLASSIFICATION.subtypes 中文名逐序一致（四子会）；
 //   ② 平铺 id 全集 == SCENARIO_LABELS 键集（决策树/日历模板只派生这两者，无第二份手写清单）；
@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   SCENARIO_WRITE_IDS, SCENARIO_LABELS, ACTIVITY_CLASSIFICATION,
-} from '../../docs/src/core/constants.js?v=20260917c';
+} from '../../docs/src/core/constants.js?v=20260919g';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

@@ -2,7 +2,7 @@
 //
 // 来源（支书第 4 项）：「请更新所有的 README、相关的说明文件！……也有很多值得提炼总结的经验，
 //   这些经验是要推广开，让 AI 以此为案例发现新问题来继续询问我的！！」
-// 病灶（本批实测）：说明文件与代码之间积了 **34 处口径漂移**——纪检台/组长台 tab 数（文档 10 vs 代码 8/9）、
+// 病灶（本批实测）：说明文件与代码之间积了 **34 处口径未同步**——纪检台/组长台 tab 数（文档 10 vs 代码 8/9）、
 //   已删 tab 仍列在帮助页（「复盘状态」「制度与文本」）、组织台 tab 顺序与代码相反、党委台两行写反、
 //   数据域/表数在三份文档里各有版本（25/26/27/28/34/30）、页面数 19（实 21）、旧界面名（考勤总表 / 按人浏览 /
 //   公邮）长期未随代码收敛。**根因：这些数字与名称没有守卫，只能靠人记得同步。**
@@ -203,7 +203,7 @@ test('S5 数据五数：文档声明与代码实测一致（分口径，严禁�
   // SNAPSHOT 侧：资源表数与页面数
   const snapTable = /资源表 (\d+)/.exec(snapshot)?.[1];
   if (Number(snapTable) !== dbTables) problems.push(`SNAPSHOT 写「资源表 ${snapTable}」，代码实测 ${dbTables}`);
-  assert.deepEqual(problems, [], `数据口径漂移：\n${problems.join('\n')}`);
+  assert.deepEqual(problems, [], `数据口径未同步：\n${problems.join('\n')}`);
 });
 
 test('S6 页面数：文档声明与 docs/ 实况一致（根页 + 工作台）', () => {
@@ -399,4 +399,80 @@ test('S12 授权声明必须同行带可核验日期（防「注释伪造支书�
     .map(([f, n]) => `${f}：基线 ${n} → 实测 ${counts.get(f) || 0}`);
   assert.deepEqual(stale, [],
     `S12 迁移台账僵尸：以下文件已补上日期/已改写，但基线没下调——请下调 AUTH_CLAIM_UNDATED_BASELINE：\n  ${stale.join('\n  ')}`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S13（2026-09-17 批次 60，支书裁定「改为派生 + 守卫比对」）：**TIMESTAMPS 表行日期必须等于该文件
+//   frontmatter 的 `last_updated`——漂移即红灯**。
+//
+// 来源（支书 2026-09-17 已裁 · 逐字）：「**改为派生 + 守卫比对**」——`.ctx/TIMESTAMPS.md` 的登记行
+//   日期不再靠人记得同步，而是**以文件 frontmatter 为派生源**：一致即绿、漂移即红。
+// 病灶（批次 59 实测）：242 条登记行里 **39 行**「表行 ≠ frontmatter」；另有 144 行因「工作树 dirty
+//   且在库无改动日记载」无法确证——`TIMESTAMPS.md` 更新规则第 1 条要求「本表随文件修改同步更新」，
+//   而**没有任何机制保证它真的发生**。本守卫即那个机制的一半（另一半＝`CLAUDE.md R-83` 提交后必刷）。
+//
+// 判据（**精确到日，不许「差不多」「只比年-月」**）：
+//   · 计入比对：登记行指向**真实存在的文件**、且该文件**有 frontmatter 且含 `last_updated`**；
+//     表行日期必须**逐字等于** frontmatter 的 `last_updated`（`YYYY-MM-DD`）。
+//   · 跳过（裁定认可的「只人工维护」的三块，**不报红**）：① 文件不存在 / 已删除（属「已删除文件记录」
+//     块）；② **无 frontmatter** 的文件（`.js` / `.html` / `.css` / `.json` 类）；③ 通配登记行（`*`）
+//     与目录行。
+//   · **白名单（`TIMESTAMPS_SKIP_WHITELIST`，仅 2 条，逐条给理由）**：文件**有 frontmatter 但无
+//     `last_updated` 字段**者——不静默放过（无字段即红灯），只有进白名单的才跳过：
+//       ① `.ctx/snapshots/SNAPSHOT_v3_20260502.md`——快照件用 `date` / `archived_at` 表达时点，
+//          无 `last_updated`；属历史归档件，本批不改（补字段＝改历史件体例）。
+//       ② `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md`——归档件用 `archived_from` /
+//          `archived_date` 表达时点，无 `last_updated`；同上属历史归档件，不改。
+//     ⚠ **白名单不能更宽**：这三块之外任何一条「跳过」都必须是**机制性**的（文件不存在 / 无 frontmatter /
+//       目录 / 通配），而不是「这条对不上就不比」——后者＝把守卫写松。新增白名单须逐条写明理由。
+//
+// ⚠ 边界（不假装覆盖）：本守卫只核「表行 ↔ frontmatter」这一对；**frontmatter 自身是否滞后于
+//   该文件最后一次提交**（批次 59 列出 16 行）由 `R-83` 的「提交后必刷」纪律管，本守卫不越界
+//   （表行仍以 frontmatter 为准，故这类会让表行跟着 frontmatter 一起滞后——本批已单列供复核）。
+const TIMESTAMPS = join(ROOT, '.ctx', 'TIMESTAMPS.md');
+/** 允许「表行 ↔ frontmatter」不比的登记行（本批 2 条：有 frontmatter 但无 `last_updated` 字段的历史归档件） */
+const TIMESTAMPS_SKIP_WHITELIST = [
+  '.ctx/snapshots/SNAPSHOT_v3_20260502.md', // 快照件用 date / archived_at 表达时点，无 last_updated 字段
+  '.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md', // 归档件用 archived_date 表达时点，无 last_updated 字段
+];
+
+test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated（漂移即红灯）', () => {
+  const rows = [];
+  for (const line of read(TIMESTAMPS).split(/\r?\n/)) {
+    if (!line.startsWith('|')) continue;
+    const c = line.split('|').map((s) => s.trim());
+    // 5 列表行＝['', 文件路径, last_updated, 移入归档日, 角色, 备注, '']（2026-09-17 批次 61 加列后）；
+    //   「周期性任务最后执行时间」表虽同为 5 列，但 c[2] 是任务名（非日期）⇒ 自然排除；「已删除文件记录」表 3 列（c.length 5）亦排除
+    if (c.length !== 7 || !/^\d{4}-\d{2}-\d{2}/.test(c[2]) || c[1] === '文件路径') continue;
+    rows.push({ path: c[1], date: c[2].slice(0, 10) });
+  }
+  assert.ok(rows.length >= 200, `TIMESTAMPS 只解析到 ${rows.length} 条 5 列登记行（基线 200：2026-09-17 批次 61 实测 236 条，加列只是插入一列、行数不变）：解析或表结构异常，断言可能恒真`);
+
+  const problems = [];
+  let compared = 0;
+  for (const r of rows) {
+    if (TIMESTAMPS_SKIP_WHITELIST.includes(r.path)) continue;
+    const abs = join(ROOT, r.path);
+    if (!existsSync(abs) || statSync(abs).isDirectory()) continue; // 已删除 / 通配 / 目录行：属人工维护块
+    let src;
+    try { src = read(abs); } catch { continue; } // 读不了的（二进制等）：不计入
+    const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(src)?.[1];
+    if (!fm) continue; // 无 frontmatter：属人工维护块
+    const fmd = /^last_updated:[ \t]*["']?(\d{4}-\d{2}-\d{2})/m.exec(fm)?.[1];
+    if (!fmd) { // 有 frontmatter 却无 last_updated 字段 ⇒ 红灯（除非已进白名单）
+      problems.push(`${r.path}：该文件有 frontmatter 但无 last_updated 字段——须补字段，或按理由进 TIMESTAMPS_SKIP_WHITELIST`);
+      continue;
+    }
+    compared++;
+    if (r.date === fmd) continue;
+    const days = Math.round((Date.parse(r.date) - Date.parse(fmd)) / 86400000);
+    problems.push(`${r.path}：表行写 ${r.date}，frontmatter 写 ${fmd}（差 ${days > 0 ? '+' : ''}${days} 天）`);
+  }
+  // 非空转基线（2026-09-17 批次 61 实测：236 条 5 列行 = 比对 60 + 无 frontmatter 159 + 已删除/通配 12
+  //   + 目录 3 + 白名单 2；表结构由 4 列改 5 列只是**插入一列**，登记行总数与各档计数均不变）；掉到基线以下＝口径被写松（大量行被静默跳过）
+  //   ⚠ 新增的「移入归档日」列**不参与**「表行 ↔ frontmatter」比对（它无 frontmatter 对应物）
+  assert.ok(compared >= 60,
+    `S13 只比对到 ${compared} 行（基线 60）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
+  assert.deepEqual(problems, [],
+    `TIMESTAMPS.md 表行与文件 frontmatter 漂移（口径：**以 frontmatter 为准**，把表行日期改成 frontmatter 的值）：\n  ${problems.join('\n  ')}`);
 });

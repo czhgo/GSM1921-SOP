@@ -11,11 +11,11 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../core/utils.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
-import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260917c';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260917c';
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260917c';
+import { getBasePath } from '../core/utils.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
+import { syncAppearanceForActiveUser } from '../core/theme.js?v=20260919g';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260919g';
+import { DEPLOY_MODE } from '../config/deploy.js?v=20260919g';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +29,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260917c');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260919g');
   return _authModule;
 }
 
@@ -113,7 +113,8 @@ export async function renderSidebar(activeModule, opts = {}) {
       if (!standingPage) return '';
       href = getBasePath() + 'workspace/' + standingPage;
       // 2026-09-03 清理余毒：多身份"选择进入身份"弹窗冗余——项目角色(组织者/深参与)
-      // 内容已归首页「我的角色」区块，身份切换走 header 下拉；sidebar 工作台一律直达常设工作台。
+      // 没有独立工作台页，内容落在成员工作台（workspace/visitor.html）而非首页（2026-09-17 批次 64 实测
+      // 首页无「我的角色」区块）；身份切换走 header 下拉；sidebar 工作台一律直达常设工作台。
       // （原 data-workspace-popover 触发 + workspace-popover.js 已删除）
     }
 

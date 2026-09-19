@@ -5,17 +5,18 @@
 //   ② 面板数据：同一 personId **同一期次可多篇**（数据层无唯一性约束）
 //   ③ 按人按期次归集（listThoughtReportsByPersonGrouped）：组内多篇、组间期次倒序
 //   ④ 存量/脏值归一：无 period、非法 period 的记录读取时按 submittedAt 推导
-//   ⑤ 篇幅口径 = 软提示：单一源 1500/800；过短**不作硬性拦截**（仍可提交，由组织初阅把关）
+//   ⑤ 篇幅口径（`SOP-B-11`）：**三个数各是各的**——建议 1500（wordHint）· 警告审阅线 1200
+//      （wordSoftMin）· **一律不影响提交**（过短照常提交并入库归档）
 //   ⑥ 期次标签/选项（单一源 core/period.js）
 // 运行：node --test test/thought-report-panel.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260917c';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260917c';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260917c';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260917c';
-import * as TR from '../../docs/src/services/thought-report.js?v=20260917c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919g';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919g';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260919g';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260919g';
+import * as TR from '../../docs/src/services/thought-report.js?v=20260919g';
 
 // ── localStorage 内存桩（与 thought-review.test.mjs 同做法）──
 const _store = new Map();
@@ -119,26 +120,32 @@ test('④ 存量归一：无 period / 非法 period 的记录读取时按 submit
   assert.deepEqual(groups.map(g => g.period), ['2026-Q4', '2026-Q2'], '归集使用归一后的期次');
 });
 
-test('⑤ 篇幅口径：软提示（1500/800 单一源），过短不拦截', () => {
+test('⑤ 篇幅口径（SOP-B-11）：建议 1500 / 警告审阅线 1200 / 一律不影响提交', () => {
   beginMockCase();
   assert.equal(POLICY_DEFAULTS.thoughtReport.wordHint, 1500, '建议篇幅单一源 = 1500');
-  assert.equal(POLICY_DEFAULTS.thoughtReport.wordSoftMin, 800, '偏短提示线单一源 = 800');
+  assert.equal(POLICY_DEFAULTS.thoughtReport.wordSoftMin, 1200, '警告审阅线单一源 = 1200');
   assert.equal(TR.wordHint(), 1500);
-  assert.equal(TR.wordSoftMin(), 800);
+  assert.equal(TR.wordSoftMin(), 1200);
 
   const shortText = '本季度思想汇报正文过短示例。';
   const s = TR.wordCountHint(shortText);
-  assert.equal(s.level, 'short', '低于提示线 → short 级提示');
-  assert.ok(s.hint.includes('1500') && s.hint.includes('不作拦截'), '提示文案说明建议篇幅且明确不拦截');
+  assert.equal(s.level, 'short', '低于警告审阅线 → short 级提示');
+  assert.ok(s.hint.includes('1200') && s.hint.includes('警告审阅'), '提示文案说明「少于 1200 字触发警告审阅」');
+  assert.ok(s.hint.includes('不影响提交'), '提示文案明确「不影响提交」（硬约束）');
+  assert.ok(s.hint.includes('1500'), '提示文案同时给出建议篇幅 1500');
 
   const l = TR.wordCountHint(LONG);
-  assert.equal(l.level, 'ok', '达到提示线 → ok');
+  assert.equal(l.level, 'ok', '达到警告审阅线 → ok');
   assert.equal(l.count, LONG.trim().length, '字数以去空白后长度计');
+  assert.ok(l.hint.includes('1500') && l.hint.includes('不影响提交'), '达标侧同样给出建议值与「不影响提交」');
 
-  // 关键：过短**不作硬性拦截**——仍可提交成功（把关交给组织初阅）
+  // ⚠ 关键（「不影响提交」是硬约束）：过短**不被拦截**——仍可提交，且**直接入库归档**
   const rec = TR.addThoughtReport({ personId: 'p6', title: '偏短汇报', content: shortText, period: '2026-Q3' });
-  assert.equal(rec.reviewStatus, 'pending', '过短仍可提交 → 待组织初阅（软提示，非硬校验）');
+  assert.equal(rec.reviewStatus, 'archived', '过短仍可提交 → 提交即入库归档（不拦、不等初阅）');
   assert.equal(rec.period, '2026-Q3');
+  // 「1500 / 1200 / 不影响提交」三者不混：1200 只决定提示级别，不决定能否提交
+  assert.equal(TR.wordCountHint(shortText).level, 'short');
+  assert.ok(TR.addThoughtReport({ personId: 'p7', title: '更短', content: '一句话。' }).id, '极短同样可提交');
 });
 
 test('⑥ 期次助手（单一源）：标签 / 排序 / 选项', () => {

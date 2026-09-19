@@ -5,30 +5,59 @@
 //  只读查阅一律走本独立页（不再行内展开）：
 //    · ?id=<trId>        单篇阅读（版式优先可读性）
 //    · ?personId=<pid>   按人聚合（按期次分组）
-//    · 无参数            组织委员 → 待初阅队列；否则提示未指定对象
+//    · 无参数            提示未指定对象（2026-09-18 批次 86：原「组织委员待初阅队列」
+//                        随 `SOP-B-28` 取消初阅门一并撤除——提交即入库，没有待阅队列）
 //  访问门与服务层同源（canReadThoughtReport / canReviewThoughtReport），
-//  界面显隐不自判角色字面量；初阅/撤回/重交动作均调用服务层并透出 {ok:false, reason}。
+//  界面显隐不自判角色字面量；打回/重交动作均调用服务层并透出 {ok:false, reason}。
+//  篇幅（`SOP-B-11`）：阅读页显示字数；少于 1200 字加「篇幅不足 · 触发警告审阅」标记
+//  （**不影响提交与归档**，只让人看一眼）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260917c';
-import { renderHeader } from '../components/header.js?v=20260917c';
-import { BranchService } from '../services/runtime.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { getPersonName } from '../services/person.js?v=20260917c';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260917c';
-import { badgeHtml } from '../components/badges.js?v=20260917c';
-// 统一检索引擎（支书 2026-09-14 裁定）：待初阅队列可无限累积 → 关键词 + 分页一站式
-import { renderFilteredList } from '../components/list-filter.js?v=20260917c';
+import { renderSidebar } from '../components/sidebar.js?v=20260919g';
+import { renderHeader } from '../components/header.js?v=20260919g';
+import { BranchService } from '../services/runtime.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+// D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
+// 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
+// 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260919g';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260919g';
+import { getPersonName } from '../services/person.js?v=20260919g';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260919g';
+import { badgeHtml } from '../components/badges.js?v=20260919g';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
-  listPendingReviews, canReadThoughtReport, canReviewThoughtReport,
-  reviewThoughtReport, resubmitThoughtReport, withdrawThoughtReport,
+  canReadThoughtReport, canReviewThoughtReport,
+  rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260917c';
+} from '../services/thought-report.js?v=20260919g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
-BranchService.loadDB();
+/** 数据 hydrate（D-484 · 批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+async function _hydrateData() {
+  try {
+    registerApiAdapter(ApiAdapter);
+    let token = null;
+    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
+    if (token) {
+      setDataSource('api', { apiBaseUrl: '', authToken: token });
+      try {
+        await dataInit();
+      } catch (e) {
+        console.warn('[thought-report-entry] API 数据加载失败，回退本地 mock', e);
+        setDataSource('mock');
+        BranchService.loadDB();
+      }
+    } else {
+      BranchService.loadDB();
+    }
+  } catch (e) {
+    console.warn('[thought-report-entry] 数据加载异常（仍尝试内存兜底）', e);
+  } finally {
+    try { notifyDataLoaded(); } catch (_) { /* 静默 */ }
+  }
+}
 
 const cardEl = document.getElementById('tr-page-card');
 const backBtn = document.getElementById('tr-back-btn');
@@ -40,10 +69,10 @@ backBtn?.addEventListener('click', () => {
 const viewer = AuthStore.getCurrentUser();
 
 // ── 状态徽章（阅读页统一口径：与 org/visitor tab 同体系，走 components/badges.js）──
+// ⚠ 2026-09-18 批次 86：取消初阅门后只剩两态——「已入库」（默认）与「已打回·待补充」
 const STATUS_BADGE = {
-  pending: ['待初阅', 'warning'],
-  needs_revision: ['已退回·待修改', 'danger'],
-  archived: ['已归档', 'neutral'],
+  needs_revision: ['已打回·待补充', 'danger'],
+  archived: ['已入库', 'neutral'],
 };
 function statusBadge(status) {
   const cfg = STATUS_BADGE[status];
@@ -71,65 +100,25 @@ const params = new URLSearchParams(window.location.search);
 const idParam = params.get('id') || '';
 const pidParam = params.get('personId') || '';
 
-if (!viewer) {
-  renderMessage(`请先登录后查看思想汇报 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
-} else if (idParam) {
-  renderSingle(idParam);
-} else if (pidParam) {
-  renderPerson(pidParam);
-} else {
-  renderDefault();
-}
+// 渲染前必须先 hydrate（数据源初始化）：否则 api 形态下按「空集合」退回本地种子。
+(async () => {
+  await _hydrateData();
+  if (!viewer) {
+    renderMessage(`请先登录后查看思想汇报 · <a class="text-sky-600 hover:underline" href="${getBasePath()}login.html">去登录</a>`);
+  } else if (idParam) {
+    renderSingle(idParam);
+  } else if (pidParam) {
+    renderPerson(pidParam);
+  } else {
+    renderDefault();
+  }
+})();
 
-// ── 无参数：组织委员 → 待初阅队列；否则提示未指定对象 ──
+// ── 无参数：提示未指定对象（2026-09-18 批次 86：原「组织委员待初阅队列」已随初阅门取消撤除）──
 function renderDefault() {
   if (!cardEl) return;
-  if (!canReviewThoughtReport(viewer)) {
-    renderMessage(`未指定对象 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
-    return;
-  }
-  const queue = listPendingReviews();
-
-  cardEl.innerHTML = `
-    <div class="flex items-center justify-between mb-1">
-      <h2 class="text-xl font-semibold text-gray-900">待初阅队列</h2>
-      <span class="text-xs text-gray-500">${queue.length} 篇 · 先到先阅</span>
-    </div>
-    <p class="text-xs text-gray-500 mb-4">组织初阅把关：通过才正式归档；退回请附意见（提交者可见并可修改重交）。</p>
-    <div id="tr-queue-host"></div>
-  `;
-
-  // 统一检索引擎（支书 2026-09-14 裁定）：关键词（姓名 / 标题 / 日期 / 正文摘要）+ 分页（≤8 篇不渲染检索条）
-  renderFilteredList(cardEl.querySelector('#tr-queue-host'), {
-    stateKey: 'tr-pending-queue',
-    rows: queue,
-    keyword: {
-      keys: ['personName', 'title', 'submittedAt', 'content'],
-      placeholder: '搜索姓名 / 标题…',
-      get: (r, k) => (k === 'personName' ? getPersonName(r.personId) : k === 'submittedAt' ? fmtDt(r.submittedAt) : r[k]),
-    },
-    listClass: 'space-y-2',
-    countUnit: '篇',
-    emptyMessage: '暂无待初阅的思想汇报——成员新提交将在此按提交时间先后待阅',
-    rowHtml: (r) => `
-        <a href="thought-report.html?id=${r.id}" data-tr-id="${r.id}" class="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-xs font-semibold text-gray-800">${esc(getPersonName(r.personId) || r.personId)}</span>
-              <span class="text-xs font-medium text-gray-600 truncate">《${esc(r.title || '思想汇报')}》</span>
-              <span class="text-[11px] text-gray-500">${esc(fmtDt(r.submittedAt))}</span>
-            </div>
-            <p class="text-[12px] text-gray-500 mt-1">${esc(brief(r.content))}</p>
-          </div>
-          <span class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap flex-shrink-0">阅读并初阅 →</span>
-        </a>`,
-  });
-}
-
-/** 摘要截断（列表预览用；正文阅读走独立页） */
-function brief(text) {
-  const t = String(text || '').replace(/\s+/g, ' ').trim();
-  return t.length > 60 ? t.slice(0, 60) + '…' : t;
+  renderMessage(`未指定对象 · <a class="text-sky-600 hover:underline" href="${getBasePath()}workspace/visitor.html">去我的工作台查看/提交思想汇报</a>`);
+  return;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -158,11 +147,11 @@ function renderSingleView(rec) {
   const isReviewer = canReviewThoughtReport(viewer);
   const isSelf = rec.personId === viewer.personId;
 
-  // 初阅留痕（只读）
+  // 审阅留痕（只读）
   const history = Array.isArray(rec.reviewHistory) ? rec.reviewHistory : [];
   const historyHtml = history.length === 0 ? '' : `
     <div class="mt-8 pt-6 border-t border-gray-100">
-      <h3 class="text-sm font-semibold text-gray-700 mb-2">初阅留痕</h3>
+      <h3 class="text-sm font-semibold text-gray-700 mb-2">审阅留痕</h3>
       <div class="space-y-1.5">
         ${history.map(h => `
           <div class="text-xs text-gray-600">
@@ -173,26 +162,25 @@ function renderSingleView(rec) {
       </div>
     </div>`;
 
+  // 篇幅不足标记（`SOP-B-11`：少于 1200 字触发警告审阅；**不影响提交与归档**）
+  const shortMarkHtml = wc.level === 'short'
+    ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
+    : '';
+
   // 操作区（按权限显隐，均调用服务层函数）
+  // ⚠ 2026-09-18 批次 86：取消初阅门——不再有「通过并归档」（提交即归档），审阅只剩
+  //   「打回（要求本人补充）」这一事后反馈动作，且对任一篇都可发起（不限于某个中间态）。
   let actionHtml = '';
-  if (isReviewer && status === THOUGHT_REVIEW_STATUS.PENDING) {
+  if (isReviewer && status !== THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
       <div class="mt-8 pt-6 border-t border-gray-100">
-        <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" id="tr-approve" class="btn-accent text-sm px-4 py-2 rounded-lg">通过并归档</button>
-          <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">打回</button>
-        </div>
+        <button type="button" id="tr-reject-toggle" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">打回（要求本人补充）</button>
         <div id="tr-reject-box" class="hidden mt-3">
           <textarea id="tr-reject-note" rows="3" class="input-flat w-full resize-none" placeholder="打回意见（必填，提交者可见并可修改重交）"></textarea>
           <div class="flex justify-end mt-2">
             <button type="button" id="tr-reject-confirm" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">确认打回</button>
           </div>
         </div>
-      </div>`;
-  } else if (isSelf && status === THOUGHT_REVIEW_STATUS.PENDING) {
-    actionHtml = `
-      <div class="mt-8 pt-6 border-t border-gray-100">
-        <button type="button" id="tr-withdraw" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">撤回</button>
       </div>`;
   } else if (isSelf && status === THOUGHT_REVIEW_STATUS.NEEDS_REVISION) {
     actionHtml = `
@@ -242,6 +230,7 @@ function renderSingleView(rec) {
       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">${esc(periodLabel(rec.period))}</span>
       ${statusBadge(status)}
       <span class="text-[11px] text-gray-400 tabular-nums">${wc.count} 字</span>
+      ${shortMarkHtml}
     </div>
 
     <h2 class="text-xl font-semibold text-gray-900 leading-snug">${esc(rec.title || '思想汇报')}</h2>
@@ -269,38 +258,21 @@ function renderSingleView(rec) {
 function bindActions(rec) {
   const id = rec.id;
 
-  // 组织委员 · 待初阅：通过并归档
-  cardEl.querySelector('#tr-approve')?.addEventListener('click', () => {
-    const res = reviewThoughtReport({ id, decision: 'approve', by: viewer.personId, role: viewer.role });
-    if (!res || !res.ok) { showToast('error', (res && res.reason) || '初阅失败，请稍后重试'); return; }
-    showToast('success', '初阅通过，已归档');
-    renderSingle(id);
-  });
-
-  // 组织委员 · 打回（先展开必填意见）
+  // 组织委员 · 打回（先展开必填意见）——事后反馈，不是提交的门
   cardEl.querySelector('#tr-reject-toggle')?.addEventListener('click', () => {
     const box = cardEl.querySelector('#tr-reject-box');
     box?.classList.toggle('hidden');
   });
   cardEl.querySelector('#tr-reject-confirm')?.addEventListener('click', () => {
     const note = (cardEl.querySelector('#tr-reject-note')?.value || '').trim();
-    if (!note) { showToast('error', '打回须填写初阅意见'); return; }
-    const res = reviewThoughtReport({ id, decision: 'reject', note, by: viewer.personId, role: viewer.role });
+    if (!note) { showToast('error', '打回须填写意见'); return; }
+    const res = rejectThoughtReport({ id, note, by: viewer.personId, role: viewer.role });
     if (!res || !res.ok) { showToast('error', (res && res.reason) || '打回失败，请稍后重试'); return; }
-    showToast('success', '已打回并附初阅意见，提交者可修改重交');
+    showToast('success', '已打回并附意见，提交者可修改重交');
     renderSingle(id);
   });
 
-  // 本人 · 待初阅：撤回
-  cardEl.querySelector('#tr-withdraw')?.addEventListener('click', () => {
-    if (!window.confirm('确认撤回该思想汇报？撤回后该篇将从你的思想汇报归集移除。')) return;
-    const res = withdrawThoughtReport({ id, by: viewer.personId });
-    if (!res || !res.ok) { showToast('error', (res && res.reason) || '撤回失败，请稍后重试'); return; }
-    showToast('success', '思想汇报已撤回');
-    location.href = getBasePath() + 'thought-report.html?personId=' + encodeURIComponent(viewer.personId);
-  });
-
-  // 本人 · 已退回：修改并重新提交（实时软提示，不作拦截）
+  // 本人 · 被打回：修改并重新提交（实时提示，不作拦截；重交即入库归档）
   cardEl.querySelector('#tr-resubmit-toggle')?.addEventListener('click', () => {
     const box = cardEl.querySelector('#tr-resubmit-box');
     box?.classList.remove('hidden');
@@ -319,7 +291,7 @@ function bindActions(rec) {
     if (!content) { showToast('warning', '请填写修改后的思想汇报内容'); return; }
     const res = resubmitThoughtReport({ id, content, by: viewer.personId });
     if (!res || !res.ok) { showToast('error', (res && res.reason) || '重新提交失败，请稍后重试'); return; }
-    showToast('success', '已重新提交，待组织初阅');
+    showToast('success', '已重新提交，入库归档');
     renderSingle(id);
   });
 }

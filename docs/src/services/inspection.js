@@ -3,15 +3,15 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260917c';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260917c';
-import { persist } from '../core/data-adapter.js?v=20260917c';
-import { bumpToken } from '../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260917c';
-import { isInitStateActive } from './init-reset.js?v=20260917c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from './person.js?v=20260917c';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260917c';
-import { loadActivities } from './activity.js?v=20260917c';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260919g';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g';
+import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260919g';
+import { isInitStateActive } from './init-reset.js?v=20260919g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260919g';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260919g';
+import { loadActivities } from './activity.js?v=20260919g';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -166,6 +166,8 @@ export function inspectionToDisplay(records) {
 
 /**
  * 考察记录长格式（按来源分组展示）
+ * SOP-B-43（`D-457`）：**记录人必呈现**——总表与导出都带「记录人」（源头审校的可核凭据）；
+ * 「记录时间」按同条裁定**留存、不强调**（数据层已有 `recordedAt`，本格式不透出）。
  */
 export function inspectionToLong(records) {
   return records.map(r => ({
@@ -180,7 +182,51 @@ export function inspectionToLong(records) {
     role: r.role,
     content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     status: r.status,
+    recordedByName: r.recordedBy ? _personName(r.recordedBy) : '',
   }));
+}
+
+/**
+ * 考察督办清单（SOP-B-10）：纪检委员的入口＝「**未闭环 / 超期**」项，**以人为第一列**（一人一行）。
+ * 判据（本批择定，见执行日志批次 84）：**未闭环**＝已有考察记录且未确认（`status='pending'`）；
+ * **超期**＝未确认且录入时间超过 `POLICY_DEFAULTS.inspection.overdueDays` 天（与 `getOverdueRecords` 同源）。
+ * ⚠ 「该有而没有」那一侧（应有记录的应到口径）系统内无口径 ⇒ **本函数不判**（不自行推定）。
+ * ⚠ **督办不等于接手**：建档与核对仍归组织委员（`SOP-A-12`）。
+ * 纯数据辅助（无 DOM）：纪检台「考察管理」tab 督办清单卡消费；单测可直导。
+ * @returns {Array<Object>} 按超期数 / 未闭环数降序
+ */
+export function listInspectionSupervision() {
+  const overdueIds = new Set(getOverdueRecords().map(r => r.id));
+  const byPerson = new Map();
+  loadActiveInspectionRecords().forEach(r => {
+    if ((r.status || 'pending') !== 'pending') return;
+    if (!byPerson.has(r.personId)) {
+      const m = getPersonById(r.personId) || {};
+      byPerson.set(r.personId, {
+        personId: r.personId,
+        name: _personName(r.personId),
+        studentId: m.studentId || '',
+        partyGroup: m.partyGroup || '',
+        developStage: m.developStage || '',
+        role: m.role || '',
+        pendingCount: 0,
+        overdueCount: 0,
+        latestRecordedByName: '',
+        latestRecordedAt: '',
+      });
+    }
+    const row = byPerson.get(r.personId);
+    row.pendingCount += 1;
+    if (overdueIds.has(r.id)) row.overdueCount += 1;
+    const at = r.recordedAt || '';
+    if (at >= row.latestRecordedAt) {
+      row.latestRecordedAt = at;
+      row.latestRecordedByName = r.recordedBy ? _personName(r.recordedBy) : '';
+    }
+  });
+  const zh = (a, b) => String(a).localeCompare(String(b), 'zh');
+  return [...byPerson.values()].sort((a, b) =>
+    b.overdueCount - a.overdueCount || b.pendingCount - a.pendingCount || zh(a.name, b.name));
 }
 
 /**

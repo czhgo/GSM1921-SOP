@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260917c';
-import { renderHeader } from '../components/header.js?v=20260917c';
-import { getBasePath } from '../core/utils.js?v=20260917c';
-import { icon } from '../core/icons.js?v=20260917c';
+import { renderSidebar } from '../components/sidebar.js?v=20260919g';
+import { renderHeader } from '../components/header.js?v=20260919g';
+import { getBasePath } from '../core/utils.js?v=20260919g';
+import { icon } from '../core/icons.js?v=20260919g';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -66,7 +66,7 @@ const WORKFLOW_ROLES = {
   propComm:  { name: '宣传委员',     short: '宣传委员',   color: '#2563EB' }, // 海蓝·宣传传播（DESIGN_SYSTEM §2.3.2）
   initiator: { name: '发起人',       short: '发起人',     color: '#B91C1C' }, // 党建红·发起
   committee: { name: '支委会',       short: '支委会',     color: '#B91C1C' }, // 党建红·专班审议立项（集体决策）
-  expanded:  { name: '支委扩大会',   short: '支委扩大会', color: '#B91C1C' }, // 党建红·活动讨论研究（集体决策）
+  expanded:  { name: '支委扩大群',   short: '支委扩大群', color: '#B91C1C' }, // 党建红·活动报备（群内知悉，不另加审批门）
 };
 
 // 活动场景：5 镜组（flow 底账对齐 SOP 主题党日详细步骤 + 组织者两种情况）
@@ -79,11 +79,11 @@ const ACTIVITY_SCENE = {
   shots: [
     {
       id: 0,
-      title: '发起 + 支委扩大会讨论',
-      desc: '党小组组长汇集活动信息，交支委扩大会讨论研究（线上或线下），讨论通过后组织者推进执行。',
+      title: '发起 + 报备',
+      desc: '党小组组长汇集活动信息，把活动方案发到支委扩大群报备（有意见在群里交流），报备通过后方才写入活动，由组织者推进执行。',
       flows: [
-        { text: '党小组组长 → 支委扩大会（汇集信息）', type: 'info' },
-        { text: '支委扩大会 → 组织者（讨论通过·推进）', type: 'task' },
+        { text: '党小组组长 → 支委扩大群（报备活动方案）', type: 'info' },
+        { text: '支委扩大群 → 组织者（报备通过·写入活动）', type: 'task' },
       ],
       nodes: [
         { id: 'leader',    x: 170, y: 204 },

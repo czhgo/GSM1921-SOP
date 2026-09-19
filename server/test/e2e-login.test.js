@@ -128,12 +128,13 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     );
 
     // 6. 后端数据可达：页面上下文同源 fetch bootstrap 应返回 users 数组
-    const bootstrap = await page.evaluate(async () => {
-      const res = await fetch('/api/v1/bootstrap');
+    //    2026-09-18 批次 81：bootstrap 与逐表读口同门（须登录）⇒ 页面上下文一并带 token
+    const bootstrap = await page.evaluate(async (tk) => {
+      const res = await fetch('/api/v1/bootstrap', { headers: { Authorization: `Bearer ${tk}` } });
       if (!res.ok) return { ok: false, status: res.status };
       const data = await res.json();
       return { ok: true, users: data.users };
-    });
+    }, token);
     assert.equal(bootstrap.ok, true, 'bootstrap 接口应可访问');
     assert.ok(
       Array.isArray(bootstrap.users) && bootstrap.users.length > 0,
@@ -150,8 +151,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
       // 版本串与当前全库一致（20260901c）：确保 import 的是页面主模块实例，
       // push/persist 作用于真实 mockDB（版本串不一致会加载孤儿实例，写穿落服务器但本地不渲染）
-      const { mockDB } = await import('/src/core/domain.js?v=20260917c');
-      const { persist } = await import('/src/core/data-adapter.js?v=20260917c');
+      const { mockDB } = await import('/src/core/domain.js?v=20260919g');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260919g');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
@@ -175,12 +176,12 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     for (let attempt = 0; attempt < 3 && !landed; attempt++) {
       const deadline = Date.now() + 6000;
       while (Date.now() < deadline && !landed) {
-        const list = await (await fetch(`${base}/api/v1/activities`)).json();
+        const list = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
         landed = Array.isArray(list) && list.some((a) => a.title === uniqueTitle);
         if (!landed) await new Promise((r) => setTimeout(r, 300));
       }
       if (!landed) {
-        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260917c').then((m) => m.persist()));
+        await page.evaluate(() => import('/src/core/data-adapter.js?v=20260919g').then((m) => m.persist()));
       }
     }
     if (!landed) {
@@ -210,7 +211,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
       await waitForBodyText(page, uniqueTitle);
     } catch (e) {
       // 仅当服务端确有写穿活动时视为环境限制（否则是真失败）。node fetch 直连，规避代理缓存。
-      const serverList = await (await fetch(`${base}/api/v1/activities`)).json();
+      const serverList = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
       if (Array.isArray(serverList) && serverList.some((a) => a.title === uniqueTitle)) {
         t.skip(`TRAE 沙箱首页渲染受限；服务端写穿闭环已验证（${uniqueTitle} 已落库）`);
       } else {
@@ -218,7 +219,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
       }
     }
 
-    const readback = await (await fetch(`${base}/api/v1/activities`)).json();
+    const readback = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
     assert.equal(
       readback.some((a) => a.title === uniqueTitle),
       true,
@@ -312,7 +313,9 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
           'archive-confirm': 'archiveRecords',
         };
         const table = tableMap[k];
-        const list = await (await fetch(`/api/v1/${table}`)).json();
+        // 2026-09-18 批次 81：资源读口收紧（默认要登录）⇒ 页面上下文带会话 token
+        const tk = sessionStorage.getItem('gsm1921-api-token');
+        const list = await (await fetch(`/api/v1/${table}`, { headers: { Authorization: `Bearer ${tk}` } })).json();
         return list.filter((x) => x.secretaryConfirmedAt).length;
       }, confirmKey);
       assert.ok(serverConfirmed > 0, `服务端应读回已复核记录（${confirmKey}）`);

@@ -2,35 +2,70 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260917c';
-import { renderHeader } from '../components/header.js?v=20260917c';
-import { BranchService } from '../services/runtime.js?v=20260917c';
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260917c';
-import { NoticeStore } from '../services/notice.js?v=20260917c';
-import { SignupStore } from '../services/signup.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { getPersonById } from '../services/person.js?v=20260917c';
-import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260917c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260917c';
-import { getAppState } from '../core/state.js?v=20260917c';
-import { badgeHtml } from '../components/badges.js?v=20260917c';
+import { renderSidebar } from '../components/sidebar.js?v=20260919g';
+import { renderHeader } from '../components/header.js?v=20260919g';
+import { BranchService } from '../services/runtime.js?v=20260919g';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260919g';
+import { NoticeStore } from '../services/notice.js?v=20260919g';
+import { SignupStore } from '../services/signup.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { getPersonById } from '../services/person.js?v=20260919g';
+import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260919g';
+import { getActivityTypeColors } from '../core/constants.js?v=20260919g';
+import { getAppState } from '../core/state.js?v=20260919g';
+import { badgeHtml } from '../components/badges.js?v=20260919g';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260917c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260917c';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260917c';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260917c';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260917c';
-import { fetchVotes } from '../services/committee-vote.js?v=20260917c';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260919g';
+import { enhanceSelects } from '../components/custom-select.js?v=20260919g';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260919g';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260919g';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260919g';
+import { fetchVotes } from '../services/committee-vote.js?v=20260919g';
+// SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260919g';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260919g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
-BranchService.loadDB();
-TaskForceRecordStore.init();
-NoticeStore.init();
-SignupStore.init();
+/**
+ * 数据 hydrate（2026-09-18 批次 83 · SOP-B-2 报名链的前提修复）
+ *
+ * 病灶（真机实测）：本页原只调 `BranchService.loadDB()`。该函数在 API 模式下**直接 return**
+ * （数据由 `data-adapter.init()` 从服务器填充），而本页从未 `registerApiAdapter` / `init`
+ * ⇒ 实际退回 mock 读：活动是**从本机 localStorage 备份**里读的，报名也只写进那份本地备份
+ * ——**服务端一条都没有**。后果：组长台 / 纪检台（API 态，读服务端）永远看不到这份报名，
+ * 「考勤候选默认选中报名者」（`D-288`）随之落空（真机实测：服务端 `/signups` 该活动为空，
+ * 本地备份里有 `p13:approved`）。
+ *
+ * 处置：与 notice-entry.js 的既有做法同款——有 API 会话时先切数据源并 `init()` 拉全量，再渲染。
+ */
+async function _hydrateData() {
+  try {
+    registerApiAdapter(ApiAdapter);
+    let token = null;
+    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
+    if (token) {
+      setDataSource('api', { apiBaseUrl: '', authToken: token });
+      try {
+        await dataInit();
+      } catch (e) {
+        console.warn('[activity-entry] API 数据加载失败，回退本地 mock', e);
+        setDataSource('mock');
+        BranchService.loadDB();
+      }
+    } else {
+      BranchService.loadDB();
+    }
+  } catch (e) {
+    console.warn('[activity-entry] 数据加载异常（仍尝试内存兜底）', e);
+  } finally {
+    try { notifyDataLoaded(); } catch (_) { /* 静默 */ }
+  }
+}
 
+// HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 const cardEl = document.getElementById('activity-detail-card');
 const backBtn = document.getElementById('activity-back-btn');
 backBtn?.addEventListener('click', () => {
@@ -68,18 +103,27 @@ function statusBadge(act, kind) {
 const params = new URLSearchParams(window.location.search);
 const sourceId = params.get('id') || '';
 
-if (!sourceId) {
-  if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定对象</p>';
-} else if (sourceId.startsWith('tf-')) {
-  const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
-  if (!tf) {
-    if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">专班不存在或已解散</p>';
+// 渲染前必须先 hydrate（数据源初始化 + 各 Store init）：Store init 若跑在 API 数据到位之前，
+// 会按「空集合」走种子兜底（如 SignupStore 回填 SEED_SIGNUPS），把服务端数据挡在外面。
+(async () => {
+  await _hydrateData();
+  TaskForceRecordStore.init();
+  NoticeStore.init();
+  SignupStore.init();
+
+  if (!sourceId) {
+    if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">未指定对象</p>';
+  } else if (sourceId.startsWith('tf-')) {
+    const tf = TaskForceRecordStore.getAll().find(t => t.id === sourceId);
+    if (!tf) {
+      if (cardEl) cardEl.innerHTML = '<p class="text-sm text-gray-500 text-center py-12">专班不存在或已解散</p>';
+    } else {
+      renderTaskforce(tf);
+    }
   } else {
-    renderTaskforce(tf);
+    renderActivity(sourceId);
   }
-} else {
-  renderActivity(sourceId);
-}
+})();
 
 // ════════════════════════════════════════════════════════════════
 //  活动详情

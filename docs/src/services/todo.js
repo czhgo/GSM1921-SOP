@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { persist } from '../core/data-adapter.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260917c';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g';
+import { generateId } from '../core/id.js?v=20260919g';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260919g';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -183,6 +183,7 @@ export const REALTIME_GROUP_DOMAIN = {
   'member-confirm': WORK_DOMAIN.MEMBER_DEV,
   'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
+  'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV, // 半年考察提醒（SOP-B-39 · D-295）
 };
 
 /** 实时组对象 → 业务域标注（供 T4 域折组展示；先查 actionKey，未收录回退 inferDomain 兼容） */
@@ -261,7 +262,7 @@ export function urgeRolesOf(group, ctx = {}) {
 //  阈值属制度裁决固定项（《中国共产党发展党员工作细则》一年），非可调项 → 常量化，不走 policyOverrides。
 export const DEVELOP_NODE_THRESHOLDS = { '积极分子': 365, '预备党员': 365 };
 
-/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区失同步；非法输入 → null） */
+/** 日期 + N 天（'YYYY-MM-DD'，UTC 运算避免时区未同步；非法输入 → null） */
 function _addDays(dateStr, days) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
   if (!m) return null;
@@ -307,6 +308,70 @@ export function buildDevelopNodeRemindGroup({ members = [], overrides = {}, toda
     domain: WORK_DOMAIN.MEMBER_DEV,
     title: '发展节点提醒',
     flow: '发展阶段进入期满 → 组织委员办理下一节点（积极分子→发展对象 / 预备党员→转正）',
+    count: items.length,
+    items,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  半年考察提醒（`SOP-B-39`；依据 `D-295`：考察意见＝**半年一次 · 制度固定 · 所有支部一致**）
+//  · 频次是**制度固定项** ⇒ 期次口径**常量化**（自然半年），**不走 policyOverrides**（不是支部可调参数）；
+//  · 覆盖对象＝处在培养考察期的成员（积极分子 / 预备党员，与 `DEVELOP_NODE_THRESHOLDS` 同两类）——
+//    **判据只看「本自然半年内有没有考察记录」**，不依赖 entryDate（与期满提醒不同：期满要算天数，本条不用）；
+//  · 判据＝本半年内**没有任何考察记录**（考察记录 `recordedAt` 落在本期）→ 提醒；
+//  · 纯读实时组：不落库、不改数据模型、**不派任务**（提醒只作「可见」，由组织委员核对建档）。
+//  ⚠ 只报「本半年无记录」这一**事实**；「应有记录的应到口径」系统内无口径 ⇒ 不自行推定。
+// ════════════════════════════════════════════════════════════════
+
+/** 自然半年期键：'YYYY-H1'（01-01…06-30）/ 'YYYY-H2'（07-01…12-31）——制度固定，非可调参数 */
+export function halfYearPeriodOf(dateStr) {
+  const m = /^(\d{4})-(\d{2})/.exec(String(dateStr || ''));
+  if (!m) return null;
+  const month = Number(m[2]);
+  if (month < 1 || month > 12) return null;
+  return `${m[1]}-H${month <= 6 ? 1 : 2}`;
+}
+
+/**
+ * 派生「半年考察提醒」实时组（域=成员发展；组织委员台消费）。
+ * @param {Object} opts
+ * @param {Array} [opts.members]    成员档案（含 developStage）
+ * @param {Array} [opts.records]    考察记录（含 personId / recordedAt）
+ * @param {Object} [opts.overrides] 发展推进覆盖 { personId: { stage, entryDate } }（组织台同源，取 stage）
+ * @param {string} [opts.today]     日期键 YYYY-MM-DD（缺省=今天）
+ * @returns {Object|null} 实时组；无应提醒成员 → null（不产生空组卡）
+ */
+export function buildHalfYearInspectionRemindGroup({ members = [], records = [], overrides = {}, today } = {}) {
+  const day = today || _todayStr();
+  const period = halfYearPeriodOf(day);
+  if (!period) return null;
+  const covered = new Set();
+  for (const r of records || []) {
+    if (!r || !r.personId) continue;
+    if (halfYearPeriodOf(String(r.recordedAt || '').slice(0, 10)) === period) covered.add(r.personId);
+  }
+  const items = [];
+  for (const p of members || []) {
+    if (!p || !p.id) continue;
+    const stage = (overrides[p.id] || {}).stage || p.developStage;
+    if (!DEVELOP_NODE_THRESHOLDS[stage]) continue;   // 只在培养考察期（积极分子 / 预备党员）内提醒
+    if (covered.has(p.id)) continue;                 // 本半年已有考察记录 → 不提醒
+    items.push({
+      id: `halfyear-${p.id}`,
+      personId: p.id,
+      name: p.name,
+      stage,
+      period,
+      title: `${p.name} · 本半年考察意见待更新`,
+    });
+  }
+  if (!items.length) return null;
+  return {
+    groupKey: 'org-commissioner:half-year-inspection-remind',
+    actionKey: 'half-year-inspection-remind',
+    domain: WORK_DOMAIN.MEMBER_DEV,
+    title: `半年考察提醒（${period}）`,
+    flow: '考察意见半年一次（制度固定）→ 本半年内无考察记录 → 组织委员核对建档；考察记录的督办位仍在纪检台',
     count: items.length,
     items,
   };
@@ -909,7 +974,7 @@ export const TodoStore = {
   // ── 过期检查 ──────────────────────────────────────────────
 
   /** 检查待办是否过期（历史兼容 API：仅 pending 逾期计过期；expired 态由调用方显式 || TodoStatus.EXPIRED 兜底）。
-   *  P1：deadline 判定收敛于 isTodoExpired（单一实现），本方法保留 pending 门禁防语义失同步 */
+   *  P1：deadline 判定收敛于 isTodoExpired（单一实现），本方法保留 pending 门禁防止语义未同步的情况 */
   _isExpired(todo) {
     if (!todo || todo.status !== TodoStatus.PENDING) return false;
     return isTodoExpired(todo);

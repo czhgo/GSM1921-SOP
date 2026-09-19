@@ -7,22 +7,23 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from './attendance.js?v=20260917c';
-import { loadActivities } from './activity.js?v=20260917c';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260917c';
-import { TaskForceRecordStore } from './taskforce.js?v=20260917c';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260917c';
-import { NoticeStore } from './notice.js?v=20260917c';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260917c';
-import { tokenOf } from '../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260917c';
-import { getPersonById } from './person.js?v=20260917c';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260917c';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260917c';
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions } from './attendance.js?v=20260919g';
+import { loadActivities } from './activity.js?v=20260919g';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260919g';
+import { TaskForceRecordStore } from './taskforce.js?v=20260919g';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260919g';
+import { NoticeStore } from './notice.js?v=20260919g';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260919g';
+import { tokenOf } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260919g';
+import { getPersonById } from './person.js?v=20260919g';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260919g';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g'; // 周报审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260917c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260919g';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数
@@ -241,6 +242,11 @@ export const SecretaryOverviewStore = {
     }
     const attendanceRate = total > 0 ? Math.round((present / total) * 100) : 0;
 
+    // 出勤率偏低**提示**（SOP-B-15 / SOP-B-7，2026-09-18 批次 85）：**只作提示、不触发任何动作**
+    // （不生成补课 / 不影响评优 / 不生成任何处置）。判据 = 提示线（可调参数 attendance.lowRateHint，
+    //   **提示线 ≠ 制度门槛**，母本不设达标线）；此处按本月**场次**取偏低项，供支书/支委会概况呈现。
+    const lowRate = listLowAttendanceSessions({ month: thisMonth });
+
     // 缺勤人员列表（本月 absent 状态）
     const absentPersonIds = [...new Set(monthAbsent)];
     const absentPeople = absentPersonIds.slice(0, 5).map(id => {
@@ -257,7 +263,9 @@ export const SecretaryOverviewStore = {
 
     return {
       attendanceRate,
-      alert: attendanceRate < 80,
+      alert: lowRate.rows.length > 0,
+      lowRateHint: lowRate.hint,
+      lowSessions: lowRate.rows,
       absentPeople,
       makeupPending,
     };
@@ -386,6 +394,52 @@ export function getArchiveGapActivities() {
  */
 export function getEndedUnarchivedActivities() {
   return loadActivities().filter(a => isActivityEnded(a) && !isActivityArchived(a));
+}
+
+// ════════════════════════════════════════════════════════════════
+//  宣传周报的「支书审核位」（SOP-B-40 ②，2026-09-19 批次 94）
+//  母本口径：周报「每周一报送」——系统内通知支书 + 支书审核位（旧实现只有 手填 → 报送 → 报送历史，
+//  无通知、无审核环）。审核＝支书/副支书在支书台「全局概况」的异常优先队列里 通过 / 退回。
+//  ⚠ 状态位与写口单一源即此处（消费方：entries/tabs/secretary/overview-tab.js 审核位 ·
+//    entries/tabs/prop/weekly-tab.js 报送侧展示），勿在页面另写状态名。
+//  ⚠ 存量口径：**不回填**——历史「已报送」周报（无 reviewStatus）按「待审核」呈现（它们确实没被审过），
+//    退回不写回执历史；周报本身的状态（draft/submitted）与审核状态（reviewStatus）**并存、互不顶替**。
+// ════════════════════════════════════════════════════════════════
+
+export const WEEKLY_REVIEW_STATUS = { PENDING: 'pending', APPROVED: 'approved', RETURNED: 'returned' };
+export const WEEKLY_REVIEW_LABELS = { pending: '待审核', approved: '已通过', returned: '已退回' };
+
+/** 某条周报的审核状态：显式值优先；已报送而无值 = 待审核（存量同此）；草稿 = 空 */
+export function weeklyReviewStatusOf(report) {
+  if (!report || report.status !== 'submitted') return '';
+  const s = report.reviewStatus;
+  return WEEKLY_REVIEW_LABELS[s] ? s : WEEKLY_REVIEW_STATUS.PENDING;
+}
+
+/** 待支书审核的周报（已报送 + 未出审核结论）；可按 id 过滤出单条（通知 highlight 直达用） */
+export function listWeeklyReportsPendingReview({ id } = {}) {
+  return (mockDB.weeklyReports || []).filter(r =>
+    weeklyReviewStatusOf(r) === WEEKLY_REVIEW_STATUS.PENDING && (!id || r.id === id));
+}
+
+/**
+ * 支书审核周报（通过 / 退回）——单一写口。
+ * @param {{id:string, decision:'approved'|'returned', reviewerId:string, note?:string}} params
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function reviewWeeklyReport({ id, decision, reviewerId, note } = {}) {
+  if (![WEEKLY_REVIEW_STATUS.APPROVED, WEEKLY_REVIEW_STATUS.RETURNED].includes(decision)) {
+    return { ok: false, reason: '未知的审核结论' };
+  }
+  const report = (mockDB.weeklyReports || []).find(r => r.id === id);
+  if (!report) return { ok: false, reason: '该周报不存在' };
+  report.reviewStatus = decision;
+  report.reviewedAt = new Date().toISOString();
+  report.reviewedBy = reviewerId || '';
+  if (note) report.reviewNote = String(note);
+  mockDB.weeklyReports = [...mockDB.weeklyReports];
+  persist();
+  return { ok: true };
 }
 
 export const SecretaryTodoDeriver = {

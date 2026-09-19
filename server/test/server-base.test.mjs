@@ -39,6 +39,15 @@ before(async () => {
 });
 after(() => server.close());
 
+/** 登录取 token —— 2026-09-18 批次 81：资源读口收紧（默认要登录）⇒ 本文件的读用例须带 token */
+async function loginToken(personId) {
+  const res = await fetch(`${base}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ personId }),
+  });
+  return (await res.json()).token;
+}
+
 // ── ① 库结构（原 db.test.js，4 条；自持内存库，不经 HTTP）──────────────
 
 test('initDb 建表成功，核心表存在', () => {
@@ -94,7 +103,8 @@ test('seedDatabase 写入 users 与 activities', async () => {
 // ── ③ 资源读口（原 resources.test.js，2 条）──────────────────────────
 
 test('activities list 返回活动数组', async () => {
-  const res = await fetch(`${base}/api/v1/activities`);
+  const token = await loginToken('p13');
+  const res = await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(res.status, 200);
   const list = await res.json();
   assert.ok(Array.isArray(list));
@@ -103,7 +113,8 @@ test('activities list 返回活动数组', async () => {
 });
 
 test('bootstrap 返回全部资源分组', async () => {
-  const res = await fetch(`${base}/api/v1/bootstrap`);
+  const token = await loginToken('p13');
+  const res = await fetch(`${base}/api/v1/bootstrap`, { headers: { Authorization: `Bearer ${token}` } });
   const body = await res.json();
   for (const k of ['activities', 'todos', 'notices', 'users']) {
     assert.ok(Array.isArray(body[k]), `bootstrap 缺少 ${k}`);
@@ -149,7 +160,7 @@ test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   });
   const { token } = await tokenRes.json();
 
-  const activities = await (await fetch(`${base}/api/v1/activities`)).json();
+  const activities = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
   activities.push({ id: 'act-new', title: '新增测试活动', date: '2026-08-30' });
 
   const res = await fetch(`${base}/api/v1/snapshot`, {
@@ -160,7 +171,7 @@ test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   assert.equal(res.status, 204);
 
   // 原变量名 `after` 遮蔽了 node:test 的 `after`（合并后成陷阱）⇒ 改名，判据不变。
-  const afterList = await (await fetch(`${base}/api/v1/activities`)).json();
+  const afterList = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
   assert.ok(afterList.some(a => a.id === 'act-new'), '快照保存后应能读回新增活动');
 });
 

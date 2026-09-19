@@ -8,17 +8,19 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { persist } from '../core/data-adapter.js?v=20260917c';
-import { bumpToken } from '../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { persist } from '../core/data-adapter.js?v=20260919g';
+import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260919g';
+import { generateId } from '../core/id.js?v=20260919g';
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——
-// 考勤备案/补课回执归考勤纪律、考察记录提交归考察；spec 三节映射，处理位=接收委员）
+// 考勤统计归考勤纪律、考察记录提交归考察；spec 三节映射，处理位=接收委员）
+// SOP-B-36（`D-429`）：考勤全周期统计的交付对象＝**支委会**（母本「全周期考勤统计交付支委会」），
+//   与考察统计**同一条通道口径**（提交至支委会、组织委员接收位）——不再提交宣传备案。
 export const HANDOFF_TYPES = {
-  'attendance-archival': { from: 'disc-commissioner', to: 'prop-commissioner', label: '考勤备案', domain: 'attendance' },
+  'attendance-archival': { from: 'disc-commissioner', to: 'org-commissioner',  label: '考勤统计', domain: 'attendance' },
   'inspection-report':   { from: 'disc-commissioner', to: 'org-commissioner',  label: '考察记录提交', domain: 'inspection' },
   'material-shortage':   { from: 'org-commissioner',  to: 'disc-commissioner', label: '补课需求回执', domain: 'attendance' },
 };

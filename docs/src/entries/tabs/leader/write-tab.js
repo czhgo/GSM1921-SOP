@@ -3,27 +3,31 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260917c';
-import { BranchService } from '../../../services/runtime.js?v=20260917c';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260917c';
+import { setState, getAppState } from '../../../core/state.js?v=20260919g';
+import { BranchService } from '../../../services/runtime.js?v=20260919g';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260919g';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260917c';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260917c';
-import { persist } from '../../../core/data-adapter.js?v=20260917c';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260917c';
-import { recordFormShell } from '../../../components/forms.js?v=20260917c';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260917c';
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
+import { groupOptions } from '../../../services/party-group.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260919g';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260919g';
+import { persist } from '../../../core/data-adapter.js?v=20260919g';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260919g';
+import { recordFormShell } from '../../../components/forms.js?v=20260919g';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260919g';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260917c';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260917c';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260917c';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260917c';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260917c';
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260919g';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260919g';
+// 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus } from '../../../services/activity.js?v=20260919g';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260919g';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260919g';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260919g';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260919g';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260919g';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -55,7 +59,7 @@ let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面�
 // 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
 // C6（2026-09-12）起草稿落 localStorage 跨整页刷新保留 + beforeunload 提醒；
 // 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
-const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null };
+const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false };
 
 // C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
 // 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
@@ -63,6 +67,7 @@ const DT_DRAFT_KEY = 'workflowos_leader_activity_draft';
 
 function _dtDraftDirty() {
   return !!(dtDraft.date || dtDraft.location || dtDraft.title || dtDraft.desc
+    || dtDraft.signupEnabled || dtDraft.requireMakeup || dtDraft.isOutdoor
     || (Array.isArray(dtDraft.orgIds) && dtDraft.orgIds.length > 0)
     || (Array.isArray(dtDraft.deepIds) && dtDraft.deepIds.length > 0));
 }
@@ -88,6 +93,9 @@ function _dtDraftClear() {
   dtDraft.desc = '';
   dtDraft.orgIds = null;
   dtDraft.deepIds = null;
+  dtDraft.signupEnabled = false;
+  dtDraft.requireMakeup = false;
+  dtDraft.isOutdoor = false;
   try { localStorage.removeItem(DT_DRAFT_KEY); } catch (e) { /* 忽略 */ }
 }
 
@@ -99,6 +107,12 @@ function _dtDraftCapture(scope) {
     const el = root.querySelector(sel);
     if (el) dtDraft[fieldMap[sel]] = el.value;
   });
+  const suEl = root.querySelector('#dt-signup-enabled');
+  if (suEl) dtDraft.signupEnabled = !!suEl.checked;
+  const mkEl = root.querySelector('#dt-require-makeup');
+  if (mkEl) dtDraft.requireMakeup = !!mkEl.checked;
+  const odEl = root.querySelector('#dt-is-outdoor');
+  if (odEl) dtDraft.isOutdoor = !!odEl.checked;
   if (_dtOrgPicker) dtDraft.orgIds = _dtOrgPicker.getSelected();
   if (_dtDeepPicker) dtDraft.deepIds = _dtDeepPicker.getSelected();
   _dtDraftSave();
@@ -146,7 +160,7 @@ export function renderContent(ctx) {
 
   // 活动状态徽标：单一源 = components/inspector.js 的活动生命周期展示态
   // （草稿/已发布/进行中/待归档/已执行/已归档/已取消；执行态由任务进度派生）。
-  // 2026-09-13 收敛：原为本地二档「已发布/草稿」，属口径漂移（与 DATA_MODEL §2.1 全站徽章统一要求不符）。
+  // 2026-09-13 收敛：原为本地二档「已发布/草稿」，属口径未同步（与 DATA_MODEL §2.1 全站徽章统一要求不符）。
   const _lifecycleBadge = (a) => activityLifecycleBadgeHtml(a, getAppState()?.tasks || []);
 
   const panelVisible = dt.showPanel;
@@ -185,7 +199,11 @@ export function renderContent(ctx) {
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-800">${escHtml(a.title || '未命名')}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${a.date || ''} ${a.type ? '· ' + a.type : ''}</div>
+                  ${_outdoorChecklistDetailsHtml(a)}
                 </div>
+                ${isActivityOrganizer(AuthStore.getCurrentUser()?.personId, a.id)
+                  ? `<button type="button" class="leader-group-notice-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50 transition-colors flex-shrink-0 mr-2" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>`
+                  : ''}
                 ${_lifecycleBadge(a)}
               </div>`,
   });
@@ -227,12 +245,21 @@ export function renderContent(ctx) {
         const configs = {
           attendance: { label: '考勤记录', color: '#10B981', fields: [{ key: 'person', label: '姓名' }, { key: 'status', label: '出勤状态' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
           inspection: { label: '考察记录', color: '#D97706', fields: [{ key: 'person', label: '被考察人' }, { key: 'content', label: '考察内容' }, { key: 'result', label: '考察结论' }, { key: 'time', label: '时间' }] },
-          publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }, { key: 'time', label: '时间' }] },
+          publicity: { label: '宣传记录', color: '#0E7490', fields: [{ key: 'title', label: '宣传标题' }, { key: 'author', label: '撰写人' }, { key: 'channel', label: '发布渠道' }, { key: 'time', label: '时间' }, { key: 'draftStatus', label: '初稿状态' }] },
           materials: { label: '材料记录', color: '#3B82F6', fields: [{ key: 'name', label: '材料名称' }, { key: 'author', label: '提交人' }, { key: 'note', label: '备注' }, { key: 'time', label: '时间' }] },
         };
         const cfg = configs[type];
         const cellOf = (item, key) => {
           if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
+          // SOP-B-38：宣传初稿的状态位（标签单一源 = services/activity.js；缺省即「初稿」）；
+          // 被退回的带上宣传委员写的那句退回说明（留痕，供撰写人看见）
+          if (key === 'draftStatus') {
+            const st = publicityDraftStatusOf(item);
+            const label = PUBLICITY_DRAFT_LABELS[st] || '-';
+            return (st === PUBLICITY_DRAFT_STATUS.DRAFT && item.draftReturnNote)
+              ? `${label}（退回：${escHtml(item.draftReturnNote)}）`
+              : label;
+          }
           return item[key] || '-';
         };
         hostEl.insertAdjacentHTML('beforeend', `
@@ -258,10 +285,14 @@ export function renderContent(ctx) {
           rowHtml: (item) => {
             // 删除按全量下标（分页切片下 i 只是页内序，故用 indexOf 取原下标，语义与改前一致）
             const idx = items.indexOf(item);
+            // SOP-B-38：宣传子记录的「初稿 → 提交审核」动作（审核/定稿位在宣传委员台「档案归档」）
+            const draftBtn = (type === 'publicity' && publicityDraftStatusOf(item) === PUBLICITY_DRAFT_STATUS.DRAFT)
+              ? `<button class="act-sub-review-btn text-xs text-sky-700 hover:text-sky-800 mr-2" data-type="${type}" data-idx="${idx}">提交审核</button>`
+              : '';
             return `
               <tr>
                 ${cfg.fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-                ${readOnly ? '' : `<td class="text-center"><button class="act-sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
+                ${readOnly ? '' : `<td class="text-center whitespace-nowrap">${draftBtn}<button class="act-sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${idx}">删除</button></td>`}
               </tr>
             `;
           },
@@ -311,6 +342,25 @@ export function renderContent(ctx) {
         visBlocks.forEach(type => renderActSubTable(subsHost, type, actSubs[type] || [], type === 'attendance' || type === 'inspection'));
         // 删除子记录（D7：仅宣传/材料有删除按钮）：事件委托——引擎筛选/翻页会重绘行，行内直接绑定会失效
         subsHost.addEventListener('click', (e) => {
+          // SOP-B-38：宣传初稿「提交审核」→ 状态位改待审核（写口单一源 = services/activity.js），
+          // 审核 / 定稿位在宣传委员台「档案归档」（本台只负责把它交上去）
+          const reviewBtn = e.target.closest('.act-sub-review-btn');
+          if (reviewBtn) {
+            saveActSubs(); // 兜底：确保 mockDB 内已有本活动的子记录条目（写口按主源读）
+            const actorId = AuthStore.getCurrentUser()?.personId;
+            const res = setPublicityDraftStatus({
+              activityId: actId,
+              index: parseInt(reviewBtn.dataset.idx),
+              status: PUBLICITY_DRAFT_STATUS.REVIEWING,
+              actorId,
+            });
+            showToast(res.ok ? 'success' : 'error', res.ok ? '已提交审核（宣传委员会在宣传台「档案归档」审核定稿）' : `提交失败：${res.reason}`);
+            if (res.ok) {
+              const el = container.querySelector(`.leader-act-item[data-act-id="${actId}"]`);
+              if (el) el.click();
+            }
+            return;
+          }
           const btn = e.target.closest('.act-sub-del-btn');
           if (!btn) return;
           const type = btn.dataset.type;
@@ -437,12 +487,27 @@ export function renderContent(ctx) {
   };
   const actListHost = container.querySelector('#leader-activity-list');
   actListHost?.addEventListener('click', (e) => {
+    // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：该行按钮优先于「展开详情」，
+    // 点它开「发布本组通知」浮窗（发布权 = 本人是该场组织者，见 services/notice.js::openGroupNoticeComposer）
+    const noticeBtn = e.target.closest('.leader-group-notice-btn');
+    if (noticeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const act = activities.find(a => a.id === noticeBtn.dataset.actId) || findActivityById(noticeBtn.dataset.actId);
+      openGroupNoticeComposer({ activity: act, accentColor: accent });
+      return;
+    }
     const item = e.target.closest('.leader-act-item');
-    if (item) _openActivityDetail(item);
+    if (!item) return;
+    // SOP-B-19：点「外出提醒清单」折叠区是在展开清单，不是展开活动详情
+    if (e.target.closest('.leader-outdoor-check')) return;
+    _openActivityDetail(item);
   });
   // dogfood #13（2026-09-12）：行为 role=button 的 div，补 Enter/Space 键盘激活（事件委托版）
   actListHost?.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('.leader-group-notice-btn')) return; // 发布按钮自有原生激活，勿连带展开详情
+    if (e.target.closest('.leader-outdoor-check')) return;   // 外出提醒清单折叠区同理（SOP-B-19）
     const item = e.target.closest('.leader-act-item');
     if (!item) return;
     e.preventDefault();
@@ -659,6 +724,25 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         <textarea id="dt-desc" class="input-flat w-full resize-none" rows="2" placeholder="简要描述活动内容">${escHtml(dtDraft.desc)}</textarea>
       </div>
 
+      <!-- SOP-B-2 报名 / SOP-B-6 活动级补课（2026-09-18 批次 83）：
+           两项都是「该场活动的口径」，在写入时一次定清；均为勾选、不勾即维持既有口径 -->
+      <div class="mb-4 rounded-lg border border-gray-100 bg-gray-50/60 p-3">
+        <label class="flex items-start gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="dt-signup-enabled" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.signupEnabled ? 'checked' : ''}>
+          <span class="text-xs text-gray-600 leading-5"><b class="text-gray-700">开放报名</b>——成员可在活动页报名参加；<b>已通过的报名者默认进入本场考勤候选</b>（仍可不报名而实际参加，组织者在考勤上传时可增删）</span>
+        </label>
+        <label class="flex items-start gap-2 cursor-pointer select-none mt-2 pt-2 border-t border-gray-200">
+          <input type="checkbox" id="dt-require-makeup" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.requireMakeup ? 'checked' : ''}>
+          <span class="text-xs text-gray-600 leading-5"><b class="text-gray-700">本次要求补课</b>——补课范围默认是<b>支部党员大会与党课</b>（支委会不补课、主题党日不强制补课）；<b>党小组会等其他类型需在本场勾选</b>，勾了才按补课流程跟进</span>
+        </label>
+        <!-- SOP-B-19（2026-09-19 批次 94）：外出活动 → 写入后弹「外出提醒清单」（5 项），
+             并收起在该活动行下方可随时展开。清单是**提醒**：不拦写入、不要求逐项勾选。 -->
+        <label class="flex items-start gap-2 cursor-pointer select-none mt-2 pt-2 border-t border-gray-200">
+          <input type="checkbox" id="dt-is-outdoor" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.isOutdoor ? 'checked' : ''}>
+          <span class="text-xs text-gray-600 leading-5"><b class="text-gray-700">本次为外出活动</b>——写入后向你弹出一份<b>外出提醒清单</b>（出发前人员清点 / 安全须知告知 / 交通方式确认 / 经费审批 / 返回后人员清点），随后收起在该活动行下方，可随时展开查看；<b>只是提醒，不是必填项、也不作校验</b></span>
+        </label>
+      </div>
+
       <!-- T-190 活动角色：创建即赋权，组织者默认组长本人 -->
       <div class="mb-4">
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">活动角色（创建即赋权，组织者默认组长本人）</label>
@@ -700,6 +784,41 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
 
 function _renderSopPreview() {
   return dt.renderSopPreview();
+}
+
+// ── SOP-B-19 外出提醒清单（2026-09-19 批次 94）──────────────────────
+// 母本口径：写入外出活动时向组织者弹出提醒，**随后自动收起在一处、可随时展开**；**是提醒，不是必填项、
+// 也不作系统校验**。⇒ 本弹窗只有「知道了」一个动作（无勾选、无提交），关闭后清单仍留在该活动行下方
+// 的折叠区（见活动列表行的 `外出提醒清单`），组织者随时可展开复查。
+function _openOutdoorChecklistModal(activityTitle) {
+  const items = OUTDOOR_CHECKLIST.map(x => `<li class="leading-6">${escHtml(x)}</li>`).join('');
+  openModal({
+    id: 'leader-outdoor-checklist',
+    title: '外出提醒清单',
+    width: '460px',
+    accentColor: '#CE1126',
+    bodyHtml: `
+      <div class="text-xs text-gray-500 mb-3 leading-5">活动「${escHtml(activityTitle || '未命名')}」已写入。以下是<b>外出活动</b>的提醒清单（已收起在该活动行下方，随时可展开）：</div>
+      <ul class="list-disc pl-5 text-sm text-gray-700 space-y-0.5">${items}</ul>
+      <div class="mt-3 text-[11px] text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>
+      <div class="flex justify-end mt-4">
+        <button type="button" id="outdoor-checklist-ok" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">知道了</button>
+      </div>`,
+    onMount: (root) => {
+      root.querySelector('#outdoor-checklist-ok')?.addEventListener('click', () => closeModal('leader-outdoor-checklist'));
+    },
+  });
+}
+
+/** 活动行下方的折叠清单（外出活动才渲染；点它不触发展开活动详情） */
+function _outdoorChecklistDetailsHtml(a) {
+  if (!isOutdoorActivity(a)) return '';
+  return `
+    <details class="leader-outdoor-check mt-1">
+      <summary class="text-[11px] text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
+      <ul class="mt-1 pl-4 list-disc text-[11px] text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
+      <div class="mt-0.5 text-[10px] text-gray-400">提醒，非必填、不校验</div>
+    </details>`;
 }
 
 function _bindDecisionTreeEvents(container, ctx) {
@@ -772,6 +891,14 @@ function _dtBindPanelArea(container, ctx, refresh) {
     if (!el) return;
     const key = draftFieldMap[sel];
     el.addEventListener('input', () => { dtDraft[key] = el.value; _dtDraftSave(); });
+  });
+  // 报名 / 补课 / 外出三个勾选同样入草稿（步骤重选会重建面板，不记就静默丢）
+  const draftCheckMap = { '#dt-signup-enabled': 'signupEnabled', '#dt-require-makeup': 'requireMakeup', '#dt-is-outdoor': 'isOutdoor' };
+  Object.keys(draftCheckMap).forEach(sel => {
+    const el = wrap.querySelector(sel);
+    if (!el) return;
+    const key = draftCheckMap[sel];
+    el.addEventListener('change', () => { dtDraft[key] = !!el.checked; _dtDraftSave(); });
   });
 
   // 决策树表单内联赋权 PersonPicker（initialIds 草稿回填；null=跟随默认——组织者默认组长本人）
@@ -906,7 +1033,9 @@ function _dtBindPanelArea(container, ctx, refresh) {
         targetDate,
         location,
         description: desc || '',
-        organizer: currentLeaderId, // 顶层 organizer 写真实 personId（原则7 同一套数据，修复 'leader' 角色名临时方案）
+        // 顶层 organizer 缺省＝创建人本人；若下方 assignments 已指定组织者，创建链路会按主源
+        // 把顶层 organizer 同步为被指定人（services/decision-tree.js::writeActivityWithSOP，原则7 同一套数据）
+        organizer: currentLeaderId,
         direction: L4,
         duration: L3,
         hostGroup,
@@ -914,6 +1043,13 @@ function _dtBindPanelArea(container, ctx, refresh) {
         status: 'draft',
         visibility: 'group',
         createdBy: currentLeaderId,
+        // SOP-B-2：勾「开放报名」→ 该活动可被报名（草稿态默认不可报名，勾了才放开）
+        // 提交时以**表单实时值**为准（勾选态 onclick 已同步进 dtDraft，此处再读一次 DOM 兜底）
+        signupEnabled: !!(wrap.querySelector('#dt-signup-enabled')?.checked ?? dtDraft.signupEnabled),
+        // SOP-B-6：活动级「本次要求补课」——党小组会等不默认补课的类型，勾了才进补课名单
+        requireMakeup: !!(wrap.querySelector('#dt-require-makeup')?.checked ?? dtDraft.requireMakeup),
+        // SOP-B-19：勾「本次为外出活动」→ 落既有维度 isOutdoor（写入后弹外出提醒清单，并收起在活动行下方）
+        isOutdoor: !!(wrap.querySelector('#dt-is-outdoor')?.checked ?? dtDraft.isOutdoor),
       };
 
       // T-190：创建时同步赋权——组织者（默认组长本人）+ 深度参与者写入主源 assignments
@@ -945,6 +1081,10 @@ function _dtBindPanelArea(container, ctx, refresh) {
       if (taskCount > 0) {
         showToast('success', `已生成 ${taskCount} 项后续待办`);
       }
+
+      // SOP-B-19：外出活动 → 写入后弹「外出提醒清单」（母本 5 项）。**只是提醒**——不拦写入、
+      // 不要求逐项勾选；关闭后清单仍在活动行下方（见 _openOutdoorChecklistModal 注释）。
+      if (activityData.isOutdoor) _openOutdoorChecklistModal(title);
 
       // 4. 渲染工作流可视化面板
       const definitionId = dt.mapToDefinitionId();

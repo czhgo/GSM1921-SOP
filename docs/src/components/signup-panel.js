@@ -4,14 +4,28 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260917c';
-import { getPersonById, getPersonName } from '../services/person.js?v=20260917c';
-import { getBasePath, showToast } from '../core/utils.js?v=20260917c';
-import { badgeHtml } from './badges.js?v=20260917c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../services/signup.js?v=20260919g';
+import { getPersonById, getPersonName } from '../services/person.js?v=20260919g';
+import { getBasePath, showToast } from '../core/utils.js?v=20260919g';
+import { badgeHtml } from './badges.js?v=20260919g';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../core/constants.js?v=20260917c';
+import { isActivityArchived } from '../core/constants.js?v=20260919g';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from './list-filter.js?v=20260917c';
+import { renderFilteredList } from './list-filter.js?v=20260919g';
+// 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
+import { settleWrites } from '../core/pending-writes.js?v=20260919g';
+
+/**
+ * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
+ * 病灶（真机实测）：原实现是 `setTimeout(() => location.reload(), 400)` —— 而 `persist()` 在 API
+ * 形态下排的是 800ms 防抖快照，400ms 就刷新会把在途快照**打断**（实测 `POST /api/v1/snapshot`
+ * 以 `ERR_ABORTED` 收场）⇒ **报名只留在本机，服务端一条都没有**，组长台/纪检台的
+ * 「考勤候选默认选中报名者」随之落空。故按批次 49「存好了才报成功」的同一口径：先结算、再刷新。
+ */
+async function _reloadAfterSettle() {
+  try { await settleWrites(); } catch (e) { console.warn('[signup-panel] 落库未成功，仍刷新以读取最新状态：', e); }
+  window.location.reload();
+}
 
 /** 角色标签（报名/专班/活动 assignments 共用） */
 export function roleLabel(role) {
@@ -24,7 +38,9 @@ function _today() { return new Date().toISOString().slice(0, 10); }
 /** 该来源是否可报名（与 signup.js _sourceOpen 同规则） */
 export function canSignup(sourceType, source) {
   if (sourceType === 'activity') {
-    if (!source || isActivityArchived(source) || source.status === 'cancelled' || source.status === 'draft') return false;
+    if (!source || isActivityArchived(source) || source.status === 'cancelled') return false;
+    // 草稿活动默认不可报名；写入活动时勾「开放报名」者例外（同 signup.js::_sourceOpen，SOP-B-2）
+    if (source.status === 'draft' && source.signupEnabled !== true) return false;
     if (!source.date || source.date < _today()) return false;
     return true;
   }
@@ -165,11 +181,11 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
       return;
     }
     showToast('success', role === 'participant' ? '报名成功，已加入名单' : '报名已提交，等待发起人审核');
-    setTimeout(() => window.location.reload(), 400);
+    await _reloadAfterSettle();
   });
 
   const cancelBtn = cardEl?.querySelector('#signup-cancel-btn');
-  cancelBtn?.addEventListener('click', () => {
+  cancelBtn?.addEventListener('click', async () => {
     const mySignup = SignupStore.getMySignups(myId)
       .find(s => s.sourceType === sourceType && s.sourceId === sourceId && (s.status === SignupStatus.PENDING || s.status === SignupStatus.APPROVED));
     if (!mySignup) return;
@@ -179,7 +195,7 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
       return;
     }
     showToast('success', '已取消报名');
-    setTimeout(() => window.location.reload(), 400);
+    await _reloadAfterSettle();
   });
 
   // 报名名单（已通过）接统一检索引擎：需在 DOM 就位后挂载，故放在本函数（entry 侧均先 innerHTML 再调用）。
@@ -224,7 +240,7 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
         return;
       }
       showToast('success', approve ? '已通过该报名' : '已拒绝该报名');
-      setTimeout(() => window.location.reload(), 400);
+      await _reloadAfterSettle();
     });
   });
 }

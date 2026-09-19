@@ -81,7 +81,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 |---|---|---|
 | 小表强加检索条 | 少量行的表也渲染检索条，成本大于收益 | 门槛 `SEARCH_FILTER_MIN_ROWS = 8` 统一拦截（人/活动共用，动态行数 `> 8` 才出现检索条） |
 | 活动类型/状态各页自造口径 | 各 tab 各写一套判据与状态文案 | 收敛为单一源——存储态判据 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`（`core/constants.js`）、生命周期展示态走 `components/inspector.js::deriveActivityLifecycleStatus`、类型写 `normalizeActivityType` 权威子类中文名 |
-| 模块加载期人员快照 ×13 | 模块顶层捕获人员清单，与后台写入失同步、有张冠李戴风险 | 改 `services/person.js::liveMembers()` 实时视图（只读 Proxy，写入走 PersonStore 写口） |
+| 模块加载期人员快照 ×13 | 模块顶层捕获人员清单，与后台写入未同步、有张冠李戴风险 | 改 `services/person.js::liveMembers()` 实时视图（只读 Proxy，写入走 PersonStore 写口） |
 
 欠拟合（已登记）：
 

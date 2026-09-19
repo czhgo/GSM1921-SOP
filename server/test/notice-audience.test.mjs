@@ -30,12 +30,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260917c';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260917c';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260917c';
-import { MOCK_NOTICES } from '../../docs/src/mock/index.js?v=20260917c';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/constants.js?v=20260917c';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/notice.js?v=20260917c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919g';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919g';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260919g';
+import { MOCK_NOTICES } from '../../docs/src/mock/index.js?v=20260919g';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/constants.js?v=20260919g';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/notice.js?v=20260919g';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
@@ -83,7 +83,7 @@ const visibleIds = () => NoticeStore.list().map((n) => n.id);
 // ════════════════════════════════════════════════════════════════
 
 test('N1 sentinel all（全体党员）= 广播：任意角色与无会话均可见', () => {
-  // 受众选项单一源声明序锁死（发布表单 4 项，顺序不得漂移）
+  // 受众选项单一源声明序锁死（发布表单 4 项，顺序不得变动）
   assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.value), ['all', 'leaders', 'activists', 'candidates'],
     '受众选项须派生自 NOTICE_AUDIENCE_SENTINELS（单一源）且保持声明序');
   assert.deepEqual(NOTICE_AUDIENCE_OPTIONS.map((o) => o.label), ['全体党员', '党小组组长', '入党积极分子', '发展对象']);

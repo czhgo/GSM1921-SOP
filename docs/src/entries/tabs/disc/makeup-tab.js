@@ -1,20 +1,22 @@
 // role: [工程师]+[AI]
 // 纪检委员工作台：补课（「考勤管理」tab 的「补课」一级分段渲染模块；2026-09-15 支书裁定并入考勤管理，
 // 由 attendance-tab 传入分段容器调用；原为独立 tab，内部逻辑原样保留）。
-// 缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成。
+// 补课口径（现行 = D-293）：范围＝支部党员大会 + 党课（支委会不补、主题党日不强制补课、
+// 党小组会按写入活动时的勾选），缺勤/请假的这些场次须在 T+7 内补课，纪检委员确认完成；
+// 请假且线上参会的**不补课**（判据单一源 = services/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260917c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260917c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260917c';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260917c';
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260917c';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260917c';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260919g';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260919g';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260919g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260919g';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260919g';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260919g';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260917c';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919g';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -79,7 +81,8 @@ export function renderContent(containerEl) {
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
           </div>
         </div>
-        <div class="text-xs text-gray-500 mb-3">缺勤/请假的三会一课、主题党日须在7日内补课，纪检委员确认完成</div>
+        <div class="text-xs text-gray-500 mb-3">缺勤/请假的<b>支部党员大会与党课</b>须在 7 日内补课（T+7），纪检委员确认完成；支委会不补课，主题党日不强制补课，党小组会按该场活动「要求补课」的勾选进入名单；请假且线上参会不补课</div>
+        <div class="text-[11px] text-gray-500 leading-5 mb-3">补课记录随考勤一并归档（<b>系统自动同步</b>，随「考勤管理」的「提交考勤统计至支委会」一并与考勤汇总交付支委会）——<b>不另设个人「补课记录归档审查」动作</b>（D-285：归档不依赖个人重复劳动）</div>
         <div class="overflow-x-auto">
           <div id="disc-makeup-host"></div>
         </div>

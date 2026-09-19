@@ -5,22 +5,24 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260917c';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260919g';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260917c';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/person.js?v=20260917c';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260919g';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/person.js?v=20260919g';
 // S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260917c';
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260917c';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260919g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
-import { getBasePath } from '../../../core/utils.js?v=20260917c';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
+import { getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260919g';
+// SOP-B-30 / D-396：活动参与汇总（以人为第一列）——数据与考勤同源（services/attendance.js 单一读口）
+import { listActivityParticipationByPerson } from '../../../services/attendance.js?v=20260919g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：候选人列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919g';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -103,12 +105,54 @@ function _buildCandidates() {
     });
 }
 
+// ════════════════════════════════════════════════════════════════
+//  活动参与汇总（SOP-B-30 / D-396）——以人为第一列、按各类活动汇总参与次数
+//  口径：参与＝出勤/已补（线上参会不计入出席、只免补课，故不计入）；请假/缺勤不计。
+//  列＝数据里出现过的活动类别（动态）；行＝有考勤记录的人（按参与次数降序）。
+// ════════════════════════════════════════════════════════════════
+
+function _participationCardHtml(part) {
+  return `
+    <div class="card rounded-xl p-5 mt-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动参与汇总</h3>
+        <span class="text-xs text-gray-500">${part.rows.length} 人 · 以人为第一列（写工作总结可直接引用）</span>
+      </div>
+      <p class="text-[11px] text-gray-500 mb-3">参与＝出勤 / 已补（线上参会只免补课、不计入出席，故不计入）；请假 / 缺勤不计。行＝有考勤记录的人，列＝各类活动。</p>
+      <div class="overflow-x-auto"><div id="org-part-list"></div></div>
+    </div>
+  `;
+}
+
+function _participationHeadHtml(types) {
+  return `<tr>
+            <th>姓名</th>
+            <th>学号</th>
+            <th>所属党小组</th>
+            ${types.map(t => `<th>${esc(t)}</th>`).join('')}
+            <th>合计</th>
+          </tr>`;
+}
+
+function _participationRowHtml(p, types) {
+  return `
+          <tr>
+            <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(p.name)}</a></td>
+            <td class="text-gray-600">${esc(p.studentId || '—')}</td>
+            <td class="text-gray-600">${esc(p.partyGroup || '—')}</td>
+            ${types.map(t => `<td class="text-gray-600">${p.counts[t] || 0}</td>`).join('')}
+            <td class="text-gray-800 font-medium">${p.total}</td>
+          </tr>`;
+}
+
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
 
   function render() {
     const candidates = _buildCandidates();
+    // SOP-B-30 / D-396：活动参与汇总（以人为第一列）——与考勤同源，随记录即时更新
+    const part = listActivityParticipationByPerson();
 
     // 阶段统计
     const stageCounts = {};
@@ -184,6 +228,7 @@ export function renderContent(ctx) {
         <!-- 候选人列表（统一检索引擎；≤8 行不渲染检索条） -->
         <div id="org-dev-list"></div>
       </div>
+      ${_participationCardHtml(part)}
     `;
 
     renderFilteredList(document.getElementById('org-dev-list'), {
@@ -195,6 +240,18 @@ export function renderContent(ctx) {
       listClass: 'space-y-3',
       emptyMessage: '无匹配候选人',
       rowHtml,
+    });
+
+    // SOP-B-30 / D-396：活动参与汇总（以人为第一列）——同一张表接统一检索引擎
+    renderFilteredList(document.getElementById('org-part-list'), {
+      stateKey: 'org-participation-summary',
+      rows: part.rows,
+      keyword: personKeyword(),
+      facets: personFacets({ roleLabel: roleLabelOf }),
+      countUnit: '人',
+      emptyMessage: '暂无可汇总的活动参与记录',
+      table: { colSpan: 4 + part.types.length, headHtml: _participationHeadHtml(part.types) },
+      rowHtml: (p) => _participationRowHtml(p, part.types),
     });
 
     // C①（2026-09-10 支书裁定）：原「推进至X」直写事件（.dev-advance-btn → localStorage 覆盖档案）已移除，

@@ -5,7 +5,7 @@
 //  两个分类依据：时长 / 发起方向（品牌为属性标签 isBrand，非工作流分类依据）
 // ════════════════════════════════════════════════════════════════
 
-import { ROLE_KEYS } from '../core/constants.js?v=20260917c';
+import { ROLE_KEYS } from '../core/constants.js?v=20260919g';
 
 // 工作流执行角色白名单（S10 单一事实源：键集必须 ⊆ ROLE_KEYS，新增角色须同步 SYSTEM_ROLE_PERMISSION.md §9a0）
 // 筹备/协调阶段参与方：组织者、党小组组长、支书、纪检委员（考勤/考察对接）、宣传委员（宣传统筹）；
@@ -215,9 +215,9 @@ export const THEME_PARTY_DAY_DEFINITION = {
       metadata: {
         phase: '审批',
         sopTaskId: '1b-2',
-        sopTaskTitle: '支委扩大会讨论',
+        sopTaskTitle: '活动报备',
         sopExecutor: 'expanded-committee',
-        sopDesc: '党小组组长汇集活动信息，交支委扩大会讨论研究（线上或线下），讨论通过后方可推进。',
+        sopDesc: '党小组组长汇集活动信息，向支委扩大群报备（线上或线下），报备通过后方才写入活动。',
       },
     },
     {

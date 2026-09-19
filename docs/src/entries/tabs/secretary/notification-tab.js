@@ -3,18 +3,20 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260917c';
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260917c';
+import { NoticeStore } from '../../../services/notice.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260919g';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260919g';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260919g';
 // Q-22-1（2026-09-13）：受众选项改引 core/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS } from '../../../core/constants.js?v=20260917c';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/constants.js?v=20260919g';
+// SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260917c';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260919g';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
@@ -80,6 +82,18 @@ function renderNotificationForm() {
   html += `</div>`;
   html += `</div>`;
 
+  // 关联三会一课活动（选填，SOP-B-5）
+  html += `<div class="mb-5">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notif-meeting-activity">关联会议活动 <span class="text-gray-500">（选填；发布三会一课通知时选定本次活动）</span></label>`;
+  html += `<select id="notif-meeting-activity" class="input-flat w-full">`;
+  html += `<option value="">不关联（普通通知）</option>`;
+  _meetingActivityOptions().forEach(a => {
+    html += `<option value="${a.id}">${a.title}（${a.date || '未排期'} · ${a.type}）</option>`;
+  });
+  html += `</select>`;
+  html += `<p class="text-[11px] text-gray-500 mt-1 leading-5">关联后，被通知人在通知详情点「确认读取」时可填<b>能否线上参会</b>；线上参会按制度记「请假」、<b>不计入出席、只免补课</b>。</p>`;
+  html += `</div>`;
+
   // 发布按钮
   html += `<button data-notif-action="publish" class="btn-accent text-sm px-4 py-[7px] font-medium">发布通知</button>`;
 
@@ -139,6 +153,17 @@ function _audienceLabels(values) {
   });
 }
 
+/**
+ * 可关联的**三会一课活动**（发布会议通知用，SOP-B-5）——类型清单派生自 ACTIVITY_CLASSIFICATION（单一源），
+ * 排除已归档 / 已取消；按日期倒序（最近的在前）。
+ */
+function _meetingActivityOptions() {
+  const types = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
+  return loadActivities()
+    .filter(a => a && !a.archived && a.status !== 'cancelled' && types.includes(a.type))
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+}
+
 /** 发布通知（写入 NoticeStore，与首页/全局概况/visitor 同源） */
 function handlePublishNotification() {
   // B1（2026-09-12）提交处显式拒绝兜底：党委下钻只读视图不得发布通知
@@ -156,6 +181,9 @@ function handlePublishNotification() {
   if (!content) { showToast('error', '请填写通知内容'); contentEl?.focus(); return; }
   if (_selectedAudience.length === 0) { showToast('error', '请选择目标受众'); return; }
 
+  // 关联会议活动（选填，SOP-B-5）：关联后该通知的「确认读取」可填「能否线上参会」，落该场考勤
+  const meetingActivityId = document.getElementById('notif-meeting-activity')?.value || null;
+
   const audienceLabels = _audienceLabels(_selectedAudience);
   const notification = {
     title,
@@ -167,12 +195,17 @@ function handlePublishNotification() {
     read: false,
     audience: [..._selectedAudience],
     audienceLabel: audienceLabels.join('、'),
+    // 关联的三会一课活动 id（不关联则 null）——通知→考勤的线上参会申报靠它定位活动
+    meetingActivityId,
     // 落款按实际发布角色（dogfood 权限专项 2026-09-13）：此前硬编码「支书」，
     // 副支书发布也显示「支书」→ 审计失真；现按当前登录角色取「支书/副支书」
     publishedBy: (AuthStore.getCurrentUser() || {}).role === 'deputy-secretary' ? '副支书' : '支书',
   };
 
-  NoticeStore.add(notification, (AuthStore.getCurrentUser() || {}).role || 'secretary');
+  // 2026-09-19 批次 91（SOP-B-17）：发布权判定一并带 personId——白名单角色不变，
+  //   本组通知另按「此人是否该场组织者」放行（支书台的发布口仍是全支部通知主位）。
+  const _me = AuthStore.getCurrentUser() || {};
+  NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
 
   showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
 

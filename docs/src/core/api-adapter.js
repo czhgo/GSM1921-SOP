@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260917c';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260919g';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -530,10 +530,14 @@ export const ApiAdapter = {
     },
   },
 
-  // 意见反馈「真匿名」（2026-09-12 支书裁定）：语义端点（server/routes/resources.js）
-  //   GET   /api/v1/issues      公开读（处置结果公开可见）
-  //   POST  /api/v1/issues      登录用户可提交（落库不含身份字段；服务端仅存 tokenHash）
-  //   PATCH /api/v1/issues/:id  处置/回复（仅支书）
+  // 意见反馈匿名口径（2026-09-17 支书裁定，本次改裁）：语义端点（server/routes/resources.js）
+  //   GET   /api/v1/issues          公开读（处置结果公开可见）——**一律脱敏，不含真实提交人**
+  //   POST  /api/v1/issues          登录用户可提交（匿名亦在服务端落真实提交人 `_realPersonId`）
+  //   PATCH /api/v1/issues/:id      处置/回复（仅支书）——支书也看不到提交人
+  //   GET   /api/v1/issues/reveal   **仅党委（party-staff）**：查看匿名反馈真实提交人；服务端每次留痕
+  //   ── 依据（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+  //      查看匿名的权限只有党委有。」──
+  //   适用范围：本改裁只落在意见反馈；「正式表决无记名」维持原裁定不变（表决相关端点不在此域）。
   issues: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -546,6 +550,11 @@ export const ApiAdapter = {
 
     update(id, patch) {
       return _patch(`/api/v1/issues/${id}`, patch);
+    },
+
+    /** **仅党委**：查看匿名反馈的真实提交人（服务端鉴权：非 party-staff → 403、未登录 → 401；命中即写 `issue_reveals` 留痕） */
+    reveal() {
+      return _get('/api/v1/issues/reveal');
     },
   },
 

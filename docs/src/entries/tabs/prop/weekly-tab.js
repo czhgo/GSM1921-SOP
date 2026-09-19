@@ -2,13 +2,17 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260917c';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260917c';
-import { showToast } from '../../../core/utils.js?v=20260917c';
-import { persist } from '../../../core/data-adapter.js?v=20260917c';
-import { mockDB } from '../../../core/domain.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { generateId } from '../../../core/id.js?v=20260917c';
+import { icon } from '../../../core/icons.js?v=20260919g';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260919g';
+import { showToast } from '../../../core/utils.js?v=20260919g';
+import { persist } from '../../../core/data-adapter.js?v=20260919g';
+import { mockDB } from '../../../core/domain.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { generateId } from '../../../core/id.js?v=20260919g';
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
+import { NoticeStore } from '../../../services/notice.js?v=20260919g';
+import { getPersonName } from '../../../services/person.js?v=20260919g';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/secretary-overview.js?v=20260919g';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
@@ -44,6 +48,23 @@ const WEEKLY_STATUS_STYLE = {
   draft: 'bg-amber-50 text-amber-700 border-amber-200',
   submitted: 'bg-green-50 text-green-700 border-green-200',
 };
+const WEEKLY_REVIEW_STYLE = {
+  pending: 'bg-sky-50 text-sky-700 border-sky-200',
+  approved: 'bg-green-50 text-green-700 border-green-200',
+  returned: 'bg-amber-50 text-amber-700 border-amber-200',
+};
+
+// ── 自动生成报送内容（SOP-B-40 ②，2026-09-19 批次 94）──────────────
+// 「基于活动数据自动生成报送内容」：取该周次起止区间内的活动（口径＝活动主源 date），
+// 逐条「活动名（类型）· 日期」。**只是草稿起点**——生成后仍可手改（不覆盖已写内容前先问一句）。
+function _autoWeeklyContent(weekRange) {
+  const [from, to] = String(weekRange || '').split('~').map(s => s.trim());
+  return loadActivities()
+    .filter(a => a && a.date && (!from || a.date >= from) && (!to || a.date <= to))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .map((a, i) => `${i + 1}. ${a.title || '未命名活动'}${a.type ? `（${a.type}）` : ''}${a.date ? ` · ${a.date}` : ''}`)
+    .join('\n');
+}
 
 // 周次与起止自动派生（支书 2026-09-10 裁定：按当前日期预填，仍允许手动覆盖）
 // 周号口径：ISO 周（周一为一周之始），与既有 seed/文案一致（第31周=2026-07-27 所在周）。
@@ -110,7 +131,13 @@ export function renderContent(ctx) {
             <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="weekly-content">周报内容</label>
             <textarea id="weekly-content" rows="6" placeholder="请填写本周工作内容，每条一行..." class="input-flat w-full resize-none">${draftReport ? draftReport.content : ''}</textarea>
           </div>
+          <!-- SOP-B-40 ②：基于活动数据自动生成报送内容（生成后可手改，是草稿起点不是结论） -->
+          <div class="flex items-center justify-between gap-2">
+            <button id="weekly-gen-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">按本周活动自动生成</button>
+            <span class="text-[11px] text-gray-400">生成后仍可手改</span>
+          </div>
           <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">报送</button>
+          <div class="text-[11px] text-gray-500 leading-5">报送后系统会<b>站内通知支书</b>，支书在支书台「全局概况」审核（通过 / 退回）。</div>
         </div>
       </div>
 
@@ -156,6 +183,19 @@ export function renderContent(ctx) {
     renderContent(ctx);
   });
 
+  // 自动生成（SOP-B-40 ②）：按当前所选周次的起止区间，从活动数据拼出草稿内容
+  container.querySelector('#weekly-gen-btn')?.addEventListener('click', () => {
+    const selectEl = container.querySelector('#weekly-week');
+    const textareaEl = container.querySelector('#weekly-content');
+    const report = _loadWeeklyReports().find(r => r.id === selectEl.value);
+    if (!report) return;
+    const generated = _autoWeeklyContent(report.weekRange);
+    if (!generated) { showToast('info', `${report.week}（${report.weekRange}）没有可用的活动数据，请手填`); return; }
+    if (textareaEl.value.trim() && !window.confirm('已有内容，用自动生成的结果覆盖？')) return;
+    textareaEl.value = generated;
+    showToast('success', '已按本周活动生成草稿内容（可继续手改）');
+  });
+
   // 报送按钮
   const submitBtn = container.querySelector('#weekly-submit-btn');
   submitBtn.addEventListener('click', () => {
@@ -172,9 +212,39 @@ export function renderContent(ctx) {
     report.content = content;
     report.status = 'submitted';
     report.submittedAt = new Date().toISOString().slice(0, 10);
+    // SOP-B-40 ②（2026-09-19 批次 94）：报送人 + 审核位状态位（新报送即回到「待审核」，
+    // 清掉上一次的退回说明——重新报送是对退回的回应）
+    report.submittedBy = AuthStore.getCurrentUser()?.personId || 'u_prop';
+    report.reviewStatus = WEEKLY_REVIEW_STATUS.PENDING;
+    delete report.reviewNote;
     persist();
-    showToast('success', `${report.week}周报已报送`);
+    // 「存好了才通知」：`persist()` 在 API 形态排的是 800ms 防抖快照，而服务端按 kind 注册表
+    //   复算授权（R-22：`rowOf(db,'weekly_reports',sourceId)`）——两者若并行，会赛跑在
+    //   「这一行还没落库」上，授权不通过即 403 并把本地镜像回收（通知发不出去）。
+    //   故先等成功提示走完结算，再发通知（同批次 49「存好了才报成功」/ 批次 83 先例）。
+    //   ⚠ 顺序不能颠倒：`settleWrites` 的失败只报一次，若先自行结算会把失败吞掉、
+    //     让成功提示变成假话。真机证据：报送后 4s 服务端通知一条（`宣传周报待审核`）。
+    const settled = showToast('success', `${report.week}周报已报送，将通知支书审核`);
+    Promise.resolve(settled).then(() => NoticeStore.addSystem('weekly-report-submitted', report.id, {
+      week: report.week,
+      weekRange: report.weekRange,
+      submitterName: getPersonName(report.submittedBy) || '',
+    })).catch((e) => console.warn('[weekly-tab] 周报已报送，但通知支书未发出：', e));
     renderContent(ctx);
+  });
+
+  // 「标记已上报北京大学智慧党建平台」（SOP-B-40 ③）：只做**留痕**（对接方为外部，系统不代办）
+  container.querySelectorAll('.weekly-platform-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const report = _loadWeeklyReports().find(r => r.id === btn.dataset.id);
+      if (!report) return;
+      report.platformReportedAt = new Date().toISOString();
+      report.platformReportedBy = AuthStore.getCurrentUser()?.personId || '';
+      persist();
+      showToast('success', '已留痕：该周报标记为已上报北京大学智慧党建平台');
+      renderContent(ctx);
+    });
   });
 
   // 展开/折叠历史详情
@@ -193,6 +263,17 @@ export function renderContent(ctx) {
 function _renderWeeklyReportItem(report) {
   const statusStyle = WEEKLY_STATUS_STYLE[report.status];
   const isSubmitted = report.status === 'submitted';
+  // 审核位状态（SOP-B-40 ②）：单一源 = services/secretary-overview.js::weeklyReviewStatusOf
+  const reviewStatus = weeklyReviewStatusOf(report);
+  const reviewBadge = reviewStatus
+    ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_REVIEW_STYLE[reviewStatus]}">支书${WEEKLY_REVIEW_LABELS[reviewStatus]}</span>`
+    : '';
+  // 平台上报留痕（SOP-B-40 ③）：只留痕，不对接（对接方为外部）
+  const platformHtml = isSubmitted
+    ? (report.platformReportedAt
+        ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
+        : `<button class="weekly-platform-btn text-xs px-2.5 py-1 rounded-lg bg-white text-violet-700 border border-violet-200 hover:bg-violet-50 transition-colors" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
+    : '';
   return `
     <div class="weekly-report-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors">
       <div class="flex items-center justify-between mb-1">
@@ -200,12 +281,15 @@ function _renderWeeklyReportItem(report) {
           <span class="text-sm font-medium text-gray-800">${report.week}</span>
           <span class="text-xs text-gray-500">${report.weekRange}</span>
           <span class="text-xs px-1.5 py-0.5 rounded-full border ${statusStyle}">${WEEKLY_STATUS_LABEL[report.status]}</span>
+          ${reviewBadge}
         </div>
         <div class="flex items-center gap-2">
+          ${platformHtml}
           ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-500">报送于 ${report.submittedAt}</span>` : ''}
           ${report.content ? `<button class="weekly-detail-toggle text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">展开</button>` : ''}
         </div>
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}
+      ${reviewStatus === 'returned' && report.reviewNote ? `<p class="text-xs text-amber-700 mt-1">支书退回说明：${report.reviewNote}</p>` : ''}
     </div>`;
 }

@@ -2,13 +2,15 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260917c';
-import { PersonStore } from './person.js?v=20260917c';
-import { bumpToken } from '../core/version-token.js?v=20260917c'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260917c';
-import { hashSubmitterToken, SECRETARY_ROLES } from '../core/constants.js?v=20260917c';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260917c';
-import { generateId, randomHex } from '../core/id.js?v=20260917c';
+import { AuthStore } from './auth.js?v=20260919g';
+import { PersonStore } from './person.js?v=20260919g';
+import { bumpToken } from '../core/version-token.js?v=20260919g'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260919g';
+import { hashSubmitterToken, SECRETARY_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260919g';
+// 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
+import { trackWrite } from '../core/pending-writes.js?v=20260919g';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260919g';
+import { generateId, randomHex } from '../core/id.js?v=20260919g';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -19,9 +21,9 @@ import { generateId, randomHex } from '../core/id.js?v=20260917c';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../core/utils.js?v=20260917c';
+import { showToast } from '../core/utils.js?v=20260919g';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260917c';
+import { renderFilteredList } from '../components/list-filter.js?v=20260919g';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -35,12 +37,12 @@ const DRAFT_KEY = 'gsm1921-issue-drafts';
 // 2026-09-13 v4：反馈指派/审计身份统一改真实成员 ID（u_org→p11 等），缓存版本号 +1 强制清旧缓存重拉
 //   （键名保持 v3 不变，仅版本号递进——reset 清理清单与既有测试零改动）
 const CACHE_KEY = 'gsm1921-issue-cache-v3';
-export const ISSUE_CACHE_KEY = CACHE_KEY; // 供其它模块（issue-detail 等）写回同一缓存键，防键名漂移
+export const ISSUE_CACHE_KEY = CACHE_KEY; // 供其它模块（issue-detail 等）写回同一缓存键，防止键名未同步的情况
 const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
 const CACHE_VERSION = '4';
 const MIGRATED_KEY = 'gsm1921-feedback-migrated';
-// 真匿名防刷令牌（2026-09-12 支书裁定）：客户端首次提交生成随机 token 存本地，
-// 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人。
+// 对外匿名（后台记真身）防刷令牌（2026-09-12 裁定；2026-09-17 改裁更正措辞）：客户端首次提交生成随机 token 存本地，
+// 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人（真身另行落库，见下方匿名口径）。
 const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
 
 let _issuesCache = null;
@@ -65,29 +67,113 @@ function _getSubmitterToken() {
 }
 
 /**
- * 历史数据迁移：删除既有记录 payload 里的 `_realPersonId`（保留其余内容）。
- * 该字段为旧「匿名仅对支书可见真实提交人」机制残留——读取时一律清除/忽略，支书侧亦不可追溯。
- * @returns {boolean} 是否有变更（有则调用方应回写缓存）
+ * **只读**地取本浏览器提交令牌（无则返回 null）。
+ * 读路径专用：不得因为「看一眼我的反馈」就给从未提交过的浏览器生成令牌（副作用）。
  */
-function _stripLegacyIdentity(list) {
-  let changed = false;
-  for (const it of (list || [])) {
-    if (it && typeof it === 'object' && Object.prototype.hasOwnProperty.call(it, '_realPersonId')) {
-      delete it._realPersonId;
-      changed = true;
-    }
+function _peekSubmitterToken() {
+  try {
+    return localStorage.getItem(SUBMITTER_TOKEN_KEY) || null;
+  } catch {
+    return null;
   }
-  return changed;
+}
+
+// ── 匿名口径（2026-09-17 支书裁定，本次改裁）─────────────────────────────
+// 依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+//   查看匿名的权限只有党委有。**」
+//   · 匿名 = **前端展示层匿名**：后台记真实提交人（`_realPersonId`），**常规读出口一律脱敏**；
+//   · **可见范围＝仅党委**：党支部内部（含支书）看不到真身——「处置」与「查看真身」是**两项分开的权限**；
+//   · **适用范围**：本改裁只落在意见反馈。「正式表决无记名」维持 2026-09-12 原裁定不变
+//     （2026-09-17 支书就表决单独裁定「表决保持真无记名」）——本文件与表决无关，勿外推。
+// 与旧实现的关键差别：2026-09-12「真匿名」原为「读取/回写时删除 `_realPersonId`」（删了就没了），
+//   本次改裁改为「库里留真身、出口脱敏」——故旧迁移函数整段撤除，**不再删除**本地记录里的真身。
+
+/** 真身同族键（与 server/routes/resources.js 的 ISSUE_IDENTITY_KEYS 同源同口径）：任何常规读出口都不得带出 */
+const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
+
+/** 当前登录人是否党委（唯一有权查看匿名反馈真实提交人的角色；与 server 侧 PARTY_STAFF_ROLE 同源） */
+function _isPartyStaff() {
+  return PARTY_STAFF_ROLE.includes(AuthStore.getCurrentUser()?.role);
+}
+
+/**
+ * **脱敏序列化（默认出口）**：拷贝后剥掉真身同族键——一切常规读都走它。
+ * 只剥不外泄、不回写（与 server 同名同口径实现一致）。
+ */
+function _sanitizeIssue(rec) {
+  if (!rec || typeof rec !== 'object') return rec;
+  const out = { ...rec };
+  for (const k of ISSUE_IDENTITY_KEYS) delete out[k];
+  return out;
+}
+
+/** **留痕序列化（唯一例外）**：只给党委核查出口用。**不得用于任何其他出口**。 */
+function _revealIssue(rec) {
+  const out = _sanitizeIssue(rec);
+  out.realPersonId = (rec && rec._realPersonId) || null;
+  return out;
+}
+
+const _sanitizeIssues = (list) => (list || []).map(_sanitizeIssue);
+
+/** 草稿脱敏（草稿 payload 同样可能带真身——匿名草稿在本机留真身、出口脱敏） */
+function _sanitizeDraft(d) {
+  if (!d || typeof d !== 'object') return d;
+  return { ...d, payload: d.payload ? _sanitizeIssue(d.payload) : d.payload };
+}
+
+/** 原始草稿（**含真身**）：写链与审核内部专用；对外出口一律经 _sanitizeDraft */
+function _rawDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]'); } catch { return []; }
+}
+
+/** 原始记录（**含真身**）：写链与党委核查出口内部专用；其余出口一律经 _sanitizeIssue(s) */
+function _rawById(id) {
+  return (_issuesCache || []).find(i => i.id === id);
+}
+
+// ── 留痕（与服务端表 `issue_reveals` 同名同构：id/by/byRole/at/revealedIds）──
+// 2026-09-17 支书裁定：查看匿名的权限只有党委有 ⇒ **每次党委核查都留一条痕**——
+// 留痕的意义＝让「只有党委能看」这句承诺**可被事后核对**（否则它只是一句无从证伪的声明）。
+// api 形态由服务端写入（前端不能自行造/改留痕：该表不在 resources.js 通用 CRUD 映射内）；
+// mock 形态写入本地同名表，两形态行为一致。
+const ISSUE_REVEALS_KEY = 'issue_reveals';
+export const ISSUE_REVEALS = ISSUE_REVEALS_KEY;
+
+function _readRevealTraces() {
+  try { return JSON.parse(localStorage.getItem(ISSUE_REVEALS_KEY) || '[]'); } catch { return []; }
+}
+
+/** mock 形态写一条留痕（谁 / 何时 / 看了哪些**匿名**条目——实名真身本就公开，不计入） */
+function _writeRevealTrace(rows) {
+  const me = AuthStore.getCurrentUser() || {};
+  const trace = {
+    id: generateId('reveal', '-'),
+    by: me.personId || null,
+    byRole: me.role || null,
+    at: new Date().toISOString(),
+    revealedIds: (rows || []).filter(r => r.anonymous).map(r => r.id),
+  };
+  try {
+    const list = _readRevealTraces();
+    list.push(trace);
+    localStorage.setItem(ISSUE_REVEALS_KEY, JSON.stringify(list));
+  } catch {}
+  return trace;
 }
 
 /**
  * 处置写口双形态同步：API 形态下把变更后的 issue 处置字段 PATCH 回服务端（fire-and-forget）。
  * mock 形态为本地 localStorage，无需同步。
+ *
+ * 2026-09-17 批次 49：这条链**不走 persist()**（feedback 域是独立 localStorage 域，写链直连 REST），
+ * 故必须**自己登记进 pending-writes** —— 否则紧随其后的成功提示在它上面看不见等待对象，
+ * 仍会「先报成功、PATCH 还在飞」。登记后：PATCH 失败 ⇒ 成功提示改报失败（原实现只 console.warn）。
  */
 function _syncIssueToApi(issue) {
   if (!_isApiMode() || !issue) return;
   try {
-    getAdapter().issues.update(issue.id, {
+    trackWrite(getAdapter().issues.update(issue.id, {
       status: issue.status,
       closedReason: issue.closedReason ?? null,
       closedAt: issue.closedAt ?? null,
@@ -100,9 +186,10 @@ function _syncIssueToApi(issue) {
       hidden: !!issue.hidden,
       mergedInto: issue.mergedInto ?? null,
       resultPending: !!issue.resultPending,
-    }).catch((e) => console.warn('[IssueStore] API 处置同步失败：', e));
+    }));
   } catch (e) {
     console.warn('[IssueStore] API 处置同步异常：', e);
+    trackWrite(Promise.reject(e));
   }
 }
 
@@ -160,21 +247,20 @@ export const IssueStore = {
    * @returns {Promise<Array>} issues 列表
    */
   async loadAll() {
-    // API 形态：以服务器为权威源（GET /api/v1/issues）；读取即清理历史 _realPersonId
+    // API 形态：以服务器为权威源（GET /api/v1/issues）；服务端出口已脱敏（真身只在党委出口）
     if (_isApiMode()) {
       try {
         const rows = await getAdapter().issues.list();
         _issuesCache = Array.isArray(rows) ? rows : [];
-        _stripLegacyIdentity(_issuesCache);
-        return _issuesCache;
+        return _sanitizeIssues(_issuesCache);
       } catch (e) {
         console.warn('[IssueStore] API 形态加载反馈失败：', e);
         _issuesCache = [];
-        return _issuesCache;
+        return [];
       }
     }
     // 优先从内存缓存读
-    if (_issuesCache) return _issuesCache;
+    if (_issuesCache) return _sanitizeIssues(_issuesCache);
     // 缓存版本检查：版本不匹配则丢弃旧缓存，强制从 issues.json 重新加载
     try {
       const cachedVer = localStorage.getItem(CACHE_VERSION_KEY);
@@ -183,15 +269,12 @@ export const IssueStore = {
         localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
       }
     } catch {}
-    // 其次从 localStorage 缓存读（历史 _realPersonId 迁移：删除该字段后回写）
+    // 其次从 localStorage 缓存读（**不再删除 `_realPersonId`**：2026-09-17 支书裁定口径 = 库里留真身、出口脱敏）
     try {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         _issuesCache = JSON.parse(cached);
-        if (_stripLegacyIdentity(_issuesCache)) {
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
-        }
-        return _issuesCache;
+        return _sanitizeIssues(_issuesCache);
       }
     } catch {}
     // 最后从 issues.json 拉取
@@ -199,28 +282,27 @@ export const IssueStore = {
       const resp = await fetch(ISSUES_JSON_PATH);
       const data = await resp.json();
       _issuesCache = data.issues || [];
-      _stripLegacyIdentity(_issuesCache);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
-      return _issuesCache;
+      return _sanitizeIssues(_issuesCache);
     } catch {
       _issuesCache = [];
-      return _issuesCache;
+      return [];
     }
   },
 
-  /** 同步读取（需先调用 loadAll）——按 viewer 所属支部过滤（跨支部 issue 不可见） */
+  /** 同步读取（需先调用 loadAll）——按 viewer 所属支部过滤（跨支部 issue 不可见）；出口脱敏 */
   getAll() {
-    return _withinViewerBranch(_issuesCache || []);
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []));
   },
 
-  /** 按 ID 获取（按 viewer 所属支部过滤：跨支部 issue 不可见） */
+  /** 按 ID 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
   getById(id) {
-    return _withinViewerBranch(_issuesCache || []).find(i => i.id === id);
+    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.id === id));
   },
 
-  /** 按 number 获取（按 viewer 所属支部过滤：跨支部 issue 不可见） */
+  /** 按 number 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
   getByNumber(num) {
-    return _withinViewerBranch(_issuesCache || []).find(i => i.number === num);
+    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.number === num));
   },
 
   /** 获取下一个可用 number（全库编号，不按支部过滤——支部间编号全局唯一） */
@@ -229,7 +311,7 @@ export const IssueStore = {
     return list.reduce((max, i) => Math.max(max, i.number || 0), 0) + 1;
   },
 
-  /** 过滤（按 viewer 所属支部过滤后再按维度筛选） */
+  /** 过滤（按 viewer 所属支部过滤后再按维度筛选）；出口脱敏 */
   filter({ status, scope, type, milestone, keyword, kind } = {}) {
     let list = _withinViewerBranch(_issuesCache || []);
     if (status && status !== 'all') list = list.filter(i => i.status === status);
@@ -250,7 +332,7 @@ export const IssueStore = {
         (i.body || '').toLowerCase().includes(kw)
       );
     }
-    return list;
+    return _sanitizeIssues(list);
   },
 
   /** 统计（按 viewer 所属支部过滤；`kind` 语义同 filter） */
@@ -266,29 +348,23 @@ export const IssueStore = {
 
   // ── 草稿（localStorage）──
 
-  /** 读取个人草稿（历史 _realPersonId 迁移：删除该字段后回写；匿名草稿作者为「匿名」，不落真实 personId） */
+  /**
+   * 读取个人草稿（**出口脱敏**：不再删除库里的 `_realPersonId`——匿名草稿在本机留真身、支书侧看不到）
+   * ⚠ 2026-09-17 支书裁定：撤除原「读取时删除 `_realPersonId` 并回写」的历史迁移（删了就没了，
+   *   与本次改裁「后台记录真实情况」相反）。草稿真身仅经党委核查出口可见。
+   */
   getDrafts() {
-    try {
-      const list = JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]');
-      let changed = false;
-      list.forEach((d) => {
-        if (d && d.payload && Object.prototype.hasOwnProperty.call(d.payload, '_realPersonId')) {
-          delete d.payload._realPersonId;
-          changed = true;
-        }
-      });
-      if (changed) { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(list)); } catch {} }
-      return list;
-    } catch { return []; }
+    return _rawDrafts().map(_sanitizeDraft);
   },
 
   /**
    * 添加草稿（新建/评论/反应都先进草稿）
    * @param {Object} draft
-   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——不落真实 personId，防支书侧追溯）
+   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——作者字段不落真实 personId，
+   *   真身落在 payload 的 `_realPersonId`，仅供党委核查出口追溯）
    */
   addDraft(draft, authorOverride) {
-    const list = this.getDrafts();
+    const list = _rawDrafts();
     const record = {
       draftId: generateId('dft', '-'),
       type: draft.type, // 'new-issue' | 'comment' | 'reaction'
@@ -301,15 +377,16 @@ export const IssueStore = {
     };
     list.push(record);
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(list)); } catch {}
-    return record;
+    return _sanitizeDraft(record);
   },
 
   /**
-   * 提交意见反馈（真匿名，2026-09-12 支书裁定）
-   * 匿名：submittedBy='匿名' + anonymous:true，不存任何可反查提交人的字段（支书侧亦不可见）；
+   * 提交意见反馈（**匿名＝前端展示层匿名**，2026-09-17 支书裁定口径）
+   * 匿名：submittedBy='匿名' + anonymous:true，**但本机/后台记真实提交人 `_realPersonId`**
+   *   （「后台记录真实情况」）；一切常规读出口脱敏，真身只有党委核查出口可见。
    * 实名：按现口径记真实 personId（展示层经 PersonStore 解析姓名）。
    * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
-   * @returns {Promise<Object>} API 形态返回落库记录；mock 形态返回新建草稿（待支书审核后公开）
+   * @returns {Promise<Object>} API 形态返回落库记录（服务端已脱敏）；mock 形态返回新建草稿（出口亦已脱敏）
    */
   async submitIssue({ title, body, scope, types = [], anonymous = true } = {}) {
     const now = new Date().toISOString().slice(0, 10);
@@ -325,9 +402,10 @@ export const IssueStore = {
         submittedAt: now,
       });
       _issuesCache = _issuesCache || [];
+      // 服务端已按其口径落真身（`_realPersonId`）并回传脱敏记录 ⇒ 本机缓存同样不含真身（党委核查走服务端出口）
       _issuesCache.push(record);
       _noteIssueChange();
-      return record;
+      return _sanitizeIssue(record);
     }
     return this.addDraft({
       type: 'new-issue',
@@ -336,6 +414,10 @@ export const IssueStore = {
         branchId,
         submittedBy: anonymous ? '匿名' : _currentPersonId(),
         anonymous: !!anonymous,
+        // 2026-09-17 支书裁定「后台记录真实情况」：匿名反馈在本地库里留真实提交人，
+        // 出口（getDrafts/getAll/getById…）一律脱敏，仅党委核查出口（getIssuesForPartyReview）可见。
+        // 实名不重复存（真身即 submittedBy）。
+        ...(anonymous ? { _realPersonId: _currentPersonId() } : {}),
         tokenHash: hashSubmitterToken(token),
         submittedAt: now,
       },
@@ -344,7 +426,8 @@ export const IssueStore = {
 
   /** 支书审核通过：合并到 issues.json（实际操作：本地更新+提示支书保存文件） */
   approveDraft(draftId) {
-    const drafts = this.getDrafts();
+    // 审核是**写链**：走原始草稿（含 `_realPersonId`），真身随 payload 并入 issue 记录（本地库留真身）
+    const drafts = _rawDrafts();
     const d = drafts.find(x => x.draftId === draftId);
     if (!d) return null;
     d.status = 'approved';
@@ -385,14 +468,14 @@ export const IssueStore = {
           if (row) _issuesCache = [row, ...(_issuesCache || []).filter(x => x.id !== issue.id)];
           _noteIssueChange();
         }).catch((e) => console.warn('[IssueStore] 草稿通过写入服务端失败：', e));
-        return issue;
+        return _sanitizeIssue(issue);
       }
       _issuesCache.push(issue);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
-      return issue;
+      return _sanitizeIssue(issue);
     }
     if (d.type === 'comment') {
-      const issue = this.getById(d.targetIssueId);
+      const issue = _rawById(d.targetIssueId);
       if (issue) {
         issue.comments.push({
           id: generateId('cmt', '-'),
@@ -407,7 +490,7 @@ export const IssueStore = {
       }
     }
     if (d.type === 'reaction') {
-      const issue = this.getById(d.targetIssueId);
+      const issue = _rawById(d.targetIssueId);
       if (issue) {
         const list = issue.reactions[d.payload.type] || [];
         if (!list.includes(d.author)) list.push(d.author);
@@ -416,25 +499,27 @@ export const IssueStore = {
       }
     }
     _noteIssueChange(); // P2：草稿审核通过并入 issues → 写版本 +1
-    return d;
+    return _sanitizeDraft(d);
   },
 
   /** 支书驳回 */
   rejectDraft(draftId, reason) {
-    const drafts = this.getDrafts();
+    const drafts = _rawDrafts();
     const d = drafts.find(x => x.draftId === draftId);
     if (!d) return null;
     d.status = 'rejected';
     d.reviewNote = reason;
     try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); } catch {}
-    return d;
+    return _sanitizeDraft(d);
   },
 
   // ── 支书专属操作（直接修改缓存，需支书手动同步到 issues.json） ──
+  // ⚠ 写链一律经 `_rawById` 取**原始记录**（改的是库里那条，含真身字段不动），出口再脱敏——
+  //   若写链改的是脱敏副本，处置会静默丢失（副本回写覆盖真身）。2026-09-17 支书裁定口径。
 
   /** 支书改状态 */
   changeStatus(id, status, closedReason = null) {
-    const issue = this.getById(id);
+    const issue = _rawById(id);
     if (!issue) return null;
     issue.status = status;
     if (status === 'closed') {
@@ -447,12 +532,12 @@ export const IssueStore = {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：状态变更（含关闭/重开）→ 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端（mock 形态 no-op）
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /** 支书软隐藏评论 */
   hideComment(issueId, commentId, reason) {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     const c = (issue.comments || []).find(c => c.id === commentId);
     if (!c) return null;
@@ -463,18 +548,18 @@ export const IssueStore = {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论隐藏 → 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /** 支书编辑 issue */
   editIssue(id, updates) {
-    const issue = this.getById(id);
+    const issue = _rawById(id);
     if (!issue) return null;
     Object.assign(issue, updates);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：编辑（隐藏/指派/隐藏/备注等汇聚点）→ 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /** 支书设置 assignee（旧接口，保留兼容；新代码用 assignIssue） */
@@ -493,7 +578,7 @@ export const IssueStore = {
    * @returns {Object|null} 更新后的 issue
    */
   assignIssue(issueId, assigneeId, assigneeRole, note = '') {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     const prevAssignee = issue.assignee || null;
     const by = _currentPersonId();
@@ -523,7 +608,7 @@ export const IssueStore = {
     if (assigneeId && assigneeId !== by) {
       IssueNotify.markUnread(assigneeId, issueId);
     }
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /**
@@ -536,7 +621,7 @@ export const IssueStore = {
    * @returns {Object|null} 更新后的 issue
    */
   addComment(issueId, author, authorRole, body, kind = 'comment') {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     if (!Array.isArray(issue.comments)) issue.comments = [];
     const at = new Date().toISOString().slice(0, 10);
@@ -558,14 +643,14 @@ export const IssueStore = {
       // 触发支书工作台「待终审」高亮
       IssueNotify.markSecretaryReviewPending(issueId);
     }
-    // 真匿名（2026-09-12 支书裁定）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
+    // 对外匿名（2026-09-12 裁定；2026-09-17 改裁更正措辞）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
     // 若按 submittedBy 定向推送会泄露匿名提交人身份（支书追问只能公开留言）。
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（支书收件箱时间线渲染守卫失效）
     // API 形态：支书侧处置（评论/批复/正式答复）写回服务端
     //（成员汇报评论 authorRole ≠ 支书 → 不触发；与服务端 PATCH /issues 仅支书同源，单一源 SECRETARY_ROLES）
     if (_isSecretaryRole(authorRole)) _syncIssueToApi(issue);
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /**
@@ -575,7 +660,7 @@ export const IssueStore = {
    * @param {string} note    关闭备注（可选）
    */
   closeIssue(issueId, reason = 'completed', note = '') {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     issue.status = 'closed';
     issue.closedReason = reason;
@@ -590,12 +675,12 @@ export const IssueStore = {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：关闭 → 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   /** 支书重新开放 */
   reopenIssue(issueId) {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     issue.status = 'open';
     issue.closedReason = null;
@@ -604,7 +689,7 @@ export const IssueStore = {
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：重开 → 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
   // ── 2026-08-10 新增：工作汇报闭环（kind='report'） ────────────
@@ -704,7 +789,7 @@ export const IssueStore = {
 
   /** 汇报人确认已收到答复 → 关闭闭环 */
   confirmReport(issueId) {
-    const issue = this.getById(issueId);
+    const issue = _rawById(issueId);
     if (!issue) return null;
     if (!Array.isArray(issue.comments)) issue.comments = [];
     issue.comments.push({
@@ -722,36 +807,36 @@ export const IssueStore = {
     issue.resultPending = false;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：汇报闭环确认 → 写版本 +1
-    return issue;
+    return _sanitizeIssue(issue);
   },
 
-  /** 我发起的汇报（全部状态；按 viewer 所属支部过滤） */
+  /** 我发起的汇报（全部状态；按 viewer 所属支部过滤）；出口脱敏 */
   getMyReports(userId) {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.submittedBy === userId && !i.hidden && !i.mergedInto
-    );
+    ));
   },
 
-  /** 支书请我汇报、尚未提交的请求（按 viewer 所属支部过滤） */
+  /** 支书请我汇报、尚未提交的请求（按 viewer 所属支部过滤）；出口脱敏 */
   getReportRequestsFor(userId) {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.requestedBy && i.assignee === userId &&
       i.status === 'open' && !i.hidden && !i.mergedInto
-    );
+    ));
   },
 
-  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应；按 viewer 所属支部过滤） */
+  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应；按 viewer 所属支部过滤）；出口脱敏 */
   getSecretaryPendingReports() {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto
-    );
+    ));
   },
 
-  /** 某人发起的全部汇报（按 viewer 所属支部过滤） */
+  /** 某人发起的全部汇报（按 viewer 所属支部过滤）；出口脱敏 */
   getReportsBySubmitter(personId) {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.kind === 'report' && i.submittedBy === personId && !i.hidden && !i.mergedInto
-    );
+    ));
   },
 
   /** 支书隐藏反馈（不在公开列表显示） */
@@ -770,8 +855,8 @@ export const IssueStore = {
    * - target 评论时间线追加一条 merge 事件
    */
   mergeIssue(sourceId, targetId) {
-    const source = this.getById(sourceId);
-    const target = this.getById(targetId);
+    const source = _rawById(sourceId);
+    const target = _rawById(targetId);
     if (!source || !target) return null;
     source.mergedInto = targetId;
     source.hidden = true;
@@ -793,35 +878,54 @@ export const IssueStore = {
     _noteIssueChange(); // P2：合并 → 写版本 +1
     _syncIssueToApi(source); // API 形态：处置写回服务端
     _syncIssueToApi(target);
-    return { source, target };
+    return { source: _sanitizeIssue(source), target: _sanitizeIssue(target) };
   },
 
-  /** 被指派给某人的反馈（开放中；按 viewer 所属支部过滤） */
+  /** 被指派给某人的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
   getAssignedTo(userId) {
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.assignee === userId && i.status === 'open' && !i.hidden && !i.mergedInto
-    );
+    ));
   },
 
-  /** 被指派给某角色的反馈（开放中；按 viewer 所属支部过滤） */
+  /** 被指派给某角色的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
   getAssignedToRole(role) {
     return _withinViewerBranch(_issuesCache || []).filter(i =>
       i.assigneeRole === role && i.status === 'open' && !i.hidden && !i.mergedInto
-    );
+    ).map(_sanitizeIssue);
   },
 
   /**
    * 我提交 / 参与的反馈（成员台「我的处置」用，2026-09-15 支书裁定「每个人都可以参与答复」）：
-   * 本人提交（submittedBy===userId）或列在参与者（participants）中的意见反馈，不含工作汇报（kind='report'）。
-   * 真匿名反馈（submittedBy='匿名'、participants=[]）不可经此回溯——符合匿名口径。
-   * 按 viewer 所属支部过滤（跨支部 issue 不可见）。
+   * 满足任一即算「我的」——① 本人提交（`submittedBy===userId`）② 列在参与者（`participants`）中
+   * ③ **本浏览器提交过**（`tokenHash` 与本地随机令牌的哈希相符）。不含工作汇报（`kind='report'`）。
+   *
+   * 第 ③ 条是 2026-09-17（支书裁定「加不可反查的本人标识」）新增的 —— 补的正是
+   * **正式部署下本区恒空**这个用户可见缺口：api 形态把 `submittedBy`/`participants` 一律按对外匿名
+   * 脱敏（`server/seed.js::seedIssues`），①② 因此在正式部署下**结构上认不出人**。
+   * 而提交时客户端本就带了一个**随机令牌**（`SUBMITTER_TOKEN_KEY`，与 personId 无关），
+   * 服务端只存它的哈希 `tokenHash`（本就随 `GET /api/v1/issues` 返回）⇒ 浏览器拿本地令牌
+   * 自算哈希、自己比对即可「认出我提交过哪几条」，而 **tokenHash 本身推不出提交人**
+   * （含支书、含拿到常规读出口数据的人）——自认需求得到满足，且不额外扩大真身可见面。
+   * ⚠ 与现实口径的关系（2026-09-17 改裁）：匿名是**对外匿名、后台记真身**——真身另存
+   * `_realPersonId`，仅党委可查（每次查看留痕），**不经 tokenHash 泄露**；tokenHash 只判重/限频，
+   * 「防刷线」与「真身线」两条线互不影响。
+   *
+   * ⚠ 如实登记的边界：令牌在本浏览器本地（localStorage）⇒ **换设备 / 清除浏览器数据后无法回认**
+   * （这是「不可反查」的必然代价：没有身份就没有跨设备的找回依据）。同浏览器内换登录账号亦然——
+   * 本判据认的是「这台浏览器提交过」，不认「这个账号提交过」。
+   *
+   * 按 viewer 所属支部过滤（跨支部 issue 不可见）。**出口脱敏**（不含真身；自认只认 tokenHash）。
    */
   getMyIssues(userId) {
     if (!userId) return [];
-    return _withinViewerBranch(_issuesCache || []).filter(i =>
+    const myToken = _peekSubmitterToken();
+    const myHash = myToken ? hashSubmitterToken(myToken) : null;
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
       i.kind !== 'report' && !i.hidden && !i.mergedInto &&
-      (i.submittedBy === userId || (i.participants || []).includes(userId))
-    );
+      (i.submittedBy === userId || (i.participants || []).includes(userId) ||
+        (!!myHash && i.tokenHash === myHash))
+    ));
   },
 
   /** 支书设置 milestone */
@@ -829,13 +933,81 @@ export const IssueStore = {
     return this.editIssue(id, { milestone: milestoneId });
   },
 
-  /** 导出为 JSON（供支书手动同步到 issues.json） */
+  /** 导出为 JSON（供支书手动同步到 issues.json）；**出口脱敏**（支书侧看不到匿名真身） */
   exportJSON() {
     return JSON.stringify({
       version: 1,
       updatedAt: new Date().toISOString().slice(0, 10),
-      issues: _issuesCache || [],
+      issues: _sanitizeIssues(_issuesCache || []),
     }, null, 2);
+  },
+
+  // ── 写链回写（**内部写链专用**，非读出口）─────────────────────────────────
+  // 背景（2026-09-17 支书裁定）：常规读出口（getById/getAll/filter…）自本次改裁起**一律脱敏**，
+  //   故「取记录 → 就地改 → 回写缓存」这类既有写链（components/issue-detail.js 的评论口）必须
+  //   ① 取**原始记录**（否则改动落在副本上，静默丢失）；② 回写**原始缓存**（否则用脱敏副本覆盖
+  //   缓存，会把库里的匿名真身抹掉——与「后台记录真实情况」相反）。
+
+  /** 写链专用：取原始记录（**含真身**，live 对象；改动即落内存缓存）。展示/出口一律走 getById */
+  getRawById(id) {
+    return _rawById(id);
+  },
+
+  /**
+   * 写链专用：把内存缓存（**保留真身**）序列化回 localStorage 缓存键（与 CACHE_KEY 同键）。
+   * @returns {boolean} 是否写成功（失败由调用方告警并登记，不得静默吞掉）
+   */
+  persistCacheFromWrite() {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache || []));
+      return true;
+    } catch { return false; }
+  },
+
+  // ── 党委核查出口（2026-09-17 支书裁定：查看匿名的权限只有党委有）────────────
+
+  /**
+   * **党委核查出口（唯一带真身的读口）** —— 列出反馈及其真实提交人（含匿名项）。
+   *
+   * 口径（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+   *   查看匿名的权限只有党委有。」⇒ 本方法**只给党委台「匿名反馈核查」页用**；
+   *   不得用于任何常规读（常规读一律走 getAll/getById/filter… 的脱敏出口）。
+   *
+   * 双形态同构（形状一致）：
+   *   · mock：从本地记录读 `_realPersonId`（脱敏后补 `realPersonId`），本地写一条留痕；
+   *   · api ：`GET /api/v1/issues/reveal`（服务端鉴权 party-staff，否则 403；命中即由服务端写留痕）。
+   * 角色闸门（前端）：非党委角色一律返回 `forbidden: true` + 空列表，**不带真身**（服务端另有 403 兜底）。
+   *
+   * @returns {Promise<{rows: Array, traced: boolean, trace: Object|null, forbidden: boolean}>}
+   *   rows     反馈列表；每条含 `realPersonId`（匿名项=真实提交人 id；实名项=null，真身即 submittedBy）
+   *   traced   本次查看**是否已留痕**（api 由服务端记、mock 本地同名表记——两形态都为 true）
+   *   trace    留痕记录（mock 形态为本地写入的那一条；api 形态服务端不回读 ⇒ null，以 traced 表明已记）
+   *   forbidden 调用者非党委（未授权），此时 rows 恒为空
+   */
+  async getIssuesForPartyReview() {
+    if (!_isPartyStaff()) {
+      return { rows: [], traced: false, trace: null, forbidden: true };
+    }
+    if (_isApiMode()) {
+      const rows = await getAdapter().issues.reveal();
+      // 服务端已补 realPersonId（真身来自其 `_realPersonId`）；此处只做形态归一，**不重算**
+      return {
+        rows: (Array.isArray(rows) ? rows : []).map(r => ({ ...r, realPersonId: r.realPersonId || null })),
+        traced: true,
+        trace: null,
+        forbidden: false,
+      };
+    }
+    if (!_issuesCache) await this.loadAll();
+    // mock：库（本地记录）里留真身 ⇒ 出口补出；留痕写本地同名表（与服务端 issue_reveals 同构）
+    const rows = (_issuesCache || []).map(_revealIssue);
+    const trace = _writeRevealTrace(rows);
+    return { rows, traced: true, trace, forbidden: false };
+  },
+
+  /** 本地留痕（mock 形态；api 形态由服务端表 `issue_reveals` 记录，前端不可造/改）——供党委台展示「留痕已记」 */
+  getRevealTraces() {
+    return _readRevealTraces();
   },
 
   // ── 旧数据迁移 ──
@@ -1067,14 +1239,15 @@ export function renderMyDispatchTab(role, userId) {
   html += `<div id="mydispatch-issues-host"></div>`;
 
   // ④ 我提交 / 参与的反馈（每个人都可以参与答复——成员亦可对自己提交/参与的反馈追加说明）
-  // ⚠ 口径说明（2026-09-17 支书裁定 `Q-23-48`「接受缺口 + 改文案」）：**本区只在 mock（本地演示）形态有数据**——
-  //   api 形态下 `GET /api/v1/issues` 按「**真匿名**」口径把公开反馈的 `submittedBy`/`participants`
-  //   一律脱敏成 `匿名`/`[]`（`server/seed.js::seedIssues`），而 `getMyIssues` 靠这两个字段认人、
-  //   且排除 `kind:'report'` ⇒ **正式部署下本区结构上恒为空**。故此处**显式写出该口径、不假装它是全形态可用功能**；
-  //   若将来要恢复「按人回认」，须先解决隐私承诺与**不可反查标识**（两条路见 `REVIEW_QUEUE Q-23-48`）。
+  // ⚠ 口径（2026-09-17 支书裁定 `Q-23-48` 走「加不可反查的本人标识」，本批落地）：
+  //   api 形态下公开反馈的 `submittedBy`/`participants` 一律按对外匿名脱敏（`server/seed.js::seedIssues`），
+  //   故「按人回认」在正式部署下靠不住。改走**本浏览器随机令牌的哈希**（`getMyIssues` 第 ③ 条判据）：
+  //   提交时客户端带一个与 personId 无关的随机令牌，服务端只存哈希 ⇒ 浏览器自己认得出「我提交过哪几条」，
+  //   而 **tokenHash 本身推不出提交人**（仅判重/限频；真身另存 `_realPersonId`，仅党委可查、每次留痕
+  //   ——见本文件顶部匿名口径）。边界如实写出：换设备/清浏览器数据后认不回。
   html += `<div class="rounded-xl border border-gray-100 bg-white p-3 mt-3">`;
   html += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
-  html += `<p class="text-xs text-gray-500 mb-2">仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认</p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">本浏览器提交的反馈可在此回看（按提交时的随机令牌比对，不以提交人身份为判据；换设备或清除浏览器数据后无法回认）</p>`;
   html += `<div id="mydispatch-myissues-host"></div>`;
   html += `</div>`;
 

@@ -2,20 +2,20 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260917c';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord } from '../../../services/inspection.js?v=20260917c';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260917c';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260917c';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260917c';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260919g';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260919g';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260919g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260919g';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260919g';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260917c';
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260917c';
-import { HandoffStore } from '../../../services/handoff.js?v=20260917c';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260919g';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260919g';
+import { HandoffStore } from '../../../services/handoff.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919g';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260917c';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260919g';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -25,12 +25,15 @@ export function renderContent(ctx) {
   const longData = inspectionToLong(allRecords);
   const wideData = inspectionToWide(allRecords);
   const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
+  // SOP-B-10：纪检委员的入口＝「未闭环 / 超期」项（以人为第一列），不是「一批批待她汇总的表」
+  const supervisionRows = listInspectionSupervision();
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
   const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
 
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
+    ${_buildSupervisionCardHTML(supervisionRows, overdueDays)}
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
@@ -38,6 +41,8 @@ export function renderContent(ctx) {
           ${overdueRecords.length > 0
             ? badgeHtml(`${overdueRecords.length} 条超期`, 'danger', { title: `以下考察记录已超过${overdueDays}天未确认，请尽快处理` })
             : ''}
+          <!-- 就近深链（2026-09-17 支书已裁）：超期天数就是本域可调参数，就地给去设置该分区的入口 -->
+          <a href="${getBasePath()}settings.html#domain-disc" class="text-xs text-gray-500 hover:text-gray-700 underline transition-colors whitespace-nowrap">超期天数 → 纪检职责参数（设置）</a>
         </div>
         <div class="flex items-center flex-wrap justify-end gap-2">
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
@@ -67,6 +72,36 @@ export function renderContent(ctx) {
   `;
 
   const overdueIds = new Set(overdueRecords.map(r => r.id));
+
+  // SOP-B-10 督办清单（**以人为第一列**）：只列「未闭环 / 超期」项，随记录产生即时更新——
+  // 纪检在这一处推动闭环，不在月末另行汇总；**督办不等于接手**（建档与核对仍归组织委员）。
+  renderFilteredList(document.getElementById('insp-sup-list'), {
+    stateKey: 'disc-inspection-supervision',
+    rows: supervisionRows,
+    keyword: { keys: ['name', 'studentId'], placeholder: '搜索姓名 / 学号…' },
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    emptyMessage: '无未闭环 / 超期项',
+    sort: null,
+    table: {
+      colSpan: 5,
+      headHtml: `<tr>
+            <th>姓名</th>
+            <th>所属党小组</th>
+            <th>未闭环</th>
+            <th>超期</th>
+            <th>最近记录人</th>
+          </tr>`,
+    },
+    rowHtml: (s) => `
+            <tr>
+              <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(s.name)}</a></td>
+              <td class="text-gray-600">${esc(s.partyGroup || '—')}</td>
+              <td class="text-orange-700 font-medium">${s.pendingCount} 条</td>
+              <td>${s.overdueCount > 0 ? `<span class="text-red-700 font-medium">${s.overdueCount} 条</span>` : '<span class="text-gray-500">—</span>'}</td>
+              <td class="text-gray-600">${esc(s.latestRecordedByName || '—')}</td>
+            </tr>`,
+  });
 
   /** 考察行状态标签（单一口径；供引擎分面 get 与导出共用） */
   const statusLabelOf = (i) => overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认');
@@ -124,12 +159,13 @@ export function renderContent(ctx) {
       countUnit: '条',
       emptyMessage: '无匹配考察记录',
       table: {
-        colSpan: 6,
+        colSpan: 7,
         headHtml: `<tr>
             <th>姓名</th>
             <th>来源</th>
             <th>类别</th>
             <th>内容</th>
+            <th>记录人</th>
             <th>状态</th>
             <th>操作</th>
           </tr>`,
@@ -144,6 +180,7 @@ export function renderContent(ctx) {
               <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
               <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="text-gray-600">${i.content || i.role}</td>
+              <td class="text-gray-600">${i.recordedByName ? esc(i.recordedByName) : '—'}</td>
               <td><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${statusLabelOf(i)}</span></td>
               <td>${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
             </tr>`;
@@ -239,8 +276,8 @@ export function renderContent(ctx) {
       // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
       const st = longHandle ? longHandle.state : null;
       const rows = longRows.filter(r => _matchLongRow(r, st))
-        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, statusLabelOf(i)]);
-      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '状态'], rows);
+        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', statusLabelOf(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '状态'], rows);
     } else {
       // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');
@@ -292,6 +329,25 @@ export function renderContent(ctx) {
   });
 
   renderWide();
+}
+
+// ── 督办清单卡（SOP-B-10 · 以人为第一列）──
+// 纪检委员的入口＝「未闭环 / 超期」项；数据由 listInspectionSupervision 按人聚合、随记录即时更新。
+function _buildSupervisionCardHTML(rows, overdueDays) {
+  const overdueCount = rows.reduce((n, r) => n + r.overdueCount, 0);
+  return `
+    <div class="card rounded-lg p-4 mb-4">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">督办清单（未闭环 / 超期）</h3>
+        <div class="flex gap-3 text-xs">
+          <span class="text-gray-600">待督办 <span class="font-bold text-orange-700">${rows.length}</span> 人</span>
+          <span class="text-gray-600">超期 <span class="font-bold text-red-700">${overdueCount}</span></span>
+        </div>
+      </div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">以人为第一列 · 随记录产生即时更新（没有「本月待汇总的表」）。<b>未闭环</b>＝已有考察记录未确认；<b>超期</b>＝未确认超过 ${overdueDays} 天。点姓名去推动闭环——<b>督办不等于接手</b>，建档与核对仍归组织委员。</div>
+      <div class="overflow-x-auto"><div id="insp-sup-list"></div></div>
+    </div>
+  `;
 }
 
 // ── 专班名单区（组织→纪检 自动同步，纪检只读同源 + 考察确认进度） ──

@@ -8,43 +8,43 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260917c';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260919g';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260917c';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260917c';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf, urgeRolesOf } from '../../../services/todo.js?v=20260917c';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260917c';
-import { badgeHtml } from '../../../components/badges.js?v=20260917c';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260917c';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260917c';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260917c';
-import { loadActivities } from '../../../services/activity.js?v=20260917c';
-import { mockDB } from '../../../core/domain.js?v=20260917c';
-import { persist } from '../../../core/data-adapter.js?v=20260917c';
-import { bumpToken } from '../../../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260917c';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260917c';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260919g';
+import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260919g';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/todo.js?v=20260919g';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260919g';
+import { badgeHtml } from '../../../components/badges.js?v=20260919g';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260919g';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260919g';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260919g';
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
+import { mockDB } from '../../../core/domain.js?v=20260919g';
+import { persist } from '../../../core/data-adapter.js?v=20260919g';
+import { bumpToken } from '../../../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260919g';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260919g';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260917c';
-import { IssueStore } from '../../../services/issues.js?v=20260917c';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260917c';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260917c';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260917c';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260917c';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919g';
+import { IssueStore } from '../../../services/issues.js?v=20260919g';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260919g';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260919g';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260919g';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260919g';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260917c';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260917c';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260917c';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260919g';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260919g';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260919g';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260917c';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-// 逐条催办（2026-09-10 支书裁定）：复用 NoticeStore 通知链路（按责任角色定向通知，不改数据模型）
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../../services/notice.js?v=20260917c';
-import { setState } from '../../../core/state.js?v=20260917c';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260917c';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260919g';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+// 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
+// 与组织委员台共用同一实现；判据仍在 services/todo.js::urgeRolesOf，未改）
+import { setState } from '../../../core/state.js?v=20260919g';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260919g';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -113,111 +113,16 @@ function bindTodoDetailExtras(container, api) {
   container.querySelector('.secretary-todo-detail-review')?.addEventListener('click', () => _gotoReviewTarget(api.selectedTodo, api));
 }
 
-// ════════════════════════════════════════════════════════════════
-//  逐条催办（2026-09-10 支书裁定：支书/副支书待办页各域条目可催办责任人）
-//  · 责任人 = urgeRolesOf（services/todo.js 单一源）；无责任人或责任人即本人（支书/副支书）→ 隐藏
-//  · 动作：向责任角色发定向通知（复用 NoticeStore 通知链路）；无新持久字段，通知记录即留痕
-//  · 节流：会话内同 groupKey 冷却 5 分钟（按钮呈「已催办 hh:mm」禁用态），冷却后可再次催办
-// ════════════════════════════════════════════════════════════════
-const URGE_COOLDOWN_MS = 5 * 60 * 1000;
-const _urgeState = new Map(); // groupKey → 最近催办时间戳（会话内，不落库）
-const _SELF_URGE_ROLES = new Set(['secretary', 'deputy-secretary']);
-
-/** 当前用户是否为支书/副支书（本台两角色共用；显式自守防越权渲染） */
-function _canUrge() {
-  const me = AuthStore.getCurrentUser();
-  return !!me && _SELF_URGE_ROLES.has(me.role);
-}
-
-/** 责任角色（过滤「本人即支书/副支书」） */
-function _urgeRoles(group) {
-  return urgeRolesOf(group, { activities: loadActivities(), people: PersonStore.getAll() })
-    .filter(r => !_SELF_URGE_ROLES.has(r));
-}
-
-/** 催办入口状态：available=可催办（含再次催办）｜urged=冷却中（节流）｜null=不渲染 */
-function _urgeStateOf(group) {
-  if (!group || !group.groupKey || !_canUrge()) return null;
-  const roles = _urgeRoles(group);
-  if (!roles.length) return null; // 无责任人或责任人即本人 → 隐藏
-  const at = _urgeState.get(group.groupKey);
-  if (at && Date.now() - at < URGE_COOLDOWN_MS) {
-    return { state: 'urged', label: `已催办 ${_hhmm(at)}`, title: '催办冷却中（5 分钟后可再次催办）' };
-  }
-  return { state: 'available', label: at ? '再次催办' : '催办', title: `提醒责任人：${roles.map(r => ROLE_LABELS[r] || r).join('、')}` };
-}
-
-/** 催办动作：按责任角色发定向通知；成功后按钮转「已催办」态（会话内） */
-function _handleUrge(group, ctx) {
-  if (!group || !group.groupKey) return;
-  const at = _urgeState.get(group.groupKey);
-  if (at && Date.now() - at < URGE_COOLDOWN_MS) {
-    showToast('info', '该待办刚已催办，请稍后再试');
-    return;
-  }
-  const roles = _urgeRoles(group);
-  if (!roles.length) { showToast('info', '该待办无明确责任人，无法催办'); return; }
-  const targetModule = _urgeTargetModule(group);
-  // A① 对象级深链（2026-09-10）：按责任人角色复用 notice.js 同源模块→页面映射，落到该角色待办 tab
-  // 并高亮被催办聚合组（data-group-key）；页面缺省时退 targetModule 角色自适应兜底。
-  const roleMap = NOTICE_MODULE_ROLE_PAGES[targetModule] || {};
-  const hlId = group.groupKey || ((group.items && group.items[0]) || {}).id;
-  // 签发人取当前真实角色（2026-09-13 彻查批次：此前正文写死「支书提醒：」且 actorRole 传 'secretary'
-  //   → 副支书催办被记为支书；正文改为裁定原定的中性事务式，签发人落到 publishedBy）
-  const _me = AuthStore.getCurrentUser() || {};
-  const _actorRole = _me.role || 'secretary';
-  for (const role of roles) {
-    const page = roleMap[role] || roleMap['*'];
-    NoticeStore.add({
-      title: '待办催办',
-      // A④ 文案定稿（2026-09-10 支书裁定：中性事务式）——「关于〈业务域 · 事项〉，请及时跟进（截止 <时限/无>）」
-      content: `关于「${_urgeSubject(group)}」，请及时跟进${_urgeDueText(group) ? `（截止 ${_urgeDueText(group)}）` : '（无明确时限）'}。`,
-      priority: 'urgent',
-      targetModule,
-      targetUrl: (page && hlId) ? `${page}?tab=todo&highlight=${encodeURIComponent(hlId)}` : undefined,
-      actionable: true,
-      actionRoles: [role],
-      actionTask: group.title,
-      publishedBy: ROLE_LABELS[_actorRole] || '支书',
-    }, _actorRole); // 副书同权：本台同权签发（NoticePermission 以支书台口径放行）
-  }
-  _urgeState.set(group.groupKey, Date.now());
-  showToast('success', `已向${roles.map(r => ROLE_LABELS[r] || r).join('、')}发送催办通知`);
-  renderContent(ctx);
-}
-
-/** A④：催办主文 = 〈业务域 · 待办事项〉 */
-function _urgeSubject(group) {
-  const label = WORK_DOMAIN_LABELS[realtimeGroupDomainOf(group)] || '';
-  return label ? `${label} · ${group.title}` : group.title;
-}
-
-/** A④：截止时间文案（取条目常见时限字段；无则空串 → 显示「无明确时限」） */
-function _urgeDueText(group) {
-  const first = (group.items && group.items[0]) || {};
-  const raw = first.dueAt || first.deadline || first.due || group.dueAt;
-  if (!raw) return '';
-  const d = new Date(raw);
-  if (isNaN(d.getTime())) return String(raw);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-/** 催办通知跳转目标模块（按责任域；目标角色经 resolveNoticeUrl 站内角色感知映射落地） */
-function _urgeTargetModule(group) {
-  const d = realtimeGroupDomainOf(group);
-  if (d === WORK_DOMAIN.ATTENDANCE) return 'attendance';
-  if (d === WORK_DOMAIN.INSPECTION || d === WORK_DOMAIN.MEMBER_DEV) return 'party';
-  if (d === WORK_DOMAIN.ACTIVITY || d === WORK_DOMAIN.MEETING) return 'activity';
-  return 'workspace';
-}
-
-/** 时间戳 → HH:MM */
-function _hhmm(ts) {
-  const d = new Date(ts);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+// ── 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController）──
+//  · 判据未改：责任人 = urgeRolesOf（services/todo.js 单一源）；无责任人或责任人即本人 → 隐藏入口
+//  · D-391：催办的**主位**已开到组织委员台（org/todo-tab.js）——本台（支书/副支书）**权限保留**，
+//    但按裁定「一般不越俎代庖」，故入口 title 标注为**例外操作**；两侧共用同一实现与同一判据。
+const _urge = createUrgeController({
+  selfRoles: ['secretary', 'deputy-secretary'],
+  context: () => ({ activities: loadActivities(), people: PersonStore.getAll() }),
+  onDone: (ctx) => renderContent(ctx),
+  titleSuffix: '（催办一般归组织委员 · 本条属例外操作）',
+});
 
 // ════════════════════════════════════════════════════════════════
 //  兜底直执（白名单：仅①归档 ②复盘；2026-09-10 支书裁定）
@@ -351,10 +256,10 @@ const _tab = createTodoTab({
   prefix: 'secretary',
   role: 'secretary',
   onAction: (todo, ctx) => handleTodoAction(todo, ctx),
-  // 逐条催办（2026-09-10 支书裁定）：支书/副支书待办页各域条目（含实时组）可催办责任人；
-  // 按责任角色经 NoticeStore 发定向通知（无新数据字段，通知记录即留痕）；opt-in 传入壳/列表。
-  urgeStateOf: _urgeStateOf,
-  onUrgeTodo: _handleUrge,
+  // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 共享控制器）：支书/副支书待办页各域条目（含实时组）
+  // 可催办责任人；按责任角色经 NoticeStore 发定向通知（无新数据字段，通知记录即留痕）；opt-in 传入壳/列表。
+  urgeStateOf: _urge.urgeStateOf,
+  onUrgeTodo: _urge.onUrgeTodo,
   // IA-C1 Task4：实时组（支书派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
   // 自定义详情（confirm/remind/成员变更确认逐项面板；种子行动类走内置概要）

@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-14"
+last_updated: "2026-09-15"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -44,12 +44,11 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | scenarioId | string | 否 | -- | 关联 SOP 场景 ID |
 | description | string | 否 | -- | 活动描述 |
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
-| attendanceQROwner | `'leader'\|'disc-commissioner'` | 否 | -- | 考勤二维码发布方 |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
-| isBrand | boolean | 否 | `false` | 品牌属性标签（由支书认定，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论 → 支书标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（由支委会认定、支书主持支委会，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论认定 → 支书主持支委会并在系统上标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
 | carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐（2026-08-07） |
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
-| brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支书认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
+| brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
 | agenda | `Array<{item: string, host?: string}>` | 否 | `[]` | 会议议程（三会一课专用：逐条议题 + 可选主持人）。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改（T-283 新增，2026-08-27） |
 
 > **设计注记（活动写入表单必有地点字段，承接原 insights §6.6，2026-09-04 分流）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的（原判例：活动写入表单最初只有日期没有地点，后补齐地点输入）。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
@@ -586,7 +585,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 | 属性 | 值 | 说明 |
 |---|---|---|
-| isBrand | `true` | 品牌活动（由支书认定标记，不影响工作流选择） |
+| isBrand | `true` | 品牌活动（由支委会认定、支书主持支委会并在系统上标记，不影响工作流选择） |
 | isBrand | `false` | 普通日常活动 |
 
 **3 套工作流定义模板：**
@@ -611,7 +610,8 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | types | string[] | 类型标签（如 `bug`） |
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | `'completed'\|'duplicate'\|'wontfix'\|'not_planned'` / string\|null | 关闭原因 / 关闭时间 |
-| submittedBy / submittedAt | string | 提交人（短 ID，可匿名）/ 提交日期 |
+| submittedBy / submittedAt | string | 提交人（**对外展示值**：匿名提交时恒为 `'匿名'`；实名时为短 ID）/ 提交日期 |
+| _realPersonId | string \| 无 | **真实提交人 personId**（**仅匿名提交时落库**；2026-09-17 支书改裁「后台记录真实情况，匿名是前端的」）——**任何常规读出口一律不外泄**（公开读 / 支书读 / 提交回执 / 处置回执均脱敏），唯一可见出口＝党委核查端点 `GET /api/v1/issues/reveal`（仅 `party-staff`，**每次查看留痕**见 §2.29）。**党支部内部（含支书）不可见**：支书只有处置权，与「查看真身」是两项分开的权限 |
 | assignee / assigneeRole | string \| null | 支书指派对象（personId / 角色键，如 `u_org` / `'org-commissioner'`） |
 | dispatchHistory | {from, to, by, at, note}[] | 指派历史时间线（from→to 变更记录） |
 | milestone | string \| null | 里程碑 |
@@ -622,11 +622,13 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | comments | {id, author, authorRole, body, createdAt, kind, hidden, hiddenBy, hiddenReason, hiddenAt}[] | 评论时间线；kind：`comment`（普通评论）/ `reply`（支书正式答复，通知汇报人）/ `dispatch`（指派事件）/ `result`（处置结果）/ `verdict`（支书终审/合并事件）。注：工作汇报型 issue 自身 `kind='report'`（issue 级，非评论时间线 kind，见 issues.js addReport） |
 | resultPending / resultSubmittedAt | boolean / string\|null | 待终审标记（处置结果提交后置位） |
 
+**匿名口径（2026-09-17 支书改裁，正面改裁）**：意见反馈的「匿名」＝**对外展示匿名**——列表 / 详情一律显示「匿名」，**后台仍记真实提交人**（`_realPersonId`）。**查看真身的权限只有党委**（`GET /api/v1/issues/reveal`，见 §2.29），**党支部内部（含支书）不可见**——支书只有处置权，「处置」与「查看真身」是**两项分开的权限**；**每次查看都留痕**。旧口径「真匿名 / 不存任何可反查提交人的字段（含支书亦不可见）」**已随本次改裁作废**，不两条并存。**适用范围**：本改裁**只落在意见反馈**——「正式表决无记名」维持 2026-09-12 原裁定不变（两段式：参与记录 + tally，**逐人选项不落库**），任何文档不得把表决写成「党委可查」。
+
 **处理流程（GitHub Issue 风格）**：提交(open) → 支书审阅并指派（assignee + dispatchHistory，通知被指派人）→ 公开讨论（评论+表态，全员可参与）→ 被指派人提交处置结果（kind=`result`）→ 待终审（resultPending=true，支书工作台高亮）→ 支书终审：关闭(closed) / 重新开放(reopen)。
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **支书处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归支书独有：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作仅支书可执行，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（支书仲裁）的落点。
+> **意见反馈处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归支委会、由支书主持支委会：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作由支委会作出，系统上该动作当前仅向支书角色开放，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（支书仲裁）的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|
@@ -936,7 +938,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | desc | string | 否 | `''` | 支部自述（可选，≤500 截断；换组织向导步骤①可改，净化见 config-clean `sanitizeConfigOrg`） |
 | themePreset | string \| null | 否 | `null` | 支部主题预设 id（白名单 `THEME_PRESET_IDS` = red/green/sky/blue；`null` = 默认党建红调；向导①可改，净化同 `sanitizeConfigOrg`） |
 | modules | object \| null | 否 | `null` | 工作流模块配置（L2，2026-09-03）：`{ hiddenTabIds: string[], tabOrder: string[] }`——null=全开（默认 profile 兼容现有演示）；最小单位=工作台 tab，核心组（groupLabel='工作台'）固定不可关、不参与排序；维护权=现任支书/副支书（副书同权，2026-09-09 支书批）——操作位=设置（侧边栏右下）→ 支部治理「工作台默认顺序」卡直存 / 换组织向导②内嵌 chips 启停；原「工作台配置」tab 表述废止；治理字段（name/type/secretaryId/status）不经此写 |
-| blocks | object \| null | 否 | `null` | 产出块/工作流块显隐（2026-09-03）：`{ outputBlocks?: { hiddenBlockIds: string[], blockOrder: string[] }, workflowBlocks?: { hiddenBlockIds: string[] } }`——null=全开；与 modules 同维护权/操作位（换组织向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS` |
+| blocks | object \| null | 否 | `null` | 产出块/工作流块显隐（2026-09-03）：`{ outputBlocks?: { hiddenBlockIds: string[], blockOrder: string[] }, workflowBlocks?: { hiddenBlockIds: string[] } }`——null=全开；与 modules 同维护权/操作位（换组织向导②内改），目录源 = constants `OUTPUT_BLOCK_DEFS` / `BLOCK_MANIFESTS`。⚠ 口径（2026-09-17 由块画布 v0 spec 归档时补录）：`outputBlocks.blockOrder` **目前没有 UI 写入口**——原设计里的拖拽排序画布已于 2026-09-03 裁定撤销（执行日志 T-026③「去掉双画布拖拽，仅…分组开关」），向导保存时恒写 `[]`；纯函数侧仍支持排序（`getOutputBlockPolicy` / `applyOutputBlockPolicy`），即**能力在、入口无**——若将来要开放排序，属新增产品能力、须走丙部 |
 | workforce | object \| null | 否 | `null` | 模块分工归属（L4 支部分工）：`{ [moduleId]: { ownerType: 'role'\|'person'\|'none', ownerId } }`——null=缺省分工（SOP 责任人列）；`ownerType:'none'`＝**方法类停用**（本支部不开展该工作，仅 `tier:'method'` 模块允许，规范类被 `mergeWorkforceSnapshot`/`sanitizeConfigWorkforce` 拦掉）；日常调整走支委会议题（M2）表决后落库、换壳/部署期向导③直写（见 [BRANCH_WORK_MAP.md](../evolution/BRANCH_WORK_MAP.md)）；**采纳后自动派生责任人「履职」待办**（到人→personId／角色→role）并按 `extras.proposal` 复算通知受众（`committee` + `audiencePersons` 到人 + `actionRoles` 角色） |
 | policyOverrides | object \| null | 否 | `null` | 域参数覆盖（L2，2026-09-09 支书批）：`{ 节: { 叶: 值 } \| null }`——节=inspection/memberConfirmation/leader（白名单 `POLICY_OVERRIDABLE` 只定义于 policy-defaults）；值=覆盖、null=恢复该域默认、整体 null=全量恢复默认；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效（净化见 config-clean `sanitizeConfigPolicyOverrides`） |
 | configChangeHistory | array | 否 | `[]` | config 写留痕（2026-09-09 审计内核）：`{ by, at, what, from?, to?, why? }`——逐键 diff 追加、空变化不冗余；保留最近 100 条（`CONFIG_HISTORY_MAX`）；单键可回滚、回滚再留一痕、历史不改写（见 [PARTY_COMMITTEE_DESIGN.md §2.6 变更流](../evolution/PARTY_COMMITTEE_DESIGN.md)） |
@@ -985,7 +987,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | source | `'committee'` | 是 | 来源标记：`'committee'` = 党委下发；缺省 = 支部自发通知（信息性/行动性） |
 | audience | `'committee'` | 是 | 党委下发通知专用取值：常量 `'committee'`（字符串）表示「本支部支委层」；支部自发通知缺省不设本字段。注意区分 §2.19.1 的 `actionRoles`（行动性通知待办执行角色**数组**）——`audience` 是下发专用可见性过滤常量，二者语义不同 |
 | branchId | string | 是 | 目标支部（支部动态创建后自动可选） |
-| branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发失同步） |
+| branchName | string | 否 | 目标支部名快照（支部后续改名不使历史下发未同步） |
 | publisher | string | 否 | 展示覆盖 `'院党委（组织员）'`（通知详情「通知者」不按 targetModule 推断） |
 | recipients | string | 否 | 展示覆盖 `'支部委员会（支委层）'` |
 
@@ -1087,6 +1089,28 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 3. **流出登记**：台账内**勾选多人批量**（毕业季一次到位）；**登记即生效**（不再需要支书二次确认）；原成员记录**软标记保留**（`transferOut=true` + 转出时间/经手人），历史考勤与考察读数不变。
 4. **撤销**：台账行可撤销（写 `revoked*` 留痕并回滚成员在册状态），使「登记错误」可纠正而不留脏数据。
 5. **承载位置**：组织委员工作台「成员名册」页内的「成员流动」面板（登记 + 台账 + 对账行），不新增独立页面。
+
+---
+
+### 2.29 匿名反馈核查留痕（IssueReveal）— 2026-09-17 批次 51
+
+> **落地状态（2026-09-17）：已落地**——`server/db.js::RESOURCE_TABLES` 新增本表（**资源表 34 → 35**）。**仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**。
+
+> **用途**＝**党委查看匿名反馈真实提交人的留痕**（2026-09-17 支书改裁「查看匿名的权限只有党委有」）。表只增不改：**每次查看写一条**，使「只有党委能看」这句承诺**可被事后核对**。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| id | string | 主键（`reveal-<8 位随机>`） |
+| by | string | 查看人 personId |
+| byRole | string | 查看人角色键（恒为 `party-staff`；非党委请求在路由层已 403，**不会留下记录**） |
+| at | string | 查看时间（ISO） |
+| revealedIds | string[] | 本次查看命中的**匿名**反馈 id 列表（实名条目真身本就公开，不计入） |
+
+**读取口径（与 §2.16 同源）：**
+
+1. **写入唯一入口**＝`GET /api/v1/issues/reveal`（仅 `party-staff`；未登录 **401**、非党委 **403**）——命中即写一条留痕，**与返回值同一次发生**（不会出现「看了没记」）。
+2. **前端不能造改**：本表**不在** `server/routes/resources.js` 的资源名映射内 ⇒ 无通用 CRUD 入口。
+3. **留痕记「看了哪些匿名条目」**（不记「看到了谁的真身」——真身由 `issues._realPersonId` 现取）；其职能是**证明这次查看发生过**，守的是「只有党委能看」这条边界。
 
 ---
 

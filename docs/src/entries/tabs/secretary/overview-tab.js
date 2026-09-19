@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260917c';
-import { NoticeStore } from '../../../services/notice.js?v=20260917c';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260917c';
-import { SecretaryOverviewStore } from '../../../services/secretary-overview.js?v=20260917c';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260919g';
+import { NoticeStore } from '../../../services/notice.js?v=20260919g';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260919g';
+import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/secretary-overview.js?v=20260919g';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/roster.js?v=20260917c';
-import { loadActivities } from '../../../services/activity.js?v=20260917c';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260917c';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260917c';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260917c';
+import { getRosterStats } from '../../../services/roster.js?v=20260919g';
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260919g';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260919g';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260919g';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260917c';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260917c';
-import { getPersonName } from '../../../services/person.js?v=20260917c';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260919g';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260919g';
+import { getPersonName } from '../../../services/person.js?v=20260919g';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -352,11 +352,24 @@ function renderDimensionView(container) {
       <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-ed-id="${d.id}">确认收到</button>
     </div>`);
 
-  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0)
+  // 宣传周报待审核（SOP-B-40 ②，2026-09-19 批次 94）：宣传委员报送后在此审核（通过 / 退回）。
+  // 判据与写口单一源 = services/secretary-overview.js（勿在页面另写状态名）。
+  const weeklyPending = listWeeklyReportsPendingReview();
+  const weeklyRows = weeklyPending.map(r => `
+    <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#0EA5E9;"></span>
+      <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周报待审核</span>
+      <span class="text-xs text-gray-500 flex-1 truncate">${r.week}（${r.weekRange}）· ${getPersonName(r.submittedBy) || '宣传委员'} 报送于 ${r.submittedAt || '—'}</span>
+      <span class="text-xs text-gray-500 w-16 flex-shrink-0">宣传委员</span>
+      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="approved">通过</button>
+      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="returned">退回</button>
+    </div>`);
+
+  const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && weeklyRows.length === 0)
     ? `<div class="flex items-center gap-2 py-3 px-3 rounded-lg bg-green-50 text-green-700 text-xs">
          <span class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span> 全部正常，无待处理异常
        </div>`
-    : dispatchRows.join('') + exceptions.map(e => {
+    : dispatchRows.join('') + weeklyRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
           ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
@@ -399,6 +412,11 @@ function renderDimensionView(container) {
           </div>
           ${_sparkline(trend)}
         </div>
+        <!-- 出勤率偏低提示（SOP-B-15 / SOP-B-7）：只作提示、不触发任何动作；提示线为可调参数（非制度门槛） -->
+        ${(attendance.lowSessions && attendance.lowSessions.length) ? `
+        <div class="mt-2 text-xs text-amber-700 leading-5">
+          出勤率偏低提示（仅提示，不触发任何处置）：本月 ${attendance.lowSessions.length} 场低于提示线 ${attendance.lowRateHint}% —— ${esc(attendance.lowSessions.map(s => `${s.activity}（${s.rate}%）`).join('、'))}
+        </div>` : ''}
       </div>
 
       <!-- R-28（2026-09-13 支书裁定）：原「滞留党员复核」只读卡删除——
@@ -427,6 +445,21 @@ function renderDimensionView(container) {
     btn.addEventListener('click', () => {
       confirmExternalDispatch(btn.dataset.edId);
       showToast('success', '已确认收到，文件流转完成');
+      renderDimensionView(container);
+    });
+  });
+  // 宣传周报审核（SOP-B-40 ②）：通过 / 退回（退回可写一句说明，随留痕给宣传委员）
+  container.querySelectorAll('.sec-weekly-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const decision = btn.dataset.weeklyDecision;
+      const reviewerId = AuthStore.getCurrentUser()?.personId;
+      let note = '';
+      if (decision === WEEKLY_REVIEW_STATUS.RETURNED) {
+        note = window.prompt('退回说明（可留空）——将随留痕显示给宣传委员：', '') || '';
+      }
+      const res = reviewWeeklyReport({ id: btn.dataset.weeklyId, decision, reviewerId, note });
+      if (!res.ok) { showToast('error', `审核失败：${res.reason}`); return; }
+      showToast('success', decision === WEEKLY_REVIEW_STATUS.APPROVED ? '周报已通过' : '周报已退回宣传委员');
       renderDimensionView(container);
     });
   });

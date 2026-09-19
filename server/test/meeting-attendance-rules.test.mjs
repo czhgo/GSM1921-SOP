@@ -9,8 +9,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260917c';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260917c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919g';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260919g';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -19,14 +19,15 @@ import {
   ATTENDANCE_RECORDER_BY_TYPE,
   ABSENCE_REASONS,
   absenceReasonLabel,
+  absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260917c';
+} from '../../docs/src/services/attendance.js?v=20260919g';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/roster.js?v=20260917c';
+} from '../../docs/src/services/roster.js?v=20260919g';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
@@ -68,22 +69,33 @@ test('policy recorderByType：支部大会/组织生活会/支委会=纪检、�
   assert.notEqual(ATTENDANCE_RECORDER_BY_TYPE['支部党员大会'], POLICY_DEFAULTS.attendance.recorderByType['支部党员大会'], '派生拷贝数组为新数组（消费点改动不穿透 policy 单一源）');
 });
 
-// ── b) reasons：未到标因固定枚举（R1-2）───────────────────────
-test('policy reasons：未到标因固定枚举（请假/无故/其它，键唯一 + 中文标签），派生出口同源拷贝', () => {
+// ── b) reasons：未到标因固定枚举（R1-2；2026-09-19 批次 94 · SOP-B-16⑤ 请假分两档）──
+test('policy reasons：未到标因固定枚举（事假/病假/无故/其它 + 时效 note，键唯一 + 中文标签），派生出口同源拷贝', () => {
   const reasons = POLICY_DEFAULTS.attendance.reasons;
   assert.deepEqual(reasons, [
-    { key: 'leave', label: '请假' },
-    { key: 'unexcused', label: '无故' },
-    { key: 'other', label: '其它' },
+    { key: 'leave_personal', label: '事假', note: '须提前 1 天申请' },
+    { key: 'leave_sick', label: '病假', note: '可事后补' },
+    { key: 'unexcused', label: '无故', note: '' },
+    { key: 'other', label: '其它', note: '' },
   ]);
   assert.equal(new Set(reasons.map(r => r.key)).size, reasons.length, '键唯一（禁造新枚举）');
   assert.deepEqual(ABSENCE_REASONS, reasons);
   assert.notEqual(ABSENCE_REASONS, reasons, '派生拷贝而非同一引用');
-  assert.equal(absenceReasonLabel('leave'), '请假');
+  assert.equal(absenceReasonLabel('leave_personal'), '事假');
+  assert.equal(absenceReasonLabel('leave_sick'), '病假');
   assert.equal(absenceReasonLabel('unexcused'), '无故');
   assert.equal(absenceReasonLabel('other'), '其它');
+  // 旧键 `leave` = 兼容别名（不再可选；存量记录 + 线上参会代记仍携它）
+  assert.equal(absenceReasonLabel('leave'), '请假', '旧键保留标签（存量 / 线上参会代记）');
+  assert.ok(!ABSENCE_REASONS.some(r => r.key === 'leave'), '旧键不在可选枚举内');
   assert.equal(absenceReasonLabel(''), '');
   assert.equal(absenceReasonLabel('unknown_key'), 'unknown_key', '未知键回退键原文');
+  // 时效提示（SOP-B-16⑤）：只事假/病假两档有 note，且不是校验
+  assert.equal(absenceReasonNote('leave_personal'), '须提前 1 天申请');
+  assert.equal(absenceReasonNote('leave_sick'), '可事后补');
+  assert.equal(absenceReasonNote('unexcused'), '');
+  assert.equal(absenceReasonNote('leave'), '', '旧键无时效提示');
+  assert.equal(absenceReasonNote(''), '');
 });
 
 // ── c) 滞留到场补录（R1-3）：落行字段 + 统计 K→L→K+L + 更正清除标记 ──
@@ -146,15 +158,27 @@ test('滞留到场补录：纪检录入落行 present+detainedMakeup；K→L→K
 test('标因落行：缺勤/请假携 absenceReason；纪检更正换因/转出勤清除旧标因', () => {
   const { activityId, cleanup } = freshMeeting('党课');
   try {
-    // 新增：请假 + 标因请假
+    // 新增：请假 + 标因「事假」（SOP-B-16⑤ 两档之一）
     let res = upsertMeetingAttendance({
       actorId: DISC,
-      records: [{ personId: 'p2', activityId, status: 'leave', absenceReason: 'leave' }],
+      records: [{ personId: 'p2', activityId, status: 'leave', absenceReason: 'leave_personal' }],
     });
     assert.deepEqual(res, { added: 1, updated: 0, skipped: 0 });
     let rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
     assert.equal(rec.status, 'leave');
-    assert.equal(rec.absenceReason, 'leave');
+    assert.equal(rec.absenceReason, 'leave_personal');
+    assert.equal(absenceReasonLabel(rec.absenceReason), '事假');
+
+    // 纪检更正：请假档改「病假」
+    res = upsertMeetingAttendance(
+      { actorId: DISC, records: [{ personId: 'p2', activityId, status: 'leave', absenceReason: 'leave_sick' }] },
+      { overwrite: true },
+    );
+    assert.deepEqual(res, { added: 0, updated: 1, skipped: 0 });
+    rec = loadAttendanceRecords().find(r => r.personId === 'p2' && r.activityId === activityId);
+    assert.equal(rec.absenceReason, 'leave_sick', '两档之间可更正');
+    assert.equal(absenceReasonLabel(rec.absenceReason), '病假');
+    assert.equal(absenceReasonNote(rec.absenceReason), '可事后补');
 
     // 纪检更正：缺勤 + 标因无故（overwrite）
     res = upsertMeetingAttendance(

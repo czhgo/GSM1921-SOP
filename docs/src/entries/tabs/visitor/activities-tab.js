@@ -3,16 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260917c';
-import { renderQueryView } from '../../../components/query-view.js?v=20260917c';
-import { flashHighlight } from '../../../core/utils.js?v=20260917c';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260917c';
+import { icon } from '../../../core/icons.js?v=20260919g';
+import { renderQueryView } from '../../../components/query-view.js?v=20260919g';
+import { flashHighlight } from '../../../core/utils.js?v=20260919g';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260919g';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260917c';
-import { canSignup } from '../../../components/signup-panel.js?v=20260917c';
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
+import { isActivityLive } from '../../../core/constants.js?v=20260919g';
+import { canSignup } from '../../../components/signup-panel.js?v=20260919g';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+// 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
+// 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
+import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260919g';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260919g';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/pager.js?v=20260917c';
+import { pagerHtml } from '../../../components/pager.js?v=20260919g';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -33,6 +37,21 @@ function _actEntryHtml(a, href) {
   return btns.length ? `<div class="flex items-center gap-1.5 flex-shrink-0">${btns.join('')}</div>` : '';
 }
 
+// 组织者的入口（2026-09-19 批次 91 · SOP-B-17 / `D-308` · `D-309` · §9k）：
+// 「组织者是一种信息流与任务流」——本人被指定为某场活动的组织者时，这场活动的
+//   ① 发布口（发布本组通知）与 ② 上传位（考勤上传 / 纪检打回后的「待你确认」）
+// 就从这一行可达；解除指定即收回（判据 = `services/activity.js::isActivityOrganizer`）。
+// ⚠ 上传位现承载在组长台「考勤上传」（写口判据 = `canUploadAttendance`，组织者本人恒在门内），
+//   此处只做「按人带路」，**不复制第二套表单**（否则同一条口径两处维护）。
+function _organizerEntryHtml(a) {
+  const me = AuthStore.getCurrentUser();
+  if (!me || !isActivityOrganizer(me.personId, a.id)) return '';
+  return `<div class="flex items-center gap-1.5 flex-shrink-0">
+      <button type="button" class="visitor-group-notice-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>
+      <a href="leader.html?tab=attendance" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤上传 / 打回确认</a>
+    </div>`;
+}
+
 // 列表行（列表/查询共用；行内主区为可点击详情链接，行尾为报名/表态入口）
 function _activityRowHtml(a) {
   const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
@@ -47,6 +66,7 @@ function _activityRowHtml(a) {
         </div>
       </a>
       ${_actEntryHtml(a, href)}
+      ${_organizerEntryHtml(a)}
     </div>`;
 }
 
@@ -96,6 +116,19 @@ export function renderContent(ctx) {
   _renderActListView(sorted, highlightId);
   // 一次性消费高亮目标（对齐单体版 URL 参数清除后的行为，防 setState 重渲染重复滚动定位）
   if (typeof ctx.onNavLocated === 'function') ctx.onNavLocated();
+
+  // 组织者入口（发布本组通知）：事件委托——列表/日历/查询三视图都会重绘行、且引擎筛选后行会被换掉，
+  // 行内直接绑定会失效；委托挂在容器上只挂一次（dataset 守卫防重复绑定致浮窗开两遍）。
+  if (!tc.dataset.organizerEntryBound) {
+    tc.dataset.organizerEntryBound = '1';
+    tc.addEventListener('click', (e) => {
+      const btn = e.target.closest('.visitor-group-notice-btn');
+      if (!btn) return;
+      e.preventDefault();
+      const act = findActivityById(btn.dataset.actId);
+      openGroupNoticeComposer({ activity: act, accentColor: ctx.accent || '#CE1126' });
+    });
+  }
 }
 
 function _renderActListView(sorted, highlightId) {

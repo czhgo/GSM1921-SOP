@@ -45,7 +45,7 @@ export const WORK_MAP_MODULES = [
   },
   {
     id: 'joint-event', name: '共建活动', tier: 'method', defaultOwner: 'secretary',
-    desc: '跨组织合办活动（团支部合办等），场景 joint-event',
+    desc: '跨组织合办活动（团支部合办等）；按主题党日承载，「共建」为活动维度（isJoint），不单开场景',
     outputs: ['宣传', '材料'],
   },
   {
@@ -77,11 +77,11 @@ export const WORK_MAP_MODULES = [
   },
   {
     id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'secretary',
-    desc: '制度/章程制定与迭代（场景 new-system；支部自治事项）',
+    desc: '制度/章程制定与迭代（支部自治事项；承载＝支部文件 + 相应会议议程，不单开场景）',
   },
   {
     id: 'info-platform', name: '信息平台支持', tier: 'method', defaultOwner: 'prop-commissioner',
-    desc: '信息平台/宣传档案支撑（宣传委员主责；场景 info-platform）',
+    desc: '信息平台/宣传档案支撑（宣传委员主责；承载＝支部分工模块 + 宣传台周报，不单开场景）',
   },
 ];
 

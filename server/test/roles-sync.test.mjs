@@ -1,4 +1,4 @@
-// server/test/roles-sync.test.mjs — P2c 防失同步：授权语义角色集单一源自洽（2026-09-03）
+// server/test/roles-sync.test.mjs — P2c 防止未同步的情况：授权语义角色集单一源自洽（2026-09-03）
 // 校验 docs/src/core/constants.js 的授权语义角色集（server requireRole 与前端 AuthStore.isCommissioner 共用）：
 //   ① 全部角色 ∈ ROLE_KEYS 枚举；
 //   ② 业务语义「条条三委员」⊆ 授权支委集（含支书/副支书），防止两套语义混淆（勿把授权集指向条条集）；
@@ -11,7 +11,7 @@ import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/constants.js?v=20260917c';
+} from '../../docs/src/core/constants.js?v=20260919g';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

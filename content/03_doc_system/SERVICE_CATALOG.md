@@ -45,7 +45,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 认证服务 | `services/auth.js`（AuthStore） | `login.html`（全站共用） | 登录态管理/赋权记录 CRUD/角色-页面映射（ROLE_PAGE_MAP） | — |
 | 权限服务 | `services/auth.js`（canDo + ROLE_PERMISSIONS）+ `services/roles.js` | 全站共用（侧边栏身份视图） | 统一角色选择/权限判定/角色赋权共享 | RC §9a0/9b/9e |
 | 通知服务 | `services/notice.js` | `index.html`、各工作台 | 发布/阅读/删除/审批流程关键节点触发 | — |
-| 反馈服务 | `services/issues.js` + `services/milestones.js` | `feedback.html` | 成员提交/支书全权流转（GitHub Issue 风格：列表/详情/新建） | — |
+| 反馈服务 | `services/issues.js` + `services/milestones.js` | `feedback.html` | 成员提交 / 支委会处置、由支书主持支委会（GitHub Issue 风格：列表/详情/新建） | — |
 | 归档检索 | `core/data-adapter.js`（只读聚合） | `archive.html`、`search.html` | 归档库（列表+画册视图）/全量资料查询 | — |
 | 会议议程编辑 | `services/agenda-editing.js` | 活动详情（三会一课议程编辑） | 议程结构化事项的纯数据处理：保持业务字段不被 UI 编辑覆盖 | — |
 | 会议议程会后衔接 | `services/agenda-follow-up.js` | 活动详情（会后） | 记录「通过/不通过」→ 派生文件/成员变更动作；支部党员大会做出席/赞成过半数硬校验 | — |

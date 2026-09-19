@@ -5,22 +5,25 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260917c';
-import { generateId } from '../core/id.js?v=20260917c';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260917c';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260917c';
-import { bumpToken } from '../core/version-token.js?v=20260917c'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260917c';
-import { isInitStateActive } from './init-reset.js?v=20260917c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260917c';
-import { AuthStore } from './auth.js?v=20260917c';
-import { getPersonById } from './person.js?v=20260917c';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260917c';
-import { badgeHtml } from '../components/badges.js?v=20260917c';
+import { mockDB } from '../core/domain.js?v=20260919g';
+import { generateId } from '../core/id.js?v=20260919g';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260919g';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260919g';
+import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260919g';
+import { isInitStateActive } from './init-reset.js?v=20260919g'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260919g';
+import { AuthStore } from './auth.js?v=20260919g';
+import { getPersonById, liveMembers } from './person.js?v=20260919g';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260919g';
+import { badgeHtml } from '../components/badges.js?v=20260919g';
+import { openFormModal } from '../components/modal.js?v=20260919g';
+// 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
+import { getOrganizedActivities, isActivityOrganizer } from './activity.js?v=20260919g';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../core/constants.js?v=20260917c';
+} from '../core/constants.js?v=20260919g';
 
 function _loadNotices() {
   try {
@@ -160,16 +163,25 @@ const MANAGE_NOTICE_ROLES = new Set(NOTICE_MANAGE_ROLES);
 const PUBLISH_NOTICE_ROLES = new Set(NOTICE_PUBLISH_ROLES);
 
 export const NoticePermission = {
-  canPublish(role) {
-    return PUBLISH_NOTICE_ROLES.has(role);
+  /**
+   * 发布权（2026-09-19 批次 91 · SOP-B-17 / `D-308` · `D-309`）：
+   *   ① 角色白名单（支书 / 副支书 / 组织委员 / 宣传委员）——全支部通知与治理通知；
+   *   ② **本组通知**：此人**被指定为某场活动的组织者**（按活动身份，不是角色）⇒ 该场的发布口就在他台上。
+   *      指定即赋权、解除即收回（判据单一源 = `services/activity.js::getOrganizedActivities`）。
+   * @param {string} role 常设角色键
+   * @param {string} [personId] 当前人（缺省＝只按角色白名单判定，保持既有调用点行为）
+   */
+  canPublish(role, personId) {
+    if (PUBLISH_NOTICE_ROLES.has(role)) return true;
+    return getOrganizedActivities(personId).length > 0;
   },
 
   canManage(role) {
     return MANAGE_NOTICE_ROLES.has(role);
   },
 
-  check(role, action = 'read') {
-    if (action === 'publish' || action === 'add') return this.canPublish(role);
+  check(role, action = 'read', personId = null) {
+    if (action === 'publish' || action === 'add') return this.canPublish(role, personId);
     if (action === 'edit' || action === 'update' || action === 'remove') return this.canManage(role);
     return true; // read — 全员可读
   },
@@ -288,12 +300,13 @@ export const NoticeStore = {
     return result;
   },
 
-  add(notice, actorRole = null) {
-    if (actorRole && !NoticePermission.check(actorRole, 'add')) {
-      console.warn(`[NoticeStore] 权限不足：角色 ${actorRole} 无权发布通知`);
+  add(notice, actorRole = null, actorPersonId = null) {
+    if (actorRole && !NoticePermission.check(actorRole, 'add', actorPersonId)) {
+      console.warn(`[NoticeStore] 权限不足：角色 ${actorRole}（${actorPersonId || '未带 personId'}）无权发布通知`);
       return null;
     }
-    // 人工发布路径（通知发布表单等）必传 actorRole，仍受白名单约束。
+    // 人工发布路径（通知发布表单等）必传 actorRole，仍受白名单约束；
+    // 2026-09-19 批次 91（SOP-B-17）：本组通知另按「此人是否该场组织者」放行（见 NoticePermission.canPublish）。
     // R-22（2026-09-13）：原「不传 actorRole 即打标 systemDerived」已随旧通道关闭而移除——
     //   系统派生通知改由 addSystem() 走服务端生成（POST /api/v1/system-notices）。
     const newNotice = {
@@ -740,6 +753,11 @@ function _showNoticePopover(notice, triggerBtn) {
     </div>
     <div class="text-xs text-gray-500 mb-3">${notice.publishDate || ''}</div>
     <div class="text-sm text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">${notice.content || '无内容'}</div>
+    ${notice.meetingActivityId
+      // SOP-B-5（D-293）：会议通知的「能否线上参会」在**详情页**确认时填——浮窗只作指路，
+      // 不在此再放一份填写位（同一件事两处填＝两套口径）。
+      ? '<div class="text-[11px] text-gray-500 mb-3 leading-5">本次会议可申报<b>能否线上参会</b>——请点通知标题打开详情页，在「确认读取」时填写（线上参会记请假、不计出席、不补课）。</div>'
+      : ''}
     <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
       <button id="notice-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
       <button id="notice-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">确认已读</button>
@@ -792,4 +810,81 @@ function _showNoticePopover(notice, triggerBtn) {
     if (e.key === 'Escape') { closePopover(); document.removeEventListener('keydown', escHandler); }
   };
   document.addEventListener('keydown', escHandler);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  本组通知发布口（2026-09-19 批次 91 · SOP-B-17 / `D-308` · `D-309` · §9k）
+//  「组织者是信息流与任务流」——某人被指定为某场活动的组织者，**这场活动的发布口就在他台上**：
+//    · 发布权随「被指定」动态获得（见 NoticePermission.canPublish），**不按角色静态加名单**；
+//    · 受众＝**本组**（该场承办党小组 / 缺省取组织者所属党小组的成员 ＋ 组织者本人）；
+//    · **全支部通知仍归支书**——本口不提供全支部广播，不做支书代发。
+//  单一实现，供成员台「活动动态」与组长台「活动管理」两处行内入口共用（勿各自再写一份）。
+// ════════════════════════════════════════════════════════════════
+
+/** 该场活动的「本组」人员 id（承办党小组优先，缺省＝组织者所属党小组；恒含组织者本人） */
+export function groupAudienceIdsOf(activity, organizerId) {
+  const group = activity?.hostGroup
+    || (getPersonById(organizerId) || {}).partyGroup
+    || '';
+  const ids = liveMembers().filter(p => p.partyGroup && p.partyGroup === group).map(p => p.id);
+  if (organizerId && !ids.includes(organizerId)) ids.push(organizerId);
+  return { group, ids };
+}
+
+/**
+ * 打开「发布本组通知」浮窗（该场活动的组织者本人可用）
+ * @param {{ activity:Object, accentColor?:string, onPublished?:Function }} opts
+ * @returns {boolean} 是否打开了浮窗（无权限 / 无活动时返回 false 并给出提示）
+ */
+export function openGroupNoticeComposer({ activity, accentColor = '#3B82F6', onPublished = null } = {}) {
+  const me = AuthStore.getCurrentUser();
+  const meId = me?.personId || null;
+  if (!activity || !meId) { showToast('error', '无法发布：活动或登录会话缺失'); return false; }
+  if (!isActivityOrganizer(meId, activity.id)) {
+    showToast('error', '只有本场活动的组织者才能发布本组通知');
+    return false;
+  }
+  const { group, ids } = groupAudienceIdsOf(activity, meId);
+  const audienceLabel = group ? `本组（${group}）` : '本组';
+
+  openFormModal({
+    id: 'group-notice-compose',
+    title: `发布本组通知 · ${activity.title || '未命名活动'}`,
+    accentColor,
+    submitLabel: '发布',
+    fields: [
+      { key: 'title', label: '通知标题', required: true, placeholder: '如：本周党小组会时间与地点' },
+      { key: 'content', label: '通知内容', required: true, type: 'textarea', placeholder: '写清时间、地点、需要谁做什么' },
+    ],
+    onSubmit: (values) => {
+      const title = (values.title || '').trim();
+      const content = (values.content || '').trim();
+      if (!title) { showToast('error', '请填写通知标题'); return false; }
+      if (!content) { showToast('error', '请填写通知内容'); return false; }
+      const created = NoticeStore.add({
+        title,
+        content,
+        priority: 'normal',
+        publishDate: new Date().toISOString().slice(0, 10),
+        expireDate: null,
+        targetModule: 'activity',
+        targetType: 'activity',
+        targetId: activity.id,
+        targetUrl: `activity.html?id=${encodeURIComponent(activity.id)}`,
+        read: false,
+        audience: [],
+        audiencePersons: ids,
+        audienceLabel: `${audienceLabel} · 组织者发布`,
+        publishedBy: ROLE_LABELS[me.role] || me.role || '',
+        publisherId: meId,
+        createdBy: meId,
+        source: 'activity-group',
+      }, me.role, meId);
+      if (!created) { showToast('error', '发布失败：无发布权限'); return false; }
+      showToast('success', `已发布本组通知（${audienceLabel} ${ids.length} 人可见）`);
+      if (typeof onPublished === 'function') onPublished(created);
+      return true;
+    },
+  });
+  return true;
 }

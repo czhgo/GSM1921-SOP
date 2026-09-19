@@ -3,26 +3,30 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260917c';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260919g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260917c';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260917c';
+import { AuthStore } from '../../../services/auth.js?v=20260919g';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260919g';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260917c';
-import { flashHighlight } from '../../../core/utils.js?v=20260917c';
+import { isActivityLive } from '../../../core/constants.js?v=20260919g';
+import { flashHighlight } from '../../../core/utils.js?v=20260919g';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/party-group.js?v=20260917c';
+import { groupOptions } from '../../../services/party-group.js?v=20260919g';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260917c';
-import { getAppState } from '../../../core/state.js?v=20260917c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260919g';
+import { getAppState } from '../../../core/state.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260919g';
+// 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
+import { listMyProjectTasks } from '../../../services/activity.js?v=20260919g';
 
-// 项目分工子视图（支书 2026-08-10 裁定第5点）：区分「我的分工」（以人为中心）与「全局分工」（全局查询）
-let _projSubView = 'mine'; // 'mine' | 'all'
+// 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
+// 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
+// 另保留既有「我的分工 / 全局分工」两档（支书 2026-08-10 裁定第5点：区分以人为中心与全局查询）。
+let _projSubView = 'tasks'; // 'tasks' | 'mine' | 'all'
 // 首页专班跳转定位目标（快照自 ctx，一次性消费后清除）
 let _highlightTfId = null;
 
@@ -91,8 +95,10 @@ export function renderContent(ctx) {
   // 首页专班跳转定位：目标专班可能不在「我的分工」中 → 强制切全局分工视图后再定位
   if (_highlightTfId) _projSubView = 'all';
 
-  // 子视图切换（支书 2026-08-10 裁定第5点）：我的分工（以人为中心）/ 全局分工（全局查询）
+  // 子视图切换：主口径「我的任务」（按「我」切，`SOP-B-31` 已定口径一）；
+  // 「我的分工 / 全局分工」＝同一份事实按「项目」切（支书 2026-08-10 裁定第5点，保留）。
   const subTabs = [
+    { key: 'tasks', label: '我的任务' },
     { key: 'mine', label: '我的分工' },
     { key: 'all', label: '全局分工' },
   ];
@@ -114,6 +120,9 @@ export function renderContent(ctx) {
   const host = tc.querySelector('#visitor-proj-host');
 
   function renderList() {
+    // 主口径「我的任务」：同一份事实按「我」切（承担人单一源见 services/activity.js）
+    if (_projSubView === 'tasks') { renderTaskList(); return; }
+
     // 子视图基准：我的分工 = 我参与的项目（以人为中心）；全局分工 = 全部项目
     const base = _projSubView === 'mine'
       ? allProjects.filter(p => p.personnel.some(pm => pm.personId === currentUserId))
@@ -157,10 +166,40 @@ export function renderContent(ctx) {
     }
   }
 
+  // 主口径「我的任务」（`SOP-B-31` 已定口径一 · 二）：只列**按项目内身份派给本人**的 SOP 任务节点
+  //  （组织者那份 / 深度参与者那份）；承担人判据单源＝`services/activity.js::listMyProjectTasks`。
+  //  ⚠ 与「我的分工」是**同一份事实的转置**（此按「我」切、彼按「项目」切），不是第二份数据。
+  function renderTaskList() {
+    const rows = listMyProjectTasks(currentUserId).map(x => ({
+      name: x.task.title || '未命名任务',
+      project: x.activity.title || '未命名活动',
+      projectId: x.activity.id,
+      role: x.projectRole,
+      status: x.task.status || 'pending',
+      date: x.task.date || x.activity.date || '',
+    }));
+    // 状态中文标签（与 Task.status 枚举一一对应；位置与项目卡一致：右上角状态位）
+    const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
+    const STATUS_CLASS = { pending: 'bg-yellow-100 text-yellow-700', in_progress: 'bg-blue-100 text-blue-700', completed: 'bg-green-100 text-green-700' };
+    renderFilteredList(host, {
+      stateKey: 'visitor-mytask-list',
+      rows,
+      keyword: { keys: ['name', 'project'], placeholder: '搜索任务或项目…' },
+      facets: [
+        { key: 'status', label: '状态', options: [{ value: 'pending', label: '待办' }, { value: 'in_progress', label: '进行中' }, { value: 'completed', label: '已完成' }] },
+      ],
+      countUnit: '项',
+      listClass: 'space-y-2',
+      emptyMessage: '你暂无可承接的项目任务',
+      rowHtml: (r) => _renderTaskCard(r, STATUS_LABEL, STATUS_CLASS),
+    });
+    host.querySelector('.lf-list')?.style.setProperty('cursor', 'pointer');
+  }
+
   // 卡片点击直达详情页（T-304 第5轮 P8 专班报名可达性 / D7 活动卡一致行为）：
   // 事件委托挂在 host 上——引擎筛选/翻页会重绘行，行内直接绑定会失效
   host.addEventListener('click', (e) => {
-    const card = e.target.closest('.visitor-proj-card');
+    const card = e.target.closest('.visitor-proj-card, .visitor-task-card');
     if (!card) return;
     const tfId = card.dataset.tfId;
     const actId = card.dataset.actId;
@@ -243,7 +282,7 @@ function _actStatusColor(status) {
   return map[status] || 'bg-gray-100 text-gray-600';
 }
 function _tfStatusLabel(status, deadline) {
-  // 2026-09-02 支书裁决（失同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
+  // 2026-09-02 支书裁决（未同步②）：专班状态词全站统一 —— 内部工作台/首页为「运行中/已完结」，
   // 公共活动页此前误用任务态「进行中/已完成」，一并对齐
   // C3（2026-09-12）：状态由截止日派生——招募中但已过截止日不再显示「招募中」（语义修正）
   if (status === 'recruiting' && deadline && deadline < _todayKey()) return '报名已截止';
@@ -261,6 +300,27 @@ function _personnelRoleLabel(role) {
   const map = { organizer: '组织者', deep: '深度参与', participant: '参与者', initiator: '发起人' };
   return map[role] || role;
 }
+
+// 「我的任务」卡（`SOP-B-31`）：行＝任务，带所属项目与本人在这份任务上的项目身份。
+// 点击仍走 host 上的事件委托 → 打开该任务所属活动详情（与项目卡一致的行为）。
+function _renderTaskCard(r, statusLabel, statusClass) {
+  return `
+    <div class="visitor-task-card p-3 rounded-lg bg-white" data-act-id="${r.projectId}">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${statusClass[r.status] || 'bg-gray-100 text-gray-600'}">${statusLabel[r.status] || r.status}</span>
+          <p class="text-sm font-medium text-gray-800 truncate">${r.name}</p>
+        </div>
+        <span class="badge inline-flex items-center gap-0.5 flex-shrink-0" style="${_personnelRoleColor(r.role)}">${_personnelRoleLabel(r.role)}</span>
+      </div>
+      <div class="flex items-center gap-3 text-[12px] text-gray-500">
+        <span>${r.project}</span>
+        ${r.date ? `<span>${r.date}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
 function _personnelRoleColor(role) {
   // 角色色统一来自 ROLE_COLORS（organizer=天蓝 / deep=紫 / participant=灰 / initiator=靛蓝），
   // 与活动类型暖色系（红/金）彻底区分，避免"红色太多、意义不明确"（支书 2026-08-01 决策）

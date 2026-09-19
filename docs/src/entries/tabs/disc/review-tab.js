@@ -2,19 +2,19 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260917c';
-import { persist } from '../../../core/data-adapter.js?v=20260917c';
-import { reviewToDisplay } from '../../../services/review.js?v=20260917c';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260917c';
-import { loadActivities } from '../../../services/activity.js?v=20260917c';
-import { showToast } from '../../../core/utils.js?v=20260917c';
-import { openFormModal } from '../../../components/modal.js?v=20260917c';
-import { NoticeStore } from '../../../services/notice.js?v=20260917c';
-import { generateId } from '../../../core/id.js?v=20260917c';
-import { getPersonById } from '../../../services/person.js?v=20260917c';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260917c';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260919g';
+import { persist } from '../../../core/data-adapter.js?v=20260919g';
+import { reviewToDisplay } from '../../../services/review.js?v=20260919g';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260919g';
+import { loadActivities } from '../../../services/activity.js?v=20260919g';
+import { showToast } from '../../../core/utils.js?v=20260919g';
+import { openFormModal } from '../../../components/modal.js?v=20260919g';
+import { NoticeStore } from '../../../services/notice.js?v=20260919g';
+import { generateId } from '../../../core/id.js?v=20260919g';
+import { getPersonById } from '../../../services/person.js?v=20260919g';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260919g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260917c';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260919g';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -107,7 +107,7 @@ export function renderContent(ctx) {
                    </div>`}
               <div class="flex items-center gap-2 ml-4">
                 <span class="text-xs px-1.5 py-0.5 rounded-full ${progressColor[r.progress] || 'bg-gray-100 text-gray-600'}">${r.progress}</span>
-                ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">邮件提醒</button>` : ''}
+                ${r.overdue ? `<button class="btn-action btn-action-red btn-disc-remind" data-review-id="${r.id}">站内通知</button>` : ''}
               </div>
             </div>`;
 
@@ -143,7 +143,7 @@ export function renderContent(ctx) {
                   <button class="btn-action btn-action-green btn-disc-confirm" data-review-id="${r.id}">确认</button>
                 ` : ''}
                 ${r.reviewStatus === '未提交' ? `
-                  <button class="btn-action btn-action-red btn-disc-remind-review" data-review-id="${r.id}">邮件提醒</button>
+                  <button class="btn-action btn-action-red btn-disc-remind-review" data-review-id="${r.id}">站内通知</button>
                 ` : ''}
                 ${r.reviewStatus === '已确认' && !hasDeposit(r) ? `
                   <button class="btn-action btn-action-amber btn-disc-urge-deposit" data-review-id="${r.id}" data-activity-name="${r.sourceName || r.activity}" data-organizer="${r.organizer}">督促沉淀</button>
@@ -166,7 +166,7 @@ export function renderContent(ctx) {
     <div class="space-y-4">
       <div class="card rounded-lg p-5">
         <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">活动流程监督</h3>
-        <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后邮件提醒</div>
+        <div class="text-xs text-gray-500 mb-3">阅览党小组活动/专班工作时间流 · 超时确认后站内通知</div>
         <div id="disc-review-flow-list"></div>
       </div>
       <div class="card rounded-lg p-5">
@@ -291,7 +291,7 @@ export function renderContent(ctx) {
     const item = _reviewItemOf(id);
     if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'overdue' });
     if (item) _notifyReviewOrganizer(item, 'review-overdue-reminder');
-    showToast('success', '超时邮件提醒已发送');
+    showToast('success', '超时站内通知已发送');
   });
 
   // 活动复盘监督：勾选（change）+ 行内动作（click）
@@ -371,7 +371,7 @@ export function renderContent(ctx) {
       const item = _reviewItemOf(id);
       if (id) updateReviewById(id, { remindedAt: new Date().toISOString(), reminderType: 'resubmit' });
       if (item) _notifyReviewOrganizer(item, 'review-resubmit-reminder');
-      showToast('success', '复盘超期邮件提醒已发送至组织者');
+      showToast('success', '复盘超期站内通知已发送至组织者');
       return;
     }
     const urge = e.target.closest('.btn-disc-urge-deposit');

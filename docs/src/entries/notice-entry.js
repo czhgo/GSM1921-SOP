@@ -1,18 +1,21 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260917c';
-import { renderHeader } from '../components/header.js?v=20260917c';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260917c';
-import { getBasePath, showToast } from '../core/utils.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { getPersonById } from '../services/person.js?v=20260917c';
-import { badgeHtml } from '../components/badges.js?v=20260917c';
+import { renderSidebar } from '../components/sidebar.js?v=20260919g';
+import { renderHeader } from '../components/header.js?v=20260919g';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260919g';
+import { getBasePath, showToast } from '../core/utils.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { getPersonById } from '../services/person.js?v=20260919g';
+import { badgeHtml } from '../components/badges.js?v=20260919g';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260917c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260917c';
-import { BranchService } from '../services/runtime.js?v=20260917c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260919g';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260919g';
+import { BranchService } from '../services/runtime.js?v=20260919g';
+// SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
+import { declareOnlineAttend } from '../services/attendance.js?v=20260919g';
+import { loadActivities } from '../services/activity.js?v=20260919g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -141,6 +144,23 @@ function renderNoticeDetail(n) {
       </button>`
     : '<span class="inline-flex items-center gap-1 text-xs text-gray-500 px-4 py-2">已读</span>';
 
+  // SOP-B-5（D-293）：关联了三会一课活动的通知 → 确认收到时填「能否线上参会」
+  // 「线上参会不计入出席（记请假）、只免补课」——故这里只申报「能不能线上参会」，
+  // 实际出勤与否仍由该场考勤记录（纪检确认）说了算。
+  const meetingActivity = n.meetingActivityId
+    ? loadActivities().find(a => a.id === n.meetingActivityId && !a.archived)
+    : null;
+  const onlineAttendBlock = meetingActivity ? `
+    <div class="mt-5 pt-4 border-t border-gray-100">
+      <div class="text-xs text-gray-500 mb-2">关联会议：<b class="text-gray-700">${meetingActivity.title || '会议活动'}</b>${meetingActivity.date ? `（${meetingActivity.date}）` : ''}</div>
+      <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="notice-online-attend">本次会议您能否线上参会？<span class="text-gray-500">（选填；确认收到时填写）</span></label>
+      <select id="notice-online-attend" class="input-flat w-full">
+        <option value="">暂不申报</option>
+        <option value="yes">能，线上参加</option>
+      </select>
+      <p class="text-[11px] text-gray-500 mt-1 leading-5">申诉「能，线上参加」后：本场考勤记<b>请假</b>、<b>不计入出席、不补课</b>（纪检委员确认时以实际记录为准）。不申报或不能线上参会的，按实际考勤记录判：请假未参会、未请假缺席均须补课。</p>
+    </div>` : '';
+
   // 目标模块跳转（业务页直达优先，与全站统一 resolveNoticeUrl）
   let targetLink = '';
   const dest = resolveNoticeUrl(n, currentUser?.role || null);
@@ -182,6 +202,8 @@ function renderNoticeDetail(n) {
     <!-- 正文 -->
     <div class="text-base text-gray-700 leading-relaxed whitespace-pre-wrap mb-6">${n.content || ''}</div>
 
+    ${onlineAttendBlock}
+
     <!-- 操作区 -->
     <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
       ${confirmReadBtn}
@@ -193,6 +215,23 @@ function renderNoticeDetail(n) {
   const confirmBtn = document.getElementById('notice-confirm-read-btn');
   if (confirmBtn) {
     confirmBtn.addEventListener('click', () => {
+      // SOP-B-5：先落「能否线上参会」申报（选了「能，线上参加」才写考勤），再确认已读
+      let declared = false;
+      const onlineSel = document.getElementById('notice-online-attend');
+      if (meetingActivity && onlineSel && onlineSel.value === 'yes') {
+        const me = AuthStore.getCurrentUser();
+        if (!me || !me.personId) {
+          showToast('error', '请先登录后再申报线上参会');
+          return;
+        }
+        const res = declareOnlineAttend({ activityId: meetingActivity.id, personId: me.personId });
+        if (!res.ok) {
+          // 已有考勤记录时不覆盖：如实说明，改状态走纪检更正（不静默吞掉申报）
+          showToast('error', res.reason || '线上参会申报失败');
+          return;
+        }
+        declared = true;
+      }
       NoticeStore.markRead(n.id);
       confirmBtn.replaceWith(
         Object.assign(document.createElement('span'), {
@@ -200,7 +239,9 @@ function renderNoticeDetail(n) {
           textContent: '已读',
         })
       );
-      showToast('success', '已确认读取');
+      showToast('success', declared
+        ? '已申报线上参会：本场考勤记「请假」、不计出席、不补课'
+        : '已确认读取');
     });
   }
 }

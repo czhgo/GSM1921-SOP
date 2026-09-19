@@ -2,15 +2,15 @@
 // ws-secretary-entry.js — 支书工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../core/state.js?v=20260917c';
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260917c';
-import { _currentYearMonth } from '../core/utils.js?v=20260917c';
-import { loadActivities } from '../services/activity.js?v=20260917c';
-import { BranchService } from '../services/runtime.js?v=20260917c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260917c';
-import { SignupStore } from '../services/signup.js?v=20260917c';
+import { getAppState, setState } from '../core/state.js?v=20260919g';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260919g';
+import { _currentYearMonth } from '../core/utils.js?v=20260919g';
+import { loadActivities } from '../services/activity.js?v=20260919g';
+import { BranchService } from '../services/runtime.js?v=20260919g';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260919g';
+import { SignupStore } from '../services/signup.js?v=20260919g';
 // T-304 Q3 权限收敛：副作用导入触发支书工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../modules/capabilities/secretary-workspace.js?v=20260917c';
+import '../modules/capabilities/secretary-workspace.js?v=20260919g';
 
 await createWorkspaceShell({
   accentRole: 'secretary',

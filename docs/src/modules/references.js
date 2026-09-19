@@ -1,19 +1,19 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260917c';
-import { getBasePath, showToast } from '../core/utils.js?v=20260917c';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260917c';
-import { AuthStore } from '../services/auth.js?v=20260917c';
-import { loadActivities } from '../services/activity.js?v=20260917c';
-import { PEOPLE } from '../mock/people.js?v=20260917c';
+import { icon } from '../core/icons.js?v=20260919g';
+import { getBasePath, showToast } from '../core/utils.js?v=20260919g';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260919g';
+import { AuthStore } from '../services/auth.js?v=20260919g';
+import { loadActivities } from '../services/activity.js?v=20260919g';
+import { PEOPLE } from '../mock/people.js?v=20260919g';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260917c';
+} from '../services/branch-doc.js?v=20260919g';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../components/list-filter.js?v=20260917c';
+import { renderFilteredList } from '../components/list-filter.js?v=20260919g';
 
 const SITE_GROUPS = [
   {
@@ -676,7 +676,7 @@ export class ReferencesModule {
         ${instBoxHtml}
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:#EF4444;">*</span>'}</label>
-          <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+          <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
             class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
         </div>
         <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>

@@ -12,20 +12,20 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260917c';
-import { icon } from '../../../core/icons.js?v=20260917c';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260917c';
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260919g';
+import { icon } from '../../../core/icons.js?v=20260919g';
+import { buildTodaySummary } from '../../../services/today-summary.js?v=20260919g';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member-progress.js?v=20260917c';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260917c';
-import { mockDB } from '../../../core/domain.js?v=20260917c';
-import { tokenOf } from '../../../core/version-token.js?v=20260917c'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260917c'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260917c'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260917c'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member-progress.js?v=20260919g';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260919g';
+import { mockDB } from '../../../core/domain.js?v=20260919g';
+import { tokenOf } from '../../../core/version-token.js?v=20260919g'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260919g'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260919g'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/memoize-render.js?v=20260919g'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260917c';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260919g';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent, #B91C1C)';
@@ -251,6 +251,8 @@ function _leaderSemesterRemindHtml(personId) {
           <div class="flex flex-wrap items-center gap-2 mt-2.5">
             <button type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors hover:opacity-90" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」看汇总</button>
             <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-lsr-act="later">本学期已处理，不再提醒</button>
+            <!-- 就近深链（2026-09-17 支书已裁）：本条提醒的开关就是本域可调参数，就地给去设置该分区的入口 -->
+            <a href="./settings.html#domain-leader" class="text-xs text-gray-500 hover:text-gray-700 underline transition-colors">本条提醒开关 → 组长职责参数（设置）</a>
           </div>
         </div>
       </div>
