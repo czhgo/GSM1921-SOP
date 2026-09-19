@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260919i';
-import { showToast } from '../../../core/utils.js?v=20260919i';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260919i';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260919i';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260919i';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260919i';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260919i';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260919i';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260919i';
-import { loadActivities } from '../../../services/activity.js?v=20260919i';
-import { renderQueryView } from '../../../components/query-view.js?v=20260919i';
-import { icon } from '../../../core/icons.js?v=20260919i';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260919i';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260919i';
+import { getAppState, setState } from '../../../core/state.js?v=20260919j';
+import { showToast } from '../../../core/utils.js?v=20260919j';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260919j';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260919j';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260919j';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260919j';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260919j';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260919j';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260919j';
+import { loadActivities } from '../../../services/activity.js?v=20260919j';
+import { renderQueryView } from '../../../components/query-view.js?v=20260919j';
+import { icon } from '../../../core/icons.js?v=20260919j';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260919j';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260919j';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260919i';
-import { BranchService } from '../../../services/runtime.js?v=20260919i';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260919i';
+import { NoticeStore } from '../../../services/notice.js?v=20260919j';
+import { BranchService } from '../../../services/runtime.js?v=20260919j';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260919j';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919i';
-import { badgeHtml } from '../../../components/badges.js?v=20260919i';
-import { collectAgendaRows } from './agenda-form.js?v=20260919i';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260919i';
-import { AuthStore } from '../../../services/auth.js?v=20260919i';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260919i';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919j';
+import { badgeHtml } from '../../../components/badges.js?v=20260919j';
+import { collectAgendaRows } from './agenda-form.js?v=20260919j';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260919j';
+import { AuthStore } from '../../../services/auth.js?v=20260919j';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260919j';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260919i';
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260919j';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260919i';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260919j';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260919i';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260919j';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -61,9 +61,12 @@ function _themeField(fieldId) {
 }
 
 // 成员发展阶段（议程「待讨论名单」类型：与 people.js developStage 口径一致）
-// S-2（2026-09-09 支书批）：发展议程只留「转为预备党员 / 转为正式党员」两个目标；
+// S-2（2026-09-09 支书批）：发展议程曾只留「转为预备党员 / 转为正式党员」两个目标；
+// 2026-09-20 批次 103 支书裁定「开门」（B-27 / D-388 落地）——补「发展对象」目标档，
+// 使「推荐为发展对象须支委会讨论」有议程位；该裁定**覆盖 S-2「只留两个目标」中
+// 「不含发展对象」这一部分**，其余（两档设置精神）不变。裁定 `D-521`。
 // 「从什么」由系统按所选对象各自当前阶段自动取（界面不再让人选 fromStage）。
-const AGENDA_TARGET_STAGES = ['预备党员', '正式党员'];
+const AGENDA_TARGET_STAGES = ['发展对象', '预备党员', '正式党员'];
 
 // 议程类型 chips（2026-09-01 支书裁决：类型不互斥，一条议程可多类型；按自增列表思路写入）
 // 「待讨论名单」替代原「成员变更」：多选人员 + 名单统一阶段转换（支书 2026-09-01 裁决）
@@ -1042,7 +1045,7 @@ async function handleSubmitActivity() {
   }
   // S-2 校验：待讨论名单须选目标阶段（否则无法派生成员变更申请）
   if (agenda.some(a => Array.isArray(a.personIds) && a.personIds.length > 0 && !a.toStage)) {
-    showToast('error', '待讨论名单请选择目标阶段（转为预备党员 / 转为正式党员）');
+    showToast('error', '待讨论名单请选择目标阶段（转为发展对象 / 转为预备党员 / 转为正式党员）');
     return;
   }
 

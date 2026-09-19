@@ -10,17 +10,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260919i';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919i';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260919i';
-import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/version-token.js?v=20260919i';
-import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/attendance.js?v=20260919i';
-import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/inspection.js?v=20260919i';
-import { addActivityReview } from '../../docs/src/services/review.js?v=20260919i';
-import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260919i';
-import { SignupStore } from '../../docs/src/services/signup.js?v=20260919i';
-import { saveFollowups } from '../../docs/src/services/resolution-followup.js?v=20260919i';
-import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260919i';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919j';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919j';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260919j';
+import { bumpToken, tokenOf, resetAllTokens } from '../../docs/src/core/version-token.js?v=20260919j';
+import { saveAttendanceRecords, loadAttendanceRecords } from '../../docs/src/services/attendance.js?v=20260919j';
+import { saveInspectionRecords, loadInspectionRecords } from '../../docs/src/services/inspection.js?v=20260919j';
+import { addActivityReview } from '../../docs/src/services/review.js?v=20260919j';
+import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260919j';
+import { SignupStore } from '../../docs/src/services/signup.js?v=20260919j';
+import { saveFollowups } from '../../docs/src/services/resolution-followup.js?v=20260919j';
+import { SecretaryOverviewStore, SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260919j';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();

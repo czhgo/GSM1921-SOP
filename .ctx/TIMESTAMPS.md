@@ -2,7 +2,7 @@
 title: "文件时间戳注册表"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-09-19"
+last_updated: "2026-09-20"
 status: active
 dynamic_role:
   maintenance: "[工程师]+[AI]"
@@ -38,7 +38,7 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | README.md | 2026-08-10 | — | [用户]+[AI] | 对外门面（设计理念章重构） |
-| CLAUDE.md | 2026-09-17 | — | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
+| CLAUDE.md | 2026-09-20 | — | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -50,9 +50,9 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-09-19 | — | [工程师]+[AI] | 本文件 |
+| .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件 |
 | .ctx/SNAPSHOT.md | 2026-09-17 | — | [AI] | 当前基线（v53） |
-| .ctx/REVIEW_QUEUE.md | 2026-09-19 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
+| .ctx/REVIEW_QUEUE.md | 2026-09-20 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |

@@ -2,7 +2,7 @@
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-09-17"
+last_updated: "2026-09-20"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -10353,6 +10353,52 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 改：`content/insights/党支部管理与实务经验沉淀.md` · `content/04_web_design/evolution/BRANCH_WORK_MAP.md` · `content/04_web_design/data/DATA_MODEL.md` · `docs/src/entries/tabs/leader/attendance-tab.js` · `docs/src/entries/tabs/leader/inspection-tab.js` · `docs/src/entries/tabs/disc/attendance-tab.js` · `docs/src/services/attendance.js` · `docs/src/services/todo.js` · `docs/src/mock/activities.js`（＋ 版本戳机制改写 `docs/**` 全站 `?v=` 与 `server/test` 69 字面量）· `.ctx/REVIEW_QUEUE.md` · `.ctx/logs/2026-09-EXECUTION_LOG.md` · `.ctx/logs/2026-09-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · `.ctx/logs/EXECUTION_LOG_INDEX.md` · `.ctx/ACTIVE_RULINGS.md` · `.ctx/TIMESTAMPS.md`
 
 [经验蒸馏: 是 → 「反查要按『四条出口』判：**遗留**改、**否定式 / 沿革 / 原话**留——把沿革当污染删掉＝拿资产换整洁；台账类旧债（`last_updated` / 月度索引 / 表体缺月）宜与内容改动同批清，否则下一批又要重查一遍」]
+
+---
+
+## 批次 103（2026-09-20，`REVIEW_QUEUE` 按职责边界重构 ＋ `CDF`/`FLAT` 核查 ＋ `B-27` 开门 ＋ 支委会线上功能结论与网页方案）
+
+> **决议** `.ctx/logs/2026-09-DECISION_LOG.md` **`D-521`**（`B-27` 开门）· **`D-522`**（支委会线上功能 ＋ 网页方案）· **`D-523`**（`CDF`/`FLAT` 核查）· **`D-524`**（`REVIEW_QUEUE` 职责边界与重构）。本节记**过程**（`R-84`）。本批**分两次落笔**：前半（`R-86` 入 `CLAUDE.md` ＋ `REVIEW_QUEUE` 职责边界头 ＋ 阶段 A/B 头部 `SOP-C-1`…`C-32` 样板段并入计数行）系本批先前的部分工作（工作树未提交）；本批（09-20）承接续作至收口。
+
+### 一、来源（支书四条答复，逐字）
+
+- 答复 2：「**上传是上传，闭环是闭环。只要区分清楚了。我认为要保留**」（`CDF`/`FLAT` 算不算 SOP 文档）。
+- 答复 3：「**我认为 REVIEW_QUEUE 就应该保留一些咀嚼之后的细节就可以。最初设定 REVIEW_QUEUE 这个文件的作用只是记录 需要若干轮次启动的评议 以及 我本人对于每个评议的需要复用的检查项。现在这么膨胀完全是治理失效的结果**」。
+- 答复 4：「**开门。同时我还是提问【支委会】是否有一个明确的线上功能？我认为是值得 做一个单独的网页，如果选择线上召开支委会，提取支委会议程，且留存讨论结果**」。
+
+### 二、任务一：`REVIEW_QUEUE` 按职责边界重构
+
+1. **职责边界（落文件头）**：正面写清**装什么**（（a）需要若干轮次启动的评议 ＋（b）支书要复用的检查项）／**不装什么**（过程 / 进度 / 逐批沿革 / 落地细节 / 真机证据 / 计数沿革 / 打分）＋ 各自归属落点；`R-86` 同期入 `CLAUDE.md`（本批先前部分工作）。
+2. **清掉阶段 B 头部那条 ~6KB 单行嵌套沿革**（批次 101 `U-1` / 102 `U-1` 两次「未可靠完成」）——**改法（两步，避开整段逐字匹配）**：① 先以「旧 `> **状态**…` 行 ＋ 巨行开头至 `**（待裁）0 条**`」为 `old_string` 一次替换为**新的两行现况 ＋ 一行迁出指针 ＋ 一行占位**；② 再把残留的「旧计数行（迁出）」整行删除。⇒ 该 6KB 巨行**清除完毕**，沿革指回执行日志批次 54 · 69–78 · 82–95 与 `D-386`…`D-511`。
+3. **续压已落地 `SOP-B-*` 的「落地 / 真机实测」细节段（本批 7 处）**：`SOP-B-2` · `B-5` · `B-6` · `B-10` · `B-11` · `B-19` · `B-20`——压缩为「**要什么 / 待定项分流结论 / 落地口径与真机证据（迁出指针）**」三行；**待定项 / 上报项逐条保留**（`B-2`③报名截止时点（`D-469`）· `B-6` 只能加不能减（`D-469`）· `B-10`③考察侧能否打回（`D-475`）· `B-11` 四项 · `B-19`①③ · `B-20`①）。
+4. **未做（如实）**：其余已落地 `SOP-B-*` 落地细节段（`B-16` · `B-17` · `B-21` · `B-22` · `B-23` · `B-29` · `B-30` · `B-31` · `B-35` · `B-36` · `B-38` · `B-39` · `B-41` · `B-42` · `B-43` · `B-44`）与阶段 A/B 各批「收官」块（`阶段 A 收官` · `阶段 B 第 1–8 批收官` · `集中议`）**留待后批**。
+
+### 三、任务二：`CDF` / `FLAT`「上传 vs 闭环」核查（**零改动**）
+
+- 逐处核 **11 处**（＝批次 100 `D-518` 所改 11 处 / 4 文件）：**结论＝11 处均未把「上传主体」（组织者，`D-287`）与「闭环 / 确认主体」（纪检，`D-455` / `D-456`）混为一谈**；最分明者 `COMMISSIONER_DUTY_FRAMEWORK.md:435`（「组织者上传 → 纪检委员打包确认」）与 `:478`（提交人＝组织者 / 审批人＝纪检）。逐处表见 `D-523`。
+- **紧邻语境两处观察（单列上报、未改）**：`CDF:108`「会议考勤：上传/修改/确认/录入」一格主体同为纪检（承批次 102 `U-7`）· `FLAT:75`「打包」与纪检「打包确认」用词碰撞。
+
+### 四、任务三 3a：支委会线上功能现状（回答支书问题，**逐处取证**）
+
+- **有，但不完整**。载体＝**带异步表决的活动**：`docs/src/services/committee-vote.js` · `docs/src/core/domain.js:295`-`:297`（`agendaVotes`）· `server/routes/committee.js` · `docs/src/core/api-adapter.js:763`-`:764` / `mock-adapter.js:1229`-`:1234`（双形态）· `docs/src/core/function-catalog.js:64`（`flow-online-committee`）· `mermaid-sources.js:40` · `system-notice-templates.js:106`-`:109` · `server/test/online-committee.test.mjs`（E2E）。
+- **支委会线下场景**：`docs/src/workflow/sopData.js:94`-`:110`（`branch-committee`，9 任务）。
+- **`docs/workspace/party-committee.html` ≠ 支委会**（是**党委台**：`#party-committee-content` → `ws-party-committee-entry.js`；7 个 tab 均党委职能）。
+- **缺口**：① 无支委会专门页面；② 议程仅「专班报送」可一键导入（`D-411`）；③ 讨论结果无独立留存 / 查阅位；④ 线下 9 任务与线上表决两条线未合流。详见 `D-522`。
+
+### 五、任务三 3b：`B-27` 开门（落地）
+
+- **改法**：`docs/src/entries/tabs/secretary/calendar-tab.js` 的 `AGENDA_TARGET_STAGES` 由 `['预备党员','正式党员']` → `['发展对象','预备党员','正式党员']`（＋ 常量注释写明**覆盖 S-2 的哪一部分**）。**未新造机制 / 未加字段表**；复用既有「待讨论名单」＋ 记录通过链（`recordAgendaResult` → `memberChangeRequest` → 组织委员审批 → 支书确认 → 更新 `developStage`）。裁定 `D-521`。
+- **与 S-2 的关系**：`D-521` **只覆盖 S-2（2026-09-09）「只留两个目标」中「不含发展对象」这一句**；S-2 其余不变（在决策日志与代码注释两处写明，**口径可追溯**）。
+
+### 六、任务三 3c：支委会单独网页（**只出方案、不建页**）
+
+- 方案（入口＝支书台新增会议页 · 议程复用既有「活动 ＋ 议程」与各来源既有出口 · 留存复用 `agendaVotes` / 活动 `result` / `votesLocked`、**不新增表** · 参会人＝`resolveVoterIds('committee')`）已写进 `D-522`；四条产品取向（线上表决效力 · 谁可见 · 缺席怎么办 · 两条线是否合流）**单列上报**。**本批未新建仓库文件、未改页面。**
+
+### 七、改动清单
+
+- 改：`.ctx/REVIEW_QUEUE.md`（职责边界头（先前部分工作）＋ 阶段 B 6KB 沿革行清除 ＋ 7 处落地细节段续压）· `.ctx/logs/2026-09-DECISION_LOG.md`（`D-521`…`D-524` ＋ 本月目录 4 行 ＋ 文首 / 文末编号起止 ＋ 目录状态口径）· `.ctx/ACTIVE_RULINGS.md`（批次 103 留痕句 ＋ `D-388` 行补落地指针）· `.ctx/TIMESTAMPS.md` · `CLAUDE.md`（`R-86`，先前部分工作）· `docs/src/entries/tabs/secretary/calendar-tab.js`（`B-27` 落地）＋ 版本戳机制改写 `docs/**` 全站 `?v=` 与 `server/test` 字面量。
+- **未改**：`content/**`（本批**零改动**——`CDF`/`FLAT` 核查结论为「不混」）· `server/**` 业务代码 · 历史文件 · `docs/*.html`（无新页）。
+
 
 
 
