@@ -6,11 +6,11 @@
 //  挂载点：宣传/组织工作台待办列表顶部、纪检补课 tab 顶部。
 // ════════════════════════════════════════════════════════════════
 
-import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../services/handoff.js?v=20260919j';
-import { badgeHtml } from './badges.js?v=20260919j';
-import { solidAccentStyle } from '../core/constants.js?v=20260919j';
+import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../services/handoff.js?v=20260919k';
+import { badgeHtml } from './badges.js?v=20260919k';
+import { solidAccentStyle } from '../core/constants.js?v=20260919k';
 // 统一检索引擎（2026-09-14 批次 37）：待确认交接待办列表接入（关键词 事项/类型 + 引擎内置分页）
-import { renderFilteredList } from './list-filter.js?v=20260919j';
+import { renderFilteredList } from './list-filter.js?v=20260919k';
 
 // 引擎行样式交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）；bind 侧调用方只传 to，拿不到强调色，

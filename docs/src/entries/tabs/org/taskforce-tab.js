@@ -3,32 +3,32 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260919j';
-import { BranchService } from '../../../services/runtime.js?v=20260919j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260919j';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/signup.js?v=20260919j';
-import { AuthStore } from '../../../services/auth.js?v=20260919j';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260919j';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260919j'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260919j';
-import { NoticeStore } from '../../../services/notice.js?v=20260919j';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260919j'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260919j';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260919j';
-import { generateId } from '../../../core/id.js?v=20260919j';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260919j';
+import { setState } from '../../../core/state.js?v=20260919k';
+import { BranchService } from '../../../services/runtime.js?v=20260919k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260919k';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/signup.js?v=20260919k';
+import { AuthStore } from '../../../services/auth.js?v=20260919k';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260919k';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260919k'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260919k';
+import { NoticeStore } from '../../../services/notice.js?v=20260919k';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260919k'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260919k';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260919k';
+import { generateId } from '../../../core/id.js?v=20260919k';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260919k';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/constants.js?v=20260919j';
-import { icon } from '../../../core/icons.js?v=20260919j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260919j';
-import { recordFormShell } from '../../../components/forms.js?v=20260919j';
-import { renderQueryView } from '../../../components/query-view.js?v=20260919j';
-import { badgeHtml } from '../../../components/badges.js?v=20260919j';
+import { isActivityEnded } from '../../../core/constants.js?v=20260919k';
+import { icon } from '../../../core/icons.js?v=20260919k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260919k';
+import { recordFormShell } from '../../../components/forms.js?v=20260919k';
+import { renderQueryView } from '../../../components/query-view.js?v=20260919k';
+import { badgeHtml } from '../../../components/badges.js?v=20260919k';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260919j';
-import { getPersonName, PersonStore } from '../../../services/person.js?v=20260919j';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260919k';
+import { getPersonName, PersonStore } from '../../../services/person.js?v=20260919k';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919j';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919k';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

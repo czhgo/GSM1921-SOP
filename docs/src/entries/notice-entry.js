@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260919j';
-import { renderHeader } from '../components/header.js?v=20260919j';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260919j';
-import { getBasePath, showToast } from '../core/utils.js?v=20260919j';
-import { AuthStore } from '../services/auth.js?v=20260919j';
-import { getPersonById } from '../services/person.js?v=20260919j';
-import { badgeHtml } from '../components/badges.js?v=20260919j';
+import { renderSidebar } from '../components/sidebar.js?v=20260919k';
+import { renderHeader } from '../components/header.js?v=20260919k';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260919k';
+import { getBasePath, showToast } from '../core/utils.js?v=20260919k';
+import { AuthStore } from '../services/auth.js?v=20260919k';
+import { getPersonById } from '../services/person.js?v=20260919k';
+import { badgeHtml } from '../components/badges.js?v=20260919k';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260919j';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260919j';
-import { BranchService } from '../services/runtime.js?v=20260919j';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260919k';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260919k';
+import { BranchService } from '../services/runtime.js?v=20260919k';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend } from '../services/attendance.js?v=20260919j';
-import { loadActivities } from '../services/activity.js?v=20260919j';
+import { declareOnlineAttend } from '../services/attendance.js?v=20260919k';
+import { loadActivities } from '../services/activity.js?v=20260919k';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

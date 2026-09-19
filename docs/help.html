@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260919j"></script>
+<script src="./src/theme-init.js?v=20260919k"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260919j"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260919j">
+  <script src="./src/tailwind-config.js?v=20260919k"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260919k">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -272,7 +272,7 @@
               <tr><td><a href="./about.html">关于</a></td><td>支部故事、成长路径与工作哲学（叙事性介绍）</td><td>公共</td><td>侧边栏「关于」（静态托管形态显示）</td></tr>
               <tr><td><a href="./settings.html">设置</a></td><td>设置中心：外观（字号 / 明暗主题 / 强调色）、我的工作台页签顺序、支部治理（按登录角色分区，见本表下方说明）</td><td>公共可进；分区随登录角色显隐</td><td>侧边栏右下角「设置」</td></tr>
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任支书、副支书（本支部，副书同权）</td><td>直接访问 wizard.html；党委台「支部配置」与 设置→支部治理（支书 / 副支书）为同源内嵌入口（分步说明见第 5 章 5.2）</td></tr>
-              <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（11 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
+              <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（12 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
               <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（11 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（9 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（8 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -403,7 +403,7 @@
         </p>
 
         <!-- 2.1 支书工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>支书工作台（支书 / 副支书共台 · 11 tab）</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>支书工作台（支书 / 副支书共台 · 12 tab）</h3>
         <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/secretary.html">secretary.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -413,6 +413,7 @@
               <tr><td>待办</td><td>支书 / 副支书</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>全局概况</td><td>支书 / 副支书</td><td>汇报 / 卡点 / 在办三区 + 按人视图（各角色在办，可点击直达）+ 维度态势</td><td>「工作台」段第 3 位；点某人行看其条线在办</td></tr>
               <tr><td>活动管理</td><td>支书 / 副支书</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名</td><td>「我的职责」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录</td></tr>
+              <tr><td>支委会会议</td><td>支书 / 副支书（页签入口）；支委（会议页内表态）</td><td>线上召开支委会的入口与统计：场次 / 线上召开数 / 未截止数；点开进「支委会会议」页——选线上召开 → 提取议程（专班报送 / 意见反馈）→ 支委在线表态 → 汇总截止 → 留存并查阅讨论结果</td><td>「我的职责」段；点「打开支委会会议页 →」进独立页 party-committee-meeting.html（也可由支委直接从该页链接进入表态）</td></tr>
               <tr><td>赋权管理</td><td>支书 / 副支书</td><td>向下赋权（组长 / 组织者 / 深度参与者），赋权链计算知情边界</td><td>「我的职责」段；「添加赋权」选人 + 选权限 → 保存；需要撤销时点该条撤销</td></tr>
               <tr><td>通知发布</td><td>支书 / 副支书</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「我的职责」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
               <tr><td>上报党委</td><td>支书 / 副支书</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「我的职责」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
@@ -1486,6 +1487,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260919j"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260919k"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@ GSM1921-SOP/
 ├── README-members.md           ← 支部成员版（地图改为链接根 README；九章正文保留）
 ├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 21=14 根+7 工作台，清单见 §III，以 docs/ 实况为准）
+├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 22=15 根+7 工作台，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
@@ -37,8 +37,9 @@ GSM1921-SOP/
 │   ├── help.html               ← 系统说明书（功能地图 + 搜索，FUNCTION_CATALOG 驱动）
 │   ├── login.html              ← 登录页（演示卡直达角色工作台）
 │   ├── activity.html           ← 活动/专班详情公共页（议程恒定渲染 + 表决端 + 通知直达锚点）
+│   ├── party-committee-meeting.html ← 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果；批次 105 / D-526）
 │   ├── taskforce.html          ← 专班详情公共页
-│   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，14 根页之一）
+│   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，15 根页之一）
 │   ├── wizard.html             ← 换组织向导（独立 URL 页，支书限本支部/党委任意）
 │   ├── workspace/              ← 角色工作台页面（7 个 HTML，工作台+待办合一）
 │   │   ├── secretary.html      ← 支书工作台（支书/副支书共用：活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」）
@@ -112,7 +113,7 @@ GSM1921-SOP/
 | `content/03_doc_system/SERVICE_CATALOG.md` | ✅ | 统一服务目录（服务清单+角色权限矩阵） |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
 
-### 前端页面（HTML 实测 21 个：14 根 + 7 工作台；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
+### 前端页面（HTML 实测 22 个：15 根 + 7 工作台；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
 
 | 页面 | 类型 | 说明 |
 |------|------|------|
@@ -125,6 +126,7 @@ GSM1921-SOP/
 | `search.html` | 独立 | 资料查询（支部文件唯一上传入口） |
 | `feedback.html` | 独立 | 意见反馈 |
 | `activity.html` | 公共页 | 活动/专班详情（议程区+表决端+通知直达锚点） |
+| `party-committee-meeting.html` | 公共页 | 支委会会议页（线上召开：选线上召开 / 提取议程（专班报送·意见反馈）/ 委员线上表态 / 支书汇总截止（votesLocked）/ 留存并查阅讨论结果；仅支委可进，批次 105 / D-526） |
 | `taskforce.html` | 公共页 | 专班详情 |
 | `wizard.html` | 公共页 | 换组织向导（支书限本支部/党委任意/他角色无权限卡） |
 | `settings.html` | 独立 | 设置中心（侧边栏右下「设置」入口：外观=人人可用/我的工作台=登录用户/支部治理=支书+副支书（副书同权，含支部信息与向导/工作台默认顺序/支部制度参数只读+配置变更记录回滚）+纪检/组织/组长「域参数」卡（各管本域）；访客仅见外观；登录无归属显示「未绑定支部」提示） |

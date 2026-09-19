@@ -10484,6 +10484,88 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 - **`npm test`（起 3000 服务后跑，`R-85`）**：**706 测试 / 706 pass / 0 fail**（`duration_ms` ≈ 1080430，约 18 分钟；`cancelled 0` · `skipped 0` · `todo 0`）⇒ **全量全绿、收尾**。跑完后已停服。
 - 守卫子集在**全部改动落定后复跑一遍**仍全绿（见上「四」），故守卫结论对**最终状态**成立。
 
+---
+
+## 批次 105（2026-09-20，支委会线上会议页落地）
+
+> **决议** `.ctx/logs/2026-09-DECISION_LOG.md` **`D-526`**。本节记**过程**（`R-84`）。**依据**＝支书本批原话（本批指令来源）＋ 批次 103 登记的方案 `D-522`。
+
+### 一、做了什么（逐项对支书原话）
+
+| 支书原话要素 | 落地 |
+|---|---|
+| 「**值得做一个单独的网页**」 | 新建 `docs/party-committee-meeting.html` ＋ 入口 `docs/src/entries/party-committee-meeting-entry.js`（按 `D-485` 标准形 hydrate；`E2` 静态装配断言实测判为「自装配」） |
+| 「**如果选择线上召开支委会**」 | 页内「① 选一场支委会（线上召开）」：新建时写 `type:'支委会'` ＋ `scenarioId:'branch-committee'` ＋ `voteConfig = { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }`（**复用既有活动实体，不新造会议实体、不加字段**） |
+| 「**提取支委会议程**」 | 页内「② 提取支委会议程」：接**两条既有来源出口**——专班报送 `TaskForceRecordStore.listCommitteeRequests()` · 意见反馈 `IssueStore.getAll()`（未办结 / 未隐藏 / 未合并）；加入时议程项只留 `sourceRef = { kind, id }` **回指**，来源数据不改不复制 |
+| 「**且留存讨论结果**」 | 页内「⑤ 讨论结果（留存 / 查阅）」：读议程项 `result`（`recordAgendaResult` 写入，与活动详情页「记录会议结果」**同一函数**）＋ 委员表态记录（记名逐人 / 无记名只计数）；支书 / 副支书可「记录通过 / 记录未通过」 |
+| 入口＝支书台新增页 | 支书台「我的职责」组新增页签 `committee-meeting`／「支委会会议」（`docs/src/modules/capabilities/secretary-workspace.js` 的 `tabs()` 体例，11 → 12；页签只做入口与场次统计） |
+
+- 「委员表态」（原话未点，但链路必需）＝页内「③ 议程与表态」复用 `components/vote-widget.js` ＋ `services/committee-vote.js`；「汇总与截止」＝页内「④」复用 `components/vote-summary-panel.js`（截止 → 活动 `votesLocked`）。
+- **未新增表 / 未新增活动字段 / 未放宽任何写权限**；服务端**零改动**（无新路由）。
+
+### 二、真机全链（临时探针 `server/test/tmp-b105-probe.mjs`，**用完已删**）
+
+命令：`cd server` → `node test/tmp-b105-probe.mjs`（`createApp(:memory:)` ＋ `seedDatabase` ＋ 真实 Chromium；探针只做「造一条专班报送 → 走页面全链 → 用 HTTP 直连服务端读回」）。
+
+```
+[①] 支委进页（非拒绝态）= true
+[①] 新建后选中会议 id = act-dd69bec7
+[②] 可提取来源条数：专班报送= 1 意见反馈= 5
+[②·落库] 服务端活动 agenda = [{"id":"ag_de508fb7-…","kind":"normal","item":"审议专班「宣传专班（第二期）」（解散）","host":"支书","sourceRef":{"kind":"taskforce-proposal","id":"tf-001"}},{"id":"ag_eb9114e5-…","kind":"normal","item":"审议反馈「三会一课记录流程中第二步卡壳」","host":"支书","sourceRef":{"kind":"issue","id":"issue-001"}}]
+[②·落库] 服务端活动 voteConfig = {"mode":"async","optionSet":"deliberative","ballotMode":"named","voterScope":"committee","voterIds":["p10","p11","p12","p13","p14"],"quorumCheck":false}
+[③] 组织委员可进页 = true 可表态（提交按钮在位）= true
+[③] 组织委员页面显示已表态 = true
+[③·落库] 服务端表态行 = [{"id":"av-90ecb54b","activityId":"act-dd69bec7","agendaItemId":"ag_de508fb7-…","personId":"p11","position":"object","note":"建议改到晚间时段（探针）","createdAt":"2026-09-19T22:55:04.708Z","updatedAt":null}]
+[④] 汇总区文本 = "表态汇总 应到 5 · 已表态 1 · 未表态 4 截止表态 应到＝有表决权党员（预备党员无表决权）… 议题 董建军 高翔宇 方文静 储子禾 潘振华 审议专班「宣传专班（第二期）」（解散） — 异议 建议改到晚间时段（探针） — — — 审议反馈「三会一课记录流程中第二步卡壳」 — — — — —"
+[④·落库] 服务端 votesLocked = true voteDeadline =
+[⑤] 记录前讨论结果区 = "1. 审议专班「宣传专班（第二期）」（解散） 表态记录：高翔宇：异议（建议改到晚间时段（探针）） 讨论结果：尚未记录结果 记录通过 记录未通过 2. 审议反馈「三会一课记录流程中第二步卡壳」 表态记录：暂无人表态 讨论结果：尚未记录结果 记录通过 记录未通过"
+[⑤] 记录后讨论结果区 = "1. 审议专班「宣传专班（第二期）」（解散） 表态记录：高翔宇：异议（建议改到晚间时段（探针）） 讨论结果：已记录：通过（记录人 储子禾 · 2026-09-19 22:55） 记录通过 记录未通过 2. …"
+[⑤·落库] 服务端 agenda（含 result） = [{"id":"ag_de508fb7-…","kind":"normal","item":"审议专班「宣传专班（第二期）」（解散）","host":"支书","sourceRef":{"kind":"taskforce-proposal","id":"tf-001"},"result":"passed","recordedBy":"p13","recordedAt":"2026-09-19T22:55:10.612Z"},{"id":"ag_eb9114e5-…","item":"审议反馈「三会一课记录流程中第二步卡壳」","sourceRef":{"kind":"issue","id":"issue-001"}}]
+[pageerror] 支书页 = [] | 组织委员页 = [] | 成员页 = []
+```
+
+- 环节串起来：**支书建线上支委会（①）→ 提取议程（专班报送 ＋ 意见反馈各一条，②）→ 组织委员表态（异议 ＋ 附言，③）→ 支书汇总并截止（④）→ 记录并查阅讨论结果（⑤）**，每步都有服务端读回为证。
+- **`pageerror` = 0**（三页合计 0 条）。
+
+### 三、权限实测（非支委被拒的证据）
+
+```
+[⑥] 普通成员进页 = {"denied":true,"hasCreate":false,"hasVote":false,"tail":"… ← 返回首页 本页仅支委可用 当前登录账号不在本支部支委名单（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）内，不能查看或操作支委会会议。 ← 返回我的工作台"}
+[⑥] 普通成员（p5）表态 → HTTP 403 {"error":"不在本次表决名单"}
+[⑥] 普通成员（p5）截止 → HTTP 403 {"error":"无权限"}
+[⑥] 组织委员（p11）截止 → HTTP 403 {"error":"无权限"}
+[⑥] 锁定后组织委员（p11）再表态 → HTTP 400 {"error":"表态已截止锁定，不可再提交"}
+```
+
+- **页内门**：登录人不在 `resolveVoterIds('committee')`（＝支书 / 副支书 / 组织 / 宣传 / 纪检）→ **只呈现「本页仅支委可用」**：`#pcm-create` 不在、`.vote-widget-slot .vote-submit` 不在（**不渲染会议数据与任何操作**）。
+- **服务端门（既有门，本批未放宽）**：普通成员表态 **403**（既有「不在本次表决名单」）；普通成员截止 **403**（`SECRETARY_AND_DEPUTY_ROLES`）；组织委员（支委但不是支书 / 副支书）截止亦 **403**；锁定后再表态 **400**。
+
+### 四、服务端落库实测（贴实际存了什么）
+
+见上「二」中三条 `·落库`：活动 `agenda`（两条，各带 `sourceRef`）· 活动 `voteConfig`（`async` / `deliberative` / `named` / `voterIds=p10–p14` / `quorumCheck=false`）· `agenda_votes` 行（`p11` / `object` / 附言，`updatedAt:null`）· 活动 `votesLocked=true` · 记录决议后 `agenda[0].result="passed"` ＋ `recordedBy:"p13"` ＋ `recordedAt`。
+
+### 五、守卫与全量
+
+- **守卫子集（逐条 pass/fail，本批终态实测）**：`doc-consistency` **13/13 pass** · `link-integrity` **5/5 pass** · `version-stamp` **15/15 pass** · `module-load` **2/2 pass**（`E1` 163/163 模块；`E2` **受检 12 页 ＋ 白名单 3 页**，新页判「自装配」）· `permission-gate` **9/9 pass** · `server-base` **11/11 pass** · `scene-write-sync` **3/3 pass** · `page-sweep` **11/11 pass**（普查覆盖 tab=**67**，含新增页签，零 `pageerror`）· `form-loop-sweep` **78/78 pass**。9 个文件合计 **147 测试 / 147 pass / 0 fail**。
+- **全量（`R-85`）**：先 `npm start` 起 3000 服务 → `npm test` → 停服。**首跑**：706 测试 / **705 pass / 1 fail**——唯一红为 `doc-consistency::S12`（我新写的一行**面向用户文案**含「支书裁定」四字且同行无日期，被判定为「无日期授权声明」）；**依纪律改文案不改守卫**（改为「尚未确定（待支部制度与本支部决策）」）后复跑 `doc-consistency` 13/13 绿。**终局全量结果**：**706 测试 / 706 pass / 0 fail**（`duration_ms` 1072826 ≈ 17.9 分钟；`cancelled 0` · `skipped 0` · `todo 0`）⇒ **全量全绿、收尾**。跑完后已停服。
+- **版本戳**：改动落在 `docs/src/**` 与 `docs/*.html` ⇒ 已 bump **`20260919j → 20260919k`**（`bump-version.mjs` 实测：JS 210 个 / HTML 22 个 / CSS 2 个 / server-test 70 个，陈旧戳残留 0）。
+
+### 六、改动清单
+
+- **新建**：`docs/party-committee-meeting.html` · `docs/src/entries/party-committee-meeting-entry.js` · `docs/src/entries/tabs/secretary/committee-meeting-tab.js`。
+- **改**：`docs/src/modules/capabilities/secretary-workspace.js`（+1 tab）· `docs/src/core/function-catalog.js`（`ws-secretary` 描述 11 → 12 tab）· `docs/help.html`（§0.1 表 11 → 12 ＋ §2.1 标题 11 → 12 ＋ §2.1 补 1 行 / 2 行说明）· `.ctx/SNAPSHOT.md`（页面 21 → 22 / 14 根 → 15 根 ＋ §III 表 1 行 ＋ 目录树 1 行 ＋ settings「15 根页之一」）· `README-server.md`（§2 支委门表 ＋ §3.1 页面清单 21 → 22 ＋ §3.2 页签 66 → 67 ＋ §3.2.1 11 → 12 并重编号 ＋ §3.4 关键机制 1 行 ＋ §4.1 `agenda[]` 子字段）· `.ctx/logs/2026-09-DECISION_LOG.md`（`D-526` ＋ 本月目录 1 行 ＋ `D-522` 状态改准 ＋ 文首 / 文末编号起止 ＋ 目录状态口径）· `.ctx/logs/2026-09-EXECUTION_LOG.md`（本节）· `.ctx/ACTIVE_RULINGS.md`（批次 105 留痕句 ＋ `D-485` 行补落地指针）· `.ctx/logs/DECISION_LOG.md`（月度索引 **251 条（D-275~D-525）→ 252 条（D-275~D-526）**）· 全站版本戳 `20260919k`。
+- **未改**：`content/**`（只登记）· `docs/workspace/party-committee.html`（**党委台，名同实异**）· **服务端业务代码与 `server/test/**` 既有测试**（本批未加测试，真机证据走临时探针）· 历史文件（`.ctx/logs/2026-07-*` / `2026-08-*` / `archive/**`）· `CLAUDE.md`（本批无新纪律）。
+- **临时探针**：`server/test/tmp-b105-probe.mjs`（＋两个 `.tmp-b105-*.log` 测试输出）**已删除**（`npm test` 会收集 `test/**` 下全部文件，留着会进全量）。
+
+### 七、四条产品取向怎么留白的（＋ 如实报没做的）
+
+- **① 线上表决是否等同线下（效力）**：页面**不写任何效力判定**；也不把线上结果写进任何「与线下同效」的措辞。
+- **② 讨论结果谁能看**：页面当下**只对支委可进**（那是 `D-522` 已定的**参会人集合**，不等于「公开范围」）；页面**不向全支部广播 / 不发通知**，也不在任何其它页面呈现该讨论结果。公开口径**留白待裁**。
+- **③ 缺席怎么办**：**不加任何规则**——不设出席门槛（支委会 `quorumCheck=false` 是既有配置，未改）、不催办、不代缺席人表态；页内只如实显示「已表态 / 未表态」计数（沿用既有汇总组件）。
+- **④ 是否也走线下那 9 条任务**：**未派生任何线下 SOP 任务**（沿用既有线上支委会的实体形态，不是本批新决定）；两条线**未合流**，是否并行**留白待裁**。
+- 上述四条在页面上有**可见载体**：一条提示「以下四条口径尚未确定（待支部制度与本支部决策），本页不代作判定」。
+- **如实报没做**：① 支委侧（组织 / 宣传 / 纪检台）**未加页签**，委员经会议页链接直达；② 新建会议**不发通知**（既有 kind `taskforce-vote-requested` 文案限「专班议案」，新 kind 须服务端注册表复算授权，超出本批「只复用」范围）；③ 页签只做入口，**不做会议列表 / 分页**（避免第二套列表口径）。
+
 
 
 

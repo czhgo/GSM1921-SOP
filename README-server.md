@@ -111,6 +111,16 @@
 
 **依据**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:41`、`docs/src/mock/people.js:66`（`p_pc`：`role:'party-staff'`、`branchId: null`）。
 
+**第三个页面（非工作台）的支委门（2026-09-20 批次 105 / `D-526`）**：`docs/party-committee-meeting.html`（支委会会议页）**不是角色工作台**，无独立角色键——它的进页门 = 「登录人是否在本支部支委名单内」，名单与线上表决「应到名单」**同一单一源**：`docs/src/services/vote-config.js::resolveVoterIds('committee')`（`people.js` role + `AuthStore.isCommissioner`，排除 `u_*`，即支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）。对应地：
+
+| 角色键 | 能否进会议页 | 页内能做什么 | 服务端写口（既有门，本批未放宽） |
+|---|---|---|---|
+| `secretary` / `deputy-secretary` | 能 | 建/选线上支委会、提取议程、汇总、**截止**、记录讨论结果 | 建/改活动 → 支委层活动写门；截止 → `POST /api/v1/agenda-votes/lock`（`SECRETARY_AND_DEPUTY_ROLES`，非此二者 403 `无权限`） |
+| `org-commissioner` / `prop-commissioner` / `disc-commissioner` | 能 | 就议程表态（同意 / 异议 / 附言）、查看汇总与讨论结果 | 表态 → `POST /api/v1/agenda-votes`（须在活动 `voteConfig.voterIds` 内） |
+| `leader` / `participant` / 其它 | **不能** | 页面只呈现「本页仅支委可用」，不渲染会议数据与任何操作 | 表态 403 `不在本次表决名单`；截止 403 `无权限` |
+
+**依据**：`docs/src/entries/party-committee-meeting-entry.js`（页面自检）、`docs/src/services/vote-config.js:54-67`（名单单一源）、`server/routes/committee.js:56-92`（表态门）、`:161-177`（截止门）、`server/routes/resources.js`（活动写门）。
+
 ### 2.2 逐个角色说明
 
 > 「权限键」取自代码 `ROLE_PERMISSIONS`（实际被判定的键集）。**注意**：制度文档里的权限矩阵带有中文限定语（如「Y(审阅)」「Y(建档)」），那些**限定语不是权限键**，它们靠各写入口的业务守卫实现（例如「组长可上传本组考勤」由 `docs/src/services/attendance.js::canUploadAttendance` 判定，而不是靠一个 `record_attendance` 键）。
@@ -326,7 +336,7 @@
 
 ## §3 功能 / 板块
 
-### 3.1 页面清单（共 21 个静态页）
+### 3.1 页面清单（共 22 个静态页）
 
 | 类型 | 页面文件 | 用途 | 登录门控 |
 |---|---|---|---|
@@ -336,6 +346,7 @@
 | | `docs/feedback.html` | 意见反馈提交与浏览 | 需登录 |
 | | `docs/archive.html` | 归档库 | 需登录 |
 | | `docs/activity.html` | 活动与会议详情 | 需登录 |
+| | `docs/party-committee-meeting.html` | 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果） | 需登录 **且** 登录人须在本支部支委名单内（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）——不在名单者页面只呈现「本页仅支委可用」，不渲染任何会议数据与操作 |
 | | `docs/taskforce.html` | 专班详情 | 需登录 |
 | | `docs/notice.html` | 通知详情 | 需登录 |
 | | `docs/wizard.html` | 换组织/支部配置分步向导 | 需登录 |
@@ -352,13 +363,13 @@
 | | `docs/workspace/visitor.html` | 成员工作台（普通参与者） | 强制登录 |
 | | `docs/workspace/party-committee.html` | 党委工作台（组织级） | 强制登录 |
 
-**依据**：`docs/` 目录实况（14 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/AUTHENTICATION_MODEL.md:64-75`（L1 工作台强制跳登录）。
+**依据**：`docs/` 目录实况（15 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/AUTHENTICATION_MODEL.md:64-75`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/party-committee-meeting-entry.js`，名单单一源 `docs/src/services/vote-config.js::resolveVoterIds('committee')`），服务端写口另有既有门（`server/routes/committee.js`）。
 
-### 3.2 各工作台页签（共 66 个）
+### 3.2 各工作台页签（共 67 个）
 
 > 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/modules/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝工作台 / 我的职责 / 知情查看 / 制度与答复**；**党委台＝首页 / 全院治理 / 支部治理**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
 
-#### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 11 个
+#### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 12 个
 
 | # | 页签（id / 名称） | 分组 | 谁用 | 做什么 |
 |---|---|---|---|---|
@@ -366,13 +377,14 @@
 | 2 | `todo` / 待办 ★ | 工作台 | 同上 | 工作域折组（会务/活动项目/考勤纪律/考察/成员发展/专班/决议上报/归档宣传/汇报反馈），域内批量确认 |
 | 3 | `overview` / 全局概况 ★ | 工作台 | 同上 | 按维度 / 按人两视图的全局汇报-卡点-在办总览 |
 | 4 | `calendar` / 活动管理 | 我的职责 | 同上 | 会务日历；决策树引导式创建活动（含议程、表决配置写入面板） |
-| 5 | `assign` / 赋权管理 | 我的职责 | 同上 | 项目角色与常设角色赋权（含党小组组长指派） |
-| 6 | `notification` / 通知发布 | 我的职责 | 同上 | 发布通知、受众定向、催读 |
-| 7 | `report-up` / 上报党委 | 我的职责 | 同上 | 向党委上报发展节点 / 活动报备，查看批复结论 |
-| 8 | `group-progress` / 党小组 | 我的职责 | 同上 | 党小组清单 + 新增 / 改名 / 解散；未分组行内归组 |
-| 9 | `tf-view` / 知情查看 | 知情查看 | 同上 | 活动 / 专班分段**只读**（知情权：无职责亦有知情权） |
-| 10 | `work-map` / 支部分工 | 知情查看 | 同上 | 工作地图：平铺模块 / 按人 / 按项目三视图 |
-| 11 | `feedback` / 反馈管理 | 制度与答复 | 同上 | 意见反馈处置（指派 / 关闭 / 隐藏 / 合并 / 里程碑 / 终审） |
+| 5 | `committee-meeting` / 支委会会议 | 我的职责 | 同上（页签入口）；支委（会议页内表态） | 线上召开支委会的入口与统计（场次 / 线上召开数 / 未截止数）；进独立页 `party-committee-meeting.html`：选线上召开 → 提取议程（专班报送 / 意见反馈）→ 支委在线表态 → 汇总截止 → 留存并查阅讨论结果（批次 105 / `D-526`） |
+| 6 | `assign` / 赋权管理 | 我的职责 | 同上 | 项目角色与常设角色赋权（含党小组组长指派） |
+| 7 | `notification` / 通知发布 | 我的职责 | 同上 | 发布通知、受众定向、催读 |
+| 8 | `report-up` / 上报党委 | 我的职责 | 同上 | 向党委上报发展节点 / 活动报备，查看批复结论 |
+| 9 | `group-progress` / 党小组 | 我的职责 | 同上 | 党小组清单 + 新增 / 改名 / 解散；未分组行内归组 |
+| 10 | `tf-view` / 知情查看 | 知情查看 | 同上 | 活动 / 专班分段**只读**（知情权：无职责亦有知情权） |
+| 11 | `work-map` / 支部分工 | 知情查看 | 同上 | 工作地图：平铺模块 / 按人 / 按项目三视图 |
+| 12 | `feedback` / 反馈管理 | 制度与答复 | 同上 | 意见反馈处置（指派 / 关闭 / 隐藏 / 合并 / 里程碑 / 终审） |
 
 #### 3.2.2 组织委员工作台（`org.html`）— 11 个
 
@@ -482,6 +494,7 @@
 | 专班全生命周期 | 发起 → 招募统筹 → 定人定责定岗 → 运行 → 复盘 → 归档 |
 | 上报党委双向通道 | 支部上报关键事项 → 党委逐项审批 → 结论回传；党委另有下发通知通道 |
 | 线上异步表决 | 支书发起 → 通知应到成员 → 成员异步表态 → 支书汇总/截止（**截止不可逆**） |
+| 线上支委会（会议页，2026-09-20 批次 105 / `D-526`） | 支书台「支委会会议」页签 → 独立页 `party-committee-meeting.html`：选 / 建一场线上召开支委会 → **提取议程**（读既有来源：专班报送 `TaskForceRecordStore.listCommitteeRequests()`、意见反馈 `IssueStore` 未办结项；加入时只留 `sourceRef` 回指，不复制来源）→ 支委线上表态（同意 / 异议 / 附言）→ 支书汇总并**截止**（`votesLocked`）→ **查阅讨论结果**（议程项 `result` + 表态记录；记录复用 `recordAgendaResult`，与活动详情页同一函数）。仅支委可进；效力 / 可见范围 / 缺席 / 是否并行线下任务四条口径留白待裁 |
 | 数据交接（三委间） | 固定协议：纪检→宣传 考勤备案 / 纪检→组织 考察记录 / 组织→纪检 补课需求回执（生成即派生接收方待办） |
 | 数据一键重置（仅 mock 形态） | `?reset=demo` / `?reset=preview` / `?reset=init` 三档 |
 
@@ -560,7 +573,7 @@
 | isOutdoor | boolean | 否 | 是否外出（校外）活动；写入活动时勾选，判据「本次为外出活动」→ 写入后弹外出提醒清单（**是提醒、非必填、不作校验**） |
 | carriers | string[] | 否 | 主题党日载体（理论学习 / 实践参访 / 交流座谈 / 其他，多选） |
 | isJoint | boolean | 否 | 共建性质（共建开展为 true） |
-| agenda | `Array<{item, host?}>` | 否 | 会议议程（逐条议题 + 可选主持人），会后可改 |
+| agenda | `Array<{id?, item, host?, kinds?, sourceRef?, result?, recordedBy?, recordedAt?}>` | 否 | 会议议程（逐条议题 + 可选主持人），会后可改。`id`＝表决/结果关联键（`agendaVotes.agendaItemId`、`recordAgendaResult` 均按它匹配）；`sourceRef`＝议程提取来源回指 `{kind:'taskforce-proposal'\|'issue', id}`（**只回指，不复制来源数据**，来源仍以专班报送 / 意见反馈为准） |
 | organizer | string | 否 | 该场活动**组织者** personId——写入活动时「同时指定」即完成赋权、解除指定即收回（裁定 `D-308` / `D-309` / `D-312`） |
 | direction | `'top-down'\|'bottom-up'` | 否 | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起） |
 | hostGroup | string | 否 | 承办党小组（组长写入时固化）；考勤「应到」判据优先取它、缺省回退组织者所属小组 |
@@ -577,6 +590,7 @@
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:57-81`、`:118-167`（`isOutdoor` 见 `:162`）、`docs/src/core/constants.js:596-704`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
 **2026-09-19 批次 97 改准**：① 删去 `attendanceQROwner` 一行（该字段**已从代码删除**，见 `.ctx/ACTIVE_RULINGS.md`「考勤二维码是与网页无关的线下动作」，裁定 `D-329` / `D-463`）；② `isBrand` 认定方由「支书」改准为「**支委会认定、支书在系统上完成标记**」（裁定 `D-414`）；③ 补 `isOutdoor` 一行（该维度本就存在于活动主源，此前漏列）。
+**2026-09-20 批次 105 补**：`agenda[]` 一行补 `id` / `sourceRef` 两个子字段（线上支委会表决按 `id` 关联表态、按 `sourceRef` 回指提取来源）。本批**未新增任何表、未新增任何活动字段**——支委会会议页全部复用既有实体与既有写口（活动 + `voteConfig` + `agenda` + `agendaVotes` + `votesLocked`），裁定 `D-526`。
 
 ### 4.2 活动子记录（SubRecord，概念模型）
 
