@@ -530,7 +530,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | timeOffset | number\|null | 是 | 距 T-0 的天数偏移（null = 无时间锚点） |
 | desc | string | 否 | 任务详细描述 |
 
-**内置场景清单（共 12 个）：**
+**内置场景清单（共 8 个）：**
 
 | scenarioId | 标题 | domain | 考勤类型 |
 |---|---|---|---|
@@ -540,12 +540,10 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | `party-group-meeting` | 党小组会 | activity | 刚性考勤 |
 | `party-lecture` | 党课 | activity | 刚性考勤 |
 | `branch-committee` | 支委会 | activity | 刚性考勤 |
-| `joint-event` | 团支部合办活动 | activity | 党小组主导 |
-| `new-system` | 制度制定与迭代 | organization | -- |
-| `develop-activist` | 考察积极分子 | organization | -- |
-| `info-platform` | 信息平台支持 | organization | -- |
 | `attendance-check` | 查考勤记录 | organization | -- |
 | `feedback-handling` | 处理意见建议反馈 | organization | -- |
+
+> **已清场景（沿革）**：`joint-event`（团支部合办 → 主题党日 + 共建维度，`D-464`）· `new-system`（制度建设 → 支部文件 + 议题，`D-464`）· `develop-activist`（考察积极分子 → 考察记录 + 建档接收 + 阶段变更，`D-510`）· `info-platform`（信息平台支持 → 支部分工模块 + 宣传台周报，`D-510`）——四者均为「有定义、无写入入口」的死场景，已从 `docs/src/workflow/sopData.js` 删去，**不单开场景**。
 
 ### 2.15 工作流定义 (Definition)
 

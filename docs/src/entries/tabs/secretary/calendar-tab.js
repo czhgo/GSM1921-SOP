@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260919g';
-import { showToast } from '../../../core/utils.js?v=20260919g';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260919g';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260919g';
-import { renderInspectorFromState } from '../../../components/inspector.js?v=20260919g';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260919g';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260919g';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260919g';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260919g';
-import { loadActivities } from '../../../services/activity.js?v=20260919g';
-import { renderQueryView } from '../../../components/query-view.js?v=20260919g';
-import { icon } from '../../../core/icons.js?v=20260919g';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260919g';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260919g';
+import { getAppState, setState } from '../../../core/state.js?v=20260919i';
+import { showToast } from '../../../core/utils.js?v=20260919i';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260919i';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260919i';
+import { renderInspectorFromState } from '../../../components/inspector.js?v=20260919i';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260919i';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260919i';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260919i';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260919i';
+import { loadActivities } from '../../../services/activity.js?v=20260919i';
+import { renderQueryView } from '../../../components/query-view.js?v=20260919i';
+import { icon } from '../../../core/icons.js?v=20260919i';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260919i';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260919i';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260919g';
-import { BranchService } from '../../../services/runtime.js?v=20260919g';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260919g';
+import { NoticeStore } from '../../../services/notice.js?v=20260919i';
+import { BranchService } from '../../../services/runtime.js?v=20260919i';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260919i';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919g';
-import { badgeHtml } from '../../../components/badges.js?v=20260919g';
-import { collectAgendaRows } from './agenda-form.js?v=20260919g';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260919g';
-import { AuthStore } from '../../../services/auth.js?v=20260919g';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260919g';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260919i';
+import { badgeHtml } from '../../../components/badges.js?v=20260919i';
+import { collectAgendaRows } from './agenda-form.js?v=20260919i';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260919i';
+import { AuthStore } from '../../../services/auth.js?v=20260919i';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260919i';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260919g';
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260919i';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260919g';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260919i';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260919g';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260919i';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -404,6 +404,13 @@ function openWriteModal() {
       if (wp.personPicker) { wp.personPicker.destroy(); wp.personPicker = null; }
       wp.step = 1;
       renderWritePanel(panel.querySelector('.modal-body'));
+      // 浮窗页脚就近深链（2026-09-19 批次 99）：本浮窗要定的制度口径（票决门槛 / 应到名单核对 /
+      // 会议考勤类型）集中在设置的「支部制度参数」分区，就地给去该分区的入口（设置页顶部有「← 返回上一页」）。
+      // 加在 .modal-body 之外的页脚：切步骤只重绘 body，本条不随步骤消失。
+      const foot = document.createElement('div');
+      foot.style.cssText = 'padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);';
+      foot.innerHTML = '相关设置：<a href="./settings.html#branch-policy-params" style="color:var(--app-accent,#B91C1C);text-decoration:underline;">活动制度口径（票决门槛 / 应到名单核对 / 考勤类型）→ 支部制度参数</a>';
+      panel.appendChild(foot);
     },
   });
 }

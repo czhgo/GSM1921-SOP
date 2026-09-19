@@ -60,7 +60,7 @@ export const ACTIVITIES = [
   // act-28「谈话考察」违背「删除考察活动类型」（5b2e4ea）已彻底删除。
   { id: 'act-26', title: '8月党小组会（暑期线上）', date: '2026-08-01', type: '党小组会', organizer: 'p1', direction: 'bottom-up', hostGroup: '第一党小组', location: '线上·腾讯会议', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
   // R-21（2026-09-13）：补第二/第三党小组小组会——此前小组会种子只覆盖第一党小组，
-  // 「组长上传位＝本组」收紧后 p2/p4 的考勤/考察上传下拉为空（演示不完整）。
+  // 「上传位＝本组」收紧后 p2/p4 的考勤/考察上传下拉为空（演示不完整）。
   // hostGroup 显式固化 = 组长写入同一语义，服务层 _activityPartyGroup 直接取用。
   { id: 'act-32', title: '8月党小组会：第二党小组理论学习', date: '2026-08-04', type: '党小组会', organizer: 'p2', direction: 'bottom-up', hostGroup: '第二党小组', location: '光华1号楼205会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p2', role: 'organizer' }] },
   { id: 'act-33', title: '8月党小组会：第三党小组理论学习', date: '2026-08-05', type: '党小组会', organizer: 'p4', direction: 'bottom-up', hostGroup: '第三党小组', location: '光华1号楼207会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p4', role: 'organizer' }] },

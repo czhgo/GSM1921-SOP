@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260919g"></script>
+<script src="./src/theme-init.js?v=20260919i"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260919g"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260919g">
+  <script src="./src/tailwind-config.js?v=20260919i"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260919i">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -314,7 +314,7 @@
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">0.4</span>设置中心速览（外观 / 我的工作台 / 支部治理）</h3>
         <div class="help-card" id="card-settings-quick" data-search="设置中心 设置 外观 字号 明暗主题 强调色 我的工作台 页签顺序 拖拽 支部治理 支部配置 工作台默认顺序 换组织向导 支部制度参数 只读 职责参数 纪检 组织 组长 配置变更记录 回滚 未绑定支部 无支部归属 副书同权">
           <h4 class="help-card-title">支部配置在哪 · 谁能见什么 · 变更可回滚</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口</strong>：每页侧边栏右下角齿轮「设置」（或直接打开 settings.html）。能看到几个分区跟着登录身份走（<strong>9 个分区逐区一览、每区管什么、你能看到哪几区，见 5.4</strong>）：</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口</strong>：每页侧边栏右下角齿轮「设置」（或直接打开 settings.html）。能看到几个分区跟着登录身份走（<strong>10 个分区逐区一览、每区管什么、你能看到哪几区，见 5.4</strong>）：</p>
           <ul class="doc-list" style="margin-top:6px;">
             <li><strong>外观</strong>（人人可用）：字号 / 明暗主题 / 强调色，调完全站即时生效；未登录时偏好存本浏览器，登录后随账号走（换设备、换人不串）。</li>
             <li><strong>我的工作台</strong>（登录用户）：调本人页签顺序（仅本账号生效），默认沿用支部默认顺序，「今天 / 待办」等核心固定页签不可动。</li>
@@ -378,7 +378,7 @@
               <tr><td>职能写入</td><td>天然权限</td><td>组织委员 / 宣传委员 / 纪检委员（各自板块）</td></tr>
               <tr><td>活动写入</td><td>天然权限</td><td>支书工作台（支书 / 副支书共台）与党小组组长工作台（活动管理）</td></tr>
               <tr><td>活动写入（需赋权）</td><td>支书 / 组长赋权</td><td>组织者 / 深度参与者（在成员台被赋权后操作）</td></tr>
-              <tr><td>专班发起 / 招募统筹</td><td>天然权限 / 唯一节点</td><td>发起：支书 / 组长 / 三委员；招募统筹：组织委员</td></tr>
+              <tr><td>专班发起 / 招募统筹</td><td>天然权限 / 日常统筹</td><td>发起：支书 / 组长 / 三委员；招募统筹：组织委员（专班管理节点之一，支书 / 副支书 / 组织委员均可管理）</td></tr>
               <tr><td>思想汇报归档</td><td>提交即入库（算法归集）</td><td>无需人工归档；组织委员查看调用，必要时打回要求补充（附意见）</td></tr>
               <tr><td>支部配置 / 模块启停</td><td>部署期职责</td><td>党委组织员（党委台「支部配置」）；支书 / 副支书经 设置→支部治理 进入（同源内嵌，副书同权）</td></tr>
               <tr><td>通知发布</td><td>天然权限</td><td>支书（通知自动派生成员待办）；党委组织员（下发通知，标「党委下发」）</td></tr>
@@ -437,7 +437,7 @@
               <tr><td>工作概况</td><td>组织委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
               <tr><td>考察上传</td><td>组织委员</td><td>考察材料上传 / 建档 / 归集（发展链条素材）</td><td>「我的职责」段；「+ 上传」选对象 → 传材料 → 保存</td></tr>
               <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报<strong>提交即入库归档</strong>（算法归集至个人档案），组织委员查看调用；篇幅少于 1200 字触发<strong>警告审阅</strong>（只提示、<strong>不影响提交</strong>）。上半「<strong>篇幅不足一览</strong>」（少于 1200 字的汇报，逐条点进阅读页看一眼）；下半<strong>台账宽表（人 × 期次）</strong>：行＝支部在册成员、列＝期次（新→旧，最近 6 期可展开），格内为状态徽标（多篇标「N 篇」），<strong>「—」＝该期未提交</strong>（漏交一眼可见）</td><td>「我的职责」段；点某条 → 跳<strong>独立阅读页</strong> → 必要时「打回要求本人补充」；点台账格子 → 单篇直达该篇、多篇进该人按人视图</td></tr>
-              <tr><td>专班管理</td><td>组织委员</td><td>专班唯一统筹节点：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「我的职责」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
+              <tr><td>专班管理</td><td>组织委员</td><td>专班日常统筹节点（支书 / 副支书 / 组织委员均可管理）：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「我的职责」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
               <tr><td>成员名册</td><td>组织委员</td><td>成员档案管理：新增 / 行内编辑 / 删除 / 分组</td><td>「我的职责」段；「+ 成员」录入；行内点编辑改档案</td></tr>
               <tr><td>人才库</td><td>组织委员</td><td>积极分子 / 发展对象档案与考察画像视图</td><td>「我的职责」段；点人看画像与考察材料归集</td></tr>
               <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（每人的思想汇报篇数与期次，点进独立阅读页）</td><td>「我的职责」段；按阶段/党小组/发展分面筛选；点查看 / 推进</td></tr>
@@ -846,12 +846,12 @@
 
         <!-- 3.6 专班 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.6</span>专班（跨组攻坚 · 组织统筹）</h3>
-        <p class="doc-p">专班是<strong>跨党小组集中推进</strong>的攻坚形态（3.2 已提示）：以组织委员为唯一统筹节点，走<strong>发起（报送支委会表决）→ 表决通过转招募中（分级报名审核）→ 启动运行中（定人定责定岗 → 成员填报产出 / 组织逐条核验 + 分阶段进度）→ 报送解散表决 → 解散 / 归档</strong>全生命周期；复盘由组织侧提交、纪检复核；支书 / 组长 / 纪检按知情权只读查看；成员在本专班内报名与填报产出。各台「待办」专班折组与通知承担提醒 + 跳转（点「去处理」直达组织台专班看板 / 专班详情页）。</p>
+        <p class="doc-p">专班是<strong>跨党小组集中推进</strong>的攻坚形态（3.2 已提示）：以组织委员为日常统筹节点（专班管理节点之一，支书 / 副支书 / 组织委员均可管理），走<strong>发起（报送支委会表决）→ 表决通过转招募中（分级报名审核）→ 启动运行中（定人定责定岗 → 成员填报产出 / 组织逐条核验 + 分阶段进度）→ 报送解散表决 → 解散 / 归档</strong>全生命周期；复盘由组织侧提交、纪检复核；支书 / 组长 / 纪检按知情权只读查看；成员在本专班内报名与填报产出。各台「待办」专班折组与通知承担提醒 + 跳转（点「去处理」直达组织台专班看板 / 专班详情页）。</p>
 
         <div class="help-card" id="card-dom36-create" data-search="专班 发起 发布招募 名称 任务 人数 截止 技能 初始成员 预拟通知 报送支委会表决">
           <h4 class="help-card-title">发起专班（发布招募表单 → 自动报送支委会表决）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织委员工作台 tab 栏「发布招募」按钮（常驻，无需切 tab）→ 打开「发布专班招募」表单。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>组织委员（专班唯一统筹节点，见 1.3 写入范围表；支书 / 组长 / 各委员如需发起专班亦经此台代发起，统一起点便于招募统筹）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>组织委员（专班日常统筹节点，支书 / 副支书 / 组织委员均可管理，见 1.3 写入范围表；支书 / 组长 / 各委员如需发起专班亦经此台代发起，统一起点便于招募统筹）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">点「发布招募」→ 填四项必填：专班名称、任务描述、所需人数（1–50）、截止日期。</li>
@@ -1382,10 +1382,10 @@
         </div>
 
         <!-- 5.4 设置中心分区一览 -->
-        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.4</span>设置中心分区一览（9 个分区 · 你能看到哪几区）</h3>
-        <p class="doc-p">设置中心在每页侧边栏右下角「设置」（齿轮），未登录也能进。左栏是分区列表——<strong>登录身份不同，左栏里出现的分区不同</strong>；点任一区，右侧就显示该区的内容（第 0 章 0.4 是速览，本小节逐区列全）。</p>
-        <div class="help-card" id="card-admin-settings-sections" data-search="设置中心 设置 左栏 分区 外观 我的工作台 支部治理 支部信息与向导 工作台默认顺序 支部制度参数 纪检职责参数 组织职责参数 组长职责参数 快捷块说明 谁能看到 访客 支书 副支书 委员 组长 成员 党委组织员 未绑定支部">
-          <h4 class="help-card-title">9 个分区：每区管什么 · 谁能看到</h4>
+        <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">5.4</span>设置中心分区一览（10 个分区 · 你能看到哪几区）</h3>
+        <p class="doc-p">设置中心在每页侧边栏右下角「设置」（齿轮），未登录也能进。左栏是分区列表——<strong>登录身份不同，左栏里出现的分区不同</strong>；点任一区，右侧就显示该区的内容（第 0 章 0.4 是速览，本小节逐区列全）。工作台里「做事的地方 ↔ 能调的参数」对得上号处还给了就近入口（如支书台「写入活动」浮窗页脚 → 支部制度参数；纪检台「考察总表」→ 纪检职责参数；组织台「成员名册」支部应到行 → 组织职责参数；组长台「今天」学期提醒条 → 组长职责参数），点一下直接落到该分区，设置页顶部给「← 返回上一页」。</p>
+        <div class="help-card" id="card-admin-settings-sections" data-search="设置中心 设置 左栏 分区 外观 我的工作台 支部治理 支部信息与向导 工作台默认顺序 支部制度参数 配置变更记录 回滚 纪检职责参数 组织职责参数 组长职责参数 快捷块说明 谁能看到 访客 支书 副支书 委员 组长 成员 党委组织员 未绑定支部">
+          <h4 class="help-card-title">10 个分区：每区管什么 · 谁能看到</h4>
           <div class="doc-table-wrap">
             <table class="doc-table">
               <thead><tr><th style="width:12%;">分组</th><th style="width:20%;">分区</th><th style="width:40%;">这里管什么</th><th>谁能看到</th></tr></thead>
@@ -1395,6 +1395,7 @@
                 <tr><td>支部治理</td><td>支部信息与向导</td><td>查看本支部的档案信息，并可就地从本页打开「更换组织向导」（改支部名、模块组合、分工、术语与验证重置）</td><td>支书 / 副支书（副书同权）</td></tr>
                 <tr><td>支部治理</td><td>工作台默认顺序</td><td>给全体成员设定工作台默认页签顺序（核心功能组只读带锁）；各人仍可在「我的工作台」里调成自己的顺序</td><td>支书 / 副支书</td></tr>
                 <tr><td>支部治理</td><td>支部制度参数</td><td>支部级制度参数（票决门槛、应到名单核对、会议类型等）的<strong>制度默认只读展示</strong>——不在这里直改，须经支书 / 党委裁决后在系统层变更</td><td>支书 / 副支书</td></tr>
+                <tr><td>支部治理</td><td>配置变更记录</td><td>本支部配置（工作台模块 / 产出块 / 分工 / 档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更项、前后值与依据；单项变更可由支书 / 副支书「回滚此更改」（回滚本身再记一条）</td><td>支书 / 副支书</td></tr>
                 <tr><td>支部治理</td><td>纪检职责参数</td><td>纪检这一域的职责参数（如考察确认的超期天数），可编辑、可恢复默认；调整后纪检台的超期判定与支书台的考察提醒随之生效</td><td>纪检委员</td></tr>
                 <tr><td>支部治理</td><td>组织职责参数</td><td>组织这一域的职责参数（如学期末滞留集中复核窗口）；调整后支书待办的提醒窗口与文案随之生效</td><td>组织委员</td></tr>
                 <tr><td>支部治理</td><td>组长职责参数</td><td>党小组这一域的职责参数（如学期组员进展的自动归集提醒开关）</td><td>党小组组长</td></tr>
@@ -1402,7 +1403,7 @@
               </tbody>
             </table>
           </div>
-          <p class="help-card-desc" style="margin-top:8px;"><strong>你能看到哪几区：</strong>未登录访客 1 区（外观）；宣传委员与普通成员各 2 区（外观 + 我的工作台）；纪检委员 / 组织委员 / 党小组组长各 3 区（再 + 本域的「职责参数」）；党委组织员 3 区（再 + 跨支部治理快捷说明）；支书 / 副支书 5 区（外观、我的工作台 + 支部治理的支部信息与向导 / 工作台默认顺序 / 支部制度参数）。<strong>登录后账号若还没有支部归属</strong>：页眉显示中性「未绑定支部」，支部治理各区提示「未找到您所属支部——请先由党委在『支部管理』中确认归属」，换组织向导不唤起；配置的变更记录与回滚见 0.4。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><strong>你能看到哪几区：</strong>未登录访客 1 区（外观）；宣传委员与普通成员各 2 区（外观 + 我的工作台）；纪检委员 / 组织委员 / 党小组组长各 3 区（再 + 本域的「职责参数」）；党委组织员 3 区（再 + 跨支部治理快捷说明）；支书 / 副支书 6 区（外观、我的工作台 + 支部治理的支部信息与向导 / 工作台默认顺序 / 支部制度参数 / 配置变更记录）。<strong>登录后账号若还没有支部归属</strong>：页眉显示中性「未绑定支部」，支部治理各区提示「未找到您所属支部——请先由党委在『支部管理』中确认归属」，换组织向导不唤起；配置的变更记录与回滚见 0.4。</p>
         </div>
       </section>
 
@@ -1485,6 +1486,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260919g"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260919i"></script>
 </body>
 </html>

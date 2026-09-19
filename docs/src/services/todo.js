@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260919g';
-import { persist } from '../core/data-adapter.js?v=20260919g';
-import { generateId } from '../core/id.js?v=20260919g';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260919g';
+import { mockDB } from '../core/domain.js?v=20260919i';
+import { persist } from '../core/data-adapter.js?v=20260919i';
+import { generateId } from '../core/id.js?v=20260919i';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260919i';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -564,7 +564,7 @@ function _buildTodo(data) {
     actionData: data.actionData || null,
     // 业务动作标识（聚合键组成：role+actionKey，区分同 actionType 的不同业务域）
     actionKey: data.actionKey || null,
-    // 数据上下游标注（E2：待办项标注数据流，如「组长上传考勤 → 纪检确认 → 考勤明细」；无则列表不显示）
+    // 数据上下游标注（E2：待办项标注数据流，如「组织者上传考勤 → 纪检确认 → 考勤明细」；无则列表不显示）
     flow: data.flow || null,
   };
 }

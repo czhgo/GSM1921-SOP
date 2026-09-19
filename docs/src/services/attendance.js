@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260919g';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260919g';
-import { persist } from '../core/data-adapter.js?v=20260919g';
-import { generateId } from '../core/id.js?v=20260919g';
-import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260919g';
-import { isInitStateActive } from './init-reset.js?v=20260919g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260919g';
-import { getRosterStats } from './roster.js?v=20260919g';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260919g';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260919i';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260919i';
+import { persist } from '../core/data-adapter.js?v=20260919i';
+import { generateId } from '../core/id.js?v=20260919i';
+import { bumpToken } from '../core/version-token.js?v=20260919i'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260919i';
+import { isInitStateActive } from './init-reset.js?v=20260919i'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260919i';
+import { getRosterStats } from './roster.js?v=20260919i';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260919i';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -33,7 +33,7 @@ export function loadActiveAttendanceRecords() {
 
 export function saveAttendanceRecords(records) {
   mockDB.attendances = [...records];
-  bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组长上传/纪检录入等均经本函数落库）
+  bumpToken('attendance'); // P0：考勤写口统一 bump（纪检确认/组织者上传/纪检录入等均经本函数落库）
   persist();
 }
 
@@ -594,9 +594,9 @@ export function countExpectedWithMakeup({ type, groupId, activityId, records } =
 }
 
 /**
- * 党小组会考勤只读视图数据（R1-1/裁定④：纪检纪律台只读掌握——组长上传、不代传不审改）。
+ * 党小组会考勤只读视图数据（R1-1/裁定④：纪检纪律台只读掌握——组织者上传、不代传不审改）。
  * 按小组会活动聚合：组别 = 活动 organizer 所属党小组（缺省取成员多数党小组）；组长 = 该组
- * role 'leader' 成员（记录人语义）；上传人 = submittedBy（组长上传即本人，可辨）。
+ * role 'leader' 成员（记录人语义）；上传人 = submittedBy（组织者上传即本人，可辨）。
  * 纯数据辅助：纪检 disc attendance-tab 下方只读浏览块消费；单测直导无 DOM。
  * @param {Array} [records] 考勤记录（缺省 = 活跃记录）
  * @returns {Array<Object>} 按活动降序的聚合视图

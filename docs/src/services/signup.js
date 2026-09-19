@@ -9,16 +9,16 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260919g';
-import { generateId } from '../core/id.js?v=20260919g';
-import { persist } from '../core/data-adapter.js?v=20260919g';
-import { bumpToken } from '../core/version-token.js?v=20260919g'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../mock/seed.js?v=20260919g';
-import { isInitStateActive } from './init-reset.js?v=20260919g'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from './person.js?v=20260919g';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260919g';
-import { AuthStore } from './auth.js?v=20260919g';
-import { TaskForceRecordStore } from './taskforce.js?v=20260919g';
+import { mockDB } from '../core/domain.js?v=20260919i';
+import { generateId } from '../core/id.js?v=20260919i';
+import { persist } from '../core/data-adapter.js?v=20260919i';
+import { bumpToken } from '../core/version-token.js?v=20260919i'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../mock/seed.js?v=20260919i';
+import { isInitStateActive } from './init-reset.js?v=20260919i'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from './person.js?v=20260919i';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260919i';
+import { AuthStore } from './auth.js?v=20260919i';
+import { TaskForceRecordStore } from './taskforce.js?v=20260919i';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -193,7 +193,7 @@ async function _writeSource(sourceType, sourceId, personId, role) {
       await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
     } else {
       // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('./mock.js?v=20260919g');
+      const { updateActivity } = await import('./mock.js?v=20260919i');
       await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
     }
   } else {
@@ -370,7 +370,7 @@ export const SignupStore = {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
         if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
           const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('./mock.js?v=20260919g').then(({ updateActivity }) => {
+          import('./mock.js?v=20260919i').then(({ updateActivity }) => {
             updateActivity(s.sourceId, { assignments: remaining });
             persist(); // updateActivity 不自动落盘，须显式 persist
           });

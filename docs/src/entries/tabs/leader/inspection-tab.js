@@ -1,20 +1,20 @@
 // role: [工程师]+[AI]
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
-// 党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。
+// 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260919g';
-import { loadActivities } from '../../../services/activity.js?v=20260919g';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260919g';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260919g';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260919g';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260919g';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260919g';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260919g';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260919g';
-import { currentLeaderGroup } from './_shared.js?v=20260919g';
-import { generateId } from '../../../core/id.js?v=20260919g';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260919i';
+import { loadActivities } from '../../../services/activity.js?v=20260919i';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260919i';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260919i';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260919i';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260919i';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260919i';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260919i';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260919i';
+import { currentLeaderGroup } from './_shared.js?v=20260919i';
+import { generateId } from '../../../core/id.js?v=20260919i';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919g';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260919i';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -101,7 +101,7 @@ export function renderContent(ctx) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">党小组活动考察：党小组组长上传 → 纪检委员确认 → 录入考察总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
+      <div class="text-xs text-gray-500 mb-3">党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。仅列本组党小组会/本人组织的活动（其余活动由该活动组织者上传；组长非组织者=本组监督位，督促上传）</div>
       ${formHtml}
       <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="insp-list-host"></div>

@@ -19,7 +19,7 @@
 |---|---|
 | §1 | 系统背景与当前阶段（这是一套什么系统、给谁用、和制度母本的关系、示例与真实部署的区别） |
 | §2 | 角色（角色键全表 + 逐个角色说明 + 权限矩阵 + 服务端鉴权门） |
-| §3 | 功能 / 板块（页面清单 + 全部工作台页签 + 设置中心 + 关键机制） |
+| §3 | 功能 / 板块（页面清单 + 全部工作台页签 + 设置中心 + 关键机制 + 支部分工模块目录） |
 | §4 | 字段说明（**数据模型字段级清单**，逐实体逐字段） |
 | §5 | 部署环节（依赖 / 环境变量 / 启动构建 / 存储 / 服务器侧注意 / 真实部署需替换项） |
 | §6 | 接口一览（全部 HTTP 路由） |
@@ -427,6 +427,8 @@
 | 8 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
 | 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
+> **特例（组织者兜底入口，2026-09-19 批次 91 落地，裁定 `D-494`）**：**非组长**的人被指定为某场活动的组织者时，也可进入本台——但**只呈现「考勤上传」「考察上传」这两个页签**（该场活动上传位 + 纪检打回后的「待你确认」区），其余页签是组长身份的职责、不开放；**判据与表单零口径复制、不放宽任何写权限**。判定单一源 `docs/src/modules/capabilities/leader-workspace.js:17-23,69-72`（`ORGANIZER_FALLBACK_TAB_IDS`），身份门与归档兜底同款（`docs/src/core/bootstrap.js:19-20,181-187`）。
+
 #### 3.2.6 成员工作台（`visitor.html`，普通参与者）— 11 个
 
 | # | 页签 | 分组 | 做什么 |
@@ -487,6 +489,26 @@
 
 > **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain.js:267` 的 `handoffs` 域），但**服务端没有对应数据表**（见 §7）。
 
+### 3.5 支部分工模块目录（`config.workforce` 的键集，共 11 个）
+
+> 后端若要写支部配置（§4.25 的 `config.workforce`），**键名只能是下列 11 个模块 id**；`null`＝全按缺省主责展示。模块分两层：`norm`（工作程序 / 党内统一规范，**必办、不可停用**）与 `method`（工作方法，本支部自选，**可停用**，停用以 `{ownerType:'none', ownerId:''}` 表示）。
+
+| # | 模块 id（`config.workforce` 键） | 模块名 | 层 | 缺省主责角色 |
+|---|---|---|---|---|
+| 1 | `three-meetings` | 三会一课（含 4 子会） | norm | `secretary` |
+| 2 | `theme-party` | 主题党日 | norm | `secretary` |
+| 3 | `taskforce` | 专班 | method | `org-commissioner` |
+| 4 | `joint-event` | 共建活动 | method | `secretary` |
+| 5 | `develop-party-member` | 发展党员 | norm | `org-commissioner` |
+| 6 | `democratic-review` | 民主评议党员 | norm | `secretary` |
+| 7 | `election` | 换届选举 | norm | `secretary` |
+| 8 | `attendance-inspection` | 考勤考察 | norm | `disc-commissioner` |
+| 9 | `feedback-handling` | 意见反馈处理 | norm | `disc-commissioner` |
+| 10 | `rule-making` | 制度制定与迭代 | norm | `secretary` |
+| 11 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
+
+**依据**：`docs/src/core/work-map.js:29-116`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
+
 ---
 
 ## §4 字段说明（数据模型字段级清单）
@@ -497,11 +519,13 @@
 |---|---|---|
 | **来源 A**：`content/04_web_design/data/DATA_MODEL.md` §2.1–§2.29 | 系统**静态数据模型唯一权威源**的字段表（**34 张字段表**） | **323** |
 | **来源 B**：`server/db.js` / `server/routes/*.js` | **服务端专有表**（数据模型文档未列的 5 张）：`sessions`、`attachments`、`member_change_requests`、`committee_broadcasts`、`agenda_votes` | **39** |
-| **合计** | 本文写入字段条目数 | **362** |
+| **来源 C**：`docs/src/**` 的实际读写点（`core/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：活动主记录 7 条（§4.1 尾）＋ **5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` 21 · `archive_records` 11）57 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17） | **69** |
+| **合计** | 本文写入字段条目数 | **431** |
 
 - **来源 A 的粒度**＝DATA_MODEL.md 中「字段表」的**数据行数**（表头首列为「字段名」或「字段」的表）。源文档中有若干行把两个字段合写在一行（例如 `id / number`、`name / studentId / enrollYear`、`filePath / fileData`），本文**保持同样的行粒度**，故 `323` 可直接对上。
 - **来源 B 的 39 条**取自代码实际落库对象的字段并集（含各状态分支追加的字段）。
-- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 362 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
+- **来源 C 的 69 条**（2026-09-19 批次 98 补）＝**以代码为准穷举 db.js 的 35 张资源表后，发现来源 A/B 两处都没有字段级说明的那几块**：活动主记录被代码实际写入/读取、但 DATA_MODEL.md 字段表未列的 7 个字段（`organizer` / `direction` / `hostGroup` / `assignments` / `signupEnabled` / `requireMakeup` / `voteConfig`，见 §4.1 尾）；**在资源名映射内、却一直没有字段节的 5 张表**（`signups` / `prop_tasks` / `external_dispatches` / `branch_docs` / `archive_records`，见 §4.39–§4.42 与 §4.44）；**子记录聚合表的存储外壳**（`act_sub_records` / `tf_sub_records`，见 §4.43）；以及**支书复核标记 `secretaryConfirmedAt`**（落在考勤 / 考察 / 复盘三个实体上，见 §4.5 / §4.6 / §4.17）。**这 69 条都逐条给了代码出处**，后端建模时不能漏。
+- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 431 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
 - **通用约定**：`id` 形如 `前缀-随机`（服务端缺 id 时自动补，前缀表见 §6.2）；时间字段统一 ISO 字符串；`YYYY-MM-DD` 为日期；枚举值未注明时即「有且仅有」所列取值。
 
 > **服务端表全表清单（共 35 张资源表 + 2 张关系表）**：35 张资源表的表名见 `server/db.js:9-42`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:45-57`）。其中 **30 张**在 `server/routes/resources.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
@@ -537,6 +561,15 @@
 | carriers | string[] | 否 | 主题党日载体（理论学习 / 实践参访 / 交流座谈 / 其他，多选） |
 | isJoint | boolean | 否 | 共建性质（共建开展为 true） |
 | agenda | `Array<{item, host?}>` | 否 | 会议议程（逐条议题 + 可选主持人），会后可改 |
+| organizer | string | 否 | 该场活动**组织者** personId——写入活动时「同时指定」即完成赋权、解除指定即收回（裁定 `D-308` / `D-309` / `D-312`） |
+| direction | `'top-down'\|'bottom-up'` | 否 | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起） |
+| hostGroup | string | 否 | 承办党小组（组长写入时固化）；考勤「应到」判据优先取它、缺省回退组织者所属小组 |
+| assignments | `Array<{personId, role:'organizer'\|'deep'\|'participant'}>` | 否 | **项目内角色**的内联登记（写入活动时随指定写入；`auth.js` 按它判项目身份）。⚠ 与 §4.7「分工记录」不是一回事——后者是「谁负责哪项工作」 |
+| signupEnabled | boolean | 否 | 是否开放报名（写入活动时勾选）；**草稿活动只有它为 `true` 才可报名**（裁定 `D-465`；否则报名入口报「该活动当前不可报名」） |
+| requireMakeup | boolean | 否 | 本次活动是否要求补课（活动级勾选，仅党小组会等「按该次情形定」的场合用；主题党日不强制、支委会不补课）（裁定 `D-467` / `D-468`） |
+| voteConfig | object \| null | 否 | 线上异步表决配置，写入活动时固化：`{mode:'async', optionSet:'deliberative'│'formal', ballotMode:'named'│'anonymous', voterScope, voterIds:string[], quorumCheck:boolean}`。**线下开会不写本字段**（读侧无此字段＝旧活动/线下；`formal` 场景读侧一律按无记名处理） |
+
+> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）是**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段，后端建模不得漏。**依据**：`docs/src/mock/activities.js:12-14`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/decision-tree.js:341`（`organizer` 写入）、`docs/src/services/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1048,1050`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1087-1103`（`voteConfig` 写入）、`docs/src/services/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources.js:173-182,226-260`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -552,8 +585,8 @@
 | type 值 | 中文 | items 内容 | 对应实现层数据 | 写入角色 |
 |---|---|---|---|---|
 | `attendance` | 考勤子记录 | 出勤记录列表 | 考勤记录（§4.6） | 纪检委员 |
-| `materials` | 材料子记录 | 交付物列表 | 文件空间记录（非 publicity 类） | 深度参与者（组织者打包提交）；实现层暂为党小组组长 / 宣传委员 |
-| `publicity` | 宣传子记录 | 宣传素材列表 | 文件空间记录（category 为 publicity 类） | 宣传委员 |
+| `materials` | 材料子记录 | 交付物列表 | 文件空间记录（非 publicity 类） | **组织者（打包提交）**——2026-09-19 批次 98 改准：**代码中不设「深度参与者」写口**（裁定 `D-287`），现行承载位＝组长台「考勤 / 考察上传」与宣传台「档案归档」 |
+| `publicity` | 宣传子记录 | 宣传素材列表 | 文件空间记录（category 为 publicity 类） | 撰写人（提交初稿）→ 宣传委员（定稿 / 退回），见下方初稿状态位（裁定 `D-506`） |
 
 **`publicity` 子记录的初稿状态位（2026-09-19 批次 94 落地，裁定 `D-506`）**：撰写人侧「提交审核」、宣传委员侧在宣传台「档案归档」区**定稿 / 退回**。状态取值 `draft` 初稿 / `reviewing` 待审核 / `finalized` 已定稿（退回即回 `draft` 并带一句退回说明）；附加字段 `draftStatusAt` / `draftStatusBy` / `draftReturnNote?` / `finalizedAt?`。**不新开对象、不加 tab、不新增表**；定稿后仍走既有宣传材料归档链。单一源 `docs/src/services/activity.js:100-153`（`PUBLICITY_DRAFT_STATUS` / `setPublicityDraftStatus`）。
 
@@ -616,9 +649,10 @@
 | studentId | string | 否 | 学号（冗余快照） |
 | developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | 发展阶段（冗余快照） |
 | partyGroup | string | 否 | 所属党小组（冗余快照） |
+| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（2026-09-19 批次 98 补·来源 C）：支书台待办「一键确认」写入即销项；无此字段＝未复核 |
 
 **出勤状态枚举**：`present` 出席 / `absent` 缺席（触发补课机制）/ `leave` 请假 / `made_up` 已补。**请假分事假 / 病假两档在 `absenceReason` 上区分**（2026-09-19 批次 94 落地，裁定 `D-504`；时效（事假提前 1 天 / 病假可事后补）**只提示、不校验、不拦提交**）。标因可选项单一源 `docs/src/core/policy-defaults.js:82-87`（`attendance.reasons`，新增须支书裁决）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:281-316`、`docs/src/core/domain.js:92-108`、`docs/src/core/policy-defaults.js:73-87`。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:281-316`、`docs/src/core/domain.js:92-108`、`docs/src/core/policy-defaults.js:73-87`、`docs/src/services/secretary-overview.js:573`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:720`（写）。
 
 ### 4.6 考察记录（InspectionRecord）
 
@@ -636,8 +670,9 @@
 | recordedBy | string | 是 | 记录人 personId |
 | recordedAt | string（ISO） | 是 | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | 考察确认状态（默认 `pending`；纪检确认后录入考察档案） |
+| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（2026-09-19 批次 98 补·来源 C）：支书台「一键确认」对「已纪检确认」的考察写此销项 |
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:318-335`、`docs/src/core/domain.js:166-178`。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:318-335`、`docs/src/core/domain.js:166-178`、`docs/src/services/secretary-overview.js:580`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:727`（写）。
 
 ### 4.7 分工记录（AssignmentRecord）
 
@@ -872,9 +907,10 @@
 | annotatedAt | string（ISO） | 否 | 批注时间 |
 | submittedAt | string（ISO） | 否 | 提交时间 |
 | confirmedAt | string（ISO） | 否 | 确认时间 |
+| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（2026-09-19 批次 98 补·来源 C）：支书台「一键确认」对「已确认」的复盘写此销项 |
 
 **复盘状态枚举（中文值，落库即中文）**：`未提交` → `已上传` → `批注中` → `已确认` / `已打回`（打回后可重新提交回 `已上传`）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:649-684`、`docs/src/core/domain.js:125-144`。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:649-684`、`docs/src/core/domain.js:125-144`、`docs/src/services/secretary-overview.js:587`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:732`（写）。
 
 ### 4.18 周报（WeeklyReport）
 
@@ -1267,6 +1303,128 @@
 **允许的文件类型**：jpg / jpeg / png / pdf / doc / docx / xlsx / mp4（其余类型拒收）。
 **依据**：`server/db.js:50-57`、`server/routes/uploads.js:48-51`。
 
+### 4.39 报名记录（Signup，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`signups`（资源名 `signups`，新建 id 前缀 `su`）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符，前缀 `su` |
+| sourceType | `'activity'\|'taskforce'` | 是 | 报名对象类型（活动 / 专班，统一报名渠道） |
+| sourceId | string | 是 | 报名对象 ID |
+| personId | string | 是 | 报名人 personId |
+| role | `'participant'\|'organizer'\|'deep'` | 是 | 想报的**项目角色** |
+| status | `'approved'\|'pending'\|'rejected'\|'cancelled'` | 是 | 审批状态（`participant` 报名即 `approved`；`organizer`/`deep` 走审核） |
+| createdAt | string（ISO） | 是 | 报名时间 |
+| reviewedBy | string \| null | 否 | 审核人 personId（默认 null） |
+| reviewedAt | string \| null | 否 | 审核时间（默认 null） |
+| note | string \| null | 否 | 报名附言 |
+
+**分级审批**：普通参与（`participant`）报名即入；项目角色（`organizer`/`deep`）报名 → `pending`，审核人＝活动 `organizer` ?? `createdBy`（专班侧取专班管理人），审核通过才拿到项目角色。
+**种子**：服务端**有**种子（`server/seed.js:62` 从 `docs/src/mock/seed.js::SEED_SIGNUPS` 播种 7 条）。
+**依据**：`docs/src/services/signup.js:4-8,73-86`、`docs/src/mock/seed.js:46-59`、`server/seed.js:62`、`server/routes/resources.js:36,158`。
+
+### 4.40 宣传任务（PropTask，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`prop_tasks`（资源名 `propTasks`，新建 id 前缀 `ppt`）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符，前缀 `ppt`（种子里为 `pt1`…`pt8`） |
+| source | string | 是 | 任务来源（如「支部委员会」「副支书」「组织委员」，自由文本） |
+| type | string | 是 | 任务类型（新闻稿 / 推送排版 / 素材归档 / 周报报送） |
+| summary | string | 是 | 任务摘要 |
+| status | `'pending'\|'in_progress'\|'submitted'` | 是 | 状态流转：待接收 → 进行中 → 已提交（只前进、不后退） |
+| createdAt | string（YYYY-MM-DD） | 是 | 创建日期 |
+
+**服务端无种子**（`server/seed.js` 未播种本表）；示例数据在前端 `PROP_TASKS_SEED`（宣传台「宣传任务」页首次渲染时兜底注入 `mockDB`）。⇒ **API 形态首启本表为空**，与公开演示形态不一致，**如实登记**。
+**依据**：`docs/src/entries/tabs/prop/tasks-tab.js:10-19,29-36,99`、`docs/src/core/domain.js:279`、`server/routes/resources.js:39,159`。
+
+### 4.41 文件外发确认（ExternalDispatch，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`external_dispatches`（资源名 `externalDispatches`，新建 id 前缀 `ed`）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符，前缀 `ed` |
+| refType | string | 是 | 来源类型（`publicity` 宣传材料 / `inspection` 考察表单 / `activity` 活动材料…；缺省 `file`） |
+| refLabel | string | 是 | 外发内容描述（如「上传宣传材料：七一主题党日新闻稿」） |
+| senderId | string | 是 | 发送方 personId |
+| senderName | string | 是 | 发送方姓名 / 角色 |
+| receiverRole | string | 是 | 接收方角色键（secretary / disc-commissioner / org-commissioner / leader / prop-commissioner / participant） |
+| note | string | 否 | 备注（默认空串） |
+| sentAt | string（ISO） | 是 | 标记「已通过微信外发」的时间 |
+| confirmedAt | string（ISO）\| null | 否 | 接收方「确认收到」时间（默认 null＝待确认） |
+
+**语义**：走微信外发的材料由发送方在系统里留痕、接收方系统内确认，形成可审计闭环（系统不对接微信）。**是「标记 + 确认」，不是文件传输**。
+**依据**：`docs/src/services/external-dispatch.js:31-42,61-69,72-74`、`docs/src/core/domain.js:286`、`server/routes/resources.js:42,160`。
+
+### 4.42 支部文件（BranchDoc，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`branch_docs`（资源名 `branchDocs`，新建 id 前缀 `bd`；**通用写口＝支委层**，见 §2.3.3）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符，前缀 `bd` |
+| purpose | `'doc'\|'institution'` | 否 | 用途：普通文件 / 制度文本（**旧数据无此字段一律按 `doc` 兼容**） |
+| title | string | 是 | 标题 |
+| desc | string | 否 | 描述（默认空串） |
+| cat | string | 否 | 分类（普通文件 `party-doc` / 制度文本 `institution`） |
+| status | `'draft'\|'current'\|'disabled'\|'archived'` | 否 | 状态：普通文件缺省 `draft`（会前草案）；制度文本 `current` 现行 / `disabled` 停用；历史版本 `superseded` **只出现在 `versions` 内、不驻留顶层** |
+| fileName | string \| null | 否 | 附件文件名（制度文本可无附件） |
+| fileSize | number | 否 | 附件字节数 |
+| format | string | 否 | 附件格式标记 |
+| filePath | string \| null | 否 | server 模式磁盘路径（下载走受保护口 `/api/v1/uploads/:name`） |
+| fileData | string \| null | 否 | mock 模式 base64 dataURL |
+| uploadedBy | string \| null | 否 | 上传人 personId |
+| uploadedAt | string（ISO） | 否 | 上传时间 |
+| branchId | string | 否 | 归属支部（**读侧按它做支部隔离**；无归属 / 党委语境不过滤；老数据无此字段视为 `br-b1`） |
+| updatedAt | string（ISO） | 否 | 最后更新时间（列表倒序依据） |
+| bodyText | string | 否 | 网页正文（制度文本用；渲染上限 20000 字） |
+| version | number | 否 | 现行版本号（制度文本；缺省 1） |
+| versions | array | 否 | 历史版本链：`Array<{version, title, bodyText, status:'superseded', note, by, at}>` |
+| versionNote | string | 否 | 当前版本发布说明 |
+| versionBy | string | 否 | 当前版本操作人 personId |
+| versionAt | string（ISO） | 否 | 当前版本发布时间 |
+
+**写权分层**：新建 / 上传新版 / 停用启用**制度文本**＝支书 + 副支书（`INSTITUTION_MANAGER_ROLES`）；普通文件与其余资源写走**支委层**（`COMMISSIONER_WRITE = {'branchDocs'}`）。**删除记录会联动删物理文件**（§5.5 第 14 条同源口径）。
+**依据**：`docs/src/services/branch-doc.js:15-21,101-136,150-196,204-227,241-258,296-297`、`server/routes/resources.js:45,162,206,280-286`。
+
+### 4.43 子记录聚合域（actSubRecords / tfSubRecords，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`act_sub_records` / `tf_sub_records`（资源名 `actSubRecords` / `tfSubRecords`，新建 id 前缀 `asr` / `tfs`）
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | **恒为 `'__root__'`**（聚合域约定的单行外壳，**不是主记录 id**） |
+| body | object | 是 | 整域数据：`{ [主记录id]: { attendance?:[], materials?:[], publicity?:[] } }`（子记录树三种类型见 §4.2） |
+
+**存储形态（后端须照做）**：这两张表**整域只存一行**——`{id:'__root__', body:<原对象>}`；前端 `init()` 拉取时按 `id==='__root__'` 解包回 `mockDB.actSubRecords` / `tfSubRecords` 对象，全量快照写穿时再包回单行。⚠ **不能按「一主记录一行」拆表而不改前端**——前端契约就是 `__root__` 单行。
+**依据**：`server/routes/resources.js:43-44,161`、`docs/src/core/data-adapter.js:53-54,441-451,513-514,543-544`。
+
+### 4.44 归档记录（archive_records，**来源 C·2026-09-19 批次 98 补**）
+
+**对应服务端表**：`archive_records`（资源名 `archiveRecords`，新建 id 前缀 `ar`）
+
+> ⚠ **与 §4.21 不是一回事**：§4.21 是「**活动实体上**的归档扩展字段」（`archived=true` 时追加）；本节是**独立的一张表**——宣传台「档案归档」逐条材料记录（一条材料一行），与产出物区 / 活动关闭校验同源。
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| id | string | 是 | 唯一标识符；**种子为 `ar1`…`ar6`，运行时新建为 `ar-u-<随机>`** |
+| activityId | string | 否 | 关联活动 ID（不挂活动的独立归档可缺） |
+| activityName | string | 否 | 活动名快照 |
+| archiveDate | string（YYYY-MM-DD） | 是 | 归档日期 |
+| category | `'新闻稿'\|'照片'\|'视频'\|'其他'` | 是 | 材料类别（与 §4.23 `category` 同集） |
+| status | `'archived'\|'in_progress'\|'pending'` | 是 | 归档状态 |
+| fileName | string | 否 | 材料文件名 |
+| fileSize | number | 否 | 字节数 |
+| filePath | string | 否 | server 模式磁盘路径（下载走 `/api/v1/uploads/:name`） |
+| fileData | string | 否 | mock 模式 base64 dataURL |
+| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**：支书台「一键确认」对「已归档」的档案写此销项 |
+
+**服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
+**依据**：`docs/src/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:873-892`（运行时新建）、`docs/src/services/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources.js:44,161`。
+
 ---
 
 ## §5 部署环节
@@ -1381,7 +1539,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径**：**显式声明的路由 38 条**；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**展开后总路由数 157 条**（38 − 4 个循环族 + 119 条循环展开 = 157）。
+> **数量口径（2026-09-19 批次 98 逐条核过、算式已改准）**：**显式声明的路由 38 条**——＝各路由文件的 `router.*` 声明 **40 条**（`server/routes/` 实测 40，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **36 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝38 ＋ 119 ＝ 157 条**（原式「38 − 4 个循环族 + 119」把已在 38 里扣过的循环族又扣了一次，属算式笔误，本批改准；结论 157 不变）。
 
 ### 6.1 认证（`server/routes/auth.js`）
 
@@ -1486,8 +1644,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 |---|---|---|---|
 | POST | `/api/v1/system-notices` | 按 `kind` 注册表生成系统通知：body `{kind, sourceId, payload}`。未知 kind 400；`authorize` 不通过 403；成功 201 落 `notices` 表 | 需登录 + **按 kind 的业务对象关系复算授权** |
 
-**已注册的 kind（共 18 种）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`committee-dispatch`（党委下发）。
-**依据**：`server/system-notice-kinds.js:57-281`。
+**已注册的 kind（共 20 种；2026-09-19 批次 98 逐条核过、改准）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`weekly-report-submitted`（**周报已报送、待支书审核**，2026-09-19 批次 94 新增，裁定 `D-507`）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`committee-dispatch`（党委下发）。
+**依据**：`server/system-notice-kinds.js:57-293`（`KINDS` 注册表，20 个键）、`:205-212`（`weekly-report-submitted`）。
 
 ### 6.8 组长台聚合读（`server/routes/leader-progress.js`）
 
@@ -1548,6 +1706,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 7 | **无 CORS / 无限流 / 无 HTTPS** | 同 §5.5 第 3、4、6 条 | 同左 |
 | 8 | **前端限权 ≠ 服务端限权（多处）** | 对比示例：前端 `ROLE_PERMISSIONS` 判定的 `record_attendance`、`fill_review`、`dispatch_line` 等键在**服务端并无对应校验**（服务端只做上表的粗粒度门）；反之服务端的支部级校验（`actor.branchId`）在前端 mock 形态无对应实现 | `docs/src/services/auth.js:76-84`（前端键集）vs `server/routes/resources.js:77-120`（服务端门集） |
 
+> **具体一例（前后端门不一致，后端须按服务端口径实现）**：独立档案页 `docs/person.html` 的 `EDIT_ROLES`（`docs/src/entries/person-entry.js:74`）＝`secretary / deputy-secretary / org-commissioner`，即**前端对支书、副支书放开了「编辑档案」**；而它写档走 `PATCH /api/v1/members/:id/profile`，服务端该门**只要组织委员**（`server/routes/member.js:230`，`ORG_COMMISSIONER_ROLES`）。⇒ **API 形态下支书 / 副支书在成员档案页对治理外字段点「编辑档案」会被服务端 403**（组织委员身份正常）。**这是代码里的既有一处不一致**（批次 87 真机发现并如实登记，`D-485` 批次的审计发现栏；非本文件笔误、也非本批引入）。要收口只有两条路——**把该 PATCH 门放开支书 / 副支书**，或**反过来收窄前端 `EDIT_ROLES`**——两条都改权限面，**本文件不替裁**；**当前后端按服务端（仅组织委员可写）实现**。
+
 ### 7.2 功能「有定义但跑不到」类
 
 | # | 项 | 现状 | 依据 |
@@ -1596,7 +1756,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | `server/routes/resources.js` | 通用资源 CRUD、写角色门、活动写门、快照、支部配置、意见反馈语义端点 | §2.3.3、§2.4、§4.16、§5.5、§6.2-6.4、§6.9 |
 | `server/routes/member.js` | 成员变更链路、名册语义端点、移出/撤销 | §2.2.3、§4.30、§4.34、§4.35、§6.5 |
 | `server/routes/committee.js` | 线上表决：选项枚举、名单校验、无记名两段式、截止 | §4.36、§6.6 |
-| `server/routes/system-notices.js` + `server/system-notice-kinds.js` | 系统派生通知：18 种 kind 的授权复算与文案生成 | §6.7 |
+| `server/routes/system-notices.js` + `server/system-notice-kinds.js` | 系统派生通知：20 种 kind 的授权复算与文案生成 | §6.7 |
 | `server/routes/leader-progress.js` | 组长台「组员进展」服务端汇总 | §3.2.5、§6.8 |
 | `server/routes/uploads.js` | 附件上传/下载、类型与大小限制、物理文件删除 | §4.38、§5.5、§6.10 |
 | `server/routes/report.js` + `server/services/reporting.js` | 四域数据上报（拉取/导出/推送）、定时任务、会议提醒 | §5.3、§6.11 |

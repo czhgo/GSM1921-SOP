@@ -19,24 +19,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260919g';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260919i';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260919g';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260919g';
+} from '../../docs/src/core/mock-adapter.js?v=20260919i';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260919i';
 import {
   WORK_DOMAIN, TodoStore, TodoSourceType,
   LifecycleTodoDeriver, VisitorTodoDeriver, NoticeTodoDeriver,
   REALTIME_GROUP_DOMAIN, realtimeGroupDomainOf,
   buildDevelopNodeRemindGroup,
-} from '../../docs/src/services/todo.js?v=20260919g';
-import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260919g';
-import { SignupStore } from '../../docs/src/services/signup.js?v=20260919g';
-import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260919g';
+} from '../../docs/src/services/todo.js?v=20260919i';
+import { HandoffStore } from '../../docs/src/services/handoff.js?v=20260919i';
+import { SignupStore } from '../../docs/src/services/signup.js?v=20260919i';
+import { TaskForceRecordStore } from '../../docs/src/services/taskforce.js?v=20260919i';
 import {
   saveFollowups, buildOverdueRemindGroup,
-} from '../../docs/src/services/resolution-followup.js?v=20260919g';
-import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260919g';
+} from '../../docs/src/services/resolution-followup.js?v=20260919i';
+import { SecretaryTodoDeriver } from '../../docs/src/services/secretary-overview.js?v=20260919i';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -188,8 +188,10 @@ test('⑤ handoff 三型：考勤备案/补课回执→考勤纪律，考察提�
 
   const byKey = (k) => TodoStore.getAll().find(t => t.actionKey === k);
   const h1 = byKey('handoff-attendance-archival');
-  assert.equal(h1.role, 'prop-commissioner');
-  assert.equal(h1.domain, 'attendance', '考勤备案（纪检→宣传）归考勤纪律域（spec 三节）');
+  // SOP-B-36（`D-429`）：考勤全周期统计交付对象＝支委会，接收位＝组织委员（不再提交宣传备案）——
+  // 原期望 'prop-commissioner' 系改裁前的旧口径，随 `handoff.js:23` 改准为 'org-commissioner'。
+  assert.equal(h1.role, 'org-commissioner');
+  assert.equal(h1.domain, 'attendance', '考勤统计（纪检→组织委员 / 支委会接收位，`D-429`）归考勤纪律域（spec 三节）');
 
   const h2 = byKey('handoff-inspection-report');
   assert.equal(h2.role, 'org-commissioner');

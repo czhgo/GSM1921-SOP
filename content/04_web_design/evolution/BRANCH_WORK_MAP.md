@@ -31,14 +31,14 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 支部党员大会 / 支委会 / 党小组会 / 党课（三会一课） | norm | ACTIVITY_CLASSIFICATION['three-meetings'].subtypes + 场景 branch-party-meeting / branch-committee / party-group-meeting / party-lecture |
 | 主题党日 | norm | ACTIVITY_CLASSIFICATION['theme-party'] + 场景 theme-party（党小组主题党日活动） |
 | 专班 | **method** | taskforce 域（短期/长期）；**本支部自创工作方法**（非全党通用；别的支部要用亦可复用，不用即可停用） |
-| 共建活动 | **method** | 场景 joint-event（团支部合办等） |
-| 发展党员 | norm | development-tab 管线 + 场景 develop-activist（环节：申请→积极分子→考察→发展对象→接收→转正） |
+| 共建活动 | **method** | 主题党日 + 共建维度（`isJoint`）；**不单开场景**（`joint-event` 已清，`D-464`） |
+| 发展党员 | norm | development-tab 管线 + 考察记录 / 建档接收 / 阶段变更（环节：申请→积极分子→考察→发展对象→接收→转正；`develop-activist` 已清，`D-510`） |
 | 民主评议党员 | norm | 年度评议（明细待建） |
 | 换届选举 | norm | appointment 任命机制 + 票决 |
 | 考勤考察 | norm | attendance/inspection 记录域（产出环节，附于活动/专班） |
 | 意见反馈处理 | norm | 场景 feedback-handling + 反馈管理 |
-| 制度制定与迭代 | norm | 场景 new-system |
-| 信息平台支持 | **method** | 场景 info-platform |
+| 制度制定与迭代 | norm | 支部文件（`purpose:'institution'`）+ 会议议程；**不单开场景**（`new-system` 已清，`D-464`） |
+| 信息平台支持 | **method** | 支部分工模块 + 宣传台周报；**不单开场景**（`info-platform` 已清，`D-510`） |
 
 > 考勤/考察/宣传等为**活动/专班运行中的产出环节**（卡内"产出交接"标签），不单列大类。
 > 停用表示：`config.workforce[moduleId] = { ownerType:'none', ownerId:'' }`（**仅方法类允许**；规范类落库前即被 `mergeWorkforceSnapshot` / `sanitizeConfigWorkforce` 拦掉）。
@@ -68,7 +68,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 换届选举 | 党委台「任命支书」+ 线上支委会票决 | 换届完整流程（酝酿提名/请示上级/选举大会/报批备案）未建 |
 | 党费收缴 | **零承载**（全库无「党费」字样） | 是否纳入系统**待支书裁定** |
 | 意见反馈处理 | 纪检台「反馈管理」+ 公开反馈页 + 各台「我的处置」 | — |
-| 考勤考察 | 纪检/组长上传 + 考勤矩阵/总表 + 考察总表 | — |
+| 考勤考察 | 组织者上传 + 考勤矩阵/总表 + 考察总表 | — |
 | 制度制定与迭代 | 制度文件走 `content/` 目录 | 系统内无「制度台账/版本」位 |
 
 > 判据：**规范类工作的「会议承载」已具备**（活动域 + 命名表达，与「组织生活会」同一裁定）；缺的是**流程明细/台账**——一律**显式登记**（work-map 描述或本表），**不用「占位卡」充数**（那正是过拟合）。
