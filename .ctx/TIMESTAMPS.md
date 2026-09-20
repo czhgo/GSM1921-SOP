@@ -54,13 +54,13 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件 |
 | .ctx/SNAPSHOT.md | 2026-09-20 | — | [AI] | 当前基线（v53；2026-09-20 批次 106 补 `thought-report.html` / `person.html` 两行与 `scripts/version-next.mjs`） |
-| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 106 补登） |
-| .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-17 | — | [工程师]+[AI] | 工程化评估与改造行动线（2026-09-20 批次 106 补登） |
+| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 108 补登批次增量句） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-20 | — | [工程师]+[AI] | 工程化评估与改造行动线（2026-09-20 批次 108 改准 43 处 `文件:行号` 引用后补登） |
 | .ctx/REVIEW_QUEUE.md | 2026-09-20 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 106 刷为 253 条） |
+| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 108 刷为 255 条） |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -73,8 +73,8 @@ dynamic_role:
 | .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
-| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 106 补登） |
-| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 106 补登） |
+| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 108 补登批次 108 节） |
+| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 108 补登 `D-529`） |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 

@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-17"
+last_updated: "2026-09-20"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md]
 ---
@@ -162,17 +162,17 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 组 | 重复事实 | 原证据（文件:行） | 收敛去向 |
 |----|---------|----------------|---------|
-| R1 微工具逐文件复制 | HTML 转义 `esc` 至少 10 个文件各写一份；`fmtDt` 双份 | inspector.js:482 / help-catalog.js:20 / activity-entry.js:43 / vote-widget.js:14 / vote-summary-panel.js:16 / review-tab.js:15-28 / report-up-tab.js:15-28 / party-config-tab.js:17 / branches-tab.js:14 / dispatch-tab.js:17（utils.js:127 的 esc 是 CSV 专用，非 HTML 转义） | ✅ 已收敛（P0a：core/utils.js 新增 `escHtml/fmtDt` 唯一出口，各文件 import 别名 `esc`，调用面零改动） |
-| R2 类型/阶段元数据多写 | 三会四子类清单三份；阶段枚举另见 CANDIDATE_STAGES 与各 seed | constants.js:481-492 / inspector.js:356,374 / makeup.js:13,44 / dashboard/gallery.js:23（色名） | ✅ 收口 + 2 项复核保留（P0b：MEETING_TYPES→`ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 派生；TYPE_META/STATUS_META、MANDATORY_ACTIVITY_TYPES 与 gallery 色名复核保留，见下） |
-| R3 产出块 id 消费端手写 | write-tab 重列 4 id 与 constants OUTPUT_BLOCK_DEFS 重复；calendar-tab 手写 THEME_DAY_BLOCK_ID 与 manifests.js blockId 重复 | write-tab.js:111,114-117,125-130 / constants.js:557-564 / calendar-tab.js:36 / manifests.js:26 | ✅ 已收敛（P0b：write-tab 产出块 4-id 字面量 → OUTPUT_BLOCK_DEFS 派生；calendar-tab `THEME_DAY_BLOCK_ID` → `THEME_PARTY_DAY_MANIFEST.blockId` 派生） |
-| R4 场景目录子集三处手写 | 6 个活动场景的 id+label+颜色在 constants.js、decision-tree.js、calendar-tab WRITE_TEMPLATES 各维护一份（全集唯一源=sopData.js 12 场景） | sopData.js:10-165 / constants.js:121-129 / decision-tree.js:36-96 / calendar-tab.js:394-418 | ✅ 已收敛（P2b：constants 新增 `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生；decision-tree 与 calendar-tab 改派生引用，scene-write-sync 测试兜底） |
+| R1 微工具逐文件复制 | HTML 转义 `esc` 至少 10 个文件各写一份；`fmtDt` 双份 | inspector.js:482（已删） / help-catalog.js:20（已删） / activity-entry.js:43（已删） / vote-widget.js:14（已删） / vote-summary-panel.js:16（已删） / docs/src/entries/tabs/party-committee/review-tab.js:15-28（已删） / docs/src/entries/tabs/secretary/report-up-tab.js:15-28（已删） / party-config-tab.js:17（已删） / branches-tab.js:14（已删） / dispatch-tab.js:17（已删） / utils.js:166 的 esc 是 CSV 专用，非 HTML 转义 | ✅ 已收敛（P0a：core/utils.js 新增 `escHtml/fmtDt` 唯一出口，各文件 import 别名 `esc`，调用面零改动） |
+| R2 类型/阶段元数据多写 | 三会四子类清单三份；阶段枚举另见 CANDIDATE_STAGES 与各 seed | constants.js:596-600 / inspector.js:362-363 / makeup.js:26（原 `MANDATORY_ACTIVITY_TYPES`） / dashboard/gallery.js:17-26（色名） | ✅ 收口 + 2 项复核保留（P0b：MEETING_TYPES→`ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 派生；TYPE_META/STATUS_META、MANDATORY_ACTIVITY_TYPES 与 gallery 色名复核保留，见下） |
+| R3 产出块 id 消费端手写 | write-tab 重列 4 id 与 constants OUTPUT_BLOCK_DEFS 重复；calendar-tab 手写 THEME_DAY_BLOCK_ID 与 manifests.js blockId 重复 | write-tab.js:228-230 / constants.js:780-785 / calendar-tab.js:47 / manifests.js:32 | ✅ 已收敛（P0b：write-tab 产出块 4-id 字面量 → OUTPUT_BLOCK_DEFS 派生；calendar-tab `THEME_DAY_BLOCK_ID` → `THEME_PARTY_DAY_MANIFEST.blockId` 派生） |
+| R4 场景目录子集三处手写 | 6 个活动场景的 id+label+颜色在 constants.js、decision-tree.js、calendar-tab WRITE_TEMPLATES 各维护一份（全集唯一源=sopData.js 现 8 场景；原 12，4 个死场景经 `D-464` / `D-510` 清零） | sopData.js:10-129 / constants.js:615-625 / decision-tree.js:36-96 / calendar-tab.js:363-365 | ✅ 已收敛（P2b：constants 新增 `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生；decision-tree 与 calendar-tab 改派生引用，scene-write-sync 测试兜底） |
 | R5 业务链路三写 | flow 语义在 function-catalog desc、mermaid-sources FLOW_LINKS、以及声称的 sopData 各一份；无键集比对测试（注释声称的「防止未同步的情况的测试」不存在） | function-catalog.js:63-76 / mermaid-sources.js:29-106 / catalog-sync.test.mjs::T2 | ✅ 已收敛（P0c：新增 `server/test/catalog-sync.test.mjs::T2` 键集**双向**断言，任一侧增删即红） |
-| R6 tab id 散落导航侧 | entry 的 defaultTab/onNavTarget 硬编码 tab id，与能力 tab 清单及 config.modules.hiddenTabIds 无同一性守卫；隐藏后导航静默 no-op | 8 个 ws-*-entry.js / tab-bar.js:198-200 / branch.js:47-53 | ✅ 已收敛（P2a：`core/tab-nav.js` 纯决策 + tab-bar 守卫——隐藏 tab 回退首个可见 tab、杜绝静默白屏，tab-nav 4 态测试绿） |
-| R7 跨层双净化 | 支部 config（modules/blocks）净化规则 server 与前端各一份，无互引注释、独立演化 | server/routes/resources.js:259-316 / docs/src/services/branch.js:132-176 | ✅ 已收敛（P1a：共享纯模块 `core/config-clean.js`，server 严格口径为单向权威，两端同源引用、本地净化实现删除） |
-| R8 表决规则跨层重复 | optionSet 枚举+「异议须附言」server 与前端各一份，仅注释声明「对齐」 | server/routes/committee.js:30-36,90-92 / docs/src/services/vote-config.js:7-18 | ✅ 已收敛（P1a：`OPTION_ENUMS` 从 committee.js 导出 + `test/catalog-sync.test.mjs::T4` 键集双向断言） |
-| R9 角色集合 ≥5 份 | 支委/支书/党委组织员角色 `Set` 分散多文件 | server/routes/auth.js:69-71 / member.js:13 / committee.js:15,17 / resources.js:56-59 / docs/src/core/constants.js:185 | ✅ 已收敛（P2c：constants 新增 BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS 单一源，五处本地手写清零，roles-sync 4 断言绿） |
-| R10 删除/归档级联同构 | DELETE 活动联动清理、归档级联 tasks，server 与前端同构实现（注释自认） | server/routes/resources.js:165-204 / docs/src/services/mock.js:142-204 | — 未列入去重队列（保持观察） |
-| R11 资源名/ID 注册表两端各一 | RESOURCE_TABLES + ID_PREFIX 与前端快照键名两端手维护 | server/routes/resources.js:13-46,87-100 | — 未列入去重队列（保持观察） |
+| R6 tab id 散落导航侧 | entry 的 defaultTab/onNavTarget 硬编码 tab id，与能力 tab 清单及 config.modules.hiddenTabIds 无同一性守卫；隐藏后导航静默 no-op | 8 个 ws-*-entry.js / tab-bar.js:213,225,495 / branch.js:47-53 | ✅ 已收敛（P2a：`core/tab-nav.js` 纯决策 + tab-bar 守卫——隐藏 tab 回退首个可见 tab、杜绝静默白屏，tab-nav 4 态测试绿） |
+| R7 跨层双净化 | 支部 config（modules/blocks）净化规则 server 与前端各一份，无互引注释、独立演化 | server/routes/resources.js:259-316（已删） / docs/src/services/branch.js:132-176（已删） | ✅ 已收敛（P1a：共享纯模块 `core/config-clean.js`，server 严格口径为单向权威，两端同源引用、本地净化实现删除） |
+| R8 表决规则跨层重复 | optionSet 枚举+「异议须附言」server 与前端各一份，仅注释声明「对齐」 | server/routes/committee.js:34-43,96-99 / docs/src/services/vote-config.js:15-26 | ✅ 已收敛（P1a：`OPTION_ENUMS` 从 committee.js 导出 + `test/catalog-sync.test.mjs::T4` 键集双向断言） |
+| R9 角色集合 ≥5 份 | 支委/支书/党委组织员角色 `Set` 分散多文件 | server/routes/auth.js:92 / member.js:32 / committee.js:19,21 / resources.js:69-70 / docs/src/core/constants.js:185 | ✅ 已收敛（P2c：constants 新增 BRANCH_COMMISSION_ROLES/SECRETARY_ROLES/PARTY_STAFF_ROLE/COMMITTEE_IDS 单一源，五处本地手写清零，roles-sync 4 断言绿） |
+| R10 删除/归档级联同构 | DELETE 活动联动清理、归档级联 tasks，server 与前端同构实现（注释自认） | server/routes/resources.js:289-309 / docs/src/services/mock.js:188-258 | — 未列入去重队列（保持观察） |
+| R11 资源名/ID 注册表两端各一 | RESOURCE_TABLES + ID_PREFIX 与前端快照键名两端手维护 | server/routes/resources.js:21-58,153-171 | — 未列入去重队列（保持观察） |
 | R12 运行安全 | server 登录不验密码（凭 personId 发 token）；18 个账号明文 123456；demo 态/信任模型注释自认。**支书 2026-09-03 口径：.ctx 与历史材料为内部资产保留上传，非风险项；本条仅保留运行安全部分** | server/routes/auth.js:8-17 / docs/src/mock/accounts.js:4-26 | ✅ 出仓子项撤销 + 运行安全项已修复（行动线 P1b：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门） |
 
 > 反例（无需拆分，防过度去重）：block manifest 校验唯一源在前端 manifests.js（server 测试经浏览器复用同文件），职责与 R7 的「config 形状净化」不同——勿误并。
@@ -243,7 +243,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 8.7-① | 支书台分工面板保态（最小操作成本）：发起表单区 `#wf-form-zone` 独立于议题列表容器，列表重建不触碰表单 DOM | ✅ 已完成（2026-09-05） |
 | 8.7-② | 支书台分工面板多议题票决判定并行：串行 for…of → `Promise.allSettled`（单失败 console.warn 不阻断）——缩短支书等待 | ✅ 已完成（2026-09-05） |
 | 8.7-③ | 纪检会议考勤录入「收起/展开」保态：容器 CSS `hidden` 切换（不销毁 PersonPicker、不重建 innerHTML），仅提交成功后才重置会话（外部 re-render 重建为既有行为，已注释说明） | ✅ 已完成（2026-09-05） |
-| 8.7-④ | deploy 文档口径风化修正：server/README 与根 README 测试计数改动态口径、命令段与 package.json scripts 对齐、env 说明补 LOGIN_PASSWORD/DISABLE_PASSWORD_CHECK | ✅ 已完成（2026-09-05；计数遗留经减负评议处理——CLAUDE.md:131 动态口径、SNAPSHOT 去固定计数，见 REVIEW_QUEUE 附录⑥） |
+| 8.7-④ | deploy 文档口径风化修正：server/README 与根 README 测试计数改动态口径、命令段与 package.json scripts 对齐、env 说明补 LOGIN_PASSWORD/DISABLE_PASSWORD_CHECK | ✅ 已完成（2026-09-05；计数遗留经减负评议处理——CLAUDE.md:136 动态口径、SNAPSHOT 去固定计数，见 REVIEW_QUEUE 附录⑥） |
 | P4a | 模板型落地最小包：根 README 增「给新组织：30 分钟换壳指南」（clone 跑 → 换 mock 数据 → 角色/术语/配色/policy 默认 → 支部名与分支配置 → npm test 验证）＋ 浏览器演示数据一键重置（URL `?reset=1` 清除本域演示存储键回种子初始态） | ✅ 已完成（2026-09-06；落地=根 README「复用与二次开发」节 + 「快速开始」节；mock-adapter.js `MockAdapter.loadDB()` 读取即检测 `?reset=1`，清除 `workflowos_*`/`gsm1921-*`/`sop_org_os_*` 前缀键与历史遗留键后整页导航回种子初始态；无 API token 时才执行，不清 sessionStorage，不破坏 API 模式） |
 | P4b | 换组织向导页（立项④，2026-09-06 立）：引导式完成 people/accounts/branches/policy 替换并生成组织配置包（验收：向导产出可一键应用的换壳配置） | ✅ 主体落地（T-2026-09-044~047：支书 R1–R4 裁定 + 阶段一/二/三目标1，wizard.html 上线——详见 REVIEW_QUEUE 附录⑧）；阶段三候选（数据层覆盖预览/党委默认模板抽象）登记后续 |
 | P4c | 演示数据与空组织模板分离（立项⑤，2026-09-06 立）：仓库随附「模板 + 示例组织」双形态、seed 完整性自动校验、一键重置分层服务化 | ✅ 落地（T-2026-09-047/048：空组织模板 + 建新支部正式能力 + ?reset 分层 demo/preview 与服务端对齐，详见 REVIEW_QUEUE 附录⑧）；域分区缺口（业务域非 branch 分区）已注释诚实边界 |

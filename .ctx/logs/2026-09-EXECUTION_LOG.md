@@ -10834,6 +10834,89 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 
 **另：`.ctx/ENGINEERING_ASSESSMENT.md`（批次 106 登记 43 处）——只做了机械核对，未逐条核，如实登记**：该文件的 43 处引用**均不带反引号**（故不在 `doc-line-ref` 守卫内，也不在 `README-server.md` 那条正则内）；临时探针按其形态（`path:行` 短式 / 省略目录名）做**一级核对**（文件可解析 / 行号在范围内 / 区间非全空 / `.md` 不越节）：**37 处过、6 处可疑**——`sopData.js:10-165`（**该文件实 131 行 ⇒ 越界**）、`tab-bar.js:198-200`（**三行全空**）、`vote-widget.js:14`（该行现为空行，原 `esc` 已去重收口）、`CLAUDE.md:131`（现为空行）、`review-tab.js:15-28` / `dashboard/gallery.js:23`（**文件名歧义 / 写的是相对短名**，非行号错）。⇒ **本批未改该文件**（超本批主轴、且其中 2 处属解析歧义），**逐条语义核对未做**。
 
+## 批次 108（2026-09-20，逐条核实 `.ctx/ENGINEERING_ASSESSMENT.md` 的 43 处 `文件:行号` 引用——去污染第 ④ 条最后一块）
+
+> **本批性质**：批次 107 已把 `README-server.md` 的 383 处核完（见上节），并**如实登记**「`.ctx/ENGINEERING_ASSESSMENT.md` 的 43 处只做机械核对、未逐条语义核（37 过 / 6 可疑）、本批未改」⇒ **本批把这 43 处做完**。**改文件**＝`.ctx/ENGINEERING_ASSESSMENT.md`（16 处引用 ＋ 1 处内容）；其余为落账。
+
+### 一、穷举与判据
+
+- **引用形态（实测）**：**43 处 ＝ 每处 `路径:行号` 引用**，**全部不带反引号**（与 `README-server.md` 的 `` `文件:12` `` 形态**不同**），位于 §3.3 去重表「原证据（文件:行）」列，单元格内以 ` / ` 分隔；含 `路径:行` / 省略目录的短名 / 逗号续列区间（如 `committee.js:15,17`）。
+- **判据（正则）**：`[A-Za-z0-9_./-]+\.(js|mjs|md):行号`；只读统计用**仓库外临时探针**（跑完即删）。
+- **分布**：`R1`×11 · `R2`×4 · `R3`×4 · `R4`×4 · `R5`×2 · `R6`×2 · `R7`×2 · `R8`×2 · `R9`×5 · `R10`×2 · `R11`×1 · `R12`×2 · `P0c`×1 · `8.7-④`×1 ＝ **43**。
+- **判定四级**：**对** / **漂移**（给新行号）/ **失效**（已删、说清去向）/ **歧义**（说清指哪个文件）。
+- **历史位置怎么判**：用 **git 取 2026-09-03 三个收口提交的父版本**（`c9b2577f`＝P0a/P0b · `c3859de5`＝P1a · `c5f9acbe`＝P2c）逐处对行，区分「**本来就是历史位置**（⇒ 标已删）」与「**漂移**（⇒ 改准）」。
+- ⚠ **归因更正（落账后由支书侧复核改）**：本条**原写**「动手前工作区里本文件**已有未提交改动 4 行**……**不是本批所为**」——**与事实不符**。事实：本批动手前工作区**干净**（`7f50a8e2` 提交后 `git status` 为空；`git log -- .ctx/ENGINEERING_ASSESSMENT.md` 末笔为 `0dc7d577`）。⇒ 那 4 行**本就是本批自己的编辑**。**改动经抽验正确**（`auth.js:92` / `constants.js:596` / `manifests.js:32` / `utils.js:166` 四处实文均与文档所述对得上），**故保留改动、只更正归因**。下面「三」明细表中原标「前序未提交改动已改，本批复核保留」者，**应读作「本批改准（经独立复核）」**。
+
+### 二、6 处可疑（批次 107 登记）逐处核查结论
+
+| # | 文档说的 | 实际是什么 | 判定 | 改法 |
+|---|---|---|---|---|
+| 1 | `sopData.js:10-165` 是「全集唯一源（12 场景）」 | 该文件**现 130 行**，`10-165` **越界**；`:10` 恰为 `scenarios: [`、`:129` 为该数组收尾 | **漂移** | → **`:10-129`** |
+| 2 | `tab-bar.js:198-200` 是 R6 病灶（tab id 散落导航侧） | git 复核 **2026-09-03 该三行确为** `const tab = tabs.find(t => t.id === tabId)` ＋ 懒加载注释 ＋ `_safeRender(tab, …)` ⇒ 历史位置**本准**；P2a 后该段重构，现落在空行 ＋ `renderTabBar` 签名 | **漂移** | → **`:213,225,495`**；⚠ 该文件**逐行夹空行**，批次 107 按 Read 计数**差 1**，本批以 node / ripgrep 计为准 |
+| 3 | `vote-widget.js:14` 是 R1 的本地 `esc` | 该行**现为空行**；git 复核：收口前 `function esc(s) {` 正在 `:14` | **失效（已删）** | 保留行号 ＋ 标 **（已删）**；`R1` 十条就此**统一**（并给 `dispatch-tab.js:17` 补标） |
+| 4 | `CLAUDE.md:131` 写「测试计数改动态口径」 | 该行**现为空行**；git 复核 2026-09-05（`e9bd987b`）`:131` ＝今日 `:136` 的**同一句**（`H25` 套件段「数量随目录增长，不维护固定计数」） | **漂移** | → **`:136`** |
+| 5 | `review-tab.js:15-28` / `dashboard/gallery.js:23` | `review-tab.js` **仓内 4 份同名**（visitor / party-committee / leader / disc），文中写法为省略目录的短名；`gallery.js` 仓内**唯一**、现文 `:17-26` 与「（色名）」对得上 | **歧义（前者）/ 对（后者）** | 两处 `review-tab.js` / `report-up-tab.js` 补成**可解析全路径**；`dashboard/gallery.js:17-26` **不改** |
+| 6 | 同族：`report-up-tab.js:15-28` | 该 basename 唯一，但写法与 #5 同族（省略目录） | **指向不全** | 补成 `docs/src/entries/tabs/secretary/report-up-tab.js:15-28`（已删） |
+
+**6 处合计**：漂移 3（#1 / #2 / #4）· 失效 1（#3）· 歧义或指向不全 2（#5 的 review-tab ＋ #6）· 对 1（#5 的 gallery）。
+
+### 三、漂移 / 失效明细表（本批全部改准处）
+
+| 组 | 改前 | 改后 | 依据（新行实文 / 判定） |
+|---|---|---|---|
+| R1 | `dispatch-tab.js:17` | `dispatch-tab.js:17（已删）` | git：收口前 `function esc(s)` 正在 `:17`；与其余 9 条统一 |
+| R4 | `sopData.js:10-165` | `sopData.js:10-129` | **前序未提交改动已改，本批复核保留**（批次 107 报告时的工作区为 `10-165`＝越界）；`:10`＝`scenarios: [`、`:129`＝`],` |
+| R4 | 「sopData.js 12 场景」 | 「现 8 场景（原 12，4 个死场景经 `D-464` / `D-510` 清零）」 | 内容过期，依现行裁定改准 |
+| R6 | `tab-bar.js:198-200` | `tab-bar.js:213,225,495` | `:213` R6 守卫注释 · `:225` `resolveInitialTab` · `:495` 目标 tab 守卫 |
+| R7 | `server/routes/resources.js:259-316` | 同 ＋ **（已删）** | git：该区间当时＝`router.patch('/branches/:id/config')` 内联净化；本地实现已删（去向 `core/config-clean.js`） |
+| R7 | `docs/src/services/branch.js:132-176` | 同 ＋ **（已删）** | git：该区间当时＝前端净化实现；现为块策略 ＋ 委派 `sanitizeConfigBlocks` |
+| R8 | `server/routes/committee.js:30-36,90-92` | `server/routes/committee.js:34-43,96-99` | `:34-43` 选项集枚举（`OPTION_ENUMS`）· `:96-99` 「异议须附言」 |
+| R8 | `docs/src/services/vote-config.js:7-18` | `docs/src/services/vote-config.js:15-26` | `:15`＝`export const OPTION_SETS = {`、`:26`＝`};` |
+| R9 | `server/routes/auth.js:69-71` | `server/routes/auth.js:92` | **原行号在审计时点即指错**（git：当时 `COMMISSIONER_ROLES` 在 `:85`，`:69-71` 是 `getSessionUser` 尾巴）；今 `:92`＝`new Set(BRANCH_COMMISSION_ROLES)` |
+| R9 | `member.js:13` | `member.js:32` | `:13` 现为 import 行（非 Set）；`:32`＝`SECRETARY_AND_DEPUTY_ROLES = new Set(…)` |
+| R9 | `committee.js:15,17` | `committee.js:19,21` | `:19`＝`COMMITTEE_IDS` Set · `:21`＝`SECRETARY_AND_DEPUTY_ROLES` Set |
+| R9 | `resources.js:56-59` | `resources.js:69-70` | `:69`＝`PARTY_STAFF_ROLE` Set · `:70`＝`BRANCH_COMMITTEE_ROLES` Set |
+| R9 | `docs/src/core/constants.js:185` | **不改（对）** | 现仍落在 `ROLE_KEYS` 内（声明行 184、185 为首元素行），语义未变 |
+| R10 | `server/routes/resources.js:165-204` | `server/routes/resources.js:289-309` | `:289` 级联注释 · `:309` DELETE 路由收尾（与审计时点的 165 / 204 同构） |
+| R10 | `docs/src/services/mock.js:142-204` | `docs/src/services/mock.js:188-258` | `:188` `deleteActivity` 起 · `:258` `archiveActivity` 末个内容行（与审计时点的 142 / 204 同构） |
+| R11 | `server/routes/resources.js:13-46,87-100` | `server/routes/resources.js:21-58,153-171` | `:21-58` `RESOURCE_TABLES` · `:153-171` `ID_PREFIX`（与审计时点的 13 / 46、87 / 100 同构） |
+| R1 | `entries/tabs/party-committee/review-tab.js:15-28`（已删） | `docs/src/entries/tabs/party-committee/review-tab.js:15-28`（已删） | 补全路径以消歧（4 份同名） |
+| R1 | `entries/tabs/secretary/report-up-tab.js:15-28`（已删） | `docs/src/entries/tabs/secretary/report-up-tab.js:15-28`（已删） | 同上（同族写法统一） |
+| R3 | `constants.js:780-785` / `calendar-tab.js:47` / `manifests.js:32` / `write-tab.js:228-230` | **不改（对）** | **前序未提交改动已改准，本批复核保留**（逐行实文对得上） |
+| R2 | `constants.js:596-600` / `inspector.js:362-363` / `makeup.js:26` / `dashboard/gallery.js:17-26` | **不改（对）** | **前序未提交改动已改准，本批复核保留** |
+| 8.7-④ | `CLAUDE.md:131` | `CLAUDE.md:136` | 同一句「测试套件计数」（git 对照 2026-09-05 `:131`） |
+
+**合计**：**本批改准 16 处引用 ＋ 1 处内容改准**（另 4 组 12 处为**前序未提交改动已改准、本批复核保留**）；**其余 27 处核为「对」**（`R1` 十条历史行号经 git 逐条复核准确 ⇒ 只补 / 统一（已删）标注、行号未动；`R2` / `R3` / `R4`〔除场景数〕/ `R5` / `R12` / `P0c` 逐处核为对，一字未动）。
+
+### 四、守卫是否扩张（判断与理由）
+
+- **结论：不扩**（`server/test/doc-line-ref.test.mjs` **一字未动**，仍只守 `README-server.md`）。
+- 理由：① 本文件 **12 处所指代码已删 / 已重构**，守卫一级判据「区间内至少一个非空行」会把 `vote-widget.js:14`（**正确登记为「已删的历史位置」**）判红——要守就得引「已删白名单」，白名单一涨＝**漏登记时全绿**（`R-73` 的形态）；② `.ctx` 同类引用共 **150 处**（本文件 43 · `REVIEW_QUEUE` 106 · `ACTIVE_RULINGS` 1），**只守一份＝假覆盖**，而 `REVIEW_QUEUE` 本批**不许改**、其引用多为命题裁定时的历史行号；③ 误报面实在：`makeup.js:26（原 \`MANDATORY_ACTIVITY_TYPES\`）` 的括注是**故意标注旧名**，二级判据必判红。⇒ **要么按「台账层」统一设计，要么不守**。
+- **如实标注未覆盖**：本批**没有**为 `.ctx` 的行号引用新增任何守卫；这 43 处（以及 `REVIEW_QUEUE` 的 106 处）**此后仍靠人**。
+
+### 五、语义过期清单（逐条给裁定号）
+
+1. **`R4`「sopData.js 12 场景」→「现 8 场景」**：依 `D-464`（批次 82 清 `joint-event` / `new-system`）与 `D-510`（批次 95 清 `develop-activist` / `info-platform`）；**已改准**（与批次 102 对 `DATA_MODEL.md` 场景表「共 12 个 → 共 8 个」同一改法）。
+2. **同格「6 个活动场景」复核仍成立**（activity 域 6 个）⇒ 不改。
+
+### 六、没擅改的评估结论（如实登记，不属文档污染）
+
+- **模块化分三值并存**：§一速览写 **87 / 100**、§2.1 标题写 **83/100**、§5.2「当前值」写 **97**（2026-09-17 批次 49）——三处口径不一致；§一「综合 ≈ 79」是按 82 / 75 / 75 / 84 / 80 的均值算的，早于批次 42 / 49。**本批只登记、一字未改**（属**评估结论**与打分口径，不是行号污染；§5.2 是 2026-09-15 批次 44 起的「当前值」维护位，改法须支书定）。
+- 其余评估结论（残项清单 / 行动线状态）本批**未逐条复审**（超本批主轴，如实登记）。
+
+### 七、守卫与全量
+
+- **守卫子集**（改后终态重跑）：`doc-consistency`（S1–S13）· `link-integrity` · `version-stamp` · `doc-line-ref` · `scene-write-sync` ＝ **41 / 41 全绿（0 红）**；`module-load`（含 `E1` 全模块加载 / `E2` 独立页装配）＋ `permission-gate` ＋ `server-base` ＝ **22 / 22 全绿（0 红）**。
+- **依 `R-85` 全量**：`cd server` → 先 `npm start`（3000，`DISABLE_PASSWORD_CHECK=1`）→ `npm test` → **`tests 711 / pass 711 / fail 0 / cancelled 0 / skipped 0 / todo 0`，`duration_ms 1,087,277.75`（≈18.1 分钟）**，`^not ok` **0 命中** ⇒ **全绿**；跑完**已停服**。
+
+### 八、不确定 / 没做的地方（如实）
+
+1. **`R1` 十条的「历史行号是否最早」未追**：git 只对照了 **2026-09-03 收口提交的父版本**（＝该台账写成的当天）——十条在该时点**逐条准确**；更早版本无意义。
+2. **`R2` / `R3` / `R4` / `R5` / `R12` / `P0c` 的「区间起止是否最优」未逐处重挑**：本批只判「区间内含文档所述之物」，未逐处重算更紧的起止（如 `constants.js:596-600` 亦可写 `:596-607`）。
+3. **「语义过期」只扫了引用的指代物**（场景数一处），**未复审该台账全部结论**（见「六」，模块化分三值并存只登记）。
+4. **`.ctx` 其余 107 处同类引用（`REVIEW_QUEUE` 106 · `ACTIVE_RULINGS` 1）本批未核**（前者不许改；后者那 1 处不在本批任务书内）。
+5. **`tab-bar.js`「逐行夹空行」的成因未追**（554 行里约半数为空行）——本批只按 node / ripgrep 计准行号，**未动该文件**。
+
 
 
 
