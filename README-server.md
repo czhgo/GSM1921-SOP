@@ -1449,7 +1449,7 @@
 
 | 项 | 要求 | 依据 |
 |---|---|---|
-| Node.js | **根说明写 `Node ≥ 22`**；部署文档写「Node 18+」；**`server/package.json` 未声明 `engines`**（两处说法不一致，以实际运行环境为准，建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:50`、`server/package.json` |
+| Node.js | **`Node ≥ 22`**（根说明与部署文档现已一致）；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x`，**Node 18 不可用**；**`server/package.json` 未声明 `engines`**（建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:50`、`server/package.json` |
 | 运行依赖（4 个） | `express ^4.19.0`、`better-sqlite3 ^12.0.0`、`multer ^1.4.5-lts.1`、`nodemailer ^9.0.6` | `server/package.json:14-19` |
 | 开发依赖（仅测试用） | `playwright 1.60.0`（**锁定版本**）；全新环境需先 `npx playwright install chromium` 下载浏览器 | `server/package.json:20-22`、`server/README.md:43` |
 | 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:15`、`README.md:204-206` |
@@ -1749,7 +1749,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 22 | AI 本地推理（经验提炼 / 通知智能路由 / 活动建议） | **规划，无代码**；部署文档里写的 `AI_API_BASE_URL` 在代码中**检索不到消费点（未取证）** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:219-242` |
 | 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/AUTHENTICATION_MODEL.md:75`、`DEPLOYMENT_GUIDE.md:217` |
 | 24 | API 形态下的「一键重置」 | 前端 `?reset=` 三档**只在无 token 的 mock 形态生效**；API 形态没有对应接口，重置需运维手工删 `data.db` | `server/README.md:19` |
-| 25 | 数据模型文档与部署文档的表数口径过期 | `DEPLOYMENT_GUIDE.md` 写「**32 资源表**」；**代码实测 35 张**（§2.29 已记录「资源表 34 → 35」）——后端按 **35 张**实现 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:104,160,180,259` vs `server/db.js:9-42`、`content/04_web_design/data/DATA_MODEL.md:1095` |
+| 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐（批次 110）**：部署文档原写「32 资源表」，现与代码一致为 **35 张**——后端按 **35 张**实现（本条保留记录，便于比对旧版文档） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:104,160,180,259,430` vs `server/db.js:9-42` |
 
 > **另有一处需要说明的「未取证」**：`server/test/` 下的测试套件规模（文件数/断言数）本文件不写具体数字——它随开发持续增长，`server/README.md:37` 明确「本文件不维护固定计数，以 `server/test/` 实际目录为准」。
 
@@ -1819,7 +1819,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ### 8.4 本文的自我约束（如实声明）
 
 1. **不做无出处的断言**：本文所有「现状」均给出 `文件:行号`；凡证据不足者写明「未取证」（§5.1 编译工具、§5.3 `AI_API_BASE_URL`、§7.3#22）。
-2. **不合并冲突口径**：文档与代码不一致处**并列呈现**（如 32 vs 35 张表见 §7.3#25；Node 18+ vs ≥22 见 §5.1）。
+2. **不合并冲突口径**：文档与代码不一致处**并列呈现**。此前并列过的两例——部署文档「32 资源表」对代码 35 张、部署文档「Node 18+」对根说明 ≥ 22——**已由批次 110 把文档侧改准、不再并列**；**新发现的冲突仍按本条并列登记于 §7.3**。
 3. **区分「制度要求」与「系统实际」**：如「副组长」（§7.2#17）、「系列活动」（§7.2#9）、「数据交接」（§7.2#15）。
 4. **本文档为说明件，不是契约**：接口与字段的最终判定以**代码与测试**为准（守卫见 `server/test/doc-consistency.test.mjs`、`server/test/link-integrity.test.mjs`、`server/test/catalog-sync.test.mjs`）。
 

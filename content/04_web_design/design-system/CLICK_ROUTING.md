@@ -25,7 +25,7 @@
 |---|---|---|---|
 | A1 | 首页活动列表 `components/dashboard/activity-panel.js:121` + `main-entry.js:87-95` | 工作台 `?activityId=` / 未登录 login | ✓ 分层① |
 | A2 | 首页活动风采 `components/dashboard/gallery.js:53` + `main-entry.js:105-113` | 同上 | ✓ 分层① |
-| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js:84,149,195` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
+| A3 | visitor 活动动态 `entries/tabs/visitor/activities-tab.js:58,61,208` | 独立详情页 `activity.html?id=` | ✓ 分层④ |
 | A4 | org 工作台日历 `components/calendar.js:479-495` + `activity-view.js` | 同页只读详情面板 | ✓ 分层③ |
 | A5 | 支书工作台日历 `calendar-tab.js:103` + `inspector.js` | 同页可操作详情面板 | ✓ 分层③（可操作） |
 | A6 | 工作台日历列表视图 `calendar.js:396-400` | 同页详情 | ✓ 分层③ |

@@ -38,7 +38,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 补课管理 | `services/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
 | 复盘服务 | `services/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
 | 发展党员 | `core/domain.js`（developStage 四阶段）+ `core/data-adapter.js`（持久化） | `workspace/org.html` | 查看候选人列表/修改阶段状态/上传更新材料/标记缺失并提醒（思想汇报已数字化并实现：`services/thought-report.js` 提交即入库即归档，组织委员查看/调用——2026-08-30 支书决策） | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) + CF §C.1b |
-| 档案宣传 | `core/data-adapter.js`（imageRecords 聚合）+ `modules/references.js` | `workspace/prop.html` | 档案归档/材料标准/模板管理/周报报送/图片上传与标注/接收考勤备案 | [宣传委员工作流程指南](../02_institution/sop/宣传委员工作流程指南.md) + CF §C.1b |
+| 档案宣传 | `core/data-adapter.js`（imageRecords 聚合）+ `modules/references.js` | `workspace/prop.html` | 档案归档/材料标准/模板管理/周报报送（图片随宣传材料走「档案归档」；**图片记录只有数据通道、图片管理界面未实现**，`D-446`） | [宣传委员工作流程指南](../02_institution/sop/宣传委员工作流程指南.md) + CF §C.1b |
 | 人员管理 | `services/person.js` | 各工作台（人才库/人员选择） | 人员查询/名称解析/档案展示 | — |
 | 待办服务 | `services/todo.js` | 各工作台 | 待办派生/标记完成/按分类展开收起（幂等去重） | — |
 | 支书总览 | `services/secretary-overview.js` | `workspace/secretary.html` | 全局统计/总览待办派生 | — |
@@ -55,7 +55,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 支部上报审批 | `services/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 上报审批） |
 | 报名登记 | `services/signup.js` | 活动/专班详情（报名区块） | 统一报名渠道：participant 报名即加入；organizer/deep 报名 + 发起人审核（pending → 通过/拒绝） | — |
 | 外发确认 | `services/external-dispatch.js` | 各工作台（任务/材料外发） | 发送方标记「已通过微信发送给 XX」→ 接收方工作台「确认收到」→ 可审计闭环（谁/何时/发给谁/何时确认） | — |
-| 三委数据交接 | `services/handoff.js` | disc/prop/org 工作台 | 交接生成 → 自动为接收方派生待办 → 确认 → 待办销项 + 状态落库（双向可追溯） | CF §E.2（数据交接协议） |
+| 三委数据交接 | `services/handoff.js` | disc/org 工作台 | 交接生成 → 自动为接收方派生待办 → 确认 → 待办销项 + 状态落库（双向可追溯）；协议三条＝纪检→组织（考勤统计、考察记录）· 组织→纪检（补课需求回执）（`D-429`/`D-474` 后宣传侧已不设交接） | CF §E.2（数据交接协议） |
 | 思想汇报 | `services/thought-report.js` | `workspace/visitor.html`（提交）、`workspace/org.html`（查看/调用） | 提交即入库即归档：按 personId 算法自动归集至个人档案，无人工归档环节 | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
 | 全员可见性矩阵 | `services/visibility.js` | 全站共用（数据维度投影） | 「谁看谁」可见性投影（L0 个人 / L1 条线 / L2 全局）；看 ≠ 做，不授予操作权 | RC §9b + P-011（SECRETARY_DIRECTIVES） |
 | 表决配置 | `services/vote-config.js` | 活动创建（表决配置区块） | voteConfig 解析与场景默认：deliberative（交流式）/ formal（正式表决）参数化（optionSet/quorumCheck/voterScope） | — |

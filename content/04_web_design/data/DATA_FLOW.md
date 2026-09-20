@@ -38,7 +38,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
 | 制度文件引用 (ComplianceReference) | mockDB.complianceReferences + localStorage | 引用->持久化 | 组织委员引用的制度文件 |
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
-| SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 12 个内置场景，驱动任务生成和工作流 |
+| SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 8 个内置场景，驱动任务生成和工作流（内置清单见 [DATA_MODEL.md §2.14](DATA_MODEL.md)） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与 DATA_MODEL §2.15 一致） |
 | 应用状态 (appState) | core/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
 | 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
@@ -217,7 +217,7 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L36-L95)（saveDB/loadDB 已收敛至 MockAdapter，services/mock.js 仅保留 API 模式扎口代理） |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/mock.js 仅保留 API 模式扎口代理） |
 
 **全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
 
@@ -253,6 +253,8 @@ related_files: [content/04_web_design/data/DATA_MODEL.md, content/02_institution
 | `agendaVotes` | Object[] | 线上支委会表态记录 |
 | `handoffs` | Object[] | 三委数据交接记录（T-304 C2） |
 | `thoughtReports` | Object[] | 思想汇报记录 |
+| `partyGroups` | Object[] | 党小组清单（一等实体） |
+| `memberFlows` | Object[] | 成员流动台账（流入/流出复式记账） |
 | `branches` | BranchRecord[] | 支部实例（含 config 配置档案） |
 | `appointmentRecords` | AppointmentRecord[] | 支书任期记录 |
 | `reviewRequests` | ReviewRequest[] | 支部上报审批记录 |

@@ -61,7 +61,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 ```text
 ┌──────────────┐   只读爬取（Playwright+IAAA）   ┌──────────────────┐
 │  党校系统     │ ─────────────────────────────▶ │  我们的工作台      │
-│ dangxiao.pku │   培训进度/成绩/学时/结业评议    │（server/ 32 资源表）│
+│ dangxiao.pku │   培训进度/成绩/学时/结业评议    │（server/ 35 资源表）│
 └──────────────┘                                 └──────────────────┘
 ┌──────────────┐   双向同步（读+写）              │        │
 │ 智慧党建平台  │ ◀───────────────────────────── │   微信小程序       │
@@ -75,7 +75,7 @@ related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../..
 
 ## 三、我们系统的数据类型与字段（对接映射的「我方」）
 
-### 3.1 后端 32 资源表（server/db.js）
+### 3.1 后端 35 资源表（server/db.js）
 
 > 统一结构 `id + data JSON`（与前端数据结构完全一致，嵌套字段零损失）。会话与附件独立两表。
 

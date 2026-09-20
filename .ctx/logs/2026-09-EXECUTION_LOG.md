@@ -11011,6 +11011,145 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 
 [经验蒸馏: 是 → 「**同一份台账里的行号有两种死法：漂移（内容还在、位置变了）与迁出（内容已不在文件里）——前者改号即可，后者若那本台账正在『去留待裁』，正确做法是只登记、不动，别替支书做一道减法。** 另：**`Read` 的行号对纯 LF 文件会比 node / ripgrep / git 少 1**——核行号前先定计数工具，否则会照着错的号改对的地方（本批实测 `CLAUDE.md` 一句：node / git 说 136、`Read` 说 135）。」]
 
+---
+
+## 批次 110（2026-09-20，`content/**` 非 README 类文档的过期表述对齐——去污染第 ④ 条收尾）
+
+**任务**：支书第 ② 条「**更新所有的SOP文档**」＋ 第 ④ 条「这样的上下文污染一定还存在！请一定要还仓库文档天朗气清的上下文环境」——本批做 `content/**` 里**剩下的「非 README 类」过期表述**（主要是工程设计文档与数据模型的过期数字 / 口径），并**复核**批次 102 / 106 登记的两处「判沿革保留」是否仍成立。
+**引用流程**：穷举「应核文档」→ 五类逐份核（**事实源＝系统实然**：代码 / 守卫 / 已裁裁定）→ 逐处改准（带依据）→ 反查（含**人工通读**）→ 落账
+**来源**：批次 102（`D-520`，`content/**` 首次获授权）· 批次 106（`D-527`，只做 README 类）· 批次 108（`D-529`，`.ctx`）· 批次 109（`D-530`，`.ctx` 行号收口）已登记的线索清单；本批连同**新查出**的项一并处理。
+
+### 一、穷举（第一件产出）：`content/**` 非 README 类 md **51 份**（另 README 类 7 份，共 58 份）
+
+> 行数＝`@(Get-Content).Count`；`last_updated` 取 frontmatter（无 frontmatter 者标「无」）。**⚠ 行数与 `Measure-Object -Line` 有差**（后者对部分文件少计），本批一律以前者为准（同批次 109 的计数纪律）。
+
+| 目录 | 文件（行数 · `last_updated`） |
+|---|---|
+| `01_strategy/` | `DEVELOPMENT_PATH.md`（296 · 2026-09-05）· `SECRETARY_DIRECTIVES.md`（460 · 2026-09-09）· `references/合规文件/…发展党员工作细则（2026年）.md`（199 · 无）· `references/建设探索/…知识特点与优化路径.md`（155 · 无）· `references/历史会议材料/…改革说明（征求意见稿·修订版）.md`（120 · 无） |
+| `02_institution/` | `COMMISSIONER_DUTY_FRAMEWORK.md`（492 · 2026-09-17）· `FLAT_ORGANIZATION_DESIGN.md`（91 · 2026-09-13）· `ROLE_CLASSIFICATION.md`（244 · 2026-09-05）· `SYSTEM_ROLE_PERMISSION.md`（241 · 2026-09-17）· `sop/INDEX.md`（51 · 2026-09-03）· `sop/常见工作场景快速指南.md`（497 · 2026-09-17）· `sop/党小组组长工作手册.md`（344 · 2026-09-15）· `sop/纪检委员工作流程指南.md`（197 · 2026-09-17）· `sop/宣传委员工作流程指南.md`（154 · 2026-09-17）· `sop/支委与党小组定人定责定岗说明.md`（247 · 2026-09-17）· `sop/组织委员工作流程指南.md`（242 · 2026-09-17） |
+| `03_doc_system/` | `ARCHITECTURE.md`（319 · 2026-09-15）· `DOC_MAP.md`（255 · 2026-09-17）· `OPERATIONS_GUIDE.md`（799 · 2026-09-17）· `PROCESS_GUIDE.md`（452 · 2026-09-13）· `SERVICE_CATALOG.md`（109 · 2026-09-05）· `SSOT_INDEX.md`（193 · 2026-09-15）· `USAGE_POLICY.md`（413 · 2026-09-15）· `工作模板/经验沉淀辅助提示词.md`（263 · 2026-08-09） |
+| `04_web_design/` | `data/DATA_FLOW.md`（487 · 2026-09-15）· `data/DATA_MODEL.md`（1136 · 2026-09-15）· `deploy/AUTHENTICATION_MODEL.md`（106 · 2026-09-05）· `deploy/DEPLOYMENT_GUIDE.md`（482 · 2026-09-13）· `deploy/PKU_PARTY_INTEGRATION.md`（273 · 2026-09-15）· `deploy/WECHAT_INTEGRATION.md`（187 · 2026-09-05）· `design-system/CLICK_ROUTING.md`（55 · 无）· `design-system/COLOR_SYSTEM.md`（285 · 2026-09-05）· `design-system/COMPONENT_SPEC.md`（497 · 2026-09-15）· `design-system/DESIGN_SYSTEM.md`（364 · 2026-09-15）· `evolution/ARCHITECTURE_EVOLUTION.md`（108 · 2026-09-05）· `evolution/BRANCH_WORK_MAP.md`（148 · 2026-09-14）· `evolution/DESIGN_METHODOLOGY.md`（199 · 2026-09-05）· `evolution/PARTY_COMMITTEE_DESIGN.md`（174 · 2026-09-09）· `evolution/ROLE_PERMISSION_DESIGN.md`（89 · 2026-09-05）· `evolution/WORKFLOW_BLOCK_CONTRACT.md`（256 · 2026-09-17）· `module/ABOUT_PAGE_DESIGN.md`（173 · 2026-09-05）· `module/AGENDA_AND_REFERENCE_DESIGN.md`（169 · 2026-09-05）· `module/MODULE_UI_DESIGN.md`（348 · 2026-09-05）· `module/SOP_WEBSITE_GUIDE.md`（184 · 2026-09-13） |
+| `05_ai_coding/` | `CONTEXT_MANAGEMENT.md`（206 · 2026-09-05）· `DATA_CONSISTENCY_CHECKLIST.md`（746 · 2026-09-17）· `DOCUMENT_GOVERNANCE.md`（249 · 2026-09-17）· `FILE_OPERATION_RULES.md`（161 · 2026-09-05）· `REVIEW_AND_EXPRESSION.md`（236 · 2026-09-04）· `TEST_AND_VERIFICATION.md`（263 · 2026-09-04） |
+| `insights/` | `党支部管理与实务经验沉淀.md`（351 · 2026-09-17） |
+
+### 二、待核清单 × 判定（逐条：位置 / 现文 / 系统实然 / 依据 / 判定）
+
+**A. 过期数字（9 处 → 全改）**
+
+| # | 位置 | 现文 | 系统实然 | 依据 | 判定 |
+|---|---|---|---|---|---|
+| 1 | `deploy/DEPLOYMENT_GUIDE.md:50` | 「Node 18+」 | `better-sqlite3@12.11.1` 的 `engines` ＝ `20.x \|\| 22.x …`（**Node 18 不可用**）；根说明写 `Node ≥ 22`；`server/package.json` **无 `engines`**、仓内**无 CI 配置** | `server/node_modules/better-sqlite3/package.json`、`README.md:15` | **过期 → 改**（写作「Node ≥ 22（仓库根说明；依赖 `engines` 下限 20，已不接受 18）」） |
+| 2-6 | 同文件 `:104`·`:160`·`:180`·`:259`·`:430` | 「32 资源表」×5 | `server/db.js::RESOURCE_TABLES` **35 张** | `server/db.js:9-42`（逐条数 35） | **过期 → 改 35** |
+| 7 | 同文件 `:258`·`:429` | 「25 资源分组」/「25 服务端资源」 | `api-adapter.js` 的资源分组 **35**（文件头即写「35 个资源分组的 list()」） | `docs/src/core/api-adapter.js:8` ＋ 顶层键实测 **35** | **过期 → 改 35**（任务书未点，属**人工通读**新查出） |
+| 8 | `deploy/PKU_PARTY_INTEGRATION.md:64`·`:78` | 「32 资源表」×2 | 同上 **35** | 同上 | **过期 → 改 35** |
+| 9 | `data/DATA_FLOW.md:41` | 「12 个内置场景」 | `sopData.js` 实测 **8**（`DATA_MODEL.md:533` 已写「共 8 个」＋「已清场景（沿革）」） | `D-464` / `D-510`；`DATA_MODEL.md §2.14` | **过期 → 改 8** |
+| 10 | `05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:196`（R28 行） | 「**93** 条校验点台账，**91** 可自动化 / **2** 条 reason……**余 2 条均已有裁定归属**」 | `form-loop-registry.mjs` 实测 `VALIDATION_SITES.length`＝**95** · `machine:true` **91** · `machine:false` **4**；4 条＝服务层重复守卫 1 ＋ 缺稳定前置待解锁 3（**并非都有裁定归属**） | 代码实测（本批 node 直读）；`README.md:236` 批次 106 已改准 95 / 91 / 4 | **过期 → 改**（数值 ＋ 尾句一并改准） |
+| 11 | `design-system/COLOR_SYSTEM.md:283` | 「**6** 个工作台经 `bootstrapPage` 注入 `--app-accent`」 | `docs/workspace/*.html` **7 个**，7 个 `ws-*-entry.js` **全部**经 `workspace-shell` → `bootstrapPage`（含党委台 `accentRole:'party-staff'`） | `docs/workspace/` 实况 ＋ 7 个入口文件 | **过期 → 改 7** |
+
+**B. 过期口径（5 处 → 改 4、复核后保留 1）**
+
+| # | 位置 | 现文 | 现行口径 | 依据 | 判定 |
+|---|---|---|---|---|---|
+| 12 | `03_doc_system/SERVICE_CATALOG.md:41` | 宣传台核心操作含「**接收考勤备案**」 | 考勤统计去向＝**报支委会（组织委员接收位）**，宣传侧已无该交接 | `D-429` / `D-474`；`services/handoff.js:23`（`attendance-archival → org-commissioner`）；`prop/todo-tab.js`（宣传侧顶卡已撤） | **过期 → 删该词** |
+| 13 | 同文件 `:58` | 交接入口「**disc/prop/org** 工作台」 | `HANDOFF_TYPES` 三条协议**全在纪检 ↔ 组织**之间，宣传侧无交接 | `services/handoff.js:22-26`；`handoff-inbox` 组件唯一消费点＝纪检台 | **过期 → 改 disc/org** |
+| 14 | `02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:322` | 短期活动「纪检事后汇总考勤→**宣传委员**、考察→支委会」 | 两者均报**支委会**（组织委员接收建档）——**同文件 §E.2 已于批次 100 改准**，唯此句漏改 | `D-429` / `D-474`；同文件 `:301`·`:307` | **过期 → 改**（只改去向口径、不动条文结构） |
+| 15 | `data/DATA_MODEL.md:1007`·`:1008` | `reviewStatus` 类型含 `'pending'`、默认 `'pending'`、说明「**组织初阅状态**…不进**待初阅**队列」；`reviewHistory`「**初阅**留痕」 | 状态机只有 `needs_revision` / `archived`；提交即 `archived`；队列**已撤除**；阅读页留痕区名「**审阅留痕**」 | `D-387` / `D-482`；`services/thought-report.js:112-134`·`:175`；`thought-report-entry.js:154` | **过期 → 改**（**改口径与枚举、不改结构**；批次 102 的 U-4 曾判「超边界、只登记」，其**建议的「另批连同现行枚举一起定」正是本批**） |
+| 16 | `design-system/COMPONENT_SPEC.md:350`·`:353` | `:350`「「待初阅队列」保留作按篇下钻」；`:353` 守卫 ② 描述里「**待初阅队列仍在**」 | 该队列**整卡已撤除**、换「篇幅不足（少于 1200 字）」；守卫 `relation-matrix.test.mjs` 现断言 **`!m.queue`（不得回潮）** | `D-482`（批次 86 落地）；`relation-matrix.test.mjs:276-278` | **复核后判「批次 102 的沿革保留不再完全成立」**：`:353` 描述的是**守卫现行断言**（文档与守卫实况相反）⇒ **改准**；`:350` 的**批次 41 沿革句原样保留**、只在句末补现状指针（**不删沿革**） |
+| 17 | `design-system/COLOR_SYSTEM.md:129` | 「组织协调，专班**唯一招募节点**」 | `D-434` 只禁「组织委员是唯一**专班管理节点**」，并明写「**招募统筹仍由组织委员收口**」 | `D-434`；批次 102 决定 §六「**判为保留——与现行口径一致**」 | **保留（与既有判定一致）**——本批**复核后不动**，见「七」 |
+
+**C. 指向失效（11 处 → 全改；任务书点名的「`content/**` 行号引用」）**
+
+| # | 位置 | 改前 | 实况 | 判定 |
+|---|---|---|---|---|
+| 18 | `data/DATA_MODEL.md:25` | `domain.js#L12-L35`（Activity） | Activity 块 **11-33**（35 已是下一个 `/**`） | 指向越界 → 改 |
+| 19 | 同文件 `:282` | `domain.js#L37-L48`（AttendanceRecord） | 块 **35-46** | 同上 → 改 |
+| 20 | 同文件 `:319` | `domain.js#L148-L160`（**InspectionRecord**） | 148-160 实为 **ReviewRecord**；InspectionRecord 在 **165-177** | **指错块** → 改（并补 `mockDB.inspections` 的落点 `domain.js:245`） |
+| 21 | 同文件 `:448` | `domain.js#L50-L57`（**Task**） | 50-57 实为 **Person**；Task 在 **65-72** | **指错块** → 改 |
+| 22 | 同文件 `:219` | `auth.js#L469-L488`（`canDo`） | `canDo` 在 **477-496** | 区间偏移 → 改 |
+| 23 | `data/DATA_FLOW.md:220` | `mock-adapter.js#L36-L95`（`_saveToStorage`） | 函数在 **48-109**（**末 14 行落在区间外**——正是 `partyGroups` / `memberFlows` 两行被漏的原因） | 区间偏移 → 改 |
+| 24 | `05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:125` | `todo-tab.js:767` | 该句讲的是**支书台「待办·退回」**的「请填写退回原因」＝ `secretary/todo-tab.js:672`（`todo-tab.js` 仓内 6 份，未限定 ⇒ 解析到 105 行那份、**越界**） | 失效 → 改 |
+| 25 | `design-system/CLICK_ROUTING.md:28` | `entries/tabs/visitor/activities-tab.js:84,149,195` | 三处**均不含** `../activity.html?id=`（84 行更空）；实际在 **58**（构造 href）· **61** · **208** | 失效 → 改 |
+
+**D. 系统形态 / 死场景 / 已删字段**：`content/**` 逐份核过——死场景 id（`joint-event` / `new-system` / `develop-activist` / `info-platform`）**无遗留**（`BRANCH_WORK_MAP.md:34-41` 是「已清」标注、`DATA_MODEL.md:546` 是「已清场景（沿革）」指针 ⇒ **沿革、保留**）；`attendanceQROwner` 0 命中；`party-committee.html` 的「党委台」定性在 `SERVICE_CATALOG.md:53-55` 与 `PC` 关联**一致**（无「误认为支委会」的表述）⇒ **对**。`D-434` 的「唯一节点」在 `content/**` 仅 `SECRETARY_DIRECTIVES.md:442`（**变更记录**「删『组织委员唯一节点』」＝**沿革**）与 `COLOR_SYSTEM.md:129`（#17，保留）。
+
+**E. 职责错位 / 重复源**：`DATA_FLOW.md:222` 的「全量键字段清单」自称「实际序列化的 **35** 个字段」，但表体只有 **33** 行——**漏 `partyGroups` / `memberFlows`**（`mock-adapter.js:96,98`，批次 25 新增后未补）⇒ **补两行**（补后 35 行，与自述数一致）；「35」本身**不改**（该口径含 `_schema`；`DATA_CONSISTENCY_CHECKLIST` 的「持久化域 34」**不含** `_schema` ⇒ **两个数各自成立、不许互相代入**）。
+
+### 三、改准清单（逐条：位置 + 改前 → 改后 + 依据）**共 24 处 / 9 文件**
+
+| # | 位置 | 改前 → 改后 | 依据 |
+|---|---|---|---|
+| 1 | `deploy/DEPLOYMENT_GUIDE.md:50` | 「Node 18+」→「**Node ≥ 22**（仓库根说明；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x …`，Node 18 不可用）」 | 依赖 `engines` ＋ `README.md:15` |
+| 2 | `:104` / `:160` / `:180` / `:259` / `:430` | 「32 资源表」（5 处）→「**35 资源表**」 | `server/db.js:9-42` |
+| 3 | `:258` / `:429` | 「25 资源分组」/「25 服务端资源」→「**35 资源分组**」 | `api-adapter.js:8` ＋ 顶层键 35 |
+| 4 | `deploy/PKU_PARTY_INTEGRATION.md:64` / `:78` | 「32 资源表」→「**35 资源表**」 | 同上 |
+| 5 | `data/DATA_FLOW.md:41` | 「12 个内置场景」→「**8 个内置场景**（内置清单见 `DATA_MODEL.md §2.14`）」 | `D-464` / `D-510` |
+| 6 | `data/DATA_FLOW.md:220` | `mock-adapter.js#L36-L95` → **`#L48-L109`** | 函数实界 |
+| 7 | `data/DATA_FLOW.md:255-256`（新增两行） | 补 `partyGroups` / `memberFlows` 两行 | `mock-adapter.js:96,98` |
+| 8 | `data/DATA_MODEL.md:25` / `:282` / `:319` / `:448` / `:219` | 行号区间逐处改准（见「二·C」#18-22） | 逐处开被引文件核 |
+| 9 | `data/DATA_MODEL.md:1007` / `:1008` | 见「二·B」#15（枚举 `'needs_revision'\|'archived'`、默认 `'archived'`、说明改「提交即入库即归档 / 不再有『待初阅』态与队列」、`reviewHistory` 改「**审阅留痕**」） | `D-387` / `D-482` |
+| 10 | `design-system/COMPONENT_SPEC.md:350` / `:353` | 见「二·B」#16（沿革句保留 ＋ 补「已随取消初阅门撤除」（`D-482`）；守卫 ② 描述改「已撤除、不得回潮」） | `D-482` / 守卫实况 |
+| 11 | `design-system/COLOR_SYSTEM.md:283` | 「6 个工作台」→「**7 个工作台**」 | `docs/workspace/` 实况 |
+| 12 | `design-system/CLICK_ROUTING.md:28` | `:84,149,195` → **`:58,61,208`** | 该文件 `activity.html` 链接实测行 |
+| 13 | `03_doc_system/SERVICE_CATALOG.md:41` | 删「接收考勤备案」；「图片上传与标注」→「图片随宣传材料走『档案归档』；**图片记录只有数据通道、图片管理界面未实现**」 | `D-429` / `D-474` · `D-446` |
+| 14 | 同文件 `:58` | 「disc/**prop**/org 工作台」→「**disc/org** 工作台」＋补三条协议一句话 | `services/handoff.js:22-26` |
+| 15 | `02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:322` | 「考勤→**宣传委员**」→「考勤→**支委会（组织委员接收建档）**」 | `D-429` / `D-474` |
+| 16 | `05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:196` | 见「二·A」#10 | 代码实测 ＋ `README.md:236` |
+| 17 | 同文件 `:125` | `todo-tab.js:767` → **`secretary/todo-tab.js:672`** | 逐处核（该句讲支书台待办） |
+
+### 四、反查（改前 → 改后命中数，全库）
+
+> 判据：本批改动**全部落 md**；旧口径关键字全库扫（含沿革 / 原话），**逐条判定遗留 / 沿革 / 否定式 / 原话**。
+
+| 关键字 | 改前 → 改后 | 判定 | 处置 |
+|---|---|---|---|
+| `32 资源表` | 12 → 5 | `content/**` **7 处已清**；余 5 ＝ `README-server.md:1752`（§7.3#25 的「并列呈现冲突」）＋ `.ctx` 沿革 4 | **content 已清**；余见「七·3」 |
+| `Node 18+` | 5 → 2 | `content/**` 1 处已清；余 2 ＝ `README-server.md:1452`·`:1822` | 同上 |
+| `25 资源分组` / `25 服务端资源` | 2 → 0 | 本批新查出、已清 | **已清** |
+| `12 个内置场景` | 2 → 0 | 1 处（`DATA_FLOW.md`）已清、1 处在 `.ctx` 沿革 | **已清** |
+| `接收考勤备案` / `todo-tab.js:767` / `考勤→宣传委员` | 4 → 0（`content/**`） | 3 处在 `content/**` 已清；余在 `archive/**` 与 `2026-09-EXECUTION_LOG`（历史） | **content 已清** |
+| `待初阅` | `content/**` 4 → `content/**` 3 | 改后 3 处**全部是我写的「改准句」**：`DATA_MODEL.md:1007`（否定式「不再有『待初阅』态」）· `COMPONENT_SPEC.md:350`·`:353`（沿革 ＋ 改准说明）⇒ **否定式 / 沿革，保留** | 保留（资产） |
+| `6 个工作台` | `content/**` 3 → 2 | 余 2 ＝ `COMPONENT_SPEC.md:65`（**2026-08-02 沉淀**＝沿革）· `ROLE_PERMISSION_DESIGN.md:66`（批次 30 收敛台账 ✅ 行、枚举本身写明 6 个＝不含党委台 ⇒ 当时实况） | 保留（沿革） |
+| `**93** 条校验点 / 93 处校验点` | `content/**` 2 → 1 | 余 1 ＝ `DATA_CONSISTENCY_CHECKLIST.md:207`（R-80 行「实做时查出 11 条行号未同步」——**批次 49 当时的实况**） | 保留（沿革） |
+| `唯一招募节点` | 1 → 1 | **未动**（批次 102 已判「与 `D-434` 现行口径一致」） | 保留（复核后不动） |
+| `S1–S8`（`DATA_CONSISTENCY_CHECKLIST.md:228`） | 1 → 1 | 「**立表时实测**仅存 S1–S8、尚无 S9」＝**自述为立表时点** | 保留（沿革；批次 102 同判） |
+
+**⚠ 人工通读发现的（grep 扫不到的）**——照批次 106 / 107 的教训，本批**不用「grep 零命中」当结论**，逐份读过 9 个改动文件 ＋ 抽读其余：
+1. **`DEPLOYMENT_GUIDE.md:258`·`:429` 的「25 资源分组 / 25 服务端资源」**：不在任务书的线索清单里、也不在任何旧关键字清单里（`25 资源` 从未被登记为过期词）——是**读 §3.7.2 交付清单与附录 A.1 时对代码发现的**。
+2. **`SERVICE_CATALOG.md:58` 的「disc/prop/org」**：字面看不出错（`HANDOFF_ROLE_LABELS` 里仍有 `prop-commissioner`）——是**顺着 `HANDOFF_TYPES` 三条协议 + 唯一消费点**「传阅」时才发现的。
+3. **`SERVICE_CATALOG.md:41` 的「图片上传与标注」**：不在任何「过期词」清单里——是**拿 `D-446` 逐句对宣传台能力**发现的。
+4. **`DATA_FLOW.md:222` 的「35 个字段」表体只有 33 行**：数字**对**（含 `_schema`）、**表体漏两行**——是**逐行数表**时才发现的（grep「partyGroups」在 `DATA_FLOW.md` **0 命中**）。
+5. **`DATA_MODEL.md` 五处 `#Lx-Ly` 里有两处「指错块」**（InspectionRecord → 实为 ReviewRecord；Task → 实为 Person）：**二级判据的自动化近似够不到**（括注里的「Task」只有 4 个字母、我的探针正则 `[A-Z][A-Za-z]{4,}` 不覆盖）——是**逐处打开 `domain.js` 看实文**才发现的。
+6. **`COMMISSIONER_DUTY_FRAMEWORK.md:322`**：同一份文件里 `:301`·`:307` 已按 `D-429`/`D-474` 改准、唯 `:322` 未改 —— **靠通读该文件 §E–§F 才看出自相矛盾**（`考勤→宣传委员` 这个串也未被任何清单登记）。
+
+### 五、守卫 / 版本戳 / 全量
+
+- **版本戳**：本批改动**全部落 md**（`content/**` ＋ `.ctx`；**无 `docs/**` 页面 / 脚本、无 `server/**`**）⇒ **不 bump**（判据同批次 106-109：戳机制覆盖 `docs/**` 与 `server/test/*.mjs` 的字面量，本批对这些文件**零改动**）。
+- **守卫子集（逐条 pass/fail，终态实测）**：`doc-consistency` **13/13 pass** · `link-integrity` **5/5 pass** · `version-stamp` **15/15 pass** · `module-load` **2/2 pass**（`E1` ＋ `E2`）· `permission-gate` **9/9 pass** · `server-base` **11/11 pass** · `scene-write-sync` **3/3 pass** · `doc-line-ref` **5/5 pass**——8 个文件合计 **63 测试 / 63 pass / 0 fail**（`permission-gate` / `server-base` 均带 `DISABLE_PASSWORD_CHECK=1`，否则假红）。
+  - ⚠ **首轮实测报红（须记）**：`doc-line-ref` 的 `R1` / `R2` / `R3` 三红——根因＝本批一度给 `DATA_MODEL.md §2.1` **补了 8 行字段**（见「七·1」），**行号整体下移 8 行**，而 `README-server.md` 对 `DATA_MODEL.md` 的 **42 处引用**随之漂移。⇒ 该「加行」动作**已撤回**（`DATA_MODEL.md` 改前改后同 **1136 行**），三红即消；本批对 `DATA_MODEL.md` 的改动**全部是行内替换、零行增删**。
+- **全量（`R-85`）**：`cd server` → 先 `npm start`（3000，`DISABLE_PASSWORD_CHECK=1`）→ `npm test` → **停服**。**实测**：**711 测试 / 711 pass / 0 fail**（`cancelled 0` · `skipped 0` · `todo 0`；`duration_ms` ≈ **1,107,602**，约 18.5 分钟）⇒ **全量全绿、收尾**；已停服（`Get-NetTCPConnection -LocalPort 3000` 实测无监听）。
+
+### 六、改动清单
+
+- **改**：`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md`（**8 处**）· `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md`（2）· `content/04_web_design/data/DATA_MODEL.md`（**7**：5 行号 ＋ 2 字段说明行）· `content/04_web_design/data/DATA_FLOW.md`（**4**：场景数 · 行号 ＋ 补 2 行）· `content/04_web_design/design-system/COMPONENT_SPEC.md`（2）· `content/04_web_design/design-system/COLOR_SYSTEM.md`（1）· `content/04_web_design/design-system/CLICK_ROUTING.md`（1）· `content/03_doc_system/SERVICE_CATALOG.md`（2）· `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`（1）· `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md`（2）· `.ctx/logs/2026-09-DECISION_LOG.md`（`D-531` ＋ 本月目录 1 行 ＋ 文首 / 文末两处编号起止）· `.ctx/logs/2026-09-EXECUTION_LOG.md`（本节）· `.ctx/ACTIVE_RULINGS.md`（批次 110 留痕句，**0 行口径**）· `.ctx/logs/DECISION_LOG.md`（月度索引 **256 → 257** 条 ＋ 批次 110 概要句）· `.ctx/TIMESTAMPS.md`（**4 处行内注文，日期均不变**：`ACTIVE_RULINGS` / `DECISION_LOG` / 两份 9 月日志 → 批次 110）。
+- **未改**：`README-server.md`（**见「七·3」**）· `docs/src/**` · `server/**`（业务代码与 `server/test/**` 一字未动，**守卫未扩**）· `content/**` 的制度条文实质 · `.ctx/REVIEW_QUEUE.md`（含 `SOP-B-8` 台账与已闭环指针节，**待裁**）· 历史文件（`.ctx/logs/2026-07-*` / `2026-08-*` / `archive/**`）。
+- **临时探针**：`%TEMP%\probe110.mjs`（`content/**` 引用可解析性三级核；**跑在仓库外**）——**已删除**。
+- **未提交 git**（按铁律）。
+
+### 七、不确定 / 没做的地方（如实）
+
+1. **`DATA_MODEL.md §2.1` 活动表仍缺 8 个字段（最要紧的遗留，未改）**——`server/db.js` 无字段表（通用 `id + data`），**字段事实源＝`domain.js` typedef ＋ 各写入口**；本批逐项核过**确缺**：`organizer`（`leader/write-tab.js:1038`·`party-committee-meeting-entry.js:376`）· `direction` · `hostGroup`（`write-tab.js:1041`；读口 `inspection.js:47-49`）· `assignments`（**文档 §2.1.3 自己就在用**）· `signupEnabled`（`write-tab.js:1048`）· `requireMakeup`（`makeup.js:37`）· `isOutdoor`（`activity.js:80`，**文档 §2.1.2 的示例里也写着**）· `voteConfig`（`calendar-tab.js:1163`）。**判定：该改**，**但不宜在本批改**——**它必须加 8 行**，而 `README-server.md` 有 **42 处**指向 `DATA_MODEL.md` 的行号引用（§4.x 字段节逐节引），**加行 ⇒ 三守卫 `R1`/`R2`/`R3` 判红**（本批首轮实测即如此），修它要**同批改准 README-server 的约 44 个行号**——那超出本批「content/** ＋ `.ctx`」的授权面。⇒ **登记为待办**：与「README-server 行号同步」**同批**做，改法＝在 §2.1 字段表 `agenda` 行后按上列顺序补 8 行（每行给类型 / 必填 / 默认值 / 说明 ＋ 代码出处），并逐处 `+8` 同步 README-server 的引用。（另：`§2.1.2` 示例里的 `carrierOther` **全仓无消费点**，属「挂而未用」候选 ⇒ **只登记、不擅删**。）
+2. **`README-server.md` 三处因本批改动而「过期」（未改，超授权面）**：`:1452`（§5.1 写「部署文档写 Node 18+」）· `:1752`（§7.3#25 写「`DEPLOYMENT_GUIDE.md` 写 32 资源表」）· `:1822`（§8.4#2 举的两例冲突）——本批把**源文档**改准后，这三处「并列呈现冲突」的说法**随之不成立**，建议下一批（README 类）就地改准。
+3. **本批**未**扩 `doc-line-ref` 守卫到 `content/**`**（理由与批次 107 / 108 / 109 同：`content/**` 的引用多为**设计示例与历史证据**，一级「区间非空」会误报；且只守 `content` 不守 `.ctx` / README ＝ 假覆盖）。⇒ `content/**` 的 `文件:行号` 引用此后仍**靠人**；本批只把**扫到的 11 处**逐处改准。
+4. **未逐条核对 `content/**` 的全部 `文件:行号` 引用**：探针口径＝markdown 链接 `#Lx-Ly` ＋ 反引号内 `文件.ext:行号`（含逗号续列），**实测 30 条 / 核到 33 个行段**（含 2 处误报，见下）；**不带反引号、不写扩展名**的引用形态（如 `calendar-tab.js:103` 这种省略反引号者已含在口径内，但「短式 `:192`」承前写法**未纳入**）⇒ **如实标注未全覆盖**。
+5. **探针的一处已知误报**：`DATA_MODEL.md:327` 的括注里同时写了 `InspectionRecord` 与持久化域 `mockDB.inspections`（后者在 `domain.js:245`、**不在 typedef 区间内**）——我的二级近似判据按「括注里的符号须在区间内」报了红。**这是探针口径的边界**（一条括注里有两个指向时，机器分不清谁配谁），**文档本身是对的**（已给各自行号）。
+6. **判「沿革 / 否定式 / 原话」而保留的**（本批**一条未删**）：`SECRETARY_DIRECTIVES.md:442`（变更记录「删『组织委员唯一节点』」）· `DATA_CONSISTENCY_CHECKLIST.md:207`（批次 49 当时 93 处）· `:228`（立表时仅存 S1–S8）· `:124` 尾句「`machine:false` 3 → 2，余 2 条均有裁定归属」（批次 47-Z 当时的实况）· `COMPONENT_SPEC.md:65`（2026-08-02 沉淀）· `ROLE_PERMISSION_DESIGN.md:66`（批次 30 收敛台账）· `BRANCH_WORK_MAP.md:34-41` / `DATA_MODEL.md:546`（已清场景指针）· `COLOR_SYSTEM.md:129`（复核后不动）。
+7. **属产品取向 / 待裁、本批未替裁**：无新增（本批改准处均指得到代码实然或已裁裁定）；仅「图片管理界面的取齐」与「`carrierOther` 的去留」两条**转登**在「七·1」。
+8. ⚠ **落账后追加（支书侧复核顺手改）**：本批把 `content` 侧改准后，`README-server.md` 的 **§5.1 Node 行 / §7.3#25 / §8.4#2** 三处成为过期（它们原本是**并列呈现"文档 vs 代码"冲突**：Node 18+ 对 ≥22、32 张表对 35 张；文档侧一改准，**并列写法反成误导**）——**已随即改准**（§5.1 改为「≥ 22，根说明与部署文档现已一致」＋ `engines` 依据；§7.3#25 状态改为「**已对齐（批次 110）**」并补 `:430`；§8.4#2 说明该两例已不再并列）。**只改现状描述，未新增制度口径。**（本批「七·2」原写"未改 `README-server.md`"，此处更正。）
+
+[经验蒸馏: 是 → 「**给一本被别的文档『逐行引着』的文档补正文，是一次跨文件的位移：你想补的那一段越有价值，下游引用漂得越远。** 正确做法不是硬改，而是先量**引用面**（`README-server.md` 对 `DATA_MODEL.md` 有 42 处行号），再决定「本批做」还是「与同步批一起做」——**加行是一条看不见的接口变更**。另：**「数字对、表体缺」也是过期**——`DATA_FLOW.md` 自述‘35 个字段’而表体 33 行，数字没错，读者照着抄表就会漏两个域；这类错**grep 数字永远扫不到**，只能逐行数表。」]
+
+
+
 
 
 

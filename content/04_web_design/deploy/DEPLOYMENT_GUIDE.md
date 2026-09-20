@@ -47,7 +47,7 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 | 路径 | 形态 | 数据 | 前置条件 | 当前就绪度 | 适用场景 |
 |------|------|------|---------|-----------|---------|
 | A 静态托管 | GitHub Pages 直接部署 `docs/` | mock（localStorage + 内存缓存，刷新丢失） | 无 | ✅ 完全就绪 | 开发调试 / 演示 / 公开门面（about.html 是公开页） |
-| B Node 自托管 | `server/`（Express + better-sqlite3）同源托管 `docs/` 与 `/api/v1` | SQLite 单文件持久化 | Node 18+，`npm install` | ✅ 完全就绪（测试全绿，见附录 A.1） | 本地 / 校内服务器正式使用 |
+| B Node 自托管 | `server/`（Express + better-sqlite3）同源托管 `docs/` 与 `/api/v1` | SQLite 单文件持久化 | Node ≥ 22（仓库根说明；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x …`，Node 18 不可用），`npm install` | ✅ 完全就绪（测试全绿，见附录 A.1） | 本地 / 校内服务器正式使用 |
 | C 计算中心对接 | 学校提供后端（数据库 + API 服务器） | 计算中心数据库 | 前置条件见 §3.4 | 🔶 准备阶段（代码已就绪，待对接） | 正式上线目标形态 |
 | D 微信小程序 | WebView 套壳（短期）→ Taro 跨端重写（长期） | 与网页共用后端 | 企业主体 / 服务类目 / 域名备案 / 后端上线 | 🔶 规划阶段（无代码） | 移动端微信内协同 |
 
@@ -101,7 +101,7 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 - **意见反馈**：GitHub Issue 风格的反馈追踪（提交→审核→合并）
 - **数据可视化**：关系网络图、时间轴、日历、归档库
 
-**技术基座（对接方须知）**：前端功能完整（`docs/` ESM 分层 + 工作台体系）；`server/` 后端全栈已实现（Express + better-sqlite3，32 资源表 + 认证 + 附件上传 + 邮件 + 上报，测试全绿）。**数据层为 mock/api 双模式**——本地默认 mock，对接计算中心时切 api 即可，**UI 零改动**（见 3.2.4）。整体处于**对接准备阶段**。
+**技术基座（对接方须知）**：前端功能完整（`docs/` ESM 分层 + 工作台体系）；`server/` 后端全栈已实现（Express + better-sqlite3，35 资源表 + 认证 + 附件上传 + 邮件 + 上报，测试全绿）。**数据层为 mock/api 双模式**——本地默认 mock，对接计算中心时切 api 即可，**UI 零改动**（见 3.2.4）。整体处于**对接准备阶段**。
 
 #### 3.2.2 后端服务需求
 
@@ -157,7 +157,7 @@ UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。Da
 
 ### 3.3 数据流边界：我方数据从哪来到哪去
 
-**内部数据全景**：支部工作实录（活动 / 考勤 / 考察 / 通知 / 反馈 / 专班 / 档案…）由成员在 `docs/` 工作台录入 → 经 DataAdapter（mock/api 双模式）→ 落到 `server/` 32 资源表（`id + data JSON` 通用结构）→ 备份即复制 SQLite 单文件。数据只外发**已确认/已归档**的记录（源头审校 + 异常驱动原则：草稿/待确认数据不外发）。
+**内部数据全景**：支部工作实录（活动 / 考勤 / 考察 / 通知 / 反馈 / 专班 / 档案…）由成员在 `docs/` 工作台录入 → 经 DataAdapter（mock/api 双模式）→ 落到 `server/` 35 资源表（`id + data JSON` 通用结构）→ 备份即复制 SQLite 单文件。数据只外发**已确认/已归档**的记录（源头审校 + 异常驱动原则：草稿/待确认数据不外发）。
 
 **对外数据流边界总表（单向/双向）**：
 
@@ -177,7 +177,7 @@ UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。Da
      支部成员录入（工作台：活动/考勤/考察/通知/反馈…）
                 │
                 ▼
-   我方系统 GSM1921-SOP：docs/ 前端 ──DataAdapter──▶ server/ 32 资源表（+认证/附件）
+   我方系统 GSM1921-SOP：docs/ 前端 ──DataAdapter──▶ server/ 35 资源表（+认证/附件）
                 │               （mock: 本地演示 | api: 接后端）
                 │
    ┌────────────┼──────────────────────┬──────────────────────┐
@@ -255,8 +255,8 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 文档 | 位置 | 内容 |
 |------|------|------|
 | 数据架构设计 | `content/04_web_design/data/DATA_MODEL.md` + `content/04_web_design/data/DATA_FLOW.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
-| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（25 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
-| 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 32 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
+| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（35 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
+| 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 35 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
@@ -426,8 +426,8 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 |----|------|
 | 前端模块化 | `docs/src/` ESM 分层（entries/components/core/services/workflow/modules/mock），根页面 + 工作台（页面清单以 docs/ 实测为准，含 wizard/settings） |
 | 数据抽象 | `data-adapter.js` mock/api 双模式，`setDataSource('mock'/'api', { apiBaseUrl, authToken })` 动态切换；`runtime.js` 默认 mock，`bootstrap.js` 检测到 token 自动切 api、服务器不可达静默回退 mock |
-| API 适配器 | `api-adapter.js` P1 已实现：25 服务端资源 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（25 资源 + auth/login/logout + snapshot + uploads + health/bootstrap） |
-| 后端服务 | `server/` Express + better-sqlite3：**32 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
+| API 适配器 | `api-adapter.js` P1 已实现：35 个资源分组 `list()`（供 init 拉全量）+ `snapshot()` 全量写穿 + 8s 超时兜底；路由表见文件头（35 资源分组 + auth/login/logout + snapshot + uploads + health/bootstrap） |
+| 后端服务 | `server/` Express + better-sqlite3：**35 资源表**（id + data JSON 通用结构，含 branch_docs）+ sessions/attachments；routes：auth（login/logout/me）、resources（CRUD + bootstrap + snapshot 写穿）、uploads（jpg/png/pdf/doc/docx/xlsx/mp4 ≤10MB）、report（§3.9）；`npm test` 测试全绿（server/test/ 覆盖单元/E2E/审计/链接完整性） |
 | 邮件双通道（§3.8） | `server/services/mailer.js`（nodemailer 通用 SMTP，env 注入不落库，失败重试 3 次 + 静默降级）+ `services/mailer-hooks.js` 接入通知发布/待办提醒/反馈汇报触发点；成员档案 email 字段预留，补充后通道自动生效 |
 | 数据上报（§3.9） | `server/routes/report.js` + `services/reporting.js`：`GET /api/v1/report/:domain`（JSON 拉取）/ `/report/export`（CSV+BOM 人工导入）/ `POST /report/trigger`（手动推送）+ 每日 03:00 定时批量上报 + 每 10 分钟会议提醒扫描 |
 | 部署形态区分 | `docs/src/config/deploy.js` `DEPLOY_MODE: 'static' | 'server'`（构建时注入）；侧边栏「关于」显隐按此区分（静态托管显示 / 有后端隐藏） |

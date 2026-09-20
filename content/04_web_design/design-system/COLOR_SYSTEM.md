@@ -280,6 +280,6 @@ related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]
 | 强调文字 | `.text-accent` | 步骤指示/重要文字 |
 | hover 卡片 | `.tip-trigger[data-tip]` | CSS 零 JS 轻量 tooltip（提交人悬停等） |
 
-**兜底规则**：以上语义类均以 `var(--app-accent, #B91C1C)` 兜底——6 个工作台经 `bootstrapPage` 注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档/反馈/通知等非工作台页回退党建红 `#B91C1C`，保证任何页面可渲染。
+**兜底规则**：以上语义类均以 `var(--app-accent, #B91C1C)` 兜底——7 个工作台经 `bootstrapPage` 注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档/反馈/通知等非工作台页回退党建红 `#B91C1C`，保证任何页面可渲染。
 
 ---

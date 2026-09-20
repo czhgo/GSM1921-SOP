@@ -22,7 +22,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 
 ### 2.1 活动数据 (ActivityRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L12-L35)（Activity typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L11-L33)（Activity typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -216,7 +216,7 @@ ActivityRecord (主记录)
 > 权限矩阵、模块可见性、数据共享规则的完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，历史模块可见性设计论证仍可读）。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
-- 基础 ACL 实现：[services/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/auth.js#L469-L488)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
+- 基础 ACL 实现：[services/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/auth.js#L477-L496)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 工作台「我的职责」Tab 分组面板按角色显示对应支委面板
@@ -279,7 +279,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L37-L48)（AttendanceRecord typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L35-L46)（AttendanceRecord typedef）
 > **字段命名说明**：`personId` 统一为人员标识字段（2026-07-15 审计改进）。代码中仍使用 `userId`，待后续同步。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -316,7 +316,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 #### 2.5.1 考察数据 (InspectionRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L148-L160)（InspectionRecord typedef），持久化域 `mockDB.inspections`（随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见 DATA_FLOW §3.3）。
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见 DATA_FLOW §3.3）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -445,7 +445,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.12 任务数据 (Task)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L50-L57)（Task typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L65-L72)（Task typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -1004,8 +1004,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | period | string | 是 | 按 `submittedAt` 推导 | **期次（季度）**：格式 `YYYY-Qn`；提交时**手填**、缺省或非法按 `submittedAt` 推导；同一 `personId` 同一期次**允许多篇**（面板数据，数据层无唯一性约束） |
 | content | string | 是 | -- | 思想汇报正文（trim 后存储） |
 | submittedAt | string (ISO) | 是 | `new Date().toISOString()` | 提交时间 |
-| reviewStatus | `'pending'\|'needs_revision'\|'archived'` | 是 | `'pending'` | 组织初阅状态；读取侧归一：旧数据无该字段 → 归 `archived`（不进待初阅队列） |
-| reviewHistory | array | 否 | `[]` | 初阅留痕（读取侧归一为数组） |
+| reviewStatus | `'needs_revision'\|'archived'` | 是 | `'archived'` | 思想汇报状态。**「组织委员初阅通过才归档」这道门已取消**（`D-387`、落地 `D-482`）——提交即入库即归档，**不再有「待初阅」态、也不再有待阅队列**；读取侧归一：旧数据无该字段 / 旧值 `'pending'` → 一律归 `archived`（`services/thought-report.js::_effective`，读取侧归一） |
+| reviewHistory | array | 否 | `[]` | 审阅留痕（读取侧归一为数组；组织委员「打回」时追加 `{decision, note, by, at}`） |
 
 > **注（冗余快照字段）**：`personName` 为历史留痕用的冗余快照；**展示一律以 `getPersonName(personId)` 现取**，快照仅作历史留痕，不参与身份判定（数据一致性守卫 D2 断言各域 `personName` 与权威源一致）。
 
