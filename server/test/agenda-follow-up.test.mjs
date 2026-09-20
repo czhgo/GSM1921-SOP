@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { recordAgendaResult } from '../../docs/src/services/agenda-follow-up.js?v=20260920b';
+import { recordAgendaResult } from '../../docs/src/services/agenda-follow-up.js?v=20260920c';
 
 function createHarness() {
   const db = {

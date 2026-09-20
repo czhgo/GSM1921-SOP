@@ -5,14 +5,14 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/state.js?v=20260920b';
-import { _fmtDate } from '../../core/utils.js?v=20260920b';
-import { getPersonName } from '../../services/person.js?v=20260920b';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260920b';
+import { getAppState } from '../../core/state.js?v=20260920c';
+import { _fmtDate } from '../../core/utils.js?v=20260920c';
+import { getPersonName } from '../../services/person.js?v=20260920c';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260920c';
 // 活动「已结束 / 已归档」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived、!archived
-import { isActivityEnded, isActivityArchived } from '../../core/constants.js?v=20260920b';
-import { badgeHtml } from '../badges.js?v=20260920b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260920b';
+import { isActivityEnded, isActivityArchived } from '../../core/constants.js?v=20260920c';
+import { badgeHtml } from '../badges.js?v=20260920c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260920c';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',

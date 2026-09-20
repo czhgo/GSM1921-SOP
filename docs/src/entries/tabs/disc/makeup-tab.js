@@ -6,17 +6,17 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260920b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260920b';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260920b';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920b';
-import { badgeHtml } from '../../../components/badges.js?v=20260920b';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260920b';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260920b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260920c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260920c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260920c';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920c';
+import { badgeHtml } from '../../../components/badges.js?v=20260920c';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260920c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260920c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260920b';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260920c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920c';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。

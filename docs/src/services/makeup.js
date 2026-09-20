@@ -10,13 +10,13 @@
 //   线上参会的落点＝考勤记录 `onlineAttend` 标记（发布三会一课通知 → 确认收到时申报，`SOP-B-5`），
 //   线上参会**不计入出席**（记「请假」）、**只免补课**。
 
-import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260920b';
-import { persist } from '../core/data-adapter.js?v=20260920b';
-import { PEOPLE } from '../mock/index.js?v=20260920b';
-import { getPersonById } from './person.js?v=20260920b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260920b';
-import { findActivityById } from '../services/activity.js?v=20260920b';
-import { generateId } from '../core/id.js?v=20260920b';
+import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260920c';
+import { persist } from '../core/data-adapter.js?v=20260920c';
+import { PEOPLE } from '../mock/index.js?v=20260920c';
+import { getPersonById } from './person.js?v=20260920c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260920c';
+import { findActivityById } from '../services/activity.js?v=20260920c';
+import { generateId } from '../core/id.js?v=20260920c';
 
 /**
  * 补课范围的**制度默认**活动类型（单一源；消费点勿另写字面量）。

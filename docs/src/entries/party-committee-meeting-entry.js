@@ -11,28 +11,30 @@
 //   · 讨论结果留存 = 议程项 result（`services/agenda-follow-up.js::recordAgendaResult`，与
 //     inspector「记录会议结果」同一函数）；锁定态 = 活动 `votesLocked`（既有）
 //
-// 四条产品取向**留白、不代裁**（见 D-522 / D-526）：线上表决策效力、讨论结果对外可见范围、
-//   缺席处理、是否并行线下那 9 条任务——本页只如实呈现既有记录，不写任何判定规则。
+// 效力口径**已定**（支书 2026-09-20 定案，见 D-538）：线上支委会与线下支委会**完全同等效力**——
+//   线上表决与线上记录的讨论结果即终局，不需线下追认。
+// 其余三条（讨论结果对外可见范围 / 缺席处理 / 是否并行线下那 9 条任务）**由「完全同等效力」推导**、
+//   支书未逐条明答（D-538）——本页**只如实呈现既有记录**，推导获确认前不写任何判定规则。
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../components/sidebar.js?v=20260920b';
-import { renderHeader } from '../components/header.js?v=20260920b';
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260920b';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260920b';
-import { mockDB } from '../core/domain.js?v=20260920b';
-import { AuthStore } from '../services/auth.js?v=20260920b';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260920b';
-import { BranchService } from '../services/runtime.js?v=20260920b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260920b';
-import { IssueStore } from '../services/issues.js?v=20260920b';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260920b';
-import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260920b';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260920b';
-import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260920b';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260920b';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260920b';
-import { generateId } from '../core/id.js?v=20260920b';
+import { renderSidebar } from '../components/sidebar.js?v=20260920c';
+import { renderHeader } from '../components/header.js?v=20260920c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260920c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260920c';
+import { mockDB } from '../core/domain.js?v=20260920c';
+import { AuthStore } from '../services/auth.js?v=20260920c';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260920c';
+import { BranchService } from '../services/runtime.js?v=20260920c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260920c';
+import { IssueStore } from '../services/issues.js?v=20260920c';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260920c';
+import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260920c';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260920c';
+import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260920c';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260920c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260920c';
+import { generateId } from '../core/id.js?v=20260920c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -256,20 +258,21 @@ function resultSectionHtml(act, votes) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">⑤ 讨论结果（留存 / 查阅）</p>
-      <p class="text-[11px] text-gray-500 mb-3">留存口径＝议程项结果（与「活动详情」的记录会议结果同一处）+ 委员表态记录；本页只如实呈现，不判定效力。</p>
+      <p class="text-[11px] text-gray-500 mb-3">留存口径＝议程项结果（与「活动详情」的记录会议结果同一处）+ 委员表态记录。效力（2026-09-20 定案）：线上与线下完全同等效力，这里记录的讨论结果即终局。</p>
       <div class="space-y-3" id="pcm-result">${body}</div>
       <p class="text-[11px] text-gray-500 mt-3">也可在 <a href="./activity.html?id=${encodeURIComponent(act.id)}" class="text-blue-600 hover:underline">活动详情</a> 查看该场会议的全部记录。</p>
     </div>`;
 }
 
-/** 未定口径提示（四条产品取向留白，不代裁） */
-function pendingNoticeHtml() {
+/** 效力口径（已定）＋ 由它推导、尚待确认的三条（D-538） */
+function rulingNoticeHtml() {
   return `
     <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
-      <p class="text-xs font-semibold text-amber-800">以下四条口径尚未确定（待支部制度与本支部决策），本页不代作判定：</p>
-      <p class="text-[11px] text-amber-800 mt-1 leading-relaxed">
-        ① 线上表态与线下议事的效力关系；② 讨论结果向参会人以外范围公开的口径；③ 支委缺席的处理方式；
-        ④ 线上支委会是否并行线下会议任务。本页仅如实呈现已存记录（表态 / 锁定 / 结果）。
+      <p class="text-xs font-semibold text-amber-800">① 线上与线下完全同等效力（2026-09-20 定案）：线上表决与线上记录的讨论结果即终局，不需线下追认。</p>
+      <p class="text-[11px] text-amber-800 mt-1.5 leading-relaxed">
+        以下三条是由上面这条口径推导出来的，尚未逐条明答，请支书确认或推翻：② 讨论结果的可见范围与线下一致（即支委会内部）；
+        ③ 支委缺席按线下同一规则处理；④ 线上支委会也走线下会议的那套任务（两条线合流）。
+        确认之前，本页不代作判定，只如实呈现已存记录（表态 / 锁定 / 结果）。
       </p>
     </div>`;
 }
@@ -313,7 +316,7 @@ async function render() {
         <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
         <p class="text-sm text-gray-500 mt-1.5">一条链：选线上召开 → 提取/整理议程 → 委员表态 → 汇总并截止 → 留存、查阅讨论结果。</p>
       </div>
-      ${pendingNoticeHtml()}
+      ${rulingNoticeHtml()}
       ${selectSectionHtml()}
       ${currentBlock}
     </div>`;

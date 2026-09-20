@@ -8,43 +8,43 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260920b';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260920c';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260920b';
-import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260920b';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/todo.js?v=20260920b';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260920b';
-import { badgeHtml } from '../../../components/badges.js?v=20260920b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260920b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260920b';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260920b';
-import { loadActivities } from '../../../services/activity.js?v=20260920b';
-import { mockDB } from '../../../core/domain.js?v=20260920b';
-import { persist } from '../../../core/data-adapter.js?v=20260920b';
-import { bumpToken } from '../../../core/version-token.js?v=20260920b'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260920b';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260920b';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260920c';
+import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260920c';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/todo.js?v=20260920c';
+import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260920c';
+import { badgeHtml } from '../../../components/badges.js?v=20260920c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260920c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260920c';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260920c';
+import { loadActivities } from '../../../services/activity.js?v=20260920c';
+import { mockDB } from '../../../core/domain.js?v=20260920c';
+import { persist } from '../../../core/data-adapter.js?v=20260920c';
+import { bumpToken } from '../../../core/version-token.js?v=20260920c'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260920c';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260920c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260920b';
-import { IssueStore } from '../../../services/issues.js?v=20260920b';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260920b';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260920b';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260920b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260920b';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260920c';
+import { IssueStore } from '../../../services/issues.js?v=20260920c';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260920c';
+import { fetchVotes } from '../../../services/committee-vote.js?v=20260920c';
+import { resolveVoterIds } from '../../../services/vote-config.js?v=20260920c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260920c';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260920b';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260920b';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260920b';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260920c';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260920c';
+import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260920c';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260920b';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260920b';
-import { AuthStore } from '../../../services/auth.js?v=20260920b';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260920c';
+import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260920c';
+import { AuthStore } from '../../../services/auth.js?v=20260920c';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/state.js?v=20260920b';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260920b';
+import { setState } from '../../../core/state.js?v=20260920c';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260920c';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）

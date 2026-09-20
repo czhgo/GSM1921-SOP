@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260920b';
-import { NoticeStore } from '../../../services/notice.js?v=20260920b';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260920b';
-import { AuthStore } from '../../../services/auth.js?v=20260920b';
-import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260920b';
-import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/secretary-overview.js?v=20260920b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260920c';
+import { NoticeStore } from '../../../services/notice.js?v=20260920c';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/constants.js?v=20260920c';
+import { AuthStore } from '../../../services/auth.js?v=20260920c';
+import { dutyCardHtml } from '../../../components/workforce-duty-card.js?v=20260920c';
+import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/secretary-overview.js?v=20260920c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/roster.js?v=20260920b';
-import { loadActivities } from '../../../services/activity.js?v=20260920b';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260920b';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260920b';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260920b';
+import { getRosterStats } from '../../../services/roster.js?v=20260920c';
+import { loadActivities } from '../../../services/activity.js?v=20260920c';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260920c';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260920c';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/issues.js?v=20260920c';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260920b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260920b';
-import { getPersonName } from '../../../services/person.js?v=20260920b';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260920c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/external-dispatch.js?v=20260920c';
+import { getPersonName } from '../../../services/person.js?v=20260920c';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
