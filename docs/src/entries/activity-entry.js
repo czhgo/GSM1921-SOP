@@ -2,29 +2,29 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260920c';
-import { renderHeader } from '../components/header.js?v=20260920c';
-import { BranchService } from '../services/runtime.js?v=20260920c';
-import { mockDB } from '../core/domain.js?v=20260920c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260920c';
-import { NoticeStore } from '../services/notice.js?v=20260920c';
-import { SignupStore } from '../services/signup.js?v=20260920c';
-import { AuthStore } from '../services/auth.js?v=20260920c';
-import { getPersonById } from '../services/person.js?v=20260920c';
-import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260920c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260920c';
-import { getAppState } from '../core/state.js?v=20260920c';
-import { badgeHtml } from '../components/badges.js?v=20260920c';
+import { renderSidebar } from '../components/sidebar.js?v=20260920d';
+import { renderHeader } from '../components/header.js?v=20260920d';
+import { BranchService } from '../services/runtime.js?v=20260920d';
+import { mockDB } from '../core/domain.js?v=20260920d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260920d';
+import { NoticeStore } from '../services/notice.js?v=20260920d';
+import { SignupStore } from '../services/signup.js?v=20260920d';
+import { AuthStore } from '../services/auth.js?v=20260920d';
+import { getPersonById } from '../services/person.js?v=20260920d';
+import { getBasePath, escHtml as esc } from '../core/utils.js?v=20260920d';
+import { getActivityTypeColors } from '../core/constants.js?v=20260920d';
+import { getAppState } from '../core/state.js?v=20260920d';
+import { badgeHtml } from '../components/badges.js?v=20260920d';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260920c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260920c';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260920c';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260920c';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260920c';
-import { fetchVotes } from '../services/committee-vote.js?v=20260920c';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260920d';
+import { enhanceSelects } from '../components/custom-select.js?v=20260920d';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260920d';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260920d';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260920d';
+import { fetchVotes } from '../services/committee-vote.js?v=20260920d';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260920c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260920c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260920d';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260920d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

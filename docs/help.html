@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260920c"></script>
+<script src="./src/theme-init.js?v=20260920d"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260920c"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260920c">
+  <script src="./src/tailwind-config.js?v=20260920d"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260920d">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -265,6 +265,7 @@
               <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
               <tr><td><a href="./notice.html">通知详情</a></td><td>单条通知的正文（读后消未读需登录）</td><td>公共可看</td><td>首页通知区；工作台待办「未读通知」条</td></tr>
               <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 知情查看（专班分段）」行内链接</td></tr>
+              <tr><td><a href="./party-committee-meeting.html">支委会会议页</a></td><td>线上召开支委会的会议页：选线上召开 → 从既有来源（专班报送 / 意见反馈）提取议程 → 委员线上表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：<strong>线上与线下完全同等效力</strong>（线上表决与线上记录的讨论结果即终局，不需线下追认）</td><td>需登录，且仅本支部支委名单内可进（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）；名单外只呈现「本页仅支委可用」</td><td>支书台「我的职责」段「支委会会议」页签 →「打开支委会会议页 →」；支委也可直接访问</td></tr>
               <tr><td><a href="./thought-report.html">思想汇报阅读</a></td><td>单篇思想汇报的<strong>长文阅读页</strong>：期次 / 提交人 / 状态 / 字数 + 正文 + 审阅留痕；篇幅少于 1200 字的会标「触发警告审阅」（不影响提交与归档）；组织委员可就地<strong>打回要求本人补充</strong>，本人被<strong>打回后</strong>可就地改后重交；也可按人聚合（<code>?personId=</code>）看某人全部期次</td><td>需登录；<strong>仅本人与支委层</strong>可读</td><td>成员台 / 组织台「思想汇报」列表点击某篇；通知深链</td></tr>
               <tr><td><a href="./person.html">成员档案</a></td><td>单个成员的<strong>完整档案页</strong>：基础档案 / 在册管理与变更留痕 / 关联概览（思想汇报、活动、专班、考勤、考察计数）；组织委员 / 支书 / 副支书可打开「档案编辑」模态</td><td>需登录</td><td>各「第一列是人」的表格点击姓名或「编辑」入口</td></tr>
               <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，支书反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
@@ -282,7 +283,7 @@
             </tbody>
           </table>
         </div>
-        <p class="doc-note"><strong>设置中心（侧边栏右下角「设置」）按登录角色分区：</strong>外观（字号 / 明暗主题 / 强调色，全站即时生效）人人可用——未登录访客偏好存本浏览器、登录后随账号；「我的工作台」= 登录用户本人调整页签顺序（仅本账号生效，默认沿用支部默认顺序，核心固定页签「今天 / 待办 / 工作概况」等不可动）；「支部治理」= 支书 / 副支书（支部信息与换组织向导 / 工作台默认顺序 / 支部制度参数，副书同权）+ 纪检 / 组织 / 组长各自的「职责参数」卡（各管本域，可管则见）；访客仅见外观。支书 / 副支书另可在「支部治理 · 工作台默认顺序」为全体成员设定默认页签顺序（第 2 章各 tab 表 = 默认全开 + 注册序）。</p>
+        <p class="doc-note"><strong>设置中心（侧边栏右下角「设置」）按登录角色分区：</strong>外观（字号 / 明暗主题 / 强调色，全站即时生效）人人可用——未登录访客偏好存本浏览器、登录后随账号；「我的工作台」= 登录用户本人调整页签顺序（仅本账号生效，默认沿用支部默认顺序，核心固定页签「今天 / 待办 / 工作概况」等不可动）；「支部治理」= 支书 / 副支书（支部信息与换组织向导 / 工作台默认顺序 / 支部制度参数 / 配置变更记录，副书同权）+ 纪检 / 组织 / 组长各自的「职责参数」卡（各管本域，可管则见）；访客仅见外观。支书 / 副支书另可在「支部治理 · 工作台默认顺序」为全体成员设定默认页签顺序（第 2 章各 tab 表 = 默认全开 + 注册序）。</p>
 
         <!-- 0.2 角色 ↔ 工作台映射 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">0.2</span>角色 ↔ 工作台映射</h3>
@@ -424,7 +425,7 @@
             </tbody>
           </table>
         </div>
-        <p class="doc-note">支部治理（换组织向导 / 模块组合 / 工作台默认顺序等）不在支书工作台内：入口收口于侧边栏右下角「设置」→ 支部治理（支书 / 副支书共台，副书同权；含「支部信息与向导 / 工作台默认顺序 / 支部制度参数」三卡，说明见第 5 章 5.2）。</p>
+        <p class="doc-note">支部治理（换组织向导 / 模块组合 / 工作台默认顺序等）不在支书工作台内：入口收口于侧边栏右下角「设置」→ 支部治理（支书 / 副支书共台，副书同权；含「支部信息与向导 / 工作台默认顺序 / 支部制度参数 / 配置变更记录」四卡，说明见第 5 章 5.4）。</p>
 
         <!-- 2.2 组织委员工作台 -->
         <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（11 tab）</h3>
@@ -519,7 +520,7 @@
               <tr><td>工作概况</td><td>成员 / 组织者 / 深度参与者</td><td>汇报 / 卡点 / 在办三区（仅自我聚合）</td><td>「工作台」段第 3 位</td></tr>
               <tr><td>项目分工</td><td>成员 / 组织者 / 深度参与者</td><td>你参与的活动 / 专班的分工与职责</td><td>「我的职责」段；点项目看自己的分工职责</td></tr>
               <tr><td>活动动态</td><td>成员 / 组织者 / 深度参与者</td><td>支部活动浏览与报名（按阶段批量选人由组织侧配置）</td><td>「我的职责」段；点活动卡 → 「报名」/ 查看详情</td></tr>
-              <tr><td>考勤概况</td><td>成员 / 组织者 / 深度参与者</td><td>个人考勤与补课状态</td><td>「我的职责」段；查看个人出勤 / 待补课任务</td></tr>
+              <tr><td>考勤概况</td><td>成员 / 组织者 / 深度参与者</td><td>个人考勤与补课状态；顶部「<strong>本月我的出勤率</strong>」——<strong>只算你本人</strong>当月（出勤含已补），低于提示线只作提示、<strong>不触发任何处置</strong></td><td>「我的职责」段；查看本人本月出勤率 / 个人出勤明细 / 待补课任务</td></tr>
               <tr><td>我的考察</td><td>成员 / 组织者 / 深度参与者</td><td>个人考察材料（积极分子 / 发展对象）</td><td>「我的职责」段；查看 / 补充材料</td></tr>
               <tr><td>思想汇报</td><td>成员 / 组织者 / 深度参与者</td><td>按季度提交思想汇报（一期可多篇）：<strong>提交即入库归档至个人档案</strong>（不设人工归档门）；篇幅建议 1500 字以上，少于 1200 字触发警告审阅、<strong>不影响提交</strong>；被组织委员打回后可修改重交</td><td>「我的职责」段；选期次 + 写正文（实时显示字数）→ 提交；点列表某篇 → 独立阅读页查看 / 改后重交</td></tr>
               <tr><td>我的复盘</td><td>组织者 / 深度参与者为主</td><td>活动复盘提交与查看（复盘提交入口所在，普通成员在此查看自己参与的复盘）</td><td>「我的职责」段；选活动 → 填复盘 → 提交；组长 / 纪检在各自台复核</td></tr>
@@ -607,9 +608,10 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>记录「未通过」不触发上述任何派生；应到会有表决权党员出席未过半数、或赞成未过半数时系统拦截「记录通过」并给出可采取动作提示（督促未表态党员表态 / 继续沟通争取赞成票），不能强行记为通过。</p>
         </div>
 
-        <div class="help-card" id="card-dom31-vote" data-search="会务 线上异步表决 线上支委会 表态 同意 异议 附言 赞成 反对 弃权 表决截止 记录决议">
+        <div class="help-card" id="card-dom31-vote" data-search="会务 线上异步表决 线上支委会 支委会会议页 表态 同意 异议 附言 赞成 反对 弃权 表决截止 记录决议 同等效力">
           <h4 class="help-card-title">线上异步表决（决策类：支委会 / 支部党员大会）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书创建活动表单「会议形式」选「线上异步表决」（仅支委会 / 支部党员大会两类决策场景出现此选项）；表态区在活动详情页「议程与表决 · 线上异步表决」区（activity.html）。</p>
+          <p class="help-card-desc"><strong>支委会另有一条会议线：</strong>支书台「支委会会议」页签 → <a href="./party-committee-meeting.html">支委会会议页</a>（选线上召开 → 提取议程 → 委员表态 → 汇总截止 → 留存并查阅讨论结果），与详情页表决是同一套记录。<strong>效力口径：线上与线下完全同等效力</strong>——线上表决与线上记录的讨论结果即终局，不需线下追认（2026-09-20 定案）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>支书创建并配置参与范围；被固化名单（应到快照）内的支委 / 有表决权党员在详情页表态；支书汇总截止后记录决议。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -683,7 +685,7 @@
 
         <!-- 3.3 考勤纪律 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.3</span>考勤纪律</h3>
-        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检录入 / 确认、未到标因、滞留到场补录、补课任务与完成回写、考勤备案交接宣传</strong>全部落在纪检台「考勤管理」一个 tab（内含「考勤 / 补课」一级分段）；组织者上传位在 3.1 已讲，此处承接纪检侧的确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
+        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检录入 / 确认、未到标因、滞留到场补录、补课任务与完成回写、考勤统计交接支委会</strong>全部落在纪检台「考勤管理」一个 tab（内含「考勤 / 补课」一级分段）；组织者上传位在 3.1 已讲，此处承接纪检侧的确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
 
         <div class="help-card" id="card-dom33-meet-record" data-search="考勤 会议考勤录入 纪检 全选应到名单 标因 请假 无故 其它 滞留到场补录 到席 更正">
           <h4 class="help-card-title">纪检会议考勤录入（会议类：党课 / 支部党员大会 / 组织生活会 / 支委会）</h4>
@@ -714,7 +716,7 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>活动日期已过仍未确认的异常自动标「超期」（红标）置于队列优先处理；党小组会考勤在纪检台只读掌握（下方只读块：组别 / 组长 / 上传人 / 到席 · 异常），改删走本队列 / 录入更正，不代传。</p>
         </div>
 
-        <div class="help-card" id="card-dom33-matrix-table" data-search="考勤 矩阵 宽表 明细 总表 按活动 按人 按项目 最近6项 筛选 导出 CSV 打印 自动确认 待确认 分页">
+        <div class="help-card" id="card-dom33-matrix-table" data-search="考勤 矩阵 宽表 明细 总表 按活动 按人 按项目 最近6项 筛选 导出 CSV 打印 出勤率汇总 支委会内部 不公示 自动确认 待确认 分页">
           <h4 class="help-card-title">考勤矩阵与明细（查看 / 筛选 / 导出）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台「考勤管理」→「考勤矩阵」卡与「考勤明细（导出 / 打印）」卡。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（管理主位）；组织侧与支书侧同源共享同一份数据（支书台「考勤概况」只读监督）。</p>
@@ -723,7 +725,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>矩阵（默认「按人」宽表）</strong>：「按人 / 按活动」互为<strong>转置</strong>——按人＝第一列是人、横看是他参加过的活动；按活动＝第一列是活动、横看是这场都有谁。色点 + 出 / 缺 / 假 / 补缩写。宽表<strong>人这一维每页 10 人</strong>——人多时翻页看后面的成员（翻页位置会记住），表头可切换「按人 / 按活动」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">列只取<strong>最近 6 项</strong>（活动逐年累积，列不能无限长）；要看更早点「<strong>显示全部 N 项</strong>」展开，或用活动名搜索 + 时间区间筛选收窄；横向滑动时第一列会吸附住。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">明细（「考勤明细（导出 / 打印）」卡）：姓名 / 活动搜索 + 状态下拉（出勤 / 缺勤 / 请假 / 已补），<strong>每页 10 条</strong>（翻页位置会记住）；确认人列显示「自动确认 / 待确认 / 纪检姓名」。逐条核对、导出、打印都在这张明细表里。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">低频操作行：「导出 CSV / 打印」（导出按当前筛选，含月份列与确认状态）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">低频操作行：「导出 CSV / 打印」（导出按当前筛选，含月份列与确认状态）；「导出出勤率汇总（支委会内部）」＝本月各场出勤率汇总（应记人次 / 出勤含已补 / 请假 / 缺勤 / 出勤率，末行本月合计）——<strong>供支委会内部使用，不公示、不对外</strong>。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>已确认记录写确认人并记录；出勤 / 已补无确认人记为「自动确认」；缺勤 / 请假未确认记为「待确认」——规则全站统一（出勤率含「已补」）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>活动归档后其考勤随活动退出工作区（历史数据仍在档案可查）；总表确认与队列确认同路径，操作后自动刷新。</p>
@@ -742,17 +744,17 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>超期任务红色行提醒、须尽快督促；缺勤办结前相关待办不自动消失；补课须在 7 日内（特殊情况可延至 T+14 并备注，见场景任务说明）。</p>
         </div>
 
-        <div class="help-card" id="card-dom33-handoff" data-search="考勤 备案 数据交接 提交考勤至宣传 宣传委员 收件箱 确认接收 考勤备案">
-          <h4 class="help-card-title">考勤备案交接宣传</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台「考勤管理」→ 总表工具条「提交考勤至宣传」；宣传委员在宣传台「待办」页顶部「数据交接 · 考勤备案」收件箱确认。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（发起）；宣传委员（接收备案确认）。</p>
+        <div class="help-card" id="card-dom33-handoff" data-search="考勤 数据交接 提交考勤统计至支委会 组织委员 收件箱 确认接收 考勤统计 支委会接收">
+          <h4 class="help-card-title">考勤统计交接支委会（组织委员接收建档）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台「考勤管理」→ 总表工具条「提交考勤统计至支委会」；组织委员在工作台「待办」页顶部「数据交接」收件箱确认。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（发起）；组织委员（接收建档）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认考勤（仍有未确认会拦截）后点「提交考勤至宣传」。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">宣传委员待办页顶部收件箱看到「考勤备案（考勤明细）」→ 确认接收。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认考勤（仍有未确认会拦截）后点「提交考勤统计至支委会」。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员待办页顶部收件箱看到「数据交接：考勤统计」→ 确认接收（补课记录随考勤一并归档）。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交即生成数据交接（纪检 → 宣传）并自动为宣传委员派生「数据交接：考勤备案」待办；宣传确认后自动销待办、状态保存、双向可追溯；纪检台总表显示「待宣传备案」标记。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>已提交待备案时重复提交被拦截（提示勿重复提交）；存在未确认考勤时不允许提交。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交即生成数据交接（纪检 → 组织）并自动为组织委员派生「数据交接：考勤统计」待办；组织委员确认后自动销待办、状态保存、双向可追溯；纪检台总表显示「待支委会接收」标记。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>已提交待接收时重复提交被拦截（提示勿重复提交）；存在未确认考勤时不允许提交。</p>
         </div>
 
         <!-- 3.4 考察 -->
@@ -1194,7 +1196,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">议程编排（创建表单「会议议程」区）：一条议题可同时打「讨论文件」（关联会前草案）与「待讨论名单」（统一阶段转换）两种签；会后支书在活动详情页逐条「记录通过 / 未通过」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">记录后的自动派生：讨论文件「通过」→ 草案自动转「已归档」并标讨论来源（宣传无需二次上传）；待讨论名单「通过」→ 名单内每人自动生成成员变更申请，走「组织审批 → 支书确认 → 阶段更新」（接 4.5）；支部党员大会线上表决先做出席 / 赞成双过半硬校验。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">考勤交接：党小组会考勤由组织者上传（3.1），党课 / 支部党员大会 / 支委会由纪检直接录入（3.3）；出勤 / 已补源头自动确认，异常自动生成补课任务并入纪检「待确认」队列（接 4.3）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 归档：纪检确认考勤后「提交考勤至宣传」备案（3.3）；会议材料与宣传产出由宣传台「档案归档」收口（3.8）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 归档：纪检确认考勤后「提交考勤统计至支委会」，由组织委员接收建档（3.3）；会议材料与宣传产出由宣传台「档案归档」收口（3.8）。</li>
           </ol>
         </div>
 
@@ -1213,14 +1215,14 @@
 
         <!-- 4.3 考勤纪律链路 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">4.3</span>考勤纪律链路</h3>
-        <div class="help-card" id="card-chain-attendance" data-search="业务链路 考勤纪律 考勤上传 纪检录入 待确认 确认 自动补课 补课回写 宣传备案 数据交接">
-          <h4 class="help-card-title">组织者上传 / 纪检录入 → 纪检确认 → 自动补课 → 宣传备案</h4>
+        <div class="help-card" id="card-chain-attendance" data-search="业务链路 考勤纪律 考勤上传 纪检录入 待确认 确认 自动补课 补课回写 支委会交接 数据交接">
+          <h4 class="help-card-title">组织者上传 / 纪检录入 → 纪检确认 → 自动补课 → 考勤统计交支委会</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条录入线：党小组会 = 组长台「考勤上传」（候选取本组应到名单，可批量设状态）；党课 / 支部党员大会 / 支委会 = 纪检台「考勤管理 · 会议考勤录入」（滞留党员线下到场单独补录、计到席）——纪检录入即确认。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动分流：出勤 / 已补 = 源头审校自动确认，不进纪检队列；异常（缺勤 / 请假）自动生成补课任务（截止 = 活动日 + 7 天）并入纪检「待确认」队列，党小组会异常同样等纪检复核。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤明细按状态筛选逐行确认）→ 写确认人记录，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课办结：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「考勤管理」的「补课」分段确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 备案交接：纪检「提交考勤至宣传」→ 宣传委员待办收件箱确认接收（双向可追溯）；活动归档后其考勤退出工作区、历史仍在档案可查。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 交接：纪检「提交考勤统计至支委会」→ 组织委员待办收件箱确认接收建档（双向可追溯）；活动归档后其考勤退出工作区、历史仍在档案可查。</li>
           </ol>
         </div>
 
@@ -1487,6 +1489,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260920c"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260920d"></script>
 </body>
 </html>

@@ -34,7 +34,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 专班管理 | `services/taskforce.js` | `workspace/org.html` | 创建/招募（赋权）/运行跟踪/解散/工作量汇总 | CF §A.4/§A.6/§A.7 + CF §审批 §二 |
 | 分工记录 | `core/data-adapter.js`（assignments 主源）+ `services/auth.js`（syncProjectRoles） | 工作台分工闭环（leader/secretary） | 指派分工/跟踪完成度/标记完成/逾期检测/提交参与角色确认 | DA §2.6（AssignmentRecord）+ FLAT |
 | 考察记录 | `services/inspection.js` | `workspace/disc.html` | 上传/修改/确认录入总表/类别标签/超期提醒/单一活动或人员查询 | CF §C.1a + DA §2.5.1（InspectionRecord） |
-| 考勤管理 | `services/attendance.js` | `workspace/disc.html` | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询 | CF §C.1a + CF §审批 §四 |
+| 考勤管理 | `services/attendance.js` | `workspace/disc.html`、`workspace/visitor.html`（个人出勤率） | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询；出勤率汇总（支委会内部，不公示、不对外）与个人出勤率（当事人本人可见，只算自己） | CF §C.1a + CF §审批 §四 |
 | 补课管理 | `services/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
 | 复盘服务 | `services/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
 | 发展党员 | `core/domain.js`（developStage 四阶段）+ `core/data-adapter.js`（持久化） | `workspace/org.html` | 查看候选人列表/修改阶段状态/上传更新材料/标记缺失并提醒（思想汇报已数字化并实现：`services/thought-report.js` 提交即入库即归档，组织委员查看/调用——2026-08-30 支书决策） | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) + CF §C.1b |
@@ -49,7 +49,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 归档检索 | `core/data-adapter.js`（只读聚合） | `archive.html`、`search.html` | 归档库（列表+画册视图）/全量资料查询 | — |
 | 会议议程编辑 | `services/agenda-editing.js` | 活动详情（三会一课议程编辑） | 议程结构化事项的纯数据处理：保持业务字段不被 UI 编辑覆盖 | — |
 | 会议议程会后衔接 | `services/agenda-follow-up.js` | 活动详情（会后） | 记录「通过/不通过」→ 派生文件/成员变更动作；支部党员大会做出席/赞成过半数硬校验 | — |
-| 线上支委会表态 | `services/committee-vote.js` | 活动详情（表决区块） | 委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动） | — |
+| 线上支委会表态 | `services/committee-vote.js` | 活动详情（表决区块）、`party-committee-meeting.html`（支委会会议页） | 委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）；线上与线下完全同等效力（`D-538`） | — |
 | 支部服务 | `services/branch.js` | `workspace/party-committee.html` | 支部边界收敛点：人→支部归属、支部配置档案（header/主题/启停模块/工作地图/产出块策略） | PC（P1 支部实例） |
 | 支书任命 | `services/appointment.js` | `workspace/party-committee.html` | 任命 + 任期记录闭环（现任记录封口 → 新建现任；换届档案可查），双方 users.role 同步 | PC（P2 支书任命） |
 | 支部上报审批 | `services/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 上报审批） |
@@ -61,7 +61,7 @@ related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/sr
 | 表决配置 | `services/vote-config.js` | 活动创建（表决配置区块） | voteConfig 解析与场景默认：deliberative（交流式）/ formal（正式表决）参数化（optionSet/quorumCheck/voterScope） | — |
 | 支部分工提议 | `services/workforce.js` | `workspace/secretary.html`（支部分工）、各工作台概况（履职卡） | 改派提议（可会前草稿）→ 生成支委会议题 → 支委经表决 UI 表态（门槛：应到 2/3 且无异议，2026-09-05）→ 支书采纳生效 → 合并 config.workforce 落库 → 各工作台概况「支部安排·我的分工」履职卡可见 | BRANCH_WORK_MAP.md（L4 M2 闭环） |
 | Mock 服务层 | `services/mock.js` | （数据基础设施） | Mock 持久化/种子引擎（saveDB/loadDB/seed 同步收敛至 core/mock-adapter.js） | — |
-| 线上表决 API | `server/routes/committee.js` | `/api/v1/agenda-votes`（API） | 异步表态提交/汇总/截止锁定服务端（voteConfig 校验；角色名单单一源 constants.js） | 与前端 committee-vote 配套 |
+| 线上表决 API | `server/routes/committee.js` | `/api/v1/agenda-votes`（API） | 异步表态提交/汇总/截止锁定服务端（voteConfig 校验；角色名单单一源 constants.js） | 与前端 committee-vote 配套（活动详情表决区块 ＋ 支委会会议页共用） |
 | 成员变更审批 API | `server/routes/member.js` | `/api/v1/member-change-requests`（API） | 成员变更申请 → 组织委员审批 → 全体支委广播 → 支书确认 → 更新 developStage | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
 | 数据上报 API | `server/routes/report.js` | `/api/v1/report`（API） | 四域（member/activity/attendance/study）JSON 拉取 / CSV 导出 / 触发推送 | DEPLOYMENT_GUIDE.md（数据上报对接） |
 
