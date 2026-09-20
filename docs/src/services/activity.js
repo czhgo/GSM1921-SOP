@@ -4,10 +4,10 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260919k';
-import { persist } from '../core/data-adapter.js?v=20260919k';
-import { ACTIVITIES } from '../mock/index.js?v=20260919k';
-import { isInitStateActive } from './init-reset.js?v=20260919k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB } from '../core/domain.js?v=20260920a';
+import { persist } from '../core/data-adapter.js?v=20260920a';
+import { ACTIVITIES } from '../mock/index.js?v=20260920a';
+import { isInitStateActive } from './init-reset.js?v=20260920a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {

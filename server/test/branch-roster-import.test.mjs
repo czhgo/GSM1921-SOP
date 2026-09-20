@@ -15,18 +15,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260919k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260920a';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260920a';
 import {
   PersonStore, getBaseMemberRecords,
-} from '../../docs/src/services/person.js?v=20260919k';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260919k';
+} from '../../docs/src/services/person.js?v=20260920a';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260920a';
 import {
   BRANCH_ROSTER_KIND, BRANCH_ROSTER_VERSION,
   buildBranchRosterTemplate, sanitizeBranchRoster,
-} from '../../docs/src/services/branch-roster-import.js?v=20260919k';
-import { buildPreviewTemplate } from '../../docs/src/services/org-base-data-preview.js?v=20260919k';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260919k';
+} from '../../docs/src/services/branch-roster-import.js?v=20260920a';
+import { buildPreviewTemplate } from '../../docs/src/services/org-base-data-preview.js?v=20260920a';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260920a';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 

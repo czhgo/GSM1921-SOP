@@ -82,12 +82,12 @@ export function renderInsightView(container, opts = {}) {
   container.querySelector('#insight-seg-body').replaceWith(body);
 
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20260919k').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20260920a').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20260919k').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20260920a').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

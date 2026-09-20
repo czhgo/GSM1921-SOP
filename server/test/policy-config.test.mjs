@@ -20,28 +20,28 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260919k';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260919k';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260919k';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260920a';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260920a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260920a';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260919k';
+} from '../../docs/src/core/policy-defaults.js?v=20260920a';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260919k';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260919k';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260919k';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260920a';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260920a';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260920a';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260919k';
+} from '../../docs/src/core/config-clean.js?v=20260920a';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260919k';
+} from '../../docs/src/services/branch.js?v=20260920a';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260919k';
+} from '../../docs/src/services/member-confirmation.js?v=20260920a';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260919k';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260920a';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -126,8 +126,9 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
     { enabled: true, frequency: 'semester' },
     '组长学期组员进展提醒：默认开 + 学期制'
   );
-  assert.equal(POLICY_DEFAULTS.attendance.entryRemindDays, 3, '考勤录入提醒阈值 3 天');
-  assert.equal(POLICY_DEFAULTS.attendance.summaryDeadlineDays, 5, '考勤 deadline +5 天');
+  // 2026-09-20 批次 115（`D-536`）：两个默认值取齐母本数字（24h → 1 天、48h → 2 天；此前 3 / 5）。
+  assert.equal(POLICY_DEFAULTS.attendance.entryRemindDays, 1, '考勤录入提醒阈值 1 天（母本 24h）');
+  assert.equal(POLICY_DEFAULTS.attendance.summaryDeadlineDays, 2, '考勤 deadline +2 天（母本 48h）');
   assert.equal(POLICY_DEFAULTS.inspection.overdueDays, 7, '考察超期默认 7 天（保留）');
   assert.equal(POLICY_DEFAULTS.review.overdueDays, 7, '复盘提醒阈值 7 天');
   assert.equal(POLICY_DEFAULTS.review.deadlineDays, 10, '复盘 deadline +10 天');
