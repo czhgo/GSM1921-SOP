@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260920g"></script>
+<script src="./src/theme-init.js?v=20260921a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260920g"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260920g">
+  <script src="./src/tailwind-config.js?v=20260921a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260921a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -1062,16 +1062,17 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>报送前内容为空被拦；周报历史已报送不支持撤回（补充内容请走 3.9 汇报通道）。</p>
         </div>
 
-        <div class="help-card" id="card-dom38-archive" data-search="归档宣传 档案归档 待归档 归档中 已归档 材料标准 材料清单 开始归档 确认归档 上传材料 下载 删除 模板 新闻稿 照片 视频">
+        <div class="help-card" id="card-dom38-archive" data-search="归档宣传 档案归档 待归档 归档中 已归档 材料标准 材料清单 开始归档 确认归档 上传材料 下载 删除 模板 新闻稿 照片 视频 照片墙 上传照片 标注 拍摄日期 拍摄主体 按日期分组">
           <h4 class="help-card-title">档案归档（待归档 / 归档中 / 已归档 + 材料清单 + 上传与下载）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>宣传委员台「我的职责」段「档案归档」。活动 / 会议记录后的材料归档归口此处；会议「讨论文件」的自动归档线见 3.1（宣传无需二次上传）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>宣传委员台「我的职责」段「档案归档」。活动 / 会议记录后的材料归档归口此处；会议「讨论文件」的自动归档线见 3.1（宣传无需二次上传）；活动照片另在页内「照片墙」按拍摄日期分组展示。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>宣传委员（档案归档主位：推进归档状态、上传宣传材料、管理材料文件）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">归档记录列表按归档日期倒序：每行 活动名 + 类别（新闻稿 / 照片 / 视频 / 其他）+ 状态徽章（待归档 / 归档中 / 已归档，归档中显示材料进度 x/y）；支持搜索活动名 + 类别 / 状态筛选。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">待归档行「开始归档」→ 弹「材料确认清单」：按该类别的材料标准拆成勾选项（如新闻稿：含标题 / 正文 / 配图 3 张以上 / 署名 / Word + PDF 双格式）→ 勾选后推进（未全勾也可推进，但提示「请确保后续补齐」）→ 转「归档中」并记材料进度。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">归档中行「确认归档」→ 弹归档总结（活动 / 类别 / 归档日期 + 材料标准）→ 确认 → 已归档（行尾 ✓）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传材料」：选关联活动（必选，按日期倒序）+ 材料类别 + 多选文件（jpg / png / pdf / doc / docx / xls / xlsx / mp4 / mov）→ 上传即生成「已归档」材料行（可下载 / 删除）；本地模式单文件 ≤ 2MB、服务端模式 ≤ 10MB（页面按模式提示）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传材料」：选关联活动（必选，按日期倒序）+ 材料类别 + 多选文件（jpg / png / pdf / doc / docx / xlsx / mp4）→ 上传即生成「已归档」材料行（可下载 / 删除）；服务端模式单文件 ≤ 10MB（页面按模式提示）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「照片墙」：点「上传照片」→ 填拍摄日期（默认今天）+ 标题 + 拍摄主体（可多选图片）→ 照片按拍摄日期分组展示；每张可再「标注」改日期 / 标题 / 拍摄主体。照片走服务端上传接口，本地模式无此接口（按钮禁用并写明依据）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">页下两块：左侧「材料标准」对照（新闻稿 / 照片 / 视频 / 其他）；右侧「模板下载」——活动新闻稿模板（Word）、照片归档清单 / 视频元数据表模板（Excel）真实生成下载。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传材料写库并同步产出物区 / 关闭校验（同源读取）；材料删除联动清理文件（服务端模式删物理文件）；上传成功自动弹「文件外发确认」（可选标记微信外发、进入接收方确认，见 3.9）；已归档内容在公共「归档库」页（archive.html）与「资料查询」页可检索浏览。</p>
@@ -1492,6 +1493,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260920g"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260921a"></script>
 </body>
 </html>

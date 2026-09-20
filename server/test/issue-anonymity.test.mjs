@@ -39,7 +39,7 @@ import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // 前后端同源哈希（服务端与前端共用；测试据此证明 tokenHash 由随机 token 派生、不含 personId）
-import { hashSubmitterToken } from '../../docs/src/core/constants.js?v=20260920g';
+import { hashSubmitterToken } from '../../docs/src/core/constants.js?v=20260921a';
 import { chromium } from 'playwright';
 
 let app, server, base;
@@ -391,8 +391,8 @@ test('mock 形态：常规出口（成员/支书）看不到真身；党委核�
     const page = await browser.newPage();
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
-      const { IssueStore } = await import('/src/services/issues.js?v=20260920g');
-      const { PersonStore } = await import('/src/services/person.js?v=20260920g');
+      const { IssueStore } = await import('/src/services/issues.js?v=20260921a');
+      const { PersonStore } = await import('/src/services/person.js?v=20260921a');
       localStorage.clear();
       const loginAs = (personId, role) => localStorage.setItem('gsm1921-login-user', JSON.stringify({ personId, role }));
 
@@ -427,7 +427,7 @@ test('mock 形态：常规出口（成员/支书）看不到真身；党委核�
       const tc = document.createElement('div');
       tc.id = 'secretary-tab-content';
       document.body.appendChild(tc);
-      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20260920g');
+      const fb = await import('/src/entries/tabs/secretary/feedback-tab.js?v=20260921a');
       fb.renderContent();
       const listRow = document.querySelector(`[data-issue-id="${anon.id}"]`);
       const listRowHtml = listRow ? listRow.innerHTML : '';
@@ -439,7 +439,7 @@ test('mock 形态：常规出口（成员/支书）看不到真身；党委核�
       const pc = document.createElement('div');
       pc.id = 'party-committee-tab-content';
       document.body.appendChild(pc);
-      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20260920g');
+      const pcTab = await import('/src/entries/tabs/party-committee/issue-review-tab.js?v=20260921a');
       await pcTab.renderContent();
       const asSecretaryHtml = pc.innerHTML;
       // …再以党委身份渲染（须列出真身）

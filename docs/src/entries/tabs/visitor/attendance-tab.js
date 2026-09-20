@@ -6,17 +6,17 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/attendance.js?v=20260920g';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260920g';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260920g';
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260920g';
-import { AuthStore } from '../../../services/auth.js?v=20260920g';
-import { openFormModal } from '../../../components/modal.js?v=20260920g';
-import { showToast } from '../../../core/utils.js?v=20260920g';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/attendance.js?v=20260921a';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260921a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260921a';
+import { AuthStore } from '../../../services/auth.js?v=20260921a';
+import { openFormModal } from '../../../components/modal.js?v=20260921a';
+import { showToast } from '../../../core/utils.js?v=20260921a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/constants.js?v=20260920g';
+import { isActivityArchived } from '../../../core/constants.js?v=20260921a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260920g';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921a';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

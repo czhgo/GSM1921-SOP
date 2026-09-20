@@ -195,14 +195,14 @@ export const REVIEW_STATUS_LABELS = {
 
 /**
  * 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则
- * 宣传委员上传的活动图片，含标注信息与 Base64 编码
+ * 宣传委员上传的活动图片，含标注信息；文件存上传接口 URL（`filePath`）或旧形态 Base64
  * @typedef {Object} ImageRecord
  * @property {string}  id            - 唯一标识符 `img_{timestamp}`
  * @property {string}  date          - 拍摄日期 YYYY-MM-DD
  * @property {string}  title         - 图片标题
  * @property {string}  subject       - 拍摄主体（如人物/场景/物件）
  * @property {string}  [activityId]  - 关联活动 ID（可选）
- * @property {string}  base64        - Base64 编码图片数据
+ * @property {string}  [base64]      - Base64 图片数据（旧形态）；照片墙取上传接口 `filePath`（批次 120）
  * @property {string}  uploadedBy    - 上传人
  * @property {string}  uploadedAt    - 上传时间 ISO 字符串
  */

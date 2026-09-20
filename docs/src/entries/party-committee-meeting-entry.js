@@ -18,23 +18,23 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../components/sidebar.js?v=20260920g';
-import { renderHeader } from '../components/header.js?v=20260920g';
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260920g';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260920g';
-import { mockDB } from '../core/domain.js?v=20260920g';
-import { AuthStore } from '../services/auth.js?v=20260920g';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260920g';
-import { BranchService } from '../services/runtime.js?v=20260920g';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260920g';
-import { IssueStore } from '../services/issues.js?v=20260920g';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260920g';
-import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260920g';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260920g';
-import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260920g';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260920g';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260920g';
-import { generateId } from '../core/id.js?v=20260920g';
+import { renderSidebar } from '../components/sidebar.js?v=20260921a';
+import { renderHeader } from '../components/header.js?v=20260921a';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260921a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921a';
+import { mockDB } from '../core/domain.js?v=20260921a';
+import { AuthStore } from '../services/auth.js?v=20260921a';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260921a';
+import { BranchService } from '../services/runtime.js?v=20260921a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921a';
+import { IssueStore } from '../services/issues.js?v=20260921a';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260921a';
+import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260921a';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260921a';
+import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260921a';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921a';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260921a';
+import { generateId } from '../core/id.js?v=20260921a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

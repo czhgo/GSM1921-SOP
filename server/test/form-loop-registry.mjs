@@ -34,8 +34,9 @@
 //   与 `MACHINE_FLOWS` **互不蕴含**——**要判一条流程整体已被真机验证，必须两处都命中**。
 
 /** 台账规模基线（守卫据此断言「不得静默缩水」；重构致减少须在同提交显式更新本基线并说明） */
-export const SITES_BASELINE = 93;
-export const FLOWS_BASELINE = 54;
+// 批次 120（2026-09-21）：照片墙「上传照片」浮窗新增 1 处校验点（图片）+ 1 条真机流程 ⇒ 基线同上调。
+export const SITES_BASELINE = 94;
+export const FLOWS_BASELINE = 55;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -139,8 +140,13 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 742, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 746, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 768, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 772, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
+  // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
+  //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
+  //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
+  //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1164, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
   { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 138, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
@@ -1127,6 +1133,22 @@ export const MACHINE_FLOWS = [
     expect: [
       { file: SRC + 'entries/tabs/prop/archive-tab.js', field: '关联活动', msg: '请先选择关联活动', carrier: '#upload-activity', satisfy: { selectFirstOption: '#upload-activity' } },
       { file: SRC + 'entries/tabs/prop/archive-tab.js', field: '文件', msg: '请先选择文件', carrier: '#upload-file' },
+    ],
+  },
+  {
+    // 批次 120（2026-09-21）：**宣传委员台 · 档案归档 · 上传照片浮窗**（照片墙）。
+    // 空态即可达态（同 47-M 的档案上传浮窗）：`#photo-upload-file` 天然空 ⇒ 点提交即报。
+    // ⚠ 与档案上传浮窗的差别：本浮窗**不要求关联活动**（照片可独立成墙），故只登记一处校验点。
+    id: 'prop-photo-wall-upload',
+    page: 'prop',
+    tab: '档案归档',
+    open: [
+      { click: '#photo-upload-btn' },
+      { waitFor: '#photo-upload-confirm' },
+    ],
+    submit: [{ click: '#photo-upload-confirm' }],
+    expect: [
+      { file: SRC + 'entries/tabs/prop/archive-tab.js', field: '图片', msg: '请先选择图片', carrier: '#photo-upload-file' },
     ],
   },
   {

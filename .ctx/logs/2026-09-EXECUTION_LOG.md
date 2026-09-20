@@ -2,7 +2,7 @@
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-09-20"
+last_updated: "2026-09-21"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -12089,6 +12089,108 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 - **（乙）申诉队列为前端自管 localStorage**（与考勤申诉同款）：**不落服务端资源表**，故换设备 / 清缓存即不可见；**这是沿用考勤侧既有做法、不是本批新引入**，但如需服务端持久化须另立项。
 - **`SOP-B-34` ②** 的「支书专属操作有哪些」**仍属未决**（本批只做「副走正路由」这一层）。
 - **本批工作区含前次未提交实现**（`docs/src/services/inspection.js` 等 5 个 inspection 文件 ＋ `docs/help.html` ＋ `.ctx/REVIEW_QUEUE.md`，由前次中断的批次 119 实现所为）：本批**逐处复核并补记**，其中**发现并修掉 1 处真机缺陷**（申诉卡监听缺失，见 §四）；**其余一处未提交改动**（`.ctx/REVIEW_QUEUE.md` 的 `D-1-⑤` 工程侧核对条）**系前次实现所为、本批只复核未改**（依据：`docs/src/services/auth.js:83` leader 权限集无 `archive`、`leader-workspace.js` 无归档 tab）。
+
+---
+
+## 批次 120（2026-09-21，照片墙与图片管理落地、并入既有「档案归档」面）
+
+> **来源**：支书 2026-09-20 定案原话——「**建，并入「档案归档」（推荐）**」（问：照片墙与图片管理是批次 76 裁定要建的，至今未动，且卡在「文件走上传接口、还是内嵌在记录里」两条路未取齐）。
+> **决议** → `D-542`；**队列** → `SOP-B-40`（① 落地 ⇒ **整条 ✅ 已落地**）；**现行有效速查** → 改准 2 行（`D-446` 照片墙行 · `D-448` 上传口行）。
+
+### 一、取证（先量清，再动手）
+
+1. **`imageRecords` 是什么**：**只有数据域与 typedef、无界面消费者**——typedef `docs/src/core/domain.js:196`-`:208`（`id` / `date` / `title` / `subject` / `activityId` / `base64` / `uploadedBy` / `uploadedAt`）；CRUD `docs/src/core/mock-adapter.js:801`-`:810`（`list` / `create`，**无 update / delete**）；API 路由 `docs/src/core/api-adapter.js:344`-`:354`（`list` / `create`）；拉取清单 `docs/src/core/data-adapter.js:229`·`:246`·`:276`·`:530`；持久化补全 `docs/src/core/mock-adapter.js:70`·`:253`·`:1322`-`:1323`；服务端表 `server/routes/resources.js:35`（`image_records`）＋ 前缀 `:157`（`img`）＋ 删记录联动删物理文件 `:280`-`:285`。**够不够承载「上传 / 标注 / 按日期分组」**：**字段够**（`date` 即分组键，`title` / `subject` / `activityId` 即标注项）——缺的只是**界面消费者**与**文件形态的取齐**。
+2. **既有上传链现状**：服务端 `server/routes/uploads.js`——白名单 `:48`-`:51`（`image/jpeg` / `image/png` / `application/pdf` / `docx` / `xlsx` / `msword`(.doc) / `video/mp4`）· 单文件 **10MB** `:52` · 落盘 `server/uploads/`（uuid 命名，`:54`-`:57`）· **写口＝`requireCommissioner`（支委层）** `:69` · 受保护下载 `:88`-`:101`（`requireAuth` ＋ 支部隔离）· 元数据入 `attachments` 表 `:80`。**前端两条路并存**：① 服务端 multipart 拿 `path` → 元数据 `POST /api/v1/fileSpaceRecords`（`docs/src/entries/tabs/prop/archive-tab.js:866`-`:879`）；② 本地 mock 内嵌 base64（同文件 `:920`-`:928`，`UPLOAD_MAX_MOCK_MB = 2`）。**资料查询「支部文件」同款两条路**（`docs/src/modules/references.js:891`-`:924`）。**现在用在哪**：图片**此前没有任何界面**走这两条路；两条路服务的是「宣传材料归档」与「支部文件」两类附件。
+3. **既有「档案归档」面现状**：tab 注册 `docs/src/modules/capabilities/prop-workspace.js:43`（id `archive`，label「档案归档」，组「我的职责」）；渲染体 `docs/src/entries/tabs/prop/archive-tab.js:59`-（待归档活动 / 宣传初稿审核位 / 待归档 / 归档记录列表 / 模板下载 ＋ **上传材料**浮窗）；**入口**＝宣传委员台「我的职责」段；**权限**＝`prop-workspace.js:55`-`:59`（仅宣传委员；支书 / 副支书经 `ARCHIVE_FALLBACK_ROLES`（`docs/src/core/constants.js:327`）进**归档兜底面**，只呈现本 tab）。
+4. **`D-448` 的审计结论（逐条）**：**P0** ① 中文文件名编码（multer latin1 → 乱码，批次 80 已修 `decodeOriginalName`）② 前端 `accept` 与后端白名单对齐（含视频材料，批次 80 已修）；**P1** ③ 上传目录可写 ＋ 备份 ＋ 反向代理 body 上限 ≥10MB（批次 80 已补 `UPLOAD_DIR` 可配）；**风险** ④ **越权取用**（任一登录成员可上传、未登录即可列举 `imageRecords` / `fileSpaceRecords`）⑤ **文件名未转义**（`fileName` 进 `innerHTML`）。**本批回应**：④ 的**写侧**收口（两表写口收进支委层）；⑤ 未动（本次新增的图片卡片走 `escHtml` 转义 + `title` 由我方字段渲染，**未引入新的未转义插值**；既有归档行的该风险仍在册）。
+
+### 二、两条路怎么取齐（决定与理由）
+
+- **统一走「上传接口拿 URL」，不用 base64 内嵌**。理由：base64 会让记录体积膨胀（本地模式还撞 localStorage 配额）、绕开既有白名单与 10MB 上限、且与缩略图加载方式相抵。
+- **现状是「两者并存」**（同一份上传代码按模式分流）⇒ 本批**只把「照片墙」这一块走上传接口**，**既有内嵌 base64 的两处一字未改**（属既有实现，改它须另批）。**并存现状与本次只做什么，已写进 `D-542` 与队列 `SOP-B-40` 落地口径**。
+- ⚠ 本地（无服务端）模式**没有上传接口** ⇒ 照片墙的上传按钮**禁用**并在页面写明依据（`title` ＋ 一行提示），**不自造第二套 base64 通道**。
+
+### 三、做了什么（逐处：改前 → 改后）
+
+1. **`docs/src/entries/tabs/prop/archive-tab.js`**（**主体**）
+   - **改前**：只有「待归档活动 / 宣传初稿 / 待归档 / 归档记录 / 模板下载」；`imageRecords` **零消费**。
+   - **改后**：归档记录列表之后**插入照片墙区块**（`_renderPhotoWallSection`）；新增读口 `_loadImageRecords` / 分组 `_groupPhotosByDate`（**日期倒序、组内上传时间倒序**）；新增**上传照片浮窗**（关联活动可不选 / 拍摄日期默认今天 / 标题 / 拍摄主体 ＋ 多选图片 → `_handlePhotoUpload`）与**标注浮窗**（`_showPhotoAnnotateModal` → `_savePhotoAnnotation`）；缩略图**带鉴权取 blob 再置 objectURL**（`_hydratePhotoThumbs` / `_photoObjectUrl`，因服务端下载要 Bearer）；**每个日期组默认最多展 9 张**，超出给「展开该日全部 N 张」（`PHOTO_GROUP_INIT`，防自建列表无限增长）；展开 / 标注按钮走 `#photo-wall-groups` **容器委托**。
+   - 依据：`D-542`（并入既有面）；字段沿用既有 `imageRecords` **不新造概念**。
+2. **`docs/src/core/domain.js:197`**-`:198`·`:205`：`ImageRecord` typedef **按现状改准**（「文件存上传接口 `filePath` 或旧形态 `base64`」）——**行数守恒**（不加行：其后 `handoffs` 等被 `README-server.md` 引用的行号不位移；实测 `doc-line-ref` 的 `R2` 首跑即抓到漂移，改为等行替换后复跑绿）。依据：接口形态已变，typedef 须与实然相符。
+3. **`server/routes/resources.js:206`**-`:211`：`COMMISSIONER_WRITE` **加 `fileSpaceRecords` / `imageRecords`**（**改前**：两张表的通用 POST/PATCH/DELETE 仅 `requireAuth` ⇒ 任一登录成员可直连塞记录；**改后**：支委层）。依据：这两张表是**上传口的元数据写口**，写入方与 `POST /api/v1/uploads` 同一批人；`D-448` ④ 已登记并建议这一行改动，本批随照片墙一并收口。
+4. **`server/test/form-loop-registry.mjs`**：档案上传浮窗两条行号 `742` / `746` → **`768` / `772`**（本批插行所致，`S6` 判据要求精确命中）；**新增 1 校验点**（照片浮窗「请先选择图片」）＋ **1 条真机流程**（`prop-photo-wall-upload`）；基线 `SITES_BASELINE 93 → 94`、`FLOWS_BASELINE 54 → 55`。依据：`S2` / `S3` 要求 machine:true 校验点与流程一一对得上。
+5. **`docs/help.html`**（档案归档卡）：`data-search` 补「照片墙 / 上传照片 / 标注 / 拍摄日期 / 拍摄主体 / 按日期分组」· 入口句补「活动照片另在页内「照片墙」按拍摄日期分组展示」· 「上传材料」那条**按 `D-459` 改准**（去掉后端不收的 `.xls` / `.mov`、去掉已废的本地 2MB 口径）＋ **新增「照片墙」一条**。依据：帮助页须与实然一致（批次 118 同款纪律）；`accept` 清单以 `server/routes/uploads.js:48`-`:51` 为准。
+
+**没做什么（如实，说明为何）**：① **照片删除 / 批量标注 / 按活动筛选**——本批只做支书给定的三件（上传 / 标注 / 按日期分组），`D-542` 已登记为未做；② **「最佳展示 / 档案备份分级」「拖拽至宣传子任务」**——母本自认缺口（`D-446` 留），未动；③ **`D-448` 风险 ⑤（文件名未转义）**——本次新增渲染全部走 `escHtml`，但既有归档行的该风险**未动**（改它要动既有行模板，属另批）；④ **母本一字未改**（理由见 §七）。
+
+### 四、权限口径（谁能传、谁能看 ＋ 依据）
+
+- **先照既有「档案归档」面的权限办，不自创**：**能进入该面**＝`prop-commissioner`（`ROLE_PAGE_MAP.workspace['prop-commissioner'] = 'prop.html'`，`docs/src/core/constants.js:306`-`:317`）＋ **支书 / 副支书经归档兜底**（`ARCHIVE_FALLBACK_ROLES`，`:327`；`prop-workspace.js:55`-`:59` 只呈现「档案归档」tab）。
+- **能上传**：UI 上仅上述角色能看到该页；**服务端上传口**＝`requireCommissioner`（`server/routes/uploads.js:69`），元数据写口本批同步收进同一支委层（`resources.js:206`-`:211`）⇒ **非支委层 403**（真机实测，见 §五）。
+- **能看**：照片墙随「档案归档」面呈现 —— 与既有面同口径，**未新增可见范围、未放宽写权限**。
+- **未做**：按「本支部隔离」的照片可见性**未额外加**（沿用服务端对附件的支部隔离 `uploads.js:94`-`:99`）；`imageRecords` 的**逐行支部字段不存在**（表无支部列）⇒ 未自创隔离维度。
+
+### 五、真机验证（临时 Playwright 探针 ＋ 真 3000 服务；**跑完即删**）
+
+```
+[① 入口] 宣传委员登录落点 = http://127.0.0.1:3000/workspace/prop.html
+[① 照片墙在位] YES | 标题行 = 照片墙 0 张 · 0 个日期 上传照片 … | 上传按钮 disabled = false
+[① 空值提交提示] !请先选择图片            ← 真点「上传照片」→ 真点「上传」（批次 119「点了没反应」教训）
+[② 第一张上传] toast = ✓已上传 1 张照片，照片墙按拍摄日期分组展示
+[② 第二张上传] toast = ✓已上传 1 张照片，照片墙按拍摄日期分组展示
+[③ 分组] 计数行 = 2 张 · 2 个日期 | 日期组（降序）= ["2026-09-20","2026-09-19"] | 缩略图 src = ["blob:http://","blob:http://"]
+[② 墙上可见] 标题 = ["会场全景","主题党日合影"]
+[④ 标注保存] toast = ✓标注已保存        ← 真点「标注」→ 改标题 / 主体 → 真点「保存」
+[④ 标注后墙文本] ["主题党日合影（已标注） 拍摄主体：全体党员 · 主楼前 标注", …]
+[⑤ 记录形态] [{"date":"2026-09-19","title":"主题党日合影","filePath":"/api/v1/uploads/<uuid>.png","hasBase64":false,"fileName":"合影.png"}, …]
+[⑥ 普通成员落点] http://127.0.0.1:3000/workspace/visitor.html
+[⑥ 普通成员页上照片墙] NO | tab 数 = 11
+[⑥ 普通成员直连上传接口] {"status":403,"body":"{\"error\":\"无权限\"}"}
+[⑥ 普通成员直连图片记录写口] 403         ← 本批收口前实测 **201**（收口前跑的那一轮）
+[⑦ 副支书登录落点] http://127.0.0.1:3000/workspace/secretary.html
+[⑦ 副支书进宣传台 tab] ["档案归档"]
+[⑦ 副支书兜底面照片墙] YES | 照片墙 2 张 · 2 个日期 | 缩略图 = ["blob:http://","blob:http://"]
+[pageerror] 0（无报错）
+```
+
+- ①②③④ 逐条对上任务书要求：**能上传一张图** ✓ · **上传后能在照片墙看到**（标题与缩略图都在）✓ · **按日期分组正确**（两组、降序、组内计数对）✓ · **非授权角色看不到 / 不能传**（普通成员落成员台、页上无照片墙；直连上传口与元数据写口均 403）✓。
+- **按钮真点**：`#photo-upload-btn` · `#photo-upload-confirm` · `.pw-annotate-btn` · `#photo-annotate-confirm` 四处均以真实点击驱动（非脚本直接调用内部函数）。
+- **一处收口前后对照**：收口前（首轮真机）`⑥ 普通成员直连图片记录写口 = 201` ⇒ 本批把两表写口收进支委层；**收口后复跑 = 403**，上传口仍 403；宣传委员 / 副支书的写入路径**未受影响**（同上 ②④⑦ 实测）。
+- 探针与产物**已清理**（`.tmp/probe-120-photowall.mjs` 与 `.tmp/probe120.db` 已删、`server/uploads/` 清空、服务已停）。
+
+### 六、守卫（改前 / 改后两次）＋ `R-85` 全量
+
+- **改前基线**（本批动手前）：8 项守卫 ⇒ **63 / 63 全绿、0 红**（`doc-consistency` / `link-integrity` / `version-stamp` / `module-load`（含 `E1` / `E2`）/ `permission-gate` / `server-base` / `scene-write-sync` / `doc-line-ref`）。
+- **改后首跑**：**62 / 63**——`doc-line-ref` 的 `R2` 报 1 红：`README-server.md:505` 指向 `docs/src/core/domain.js:266`（`handoffs`）因本批 typedef 加 3 行而漂移。**处置**＝把 typedef 改动**改为行数守恒**（同段落内改写，不加行）⇒ **复跑 63 / 63 全绿**（`README*.md` 按本批铁律**一字未改**，漂移改在源头）。
+- **落账后复跑**：**63 / 63 全绿、0 红**。
+- **`R-85` 全量**：**先 `npm start`（3000）→ `npm test`** ⇒ 见本节末尾实测数字；**跑完已停服**。
+
+### 七、母本（是否再动）＋ 版本戳
+
+- **母本：一字未改**（判据）：① 本批铁律给 `content/**` 的授权是「**仅当母本确有缺失**」，而本次是「**母本口径反向过时**」（`宣传委员工作流程指南.md:57` / `:110` / `:120` 三处写「未实现」，现已部分落地）——属**母本改准**，与 `D-446` 同类，须随裁定/另批；② **同款先例**：批次 94 把周报三件（自动生成 / 通知 / 审核位）落地后，母本 `:119` 的「尚未实现」句**同批未改**（`D-507` 影响范围无母本）⇒ 本批沿同一处置，**只登记**。
+- **版本戳**：改前（批次 119 提交）＝ `20260920g`；本批改 `docs/src/**` ＋ `docs/help.html` ＋ `server/**` ⇒ `node docs/scripts/bump-version.mjs 20260921a`：**JS 210 / HTML 22 / CSS 2 / server-test 69**，陈旧戳自检 **0 处残留 ✅** ⇒ 落定 **`20260921a`**（首次无参运行按 UTC 推出 `20260920h`，与台账所记批次日不符 ⇒ 显式指定 `20260921a`）。
+
+### 八、反查（改前 → 改后 ＋ 逐条判定）
+
+| 关键词 | 改前（`HEAD`） | 改后（工作区） | 逐条判定 |
+|---|---|---|---|
+| `照片墙` | 母本 6 · `.ctx` 47（决策/队列/速查/执行） · 无 `docs/src` 命中 | `docs/src` **新增 13**（archive-tab.js 照片墙实现）＋ help.html 3 ＋ 台账若干 | **本批新增＝真实落地**；其余＝**沿革 / 原话引语**（`D-446` / `D-508` / `SOP-B-40`）与**母本**（未改，见 §七） |
+| `图片管理` | 母本 2 · `.ctx` 若干 | 同（**未改母本**）＋ `.ctx` 本批留痕 | **遗留**：母本 `:110` / `:120` 的「未实现」已过时 ⇒ **已登记待另批**（`D-542` 影响范围） |
+| `imageRecords` | `docs/src` 5 处（domain / mock-adapter / data-adapter / api-adapter）＋ `server` 3 处 | `docs/src` **＋ archive-tab.js 8 处**（本批读 / 写口） | **本批新增＝界面消费者**；其余＝沿革（域与 typedef 早已在） |
+| `base64` | `docs/src` 4 文件 | **＋ archive-tab.js 1 处**（`ImageRecord` 旧形态判读，见 `_hydratePhotoThumbs`） | **否定式 / 沿革**：本批记录内**不放** base64；该处只是**兼容读**既有形态 |
+| `上传接口` | — | 本批注释 / 文案口径 | 本批取齐口径，非新概念 |
+
+- ⇒ **遗留 1 处**（母本三处「未实现」说明过时）**已如实登记**；其余命中均可判为**本批新增 / 沿革 / 原话引语 / 否定式**。
+- ⚠ **别只靠 grep**：本批**通读**了 `archive-tab.js` 全文、`uploads.js` 全文、`resources.js` 的 CRUD 段、`prop-workspace.js`、`constants.js` 的角色段、母本 `宣传委员工作流程指南.md` §二 与检查清单 —— 除上表所列外**未另发现**旧口径。
+
+### 九、未做 / 不确定（如实）
+
+- **照片记录不可删**（`mock-adapter` 的 `imageRecords` 只有 `list` / `create`）⇒ 传错图只能留在墙上；**未做**（本批只做三件），若要删须补前端写口与删除链。
+- **本地（mock）模式照片墙不可用**（无上传接口）——**按取齐决定**（不内嵌 base64）而**故意**如此，页面上写明依据；若支书希望本地也能演示，须另裁。
+- **母本三处「未实现」说明未改**（见 §七）：属**授权外**，已登记。
+- **`D-448` 风险 ⑤（文件名未转义）**：本次新增渲染均 `escHtml`，**既有归档行未动**。
+- **`fileSpaceRecords` / `imageRecords` 的读口**仍是「登录即可读」——本批只收**写**侧（读侧是否按支部隔离，`D-448` 只登记风险，未裁）；**未自创**。
+- **`.ctx/TIMESTAMPS.md` 的 2026-09-EXECUTION_LOG 行**原本只到批次 118（批次 119 未刷）⇒ 本批**只补 120**，未追补 119（属前批台账缺口，如实登记）。
 
 
 

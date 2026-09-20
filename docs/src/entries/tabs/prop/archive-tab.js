@@ -2,24 +2,24 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260920g';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260920g';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260920g';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260920g';
-import { mockDB } from '../../../core/domain.js?v=20260920g';
-import { bumpToken } from '../../../core/version-token.js?v=20260920g'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260920g';
-import { isApiMode } from '../../../services/runtime.js?v=20260920g';
-import { AuthStore } from '../../../services/auth.js?v=20260920g';
-import { getPersonName } from '../../../services/person.js?v=20260920g';
-import { generateId } from '../../../core/id.js?v=20260920g';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260920g';
+import { icon } from '../../../core/icons.js?v=20260921a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260921a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260921a';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260921a';
+import { mockDB } from '../../../core/domain.js?v=20260921a';
+import { bumpToken } from '../../../core/version-token.js?v=20260921a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260921a';
+import { isApiMode } from '../../../services/runtime.js?v=20260921a';
+import { AuthStore } from '../../../services/auth.js?v=20260921a';
+import { getPersonName } from '../../../services/person.js?v=20260921a';
+import { generateId } from '../../../core/id.js?v=20260921a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260921a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260920g';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260921a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260920g';
+import { BranchService } from '../../../services/runtime.js?v=20260921a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260920g';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260921a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -82,6 +82,8 @@ export function renderContent(ctx) {
       <h4 class="text-sm font-bold text-gray-700">归档记录</h4>
     </div>
     <div id="archive-list" class="mb-6"></div>
+
+    ${_renderPhotoWallSection(ctx)}
 
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2 mb-3">
@@ -231,6 +233,30 @@ export function renderContent(ctx) {
       renderContent(ctx);
     }
   });
+
+  // 照片墙（批次 120 · 支书 2026-09-20 定案「建，并入档案归档」）：
+  //   上传 → 上传接口拿 URL（不用记录内 base64）；标注 → imageRecords 写口；按拍摄日期分组展示。
+  //   展开 / 标注按钮走 #photo-wall-groups 容器委托（分组由本页重渲染重建，防「点了没反应」，见批次 119）。
+  container.querySelector('#photo-upload-btn')?.addEventListener('click', () => _showPhotoUploadModal(ctx));
+  const photoHost = container.querySelector('#photo-wall-groups');
+  if (photoHost) {
+    photoHost.addEventListener('click', (e) => {
+      const moreBtn = e.target.closest('.pw-more-btn');
+      if (moreBtn) {
+        e.stopPropagation();
+        _photoGroupExpanded.add(moreBtn.dataset.photoDate);
+        renderContent(ctx);
+        return;
+      }
+      const annoBtn = e.target.closest('.pw-annotate-btn');
+      if (annoBtn) {
+        e.stopPropagation();
+        const rec = _loadImageRecords().find(r => r.id === annoBtn.dataset.photoId);
+        if (rec) _showPhotoAnnotateModal(rec, ctx);
+      }
+    });
+    _hydratePhotoThumbs(photoHost);
+  }
 
   // 上传材料按钮（attachments 双模式：mock base64 / server multipart）
   container.querySelector('#archive-upload-btn')?.addEventListener('click', () => {
@@ -911,4 +937,388 @@ function _readFileAsDataURL(file) {
     reader.onerror = () => reject(new Error('读取文件失败'));
     reader.readAsDataURL(file);
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  照片墙（批次 120 · 支书 2026-09-20 定案「建，并入「档案归档」（推荐）」）
+//  ── 两条路取齐（D-542）──
+//  ① 统一走**既有上传接口**：文件本体 POST /api/v1/uploads（multer 白名单 / 单文件 ≤10MB）→ 拿回
+//     `path`（/api/v1/uploads/<uuid>.png）存进图片记录；**不在记录里内嵌 base64**（记录体积、
+//     白名单与 10MB 上限、按日期分组展示三处都与内嵌形态相抵）。
+//  ② 既有内嵌 base64 的两处（本页「上传材料」/ 资料查询「支部文件」）**本批一字未改**——属既有实现。
+//  ⚠ 本地（无服务端）模式**没有上传接口** ⇒ 上传按钮禁用并写明依据（不自造第二套 base64 通道）。
+//  数据侧：图片记录域与 typedef 早已在（core/domain.js::ImageRecord / mock-adapter CRUD /
+//  data-adapter 拉取清单），本批补的是**界面消费者**（此前 `imageRecords` 无任何读渲染点）。
+// ════════════════════════════════════════════════════════════════
+
+/** 图片记录读口（API 模式由 data-adapter init() 按域拉取填充，与其它域同源） */
+function _loadImageRecords() {
+  return mockDB.imageRecords || [];
+}
+
+/** 每个日期组默认展示张数（超出给「展开该日全部」）——分组内同构块不无限增长 */
+const PHOTO_GROUP_INIT = 9;
+/** 已展开的日期组（随模块自持，重渲染后仍展开） */
+const _photoGroupExpanded = new Set();
+/** 缩略图对象 URL 缓存（filePath → blob URL） */
+const _photoSrcCache = new Map();
+
+/** 按拍摄日期分组（日期倒序；组内按上传时间倒序） */
+function _groupPhotosByDate(records) {
+  const byDate = new Map();
+  for (const r of records) {
+    const d = r.date || '未标注日期';
+    if (!byDate.has(d)) byDate.set(d, []);
+    byDate.get(d).push(r);
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => String(b[0]).localeCompare(String(a[0])))
+    .map(([date, rows]) => ({
+      date,
+      rows: rows.slice().sort((a, b) => String(b.uploadedAt || '').localeCompare(String(a.uploadedAt || ''))),
+    }));
+}
+
+/** 照片墙区块（页面中段；不新开 tab / 不新开页面） */
+function _renderPhotoWallSection(ctx) {
+  const records = _loadImageRecords();
+  const groups = _groupPhotosByDate(records);
+  const canUpload = isApiMode();
+  const uploadBtn = canUpload
+    ? `<button id="photo-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">
+         ${icon('upload', { className: 'w-3.5 h-3.5' })}<span>上传照片</span>
+       </button>`
+    : `<button id="photo-upload-btn" class="text-xs px-3 py-2 rounded-lg bg-gray-100 text-gray-400 border border-gray-200 flex-shrink-0 flex items-center justify-center gap-1.5" disabled title="照片走服务端上传接口（multipart），本地模式无此接口——请在服务端模式使用" style="cursor:not-allowed;">
+         ${icon('upload', { className: 'w-3.5 h-3.5' })}<span>上传照片</span>
+       </button>`;
+  const hint = canUpload
+    ? '活动照片走服务端上传接口（jpg / png，单张 ≤10MB），按拍摄日期分组展示；每张可标注标题与拍摄主体。'
+    : '活动照片走服务端上传接口，本地模式无此接口——照片墙需在服务端模式使用。';
+  return `
+    <div class="mb-6" id="archive-photo-wall">
+      <div class="flex items-center justify-between gap-2 mb-1.5">
+        <div class="flex items-center gap-2">
+          <h4 class="text-sm font-bold text-gray-700">照片墙</h4>
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">${records.length} 张 · ${groups.length} 个日期</span>
+        </div>
+        ${uploadBtn}
+      </div>
+      <p class="text-xs text-gray-500 mb-2">${hint}</p>
+      <section id="photo-wall-groups" class="space-y-3">${groups.length
+        ? groups.map(g => _photoGroupHtml(g)).join('')
+        : '<p class="text-xs text-gray-400 py-3 text-center">还没有照片——点右上「上传照片」，照片会按拍摄日期在此分组展示</p>'}</section>
+    </div>`;
+}
+
+/** 单个日期组（组内缩略图 + 标注入口；超出上限给展开按钮） */
+function _photoGroupHtml(group) {
+  const expanded = _photoGroupExpanded.has(group.date);
+  const shown = expanded ? group.rows : group.rows.slice(0, PHOTO_GROUP_INIT);
+  const cards = shown.map(r => `
+      <figure class="rounded-lg border border-gray-100 overflow-hidden bg-white" data-photo-id="${escHtml(r.id)}">
+        <div class="w-full bg-gray-100 flex items-center justify-center overflow-hidden" style="height:96px;">
+          <img data-photo-src="${escHtml(r.id)}" alt="${escHtml(r.title || '活动照片')}" style="width:100%;height:100%;object-fit:cover;" />
+        </div>
+        <figcaption class="p-2">
+          <p class="text-xs text-gray-800 truncate" title="${escHtml(r.title || '未命名照片')}">${escHtml(r.title || '未命名照片')}</p>
+          <p class="text-[11px] text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
+          <button type="button" class="pw-annotate-btn text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
+        </figcaption>
+      </figure>`).join('');
+  const more = (!expanded && group.rows.length > PHOTO_GROUP_INIT)
+    ? `<button type="button" class="pw-more-btn text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors mt-2" data-photo-date="${escHtml(group.date)}" style="cursor:pointer;">展开该日全部 ${group.rows.length} 张</button>`
+    : '';
+  return `
+    <div class="rounded-xl border border-gray-100 p-3" data-photo-group="${escHtml(group.date)}">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-xs font-semibold text-gray-700">${escHtml(group.date)}</span>
+        <span class="text-xs text-gray-500">${group.rows.length} 张</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">${cards}</div>
+      ${more}
+    </div>`;
+}
+
+/** 缩略图注水：服务端下载走 requireAuth + 支部隔离（带 Bearer），而 `<img src>` 带不上 token
+ *  ⇒ 先带鉴权取回 blob 再置 objectURL；组内图多时逐个串行取（张数有限、避免瞬时并发）。 */
+async function _hydratePhotoThumbs(host) {
+  for (const img of [...host.querySelectorAll('img[data-photo-src]')]) {
+    const rec = _loadImageRecords().find(r => r.id === img.getAttribute('data-photo-src'));
+    if (!rec) continue;
+    try {
+      if (rec.base64) { img.src = rec.base64; continue; }
+      if (!rec.filePath) { img.alt = '该记录没有图片文件'; continue; }
+      const url = await _photoObjectUrl(rec.filePath);
+      if (img.isConnected) img.src = url;
+    } catch (e) {
+      if (img.isConnected) { img.alt = '图片加载失败'; img.title = (e && e.message) || '图片加载失败'; }
+    }
+  }
+}
+
+async function _photoObjectUrl(filePath) {
+  if (_photoSrcCache.has(filePath)) return _photoSrcCache.get(filePath);
+  const baseUrl = getApiBaseUrl();
+  const token = getAuthToken();
+  const url = filePath.startsWith('http') ? filePath : `${baseUrl}${filePath}`;
+  const resp = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!resp.ok) throw new Error(`缩略图加载失败(${resp.status})`);
+  const objUrl = URL.createObjectURL(await resp.blob());
+  _photoSrcCache.set(filePath, objUrl);
+  return objUrl;
+}
+
+/** 上传照片浮窗（关联活动 / 拍摄日期 / 标题 / 拍摄主体 + 多选图片） */
+function _showPhotoUploadModal(ctx) {
+  const existing = document.getElementById('photo-upload-modal');
+  if (existing) existing.remove();
+
+  const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const today = new Date().toISOString().slice(0, 10);
+  const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
+    `<option value="${a.id}">${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'photo-upload-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);max-height:86vh;display:flex;flex-direction:column;';
+  card.innerHTML = `
+    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传照片</h3>
+      <button id="photo-upload-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+    </div>
+    <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-activity">关联活动（可不选）</label>
+        <select id="photo-upload-activity" class="input-flat w-full">${activityOptions}</select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-date">拍摄日期</label>
+        <input id="photo-upload-date" type="date" class="input-flat w-full" value="${today}" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-title">标题</label>
+        <input id="photo-upload-title" type="text" class="input-flat w-full" placeholder="如：主题党日合影（留空取文件名）" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-subject">拍摄主体</label>
+        <input id="photo-upload-subject" type="text" class="input-flat w-full" placeholder="如：全体党员 / 主讲人 / 会场全景" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-upload-file">选择图片（可多选）</label>
+        <input id="photo-upload-file" type="file" multiple accept=".jpg,.jpeg,.png"
+          class="block w-full text-xs text-gray-600 file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" />
+        <div id="photo-upload-preview" class="mt-2 space-y-1.5"></div>
+      </div>
+      <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-teal-50 text-teal-700 border border-teal-100">
+        照片走服务端上传接口（jpg / png，单张 ≤10MB）落盘，元数据进图片记录；同批照片共用上方日期与标注。
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+      <button id="photo-upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+      <button id="photo-upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">上传</button>
+    </div>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  let selectedFiles = [];
+  let previewUrls = [];
+  const closeModal = () => { previewUrls.forEach(u => URL.revokeObjectURL(u)); overlay.remove(); };
+  const renderPreview = () => {
+    card.querySelector('#photo-upload-preview').innerHTML = selectedFiles.map((f, i) => `
+      <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
+        <img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
+          <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
+        </div>
+        <button class="photo-file-remove text-gray-500 hover:text-red-600 text-sm leading-none" data-idx="${i}">&times;</button>
+      </div>`).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择图片</p>';
+  };
+
+  card.querySelector('#photo-upload-file').addEventListener('change', (e) => {
+    const maxBytes = UPLOAD_MAX_SERVER_MB * 1024 * 1024; // 与 server/routes/uploads.js 同一上限
+    const files = Array.from(e.target.files || []);
+    const oversized = files.filter(f => f.size > maxBytes);
+    if (oversized.length > 0) showToast('error', `${oversized.map(f => f.name).join('、')} 超出 ${UPLOAD_MAX_SERVER_MB}MB 限制，已剔除`);
+    selectedFiles = files.filter(f => f.size <= maxBytes);
+    previewUrls.forEach(u => URL.revokeObjectURL(u));
+    previewUrls = selectedFiles.map(f => URL.createObjectURL(f));
+    renderPreview();
+  });
+
+  card.querySelector('#photo-upload-preview').addEventListener('click', (e) => {
+    const btn = e.target.closest('.photo-file-remove');
+    if (!btn) return;
+    const idx = Number(btn.dataset.idx);
+    selectedFiles.splice(idx, 1);
+    URL.revokeObjectURL(previewUrls[idx]);
+    previewUrls.splice(idx, 1);
+    renderPreview();
+  });
+
+  card.querySelector('#photo-upload-confirm').addEventListener('click', async () => {
+    if (selectedFiles.length === 0) { showToast('error', '请先选择图片'); return; }
+    const meta = {
+      date: card.querySelector('#photo-upload-date').value || today,
+      title: card.querySelector('#photo-upload-title').value.trim(),
+      subject: card.querySelector('#photo-upload-subject').value.trim(),
+      activityId: card.querySelector('#photo-upload-activity').value,
+    };
+    const confirmBtn = card.querySelector('#photo-upload-confirm');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = '上传中…';
+    try {
+      const saved = await _handlePhotoUpload(selectedFiles, meta);
+      if (saved > 0) {
+        showToast('success', `已上传 ${saved} 张照片，照片墙按拍摄日期分组展示`);
+        closeModal();
+        renderContent(ctx);
+      }
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '上传';
+    }
+  });
+
+  card.querySelector('#photo-upload-close').addEventListener('click', closeModal);
+  card.querySelector('#photo-upload-cancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  card.addEventListener('click', e => e.stopPropagation());
+}
+
+/** 上传本体：文件 → 上传接口（拿 path）→ 元数据 → imageRecords（服务端表 + 内存同源） */
+async function _handlePhotoUpload(files, meta) {
+  const baseUrl = getApiBaseUrl();
+  const token = getAuthToken();
+  const me = AuthStore.getCurrentUser();
+  let saved = 0;
+  for (const file of files) {
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const upResp = await fetch(`${baseUrl}/api/v1/uploads`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: fd,
+      });
+      if (!upResp.ok) throw new Error(`上传失败(${upResp.status})`);
+      const up = await upResp.json();
+      const row = {
+        date: meta.date,
+        title: meta.title || file.name.replace(/\.[^.]+$/, ''),
+        subject: meta.subject || '',
+        activityId: meta.activityId || '',
+        fileName: up.filename || file.name,
+        filePath: up.path, // 上传接口拿 URL —— 记录内不内嵌 base64
+        uploadedBy: (me && me.personId) || '',
+        uploadedAt: new Date().toISOString(),
+      };
+      const metaResp = await fetch(`${baseUrl}/api/v1/imageRecords`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(row),
+      });
+      if (!metaResp.ok) throw new Error(`图片记录写入失败(${metaResp.status})`);
+      const savedRow = await metaResp.json();
+      // 立即上屏：服务端已落库，此处只同步内存（不触发整表快照写穿，避免覆盖他人并发写）
+      mockDB.imageRecords = [...mockDB.imageRecords, savedRow];
+      saved++;
+    } catch (err) {
+      showToast('error', `「${file.name}」${(err && err.message) || '上传失败'}`);
+    }
+  }
+  if (saved > 0) bumpToken('imageRecord'); // P0：照片上传写口
+  return saved;
+}
+
+/** 标注浮窗（日期 / 标题 / 拍摄主体 / 关联活动） */
+function _showPhotoAnnotateModal(record, ctx) {
+  const existing = document.getElementById('photo-annotate-modal');
+  if (existing) existing.remove();
+  const activities = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const activityOptions = `<option value="">（不关联活动）</option>` + activities.map(a =>
+    `<option value="${a.id}"${a.id === record.activityId ? ' selected' : ''}>${escHtml(a.title)}（${escHtml(a.date || '未定日期')}）</option>`).join('');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'photo-annotate-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:var(--surface-card);border-radius:14px;padding:0;max-width:440px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.18);';
+  card.innerHTML = `
+    <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-title-cn text-sm font-semibold text-gray-800">标注照片</h3>
+      <button id="photo-annotate-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+    </div>
+    <div class="px-5 py-4 space-y-3.5">
+      <p class="text-xs text-gray-500">${escHtml(record.fileName || '照片')}</p>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-date">拍摄日期</label>
+        <input id="photo-annotate-date" type="date" class="input-flat w-full" value="${escHtml(record.date || '')}" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-title">标题</label>
+        <input id="photo-annotate-title" type="text" class="input-flat w-full" value="${escHtml(record.title || '')}" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-subject">拍摄主体</label>
+        <input id="photo-annotate-subject" type="text" class="input-flat w-full" value="${escHtml(record.subject || '')}" />
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="photo-annotate-activity">关联活动（可不选）</label>
+        <select id="photo-annotate-activity" class="input-flat w-full">${activityOptions}</select>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
+      <button id="photo-annotate-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
+      <button id="photo-annotate-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">保存</button>
+    </div>
+  `;
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+
+  card.querySelector('#photo-annotate-confirm').addEventListener('click', async () => {
+    const patch = {
+      date: card.querySelector('#photo-annotate-date').value || record.date || '',
+      title: card.querySelector('#photo-annotate-title').value.trim(),
+      subject: card.querySelector('#photo-annotate-subject').value.trim(),
+      activityId: card.querySelector('#photo-annotate-activity').value,
+    };
+    try {
+      await _savePhotoAnnotation(record.id, patch);
+      showToast('success', '标注已保存');
+      close();
+      renderContent(ctx);
+    } catch (err) {
+      showToast('error', `保存失败：${(err && err.message) || err}`);
+    }
+  });
+  card.querySelector('#photo-annotate-close').addEventListener('click', close);
+  card.querySelector('#photo-annotate-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  card.addEventListener('click', e => e.stopPropagation());
+}
+
+/** 标注写口：服务端 PATCH（局部合并）／本地模式写内存 + persist */
+async function _savePhotoAnnotation(id, patch) {
+  if (isApiMode()) {
+    const baseUrl = getApiBaseUrl();
+    const token = getAuthToken();
+    const resp = await fetch(`${baseUrl}/api/v1/imageRecords/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(patch),
+    });
+    if (!resp.ok) throw new Error(`保存失败(${resp.status})`);
+    const merged = await resp.json();
+    mockDB.imageRecords = mockDB.imageRecords.map(r => (r.id === id ? merged : r));
+  } else {
+    mockDB.imageRecords = mockDB.imageRecords.map(r => (r.id === id ? { ...r, ...patch } : r));
+    persist();
+  }
+  bumpToken('imageRecord'); // P0：照片标注写口
 }

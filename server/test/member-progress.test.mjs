@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { aggregateMemberProgress } from '../../docs/src/services/member-progress.js?v=20260920g';
+import { aggregateMemberProgress } from '../../docs/src/services/member-progress.js?v=20260921a';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const TODAY = '2026-09-15';

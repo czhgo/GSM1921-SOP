@@ -203,7 +203,12 @@ export function createResourcesRouter(db) {
   // create/update/delete/archive/brand 接口在服务端全部 404，属「未扎口的假接口」。
   // 现补齐 POST/PATCH/DELETE，使 ApiAdapter 接口完整可用）
   // 需支委写权限的资源（写入/删除均需支委身份，如支部文件）
-  const COMMISSIONER_WRITE = new Set(['branchDocs']);
+  // 2026-09-21 批次 120：`fileSpaceRecords` / `imageRecords` 一并纳入——这两张表是**上传口的元数据写口**
+  // （写入方与 `POST /api/v1/uploads` 是同一批人：宣传委员，见 `archive-tab.js` 的上传材料链与本批照片墙）。
+  // 原状是「仅 requireAuth」⇒ 任一登录成员可直连塞入图片/文件记录（`D-448` ④ 越权取用，批次 80 审计实测
+  // **未登录即可列举**、任一登录成员可写；`SOP-B-40` 第 4 项登记项，本批随照片墙一并收口）。
+  // 未登录/非支委层一律 403；读口仍按 `PUBLIC_READ` 之外的 requireAuth 口径（未改）。
+  const COMMISSIONER_WRITE = new Set(['branchDocs', 'fileSpaceRecords', 'imageRecords']);
   for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
     const writeAuth = COMMISSIONER_WRITE.has(name) ? requireCommissioner(db) : requireAuth(db);
 

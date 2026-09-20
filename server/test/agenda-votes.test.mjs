@@ -330,8 +330,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260920g');
-  const { MockAdapter } = await import('../../docs/src/core/mock-adapter.js?v=20260920g');
+  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260921a');
+  const { MockAdapter } = await import('../../docs/src/core/mock-adapter.js?v=20260921a');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;
