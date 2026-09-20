@@ -50,6 +50,14 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
 | agenda | `Array<{item: string, host?: string}>` | 否 | `[]` | 会议议程（三会一课专用：逐条议题 + 可选主持人）。创建时经写入表单"会议议程"区块填写；会后可在活动详情修改（T-283 新增，2026-08-27） |
+| organizer | string | 否 | -- | 组织者 personId。写入时缺省＝创建人本人；若 `assignments` 中已指定组织者，创建链按主源同步为被指定人（`writeActivityWithSOP` 原则7「同一套数据」）。读端（归档 / 首页 / 复盘卡 / inspector）消费本字段（2026-09-20 批次 111 补） |
+| direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定（2026-09-20 批次 111 补） |
+| hostGroup | string\|null | 否 | null | 承办党小组（组长写入时固化）。考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组（2026-09-20 批次 111 补） |
+| assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 活动参与人 / 项目内角色的内联登记主源（边界见 §2.1.3）。创建时随指定写入，`AuthStore.authorize` 按它判项目身份；**非空时不再派生组长赋权待办**（2026-09-20 批次 111 补） |
+| signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开（2026-09-20 批次 111 补） |
+| requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`）（2026-09-20 批次 111 补） |
+| voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下）（2026-09-20 批次 111 补） |
+| isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**）（2026-09-20 批次 111 补） |
 
 > **设计注记（活动写入表单必有地点字段，承接原 insights §6.6，2026-09-04 分流）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的（原判例：活动写入表单最初只有日期没有地点，后补齐地点输入）。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
 

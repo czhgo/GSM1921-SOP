@@ -11148,6 +11148,122 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 
 [经验蒸馏: 是 → 「**给一本被别的文档『逐行引着』的文档补正文，是一次跨文件的位移：你想补的那一段越有价值，下游引用漂得越远。** 正确做法不是硬改，而是先量**引用面**（`README-server.md` 对 `DATA_MODEL.md` 有 42 处行号），再决定「本批做」还是「与同步批一起做」——**加行是一条看不见的接口变更**。另：**「数字对、表体缺」也是过期**——`DATA_FLOW.md` 自述‘35 个字段’而表体 33 行，数字没错，读者照着抄表就会漏两个域；这类错**grep 数字永远扫不到**，只能逐行数表。」]
 
+## 批次 111（2026-09-20，`DATA_MODEL.md §2.1` 补齐缺失字段 ＋ `README-server.md` 行号引用同步——批次 110 登记「该改但不宜在本批改」的那一处落地）
+
+> **一句话**：批次 110（`D-531`）把「`DATA_MODEL.md §2.1` 活动表仍缺 8 字段」连**改法与阻塞原因**一起登记为待办（加行会位移 `README-server.md` 的 42 处行号引用 ⇒ `doc-line-ref` 三守卫判红 ⇒ 须与 README 同步批同做）；本批**照单执行**：补 8 行 ＋ 同批平移 44 处引用 ＋ 复核守卫基线。裁定 `D-532`。
+
+### 一、8 字段取证表（逐字段：代码出处 / 类型 / 必填 / 说明 / 是否真缺）
+
+> 统一说明：⚠ `server/db.js` 的「活动表」是 **`(id TEXT PRIMARY KEY, data TEXT)` 键值表**（`server/db.js:64-66` 统一建表），**没有字段级列定义**；`docs/src/core/domain.js` 的 `Activity` typedef（`:11-34`）**也未列这 8 个字段**（同样未列 `location` / `carriers` / `isJoint` / `isOutdoor` / `brandName` / `agenda`）⇒ 出处取**写入点 ＋ 读取点**。
+
+| 字段 | 代码出处（写 / 读） | 类型 | 必填 | 默认值 | 说明 | 是否真缺 |
+|---|---|---|---|---|---|---|
+| `organizer` | 写 `docs/src/entries/tabs/leader/write-tab.js:1038`（`organizer: currentLeaderId`）· `docs/src/entries/party-committee-meeting-entry.js:376` · 派生同步 `docs/src/services/decision-tree.js:341`（`writeActivityWithSOP` 按 `assignments` 里首个 organizer 覆盖顶层）；读 `docs/src/services/activity.js:55`（`isActivityOrganizerIn`）· `docs/src/services/inspection.js:50,76` · `docs/src/components/inspector.js:625` | string（personId） | 否 | 写入时缺省＝创建人本人（`write-tab.js:1036-1038` 注释） | 顶层组织者；读端（归档 / 首页 / 复盘卡 / inspector）消费它 | **真缺** |
+| `direction` | 写 `write-tab.js:1039`（`direction: L4`），取值域与缺省见 `write-tab.js:556`（`['top-down','bottom-up']`，缺省 `'bottom-up'`）；读 `docs/src/components/inspector.js:660-661`；种子 `docs/src/mock/activities.js:12` 起逐条皆有 | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起） | **真缺** |
+| `hostGroup` | 写 `write-tab.js:1041`（值来自决策树 `hostGroup` 级，`write-tab.js:558` `hostGroup: group \|\| null`）；读 `docs/src/services/attendance.js:59,64` · `docs/src/services/inspection.js:49`；种子 `docs/src/mock/activities.js:61,65,66` | string \| null | 否 | null | 承办党小组（组长写入时固化）；考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组 | **真缺** |
+| `assignments` | 写 `write-tab.js:1058-1064`（`role: 'organizer' / 'deep'`）· `docs/src/entries/tabs/secretary/calendar-tab.js:1159`（`role: 'participant'`）· `party-committee-meeting-entry.js:377-380`；读 `docs/src/services/activity.js:56-57` · `inspection.js:51,75` · `docs/src/services/auth.js`（项目身份）；**文档侧 §2.1.3 已在用** | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 活动参与人 / 项目内角色的**内联登记主源**（与 `AuthStore.authorize` 同一套数据） | **真缺**（§2.1.3 在 §2.1 表体之后补写，**表体一直没回填**） |
+| `signupEnabled` | 写 `write-tab.js:1048`；缺省见 `write-tab.js:62`（`dtDraft.signupEnabled: false`）；读 `docs/src/services/signup.js:94-96` · `docs/src/components/signup-panel.js:43` | boolean | 否 | `false` | 开放报名开关（`SOP-B-2` / 裁定 `D-465`）：勾选后该活动可被报名；草稿态默认不可报名 | **真缺** |
+| `requireMakeup` | 写 `write-tab.js:1050`；缺省见 `write-tab.js:62`（`false`）；读 `docs/src/services/makeup.js:37`（`isMakeupRequired` 单一出口） | boolean | 否 | `false` | 活动级「本次要求补课」（`SOP-B-6` / 裁定 `D-467`/`D-468`） | **真缺** |
+| `voteConfig` | 写 `calendar-tab.js:1163`（`if (voteConfig) activityData.voteConfig = voteConfig`，值由 `:1098-1114` 组装）· `party-committee-meeting-entry.js:374`；默认值 `docs/src/services/vote-config.js:39-47`（`defaultVoteConfig`）；读 `docs/src/core/constants.js:281-283` · `docs/src/components/activity-view.js:148` | object \| null | 否 | null（非决策类不写） | 线上异步表决配置；**线下开会不写本字段** | **真缺** |
+| `isOutdoor` | 写 `write-tab.js:1052`（SOP-B-19）· `calendar-tab.js:1153`（`isOutdoor: dimIsOutdoor`）；读 `docs/src/services/activity.js:80-83`（`isOutdoorActivity`）；种子 `mock/activities.js:20,46` | boolean | 否 | `false` | 是否外出（校外）活动——**主题党日正交维度之二**，`DATA_MODEL.md §2.1.2` 的数据映射示例里早就在（`:170`） | ⚠ **不在 §2.1 表体**（只在 §2.1.2 示例里）⇒ **真缺**（批 97 只补了 `README` 的 §4.1 行，**没回填 §2.1**） |
+
+**核 `assignments` 为何漏在 §2.1 表体**：§2.1.3（现 `:176-189`）是**后补的**子节（标题自带 2026-08-08 T-234 W3 戳），而 §2.1 表体停在 2026-08-27（`agenda` 行）；**表体没随 §2.1.3 回填**——不是「故意不列」。
+**核 `isOutdoor` 是否本来就在 §2.1**：**不在**。§2.1 表体 24 行（`:29-52`）逐行核过无它；它只出现在 §2.1.2 的「主题党日数据结构」代码块（`:170`）与 `README-server.md §4.1` 表（批次 97 补）。⇒ **不是重复加**。
+
+### 二、`DATA_MODEL.md §2.1` 补了什么（逐行：文档写的 ↔ 代码里的）
+
+在 `agenda` 行后追加 8 行（现 `:53-60`），**逐行对照**：
+
+| 新行（文档写的） | 代码里的 |
+|---|---|
+| `organizer \| string \| 否 \| --` | `write-tab.js:1038` 写入、`decision-tree.js:341` 派生同步、`activity.js:55` 读判 |
+| `direction \| 'top-down'\|'bottom-up' \| 否 \| 'bottom-up'` | `write-tab.js:556`（取值域与缺省）、`:1039` 写入 |
+| `hostGroup \| string\|null \| 否 \| null` | `write-tab.js:558,1041` 写、`attendance.js:64` / `inspection.js:49` 读 |
+| `assignments \| Array<{personId, role}> \| 否 \| []` | `write-tab.js:1058-1064` / `calendar-tab.js:1159` / `party-committee-meeting-entry.js:377` 写；`activity.js:56` 读 |
+| `signupEnabled \| boolean \| 否 \| false` | `write-tab.js:62,1048` 写、`signup.js:96` 读 |
+| `requireMakeup \| boolean \| 否 \| false` | `write-tab.js:62,1050` 写、`makeup.js:37` 读 |
+| `voteConfig \| object\|null \| 否 \| null` | `calendar-tab.js:1098-1114,1163` 写、`vote-config.js:39-47` 默认、`constants.js:281` 读 |
+| `isOutdoor \| boolean \| 否 \| false` | `write-tab.js:62,1052` / `calendar-tab.js:1153` 写、`activity.js:80` 读 |
+
+> 每行说明末尾带 `（2026-09-20 批次 111 补）`，便于回溯。**未动该文档其它内容**（含 frontmatter `last_updated`，遵本批「仅 §2.1 补字段」的授权）。
+
+### 三、受影响行号清单（改前 → 改后，逐处）
+
+**成因**＝在 `DATA_MODEL.md` 第 52 行后插入 8 行 ⇒ **该文件第 53 行起整体 `+8`**。`README-server.md` 内指向 `DATA_MODEL.md` 的引用**共 45 处（分布 41 行）**：**44 处 +8**、**1 处不动**。
+
+**（a）44 处 +8（逐处）**
+
+| README 行 | 改前 | 改后 |
+|---|---|---|
+| 171 | `DATA_MODEL.md:222` | `:230` |
+| 230 | `:169-181` | `:177-189` |
+| 550 | `:27-53` | **`:27-60`**（区间收敛到表体本身；原末行 53 是表后空行） |
+| 593 | `:57-81` / `:118-167` / `:162`（`isOutdoor`） | `:65-89` / `:126-175` / `:170` |
+| 609 | `:83-116` | `:91-124` |
+| 629 | `:230-255` | `:238-263` |
+| 650 | `:257-279` | `:265-287` |
+| 671 | `:281-316` | `:289-324` |
+| 691 | `:318-335` | `:326-343` |
+| 710 | `:337-352` | `:345-360` |
+| 737 | `:354-380` | `:362-388` |
+| 759 | `:382-400` | `:390-408` |
+| 777 | `:402-415` | `:410-423` |
+| 794 | `:417-429` | `:425-437` |
+| 811 | `:431-444` | `:439-452` |
+| 825 | `:446-456` | `:454-464` |
+| 849 | `:458-487` | `:466-495` |
+| 874 | `:510-546` | `:518-554` |
+| 902 | `:599-645` | `:607-653` |
+| 929 | `:649-682` | `:657-690` |
+| 952 | `:686-700` | `:694-708` |
+| 977 | `:744-803` / `:807-845` | `:752-811` / `:815-853` |
+| 993 | `:811-821` | `:819-829` |
+| 1006 | `:849-860` | `:857-868` |
+| 1020 | `:862-871` | `:870-879` |
+| 1042 | `:876-895` / `:910-913` | `:884-903` / `:918-921` |
+| 1056 | `:900-905` | `:908-913` |
+| 1088 | `:919-943` | `:927-951` |
+| 1105 | `:948-957` | `:956-965` |
+| 1125 | `:962-975` | `:970-983` |
+| 1140 | `:980-992` | `:988-1000` |
+| 1158 | `:997-1010` | `:1005-1018` |
+| 1180 | `:1015-1037` | `:1023-1045` |
+| 1199 | `:1042-1063` | `:1050-1071` |
+| 1218 | `:1068-1092` | `:1076-1100` |
+| 1233 | `:1096-1114` | `:1104-1122` |
+| 1721 | `:1035` | `:1043` |
+| 1731 | `:257-279` | `:265-287` |
+| 1733 | `:939` | `:947` |
+| 1735 | `:866` | `:874` |
+
+**（b）1 处不动**：§7.3#12（README `:1734`）的 `DATA_MODEL.md:47`（`deliverableIds` 行）——**落在插入点（第 53 行）之上**，本就不受影响。
+
+**（c）随之改准的 3 处非行号引用**：§4.0 来源 A **323 → 331**（`:535`）· 来源 C **69 → 62**（`:537`，删「活动主记录 7 条（§4.1 尾）」项）· 合计 **431 → 432**（`:538`）＋ 两处行内注文（`:540` 的 `323`→`331`、`:542` 的来源 C 条目、`:543` 的 `431`→`432`）· §4.1 尾注（`:587`）改准「那 7 行**已不再是**『`DATA_MODEL.md` 字段表未列』」。
+
+**（d）量过的「别处」**：全仓 `DATA_MODEL.md:行号` 引用只有三类落点——`README-server.md`（上述 45 处）· `.ctx/**`（历史留痕，**不改**）· **`docs/src/services/activity.js:66`**（注释里引 `DATA_MODEL.md:162` ⇒ **因位移应为 `:170`，属不许改的 `docs/src/**`，只登记未改**）。其它 README（`README.md` / `README-members.md` / `server/README.md`）**不含** `DATA_MODEL.md:行号` 引用。
+
+**（e）`doc-line-ref` 基线改了什么**：`server/test/doc-line-ref.test.mjs` **基线常量一个字未改**（改前 / 改后实测同为 `REFS=382`＝全式 337 ＋ 短式 45 · 被引文件 63 · 带锚点 36 · md 多行区间 66），**只在文件头 +6 行批次说明**，记下「本次位移 ＋ 为何不红」（批次 110 的三红根因＝「加了行却没同步 README」）。
+
+### 四、自查
+
+1. **`doc-line-ref` 改前 / 改后两次**：均 **5 / 5 全绿**（0 fail），详见裁定 `D-532` 的「一改具改检查」。
+2. **抽 10 处回核**（「文档说的 ↔ 实际行号处内容」）：见 `D-532` 同栏（含 `:27-60` 表体 / `:170` `isOutdoor` / `:238-263` 专班表 / `:947` `blockOrder` / `:1043` 口令 / `:874` 归档 `url` 等）。
+3. **新补 8 行逐行回核**：见本批「二」表。
+
+### 五、守卫 / 全量 / 版本戳
+
+- 守卫子集：`doc-consistency` 13 / `link-integrity` 5 / `version-stamp` 15 / `module-load`（含 `E1`·`E2`）2 / `permission-gate` 9 / `server-base` 11 / `scene-write-sync` 3 / `doc-line-ref` 5 ⇒ **63 / 63 全绿、0 红**（`permission-gate` / `server-base` 带 `DISABLE_PASSWORD_CHECK=1`）。
+- 依 `R-85`：`cd server` → **先 `npm start`（3000）** → `npm test` ⇒ **实测 `tests 711 / pass 711 / fail 0`**（duration ≈ 1108.7 s）→ 跑完**已停服**（端口 3000 无监听）。⚠ 该全量跑在**本批全部改动落盘之后**（含 `.ctx` 台账）——因台账改动只可能影响 `doc-consistency`，故收尾时又单独复跑守卫子集确认（见上）。
+- 版本戳：**不 bump**（只改 md ＋ `server/test/**`，未动 `docs/src/**` 与 `server/**` 业务代码）。
+
+### 六、不确定 / 没做的地方（如实）
+
+1. **`docs/src/services/activity.js:66` 的注释引用未改**（`DATA_MODEL.md:162` → 应 `:170`）——属 `docs/src/**`、本批铁律不许改；**只登记**，建议后批随手改准（守卫不覆盖 `docs/src/**`）。
+2. **`DATA_MODEL.md` 的 frontmatter `last_updated` 仍是 `2026-09-15`**——本批授权面是「**仅 §2.1 补字段**」，未动 frontmatter（批次 110 改该文件 7 处时同样未动）。
+3. **`README-server.md §4.0` 的「合计」本身有既有松量**：按 `字段名 / 字段` 表头机械数，`§4` 的表行数与 README 自报口径**本来就不完全相等**（本批只做**本批引起的 `+8 / −7 / +1` 三处**，**未去追平历史差额**）——该差额**非本批引入**，如实登记。
+4. **`README-server.md` 的引用与 `DATA_MODEL.md` 表体「内容级一一对应」未做机检**（`doc-line-ref` 只保证「行号在表内、不越节、符号锚点落在区间」）——本批**抽 10 处人工回核**，未逐条比对 44 处「所指区间与上文描述是否语义相符」。
+5. **`READ` 工具的计数**：本批仍观察到「带 `offset` 的 `Read` 返回行号比 node / ripgrep 少 1」（与批次 109 的登记一致）⇒ 所有行号一律以 **Grep / node** 为准；该纪律已在批次 109 记入 `D-530`。
+
 
 
 

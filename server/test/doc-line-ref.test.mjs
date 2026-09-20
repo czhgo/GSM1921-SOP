@@ -33,6 +33,12 @@
 //
 // 覆盖边界（如实标注）：本守卫只核 `README-server.md`；`README.md` / `README-members.md` / `content/**` 里的
 //   同类引用**不在本守卫范围**（那几份的引用另有 `link-integrity` 的链接层校验，行号层未覆盖）。
+//
+// 批次 111（2026-09-20）后续说明：`DATA_MODEL.md` §2.1 补 8 个字段行 ⇒ 该文件第 53 行起整体下移 8 行；
+//   README-server.md 内指向 `DATA_MODEL.md` 的行号引用**共 45 处（分布 41 行）**，其中 **44 处已同批 +8 平移**
+//   （`27-53` 一并收敛为 `27-60`），1 处（`deliverableIds` 的 `:47`）落在插入点之上、不动。
+//   本守卫**改前/改后实测计数不变**（引用 382 = 全式 337 + 短式 45 · 被引文件 63 · 带锚点 36 · md 多行区间 66）
+//   ⇒ R1–R5 的基线常量无需调整，此处仅留记录。上方「批次 107 病灶」里的示例行号是**当时的取值**（历史留痕），未随本次位移改写。
 // 运行：`node --test server/test/doc-line-ref.test.mjs`（纯 node，无浏览器 / 无服务依赖）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

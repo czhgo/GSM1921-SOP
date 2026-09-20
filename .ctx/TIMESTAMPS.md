@@ -39,7 +39,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | README.md | 2026-09-20 | — | [用户]+[AI] | 对外门面（2026-09-20 批次 106 对齐页面与页签数、设置分区、考勤/交接去向） |
 | README-members.md | 2026-09-20 | — | [用户]+[AI] | 支部成员版（2026-09-20 批次 106 补登） |
-| README-server.md | 2026-09-20 | — | [用户]+[AI] | 后端对接说明主文档（2026-09-20 批次 106 补登） |
+| README-server.md | 2026-09-20 | — | [用户]+[AI] | 后端对接说明主文档（2026-09-20 批次 106 补登；2026-09-20 批次 111 同步 `DATA_MODEL.md` 行号引用 45 处中 44 处 +8、§4.0 计数改准 331/62/432、§4.1 尾注改准） |
 | CLAUDE.md | 2026-09-20 | — | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
@@ -52,15 +52,15 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件 |
+| .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件（2026-09-20 批次 111 补登 `DATA_MODEL.md` / `README-server.md` / 日志三行注文） |
 | .ctx/SNAPSHOT.md | 2026-09-20 | — | [AI] | 当前基线（v53；2026-09-20 批次 106 补 `thought-report.html` / `person.html` 两行与 `scripts/version-next.mjs`） |
-| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 110 补登批次增量句） |
+| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 111 补登批次增量句） |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-20 | — | [工程师]+[AI] | 工程化评估与改造行动线（2026-09-20 批次 108 改准 43 处 `文件:行号` 引用后补登） |
 | .ctx/REVIEW_QUEUE.md | 2026-09-20 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18；2026-09-20 批次 109 核 106 处 `文件:行号` 引用、改准 32 处，行数不变） |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 110 刷为 257 条） |
+| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 111 刷为 258 条） |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -73,8 +73,8 @@ dynamic_role:
 | .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
-| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 110 补登批次 110 节） |
-| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 110 补登 `D-531`） |
+| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 111 补登批次 111 节） |
+| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 111 补登 `D-532`） |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
@@ -132,7 +132,7 @@ dynamic_role:
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-09-05 | — | [工程师]+[AI] | 架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体） |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮） |
 | content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-09-17 | — | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填） |
-| content/04_web_design/data/DATA_MODEL.md | 2026-09-15 | — | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段；2026-09-17 增 §2.29 匿名反馈核查留痕） |
+| content/04_web_design/data/DATA_MODEL.md | 2026-09-15 | — | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段；2026-09-17 增 §2.29 匿名反馈核查留痕；2026-09-20 批次 110 改准 7 处、批次 111 补 §2.1 八字段行〔表体 24 → 32 行〕——⚠ 本行日期仍随该文件 frontmatter 的 `2026-09-15`，未刷为 2026-09-20，见 `S13` 判据「表行以 frontmatter 为准」） |
 | content/04_web_design/data/DATA_FLOW.md | 2026-09-15 | — | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流） |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-09-05 | — | [工程师]+[AI] | 模块界面设计 |
@@ -182,7 +182,7 @@ dynamic_role:
 | server/routes/resources.js | 2026-08-03 | — | [工程师]+[AI] | 25 资源 list/create/update + bootstrap + snapshot |
 | server/routes/uploads.js | 2026-08-24 | — | [工程师]+[AI] | 附件上传（jpg/png/pdf/docx/xlsx，≤10MB） |
 | server/test/*.test.js | 2026-08-03 | — | [工程师]+[AI] | 单元测试套件（auth/db/resources/seed/skeleton/snapshot/uploads/report/e2e-login） |
-| server/test/*.test.mjs | 2026-08-30 | — | [工程师]+[AI] | 审计守护与专项测试（agenda-flow/b3-1/capability-registry/click-cost/link-integrity/mock-integrity/module-load/references-official-links；2026-08-30 自 docs/test 移入 + 命名规范化） |
+| server/test/*.test.mjs | 2026-08-30 | — | [工程师]+[AI] | 审计守护与专项测试（agenda-flow/b3-1/capability-registry/click-cost/link-integrity/mock-integrity/module-load/references-official-links；2026-08-30 自 docs/test 移入 + 命名规范化；2026-09-20 批次 111 给 `doc-line-ref.test.mjs` 补批次说明，基线常量未动） |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-08-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言） |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-09-20 | — | [工程师]+[AI] | 安装/启动/测试/部署对接说明（2026-09-20 批次 106 改准真机闭环条数 10 → 54） |
