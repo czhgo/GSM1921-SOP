@@ -3,7 +3,7 @@ title: "会议议程与资料查询设计"
 type: design
 role: "[工程师]+[AI]"
 created: "2026-08-31"
-last_updated: "2026-09-05"
+last_updated: "2026-09-21"
 status: landed
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, docs/search.html, docs/src/modules/references.js, docs/src/entries/tabs/secretary/calendar-tab.js, server/routes/resources.js]
 ---
@@ -63,7 +63,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 | 草案 | 会前已拟定，等待某次会议讨论或继续编辑 | 仅具备相应权限的支委可见、编辑和关联 |
 | 已归档 | 已完成会议讨论并归入支部文件 | 在支部文件区向有权限的使用者展示和检索 |
 
-会前草案由支部文件写入入口创建。重要会议的高级选项默认折叠，只从可关联草案中选择文件；同一草案不能同时处于两次未完成会议的讨论清单中。
+会前草案由支部文件写入入口创建。重要会议的高级选项默认折叠，只从可关联草案中选择文件；同一草案可在两次未完成会议中各挂一项，归档以最后通过的那次为准。
 
 ### 2.3 归档动作
 

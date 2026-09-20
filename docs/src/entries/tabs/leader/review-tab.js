@@ -6,18 +6,18 @@
 //   本区块并入「组员进展」页（leader/members-tab.js 挂载）——模块改为可嵌入区块导出：
 //   reviewStatusSectionHtml(ctx) → 整卡 HTML 字符串；bindReviewStatusSection(container, rerender) → 绑定展开。
 
-import { loadActivities } from '../../../services/activity.js?v=20260921a';
-import { loadActivityReviews } from '../../../services/review.js?v=20260921a';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260921a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921a';
+import { loadActivities } from '../../../services/activity.js?v=20260921b';
+import { loadActivityReviews } from '../../../services/review.js?v=20260921b';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260921b';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { currentLeaderGroup } from './_shared.js?v=20260921a';
+import { currentLeaderGroup } from './_shared.js?v=20260921b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921b';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/constants.js?v=20260921a';
+import { isActivityLive } from '../../../core/constants.js?v=20260921b';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;

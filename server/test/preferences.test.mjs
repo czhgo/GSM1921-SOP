@@ -18,7 +18,7 @@ import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/preferences.js?v=20260921a';
+} from '../../docs/src/services/preferences.js?v=20260921b';
 
 // ── 测试辅助 ──
 // 支书台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）

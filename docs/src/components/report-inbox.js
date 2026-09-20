@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260921a';
-import { AuthStore } from '../services/auth.js?v=20260921a';
-import { showToast, escHtml } from '../core/utils.js?v=20260921a';
-import { getPersonName } from '../services/person.js?v=20260921a';
-import { solidAccentStyle } from '../core/constants.js?v=20260921a';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../services/issues.js?v=20260921b';
+import { AuthStore } from '../services/auth.js?v=20260921b';
+import { showToast, escHtml } from '../core/utils.js?v=20260921b';
+import { getPersonName } from '../services/person.js?v=20260921b';
+import { solidAccentStyle } from '../core/constants.js?v=20260921b';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from './list-filter.js?v=20260921a';
+import { renderFilteredList } from './list-filter.js?v=20260921b';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
