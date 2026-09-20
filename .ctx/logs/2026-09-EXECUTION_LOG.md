@@ -11994,6 +11994,102 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 - **临时探针 0 个**（本批**未新建任何探针文件**）；全量测试输出落过 1 个临时文件 `server/.tmp-fulltest-118.log`（**跑完即删**，已核删净）。
 - **未提交 git**；**未新建仓库文件**；**只读统计用 `Grep` / `Read` / `git grep` / `git diff`（只读）**；**写入一律 Edit / Write 逐处**。
 
+---
+
+## 批次 119（2026-09-20，① 副职工作路由兼并 ＋ ② 考察侧督办强度对齐纪检——支书 2026-09-20 定案）
+
+> **来源**：支书 2026-09-20 定案原话（逐字）——① 「**系统里面，副组长走组长的工作路由！！副书记走书记的工作路由，我认为这两个副从系统里面可以考虑兼并到正的里面去。但是文本里面要保留 正副、组织者、深度参与者。**」；② 「**与纪检对齐，可打回**」。
+> **决议** → `D-540`（甲）· `D-541`（乙）；**队列** → `SOP-B-14`（收口）· `SOP-B-10` ③（定案）；**现行有效速查** → 改准 1 行 ＋ 新增 1 行。
+
+### 一、取证（先量清，再动手）
+
+1. **系统内有没有「副组长」**：**没有**（`docs/src` 0 命中；`ROLE_KEYS` 全 10 键＝`secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `participant` / `party-staff` / `organizer` / `deep`，另 3 个遗留键 `commissioner` / `initiator` / `all`；`ROLE_PAGE_MAP.workspace` 无该映射；`docs/src/mock/people.js` 无该角色，第三党小组 `p4` 是 `leader`）。**「副」的实际身份键只有一个 ＝ `deputy-secretary`（副支书）**，且它**已走正职路由**（`constants.js:308` 与 `:307` 同页 `secretary.html`）。
+2. **两句注释原文**（`docs/src/core/constants.js`）：`:201` ＝ `export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权支书专属操作）`；`:202-203` ＝「副书同权（2026-09-11 支书裁定）：支书侧写链（名册在册镜像/发展阶段/移出确认等）副支书同权，与既有口径一致（议程结果区、编辑议程、支部 config §9h 副书同权）。server requireRole 与前端共用单一源。」＋ `export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];`。⇒ **两句是两件事**（「支书专属」vs「副书同权」）；**「支书专属操作有哪些」仍属 `SOP-B-34` 未决部分，本批不替裁**。
+3. **纪检侧「打回」怎么实现的**（批次 85 落地）：`docs/src/services/attendance.js:228-400`（`ATTENDANCE_APPEALS_KEY` / `returnAttendanceRecord` / `returnAttendanceAppeal` / `organizerReconfirm` / `resolveAttendanceAppeal`，回退态字段 `returnedBy` / `returnedAt` / `returnReason`）；裁定 `D-456`（打回＝申诉 / 调查 / 打回让组织方确认）· `D-477`（打回与申诉入口落地）；消费面 `disc/attendance-tab.js`（打回）· `leader/attendance-tab.js`（待你确认）· `visitor/attendance-tab.js`（我参加了但没记上）。
+4. **考察侧对应面**：服务层 `docs/src/services/inspection.js`、纪检台 `entries/tabs/disc/inspection-tab.js`、上传方 `leader/inspection-tab.js` 与 `org/inspection-tab.js`、成员台 `visitor/inspection-tab.js`；**此前只有「督办清单（可见 / 就地推动）」**（`listInspectionSupervision`，`D-470`），**无打回、无申诉入口**。
+
+### 二、（甲）副职兼并 —— 改准清单 / 「确认无需新建」的论证
+
+- **系统侧：确认无需新建、也无需改代码**。判据＝**副职已走正职路由**：`ROLE_PAGE_MAP.workspace['deputy-secretary'] = 'secretary.html'`（`constants.js:307-308` 同页）；写口 role 集合本就把正副并列（`BRANCH_COMMISSION_ROLES` / `SECRETARY_AND_DEPUTY_ROLES` / `NOTICE_PUBLISH_ROLES` 等）。**「副组长」在系统内没有身份载体** ⇒ 不新建角色键（新增键＝改制度键表 ＋ 数据模型，须两处同步）。
+- **不把「副」并入「正」**：支书对「兼并」用的是「**可以考虑**」——**未定**；改角色定义（键表 / 数据模型 / 权限集）**须支书确认后才可动**。本批**未改 `docs/src/**` 的角色定义一字**。
+- **改准清单（1 处）**：`.ctx/REVIEW_QUEUE.md` 的 `SOP-B-14` —— ① 标题（去掉「三项待定项属产品取向」，改为「三项待定项按定案收口」）；② 状态段补「三项待定项按此定案收口（**系由定案一推导、支书未逐条明答**）」；③「仍在册的两条」② 由「三项待定项全属产品取向」改为「**「兼并」取向待确认**」；④ **原「待定项（须支书裁）」整块 → 「三项待定项的收口」**（共享哪些 ⇒ 正职全量 / 能否代操作 ⇒ 可代操作 / 与「支书对组长」边界 ⇒ 不适用，三条**均标注系推论**）。
+- **`SOP-B-34` ② 两处注释关系**：本批**只做「副走正路由」这一层**（口径写清）；**「支书专属操作有哪些」仍属 `SOP-B-34` 未决部分**，**未替裁**。
+
+### 三、（甲）文本侧 —— 称谓逐处核在（未删）
+
+- `副组长`：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:45`（每个党小组可设副组长；可共享同组组长工作台相关内容，关系类似副支书与支书）· `content/02_institution/sop/党小组组长工作手册.md:46`（§1.3 副组长的特殊性）· `:48` · `:186` · `:199`。
+- `副书记`：`content/04_web_design/evolution/BRANCH_WORK_MAP.md:107`（「支部书记/副书记可编排」）。
+- `组织者 / 深度参与者`：母本多处（`FLAT_ORGANIZATION_DESIGN.md` 51 处 · `COMMISSIONER_DUTY_FRAMEWORK.md` 52 处 · `纪检委员工作流程指南.md` 考察记录结构行 等；全库两词合计 **557 处 / 35 文件**）。
+- ⇒ **分布不缺、本批一字未删**（母本 `content/**` 除 §四 那一处「考察侧督办表述」外，本批未改）。
+
+### 四、（乙）考察侧打回 —— 改准清单 ＋ 是否复用纪检那套
+
+- **做法：复用同一套语义与字段名（不另立第二套口径）**。服务层 `docs/src/services/inspection.js` 新增：`INSPECTION_APPEALS_KEY`（`gsm1921-inspection-appeals`，与考勤申诉队列同款自管 localStorage、`?reset=demo` 自动清理）· `createInspectionAppeal` · `closeInspectionAppeal` · `returnInspectionAppeal` · `returnInspectionRecord` · `reconfirmReturnedInspectionRecord` · `resolveInspectionAppeal`；**回退态字段与考勤打回逐字一致**（`returnedBy` / `returnedAt` / `returnReason`，`status` 回 `pending`）；`getOverdueRecords` 与 `listInspectionSupervision` **排除已打回项**（球在上传方一侧，与考勤同规）。
+- **一处差异（如实登记，未自创第二套）**：考勤 `recordedBy` ＝**确认人**（纪检），考察 `recordedBy` ＝**上传人**，确认人不落字段（`confirmInspectionRecord` 只改 `status`）⇒ 回退态由「`status` 回 `pending`」＋ 三个 `returned*` 字段表达，**未给考察记录新增确认人字段**。
+- **界面落点**：纪检台（打回钮 / 「考察申诉（待核实）」卡 / 督办卡内「已打回 · 待上传方重新确认」只读区 / 状态徽标与分面加「已打回」）· 上传方（组长台与组织台各出「纪检打回 · 待你确认」回退态：记录类「确认并提交」＝`reconfirmReturnedInspectionRecord`；申诉类选层级 + 填考察内容「补录并提交」＝`resolveInspectionAppeal`）· 成员台（「我参与了但没记上？」申诉口）· `docs/help.html` §3.4 三处说明。
+- **服务端未改**（`server/**` 一字未动，未新增表 / 路由 / 放宽写权限）。
+- **母本改准（1 处）**：`content/02_institution/sop/纪检委员工作流程指南.md:86`（§2.1）—— 原「党小组活动考察与考勤同流程（上传 → 修改 → 打包确认 → 录入总表）…」→ **补「该流程含与考勤同一套的『打回』」**（含「先核实、再打回」；督办强度与考勤一致）。**同段落内改写、行数不变**（无行号漂移）。
+- **真机发现并修正（1 处，非自决）**：申诉卡 `#insp-appeal-card` 在 `#insp-table-container` **之外**，而事件委托原本只挂在表格容器上 ⇒ **「核实属实，打回上传方」/「不属实，关闭」两个钮点了没反应**。修法＝另挂一支到 `#insp-appeal-card`（载体每次渲染重建 ⇒ 随重建重挂，与表格容器同款、**不重复绑定**）；`entries/tabs/disc/inspection-tab.js` 表格监听内那两支**已移出**（避免留下永不可达的死代码）。
+
+### 五、真机验证（临时 Playwright 探针，起 3000 服务后跑；**跑完即删**）
+
+```
+[① 副职进正职台] 副支书 p14 登录后 URL = http://127.0.0.1:3000/workspace/secretary.html
+[① 副职进正职台] 落在支书台 = YES
+[② 纪检打回] 视图切换钮数 = 3
+[② 纪检打回] 状态分面「已确认」可选 = YES（共 5 个分面下拉）
+[② 纪检打回] 筛选后行数 = 1 · 打回按钮数 = 1
+[② 纪检打回] 已确认行「打回」按钮数 = 1
+[② 纪检打回] 台面出现「已打回」字样处数 = 3
+[③ 上传方恢复] 组长台出现「纪检打回 · 待你确认」区 = YES
+[③ 上传方恢复] 点「确认并提交」后残留待确认按钮数 = 0
+[④ 成员申诉] 提交后本人可见「待纪检核实」= YES
+[⑤ 纪检打回申诉] 「考察申诉（待核实）」卡在位 = YES
+[⑤ 纪检打回申诉] 申诉卡文本 = 考察申诉（待核实） … 已打回 · 待上传方确认（1） 宋佳宁 … 打回说明：…
+[⑤ 纪检打回申诉] 台面出现「已打回 · 待上传方确认」= YES
+[pageerror] 0（无报错）
+```
+
+- ① 副支书 `p14`（2300010002）登录后**落在支书工作台**（`workspace/secretary.html`）——正副同台已成立，本批**无需改代码**。
+- ②–⑤ 考察侧 **打回 → 恢复 → 申诉** 全链走通（纪检打回已确认记录 → 组长台出现回退态并「确认并提交」→ 成员台提申诉 → 纪检台「核实属实，打回上传方」→ 台面显示「已打回 · 待上传方确认」）；**`pageerror` 0**。
+- ⚠ **修正前**（同一探针首跑）：⑤ 的 `台面出现「已打回 · 待上传方确认」= NO`（申诉卡按钮无监听）——**该缺陷即由本次真机抓出并当场修掉**，改后再跑为 `YES`。
+
+### 六、守卫（改前 / 改后两次）＋ `R-85` 全量
+
+- **改前基线**（本批动手前，工作区＝前次未提交实现的状态）：`doc-consistency` · `link-integrity` · `version-stamp` · `module-load`（含 `E1` / `E2`）· `permission-gate` · `server-base` · `scene-write-sync` · `doc-line-ref` ⇒ **63 / 63 全绿、0 红**。
+- **改后**（本批落账 ＋ 补修后同法重跑）⇒ **63 / 63 全绿、0 红**（含 `S13` 漂移、`R1`–`R5` 行号引用、`E1` 模块加载、`E2` 独立页装配、`L1`–`L5` 链接）。
+- **`R-85` 全量**：**先 `npm start`（3000）→ `npm test`** ⇒ **`tests 711 / pass 711 / fail 0`（`duration_ms` ≈ 1,101,880，约 18.4 分钟）**；**跑完已停服**。
+
+### 七、版本戳与落账
+
+- **版本戳**：改前（批次 118 提交）＝ **`20260920d`**；**前次未提交实现**已把戳推到 `f`（两跳）；本批补修 `docs/src/**` 后再 bump 一次 ⇒ **落定 `20260920g`**（`node docs/scripts/bump-version.mjs`：**JS 210 / HTML 22 / CSS 2 / server-test 69**，陈旧戳自检 **0 残留**）。
+- **落账**：`2026-09-DECISION_LOG.md` 新增 `D-540` / `D-541`（各含「一句话结论」行）＋ 本月目录 **2 行** ＋ 状态口径「截至批次 118」→「**批次 119**」＋ **文首 / 文末「续编说明」编号起止 `D-275`…`D-539`（265）→ `D-275`…`D-541`（267）**；`.ctx/logs/DECISION_LOG.md` 月度索引 **265 → 267 条（D-275~D-541）**；`.ctx/ACTIVE_RULINGS.md` **改准 1 行 ＋ 新增 1 行**（107 → 108 条）；`.ctx/TIMESTAMPS.md`（`纪检委员工作流程指南.md` 表行备注追加本批改动）。
+- **队列同步**：`SOP-B-14`（标题 / 状态 / 仍在册 / 三项待定项 → 收口）· `SOP-B-10` ③（改准为已裁）。
+
+### 八、反查（关键字，改前 → 改后 ＋ 逐条判定）
+
+判据与口径：**`git grep -o`（按出现次数计）**；**改前 ＝ `HEAD`（批次 118 提交）**、**改后 ＝ 本批工作区**。
+
+| 关键词 | 改前（HEAD） | 改后（工作区） | 逐条判定 |
+|---|---|---|---|
+| `副组长` | 154 | 192 | **制度文本称谓（要求保留）**＝`SYSTEM_ROLE_PERMISSION.md` 3 · `党小组组长工作手册.md` 5 · `支委与党小组定人定责定岗说明.md` 7；**否定式 / 防回潮**＝`README-server.md` §7.2#17（「`docs/` 零命中」现状陈述）· `server/test/doc-line-ref.test.mjs`（`R4` 关键词取证，断言仍成立、守卫绿）；**本批台账留痕**＝`.ctx` 四处（`D-540` / 队列 / 速查 / 本表）；**沿革（历史，不改）**＝`archive/2026-06-EXECUTION_LOG.md` |
+| `副书记` | 65 | 86 | **制度文本称谓**＝`BRANCH_WORK_MAP.md:107`；其余同上（`.ctx` 台账 ＋ `archive/**` 历史） |
+| `副支书` | 794 | 816 | **既定身份称谓（代码 / 文档 / 母本全量）**——`docs/src/**` 与 `server/**` 的授权语义（`deputy-secretary` 的中文标签、注释与文案）· 两份 README · 母本；本批只加了「正副同台 / 副走正路由」的说明，**无一处改称谓** |
+| `打回` | 595 | 782 | **他事（既有）**＝考勤打回（`attendance.js` · `disc/attendance-tab.js` · `leader/attendance-tab.js` · `visitor/attendance-tab.js`）· 复盘打回（`mock/review.js` · `disc/review-tab.js` · `leader/review-tab.js`）· 思想汇报打回（`thought-report.js` / `thought-report-entry.js` / `mock/thought-reports.js`）· 表单闭环台账（`form-loop-registry.mjs`）；**本批新增**＝考察侧（`services/inspection.js` · `disc/inspection-tab.js` · `leader/inspection-tab.js` · `org/inspection-tab.js` · `visitor/inspection-tab.js` · `help.html` §3.4 三处）；**母本**＝`纪检委员工作流程指南.md:86`（本批补考察打回）· `COMMISSIONER_DUTY_FRAMEWORK.md`（考勤打回，既有）；**台账**＝`.ctx` 四处 |
+
+- ⇒ **遗留 0 处**「该改未改」的旧口径；**否定式 / 沿革 / 原话引语 / 他事**均已判定（上表）。
+- ⚠ **别只靠 grep**（批次 106 / 118 的教训）：本批**通读**了 `SOP-B-14` 全文、`SOP-B-10` ③、`constants.js` 角色段、`disc/inspection-tab.js` 全文、母本 `纪检委员工作流程指南.md` §二 与 `组织委员工作流程指南.md` §一 —— 除上文所列外**未另发现**旧口径；**换说法类**（如「督办只能看」）也已按 §一 取证逐条核过。
+
+### 九、未做 / 不确定（如实）
+
+- **（甲）「兼并」的实际含义未定**——支书用的是「可以考虑」：**是否连身份键也合一**仍待支书确认；本批**一字未动角色定义**。
+- **（甲）`SOP-B-14` 的「共享面＝正职全量、可代操作」系由定案推导**，支书**未逐条明答**（队列与决策日志均已显著标注）。
+- **（甲）「副组长」在系统内仍无身份载体**——母本「每小组可设副组长」在系统里**没有对应键**；新增键＝改制度键表 ＋ 数据模型，且与「兼并」取向相冲 ⇒ **本批不新建**，如实登记。
+- **（乙）申诉口只对「活动」开放**（专班考察无成员侧申诉入口，专班回退态只走「记录被打回」这一条），与考勤侧（仅活动）同规；**未扩到专班**。
+- **（乙）申诉队列为前端自管 localStorage**（与考勤申诉同款）：**不落服务端资源表**，故换设备 / 清缓存即不可见；**这是沿用考勤侧既有做法、不是本批新引入**，但如需服务端持久化须另立项。
+- **`SOP-B-34` ②** 的「支书专属操作有哪些」**仍属未决**（本批只做「副走正路由」这一层）。
+- **本批工作区含前次未提交实现**（`docs/src/services/inspection.js` 等 5 个 inspection 文件 ＋ `docs/help.html` ＋ `.ctx/REVIEW_QUEUE.md`，由前次中断的批次 119 实现所为）：本批**逐处复核并补记**，其中**发现并修掉 1 处真机缺陷**（申诉卡监听缺失，见 §四）；**其余一处未提交改动**（`.ctx/REVIEW_QUEUE.md` 的 `D-1-⑤` 工程侧核对条）**系前次实现所为、本批只复核未改**（依据：`docs/src/services/auth.js:83` leader 权限集无 `archive`、`leader-workspace.js` 无归档 tab）。
+
 
 
 

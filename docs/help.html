@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260920d"></script>
+<script src="./src/theme-init.js?v=20260920g"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260920d"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260920d">
+  <script src="./src/tailwind-config.js?v=20260920g"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260920g">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -759,7 +759,7 @@
 
         <!-- 3.4 考察 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.4</span>考察</h3>
-        <p class="doc-p">考察材料是发展党员链条的素材：<strong>组长 / 组织按上传位提交 → 纪检确认（含超期提醒）→ 交接归集组织建档</strong>。活动类考察由组长（本组党小组会 / 本人组织活动）上传；专班类考察由专班负责人 / 组织委员上传；纪检不代传。</p>
+        <p class="doc-p">考察材料是发展党员链条的素材：<strong>组长 / 组织按上传位提交 → 纪检确认（含超期提醒）→ 交接归集组织建档</strong>。活动类考察由组长（本组党小组会 / 本人组织活动）上传；专班类考察由专班负责人 / 组织委员上传；纪检不代传。已确认的记录如有误，纪检可<strong>「打回」交上传方重新确认</strong>（回退到待确认、修改痕迹留存）——与考勤打回同一套做法。</p>
 
         <div class="help-card" id="card-dom34-upload" data-search="考察 上传 考察上传 党小组 专班 组织委员 组长 考察内容 待确认">
           <h4 class="help-card-title">考察上传（组长 · 活动侧 / 组织 · 专班侧）</h4>
@@ -773,6 +773,7 @@
           <p class="help-card-desc" style="margin-top:6px;"><strong>几步（组织 · 专班侧）：</strong>「上传考察表单」→ 选专班（招募中 / 运行中）→ 选人员 → 逐人考察内容 → 提交（提示「自动投递：纪检确认 → 考察总表（组织委员建档），无需选择接收方」）。</p>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传后记录状态 = 待确认（记录上传人），自动进入纪检「考察管理」考察总表（活动视图 / 人视图均可查）；本页下方列表回显本人上传记录与确认状态（待确认 / 已确认）；专班考察行可点开查看详情（上传人 / 时间 / 参与层级 / 内容）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>仅限本人上传位（非本组党小组会 / 非本人组织活动提交被拦）；逐人考察内容为空不允许提交。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">打回</span>纪检打回后，本页下方出现「<strong>纪检打回 · 待你确认</strong>」区：记录类点「确认并提交」（清打回痕、回纪检「待确认」队列复核）；申诉类选参与层级、填考察内容后「补录并提交」——<strong>确认权仍在纪检</strong>，上传方只负责把更正交回源头。</p>
         </div>
 
         <div class="help-card" id="card-dom34-confirm" data-search="考察 纪检 考察管理 考察总表 确认 删除 超期提醒 7天 待确认 专班名单">
@@ -783,9 +784,11 @@
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>默认宽表「按人」</strong>（每人参加过的考察来源横向列出），可切「<strong>按项目</strong>」（某来源都有谁被考察）与「<strong>明细</strong>」（原按人次长表）：三者是同一份数据的换视角 + 下钻。列只取最近 6 项，可「显示全部 N 项」；宽表<strong>人这一维每页 10 人</strong>，可翻页；明细表按来源 / 状态（待确认 / 已确认 / 超期）筛选或搜索姓名 / 内容，每页 10 条。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">对「待确认 / 超期」行「确认」（误传可「删除」，仅待确认可删）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">已确认行有误可「<strong>打回</strong>」：填一句打回原因 → 记录回到「待确认」并留痕，交上传方重新确认（上传方确认前不占纪检待办）。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>确认后状态 = 已确认并自动销「考察超期 / 待确认」类待办；超期判定：待确认记录超过 7 天 → 顶部「超期提醒」红块 + 表中标「超期」（默认 7 天，支部可调）；专班名单区实时显示各专班考察确认进度（确认 X / 总数）。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>已确认记录不可删（历史记录，只能走档案维护）；删除仅限待确认（误传）记录。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">申诉</span>成员在成员台「我的考察」报「<strong>我参与了但没记上</strong>」（选活动 + 填说明）→ 纪检台「考察管理」的「<strong>考察申诉（待核实）</strong>」卡先核实：属实 →「打回上传方」（已有记录一并置回退态）；不属实 → 关闭。<strong>先核实、再打回</strong>，不把申诉直接当事实。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>已确认记录不可删（历史记录，只能走档案维护或「打回」）；删除仅限待确认（误传）记录。</p>
         </div>
 
         <div class="help-card" id="card-dom34-handoff" data-search="考察 交接 提交考察至支委会 组织委员 接收 建档 归集 考察档案 人才库">
@@ -1489,6 +1492,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260920d"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260920g"></script>
 </body>
 </html>

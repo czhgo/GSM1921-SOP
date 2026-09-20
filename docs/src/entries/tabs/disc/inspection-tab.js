@@ -2,20 +2,22 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920d';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260920d';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260920d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920d';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260920d';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920g';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260920g';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260920g';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260920g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920g';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260920g';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260920d';
-import { badgeHtml } from '../../../components/badges.js?v=20260920d';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920d';
-import { HandoffStore } from '../../../services/handoff.js?v=20260920d';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260920g';
+import { badgeHtml } from '../../../components/badges.js?v=20260920g';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920g';
+import { HandoffStore } from '../../../services/handoff.js?v=20260920g';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260920g';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920d';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920g';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260920d';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260920g';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -27,13 +29,20 @@ export function renderContent(ctx) {
   const overdueRecords = getOverdueRecords(); // 缺省阈值 = POLICY_DEFAULTS.inspection.overdueDays（批4 单一源）
   // SOP-B-10：纪检委员的入口＝「未闭环 / 超期」项（以人为第一列），不是「一批批待她汇总的表」
   const supervisionRows = listInspectionSupervision();
+  // 批次 119（支书定案二「与纪检对齐，可打回」）：考察打回的回退态与申诉队列（语义同考勤打回）
+  const returnedRecs = allRecords.filter(r => r.returnedBy);
+  const appeals = loadInspectionAppeals();
+  const pendingAppeals = appeals.filter(a => a.status === 'pending');
+  const returnedAppeals = appeals.filter(a => a.status === 'returned');
+  const returnedIds = new Set(returnedRecs.map(r => r.id));
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
   const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
 
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
-    ${_buildSupervisionCardHTML(supervisionRows, overdueDays)}
+    ${_buildSupervisionCardHTML(supervisionRows, overdueDays, returnedRecs)}
+    ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
@@ -104,7 +113,7 @@ export function renderContent(ctx) {
   });
 
   /** 考察行状态标签（单一口径；供引擎分面 get 与导出共用） */
-  const statusLabelOf = (i) => overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认');
+  const statusLabelOf = (i) => returnedIds.has(i.id) ? '已打回' : (overdueIds.has(i.id) ? '超期' : (i.status === 'confirmed' ? '已确认' : '待确认'));
 
   // 统一检索引擎行数据：按 personId 现取档案补齐分面字段（人名一律 getPersonName(id)，禁用记录内快照）
   const longRows = allRecords.map(rec => {
@@ -171,9 +180,11 @@ export function renderContent(ctx) {
           </tr>`,
       },
       rowHtml: (i) => {
+        const isReturned = returnedIds.has(i.id);
         const isPending = i.status === 'pending';
         const isOverdue = overdueIds.has(i.id);
-        const rowBg = isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
+        const rowBg = isReturned ? 'bg-amber-50/40' : isOverdue ? 'bg-red-50/40' : isPending ? 'bg-orange-50/30' : '';
+        const statusCls = isReturned ? 'bg-amber-100 text-amber-700' : (isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600');
         return `
             <tr${rowBg ? ` class="${rowBg}"` : ''}>
               <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
@@ -181,8 +192,12 @@ export function renderContent(ctx) {
               <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="text-gray-600">${i.content || i.role}</td>
               <td class="text-gray-600">${i.recordedByName ? esc(i.recordedByName) : '—'}</td>
-              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${isOverdue ? statusColor.overdue : statusColor[i.status] || 'bg-gray-100 text-gray-600'}">${statusLabelOf(i)}</span></td>
-              <td>${isPending || isOverdue ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>` : '<span class="text-xs text-green-700">已确认</span>'}</td>
+              <td><span class="px-1.5 py-0.5 rounded-full text-xs ${statusCls}">${statusLabelOf(i)}</span></td>
+              <td>${isReturned
+                ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
+                : (isPending || isOverdue
+                  ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`
+                  : `<span class="text-xs text-green-700 mr-2">已确认</span><button class="text-xs px-2.5 py-1 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors btn-disc-return-insp" data-record-id="${i.id}" style="cursor:pointer;" title="打回后交上传方重新确认">打回</button>`)}</td>
             </tr>`;
       },
     });
@@ -207,6 +222,43 @@ export function renderContent(ctx) {
       } else {
         showToast('error', '只能删除待确认状态的记录');
       }
+      return;
+    }
+    // 打回（批次 119 · 与考勤打回同语义）：回退到「待确认」并留痕，交上传方重新确认
+    const returnBtn = e.target.closest('.btn-disc-return-insp');
+    if (returnBtn) {
+      const recordId = returnBtn.dataset.recordId;
+      const who = getPersonName(longRows.find(r => r.id === recordId)?.personId) || '该同志';
+      const reason = window.prompt(`打回「${who}」的考察记录？写一句打回原因（将交上传方重新确认）：`, '');
+      if (reason === null) return; // 取消
+      const res = returnInspectionRecord(recordId, { by: DISC_COMMISSIONER_ID, note: reason });
+      if (res.ok) showToast('success', '已打回，交上传方重新确认');
+      else showToast('error', '打回失败：记录不存在');
+      renderContent(ctx);
+      return;
+    }
+    // 考察申诉（批次 119）：核实属实 → 打回上传方；不属实 → 关闭
+    // ⚠ 申诉卡本体在 `#insp-table-container` 之外 ⇒ 其按钮由下方「申诉卡」监听处理（2026-09-20 批次 119 真机发现并修正）
+  });
+
+  // 考察申诉卡（批次 119）：卡本体不在表格容器内，故另挂一支；载体每次渲染重建 ⇒ 随重建重挂（与上同款，不重复绑定）
+  document.getElementById('insp-appeal-card')?.addEventListener('click', (e) => {
+    const appealReturnBtn = e.target.closest('.insp-appeal-return');
+    if (appealReturnBtn) {
+      const note = window.prompt('打回说明（可留空）——属实漏记将交上传方核实补录：', '');
+      if (note === null) return;
+      const res = returnInspectionAppeal(appealReturnBtn.dataset.appealId, { by: DISC_COMMISSIONER_ID, note });
+      if (res.ok) showToast('success', res.hadRecord ? '已打回该考察记录，交上传方重新确认' : '已打回，交上传方核实补录');
+      else showToast('error', '该申诉已处理');
+      renderContent(ctx);
+      return;
+    }
+    const appealCloseBtn = e.target.closest('.insp-appeal-close');
+    if (appealCloseBtn) {
+      const res = closeInspectionAppeal(appealCloseBtn.dataset.appealId, { by: DISC_COMMISSIONER_ID });
+      if (res.ok) showToast('success', '该申诉已关闭（核实不属实或已另行处理）');
+      else showToast('error', '该申诉已处理');
+      renderContent(ctx);
     }
   });
 
@@ -333,8 +385,22 @@ export function renderContent(ctx) {
 
 // ── 督办清单卡（SOP-B-10 · 以人为第一列）──
 // 纪检委员的入口＝「未闭环 / 超期」项；数据由 listInspectionSupervision 按人聚合、随记录即时更新。
-function _buildSupervisionCardHTML(rows, overdueDays) {
+// 批次 119：卡内补「已打回 · 待上传方重新确认」只读区（回退态交上传方，纪检只读掌握、不代确认）。
+function _buildSupervisionCardHTML(rows, overdueDays, returnedRecs = []) {
   const overdueCount = rows.reduce((n, r) => n + r.overdueCount, 0);
+  const returnedHtml = returnedRecs.length === 0 ? '' : `
+      <div class="mt-3 pt-3 border-t border-gray-100">
+        <div class="text-xs text-gray-600 mb-1.5">已打回 · 待上传方重新确认（${returnedRecs.length}）</div>
+        <div class="space-y-1">
+          ${returnedRecs.map(r => `
+            <div class="flex items-center gap-2 py-1.5">
+              <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#94A3B8"></span>
+              <span class="text-xs text-gray-700 flex-shrink-0">${esc(getPersonName(r.personId))}</span>
+              <span class="text-xs text-gray-500 flex-1 truncate">${esc(inspectionToLong([r])[0].source || '—')}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
+              ${badgeHtml('已打回', 'info')}
+            </div>`).join('')}
+        </div>
+      </div>`;
   return `
     <div class="card rounded-lg p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
@@ -344,8 +410,47 @@ function _buildSupervisionCardHTML(rows, overdueDays) {
           <span class="text-gray-600">超期 <span class="font-bold text-red-700">${overdueCount}</span></span>
         </div>
       </div>
-      <div class="text-[11px] text-gray-500 leading-5 mb-3">以人为第一列 · 随记录产生即时更新（没有「本月待汇总的表」）。<b>未闭环</b>＝已有考察记录未确认；<b>超期</b>＝未确认超过 ${overdueDays} 天。点姓名去推动闭环——<b>督办不等于接手</b>，建档与核对仍归组织委员。</div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">以人为第一列 · 随记录产生即时更新（没有「本月待汇总的表」）。<b>未闭环</b>＝已有考察记录未确认；<b>超期</b>＝未确认超过 ${overdueDays} 天。点姓名去推动闭环——<b>督办不等于接手</b>，建档与核对仍归组织委员；已确认的单条有误可「打回」，交上传方重新确认。</div>
       <div class="overflow-x-auto"><div id="insp-sup-list"></div></div>
+      ${returnedHtml}
+    </div>
+  `;
+}
+
+// ── 考察申诉卡（批次 119 · 与考勤申诉同语义）──
+// 同学报「我参与了但没记上」→ 纪检先核实：属实 → 「打回上传方」；不属实 → 关闭。
+// 已打回的申诉此处只读展示（回退态交给上传方）。
+function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
+  if (pendingAppeals.length === 0 && returnedAppeals.length === 0) return '';
+  const row = (a, actionable) => {
+    const rec = loadActiveInspectionRecords().find(r => r.personId === a.personId && r.activityId === a.activityId);
+    const title = rec ? (inspectionToLong([rec])[0].source || '') : a.activityId;
+    return `
+      <div class="flex items-center gap-2 py-2 border-b border-gray-50 last:border-0">
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-sky-700 transition-colors flex-shrink-0" title="查看完整档案">${esc(getPersonName(a.personId))}</a>
+        <span class="flex-1 min-w-0">
+          <span class="block text-xs text-gray-600 truncate" title="${esc(title)}">${esc(title)}</span>
+          ${a.note ? `<span class="block text-xs text-gray-500 truncate">申诉说明：${esc(a.note)}</span>` : ''}
+          ${a.returnNote ? `<span class="block text-xs text-amber-700 truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
+        </span>
+        ${actionable ? `
+          <button type="button" class="insp-appeal-return text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;background:#B45309;">核实属实，打回上传方</button>
+          <button type="button" class="insp-appeal-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;">不属实，关闭</button>`
+        : badgeHtml('已打回 · 待上传方确认', 'warning')}
+      </div>`;
+  };
+  return `
+    <div class="card rounded-lg p-4 mb-4" id="insp-appeal-card">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察申诉（待核实）</h3>
+        <span class="text-xs text-gray-500">同学报「我参与了但没记上」——纪检<b>先核实</b>，属实再打回上传方</span>
+      </div>
+      ${pendingAppeals.length > 0
+        ? `<div class="text-xs text-gray-600 mb-1.5">待核实（${pendingAppeals.length}）</div>${pendingAppeals.map(a => row(a, true)).join('')}`
+        : '<div class="text-xs text-gray-500 py-2">无待核实申诉</div>'}
+      ${returnedAppeals.length > 0
+        ? `<div class="text-xs text-gray-600 mt-3 mb-1.5">已打回 · 待上传方确认（${returnedAppeals.length}）</div>${returnedAppeals.map(a => row(a, false)).join('')}`
+        : ''}
     </div>
   `;
 }

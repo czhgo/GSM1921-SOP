@@ -2,19 +2,20 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260920d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920d';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260920d';
-import { AuthStore } from '../../../services/auth.js?v=20260920d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260920d';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260920d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920d';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260920d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920d';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260920d';
-import { generateId } from '../../../core/id.js?v=20260920d';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260920g';
+import { reconfirmReturnedInspectionRecord } from '../../../services/inspection.js?v=20260920g';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920g';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260920g';
+import { AuthStore } from '../../../services/auth.js?v=20260920g';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260920g';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260920g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920g';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260920g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920g';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260920g';
+import { generateId } from '../../../core/id.js?v=20260920g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920g';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -31,6 +32,10 @@ export function renderContent(ctx) {
 
   const allRecords = loadInspectionRecords();
   const tfInspection = allRecords.filter(r => r.sourceType === SourceType.TASKFORCE);
+
+  // 批次 119（支书定案二「与纪检对齐，可打回」）：纪检打回 → 交上传方（专班负责人 / 组织委员）重新确认。
+  // 专班考察无成员侧申诉口（申诉队列按活动登记），此处只承载「记录被打回」这一条回退态。
+  const returnedRecords = tfInspection.filter(r => r.returnedBy);
 
   // T223 专班新者在前（createdAt 降序）
   const activeTaskforces = TaskForceRecordStore.getAll()
@@ -75,6 +80,20 @@ export function renderContent(ctx) {
         <div id="org-insp-list-host"></div>
         <div id="org-insp-detail" class="hidden mt-3"></div>
       </div>
+      ${returnedRecords.length > 0 ? `
+      <div class="mt-4 pt-3 border-t border-gray-100">
+        <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${returnedRecords.length}）</div>
+        <div class="text-xs text-gray-500 mb-2">纪检核实后打回，请重新确认该条专班考察（修改痕迹留存）；确认后回到纪检「待确认」队列复核</div>
+        <div class="space-y-2">
+          ${returnedRecords.map(r => `
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-amber-100">
+              <span class="text-xs font-medium text-gray-800 min-w-[60px]">${esc(getPersonName(r.personId))}</span>
+              <span class="text-xs text-gray-500 flex-1 min-w-0 truncate" title="${esc(r.returnReason || '')}">${esc(r.sourceName || '专班已下架')}${r.returnReason ? ` · ${esc(r.returnReason)}` : ''}</span>
+              <button type="button" class="org-return-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-id="${r.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">确认并提交</button>
+            </div>`).join('')}
+        </div>
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -186,6 +205,17 @@ export function renderContent(ctx) {
       anchorDetailToTrigger(detailEl, row);
       detailEl.dataset.openId = rec.id;
     }
+  });
+
+  // 纪检打回：上传方重新确认（批次 119 · 与考勤打回同规）——清打回痕、回「待确认」交纪检复核
+  container.querySelectorAll('.org-return-confirm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const actorId = AuthStore.getCurrentUser()?.personId || 'p13';
+      const res = reconfirmReturnedInspectionRecord(btn.dataset.id, { actorId });
+      if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
+      showToast('success', '已重新提交，等待纪检复核');
+      renderContent(ctx);
+    });
   });
 
   if (_orgInspFormVisible) {

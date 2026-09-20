@@ -12,24 +12,24 @@
 //  篇幅（`SOP-B-11`）：阅读页显示字数；少于 1200 字加「篇幅不足 · 触发警告审阅」标记
 //  （**不影响提交与归档**，只让人看一眼）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260920d';
-import { renderHeader } from '../components/header.js?v=20260920d';
-import { BranchService } from '../services/runtime.js?v=20260920d';
-import { AuthStore } from '../services/auth.js?v=20260920d';
+import { renderSidebar } from '../components/sidebar.js?v=20260920g';
+import { renderHeader } from '../components/header.js?v=20260920g';
+import { BranchService } from '../services/runtime.js?v=20260920g';
+import { AuthStore } from '../services/auth.js?v=20260920g';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260920d';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260920d';
-import { getPersonName } from '../services/person.js?v=20260920d';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260920d';
-import { badgeHtml } from '../components/badges.js?v=20260920d';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260920g';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260920g';
+import { getPersonName } from '../services/person.js?v=20260920g';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260920g';
+import { badgeHtml } from '../components/badges.js?v=20260920g';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260920d';
+} from '../services/thought-report.js?v=20260920g';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

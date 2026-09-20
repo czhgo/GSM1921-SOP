@@ -3,15 +3,16 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS } from '../core/domain.js?v=20260920d';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260920d';
-import { persist } from '../core/data-adapter.js?v=20260920d';
-import { bumpToken } from '../core/version-token.js?v=20260920d'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260920d';
-import { isInitStateActive } from './init-reset.js?v=20260920d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from './person.js?v=20260920d';
-import { TodoStore, TodoSourceType } from './todo.js?v=20260920d';
-import { loadActivities } from './activity.js?v=20260920d';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../core/domain.js?v=20260920g';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260920g';
+import { persist } from '../core/data-adapter.js?v=20260920g';
+import { generateId } from '../core/id.js?v=20260920g';
+import { bumpToken } from '../core/version-token.js?v=20260920g'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260920g';
+import { isInitStateActive } from './init-reset.js?v=20260920g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260920g';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260920g';
+import { loadActivities } from './activity.js?v=20260920g';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -118,6 +119,8 @@ export function getOverdueRecords(daysThreshold = POLICY_DEFAULTS.inspection.ove
   const threshold = daysThreshold * 24 * 60 * 60 * 1000;
   return records.filter(r => {
     if (r.status !== 'pending') return false;
+    // 已打回（回退态）不计入「超期」：球已在上传方一侧（同考勤打回口径，批次 119）
+    if (r.returnedBy) return false;
     const recordedTime = new Date(r.recordedAt).getTime();
     return (now - recordedTime) > threshold;
   });
@@ -200,6 +203,9 @@ export function listInspectionSupervision() {
   const byPerson = new Map();
   loadActiveInspectionRecords().forEach(r => {
     if ((r.status || 'pending') !== 'pending') return;
+    // 已打回（回退态）：更正责任已交回上传方重新确认，**不在纪检待办内**（与考勤打回同规，
+    // 批次 119「与纪检对齐，可打回」）——此处只列纪检该推动的那些，已打回项在总表/只读区可见。
+    if (r.returnedBy) return;
     if (!byPerson.has(r.personId)) {
       const m = getPersonById(r.personId) || {};
       byPerson.set(r.personId, {
@@ -253,4 +259,185 @@ export function inspectionToWide(records) {
     columns: sourceIds,
     rows: Object.values(personMap),
   };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  考察「打回」与「我参与了但没记上」申诉（SOP-B-10 督办强度对齐 · 2026-09-20 批次 119）
+// ════════════════════════════════════════════════════════════════
+// 支书定案二（原话）：「与纪检对齐，可打回（推荐）」——考察侧督办强度对齐纪检侧考勤。
+// 「同一套语义」＝① **可恢复的回退态**（记录回「待确认」＋ 打回留痕可见）
+//                ＋ ② **申诉入口**（当事人报「没记上」→ 纪检先核实 → 属实按打回处理）。
+// ⚠ 一处差异（如实登记，未自创第二套）：考勤的 `recordedBy` ＝ **确认人**（纪检），
+//   考察的 `recordedBy` ＝ **上传人**（组织者 / 组长 / 组织委员），确认人不落字段
+//   （`confirmInspectionRecord` 只改 `status`）——故考察打回的回退态由「`status` 回 `pending`」
+//   ＋ `returnedBy / returnedAt / returnReason` 表达（字段名与考勤打回逐字一致，便于同一套读法）。
+// 存储：申诉队列＝本模块自管 localStorage 键（`gsm1921-` 前缀 → `?reset=demo` 自动清理，
+//   做法同 `services/attendance.js` 的出勤申诉队列；mock-adapter / 服务端资源表清单不动）。
+export const INSPECTION_APPEALS_KEY = 'gsm1921-inspection-appeals';
+
+/** 读取考察申诉队列（存储不可用 / 数据损坏 → []） */
+export function loadInspectionAppeals() {
+  try {
+    if (typeof localStorage === 'undefined') return [];
+    const arr = JSON.parse(localStorage.getItem(INSPECTION_APPEALS_KEY) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch (_) { return []; }
+}
+
+function _saveInspectionAppeals(list) {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(INSPECTION_APPEALS_KEY, JSON.stringify(list));
+  } catch (_) { /* 存储不可用：不阻塞流程 */ }
+}
+
+/**
+ * 提交考察申诉（当事人侧「我参与了但没记上」）。
+ * 同人同活动已有未处理（pending）申诉 → 不重复登记。
+ * @param {{personId:string, activityId:string, note?:string}} params
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function createInspectionAppeal({ personId, activityId, note } = {}) {
+  if (!personId || !activityId) return { ok: false, reason: '缺少活动或申诉人' };
+  const all = loadInspectionAppeals();
+  if (all.some(a => a.personId === personId && a.activityId === activityId && a.status === 'pending')) {
+    return { ok: false, reason: 'already' };
+  }
+  all.push({
+    id: generateId('inspAppeal'),
+    personId,
+    activityId,
+    note: String(note || '').trim(),
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  });
+  _saveInspectionAppeals(all);
+  return { ok: true };
+}
+
+/**
+ * 关闭考察申诉（纪检核实后：不属实 / 已另行处理）——留痕可见。
+ * @param {string} appealId
+ * @param {{by?:string, note?:string, status?:string}} [opts]
+ * @returns {{ok:boolean}}
+ */
+export function closeInspectionAppeal(appealId, { by, note, status = 'closed' } = {}) {
+  const all = loadInspectionAppeals();
+  const it = all.find(a => a.id === appealId);
+  if (!it) return { ok: false };
+  it.status = status;
+  it.decidedBy = by || null;
+  it.decidedAt = new Date().toISOString();
+  if (note) it.decisionNote = String(note);
+  _saveInspectionAppeals(all);
+  return { ok: true };
+}
+
+/**
+ * 纪检核实属实 → 打回，交上传方（活动组织者 / 组长 / 专班上传方）重新确认。
+ * ① 申诉置 `returned`（留痕：谁在何时打回、打回说明）；
+ * ② 若该人该场**已有考察记录**，记录一并置回退态（回「待确认」＋ 写 returnedBy/returnedAt/returnReason）。
+ * @returns {{ok:boolean, hadRecord:boolean}}
+ */
+export function returnInspectionAppeal(appealId, { by, note } = {}) {
+  const all = loadInspectionAppeals();
+  const it = all.find(a => a.id === appealId);
+  if (!it || it.status !== 'pending') return { ok: false, hadRecord: false };
+  const at = new Date().toISOString();
+  it.status = 'returned';
+  it.returnedBy = by || null;
+  it.returnedAt = at;
+  it.returnNote = String(note || '').trim();
+  _saveInspectionAppeals(all);
+  const records = loadInspectionRecords();
+  const rec = records.find(r => r.personId === it.personId && r.activityId === it.activityId);
+  if (rec) {
+    rec.status = 'pending';
+    rec.returnedBy = by || null;
+    rec.returnedAt = at;
+    rec.returnReason = it.returnNote || '考察申诉核实';
+    saveInspectionRecords(records);
+  }
+  return { ok: true, hadRecord: !!rec };
+}
+
+/**
+ * 对单条考察记录打回（纪检对已确认记录的例外路径）：回「待确认」＋ 写打回留痕。
+ * ⚠ 与考勤打回同语义：**不是替上传方改数**，而是把更正责任交回上传方重新确认。
+ * @returns {{ok:boolean}}
+ */
+export function returnInspectionRecord(recordId, { by, note } = {}) {
+  const records = loadInspectionRecords();
+  const rec = records.find(r => r.id === recordId);
+  if (!rec) return { ok: false };
+  rec.status = 'pending';
+  rec.returnedBy = by || null;
+  rec.returnedAt = new Date().toISOString();
+  rec.returnReason = String(note || '').trim() || '纪检打回';
+  saveInspectionRecords(records);
+  return { ok: true };
+}
+
+/** 上传方重新确认（打回后可恢复的另一半）：清打回痕、回「待确认」交纪检复核 */
+export function reconfirmReturnedInspectionRecord(recordId, { actorId } = {}) {
+  const records = loadInspectionRecords();
+  const rec = records.find(r => r.id === recordId);
+  if (!rec) return { ok: false };
+  delete rec.returnedBy;
+  delete rec.returnedAt;
+  delete rec.returnReason;
+  rec.submittedBy = actorId || rec.submittedBy;
+  rec.updatedBy = actorId || null;
+  rec.updatedAt = new Date().toISOString();
+  rec.status = 'pending';
+  saveInspectionRecords(records);
+  return { ok: true };
+}
+
+/**
+ * 上传方对「考察申诉」的确认（打回后闭环）：按核实结论写入 / 更正该场该人的考察，并关闭申诉。
+ * 已有记录 → 清打回痕并更正内容；无记录 → 按上传方所选层级补录一条（回「待确认」，确认权仍归纪检）。
+ * @param {{appealId:string, actorId:string, level?:string, content?:string, note?:string}} params
+ * @returns {{ok:boolean}}
+ */
+export function resolveInspectionAppeal({ appealId, actorId, level, content, note } = {}) {
+  const all = loadInspectionAppeals();
+  const it = all.find(a => a.id === appealId);
+  if (!it) return { ok: false };
+  const records = loadInspectionRecords();
+  const rec = records.find(r => r.personId === it.personId && r.activityId === it.activityId);
+  if (rec) {
+    delete rec.returnedBy;
+    delete rec.returnedAt;
+    delete rec.returnReason;
+    if (content) rec.content = String(content).trim();
+    if (level) rec.level = level;
+    rec.submittedBy = actorId || rec.submittedBy;
+    rec.updatedBy = actorId || null;
+    rec.updatedAt = new Date().toISOString();
+    rec.status = 'pending'; // 回「待确认」——确认权归纪检，上传方不代确认
+    saveInspectionRecords(records);
+  } else {
+    const lv = level || ParticipationLevel.ORGANIZE;
+    records.push({
+      id: generateId('insp'),
+      sourceType: SourceType.ACTIVITY,
+      activityId: it.activityId,
+      sourceName: null,
+      personId: it.personId,
+      level: lv,
+      content: String(content || '').trim() || '参与情况经核实补录',
+      role: lv === ParticipationLevel.DEEP_PARTICIPATE ? '深度参与者' : '组织者',
+      recordedBy: actorId || null,
+      recordedAt: new Date().toISOString(),
+      submittedBy: actorId || null,
+      status: 'pending',
+    });
+    saveInspectionRecords(records);
+  }
+  it.status = 'closed';
+  it.decidedBy = actorId || null;
+  it.decidedAt = new Date().toISOString();
+  if (note) it.decisionNote = String(note);
+  _saveInspectionAppeals(all);
+  return { ok: true };
 }

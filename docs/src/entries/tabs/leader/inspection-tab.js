@@ -2,19 +2,20 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260920d';
-import { loadActivities } from '../../../services/activity.js?v=20260920d';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920d';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260920d';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260920d';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920d';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260920d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920d';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260920d';
-import { currentLeaderGroup } from './_shared.js?v=20260920d';
-import { generateId } from '../../../core/id.js?v=20260920d';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260920g';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal } from '../../../services/inspection.js?v=20260920g';
+import { loadActivities } from '../../../services/activity.js?v=20260920g';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260920g';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260920g';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260920g';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920g';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260920g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920g';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260920g';
+import { currentLeaderGroup } from './_shared.js?v=20260920g';
+import { generateId } from '../../../core/id.js?v=20260920g';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920g';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -32,11 +33,24 @@ export function renderContent(ctx) {
 
   const allRecords = loadInspectionRecords();
   const myInspection = allRecords.filter(r => r.sourceType === SourceType.ACTIVITY);
+  // 当前组长身份先取出（批次 119 的回退态过滤要用；原声明在下方「来源类型选项」处，
+  // 顺序在新代码之前 → TDZ ReferenceError，本批修正为本行声明、下方复用）
+  const { leaderId } = currentLeaderGroup();
+
+  // 批次 119（支书定案二「与纪检对齐，可打回」）：纪检打回 / 考察申诉 → 交上传方（本组长为上传位）核实确认。
+  // 回退态两条来源（与组长台考勤上传同规）：① 考察申诉（成员报「我参与了但没记上」，纪检查实后打回）；
+  //                                          ② 纪检对已确认考察记录直接打回。两者都在此处回到上传方手里。
+  const returnedAppeals = loadInspectionAppeals()
+    .filter(a => a.status === 'returned' && canUploadInspection(leaderId, SourceType.ACTIVITY, a.activityId));
+  const pendingConfirm = [
+    ...returnedAppeals.map(a => ({ kind: 'appeal', id: a.id, personId: a.personId, activityId: a.activityId, reason: a.returnNote || '' })),
+    ...allRecords.filter(r => r.returnedBy && canUploadInspection(leaderId, SourceType.ACTIVITY, r.activityId))
+      .map(r => ({ kind: 'record', id: r.id, personId: r.personId, activityId: r.activityId, reason: r.returnReason || '' })),
+  ];
 
   // 来源类型选项
   // T223 排序统一：来源活动 date 降序（新者在前），专班 createdAt 降序
   // A1-2026-09-05 上传位门禁：活动类仅列本组长可上传（本组党小组会 / 本人为该活动组织者）且未归档者；专班类暂放行（负责人位待身份编码）
-  const { leaderId } = currentLeaderGroup();
   const sourceActivities = loadActivities()
     .filter(a =>
       (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会') &&
@@ -106,6 +120,29 @@ export function renderContent(ctx) {
       <div class="overflow-x-auto ${_inspFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="insp-list-host"></div>
       </div>
+      ${pendingConfirm.length > 0 ? `
+      <div class="mt-4 pt-3 border-t border-gray-100">
+        <div class="text-xs font-bold text-gray-600 mb-2">纪检打回 · 待你确认（${pendingConfirm.length}）</div>
+        <div class="text-xs text-gray-500 mb-2">纪检核实后打回，请重新确认该场考察（修改痕迹留存）；确认后回到纪检「待确认」队列复核。补录时请选参与层级并填考察内容</div>
+        <div class="space-y-2">
+          ${pendingConfirm.map(pc => {
+            const act = loadActivities().find(a => a.id === pc.activityId);
+            return `
+            <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-amber-100 flex-wrap">
+              <span class="text-xs font-medium text-gray-800 min-w-[60px]">${esc(getPersonName(pc.personId))}</span>
+              <span class="text-xs text-gray-500 flex-1 min-w-0 truncate" title="${esc(pc.reason)}">${esc(act ? act.title : '活动已下架')}${pc.reason ? ` · ${esc(pc.reason)}` : ''}</span>
+              ${pc.kind === 'appeal' ? `
+              <select class="input-flat text-xs leader-return-level" data-id="${pc.id}" aria-label="参与层级">
+                <option value="organize">组织者</option>
+                <option value="deep">深度参与者</option>
+              </select>
+              <input type="text" class="input-flat text-xs leader-return-content" data-id="${pc.id}" placeholder="考察内容" style="min-width:140px;">` : ''}
+              <button type="button" class="leader-return-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-kind="${pc.kind}" data-id="${pc.id}" style="${solidAccentStyle(accent, accentBorder)};cursor:pointer;">${pc.kind === 'appeal' ? '补录并提交' : '确认并提交'}</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -150,6 +187,30 @@ export function renderContent(ctx) {
     }
     const collapsed = panel.classList.toggle('hidden');
     if (btn) btn.textContent = collapsed ? '上传考察表单' : '收起表单';
+  });
+
+  // 纪检打回 / 考察申诉：上传方确认并重新提交（批次 119 · 与组长台考勤打回同规）——
+  // 记录类：清打回痕、回「待确认」交纪检复核；申诉类：按所选层级/内容补录（同样回「待确认」，确认权归纪检）。
+  container.querySelectorAll('.leader-return-confirm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const kind = btn.dataset.kind;
+      const id = btn.dataset.id;
+      const { leaderId } = currentLeaderGroup();
+      let res;
+      if (kind === 'appeal') {
+        const sel = container.querySelector(`.leader-return-level[data-id="${id}"]`);
+        const input = container.querySelector(`.leader-return-content[data-id="${id}"]`);
+        const level = sel ? sel.value : ParticipationLevel.ORGANIZE;
+        const content = input ? input.value.trim() : '';
+        if (!content) { showToast('error', '请填写考察内容'); return; }
+        res = resolveInspectionAppeal({ appealId: id, actorId: leaderId, level, content });
+      } else {
+        res = reconfirmReturnedInspectionRecord(id, { actorId: leaderId });
+      }
+      if (!res.ok) { showToast('error', '确认失败：该记录不存在'); return; }
+      showToast('success', '已重新提交，等待纪检复核');
+      renderContent(ctx);
+    });
   });
 
   // 如果表单可见，初始化事件绑定

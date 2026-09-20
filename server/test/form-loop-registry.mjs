@@ -94,10 +94,10 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 306, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: true, msg: '请选择参会人员' },
 
   // ── 组长台 ──
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 212, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 216, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 219, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 232, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 273, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 277, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 280, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 293, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 355, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 358, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
   { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 490, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
@@ -113,9 +113,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/leader/write-tab.js', line: 997, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
 
   // ── 组织委员台 ──
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 226, field: '专班', flow: 'org/考察上传', machine: true, msg: '请选择专班' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 230, field: '人员', flow: 'org/考察上传', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 236, field: '考察内容（逐人）', flow: 'org/考察上传', machine: true, msg: '的考察内容' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 256, field: '专班', flow: 'org/考察上传', machine: true, msg: '请选择专班' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 260, field: '人员', flow: 'org/考察上传', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 266, field: '考察内容（逐人）', flow: 'org/考察上传', machine: true, msg: '的考察内容' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1318, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1319, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1320, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
