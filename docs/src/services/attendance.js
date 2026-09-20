@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260920a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260920a';
-import { persist } from '../core/data-adapter.js?v=20260920a';
-import { generateId } from '../core/id.js?v=20260920a';
-import { bumpToken } from '../core/version-token.js?v=20260920a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260920a';
-import { isInitStateActive } from './init-reset.js?v=20260920a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260920a';
-import { getRosterStats } from './roster.js?v=20260920a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260920a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260920b';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260920b';
+import { persist } from '../core/data-adapter.js?v=20260920b';
+import { generateId } from '../core/id.js?v=20260920b';
+import { bumpToken } from '../core/version-token.js?v=20260920b'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260920b';
+import { isInitStateActive } from './init-reset.js?v=20260920b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260920b';
+import { getRosterStats } from './roster.js?v=20260920b';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260920b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -493,7 +493,7 @@ export function listActivityParticipationByPerson(records) {
 /**
  * 出勤率汇总（SOP-B-35 / `D-412`，2026-09-18 批次 85）：**按场次（活动）**汇总本月出勤率——
  * 出勤含「已补」；线上参会不计出席（记请假）——口径与全站各处一致（单一源，勿在页面另算）。
- * 供纪检台「导出出勤率公示件」与支书台「偏低提示」同一读口消费。
+ * 供纪检台「导出出勤率汇总（支委会内部）」与支书台「偏低提示」同一读口消费。
  * @param {{month?:string, records?:Array}} [params] month 形如 '2026-09'（缺省 = 全部活动）
  * @returns {{month:string, rows:Array<Object>, total:number, presentTotal:number, rate:number}}
  */
@@ -517,6 +517,31 @@ export function summarizeAttendanceByActivity({ month, records } = {}) {
   const total = rows.reduce((s, r) => s + r.total, 0);
   const presentTotal = rows.reduce((s, r) => s + r.present, 0);
   return { month: month || '', rows, total, presentTotal, rate: total > 0 ? Math.round((presentTotal / total) * 100) : 0 };
+}
+
+/**
+ * 我的出勤率（SOP-B-15 当事人可见侧，2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
+ * **只算传入的这一人**——调用侧只传当前登录人（成员台「考勤概况」），故当事人看不到别人的出勤率。
+ * 口径与全站一致（单一源，勿在页面另算）：出勤 ＝ 出勤 / 已补；分母 ＝ 该人当月有考勤记录的场次；
+ * 线上参会记「请假」、不计出席（与 `summarizeAttendanceByActivity` 同口径）。
+ * @param {{personId:string, month?:string}} [params] month 形如 '2026-09'（缺省 = 该人全部活跃记录）
+ * @returns {{total:number, present:number, leave:number, absent:number, rate:number}}
+ */
+export function summarizePersonAttendance({ personId, month } = {}) {
+  const empty = { total: 0, present: 0, leave: 0, absent: 0, rate: 0 };
+  if (!personId) return empty;
+  const actById = new Map(loadActivities().map(a => [a.id, a]));
+  const mine = loadActiveAttendanceRecords().filter(r => {
+    if (r.personId !== personId) return false;
+    const act = actById.get(r.activityId);
+    if (!act) return false;
+    return !month || (act.date || '').startsWith(month);
+  });
+  if (mine.length === 0) return empty;
+  const present = mine.filter(r => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.MADE_UP).length;
+  const leave = mine.filter(r => r.status === AttendanceStatus.LEAVE).length;
+  const absent = mine.filter(r => r.status === AttendanceStatus.ABSENT).length;
+  return { total: mine.length, present, leave, absent, rate: Math.round((present / mine.length) * 100) };
 }
 
 /**

@@ -3,17 +3,20 @@
 // 本月活动出勤一览（参与者视角：支部成员对自己的活动出勤有查询视图）。
 // 支书 2026-09-10 裁定（卡片去留/合并批）：出勤行补入口——「查看个人明细」+「去补课/提交补课说明」。
 //   补课入口仅在存在本人待补课任务时出现（制度无「请假」入口，故不设）。
+// SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
+//   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal } from '../../../services/attendance.js?v=20260920a';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260920a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260920a';
-import { AuthStore } from '../../../services/auth.js?v=20260920a';
-import { openFormModal } from '../../../components/modal.js?v=20260920a';
-import { showToast } from '../../../core/utils.js?v=20260920a';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/attendance.js?v=20260920b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260920b';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260920b';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260920b';
+import { AuthStore } from '../../../services/auth.js?v=20260920b';
+import { openFormModal } from '../../../components/modal.js?v=20260920b';
+import { showToast } from '../../../core/utils.js?v=20260920b';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/constants.js?v=20260920a';
+import { isActivityArchived } from '../../../core/constants.js?v=20260920b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260920a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260920b';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -24,8 +27,31 @@ export function renderContent(ctx) {
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthActs = activities.filter(a => (a.date || '').startsWith(thisMonth) && !isActivityArchived(a));
   tc.innerHTML = `
+    <div id="visitor-att-mine"></div>
     <div id="visitor-att-list"></div>
   `;
+
+  // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：
+  //   「本月我的出勤率」**只算当前登录人**（服务层只传 meId ⇒ 当事人看不到别人的出勤率）；
+  //   偏低时按同一提示线给一句提示——**只作呈现、不触发任何动作**（不生成补课 / 不影响评优 / 不生成处置）。
+  const mineEl = document.getElementById('visitor-att-mine');
+  if (mineEl) {
+    const mine = summarizePersonAttendance({ personId: meId, month: thisMonth });
+    const hint = POLICY_DEFAULTS.attendance.lowRateHint;
+    const mineRateCls = mine.rate >= 90 ? 'text-green-700' : mine.rate >= hint ? 'text-amber-700' : 'text-red-600';
+    mineEl.innerHTML = meId && mine.total > 0
+      ? `<div class="rounded-lg bg-white p-3 mb-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
+            <p class="text-sm font-semibold ${mineRateCls}">${mine.rate}%</p>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">出勤 ${mine.present}/${mine.total}（出勤含已补）${mine.rate < hint ? ` · 低于提示线 ${hint}%，仅作提示、不触发任何处置` : ''}</p>
+        </div>`
+      : `<div class="rounded-lg bg-white p-3 mb-3">
+          <p class="text-sm font-medium text-gray-800">本月我的出勤率</p>
+          <p class="text-xs text-gray-400 mt-1">本月暂无你的考勤记录</p>
+        </div>`;
+  }
 
   /** 单条活动考勤行（本人视角；行内「查看个人明细」/「去补课」入口） */
   function rowHtml(act) {

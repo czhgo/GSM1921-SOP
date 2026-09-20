@@ -174,7 +174,7 @@ export const VALIDATION_SITES = [
   // ── 成员（visitor）台 ──
   { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 127, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
   { file: SRC + 'entries/tabs/visitor/review-tab.js', line: 174, field: '复盘总结', flow: 'visitor/活动复盘', machine: true, msg: '请填写复盘总结' },
-  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 113, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
+  { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 139, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
 
   // ── 跨台组件 / 服务 ──
   { file: SRC + 'components/issue-form.js', line: 90, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
@@ -812,7 +812,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-modal-form="visitor-makeup-proof"] button[type="submit"]' }],
     expect: [
-      { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 113, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
+      { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 139, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
     ],
   },
   {

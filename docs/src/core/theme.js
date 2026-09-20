@@ -18,9 +18,9 @@
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from './login-snapshot.js?v=20260920a';
+import { readLoginSnapshot } from './login-snapshot.js?v=20260920b';
 // 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260920a';
+import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260920b';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）

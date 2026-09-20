@@ -12,36 +12,36 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260920a';
-import { generateId } from '../../../core/id.js?v=20260920a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity } from '../../../services/attendance.js?v=20260920a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260920b';
+import { generateId } from '../../../core/id.js?v=20260920b';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity } from '../../../services/attendance.js?v=20260920b';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260920b';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260920a';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260920a';
-import { loadActivities } from '../../../services/activity.js?v=20260920a';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260920b';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260920b';
+import { loadActivities } from '../../../services/activity.js?v=20260920b';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260920a';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260920a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260920a';
-import { NoticeStore } from '../../../services/notice.js?v=20260920a';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260920a';
-import { badgeHtml } from '../../../components/badges.js?v=20260920a';
+import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260920b';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260920b';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260920b';
+import { NoticeStore } from '../../../services/notice.js?v=20260920b';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260920b';
+import { badgeHtml } from '../../../components/badges.js?v=20260920b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920a';
-import { pagerHtml } from '../../../components/pager.js?v=20260920a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260920b';
+import { pagerHtml } from '../../../components/pager.js?v=20260920b';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260920a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260920a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260920a';
-import { AuthStore } from '../../../services/auth.js?v=20260920a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260920a';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260920b';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260920b';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260920b';
+import { HandoffStore } from '../../../services/handoff.js?v=20260920b';
+import { AuthStore } from '../../../services/auth.js?v=20260920b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260920b';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260920a';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260920b';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -407,15 +407,16 @@ export function renderContent(ctx) {
     showToast('success', `考勤汇总已导出（${rows.length} 条）`);
   });
   container.querySelector('.att-print-btn')?.addEventListener('click', () => triggerPrint());
-  // SOP-B-35（`D-412`）：出勤率「公示」出口＝本月的**公示件**（现状只有算与展示，无发布出口）。
-  // 公示的**范围与对象**（支委内部 / 全支部 / 对外）母本未写、`D-428` 未裁 ⇒ 本批只做「可导出的公示件」这一层。
+  // SOP-B-35（`D-412` / `D-479`）：出勤率汇总件＝本月的**支委会内部使用**件（现状只有算与展示，无发布出口）。
+  // 支书 2026-09-20 定案（批次 116）：公示的范围与对象＝**支委会 ＋ 当事人本人**——**不对全支部公示、不对外**；
+  // 本导出件供支委会内部使用；当事人本人只在自己的成员台「考勤概况」看**自己的**出勤率（`summarizePersonAttendance`）。
   container.querySelector('.att-rate-export-btn')?.addEventListener('click', () => {
     const month = new Date().toISOString().slice(0, 7); // YYYY-MM
     const sum = summarizeAttendanceByActivity({ month });
     const rows = sum.rows.map(r => [r.activity, r.date, r.type, r.total, r.present, r.leave, r.absent, `${r.rate}%`]);
     rows.push(['本月合计', '', '', sum.total, sum.presentTotal, '', '', `${sum.rate}%`]);
-    downloadCSV(`出勤率公示_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], rows);
-    showToast('success', `本月出勤率公示件已导出（${sum.rows.length} 场 · 合计 ${sum.rate}%）`);
+    downloadCSV(`出勤率汇总_支委会内部_${month}.csv`, ['活动', '日期', '类别', '应记人次', '出勤（含已补）', '请假', '缺勤', '出勤率'], rows);
+    showToast('success', `本月出勤率汇总已导出（支委会内部使用，${sum.rows.length} 场 · 合计 ${sum.rate}%）`);
   });
   container.querySelector('.att-handoff-btn')?.addEventListener('click', () => {
     if (HandoffStore.hasPendingFor('attendance-archival', 'attendance')) {
@@ -1063,7 +1064,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
         <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与分页钮/下拉同高同 border 家族，hover 统一 bg-gray-50） -->
         <div class="flex items-center gap-2">
           <button class="att-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
-          <button class="att-rate-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer" title="本月各场出勤率汇总，可按支部确定的公示范围发布（SOP-B-35）">导出出勤率公示件</button>
+          <button class="att-rate-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer" title="本月各场出勤率汇总，供支委会内部使用（不公示、不对外；SOP-B-35）">导出出勤率汇总（支委会内部）</button>
           <button class="att-print-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">打印</button>
           <button class="att-handoff-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">提交考勤统计至支委会</button>
         </div>
