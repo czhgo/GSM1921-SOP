@@ -13,13 +13,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921b';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921b';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921c';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921c';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   loadAttendanceRecords,
-} from '../../docs/src/services/attendance.js?v=20260921b';
+} from '../../docs/src/services/attendance.js?v=20260921c';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

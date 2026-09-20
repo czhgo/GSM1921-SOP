@@ -9,16 +9,18 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921b';
-import { generateId } from '../core/id.js?v=20260921b';
-import { persist } from '../core/data-adapter.js?v=20260921b';
-import { bumpToken } from '../core/version-token.js?v=20260921b'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../mock/seed.js?v=20260921b';
-import { isInitStateActive } from './init-reset.js?v=20260921b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from './person.js?v=20260921b';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260921b';
-import { AuthStore } from './auth.js?v=20260921b';
-import { TaskForceRecordStore } from './taskforce.js?v=20260921b';
+import { mockDB } from '../core/domain.js?v=20260921c';
+import { generateId } from '../core/id.js?v=20260921c';
+import { persist } from '../core/data-adapter.js?v=20260921c';
+import { bumpToken } from '../core/version-token.js?v=20260921c'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../mock/seed.js?v=20260921c';
+import { isInitStateActive } from './init-reset.js?v=20260921c'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from './person.js?v=20260921c';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from './todo.js?v=20260921c';
+import { AuthStore } from './auth.js?v=20260921c';
+import { TaskForceRecordStore } from './taskforce.js?v=20260921c';
+// 组织者身份判据单一源（2026-09-19 批次 91 · SOP-B-17）——「谁能关本场报名」读它，勿另写一份
+import { isActivityOrganizer } from './activity.js?v=20260921c';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -94,6 +96,9 @@ function _sourceOpen(sourceType, sourceId) {
     // 草稿活动默认不可报名；写入活动时勾「开放报名」（signupEnabled）者例外——
     // 这样「活动可开报名」是写入侧的一次显式动作，而不是把所有草稿一律放开（SOP-B-2）。
     if (act.status === 'draft' && act.signupEnabled !== true) return { ok: false, reason: '该活动当前不可报名' };
+    // 组织者（或支书）手动关掉本场报名（支书 2026-09-20 定案：「不设截止，但组织者可手动关」）——
+    // 关掉即不接受**新报**；已报者仍可取消（取消不经本判据，见 cancel()）。
+    if (act.signupClosed === true) return { ok: false, reason: '本场报名已关闭' };
     if (!act.date || act.date < _today()) return { ok: false, reason: '活动已结束' };
     return { ok: true };
   }
@@ -193,7 +198,7 @@ async function _writeSource(sourceType, sourceId, personId, role) {
       await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
     } else {
       // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('./mock.js?v=20260921b');
+      const { updateActivity } = await import('./mock.js?v=20260921c');
       await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
     }
   } else {
@@ -370,7 +375,7 @@ export const SignupStore = {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
         if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
           const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('./mock.js?v=20260921b').then(({ updateActivity }) => {
+          import('./mock.js?v=20260921c').then(({ updateActivity }) => {
             updateActivity(s.sourceId, { assignments: remaining });
             persist(); // updateActivity 不自动落盘，须显式 persist
           });
@@ -411,4 +416,45 @@ export function getApprovedSignupPersonIds(sourceType, sourceId) {
   return SignupStore.getAll()
     .filter(s => s.sourceType === sourceType && s.sourceId === sourceId && s.status === SignupStatus.APPROVED)
     .map(s => s.personId);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  「手动关本场报名」（支书 2026-09-20 定案 · 批次 123）
+//  支书原话：「不设截止，但组织者可手动关」⇒ **不新增「报名截止时点」字段**；
+//  只在活动上落一个布尔 `signupClosed`（缺省 false＝未关），由**本场组织者 ＋ 支书/副支书**手动置位。
+//  关掉后：**成员不能再新报**（`_sourceOpen` 判据）；**已报者仍可取消**（取消不经该判据）。
+//  ⚠ 谁能关**照 `SOP-B-17` 既有组织者赋权机制**（发布口按人赋权、解除即收回）——
+//    组织者判据读 `services/activity.js::isActivityOrganizer`（单一源），不另写一份。
+// ════════════════════════════════════════════════════════════════
+
+/** 支部治理角色（可关本场报名）：支书 / 副支书 */
+const SECRETARY_ROLES = new Set(['secretary', 'deputy-secretary']);
+
+/**
+ * 某人能否关某场活动的报名：**本场组织者**（`assignments`/顶层 organizer）**或 支书/副支书**。
+ * 呈现（是否显示按钮）与动作（是否放行）**共用本判据**，勿在两处各写一份。
+ * @param {string} personId
+ * @param {Object|null} activity
+ * @returns {boolean}
+ */
+export function canCloseActivitySignup(personId, activity) {
+  if (!personId || !activity) return false;
+  if (SECRETARY_ROLES.has((getPersonById(personId) || {}).role)) return true;
+  return isActivityOrganizer(personId, activity.id);
+}
+
+/**
+ * 手动关闭本场报名（**单一写口**）。
+ * @param {string} activityId
+ * @param {string} actorId
+ * @returns {Promise<{ok: boolean, reason?: string}>}
+ */
+export async function closeActivitySignup(activityId, actorId) {
+  const act = mockDB.activities.find(a => a.id === activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (!canCloseActivitySignup(actorId, act)) return { ok: false, reason: '仅本场组织者或支书可关闭报名' };
+  if (act.signupClosed === true) return { ok: false, reason: '本场报名已关闭' };
+  const { updateActivity } = await import('./mock.js?v=20260921c');
+  await updateActivity(activityId, { signupClosed: true });
+  return { ok: true };
 }

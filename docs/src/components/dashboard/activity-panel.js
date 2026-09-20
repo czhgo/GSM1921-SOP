@@ -5,18 +5,18 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/state.js?v=20260921b';
-import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260921b';
-import { getPersonName } from '../../services/person.js?v=20260921b';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260921b';
-import { AuthStore } from '../../services/auth.js?v=20260921b';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260921b';
+import { setState, getAppState } from '../../core/state.js?v=20260921c';
+import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260921c';
+import { getPersonName } from '../../services/person.js?v=20260921c';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260921c';
+import { AuthStore } from '../../services/auth.js?v=20260921c';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260921c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/constants.js?v=20260921b';
-import { badgeHtml } from '../badges.js?v=20260921b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260921b';
-import { populateMonthSelector } from '../calendar.js?v=20260921b';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260921b';
+import { isActivityArchived } from '../../core/constants.js?v=20260921c';
+import { badgeHtml } from '../badges.js?v=20260921c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../inspector.js?v=20260921c';
+import { populateMonthSelector } from '../calendar.js?v=20260921c';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260921c';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });

@@ -7,15 +7,15 @@
 //  样式：提取至 person-picker.css，主题色通过 CSS 变量 --pp-* 注入
 // ════════════════════════════════════════════════════════════════
 
-import { liveMembers, PersonStore } from '../services/person.js?v=20260921b';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260921c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260921b';
+import { getPersonById } from '../services/person.js?v=20260921c';
 // 党小组清单单一源（活组按 seq 升序；2026-09-14 批次 29 收敛——见文件头「党小组清单」说明）
-import { groupOptions } from '../services/party-group.js?v=20260921b';
-import { icon } from '../core/icons.js?v=20260921b';
-import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260921b';
+import { groupOptions } from '../services/party-group.js?v=20260921c';
+import { icon } from '../core/icons.js?v=20260921c';
+import { ROLE_LABELS, ACCENT_COLORS, applyDark } from '../core/constants.js?v=20260921c';
 
 // ── 辅助：从 hex 生成 rgba 字符串 ──────────────────────────────
 function hexToRgba(hex, alpha) {

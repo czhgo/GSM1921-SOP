@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-20"
+last_updated: "2026-09-21"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -54,7 +54,8 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | direction | `'top-down'\|'bottom-up'` | 否 | `'bottom-up'` | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起）；由组长写入表单 L4 级选定（2026-09-20 批次 111 补） |
 | hostGroup | string\|null | 否 | null | 承办党小组（组长写入时固化）。考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组（2026-09-20 批次 111 补） |
 | assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 活动参与人 / 项目内角色的内联登记主源（边界见 §2.1.3）。创建时随指定写入，`AuthStore.authorize` 按它判项目身份；**非空时不再派生组长赋权待办**（2026-09-20 批次 111 补） |
-| signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开（2026-09-20 批次 111 补） |
+| signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed`（2026-09-20 批次 111 补） |
+| signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段**（2026-09-21 批次 123 补） |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`）（2026-09-20 批次 111 补） |
 | voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下）（2026-09-20 批次 111 补） |
 | isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**）（2026-09-20 批次 111 补） |
