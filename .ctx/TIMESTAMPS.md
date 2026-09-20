@@ -12,7 +12,7 @@ dynamic_role:
 # File Timestamp Registry
 
 > 全项目文件最后更新时间注册表
-> last_updated: "2026-09-19" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
+> last_updated: "2026-09-20" | 类型: [工程师]+[AI] | 维护方式: 每次文件修改后同步更新
 >
 > **迁出去向说明（2026-09-17 立）**：本文件原有两条 ⚠ 登记（自身时间戳两处不一的更正经过 / 表刷新已漏做一次），其**更正与登记经过**已于 2026-09-17 **逐字迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本表职能＝「哪些文件在什么时候被谁动过、周期性任务何时到期」（见头下职能声明），「本次怎么改的」是沿革。**现在要查**：① 沿革去上述日志附节；② **补刷已做（2026-09-17 批次 59）**——自身时间戳三值统一为 2026-09-17、表行按「文件最后实质改动日」补刷、僵尸行已修准或标记；**未消残留**（工作树「已改未提交」而在库无改动日记载者）逐行清单见 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 59「二」节；③ 逐版沿革见同日志「附：SNAPSHOT 版本沿革」节。
 
@@ -37,7 +37,9 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| README.md | 2026-08-10 | — | [用户]+[AI] | 对外门面（设计理念章重构） |
+| README.md | 2026-09-20 | — | [用户]+[AI] | 对外门面（2026-09-20 批次 106 对齐页面与页签数、设置分区、考勤/交接去向） |
+| README-members.md | 2026-09-20 | — | [用户]+[AI] | 支部成员版（2026-09-20 批次 106 补登） |
+| README-server.md | 2026-09-20 | — | [用户]+[AI] | 后端对接说明主文档（2026-09-20 批次 106 补登） |
 | CLAUDE.md | 2026-09-20 | — | [工程师]+[AI] | Harness（甲部 H10-H100 约束力三层 + 乙部执行 + 丙部待决策；T-272 乙部登记 + P.8/P.9/P.10 丙部退出清空 + T-280 网页逻辑梳理乙部注册 + T-283 最小三成本第4轮 + T-284 链接审查） |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
@@ -51,12 +53,14 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件 |
-| .ctx/SNAPSHOT.md | 2026-09-17 | — | [AI] | 当前基线（v53） |
+| .ctx/SNAPSHOT.md | 2026-09-20 | — | [AI] | 当前基线（v53；2026-09-20 批次 106 补 `thought-report.html` / `person.html` 两行与 `scripts/version-next.mjs`） |
+| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 106 补登） |
+| .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-17 | — | [工程师]+[AI] | 工程化评估与改造行动线（2026-09-20 批次 106 补登） |
 | .ctx/REVIEW_QUEUE.md | 2026-09-20 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18） |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-09-01 | — | [工程师]+[AI] | 总决策日志 |
+| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 106 刷为 253 条） |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -69,6 +73,8 @@ dynamic_role:
 | .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
+| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 106 补登） |
+| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 106 补登） |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
@@ -179,7 +185,7 @@ dynamic_role:
 | server/test/*.test.mjs | 2026-08-30 | — | [工程师]+[AI] | 审计守护与专项测试（agenda-flow/b3-1/capability-registry/click-cost/link-integrity/mock-integrity/module-load/references-official-links；2026-08-30 自 docs/test 移入 + 命名规范化） |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-08-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言） |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
-| server/README.md | 2026-09-15 | — | [工程师]+[AI] | 安装/启动/测试/部署对接说明 |
+| server/README.md | 2026-09-20 | — | [工程师]+[AI] | 安装/启动/测试/部署对接说明（2026-09-20 批次 106 改准真机闭环条数 10 → 54） |
 | server/package.json | 2026-09-17 | — | [工程师]+[AI] | better-sqlite3 ^12.0.0、playwright 1.60.0 |
 | server/package-lock.json | 2026-08-30 | — | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-09-01 | — | [工具] | 忽略 data.db/uploads 等运行时产物 |

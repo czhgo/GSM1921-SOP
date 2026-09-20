@@ -43,7 +43,7 @@
 | 前端 `docs/` | 纯静态 ESM 页面（无打包器、无构建步骤，浏览器直接加载） | mock：浏览器本地存储 + 内存 | 全部使用者 |
 | 后端 `server/` | 可选一体化 Node 服务（Express + better-sqlite3 单进程），同时托管 `docs/` 静态页与 `/api/v1` 接口 | SQLite 单文件持久化 | 需要账号登录与数据持久化时启用 |
 
-**依据**：`README.md:3`、`README.md:199`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:32-39`。
+**依据**：`README.md:3`、`README.md:204-206`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:32-39`。
 
 ### 1.2 与「SOP 母本」的关系
 
@@ -73,7 +73,7 @@
 2. **对接准备阶段**：`DEPLOYMENT_GUIDE.md` 明确把「计算中心托管」标为 🔶 准备阶段（代码已就绪、待对接），微信小程序标为 🔶 规划阶段（**无代码**）。
 3. **公网演示只是「示例组织的一个部署」**，不代表系统的适用范围；同一套引擎可被多个组织分别部署、互不干扰。
 
-**依据**：`docs/src/mock/accounts.js:1`（「Mock 登录账号（模拟 IAAA 校验）」）、`docs/src/mock/people.js:66`、`docs/src/mock/branches.js`（支部种子 `br-b1`）、`server/README.md:17-19`、`README.md:76-79`、`README.md:180`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:47-54`（就绪度表）、`content/04_web_design/deploy/AUTHENTICATION_MODEL.md:75`（IAAA 为后续目标）。
+**依据**：`docs/src/mock/accounts.js:1`（「Mock 登录账号（模拟 IAAA 校验）」）、`docs/src/mock/people.js:66`、`docs/src/mock/branches.js`（支部种子 `br-b1`）、`server/README.md:17-19`、`README.md:77-81`、`README.md:179`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:47-54`（就绪度表）、`content/04_web_design/deploy/AUTHENTICATION_MODEL.md:75`（IAAA 为后续目标）。
 
 ---
 
@@ -475,17 +475,19 @@
 |---|---|---|
 | 外观 | **人人可用**（含未登录） | 字号、明暗主题、强调色；未登录偏好存本浏览器，登录后随账号 |
 | 我的工作台 | 登录用户 | 调整**本人**页签顺序（核心页签不可动）；仅本账号生效 |
-| 支部治理 | 支书 / 副支书（支部信息与换组织向导 / 工作台默认顺序 / 支部制度参数）；纪检 / 组织 / 组长各自的「职责参数」卡（各管本域） | 支部配置与域参数；普通成员、访客不可见 |
+| 支部治理 | 支书 / 副支书（支部信息与向导 / 工作台默认顺序 / 支部制度参数 / **配置变更记录**）；纪检 / 组织 / 组长各自的「职责参数」卡（各管本域）；党委组织员另有「快捷块说明」 | 支部配置与域参数；普通成员、访客不可见 |
 
-**依据**：`README.md:114`（设置中心分区）、`README-members.md:109-117`（设置中心三个分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:134-148`（§9h）。
+> **左栏共 10 个分区**（外观 · 我的工作台 · 支部信息与向导 · 工作台默认顺序 · 支部制度参数 · 配置变更记录 · 纪检 / 组织 / 组长职责参数 · 支部治理快捷块说明）；逐区「管什么 + 谁能看到」见系统内【帮助】页 §5.4（裁定 `D-516`），本表只给三档归属。
+
+**依据**：`README.md:117`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:134-148`（§9h）。
 
 ### 3.4 关键机制（可复用工作流）
 
 | 机制 | 流程要点 |
 |---|---|
 | 三会一课 / 主题党日 | 决策树向导创建（生成后续任务链）→ 会议议程（可挂讨论文件 / 待讨论名单）→ 通知/报名/考勤 → 线上异步表决（**出席 >2/3 且无反对**通过；弃权允许、异议视同反对）→ 记录决议 → **决议自动督办**（责任人跟进 → 逾期催办 → 支书销项） |
-| 考勤 | 按活动类型定记录人（支部党员大会/支委会/组织生活会＝纪检；党课＝支书或纪检；党小组会＝组长）→ 纪检认定异常标因（**请假分事假 / 病假两档，各带时效提示**）→ 考勤确认 → 缺勤自动生成补课任务 → 备案交接宣传归档 |
-| 考察 | 活动/专班考察上传（组长/组织）→ 纪检确认 → 组织建档 |
+| 考勤 | 按活动类型定记录人（支部党员大会/支委会/组织生活会＝纪检；党课＝支书或纪检；党小组会＝组长）→ 纪检认定异常标因（**请假分事假 / 病假两档，各带时效提示**）→ 考勤确认 → 缺勤自动生成补课任务 → **考勤统计报支委会**（交接接收位＝组织委员；原「交宣传备案」去向已按 `D-429` / `D-474` 改准，`docs/src/services/handoff.js:23`） |
+| 考察 | 活动/专班考察上传（**组织者**）→ 纪检确认 → 组织建档 |
 | 发展党员两级确认 | 来源①名册报送（组织发起）②会议议程「待讨论名单」→ 组织审批 → 支书确认生效；双层留痕、可退回、可批量 |
 | 思想汇报 | 提交即入库归档（算法归集）→ 组织委员查看调用；篇幅不足仅提示（警告审阅），必要时打回要求本人补充 |
 | 外出活动提醒清单 | 写入活动时勾「本次为外出活动」→ 写入后向组织者弹 5 项清单（出发前人员清点 / 安全须知告知 / 交通方式确认 / 经费审批 / 返回后人员清点）→ **自动收起在该活动行下方、可随时展开**；**是提醒、非必填、不作校验**（裁定 `D-317` / 落地 `D-505`） |
@@ -495,10 +497,10 @@
 | 上报党委双向通道 | 支部上报关键事项 → 党委逐项审批 → 结论回传；党委另有下发通知通道 |
 | 线上异步表决 | 支书发起 → 通知应到成员 → 成员异步表态 → 支书汇总/截止（**截止不可逆**） |
 | 线上支委会（会议页，2026-09-20 批次 105 / `D-526`） | 支书台「支委会会议」页签 → 独立页 `party-committee-meeting.html`：选 / 建一场线上召开支委会 → **提取议程**（读既有来源：专班报送 `TaskForceRecordStore.listCommitteeRequests()`、意见反馈 `IssueStore` 未办结项；加入时只留 `sourceRef` 回指，不复制来源）→ 支委线上表态（同意 / 异议 / 附言）→ 支书汇总并**截止**（`votesLocked`）→ **查阅讨论结果**（议程项 `result` + 表态记录；记录复用 `recordAgendaResult`，与活动详情页同一函数）。仅支委可进；效力 / 可见范围 / 缺席 / 是否并行线下任务四条口径留白待裁 |
-| 数据交接（三委间） | 固定协议：纪检→宣传 考勤备案 / 纪检→组织 考察记录 / 组织→纪检 补课需求回执（生成即派生接收方待办） |
+| 数据交接（支委间） | 固定协议：纪检→组织 考勤统计 / 纪检→组织 考察记录 / 组织→纪检 补课需求回执（生成即派生接收方待办）；原「纪检→宣传 考勤备案」已按 `D-429` / `D-474` 改准为「报支委会」（接收位＝组织委员，`docs/src/services/handoff.js:23`） |
 | 数据一键重置（仅 mock 形态） | `?reset=demo` / `?reset=preview` / `?reset=init` 三档 |
 
-**依据**：`README.md:142-156`（§3.5 关键机制）、`docs/src/core/policy-defaults.js:36`（票决门槛 `quorum: 2/3`、`vetoOnObject: true`）、`docs/src/core/policy-defaults.js:66-71`（各活动类型的记录人角色）、`server/routes/committee.js:161-177`（截止不可逆）、`server/routes/resources.js:289-307`（删除活动的级联清理）。
+**依据**：`README.md:145-159`（§3.5 关键机制）、`docs/src/core/policy-defaults.js:36`（票决门槛 `quorum: 2/3`、`vetoOnObject: true`）、`docs/src/core/policy-defaults.js:66-71`（各活动类型的记录人角色）、`server/routes/committee.js:161-177`（截止不可逆）、`server/routes/resources.js:289-307`（删除活动的级联清理）。
 
 > **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain.js:267` 的 `handoffs` 域），但**服务端没有对应数据表**（见 §7）。
 
@@ -1447,10 +1449,10 @@
 
 | 项 | 要求 | 依据 |
 |---|---|---|
-| Node.js | **根说明写 `Node ≥ 22`**；部署文档写「Node 18+」；**`server/package.json` 未声明 `engines`**（两处说法不一致，以实际运行环境为准，建议按 ≥ 22 准备） | `README.md:12`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:50`、`server/package.json` |
+| Node.js | **根说明写 `Node ≥ 22`**；部署文档写「Node 18+」；**`server/package.json` 未声明 `engines`**（两处说法不一致，以实际运行环境为准，建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:50`、`server/package.json` |
 | 运行依赖（4 个） | `express ^4.19.0`、`better-sqlite3 ^12.0.0`、`multer ^1.4.5-lts.1`、`nodemailer ^9.0.6` | `server/package.json:14-19` |
 | 开发依赖（仅测试用） | `playwright 1.60.0`（**锁定版本**）；全新环境需先 `npx playwright install chromium` 下载浏览器 | `server/package.json:20-22`、`server/README.md:43` |
-| 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:12`、`README.md:199` |
+| 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:15`、`README.md:204-206` |
 | 编译工具 | `better-sqlite3` 为原生模块，安装时可能需要本机编译工具链（或在有预编译包的平台安装） | 未取证（本仓未记录） |
 | 数据库 | **无需外部数据库服务**——SQLite 单文件（内置） | `server/README.md:25` |
 
@@ -1536,11 +1538,11 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
-| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:164` |
+| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171` |
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:209,217` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |
-| 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `COLOR_SYSTEM.md`）；术语权威源 `content/03_doc_system/USAGE_POLICY.md` | `README.md:158-172` |
+| 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `COLOR_SYSTEM.md`）；术语权威源 `content/03_doc_system/USAGE_POLICY.md` | `README.md:167-174` |
 | 6 | **制度参数默认值** | `docs/src/core/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/policy-defaults.js:6-15` |
 | 7 | **关闭演示数据回退（防污染真实账本）** | ① `DISABLE_SEED=1`；② 前端 `docs/src/config/deploy.js` 的 `SEED_FALLBACK` 改 `false`；③ 按部署文档附录 A.2 逐项关闭 services 层 **9 处空表回退** | `DEPLOYMENT_GUIDE.md:251`、`docs/src/config/deploy.js:11-16` |
 | 8 | **平台对接地址** | `REPORT_WEBHOOK_URL` / `REPORT_TOKEN` / `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example:19-32` |

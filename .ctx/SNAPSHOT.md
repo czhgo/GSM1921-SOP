@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-09-17"
+last_updated: "2026-09-20"
 status: "ACTIVE"
 date: "2026-09-15"
 version: "v53"
@@ -40,6 +40,8 @@ GSM1921-SOP/
 │   ├── party-committee-meeting.html ← 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果；批次 105 / D-526）
 │   ├── taskforce.html          ← 专班详情公共页
 │   ├── settings.html           ← 设置中心（侧边栏右下「设置」入口：外观/我的工作台/支部治理·按登录角色分区，15 根页之一）
+│   ├── thought-report.html     ← 思想汇报独立阅读页（三模式：?id= 单篇 / ?personId= 按人 / 无参＝提示未指定对象）
+│   ├── person.html             ← 成员档案页（完整档案/在册留痕/关联概览计数，?id=<personId> 打开）
 │   ├── wizard.html             ← 换组织向导（独立 URL 页，支书限本支部/党委任意）
 │   ├── workspace/              ← 角色工作台页面（7 个 HTML，工作台+待办合一）
 │   │   ├── secretary.html      ← 支书工作台（支书/副支书共用：活动写入+分工调整+issue 管理+通知发布+上报党委+待办；英文 key `secretary`=代码标识，中文一律「支书」）
@@ -49,7 +51,7 @@ GSM1921-SOP/
 │   │   ├── disc.html           ← 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办）
 │   │   ├── visitor.html        ← 成员工作台（含思想汇报提交/待办）
 │   │   └── party-committee.html← 党委工作台（党委组织员·全院支部治理，组织级角色非支部角色）
-│   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）
+│   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（版本号推导纯函数单一源）
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（根 entry + tabs/ 按工作台分组的业务 tab，随页面/工作台增长）
 │       ├── components/         ← 共享组件（含 dashboard/ 子目录；todo-list/custom-select/person-picker/org-setup-wizard/workforce-duty-card/forms/badges/reporting 等）

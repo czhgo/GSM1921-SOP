@@ -10566,6 +10566,123 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 - 上述四条在页面上有**可见载体**：一条提示「以下四条口径尚未确定（待支部制度与本支部决策），本页不代作判定」。
 - **如实报没做**：① 支委侧（组织 / 宣传 / 纪检台）**未加页签**，委员经会议页链接直达；② 新建会议**不发通知**（既有 kind `taskforce-vote-requested` 文案限「专班议案」，新 kind 须服务端注册表复算授权，超出本批「只复用」范围）；③ 页签只做入口，**不做会议列表 / 分页**（避免第二套列表口径）。
 
+---
+
+## 批次 106（2026-09-20，全部 README 与 `.ctx` 文档按最新颗粒度逐项核对与对齐）
+
+**任务**：支书第 ⑤ 条——「**更新所有的 README 文档和相关的文档，包括 `.ctx` 中的各项文档。还有 help 中的说明文档以及 setting 的侧边栏设计……——需要对齐最新的颗粒度！**」
+**引用流程**：穷举「应核文档」→ 五维逐份核（**事实源＝系统实然**）→ 逐处改准（带依据）→ 反查 → 落账
+**来源**：支书第 ⑤ 条（批次 98 已核 `README-server.md`、批次 99 已做 `docs/help.html` / `docs/settings.html` 侧边栏、批次 102 已刷台账旧债 ⇒ 本批补「其余 README」与「`.ctx` 各项文档」）
+
+### 一、穷举（本批第一件产出）：README 类 12 份
+
+| 文档 | 行数 | `last_updated` | 本次核对结论 |
+|---|---|---|---|
+| 根 `README.md` | 285 | 无 frontmatter | **过期 4 处**（页面 21 / 根页 14 / 页签 66 / 台账 93·2）**＋ 失效 1 处**（§3.1 页面表缺 `party-committee-meeting.html`）**＋ 缺漏 1 处**（设置中心未写「配置变更记录」）**＋ 口径 3 处**（考勤去向 / 考察上传主体 / 数据交接） |
+| `README-members.md` | 212 | 无 frontmatter | **口径 2 处**（组长台考勤上传主体、考勤备案接收位）**＋ 缺漏 1 处**（设置中心「配置变更记录」） |
+| `README-server.md` | 1825 | 无 frontmatter | **口径 4 处**（§3.3 设置分区 / §3.4 考勤去向 / §3.4 数据交接 / §3.4 考察上传主体）**＋ 指向失效 8 处**（引 `README.md` / `README-members.md` 的 `文件:行号` 整体少 2~3 行） |
+| `CONTRIBUTING.md` | 63 | 无 frontmatter | **无需改**——术语纪律、`?v=` 纪律、`DEPLOY_MODE='server'`（`docs/src/config/deploy.js:9`）、`roles-sync` / `scene-write-sync` 引用**逐条核过、均成立** |
+| `server/README.md` | 43 | 无 frontmatter | **过期 1 处**（`form-loop-sweep` 真机闭环「10 条」→ 实测 54） |
+| `content/README.md` | 26 | 2026-08-27 | **无需改**（5 类知识类型 / 指针逐条核过） |
+| `content/01_strategy/README.md` | 39 | 2026-08-18 | **无需改**（文件清单与 references 三类性质划分核过） |
+| `content/02_institution/README.md` | 50 | 2026-09-05 | **无需改** |
+| `content/03_doc_system/README.md` | 43 | 2026-09-05 | **无需改** |
+| `content/04_web_design/README.md` | 97 | 2026-09-05 | **无需改**（子目录与权威源表核过；`AGENDA_AND_REFERENCE_DESIGN.md:66` 的旧约束属**已知母本出入**、`D-492` 已登记） |
+| `content/05_ai_coding/README.md` | 45 | 2026-09-05 | **无需改**（唯 `DATA_CONSISTENCY_CHECKLIST.md:207` 的「93 处校验点」是**沿革录述**（批次 49 当时的规模）⇒ 保留） |
+| `content/insights/README.md` | 60 | 2026-09-15 | **无需改**（分流声明与承接映射核过） |
+
+### 二、穷举：`.ctx` 全 27 份（行数 / `last_updated`）
+
+- **稳定文档 5**：`SNAPSHOT.md`（183 / **2026-09-20**，本批刷，原 2026-09-17）· `ACTIVE_RULINGS.md`（173 / 无 frontmatter，本批加批次 106 留痕句）· `REVIEW_QUEUE.md`（1519 / 2026-09-20，**本批一字未动**）· `TIMESTAMPS.md`（512 / 2026-09-20，本批 9 处行操作）· `ENGINEERING_ASSESSMENT.md`（297 / 2026-09-17，**本批未动**：`?reset=1` 属**历史别名、行为不变**（`docs/src/core/mock-adapter.js:140`），判「未失效」、只登记）。
+- **`snapshots/` 2**：`INDEX.md`（23 / 2026-07-11）· `SNAPSHOT_v3_20260502.md`（65 / 无 `last_updated`，历史件）⇒ 均**不动**。
+- **`logs/` 活跃 8**：`2026-07-DECISION_LOG.md`（828 / 2026-07-31）· `2026-07-EXECUTION_LOG.md`（2695 / 2026-07-31）· `2026-08-DECISION_LOG.md`（432 / 2026-08-31）· `2026-08-EXECUTION_LOG.md`（6225 / 2026-08-31）· `2026-09-DECISION_LOG.md`（本批 +`D-527`，10492 行 / 2026-09-20）· `2026-09-EXECUTION_LOG.md`（本节，10577 行 / 2026-09-20）· `DECISION_LOG.md`（17 / 无 frontmatter，本批刷月度索引 252 → 253 条）· `EXECUTION_LOG_INDEX.md`（260 / 2026-09-19，**未动**——其设计「只收 T 编号条目」，批次编号不入表）。
+- **`logs/archive/` 12**：2026-02/03/04/05/05-early/06/07-early/07-mid 执行日志 + 05/06 决策日志 + `2026-09-08-smoke-result.md` + `2026-09-09-P12-overview-audit.md` ⇒ **历史件，本批一律未动**。
+- **`frontmatter` 一致性核**：两份 9 月日志的 `last_updated` **本已是 2026-09-20**（批次 102 登记的「停在 09-18 / 09-17」旧债**已由后续批次批次 104 / 105 消掉**——本批**不是**去改它们，而是**如实报「已回刷」**）；本批另刷 `SNAPSHOT.md` 一处；`REVIEW_QUEUE.md` / `TIMESTAMPS.md` 本就 2026-09-20。
+- **`.ctx/DOC_MAP.md` 不存在**——全仓库导航的 `DOC_MAP.md` 在 `content/03_doc_system/`（`SNAPSHOT.md:17` 等处的指针指它）；本批**不改指针**（本就指对）。
+
+### 三、改准清单（逐条：位置 + 改前 → 改后 + 依据）
+
+**A. 过期数字（4 处）**
+
+| # | 位置 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 1 | `README.md:115` | 全站共 **21** 个静态页（**14** 个根页 + 7 个工作台）· 页签（共 **66** 个） | **22** 个静态页（**15** 个根页 + 7 个工作台）· 页签（共 **67** 个） | `docs/*.html` 实测 15 ＋ `docs/workspace/*.html` 7；`docs/src/modules/capabilities/*-workspace.js` 的 `tabs()` 数组合计 **67**；`README-server.md:339` / `:368` 已是 22 / 67 |
+| 2 | `README.md:236` | 台账 `form-loop-registry.mjs` 共 **93** 处校验点、其中 91 条可自动化、**2** 条非自动化 | 共 **95** 处校验点、其中 91 条可自动化、**4** 条非自动化 | `server/test/form-loop-registry.mjs` 实测 `VALIDATION_SITES.length=95` · `machine:false` 4 · `machine:true` 91（`MACHINE_FLOWS=54` / `SUCCESS_FLOWS=17` 不变） |
+| 3 | `server/README.md:42` | `form-loop-sweep` **10 条闭环** | **54 条真机闭环 ＋ 17 条成功路径** | 同上（`FLOWS_BASELINE` / `SUCCESS_FLOWS_BASELINE` 与数组实测） |
+| 4 | `.ctx/SNAPSHOT.md:42-44,54` | 目录树只列 13 个根页（却自称「15 根页之一」）· `scripts/` 只列 2 个脚本 | 补 `thought-report.html` / `person.html` 两行 · 补 `scripts/version-next.mjs` | `docs/` 实况 15 个根页；`docs/scripts/` 实况 3 个脚本（`README.md` 单一源组件表已列 `version-next.mjs`） |
+
+**B. 过期口径（6 类 / 11 处）**
+
+| # | 位置 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 5 | `README.md:148` · `README-server.md:489` | 考勤「**备案交接宣传归档**」 | 「**考勤统计报支委会**（组织委员接收建档）」 | `D-429` / `D-474`；代码 `docs/src/services/handoff.js:23`（`attendance-archival → org-commissioner`，label「考勤统计」） |
+| 6 | `README.md:155` | 「**三委间**」…「纪检→**宣传** 考勤备案」 | 「**支委间**」…「纪检→**组织** 考勤统计」 | 同上（`handoff.js:23-25` 三条协议的角色对） |
+| 7 | `README-server.md:500` | 「数据交接（**三委间**）…纪检→**宣传** 考勤备案」 | 「数据交接（**支委间**）…纪检→**组织** 考勤统计（原去向已改准）」 | 同上 |
+| 8 | `README-members.md:62` | 「**宣传**确认考勤备案接收」 | 「**组织**确认考勤统计接收」 | 同上 |
+| 9 | `README.md:149` · `README-server.md:490` | 考察「活动/专班考察上传（**组长/组织**）」 | 「（**组织者**）」 | `D-287`（材料上传主体一律组织者）/ `D-315`（考察记录由组织者上传） |
+| 10 | `README-members.md:69` | 「党小组组长：**党小组会的考勤由你上传**」「组长在「考勤上传」页…上传考勤」 | 「党小组组长：本组党小组会的**考勤上传位在你这里**」「**由该场活动的组织者上传**——本组党小组会一般由你组织，上传位就在组长台「考勤上传」页；被指定为某场活动组织者的组员，也只会多出这两个上传位」 | `D-287` / `D-494`（上传位按「人」可达、非组长组织者兜底只给两个上传位） |
+| 11 | `README.md:117` · `README-members.md:115` · `README-server.md:478-480` | 设置中心三处说明**未写**「配置变更记录」 | 各补「**配置变更记录**」并注「左栏共 **10** 个分区」 | `D-516`（设置左栏补该分区；9 → 10 分区、支书 / 副支书 5 → 6 区）；系统内【帮助】§5.4 |
+
+**C. 指向失效（`文件:行号` 8 处，守卫盲区）**——`README-server.md` 引用 `README.md` 的行号因两份 README 历批增行而整体少 2~3 行，逐处改准（每处均用 `node` 直读被引文件核过目标行）：
+
+| # | `README-server.md` 位置 | 改前 → 改后（引 `README.md`） | 该行现在是什么 |
+|---|---|---|---|
+| 12 | `:46` | `199` → `204-206` | `### 技术形态` + 「原生 ESM 模块、无打包器 / 无构建步骤」 |
+| 13 | `:76` | `76-79` → `77-81` · `180` → `179` | `## 一、你的部署` 及其四条 · 「30 分钟换壳」 |
+| 14 | `:482` | `114` → `117` | 「**设置中心**…按登录身份分区」（并同步「三个分区」→「设置中心分区」） |
+| 15 | `:503` | `142-156` → `145-159` | `### 3.5 关键机制` 全节 |
+| 16 | `:1452` | `12` → `15` | 「MIT · Node ≥ 22 · 原生 ESM…」 |
+| 17 | `:1455` | `12` → `15` · `199` → `204-206` | 同上两处 |
+| 18 | `:1541` | `164` → `171` | 替换入口总表「组织数据」行 |
+| 19 | `:1545` | `158-172` → `167-174` | 替换入口总表「主题配色 / 术语与制度」行 |
+
+**D. `.ctx` 台账（`TIMESTAMPS.md` 9 处行操作）**：自身自述 `last_updated` `2026-09-19 → 2026-09-20`；`README.md` 行 `2026-08-10 → 2026-09-20`；`SNAPSHOT.md` 行 `2026-09-17 → 2026-09-20`；`server/README.md` 行 `2026-09-15 → 2026-09-20`；`DECISION_LOG.md` 行 `2026-09-01 → 2026-09-20`；**补登 6 行**——`README-members.md` · `README-server.md`（根目录表此前**无这两行**）· `.ctx/ACTIVE_RULINGS.md` · `.ctx/ENGINEERING_ASSESSMENT.md` · `.ctx/logs/2026-09-EXECUTION_LOG.md` · `.ctx/logs/2026-09-DECISION_LOG.md`（`.ctx` 表此前**无这些行**，违反本表自身「新增文件须追加条目」规则）。**过 `S13`**：表行 ↔ frontmatter 一致（有 frontmatter 的文件逐条比对）。
+
+### 四、反查（改前 → 改后命中数，全库 `.md` / `.html`；探针用完即删）
+
+| 关键字 | 全库改前 → 改后 | 判定 | 处置 |
+|---|---|---|---|
+| `21 个静态页` | 5 → 4 | 本批改掉 README 1 处 | 余 4 在 `.ctx` 沿革 / 日志 ⇒ **保留** |
+| `共 66 个` | 3 → 2 | 同上 | 余 2 同前 ⇒ **保留** |
+| `14 个根页` | 2 → 1 | 同上 | 余 1 同前 ⇒ **保留** |
+| `10 条闭环` | 1 → 0 | `server/README.md` 已改准 | **已清** |
+| `备案交接宣传归档` | 2 → 0 | 两份 README 已改准 | **已清** |
+| `三委间` | 2 → 6 | README 正文 **2 处已清**；+4 是本批沿革录述（D-527 / ACTIVE_RULINGS / 月度索引） | 正文已清；录述**保留** |
+| `考勤备案` / `宣传备案` | 24 → 29 / 37 → 39 | 正文旧口径已改（README ×2 · members · server ×2）；+7 是本批沿革说明句「原「交宣传备案」去向…」 | 正文已清；余在 `.ctx` 沿革 / `REVIEW_QUEUE` 台账（**不动**）⇒ **保留** |
+| `组长/组织` | 31 → 34 | README 2 处已清；+3 是本批沿革录述 | 同上 |
+| `组长上传` | 102 → 103 | **授权范围内（README 类）0 命中**；+1 是本批 D-527 反查录述本身；余全部在 `.ctx` 沿革 / 支书原话（`D-284` 原话「上传是组长上传」）/ 历史命题登记 / `REVIEW_QUEUE:236` 否定式注记 / `content/05` 判例 / 2026-08 历史日志 | **保留（资产）**。⚠ **关键词盲区**：`README-members.md:69` 原文写「组长在『考勤上传』页…上传考勤」，**不含字面「组长上传」**⇒ grep 扫不到，靠**人工通读**查出并改准（本批 #10） |
+| `初阅` | 226 → 226 | 未动 | 全在 `.ctx` 沿革 / `REVIEW_QUEUE:237` 的「已由 `D-387`/`D-482` 改裁作废」注记 ⇒ **保留** |
+| `三支委` | 27 → 27 | 未动 | 全在 `D-283` 原文与沿革（「不再用『三支委』」）⇒ **保留** |
+| `代组长` | 41 → 43 | README 类无需改（`README.md:138` 的「支书不代组长答复」是**否定式**）；+2 是本批理由段引语 | **保留（否定式 / 引语）** |
+| `唯一节点` / `唯一统筹` | 20 → 20 / 18 → 18 | 未动 | 授权文件内 0 命中（`docs/help.html` 4 处已在批次 99 改准）；余在 `.ctx` 沿革 ⇒ **保留** |
+| `知情同意` / `审核需求` | 24 → 24 / 39 → 39 | 未动 | 同前（`content/insights` 1 处已在批次 102 改准）⇒ **保留** |
+| `attendanceQROwner` | 31 → 32 | `README-server.md:592` 的「已删去」沿革登记**保留**；+1 是本批理由段录述 | **保留（沿革）** |
+| `38 条` | 27 → 27 | 未动 | 余在 `.ctx` 沿革 / 历史日志 ⇒ **保留** |
+| `S1–S8` | 18 → 19 | `ENGINEERING_ASSESSMENT.md:190`「S1–S8 为本条落地时语区」是**沿革说明**、保留；+1 是本批理由段录述 | **保留（沿革）** |
+| `80%` | 59 → 59 | 未动 | 全在 `.ctx`（`D-304` 已裁「无出处、母本不写阈值」）与 `REVIEW_QUEUE` 台账 ⇒ **保留** |
+| `93 处校验点` | 1 → 1 | README 侧**已改准为 95**；余 1 在 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:207`——是**沿革录述**（批次 49 当时的台账规模）⇒ **保留**（且属 `content` 非 README 类，超本批授权） |
+| `配置变更记录` | 42 → 52 | +10 = 本批三处设置说明补写（正文）+ 落账录述 | **正当新增** |
+
+### 五、版本戳判据 / 守卫 / 全量
+
+- **版本戳判据**：本批改动**全部落 md**（README 类 ＋ `.ctx`；**无 `docs/**` 页面 / 脚本改动、无 `server/**` 业务代码改动**）⇒ **不 bump**（判据＝版本戳机制覆盖 `docs/**` 与 `server/test/*.mjs` 的字面量，本批对这些文件**零改动**；`docs/help.html` / `docs/settings.html` 本批**未动**——那是批次 99 的范围）。
+- **守卫子集（逐条 pass/fail）**：`doc-consistency` **13/13 pass**（**S1–S13 直接管根文档与 `.ctx`，本批必受影响**——S13 见「三 · D」，S10/S11 见 README 守卫清单）· `link-integrity` **5/5 pass** · `version-stamp` **15/15 pass** · `module-load` **2/2 pass**（`E1` ＋ `E2`）· `permission-gate` **9/9 pass** · `server-base` **11/11 pass** · `scene-write-sync` **3/3 pass**——7 个文件合计 **58 测试 / 58 pass / 0 fail**。
+- **全量（`R-85`）**：先 `npm start` 起 3000 服务（`DISABLE_PASSWORD_CHECK=1`）→ `npm test` → **停服**。**终局**：**706 测试 / 706 pass / 0 fail**（`duration_ms` 1070155 ≈ 17.8 分钟；`cancelled 0` · `skipped 0` · `todo 0`）——**全量全绿、收尾**（本批只改 md，无源码改动，故**无陈旧断言需改**）。
+
+### 六、改动清单
+
+- **改**：`README.md`（7 处）· `README-members.md`（3 处）· `README-server.md`（12 处，含 8 处 `文件:行号`）· `server/README.md`（1 处）· `.ctx/SNAPSHOT.md`（frontmatter ＋ 目录树 3 行）· `.ctx/TIMESTAMPS.md`（9 处行操作）· `.ctx/ACTIVE_RULINGS.md`（批次 106 留痕句，**0 行口径**）· `.ctx/logs/2026-09-DECISION_LOG.md`（`D-527` ＋ 本月目录 1 行 ＋ 文首 / 文末编号起止与「最近一次追加」）· `.ctx/logs/DECISION_LOG.md`（月度索引 252 → **253** 条 ＋ 批次 106 概要句）· `.ctx/logs/2026-09-EXECUTION_LOG.md`（本节）。
+- **未改**：`.ctx/REVIEW_QUEUE.md`（含 `SOP-B-8` 制度数字存量盘点台账与已闭环指针节——**本批指令「不自行选边」**）· `.ctx/ENGINEERING_ASSESSMENT.md`（`?reset=1` 属历史别名、判「未失效」）· `content/**` 非 README 类（含 `DEPLOYMENT_GUIDE.md` 的「32 资源表」——`README-server.md §7.3#25` 已并列呈现，**不代裁**）· `docs/**` · `server/**` 业务代码与测试 · 历史文件（`2026-07-*` / `2026-08-*` / `archive/**`）· `CLAUDE.md`（本批无新纪律）。
+- **临时探针**：`tmp-b106-probe.cjs`（反查 ＋ 清单用）**已删除**。
+
+### 七、如实报没做的 / 未取证的
+
+1. **`文件:行号` 未做全量核**：`README-server.md` 共 **333 处** `文件:行号` 引用（`ENGINEERING_ASSESSMENT.md` 43 处），本批只**逐处改准了直接指向两份 README 的 8 处**（我自己的改动影响面）＋**抽样**核过若干代码引用；**其余未逐条核**（规模超出单批），**不假装覆盖**。
+2. **`content/**` 越授权命中 1 处**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:207` 的「93 处校验点」按现况应为 95，但**该句是沿革录述**（批次 49 当时规模），判**不必改**；且属 `content` 非 README 类 ⇒ **只登记**。
+3. **`docs/src/**` 代码注释仍含旧口径**：`docs/src/services/todo.js:127` 注释写「考勤备案（纪检→宣传）」——与本批改准的 `handoff.js:23`（纪检→组织）**不一致**，属**业务代码 / 注释**、超本批授权 ⇒ **只登记、未改**（建议随下一批 1 行改准）。
+4. **`.ctx/ENGINEERING_ASSESSMENT.md` 的 `?reset=1`（3 处）**：判「**未失效**」（`mock-adapter.js:140` 明确 `?reset=1` 仍是 demo 档历史别名），但与现行规范名 `?reset=demo` 不一致 ⇒ **只登记、未改**（改动落在评估档的带日期证据行，风险大于收益）。
+5. **`REVIEW_QUEUE.md` 未核**：按本批指令整份不动；其内部 `SOP-B-8` 台账与已闭环指针节的**口径统一**仍待支书定。
+
 
 
 
