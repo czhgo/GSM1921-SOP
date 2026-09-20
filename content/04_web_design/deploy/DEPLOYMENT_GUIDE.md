@@ -3,7 +3,7 @@ title: "部署与对外对接总案——系统形态、四条落地路径与学
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-13"
+last_updated: "2026-09-20"
 status: active
 related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---

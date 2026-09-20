@@ -2,7 +2,7 @@
 title: "统一服务目录"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-20"
 version: "4.0"
 status: active
 related_files: [docs/src/services/auth.js, docs/src/services/runtime.js, docs/src/core/data-adapter.js, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md]

@@ -2,7 +2,7 @@
 title: "委员体系框架"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-09-17"
+last_updated: "2026-09-20"
 status: active
 merged_from:
   - content/guides/COMMISSIONER_ORGANIZATION_ROLE.md (已删除)

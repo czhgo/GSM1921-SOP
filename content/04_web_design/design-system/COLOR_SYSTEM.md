@@ -3,7 +3,7 @@ title: "色彩系统规范"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-05"
+last_updated: "2026-09-20"
 status: active
 split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
 related_files: [DESIGN_SYSTEM.md, COMPONENT_SPEC.md]

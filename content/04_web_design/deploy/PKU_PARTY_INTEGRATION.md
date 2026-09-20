@@ -3,7 +3,7 @@ title: "北大党校与智慧党建系统对接设计——爬取、双向同步
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-15"
+last_updated: "2026-09-20"
 status: draft
 related_files: [DEPLOYMENT_GUIDE.md, WECHAT_INTEGRATION.md, DATA_MODEL.md, ../../server/db.js, ../../docs/src/core/api-adapter.js]
 ---

@@ -3,7 +3,7 @@ title: "组件规范"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-15"
+last_updated: "2026-09-20"
 status: active
 split_from: "DESIGN_SYSTEM.md（2026-08-24 T-282 拆分）"
 related_files: [DESIGN_SYSTEM.md, COLOR_SYSTEM.md, docs/src/styles.css]

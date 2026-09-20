@@ -11259,7 +11259,7 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 ### 六、不确定 / 没做的地方（如实）
 
 1. **`docs/src/services/activity.js:66` 的注释引用未改**（`DATA_MODEL.md:162` → 应 `:170`）——属 `docs/src/**`、本批铁律不许改；**只登记**，建议后批随手改准（守卫不覆盖 `docs/src/**`）。
-2. **`DATA_MODEL.md` 的 frontmatter `last_updated` 仍是 `2026-09-15`**——本批授权面是「**仅 §2.1 补字段**」，未动 frontmatter（批次 110 改该文件 7 处时同样未动）。
+2. **`DATA_MODEL.md` 的 frontmatter `last_updated` 仍是 `2026-09-15`**——本批授权面是「**仅 §2.1 补字段**」，未动 frontmatter（批次 110 改该文件 7 处时同样未动）。**⚠ 已由批次 113（`D-534`）收口**：该文件 frontmatter 与 `TIMESTAMPS` 表行**一并刷为 2026-09-20**，本句「frontmatter 未动、故表行也不能刷」**已不再成立**。
 3. **`README-server.md §4.0` 的「合计」本身有既有松量**：按 `字段名 / 字段` 表头机械数，`§4` 的表行数与 README 自报口径**本来就不完全相等**（本批只做**本批引起的 `+8 / −7 / +1` 三处**，**未去追平历史差额**）——该差额**非本批引入**，如实登记。
 4. **`README-server.md` 的引用与 `DATA_MODEL.md` 表体「内容级一一对应」未做机检**（`doc-line-ref` 只保证「行号在表内、不越节、符号锚点落在区间」）——本批**抽 10 处人工回核**，未逐条比对 44 处「所指区间与上文描述是否语义相符」。
 5. **`READ` 工具的计数**：本批仍观察到「带 `offset` 的 `Read` 返回行号比 node / ripgrep 少 1」（与批次 109 的登记一致）⇒ 所有行号一律以 **Grep / node** 为准；该纪律已在批次 109 记入 `D-530`。
@@ -11349,6 +11349,88 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 5. **`B-37` 的「为什么（现状取证）」段已删**（属立项时的现状取证）——「要什么」保留了目的句，**如认为该段应留，可后批补回**。
 6. **`Read` 计数 vs node / ripgrep 差 1** 的现象仍在（同批次 109 登记）；本批所有行号 / 字节一律以 **node 探针角度的实测**为准。
 7. **本批未做**：`SOP-B-8` 台账与已闭环指针节（**待裁**）· `B-4` 的存量注记降级（**须支书点头**）· 其余未点名条目的落地细节（批次 104 清单**已逐条做完**，无遗留点名项）。
+
+## 批次 113（2026-09-20，文档 frontmatter `last_updated` 与 `.ctx/TIMESTAMPS.md` 的日期对齐——批次 110–112 改过的文档）
+
+> **来源**：批次 111（`D-532`）自己暴露的那处「**该改的地方没改**」——`DATA_MODEL.md` 的**正文**被批次 110/111 改过，`frontmatter last_updated` 却停在 `2026-09-15`；同批 `TIMESTAMPS` 表行也据此未刷 ⇒ **台账日期与文件实际改动不符**（批次 111 当时把表行改成 09-20 ⇒ `S13` 判红 ⇒ 改回，遂登记为未做项）。
+> **性质**：**只改日期与必要注文**（`frontmatter last_updated` ＋ `TIMESTAMPS` 表行），**不动任何文档正文**，**不 bump 版本戳**（只改 md）。
+
+### 一、穷举：批次 110–112 改过的文档 ＋ 各自最后实质改动日 ＋ 是否在 `S13` 面内
+
+> 口径：用 `git log` 对照三笔提交的改动集（`f631d6ba`＝批次 110 · `5259b61a`＝批次 111 · `a2cf86df`＝批次 112；批次的作者 / 提交日**均为 2026-09-20**，故「最后实质改动日」＝ **2026-09-20**）。「在 `S13` 面内」按**守卫原文判据**判（见「三」），**不按扩展名猜**。
+
+| # | 文件 | 改于（批次） | 最后实质改动日 | 改前 frontmatter | 改前表行 | 在 `S13` 面内？ |
+|---|---|---|---|---|---|---|
+| 1 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | 110 | 2026-09-20 | 2026-09-17 | 2026-09-17 | ✓ |
+| 2 | `content/03_doc_system/SERVICE_CATALOG.md` | 110 | 2026-09-20 | 2026-09-05 | 2026-09-05 | ✓ |
+| 3 | `content/04_web_design/data/DATA_FLOW.md` | 110 | 2026-09-20 | 2026-09-15 | 2026-09-15 | ✓ |
+| 4 | `content/04_web_design/data/DATA_MODEL.md` | 110, 111 | 2026-09-20 | 2026-09-15 | 2026-09-15 | ✓ |
+| 5 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | 110 | 2026-09-20 | 2026-09-13 | 2026-09-13 | ✓ |
+| 6 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | 110 | 2026-09-20 | 2026-09-15 | 2026-09-15 | ✓ |
+| 7 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | 110 | 2026-09-20 | 2026-09-05 | 2026-09-05 | ✓ |
+| 8 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | 110 | 2026-09-20 | 2026-09-15 | 2026-09-15 | ✓ |
+| 9 | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | 110 | 2026-09-20 | 2026-09-17 | 2026-09-17 | ✓ |
+| 10 | `README-server.md` | 110, 111 | 2026-09-20 | **无 frontmatter** | 2026-09-20 | ✗（无 frontmatter ⇒ 跳过） |
+| 11 | `content/04_web_design/design-system/CLICK_ROUTING.md` | 110 | 2026-09-20 | **无 frontmatter** | **未入表** | ✗（**且未入 `TIMESTAMPS`**） |
+| 12 | `.ctx/ACTIVE_RULINGS.md` | 108–112 | 2026-09-20 | **无 frontmatter** | 2026-09-20 | ✗（无 frontmatter ⇒ 跳过） |
+| 13 | `.ctx/logs/DECISION_LOG.md` | 108–112 | 2026-09-20 | **无 frontmatter** | 2026-09-20 | ✗（无 frontmatter ⇒ 跳过） |
+| 14 | `.ctx/REVIEW_QUEUE.md` | 109, 112 | 2026-09-20 | 2026-09-20 | 2026-09-20 | ✓（**已一致，未动**） |
+| 15 | `.ctx/TIMESTAMPS.md` | 108–112 | 2026-09-20 | 2026-09-20 | 2026-09-20 | ✓（**已一致，未动**〔仅注文〕） |
+| 16 | `.ctx/ENGINEERING_ASSESSMENT.md` | 108 | 2026-09-20 | 2026-09-20 | 2026-09-20 | ✓（**已一致，复核后未动**） |
+| 17 | `.ctx/logs/2026-09-DECISION_LOG.md` | 108–112 | 2026-09-20 | 2026-09-20 | 2026-09-20 | ✓（**已一致，未动**） |
+| 18 | `.ctx/logs/2026-09-EXECUTION_LOG.md` | 108–112 | 2026-09-20 | 2026-09-20 | 2026-09-20 | ✓（**已一致，未动**） |
+
+⇒ **在面内且日期滞后者＝ 9 份**（#1–#9）；**在面内但本就一致者＝ 5 份**（#14–#18，**不动**）；**不在面内者＝ 4 份**（#10–#13，**只登记**）。
+
+### 二、逐份对照表（改前 → 改后 / 依据或不改的理由）
+
+| 文件 | frontmatter 改前 → 改后 | `TIMESTAMPS` 表行改前 → 改后 | 依据 / 不改的理由 |
+|---|---|---|---|
+| `COMMISSIONER_DUTY_FRAMEWORK.md` | 2026-09-17 → **2026-09-20** | 2026-09-17 → **2026-09-20** | 批次 110 改准 §F.2 考勤统计去向一句（`D-429`/`D-474`） |
+| `SERVICE_CATALOG.md` | 2026-09-05 → **2026-09-20** | 2026-09-05 → **2026-09-20** | 批次 110 改准 2 处（图片管理界面未实现 `D-446` · 三委交接改 disc/org） |
+| `DATA_FLOW.md` | 2026-09-15 → **2026-09-20** | 2026-09-15 → **2026-09-20** | 批次 110 改 `_saveToStorage` 区间并补 2 个漏列键 |
+| `DATA_MODEL.md` | 2026-09-15 → **2026-09-20** | 2026-09-15 → **2026-09-20** | 批次 110 改准 7 处 ＋ 批次 111 补 §2.1 八字段行；**旧注「未刷为 2026-09-20」作废重写** |
+| `DEPLOYMENT_GUIDE.md` | 2026-09-13 → **2026-09-20** | 2026-09-13 → **2026-09-20** | 批次 110 改准资源表 32 → 35（5 处）与 Node ≥ 22 |
+| `PKU_PARTY_INTEGRATION.md` | 2026-09-15 → **2026-09-20** | 2026-09-15 → **2026-09-20** | 批次 110 资源表 32 → 35（2 处） |
+| `COLOR_SYSTEM.md` | 2026-09-05 → **2026-09-20** | 2026-09-05 → **2026-09-20** | 批次 110 改准「6 → 7 个工作台」 |
+| `COMPONENT_SPEC.md` | 2026-09-15 → **2026-09-20** | 2026-09-15 → **2026-09-20** | 批次 110 改准「待初阅队列」现状句（批次 41 沿革句原样保留） |
+| `DATA_CONSISTENCY_CHECKLIST.md` | 2026-09-17 → **2026-09-20** | 2026-09-17 → **2026-09-20** | 批次 110 改准 `todo-tab.js:767` → `secretary/todo-tab.js:672` 与台账 93/91/2 → 95/91/4 |
+| `README-server.md` | **无 frontmatter，未动** | 2026-09-20（未动） | **无 frontmatter ⇒ `S13` 跳过**；其表行本就是 2026-09-20 |
+| `CLICK_ROUTING.md` | **无 frontmatter，未动** | **未入表，未动** | **无 frontmatter 且未入 `TIMESTAMPS`** ⇒ 既不在 `S13` 面内、也不在表内（**覆盖缺口**，见「六」） |
+| `.ctx/ACTIVE_RULINGS.md` | **无 frontmatter，未动** | 2026-09-20（未动，注文补批次 113 留痕句） | **无 frontmatter ⇒ `S13` 跳过** |
+| `.ctx/logs/DECISION_LOG.md` | **无 frontmatter，未动** | 2026-09-20（未动，注文刷为 260 条） | **无 frontmatter ⇒ `S13` 跳过** |
+| `.ctx/REVIEW_QUEUE.md` · `.ctx/TIMESTAMPS.md` · `.ctx/ENGINEERING_ASSESSMENT.md` · 两份 `2026-09` 日志 | **复核后一字未动** | **一字未动** | **frontmatter 与表行本就逐字相等**（批次 106/108/112 已刷）⇒ **不为凑数改** |
+
+### 三、`S13` 判据（按 `server/test/doc-consistency.test.mjs` 原文口径，不按印象）
+
+- **计入比对**：`TIMESTAMPS.md` 的 **5 列表行**（`c.length === 7` 且 `c[2]` 形如日期且非表头）＋ 该行指向**真实存在的文件** ＋ 该文件**有 frontmatter 且含 `last_updated`** ⇒ 表行日期须**逐字等于** frontmatter 的 `YYYY-MM-DD`（不等即红灯）。
+- **跳过（机制性，不报红）**：① 文件不存在 / 已删除；② **无 frontmatter**；③ 通配行（`*`）与目录行；④「周期性任务最后执行时间」表（`c[2]` 是任务名，天然排除）与「已删除文件记录」表（3 列，`c.length === 5`，排除）。
+- **白名单（仅 2 条，有 frontmatter 但无 `last_updated` 字段的历史归档件）**：`.ctx/snapshots/SNAPSHOT_v3_20260502.md` · `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md`。
+- **非空转基线**：`rows.length >= 200` · `compared >= 60`。
+- ⇒ **本批据此刻面内外**：`README-server.md` / `CLICK_ROUTING.md` / `.ctx/ACTIVE_RULINGS.md` / `.ctx/logs/DECISION_LOG.md` 因 **②「无 frontmatter」跳过**，**不在面内**（**不是**「对不上就不比」——它们确实连比对所需的字段都没有）。
+
+### 四、就地改准的两处「已被推翻的话」
+
+1. **批次 111 执行日志「六、不确定 / 没做的地方（如实）」第 2 条**（`:11262`）：原文「`DATA_MODEL.md` 的 frontmatter `last_updated` 仍是 `2026-09-15`……未动 frontmatter」⇒ **就地补**「⚠ 已由批次 113（`D-534`）收口：该文件 frontmatter 与 `TIMESTAMPS` 表行一并刷为 2026-09-20，本句『frontmatter 未动、故表行也不能刷』已不再成立」。
+2. **`D-532` 的「影响范围」**（`2026-09-DECISION_LOG.md`）：原文「`.ctx/TIMESTAMPS.md`（行内注文，**日期不变**）」⇒ **就地改为**「其表行日期**当时**不变——该文件 frontmatter 未动、故表行也不能刷（`S13` 会红）；**此尾巴已由批次 113（`D-534`）收口**」。
+
+### 五、守卫 / 全量 / 版本戳
+
+- **`doc-consistency` 改前 / 改后两次**：
+  - **改前（基线，本批动手之前）**：`tests 13 / pass 13 / fail 0`（含 `S13` pass —— 此即「两处都不刷 ⇒ 守卫绿但台账滞后」的**旁证**）。
+  - **改后（全部落盘后）**：**`tests 13 / pass 13 / fail 0`**（含 `S13` pass；`S1`–`S13` 逐条全绿）——`S13` 现为**真一致**（表行 ＝ frontmatter ＝ 2026-09-20），非「绕过」。
+- 守卫子集：`doc-line-ref` 5 / `link-integrity` 5 / `version-stamp` 15 / `module-load`（含 `E1`·`E2`）2 / `permission-gate` 9 / `server-base` 11 / `scene-write-sync` 3 ⇒ **50 / 50 全绿、0 红**（带 `DISABLE_PASSWORD_CHECK=1`）；连 `doc-consistency` 13 ⇒ **63 / 63**（与批次 111 同口径）。
+- 依 `R-85`：`cd server` → **先 `npm start`（3000，实测已监听）** → `npm test` ⇒ **实测 `tests 711 / pass 711 / fail 0`**（duration ≈ **1126.0 s**）→ 跑完**已停服**（实测端口 3000 无监听）。⚠ **时序如实**：该全量跑在「`content/**` frontmatter ＋ `TIMESTAMPS` ＋ `.ctx` 四本账」改动**全部落盘之后**，但在**本批执行日志这一节写入之前**；该节只改 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的正文，故写入后又**重跑了一遍守卫子集（含 `doc-consistency`）＝ 63 / 63 全绿**（见上）作收尾确认——**未再跑第二遍全量**。
+- 版本戳：**不 bump**（本批只改 md，**未动 `docs/src/**`、`server/**`、`server/test/**`**）。
+
+### 六、不确定 / 没做的地方（如实）
+
+1. **`S13` 的覆盖缺口（本批只登记、不修）**：`README-server.md` · `content/04_web_design/design-system/CLICK_ROUTING.md` · `.ctx/ACTIVE_RULINGS.md` · `.ctx/logs/DECISION_LOG.md` **都是 md、但都没有 frontmatter** ⇒ `S13` 按「**无 frontmatter ⇒ 跳过**」**结构性不覆盖**它们。其中 **`CLICK_ROUTING.md` 最彻底**：它**连 `TIMESTAMPS.md` 都没登记**，而批次 110 **真改过它的正文**（A3 的 `:84,149,195` → `:58,61,208`）⇒ 这份文件的日期**既不被 `S13` 管、也不在表内**。
+2. **本批未给上述 4 份加 frontmatter**：加字段＝改该文件体例（`CLICK_ROUTING.md` 还是「无 frontmatter 的规范件」，与 `DESIGN_SYSTEM.md` / `COMPONENT_SPEC.md` 等同族件不同），超出「**改准日期**」的授权 ⇒ **不擅动**。若要求「守卫全覆盖」，须支书另裁（改体例 or 改守卫）。
+3. **`content/**` 是否还有「改过正文但 frontmatter 滞后」的存量，本批未全量扫**：本批只按批次 110–112 三笔提交的改动集核；`git log` 更早的提交（批次 106 及以前）**未逐份核**（批次 106/108 已按 `frontmatter 一致性` 维核过一遍，本批不重复）。
+4. **表行注文是「按登记转写」**：`TIMESTAMPS.md` 的 9 个表行注文里，「批次 110/111 改了什么」是**按批次提交说明与 `D-531`/`D-532` 的登记**转写的（**未逐处重开被引文件复核那几处改动本身**——那属批次 110/111 的账，本批只补日期）。
+5. **工作树既有「幻影 dirty」**：`git status` 里 `.ctx/SNAPSHOT.md` / `.ctx/TIMESTAMPS.md` / `README.md` / `docs/help.html` 显示为 ` M`，但 `git diff` 为空、`git hash-object` 与 `HEAD:` 摘要**完全相同**（`core.autocrlf=true` 下这 4 份**在库为 CRLF** 所致）——**属本批之前就有的既有状态、非本批引入**，本批**未动它们的内容**。
+6. **本批未做**：`docs/src/services/activity.js:66` 注释里的 `DATA_MODEL.md:162` → `:170`（沿批次 111 处置，属 `docs/src/**`，**只登记**）· `SOP-B-8` 台账与已闭环指针节（**待裁**）。
 
 
 

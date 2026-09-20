@@ -52,15 +52,15 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件（2026-09-20 批次 112 补登 `REVIEW_QUEUE.md` / 三本账 / 月度索引五行注文） |
+| .ctx/TIMESTAMPS.md | 2026-09-20 | — | [工程师]+[AI] | 本文件（2026-09-20 批次 112 补登 `REVIEW_QUEUE.md` / 三本账 / 月度索引五行注文；2026-09-20 批次 113 把批次 110–112 改过的 9 份 content 文档表行日期刷为 2026-09-20） |
 | .ctx/SNAPSHOT.md | 2026-09-20 | — | [AI] | 当前基线（v53；2026-09-20 批次 106 补 `thought-report.html` / `person.html` 两行与 `scripts/version-next.mjs`） |
-| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 112 补登批次增量句） |
+| .ctx/ACTIVE_RULINGS.md | 2026-09-20 | — | [工程师]+[AI] | 现行有效裁定速查（D-432 立；2026-09-20 批次 112 补登批次增量句；2026-09-20 批次 113 留痕句——本批 0 行） |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-20 | — | [工程师]+[AI] | 工程化评估与改造行动线（2026-09-20 批次 108 改准 43 处 `文件:行号` 引用后补登） |
 | .ctx/REVIEW_QUEUE.md | 2026-09-20 | — | [工程师]+[AI] | 支书评议队列（W4 五专项附录承接区，含最小三成本侧重维度基线，H60 评议细节已指针化至 PROCESS_GUIDE §18；2026-09-20 批次 112 压 17 段落地细节段，1520 行 / 319.9 KB → 1477 行 / 305.6 KB，待定项 0 丢失） |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 112 刷为 259 条） |
+| .ctx/logs/DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 总决策日志（月度索引；2026-09-20 批次 113 刷为 260 条） |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -73,8 +73,8 @@ dynamic_role:
 | .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
-| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 112 补登批次 112 节） |
-| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 112 补登 `D-533`） |
+| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月执行日志（当前活跃；2026-09-20 批次 113 补登批次 113 节） |
+| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-20 | — | [工程师]+[AI] | 9月决策日志（当前活跃；2026-09-20 批次 113 补登 `D-534`） |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
@@ -93,7 +93,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-09-17 | — | [用户]+[AI] | 支委框架与赋权（2026-09-03 矩阵命名/概念定位去党建党务二分） |
+| content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | 2026-09-20 | — | [用户]+[AI] | 支委框架与赋权（2026-09-03 矩阵命名/概念定位去党建党务二分；2026-09-20 批次 110 改准 §F.2 考勤统计去向一句，批次 113 刷本行日期） |
 | content/02_institution/FLAT_ORGANIZATION_DESIGN.md | 2026-09-13 | — | [工程师]+[AI] | 扁平化设计 |
 | content/02_institution/ROLE_CLASSIFICATION.md | 2026-09-05 | — | [工程师]+[AI] | 文件角色分类（2026-09-05 §九 系统角色权限矩阵拆出，本文档回归纯文件角色分类） |
 | content/02_institution/SYSTEM_ROLE_PERMISSION.md | 2026-09-17 | — | [工程师]+[AI] | 系统角色权限矩阵（2026-09-05 自 ROLE_CLASSIFICATION.md §九 拆出：角色键全表 9a0 + 权限矩阵/赋权链 + 双轨约定 §9f；2026-09-17 增 §9j 匿名反馈查看真身权限） |
@@ -116,7 +116,7 @@ dynamic_role:
 | content/03_doc_system/ARCHITECTURE.md | 2026-09-15 | — | [工程师]+[AI] | 核心架构说明（2026-09-03 删除党建/党务分类节） |
 | content/03_doc_system/DOC_MAP.md | 2026-09-17 | — | [工程师]+[AI] | 全局文档导航 |
 | content/03_doc_system/SSOT_INDEX.md | 2026-09-15 | — | [工程师]+[AI] | 母本子本注册表 |
-| content/03_doc_system/SERVICE_CATALOG.md | 2026-09-05 | — | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针） |
+| content/03_doc_system/SERVICE_CATALOG.md | 2026-09-20 | — | [工程师]+[AI] | 服务目录（v4.0 有机重组：清单总表+权限矩阵+权威源指针；2026-09-20 批次 110 改准 2 处——图片管理界面未实现（`D-446`）、三委数据交接改 disc/org，批次 113 刷本行日期） |
 | content/03_doc_system/README.md | 2026-09-05 | — | [工程师]+[AI] | 03_doc_system 目录索引 |
 | content/03_doc_system/工作模板/经验沉淀辅助提示词.md | 2026-08-09 | — | [工程师]+[AI] | 沉淀辅助 |
 
@@ -125,19 +125,19 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-09-15 | — | [工程师]+[AI] | 设计系统规范（含§一第2条"最小三成本"原则；T-282 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
-| content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-05 | — | [工程师]+[AI] | 色彩系统规范（T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则） |
-| content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-15 | — | [工程师]+[AI] | 组件规范（T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章） |
+| content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-20 | — | [工程师]+[AI] | 色彩系统规范（T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-09-20 批次 110 改准「6 → 7 个工作台」，批次 113 刷本行日期） |
+| content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-20 | — | [工程师]+[AI] | 组件规范（T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句、批次 41 沿革句原样保留，批次 113 刷本行日期） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-09-05 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮） |
-| content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-15 | — | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮） |
+| content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取+智慧党建双向同步+数据映射+小程序归位说明+待确认清单，新建；对接授权=党委组织部支持；T-278 无人称修缮；2026-09-20 批次 110 资源表 32 → 35〔2 处〕，批次 113 刷本行日期） |
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-09-05 | — | [工程师]+[AI] | 架构演进（组件化落地评估+轻量插件化「能力注册表」设计+迭代机制+实施路径，新建 T-276；无人称文体） |
 | content/04_web_design/deploy/WECHAT_INTEGRATION.md | 2026-09-05 | — | [工程师]+[AI] | 微信协同与小程序设计方案（§八 新增北大对接数据展示；小程序独立问题归位本文档；T-278 无人称修缮） |
-| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-09-17 | — | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填） |
-| content/04_web_design/data/DATA_MODEL.md | 2026-09-15 | — | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段；2026-09-17 增 §2.29 匿名反馈核查留痕；2026-09-20 批次 110 改准 7 处、批次 111 补 §2.1 八字段行〔表体 24 → 32 行〕——⚠ 本行日期仍随该文件 frontmatter 的 `2026-09-15`，未刷为 2026-09-20，见 `S13` 判据「表行以 frontmatter 为准」） |
-| content/04_web_design/data/DATA_FLOW.md | 2026-09-15 | — | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流） |
+| content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md | 2026-09-20 | — | [用户]+[AI] | 数据同源一致性校验手册（T-278 无人称修缮；T-280 B1-1 登录跳转表述修正 + §16 登录门控 + 待办直达检查项 + T-235 第3轮实测回填；2026-09-20 批次 110 改准 `todo-tab.js:767` → `secretary/todo-tab.js:672` 与台账 93/91/2 → 95/91/4，批次 113 刷本行日期） |
+| content/04_web_design/data/DATA_MODEL.md | 2026-09-20 | — | [工程师]+[AI] | 数据模型设计（T-282 自 DATA_ARCHITECTURE 拆分 §二：20 类模型 + 写入验证 + 待办/通知派生 + 归档字段；2026-09-17 增 §2.29 匿名反馈核查留痕；2026-09-20 批次 110 改准 7 处、批次 111 补 §2.1 八字段行〔表体 24 → 32 行〕；**2026-09-20 批次 113 把该文件 frontmatter 与本报行一并刷为 2026-09-20**——原「表行仍随 frontmatter 的 2026-09-15、未刷」的旧注已作废，`S13` 现为真一致） |
+| content/04_web_design/data/DATA_FLOW.md | 2026-09-20 | — | [工程师]+[AI] | 数据流设计（T-282 自 DATA_ARCHITECTURE 拆分 §一/§三/§四：总览 + 参与者数据流 + 前端数据流；2026-09-20 批次 110 改准 `_saveToStorage` 区间并补 `partyGroups` / `memberFlows` 两个漏列键，批次 113 刷本行日期） |
 | content/04_web_design/data/DATA_ARCHITECTURE.md | 2026-09-03 | — | [工程师]+[AI] | 🗑️ 已删除（正文已拆分至 DATA_MODEL / DATA_FLOW） |
 | content/04_web_design/module/MODULE_UI_DESIGN.md | 2026-09-05 | — | [工程师]+[AI] | 模块界面设计 |
 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | 2026-09-13 | — | [工程师]+[AI] | SOP-系统联动方法（T-278 无人称修缮） |
-| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-09-13 | — | [工程师]+[AI] | 部署与对外对接总案（2026-09-04 按阅读对象重构为对外总案：系统形态速览/四路径与决策矩阵/学校党校对接总叙事与决策矩阵/专项细节指针+附录；原计算中心对接全案并入 §三；SCHOOL_IT_DEPLOYMENT 2026-08-24 并入历史） |
+| content/04_web_design/deploy/DEPLOYMENT_GUIDE.md | 2026-09-20 | — | [工程师]+[AI] | 部署与对外对接总案（2026-09-04 按阅读对象重构为对外总案：系统形态速览/四路径与决策矩阵/学校党校对接总叙事与决策矩阵/专项细节指针+附录；原计算中心对接全案并入 §三；SCHOOL_IT_DEPLOYMENT 2026-08-24 并入历史；2026-09-20 批次 110 改准资源表 32 → 35〔5 处〕与 Node「18+」→「≥22」，批次 113 刷本行日期） |
 | content/04_web_design/deploy/AUTHENTICATION_MODEL.md | 2026-09-05 | — | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层；T-278 无人称修缮） |
 | content/04_web_design/SCHOOL_IT_DEPLOYMENT.md | 2026-08-27 | — | [工程师]+[AI] | 🗑️ 已删除（计算中心对接全案已并入 DEPLOYMENT_GUIDE §三） |
 | content/04_web_design/README.md | 2026-09-05 | — | [工程师]+[AI] | 04_web_design 目录索引（2026-08-24 部署类重组更新） |
