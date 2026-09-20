@@ -9,27 +9,28 @@
 //                        随 `SOP-B-28` 取消初阅门一并撤除——提交即入库，没有待阅队列）
 //  访问门与服务层同源（canReadThoughtReport / canReviewThoughtReport），
 //  界面显隐不自判角色字面量；打回/重交动作均调用服务层并透出 {ok:false, reason}。
-//  篇幅（`SOP-B-11`）：阅读页显示字数；少于 1200 字加「篇幅不足 · 触发警告审阅」标记
-//  （**不影响提交与归档**，只让人看一眼）。
+//  篇幅（`SOP-B-11`）：阅读页显示字数；**少于 1200 字的「篇幅不足 · 触发警告审阅」标记只给提交人本人看**
+//  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
+//   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260921c';
-import { renderHeader } from '../components/header.js?v=20260921c';
-import { BranchService } from '../services/runtime.js?v=20260921c';
-import { AuthStore } from '../services/auth.js?v=20260921c';
+import { renderSidebar } from '../components/sidebar.js?v=20260921d';
+import { renderHeader } from '../components/header.js?v=20260921d';
+import { BranchService } from '../services/runtime.js?v=20260921d';
+import { AuthStore } from '../services/auth.js?v=20260921d';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921c';
-import { getPersonName } from '../services/person.js?v=20260921c';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260921c';
-import { badgeHtml } from '../components/badges.js?v=20260921c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921d';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921d';
+import { getPersonName } from '../services/person.js?v=20260921d';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260921d';
+import { badgeHtml } from '../components/badges.js?v=20260921d';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260921c';
+} from '../services/thought-report.js?v=20260921d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -162,8 +163,11 @@ function renderSingleView(rec) {
       </div>
     </div>`;
 
-  // 篇幅不足标记（`SOP-B-11`：少于 1200 字触发警告审阅；**不影响提交与归档**）
-  const shortMarkHtml = wc.level === 'short'
+  // 篇幅不足标记（`SOP-B-11`：少于 1200 字触发「警告审阅」；**不影响提交与归档**）
+  // ⚠ 2026-09-21 批次 124（`SOP-B-11` 待定项 ①：支书 2026-09-20 定案「只给提交人本人」）：
+  //   该标记**只在提交人本人（isSelf）看自己的汇报时**出现——支委层（含组织委员 / 支书）在此页
+  //   读他人的汇报时**看不到任何「篇幅不足」标记**（组织侧不经手篇幅这件事）。
+  const shortMarkHtml = (isSelf && wc.level === 'short')
     ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="${esc(wc.hint)}">篇幅不足 ${wc.count} 字 · 触发警告审阅</span>`
     : '';
 

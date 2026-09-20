@@ -9,8 +9,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921c';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921c';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921d';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921d';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -22,12 +22,12 @@ import {
   absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260921c';
+} from '../../docs/src/services/attendance.js?v=20260921d';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/roster.js?v=20260921c';
+} from '../../docs/src/services/roster.js?v=20260921d';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
@@ -39,7 +39,8 @@ const DETAINED_P5 = 'p5';
 
 let seq = 0;
 
-/** 每例独立现场：造唯一「纪检可上传的会议考勤」活动 + 清空考勤落盘区（同 attendance-batch 模式） */
+/** 每例独立现场：造唯一「DISC 持上传位」的会议考勤活动（**组织者＝DISC**——2026-09-21 批次 124 起
+ *  会议考勤上传位＝该场组织者）+ 清空考勤落盘区（同 attendance-batch 模式） */
 function freshMeeting(type) {
   seq += 1;
   const activityId = `act-s1-${seq}`;

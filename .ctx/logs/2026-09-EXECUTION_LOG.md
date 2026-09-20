@@ -12520,6 +12520,128 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 4. **`ACTIVE_RULINGS` 的两条改动取「改准既有行」而非「新立两行」**：按该表收录判据 ⓑ（不得出现决策日志里没有的口径）＋ 判据 ⓒ（改裁时两处一起动）——两条都是**把既有行（补课范围 / 报名）补准**，故**条数不变（108）**。若支书要求「硬要求刚性」「报名不设截止」各自单列一行，属**该表体例选择**，未擅动。
 5. **未复核的边界**：`docs/src/entries/taskforce-entry.js` 的「报名截止」是**专班**的招募截止日（与活动报名无关），本批**一字未动**；`help.html` 同名字样同理。
 
+---
+
+## 批次 124（2026-09-21）：① 思想汇报篇幅「警告审阅」只给提交人本人 ＋ ② 会议类考勤上传收归「组织者」（支书 2026-09-20 定案 · `SOP-B-11` 待定项 ① ／ `D-523`① 上报项收口 · 裁定 `D-547` / `D-548`）
+
+### 一、任务与边界
+
+- **支书定案（本批逐字执行）**：① 篇幅警告给谁看 ⇒「**只给提交人本人**」；② 会议类考勤上传 ⇒「**收归「组织者」**」（会议考勤也由会议组织者上传；纪检只管统计与核对）。
+- **改哪里**：`docs/src/**`（系统）· `content/**`（只改与定案相左的表述）· `server/test/**`（**仅不得不改**：守卫台账行号 / 上传位语义 / 退役流程）· `.ctx` 四本账 ＋ 月度索引 ＋ `TIMESTAMPS.md`。**未动** `README*.md` 与 `docs/help.html`（只登记）· 历史文件 · **未提交 git** · **未新建仓库文件** · **未用 sed / awk / PowerShell / node 脚本做内容批量改写**（只读统计用过 rg；写入一律逐处 Edit）· **探针用完即删**（`server/test/_probe-124.test.mjs`）。
+- **改前基线**：守卫 8 项 **63 / 63 / 0 红**（`doc-consistency` 13 · `link-integrity` 5 · `version-stamp` 15 · `module-load` 2 · `permission-gate` 9 · `server-base` 11 · `scene-write-sync` 3 · `doc-line-ref` 5）；`module-load` 单跑 **`[E1] 163/163`** · **`[E2] 受检 12 页 / 白名单 3 页`**；版本戳 **`20260921c`**。
+
+### 二、① 篇幅警告「只给提交人本人」——取证与改动清单
+
+**（1）取证：改前「已给组织委员 / 支书看过的地方」逐处**
+
+| 问题 | 实测答案（`文件:行号`） |
+|---|---|
+| 组织侧有没有「篇幅不足」一览 | **有**——`docs/src/entries/tabs/org/thought-review-tab.js`（改前 `:2` 头注即写「台账 ＋ 篇幅不足一览」）：`shortOnes` 由 `wordCountHint(r.content).level === 'short'` 过滤、卡内「N 篇」计数、逐条经 `renderFilteredList` 进阅读页 ⇒ **最直接地违反「只给本人」** |
+| 阅读页标记谁看得到 | **任何可读者**——`docs/src/entries/thought-report-entry.js` 改前 `shortMarkHtml = wc.level === 'short' ? …` （无本人限定）；而 `canReadThoughtReport`（`services/thought-report.js:62`-`:66`）允许**支委层读他人汇报** ⇒ 组织委员 / 支书读他人短汇报时**同样看得到** |
+| 本人侧本就有哪些 | `docs/src/entries/tabs/visitor/thought-report-tab.js:77`（提交页实时字数提示）· `:102`-`:104`（本人列表「篇幅不足」标签）——**这两处合规** |
+| 三性判据在哪 | `docs/src/core/policy-defaults.js` 的 `thoughtReport`（`wordHint` 1500 · `wordSoftMin` 1200）· `services/thought-report.js::wordCountHint`（唯一出口）· `addThoughtReport` **不做任何字数校验**（不影响提交） |
+
+**（2）改动清单（改前 → 改后）**
+
+| 处 | 改前 | 改后 | 依据 |
+|---|---|---|---|
+| `entries/tabs/org/thought-review-tab.js` | 「篇幅不足」一览**整卡**（含 `shortOnes` / `renderFilteredList` 挂载 / `_date` `_brief` 两个仅供该卡的助手 / `list-filter` 与 `wordCountHint` `wordHint` `wordSoftMin` 三个 import） | **整卡与相关计算 / import / 助手撤除**；**台账（人 × 期次）一字未动**；头注改准 | 定案 ①「只给提交人本人」 |
+| `entries/thought-report-entry.js` | 阅读页标记对所有可读者渲染 | `isSelf && wc.level === 'short'`（**支委层读他人汇报时不再渲染**；「N 字」字数仍显示）＋ 头注改准 | 同上 |
+| `entries/tabs/visitor/thought-report-tab.js` | 提交页提示「…少于 1200 字将触发警告审阅（不影响提交）」 | 补「**此提醒只给你本人看**」＋ 头注改准 | 同上（说清受众） |
+| `services/thought-report.js` | 头注 / `wordCountHint` JSDoc 未写受众 | 两处补「**提醒只给提交人本人**；组织侧不渲染该 level；不存在组织侧「审阅篇幅」环节」 | 同上 |
+| `core/policy-defaults.js` | `thoughtReport` 注释「提醒相关人去看一眼」 | 补 2026-09-21 批次 124 段（只给本人 / 不留组织侧标记 / 无组织侧环节）＋ `wordSoftMin` 注释改「**提醒提交人本人**」 | 同上 |
+| `core/function-catalog.js` | `flow-thought-report` desc「篇幅不足仅提示（警告审阅）」 | 「篇幅不足**只提示提交人本人**（警告审阅，不影响提交）」 | 同上 |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9l | 「同族登记项（一）」只列简讯字数 / 照片张数 | **补一行「思想汇报字数」**（1500 / 1200，母本数字即默认值；**标注系依族例登记的推导、支书未就本数字逐条明答**）＋ 变更历史 1 行 | 待定项 ④（推导） |
+| `content/04_web_design/data/DATA_MODEL.md` §五 | `{ wordHint: 1500, wordSoftMin: 800 }`（**停在批次 86 之前**） | `wordSoftMin: 1200` ＋ 补「提醒只给提交人本人」 | 相左表述改准 |
+| `server/test/form-loop-registry.mjs` | 3 处行号（`visitor/thought-report-tab.js:127` · `thought-report-entry.js:291` / `:268`） | `:129` / `:295` / `:272` | 本批行号位移（S4 同级判据精确命中） |
+
+### 三、② 会议考勤上传收归「组织者」——取证与改动清单
+
+**（1）取证**
+
+| 问题 | 实测答案（`文件:行号`） |
+|---|---|
+| 改前谁持会议考勤上传位 | `docs/src/services/attendance.js::canUploadAttendance`：`role === 'disc-commissioner'` 且活动类型 ∈ `MEETING_ATTENDANCE_TYPES`（`['党课','支部党员大会','组织生活会','支委会']`，`policy-defaults.js:42` 派生）⇒ **直接放行** |
+| 那个上传位的承载面 | `docs/src/entries/tabs/disc/attendance-tab.js::_buildMeetingCardHTML`（`MEETING_TYPES.includes(a.type) && canUploadAttendance(DISC_COMMISSIONER_ID, a.id)` 过滤活动）＋ `upsertMeetingAttendance`（落 `recordedBy=本人`） |
+| 会议组织者是谁（演示数据） | `docs/src/mock/activities.js`：支委会 `act-2`/`act-5`/`act-11`/`act-24`/`act-27`/`act-35`＝**p11（组织委员）** · 支部党员大会 `act-30`/`act-31`＝**p11** · 党课 `act-6`/`act-13`＝**p13（支书）**；**`organizer: 'p10'` 零命中 ⇒ 纪检不组织任何会议** |
+| 组织者上传面在哪 | `docs/src/entries/tabs/leader/attendance-tab.js`（组长台「考勤上传」）＋ 组织者兜底放行（`core/bootstrap.js:180`-`:187` 与 `modules/capabilities/leader-workspace.js:17` 收窄到 `attendance` / `inspection` 两 tab）——**但改前该台下拉的活动类型硬编码 4 类（`党小组会 / 主题党日 / 党课 / 支部党员大会`），支委会 / 组织生活会不在内** |
+| 母本那一格 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §C.1a `:108`「会议考勤：**上传/修改/确认/录入** \| Y \| — \| — \| — \| —」——**把上传与确认并归纪检**（`D-523`① 即此）；同表 `:105`/`:107` 的党小组活动考勤**本就分两行**（上传＝组织者 / 确认+录入总表＝纪检） |
+
+**（2）改动清单（改前 → 改后）**
+
+| 处 | 改前 | 改后 | 依据 |
+|---|---|---|---|
+| `services/attendance.js::canUploadAttendance` | 纪检 + 会议类型 ⇒ 直接放行 | **删去该豁免**；保留支书 / 副支书例外承担（`institutional`）· 组长本组党小组会 · 组织者兜底（`isActivityOrganizer`） | 定案 ②「收归组织者」 |
+| `entries/tabs/leader/attendance-tab.js` | 硬编码 4 类（`党小组会 / 主题党日 / 党课 / 支部党员大会`） | `UPLOADABLE_ACTIVITY_TYPES = [...MEETING_ATTENDANCE_TYPES, '党小组会', '主题党日']`（单一源派生）——**否则支委会 / 组织生活会的组织者没有入口**；卡面 / 空选项文案改准 | 同上（承接面） |
+| `entries/tabs/disc/attendance-tab.js` | 卡标题「会议考勤录入」· 说明「由纪检直接上传并录入总表」· 表单脚注「纪检直接录入即确认（recordedBy=纪检）」· 回执「（纪检直接确认/更正）」· 空态「当前无会议类活动…可录入」 | 标题「会议考勤录入（**组织者上传位**）」· 说明「**由该场会议的组织者上传**；**纪检管确认与统计核对**；本卡只列**您本人可上传**的会议场次」· 脚注「录入即确认（recordedBy=录入人本人＝该场组织者）」· 回执「（录入即确认/更正）」· 空态「当前没有您可录入的会议考勤——会议类考勤由**该场会议的组织者**上传（组长台「考勤上传」）…」 | 同上 |
+| `core/policy-defaults.js` `attendance.meetingTypes` 注释（`:39`，**行数守恒**） | 「会议考勤上传位的活动类型（纪检直接上传并录入）」 | 「会议考勤的类型清单（**上传位＝该场会议组织者**；2026-09-21 批次 124：支书 2026-09-20 定案）」 | 同上 |
+| `services/roster.js:104` 注释 | 「…等**纪检上传位类型**」 | 「…等**会议考勤类型**」 | 同上（措辞） |
+| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §C.1a | 一格「会议考勤：上传/修改/确认/录入 \| Y(纪检)」 | **拆两格**：「会议考勤：上传（组织者；追加提交，不可改已确认记录） \| Y(组织者)」＋「会议考勤：确认+录入总表 \| Y(纪检)」＋ 表下一条定案注（2026-09-20 支书定案） | 母本改准（**母本本就写死了「上传归纪检」⇒ 拆格，不是硬加**） |
+| `content/02_institution/sop/纪检委员工作流程指南.md` §1.2 `:61` | 「纪检委员对会议考勤（含党课）拥有**完整权限**（上传/修改/确认/录入）」 | 「会议考勤的**上传**由**该场会议的组织者**负责（2026-09-20 支书定案「收归组织者」——与党小组活动考勤同规）；纪检委员负责**确认（打包确认）、录入总表与统计核对**，以及考勤明细的更正」 | 同上 |
+| `content/insights/党支部管理与实务经验沉淀.md` 纪律段表 `:227` | 「会议考勤 \| **纪检委员** \| 纪检委员直接录入考勤明细 \| 纪检委员」 | 「会议考勤 \| **会议组织者（上传）** \| 纪检委员确认后录入考勤明细 \| 纪检委员」 | 同上 |
+| `server/test/attendance-batch.test.mjs` | 现场活动无 `organizer`（`{id, type, archived:false}`）⇒ 改后被操作人 p10 不再是组织者、5 例批量语义全跳 | 现场补 `organizer: DISC`（**该场组织者＝被操作人**）＋ 标题 / 断言文案改「上传者本人」＋ **新增 1 例**：`canUploadAttendance` 组织者 true / 非组织者（组织委员 p11）**false**、非组织者提交 `{added:0,updated:0,skipped:1}` 且**不落盘**、支书 p13 / 副支书 p14 例外承担仍 true | 上传位语义改变 ⇒ 现场与断言须同批取齐（**不得不改**） |
+| `server/test/meeting-attendance-rules.test.mjs` | 现场注释「纪检可上传的会议考勤」 | 注释改「**组织者＝DISC**」（其活动现场本就 `organizer: 'p10'` ⇒ 5 例语义不变、断言一字未动） | 同上（措辞） |
+| `server/test/form-loop-registry.mjs` | `disc-meeting-attendance` 流程在册；两条校验点 `machine:true`；`FLOWS_BASELINE = 55`；leader 3 处行号 | **流程退役**（附理由段：表单在演示数据下无人可上传 ⇒ `waitFor: '#disc-meet-submit'` **结构性**不成立）· 两条校验点转 `machine:false` 并写明理由（**同形态两条仍由 `leader/考勤上传` 覆盖**）· **`FLOWS_BASELINE 55 → 54`** · 3 处行号改准（`:355/358/490` → `:362/365/497`） | 守卫台账随实现取齐（**不得不改**） |
+
+### 四、真机验证（**按钮真点**；临时探针 `server/test/_probe-124.test.mjs`，跑完即删）
+
+**① 篇幅警告只给本人（2 例全过，① 用时 ≈ 9.6 s）**
+
+```
+①-本人提交页字数提示: 当前 128 字 · 少于 1200 字：触发警告审阅（不影响提交）；建议 1500 字以上
+①-本人列表中含「篇幅不足」标记: true | 报告 id: tr_a218f084-…
+①-提交未被拦截（未出现字数错误提示）: true
+①-本人阅读页标记: true | 状态含「已入库」: true
+①-组织台是否出现「篇幅不足」: false | 是否出现「触发警告审阅」: false | 台账卡在场: true
+①-组织委员读该篇：含「篇幅不足」= false 含「触发警告审阅」= false 含字数= true
+①-支书读该篇：含「篇幅不足」= false 含「触发警告审阅」= false
+```
+- 步骤（都是真点）：成员 `p16`（`2500010002`）→ 成员台「思想汇报」→ 填 128 字 → **点「提交」** ⇒ 提示语与上表逐字一致、提交后「我的汇报」出现该篇（带「篇幅不足」标签）→ 点进阅读页见标记 + 「已入库」；随后换 **组织委员 `p11`（`2400012355`）** 与 **支书 `p13`（`2300010001`）** 分别登录读**同一篇** ⇒ **「篇幅不足」与「触发警告审阅」两串都零命中**（组织台整页亦零命中、台账卡仍在）。
+
+**② 会议考勤上传＝该场组织者（1 例全过，用时 ≈ 10.5 s）**
+
+```
+②-组织者(p11) 可上传活动下拉: 15 项 | :请选择活动 | act-31:9月支部党员大会（线上异步表决）（2026-09-10） | act-30:秋季学期工作部署会（2026-08-28） | act-35:8月支委会：发展党员工作阶段审议（2026-08-12） | act-27:8月支委会：新学期筹备（2026-08-03） · 已上传 | …
+②-组织者(p11) 提交回执: ✓ / 考勤上传：新增 2 条；出勤已源头审校确认
+②-非组织者(p1 组长) 可上传活动数: 10 | 含 act-30 = false
+②-纪检(p10) 会议考勤录入卡空态: 当前没有您可录入的会议考勤——会议类考勤由该场会议的组织者上传（组长台「考勤上传」，组织者本人可见）；异常（缺勤 / 请假）请在下方「待确认考勤」队列做打包确认
+②-纪检统计与核对在场：待确认/打包确认 = true | 明细/矩阵 = true | 导出行 = true
+②-纪检打包确认（真点）：队列勾选数 = 8 | 回执: 已打包确认 8 条考勤（整批确认，不逐条）
+②-服务层 canUploadAttendance(act-30)：纪检 p10 = false | 组织者 p11 = true | 支书 p13 = true
+```
+- 步骤（都是真点）：组织委员 `p11` **经组织者兜底进组长台** `workspace/leader.html?tab=attendance` → **点「上传考勤表单」** ⇒ 下拉 15 项、**含 act-31（自己组织的支部党员大会）** → 选活动 → **点选人面板** → 勾 2 人 → 点「确认选择」 → **点「提交考勤」** ⇒ 回执「**新增 2 条**」；
+- **非组织者**：组长 `p1`（`2400012345`）同一下拉 10 项、**不含 `act-30`**（该场支部党员大会的组织者是 p11）；
+- **纪检 `p10`（`2400012354`）**：进纪检台「考勤管理」→ **点「录入会议考勤」** ⇒ **空态文本**如上（不再是「纪检直接上传」）；同页**待确认 / 打包确认 / 明细 / 矩阵 / 导出全在场**，且**真点**「全选 + 一次确认所选」⇒「**已打包确认 8 条考勤**」（统计与核对照既有面）；服务层同实例复核 `canUploadAttendance`：纪检 **false** / 组织者 **true** / 支书（例外承担）**true**。
+
+### 五、守卫（改前 / 改后两次）与全量（`R-85`）
+
+- **改前**：`doc-consistency` **13/13** · `link-integrity` **5/5** · `version-stamp` **15/15** · `module-load` **2/2** · `permission-gate` **9/9** · `server-base` **11/11** · `scene-write-sync` **3/3** · `doc-line-ref` **5/5**（合 **63/63 / 0 红**）。
+- **改后（内容与代码全部落定、版本戳 bump 后）**：**同上八项逐项同值全绿（63/63 / 0 红）**。
+- **中途如实登记的一次红与处置**：首次全量跑出 **2 红**（均属**本批改动的必然后果**，非环境类）——① `form-loop-sweep` 的「台账行号未同步」6 处（本批位移）+ `machine:true 校验点未覆盖`；② 「真机闭环 · disc/考勤管理（disc-meeting-attendance）」`waitFor: '#disc-meet-submit'` 超时（该表单改后在演示数据下为空态 ⇒ **结构性不可达**）。**处置**：6 处行号改准；`disc-meeting-attendance` **流程退役**、其两条校验点转 `machine:false`（**逐条写明理由**）、`FLOWS_BASELINE 55 → 54`（**同提交显式下调并说明**，符合 `S0` 的「如因重构而减少须显式更新基线并说明」）；退役后单跑 `form-loop-sweep` **78/78 / 0 红**。
+- **全量（`R-85`：先 `npm start` 起 3000 → `npm test` → 停服）**：**712 / 712 pass · 0 fail**（`duration ≈ 1090 s`），跑完**已停服**。
+
+### 六、反查（`1200` / `1500` / `警告审阅` / `篇幅` / `会议考勤` 全库 rg）与版本戳
+
+| 关键词 | 改前（命中数 / 文件数） | 改后（命中数 / 文件数） | 逐条判定 |
+|---|---|---|---|
+| `1200` | 130 / 35 | **136 / 38** | 增 6：`policy-defaults` / `thought-report.js` / `DATA_MODEL.md` / `SYSTEM_ROLE_PERMISSION.md` 等**本批新增的注释与登记**（其余命中＝三性口径、母本原话、历史日志） |
+| `1500` | 172 / 38 | **175 / 40** | 同上（增 3） |
+| `警告审阅` | 106 / 17 | **106 / 18** | **条数持平**（撤销 2 处组织侧呈现、新增注释与母本登记）；**文件 +1**（`SYSTEM_ROLE_PERMISSION.md`） |
+| `篇幅` | 138 / 23 | **143 / 25** | 增 5（本批注释与台账） |
+| `会议考勤` | 107 / 23 | **137 / 24** | 增 30（`attendance.js` 注释 / 组长台文案 / 纪检台文案 / 测试标题与注释 / 三份母本改准 / 本批台账） |
+| `纪检上传位\|纪检直接上传\|纪检直接录入` | 17 / 6 | **9 / 2** | **减 8**：`docs/src` 3 处（`attendance.js` 1 · `policy-defaults.js` 1 · `roster.js` 1）＋ `disc/attendance-tab.js` 5 处**全部改准**；**剩余 9 = `docs/help.html` 4 处（遗留，不在本批授权面）＋ `.ctx/logs/2026-09-EXECUTION_LOG.md` 5 处（历史沿革，本批之前批次的原样留痕）** |
+- **没只靠 grep**：① 组织侧「篇幅不足」的另一半是**阅读页标记**（不含「篇幅不足」四字的方向上也要核）——本批两处都真机核过；② 「会议考勤上传主体」的旧口径在 `docs/src` 里有**换说法**的写法（如卡内「由纪检直接上传并录入总表」不含「纪检上传位」字样），本批逐处读过 `disc/attendance-tab.js` 与 `leader/attendance-tab.js` 全文并改准；③ **遗留（如实登记）**：`docs/help.html` **19 处**（`:269`/`:297`/`:691`-`:696`/`:824`-`:831`/`:1225`/`:1260`/`:1264` 等）仍写「纪检会议考勤录入」「组织台篇幅不足一览」——该页**不在本批授权面**（`docs/src/**` 之外），**只登记、未改**；`README*.md` 同理（`README-server.md` 无命中，`README.md`/`README-members.md` 仅「篇幅 / 1200」类中性表述）。
+- **版本戳**：**改前 `20260921c` → 改后 `20260921d`**（`node docs/scripts/bump-version.mjs 20260921d` 显式传日期，**不靠 UTC 推导**）；脚本回执「实际改写：JS 210 / HTML 22 / CSS 2 / server-test 69；CODE_VERSION +1；陈旧戳自检 0 处残留」。
+
+### 七、不确定 / 没做的地方（如实登记）
+
+1. **「滞留党员到场补录」在演示数据下无入口**：该 UI 只在纪检台那张会议卡里；上传位收归组织者后，**组长台「考勤上传」表单没有这一块**（`docs/src/entries/tabs/leader/attendance-tab.js` 的表单只有「活动 + 选人 + 逐人状态 + 批量设状态」）。⇒ 会议考勤的 `K / L / K+L` 补录**当前无处可做**。**属「上传面搬家」的配套接线，本批未做、留待另批**（要么把补录迁到组织者上传面、要么把纪检台那张卡改成只读核对面）。
+2. **纪检台那张会议卡成为「仅当本人是该场组织者时可用」的卡**：演示数据下纪检 `p10` 不组织任何会议 ⇒ 卡内空态（文案已改准、给出去处）。**没有删除这张卡**——理由：删它等于连带删掉补录 / 更正能力，而替代面尚未建（见上条）；**登记为待接线项**。
+3. **`recorderByType` 未改（`institutional` 键）**：会议考勤的「**记录人**」语义是否随上传主体一并收归组织者，**支书未逐条明答** ⇒ 只登记、不改（设置中心「支部制度参数 → 考勤记录人」一栏仍显示「支部党员大会 / 组织生活会 / 支委会 → 纪检；党课 → 支书 / 副支书 / 纪检」）。**若要改，须支书一句话**（且连着 `policy-defaults.js:58`-`:72` 的注释与 `meeting-attendance-rules.test.mjs` 的期望值一起改）。
+4. **②③④ 系推导**：篇幅那条的「怎么呈现 / 审阅由谁做 / 是否登记为可调参数」三项，支书**只答了 ①「只给提交人本人」**，其余三项按此推导落（已显著标注系推导）；其中 ④ 已按 §9l 已登记的**字数族口径**归位（**这句登记本身也是推导**，见 `D-547`）。
+5. **`docs/help.html` 与本条相左的 19 处未改**（不在授权面，只登记）；`README*.md` 无相左表述、未动。
+6. **判据边界**：本批「非组织者不能」的判据是 **`canUploadAttendance` 一处**；`upsertMeetingAttendance` 与 `appendAttendanceRecords` 都经它 ⇒ 服务端快照写口**不另设第二份门**（`server/**` 业务代码一字未改，只改测试现场）。
+
 
 
 

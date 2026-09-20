@@ -1134,7 +1134,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 统一名单检索引擎 | `docs/src/components/list-filter.js` | 关键词 + 分面 chips + 门槛显隐 + 同 `stateKey` 跨重渲染保筛选（人/活动共用） |
 | 成员档案编辑模态 | `docs/src/components/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
 | 人员清单实时视图 | `docs/src/services/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
-| 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 800 }`（界面显示字数，不作硬性拦截） |
+| 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 1200 }`（界面显示字数，不作硬性拦截；**「少于 1200 字触发警告审阅」的提醒只给提交人本人看**——2026-09-20 支书定案「只给提交人本人」，2026-09-21 批次 124 落地） |
 | 实体 id 生成 | `docs/src/core/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
 | 党小组清单 | `docs/src/services/party-group.js` | `partyGroups` 域（党小组清单）唯一源；原三处硬编码组清单（支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域）已收敛为派生 |
 | 成员流动台账 | `docs/src/services/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |

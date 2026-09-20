@@ -4,18 +4,20 @@
 //   中间态，提交后立刻进入个人档案；标题栏与提交区文案随口径改准（不再说「等初阅通过」）。
 //   篇幅（`SOP-B-11`）：实时显示字数；建议 1500 字以上；少于 1200 字提示「触发警告审阅」，
 //   **一律不影响提交**（本 tab 不设 maxlength/minlength、不做任何拦截）。
+//   ⚠ 2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——本 tab 即提交人本人侧，
+//    提示只在这里（与阅读页的本人标记）出现；组织侧无任何「篇幅不足」标记。
 // 2026-09-13 面板数据改造（支书裁定「我认为还是需要用一个界面来承载！而不是展开！」）：
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/auth.js?v=20260921c';
+import { AuthStore } from '../../../services/auth.js?v=20260921d';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/thought-report.js?v=20260921c';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921c';
+} from '../../../services/thought-report.js?v=20260921d';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921d';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260921c';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260921d';
 
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
@@ -74,7 +76,7 @@ export function renderContent(ctx) {
         </div>
         <textarea id="tr-content" rows="5" class="input-flat w-full resize-none" placeholder="请书写本季度思想汇报"></textarea>
         <div class="flex items-center justify-between mt-2 gap-2">
-          <p class="text-[11px] text-gray-500">提交即入库归档至个人档案；建议 ${wordHint()} 字以上，少于 ${wordSoftMin()} 字将触发警告审阅（不影响提交）</p>
+          <p class="text-[11px] text-gray-500">提交即入库归档至个人档案；建议 ${wordHint()} 字以上，少于 ${wordSoftMin()} 字将触发警告审阅（不影响提交；<b>此提醒只给你本人看</b>）</p>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span id="tr-count" class="text-[11px] text-gray-500 tabular-nums">0 字</span>
             <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>

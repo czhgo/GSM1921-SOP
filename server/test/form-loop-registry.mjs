@@ -35,8 +35,11 @@
 
 /** 台账规模基线（守卫据此断言「不得静默缩水」；重构致减少须在同提交显式更新本基线并说明） */
 // 批次 120（2026-09-21）：照片墙「上传照片」浮窗新增 1 处校验点（图片）+ 1 条真机流程 ⇒ 基线同上调。
+// 批次 124（2026-09-21）：会议考勤上传主体收归「该场会议组织者」（`D-547`）⇒ 原 `disc-meeting-attendance`
+//   流程退役（表单在演示数据下无人可上传、结构性不可达）⇒ **FLOWS_BASELINE 55 → 54**（校验点台账条数不变，
+//   只把该表单的两条由 machine:true 转 machine:false 并写明理由）。
 export const SITES_BASELINE = 94;
-export const FLOWS_BASELINE = 55;
+export const FLOWS_BASELINE = 54;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -91,17 +94,21 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 580, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },
 
   // ── 纪检委员台 ──
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 302, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: true, msg: '请选择会议活动' },
-  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 306, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: true, msg: '请选择参会人员' },
+  // 批次 124（2026-09-21）：会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）
+  //   ⇒ 纪检台「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议
+  //   场次的上传位 ⇒ 表单长期空态、这两条校验分支**真机不可达**（原流程 `disc-meeting-attendance` 随之退役）。
+  //   **同形态的两条校验未失覆盖**：组织者上传位（组长台「考勤上传」）的「活动 / 参会人员」两条仍 machine:true。
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 302, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, reason: '上传位已收归该场会议组织者（批次 124 定案）；演示数据下纪检不持任何会议场次的上传位 ⇒ 该表单为空态、本分支不可达。同形态校验由 leader/考勤上传 覆盖。', msg: '请选择会议活动' },
+  { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 306, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: false, reason: '同上（同一表单空态 ⇒ 两条校验同源不可达）。', msg: '请选择参会人员' },
 
   // ── 组长台 ──
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 273, field: '来源类型', flow: 'leader/考察上传', machine: true, msg: '请选择来源类型' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 277, field: '具体来源', flow: 'leader/考察上传', machine: true, msg: '请选择具体来源' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 280, field: '人员', flow: 'leader/考察上传', machine: true, msg: '请选择人员' },
   { file: SRC + 'entries/tabs/leader/inspection-tab.js', line: 293, field: '考察内容（逐人）', flow: 'leader/考察上传', machine: true, msg: '的考察内容' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 355, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 358, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
-  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 490, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 362, field: '活动', flow: 'leader/考勤上传', machine: true, msg: '请选择活动' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 365, field: '参会人员', flow: 'leader/考勤上传', machine: true, msg: '请选择参会人员' },
+  { file: SRC + 'entries/tabs/leader/attendance-tab.js', line: 497, field: '要应用的状态', flow: 'leader/考勤上传·批量改状态', machine: true, msg: '请先选择要应用的状态' },
   // 批次 47-M（2026-09-16）：**组长台 · 活动管理 · 活动详情「添加子记录」内联表单**（D7 后仅剩宣传/材料两类）。
   // ⚠ 原 reason「需先打开活动的子记录内联表单（先有活动并进入详情）」把**两步点击**当成了不可自动化——
   //   真机实测：`.leader-act-item` **10 个**、活动详情内 `.act-sub-add-btn[data-type="publicity"]` **1 个**，
@@ -178,7 +185,7 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 104, field: '意见', flow: 'party-committee/上报审批·驳回', machine: true, msg: '驳回请填写意见' },
 
   // ── 成员（visitor）台 ──
-  { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 127, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
+  { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 129, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
   { file: SRC + 'entries/tabs/visitor/review-tab.js', line: 174, field: '复盘总结', flow: 'visitor/活动复盘', machine: true, msg: '请填写复盘总结' },
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 139, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
 
@@ -264,7 +271,7 @@ export const VALIDATION_SITES = [
   //   （前者不修，中者可造数据，后者应补 schema）。本批首次给这一类打了标。
   { file: SRC + 'services/review.js', line: 144, field: '复盘总结', flow: 'service/活动复盘', machine: false, msg: '请填写复盘总结', reason: '【批 47-M 结构性不可达·服务层重复守卫】唯一 UI 调用点 `visitor/review-tab.js:173` 已先做同文案判据后才调用本函数 ⇒ 真机上本守卫**永远不是第一个报出来的**，UI 层实测已由同名额登记（`entries/tabs/visitor/review-tab.js` 174）。本函数为公开导出（`todo-domain-view.test.mjs` 断言支书「代提交复盘」走同链），服务层是 mock/api 双态的边界，故保留为防御性重复守卫。**归类：不修，只标**' },
   { file: SRC + 'services/roster-ui-logic.js', line: 96, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名（必填）' },
-  { file: SRC + 'entries/thought-report-entry.js', line: 291, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
+  { file: SRC + 'entries/thought-report-entry.js', line: 295, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
   // 批次 47-R（2026-09-16）**新增登记**：打回意见（同一独立页、另一提交口）。
   // ⚠ 说明为何此前不在台账里：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
   //   **不保证「全站校验点都已登记」**——本条即是一处**台账遗漏**（原 92 条漏了这一处）。
@@ -272,7 +279,7 @@ export const VALIDATION_SITES = [
   //   ⇒ 该处一直可达，只是**没人登记、也就没人跑**。**这就是「台账不是全量」的实例：漏登记＝漏发现。**
   // 2026-09-18 批次 86（`SOP-B-28` 取消初阅门）：打回由「初阅决定」改为**事后反馈**（可对任一篇发起），
   //   文案随之由「打回须填写初阅意见」改准为「打回须填写意见」；行号随本批改动同步。
-  { file: SRC + 'entries/thought-report-entry.js', line: 268, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
+  { file: SRC + 'entries/thought-report-entry.js', line: 272, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
 ];
 
 // ── 真机闭环流程清单 ────────────────────────────────────────────────────
@@ -821,29 +828,14 @@ export const MACHINE_FLOWS = [
       { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 139, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
     ],
   },
-  {
-    // 批次 47-D：**纪检台 · 考勤管理 · 建考勤**（与组长台同属「考勤」高频动作，但**表单不同构**——
-    // 纪检台是「分段式」页签（`#att-segment-body`）+ 翻转开关 `#disc-meet-toggle`（模块级 `_meetFormVisible`
-    // 初值 false，故点一次即展开，与组长台一致）；载体 id 前缀是 `disc-meet-*` 而非 `att-*`，勿混用。
-    id: 'disc-meeting-attendance',
-    page: 'disc',
-    tab: '考勤管理',
-    open: [
-      { click: '#disc-meet-toggle' },
-      { waitFor: '#disc-meet-submit' },
-      // 批次 47-D 续（2026-09-16）：**清空默认预选的活动** → 「请选择会议活动」一支变为可达。
-      //   本批前该支登记为 machine:false，理由写「属另一条前置路径，本批不纳入」——**其实解法早就成型**：
-      //   它就是「默认预填藏必填分支」的第 6 例（前 5：本表单默认预选活动 · 支书台通知编辑预填原值 ·
-      //   宣传台周次按当日派生 · 宣传台流程 ⑧ · 组长台发起活动日期预填当日），统一解法＝`open[]` 里先清空。
-      //   **教训：登记成「另一条前置路径」等于把已知解法搁置**——凡已形成统一解法的形态，不该再挂 machine:false。
-      { setValue: { selector: '#disc-meet-activity', value: '' } },
-    ],
-    submit: [{ click: '#disc-meet-submit' }],
-    expect: [
-      { file: SRC + 'entries/tabs/disc/attendance-tab.js', field: '会议活动', msg: '请选择会议活动', carrier: '#disc-meet-activity', satisfy: [{ selectFirstOption: '#disc-meet-activity' }, { click: '#disc-meet-clear' }] },
-      { file: SRC + 'entries/tabs/disc/attendance-tab.js', field: '参会人员', msg: '请选择参会人员', carrier: '#disc-meet-picker .person-picker-trigger' },
-    ],
-  },
+  // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——
+  //   会议考勤上传主体收归「该场会议组织者」（支书 2026-09-20 定案，落地 `D-547`）后，纪检台
+  //   「会议考勤录入」表单只列**本人可上传**的会议场次；演示数据里纪检（p10）不持任何会议场次的上传位
+  //   ⇒ 表单长期空态，`waitFor: '#disc-meet-submit'` **结构性**不成立（不是抖动）。
+  //   两条校验点随之转 `machine:false`（理由见上方 VALIDATION_SITES「纪检委员台」段）；
+  //   **同形态的两条校验未失覆盖**：`leader-attendance-upload`（组织者上传位）的「活动 / 参会人员」仍在跑。
+  //   ⚠ 本流程**不是**「自动化不了」，而是「该表单在演示数据下无人可上传」——若日后把会议考勤录入面
+  //   移回某个常见角色手上（或演示数据里让某账号持有会议场次的上传位），应连同那两条校验点一并恢复。
   {
     // 批次 47-D：**支书台 · 通知编辑浮窗**——支书点名的高频「通知」域（发布已在册，编辑是其二）。
     // ⚠ 关键：编辑浮窗**预填**原值 → 必须在 open 里**先清空**标题与正文，否则「请填写…」两支

@@ -4,17 +4,17 @@
 // 日历视图（复用 calendar.js 渲染引擎）+ 只读活动详情（点击日历条目）。
 // 形态依据支书第四轮裁定：「支书的日历视图只要删去写入活动等功能，就可以提供很好的活动详情」。
 
-import { getAppState, setState } from '../core/state.js?v=20260921c';
-import { renderCalendarByActivities } from './calendar.js?v=20260921c';
-import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260921c';
-import { badgeHtml } from './badges.js?v=20260921c';
-import { ROLE_COLORS, dotDarkVars, isActivityArchived } from '../core/constants.js?v=20260921c';
-import { activityLifecycleBadgeHtml } from './inspector.js?v=20260921c';
-import { getPersonById } from '../services/person.js?v=20260921c';
-import { AuthStore } from '../services/auth.js?v=20260921c';
-import { fetchVotes } from '../services/committee-vote.js?v=20260921c';
+import { getAppState, setState } from '../core/state.js?v=20260921d';
+import { renderCalendarByActivities } from './calendar.js?v=20260921d';
+import { _fmtDate, _currentYearMonth, flashHighlight, downloadCSV, showToast, escHtml as esc } from '../core/utils.js?v=20260921d';
+import { badgeHtml } from './badges.js?v=20260921d';
+import { ROLE_COLORS, dotDarkVars, isActivityArchived } from '../core/constants.js?v=20260921d';
+import { activityLifecycleBadgeHtml } from './inspector.js?v=20260921d';
+import { getPersonById } from '../services/person.js?v=20260921d';
+import { AuthStore } from '../services/auth.js?v=20260921d';
+import { fetchVotes } from '../services/committee-vote.js?v=20260921d';
 // 表决组件（AV4.5 公共端：复用 activity.html 同款 renderVoteWidget，授权按 voterIds 判定）
-import { renderVoteWidget } from './vote-widget.js?v=20260921c';
+import { renderVoteWidget } from './vote-widget.js?v=20260921d';
 
 // 任务状态元数据（状态点 + 文案，轻量自包含，避免依赖 status-badge 全家桶）
 const _TASK_STATUS_META = {

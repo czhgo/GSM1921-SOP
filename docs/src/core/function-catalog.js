@@ -72,7 +72,7 @@ export const FUNCTION_CATALOG = [
   { id: 'flow-inspection', name: '考察积极分子链路', group: '党建', desc: '组长/专班上传考察 → 纪检确认 → 组织委员建档归集 → 支委会/大会讨论', related: ['inspection', 'talent', 'thought-report', 'development'], generic: true, kind: 'flow' },
   { id: 'flow-institution', name: '制度制定与迭代链路', group: '党建', desc: '条条委员起草试点 → 各党小组征求意见 → 修改提交 → 支委会审议 → 党员大会表决 → 监督落实修订', related: [], generic: true, kind: 'flow' },
   { id: 'flow-makeup', name: '补课回写链路', group: '党建', desc: '纪检记录缺勤 → 生成补课任务 → 成员完成 → 考勤回写/逾期清除', related: ['makeup', 'attendance-mgmt'], generic: false, kind: 'flow' },
-  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交即入库归档（算法归集至个人档案）→ 组织委员查看调用；篇幅不足仅提示（警告审阅），必要时打回要求补充', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
+  { id: 'flow-thought-report', name: '思想汇报链路', group: '党建', desc: '党员提交即入库归档（算法归集至个人档案）→ 组织委员查看调用；篇幅不足只提示提交人本人（警告审阅，不影响提交），必要时打回要求补充', related: ['thought-report', 'talent'], generic: true, kind: 'flow' },
   // ══════════ 架构（kind: arch） ══════════
   { id: 'arch-layers', name: '架构分层', group: '公共', desc: '前台（根页面 + 工作台，页面清单以 docs/ 实测为准） → 中台 entries/components/core → 服务层 services/mock → 后端 server/API → 母本 sop', related: ['arch-service-deps', 'arch-data-flow'], generic: true, kind: 'arch' },
   { id: 'arch-service-deps', name: '服务依赖', group: '公共', desc: '服务模块调用关系（activity → attendance → review → todo）', related: ['arch-layers'], generic: true, kind: 'arch' },

@@ -1,23 +1,21 @@
 // role: [工程师]+[AI]
-// 组织委员工作台 Tab：思想汇报（台账 ＋ 篇幅不足一览）
+// 组织委员工作台 Tab：思想汇报台账（人 × 期次）
 // 2026-09-18 批次 86（`SOP-B-28`）：**取消「初阅通过才归档」这道门**——提交即入库即归档，
-//   故原「待初阅队列」整卡撤除（没有待阅队列了）。本 tab 保留：
-//   ① 台账宽表（人 × 期次，2026-09-14 批次 41 立；不臆造空期次、只给「按人」视图）；
-//   ② 新增「篇幅不足（少于 1200 字）」一览——`SOP-B-11` 的「警告审阅」在系统里的落点：
-//      只列出来让人看一眼（**不影响提交与归档、不生成任何待办**），点进去即独立阅读页。
+//   故原「待初阅队列」整卡撤除（没有待阅队列了）。
+// 2026-09-21 批次 124（`SOP-B-11` 待定项 ①：支书 2026-09-20 定案「**只给提交人本人**」）：
+//   原「篇幅不足（少于 1200 字）」一览整卡撤除——篇幅提醒**只在提交人本人的提交页 / 阅读页出现**，
+//   组织侧**不留任何「篇幅不足」标记**、也不经手（组织委员看的是台账与正文本身）。
 // 2026-09-13 面板数据改造（支书裁定「我认为还是需要用一个界面来承载！而不是展开！」）：
 //  本 tab 只做**入口导航**——逐条跳**独立阅读页** docs/thought-report.html（单篇 ?id= / 按人 ?personId=）；
 //  打回（事后反馈）、正文阅读均在该页完成，本 tab 不再行内展开。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listAllThoughtReports, comparePeriodDesc, wordCountHint, wordHint, wordSoftMin } from '../../../services/thought-report.js?v=20260921c';
-import { getPersonName, liveMembers } from '../../../services/person.js?v=20260921c';
-import { AuthStore } from '../../../services/auth.js?v=20260921c';
-import { escHtml as esc } from '../../../core/utils.js?v=20260921c';
+import { listAllThoughtReports, comparePeriodDesc } from '../../../services/thought-report.js?v=20260921d';
+import { getPersonName, liveMembers } from '../../../services/person.js?v=20260921d';
+import { AuthStore } from '../../../services/auth.js?v=20260921d';
+import { escHtml as esc } from '../../../core/utils.js?v=20260921d';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260921c';
-// 篇幅不足一览接统一检索引擎（关键词 + 分页，与其他列表同一套控件）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260921c';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260921d';
 
 // ── 审阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（无状态 / 状态非法 / 旧 'pending' → 已入库）
@@ -48,9 +46,6 @@ function _syncViewBtns(container) {
     SEG_OFF_CLASSES.forEach(c => btn.classList.toggle(c, !on));
   });
 }
-
-const _date = (iso) => (iso || '').slice(0, 10);
-const _brief = (s) => { const t = String(s || '').replace(/\s+/g, ' ').trim(); return t.length > 40 ? t.slice(0, 40) + '…' : t; };
 
 const _statusBadgeHtml = (status) => {
   const m = STATUS_META[status] || STATUS_META.archived;
@@ -87,21 +82,9 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
     });
     // 行＝支部在册成员（实时视图：名册新增/移出即时反映；未提交者整格「—」＝漏交可见）
     const members = [...liveMembers()].map(p => ({ id: p.id, name: getPersonName(p.id) || p.name || p.id }));
-    // 篇幅不足一览（`SOP-B-11` 的「警告审阅」落点）：少于警告审阅线的篇目，新→旧
-    const shortOnes = recs
-      .filter(r => wordCountHint(r.content).level === 'short')
-      .sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')));
 
     container.innerHTML = `
       <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-1">
-          <h3 class="font-title-cn text-base font-semibold text-gray-800">篇幅不足（少于 ${wordSoftMin()} 字）</h3>
-          <span class="text-xs text-gray-500">${shortOnes.length} 篇</span>
-        </div>
-        <p class="text-xs text-gray-500 mb-3">建议 ${wordHint()} 字以上；少于 ${wordSoftMin()} 字触发<strong>警告审阅</strong>——这些汇报<strong>都已正常入库归档</strong>，这里只是把它们列出来让人看一眼（<strong>不影响提交、不生成待办</strong>）。点任一条进阅读页。</p>
-        <div id="tr-short-host"></div>
-      </div>
-      <div class="card rounded-xl p-5 mt-3">
         <div class="flex items-center justify-between mb-1">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报台账（人 × 期次）</h3>
           <div class="flex items-center gap-2">
@@ -116,38 +99,6 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
         <div id="tr-ledger-host"></div>
       </div>
     `;
-
-    // 篇幅不足一览接统一检索引擎（首列＝人 → 配关键词检索；与其它列表同一套控件）
-    renderFilteredList(container.querySelector('#tr-short-host'), {
-      stateKey: 'org-thought-short-list',
-      rows: shortOnes,
-      keyword: {
-        keys: ['personName', 'title', 'content'],
-        placeholder: '搜索姓名 / 标题…',
-        get: (r, k) => (k === 'personName' ? (getPersonName(r.personId) || '') : r[k]),
-      },
-      countUnit: '篇',
-      listClass: 'space-y-2',
-      emptyMessage: '暂无篇幅不足的思想汇报——本支部提交的汇报都达到了建议篇幅以上',
-      rowHtml: (r) => {
-        const who = esc(getPersonName(r.personId) || r.personId);
-        const title = esc(r.title || '思想汇报');
-        const wc = wordCountHint(r.content);
-        return `
-          <a href="thought-report.html?id=${r.id}" data-tr-id="${r.id}" class="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-50 hover:bg-gray-50 transition-colors">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs font-semibold text-gray-800">${who}</span>
-                <span class="text-xs font-medium text-gray-600">《${title}》</span>
-                <span class="text-[11px] text-gray-500">${_date(r.submittedAt)}</span>
-                <span class="text-[11px] font-medium text-amber-700">${wc.count} 字</span>
-              </div>
-              <p class="text-[12px] text-gray-500 mt-1">${esc(_brief(r.content))}</p>
-            </div>
-            <span class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 whitespace-nowrap flex-shrink-0">阅读 →</span>
-          </a>`;
-      },
-    });
 
     // 台账矩阵接单一源（行＝人 / 行＝期次两视图互为转置；人维分页与列上限由组件缺省提供）
     // 转置只换视角：同一份 bucket、同一个 cell 语义，不做第二套渲染

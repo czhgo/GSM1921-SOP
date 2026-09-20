@@ -16,11 +16,11 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、支书复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921c';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自持一份与
 //   org-base-data-preview 同值的副本，两处维护；现统一 import 叶子模块，防循环依赖见该文件注释）。
-import { RESIDENCE } from '../core/constants.js?v=20260921c';
-import { PersonStore } from './person.js?v=20260921c';
+import { RESIDENCE } from '../core/constants.js?v=20260921d';
+import { PersonStore } from './person.js?v=20260921d';
 
 /** 运行期覆盖的 localStorage 键（组织委员维护写入；与 members UI / 纪检表单同源读取） */
 export const RESIDENCE_KEY = 'gsm1921-residence-overrides';
@@ -101,7 +101,7 @@ export function isRosterEligible(person, cfg = getRosterConfig()) {
 /**
  * 会议应到名单（统一口径，支书已批 S1–S4）：
  *   - type = '党小组会'：须给 groupId（党小组），取本组党员非滞留；
- *   - 其余支部会议（支部党员大会/党课/组织生活会/支委会 等纪检上传位类型）：
+ *   - 其余支部会议（支部党员大会/党课/组织生活会/支委会 等会议考勤类型）：
  *     全支部党员（正式+预备）非滞留；党课列席（积极分子/发展对象）不计应到。
  * @param {Object} params
  * @param {string} [params.type]      会议活动类型（'党小组会' 走小组口径）

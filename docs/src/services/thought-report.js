@@ -12,7 +12,8 @@
 //    打回是**事后反馈**，不是提交必经的门；提交人交上去即入库，不受任何审阅影响。
 //  存量数据归一：无 reviewStatus / 状态非法 / 旧的 'pending' 一律读取侧归为 archived
 //    （旧「待初阅」在取消门之后即「已入库」，不再有待办语义）。
-//  篇幅提示见下方 wordCountHint（`SOP-B-11`：建议 1500 / 少于 1200 触发警告审阅 / 不影响提交）。
+//  篇幅提示见下方 wordCountHint（`SOP-B-11`：建议 1500 / 少于 1200 触发警告审阅 / 不影响提交；
+//    **提醒只给提交人本人**——2026-09-21 批次 124，支书 2026-09-20 定案「只给提交人本人」）。
 //
 //  ── 2026-09-13 支书裁定：思想汇报改按「面板数据」建模 ──────────────
 //  支书原话：「思想汇报是一个面板数据——一个人可以在多个季度上传他的思想汇报。
@@ -27,20 +28,20 @@
 //   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921c';
-import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260921c';
-import { THOUGHT_REPORTS } from '../mock/index.js?v=20260921c';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921c';
+import { mockDB } from '../core/domain.js?v=20260921d';
+import { persist, flushSnapshot, getDataSource } from '../core/data-adapter.js?v=20260921d';
+import { THOUGHT_REPORTS } from '../mock/index.js?v=20260921d';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921d';
 // 期次纯函数单一源 = core/period.js（服务层与通知模板共用，避免 core→services 环依赖）
-import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260921c';
-import { generateId } from '../core/id.js?v=20260921c';
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../core/period.js?v=20260921d';
+import { generateId } from '../core/id.js?v=20260921d';
 // 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921c';
-import { NoticeStore } from './notice.js?v=20260921c';
-import { getPersonById } from './person.js?v=20260921c';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921d';
+import { NoticeStore } from './notice.js?v=20260921d';
+import { getPersonById } from './person.js?v=20260921d';
 
 /** 期次助手再导出（既有/新增消费方沿用 services/thought-report.js 入口，勿另建第二份实现） */
-export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260921c';
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../core/period.js?v=20260921d';
 
 // ════════════════════════════════════════════════════════════════
 //  访问门（单一源，2026-09-13）
@@ -72,7 +73,10 @@ export function canReviewThoughtReport(viewer) {
 
 // ════════════════════════════════════════════════════════════════
 //  篇幅口径（单一源 = policy-defaults.thoughtReport）
-//  `SOP-B-11`：建议 1500 字以上 · 少于 1200 字触发警告审阅 · **一律不影响提交**
+//  `SOP-B-11`：建议 1500 字以上 · 少于 1200 字触发「警告审阅」 · **一律不影响提交**
+//  2026-09-21 批次 124（支书 2026-09-20 定案「**只给提交人本人**」）：提醒**只在提交人本人的
+//    提交页 / 重交页 / 阅读页出现**——**不在记录上留组织侧可见的标记、组织侧不经手篇幅这件事**，
+//    也不存在「组织审阅篇幅」这一环节（组织委员的「打回」是另一件事：事后反馈，见下）。
 // ════════════════════════════════════════════════════════════════
 
 /** 建议篇幅（字）——**只是建议**，不参与任何判定，更不拦提交 */
@@ -89,6 +93,8 @@ export function wordSoftMin() {
  * 篇幅提示文案（提交侧 / 重交侧 / 阅读侧共用；单一源）
  * ⚠ 三件事分开说清、不许混：**建议** 1500（wordHint）· **警告审阅线** 1200（wordSoftMin）·
  *   **一律不影响提交**（level 只用于文案配色，**不参与任何拦截判定**）。
+ * ⚠ 这是**给提交人本人看**的提示（2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」）——
+ *   各消费点**只在本人侧渲染**（提交页 / 重交页 / 阅读页的 isSelf），**组织侧不渲染该 level**。
  * @param {string} content 正文
  * @returns {{ count:number, level:'ok'|'short', hint:string }} level='short' 即「低于警告审阅线」
  */
