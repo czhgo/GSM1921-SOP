@@ -27,7 +27,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）* - Source: knowledge/SOP/常见工作场景快速指南.md#目录
  * @property {string}  [description] - 活动描述
  * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
- * @property {boolean} [isBrand]  - 品牌属性标签（由支委会认定、支书主持支委会；2026-09-21 批次 126 起系统上支委层可操作，不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
+ * @property {boolean} [isBrand]  - 品牌属性标签（**认定＝支委/党小组组长提案 → 支委会审议通过后确定**，2026-09-21 批次 132 · 支书口径二；不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
  * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
  *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
  *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。

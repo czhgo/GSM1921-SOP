@@ -18,29 +18,31 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../components/sidebar.js?v=20260921j';
-import { renderHeader } from '../components/header.js?v=20260921j';
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260921j';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921j';
-import { mockDB } from '../core/domain.js?v=20260921j';
-import { AuthStore } from '../services/auth.js?v=20260921j';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260921j';
-import { BranchService } from '../services/runtime.js?v=20260921j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921j';
-import { IssueStore } from '../services/issues.js?v=20260921j';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260921j';
-import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260921j';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260921j';
-import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260921j';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921j';
+import { renderSidebar } from '../components/sidebar.js?v=20260921k';
+import { renderHeader } from '../components/header.js?v=20260921k';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260921k';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921k';
+import { mockDB } from '../core/domain.js?v=20260921k';
+import { AuthStore } from '../services/auth.js?v=20260921k';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260921k';
+import { BranchService } from '../services/runtime.js?v=20260921k';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921k';
+import { IssueStore } from '../services/issues.js?v=20260921k';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260921k';
+import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260921k';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260921k';
+import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260921k';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921k';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260921j';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260921j';
-import { loadDevStageOverrides } from '../services/member-confirmation.js?v=20260921j';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260921j';
-import { generateId } from '../core/id.js?v=20260921j';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260921k';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260921k';
+import { loadDevStageOverrides } from '../services/member-confirmation.js?v=20260921k';
+// 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
+import { listBrandProposals } from '../services/activity.js?v=20260921k';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260921k';
+import { generateId } from '../core/id.js?v=20260921k';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -147,6 +149,13 @@ async function loadCandidates() {
   catch (e) { console.warn('[party-committee-meeting] 成员档案读取失败：', e); }
   try { src.stageEntries = loadDevStageOverrides(); }
   catch (e) { console.warn('[party-committee-meeting] 发展推进档案读取失败：', e); }
+  try {
+    // 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：已提案、尚未认定的活动（判据单一源 activity.js）
+    src.brandProposals = listBrandProposals().map((bp) => ({
+      ...bp,
+      proposedByName: bp.proposal && bp.proposal.by ? (getPersonName(bp.proposal.by) || '') : '',
+    }));
+  } catch (e) { console.warn('[party-committee-meeting] 品牌认定提案读取失败：', e); }
   return buildAgendaCandidates(src);
 }
 
@@ -174,7 +183,7 @@ function extractSectionHtml(act, candidates = []) {
           <div class="space-y-1.5">${list.map(row).join('')}</div>
         </div>`;
     }).join('')
-    : `<p class="text-xs text-gray-400">当前没有待上会的事项（专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象）。</p>`;
+    : `<p class="text-xs text-gray-400">当前没有待上会的事项（专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象 / 品牌认定提案）。</p>`;
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">② 提取支委会议程</p>
@@ -417,7 +426,7 @@ function bindExtract(act, candidates = []) {
   document.getElementById('pcm-extract')?.addEventListener('click', async (e) => {
     const btn = e.currentTarget;
     if (btn.dataset.processing === '1') return;
-    const refKindOf = { taskforce: 'taskforce-proposal', issue: 'issue', draftDoc: 'branch-doc', partyVote: 'branch-doc', recommend: 'member' };
+    const refKindOf = { taskforce: 'taskforce-proposal', issue: 'issue', draftDoc: 'branch-doc', partyVote: 'branch-doc', recommend: 'member', brand: 'activity' };
     const picked = [];
     ROOT.querySelectorAll('.pcm-cand:checked').forEach((cb) => {
       const c = candidates.find((x) => x.group === cb.dataset.group && x.refId === cb.value);
@@ -433,6 +442,8 @@ function bindExtract(act, candidates = []) {
       // 类目自带的引用字段照搬（制度草案 → branchDocId；发展对象推荐 → 待讨论名单 + 目标阶段）：
       // 后者是「推荐为发展对象」那道门的议程侧（记录通过即为该人建成员变更申请，见 agenda-follow-up.js）
       if (c.branchDocId) item.branchDocId = c.branchDocId;
+      // 品牌认定提案（2026-09-21 批次 132）：议程项回指**被提案的那场活动**，记录「通过」才置 isBrand
+      if (c.brandActivityId) item.brandActivityId = c.brandActivityId;
       if (Array.isArray(c.personIds) && c.personIds.length) item.personIds = c.personIds;
       if (c.toStage) item.toStage = c.toStage;
       picked.push(item);

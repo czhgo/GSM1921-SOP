@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/id.js?v=20260921j';
+import { generateId } from '../../../core/id.js?v=20260921k';
 // 事项领域单一源（services/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921j';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921k';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -35,6 +35,10 @@ export function collectAgendaRows(rows = []) {
       };
       if (kinds.includes('discussion-file') && row.branchDocId) {
         out.branchDocId = row.branchDocId;
+      }
+      // 品牌认定提案（2026-09-21 批次 132）：议程项带回指「被提案的那场活动」，记录结果时据此落认定
+      if (kinds.includes('brand-designation') && row.brandActivityId) {
+        out.brandActivityId = row.brandActivityId;
       }
       if (kinds.includes('attendee-list')) {
         // 待讨论名单：名单统一阶段转换 + 多选人员（兼容旧单值 personId）
@@ -80,6 +84,10 @@ export function collectAgendaRows(rows = []) {
 //   ④ `recommend` 发展对象推荐 —— 母本 `组织委员工作流程指南.md:181`「发展对象 | **支委会讨论确定**」；
 //      「积极分子 → 发展对象」这道门见 `member-confirmation.js::hasPassedCommitteeDiscussion`
 //      （批次 127 / `SOP-B-27`）：**先上会讨论通过，才可发起阶段变更**。
+//   ⑤ `brand` 品牌认定提案 —— 支书 2026-09-21 口径二（逐字）：「**支委/党小组组长均可以提案，
+//      支委会（如果有党小组组长则是支委扩大会）通过后确定。**」；候选＝**已提案、尚未认定**的活动
+//      （判据单一源 `services/activity.js::listBrandProposals` / `brandProposalOf`）；
+//      勾入后议程行带 `brandActivityId`，**记录「通过」才置 `isBrand`**（`applyBrandDesignationResult`）。
 //   ⚠ **未放「上报事项」**（`reviewRequests`）：它走**支部 → 党委**通道（`secretary/report-up-tab.js:1`-`:6`），
 //     且母本里「上报党委」是支委会决议**之后**的下游动作（`DEVELOPMENT_PATH.md:207`）——不是该上会的事。
 //     本条与 `D-411` 取证第 5 条第 ② 款「上报事项……与支委会议程无关」一致。
@@ -97,6 +105,7 @@ export const AGENDA_CANDIDATE_GROUPS = [
   { key: 'draftDoc', label: '制度草案（草案态支部文件）', hint: '制度修改由支委会讨论' },
   { key: 'partyVote', label: '待报送党员大会表决的制度', hint: '支委会已审议通过并决定报送党员大会' },
   { key: 'recommend', label: '发展对象推荐（要先经支委会讨论）', hint: '推荐为发展对象须支委会讨论通过' },
+  { key: 'brand', label: '品牌认定提案（待支委会审议）', hint: '品牌认定＝提案 → 支委会通过后确定' },
 ];
 
 /**
@@ -108,8 +117,10 @@ export const AGENDA_CANDIDATE_GROUPS = [
  * @param {Array} [input.draftDocs] 支部文件（调用方按 `services/branch-doc.js::isAgendaDraftDoc` 取：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
  * @param {Array} [input.members] 成员档案（`PersonStore.getMembers()`；本函数只取「积极分子」作推荐候选）
  * @param {Object} [input.stageEntries] 发展推进覆盖档案（`loadDevStageOverrides()` 产物：{ personId: { stage, entryDate } }）
+ * @param {Array} [input.brandProposals] 品牌认定提案（`services/activity.js::listBrandProposals()` 产物：
+ *   `{ id, title, proposal }`；调用方可自行补齐 `proposedByName` 供展示）
  * @returns {Array<{group:string, refId:string, text:string, meta:string, item:string, host:string,
- *   kinds:string[], branchDocId?:string, personIds?:string[], toStage?:string}>}
+ *   kinds:string[], branchDocId?:string, brandActivityId?:string, personIds?:string[], toStage?:string}>}
  *   `item` / `host` / `kinds` / … 即议程行入参（可直接喂 `_addAgendaRow` / `collectAgendaRows`）。
  */
 export function buildAgendaCandidates({
@@ -118,6 +129,7 @@ export function buildAgendaCandidates({
   draftDocs = [],
   members = [],
   stageEntries = {},
+  brandProposals = [],
 } = {}) {
   const rows = [];
 
@@ -192,6 +204,25 @@ export function buildAgendaCandidates({
       kinds: ['attendee-list'],
       personIds: [m.id],
       toStage: '发展对象',
+    });
+  }
+
+  // ⑤ 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：候选＝已提案、尚未认定的活动；
+  //    议程行带 `brandActivityId`（回指被提案的那场活动）——**记录「通过」才置 `isBrand`**
+  //    （判据与状态迁移单一源 `services/activity.js::applyBrandDesignationResult`）。
+  for (const bp of Array.isArray(brandProposals) ? brandProposals : []) {
+    if (!bp || !bp.id) continue;
+    const title = bp.title || bp.id;
+    const proposer = (bp.proposal && bp.proposal.proposedByName) || bp.proposedByName || '';
+    rows.push({
+      group: 'brand',
+      refId: bp.id,
+      text: `审议品牌认定「${title}」`,
+      meta: `品牌认定提案${proposer ? ` · 提案人 ${proposer}` : ''}${bp.proposal && bp.proposal.note ? ` · ${bp.proposal.note}` : ''}`,
+      item: `审议品牌认定「${title}」`,
+      host: '支书',
+      kinds: ['brand-designation'],
+      brandActivityId: bp.id,
     });
   }
 

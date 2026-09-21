@@ -5,23 +5,23 @@
 //  依赖：domain.js, id.js（单向依赖，不依赖 UI 或 runtime）
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921j';
-import { generateId } from '../core/id.js?v=20260921j';
-import { getDataSource, notifyDataLoaded, persist } from '../core/data-adapter.js?v=20260921j';
-import { bumpToken, resetAllTokens } from '../core/version-token.js?v=20260921j'; // P0 域缓存失效（spec §二.3/§二.4）
+import { mockDB } from '../core/domain.js?v=20260921k';
+import { generateId } from '../core/id.js?v=20260921k';
+import { getDataSource, notifyDataLoaded, persist } from '../core/data-adapter.js?v=20260921k';
+import { bumpToken, resetAllTokens } from '../core/version-token.js?v=20260921k'; // P0 域缓存失效（spec §二.3/§二.4）
 // Mock 持久化/种子引擎（saveDB/loadDB/seed 同步）收敛到 core/mock-adapter.js 唯一实现
 // （T-2026-09-007 Step1：services 版私有引擎曾与 mock-adapter 同 Key 双写并缺
 //   imageRecords/agendaVotes 等新域恢复 → 刷新即丢；现统一由 MockAdapter 承担全量持久化域 34 个，含 users）
-import { MockAdapter } from '../core/mock-adapter.js?v=20260921j';
+import { MockAdapter } from '../core/mock-adapter.js?v=20260921k';
 // C3 一键初始化档（?reset=init，2026-09-08）：mock-adapter 禁改 → reset/清库逻辑经本
 // 可改入口兜底；init 档与 demo/preview 档并存（demo/preview 仍在 MockAdapter.loadDB
 // 内既有 handleResetIfRequested 处理，本档先于其检测、互不冲突——见 init-reset.js）。
 // C2 修复（2026-09-08）：init 档在浏览器形态被 adapter 判空回填（init≈demo）——
 // loadDB 委派 MockAdapter.loadDB 后按 init 态哨兵剔除演示种子（见 stripSeedRecordsIfInitState）。
-import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20260921j';
+import { handleInitResetIfRequested, stripSeedRecordsIfInitState } from './init-reset.js?v=20260921k';
 // 批4（2026-09-09 支书批「域参数」）：数据加载完成 → 读侧有效默认注入
 // （当前人所属支部 config.policyOverrides merge 进 POLICY_DEFAULTS；无 overrides = 保持默认）
-import { applyEffectivePolicyDefaultsForPerson } from './branch.js?v=20260921j';
+import { applyEffectivePolicyDefaultsForPerson } from './branch.js?v=20260921k';
 
 const MOCK_DELAY_MS = 600;
 
@@ -134,7 +134,7 @@ export function createActivity(data) {
     // 派生赋权待办（最小三成本原则·阶段1C-3）
     // T-190：创建时已内联赋权（assignments 非空）则不再派生；未选人保留待办兜底
     if (!newItem.assignments || newItem.assignments.length === 0) {
-      import('./todo.js?v=20260921j').then(({ LifecycleTodoDeriver }) => {
+      import('./todo.js?v=20260921k').then(({ LifecycleTodoDeriver }) => {
         LifecycleTodoDeriver.deriveFromActivityCreate(newItem);
       }).catch(e => console.warn('[MockAdapter] 派生活动赋权待办失败：', e));
     }
@@ -196,7 +196,7 @@ export function deleteActivity(id) {
     saveDB();
     console.info('[MockAdapter] deleteActivity 成功，id=' + id);
     // 联动删除关联待办（避免遗留孤儿待办）
-    import('./todo.js?v=20260921j').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260921k').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deleteByActivity(id);
     }).catch(e => console.warn('[MockAdapter] 联动删除待办失败：', e));
     // 2026-08-27 T-283 生命周期修复：彻底删除活动须联动清理全部子记录
@@ -257,7 +257,7 @@ export function archiveActivity(id) {
     console.info('[MockAdapter] archiveActivity 成功，id=' + id
       + '，级联完成下属 tasks。');
     // 派生归档待办给宣传委员（最小三成本原则·阶段1C-3）
-    import('./todo.js?v=20260921j').then(({ LifecycleTodoDeriver }) => {
+    import('./todo.js?v=20260921k').then(({ LifecycleTodoDeriver }) => {
       LifecycleTodoDeriver.deriveFromActivityArchive(archived);
     }).catch(e => console.warn('[MockAdapter] 派生活动归档待办失败：', e));
     return archived;
@@ -267,26 +267,37 @@ export function archiveActivity(id) {
 // ── Brand Activity ──────────────────────────────────────────────
 
 /**
- * 切换活动的品牌标记（支委会认定——支书主持支委会；2026-09-21 批次 126 起系统上支委层可操作）
+ * 取消活动的品牌认定（支委会事项；**2026-09-21 批次 132 · 支书口径二**）
+ * 口径：**品牌认定＝支委/党小组组长提案 → 支委会审议通过后确定**（`services/activity.js`），
+ *   ⇒ 本口**只能取消、不能认定**（认定唯一入口＝支委会议程项「记录结果 · 通过」；
+ *   非品牌态调用一律抛错，防「点一下即认定」的后门）。
+ * 前端写链单一源见 `services/activity.js::revokeBrandDesignation`（本口保留供 mock/BranchService 同形）。
  * Source: content/04_web_design/data/DATA_ARCHITECTURE.md §1.3
  * @param {string} id - 活动 ID
  * @returns {Promise<import('../core/domain.js').Activity>}
  */
-export function toggleBrand(id) {
+export function revokeBrand(id) {
   return _withDelay(() => {
     const idx = mockDB.activities.findIndex(a => a.id === id);
     if (idx === -1) {
       throw Object.assign(new Error(`活动 ${id} 不存在`), { type: 'NotFoundError' });
     }
-    const updated = { ...mockDB.activities[idx], isBrand: !mockDB.activities[idx].isBrand };
+    if (mockDB.activities[idx].isBrand !== true) {
+      throw Object.assign(new Error('该活动当前不是品牌活动——品牌认定须经支委会审议通过（提案 → 支委会通过后确定）'), { type: 'ValidationError' });
+    }
+    const updated = {
+      ...mockDB.activities[idx],
+      isBrand: false,
+      brandRevokedAt: new Date().toISOString(),
+    };
     mockDB.activities = [
       ...mockDB.activities.slice(0, idx),
       updated,
       ...mockDB.activities.slice(idx + 1),
     ];
-    bumpToken('activity'); // P0：活动写口 bump（品牌标记）
+    bumpToken('activity'); // P0：活动写口 bump（品牌认定取消）
     saveDB();
-    console.info('[MockAdapter] toggleBrand 成功，id=' + id + '，isBrand=' + updated.isBrand);
+    console.info('[MockAdapter] revokeBrand 成功，id=' + id);
     return updated;
   });
 }

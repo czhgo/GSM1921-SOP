@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260921j';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921j';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921j';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921j';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921j';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260921j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921j';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260921j';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921j';
-import { loadActivities } from '../../../services/activity.js?v=20260921j';
-import { renderQueryView } from '../../../components/query-view.js?v=20260921j';
-import { icon } from '../../../core/icons.js?v=20260921j';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921j';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921j';
+import { getAppState, setState } from '../../../core/state.js?v=20260921k';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921k';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921k';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921k';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921k';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260921k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921k';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260921k';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921k';
+import { loadActivities, listBrandProposals } from '../../../services/activity.js?v=20260921k';
+import { renderQueryView } from '../../../components/query-view.js?v=20260921k';
+import { icon } from '../../../core/icons.js?v=20260921k';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921k';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260921j';
-import { BranchService } from '../../../services/runtime.js?v=20260921j';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921j';
+import { NoticeStore } from '../../../services/notice.js?v=20260921k';
+import { BranchService } from '../../../services/runtime.js?v=20260921k';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921k';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921j';
-import { badgeHtml } from '../../../components/badges.js?v=20260921j';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260921j';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921j';
-import { AuthStore } from '../../../services/auth.js?v=20260921j';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921j';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921k';
+import { badgeHtml } from '../../../components/badges.js?v=20260921k';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260921k';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921k';
+import { AuthStore } from '../../../services/auth.js?v=20260921k';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921k';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch-doc.js?v=20260921j';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch-doc.js?v=20260921k';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921j';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921k';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921j';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921k';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -73,17 +73,18 @@ const AGENDA_TARGET_STAGES = ['发展对象', '预备党员', '正式党员'];
 const AGENDA_KIND_CHIPS = [
   { kind: 'discussion-file', label: '讨论文件' },
   { kind: 'attendee-list', label: '待讨论名单' },
+  { kind: 'brand-designation', label: '品牌认定' }, // 2026-09-21 批次 132：品牌认定＝提案 → 支委会通过后确定
 ];
 
-/** 议程行 HTML（议题 + 主持人 + 类型 chips + 折叠的草案/待讨论名单字段） */
-function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', toStage = '' } = {}) {
+/** 议程行 HTML（议题 + 主持人 + 类型 chips + 折叠的草案/待讨论名单字段；2026-09-21 批次 132：品牌认定提案带回指 `brandActivityId`） */
+function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', toStage = '', brandActivityId = '' } = {}) {
   const kindOn = (k) => (kinds.includes(k) ? ' wp-agenda-kind-on' : '');
   const docVisible = kinds.includes('discussion-file') ? '' : ' hidden';
   const memberVisible = kinds.includes('attendee-list') ? '' : ' hidden';
   const targetOptions = ['', ...AGENDA_TARGET_STAGES].map((s) =>
     `<option value="${s}" ${s === (toStage || '') ? 'selected' : ''}>${s ? `转为${s}` : '选择目标阶段'}</option>`).join('');
   return `
-    <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white">
+    <div class="wp-agenda-row border border-gray-100 rounded-lg p-2 space-y-1.5 bg-white"${brandActivityId ? ` data-brand-activity-id="${brandActivityId}"` : ''}>
       <div class="flex items-center gap-2">
         <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
         <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
@@ -591,11 +592,14 @@ function renderFormStep() {
     html += `</div>`;
   }
 
-  // 品牌（2026-08-07 支书原始意图：看是否延续旧品牌 / 创建新品牌）
+  // 品牌族名称（2026-08-07 支书原始意图：看是否延续旧品牌 / 创建新品牌）
   // 2026-09-19（SOP-B-24② / D-340）：品牌字段放宽到任何活动——原「仅主题党日适用」的类型闸门已废
+  // 2026-09-21 批次 132（支书口径二「品牌认定＝支委/党小组组长提案 → 支委会通过后确定」）：
+  //   本处只填**品牌族名称**（认定后延续 / 补录用，见 DATA_MODEL `brandName`），**不再由写入即置 `isBrand`**
+  //   ——品牌认定只能由支委会议程项「记录结果 · 通过」产生（`services/activity.js::applyBrandDesignationResult`）。
   const brandNames = [...new Set((_getBrandList() || []).map(a => a.brandName).filter(Boolean))];
   html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌 <span class="text-gray-500">（选填）</span></label>`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌族名称 <span class="text-gray-500">（选填；品牌认定由支委会审议通过后确定，此处只填名称）</span></label>`;
   html += `<div class="flex gap-2">`;
   html += `<button type="button" data-wp-brand="none" class="wp-brand-chip wp-brand-on text-xs px-3 py-1.5 rounded-lg border transition-colors">非品牌</button>`;
   html += `<button type="button" data-wp-brand="inherit" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">延续已有品牌</button>`;
@@ -779,18 +783,18 @@ function renderVoteConfigSection(scenarioId) {
   return html;
 }
 
-/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选；2026-09-21 批次 127：清单勾入时带人选 personIds） */
-function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '', personIds = []) {
+/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选；2026-09-21 批次 127：清单勾入时带人选 personIds；批次 132：品牌认定提案带回指 brandActivityId） */
+function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '', personIds = [], brandActivityId = '') {
   const list = container.querySelector('#wp-agenda-list');
   if (!list) return;
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, toStage });
+  wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, toStage, brandActivityId });
   const row = wrapper.firstElementChild;
   list.appendChild(row);
   // 行内动作（「删除该条」）直绑：`bindWritePanelEvents` 只在渲染那一轮绑**既有**元素，
   // 动态新增的行若不自绑，✕ 就是死按钮（2026-09-21 批次 127 真机实测：点 ✕ 行数 2 → 2 不变）
   row.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', handleWritePanelAction));
-  if (branchDocId) row.dataset.docId = branchDocId; _hydrateDraftDocs(row);
+  if (branchDocId) row.dataset.docId = branchDocId; if (brandActivityId) row.dataset.brandActivityId = brandActivityId; _hydrateDraftDocs(row);
   _bindRowKindChips(row);
   _initRowPersonPicker(row, personIds);
 }
@@ -1042,7 +1046,7 @@ async function handleSubmitActivity() {
           item: row.querySelector('.wp-agenda-item')?.value || '',
           host: row.querySelector('.wp-agenda-host')?.value || '',
           kinds,
-          branchDocId: row.querySelector('.wp-agenda-doc')?.value || '',
+          branchDocId: row.querySelector('.wp-agenda-doc')?.value || '', brandActivityId: row.dataset.brandActivityId || '',
           personIds,
           personStages,
           toStage: row.querySelector('.wp-agenda-to')?.value || '',
@@ -1159,8 +1163,8 @@ async function handleSubmitActivity() {
       isJoint: dimIsJoint,
       isOutdoor: dimIsOutdoor,
       carriers: dimCarriers,
-      // 品牌（延续旧品牌 / 创建新品牌）
-      isBrand: brandMode !== 'none' && !!brandName,
+      // 品牌族名称（延续旧品牌 / 创建新品牌）——2026-09-21 批次 132：**只记名称、不置 isBrand**
+      // （品牌认定＝提案 → 支委会通过后确定；写入即认定属「点一下直接认定」的后门，本批收掉）
       brandName: brandMode !== 'none' ? brandName : '',
       // 参与人（内联赋权：非空则 createActivity 不再派生组长赋权待办）
       assignments: participants.map(pid => ({ personId: pid, role: 'participant' })),
@@ -1276,9 +1280,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadDevStageOverrides }] = await Promise.all([
-    import('../../../services/taskforce.js?v=20260921j'),
-    import('../../../services/issues.js?v=20260921j'),
-    import('../../../services/member-confirmation.js?v=20260921j'),
+    import('../../../services/taskforce.js?v=20260921k'),
+    import('../../../services/issues.js?v=20260921k'),
+    import('../../../services/member-confirmation.js?v=20260921k'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
@@ -1294,6 +1298,8 @@ async function _loadAgendaCandidateSources() {
   catch (e) { console.warn('[calendar] 成员档案读取失败：', e); }
   try { out.stageEntries = loadDevStageOverrides(); }
   catch (e) { console.warn('[calendar] 发展推进档案读取失败：', e); }
+  try { out.brandProposals = listBrandProposals().map(bp => ({ ...bp, proposal: { ...bp.proposal, proposedByName: bp.proposal && bp.proposal.by ? (PersonStore.getById(bp.proposal.by)?.name || '') : '' } })); }
+  catch (e) { console.warn('[calendar] 品牌认定提案加载失败：', e); }
   return out;
 }
 
@@ -1304,6 +1310,7 @@ function _agendaCandidateRowHtml(c) {
       <input type="checkbox" class="wp-cand-check mt-0.5" data-ref-id="${esc(c.refId)}"
         data-item="${esc(c.item)}" data-host="${esc(c.host)}"
         data-kinds="${esc((c.kinds || []).join(','))}" data-branch-doc-id="${esc(c.branchDocId || '')}"
+        data-brand-activity-id="${esc(c.brandActivityId || '')}"
         data-to-stage="${esc(c.toStage || '')}" data-person-ids="${esc((c.personIds || []).join(','))}">
       <span class="flex-1 min-w-0">
         <span class="block text-xs font-medium text-gray-700">${esc(c.text)}</span>
@@ -1315,7 +1322,7 @@ function _agendaCandidateRowHtml(c) {
 /** 清单主体（按类目分组；**整张清单为空 → 一行空态、不报错**） */
 function _agendaCandidatesHtml(rows) {
   if (!rows.length) {
-    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象，出现后会归集到这里。</p>';
+    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象 / 品牌认定提案，出现后会归集到这里。</p>';
   }
   let html = '';
   for (const g of AGENDA_CANDIDATE_GROUPS) {
@@ -1365,7 +1372,7 @@ function _onAgendaCandidatesClick(e) {
     const kinds = String(cb.dataset.kinds || '').split(',').map(s => s.trim()).filter(Boolean);
     const personIds = String(cb.dataset.personIds || '').split(',').map(s => s.trim()).filter(Boolean);
     _addAgendaRow(container, cb.dataset.item || '', cb.dataset.host || '', kinds,
-      cb.dataset.branchDocId || '', cb.dataset.toStage || '', personIds);
+      cb.dataset.branchDocId || '', cb.dataset.toStage || '', personIds, cb.dataset.brandActivityId || '');
   }
   picked.forEach(cb => { cb.checked = false; }); // 已加入 → 取消勾选（可继续勾别的）
   showToast('success', `已加入 ${picked.length} 条议程`);

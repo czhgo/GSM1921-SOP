@@ -8,9 +8,9 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
-} from '../../docs/src/core/work-map.js?v=20260921j';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260921j';
-import { ROLE_KEYS } from '../../docs/src/core/constants.js?v=20260921j';
+} from '../../docs/src/core/work-map.js?v=20260921k';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260921k';
+import { ROLE_KEYS } from '../../docs/src/core/constants.js?v=20260921k';
 
 let server, base, token;
 

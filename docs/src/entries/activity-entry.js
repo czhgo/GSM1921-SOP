@@ -2,31 +2,34 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260921j';
-import { renderHeader } from '../components/header.js?v=20260921j';
-import { BranchService } from '../services/runtime.js?v=20260921j';
-import { mockDB } from '../core/domain.js?v=20260921j';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921j';
-import { NoticeStore } from '../services/notice.js?v=20260921j';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260921j';
-import { AuthStore } from '../services/auth.js?v=20260921j';
-import { getPersonById } from '../services/person.js?v=20260921j';
-import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260921j';
-import { getActivityTypeColors } from '../core/constants.js?v=20260921j';
-import { getAppState } from '../core/state.js?v=20260921j';
-import { badgeHtml } from '../components/badges.js?v=20260921j';
+import { renderSidebar } from '../components/sidebar.js?v=20260921k';
+import { renderHeader } from '../components/header.js?v=20260921k';
+import { BranchService } from '../services/runtime.js?v=20260921k';
+import { mockDB } from '../core/domain.js?v=20260921k';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921k';
+import { NoticeStore } from '../services/notice.js?v=20260921k';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260921k';
+import { AuthStore } from '../services/auth.js?v=20260921k';
+import { getPersonById } from '../services/person.js?v=20260921k';
+// 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
+// 判据与写口单一源 = services/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260921k';
+import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260921k';
+import { getActivityTypeColors } from '../core/constants.js?v=20260921k';
+import { getAppState } from '../core/state.js?v=20260921k';
+import { badgeHtml } from '../components/badges.js?v=20260921k';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260921j';
-import { enhanceSelects } from '../components/custom-select.js?v=20260921j';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260921j';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260921j';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260921j';
-import { fetchVotes } from '../services/committee-vote.js?v=20260921j';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260921k';
+import { enhanceSelects } from '../components/custom-select.js?v=20260921k';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260921k';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260921k';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260921k';
+import { fetchVotes } from '../services/committee-vote.js?v=20260921k';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921j';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921j';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921k';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921k';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../core/pending-writes.js?v=20260921j';
+import { settleWrites } from '../core/pending-writes.js?v=20260921k';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -152,10 +155,34 @@ function renderActivity(id) {
   // 呈现与放行**共用** services/signup.js::canCloseActivitySignup（组织者本场 ＋ 支书/副支书）。
   const signupClosed = act.signupClosed === true;
   const canCloseSignup = canSignup && canCloseActivitySignup(myId, act);
-  // 品牌认定（2026-09-21 批次 126 · D-550）：归支委会 ⇒ 支委层（支书/副支书/组织/宣传/纪检）可操作；
-  // 判据单一源＝AuthStore.isCommissioner（core/constants.js::BRANCH_COMMISSION_ROLES）
+  // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会……通过后确定」）：
+  //   判据单一源＝AuthStore.isCommissioner（支委层）＋ `services/activity.js::canProposeBrand`（含党小组组长）；
+  //   **本页不再有「点一下即认定」**——只渲染 提案 / 撤回提案 / 取消已有认定（支委层，留痕）三种动作。
   const isCommittee = !!currentUser && AuthStore.isCommissioner(currentUser.role);
   const isBrandActive = act.isBrand === true;
+  const brandProposal = brandProposalOf(act);
+  const myRole = currentUser?.role || '';
+  let brandCardHtml = '';
+  if (isCommittee || canProposeBrand(myRole)) {
+    const proposerName = brandProposal && brandProposal.by ? (getPersonById(brandProposal.by)?.name || brandProposal.by) : '';
+    const stateText = isBrandActive
+      ? `品牌认定（支委会）：本场已认定为品牌活动${act.brandDesignatedAt ? `（${String(act.brandDesignatedAt).slice(0, 10)}）` : ''}`
+      : (brandProposal
+        ? `品牌认定（支委会）：提案待审议（提案人 ${esc(proposerName || '—')}）`
+        : '品牌认定（支委会）：本场尚未认定为品牌活动——须由支委 / 党小组组长提案，经支委会审议通过后认定');
+    const action = isBrandActive
+      ? (isCommittee ? '<button id="brand-revoke-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">取消品牌认定</button>' : '')
+      : (brandProposal
+        ? ((isCommittee || brandProposal.by === myId) ? '<button id="brand-withdraw-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">撤回提案</button>' : '')
+        : (canProposeBrand(myRole) ? '<button id="brand-propose-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">提议认定为品牌活动</button>' : ''));
+    brandCardHtml = `
+    <!-- 品牌认定（支委会事项；2026-09-21 批次 132）：提案 → 支委会审议通过后确定。
+         本块是给**不在支书台**的支委（组织/宣传/纪检委员）与党小组组长的落点；普通成员与访客看不到该动作。 -->
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3 mb-6">
+      <span class="text-xs text-gray-500">${stateText}</span>
+      ${action}
+    </div>`;
+  }
   // 关闭后仍要给「已报名者」留出口：**已报者仍可取消**（本批择定）⇒ 报名区不能整块消失。
   // 只对「本人在册（已通过 / 待审核）」渲染报名区（不显示重填入口——重填必被关闭判据挡回，属假入口）。
   const myActiveSignup = myId ? signups.find(s => s.personId === myId
@@ -266,14 +293,7 @@ function renderActivity(id) {
       <button id="signup-close-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">关闭报名</button>
     </div>` : ''}
 
-    ${isCommittee ? `
-    <!-- 品牌认定（支委会事项；2026-09-21 批次 126 · D-550「品牌认定归支委会」）：支委层可操作——
-         本块是给**不在支书台**的支委（组织/宣传/纪检委员）的落点；普通成员与访客看不到该动作。
-         写链与支书台巡查面板同一支（BranchService.toggleBrand → API 形态经 saveDB() 快照写穿服务端）。 -->
-    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3 mb-6">
-      <span class="text-xs text-gray-500">品牌认定（支委会）：${isBrandActive ? '本场已认定为品牌活动' : '本场尚未认定为品牌活动'}</span>
-      <button id="brand-toggle-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">${isBrandActive ? '取消品牌认定' : '标记为品牌活动'}</button>
-    </div>` : ''}
+    ${brandCardHtml}
 
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'activity', sourceId: act.id, signups, myId })}
@@ -310,20 +330,33 @@ function renderActivity(id) {
     window.location.reload();
   });
 
-  // 「品牌认定」切换（2026-09-21 批次 126 · D-550）：与支书台巡查面板同一条写链（BranchService.toggleBrand）；
-  // 二次确认 → 落库 → 结算在途写入 → 刷新（刷新后从服务端读回，品牌徽标随之出现/消失）。
-  // 放行判据＝渲染时的 isCommittee（点了没反应＝按钮没渲染出来，属「漏挂」类问题，不静默）。
-  cardEl.querySelector('#brand-toggle-btn')?.addEventListener('click', async () => {
-    const action = isBrandActive ? '取消品牌认定' : '标记为品牌活动';
-    if (!window.confirm(`确认${action}？`)) return;
-    try {
-      await BranchService.toggleBrand(act.id);
-      showToast('success', `${action}成功`);
-      try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
-      window.location.reload();
-    } catch (err) {
-      showToast('error', (err && err.message) || '操作失败');
-    }
+  // 品牌认定三动作（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：**认定只能由支委会审议通过产生**。
+  //   ① 提案（支委 / 党小组组长）② 撤回提案（提案人或支委层）③ 取消已有认定（支委层，留痕）。
+  //   写链单一源 = services/activity.js（落活动主源 → persist/snapshot 写穿服务端）；放行判据在服务函数内复算。
+  const afterBrandWrite = async () => {
+    try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
+    window.location.reload();
+  };
+  cardEl.querySelector('#brand-propose-btn')?.addEventListener('click', async () => {
+    if (!window.confirm('提交「品牌认定」提案？提案只登记待议，须经支委会审议通过后才认定为品牌活动。')) return;
+    const res = proposeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
+    if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
+    showToast('success', '已提交品牌认定提案（进支委会「拟上会」清单）');
+    await afterBrandWrite();
+  });
+  cardEl.querySelector('#brand-withdraw-btn')?.addEventListener('click', async () => {
+    if (!window.confirm('撤回该活动的品牌认定提案？')) return;
+    const res = withdrawBrandProposal({ activityId: act.id, by: myId, role: myRole });
+    if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
+    showToast('success', '已撤回品牌认定提案');
+    await afterBrandWrite();
+  });
+  cardEl.querySelector('#brand-revoke-btn')?.addEventListener('click', async () => {
+    if (!window.confirm('确认取消本场的品牌认定？（留痕：取消人 / 时间；重新认定为品牌仍须支委会审议通过）')) return;
+    const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
+    if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
+    showToast('success', '已取消品牌认定');
+    await afterBrandWrite();
   });
 
   // 线上异步表决区（AV4.5）：加载后 fetchVotes → 逐条议程渲染表决组件；

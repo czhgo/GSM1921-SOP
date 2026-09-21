@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260921j';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260921k';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -199,7 +199,8 @@ export const ApiAdapter = {
       return _post(`/api/v1/activities/${id}/archive`);
     },
 
-    toggleBrand(id) {
+    // 2026-09-21 批次 132：品牌认定＝提案 → 支委会通过后确定 ⇒ 本口**只能取消**（服务端同门同语义）
+    revokeBrand(id) {
       return _post(`/api/v1/activities/${id}/brand`);
     },
   },

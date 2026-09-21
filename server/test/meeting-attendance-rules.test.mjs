@@ -9,8 +9,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921j';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921j';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921k';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260921k';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -22,12 +22,12 @@ import {
   absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/attendance.js?v=20260921j';
+} from '../../docs/src/services/attendance.js?v=20260921k';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/roster.js?v=20260921j';
+} from '../../docs/src/services/roster.js?v=20260921k';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
@@ -55,19 +55,25 @@ function freshMeeting(type) {
 const savedOf = (activityId) => loadAttendanceRecords().filter(r => r.activityId === activityId);
 
 // ── a) recorderByType：记录人按活动类型（R1-1 正式化单一源）────────
-test('policy recorderByType：支部大会/组织生活会/支委会=纪检、党课=支书或纪检、党小组会=组长；未入表类型=空', () => {
+test('policy recorderByType：支部党员大会/党课=纪检（党课含支书/副支书）、党小组会=组长；组织生活会（组织者位）与支委会（不考勤）不入表', () => {
   const rbt = POLICY_DEFAULTS.attendance.recorderByType;
   assert.deepEqual(rbt['支部党员大会'], ['disc-commissioner']);
-  assert.deepEqual(rbt['组织生活会'], ['disc-commissioner']);
-  assert.deepEqual(rbt['支委会'], ['disc-commissioner']);
   assert.deepEqual(rbt['党课'], ['secretary', 'deputy-secretary', 'disc-commissioner']);
   assert.deepEqual(rbt['党小组会'], ['leader'], '党小组会记录人=组长');
+  // 2026-09-21 批次 132（支书口径一）：组织生活会＝组织者位、支委会＝不考勤 ⇒ 均不入本表
+  assert.equal(rbt['组织生活会'], undefined, '组织生活会=组织者位（assignments 定），不入会议考勤记录人表');
+  assert.equal(rbt['支委会'], undefined, '支委会不考勤（noAttendanceTypes），不入记录人表');
   // 派生出口同源（拷贝）
   assert.deepEqual(recorderRolesOf('党小组会'), ['leader']);
   assert.deepEqual(recorderRolesOf('党课'), ['secretary', 'deputy-secretary', 'disc-commissioner']);
+  assert.deepEqual(recorderRolesOf('组织生活会'), []);
+  assert.deepEqual(recorderRolesOf('支委会'), []);
   assert.deepEqual(recorderRolesOf('主题党日'), [], '主题党日=组织者位（assignments 定），不入会议考勤记录人表');
   assert.notEqual(ATTENDANCE_RECORDER_BY_TYPE, POLICY_DEFAULTS.attendance.recorderByType);
   assert.notEqual(ATTENDANCE_RECORDER_BY_TYPE['支部党员大会'], POLICY_DEFAULTS.attendance.recorderByType['支部党员大会'], '派生拷贝数组为新数组（消费点改动不穿透 policy 单一源）');
+  // 不考勤的会议类型清单（2026-09-21 批次 132 · 支书口径一，单一源）
+  assert.deepEqual(POLICY_DEFAULTS.attendance.noAttendanceTypes, ['支委会']);
+  assert.ok(!POLICY_DEFAULTS.attendance.meetingTypes.includes('支委会'), '支委会不考勤 ⇒ 不在会议考勤类型清单内');
 });
 
 // ── b) reasons：未到标因固定枚举（R1-2；2026-09-19 批次 94 · SOP-B-16⑤ 请假分两档）──

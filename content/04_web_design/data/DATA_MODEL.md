@@ -45,7 +45,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | description | string | 否 | -- | 活动描述 |
 | targetDate | string (ISO) | 否 | -- | 目标日期 T-0（兼容旧字段） |
 | deliverableIds | string[] | 否 | -- | ~~关联交付物 ID 列表~~（已废弃，交付物由 FileSpaceRecord 覆盖） |
-| isBrand | boolean | 否 | `false` | 品牌属性标签（由支委会认定、支书主持支委会，不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力 → 支委会讨论认定 → 支书主持支委会并在系统上标记 `isBrand = true`。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
+| isBrand | boolean | 否 | `false` | 品牌属性标签（**认定＝支委/党小组组长提案 → 支委会通过后确定**——有党小组组长参会即支委扩大会、支书主持支委会；不影响工作流选择，仅作筛选展示）。认定流程：支委/党小组组长识别潜力并提案 → 支委会（或支委扩大会）讨论通过 → 系统上由支委会议程项「记录结果 · 通过」置 `isBrand = true`（**无「点一下即认定」入口**）。认定依据与案例见 [insights §5.2](../../insights/党支部管理与实务经验沉淀.md)。 |
 | carriers | string[] | 否 | -- | 主题党日活动载体（理论学习/实践参访/交流座谈/其他），与写入表单正交维度对齐（2026-08-07） |
 | isJoint | boolean | 否 | `false` | 共建性质（共建开展为 true，2026-08-07） |
 | brandName | string | 否 | -- | 品牌族名称（如"五四精神传承"/"人生回望录"），支委会认定 isBrand 后由写入表单"延续已有品牌/创建新品牌"补录（2026-08-07） |
@@ -592,7 +592,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 | 属性 | 值 | 说明 |
 |---|---|---|
-| isBrand | `true` | 品牌活动（由支委会认定、支书主持支委会并在系统上标记，不影响工作流选择） |
+| isBrand | `true` | 品牌活动（**认定＝支委/党小组组长提案 → 支委会通过后确定**，不影响工作流选择） |
 | isBrand | `false` | 普通日常活动 |
 
 **3 套工作流定义模板：**

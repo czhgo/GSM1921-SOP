@@ -36,10 +36,12 @@ const _FACTORY = {
     voteThreshold: { quorum: 2 / 3, vetoOnObject: true },
   },
   attendance: {
-    // 会议考勤的类型清单（**上传位＝该场会议组织者**；2026-09-21 批次 124：支书 2026-09-20 定案）
-    // kind 'branch-default'：出处 CF §C.1a 会议考勤；导出去重冻结导出面
-    //   （MEETING_ATTENDANCE_TYPES 由此派生，勿在消费点另写字面量数组）。
-    meetingTypes: ['党课', '支部党员大会', '组织生活会', '支委会'],
+    // 会议考勤的类型清单（＝**哪些会议类型设考勤**；上传位按类型分，见下方 recorderByType / noAttendanceTypes 与
+    //   services/attendance.js::canUploadAttendance）。kind 'branch-default'：出处 CF §C.1a 会议考勤；导出去重冻结导出面
+    //   （MEETING_ATTENDANCE_TYPES 由此派生）。⚠ 2026-09-21 批次 132（支书口径一「三会，支委会规模小可以不考勤」，修正 `D-548` 的一刀切）：支委会不考勤 ⇒ 移出本表、入 `noAttendanceTypes`。
+    meetingTypes: ['党课', '支部党员大会', '组织生活会'],
+    // **不设考勤的会议类型**（口径一）：单源消费 = canUploadAttendance · 支书台「考勤待录入」提醒 · 设置中心
+    noAttendanceTypes: ['支委会'],
     uploaderExceptions: {
       // 支书/副支书例外承担上传位
       // kind 'institutional'：出处 SYSTEM_ROLE_PERMISSION §9b 注——制度裁决固定，勿改。
@@ -55,19 +57,18 @@ const _FACTORY = {
       partyStages: ['正式党员', '预备党员'],
       excludeDetained: true,
     },
-    // 会议考勤「记录人」按活动类型映射（附录⑩ A批·S1 · R1-1，支书裁定 2026-09-06）
+    // 会议考勤的「记录人 / 上传位」按活动类型映射（R1-1，支书裁定 2026-09-06；**2026-09-21 批次 132 按支书口径一改准**）
     // kind 'institutional'：出处 .ctx/REVIEW_QUEUE.md 附录⑩ S1 R1-1——制度裁决固定，改须支书裁决。
-    // 语义正式化：支部党员大会=纪检、党课=支书或纪检（含副支书例外承担）、组织生活会/支委会=纪检、
-    //   党小组会=组长（兼组织者）；值为角色键数组（secretary/deputy-secretary/disc-commissioner/leader，
-    //   键名见 core/constants.js ROLE_LABELS）。
-    // 仅覆盖「会议考勤」类型；主题党日等组织者位活动不入此表（记录人=该活动组织者，由 assignments 定）。
-    // 注：上传位门禁实现仍以 services/attendance.js canUploadAttendance 为准（含组织者兜底位，
-    //   不据此表做破坏性收紧）；本表为记录人语义的单一源——展示/解释/测试消费，业务层勿新写字面量。
+    // ⚠ 2026-09-21 批次 132（支书原话：「三会，支委会规模小可以不考勤。主要就是党小组会 那就是 会议组织者；
+    //   如果是党员大会，那就是纪检委员。会议和活动不一样。」＋「考勤和补课的催办、上传主体主要还是纪检委员，
+    //   支书也有权上传。党课比较特殊，不属于三会的范畴」）：上传位**按会议类型分**（修正 `D-548` 的一刀切）——
+    //   党课 / 支部党员大会＝纪检（支书 / 副支书照例可代上传）；党小组会＝该场会议组织者（兼本组组长）；
+    //   组织生活会 / 主题党日 / 其余＝该场组织者；支委会＝不考勤（`noAttendanceTypes`，本表随之不含）。
+    // 本表只列「非组织者位」的会议类型（组织者位与不考勤类型不入表）；上传位门禁同源读本表（canUploadAttendance），
+    //   表值同时是设置中心「考勤记录人」的展示源 ⇒ 界面与默认值一致（批次 124 登记的缺口本批收口）。
     recorderByType: {
       支部党员大会: ['disc-commissioner'],
       党课: ['secretary', 'deputy-secretary', 'disc-commissioner'],
-      组织生活会: ['disc-commissioner'],
-      支委会: ['disc-commissioner'],
       党小组会: ['leader'],
     },
     // 未到（请假/缺席）标因固定枚举（附录⑩ A批·S1 · R1-2，支书裁定 2026-09-06）

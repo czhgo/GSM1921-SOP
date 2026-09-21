@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260921j';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921j';
-import { persist } from '../core/data-adapter.js?v=20260921j';
-import { generateId } from '../core/id.js?v=20260921j';
-import { bumpToken } from '../core/version-token.js?v=20260921j'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260921j';
-import { isInitStateActive } from './init-reset.js?v=20260921j'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260921j';
-import { getRosterStats } from './roster.js?v=20260921j';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260921j';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260921k';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921k';
+import { persist } from '../core/data-adapter.js?v=20260921k';
+import { generateId } from '../core/id.js?v=20260921k';
+import { bumpToken } from '../core/version-token.js?v=20260921k'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260921k';
+import { isInitStateActive } from './init-reset.js?v=20260921k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260921k';
+import { getRosterStats } from './roster.js?v=20260921k';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260921k';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -40,13 +40,15 @@ export function saveAttendanceRecords(records) {
 // ── A1 写入门禁（2026-09-05 落代码，操作位语义见 SYSTEM_ROLE_PERMISSION §9b/§9f + CF §C.1a）──
 
 /**
- * 会议考勤的上传位的活动类型（CF §C.1a「会议考勤」）。
- * 2026-09-21 批次 124（支书 2026-09-20 定案「会议考勤上传收归组织者」）：本表是**会议考勤类型清单**
- *   （应到名单口径 / 表单列活动用），**不再等于「纪检的上传位」**——会议考勤的上传主体＝**该场会议的组织者**
- *   （`canUploadAttendance` 按组织者身份判定），**纪检管确认 / 录入总表与统计核对**。
+ * 会议考勤的类型清单（CF §C.1a「会议考勤」；应到名单口径 / 表单列活动用）。
+ * 上传位**按会议类型分**（2026-09-21 批次 132 · 支书当日口径一，**修正批次 124 · `D-548` 的
+ *   「一刀切＝会议考勤上传一律归组织者」**）：**党课 / 支部党员大会＝纪检委员**（支书 / 副支书照例
+ *   可代上传）· **党小组会＝该场会议的组织者**（兼本组组长）· **组织生活会 / 主题党日 / 其余＝该场
+ *   组织者** · **支委会＝不考勤**（`noAttendanceTypes`，故不在本清单内）。判据一律走
+ *   `canUploadAttendance`（本文件），勿在消费点另判。
  * P3c 单一源 = core/policy-defaults.js（派生导出，导出去重冻结导出面）：
- * 默认=本科生党支部口径（党课/支部党员大会/组织生活会/支委会）；
- * 党小组会/主题党日归组长·组织者位，不入此列。见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3b。
+ * 默认=本科生党支部口径（党课/支部党员大会/组织生活会）；
+ * 支委会归 noAttendanceTypes；党小组会/主题党日归组长·组织者位，不入此列。见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3b。
  */
 export const MEETING_ATTENDANCE_TYPES = [...POLICY_DEFAULTS.attendance.meetingTypes];
 
@@ -72,37 +74,48 @@ function _activityPartyGroup(activity) {
 
 /**
  * 考勤上传位门禁：谁可对某活动做「上传（追加提交）」
- * - **该场活动的组织者**（判据单一源 = services/activity.js::isActivityOrganizer）——**含会议考勤**
- *   （2026-09-21 批次 124：支书 2026-09-20 定案「会议考勤上传收归组织者」；此前会议类活动由纪检
- *   直接持上传位，现随 `D-287`「材料上传主体一律组织者」收归组织者，**纪检管统计与核对**）
+ * **按会议类型分**（2026-09-21 批次 132 · 支书当日口径一，**修正批次 124 · `D-548` 的「一刀切」**）：
+ * - **支委会＝不考勤**（`POLICY_DEFAULTS.attendance.noAttendanceTypes`，规模小）⇒ **任何人无上传位**；
+ * - **党课 / 支部党员大会＝纪检委员**（判据由 `recorderByType` 的表内角色键给出）；
+ * - **党小组会＝该场会议的组织者**（兼本组组长：本组上传位，跨组只读）；
+ * - **组织生活会 / 主题党日 / 其余活动＝该场活动组织者**（判据单一源 = services/activity.js::isActivityOrganizer）
+ *   ——**「会议和活动不一样」**：活动类与组织者位不受本批改动影响。
  * - 支书/副支书：例外承担（§9b 注，制度固定）
- * - 党小组会：组长兼组织者（本组上传位）
  */
 export function canUploadAttendance(personId, activityId) {
   if (!personId || !activityId) return false;
   const activity = loadActivities().find(a => a.id === activityId);
   if (!activity || activity.archived) return false;
+  // 支委会（不考勤的会议类型）：规模小、不设考勤 ⇒ 一律无上传位（含组织者与纪检）
+  if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(activity.type)) return false;
   const role = (getPersonById(personId) || {}).role;
   // 支书/副支书例外承担（§9b 注）：角色数组单源 = policy-defaults attendance.uploaderExceptions.secretaryDeputy
   if (POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy.includes(role)) return true;
-  if (role === 'leader' && activity.type === '党小组会') {
-    // 本组上传位（组长手册 §2.1「上传本组考勤」）：仅本组活动；跨组只能督促（只读）。
+  if (activity.type === '党小组会') {
+    // 本组上传位（组长手册 §2.1「上传本组考勤」）：本组组长可传；跨组只能督促（只读）。
     // dogfood 权限专项 2026-09-13：此前仅判类型 → 任一组长可代录他组小组会考勤（实测下拉出现
     //   别组小组会且可提交成功），与制度「本组」口径不符。
     const myGroup = (getPersonById(personId) || {}).partyGroup;
-    return !!myGroup && _activityPartyGroup(activity) === myGroup;
+    if (role === 'leader' && !!myGroup && _activityPartyGroup(activity) === myGroup) return true;
+    // 该场会议的组织者（2026-09-21 批次 132 · 支书口径一「党小组会 那就是 会议组织者」）
+    return isActivityOrganizer(personId, activityId);
   }
-  // 该活动组织者（组织者按活动身份，组长兼组织者同）——判据单一源 = services/activity.js::isActivityOrganizer
+  // 「非组织者位」的会议类型（本批＝党课 / 支部党员大会）＝**纪检委员**：判据单一源 = policy
+  //   recorderByType 的表内角色键（同一份表既管上传位门禁、又是设置中心的「记录人」默认值 ⇒ 界面与
+  //   默认值一致；批次 124 曾登记「表与门禁不一致」的缺口，本批按支书口径收口）。
+  const recorderRoles = ATTENDANCE_RECORDER_BY_TYPE[activity.type] || [];
+  if (recorderRoles.length > 0) return recorderRoles.includes(role);
+  // 组织者位活动（组织生活会 / 主题党日 / 其余）——判据单一源 = services/activity.js::isActivityOrganizer
   // （2026-09-19 批次 91 · SOP-B-17：组织者是「这场事上被指定的人」，不是静态角色）
-  // 会议考勤（党课/支部党员大会/组织生活会/支委会）与其余活动同规：**上传位只在组织者手上**。
   return isActivityOrganizer(personId, activityId);
 }
 
 /**
  * 会议考勤录入（**上传位即确认**，recordedBy=上传者本人；CF §C.1a 会议考勤）
- * 上传主体（2026-09-21 批次 124：支书 2026-09-20 定案「会议考勤上传收归组织者」）＝**该场会议的组织者**
- *   ——门禁仍走 `canUploadAttendance`（含支书/副支书例外承担）；**纪检不再持会议考勤上传位**，
- *   纪检的位置在「待确认队列 · 打包确认」与考勤明细 / 统计核对（`D-287` 材料上传主体一律组织者）。
+ * 上传主体（2026-09-21 批次 132 · 支书口径一，**修正批次 124 · `D-548` 的「一刀切」**）＝**按会议类型分**：
+ *   **党课 / 支部党员大会＝纪检委员**（支书 / 副支书照例可代上传）· **党小组会＝该场会议的组织者**·
+ *   组织生活会 / 主题党日 / 其余＝该场组织者 · **支委会不考勤**——门禁一律走 `canUploadAttendance`。
+ *   纪检的位置另在「待确认队列 · 打包确认」与考勤明细 / 统计核对（不变）。
  * - 默认（不传 opts.overwrite）：同人同活动已有记录（含待复核异常）→ 跳过（不可覆盖已有记录，改走纪检确认界面）
  * - 上传者更正（opts.overwrite=true，支书已批方案A 2026-09-06）：
  *   批量上传时，若该 (activityId,personId) 已有记录且为本人权威所录（recordedBy===actorId，即本人

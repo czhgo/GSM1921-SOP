@@ -13433,6 +13433,111 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 - **声明与实做核对**：本批声明「改准 22 行 / 1 文件 · 母本零改动 · `ACTIVE_RULINGS` 0 行」——**实做**：`git diff --numstat` 显示 `docs/help.html` **26 / 26**（**＝内容 22 行 ＋ bump 改写的 4 行 `?v=` 戳**；另 bump 连带改写 `docs/**` / `server/test/**` 的戳）、`content/**` **零改动**、`ACTIVE_RULINGS.md` **+2 行（1 空行 ＋ 留痕句）**——**对得上**。
 - **归因与事实相符**：本批全部改动均可指到 `D-547` / `D-548`（改准）与「`docs/help.html` 此前不在授权面、批次 124 / 126 只登记」（判据＝两批自己的执行日志）；**未把推导写成已定**（三条上报均标「要您定」）。
 
+---
+
+## 批次 132（2026-09-21）：两条支书当日口径同时改准 —— 考勤上传位**按会议类型分**（修正 `D-548` 一刀切）＋ 品牌认定＝「**提案 → 支委会通过后确定**」
+
+> 裁定 `D-558` / `D-559`；本批**允许改** `docs/src/**` · `server/**` · `content/**`（仅这两条相关处）· `docs/help.html`（仅考勤 / 品牌相关段）· `.ctx` 四本账 ＋ 月度索引 ＋ `TIMESTAMPS.md`。
+
+### 一、取证（改前实然，逐处 `文件:行号`）
+
+| # | 项 | 改前实然 |
+|---|---|---|
+| 1 | 考勤上传位怎么判 | `docs/src/services/attendance.js::canUploadAttendance`：支书 / 副支书例外 → 组长本组党小组会 → **其余一律 `isActivityOrganizer`**（批次 124 · `D-548` 落成，含会议考勤） |
+| 2 | `recorderByType` 现状 | `docs/src/core/policy-defaults.js`：`meetingTypes`＝`['党课','支部党员大会','组织生活会','支委会']`；`recorderByType`＝支部党员大会 / 组织生活会 / 支委会→纪检、党课→支书 / 副支书 / 纪检、党小组会→组长（**与门禁自批次 124 起不一致**） |
+| 3 | 界面承载 | 组长台 `entries/tabs/leader/attendance-tab.js:61`（可上传类型＝`MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}`）· 纪检台 `entries/tabs/disc/attendance-tab.js`（按 `canUploadAttendance(DISC_COMMISSIONER_ID,…)` 过滤）· 支书台提醒 `services/secretary-overview.js::_aggAttendanceRemind`（不按类型过滤） |
+| 4 | 补课催办归谁 | `entries/tabs/secretary/overview-tab.js:529-535` 的 `URGE_MAP['attendance-makeup'].role='disc-commissioner'` ⇒ **本就在纪检**（与口径一致） |
+| 5 | 品牌认定现在怎么定 | 两处**直接开关**（`components/inspector.js:787` · `entries/activity-entry.js:269`，支委层可见）→`BranchService.toggleBrand`→`services/mock.js::toggleBrand`（无角色门、取反）；**服务端** `server/routes/resources.js:408` `POST /activities/:id/brand`＝`requireAuth`（**任一登录用户可翻转**）；**写入活动** `entries/tabs/secretary/calendar-tab.js` 亦置位 `isBrand` |
+| 6 | 有没有「支委扩大会」 | **没有**：活动类型目录只有「支委会」；`ROLE_KEYS` / `meetingTypes` 均无该表述 ⇒ 无既有类型可复用 |
+
+### 二、考勤规则表改前 → 改后（六行全列）
+
+| 会议 / 活动类型 | 改前（批次 124） | 改后（本批） | 动没动 |
+|---|---|---|---|
+| **支委会** | 该场组织者 | **不考勤（任何人无上传位）** | **动了**（新增 `noAttendanceTypes`） |
+| **党课** | 该场组织者 | **纪检委员**（支书 / 副支书有权上传） | **动了** |
+| **支部党员大会** | 该场组织者 | **纪检委员**（同上） | **动了** |
+| **党小组会** | 本组组长 ∪ 该场组织者 | 同左 | 未动 |
+| **组织生活会** | 该场组织者 | 同左 | 未动 |
+| **主题党日** | 该场组织者 | 同左 | 未动（**「会议和活动不一样」**） |
+| （**专班考察**） | 组织者闭环（另一条上传线） | 同左 | 未动 |
+
+### 三、品牌认定改准清单（提案怎么落 / 审议怎么挂 / 通过前后如何区分）
+
+- **提案**：`services/activity.js::proposeBrandDesignation({activityId, by, role})`——权限 `BRAND_PROPOSER_ROLES`＝`BRANCH_COMMISSION_ROLES` ＋ `leader`（**单一源**）；落活动主源 `brandProposal={by,at,note}`；列表出口 `listBrandProposals()`（`brandProposal` 有、`isBrand` 非真）。
+- **上会**：`entries/tabs/secretary/agenda-form.js` 新增类目 **`brand`**（`AGENDA_CANDIDATE_GROUPS` 第五项），候选即上条列表；勾入后议程项带 **`brandActivityId`**（`collectAgendaRows` 同步带回指；`entry/party-committee-meeting` 两处清单与勾入都已接）。
+- **审议**：`services/agenda-follow-up.js::recordAgendaResult` 新增 **`brand-designation`** 分流 → `services/activity.js::commitBrandDesignationResult`（纯函数 `applyBrandDesignationResult` 给判据与补丁；落库＝活动主源单点改写 ＋ `persist()`）。
+- **通过前后如何区分**：**通过 ⇒ `isBrand=true` ＋ 认定留痕（`brandDesignatedBy/At`、回指审议活动与议程项）＋ 提案清空**；**未通过 ⇒ `isBrand` 不动**（提案保留 ＋ `reviewResult:'rejected'` ＋ 退回意见，可再议）；**会议类型不是支委会 ⇒ 不动**。
+- **取消「点一下即认定」四处**：① `inspector.js` 按钮 → 提案 / 撤回 / 取消认定三态；② `activity-entry.js` 同三态；③ `calendar-tab.js` 写入活动**只记 `brandName`、不置 `isBrand`**；④ `services/mock.js` / `core/mock-adapter.js` / `core/api-adapter.js` 的 `toggleBrand` **改名 `revokeBrand`（只能取消、非品牌态抛错）** ＋ 服务端 `POST /activities/:id/brand` 收为**支委层 ＋ 非品牌态 400 ＋ 取消留痕**。
+
+### 四、母本改准清单（逐处 改前 → 改后 ＋ 依据）
+
+| # | 处 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 1 | `content/02_institution/sop/党小组组长工作手册.md:79` | 「由支委会认定，支书主持支委会并在系统上标记」 | 「**由支委 / 党小组组长提案、支委会（有党小组组长参会即支委扩大会）通过后确定**」 | 支书口径二 |
+| 2 | 同文件 `:330`（Q4） | 同上 | 同上 | 同上 |
+| 3 | `content/02_institution/sop/常见工作场景快速指南.md:266` | 「品牌标签由支委会认定，支书主持支委会并在系统上完成标记」 | 「**由支委 / 党小组组长提案、支委会通过后确定**（如有党小组组长参会即为支委扩大会；支书主持支委会）」 | 同上 |
+| 4 | 同文件 `:274-276`（认定流程表 1–3 行） | 培育观察 / 讨论认定 / **系统标记（支书）** | 培育观察 + **提案** / 讨论认定（支委会或支委扩大会）/ **系统标记（支委会：议程项记录「通过」）** | 同上 |
+| 5 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md:98` | 「由支委会认定，支书主持支委会并在系统上标记」 | 「**由支委 / 党小组组长提案、支委会（有党小组组长参会即支委扩大会）通过后确定**」 | 同上 |
+| 6 | `content/04_web_design/data/DATA_MODEL.md:48` / `:595` | 认定流程写「…→ 支书主持支委会并在系统上标记 `isBrand = true`」 | 「…→ 支委会（或支委扩大会）讨论通过 → 系统上由支委会议程项「记录结果 · 通过」置 `isBrand = true`（**无「点一下即认定」入口**）」 | 同上 |
+| 7 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:108`·`:116` | 「会议考勤：上传（组织者；…）」（批次 124 拆格后） | 「会议考勤：上传（**按会议类型分**——党课 / 支部党员大会＝纪检；党小组会 / 组织生活会 / 主题党日＝该场组织者；支委会不考勤）」＋ 表下注同步 | 支书口径一 |
+| 8 | `content/02_institution/sop/纪检委员工作流程指南.md:62` | 「上传由该场会议的组织者负责」（批次 124） | 「上传**按会议类型分**：党课 / 支部党员大会＝纪检；党小组会 / 组织生活会 / 主题党日＝该场组织者；支委会不考勤」 | 同上 |
+| 9 | `content/insights/党支部管理与实务经验沉淀.md:227`（会议考勤表）/`:295`（品牌命题） | 「会议考勤｜会议组织者（上传）」／「由支委会认定、支书主持支委会并操作标记」 | 逐类列明 / 「**支委 / 党小组组长均可提案，支委会（有党小组组长参会即支委扩大会）通过后确定**」 | 同上 |
+| 10 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` 变更历史 | — | **新增 1 行**（批次 132：两条口径同时改准；含 `recorderByType` 同批同步） | `R-84` |
+| 11 | `docs/help.html`（考勤相关段） | 批次 131 刚改的「会议类的上传同样归该场会议的组织者」（7 处）等 | 逐处改准为**按类型分**（组长台 tab 表 · §3.1 卡「谁来用 / 几步」· §3.3 卡标题与「谁来用 / 自动」· §3.3 导语 · §4.1 链条 · §4.3 起点） | 支书口径一 |
+| — | `content/02_institution/sop/常见工作场景快速指南.md:160`·`:186`（**党课考勤归纪检、支书有权上传**） | 原文 | **未改**（本就与本口径同向） | 依「同向不硬改」 |
+
+### 五、真机验证证据（探针 `server/.tmp/probe132.mjs`，真 Chromium ＋ 真按钮，**API 形态＝服务端为准**；跑完即删）
+
+- **考勤（36 正 / 0 反中的前半）**：服务层逐类矩阵实测 = 党员大会 `{p10:true, p11:false, p13:true, p14:true}` · 党课 `{p10:true, p11:false, p13:true}` · **支委会 `{p10:false, p11:false, p13:false, p14:false}`** · 党小组会 `{p1:true, p2:false, p10:false}` · 主题党日 `{p3:true, p10:false}`；`policy` 三处 = `noAttendanceTypes=["支委会"]` · `meetingTypes` 不含支委会 · `recorderByType` 只列三种。
+- **界面（真点）**：纪检台「会议考勤录入」卡标题＝「会议考勤录入（党课 / 支部党员大会：纪检上传位）」、**卡内说明含「支委会不考勤」**、**真点展开**后 `#disc-meet-activity` 下拉＝`act-31,act-30,act-13,act-8,act-6`（**含党员大会 / 党课、不含支委会场次**）；组长台（p11，组织委员经组织者兜底进入）**真点「上传考勤表单」**⇒ 下拉**不含** `act-27`（支委会）/ `act-30`（党员大会）；组长台（p1）下拉含 `act-4`/`act-26` 等本组小组会、同样不含支委会与党员大会；支书台「考勤待录入」提醒 **10 项、类型 ∈ {主题党日, 党课, 党小组会}（不含支委会）**。
+- **品牌（真点全链）**：组长 p1 在活动详情页**真点「提议认定为品牌活动」**⇒ 服务端 `brandProposal.by='p1'`、**`isBrand` 仍 false**；支书视角显示「品牌认定（支委会）：提案待审议（提案人 罗文杰）」且**不再出现提案按钮**；**普通成员 p5 按钮 0 个**、服务层 `propose` / `revoke` 均 `ok:false`；支委会会议页**真点「新建线上支委会」**→「拟上会」清单**命中 1 条品牌认定提案**（文案「审议品牌认定「7月党小组会」」）→ **真点勾选 ＋ 加入本场议程** ⇒ 议程项 `{"kinds":["brand-designation"],"brandActivityId":"act-9"}` ⇒ **记录「通过」之前：服务端 `isBrand=false`、提案在** ⇒ **真点「记录通过」** ⇒ 服务端 `isBrand=true` ＋ `brandDesignatedBy='p13'` ＋ 提案清空 ＋ 回指审议会议 `act-0973d104`；另以纯函数证据在测「未通过 ⇒ 不置 `isBrand`（提案留退回意见）」「会议类型不符 ⇒ `meeting-mismatch`」「无提案 ⇒ `not-a-brand-proposal`」；**全程 `pageerror` 0**。
+- **真机抓出并修掉一处隐蔽缺陷（如实登记）**：首轮探针里「记录通过」后**目标活动未被认定**——定位为写入方式：`adapter.activities.update` 只写服务端，页面本地活动主源仍旧值 ⇒ 紧随其后的 `updateAgenda` 快照把刚落的字段**覆盖回去**；改为**活动主源单点改写 ＋ `persist()`**（`commitBrandDesignationResult`，mock / api 同码）后真机复测通过。
+
+### 六、反查 ＋ 版本戳 ＋ 守卫 ＋ 全量 ＋ 服务已停 ＋ 决策日志 ＋ 四处计数
+
+- **反查（改前 → 改后命中数，逐条判定）**：
+
+| 检索式 | 改前 | 改后 | 判定 |
+|---|---|---|---|
+| `上传位` | 多（注释 / 文案） | 同量级、**会议类处已改为按类型分** | 逐条判：`canUploadAttendance` 头注 / 组长台 / 纪检台 / help / 母本 —— 均已同向；`D-548` 的历史叙述**保留不改**（沿革） |
+| `记录人` / `recorderByType` | `recorderByType` 含 5 类型 | 含 3 类型（支委会 / 组织生活会出表） | `recorderByType` 三处消费（门禁 / 设置中心 / 测试）**同批同步** |
+| `组织者` | 多 | 多，**但会议类三格已分** | 逐条判：党小组会 / 组织生活会 / 主题党日仍写「组织者」**是对的**（本批未动） |
+| `纪检`（会议考勤语境） | 「确认 / 录入总表」 | 增「党课 / 党员大会**上传**」 | 母本 `常见:160`·`:186` 与本批**同向**、未改 |
+| `党员大会` | 上传归组织者 | **＝纪检** | `CDF` / 纪检指南 / insights / help / `attendance.js` / `policy-defaults.js` 六处**同批改准** |
+| `党课` | 上传归组织者 | **＝纪检**（支书可传） | 同上；`D-292` 那一行（`ACTIVE_RULINGS:101`）**本就写「党课考勤归纪检委员；支书有权上传」⇒ 未动**（同向） |
+| `支委扩大会` | 母本多处（报备语境）；**系统无会议类型** | 品牌认定处新增表述 | **未新增会议类型**；品牌处写「有党小组组长参会即支委扩大会 ⇒ 用既有支委会承载」 |
+| `品牌认定` | 系统侧为「按钮直接切换」 | 提案 / 审议 / 通过确定 | 4 处入口 ＋ 服务端 ＋ 母本 5 处**同批改准** |
+| `toggleBrand` | 5 处（mock / 两 adapter / 两 UI） | **0 处**（改名 `revokeBrand`，语义只能取消） | `DATA_FLOW.md` 的活动方法名同批改准 |
+| `点一下` / `一键`（考勤 / 品牌语境） | — | 0 处「点一下即认定」残留 | 逐条判：`isBrand` 的置位只余 `commitBrandDesignationResult`（审议通过）与种子数据 |
+- **版本戳**：`20260921j → 20260921k`（`node docs/scripts/bump-version.mjs 20260921k` **显式传日期**；回执「实际改写：**JS 210 / HTML 22 / CSS 2 / server-test 69**；`CODE_VERSION` +1；**陈旧戳自检 0 处残留 ✅**」）；**戳唯一核对**：全仓 `?v=20260921j` 召回 **0 处**（`grep ?v=20260921j` 无命中 ⇒ 取值集合规模 1）；`version-stamp` 守卫 15 项全绿（含 `S3 取值集合规模为 1`）。
+- **守卫子集**（cwd＝`server`，`DISABLE_PASSWORD_CHECK=1`）：**改前 63 / 63 / 0 红**（`duration ≈ 29.5 s`）｜**改后 63 / 63 / 0 红**（`duration ≈ 27.3 s`）。
+- **全量（按 `R-85`）**：`cd server` → **先 `npm start`（3000 起服）** → `npm test` → **停服**（数字见「十」）。
+- **落账（按 `R-84`）**：决议 → `.ctx/logs/2026-09-DECISION_LOG.md` **`D-558` / `D-559`**（各含「一句话结论」行 · `D-558` 写明「**修正 `D-548` 的一刀切**」· 本月目录 2 行 · 文首 / 文末「续编说明」编号起止改 `D-275`…`D-559`（285 条）/ 下一条自 `D-560`）；过程 → 本节；`.ctx/ACTIVE_RULINGS.md` **改准 2 行 ＋ 批次留痕句**（`D-287` 那一行 · `D-414` 那一行），现行有效**仍 109 条**；`.ctx/TIMESTAMPS.md`（本批自身行 ＋ 四本账行 ＋ 3 行补登 ＋ 9 行改刷，**未逐行改刷的代码 / 内容行如实登记为覆盖缺口**）。
+- **四处计数一致（实测）**：① 文首「`D-275` … `D-559`，共 **285** 条 / 下一条自 `D-560`」② 文末续编说明「当前止于 `D-559`（共 285 条）/ 下一条自 `D-560`」③ 本月目录 2 行（`D-558` / `D-559`）④ `^## D-\d+` 实测命中数 **285**——四处一致。
+
+### 七、不确定 / 没做的地方（如实）
+
+| # | 项 | 现状 |
+|---|---|---|
+| U-1 | **`组织生活会` 的上传位** | 支书口径一只点了「支委会 / 党小组会 / 党员大会 / 党课」四类；依任务书「**只有三格要改…其余不动**」，**组织生活会仍为「该场组织者」**——**这是本批的读法，不是支书逐字**（如需归纪检请支书明示） |
+| U-2 | **「取消品牌认定」是否也须上会** | 口径二只讲「**认定**＝提案 → 支委会通过后确定」；本批把**取消**保留为**支委层的显式动作（留痕）**、未要求上会（如支书认为取消也须支委会，属另一步） |
+| U-3 | **「支委扩大会」未新增会议类型** | 系统无该类型 ⇒ 本批取**最小做法**（既有「支委会」承载，党小组组长参会即扩大会、由与会人员体现），**如实登记**；若支书要求单列类型 ⇒ 属产品取向、须停下另批 |
+| U-4 | **服务端无独立门（品牌）** | 提案 / 撤回走**快照写穿**（`persist()`），服务端口只收紧了「取消」那一支；直调 API 写 `activities.brandProposal` 仍可绕（与 `D-553` 登记的边界同类）——**只登记** |
+| U-5 | **`README*.md` 与 `function-catalog.js` 的对应旧文未改** | `README-server.md` 的活动方法名 / `DATA_FLOW` 之外的清单、`docs/src/core/function-catalog.js` 的考勤与品牌文案（授权面外）——**只登记** |
+| U-6 | **`recorderByType` 使 `组织生活会` 出表** | 系**同步取齐**（该类型上传位＝组织者 ⇒ 不属「非组织者位」表）；**属推导**、已在 `D-558` 写明 |
+| U-7 | **未提交 git** · **探针跑完即删**（`.tmp` 目录亦清） | 按铁律 |
+
+### 八、收尾实测（`R-85` 全量 · 停服 · 探针清理 · 最后自检）
+
+- **全量（`R-85`：`cd server` → 先 `npm start` 起 3000 → `npm test` → 停服）**：**首跑 `tests 716 / pass 715 / fail 1`**——唯一红＝**`form-loop-sweep.test.mjs` 的 `S6 台账行号未同步`**，报 `docs/src/entries/tabs/secretary/calendar-tab.js` 四条登记项行号滞后（`:1055`→`:1059` · `:1091`→`:1095` · `:1092`→`:1096` · `:1093`→`:1097`；根因＝本批在 `calendar-tab.js` 中段加了 4 行 ⇒ **台账未同批同步**）。**已改准这 4 条 `line`**，先**单跑 `S6`（`--test-name-pattern`）复现转绿**（`1 / 1 / 0`），再**重跑全量**：**`tests 716 / pass 716 / fail 0`**（`cancelled 0` · `skipped 0` · `todo 0`；`duration_ms 1141294` ≈ **19.0 分钟**）。**跑完已停服**。
+- **探针清理**：`server/.tmp/probe132.mjs` 与 4 个定位用探针（`probe132b`…`probe132e`）**跑完即删**；全量输出临时文件 `server/.tmp-full.log` / `server/.tmp-full2.log` **已删**；`server/.tmp` **空目录**亦清；**全仓 `.tmp*` 召回为空**（无残留）。
+- **守卫子集三次**：改前 **63 / 63**（29.5 s）→ 改后（业务代码 ＋ bump 之后）**63 / 63**（27.3 s）→ **落账（`.ctx` 四本账 ＋ `form-loop-registry`）之后再跑一次 63 / 63**（24.6 s）——**三次全绿、0 红**。
+- **戳唯一**：全仓检索 `?v=20260921j` **0 命中**（改后取值集合规模 1＝`20260921k`）；`version-stamp` 守卫 15 项全绿（含 `S3 全站活动版本戳单一源`）。
+- **声明与实做核对**：本批声明「考勤改 6 处规则（3 格动 3 格不动）· 品牌四处收口 · 母本 5 处 ＋ 附带 4 处 · `ACTIVE_RULINGS` 改准 2 行」——实做逐条对应（见「二 / 三 / 四」与「六」）。
+- **归因与事实相符**：两条规则均指到支书当日原话（逐字登记）；`D-558` 明写「修正 `D-548` 的『一刀切』」；`D-559` 明写「取消『点一下即认定』」；**未把推导写成已定**（U-1 / U-2 / U-3 / U-6 均标为读法或推导）。
+
+
 
 
 

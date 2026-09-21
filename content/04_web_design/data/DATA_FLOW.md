@@ -364,7 +364,7 @@ UI 层零改动。
 
 | 资源分组 | 方法 | 说明 |
 |---------|------|------|
-| activities | list/create/update/delete/archive/toggleBrand | 活动管理 |
+| activities | list/create/update/delete/archive/revokeBrand | 活动管理 |
 | tasks | list/create/update | 任务管理 |
 | attendances | list/listByActivity/create/update | 考勤管理 |
 | inspections | list/create | 考察管理 |
@@ -385,7 +385,7 @@ UI 层零改动。
 | 活动 | `/api/v1/activities` | GET/POST |
 | 活动(单) | `/api/v1/activities/:id` | GET/PATCH/DELETE |
 | 活动归档 | `/api/v1/activities/:id/archive` | POST |
-| 活动品牌 | `/api/v1/activities/:id/brand` | POST |
+| 活动品牌（**取消认定**；认定＝提案 → 支委会通过后确定，无「点一下即认定」口） | `/api/v1/activities/:id/brand` | POST |
 | 任务 | `/api/v1/tasks` | GET/POST |
 | 任务(单) | `/api/v1/tasks/:id` | PATCH |
 | 考勤 | `/api/v1/attendances` | GET/POST |

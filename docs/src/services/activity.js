@@ -4,10 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921j';
-import { persist } from '../core/data-adapter.js?v=20260921j';
-import { ACTIVITIES } from '../mock/index.js?v=20260921j';
-import { isInitStateActive } from './init-reset.js?v=20260921j'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB } from '../core/domain.js?v=20260921k';
+import { persist } from '../core/data-adapter.js?v=20260921k';
+import { bumpToken } from '../core/version-token.js?v=20260921k';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921k';
+import { ACTIVITIES } from '../mock/index.js?v=20260921k';
+import { isInitStateActive } from './init-reset.js?v=20260921k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -206,4 +208,193 @@ export function isOrganizerFallbackPage(personId, page) {
   const norm = (p) => (p || '').replace(/\.html$/, '');
   if (norm(page) !== norm(ORGANIZER_FALLBACK_PAGE)) return false;
   return getOrganizedActivities(personId).length > 0;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  品牌认定：提案 → 支委会审议通过后确定（2026-09-21 批次 132 · 支书口径二）
+// ════════════════════════════════════════════════════════════════
+// 支书原话（逐字）：「**支委/党小组组长均可以提案，支委会（如果有党小组组长则是支委扩大会）
+//   通过后确定。**」
+// 读法 / 落地（⚠ 读法系按原话逐字拆，不是另立口径）：
+//   · **提案权＝支委层 ＋ 党小组组长**（党小组组长**不在支委层** ⇒ 他只「提案」、不参与「确定」）；
+//   · **确定权＝支委会通过后确定**——复用既有那台机器：提案进「拟上会」清单
+//     （批次 127 `buildAgendaCandidates` 的一张清单，本批新增 `brand` 类目）→ 支委会议程项 →
+//     记录结果（批次 129 的 `recordAgendaResult` 结果分支，本批新增 `brand-designation` 分流）；
+//   · **不再有「点一下即认定」**：`isBrand` 只能由 **支委会议程项记录「通过」** 置位（`applyBrandDesignationResult`）。
+// 落库形状（**不新增表 / 不新增页面**，字段落在活动主源）：
+//   · 提案留痕 `brandProposal = { by, at, note, reviewResult?, reviewedBy?, reviewedAt?, reviewActivityId?, reviewAgendaItemId?, reviewNote? }`；
+//   · 认定留痕 `brandDesignatedBy / brandDesignatedAt / brandDesignationActivityId / brandDesignationAgendaItemId`；
+//   · 通过后 `brandProposal` 置 null（已议决）；取消认定写 `brandRevokedBy / brandRevokedAt`。
+// 「支委扩大会」：**系统里没有独立的「支委扩大会」会议类型**（活动类型目录只有「支委会」）——
+//   按本批自定的最小做法：**用既有「支委会」会议承载**（党小组组长在场即扩大会，由与会人员体现），
+//   判据 `BRAND_MEETING_RE` 按既有类型字面同源。**不新增会议类型**。
+// ⚠ 判据（谁能提案 / 哪场会能定）单一源即本段，勿在页面另写。
+
+/** 提案权角色集＝支委层（`constants.js::BRANCH_COMMISSION_ROLES` 单一源）＋ 党小组组长 */
+export const BRAND_PROPOSER_ROLES = [...BRANCH_COMMISSION_ROLES, 'leader'];
+
+/** 能承载「品牌认定」审议的会议类型（支委会；党小组组长在场即支委扩大会，同属支委会会议） */
+const BRAND_MEETING_RE = /支委/;
+
+/** 品牌认定未通过的缺省审议意见 */
+export const BRAND_REJECT_NOTE = '支委会审议未通过，本次品牌认定不成立（提案保留、可再议）';
+
+/** 谁能提品牌认定案（按角色键） */
+export function canProposeBrand(role) {
+  return BRAND_PROPOSER_ROLES.includes(role);
+}
+
+/** 某活动的品牌认定提案（无提案 → null） */
+export function brandProposalOf(activity) {
+  const p = activity && activity.brandProposal;
+  return (p && typeof p === 'object' && !Array.isArray(p)) ? p : null;
+}
+
+/** 待审议的品牌认定提案清单（＝「拟上会」清单 `brand` 类目的数据源；来源活动主源一处） */
+export function listBrandProposals() {
+  return loadActivities()
+    .filter((a) => a && !a.archived && a.isBrand !== true && brandProposalOf(a))
+    .map((a) => ({ id: a.id, title: a.title || a.id, proposal: brandProposalOf(a) }));
+}
+
+/** 活动主源单点改写（Immutable 替换 + 域缓存失效 + 落库；与 saveDB 同一落盘口） */
+function _writeActivityField(id, patch) {
+  const idx = mockDB.activities.findIndex((a) => a.id === id);
+  if (idx === -1) return null;
+  const updated = { ...mockDB.activities[idx], ...patch };
+  mockDB.activities = [
+    ...mockDB.activities.slice(0, idx),
+    updated,
+    ...mockDB.activities.slice(idx + 1),
+  ];
+  bumpToken('activity');
+  persist();
+  return updated;
+}
+
+/**
+ * 提案：把某场活动提上「品牌认定」议题（**只登记提案，不作任何认定**）。
+ * 提案人＝支委层或党小组组长（`BRAND_PROPOSER_ROLES`）。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function proposeBrandDesignation({ activityId, by, role, note } = {}) {
+  if (!canProposeBrand(role)) return { ok: false, reason: '仅支委与党小组组长可以提案' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (act.isBrand === true) return { ok: false, reason: '该活动已认定为品牌活动' };
+  if (brandProposalOf(act)) return { ok: false, reason: '该活动已有品牌认定提案（待支委会审议）' };
+  const at = new Date().toISOString();
+  _writeActivityField(activityId, { brandProposal: { by: by || null, at, note: String(note || '').trim() } });
+  return { ok: true };
+}
+
+/**
+ * 撤回提案（提案人本人或支委层）——免「提错了只能挂着」这一条死角。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function withdrawBrandProposal({ activityId, by, role } = {}) {
+  const act = findActivityById(activityId);
+  const proposal = brandProposalOf(act);
+  if (!proposal) return { ok: false, reason: '该活动没有待审议的品牌认定提案' };
+  if (!BRANCH_COMMISSION_ROLES.includes(role) && proposal.by !== by) {
+    return { ok: false, reason: '撤回提案限提案人本人或支委层' };
+  }
+  _writeActivityField(activityId, { brandProposal: null });
+  return { ok: true };
+}
+
+/**
+ * 取消品牌认定（支委层）——认定与取消都只有「支委会」这一条路，故本动作**同时留痕**
+ * （不主张「点一下即认定」：成品牌必须走提案 → 支委会通过；本条只管把已有认定撤下来）。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function revokeBrandDesignation({ activityId, by, role } = {}) {
+  if (!BRANCH_COMMISSION_ROLES.includes(role)) return { ok: false, reason: '取消品牌认定限支委层' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (act.isBrand !== true) return { ok: false, reason: '该活动当前不是品牌活动' };
+  _writeActivityField(activityId, {
+    isBrand: false,
+    brandRevokedBy: by || null,
+    brandRevokedAt: new Date().toISOString(),
+  });
+  return { ok: true };
+}
+
+/**
+ * 议程项结果 → 品牌认定状态迁移（**纯函数**；判据与状态迁移的唯一落点，
+ * 由 `services/agenda-follow-up.js::recordAgendaResult` 的 `brand-designation` 分支调用，IO 在那边做）。
+ * 只对**带品牌提案**的活动且**会议类型＝支委会（含支委扩大会）**时生效；会议类型不符则不动
+ * （防从别的会上把品牌推出去；与制度链 `applyInstitutionAgendaResult` 同法）。
+ * 通过 ⇒ **确定品牌认定**（置 `isBrand` ＋ 认定留痕，提案随之清空）；
+ * 未通过 ⇒ **不作认定**（仍无 `isBrand`）＋ 提案留退回意见（可再议）。
+ * @param {Object} p
+ * @param {Object} p.activity 目标活动（品牌认定的对象）
+ * @param {string} p.meetingType 承载议程的会议类型
+ * @param {'passed'|'rejected'|'partial'} p.decision 本次记录的议程结果
+ * @param {string} [p.by] 记录人 personId
+ * @param {string} [p.at] 记录时间（缺省＝当下）
+ * @param {string} [p.activityId] / @param {string} [p.agendaItemId] 留痕回指
+ * @param {string} [p.note] 审议意见（未通过时作退回意见）
+ * @returns {{ok:boolean, reason?:string, patch?:Object}}
+ */
+export function applyBrandDesignationResult({
+  activity, meetingType, decision, by = null, at = null, activityId = null, agendaItemId = null, note = '',
+} = {}) {
+  const proposal = brandProposalOf(activity);
+  if (!proposal) return { ok: false, reason: 'not-a-brand-proposal' };
+  if (!BRAND_MEETING_RE.test(String(meetingType || ''))) return { ok: false, reason: 'meeting-mismatch' };
+  const stamp = at || new Date().toISOString();
+  const trail = {
+    reviewedBy: by || null,
+    reviewedAt: stamp,
+    reviewActivityId: activityId || null,
+    reviewAgendaItemId: agendaItemId || null,
+  };
+  if (decision !== 'passed') {
+    // 未通过（含部分通过）⇒ 不作认定；提案保留 ＋ 退回意见（可改后重新提上会）
+    return {
+      ok: true,
+      patch: {
+        brandProposal: {
+          ...proposal,
+          ...trail,
+          reviewResult: 'rejected',
+          reviewNote: String(note || '').trim() || BRAND_REJECT_NOTE,
+        },
+      },
+    };
+  }
+  return {
+    ok: true,
+    patch: {
+      isBrand: true,
+      brandDesignatedBy: by || null,
+      brandDesignatedAt: stamp,
+      brandDesignationActivityId: activityId || null,
+      brandDesignationAgendaItemId: agendaItemId || null,
+      brandProposal: null,
+    },
+  };
+}
+
+/**
+ * 审议结果**落库**（本段唯一写口；`applyBrandDesignationResult` 的 IO 外壳）：
+ * 判据仍由纯函数给出，落库走活动主源单点改写（`_writeActivityField`：Immutable 替换 + 域缓存失效 +
+ * persist → mock 形态写 localStorage / API 形态写穿服务端快照）——**mock 与 api 同码**。
+ * ⚠ 为什么不走 `adapter.activities.update`：那是「只写服务端」的路径，页面本地活动主源仍是旧值，
+ *   紧随其后的任何一次快照（如记录议程结果后的 `updateAgenda`）会以旧值把刚写入的认定**覆盖回去**
+ *   （2026-09-21 批次 132 真机实测：PATCH 已落、随后被页面快照回滚）。
+ * @returns {{ok:boolean, reason?:string, patch?:Object}}
+ */
+export function commitBrandDesignationResult({
+  activityId, meetingActivityId = null, meetingType, decision, by = null, at = null, agendaItemId = null, note = '',
+} = {}) {
+  const activity = findActivityById(activityId);
+  const res = applyBrandDesignationResult({
+    activity, meetingType, decision, by, at, activityId: meetingActivityId, agendaItemId, note,
+  });
+  if (!res.ok) return res;
+  _writeActivityField(activityId, res.patch);
+  return res;
 }

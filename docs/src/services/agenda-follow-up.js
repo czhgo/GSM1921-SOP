@@ -3,13 +3,16 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921j';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921k';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from './person.js?v=20260921j';
+import { PersonStore } from './person.js?v=20260921k';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from './branch-doc.js?v=20260921j';
+import { isInstitutionDoc, applyInstitutionAgendaResult } from './branch-doc.js?v=20260921k';
+// 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：议程项结果的 `brand-designation`
+//   分支只做 IO，判据与状态迁移的单一源在 activity.js::applyBrandDesignationResult（纯函数）。
+import { commitBrandDesignationResult } from './activity.js?v=20260921k';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -184,6 +187,24 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
       });
       db.branchDocs = replaceById(db.branchDocs || [], archived);
     }
+  }
+
+  // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会……通过后确定」）：
+  //   判据与状态迁移的单一源在 `services/activity.js::applyBrandDesignationResult`（纯函数）；
+  //   落库走 `commitBrandDesignationResult`（活动主源单点改写 + persist ⇒ mock/api 同码，
+  //   且页面本地主源同步更新 ⇒ 紧随其后的快照不会把认定覆盖回去）。
+  //   只对「已提案、尚未认定」的活动且**会议类型＝支委会**时生效（会议类型不符则不动）；
+  //   通过 ⇒ 置 `isBrand`（品牌认定确定）＋ 认定留痕；未通过 ⇒ 不作认定（提案保留 ＋ 退回意见）。
+  if (hasKind(agendaItem, 'brand-designation') && agendaItem.brandActivityId) {
+    commitBrandDesignationResult({
+      activityId: agendaItem.brandActivityId,
+      meetingActivityId: activity.id,
+      meetingType: activity.type,
+      decision: effectiveResult,
+      by: actorId,
+      at: now,
+      agendaItemId: agendaItem.id,
+    });
   }
 
   // 待讨论名单（支书 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。

@@ -5,36 +5,39 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260921j';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921j';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260921j';
-import { icon } from '../core/icons.js?v=20260921j';
-import { openModal, closeModal } from './modal.js?v=20260921j';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260921k';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921k';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260921k';
+import { icon } from '../core/icons.js?v=20260921k';
+import { openModal, closeModal } from './modal.js?v=20260921k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260921j';
-import { BranchService } from '../services/runtime.js?v=20260921j';
-import { AuthStore } from '../services/auth.js?v=20260921j';
-import { liveMembers, PersonStore } from '../services/person.js?v=20260921j';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260921j';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260921j';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921j';
+import { getPersonById } from '../services/person.js?v=20260921k';
+import { BranchService } from '../services/runtime.js?v=20260921k';
+import { AuthStore } from '../services/auth.js?v=20260921k';
+import { liveMembers, PersonStore, getPersonName } from '../services/person.js?v=20260921k';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260921k';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260921k';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921k';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260921j';
+import { isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260921k';
+// 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
+// 判据与写口单一源 = services/activity.js；本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**。
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260921k';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260921j';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260921k';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260921j';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260921j';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260921j';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260921j';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260921j';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260921j';
-import { loadActivityReviews } from '../services/review.js?v=20260921j';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260921j';
+import { NoticeStore } from '../services/notice.js?v=20260921k';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260921k';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260921k';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260921k';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260921k';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260921k';
+import { loadActivityReviews } from '../services/review.js?v=20260921k';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260921k';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -463,6 +466,12 @@ function _agendaTypeBadges(a) {
       badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-gray-600 bg-gray-100" title="过程材料（试点意见 / 征求意见 / 修改说明）随草案归档，本处只作数量提示">已附材料 ${_draftMaterialCount(doc)} 件</span>`);
     }
   }
+  // 品牌认定提案（2026-09-21 批次 132）：本议程项指向哪场活动被提案认定
+  if (isKind('brand-designation')) {
+    const target = (mockDB.activities || []).find(x => x.id === a.brandActivityId);
+    const targetLabel = target ? (target.title || target.id) : '（活动已删除）';
+    badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">品牌认定：${esc(targetLabel)}</span>`);
+  }
   if (isKind('attendee-list') || isKind('member-change')) {
     const personIds = Array.isArray(a.personIds) ? a.personIds : (a.personId ? [a.personId] : []);
     // S-2：只显示目标阶段（不再显示「从 X 到 Y」）
@@ -784,9 +793,26 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '<p class=" text-xs text-gray-500 py-2">暂无关联任务</p>';
   }
 
-  if (isCommittee && !isArchived) { // 品牌认定归支委会（D-414「都归支委会」；2026-09-21 批次 126 · D-550）：由「仅支书」放开到支委层（支书/副支书/组织/宣传/纪检）——只放开这一件，其余支书专属项不动
-    html += '<div class="mt-3">';
-    html += `<button id="inspector-brand-toggle-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${isBrandActive ? '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);' : '--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);'}">${isBrandActive ? icon('starFilled', { className: 'w-3 h-3' }) + ' 取消品牌认定' : icon('starOutline', { className: 'w-3 h-3' }) + ' 标记为品牌活动'}</button>`;
+  // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会……通过后确定」）：
+  //   **不再有「点一下即认定」**——提案权＝支委层 ＋ 党小组组长；确定权＝支委会（议程项「记录结果」通过）。
+  //   本处按状态渲染三态：已认定（支委层可取消，留痕） / 已提案待审议（提案人或支委层可撤回） / 未提案（可提案）。
+  const brandProposal = brandProposalOf(activity);
+  if ((isCommittee || canProposeBrand(_user?.role)) && !isArchived) {
+    const brandBtnStyle = isBrandActive
+      ? '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(234,179,8,0.15);color:var(--brand-amber-dark);border:1px solid rgba(234,179,8,0.40);'
+      : '--acc-bg-dark:rgba(251,191,36,0.10);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.25);background:rgba(234,179,8,0.06);color:#92400E;border:1px solid rgba(234,179,8,0.25);';
+    html += '<div class="mt-3 flex items-center gap-2 flex-wrap">';
+    if (isBrandActive) {
+      html += `<span class=" text-xs text-gray-500">本场已由支委会认定为品牌活动${activity.brandDesignatedAt ? `（${String(activity.brandDesignatedAt).slice(0, 10)}）` : ''}</span>`;
+      if (isCommittee) html += `<button id="inspector-brand-revoke-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starFilled', { className: 'w-3 h-3' })} 取消品牌认定</button>`;
+    } else if (brandProposal) {
+      const proposerName = brandProposal.by ? (getPersonName(brandProposal.by) || brandProposal.by) : '—';
+      html += `<span class=" text-xs text-gray-500">品牌认定提案待支委会审议（提案人 ${esc(brandProposal.by ? proposerName : '—')}${brandProposal.reviewResult === 'rejected' ? ' · 上次未通过' : ''}）</span>`;
+      if (isCommittee || brandProposal.by === _user?.personId) html += `<button id="inspector-brand-withdraw-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">撤回提案</button>`;
+    } else if (canProposeBrand(_user?.role)) {
+      html += `<button id="inspector-brand-propose-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starOutline', { className: 'w-3 h-3' })} 提议认定为品牌活动</button>`;
+      html += '<span class=" text-xs text-gray-500">提案后进支委会「拟上会」清单，通过后才认定</span>';
+    }
     html += '</div>';
   }
 
@@ -980,21 +1006,41 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     });
   }
 
-  const brandToggleBtn = document.getElementById('inspector-brand-toggle-btn');
-  if (brandToggleBtn) {
-    brandToggleBtn.addEventListener('click', async () => {
-      const action = isBrandActive ? '取消品牌认定' : '标记为品牌活动';
-      if (!window.confirm(`确认${action}？`)) return;
-      try {
-        setState({ status: STATE.SUBMITTING });
-        await BranchService.toggleBrand(activity.id);
-        const activities = await BranchService.listActivities();
-        setState({ status: STATE.IDLE, activities });
-        showToast('success', `${action}成功`);
-      } catch (err) {
-        setState({ status: STATE.ERROR, error: err });
-        showToast('error', (err && err.message) || '操作失败');
-      }
+  // 品牌认定三动作（2026-09-21 批次 132 · 支书口径二）：**认定只能由支委会审议通过产生**，故本处只有
+  //   ① 提案（支委层 / 党小组组长）② 撤回提案（提案人或支委层）③ 取消已有认定（支委层，留痕）。
+  //   放行判据在服务层各函数内复算一次（点了没反应＝按钮没渲染出来，属「漏挂」类问题，不静默）。
+  const reloadAfterBrandWrite = async () => {
+    const activities = await BranchService.listActivities();
+    setState({ status: STATE.IDLE, activities });
+  };
+  const brandProposeBtn = document.getElementById('inspector-brand-propose-btn');
+  if (brandProposeBtn) {
+    brandProposeBtn.addEventListener('click', async () => {
+      if (!window.confirm('提交「品牌认定」提案？提案只登记待议，须经支委会审议通过后才认定为品牌活动。')) return;
+      const res = proposeBrandDesignation({ activityId: activity.id, by: currentUserId, role: _user?.role });
+      if (!res.ok) { showToast('error', res.reason || '提案失败'); return; }
+      showToast('success', '已提交品牌认定提案（进支委会「拟上会」清单）');
+      await reloadAfterBrandWrite();
+    });
+  }
+  const brandWithdrawBtn = document.getElementById('inspector-brand-withdraw-btn');
+  if (brandWithdrawBtn) {
+    brandWithdrawBtn.addEventListener('click', async () => {
+      if (!window.confirm('撤回该活动的品牌认定提案？')) return;
+      const res = withdrawBrandProposal({ activityId: activity.id, by: currentUserId, role: _user?.role });
+      if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
+      showToast('success', '已撤回品牌认定提案');
+      await reloadAfterBrandWrite();
+    });
+  }
+  const brandRevokeBtn = document.getElementById('inspector-brand-revoke-btn');
+  if (brandRevokeBtn) {
+    brandRevokeBtn.addEventListener('click', async () => {
+      if (!window.confirm('确认取消本场的品牌认定？（留痕：取消人 / 时间；重新认定为品牌仍须支委会审议通过）')) return;
+      const res = revokeBrandDesignation({ activityId: activity.id, by: currentUserId, role: _user?.role });
+      if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
+      showToast('success', '已取消品牌认定');
+      await reloadAfterBrandWrite();
     });
   }
 

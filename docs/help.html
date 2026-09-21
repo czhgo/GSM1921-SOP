@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260921j"></script>
+<script src="./src/theme-init.js?v=20260921k"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260921j"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260921j">
+  <script src="./src/tailwind-config.js?v=20260921k"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260921k">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -499,7 +499,7 @@
               <tr><td>待办</td><td>党小组组长</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>工作概况</td><td>党小组组长</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
               <tr><td>活动管理</td><td>党小组组长</td><td>本组活动（党小组会等）的创建与管理，可现场发布考勤二维码</td><td>「我的职责」段；「+ 写入活动」选场景 → 创建；活动中发二维码供签到</td></tr>
-              <tr><td>考勤上传</td><td>党小组组长</td><td>本组活动考勤上传（含本人为组织者的会议类场次；现场签到 / 名单导入）</td><td>「我的职责」段；选活动 → 上传签到名单 / 二维码结果</td></tr>
+              <tr><td>考勤上传</td><td>党小组组长</td><td>本组活动考勤上传（本组党小组会，以及本人为组织者的主题党日 / 组织生活会；现场签到 / 名单导入）。党课 / 支部党员大会的上传位在纪检委员（见 3.3），支委会不考勤</td><td>「我的职责」段；选活动 → 上传签到名单 / 二维码结果</td></tr>
               <tr><td>考察上传</td><td>党小组组长</td><td>本组组员考察记录上传（日常观察素材）</td><td>「我的职责」段；选组员 → 填观察记录 → 上传</td></tr>
               <tr><td>组员进展</td><td>党小组组长</td><td>本组组员进展：进度 / 考勤 / 考察（块块视角，看 ≠ 做）；含「本组活动复盘状态」只读区块（复盘提交已归组织者 / 深度参与者，本页不代提交）</td><td>「我的职责」段；点组员行展开其维度数据；展开「本组活动复盘状态」看复盘完成情况</td></tr>
               <tr><td>知情查看</td><td>党小组组长</td><td>活动与专班进展只读知情查看，内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
@@ -626,10 +626,10 @@
         <div class="help-card" id="card-dom31-att-upload" data-search="会务 党小组会 考勤上传 组长 应到名单 批量 出勤 缺勤 请假 待确认">
           <h4 class="help-card-title">考勤上传（组长 → 纪检确认）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>党小组组长工作台 →「我的职责」段「考勤上传」。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（党小组会记录人 = 本组组长）；会议类（党课 / 支部党员大会 / 组织生活会 / 支委会）的上传同样归<strong>该场会议的组织者</strong>（本人是该场组织者时就在本表单里，见 3.3）；组长非组织者的其它活动为监督位（督促上传）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（党小组会记录人 = 本组组长，兼该场组织者）；<strong>主题党日 / 组织生活会</strong> 的上传归<strong>该场活动组织者</strong>（本人是组织者时就在本表单里）；<strong>党课 / 支部党员大会</strong> 的上传位在<strong>纪检委员</strong>（见 3.3 会议考勤录入卡）；<strong>支委会不考勤</strong>；组长非组织者的其它活动为监督位（督促上传）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传考勤表单」→ 选活动：仅列本组长可上传且未归档的活动（本组党小组会 / 本人为组织者的活动）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传考勤表单」→ 选活动：仅列本组长可上传且未归档的活动（本组党小组会 / 本人为组织者的主题党日、组织生活会）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">选参会人员：党小组会候选取<strong>本组应到名单</strong>（组内党员，滞留者标灰禁选，悬浮可见滞留备注），可一次全选。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">逐人出勤状态（出勤 / 缺勤 / 请假）；人多了先「批量设置：全部出勤 / 全部缺勤 / 全部请假 → 应用到全部」，再按需微调个别人 → 「提交考勤」。</li>
           </ol>
@@ -685,12 +685,12 @@
 
         <!-- 3.3 考勤纪律 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.3</span>考勤纪律</h3>
-        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检确认 / 录入总表、未到标因、滞留到场补录、补课任务与完成回写、考勤统计交接支委会</strong>全部落在纪检台「考勤管理」一个 tab（内含「考勤 / 补课」一级分段）；组织者上传位在 3.1 已讲，此处承接纪检侧的确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
+        <p class="doc-p">三会一课（刚性考勤）与主题党日（弹性考勤）的<strong>纪检确认 / 录入总表、未到标因、滞留到场补录、补课任务与完成回写、考勤统计交接支委会</strong>全部落在纪检台「考勤管理」一个 tab（内含「考勤 / 补课」一级分段）；<strong>上传位按会议类型分</strong>（党小组会 / 主题党日 / 组织生活会 ＝ 该场组织者，见 3.1；党课 / 支部党员大会 ＝ 纪检委员，见本卡；支委会不考勤），此处承接纪检侧的录入与确认办结。应到计算规则（支书裁定）：应到 = 在册党员（正式 + 预备）− 滞留剔除；滞留者组织关系保留、应到剔除、通知照发。</p>
 
         <div class="help-card" id="card-dom33-meet-record" data-search="考勤 会议考勤录入 纪检 全选应到名单 标因 请假 无故 其它 滞留到场补录 到席 更正">
-          <h4 class="help-card-title">会议考勤录入（组织者上传位；会议类：党课 / 支部党员大会 / 组织生活会 / 支委会）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检工作台 →「我的职责」段「考勤管理」→ 卡「会议考勤录入」→「录入会议考勤」（本卡只列<strong>您本人可上传</strong>的会议场次；非纪检委员的组织者经组长台「考勤上传」上传，见 3.1）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>该场会议的组织者（本人是该场组织者时才在此录入，录入即确认）；支书 / 副支书可例外承担；纪检委员管<strong>打包确认、录入总表与统计核对</strong>（见下方「考勤确认」卡）；党小组会不在此列（组织者上传见 3.1）。</p>
+          <h4 class="help-card-title">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检工作台 →「我的职责」段「考勤管理」→ 卡「会议考勤录入」→「录入会议考勤」（本卡只列<strong>您本人可上传</strong>的会议场次）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong><strong>纪检委员</strong>（党课 / 支部党员大会的上传位，录入即确认）；支书 / 副支书可例外承担；<strong>党小组会 / 主题党日 / 组织生活会</strong>由该场活动组织者在组长台「考勤上传」上传（见 3.1）；<strong>支委会不考勤</strong>（规模小）。纪检另管<strong>打包确认、录入总表与统计核对</strong>（见下方「考勤确认」卡）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">选会议活动（下拉仅列<strong>您本人可上传</strong>、未归档的会议类活动）。</li>
@@ -699,7 +699,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">滞留党员线下到场：在「滞留党员到场补录」区单独勾选（不随全选）→ 计「到席」并落「滞留 · 到场」标记。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「提交录入」→ 回执显示新增 / 更正 / 跳过计数。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>录入即确认（recordedBy = <strong>录入人本人＝该场会议组织者</strong>）；应到清点实时显示「预应到 K → 滞留到场补录 L → 实际应到 K+L」（补录者档案按在场展示）；异常（缺勤 / 请假）自动生成补课任务（7 日内）；已录条目再次提交 = 本人更正（仅覆盖本人所录，他人权威所录跳过）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>录入即确认（recordedBy = <strong>录入人本人＝该场会议的纪检委员 / 支书 / 副支书</strong>）；应到清点实时显示「预应到 K → 滞留到场补录 L → 实际应到 K+L」（补录者档案按在场展示）；异常（缺勤 / 请假）自动生成补课任务（7 日内）；已录条目再次提交 = 本人更正（仅覆盖本人所录，他人权威所录跳过）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>无可写入（所选均为他人权威已录 / 无上传权限活动）时表单保留供改选重提；未到行标因随状态显隐联动（改回出勤即隐藏并清除旧标因）。</p>
         </div>
 
@@ -1199,7 +1199,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 创建：支书 / 副支书在支书台「活动管理 → 写入活动」选三会一课子类建会（党小组会由组长在组长台建）；自动按会议类型实例化 SOP 待办（T-7 筹备 → T-3 通知到人 → T0 签到考勤 → T+3 汇总 → T+5 归档 / 补课跟进），填了预拟通知即自动发布并派生成员待办。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">议程编排（创建表单「会议议程」区）：一条议题可同时打「讨论文件」（关联会前草案）与「待讨论名单」（统一阶段转换）两种签；会后支书在活动详情页逐条「记录通过 / 未通过」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">记录后的自动派生：讨论文件「通过」→ 草案自动转「已归档」并标讨论来源（宣传无需二次上传）；待讨论名单「通过」→ 名单内每人自动生成成员变更申请，走「组织审批 → 支书确认 → 阶段更新」（接 4.5）；支部党员大会线上表决先做出席 / 赞成双过半硬校验。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">考勤交接：党小组会考勤由组织者上传（3.1），党课 / 支部党员大会 / 支委会的上传同样归该场会议组织者（3.3）；出勤 / 已补源头自动确认，异常自动生成补课任务并入纪检「待确认」队列（接 4.3）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">考勤交接：<strong>上传位按会议类型分</strong>——党小组会 / 主题党日 / 组织生活会由该场组织者上传（3.1），<strong>党课 / 支部党员大会由纪检委员上传</strong>（3.3），支委会不考勤；出勤 / 已补源头自动确认，异常自动生成补课任务并入纪检「待确认」队列（接 4.3）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 归档：纪检确认考勤后「提交考勤统计至支委会」，由组织委员接收建档（3.3）；会议材料与宣传产出由宣传台「档案归档」收口（3.8）。</li>
           </ol>
         </div>
@@ -1222,7 +1222,7 @@
         <div class="help-card" id="card-chain-attendance" data-search="业务链路 考勤纪律 考勤上传 纪检确认 录入总表 待确认 确认 自动补课 补课回写 支委会交接 数据交接">
           <h4 class="help-card-title">组织者上传 → 纪检确认与录入总表 → 自动补课 → 考勤统计交支委会</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条上传线：党小组会 = 组长台「考勤上传」（候选取本组应到名单，可批量设状态）；党课 / 支部党员大会 / 支委会 = 同样由该场会议的组织者上传（组织者经组长台「考勤上传」；滞留党员线下到场单独补录、计到席）——录入即确认。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 两条上传线：党小组会 / 主题党日 / 组织生活会 = 该场组织者在组长台「考勤上传」（候选取本组应到名单，可批量设状态）；<strong>党课 / 支部党员大会 = 纪检委员</strong>在纪检台「会议考勤录入」；<strong>支委会不考勤</strong>（滞留党员线下到场单独补录、计到席）——录入即确认。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">自动分流：出勤 / 已补 = 源头审校自动确认，不进纪检队列；异常（缺勤 / 请假）自动生成补课任务（截止 = 活动日 + 7 天）并入纪检「待确认」队列，党小组会异常同样等纪检复核。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检确认：纪检台「考勤管理」待确认队列逐条确认（超期红标优先；也可在考勤明细按状态筛选逐行确认）→ 写确认人记录，自动通知组织委员「考勤已确认并归档至考察档案」。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">补课办结：成员线下完成（必修 = 自学 + 心得 / 选修 = 自学）→ 纪检「考勤管理」的「补课」分段确认完成 → 对应考勤自动回写「已补」、逾期清除；超期任务自动汇总为超期提醒红块。</li>
@@ -1493,6 +1493,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260921j"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260921k"></script>
 </body>
 </html>

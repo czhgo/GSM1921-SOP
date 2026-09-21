@@ -387,7 +387,7 @@ export function createResourcesRouter(db) {
     res.status(201).json({ branch, ok: true });
   });
 
-  // 活动归档/品牌切换特例（与前端 BranchService.archiveActivity/toggleBrand 语义对齐）
+  // 活动归档特例（与前端 BranchService.archiveActivity 语义对齐）
   router.post('/activities/:id/archive', requireAuth(db), (req, res) => {
     const id = req.params.id;
     const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
@@ -405,13 +405,13 @@ export function createResourcesRouter(db) {
     res.json(act);
   });
 
-  router.post('/activities/:id/brand', requireAuth(db), (req, res) => {
-    const id = req.params.id;
-    const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(id);
+  router.post('/activities/:id/brand', requireRole(db, BRANCH_COMMITTEE_ROLES), (req, res) => { // 品牌认定**取消**口（2026-09-21 批次 132 · 支书口径二）：**只能取消、不能认定**——认定唯一入口＝支委会议程项「记录结果 · 通过」（services/agenda-follow-up.js 的 brand-designation 分支）；原文「任一登录用户 POST 即翻转 isBrand」＝「点一下即认定」的后门，本批收掉（门收支委层 / 非品牌态 400 / 取消留痕）
+    const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'not found' });
     const current = JSON.parse(existing.data);
-    const act = { ...current, id, isBrand: !current.isBrand };
-    db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(id, JSON.stringify(act));
+    if (current.isBrand !== true) return res.status(400).json({ error: '该活动当前不是品牌活动——品牌认定须经支委会审议通过（提案 → 支委会通过后确定）' });
+    const act = { ...current, id: req.params.id, isBrand: false, brandRevokedBy: (req.actor && req.actor.id) || null, brandRevokedAt: new Date().toISOString() };
+    db.prepare('INSERT OR REPLACE INTO activities (id, data) VALUES (?, ?)').run(req.params.id, JSON.stringify(act));
     res.json(act);
   });
 

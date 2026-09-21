@@ -8,16 +8,16 @@
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260921j';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260921j';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260921j';
-import { AuthStore } from '../../../services/auth.js?v=20260921j';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260921j';
-import { getPersonName } from '../../../services/person.js?v=20260921j';
+import { escHtml as esc } from '../../../core/utils.js?v=20260921k';
+import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260921k';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260921k';
+import { AuthStore } from '../../../services/auth.js?v=20260921k';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260921k';
+import { getPersonName } from '../../../services/person.js?v=20260921k';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260921j';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260921k';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260921j';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260921k';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 

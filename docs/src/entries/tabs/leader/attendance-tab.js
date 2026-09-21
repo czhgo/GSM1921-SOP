@@ -1,36 +1,38 @@
 // role: [工程师]+[AI]
 // 组长工作台 Tab：考勤上传（T-279 M2 拆分）
 // 党小组活动考勤：组织者上传 → 纪检委员确认 → 录入考勤明细。
-// 2026-09-21 批次 124（支书 2026-09-20 定案「会议考勤上传收归组织者」）：**会议考勤（党课/支部党员大会/
-//   组织生活会/支委会）的上传位同样在本页**——本页是「组织者上传位」的承载面（任何被指定为某场活动
-//   组织者的人经组织者兜底进入本页，见 core/bootstrap.js::isOrganizerFallbackPage）；下拉因此按
-//   `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}` 列活动，写口仍逐场由 `canUploadAttendance` 判定。
-//   纪检不再持会议考勤上传位——纪检在纪律台做确认（打包确认）与统计核对。
+// 2026-09-21 批次 132（支书当日口径一，**修正批次 124 · D-548 的「一刀切」**）：会议考勤的上传位
+//   **按会议类型分**——**党课 / 支部党员大会＝纪检委员**（本页不列、本人非纪检时传不了；支书 / 副支书
+//   照例可代上传）· **党小组会＝该场会议的组织者**（兼本组组长）· **组织生活会 / 主题党日 / 其余＝该场
+//   组织者** · **支委会不考勤**（`POLICY_DEFAULTS.attendance.noAttendanceTypes`，本页不列）。
+//   本页仍是「组织者上传位」的承载面（任何被指定为某场活动组织者的人经组织者兜底进入本页，见
+//   core/bootstrap.js::isOrganizerFallbackPage）；下拉按 `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}`
+//   列活动，写口仍逐场由 `canUploadAttendance` 判定（非本页可传者即便在类型清单里也传不了）。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES } from '../../../services/attendance.js?v=20260921j';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260921j';
-import { loadActivities } from '../../../services/activity.js?v=20260921j';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES } from '../../../services/attendance.js?v=20260921k';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260921k';
+import { loadActivities } from '../../../services/activity.js?v=20260921k';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260921j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921j';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921j';
+import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260921k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921k';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260921j';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260921j';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921j';
-import { generateId } from '../../../core/id.js?v=20260921j';
-import { badgeHtml } from '../../../components/badges.js?v=20260921j';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260921j';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260921k';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260921k';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921k';
+import { generateId } from '../../../core/id.js?v=20260921k';
+import { badgeHtml } from '../../../components/badges.js?v=20260921k';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260921k';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260921j';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260921j';
-import { currentLeaderGroup } from './_shared.js?v=20260921j';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260921j';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260921k';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260921k';
+import { currentLeaderGroup } from './_shared.js?v=20260921k';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260921k';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260921j';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260921k';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -55,9 +57,10 @@ export function renderContent(ctx) {
     myGroupMemberIds.includes(r.personId) && r.activityId && loadActivities().find(a => a.id === r.activityId)
   );
 
-  // 可上传的活动类型＝会议考勤类型（党课/支部党员大会/组织生活会/支委会）＋ 党小组会 / 主题党日；
+  // 可上传的活动类型＝会议考勤类型（党课/支部党员大会/组织生活会）＋ 党小组会 / 主题党日；
   // 类型清单单一源 = services/attendance.js MEETING_ATTENDANCE_TYPES（policy-defaults 派生），勿另写字面量。
   // A1-2026-09-05 上传位门禁：列表仅保留本人可上传（本组党小组会 / 本人为该活动组织者）且未归档的活动
+  // （2026-09-21 批次 132：党课 / 支部党员大会的判据是「纪检委员」，本页角色非纪检时自然不在列）
   const UPLOADABLE_ACTIVITY_TYPES = [...MEETING_ATTENDANCE_TYPES, '党小组会', '主题党日'];
   const { leaderId } = currentLeaderGroup();
   const eligibleActivities = loadActivities()
@@ -137,7 +140,7 @@ export function renderContent(ctx) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>
       </div>
-      <div class="text-xs text-gray-500 mb-3">考勤上传：组织者上传 → 纪检委员确认 → 录入考勤明细。仅列<b>本组党小组会</b>与<b>本人为组织者的活动</b>（含会议考勤——党课 / 支部党员大会 / 组织生活会 / 支委会）；组长非组织者=本组监督位，督促上传</div>
+      <div class="text-xs text-gray-500 mb-3">考勤上传：组织者上传 → 纪检委员确认 → 录入考勤明细。仅列<b>本组党小组会</b>与<b>本人为组织者的活动</b>（<b>主题党日 / 组织生活会</b>等）；<b>党课 / 支部党员大会</b>的上传位在纪检委员（纪检台「会议考勤录入」），<b>支委会不考勤</b>；组长非组织者=本组监督位，督促上传</div>
       ${formHtml}
       <div class="overflow-x-auto ${_attFormVisible ? 'mt-4 pt-3 border-t border-gray-100' : ''}">
         <div id="att-list-host"></div>
