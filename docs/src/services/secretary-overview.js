@@ -7,23 +7,23 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第2条 最小三成本
 // ════════════════════════════════════════════════════════════════
 
-import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions } from './attendance.js?v=20260921k';
-import { loadActivities } from './activity.js?v=20260921k';
-import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260921k';
-import { TaskForceRecordStore } from './taskforce.js?v=20260921k';
-import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260921k';
-import { NoticeStore } from './notice.js?v=20260921k';
-import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260921k';
-import { tokenOf } from '../core/version-token.js?v=20260921k'; // P0 域缓存失效（spec §二.3/§二.4）
-import { PEOPLE } from '../mock/index.js?v=20260921k';
-import { getPersonById } from './person.js?v=20260921k';
-import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260921k';
-import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260921k';
-import { persist } from '../core/data-adapter.js?v=20260921k'; // 周报审核写口落盘（SOP-B-40 ②）
+import { loadAttendanceRecords, loadActiveAttendanceRecords, listLowAttendanceSessions } from './attendance.js?v=20260921l';
+import { loadActivities } from './activity.js?v=20260921l';
+import { loadInspectionRecords, getOverdueRecords } from './inspection.js?v=20260921l';
+import { TaskForceRecordStore } from './taskforce.js?v=20260921l';
+import { loadActivityReviews, loadActiveActivityReviews } from './review.js?v=20260921l';
+import { NoticeStore } from './notice.js?v=20260921l';
+import { TodoStore, seedTodos, TodoCategory, TodoActionType, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from './todo.js?v=20260921l';
+import { tokenOf } from '../core/version-token.js?v=20260921l'; // P0 域缓存失效（spec §二.3/§二.4）
+import { PEOPLE } from '../mock/index.js?v=20260921l';
+import { getPersonById } from './person.js?v=20260921l';
+import { ROLE_LABELS, isActivityEnded, isActivityArchived } from '../core/constants.js?v=20260921l';
+import { mockDB, AttendanceStatus, ReviewStatus } from '../core/domain.js?v=20260921l';
+import { persist } from '../core/data-adapter.js?v=20260921l'; // 周报审核写口落盘（SOP-B-40 ②）
 // 批4（2026-09-09 支书批「域参数」副本收编）：本文件 4 组提醒阈值/deadline 一律引 policy 单一源派生，
 // 勿再写字面量（attendance.entryRemindDays/summaryDeadlineDays · inspection.overdueDays ·
 // review.overdueDays/deadlineDays——读侧注入后自动跟随域覆盖值）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921k';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921l';
 
 // ════════════════════════════════════════════════════════════════
 //  工具函数

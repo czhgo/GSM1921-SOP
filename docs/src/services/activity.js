@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921k';
-import { persist } from '../core/data-adapter.js?v=20260921k';
-import { bumpToken } from '../core/version-token.js?v=20260921k';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921k';
-import { ACTIVITIES } from '../mock/index.js?v=20260921k';
-import { isInitStateActive } from './init-reset.js?v=20260921k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB } from '../core/domain.js?v=20260921l';
+import { persist } from '../core/data-adapter.js?v=20260921l';
+import { bumpToken } from '../core/version-token.js?v=20260921l';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921l';
+import { ACTIVITIES } from '../mock/index.js?v=20260921l';
+import { isInitStateActive } from './init-reset.js?v=20260921l'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
