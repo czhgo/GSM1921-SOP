@@ -19,18 +19,18 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260921f';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921f';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260921g';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921g';
 import {
   MockAdapter, collectResetKeys, handleResetIfRequested,
-} from '../../docs/src/core/mock-adapter.js?v=20260921f';
+} from '../../docs/src/core/mock-adapter.js?v=20260921g';
 import {
   PersonStore, MEMBER_OVERLAY_KEY, getBaseMemberRecords, findMemberRefs,
-} from '../../docs/src/services/person.js?v=20260921f';
-import { getRosterStats } from '../../docs/src/services/roster.js?v=20260921f';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260921f';
+} from '../../docs/src/services/person.js?v=20260921g';
+import { getRosterStats } from '../../docs/src/services/roster.js?v=20260921g';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260921g';
 // Q-23-10（批次 30）实证：成员流动流入登记在 api 形态走 /members/intake（支书/副支书亦可）
-import { registerIntake } from '../../docs/src/services/member-flow.js?v=20260921f';
+import { registerIntake } from '../../docs/src/services/member-flow.js?v=20260921g';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 

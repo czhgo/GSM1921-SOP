@@ -1,23 +1,23 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260921f';
-import { renderHeader } from '../components/header.js?v=20260921f';
-import { BranchService } from '../services/runtime.js?v=20260921f';
+import { renderSidebar } from '../components/sidebar.js?v=20260921g';
+import { renderHeader } from '../components/header.js?v=20260921g';
+import { BranchService } from '../services/runtime.js?v=20260921g';
 // D-486（2026-09-18 批次 88）：本页必须先 hydrate API 数据源再取数——与 activity / archive 独立页同款标准形。
 // 此前本页连 runtime.js 都未 import ⇒ api 形态下 getDataSource() 仍是 mock，意见列表读的是本地
 // issues.json / localStorage（种子能开、服务端新数据打不开）。本批与评论写链（issue-detail.js 改走
 // 服务层）一并处置——只补 hydrate 而写链没接，会把「评论落本机、自见」变成「评论静默丢失」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921f';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921f';
-import { IssueStore } from '../services/issues.js?v=20260921f';
-import { MilestoneStore } from '../services/milestones.js?v=20260921f';
-import { showToast, getBasePath } from '../core/utils.js?v=20260921f';
-import { AuthStore } from '../services/auth.js?v=20260921f';
-import { renderIssueList } from '../components/issue-list.js?v=20260921f';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260921f';
-import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260921f';
-import { renderIssueForm } from '../components/issue-form.js?v=20260921f';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921g';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921g';
+import { IssueStore } from '../services/issues.js?v=20260921g';
+import { MilestoneStore } from '../services/milestones.js?v=20260921g';
+import { showToast, getBasePath } from '../core/utils.js?v=20260921g';
+import { AuthStore } from '../services/auth.js?v=20260921g';
+import { renderIssueList } from '../components/issue-list.js?v=20260921g';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260921g';
+import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260921g';
+import { renderIssueForm } from '../components/issue-form.js?v=20260921g';
 
 renderSidebar('feedback');
 renderHeader('feedback');

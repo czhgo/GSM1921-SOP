@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260921f';
-import { showToast } from '../../../core/utils.js?v=20260921f';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921f';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921f';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921f';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260921f';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921f';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260921f';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921f';
-import { loadActivities } from '../../../services/activity.js?v=20260921f';
-import { renderQueryView } from '../../../components/query-view.js?v=20260921f';
-import { icon } from '../../../core/icons.js?v=20260921f';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921f';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921f';
+import { getAppState, setState } from '../../../core/state.js?v=20260921g';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921g';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921g';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921g';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921g';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260921g';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921g';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260921g';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921g';
+import { loadActivities } from '../../../services/activity.js?v=20260921g';
+import { renderQueryView } from '../../../components/query-view.js?v=20260921g';
+import { icon } from '../../../core/icons.js?v=20260921g';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921g';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921g';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260921f';
-import { BranchService } from '../../../services/runtime.js?v=20260921f';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921f';
+import { NoticeStore } from '../../../services/notice.js?v=20260921g';
+import { BranchService } from '../../../services/runtime.js?v=20260921g';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921g';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921f';
-import { badgeHtml } from '../../../components/badges.js?v=20260921f';
-import { collectAgendaRows } from './agenda-form.js?v=20260921f';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921f';
-import { AuthStore } from '../../../services/auth.js?v=20260921f';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921f';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921g';
+import { badgeHtml } from '../../../components/badges.js?v=20260921g';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260921g';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921g';
+import { AuthStore } from '../../../services/auth.js?v=20260921g';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921g';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260921f';
+import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260921g';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921f';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921g';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921f';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921g';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -577,9 +577,12 @@ function renderFormStep() {
   }
 
   // 会议议程（T-283：三会一课专用；逐条议题 + 可选主持人，行内编辑最少点击）
+  // 2026-09-21 批次 127（SOP-B-33 取乙档）：上面加**一个统一入口**「从拟上会清单勾选」——先归集一张清单，勾谁上会（不按来源各做导入口）
   if (tpl.category === 'three-meetings') {
     html += `<div class="mb-3 card rounded-xl p-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-500">（选填；类型可多选）</span></label>`;
+    html += `<button type="button" data-action="agenda-candidates-toggle" class="mb-2 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">从拟上会清单勾选</button>`;
+    html += `<div id="wp-agenda-candidates" class="hidden mb-2 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5"></div>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
     html += _agendaRowHTML();
@@ -776,17 +779,20 @@ function renderVoteConfigSection(scenarioId) {
   return html;
 }
 
-/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选） */
-function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '') {
+/** 添加一条议程输入行（T-283：议题 + 可选主持人；2026-09-01：类型 chips + 待讨论名单多选；2026-09-21 批次 127：清单勾入时带人选 personIds） */
+function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId = '', toStage = '', personIds = []) {
   const list = container.querySelector('#wp-agenda-list');
   if (!list) return;
   const wrapper = document.createElement('div');
   wrapper.innerHTML = _agendaRowHTML({ item, host, kinds, branchDocId, toStage });
   const row = wrapper.firstElementChild;
   list.appendChild(row);
+  // 行内动作（「删除该条」）直绑：`bindWritePanelEvents` 只在渲染那一轮绑**既有**元素，
+  // 动态新增的行若不自绑，✕ 就是死按钮（2026-09-21 批次 127 真机实测：点 ✕ 行数 2 → 2 不变）
+  row.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', handleWritePanelAction));
   _hydrateDraftDocs(row);
   _bindRowKindChips(row);
-  _initRowPersonPicker(row);
+  _initRowPersonPicker(row, personIds);
 }
 
 /** 绑定单个议程行的类型 chips（多选不互斥；选中展开对应字段区） */
@@ -803,8 +809,8 @@ function _bindRowKindChips(row) {
   });
 }
 
-/** 初始化议程行的待讨论名单多选（PersonPicker multi；实例挂 wp.agendaPickers 供收集读取） */
-function _initRowPersonPicker(row) {
+/** 初始化议程行的待讨论名单多选（PersonPicker multi；实例挂 wp.agendaPickers 供收集读取；initialIds＝清单勾入时的预选） */
+function _initRowPersonPicker(row, initialIds = []) {
   const slot = row.querySelector('.wp-agenda-person-slot');
   if (!slot || slot.dataset.bound) return;
   slot.dataset.bound = '1';
@@ -813,6 +819,7 @@ function _initRowPersonPicker(row) {
     placeholder: '选择待讨论名单（可多选）',
     accentColor: _accentHex(),
     stageBatch: true,
+    initialIds: Array.isArray(initialIds) ? initialIds : [],
     onSelect: () => {},
   });
   picker.render(slot);
@@ -1255,3 +1262,118 @@ function _syncAllAgendaDocMaterials() {
 }
 document.addEventListener('change', (e) => { if (e.target?.closest?.('#wp-agenda-list')) _syncAllAgendaDocMaterials(); });
 document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-list')) _syncAllAgendaDocMaterials(); });
+
+// ════════════════════════════════════════════════════════════════
+//  「拟上会」清单（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档 · `D-411` 建议档）
+// ════════════════════════════════════════════════════════════════
+// 归集单一源 = `agenda-form.js::buildAgendaCandidates`（纯函数）；本处只做 IO 与呈现。
+// 落点＝**议程编辑的既有面**（写入活动的「会议议程」区）——不新开页面、不按来源各做导入口；
+// 勾中的事项**直接成为议程行**（item / kinds / 引用字段按类目给定，与会前草案下拉同一判据）。
+// ⚠ 本段置于文件末尾（紧邻既有的两处 `document` 级监听）：**不改动上文任何行的行号**——
+//   `README-server.md:587` 与本文件的 `文件:行号` 引用按 R-87 守卫逐条核，位移会指错地方。
+
+/** 拉取四类来源（各取既有出口；任一类失败只少一类、不阻断表单）。三个源按需动态载入（避免为一段 UI 撑大本页静态依赖图） */
+async function _loadAgendaCandidateSources() {
+  const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
+  const [{ TaskForceRecordStore }, { IssueStore }, { loadDevStageOverrides }] = await Promise.all([
+    import('../../../services/taskforce.js?v=20260921g'),
+    import('../../../services/issues.js?v=20260921g'),
+    import('../../../services/member-confirmation.js?v=20260921g'),
+  ]);
+  try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
+  catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
+  try {
+    await IssueStore.loadAll();
+    out.issues = IssueStore.getAll().filter(i => i.status === 'open' && !i.hidden && !i.mergedInto);
+  } catch (e) { console.warn('[calendar] 意见反馈加载失败：', e); }
+  try {
+    const docs = await listBranchDocs();
+    out.draftDocs = docs.filter(d => !d.status || d.status === 'draft');
+  } catch (e) { console.warn('[calendar] 制度草案加载失败：', e); }
+  try { out.members = PersonStore.getMembers(); }
+  catch (e) { console.warn('[calendar] 成员档案读取失败：', e); }
+  try { out.stageEntries = loadDevStageOverrides(); }
+  catch (e) { console.warn('[calendar] 发展推进档案读取失败：', e); }
+  return out;
+}
+
+/** 清单行（checkbox 上带齐议程行所需入参，勾选后不再二次查表） */
+function _agendaCandidateRowHtml(c) {
+  return `
+    <label class="flex items-start gap-2 p-2 rounded-lg hover:bg-white cursor-pointer">
+      <input type="checkbox" class="wp-cand-check mt-0.5" data-ref-id="${esc(c.refId)}"
+        data-item="${esc(c.item)}" data-host="${esc(c.host)}"
+        data-kinds="${esc((c.kinds || []).join(','))}" data-branch-doc-id="${esc(c.branchDocId || '')}"
+        data-to-stage="${esc(c.toStage || '')}" data-person-ids="${esc((c.personIds || []).join(','))}">
+      <span class="flex-1 min-w-0">
+        <span class="block text-xs font-medium text-gray-700">${esc(c.text)}</span>
+        <span class="block text-[11px] text-gray-500 mt-0.5">${esc(c.meta)}</span>
+      </span>
+    </label>`;
+}
+
+/** 清单主体（按类目分组；**整张清单为空 → 一行空态、不报错**） */
+function _agendaCandidatesHtml(rows) {
+  if (!rows.length) {
+    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待推荐的发展对象，出现后会归集到这里。</p>';
+  }
+  let html = '';
+  for (const g of AGENDA_CANDIDATE_GROUPS) {
+    const list = rows.filter(r => r.group === g.key);
+    if (!list.length) continue;
+    html += `<div class="mb-1.5">`;
+    html += `<p class="text-[11px] font-medium text-gray-600 px-1">${esc(g.label)} · ${list.length}<span class="text-gray-500 font-normal ml-1.5">${esc(g.hint)}</span></p>`;
+    html += list.map(_agendaCandidateRowHtml).join('');
+    html += `</div>`;
+  }
+  html += `<div class="pt-1.5 mt-1 border-t border-gray-100 flex items-center gap-2">`;
+  html += `<button type="button" data-action="agenda-candidates-add" class="text-xs px-3 py-1.5 rounded-lg btn-accent text-white font-medium">加入本场议程</button>`;
+  html += `<span class="text-[11px] text-gray-500">勾选后可一次加入多条（加入后即成为议程行，可再逐条改写）</span>`;
+  html += `</div>`;
+  return html;
+}
+
+/** 异步归集并填充清单（只跑一次；点击一律走文件末尾那处 document 级委托） */
+async function _hydrateAgendaCandidates(host) {
+  if (!host || host.dataset.bound) return;
+  host.dataset.bound = '1';
+  host.innerHTML = '<p class="text-[11px] text-gray-500 px-1 py-1">正在归集…</p>';
+  const rows = buildAgendaCandidates(await _loadAgendaCandidateSources());
+  host.innerHTML = _agendaCandidatesHtml(rows);
+}
+
+/** 清单内点击（document 级委托，见文件末尾）：展开/收起清单 + 勾选后一次加入本场议程 */
+function _onAgendaCandidatesClick(e) {
+  const toggle = e.target.closest('[data-action="agenda-candidates-toggle"]');
+  if (toggle) {
+    const host = _getWritePanelContainer()?.querySelector('#wp-agenda-candidates');
+    if (host) {
+      const willShow = host.classList.contains('hidden');
+      host.classList.toggle('hidden', !willShow);
+      if (willShow) _hydrateAgendaCandidates(host); // 首次展开才拉数据（异步归集）
+    }
+    return;
+  }
+  const btn = e.target.closest('[data-action="agenda-candidates-add"]');
+  if (!btn) return;
+  const host = btn.closest('#wp-agenda-candidates');
+  const container = _getWritePanelContainer();
+  if (!host || !container) return;
+  const picked = [...host.querySelectorAll('.wp-cand-check:checked')];
+  if (!picked.length) { showToast('info', '请先勾选要加入议程的事项'); return; }
+  for (const cb of picked) {
+    const kinds = String(cb.dataset.kinds || '').split(',').map(s => s.trim()).filter(Boolean);
+    const personIds = String(cb.dataset.personIds || '').split(',').map(s => s.trim()).filter(Boolean);
+    _addAgendaRow(container, cb.dataset.item || '', cb.dataset.host || '', kinds,
+      cb.dataset.branchDocId || '', cb.dataset.toStage || '', personIds);
+  }
+  picked.forEach(cb => { cb.checked = false; }); // 已加入 → 取消勾选（可继续勾别的）
+  showToast('success', `已加入 ${picked.length} 条议程`);
+}
+// document 级委托（与上文两处 `#wp-agenda-list` 监听同法）：展开按钮在清单宿主之外、
+// 清单内容又是异步填入 ⇒ 只能在 document 上委托（宿主/面板重渲染都不影响）。
+document.addEventListener('click', (e) => {
+  if (e.target?.closest?.('[data-action="agenda-candidates-toggle"]') || e.target?.closest?.('#wp-agenda-candidates')) {
+    _onAgendaCandidatesClick(e);
+  }
+});

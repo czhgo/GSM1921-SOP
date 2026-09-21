@@ -7,8 +7,8 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/auth.js?v=20260921f';
-import { mountOrgSetupWizard } from '../../../components/org-setup-wizard.js?v=20260921f';
+import { AuthStore } from '../../../services/auth.js?v=20260921g';
+import { mountOrgSetupWizard } from '../../../components/org-setup-wizard.js?v=20260921g';
 
 export function renderContent() {
   const el = document.getElementById('party-committee-tab-content');

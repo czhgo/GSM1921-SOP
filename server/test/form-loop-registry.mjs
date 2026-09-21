@@ -64,14 +64,14 @@ export const VALIDATION_SITES = [
   //   故本批只登记、不造数据（同 `components/resolution-followup-manager.js` 由「造出真机可达且自洽的前置」解锁的前例）。
   { file: SRC + 'services/notice.js', line: 862, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
   { file: SRC + 'services/notice.js', line: 863, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1084, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1085, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1086, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1091, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1092, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1093, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
   // 批次 47-M（2026-09-16）：原 reason「前置交互复杂」**又一次是读起来复杂**——真机实测三段全可脚本化：
   //   ① 议程行**出厂即有一条**（模板选中后 `#wp-agenda-list` 内已有 `.wp-agenda-row`）；
   //   ② 「待讨论名单」只是行内一个 chip（`.wp-agenda-kind[data-kind="attendee-list"]`，点一下即亮）；
   //   ③ 多选人员走通用 `openPicker`（复用考察上传同一步骤）。三字段（名称/日期/地点）用 satisfy 顺序放行即可达。
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1048, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1055, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
   { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 122, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
   { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 217, field: '被赋权人', flow: 'secretary/赋权管理·项目赋权', machine: true, msg: '请选择被赋权人' },
   { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 218, field: '项目', flow: 'secretary/赋权管理·项目赋权', machine: true, msg: '请选择项目' },
@@ -1299,6 +1299,10 @@ export const MACHINE_FLOWS = [
   //   → 保存 ⇒ 队列里出现一条 pending ⇒ 回支书台「待办」→ 成员发展域 → 组行进详情 ⇒ 退回按钮在位。
   // 依赖的新能力：`{ goto }`（跨页跳转）· `{ openTab }`（跳回工作台后切 tab）——与 `dialogAnswer` / `reopen[]`
   //   同规：**形态逼出来的能力，不是为凑覆盖**。
+  // ⚠ **2026-09-21 批次 127 改准（改测试不改制度，同 `D-513` 口径）**：原前置改的是 `p7`（**积极分子**）→
+  //   「**发展对象**」；`D-553` 起该步**受「支委会讨论门」前置**（未上会讨论通过即被挡）⇒ 队列里不再出现 pending、
+  //   本流程在「等 `secretary:member-confirm` 组行」处超时。本流程只为**造一条 pending**（校验点是「退回原因」必填），
+  //   **与目标阶段无关** ⇒ 改用**不受该门约束**的 `积极分子 → 预备党员`（同一个人、同一处写口，**判据一字未改**）。
   {
     id: 'secretary-todo-reject-reason',
     page: 'secretary',
@@ -1308,7 +1312,7 @@ export const MACHINE_FLOWS = [
       { waitFor: '#person-edit-btn' },
       { click: '#person-edit-btn' },
       { waitFor: '#person-edit-modal-form' },
-      { selectValue: { selector: '[data-field="developStage"]', value: '发展对象' } },
+      { selectValue: { selector: '[data-field="developStage"]', value: '预备党员' } },
       { click: '#person-edit-modal-form button[type="submit"]' },
       { goto: '/workspace/secretary.html' },
       { waitFor: 'button[role="tab"]' },

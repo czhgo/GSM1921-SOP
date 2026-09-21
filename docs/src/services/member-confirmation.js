@@ -19,24 +19,29 @@
 //   isTransferredOut 供读链 UI 标「已转出」。
 // 纯 ESM：仅依赖 core(policy-defaults/domain/data-adapter/version-token) + person / roster /
 // org-base-data-preview（无 DOM；localStorage 惰性访问）。
+// 2026-09-21 批次 127（`SOP-B-27` 落地 · `D-388` / `D-521`）：本文件另加**支委会讨论门**——
+//   「积极分子 → 发展对象」（＝推荐为发展对象）**须先经支委会讨论通过**；
+//   门挡在 `submitMemberChange`（发起处）与 `_applyApproved`（确认生效处）；判据 = 既有的
+//   `memberChangeRequests` 里该人 `toStage='发展对象'` 且 `meetingResult='passed'` 的留痕
+//   （由 `agenda-follow-up.js::recordAgendaResult` 只对通过者建）。详见下方该段注释。
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921f';
-import { persist } from '../core/data-adapter.js?v=20260921f';
+import { mockDB } from '../core/domain.js?v=20260921g';
+import { persist } from '../core/data-adapter.js?v=20260921g';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../core/id.js?v=20260921f';
-import { bumpToken } from '../core/version-token.js?v=20260921f'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../core/id.js?v=20260921g';
+import { bumpToken } from '../core/version-token.js?v=20260921g'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921f';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260921f';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260921f';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921g';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260921g';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260921g';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260921f';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260921g';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260921f';
+import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260921g';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -152,6 +157,40 @@ function _findPendingAny(personId) {
   return _all().find(r => r.status === 'pending' && r.personId === personId) || null;
 }
 
+// ── 支委会讨论门：推荐为发展对象（2026-09-21 批次 127 · `SOP-B-27` 落地 · 裁定 `D-388` / `D-521`）──
+// 口径（**本批按推荐档收口**，`SOP-B-27` 原文两项待定项按此执行、**支书未逐条明答**——队列与决策日志
+// 显著标注「系按推荐档执行」）：
+//   · ① **讨论挂进既有支委会会议**（活动 + 议程「待讨论名单」，目标阶段＝「发展对象」）——
+//        **不另建会议实体**（`D-521` 已把「发展对象」开进 `AGENDA_TARGET_STAGES`，议程侧已具备）；
+//   · ② **与阶段变更的关系＝前置**：**讨论通过之前，阶段变更不得发生**——
+//        本门挡在「名册报送确认链」的**发起**处（`submitMemberChange`），并在**支书确认生效**处
+//        （`_applyApproved`）再兜一道（防历史 pending 绕过）。
+// 判据（**唯一留痕源**）：`recordAgendaResult` 只对**通过者**建 `memberChangeRequests`
+//   （`services/agenda-follow-up.js:163`-`:179`，`meetingResult='passed'`）⇒「讨论通过」＝该人存在这样一条留痕。
+// ⚠ **本门只覆盖「积极分子 → 发展对象」这一步**（＝母本 `组织委员工作流程指南.md:181`「发展对象｜支委会讨论确定」
+//   所指的「推荐为发展对象」）。其它写法进入「发展对象」（如档案更正：正式党员 → 发展对象）**不属「推荐」**，
+//   不设此门（如实登记的边界，勿扩大解释）。
+// ⚠ 与 `S-2`（2026-09-09 支书批「发展议程只留两个目标」）的关系：`D-521` 已裁「开门」、
+//   只覆盖 S-2 中「不含发展对象」这一句；本门是该裁定的落地（议程位 → 真挡），**未动 S-2 其余部分**。
+export const COMMITTEE_GATED_STAGE = '发展对象';
+export const COMMITTEE_GATE_FROM_STAGE = '积极分子';
+/** 未通过时的提示（UI 与服务层同源；提示「先上会」而非「不许变更」） */
+export const COMMITTEE_GATE_DENY = '推荐为发展对象须先经支委会讨论通过（把该成员加入某场支委会的「待讨论名单」（目标阶段＝发展对象）并记录通过后，再发起阶段变更）';
+
+/** 该人是否已有「支委会讨论通过」的留痕（＝本门的唯一判据） */
+export function hasPassedCommitteeDiscussion(personId, toStage = COMMITTEE_GATED_STAGE) {
+  if (!personId) return false;
+  return (Array.isArray(mockDB.memberChangeRequests) ? mockDB.memberChangeRequests : [])
+    .some((r) => r && r.personId === personId && r.toStage === toStage
+      && r.meetingResult === 'passed'
+      && !['cancelled', 'rejected'].includes(r.status));
+}
+
+/** 该次阶段变更是否受本门约束（kind=developStage 且「积极分子 → 发展对象」） */
+export function committeeGateApplies(kind, from, to) {
+  return kind === 'developStage' && to === COMMITTEE_GATED_STAGE && from === COMMITTEE_GATE_FROM_STAGE;
+}
+
 // ── 提交：发展阶段 / 在册滞留 变更 ───────────────────────────────
 /**
  * 组织委员发起「阶段 / 在册滞留」变更（push pending → 支书确认生效）
@@ -180,6 +219,10 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
     if (to === from) return { ok: false, reason: `目标发展阶段与现值一致（${from || '待定'}），无需变更` };
     if (_findPending(personId, 'developStage')) {
       return { ok: false, reason: '该成员已有待支书确认的阶段变更，处理完成前请勿重复发起' };
+    }
+    // 支委会讨论门（批次 127 · SOP-B-27 前置）：积极分子 → 发展对象 须**先经支委会讨论通过**
+    if (committeeGateApplies(kind, from, to) && !hasPassedCommitteeDiscussion(personId, to)) {
+      return { ok: false, reason: COMMITTEE_GATE_DENY };
     }
   } else {
     if (![RESIDENCE.CAMPUS, RESIDENCE.DETAINED].includes(to)) {
@@ -369,6 +412,11 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
 async function _applyApproved(req) {
   const { personId, action, kind, decidedBy } = req;
   if (kind === 'change' && action === 'developStage') {
+    // 支委会讨论门兜底（批次 127）：历史 pending（本门之前发起、一直没确认的）在确认生效处**再挡一道**——
+    // 否则「先发起、后上会」仍可绕过前置（发起时没挡住的存量请求会从这条路径生效）。
+    if (committeeGateApplies(action, req.from, req.to) && !hasPassedCommitteeDiscussion(personId, req.to)) {
+      return { ok: false, reason: COMMITTEE_GATE_DENY };
+    }
     const r = await PersonStore.saveMember({ id: personId, developStage: req.to }, { by: decidedBy });
     if (!r.ok) return { ok: false, reason: r.reason || '发展阶段落地失败' };
     // C①-补（2026-09-10）：确认生效时同源写入既有覆盖档案（gsm1921-dev-stage-overrides）——

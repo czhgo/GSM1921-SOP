@@ -30,12 +30,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921f';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260921f';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260921f';
-import { MOCK_NOTICES } from '../../docs/src/mock/index.js?v=20260921f';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/constants.js?v=20260921f';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/notice.js?v=20260921f';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921g';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260921g';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260921g';
+import { MOCK_NOTICES } from '../../docs/src/mock/index.js?v=20260921g';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/constants.js?v=20260921g';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/notice.js?v=20260921g';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。
