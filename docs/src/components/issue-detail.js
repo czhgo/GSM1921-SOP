@@ -1,15 +1,15 @@
 // role: [工程师]+[AI]
 // issue-detail.js — 反馈详情渲染
 
-import { IssueStore } from '../services/issues.js?v=20260921d';
-import { MilestoneStore } from '../services/milestones.js?v=20260921d';
-import { AuthStore } from '../services/auth.js?v=20260921d';
-import { showToast } from '../core/utils.js?v=20260921d';
-import { icon } from '../core/icons.js?v=20260921d';
-import { getPersonName } from '../services/person.js?v=20260921d';
-import { renderReactions, bindReactions } from './reactions.js?v=20260921d';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260921d';
-import { badgeHtml } from './badges.js?v=20260921d';
+import { IssueStore, issueDomainLabel, issueDomainSuggest } from '../services/issues.js?v=20260921f';
+import { MilestoneStore } from '../services/milestones.js?v=20260921f';
+import { AuthStore } from '../services/auth.js?v=20260921f';
+import { showToast } from '../core/utils.js?v=20260921f';
+import { icon } from '../core/icons.js?v=20260921f';
+import { getPersonName } from '../services/person.js?v=20260921f';
+import { renderReactions, bindReactions } from './reactions.js?v=20260921f';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../core/constants.js?v=20260921f';
+import { badgeHtml } from './badges.js?v=20260921f';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
@@ -176,6 +176,12 @@ export function renderIssueDetail(issueId) {
           </div>
 
           <div class="mb-3">
+            <p class="text-gray-500 mb-1">事项领域</p>
+            <p class="text-gray-700 font-sans">${issueDomainLabel(issue.domain) || '未选'}</p>
+            <p class="text-gray-500 mt-0.5 font-sans">建议归口：${issueDomainSuggest(issue.domain) || '—'}</p>
+          </div>
+
+          <div class="mb-3">
             <p class="text-gray-500 mb-1">里程碑</p>
             <p class="text-gray-700 font-sans">${milestone ? milestone.title : '无'}</p>
           </div>
@@ -240,7 +246,7 @@ function bindDetailEvents(issue) {
   // 原实现手工取原始记录 + 就地 push + persistCacheFromWrite()，**从不调服务层**（其内含 _syncIssueToApi）
   // ⇒ api 形态下点「提交评论」网络面只有 GET、没有任何 PATCH，评论只进本地缓存、一重载即丢。
   // ⚠ 本处**只改「落到哪儿」**：谁能评、能否隐藏、匿名口径（后台记真身 / 常规出口脱敏）一律照旧——
-  //   addComment 内部口径原样透传（含「仅支书角色触达服务端」的既有已裁口径），未引入任何权限或可见性变化。
+  //   addComment 内部口径原样透传（含「处置侧＝支委层才触达服务端」的已裁口径，2026-09-21 批次 126 · D-550），未引入任何可见性变化。
   document.getElementById('btn-submit-comment')?.addEventListener('click', () => {
     const input = document.getElementById('comment-input');
     const text = input?.value.trim() || '';
@@ -254,7 +260,7 @@ function bindDetailEvents(issue) {
     renderIssueDetail(issue.id);
   });
 
-  // 状态变更（仅支书）
+  // 状态变更＝意见处置（支委层；2026-09-21 批次 126 · D-550 由「仅支书」放开 —— 判据＝canDo('issue.status.change')）
   document.getElementById('btn-apply-status')?.addEventListener('click', () => {
     const status = document.getElementById('status-select').value;
     const reasonSelect = document.getElementById('closed-reason-select');
@@ -271,7 +277,7 @@ function bindDetailEvents(issue) {
     }
   });
 
-  // 隐藏评论（仅支书）
+  // 隐藏评论＝意见处置（支委层；2026-09-21 批次 126 · D-550 由「仅支书」放开）
   document.querySelectorAll('.btn-hide-comment').forEach(btn => {
     btn.addEventListener('click', () => {
       const issueId = btn.dataset.issueId;

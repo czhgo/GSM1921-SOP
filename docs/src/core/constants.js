@@ -198,9 +198,9 @@ export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留�
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含支书/副支书）
-export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权支书专属操作）
+export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权）。2026-09-21 批次 126（D-550）：品牌认定、意见处置已移出本集 ⇒ 归支委会（支委层＝BRANCH_COMMISSION_ROLES）；本集现只判「仍专属支书」的前端按钮（消费点 components/inspector.js::isSecretary＝活动信息编辑等），服务端不再以本集为门
 // 副书同权（2026-09-11 支书裁定）：支书侧写链（名册在册镜像/发展阶段/移出确认等）副支书同权，
-// 与既有口径一致（议程结果区、编辑议程、支部 config §9h 副书同权）。server requireRole 与前端共用单一源。
+// 与上一行的关系收口（2026-09-21 批次 126 · D-550）：品牌认定、意见处置已由「支书专属」移出、归支委会 ⇒ 落在支委层（BRANCH_COMMISSION_ROLES，本位副支书在内），两集之争到此为止；「仍专属支书」的清单见上一行。server requireRole 与前端共用单一源。
 export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
 export const PARTY_STAFF_ROLE = ['party-staff']; // 党委组织员（组织级，不属于支部）
 export const COMMITTEE_IDS = ['p10', 'p11', 'p12', 'p13', 'p14']; // 演示支部支委名单（与 mock people 对齐）

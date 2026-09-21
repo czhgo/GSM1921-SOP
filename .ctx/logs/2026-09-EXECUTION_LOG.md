@@ -12750,6 +12750,114 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 6. **`.tmp-attrib.mjs` 统计脚本**只做「用例标题 → 声明文件」的唯一匹配（712 项里 **632 项可归组、80 项未归组**——未归组的是模板字符串标题），未归组项**逐条人工判读**后归入 `form-loop-sweep` / `page-sweep`；**脚本已删**。
 7. **手跑守卫子集必须先设 `DISABLE_PASSWORD_CHECK=1`（本批实测发现，已写进文档）**：不设时 `permission-gate` ＋ `server-base` 实测 **7 pass / 13 fail**（这两项自带「口令校验开着」的前置）。`npm test` / `test:fast` / `test:core` / `test:full` 四个 scripts **均已默认注入**该变量 ⇒ **只有「照文档手跑这条命令」的人会踩**。**处置**：已在 `server/README.md` 该条命令下加一条 ⚠ 说明（含实测数字）。
 
+---
+
+## 批次 126（2026-09-21）：⑥ 品牌认定与意见处置归支委会（由「仅支书」放开到支委层）＋ ④ 意见反馈分两档（`SOP-B-34` / `SOP-B-32` 落地 · 裁定 `D-550` / `D-551`）
+
+> **本批口径（支书 2026-09-21 原话，逐字）**：「**支委会就是 支部的领导管理机构。**」——此前（2026-09-18）对 `SOP-C-58` 的原话「**都归 支委会！支书主持支委会**」是这两件事各自的归属口径（`D-414`）；两条待裁项由支书「**逐项定（你给推荐档）**」且随后跳过询问 ⇒ **按 AI 推荐档执行**（`SOP-B-34` 取「归支委会 ⇒ 支委层可操作」、`SOP-B-32` 取**甲档**）。
+
+### 一、⑥ 改准清单（逐处：改前 → 改后 ＋ 依据）
+
+| # | 位置 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 1 | `docs/src/components/inspector.js:784` | `if (isSecretary && !isArchived)`（品牌认定按钮**仅支书**渲染） | `if (isCommittee && !isArchived)`（＝`AuthStore.isCommissioner`，单一源 `BRANCH_COMMISSION_ROLES`）＋ 行内注释说明「只放开这一件」 | `D-414` · `D-550` |
+| 2 | `docs/src/components/inspector.js:604` | `const isSecretary = _user?.role === 'secretary';`（字面量） | `!!_user && SECRETARY_ROLES.includes(_user.role)`（新 import 该常量）——让「**仍专属支书**」的清单有**真实单一源**（改后 `SECRETARY_ROLES` 否则将无任何消费点） | `D-550`（收口 `constants.js` 注释的落地配套） |
+| 3 | `docs/src/entries/activity-entry.js` | **无**（品牌认定按钮此前只存在于支书台活动管理，`#inspector-container` 仅在 `calendar-tab.js:133`；三委员**进不去该页**） | **新增**：活动详情页为**支委层**渲染同款「标记为品牌活动 / 取消品牌认定」按钮（普通成员与访客不渲染），写链与巡查面板同一支（`BranchService.toggleBrand` → `saveDB()` → API 形态快照写穿） | `D-414`/`D-550` 口径的**实现选择**（**本批自决、非支书原话**，如实登记） |
+| 4 | `server/routes/resources.js:672` / `:805` | `const SECRETARY_SET = new Set(SECRETARY_ROLES);` ＋ `requireRole(db, SECRETARY_SET)`（**仅支书**） | `const ISSUE_DISPOSITION_SET = new Set(BRANCH_COMMISSION_ROLES);` ＋ `requireRole(db, ISSUE_DISPOSITION_SET)`（**支委层五角色**）；`SECRETARY_ROLES` 的 import 一并撤去 | `D-414` · `D-550` |
+| 5 | `docs/src/services/auth.js:73 / 77-81` | `_ISSUE_PERMS_SECRETARY`（8 键）**只给 `secretary`**（副支书也没有） | 改名 `_ISSUE_PERMS_DISPOSITION`，**同批发给五角色**（支书原有；副支书 / 组织 / 宣传 / 纪检新加） | `D-414` · `D-540`（副走正路由）· `D-550` |
+| 6 | `docs/src/services/issues.js:9 / 239-241 / 652` | `_isSecretaryRole(role)` 判 `SECRETARY_ROLES`（**非支书角色的回复不写回服务端** ⇒ api 形态下重载即丢） | 改名 `_isDispositionRole(role)` 判 `BRANCH_COMMISSION_ROLES` ⇒ 支委层处置**同批写回服务端** | `D-550`（与 #4 / #5 **同源**：三处门必须一致） |
+| 7 | `docs/src/core/constants.js:201 / 203` | `// 支书专属（副支书/委员不越权支书专属操作）` ＋「副书同权」注释**互不相涉** | 收口：①「支书专属」注释写明**品牌认定、意见处置已移出本集 ⇒ 归支委会（支委层）**、本集现只判仍专属支书的前端按钮（消费点 `inspector.js::isSecretary`）、**服务端不再以本集为门**；②「副书同权」注释**加一句关系收口**（两集合之争到此为止） | `D-499` 待定项 ② · `D-550` |
+| 8 | 注释改准（`inspector.js` · `api-adapter.js` · `issues.js` · `issue-detail.js` · `domain.js` · `definitions.js` · `mock.js` · `resources.js`） | 多处写「**仅支书** / **支书专属** / 由支书认定」 | 逐处改为「**支委会（支委层）**」并带本批编号（**行数守恒**，不吃 `文件:行号` 引用） | 同上（口径收口） |
+
+**⚠「仍专属支书」的清单（本批**只放开这两件**，同批登记）**：
+
+- **活动信息编辑按钮**——`docs/src/components/inspector.js:791`，前端判据 `isSecretary`（本批**不动**）。
+- **全支部通知发布**——`docs/src/services/notice.js:820` 明写「**全支部通知仍归支书**」（本批**不动**）。
+- **名册成员变更确认链的阶段语义端点**——服务端走 `SECRETARY_AND_DEPUTY_ROLES`（既有支书写链，本批**不动**）。
+- 其余以 `isSecretary` / 字面 `role === 'secretary'` 判定的零散前端动作（逐处核过，**均未动**）。
+
+**母本 / 内容层（只改这两件事的相左表述）**：`content/04_web_design/data/DATA_MODEL.md:638` 的**实然句**「系统上该动作当前仅向支书角色开放」→「**向支委层角色（支书 / 副支书 / 组织 / 宣传 / 纪检）开放**（2026-09-21 批次 126 落地；此前仅向支书角色开放）」；`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:469 / :475` 两处「支书专属」→「意见处置＝支委层」（后者同步变量名 `_ISSUE_PERMS_SECRETARY` → `_ISSUE_PERMS_DISPOSITION`）。**反查结论**：`D-414` 批登记的 10 处残留**已在该批及其后改齐**，本批**无新发现**。
+
+### 二、④ 改准清单（`SOP-B-32` 取**甲档**）
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `docs/src/services/issues.js`（**文件末尾追加**，不吃既有行号） | **无**「事项领域」任何代码 | 新增**单一源** `ISSUE_DOMAINS`（`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——**四类逐字照母本** `content/02_institution/sop/常见工作场景快速指南.md:439-444`）＋ `issueDomainLabel()` / `issueDomainSuggest()`（**建议归口**照该表「处理方式」列） |
+| 2 | `docs/src/services/issues.js:391 / 398 / 413` | `submitIssue({ title, body, scope, types, anonymous })` 三处透传 | 加 `domain`（签名 / API 创建 / mock 草稿 payload **三处同改**） |
+| 3 | `docs/src/components/issue-form.js` | 表单只有「范围（单选）」＋「类型（多选）」 | 新增「**事项领域（单选）**」下拉（含「请选择事项领域」空档，**前台必填**）＋ 选中后**实时提示「建议归口：…」**（只提示、不代填、不指派）＋ 校验置于「类型」之后（**保住既有台账 `expect[]` 的提示顺序**） |
+| 4 | `server/routes/resources.js`（`POST /issues`） | 记录对象无 `domain` | 落库 `domain`（**选填、不设硬校验**——兼容既有 API 调用与测试夹具；**「前台必填 / 服务端选填」这处不对称如实登记**） |
+| 5 | `docs/src/components/issue-detail.js` · `docs/src/entries/tabs/secretary/feedback-tab.js` | 详情无「事项领域」 | 公开反馈页详情侧栏 ＋ 支书台详情元信息**同批显示**「事项领域 ＋ 建议归口」（**呈现给处置人**） |
+| 6 | `server/test/form-loop-registry.mjs` | `issue-form.js` 90/91/92、`issue-detail.js:248` | 随行号改准为 **100/101/102**、**254**（`S6` 台账行号守卫要求逐条精确命中） |
+
+**「自动分流」落到什么程度（本批择定，如实登记）**：**只到「给出建议归口」**——**不自动改派单**（不写 `assignee` / `dispatchHistory`、不动工作流），指派仍由处置人在既有动作里决定；**判断：不需改工作流 ⇒ 未触发「停下上报」**。**(乙)（把「提案」移出类型档）/ (丙)（维持现状）两档未采纳**，已在 `SOP-B-32` 与 `ACTIVE_RULINGS` 两处**如实登记「取甲档」**。
+
+**未做（如实登记）**：`content/04_web_design/data/DATA_MODEL.md` 的 issues 字段表**未补 `domain` 一行**——加行会位移 `README-server.md` 对 `DATA_MODEL.md` 的 **45 处**行号引用（`doc-line-ref` 的 `R1`/`R2`/`R3` 会判红），依批次 110 / 111 的既有判据须**与 README 行号同步同批做** ⇒ 本批不做、**登记上报**。
+
+### 三、权限放宽的前后对照（服务端 `PATCH /api/v1/issues/issue-001`，真机）
+
+| 角色 | 改前 | 改后（本批实测） | 证据 |
+|---|---|---|---|
+| 支书 p13 | **200** | **200** | 实测（`Invoke-RestMethod` 登录 → `curl.exe -w %{http_code}` 打 PATCH） |
+| 副支书 p14 | **403** | **200** | 改前数字＝批次 92（`D-499`）**真机记录**（同一条路径、同一账号，见本日志批次 92） |
+| 组织委员 p11 | 403（**代码判据**：改前门集合 `SECRETARY_ROLES = ['secretary']`） | **200** | 实测 |
+| 宣传委员 p12 | 403（同上） | **200** | 实测 |
+| 纪检委员 p10 | 403（同上） | **200** | 实测 |
+| **普通成员 p5** | 403（同上） | **403**（**仍被拒**） | 实测 |
+| **党小组组长 p1** | 403（同上） | **403**（**仍被拒**） | 实测 |
+
+> ⚠ **改前数字的来历如实标注**：**副支书那一格有既有真机记录**（批次 92 · `D-499` 留痕）；三委员 / 普通成员 / 组长三格系**按改前门集合的代码判据**（`SECRETARY_ROLES = ['secretary']`），**非本批新测**——改前的服务端已不可复现（本批已改码），**不假称是本批测到的**。
+
+### 四、真机验证证据（Playwright 探针；**按钮真点**；探针用后即删）
+
+| 检查项 | 账号 | 结果 |
+|---|---|---|
+| 品牌认定按钮**在位** | 宣传委员 p12 / 纪检委员 p10 / 支书 p13 / 副支书 p14 | **在位**（`#brand-toggle-btn` 计数 = 1） |
+| 品牌认定按钮**不在位** | 普通成员 p5 | **不渲染**（计数 = 0） |
+| 品牌认定**真点**（宣传委员） | p12 | 点后 → 按钮文案翻为「**取消品牌认定**」· 页面出现 **1 个品牌徽标** · **服务端读回 `act-31.isBrand = true`**（`GET /api/v1/activities` ok=true） |
+| 意见处置 UI**在位** | 宣传委员 p12 / 支书 p13 | 状态下拉 **1** · 应用按钮 **1** · 隐藏评论按钮 **2**（按未隐藏评论数） |
+| 意见处置 UI**不在位** | 普通成员 p5 | 状态下拉 **0** · 应用按钮 **0** · 隐藏评论按钮 **0** |
+| 意见处置**真点**（宣传委员） | p12 | 点「应用」改状态 → 服务端 `issue-002.status` **`open` → `closed`**；复原后回 **`open`** |
+| 表单「事项领域」 | 宣传委员 p12 | 下拉选项 = `["请选择事项领域","制度建设建议","活动组织建议","工作流程建议","其他建议"]` |
+| 建议归口与所选领域一致 | p12 | 选「制度建设建议」→ 提示行 = 「**建议归口：支委会（讨论制度修改）**」（与母本该行「处理方式」列逐字一致） |
+| 提交可保存（真落库） | p12 | 真提交一条 → 服务端命中 **1 条**，`domain = ["institution"]`、`types = [["enhancement"]]` |
+| 必填校验 | p12 | 不选事项领域点提交 → 提示「**请选择事项领域**」 |
+| 「仍专属支书」项**未被顺手放开** | p12 / p5 | 品牌认定之外未新增任何按钮；`inspector.js:791`（编辑信息）与通知发布 / 名册确认链**一字未动**（代码核对 + 页面核对） |
+
+**探针现场清理**：探针脚本 `server/.tmp-probe-126.mjs` **已删**；真机留下的数据**已复原**（`act-31.isBrand` 经 `POST /activities/:id/brand` 拨回 `false`；`issue-002` 状态拨回 `open`）。**一条新增反馈**（标题「（批次126真机）事项领域与建议归口」）**留在演示库里**（`POST /issues` 无删除路由）——如实登记。
+
+### 五、反查（全库 grep，改前 → 改后；**口径＝命中「行数」**，逐条判定）
+
+| 关键词 | 改前（命中行 · 全库） | 改后（命中行 · 全库） | 逐条判定 |
+|---|---|---|---|
+| `支书专属` | **41 行** | **62 行** | ⚠ **增量全部落在本批新增的台账文本里**（本批写下的 EXECUTION_LOG 批次 126 · DECISION_LOG `D-550` / `D-551` · `REVIEW_QUEUE` 的 `SOP-B-34` 段，约 **21 行**，都是在复述「由『支书专属』放开」这件事）——**不是代码里多出了「支书专属」**。**代码 / 内容层逐处判过（6 行）**：`docs/src/core/constants.js:201` **改准**（写明已移出哪两件、现剩什么）· `docs/src/components/inspector.js:604` **改准**（改判 `SECRETARY_ROLES`，并注明「活动信息编辑等仍归支书」）· `:784` **行内注释新增**（「只放开这一件，其余支书专属项不动」）· `:932`（活动信息编辑入口）与 `docs/src/services/person.js:563`（名册确认链端点）**仍属实、一字未动** · `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:476` **改准**（改「意见处置权限＝支委层」并保留沿革括注）。**未改、逐条给判据**：`README-server.md` 3 行（`:145` / `:283` 等处**已与实然相左**——「意见反馈 8 个支书专属键」现为支委层五角色同权 ⇒ 属**授权面外、只登记报支书**）· `.ctx/SNAPSHOT.md` 2 行 与 `.ctx/REVIEW_QUEUE.md` 4 行（`SOP-B-34` 段，本批已在该段改准；其余为**沿革叙述**）· `.ctx` 历史日志与 `archive/**`（**历史文件不许改**）；`server/routes/member.js:155` / `server/test/member-persist.test.mjs` 2 行的「支书专属」讲的是**名册成员变更确认链**（本批**不动**那件事，属实） |
+| `SECRETARY_ROLES` | **28 行** | **40 行** | 增量同样**全在本批新增台账文本**（约 12 行）。**代码层实指：减 2、增 2**——**减**：`server/routes/resources.js` 的 `new Set(SECRETARY_ROLES)` 与其 import **一并撤去**（门改 `BRANCH_COMMISSION_ROLES`）· `docs/src/services/issues.js` 的 import 改 `BRANCH_COMMISSION_ROLES`；**增**：`docs/src/components/inspector.js` 新增 import ＋ `:604` 用它判「仍专属支书」；**保留**：`docs/src/core/constants.js:201`（作为「仍专属支书」的**单一源**，注释已收口）。**逐一核过**：`server/test/roles-sync.test.mjs` 的断言 `SECRETARY_ROLES === ['secretary']` **未改、仍绿**（守卫子集实测）· `server/test/permission-gate.test.mjs:290` 与 `server/routes/committee.js:160` 为注释引用（所指机制未变）· `docs/src/services/signup.js:431` 是**同名局部常量**（`new Set(['secretary','deputy-secretary'])`，与本事无关、未动）· 其余为 `.ctx` 沿革 |
+| `处置`（只判「意见处置」这一族） | — | — | 本批**改准 5 处**（「仅支书」→「支委层」）：`server/routes/resources.js` 的 issues 段头注与 PATCH 头注 · `docs/src/core/api-adapter.js:536` · `docs/src/services/issues.js:516` · `docs/src/components/issue-detail.js:263`·`:280`。**未动**：「查看真身」（`/issues/reveal`）诸处仍写「**仅党委**」（本批铁律不动 `§9j` 后半）· 各台「我的处置」tab（既有承载，未动） |
+| `品牌认定` | — | — | 本批改准 **4 处注释 / 文档**：`inspector.js:784` 行内注释 · `docs/src/core/domain.js:30` · `docs/src/workflow/definitions.js:385` · `docs/src/services/mock.js:270`（均「由支书认定 / 支书认定操作」→「**支委会认定（支书主持支委会）**」）；`content/04_web_design/data/DATA_MODEL.md:595` 早已是「由支委会认定」**未动**；`README-server.md` 无「品牌认定」条目（0 命中） |
+| `事项领域` | **0**（`docs/**` 与 `server/**` **零命中**；此前只存在于 `content/**` 与 `.ctx`） | **10 处 / 4 文件**（`components/issue-form.js` 7 · `components/issue-detail.js` 1 · `entries/tabs/secretary/feedback-tab.js` 1 · `services/issues.js` 1） | **全部为本批新写**：1 处**单一源**（`issues.js`）＋ 三处消费点（表单 / 公开页详情 / 支书台详情）＋ 若干注释；**四类与母本逐字一致、未自创第四类** |
+| `分流` | 命中集中在 `SOP-B-32` 原文与母本 | 同（本批**未改**） | 本批**未动**「分流＝人工指派」这一既有承载（五类指派目标）；只在 `issues.js` 注释写明「本批**只给建议、不自动派单**」 |
+
+> ⚠ **不靠 grep 的那一半（`R-87`）**：本批**逐处通读**了 `docs/src` 里「意见处置 / 品牌认定」的**全部**消费点（`server/routes/resources.js` 的 issues 段 · `docs/src/services/auth.js` 的权限表 · `docs/src/services/issues.js` 的写链 · `docs/src/core/api-adapter.js` 的端点 · `docs/src/components/issue-detail.js` / `entries/tabs/secretary/feedback-tab.js` 的呈现面 · `docs/src/components/inspector.js` / `docs/src/entries/activity-entry.js` 的品牌面），确认**没有第二套换说法的「仅支书」判据**（例如把角色名写成别的样子）遗留在本批这两件事上。
+
+### 六、版本戳 / 守卫 / 全量 / 停服 / 落账
+
+- **版本戳**：`20260921d → 20260921e`（首轮改完）→ **`20260921f`**（续改 `activity-entry.js` 等后再 bump）。**脚本显式传参**（无参按 UTC 推导会回退，`D-353` 已登记）：两条命令均「陈旧戳自检：**0 处残留 ✅**」、`CODE_VERSION` 各 +1。
+- **守卫子集**（8 文件 / 63 项，带 `DISABLE_PASSWORD_CHECK=1`）：**改前 63 / 63 / 0 红（20.3 s）｜ 改后 63 / 63 / 0 红（改码后 20.3 s；落账（md）后再跑一次 21.3 s）**。
+- **全量（`R-85`）**：`cd server` → **`npm start`（3000 起服）** → `npm test` → **712 tests / 712 pass / 0 fail**（`cancelled` / `skipped` 均 0）→ **停服**。**本批跑了两轮全量**：第一轮在系统侧改完（bump 到 `20260921f`）后跑，**712 / 712 / 0 红**；第二轮**在全部落账（`.ctx/**` / `content/**` 的 md）改完之后又跑一次**，结论同上——两轮数字一致（**收尾证据取后一轮**）。
+- **落账（`R-84`）**：本日志（本节）· `.ctx/logs/2026-09-DECISION_LOG.md`（`D-550` / `D-551` ＋ 本月目录 2 行 ＋ 文首 / 文末续编说明编号起止）· `.ctx/ACTIVE_RULINGS.md`（**新立 1 行 ＋ 改准 3 行** ＋ 批次 126 留痕句）· `.ctx/REVIEW_QUEUE.md`（`SOP-B-32` / `SOP-B-34` 改准 ＋ 在册计数 **13 → 11** 共 6 处）· `.ctx/logs/DECISION_LOG.md`（月度索引）· `.ctx/TIMESTAMPS.md`（本批改过的 `content/**` 两文件表行 ＋ 备注）。
+- **编号四处一致（实测）**：文首「`D-275` … `D-551`，共 **277** 条」＝ 文末续编说明「当前止于 `D-551`（共 277 条）/ 下一条自 `D-552`」＝ 本月目录 2 行（`D-550` · `D-551`）＝ `^## D-\d+ ` **实测 277 命中**。
+
+### 七、不确定 / 没做的地方（如实）
+
+1. **改前返回码只有副支书有既有真机记录**：三委员 / 普通成员 / 组长三格的「改前 403」系**代码判据**（改前门集合只含 `'secretary'`），**非本批新测**——改前服务端已不可复现，不假称。
+2. **`README-server.md` 未改（授权面外）**：`:145`「权限键 … 唯独不含意见反馈的 **8 个支书专属键**」与 `:283` 表头「意见反馈**支书专属键（8）**」**已与实然相左**（现为支委层五角色同权）⇒ **只登记、报支书**（`README*.md` 属「只登记不许改」）。
+3. **`docs/help.html` 未改（不在授权面）**：§2.x「反馈管理 = 支书 / 副支书」等表述**仍成立**（该 tab 本就只在支书台）；但**「意见处置」现在支委层也能做**这一点，help **尚无对应文字**（支书台外的那条路径没写进帮助）⇒ **登记为缺口**。
+4. **品牌认定的新入口是「本批自决」**：活动详情页那一枚按钮**不是支书原话**，而是依 `D-414`「归支委会」口径、为**进不去支书台的支委**补的落点——**若支书认为「品牌认定只应在支委会场合（如线上支委会页）做」，请推翻**（推翻即删这一处、并另定落点）。
+5. **`DATA_MODEL.md` 的 issues 字段表未补 `domain`**（理由见「二」末）⇒ 外部后端从该表**读不到**这个新字段；**须与 `README-server.md` 行号同步同批做**。
+6. **服务端对 `domain` 不设硬校验**（选填）：外部直接 `POST /issues` 不带 `domain` 仍 200——**与「前台必填」不对称**，如实登记（理由：兼容既有调用与测试夹具）。
+7. **未做**：`form-loop-sweep` 台账**未新增**「事项领域」必填那一条登记项（本批不扩台账，该字段目前**无真机普查覆盖**）；`SOP-B-24` ① 「补全支委会认定两步」仍是**旧账**（与本批「认定归支委会」相邻但**不是同一件事**），**本批未动**。
+8. **母本侧零改动**：「常见工作场景快速指南.md」那张「意见建议类型」表**逐字未动**（四类与处理方式即据它写的）；`D-414` 批的 10 处母本残留**已在该批改齐**。
+
+
 
 
 

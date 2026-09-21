@@ -190,15 +190,15 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 139, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
 
   // ── 跨台组件 / 服务 ──
-  { file: SRC + 'components/issue-form.js', line: 90, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
-  { file: SRC + 'components/issue-form.js', line: 91, field: '正文', flow: 'component/议题提交', machine: true, msg: '请输入正文' },
-  { file: SRC + 'components/issue-form.js', line: 92, field: '范围', flow: 'component/议题提交', machine: true, msg: '请选择范围' },
+  { file: SRC + 'components/issue-form.js', line: 100, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
+  { file: SRC + 'components/issue-form.js', line: 101, field: '正文', flow: 'component/议题提交', machine: true, msg: '请输入正文' },
+  { file: SRC + 'components/issue-form.js', line: 102, field: '范围', flow: 'component/议题提交', machine: true, msg: '请选择范围' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/feedback.html?id=<议题>` 的议题详情评论区**（`components/issue-detail.js`）。
   // ⚠ 与支书台「反馈管理」的 `secretary-feedback-issue-detail` **是两处真实调用点**：feedback-tab.js 自带一份
   //   内联 `renderIssueDetail`（用自己的 `#issue-comment-input`），本组件是**独立页那一份**（`#comment-input`）。
   //   原 reason「入口在议题详情内联评论区，需先有议题」——「先有议题」由种子提供（`docs/data/issues.json`
   //   播了 issue-001~004），而详情页**支持 `?id=` 深链直达**，两者都不构成障碍。
-  { file: SRC + 'components/issue-detail.js', line: 248, field: '评论内容', flow: 'component/议题详情·评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/issue-detail.js', line: 254, field: '评论内容', flow: 'component/议题详情·评论', machine: true, msg: '请输入评论内容' },
   // 批次 47-M（2026-09-16）：**「我的处置」tab** 一栏三区（`services/issues.js` 内三份渲染各自的内联动作）。
   // 实测：组长台「我的处置」① 待处置事项 **1 行**，点行进详情即 `#mydispatch-comment-input` + 「评论」+「提交处置结果」
   //   ⇒ 1428（评论）与 1434（处置结果）**同面板两个提交口，一条流程覆盖**（用 `expect[].submit`）。

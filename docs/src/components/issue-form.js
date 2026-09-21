@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore } from '../services/issues.js?v=20260921d';
-import { showToast } from '../core/utils.js?v=20260921d';
-import { icon } from '../core/icons.js?v=20260921d';
-import { badgeHtml } from './badges.js?v=20260921d';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest } from '../services/issues.js?v=20260921f';
+import { showToast } from '../core/utils.js?v=20260921f';
+import { icon } from '../core/icons.js?v=20260921f';
+import { badgeHtml } from './badges.js?v=20260921f';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -67,6 +67,15 @@ export function renderIssueForm() {
           </div>
         </div>
 
+        <div>
+          <label class="text-xs text-gray-500 mb-1.5 block font-medium">事项领域（单选）<span class="text-red-600">*</span></label>
+          <select id="form-domain" class="input-flat w-full font-sans">
+            <option value="">请选择事项领域</option>
+            ${ISSUE_DOMAINS.map(d => `<option value="${d.value}">${d.label}</option>`).join('')}
+          </select>
+          <p id="form-domain-suggest" class="text-xs text-gray-500 mt-1 font-sans">选择事项领域后显示建议归口（仅建议，由处置人定）</p>
+        </div>
+
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
           <label class="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer font-sans select-none" title="勾选后以「匿名」公开——列表与详情一律显示匿名；真实提交人仅党委在必要时可查，且每次查看都会留痕">
             <input type="checkbox" id="form-anon" class="checkbox-accent" checked>
@@ -86,18 +95,22 @@ export function renderIssueForm() {
     const body = document.getElementById('form-body')?.value.trim();
     const scope = document.getElementById('form-scope')?.value;
     const types = Array.from(document.querySelectorAll('input[name="form-type"]:checked')).map(cb => cb.value);
+    const domain = document.getElementById('form-domain')?.value || '';
 
     if (!title) { showToast('error', '请输入标题'); return; }
     if (!body) { showToast('error', '请输入正文'); return; }
     if (!scope) { showToast('error', '请选择范围'); return; }
     if (types.length === 0) { showToast('error', '请至少选择一个类型'); return; }
+    // 事项领域（2026-09-21 批次 126 · SOP-B-32 甲档）：与「类型」（对现状的性质）分属两根轴；
+    // 本档必填——分流口径据它给出建议归口（见 services/issues.js::ISSUE_DOMAINS）
+    if (!domain) { showToast('error', '请选择事项领域'); return; }
 
     const anon = document.getElementById('form-anon')?.checked ?? true;
 
     // 对外匿名（后台记真身）：匿名时对外出口一律脱敏（支部内部含支书不可见），但库里留真实提交人
     // `_realPersonId`——真实提交人仅党委在必要时可查、每次查看留痕；实名按现口径记真实 personId
     try {
-      await IssueStore.submitIssue({ title, body, scope, types, anonymous: anon });
+      await IssueStore.submitIssue({ title, body, scope, types, domain, anonymous: anon });
     } catch (e) {
       showToast('error', '提交失败：' + (e?.message || '网络错误'));
       return;
@@ -105,5 +118,13 @@ export function renderIssueForm() {
 
     showToast('success', anon ? '已匿名提交，待支书审核通过后公开' : '反馈已提交为草稿，待支书审核通过后公开');
     window.location.href = './feedback.html';
+  });
+
+  // 事项领域 → 建议归口实时提示（只呈现建议，不代填 / 不指派）：填写人当场看到这事「该往哪边走」
+  const domainSel = document.getElementById('form-domain');
+  domainSel?.addEventListener('change', () => {
+    const hint = document.getElementById('form-domain-suggest');
+    const suggest = issueDomainSuggest(domainSel.value);
+    if (hint) hint.textContent = suggest ? `建议归口：${suggest}` : '选择事项领域后显示建议归口（仅建议，由处置人定）';
   });
 }

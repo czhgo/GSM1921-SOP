@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -656,7 +656,7 @@ export function createResourcesRouter(db) {
   //  意见反馈语义端点（2026-09-12 首裁「真匿名」→ **2026-09-17 支书改裁**）
   //  · GET  /api/v1/issues          公开读（处置结果公开可见，所有人可见）——**一律脱敏，不含提交人**
   //  · POST /api/v1/issues          登录用户可提交；**匿名亦落库真实提交人**
-  //  · PATCH /api/v1/issues/:id     处置/回复沿用既有口径（**仅支书**）——**支书也看不到提交人**
+  //  · PATCH /api/v1/issues/:id     处置/回复＝**支委会**（支委层；2026-09-21 批次 126 · `D-550` 由「仅支书」放开）——**处置人也看不到提交人**
   //  · GET  /api/v1/issues/reveal   **仅党委（party-staff）**：可看匿名反馈的真实提交人，**每次查看留痕**
   //  ── 口径变更依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
   //     查看匿名的权限只有党委有。**」 ──
@@ -669,7 +669,7 @@ export function createResourcesRouter(db) {
   //  · 防刷：仍**只按 tokenHash** 判重/限频（与 personId 无关），与「后台记真身」互不影响。
   //  · 支部归属（2026-09-15 裁定）：写入取 actor.branchId（缺省 'br-b1'）；读取过滤在前端 withinBranch。
   // ════════════════════════════════════════════════════════════════
-  const SECRETARY_SET = new Set(SECRETARY_ROLES);
+  const ISSUE_DISPOSITION_SET = new Set(BRANCH_COMMISSION_ROLES); // 意见处置＝支委会（支委层；2026-09-21 批次 126 · D-550：原为 new Set(SECRETARY_ROLES) 仅支书）
   // 真身同族键：任何常规读出口都不得带出
   const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
   // **脱敏序列化（默认出口）**：拷贝后剥掉真身键。**一切常规读（公开 / 支书 / 提交回执 / 处置回执）都走它**。
@@ -732,7 +732,7 @@ export function createResourcesRouter(db) {
     const title = typeof body.title === 'string' ? body.title.trim() : '';
     const text = typeof body.body === 'string' ? body.body.trim() : '';
     const scope = typeof body.scope === 'string' ? body.scope.trim() : '';
-    const types = Array.isArray(body.types) ? body.types.filter((t) => typeof t === 'string') : [];
+    const types = Array.isArray(body.types) ? body.types.filter((t) => typeof t === 'string') : []; const domain = typeof body.domain === 'string' ? body.domain.trim() : ''; // 事项领域（SOP-B-32 甲档／2026-09-21 批次 126）：选填不设硬校验（兼容既有调用），表单侧必填
     if (!title) return res.status(400).json({ error: '标题不能为空' });
     if (!text) return res.status(400).json({ error: '正文不能为空' });
     if (!scope) return res.status(400).json({ error: '范围不能为空' });
@@ -766,7 +766,7 @@ export function createResourcesRouter(db) {
       title,
       body: text,
       scope,
-      types,
+      types, domain,
       status: 'open',
       closedReason: null,
       closedAt: null,
@@ -796,13 +796,13 @@ export function createResourcesRouter(db) {
     res.status(201).json(sanitizeIssue(record));
   });
 
-  // 处置/回复（仅支书，沿用既有口径）：白名单字段局部合并；处置结果随公开 issue 一并可见
+  // 处置/回复（支委会＝支委层；2026-09-21 批次 126 · D-550 由「仅支书」放开）：白名单字段局部合并；处置结果随公开 issue 一并可见
   // ⚠ 2026-09-17 批次 51 修一处**会抹掉匿名真身**的缺陷：本路由原先读记录时先过 `sanitizeIssue`
   //   （它剥掉 `_realPersonId`）再把整个对象 `INSERT OR REPLACE` 写回 ⇒ **支书每处置一次（指派 / 关闭 /
   //   评论 / 合并），库里那条匿名反馈的真实提交人就永久没了**，而该路由的注释还自称「只剥不外泄、不回写」。
   //   修法：**读原始记录 → 只合并白名单字段 → 原样写回**；脱敏**只发生在出口**（`res.json`）。
   //   ——这与本批 R-80 是同一族：「**有一个出口脱敏，就要有一个写口保证不顺手把库里的东西擦掉**」。
-  router.patch('/issues/:id', requireRole(db, SECRETARY_SET), (req, res) => {
+  router.patch('/issues/:id', requireRole(db, ISSUE_DISPOSITION_SET), (req, res) => {
     const row = db.prepare('SELECT data FROM issues WHERE id = ?').get(req.params.id);
     if (!row) return res.status(404).json({ error: 'not found' });
     const issue = JSON.parse(row.data); // 原始记录（含真身键，不得在此脱敏）

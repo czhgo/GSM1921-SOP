@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-20"
+last_updated: "2026-09-21"
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -467,13 +467,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 页面 | 展示方式 | 角色 |
 |------|---------|------|
 | feedback.html | GitHub Issue 风格反馈列表+提交表单 | 全部 |
-| workspace/secretary.html | 反馈统计（支书专属：状态变更/关闭/隐藏/编辑） | 支书 |
+| workspace/secretary.html | 反馈统计（意见处置＝支委层：状态变更/关闭/隐藏/编辑） | 支委层 |
 
 **同源校验点**：
 
 - [ ] feedback.html 的反馈列表 = issues.json 中的记录
 - [ ] 支书面板的反馈统计 = IssueStore.countByStatus() 的结果
-- [ ] 支书专属权限（关闭 issue/隐藏评论/编辑他人 issue）= auth.js 中的 _ISSUE_PERMS_SECRETARY
+- [ ] 意见处置权限（关闭 issue/隐藏评论/编辑他人 issue）＝支委层 = auth.js 中的 _ISSUE_PERMS_DISPOSITION（2026-09-21 批次 126 前为支书专属 _ISSUE_PERMS_SECRETARY）
 - [ ] 旧 FeedbackStore.getAll() 返回数据 = IssueStore 数据的兼容映射
 
 ---

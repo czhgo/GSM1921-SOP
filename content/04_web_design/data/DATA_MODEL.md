@@ -635,7 +635,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 **派生显示状态**（UI 层派生，数据层不存储，实现 `deriveIssueDisplayState`）：`开放中` → `已指派`（有 assignee）→ `待终审`（resultPending 或已有 result 评论）→ `已关闭`。
 
-> **意见反馈处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归支委会、由支书主持支委会：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作由支委会作出，系统上该动作当前仅向支书角色开放，类比 GitHub maintainer 唯一拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（支书仲裁）的落点。
+> **意见反馈处置权设计**（2026-08-09 P-011 重写联动，倒写自 issues.js）——意见反馈处置权归支委会、由支书主持支委会：全员可参与开源讨论（issue.create / comment.add / reaction.toggle / mention / reference），但处置动作由支委会作出，系统上该动作**向支委层角色（支书 / 副支书 / 组织 / 宣传 / 纪检）开放**（2026-09-21 批次 126 落地；此前仅向支书角色开放），类比 GitHub maintainer 拥有 merge/close 权（详见 [insights §2.2](../../insights/党支部管理与实务经验沉淀.md) D-244/T105 与 [COMMISSIONER_DUTY_FRAMEWORK §C.1b](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 党课/意见反馈规则）。这是 P-012 分工的运行保障（支书仲裁）的落点。
 
 | 处置动作 | 接口 | 说明 |
 |---|---|---|

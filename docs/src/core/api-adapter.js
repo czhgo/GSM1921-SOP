@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260921d';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260921f';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -533,7 +533,7 @@ export const ApiAdapter = {
   // 意见反馈匿名口径（2026-09-17 支书裁定，本次改裁）：语义端点（server/routes/resources.js）
   //   GET   /api/v1/issues          公开读（处置结果公开可见）——**一律脱敏，不含真实提交人**
   //   POST  /api/v1/issues          登录用户可提交（匿名亦在服务端落真实提交人 `_realPersonId`）
-  //   PATCH /api/v1/issues/:id      处置/回复（仅支书）——支书也看不到提交人
+  //   PATCH /api/v1/issues/:id      处置/回复＝支委会（支委层；2026-09-21 批次 126 · D-550）——处置人也看不到提交人
   //   GET   /api/v1/issues/reveal   **仅党委（party-staff）**：查看匿名反馈真实提交人；服务端每次留痕
   //   ── 依据（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
   //      查看匿名的权限只有党委有。」──

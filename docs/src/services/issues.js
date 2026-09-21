@@ -2,15 +2,15 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260921d';
-import { PersonStore } from './person.js?v=20260921d';
-import { bumpToken } from '../core/version-token.js?v=20260921d'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260921d';
-import { hashSubmitterToken, SECRETARY_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260921d';
+import { AuthStore } from './auth.js?v=20260921f';
+import { PersonStore } from './person.js?v=20260921f';
+import { bumpToken } from '../core/version-token.js?v=20260921f'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260921f';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260921f';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../core/pending-writes.js?v=20260921d';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260921d';
-import { generateId, randomHex } from '../core/id.js?v=20260921d';
+import { trackWrite } from '../core/pending-writes.js?v=20260921f';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260921f';
+import { generateId, randomHex } from '../core/id.js?v=20260921f';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -21,9 +21,9 @@ import { generateId, randomHex } from '../core/id.js?v=20260921d';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../core/utils.js?v=20260921d';
+import { showToast } from '../core/utils.js?v=20260921f';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260921d';
+import { renderFilteredList } from '../components/list-filter.js?v=20260921f';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -236,9 +236,9 @@ function _currentRole() {
   return AuthStore.getCurrentUser()?.role || 'secretary';
 }
 
-/** 是否支书侧处置（写回服务端的处置人；与 server PATCH /issues 的 SECRETARY_SET 同源单一源） */
-function _isSecretaryRole(role) {
-  return !!role && SECRETARY_ROLES.includes(role);
+/** 是否意见处置侧（写回服务端的处置人；与 server PATCH /issues 的 ISSUE_DISPOSITION_SET 同源单一源＝支委层，2026-09-21 批次 126 · D-550） */
+function _isDispositionRole(role) {
+  return !!role && BRANCH_COMMISSION_ROLES.includes(role);
 }
 
 export const IssueStore = {
@@ -388,14 +388,14 @@ export const IssueStore = {
    * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
    * @returns {Promise<Object>} API 形态返回落库记录（服务端已脱敏）；mock 形态返回新建草稿（出口亦已脱敏）
    */
-  async submitIssue({ title, body, scope, types = [], anonymous = true } = {}) {
+  async submitIssue({ title, body, scope, types = [], domain = '', anonymous = true } = {}) {
     const now = new Date().toISOString().slice(0, 10);
     const token = _getSubmitterToken();
     // 支部归属：登录=本人所属支部，未登录（公共反馈页）=部署默认支部（写入口径单一源 _writeBranchId）
     const branchId = _writeBranchId();
     if (_isApiMode()) {
       const record = await getAdapter().issues.create({
-        title, body, scope, types,
+        title, body, scope, types, domain,
         branchId,
         anonymous: !!anonymous,
         submitterToken: token, // 服务端仅存其哈希（tokenHash），不留原始 token
@@ -410,7 +410,7 @@ export const IssueStore = {
     return this.addDraft({
       type: 'new-issue',
       payload: {
-        title, body, scope, types,
+        title, body, scope, types, domain,
         branchId,
         submittedBy: anonymous ? '匿名' : _currentPersonId(),
         anonymous: !!anonymous,
@@ -513,11 +513,11 @@ export const IssueStore = {
     return _sanitizeDraft(d);
   },
 
-  // ── 支书专属操作（直接修改缓存，需支书手动同步到 issues.json） ──
+  // ── 意见处置（支委层；2026-09-21 批次 126 · D-550 由「支书专属」放开）：直接修改缓存，API 形态经 _syncIssueToApi 写回服务端 ──
   // ⚠ 写链一律经 `_rawById` 取**原始记录**（改的是库里那条，含真身字段不动），出口再脱敏——
   //   若写链改的是脱敏副本，处置会静默丢失（副本回写覆盖真身）。2026-09-17 支书裁定口径。
 
-  /** 支书改状态 */
+  /** 改状态（意见处置） */
   changeStatus(id, status, closedReason = null) {
     const issue = _rawById(id);
     if (!issue) return null;
@@ -647,14 +647,14 @@ export const IssueStore = {
     // 若按 submittedBy 定向推送会泄露匿名提交人身份（支书追问只能公开留言）。
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（支书收件箱时间线渲染守卫失效）
-    // API 形态：支书侧处置（评论/批复/正式答复）写回服务端
-    //（成员汇报评论 authorRole ≠ 支书 → 不触发；与服务端 PATCH /issues 仅支书同源，单一源 SECRETARY_ROLES）
-    if (_isSecretaryRole(authorRole)) _syncIssueToApi(issue);
+    // API 形态：处置侧（支委层）的评论/批复/正式答复写回服务端
+    //（成员汇报评论 authorRole ∉ 支委层 → 不触发；与服务端 PATCH /issues 同源，单一源 BRANCH_COMMISSION_ROLES）
+    if (_isDispositionRole(authorRole)) _syncIssueToApi(issue);
     return _sanitizeIssue(issue);
   },
 
   /**
-   * 支书关闭反馈
+   * 关闭反馈（意见处置）
    * @param {string} issueId
    * @param {string} reason  'completed' | 'duplicate' | 'wontfix' | 'not_planned'
    * @param {string} note    关闭备注（可选）
@@ -678,7 +678,7 @@ export const IssueStore = {
     return _sanitizeIssue(issue);
   },
 
-  /** 支书重新开放 */
+  /** 重新开放（意见处置） */
   reopenIssue(issueId) {
     const issue = _rawById(issueId);
     if (!issue) return null;
@@ -1650,4 +1650,34 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
       }
     });
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  事项领域（第二档字段）· 单一源 —— 2026-09-21 批次 126（`SOP-B-32` 取甲档 · `D-550`）
+//  四类照母本《常见工作场景快速指南》「意见建议类型」表（content/02_institution/sop/
+//  常见工作场景快速指南.md:439-444）：制度建设建议 / 活动组织建议 / 工作流程建议 / 其他建议；
+//  「建议归口」逐条照该表「处理方式」列（支委会讨论制度修改 / 支书转相关党小组组长处理 /
+//  支书提交相关条条委员研究 / 支书提交支委会研究）。
+//  ⚠ 本批只做「**给出建议归口**」（呈现给填写人 / 处置人），**不自动改派单**——是否指派、指派给谁，
+//    仍由处置人在既有「指派」动作里决定（既有承载＝人工指派五类目标，未改）。
+//  消费点：components/issue-form.js（表单第三档 + 实时提示）· components/issue-detail.js（详情元信息）·
+//    entries/tabs/secretary/feedback-tab.js（支书台详情元信息）。勿在业务层另写第二份四类名单。
+// ════════════════════════════════════════════════════════════════
+export const ISSUE_DOMAINS = [
+  { value: 'institution', label: '制度建设建议', suggest: '支委会（讨论制度修改）' },
+  { value: 'activity', label: '活动组织建议', suggest: '相关党小组组长' },
+  { value: 'workflow', label: '工作流程建议', suggest: '相关条条委员' },
+  { value: 'other', label: '其他建议', suggest: '支委会（研究）' },
+];
+
+/** 领域值 → 中文名（未知值原样回显，不吞） */
+export function issueDomainLabel(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? hit.label : (value || '');
+}
+
+/** 领域值 → 建议归口（母本「处理方式」列；未选 / 未知 → 空串＝无可给的建议） */
+export function issueDomainSuggest(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? hit.suggest : '';
 }
