@@ -12642,6 +12642,114 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 5. **`docs/help.html` 与本条相左的 19 处未改**（不在授权面，只登记）；`README*.md` 无相左表述、未动。
 6. **判据边界**：本批「非组织者不能」的判据是 **`canUploadAttendance` 一处**；`upsertMeetingAttendance` 与 `appendAttendanceRecords` 都经它 ⇒ 服务端快照写口**不另设第二份门**（`server/**` 业务代码一字未改，只改测试现场）。
 
+## 批次 125（2026-09-21）：建立「测试耗时台账」——把「各类测试跑多久」记进 `server/README.md` 测试章节（支书 2026-09-21 要求）
+
+### 一、任务与边界
+
+- **支书原话（逐字）**：「**有些测试式反复跑的，你大概就有一个关于 这个测试运行需要多久的预期。我认为是值得记录在某些测试文档中的！这样可以严格地规划好过程中，收尾的测试分别可以跑什么时间效率最高！**」
+- **改哪里**：`server/README.md`（**仅测试章节**：新增「测试耗时台账」一条 ＋ 改准「运行形态」一处）· `.ctx` 四本账 ＋ 月度索引 ＋ `TIMESTAMPS.md`。**未动** `docs/src/**` · `server/**` 业务代码与测试逻辑 · `server/package.json` · 根 `README*.md` · `content/**` · 历史文件；**未提交 git**；**未新建仓库文件**（**也未新建测试文档**——落点取既有文件，理由见 `D-549`）；**未用 sed / awk / PowerShell / node 脚本做内容批量改写**（只读统计用过 Grep 与一个临时统计脚本 `server/.tmp-attrib.mjs`，**用完即删**）。
+- **版本戳**：**不 bump**（只改 md；判据＝未动 `docs/**` 与 `server/**` 业务代码）。
+
+### 二、现状诊断（守卫是哪几个 / 是否需起服 / 有无分层跑法 / 该记在哪）
+
+| 问题 | 实测答案（`文件:行号`） |
+|---|---|
+| **分层跑法** | `server/package.json:6`-`:13` 已有 `test` / `test:full`（二者等价）· `test:fast`（6 文件）· `test:core`（8 文件）· `clean:tmp`；另有 `server/scripts/run-tests.ps1:38`-`:46`（fast / core / full 三层包装）。**本批用的「守卫子集」（8 项）此前没有名字、也没有任何文档给出其合并命令** |
+| **守卫是哪几个** | `doc-consistency` · `link-integrity` · `version-stamp` · `module-load` · `permission-gate` · `server-base` · `scene-write-sync` · `doc-line-ref`——**实测 13 + 5 + 15 + 2 + 9 + 11 + 3 + 5 ＝ 63 项**（与批次 124 执行日志所记 63/63 一致） |
+| **哪些需要先起服务** | **三个**（均硬编码外部地址、非自包含）：`b3-1-makeup-writeback`（`server/test/b3-1-makeup-writeback.test.mjs:6` `const BASE = 'http://localhost:3000'`）· `click-cost`（`:10` 同）· `mock-integrity`（`:10` 同，且 `:4` 头注即写「环境：server localhost:3000 + Playwright」）。**其余自包含**（测试内 `createApp({dbPath:':memory:'})` ＋ 种子、监听随机端口；`link-integrity` / `module-load` 亦自起自停） |
+| **已有记录耗时的地方** | **没有**——`server/README.md:41` 的「测试节奏」只说「跑什么」、**全篇零耗时数字**；`.ctx` 里散见历史耗时（如全量 17.8 / 18.1 / 19.7 分钟），但**不在测试文档里**、跑测试的人翻不到 |
+| **该记在哪 ＋ 理由** | **写入既有文件 `server/README.md` 测试章节**（离使用点最近；同节 `:41` 已有「测试节奏」，耗时紧挨它才成对）⇒ **不新建文件**；与同节 `:36`「本文件不维护固定计数」**不冲突**（**耗时 ≠ 计数**：计数随开发增长、耗时量级稳定）——已在台账开头**明写口径**「耗时是量级与量程、不是承诺；文件数 / 项数仍以 `server/test/` 实际目录为准」 |
+
+### 三、逐项实测耗时（附表 · 全部本机真跑，非估算）
+
+**（1）守卫子集——单跑一次（8 项，两次取样）**
+
+| 守卫 | 墙钟第 1 次 | 墙钟第 2 次 | 项 | node 自报 `duration_ms`（第 1 次） |
+|---|---|---|---|---|
+| `doc-consistency` | 1.93 s | 1.92 s | 13 | 1733.7 |
+| `link-integrity` | 9.53 s | 10.61 s | 5 | 9326.2 |
+| `version-stamp` | 1.49 s | 1.55 s | 15 | 1282.8 |
+| `module-load` | 5.03 s | 4.82 s | 2 | 4828.0 |
+| `permission-gate` | 1.76 s | 1.81 s | 9 | 1556.0 |
+| `server-base` | 1.40 s | 1.36 s | 11 | 1203.3 |
+| `scene-write-sync` | 0.41 s | 0.41 s | 3 | 220.4 |
+| `doc-line-ref` | 1.55 s | 1.60 s | 5 | 1369.7 |
+| **8 项合并一条命令** | **21.55 s** | **20.88 s** | **63** | 21361.7 |
+
+- 命令（一次跑完 8 个文件）：`cd server` → `node --test --test-concurrency=1 test/doc-consistency.test.mjs test/link-integrity.test.mjs test/version-stamp.test.mjs test/module-load.test.mjs test/permission-gate.test.mjs test/server-base.test.mjs test/scene-write-sync.test.mjs test/doc-line-ref.test.mjs`（`permission-gate` / `server-base` 带 `DISABLE_PASSWORD_CHECK=1`；实测**无需起服务**）。
+- **8 项全绿**：`pass 63 / fail 0`（两次均然）。
+
+**（2）最慢的测试文件**
+
+- ⚠ **前提修正（本批实测发现）**：任务书设「跑全量时 node --test 会打印每个文件的耗时」——**本机 node v24.16.0 ＋ 默认 spec 报告器实测不成立**：`--test-concurrency=1` 串行跑 712 项，**只有「根套件抛未捕获异常」的那个文件才打印文件级耗时行**（首轮全量里只出现 `✖ test\b3-1-makeup-writeback.test.mjs (4038.1688ms)` 一行），**通过的文件一行都不打**。
+- 故改用**两条互补口径**：① **单跑实测**；② **全量日志内该文件各用例耗时求和**（`form-loop-sweep` / `page-sweep` 两项——前者单跑代价过高）。**两法已在其余 9 个文件上对照，求和比单跑低 +1%~+12%**（见「求和对帐」列），故求和值可信、但标注为「求和」。
+
+| 文件 | 项 | 单跑实测（墙钟） | 求和对帐（同文件日志求和） | 备注 |
+|---|---|---|---|---|
+| `form-loop-sweep.test.mjs` | 78 | **未单跑**（≈ 9 分钟，为省时未重跑） | **519.8 s**（54 条真机闭环 ＋ 17 条成功路径 ＋ S0–S6 台账守卫） | 全量里**最长**；按其余文件的偏差外推 ⇒ 实际约 **8.7–9.3 分钟** |
+| `page-sweep.test.mjs` | 11 | **111.5 s** | 109.3 s（求和低 2.0%） | 七台 × 全部 tab |
+| `click-cost.test.mjs` | 5 | **50.0 s** | 47.5 s（低 5.3%） | **需起服务** |
+| `agenda-flow.test.mjs` | 4 | **42.0 s** | 39.3 s（低 6.9%） | |
+| `branch-doc.test.mjs` | 17 | **37.0 s** | 36.6 s（低 1.1%） | |
+| `multi-user-write.test.mjs` | 2 | **27.1 s** | 25.8 s（低 5.0%） | |
+| `async-vote.test.mjs` | 1 | **26.4 s** | 25.1 s（低 5.2%） | 批次 48 放宽过 timeout 的那条 |
+| `party-committee.test.mjs` | 3 | **19.4 s** | 17.3 s（低 12.1%） | |
+| `relation-matrix.test.mjs` | 8 | **16.6 s** | 15.0 s（低 10.7%） | |
+| `agenda-closure.test.mjs` | 1 | **15.6 s** | 14.0 s（低 11.4%） | |
+| `branch-config-audit.test.mjs` | 8 | **12.3 s** | 11.2 s（低 9.8%） | |
+| `b3-1-makeup-writeback.test.mjs` | 3 | —（**需起服务**） | — | **12.9468 s**（全量日志里 node 唯一打印出来的文件级耗时；首轮环境失败时该行为 4038.1688 ms） |
+
+- **两项加总**：`form-loop-sweep` 519.8 s ＋ `page-sweep` 109.3 s ＝ **629.1 s ≈ 10.5 分钟**（占全量 1072.6 s 的 **58.7%**）；**其余 623 项合计 374.1 s ≈ 6.2 分钟**（全量日志 712 项耗时合计 **1003.2 s**）。
+
+**（3）全量 `npm test`（一次干净实测）**
+
+- 命令：`cd server` → **先 `npm start`（3000）** → `npm test` → 停服。
+- **实测**：**`tests 712 / pass 712 / fail 0 / cancelled 0 / skipped 0 / todo 0`**；`duration_ms` **1,072,593.356 ≈ 17.9 分钟**（墙钟 **1074.1 s**）。
+- ⚠ **首轮全量作废（如实登记）**：第一次全量与起服**写在同一条命令里**，起服后探活 200、但该 shell 退出时把 `npm start` 的子进程一并回收 ⇒ 6 红（`b3-1` `ERR_CONNECTION_REFUSED at http://localhost:3000` ＋ `click-cost` C1–C5 各约 2.9 s 快败）。**判定＝环境类**（`R-85` ③），**已停掉该轮、改为常驻起服后重跑**（上表 712 / 712 即重跑结果）。
+
+**（4）起服务本身的成本**
+
+- 命令：`cd server` → `npm start`（`DISABLE_PASSWORD_CHECK=1`），从进程创建到 `GET http://127.0.0.1:3000/login.html` 返回 `200`。
+- **实测 2.71 s**（含 npm 启动开销；启动日志末行 `[server] 光华党支部管理引擎后端已启动: http://localhost:3000`）。**注**：此时 `server/data.db` 已存在（无需重种）；空库首启还要加种子导入时间，**本批未测**。
+
+### 四、写在哪个文档 ＋ 写了什么
+
+- **落点**：`server/README.md` 的 **「## 测试说明」** 节（`:35` 起），在既有「测试节奏（2026-09-15 支书定）」条与「Playwright」条之间**新增一条**：
+  - 标题：**「测试耗时台账（2026-09-21 支书定）」**；开头**明写口径**（本机实测 / `--test-concurrency=1` / **量级与量程、不是承诺** / **计数仍以 `server/test/` 实际目录为准**）。
+  - **① 过程中（每批改代码、落盘后即跑）：守卫子集 —— 一条命令 ≈ 21 秒（8 文件 / 63 项，实测 20.9–21.6 秒）**：给出**可直接复制的整条命令** ＋ 逐项**两次取样耗时**与「**它挡什么**」（8 行表）。
+  - **② 收尾（一批做完 / 提交前）：全量 —— 约 18 分钟（实测 712 项 / 712 通过 / 0 红，17.9 分钟）**：给出跑法（**先 `npm start`（≈ 3 秒）→ `npm test` → 停服**）＋**为什么非跑不可**（引 `CLAUDE.md R-85`：只跑守卫子集不算收尾；批次 97 首跑 11 红的教训）＋**必须起服务的三个文件**。
+  - **③ 时间效率：钱花在哪、怎么少花**：**最贵的一步＝全量本身**（两个真机普查文件占近六成；起服 ≈ 3 秒可忽略）＋ 单文件最慢十来个的实测值 ＋ **推荐顺序**（改代码只跑守卫 → 改过 `docs/src/**` 或 `server/**` **先 bump 再跑守卫** → 收尾**起一次服务**把三个依赖外部服务的文件随全量一起跑）。
+- **同批改准 1 处**（`server/README.md:39`「运行形态」）：需先 `npm start` 起外部 server 的示例由「如 `click-cost` / `mock-integrity`」改为「**三个**：`click-cost` / `mock-integrity` / `b3-1-makeup-writeback`」（依据＝`CLAUDE.md R-85` 与本次实测首轮唯一红即 `b3-1`）。
+- **未新增 npm script**：判据见 `D-549`（「确有必要」未达标；同节 `:41` 已有把 `node --test …` 命令原样写进文档的先例，加 script 反而多一份须长期同步的重复源）。
+
+### 五、守卫（改后复跑）与全量（`R-85`）
+
+- **守卫子集（本批改后复跑）**：**63 / 63 pass、0 fail**（`doc-consistency` 13 · `link-integrity` 5 · `version-stamp` 15 · `module-load` 2 · `permission-gate` 9 · `server-base` 11 · `scene-write-sync` 3 · `doc-line-ref` 5）；**合并一条命令 20.88 s**（本批**四次取样**：20.88 / 21.55 / 21.79 / 22.10 s——含改后两次复跑）。**改前 / 改后同值全绿**。
+- **全量（依 `R-85`）**：先 `npm start` 起 3000 服务 → `npm test` → 停服，**`tests 712 / pass 712 / fail 0`**（≈ 17.9 分钟）。**跑完已停服**（`Get-NetTCPConnection -LocalPort 3000 -State Listen` 实测 **`PORT-3000-CLEAR`**）。
+- **本批只改 md ⇒ 不 bump**：`docs/**` 与 `server/**` 业务代码一字未动（`server/README.md` 不在 `?v=` 版本链扫描面内）⇒ 无版本链分裂风险。
+
+### 六、反查（全库关键词）与版本戳
+
+| 关键词（`*.md` 全仓，Grep 计） | 改前（命中数 / 文件数） | 改后 | 逐条判定 |
+|---|---|---|---|
+| `耗时` | 30 / 7 | **92 / 10** | 增 62——**全部为本批自身新增**（本批把「耗时」写进文档与台账，故增量集中在四处）：`server/README.md` 1 → 4 · `.ctx/logs/2026-09-EXECUTION_LOG.md` 15 → 43（本批批次 125 节）· `.ctx/logs/2026-09-DECISION_LOG.md` 8 → 33（`D-549` 本体 ＋ 文首 / 文末 / 本月目录）· `.ctx/ACTIVE_RULINGS.md` 0 → 3 · `.ctx/TIMESTAMPS.md` 0 → 2 · `.ctx/logs/DECISION_LOG.md` 0 → 1；**未动的既有 30 条**＝`server/README.md:42`（旧句「真机普查…耗时最长」**保留**）· `CLAUDE.md` / 根 `README.md`（测试节奏各 1）· `ENGINEERING_ASSESSMENT.md` 1 · `DATA_CONSISTENCY_CHECKLIST` 3 · `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 1–124 段 15（**沿革，不动**） |
+| `duration\|分钟` | 113 / 16 | **140 / 19** | 增 27＝**本批新增**（`server/README.md` 0 → 5 · `.ctx/logs/2026-09-EXECUTION_LOG.md` +15 · `.ctx/logs/2026-09-DECISION_LOG.md` +5 · `.ctx/ACTIVE_RULINGS.md` +1 · `.ctx/logs/DECISION_LOG.md` +1）；**其余 113 条全部为既有**——`README-server.md:1468`「每 10 分钟会议提醒」· `DEPLOYMENT_GUIDE` / `PKU_PARTY_INTEGRATION` / `DATA_MODEL` 等（与本批口径无关、**不动**）＋ `.ctx/logs` 历史（**沿革**） |
+| `秒`（不分大小写） | 50 / 12 | **91 / 14** | 增 41＝**本批新增**（`server/README.md` 2 → 14 · `.ctx/logs/2026-09-EXECUTION_LOG.md` +8 · `.ctx/logs/2026-09-DECISION_LOG.md` +17 · `.ctx/ACTIVE_RULINGS.md` +2 · `.ctx/logs/DECISION_LOG.md` +2）；**其余 50 条＝既有**（`server/README.md:41`「秒级到十余秒一项」· `DATA_CONSISTENCY_CHECKLIST` 8 · 历史日志等） |
+| `跑步\|跑测\|测试耗时\|测试时长` | 2 / 2 | **28 / 7** | 增 26＝**本批新增**（`.ctx/logs/2026-09-DECISION_LOG.md` 13 · `.ctx/logs/2026-09-EXECUTION_LOG.md` +8 · `.ctx/TIMESTAMPS.md` 2 · `server/README.md` 1 · `.ctx/ACTIVE_RULINGS.md` 1 · `.ctx/logs/DECISION_LOG.md` 1）；**其余 2 条＝历史日志**（2026-08 / 2026-09 执行日志各 1，**沿革**） |
+| ⚠ **说明** | — | — | 上列四个「改后」值**全部为本批落账后的实测**；增量之所以远大于「仅 `server/README.md` 一处改动」，是因为**本批的落账本身就在反复写「耗时」二字**（决策日志 `D-549` ＋ 执行日志批次 125 附表 ＋ 两处留痕／索引）——**这是「记一件事」的正常后果，不是旧口径回潮**；⚠ 另如实标注：**这四个数有自引用**（本表每写一次关键词、计数就再动 1–2），故请按**量级**读、勿当精确值 |
+- **没只靠 grep（依 `R-87`）**：① 本项要核的不是「某旧说法是否清除」，而是「**耗时数字在测试文档里有没有**」——**改前逐份通读了 `server/README.md` 测试全节（`:35`-`:43`）与根 `README.md` 的「### 测试」节（`:227`-`:238`）**，确认**两处均无任何耗时数字**（这是「写在既有文件」这一判断的前提）；② 「起服成本」与「哪些文件要起服」**不是 grep 出来的**，是**实测 ＋ 读三个测试文件的头注 / 常量**（`:6` / `:10` / `:4`）；③ 反查**未做全库语义层通读**（只对上述两节做了通读），**如实标注**。
+- **版本戳**：**不 bump**（`20260921d` 保持不动；本批改动只在 md）。
+
+### 七、不确定 / 没做的地方（如实登记）
+
+1. **`form-loop-sweep` 未单跑**：其全量求和 519.8 s，**本批为省时未再单跑一遍**（≈ 9 分钟）⇒ 文档里**标明是「日志求和」**并给出同法在其余 9 个文件上与单跑的偏差（+1%~+12%）。**若要精确到秒，须另跑一次**。
+2. **「node --test 会打印每个文件耗时」的前提不成立**（本机 Node v24.16.0 ＋ 默认 spec 报告器）：只有**根套件抛异常**的文件才打印文件级耗时行。⇒ 本批的 top-N 是「单跑实测 ＋ 日志求和」两法拼出来的，**不是**「一份报告里直接读出来的」。
+3. **`server/package.json` 未加 `test:guards`**：本批判定「确有必要」未达标（理由见 `D-549`）。若支书希望「过程中一条命令跑守卫」成为**可发现**的入口（而非只写在文档里），加一行 script 即可——**留待支书定**。
+4. **空库首启的起服耗时未测**：实测 2.71 s 是「`server/data.db` 已存在」时；空库首启还需从 `docs/src/mock/*.js` 导入种子，**时间未测**。
+5. **耗时的机器依赖性未标定**：全部实测取自**同一台开发机、同一时段**（负载相近）。文档已写「量级与量程、不是承诺」，但**未做「另一种负载下」的对照**（如本机开着大量浏览器进程时 e2e 会超时——这一点沿用 `server/README.md:41` 既有说法，**非本批实测**）。
+6. **`.tmp-attrib.mjs` 统计脚本**只做「用例标题 → 声明文件」的唯一匹配（712 项里 **632 项可归组、80 项未归组**——未归组的是模板字符串标题），未归组项**逐条人工判读**后归入 `form-loop-sweep` / `page-sweep`；**脚本已删**。
+7. **手跑守卫子集必须先设 `DISABLE_PASSWORD_CHECK=1`（本批实测发现，已写进文档）**：不设时 `permission-gate` ＋ `server-base` 实测 **7 pass / 13 fail**（这两项自带「口令校验开着」的前置）。`npm test` / `test:fast` / `test:core` / `test:full` 四个 scripts **均已默认注入**该变量 ⇒ **只有「照文档手跑这条命令」的人会踩**。**处置**：已在 `server/README.md` 该条命令下加一条 ⚠ 说明（含实测数字）。
+
 
 
 
