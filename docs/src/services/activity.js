@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921l';
-import { persist } from '../core/data-adapter.js?v=20260921l';
-import { bumpToken } from '../core/version-token.js?v=20260921l';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921l';
-import { ACTIVITIES } from '../mock/index.js?v=20260921l';
-import { isInitStateActive } from './init-reset.js?v=20260921l'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260921m';
+import { persist } from '../core/data-adapter.js?v=20260921m';
+import { bumpToken } from '../core/version-token.js?v=20260921m';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921m';
+import { ACTIVITIES } from '../mock/index.js?v=20260921m';
+import { isInitStateActive } from './init-reset.js?v=20260921m'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -397,4 +397,86 @@ export function commitBrandDesignationResult({
   if (!res.ok) return res;
   _writeActivityField(activityId, res.patch);
   return res;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  追加复盘要求：支委会额外要求组织者完成复盘（2026-09-21 批次 135 · 裁定二「按推荐档落」）
+// ════════════════════════════════════════════════════════════════
+// 2026-09-21 支书裁定（逐字）：「**按推荐档落（推荐）**」。推荐档内容（逐字照落）：
+//   「**额外要求组织者复盘**」并入**活动关闭判据**，但**只判到「交回」、不判到「确认」**；
+//   **发起权给支委会全体**；**三会一课不适用**（不改「三会一课不看复盘」常态）；
+//   **组织者本人不能自行更新**。
+// 读法 / 落地（⚠ 系按推荐档逐字拆，非另立口径）：
+//   · **发起权＝支委会全体**（支委层；`constants.js::BRANCH_COMMISSION_ROLES` 单一源，勿在页面另写名单）；
+//   · **三会一课不适用**——判据单一处 `isReviewRequestEligibleActivity`，**发起与关闭判据共用**；
+//   · **只判到「交回」**——该场复盘记录存在且状态 ≠ 未提交即算交回过（**纪检的「确认」不额外卡关闭**）；
+//   · 「额外要求」**不新开第二条复盘**——只把该活动的复盘从「不需要」翻成「需要」，
+//     组织者仍走成员端「我的复盘」那张既有表单（`services/review.js::submitActivityReviewForm`）；
+//   · **不开「组织者自行更新」这条路**——本段只提供支委侧的「要求 / 撤回」，**不给组织者任何改写入口**
+//     （既有口径：复盘只有被纪检打回时才回到可重提态，见 `services/review.js` 的 `submitActivityReviewForm`）。
+// 落库形状（**不新增表 / 不新增页面**，字段落在活动主源）：
+//   · 要求留痕 `reviewRequest = { by, at, note }`；撤回置 null。
+// ⚠ 判据（谁能发起 / 哪场适用 / 何时算交回）单一源即本段，勿在页面或关闭判据处另写。
+
+/** 发起权角色集＝支委会全体（支委层；`constants.js::BRANCH_COMMISSION_ROLES` 单一源） */
+export const REVIEW_REQUEST_ROLES = [...BRANCH_COMMISSION_ROLES];
+
+/** 三会一课子类（单一源＝`ACTIVITY_CLASSIFICATION`；本项对之不适用） */
+const _MEETING_TYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
+
+/** 追加复盘要求对本场活动是否适用：**三会一课不适用**（裁定二逐字） */
+export function isReviewRequestEligibleActivity(activity) {
+  return !!activity && !_MEETING_TYPES.includes(activity.type || '');
+}
+
+/** 谁能发起追加要求（按角色键）＝支委会全体 */
+export function canRequestReview(role) {
+  return REVIEW_REQUEST_ROLES.includes(role);
+}
+
+/** 某活动的追加复盘要求（无 → null） */
+export function reviewRequestOf(activity) {
+  const r = activity && activity.reviewRequest;
+  return (r && typeof r === 'object' && !Array.isArray(r)) ? r : null;
+}
+
+/**
+ * 追加要求是否已「交回」——**只判到交回、不判到确认**（裁定二逐字）。
+ * 交回＝该场已有复盘记录且状态不是「未提交」（已上传 / 批注中 / 已确认 / 已打回 均算交回过）。
+ * @param {Object|null} review 该场复盘记录（`services/review.js::loadActivityReviews()` 那一行）
+ */
+export function isReviewReturned(review) {
+  if (!review) return false;
+  return review.reviewStatus !== ReviewStatus.NOT_SUBMITTED;
+}
+
+/**
+ * 发起：支委会额外要求该场组织者完成复盘（**只登记要求、不改复盘状态、不新开第二条复盘**）。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function requestOrganizerReview({ activityId, by, role, note } = {}) {
+  if (!canRequestReview(role)) return { ok: false, reason: '仅支委会（支委层）可以发起' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (!isReviewRequestEligibleActivity(act)) return { ok: false, reason: '三会一课不适用（不改「三会一课不看复盘」常态）' };
+  if (reviewRequestOf(act)) return { ok: false, reason: '本场已有追加复盘要求（未撤回）' };
+  _writeActivityField(activityId, {
+    reviewRequest: { by: by || null, at: new Date().toISOString(), note: String(note || '').trim() },
+  });
+  return { ok: true };
+}
+
+/**
+ * 撤回追加要求（发起人本人或支委层）——免「提错了只能挂着」这条死角。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function withdrawReviewRequest({ activityId, by, role } = {}) {
+  const act = findActivityById(activityId);
+  const req = reviewRequestOf(act);
+  if (!req) return { ok: false, reason: '本场没有追加复盘要求' };
+  if (!REVIEW_REQUEST_ROLES.includes(role) && req.by !== by) {
+    return { ok: false, reason: '撤回限发起人本人或支委会' };
+  }
+  _writeActivityField(activityId, { reviewRequest: null });
+  return { ok: true };
 }

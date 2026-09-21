@@ -2,34 +2,38 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260921l';
-import { renderHeader } from '../components/header.js?v=20260921l';
-import { BranchService } from '../services/runtime.js?v=20260921l';
-import { mockDB } from '../core/domain.js?v=20260921l';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921l';
-import { NoticeStore } from '../services/notice.js?v=20260921l';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260921l';
-import { AuthStore } from '../services/auth.js?v=20260921l';
-import { getPersonById } from '../services/person.js?v=20260921l';
+import { renderSidebar } from '../components/sidebar.js?v=20260921m';
+import { renderHeader } from '../components/header.js?v=20260921m';
+import { BranchService } from '../services/runtime.js?v=20260921m';
+import { mockDB } from '../core/domain.js?v=20260921m';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260921m';
+import { NoticeStore } from '../services/notice.js?v=20260921m';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260921m';
+import { AuthStore } from '../services/auth.js?v=20260921m';
+import { getPersonById } from '../services/person.js?v=20260921m';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260921l';
-import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260921l';
-import { getActivityTypeColors } from '../core/constants.js?v=20260921l';
-import { getAppState } from '../core/state.js?v=20260921l';
-import { badgeHtml } from '../components/badges.js?v=20260921l';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260921m';
+// 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
+// 判据与写口单一源 = services/activity.js；另有「交回状态」须读该场复盘记录（services/review.js）。
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260921m';
+import { loadActivityReviews } from '../services/review.js?v=20260921m';
+import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260921m';
+import { getActivityTypeColors } from '../core/constants.js?v=20260921m';
+import { getAppState } from '../core/state.js?v=20260921m';
+import { badgeHtml } from '../components/badges.js?v=20260921m';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260921l';
-import { enhanceSelects } from '../components/custom-select.js?v=20260921l';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260921l';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260921l';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260921l';
-import { fetchVotes } from '../services/committee-vote.js?v=20260921l';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260921m';
+import { enhanceSelects } from '../components/custom-select.js?v=20260921m';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260921m';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260921m';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260921m';
+import { fetchVotes } from '../services/committee-vote.js?v=20260921m';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921l';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921l';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921m';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921m';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../core/pending-writes.js?v=20260921l';
+import { settleWrites } from '../core/pending-writes.js?v=20260921m';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -183,6 +187,33 @@ function renderActivity(id) {
       ${action}
     </div>`;
   }
+  // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会（支委层）可额外要求本场组织者
+  //   完成复盘 ⇒ 进本场活动的关闭判据（**只判到「交回」、不判到「确认」**）；**三会一课不适用**；
+  //   **不给组织者自行更新入口**（本块只渲染支委侧的「要求 / 撤回」与交回状态）。
+  //   本块的落点＝活动详情页——批次 132 给品牌认定做过同样的「不在支书台的支委也有落点」处理，同款。
+  const reviewRequest = reviewRequestOf(act);
+  const reviewRequestEligible = isReviewRequestEligibleActivity(act);
+  const actReview = loadActivityReviews().find(r => r.activityId === act.id) || null;
+  let reviewRequestCardHtml = '';
+  if (reviewRequestEligible && (isCommittee || reviewRequest)) {
+    const reqByName = reviewRequest && reviewRequest.by ? (getPersonById(reviewRequest.by)?.name || reviewRequest.by) : '';
+    const reqAt = reviewRequest && reviewRequest.at ? String(reviewRequest.at).slice(0, 10) : '';
+    const returned = isReviewReturned(actReview);
+    const stateText = reviewRequest
+      ? `追加复盘（支委会要求）：已要求组织者完成复盘（${reqAt || '—'} · 发起人 ${esc(reqByName || '—')}）· 交回状态：${returned ? '已交回' : '尚未交回'}`
+      : '追加复盘（支委会要求）：本场未追加要求——支委会可额外要求组织者完成复盘（进关闭判据，只判到「交回」）';
+    const action = !reviewRequest
+      ? (isCommittee ? '<button id="review-request-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">要求组织者复盘</button>' : '')
+      : ((isCommittee || reviewRequest.by === myId) ? '<button id="review-request-withdraw-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">撤回要求</button>' : '');
+    reviewRequestCardHtml = `
+    <!-- 追加复盘要求（2026-09-21 批次 135 · 裁定二）：支委会额外要求组织者复盘 ⇒ 进活动关闭判据，
+         只判到「交回」不到「确认」；三会一课不适用；组织者仍走成员端「我的复盘」那张既有表单。 -->
+    <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3 mb-6">
+      <span class="text-xs text-gray-500">${stateText}</span>
+      ${action}
+    </div>`;
+  }
+
   // 关闭后仍要给「已报名者」留出口：**已报者仍可取消**（本批择定）⇒ 报名区不能整块消失。
   // 只对「本人在册（已通过 / 待审核）」渲染报名区（不显示重填入口——重填必被关闭判据挡回，属假入口）。
   const myActiveSignup = myId ? signups.find(s => s.personId === myId
@@ -294,6 +325,7 @@ function renderActivity(id) {
     </div>` : ''}
 
     ${brandCardHtml}
+    ${reviewRequestCardHtml}
 
     <!-- 报名名单 -->
     ${renderSignupList({ sourceType: 'activity', sourceId: act.id, signups, myId })}
@@ -356,6 +388,25 @@ function renderActivity(id) {
     const res = revokeBrandDesignation({ activityId: act.id, by: myId, role: myRole });
     if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
     showToast('success', '已取消品牌认定');
+    await afterBrandWrite();
+  });
+
+  // 追加复盘要求两动作（2026-09-21 批次 135 · 裁定二「按推荐档落」）：① 要求组织者复盘（支委会全体）
+  //   ② 撤回要求（发起人或支委会）。要求须写明一句内容；写链单一源＝services/activity.js，放行在服务内复算。
+  cardEl.querySelector('#review-request-btn')?.addEventListener('click', async () => {
+    const note = window.prompt('要求组织者复盘——请写明一句要求内容（如「请补充这次活动的改进建议」）：', '');
+    if (note === null) return;
+    if (!note.trim()) { showToast('error', '请写明一句要求内容'); return; }
+    const res = requestOrganizerReview({ activityId: act.id, by: myId, role: myRole, note });
+    if (!res.ok) { showToast('error', res.reason || '发起失败'); return; }
+    showToast('success', '已要求组织者复盘（进本场关闭判据，只判到「交回」）');
+    await afterBrandWrite();
+  });
+  cardEl.querySelector('#review-request-withdraw-btn')?.addEventListener('click', async () => {
+    if (!window.confirm('撤回本场的追加复盘要求？')) return;
+    const res = withdrawReviewRequest({ activityId: act.id, by: myId, role: myRole });
+    if (!res.ok) { showToast('error', res.reason || '撤回失败'); return; }
+    showToast('success', '已撤回追加复盘要求');
     await afterBrandWrite();
   });
 

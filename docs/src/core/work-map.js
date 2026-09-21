@@ -73,7 +73,12 @@ export const WORK_MAP_MODULES = [
   },
   {
     id: 'feedback-handling', name: '意见反馈处理', tier: 'norm', defaultOwner: 'disc-commissioner',
-    desc: '意见建议反馈处理（纪检委员主责；场景 feedback-handling + 反馈管理）',
+    // 2026-09-21 批次 135 改准 desc：原文写「（纪检委员主责）」与现行裁定相左——`D-301`（`SOP-A-18`：
+    // 意见处置与纪检解绑、改为公开 issue ＋ 可指派）与 `D-412`（删「意见平台由纪检委员建设维护」整句）
+    // 已把**处置主体**定为**支委会**（支书主持支委会，见 `COMMISSIONER_DUTY_FRAMEWORK.md` §C.1b）。
+    // ⚠ **本批未改 `defaultOwner`**：`支委会` 不是角色键、写不进本字段（与制度模块 `rule-making` 同一处落差）；
+    //   改「缺省派单」属**派单模型**的产品取向 ⇒ **只改文案、该落差如实上报**（见 `REVIEW_QUEUE` `SOP-B-25`）。
+    desc: '意见建议反馈处理（处置归支委会，支书主持支委会；场景 feedback-handling + 反馈管理）',
   },
   {
     id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'secretary',

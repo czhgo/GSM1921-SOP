@@ -14,18 +14,18 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../services/todo.js?v=20260921l';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../services/todo.js?v=20260921m';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../services/notice.js?v=20260921l';
-import { renderDomainTodoList } from './todo-list.js?v=20260921l';
-import { badgeHtml } from './badges.js?v=20260921l';
-import { showToast } from '../core/utils.js?v=20260921l';
-import { solidAccentStyle, ROLE_LABELS } from '../core/constants.js?v=20260921l';
-import { AuthStore } from '../services/auth.js?v=20260921l';
-import { mockDB } from '../core/domain.js?v=20260921l';
-import { tokenOf } from '../core/version-token.js?v=20260921l'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from './memoize-render.js?v=20260921l'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../services/notice.js?v=20260921m';
+import { renderDomainTodoList } from './todo-list.js?v=20260921m';
+import { badgeHtml } from './badges.js?v=20260921m';
+import { showToast } from '../core/utils.js?v=20260921m';
+import { solidAccentStyle, ROLE_LABELS } from '../core/constants.js?v=20260921m';
+import { AuthStore } from '../services/auth.js?v=20260921m';
+import { mockDB } from '../core/domain.js?v=20260921m';
+import { tokenOf } from '../core/version-token.js?v=20260921m'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from './memoize-render.js?v=20260921m'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
