@@ -3,31 +3,31 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260921m';
-import { BranchService } from '../../../services/runtime.js?v=20260921m';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260921m';
+import { setState, getAppState } from '../../../core/state.js?v=20260921n';
+import { BranchService } from '../../../services/runtime.js?v=20260921n';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260921n';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260921m';
-import { AuthStore } from '../../../services/auth.js?v=20260921m';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260921m';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260921m';
-import { persist } from '../../../core/data-adapter.js?v=20260921m';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921m';
-import { recordFormShell } from '../../../components/forms.js?v=20260921m';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260921m';
-import { badgeHtml } from '../../../components/badges.js?v=20260921m';
+import { groupOptions } from '../../../services/party-group.js?v=20260921n';
+import { AuthStore } from '../../../services/auth.js?v=20260921n';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260921n';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260921n';
+import { persist } from '../../../core/data-adapter.js?v=20260921n';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921n';
+import { recordFormShell } from '../../../components/forms.js?v=20260921n';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260921n';
+import { badgeHtml } from '../../../components/badges.js?v=20260921n';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260921m';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260921m';
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260921n';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260921n';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus } from '../../../services/activity.js?v=20260921m';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260921m';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260921m';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260921m';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260921m';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260921m';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus } from '../../../services/activity.js?v=20260921n';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260921n';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260921n';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260921n';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260921n';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260921n';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921m';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921n';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -704,7 +704,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
   const allSelected = L1 && L2 && L3 && L4 && hostGroup;
   const formHtml = allSelected ? `
     <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
-      <div class="font-title-cn text-sm font-bold text-gray-700 mb-3">填写活动信息</div>
+      <div class="font-title-cn text-sm font-bold text-gray-700 mb-3">填写活动信息</div><!-- SOP-B-18 乙档（2026-09-21 批次 137）：本组活动一律先报备——随表单出现、不设门槛（未报备仍可写入） --><div class="mb-3 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/60 text-xs text-gray-700 leading-5"><b class="text-gray-800">本组活动一律先报备</b>——把活动方案发到支委扩大群（有意见在群里交流），<b>报备通过后方才写入活动</b>。</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
         <div>
           <label class="text-xs text-gray-500 mb-1.5 block font-medium">T-0 日期 <span class="text-red-600">*</span></label>

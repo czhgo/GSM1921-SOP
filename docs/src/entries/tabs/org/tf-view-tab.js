@@ -6,7 +6,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
-  return import('../../../components/insight-view.js?v=20260921m').then(m => m.renderInsightView(el, {
+  return import('../../../components/insight-view.js?v=20260921n').then(m => m.renderInsightView(el, {
     defaultView: 'activity',
     highlightActId: ctx?.highlightActId || null,
     // B6④（2026-09-12）：组织台「活动查看（只读）」传 readonly，禁表决写入口（我的表态/提交表态）

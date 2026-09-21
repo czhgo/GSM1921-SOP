@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260921m';
-import { persist } from '../core/data-adapter.js?v=20260921m';
-import { bumpToken } from '../core/version-token.js?v=20260921m';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921m';
-import { ACTIVITIES } from '../mock/index.js?v=20260921m';
-import { isInitStateActive } from './init-reset.js?v=20260921m'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260921n';
+import { persist } from '../core/data-adapter.js?v=20260921n';
+import { bumpToken } from '../core/version-token.js?v=20260921n';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921n';
+import { ACTIVITIES } from '../mock/index.js?v=20260921n';
+import { isInitStateActive } from './init-reset.js?v=20260921n'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -479,4 +479,41 @@ export function withdrawReviewRequest({ activityId, by, role } = {}) {
   }
   _writeActivityField(activityId, { reviewRequest: null });
   return { ok: true };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  「勾掉即关闭」（2026-09-21 批次 137 · `SOP-B-9` 乙档）
+//  乙档口径（支书圈定，逐字）：**谁担这一步就查那几步；并入本人既有的待办（我的任务）、
+//    不另开一处；本人勾掉即关闭。**
+//  落地（**不另开一处、不设门槛**）：
+//    · 落点＝成员台「项目分工 → 我的任务」**既有卡片**上加一个勾掉动作——
+//      **不新开页面 / tab / 对象 / 表**；
+//    · 放行＝**只认「本人按项目内身份持的这步任务」**（判据复用上面 `listMyProjectTasks` 单一源）
+//      ⇒ **不担这一步的人看不到、也勾不了**（服务层再复算一次，防绕过 UI）；
+//    · 与「归档级联」不打架：归档把该活动**全部**任务一并置 `completed`
+//      （`services/mock.js::archiveActivity`），本动作只做「未完成 → 已完成」单向；
+//      两条路**都只往 `completed` 走、无任何路径把它改回未完成** ⇒ 谁先谁后结果相同。
+//  ⚠ 管理侧活动详情页的任务状态徽章（`components/inspector.js`）是**另一处既有面**，本项未动。
+//  ⚠ 本段置于文件末尾（批次 132 行号纪律）：不改动上文任何行号，`README-server.md` 引用不漂移。
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 本人勾掉「我的任务」里的一步（勾掉即关闭）。
+ * @param {string} personId
+ * @param {string} taskId
+ * @returns {{ok: boolean, reason?: string, task?: Object}}
+ */
+export function completeMyProjectTask(personId, taskId) {
+  if (!personId || !taskId) return { ok: false, reason: 'invalid' };
+  const mine = listMyProjectTasks(personId).find((x) => x.task && x.task.id === taskId);
+  if (!mine) return { ok: false, reason: 'not-mine' }; // 不担这一步 ⇒ 勾不了
+  if (mine.task.status === 'completed') return { ok: true, task: mine.task }; // 幂等
+  let updated = null;
+  mockDB.tasks = (Array.isArray(mockDB.tasks) ? mockDB.tasks : []).map((t) => {
+    if (!t || t.id !== taskId) return t;
+    updated = { ...t, status: 'completed' };
+    return updated;
+  });
+  persist();
+  return { ok: true, task: updated };
 }
