@@ -3,7 +3,7 @@
 //  utils.js — 格式化工具、动画辅助、Toast 组件
 // ════════════════════════════════════════════════════════════════
 
-import { hasPendingWrites, settleWrites } from './pending-writes.js?v=20260921i';
+import { hasPendingWrites, settleWrites } from './pending-writes.js?v=20260921j';
 
 // ── 日期格式化 ─────────────────────────────────────────────────
 function _pad(n) { return n < 10 ? '0' + n : '' + n; }

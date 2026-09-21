@@ -13,24 +13,24 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260921i';
-import { renderHeader } from '../components/header.js?v=20260921i';
-import { BranchService } from '../services/runtime.js?v=20260921i';
-import { AuthStore } from '../services/auth.js?v=20260921i';
+import { renderSidebar } from '../components/sidebar.js?v=20260921j';
+import { renderHeader } from '../components/header.js?v=20260921j';
+import { BranchService } from '../services/runtime.js?v=20260921j';
+import { AuthStore } from '../services/auth.js?v=20260921j';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921i';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260921i';
-import { getPersonName } from '../services/person.js?v=20260921i';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260921i';
-import { badgeHtml } from '../components/badges.js?v=20260921i';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260921j';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260921j';
+import { getPersonName } from '../services/person.js?v=20260921j';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260921j';
+import { badgeHtml } from '../components/badges.js?v=20260921j';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260921i';
+} from '../services/thought-report.js?v=20260921j';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

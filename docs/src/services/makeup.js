@@ -17,13 +17,13 @@
 //   **逐场开关**：勾 = 本场要补、不勾 = 本场不补。⇒「只有两项的名单」是硬要求名单**唯一的判据源**，
 //   消费点勿另写第二份，也别把某项从这里挪走当成「关掉」。见 `D-467` / `D-545`。
 
-import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260921i';
-import { persist } from '../core/data-adapter.js?v=20260921i';
-import { PEOPLE } from '../mock/index.js?v=20260921i';
-import { getPersonById } from './person.js?v=20260921i';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260921i';
-import { findActivityById } from '../services/activity.js?v=20260921i';
-import { generateId } from '../core/id.js?v=20260921i';
+import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260921j';
+import { persist } from '../core/data-adapter.js?v=20260921j';
+import { PEOPLE } from '../mock/index.js?v=20260921j';
+import { getPersonById } from './person.js?v=20260921j';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../services/attendance.js?v=20260921j';
+import { findActivityById } from '../services/activity.js?v=20260921j';
+import { generateId } from '../core/id.js?v=20260921j';
 
 /**
  * 补课范围的**制度默认**活动类型（单一源；消费点勿另写字面量）。

@@ -3,13 +3,13 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921i';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921j';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from './person.js?v=20260921i';
+import { PersonStore } from './person.js?v=20260921j';
 // 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
 //   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
-import { isInstitutionDoc, applyInstitutionAgendaResult } from './branch-doc.js?v=20260921i';
+import { isInstitutionDoc, applyInstitutionAgendaResult } from './branch-doc.js?v=20260921j';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);

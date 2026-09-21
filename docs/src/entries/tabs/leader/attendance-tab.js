@@ -7,30 +7,30 @@
 //   `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}` 列活动，写口仍逐场由 `canUploadAttendance` 判定。
 //   纪检不再持会议考勤上传位——纪检在纪律台做确认（打包确认）与统计核对。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES } from '../../../services/attendance.js?v=20260921i';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260921i';
-import { loadActivities } from '../../../services/activity.js?v=20260921i';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES } from '../../../services/attendance.js?v=20260921j';
+import { loadMakeupTasks } from '../../../services/makeup.js?v=20260921j';
+import { loadActivities } from '../../../services/activity.js?v=20260921j';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260921i';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921i';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921i';
+import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260921j';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921j';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921j';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260921i';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260921i';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921i';
-import { generateId } from '../../../core/id.js?v=20260921i';
-import { badgeHtml } from '../../../components/badges.js?v=20260921i';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260921i';
+import { attendanceToLong } from '../../../services/attendance.js?v=20260921j';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260921j';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921j';
+import { generateId } from '../../../core/id.js?v=20260921j';
+import { badgeHtml } from '../../../components/badges.js?v=20260921j';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260921j';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260921i';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260921i';
-import { currentLeaderGroup } from './_shared.js?v=20260921i';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260921i';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260921j';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260921j';
+import { currentLeaderGroup } from './_shared.js?v=20260921j';
+import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260921j';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260921i';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260921j';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;

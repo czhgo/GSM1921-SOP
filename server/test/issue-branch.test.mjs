@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260921i';
+const V = '?v=20260921j';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -93,7 +93,7 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
 
 test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛（勿另写第二套支部口径）', () => {
   const issues = read(join(SRC_DIR, 'services', 'issues.js'));
-  assert.match(issues, /import \{ withinBranch, getBranchIdOfPerson \} from '\.\/branch\.js\?v=20260921i'/,
+  assert.match(issues, /import \{ withinBranch, getBranchIdOfPerson \} from '\.\/branch\.js\?v=20260921j'/,
     '须 import branch.js 单一源（withinBranch/getBranchIdOfPerson）');
   assert.match(issues, /function _withinViewerBranch\(list\) \{\s*return withinBranch\(list \|\| \[\], _viewerId\(\)\);/, 
     '过滤器须经 withinBranch 单一源实现');
