@@ -16,25 +16,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260921n';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260921o';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260921n';
+} from '../../docs/src/core/mock-adapter.js?v=20260921o';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/person.js?v=20260921n';
+} from '../../docs/src/services/person.js?v=20260921o';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260921n';
+} from '../../docs/src/services/roster.js?v=20260921o';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260921n';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260921o';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, DEV_STAGE_OVERRIDES_KEY, loadDevStageOverrides,
-} from '../../docs/src/services/member-confirmation.js?v=20260921n';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260921n';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260921n';
+} from '../../docs/src/services/member-confirmation.js?v=20260921o';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/todo.js?v=20260921o';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260921o';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();

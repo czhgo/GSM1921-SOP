@@ -19,9 +19,14 @@ const _escHandlers = new Map();
  * @param {Function} options.onMount - 浮窗挂载后的回调（绑定事件等），参数为浮窗容器
  * @param {string} [options.width='480px'] - 浮窗宽度
  * @param {string} [options.accentColor='#3B82F6'] - 标题栏强调色
+ * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（可选；不传则无此行）
  * @returns {HTMLElement} 浮窗面板元素
  */
-export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6' }) {
+// 2026-09-21 批次 138（支书第 ⑤ 条「浮窗的特定位置 → 跳转 setting」）：把批次 99 在支书台「写入活动」
+// 浮窗里手写的那条页脚深链收进本组件做**单一源**——位置固定在浮窗**页脚**（`.modal-body` 之外，
+// 切步骤/切换内容不消失），各调用点只传 `settingsLink`（href + 文案），不再各写一套 DOM。
+// 未传者不渲染（确认 / 删除类浮窗不加，避免噪声）。
+export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6', settingsLink = null }) {
   // 关闭已有同 id 浮窗
   closeModal(id);
 
@@ -32,6 +37,10 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   const panel = document.createElement('div');
   panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:var(--surface-card);border-radius:var(--radius-md);box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
 
+  const settingsHTML = settingsLink
+    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent,#B91C1C);text-decoration:underline;">${settingsLink.text}</a></div>`
+    : '';
+
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
@@ -40,6 +49,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
       ${bodyHtml}
     </div>
+    ${settingsHTML}
   `;
 
   overlay.appendChild(panel);
@@ -90,8 +100,9 @@ export function closeModal(id) {
  * @param {string} [options.submitLabel='提交'] - 提交按钮文字
  * @param {string} [options.accentColor] - 强调色
  * @param {Object} [options.initialValues] - 初始值（编辑模式）
+ * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（透传 openModal，可选）
  */
-export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = '#3B82F6', initialValues = {} }) {
+export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = '#3B82F6', initialValues = {}, settingsLink = null }) {
   const fieldsHtml = fields.map(f => {
     const val = initialValues[f.key] || '';
     const req = f.required ? '<span style="--acc-text-dark:#F87171;color:#EF4444;">*</span>' : '';
@@ -121,6 +132,7 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
     bodyHtml,
     width: '480px',
     accentColor,
+    settingsLink,
     onMount: (panel) => {
       // 取消按钮
       panel.querySelector(`[data-modal-cancel="${id}"]`)?.addEventListener('click', () => closeModal(id));

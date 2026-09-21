@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/id.js?v=20260921n';
+import { generateId } from '../../../core/id.js?v=20260921o';
 // 事项领域单一源（services/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921n';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921o';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
