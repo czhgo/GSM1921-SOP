@@ -2,16 +2,16 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/badges.js?v=20260921g';
-import { BranchService } from '../../../services/runtime.js?v=20260921g';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260921g';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260921g';
-import { NoticeStore } from '../../../services/notice.js?v=20260921g';
-import { persist } from '../../../core/data-adapter.js?v=20260921g';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921g';
-import { setState } from '../../../core/state.js?v=20260921g';
+import { badgeHtml } from '../../../components/badges.js?v=20260921i';
+import { BranchService } from '../../../services/runtime.js?v=20260921i';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260921i';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260921i';
+import { NoticeStore } from '../../../services/notice.js?v=20260921i';
+import { persist } from '../../../core/data-adapter.js?v=20260921i';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921i';
+import { setState } from '../../../core/state.js?v=20260921i';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260921g';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260921i';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');

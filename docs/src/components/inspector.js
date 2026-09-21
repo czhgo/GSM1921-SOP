@@ -5,33 +5,36 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260921g';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921g';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260921g';
-import { icon } from '../core/icons.js?v=20260921g';
-import { openModal, closeModal } from './modal.js?v=20260921g';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260921i';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260921i';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260921i';
+import { icon } from '../core/icons.js?v=20260921i';
+import { openModal, closeModal } from './modal.js?v=20260921i';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260921g';
-import { BranchService } from '../services/runtime.js?v=20260921g';
-import { AuthStore } from '../services/auth.js?v=20260921g';
-import { liveMembers, PersonStore } from '../services/person.js?v=20260921g';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260921g';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260921g';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921g';
+import { getPersonById } from '../services/person.js?v=20260921i';
+import { BranchService } from '../services/runtime.js?v=20260921i';
+import { AuthStore } from '../services/auth.js?v=20260921i';
+import { liveMembers, PersonStore } from '../services/person.js?v=20260921i';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260921i';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260921i';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260921i';
+// 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
+// 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
+import { isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260921i';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260921g';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260921i';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260921g';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260921g';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260921g';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260921g';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260921g';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260921g';
-import { loadActivityReviews } from '../services/review.js?v=20260921g';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260921g';
+import { NoticeStore } from '../services/notice.js?v=20260921i';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260921i';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260921i';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260921i';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260921i';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260921i';
+import { loadActivityReviews } from '../services/review.js?v=20260921i';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260921i';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -727,7 +730,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
             ${typeBadges}
             ${resultBadge}
           </div>
-          <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}</div>
+          <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}${a.reportToPartyMeeting ? ' · 已定：报送党员大会表决' : ''}</div>${_reportPartyToggleHtml(a, canRecord)}
           ${perPersonTally}
           ${isCommittee && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
           ${personPanel}
@@ -881,8 +884,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       btn.style.opacity = '0.5';
       try {
         const result = btn.dataset.agendaResult;
-        await _recordAgendaResult(activity, btn.dataset.agendaItemId, result);
-        showToast('success', result === 'passed' ? '已记录通过' : '已记录未通过');
+        const itemId = btn.dataset.agendaItemId;
+        // 制度链（2026-09-21 批次 129）：制度草案议程项旁若勾了「报送党员大会表决」则一并落库
+        // （无该勾选位的议程项 → false，与既有行为一致）
+        const reportFlag = cardsEl.querySelector(`.ap-report-party[data-agenda-item-id="${itemId}"]`)?.checked === true;
+        await _recordAgendaResult(activity, itemId, { result, reportToPartyMeeting: reportFlag });
+        showToast('success', result === 'passed'
+          ? (reportFlag ? '已记录通过（报送党员大会表决）' : '已记录通过')
+          : '已记录未通过');
         // 同步全局 state（mockDB 已更新，state.activities 是旧副本 → 不刷新则详情不即时更新）
         setState({ activities: [...mockDB.activities] });
         renderInspectorFromState();
@@ -1281,4 +1290,21 @@ async function _downloadMaterialRecord(rec) {
     }
   }
   return false;
+}
+
+/**
+ * 制度草案议程项旁的「是否报送党员大会表决」勾选位（2026-09-21 批次 129 · 制度链）。
+ * 口径＝母本《常见工作场景快速指南》「制度建设」第 7 步「决定是否报送党员大会｜由支委会审议；
+ *   是否报送支部党员大会表决，**在审议时确定**」⇒ 勾选位就挂在**记录结果**这一处，支书/副支书记录时一并定。
+ * 「不勾」＝支委会审议通过即成现行版；「勾」＝审议通过后转「待党员大会表决」，再由支部党员大会那条议程定。
+ * 判据（该议程项是否「支委会审议制度草案」）单一源＝`services/branch-doc.js::isInstitutionDraftAgendaItem`；
+ * 真正生效的门在服务层（`applyInstitutionAgendaResult`，会议类型与环节不符时会忽略这个勾选）。
+ * @param {Object} agendaItem 议程项
+ * @param {boolean} canRecord 当前人可记录结果（支书/副支书且未归档且尚无结果）
+ * @returns {string} HTML（不适用时为空串）
+ */
+function _reportPartyToggleHtml(agendaItem, canRecord) {
+  if (!canRecord || !agendaItem || agendaItem.result) return '';
+  if (!isInstitutionDraftAgendaItem(agendaItem, mockDB.branchDocs || [])) return '';
+  return `<label class="text-[11px] text-gray-500 inline-flex items-center gap-1 mt-1"><input type="checkbox" class="ap-report-party" data-agenda-item-id="${esc(agendaItem.id)}" style="cursor:pointer;">报送党员大会表决（不勾＝支委会通过即现行版）</label>`;
 }

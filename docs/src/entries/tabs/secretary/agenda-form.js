@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/id.js?v=20260921g';
+import { generateId } from '../../../core/id.js?v=20260921i';
 // 事项领域单一源（services/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921g';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260921i';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -95,6 +95,7 @@ export const AGENDA_CANDIDATE_GROUPS = [
   { key: 'taskforce', label: '专班报送（待支委会表决）', hint: '专班需求支委会审议立项' },
   { key: 'issue', label: '意见反馈（归口支委会）', hint: '制度建设建议 / 其他建议——支委会讨论或研究' },
   { key: 'draftDoc', label: '制度草案（草案态支部文件）', hint: '制度修改由支委会讨论' },
+  { key: 'partyVote', label: '待报送党员大会表决的制度', hint: '支委会已审议通过并决定报送党员大会' },
   { key: 'recommend', label: '发展对象推荐（要先经支委会讨论）', hint: '推荐为发展对象须支委会讨论通过' },
 ];
 
@@ -104,7 +105,7 @@ export const AGENDA_CANDIDATE_GROUPS = [
  * @param {Object} input
  * @param {Array} [input.taskforceProposals] 专班报送（`TaskForceRecordStore.listCommitteeRequests()` 产物）
  * @param {Array} [input.issues] 意见反馈（调用方先 `IssueStore.loadAll()`，再取**未办结 / 未隐藏 / 未合并**）
- * @param {Array} [input.draftDocs] 支部文件（调用方取草案态：`!status || status==='draft'`）
+ * @param {Array} [input.draftDocs] 支部文件（调用方按 `services/branch-doc.js::isAgendaDraftDoc` 取：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
  * @param {Array} [input.members] 成员档案（`PersonStore.getMembers()`；本函数只取「积极分子」作推荐候选）
  * @param {Object} [input.stageEntries] 发展推进覆盖档案（`loadDevStageOverrides()` 产物：{ personId: { stage, entryDate } }）
  * @returns {Array<{group:string, refId:string, text:string, meta:string, item:string, host:string,
@@ -153,14 +154,21 @@ export function buildAgendaCandidates({
   }
 
   // ③ 制度草案（会前草案下拉的同一判据与同一引用字段 branchDocId）
+  //    2026-09-21 批次 129（制度链）：制度在「支委会已审议通过、决定报送党员大会」态时**另立一类**
+  //    （`partyVote`）——那是给**支部党员大会**表决用的那一条腿（母本 `常见工作场景快速指南.md:310`
+  //    「…/ 全体党员（报送后）」），与「待支委会审议」的制度草案分开列，免得支书把两类混着上会。
   for (const d of Array.isArray(draftDocs) ? draftDocs : []) {
     if (!d || !d.id) continue;
     const title = d.title || d.fileName || '未命名草案';
+    const isInstitution = d.purpose === 'institution';
+    const pendingPartyVote = isInstitution && d.status === 'pending-party-meeting';
     rows.push({
-      group: 'draftDoc',
+      group: pendingPartyVote ? 'partyVote' : 'draftDoc',
       refId: d.id,
       text: `讨论文件「${title}」`,
-      meta: '制度草案（草案态支部文件）',
+      meta: pendingPartyVote
+        ? '制度（支委会已审议通过，待党员大会表决）'
+        : (isInstitution ? '制度草案（待支委会审议）' : '制度草案（草案态支部文件）'),
       item: `讨论文件「${title}」`,
       host: '支书',
       kinds: ['discussion-file'],

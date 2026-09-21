@@ -241,10 +241,10 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/resolution-followup-manager.js', line: 144, field: '责任人', flow: 'component/决议落实', machine: true, msg: '请选择责任人' },
   { file: SRC + 'components/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
   { file: SRC + 'components/vote-widget.js', line: 79, field: '表态', flow: 'component/表决控件', machine: true, msg: '请先选择表态' },
-  { file: SRC + 'components/inspector.js', line: 552, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
-  { file: SRC + 'components/inspector.js', line: 1222, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'components/inspector.js', line: 1223, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
-  { file: SRC + 'components/inspector.js', line: 1224, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'components/inspector.js', line: 555, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
+  { file: SRC + 'components/inspector.js', line: 1231, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'components/inspector.js', line: 1232, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
+  { file: SRC + 'components/inspector.js', line: 1233, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
   { file: SRC + 'components/person-edit-modal.js', line: 272, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/wizard.html` · 「新建支部…」面板**——一条流程覆盖该面板**两处**校验点。
   // ⚠ 原 reason「需进入支部配置向导的对应步（多步向导）」/「同上：多步向导」**两条都错**：
@@ -257,11 +257,11 @@ export const VALIDATION_SITES = [
   //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」。
   { file: SRC + 'components/org-setup-wizard.js', line: 1296, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
   { file: SRC + 'components/org-setup-wizard.js', line: 1307, field: '首任支书', flow: 'component/组织配置向导', machine: true, msg: '请选择首任支书' },
-  { file: SRC + 'modules/references.js', line: 732, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
-  { file: SRC + 'modules/references.js', line: 735, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
-  { file: SRC + 'modules/references.js', line: 737, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
-  { file: SRC + 'modules/references.js', line: 845, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
-  { file: SRC + 'modules/references.js', line: 846, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
+  { file: SRC + 'modules/references.js', line: 776, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
+  { file: SRC + 'modules/references.js', line: 779, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
+  { file: SRC + 'modules/references.js', line: 781, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
+  { file: SRC + 'modules/references.js', line: 900, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
+  { file: SRC + 'modules/references.js', line: 901, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
   // 批次 47-M（2026-09-16）：**服务层与 UI 层的重复守卫**——这一条**不是「没去做」，也不是「种子不够」**，
   //   而是**结构上到不了**：`visitor/review-tab.js:173` 在**调它之前**就有一份同文案判据（`if (!content)` → return），
   //   故从任何 UI 入口都不可能让这份服务层守卫成为**第一个**报出来的那一个。

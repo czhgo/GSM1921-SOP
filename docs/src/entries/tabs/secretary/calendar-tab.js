@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260921g';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921g';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921g';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921g';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921g';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260921g';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260921g';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260921g';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921g';
-import { loadActivities } from '../../../services/activity.js?v=20260921g';
-import { renderQueryView } from '../../../components/query-view.js?v=20260921g';
-import { icon } from '../../../core/icons.js?v=20260921g';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921g';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921g';
+import { getAppState, setState } from '../../../core/state.js?v=20260921i';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921i';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260921i';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260921i';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260921i';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260921i';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260921i';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260921i';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260921i';
+import { loadActivities } from '../../../services/activity.js?v=20260921i';
+import { renderQueryView } from '../../../components/query-view.js?v=20260921i';
+import { icon } from '../../../core/icons.js?v=20260921i';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260921i';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260921i';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260921g';
-import { BranchService } from '../../../services/runtime.js?v=20260921g';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921g';
+import { NoticeStore } from '../../../services/notice.js?v=20260921i';
+import { BranchService } from '../../../services/runtime.js?v=20260921i';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260921i';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921g';
-import { badgeHtml } from '../../../components/badges.js?v=20260921g';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260921g';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921g';
-import { AuthStore } from '../../../services/auth.js?v=20260921g';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921g';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260921i';
+import { badgeHtml } from '../../../components/badges.js?v=20260921i';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260921i';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260921i';
+import { AuthStore } from '../../../services/auth.js?v=20260921i';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260921i';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs } from '../../../services/branch-doc.js?v=20260921g';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch-doc.js?v=20260921i';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921g';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260921i';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921g';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260921i';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -790,7 +790,7 @@ function _addAgendaRow(container, item = '', host = '', kinds = [], branchDocId 
   // 行内动作（「删除该条」）直绑：`bindWritePanelEvents` 只在渲染那一轮绑**既有**元素，
   // 动态新增的行若不自绑，✕ 就是死按钮（2026-09-21 批次 127 真机实测：点 ✕ 行数 2 → 2 不变）
   row.querySelectorAll('[data-action]').forEach(el => el.addEventListener('click', handleWritePanelAction));
-  _hydrateDraftDocs(row);
+  if (branchDocId) row.dataset.docId = branchDocId; _hydrateDraftDocs(row);
   _bindRowKindChips(row);
   _initRowPersonPicker(row, personIds);
 }
@@ -826,7 +826,7 @@ function _initRowPersonPicker(row, initialIds = []) {
   wp.agendaPickers.push({ row, picker });
 }
 
-/** 填充议程行「会前草案」下拉（draft 状态支部文件；异步，不阻塞表单；空态引导去资料查询写入） */
+/** 填充议程行「会前草案」下拉（判据＝`branch-doc.js::isAgendaDraftDoc`：普通文件草案 ＋ 制度链上尚未成为现行版的两种态；异步，空态引导去资料查询写入） */
 async function _hydrateDraftDocs(row) {
   const select = row?.querySelector('.wp-agenda-doc');
   if (!select) return;
@@ -834,9 +834,9 @@ async function _hydrateDraftDocs(row) {
   try {
     // 经 branch-doc 服务读（按当前归属支部过滤；党委/无归属不过滤）——勿直读 adapter 全量
     const docs = await listBranchDocs();
-    const drafts = docs.filter(d => !d.status || d.status === 'draft');
+    const drafts = docs.filter(isAgendaDraftDoc);
     select.innerHTML = `<option value="">${drafts.length ? '选择会前草案…' : '暂无会前草案'}</option>`
-      + drafts.map(d => `<option value="${d.id}">${d.title || d.fileName || '未命名草案'}</option>`).join('');
+      + drafts.map(d => `<option value="${d.id}"${d.id === row.dataset.docId ? ' selected' : ''}>${d.title || d.fileName || '未命名草案'}</option>`).join('');
     if (hint) hint.classList.toggle('hidden', drafts.length > 0);
   } catch (e) {
     console.warn('[calendar] 会前草案加载失败：', e);
@@ -1276,9 +1276,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadDevStageOverrides }] = await Promise.all([
-    import('../../../services/taskforce.js?v=20260921g'),
-    import('../../../services/issues.js?v=20260921g'),
-    import('../../../services/member-confirmation.js?v=20260921g'),
+    import('../../../services/taskforce.js?v=20260921i'),
+    import('../../../services/issues.js?v=20260921i'),
+    import('../../../services/member-confirmation.js?v=20260921i'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
@@ -1288,7 +1288,7 @@ async function _loadAgendaCandidateSources() {
   } catch (e) { console.warn('[calendar] 意见反馈加载失败：', e); }
   try {
     const docs = await listBranchDocs();
-    out.draftDocs = docs.filter(d => !d.status || d.status === 'draft');
+    out.draftDocs = docs.filter(isAgendaDraftDoc); // 同一判据（含制度草案 / 待党员大会表决，2026-09-21 批次 129）
   } catch (e) { console.warn('[calendar] 制度草案加载失败：', e); }
   try { out.members = PersonStore.getMembers(); }
   catch (e) { console.warn('[calendar] 成员档案读取失败：', e); }
@@ -1315,7 +1315,7 @@ function _agendaCandidateRowHtml(c) {
 /** 清单主体（按类目分组；**整张清单为空 → 一行空态、不报错**） */
 function _agendaCandidatesHtml(rows) {
   if (!rows.length) {
-    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待推荐的发展对象，出现后会归集到这里。</p>';
+    return '<p class="text-[11px] text-gray-500 px-1 py-1">当前没有待上会的事项——专班报送 / 归口支委会的意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 待推荐的发展对象，出现后会归集到这里。</p>';
   }
   let html = '';
   for (const g of AGENDA_CANDIDATE_GROUPS) {

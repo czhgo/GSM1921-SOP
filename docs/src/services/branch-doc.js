@@ -8,9 +8,9 @@
 // 纪律：新建「制度文本」条目仅支书（含副支书）可操作；普通文件写权限维持现状（支委可写，
 // 由 UI 现状门控，本服务对 doc 类不做额外收紧）。不触碰 content / 禁改清单。
 
-import { getAdapter } from '../core/data-adapter.js?v=20260921g';
+import { getAdapter } from '../core/data-adapter.js?v=20260921i';
 // 支部归属判定收敛点（读侧隔离用；设计 §2.5「一个支部一片存储空间、按 branchId 分区、跨支部不可见」）
-import { getBoundBranch } from './branch.js?v=20260921g';
+import { getBoundBranch } from './branch.js?v=20260921i';
 
 /** 制度文本管理角色（支书/副支书）——与既有写权限门一致做法：UI 与 service 双重校验 */
 export const INSTITUTION_MANAGER_ROLES = ['secretary', 'deputy-secretary'];
@@ -64,10 +64,12 @@ function _boundBranchId(personId) {
  * @param {string} [opts.fileName] 附件文件名（doc 新建沿用 UI 必填校验现状；institution 可不上传附件）
  * @param {string} [opts.by]       操作人 personId
  * @param {string} [opts.role]     操作人角色（新建 institution 仅支书，service 双重校验）
+ * @param {boolean} [opts.asDraft] 仅制度文本：true = 落为**草案态**（待支委会审议，**不是现行版**）；
+ *   缺省 false = 现状（建即现行版），见文件末「制度链」段
  * @returns {Promise<{ok:boolean, doc?:Object, reason?:string}>}
  */
 export async function saveDoc(opts = {}) {
-  const { id, purpose, title = '', desc = '', bodyText, note = '', by, role } = opts;
+  const { id, purpose, title = '', desc = '', bodyText, note = '', by, role, asDraft = false } = opts;
   const docPurpose = purpose === 'institution' ? 'institution' : 'doc';
   try {
     if (id) {
@@ -91,7 +93,8 @@ export async function saveDoc(opts = {}) {
       return { ok: true, doc: updated };
     }
     if (docPurpose === 'institution') {
-      // 新建制度文本 = 现行版 v1（网页发布即权威；仅支书/副支书）
+      // 新建制度文本（仅支书/副支书）：缺省 = 现行版 v1（网页发布即权威）；
+      // asDraft = 制度草案（status:'draft'，待支委会审议——未审议通过前不是现行版），见文件末「制度链」段
       if (!isInstitutionManager(role)) {
         return { ok: false, reason: '制度文本仅限支书（含副支书）发布' };
       }
@@ -100,8 +103,8 @@ export async function saveDoc(opts = {}) {
       const instBranchId = _boundBranchId(by);
       const created = await getAdapter().branchDocs.create({
         purpose: 'institution',
-        status: 'current',           // 现行
-        version: 1,                  // 现行版 v1
+        status: asDraft ? INSTITUTION_DRAFT : 'current', // 草案（待支委会审议）/ 现行
+        version: 1,                  // v1（草案通过后仍为 v1：审议通过即发布）
         title: title || '未命名制度',
         desc: desc || '',
         bodyText: bodyText || '',
@@ -371,4 +374,179 @@ export function renderDocBody(mdText) {
   let out = html.join('');
   if (truncated) out += '<p style="color:#B45309;font-size:0.75rem;margin-top:0.5rem;">（正文过长，仅显示前 20000 字）</p>';
   return out;
+}
+
+// ═══════════════ 制度链：草案 → 支委会审议 → 通过（现行版）/ 未通过（退回起草人修改）═══════════════
+// 2026-09-21 批次 129（`SOP-B-25` 第 ① 项 + `SOP-B-26`，依 `D-341` / `D-342` / `D-343`）。
+// 母本 `content/02_institution/sop/常见工作场景快速指南.md:294`-`:313`「制度建设」：
+//   快速流程「起草初稿 → 本组试点 → 征求意见 → 修改完善 → **支委会审议** → 修改或通过（未通过则返回修改）
+//   → **决定是否报送党员大会** → 监督落实」；承载方式「制度草案以『支部文件』形式起草与归档；
+//   审议与表决在相应会议的议程上进行」＋ `:310`「是否报送支部党员大会表决，**在审议时确定**」
+//   （决策机制表 `支委与党小组定人定责定岗说明.md:231` 同款）。
+// 本链的环节名（**制度自己的说法，勿套专班链的词**）：
+//   ① **制度草案**（`status:'draft'`，不是现行版，可改）→ ② **支委会审议**（既有会议议程「讨论文件」项）
+//   → ③ 通过且**不报送党员大会** ⇒ **现行版**（`current`）；通过且**报送党员大会** ⇒ **待党员大会表决**
+//     （`pending-party-meeting`，仍不是现行版）→ **支部党员大会表决通过** ⇒ 现行版；
+//     未通过 ⇒ **退回起草人修改**（仍为草案 ＋ 退回意见，改后可重新提交审议）。
+// 「是否报送党员大会」＝**一个标记**（不是「重要 / 其余」两档），由支委会审议时勾，
+//   **门控的是「能否当场成为现行版」这条路**（不报送＝支委会通过即发布；报送＝还要走党员大会那一关）。
+// 落点：**全部复用既有机制，未新开页面、未新建表**——草案＝支部文件；审议与表决＝既有活动 ＋ 议程
+//   「讨论文件」项（`agenda-follow-up.js::recordAgendaResult` 的对应分支只做 IO，判据与状态迁移在本文件）。
+// ⚠ 未做（如实）：**「制度内容 → 对应委员」的派单判据母本与代码都没有**（`SOP-B-25` 第 ② 项）⇒
+//   本批**不自创映射**（自造一份＝替支书写制度内容）；制度文本的写权沿用既有 `INSTITUTION_MANAGER_ROLES`
+//   （支书 / 副支书，**未放宽**），要按条条职责派单须支书先给定映射表。
+
+/** 制度状态①：草案（未经支委会审议，不是现行版；可改、可重新提交审议） */
+export const INSTITUTION_DRAFT = 'draft';
+/** 制度状态③-报送：支委会已审议通过并决定报送党员大会 ⇒ 待支部党员大会表决（仍不是现行版） */
+export const INSTITUTION_PENDING_PARTY_MEETING = 'pending-party-meeting';
+/** 审议未通过的缺省退回意见（UI 与服务层同源；调用方传了 note 就用 note） */
+export const INSTITUTION_REJECT_NOTE = '支委会审议未通过，退回起草人修改';
+
+/** 会议类型判据（按活动 type 名称判，与既有活动类型字面同源）：支委会审议 / 支部党员大会表决 */
+const COMMITTEE_MEETING_RE = /支委/;
+const PARTY_MEETING_RE = /党员大会/;
+
+/** 该支部文件是否制度文本（对外只读判据；本文件其余处沿用 `_purposeOf`） */
+export function isInstitutionDoc(doc) {
+  return _purposeOf(doc) === 'institution';
+}
+
+/**
+ * 「会前草案」下拉与「拟上会」清单的**同一判据**（两处 UI 共用，勿各写一份）：
+ *   普通文件草案（既有口径：无 status 或 status==='draft'）＋
+ *   在链上、尚未成为现行版的制度（草案＝待支委会审议；待党员大会表决＝支委会已通过、待党员大会表决）。
+ */
+export function isAgendaDraftDoc(doc) {
+  if (!doc) return false;
+  if (!doc.status || doc.status === 'draft') return true;
+  return isInstitutionDoc(doc) && doc.status === INSTITUTION_PENDING_PARTY_MEETING;
+}
+
+/** 该制度当前该上哪种会（null ＝ 不在制度链上：非制度 / 已是现行版 / 已停用） */
+export function institutionMeetingStage(doc) {
+  if (!isInstitutionDoc(doc)) return null;
+  if (doc.status === INSTITUTION_DRAFT) return 'committee';
+  if (doc.status === INSTITUTION_PENDING_PARTY_MEETING) return 'party-meeting';
+  return null;
+}
+
+/** 议程项引用的制度是否处于**草案态**（＝该议程项是「支委会审议制度草案」，记录结果时须定是否报送党员大会） */
+export function isInstitutionDraftAgendaItem(agendaItem, branchDocs = []) {
+  const id = agendaItem && agendaItem.branchDocId;
+  if (!id) return false;
+  const doc = (Array.isArray(branchDocs) ? branchDocs : []).find((d) => d && d.id === id);
+  return isInstitutionDoc(doc) && doc.status === INSTITUTION_DRAFT;
+}
+
+/**
+ * 议程项结果 → 制度状态迁移（**纯函数**；由 `services/agenda-follow-up.js::recordAgendaResult` 的
+ * 「讨论文件」分支调用，IO 仍由那边做，本文件只给判据与补丁）。
+ * 只对**在链上**的制度且**会议类型与所处环节相符**时生效：草案只认支委会审议、待表决只认支部党员大会表决
+ * ——会议类型不符则不动（防从别的会上把制度推成现行版；这一支如实登记为边界）。
+ * @param {Object} p
+ * @param {Object} p.doc 制度条目（现状）
+ * @param {string} p.meetingType 承载议程的会议类型（议程项结果就记在这场会上）
+ * @param {'passed'|'rejected'|'partial'} p.decision 本次记录的议程结果
+ * @param {boolean} [p.reportToPartyMeeting] 支委会审议时的勾选：是否报送党员大会表决
+ * @param {string} [p.note] 记录说明/审议意见（未通过时作退回意见）
+ * @param {string} [p.by] 记录人 personId
+ * @param {string} [p.at] 记录时间（缺省＝当下）
+ * @param {string} [p.activityId] / @param {string} [p.agendaItemId] 留痕回指
+ * @returns {{ok:boolean, reason?:string, patch?:Object}}
+ */
+export function applyInstitutionAgendaResult({
+  doc, meetingType, decision, reportToPartyMeeting = false,
+  note = '', by = null, at = null, activityId = null, agendaItemId = null,
+} = {}) {
+  const stage = institutionMeetingStage(doc);
+  if (!stage) return { ok: false, reason: 'not-on-institution-chain' };
+  const type = String(meetingType || '');
+  if (stage === 'committee' && !COMMITTEE_MEETING_RE.test(type)) return { ok: false, reason: 'meeting-mismatch' };
+  if (stage === 'party-meeting' && !PARTY_MEETING_RE.test(type)) return { ok: false, reason: 'meeting-mismatch' };
+  const stamp = at || new Date().toISOString();
+  const trail = {
+    reviewActivityId: activityId || null,
+    reviewAgendaItemId: agendaItemId || null,
+    reviewedBy: by || null,
+    reviewedAt: stamp,
+    updatedAt: stamp,
+  };
+  if (decision === 'rejected') {
+    // 回流支路（`SOP-B-26` ②）：未通过 ⇒ 退回起草人修改——仍为草案＋退回意见，可改后重新提交审议
+    return {
+      ok: true,
+      patch: {
+        ...trail,
+        status: INSTITUTION_DRAFT,
+        reviewResult: 'rejected',
+        reviewNote: String(note || '').trim() || INSTITUTION_REJECT_NOTE,
+      },
+    };
+  }
+  if (decision !== 'passed') return { ok: false, reason: 'bad-decision' };
+  if (stage === 'committee' && reportToPartyMeeting === true) {
+    // 报送党员大会 ⇒ 不当场发布，转「待党员大会表决」（消费者＝支部党员大会议程；见 `isAgendaDraftDoc`）
+    return {
+      ok: true,
+      patch: {
+        ...trail,
+        status: INSTITUTION_PENDING_PARTY_MEETING,
+        reviewResult: 'passed',
+        reportToPartyMeeting: true,
+        reviewNote: '',
+      },
+    };
+  }
+  // 不报送（支委会通过即发布）或 党员大会表决通过 ⇒ 成为现行版（版本号不动：草案通过即 v1）
+  return {
+    ok: true,
+    patch: {
+      ...trail,
+      status: 'current',
+      reviewResult: 'passed',
+      ...(stage === 'committee' ? { reportToPartyMeeting: false } : {}),
+      reviewNote: '',
+      versionBy: by || null,
+      versionAt: stamp,
+      versionNote: String(note || '').trim(),
+    },
+  };
+}
+
+/**
+ * 修改**制度草案**（起草人修改后重新提交审议；**不升版本号**，版本语义唯一入口仍是「上传新版」）。
+ * 仅草案态可改；现行 / 停用仍走 `publishNewVersion` / `setDocStatus`。
+ * @param {Object} opts { id, title?, desc?, bodyText?, note?, by, role } ＋ 可选替换附件
+ *   （fileName/fileSize/format/filePath/fileData，形态同 saveDoc 的普通文件编辑支）
+ * @returns {Promise<{ok:boolean, doc?:Object, reason?:string}>}
+ */
+export async function updateInstitutionDraft(opts = {}) {
+  const { id, title, desc, bodyText, note, by, role } = opts;
+  try {
+    if (!isInstitutionManager(role)) return { ok: false, reason: '制度文本仅限支书（含副支书）操作' };
+    const cur = await _getDoc(id);
+    if (!cur) return { ok: false, reason: '支部文件不存在或已删除' };
+    if (!isInstitutionDoc(cur)) return { ok: false, reason: '仅制度文本支持本操作' };
+    if (cur.status !== INSTITUTION_DRAFT) {
+      return { ok: false, reason: '仅草案态制度可修改（现行版请用「上传新版」）' };
+    }
+    const now = new Date().toISOString();
+    const patch = { updatedAt: now, revisedBy: by || null, revisedAt: now };
+    if (title !== undefined && String(title).trim()) patch.title = String(title).trim();
+    if (desc !== undefined) patch.desc = String(desc || '');
+    if (bodyText !== undefined) patch.bodyText = String(bodyText);
+    if (note !== undefined) patch.reviseNote = String(note || '');
+    if (opts.fileName && (opts.filePath || opts.fileData)) {
+      patch.fileName = opts.fileName;
+      if (opts.fileSize !== undefined) patch.fileSize = opts.fileSize;
+      if (opts.format) patch.format = opts.format;
+      patch.filePath = opts.filePath || null;
+      patch.fileData = opts.fileData || null;
+    }
+    const updated = await getAdapter().branchDocs.update(id, patch);
+    return { ok: true, doc: updated };
+  } catch (e) {
+    return { ok: false, reason: (e && e.message) ? e.message : '修改草案失败' };
+  }
 }

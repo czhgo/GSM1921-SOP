@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/pending-writes.js?v=20260921g';
+import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/pending-writes.js?v=20260921i';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');

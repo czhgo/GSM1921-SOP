@@ -16,7 +16,7 @@
 //   否则独立阅读页的「修改并重新提交」（`#tr-resubmit-toggle`，仅 `isSelf && 已打回` 时渲染）无法现场演示，
 //   而该前置**单账号造不出来**（打回须组织委员对他人执行、改重交须本人执行）。详见 tr-5 处注释。
 
-import { getPersonName } from '../services/person.js?v=20260921g';
+import { getPersonName } from '../services/person.js?v=20260921i';
 
 const _personName = (id) => getPersonName(id) || id;
 

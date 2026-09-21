@@ -10,14 +10,14 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/auth.js?v=20260921g';
+import { AuthStore } from '../../../services/auth.js?v=20260921i';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/thought-report.js?v=20260921g';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921g';
+} from '../../../services/thought-report.js?v=20260921i';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260921i';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260921g';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260921i';
 
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {

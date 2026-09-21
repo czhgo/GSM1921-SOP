@@ -3,10 +3,13 @@
 // 2026-09-02 AV4：记录「通过」前对支部党员大会（voteConfig.quorumCheck=true）做出席/赞成过半数硬校验
 //（spec §3.4）；校验不通过抛错中止（不写 result，UI 层 catch 以 error toast 提示支书）。
 
-import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921g';
+import { fetchVotesStrict, presentIdsForItem, tallyForItem } from './committee-vote.js?v=20260921i';
 // S-1（2026-09-09 支书批）：逐人结果中「通过者」需按人推导当前发展阶段（fromStage）——
 // 单条议程的 fromStage / personStages 可能不覆盖全部对象（各自阶段不同），以成员档案现值兜底。
-import { PersonStore } from './person.js?v=20260921g';
+import { PersonStore } from './person.js?v=20260921i';
+// 制度链（2026-09-21 批次 129 · `SOP-B-25` 第 ① 项 / `SOP-B-26`）：议程项结果的「制度」分支只做 IO，
+//   判据与状态迁移的单一源在 branch-doc.js::applyInstitutionAgendaResult（纯函数，本文件不复制状态名）。
+import { isInstitutionDoc, applyInstitutionAgendaResult } from './branch-doc.js?v=20260921i';
 
 function replaceById(records, record) {
   const index = records.findIndex((item) => item.id === record.id);
@@ -99,8 +102,11 @@ async function quorumBlockMessage(activity, agendaItemId) {
  *   · 整条 result 由逐人结果汇总（全通过=passed / 部分=partial / 全未通过=rejected，见 summarizePersonResults）；
  *   · 仅「通过者」生成成员变更申请（partial 亦只建通过者，未通过者零申请、仅留痕）。
  * 无 personResults 时沿用旧单值 result 入参（兼容历史/讨论文件议程）。
+ *
+ * 2026-09-21 批次 129（制度链）：新增 `reportToPartyMeeting`——支委会审议**制度草案**时勾的
+ *   「是否报送党员大会表决」（母本 `常见工作场景快速指南.md:310`「在审议时确定」）。非制度议程项传了也不影响。
  */
-export async function recordAgendaResult({ activity, agendaItemId, result, personResults = null, adapter, db, actorId = null, now = new Date().toISOString() }) {
+export async function recordAgendaResult({ activity, agendaItemId, result, personResults = null, reportToPartyMeeting = false, adapter, db, actorId = null, now = new Date().toISOString() }) {
   if (!activity || !Array.isArray(activity.agenda)) throw new Error('活动议程不存在');
   const agendaItem = activity.agenda.find((item) => item.id === agendaItemId);
   if (!agendaItem) throw new Error('议程项不存在');
@@ -139,21 +145,45 @@ export async function recordAgendaResult({ activity, agendaItemId, result, perso
       ...item,
       result: effectiveResult,
       ...(normalizedPerPerson ? { personResults: normalizedPerPerson } : {}),
+      // 支委会审议制度草案时勾的「是否报送党员大会表决」（2026-09-21 批次 129）：留痕在议程项上
+      ...(reportToPartyMeeting ? { reportToPartyMeeting: true } : {}),
       recordedBy: actorId,
       recordedAt: now,
     }
     : item);
   const updatedActivity = { ...activity, agenda };
 
-  // 草案归档：仅整条通过时（部分通过不归档）
-  if (effectiveResult === 'passed' && hasKind(agendaItem, 'discussion-file') && agendaItem.branchDocId) {
-    const archived = await adapter.branchDocs.update(agendaItem.branchDocId, {
-      status: 'archived',
-      archivedAt: now,
-      discussionActivityId: activity.id,
-      discussionAgendaItemId: agendaItem.id,
-    });
-    db.branchDocs = replaceById(db.branchDocs || [], archived);
+  // 议程项结果的后续动作（2026-09-21 批次 129：**制度**接本链；普通文件维持现状）
+  //   · 制度（purpose:'institution'）：判据与状态迁移的单一源在
+  //     `branch-doc.js::applyInstitutionAgendaResult` —— 草案 → 支委会审议 → 通过即现行版；
+  //     审议时勾了「报送党员大会」的 ⇒ 转「待党员大会表决」，再由支部党员大会记录通过成现行版；
+  //     未通过 ⇒ 退回起草人修改（仍为草案＋退回意见，可改后重新提交）。会议类型与环节不符时不动。
+  //   · 普通文件：**现状不变**——仅整条通过时归档（部分通过不归档）。
+  if (hasKind(agendaItem, 'discussion-file') && agendaItem.branchDocId) {
+    const doc = (db.branchDocs || []).find((d) => d && d.id === agendaItem.branchDocId);
+    const onChain = doc && isInstitutionDoc(doc);
+    const inst = onChain ? applyInstitutionAgendaResult({
+      doc,
+      meetingType: activity.type,
+      decision: effectiveResult,
+      reportToPartyMeeting: reportToPartyMeeting === true || agendaItem.reportToPartyMeeting === true,
+      by: actorId,
+      at: now,
+      activityId: activity.id,
+      agendaItemId: agendaItem.id,
+    }) : null;
+    if (inst && inst.ok) {
+      const updated = await adapter.branchDocs.update(doc.id, inst.patch);
+      db.branchDocs = replaceById(db.branchDocs || [], updated);
+    } else if (effectiveResult === 'passed' && !onChain) {
+      const archived = await adapter.branchDocs.update(agendaItem.branchDocId, {
+        status: 'archived',
+        archivedAt: now,
+        discussionActivityId: activity.id,
+        discussionAgendaItemId: agendaItem.id,
+      });
+      db.branchDocs = replaceById(db.branchDocs || [], archived);
+    }
   }
 
   // 待讨论名单（支书 2026-09-01 多选裁决）：通过者逐人创建一条待审批申请（幂等防重复）。

@@ -16,11 +16,11 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、支书复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921g';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921i';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自持一份与
 //   org-base-data-preview 同值的副本，两处维护；现统一 import 叶子模块，防循环依赖见该文件注释）。
-import { RESIDENCE } from '../core/constants.js?v=20260921g';
-import { PersonStore } from './person.js?v=20260921g';
+import { RESIDENCE } from '../core/constants.js?v=20260921i';
+import { PersonStore } from './person.js?v=20260921i';
 
 /** 运行期覆盖的 localStorage 键（组织委员维护写入；与 members UI / 纪检表单同源读取） */
 export const RESIDENCE_KEY = 'gsm1921-residence-overrides';

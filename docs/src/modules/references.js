@@ -1,19 +1,21 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260921g';
-import { getBasePath, showToast } from '../core/utils.js?v=20260921g';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260921g';
-import { AuthStore } from '../services/auth.js?v=20260921g';
-import { loadActivities } from '../services/activity.js?v=20260921g';
-import { PEOPLE } from '../mock/people.js?v=20260921g';
+import { icon } from '../core/icons.js?v=20260921i';
+import { getBasePath, showToast } from '../core/utils.js?v=20260921i';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260921i';
+import { AuthStore } from '../services/auth.js?v=20260921i';
+import { loadActivities } from '../services/activity.js?v=20260921i';
+import { PEOPLE } from '../mock/people.js?v=20260921i';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
+// 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
+  updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260921g';
+} from '../services/branch-doc.js?v=20260921i';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../components/list-filter.js?v=20260921g';
+import { renderFilteredList } from '../components/list-filter.js?v=20260921i';
 
 const SITE_GROUPS = [
   {
@@ -172,18 +174,28 @@ function _personName(personId) {
   return p ? p.name : String(personId);
 }
 
-/** 制度状态徽标：现行（绿）/ 已停用（灰）——沿用既有 ref-file-badge 盒型，颜色就地指定 */
-function _institutionBadge(d) {
-  const current = d.status === 'current';
-  return current
-    ? '<span class="ref-file-badge" style="background-color:#D1FAE5;color:#047857;">现行</span>'
-    : '<span class="ref-file-badge" style="background-color:#F3F4F6;color:#6B7280;">停用</span>';
+/** 制度状态读法（2026-09-21 批次 129 加制度链三态）＋配色；沿用既有 ref-file-badge 盒型，颜色就地指定 */
+function _institutionStatusOf(d) {
+  if (d.status === 'current') return { label: '现行', bg: '#D1FAE5', fg: '#047857' };
+  if (d.status === INSTITUTION_DRAFT) {
+    return d.reviewResult === 'rejected'
+      ? { label: '已退回', bg: '#FEF3C7', fg: '#B45309' }
+      : { label: '草案', bg: '#FEF3C7', fg: '#B45309' };
+  }
+  if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: '#DBEAFE', fg: '#1D4ED8' };
+  return { label: '停用', bg: '#F3F4F6', fg: '#6B7280' };
 }
 
-/** 制度类左侧「制度」标（36×24 盒型，绿/灰对应现行/停用） */
+/** 制度状态徽标：现行（绿）/ 草案·已退回（黄）/ 待党员大会表决（蓝）/ 停用（灰） */
+function _institutionBadge(d) {
+  const s = _institutionStatusOf(d);
+  return `<span class="ref-file-badge" style="background-color:${s.bg};color:${s.fg};">${s.label}</span>`;
+}
+
+/** 制度类左侧「制度」标（36×24 盒型，色随状态） */
 function _institutionTypeBadge(d) {
-  const current = d.status === 'current';
-  return `<span class="ref-file-badge" style="background-color:${current ? '#D1FAE5' : '#F3F4F6'};color:${current ? '#047857' : '#6B7280'};">制度</span>`;
+  const s = _institutionStatusOf(d);
+  return `<span class="ref-file-badge" style="background-color:${s.bg};color:${s.fg};">制度</span>`;
 }
 
 export class ReferencesModule {
@@ -362,9 +374,12 @@ export class ReferencesModule {
       status: doc.status || 'archived',
     }));
     if (!ReferencesModule._isCommissioner) {
-      // 成员可见：制度文本（现行/已停用均全员可读）+ 已归档普通文件（现状不变）；
-      // 会前草案（status=draft）维持现状仅支委可见
-      docs = docs.filter((doc) => _isInstitutionDoc(doc) || doc.status === 'archived');
+      // 成员可见：**现行 / 已停用**的制度文本（全员可读）+ 已归档普通文件（现状不变）；
+      // 会前草案（status=draft）维持现状仅支委可见；2026-09-21 批次 129：**制度草案 / 待党员大会表决**
+      // 同属「尚未成为现行版」，与普通文件草案一样**仅支委层可见**（不让草案提前对全员公开）。
+      docs = docs.filter((doc) => (_isInstitutionDoc(doc)
+        && doc.status !== INSTITUTION_DRAFT && doc.status !== INSTITUTION_PENDING_PARTY_MEETING)
+        || doc.status === 'archived');
     }
     if (ReferencesModule._onlyInstitution) {
       docs = docs.filter((doc) => _isInstitutionDoc(doc));
@@ -440,7 +455,9 @@ export class ReferencesModule {
     `;
   }
 
-  /** 制度文本行：制度徽标 + 现行/停用态 + 网页内读正文 + 历史版本折叠 + 支书操作（上传新版/停用/重新启用） */
+  /** 制度文本行：制度徽标 + 状态（现行 / 草案 / 待党员大会表决 / 已退回 / 停用）+ 网页内读正文
+   *  + 历史版本折叠 + 支书操作（草案：修改草案；现行：上传新版 / 停用；停用：重新启用）
+   *  2026-09-21 批次 129（制度链）：草案态与「待党员大会表决」态由审议链推进，界面只呈现与放「修改草案」入口 */
   static _renderInstitutionRow(d) {
     const uid = String(d.id).replace(/[^\w-]/g, '_');
     const href = d.filePath || d.fileData || '#';
@@ -448,28 +465,38 @@ export class ReferencesModule {
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || '附件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
     const isCurrent = d.status === 'current';
+    const isDraft = d.status === INSTITUTION_DRAFT;
     const versionNo = d.version || 1;
     const histCount = Array.isArray(d.versions) ? d.versions.length : 0;
 
     let actions = '';
     if (ReferencesModule._isInstitutionManager) {
-      if (isCurrent) {
+      if (isDraft) {
+        actions += `<button type="button" class="ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
+      } else if (isCurrent) {
         actions += `<button type="button" class="ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
         actions += `<button type="button" class="ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
-      } else {
+      } else if (d.status === 'disabled') {
         actions += `<button type="button" class="ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
       }
+      // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
 
     const metaParts = [];
-    metaParts.push(isCurrent ? `制度文本 · 现行版 v${versionNo}` : `制度文本 · 已停用（最近版本 v${versionNo}）`);
+    if (isCurrent) metaParts.push(`制度文本 · 现行版 v${versionNo}`);
+    else if (isDraft) metaParts.push(d.reviewResult === 'rejected'
+      ? `制度文本 · 草案 v${versionNo}（支委会审议未通过，已退回修改）`
+      : `制度文本 · 草案 v${versionNo}（待支委会审议）`);
+    else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaParts.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
+    else metaParts.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
+    if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaParts.push(`退回意见：${_esc(d.reviewNote)}`);
     if (d.desc) metaParts.push(_esc(d.desc));
     const updTime = _fmtDateTime(d.updatedAt || d.uploadedAt);
     if (updTime) metaParts.push(`更新于 ${updTime}`);
     const pubName = _personName(d.versionBy || d.uploadedBy);
     if (pubName) metaParts.push(`${pubName} 发布`);
 
-    const readPanel = ReferencesModule._renderInstitutionReadPanel(d, isCurrent);
+    const readPanel = ReferencesModule._renderInstitutionReadPanel(d);
     const histPanel = ReferencesModule._renderInstitutionHistoryPanel(d, isCurrent);
 
     return `
@@ -507,12 +534,17 @@ export class ReferencesModule {
     `;
   }
 
-  /** 网页内读现行版正文（renderDocBody 安全渲染；无正文时纯文本降级提示） */
-  static _renderInstitutionReadPanel(d, isCurrent) {
+  /** 网页内读正文（renderDocBody 安全渲染；按状态给一句抬头，无正文时纯文本降级提示） */
+  static _renderInstitutionReadPanel(d) {
     const bodyHtml = d.bodyText ? renderDocBody(d.bodyText) : '';
     const parts = [];
-    if (!isCurrent) {
+    const status = d.status;
+    if (status === 'disabled') {
       parts.push('<p style="font-size:0.7rem;color:#B45309;margin:0 0 8px;">该制度当前已停用，以下为最近版本正文（仅供查阅）。</p>');
+    } else if (status === INSTITUTION_DRAFT) {
+      parts.push('<p style="font-size:0.7rem;color:#B45309;margin:0 0 8px;">以下为制度草案正文——<b>尚未经支委会审议</b>，不是现行版；审议通过后才成为现行版。</p>');
+    } else if (status === INSTITUTION_PENDING_PARTY_MEETING) {
+      parts.push('<p style="font-size:0.7rem;color:#1D4ED8;margin:0 0 8px;">支委会已审议通过并决定报送党员大会表决——<b>党员大会表决通过后才成为现行版</b>。</p>');
     }
     if (bodyHtml) {
       parts.push(`<div style="font-size:0.8125rem;line-height:1.8;color:var(--neutral-700);word-break:break-word;">${bodyHtml}</div>`);
@@ -621,6 +653,8 @@ export class ReferencesModule {
 
   static _openEditor(docId) {
     const editing = docId ? ReferencesModule._branchDocs.find(d => d.id === docId) : null;
+    // 2026-09-21 批次 129：编辑**制度草案**＝起草人修改（正文预填、保存后仍是草案）；其余编辑维持现状
+    const editingDraft = !!(editing && _isInstitutionDoc(editing) && editing.status === INSTITUTION_DRAFT);
 
     const existing = document.getElementById('ref-branch-doc-modal');
     if (existing) existing.remove();
@@ -642,25 +676,33 @@ export class ReferencesModule {
         </select>
       </div>
     `;
-    // 制度文本区：正文 textarea + 简单指引 + 版本说明（保存即现行版 v1）
-    const instBoxHtml = editing ? '' : `
-      <div id="ref-modal-inst-box" class="hidden space-y-3.5">
+    // 制度文本区：正文 textarea + 指引 + 版本说明/修改说明
+    //   新建：保存即现行版 v1（可勾「先存为草案」→ 落草案态，经支委会审议后生效，2026-09-21 批次 129）
+    //   编辑制度草案：正文预填，保存后**仍是草案**（不升版本号、不影响现行版）
+    const instBoxHtml = (editing && !editingDraft) ? '' : `
+      <div id="ref-modal-inst-box" class="${editingDraft ? 'space-y-3.5' : 'hidden space-y-3.5'}">
         <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-body">正文（文本 / Markdown）</label>
           <textarea id="ref-modal-body" class="input-flat w-full" rows="10"
-            placeholder="输入制度正文。支持简单 Markdown：# 标题、**加粗**、- 列表、1. 列表、行内 code、代码块"></textarea>
-          <p class="text-xs mt-1.5" style="color:var(--neutral-500);">保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。</p>
+            placeholder="输入制度正文。支持简单 Markdown：# 标题、**加粗**、- 列表、1. 列表、行内 code、代码块">${editingDraft ? _esc(editing.bodyText || '') : ''}</textarea>
+          <p class="text-xs mt-1.5" style="color:var(--neutral-500);">${editingDraft
+            ? '保存后仍是草案（不改变现行版与版本号）；修改完可再次提交支委会审议。'
+            : '保存后即为「制度 · 现行版 v1」；之后再改正文请用列表上的「上传新版」，旧版自动归档可查。'}</p>
         </div>
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-note">版本说明（可选）</label>
-          <input id="ref-modal-note" class="input-flat w-full" placeholder="如：本制度经支委会审议，自发布之日起施行" />
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-note">${editingDraft ? '修改说明（可选）' : '版本说明（可选）'}</label>
+          <input id="ref-modal-note" class="input-flat w-full" placeholder="${editingDraft ? '如：按支委会退回意见修改第三条' : '如：本制度经支委会审议，自发布之日起施行'}" value="${editingDraft ? _esc(editing.reviseNote || '') : ''}" />
         </div>
+        ${editing ? '' : `<label class="flex items-start gap-2 text-xs" style="color:var(--neutral-600);">
+          <input type="checkbox" id="ref-modal-as-draft" class="mt-0.5" style="cursor:pointer;">
+          <span>先存为<b>草案</b>（经支委会审议通过后才成为现行版；草案不对全员公开）</span>
+        </label>`}
       </div>
     `;
 
     card.innerHTML = `
       <div class="px-5 pt-4 pb-3 flex items-center justify-between" style="border-bottom:1px solid var(--neutral-200);">
-        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">${editing ? '修改支部文件' : '写入支部文件'}</h3>
+        <h3 class="font-title-cn text-sm font-semibold" style="color:var(--neutral-800);">${editingDraft ? '修改制度草案' : (editing ? '修改支部文件' : '写入支部文件')}</h3>
         <button id="ref-modal-close" type="button" aria-label="关闭写入支部文件窗口" style="color:var(--neutral-400);font-size:1rem;line-height:1;background:none;border:none;cursor:pointer;">&times;</button>
       </div>
       <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
@@ -728,6 +770,8 @@ export class ReferencesModule {
       const note = noteEl ? noteEl.value.trim() : '';
       const fileInput = card.querySelector('#ref-modal-file');
       const file = fileInput.files && fileInput.files[0];
+      // 2026-09-21 批次 129：新建制度时可勾「先存为草案」（编辑路径无此勾选位）
+      const asDraft = card.querySelector('#ref-modal-as-draft')?.checked === true;
 
       if (!title) { showStatus('error', '请填写标题'); return; }
       if (!editing) {
@@ -742,13 +786,15 @@ export class ReferencesModule {
       const confirmBtn = card.querySelector('#ref-modal-confirm');
       confirmBtn.disabled = true;
       try {
-        await ReferencesModule._saveDoc({ docId, purpose, title, desc, bodyText, note, file });
+        await ReferencesModule._saveDoc({ docId, purpose, title, desc, bodyText, note, file, asDraft });
         // 批次 48（2026-09-17，支书裁定 Q-23-46「补一条成功提示」）：**原先成功分支只有 `closeModal()`**
         //   ——浮窗一关，用户**没有任何「存成了」的反馈**（而失败分支有 `showStatus`，形成单边）。
         //   这是**用户可见**的静默：本仓的「成功路径」三段判据里第 ① 段（成功提示）在此**结构上不可能满足**。
         //   修法＝补一条 toast（浮窗随即关闭，故提示须落在全局 toast 而非面板内状态区）。
         //   ⚠ 同文件「上传新版」分支是**同一形态**（成功仅 `closeModal()`），按 R-67「同一病灶只修一处＝没修完」**同批一并修**。
-        showToast('success', `已保存「${title}」`);
+        const savedMsg = editingDraft ? `已保存「${title}」（仍为草案）`
+          : (asDraft ? `已存为草案「${title}」（待支委会审议）` : `已保存「${title}」`);
+        showToast('success', savedMsg);
         closeModal();
       } catch (e) {
         confirmBtn.disabled = false;
@@ -757,22 +803,31 @@ export class ReferencesModule {
     });
   }
 
-  /** 保存统一走 services/branch-doc.js saveDoc（含用途/状态/版本语义 + 支书权限校验） */
-  static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file }) {
+  /** 保存统一走 services/branch-doc.js（含用途/状态/版本语义 + 支书权限校验）；
+   *  2026-09-21 批次 129：**编辑制度草案**走 `updateInstitutionDraft`（起草人修改，不升版本号），
+   *  其余（新建制度／新建·编辑普通文件）仍走 `saveDoc`。 */
+  static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file, asDraft = false }) {
     const by = ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null;
     const role = ReferencesModule._currentUser ? ReferencesModule._currentUser.role : null;
     let fileMeta = {};
     if (file) fileMeta = await ReferencesModule._uploadFile(file);
 
-    const opts = { id: docId || undefined, purpose, title, desc, bodyText, note, by, role };
-    if (file) {
-      opts.fileName = fileMeta.fileName;
-      opts.fileSize = fileMeta.fileSize;
-      opts.format = fileMeta.format;
-      opts.filePath = fileMeta.filePath || null;
-      opts.fileData = fileMeta.fileData || null;
-    }
-    const res = await saveDoc(opts);
+    const cur = docId ? ReferencesModule._branchDocs.find((d) => d.id === docId) : null;
+    const editingInstitutionDraft = !!(cur && _isInstitutionDoc(cur) && cur.status === INSTITUTION_DRAFT);
+    const fileFields = file
+      ? {
+        fileName: fileMeta.fileName,
+        fileSize: fileMeta.fileSize,
+        format: fileMeta.format,
+        filePath: fileMeta.filePath || null,
+        fileData: fileMeta.fileData || null,
+      }
+      : {};
+    const res = editingInstitutionDraft
+      ? await updateInstitutionDraft({ id: docId, title, desc, bodyText, note, by, role, ...fileFields })
+      : await saveDoc({
+        id: docId || undefined, purpose, title, desc, bodyText, note, by, role, asDraft, ...fileFields,
+      });
     if (!res.ok || !res.doc) throw new Error(res.reason || '保存失败');
     ReferencesModule._branchDocs = docId
       ? ReferencesModule._branchDocs.map((d) => (d.id === docId ? res.doc : d))
