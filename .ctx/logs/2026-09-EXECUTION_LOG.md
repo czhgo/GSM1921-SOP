@@ -14630,6 +14630,154 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
 
 - **本批全量**：`ℹ tests 716 / ℹ pass 716 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`ℹ duration_ms 1098722.8582`（≈ **18.31 分钟**），进程退出码 **0**。**无 red、无 e2e 超时**（批次 135 曾现的两例 e2e 超时**本批未再现**）。
 
+---
+
+## 批次 141（2026-09-22，`D-573`）支委会＝**组织型主体**（类似法人，不是自然人）＋「意见建议反馈处理」「制度制定与迭代」缺省主责改准为「支委会」＋「结果回主体执行」核查
+
+> **一句话**：依支书逐字「**系统里面是作为 线上会议 出现的。就是有些任务需要支委会来定，要从 个体支委中把职责明确给到 【组织】。类似于 法人。千万不要把支委会作为 自然人**」⇒ **引入「组织型主体」一类**（`docs/src/core/work-map.js::ORG_SUBJECTS`＝`{ 'branch-committee': '支委会' }`）＋ **owner 模型由「只接受 role key」扩为「接受主体（人 / 角色 / 组织）」**（`ownerType` 加 `'org'`）＋ **两个模块的缺省主责改准为「支委会」**；**未新增角色键、未动任何权限门**；版本戳 `20260921p → 20260922a`〔显式传参〕。
+
+### 一、取证（改前实然，逐处 `文件:行号`）
+
+**（甲）`defaultOwner` 怎么被消费 · 谁读它 · 读它以后干什么**（**全链逐处**）：
+
+| 环节 | 位置（**改前**） | 读它以后干什么 |
+|---|---|---|
+| 单一源 / 缺省值 | `docs/src/core/work-map.js:25`（JSDoc：「缺省主责**角色**（role key）」）· `:29-91`（`WORK_MAP_MODULES` 11 项）· `:119-121`（`WORK_MAP_DEFAULT`） | —— |
+| 展开快照（**硬编 ownerType**） | 同文件 `:128-142`（`expandWorkforce`）——**`:138` 写死 `{ ownerType: 'role', ownerId: m.defaultOwner }`** | 决定「没配 workforce 的模块谁负责」 |
+| 读 | `docs/src/services/branch.js:349-352`（`getBranchWorkforce` ＝ `expandWorkforce(branch?.config?.workforce)`） | 供展示 / 写入读取 |
+| 展示①工作地图（三视图） | `docs/src/entries/tabs/secretary/work-map-tab.js:24-29`（`_ownerLabel`，**只分 person / 其余按 `ROLE_LABELS`**）· `:45`（平铺卡主责徽标）· `:56-100`（按人 / 按项目矩阵，**`:65` 过滤只收 `role` / `person`**） | 卡面 / 矩阵显示主责名 |
+| 展示②履职卡 | `docs/src/components/workforce-duty-card.js:53-56`（按 `role` 命中当前用户） | 列「我的分工」 |
+| 写①支委会议题改派 | `docs/src/entries/tabs/secretary/workforce-panel.js:50-61`（负责人下拉＝支委五角色 ＋ 到人）· `services/workforce.js:103-135`（`createWorkforceProposalActivity`）· `:157-189`（`adoptWorkforceProposal` → `mergeWorkforceSnapshot` → `updateBranchWorkforce`） | 改派 → 支委会表决 → 采纳落库 |
+| 写②换组织向导步骤③ | `docs/src/components/org-setup-wizard.js:266-275`（`_workforceValueMap`）· `:652-690`（`_step3Html` 的 select 候选＝支委角色位）· `:1127-1144`（`_saveWorkforce` 收集） | 部署 / 换壳期直接写库 |
+| 净化（两端共用） | `docs/src/core/config-clean.js:59-79`（`sanitizeConfigWorkforce`，**`:73` 只收 `role` / `person`**） | 防脏注入 |
+| 显示名单一源 | `docs/src/services/workforce.js:74-80`（`ownerDisplay`：`role`→`ROLE_LABELS` / `person`→姓名 / `none`→不开展） | 议题标题 / 现任 / 拟改派文案 |
+| 到人待办派生 | `docs/src/services/workforce.js:213-242`（`_deriveDutyTodos`：`person` → personId、**其余一律当 `role`**） | 派生「履职」待办 |
+
+**（乙）支委会现在是什么**（**批次 135 已核 · 本批复核**）：**① 一组个人角色键**（`docs/src/core/constants.js:184-190` `ROLE_KEYS` · `:197-199` `BRANCH_COMMISSION_ROLES`＝支书 / 副支书 / 组织 / 宣传 / 纪检）；**② 一个活动类型 / 场景**（`type='支委会'` · `scenarioId='branch-committee'`——**即支书说的「以线上会议形态出现」，本批未改**）；**③ 全仓无「支委会」这个主体键**（`grep '"支委会"|branch-committee'`：`branch-committee` 命中**全是** `scenarioId` / 自建选项 id，**无一处**作「承担方」用）。
+
+**（丙）两个模块的缺省主责现状（改前）**：
+
+| 模块 | 改前 `defaultOwner` | 依据 |
+|---|---|---|
+| `feedback-handling`（意见反馈处理） | `disc-commissioner`（`work-map.js:75`，**且 `:76-80` 的注释已明写「本批未改 `defaultOwner`：`支委会` 不是角色键、写不进本字段」**） | `D-301` / `D-412` / `D-550` / `D-551`（处置归支委会） |
+| `rule-making`（制度制定与迭代） | `secretary`（`work-map.js:84`） | `D-341` / `D-343` / `D-555`（定稿与生效＝支委会审议认定） |
+
+### 二、实现形态的选择与理由（**怎么做到「组织型主体」而「不是自然人」**）
+
+- **选项（甲）**：把「支委会」加进 `ROLE_KEYS` —— **未取**：**那正是支书禁止的「当作自然人」**（它会出现在登录身份列表、角色选择器与所有权限门里，等于给一个人加头衔）。
+- **选项（乙）**：**引入独立的「组织型主体」一类 ＋ 把 owner 模型扩为「接受主体」** —— **取此**：与角色键**分属两类、取值不重叠**；**能作承担方，却不进任何身份 / 权限面**；**不需要新增角色键、不改数据模型**（`config.workforce` 结构不变，只是 `ownerType` 多一个合法取值）。
+- **选项（丙）**：只留文案、不动系统 —— **未取**：支书本批要的就是「**把职责明确给到【组织】**」。
+
+**判据（可自证 · 三条否证判据）**：① **不在 `ROLE_KEYS`**；② **不在 `ROLE_PAGE_MAP`（身份 → 页面映射）**；③ **与角色键取值不重叠**（`ORG_SUBJECT_IDS ∩ ROLE_KEYS = ∅`）。三条**由 `server/test/work-map.test.mjs` 的断言逐条守住**（`keys.has(id) === false` ＋ `id in map === false` 逐张页面映射表）。
+
+**真机另三证**（Playwright，见「四」）：**不在登录身份列表** · **以它登录 401「未知人员」** · **不在任何角色选择器**。
+
+**落点形状**（`docs/src/core/work-map.js`，与 `ownerType` 域同处，`:18-36`）：
+
+```js
+export const ORG_SUBJECTS = { 'branch-committee': { label: '支委会' } };
+export const ORG_SUBJECT_IDS = Object.keys(ORG_SUBJECTS);
+export const ORG_SUBJECT_LABELS = Object.fromEntries(Object.entries(ORG_SUBJECTS).map(([id, s]) => [id, s.label]));
+export function isOrgSubject(id) { … }
+export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role'; } // 既有取值 → 'role'（兼容）
+```
+
+### 三、改准清单（改前 → 改后 ＋ 依据）
+
+| # | 位置 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 1 | `docs/src/core/work-map.js:18-36`（新增） | —— | `ORG_SUBJECTS` / `ORG_SUBJECT_IDS` / `ORG_SUBJECT_LABELS` / `isOrgSubject` / `ownerSubjectType`＋判据注释 | 支书原话（类似法人 / 不是自然人） |
+| 2 | 同文件 `:53`（JSDoc） | 「缺省主责**角色**（role key）」 | 「缺省主责**主体引用**（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`）」 | 同上（结构扩展） |
+| 3 | 同文件 `:103`（`feedback-handling`） | `defaultOwner: 'disc-commissioner'` | `defaultOwner: 'branch-committee'`（＋注释改准，标明依据与「表仍草案」） | `D-301` / `D-412` / `D-550` / `D-551` ＋ 批次 135 表草案 |
+| 4 | 同文件 `:113`（`rule-making`） | `defaultOwner: 'secretary'` | `defaultOwner: 'branch-committee'`（＋注释改准） | `D-341` / `D-343` / `D-555` ＋ 批次 135 表草案 |
+| 5 | 同文件 `:172`（`expandWorkforce` 兜底） | `{ ownerType: 'role', ownerId: m.defaultOwner }` | `{ ownerType: ownerSubjectType(m.defaultOwner), ownerId: m.defaultOwner }` | 结构扩展（既有 role 取值行为不变） |
+| 6 | 同文件 `:193`（`mergeWorkforceSnapshot`） | 收 `role` / `person` | 收 `role` / `person` / **`org`** | 同上 |
+| 7 | `docs/src/core/config-clean.js:73`（`sanitizeConfigWorkforce`） | 收 `role` / `person` | 收 `role` / `person` / **`org`**（＋文档注释补 `org` 语义） | 同上（两端共用净化） |
+| 8 | `docs/src/services/workforce.js:74-81`（`ownerDisplay`） | `org` 会落进 `ROLE_LABELS[..] \|\| id` ⇒ 显示裸 id | `ownerType === 'org'` → `ORG_SUBJECT_LABELS[id]`（显示「支委会」） | 显示正确性 |
+| 9 | 同文件 `:219`（`_deriveDutyTodos`） | 除 `person` 外**一律当 `role`**（`org` 会被写成 `role:'branch-committee'` 脏值） | `org` **不派生到人待办**（组织型主体无登录身份） | 防脏值 |
+| 10 | `docs/src/entries/tabs/secretary/work-map-tab.js:25-30` / `:65-73` / `:45` | `_ownerLabel` 无 `org` 分支；按人矩阵**过滤掉 `org`**（⇒ 两个模块会显示「—」） | `org` → 主体名；矩阵**收 `org` 入人维**（次序紧随支委层）；平铺卡 `org` 走强调色 | 展示面必须真显示「支委会」 |
+| 11 | `docs/src/components/org-setup-wizard.js:115-120` / `:271` / `:658` / `:663-668` / `:676` / `:1136` | `_ownerLabel` 无 `org` 分支；步骤③ select **无 `org` 选项**（现值会被静默显示成第一个角色位）；`{ownerType:'role'}` 两处兜底硬编；保存收集只收 `role` / `person` | 同批取齐（`org` 显示为「支委会（组织主体 · 保留现指定）」＋兜底走 `ownerSubjectType` ＋保存收 `org`） | 显示正确 + 快照不丢值 |
+| 12 | `docs/help.html:1370`（向导步骤③行） | 「各工作模块负责人归属（支委角色位 / 到人位）」 | 「…（支委角色位 / 到人位 / **组织主体位：如支委会**）」 | 支书已授权 help 对齐代码 |
+| 13 | `server/test/work-map.test.mjs:36-70` | 断言「缺省主责 ∈ `ROLE_KEYS`」（**新模型下必红**） | 断言扩为「∈ 角色键 ∪ 组织型主体」＋**新增「不是自然人」三条判据断言** ＋ merge / sanitize 各补 `org` 用例 | 断言随模型改准（改测试不改制度） |
+| 14 | `server/test/form-loop-registry.mjs:258-259` | `org-setup-wizard.js` 两条台账 `line: 1296` / `1307` | **`1303` / `1314`**（本批在该文件插 7 行 ⇒ +7） | 台账行号同步（守卫 `S6` 抓出） |
+
+**未动（明确）**：`BRANCH_COMMISSION_ROLES` 的构成 · `ROLE_KEYS` · 全部权限门（`SECRETARY_ROLES` / `SECRETARY_AND_DEPUTY_ROLES` / `INSTITUTION_MANAGER_ROLES` / `REVIEW_REQUEST_ROLES` 等）· 支委会的承载形态（线上会议）· 派单面（`createWorkforceProposalActivity` 的改派校验与负责人下拉**一字未动**）。
+
+### 四、「支委会开完后结果回到主体执行」的核查结论（支书 2026-09-21 另一句原话）
+
+**结论：已是**（**三条链逐条取证，未改任何流程**）：
+
+| 链 | 结果回到主体了吗 | 证据 |
+|---|---|---|
+| **制度**（批次 129） | **是**：未通过 ⇒ **退回起草人修改**（仍为草案 ＋ 退回意见，可改后重新提交）；通过 ⇒ 成现行版 / 或转「待党员大会表决」 | `docs/src/services/branch-doc.js:475-515`（`applyInstitutionAgendaResult` 的 `rejected` 分支给 `status: INSTITUTION_DRAFT` ＋ `reviewNote`）；`docs/src/services/agenda-follow-up.js:165-190`（**IO 只在这一处**） |
+| **品牌认定**（批次 132） | **是**：通过 ⇒ 置 `isBrand`（认定确定）；未通过 ⇒ **提案保留 ＋ 退回意见（可再议）** | `docs/src/services/activity.js:341-379`（`applyBrandDesignationResult`）；`:390-400`（`commitBrandDesignationResult` 落库） |
+| **待讨论名单**（批次 121/127） | **是**：通过者 ⇒ **逐人建 `memberChangeRequests`** → 组织委员审批 → 支书确认 → 更新 `developStage` | `docs/src/services/agenda-follow-up.js:210-231` |
+
+- **唯一未落的一层**：制度「**通过后的监督落实派单**」（＝`SOP-B-25` 第 ② 项的「起草与监督按条条职责归对应委员」）——**仍待支书给定映射表**（队列 `SOP-B-25` 在册、表仍是草案）。**本批只改两个模块的「缺省主责」，未据此改全套派单逻辑。**
+
+### 五、真机验证（Playwright ＋ 起真实服务；探针 `server/probe141.mjs` 跑完即删）
+
+| # | 验什么 | 实测 |
+|---|---|---|
+| 1 | **支委会不在登录身份列表** | 登录页「开发模式 · 选择身份」卡片 = `party-staff` / `secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `deputy-leader` / `participant` ——**9 张、无支委会**（`devCardsHasBranchCommittee: false`） |
+| 2 | **不能以「支委会」登录** | `POST /api/v1/auth/login` `{personId:'branch-committee', password:'123456'}` → **401 `{"error":"未知人员"}`** |
+| 3 | **工作地图（默认「按人」矩阵）显示** | 行首列出现 **「支委会」**，其命中的「主责」列 = **意见反馈处理 · 制度制定与迭代**（其余行：支书 5 项 / 组织委员 2 / 宣传委员 1 / 纪检委员 1） |
+| 4 | **工作地图（平铺模块）显示** | 11 卡逐张读主责徽标：「意见反馈处理 → **支委会**」「制度制定与迭代 → **支委会**」；其余 9 张与改前一致（支书 / 组织委员 / 纪检委员 / 宣传委员） |
+| 5 | **不在「分工调整」负责人下拉里** | `.wf-owner` 的 option 取值 = `''` ＋ `role:`×5 ＋ `person:p1`…`p50`/`p_pc` ＋ `none:` ——**无 `branch-committee`**（`ownerOptionsHasOrg: false`）⇒ **它没被做成「又一个角色 / 一个可指派的人」** |
+| 6 | **不在换组织向导步骤③的角色选择器里** | 11 个 `[data-wz-wf-sel]` 的 option 值全集 **`hasRoleOrg: false`**；`org:branch-committee` 只作**「现值保留项」**（两模块选中项文本＝「**支委会（组织主体 · 保留现指定）**」）⇒ **不是可新指派的下拉候选** |
+| 7 | 副作用核查 | `pageerror` / `console.error` **0 条**（六步全程） |
+
+### 六、反查 ＋ 版本戳 ＋ 守卫 ＋ 全量 ＋ 停服
+
+**（甲）反查（`docs` / `server` / `content` 全库；`git grep` 对 `HEAD` 与工作树各跑一次）**：
+
+| 词表 | 改前（`HEAD`） | 改后（工作树） | 差 | 逐条判定 |
+|---|---|---|---|---|
+| `支委会` | **761** | **774** | **+13** | **全部是本批新增**（工作地图 / 向导 / 测试 / 注释里的「支委会」）；**无一处**把它写成角色键 / 登录身份（见「四」真机 1/2/5/6 与 `ROLE_KEYS` diff＝0） |
+| `defaultOwner` | **19** | **23** | **+4** | 新增均在本批注释与 JSDoc（`ORG_SUBJECTS` 的落点说明 · 两个模块的改准注释）；**取值 11 项逐条核过**＝9 项仍为角色键 ＋ 2 项＝`branch-committee` |
+| `主责` | **13** | **19** | **+6** | 新增均为注释 / JSDoc / 测试断言里说明「缺省主责＝主体引用」；`desc` 里仍写「（纪检委员主责）」的**只剩 `attendance-inspection` / `develop-party-member` / `info-platform`**（**与本批无关、未动**） |
+| `BRANCH_COMMISSION_ROLES` | **49** | **50** | **+1** | 新增＝`ACTIVE_RULINGS` 新行里「支委层权限门照旧＝`BRANCH_COMMISSION_ROLES`」一句；**该常量本身 diff＝0** |
+
+**`支委会` 按语境分类**（⚠ 命中共 774 处、**不拿总量当结论**）：
+
+| 语境 | 量级 | 判定 |
+|---|---|---|
+| **会议类型 / 场景**（`type='支委会'` · `scenarioId='branch-committee'` · 「支委会会议」「线上支委会」· 议程 / 表决 / 签到相关） | **最多**（`docs/**` 与 `content/**` 的会议链、`help.html` 会务段、`.ctx` 台账） | **与本案同向**（支书原话「以线上会议形态出现」＝现状，**本批未动**） |
+| **制度主体语境**（「归支委会」「支委会审议 / 通过 / 认定 / 表决」· 「报支委会」「交支委会」） | 次多（`content/02_institution/sop/**` 母本 ＋ `docs/src/services/{branch-doc,workforce,agenda-follow-up}.js` ＋ `ACTIVE_RULINGS` / `.ctx`） | **与本案同向**（正是本批要落的「职责归组织」） |
+| **模板「支委会」字样**（三会一课子项 chips＝`sub:['支部党员大会','支委会',…]` · 活动类型标签 `ACTIVITY_TYPE_LABELS` · 日历简称） | 少量（`work-map.js` 的 `sub` · `constants.js` 的活动类型表） | **是「会议形式的名称」**，非主体 ⇒ **未动** |
+| **注释 / 说明**（`//` 与 JSDoc 里解释「支委会是什么」） | 少量 | 本批**新增**的注释都写明「组织型主体 / 不是自然人」；**改前**那条「`支委会` 不是角色键、写不进本字段」（`work-map.js:76-80`）**已随本批改准**（否则与现状相左） |
+
+**⚠ 不只靠 grep（本批的「一个词都命不中」活例）**：`workforce-duty-card.js:55` 的分工命中判据 `(a.ownerType === 'role' && a.ownerId === role) || (a.ownerType === 'person' && …)` ——**既不写「支委会」也不写 `defaultOwner`**，但它是**消费 `ownerType` 的一处**；本批**判「无需改」**（组织型主体无登录人 ⇒ 不命中任何人，正是应有行为），**这是靠读代码判的、不是靠 grep**。
+
+**（乙）版本戳**：**`20260921p → 20260922a`**〔**显式传参**：`node docs/scripts/bump-version.mjs 20260922a`〕。**改后「戳唯一」已核**：`bump-version` 收尾自检 **「陈旧戳自检：0 处残留 ✅」**；`grep '\?v=20260921p'` **0 命中**；`version-stamp` 的 `S3`（取值集合规模＝1）**绿**；`CODE_VERSION` **264 → 265**（`cross-page-state.js:16`）。
+
+**（丙）守卫子集**（8 文件，带 `DISABLE_PASSWORD_CHECK=1`）：**改前 `63 / 63 / 0 红`（23.47 秒）→ 改后 `63 / 63 / 0 红`（21.92 秒）**。
+
+**（丁）全量（`R-85`）**：起 3000 服务（`npm start`）→ `npm test` → **见下「全量实测」** → 停服。
+- ⚠ **首跑 1 红（已修 · 如实登记）**：`form-loop-sweep` 的 **`S6`「台账行号未同步即红灯」**报 `org-setup-wizard.js:1296 / :1307` 与实文（`1303` / `1314`）不符——**本批在该文件插了 7 行**（新增 import / `_ownerLabel` 分支 / `orgOpt` / select 一行 / 兜底 / 保存收集）⇒ **真回归**（不是环境类，也不是陈旧断言）；按守卫提示**只改台账行号**、`S6` 单跑 **1 / 1 绿**。
+- ✅ **改后全量**：`ℹ tests 717 / ℹ pass 717 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`ℹ duration_ms 1095429.653`（≈ **18.26 分钟**），进程退出码 **0**。**无 red、无 e2e 超时**（批次 135 曾现的两例 e2e 超时**本批未再现**）。
+
+**（戊）编号四处一致**：文首／文末续编说明「`D-275` … `D-573`，共 **299** 条」＝ 本月目录 / 月度索引 **299** ＝ 实测 `^## D-\d+` **299** 命中。
+
+**（己）抽 6 处回核**（**实际 ↔ 支书口径**）：
+
+| # | 支书口径（逐字） | 实际（可核） |
+|---|---|---|
+| 1 | 「**类似于 法人**」 | 支委会**能作「谁负责 / 承担方」的答案**：`work-map.js` 两个模块 `defaultOwner:'branch-committee'`；工作地图平铺 / 按人 / 按项目三视图**都真显示「支委会」**（真机 3 / 4） |
+| 2 | 「**千万不要把支委会作为 自然人**」 | **不在 `ROLE_KEYS`**（diff 0）· **不在登录身份列表**（真机 1）· **不能登录**（真机 2，401）· **不在任何角色选择器**（真机 5 / 6） |
+| 3 | 「**要从 个体支委中把职责明确给到 【组织】**」 | 两模块缺省主责由「**个体**」（`disc-commissioner` / `secretary`）改准为「**组织**」（`branch-committee`）；判据三条由测试守住 |
+| 4 | 「**有些任务需要支委会来定**」 | `rule-making`（制度定稿与生效＝支委会审议认定，`D-341`/`D-343`/`D-555`）＋ `feedback-handling`（处置归支委会，`D-301`/`D-412`/`D-550`/`D-551`）——**只这两项**，未外扩 |
+| 5 | 「**系统里面是作为 线上会议 出现的**」 | **未改**：`type='支委会'` ＋ `scenarioId='branch-committee'` 一字未动；「支委层」权限门仍是 `BRANCH_COMMISSION_ROLES` 五个人角色键 |
+| 6 | 「**支委会开完后相关的结果还是回到主体去执行**」（2026-09-21） | **三条链逐条取证「已是」**（见「四」）；**唯一未落的是「通过后的监督落实派单」**（`SOP-B-25` ②，待支书给定映射表）——**如实登记、未改流程** |
+
+### 七、残留核查
+
+- **探针**：`server/probe141.mjs`（临时探针）**跑完即删**；`.tmp*` 全库扫描 **0 命中**。
+- **服务已停**（`npm start` 起的 3000 已停）。
+- **未新建仓库文件**；**未提交 git**。
+- **⚠ 如实登记（本批不许改的文件）**：`README-server.md:529` 的引用 **`docs/src/core/work-map.js:29-116`** 因本批在该文件**顶部插 18 行**（`:18-36` 的 `ORG_SUBJECTS` 块）而**已指到别处**（`WORK_MAP_MODULES` 现起于 `:58`）——`README*.md` 按本批铁律**只登记不许改**；`doc-line-ref` 守卫**只判「文件可解析 / 行号在范围内 / 区间非空」**（故仍绿，**未覆盖语义漂移**）。**请下一台账批一并改准。**
+- **⚠ 如实登记（覆盖缺口）**：本批另改过 `docs/src/core/cross-page-state.js`（bump 自增 `CODE_VERSION`）与 `docs/src/core/config-clean.js` / `docs/src/services/workforce.js` / `docs/src/entries/tabs/secretary/work-map-tab.js` / `docs/src/components/org-setup-wizard.js` / `server/test/work-map.test.mjs`；其中 **`config-clean.js` / `services/workforce.js` / `work-map-tab.js` / `org-setup-wizard.js` 在 `TIMESTAMPS.md` 原先无表行 ⇒ 本批补登**。
+
 
 
 

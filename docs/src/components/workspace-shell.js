@@ -20,21 +20,21 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260921p';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260922a';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260921p';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260921p';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260921p';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260921p';
-import { getCapabilities } from '../core/registry.js?v=20260921p';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260921p';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260922a';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260922a';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260922a';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260922a';
+import { getCapabilities } from '../core/registry.js?v=20260922a';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260922a';
 
-import { TodoStore } from '../services/todo.js?v=20260921p';
-import { AuthStore } from '../services/auth.js?v=20260921p';
-import { BranchService } from '../services/runtime.js?v=20260921p';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260921p';
+import { TodoStore } from '../services/todo.js?v=20260922a';
+import { AuthStore } from '../services/auth.js?v=20260922a';
+import { BranchService } from '../services/runtime.js?v=20260922a';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260922a';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260921p';
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260922a';
 
 
 

@@ -8,23 +8,24 @@
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260921p';
-import { WORK_MAP_MODULES } from '../../../core/work-map.js?v=20260921p';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260921p';
-import { AuthStore } from '../../../services/auth.js?v=20260921p';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260921p';
-import { getPersonName } from '../../../services/person.js?v=20260921p';
+import { escHtml as esc } from '../../../core/utils.js?v=20260922a';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/work-map.js?v=20260922a';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260922a';
+import { AuthStore } from '../../../services/auth.js?v=20260922a';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260922a';
+import { getPersonName } from '../../../services/person.js?v=20260922a';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260921p';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922a';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260921p';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260922a';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 
-/** 负责人显示名：role → ROLE_LABELS；person → 姓名 */
+/** 负责人显示名：role → ROLE_LABELS；person → 姓名；org → 组织型主体名（如支委会，不是自然人） */
 function _ownerLabel(assign) {
   if (!assign) return '未分工';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
+  if (assign.ownerType === 'org') return ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
@@ -42,7 +43,7 @@ function _modulesHtml(workforce) {
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
-            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}">${esc(_ownerLabel(assign))}</span>
+            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' || assign.ownerType === 'org' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}">${esc(_ownerLabel(assign))}</span>
           </div>
           ${chips ? `<div class="flex flex-wrap gap-1">${chips}</div>` : ''}
           <p class="text-xs text-gray-500 leading-5">${esc(m.desc)}</p>
@@ -56,19 +57,21 @@ function _modulesHtml(workforce) {
 function _renderMatrix(workforce) {
   const host = document.getElementById('work-map-matrix');
   if (!host) return;
-  // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN`）；顺序沿用原「按人」卡视图的排序意图：
-  // 支书/副支书/组织/宣传/纪检 在前，其余（党小组组长、到人负责人等）按 99 排后
+  // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN` / `org:branch-committee`）；顺序沿用原「按人」卡视图的排序意图：
+  // 支书/副支书/组织/宣传/纪检 在前，**组织型主体（支委会）紧随支委层**，其余（党小组组长、到人负责人等）按 99 排后
   const ownerMap = new Map();
   for (const m of WORK_MAP_MODULES) {
     const assign = workforce[m.id];
-    // 停用项（ownerType:'none'）无负责人 → 不入人维（其工作项在矩阵中整列/整行渲染为「—」）
-    if (assign.ownerType !== 'role' && assign.ownerType !== 'person') continue;
+    // 停用项（ownerType:'none'）无负责人 → 不入人维（其工作项在矩阵中整列/整行渲染为「—」）；
+    // 组织型主体（'org'，如支委会）**要入维**——它是承担方（不是人，但「谁负责」的答案可以是它）
+    if (assign.ownerType !== 'role' && assign.ownerType !== 'person' && assign.ownerType !== 'org') continue;
     const key = `${assign.ownerType}:${assign.ownerId}`;
     if (!ownerMap.has(key)) ownerMap.set(key, assign);
   }
   const order = [
     'role:secretary', 'role:deputy-secretary',
     'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
+    'org:branch-committee',
   ];
   const persons = [...ownerMap.entries()]
     .sort((a, b) => {

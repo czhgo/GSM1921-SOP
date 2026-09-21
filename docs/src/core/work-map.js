@@ -7,6 +7,34 @@
 //  本文件纯 ESM 零依赖（浏览器 / node 测试双端可加载）。
 // ════════════════════════════════════════════════════════════════
 
+// ── 组织型主体（2026-09-21 批次 141 支书裁定：支委会类似法人，不是自然人）────────
+// 语义：能作为「谁负责 / 承担方」的答案——**是组织主体，不是人，也不是角色键**。
+// 硬判据（三条皆无 ⇒ 不是自然人、不能当登录身份；由 server/test/work-map.test.mjs 断言守住）：
+//   · 不在 `constants.js::ROLE_KEYS` / `ROLE_LEGACY_KEYS` / 任何授权语义角色集里；
+//   · 无 `ROLE_LABELS` / `ROLE_PAGE_MAP` 条（「身份 → 页面」映射里没有它）；
+//   · 与角色键**取值不重叠**（`ORG_SUBJECT_IDS ∩ ROLE_KEYS = ∅`）。
+// 承载形态（勿改）：支委会在系统里以「线上会议」形态出现（活动 `type='支委会'` ＋ `scenarioId='branch-committee'`）；
+//   「支委层」＝`constants.js::BRANCH_COMMISSION_ROLES` 五个**个人**角色键的共同门——
+//   本注册表只回答「承担方是谁」，不碰任何权限门、也不增删角色键。
+// 落点：本注册表当前只服务**支部分工**（`WORK_MAP_MODULES[].defaultOwner` / `config.workforce`）这一个用途。
+export const ORG_SUBJECTS = {
+  'branch-committee': { label: '支委会' },
+};
+export const ORG_SUBJECT_IDS = Object.keys(ORG_SUBJECTS);
+export const ORG_SUBJECT_LABELS = Object.fromEntries(
+  Object.entries(ORG_SUBJECTS).map(([id, s]) => [id, s.label]),
+);
+
+/** 该 id 是否组织型主体（非自然人） */
+export function isOrgSubject(id) {
+  return Object.prototype.hasOwnProperty.call(ORG_SUBJECTS, id);
+}
+
+/** 主体引用（`defaultOwner` / `ownerId`）→ `ownerType`：组织型主体 → 'org'；其余按角色键 → 'role' */
+export function ownerSubjectType(id) {
+  return isOrgSubject(id) ? 'org' : 'role';
+}
+
 /**
  * 工作模块目录（顺序即平铺视图 A 的展示顺序；三会一课为单模块含 4 子会）
  *
@@ -22,7 +50,7 @@
  * @property {string} name      模块名（用户可见）
  * @property {'norm'|'method'} tier 分层：工作程序/规范（norm）｜工作方法（method，可停用）
  * @property {string[]} [sub]   子项（三会一课 = 4 子会，标签沿用 ACTIVITY_CLASSIFICATION.subtypes）
- * @property {string} defaultOwner 缺省主责角色（role key；SOP/职责表草案，支委会可改）
+ * @property {string} defaultOwner 缺省主责**主体引用**（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`；SOP/职责表草案，支委会可改）
  * @property {string} desc      一句话说明（卡面文案）
  * @property {string[]} [outputs] 产出交接标签（考勤/考察/宣传/材料，对应活动/专班运行产出）
  */
@@ -72,16 +100,21 @@ export const WORK_MAP_MODULES = [
     outputs: ['考勤', '考察'],
   },
   {
-    id: 'feedback-handling', name: '意见反馈处理', tier: 'norm', defaultOwner: 'disc-commissioner',
-    // 2026-09-21 批次 135 改准 desc：原文写「（纪检委员主责）」与现行裁定相左——`D-301`（`SOP-A-18`：
-    // 意见处置与纪检解绑、改为公开 issue ＋ 可指派）与 `D-412`（删「意见平台由纪检委员建设维护」整句）
-    // 已把**处置主体**定为**支委会**（支书主持支委会，见 `COMMISSIONER_DUTY_FRAMEWORK.md` §C.1b）。
-    // ⚠ **本批未改 `defaultOwner`**：`支委会` 不是角色键、写不进本字段（与制度模块 `rule-making` 同一处落差）；
-    //   改「缺省派单」属**派单模型**的产品取向 ⇒ **只改文案、该落差如实上报**（见 `REVIEW_QUEUE` `SOP-B-25`）。
+    id: 'feedback-handling', name: '意见反馈处理', tier: 'norm', defaultOwner: 'branch-committee',
+    // 2026-09-21 批次 135 改准 desc（原文写「纪检委员主责」与 `D-301` / `D-412` 相左）；批次 141 改准
+    // `defaultOwner`『disc-commissioner』→『branch-committee』：处置主体＝**支委会**（支书主持支委会，
+    // 见 `COMMISSIONER_DUTY_FRAMEWORK.md` §C.1b），依 `D-301` / `D-412` / `D-550` / `D-551`
+    // 与批次 135 派单表草案（`SOP-B-25`，**草案 · 待支书改**——本批只改这两个模块的缺省主责，
+    // 未据此改全套派单逻辑）。『支委会』是**组织型主体**（`ORG_SUBJECTS`，类似法人、不是自然人），
+    // 不是角色键 ⇒ 由 `ownerSubjectType()` 判为 `ownerType:'org'`。
     desc: '意见建议反馈处理（处置归支委会，支书主持支委会；场景 feedback-handling + 反馈管理）',
   },
   {
-    id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'secretary',
+    id: 'rule-making', name: '制度制定与迭代', tier: 'norm', defaultOwner: 'branch-committee',
+    // 2026-09-21 批次 141 改准 `defaultOwner`『secretary』→『branch-committee』：制度的**定稿与生效**
+    // 由支委会审议认定（`D-341` / `D-343` / `D-555`；批次 135 派单表草案「制度审议与认定 → 支委会」，
+    // **草案 · 待支书改**）。『起草与监督按条条职责归对应委员』（`D-342`）**未落**——系统里没有
+    // 「制度内容 → 对应主体」的判据（`SOP-B-25` 第 ② 项待支书给定映射表）⇒ 本批 **只改缺省主责、不自创映射**。
     desc: '制度/章程制定与迭代（支部自治事项；承载＝支部文件 + 相应会议议程，不单开场景）',
   },
   {
@@ -115,15 +148,15 @@ export function isDisabledAssign(assign) {
 
 export const WORK_MAP_DISABLED = { ownerType: 'none', ownerId: '' };
 
-/** 缺省分工：{ [moduleId]: role }（workforce=null 时兜底展示；SOP/职责表草案） */
+/** 缺省分工：{ [moduleId]: 主体引用 }（角色键 或 组织型主体 id；workforce=null 时兜底展示；SOP/职责表草案） */
 export const WORK_MAP_DEFAULT = Object.fromEntries(
   WORK_MAP_MODULES.map((m) => [m.id, m.defaultOwner]),
 );
 
 /**
  * 展开支部分工快照（纯）：config.workforce 覆盖项 + 缺省兜底其余模块
- * @param {Record<string,{ownerType:'role'|'person',ownerId:string}>|null} workforce
- * @returns {Record<string,{ownerType:'role'|'person',ownerId:string}>} 全 11 模块展开
+ * @param {Record<string,{ownerType:'role'|'person'|'org'|'none',ownerId:string}>|null} workforce
+ * @returns {Record<string,{ownerType:'role'|'person'|'org'|'none',ownerId:string}>} 全 11 模块展开
  */
 export function expandWorkforce(workforce) {
   const out = {};
@@ -135,7 +168,8 @@ export function expandWorkforce(workforce) {
     } else if (hit && hit.ownerType && hit.ownerId) {
       out[m.id] = { ownerType: hit.ownerType, ownerId: hit.ownerId };
     } else {
-      out[m.id] = { ownerType: 'role', ownerId: m.defaultOwner };
+      // 缺省主责＝主体引用（角色键 → 'role'；组织型主体 id → 'org'，见 ownerSubjectType）
+      out[m.id] = { ownerType: ownerSubjectType(m.defaultOwner), ownerId: m.defaultOwner };
     }
   }
   return out;
@@ -144,7 +178,7 @@ export function expandWorkforce(workforce) {
 /**
  * 按改派清单合并分工快照（纯；M2 议题通过后落库前用）
  * @param {Record<string,{ownerType,ownerId}>} snapshot expandWorkforce 展开后的当前快照
- * @param {Array<{moduleId:string,to:{ownerType:'role'|'person',ownerId:string}}>} changes 改派清单
+ * @param {Array<{moduleId:string,to:{ownerType:'role'|'person'|'org'|'none',ownerId:string}}>} changes 改派清单
  * @returns {Record<string,{ownerType,ownerId}>} 合并后快照（未涉及的模块原样保留）
  */
 export function mergeWorkforceSnapshot(snapshot, changes) {
@@ -157,7 +191,8 @@ export function mergeWorkforceSnapshot(snapshot, changes) {
       if (canDisableModule(c.moduleId)) next[c.moduleId] = { ownerType: 'none', ownerId: '' };
       continue;
     }
-    if ((c.to.ownerType === 'role' || c.to.ownerType === 'person') && c.to.ownerId) {
+    // 主体三类：人（person）/ 角色位（role）/ 组织型主体（org，见 ORG_SUBJECTS）
+    if ((c.to.ownerType === 'role' || c.to.ownerType === 'person' || c.to.ownerType === 'org') && c.to.ownerId) {
       next[c.moduleId] = { ownerType: c.to.ownerType, ownerId: c.to.ownerId };
     }
   }

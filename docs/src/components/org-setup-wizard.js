@@ -14,30 +14,31 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260921p';
-import { getCapabilities } from '../core/registry.js?v=20260921p';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260921p';
+import { mockDB } from '../core/domain.js?v=20260922a';
+import { getCapabilities } from '../core/registry.js?v=20260922a';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../core/constants.js?v=20260922a';
+import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../core/work-map.js?v=20260922a';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../modules/capabilities/secretary-workspace.js?v=20260921p';
-import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260921p';
-import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260921p';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260921p';
+import '../modules/capabilities/secretary-workspace.js?v=20260922a';
+import { BLOCK_MANIFESTS } from '../workflow/blocks/manifests.js?v=20260922a';
+import { escHtml as esc, showToast, downloadBlob } from '../core/utils.js?v=20260922a';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260922a';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../services/branch.js?v=20260921p';
-import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260921p';
+} from '../services/branch.js?v=20260922a';
+import { buildConfigPackage, applyConfigPackage } from '../services/org-config-package.js?v=20260922a';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../services/org-base-data-preview.js?v=20260921p';
-import { getRosterStats, isDetained } from '../services/roster.js?v=20260921p';
-import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260921p';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260921p';
+} from '../services/org-base-data-preview.js?v=20260922a';
+import { getRosterStats, isDetained } from '../services/roster.js?v=20260922a';
+import { buildOrgWizardReport } from '../services/org-wizard-report.js?v=20260922a';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260922a';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../services/appointment.js?v=20260921p';
+import { appointInauguralOfficers } from '../services/appointment.js?v=20260922a';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -111,10 +112,11 @@ function _branchTabs() {
   return cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
 }
 
-/** 由角色键取显示名（workforce owner 文本；到人位取姓名） */
+/** 由角色键取显示名（workforce owner 文本；到人位取姓名；组织主体位取主体名） */
 function _ownerLabel(assign) {
   if (!assign) return '未分工';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
+  if (assign.ownerType === 'org') return ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
@@ -268,7 +270,7 @@ function _workforceValueMap(S) {
   S.wfSnapshot = snapshot;
   const map = {};
   for (const m of WORK_MAP_MODULES) {
-    const a = snapshot[m.id] || { ownerType: 'role', ownerId: m.defaultOwner };
+    const a = snapshot[m.id] || { ownerType: ownerSubjectType(m.defaultOwner), ownerId: m.defaultOwner };
     map[m.id] = `${a.ownerType}:${a.ownerId}`;
   }
   return map;
@@ -655,11 +657,15 @@ function _step3Html(S, branch) {
   const roleOptions = BRANCH_COMMISSION_ROLES.map((r) =>
     `<option value="role:${r}">${esc(ROLE_LABELS[r] || r)}</option>`).join('');
   const rows = WORK_MAP_MODULES.map((m) => {
-    const assign = snapshot[m.id] || { ownerType: 'role', ownerId: m.defaultOwner };
+    const assign = snapshot[m.id] || { ownerType: ownerSubjectType(m.defaultOwner), ownerId: m.defaultOwner };
     const val = `${assign.ownerType}:${assign.ownerId}`;
     // 当前为「到人位」时附一项保留显示（最小实现：候选为支委角色位，到人位可保留原值/改回角色）
     const personOpt = assign.ownerType === 'person'
       ? `<option value="person:${esc(assign.ownerId)}" selected>到人：${esc(getPersonName(assign.ownerId) || assign.ownerId)}（保留现指定）</option>` : '';
+    // 当前为「组织主体位」时附一项保留显示（如缺省主责＝支委会；见 core/work-map.js::ORG_SUBJECTS）
+    // ——它**不是**可新指派的下拉候选（本批未扩派单面），只保证现值正确回显、不被误显示成某个角色位。
+    const orgOpt = assign.ownerType === 'org'
+      ? `<option value="org:${esc(assign.ownerId)}" selected>${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（组织主体 · 保留现指定）</option>` : '';
     const sub = m.sub && m.sub.length ? `<span class="text-[10px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return `<div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-center py-1.5 border-b border-gray-50 last:border-0">
       <div class="min-w-0">
@@ -668,6 +674,7 @@ function _step3Html(S, branch) {
       </div>
       <select data-wz-wf-sel data-module="${esc(m.id)}" class="input-flat text-xs min-w-[180px]">
         ${personOpt}
+        ${orgOpt}
         <optgroup label="支委角色（负责人）">${roleOptions}</optgroup>
       </select>
     </div>`;
@@ -1126,7 +1133,7 @@ async function _saveWorkforce(S) {
     const i = val.indexOf(':');
     const ownerType = val.slice(0, i);
     const ownerId = val.slice(i + 1);
-    if ((ownerType === 'role' || ownerType === 'person') && ownerId) {
+    if ((ownerType === 'role' || ownerType === 'person' || ownerType === 'org') && ownerId) {
       rows.push([moduleId, { ownerType, ownerId }]);
     }
   });

@@ -9,17 +9,17 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from './runtime.js?v=20260921p';
-import { NoticeStore } from './notice.js?v=20260921p';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260921p';
-import { ROLE_LABELS } from '../core/constants.js?v=20260921p';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260921p';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule } from '../core/work-map.js?v=20260921p';
-import { getPersonName } from './person.js?v=20260921p';
-import { AuthStore } from './auth.js?v=20260921p';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260921p';
-import { fetchVotesStrict } from './committee-vote.js?v=20260921p';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260921p';
+import { BranchService } from './runtime.js?v=20260922a';
+import { NoticeStore } from './notice.js?v=20260922a';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260922a';
+import { ROLE_LABELS } from '../core/constants.js?v=20260922a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260922a';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../core/work-map.js?v=20260922a';
+import { getPersonName } from './person.js?v=20260922a';
+import { AuthStore } from './auth.js?v=20260922a';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260922a';
+import { fetchVotesStrict } from './committee-vote.js?v=20260922a';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260922a';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -71,11 +71,12 @@ function currentPersonId() {
   return AuthStore.getCurrentUser()?.personId || AuthStore.getCurrentUser()?.id || null;
 }
 
-/** 目标 owner 显示名（role → 角色名；person → 姓名；none → 不开展） */
+/** 目标 owner 显示名（role → 角色名；person → 姓名；org → 组织型主体名；none → 不开展） */
 export function ownerDisplay(assign) {
   if (!assign) return '未分工';
   if (assign.ownerType === 'none') return '不开展（停用）';
   if (assign.ownerType === 'person') return getPersonName(assign.ownerId) || assign.ownerId;
+  if (assign.ownerType === 'org') return ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId;
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
@@ -207,7 +208,8 @@ const DUTY_DOMAIN = {
  * 分工自动传递（2026-09-13 支书裁定「通过线上的调整实现信息和任务的算法自动传递」）：
  * 采纳后按**本次实际改派**的负责人逐条派生「履职」待办——
  *   · 到人（ownerType='person'）→ personId 命中该成员待办页；
- *   · 角色（ownerType='role'）→ 记 role，由该角色工作台待办页承接（并在通知侧 actionRoles 定向）。
+ *   · 角色（ownerType='role'）→ 记 role，由该角色工作台待办页承接（并在通知侧 actionRoles 定向）；
+ *   · 组织型主体（ownerType='org'，如支委会）→ **不派生到人待办**（它没有登录身份，见 core/work-map.js::ORG_SUBJECTS）。
  * 停用（'none'）不派生。幂等：sourceId = `<activityId>:<moduleId>`，重复采纳不重复派生。
  */
 function _deriveDutyTodos(activityId, proposal) {
@@ -216,7 +218,7 @@ function _deriveDutyTodos(activityId, proposal) {
     const items = [];
     for (const c of Array.isArray(proposal) ? proposal : []) {
       const to = c && c.to;
-      if (!to || to.ownerType === 'none') continue;
+      if (!to || to.ownerType === 'none' || to.ownerType === 'org') continue;
       const name = moduleName(c.moduleId);
       const sourceId = `${activityId}:${c.moduleId}`;
       if (existing.has(sourceId)) continue;

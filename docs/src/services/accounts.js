@@ -15,7 +15,7 @@
 //  依赖：mock/accounts.js（叶子数据模块）——无 DOM；localStorage 惰性访问。
 // ════════════════════════════════════════════════════════════════
 
-import { MOCK_ACCOUNTS } from '../mock/accounts.js?v=20260921p';
+import { MOCK_ACCOUNTS } from '../mock/accounts.js?v=20260922a';
 
 /** 可持久化账号层 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子） */
 export const ACCOUNTS_KEY = 'gsm1921-accounts';

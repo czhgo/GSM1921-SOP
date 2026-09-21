@@ -1,5 +1,5 @@
 // server/test/work-map.test.mjs — L4 支部工作地图 M0/M1（2026-09-03）
-// 覆盖：① 模块目录 11 项（支书裁决）唯一性/缺省主责 ∈ 角色枚举；② expandWorkforce 快照展开；
+// 覆盖：① 模块目录 11 项（支书裁决）唯一性/缺省主责 ∈ 角色键 ∪ 组织型主体（见 ORG_SUBJECTS）；② expandWorkforce 快照展开；
 //       ③ sanitizeConfigWorkforce 净化（未知模块/非法 owner 丢弃，null=恢复默认）；
 //       ④ HTTP PATCH /branches/:id/config 写 config.workforce（支书登录；含净化与恢复默认）。
 import { test, before, after } from 'node:test';
@@ -8,9 +8,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
-} from '../../docs/src/core/work-map.js?v=20260921p';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260921p';
-import { ROLE_KEYS } from '../../docs/src/core/constants.js?v=20260921p';
+  ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
+} from '../../docs/src/core/work-map.js?v=20260922a';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922a';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922a';
 
 let server, base, token;
 
@@ -32,14 +33,32 @@ before(async () => {
 
 after(() => { server.close(); });
 
-test('模块目录：11 项（支书裁决），id 唯一，缺省主责 ∈ ROLE_KEYS', () => {
+test('模块目录：11 项（支书裁决），id 唯一，缺省主责 ∈ 角色键 ∪ 组织型主体', () => {
   assert.equal(WORK_MAP_MODULES.length, 11);
   assert.equal(new Set(WORK_MAP_IDS).size, 11);
   const keys = new Set(ROLE_KEYS);
   for (const m of WORK_MAP_MODULES) {
-    assert.ok(keys.has(m.defaultOwner), `模块「${m.id}」缺省主责「${m.defaultOwner}」不在角色枚举`);
+    assert.ok(keys.has(m.defaultOwner) || isOrgSubject(m.defaultOwner),
+      `模块「${m.id}」缺省主责「${m.defaultOwner}」既不在角色枚举、也不是组织型主体`);
   }
   assert.equal(Object.keys(WORK_MAP_DEFAULT).length, 11);
+});
+
+test('组织型主体＝「类似法人」不是自然人（批次 141）：取值与角色键不重叠、不进 ROLE_KEYS / 身份→页面映射；两模块缺省主责＝支委会', () => {
+  assert.deepEqual(ORG_SUBJECT_IDS, ['branch-committee']);
+  assert.equal(ORG_SUBJECT_LABELS['branch-committee'], '支委会');
+  const keySet = new Set(ROLE_KEYS);
+  const pageMaps = Object.values(ROLE_PAGE_MAP);
+  for (const id of ORG_SUBJECT_IDS) {
+    assert.equal(keySet.has(id), false, `组织型主体「${id}」不得出现在 ROLE_KEYS（那就成了给一个人加头衔）`);
+    for (const map of pageMaps) {
+      assert.equal(id in map, false, `组织型主体「${id}」不得出现在身份→页面映射里（不能当登录身份）`);
+    }
+  }
+  // 缺省主责改准：两个模块＝支委会；经 expandWorkforce 兜底展开为 ownerType:'org'
+  const dflt = expandWorkforce(null);
+  assert.deepEqual(dflt['feedback-handling'], { ownerType: 'org', ownerId: 'branch-committee' });
+  assert.deepEqual(dflt['rule-making'], { ownerType: 'org', ownerId: 'branch-committee' });
 });
 
 test('expandWorkforce：null → 全缺省 role；覆盖 person 项保留、其余兜底缺省', () => {
@@ -57,10 +76,12 @@ test('mergeWorkforceSnapshot：按改派清单合并，未涉及模块原样保�
   const snapshot = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
   const merged = mergeWorkforceSnapshot(snapshot, [
     { moduleId: 'theme-party', to: { ownerType: 'role', ownerId: 'deputy-secretary' } },
+    { moduleId: 'feedback-handling', to: { ownerType: 'org', ownerId: 'branch-committee' } }, // 组织型主体位
     { moduleId: 'not-a-module', to: { ownerType: 'person', ownerId: 'p5' } }, // 未知模块 → 忽略
   ]);
   assert.equal(Object.keys(merged).length, 11);
   assert.deepEqual(merged['theme-party'], { ownerType: 'role', ownerId: 'deputy-secretary' });
+  assert.deepEqual(merged['feedback-handling'], { ownerType: 'org', ownerId: 'branch-committee' });
   assert.deepEqual(merged['develop-party-member'], { ownerType: 'person', ownerId: 'p14' }); // 既有 person 保留
   assert.equal(merged['taskforce'].ownerType, 'role'); // 未涉及 → 缺省
   assert.equal(merged['not-a-module'], undefined);
@@ -71,11 +92,15 @@ test('sanitizeConfigWorkforce：null→null；合法保留；未知模块/非法
   assert.deepEqual(
     sanitizeConfigWorkforce({
       'theme-party': { ownerType: 'person', ownerId: 'p14' },
+      'rule-making': { ownerType: 'org', ownerId: 'branch-committee' }, // 组织型主体位 → 合法保留
       'not-a-module': { ownerType: 'role', ownerId: 'secretary' }, // 未知模块 → 丢
       'taskforce': { ownerType: 'nobody', ownerId: 'x' },           // 非法 ownerType → 丢
       'election': { ownerType: 'role', ownerId: '' },               // 空 ownerId → 丢
     }),
-    { 'theme-party': { ownerType: 'person', ownerId: 'p14' } },
+    {
+      'theme-party': { ownerType: 'person', ownerId: 'p14' },
+      'rule-making': { ownerType: 'org', ownerId: 'branch-committee' },
+    },
   );
   assert.deepEqual(sanitizeConfigWorkforce([]), {});
 });

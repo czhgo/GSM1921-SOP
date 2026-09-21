@@ -7,14 +7,14 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260921p';
+import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260922a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from './policy-defaults.js?v=20260921p';
+} from './policy-defaults.js?v=20260922a';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -53,8 +53,10 @@ export function sanitizeConfigModules(modules, { coreIds = new Set() } = {}) {
 
 /**
  * 净化 config.workforce（L4 支部分工；null=恢复默认缺省分工）
- * 只保留 WORK_MAP_IDS 内的模块键；每项 { ownerType∈{role,person}, ownerId: 非空字符串 ≤80 }。
- * 语义校验（ownerId 是否真实角色/成员）由 service/UI 层负责，此处只做形状防脏注入。
+ * 只保留 WORK_MAP_IDS 内的模块键；每项 { ownerType∈{role,person,org}, ownerId: 非空字符串 ≤80 }。
+ * `org` ＝**组织型主体**（见 `work-map.js::ORG_SUBJECTS`，如 `branch-committee`＝支委会：类似法人、
+ *   不是自然人、不是角色键，**不能当登录身份**）；语义校验（ownerId 是否真实角色 / 成员 / 组织主体）
+ *   由 service/UI 层负责，此处只做形状防脏注入。
  */
 export function sanitizeConfigWorkforce(workforce) {
   if (workforce === null) return null;
@@ -70,7 +72,7 @@ export function sanitizeConfigWorkforce(workforce) {
       if (canDisableModule(moduleId)) out[moduleId] = { ownerType: 'none', ownerId: '' };
       continue;
     }
-    if ((ownerType === 'role' || ownerType === 'person') &&
+    if ((ownerType === 'role' || ownerType === 'person' || ownerType === 'org') &&
         typeof ownerId === 'string' && ownerId && ownerId.length <= MAX_ID_LEN) {
       out[moduleId] = { ownerType, ownerId };
     }
