@@ -7,7 +7,9 @@
 // 口径与数据源（全部在可改消费方计算；services/roster.js 属禁改清单——只读复用其导出函数，
 //   组数据在成员档案 PersonStore.getMembers() 的 partyGroup 上聚合）：
 //   - 组清单：members.partyGroup 去重（保留档案出现顺序；过滤空组与跨支部非本支部成员）；
-//     组长 = 组内 role 'leader' 成员（党小组组长；无则 leaderId=null）；
+//     组长 = 组内 role 'leader' 成员（党小组组长）；**组长优先、无组长时才回落 role 'deputy-leader'**
+//     （副组长，次选——2026-09-21 批次 139 `D-571`，支书口径第 ① 层「任务优先打给组长」）；
+//     两者都无则 leaderId=null；
 //   - 组内党员数：developStage ∈ policy partyStages（roster isPartyMember 同源，含滞留党员——
 //     党员身份口径，滞留仅影响「应到」不影响身份）；
 //   - 待答复汇报数（开放数）：本组「组员」发起的 kind='report' 且 open 的 issues 数（issues.js
@@ -21,9 +23,9 @@
 //   localStorage 仅在成员档案读链内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from './person.js?v=20260921o';
-import { isPartyMember } from './roster.js?v=20260921o';
-import { ReviewStatus } from '../core/domain.js?v=20260921o';
+import { PersonStore } from './person.js?v=20260921p';
+import { isPartyMember } from './roster.js?v=20260921p';
+import { ReviewStatus } from '../core/domain.js?v=20260921p';
 
 /**
  * 支部内党小组清单（数据驱动：成员档案 partyGroup 聚合，缺省走 PersonStore 当前档案）
@@ -39,25 +41,29 @@ export function listPartyGroups({ members, branchId } = {}) {
     .filter(p => p && String(p.partyGroup || '').trim())
     .filter(p => !branchId || (p.branchId || 'br-b1') === branchId);
   const order = [];
-  const acc = new Map(); // groupName → { memberIds, leaderId }
+  const acc = new Map(); // groupName → { memberIds, leaderId, deputyLeaderId }
   for (const p of list) {
     const g = String(p.partyGroup).trim();
     if (!acc.has(g)) {
-      acc.set(g, { groupName: g, memberIds: [], leaderId: null });
+      acc.set(g, { groupName: g, memberIds: [], leaderId: null, deputyLeaderId: null });
       order.push(g);
     }
     const e = acc.get(g);
     e.memberIds.push(p.id);
+    // 组长 / 副组长**分开记**（2026-09-21 批次 139 · `D-571`，支书口径第 ① 层「任务优先打给组长」）：
+    // 本格（本组组长位）**只先取 `leader`**；**仅当组内无组长**时才回落 `deputy-leader`（次选）。
     if (!e.leaderId && p.role === 'leader') e.leaderId = p.id;
+    else if (!e.deputyLeaderId && p.role === 'deputy-leader') e.deputyLeaderId = p.id;
   }
   return order.map(g => {
     const e = acc.get(g);
+    const leaderId = e.leaderId || e.deputyLeaderId; // 组长优先；无组长才回落副组长（次选）
     const partyMemberIds = list
       .filter(p => p.partyGroup === g && isPartyMember(p))
       .map(p => p.id);
     return {
       groupName: g,
-      leaderId: e.leaderId,
+      leaderId,
       memberIds: e.memberIds,
       partyMemberIds,
       memberCount: e.memberIds.length,

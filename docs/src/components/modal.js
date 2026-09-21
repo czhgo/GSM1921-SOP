@@ -26,6 +26,16 @@ const _escHandlers = new Map();
 // 浮窗里手写的那条页脚深链收进本组件做**单一源**——位置固定在浮窗**页脚**（`.modal-body` 之外，
 // 切步骤/切换内容不消失），各调用点只传 `settingsLink`（href + 文案），不再各写一套 DOM。
 // 未传者不渲染（确认 / 删除类浮窗不加，避免噪声）。
+// 2026-09-21 批次 139：把「浮窗页脚那条相关设置深链」的**标记**抽成本导出——单一源供两类浮窗共用：
+//   ① 本组件自身的 `openModal`（常规浮窗）；② **自建浮层**（不走本组件、自持 body 的那种，见
+//   `entries/tabs/prop/archive-tab.js` 的上传浮层）——它只需在自己的页脚插入本函数的结果，
+//   不必复制一份 HTML（避免"同一段标记两处各写一套"）。文案与样式与批次 99 手写那条逐字同款。
+export function settingsLinkHTML(settingsLink) {
+  return settingsLink
+    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent,#B91C1C);text-decoration:underline;">${settingsLink.text}</a></div>`
+    : '';
+}
+
 export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6', settingsLink = null }) {
   // 关闭已有同 id 浮窗
   closeModal(id);
@@ -37,9 +47,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   const panel = document.createElement('div');
   panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:var(--surface-card);border-radius:var(--radius-md);box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
 
-  const settingsHTML = settingsLink
-    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent,#B91C1C);text-decoration:underline;">${settingsLink.text}</a></div>`
-    : '';
+  const settingsHTML = settingsLinkHTML(settingsLink);
 
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">

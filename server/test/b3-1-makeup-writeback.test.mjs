@@ -24,9 +24,9 @@ await p.waitForTimeout(3000);
 // 2. 注入合成补课任务（指向 att38 = ABSENT），持久化
 await p.evaluate(async () => {
   // 版本串与全库一致（20260901c）：import 页面主模块实例（不一致会注入孤儿实例，页面读不到）
-  const { mockDB } = await import('/src/core/domain.js?v=20260921o');
-  const { persist } = await import('/src/core/data-adapter.js?v=20260921o');
-  const { loadAttendanceRecords, saveAttendanceRecords } = await import('/src/services/attendance.js?v=20260921o');
+  const { mockDB } = await import('/src/core/domain.js?v=20260921p');
+  const { persist } = await import('/src/core/data-adapter.js?v=20260921p');
+  const { loadAttendanceRecords, saveAttendanceRecords } = await import('/src/services/attendance.js?v=20260921p');
   // R-5 测试隔离（自重置前置态）：把 att38 回「未补课/逾期」初态，使回写分支每次都真实执行。
   // 不依赖共享 data.db 上一轮残留——上轮已 made_up 时回写会被服务端守卫短路（rec.status 非
   // ABSENT/LEAVE），断言退化为恒真；loadAttendanceRecords 在库为空时回退演示种子，保证可重置。
@@ -76,7 +76,7 @@ if (taskVisible) {
 
 // 5. 验证 att38 回写为 made_up
 const st = await p.evaluate(async () => {
-  const { mockDB } = await import('/src/core/domain.js?v=20260921o');
+  const { mockDB } = await import('/src/core/domain.js?v=20260921p');
   const att = mockDB.attendances.find(r => r.id === 'att38');
   const task = (mockDB.makeupTasks || []).find(t => t.id === 'mk_b31_test');
   return { attStatus: att ? att.status : 'missing', taskStatus: task ? task.status : 'missing', attOverdue: att ? att.overdue : null };

@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921o';
-import { PEOPLE } from '../mock/index.js?v=20260921o';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260921p';
+import { PEOPLE } from '../mock/index.js?v=20260921p';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20260921o';
-import { getPersonById, getPersonName } from './person.js?v=20260921o';
-import { mockDB } from '../core/domain.js?v=20260921o';
-import { NoticeStore } from './notice.js?v=20260921o';
-import { updateActivity } from './mock.js?v=20260921o';
-import { TaskForceRecordStore } from './taskforce.js?v=20260921o';
-import { persist } from '../core/data-adapter.js?v=20260921o';
-import { enableApiMode } from './runtime.js?v=20260921o';
-import { generateId } from '../core/id.js?v=20260921o';
+import { verifyLogin } from './accounts.js?v=20260921p';
+import { getPersonById, getPersonName } from './person.js?v=20260921p';
+import { mockDB } from '../core/domain.js?v=20260921p';
+import { NoticeStore } from './notice.js?v=20260921p';
+import { updateActivity } from './mock.js?v=20260921p';
+import { TaskForceRecordStore } from './taskforce.js?v=20260921p';
+import { persist } from '../core/data-adapter.js?v=20260921p';
+import { enableApiMode } from './runtime.js?v=20260921p';
+import { generateId } from '../core/id.js?v=20260921p';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -99,8 +99,8 @@ const PROJECT_PERMISSIONS = {
 //   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
 // 注: 支委（支书/副支书/三委员）由配置文件预设，不在系统赋权范围内
 const AUTHORIZE_CHAIN = {
-  'secretary':         ['leader', 'organizer', 'deep'],
-  'deputy-secretary':  ['leader', 'organizer', 'deep'],
+  'secretary':         ['leader', 'deputy-leader', 'organizer', 'deep'],
+  'deputy-secretary':  ['leader', 'deputy-leader', 'organizer', 'deep'],
   'org-commissioner':  ['organizer', 'deep'],
   'leader':            ['organizer', 'deep'],
   'organizer':         ['deep'],
@@ -115,12 +115,12 @@ const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 // ── 获取用户的常设角色 ──────────────────────────
 // 优先级: 赋权记录 > mock 数据
 function _getUserRoleFromMemory(personId) {
-  // 1. 检查赋权记录（组长由支委赋权）——取最新一条判定（revoke 追加语义）
+  // 1. 检查赋权记录（组长 / 副组长由支委赋权）——取最新一条判定（revoke 追加语义）
   const records = _getAuthRecords();
-  const leaderRecs = records.filter(r => r.targetPersonId === personId && r.role === 'leader');
-  if (leaderRecs.length > 0) {
-    const latest = leaderRecs[leaderRecs.length - 1]; // 数组顺序即时间顺序
-    if (latest.action !== 'revoke') return 'leader';
+  const groupRecs = records.filter(r => r.targetPersonId === personId && (r.role === 'leader' || r.role === 'deputy-leader'));
+  if (groupRecs.length > 0) {
+    const latest = groupRecs[groupRecs.length - 1]; // 数组顺序即时间顺序（批次 139：组正 / 副同取更晚一条）
+    if (latest.action !== 'revoke') return latest.role;
   }
 
   // 2. 检查 mock 数据（新格式: role 单一值）
@@ -749,3 +749,15 @@ export const AuthStore = {
     return COMMISSIONER_ROLES.has(role);
   },
 };
+
+// ════════════════════════════════════════════════════════════════
+//  副组长键的权限 / 赋权链（2026-09-21 批次 139 · 裁定 `D-571`，系照支书 2026-09-21 口径落）
+// ════════════════════════════════════════════════════════════════
+// 支书口径第 ③ 层：「我们并不像〔想〕给组长和副组长明确分工，而由他们自己探讨分工。所以设定了两者同样
+//   的工作台。但是后台还是知道谁是组长，谁是副组长的」⇒ **系统不硬切分正副职责**：副组长的权限集与
+//   赋权链**与同组组长同一份**（同一数组引用，未复制第二份，避免两处维护走偏）。
+// ⚠ 为什么不写进上方 ROLE_PERMISSIONS / AUTHORIZE_CHAIN 字面量：`README-server.md` 按**行号**逐个引用
+//   本文件的角色行与 `:90-106` / `:474-493`，插行会整体漂移（本批不许改 README）⇒ 集中在文件末挂载。
+// 消费方：`AuthStore.canDo`（权限集）/ `AuthStore.authorize`（赋权链）/ `_getUserRoleFromMemory`（读回角色）。
+ROLE_PERMISSIONS['deputy-leader'] = ROLE_PERMISSIONS['leader'];
+AUTHORIZE_CHAIN['deputy-leader'] = AUTHORIZE_CHAIN['leader'];

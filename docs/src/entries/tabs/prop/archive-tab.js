@@ -2,24 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260921o';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260921o';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260921o';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260921o';
-import { mockDB } from '../../../core/domain.js?v=20260921o';
-import { bumpToken } from '../../../core/version-token.js?v=20260921o'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260921o';
-import { isApiMode } from '../../../services/runtime.js?v=20260921o';
-import { AuthStore } from '../../../services/auth.js?v=20260921o';
-import { getPersonName } from '../../../services/person.js?v=20260921o';
-import { generateId } from '../../../core/id.js?v=20260921o';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260921o';
+import { icon } from '../../../core/icons.js?v=20260921p';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260921p';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260921p';
+// 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/modal.js），页脚那条「相关设置」
+//   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
+import { settingsLinkHTML } from '../../../components/modal.js?v=20260921p';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260921p';
+import { mockDB } from '../../../core/domain.js?v=20260921p';
+import { bumpToken } from '../../../core/version-token.js?v=20260921p'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260921p';
+import { isApiMode } from '../../../services/runtime.js?v=20260921p';
+import { AuthStore } from '../../../services/auth.js?v=20260921p';
+import { getPersonName } from '../../../services/person.js?v=20260921p';
+import { generateId } from '../../../core/id.js?v=20260921p';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260921p';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260921o';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260921p';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260921o';
+import { BranchService } from '../../../services/runtime.js?v=20260921p';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260921o';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260921p';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -704,6 +707,7 @@ function _showArchiveUploadModal(ctx) {
       <button id="upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
       <button id="upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">上传</button>
     </div>
+    ${settingsLinkHTML({ href: './settings.html', text: '设置首页（宣传台无支部治理分区）' })}
   `;
 
   overlay.appendChild(card);

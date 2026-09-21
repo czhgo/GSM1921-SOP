@@ -6,17 +6,17 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/attendance.js?v=20260921o';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260921o';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921o';
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260921o';
-import { AuthStore } from '../../../services/auth.js?v=20260921o';
-import { openFormModal } from '../../../components/modal.js?v=20260921o';
-import { showToast } from '../../../core/utils.js?v=20260921o';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/attendance.js?v=20260921p';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260921p';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260921p';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260921p';
+import { AuthStore } from '../../../services/auth.js?v=20260921p';
+import { openFormModal } from '../../../components/modal.js?v=20260921p';
+import { showToast } from '../../../core/utils.js?v=20260921p';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/constants.js?v=20260921o';
+import { isActivityArchived } from '../../../core/constants.js?v=20260921p';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921o';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260921p';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -130,6 +130,9 @@ export function renderContent(ctx) {
     openFormModal({
       id: 'visitor-makeup-proof',
       title: `补课说明 · ${task.activityName || '缺勤活动'}`,
+      // 2026-09-21 批次 139：每台浮窗页脚一条「相关设置」深链——成员台**没有**支部治理分区
+      // （`settings-entry.js::GOVERNANCE_BY_ROLE` 只为支书/副支书与纪检/组织/组长发放），故指向设置首页。
+      settingsLink: { href: './settings.html', text: '设置首页（外观 / 我的工作台）' },
       fields: [{ key: 'proof', label: '补课说明（补课方式与心得要点）', type: 'textarea', required: true, placeholder: '如：已观看党课录像并撰写学习心得……' }],
       initialValues: { proof: task.proofContent || '' },
       submitLabel: '提交',

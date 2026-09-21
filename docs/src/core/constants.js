@@ -798,3 +798,27 @@ export const NOTICE_AUDIENCE_SENTINELS = {
 /** 发布表单受众选项（保持声明序；发布侧勿再手写 sentinel 列表） */
 export const NOTICE_AUDIENCE_OPTIONS = Object.entries(NOTICE_AUDIENCE_SENTINELS)
   .map(([value, d]) => ({ value, label: d.label }));
+
+// ════════════════════════════════════════════════════════════════
+//  「副组长」身份键（2026-09-21 批次 139 · 裁定 `D-571`，系照支书 2026-09-21 口径落）
+// ════════════════════════════════════════════════════════════════
+// 支书口径（逐字，四层）：「① 组长和副组长台子是一样的。但是任务优先打给 组长。② 目前第三组是副组长
+//   是因为机械地把 代组长替换成了 副组长。实际上，代组长是组长（不是副组长，代组长是因为他尚未转正，
+//   所以暂代组长职务）；③ 我们并不像给组长和副组长明确分工，而由他们自己探讨分工。所以设定了两者同样
+//   的工作台。但是后台还是知道谁是组长，谁是副组长的」。
+// ⇒ 落法：**两个可区分的身份**（`leader` / `deputy-leader`，后台据此分辨谁是组长、谁是副组长）·
+//   **同一套工作台**（`ROLE_PAGE_MAP.workspace` 两条都指 `leader.html`，不另做副组长的台）·
+//   **不硬切分正副职责**（权限集与组长同一份，见 `services/auth.js` 文件末同源挂载）·
+//   **任务优先打给组长**（凡按 `role === 'leader'` 解析的锚点〔履职待办派生 / 会议记录人 / 产出块负责人〕
+//   只落组长；「本组组长」这一格的解析单一源 `services/group-view.js::listPartyGroups` 组长优先、组内无
+//   组长时才回落副组长）。
+// ⚠ 为什么写在文件末而不写进上方各自的字面量：`README-server.md` 按**行号**引用本文件
+//   （`:106` → `ROLE_KEYS:185-191` · `ROLE_LABELS:288-302` · `ROLE_PAGE_MAP:306-318`），插行会使那些引用
+//   整体漂移、而后端照着找不到东西（本批**不许改 README**）⇒ 本批对四处表的扩展**集中在文件末挂载**，
+//   上方被引用的行号**零变动**。改这几张表时请维持此约定（或同批把 README 的行号一并改准）。
+ROLE_KEYS.push('deputy-leader');
+ROLE_LABELS['deputy-leader'] = '党小组副组长';
+ROLE_PAGE_MAP.workspace['deputy-leader'] = 'leader.html'; // 同组长一套工作台（同页同台）
+ROLE_COLORS['deputy-leader'] = { ...ROLE_COLORS.leader };
+ACCENT_COLORS['deputy-leader'] = { ...ACCENT_COLORS.leader };
+ROLE_THEME_CLASS['deputy-leader'] = ROLE_THEME_CLASS.leader;

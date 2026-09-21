@@ -2,8 +2,8 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../services/auth.js?v=20260921o';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260921o';
+import { AuthStore } from '../services/auth.js?v=20260921p';
+import { getAccentColors, solidAccentStyle, dotDarkVars } from '../core/constants.js?v=20260921p';
 
 // 已登录则直接跳转
 const user = AuthStore.getCurrentUser();
@@ -33,6 +33,8 @@ const DEV_CARDS = [
   { role: 'prop-commissioner', label: '宣传委员',     desc: '宣传档案' },
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },
+  // 2026-09-21 批次 139（D-571）：副组长＝与组长可区分的第二个身份、同一套工作台（任务优先给组长）
+  { role: 'deputy-leader',     label: '党小组副组长', desc: '同组长工作台 · 任务优先给组长' },
   { role: 'participant',       label: '普通参与者',   desc: '查看信息' },
 ];
 
