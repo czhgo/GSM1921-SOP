@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-14"
+last_updated: "2026-09-22"
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -13,6 +13,8 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 > **已落地 2026-09-04**：本设计已实现（代码：docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js；测试：server/test/work-map.test.mjs 绿）；本文档继续承担设计论证档案。
 
 > **2026-09-03 支书裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」支书台入口 + 支委会议题生效（可会前草稿）**全链路放行**。（裁决出处见 2026-09-03 执行日志 `.ctx/logs/2026-09-EXECUTION_LOG.md`；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号）
+
+> ⚠ **模块数现为 14 项**（2026-09-22 批次 145 把「三会一课」按形式拆为 4 个模块）：**本文其余各处写「11 项 / 11 模块」的，均为 2026-09-03 当时的沿革、不再代表现状**；模块目录的现状以 `docs/src/core/work-map.js` 与 `README-server.md §3.5` 为准。
 
 > **定位**：支部工作的组织视图与分工载体。支书 2026-09-03 三重命令：
 > ① **党建/党务二分已取消**（全仓废止，本稿不再出现该表达）；

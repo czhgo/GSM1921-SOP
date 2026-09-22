@@ -541,13 +541,13 @@
 |---|---|---|
 | **来源 A**：`content/04_web_design/data/DATA_MODEL.md` §2.1–§2.29 | 系统**静态数据模型唯一权威源**的字段表（**34 张字段表**） | **331** |
 | **来源 B**：`server/db.js` / `server/routes/*.js` | **服务端专有表**（数据模型文档未列的 5 张）：`sessions`、`attachments`、`member_change_requests`、`committee_broadcasts`、`agenda_votes` | **39** |
-| **来源 C**：`docs/src/**` 的实际读写点（`core/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：**5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` **24**〔含制度链 3 个字段〕 · `archive_records` 11）**60** 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17）＝ **65** 条；**另新纳入 9 条**——意见反馈「事项领域」`domain` 1 条（§4.16）· 活动主源 `signupClosed` 与「品牌认定」留痕 8 个字段（§4.1）（**共 9 条，均系近期批次（123 / 126 / 129 / 132）落地、`DATA_MODEL.md` 字段表未列**） | **74** |
-| **合计** | 本文写入字段条目数 | **444** |
+| **来源 C**：`docs/src/**` 的实际读写点（`core/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：**5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` **24**〔含制度链 3 个字段〕 · `archive_records` 13）**62** 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17）＝ **67** 条；**另新纳入 9 条**——意见反馈「事项领域」`domain` 1 条（§4.16）· 活动主源 `signupClosed` 与「品牌认定」留痕 8 个字段（§4.1）（**共 9 条，均系近期批次（123 / 126 / 129 / 132）落地、`DATA_MODEL.md` 字段表未列**） | **76** |
+| **合计** | 本文写入字段条目数 | **446** |
 
 - **来源 A 的粒度**＝DATA_MODEL.md 中「字段表」的**数据行数**（表头首列为「字段名」或「字段」的表）。源文档中有若干行把两个字段合写在一行（例如 `id / number`、`name / studentId / enrollYear`、`filePath / fileData`），本文**保持同样的行粒度**，故 `331` 可直接对上。
 - **来源 B 的 39 条**取自代码实际落库对象的字段并集（含各状态分支追加的字段）。
-- **来源 C 的 74 条**（2026-09-19 批次 98 补；**2026-09-20 批次 111 改准**：原 69 条里「活动主记录 7 个字段」已随本批补入 `DATA_MODEL.md` §2.1 而转入来源 A；**2026-09-21 批次 133 再改准**：`branch_docs` 由 21 增至 24（制度链 3 个字段）、并新纳入意见反馈 `domain` 与活动主源 `signupClosed` / 品牌认定留痕 7 个字段，共 12 条）＝**以代码为准穷举 db.js 的 35 张资源表后，发现来源 A/B 两处都没有字段级说明的那几块**：**在资源名映射内、却一直没有字段节的 5 张表**（`signups` / `prop_tasks` / `external_dispatches` / `branch_docs` / `archive_records`，见 §4.39–§4.42 与 §4.44）；**子记录聚合表的存储外壳**（`act_sub_records` / `tf_sub_records`，见 §4.43）；**支书复核标记 `secretaryConfirmedAt`**（落在考勤 / 考察 / 复盘三个实体上，见 §4.5 / §4.6 / §4.17）；以及**近期批次新写入而 `DATA_MODEL.md` 未列的字段**（意见反馈 `domain` §4.16 · 制度链 `reviewResult` / `reviewNote` / `reportToPartyMeeting` §4.42 · 活动 `signupClosed` 与品牌认定留痕 §4.1）。**这 74 条都逐条给了代码出处**，后端建模时不能漏。
-- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 444 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
+- **来源 C 的 76 条**（2026-09-19 批次 98 补；**2026-09-20 批次 111 改准**：原 69 条里「活动主记录 7 个字段」已随本批补入 `DATA_MODEL.md` §2.1 而转入来源 A；**2026-09-21 批次 133 再改准**：`branch_docs` 由 21 增至 24（制度链 3 个字段）、并新纳入意见反馈 `domain` 与活动主源 `signupClosed` / 品牌认定留痕 7 个字段，共 12 条；**2026-09-22 批次 146 再改准**：`archive_records` 由 11 增至 13——2026-09-22 批次 145 给归档记录补党建平台上报留痕 `platformReportedAt` / `platformReportedBy` 两个字段）＝**以代码为准穷举 db.js 的 35 张资源表后，发现来源 A/B 两处都没有字段级说明的那几块**：**在资源名映射内、却一直没有字段节的 5 张表**（`signups` / `prop_tasks` / `external_dispatches` / `branch_docs` / `archive_records`，见 §4.39–§4.42 与 §4.44）；**子记录聚合表的存储外壳**（`act_sub_records` / `tf_sub_records`，见 §4.43）；**支书复核标记 `secretaryConfirmedAt`**（落在考勤 / 考察 / 复盘三个实体上，见 §4.5 / §4.6 / §4.17）；以及**近期批次新写入而 `DATA_MODEL.md` 未列的字段**（意见反馈 `domain` §4.16 · 制度链 `reviewResult` / `reviewNote` / `reportToPartyMeeting` §4.42 · 活动 `signupClosed` 与品牌认定留痕 §4.1）。**这 76 条都逐条给了代码出处**，后端建模时不能漏。
+- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 446 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
 - **通用约定**：`id` 形如 `前缀-随机`（服务端缺 id 时自动补，前缀表见 §6.2）；时间字段统一 ISO 字符串；`YYYY-MM-DD` 为日期；枚举值未注明时即「有且仅有」所列取值。
 
 > **服务端表全表清单（共 35 张资源表 + 2 张关系表）**：35 张资源表的表名见 `server/db.js:9-42`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:45-57`）。其中 **30 张**在 `server/routes/resources.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
@@ -1458,9 +1458,11 @@
 | filePath | string | 否 | server 模式磁盘路径（下载走 `/api/v1/uploads/:name`） |
 | fileData | string | 否 | mock 模式 base64 dataURL |
 | secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**：支书台「一键确认」对「已归档」的档案写此销项 |
+| platformReportedAt | string（ISO） | 否 | **党建平台上报留痕**（2026-09-22 批次 145 补·来源 C）：宣传台「档案归档」行内「标记已上报党建平台」写入即留痕（**只留痕、不对接**——对接方为外部系统）；归档记录一行一类材料、同一活动可多行 ⇒ 留痕**按活动聚合**（写入时同活动全部记录同步）；无此字段＝未上报 |
+| platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同批写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:873-892`（运行时新建）、`docs/src/services/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources.js:44,161`。
+**依据**：`docs/src/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:873-892`（运行时新建）、`docs/src/entries/tabs/prop/archive-tab.js:448-485`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources.js:44,161`。
 
 ---
 
