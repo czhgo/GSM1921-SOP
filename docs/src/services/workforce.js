@@ -9,17 +9,17 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from './runtime.js?v=20260922d';
-import { NoticeStore } from './notice.js?v=20260922d';
-import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260922d';
-import { ROLE_LABELS } from '../core/constants.js?v=20260922d';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260922d';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../core/work-map.js?v=20260922d';
-import { getPersonName } from './person.js?v=20260922d';
-import { AuthStore } from './auth.js?v=20260922d';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260922d';
-import { fetchVotesStrict } from './committee-vote.js?v=20260922d';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260922d';
+import { BranchService } from './runtime.js?v=20260922e';
+import { NoticeStore } from './notice.js?v=20260922e';
+import { defaultVoteConfig, resolveVoterIds } from './vote-config.js?v=20260922e';
+import { ROLE_LABELS } from '../core/constants.js?v=20260922e';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260922e';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../core/work-map.js?v=20260922e';
+import { getPersonName } from './person.js?v=20260922e';
+import { AuthStore } from './auth.js?v=20260922e';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260922e';
+import { fetchVotesStrict } from './committee-vote.js?v=20260922e';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260922e';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -191,7 +191,12 @@ export async function adoptWorkforceProposal(branchId, activityId) {
 
 /** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY） */
 const DUTY_DOMAIN = {
-  'three-meetings': WORK_DOMAIN.MEETING,
+  // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/work-map.js 文件头），
+  //   四者均属会议域（`WORK_DOMAIN.MEETING`，与原 `three-meetings` 同域）。
+  'branch-party-meeting': WORK_DOMAIN.MEETING,
+  'branch-committee-meeting': WORK_DOMAIN.MEETING,
+  'party-group-meeting': WORK_DOMAIN.MEETING,
+  'party-lecture': WORK_DOMAIN.MEETING,
   'theme-party': WORK_DOMAIN.ACTIVITY,
   taskforce: WORK_DOMAIN.TASKFORCE,
   'joint-event': WORK_DOMAIN.ACTIVITY,

@@ -147,13 +147,13 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 772, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 776, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 824, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 828, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
   // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
   //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
   //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
   //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1168, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1220, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
   { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 138, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },

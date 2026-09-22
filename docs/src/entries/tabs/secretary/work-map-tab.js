@@ -4,20 +4,21 @@
 // 2026-09-14 批次 35（支书裁定「矩阵推广到其它二元关系域」）：本页扩为三视图——
 //   平铺模块（原卡视图，承载 desc/子项/产出完整信息）+ 按人 / 按项目（「人 × 工作项」宽表，二者互为转置）。
 //   宽表默认「按人」（与全站考勤/考察宽表默认同口径）；矩阵一律走单一源 relation-matrix.js（勿自造 table/翻页/横向滚动）。
-// 模块目录单一源 = core/work-map.js（11 项既有工作形式）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
+// 模块目录单一源 = core/work-map.js（14 项既有工作形式；「三会一课」已于 2026-09-22 批次 145 按形式
+//   拆为 4 个模块）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260922d';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/work-map.js?v=20260922d';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260922d';
-import { AuthStore } from '../../../services/auth.js?v=20260922d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260922d';
-import { getPersonName } from '../../../services/person.js?v=20260922d';
+import { escHtml as esc } from '../../../core/utils.js?v=20260922e';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/work-map.js?v=20260922e';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260922e';
+import { AuthStore } from '../../../services/auth.js?v=20260922e';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260922e';
+import { getPersonName } from '../../../services/person.js?v=20260922e';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922d';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922e';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260922d';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260922e';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 
@@ -29,7 +30,7 @@ function _ownerLabel(assign) {
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
-/** 视图 A：11 模块平铺卡（无分组、无泳道、无连线） */
+/** 视图 A：14 模块平铺卡（无分组、无泳道、无连线） */
 function _modulesHtml(workforce) {
   return `
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -86,7 +87,7 @@ function _renderMatrix(workforce) {
     persons,
     // 工作项维＝WORK_MAP_MODULES 模块目录原序（顺序即平铺视图 A 顺序，勿打乱）
     items: WORK_MAP_MODULES.map(m => ({ id: m.id, title: m.name, sub: (m.sub || []).join('·') })),
-    // 列上限 0＝不限：工作项是本支部 11 项固定目录（有界，单一源 core/work-map.js），
+    // 列上限 0＝不限：工作项是本支部 14 项固定目录（有界，单一源 core/work-map.js），
     // 不随年份累积，故不需要矩阵缺省的「最近 6 项」封顶
     colLimit: 0,
     cell: (personKey, moduleId) => {

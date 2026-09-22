@@ -2,6 +2,10 @@
 // ════════════════════════════════════════════════════════════════
 //  work-map.js — 支部工作地图模块目录（L4 v2.1 单一源，2026-09-03）
 //  支书裁决：11 项平铺放行（只列既有工作形式；无分类筐、无自造项、无党建/党务二分）。
+//  2026-09-22 批次 145：支书裁定「按『谁组织算谁』拆开（推荐）」——原「三会一课」单模块（含 4 子会、
+//    缺省主责一律写支书）按**形式**拆为 4 个模块（支部党员大会 / 支委会 / 党小组会 / 党课），逐个
+//    照母本《常见工作场景快速指南》`:157-160` 的「形式 → 负责人」表取齐（支书 / 支书 / 党小组组长 /
+//    支书）；「主题党日」主责同批由支书改准为**党小组组长**（母本 `:109`/`:93`）。⇒ 模块数 11 → **14**。
 //  模块归属与分工由支部自行建设（支书台「支部分工」），调整走支委会议题；
 //  本文件的 defaultOwner 仅是「缺省建议」（源自 SOP/职责表），config.workforce=null 时兜底展示。
 //  本文件纯 ESM 零依赖（浏览器 / node 测试双端可加载）。
@@ -36,7 +40,7 @@ export function ownerSubjectType(id) {
 }
 
 /**
- * 工作模块目录（顺序即平铺视图 A 的展示顺序；三会一课为单模块含 4 子会）
+ * 工作模块目录（顺序即平铺视图 A 的展示顺序；「三会一课」按形式拆为 4 个模块，见文件头）
  *
  * ⚠ 分层（tier，2026-09-13 支书裁定）：模块按「工作程序/规范」与「工作方法」分层——
  *   · `norm`  工作程序/党内统一规范：必办、须有人（不可停用），跨支部一致（三会一课/主题党日/
@@ -49,21 +53,56 @@ export function ownerSubjectType(id) {
  * @property {string} id        模块 id（config.workforce 键，全局唯一）
  * @property {string} name      模块名（用户可见）
  * @property {'norm'|'method'} tier 分层：工作程序/规范（norm）｜工作方法（method，可停用）
- * @property {string[]} [sub]   子项（三会一课 = 4 子会，标签沿用 ACTIVITY_CLASSIFICATION.subtypes）
+ * @property {string[]} [sub]   子项（标签沿用 ACTIVITY_CLASSIFICATION.subtypes；现无模块使用——「三会一课」已于 2026-09-22 批次 145 按形式拆为 4 个模块，保留本属性供调用方兼容）
  * @property {string} defaultOwner 缺省主责**主体引用**（角色键 或 组织型主体 id，见 `ORG_SUBJECTS`；SOP/职责表草案，支委会可改）
  * @property {string} desc      一句话说明（卡面文案）
  * @property {string[]} [outputs] 产出交接标签（考勤/考察/宣传/材料，对应活动/专班运行产出）
  */
 export const WORK_MAP_MODULES = [
   {
-    id: 'three-meetings', name: '三会一课', tier: 'norm', defaultOwner: 'secretary',
-    sub: ['支部党员大会', '支委会', '党小组会', '党课'],
-    desc: '支部会议制度：党员大会/支委会/党小组会/党课按频次召开，议程-记录-考勤完整',
+    id: 'branch-party-meeting', name: '支部党员大会', tier: 'norm', defaultOwner: 'secretary',
+    // 2026-09-22 批次 145 支书裁定「按『谁组织算谁』拆开（推荐）」：原「三会一课」单模块（含 4 子会、
+    //   缺省主责一律写『secretary』）按**形式**拆为 4 个模块，主责逐行照母本《常见工作场景快速指南》
+    //   `:157-160`「形式 → 负责人」表取齐（支部党员大会＝支书 / 支委会＝支书 / 党小组会＝党小组组长 /
+    //   党课＝支书）。本行＝支部党员大会（母本 `:157`）。
+    desc: '支部全体党员大会：讨论表决重大事项（刚性考勤，缺席或请假未参会须补课）；议程-记录-考勤完整',
     outputs: ['考勤', '宣传', '材料'],
   },
   {
-    id: 'theme-party', name: '主题党日', tier: 'norm', defaultOwner: 'secretary',
-    desc: '主题党日活动（含党小组主题党日；共建/外出/载体为正交维度），工作流块驱动',
+    id: 'branch-committee-meeting', name: '支委会', tier: 'norm', defaultOwner: 'secretary',
+    // 同上：本行＝支委会（母本 `:158`「支委会 ｜ 支书」；召集人亦是支书，`定人定责:198`「召集支委会 ｜ 支书」）。
+    //   ⚠ 这里的主责是「**开会**这件事归谁召集」，与**支委会作为审议主体**是两件事——后者是**组织型主体**
+    //   （`ORG_SUBJECTS['branch-committee']`，模块「发展党员」「意见反馈处理」「制度制定与迭代」的
+    //   `defaultOwner`）。本模块 id 刻意不取 `branch-committee`，正是免与那个组织型主体 id 混淆。
+    desc: '支委会会议：研究支部日常工作（支委会不考勤）；议程-记录完整',
+    outputs: ['宣传', '材料'],
+  },
+  {
+    id: 'party-group-meeting', name: '党小组会', tier: 'norm', defaultOwner: 'leader',
+    // 同上：本行＝党小组会（母本 `:159`「党小组会 ｜ 党小组组长」＋ `定人定责:228` §5.3「党小组会 ｜
+    //   主导者＝党小组组长」）⇒ 缺省主责记角色键 `leader`（本支部 3 个党小组，各归本组组长；缺省位只能
+    //   记一个主体引用，故记角色键、不记具体某组）。
+    desc: '党小组会：本组内部学习与交流（刚性考勤，不默认补课）；由本组组长主导',
+    outputs: ['考勤', '宣传', '材料'],
+  },
+  {
+    id: 'party-lecture', name: '党课', tier: 'norm', defaultOwner: 'secretary',
+    // 同上：本行＝党课（母本 `:160`「党课 …… 支书（通知/补课提醒）」）。党课从简——通知提前量不设
+    //   固定值，由组织者把握（`D-575` ③）；**考勤上传位在纪检委员**（`D-558`）——此处只是「组织与通知」
+    //   这一层的主责，不是考勤主责。
+    desc: '党课：系统性政治理论学习（通常由上级统一安排；通知与补课提醒归支书，考勤上传位在纪检委员）',
+    outputs: ['考勤', '宣传', '材料'],
+  },
+  {
+    id: 'theme-party', name: '主题党日', tier: 'norm', defaultOwner: 'leader',
+    // 2026-09-22 批次 145 改准 `defaultOwner`『secretary』→『leader』（同一条裁定「按谁组织算谁」）：
+    //   主题党日的负责人＝**组织者**（母本 `:109`/`:112` 负责人栏；`D-575` ③ 系统内 `1b-1` 的
+    //   `executor` 即 `'organizer'`），而『组织者』不是角色键、写不进主体引用；组织者按母本 `:93`
+    //   「活动由党小组组长写入」缺省落到**本组组长**（`定人定责:200-202` 三行「第一/二/三党小组活动
+    //   → 支书 / 副支书 / 代组长」＋ §5.3 `:230`「党小组活动 ｜ 主导者＝党小组组长」）⇒ 缺省主责记
+    //   `leader`（各党小组主题党日归本组组长）。⚠ 支部级 / 跨组的主题党日由支书发起（`指南:112`
+    //   「支书（跨组/全支部）」）——属**例外**，走支书台改派，不在此缺省。
+    desc: '主题党日活动（含党小组主题党日；共建/外出/载体为正交维度），工作流块驱动；本组组长组织、组织者担纲',
     outputs: ['考勤', '宣传', '材料'],
   },
   {
@@ -162,7 +201,7 @@ export const WORK_MAP_DEFAULT = Object.fromEntries(
 /**
  * 展开支部分工快照（纯）：config.workforce 覆盖项 + 缺省兜底其余模块
  * @param {Record<string,{ownerType:'role'|'person'|'org'|'none',ownerId:string}>|null} workforce
- * @returns {Record<string,{ownerType:'role'|'person'|'org'|'none',ownerId:string}>} 全 11 模块展开
+ * @returns {Record<string,{ownerType:'role'|'person'|'org'|'none',ownerId:string}>} 全 14 模块展开
  */
 export function expandWorkforce(workforce) {
   const out = {};

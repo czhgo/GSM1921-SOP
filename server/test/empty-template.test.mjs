@@ -14,11 +14,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922d';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922e';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
   createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
-} from '../../docs/src/services/branch.js?v=20260922d';
+} from '../../docs/src/services/branch.js?v=20260922e';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -52,7 +52,7 @@ function srcBranch() {
         workflowBlocks: { hiddenBlockIds: ['theme-day'] },
       },
       workforce: {
-        'three-meetings': { ownerType: 'role', ownerId: 'secretary' },
+        'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' },
         taskforce: { ownerType: 'role', ownerId: 'org-commissioner' },
       },
       accent: null,

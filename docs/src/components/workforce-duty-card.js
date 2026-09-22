@@ -4,19 +4,33 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../services/auth.js?v=20260922d';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260922d';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260922d';
-import { escHtml as esc } from '../core/utils.js?v=20260922d';
+import { AuthStore } from '../services/auth.js?v=20260922e';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260922e';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260922e';
+import { escHtml as esc } from '../core/utils.js?v=20260922e';
 
-/** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor） */
+/** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
+ *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/work-map.js），
+ *  三台各补 4 条同 tab 映射。 */
 const DUTY_TAB = {
-  secretary: { 'three-meetings': 'calendar', 'theme-party': 'calendar', 'joint-event': 'calendar' },
+  secretary: {
+    'branch-party-meeting': 'calendar', 'branch-committee-meeting': 'calendar',
+    'party-group-meeting': 'calendar', 'party-lecture': 'calendar',
+    'theme-party': 'calendar', 'joint-event': 'calendar',
+  },
   org: { taskforce: 'taskforce', 'develop-party-member': 'development', 'democratic-review': 'talent' },
   disc: { taskforce: 'tf-view', 'attendance-inspection': 'attendance', 'feedback-handling': 'my-dispatch' },
   prop: { 'info-platform': 'tasks', 'theme-party': 'kanban' },
-  leader: { 'three-meetings': 'write', 'theme-party': 'write', taskforce: 'tf-view', 'attendance-inspection': 'attendance' },
-  visitor: { 'three-meetings': 'activities', 'theme-party': 'activities', taskforce: 'projects' },
+  leader: {
+    'branch-party-meeting': 'write', 'branch-committee-meeting': 'write',
+    'party-group-meeting': 'write', 'party-lecture': 'write',
+    'theme-party': 'write', taskforce: 'tf-view', 'attendance-inspection': 'attendance',
+  },
+  visitor: {
+    'branch-party-meeting': 'activities', 'branch-committee-meeting': 'activities',
+    'party-group-meeting': 'activities', 'party-lecture': 'activities',
+    'theme-party': 'activities', taskforce: 'projects',
+  },
 };
 
 // 事件委托：点击 .wfd-duty（仅一次挂载，模块首次 import 时生效；node 环境无 document 跳过）

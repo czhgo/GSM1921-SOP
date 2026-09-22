@@ -1,5 +1,5 @@
 // server/test/work-map.test.mjs — L4 支部工作地图 M0/M1（2026-09-03）
-// 覆盖：① 模块目录 11 项（支书裁决）唯一性/缺省主责 ∈ 角色键 ∪ 组织型主体（见 ORG_SUBJECTS）；② expandWorkforce 快照展开；
+// 覆盖：① 模块目录 14 项（「三会一课」2026-09-22 批次 145 按形式拆为 4 个模块）唯一性/缺省主责 ∈ 角色键 ∪ 组织型主体（见 ORG_SUBJECTS）；② expandWorkforce 快照展开；
 //       ③ sanitizeConfigWorkforce 净化（未知模块/非法 owner 丢弃，null=恢复默认）；
 //       ④ HTTP PATCH /branches/:id/config 写 config.workforce（支书登录；含净化与恢复默认）。
 import { test, before, after } from 'node:test';
@@ -9,9 +9,9 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
-} from '../../docs/src/core/work-map.js?v=20260922d';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922d';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922d';
+} from '../../docs/src/core/work-map.js?v=20260922e';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922e';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922e';
 
 let server, base, token;
 
@@ -33,15 +33,21 @@ before(async () => {
 
 after(() => { server.close(); });
 
-test('模块目录：11 项（支书裁决），id 唯一，缺省主责 ∈ 角色键 ∪ 组织型主体', () => {
-  assert.equal(WORK_MAP_MODULES.length, 11);
-  assert.equal(new Set(WORK_MAP_IDS).size, 11);
+test('模块目录：14 项（「三会一课」批次 145 拆为 4 个模块），id 唯一，缺省主责 ∈ 角色键 ∪ 组织型主体', () => {
+  assert.equal(WORK_MAP_MODULES.length, 14);
+  assert.equal(new Set(WORK_MAP_IDS).size, 14);
   const keys = new Set(ROLE_KEYS);
   for (const m of WORK_MAP_MODULES) {
     assert.ok(keys.has(m.defaultOwner) || isOrgSubject(m.defaultOwner),
       `模块「${m.id}」缺省主责「${m.defaultOwner}」既不在角色枚举、也不是组织型主体`);
   }
-  assert.equal(Object.keys(WORK_MAP_DEFAULT).length, 11);
+  assert.equal(Object.keys(WORK_MAP_DEFAULT).length, 14);
+  // 批次 145 裁定「按谁组织算谁」的缺省主责：母本《常见工作场景快速指南》:157-160 逐形式取齐
+  assert.equal(WORK_MAP_DEFAULT['branch-party-meeting'], 'secretary');
+  assert.equal(WORK_MAP_DEFAULT['branch-committee-meeting'], 'secretary');
+  assert.equal(WORK_MAP_DEFAULT['party-group-meeting'], 'leader');   // 党小组会 → 党小组组长
+  assert.equal(WORK_MAP_DEFAULT['party-lecture'], 'secretary');
+  assert.equal(WORK_MAP_DEFAULT['theme-party'], 'leader');           // 主题党日 → 本组组长（组织者缺省）
 });
 
 test('组织型主体＝「类似法人」不是自然人（批次 141）：取值与角色键不重叠、不进 ROLE_KEYS / 身份→页面映射；两模块缺省主责＝支委会', () => {
@@ -63,7 +69,7 @@ test('组织型主体＝「类似法人」不是自然人（批次 141）：取�
 
 test('expandWorkforce：null → 全缺省（role / org）；覆盖 person 项保留、其余兜底缺省', () => {
   const dflt = expandWorkforce(null);
-  assert.equal(Object.keys(dflt).length, 11);
+  assert.equal(Object.keys(dflt).length, 14);
   // 发展党员缺省主责＝支委会（组织型主体，批次 144 依母本 §5.1 定人表＋D-300 改准）
   assert.equal(dflt['develop-party-member'].ownerType, 'org');
   assert.equal(dflt['develop-party-member'].ownerId, 'branch-committee');
@@ -80,7 +86,7 @@ test('mergeWorkforceSnapshot：按改派清单合并，未涉及模块原样保�
     { moduleId: 'feedback-handling', to: { ownerType: 'org', ownerId: 'branch-committee' } }, // 组织型主体位
     { moduleId: 'not-a-module', to: { ownerType: 'person', ownerId: 'p5' } }, // 未知模块 → 忽略
   ]);
-  assert.equal(Object.keys(merged).length, 11);
+  assert.equal(Object.keys(merged).length, 14);
   assert.deepEqual(merged['theme-party'], { ownerType: 'role', ownerId: 'deputy-secretary' });
   assert.deepEqual(merged['feedback-handling'], { ownerType: 'org', ownerId: 'branch-committee' });
   assert.deepEqual(merged['develop-party-member'], { ownerType: 'person', ownerId: 'p14' }); // 既有 person 保留
@@ -117,14 +123,14 @@ test('分层与停用（2026-09-13 支书裁定）：tier ∈ {norm,method}；�
   // merge：方法类停用生效；规范类停用被拦（仍为缺省负责人）
   const merged = mergeWorkforceSnapshot(expandWorkforce(null), [
     { moduleId: 'taskforce', to: { ownerType: 'none', ownerId: '' } },
-    { moduleId: 'three-meetings', to: { ownerType: 'none', ownerId: '' } },
+    { moduleId: 'branch-party-meeting', to: { ownerType: 'none', ownerId: '' } },
   ]);
   assert.deepEqual(merged.taskforce, { ownerType: 'none', ownerId: '' }, '方法类可停用');
-  assert.deepEqual(merged['three-meetings'], { ownerType: 'role', ownerId: 'secretary' }, '规范类必办：停用被拦');
+  assert.deepEqual(merged['branch-party-meeting'], { ownerType: 'role', ownerId: 'secretary' }, '规范类必办：停用被拦');
   // 落库净化：规范类停用被丢弃，方法类停用保留
   assert.deepEqual(
     sanitizeConfigWorkforce({
-      'three-meetings': { ownerType: 'none', ownerId: '' },
+      'branch-party-meeting': { ownerType: 'none', ownerId: '' },
       taskforce: { ownerType: 'none', ownerId: '' },
     }),
     { taskforce: { ownerType: 'none', ownerId: '' } },

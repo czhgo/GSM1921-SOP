@@ -10,12 +10,12 @@
 //  打回（事后反馈）、正文阅读均在该页完成，本 tab 不再行内展开。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listAllThoughtReports, comparePeriodDesc } from '../../../services/thought-report.js?v=20260922d';
-import { getPersonName, liveMembers } from '../../../services/person.js?v=20260922d';
-import { AuthStore } from '../../../services/auth.js?v=20260922d';
-import { escHtml as esc } from '../../../core/utils.js?v=20260922d';
+import { listAllThoughtReports, comparePeriodDesc } from '../../../services/thought-report.js?v=20260922e';
+import { getPersonName, liveMembers } from '../../../services/person.js?v=20260922e';
+import { AuthStore } from '../../../services/auth.js?v=20260922e';
+import { escHtml as esc } from '../../../core/utils.js?v=20260922e';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922d';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922e';
 
 // ── 审阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（无状态 / 状态非法 / 旧 'pending' → 已入库）

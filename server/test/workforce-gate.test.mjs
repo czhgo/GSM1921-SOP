@@ -7,8 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260922d';
-import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260922d';
+import { evaluateWorkforceVotes } from '../../docs/src/services/workforce.js?v=20260922e';
+import { mergeWorkforceSnapshot, expandWorkforce } from '../../docs/src/core/work-map.js?v=20260922e';
 
 const ROSTER = ['p1', 'p2', 'p3', 'p4', 'p5']; // 应到支委 5 人（演示）
 const v = (posArr) => posArr.map((position, i) => ({ personId: ROSTER[i], position }));
@@ -95,13 +95,13 @@ test('evaluateWorkforceVotes：应到外人员/重复人不计票', () => {
 });
 
 test('mergeWorkforceSnapshot：改派清单只覆盖目标模块，其余保持', () => {
-  const base = expandWorkforce(null); // 全缺省（11 模块 role owner）
+  const base = expandWorkforce(null); // 全缺省（14 模块 role / org owner）
   const next = mergeWorkforceSnapshot(base, [
     { moduleId: 'develop-party-member', to: { ownerType: 'person', ownerId: 'p3' } },
     { moduleId: 'taskforce', to: { ownerType: 'role', ownerId: 'secretary' } },
   ]);
   assert.deepEqual(next['develop-party-member'], { ownerType: 'person', ownerId: 'p3' });
   assert.deepEqual(next['taskforce'], { ownerType: 'role', ownerId: 'secretary' });
-  assert.equal(next['three-meetings'].ownerId, 'secretary'); // 未涉及模块原样
-  assert.equal(Object.keys(next).length, 11);
+  assert.equal(next['branch-party-meeting'].ownerId, 'secretary'); // 未涉及模块原样
+  assert.equal(Object.keys(next).length, 14);
 });

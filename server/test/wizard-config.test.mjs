@@ -30,15 +30,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922d';
-import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922d';
-import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch.js?v=20260922d';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922e';
+import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922e';
+import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch.js?v=20260922e';
 import {
   buildConfigPackage,
   applyConfigPackage,
   PACKAGE_KIND,
   PACKAGE_VERSION,
-} from '../../docs/src/services/org-config-package.js?v=20260922d';
+} from '../../docs/src/services/org-config-package.js?v=20260922e';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务在函数体内惰性访问）──
 const _store = new Map();
@@ -100,7 +100,7 @@ function srcBranch() {
         workflowBlocks: { hiddenBlockIds: ['theme-day'] },
       },
       workforce: {
-        'three-meetings': { ownerType: 'role', ownerId: 'secretary' },
+        'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' },
         taskforce: { ownerType: 'role', ownerId: 'org-commissioner' },
       },
       fileSpaceIsolated: true,
@@ -144,7 +144,7 @@ test('copy：源→单 target 生效（modules/blocks/workforce/org），逐 tar
     workflowBlocks: { hiddenBlockIds: ['theme-day'] },
   });
   assert.deepEqual(t1.config.workforce, {
-    'three-meetings': { ownerType: 'role', ownerId: 'secretary' },
+    'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' },
     taskforce: { ownerType: 'role', ownerId: 'org-commissioner' },
   });
   assert.equal(t1.config.fileSpaceIsolated, false, '未复制键原样保留（config 浅合并）');
@@ -347,7 +347,7 @@ test('apply：非法 modules id（非字符串/超长）与非法 workforce 项�
       workforce: {
         'not-a-module': { ownerType: 'role', ownerId: 'secretary' },
         taskforce: { ownerType: 'boss', ownerId: 'secretary' },   // ownerType 白名单外 → 丢弃
-        'three-meetings': { ownerType: 'role', ownerId: 'secretary' },
+        'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' },
       },
     },
   });
@@ -357,7 +357,7 @@ test('apply：非法 modules id（非字符串/超长）与非法 workforce 项�
   assert.deepEqual(tgt.config.modules.hiddenTabIds, ['ok-mod'], '非字符串/超长 id 被净化；tabOrder 非数组归空');
   assert.deepEqual(tgt.config.modules.tabOrder, []);
   assert.deepEqual(tgt.config.blocks.outputBlocks.hiddenBlockIds, ['pub-ok']);
-  assert.deepEqual(tgt.config.workforce, { 'three-meetings': { ownerType: 'role', ownerId: 'secretary' } }, '非法模块键/ownerType 丢弃');
+  assert.deepEqual(tgt.config.workforce, { 'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' } }, '非法模块键/ownerType 丢弃');
 });
 
 // ── i) 缺字段安全 ─────────────────────────────────────────

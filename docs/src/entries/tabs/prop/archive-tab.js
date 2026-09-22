@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260922d';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260922d';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260922d';
+import { icon } from '../../../core/icons.js?v=20260922e';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260922e';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260922e';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/modal.js?v=20260922d';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260922d';
-import { mockDB } from '../../../core/domain.js?v=20260922d';
-import { bumpToken } from '../../../core/version-token.js?v=20260922d'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260922d';
-import { isApiMode } from '../../../services/runtime.js?v=20260922d';
-import { AuthStore } from '../../../services/auth.js?v=20260922d';
-import { getPersonName } from '../../../services/person.js?v=20260922d';
-import { generateId } from '../../../core/id.js?v=20260922d';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260922d';
+import { settingsLinkHTML } from '../../../components/modal.js?v=20260922e';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260922e';
+import { mockDB } from '../../../core/domain.js?v=20260922e';
+import { bumpToken } from '../../../core/version-token.js?v=20260922e'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260922e';
+import { isApiMode } from '../../../services/runtime.js?v=20260922e';
+import { AuthStore } from '../../../services/auth.js?v=20260922e';
+import { getPersonName } from '../../../services/person.js?v=20260922e';
+import { generateId } from '../../../core/id.js?v=20260922e';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260922e';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260922d';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260922e';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260922d';
+import { BranchService } from '../../../services/runtime.js?v=20260922e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260922d';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260922e';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -214,6 +214,16 @@ export function renderContent(ctx) {
       _promptExternalDispatch(record.activityId, record.activityName, ctx, () => renderContent(ctx));
       return;
     }
+    // 2026-09-22 批次 145（支书裁定二）：党建平台上报留痕——与「标记已发送」并列的第二枚（只留痕、不对接）
+    const platformBtn = e.target.closest('.archive-platform-btn');
+    if (platformBtn) {
+      const record = _loadArchiveRecords().find(r => r.id === platformBtn.dataset.recordId);
+      if (!record) return;
+      _markPlatformReported(record);
+      showToast('success', '已留痕：该活动材料标记为已上报北京大学智慧党建平台');
+      renderContent(ctx);
+      return;
+    }
     const dlBtn = e.target.closest('.archive-file-dl-btn');
     if (dlBtn) {
       const record = _loadArchiveRecords().find(r => r.id === dlBtn.dataset.recordId);
@@ -400,6 +410,9 @@ function _archiveRowHtml(r) {
   const dispatchHtml = r.fileName
     ? _renderDispatchCell(r)
     : `<span class="text-[11px] text-gray-400 flex-shrink-0" title="「标记已发送」用于材料已通过微信/对外发出的留痕；需先上传材料后才可标记">上传材料后可标记外发</span>`;
+  // 2026-09-22 批次 145（支书裁定二「归档页补一个」）：党建平台上报留痕——与既有那枚「标记已发送（微信/对外）」
+  //   并列、两个动作分开记（母本 `宣传委员工作流程指南.md:49` 步 7；同文件 `:88` 周报步 4 已指周报页那枚）。
+  const platformHtml = _renderPlatformCell(r);
   // 实体条目可点（2026-09-12 支书裁定）：归档记录行关联活动 → 左区包一层活动详情深链
   //（复用既有深链 activity.html?id=，与待归档区/visitor 活动动态同源；行内操作按钮不受影响）
   const titleBlock = `
@@ -416,7 +429,7 @@ function _archiveRowHtml(r) {
   return `
     <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>
       ${leftBlock}
-      <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${dispatchHtml}${advanceBtn}</div>
+      <div class="flex items-center gap-2 flex-shrink-0">${fileBtn}${platformHtml}${dispatchHtml}${advanceBtn}</div>
     </div>`;
 }
 
@@ -430,6 +443,45 @@ function _renderDispatchCell(r) {
   }
   const confirmed = recs.some(d => d.confirmedAt);
   return `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
+}
+
+// ── 党建平台上报留痕（2026-09-22 批次 145 · 支书裁定二「归档页补一个（推荐）」）─────────────
+// 与既有「标记已发送（微信/对外）」并列、**两个动作分开记**：那枚管材料外发（`externalDispatches`），
+// 本枚管**报送北京大学智慧党建平台**的留痕。机制照**周报页同款**（`entries/tabs/prop/weekly-tab.js:242-243`）：
+//   落 `platformReportedAt` / `platformReportedBy` 两个字段、`persist()` 落库；**只留痕、不对接**
+//   （对接方是外部系统，本仓无接口）。归档记录一行一类材料、同一活动可多行 ⇒ 留痕**按活动聚合**
+//   （与上面那枚按 `refLabel='宣传材料：<活动名>'` 聚合同口径），行内只是呈现位。
+/** 活动聚合键（与「标记已发送」按活动名聚合同口径） */
+function _platformReportKey(r) {
+  return r.activityId || r.activityName || r.id;
+}
+
+/** 该活动是否已留痕；返回留痕所在记录（无则 null） */
+function _platformReportOf(r) {
+  const key = _platformReportKey(r);
+  return _loadArchiveRecords().find(x => _platformReportKey(x) === key && x.platformReportedAt) || null;
+}
+
+/** 行内单元：未留痕 → 行内按钮；已留痕 → 状态徽标（同周报页口径） */
+function _renderPlatformCell(r) {
+  const rec = _platformReportOf(r);
+  if (rec) {
+    return `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200 shrink-0" title="上报留痕：${(rec.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`;
+  }
+  return `<button class="archive-platform-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-violet-700 border border-violet-200 hover:bg-violet-50 transition-colors shrink-0" data-record-id="${r.id}" title="材料已报送北京大学智慧党建平台（党旗飘飘）时，在此留痕——只留痕、不对接" style="cursor:pointer;">标记已上报党建平台</button>`;
+}
+
+/** 标记「已上报党建平台」：写该活动的**全部**归档记录（同活动多行同步）＋ persist 落库 */
+function _markPlatformReported(record) {
+  const me = AuthStore.getCurrentUser();
+  const at = new Date().toISOString();
+  const by = (me && (me.personId || me.id)) || '';
+  const key = _platformReportKey(record);
+  for (const r of _loadArchiveRecords().filter(x => _platformReportKey(x) === key)) {
+    r.platformReportedAt = at;
+    r.platformReportedBy = by;
+  }
+  persist();
 }
 
 // ════════════════════════════════════════════════════════════════

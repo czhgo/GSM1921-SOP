@@ -508,25 +508,28 @@
 
 > **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain.js:266` 的 `handoffs` 域），但**服务端没有对应数据表**（见 §7）。
 
-### 3.5 支部分工模块目录（`config.workforce` 的键集，共 11 个）
+### 3.5 支部分工模块目录（`config.workforce` 的键集，共 14 个）
 
-> 后端若要写支部配置（§4.25 的 `config.workforce`），**键名只能是下列 11 个模块 id**；`null`＝全按缺省主责展示。模块分两层：`norm`（工作程序 / 党内统一规范，**必办、不可停用**）与 `method`（工作方法，本支部自选，**可停用**，停用以 `{ownerType:'none', ownerId:''}` 表示）。
+> 后端若要写支部配置（§4.25 的 `config.workforce`），**键名只能是下列 14 个模块 id**；`null`＝全按缺省主责展示。模块分两层：`norm`（工作程序 / 党内统一规范，**必办、不可停用**）与 `method`（工作方法，本支部自选，**可停用**，停用以 `{ownerType:'none', ownerId:''}` 表示）。
 
-| # | 模块 id（`config.workforce` 键） | 模块名 | 层 | 缺省主责角色 |
+| # | 模块 id（`config.workforce` 键） | 模块名 | 层 | 缺省主责主体 |
 |---|---|---|---|---|
-| 1 | `three-meetings` | 三会一课（含 4 子会） | norm | `secretary` |
-| 2 | `theme-party` | 主题党日 | norm | `secretary` |
-| 3 | `taskforce` | 专班 | method | `org-commissioner` |
-| 4 | `joint-event` | 共建活动 | method | `secretary` |
-| 5 | `develop-party-member` | 发展党员 | norm | `org-commissioner` |
-| 6 | `democratic-review` | 民主评议党员 | norm | `secretary` |
-| 7 | `election` | 换届选举 | norm | `secretary` |
-| 8 | `attendance-inspection` | 考勤考察 | norm | `disc-commissioner` |
-| 9 | `feedback-handling` | 意见反馈处理 | norm | `disc-commissioner` |
-| 10 | `rule-making` | 制度制定与迭代 | norm | `secretary` |
-| 11 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
+| 1 | `branch-party-meeting` | 支部党员大会 | norm | `secretary` |
+| 2 | `branch-committee-meeting` | 支委会 | norm | `secretary` |
+| 3 | `party-group-meeting` | 党小组会 | norm | `leader` |
+| 4 | `party-lecture` | 党课 | norm | `secretary` |
+| 5 | `theme-party` | 主题党日 | norm | `leader` |
+| 6 | `taskforce` | 专班 | method | `org-commissioner` |
+| 7 | `joint-event` | 共建活动 | method | `secretary` |
+| 8 | `develop-party-member` | 发展党员 | norm | `branch-committee` |
+| 9 | `democratic-review` | 民主评议党员 | norm | `secretary` |
+| 10 | `election` | 换届选举 | norm | `secretary` |
+| 11 | `attendance-inspection` | 考勤考察 | norm | `disc-commissioner` |
+| 12 | `feedback-handling` | 意见反馈处理 | norm | `branch-committee` |
+| 13 | `rule-making` | 制度制定与迭代 | norm | `branch-committee` |
+| 14 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
 
-**依据**：`docs/src/core/work-map.js:57-160`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
+**依据**：`docs/src/core/work-map.js`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。**「缺省主责主体」可取三类**：角色键（如上表各值）· 组织型主体 id（`branch-committee`＝支委会，**不是自然人、不能当登录身份**，见 `work-map.js::ORG_SUBJECTS`）· 到人（`ownerType:'person'`＋`personId`）。**「三会一课」自 2026-09-22 起按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-group-meeting` / `party-lecture`），原 `three-meetings` 键**已不再有效**。
 
 ---
 

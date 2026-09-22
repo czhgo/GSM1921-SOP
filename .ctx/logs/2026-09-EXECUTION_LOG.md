@@ -15285,6 +15285,111 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - **本批未评母本侧的** `常见工作场景快速指南.md`（场景主源）与 `INDEX.md`（术语权威源）—— 它们是**场景维 / 术语维**，已由批次 142 / 143 覆盖；本批任务面是**5 份角色文档**。
 - **未提交 git**（按铁律）；**未新建仓库文件**；**未用 sed / awk / PowerShell / node 脚本做内容批量改写**（`bump-version.mjs` 属版本戳机制本身）。
 
+## 批次 145（2026-09-22，`D-577`）`SOP-F-2` 三条待定项按支书 2026-09-22 裁定逐条落地（模块面「三会一课」按形式拆开 ＋ 归档页补党建平台留痕位 ＋ 组织生活会去并列）
+
+> **一句话**：**支书三条裁定逐字照落**——①「**按「谁组织算谁」拆开（推荐）**」· ②「**归档页补一个（推荐）**」· ③「**去并列（推荐）**」；**(裁定一)** `work-map.js` 的「三会一课」按形式拆为 **4 个模块**、**主题党日缺省主责改准为党小组组长** ⇒ **模块目录 11 → 14 项**（连带 5 个测试文件 / 2 个消费点 / `README-server.md §3.5` 表同批取齐）；**(裁定二)** 宣传台「档案归档」**补一枚「标记已上报党建平台」留痕位**（与「标记已发送（微信/对外）」并列、分开记；母本 `宣传委员工作流程指南.md:49` 同批改准）；**(裁定三)** 按 `D-290` 把三处「组织生活会」并列写法改写为「**以三会形式召开**」（概念保留）⇒ **队列在册的 `SOP-D-1-⑦` 随之了结**；**未改任何权限门 / 判据逻辑**；版本戳 `20260922d → 20260922e`〔显式传参〕。
+
+### 一、取证（先盘清）
+
+| # | 面 | 改前实然（`文件:行号`） |
+|---|---|---|
+| 1 | 三会一课 / 主题党日的缺省主责 | `docs/src/core/work-map.js:59`（`three-meetings`）与 `:65`（`theme-party`）的 `defaultOwner` **都写 `'secretary'`**；模块 `three-meetings` 另带 `sub: ['支部党员大会','支委会','党小组会','党课']`（**4 子会写在注释与 `sub` 里**）。母本侧：`content/02_institution/sop/常见工作场景快速指南.md:157-160` **逐形式给负责人**（支部党员大会＝支书 · 支委会＝支书 · 党小组会＝**党小组组长** · 党课＝支书）；`支委与党小组定人定责定岗说明.md:200-202` 三行「第一 / 二 / 三党小组活动 → 支书 / 副支书 / 代组长」、§5.3 `:228`/`:230` 逐场景给主导者；主题党日的负责人＝**组织者**（`指南:109`/`:112`；`D-575` ③ 系统内 `1b-1` 的 `executor` 即 `'organizer'`） |
+| 2 | 模块目录的「面」 | 模块 id 是 `config.workforce` 的**键集**、且是支书 2026-09-03「**11 项平铺放行**」那个数；`work-map` 的消费点实测 **3 处模块键映射**（`docs/src/services/workforce.js::DUTY_DOMAIN` · `docs/src/components/workforce-duty-card.js::DUTY_TAB` · 按人矩阵 / 平铺卡渲染）＋ `sanitizeConfigWorkforce` 按 `WORK_MAP_IDS` 净化；**种子与演示库里没有任何 `config.workforce` 覆盖**（`docs/src/mock/**` grep 0 命中）⇒ 无存量孤儿键风险 |
+| 3 | 归档页那枚按钮的机制 | `docs/src/entries/tabs/prop/archive-tab.js:429` 那枚「**标记已发送（微信/对外）**」：**只写 `externalDispatches` 表的记录**（`refType='publicity'` / `refLabel='宣传材料：<活动名>'`，经 `services/external-dispatch.js::addExternalDispatch` ＝ 写 `mockDB` ＋ `persist()` ＋ 站内通知），**不改归档记录本身**；呈现侧 `_renderDispatchCell(r)` **按活动名聚合**（同活动多行共用一个状态）；**周报页**那枚（`prop/weekly-tab.js:275`）落的是**周报记录自己的字段** `platformReportedAt` / `platformReportedBy`（`persist()` 落库、只留痕不对接） |
+| 4 | 「组织生活会」并列写法全库分布 | 全库 `组织生活会` **527 处**（改前）——**并列写法 3 处**：`党小组组长工作手册.md:285` · `INDEX.md:33` · `常见工作场景快速指南.md:202`；其余按语境分类为**会议内容 / 考勤上传位枚举 / 场景类型枚举 / 注释与沿革**（逐条见「四」） |
+
+### 二、裁定一：按「谁组织算谁」拆开（实现选择与理由）
+
+**实现选择＝把笼统的「三会一课」单模块按形式拆为 4 个模块**（不是「保留单模块 + 复合主责」）：母本给主责的粒度本来就是**形式**（`指南:157-160` 逐形式给负责人、`定人定责` §5.3 逐场景给主导者），而 `defaultOwner` 是**单一主体引用**（`ownerSubjectType` / `WORK_MAP_DEFAULT` / 按人矩阵都按单值消费）⇒ 复合值既不进数据契约、也**显示不到默认视图**（按人矩阵仍会把党小组会算在支书名下）。
+
+**改前 → 改后**（`docs/src/core/work-map.js`）：
+
+| 模块 | 改前 | 改后 |
+|---|---|---|
+| （原）`three-meetings`「三会一课」 | `defaultOwner:'secretary'` ＋ `sub:[4 子会]` | **拆为 4 个模块**：`branch-party-meeting`（支部党员大会）· `branch-committee-meeting`（支委会）· `party-lecture`（党课）＝**`secretary`**，`party-group-meeting`（党小组会）＝**`leader`**（`sub` 一并撤除） |
+| `theme-party`「主题党日」 | `defaultOwner:'secretary'` | `defaultOwner:'leader'`（其负责人＝**组织者**，而「组织者」不是角色键 ⇒ 缺省落**本组组长**；支部级 / 跨组由支书发起的**属例外**、走改派） |
+| 模块总数 | **11** | **14** |
+
+**连带面（逐项已办）**：`server/test/work-map.test.mjs`（计数 11 → 14 ×3 处、停用用例换 `branch-party-meeting`、**新增 5 条缺省主责断言**）· `server/test/workforce-gate.test.mjs`（注释）· `server/test/empty-template.test.mjs` / `reset-tier-init.test.mjs` / `wizard-config.test.mjs`（fixture 键名）· `docs/src/components/workforce-duty-card.js`（`DUTY_TAB` 三台各补 4 id）· `docs/src/services/workforce.js`（`DUTY_DOMAIN` 四 id → 会议域）· `docs/src/entries/tabs/secretary/work-map-tab.js` 与 `docs/src/services/branch.js`（注释 11 → 14）· `README-server.md §3.5` 表（**14 行** ＋ 表头「缺省主责**角色**」→「缺省主责**主体**」＋ 三行陈旧值改准）· `docs/help.html` **经核无「模块目录」计数 ⇒ 无需改**。⚠ **不在授权面 / 不宜改的两处如实登记**：`CLAUDE.md:682`（`R-58` 沿革句里的「11 项固定模块目录」）与 `content/04_web_design/evolution/BRANCH_WORK_MAP.md:141-142`（**沿革稿**，记 2026-09-03 当时状态）——**另批**。
+
+### 三、裁定二：归档页新留痕位 ＋ 母本 `:49`
+
+**取证结论**：归档页那枚「标记已发送」**不改归档记录**（写 `externalDispatches`）、**按活动聚合**；而**周报页**的平台留痕落**记录自己的字段**且**只留痕不对接** ⇒ 新那枚**照周报页同款**（字段名 `platformReportedAt` / `platformReportedBy` ＋ `persist()`）、**呈现照归档页既有那枚的聚合口径**（同活动多行同步写、任一有留痕即显徽标）。
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `docs/src/entries/tabs/prop/archive-tab.js` 行内单元 | 只有 `${fileBtn}${dispatchHtml}${advanceBtn}` | 补 `${platformHtml}`（在 fileBtn 与 dispatchHtml 之间）＋ 四个纯函数 `_platformReportKey` / `_platformReportOf` / `_renderPlatformCell` / `_markPlatformReported` ＋ 容器委托加 `.archive-platform-btn` 一支（点 → 写该活动全部归档记录 ＋ `persist()` ＋ toast） |
+| 2 | `content/02_institution/sop/宣传委员工作流程指南.md:49`（项目看板步 7） | 「…系统内以「**标记已发送**」留痕」 | 「…系统内以「**标记已上报党建平台**」留痕」（**原位改写、行数守恒**） |
+
+### 四、裁定三：去并列（逐处）＋ `SOP-D-1-⑦` 了结
+
+| # | 位置 | 改前 | 改后 | 「概念怎么留住的」 |
+|---|---|---|---|---|
+| 1 | `content/02_institution/sop/党小组组长工作手册.md:285` | 「三会一课 / **组织生活会**类会议通知**至少提前 5 天**」 | 「**三会一课类**会议通知**至少提前 5 天**」 | 组织生活会随所承接的三会形式走 ⇒ 提前量本就并入「三会一课类」；概念在同文件 §1–§5 与指南 `:75`/`:153`/`:162` 仍在 |
+| 2 | `content/02_institution/sop/INDEX.md:33` | 「三会一课（**含**组织生活会）」 | 「三会一课（**组织生活会以三会形式召开**）」 | 把「含」改写成**从属关系**，不删这四个字 |
+| 3 | `content/02_institution/sop/常见工作场景快速指南.md:202`（三会一课通用流程导语） | 「支部党员大会、支委会、党小组会、**组织生活会**按同一套环节推进」 | 「支部党员大会、支委会、党小组会按同一套环节推进（**组织生活会以其中某一形式召开时，按该形式的步骤执行**）」 | 去掉了与三会平级的第四项，**同时把「按该形式执行」写清**（与 `:75`/`:153`/`:162` 同口径） |
+
+**`SOP-D-1-⑦` 了结**：`REVIEW_QUEUE` 该行改准为「**✅ 已收口（2026-09-22 批次 145 · `D-577` · 系按支书 2026-09-22 裁定「去并列（推荐）」落）**」＋ 节标题与节尾 ⚠ 行同步（`D-1-⑦` 由「待裁」改「已收口」）。
+
+**全库同类找齐（不只这两处）**：除上述 3 处，其余 `组织生活会` 命中**逐条按语境判为不必改**——**会议内容**（`常见工作场景快速指南.md:75`/`:153`/`:162`/`:221` · `DATA_MODEL.md:31`/`:139` · `insights/…:284`/`:309` · `BRANCH_WORK_MAP.md:19`）· **考勤上传位枚举**（`CDF:108`/`:115` · 纪检指南 `:62` · `README-server.md:438` · `docs/help.html:502`/`:633`/`:1204`/`:1227` · `README.md:147` · `README-members.md:71` · `disc|leader/attendance-tab.js`）· **活动类型 / 应到枚举**（`constants.js:126`/`:631` · `today-summary.js:28` · `mock/activities.js:43` · `services/attendance.js:46` · `DATA_MODEL.md:560`）· **注释与沿革**（`CONTRIBUTING.md:9` · `SYSTEM_ROLE_PERMISSION.md:245` · 测试名 `meeting-attendance-rules.test.mjs:58`）。
+
+### 五、真机验证（Playwright ＋ 真起服务；探针 `server/.tmp-probe-145.mjs`，跑完即删）
+
+**① 支书台「支部分工」**（p13 登录 → `workspace/secretary.html` → `[data-secretary-tab="work-map"]`）：**平铺卡 14 张**，逐张读主责徽标——`支部党员大会→支书` · `支委会→支书` · `党小组会→党小组组长` · `党课→支书` · `主题党日→党小组组长` · `专班→组织委员` · `共建活动→支书` · `发展党员→支委会` · `民主评议党员→支书` · `换届选举→支书` · `考勤考察→纪检委员` · `意见反馈处理→支委会` · `制度制定与迭代→支委会` · `信息平台支持→宣传委员`；**按人矩阵**「负责人」维出现 **`党小组组长`** 行、其在「党小组会」「主题党日」两列为「**主责**」。
+
+**② 宣传委员台「档案归档」两枚按钮逐个真点**（p12 登录 → `workspace/prop.html` → `[data-prop-tab="archive"]`；置备：`PATCH /api/v1/archiveRecords/ar1` 补 `fileName`——既有那枚只在有材料时出现）：
+- **改前**（数据源＝api）：ar1 行同时有「**标记已上报党建平台**」（新）与「**标记已发送（微信/对外）**」（旧）；行文＝`七一建党105周年活动 新闻稿 已归档 ✓ / 归档日期：2026-07-15 · 材料：七一活动新闻稿.docx / 下载 删除 标记已上报党建平台 标记已发送（微信/对外）`
+- **真点①（新那枚）** ⇒ 提示「已留痕…」；ar1 与 **ar2 两行同步显**「已上报党建平台」徽标（同活动聚合）；**落库**：`GET /api/v1/archiveRecords` ⇒ `ar1:有留痕/p12` · `ar2:有留痕/p12`
+- **真点②（旧那枚）** ⇒ 弹出「文件外发确认」浮窗 → 点「标记已通过微信发送」⇒ 该行显「**已外发·待确认**」；**落库**：`externalDispatches` ⇒ `publicity/宣传材料：七一建党105周年活动/sender=p12`
+- `PAGEERRORS = []`（0 条）
+
+**③ 裁定三（纯母本）**：**无可点面**——三处改动全在 `content/**`（母本），系统侧未动 ⇒ 只做 grep 复核（见「六」）。
+
+### 六、反查（改前 → 改后，`git grep -o` 计次；`组织生活会` 按语境分类）
+
+| 词 | 改前 | 改后 | 逐条判定 |
+|---|---|---|---|
+| `three-meetings` | 70 | 60 | **−10**＝本批移除的**模块键**（work-map ×1 · 5 个测试 fixture ×7 · `workforce.js` ×1 · `workforce-duty-card.js` ×3 − 新增注释里的引称）——**余下全部是「活动分类 / 场景」命名空间**（`ACTIVITY_CLASSIFICATION['three-meetings']` · `data-category="three-meetings"` 模板卡 · `function-catalog.js` 的活动模板条目 · `BRANCH_WORK_MAP.md` 沿革）**正当保留** |
+| `三会一课` | 622 | 627 | **＋5**＝本批新增注释 / 文案（work-map 4 条注释 · 归档页注释等）；**母本三处**中 `手册:285` 由「三会一课 / 组织生活会类」改「三会一课类」（字数减、命中不减） |
+| `主题党日` | 827 | 832 | **＋5**＝本批注释与 README 表说明 |
+| `defaultOwner` | 85 | 90 | **＋5**＝work-map 4 个新模块 ＋ `theme-party` 注释 |
+| `标记已发送` | 48 | 51 | **＋3**＝归档页新代码/注释里**指称那枚旧按钮**（`标记已发送（微信/对外）` ×2 处文案）＋ 母本 `:49` 改写后**不再含该词（−1）** ⇒ 净 ＋3 全在 `archive-tab.js`（**旧按钮一字未改**） |
+| `标记已上报党建平台` | 15 | 17 | **＋2**＝归档页新按钮与注释（`archive-tab.js`）＋ 母本 `:49` 改准（`+1 −1` 相抵后仍计入改写处） |
+| `组织生活会` | 527 | 526 | **−1**＝`手册:285` 那一处（`INDEX` / `指南:202` 为**原位改写**、两处仍含这四个字 ⇒ 计数不减）——**逐条语境分类见「四」末段：并列写法 3 处已改，其余 523 处为会议内容 / 考勤枚举 / 类型枚举 / 注释沿革，一律不动** |
+
+> ⚠ **不靠 grep 的那一半（`R-87`）**：本批**逐份通读**了母本《常见工作场景快速指南》三会一课章（`:151-221`）与 `支委与党小组定人定责定岗说明.md` §5.1–§5.3（定人 / 定责 / 定岗三表），核实「谁组织算谁」的**形式 → 负责人**映射逐格有据；另**两处 grep 命不中但已判**的活例：① `指南:214` 三会一课通用流程步 1 的负责人写「**党小组组长 / 支书（全支部会议）**」——不含「三会一课模块」字样，但正是本批拆分的母本依据；② `D-575` ③ 把 `1b-1` 的 `executor` 定为 `'organizer'`——`organizer` **不是角色键**，故主题党日缺省只能落 `leader`（这条判据 grep `defaultOwner` 命不中）。
+
+### 七、版本戳 ＋ 守卫 ＋ 全量 ＋ 停服
+
+- **版本戳**：**`20260922d → 20260922e`**〔**显式传参**：`node docs/scripts/bump-version.mjs 20260922e`〕。`bump-version` 自报「实际改写 **JS 210 / HTML 22 / CSS 2 / server-test 69**；`CODE_VERSION` +1；**陈旧戳自检 0 处残留 ✅**」；**「戳唯一」已核**——`?v=20260922d` 全仓 **0 命中**（`grep` 实测），`docs/**` ＋ `docs/*.html` ＋ `server/test/**` 的缓存键语境只有 `20260922e` 一种值。
+- **守卫子集**（8 文件、带 `DISABLE_PASSWORD_CHECK=1`）：**改前 63 / 63 / 0 红（27.76 秒）→ 改后 63 / 63 / 0 红（22.76 秒）**；⚠ 首跑全量暴露出 4 条本批自致的红之后，**改完 `form-loop-registry.mjs` / `wizard-config.test.mjs` / `workforce-gate.test.mjs` 又跑了一次守卫子集**（**63 / 63 / 0 红，24.32 秒**）⇒ 守卫以**最终盘面**为准。
+- **全量（`R-85`）**：起 3000 服务（`npm start`）→ `npm test` → **见「八」（**跑了两次**：首跑 713/717/4 红、四条均系本批自致的陈旧登记 / 断言未同步，逐处改正后复跑涉及文件 105/105；收尾全量 **717/717/0 红**）** → 停服（实测 `localhost:3000` 已不可连）。
+
+### 八、全量实测（`R-85`，**如实贴：跑了两次**）
+
+- **第一次（首跑）**：`ℹ tests 717 / ℹ pass 713 / ℹ fail 4 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`duration_ms 1175101`（≈ **19.6 分钟**），退出码 **1**。**4 条红逐条定性**——**全是本批自己造成的「陈旧登记 / 断言未同步」，无一条环境类、无真回归**：
+  1. `form-loop-sweep` 的 **`S6`「台账行号未同步即红灯」**：`server/test/form-loop-registry.mjs` 登记的三条 `archive-tab.js` 校验点行号随本批插行整体下移（`772 → 824` 关联活动 · `776 → 828` 文件 · `1168 → 1220` 图片）——**本批在 `archive-tab.js` 中段插行、未同批同步这张台账**（正是该守卫要防的事，本批自己犯了一次）。
+  2. `form-loop-sweep` 的 **真机闭环「secretary/活动管理 · 空必填点提交须报可见提示且载体在位」**（30.7 s 超时）——**随 S6 那条同文件失败而连带**（同文件先红后，后续 e2e 等待不到预期态）。
+  3. `wizard-config`「**copy：源→单 target 生效**」：**源支部 fixture 的 `workforce` 仍写 `'three-meetings'`** → 被 `sanitizeConfigWorkforce` 按 `WORK_MAP_IDS` 净化丢弃 ⇒ 复制结果与断言差这一键（**本批首轮 grep 漏了该 fixture**）。
+  4. `workforce-gate`「**mergeWorkforceSnapshot：改派清单只覆盖目标模块**」：断言里仍用 `next['three-meetings']` 与 `Object.keys(next).length === 11` ⇒ `undefined.ownerId` 抛错。
+- **处置（逐处，改后已复跑）**：`form-loop-registry.mjs` 三条行号改准（`824` / `828` / `1220`）· `wizard-config.test.mjs` fixture 与断言（`:103` / `:147`）改 `'branch-party-meeting'` · `workforce-gate.test.mjs:104-105` 改 `next['branch-party-meeting']` ＋ 计数 `14`。**复跑这三个文件**：`ℹ tests 105 / ℹ pass 105 / ℹ fail 0`（≈ 9.0 分钟）。
+- **第二次（收尾全量）**：`ℹ tests 717 / ℹ pass 717 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`duration_ms 1142285`（≈ **19.04 分钟**），退出码 **0**。**全绿**；**无 e2e 超时**（批次 135 曾现的两例 e2e 超时**本批两次均未再现**）。
+- **停服**：实测 `localhost:3000` 已不可连；两次全量的日志（`server/.tmp-test-145.log` / `.tmp-test-145b.log`）**收尾后一并删除**。
+
+### 九、编号四处一致 ＋ 服务已停 ＋ `.tmp*` 已清
+
+- 决策日志**文首**「`D-275` … `D-577`，共 **303** 条 / 下一条自 `D-578`」＝ **文末续编说明**同数同起止 ＝ 本月目录 **1 行新增**（`D-577`）＝ 月度索引「**303 条（D-275~D-577）**」＝ 实测 `^## D-\d+` **303** 命中。
+- **服务已停**；**探针 `server/.tmp-probe-145.mjs` 跑完即删**；**全量日志 `server/.tmp-test-145.log` 收尾后删除**；**未提交 git**；**未新建仓库文件**。
+
+### 十、本批未做 / 如实登记
+
+- `CLAUDE.md:682`（`R-58`）与 `content/04_web_design/evolution/BRANCH_WORK_MAP.md:141-142` 仍写「**11 项 / 11 模块**」——**前者不在本批授权面、后者是沿革稿**（改它＝改历史）⇒ **只登记、待另批**。
+- `README-server.md §4.44`「归档记录 11 字段」与 §4.0「来源 C 65 条 / 合计 446」**未含**本批新增的 `platformReportedAt` / `platformReportedBy` 两个字段——**README 本批授权面＝§3.5 表 ＋ 位移行号** ⇒ **只登记、待授权另批改准**（影响：§4.44 应由 11 字段 → 13 字段）。
+- `SOP-F-2` 节的**三条「现况 / 要您定什么」正文表格仍留在队列内**（标题与指针已按「移出在册」改准；`R-86` 意义上的「正文迁执行日志」**本批未逐字搬**——其裁定与逐处改后的权威记录已在本节「二」「三」「四」与 `D-577`）。
+- `content/04_web_design/data/DATA_MODEL.md:139` 末句「**SOP 场景独立保留**（见 `sopData.js`）」与批次 143（`D-575`）**已删 `org-life` 场景**相左——属**另一族（系统实然陈述过期）**、且该文件被 `README-server.md` 大量逐行引用（改它须与 README 行号同批）⇒ **本批只登记、未改**。
+- 「`组织生活会`」在 `常见工作场景快速指南.md:462`/`:464`（**按角色查找 · 常用场景**表）仍作为**场景**列出——按 `D-290` 它**不是独立场景**，但该两处**不是「与三会平级」的写法**（射程外）⇒ **未动、登记**。
+
+
 
 
 
