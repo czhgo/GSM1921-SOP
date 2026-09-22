@@ -13,13 +13,13 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 > **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)，两者为不同维度、勿混读。
 > **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C 为**逐操作位视图**（上传/确认/监督/备案），本文件为**权限键级视图**——详见 §9f 说明。
 >
-> **2026-09-05 迁出说明**：本节原为 ROLE_CLASSIFICATION.md §九（名实错位修复——文件角色分类与系统权限矩阵同住一文件），现拆为独立文件。数据流设计与界面实现路径见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)。
+> **数据流设计与界面实现路径**见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)。
 
 > **待办派生语义**：具体活动/专班任务不与支委身份静态绑定；谁做什么 = 由该具体的人在该活动/专班承担的角色（组织者/执行者/组长）派生其待办并广播。本节矩阵是待办派生规则集，非静态全能授权；标注 `--` 表示仅因身份不会收到该键待办（除非其为该活动承担者）。
 
-## 9a0. 角色键全表（代码层单一事实源，T-304 Q3 权限收敛 2026-08-29）
+## 9a0. 角色键全表（代码层单一事实源）
 
-> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`（10 业务键 + 2 遗留键 = 12 键全表），并登记 `constants.js` 角色→页面映射（ROLE_PAGE_MAP，2026-09 自 auth.js 迁入常量层，勿再引用 auth.js 内副本）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
+> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`（11 业务键 + 2 遗留键 = 13 键全表），并登记 `constants.js` 角色→页面映射（`ROLE_PAGE_MAP`，勿再引用 auth.js 内副本）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
 
 | 角色键 | 中文标签 | 类型 | 工作台页面 | 能力 requiredRoles |
 |---|---|---|---|---|
@@ -29,6 +29,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | `prop-commissioner` | 宣传委员 | 常设 | `workspace/prop.html` | `prop-workspace` |
 | `disc-commissioner` | 纪检委员 | 常设 | `workspace/disc.html` | `disc-workspace` |
 | `leader` | 党小组组长 | 常设 | `workspace/leader.html` | `leader-workspace` |
+| `deputy-leader` | 党小组副组长 | 常设 | `workspace/leader.html`（与组长同页同台） | `leader-workspace` |
 | `participant` | 普通参与者 | 常设 | `workspace/visitor.html` | `visitor-workspace` |
 | `party-staff` | 党委组织员 | 组织级 | `workspace/party-committee.html` | `party-committee-workspace` |
 | `organizer` | 组织者（项目角色） | 项目 | 无独立页面（归入首页/工作台视图） | — |
@@ -37,12 +38,12 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | `initiator` | 发起人（遗留键） | 遗留 | — | — |
 
 **语义约定**：
-- **`all` 已自遗留键撤除（2026-09-22 批次 143）**：`all`（全体相关）不是角色、解析不到具体人，按支书 2026-09-22 裁定「只清『全体』那个」从 `constants.js` 的 `ROLE_LEGACY_KEYS` 撤除；**「全体党员」语义不在角色键上**，由通知受众 sentinel（`constants.js` 的 `NOTICE_AUDIENCE_SENTINELS.all`）承载；`all` 仍作为参与者视角的参考指南展示键（`core/state.js`）使用，标签/色值保留。
+- **`all` 不是角色键**：`all`（全体相关）解析不到具体人，已从 `constants.js` 的 `ROLE_LEGACY_KEYS` 撤除；**「全体党员」语义不在角色键上**，由通知受众 sentinel（`constants.js` 的 `NOTICE_AUDIENCE_SENTINELS.all`）承载；`all` 仍作为参与者视角的参考指南展示键（`core/state.js`）使用，标签/色值保留。
 - **访客非角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
 - **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含支书/副支书，业务判定用）；auth.js 版指授权语义（含支书/副支书，赋权候选人排除支委用）。勿混用。
-- **组织级角色（`party-staff`，2026-09-02 P1 党委后台增补）**：党委组织员/党务老师——院系党委组织级角色，监控全院各支部、管理支部实例，**不属于任一支部、不参与支部内部活动闭环**；因此不落入 §9b（支部常设 6 角色）与 §9c（项目角色）矩阵——矩阵为支部业务角色视图。其能力模块为 `party-committee-workspace`（工作台 `party-committee.html`）。⚠ **例外（2026-09-17 支书改裁，批次 51）**：党委**保留对匿名意见反馈的核查权**——即可查看匿名反馈的真实提交人（**每次查看留痕**），见 **§9j**。
+- **组织级角色（`party-staff`）**：党委组织员/党务老师——院系党委组织级角色，监控全院各支部、管理支部实例，**不属于任一支部、不参与支部内部活动闭环**；因此不落入 §9b（支部常设 6 角色）与 §9c（项目角色）矩阵——矩阵为支部业务角色视图。其能力模块为 `party-committee-workspace`（工作台 `party-committee.html`）。⚠ **例外**：党委**保留对匿名意见反馈的核查权**——即可查看匿名反馈的真实提交人（**每次查看留痕**），见 **§9j**。
 - **遗留键**仅保留兼容兜底，不参与权限判定；新功能不得新增遗留键。
-- **副组长**：每个党小组可设副组长；**副组长可共享同组组长工作台的相关内容**，其关系类似副支书与支书。
+- **副组长（`deputy-leader`）**：每个党小组可设副组长；**副组长可共享同组组长工作台的相关内容**，其关系类似副支书与支书。
 
 ## 9a. 活动写入门禁
 
@@ -65,7 +66,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 \* 纪检委员的 initiate_taskforce：原则上可以，但业务上一般不使用。
 
-> 附（2026-09-05 A1 落代码）：`dispatch_line`（条线下发）已授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；因交互流消费侧未建，不入上表 16 操作列——见 §9f 映射行与变更历史。
+> 附：`dispatch_line`（条线下发）已授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；因交互流消费侧未建，不入上表 16 操作列——见 §9f 映射行。
 
 ## 9c. 项目角色权限矩阵（2 角色 × 7 操作）
 
@@ -115,11 +116,11 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | `assign_project_role` | 赋权项目角色 organizer/deep |
 | `archive` | 归档操作 |
 | `manage_members` | 管理成员（设为/取消组长） |
-| `dispatch_line` | 条线下发（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task` 分两类；键级 2026-09-05 入集，交互流消费侧待建） |
+| `dispatch_line` | 条线下发（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task` 分两类；交互流消费侧待建） |
 
-> 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（支书/副支书/组长派执行）分两类）。**键已入集（2026-09-05 A1 落代码）**：`dispatch_line` 授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；交互流（下发→上报→审核）消费侧待建，见本表 `dispatch_line` 行。
+> 另设「条线下发」（组织线/宣传线/纪检线职能任务下发，授予对应支委；与 `assign_task`（支书/副支书/组长派执行）分两类）。**键已入集**：`dispatch_line` 授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定）；交互流（下发→上报→审核）消费侧待建，见本表 `dispatch_line` 行。
 
-> **双轨约定（2026-09-05）**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/赋权链，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——「条线下发」键已入集（见上注 `dispatch_line`）；其余操作位位限定（建档/监督/导入/自己的/配合等）依赖写层业务守卫而非裸键，不硬凑缺键。
+> **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C = **逐操作位视图**（上传/确认/监督/备案等支部运行操作位，用户侧理解「谁在哪个环节做什么」）；本文件 = **权限键级视图**（角色键/权限键/矩阵/赋权链，代码侧判定依据）。两轨互补、以本文件键级为准。操作位 ↔ 权限键的完整映射属后续编码——「条线下发」键已入集（见上注 `dispatch_line`）；其余操作位位限定（建档/监督/导入/自己的/配合等）依赖写层业务守卫而非裸键，不硬凑缺键。
 
 ## 9g. 权限矩阵标记说明
 
@@ -131,7 +132,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **Y(导入)** 表示仅限从其他来源导入（不能直接记录原始数据）
 - **Y\*** 表示原则上有此权限，但业务上一般不使用
 
-## 9h. 支部 config 写权（config 写权分层 · 2026-09-09 审定定稿）
+## 9h. 支部 config 写权（config 写权分层）
 
 > **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
 
@@ -139,17 +140,17 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 |---|:---:|:---:|:---:|:---:|:---:|
 | party-staff（党委组织员，组织级） | Y（全支部） | Y（全支部） | Y（全支部；含 name 同步） | Y（全量） | **Y（唯一可写）** |
 | 现任支书（本支部） | Y | Y（日常 = 支委会议题 M2 表决落库；换壳/部署 = 向导③直写） | Y（**不含 name**） | Y（全量） | -- |
-| 现任副支书（本支部 · 副书同权 2026-09-09） | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
+| 现任副支书（本支部 · 副书同权） | Y | Y（同上） | Y（**不含 name**） | Y（全量） | -- |
 | 纪检委员（本支部） | -- | -- | -- | Y（仅 `inspection` 节） | -- |
 | 组织委员（本支部） | -- | -- | -- | Y（仅 `memberConfirmation` 节） | -- |
 | 党小组组长（本支部） | -- | -- | -- | Y（仅 `leader` 节） | -- |
 | 其余角色（宣传委员/成员等） | -- | -- | -- | -- | -- |
 
-> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。③ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。④ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑤ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台），原「支书工作台 · 工作台配置」入口表述废止。
+> 注：① modules/blocks 核心组（groupLabel='工作台'）固定不可关、不参与排序；null = 默认全开。② org 档案写口 = 换组织向导步骤①；顶层 name 仅 party-staff（支书/副支书不可改官方名，改名同步 headerTitle）。③ 全部 config 写留痕 `config.configChangeHistory`（{by,at,what,from?,to?}），逐键 diff、空变化不冗余。④ 他支部的支书/副支书不可写本支部 config（person → branchId 归属校验）。⑤ modules/blocks/workforce/org 档案操作位 = 设置（侧边栏右下）→ 支部治理 + 换组织向导内嵌（支书/副支书共台）。
 
-## 9i. 党小组管理与成员流动登记写权（2026-09-14 定案）
+## 9i. 党小组管理与成员流动登记写权
 
-> **定位与键级说明**：党小组管理（新增/改名/解散党小组、归组未分组成员）与成员流动登记（流入登记含批量 / 流出登记含批量 / 台账撤销）**均未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h 支部 config 写权同理，不硬凑缺键、不入 §9b 的 16 操作列）。两条权属均为 **2026-09-14 支书裁定**，本节即裁定凭据。术语（未分组 / 成员流动台账 / 复式记账）见 [USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) 内部代号简明词典——该文件为术语权威源。
+> **定位与键级说明**：党小组管理（新增/改名/解散党小组、归组未分组成员）与成员流动登记（流入登记含批量 / 流出登记含批量 / 台账撤销）**均未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h 支部 config 写权同理，不硬凑缺键、不入 §9b 的 16 操作列）。术语（未分组 / 成员流动台账 / 复式记账）见 [USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) 内部代号简明词典——该文件为术语权威源。
 
 | 角色 | 党小组管理（新增/改名/解散党小组、归组未分组成员） | 成员流动登记（流入/流出登记含批量、台账撤销） |
 |---|:---:|:---:|
@@ -158,11 +159,11 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | 党小组组长 | -- | -- |
 | 其余角色（宣传委员/纪检委员/成员等） | -- | -- |
 
-> 注：① **登记即生效，不再需要支书二次确认**——此为与既往口径的**差异点**，必须分清：既往「成员变更（发展阶段变更/在册状态/移出）经组织委员报送 → 支书确认方生效」（见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）针对的是**发展节点审批链**；本条 **2026-09-14 裁定**只覆盖**成员流动登记（流入/流出/撤销）**——登记即生效、可撤销并留痕，支书不再做二次确认。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 USAGE_POLICY.md 词典节，本节不重复定义。
+> 注：① **登记即生效，不再需要支书二次确认**——本条只覆盖**成员流动登记（流入/流出/撤销）**：登记即生效、可撤销并留痕，支书不再做二次确认。**发展节点审批链**（发展阶段变更 / 在册状态 / 移出，经组织委员报送 → 支书确认方生效，见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）**不属本条**。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 USAGE_POLICY.md 词典节，本节不重复定义。
 
-> 注：④ **API 形态写门与两处语义端点（2026-09-14 批次 29 复核、批次 30 裁定落地）**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记，批次 29 新增）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。**流入建档**则一分为二——`POST /members`（名册新增）保持 R-10 口径的「组织委员专属」，`POST /members/intake`（成员流动·流入登记）写门为上表的「组织委员 + 支书/副支书」。**裁定来源（Q-23-10）**：R-10 与 R-42/§9i 曾在 API 形态直接冲突（支书登记流入经 `/members` 被 403）；2026-09-14 支书裁定**维持 §9i**，故为成员流动单列语义端点、**不放宽** `/members` 的名册越权面。两处端点为**同一实现体、两个写门**（`server/routes/member.js::createMemberRow`）。
+> 注：④ **API 形态写门与两处语义端点**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。**流入建档**则一分为二——`POST /members`（名册新增）保持 R-10 口径的「组织委员专属」，`POST /members/intake`（成员流动·流入登记）写门为上表的「组织委员 + 支书/副支书」。**成员流动单列语义端点、不放宽** `/members` 的**名册越权面**。两处端点为**同一实现体、两个写门**（`server/routes/member.js::createMemberRow`）。
 
-## 9j. 匿名意见反馈的「查看真身」权限（2026-09-17 支书改裁，批次 51）
+## 9j. 匿名意见反馈的「查看真身」权限
 
 > **定位与键级说明**：本能力**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h／§9i 同理，不硬凑缺键）。守卫落点＝`server/routes/resources.js` 的 `GET /api/v1/issues/reveal`（`PARTY_STAFF_ROLE` 判定）＋ 前端党委台「匿名反馈核查」页签自带角色闸门（**两道闸门，缺一不可**）。
 >
@@ -175,9 +176,9 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | 支委（组织 / 宣传 / 纪检委员）· 党小组组长 · 成员等 | -- | -- |
 | 未登录 | -- | --（401） |
 
-> 注：① **「处置」与「查看真身」是两项分开的权限**——**处置归支委会（支书主持支委会）不等于**可见真身（这正是本次改裁与旧实现「仅支书内部可追溯」的关键差别）；② **留痕口径**：`issue_reveals`（id/by/byRole/at/revealedIds）**只增不改**——其职能是让「只有党委能看」这句承诺**可被事后核对**（没有它，该承诺无从证伪）；③ **适用范围**：本改裁**只落在意见反馈**——「正式表决无记名」**维持 2026-09-12 原裁定不变**（两段式：参与记录 + tally，**逐人选项不落库**），**任何文档不得把表决写成「党委可查」**（支书同日就表决**单独裁定「表决保持真无记名」**，属**支书本人裁定豁免**而非 AI 判断）；④ **数据侧**：匿名提交后台落真实提交人 `_realPersonId`，**一切常规读出口（公开读 / 支书读 / 提交回执 / 处置回执）一律脱敏**（见 [DATA_MODEL.md §2.16 / §2.29](../04_web_design/data/DATA_MODEL.md)）；⑤ **党委定位的例外**：§9a0 的「不参与支部内部活动闭环」**保留本项核查权**（该例外同见本节与 §9a0）。
+> 注：① **「处置」与「查看真身」是两项分开的权限**——**处置归支委会（支书主持支委会）不等于**可见真身；② **留痕口径**：`issue_reveals`（id/by/byRole/at/revealedIds）**只增不改**——其职能是让「只有党委能看」这句承诺**可被事后核对**（没有它，该承诺无从证伪）；③ **适用范围**：本改裁**只落在意见反馈**——「正式表决无记名」**不变**（两段式：参与记录 + tally，**逐人选项不落库**），**任何文档不得把表决写成「党委可查」**（该条系支书**单独裁定**，属**支书本人裁定豁免**）；④ **数据侧**：匿名提交后台落真实提交人 `_realPersonId`，**一切常规读出口（公开读 / 支书读 / 提交回执 / 处置回执）一律脱敏**（见 [DATA_MODEL.md §2.16 / §2.29](../04_web_design/data/DATA_MODEL.md)）；⑤ **党委定位的例外**：§9a0 的「不参与支部内部活动闭环」**保留本项核查权**（该例外同见本节与 §9a0）。
 
-## 9k. 工作台按「人」聚合（同一人多身份的工作台合并 · 2026-09-17 支书裁定）
+## 9k. 工作台按「人」聚合（同一人多身份的工作台合并）
 
 > **需求**：**工作台是【人】的工作台，任务跟着身份走。**
 > **支书原话（2026-09-17）**：「对于可以兼任的部分，**代码部分应该做 工作台 的设计**。因为**工作台是【人】的工作台**。**任务跟着身份走**。」「**能兼不兼任不明文规定**，但是**网页设计需要把两种职责和身份先分开设计**！**需要时 按照特定的计算方式合并工作台**！」
@@ -193,7 +194,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **统一扎口，降低信息负担**：同一件事**只有一个提交口、一个查看口**——交材料是一处，看进展也是一处。口子一多，人就要在几处之间来回核对，信息负担随之上升；扎口做在前，负担才降得下来。
 - **「组织者」不是一种静态角色，而是一种信息流与任务流**：某人被指定为某次活动的组织者，**这次活动相关的信息与任务就流到这个人的工作台上**——**含发布本组通知**。**指定由党小组组长或支委作出（一般不越俎代庖）**，**解除指定即随之收回**；**全支部通知仍归支书**。这与本节同理——**同一件事只在一个人的工作台上出现**：这件事的组织者是谁，这件事的发布口就在谁的台上；**不靠给角色静态开名单，也不靠支书代发**。
 
-## 9l. 制度参数的可调口径：过程时限 / 补课范围与时限 / 字数与张数（2026-09-17 支书裁定）
+## 9l. 制度参数的可调口径：过程时限 / 补课范围与时限 / 字数与张数
 
 > **定位与本文件的关系**：本节与 §9h「支部 config 写权」同域——§9h 已把「域参数」写进写权矩阵，本节登记的是**制度参数本身的可调性**（哪几项制度口径由支部自定）。
 > **既有机制（本节所依，非新造）**：本仓既有的「**支部制度参数**」——设置 → 支部治理「支部制度参数」为**只读展示区**，逐项标注该项属**支部可调**还是**制度固定**；数据单一源 = `docs/src/core/policy-defaults.js`。
@@ -216,7 +217,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 - **简讯字数**（`宣传委员工作流程指南.md`「文字简讯 **200-300 字**」）：属**支部可调**的制度参数——**母本保留该数即默认值**（同上述「母本照常写数字」的写法，不逐处加「可调」字样）。
 - **活动照片张数**（`宣传委员工作流程指南.md`「活动照片 **≥ 3 张**」·「每周一报送：每个党小组 **≥ 2 张**」，`常见工作场景快速指南.md`「现场拍照 **至少 3 张**」）：同属**支部可调**，**母本数字即默认值**。
-- **思想汇报字数**（`常见工作场景快速指南.md`「建议篇幅 **1500 字以上**；篇幅少于 **1200 字**触发警告审阅，不影响提交」）：同属**支部可调**，**母本数字即默认值**；系统单一源＝`docs/src/core/policy-defaults.js` 的 `thoughtReport.wordHint` / `wordSoftMin`。⚠ **本项系按本节「同族登记项（一）」的字数族口径归位**——支书**未就这两个数字逐条明答**，属 2026-09-21 批次 124 依族例登记的**推导**。
+- **思想汇报字数**（`常见工作场景快速指南.md`「建议篇幅 **1500 字以上**；篇幅少于 **1200 字**触发警告审阅，不影响提交」）：同属**支部可调**，**母本数字即默认值**；系统单一源＝`docs/src/core/policy-defaults.js` 的 `thoughtReport.wordHint` / `wordSoftMin`。⚠ **本项系按本节「同族登记项（一）」的字数族口径归位**——支书**未就这两个数字逐条明答**，属**依族例登记的推导**。
 - **拍照角度不属参数项**：拍哪些角度（**全景 / 互动 / 细节**）是**统一口径**、写在母本里，不作支部参数——本节只登记**张数**的可调性。
 
 ### 同族登记项（二）：宣传推送频次与意见建议答复时限
@@ -229,11 +230,11 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **考察意见的频次**＝**每半年一次**（支部对入党积极分子、预备党员的考察意见均按此）——这一项属**制度固定**类：**所有支部一致**，**不属支部可调**。
 - **与本节各可调项的区别**：本节的**过程时限**、**补课范围与时限**、**字数与张数**各项，都可由支部另行设定；**考察意见的频次不在其列**——母本写入的即规定本身，**不按默认值处理、也不随支部另设**。
 
-### 系统默认值的取齐记录（2026-09-20 批次 115）：考勤确认 / 汇总与补课链各步
+### 系统默认值的取齐记录：考勤确认 / 汇总与补课链各步
 
 > **本节不是新的可调性登记**——下列各项的**可调性已在通例（含括注点名的「考勤确认、补课通知」）与 `REVIEW_QUEUE` 处置一内**登记；此处只记**系统默认值取齐母本数字**这一动作与**换算口径**，防同一处再漂（留核即起于「系统 3 天 / 5 天 vs 母本 24h / 48h」两套数）。
 
-- **考勤确认 / 汇总时限**（`纪检委员工作流程指南.md`「活动结束后」两条：**24h 内**打包确认考勤数据（党小组活动）或录入考勤（会议）、**48h 内**发出补课通知）：**母本数字即默认值**；系统侧单一源＝`docs/src/core/policy-defaults.js` 的 `attendance.entryRemindDays` · `attendance.summaryDeadlineDays`（均 `branch-default`），**按整日表达 ⇒ 24h → 1 天、48h → 2 天**；**2026-09-20 批次 115 已由此前的 3 天 / 5 天取齐**（裁定 `D-536`）。
+- **考勤确认 / 汇总时限**（`纪检委员工作流程指南.md`「活动结束后」两条：**24h 内**打包确认考勤数据（党小组活动）或录入考勤（会议）、**48h 内**发出补课通知）：**母本数字即默认值**；系统侧单一源＝`docs/src/core/policy-defaults.js` 的 `attendance.entryRemindDays` · `attendance.summaryDeadlineDays`（均 `branch-default`），**按整日表达 ⇒ 24h → 1 天、48h → 2 天**。
 - **补课链各步时限**（同指南「补课制度执行」表：筛名单 **48h 内** · 安排补学 **名单发出后 3 天内** · 收补课证明 **至活动后第 7 天前收齐** · 更新考勤状态 **收到证明当日**）：**母本数字即默认值**、属支部可调；**四步均在「活动后 7 天（T+7）总窗口」内推进**，**总窗口与各步时限不累加**（`D-294`）。
 
 ### 对照项（二）：上级规定的时限下限不属支部可调

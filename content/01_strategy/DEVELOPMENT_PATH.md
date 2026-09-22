@@ -2,14 +2,14 @@
 title: "发展路径"
 type: guide
 role: "[用户]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-22"
 status: active
 related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/insights/党支部管理与实务经验沉淀.md, content/02_institution/sop/支委与党小组定人定责定岗说明.md, SECRETARY_DIRECTIVES.md]
 ---
 
 > **受众：** [用户]（党支书、支委、党员，以及刚加入、尚不了解本支部的积极分子和发展对象）
 
-> **分工声明**：本文档是 [SECRETARY_DIRECTIVES.md](SECRETARY_DIRECTIVES.md)（党支书工作交接文档）的**子本**——支书原话的母本在党支书工作交接文档，本文档是那些论断面向成长、发展的支部成员的叙事展开。两文件相互吸收、相互解释，冲突时以党支书工作交接文档为准。本文档回答“党支部为什么存在”“通过组织获得成长”的根本命题，确立「管理事、服务人」作为从入党申请人到正式党员完整叙事的总路径（不是“党建与党务的统一主语”——该表述为错误概括，2026-08-15 支书裁决清理）。
+> **分工声明**：本文档是 [SECRETARY_DIRECTIVES.md](SECRETARY_DIRECTIVES.md)（党支书工作交接文档）的**子本**——支书原话的母本在党支书工作交接文档，本文档是那些论断面向成长、发展的支部成员的叙事展开。两文件相互吸收、相互解释，冲突时以党支书工作交接文档为准。本文档回答“党支部为什么存在”“通过组织获得成长”的根本命题，确立「管理事、服务人」作为从入党申请人到正式党员完整叙事的总路径。
 >
 > - 与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流，含三级参与者数据流）、[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵）、[FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md) 的关系见附录 A。
 > - 第三章 P-016「恢复对话能力」是「党建+科研」这一方面的重要战略选择——恢复对话能力是「党建+科研」的目标，不是党建全局的根本目标。

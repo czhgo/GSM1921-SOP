@@ -696,7 +696,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
 
   // ── 会议议程（T-283：三会一课；显示 + 支书行内编辑；2026-09-01：类型徽章 + 结果记录）──
   // 副书同权（2026-09-10 修复）：议程编辑/结果记录对副支书放开——依据
-  // content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」（支书/副支书共用支书工作台，
+  // content/02_institution/SYSTEM_ROLE_PERMISSION.md:142「副书同权」（支书/副支书共用支书工作台，
   // 见 constants.js ROLE_PAGE_MAP secretary→secretary.html）；仅此区块，范围不外扩。
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
     html += '<div class="mb-3 card rounded-xl p-3" id="agenda-block">';

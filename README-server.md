@@ -51,7 +51,7 @@
 - **母本 → 子本（系统）**：所有系统逻辑、数据模型、界面行为都要求从母本推导（`content/README.md:24` 引 `CLAUDE.md` H30.2）。
 - **制度参数（可调 vs 固定）**：并非所有制度数字都写死在代码里。系统把「一件事在几天内办完」这类**过程时限**归为**支部可调的制度参数**，默认值取母本所写的数字；而「考察意见每半年一次」等属**制度固定**项，所有支部一致。数据单一源＝`docs/src/core/policy-defaults.js`（逐项标注 `branch-default`＝支部可调 / `institutional`＝制度固定须支书裁决）。其中「**活动批准门**」（办活动要不要先过一道批准门）也是**支部可调的制度参数，默认关**——默认关时活动写入与改动前完全一致（见 §4.1 批次 150 补 / 批次 151 补 / 批次 152 补）。
 
-**依据**：`content/README.md:24`；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:196-229`（§9l 可调口径）；`docs/src/core/policy-defaults.js:1-15`（kind 标注说明）。
+**依据**：`content/README.md:24`；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:197-230`（§9l 可调口径）；`docs/src/core/policy-defaults.js:1-15`（kind 标注说明）。
 
 ### 1.3 当前处于什么阶段（**示例/演示 与 真实部署的区别**）
 
@@ -106,10 +106,10 @@
 **依据**：`docs/src/core/constants.js:185-191,819-821`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:192`（`ROLE_LEGACY_KEYS`）、`:288-302`（`ROLE_LABELS`）、`:306-318`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
 
 **两点易错约定**：
-- **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）已不是角色键**（2026-09-22 批次 143 自遗留键撤除），故不在上表；其展示标签仍保留，见 §2.2.11。⚠ **同族待同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**尚按 12 键记（缺 `deputy-leader` 行）**，本批只收口本表、那一份待另批一并同步。
+- **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）已不是角色键**（2026-09-22 批次 143 自遗留键撤除），故不在上表；其展示标签仍保留，见 §2.2.11。**同族已同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**与本表同批改准为 13 键**（2026-09-22 批次 154：补 `deputy-leader` 行、撤 `all` 行）。
 - **`party-staff` 不属于任何支部**：示例种子中它的 `branchId` 为 `null`。
 
-**依据**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:41`、`docs/src/mock/people.js:66`（`p_pc`：`role:'party-staff'`、`branchId: null`）。
+**依据**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:42`、`docs/src/mock/people.js:66`（`p_pc`：`role:'party-staff'`、`branchId: null`）。
 
 **第三个页面（非工作台）的支委门（2026-09-20 批次 105 / `D-526`）**：`docs/party-committee-meeting.html`（支委会会议页）**不是角色工作台**，无独立角色键——它的进页门 = 「登录人是否在本支部支委名单内」，名单与线上表决「应到名单」**同一单一源**：`docs/src/services/vote-config.js::resolveVoterIds('committee')`（`people.js` role + `AuthStore.isCommissioner`，排除 `u_*`，即支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）。对应地：
 
@@ -135,7 +135,7 @@
 | 不能做什么 | 不持 `record_attendance`（不直接记考勤）、不持 `summarize_inspection`（不汇总考察）、不持 `assign_project_role`（项目角色赋权走组长/组织者链） |
 | 审批位 | ① 成员变更申请**确认**（组织委员审批后由支书确认生效）；② 支部**上报党委**的发起方；③ 意见反馈**处置**（指派/关闭/重开/隐藏/合并/里程碑/终审）——**2026-09-21 批次 126 · `D-550` 归支委会：支委层五角色（支书 / 副支书 / 组织 / 宣传 / 纪检）均可，不再是支书独有**；④ **品牌认定**：本角色可**提案**（`D-559`），认定本身须经**支委会审议通过**后确定 |
 | 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——「处置」与「查看真身」是两项分开的权限（真身仅党委可查）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ 进宣传工作台只放行「档案归档」页（代归档兜底），不获得其它页签 |
-| 依据 | `docs/src/services/auth.js:78`、`:68-75`、`docs/src/core/constants.js:198-200`（`BRANCH_COMMISSION_ROLES`）、`docs/src/core/constants.js:327-333`（归档兜底）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:165-178`（§9j）、`server/routes/resources.js:77-89`（党小组门） |
+| 依据 | `docs/src/services/auth.js:78`、`:68-75`、`docs/src/core/constants.js:198-200`（`BRANCH_COMMISSION_ROLES`）、`docs/src/core/constants.js:327-333`（归档兜底）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:166-179`（§9j）、`server/routes/resources.js:77-89`（党小组门） |
 
 > **⚠「仍专属支书」的清单（2026-09-21 批次 126 · `D-550` 同批收口）**：该批只把「**品牌认定**」「**意见处置**」两件从「支书专属」移出（改归支委会 / 支委层），改后**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/inspector.js:616`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/services/notice.js:820`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:125`）。`SECRETARY_ROLES` 的注释已同批写明「品牌认定、意见处置已移出本集」（`docs/src/core/constants.js:201`）。
 
@@ -159,7 +159,7 @@
 | 不能做什么 | 不持 `create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_attendance`、`summarize_inspection`、`authorize`、`manage_members`（**不能设/取消组长**）；不能增减党小组（只能看清单与未分组人数） |
 | 审批位 | ① 成员变更申请**审批**（`POST /api/v1/member-change-requests/:id/approve`，**组织委员专属**）；② 思想汇报**打回**（事后反馈，须附意见；提交即入库，不需要审批归档）；③ 名册**新增成员**与**档案行内编辑**（专属写门）；④ 成员流动（流入/流出）登记 |
 | 特例 | 域参数：可改**本域** `policyOverrides.memberConfirmation`（学期末滞留集中复核窗口） |
-| 依据 | `docs/src/services/auth.js:80`、`server/routes/member.js:91,230,280`、`server/routes/resources.js:473-476`、`server/system-notice-kinds.js:106-111`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:150-163`（§9i） |
+| 依据 | `docs/src/services/auth.js:80`、`server/routes/member.js:91,230,280`、`server/routes/resources.js:473-476`、`server/system-notice-kinds.js:106-111`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:151-164`（§9i） |
 
 #### 2.2.4 `prop-commissioner` 宣传委员
 
@@ -193,7 +193,7 @@
 | 写活动范围 | 组长**只能**创建/修改**「党小组会」「主题党日」**两类活动；服务端写门按活动类型判定，越界返回 403 |
 | 可见范围 | 「块块」口径——只看**本党小组组员**（维度含在办/卡点/汇报/考勤/考察） |
 | 特例 | 赋权链：组长可赋权**项目角色** organizer/deep（`assign_project_role`） |
-| 依据 | `docs/src/services/auth.js:83`、`server/routes/resources.js:143-150`、`docs/src/services/visibility.js:54`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:93` |
+| 依据 | `docs/src/services/auth.js:83`、`server/routes/resources.js:143-150`、`docs/src/services/visibility.js:54`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:94` |
 
 #### 2.2.7 `participant` 普通参与者（含普通党员 / 预备党员 / 发展对象 / 积极分子）
 
@@ -205,7 +205,7 @@
 | 能做什么 | 看公开/本人相关视图；提交意见反馈与评论、表态、提及/引用、编辑自己提交的内容；提交思想汇报；提交本人复盘（组织者/深度参与者身份时）；报名活动/专班 |
 | 不能做什么 | 任何「记录类」写入（考勤、考察、复盘批注、名册、通知发布、活动创建…）一律不可 |
 | 特例 | 不持 `record_inspection`——本人素材走**活动参与记录**（2026-09-05 收敛，制度矩阵 §9d 该键已改 `--`） |
-| 依据 | `docs/src/services/auth.js:84`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:79-83`（§9d）、`docs/src/core/constants.js:231`（`DEVELOP_STAGES`） |
+| 依据 | `docs/src/services/auth.js:84`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:80-84`（§9d）、`docs/src/core/constants.js:231`（`DEVELOP_STAGES`） |
 
 #### 2.2.8 `party-staff` 党委组织员（组织级）
 
@@ -216,7 +216,7 @@
 | 权限与职责 | ① 支部**实例管理**（增改、空模板创建/复制创建、**只有它可改支部官方名 `name`**）；② 支书**任命/撤换**（写任期档案 + 同步双方 `users.role` + 写 `branches.secretaryId`）；③ 支部**上报审批**（逐项批准/驳回，驳回须意见）；④ **下发通知**（送达目标支部支委层）；⑤ 支部**配置**（modules/blocks/workforce/组织档案/域参数，全支部）；⑥ `users` / `branches` / `appointmentRecords` 的资源级写权限**仅此角色** |
 | 唯一例外（2026-09-17 支书改裁） | 党委**保留对匿名意见反馈的核查权**——`GET /api/v1/issues/reveal` 可查看匿名反馈**真实提交人**，且**每次查看写一条留痕**（`issue_reveals` 表）。这是「不参与支部内部事务」的唯一例外 |
 | 特例 | 制度权限矩阵 §9b（支部 6 角色）与 §9c（项目 2 角色）**都不含它**——它是组织级角色，不进支部矩阵。另外：可见性配置表 `ROLE_VISIBILITY` 中没有它，因此「谁能看谁」的投影对它返回空 |
-| 依据 | `docs/src/services/auth.js:90-106`、`server/routes/resources.js:78-80,325-383`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43,165-178`、`docs/src/services/visibility.js:48-56`（无 party-staff 键）、`server/routes/resources.js:700-721`、`server/db.js:41` |
+| 依据 | `docs/src/services/auth.js:90-106`、`server/routes/resources.js:78-80,325-383`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:44,166-179`、`docs/src/services/visibility.js:48-56`（无 party-staff 键）、`server/routes/resources.js:700-721`、`server/db.js:41` |
 
 #### 2.2.9 `organizer` 组织者（项目角色）
 
@@ -240,7 +240,7 @@
 | 能做什么 | 看被赋权的项目、标记完成 |
 | 不能做什么 | 不能派任务、改分工、填复盘、导入考察、再赋权 |
 | 任务 | **任务由组织者分配（逐项标注是否在系统内完成）；系统内的产出由系统在后台同步，系统外的线下完成由组织者确认；未闭环的由组织者优先推动闭环**——深参那份**不含上传 / 打包 / 派任务**类动作（口径见母本 `content/02_institution/sop/常见工作场景快速指南.md`，与 `SOP-A-5`「上传只认组织者」相接）。**现状：已按项目内身份给任务（成员台「我的任务」）；「由组织者分配」尚未做**（2026-09-19 批次 93 落地，裁定 `D-500`；轨迹见 `.ctx/REVIEW_QUEUE.md` `SOP-B-31`） |
-| 依据 | `docs/src/services/auth.js:92`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:74-77`（§9c） |
+| 依据 | `docs/src/services/auth.js:92`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:75-78`（§9c） |
 
 #### 2.2.11 遗留键与 `all`（`commissioner` / `initiator` 为遗留键；`all` 已非角色键）
 
@@ -256,7 +256,7 @@
 > - **授权语义**（含支书/副支书）＝ `BRANCH_COMMISSION_ROLES`（5 个键）：服务端 `requireCommissioner` 与前端「是否支委」判定用它。
 > - **业务语义「条条委员」**（三委员，**不含**支书/副支书）＝ `COMMISSIONER_ROLES`（`commissioner`/`org-commissioner`/`prop-commissioner`/`disc-commissioner`）。
 >
-> **依据**：`docs/src/core/constants.js:198-200`、`:348-350`、`server/routes/auth.js:92-97`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:42`。
+> **依据**：`docs/src/core/constants.js:198-200`、`:348-350`、`server/routes/auth.js:92-97`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43`。
 
 ### 2.3 权限矩阵（键级，取自代码）
 
@@ -295,7 +295,7 @@
 | 党小组组长 | 组织者 / 深度参与者（**项目**） | `assign_project_role` |
 | 组织者 | 深度参与者（项目） | `assign_project_role` |
 
-**依据**：`docs/src/services/auth.js:100-106`（`AUTHORIZE_CHAIN`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:85-94`（§9e）。
+**依据**：`docs/src/services/auth.js:100-106`（`AUTHORIZE_CHAIN`）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:86-95`（§9e）。
 
 > **注意**：支委（支书/副支书/三委员）由配置预设，**不在系统赋权范围内**（代码注释原文）。
 
@@ -481,7 +481,7 @@
 
 > **左栏共 10 个分区**（外观 · 我的工作台 · 支部信息与向导 · 工作台默认顺序 · 支部制度参数 · 配置变更记录 · 纪检 / 组织 / 组长职责参数 · 支部治理快捷块说明）；逐区「管什么 + 谁能看到」见系统内【帮助】页 §5.4（裁定 `D-516`），本表只给三档归属。
 
-**依据**：`README.md:117`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:134-148`（§9h）。
+**依据**：`README.md:117`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:135-149`（§9h）。
 
 ### 3.4 关键机制（可复用工作流）
 
@@ -1766,7 +1766,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
 | 15 | **`handoffs`（三委数据交接记录）服务端无表** | 前端 mockDB 有 `handoffs` 域、mock 适配器会持久化它；**服务端 35 张资源表里没有 handoffs** ⇒ API 形态下该域不落库 | `docs/src/core/domain.js:266`、`docs/src/core/mock-adapter.js:92,269,1336`、`server/db.js:9-42` |
 | 16 | **`pendingMemberConfirmations` 不落服务端** | 前端 mockDB 数组「仅承载内存读链」，跨刷新持久化由成员确认服务自管浏览器 localStorage 键；**服务端无对应表** ⇒ API 形态下该队列不落库 | `docs/src/core/domain.js:324-332` |
-| 17 | **「副组长」身份已落地（2026-09-21 批次 139 · `D-571`）** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已按支书 2026-09-21 口径把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**（原「`docs/` 内零命中」的登记已作废） | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:45`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，恰好四处）见 `server/test/doc-line-ref.test.mjs:235-240` |
+| 17 | **「副组长」身份已落地（2026-09-21 批次 139 · `D-571`）** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已按支书 2026-09-21 口径把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**（原「`docs/` 内零命中」的登记已作废） | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，恰好四处）见 `server/test/doc-line-ref.test.mjs:235-240` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/visibility.js:48-56`、`:99-101` |
 
 ### 7.3 未接入 / 无代码类（规划中）

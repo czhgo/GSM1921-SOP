@@ -2,7 +2,7 @@
 title: "制度层索引——支部发展和管理的制度"
 type: index
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-22"
 status: active
 ---
 
@@ -33,7 +33,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [SYSTEM_ROLE_PERMISSION.md](SYSTEM_ROLE_PERMISSION.md) | 系统运行角色权限矩阵（角色键全表 9a0/权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | **唯一权威**——系统角色权限矩阵（双轨：COMMISSIONER_DUTY_FRAMEWORK.md §C 为逐操作位视图） |
+| [SYSTEM_ROLE_PERMISSION.md](SYSTEM_ROLE_PERMISSION.md) | 系统运行角色权限矩阵（角色键全表 9a0/权限矩阵/赋权链，代码键级权威） | **唯一权威**——系统角色权限矩阵（双轨：COMMISSIONER_DUTY_FRAMEWORK.md §C 为逐操作位视图） |
 
 ## 子目录
 
