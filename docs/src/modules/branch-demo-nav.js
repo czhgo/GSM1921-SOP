@@ -15,10 +15,10 @@
 // （auth.js ROLE_PERMISSIONS 无 party-staff 键）→ 可见 ≠ 可写；本模块只放开「进入支部」的可见性
 // 放行（只读），不放宽任何写权限（requiredRoles / 权限键一律不动）。
 
-import { getBranchById } from '../services/branch.js?v=20260922e';
-import { showToast } from '../core/utils.js?v=20260922e';
-import { AuthStore } from '../services/auth.js?v=20260922e';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260922e';
+import { getBranchById } from '../services/branch.js?v=20260922f';
+import { showToast } from '../core/utils.js?v=20260922f';
+import { AuthStore } from '../services/auth.js?v=20260922f';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260922f';
 
 // 演示目标页：支书工作台（演示形态固定 secretary.html；后续如需演示其他支委角色在此扩展）
 const DEMO_PAGE = 'secretary.html';

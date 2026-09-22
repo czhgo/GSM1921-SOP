@@ -11,7 +11,7 @@
 //   · 样式单一源 = styles.css 的 .page-btn / .page-num（本文件只产出标记，不写样式）；
 //   · 页数 ≤1 返回空串 —— 小表零负担（不渲染控件）；
 //   · 计数文案统一「共 N <单位> · 第 x / y 页」。
-import { escHtml as esc } from '../core/utils.js?v=20260922e';
+import { escHtml as esc } from '../core/utils.js?v=20260922f';
 
 /**
  * 渲染翻页区 HTML（唯一产出点）

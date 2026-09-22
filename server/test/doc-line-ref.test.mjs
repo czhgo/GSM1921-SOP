@@ -40,6 +40,24 @@
 //   （`27-53` 一并收敛为 `27-60`），1 处（`deliverableIds` 的 `:47`）落在插入点之上、不动。
 //   本守卫**改前/改后实测计数不变**（引用 382 = 全式 337 + 短式 45 · 被引文件 63 · 带锚点 36 · md 多行区间 66）
 //   ⇒ R1–R5 的基线常量无需调整，此处仅留记录。上方「批次 107 病灶」里的示例行号是**当时的取值**（历史留痕），未随本次位移改写。
+//
+// 批次 147（2026-09-22）后续说明：本批**加一道「语义漂移」防线**，并顺手收紧 R2 的两处假绿——
+//   ① **R2 收紧**：原判据是「**子串包含** + 至少一个锚命中（`some`）」，两种假绿：
+//      〔子串〕括注写 `ROLE_KEYS` 时，区间里只要出现 `ROLE_LEGACY_KEYS`（含该子串）就算命中；
+//      〔some〕括注列多个锚点（如 `signupEnabled` / `requireMakeup`）时，**只有一个**在区间内就放行。
+//      实测漏掉 `README-server.md:602` 的 `write-tab.js:1048,1050`（`requireMakeup` 实写于 `:1052`，`1048` 是注释行）。
+//      现改为「**每个锚点都要以「词」为单位出现在区间内**」（词边界匹配 + `every`）。
+//   ② **新增 R6（语义漂移防线）**——补的正是 R1–R5 抓不到的那一类：「**行号区间指到的内容与该引用声称的不符**」。
+//      (a) 括注里出现**行为词**（`运行时新建` / `写入点` / `落库` / `唯一源` / `单一源` …）＝ 这句话对「区间里
+//          发生了什么」下了断言 ⇒ **必须带一个可校验锚点**（反引号标识符）；无锚 ⇒ 红。
+//          批次 146 漏掉的正是这条：`archive-tab.js:873-892`（运行时新建）——批次 145 在 `archive-tab.js`
+//          中段插行后，该区间已漂到「文件外发确认」浮窗（`:873` 是 `<h3>文件外发确认</h3>`），真正的运行时
+//          新建块已到 `:920-987`；因括注是纯中文、无锚点，R2 不判、R1 只判「区间非空」⇒ 一路假绿。
+//      (b) **弱引用清单**（无锚 ⇒ 机器判不了、只能靠人读）给出基线上下限：既防「正则失效 ⇒ 一条都解析不到
+//          ⇒ 断言恒真」，也防这类引用**悄悄变多**（本批只允许逐个补锚，不许成批变弱）。
+//   ⇒ 加严后当场抓出 **3 条硬红**（R2 收紧 1 条 + R6(a) 2 条），**均在 `README-server.md`**（本批授权面）
+//      ⇒ 已就地改准（`write-tab.js:1048,1050 → 1050,1052` · `archive-tab.js:873-892 → 920-987` ·
+//      `vote-config.js:54-67` 补锚 `resolveVoterIds`）；改后本守卫 R1–R6 全绿。
 // 运行：`node --test server/test/doc-line-ref.test.mjs`（纯 node，无浏览器 / 无服务依赖）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -110,6 +128,12 @@ function anchorsOf(tail) {
   return [...out].filter((s) => s.length >= 3);
 }
 
+/** 该标识符是否**以「词」为单位**出现在区间里（防子串假绿：`ROLE_KEYS` 不该落在 `ROLE_LEGACY_KEYS` 里就算命中） */
+function anchorIn(seg, id) {
+  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![A-Za-z0-9_$])${esc}(?![A-Za-z0-9_$])`).test(seg);
+}
+
 /** 逐行抽出全部引用（含短式），并记下「引用后紧跟的括注」供二级判据用 */
 function collectRefs() {
   const lines = read(TARGET).split(/\r?\n/);
@@ -163,7 +187,7 @@ test('R1 每条 `文件:行号` 引用都指到真实位置（文件可解析 / 
 
 // ── R2 二级：符号能印证 ────────────────────────────────────────────────────
 
-test('R2 引用后括注里的符号必须出现在声明区间内（逐条无容差；例外仅 1 条且写明理由）', () => {
+test('R2 引用后括注里的符号必须逐个出现在声明区间内（词边界匹配；例外仅 1 条且写明理由）', () => {
   assert.ok(ANCHORED.length >= 30, `只解析出 ${ANCHORED.length} 条带符号锚点的引用（基线 30）：解析口径被改坏了，断言会变成假绿`);
   const exempt = new Set(ANCHOR_EXCEPTIONS.map((e) => e.ref));
   const problems = [];
@@ -174,8 +198,10 @@ test('R2 引用后括注里的符号必须出现在声明区间内（逐条无�
     const src = read(abs).split(/\r?\n/);
     const anchors = anchorsOf(r.tail);
     const seg = r.ranges.map((g) => src.slice(g.a - 1, g.b).join('\n')).join('\n');
-    if (!anchors.some((s) => seg.includes(s))) {
-      problems.push(`README-server.md:${r.readmeLine} ${r.key}（区间内未出现 ${anchors.map((s) => `\`${s}\``).join(' / ')}）` +
+    // 2026-09-22 批次 147：由「子串包含 + some（至少一个命中）」收紧为「词边界 + every（每个都要在）」
+    if (!anchors.every((s) => anchorIn(seg, s))) {
+      const miss = anchors.filter((s) => !anchorIn(seg, s));
+      problems.push(`README-server.md:${r.readmeLine} ${r.key}（区间内未出现 ${miss.map((s) => `\`${s}\``).join(' / ')}）` +
         ` —— 若行号已漂移请改行号；若括注写的是概念名而非区间内标识符，请改写括注或按理由进 ANCHOR_EXCEPTIONS`);
     }
   }
@@ -277,4 +303,34 @@ test('R5 非空转：引用总数 / 被引文件数 / 带锚点引用数均有�
   assert.ok(ANCHORED.length >= 30, `带锚点的引用只剩 ${ANCHORED.length} 条（基线 30：批次 107 实测 36）：二级判据在缩水`);
   const shortN = REFS.filter((r) => r.kind === '短式').length;
   assert.ok(shortN >= 40, `短式引用只剩 ${shortN} 条（基线 40：批次 107 实测 45）：短式解析被改坏（短式最容易被漏）`);
+});
+
+// ── R6 语义漂移防线（2026-09-22 批次 147 新增）────────────────────────────────
+//
+// R1–R5 只判「文件可解析 / 行号在范围内 / 区间非空 / 锚点在不在」——**「区间指到的内容不对」抓不到**
+// （批次 146 实测：`archive-tab.js:873-892`（运行时新建）随批次 145 在 `archive-tab.js` 中段插行而漂到
+// 「文件外发确认」浮窗（`:873` 是 `<h3>文件外发确认</h3>`），真正的运行时新建块已到 `:920-987`；
+// 因括注是纯中文、无锚点，R2 不判、R1 只判「区间非空」⇒ 一路假绿）。R6 补这一类，两档：
+//   (a) **行为词 ⇒ 必须带锚**：括注里出现「运行时新建 / 写入点 / 落库 / 唯一源 / 单一源 …」这类**对区间内容
+//       下了断言**的词时，必须给出一个反引号标识符锚点——补了锚，R2 就能替你把这句话钉在区间上；无锚 ⇒ 红。
+//   (b) **弱引用清单不空转、也不许悄悄变宽**：无锚引用（机器判不了、只能靠人读）给出基线上下限。
+
+/** 行为词（受控、从窄）：出现即＝该引用对「区间里发生了什么」下了断言，必须带可校验锚点 */
+const SEMANTIC_CLAIM_WORDS = ['运行时新建', '运行时创建', '运行时生成', '写入点', '写点', '读点', '落库', '唯一源', '单一源'];
+
+test('R6 语义漂移防线：行为词型引用必须带可校验锚点（无锚即红）；弱引用清单有基线上下限', () => {
+  const problems = [];
+  for (const r of REFS) {
+    const hit = SEMANTIC_CLAIM_WORDS.filter((w) => r.tail.includes(w));
+    if (hit.length && anchorsOf(r.tail).length === 0) {
+      problems.push(`README-server.md:${r.readmeLine} ${r.key}（括注「${r.tail.trim()}」含行为词 ${hit.join(' / ')}，却无任何锚点）` +
+        ` —— 请在括注里补一个区间内出现的标识符（函数名 / 字段名 / 常量名），否则这句话与区间对不上时无人能机检`);
+    }
+  }
+  assert.deepEqual(problems, [], `行为词型引用缺可校验锚点（区间指到的内容可能与这句话不符）：\n  ${problems.join('\n  ')}`);
+
+  // (b) 弱引用清单（无锚 ⇒ 只能靠人读）：基线既防判据被改坏（下限），也防它成批变弱（上限）
+  const weak = REFS.filter((r) => anchorsOf(r.tail).length === 0);
+  assert.ok(weak.length >= 250, `无锚（弱）引用只剩 ${weak.length} 条（下限 250：批次 147 实测 348）：解析口径被改坏，R2 / R6 会变成恒真`);
+  assert.ok(weak.length <= 400, `无锚（弱）引用涨到 ${weak.length} 条（上限 400：批次 147 实测 348）：括注里的可校验锚点在缩水——本批只允许逐个补锚、不许成批变弱`);
 });

@@ -2,22 +2,22 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922e';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260922e';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260922e';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260922e';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922e';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260922e';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922f';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260922f';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260922f';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260922f';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922f';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260922f';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260922e';
-import { badgeHtml } from '../../../components/badges.js?v=20260922e';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922e';
-import { HandoffStore } from '../../../services/handoff.js?v=20260922e';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260922e';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260922f';
+import { badgeHtml } from '../../../components/badges.js?v=20260922f';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922f';
+import { HandoffStore } from '../../../services/handoff.js?v=20260922f';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260922f';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922e';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922f';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260922e';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260922f';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');

@@ -2,15 +2,15 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260922e';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922e';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922e';
-import { loadActivities } from '../../../services/activity.js?v=20260922e';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260922e';
-import { badgeHtml } from '../../../components/badges.js?v=20260922e';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922e';
+import { AuthStore } from '../../../services/auth.js?v=20260922f';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922f';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922f';
+import { loadActivities } from '../../../services/activity.js?v=20260922f';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260922f';
+import { badgeHtml } from '../../../components/badges.js?v=20260922f';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922f';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922e';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922f';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

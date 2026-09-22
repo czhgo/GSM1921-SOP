@@ -119,7 +119,7 @@
 | `org-commissioner` / `prop-commissioner` / `disc-commissioner` | 能 | 就议程表态（同意 / 异议 / 附言）、查看汇总与讨论结果 | 表态 → `POST /api/v1/agenda-votes`（须在活动 `voteConfig.voterIds` 内） |
 | `leader` / `participant` / 其它 | **不能** | 页面只呈现「本页仅支委可用」，不渲染会议数据与任何操作 | 表态 403 `不在本次表决名单`；截止 403 `无权限` |
 
-**依据**：`docs/src/entries/party-committee-meeting-entry.js`（页面自检）、`docs/src/services/vote-config.js:54-67`（名单单一源）、`server/routes/committee.js:56-92`（表态门）、`:161-177`（截止门）、`server/routes/resources.js`（活动写门）。
+**依据**：`docs/src/entries/party-committee-meeting-entry.js`（页面自检）、`docs/src/services/vote-config.js:54-67`（`resolveVoterIds` 名单单一源）、`server/routes/committee.js:56-92`（表态门）、`:161-177`（截止门）、`server/routes/resources.js`（活动写门）。
 
 ### 2.2 逐个角色说明
 
@@ -242,15 +242,15 @@
 | 任务 | **任务由组织者分配（逐项标注是否在系统内完成）；系统内的产出由系统在后台同步，系统外的线下完成由组织者确认；未闭环的由组织者优先推动闭环**——深参那份**不含上传 / 打包 / 派任务**类动作（口径见母本 `content/02_institution/sop/常见工作场景快速指南.md`，与 `SOP-A-5`「上传只认组织者」相接）。**现状：已按项目内身份给任务（成员台「我的任务」）；「由组织者分配」尚未做**（2026-09-19 批次 93 落地，裁定 `D-500`；轨迹见 `.ctx/REVIEW_QUEUE.md` `SOP-B-31`） |
 | 依据 | `docs/src/services/auth.js:92`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:74-77`（§9c） |
 
-#### 2.2.11 三个遗留键（`commissioner` / `initiator` / `all`）
+#### 2.2.11 遗留键与 `all`（`commissioner` / `initiator` 为遗留键；`all` 已非角色键）
 
 | 键 | 中文 | 说明 |
 |---|---|---|
 | `commissioner` | 条条委员 | **遗留键，无独立角色语义**，仅保留兼容；`ROLE_PERMISSIONS` 中没有它 → 不参与权限判定 |
 | `initiator` | 发起人 | 同上 |
-| `all` | 全体相关 | 遗留兜底键；在 SOP 场景任务的 `executor` 字段里表示「全员参与」，但**不是登录角色** |
+| `all` | 全体相关 | **已非角色键**（2026-09-22 批次 143 自 `ROLE_LEGACY_KEYS` 撤除）；原在 SOP 场景任务的 `executor` 字段里表示「全员参与」，该用点随 `org-life` 场景一并删除；现仅作参考指南展示键（标签 / 色值保留） |
 
-**依据**：`docs/src/core/constants.js:192`、`:301`；SOP 场景中 `executor: 'all'` 见 `docs/src/workflow/sopData.js:18`。
+**依据**：`docs/src/core/constants.js:192`（`ROLE_LEGACY_KEYS`——**2026-09-22 批次 143 已自其中撤除「全体相关」**）、`:288-302`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里——原来那三处用点随 `org-life` 场景一并于批次 143 删除（`executor` 的现行取值见 §4.15）。
 
 > ⚠ **注意区分两组同名集合**（后端实现权限时极易踩坑）：
 > - **授权语义**（含支书/副支书）＝ `BRANCH_COMMISSION_ROLES`（5 个键）：服务端 `requireCommissioner` 与前端「是否支委」判定用它。
@@ -599,7 +599,7 @@
 | requireMakeup | boolean | 否 | 本次活动是否要求补课（活动级勾选，仅党小组会等「按该次情形定」的场合用；主题党日不强制、支委会不补课）（裁定 `D-467` / `D-468`） |
 | voteConfig | object \| null | 否 | 线上异步表决配置，写入活动时固化：`{mode:'async', optionSet:'deliberative'│'formal', ballotMode:'named'│'anonymous', voterScope, voterIds:string[], quorumCheck:boolean}`。**线下开会不写本字段**（读侧无此字段＝旧活动/线下；`formal` 场景读侧一律按无记名处理） |
 
-> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/decision-tree.js:344`（`organizer` 写入）、`docs/src/services/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1048,1050`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1087-1103`（`voteConfig` 写入）、`docs/src/services/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources.js:173-182,226-260`（`voteConfig` 写侧校验）。
+> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/decision-tree.js:344`（`organizer` 写入）、`docs/src/services/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1050,1052`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1087-1103`（`voteConfig` 写入）、`docs/src/services/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources.js:173-182,226-260`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -881,13 +881,13 @@
 |---|---|---|---|
 | taskId | string | 条件 | 任务 ID（部分任务可省略） |
 | title | string | 是 | 任务标题 |
-| executor | string | 是 | 执行角色键（可为 `all`＝全员） |
+| executor | string | 是 | 执行角色键／渲染层标签（**`all` 已于 2026-09-22 批次 143 撤除**，见 §2.2.11；`expanded-committee` 只在渲染层有中文标签、不是角色键） |
 | supervisor | string \| null | 是 | 督办角色键（可为 null） |
-| timeOffset | number \| null | 是 | 距 T-0 的天数偏移（**null＝无时间锚点**；见 §7 的实例化限制） |
+| timeOffset | number \| null \| `'flexible'` | 是 | 距 T-0 的天数偏移（**null＝无时间锚点、不实例化**；**`'flexible'`＝不设固定提前量、由组织者自定**，仍进任务链但不带日期锚点；见 §7 的实例化限制） |
 | desc | string | 否 | 任务详细描述 |
 
-**内置场景共 8 个**：`org-life` 组织生活会 / `theme-party` 党小组主题党日活动 / `branch-party-meeting` 支部党员大会 / `party-group-meeting` 党小组会 / `party-lecture` 党课 / `branch-committee` 支委会 / `attendance-check` 查考勤记录 / `feedback-handling` 处理意见建议反馈。
-**2026-09-19 批次 97 改准**：本表原写「12 个」，其中 `joint-event`（团支部合办）/ `new-system`（制度制定与迭代）/ `develop-activist`（考察积极分子）/ `info-platform`（信息平台支持）**四个死场景已先后清掉、并进已有场景**（裁定 `D-336` / `D-344` / `D-464`（批次 82 清 `joint-event` / `new-system`）、`D-510`（批次 95 清 `develop-activist` / `info-platform`）），故现为 **8 个**。三会（支部党员大会 / 党小组会 / 支委会）已按同一套**9 环节**取齐（裁定 `D-328` / 落地 `D-509`）。
+**内置场景共 7 个**：`theme-party` 党小组主题党日活动 / `branch-party-meeting` 支部党员大会 / `party-group-meeting` 党小组会 / `party-lecture` 党课 / `branch-committee` 支委会 / `attendance-check` 查考勤记录 / `feedback-handling` 处理意见建议反馈。
+**2026-09-19 批次 97 改准**：本表原写「12 个」，其中 `joint-event`（团支部合办）/ `new-system`（制度制定与迭代）/ `develop-activist`（考察积极分子）/ `info-platform`（信息平台支持）**四个死场景已先后清掉、并进已有场景**（裁定 `D-336` / `D-344` / `D-464`（批次 82 清 `joint-event` / `new-system`）、`D-510`（批次 95 清 `develop-activist` / `info-platform`））；2026-09-22 批次 143 又按支书裁定**删掉 `org-life`（组织生活会）场景**（16 条专属任务一并删去；「组织生活会」作为会议 / 活动内容的概念保留，由承接它的三会形式承载），故现为 **7 个**。三会（支部党员大会 / 党小组会 / 支委会）已按同一套**9 环节**取齐（裁定 `D-328` / 落地 `D-509`）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:518-554`、`docs/src/workflow/sopData.js:9-110`。
 
 ### 4.16 意见反馈（IssueRecord）
@@ -1462,7 +1462,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同批写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:873-892`（运行时新建）、`docs/src/entries/tabs/prop/archive-tab.js:448-485`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources.js:44,161`。
+**依据**：`docs/src/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:920-987`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:448-485`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources.js:44,161`。
 
 ---
 

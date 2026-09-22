@@ -15480,6 +15480,136 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - `docs/src/core/work-map.js:4`「支书裁决：11 项平铺放行」（引述当时裁决的注释）——不在授权面 ⇒ **只登记**。
 - `.ctx/logs/2026-09-DECISION_LOG.md` 的 `D-3630`（旧决议正文内「支部工作地图 11 项固定模块」）——**历史决议正文、不改**。
 
+## 批次 147（2026-09-22，`D-579` · `D-580`）三处「陈旧陈述」按支书 2026-09-22 授权逐处改准 ＋ 给 `doc-line-ref` 守卫加一道「语义漂移」防线
+
+> **一句话**：**支书 2026-09-22 逐字授权四项**（**场景数 8→7** · **漂移的代码行引用** · **分责模块表三行** · **给守卫加一道防线**）⇒ ① `README-server.md §4.15` 内置场景数 **8 → 7**（删 `org-life` 行）＋ 同段 `executor` / `timeOffset` 取值改准；② **漂移的代码行引用重新定位**（`:1465` 的 `archive-tab.js:873-892`（运行时新建）→ **`:920-987`（`_handleArchiveUpload`）**）＋ **全库找齐同类语义漂移**（授权面内另 3 处就地改准；授权面外逐条登记、不擅自改）；③ §3.5 支部分责模块目录表**逐行核过、无残留**（批次 145 已改准）；④ **给 `server/test/doc-line-ref.test.mjs` 加一道「语义漂移」防线**（新增 `R6`「行为词型引用必须带可校验锚点」＋ 收紧 `R2` 为「词边界 + 每个锚点都要在」；**加严后当场抓出 3 条硬红、均在授权面内、已就地改准**）。**未改任何系统行为 / 权限门 / 判据逻辑**；改了 `server/test/**` ⇒ 版本戳 `20260922e → 20260922f`；**真机无可点面**（只改文档 / 台账 / 一个纯 node 守卫）。
+
+### 一、取证（先盘清「改前逐字」与守卫现状）
+
+| # | 处 | 改前逐字（`文件:行号`） |
+|---|---|---|
+| 1 | `README-server.md:889` / `:890`（§4.15 内置场景） | `:889`「**内置场景共 8 个**：`org-life` 组织生活会 / `theme-party` … / `feedback-handling` 处理意见建议反馈。」· `:890`「…（裁定 `D-336` / `D-344` / `D-464` / `D-510`）**，故现为 8 个**。三会…9 环节取齐…」 |
+| 2 | `README-server.md:884` / `:886`（§4.15 场景字段表） | `:884`「\| executor \| string \| 是 \| 执行角色键（**可为 `all`＝全员**） \|」· `:886`「\| timeOffset \| **number \\| null** \| 是 \| 距 T-0 的天数偏移（**null＝无时间锚点**；见 §7 的实例化限制） \|」 |
+| 3 | `README-server.md:1465`（§4.44 依据行） | 「`docs/src/entries/tabs/prop/archive-tab.js:873-892`（**运行时新建**）」——**实然**：`:873` 是 `_promptExternalDispatch` 里的 `<h3 …>文件外发确认</h3>`（批次 145 在 `archive-tab.js:448-485` 插了党建平台留痕位 ⇒ 其后整体下移）；真正的运行时新建块＝`_handleArchiveUpload`（`:920` 起、`:987` 止；两条 `mockDB.archiveRecords.push` 在 `:955` / `:970`） |
+| 4 | `README-server.md:253`（§2.2.11 依据行） | 「`docs/src/core/constants.js:192`、`:301`；**SOP 场景中 `executor: 'all'` 见 `docs/src/workflow/sopData.js:18`**。」——**实然**：`sopData.js:18` 是 `1b-3`（`executor: 'organizer'`）；**全仓已无 `executor: 'all'`**（批次 143 撤键 ＋ 三处用点随 `org-life` 删除） |
+| 5 | `README-server.md:602`（§2.2.4 依据行） | 「`docs/src/entries/tabs/leader/write-tab.js:1048,1050`（`signupEnabled` / `requireMakeup` 写入）」——**实然**：`:1050` 是 `signupEnabled` 写入，`:1052` 才是 `requireMakeup` 写入（`:1048` 是注释行） |
+| 6 | `README-server.md:122`（§2.2.1 依据行） | 「`docs/src/services/vote-config.js:54-67`（**名单单一源**）」——该区间即 `resolveVoterIds` 函数体，但括注无锚点 |
+| 7 | `server/test/doc-line-ref.test.mjs` 现有判据 | **`R1`**（文件可解析 / 行号在范围内 / 区间非空）· **`R2`**（括注里的反引号标识符须落在区间内——**子串包含 + `some`**）· **`R3`**（md 区间不越节）· **`R4`**（关键词型取证）· **`R5`**（非空转基线）⇒ **只判「指到没指到」，判不了「指到的内容对不对」** |
+
+### 二、第一处：`README-server.md` §4.15 内置场景数 8 → 7
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `:889` | 「内置场景共 **8** 个：`org-life` 组织生活会 / `theme-party` …」 | 「内置场景共 **7** 个：`theme-party` 党小组主题党日活动 / `branch-party-meeting` 支部党员大会 / `party-group-meeting` 党小组会 / `party-lecture` 党课 / `branch-committee` 支委会 / `attendance-check` 查考勤记录 / `feedback-handling` 处理意见建议反馈。」（**删 `org-life` 一行**） |
+| 2 | `:890` | 「…故现为 **8 个**。三会…」 | 「…；2026-09-22 批次 143 又按支书裁定**删掉 `org-life`（组织生活会）场景**（16 条专属任务一并删去；「组织生活会」作为会议 / 活动内容的概念保留，由承接它的三会形式承载），故现为 **7 个**。三会…」 |
+| 3 | `:884` | 「执行角色键（可为 `all`＝全员）」 | 「执行角色键／渲染层标签（**`all` 已于 2026-09-22 批次 143 撤除**，见 §2.2.11；`expanded-committee` 只在渲染层有中文标签、不是角色键）」 |
+| 4 | `:886` | 「number \\| null」＋「null＝无时间锚点」 | 「number \\| null \\| `'flexible'`」＋「**null＝无时间锚点、不实例化**；**`'flexible'`＝不设固定提前量、由组织者自定**，仍进任务链但不带日期锚点」 |
+
+**场景数逐个数过**（**以 `docs/src/workflow/sopData.js` 实然为准**，不照抄）：`scenarios` 数组 7 项——`theme-party` · `branch-party-meeting` · `party-group-meeting` · `party-lecture` · `branch-committee` · `attendance-check` · `feedback-handling` ⇒ **7 个**（第八个 `org-life` 已于批次 143 删除）。
+
+### 三、第二处：漂移的代码行引用（`:1465` 重新定位 ＋ 全库找齐）
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `:1465` | `archive-tab.js:873-892`（运行时新建） | **`archive-tab.js:920-987`（运行时新建：`_handleArchiveUpload`）**——`_handleArchiveUpload` 起 `:920`、止 `:987`；两条 `mockDB.archiveRecords.push` 在 `:955` / `:970` |
+| 2 | `:253` | `constants.js:192`、`:301`；SOP 场景中 `executor: 'all'` 见 `sopData.js:18` | `constants.js:192`（`ROLE_LEGACY_KEYS`——**批次 143 已自其中撤除「全体相关」**）· `:288-302`（`ROLE_LABELS`，「全体相关」的展示标签仍保留）；⚠ **`all` 现非角色键**，且已不再出现在任何 SOP 场景任务的 `executor` 里（原三处用点随 `org-life` 场景一并于批次 143 删除）——**同行** `:245` 标题由「三个遗留键（`commissioner` / `initiator` / `all`）」改「遗留键与 `all`（`commissioner` / `initiator` 为遗留键；`all` 已非角色键）」、`:251` 那行由「遗留兜底键；在 SOP 场景任务的 `executor` 字段里表示「全员参与」」改「**已非角色键**（批次 143 自 `ROLE_LEGACY_KEYS` 撤除）；原…该用点随 `org-life` 场景一并删除；现仅作参考指南展示键」 |
+| 3 | `:602` | `write-tab.js:1048,1050` | **`:1050,1052`**（`signupEnabled` 在 `:1050`、`requireMakeup` 在 `:1052`） |
+| 4 | `:122` | `vote-config.js:54-67`（名单单一源） | `vote-config.js:54-67`（**`resolveVoterIds`** 名单单一源）——**补锚**，使该句可被 `R2` 钉在区间上 |
+
+**全库找齐「行号区间指到的内容与该引用声称的不符」**（扫 `README-server.md` · `README.md` · `README-members.md` · `docs/help.html` · `.ctx/ACTIVE_RULINGS.md` · `content/**` 主要 md；判据＝「**锚点逐词落在区间内**」的收紧版）：
+
+- **本批改了的（均在授权面 `README-server.md` 内）**：上表 #1–#4 共 4 处（`:1465` · `:253`〔＋同段 `:245` / `:251`〕· `:602` · `:122`）。
+- **只登记的（授权面外 / 属沿革，未改）**：
+  1. `content/04_web_design/data/DATA_MODEL.md:328` 的 `（domain.js:245，随全量键 \`workflowos_branch_db_v1\` 持久化）`——**该处其实正确**（`inspections: []` 正在 `:245`），是**判据把后文括注的键名误当锚点**所致（假阳性，无需改）。
+  2. `server/routes/uploads.js:45-47` 三处注释：`archive-tab.js:367`（应指 `:505` `application/msword`）· `archive-tab.js:48`（应指 `:51` 视频 MP4 材料标准）· `archive-tab.js:372`（应指 `:510` `downloadCSV`）——**`server/**` 业务代码、不在本批授权面**。
+  3. `.ctx/ACTIVE_RULINGS.md:103`（`README-server.md:529` 的 `work-map.js:29-116`）· `:105`（`sopData.js:96` / `:46`）· `.ctx/TIMESTAMPS.md:135`（`sopData.js:96`）· `.ctx/REVIEW_QUEUE.md:758`（`work-map.js:59` / `:65`）——**均为各批增量行的「当时取值」、属沿革**，沿用批次 146 的先例**只登记、不重写**。
+  4. `README-server.md §2.1 角色键全表`（`:88` 标题「**13 键 = 10 业务键 + 3 遗留键**」＋ `:104` 的 `all` 行）——**该表既缺批次 139 新增的 `deputy-leader` 行、又仍列已撤的 `all` 行** ⇒ 须**整体改准为 13 键（11 业务 ＋ 2 遗留）**，**不是本批四处授权面的字面范围** ⇒ **只登记、待授权另批**。⚠ **如实登记**：本批改后 §2.1「3 遗留键」与 §2.2.11「两个遗留键」**暂不一致**，随下一批一并收口。
+  5. `.ctx/ENGINEERING_ASSESSMENT.md:168`（`sopData.js:10-129` ＋「现 8 场景」）、`.ctx/logs/*` 历史批次正文内的大批行号——**历史台账 / 评估结论**，只登记。
+
+### 四、第三处：`README-server.md` §3.5 支部分责模块目录表（逐行核，无残留 ⇒ 一字未改）
+
+逐行核「表内每一行 ↔ `docs/src/core/work-map.js::WORK_MAP_MODULES`（`:61-169`）」：
+
+| # | 表内模块 id / 名 / 层 / 缺省主责主体 | `work-map.js` 实然 | 判 |
+|---|---|---|---|
+| 1 | `branch-party-meeting` 支部党员大会 · norm · `secretary` | `:63` 同 | ✅ |
+| 2 | `branch-committee-meeting` 支委会 · norm · `secretary` | `:72` 同 | ✅ |
+| 3 | `party-group-meeting` 党小组会 · norm · `leader` | `:81` 同 | ✅ |
+| 4 | `party-lecture` 党课 · norm · `secretary` | `:89` 同 | ✅ |
+| 5 | `theme-party` 主题党日 · norm · `leader` | `:97` 同 | ✅ |
+| 6 | `taskforce` 专班 · method · `org-commissioner` | `:109` 同 | ✅ |
+| 7 | `joint-event` 共建活动 · method · `secretary` | `:114` 同 | ✅ |
+| 8 | `develop-party-member` 发展党员 · norm · `branch-committee` | `:119` 同（批次 144 改准） | ✅ |
+| 9 | `democratic-review` 民主评议党员 · norm · `secretary` | `:130` 同 | ✅ |
+| 10 | `election` 换届选举 · norm · `secretary` | `:137` 同 | ✅ |
+| 11 | `attendance-inspection` 考勤考察 · norm · `disc-commissioner` | `:143` 同 | ✅ |
+| 12 | `feedback-handling` 意见反馈处理 · norm · `branch-committee` | `:148` 同（批次 141 改准） | ✅ |
+| 13 | `rule-making` 制度制定与迭代 · norm · `branch-committee` | `:158` 同（批次 141 改准） | ✅ |
+| 14 | `info-platform` 信息平台支持 · method · `prop-commissioner` | `:166` 同 | ✅ |
+
+**表头与说明亦齐**：表标题「（`config.workforce` 的键集，**共 14 个**）」· 表头「**缺省主责主体**」· 表下注「**「缺省主责主体」可取三类**：角色键 / **组织型主体 id**（`branch-committee`＝支委会，不是自然人、不能当登录身份，见 `work-map.js::ORG_SUBJECTS`）/ **到人**（`ownerType:'person'`＋`personId`）」· 以及「**「三会一课」自 2026-09-22 起按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-group-meeting` / `party-lecture`），原 `three-meetings` 键**已不再有效**」——**均在位**。⇒ 批次 144 / 145 登记的 `:520` / `:524` / `:525` 三行陈旧值**已由批次 145 改准**，本批**复核无残留**。
+
+### 五、⭐ 第四处：给 `doc-line-ref` 守卫加一道「语义漂移」防线
+
+**现有判据的盲区（本批要补的正是它）**：`R1`–`R5` 只判「**文件可解析 / 行号在范围内 / 区间非空 / 锚点在不在**」——**判不了「区间指到的内容与该引用声称的不符」**。**实证据**：`:1465` 引 `archive-tab.js:873-892`（运行时新建），批次 145 插行后该区间已落到「文件外发确认」浮窗，但括注是**纯中文、无锚点** ⇒ `R2` 不判、`R1` 只判「区间非空」⇒ **一路假绿**。
+
+**改法（本批自定，两处）**：
+
+1. **收紧 `R2`**：原判据＝「`seg.includes(anchor)`（**子串**）+ `anchors.some(...)`（**至少一个**命中）」⇒ 改为「**每个锚点都要以「词」为单位出现在区间内**」（新增 `anchorIn()`：词边界正则 + `every`）。两种假绿因此被补：
+   - 〔子串〕括注写 `ROLE_KEYS` 时，区间里只要出现 `ROLE_LEGACY_KEYS`（含该子串）就算命中；
+   - 〔some〕括注列多个锚点（如 `signupEnabled` / `requireMakeup`）时**只有一个**在区间内就放行 ⇒ 实测漏掉 `README-server.md:602` 的 `write-tab.js:1048,1050`。
+2. **新增 `R6`「语义漂移防线」**（两档）：
+   - **(a) 硬判据（红）**：括注里出现**受控行为词**而**整条引用没有任何反引号锚点** ⇒ 红。受控表**从窄**＝`运行时新建` / `运行时创建` / `运行时生成` / `写入点` / `写点` / `读点` / `落库` / `唯一源` / `单一源`（选词判据：这些词**只描述「被引区间里发生了什么」**，与「消费点 / 零命中」这类**关于别处缺席**的取证词分开——后者由 `R4` 单独管）。**补锚即绿**：补了锚，`R2` 就能把那句话钉在区间上。
+   - **(b) 弱引用清单（不红）**：无锚引用（机器判不了、只能靠人读）**给出基线上下限**——断言 `>= 250`（防「正则失效 ⇒ 一条都解析不到 ⇒ 恒真」）且 `<= 400`（防该清单**悄悄变宽**；本批只允许逐个补锚、不许成批变弱）。**实测当前 348 条**。
+
+**加严后当场抓出 3 条硬红、逐条处置（均在授权面 `README-server.md`）**：
+
+| # | 抓出者 | 位置 | 红在哪 | 处置 |
+|---|---|---|---|---|
+| 1 | `R2` 收紧 | `README-server.md:602` | `requireMakeup` 不在 `:1048`（该行是注释） | **就地改准**为 `:1050,1052`（「三」表 #3） |
+| 2 | `R6(a)` | `README-server.md:1465` | 括注「运行时新建」含行为词却**无锚点** | **重新定位 + 补锚** → `:920-987`（`_handleArchiveUpload`）（「三」表 #1） |
+| 3 | `R6(a)` | `README-server.md:122` | 括注「名单单一源」含行为词却**无锚点** | **补锚** `resolveVoterIds`（「三」表 #4） |
+
+**未放宽、未做空壳（如实）**：`ANCHOR_EXCEPTIONS` **仍只 1 条**（`vote-config.js:41,44` 的 `voteConfig`——括注写的是**概念名**、不是区间内标识符），**本批未新增白名单**；`R6(a)` 对**纯中文说明**（无行为词）的引用**仍不判**——那一半老实落**弱引用清单**、**由人通读**（承 `R4` 的注释与 `R-87`「关键词反查只覆盖字面层——换说法必须人工通读」）；**覆盖面照旧**＝本守卫**只守 `README-server.md`**（`README.md` / `README-members.md` / `content/**` 的同类引用**不在本守卫范围**）。**为什么行为词表不放大**（不加 `写入` / `读取` / `种子`）：这些词在**引文 / 注释转引**里大量出现（实测 `:1740` 是「注解原文」转引、`:76` 是并列文件的括注），加进去会逼出一批**没有锚可补**的假红。**为什么收紧 `R2` 不算「加严到必然全红」**：实测全仓只 2 处触发（1 处＝本批要修的 `write-tab`、1 处＝既有白名单）。
+
+### 六、反查（改前 → 改后）＋ 守卫 ＋ 全量 ＋ 停服
+
+| 词 | 改前（HEAD） | 改后 | 逐条判定 |
+|---|---|---|---|
+| `内置场景`（全仓） | 1（`README-server.md:889`） | 2（`:889` 现写「共 **7** 个」；另 `content/04_web_design/data/DATA_MODEL.md:542` 的「内置场景清单（共 7 个）」是批次 143 已改准的） | **本批把 `README-server.md` 那处改准** |
+| `org-life`（`README-server.md`） | 2 行（`:889` 清单 · `:890` 沿革句） | **1 行**（`:890` 的沿革句——**正当保留**：它写的是「批次 143 删掉 `org-life`」） | −1＝清单行已删该键 |
+| `8 个`（`README-server.md`） | 3 行 | **1 行** | 逐行读整句判语境：−2 是本批改准的 §4.15 两处；余 1 行在别处、**非场景数口径** |
+| `archive-tab.js:873`（全仓） | 3（`README-server.md:1465` ＋ `.ctx` 历史 2） | **0** | 本批改准 `README-server.md` 那处；`.ctx` 历史两处**属沿革日志、不改** |
+| `archive-tab.js:920`（全仓） | 0 | 1（`README-server.md:1465`） | 新增的改准引用 |
+| `缺省主责`（`README-server.md`） | 15 行 | 15 行 | **行数不变**——§3.5 逐行核过、无一处需改 |
+| `doc-line-ref`（全仓） | 多处（`server/README.md` 台账 · `.ctx` 台账） | 多处（＋本批新写） | 见下「守卫」 |
+| `executor: 'all'`（全仓） | 2（`README-server.md:253` ＋ `.ctx` 一处） | **1**（只剩 `.ctx` 历史） | 本批改准 `README-server.md` 那处 |
+
+⚠ **不只靠 grep**（`R-87`）：`8 个` 与 `org-life` 的命中都要**读整句判语境**（沿革句里的 `org-life` 是正当保留、不能删）；「§3.5 无残留」与「场景数＝7」都是**逐行 / 逐个读出来**的，不是 grep 出来的。
+
+- **改前守卫子集**（8 文件、带 `DISABLE_PASSWORD_CHECK=1`）：**63 / 63 / 0 红（22.48 秒，`duration_ms 22267.90`）**——`doc-line-ref` 的 `R1`–`R5` 全绿。
+- **改后守卫子集**：**64 / 64 / 0 红（26.52 秒，`duration_ms 26262.59`）**——项数 **63 → 64** 系新增 `R6` 一项；`doc-line-ref` 单独跑 **6 / 6 全绿**（`R1`–`R6`）。
+- **⚠ 改前 / 改后的「红项对比」**：**旧判据下改前 0 红**（`archive-tab.js:873-892` 等漂移**它抓不到**）；**加严后若拿改前盘面跑，会红 3 条**（`:602` `write-tab.js:1048,1050` · `:1465` `archive-tab.js:873-892`（运行时新建）· `:122`（名单单一源））——**均已就地改准 ⇒ 改后 0 红**。
+- **版本戳**：**`20260922e → 20260922f`**〔**显式传参**〕〔判据：**改了 `server/test/**` ⇒ 必 bump**〕；`bump-version` 自报「实际改写 **JS 210 / HTML 22 / CSS 2 / server-test 69**；`CODE_VERSION` **+1**；**陈旧戳自检 0 处残留 ✅**」；**「戳唯一」已核**——**旧戳 `20260922e` 在代码 / HTML / 测试的缓存键语境里全仓 0 命中**（grep 计得 2 处命中均在 `.ctx` 台账的叙述文字里、非缓存键）。
+- **依 `R-85` 跑全量**：`cd server` → 先 `npm start`（3000）→ `npm test` → **`ℹ tests 718` / `ℹ pass 718` / `ℹ fail 0` / `ℹ cancelled 0` / `ℹ skipped 0`**，`duration_ms 1122420.35`（≈ **18.71 分钟**），退出码 **0** ⇒ **全绿、无 e2e 超时**（批次 135 / 145 曾现的超时本批未再现）；项数 **717 → 718**（+1＝新增的 `R6`）→ **停服**（实测 `localhost:3000` 已不可连）；全量日志 `server/.tmp-test-147.log` **收尾后删除**。
+- **真机**：**无可点面**——本批只改文档 / 台账 / 一个**纯 node 守卫**（无界面、无可见产物）⇒ 无需起浏览器复核。
+
+### 七、台账 ＋ 编号一致 ＋ 队列 ＋ `.tmp*` 已清
+
+- `README-server.md` 本批**全是原位改写（逐行替换、无整行增删）⇒ 文件行数不变、零位移**：对它自身其后引用**零影响**；`server/test/form-loop-registry.mjs`（引 `archive-tab.js` 行号）**本批无需改**（`archive-tab.js` 本批未动）。
+- 决策日志**四方一致**：**文首**「`D-275` … `D-580`，共 **306** 条 / 下一条自 `D-581`」＝ **文末续编说明**同数同起止 ＝ **本月目录**新增 1 行（`D-579` · `D-580`）＝ 实测 `^## D-\d+` **306** 命中；`.ctx/logs/DECISION_LOG.md` 月度索引 2026-09 行 **304 → 306 条（D-275~D-580）**。
+- `.ctx/TIMESTAMPS.md`：`README-server.md` 行改注 · `docs/src/core/cross-page-state.js` 行改注 · `.ctx/ACTIVE_RULINGS.md` 行留痕 · 本文件（自身行）补登 / 改注。
+- **队列侧同步**：`.ctx/REVIEW_QUEUE.md` **本批未动**（本批不移出任何条、也不新立命题）⇒ **`SOP-B-*` 在册仍 2 条**（`SOP-B-4` · `SOP-B-25`，**六处同源一致**），队列体量不变。
+- **服务已停**（实测 `localhost:3000` 已不可连）；**无临时探针残留**（本批用的是 `.tmp-probe-147*.mjs` 三个只读统计探针，**收尾已删**）；全量日志 `.tmp-test-147.log` **收尾即删**；**未提交 git**；**未新建仓库文件**（探针用完即删）。
+
+### 八、本批未做 / 如实登记
+
+1. **`README-server.md §2.1` 角色键全表**（`:88` 标题「13 键 = 10 业务键 + 3 遗留键」＋ `:104` 的 `all` 行）——**既缺批次 139 新增的 `deputy-leader` 行、又仍列已撤的 `all` 行** ⇒ 须整体改准为「13 键 = 11 业务键 + 2 遗留键」；**不在本批授权面** ⇒ 只登记、待授权另批。⚠ **本批改后 §2.1 与 §2.2.11 暂不一致**（前者仍写 3 遗留键、后者已写两个）。
+2. **`server/routes/uploads.js:45-47`** 三处注释的 `archive-tab.js` 行号已漂（`:367` → 应 `:505`；`:48` → 应 `:51`；`:372` → 应 `:510`）——**`server/**` 业务代码、不在本批授权面**。
+3. **`.ctx` 各批增量行 / 历史台账里的当时行号**（`ACTIVE_RULINGS.md:103` / `:105` · `TIMESTAMPS.md:135` · `REVIEW_QUEUE.md:758` · `ENGINEERING_ASSESSMENT.md:168` 等）——属**沿革**，沿用批次 146 先例只登记。
+4. **`CONTRIBUTING.md` / `content/05_ai_coding/*` 等未逐一扫描**——本批的扫描面是 `README-server.md` · `README.md` · `README-members.md` · `docs/help.html` · `.ctx/ACTIVE_RULINGS.md` · `content/**` 主要 md（**不假装全覆盖**）。
+5. **`content/04_web_design/data/DATA_MODEL.md:328`** 是**判据假阳性**（该处其实对）⇒ 记在此，供后续判据调优参考。
+
 
 
 
