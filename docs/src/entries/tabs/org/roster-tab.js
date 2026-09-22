@@ -42,34 +42,34 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260922k';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260922k';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260922k';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260922k';
+import { PersonStore, getPersonName, mentorsOf } from '../../../services/person.js?v=20260922l';
+import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260922l';
+import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260922l';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260922l';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260922k';
-import { AuthStore } from '../../../services/auth.js?v=20260922k';
+import { groupOptions } from '../../../services/party-group.js?v=20260922l';
+import { AuthStore } from '../../../services/auth.js?v=20260922l';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260922k';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922k';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260922k';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260922l';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922l';
+import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260922l';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260922k';
+import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260922l';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260922k';
+import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260922l';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922l';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260922k';
+} from '../../../services/member-flow.js?v=20260922l';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260922k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260922l';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260922k';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260922l';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260922k';
+import { enhanceSelects } from '../../../components/custom-select.js?v=20260922l';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -147,7 +147,7 @@ export function renderContent(ctx) {
             <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
+        <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。<b>培养联系人</b>列可直接指派（积极分子的「＋ 指派」）——一至两名正式党员。</p>
         <div class="flex items-center gap-x-4 gap-y-1 flex-wrap text-xs">
           <span class="px-2 py-1 rounded-full bg-gray-50 border border-gray-100"><span class="font-medium text-gray-700">支部应到 ${stats.expected} 人</span><span class="text-gray-500">＝在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}</span></span>
           ${groupStats.map(x => `<span class="text-gray-500">${esc(x.g)}应到 <span class="text-gray-700 font-medium">${x.s.expected}</span><span class="text-gray-500">/${x.s.partyTotal}</span></span>`).join('')}
@@ -200,12 +200,12 @@ export function renderContent(ctx) {
   enhanceSelects(container);
 }
 
-/** 名单列头（行内容由统一检索引擎渲染；窄屏 <768px 列头隐藏、行内 6 列 grid 退化为单列卡片） */
+/** 名单列头（行内容由统一检索引擎渲染；窄屏 <768px 列头隐藏、行内 7 列 grid 退化为单列卡片） */
 function _listHeaderHtml() {
-  const COL = 'minmax(120px,1.6fr) 132px 132px 96px minmax(140px,2fr) 168px';
+  const COL = 'minmax(120px,1.6fr) 132px 132px 150px 96px minmax(140px,2fr) 168px';
   return `
     <div class="hidden md:grid text-[11px] text-gray-500 pb-2 border-b border-gray-100" style="grid-template-columns:${COL};gap:8px;align-items:center;">
-      <span>姓名</span><span>党小组</span><span>发展阶段</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
+      <span>姓名</span><span>党小组</span><span>发展阶段</span><span>培养联系人</span><span>在册状态</span><span>滞留备注</span><span class="text-right">操作</span>
     </div>`;
 }
 
@@ -222,8 +222,15 @@ function _rowHtml(p, pend) {
   const stagePend = pend.stage.has(p.id);
   const resPend = pend.res.has(p.id);
   const outPend = pend.out.has(p.id);
+  // 培养联系人（到人；2026-09-23 批次 156）：母本《组织委员工作流程指南》:181·:190 只在「积极分子」阶段明写
+  //   ⇒ 指派入口只给积极分子（其余阶段有值则只读显示，无值显示「—」）。人名现取档案（mentorsOf 只回 id）。
+  const mentorIds = mentorsOf(p);
+  const mentorNames = mentorIds.map((id) => getPersonName(id));
+  const mentorCell = p.developStage === '积极分子'
+    ? `<button type="button" class="roster-mentor text-xs px-2 py-0.5 rounded-lg ${mentorNames.length ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-white text-gray-500 border border-dashed border-gray-300 hover:bg-gray-50'} transition-colors truncate max-w-full" data-person-id="${esc(p.id)}" title="${mentorNames.length ? `培养联系人：${esc(mentorNames.join('、'))}（点此改派，一至两名正式党员）` : '尚未指派培养联系人——点此指派（一至两名正式党员）'}" style="cursor:pointer;">${mentorNames.length ? esc(mentorNames.join('、')) : '＋ 指派'}</button>`
+    : (mentorNames.length ? `<span class="text-xs text-gray-800 truncate">${esc(mentorNames.join('、'))}</span>` : '<span class="text-xs text-gray-400">—</span>');
   return `
-    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
+    <div class="roster-row grid grid-cols-1 gap-1.5 py-2 border-b border-gray-50 last:border-b-0 md:gap-2 md:items-center md:[grid-template-columns:minmax(120px,1.6fr)_132px_132px_150px_96px_minmax(140px,2fr)_168px]" data-person-id="${esc(p.id)}">
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(getPersonName(p.id))}</span>
@@ -236,6 +243,7 @@ function _rowHtml(p, pend) {
         <span class="text-xs text-gray-800 truncate">${esc(p.developStage || '待定')}</span>
         ${stagePend ? _pendingPill('阶段变更·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
       </div>
+      <div class="min-w-0 flex items-center">${mentorCell}</div>
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="text-xs truncate ${detained ? 'text-amber-700' : 'text-gray-800'}">${esc(rs.residenceStatus)}</span>
         ${resPend ? _pendingPill('在册状态·待确认', '已报送支书确认，生效前保持现值；在支书「待办」页确认或退回') : ''}
@@ -258,11 +266,13 @@ function _orderedStages() {
   });
 }
 
-/** 绑定名单卡交互（事件委托，随引擎筛选重渲染仍有效）：行内「编辑」→ 档案模态 / 「移出」→ 二次确认 */
+/** 绑定名单卡交互（事件委托，随引擎筛选重渲染仍有效）：行内「编辑」→ 档案模态 / 「移出」→ 二次确认 / 「培养联系人」→ 指派浮窗 */
 function _bindList(root) {
   root.addEventListener('click', (e) => {
     const edit = e.target.closest('.roster-edit');
     if (edit) { _openEdit(edit.dataset.personId); return; }
+    const mentor = e.target.closest('.roster-mentor');
+    if (mentor) { _openMentorModal(mentor.dataset.personId); return; }
     const del = e.target.closest('.roster-del');
     if (del) _askRemove(del.dataset.personId);
   });
@@ -279,6 +289,78 @@ function _openEdit(personId) {
     focusFields: ['name', 'studentId', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'],
     sourceLabel: '成员名册',
     onSaved: () => renderContent(_ctx),
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  培养联系人（到人）指派 —— 2026-09-23 批次 156
+// ════════════════════════════════════════════════════════════════
+//  出处（逐字）：母本《组织委员工作流程指南》附录 A「积极分子登记表（姓名/班级/申请日期/**培养联系人**）」
+//    ＋ `:181` 表「积极分子 ｜ 支委会确定 + 培养考察期一年以上 ｜ 积极分子登记表 + 培养联系人考察记录」；
+//    《中国共产党发展党员工作细则（2026年）》第九条「党组织应当指定**一至两名正式党员**作入党积极分子的
+//    培养联系人」。**只做「培养联系人」这一栏**——「培养联系人考察记录（每半年一次）」本批不做（另登记）。
+//  落点＝成员档案字段 `mentorIds`（既有单一源，不新增表）；写口沿用名册既有写路径 PersonStore.saveMember。
+//  候选＝本支部**正式党员**；滞留者沿用既有 PersonPicker 口径「可见但不可选」（支书 2026-09-06 ①批）。
+// ════════════════════════════════════════════════════════════════
+
+/** 指派浮窗的 PersonPicker 实例（提交/取消时销毁，防浮层泄漏） */
+let _mentorPicker = null;
+
+function _closeMentorModal() {
+  if (_mentorPicker) { _mentorPicker.destroy(); _mentorPicker = null; }
+  closeModal('roster-mentor');
+}
+
+function _openMentorModal(personId) {
+  const member = PersonStore.getMembers().find(m => m.id === personId);
+  if (!member) { showToast('error', '成员不存在或已移出'); return; }
+  _mentorPicker?.destroy();
+  _mentorPicker = null;
+  const accent = _ctx?.accent || '#3B82F6';
+  const branchId = _branchId();
+  const current = mentorsOf(member);
+  // 滞留党员「可见但不可选」（同 PersonPicker 既有口径；培养联系人须能正常履职）
+  const detainedIds = _branchMembers().filter(p => getResidenceOf(p).residenceStatus === RESIDENCE.DETAINED).map(p => p.id);
+  openModal({
+    id: 'roster-mentor',
+    title: `培养联系人 · ${esc(getPersonName(personId))}`,
+    accentColor: accent,
+    bodyHtml: `
+      <p class="text-xs text-gray-500 mb-2 leading-5">指定一至两名<b>正式党员</b>作该积极分子的培养联系人（《中国共产党发展党员工作细则》第九条）。候选只列本支部正式党员；清空后保存＝撤销指派。</p>
+      <div id="roster-mentor-picker" class="mb-3"></div>
+      <div data-mentor-errors class="hidden mt-1 text-xs text-red-700"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+        <button type="button" data-mentor-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button type="button" data-mentor-submit class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accent};cursor:pointer;">保存</button>
+      </div>`,
+    onMount: (panel) => {
+      const errEl = panel.querySelector('[data-mentor-errors]');
+      const showErr = (html) => { errEl.innerHTML = html; errEl.classList.toggle('hidden', !html); };
+      _mentorPicker = new PersonPicker({
+        mode: 'multi',
+        placeholder: '选择培养联系人（正式党员，一至两名）',
+        accentColor: accent,
+        initialIds: current,
+        disabledIds: detainedIds,
+        disabledLabel: () => '滞留',
+        disabledTitle: () => '滞留党员当前不计应到，不指派为培养联系人',
+        filter: (p) => (p.branchId || 'br-b1') === branchId && p.developStage === '正式党员',
+        onSelect: () => {},
+      });
+      _mentorPicker.render(panel.querySelector('#roster-mentor-picker'));
+      panel.querySelector('[data-mentor-cancel]')?.addEventListener('click', _closeMentorModal);
+      panel.querySelector('[data-mentor-submit]')?.addEventListener('click', async () => {
+        const ids = _mentorPicker ? _mentorPicker.getSelected() : [];
+        if (ids.length > 2) { showErr('<p>培养联系人最多两名正式党员</p>'); return; }
+        const r = await PersonStore.saveMember({ id: personId, mentorIds: ids }, { by: _actorId() });
+        if (!r || !r.ok) { showErr(`<p>${esc(r?.reason || '保存失败，请重试')}</p>`); return; }
+        showToast('success', ids.length
+          ? `已指派培养联系人：${ids.map(id => getPersonName(id)).join('、')}`
+          : `已撤销「${getPersonName(personId)}」的培养联系人指派`);
+        _closeMentorModal();
+        renderContent(_ctx);
+      });
+    },
   });
 }
 

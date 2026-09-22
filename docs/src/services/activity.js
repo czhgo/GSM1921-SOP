@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922k';
-import { persist } from '../core/data-adapter.js?v=20260922k';
-import { bumpToken } from '../core/version-token.js?v=20260922k';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922k';
-import { ACTIVITIES } from '../mock/index.js?v=20260922k';
-import { isInitStateActive } from './init-reset.js?v=20260922k'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922l';
+import { persist } from '../core/data-adapter.js?v=20260922l';
+import { bumpToken } from '../core/version-token.js?v=20260922l';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922l';
+import { ACTIVITIES } from '../mock/index.js?v=20260922l';
+import { isInitStateActive } from './init-reset.js?v=20260922l'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -170,6 +170,41 @@ export function setPublicityDraftStatus({ activityId, index, status, actorId, no
 
 /** 项目内身份 → SOP 节点承担人 executor 的对应（单一处，勿在别处再写第二份） */
 export const PROJECT_TASK_EXECUTOR_BY_ROLE = { organizer: 'organizer', deep: 'deep' };
+
+// ════════════════════════════════════════════════════════════════
+//  深参分工的完成方式（「系统内做 / 去线下做」）—— 2026-09-23 批次 156
+// ════════════════════════════════════════════════════════════════
+//  母本出处（逐字）：《常见工作场景快速指南》:120「组织者把工作分配给深度参与者，**逐项选择是否在系统内
+//    完成**——系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的，
+//    走线下（微信等）完成、由组织者确认完成」。
+//  落点＝**活动主源字段 `deepWorkMode`**（形状 `{ [taskId]: 'in-system' | 'offline' }`），写入活动时由
+//    组织者逐项勾选（组长台写入表单「深度参与者」下方一排）；**不新增表 / 不新增实体 / 不改任务链**。
+//  ⚠ 「项」＝该场景 SOP 任务链里 `executor==='deep'` 的节点（与 `listMyProjectTasks` 同一份任务链，
+//    清单单一源见 `services/decision-tree.js::DecisionTreeState.deepItems()`）；**不另列一份清单**。
+//  取值 / 文案的单一源即本段——消费点（写入表单 · 「我的任务」卡）一律走这里，勿另写字面量。
+// ════════════════════════════════════════════════════════════════
+
+/** 深参分工的完成方式取值 */
+export const DEEP_WORK_MODE = { IN_SYSTEM: 'in-system', OFFLINE: 'offline' };
+
+/** 完成方式 → 面向承担人（深度参与者）与组织者的文案 */
+export const DEEP_WORK_MODE_LABEL = {
+  [DEEP_WORK_MODE.IN_SYSTEM]: '系统内完成',
+  [DEEP_WORK_MODE.OFFLINE]: '线下完成·由组织者确认',
+};
+
+/**
+ * 某活动某项深参分工的完成方式。
+ * 缺省 / 非法值 → 系统内完成（母本「系统内可承载的则系统内做」；也是既有行为的零变化档）。
+ * @param {Object} activity
+ * @param {string} taskId
+ * @returns {'in-system'|'offline'}
+ */
+export function deepWorkModeOf(activity, taskId) {
+  const m = activity && activity.deepWorkMode;
+  const v = (m && typeof m === 'object' && !Array.isArray(m)) ? m[taskId] : undefined;
+  return v === DEEP_WORK_MODE.OFFLINE ? DEEP_WORK_MODE.OFFLINE : DEEP_WORK_MODE.IN_SYSTEM;
+}
 
 /**
  * 某人按项目内身份应持的 SOP 任务（行＝任务，带所属活动上下文）。
@@ -662,8 +697,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20260922k'),
-    import('../core/id.js?v=20260922k'),
+    import('./vote-config.js?v=20260922l'),
+    import('../core/id.js?v=20260922l'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

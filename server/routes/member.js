@@ -196,7 +196,7 @@ export function createMemberRouter(db) {
   //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
   //   · 撤销流出      POST  /members/:id/undo-transfer-out  同 ③ 角色集；清除软标记使账号恢复（Q-23-5 批次 29）
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
-  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', ...RESIDENCE_FIELDS];
+  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', 'mentorIds', ...RESIDENCE_FIELDS];
   const CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
   const RESIDENCE_VALUES = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
   const TRANSFER_OUT_ROLES = new Set(['org-commissioner', ...SECRETARY_DEPUTY_ROLE_KEYS]);

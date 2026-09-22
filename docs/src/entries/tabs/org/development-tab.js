@@ -5,24 +5,24 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260922k';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260922l';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260922k';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/person.js?v=20260922k';
+import { loadThoughtReports } from '../../../services/thought-report.js?v=20260922l';
+import { liveMembers, PersonStore, getPersonName, mentorsOf } from '../../../services/person.js?v=20260922l';
 // S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260922k';
+import { loadActivities } from '../../../services/activity.js?v=20260922l';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260922k';
+import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260922l';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260922k';
-import { getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260922k';
+import { badgeHtml } from '../../../components/badges.js?v=20260922l';
+import { getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260922l';
 // SOP-B-30 / D-396：活动参与汇总（以人为第一列）——数据与考勤同源（services/attendance.js 单一读口）
-import { listActivityParticipationByPerson } from '../../../services/attendance.js?v=20260922k';
+import { listActivityParticipationByPerson } from '../../../services/attendance.js?v=20260922l';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：候选人列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922l';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -100,6 +100,9 @@ function _buildCandidates() {
         inspCount,
         reportCount,
         meeting: _sourceMeetingOf(p.id),
+        // 培养联系人（到人；2026-09-23 批次 156）：母本附录 A 的「积极分子登记表」字段之一——
+        // 本页只读呈现（指派入口在成员名册，同「去名册发起变更」既有分工）
+        mentorNames: mentorsOf(p).map((id) => getPersonName(id)),
         note: inspCount > 0 ? `已参与 ${inspCount} 次考察记录` : '培养考察中',
       };
     });
@@ -200,6 +203,9 @@ export function renderContent(ctx) {
                     ${c.partyGroup ? `<span class="text-xs text-gray-500">${c.partyGroup}</span>` : ''}
                     ${c.entryDate ? `<span class="text-xs text-gray-600">进入当前阶段：${c.entryDate}</span>` : ''}
                     ${c.meeting ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100" title="来源会议（只读）">来源会议：${c.meeting.title}${c.meeting.date ? `（${c.meeting.date}）` : ''} · ${c.meeting.result}</span>` : ''}
+                    ${c.mentorNames.length
+                      ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100" title="培养联系人（到人，只读）——指派 / 改派在成员名册">培养联系人：${esc(c.mentorNames.join('、'))}</span>`
+                      : `<a href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(c.personId)}" class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-dashed border-gray-300 hover:bg-gray-50 transition-colors" style="text-decoration:none;" title="尚未指派培养联系人——去成员名册指派">培养联系人：去名册指派</a>`}
                     ${c.inspCount > 0 ? badgeHtml(`考察 ${c.inspCount}`, 'info') : ''}
                     ${c.reportCount > 0
                       // IA-C3 收敛只读展开 2026-09-06：原「思想汇报」可展开只读内容改为计数文本（无展开交互）
@@ -220,7 +226,7 @@ export function renderContent(ctx) {
           <h3 class="font-title-cn text-base font-semibold text-gray-800">发展数据</h3>
           <span class="text-xs text-gray-500" title="统计范围：本支部在册成员中尚在发展阶段的成员（积极分子/发展对象/预备党员），不含正式党员">${candidates.length} 人 · 发展中（不含正式党员）</span>
         </div>
-        <p class="text-[11px] text-gray-500 mb-3">本页为只读追踪视图（发展阶段 / 进度 / 来源会议）。发展阶段变更请在「成员名册」发起、支书确认后生效——点卡片右侧「去名册发起变更」直达该成员。</p>
+        <p class="text-[11px] text-gray-500 mb-3">本页为只读追踪视图（发展阶段 / 进度 / 来源会议 / 培养联系人）。发展阶段变更请在「成员名册」发起、支书确认后生效——点卡片右侧「去名册发起变更」直达该成员；<b>培养联系人的指派 / 改派同样在成员名册</b>（点卡上「培养联系人」标签）。</p>
         <!-- 管线概览 -->
         <div class="flex items-center flex-wrap gap-1 mb-4 p-3 rounded-lg bg-gray-50">
           ${pipelineHtml}

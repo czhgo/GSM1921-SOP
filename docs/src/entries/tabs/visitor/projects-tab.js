@@ -3,28 +3,29 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922k';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922l';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260922k';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260922k';
+import { AuthStore } from '../../../services/auth.js?v=20260922l';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260922l';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260922k';
-import { flashHighlight } from '../../../core/utils.js?v=20260922k';
+import { isActivityLive } from '../../../core/constants.js?v=20260922l';
+import { flashHighlight } from '../../../core/utils.js?v=20260922l';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/party-group.js?v=20260922k';
+import { groupOptions } from '../../../services/party-group.js?v=20260922l';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260922k';
-import { getAppState } from '../../../core/state.js?v=20260922k';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260922l';
+import { getAppState } from '../../../core/state.js?v=20260922l';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260922k';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260922l';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
-import { listMyProjectTasks, completeMyProjectTask } from '../../../services/activity.js?v=20260922k';
+// 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity.js?v=20260922l';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/visibility.js?v=20260922k';
+import { isActivityVisibleTo } from '../../../services/visibility.js?v=20260922l';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
@@ -188,6 +189,9 @@ export function renderContent(ctx) {
       role: x.projectRole,
       status: x.task.status || 'pending',
       date: x.task.date || x.activity.date || '',
+      // 深参那份的完成方式（2026-09-23 批次 156）：组织者在写入活动时逐项标「系统内做 / 去线下做」；
+      // 按 SOP 节点键（`task.taskId`，与写入表单 `data-deep-work` 同键）取，读取口径单一源同 services/activity.js
+      deepMode: x.projectRole === 'deep' ? deepWorkModeOf(x.activity, x.task.taskId) : null,
     }));
     // 状态中文标签（与 Task.status 枚举一一对应；位置与项目卡一致：右上角状态位）
     const STATUS_LABEL = { pending: '待办', in_progress: '进行中', completed: '已完成' };
@@ -324,8 +328,14 @@ function _personnelRoleLabel(role) {
 // 「我的任务」卡（`SOP-B-31`）：行＝任务，带所属项目与本人在这份任务上的项目身份。
 // 点击仍走 host 上的事件委托 → 打开该任务所属活动详情（与项目卡一致的行为）。
 // 未完成行加「勾掉」按钮（2026-09-21 批次 137 · `SOP-B-9` 乙档）：勾掉即关闭，无前置门。
+// 深参那份另带「完成方式」位（2026-09-23 批次 156，母本《常见工作场景快速指南》:120）：组织者写入时逐项标
+//   「系统内做 / 去线下做」——**标了「去线下做」的不进系统产出链** ⇒ 无「勾掉」按钮（线下完成、由组织者确认）。
 function _renderTaskCard(r, statusLabel, statusClass) {
   const done = r.status === 'completed';
+  const offline = r.deepMode === DEEP_WORK_MODE.OFFLINE;
+  const modeChip = r.deepMode
+    ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
+    : '';
   return `
     <div class="visitor-task-card p-3 rounded-lg bg-white" data-act-id="${r.projectId}">
       <div class="flex items-center justify-between mb-1.5">
@@ -338,7 +348,8 @@ function _renderTaskCard(r, statusLabel, statusClass) {
       <div class="flex items-center gap-3 text-[12px] text-gray-500">
         <span>${r.project}</span>
         ${r.date ? `<span>${r.date}</span>` : ''}
-        ${done ? '' : `<button type="button" data-complete-task="${r.taskId}" class="ml-auto text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">勾掉</button>`}
+        ${modeChip}
+        ${(done || offline) ? '' : `<button type="button" data-complete-task="${r.taskId}" class="ml-auto text-xs px-2 py-0.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">勾掉</button>`}
       </div>
     </div>
   `;

@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260922k';
-import { showToast } from '../core/utils.js?v=20260922k';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922k';
-import { icon } from '../core/icons.js?v=20260922k';
-import { NoticeStore } from './notice.js?v=20260922k';
+import { BranchService } from './runtime.js?v=20260922l';
+import { showToast } from '../core/utils.js?v=20260922l';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922l';
+import { icon } from '../core/icons.js?v=20260922l';
+import { NoticeStore } from './notice.js?v=20260922l';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922k';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922l';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260922k';
-import '../modules/capabilities/sop-scenarios.js?v=20260922k';
+import { getCapabilities } from '../core/registry.js?v=20260922l';
+import '../modules/capabilities/sop-scenarios.js?v=20260922l';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -269,6 +269,21 @@ export class DecisionTreeState {
       `;
     }).join('');
   }
+
+  /**
+   * 该场景任务链里**派给深度参与者**的节点（`executor==='deep'`）——写入表单那一排
+   * 「逐项选择是否在系统内完成」勾选的**项清单单一源**（2026-09-23 批次 156，母本《常见工作场景快速指南》:120）。
+   * ⚠ 只认既有 SOP 任务链（与 `instantiateSOP` 同一条链、同一条「无时间锚点不实例化」判据），**不另列清单**；
+   *   当前全库只有主题党日链含深参节点 ⇒ 该排勾选自然只在该场景出现。
+   * @returns {Array<{taskId: string, title: string}>}
+   */
+  deepItems() {
+    const scenario = getScenario(this.getScenarioId());
+    if (!scenario) return [];
+    return (scenario.tasks || [])
+      .filter((t) => t.executor === 'deep' && t.timeOffset !== null)
+      .map((t) => ({ taskId: t.taskId, title: t.title }));
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -349,8 +364,8 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 档位读 core/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
   // （README-server.md 有指向本文件的 `文件:行号` 引用）。
   const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
-    import('../core/policy-defaults.js?v=20260922k'),
-    import('./activity.js?v=20260922k'),
+    import('../core/policy-defaults.js?v=20260922l'),
+    import('./activity.js?v=20260922l'),
   ]);
   const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
 

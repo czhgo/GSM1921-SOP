@@ -115,10 +115,10 @@ export const VALIDATION_SITES = [
   //   点它即渲染 `.record-form-shell`（含 `.f-title` 与 `.record-save-btn`）。两步点击＝可脚本化，**不是障碍**。
   //   报文是**动态拼接**（`请填写${type==='publicity'?'宣传标题':'材料名称'}`）→ 本流程覆盖宣传分支，
   //   故 flow 里断言的是拼好的整串「请填写宣传标题」（登记项 `msg` 仍取文件中真实存在的字面量「材料名称」）。
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 473, field: '宣传标题/材料名称', flow: 'leader/活动管理·子记录', machine: true, msg: '材料名称' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 997, field: 'T-0 日期', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写 T-0 日期' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 998, field: '活动地点', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动地点' },
-  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 999, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 482, field: '宣传标题/材料名称', flow: 'leader/活动管理·子记录', machine: true, msg: '材料名称' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1039, field: 'T-0 日期', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写 T-0 日期' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1040, field: '活动地点', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1041, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
 
   // ── 组织委员台 ──
   { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 256, field: '专班', flow: 'org/考察上传', machine: true, msg: '请选择专班' },

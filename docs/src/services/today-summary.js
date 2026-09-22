@@ -17,15 +17,15 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260922k';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260922k';
-import { TodoStore } from './todo.js?v=20260922k';
+import { mockDB } from '../core/domain.js?v=20260922l';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from './roster.js?v=20260922l';
+import { TodoStore } from './todo.js?v=20260922l';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from './visibility.js?v=20260922k';
-import { tokenOf } from '../core/version-token.js?v=20260922k'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from './visibility.js?v=20260922l';
+import { tokenOf } from '../core/version-token.js?v=20260922l'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260922k';
+import { PREVIEW_KEY } from './org-base-data-preview.js?v=20260922l';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);

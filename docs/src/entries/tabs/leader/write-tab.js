@@ -3,31 +3,31 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260922k';
-import { BranchService } from '../../../services/runtime.js?v=20260922k';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260922k';
+import { setState, getAppState } from '../../../core/state.js?v=20260922l';
+import { BranchService } from '../../../services/runtime.js?v=20260922l';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260922l';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260922k';
-import { AuthStore } from '../../../services/auth.js?v=20260922k';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260922k';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260922k';
-import { persist } from '../../../core/data-adapter.js?v=20260922k';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260922k';
-import { recordFormShell } from '../../../components/forms.js?v=20260922k';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260922k';
-import { badgeHtml } from '../../../components/badges.js?v=20260922k';
+import { groupOptions } from '../../../services/party-group.js?v=20260922l';
+import { AuthStore } from '../../../services/auth.js?v=20260922l';
+import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260922l';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260922l';
+import { persist } from '../../../core/data-adapter.js?v=20260922l';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260922l';
+import { recordFormShell } from '../../../components/forms.js?v=20260922l';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260922l';
+import { badgeHtml } from '../../../components/badges.js?v=20260922l';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260922k';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260922k';
+import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260922l';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260922l';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus } from '../../../services/activity.js?v=20260922k';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260922k';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260922k';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260922k';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260922k';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260922k';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity.js?v=20260922l';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260922l';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260922l';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260922l';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260922l';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260922l';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922k';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922l';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -59,7 +59,7 @@ let _dtAdvOpen = false;        // C② 高级设置折叠区展开态（跨面�
 // 此处以模块级轻量草稿兜底：输入/选人即写入 dtDraft，重建面板时回填；
 // C6（2026-09-12）起草稿落 localStorage 跨整页刷新保留 + beforeunload 提醒；
 // 仅「写入成功」或表单内「取消」（dt.reset 重置会话）时清空。
-const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false };
+const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, deepIds: null, signupEnabled: false, requireMakeup: false, isOutdoor: false, deepWork: {} };
 
 // C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
 // 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
@@ -68,6 +68,7 @@ const DT_DRAFT_KEY = 'workflowos_leader_activity_draft';
 function _dtDraftDirty() {
   return !!(dtDraft.date || dtDraft.location || dtDraft.title || dtDraft.desc
     || dtDraft.signupEnabled || dtDraft.requireMakeup || dtDraft.isOutdoor
+    || Object.keys(dtDraft.deepWork || {}).length > 0
     || (Array.isArray(dtDraft.orgIds) && dtDraft.orgIds.length > 0)
     || (Array.isArray(dtDraft.deepIds) && dtDraft.deepIds.length > 0));
 }
@@ -96,6 +97,7 @@ function _dtDraftClear() {
   dtDraft.signupEnabled = false;
   dtDraft.requireMakeup = false;
   dtDraft.isOutdoor = false;
+  dtDraft.deepWork = {};
   try { localStorage.removeItem(DT_DRAFT_KEY); } catch (e) { /* 忽略 */ }
 }
 
@@ -115,6 +117,13 @@ function _dtDraftCapture(scope) {
   if (odEl) dtDraft.isOutdoor = !!odEl.checked;
   if (_dtOrgPicker) dtDraft.orgIds = _dtOrgPicker.getSelected();
   if (_dtDeepPicker) dtDraft.deepIds = _dtDeepPicker.getSelected();
+  // 深参分工「系统内 / 线下」逐项勾选（2026-09-23 批次 156）：面板重建前先落草稿
+  const dwEls = root.querySelectorAll('[data-deep-work]');
+  if (dwEls.length) {
+    const m = { ...(dtDraft.deepWork || {}) };
+    dwEls.forEach((el) => { m[el.dataset.deepWork] = !!el.checked; });
+    dtDraft.deepWork = m;
+  }
   _dtDraftSave();
 }
 
@@ -702,6 +711,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
 
   // 表单区域（L4选择后显示）
   const allSelected = L1 && L2 && L3 && L4 && hostGroup;
+  const deepWorkHtml = _dtDeepWorkHtml();
   const formHtml = allSelected ? `
     <div class="mt-4 pt-4 border-t border-dashed border-gray-200">
       <div class="font-title-cn text-sm font-bold text-gray-700 mb-3">填写活动信息</div><!-- SOP-B-18 乙档（2026-09-21 批次 137）：本组活动一律先报备——随表单出现、不设门槛（未报备仍可写入） --><div class="mb-3 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/60 text-xs text-gray-700 leading-5"><b class="text-gray-800">本组活动一律先报备</b>——把活动方案发到支委扩大群（有意见在群里交流），<b>报备通过后方才写入活动</b>。</div>
@@ -758,6 +768,8 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         </div>
       </div>
 
+      ${deepWorkHtml}
+
       <!-- SOP 预览 -->
       <div class="mb-4 card rounded-xl p-4">
         <div class="font-title-cn text-sm font-bold text-gray-700 mb-2">后续待办预览</div>
@@ -784,6 +796,29 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
 
 function _renderSopPreview() {
   return dt.renderSopPreview();
+}
+
+// ── 深参分工「逐项选择是否在系统内完成」（2026-09-23 批次 156）────────────
+// 母本出处（逐字）：《常见工作场景快速指南》:120「组织者把工作分配给深度参与者，**逐项选择是否在系统内
+//   完成**——系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的，
+//   走线下（微信等）完成、由组织者确认完成」。
+// 「逐项」＝组织者分配给深度参与者的那些项；项清单＝**该场景 SOP 任务链里 `executor==='deep'` 的节点**
+//   （单一源＝`services/decision-tree.js::DecisionTreeState.deepItems()`，不在此另列一份）。
+// 当前只有主题党日链含深参节点 ⇒ 这一排勾选自然只在主题党日出现（母本那句本身也在主题党日一节内）。
+// 默认勾＝系统内做（＝既有口径零变化）；不勾＝去线下做（线下完成、由组织者确认）。落库见 activity.deepWorkMode。
+function _dtDeepWorkHtml() {
+  const items = dt.deepItems();
+  if (!items.length) return '';
+  return `
+      <div class="mb-4 rounded-lg border border-gray-100 bg-gray-50/60 p-3">
+        <div class="text-xs text-gray-500 mb-1.5 font-medium">深度参与者分工：逐项选择是否在系统内完成</div>
+        <p class="text-[11px] text-gray-500 mb-2 leading-5">系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的走线下（微信等）完成、<b>由组织者确认完成</b>。<b>不勾＝去线下做</b>。</p>
+        ${items.map(t => `
+        <label class="flex items-start gap-2 cursor-pointer select-none py-1">
+          <input type="checkbox" data-deep-work="${escHtml(t.taskId)}" class="mt-0.5 accent-red-600" style="cursor:pointer;" ${dtDraft.deepWork && dtDraft.deepWork[t.taskId] === false ? '' : 'checked'}>
+          <span class="text-xs text-gray-600 leading-5"><b class="text-gray-700">${escHtml(t.title)}</b>——勾选＝<b>系统内做</b>；不勾＝<b>去线下做</b>（线下完成、由你确认完成，不进系统产出链）</span>
+        </label>`).join('')}
+      </div>`;
 }
 
 // ── SOP-B-19 外出提醒清单（2026-09-19 批次 94）──────────────────────
@@ -901,6 +936,13 @@ function _dtBindPanelArea(container, ctx, refresh) {
     if (!el) return;
     const key = draftCheckMap[sel];
     el.addEventListener('change', () => { dtDraft[key] = !!el.checked; _dtDraftSave(); });
+  });
+  // 深参分工「系统内 / 线下」逐项勾选（2026-09-23 批次 156）：勾选态同样入草稿（步骤重选会重建面板，不记就静默丢）
+  wrap.querySelectorAll('[data-deep-work]').forEach((el) => {
+    el.addEventListener('change', () => {
+      dtDraft.deepWork = { ...(dtDraft.deepWork || {}), [el.dataset.deepWork]: !!el.checked };
+      _dtDraftSave();
+    });
   });
 
   // 决策树表单内联赋权 PersonPicker（initialIds 草稿回填；null=跟随默认——组织者默认组长本人）
@@ -1053,6 +1095,15 @@ function _dtBindPanelArea(container, ctx, refresh) {
         // SOP-B-19：勾「本次为外出活动」→ 落既有维度 isOutdoor（写入后弹外出提醒清单，并收起在活动行下方）
         isOutdoor: !!(wrap.querySelector('#dt-is-outdoor')?.checked ?? dtDraft.isOutdoor),
       };
+
+      // 深参分工的完成方式（2026-09-23 批次 156）：逐项「系统内做 / 去线下做」→ 落活动主源
+      //   `deepWorkMode`（只记本场景的深参项；不勾＝offline）。提交时以**表单实时值**为准。
+      const deepWorkMode = {};
+      wrap.querySelectorAll('[data-deep-work]').forEach((el) => {
+        deepWorkMode[el.dataset.deepWork] = el.checked ? DEEP_WORK_MODE.IN_SYSTEM : DEEP_WORK_MODE.OFFLINE;
+      });
+      // 无深参项的场景不落该字段（保持既有数据形状零变化）
+      if (Object.keys(deepWorkMode).length) activityData.deepWorkMode = deepWorkMode;
 
       // T-190：创建时同步赋权——组织者（默认组长本人）+ 深度参与者写入主源 assignments
       const organizerIds = _dtOrgPicker ? _dtOrgPicker.getSelected() : [currentLeaderId];
