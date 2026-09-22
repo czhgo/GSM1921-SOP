@@ -124,7 +124,7 @@ const SCENARIO_TO_CATEGORY = {
   'party-group-meeting':  'party-group-meeting',
   'party-lecture':        'party-lecture',
   // 组织生活会：会议内容（批评与自我批评），由党小组会等三会形式召开（支书 2026-08-01/2026-08-07 决策）
-  'org-life':             'party-group-meeting',
+  //   ⚠ 2026-09-22 批次 143：不再单列场景键——组织生活会活动直接记**承接它的那个三会形式**的 scenarioId
   'theme-party':          'theme-party',
 };
 
@@ -154,7 +154,7 @@ export const ACTIVITY_TYPE_LABELS = {
   'branch-committee':     '三会一课',
   'party-group-meeting':  '三会一课',
   'party-lecture':        '三会一课',
-  'org-life':             '三会一课',
+  '组织生活会':           '三会一课', // 内容维度（形式归三会一课系）；2026-09-22 批次 143：由场景键改按活动类型键
   // ── 主题党日 ──
   'theme-party':          '主题党日',
   // ── 默认 ──
@@ -171,7 +171,7 @@ export const ACTIVITY_TYPE_SHORT = {
   'branch-committee':     '党会',
   'party-group-meeting':  '党会',
   'party-lecture':        '党课',
-  'org-life':             '党会',
+  '组织生活会':           '党会', // 2026-09-22 批次 143：由场景键改按活动类型键
   // ── 主题党日 ──
   'theme-party':          '党日',
   // ── 默认 ──
@@ -181,7 +181,7 @@ export const ACTIVITY_TYPE_SHORT = {
 // ── 角色键单一事实源（T-304 Q3 权限收敛，2026-08-29）──────────────
 // 与内容层 SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表对齐（2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出）；
 // ROLE_LABELS / ROLE_COLORS / ACCENT_COLORS / 能力 requiredRoles 均以本枚举为基准核对。
-// 常设角色（7）+ 项目角色（2）为业务角色；遗留键（3）无角色语义，仅保留兼容兜底。
+// 常设角色（7）+ 项目角色（2）为业务角色；遗留键（2）无角色语义，仅保留兼容兜底。
 export const ROLE_KEYS = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
   'leader', 'participant',
@@ -189,7 +189,7 @@ export const ROLE_KEYS = [
   'party-staff',
   'organizer', 'deep',
 ];
-export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator', 'all']; // 遗留键：无独立角色，保留兼容
+export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator']; // 遗留键：无独立角色，保留兼容（2026-09-22 批次 143：撤「全体相关」——非角色、解析不到具体人）
 
 // ── 授权语义角色集（2026-09-03 P2c 收敛：server 鉴权与前端 AuthStore 共用单一源，勿各自手写）──
 // 注意与上方「条条委员 COMMISSIONER_ROLES（业务语义：三委员，不含支书/副支书）」区分——

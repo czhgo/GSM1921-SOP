@@ -20,28 +20,28 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922b';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922b';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922c';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922c';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260922b';
+} from '../../docs/src/core/policy-defaults.js?v=20260922c';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922b';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922b';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922b';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922c';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922c';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922c';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260922b';
+} from '../../docs/src/core/config-clean.js?v=20260922c';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260922b';
+} from '../../docs/src/services/branch.js?v=20260922c';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260922b';
+} from '../../docs/src/services/member-confirmation.js?v=20260922c';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922b';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922c';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';

@@ -195,7 +195,7 @@ ActivityRecord (主记录)
 
 #### 2.2.1 角色常量定义
 
-> **角色键权威见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（代码层单一事实源：13 键 = 10 业务键 + 3 遗留键），本表仅记录字段枚举与展示分组，冲突时以权威源为准。**
+> **角色键权威见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（代码层单一事实源：12 键 = 10 业务键 + 2 遗留键），本表仅记录字段枚举与展示分组，冲突时以权威源为准。**
 
 | 角色键 | 中文标签 | 首页日历角色分组 | 所属分类 |
 |---|---|---|---|
@@ -212,7 +212,7 @@ ActivityRecord (主记录)
 | `commissioner` | 条条委员 | -- | 遗留键（ROLE_LEGACY_KEYS；业务语义见下方 COMMISSIONER_ROLES 集合） |
 | `initiator` | 发起人 | -- | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义，兼容兜底） |
 | `global` | 全局视图 | global | 参考指南专用（state.js ROLE_TYPES 键，非业务角色键） |
-| `all` | 全体相关 | participant | 遗留键（ROLE_LEGACY_KEYS，无独立角色语义；参考指南显示兜底） |
+| `all` | 全体相关 | participant | **非角色键**：2026-09-22 批次 143 已自 `ROLE_LEGACY_KEYS` 撤除（不是角色、解析不到具体人）；仅作参考指南参与者视角的展示键（参考指南显示兜底） |
 
 > 注：`deputy-secretary` / `party-staff` 已入 `constants.js ROLE_KEYS`（2026-08-29 起），但不在 state.js 首页日历 ROLE_TYPES 中——日历分组列对其按 `ROLE_PAGE_MAP` 归属展示（deputy-secretary → secretary.html 支书工作台；party-staff → party-committee.html 党委工作台，登录直达）。`organizer`/`deep` 无独立工作台页面（T-141 后归入首页「我的角色」区块）。
 
@@ -536,14 +536,13 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | title | string | 是 | 任务标题 |
 | executor | string | 是 | 执行角色键 |
 | supervisor | string\|null | 是 | 督办角色键（可为 null） |
-| timeOffset | number\|null | 是 | 距 T-0 的天数偏移（null = 无时间锚点） |
+| timeOffset | number\|null\|'flexible' | 是 | 距 T-0 的天数偏移（null = 无时间锚点，**不实例化**；'flexible' = **不设固定提前量、由组织者自定**，仍进任务链但不带日期锚点） |
 | desc | string | 否 | 任务详细描述 |
 
-**内置场景清单（共 8 个）：**
+**内置场景清单（共 7 个）：**
 
 | scenarioId | 标题 | domain | 考勤类型 |
 |---|---|---|---|
-| `org-life` | 组织生活会 | activity | 刚性考勤 |
 | `theme-party` | 党小组主题党日活动 | activity | 弹性考勤 |
 | `branch-party-meeting` | 支部党员大会 | activity | 刚性考勤 |
 | `party-group-meeting` | 党小组会 | activity | 刚性考勤 |
@@ -553,6 +552,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | `feedback-handling` | 处理意见建议反馈 | organization | -- |
 
 > **已清场景（沿革）**：`joint-event`（团支部合办 → 主题党日 + 共建维度，`D-464`）· `new-system`（制度建设 → 支部文件 + 议题，`D-464`）· `develop-activist`（考察积极分子 → 考察记录 + 建档接收 + 阶段变更，`D-510`）· `info-platform`（信息平台支持 → 支部分工模块 + 宣传台周报，`D-510`）——四者均为「有定义、无写入入口」的死场景，已从 `docs/src/workflow/sopData.js` 删去，**不单开场景**。
+> **2026-09-22 批次 143 又清 `org-life`**（组织生活会）——同属「有定义、无写入入口」的死场景；组织生活会**不是独立活动类型**，由承接它的三会形式承载（`content/02_institution/sop/常见工作场景快速指南.md:75`·`:162`），活动直接记承接它的那个三会形式的 `scenarioId`。
 
 ### 2.15 工作流定义 (Definition)
 

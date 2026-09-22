@@ -18,31 +18,31 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../components/sidebar.js?v=20260922b';
-import { renderHeader } from '../components/header.js?v=20260922b';
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260922b';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260922b';
-import { mockDB } from '../core/domain.js?v=20260922b';
-import { AuthStore } from '../services/auth.js?v=20260922b';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260922b';
-import { BranchService } from '../services/runtime.js?v=20260922b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922b';
-import { IssueStore } from '../services/issues.js?v=20260922b';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260922b';
-import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260922b';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260922b';
-import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260922b';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260922b';
+import { renderSidebar } from '../components/sidebar.js?v=20260922c';
+import { renderHeader } from '../components/header.js?v=20260922c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260922c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260922c';
+import { mockDB } from '../core/domain.js?v=20260922c';
+import { AuthStore } from '../services/auth.js?v=20260922c';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260922c';
+import { BranchService } from '../services/runtime.js?v=20260922c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922c';
+import { IssueStore } from '../services/issues.js?v=20260922c';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260922c';
+import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260922c';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260922c';
+import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260922c';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260922c';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260922b';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260922b';
-import { loadDevStageOverrides } from '../services/member-confirmation.js?v=20260922b';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260922c';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260922c';
+import { loadDevStageOverrides } from '../services/member-confirmation.js?v=20260922c';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../services/activity.js?v=20260922b';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260922b';
-import { generateId } from '../core/id.js?v=20260922b';
+import { listBrandProposals } from '../services/activity.js?v=20260922c';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260922c';
+import { generateId } from '../core/id.js?v=20260922c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

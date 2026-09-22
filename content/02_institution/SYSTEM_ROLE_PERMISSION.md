@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-21"
+last_updated: "2026-09-22"
 status: active
 related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 ---
@@ -19,7 +19,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 ## 9a0. 角色键全表（代码层单一事实源，T-304 Q3 权限收敛 2026-08-29）
 
-> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`（10 业务键 + 3 遗留键 = 13 键全表），并登记 `constants.js` 角色→页面映射（ROLE_PAGE_MAP，2026-09 自 auth.js 迁入常量层，勿再引用 auth.js 内副本）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
+> **本表为角色键的权威清单**：对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`（10 业务键 + 2 遗留键 = 12 键全表），并登记 `constants.js` 角色→页面映射（ROLE_PAGE_MAP，2026-09 自 auth.js 迁入常量层，勿再引用 auth.js 内副本）与能力注册表 `requiredRoles` 的对应关系。新增角色键必须同步本表与 constants.js 两处。
 
 | 角色键 | 中文标签 | 类型 | 工作台页面 | 能力 requiredRoles |
 |---|---|---|---|---|
@@ -35,9 +35,9 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | `deep` | 深度参与者（项目角色） | 项目 | 无独立页面 | — |
 | `commissioner` | 条条委员（遗留键） | 遗留 | — | — |
 | `initiator` | 发起人（遗留键） | 遗留 | — | — |
-| `all` | 全体相关（兜底键） | 遗留 | — | — |
 
 **语义约定**：
+- **`all` 已自遗留键撤除（2026-09-22 批次 143）**：`all`（全体相关）不是角色、解析不到具体人，按支书 2026-09-22 裁定「只清『全体』那个」从 `constants.js` 的 `ROLE_LEGACY_KEYS` 撤除；**「全体党员」语义不在角色键上**，由通知受众 sentinel（`constants.js` 的 `NOTICE_AUDIENCE_SENTINELS.all`）承载；`all` 仍作为参与者视角的参考指南展示键（`core/state.js`）使用，标签/色值保留。
 - **访客非角色**：未登录即访客（无角色键），`visitor` 仅为参与者工作台页面的 tab 前缀/待办聚合键，勿与「访客（未登录）」混淆。
 - **`COMMISSIONER_ROLES` 两处语义区分**：constants.js 版指条条委员（三委员，不含支书/副支书，业务判定用）；auth.js 版指授权语义（含支书/副支书，赋权候选人排除支委用）。勿混用。
 - **组织级角色（`party-staff`，2026-09-02 P1 党委后台增补）**：党委组织员/党务老师——院系党委组织级角色，监控全院各支部、管理支部实例，**不属于任一支部、不参与支部内部活动闭环**；因此不落入 §9b（支部常设 6 角色）与 §9c（项目角色）矩阵——矩阵为支部业务角色视图。其能力模块为 `party-committee-workspace`（工作台 `party-committee.html`）。⚠ **例外（2026-09-17 支书改裁，批次 51）**：党委**保留对匿名意见反馈的核查权**——即可查看匿名反馈的真实提交人（**每次查看留痕**），见 **§9j**。

@@ -526,7 +526,7 @@
 | 10 | `rule-making` | 制度制定与迭代 | norm | `secretary` |
 | 11 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
 
-**依据**：`docs/src/core/work-map.js:29-116`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
+**依据**：`docs/src/core/work-map.js:57-154`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
 
 ---
 
@@ -596,7 +596,7 @@
 | requireMakeup | boolean | 否 | 本次活动是否要求补课（活动级勾选，仅党小组会等「按该次情形定」的场合用；主题党日不强制、支委会不补课）（裁定 `D-467` / `D-468`） |
 | voteConfig | object \| null | 否 | 线上异步表决配置，写入活动时固化：`{mode:'async', optionSet:'deliberative'│'formal', ballotMode:'named'│'anonymous', voterScope, voterIds:string[], quorumCheck:boolean}`。**线下开会不写本字段**（读侧无此字段＝旧活动/线下；`formal` 场景读侧一律按无记名处理） |
 
-> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/decision-tree.js:341`（`organizer` 写入）、`docs/src/services/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1048,1050`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1087-1103`（`voteConfig` 写入）、`docs/src/services/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources.js:173-182,226-260`（`voteConfig` 写侧校验）。
+> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/decision-tree.js:344`（`organizer` 写入）、`docs/src/services/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1048,1050`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1087-1103`（`voteConfig` 写入）、`docs/src/services/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources.js:173-182,226-260`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -885,7 +885,7 @@
 
 **内置场景共 8 个**：`org-life` 组织生活会 / `theme-party` 党小组主题党日活动 / `branch-party-meeting` 支部党员大会 / `party-group-meeting` 党小组会 / `party-lecture` 党课 / `branch-committee` 支委会 / `attendance-check` 查考勤记录 / `feedback-handling` 处理意见建议反馈。
 **2026-09-19 批次 97 改准**：本表原写「12 个」，其中 `joint-event`（团支部合办）/ `new-system`（制度制定与迭代）/ `develop-activist`（考察积极分子）/ `info-platform`（信息平台支持）**四个死场景已先后清掉、并进已有场景**（裁定 `D-336` / `D-344` / `D-464`（批次 82 清 `joint-event` / `new-system`）、`D-510`（批次 95 清 `develop-activist` / `info-platform`）），故现为 **8 个**。三会（支部党员大会 / 党小组会 / 支委会）已按同一套**9 环节**取齐（裁定 `D-328` / 落地 `D-509`）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:518-554`、`docs/src/workflow/sopData.js:9-129`。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:518-554`、`docs/src/workflow/sopData.js:9-110`。
 
 ### 4.16 意见反馈（IssueRecord）
 
@@ -1747,14 +1747,14 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | # | 项 | 现状 | 依据 |
 |---|---|---|---|
 | 9 | **系列活动（SeriesRecord）无实现** | 数据模型有完整字段定义，但**前端 mockDB 无该域、服务端无该表、无任何读写入口** | `content/04_web_design/data/DATA_MODEL.md:265-287`（定义）；`docs/src/core/domain.js:215-333`（mockDB 全部域，**无 series 键**）；`server/db.js:9-42`（35 张资源表，无 series） |
-| 10 | **`timeOffset: null` 的任务永不实例化** | `sopData.js` 中确有 **6 条**任务的 `timeOffset` 为 `null`（组织类场景：`attendance-check` 2 条 + `feedback-handling` 4 条）；而**两个消费口都显式过滤掉 null**：（a）SOP 推演 `instantiateSOP` 里 `if (task.timeOffset === null) return;`；（b）决策树时间轴展示 `scenario.tasks.filter(t => t.timeOffset !== null)`。⇒ 这 6 条任务**在系统内不会被实例化为任务/待办** | `docs/src/workflow/sopData.js:115-116,123-126`（6 处 `timeOffset: null`）、`docs/src/workflow/sop.js:20`、`docs/src/services/decision-tree.js:243` |
+| 10 | **`timeOffset: null` 的任务永不实例化** | `sopData.js` 中确有 **6 条**任务的 `timeOffset` 为 `null`（组织类场景：`attendance-check` 2 条 + `feedback-handling` 4 条）；而**两个消费口都显式过滤掉 null**：（a）SOP 推演 `instantiateSOP` 里 `if (task.timeOffset === null) return;`；（b）决策树时间轴展示 `scenario.tasks.filter(t => t.timeOffset !== null)`。⇒ 这 6 条任务**在系统内不会被实例化为任务/待办** | `docs/src/workflow/sopData.js:95-96,103-106`（6 处 `timeOffset: null`）、`docs/src/workflow/sop.js:20`、`docs/src/services/decision-tree.js:243` |
 | 11 | **`outputBlocks.blockOrder` 无 UI 写入口** | 产出块的排序能力（纯函数侧）存在，但**没有界面可写**——原设计里的拖拽排序画布已于 2026-09-03 裁定撤销，向导保存时恒写 `[]`。「能力在、入口无」 | `content/04_web_design/data/DATA_MODEL.md:947`（原文标注） |
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:47` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:874` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
 | 15 | **`handoffs`（三委数据交接记录）服务端无表** | 前端 mockDB 有 `handoffs` 域、mock 适配器会持久化它；**服务端 35 张资源表里没有 handoffs** ⇒ API 形态下该域不落库 | `docs/src/core/domain.js:266`、`docs/src/core/mock-adapter.js:92,269,1336`、`server/db.js:9-42` |
 | 16 | **`pendingMemberConfirmations` 不落服务端** | 前端 mockDB 数组「仅承载内存读链」，跨刷新持久化由成员确认服务自管浏览器 localStorage 键；**服务端无对应表** ⇒ API 形态下该队列不落库 | `docs/src/core/domain.js:324-332` |
-| 17 | **「副组长」制度有、代码无** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；但**`docs/` 与 `server/` 全仓检索「副组长」零命中**——没有副组长角色键、没有账号类型、没有工作台共享实现 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:45`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；检索证据：`docs/` 目录内「副组长」0 命中 |
+| 17 | **「副组长」身份已落地（2026-09-21 批次 139 · `D-571`）** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已按支书 2026-09-21 口径把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**（原「`docs/` 内零命中」的登记已作废） | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:45`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，恰好四处）见 `server/test/doc-line-ref.test.mjs:235-240` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/visibility.js:47-55`、`:98-100` |
 
 ### 7.3 未接入 / 无代码类（规划中）

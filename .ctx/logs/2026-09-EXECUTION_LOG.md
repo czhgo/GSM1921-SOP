@@ -14932,7 +14932,7 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 **（丁）全量（`R-85`）**：起 3000 服务（`npm start`）→ `npm test` → **见下「全量实测」** → 停服。
 **（戊）编号四处一致**：文首／文末续编说明「`D-275` … `D-574`，共 **300** 条」＝ 本月目录 / 月度索引 **300** ＝ 实测 `^## D-\d+` **300** 命中。
 
-**全量实测**：`ℹ tests 717 / ℹ pass 717 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`ℹ duration_ms 1113900.0717`（≈ **18.57 分钟**），进程退出码 **0**。**无 red、无 e2e 超时**（批次 135 曾现的两例 e2e 超时**本批未再现**）。
+**全量实测**：`ℹ tests 717 / ℹ pass 717 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`ℹ duration_ms 1169344.9522`（≈ **19.49 分钟**），进程退出码 **0**。**无 red、无 e2e 超时**（批次 135 曾现的两例 e2e 超时**本批未再现**）。
 
 ### 八、抽 8 处回核（**母本写的 ↔ 系统实然**两列）
 
@@ -14954,6 +14954,129 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - **未新建仓库文件**；**未提交 git**；**未用 sed / awk / PowerShell / node 脚本做内容批量改写**（`bump-version.mjs` 属版本戳机制本身）。
 - **⚠ 如实登记（不许改、只登记）**：`README-server.md:529`（`work-map.js:29-116` 行号引用，批次 141 已登记漂移）与 **`README-server.md:1757`**（写「`docs/` 内『副组长』零命中」，批次 139 已登记过期）——本批按铁律**只登记、不许改**。
 - **⚠ 如实登记（本批改了但未在报告主体逐处列出的）**：4 份 `.ctx` 台账（`.ctx/TIMESTAMPS.md` 4 行 ＋ 自身行）与 `content/04_web_design/data/DATA_MODEL.md` / `MODULE_UI_DESIGN.md` / `DATA_FLOW.md` 的 frontmatter `last_updated`（均刷为 2026-09-22）；**未改 `docs/help.html`**（本批未发现该页与本批所改口径相左处）。
+
+## 批次 143（2026-09-22，`D-575`）`SOP-F-1` 四条待定项按支书 2026-09-22 裁定逐条落地（`org-life` 场景删除 · 党课通知提前量不设固定值 · 主题党日「宣传准备」落进任务链 · 清 `'all'` 遗留键）
+
+> **一句话**：依支书 2026-09-22 就批次 142（`D-574`）上报的 **`SOP-F-1` 四条待定项**所给四条裁定（逐字：「**删掉这个场景（推荐）**」／「**不设固定值**」／「**落进活动任务链**」／「**只清“全体”那个**」）⇒ **四条逐条落地**；**未改任何权限门 / 判据逻辑**；母本一侧同批改准（党课提前量两句打架消解 · 角色键全表 13 → 12 键 · 场景清单 8 → 7）；版本戳 `20260922b → 20260922c`〔显式传参〕；守卫子集改前 **61 / 63**（红＝`version-stamp` ＋ `doc-line-ref`，**均系上一轮未完成的中间态所致，见下「零」**）→ 改后 **63 / 63 / 0 红**；依 `R-85` 起 3000 服务跑全量、跑完停服（数字见「七」）。
+
+### 零、本批起点如实登记（工作树不是干净基线）
+
+- **接手时的实然**：工作树里**已存在上一轮中断留下的批次 143 改动**（`sopData.js` 已删 `org-life` / 已加 `1b-4b` / 党课已改 `'flexible'`；`constants.js` / `domain.js` / `mock/activities.js` / `sop.js` / `decision-tree.js` / `todo-domain.test.mjs` / `母本常见工作场景快速指南.md` 已改），**但**：① **版本戳被打断在混合态**——`docs/src` 与 `server/test` 里 **186 个文件停在更旧的 `20260921p`**（`docs/*.html` 里 `help.html` / `party-committee-meeting.html` 两页同样），其余在 `20260922b`（HEAD 值），另有 47 处 `20260922a`；`CODE_VERSION` 仍 266（未自增）⇒ `version-stamp` 守卫**必然红**；② **台账与落账一处未做**（决策 / 执行 / `ACTIVE_RULINGS` / 队列 / 版本戳 / README 均未动）。
+- **本批怎么处理**：把上一轮的实质改动**逐处复核后认下**（逐处判据见下各条），**补做**其余全部（母本侧、台账、版本戳、README 授权两处、守卫与真机、全量）；**版本戳以 `20260922c` 一次收口**（`bump-version` 全量改写 ⇒ 混合态一次清掉；`bump-version` 自报「实际改写 JS 210 / HTML 22 / CSS 2 / server-test 69、`CODE_VERSION` +1（→ 267）、**陈旧戳自检 0 处残留**」）。
+- **改前守卫基线（如实）**：带 `DISABLE_PASSWORD_CHECK=1` 跑守卫子集 **63 项 ⇒ 61 pass / 2 fail**：`version-stamp` 报「全站只允许一个活动版本戳（实测 3 个：`20260922b` @ `docs/src/about.css:21` / `20260921p` @ `docs/src/components/inspector.js:8` / `20260922a` @ `docs/src/components/org-setup-wizard.js:17`）」；`doc-line-ref` 报 `R1` 三处越界（`README-server.md:888` 的 `sopData.js:9-129`、`:1750` 的 `115-116,123-126`）＋ `R2` 一处锚点错位（`:599` 的 `decision-tree.js:341`（`organizer`））——**两类红的根因都不是"制度"，而是上一轮打断留下的戳与行号**。
+
+### 一、裁定一：删 `org-life`（组织生活会）场景
+
+**改前 → 改后（逐处）**：
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `docs/src/workflow/sopData.js` | `scenarios` 首条 `org-life`（16 条 `1a-*` 任务，`:12-31`） | **整条删除**（场景 **8 → 7**） |
+| 2 | `docs/src/core/constants.js`（`SCENARIO_TO_CATEGORY`） | `'org-life': 'party-group-meeting'` | **删该键**，注释改「不再单列场景键——组织生活会活动直接记**承接它的那个三会形式**的 `scenarioId`」 |
+| 3 | 同上（`ACTIVITY_TYPE_LABELS` / `ACTIVITY_TYPE_SHORT`） | 按键 `'org-life'` 给「三会一课」/「党会」 | 改按**活动类型键 `'组织生活会'`**（内容维度仍在） |
+| 4 | `docs/src/services/todo.js`（会务域映射） | `'org-life': WORK_DOMAIN.MEETING` | `'组织生活会': WORK_DOMAIN.MEETING` |
+| 5 | `docs/src/mock/activities.js`（演示活动 `act-19`） | 标题「7月组织生活会」＋ `type/scenarioId` 随 `org-life` | `type: '党小组会'` ＋ `scenarioId: 'party-group-meeting'`（**依母本：内容随承接形式**） |
+| 6 | `content/04_web_design/data/DATA_MODEL.md §2.14` | 「内置场景清单（共 **8** 个）」＋ `org-life` 行 | 「共 **7** 个」＋ 删该行；「已清场景（沿革）」补 `org-life` 一段（**与删行 1:1 抵消，行数守恒**） |
+| 7 | `README-server.md:888`（行号平移） | `docs/src/workflow/sopData.js:9-129` | `9-110`（该文件实 110 行） |
+| 8 | `README-server.md:1750`（行号平移） | `sopData.js:115-116,123-126`（6 处 `timeOffset: null`） | `sopData.js:95-96,103-106`（**仍是 6 处**） |
+
+**⚠ 逐处判「该删 / 该留」**（全库清点）：
+
+- **该删（独立场景相关）**：上表 1–6、8 —— 均**只针对「那个独立场景」**。
+- **该留（「组织生活会」作为会议 / 活动形式的概念）**：`docs/src/core/policy-defaults.js:42`（考勤 `meetingTypes`）· `docs/help.html` 各台上传位说明（`:502`/`:630`/`:633`/`:1204`/`:1227`，讲的是**该场活动由谁上传考勤**）· `docs/src/services/{attendance,roster,today-summary}.js` 与 `entries/tabs/**` 的注释与文案 · `docs/src/core/constants.js:584`/`:594-595`/`:631`/`:688-690`（活动类型 / 归类 / 权威取值集）· `docs/src/mock/{attendance,seed}.js`（演示数据里的活动名）· `server/test/{attendance-batch,meeting-attendance-rules,roster,person-consistency,thought-report-panel}.test.mjs`（考勤口径断言）——**一律未动**。
+- **测试断言同步**：`server/test/todo-domain.test.mjs`（会务域用例）由 `for (const sc of ['branch-party-meeting','branch-committee','party-group-meeting','party-lecture','org-life'])` 改为 `[...,'组织生活会']`（注释写明「组织生活会为内容维度，按活动类型键判」）。
+
+### 二、裁定二：党课通知提前量「不设固定值」
+
+- **落地形态（本批判定并说明）**：支书原话是「**不设固定值**」⇒ **不是换一个天数**；故**不塞任何默认值**。系统侧取「**任务仍在任务链里，但不带日期锚点**」这一形态：`sop.js::instantiateSOP` 增锚点判据——`timeOffset` **非数字**者**仍产出节点**，但 `date: null`、`timeOffset: null`（与「`null` ＝ **不实例化**」**语义分离**），排序时无锚点者排最后。**为什么新立 `'flexible'` 这个取值**：`null` 已被「不实例化」占用，若复用它则党课通知会从任务链里消失（与「仍要做通知」相悖）⇒ 必须有一个能表达「**无固定提前量、时间由组织者把握**」的第三态。
+- **改前 → 改后**：`sopData.js:90` 党课通知 `timeOffset: -3` → **`'flexible'`**（文件头字段说明同步补语义）；`decision-tree.js::renderSopPreview` 增第四相位组「**时间由组织者自定**」、逐条渲染为「（时间由组织者自定）」而非假数字；`writeActivityWithSOP` 落库时无锚点任务的 `date` 落空串（日历按「挂在活动当天」呈现）。
+- **母本改前 → 改后**：`常见工作场景快速指南.md:184`（党课场景句）与 `:202`（三会一课通用流程句）**两处打架消解**——均写「**通知提前量不设固定值、由组织者把握**」（`:184` 另明写「不套用通用流程的『提前至少 5 天』」）；**保留既有文风、未加小标题**；`DATA_MODEL.md` 的 `timeOffset` 行同批补 `'flexible'` 取值与语义。
+- **改前实然（一手）**：母本 `:202`「党课从简……只做通知与补课提醒」**未给天数** ↔ `:184`「操作步骤按三会一课通用流程执行」（通用流程 `:215`＝提前至少 5 天）；系统取 `-3`。
+
+### 三、裁定三：主题党日「宣传准备」落进活动任务链
+
+- **取证（先看现有 13 条与母本原话）**：`theme-party` 原 13 条＝活动发起 / 活动报备 / 联系条条委员 / 发布活动通知 / 对接考勤要求与复盘底线 / 活动实施 / 考勤确认 / 复盘提醒 / 活动复盘 / 宣传产出（摘要+配图）/ 考察确认 / 材料归档 / 复盘监督（批注/打回/确认）。母本主题党日**详细步骤第 5 步**（`常见工作场景快速指南.md:113`）逐字＝「确认宣传负责人（深度参与者），宣传委员指导；无需宣传预热」，**时间节点 T-2 天**、**负责人栏＝「宣传委员（指导）」** ⇒ **executor 判为「宣传委员」**（不是组织者）。
+- **改前 → 改后**：`sopData.js` 在 `1b-4`（发布活动通知）之后插入 **`1b-4b`「宣传准备」**：`executor: 'prop-commissioner'`、`supervisor: 'organizer'`、`timeOffset: -2`、`desc: '确认宣传负责人（深度参与者），宣传委员指导。'`（desc 逐字取母本）；任务链 **13 → 14 条**。**序号影响同批核**：`1b-4b` 与既有 `1b-4` / `1b-5` / `1b-6` / `1b-7` 等**无 `taskId` 冲突**；`theme-party` 的任务链是数组、不按 `taskId` 排序 ⇒ 无其他引用受影响；`scene-write-sync` / `doc-consistency` / `link-integrity` 等守卫改后全绿。
+- **⚠ supervisor 系本批判定（母本未给督办人）**：母本负责人栏只写「宣传委员（指导）」，**未指督办人**；本批取「组织者」（本场准备动作的统筹方，且母本 `:116` 另写「组织者打包督办」深参产出）——**属推导，不是母本原话**，如实登记。
+- **宣传台「项目看板」那条保留、并说明理由**：母本 `宣传委员工作流程指南.md:43-44` 的项目看板步骤 2＝「确认深度参与者中谁负责宣传工作 · **活动前 3 天**」——它是**宣传委员自主规划的宣传人力盘点**（跨活动、提前 3 天）；活动任务链这条是**本场**活动的「确认宣传负责人 ＋ 指导」（T-2）。**主体、时点、范围都不同 ⇒ 判为不同承载，不是同一步的重复**，故**不动**（未删、未改）。
+
+### 四、裁定四：只清 `'all'`（`'expanded-committee'` 保留）
+
+- **改前 → 改后**：`core/constants.js:192` `ROLE_LEGACY_KEYS = ['commissioner','initiator','all']` → **`['commissioner','initiator']`**（注释写明「2026-09-22 批次 143：撤『全体相关』——非角色、解析不到具体人」）；同文件上方「遗留键（**3**）无角色语义」的注释与 `:181` 段一并改准为 **2**。
+- **⚠「原来写 `'all'` 的那些位置该改成谁」——判定＝无位置需要改派**：`executor:'all'` 共 3 处，**全在 `1a-2b`（全员述职回顾）/ `1a-6a`（个人自评）/ `1a-6c`（互相批评）**，即**全在裁定一删掉的那个场景里** ⇒ 随场景一并消失。**依母本判「它是负责人还是对象」**：母本 `:162`/`:164` 把「全员回顾述职 / 个人自评 / 相互批评」写作**组织生活会的专属环节**、由承接它的三会形式承载 ⇒ **不另派生角色、不塞给任何一个人**。**「全体党员」这条语义（对象侧）**另有正当落点——**通知受众 sentinel**（`NOTICE_AUDIENCE_SENTINELS.all`，`constants.js:792`，未动）；`all` 作为**参考指南展示键**（`core/state.js:63` 参与者视角）的 `ROLE_LABELS['all']='全体相关'` 与色值（`ROLE_COLORS.all` / `ACCENT_COLORS.all` / `ACCENT_PALETTE` 的「青」）**保留**（**属展示 / 色板键，不是角色键**）。
+- **`'expanded-committee'` 按裁定保留不动**：`1b-2`（活动报备）的 `executor` 一字未动；`definitions.js` / `renderer.js` 里那张中文标签「支委扩大会」同样未动（涉及「支委扩大会在系统里要不要单独立一档」，另议）。
+- **顺手改准 1 处注释**：`docs/src/services/activity.js:165` 把 `all` 列为「常设角色」的一例 → **删去该例**（该键已非角色）。
+- **母本 / 权威文档同批改准**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a0 角色键全表——撤 `all` 一行 ＋ 「10 业务键 + 3 遗留键 = 13 键全表」→「**10 业务键 + 2 遗留键 = 12 键全表**」＋ 语义约定补 1 条（说明 `all` 非角色、「全体党员」由通知受众 sentinel 承载；**删 1 行 ＋ 加 1 行 ⇒ 行数守恒**，`README-server.md:106` 与 `:259` 对 §9a0 `:24-38` / `:42` 的行号引用继续有效）；`content/04_web_design/data/DATA_MODEL.md §2.2.1` 的 `all` 行由「遗留键（ROLE_LEGACY_KEYS…）」改准为「**非角色键**（已自 `ROLE_LEGACY_KEYS` 撤除；仅参考指南展示键）」＋ 上方「13 键 = 10 业务键 + 3 遗留键」改准为「**12** 键 = 10 业务键 + **2** 遗留键」（**均原位改写、行数守恒**）。
+
+### 五、母本 / 设计文档 / README 的改动清单（逐处）
+
+| # | 位置 | 改前 → 改后 |
+|---|---|---|
+| 1 | `content/02_institution/sop/常见工作场景快速指南.md:184` · `:202` | 党课提前量两句 → 均写「通知提前量不设固定值、由组织者把握」（**裁定二**） |
+| 2 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` §9a0（`:22` · 撤 `all` 行 · 语义约定补 1 条） | 13 键 → **12** 键；`all` 撤出（**裁定四**）；frontmatter `last_updated` 2026-09-21 → **2026-09-22** |
+| 3 | `content/04_web_design/data/DATA_MODEL.md` §2.2.1（`:198` · `:215`） | 13 → 12 键；`all` 行改「非角色键」（**裁定四**） |
+| 4 | 同上 §2.14（`:538` · `:541` · 删 `org-life` 行 · 沿革补一段） | `timeOffset` 补 `'flexible'`（**裁定二**）；场景 8 → 7（**裁定一**） |
+| 5 | `README-server.md:529`（**授权改准**） | `work-map.js:29-116` → **`:57-154`**（`WORK_MAP_MODULES` 起于 57、`WORK_MAP_DEFAULT` 终于 154；逐标识符核过） |
+| 6 | `README-server.md:1757`（**授权改准**） | 「『副组长』制度有、代码无……`docs/` 内『副组长』0 命中」→ **「『副组长』身份已落地（2026-09-21 批次 139 · `D-571`）……」**（载体名单指到 `doc-line-ref.test.mjs:235-240` 的 R4 白名单） |
+| 7 | `README-server.md:888` · `:1750` · `:599`（**行号随本批位移同步平移**，见「零」与裁定一） | `sopData.js:9-129` → `9-110`；`sopData.js:115-116,123-126` → `95-96,103-106`；`decision-tree.js:341` → **`:344`**（本批在 `renderSopPreview` 增第四相位组 ⇒ 其后行号 +3） |
+| 8 | `server/test/doc-line-ref.test.mjs`（`R4` 留痕注释） | 「（`README-server.md:1757` 那一行现与实况相左；**本批不许改 README**，已如实登记、留待单独改准。）」→「（……**2026-09-22 批次 143 已按授权改准**……）」（**改测试不改制度**） |
+| 9 | `.ctx/TIMESTAMPS.md` | 3 条内容表行改注（`SYSTEM_ROLE_PERMISSION.md` 日期 2026-09-21 → **2026-09-22**；`常见工作场景快速指南.md` / `DATA_MODEL.md` 补 批次 143 注） |
+
+### 六、真机验证（Playwright ＋ 真起服务；探针 `server/.tmp/probe143.mjs`，跑完即删）
+
+| # | 验什么 | 实测 |
+|---|---|---|
+| 1 | **支书台真登录真到台** | `2300010001/123456` → `http://127.0.0.1:{port}/workspace/secretary.html`，`title="支书工作台 — 工作台"`，12 个 `role="tab"` 全在位；`pageerror` **0 条** |
+| 2 | **场景列表（裁定一）** | 浏览器内真读 `sopDatabase.scenarios` ⇒ **7 个**、`ids = ['theme-party','branch-party-meeting','party-group-meeting','party-lecture','branch-committee','attendance-check','feedback-handling']`、**`hasOrgLife=false`**；**7 个逐个 `instantiateSOP` 无报错**（`openErrors: []`）、每条任务都有标题 |
+| 3 | **写入活动场景选择面（裁定一）** | 支书台点「活动管理」→「写入活动」⇒ 页面文本 **`hasOrgLife=false`** / `hasLecture=true` / `hasTheme=true`；`SCENARIO_WRITE_IDS` 平铺＝`['branch-party-meeting','branch-committee','party-group-meeting','party-lecture','theme-party']`（**无组织生活会**；三会一课 `subtypes` 亦无） |
+| 4 | **主题党日任务链（裁定三）** | ① 模块侧：`theme-party` 任务 **14 条**、含 `{taskId:'1b-4b', title:'宣传准备', executor:'prop-commissioner', timeOffset:-2}`；② **端到端**：浏览器内真调 `writeActivityWithSOP(主题党日)` ⇒ 服务端读回 **14 条任务**、含「宣传准备」（`executor=prop-commissioner`、`date=2026-09-19`）；③ 决策树预览「会前准备」组列出 T-2 三步（含本步） |
+| 5 | **党课（裁定二）** | ① `party-lecture.tasks[0].timeOffset === 'flexible'`；② `instantiateSOP(['party-lecture'])` ⇒ 通知任务 `timeOffset:null`、`date:null`（**仍在链里**，另一条补课提醒 `timeOffset:1` 正常带锚点）；③ **端到端**：真调 `writeActivityWithSOP(党课)` ⇒ 读回 2 条，通知任务 `timeOffset:null` / `date:''`；④ 决策树预览单列「**时间由组织者自定（1项）**」＋「（时间由组织者自定） 发布党课通知与学习材料」，**不再出现 T-3** |
+| 6 | **遗留键（裁定四）** | 浏览器内真读 `ROLE_LEGACY_KEYS` ＝ **`['commissioner','initiator']`**（**无 `all`**）；`ROLE_LABELS['all']` 仍为「全体相关」（展示键保留） |
+
+> 探针库为 `createApp({dbPath:':memory:'})` ＋ `seedDatabase` ⇒ **写活动链不污染演示数据**；探针文件跑完即删。
+
+### 七、反查 ＋ 版本戳 ＋ 守卫 ＋ 全量 ＋ 停服
+
+**（甲）反查**（改前＝`HEAD`／改后＝工作树；`docs` ＋ `content` ＋ `server` ＋ 根 README）：
+
+| 词 | 改前 | 改后 | 逐条判定 |
+|---|---|---|---|
+| `org-life` | **7 文件**（`README-server.md` · `DATA_MODEL.md` · `constants.js` · `mock/activities.js` · `services/todo.js` · `sopData.js` · `todo-domain.test.mjs`） | **2 文件**（`DATA_MODEL.md` 的「已清场景（沿革）」注 · `README-server.md` 的 :886 / :888 行） | 代码 / 测试 **全部清零**；余下 2 处：`DATA_MODEL` 那处是**沿革注（正当保留）**；`README-server.md:886`/`:888` 是**本批未授权的口径处**，只登记（见「九」） |
+| `'expanded-committee'` | 3 文件（`definitions.js` · `renderer.js` · `sopData.js`） | **3 文件（未变）** | 按裁定**保留不动** ✔ |
+| `宣传准备` | 1 文件（`常见工作场景快速指南.md`） | **2 文件**（＋ `sopData.js` 的 `1b-4b`） | 与裁定三同向 ✔ |
+| `组织生活会` | 32 文件 | 32 文件（同一批、逐处过） | **按语境分类**：**场景**（`org-life` / `SCENARIO_TO_CATEGORY` / 活动类型枚举）**已删键、改按类型键**；**会议与活动形式**（考勤 `meetingTypes` / `help.html` 上传位 / 各台文案 / 演示数据 / 测试口径）**保留**；**注释**（`domain.js:15`/`:240`、`attendance.js` 等）**保留** |
+| `'all'` | 见「九」逐处表 | 同上 | 角色键身份**已撤**；展示键 / 色值 / 通知受众 sentinel **保留** |
+
+> **⚠ 不只靠 grep**（`R-87`）：本批的「换说法」活例＝`README-server.md:886` 写「内置场景共 **8** 个：`org-life` 组织生活会 / …」、`:881` 写「`executor` 可为 `all`＝全员」——**两处既不属"该删的键"也不属"已授权行"**，grep 命中的是 `org-life` / `all`，但**判定要靠读整句**（详见「九」）。
+
+**（乙）版本戳**：**`20260922b → 20260922c`**〔**显式传参**：`node docs/scripts/bump-version.mjs 20260922c`〕。**改后**：`bump-version` 自报「实际改写 JS 210 / HTML 22 / CSS 2 / server-test 69；`CODE_VERSION` +1（→ **267**）；**陈旧戳自检 0 处残留 ✅**」；**「戳唯一」已核**——`docs/src` ＋ `docs/*.html` ＋ `docs/workspace` ＋ `server/test` 全量扫一遍，**只剩 `20260922c` 一种值（1877 处）**，`20260921p` / `20260922b` / `20260922a` **0 处**。
+**（丙）守卫子集**（8 文件、带 `DISABLE_PASSWORD_CHECK=1`）：**改前 61 / 63（2 红，见「零」）→ 改后 63 / 63 / 0 红**（`ℹ tests 63 / ℹ pass 63 / ℹ fail 0`，`duration_ms 25694`）。**改后中途修准 3 处 README 行号引用后**才转绿（此前 61/63 的红即 `doc-line-ref`）。
+**（丁）全量（`R-85`）**：起 3000 服务（`npm start`）→ `npm test` → **见下「全量实测」** → 停服。
+**（戊）编号四处一致**：文首／文末续编说明「`D-275` … `D-575`，共 **301** 条」＝ 本月目录 / 月度索引 **301** ＝ 实测 `^## D-\d+` **301** 命中。
+
+**全量实测**：`ℹ tests 717 / ℹ pass 717 / ℹ fail 0 / ℹ cancelled 0 / ℹ skipped 0 / ℹ todo 0`，`ℹ duration_ms 1113900.0717`（≈ **18.57 分钟**），进程退出码 **0**。
+
+### 八、抽 8 处回核（**支书口径 ↔ 改后实然**）
+
+| # | 支书口径（逐字） | 改后实然（实测） |
+|---|---|---|
+| 1 | 「**删掉这个场景（推荐）**」 | `sopDatabase.scenarios` **7 个**、无 `org-life`；写入活动面与子类均无「组织生活会」；**「组织生活会」作为活动 / 考勤类型仍在**（`policy-defaults.meetingTypes` 含它、help 页各上传位说明照旧） |
+| 2 | 「**不设固定值**」 | 党课通知 `timeOffset='flexible'`；真写入 ⇒ `timeOffset:null` / `date:''`；界面标「时间由组织者自定」；**无任何默认天数**；母本两句均写「不设固定值、由组织者把握」 |
+| 3 | 「**落进活动任务链**」 | `theme-party` **14 条**、含 `1b-4b 宣传准备`（`executor='prop-commissioner'`、T-2）；真写入后读回同样含它；宣传台「项目看板」步骤 2 **仍在** |
+| 4 | 「**只清“全体”那个**」 | `ROLE_LEGACY_KEYS = ['commissioner','initiator']`；`1b-2` 的 `'expanded-committee'` **原样** |
+| 5 | （裁定二附带）母本两句打架要消 | `常见工作场景快速指南.md:184` 与 `:202` 均写「通知提前量不设固定值、由组织者把握」；全文再无「党课……5 天」式表述 |
+| 6 | （裁定一附带）`org-life` 两处与母本相左要一并消失 | `1a-0 时间统筹` 与 `1a-4b 二维码` **随场景删除消失**；母本 `:164`「不单列一步」/`:197`「网页不承载」不再有对立面 |
+| 7 | （裁定四附带）`all` 不参与权限 / 派单 | `roles-sync` 守卫改后全绿；`NOTICE_AUDIENCE_SENTINELS.all` 仍在（通知受众「全体党员」）；`activity.js` 注释已不再把 `all` 当常设角色 |
+| 8 | （`README-server.md` 授权改准）两处过期 | `:529` ＝ `work-map.js:57-154`（对）；`:1757` ＝ 「已落地」＋ 载体名单（对；`doc-line-ref` `R4` 的 docs/ 白名单同批改准） |
+
+### 九、不确定 / 未做的地方（如实登记）
+
+- **`README-server.md` 另有三处口径因本批而陈旧、但不在授权面 ⇒ 未改、逐处登记**：`:253`「SOP 场景中 `executor: 'all'` 见 `docs/src/workflow/sopData.js:18`」（该行现为 `1b-3`，且已无 `executor:'all'`）· `:881`「`executor`｜string｜是｜执行角色键（**可为 `all`＝全员**）」（`all` 已非角色键）· `:886`「**内置场景共 8 个**：`org-life` 组织生活会 / …」（现 **7** 个）。**本批铁律为「只改 `:529` 与 `:1757` 两处已登记的过期，除此之外不许动 README」**；`:888`/`:1750`/`:599` 三处**属行号位移**、按父批「若行号已被改动位移 ⇒ 重新定位后改准」的口径做了**机械平移**（**未改任何口径文字**）——**三处以外的口径陈旧一律未动**，请授权后另批改准。
+- **`ROLE_PERMISSION_DESIGN.md` 的两处沿革句未动**（`:37`「遗留键污染……`all` 为兜底」· `:65`/`:69`「`ROLE_LEGACY_KEYS`（**3** 遗留键）」）——该文件是**演进史 / 决策步表**（描述"当时做了什么"），本批判为**历史沿革、正当保留**；如需与现行取齐，请明示。
+- **`supervisor: 'organizer'`（`1b-4b`）系本批判定，不是母本原话**（母本第 5 步只给执行者「宣传委员（指导）」）；**若要改成 `null` 或 `leader`，一行即可**。
+- **`'flexible'` 是新增的第三态取值**（`number | null | 'flexible'`）：`DATA_MODEL.md` 已写明；若后端按 `number|null` 建模，**需同步该枚举**。
+- **`README.md` 在工作树里显示为 modified 但 `git diff` 为空**（无实际内容差异；`.ctx/TIMESTAMPS.md` 同）——判为索引 / mtime 噪声，**未处理**。
+
 
 
 

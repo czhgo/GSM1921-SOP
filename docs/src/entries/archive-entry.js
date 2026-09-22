@@ -1,27 +1,27 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260922b';
-import { renderHeader } from '../components/header.js?v=20260922b';
-import { BranchService } from '../services/runtime.js?v=20260922b';
-import { mockDB } from '../core/domain.js?v=20260922b';
-import { getPersonById } from '../services/person.js?v=20260922b';
-import { loadActivities } from '../services/activity.js?v=20260922b';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922b';
-import { getActivityTypeColors } from '../core/constants.js?v=20260922b';
+import { renderSidebar } from '../components/sidebar.js?v=20260922c';
+import { renderHeader } from '../components/header.js?v=20260922c';
+import { BranchService } from '../services/runtime.js?v=20260922c';
+import { mockDB } from '../core/domain.js?v=20260922c';
+import { getPersonById } from '../services/person.js?v=20260922c';
+import { loadActivities } from '../services/activity.js?v=20260922c';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922c';
+import { getActivityTypeColors } from '../core/constants.js?v=20260922c';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260922b';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260922b';
-import { getBasePath } from '../core/utils.js?v=20260922b';
-import { AuthStore } from '../services/auth.js?v=20260922b';
-import { badgeHtml } from '../components/badges.js?v=20260922b';
+import { isActivityEnded } from '../core/constants.js?v=20260922c';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260922c';
+import { getBasePath } from '../core/utils.js?v=20260922c';
+import { AuthStore } from '../services/auth.js?v=20260922c';
+import { badgeHtml } from '../components/badges.js?v=20260922c';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../components/pager.js?v=20260922b';
+import { pagerHtml } from '../components/pager.js?v=20260922c';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922b';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260922b';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922c';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260922c';
 
 renderSidebar('archive');
 renderHeader('archive');

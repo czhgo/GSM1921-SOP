@@ -231,7 +231,7 @@ test('R4 「零命中 / 检索不到消费点」类关键词取证仍成立（�
   //    落地了 `deputy-leader`（`constants.js` 文件末挂载块 / `auth.js` / `group-view.js` / 登录身份卡），
   //    「docs/ 内零命中」不再成立。断言的**量**随之从「＝0」改为「**恰好等于身份载体那几处**」——
   //    名单就是下面这份白名单（**不多不少**：多一处说明有人在别处又写了一份身份载体，少一处说明载体被删）。
-  //    （README-server.md:1757 那一行现与实况相左；本批**不许改 README**，已如实登记、留待单独改准。）
+  //    （README-server.md:1757 那一行原与实况相左；**2026-09-22 批次 143 已按授权改准**——该行现写「载体名单见 R4 白名单、不再主张零命中」。）
   const DOC_DEPUTY_LEADER_HITS = [
     'docs/src/core/constants.js',        // 身份键 / 标签 / 页面映射 / 颜色三处（文件末集中挂载）
     'docs/src/entries/login-entry.js',   // 开发身份卡「党小组副组长」

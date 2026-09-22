@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260922b';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260922c';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260922b';
-import { getBasePath } from '../core/utils.js?v=20260922b';
-import { icon } from '../core/icons.js?v=20260922b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260922b';
-import { badgeHtml } from './badges.js?v=20260922b';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260922b';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260922c';
+import { getBasePath } from '../core/utils.js?v=20260922c';
+import { icon } from '../core/icons.js?v=20260922c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260922c';
+import { badgeHtml } from './badges.js?v=20260922c';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260922c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260922b';
+import { getHeaderTitle } from '../services/branch.js?v=20260922c';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../services/branch.js?v=20260922b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260922b');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260922c');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260922b');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260922c');
   return _noticeModule;
 }
 

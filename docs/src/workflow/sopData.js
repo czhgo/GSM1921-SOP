@@ -1,35 +1,14 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
 //  sopData.js — SOP 数据库 v10.0 (JSON Schema-Driven)
-//  字段说明：timeOffset 单位为天，null = 无时间锚点
+//  字段说明：timeOffset 单位为天；null = 无时间锚点（不实例化）；'flexible' = 不设固定提前量、
+//  由组织者自定（仍进任务链，任务不带日期锚点）——2026-09-22 批次 143（支书裁定「党课通知提前量不设固定值」）
 //  S-3（2026-09-10）：desc 精简为一句话摘要（≤24字）；完整制度说明见
 //  content/02_institution/ 对应文档，不在此复制长文
 // ════════════════════════════════════════════════════════════════
 
 export const sopDatabase = {
   scenarios: [
-    {
-      scenarioId: 'org-life', title: '组织生活会',
-      domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
-      tasks: [
-        { taskId: '1a-0', title: '时间统筹（三党小组组长协调）',  executor: 'leader',           supervisor: null,             timeOffset: -7, desc: '三组长统计本组可用时间，取重叠时段同步支委群。' },
-        { taskId: '1a-1', title: '确定会议主题',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '按支委会部署确定会议主题。' },
-        { taskId: '1a-2', title: '会前谈心谈话',        executor: 'leader',           supervisor: null,         timeOffset: -7, desc: '与本组党员逐一谈心，掌握思想状况。' },
-        { taskId: '1a-2b', title: '全员述职回顾',       executor: 'all',              supervisor: 'leader',     timeOffset: -5, desc: '会前5天全员回顾总结一年工作（述职）。' },
-        { taskId: '1a-4', title: '通知到人',          executor: 'leader',           supervisor: null,         timeOffset: -3, desc: '提前至少3天群发通知（时间/地点/要求）。' },
-        { taskId: '1a-4b', title: '发布考勤二维码',     executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '现场发布考勤二维码，供党员扫码签到。' },
-        { taskId: '1a-5', title: '签到考勤',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  0, desc: '纪检同步记录到场；请假/缺勤留档并跟进补课。' },
-        { taskId: '1a-6a', title: '个人自评',            executor: 'all',              supervisor: null,         timeOffset:  0, desc: '结合述职做个人自我批评。' },
-        { taskId: '1a-6c', title: '互相批评',            executor: 'all',              supervisor: null,         timeOffset:  0, desc: '开展互相批评，直指问题。' },
-        { taskId: '1a-6d', title: '党小组组长总结',            executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '组长做组织生活会总结发言。' },
-        { taskId: '1a-6b', title: '摄影留存宣传底稿',   executor: 'leader',           supervisor: null,         timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
-        { taskId: '1a-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '后台汇总出勤数据，导出后报支委会（组织委员接收建档）。' },
-        { taskId: '1a-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '记录组织/深参/出勤三层角色，整理考察草稿。' },
-        { taskId: '1a-8', title: '汇总组织生活会记录',  executor: 'leader',           supervisor: null,         timeOffset:  5, desc: '会后汇总述职摘要与检查材料成会议记录。' },
-        { taskId: '1a-9', title: '档案归档',            executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '归档会议材料并上传智慧党建平台（T+5）。' },
-        { taskId: '1a-10', title: '补课安排跟进',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: 'T+7内安排缺勤人员补课并跟踪完成。' },
-      ],
-    },
     {
       scenarioId: 'theme-party', title: '党小组主题党日活动',
       domain: 'activity', description: '弹性考勤 · 全体支部成员可参与',
@@ -38,6 +17,7 @@ export const sopDatabase = {
         { taskId: '1b-2', title: '活动报备',              executor: 'expanded-committee', supervisor: null,         timeOffset: -7, desc: '把活动方案发到支委扩大群报备，报备通过后方才写入活动。' },
         { taskId: '1b-3', title: '联系条条委员',          executor: 'organizer',        supervisor: 'leader',     timeOffset: -7, desc: '按需联系组织/宣传/纪检委员对接需求。' },
         { taskId: '1b-4', title: '发布活动通知',          executor: 'organizer',        supervisor: null,         timeOffset: -2, desc: '群内发布活动通知；外出活动提前2天建群。' },
+        { taskId: '1b-4b', title: '宣传准备',             executor: 'prop-commissioner',supervisor: 'organizer',   timeOffset: -2, desc: '确认宣传负责人（深度参与者），宣传委员指导。' },
         { taskId: '1b-5', title: '对接考勤要求与复盘底线',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset: -2, desc: '与组织者对接考勤要求与复盘底线（T+7）。' },
         { taskId: '1b-6', title: '活动实施',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  0, desc: '全程负责：签到/拍照/发言记录/材料收齐。' },
         { taskId: '1b-6a', title: '考勤确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  0, desc: '组织者上传党小组考勤，纪检确认后录入总表。' },
@@ -87,7 +67,7 @@ export const sopDatabase = {
       scenarioId: 'party-lecture', title: '党课',
       domain: 'activity', description: '刚性考勤 · 仅限党员和预备党员',
       tasks: [
-        { title: '发布党课通知与学习材料', executor: 'secretary', supervisor: null, timeOffset: -3 },
+        { title: '发布党课通知与学习材料', executor: 'secretary', supervisor: null, timeOffset: 'flexible' }, // 不设固定提前量（由组织者自定）
         { title: '提醒缺席党员进行补课', executor: 'secretary', supervisor: null, timeOffset: 1 },
       ],
     },

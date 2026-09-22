@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260922b';
-import { persist } from '../core/data-adapter.js?v=20260922b';
-import { generateId } from '../core/id.js?v=20260922b';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922b';
+import { mockDB } from '../core/domain.js?v=20260922c';
+import { persist } from '../core/data-adapter.js?v=20260922c';
+import { generateId } from '../core/id.js?v=20260922c';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922c';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -83,7 +83,7 @@ const _ACTIVITY_TYPE_TO_DOMAIN = {
   'branch-committee': WORK_DOMAIN.MEETING,     // 支委会
   'party-group-meeting': WORK_DOMAIN.MEETING,  // 党小组会
   'party-lecture': WORK_DOMAIN.MEETING,        // 党课
-  'org-life': WORK_DOMAIN.MEETING,             // 组织生活会
+  '组织生活会': WORK_DOMAIN.MEETING,           // 组织生活会（内容维度：随承接它的三会形式归会务）
 };
 
 /** 从待办取 scenario/type 信号（todo 本体 / actionData 两处均可携带） */
@@ -100,7 +100,8 @@ function _activityScenarioOf(todo) {
  * 边界注释：
  *  - 显式 domain（含显式 NONE）一律原样返回，不做推断覆盖；
  *  - authorize/participate：sourceType=taskforce → 专班；否则属 activity 型——若待办携带三会一课
- *    scenarioId（branch-party-meeting/branch-committee/party-group-meeting/party-lecture/org-life）→ 会务，
+ *    scenarioId（branch-party-meeting/branch-committee/party-group-meeting/party-lecture）或活动类型
+ *    「组织生活会」（内容维度、随承接形式走）→ 会务，
  *    theme-party 等 → 活动/项目；**现有派生器大多未把 scenario 落到待办**，故 activity 型无 scenario 时
  *    默认「活动/项目」——准确会务归属待派生点（C1 Task2）在 create 时带 scenarioId 后细化；
  *  - 未知/空输入 → NONE，不抛错。

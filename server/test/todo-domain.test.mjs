@@ -9,21 +9,21 @@
 //       taskforce-*→专班；resolution-*→决议上报；archive 前缀/-archive 后缀→归档宣传；read/notice→NONE）
 //   ④ authorize/participate 依 sourceType（taskforce→专班/否则活动项目）；
 //      activity 型带 scenario/type 时三会一课（branch-party-meeting/branch-committee/party-group-meeting/
-//      party-lecture/org-life）→会务、theme-party 等→活动/项目；无 scenario → 默认活动/项目
+//      party-lecture）→会务、theme-party 等→活动/项目；无 scenario → 默认活动/项目
 //   ⑤ 未知/空 → NONE 不崩
 //   ⑥ _buildTodo 兜底：TodoStore.create 无 domain 自动推断注入；显式 domain 保留
 // 运行：node --test test/todo-domain.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922b';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922c';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260922b';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260922b';
+} from '../../docs/src/core/mock-adapter.js?v=20260922c';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260922c';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, inferDomain, TodoStore,
-} from '../../docs/src/services/todo.js?v=20260922b';
+} from '../../docs/src/services/todo.js?v=20260922c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -136,8 +136,8 @@ test('④ inferDomain：authorize/participate 依 sourceType；activity 型按 s
   assert.equal(inferDomain({ actionType: 'participate', sourceType: 'activity' }), 'activity');
   assert.equal(inferDomain({ actionType: 'authorize', sourceType: 'activity' }), 'activity');
   assert.equal(inferDomain({ actionType: 'authorize' }), 'activity');
-  // activity 型携带三会一课 scenarioId → 会务
-  for (const sc of ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture', 'org-life']) {
+  // activity 型携带三会一课 scenarioId（组织生活会为内容维度，按活动类型键判）→ 会务
+  for (const sc of ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture', '组织生活会']) {
     assert.equal(inferDomain({ actionType: 'participate', sourceType: 'activity', scenarioId: sc }), 'meeting', `scenarioId=${sc}`);
   }
   // theme-party 等实践型 → 活动/项目；scenario 可经 actionData 携带

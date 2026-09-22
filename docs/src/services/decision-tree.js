@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260922b';
-import { showToast } from '../core/utils.js?v=20260922b';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922b';
-import { icon } from '../core/icons.js?v=20260922b';
-import { NoticeStore } from './notice.js?v=20260922b';
+import { BranchService } from './runtime.js?v=20260922c';
+import { showToast } from '../core/utils.js?v=20260922c';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922c';
+import { icon } from '../core/icons.js?v=20260922c';
+import { NoticeStore } from './notice.js?v=20260922c';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922b';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922c';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260922b';
-import '../modules/capabilities/sop-scenarios.js?v=20260922b';
+import { getCapabilities } from '../core/registry.js?v=20260922c';
+import '../modules/capabilities/sop-scenarios.js?v=20260922c';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -244,9 +244,12 @@ export class DecisionTreeState {
     if (tasks.length === 0) return '<p class="text-gray-500">该场景暂无需按时间安排的事项</p>';
 
     const phases = [
-      { label: '会前准备', test: t => t.timeOffset < 0 },
+      { label: '会前准备', test: t => typeof t.timeOffset === 'number' && t.timeOffset < 0 },
       { label: '会中实施', test: t => t.timeOffset === 0 },
-      { label: '会后归档', test: t => t.timeOffset > 0 },
+      { label: '会后归档', test: t => typeof t.timeOffset === 'number' && t.timeOffset > 0 },
+      // 2026-09-22 批次 143（支书裁定「党课通知提前量不设固定值」）：不设固定提前量的任务单列一组，
+      // 界面**不显示假的具体数字**（如原党课通知的 T-3），只标「时间由组织者自定」。
+      { label: '时间由组织者自定', test: t => typeof t.timeOffset !== 'number' },
     ];
 
     return phases.map(phase => {
@@ -258,7 +261,7 @@ export class DecisionTreeState {
           ${phaseTasks.slice(0, 4).map(t => `
             <div class="pl-2 py-0.5 flex items-center gap-1">
               <span class="text-gray-500">·</span>
-              <span>T${t.timeOffset >= 0 ? '+' : ''}${t.timeOffset} ${t.title}</span>
+              <span>${typeof t.timeOffset === 'number' ? `T${t.timeOffset >= 0 ? '+' : ''}${t.timeOffset}` : '（时间由组织者自定）'} ${t.title}</span>
             </div>
           `).join('')}
           ${phaseTasks.length > 4 ? `<div class="pl-2 text-gray-500">...及其他${phaseTasks.length - 4}项</div>` : ''}
@@ -359,7 +362,9 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
         executor: node.executor,
         supervisor: node.supervisor,
         timeOffset: node.timeOffset,
-        date: node.date instanceof Date ? node.date.toISOString().slice(0, 10) : String(node.date),
+        // 2026-09-22 批次 143：不设固定提前量的任务无日期锚点（node.date = null）⇒ 落空串，
+        // 日历按「挂在活动当天」呈现（不显示假的具体日期）。
+        date: node.date instanceof Date ? node.date.toISOString().slice(0, 10) : (node.date || ''),
         desc: node.desc || '',
         status: 'pending',
         scenarioId: node.scenarioId || scenarioId,

@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922b';
-import { persist } from '../core/data-adapter.js?v=20260922b';
-import { bumpToken } from '../core/version-token.js?v=20260922b';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922b';
-import { ACTIVITIES } from '../mock/index.js?v=20260922b';
-import { isInitStateActive } from './init-reset.js?v=20260922b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922c';
+import { persist } from '../core/data-adapter.js?v=20260922c';
+import { bumpToken } from '../core/version-token.js?v=20260922c';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922c';
+import { ACTIVITIES } from '../mock/index.js?v=20260922c';
+import { isInitStateActive } from './init-reset.js?v=20260922c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -162,7 +162,7 @@ export function setPublicityDraftStatus({ activityId, index, status, actorId, no
 //  承担人判据＝**复用上面那处组织者身份单一源**（`isActivityOrganizerIn`）+ 深参取自
 //  `assignments` 的 `role==='deep'`；**不新增权限体系、不给 `Task` 加承担人字段**。
 //  ⚠ 只归「SOP 任务节点里按**项目内身份**派的那几项」（`executor==='organizer'` / `'deep'`）；
-//    按**常设角色**派的任务（`leader` / `disc-commissioner` / `prop-commissioner` / `all` …）
+//    按**常设角色**派的任务（`leader` / `disc-commissioner` / `prop-commissioner` …）
 //    仍属**角色级待办**（`services/todo.js`，支书 2026-08-30 裁定 S9 不动），不在本项。
 //  ⚠ 深参那份任务的**来源仍是「组织者分配」**（已定口径二，`SOP-B-31` 未落地的那半）；
 //    本函数只认**已带 `executor==='deep'` 的 SOP 节点**，不代替「组织者派任务」这个动作。

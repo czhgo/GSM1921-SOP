@@ -2,15 +2,15 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260922b';
-import { PersonStore } from './person.js?v=20260922b';
-import { bumpToken } from '../core/version-token.js?v=20260922b'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260922b';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260922b';
+import { AuthStore } from './auth.js?v=20260922c';
+import { PersonStore } from './person.js?v=20260922c';
+import { bumpToken } from '../core/version-token.js?v=20260922c'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260922c';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260922c';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../core/pending-writes.js?v=20260922b';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260922b';
-import { generateId, randomHex } from '../core/id.js?v=20260922b';
+import { trackWrite } from '../core/pending-writes.js?v=20260922c';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260922c';
+import { generateId, randomHex } from '../core/id.js?v=20260922c';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -21,9 +21,9 @@ import { generateId, randomHex } from '../core/id.js?v=20260922b';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../core/utils.js?v=20260922b';
+import { showToast } from '../core/utils.js?v=20260922c';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260922b';
+import { renderFilteredList } from '../components/list-filter.js?v=20260922c';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {

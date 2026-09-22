@@ -4,9 +4,9 @@
 // 读取本能力，tab 声明（含懒加载 render）不再硬编码在入口。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四/§六
 
-import { registerCapability } from '../../core/registry.js?v=20260922b';
-import { rolesForPage, ARCHIVE_FALLBACK_ROLES } from '../../core/constants.js?v=20260922b';
-import { AuthStore } from '../../services/auth.js?v=20260922b';
+import { registerCapability } from '../../core/registry.js?v=20260922c';
+import { rolesForPage, ARCHIVE_FALLBACK_ROLES } from '../../core/constants.js?v=20260922c';
+import { AuthStore } from '../../services/auth.js?v=20260922c';
 
 // 9 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/prop/）
 // tab 私有状态随模块自持；共享只读配置（accent/activities/propTf）经 ctx 传入。
@@ -21,7 +21,7 @@ registerCapability({
     // R6-3「今天」置首 + 登录落点（2026-09-07 方案 B）：共享渲染只读速览，数据同源派生；
     // 到期/逾期行 → onNav('todo')（todo tab 六台同 id）；会议/分工行在 today-tab 内直跳 activity.html；
     // 会议「全部」→ onNav('activities')，下方映射到本台活动承载 tab（宣传台=项目看板 kanban 活动卡承载）
-    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260922b').then(m => {
+    { id: 'today', label: '今天', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/today/today-tab.js?v=20260922c').then(m => {
       const el = document.getElementById('prop-tab-content');
       if (el) m.renderTodayTab(el, {
         personId: ctx?.personId || AuthStore.getCurrentUser()?.personId,
@@ -33,20 +33,20 @@ registerCapability({
         },
       });
     }) },
-    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/prop/todo-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
+    { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/prop/todo-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览 + 条线数据注入）
-    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/prop/overview-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
+    { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/prop/overview-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'tasks', label: '宣传任务', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/tasks-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
-    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/kanban-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
-    { id: 'weekly', label: '周报报送', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/weekly-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
-    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/archive-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
+    { id: 'tasks', label: '宣传任务', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/tasks-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
+    { id: 'kanban', label: '项目看板', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/kanban-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
+    { id: 'weekly', label: '周报报送', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/weekly-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
+    { id: 'archive', label: '档案归档', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/prop/archive-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
     // 知情查看（本轮 2026-09-15 新增，支书裁定）：宣传台原无只读知情视图，补一个「知情查看」tab
     //   （活动/专班分段，只读）——与组织/纪检/组长/支书四台同名同义，组件单一源 = components/insight-view.js；
     //   分组序 工作台→我的职责→知情查看→制度与答复。
-    { id: 'tf-view', label: '知情查看', groupLabel: '知情查看', render: (ctx) => import('../../entries/tabs/prop/tf-view-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
+    { id: 'tf-view', label: '知情查看', groupLabel: '知情查看', render: (ctx) => import('../../entries/tabs/prop/tf-view-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
     // 本轮（2026-09-15）五台统一：原「反馈」组并入「制度与答复」（与支书台同名），组内以「我的处置」为成员
-    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../../entries/tabs/prop/my-dispatch-tab.js?v=20260922b').then(m => m.renderContent(ctx)) },
+    { id: 'my-dispatch', label: '我的处置', groupLabel: '制度与答复', render: (ctx) => import('../../entries/tabs/prop/my-dispatch-tab.js?v=20260922c').then(m => m.renderContent(ctx)) },
     ];
     // 归档兜底（A② 2026-09-10 支书裁定）：支书/副支书（archive=Y 兜底权限）进入宣传台时，
     // 仅呈现「档案归档」兜底面——其余 tab 不呈现、不启用，权限不扩大（不新增任何写权限）。
