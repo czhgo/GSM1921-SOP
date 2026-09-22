@@ -520,16 +520,16 @@
 | 4 | `party-lecture` | 党课 | norm | `secretary` |
 | 5 | `theme-party` | 主题党日 | norm | `leader` |
 | 6 | `taskforce` | 专班 | method | `org-commissioner` |
-| 7 | `joint-event` | 共建活动 | method | `secretary` |
+| 7 | `joint-event` | 共建活动 | method | `leader` |
 | 8 | `develop-party-member` | 发展党员 | norm | `branch-committee` |
 | 9 | `democratic-review` | 民主评议党员 | norm | `secretary` |
-| 10 | `election` | 换届选举 | norm | `secretary` |
+| 10 | `election` | 换届选举 | norm | `party-committee` |
 | 11 | `attendance-inspection` | 考勤考察 | norm | `disc-commissioner` |
 | 12 | `feedback-handling` | 意见反馈处理 | norm | `branch-committee` |
 | 13 | `rule-making` | 制度制定与迭代 | norm | `branch-committee` |
-| 14 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
+| 14 | `info-platform` | 信息平台支持 | method | `branch-committee` |
 
-**依据**：`docs/src/core/work-map.js`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。**「缺省主责主体」可取三类**：角色键（如上表各值）· 组织型主体 id（`branch-committee`＝支委会，**不是自然人、不能当登录身份**，见 `work-map.js::ORG_SUBJECTS`）· 到人（`ownerType:'person'`＋`personId`）。**「三会一课」自 2026-09-22 起按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-group-meeting` / `party-lecture`），原 `three-meetings` 键**已不再有效**。
+**依据**：`docs/src/core/work-map.js`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。**「缺省主责主体」可取三类**：角色键（如上表各值）· 组织型主体 id（`branch-committee`＝支委会 · `party-committee`＝党委，**不是自然人、不能当登录身份**，见 `work-map.js::ORG_SUBJECTS`；⚠ `party-committee` 是主体 id，别与 `party-staff`（党委组织员，**角色键**、可登录党委工作台）混）· 到人（`ownerType:'person'`＋`personId`）。**「三会一课」自 2026-09-22 起按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-group-meeting` / `party-lecture`），原 `three-meetings` 键**已不再有效**。
 
 ---
 

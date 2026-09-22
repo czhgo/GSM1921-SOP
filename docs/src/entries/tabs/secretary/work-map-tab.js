@@ -9,16 +9,16 @@
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/utils.js?v=20260922f';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/work-map.js?v=20260922f';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260922f';
-import { AuthStore } from '../../../services/auth.js?v=20260922f';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260922f';
-import { getPersonName } from '../../../services/person.js?v=20260922f';
+import { escHtml as esc } from '../../../core/utils.js?v=20260922g';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/work-map.js?v=20260922g';
+import { ROLE_LABELS } from '../../../core/constants.js?v=20260922g';
+import { AuthStore } from '../../../services/auth.js?v=20260922g';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch.js?v=20260922g';
+import { getPersonName } from '../../../services/person.js?v=20260922g';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922f';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260922g';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260922f';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260922g';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 
@@ -59,7 +59,7 @@ function _renderMatrix(workforce) {
   const host = document.getElementById('work-map-matrix');
   if (!host) return;
   // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN` / `org:branch-committee`）；顺序沿用原「按人」卡视图的排序意图：
-  // 支书/副支书/组织/宣传/纪检 在前，**组织型主体（支委会）紧随支委层**，其余（党小组组长、到人负责人等）按 99 排后
+  // 支书/副支书/组织/宣传/纪检 在前，**组织型主体（支委会 / 党委）紧随支委层**，其余（党小组组长、到人负责人等）按 99 排后
   const ownerMap = new Map();
   for (const m of WORK_MAP_MODULES) {
     const assign = workforce[m.id];
@@ -72,7 +72,7 @@ function _renderMatrix(workforce) {
   const order = [
     'role:secretary', 'role:deputy-secretary',
     'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
-    'org:branch-committee',
+    'org:branch-committee', 'org:party-committee',
   ];
   const persons = [...ownerMap.entries()]
     .sort((a, b) => {

@@ -9,9 +9,9 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
-} from '../../docs/src/core/work-map.js?v=20260922f';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922f';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922f';
+} from '../../docs/src/core/work-map.js?v=20260922g';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922g';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922g';
 
 let server, base, token;
 
@@ -48,11 +48,19 @@ test('模块目录：14 项（「三会一课」批次 145 拆为 4 个模块）
   assert.equal(WORK_MAP_DEFAULT['party-group-meeting'], 'leader');   // 党小组会 → 党小组组长
   assert.equal(WORK_MAP_DEFAULT['party-lecture'], 'secretary');
   assert.equal(WORK_MAP_DEFAULT['theme-party'], 'leader');           // 主题党日 → 本组组长（组织者缺省）
+  // 批次 149 裁定（支书 2026-09-22）：办活动即党小组承办 ⇒ 共建活动缺省主责＝本组组长
+  assert.equal(WORK_MAP_DEFAULT['joint-event'], 'leader');           // 共建活动 → 本组组长（党小组承办）
+  // 批次 149 裁定：信息平台支持＝本网页系统本身 ⇒ 主责＝支委会（组织型主体）
+  assert.equal(WORK_MAP_DEFAULT['info-platform'], 'branch-committee');
+  assert.equal(WORK_MAP_DEFAULT['rule-making'], 'branch-committee'); // 制度制定与迭代：主责维持支委会
+  assert.equal(WORK_MAP_DEFAULT['democratic-review'], 'secretary');  // 民主评议：上传任务归支书
+  assert.equal(WORK_MAP_DEFAULT['election'], 'party-committee');     // 换届选举：主导在党委（批次 149 新立组织型主体）
 });
 
 test('组织型主体＝「类似法人」不是自然人（批次 141）：取值与角色键不重叠、不进 ROLE_KEYS / 身份→页面映射；两模块缺省主责＝支委会', () => {
-  assert.deepEqual(ORG_SUBJECT_IDS, ['branch-committee']);
+  assert.deepEqual(ORG_SUBJECT_IDS, ['branch-committee', 'party-committee']);
   assert.equal(ORG_SUBJECT_LABELS['branch-committee'], '支委会');
+  assert.equal(ORG_SUBJECT_LABELS['party-committee'], '党委'); // 批次 149（election 承担方＝党委）
   const keySet = new Set(ROLE_KEYS);
   const pageMaps = Object.values(ROLE_PAGE_MAP);
   for (const id of ORG_SUBJECT_IDS) {
@@ -65,6 +73,8 @@ test('组织型主体＝「类似法人」不是自然人（批次 141）：取�
   const dflt = expandWorkforce(null);
   assert.deepEqual(dflt['feedback-handling'], { ownerType: 'org', ownerId: 'branch-committee' });
   assert.deepEqual(dflt['rule-making'], { ownerType: 'org', ownerId: 'branch-committee' });
+  // 批次 149：换届选举＝党委（同为组织型主体）
+  assert.deepEqual(dflt['election'], { ownerType: 'org', ownerId: 'party-committee' });
 });
 
 test('expandWorkforce：null → 全缺省（role / org）；覆盖 person 项保留、其余兜底缺省', () => {

@@ -4,19 +4,24 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../services/auth.js?v=20260922f';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260922f';
-import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260922f';
-import { escHtml as esc } from '../core/utils.js?v=20260922f';
+import { AuthStore } from '../services/auth.js?v=20260922g';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../services/branch.js?v=20260922g';
+import { WORK_MAP_MODULES } from '../core/work-map.js?v=20260922g';
+import { escHtml as esc } from '../core/utils.js?v=20260922g';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
  *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/work-map.js），
- *  三台各补 4 条同 tab 映射。 */
+ *  三台各补 4 条同 tab 映射。
+ *  2026-09-22 批次 149：`joint-event`（共建活动）缺省主责改归**本组组长** ⇒ 组长台补 1 条同 tab 映射
+ *  （按主题党日承载 ⇒ 与 `theme-party` 同落 `write`）；支书台那一条保留（改派回头仍要用）。
+ *  同批：支书台补 1 条 `democratic-review` → `calendar`（民主评议以党员大会 / 党小组会形式召开，
+ *  与同为人民大会的会议类模块同落 `calendar`；此前无映射 ⇒ 支书台该枚只显不回跳）。 */
 const DUTY_TAB = {
   secretary: {
     'branch-party-meeting': 'calendar', 'branch-committee-meeting': 'calendar',
     'party-group-meeting': 'calendar', 'party-lecture': 'calendar',
     'theme-party': 'calendar', 'joint-event': 'calendar',
+    'democratic-review': 'calendar',
   },
   org: { taskforce: 'taskforce', 'develop-party-member': 'development', 'democratic-review': 'talent' },
   disc: { taskforce: 'tf-view', 'attendance-inspection': 'attendance', 'feedback-handling': 'my-dispatch' },
@@ -24,7 +29,7 @@ const DUTY_TAB = {
   leader: {
     'branch-party-meeting': 'write', 'branch-committee-meeting': 'write',
     'party-group-meeting': 'write', 'party-lecture': 'write',
-    'theme-party': 'write', taskforce: 'tf-view', 'attendance-inspection': 'attendance',
+    'theme-party': 'write', 'joint-event': 'write', taskforce: 'tf-view', 'attendance-inspection': 'attendance',
   },
   visitor: {
     'branch-party-meeting': 'activities', 'branch-committee-meeting': 'activities',
