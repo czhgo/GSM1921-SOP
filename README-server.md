@@ -49,7 +49,7 @@
 
 - **制度文本是唯一母本**：`content/02_institution/` 及其 `sop/` 子目录是支部制度与工作规程的落点；改一处制度，系统行为随之调整（改文本在前、改代码在后）。
 - **母本 → 子本（系统）**：所有系统逻辑、数据模型、界面行为都要求从母本推导（`content/README.md:24` 引 `CLAUDE.md` H30.2）。
-- **制度参数（可调 vs 固定）**：并非所有制度数字都写死在代码里。系统把「一件事在几天内办完」这类**过程时限**归为**支部可调的制度参数**，默认值取母本所写的数字；而「考察意见每半年一次」等属**制度固定**项，所有支部一致。数据单一源＝`docs/src/core/policy-defaults.js`（逐项标注 `branch-default`＝支部可调 / `institutional`＝制度固定须支书裁决）。其中「**活动批准门**」（办活动要不要先过一道批准门）也是**支部可调的制度参数，默认关**——默认关时活动写入与改动前完全一致（见 §4.1 批次 150 补）。
+- **制度参数（可调 vs 固定）**：并非所有制度数字都写死在代码里。系统把「一件事在几天内办完」这类**过程时限**归为**支部可调的制度参数**，默认值取母本所写的数字；而「考察意见每半年一次」等属**制度固定**项，所有支部一致。数据单一源＝`docs/src/core/policy-defaults.js`（逐项标注 `branch-default`＝支部可调 / `institutional`＝制度固定须支书裁决）。其中「**活动批准门**」（办活动要不要先过一道批准门）也是**支部可调的制度参数，默认关**——默认关时活动写入与改动前完全一致（见 §4.1 批次 150 补 / 批次 151 补）。
 
 **依据**：`content/README.md:24`；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:196-229`（§9l 可调口径）；`docs/src/core/policy-defaults.js:1-15`（kind 标注说明）。
 
@@ -181,7 +181,7 @@
 | 不能做什么 | 不持 `create_activity`、`fill_review`（**除非其本人是该活动的组织者**，否则只收「监督组织者复盘」的审批待办）、`authorize*`、`assign_project_role`、`manage_members` |
 | 审批位 | ① 考勤**确认**（确认后缺勤自动派生补课任务）；② 考察**确认**（确认后录入考察档案）；③ 复盘**批注 / 打回 / 确认**；④ 通知**管理位**（编辑/删除，但不含发布） |
 | 特例 | ① 域参数：可改本域 `policyOverrides.inspection`（考察超期天数）；② 可见性投影与其他角色不同——其数据权限是「全员 × 考勤/考察」，**不含在办与汇报**（避免知情过载） |
-| 依据 | `docs/src/services/auth.js:82`、`docs/src/core/constants.js:259-260`、`docs/src/services/visibility.js:52`、`server/routes/resources.js:473-476` |
+| 依据 | `docs/src/services/auth.js:82`、`docs/src/core/constants.js:259-260`、`docs/src/services/visibility.js:53`、`server/routes/resources.js:473-476` |
 
 #### 2.2.6 `leader` 党小组组长
 
@@ -193,7 +193,7 @@
 | 写活动范围 | 组长**只能**创建/修改**「党小组会」「主题党日」**两类活动；服务端写门按活动类型判定，越界返回 403 |
 | 可见范围 | 「块块」口径——只看**本党小组组员**（维度含在办/卡点/汇报/考勤/考察） |
 | 特例 | 赋权链：组长可赋权**项目角色** organizer/deep（`assign_project_role`） |
-| 依据 | `docs/src/services/auth.js:83`、`server/routes/resources.js:143-150`、`docs/src/services/visibility.js:53`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:93` |
+| 依据 | `docs/src/services/auth.js:83`、`server/routes/resources.js:143-150`、`docs/src/services/visibility.js:54`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:93` |
 
 #### 2.2.7 `participant` 普通参与者（含普通党员 / 预备党员 / 发展对象 / 积极分子）
 
@@ -216,7 +216,7 @@
 | 权限与职责 | ① 支部**实例管理**（增改、空模板创建/复制创建、**只有它可改支部官方名 `name`**）；② 支书**任命/撤换**（写任期档案 + 同步双方 `users.role` + 写 `branches.secretaryId`）；③ 支部**上报审批**（逐项批准/驳回，驳回须意见）；④ **下发通知**（送达目标支部支委层）；⑤ 支部**配置**（modules/blocks/workforce/组织档案/域参数，全支部）；⑥ `users` / `branches` / `appointmentRecords` 的资源级写权限**仅此角色** |
 | 唯一例外（2026-09-17 支书改裁） | 党委**保留对匿名意见反馈的核查权**——`GET /api/v1/issues/reveal` 可查看匿名反馈**真实提交人**，且**每次查看写一条留痕**（`issue_reveals` 表）。这是「不参与支部内部事务」的唯一例外 |
 | 特例 | 制度权限矩阵 §9b（支部 6 角色）与 §9c（项目 2 角色）**都不含它**——它是组织级角色，不进支部矩阵。另外：可见性配置表 `ROLE_VISIBILITY` 中没有它，因此「谁能看谁」的投影对它返回空 |
-| 依据 | `docs/src/services/auth.js:90-106`、`server/routes/resources.js:78-80,325-383`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43,165-178`、`docs/src/services/visibility.js:47-55`（无 party-staff 键）、`server/routes/resources.js:700-721`、`server/db.js:41` |
+| 依据 | `docs/src/services/auth.js:90-106`、`server/routes/resources.js:78-80,325-383`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:43,165-178`、`docs/src/services/visibility.js:48-56`（无 party-staff 键）、`server/routes/resources.js:700-721`、`server/db.js:41` |
 
 #### 2.2.9 `organizer` 组织者（项目角色）
 
@@ -611,8 +611,12 @@
 **2026-09-21 批次 132 / 133 改准**：① `isBrand` 的认定路径由「支委会认定、支书在系统上完成标记」（裁定 `D-414`）改准为「**支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**」——**取消「点一下即认定」**，认定唯一入口＝支委会议程项「记录结果 · 通过」（裁定 `D-559`）；② 新增 `brandProposal` 与品牌认定 / 取消留痕 7 个字段（本批补入本表，属**来源 C**——`DATA_MODEL.md` 字段表未列）；③ 新增 `signupClosed`（2026-09-21 批次 123 落地，同属来源 C）；④ `agenda[]` 一行补 `kinds` / `branchDocId` / `brandActivityId` / `personIds` / `fromStage` / `toStage` / `personStages` 子字段（批次 127 / 129 / 132 的议程提取与「拟上会」清单落点）。
 **依据（本批新增部分）**：`docs/src/services/activity.js:234-245`（`BRAND_PROPOSER_ROLES` / `canProposeBrand`）、`docs/src/services/activity.js:341-379`（`applyBrandDesignationResult`：通过才置 `isBrand`）、`docs/src/services/activity.js:389-399`（`commitBrandDesignationResult` 落库口）、`server/routes/resources.js:408`（`POST /activities/:id/brand` **只能取消、不能认定**）、`docs/src/entries/activity-entry.js:154-177`（`signupClosed` 与品牌三动作）。
 
-**2026-09-22 批次 150 补（活动批准门 · 支部可开关的制度参数，默认关）**：办活动要不要先过一道批准门，做成支部可调制度参数 `activityApproval.mode`（三态 `off` / `secretary` / `branch-committee`，默认 `off`）。**关闭（默认）时活动写入链与全部行为与改动前完全一致**（写入照常、状态链不多一态）；开启后**写入即落「待批」**（`status='pending-approval'` ＋ `approval` 轨迹字段 `{required,mode,state,at,by,note?}`），批准前不推进、批准后转 `published`、不批准转 `cancelled`。三件（写入后即待批 / 谁批 / 批准后才发布·不批准则终止）支书未答，**依母本**《常见工作场景快速指南》共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」推得 ⇒ 门在写入之后、推进之前；默认档支书批准（可改支委会档）；**待批期间活动的可见性沿用既有规则（本批未新增任何收窄，待批可见范围另立 `SOP-F-4-①`）**。界面落点：设置中心·支部制度参数区「活动批准门」卡（支书 / 副支书可改，写口 `docs/src/services/branch.js` 的 `savePolicyOverrides`）；活动详情页对「待批」活动给「批准发布 / 不批准（终止）」两动作。**未新增表 / 未新增页面**，`approval` 字段落在活动主源。
+**2026-09-22 批次 150 补（活动批准门 · 支部可开关的制度参数，默认关）**：办活动要不要先过一道批准门，做成支部可调制度参数 `activityApproval.mode`（三态 `off` / `secretary` / `branch-committee`，默认 `off`）。**关闭（默认）时活动写入链与全部行为与改动前完全一致**（写入照常、状态链不多一态）；开启后**写入即落「待批」**（`status='pending-approval'` ＋ `approval` 轨迹字段 `{required,mode,state,at,by,note?}`），批准前不推进、批准后转 `published`、不批准转 `cancelled`。三件（写入后即待批 / 谁批 / 批准后才发布·不批准则终止）支书未答，**依母本**《常见工作场景快速指南》共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」推得 ⇒ 门在写入之后、推进之前；默认档支书批准（可改支委会档）；**待批期间活动的可见性沿用既有规则（本批未新增任何收窄，待批可见范围另立 `SOP-F-4-①`）**〔⚠ 该句为**批次 150 当时的实然**；**待批可见性已于批次 151 按支书裁定收窄为「只支委层可见」，见下方批次 151 补**〕。界面落点：设置中心·支部制度参数区「活动批准门」卡（支书 / 副支书可改，写口 `docs/src/services/branch.js` 的 `savePolicyOverrides`）；活动详情页对「待批」活动给「批准发布 / 不批准（终止）」两动作。**未新增表 / 未新增页面**，`approval` 字段落在活动主源。
 **依据**：`docs/src/services/decision-tree.js:335-360`（`writeActivityWithSOP` 写入门）；`docs/src/core/policy-defaults.js`（`activityApproval` ＋ 白名单 `POLICY_OVERRIDABLE` 的 `['activityApproval','mode']`）；`docs/src/services/activity.js`（`pendingApprovalPatchOnWrite` / `approveActivity` / `rejectActivity` / `canApproveActivity`）；`docs/src/components/inspector.js`（`ACTIVITY_LIFECYCLE.pending_approval` 徽章与两动作）；`docs/src/entries/settings-entry.js`（`activityApprovalCardHtml`）。
+
+**2026-09-22 批次 151 补（活动批准门「启用端」完整实现：待批可见性 / 服务端门 / 支委会档复用线上表决）**：三件均**系按支书 2026-09-22 裁定落**——① **待批可见性＝只支委层可见**（裁定逐字：「待批的活动，只有支委层能看到；普通党员看不到」）：支委层＝既有语义角色集 `BRANCH_COMMISSION_ROLES`（**单一源，未另写名单**），判据单一源 `docs/src/services/visibility.js` 的 `canSeePendingApprovalActivities` / `isActivityVisibleTo` / `filterActivitiesForViewer`；**收窄面**（同一判据逐处接入）＝`docs/src/core/data-loader.js`（`state.activities` → 首页仪表盘与各工作台 tab）、`docs/src/components/workspace-shell.js`（种子兜底）、成员台「活动动态 / 今天 / 我的复盘 / 我的任务」、组长台考勤/考察/复盘三处、活动详情页 `docs/src/entries/activity-entry.js`、`docs/src/components/work-overview.js`、成员档案页 `docs/src/entries/person-entry.js`、`docs/src/services/today-summary.js`、`docs/src/services/todo.js`；**活动创建时的站内广播对「待批」不发**（`docs/src/services/decision-tree.js` 的 `writeActivityWithSOP`）；**关闭档位时上述过滤全部空转（零行为变化）**。② **服务端写权限门＝在既有 `PATCH /api/v1/activities/:id` 上判状态转移**（不另开专用审批端点）：判据单一源 `docs/src/services/activity.js` 的 `canApproveActivity` / `PENDING_APPROVAL_STATUS`，实现 `server/routes/resources.js` 的 `_activityApprovalGateDeny`——既有行为「待批」时，离开待批态**必须**带批准语义（发布＝`approval.state='approved'`、终止＝`'rejected'`）**且**写者角色符合**该活动上固化的档位**（不采信补丁自述的 `mode`），否则 403；门是**叠加在既有活动角色门之后**的第二道（角色门答「谁能写活动」，本门答「谁能把待批改成已发布/已取消」）。③ **支委会档复用既有线上表决**（裁定逐字：「复用已有的"线上表决"（支委会线上开的那个），把批准当成一次表决」）：批准动作改为「**提请支委会表决**」——在本活动上挂一条 `kinds:['activity-approval']` 的议程项 ＋ 支委会档 `voteConfig`（`defaultVoteConfig('branch-committee')` ＋ `resolveVoterIds('committee')`），支委层按既有表态组件表态，支书在既有议程结果记录链上「记录通过 / 未通过」⇒ 通过＝`published`、未通过＝`cancelled`；**两档行为不同**（支书档仍是「点一下即批 / 不批准即终止」）。⚠ **未堵（如实登记）**：`POST /api/v1/snapshot` 是前端全量/脏集合写穿通道（整表替换），本门不覆盖它。
+
+**依据（本批新增部分）**：`docs/src/services/visibility.js:155-174`（`canSeePendingApprovalActivities` / `isActivityVisibleTo` / `filterActivitiesForViewer`）；`docs/src/services/activity.js:632-728`（`ACTIVITY_APPROVAL_AGENDA_KIND` / `activityApprovalVoteOf` / `openCommitteeVoteForActivity` / `applyActivityApprovalResult` / `commitActivityApprovalResult`）；`docs/src/services/agenda-follow-up.js:212-224`（`commitActivityApprovalResult` 接线）；`server/routes/resources.js:819-863`（`_activityApprovalGateDeny` 状态转移门）；`docs/src/components/inspector.js:826-845`（待批块两档分流）与 `:1078-1092`（`inspector-committee-vote-btn` 提请表决动作）。
 
 ### 4.2 活动子记录（SubRecord，概念模型）
 
@@ -1748,7 +1752,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 7 | **无 CORS / 无限流 / 无 HTTPS** | 同 §5.5 第 3、4、6 条 | 同左 |
 | 8 | **前端限权 ≠ 服务端限权（多处）** | 对比示例：前端 `ROLE_PERMISSIONS` 判定的 `record_attendance`、`fill_review`、`dispatch_line` 等键在**服务端并无对应校验**（服务端只做上表的粗粒度门）；反之服务端的支部级校验（`actor.branchId`）在前端 mock 形态无对应实现 | `docs/src/services/auth.js:76-84`（前端键集）vs `server/routes/resources.js:77-120`（服务端门集） |
 
-> **具体一例（前后端门不一致，后端须按服务端口径实现）**：独立档案页 `docs/person.html` 的 `EDIT_ROLES`（`docs/src/entries/person-entry.js:74`）＝`secretary / deputy-secretary / org-commissioner`，即**前端对支书、副支书放开了「编辑档案」**；而它写档走 `PATCH /api/v1/members/:id/profile`，服务端该门**只要组织委员**（`server/routes/member.js:230`，`ORG_COMMISSIONER_ROLES`）。⇒ **API 形态下支书 / 副支书在成员档案页对治理外字段点「编辑档案」会被服务端 403**（组织委员身份正常）。**这是代码里的既有一处不一致**（批次 87 真机发现并如实登记，`D-485` 批次的审计发现栏；非本文件笔误、也非本批引入）。要收口只有两条路——**把该 PATCH 门放开支书 / 副支书**，或**反过来收窄前端 `EDIT_ROLES`**——两条都改权限面，**本文件不替裁**；**当前后端按服务端（仅组织委员可写）实现**。
+> **具体一例（前后端门不一致，后端须按服务端口径实现）**：独立档案页 `docs/person.html` 的 `EDIT_ROLES`（`docs/src/entries/person-entry.js:76`）＝`secretary / deputy-secretary / org-commissioner`，即**前端对支书、副支书放开了「编辑档案」**；而它写档走 `PATCH /api/v1/members/:id/profile`，服务端该门**只要组织委员**（`server/routes/member.js:230`，`ORG_COMMISSIONER_ROLES`）。⇒ **API 形态下支书 / 副支书在成员档案页对治理外字段点「编辑档案」会被服务端 403**（组织委员身份正常）。**这是代码里的既有一处不一致**（批次 87 真机发现并如实登记，`D-485` 批次的审计发现栏；非本文件笔误、也非本批引入）。要收口只有两条路——**把该 PATCH 门放开支书 / 副支书**，或**反过来收窄前端 `EDIT_ROLES`**——两条都改权限面，**本文件不替裁**；**当前后端按服务端（仅组织委员可写）实现**。
 
 ### 7.2 功能「有定义但跑不到」类
 
@@ -1763,7 +1767,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 15 | **`handoffs`（三委数据交接记录）服务端无表** | 前端 mockDB 有 `handoffs` 域、mock 适配器会持久化它；**服务端 35 张资源表里没有 handoffs** ⇒ API 形态下该域不落库 | `docs/src/core/domain.js:266`、`docs/src/core/mock-adapter.js:92,269,1336`、`server/db.js:9-42` |
 | 16 | **`pendingMemberConfirmations` 不落服务端** | 前端 mockDB 数组「仅承载内存读链」，跨刷新持久化由成员确认服务自管浏览器 localStorage 键；**服务端无对应表** ⇒ API 形态下该队列不落库 | `docs/src/core/domain.js:324-332` |
 | 17 | **「副组长」身份已落地（2026-09-21 批次 139 · `D-571`）** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已按支书 2026-09-21 口径把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**（原「`docs/` 内零命中」的登记已作废） | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:45`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，恰好四处）见 `server/test/doc-line-ref.test.mjs:235-240` |
-| 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/visibility.js:47-55`、`:98-100` |
+| 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/visibility.js:48-56`、`:99-101` |
 
 ### 7.3 未接入 / 无代码类（规划中）
 

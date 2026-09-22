@@ -3,20 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260922h';
-import { renderQueryView } from '../../../components/query-view.js?v=20260922h';
-import { flashHighlight } from '../../../core/utils.js?v=20260922h';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260922h';
+import { icon } from '../../../core/icons.js?v=20260922i';
+import { renderQueryView } from '../../../components/query-view.js?v=20260922i';
+import { flashHighlight } from '../../../core/utils.js?v=20260922i';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260922i';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260922h';
-import { canSignup } from '../../../components/signup-panel.js?v=20260922h';
-import { AuthStore } from '../../../services/auth.js?v=20260922h';
+import { isActivityLive } from '../../../core/constants.js?v=20260922i';
+import { canSignup } from '../../../components/signup-panel.js?v=20260922i';
+import { AuthStore } from '../../../services/auth.js?v=20260922i';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260922h';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260922h';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260922i';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260922i';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/pager.js?v=20260922h';
+import { pagerHtml } from '../../../components/pager.js?v=20260922i';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 

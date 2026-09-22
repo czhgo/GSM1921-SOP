@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260922h"></script>
+<script src="./src/theme-init.js?v=20260922i"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260922h"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260922h">
+  <script src="./src/tailwind-config.js?v=20260922i"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260922i">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -319,7 +319,7 @@
           <ul class="doc-list" style="margin-top:6px;">
             <li><strong>外观</strong>（人人可用）：字号 / 明暗主题 / 强调色，调完全站即时生效；未登录时偏好存本浏览器，登录后随账号走（换设备、换人不串）。</li>
             <li><strong>我的工作台</strong>（登录用户）：调本人页签顺序（仅本账号生效），默认沿用支部默认顺序，「今天 / 待办」等核心固定页签不可动。</li>
-            <li><strong>支部治理</strong>（支书 / 副支书，副书同权）：支部信息与换组织向导、工作台默认顺序（为全体成员设默认页签顺序）、支部制度参数（票决门槛 / 应到名单核对等<strong>制度默认只读</strong>、不在此直改；其中「活动批准门」是支部自选开关，默认关，支书 / 副支书可在该区直改）——支部配置 / 模块类操作都在这里，支书工作台不单设该页签。</li>
+            <li><strong>支部治理</strong>（支书 / 副支书，副书同权）：支部信息与换组织向导、工作台默认顺序（为全体成员设默认页签顺序）、支部制度参数（票决门槛 / 应到名单核对等<strong>制度默认只读</strong>、不在此直改；其中「活动批准门」是支部自选开关，默认关，支书 / 副支书可在该区直改；开启后写活动先落「待批」、待批期间只有支委层看得到，「支委会批准」档走支委会线上表决）——支部配置 / 模块类操作都在这里，支书工作台不单设该页签。</li>
             <li><strong>职责参数</strong>（各域负责人，可管则见）：纪检（考察确认超期天数）/ 组织（学期末滞留复核窗口）/ 组长（学期组员进展归集提醒）各自只见可调自己那一域；访客仅见外观。</li>
           </ul>
           <p class="help-card-desc" style="margin-top:8px;"><strong>配置变更可查可回滚</strong>：支部配置每次保存自动记录——支书 / 副支书在 支部治理 →「配置变更记录」查看（人 / 时间 / 变更键 / 前后值 / 依据 why），单键更改可「回滚此更改」（回滚本身再留一痕；历史保留最近 100 条）。<strong>登录后若无支部归属</strong>（账号尚未被党委绑定支部）：页眉显示中性「未绑定支部」，设置内支部治理 / 职责参数区提示「未找到您所属支部——请先由党委在『支部管理』中确认归属」，换组织向导不唤起。</p>
@@ -592,7 +592,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「创建活动」→ 提示已生成 N 项后续待办，活动上日历。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>写入即按场景实例化 SOP 任务节点（支部党员大会 / 党小组会：T-7 时间统筹·确定主题·会前谈心 → T-3 通知到人 → T0 现场发布考勤二维码 · 签到考勤 · 自评互评 · 组长总结 → T+3 后台考勤汇总与参与三层记录 → T+5 会议记录 / 档案归档 → T+7 补课安排跟进；支委会：T-3 确定议题与通知 → T0 签到考勤 · 会议记录 → T+5 档案归档 → T+7 补课跟进；党课：T-3 发布党课通知与学习材料、T+1 提醒缺席党员补课）。未选参与人时自动给组长派生「为活动赋权组织者 / 深度参与者」待办；填了预拟通知 → 自动发布通知并派生成员待办（点击直达本活动）；创建后自动广播组织者「请前往微信群建核心群」（现场协调在群、资料归档交接在系统）。</p>
-          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>主题党日模板受「主题党日组织块」开关控制：支部配置停用则模板卡隐藏（党委台「支部配置 · 工作流块」可恢复）；写入失败（网络 / 权限）时表单保留、可重试；「组织生活会」属三会大类内容维度，以三会形式召开，按既有活动管理。若支部在设置中心把「活动批准门」打开（<strong>默认关闭</strong>），写活动后该活动先落<strong>「待批」</strong>态（活动详情页显示「待批」，由支书或支委会批准后才发布、不批准则终止）；关闭时无此环节，写入即照常推进。</p>
+          <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>主题党日模板受「主题党日组织块」开关控制：支部配置停用则模板卡隐藏（党委台「支部配置 · 工作流块」可恢复）；写入失败（网络 / 权限）时表单保留、可重试；「组织生活会」属三会大类内容维度，以三会形式召开，按既有活动管理。若支部在设置中心把「活动批准门」打开（<strong>默认关闭</strong>），写活动后该活动先落<strong>「待批」</strong>态（活动详情页显示「待批」，由支书或支委会批准后才发布、不批准则终止）；<strong>待批期间只有支委层（支书 / 副支书 / 组织 / 宣传 / 纪检委员）看得到这场活动，普通成员看不到</strong>；选「支委会批准」档时，批准动作变为<strong>提请支委会表决</strong>（复用支委会线上那套线上表决：支委在本场表态 → 支书记录表决结果，通过才发布、未通过则终止）；关闭时无此环节，写入即照常推进。</p>
         </div>
 
         <div class="help-card" id="card-dom31-agenda" data-search="会务 会议议程 讨论文件 待讨论名单 拟上会 清单 一键导入 记录通过 记录未通过 决议落实 草案归档 名单阶段转换">
@@ -1403,7 +1403,7 @@
                 <tr><td>个人设置</td><td>我的工作台</td><td>把本人工作台的页签顺序调成顺手的：逐行上移 / 下移或拖拽，也可一键恢复默认；核心页签（今天 / 待办 / 工作概况等）固定，不可隐藏或排序</td><td>有自己工作台的角色：支书 / 副支书、组织委员、宣传委员、纪检委员、党小组组长、普通成员、党委组织员</td></tr>
                 <tr><td>支部治理</td><td>支部信息与向导</td><td>查看本支部的档案信息，并可就地从本页打开「更换组织向导」（改支部名、模块组合、分工、术语与验证重置）</td><td>支书 / 副支书（副书同权）</td></tr>
                 <tr><td>支部治理</td><td>工作台默认顺序</td><td>给全体成员设定工作台默认页签顺序（核心功能组只读带锁）；各人仍可在「我的工作台」里调成自己的顺序</td><td>支书 / 副支书</td></tr>
-                <tr><td>支部治理</td><td>支部制度参数</td><td>支部级制度参数（票决门槛、应到名单核对、会议考勤类型与<strong>不考勤的会议类型</strong>、考勤记录人、请假缺席标因等）的<strong>制度默认只读展示</strong>——不在这里直改，须经支书 / 党委裁决后在系统层变更；制度里已列为支部可调的项（时限类、思想汇报篇幅字数等）同样只作展示。<strong>本区下方另有「活动批准门」卡</strong>：支部自选开关（默认关，关闭时活动写入与原来完全一样；开启后写活动先落「待批」，批准后才发布、不批准则终止），支书 / 副支书可在该卡直改；此外本页可调的还有各域「职责参数」</td><td>支书 / 副支书</td></tr>
+                <tr><td>支部治理</td><td>支部制度参数</td><td>支部级制度参数（票决门槛、应到名单核对、会议考勤类型与<strong>不考勤的会议类型</strong>、考勤记录人、请假缺席标因等）的<strong>制度默认只读展示</strong>——不在这里直改，须经支书 / 党委裁决后在系统层变更；制度里已列为支部可调的项（时限类、思想汇报篇幅字数等）同样只作展示。<strong>本区下方另有「活动批准门」卡</strong>：支部自选开关（默认关，关闭时活动写入与原来完全一样；开启后写活动先落「待批」，批准后才发布、不批准则终止；待批期间只有支委层看得到该活动；选「支委会批准」档时批准动作＝提请支委会表决，走支委会线上表决、通过才发布），支书 / 副支书可在该卡直改；此外本页可调的还有各域「职责参数」</td><td>支书 / 副支书</td></tr>
                 <tr><td>支部治理</td><td>配置变更记录</td><td>本支部配置（工作台模块 / 产出块 / 分工 / 档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更项、前后值与依据；单项变更可由支书 / 副支书「回滚此更改」（回滚本身再记一条）</td><td>支书 / 副支书</td></tr>
                 <tr><td>支部治理</td><td>纪检职责参数</td><td>纪检这一域的职责参数（如考察确认的超期天数），可编辑、可恢复默认；调整后纪检台的超期判定与支书台的考察提醒随之生效</td><td>纪检委员</td></tr>
                 <tr><td>支部治理</td><td>组织职责参数</td><td>组织这一域的职责参数（如学期末滞留集中复核窗口）；调整后支书待办的提醒窗口与文案随之生效</td><td>组织委员</td></tr>
@@ -1495,6 +1495,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260922h"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260922i"></script>
 </body>
 </html>

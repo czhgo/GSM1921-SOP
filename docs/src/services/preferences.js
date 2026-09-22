@@ -16,7 +16,7 @@
 // 可被 server/test/preferences.test.mjs 在 node 直接导入；存储函数对 localStorage 全程守卫
 // （node 无 localStorage 时安全返回；测试可注入 stub 测持久化往返）。
 
-import { isCoreTab } from '../core/constants.js?v=20260922h';
+import { isCoreTab } from '../core/constants.js?v=20260922i';
 
 const PREF_PREFIX = 'gsm1921-pref-'; // person 键空间前缀（沿用批1 theme.js 约定）
 // 核心组判定（2026-09-14 支书裁定·tab 全盘重设）：原为本地常量比对 groupLabel，现共用注册表显式声明

@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922h';
-import { persist } from '../core/data-adapter.js?v=20260922h';
-import { bumpToken } from '../core/version-token.js?v=20260922h';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922h';
-import { ACTIVITIES } from '../mock/index.js?v=20260922h';
-import { isInitStateActive } from './init-reset.js?v=20260922h'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922i';
+import { persist } from '../core/data-adapter.js?v=20260922i';
+import { bumpToken } from '../core/version-token.js?v=20260922i';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922i';
+import { ACTIVITIES } from '../mock/index.js?v=20260922i';
+import { isInitStateActive } from './init-reset.js?v=20260922i'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -606,4 +606,123 @@ export function rejectActivity({ activityId, by, role, mode, note } = {}) {
     },
   });
   return { ok: true };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动批准门·支委会档：复用「线上表决」承载批准（2026-09-22 批次 151 · 支书裁定「复用线上表决」）
+// ════════════════════════════════════════════════════════════════
+// 支书裁定（2026-09-22，逐字）：「复用已有的"线上表决"（支委会线上开的那个），把批准当成一次表决。」
+// 复用面（**不另造第二套表决**）：载体＝活动主源既有的 `agenda`（议程项）＋ `voteConfig`（线上异步表决
+//   配置，单一源 `services/vote-config.js::defaultVoteConfig('branch-committee')`）＋ 既有表态组件
+//   （`components/vote-widget.js`）＋ 既有议程结果记录链（`services/agenda-follow-up.js::recordAgendaResult`
+//   → 本段的 `applyActivityApprovalResult`，与品牌认定 `applyBrandDesignationResult` 同法）。
+// 流程（**本批取最小做法**）：
+//   · 「提请支委会表决」⇒ 在**本活动上**挂一条 `kinds:['activity-approval']` 的议程项 ＋ 支委会档 voteConfig
+//     （应到名单＝`vote-config.js::resolveVoterIds('committee')` 固化快照）⇒ **不改状态、不发布**；
+//   · 支委层在活动页按既有表态组件表态（记名/无记名由既有 ballotMode 规则定）；
+//   · 支书在该议程项上「记录通过 / 未通过」（既有结果记录链）⇒ 通过 ⇒ **发布**；未通过 ⇒ **终止**。
+// ⚠ 为什么把表决挂在**本活动**而不是另开一场支委会会议：① 另开会议会把**待批活动的标题**写进一场全员可见的
+//   会议议程，等于把「还没批就传出去了」换个地方泄露；② 本活动对支委层可见（批准门收窄口径）⇒ 支委层本就
+//   看得到、投得了票；③ 不新增活动生命周期与清理面。⇒ 表决机制（议程 ＋ voteConfig ＋ 表态 ＋ 结果记录）
+//   一字未改地复用，只是**载体取活动自身**。
+// ⚠ 「未通过」走**终止**而非退回待批：与支书档「不批准则终止」（母本 `常见工作场景快速指南.md:245`）同一
+//   口径，且免「未过就无限挂着」；退回意见留在 `approval.note`。
+// ⚠ 判据与写口单一源即本段，勿在页面另写第二份。
+// ⚠ 本段置于文件末尾（批次 132 行号纪律）：不改动上文任何行号，README-server.md 的行号引用不漂移。
+
+/** 承载「活动批准」表决的议程项类型标记（`agenda[].kinds`；与 `brand-designation` 同族） */
+export const ACTIVITY_APPROVAL_AGENDA_KIND = 'activity-approval';
+
+/** 本活动上承载批准表决的议程项（无 → null） */
+export function activityApprovalAgendaItemOf(activity) {
+  const agenda = activity && Array.isArray(activity.agenda) ? activity.agenda : [];
+  return agenda.find((it) => it && Array.isArray(it.kinds)
+    && it.kinds.includes(ACTIVITY_APPROVAL_AGENDA_KIND)
+    && it.approvalActivityId === activity.id) || null;
+}
+
+/** 本活动的批准表决现况（未提请 → null；已提请 → `{agendaItemId, result, decided}`） */
+export function activityApprovalVoteOf(activity) {
+  const item = activityApprovalAgendaItemOf(activity);
+  return item ? { agendaItemId: item.id, result: item.result || null, decided: !!item.result } : null;
+}
+
+/**
+ * 提请支委会表决（**唯一写口**；仅 `branch-committee` 档，放行复算一次）。
+ * 幂等：已提请（议程项在位）⇒ 原样返回，不重复挂。
+ * @returns {Promise<{ok:boolean, reason?:string, agendaItemId?:string, already?:boolean}>}
+ */
+export async function openCommitteeVoteForActivity({ activityId, by, role, mode } = {}) {
+  if (mode !== 'branch-committee') return { ok: false, reason: '仅「支委会批准」档适用线上表决' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (act.status !== PENDING_APPROVAL_STATUS) return { ok: false, reason: '该活动不在待批态' };
+  if (!canApproveActivity(role, mode)) return { ok: false, reason: '当前档位下你无权提请表决' };
+  const existing = activityApprovalAgendaItemOf(act);
+  if (existing) return { ok: true, already: true, agendaItemId: existing.id };
+  // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
+  const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
+    import('./vote-config.js?v=20260922i'),
+    import('../core/id.js?v=20260922i'),
+  ]);
+  const agendaItemId = generateId('ag');
+  const at = new Date().toISOString();
+  _writeActivityField(activityId, {
+    agenda: [...(Array.isArray(act.agenda) ? act.agenda : []), {
+      id: agendaItemId,
+      item: `审议活动「${act.title || act.id}」的批准`,
+      host: '支书',
+      kinds: [ACTIVITY_APPROVAL_AGENDA_KIND],
+      approvalActivityId: act.id,
+    }],
+    voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') },
+    approval: {
+      ...(act.approval || {}), required: true, mode, state: 'pending',
+      at: (act.approval && act.approval.at) || at,
+      voteAgendaItemId: agendaItemId, voteStartedBy: by || null, voteStartedAt: at,
+    },
+  });
+  return { ok: true, agendaItemId };
+}
+
+/**
+ * 议程结果 → 活动批准状态迁移（**纯函数**；判据与状态迁移的唯一落点，由
+ * `services/agenda-follow-up.js::recordAgendaResult` 的 `activity-approval` 分支调用，IO 在那边做）。
+ * 只在「活动处于待批 **且** 档位＝branch-committee」时生效（别的档不经表决 ⇒ 本函数不动）。
+ * 通过 ⇒ **发布**（`published` ＋ `approval.state='approved'`）；未通过 ⇒ **终止**（`cancelled` ＋ `'rejected'`）。
+ * @param {Object} p
+ * @param {Object} p.activity 目标活动（当前的待批活动）
+ * @param {'passed'|'rejected'|'partial'} p.decision 本次记录的议程结果
+ * @param {string} [p.by] 记录人 personId / @param {string} [p.at] 记录时间
+ * @param {string} [p.agendaItemId] 留痕回指（承载表决的议程项）
+ * @param {string} [p.note] 表决意见（未通过时作退回意见）
+ * @returns {{ok:boolean, reason?:string, patch?:Object}}
+ */
+export function applyActivityApprovalResult({ activity, decision, by = null, at = null, agendaItemId = null, note = '' } = {}) {
+  if (!isPendingApprovalActivity(activity)) return { ok: false, reason: 'not-pending-approval' };
+  if (!activity.approval || activity.approval.mode !== 'branch-committee') return { ok: false, reason: 'not-committee-mode' };
+  const stamp = at || new Date().toISOString();
+  const trail = {
+    ...(activity.approval || {}), required: true, mode: 'branch-committee',
+    by: by || null, at: stamp, note: String(note || '').trim(),
+    voteAgendaItemId: agendaItemId || activity.approval.voteAgendaItemId || null,
+  };
+  if (decision !== 'passed') {
+    return { ok: true, patch: { status: 'cancelled', approval: { ...trail, state: 'rejected' } } };
+  }
+  return { ok: true, patch: { status: 'published', approval: { ...trail, state: 'approved' } } };
+}
+
+/**
+ * 表决结果**落库**（本段唯一写口；`applyActivityApprovalResult` 的 IO 外壳）：
+ * 落库走活动主源单点改写（`_writeActivityField`：Immutable 替换 ＋ 域缓存失效 ＋ persist ⇒ mock/api 同码），
+ * 与 `commitBrandDesignationResult`（2026-09-21 批次 132）同法。
+ * @returns {{ok:boolean, reason?:string, patch?:Object}}
+ */
+export function commitActivityApprovalResult({ activityId, decision, by = null, at = null, agendaItemId = null, note = '' } = {}) {
+  const activity = findActivityById(activityId);
+  const res = applyActivityApprovalResult({ activity, decision, by, at, agendaItemId, note });
+  if (!res.ok) return res;
+  _writeActivityField(activityId, res.patch);
+  return res;
 }

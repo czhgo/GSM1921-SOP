@@ -2,17 +2,17 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260922h';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260922h';
-import { showToast } from '../../../core/utils.js?v=20260922h';
-import { persist } from '../../../core/data-adapter.js?v=20260922h';
-import { mockDB } from '../../../core/domain.js?v=20260922h';
-import { AuthStore } from '../../../services/auth.js?v=20260922h';
-import { generateId } from '../../../core/id.js?v=20260922h';
-import { loadActivities } from '../../../services/activity.js?v=20260922h';
-import { NoticeStore } from '../../../services/notice.js?v=20260922h';
-import { getPersonName } from '../../../services/person.js?v=20260922h';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/secretary-overview.js?v=20260922h';
+import { icon } from '../../../core/icons.js?v=20260922i';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260922i';
+import { showToast } from '../../../core/utils.js?v=20260922i';
+import { persist } from '../../../core/data-adapter.js?v=20260922i';
+import { mockDB } from '../../../core/domain.js?v=20260922i';
+import { AuthStore } from '../../../services/auth.js?v=20260922i';
+import { generateId } from '../../../core/id.js?v=20260922i';
+import { loadActivities } from '../../../services/activity.js?v=20260922i';
+import { NoticeStore } from '../../../services/notice.js?v=20260922i';
+import { getPersonName } from '../../../services/person.js?v=20260922i';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/secretary-overview.js?v=20260922i';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准

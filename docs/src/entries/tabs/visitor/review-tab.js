@@ -3,22 +3,24 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities, reviewRequestOf } from '../../../services/activity.js?v=20260922h';
+import { loadActivities, reviewRequestOf } from '../../../services/activity.js?v=20260922i';
 // 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260922h';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260922h';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922h';
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260922i';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260922i';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922i';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260922h';
-import { showToast } from '../../../core/utils.js?v=20260922h';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922h';
+import { AuthStore } from '../../../services/auth.js?v=20260922i';
+// 待批活动的可见性单一源（2026-09-22 批次 151）：成员台非支委层 ⇒ 待批活动不进「我的复盘」清单
+import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922i';
+import { showToast } from '../../../core/utils.js?v=20260922i';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922i';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922i';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/constants.js?v=20260922h';
+import { isActivityLive } from '../../../core/constants.js?v=20260922i';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -46,7 +48,7 @@ export function renderContent(ctx) {
     if (r.targetPersonId === currentUserId && ['organizer', 'deep'].includes(r.role)) myIds.add(r.scopeRef);
   }
 
-  const myActivities = loadActivities()
+  const myActivities = filterActivitiesForViewer(loadActivities(), AuthStore.getCurrentUser()?.role)
     .filter(a => myIds.has(a.id) && isActivityLive(a))
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 

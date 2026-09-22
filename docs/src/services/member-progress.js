@@ -21,10 +21,10 @@
 //   · 考察待确认  = 考察记录 `status === 'pending'`
 // ════════════════════════════════════════════════════════════════
 
-import { isTodoExpired, TodoStatus } from './todo.js?v=20260922h';
-import { AttendanceStatus } from '../core/domain.js?v=20260922h';
-import { isApiMode } from './runtime.js?v=20260922h';
-import { getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260922h';
+import { isTodoExpired, TodoStatus } from './todo.js?v=20260922i';
+import { AttendanceStatus } from '../core/domain.js?v=20260922i';
+import { isApiMode } from './runtime.js?v=20260922i';
+import { getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260922i';
 
 /** 汇报态 → 稳定判别键（渲染文案随时可改，键不动；与 members-tab 原口径逐条对齐） */
 export const REPORT_KIND = {
@@ -151,10 +151,10 @@ export async function loadMemberProgress({ personIds = [], today } = {}) {
   // mock 态：动态引入各 store（保持服务端静态依赖图不被撑大）→ 调**同一个**纯函数
   const [{ TodoStore }, { loadAttendanceRecords }, { loadActiveInspectionRecords }, { IssueStore }] =
     await Promise.all([
-      import('./todo.js?v=20260922h'),
-      import('./attendance.js?v=20260922h'),
-      import('./inspection.js?v=20260922h'),
-      import('./issues.js?v=20260922h'),
+      import('./todo.js?v=20260922i'),
+      import('./attendance.js?v=20260922i'),
+      import('./inspection.js?v=20260922i'),
+      import('./issues.js?v=20260922i'),
     ]);
   if (typeof IssueStore.loadAll === 'function') await IssueStore.loadAll();
   const rows = aggregateMemberProgress({

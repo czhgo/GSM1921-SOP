@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/id.js?v=20260922h';
+import { generateId } from '../../../core/id.js?v=20260922i';
 // 事项领域单一源（services/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260922h';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260922i';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -39,6 +39,11 @@ export function collectAgendaRows(rows = []) {
       // 品牌认定提案（2026-09-21 批次 132）：议程项带回指「被提案的那场活动」，记录结果时据此落认定
       if (kinds.includes('brand-designation') && row.brandActivityId) {
         out.brandActivityId = row.brandActivityId;
+      }
+      // 活动批准表决（2026-09-22 批次 151）：回指「被表决的那场待批活动」——编辑议程时**不得把它丢掉**
+      // （丢了则记录结果时找不到落点，活动就永远停在待批）
+      if (kinds.includes('activity-approval') && row.approvalActivityId) {
+        out.approvalActivityId = row.approvalActivityId;
       }
       if (kinds.includes('attendee-list')) {
         // 待讨论名单：名单统一阶段转换 + 多选人员（兼容旧单值 personId）

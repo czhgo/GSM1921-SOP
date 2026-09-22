@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260922h';
-import { showToast } from '../core/utils.js?v=20260922h';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922h';
-import { icon } from '../core/icons.js?v=20260922h';
-import { NoticeStore } from './notice.js?v=20260922h';
+import { BranchService } from './runtime.js?v=20260922i';
+import { showToast } from '../core/utils.js?v=20260922i';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922i';
+import { icon } from '../core/icons.js?v=20260922i';
+import { NoticeStore } from './notice.js?v=20260922i';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922h';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922i';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260922h';
-import '../modules/capabilities/sop-scenarios.js?v=20260922h';
+import { getCapabilities } from '../core/registry.js?v=20260922i';
+import '../modules/capabilities/sop-scenarios.js?v=20260922i';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -349,8 +349,8 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   // 档位读 core/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
   // （README-server.md 有指向本文件的 `文件:行号` 引用）。
   const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
-    import('../core/policy-defaults.js?v=20260922h'),
-    import('./activity.js?v=20260922h'),
+    import('../core/policy-defaults.js?v=20260922i'),
+    import('./activity.js?v=20260922i'),
   ]);
   const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
 
@@ -387,7 +387,9 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
   }
 
   // 自动广播（混合模式落地）：活动创建后通知建核心群（现场协调在微信群）
-  _broadcastActivityCreated(activity);
+  // 待批活动**不广播**建群通知（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：还没批就通知组织者/组长，
+  // 等于从通知这一侧把「尚未获批的活动」传出去；批准门关闭时不产生待批活动 ⇒ 本判据恒真（零行为变化）。
+  if (!gatePatch) _broadcastActivityCreated(activity);
 
   return { activity, taskCount: createdCount };
 }

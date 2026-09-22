@@ -20,32 +20,38 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922h';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922h';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922h';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922i';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922i';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922i';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/policy-defaults.js?v=20260922h';
+} from '../../docs/src/core/policy-defaults.js?v=20260922i';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
-} from '../../docs/src/services/activity.js?v=20260922h';
+  // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
+  activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
+} from '../../docs/src/services/activity.js?v=20260922i';
+// ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
+import {
+  canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
+} from '../../docs/src/services/visibility.js?v=20260922i';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922h';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922h';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922h';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922i';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922i';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922i';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260922h';
+} from '../../docs/src/core/config-clean.js?v=20260922i';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260922h';
+} from '../../docs/src/services/branch.js?v=20260922i';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260922h';
+} from '../../docs/src/services/member-confirmation.js?v=20260922i';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922h';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922i';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -416,4 +422,103 @@ test('⑦ HTTP：普通成员 403；本支部组长可写自己 leader 节', asy
   const r2 = await _patchConfig(leader, { config: { policyOverrides: { leader: { semesterReportReminder: { enabled: false } } } } });
   assert.equal(r2.status, 200, '本支部组长可写 leader 节');
   assert.equal((await r2.json()).config.policyOverrides.leader.semesterReportReminder.enabled, false);
+});
+
+// ── ⑨ 活动批准门「启用端」（2026-09-22 批次 151 · 支书三条裁定）────────────────────────
+// ① 待批可见性＝只支委层可见；② 服务端门（PATCH 上判状态转移）；③ 支委会档复用线上表决。
+test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关闭档位时过滤为空转）', () => {
+  const pending = { id: 'act-p1', status: PENDING_APPROVAL_STATUS };
+  const published = { id: 'act-p2', status: 'published' };
+  // 支委层＝BRANCH_COMMISSION_ROLES（单一源）
+  ['secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner']
+    .forEach((r) => assert.equal(canSeePendingApprovalActivities(r), true, `${r} 属支委层`));
+  ['leader', 'participant', 'party-staff', null, undefined]
+    .forEach((r) => assert.equal(canSeePendingApprovalActivities(r), false, `${r} 非支委层`));
+  assert.equal(isActivityVisibleTo(pending, 'participant'), false, '普通成员看不到待批活动');
+  assert.equal(isActivityVisibleTo(pending, 'secretary'), true, '支委层看得到待批活动');
+  assert.equal(isActivityVisibleTo(published, 'participant'), true, '非待批活动沿用既有可见性');
+  assert.deepEqual(filterActivitiesForViewer([pending, published], 'participant').map((a) => a.id), ['act-p2']);
+  assert.deepEqual(filterActivitiesForViewer([pending, published], 'secretary').map((a) => a.id), ['act-p1', 'act-p2']);
+  // 关闭（默认）档位：系统里不存在 pending-approval 活动 ⇒ 过滤对任何清单恒等（零行为变化）
+  const plain = [published, { id: 'act-p3', status: 'draft' }, { id: 'act-p4', status: 'completed' }];
+  assert.deepEqual(filterActivitiesForViewer(plain, 'participant'), plain);
+});
+
+test('⑨ 支委会档：提请表决＝挂 activity-approval 议程项＋支委会档 voteConfig；通过⇒发布、未通过⇒终止', async () => {
+  beginMockCase();
+  mockDB.activities = [{
+    id: 'act-ap1', title: '共建活动', status: PENDING_APPROVAL_STATUS,
+    approval: { required: true, mode: 'branch-committee', state: 'pending', at: '2026-09-22T00:00:00.000Z' },
+  }];
+  // 放行复算：非支委层不可提请；非 branch-committee 档不适用
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p3', role: 'participant', mode: 'branch-committee' })).ok, false);
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'secretary' })).ok, false);
+  const r = await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'branch-committee' });
+  assert.equal(r.ok, true);
+  const act = mockDB.activities.find((a) => a.id === 'act-ap1');
+  assert.equal(act.status, PENDING_APPROVAL_STATUS, '提请表决本身不改状态（不发布）');
+  assert.equal(act.voteConfig.mode, 'async', '挂的是既有线上异步表决');
+  assert.equal(act.voteConfig.optionSet, 'deliberative', '支委会档＝交流式表态（vote-config 单一源）');
+  assert.equal(act.voteConfig.voterScope, 'committee');
+  assert.ok(act.voteConfig.voterIds.length > 0, '应到名单＝resolveVoterIds(committee) 固化快照');
+  const vote = activityApprovalVoteOf(act);
+  assert.ok(vote && vote.agendaItemId, '本活动上已挂承载表决的议程项');
+  assert.equal(act.agenda.find((x) => x.id === vote.agendaItemId).approvalActivityId, 'act-ap1', '议程项回指被表决的活动');
+  assert.equal((await openCommitteeVoteForActivity({ activityId: 'act-ap1', by: 'p13', role: 'secretary', mode: 'branch-committee' })).already, true, '幂等：不重复挂');
+  // 通过 ⇒ 发布
+  const pass = applyActivityApprovalResult({ activity: act, decision: 'passed', by: 'p13', at: '2026-09-22T01:00:00.000Z', agendaItemId: vote.agendaItemId });
+  assert.equal(pass.ok, true);
+  assert.equal(pass.patch.status, 'published');
+  assert.equal(pass.patch.approval.state, 'approved');
+  // 未通过 ⇒ 终止
+  const fail = applyActivityApprovalResult({ activity: act, decision: 'rejected', by: 'p13' });
+  assert.equal(fail.ok, true);
+  assert.equal(fail.patch.status, 'cancelled');
+  assert.equal(fail.patch.approval.state, 'rejected');
+  // 非待批 / 非支委会档 ⇒ 本段不动（别的路径不误伤）
+  assert.equal(applyActivityApprovalResult({ activity: { status: 'published', approval: { mode: 'branch-committee' } } }).ok, false);
+  assert.equal(applyActivityApprovalResult({ activity: { status: PENDING_APPROVAL_STATUS, approval: { mode: 'secretary' } } }).ok, false);
+  mockDB.activities = [];
+});
+
+test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且角色符合该活动固化的档位', async () => {
+  const sec = await _login('p13');
+  const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+  });
+  const patch = (token, id, body) => fetch(`${_httpBase}/api/v1/activities/${id}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+  });
+  // 造一条「待批」活动（档位＝secretary，由支书写入）
+  const mk = await post(sec, {
+    title: '待批活动甲', type: '主题党日', status: PENDING_APPROVAL_STATUS,
+    approval: { required: true, mode: 'secretary', state: 'pending', at: '2026-09-22T00:00:00.000Z' },
+  });
+  assert.equal(mk.status, 201);
+  const id = (await mk.json()).id;
+  // ① 直调：无批准语义把待批改成发布 ⇒ 403（这正是批次 150 登记的缺口）
+  const r1 = await patch(sec, id, { status: 'published' });
+  assert.equal(r1.status, 403);
+  assert.match((await r1.json()).error, /待批/);
+  // ② 普通成员：先被既有角色门拦住 ⇒ 403
+  const mem = await _login('p5');
+  assert.equal((await patch(mem, id, { status: 'published', approval: { state: 'approved', mode: 'secretary' } })).status, 403);
+  // ③ 支委层但档位不符：档位固化＝secretary ⇒ 组织委员不可批；且补丁自述 mode 不采信（仍 403）
+  const orgc = await _login('p11');
+  assert.equal((await patch(orgc, id, { status: 'published', approval: { state: 'approved', mode: 'secretary' } })).status, 403);
+  const r3 = await patch(orgc, id, { status: 'published', approval: { state: 'approved', mode: 'branch-committee' } });
+  assert.equal(r3.status, 403, '不采信补丁自述的档位（否则支委可自选档位放行自己）');
+  // ④ 合法：支书带批准语义 ⇒ 200 且转 published
+  const r4 = await patch(sec, id, { status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: 'p13', at: '2026-09-22T02:00:00.000Z' } });
+  assert.equal(r4.status, 200, JSON.stringify(await r4.clone().json()));
+  assert.equal((await r4.json()).status, 'published');
+  // ⑤ 非待批活动不受本门约束（既有行为不变）：draft → published 直改仍放行
+  const mk2 = await post(sec, { title: '普通活动乙', type: '主题党日', status: 'draft' });
+  const id2 = (await mk2.json()).id;
+  assert.equal((await patch(sec, id2, { status: 'published' })).status, 200, '非待批活动不拦');
+  // ⑥ 终止同理：待批 → cancelled 须带 rejected 语义
+  const mk3 = await post(sec, { title: '待批活动丙', type: '主题党日', status: PENDING_APPROVAL_STATUS, approval: { required: true, mode: 'secretary', state: 'pending' } });
+  const id3 = (await mk3.json()).id;
+  assert.equal((await patch(sec, id3, { status: 'cancelled' })).status, 403);
+  assert.equal((await patch(sec, id3, { status: 'cancelled', approval: { required: true, mode: 'secretary', state: 'rejected' } })).status, 200);
 });

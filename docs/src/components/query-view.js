@@ -15,7 +15,7 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from './pager.js?v=20260922h';
+import { pagerHtml } from './pager.js?v=20260922i';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {

@@ -2,15 +2,18 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260922h';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922h';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922h';
-import { loadActivities } from '../../../services/activity.js?v=20260922h';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260922h';
-import { badgeHtml } from '../../../components/badges.js?v=20260922h';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922h';
+import { AuthStore } from '../../../services/auth.js?v=20260922i';
+// 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
+// 不在本页「考察申诉选活动」下拉里出现。
+import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922i';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922i';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922i';
+import { loadActivities } from '../../../services/activity.js?v=20260922i';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260922i';
+import { badgeHtml } from '../../../components/badges.js?v=20260922i';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922i';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922h';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922i';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -35,7 +38,7 @@ export function renderContent(ctx) {
 
   // 考察申诉（批次 119 · 与考勤申诉同一套做法）：本人报「我参与了但没记上」→ 纪检先核实 → 属实打回上传方补录。
   // 只列活动（申诉口按活动登记，专班考察走上传方口径）；本人已提的申诉在此可见状态。
-  const _acts = loadActivities().filter(a => a.type !== '支委会').sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 30);
+  const _acts = filterActivitiesForViewer(loadActivities(), AuthStore.getCurrentUser()?.role).filter(a => a.type !== '支委会').sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 30);
   const myAppeals = loadInspectionAppeals().filter(a => a.personId === personId && a.status !== 'closed');
   const appealStatusLabel = (s) => s === 'returned' ? '已打回 · 待上传方补录' : '待纪检核实';
   const myAppealsHtml = myAppeals.length === 0 ? '' : `

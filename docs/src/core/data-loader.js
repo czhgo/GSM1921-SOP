@@ -3,9 +3,13 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/runtime.js?v=20260922h';
-import { getAppState, setState, STATE } from './state.js?v=20260922h';
-import { notifyDataLoaded } from './data-adapter.js?v=20260922h';
+import { BranchService } from '../services/runtime.js?v=20260922i';
+import { getAppState, setState, STATE } from './state.js?v=20260922i';
+import { notifyDataLoaded } from './data-adapter.js?v=20260922i';
+import { AuthStore } from '../services/auth.js?v=20260922i';
+// 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：`state.activities` 是仪表盘与各
+// 工作台 tab 的主读口 ⇒ 在本口按查看者角色收窄一次，覆盖首页活动日历/列表、成员台「活动动态」等全部消费点。
+import { filterActivitiesForViewer } from '../services/visibility.js?v=20260922i';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据
@@ -78,7 +82,7 @@ export async function loadWorkspaceData({
     const results = await Promise.all(loads);
     const activities = results[0];
 
-    const stateUpdate = { status: STATE.IDLE, activities };
+    const stateUpdate = { status: STATE.IDLE, activities: filterActivitiesForViewer(activities, AuthStore.getCurrentUser()?.role) };
     // 额外加载的结果依次放入 state
     if (results.length > 1) {
       stateUpdate.tasks = results[1];
@@ -87,7 +91,7 @@ export async function loadWorkspaceData({
   } catch (err) {
     console.warn(`[${logTag}] load failed`, err);
     if (fallbackData) {
-      setState({ status: STATE.IDLE, activities: fallbackMapActivities(fallbackData()) });
+      setState({ status: STATE.IDLE, activities: fallbackMapActivities(filterActivitiesForViewer(fallbackData(), AuthStore.getCurrentUser()?.role)) });
     } else {
       setState({ status: STATE.ERROR, error: err });
     }

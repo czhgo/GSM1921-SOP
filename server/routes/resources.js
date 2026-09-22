@@ -251,12 +251,12 @@ export function createResourcesRouter(db) {
       const id = req.params.id;
       const existing = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id);
       if (!existing) return res.status(404).json({ error: 'not found' });
-      // 活动写门：按「本次改后的类型」判定（未携带 type 时取既有类型）
+      // 活动写门：按「本次改后的类型」判定（未携带 type 时取既有类型）；批准门状态转移门（批次 151）叠加其后
       if (name === 'activities') {
-        const effectiveType = (req.body && req.body.type) || JSON.parse(existing.data).type;
-        if (!_assertActivityWrite(req.actor, effectiveType)) {
-          return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
-        }
+        const prevRow = JSON.parse(existing.data);
+        const effType = (req.body && req.body.type) || prevRow.type;
+        const gateDeny = _assertActivityWrite(req.actor, effType) ? _activityApprovalGateDeny(prevRow, req.body, req.actor) : ACTIVITY_WRITE_DENY_MSG;
+        if (gateDeny) return res.status(403).json({ error: gateDeny });
       }
       // 计票方式强制校验（仅活动、且显式携带 voteConfig）：正式表决不得改为 named
       if (name === 'activities' && req.body && req.body.voteConfig !== undefined) {
@@ -815,4 +815,51 @@ export function createResourcesRouter(db) {
   });
 
   return router;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动批准门的**服务端**状态转移门（2026-09-22 批次 151 · 支书裁定「加一道」）
+// ════════════════════════════════════════════════════════════════
+// 支书裁定（2026-09-22，逐字）：「加一道（推荐）」——选项说明逐字：「现在"只在前端判状态"，直调 API 可以
+//   绕过这道门（数据能对上，但不严谨）。」
+// 为什么落在**既有 PATCH 上判状态转移**（而不另开专用审批端点）：前端写入链早已收敛到
+//   `docs/src/services/activity.js::approveActivity / rejectActivity` 两枚写口（二者产出的补丁天然带
+//   `status` ＋ `approval` 语义）⇒ 在 PATCH 上加一条**状态转移判据**即可一一对应、不必新增端点与适配器方法；
+//   且门是**叠加**在既有角色门之后的第二道（角色门答「谁能写活动」，本门答「谁能把待批改成已发布/已取消」）。
+// 判据（单一源＝`docs/src/services/activity.js::canApproveActivity` / `PENDING_APPROVAL_STATUS`，勿在此另写）：
+//   · 既有行**不是** `pending-approval` ⇒ 不拦（本门只管批准门这道关）；
+//   · 补丁仍把状态留在 `pending-approval` ⇒ 不拦（没改状态）；
+//   · 离开待批态 ⇒ 必须**带批准语义**（发布＝`approval.state='approved'`；终止＝`'rejected'`）**且**写者角色
+//     符合**该活动上固化的档位**（`prevRow.approval.mode`，不采信补丁自述的 `mode`——否则持支委身份者可
+//     自选「支委会」档把自己那一票放行）——否则 403。
+// ⚠ **未堵**（如实登记）：`POST /api/v1/snapshot` 是前端全量/脏集合写穿通道（整表替换，不做逐行状态判据）——
+//   本门不覆盖它；要收口须按「脏集合内活动行的状态转移」逐行比对（另立口径）。
+// ⚠ 本块（含 import）置于文件末尾：**不改动上文任何行号**——README-server.md 里有 380 处 `文件:行号` 引用
+//   指向本文件（`doc-line-ref` 守卫逐条核），插入一行即整段漂移；ESM 的 import 声明在模块顶层任意位置均被提升，
+//   置末尾不影响语义（本项目既有同法：`services/decision-tree.js` 用动态 import 保行号）。
+import { canApproveActivity, PENDING_APPROVAL_STATUS } from '../../docs/src/services/activity.js';
+
+/** 批准门状态转移拦截文案 */
+const ACTIVITY_APPROVAL_TRANSITION_DENY_MSG = '无权限：该活动处于「待批」，不得直接改为发布/取消——须经批准（补丁须携带批准语义 approval.state）';
+const ACTIVITY_APPROVAL_ROLE_DENY_MSG = '无权限：当前批准档位下你无权批准/驳回该活动';
+
+/**
+ * 批准门状态转移门（**纯判定**）：允许 → null；拦截 → 403 文案。
+ * @param {Object} prevRow 既有活动行（未合并前的库内值）
+ * @param {Object} body 本次 PATCH 补丁
+ * @param {{role?:string}} actor 写者（requireAuth 注入）
+ * @returns {string|null}
+ */
+function _activityApprovalGateDeny(prevRow, body, actor) {
+  if (!prevRow || prevRow.status !== PENDING_APPROVAL_STATUS) return null;
+  const patch = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
+  const nextStatus = patch.status !== undefined ? patch.status : prevRow.status;
+  if (nextStatus === PENDING_APPROVAL_STATUS) return null;
+  const appr = (patch.approval && typeof patch.approval === 'object') ? patch.approval : {};
+  const hasSemantics = (nextStatus === 'published' && appr.state === 'approved')
+    || (nextStatus === 'cancelled' && appr.state === 'rejected');
+  if (!hasSemantics) return ACTIVITY_APPROVAL_TRANSITION_DENY_MSG;
+  const rowMode = prevRow.approval && prevRow.approval.mode; // 档位以活动上固化的为准（不采信补丁自述）
+  if (!canApproveActivity(actor && actor.role, rowMode)) return ACTIVITY_APPROVAL_ROLE_DENY_MSG;
+  return null;
 }

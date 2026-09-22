@@ -16109,7 +16109,164 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - **服务端未加门**：批准动作在前端服务层复算，**直调 API 可绕**（`mock` 形态下前端 mock 与 api 同码；真实后端接门时须一并落 ②）。
 - **真机未覆盖的**：① 未在真机上核「待批活动在各台列表 / 日历的**逐处呈现**」（本批未改可见性 ⇒ 未核）；② 未真点 `branch-committee` 档的写入（该档行为与 `secretary` 档相同，本批只核到**档位可落库 / 可切换**）；③ 未做跨支部（`br-b2`）复核。
 - **未用 sed / awk / PowerShell / node 脚本做内容批量改写**（只读统计用过 `git grep` / `Select-String`）；**未提交 git**；**未新建仓库文件**。
-- **本批自致的一处返工如实登记**：`form-loop-sweep` 的 `S6`（台账行号因本批插行而漂移）——**已在全量之后就地改准并复跑证绿**（见「九（丙）」），**不掩盖**。
+
+## 批次 151（2026-09-22，`D-590` · `D-591` · `D-592`）活动批准门「启用端」完整实现——落地支书对 `SOP-F-4` 三条的裁定
+
+> **本批三条均系按支书 2026-09-22 裁定落**：① 待批可见性 ⇒「**只支委层可见（推荐）**」② 服务端要不要拦 ⇒「**加一道（推荐）**」③ 支委会档怎么批 ⇒「**复用线上表决（推荐）**」。
+> **本批最重的硬约束**：**关闭档（默认 `off`）时零行为变化**——已真机逐项证到（见「五」）＋ 单元测试断言「无待批活动时过滤恒等」。
+
+### 一、取证（改前把三件事与两张清单查清）
+
+| # | 事项 | 改前实然（取证） |
+|---|---|---|
+| 1 | **待批活动现在露在哪** | 批次 150 只落了「写入即待批 ＋ 详情页两动作」，**可见性沿用既有规则**：`pending-approval` 与 `draft` 同待遇 ⇒ 各台活动列表 / 日历 / 看板 / 今日摘要 / 待办 / 计数**都会出现**（`README-server.md` 批次 150 补段原文自陈） |
+| 2 | **服务端有没有这道门** | **没有**。活动写入门是**角色门**（`server/routes/resources.js:136-150` 的 `ACTIVITY_WRITE_ROLES`，`:227-230` 的 POST 口、`:254-260` 的 PATCH 口）；PATCH 只判「谁能写活动」，**不判状态转移** ⇒ 直调 `PATCH /api/v1/activities/:id` 带 `{status:'published'}` 即把待批改成已发布（批次 150 已如实登记） |
+| 3 | **系统里的「线上表决」是什么** | **一套既有机械**：活动主源 `voteConfig`（`services/vote-config.js::defaultVoteConfig`，支委会档＝`{mode:'async', optionSet:'deliberative', ballotMode:'named', voterScope:'committee', quorumCheck:false}`；应到名单＝`resolveVoterIds('committee')` 固化快照）＋ `agenda[].id`（议程项＝表决键）＋ 表态（`services/committee-vote.js`：`agendaVotes` 落库、`components/vote-widget.js` 表态组件）＋ 结果（`services/agenda-follow-up.js::recordAgendaResult` 按议程项记 `result`，`quorumCheck:true` 时才做「出席 / 赞成过半数」硬校验——**支委会档默认 false ⇒ 通过与否由支书按表决情况记录**） |
+
+**「会露活动的地方」全清单（逐处读代码判、不只靠 grep；★ ＝ 本批收窄，其余逐条给「为什么不改」）**：
+
+| # | 面 | 落点（`文件:行号`） | 处置 |
+|---|---|---|---|
+| 1 | 首页仪表盘 ＋ 各工作台 tab 的**主读口** | `core/data-loader.js`（`state.activities`）· `components/workspace-shell.js`（种子兜底路径） | ★ 收窄（一处覆盖首页活动日历 / 列表 / 画廊 / 统计卡与全部读 `ctx.activities` 的 tab） |
+| 2 | 成员台「活动动态」 | `entries/tabs/visitor/activities-tab.js`（读 `ctx.activities`） | ★ 由 #1 覆盖 |
+| 3 | 成员台「今天」 | `services/today-summary.js`（`mockDB.activities` 按日筛） | ★ 收窄 |
+| 4 | 成员台「待办派生」 | `services/todo.js::VisitorTodoDeriver.deriveFromActivities` | ★ 加「待批跳过」（与 `draft` 同待遇） |
+| 5 | 成员台「我的复盘」 | `entries/tabs/visitor/review-tab.js` | ★ 收窄 |
+| 6 | 成员台「考察申诉选活动」下拉 | `entries/tabs/visitor/inspection-tab.js` | ★ 收窄 |
+| 7 | 成员台「项目分工 → 我的任务」 | `entries/tabs/visitor/projects-tab.js`（`listMyProjectTasks` 的**任务标题带活动名**） | ★ 按活动可见性收窄 |
+| 8 | 组长台 考勤上传 / 考察上传 / 复盘 三处 | `entries/tabs/leader/{attendance,inspection,review}-tab.js` | ★ 收窄（组长非支委层） |
+| 9 | 各台「工作概况」 | `components/work-overview.js`（在办 / 条线计数 / 卡点） | ★ 收窄 |
+| 10 | 活动详情页（**直按 id 打开**） | `entries/activity-entry.js` | ★ 加守卫（与「不存在」同款口径，不提示「待批」） |
+| 11 | 成员档案页「参与活动」计数 | `entries/person-entry.js` | ★ 收窄 |
+| 12 | 活动创建时的站内广播 | `services/decision-tree.js::writeActivityWithSOP` | ★ 待批**不广播**（从「通知」这一侧堵住「还没批就传出去」） |
+| 13 | 支委层各台（支书 / 组织 / 宣传 / 纪检 / 党委）的列表 / 日历 / 看板 / 统计 | `entries/tabs/{secretary,org,prop,disc,party-committee}/**` · `services/secretary-overview.js` | 判过**不改**：这些台的查看者恒为支委层（或党委线）⇒ 同一判据在此**空转**（改也等价） |
+| 14 | 归档页 | `entries/archive-entry.js` | 判过**不改**：只列 `isActivityEnded`（归档 / 已完成）⇒ **待批活动不可能出现** |
+| 15 | 通知详情 → 活动锚点 | `entries/notice-entry.js` | 判过**不改**：只是按 id 查标题的**查表**，且待批活动不再产生建群广播（见 #12） |
+| 16 | 考勤 / 考察 / 复盘 / 补课 / 专班 等**域内联接** | `services/{attendance,inspection,review,makeup,taskforce,references}.js` 的 `loadActivities().find(...)` | 判过**不改**：都是**按 id 查表**（人不从列表看活动），且待批活动**尚无**这些记录（未开会 / 未办完）；改反而会让历史记录丢标题 |
+| 17 | 纪检台「决议逾期提醒」等实时派生 | `services/resolution-followup.js` | 判过**不改**：派生自**已办完**的活动（待批不可能命中） |
+| 18 | `/api/v1/snapshot` 全量 / 脏集合写穿 | `server/routes/resources.js:429-458` | **未堵、如实登记**：整表替换通道，不做逐行状态判据（见「三」与「十」） |
+
+### 二、第一条：待批可见性收窄（支书裁定「只支委层可见」）
+
+**落点选择（本批判）**：**复用既有的可见性单一源 `docs/src/services/visibility.js`**（该文件是「谁应该看谁」的单一源；支委层沿用既有语义角色集 `core/constants.js::BRANCH_COMMISSION_ROLES`）——**不另造一套**：新增三个导出 `canSeePendingApprovalActivities(role)` / `isActivityVisibleTo(activity, role)` / `filterActivitiesForViewer(activities, role)`，**判据单一源在服务层**，各消费点（上表 ★ 11 处）一律调它。
+
+**改前 → 改后（逐处）**：
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `services/visibility.js` | 无 | 新增「待批可见性」段：`canSeePendingApprovalActivities` / `isActivityVisibleTo` / `filterActivitiesForViewer`（判据单一源；支委层名单复用 `BRANCH_COMMISSION_ROLES`） |
+| 2 | `core/data-loader.js` | `state.activities = listActivities()` | 两处出口各按 `AuthStore.getCurrentUser()?.role` 过滤一次 |
+| 3 | `components/workspace-shell.js` | 种子兜底 `all.map(mapFallbackActivities)` | 先过滤再映射 |
+| 4 | `services/today-summary.js` | `mockDB.activities.filter(按日)` | 先过滤（按 `role`）再按日筛 |
+| 5 | `services/todo.js` | 只跳 `draft` / `cancelled` / `archived` | 加跳 `PENDING_APPROVAL_STATUS`（待批 ≠ 待参与） |
+| 6 | `components/work-overview.js`（5 处） | `loadActivities()` | `filterActivitiesForViewer(loadActivities(), role)` |
+| 7 | `entries/activity-entry.js` | `mockDB.activities.find(id)` 直接用 | 待批且非支委层 ⇒「活动不存在或尚未公开」 |
+| 8 | `entries/person-entry.js` | `loadActivities().filter(按人)` | 先过滤再计数 |
+| 9 | `entries/tabs/leader/{attendance,inspection,review}-tab.js` | `loadActivities()` | 先过滤（本台查看者恒非支委层 ⇒ 传 `'leader'`） |
+| 10 | `entries/tabs/visitor/{inspection,review}-tab.js`、`projects-tab.js` | `loadActivities()` / `listMyProjectTasks` | 先过滤（按当前登录角色） |
+| 11 | `services/decision-tree.js::writeActivityWithSOP` | 创建后一律 `_broadcastActivityCreated` | **待批不广播**（`if (!gatePatch)`，判据复用本链已有的 `gatePatch`） |
+| 12 | `server/test/policy-config.test.mjs` | —— | 新增 ⑨ 第 1 例：支委层 / 非支委层逐角色断言 ＋ **「无待批活动时过滤恒等」**（关档零影响） |
+
+### 三、第二条：服务端写权限门（支书裁定「加一道」）
+
+**两条路选哪条、为什么**：选 **② 在既有 `PATCH /api/v1/activities/:id` 上判状态转移**（不另开专用审批端点）——理由三条：① 前端写链**早已收敛到** `services/activity.js::approveActivity / rejectActivity` 两枚写口，其补丁**天然带** `status` ＋ `approval` 语义 ⇒ 在 PATCH 上加一条判据即可一一对应，**不必新增端点 / 新增适配器方法 / 改前端调用**；② 专用端点会多出「mock 与 api 两条路要同时改」的面（本项目 mock/api 同码，前端写链走 `persist()`）；③ 与既有门的关系＝**叠加 ＋ 分动作**：既有 **角色门**答「谁能写活动」（`_assertActivityWrite`，本批未动），新门答「**谁能把待批改成已发布 / 已取消**」，跑在角色门**之后**。
+
+**判据（判据单一源复用 `docs/src/services/activity.js`）**：既有行不是 `pending-approval` ⇒ 不拦；补丁仍留在待批态 ⇒ 不拦；**离开待批态 ⇒ 必须带批准语义**（发布＝`approval.state='approved'`、终止＝`'rejected'`）**且**写者角色符合**该活动上固化的档位**（`prevRow.approval.mode` 传给 `canApproveActivity`）——**不采信补丁自述的 `mode`**（否则持支委身份者可在 `secretary` 档自述 `branch-committee` 把自己那一票放行）。
+
+**改前 → 改后**：`server/routes/resources.js` 的 PATCH 活动判据块（原 4 行）**行数守恒改写**为「先取既有行 → 角色门 → 批准门」，门体与文案作为 **`_activityApprovalGateDeny`（末尾追加，含 `import` 置文件末 —— 保 `README-server.md` 380 处 `文件:行号` 引用零位移）**。另新增 ⑨ 第 3 例 HTTP 直调测试（5 种情形）。
+
+**直调被拒的真证据（真发 PATCH，贴返回）**：
+- 支书、无批准语义：`PATCH {status:'published'}` → **403** `{"error":"无权限：该活动处于「待批」，不得直接改为发布/取消——须经批准（补丁须携带批准语义 approval.state）"}`
+- 普通成员（带语义）：**403** `{"error":"无权限：活动写入仅限支委层与党小组组长（组长限党小组会/主题党日）"}`（既有角色门先拦）
+- 组织委员、自述 `branch-committee` 档（该活动固化档位＝`secretary`）：**403** `{"error":"无权限：当前批准档位下你无权批准/驳回该活动"}`
+- 支书、带批准语义：**200** 且 `status` 变 `published`
+
+**未堵（如实登记）**：`POST /api/v1/snapshot`（前端全量 / 脏集合写穿）不覆盖；`POST /activities` 创建口未加门（另造一条「已发布」活动可绕）。
+
+### 四、第三条：支委会档复用线上表决（支书裁定「复用线上表决」）
+
+**复用的机制**：复用「**活动主源既有的 `agenda` ＋ `voteConfig` ＋ 既有表态组件 ＋ 既有议程结果记录链**」这一整套（＝批次 105「支委会线上会议页」与批次 132「品牌认定」用的同一套机械），**不另造第二套表决**；「表决通过」的判据**取既有机制**（支委会档 `quorumCheck:false` ⇒ 无硬门槛，由支书按表态汇总在议程项上「记录通过 / 未通过」，与既有支委会线上会议完全同法）——**未硬编码任何新阈值**。
+
+**流程（本批取最小做法）**：待批详情页「**提请支委会表决**」⇒ 在**本活动上**挂一条 `kinds:['activity-approval']` 的议程项 ＋ 支委会档 `voteConfig`（`defaultVoteConfig('branch-committee')` ＋ `resolveVoterIds('committee')` 固化应到名单），**不改状态、不发布** ⇒ 支委层在活动页按既有表态组件表态 ⇒ 支书在该议程项上「记录通过 / 未通过」（既有结果记录链）⇒ **通过＝发布（`published`）、未通过＝终止（`cancelled`）**。
+**「未通过」走终止而不是退回待批，为什么**：与支书档「不批准则终止」（母本 `常见工作场景快速指南.md:245`）**同一口径**，且免「未过就无限挂着」；退回意见留在 `approval.note`。
+**为什么不另开一场支委会会议承载表决**：① 另开会议会把**待批活动的标题**写进一场全员可见的会议议程＝把「还没批就传出去了」换个地方泄露；② 本活动对支委层可见（第一条收窄后）⇒ 支委层本就投票投得了；③ 不新增活动生命周期与清理面。
+
+**改前 → 改后**：
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `services/activity.js`（**文件末尾追加**） | —— | `ACTIVITY_APPROVAL_AGENDA_KIND` / `activityApprovalAgendaItemOf` / `activityApprovalVoteOf` / `openCommitteeVoteForActivity`（幂等）/ `applyActivityApprovalResult`（纯函数）/ `commitActivityApprovalResult`（落库外壳） |
+| 2 | `services/agenda-follow-up.js::recordAgendaResult` | 只有 `discussion-file` / `brand-designation` 两支 | 增 `activity-approval` 支 → `commitActivityApprovalResult` |
+| 3 | `components/inspector.js` 待批块 | 一律「批准发布 / 不批准（终止）」 | **按档位分流**：支书档＝原两动作；支委会档＝「**提请支委会表决**」（已提请则显示待表态 / 已记录结果，不重复挂） |
+| 4 | `components/inspector.js` 动作绑定 | 两枚 | 增 `#inspector-committee-vote-btn` → `openCommitteeVoteForActivity` |
+| 5 | `server/test/policy-config.test.mjs` | —— | 新增 ⑨ 第 2 例：放行复算 / 幂等 / 挂载形状（`voteConfig` 三键 ＋ `voterIds` 非空）/ 通过 ⇒ `published`·未通过 ⇒ `cancelled` / 非本档不动 |
+| 6 | `content/02_institution/sop/**` · `docs/help.html` · `README-server.md` | —— | 未改母本（本批无母本侧改动）；help 三处 + README-server 新增「批次 151 补」段与依据行 |
+
+**两档行为差异（真机证据）**：支书档详情页按钮在位 `{批准发布:1, 不批准:1, 提请表决:0}`、真点「批准发布」⇒ `published`；支委会档 `{批准发布:0, 提请表决:1}`、真点「提请支委会表决」⇒ **状态仍 `pending-approval`**、活动上出现 `kinds:['activity-approval']` 议程项 ＋ `voteConfig{mode:'async',optionSet:'deliberative',voterScope:'committee',voterIds:5}`；支委 p11 在活动页真点「同意 ＋ 提交表态」⇒ 服务端 `agendaVotes` 落 `{personId:'p11',position:'agree',agendaItemId:'ag_8292…'}`；支书真点议程「通过」⇒ `published`（另一条真点「未通过」⇒ `cancelled`）。
+
+### 五、关闭档（默认）零影响的真机证据
+
+| # | 真机动作 | 实测结果 | 判读 |
+|---|---|---|---|
+| ①-A | 关档下真点写入活动（支书台「写入活动」→ 主题党日模板 → 填表 → 创建活动） | 落库 `{"status":"draft"}`（**与批次 150 实测同值**） | 写入链与改前一致 ✅ |
+| ①-B | 普通成员（p5）活动动态列表 | **看得到**该活动 | 列表过滤为空转 ✅ |
+| ①-C | 普通成员直开该活动详情 | 正常显示标题 | 详情页守卫恒真 ✅ |
+| ⑤-1 | 「关回去」后再写入 | 落库 `{"status":"draft","approval":null}` | 复原 ✅ |
+| ⑤-2 | 关回去后普通成员列表 | **看得到** | 复原 ✅ |
+| 单元 | `filterActivitiesForViewer(无待批的清单, 'participant')` 恒等断言 | `pass` | 过滤恒等（零影响）的机器证据 ✅ |
+
+> ⚠ 如实标注：「与改动前逐项一致」这一层的机器证据＝**上述行为面 ＋ 恒等断言**；本批**没有**跑「改前 / 改后同一脚本对照」的差分（运行环境只有一份代码），故不主张「逐项差分」这种强口径。
+
+### 六、真机验证（真起 3000 服务 ＋ 真 Chromium；探针 `server/.tmp-probe-151.mjs` 跑完即删）
+
+**探针实测（逐条）**：起底活动 33 条 → ①-A/B/C（见「五」）→ ② 支书档：`②-0 档位=secretary` · `②-1 写入即落 {status:'pending-approval', approval:{mode:'secretary',state:'pending'}}` · `②-2 非支委层活动动态看不到待批 = true` · `②-3 非支委层直开详情 = 活动不存在或尚未公开` · `②-4 支委层（支书）看得到（详情正文含「待批」徽章）` · `②-5 按钮 {approve:1,reject:1,committeeVote:0}` · `②-6 真点批准发布 ⇒ {status:'published',state:'approved'}` · `②-7 批准后非支委层看得到 = true` → ③ 支委会档：`③-1 写入即落 mode=branch-committee` · `③-2 按钮 {approve:0,committeeVote:1}` · `③-3 提请后 {status:'pending-approval', voteConfig:{mode:'async',optionSet:'deliberative',voterScope:'committee',voterIds:5}, agenda:[{kinds:['activity-approval'],approvalActivityId:…}]}` · `③-4 支委看到的表决区块 1` · `③-5 表态落库 [{personId:'p11',position:'agree',…}]` · `③-6 议程「通过」按钮在位 1` · `③-7 记录通过 ⇒ {status:'published',state:'approved',agendaResult:['passed']}` · `③-8 记录未通过 ⇒ {status:'cancelled',state:'rejected'}` → ④ 直调（见「三」）→ ⑤ 关回去复原 → **`pageerror` 0 条**；**探针数据清理**：6 条演示活动逐条 `DELETE`（剩余命中 0）＋ 档位回 `null` ＋ 探针删出的孤儿表态行 `av-a4ac3fe9` 一并删除（`agenda_votes` 余 0）。
+
+### 七、反查（**口径＝命中行数**；改前＝`HEAD`（批次 150 提交 `50671ed3`）／改后＝工作树）
+
+| 词 | 改前 | 改后 | 逐条判定 |
+|---|---|---|---|
+| `pending-approval` | 3 | 9 | 增量全落在本批改动文件（`activity.js` / `visibility.js` / `resources.js` / `policy-config.test.mjs` / `domain.js` 未增）⇒ 正当 |
+| `PENDING_APPROVAL_STATUS` | 11 | 24 | 新增消费点＝`todo.js` / `inspector.js` / `resources.js` / 测试 ⇒ 正当（单一源被复用，未另写状态字面量） |
+| `filterActivitiesForViewer` | 0 | 32 | 落在 **11 个文件**（`data-loader` / `workspace-shell` / `today-summary` / `work-overview` / `person-entry` / 4 个 tab ＋ `visibility.js` 定义 ＋ 测试）——**与「会露活动」清单第 1–11 项逐项对应**，无溢出文件 ✅ |
+| `isActivityVisibleTo` | 0 | 11 | 落在 `visibility.js`（定义）· `activity-entry.js`（详情页守卫）· `projects-tab.js`（我的任务）· 测试 ⇒ 正当 |
+| `canSeePendingApprovalActivities` | 0 | 5 | 定义 ＋ 支委层断言 ＋ 测试 ⇒ 正当 |
+| `activity-approval` / `openCommitteeVoteForActivity` | 0 / 0 | 8 / 8 | `activity.js`（定义）· `inspector.js`（按钮与动作）· `agenda-form.js`（回指字段随议程编辑保留）· `agenda-follow-up.js`（结果支）· 测试 ⇒ 正当 |
+| `applyActivityApprovalResult` / `commitActivityApprovalResult` | 0 / 0 | 10 / 4 | 定义 ＋ 落库外壳 ＋ 结果支 ＋ 测试 ⇒ 正当 |
+| `canApproveActivity` | 11 | 15 | 服务端门复用（`resources.js` 的 import 与判定）⇒ 正当（**未另写一套档位映射**） |
+| `BRANCH_COMMISSION_ROLES` | 51 | 56 | 增量＝`visibility.js` 的 import 与判据注释 ⇒ 正当 |
+| `待批` | 53 | 107 | 增量分布见 `git grep -c` 逐文件（help 8 · `activity.js` 17 · `visibility.js` 5 · `resources.js` 3 · 测试 18 等）⇒ 正当 |
+
+> **⚠ 不只靠 grep**：① 「哪些地方会露活动」**grep "activity" 会命中几百处**，本批以**读代码逐处判**为准（清单 18 项，其中 6 项判「不改」并写明理由）；② 「**关闭时零影响**」grep 判不出（运行时行为，只能真机 ＋ 恒等断言）；③ 「**表决通过判据**」grep 也判不出「支委会档 `quorumCheck:false` ⇒ 不设硬阈值、由支书记录」这层（要读 `vote-config.js` 的默认值与 `agenda-follow-up.js` 的硬校验条件）。
+
+### 八、版本戳 ＋ 守卫 ＋ 全量 ＋ 停服 ＋ 四处计数
+
+**（甲）版本戳**：**bump `20260922h → 20260922i`**〔**显式传参** `node docs/scripts/bump-version.mjs 20260922i`；实测改写 JS 210 / HTML 22 / CSS 2 / server-test 69 个文件，**陈旧戳残留 0**〕——本批改了 `docs/src/**` ＋ `server/**` ⇒ 必 bump。**`CODE_VERSION` 272 → 273**（`.ctx/TIMESTAMPS.md` 该行同批改准为「截至批次 151 … 273 / `20260922i`」）。
+**（乙）守卫子集**（8 文件，带 `DISABLE_PASSWORD_CHECK=1`）：**改前 `64 / 64 / 0 红`（25.18 秒）→ 改后 `64 / 64 / 0 红`（30.86 秒）**；`doc-line-ref` 的 `R1`–`R6` 全绿（⚠ **如实登记**：改后第一次跑本条子集时 `link-integrity` 的 `L4`（浏览器实测登录跳转）**超时红了 1 条**；**单独复跑该文件 5 / 5 全绿** ⇒ 判**环境类（浏览器时序）**，非本批代码）。
+**（丙）全量（`R-85`）**：**起 3000 服务** → `npm test` → **停服**。**如实贴数字**：`ℹ tests 723` / `ℹ pass 722` / **`ℹ fail 1`** / `cancelled 0` / `skipped 0` / `todo 0`，`ℹ duration_ms 1190400.667`（**≈ 19.84 分钟**），退出码 **1**。
+> **那 1 条红＝本批自致、已就地改准、已复跑证绿**：`form-loop-sweep` 的 **`S6 台账行号未同步即红灯`**——本批给 4 个文件**顶部插了 import 行**（`leader/inspection-tab.js` +2 · `leader/attendance-tab.js` +3 · `visitor/review-tab.js` +2 · `work-overview.js` +3），而 `server/test/form-loop-registry.mjs` 里登记的 9 条校验点行号未随插行同步。**处置**：把台账 9 条按实况改准（`inspection-tab` 273/277/280/293 → **275/279/282/295** · `attendance-tab` 365/368/500 → **368/371/503** · `visitor/review-tab` 182 → **184** · `work-overview` 377 → **380**），**单独复跑 S6**：`✔ S6 …` / `tests 1` / `pass 1` / **`fail 0`**。**全量其余 722 项全绿**（含 `page-sweep` / `module-load` / `block-*` / `doc-line-ref` / `policy-config`〔本批新增 3 例〕等）。
+**（丁）决策日志四方一致**：**文首**＝**文末「续编说明」**＝**本月目录**＝实测 `^## D-\d+` 计数 ⇒ 均 **`D-275` … `D-592`、共 318 条、下一条自 `D-593`**；`.ctx/logs/DECISION_LOG.md` 月度索引 2026-09 行 **315 → 318 条（D-275~D-592）**。
+**（戊）队列侧同步**：`SOP-F-4` 三条**全部落地** ⇒ 本节**按实情改准并移出在册**（三条逐条写「已落 / 落成什么 / 谁落」＋ 仍留的余项指针）；**`SOP-B-*` 在册计数不变（仍 2 条：`SOP-B-4` · `SOP-B-25`）**（`SOP-F-*` 系列**不计入** `SOP-B-*` 计数）；阶段 B「状态与现况」行 ＋ 两处「与在册计数的关系」行**各补一句批次 151**。
+**（己）残留核查**：探针 **1 个已删**（`.tmp-probe-151.mjs`）＋ 调试件 2 个已删（`.tmp-dbg-151.mjs` / `.tmp-clean-151.mjs`）＋ 全量日志 `.tmp-full-151.log` 已删；`.tmp*` 全库扫描 **0 命中**；**未提交 git**；**未新建仓库文件**（本批新增的仓库文件 **0 个**）。
+
+### 九、待支书定清单 / 只登记未改清单 / 不确定与没做的地方
+
+**（一）待支书定（本批新发现）**：
+1. **`POST /api/v1/snapshot` 这条写穿通道要不要一并收口**——它是前端的全量 / 脏集合落库通道，本批的批准门**不覆盖**它（要收口须对「脏集合里的活动行」逐行比对状态转移，属另一套口径）。
+2. **`POST /api/v1/activities` 创建口要不要加门**——现可直调创建一条「已发布」活动绕过批准门（本批未加，理由是 #3 会一并拒掉正当的「已发布会议」创建）。
+3. **支委会档「未通过」的处置**：本批择**终止**（与支书档同一口径）；若支书要的是**退回待批（可再议）**，改一行即可。
+
+**（二）只登记未改**：
+| # | 事项 | 为什么不能改（本批） |
+|---|---|---|
+| 1 | 上表「会露活动」清单第 13–17 项（支委层各台 / 归档页 / 通知锚点 / 域内联接 / 逾期提醒） | **判过「无需改」**：分别是「查看者恒为支委层（同判据空转）」「待批不可能出现」「只是按 id 查表」三类；**理由逐条已给**，非漏改 |
+| 2 | `docs/src/mock/**` 人名 | 支书已裁**保留**（`D-588`）⇒ 一字不改 |
+| 3 | `SOP-B-25` ② 映射表 · `SOP-B-4` 母本沿革降级 | 仍待支书改 / 已登记部分落地 ⇒ 不在本批授权面 |
+
+**（三）不确定 / 没做的地方（如实登记）**：
+- **「与改动前逐项一致」的机器证据口径**：本批给的是「关档下的行为面 ＋ 过滤恒等断言」，**没有**做「同一脚本改前 / 改后差分」（盘上只有一份代码）——不主张更强口径。
+- **`POST /snapshot` 与 `POST /activities` 两条绕行路径未堵**（见「一」#18 与「三」末段）⇒ **服务端门不是「无处可绕」**，这一点已写进 `README-server.md` 与 `resources.js` 的门注释，避免把「加了一道」写成「全堵死了」。
+- 支委会档的**票决门槛**沿用既有「支委会档 `quorumCheck:false` ⇒ 由支书记录结果」——**未新设「几位同意算通过」**（本批按「判据在既有单一源里」落；若支书要门槛，属另立口径）。
+- **本批自致的一处返工如实登记**：`form-loop-sweep` 的 `S6`（台账行号因本批插行而漂移）——**已在全量之后就地改准并复跑证绿**（见「八（丙）」），**不掩盖**。
 
 
 
