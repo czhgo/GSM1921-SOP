@@ -16268,6 +16268,144 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - 支委会档的**票决门槛**沿用既有「支委会档 `quorumCheck:false` ⇒ 由支书记录结果」——**未新设「几位同意算通过」**（本批按「判据在既有单一源里」落；若支书要门槛，属另立口径）。
 - **本批自致的一处返工如实登记**：`form-loop-sweep` 的 `S6`（台账行号因本批插行而漂移）——**已在全量之后就地改准并复跑证绿**（见「八（丙）」），**不掩盖**。
 
+---
+
+## 批次 152（2026-09-22，`D-593` · `D-594`）批准门收尾——堵两条绕行路径 ＋ 给组织者本人开「待批可见」位
+
+> **本批两条均系按支书 2026-09-22 裁定落**：① 另两条绕行路径 ⇒「**一并堵上（推荐）**」（选项说明逐字：「一并堵上，把这道理做严（现在要绕过还是能绕）。」）② 组织者本人可见 ⇒「**给组织者本人可见（推荐）**」（选项说明逐字：「给组织者本人开一个"我提交的待批"可见位。理由：他自己写的活动，批之前总得能看见吧。」）。
+> **本批收尾的正是批次 151「九（一）／（二）」如实登记的两处未堵 ＋ 两处待支书定**（另留「支委会档未通过之处置」一条待支书定，见「八」）。
+
+### 一、取证（改前把四件事查清，全给 `文件:行号`）
+
+| # | 事项 | 改前实然（取证） |
+|---|---|---|
+| 1 | **`POST /snapshot` 到底怎么写** | **整表覆盖写**：`server/routes/resources.js:432-458` —— `requireAuth` 后解析 payload（支持 gzip，`:435-448`），再 `for (const [name, table] of Object.entries(RESOURCE_TABLES)) { if (Array.isArray(payload[name])) replaceCollection(db, table, payload[name]); }`（原 `:452-456`）⇒ **逐表整表替换、无任何逐行状态判据**。**谁在调 / 什么频率**：前端 `docs/src/core/data-adapter.js::persist()`（`:362-387`）是**全部业务写路径的汇聚点** ⇒ API 模式下经 `_scheduleSnapshot()`（`:501-508`，**防抖 800ms**）与 `_flushSnapshot()`（`:558-577`）把**脏集合**（`_collectDirty`，`:476-485`）整体 POST 上来；另 `_flushSnapshotSync()`（`:600+`，`pagehide` 时 `keepalive`）同理。⇒ 结论：**这是前端状态同步的唯一落库口**，堵过头＝打瘫正常同步（本批最大风险）。 |
+| 2 | **`POST /activities` 直建链** | `server/routes/resources.js:219-243`：`requireAuth` → `_assertResourceWrite`（活动无此门）→ **活动角色门** `_assertActivityWrite(actor, row.type)`（`:228-230`）→ 计票方式校验（`:232-235`）→ `const data = { ...row, id }`（原 `:237`）→ 直接 INSERT。⇒ **`status` 由调用方自定**（`'published'` 即建成已发布），**批准门不在链上**。 |
+| 3 | **活动现场的「组织者」字段** | **单一源＝`docs/src/services/activity.js:54-60`** 的 `isActivityOrganizerIn(activity, personId)`：① 顶层 **`activity.organizer`**（personId 字符串）或 ② **`activity.assignments` 里 `role==='organizer'`**。**基准数据核过**：`docs/src/mock/activities.js` 各条均带 `organizer: 'pXX'` ＋ `assignments:[{personId:'pXX',role:'organizer'}]`（两处一致）；写入链 `docs/src/services/decision-tree.js:341-344` 与 `services/auth.js::_syncTopLevelOrganizer`（`:213-219`）**同口径派生顶层 `organizer`**。⇒ **本批取的就是这个**（`createdBy` 是审计字段，**不采**——见「五」）。 |
+| 4 | **现有待批判据的落点** | `docs/src/services/visibility.js:155-174`（批次 151 落）：`canSeePendingApprovalActivities(role)`（＝`BRANCH_COMMISSION_ROLES.includes`）· `isActivityVisibleTo(activity, role)` · `filterActivitiesForViewer(activities, role)`，**11 个消费点**逐处接入（清单见批次 151「二」）。⇒ **本批第二支只改这一处**。 |
+
+### 二、第一条(a)：堵快照口（判据与 PATCH 门同源）
+
+**做法**：在 `POST /snapshot` 的写穿循环**之前**加一道 `_snapshotActivityApprovalGateDeny(db, payload, req.actor)`——**逐行复用批次 151 那道 `_activityApprovalGateDeny`**（喂「库内行 vs 快照行」），**不另写第二套判据**；只对「**库内已有且处于 `pending-approval`**」的活动行判状态迁移（新建行 / 未变行 / 非待批行**一律放行**）。
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `server/routes/resources.js` 快照口 | `for (…) { if (Array.isArray(payload[name])) { replaceCollection(…); } }`（5 行） | **行数守恒改写（仍 5 行）**：`const snapshotDeny = _snapshotActivityApprovalGateDeny(db, payload, req.actor); if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });` ＋ 循环体压为一行 ⇒ **README-server.md 的 `文件:行号` 引用零位移** |
+| 2 | 同上（**文件末尾追加**） | —— | `_snapshotActivityApprovalGateDeny`（`:886-907`）：`payload.activities` 非数组 ⇒ 放行；逐行取库内同行，`_activityApprovalGateDeny(prevRow, row, actor)` 非空 ⇒ 返回该文案（⇒ 403） |
+| 3 | 同上（批次 151 门**一字未改**） | `_activityApprovalGateDeny`（`:854-866`） | **仅被复用**（快照口逐行喂入），档位仍以 `prevRow.approval.mode` 为准、不采信行内自述 |
+| 4 | 同上文件头注释（批次 151 门段 `:835-836`） | 「⚠ **未堵**（如实登记）：`POST /api/v1/snapshot`…本门不覆盖它」 | 改准为「**批次 152 已收口**：快照口**只拦状态迁移**、其余整表写入照旧放行」 |
+
+### 三、第一条(b)：堵直建口（与写入链同口径）
+
+| # | 位置 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `server/routes/resources.js` 通用 `POST /:name` 活动分支 | `const data = { ...row, id };`（原样落库） | `const data = { ...row, ...(name === 'activities' ? _activityCreateGatePatch(db, req.actor) : null), id };`（**行数守恒**：仍 1 行；注释行同步补一句指向文末函数） |
+| 2 | 同上（**文件末尾追加**） | —— | `_activityCreateGatePatch(db, actor)`（`:909-925`）：读该支部 `config.policyOverrides.activityApproval.mode`（查不到 → `'off'`），**补丁形状取自 `docs/src/services/activity.js::pendingApprovalPatchOnWrite`**（单一源）⇒ 开启档返回「`status:'pending-approval'` ＋ `approval{required,mode,state:'pending',at}`」，关闭 / 非法档返回 `null`（原样写入） |
+| 3 | `server/routes/resources.js` 文末 import（`:840`） | `import { canApproveActivity, PENDING_APPROVAL_STATUS } from …` | 追加 `pendingApprovalPatchOnWrite`（**同一行内改，行数不变**） |
+
+### 四、第一条的验收点：**「正常快照同步照旧」＋「偷改被拦」的真机证据**
+
+**（甲）正常同步照旧（本批最大风险）**：
+
+| # | 真机动作 | 实测结果 |
+|---|---|---|
+| ①-a | **关档**（默认）下，支书页真机写入一条活动（页面数据层 → `persist()` → 防抖快照） | **`POST /snapshot` → 204**；服务端该行 `status='draft'`（**原样**） |
+| ①-b | 关档下库里活动状态面 | 共 34 条、**`pending-approval` 0 条** ⇒ 判据恒真空转 |
+| ①-c | 关档下普通成员（p5）活动动态 | **看得到**该活动（列表过滤空转） |
+| ②-a | **开启档**下发**「未变行」**的整表快照（库内待批行原样回传） | **204**（照旧放行） |
+| ②-b | 开启档下发**不含 `activities` 键**的整表写入 | **204** |
+| ②-c | **合法批准走真 UI**：支书在「活动管理」详情面板**真点「批准发布」** ⇒ 前端 `approveActivity` → `persist()` → 快照 | **`POST /snapshot` → 204** 且服务端 `status='published'`、`approval={state:'approved',by:'p13',…}` ⇒ **合法路径未被本门打死** |
+
+**（乙）偷改被拦（真发一次带偷改的快照请求，贴返回）**：
+```
+POST /api/v1/snapshot  body = { activities: [ …(全表，其中目标行 status 由 pending-approval 改为 published、approval 抹掉)… ] }
+→ 403 {"error":"无权限：该活动处于「待批」，不得直接改为发布/取消——须经批准（补丁须携带批准语义 approval.state）"}
+→ 随后 GET /api/v1/activities 复核：该行 status 仍 'pending-approval'（整表写入未落）
+```
+
+**（丙）直建口（真发一次直建请求，贴返回）**：
+```
+POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主题党日", status:"published", date:"2026-09-22", organizer:"p5", assignments:[{personId:"p5",role:"organizer"}] }
+→ 201 {"id":"act-…","status":"pending-approval","approval":{"required":true,"mode":"secretary","state":"pending","at":"2026-09-22T15:14:48.511Z"}}
+```
+（**关闭档**下同一直建 ⇒ `201` 且 `status='published'`，原样写入。）
+
+### 五、第二条：组织者本人可见（落点与字段选择）
+
+- **落点**：`docs/src/services/visibility.js`（批次 151 落的**待批可见性单一源**）——`isActivityVisibleTo(activity, role, personId)` 的待批分支加一支：
+  ```js
+  if (!isPendingApprovalActivity(activity)) return true;
+  if (canSeePendingApprovalActivities(role)) return true;
+  return isActivityOrganizerIn(activity, personId !== undefined ? personId : currentViewerPersonId());
+  ```
+  `filterActivitiesForViewer` 同判据（**一处改、11 个消费点全部跟着变**）；另新增导出 `currentViewerPersonId()`（读 `AuthStore.getCurrentUser()?.personId`，未登录 → `null`）。
+- **「组织者本人」取哪个字段**：**取既有单一源 `docs/src/services/activity.js::isActivityOrganizerIn`**——即 **顶层 `activity.organizer`** 或 **`assignments[].role==='organizer'`**（本批为此**给它加 `export`**）；**不采 `createdBy`**（审计字段，且支书原话「他自己写的活动」＝他组织的那一场）。
+- **可见性语义（三档）**：**支委层可见 · 组织者本人（非支委层也）可见 · 其余非支委层看不到**；**他可见 ≠ 别人可见**。
+- **是否另做「我提交的待批」专门入口** ⇒ **本批判：不必另做**——改判据后，既有界面里「自己写的活动」那一块**自然露出**（真机证到 p5 在成员台「活动动态」看得到该条、直开活动详情页也看得到），**未新增页面 / tab / 卡片**。
+
+**真机三档（＋第四档）证据（四个身份真登录表单登录）**：
+
+| 身份 | 角色 | 成员台列表 | 详情页 |
+|---|---|---|---|
+| p13 支书 | 支委层 | —（支书台可见） | 详情页正文含该活动 ✓ |
+| **p5 宋佳宁** | **普通成员（本场组织者）** | **看得到 ✓** | **看得到 ✓**（正文含标题） |
+| p26 朱欣怡 | 普通成员（非组织者） | **看不到 ✓** | 「活动不存在或尚未公开」✓ |
+| p1 罗文杰 | 党小组组长（非本场组织者） | **看不到 ✓**（支书台/组长台正文不含该标题） | — |
+
+### 六、真机验证（真起 3000 服务 ＋ 真 Chromium；探针 `server/.tmp-probe-152.mjs` 跑完即删）
+
+**探针实测：25 / 25 项通过**（诊断记录见下），逐段：
+- **① 关闭档零影响 6 项**：①-0 起始档位＝关闭（无覆盖）· ①-1 设置卡**真点保存**（关闭档，按钮真点）· ①-2 关档下**快照写穿 204** · ①-3 活动状态 `draft` 原样 · ①-4 库内无待批活动 · ①-2b 支书台待办「一键确认」（种子下无该卡 ⇒ **如实登记跳过**）· ①-5 普通成员看得到该活动。
+- **② 开启档 8 项**：②-1 设置卡**真点保存** ⇒ 档位落 `secretary` · ②-2 直建落 `pending-approval`（贴返回）· ②-3 偷改快照 **403**（贴返回）· ②-4 被拒后库内仍待批 · ②-5 未变行快照 **204** · ②-6 支书在「活动管理」详情面板**看得到待批**（**批准／不批准按钮在位**，面板档位＝`secretary`）· ②-7 **真点「批准发布」** ⇒ 快照 204 且转 `published`。
+- **③ 三档可见性 4 项**：③-1 第二条待批（`organizer:'p5'`）· ③-2 支委层看得到 · ③-3 **组织者本人（p5）列表＋详情页都看得到** · ③-4 其他普通党员（p26）**列表无 ＋ 详情页「不存在或尚未公开」** · ③-5 组长（p1，非组织者）看不到。
+- **④ 关回去复原 2 项**：④-1 设置卡**真点保存** ⇒ 档位回落 `off` · ④-2 关档后直建原样 `published`。
+- **⑤ 探针活动清理**：0 残留；**⑥ 全流程 `pageerror` 0 条**。
+
+**一处真机过程如实登记**：②-6 最初把「批准按钮的落点」猜成独立页 `activity.html` ⇒ 真机**证否**（该页不渲染 inspector 动作区）；据真机改为**支书台「活动管理」详情面板**（先真点该 tab 让 inspector 的 DOM 就位，再以「详情态」渲染该面板、**真点按钮**）——**属探针侧定位修正、非产品缺陷**（`README-server.md` 自批次 151 起写的落点本就是 `inspector`）。
+
+### 七、反查（**口径＝命中行数**；改前＝`HEAD`（批次 151 提交）／改后＝工作树）
+
+| 词 | 改前 | 改后 | 逐条判定 |
+|---|---|---|---|
+| `POST /snapshot` / `'/snapshot'` | — | — | 载体＝`server/routes/resources.js`（路由 1 处 ＋ 注释）＋ `docs/src/core/data-adapter.js` 注释；**新增命中只在 `resources.js` 快照段与文末新函数** ⇒ 正当 |
+| `POST /activities` 直建 | — | — | 同上（`:237` 那行改写 ＋ 文末 `_activityCreateGatePatch`）⇒ 正当 |
+| `_activityApprovalGateDeny` | 2（批次 151：PATCH 调用 ＋ 定义） | **4** | 增量 2＝**快照口调用**（`resources.js:452`）＋ 文末新函数内**复用** ⇒ **正当（未另写第二套）** |
+| `_snapshotActivityApprovalGateDeny` / `_activityCreateGatePatch` | 0 / 0 | 3 / 2 | 定义 ＋ 调用 ＋ 注释 ⇒ 正当 |
+| `organizerId` | 见下 | 见下 | ⚠ **本批未据它改任何代码**：全库 `organizerId` 命中集中在**复盘记录**（`services/review.js` / `member-confirmation.js` / `person.js` 等，`activityReviews[].organizerId`）⇒ **与「活动组织者」不是同一个字段**（活动上用顶层 `organizer`）；**本批取的是 `organizer` / `assignments[].organizer`**（见「一」#3） |
+| `isActivityVisibleTo` | 3（批次 151：定义 ＋ 详情页 ＋ 我的任务） | **4** | 增量 1＝**`visibility.js` 内 `filterActivitiesForViewer` 改调它**（原为逐条调 `canSeePendingApprovalActivities`）⇒ 正当 |
+| `canSeePendingApprovalActivities` | 5 | 5 | **不变**（本批只改 `isActivityVisibleTo` 的分支，`canSee…` 一字未动）⇒ 正当 |
+| `isActivityOrganizerIn` | 2（定义 ＋ 一处内部调用） | **3** | 增量 1＝**`visibility.js` 的 import 与转调** ⇒ 正当（判据仍只有一处） |
+
+> **⚠ 不只靠 grep**（批次 106 / 118 / 121 / 140 教训）：① 「**正常同步会不会被打瘫**」grep 判不出（运行时行为）⇒ 真机 ＋「未变行 204 / 合法批准 204」两条实证；② 「**哪些行会过本门**」grep 判不出（要读 `_snapshotActivityApprovalGateDeny` 的三个放行分支）；③ 「**组织者是谁**」**换一种说法就 grep 不到**（活动上用 `organizer`、复盘上用 `organizerId`、活动分工上用 `assignments[].personId + role`）⇒ 本批**以读代码 ＋ 真机四身份**为准，不靠关键词。
+
+### 八、版本戳 ＋ 守卫 ＋ 全量 ＋ 停服 ＋ 四处计数
+
+**（甲）版本戳**：**bump `20260922i → 20260922j`**〔**显式传参** `node docs/scripts/bump-version.mjs 20260922j`；实测改写 JS 210 / HTML 22 / CSS 2 / server-test 69 个文件，**陈旧戳残留 0**〕——本批改了 `docs/src/**` ＋ `server/**` ⇒ 必 bump。**`CODE_VERSION` 273 → 274**（`.ctx/TIMESTAMPS.md` 该行同批改准为「截至批次 152 … 274 / `20260922j`」）。**「戳唯一」核过**：全库 `?v=20260922i` **0 命中**（改后）、`?v=20260922j` 为唯一当前戳。
+**（乙）守卫子集**（8 文件，带 `DISABLE_PASSWORD_CHECK=1`）：**改前 `64 / 64 / 0 红`（24.53 秒）→ 改后 `64 / 64 / 0 红`（24.90 秒）**；`doc-line-ref` 的 `R1`–`R6` 全绿（⚠ **如实登记**：改后**头两次**跑曾判红——详见「九（三）」）。
+**（丙）全量（`R-85`）**：**起 3000 服务** → `npm test` → **停服**。**如实贴数字**：`ℹ tests 724` / `ℹ pass 724` / **`ℹ fail 0`** / `cancelled 0` / `skipped 0` / `todo 0`，`ℹ duration_ms 1128992.551`（**≈ 18.82 分钟**），退出码 **0**（对比批次 151 的 723 项 ⇒ **+1＝本批新增的 ⑩ 用例**）。**无环境类红、无自致红**。
+**（丁）决策日志四处一致**：**文首**＝**文末「续编说明」**＝**本月目录 / 月度索引**＝实测 `^## D-\d+` 计数 ⇒ 均 **`D-275` … `D-594`、共 320 条、下一条自 `D-595`**；`.ctx/logs/DECISION_LOG.md` 月度索引 2026-09 行 **318 → 320 条（D-275~D-594）**，并补批次 151 / 152 两段沿革句。
+**（戊）队列侧同步**：`SOP-F-4` 内**两处**改准——① 段末「⚠ **未堵**＝snapshot 与 activities」→「**两条绕行路径（批次 152 已收口）**」；② 「⚠ 本批（151）新立的两条待支书定」→「**批次 151 新立的两条待支书定（批次 152 已处置）**」（**两处销账**）；**仍留在待支书定清单的**＝**支委会档「未通过」的处置**（批次 151 择终止；若要「退回待批」改一行即可）——**本批未替支书选边**；阶段 B「状态与现况」行补一句批次 152；**`SOP-B-*` 在册仍 2 条（`SOP-B-4` · `SOP-B-25`）**、`SOP-F-*` 系列**不计入**该计数 ⇒ **六处同源口径未变、逐处核过一致**。**队列体量**：**改前 902 行 / 214,777 B → 改后 902 行 / 215,992 B**（**行数不变、＋1,215 B**——本批三处改动全是**行内改写**，**未新增行**）⇒ **体量未反弹**（本批只改 3 处、无新增命题；如要压回去，可把两处「已处置」句收成一行指针，**建议、未做**）。
+**（己）残留核查**：探针 **1 个已删**（`.tmp-probe-152.mjs`）＋ 排查用调试件 **4 个已删**（`.tmp-dbg-152.mjs` / `.tmp-dbg2-152.mjs` / `.tmp-dbg3-152.mjs` / `.tmp-dbg4-152.mjs`）；**`.tmp*` 全库扫描 0 命中**；**未提交 git**；**未新建仓库文件**（本批新增的仓库文件 **0 个**）。
+
+### 九、待支书定清单 / 只登记未改清单 / 不确定与没做的地方
+
+**（一）待支书定（本批新发现）**：**无新增**。**仍留的 1 条**（非本批新发现、批次 151 留的）：**支委会档「未通过」的处置**——本批与批次 151 均择**终止**；若支书要「退回待批（可再议）」，**改一行**。
+
+**（二）只登记未改**：
+| # | 事项 | 为什么不能改（本批） |
+|---|---|---|
+| 1 | **快照口的「新建行」形态**未判 | 本批**只按裁定的两条口**处置（快照口只拦状态迁移）；「直建成已发布」若走快照**新增行**（如 `docs/src/entries/party-committee-meeting-entry.js:403` 的线上支委会活动，写的就是 `status:'published'`）**仍可绕** ⇒ **如实登记、建议另批**（收它＝给快照口的「新增活动行」也判一次写入态，牵动既有正当创建路径，须先定口径） |
+| 2 | `docs/src/mock/**` 人名 | 支书已裁**保留**（`D-588`）⇒ 一字不改 |
+| 3 | `SOP-B-25` ② 映射表 · `SOP-B-4` 母本沿革降级 | 仍待支书改 / 已登记部分落地 ⇒ 不在本批授权面 |
+| 4 | `docs/src/services/activity.js:66` 注释里 `DATA_MODEL.md:162` 的行号（批次 111 登记为已漂到 `:170`） | 与本批改动无关；`doc-line-ref` 只守 `README-server.md`，**不在判据面内** ⇒ 不动 |
+
+**（三）不确定 / 没做的地方（如实登记）**：
+- **本批自致的一处返工（两次红、当场改准）**：改 `README-server.md`「依据（本批新增部分）」行时，把新增的 `server/routes/resources.js:820-866` 等引用**插在了 `docs/src/components/inspector.js:826-845` 与短式 `:1078-1092` 之间** ⇒ `doc-line-ref` 守卫的 `R1`（短式引用越界）与 `R2`（短式引用被绑到 `inspector.js` 后区间里找不到所注符号）**先后两次判红**。**处置**：把三处 `resources.js` 引用**全部写成全式（带文件名）并移到该行末**，`R1`–`R6` 复跑全绿。**如实登记、不掩盖**（这是「短式引用承前一个完整引用」这条规则的一次真实误踩）。
+- **「关档零影响」的证据口径**：与批次 151 同——给的是「**关档下的行为面**（真机 6 项）＋ **开启档下未变行 204** ＋ **合法批准 204**」，**没有**做「同一脚本改前 / 改后差分」（盘上只有一份代码）⇒ **不主张更强口径**。
+- **①-2b（待办「一键确认」真点）在本机种子下无该聚合卡 ⇒ 跳过**（如实登记，未硬造数据凑）。
+- **服务端门仍不是「无处可绕」**：本批收口的是**裁定点名的两条口**；快照「新增行」形态（见「九（二）」#1）仍在 ⇒ 已写进 `README-server.md` 与 `resources.js` 的门注释，**不把「又堵了两处」写成「全堵死了」**。
+- **bump 触发面**：本批 bump 覆盖 JS 210 / HTML 22 / CSS 2 / server-test 69（其中绝大多数是**只换 `?v=` 戳、内容未改**）⇒ 工作树的体积看着大，**实质改动面**＝`server/routes/resources.js` · `docs/src/services/visibility.js` · `docs/src/services/activity.js` · `server/test/policy-config.test.mjs` · `README-server.md` · `docs/help.html`（3 处）＋ `.ctx` 五本账。
+
 
 
 

@@ -20,23 +20,23 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260922i';
+import { STATE, getAppState, setState, registerRenderCallback } from '../core/state.js?v=20260922j';
 
-import { bootstrapPage } from '../core/bootstrap.js?v=20260922i';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260922i';
-import { flashHighlight, escHtml } from '../core/utils.js?v=20260922i';
-import { CrossPageState } from '../core/cross-page-state.js?v=20260922i';
-import { getCapabilities } from '../core/registry.js?v=20260922i';
-import { loadWorkspaceData } from '../core/data-loader.js?v=20260922i';
+import { bootstrapPage } from '../core/bootstrap.js?v=20260922j';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260922j';
+import { flashHighlight, escHtml } from '../core/utils.js?v=20260922j';
+import { CrossPageState } from '../core/cross-page-state.js?v=20260922j';
+import { getCapabilities } from '../core/registry.js?v=20260922j';
+import { loadWorkspaceData } from '../core/data-loader.js?v=20260922j';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../services/visibility.js?v=20260922i';
+import { filterActivitiesForViewer } from '../services/visibility.js?v=20260922j';
 
-import { TodoStore } from '../services/todo.js?v=20260922i';
-import { AuthStore } from '../services/auth.js?v=20260922i';
-import { BranchService } from '../services/runtime.js?v=20260922i';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260922i';
+import { TodoStore } from '../services/todo.js?v=20260922j';
+import { AuthStore } from '../services/auth.js?v=20260922j';
+import { BranchService } from '../services/runtime.js?v=20260922j';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../services/branch.js?v=20260922j';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../services/preferences.js?v=20260922i';
+import { applyPersonalTabOrder } from '../services/preferences.js?v=20260922j';
 
 
 

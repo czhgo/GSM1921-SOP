@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922i';
-import { persist } from '../core/data-adapter.js?v=20260922i';
-import { bumpToken } from '../core/version-token.js?v=20260922i';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922i';
-import { ACTIVITIES } from '../mock/index.js?v=20260922i';
-import { isInitStateActive } from './init-reset.js?v=20260922i'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922j';
+import { persist } from '../core/data-adapter.js?v=20260922j';
+import { bumpToken } from '../core/version-token.js?v=20260922j';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922j';
+import { ACTIVITIES } from '../mock/index.js?v=20260922j';
+import { isInitStateActive } from './init-reset.js?v=20260922j'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -51,8 +51,8 @@ export function isActivityOrganizer(personId, activityId) {
   return isActivityOrganizerIn(a, personId);
 }
 
-/** 单场活动的组织者判定（纯函数，供上面两处共用，勿另写） */
-function isActivityOrganizerIn(activity, personId) {
+/** 单场活动的组织者判定（纯函数，供上面两处共用，勿另写；2026-09-22 批次 152 起另供可见性判据复用） */
+export function isActivityOrganizerIn(activity, personId) {
   if (!activity || !personId) return false;
   if (activity.organizer === personId) return true;
   return Array.isArray(activity.assignments)
@@ -662,8 +662,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20260922i'),
-    import('../core/id.js?v=20260922i'),
+    import('./vote-config.js?v=20260922j'),
+    import('../core/id.js?v=20260922j'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

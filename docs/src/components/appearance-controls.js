@@ -7,8 +7,8 @@
 // 生效强调色 = resolveAppliedAccentRole（person-aware：覆盖仅取当前作用域键，绝不跨空间回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算。
 
-import { icon } from '../core/icons.js?v=20260922i';
-import { ACCENT_COLORS, ACCENT_PALETTE } from '../core/constants.js?v=20260922i';
+import { icon } from '../core/icons.js?v=20260922j';
+import { ACCENT_COLORS, ACCENT_PALETTE } from '../core/constants.js?v=20260922j';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -16,7 +16,7 @@ import {
   setThemePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../core/theme.js?v=20260922i';
+} from '../core/theme.js?v=20260922j';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';

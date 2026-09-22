@@ -5,25 +5,25 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260922i';
-import { generateId } from '../core/id.js?v=20260922i';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260922i';
-import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260922i';
-import { bumpToken } from '../core/version-token.js?v=20260922i'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../mock/index.js?v=20260922i';
-import { isInitStateActive } from './init-reset.js?v=20260922i'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { showToast, getBasePath } from '../core/utils.js?v=20260922i';
-import { AuthStore } from './auth.js?v=20260922i';
-import { getPersonById, liveMembers } from './person.js?v=20260922i';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260922i';
-import { badgeHtml } from '../components/badges.js?v=20260922i';
-import { openFormModal } from '../components/modal.js?v=20260922i';
+import { mockDB } from '../core/domain.js?v=20260922j';
+import { generateId } from '../core/id.js?v=20260922j';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../core/data-adapter.js?v=20260922j';
+import { buildSystemNotice } from '../core/system-notice-templates.js?v=20260922j';
+import { bumpToken } from '../core/version-token.js?v=20260922j'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../mock/index.js?v=20260922j';
+import { isInitStateActive } from './init-reset.js?v=20260922j'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { showToast, getBasePath } from '../core/utils.js?v=20260922j';
+import { AuthStore } from './auth.js?v=20260922j';
+import { getPersonById, liveMembers } from './person.js?v=20260922j';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260922j';
+import { badgeHtml } from '../components/badges.js?v=20260922j';
+import { openFormModal } from '../components/modal.js?v=20260922j';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import { getOrganizedActivities, isActivityOrganizer } from './activity.js?v=20260922i';
+import { getOrganizedActivities, isActivityOrganizer } from './activity.js?v=20260922j';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../core/constants.js?v=20260922i';
+} from '../core/constants.js?v=20260922j';
 
 function _loadNotices() {
   try {

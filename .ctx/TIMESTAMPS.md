@@ -219,7 +219,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | docs/src/core/bootstrap.js | 2026-09-21 | — | [工程师]+[AI] | 引导启动（主题色 resolveAccentRole；header/sidebar 版本引用；**2026-09-21 批次 139：`DEV_ROLE_WHITELIST` 加 `deputy-leader`**——本地 `?dev=` 可直入副组长身份，`D-571`） |
 | docs/src/core/constants.js | 2026-09-21 | — | [工程师]+[AI] | 静态常量（ACCENT_PALETTE/resolveAccentRole；**2026-09-21 批次 139：「副组长」身份键 `deputy-leader`**——键 / 标签「党小组副组长」/ 页面映射〔同 `leader.html`〕/ 颜色三处，**集中在文件末挂载**：`README-server.md:106` 按行号引用本文件的四张表，插行会整体漂移故不插行，`D-571`） |
-| docs/src/core/cross-page-state.js | 2026-09-22 | — | [工程师]+[AI] | 跨页状态（T-280 B1-5 版本化 `CODE_VERSION`；**2026-09-22 批次 141 bump 自增 264 → 265**——`docs/scripts/bump-version.mjs` 每次 bump 自增，勿手改；**截至 2026-09-22 批次 151 已随各批 bump 至 `CODE_VERSION` 273 / 全站版本戳 `20260922i`**） |
+| docs/src/core/cross-page-state.js | 2026-09-22 | — | [工程师]+[AI] | 跨页状态（T-280 B1-5 版本化 `CODE_VERSION`；**2026-09-22 批次 141 bump 自增 264 → 265**——`docs/scripts/bump-version.mjs` 每次 bump 自增，勿手改；**截至 2026-09-22 批次 152 已随各批 bump 至 `CODE_VERSION` 274 / 全站版本戳 `20260922j`**） |
 | docs/src/core/data-loader.js | 2026-07-31 | — | [工程师]+[AI] | 数据加载 |
 | docs/src/core/data-adapter.js | 2026-08-03 | — | [工程师]+[AI] | 数据适配器（setDataSource/init/persist） |
 | docs/src/core/login-snapshot.js | 2026-08-16 | — | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |

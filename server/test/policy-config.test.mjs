@@ -20,38 +20,38 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922i';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922i';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922i';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922j';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922j';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922j';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/policy-defaults.js?v=20260922i';
+} from '../../docs/src/core/policy-defaults.js?v=20260922j';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity.js?v=20260922i';
+} from '../../docs/src/services/activity.js?v=20260922j';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/visibility.js?v=20260922i';
+} from '../../docs/src/services/visibility.js?v=20260922j';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922i';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922i';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922i';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922j';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922j';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922j';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260922i';
+} from '../../docs/src/core/config-clean.js?v=20260922j';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260922i';
+} from '../../docs/src/services/branch.js?v=20260922j';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260922i';
+} from '../../docs/src/services/member-confirmation.js?v=20260922j';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922i';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922j';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -439,6 +439,14 @@ test('⑨ 待批可见性：只支委层可见；非待批活动恒可见（关�
   assert.equal(isActivityVisibleTo(published, 'participant'), true, '非待批活动沿用既有可见性');
   assert.deepEqual(filterActivitiesForViewer([pending, published], 'participant').map((a) => a.id), ['act-p2']);
   assert.deepEqual(filterActivitiesForViewer([pending, published], 'secretary').map((a) => a.id), ['act-p1', 'act-p2']);
+  // 三档之②：组织者本人（2026-09-22 批次 152）——他可见、别人不可见（组织者按实际字段 organizer / assignments）
+  const mine = { id: 'act-p3b', status: PENDING_APPROVAL_STATUS, organizer: 'p5' };
+  const other = { id: 'act-p3c', status: PENDING_APPROVAL_STATUS, organizer: 'p9', assignments: [{ personId: 'p9', role: 'organizer' }] };
+  assert.equal(isActivityVisibleTo(mine, 'leader', 'p5'), true, '组织者本人（非支委层）看得到自己组织的待批活动');
+  assert.equal(isActivityVisibleTo(mine, 'participant', 'p7'), false, '同一场待批活动，别人仍看不到');
+  assert.equal(isActivityVisibleTo(other, 'participant', 'p9'), true, '组织者身份按 assignments[].role=organizer 也认');
+  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', 'p5').map((a) => a.id), ['act-p3b']);
+  assert.deepEqual(filterActivitiesForViewer([mine, other], 'participant', 'p7').map((a) => a.id), []);
   // 关闭（默认）档位：系统里不存在 pending-approval 活动 ⇒ 过滤对任何清单恒等（零行为变化）
   const plain = [published, { id: 'act-p3', status: 'draft' }, { id: 'act-p4', status: 'completed' }];
   assert.deepEqual(filterActivitiesForViewer(plain, 'participant'), plain);
@@ -521,4 +529,56 @@ test('⑨ HTTP：服务端门——待批活动改状态必须带批准语义且
   const id3 = (await mk3.json()).id;
   assert.equal((await patch(sec, id3, { status: 'cancelled' })).status, 403);
   assert.equal((await patch(sec, id3, { status: 'cancelled', approval: { required: true, mode: 'secretary', state: 'rejected' } })).status, 200);
+});
+
+// ── ⑩ 活动批准门的两条绕行路径收口（2026-09-22 批次 152 · 支书裁定「一并堵上」）────────
+// ① 快照口（`POST /snapshot`）**只拦「不该发生的状态迁移」**——判据与 PATCH 门同源（逐行复用）；
+// ② 直建口（`POST /activities`）——开启档落「待批」（同写入链）、关闭档照旧。
+test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入照旧放行）；直建口开启档落待批、关闭档照旧', async () => {
+  const sec = await _login('p13');
+  const mem = await _login('p5');
+  const snapshot = (token, body) => fetch(`${_httpBase}/api/v1/snapshot`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+  });
+  const post = (token, body) => fetch(`${_httpBase}/api/v1/activities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
+  });
+  const listAll = async (token) => (await (await fetch(`${_httpBase}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json());
+  const setMode = (token, mode) => _patchConfig(token, { config: { policyOverrides: mode ? { activityApproval: { mode } } : null } });
+
+  // 开启档（secretary）
+  assert.equal((await setMode(sec, 'secretary')).status, 200);
+  // ② 直建口：直调创建一条「已发布」⇒ 落「待批」（同写入链口径，档位固化在行上）
+  const mk = await post(sec, { title: '直建活动甲', type: '主题党日', status: 'published' });
+  assert.equal(mk.status, 201);
+  const created = await mk.json();
+  assert.equal(created.status, PENDING_APPROVAL_STATUS, '开启档时直建不再落 published');
+  assert.equal(created.approval.state, 'pending');
+  assert.equal(created.approval.mode, 'secretary');
+
+  const all = await listAll(sec);
+  const forged = all.map((a) => (a.id === created.id ? { ...a, status: 'published', approval: undefined } : a));
+  // ①-a 偷改（无批准语义）⇒ 403，且库内该行**未变**（整表写入未落）
+  const r1 = await snapshot(sec, { activities: forged });
+  assert.equal(r1.status, 403);
+  assert.match((await r1.json()).error, /待批/);
+  assert.equal((await listAll(sec)).find((a) => a.id === created.id).status, PENDING_APPROVAL_STATUS, '被拦后库内仍是待批');
+  // ①-b 普通成员伪造批准语义 ⇒ 403（角色不符该活动固化档位，不采信行内自述）
+  assert.equal((await snapshot(mem, { activities: forged.map((a) => (a.id === created.id ? { ...a, approval: { required: true, mode: 'secretary', state: 'approved' } } : a)) })).status, 403);
+  // ①-c 未变行（待批照旧待批）⇒ 照旧放行（正常同步不被拦）
+  assert.equal((await snapshot(sec, { activities: all })).status, 204);
+  // ①-d 不含 activities 键的整表写入 ⇒ 照旧放行
+  assert.equal((await snapshot(sec, {})).status, 204);
+  // ①-e 合法批准（支书 ＋ 批准语义）⇒ 放行且转 published
+  const approved = all.map((a) => (a.id === created.id
+    ? { ...a, status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: 'p13', at: '2026-09-22T03:00:00.000Z' } }
+    : a));
+  assert.equal((await snapshot(sec, { activities: approved })).status, 204);
+  assert.equal((await listAll(sec)).find((a) => a.id === created.id).status, 'published');
+
+  // 关闭档（默认）⇒ 直建口照旧（原样写入）
+  assert.equal((await setMode(sec, null)).status, 200);
+  const mk2 = await post(sec, { title: '直建活动乙', type: '主题党日', status: 'published' });
+  assert.equal(mk2.status, 201);
+  assert.equal((await mk2.json()).status, 'published', '关闭档时直建原样写入（零行为变化）');
 });

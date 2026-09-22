@@ -16,10 +16,10 @@
 //     人维无论落在行（byPerson）还是列（byItem）都按同一页切片——转置只换视角，不换分页口径。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../core/utils.js?v=20260922i';
+import { escHtml as esc } from '../core/utils.js?v=20260922j';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20260922i';
+import { pagerHtml } from './pager.js?v=20260922j';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;

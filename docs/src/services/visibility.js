@@ -12,10 +12,10 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260922i';
-import { TaskForceRecordStore } from './taskforce.js?v=20260922i';
-import { loadActivities, isPendingApprovalActivity } from './activity.js?v=20260922i';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260922i';
+import { PEOPLE } from '../mock/people.js?v=20260922j';
+import { TaskForceRecordStore } from './taskforce.js?v=20260922j';
+import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from './activity.js?v=20260922j';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260922j';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
@@ -139,13 +139,18 @@ export function resolveVisibleTargets(viewerRole, viewerPersonId) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  活动批准门的「待批可见性」单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
+//  活动批准门的「待批可见性」单一源（2026-09-22 批次 151 立 · 批次 152 补第二支）
 // ════════════════════════════════════════════════════════════════
 // 支书裁定（2026-09-22，逐字）：「待批的活动，只有支委层能看到；普通党员看不到（避免"还没批就传出去了"）。」
-// 口径：**支委层**＝既有语义角色集 `core/constants.js::BRANCH_COMMISSION_ROLES`（支书/副支书/组织委员/
-//   宣传委员/纪检委员；**单一源，勿另写名单**）；`status === 'pending-approval'` 的活动对**非支委层**一律
-//   不可见（活动列表 / 日历 / 看板 / 今日摘要 / 待办派生 / 计数 / 详情页共用本判据）；批准后（`published`）
-//   即回到既有可见性口径。
+// 支书裁定（2026-09-22，逐字，批次 152 补）：「给组织者本人开一个"我提交的待批"可见位。理由：他自己写的活动，
+//   批之前总得能看见吧。」
+// 口径（**三档**）：① **支委层**＝既有语义角色集 `core/constants.js::BRANCH_COMMISSION_ROLES`（支书/副支书/
+//   组织委员/宣传委员/纪检委员；**单一源，勿另写名单**）可见；② **组织者本人**（＝该场活动的组织者：顶层
+//   `activity.organizer` 或 `assignments[].role==='organizer'`，判据单一源 `services/activity.js::isActivityOrganizerIn`，
+//   以**实际字段**为准、不另立"创建人"口径）**也可见**——即使他不在支委层（他自己写的活动，批之前看得见）；
+//   ③ **其余非支委层**（普通党员 / 党小组组长 / 未登录）**看不到**。他可见 ≠ 别人可见。
+//   `status === 'pending-approval'` 的活动按上三档判；批准后（`published`）回到既有可见性口径。
+//   （活动列表 / 日历 / 看板 / 今日摘要 / 待办派生 / 计数 / 详情页共用本判据。）
 // ⚠ **关闭（默认档 `off`）⇒ 零行为变化**：关闭时系统里不存在 `pending-approval` 活动 ⇒ 本判据对任何活动
 //   恒真 ⇒ 各消费点过滤为空转（不改变任何一处既有行为）。
 // ⚠ 判据单一源即本段：各消费点一律调 `isActivityVisibleTo` / `filterActivitiesForViewer`，勿另写第二份。
@@ -157,19 +162,38 @@ export function canSeePendingApprovalActivities(role) {
   return BRANCH_COMMISSION_ROLES.includes(role);
 }
 
-/** 某场活动对某角色是否可见（待批 ⇒ 仅支委层；其余状态 ⇒ 沿用既有可见性，恒真） */
-export function isActivityVisibleTo(activity, role) {
-  if (isPendingApprovalActivity(activity)) return canSeePendingApprovalActivities(role);
-  return true;
+/** 当前查看者 personId（未登录 / 无此接口 → null；与各消费点读 `AuthStore.getCurrentUser()` 同源一处） */
+export function currentViewerPersonId() {
+  try {
+    const u = AuthStore.getCurrentUser();
+    return u ? (u.personId || null) : null;
+  } catch { return null; }
 }
 
 /**
- * 按查看者角色过滤活动清单（待批活动对非支委层剔除）。
+ * 某场活动对某查看者是否可见（待批 ⇒ 支委层 **或** 组织者本人；其余状态 ⇒ 沿用既有可见性，恒真）。
+ * @param {Object} activity 活动
+ * @param {string|null|undefined} role 查看者角色键
+ * @param {string|null} [personId] 查看者 personId（缺省＝当前登录人）
+ */
+export function isActivityVisibleTo(activity, role, personId) {
+  if (!isPendingApprovalActivity(activity)) return true;
+  if (canSeePendingApprovalActivities(role)) return true;
+  return isActivityOrganizerIn(activity, personId !== undefined ? personId : currentViewerPersonId());
+}
+
+/**
+ * 按查看者过滤活动清单（待批活动对「非支委层 **且** 非组织者本人」剔除）。
  * @param {Array} activities 活动清单
  * @param {string|null|undefined} role 查看者角色键（未登录/无身份 → null ⇒ 非支委层）
+ * @param {string|null} [personId] 查看者 personId（缺省＝当前登录人）
  * @returns {Array}
  */
-export function filterActivitiesForViewer(activities, role) {
-  return (activities || []).filter(a => isActivityVisibleTo(a, role));
+export function filterActivitiesForViewer(activities, role, personId) {
+  const pid = personId !== undefined ? personId : currentViewerPersonId();
+  return (activities || []).filter(a => isActivityVisibleTo(a, role, pid));
 }
+
+// 当前登录人读口（置文件末尾：ESM import 声明提升，不影响语义，避免改动上文行号 ⇒ README-server.md 引用不漂移）
+import { AuthStore } from './auth.js?v=20260922j';
 
