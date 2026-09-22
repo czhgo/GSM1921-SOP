@@ -5,39 +5,41 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../core/state.js?v=20260922g';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922g';
-import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260922g';
-import { icon } from '../core/icons.js?v=20260922g';
-import { openModal, closeModal } from './modal.js?v=20260922g';
+import { setState, STATE, getAppState } from '../core/state.js?v=20260922h';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922h';
+import { _fmtChinese, showToast, escHtml as esc } from '../core/utils.js?v=20260922h';
+import { icon } from '../core/icons.js?v=20260922h';
+import { openModal, closeModal } from './modal.js?v=20260922h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../services/person.js?v=20260922g';
-import { BranchService } from '../services/runtime.js?v=20260922g';
-import { AuthStore } from '../services/auth.js?v=20260922g';
-import { liveMembers, PersonStore, getPersonName } from '../services/person.js?v=20260922g';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260922g';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260922g';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260922g';
+import { getPersonById } from '../services/person.js?v=20260922h';
+import { BranchService } from '../services/runtime.js?v=20260922h';
+import { AuthStore } from '../services/auth.js?v=20260922h';
+import { liveMembers, PersonStore, getPersonName } from '../services/person.js?v=20260922h';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from './badges.js?v=20260922h';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../core/data-adapter.js?v=20260922h';
+import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260922h';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260922g';
+import { isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260922h';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity } from '../services/activity.js?v=20260922g';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity } from '../services/activity.js?v=20260922h';
+// 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/policy-defaults.js::activityApproval.mode
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../core/policy-defaults.js?v=20260922h';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260922g';
+import { createEditableAgenda, normalizeEditedAgenda } from '../services/agenda-editing.js?v=20260922h';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../services/notice.js?v=20260922g';
-import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260922g';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260922g';
-import { renderVoteSummary } from './vote-summary-panel.js?v=20260922g';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260922g';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260922g';
-import { loadActivityReviews } from '../services/review.js?v=20260922g';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260922g';
+import { NoticeStore } from '../services/notice.js?v=20260922h';
+import { fetchVotes, submitVote } from '../services/committee-vote.js?v=20260922h';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../services/vote-config.js?v=20260922h';
+import { renderVoteSummary } from './vote-summary-panel.js?v=20260922h';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260922h';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260922h';
+import { loadActivityReviews } from '../services/review.js?v=20260922h';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../core/domain.js?v=20260922h';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -63,6 +65,7 @@ export function deriveActivityExecutionStatus(activity, allTasks) {
 // "已完成"字样全站移除：执行完毕且产出齐备才为"已执行"，产出缺失为"待归档"。
 export const ACTIVITY_LIFECYCLE = {
   draft:          { label: '草稿',   variant: 'neutral' },
+  pending_approval:{ label: '待批',   variant: 'warning' },
   published:      { label: '已发布', variant: 'info' },
   ongoing:        { label: '进行中', variant: 'warning' },
   pending_archive:{ label: '待归档', variant: 'warning' },
@@ -75,6 +78,7 @@ export function deriveActivityLifecycleStatus(activity, allTasks) {
   if (activity.status === 'cancelled') return 'cancelled';
   if (activity.archived) return 'archived';
   if (activity.status === 'draft') return 'draft';
+  if (activity.status === PENDING_APPROVAL_STATUS) return 'pending_approval';
   const exec = deriveActivityExecutionStatus(activity, allTasks || []);
   if (exec === 'completed') {
     const { canClose, missing } = checkActivityCloseConditions(activity);
@@ -816,6 +820,21 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '</div>';
   }
 
+  // 活动批准门（2026-09-22 批次 150 · 支书裁定「做成可开关的制度参数（默认关）」）：
+  // 仅在该活动的待批态渲染「批准 / 不批准」两动作；放行者按**当前档位**判定（判据单一源在 services/activity.js）。
+  // 关闭（默认）时任何活动都不会是待批态 ⇒ 本块永不渲染（零行为变化）。
+  if (activity.status === PENDING_APPROVAL_STATUS && !isArchived) {
+    const aprMode = activityApprovalMode();
+    const aprModeLabel = ACTIVITY_APPROVAL_MODE_LABELS[aprMode] || aprMode; // 档位标签单一源（policy-defaults；2026-09-22 批次 150）
+    html += '<div class="mt-3 flex items-center gap-2 flex-wrap">';
+    html += `<span class=" text-xs text-gray-500">待批（档位：${esc(aprModeLabel)}）——批准前不推进；不批准则终止</span>`;
+    if (canApproveActivity(_user?.role, aprMode)) {
+      html += '<button id="inspector-approve-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="--acc-bg-dark:rgba(34,197,94,0.16);--acc-text-dark:#4ADE80;--acc-border-dark:rgba(34,197,94,0.35);background:rgba(22,163,74,0.10);color:#15803D;border:1px solid rgba(22,163,74,0.40);">批准发布</button>';
+      html += '<button id="inspector-reject-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="background:rgba(220,38,38,0.08);color:#B91C1C;border:1px solid rgba(220,38,38,0.35);">不批准（终止）</button>';
+    }
+    html += '</div>';
+  }
+
   html += '<div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">';
   if (isSecretary && !isArchived) {
     // B 档 CRUD 补全：活动信息编辑（支书持有 create_activity，含编辑权）
@@ -1040,6 +1059,30 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       const res = revokeBrandDesignation({ activityId: activity.id, by: currentUserId, role: _user?.role });
       if (!res.ok) { showToast('error', res.reason || '取消失败'); return; }
       showToast('success', '已取消品牌认定');
+      await reloadAfterBrandWrite();
+    });
+  }
+
+  // 活动批准门两动作（2026-09-22 批次 150）：批准 ⇒ 已发布；不批准 ⇒ 终止（已取消，留退回意见）。
+  // 放行判据在服务层复算一次（点了没反应＝按钮没渲染出来，属「漏挂」类问题，不静默）。
+  const approveBtn = document.getElementById('inspector-approve-btn');
+  if (approveBtn) {
+    approveBtn.addEventListener('click', async () => {
+      if (!window.confirm('批准该活动？批准后即发布（全支部可见）。')) return;
+      const res = approveActivity({ activityId: activity.id, by: currentUserId, role: _user?.role, mode: activityApprovalMode() });
+      if (!res.ok) { showToast('error', res.reason || '批准失败'); return; }
+      showToast('success', '已批准发布');
+      await reloadAfterBrandWrite();
+    });
+  }
+  const rejectBtn = document.getElementById('inspector-reject-btn');
+  if (rejectBtn) {
+    rejectBtn.addEventListener('click', async () => {
+      const note = window.prompt('不批准该活动（将终止）。可填写退回意见：', '');
+      if (note === null) return;
+      const res = rejectActivity({ activityId: activity.id, by: currentUserId, role: _user?.role, mode: activityApprovalMode(), note });
+      if (!res.ok) { showToast('error', res.reason || '驳回失败'); return; }
+      showToast('success', '未批准，该活动已终止（已取消）');
       await reloadAfterBrandWrite();
     });
   }

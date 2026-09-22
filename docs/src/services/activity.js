@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922g';
-import { persist } from '../core/data-adapter.js?v=20260922g';
-import { bumpToken } from '../core/version-token.js?v=20260922g';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922g';
-import { ACTIVITIES } from '../mock/index.js?v=20260922g';
-import { isInitStateActive } from './init-reset.js?v=20260922g'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922h';
+import { persist } from '../core/data-adapter.js?v=20260922h';
+import { bumpToken } from '../core/version-token.js?v=20260922h';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../core/constants.js?v=20260922h';
+import { ACTIVITIES } from '../mock/index.js?v=20260922h';
+import { isInitStateActive } from './init-reset.js?v=20260922h'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -516,4 +516,94 @@ export function completeMyProjectTask(personId, taskId) {
   });
   persist();
   return { ok: true, task: updated };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  活动批准门（**支部可开关的制度参数**，默认关）——2026-09-22 批次 150 · 支书裁定
+// ════════════════════════════════════════════════════════════════
+// 支书裁定（2026-09-22，逐字）：「把它做成一个可开关的支部制度参数（默认关），想要这道门的支部自己打开。」
+// 参数本体＝core/policy-defaults.js::activityApproval.mode（三态；默认 off ⇒ 关闭时零行为变化）。
+// 三件（支书未答 ⇒ **依母本推**，出处 content/02_institution/sop/常见工作场景快速指南.md:242-251）：
+//   · **在哪一步**（2026-09-22 依母本推）——母本共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」＝门在
+//     **写入之后、推进之前** ⇒ 开启时写入即落「待批」，批准前不得推进（不自动发布）。
+//   · **谁批**（2026-09-22 依母本推）——母本 `:245`「必须经支书同意」⇒ 默认档＝支书批准（secretary）；支部若把这道门放到
+//     支委会，可改选 branch-committee 档（支委层记录支委会决定）。
+//   · **批完谁能看见**——母本「不批准则终止」⇒ 批准前该活动尚未正式成立：待批期间**只有批者与组织者**
+//     可见、不进面向普通成员的公开列表（其生命周期徽章显示「待批」）；**批准＝已发布**（全支部可见，
+//     同既有已发布口径）；**不批准＝终止**（置 cancelled ＋ 留退回意见）。
+// 落库形状（**不新增表 / 不新增页面**，字段落在活动主源）：`approval = { required, mode, state, at, by, note? }`。
+// ⚠ 判据（谁能批 / 何时算待批）单一源即本段，勿在页面另写第二份。
+// ⚠ 本段置于文件末尾（批次 132 行号纪律）：不改动上文任何行号，README-server.md 引用不漂移。
+
+/** 待批状态值（活动状态链新增的审批态；**仅在批准门开启时出现**，关闭时不写入） */
+export const PENDING_APPROVAL_STATUS = 'pending-approval';
+
+/** 谁能批当前档（依母本推：secretary＝支书/副支书；branch-committee＝支委层；off＝无人） */
+export function canApproveActivity(role, mode) {
+  if (mode === 'secretary') return SECRETARY_AND_DEPUTY_ROLES.includes(role);
+  if (mode === 'branch-committee') return BRANCH_COMMISSION_ROLES.includes(role);
+  return false;
+}
+
+/**
+ * 写入时的批准门改写（**纯函数**，判据唯一落点）：关闭/非法档 → null（**原样写入＝零行为变化**）；
+ * 开启 → 返回写入补丁（`status` 待批 ＋ `approval` 轨迹）。
+ * @param {string} mode 当前档位（调用方读 core/policy-defaults.js::activityApprovalMode()）
+ * @param {string} [at] 时间戳（缺省＝当下）
+ */
+export function pendingApprovalPatchOnWrite(mode, at) {
+  if (mode !== 'secretary' && mode !== 'branch-committee') return null;
+  return {
+    status: PENDING_APPROVAL_STATUS,
+    approval: { required: true, mode, state: 'pending', at: at || new Date().toISOString() },
+  };
+}
+
+/** 某活动是不是待批（待批判据单一处） */
+export function isPendingApprovalActivity(activity) {
+  return !!activity && activity.status === PENDING_APPROVAL_STATUS;
+}
+
+/** 全支部待批活动清单（批者面的数据源，单一源） */
+export function listPendingApprovalActivities() {
+  return loadActivities().filter(a => a && !a.archived && a.status === PENDING_APPROVAL_STATUS);
+}
+
+/**
+ * 批准（**唯一写口**）：待批 → 已发布，留痕 `approval.state='approved'`。
+ * 放行复算一次（角色 ＋ 当前档），防绕过 UI。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function approveActivity({ activityId, by, role, mode, note } = {}) {
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (act.status !== PENDING_APPROVAL_STATUS) return { ok: false, reason: '该活动不在待批态' };
+  if (!canApproveActivity(role, mode)) return { ok: false, reason: '当前档位下你无权批准' };
+  _writeActivityField(activityId, {
+    status: 'published',
+    approval: {
+      ...(act.approval || {}), required: true, mode, state: 'approved',
+      by: by || null, at: new Date().toISOString(), note: String(note || '').trim(),
+    },
+  });
+  return { ok: true };
+}
+
+/**
+ * 不批准（**唯一写口**）：待批 → 已取消（母本「不批准则终止」），留退回意见。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function rejectActivity({ activityId, by, role, mode, note } = {}) {
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (act.status !== PENDING_APPROVAL_STATUS) return { ok: false, reason: '该活动不在待批态' };
+  if (!canApproveActivity(role, mode)) return { ok: false, reason: '当前档位下你无权驳回' };
+  _writeActivityField(activityId, {
+    status: 'cancelled',
+    approval: {
+      ...(act.approval || {}), required: true, mode, state: 'rejected',
+      by: by || null, at: new Date().toISOString(), note: String(note || '').trim(),
+    },
+  });
+  return { ok: true };
 }

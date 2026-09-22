@@ -2,13 +2,13 @@
 // ws-disc-commissioner-entry.js — 纪检委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260922g';
-import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260922g';
-import { loadActivities } from '../services/activity.js?v=20260922g';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922g';
-import { seedTodos } from '../services/todo.js?v=20260922g';
+import { createWorkspaceShell } from '../components/workspace-shell.js?v=20260922h';
+import { renderReportEntryHtml, bindReportEntry } from '../components/reporting.js?v=20260922h';
+import { loadActivities } from '../services/activity.js?v=20260922h';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922h';
+import { seedTodos } from '../services/todo.js?v=20260922h';
 // 副作用导入触发纪检工作台能力注册（tab 清单）
-import '../modules/capabilities/disc-workspace.js?v=20260922g';
+import '../modules/capabilities/disc-workspace.js?v=20260922h';
 
 await createWorkspaceShell({
   accentRole: 'disc-commissioner',

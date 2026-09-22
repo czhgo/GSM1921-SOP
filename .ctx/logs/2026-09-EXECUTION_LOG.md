@@ -15965,6 +15965,153 @@ export function ownerSubjectType(id) { return isOrgSubject(id) ? 'org' : 'role';
 - **本批改了 `docs/src/**`（`work-map.js` / `work-map-tab.js` / `workforce-duty-card.js`）与 `server/test/work-map.test.mjs`** ⇒ 全绿的覆盖面含本批改动面（`work-map.test.mjs` 7 项全过、`page-sweep` / `form-loop-sweep` / `module-load` / `block-*` 等真机项一并绿）。
 - **停服**：跑完已停（实测 `localhost:3000` 不可连）。
 
+## 批次 150（2026-09-22，`D-587` · `D-588` · `D-589`）落地支书三条裁定（① 活动批准门＝支部可开关的制度参数（**默认关**）② mock 真人名**保留**（登记 `D-392` 例外）③ 母本三处「信息平台」同名异事**改母本**）
+
+> **本批三条均系按支书 2026-09-22 裁定落**：① 支书在四个选项里选「**把它做成一个可开关的支部制度参数（默认关），想要这道门的支部自己打开。需要先定：在哪一步、谁批、批完谁能看见。**」② 「**保留**」（理由：「这是我自己的名，且这个系统的开发者确实是我，不必避讳」）③ 「**改母本那三处**」（母本那三处改写成另一件事「组织委员的信息与档案支持」，与「信息平台支持＝本网页系统」分开）。
+> **本批最重的硬约束**：**默认值＝关闭（不启用）⇒ 关闭时活动状态链与全部行为必须与改动前完全一致（零行为变化）**，**已真机证到**（见「四」）。
+
+### 一、取证（改前把三件事逐一查清）
+
+| # | 事项 | 改前实然（取证） |
+|---|---|---|
+| 1 | **系统里到底有没有「活动级批准门」** | **没有**。活动状态链 `draft → published → ongoing → completed → cancelled`（`docs/src/core/domain.js` 活动 typedef）**无审批态**；活动写入门 `ACTIVITY_WRITE_ROLES` 是**角色门**、不是「写完他人批」；全仓「批准」二字**无一处**指活动级门（批次 149 已取证并如实登记，本批复核仍成立） |
+| 2 | **「支部制度参数」区现在能不能改** | **只能看**。`docs/src/entries/settings-entry.js::branchPolicyLockedCardHtml` 的 `rows`（`_quorumLabel` / `_recorderLabel` 等）**全部由 `POLICY_DEFAULTS` 派生**、卡内**明写「本页不开放直改」**；**真正可改的只有域参数（L2）**——`docs/src/core/policy-defaults.js::POLICY_OVERRIDABLE` 白名单 ＋ `docs/src/services/branch.js::savePolicyOverrides`（角色门 `canManagePolicyOverrides`） |
+| 3 | **`docs/src/mock/**` 里的真名有几处** | **唯一一处真名**＝`docs/src/mock/people.js:23` 的 `p13`（其余 p1–p50 为常见假名；`p_pc` 是「党委组织员」这一**称谓**、非人名）；**同族注释**另 4 处含同一真名（`people.js:2` · `accounts.js:3`/`:6` · `branches.js:31`） |
+| 4 | **母本「信息平台支持」到底是哪件事、全库几处** | 母本那套指的是**组织委员的信息与档案支持服务**（考察档案管理 / 材料催缴与审核督办 / 资料查询），与批次 149 定的 `info-platform`＝**本网页系统本身** **不是同一件事**；**全库找齐 6 处**：`:361` 小标题 · `:363` 适用角色 · `:367` 表列头 · `:463` 「组织委员（条条）」格 · `:478` 速查表「组织委员的信息与档案支持」行 ＋ `:245`（另属裁定一） |
+
+### 二、裁定一：「在哪一步 / 谁批 / 批完谁能看见」按母本推——推得出的自己定、推不出的上报
+
+母本依据：`content/02_institution/sop/常见工作场景快速指南.md:242-251`（共建活动八步流程）、`:245`「**必须经支书同意后方可推进；不批准则终止**」。
+
+| # | 要定的 | 依母本哪句推 / 推得什么 | 本批处置 |
+|---|---|---|---|
+| ① | **在哪一步** | 母本八步流程 `:243-245`：1 提出意向 → 2 组长评估 → **3 支书批准** → 4 共同策划 → …⇒ 门在**写入之后、推进之前**：开启时**写入即落「待批」**、批准前不得推进（不自动发布） | **推得出 ⇒ 本批落**（`pendingApprovalPatchOnWrite`） |
+| ② | **谁批** | 母本 `:245`「**必须经支书同意**」⇒ **默认档＝支书批准**（`secretary`）；支部若把这道门放到支委会，可改选 `branch-committee` 档 | **推得出 ⇒ 本批落**（档位＋两动作放行判据） |
+| ③ | **批完谁能看见** | **母本无相应句**（`:245` 只写「必须经支书同意后方可推进；不批准则终止」，**未说待批期间给谁看**）⇒ **推不出** | **未推得 ⇒ 上报**：本批**待批活动的可见性沿用既有规则、未新增任何收窄**；可见范围口径另立 **`SOP-F-4-①`**（三档待支书择一） |
+
+**参数取值形态（本批判）**：取**三态**——`off`（关闭，**默认**）/ `secretary`（支书批准，**母本档**）/ `branch-committee`（支委会批准）。取三态的理由：支书原话把它说成「默认是支书过还是支委会过」⇒ **档位本身就是要支部选的东西**；「开启时的默认档」按母本落**支书批准**。
+
+**落点选择（本批判，依批次 149 取证）**：「支部制度参数」区**此前只读** ⇒ **落进真正可改的那一层**——`POLICY_DEFAULTS.activityApproval.mode` ＋ 登记进 `POLICY_OVERRIDABLE` 白名单（`domain:'secretary'` ⇒ 归**支书域**），并在**同一分区**新增一张可编「活动批准门」卡（**不另造一套机制**；写口仍走既有的 `savePolicyOverrides`）。
+
+### 三、裁定一：改前 → 改后（逐处）
+
+| # | 位置 | 改前 | 改后 | 依据 |
+|---|---|---|---|---|
+| 1 | `docs/src/core/policy-defaults.js` `_FACTORY` | 无 `activityApproval` | 新增 `activityApproval: { mode: 'off' }` | 支书裁定「默认关」 |
+| 2 | 同上 `POLICY_OVERRIDABLE` | 3 条（inspection / memberConfirmation / leader） | 增 `{ path:['activityApproval','mode'], type:'enum', values:['off','secretary','branch-committee'], domain:'secretary' }` ＋ 导出 `ACTIVITY_APPROVAL_MODES` / `ACTIVITY_APPROVAL_MODE_LABELS` / `activityApprovalMode()` | 落进真正可改的那一层 |
+| 3 | `docs/src/core/config-clean.js::_cleanPolicyValue` | 只有 int / boolean / windows | 增 **`enum`**（白名单取值，其余丢弃） | 同上 |
+| 4 | `docs/src/services/decision-tree.js::writeActivityWithSOP` | `createActivity(payload)` | **开启时** `createActivity({ ...payload, ...gatePatch })`；**关闭时 `gatePatch=null` ⇒ 与改前逐字同**（用**动态 import** 读参数，**不改本文件既有行号**） | ① 在哪一步 |
+| 5 | `docs/src/services/activity.js`（**文件末尾追加**） | —— | `PENDING_APPROVAL_STATUS` / `canApproveActivity` / `pendingApprovalPatchOnWrite` / `isPendingApprovalActivity` / `listPendingApprovalActivities` / `approveActivity` / `rejectActivity` | 判据与写口单一源 |
+| 6 | `docs/src/core/domain.js` 活动 typedef | `'draft'\|'published'\|…` | 补 `'pending-approval'` | 状态链新增审批态（**仅在开启时写入**） |
+| 7 | `docs/src/components/inspector.js` | `ACTIVITY_LIFECYCLE` 无待批态 | 补 `pending_approval:{label:'待批',variant:'warning'}` ＋ `deriveActivityLifecycleStatus` 分流 ＋ **待批详情页「批准发布 / 不批准（终止）」两动作**（`canApproveActivity(_user.role, 当前档)` 放行） | ② 谁批的落点 |
+| 8 | `docs/src/entries/settings-entry.js` | 支部制度参数区**只有只读卡** | 增 `branchPolicySectionHtml` / `activityApprovalCardHtml`（可编卡：`<select id="pol-approval-mode">` ＋ 保存 / 恢复默认，`data-approval-save` / `data-approval-reset` → `savePolicyOverrides`）；只读卡尾注说明改准为「支部制度里的可调项分两类…」 | 支书 / 副支书可改 |
+| 9 | `server/test/policy-config.test.mjs` | 3 节断言 | `POLICY_OVERRIDE_SECTIONS` 断言改 **4 节**（加 `activityApproval`）＋ **新增两条**：⑧ 默认关 ＋ 三态白名单净化 ＋ 关时写入补丁为 `null`（零行为变化）· ⑧ 开启档位可经支书落库（`savePolicyOverrides`）、关回去复原 | 判据与行为有守卫 |
+
+### 四、裁定一：**默认关的零行为变化**（真机证据）＋ **开 / 关往返**（真机证据）
+
+探针 `server/.tmp-probe-150.mjs`（**跑完即删**；真起 3000 服务 ＋ 真 Chromium；`pageerror` 计 **0 条**）：
+
+| # | 真机动作 | 实测结果 | 判读 |
+|---|---|---|---|
+| 0 | 读默认档 / 读改前 `policyOverrides` | `activityApprovalMode() = "off"`；`policyOverrides = null` | 出厂即关 |
+| ① | **默认关**下真点写入活动（支书台「写入活动」→ 选模板 → 创建） | 落库 = `{"status":"draft","approval":null}` | **与改动前完全一致（零行为变化）✅** |
+| ② | 进设置中心 · 支部制度参数，取 `#pol-approval-mode` 在位数 | **1**（卡在位）；**真点「保存」** ⇒ `branch.config.policyOverrides = {"activityApproval":{"mode":"secretary"}}` | 参数**真可改**（不是「写了没人读」） |
+| ③ | 重载后读生效档位 → 再真点写入活动 | 档位 = `"secretary"`；落库 = `{"status":"pending-approval","approval":{"required":true,"mode":"secretary","state":"pending",…}}` | **开启 ⇒ 行为真的变**：**写入即待批、不能直接发布 ✅** |
+| ④ | 待批活动的详情页：两按钮在位数 → **真点「批准发布」** | 在位 = `[1,1]`；落库 = `{"status":"published","approval":{…,"state":"approved","by":"p13"}}` | 批准＝已发布 |
+| ⑤ | 另起一条待批活动 → **真点「不批准（终止）」** | 落库 = `{"status":"cancelled","approval":{…,"state":"rejected"}}` | 不批准＝终止 |
+| ⑥ | 设置卡 **真点「恢复默认」** → 重载 → 再写入 | `policyOverrides = null`；档位 = `"off"`；落库 = `{"status":"draft"}` | **关回去 ⇒ 行为复原 ✅** |
+
+**探针数据清理**：4 条演示活动（`act_5f6a752a…` 等）已用 `DELETE /api/v1/activities/:id` **逐条删除**、复核剩余命中 **0**；`policyOverrides` 已回 `null`；探针文件已删（`.tmp*` 全库扫描 **0 命中**）。
+
+### 五、裁定一：启用端完整落了什么 ＋ 余项与下一批计划（接口预留）
+
+**本批已落（启用端真发生）**：参数本体（三态、默认关）· 写入链读参数并在开启时落「待批」· 活动详情页两动作（批准 / 不批准，按角色＋档位放行）· 设置中心可编卡（保存 / 恢复默认）· 全站文案（`help.html` 3 处 · `README-server.md`）· 2 条守卫（`policy-config`）。
+
+**本批未落、如实登记（＝`SOP-F-4` 三条）**：
+| # | 余项 | 现况 | 已预留在哪（接口） |
+|---|---|---|---|
+| ① | **待批可见性收窄落到各 tab** | **未落**——待批活动按既有可见性规则出现（与 `draft` 同待遇）；**母本无句 ⇒ 口径未定，本批不代定** | 单一判据 `isPendingApprovalActivity(activity)` ＋ 列表读口 `listPendingApprovalActivities(...)`（收窄只需在列表过滤处接它） |
+| ② | **服务端写权限门** | **未落**——门在**前端写入链**；`server/routes/resources.js` 一字未改 ⇒ 直调 API 仍可把待批改成 `published` | 前端两动作已收敛到 `approveActivity` / `rejectActivity`（服务端接门时一一对应即可，不必重写判据） |
+| ③ | **「支委会批准」档的票决承载** | **未落**——该档**目前与「支书批准」档行为相同**（同一枚 `canApproveActivity` 放行支委层），**未接票决** | 档位取值与标签已就位（`branch-committee` ⇒「支委会批准」）；系统既有**线上支委会 ＋ 表决**能力可承载，但「几位同意算通过」母本无据 ⇒ 待支书定 |
+
+**下一批计划**：按上表三件逐件落（① 与 ② 属工程取向、③ 属母本无据的表决口径）——**三件均已进队列 `SOP-F-4`（各带三档）**，支书定档后即可落批。
+
+### 六、裁定二：`D-392` 例外登记的落点与文字
+
+**落点**：`.ctx/ACTIVE_RULINGS.md`「一、角色与分工」的 **`D-392`（「母本与文档中不留真实人名」）那一行原位补例外**；**对应裁定**＝`D-588`（决策日志）。
+
+**登记文字（逐字）**：`docs/src/mock/**` 里的人名**属例外、保留不动**——**经支书 2026-09-22 决定保留 `people.js` 的 `p13` 真名**（理由「这是我自己的名，且这个系统的开发者确实是我，不必避讳」），**后续批次不得把它当「漏改项」改掉**。
+
+**本批 `docs/src/mock/**` 零改动**（`git status --short` 实测该目录 0 处 diff）。
+
+### 七、裁定三：母本三处（**含全库找齐 6 处**）改前 → 改后（**行数守恒**）
+
+`content/02_institution/sop/常见工作场景快速指南.md`，`git diff --numstat` 实测 **6 增 6 删（净 0，零位移）**：
+
+| 行 | 改前 | 改后 | 说明 |
+|---|---|---|---|
+| `:245` | `\| 3. 支书批准 \| 支书 \| 必须经支书同意后方可推进；不批准则终止 \|` | `\| 3. 支书批准 \| 支书 \| 系统里这是一道**可开关的制度参数**（默认关，见设置中心「支部制度参数 · 活动批准门」）；开启时须经支书同意后方可推进，不批准则终止 \|` | **裁定一**的母本侧取齐（与系统实然一致） |
+| `:361` | `## 信息平台支持` | `## 组织委员的信息与档案支持` | 裁定三（小标题，**全库找齐**新增） |
+| `:363` | `**适用角色：** 任何需要信息平台支持的同志` | `**适用角色：** 需要组织委员提供信息与档案支持的同志` | 裁定三 |
+| `:367` | `\| 委员 \| 支持类型 \| 具体内容 \| 使用场景 \|` | `\| 委员 \| 信息与档案支持类型 \| 具体内容 \| 使用场景 \|` | 裁定三（列头，**全库找齐**新增） |
+| `:463` | `…制度建设、积极分子考察、信息平台支持 \|` | `…制度建设、积极分子考察、信息与档案支持 \|` | 裁定三（主处） |
+| `:478` | `\| 信息平台 \| 信息平台支持 \|` | `\| 信息与档案 \| 组织委员的信息与档案支持 \|` | 裁定三（速查表行，**全库找齐**新增） |
+
+**「信息」二字未整体删掉**（改后为「**信息与档案支持**」）；**保留既有文风、原位改写、行数守恒**（6/6）。**未动** `docs/src/core/work-map.js` 的 `info-platform`（＝**本网页系统本身**，批次 149 已按支书裁定改准）——两件事自此**分开**。
+
+**另改的承重文档（取齐、非新口径）**：`docs/help.html` **3 处**（各 tab 顶部「支部治理」清单补批准门说明 · §3.1 会议创建卡「注意」条补批准门段 · §5.4 分区表「支部制度参数」行改准）——`git diff --numstat` **7 增 7 删**（含 4 行 `?v=` 戳，**净 0 位移**）；`README-server.md` **7 增 7 删**（§1.2 制度参数段补批准门 · §4.1 活动状态取值补 `pending-approval`、生命周期态补 `pending_approval` · **新增「2026-09-22 批次 150 补」段 ＋ 依据行** · `:149` 的 `inspector.js:616 → :620`（本批插行所致））。
+
+### 八、反查（**改前＝`HEAD`（批次 149 提交 `48775757`）／改后＝工作树，口径同一**）
+
+> 计数口径＝**命中行数**（`git grep -c` 逐文件求和；**不用 `-o` 计次**——两种口径数字不同，本表统一取行数以免混淆）。
+
+| 词 | 改前 | 改后 | 逐条判定 |
+|---|---|---|---|
+| `批准` | 329 | 417（+88） | 增量**逐文件可归**：`activity.js` +12 · `inspector.js` +12 · `settings-entry.js` +11 · `policy-defaults.js` +10 · `REVIEW_QUEUE.md` +7 · `policy-config.test.mjs` +5 · `help.html` +3 · `README-server.md` +3 · `TIMESTAMPS.md` +3 · `ACTIVE_RULINGS.md` +2 · `2026-09-DECISION_LOG.md` +16 · `DECISION_LOG.md` +1 · `config-clean.js`/`domain.js`/`decision-tree.js` 各 +1 ⇒ **全部为本批正当新增**（无溢出文件） |
+| `审批` | 506 | 512（+6） | `2026-09-DECISION_LOG.md` +3 · `REVIEW_QUEUE.md` +1 · `policy-defaults.js` +1 · `activity.js` +1 ⇒ 正当（多为「待批 / 批准」叙述） |
+| `信息平台` | 82 | 90（+8） | **母本 −4**（`:361`/`:363`/`:463`/`:478` 改写掉）**＋ 台账 ＋12**（`ACTIVE_RULINGS` +1 · `2026-09-DECISION_LOG.md` +10 · `TIMESTAMPS` +1）⇒ **净 +8 全部落在「登记这条例外/沿革」的台账句里，母本侧只减不增** ✅ |
+| `POLICY_OVERRIDABLE` | 47 | 58（+11） | `2026-09-DECISION_LOG.md` +6 · `ACTIVE_RULINGS` +2 · `settings-entry.js` +1 · `README-server.md` +1 · `DECISION_LOG.md` +1 ⇒ 正当 |
+| `branch-policy-params` | 31 | 35（+4） | `settings-entry.js` +3 · `2026-09-DECISION_LOG.md` +1 ⇒ 正当 |
+| 活动状态枚举（搜 `pending-approval`） | **0** | **16** | 新增枚举值：`activity.js` / `inspector.js` / `policy-defaults.js` / `domain.js` / `README-server.md` / 台账各若干 ⇒ 正当（**关闭时不写入 ⇒ 对默认关的支部零影响**） |
+
+> **⚠ 不只靠 grep**：① 「**系统里有没有活动级批准门**」**搜「批准」判不出**——329 处里**没有一处**是活动级门（要读状态链 ＋ 写入门 ＋ 四类既有审批语义逐个排除）；② 「**关闭时零行为变化**」**grep 更判不出**（那是运行时行为），**只能真机**（见「四」①）；③ **母本那三处是不是同一件事**，靠 grep「信息平台」看**不出**「组织委员的信息与档案支持 vs 本网页系统」这层**同名异事**（要读母本该节全表 ＋ 对 `work-map.js` 的 `info-platform`）。
+
+### 九、版本戳 ＋ 守卫 ＋ 全量 ＋ 停服 ＋ 四处计数
+
+**（甲）版本戳**：**bump `20260922g → 20260922h`**〔**显式传参** `node docs/scripts/bump-version.mjs 20260922h`〕——本批改了 `docs/src/**` 7 个文件 ＋ `server/test/**` ⇒ **必 bump**。**戳唯一**实测：`docs/**` 里 `?v=` 戳**只剩 `20260922h`**（另 `20260915d` 一处是 `docs/scripts/version-next.mjs:68` 的**注释举例**、非缓存键）；`20260922h` 命中 **306** 处、`20260922g` 残留 **0** 处在 `docs/**`（其余命中均在 `.ctx` 台账的**沿革句**里）；`CODE_VERSION` 271 → **272**（`.ctx/TIMESTAMPS.md` 该行同批改准为「截至批次 150 … 272 / `20260922h`」）。
+
+**（乙）守卫子集**（8 文件，带 `DISABLE_PASSWORD_CHECK=1`）：**改前 `64 / 64 / 0 红`（≈ 23.9 秒）→ 改后 `64 / 64 / 0 红`（23.89 秒）**。`doc-line-ref` 的 **`R1`–`R6` 全绿**（含批次 147 新加的 `R6` 语义漂移防线；本批新增的「批次 150 补」段只带 `decision-tree.js:335-360` 一处带行号引用、锚点为 `writeActivityWithSOP` ⇒ 合规）；⚠ **如实登记**：本批改 `settings-entry.js` / `inspector.js` / `policy-defaults.js` 时，先遇 **`doc-consistency` `S12`**（新注释含「支书裁定」却无日期）⇒ **就近补日期**后复跑全绿。
+
+**（丙）全量（`R-85`）**：**起 3000 服务**（`npm start`）→ `npm test` → **停服**（实测 `localhost:3000` 不可连）。**如实贴数字**：`ℹ tests 720` / `ℹ pass 719` / **`ℹ fail 1`** / `cancelled 0` / `skipped 0` / `todo 0`，`ℹ duration_ms 1157423.4347`（**≈ 19.29 分钟**），退出码 **1**。
+
+> **那 1 条红＝本批自致、已就地改准、已复跑证绿**：`form-loop-sweep` 的 **`S6 台账行号未同步即红灯`**——本批给 `docs/src/components/inspector.js` **插了 4 行**（另在待批块处又插 39 行），而 `server/test/form-loop-registry.mjs` 里登记该文件的 4 条校验点（`表态` / `活动名称` / `日期` / `活动地点`）**行号未随插行同步** ⇒ 台账指错地方。**处置**：把台账 4 条行号按实况改准（`564 → 568` · `1277 → 1320` · `1278 → 1321` · `1279 → 1322`），**单独复跑该条**：`✔ S6 …` / `tests 1` / `pass 1` / **`fail 0`**。**全量其余 719 项全绿**（含 `page-sweep` / `module-load` / `block-*` / `doc-line-ref` / `policy-config` 等）。
+
+**（丁）决策日志四方一致**：**文首**「来源与边界」＝ **文末「续编说明」**＝ **本月目录**＝ 实测 `^## D-\d+` 计数 —— **均 `D-275` … `D-589`、共 315 条、下一条自 `D-590`**；`.ctx/logs/DECISION_LOG.md` 月度索引 2026-09 行 **312 → 315 条（D-275~D-589）**。
+
+**（戊）队列侧同步**：`SOP-F-3` 的「**只登记未落**」句**改准为已落**（`D-587`，默认关）；**新立 `SOP-F-4`**（活动批准门启用端余项，三件各带三档）；**`SOP-B-*` 在册计数不变（仍 2 条：`SOP-B-4` · `SOP-B-25`）** ⇒ **六处同源本批无需改动**（`SOP-F-*` 系列**不计入** `SOP-B-*` 计数，如实说明）；阶段 B「状态与现况」行 ＋ 两处「与在册计数的关系」行**各补一句批次 150**。
+
+**（己）残留核查**：探针 **1 个已删**（`.tmp-probe-150.mjs`）；`.tmp*` 全库扫描 **0 命中**；**未提交 git**；**未新建仓库文件**（本批新增的仓库文件 **0 个**——参数与卡片均落在既有文件）。
+
+### 十、待支书定清单 / 只登记未改清单 / 不确定与没做的地方
+
+**（一）待支书定（＝`SOP-F-4` 三条，各带三档）**：① 待批活动的**可见性收窄**（仅支委层可见 / 全员可见但标「待批」/ 维持现状）；② **服务端写权限门**（专用审批端点 / `PATCH` 上判状态转移 / 暂不加）；③ **「支委会批准」档的票决承载**（复用既有线上表决 / 简单多数 / 支书代记支委会决议）。
+
+**（二）只登记未改**：
+| # | 事项 | 为什么不能改（本批） |
+|---|---|---|
+| 1 | `docs/src/mock/**` 的真名（`people.js:23` `p13` ＋ 4 处同族注释） | **支书裁定「保留」** ⇒ 一字不改；只在 `D-392` 处**登记例外**（`D-588`） |
+| 2 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0` 仍按 12 键记（缺 `deputy-leader` 行）等批次 147/148/149 已登记的同族陈旧 | **不在本批授权面** |
+| 3 | `SOP-B-25` ② 「制度内容 → 对应主体」映射表 | **仍是草案 · 待支书改**（`D-564`）⇒ 不据它改派单 |
+
+**（三）不确定 / 没做的地方（如实登记）**：
+- **「批完谁能看见」的口径是「未推得」而不是「已定」**——本批**没代支书定**，待批活动**沿用既有可见性**（**这一点也已写进 `README-server.md`，避免把「推导」写成「已实现」**）。
+- **「支委会批准」档目前与「支书批准」档行为相同**（都走 `canApproveActivity` 放行支委层），**未接票决**——这是**本批取的最小做法**，不作「已完整实现」表述。
+- **服务端未加门**：批准动作在前端服务层复算，**直调 API 可绕**（`mock` 形态下前端 mock 与 api 同码；真实后端接门时须一并落 ②）。
+- **真机未覆盖的**：① 未在真机上核「待批活动在各台列表 / 日历的**逐处呈现**」（本批未改可见性 ⇒ 未核）；② 未真点 `branch-committee` 档的写入（该档行为与 `secretary` 档相同，本批只核到**档位可落库 / 可切换**）；③ 未做跨支部（`br-b2`）复核。
+- **未用 sed / awk / PowerShell / node 脚本做内容批量改写**（只读统计用过 `git grep` / `Select-String`）；**未提交 git**；**未新建仓库文件**。
+- **本批自致的一处返工如实登记**：`form-loop-sweep` 的 `S6`（台账行号因本批插行而漂移）——**已在全量之后就地改准并复跑证绿**（见「九（丙）」），**不掩盖**。
+
+
 
 
 

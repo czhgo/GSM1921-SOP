@@ -2,17 +2,17 @@
 // services/decision-tree.js — 统一决策树服务
 // 从 ws-leader-entry.js 和 ws-secretary-entry.js 中提取的共享逻辑
 // 包含：配置管理、状态管理、场景映射、工作流面板渲染、活动写入
-import { BranchService } from './runtime.js?v=20260922g';
-import { showToast } from '../core/utils.js?v=20260922g';
-import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922g';
-import { icon } from '../core/icons.js?v=20260922g';
-import { NoticeStore } from './notice.js?v=20260922g';
+import { BranchService } from './runtime.js?v=20260922h';
+import { showToast } from '../core/utils.js?v=20260922h';
+import { sopDatabase, instantiateSOP, renderWorkflow } from '../workflow/index.js?v=20260922h';
+import { icon } from '../core/icons.js?v=20260922h';
+import { NoticeStore } from './notice.js?v=20260922h';
 // P2b（2026-09-03）：写活动场景选择清单单一源 = core/constants.js SCENARIO_WRITE_IDS/SCENARIO_LABELS
 //   （与 calendar-tab WRITE_TEMPLATES 同源，勿再手写四子会清单）
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922g';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../core/constants.js?v=20260922h';
 // M4 场景注册化：经注册表读取 SOP 场景能力（sop-scenarios），行为零变化——能力缺省时回退直接读 sopDatabase
-import { getCapabilities } from '../core/registry.js?v=20260922g';
-import '../modules/capabilities/sop-scenarios.js?v=20260922g';
+import { getCapabilities } from '../core/registry.js?v=20260922h';
+import '../modules/capabilities/sop-scenarios.js?v=20260922h';
 
 /**
  * 经注册表读取场景（M4 场景注册化消费点）
@@ -343,8 +343,19 @@ export async function writeActivityWithSOP(activityData, scenarioId, targetDate)
     : null;
   const payload = orgAssign ? { ...activityData, organizer: orgAssign.personId } : activityData;
 
+  // 活动批准门（2026-09-22 批次 150 · 支书裁定「把它做成一个可开关的支部制度参数（默认关）」）：
+  // 仅当支部把参数打开时改写写入态——关闭时 gatePatch=null ⇒ **原样写入，零行为变化**。
+  // 判据与补丁形状的单一源在 services/activity.js::pendingApprovalPatchOnWrite（勿在此另写第二份）；
+  // 档位读 core/policy-defaults.js::activityApprovalMode（call-time）。此处动态引入以不动本文件行号
+  // （README-server.md 有指向本文件的 `文件:行号` 引用）。
+  const [{ activityApprovalMode }, { pendingApprovalPatchOnWrite }] = await Promise.all([
+    import('../core/policy-defaults.js?v=20260922h'),
+    import('./activity.js?v=20260922h'),
+  ]);
+  const gatePatch = pendingApprovalPatchOnWrite(activityApprovalMode());
+
   // 1. 创建活动
-  const activity = await BranchService.createActivity(payload);
+  const activity = await BranchService.createActivity(gatePatch ? { ...payload, ...gatePatch } : payload);
   console.info('[DecisionTree] createActivity 成功, id=' + activity.id);
 
   // 2. 实例化 SOP 任务节点

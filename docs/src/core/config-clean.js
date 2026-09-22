@@ -7,14 +7,14 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260922g';
+import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260922h';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from './policy-defaults.js?v=20260922g';
+} from './policy-defaults.js?v=20260922h';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -152,6 +152,8 @@ function _cleanPolicyValue(spec, raw) {
     return Math.min(Math.max(raw, spec.min), spec.max);
   }
   if (spec.type === 'boolean') return typeof raw === 'boolean' ? raw : undefined;
+  // enum（2026-09-22 批次 150：活动批准门三态）：只收白名单取值，其余丢弃
+  if (spec.type === 'enum') return (Array.isArray(spec.values) && spec.values.includes(raw)) ? raw : undefined;
   if (spec.type === 'windows') {
     if (!Array.isArray(raw)) return undefined;
     const seen = new Set();

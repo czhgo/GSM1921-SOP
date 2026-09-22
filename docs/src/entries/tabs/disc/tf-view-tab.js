@@ -6,7 +6,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('disc-tab-content');
   if (!el) return null;
-  return import('../../../components/insight-view.js?v=20260922g').then(m => m.renderInsightView(el, {
+  return import('../../../components/insight-view.js?v=20260922h').then(m => m.renderInsightView(el, {
     defaultView: 'taskforce',
     highlightTfId: ctx?.highlightTfId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },

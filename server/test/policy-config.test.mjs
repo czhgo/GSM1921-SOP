@@ -20,28 +20,32 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922g';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922g';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922g';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922h';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922h';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922h';
 import {
-  POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS,
-} from '../../docs/src/core/policy-defaults.js?v=20260922g';
+  POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
+} from '../../docs/src/core/policy-defaults.js?v=20260922h';
+// ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity.js
+import {
+  pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
+} from '../../docs/src/services/activity.js?v=20260922h';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922g';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922g';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922g';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922h';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922h';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922h';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260922g';
+} from '../../docs/src/core/config-clean.js?v=20260922h';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260922g';
+} from '../../docs/src/services/branch.js?v=20260922h';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260922g';
+} from '../../docs/src/services/member-confirmation.js?v=20260922h';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922g';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922h';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -137,7 +141,57 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
     [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))],
     POLICY_OVERRIDE_SECTIONS,
   );
-  assert.deepEqual(POLICY_OVERRIDE_SECTIONS, ['inspection', 'memberConfirmation', 'leader']);
+  assert.deepEqual(POLICY_OVERRIDE_SECTIONS, ['inspection', 'memberConfirmation', 'leader', 'activityApproval']);
+});
+
+// ── ⑧ 活动批准门（2026-09-22 批次 150 · 支书裁定「可开关的制度参数（默认关）」）───────
+test('⑧ 批准门：默认关 + 三态白名单净化 + 关时写入补丁为 null（零行为变化）', () => {
+  applyBranchPolicyOverrides({ config: {} });
+  assert.equal(POLICY_DEFAULTS.activityApproval.mode, 'off', '默认关闭');
+  assert.equal(activityApprovalMode(), 'off');
+  // 净化：只收三态白名单取值，非法/未知档丢弃
+  assert.deepEqual(
+    sanitizeConfigPolicyOverrides({ activityApproval: { mode: 'secretary' } }),
+    { activityApproval: { mode: 'secretary' } },
+  );
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ activityApproval: { mode: 'on' } }), {}, '非白名单档位丢弃');
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ activityApproval: { mode: 1 } }), {}, '非字符串丢弃');
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ activityApproval: { unknown: 'secretary' } }), {}, '未知叶丢弃');
+  // 读侧注入：开启档位随参数生效；复位回关
+  applyBranchPolicyOverrides({ config: { policyOverrides: { activityApproval: { mode: 'branch-committee' } } } });
+  assert.equal(activityApprovalMode(), 'branch-committee');
+  applyBranchPolicyOverrides({ config: {} });
+  assert.equal(activityApprovalMode(), 'off');
+  // 写入补丁：关闭/非法档 ⇒ null（原样写入＝零行为变化）；开启 ⇒ 待批 + 轨迹
+  assert.equal(pendingApprovalPatchOnWrite('off'), null);
+  assert.equal(pendingApprovalPatchOnWrite(undefined), null);
+  const p = pendingApprovalPatchOnWrite('secretary', '2026-09-22T00:00:00.000Z');
+  assert.equal(p.status, PENDING_APPROVAL_STATUS);
+  assert.equal(p.status, 'pending-approval');
+  assert.deepEqual(p.approval, { required: true, mode: 'secretary', state: 'pending', at: '2026-09-22T00:00:00.000Z' });
+  // 谁能批：secretary=支书/副；branch-committee=支委层；off=无人
+  assert.equal(canApproveActivity('secretary', 'secretary'), true);
+  assert.equal(canApproveActivity('deputy-secretary', 'secretary'), true);
+  assert.equal(canApproveActivity('org-commissioner', 'secretary'), false);
+  assert.equal(canApproveActivity('org-commissioner', 'branch-committee'), true);
+  assert.equal(canApproveActivity('secretary', 'off'), false);
+});
+
+test('⑧ 批准门：开启档位可经支书落库（savePolicyOverrides），关回去复原', async () => {
+  beginMockCase();
+  const r1 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'secretary' } }, { actor: { personId: 'p13', role: 'secretary' } });
+  assert.equal(r1.ok, true);
+  assert.equal(r1.changed, true);
+  assert.deepEqual(po().activityApproval, { mode: 'secretary' });
+  // 域负责人（纪检）不可写支书域的活动批准门
+  const r2 = await savePolicyOverrides('br-b1', { activityApproval: { mode: 'off' } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  assert.equal(po().activityApproval.mode, 'secretary', '纪检不可改支书域参数');
+  // 关回去：置 null 删该节 → 回制度默认（关闭）
+  const r3 = await savePolicyOverrides('br-b1', { activityApproval: null }, { actor: { personId: 'p13', role: 'secretary' } });
+  assert.equal(r3.ok, true);
+  assert.ok(!po() || po().activityApproval === undefined, '唯一覆盖删除后归一（该节消失）');
+  applyBranchPolicyOverrides({ config: BR().config || {} });
+  assert.equal(activityApprovalMode(), 'off', '关回去 ⇒ 复原为关闭');
 });
 
 // ── ② sanitizeConfigPolicyOverrides：白名单/钳制 ───────────────────────────

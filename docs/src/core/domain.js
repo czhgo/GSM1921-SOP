@@ -13,7 +13,7 @@ export const SCHEMA_VERSION = 1;
  * @property {string}  id          - 唯一标识符（由 id.js 生成）
  * @property {string}  title       - 活动标题
  * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
- * @property {'draft'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态 - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
  * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
  * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
  * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览

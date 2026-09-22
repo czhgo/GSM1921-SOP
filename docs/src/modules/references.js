@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260922g';
-import { getBasePath, showToast } from '../core/utils.js?v=20260922g';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260922g';
-import { AuthStore } from '../services/auth.js?v=20260922g';
-import { loadActivities } from '../services/activity.js?v=20260922g';
-import { PEOPLE } from '../mock/people.js?v=20260922g';
+import { icon } from '../core/icons.js?v=20260922h';
+import { getBasePath, showToast } from '../core/utils.js?v=20260922h';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260922h';
+import { AuthStore } from '../services/auth.js?v=20260922h';
+import { loadActivities } from '../services/activity.js?v=20260922h';
+import { PEOPLE } from '../mock/people.js?v=20260922h';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260922g';
+} from '../services/branch-doc.js?v=20260922h';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../components/list-filter.js?v=20260922g';
+import { renderFilteredList } from '../components/list-filter.js?v=20260922h';
 
 const SITE_GROUPS = [
   {

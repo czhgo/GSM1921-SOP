@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260922g';
-import { persist } from '../core/data-adapter.js?v=20260922g';
-import { generateId } from '../core/id.js?v=20260922g';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922g';
+import { mockDB } from '../core/domain.js?v=20260922h';
+import { persist } from '../core/data-adapter.js?v=20260922h';
+import { generateId } from '../core/id.js?v=20260922h';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922h';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {

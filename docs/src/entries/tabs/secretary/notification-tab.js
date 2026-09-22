@@ -3,20 +3,20 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/notice.js?v=20260922g';
-import { AuthStore } from '../../../services/auth.js?v=20260922g';
-import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260922g';
-import { badgeHtml } from '../../../components/badges.js?v=20260922g';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260922g';
+import { NoticeStore } from '../../../services/notice.js?v=20260922h';
+import { AuthStore } from '../../../services/auth.js?v=20260922h';
+import { showToast, getBasePath, _fmtDate } from '../../../core/utils.js?v=20260922h';
+import { badgeHtml } from '../../../components/badges.js?v=20260922h';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260922h';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260922g';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260922h';
 // Q-22-1（2026-09-13）：受众选项改引 core/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/constants.js?v=20260922g';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/constants.js?v=20260922h';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity.js?v=20260922g';
+import { loadActivities } from '../../../services/activity.js?v=20260922h';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260922g';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260922h';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">

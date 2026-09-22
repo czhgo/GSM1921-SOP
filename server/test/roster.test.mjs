@@ -25,16 +25,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260922g';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260922g';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260922g';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260922h';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260922h';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260922h';
 import {
   getMeetingRoster, getMeetingRosterIds, getMeetingRosterCandidates, getDetainedMembers,
   getRosterStats, getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260922g';
+} from '../../docs/src/services/roster.js?v=20260922h';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260922g';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260922g';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260922h';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260922h';
 
 // ── localStorage 内存桩（saveResidenceChange 运行期覆盖用例需要；node 默认无 localStorage）──
 // roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。

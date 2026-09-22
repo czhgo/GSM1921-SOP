@@ -159,6 +159,17 @@ const _FACTORY = {
     wordHint: 1500,
     wordSoftMin: 1200,
   },
+  activityApproval: {
+    // 活动批准门（**支部可开关的制度参数**，默认关）——2026-09-22 批次 150 · 支书裁定（逐字）：
+    //   「把它做成一个可开关的支部制度参数（默认关），想要这道门的支部自己打开。」
+    // kind 'branch-default'：2026-09-22 批次 150 三态 mode = off（关闭，默认）/ 'secretary'（支书批准）/ 'branch-committee'（支委会批准）。
+    //   出处（2026-09-22 逐字核过）＝母本《常见工作场景快速指南》`:242-251`（共建活动八步流程）`:245`「必须经支书同意后方可推进；
+    //   不批准则终止」（2026-09-22 核）⇒ 开启时以「支书批准」为准（母本档）；支部若把这道门放到支委会，可改选支委会档。
+    //   ⚠ 默认关 ⇒ 关闭时活动写入链与全部行为与改动前完全一致（零行为变化）。
+    // 消费点：services/decision-tree.js::writeActivityWithSOP（开启时写入即「待批」）·
+    //   services/activity.js 的审批动作与判据（勿在页面另写第二份）。
+    mode: 'off',
+  },
 };
 
 /**
@@ -179,7 +190,25 @@ export const POLICY_OVERRIDABLE = [
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
   { path: ['memberConfirmation', 'semesterDetainedWindows'], type: 'windows', domain: 'org-commissioner' },
   { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },
+  // 活动批准门（2026-09-22 批次 150）：支部级可调制度参数，归支书域（支书/副支书/party-staff 可改）。
+  { path: ['activityApproval', 'mode'], type: 'enum', values: ['off', 'secretary', 'branch-committee'], domain: 'secretary' },
 ];
+
+/** 活动批准门三态取值（单一源；校验与界面标签共用） */
+export const ACTIVITY_APPROVAL_MODES = ['off', 'secretary', 'branch-committee'];
+
+/** 活动批准门三态的界面标签（单一源） */
+export const ACTIVITY_APPROVAL_MODE_LABELS = {
+  off: '关闭（不设批准门）',
+  secretary: '支书批准（母本档）', // 2026-09-22 批次 150
+  'branch-committee': '支委会批准',
+};
+
+/** 活动批准门当前档位（call-time 读有效默认；缺省/非法 → 'off'＝关闭） */
+export function activityApprovalMode() {
+  const m = POLICY_DEFAULTS.activityApproval && POLICY_DEFAULTS.activityApproval.mode;
+  return ACTIVITY_APPROVAL_MODES.includes(m) ? m : 'off';
+}
 
 /** policyOverrides 顶层节白名单（由 POLICY_OVERRIDABLE 派生；写口校验/删除语义用） */
 export const POLICY_OVERRIDE_SECTIONS = [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))];
