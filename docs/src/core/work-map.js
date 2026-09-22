@@ -77,8 +77,14 @@ export const WORK_MAP_MODULES = [
     outputs: ['宣传', '材料'],
   },
   {
-    id: 'develop-party-member', name: '发展党员', tier: 'norm', defaultOwner: 'org-commissioner',
-    desc: '发展党员管线：申请→积极分子→考察→发展对象→接收→转正（组织委员主责）',
+    id: 'develop-party-member', name: '发展党员', tier: 'norm', defaultOwner: 'branch-committee',
+    // 2026-09-22 批次 144 改准 `defaultOwner`『org-commissioner』→『branch-committee』：母本
+    //   `支委与党小组定人定责定岗说明.md` §5.1 定人表「发展党员 → 主责人＝支委会」＋其下注「发展党员
+    //   的责任在支委会——必须集体决策，不落实到具体个人；组织委员承担其中的考察与材料准备」，
+    //   依 `D-300`（支书 2026-09-17 原话）与批次 135 派单表（`SOP-B-25`）同行；批次 141 已使
+    //   组织型主体可作 owner（`ownerSubjectType`）⇒ 本项由「个体」改归「组织」。原文「（组织委员主责）」
+    //   与母本 §5.1 相左（组织委员承担的是其中的考察与材料准备，不是整件事的主责）。
+    desc: '发展党员管线：申请→积极分子→考察→发展对象→接收→转正（责任在支委会，集体决策；考察与材料准备归组织委员）',
     outputs: ['材料'],
   },
   {

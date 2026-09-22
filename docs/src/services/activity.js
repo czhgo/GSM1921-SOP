@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922c';
-import { persist } from '../core/data-adapter.js?v=20260922c';
-import { bumpToken } from '../core/version-token.js?v=20260922c';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922c';
-import { ACTIVITIES } from '../mock/index.js?v=20260922c';
-import { isInitStateActive } from './init-reset.js?v=20260922c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../core/domain.js?v=20260922d';
+import { persist } from '../core/data-adapter.js?v=20260922d';
+import { bumpToken } from '../core/version-token.js?v=20260922d';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION } from '../core/constants.js?v=20260922d';
+import { ACTIVITIES } from '../mock/index.js?v=20260922d';
+import { isInitStateActive } from './init-reset.js?v=20260922d'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {

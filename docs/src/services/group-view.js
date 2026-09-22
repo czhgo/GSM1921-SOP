@@ -23,9 +23,9 @@
 //   localStorage 仅在成员档案读链内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from './person.js?v=20260922c';
-import { isPartyMember } from './roster.js?v=20260922c';
-import { ReviewStatus } from '../core/domain.js?v=20260922c';
+import { PersonStore } from './person.js?v=20260922d';
+import { isPartyMember } from './roster.js?v=20260922d';
+import { ReviewStatus } from '../core/domain.js?v=20260922d';
 
 /**
  * 支部内党小组清单（数据驱动：成员档案 partyGroup 聚合，缺省走 PersonStore 当前档案）

@@ -2,38 +2,38 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260922c';
-import { renderHeader } from '../components/header.js?v=20260922c';
-import { BranchService } from '../services/runtime.js?v=20260922c';
-import { mockDB } from '../core/domain.js?v=20260922c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922c';
-import { NoticeStore } from '../services/notice.js?v=20260922c';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260922c';
-import { AuthStore } from '../services/auth.js?v=20260922c';
-import { getPersonById } from '../services/person.js?v=20260922c';
+import { renderSidebar } from '../components/sidebar.js?v=20260922d';
+import { renderHeader } from '../components/header.js?v=20260922d';
+import { BranchService } from '../services/runtime.js?v=20260922d';
+import { mockDB } from '../core/domain.js?v=20260922d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922d';
+import { NoticeStore } from '../services/notice.js?v=20260922d';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260922d';
+import { AuthStore } from '../services/auth.js?v=20260922d';
+import { getPersonById } from '../services/person.js?v=20260922d';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260922c';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260922d';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity.js；另有「交回状态」须读该场复盘记录（services/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260922c';
-import { loadActivityReviews } from '../services/review.js?v=20260922c';
-import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260922c';
-import { getActivityTypeColors } from '../core/constants.js?v=20260922c';
-import { getAppState } from '../core/state.js?v=20260922c';
-import { badgeHtml } from '../components/badges.js?v=20260922c';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260922d';
+import { loadActivityReviews } from '../services/review.js?v=20260922d';
+import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260922d';
+import { getActivityTypeColors } from '../core/constants.js?v=20260922d';
+import { getAppState } from '../core/state.js?v=20260922d';
+import { badgeHtml } from '../components/badges.js?v=20260922d';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260922c';
-import { enhanceSelects } from '../components/custom-select.js?v=20260922c';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260922c';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260922c';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260922c';
-import { fetchVotes } from '../services/committee-vote.js?v=20260922c';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260922d';
+import { enhanceSelects } from '../components/custom-select.js?v=20260922d';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260922d';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260922d';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260922d';
+import { fetchVotes } from '../services/committee-vote.js?v=20260922d';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260922c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922d';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260922d';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../core/pending-writes.js?v=20260922c';
+import { settleWrites } from '../core/pending-writes.js?v=20260922d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

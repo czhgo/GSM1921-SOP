@@ -9,27 +9,27 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260922c';
-import { renderHeader } from '../components/header.js?v=20260922c';
-import { BranchService } from '../services/runtime.js?v=20260922c';
-import { AuthStore } from '../services/auth.js?v=20260922c';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260922c';
-import { getBranchById } from '../services/branch.js?v=20260922c';
-import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260922c';
+import { renderSidebar } from '../components/sidebar.js?v=20260922d';
+import { renderHeader } from '../components/header.js?v=20260922d';
+import { BranchService } from '../services/runtime.js?v=20260922d';
+import { AuthStore } from '../services/auth.js?v=20260922d';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260922d';
+import { getBranchById } from '../services/branch.js?v=20260922d';
+import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260922d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260922c';
-import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260922c';
-import { badgeHtml } from '../components/badges.js?v=20260922c';
-import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260922c';
-import { loadActivities } from '../services/activity.js?v=20260922c';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922c';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260922c';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260922c';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260922d';
+import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260922d';
+import { badgeHtml } from '../components/badges.js?v=20260922d';
+import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260922d';
+import { loadActivities } from '../services/activity.js?v=20260922d';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260922d';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260922d';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260922d';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922c';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260922c';
+import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260922d';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260922d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

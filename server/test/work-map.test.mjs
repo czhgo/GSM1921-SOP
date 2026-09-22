@@ -9,9 +9,9 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
-} from '../../docs/src/core/work-map.js?v=20260922c';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922c';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922c';
+} from '../../docs/src/core/work-map.js?v=20260922d';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260922d';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260922d';
 
 let server, base, token;
 
@@ -61,11 +61,12 @@ test('组织型主体＝「类似法人」不是自然人（批次 141）：取�
   assert.deepEqual(dflt['rule-making'], { ownerType: 'org', ownerId: 'branch-committee' });
 });
 
-test('expandWorkforce：null → 全缺省 role；覆盖 person 项保留、其余兜底缺省', () => {
+test('expandWorkforce：null → 全缺省（role / org）；覆盖 person 项保留、其余兜底缺省', () => {
   const dflt = expandWorkforce(null);
   assert.equal(Object.keys(dflt).length, 11);
-  assert.equal(dflt['develop-party-member'].ownerType, 'role');
-  assert.equal(dflt['develop-party-member'].ownerId, 'org-commissioner');
+  // 发展党员缺省主责＝支委会（组织型主体，批次 144 依母本 §5.1 定人表＋D-300 改准）
+  assert.equal(dflt['develop-party-member'].ownerType, 'org');
+  assert.equal(dflt['develop-party-member'].ownerId, 'branch-committee');
 
   const withPerson = expandWorkforce({ 'develop-party-member': { ownerType: 'person', ownerId: 'p14' } });
   assert.deepEqual(withPerson['develop-party-member'], { ownerType: 'person', ownerId: 'p14' });

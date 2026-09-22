@@ -526,7 +526,7 @@
 | 10 | `rule-making` | 制度制定与迭代 | norm | `secretary` |
 | 11 | `info-platform` | 信息平台支持 | method | `prop-commissioner` |
 
-**依据**：`docs/src/core/work-map.js:57-154`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
+**依据**：`docs/src/core/work-map.js:57-160`（`WORK_MAP_MODULES` / `WORK_MAP_IDS` / `WORK_MAP_DEFAULT` / `tierOfModule` / `canDisableModule`）。**说明**：`defaultOwner` 只是「缺省建议」（`config.workforce=null` 时兜底），分工由支部自行建设（支书台「支部分工」），调整走支委会议题。
 
 ---
 
