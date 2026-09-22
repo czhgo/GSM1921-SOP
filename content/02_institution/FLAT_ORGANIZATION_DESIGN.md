@@ -2,7 +2,7 @@
 title: "组织者与深度参与者的扁平化设计"
 type: design
 role: "[用户]+[AI]"
-last_updated: "2026-09-13"
+last_updated: "2026-09-22"
 version: "2.2"
 status: active
 related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
@@ -20,7 +20,7 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 - **核心定义**：组织者和深度参与者是为了建设【活动】或【专班】、推动支部工作更加扁平化的设计。活动与专班是并列概念，都需要人手（专班与活动并列关系定义见 [COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §A.4，本处不重复展开）
 - **扁平化含义**：组织者和深度参与者之间没有上下级关系，只是分工内容不同。身份不是最重要的，年级和政治面貌不决定是否胜任
-- **深度参与者是「文本中的角色」**：制度文本照旧写它（分工、考勤要求、产出物都以它为准）；**系统内不设这个身份**——组织者与深度参与者之间的交接**在线下完成、不进系统**（支书 2026-09-17 裁定）。
+- **深度参与者是「文本中的角色」**：制度文本照旧写它（分工、考勤要求、产出物都以它为准）；**系统内不设这个身份**——组织者与深度参与者之间的交接**在线下完成、不进系统**。
 
 ---
 
@@ -34,7 +34,7 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 ### （二）组织者的分工记录职责（P-010）
 
-组织者的分工记录职责是做好分工记录，支委会根据实际工作完成情况进行考察。组织者可能不参与具体工作（也可以参与），但分工记录是最重要的产出（P-010）。**分工记录是管理闭环的重要组成部分**（支书 2026-08-09 裁决："分工记录就是管理闭环的重要部分！"）——定位组织者为"分工记录者"，强调管理通过程序实现（见 P-009）。
+组织者的分工记录职责是做好分工记录，支委会根据实际工作完成情况进行考察。组织者可能不参与具体工作（也可以参与），但分工记录是最重要的产出（P-010）。**分工记录是管理闭环的重要组成部分**（支书原话："分工记录就是管理闭环的重要部分！"）——定位组织者为"分工记录者"，强调管理通过程序实现（见 P-009）。
 
 ---
 
@@ -84,8 +84,6 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 ---
 
-> **反论处置记录**：本文件的「不是…而是…」反论式表述已于 2026-08-17 经 T-263 正面化处置（02_institution 反论/等号全仓清理；评议轮次见 [REVIEW_QUEUE.md](../../.ctx/REVIEW_QUEUE.md)「02_institution 下游同步审计」），处置明细见 [2026-08 执行日志 T-263](../../.ctx/logs/2026-08-EXECUTION_LOG.md)。
->
 > **实现落点（系统侧）**：组织者（organizer）/深度参与者（deep）为活动/专班的项目角色——权限与赋权链见 `docs/src/services/auth.js` 的 `PROJECT_PERMISSIONS` / `AUTHORIZE_CHAIN`（组织委员赋专班角色、党小组组长赋活动角色、组织者可赋深度参与者）；赋权入口与待办联动见 [COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §D.1.1 赋权入口设计。
 >
 > 详细设计见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md) §三
