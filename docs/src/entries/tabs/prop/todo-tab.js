@@ -4,10 +4,10 @@
 // 2026-09-08 REVIEW_QUEUE 裁决批一（D3 宣传侧交接去顶卡）：顶部「数据交接」卡移除，
 // 确认位唯一化 = 交接到本台的待办行内「确认接收」（现行交接类型均不指向宣传台，本分支为兜底）。
 
-import { showToast, flashHighlight } from '../../../core/utils.js?v=20260922j';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260922j';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260922j';
-import { HandoffStore } from '../../../services/handoff.js?v=20260922j';
+import { showToast, flashHighlight } from '../../../core/utils.js?v=20260922k';
+import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260922k';
+import { tryDirectJump } from '../../../components/todo-jump.js?v=20260922k';
+import { HandoffStore } from '../../../services/handoff.js?v=20260922k';
 
 function _handleTodoAction(todo, ctx) {
   // 直达跳转（通知阅读 T-234 F1）已收敛于 components/todo-jump.js（2026-09-04）

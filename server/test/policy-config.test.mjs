@@ -20,38 +20,38 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260922j';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922j';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922j';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260922k';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260922k';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260922k';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/policy-defaults.js?v=20260922j';
+} from '../../docs/src/core/policy-defaults.js?v=20260922k';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity.js?v=20260922j';
+} from '../../docs/src/services/activity.js?v=20260922k';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/visibility.js?v=20260922j';
+} from '../../docs/src/services/visibility.js?v=20260922k';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922j';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922j';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922j';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260922k';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260922k';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260922k';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260922j';
+} from '../../docs/src/core/config-clean.js?v=20260922k';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260922j';
+} from '../../docs/src/services/branch.js?v=20260922k';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260922j';
+} from '../../docs/src/services/member-confirmation.js?v=20260922k';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922j';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260922k';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';

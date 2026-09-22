@@ -2,22 +2,22 @@
 // 组长工作台 Tab：考察上传（T-279 M2 拆分）
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260922j';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal } from '../../../services/inspection.js?v=20260922j';
-import { loadActivities } from '../../../services/activity.js?v=20260922j';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/inspection.js?v=20260922k';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal } from '../../../services/inspection.js?v=20260922k';
+import { loadActivities } from '../../../services/activity.js?v=20260922k';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922j';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922j';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260922j';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260922j';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922j';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260922j';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922j';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260922j';
-import { currentLeaderGroup } from './_shared.js?v=20260922j';
-import { generateId } from '../../../core/id.js?v=20260922j';
+import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922k';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922k';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260922k';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260922k';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922k';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260922k';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922k';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260922k';
+import { currentLeaderGroup } from './_shared.js?v=20260922k';
+import { generateId } from '../../../core/id.js?v=20260922k';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922j';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922k';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;

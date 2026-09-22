@@ -12,10 +12,10 @@
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../mock/people.js?v=20260922j';
-import { TaskForceRecordStore } from './taskforce.js?v=20260922j';
-import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from './activity.js?v=20260922j';
-import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260922j';
+import { PEOPLE } from '../mock/people.js?v=20260922k';
+import { TaskForceRecordStore } from './taskforce.js?v=20260922k';
+import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from './activity.js?v=20260922k';
+import { BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260922k';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
@@ -195,5 +195,5 @@ export function filterActivitiesForViewer(activities, role, personId) {
 }
 
 // 当前登录人读口（置文件末尾：ESM import 声明提升，不影响语义，避免改动上文行号 ⇒ README-server.md 引用不漂移）
-import { AuthStore } from './auth.js?v=20260922j';
+import { AuthStore } from './auth.js?v=20260922k';
 

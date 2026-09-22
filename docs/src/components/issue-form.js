@@ -1,10 +1,10 @@
 // role: [工程师]+[AI]
 // issue-form.js — 反馈新建表单
 
-import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest } from '../services/issues.js?v=20260922j';
-import { showToast } from '../core/utils.js?v=20260922j';
-import { icon } from '../core/icons.js?v=20260922j';
-import { badgeHtml } from './badges.js?v=20260922j';
+import { IssueStore, ISSUE_DOMAINS, issueDomainSuggest, issueDomainReplyHint } from '../services/issues.js?v=20260922k';
+import { showToast } from '../core/utils.js?v=20260922k';
+import { icon } from '../core/icons.js?v=20260922k';
+import { badgeHtml } from './badges.js?v=20260922k';
 
 const SCOPE_OPTIONS = [
   { value: 'permanent', label: '底层架构' },
@@ -73,7 +73,7 @@ export function renderIssueForm() {
             <option value="">请选择事项领域</option>
             ${ISSUE_DOMAINS.map(d => `<option value="${d.value}">${d.label}</option>`).join('')}
           </select>
-          <p id="form-domain-suggest" class="text-xs text-gray-500 mt-1 font-sans">选择事项领域后显示建议归口（仅建议，由处置人定）</p>
+          <p id="form-domain-suggest" class="text-xs text-gray-500 mt-1 font-sans">选择事项领域后显示建议归口与反馈时间（仅建议，由处置人定）</p>
         </div>
 
         <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
@@ -120,11 +120,14 @@ export function renderIssueForm() {
     window.location.href = './feedback.html';
   });
 
-  // 事项领域 → 建议归口实时提示（只呈现建议，不代填 / 不指派）：填写人当场看到这事「该往哪边走」
+  // 事项领域 → 建议归口 / 反馈时间实时提示（只呈现母本口径，不代填 / 不指派）：填写人当场看到这事「该往哪边走、大概多久有回音」
   const domainSel = document.getElementById('form-domain');
   domainSel?.addEventListener('change', () => {
     const hint = document.getElementById('form-domain-suggest');
     const suggest = issueDomainSuggest(domainSel.value);
-    if (hint) hint.textContent = suggest ? `建议归口：${suggest}` : '选择事项领域后显示建议归口（仅建议，由处置人定）';
+    const replyHint = issueDomainReplyHint(domainSel.value);
+    if (hint) hint.textContent = suggest
+      ? `建议归口：${suggest}${replyHint ? `；反馈时间：${replyHint}` : ''}`
+      : '选择事项领域后显示建议归口与反馈时间（仅建议，由处置人定）';
   });
 }

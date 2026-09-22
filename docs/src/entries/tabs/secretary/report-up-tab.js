@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260922j';
-import { AuthStore } from '../../../services/auth.js?v=20260922j';
-import { getPersonName } from '../../../services/person.js?v=20260922j';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260922j';
-import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260922j';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260922j';
+import { mockDB } from '../../../core/domain.js?v=20260922k';
+import { AuthStore } from '../../../services/auth.js?v=20260922k';
+import { getPersonName } from '../../../services/person.js?v=20260922k';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260922k';
+import { submitReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260922k';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260922k';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260922j';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260922k';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },

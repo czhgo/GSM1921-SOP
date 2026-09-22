@@ -2,18 +2,18 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260922j';
+import { AuthStore } from '../../../services/auth.js?v=20260922k';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922j';
-import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922j';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922j';
-import { loadActivities } from '../../../services/activity.js?v=20260922j';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260922j';
-import { badgeHtml } from '../../../components/badges.js?v=20260922j';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922j';
+import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260922k';
+import { loadActiveInspectionRecords } from '../../../services/inspection.js?v=20260922k';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/inspection.js?v=20260922k';
+import { loadActivities } from '../../../services/activity.js?v=20260922k';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260922k';
+import { badgeHtml } from '../../../components/badges.js?v=20260922k';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922k';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922j';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260922k';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');

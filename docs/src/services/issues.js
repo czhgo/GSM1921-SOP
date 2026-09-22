@@ -2,15 +2,15 @@
 // issues.js — GitHub Issue 风格意见反馈数据服务
 // 权威源 docs/data/issues.json + localStorage 个人草稿
 
-import { AuthStore } from './auth.js?v=20260922j';
-import { PersonStore } from './person.js?v=20260922j';
-import { bumpToken } from '../core/version-token.js?v=20260922j'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260922j';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260922j';
+import { AuthStore } from './auth.js?v=20260922k';
+import { PersonStore } from './person.js?v=20260922k';
+import { bumpToken } from '../core/version-token.js?v=20260922k'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter } from '../core/data-adapter.js?v=20260922k';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../core/constants.js?v=20260922k';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../core/pending-writes.js?v=20260922j';
-import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260922j';
-import { generateId, randomHex } from '../core/id.js?v=20260922j';
+import { trackWrite } from '../core/pending-writes.js?v=20260922k';
+import { withinBranch, getBranchIdOfPerson } from './branch.js?v=20260922k';
+import { generateId, randomHex } from '../core/id.js?v=20260922k';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -21,9 +21,9 @@ import { generateId, randomHex } from '../core/id.js?v=20260922j';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../core/utils.js?v=20260922j';
+import { showToast } from '../core/utils.js?v=20260922k';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
-import { renderFilteredList } from '../components/list-filter.js?v=20260922j';
+import { renderFilteredList } from '../components/list-filter.js?v=20260922k';
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
 function _displayName(id) {
@@ -1662,12 +1662,16 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
 //    仍由处置人在既有「指派」动作里决定（既有承载＝人工指派五类目标，未改）。
 //  消费点：components/issue-form.js（表单第三档 + 实时提示）· components/issue-detail.js（详情元信息）·
 //    entries/tabs/secretary/feedback-tab.js（支书台详情元信息）。勿在业务层另写第二份四类名单。
+//  2026-09-22 批次 155：补母本该表第三列「**反馈时间**」（`replyHint`）——母本《常见工作场景快速
+//    指南》「意见建议类型」表（`:439-444`）逐条＝下次支委会后 / 1周内 / 2周内 / 1个月内；系统此前
+//    只有「建议归口」（＝该表「处理方式」列），**反馈时间无对应物**（欠拟合）。落点同 `suggest`：
+//    本单一源出值、同 3 个展示点呈现（**只呈现母本写的时限口径，不改任何流转 / 不设催办门**）。
 // ════════════════════════════════════════════════════════════════
 export const ISSUE_DOMAINS = [
-  { value: 'institution', label: '制度建设建议', suggest: '支委会（讨论制度修改）' },
-  { value: 'activity', label: '活动组织建议', suggest: '相关党小组组长' },
-  { value: 'workflow', label: '工作流程建议', suggest: '相关条条委员' },
-  { value: 'other', label: '其他建议', suggest: '支委会（研究）' },
+  { value: 'institution', label: '制度建设建议', suggest: '支委会（讨论制度修改）', replyHint: '下次支委会后' },
+  { value: 'activity', label: '活动组织建议', suggest: '相关党小组组长', replyHint: '1周内' },
+  { value: 'workflow', label: '工作流程建议', suggest: '相关条条委员', replyHint: '2周内' },
+  { value: 'other', label: '其他建议', suggest: '支委会（研究）', replyHint: '1个月内' },
 ];
 
 /** 领域值 → 中文名（未知值原样回显，不吞） */
@@ -1680,4 +1684,10 @@ export function issueDomainLabel(value) {
 export function issueDomainSuggest(value) {
   const hit = ISSUE_DOMAINS.find((d) => d.value === value);
   return hit ? hit.suggest : '';
+}
+
+/** 领域值 → 反馈时间（母本「反馈时间」列；未选 / 未知 → 空串＝无可给的时限口径） */
+export function issueDomainReplyHint(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? (hit.replyHint || '') : '';
 }

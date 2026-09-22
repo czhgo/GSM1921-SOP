@@ -3,17 +3,17 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260922j';
-import { showToast } from '../../../core/utils.js?v=20260922j';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922j';
-import { icon } from '../../../core/icons.js?v=20260922j';
-import { AuthStore } from '../../../services/auth.js?v=20260922j';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260922j';
-import { getPersonName } from '../../../services/person.js?v=20260922j';
-import { PersonStore } from '../../../services/person.js?v=20260922j';
-import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260922j';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/issues.js?v=20260922k';
+import { showToast } from '../../../core/utils.js?v=20260922k';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922k';
+import { icon } from '../../../core/icons.js?v=20260922k';
+import { AuthStore } from '../../../services/auth.js?v=20260922k';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/constants.js?v=20260922k';
+import { getPersonName } from '../../../services/person.js?v=20260922k';
+import { PersonStore } from '../../../services/person.js?v=20260922k';
+import { badgeHtml, badgeVariantClass } from '../../../components/badges.js?v=20260922k';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/pager.js?v=20260922j';
+import { pagerHtml } from '../../../components/pager.js?v=20260922k';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -364,7 +364,7 @@ function renderIssueDetail(issueId) {
   // ── 元信息 ──
   html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
   html += `<span>范围：${issue.scope || '—'}</span>`;
-  html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span><span>事项领域：${issueDomainLabel(issue.domain) || '未选'}（建议归口：${issueDomainSuggest(issue.domain) || '—'}）</span>`;
+  html += `<span>类型：${(issue.types || []).join(', ') || '—'}</span><span>事项领域：${issueDomainLabel(issue.domain) || '未选'}（建议归口：${issueDomainSuggest(issue.domain) || '—'}；反馈时间：${issueDomainReplyHint(issue.domain) || '—'}）</span>`;
   html += `<span>提交人：${getPersonName(issue.submittedBy) || '匿名'}</span>`;
   html += `<span>提交时间：${issue.submittedAt || '—'}</span>`;
   if (issue.closedAt) html += `<span>关闭时间：${issue.closedAt}</span>`;
