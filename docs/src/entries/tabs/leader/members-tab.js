@@ -5,21 +5,21 @@
 // P-011 知情边界：看 ≠ 做——组长只知情与温和「了解进展」，答复由支书完成，不跳转他人工作台。
 // 本视图禁用 SVG 图标，类别用色点+文字区分。
 
-import { AuthStore } from '../../../services/auth.js?v=20260922a';
-import { IssueStore } from '../../../services/issues.js?v=20260922a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260922a';
+import { AuthStore } from '../../../services/auth.js?v=20260922b';
+import { IssueStore } from '../../../services/issues.js?v=20260922b';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260922b';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定「改为服务端汇总」）：四项聚合口径下沉单一源
 // `services/member-progress.js`——api 态由**服务端**汇总接口计算、mock 态调**同一个**纯函数。
 // 故原先此处的四源直读与内联判定（TodoStore / TodoStatus / isTodoExpired / AttendanceStatus /
 // loadAttendanceRecords / loadActiveInspectionRecords）**全部移除**：判定逻辑不再在本文件出现。
-import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member-progress.js?v=20260922a';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260922a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922a';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260922a';
+import { loadMemberProgress, blockersOf, REPORT_KIND } from '../../../services/member-progress.js?v=20260922b';
+import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260922b';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922b';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260922b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922b';
 // D8 裁决批二（2026-09-08）：本组活动复盘状态只读区块并入「组员进展」页（原独立「复盘状态」tab 已删）
-import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260922a';
+import { reviewStatusSectionHtml, bindReviewStatusSection } from './review-tab.js?v=20260922b';
 
 // 模块级 ctx 缓存：重渲染（了解进展/行内答复后刷新）复用首次渲染的 accent
 let _ctx = null;

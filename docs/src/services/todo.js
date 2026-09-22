@@ -6,10 +6,10 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260922a';
-import { persist } from '../core/data-adapter.js?v=20260922a';
-import { generateId } from '../core/id.js?v=20260922a';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922a';
+import { mockDB } from '../core/domain.js?v=20260922b';
+import { persist } from '../core/data-adapter.js?v=20260922b';
+import { generateId } from '../core/id.js?v=20260922b';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260922b';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -124,7 +124,7 @@ export function inferDomain(todo) {
     if (key.startsWith('resolution-')) return WORK_DOMAIN.RESOLUTION;
     if (key.startsWith('archive-') || key.endsWith('-archive')) return WORK_DOMAIN.ARCHIVE;
     // 交接派生（C1 Task2 显式 domain 之外的兼容推断，spec 三节）：
-    // 考察记录提交（纪检→组织）归考察；考勤备案（纪检→宣传）/补课需求回执（组织→纪检）归考勤纪律
+    // 考察记录提交（纪检→组织）归考察；考勤统计（纪检→组织）/补课需求回执（组织→纪检）归考勤纪律
     if (key.startsWith('handoff-')) {
       if (key === 'handoff-inspection-report') return WORK_DOMAIN.INSPECTION;
       return WORK_DOMAIN.ATTENDANCE;

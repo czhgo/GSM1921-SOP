@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-09-05"
+last_updated: "2026-09-22"
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -70,7 +70,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 | **适用** | 三会一课 | 所有支部工作 |
 | **记录** | 出勤 / 请假 / 缺勤 | 组织 / 深度参与 |
 | **方式** | 实时记录 | 实时记录 |
-| **提交** | 宣传委员备案 | 组织委员建档（每月提交） |
+| **提交** | 支委会（组织委员接收建档） | 组织委员建档（每月提交） |
 
 补课逻辑：考勤记录中出现"请假"或"缺勤"状态时，自动触发补课任务；补课完成后，考勤记录回写为"已补"。此逻辑依赖考勤的 0-1 变量特性，不涉及考察的工作量维度。
 

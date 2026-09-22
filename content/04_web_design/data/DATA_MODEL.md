@@ -3,7 +3,7 @@ title: "数据模型设计"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-21"
+last_updated: "2026-09-22"
 status: active
 split_from: "原数据架构总文件（2026-08-24 T-282 拆分；路由文件 2026-09-03 精简删除）"
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/data/DATA_FLOW.md]
@@ -548,7 +548,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | `branch-party-meeting` | 支部党员大会 | activity | 刚性考勤 |
 | `party-group-meeting` | 党小组会 | activity | 刚性考勤 |
 | `party-lecture` | 党课 | activity | 刚性考勤 |
-| `branch-committee` | 支委会 | activity | 刚性考勤 |
+| `branch-committee` | 支委会 | activity | 支委会不考勤 |
 | `attendance-check` | 查考勤记录 | organization | -- |
 | `feedback-handling` | 处理意见建议反馈 | organization | -- |
 

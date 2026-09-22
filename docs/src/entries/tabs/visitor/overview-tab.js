@@ -6,9 +6,9 @@
 // 顶栏「一键汇报」未读角标（含请我汇报与答复发回）。
 // U3（2026-09-07）：进入概况先骨架占位（内容容器兜底等高骨架卡，防首帧 0 高弹跳）。
 
-import { renderWorkOverview } from '../../../components/work-overview.js?v=20260922a';
-import { AuthStore } from '../../../services/auth.js?v=20260922a';
-import { beginOverviewShell } from '../../../components/overview-dispatch-bar.js?v=20260922a';
+import { renderWorkOverview } from '../../../components/work-overview.js?v=20260922b';
+import { AuthStore } from '../../../services/auth.js?v=20260922b';
+import { beginOverviewShell } from '../../../components/overview-dispatch-bar.js?v=20260922b';
 
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');

@@ -23,7 +23,7 @@ export const sopDatabase = {
         { taskId: '1a-6c', title: '互相批评',            executor: 'all',              supervisor: null,         timeOffset:  0, desc: '开展互相批评，直指问题。' },
         { taskId: '1a-6d', title: '党小组组长总结',            executor: 'leader',           supervisor: null,         timeOffset:  0, desc: '组长做组织生活会总结发言。' },
         { taskId: '1a-6b', title: '摄影留存宣传底稿',   executor: 'leader',           supervisor: null,         timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
-        { taskId: '1a-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '后台汇总出勤数据，导出后交宣传委员归档。' },
+        { taskId: '1a-7b', title: '后台考勤汇总',       executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '后台汇总出勤数据，导出后报支委会（组织委员接收建档）。' },
         { taskId: '1a-7c', title: '活动参与三层记录',   executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '记录组织/深参/出勤三层角色，整理考察草稿。' },
         { taskId: '1a-8', title: '汇总组织生活会记录',  executor: 'leader',           supervisor: null,         timeOffset:  5, desc: '会后汇总述职摘要与检查材料成会议记录。' },
         { taskId: '1a-9', title: '档案归档',            executor: 'prop-commissioner',supervisor: 'leader',     timeOffset:  5, desc: '归档会议材料并上传智慧党建平台（T+5）。' },
@@ -43,9 +43,9 @@ export const sopDatabase = {
         { taskId: '1b-6a', title: '考勤确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  0, desc: '组织者上传党小组考勤，纪检确认后录入总表。' },
         { taskId: '1b-6b', title: '复盘提醒',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  1, desc: 'T+1提醒组织者本人按时提交复盘（T+7）。' },
         { taskId: '1b-7', title: '活动复盘',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  7, desc: '完成活动复盘（积极分子可代，组长把关）。' },
-        { taskId: '1b-8', title: '宣传产出（摘要+配图）', executor: 'deep',             supervisor: 'commissioner', timeOffset: 3, desc: '深度参与者产出摘要+配图，纳入月度推送。' },
+        { taskId: '1b-8', title: '宣传产出（摘要+配图）', executor: 'deep',             supervisor: 'organizer',   timeOffset: 3, desc: '深度参与者产出摘要+配图，组织者打包督办，纳入月度推送。' },
         { taskId: '1b-7c', title: '考察确认',            executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  3, desc: '组织者上传活动考察，纪检确认后录入总表。' },
-        { taskId: '1b-9', title: '材料归档',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  7, desc: '打包考勤/宣传/考察材料交宣传委员归档。' },
+        { taskId: '1b-9', title: '材料归档',              executor: 'organizer',        supervisor: 'leader',     timeOffset:  7, desc: '打包宣传材料交宣传委员归档；考勤与考察统计报支委会（组织委员接收）。' },
         { taskId: '1b-7b', title: '复盘监督（批注/打回/确认）', executor: 'disc-commissioner',supervisor: 'leader',     timeOffset:  7, desc: '检查复盘是否本人完成/充实/按时，批注或打回。' },
       ],
     },
@@ -93,7 +93,7 @@ export const sopDatabase = {
     },
     {
       scenarioId: 'branch-committee', title: '支委会',
-      domain: 'activity', description: '刚性考勤 · 支委会委员参加 · 研究支部日常工作',
+      domain: 'activity', description: '支委会不考勤 · 支委会委员参加 · 研究支部日常工作',
       tasks: [
         // C-23/D-328：三会按同一套环节取齐（母本《常见工作场景快速指南》三会一课通用流程 9 步）——
         // 支委会由支书承担会前、会中主持与会议记录环节（督办位＝支书）。

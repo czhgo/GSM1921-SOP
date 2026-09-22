@@ -5,13 +5,13 @@
 //  产出：进度条 · 状态标签 · 子状态面板 · 阻塞横幅
 // ════════════════════════════════════════════════════════════════
 
-import { WorkflowEngine } from './engine.js?v=20260922a';
+import { WorkflowEngine } from './engine.js?v=20260922b';
 import {
   THEME_PARTY_DAY_DEFINITION,
   SHORT_TERM_DEFINITION,
   LONG_TERM_DEFINITION,
-} from './definitions.js?v=20260922a';
-import { icon } from '../core/icons.js?v=20260922a';
+} from './definitions.js?v=20260922b';
+import { icon } from '../core/icons.js?v=20260922b';
 
 // ── 可用模板列表（渲染器使用）──────────────────────────────────
 const TEMPLATE_REGISTRY = {
@@ -205,10 +205,13 @@ class WorkflowRenderer {
       const def = subStateDefs[name];
       const stepLabels = (def && def.stepsLabel) || {};
 
-      if (!sub.sequence || !sub.sequence.length) continue;
+      // 步骤序列取「状态定义」为准（引擎快照 toJSON 不带 sequence ⇒ 此前恒 continue、卡片永不渲染）；
+      // 回退到快照的 sub.sequence，两者都没有才跳过。
+      const seq = (def && Array.isArray(def.sequence) && def.sequence.length ? def.sequence : sub.sequence) || [];
+      if (!seq.length) continue;
 
-      for (let i = 0; i < sub.sequence.length; i++) {
-        const stepName = sub.sequence[i];
+      for (let i = 0; i < seq.length; i++) {
+        const stepName = seq[i];
         const stepInfo = sub.steps[stepName];
 
         const stepEl = document.createElement('div');

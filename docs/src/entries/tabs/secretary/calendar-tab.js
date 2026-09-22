@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/state.js?v=20260922a';
-import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922a';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922a';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260922a';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260922a';
-import { computeSecretaryStats } from '../../../services/roles.js?v=20260922a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260922a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260922a';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260922a';
-import { loadActivities, listBrandProposals } from '../../../services/activity.js?v=20260922a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260922a';
-import { icon } from '../../../core/icons.js?v=20260922a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260922a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922a';
+import { getAppState, setState } from '../../../core/state.js?v=20260922b';
+import { showToast, escHtml as esc } from '../../../core/utils.js?v=20260922b';
+import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260922b';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/calendar.js?v=20260922b';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/inspector.js?v=20260922b';
+import { computeSecretaryStats } from '../../../services/roles.js?v=20260922b';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260922b';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260922b';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/decision-tree.js?v=20260922b';
+import { loadActivities, listBrandProposals } from '../../../services/activity.js?v=20260922b';
+import { renderQueryView } from '../../../components/query-view.js?v=20260922b';
+import { icon } from '../../../core/icons.js?v=20260922b';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260922b';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260922b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/notice.js?v=20260922a';
-import { BranchService } from '../../../services/runtime.js?v=20260922a';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260922a';
+import { NoticeStore } from '../../../services/notice.js?v=20260922b';
+import { BranchService } from '../../../services/runtime.js?v=20260922b';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/constants.js?v=20260922b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260922a';
-import { badgeHtml } from '../../../components/badges.js?v=20260922a';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260922a';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260922a';
-import { AuthStore } from '../../../services/auth.js?v=20260922a';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260922a';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260922b';
+import { badgeHtml } from '../../../components/badges.js?v=20260922b';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260922b';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/vote-config.js?v=20260922b';
+import { AuthStore } from '../../../services/auth.js?v=20260922b';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch.js?v=20260922b';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch-doc.js?v=20260922a';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch-doc.js?v=20260922b';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260922a';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST } from '../../../workflow/blocks/manifests.js?v=20260922b';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = modules/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260922a';
+import { isReadonlyBranchDrilldown } from '../../../modules/branch-demo-nav.js?v=20260922b';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -1277,9 +1277,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadDevStageOverrides }] = await Promise.all([
-    import('../../../services/taskforce.js?v=20260922a'),
-    import('../../../services/issues.js?v=20260922a'),
-    import('../../../services/member-confirmation.js?v=20260922a'),
+    import('../../../services/taskforce.js?v=20260922b'),
+    import('../../../services/issues.js?v=20260922b'),
+    import('../../../services/member-confirmation.js?v=20260922b'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
