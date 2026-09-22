@@ -85,7 +85,7 @@
 > - **`role`（角色键）**：决定登录到哪个工作台、能写什么。全表见 2.1。
 > - **`developStage`（发展阶段）**：`积极分子 / 发展对象 / 预备党员 / 正式党员` 四档——**这是成员档案上的字段，不是角色键**。这四种人的 `role` 通常都是 `participant`（普通参与者），差别体现在考勤应到口径、表决名单与通知受众上。请勿把「预备党员」「发展对象」当成角色键去查权限表。
 
-### 2.1 角色键全表（13 键 = 10 业务键 + 3 遗留键）
+### 2.1 角色键全表（13 键 = 11 业务键 + 2 遗留键）
 
 | # | 角色键 | 中文标签 | 类型 | 工作台页面 | 说明 |
 |---|---|---|---|---|---|
@@ -99,14 +99,14 @@
 | 8 | `party-staff` | 党委组织员 | **组织级** | `workspace/party-committee.html` | 院系党委，**不属于任一支部** |
 | 9 | `organizer` | 组织者 | **项目角色** | 无独立页面 | 仅在具体活动/专班内生效 |
 | 10 | `deep` | 深度参与者 | **项目角色** | 无独立页面 | 同上 |
-| 11 | `commissioner` | 条条委员 | 遗留键 | — | **不参与权限判定**，仅兼容兜底 |
-| 12 | `initiator` | 发起人 | 遗留键 | — | 同上 |
-| 13 | `all` | 全体相关 | 遗留键 | — | 同上 |
+| 11 | `deputy-leader` | 党小组副组长 | 常设 | `workspace/leader.html`（与组长**同页同台**） | 与组长可区分的第二身份；权限集与赋权链同组长一份，任务优先打给组长 |
+| 12 | `commissioner` | 条条委员 | 遗留键 | — | **不参与权限判定**，仅兼容兜底 |
+| 13 | `initiator` | 发起人 | 遗留键 | — | 同上 |
 
-**依据**：`docs/src/core/constants.js:185-191`（`ROLE_KEYS`）、`:192`（`ROLE_LEGACY_KEYS`）、`:288-302`（`ROLE_LABELS`）、`:306-318`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
+**依据**：`docs/src/core/constants.js:185-191,819-821`（`ROLE_KEYS`——`deputy-leader` 于该文件末挂载）、`:192`（`ROLE_LEGACY_KEYS`）、`:288-302`（`ROLE_LABELS`）、`:306-318`（`ROLE_PAGE_MAP`）；`content/02_institution/SYSTEM_ROLE_PERMISSION.md:24-38`（§9a0 角色键全表）。
 
 **两点易错约定**：
-- **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。
+- **「访客」不是角色**：未登录即访客（无角色键）。`visitor.html` 里的 `visitor` 只是**页面/页签前缀**，与「未登录访客」不是一回事。**另，「全体相关」（`all`）已不是角色键**（2026-09-22 批次 143 自遗留键撤除），故不在上表；其展示标签仍保留，见 §2.2.11。⚠ **同族待同步**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md` 的 §9a0 角色键全表**尚按 12 键记（缺 `deputy-leader` 行）**，本批只收口本表、那一份待另批一并同步。
 - **`party-staff` 不属于任何支部**：示例种子中它的 `branchId` 为 `null`。
 
 **依据**：`content/02_institution/SYSTEM_ROLE_PERMISSION.md:41`、`docs/src/mock/people.js:66`（`p_pc`：`role:'party-staff'`、`branchId: null`）。
