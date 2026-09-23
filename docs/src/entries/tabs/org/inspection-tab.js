@@ -2,20 +2,20 @@
 // 组织委员工作台 Tab：考察上传（T-279 M3 拆分，照 M2 样板）
 // 专班考察：专班负责人/组织委员上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260922l';
-import { reconfirmReturnedInspectionRecord } from '../../../services/inspection.js?v=20260922l';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922l';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260922l';
-import { AuthStore } from '../../../services/auth.js?v=20260922l';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260922l';
-import { inspectionToLong } from '../../../services/inspection.js?v=20260922l';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922l';
-import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260922l';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922l';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260922l';
-import { generateId } from '../../../core/id.js?v=20260922l';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260923a';
+import { reconfirmReturnedInspectionRecord, mentorChoicesOf, currentInspectionPeriod, halfYearPeriodOptions } from '../../../services/inspection.js?v=20260923a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260923a';
+import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260923a';
+import { AuthStore } from '../../../services/auth.js?v=20260923a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260923a';
+import { inspectionToLong } from '../../../services/inspection.js?v=20260923a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260923a';
+import { SourceType, ParticipationLevel } from '../../../core/domain.js?v=20260923a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260923a';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260923a';
+import { generateId } from '../../../core/id.js?v=20260923a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：考察明细表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922l';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
 
 // 私有状态（随模块自持，不污染入口）
 let _orgInspFormVisible = false;
@@ -265,7 +265,7 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
       const content = contentEl ? contentEl.value.trim() : '';
       if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
 
-      records.push({
+      const record = {
         id: generateId('insp'),
         sourceType: SourceType.TASKFORCE,
         activityId: null,
@@ -277,7 +277,17 @@ function _initOrgInspForm(container, activeTaskforces, ctx) {
         recordedBy: AuthStore.getCurrentUser()?.personId || 'p13', // A1-2026-09-05：真实操作人（组织委员建档位临时承载专班上传，负责人位待另裁）
         recordedAt: new Date().toISOString(),
         status: 'pending',
-      });
+      };
+
+      // 培养联系人考察记录两栏（2026-09-23 批次 157）：该成员有培养联系人时才有这两个下拉；
+      // 选了「是哪位培养联系人写的」才写这两栏（不选＝记录形状与改动前完全一致）
+      const mentorSel = container.querySelector(`#org-insp-mentor-${personId}`);
+      if (mentorSel && mentorSel.value) {
+        record.mentorId = mentorSel.value;
+        record.period = container.querySelector(`#org-insp-period-${personId}`)?.value || null;
+      }
+
+      records.push(record);
     }
 
     const allRecords = loadInspectionRecords();
@@ -305,16 +315,46 @@ function _renderOrgInspContentRows(selectedIds) {
   rowsContainer.querySelectorAll('textarea[id^="org-insp-content-"]').forEach((t) => {
     kept[t.id.slice('org-insp-content-'.length)] = t.value;
   });
+  // 批次 157：培养联系人 / 期次 两个下拉同样保态（否则改选人员会把它俩的选择丢掉）
+  const keptMentor = {};
+  const keptPeriod = {};
+  rowsContainer.querySelectorAll('select[id^="org-insp-mentor-"]').forEach((s) => {
+    keptMentor[s.id.slice('org-insp-mentor-'.length)] = s.value;
+  });
+  rowsContainer.querySelectorAll('select[id^="org-insp-period-"]').forEach((s) => {
+    keptPeriod[s.id.slice('org-insp-period-'.length)] = s.value;
+  });
+
+  // 批次 157：母本《组织委员工作流程指南》附录 A「培养联系人考察记录（每半年一次，含考察意见和培养建议）」
+  //   ——支书定「挂在现有考察记录上加两栏、不分家」；「考察意见 / 培养建议」就写在既有「考察内容」框里。
+  const anyMentor = selectedIds.some(pid => mentorChoicesOf(pid).length > 0);
+  const periodOptions = halfYearPeriodOptions();
 
   rowsContainer.innerHTML = `
     <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
+    ${anyMentor ? '<div class="text-[11px] text-gray-500 mb-1.5">该成员有培养联系人时，可标注「是哪位培养联系人写的」与「第几期」（每半年一次）；不标＝普通考察记录</div>' : ''}
     <div class="space-y-2 max-h-60 overflow-y-auto">
       ${selectedIds.map(pid => {
         const name = getPersonName(pid) || pid;
+        const mentors = mentorChoicesOf(pid);
+        const chosenPeriod = keptPeriod[pid] || currentInspectionPeriod();
+        const mentorRow = mentors.length === 0 ? '' : `
+            <div class="flex items-center gap-2 mt-1.5">
+              <select id="org-insp-mentor-${pid}" class="input-flat text-xs" style="min-width:120px;" aria-label="培养联系人">
+                <option value="">（非培养联系人考察）</option>
+                ${mentors.map(m => `<option value="${m.value}"${keptMentor[pid] === m.value ? ' selected' : ''}>${esc(m.label)}</option>`).join('')}
+              </select>
+              <select id="org-insp-period-${pid}" class="input-flat text-xs" aria-label="第几期（自然半年）">
+                ${periodOptions.map(o => `<option value="${o.value}"${chosenPeriod === o.value ? ' selected' : ''}>${o.label}</option>`).join('')}
+              </select>
+            </div>`;
         return `
           <div class="flex items-start gap-2">
             <span class="text-xs font-medium text-gray-700 min-w-[3rem] pt-2">${name}</span>
-            <textarea id="org-insp-content-${pid}" class="input-flat-sm w-full resize-none" rows="2" placeholder="请填写考察内容描述">${esc(kept[pid] || '')}</textarea>
+            <div class="flex-1">
+              <textarea id="org-insp-content-${pid}" class="input-flat-sm w-full resize-none" rows="2" placeholder="请填写考察内容描述（含考察意见和培养建议）">${esc(kept[pid] || '')}</textarea>
+              ${mentorRow}
+            </div>
           </div>
         `;
       }).join('')}

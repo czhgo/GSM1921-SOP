@@ -17079,6 +17079,173 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **本批未提交 git**（`.ctx` 四本账 ＋ 月度索引在跑后落账；跑前已完成全部 `docs/src/**` / `docs/help.html` / `README-server.md` / `server/**` 改动 ⇒ **全量覆盖的是最终代码与文档**）。
 
 
+## 批次 157（2026-09-23，`D-603` · `D-604`）① `SOP-F-5-⑤`「培养联系人考察记录」按支书定「挂在既有考察记录上加两栏」落地（收口）② `project-auth-granted` 通知被 403 的成因查清并登记
+
+> **一句话**：承接批次 156 留下的同句后半截——**「培养联系人考察记录（每半年一次，含考察意见和培养建议）」照支书推荐档落成「既有考察记录上的两栏」**：`mentorId`（是哪位培养联系人写的，候选限该成员的培养联系人、单一源 `mentorsOf`）＋ `period`（第几期＝自然半年期 `YYYY-H1`/`YYYY-H2`，与既有「半年考察提醒」同口径）；**不新造表 / 不新造实体 / 不重造「考察意见和培养建议」**（复用既有 `content` 文本栏）；写口＝既有「考察上传」表单（组长台 / 组织台两侧，**该成员有培养联系人时**才出这两栏）、读口＝纪检「考察总表 · 明细」两列（含导出 CSV）。**另把批次 156 真机抓到的 `project-auth-granted` 403 查清**（服务端该 kind 的授权只认支委层、前端却允许组长赋权）——**修法要动授权门 ⇒ 本批不改**，进队列带三档待支书定。真机两条各自走通；版本戳 **`20260922l → 20260923a`**〔显式传参〕；守卫子集改前 / 改后均 **64 / 64 / 0 红**；`R-85` 全量 **724 / 724 / 0 红**。
+
+### 一、取证（逐条给 `文件:行号`，改前实测）
+
+| # | 问 | 取证结论（改前） |
+|---|---|---|
+| 1 | **「既有考察记录」到底是什么？有哪些字段？** | 实体＝**通用考察记录 `InspectionRecord`**：持久化域 `mockDB.inspections`（`docs/src/core/domain.js:245`）· 种子 `docs/src/mock/inspection.js:14-82`（**43 条**）· 服务层 `docs/src/services/inspection.js`（读写都在此）；字段**10 个**：`id / sourceType('activity'\|'taskforce') / activityId / sourceName / personId / level('organize'\|'deep') / role / content / recordedBy / recordedAt / status`（`README-server.md` §4.6 表 · `docs/src/core/domain.js:166-177` typedef）。**没有「是谁写的培养联系人」这一维、也没有「期次」** |
+| 2 | **谁在写？** | **只有两处写口**（改前逐处核过）：`docs/src/entries/tabs/leader/inspection-tab.js`（组长台「考察上传」：活动 / 专班两来源）· `docs/src/entries/tabs/org/inspection-tab.js`（组织台「考察上传」：**仅专班**）；另有 `docs/src/entries/tabs/secretary/todo-tab.js:723-729`（支书台「一键确认」写 `secretaryConfirmedAt`）与 `docs/src/entries/tabs/org/taskforce-tab.js`（**已无写入口**，注释自陈 IA-C3 收敛） |
+| 3 | **谁在看？呈现成什么样？** | ① **纪检「考察管理」**（`docs/src/entries/tabs/disc/inspection-tab.js`）：宽表「按人」/「按项目」＋**明细**长表（表头 姓名/来源/类别/内容/记录人/状态/操作）＋导出 CSV；② **上传方明细**（组长台 / 组织台各一张）；③ **成员台「我的考察」**（`docs/src/entries/tabs/visitor/inspection-tab.js`，只读＋申诉）；④ **成员档案页**「关联概览」只给**计数**（`docs/src/entries/person-entry.js:107-109`） |
+| 4 | **「每半年一次」在系统里有没有对应物？** | **有**——`docs/src/services/todo.js:321-382`「**半年考察提醒**」（`SOP-B-39` · 裁定 `D-295`：考察意见＝**半年一次 · 制度固定**）；口径＝自然半年期键 `halfYearPeriodOf` → `YYYY-H1` / `YYYY-H2`，判据＝**本自然半年内无考察记录（按 `recordedAt`）**⇒ 组织委员台待办提醒（`docs/src/entries/tabs/org/todo-tab.js:61-64`·`:117-118`）。⇒ **本批只加「期次」这一栏，不另做提醒**（提醒已有；其判据本批一字未动） |
+| 5 | **「含考察意见和培养建议」是不是既有两栏？** | **是**——既有记录的 `content`（写口表单一律叫「考察内容描述」、详情面显示「考察内容」）就是那段自由文本 ⇒ **直接复用、不重造**（本批只把两个表单的占位符补成「请填写考察内容描述（含考察意见和培养建议）」，让主席原文落到填写处） |
+| 6 | **培养联系人候选从哪来？** | 批次 156 落的**成员档案字段 `mentorIds`**（`docs/src/services/person.js:240-245` 白名单 ＋ `:394` `mentorsOf`）；**只存 personId、人名现取档案**（不落姓名快照） |
+| 7 | **`project-auth-granted` 的收发链** | **发**：`docs/src/entries/tabs/leader/write-tab.js:425`（保存活动角色）/ `:1128`（发起活动）→ `docs/src/services/auth.js::syncProjectRoles`（`:634-691`）· `recordProjectGrants`（`:700-725`）→ `:574` / `:687` / `:720` 调 `_notifyProjectAuth`（`:182-206`）→ `NoticeStore.addSystem('project-auth-granted', …)`（`docs/src/services/auth.js:203` → `docs/src/services/notice.js:341-385`，**API 模式失败即回收本地镜像**）；**收/判**：`server/routes/system-notices.js` → `server/system-notice-kinds.js:183-188` 的 `authorize`：`COMMITTEE_ROLE_SET.has(actor.role)`（**只认支委层 5 角色**）＋ 要求来源活动 / 专班存在 |
+| 8 | **同族 kind 的判据长什么样？** | 最接近的 `server/system-notice-kinds.js:234-242` `activity-created-broadcast`＝「支委层 **或** 组长且活动类型在组长可写范围内（`LEADER_ACTIVITY_TYPES`）」——**它已覆盖组长**，唯独 `project-auth-granted` 没有 |
+
+### 二、① 两栏的落点与形态选择（＋理由）
+
+- **落点**：**既有 `InspectionRecord` 上加两个可选字段**（`mentorId` / `period`）——**不新造表 / 不新造实体**（支书定「挂在现有考察记录上、不分家」）。字段读侧透出在**同一处单一源**（`docs/src/services/inspection.js` 的 `inspectionToDisplay` / `inspectionToLong` → `mentorId` / `mentorName` / `period` / `periodLabel`），三个展示面都现取它。
+- **「第几期」的形态取自然半年（`YYYY-H1` / `YYYY-H2`）**：母本写的是「每半年一次」，而系统里**同一节律的既有口径就是自然半年**（`D-295` 的半年考察提醒，`halfYearPeriodOf`）⇒ 复用同处新增的 `halfYearPeriodLabel` / `halfYearPeriodOptions`，**不另造季度口径**（季度那套属思想汇报，`docs/src/core/period.js`）。界面上显示中文（「2026年下半年」），存的是键。
+- **写口＝既有「考察上传」表单**（组长台 + 组织台）：两处都是既有考察记录的写口，**逐人那一行**在该成员有培养联系人时多出「培养联系人 / 第几期」两个下拉（候选＝**该成员的**培养联系人 ⇒ 只有被指派为培养联系人的人出现；未指派的人**这一栏根本不渲染**）。**留空 / 选「（非培养联系人考察）」＝不写这两个键** ⇒ 既有记录形状零变化。两个下拉与既有「逐人考察内容」同款**保态**（改选人员不丢选择）。
+- **做 / 不做**：**做**＝读侧两栏透出 ＋ 纪检总表明细两列（含 CSV）；**不做**＝① 上传方两处明细表**不加列**（理由：专班考察一侧与「培养联系人」语义不符、且避免三处表同时加宽——考察记录的**主呈现面是纪检总表**）；② 成员台「我的考察」卡**不加**（那一面是给本人看自己参与情况的，母本这句是**考核/建档**语境）；③ 培养联系人考察记录与「培养联系人」的**双向联动**（见「四」）。
+
+| # | 位置 | 改前（逐字 / 实然） | 改后（逐字 / 实然） |
+|---|---|---|---|
+| 1 | `docs/src/services/todo.js`（新增两助手） | 只有 `halfYearPeriodOf`（`:331`） | ＋ `halfYearPeriodLabel`（`'2026-H2'` → `2026年下半年`）＋ `halfYearPeriodOptions`（手填下拉候选取值集，新期次在前） |
+| 2 | `docs/src/services/inspection.js`（import / 再导出） | `import { TodoStore, TodoSourceType } from './todo.js'` | ＋ `halfYearPeriodOf / halfYearPeriodLabel / halfYearPeriodOptions`，并**再导出**（考察域消费方走本入口，勿另写第二份半年口径——同 `services/thought-report.js` 对 `core/period.js` 的做法） |
+| 3 | `docs/src/services/inspection.js`（新增两读口） | ——（无） | `mentorChoicesOf(personId)`（候选限培养联系人，单一源 `mentorsOf`）＋ `currentInspectionPeriod()`（写口缺省＝当前自然半年） |
+| 4 | `docs/src/services/inspection.js`（两格式透出） | `inspectionToDisplay` / `inspectionToLong` **无**这两栏 | 各 ＋ `mentorId` / `mentorName` / `period` / `periodLabel`（**未标注 → null / 空串**） |
+| 5 | `docs/src/entries/tabs/leader/inspection-tab.js` | 逐人行只有「考察内容」textarea；提交只写既有 10 字段 | 该成员有培养联系人时多一行两下拉（`#insp-mentor-<pid>` / `#insp-period-<pid>`）；提交时**选了培养联系人才写** `mentorId` ＋ `period`（＋保态 ＋ 提示一句） |
+| 6 | `docs/src/entries/tabs/org/inspection-tab.js` | 同上（专班侧） | 同上（`#org-insp-mentor-<pid>` / `#org-insp-period-<pid>`；`records.push({…})` 改为先构造 `record` 再 push） |
+| 7 | `docs/src/entries/tabs/disc/inspection-tab.js` | 明细表 7 列（姓名/来源/类别/内容/记录人/状态/操作）；导出 7 列 | **9 列**（记录人之后插「培养联系人」「期次」）；导出 CSV 同步 **9 列** |
+| 8 | `README-server.md` §4.6 | 字段表 11 行；无批次 157 说明 | ＋ `mentorId` / `period` 两行（来源 C）＋ **批次 157 补记一段与依据行** |
+| 9 | `docs/help.html` | 「考察上传」卡三步、「纪检确认」卡未提两列 | 「考察上传」卡补一步（有培养联系人时才有这两栏、不另建表）＋「留空即普通考察记录」句；「纪检确认」卡明细一句补两列与导出；两卡 `data-search` 补词 |
+
+**母本一字未改**（母本本来就是这一句，缺的是系统侧）。
+
+### 三、① 真机验证（Playwright ＋ 进程内真起服务 `:memory:` 独立库；探针 `server/.tmp-probe-157.mjs`，跑完即删）
+
+**探针路径**：组织委员（p11）真登录 → 组织台「成员名册」搜到 p21（积极分子 沈佳琪）→ 真点「＋ 指派」→ `PersonPicker` 里真选 p1（正式党员 罗文杰）→ 真点「保存」→ 服务端回读；再组长（p1）真登录 → 组长台「考察上传」→ 真选来源活动 → 真选 p21 → 逐人行两栏真出现 → 真选培养联系人 p1（期次取默认）→ 真填考察内容 → 真提交 → 服务端回读；再纪检（p10）真登录 → 「考察管理」→ 真点「明细」→ 真搜该条 → 读两格。
+
+**实测（原样输出）**：
+
+- `[A1] 改前 p21 行「培养联系人」格:` `"＋ 指派"`
+- `[A2] 候选中选中:` `"罗 罗文杰 正式 2400012345 第一 党小组组长"`
+- `[A3] 指派后 p21 行「培养联系人」格:` `"罗文杰"`
+- `[A4] 服务端 users.p21.mentorIds =` `["p1"]`
+- `[B0] 组长可上传的活动来源:` `act-29 暑期实践总结分享（2026-08-04）`
+- `[B1] 逐人行出现「培养联系人 / 期次」两栏:` `true`
+- `[B2] 「第几期」默认值:` `2026-H2`
+- `[B3] 「培养联系人」候选:` `["|（非培养联系人考察）","p1|罗文杰"]`
+- `[B4] 服务端落库该条 =` `{"personId":"p21","mentorId":"p1","period":"2026-H2","recordedBy":"p1","status":"pending"}`
+- `[B5] 形状对照：本批新增 1 条带两键；其余` `42 / 43 条无 mentorId 键（既有形状未变）`
+- `[D1] 明细表头:` `["姓名","来源","类别","内容","记录人","培养联系人","期次","状态","操作"]`
+- `[D2] 明细行（含培养联系人 / 期次两格）:` `["沈佳琪","暑期实践总结分享","活动","批157真机·培养联系人半年考察意见","罗文杰","罗文杰","2026年下半年","待确认","确认 删除"]`
+- `[E] PAGEERRORS:` `[]`
+
+⇒ **真指派 → 真落库 → 真写带两栏的记录 → 真落库 → 真在既有呈现面（考察总表明细）看到两格**，且**未标注的 42 条形状零变化**（对照在位）。
+
+### 四、① 「要不要与培养联系人双向联动」的判定：**不做**（登记）
+
+- **问题**：该人档案页要不要能看到「我带的人有哪些考察记录」（按培养联系人反查考察记录）。
+- **判「不做」**，理由三条：① **母本无此要求**——母本只说「这份记录由培养联系人写、写在积极分子的档案上」；② **考察记录是按人归档的**（记录的 `personId`＝被考察人，「哪条是谁写的」由 `recordedBy` / 新增的 `mentorId` 表达）⇒ 再挂一层「按 `mentorId` 反查我写过的」＝**同一事实的第二种归类法**，与既有「考察总表按人 / 按项目」两视图的轴平行，易分叉；③ 成员档案页是**只读查阅位**（2026-09-13 裁定），批次 156 已在那页放了两格（谁培养我 / 我带着谁），**再加一层反查段**属产品取向。
+- **登记为待支书定**（队列 `SOP-F-5` 家族的新条，见「八」）。
+
+### 五、② `project-auth-granted` 403：成因 ＋ 影响面 ＋ 是 bug 还是设计（**没修**）
+
+- **成因（给 `文件:行号`）**：服务端 `server/system-notice-kinds.js:183-188` 的 `authorize` ＝ `COMMITTEE_ROLE_SET.has(actor.role)` ＋ 来源活动 / 专班存在 ⇒ **组长（`leader`）不在放行集合**；而前端在这两种合法动作上会调它——`docs/src/entries/tabs/leader/write-tab.js:425`（保存活动角色）／`:1128`（发起活动，本批实测这条链）→ `docs/src/services/auth.js::syncProjectRoles` / `recordProjectGrants` → `:203` `NoticeStore.addSystem('project-auth-granted', …)`。**服务端 403 → `NoticeStore` 回收本地镜像 ⇒ 被赋权人根本收不到这条通知**（赋权本身照常写入主源与审计快照，**不是数据错、是通知漏**）。
+- **影响面（逐 kind 核过 `server/system-notice-kinds.js` 的 `authorize`）＝只有这一种 kind**：`thought-report-submitted`（提交人本人 / 组织委员）· `attendance-confirmed`（纪检 / 该活动组织者 / 支书副支书）· `activity-created-broadcast`（**支委层 或 组长且类型可写**，`:234-242`）· `external-dispatch-created`（该记录发送人）· `weekly-report-submitted`（提交人 / 宣传委员）· `review-request-submitted`（提交人 / 支委层）· `committee-vote-progress`（应到名单 / 支委层）——**都能覆盖其合法触发人**；其余 kind 的触发人本就是支委层 / 党委。**受影响的触发人＝凡不在支委层、却做了合法赋权动作的人**：实测到的＝**组长**；代码里**另有一条同族路径**（`docs/src/services/signup.js:198` 报名通过赋权时 `actorId` 传的是**报名人本人**）——**该路径本批未真机复现**，如实登记为「同族、未验」。
+- **是 bug 还是设计**：**判 bug（前后端判据不一致）**——同一条业务动作**前端放行、服务端对它的通知不放行**，且失能是**静默的**（界面只留一条 `console.warn`，用户看不到异常）。
+- **修了没 ⇒ 没修**：唯一干净的修法就是**动 `authorize` 的放行集合**（＝授权门），**本批铁律明令不许**（「不许为修 403 去改权限门」「若修法要动权限模型 ⇒ 停手、只登记 ＋ 上报」）；且**批次 91 已立 `D-497` 作同一结论**（「宜由支书一句话定后另立项」）⇒ 本批**复核成因仍成立、只登记**，并把它**从执行日志的登记段升成队列里的一条**（带三档，见「八」）。
+- **真机复现（原样输出）**：组长（p1）真登录 → 组长台「活动管理」→ 真点活动 act-29 → 真选一名深度参与者 → 真点「保存角色」：
+  - `[C1] 组长「保存角色」实测:` `活动 act-29，加了 沈 沈佳琪 积极 2500010007 第二 普通参与者`
+  - `[C2] 非 2xx 响应:` `["403 POST /api/v1/system-notices"]`
+  - `[C3] 控制台 warn/error（非 tailwind）:` `["…","Failed to load resource: the server responded with a status of 403 (Forbidden)","[NoticeStore] 系统派生通知发送失败（project-auth-granted，HTTP 403）：无权限：当前身份不能触发「project-auth-granted」系统通知"]`
+  - `[E] PAGEERRORS:` `[]`
+
+### 六、反查 ＋ 版本戳 ＋ 守卫 ＋ 全量 ＋ 停服
+
+**（甲）反查**（改前＝`HEAD`／改后＝工作树；`git grep -l --fixed-strings`；**排除 `.ctx`**——那里是台账）：
+
+| 词 | 改前（HEAD，命中文件数） | 改后（工作树） | 逐条判定 |
+|---|---|---|---|
+| `考察记录` | 52 | 52 | **零增减**（本批改的 `README-server.md` / `docs/help.html` / 四个 `inspection` 文件 / `todo.js` **本就命中**）⇒ 无溢出 |
+| `培养联系人` | 11 | **15** | **＋4 文件，逐条核过全是本批落点**：`docs/src/services/inspection.js` · `docs/src/entries/tabs/leader/inspection-tab.js` · `docs/src/entries/tabs/org/inspection-tab.js` · `docs/src/entries/tabs/disc/inspection-tab.js`。**无溢出**（`README-server.md` / `docs/help.html` 批次 156 已命中；`docs/src/mock/**` 一字未动） |
+| `期次` | 23 | **27** | **＋4 文件，同一组**（同上四文件）⇒ 无溢出 |
+| `project-auth-granted` | 4 | 4 | **零增减**（`server/system-notice-kinds.js` · `docs/src/services/auth.js` · `docs/src/core/system-notice-templates.js` · `README-server.md`）⇒ ②**只登记未改**，与实做一致 |
+| `NoticeStore` | 44 | 44 | **零增减**（本批未动通知链） |
+
+- **字段级反查（新词）**：`mentorId` 落在 7 文件（`README-server.md` / 两个上传表单 / `disc/inspection-tab.js` / `services/inspection.js` ＋ 批次 156 的 `person.js` / `roster-tab.js` / `server/routes/member.js`）；`mentorChoicesOf` 4 文件、`halfYearPeriodOptions` 5 文件、`halfYearPeriodLabel` 3 文件——**都在本批落点内、无溢出**。
+- ⚠ **不只靠 grep**（本批该说的）：① 字面反查证明的是「新增 4 个命中文件＝落点」，**但「两栏该在哪几个面出现」是判断不是反查**——**组长台 / 组织台的上传方明细表本批故意不加列**（那两处一个「培养联系人」字面量都没有，**属下判断、不是漏改**，理由见「二」）；② 反向的假阴性同样存在：`disc/inspection-tab.js` 的明细两格走 `i.mentorName` / `i.periodLabel`（**单一源透出**），若只看 `mentorId` 字段名会以为没接上读侧；③ `period` 是**同名不同域**（思想汇报的 `core/period.js` 是**季度**、本批考察记录是**半年**）——两者分属不同实体、各有单一源，**本批未合流、也未改名**（如实登记，见「十」）。
+
+**（乙）版本戳**：**`20260922l → 20260923a`**〔**显式传参**：`node docs/scripts/bump-version.mjs 20260923a`〕。bump 实测：**实际改写 JS 210 / HTML 22 / CSS 2 / server-test 69；`CODE_VERSION` +1；陈旧戳自检 0 处残留 ✅**（＝**戳唯一**已核）。
+
+**（丙）守卫子集**（8 文件、带 `DISABLE_PASSWORD_CHECK=1`，按 `server/README.md` 的耗时台账跑）：**改前 `64 / 64 / 0 红`（24.44 秒）→ 改后 `64 / 64 / 0 红`（23.49 秒）→ 全部落账后再跑一次 `64 / 64 / 0 红`**。`doc-line-ref` 的 **`R1`–`R6` 全绿**；`version-stamp` 绿（**未二次 bump**：`README-server.md` / `docs/help.html` 的后续改动**未引入任何 `?v=` 字面量** ⇒ 活戳取值集合仍为 `{20260923a}`）。
+
+**（丁）本批位移的行号引用（逐处核过 ⇒ 结论：`form-loop-registry.mjs` 无需改）**：本批在两处表单的**插入点全部落在被引行之后**，被引的 7 条台账行号**零位移**：
+
+| 台账行 | 文件:行号 | 为什么不动 |
+|---|---|---|
+| `server/test/form-loop-registry.mjs:105-108` | `leader/inspection-tab.js:275 / 279 / 282 / 295` | 本批在该文件的改动＝**第 6 行 import 原位加名**（不加行）＋ **第 309 行后**插提交读取 ＋ **第 349 行后**改逐人渲染 ⇒ 四条被引行均在插入点之前，**行号未动**（改后逐行复核过：`:275` 仍是「请选择来源类型」、`:279` 「请选择具体来源」、`:282` 「请选择人员」、`:295` 「的考察内容」） |
+| `server/test/form-loop-registry.mjs:124-126` | `org/inspection-tab.js:256 / 260 / 266` | 同上（第 5 行 import 原位加名；插入点在**第 268 行之后**）⇒ 三条**行号未动**（`:256` 专班、`:260` 人员、`:266` 的考察内容） |
+| `server/test/form-loop-registry.mjs:118-121` · `:734-737` · `:750-752` · `:984-986` · `:1162` | `leader/write-tab.js:482 / 1039 / 1040 / 1041` 等 | 本批**未动 `write-tab.js`** ⇒ 零位移 |
+
+（⚠ 本批**未**在 `form-loop-registry.mjs` 里加新行：新出现的两个下拉**不是必填校验项**——留空即「非培养联系人考察」，**不拦提交**，不属该台账的「必填校验分支」口径。）
+
+**（戊）全量（`R-85`）**：起 3000 服务（`npm start`，实测就绪）→ `npm test` → **见本节末「全量实测」** → 停服（跑完已停）。
+
+**（己）残留核查**：探针 `server/.tmp-probe-157.mjs`（**跑完即删**）· `.tmp*` 全库扫描 **0 命中**；**未提交 git**；**未新建仓库文件**。
+
+### 七、抽 8 处回核（**母本原话 / 现象 ↔ 改后实然**）
+
+| # | 母本原话（逐字）＋ `文件:行号` | 改后实然（`文件:行号` ＋ 真机） |
+|---|---|---|
+| 1 | 「- **培养联系人考察记录（每半年一次，含考察意见和培养建议）**」`组织委员工作流程指南.md:191` | 既有考察记录 ＋ `mentorId` / `period` 两栏（`docs/src/services/inspection.js` 两格式透出）；**真机**：服务端落库 `{"personId":"p21","mentorId":"p1","period":"2026-H2"}` |
+| 2 | 「积极分子 ｜ 支委会确定 + 培养考察期一年以上 ｜ 积极分子登记表 + 培养联系人考察记录」同上 `:181` | 两栏挂在**既有**考察记录上（不新造表）；**真机**：纪检「考察总表 · 明细」两格 `"罗文杰"` / `"2026年下半年"` |
+| 3 | 「- 积极分子登记表（姓名/班级/申请日期/**培养联系人**）」同上 `:190` | 写口候选**限该成员的培养联系人**（单一源 `mentorsOf`）；**真机**：候选 `["|（非培养联系人考察）","p1|罗文杰"]`——p21 只被指派了 p1，故只有罗文杰可选 |
+| 4 | 「党支部每半年对入党积极分子进行一次考察」`DEVELOPMENT_PATH.md:182`（上级细则第十一条）＋「考察意见的频次＝**每半年一次**（制度固定）」（`SYSTEM_ROLE_PERMISSION.md:230`） | 「第几期」取**自然半年**、与既有半年考察提醒同口径（`docs/src/services/todo.js` 的 `halfYearPeriodOf` / `halfYearPeriodLabel` / `halfYearPeriodOptions`）；**真机**：默认值 `2026-H2`、界面显示「2026年下半年」 |
+| 5 | 「**含考察意见和培养建议**」同上 `:191` | **不重造**：写在既有 `content` 文本栏（两个表单占位符补成「请填写考察内容描述（含考察意见和培养建议）」）；**真机**：该条 `content = "批157真机·培养联系人半年考察意见"` |
+| 6 | 批次 156 真机现象：`project-auth-granted` 被 403（**非本批引入**） | **成因查清**＝服务端该 kind 只认支委层（`server/system-notice-kinds.js:183-188`）、前端却允许组长赋权（`leader/write-tab.js:425` / `:1128`）；**真机复现**：`403 POST /api/v1/system-notices` ＋ `[NoticeStore] 系统派生通知发送失败（project-auth-granted，HTTP 403）` |
+| 7 | ——（口径载体）批次 91 `D-497`「另立项、由支书定授权口径」 | 本批**复核同结论**并升成队列一条（三档）；**未改权限门** ⇒ `project-auth-granted` / `NoticeStore` 反查命中数**零增减** |
+| 8 | ——（口径载体）`.ctx/ACTIVE_RULINGS.md` | ① 的**落点与判据**写进本册（`D-603`）并在 `ACTIVE_RULINGS.md` 登记 1 行（「考察记录的两栏＝培养联系人（`mentorId`）＋ 期次（`period`，自然半年）」）；② **0 行**（只登记不修、无新口径） |
+
+### 八、待支书定清单（本批**新产**）
+
+1. **`project-auth-granted` 的授权口径要不要放开**（三档）：
+   - **① 放宽服务端该 kind 的 `authorize`**（对齐 `activity-created-broadcast`：支委层 **或**（组长 且 该活动类型在组长可写范围内））——补起来＝**组长赋权他人时，被赋权人能收到通知**（现状是静默收不到）；
+   - **② 收窄前端**（组长保存活动角色 / 发起活动时不发这条通知，或组长不得赋权 organizer / deep）——补起来＝口径一致，但**组长要多做一件事**（要么不发通知、要么不能赋权）；
+   - **③ 维持现状**（通知发不出，赋权照常）。
+   > ⚠ 三档**都动授权口径 / 权限面**（本批铁律不许动）⇒ 只登记、不代选。**建议档＝①**（理由：前端既然允许组长赋权，就该让它有对应的通知位；否则「被赋权人收不到通知」是静默失能，不是有意收窄）。
+2. **「培养联系人考察记录」与「培养联系人」要不要双向联动**（三档）：
+   - **① 不做**（现状：两栏落在记录上，培养联系人看自己带给谁的考察需去纪检总表按人查）；
+   - **② 在成员档案页加一段「我作为培养联系人写过的考察记录」**（按 `mentorId` 反查）——补起来＝档案页多一段履历、多一次反查；
+   - **③ 在成员台给培养联系人一个「我带的积极分子的考察」入口**——补起来＝成员台多一处。
+   > 本批**判「不做」**（理由见「四」）⇒ **请支书圈**。
+
+### 九、只登记未改的清单
+
+| # | 事项 | 为什么没改 |
+|---|---|---|
+| 1 | 把「期次」接进「半年考察提醒」的**判据**（现按 `recordedAt` 落期，不读显式 `period`） | 提醒已有（`SOP-B-39` · `D-295`）且本批任务是「先做字段」；改判据＝改既有行为与既有测试口径 ⇒ **未动**（若支书要「补录上期也算已覆盖」，一句话即可改） |
+| 2 | 上传方两处明细表**不加「培养联系人 / 期次」列** | 判「考察记录的主呈现面＝纪检总表」；专班侧与培养联系人语义不符、且避免三处表同时加宽 ⇒ 如实登记为**判断** |
+| 3 | 成员台「我的考察」卡**不显两栏** | 那一面是给本人看自己参与情况的（母本这句是考核 / 建档语境）⇒ 判断 |
+| 4 | `server/system-notice-kinds.js` 的 `project-auth-granted` 授权 | ＝**授权门**，本批铁律不许动；`D-497` 同结论 ⇒ 进队列（「八」1） |
+| 5 | `docs/src/services/signup.js:198` 的同族 403 路径（报名通过赋权时 `actorId`＝报名人本人） | **同族、本批未真机复现** ⇒ 只登记，不并入本次结论 |
+| 6 | `docs/src/core/domain.js` 的 `InspectionRecord` typedef 与 `content/04_web_design/data/DATA_MODEL.md` §2.5.1 字段表 | 沿**批次 156 先例**（新增可选字段只在 `README-server.md` 登记、不动 `content/**` 与 domain 注释）；且动 `domain.js` 注释会**连带平移 README 对它的 8 处行号引用**（`:509` / `:764` / `:1386` / `:1405` / `:1765` / `:1771` / `:1772` 等）与 `DATA_MODEL.md:328` 的 `#L165-L177` 锚点 ⇒ **本批不动、如实登记** |
+| 7 | `content/**` | **一字未改**（母本本来就有这一句） |
+| 8 | `docs/src/mock/**` | 本批未涉、零改动（沿用 `D-588` 例外登记） |
+
+### 十、不确定 / 没做的地方（如实登记）
+
+- **写口仍要选一场来源（活动 / 专班）**：既有考察记录的来路就是「活动 / 专班」，而母本这条「培养联系人考察记录」**本不挂在某场活动上**——本批按支书「不分家」把它挂在既有来路上 ⇒ **填的时候仍得选一场活动或专班**。**这是形态的固有张力**（若支书要「半年一期、不挂活动」的纯档案记录，那要另说，属新形态）。
+- **`period` 是「同名不同域」**：`docs/src/core/period.js` 的 `period` 是**季度**（思想汇报），本批考察记录的 `period` 是**半年**。两者**分属不同实体、各有单一源**，本批**未合流、未改名**（改名＝牵动既有思想汇报口径）⇒ 登记备查；后端建模时勿把两者当同一字典。
+- **候选只在「该成员有培养联系人」时出现**：若某积极分子尚未指派培养联系人，**这两栏根本不渲染**（避免空下拉）——「先指派、后写记录」的顺序因此是**必须的**（真机即按此顺序走）。
+- **「第几期」不是必填**：留空即「普通考察记录」（不写键）⇒ **不建议**在无培养联系人语境下写期次；本批未加任何校验或提醒。
+- **`mentorId` 不校验「此人确有培养联系人资格」**：写侧候选已限，但服务端 `inspections` 是通用资源（无字段级白名单）⇒ **直连 API 可写入任意 `mentorId`**（与既有 `inspections` 表「登录即可写」同族，本批未加门；如需收紧属另一件事）。
+- **② 只诊断未修**（修法须动授权门）；**同族的 `signup.js:198` 路径未真机复现**。
+- **未提交 git**；**未新建仓库文件**；**未用 sed / awk / PowerShell / node 脚本做内容批量改写**（只读统计用过 `git grep` / `Get-Content`；`bump-version.mjs` 属版本戳机制本身）。
+
+### 全量实测（`R-85`）
+
+- **起 3000 服务**（`npm start`，实测秒级就绪）→ **`npm test`**（`--test-concurrency=1`）→ **停服**（跑完已停）。
+- **实测数字（如实）**：`ℹ tests 724` / `ℹ pass 724` / **`ℹ fail 0`** / `cancelled 0` / `skipped 0` / `todo 0`，`ℹ duration_ms 1126996.2052`（**≈ 18.78 分钟**），**进程退出码 0** ⇒ **全绿**（本批**未**出现 `form-loop-sweep` 自致红——台账行号经复核零位移，见「六（丁）」）。
+- **本批未提交 git**（`.ctx` 四本账 ＋ 月度索引在跑后落账；跑前已完成全部 `docs/src/**` / `docs/help.html` / `README-server.md` 改动 ⇒ **全量覆盖的是最终代码与文档**；`server/**` 本批**零改动**）。
+
+
 
 
 

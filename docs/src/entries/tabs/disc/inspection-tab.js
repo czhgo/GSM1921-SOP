@@ -2,22 +2,22 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260922l';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260922l';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260922l';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260922l';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260922l';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260922l';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260923a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260923a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260923a';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260923a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260923a';
+import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260923a';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260922l';
-import { badgeHtml } from '../../../components/badges.js?v=20260922l';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260922l';
-import { HandoffStore } from '../../../services/handoff.js?v=20260922l';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260922l';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260923a';
+import { badgeHtml } from '../../../components/badges.js?v=20260923a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260923a';
+import { HandoffStore } from '../../../services/handoff.js?v=20260923a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260923a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260922l';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260922l';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260923a';
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -168,13 +168,15 @@ export function renderContent(ctx) {
       countUnit: '条',
       emptyMessage: '无匹配考察记录',
       table: {
-        colSpan: 7,
+        colSpan: 9,
         headHtml: `<tr>
             <th>姓名</th>
             <th>来源</th>
             <th>类别</th>
             <th>内容</th>
             <th>记录人</th>
+            <th>培养联系人</th>
+            <th>期次</th>
             <th>状态</th>
             <th>操作</th>
           </tr>`,
@@ -192,6 +194,8 @@ export function renderContent(ctx) {
               <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="text-gray-600">${i.content || i.role}</td>
               <td class="text-gray-600">${i.recordedByName ? esc(i.recordedByName) : '—'}</td>
+              <td class="text-gray-600">${i.mentorName ? esc(i.mentorName) : '—'}</td>
+              <td class="text-gray-600">${i.periodLabel ? esc(i.periodLabel) : '—'}</td>
               <td><span class="px-1.5 py-0.5 rounded-full text-xs ${statusCls}">${statusLabelOf(i)}</span></td>
               <td>${isReturned
                 ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
@@ -328,8 +332,8 @@ export function renderContent(ctx) {
       // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
       const st = longHandle ? longHandle.state : null;
       const rows = longRows.filter(r => _matchLongRow(r, st))
-        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', statusLabelOf(i)]);
-      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '状态'], rows);
+        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', i.mentorName || '', i.periodLabel || '', statusLabelOf(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '培养联系人', '期次', '状态'], rows);
     } else {
       // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');

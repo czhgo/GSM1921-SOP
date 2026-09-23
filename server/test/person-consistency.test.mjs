@@ -34,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260922l';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260922l';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260922l';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260922l';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260922l';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260922l';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260922l';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260922l';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260922l';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260923a';
+import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260923a';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260923a';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260923a';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260923a';
+import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260923a';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260923a';
+import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260923a';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260923a';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');

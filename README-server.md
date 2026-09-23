@@ -714,8 +714,12 @@
 | recordedAt | string（ISO） | 是 | 记录时间 |
 | status | `'pending'\|'confirmed'` | 否 | 考察确认状态（默认 `pending`；纪检确认后录入考察档案） |
 | secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（2026-09-19 批次 98 补·来源 C）：支书台「一键确认」对「已纪检确认」的考察写此销项 |
+| mentorId | string \| null | 否 | **培养联系人**（2026-09-23 批次 157 补·来源 C）：这条考察是**哪位培养联系人写的**（取值限该成员的培养联系人，单一源 `docs/src/services/person.js` 的 `mentorIds`）；不写＝非培养联系人考察 |
+| period | string \| null | 否 | **期次**（2026-09-23 批次 157 补·来源 C）：自然半年期 `YYYY-H1` / `YYYY-H2`（与「半年考察提醒」同口径）；不写＝未标期次 |
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:326-343`、`docs/src/core/domain.js:166-178`、`docs/src/services/secretary-overview.js:580`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:727`（写）。
+
+> **2026-09-23 批次 157 补（来源 C）**：新增考察记录字段 `mentorId` / `period`——**「培养联系人考察记录」（每半年一次）挂在既有考察记录上、加两栏、不分家**（支书 2026-09-23 裁定；母本《组织委员工作流程指南》附录 A `:191`「培养联系人考察记录（每半年一次，含考察意见和培养建议）」）。**不新造表 / 不新造实体**；「含考察意见和培养建议」复用既有 `content` 文本栏（未另造意见 / 建议字段）。**写口**＝既有「考察上传」表单（组长台 / 组织台两侧）——**该成员有培养联系人时**才出现「培养联系人 / 第几期」两栏，**不选＝记录形状与改动前完全一致**（不写这两个键）；**读口**＝纪检「考察总表 · 明细」新增两列（连同导出 CSV）＋ `inspectionToLong` / `inspectionToDisplay` 透出 `mentorName` / `periodLabel`。⚠ 既有「半年考察提醒」仍按 `recordedAt` 落期（本批**未改**该判据）。**依据**：`docs/src/services/inspection.js`（`mentorChoicesOf` / `currentInspectionPeriod` 与两栏透出）、`docs/src/services/todo.js`（`halfYearPeriodOf` / `halfYearPeriodLabel` / `halfYearPeriodOptions`）、`docs/src/entries/tabs/leader/inspection-tab.js` 与 `docs/src/entries/tabs/org/inspection-tab.js`（两栏写口）、`docs/src/entries/tabs/disc/inspection-tab.js`（两列与导出）。
 
 ### 4.7 分工记录（AssignmentRecord）
 
