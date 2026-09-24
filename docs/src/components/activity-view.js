@@ -45,7 +45,7 @@ export function renderActivityView(container, opts = {}) {
   if (container.dataset.avInited !== '1') {
     container.dataset.avInited = '1';
     container.innerHTML = `
-      <div class="card rounded-xl p-6">
+      <div class="card rounded-xl p-5">
         <div class="flex items-center justify-between mb-4">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查看</h3>
           <div class="flex items-center gap-3">
@@ -59,7 +59,7 @@ export function renderActivityView(container, opts = {}) {
             <div id="cal-main-grid"></div>
             <div id="calendar-legend" class="mt-3"></div>
           </div>
-          <div id="av-detail-panel" class="lg:col-span-2 card rounded-xl p-3"></div>
+          <div id="av-detail-panel" class="lg:col-span-2 card rounded-xl p-4"></div>
         </div>
       </div>`;
 

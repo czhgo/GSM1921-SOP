@@ -117,7 +117,7 @@ function renderShellDenied() {
   const role = AuthStore.getCurrentUser()?.role;
   const page = AuthStore.getPageForRole('workspace', role) || 'visitor.html';
   ROOT.innerHTML = `
-    <div class="card rounded-xl p-8 text-center">
+    <div class="card rounded-xl p-5 text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">你在支委会会议页没有可见的会议</p>
       <p class="text-sm text-gray-500 mt-2">支委会会议页对本支部支委（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）开放，看得到<strong>全部</strong>支委会场次；<strong>被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场</strong>，并在该场表态。当前账号既不在本支部支委名单内，也没有任何一场支委会扩大到你的范围。</p>
       <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
@@ -133,7 +133,7 @@ function renderOutOfScope(actId) {
     ? `${act ? `「${esc(act.title || '未命名会议')}」（${esc(act.date || '—')}）` : '该场次'}的应到名单里没有你——你不在本支部支委名单内，按「只能看到扩大到他的支委会」的口径，本场不进你的列表、也不能打开；请回到你被扩大到的那几场。`
     : '本页只列支委会（含支委扩大会）场次；该场次不在其中，因此不在此打开。请从上方列表选择要看的支委会场次。';
   ROOT.innerHTML = `
-    <div class="card rounded-xl p-8 text-center">
+    <div class="card rounded-xl p-5 text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">${title}</p>
       <p class="text-sm text-gray-500 mt-2">${why}</p>
       <p class="text-sm mt-4"><a href="./party-committee-meeting.html" class="text-blue-600 hover:underline">← 回到你可见的支委会场次</a></p>
@@ -421,7 +421,7 @@ function rulingNoticeHtml() {
 async function render() {
   const me = AuthStore.getCurrentUser();
   if (!me) {
-    ROOT.innerHTML = '<div class="card rounded-xl p-8 text-center text-sm text-gray-500">未登录，请先登录。</div>';
+    ROOT.innerHTML = '<div class="card rounded-xl p-5 text-center text-sm text-gray-500">未登录，请先登录。</div>';
     return;
   }
   // 进页门（支书 2026-09-23 追裁「他只能看到扩大到他的支委会！」）：
@@ -461,7 +461,7 @@ async function render() {
 
   ROOT.innerHTML = `
     <div class="space-y-5">
-      <div class="card rounded-xl p-6">
+      <div class="card rounded-xl p-5">
         <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
         <p class="text-sm text-gray-500 mt-1.5">一条链：选线上召开 → 定本场参会范围（默认支委层，可扩大为支委扩大会、选定扩大到谁）→ 提取/整理议程 → 委员表态 → 汇总并截止 → 留存、查阅讨论结果。</p>
       </div>

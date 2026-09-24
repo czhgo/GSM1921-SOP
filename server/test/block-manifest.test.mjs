@@ -30,6 +30,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${BASE}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 

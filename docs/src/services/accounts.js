@@ -18,7 +18,7 @@
 import { MOCK_ACCOUNTS } from '../mock/accounts.js?v=20260924a';
 
 /** 可持久化账号层 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子） */
-export const ACCOUNTS_KEY = 'gsm1921-accounts';
+export const ACCOUNTS_KEY = 'gsm1921-accounts'; // **mock 形态专属**（api 形态账号承载＝server users 表行，本层仅服务 mock 登录校验；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 const ACCOUNTS_VERSION = 1;
 
 /** 支部统一默认口令（与 mock/accounts.js 演示口令、server LOGIN_PASSWORD 缺省一致） */

@@ -165,7 +165,7 @@ test('S8 分页控件单一源（禁借 chip 选中态）', () => {
 //   「支委角色 或 具体成员」的混合指派（分工到人 / 落实责任人），硬换 PersonPicker 会丢掉
 //   「按角色指派」这一档。支书裁定把口径写成**语义两分**（选名单成员 → PersonPicker；
 //   任命 / 指派到人 → 允许下拉），据实登记 4 处例外并锁白名单，禁新代码再长出第 5 处。
-test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」四处例外（详见 COMPONENT_SPEC §4.13）', () => {
+test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」四处例外（详见 DESIGN_SYSTEM §4.13）', () => {
   const ALLOW = new Set([
     'entries/tabs/party-committee/branches-tab.js',  // 党委台任命支书
     'components/org-setup-wizard.js',                // 换组织向导内任命

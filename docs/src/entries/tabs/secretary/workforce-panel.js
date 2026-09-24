@@ -17,7 +17,7 @@ import {
 } from '../../../services/workforce.js?v=20260924a';
 import { getBranchWorkforce } from '../../../services/branch.js?v=20260924a';
 
-const DRAFT_KEY = 'gsm1921-workforce-draft';
+const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
 function _today() {
   return new Date().toISOString().slice(0, 10);

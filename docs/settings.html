@@ -35,7 +35,9 @@
     .settings-group-caption { font-size: 0.7rem; font-weight: 700; color: var(--neutral-500); letter-spacing: 0.06em; margin: 0 0 6px 4px; }
     .settings-group-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; font-size: 0.84rem; color: var(--neutral-600); background: transparent; border: none; border-radius: var(--radius-sm); padding: 7px 10px; line-height: 1.5; cursor: pointer; transition: background-color 0.15s, color 0.15s; }
     .settings-group-item:hover { background: var(--surface-hover); color: var(--neutral-900); }
-    .settings-group-item:focus-visible { outline: 2px solid var(--party-red); outline-offset: 2px; }
+    /* 2026-09-24 无障碍（焦点环统一口径）：原先此处与下面 4 处自定义按钮用 `var(--party-red)` 焦点环，
+       与全局（金环）成了「一页两种焦点环」。现全部并入全局统一口径（金环 2px / offset 2px + 深色补环），
+       故这 5 条局部规则删除——它们的目标都是 <button>，已由 styles.css 的 button:focus-visible 覆盖。 */
     .settings-group-item.active { background: var(--app-accent-bg, var(--primary-50)); color: color-mix(in srgb, var(--app-accent, var(--primary-700)) 60%, #000); font-weight: 600; }
     html.theme-dark .settings-group-item.active { color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #fff); }
     .settings-mini-badge { flex-shrink: 0; font-size: 0.6rem; font-weight: 600; color: var(--neutral-500); background: var(--surface-hover); border: 1px solid var(--neutral-200); border-radius: 999px; padding: 0 7px; line-height: 1.5; }
@@ -63,7 +65,6 @@
     .myws-btn-ghost { display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; font-weight: 600; color: var(--neutral-600); background: transparent; border: 1px solid var(--neutral-300); border-radius: 8px; padding: 5px 10px; cursor: pointer; transition: background-color .15s, color .15s, border-color .15s; }
     .myws-btn-ghost:hover:not(:disabled) { background: var(--surface-hover); color: var(--neutral-900); border-color: var(--neutral-400); }
     .myws-btn-ghost:disabled { color: var(--neutral-300); border-color: var(--neutral-200); cursor: not-allowed; }
-    .myws-btn-ghost:focus-visible { outline: 2px solid var(--party-red); outline-offset: 2px; }
     .myws-list { list-style: none; margin: 2px 0 0; padding: 0; border: 1px solid var(--neutral-200); border-radius: 12px; overflow: hidden; background: var(--surface-card); }
     .myws-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--neutral-100); background: var(--surface-card); }
     .myws-row:last-child { border-bottom: 0; }
@@ -82,7 +83,6 @@
     .myws-acts { display: flex; align-items: center; gap: 2px; flex: none; }
     .myws-act { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; border-radius: 8px; border: 1px solid transparent; color: var(--neutral-500); background: transparent; cursor: pointer; transition: background-color .15s, color .15s; }
     .myws-act:hover:not(:disabled) { background: var(--surface-hover); color: var(--neutral-900); }
-    .myws-act:focus-visible { outline: 2px solid var(--party-red); outline-offset: 1px; }
     .myws-act:disabled { color: var(--neutral-300); cursor: not-allowed; }
     .myws-status { min-height: 1.4em; font-size: 0.76rem; color: #15803D; margin: 8px 2px 0; }
     .myws-status.is-err { color: var(--party-red); }
@@ -103,14 +103,12 @@
     .bws-btn-primary { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 5px; font-size: 0.8rem; font-weight: 600; color: #fff; background: var(--party-red, #C8102E); border: 1px solid transparent; border-radius: 9px; padding: 8px 16px; cursor: pointer; transition: opacity .15s, background-color .15s; }
     .bws-btn-primary:hover:not(:disabled) { opacity: .88; }
     .bws-btn-primary:disabled { opacity: .45; cursor: not-allowed; }
-    .bws-btn-primary:focus-visible { outline: 2px solid var(--party-red); outline-offset: 2px; }
     .bws-btn-primary-sm { padding: 5px 14px; font-size: 0.78rem; border-radius: 8px; }
     .bws-callout { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 12px; font-size: 0.78rem; line-height: 1.85; color: var(--neutral-500); background: var(--surface-hover); border: 1px dashed var(--neutral-300); border-radius: var(--radius-sm); padding: 9px 12px; }
     .bws-callout .myws-tag { margin-top: 0.15em; }
     .gov-wizard-bar { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; flex-wrap: wrap; }
     .gov-wizard-back { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: var(--neutral-600); background: transparent; border: 1px solid var(--neutral-300); border-radius: 8px; padding: 5px 10px; cursor: pointer; transition: background-color .15s, color .15s; }
     .gov-wizard-back:hover { background: var(--surface-hover); color: var(--neutral-900); }
-    .gov-wizard-back:focus-visible { outline: 2px solid var(--party-red); outline-offset: 2px; }
     .gov-wizard-tip { font-size: 0.76rem; color: var(--neutral-500); }
 
     @media (max-width: 820px) {
@@ -125,13 +123,14 @@
   </style>
 </head>
 <body>
+<a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>
 
 <header id="app-header"></header>
 <div id="sidebar-overlay"></div>
 <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
 <div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 min-w-0">
+  <main id="main-content" class="flex-1 px-4 py-6 md:px-8 min-w-0">
     <div class="settings-wrap">
 
       <!-- ========== 页眉 ========== -->

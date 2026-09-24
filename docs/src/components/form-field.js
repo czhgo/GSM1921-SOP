@@ -5,7 +5,7 @@
 //   方框 —— 全部 input-flat 体系（圆角 --radius-sm/边框 --neutral-200/聚焦金框，见 styles.css .input-flat）
 //   交互 —— label 与控件 for/id 关联（点击聚焦）、必填星号、错误行 aria 关联、placeholder 以 … 结尾
 //   标签 —— label 语义文案 + 可选 hint 描述；autocomplete/name 显式（防密码管理器误触发，B4）
-// 设计源：COMPONENT_SPEC §4.3（输入统一原则）+ web-interface-guidelines（Forms/Accessibility）
+// 设计源：DESIGN_SYSTEM §4.3（输入统一原则）+ web-interface-guidelines（Forms/Accessibility）
 // 演进：块画布 L3 的块 inputs 声明复用同一字段积木目录。
 
 /** 标签行（for 关联控件 id；必填星号；可选 hint 描述） */

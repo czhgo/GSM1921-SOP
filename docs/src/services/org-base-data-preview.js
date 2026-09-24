@@ -32,7 +32,7 @@ export const PREVIEW_KIND = 'gsm1921-base-data';
 /** 预览包结构版本（当前 1；未来字段演进时 bump 并做迁移） */
 export const PREVIEW_VERSION = 1;
 /** localStorage 预览键（applyPreview 写入 / overlay 读取 / clearPreview 移除；与 roster RESIDENCE_KEY 互不影响） */
-export const PREVIEW_KEY = 'gsm1921-base-data-preview';
+export const PREVIEW_KEY = 'gsm1921-base-data-preview'; // **本机临时·不上服务端**（作用＝换组织前「本地看效果」，绝不写 mockDB/种子与服务器；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 /** 预览仅覆盖的基础字段（其余档案字段 studentId/role/branchId 一律不碰） */
 export const BASE_FIELDS = ['name', 'partyGroup', 'developStage', 'residenceStatus', 'residenceNote'];
 

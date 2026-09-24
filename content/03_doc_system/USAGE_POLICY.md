@@ -16,7 +16,7 @@ related_files: [CLAUDE.md, content/02_institution/ROLE_CLASSIFICATION.md, conten
 
 ## 一、术语使用规范
 
-> **2026-09-03 支书裁定**：「党建工作 × 党务工作」二分体系已取消，本规范不再设该对标准术语。UI/功能分区保留普通名词「党建」（2026-09-03 当时为工作台 Tab 分组；2026-09-15 起工作台 Tab 分组按行为性质改为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组，「党建」不再作组名，见 [COMPONENT_SPEC §4.6](../04_web_design/design-system/COMPONENT_SPEC.md)）；不再用「党建工作/党务工作」这对概念对工作进行归类，也不强制任何措辞替换。旧文档中该二分的定义与归类表达视为待修正项（已分批清理）。
+> **2026-09-03 支书裁定**：「党建工作 × 党务工作」二分体系已取消，本规范不再设该对标准术语。UI/功能分区保留普通名词「党建」（2026-09-03 当时为工作台 Tab 分组；2026-09-15 起工作台 Tab 分组按行为性质改为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组，「党建」不再作组名，见 [DESIGN_SYSTEM §4.6](../04_web_design/design-system/DESIGN_SYSTEM.md)）；不再用「党建工作/党务工作」这对概念对工作进行归类，也不强制任何措辞替换。旧文档中该二分的定义与归类表达视为待修正项（已分批清理）。
 >
 > **区分视角（支书 2026-09-03 补充）**：工作的真实区分在参与范围——不需要扩大参与的，由支委会承担；需要扩大参与的（如活动、专班），是另一种组织方式。按 T1 官方表达，两者都属党建工作。
 
@@ -382,7 +382,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **block manifest（旧词）**：工作流块元数据/封装契约的旧称，已改名并独立成文 [WORKFLOW_BLOCK_CONTRACT.md](../04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md)（L3 块封装契约 v1.1 唯一权威）；「manifest」现仅指该契约内的块元数据载体字段，不再代指整份契约
 - **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 落地于设置 → 支部治理「工作台默认顺序」/模块组合（支书/副同权）（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名
-- **CLICK_MAP（旧词）**：点击落点规范的旧名，已改名 [CLICK_ROUTING.md](../04_web_design/design-system/CLICK_ROUTING.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
+- **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DESIGN_SYSTEM.md §十 点击落点映射](../04_web_design/design-system/DESIGN_SYSTEM.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
 - **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
 - **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）

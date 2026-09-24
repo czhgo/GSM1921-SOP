@@ -51,7 +51,7 @@ version: "4.1"
 > **T29 核心创新：支委在管理工作台不需要日历，需要任务看板。**
 
 - **视图路由（决策摘要，已落地）**：secretary/deputy-secretary 与 leader = 活动写入面板 + 日历；org-commissioner = 专班协调看板（2 列：待启动/进行中 + 发布招募表单 + 专班详情展开）；prop/disc-commissioner = 项目看板（2 列 + 卡片展开子任务）；participant/organizer/deep = 成员工作台（待办/项目分工/活动动态/考勤概况/我的考察）。
-- **看板细则**：仅两列（待启动 + 进行中），无"已完成"列；活动/专班完成后归档；子任务完成后灰显 + 删除线 + 绿色对勾 ✓ 沉底不消失；宣传蓝色调、纪检琥珀色调；宣传/纪检在党建维度**服务于**活动与专班，不直接写入活动。细则实现见 [COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)。
+- **看板细则**：仅两列（待启动 + 进行中），无"已完成"列；活动/专班完成后归档；子任务完成后灰显 + 删除线 + 绿色对勾 ✓ 沉底不消失；宣传蓝色调、纪检琥珀色调；宣传/纪检在党建维度**服务于**活动与专班，不直接写入活动。细则实现见 [DESIGN_SYSTEM.md §4.6 模块标签](../design-system/DESIGN_SYSTEM.md)。
 - **写入门禁**：仅支书、副支书、党小组组长可直接创建/修改活动数据；宣传/纪检委员经审核、确认、备案等流程间接参与（`create_activity` 仅 secretary/deputy-secretary/leader 持有；组织委员专班走 `initiate_taskforce`/`authorize_taskforce`）。权威源 = [系统角色权限矩阵 §9b](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。
 - **日历视图范围限定（T29 修正，规则仍有效）**：日历面向参与者、看板面向管理者——工作台 secretary/leader/organizer/deep 显示日历；org/prop/disc-commissioner 工作台不显示（只看看板）。权限判定统一 `AuthStore.canDo(personId, action, context)`（常设角色 + 项目角色并集）。
 

@@ -913,7 +913,7 @@
 | title / body | string | 标题 / 正文 |
 | scope | `'permanent'\|'global'\|'role'\|'scenario'` | 影响范围：底层架构 / 全局规则 / 支委分工 / 特定场景 |
 | types | string[] | 类型标签（对现状的性质：`bug` 缺陷 / `enhancement` 增强 / `proposal` 提案 / `question` 疑问；多选、必填） |
-| domain | string | **事项领域**（2026-09-21 批次 126 · `D-551`，**属来源 C：`DATA_MODEL.md` 字段表未列**）：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）。单一源 `docs/src/services/issues.js:1666-1671`（`ISSUE_DOMAINS`）；落库见 `server/routes/resources.js:735` 与 `:769` |
+| domain | string | **事项领域**（2026-09-21 批次 126 · `D-551`，**属来源 C：`DATA_MODEL.md` 字段表未列**）：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）。单一源 `docs/src/services/issues.js:1699-1704`（`ISSUE_DOMAINS`）；落库见 `server/routes/resources.js:735` 与 `:769` |
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | 枚举 / string \| null | 关闭原因（`completed` 已解决 / `duplicate` 重复 / `wontfix` 不修复 / `not_planned` 暂不计划）/ 关闭时间 |
 | submittedBy / submittedAt | string | 提交人**对外展示值**（匿名时恒为字符串 `'匿名'`，实名时为成员短 ID）/ 提交日期 |
@@ -1505,7 +1505,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
 - **测试**：`npm test`（全量）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。测试脚本自带 `DISABLE_PASSWORD_CHECK=1` 注入。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**2026-09-23 P0-2 改（不许静默降级）**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/core/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
-- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/core/data-adapter.js:1112-1162`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/main-entry.js:201-207`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/core/data-adapter.js:980`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/core/data-adapter.js:983`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/core/data-adapter.js:1015`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1169` / `:1180`）。
+- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/core/data-adapter.js:1112-1162`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/main-entry.js:201-207`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/core/data-adapter.js:980`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/core/data-adapter.js:983`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/core/data-adapter.js:1020`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1169` / `:1180`）。
 - 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 保持 `DEPLOY_MODE = 'static'`；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
 - ⚠ **反向代理的约束（2026-09-23 P0-6 核对项）**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` §五。
 - ⚠ **上传目录与请求体上限（2026-09-23 P0-6 核对项）**：反向代理须允许 `client_max_body_size ≥ 10m`（`server/routes/uploads.js:52` 的上传上限；另有 `/snapshot` 4MB 与 JSON 体 2MB），并保证 `UPLOAD_DIR`（缺省 `server/uploads/`）**对 Node 进程可写**，否则上传 500/413。
@@ -1578,7 +1578,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/core/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/core/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
 | 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/main-entry.js:201-207`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/core/data-adapter.js:980`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/core/data-adapter.js:1112-1162`（`probeRemoteChanges`）、`docs/src/entries/main-entry.js:201-207`（`visibilitychange`）、`server/routes/resources.js:915`（versions 读口） |
-| 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/core/data-adapter.js:999`（`REMOTE_PROBE_AUX`）、`:1038`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
+| 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/core/data-adapter.js:999`（`REMOTE_PROBE_AUX`）、`:1043`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
 
 ### 5.6 部署到真实环境需要替换的东西
 
@@ -1588,7 +1588,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:211,219` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |
-| 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `COLOR_SYSTEM.md`）；术语权威源 `content/03_doc_system/USAGE_POLICY.md` | `README.md:168-175` |
+| 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `DESIGN_SYSTEM.md` §二 色彩系统）；术语权威源 `content/03_doc_system/USAGE_POLICY.md` | `README.md:168-175` |
 | 6 | **制度参数默认值** | `docs/src/core/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/policy-defaults.js:6-15` |
 | 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，这是 2026-09-23 P0-4 起的主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（**自 2026-09-23 批次 163 起已接线**，关的是 `core/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`，**2026-09-24 已接线**；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:253`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
 | 8 | **平台对接地址** | `REPORT_WEBHOOK_URL` / `REPORT_TOKEN` / `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example:23-36` |
@@ -1601,7 +1601,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（2026-09-23 批次 163 重核；新增 7 条语义端点路由——三委数据交接 / 成员变更确认队列 / 批次里程碑，见 §6 末「语义端点」段 ⇒ 声明 41→48、显式 39→46、合计 158→165）**：**显式声明的路由 46 条**——＝各路由文件的 `router.*` 声明 **48 条**（`server/routes/` 实测 48，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **44 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝46 ＋ 119 ＝ 165 条**。
+> **数量口径（2026-09-24 批次 169 重核；新增 10 条语义端点路由——出勤/考察申诉队列（3＋3）· 反馈未读标记 · 授权审计留痕，见 §6.14 ⇒ 声明 48→58、显式 46→56、合计 165→175）**：**显式声明的路由 56 条**——＝各路由文件的 `router.*` 声明 **58 条**（`server/routes/` 实测 58，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **54 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝56 ＋ 119 ＝ 175 条**。
 
 ### 6.1 认证（`server/routes/auth.js`）
 
@@ -1765,6 +1765,25 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | GET | `/api/v1/milestones` | 批次里程碑列表（**只读**；内容单一源＝`docs/data/milestones.json`，由 `server/seed.js::seedMilestones()` 播种） | 需登录 |
 
 **依据**：`server/routes/resources.js` 末「语义端点：三委数据交接 / 成员变更确认队列 / 批次里程碑」段、`server/db.js::SEMANTIC_TABLES`、`docs/src/core/api-adapter.js`（`handoffs` / `memberConfirmations` / `milestones` 三组）、`docs/src/services/{handoff,member-confirmation,milestones}.js`（api 形态走服务端 / mock 形态走本地路径）。
+
+### 6.14 语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（`server/routes/resources.js`）
+
+> **2026-09-24 批次 169 新增**（支书逐字：「我们必须把网页升级成系统！！【浏览器缓存固然有用但不能什么都依靠浏览器缓存！！】」）。这四处原先**只有浏览器本地一份**（出勤/考察申诉队列各只存 localStorage 键 `gsm1921-attendance-appeals` / `gsm1921-inspection-appeals`；反馈未读标记按人分键 `gsm1921-issue-unread-<assigneeId>`；授权审计留痕只存 `sop_org_os_auth_audit`）⇒ 清缓存即灭失、换设备读不到。现按**语义端点域**模板（同 §6.13）落服务端表，表＝`server/db.js::SEMANTIC_TABLES`（**独立于 `RESOURCE_TABLES`** ⇒ 不进快照 payload、无通用 CRUD），前端 `init()` 逐域拉取填充缓存（`docs/src/core/data-adapter.js::_loadAuxCollections`）。
+
+| 方法 | 路径 | 用途 | 权限门 |
+|---|---|---|---|
+| GET | `/api/v1/attendance-appeals?branchId=&status=` | 出勤申诉队列（可按支部 / 状态过滤） | 需登录 |
+| POST | `/api/v1/attendance-appeals` | 提交出勤申诉 `{personId, activityId, note?}`；缺字段 400、id 重复 409 | 需登录 + **当事人本人**（`personId === actor.id`；替他人提交 403） |
+| PATCH | `/api/v1/attendance-appeals/:id` | 处置（关闭 / 打回）`{status:'closed'\|'returned', note?}`；非白名单字段 400、非法 status 400、非 `pending` 不可再处置 400、不存在 404 | 需登录 + **支委层（`BRANCH_COMMISSION_ROLES`）或党小组组长（`leader`）** |
+| GET | `/api/v1/inspection-appeals?branchId=&status=` | 考察申诉队列（同出勤申诉口径） | 需登录 |
+| POST | `/api/v1/inspection-appeals` | 提交考察申诉 `{personId, activityId, note?}`（同上） | 需登录 + **当事人本人** |
+| PATCH | `/api/v1/inspection-appeals/:id` | 处置（关闭 / 打回）（同上） | 需登录 + **支委层或党小组组长** |
+| GET | `/api/v1/issue-unread?assigneeId=&open=1` | 意见反馈「逐人未读标记」（可按被指派人 / 仅未读过滤） | 需登录 |
+| POST | `/api/v1/issue-unread` | 置未读 / 销项 `{assigneeId, issueId, unread?}`（`unread:false`＝已读）；缺字段 400 | 需登录（**与 mock 形态同口径**：标记是「指派 / 答复」写链的副产品，由派发方替被指派人落未读） |
+| GET | `/api/v1/auth-audit` | 授权审计留痕（只增不改的治理档案；`{id,targetPersonId,role,scopeRef,authorizedBy,authorizedAt,action}`） | 需登录 + **支委层**（`BRANCH_COMMISSION_ROLES`） |
+| POST | `/api/v1/auth-audit` | 追加一条留痕（赋权动作内部调用）；同 id 幂等不重复落 | 需登录 |
+
+**依据**：`server/routes/resources.js` 末「语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕」段、`server/db.js::SEMANTIC_TABLES`（`attendance_appeals` / `inspection_appeals` / `issue_unread` / `auth_audit`）、`docs/src/core/api-adapter.js`（`attendanceAppeals` / `inspectionAppeals` / `issueUnread` / `authAudit` 四组）、`docs/src/services/{attendance,inspection,issues,auth}.js`（api 形态走服务端 / mock 形态走本地路径）。
 
 ---
 

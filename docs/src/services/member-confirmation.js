@@ -52,7 +52,7 @@ const MEMBER_CONFIRM_VERSION = 1;
 // 但「进入当前阶段日期」需随阶段推进一并落档（供组织台 buildDevelopNodeRemindGroup 派生发展节点提醒）。
 // 存储键位/形态与既有读口同源（gsm1921-dev-stage-overrides，{ personId: { stage, entryDate } }），
 // 不新造存储/数据模型；写入点=成员变更确认链支书确认生效处（decideConfirmation → _applyApproved）。
-export const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides';
+export const DEV_STAGE_OVERRIDES_KEY = 'gsm1921-dev-stage-overrides'; // **本机派生留痕（暂留本机·未服务端化）**：仅供组织台派生「进入当前阶段日期」提醒；本批只登记（白名单见 DATA_CONSISTENCY_CHECKLIST.md），未自创第二套口径
 
 /** 读取发展推进覆盖档案（不可用/损坏 → {}）。组织台待办发展节点提醒与确认生效写口共用。 */
 export function loadDevStageOverrides() {

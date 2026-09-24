@@ -140,7 +140,7 @@ export function renderContent(ctx) {
   ` : '';
 
   container.innerHTML = `
-    <div class="card rounded-lg p-5">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤上传</h3>
         <button class="btn-md" id="btn-leader-upload-att" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_attFormVisible ? '收起表单' : '上传考勤表单'}</button>

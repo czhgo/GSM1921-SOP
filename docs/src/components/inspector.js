@@ -336,7 +336,7 @@ function _buildOutputsSectionHTML(activity) {
       : badgeHtml(review.reviewStatus || '待处理', 'warning'));
 
   return `
-    <div class="mb-3 card rounded-xl p-3">
+    <div class="mb-3 card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1.5">
         <p class="text-xs text-gray-500">产出物</p>
         <span class="text-[11px] text-gray-500">投递去向由类型自动确定</span>
@@ -684,14 +684,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (dimParts.length) infoRows.push({ label: '活动维度', value: dimParts.join(' · ') });
 
   if (infoRows.length) {
-    html += '<div class="mb-3 card rounded-xl p-3 space-y-1">';
+    html += '<div class="mb-3 card rounded-xl p-4 space-y-1">';
     infoRows.forEach(r => {
       html += `<div class="flex items-start gap-2 text-xs"><span class="text-gray-500 flex-shrink-0 w-14">${r.label}</span><span class="text-gray-700">${r.value}</span></div>`;
     });
     html += '</div>';
   }
   if (activity.description) {
-    html += `<div class="mb-3 card rounded-xl p-3"><p class="text-xs text-gray-500 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
+    html += `<div class="mb-3 card rounded-xl p-4"><p class="text-xs text-gray-500 mb-1">活动详情</p><p class="text-xs text-gray-700 leading-relaxed">${activity.description}</p></div>`;
   }
 
   // ── 会议议程（T-283：三会一课；显示 + 支书行内编辑；2026-09-01：类型徽章 + 结果记录）──
@@ -699,7 +699,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   // content/02_institution/SYSTEM_ROLE_PERMISSION.md:142「副书同权」（支书/副支书共用支书工作台，
   // 见 constants.js ROLE_PAGE_MAP secretary→secretary.html）；仅此区块，范围不外扩。
   if (Array.isArray(activity.agenda) && activity.agenda.length > 0) {
-    html += '<div class="mb-3 card rounded-xl p-3" id="agenda-block">';
+    html += '<div class="mb-3 card rounded-xl p-4" id="agenda-block">';
     html += '<div class="flex items-center justify-between mb-1.5">';
     html += '<p class="text-xs text-gray-500">会议议程</p>';
     if (isSecretaryOrDeputy && !isArchived) {

@@ -203,6 +203,7 @@ test('M2 数据结构生命周期一致性：活动状态 × 子记录/任务/�
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const data = await collectAll(page);
     const issues = auditLifecycle(data);
@@ -222,6 +223,7 @@ test('M1 Mock 数据完整性审计：零孤立引用 + 必填字段齐全 + id 
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const data = await collectAll(page);
     const issues = audit(data);

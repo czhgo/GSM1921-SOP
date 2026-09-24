@@ -66,7 +66,7 @@ test('report：待手动替换文件清单要点齐全（mock/constants/权限/�
     'SYSTEM_ROLE_PERMISSION.md',
     'USAGE_POLICY.md',
     'content/02_institution/sop/',
-    'COLOR_SYSTEM.md',
+    'DESIGN_SYSTEM.md',
     'docs/src/styles.css',
     'docs/src/core/policy-defaults.js',
   ]) {

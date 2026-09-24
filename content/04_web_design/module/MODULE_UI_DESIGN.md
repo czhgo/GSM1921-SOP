@@ -11,7 +11,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 # 模块界面设计
 
-> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/COMPONENT_SPEC.md + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DESIGN_SYSTEM.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
 > **现状注记（2026-09-15）**：工作台 Tab 分组已按行为性质重排为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组（党委台为院级三组「首页 / 全院治理 / 支部治理」）——本文中「党建」Tab 分组即该组的历史组名，对应现行「我的职责」组；下文属设计论证原文，保留当时表述。

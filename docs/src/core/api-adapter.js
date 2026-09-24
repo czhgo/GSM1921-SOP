@@ -851,4 +851,60 @@ export const ApiAdapter = {
       return _get('/api/v1/milestones');
     },
   },
+
+  // ════════════════════════════════════════════════════════════════
+  //  2026-09-24 批次 169：四处「只有本机一份」的收口 —— 语义端点组
+  // ════════════════════════════════════════════════════════════════
+  // 体例同 handoffs / memberConfirmations：**语义端点域、故意不进快照 payload**，
+  //   `init()` 逐域 `list()` 拉取填充 mockDB 缓存（供服务层同步读），写在 api 形态经这些方法落服务端。
+  // 服务端实现 = `server/routes/resources.js` 末「语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕」段；
+  //   表 = `server/db.js::SEMANTIC_TABLES`。
+  // 出勤申诉队列（services/attendance.js；提交＝本人、处置＝支委层＋组长）
+  attendanceAppeals: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/attendance-appeals${query ? '?' + query : ''}`);
+    },
+    create(data) {
+      return _post('/api/v1/attendance-appeals', data);
+    },
+    patch(id, body) {
+      return _patch(`/api/v1/attendance-appeals/${id}`, body || {});
+    },
+  },
+
+  // 考察申诉队列（services/inspection.js；同出勤申诉口径）
+  inspectionAppeals: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/inspection-appeals${query ? '?' + query : ''}`);
+    },
+    create(data) {
+      return _post('/api/v1/inspection-appeals', data);
+    },
+    patch(id, body) {
+      return _patch(`/api/v1/inspection-appeals/${id}`, body || {});
+    },
+  },
+
+  // 意见反馈「逐人未读标记」（services/issues.js::IssueNotify；读态＝被指派人本人 / 支书「待终审」位）
+  issueUnread: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/issue-unread${query ? '?' + query : ''}`);
+    },
+    set(body) {
+      return _post('/api/v1/issue-unread', body || {});
+    },
+  },
+
+  // 授权审计留痕（services/auth.js；只增不改的治理档案）
+  authAudit: {
+    list() {
+      return _get('/api/v1/auth-audit');
+    },
+    create(data) {
+      return _post('/api/v1/auth-audit', data || {});
+    },
+  },
 };

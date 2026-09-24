@@ -19,7 +19,7 @@ status: active
 
 | 子目录 | 内容 | 文件 |
 |--------|------|------|
-| [`design-system/`](design-system/) | 设计系统规范（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) · [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) · [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) · [CLICK_ROUTING.md](design-system/CLICK_ROUTING.md) |
+| [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（《设计系统》一份承全部） |
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) · [AUTHENTICATION_MODEL.md](deploy/AUTHENTICATION_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
@@ -35,7 +35,7 @@ status: active
 
 - **active**——现行有效：当前承担该主题权威（速查表常标 **唯一权威**），以此为准；
 - **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)、`deploy/PKU_PARTY_INTEGRATION.md`；
-- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → COMPONENT_SPEC + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
+- **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) §四 组件规范 + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
 - **论证档案**——只承载论证（为什么）、反论（为什么不是）、判例与生效条件，规范正文以对应权威源文件为准。
 
 ### 数据架构（data/）
@@ -51,10 +51,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统规范（设计哲学/排版/交互/响应式/深色模式/设计资产/快速参考） | **唯一权威**——前端视觉规范（2026-08-24 拆分 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） |
-| [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则） | **唯一权威**——查色值优先（2026-08-24 拆分） |
-| [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章等） | **唯一权威**——写组件优先（2026-08-24 拆分） |
-| [CLICK_ROUTING.md](design-system/CLICK_ROUTING.md) | 点击落点映射表（什么地方可点击、点击落在哪里——分层原则 2026-08-29 支书裁定） | **唯一权威**——点击落点规范 |
+| [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) | 设计系统（§一 设计哲学 / §二 色彩系统 / §三 排版 / §四 组件规范 / §五 交互反馈 / §六 响应式 / §七 深色模式 / §八 设计资产 / §十 点击落点映射） | **唯一权威**——前端视觉、组件与点击落点的统一规范（查色值见 §二，写组件见 §四，点击落点见 §十） |
 
 ### 部署与集成（deploy/）
 
@@ -71,14 +68,14 @@ status: active
 |------|-----------|--------|
 | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) | SOP-系统联动方法论（SOP 文档优化方法论 + 架构/数据/鉴权权威引用，2026-09-03 精简） | **唯一权威**——SOP 与系统的双向修改指南 |
 | [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) | About 页面设计系统（叙事册风：超参数设定原则/防风格疲劳/无竖线红线） | **唯一权威**——about 页设计的超参数设定原则 |
-| [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块（已落地 2026-09-03，设计论证档案） | **已落地**——与 SOP_WEBSITE_GUIDE/COMPONENT_SPEC 重叠停更，权威源 = COMPONENT_SPEC + SOP_WEBSITE_GUIDE |
+| [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) | 模块界面设计：「党建」Tab 分组界面+日历功能模块（已落地 2026-09-03，设计论证档案） | **已落地**——与 SOP_WEBSITE_GUIDE/DESIGN_SYSTEM 重叠停更，权威源 = [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) §四 组件规范 + SOP_WEBSITE_GUIDE |
 | [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md) | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | **已落地 2026-09-01**（设计论证档案）；权威源 = `references.js`（支部文件/草案）+ `calendar-tab.js`（议程封装）+ `member-change-panel.js`（成员变更）+ `server/db.js`（branch_docs 等表） |
 
 ### 演进与校验（evolution/）
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
+| [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | 历史探索与愿景定位（现行方向判断依据 = .ctx/ENGINEERING_ASSESSMENT.md） |
 | [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
 | [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，支书 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |

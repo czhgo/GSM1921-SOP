@@ -32,6 +32,7 @@ const ACCOUNTS = { secretary: { id: '2300010001', pwd: '123456' }, 'org-commissi
 async function loginAs(browser, role) {
   const acc = ACCOUNTS[role];
   const page = await browser.newPage();
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   await page.goto(`${BASE}/login.html`, { waitUntil: 'domcontentloaded' });
   await page.fill('#student-id', acc.id);
   await page.fill('#password', acc.pwd);

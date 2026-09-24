@@ -177,7 +177,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
 │   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 数据模型与数据流）
-│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_ROUTING）
+│   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM：设计哲学/色彩/排版/组件/交互/响应式/深色/资产/点击落点）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE / AUTHENTICATION_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
 │   │   ├── evolution/                 [工程师]+[AI] 演进、契约与评估（ARCHITECTURE_EVOLUTION / WORKFLOW_BLOCK_CONTRACT / BRANCH_WORK_MAP / PARTY_COMMITTEE_DESIGN / ROLE_PERMISSION_DESIGN / DESIGN_METHODOLOGY；工程化评估已迁 .ctx/ENGINEERING_ASSESSMENT.md（2026-09-08 迁入、2026-09-09 更名））

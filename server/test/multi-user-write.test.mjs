@@ -37,6 +37,7 @@ after(async () => {
 
 /** 登录并等待 api init 全量拉取完成 */
 async function login(page, sid) {
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
   await page.fill('#student-id', sid);
   await page.fill('#password', '123456');

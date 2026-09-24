@@ -128,7 +128,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 #### 与内容接缝（在线可改 vs 仓库文件）
 
 - **在线可改只在设置 / 换组织向导（①②③ 步）**：组织信息（①）、模块/块组合（②）、角色分工（③）即时写入 config 生效留痕；向导 **④「术语/制度/数据指引 + 换壳工作单」只读**——汇总摘要 + 待人工替换清单 + 验证点，不在此在线改仓库。
-- **仓库文件内容一律出换壳工作单人工替换，不经设置页**：mock 演示数据（people/accounts/branches/activities…）、系统常量（constants.js）、角色权限矩阵（SYSTEM_ROLE_PERMISSION.md）、术语与使用策略（USAGE_POLICY.md）、制度 SOP（`content/02_institution/sop/`）、配色系统固定令牌（COLOR_SYSTEM.md + styles.css `:root`）、policy-defaults 未登记白名单的 branch-default 与 institutional 默认——替换清单见 `org-wizard-report.js` `REPLACE_ENTRIES`；改动落在 git、随版本交付，换壳口径自查见工作单第三部分。
+- **仓库文件内容一律出换壳工作单人工替换，不经设置页**：mock 演示数据（people/accounts/branches/activities…）、系统常量（constants.js）、角色权限矩阵（SYSTEM_ROLE_PERMISSION.md）、术语与使用策略（USAGE_POLICY.md）、制度 SOP（`content/02_institution/sop/`）、配色系统固定令牌（DESIGN_SYSTEM.md §二 色彩系统 + styles.css `:root`）、policy-defaults 未登记白名单的 branch-default 与 institutional 默认——替换清单见 `org-wizard-report.js` `REPLACE_ENTRIES`；改动落在 git、随版本交付，换壳口径自查见工作单第三部分。
 
 ## 3. 两级角色与可见范围
 

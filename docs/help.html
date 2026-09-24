@@ -45,7 +45,10 @@
     .qn-common-label { font-size:0.72rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; }
     .qn-chip { display:inline-flex; align-items:center; gap:5px; font-size:0.7rem; color:#374151; background:#FFFFFF; border:1px solid #E5E7EB; border-radius:999px; padding:2px 10px; line-height:1.5; text-decoration:none; transition:border-color 0.2s, background-color 0.2s; }
     .qn-chip:hover { border-color:#9CA3AF; background:#F8F9FA; }
-    .qn-chip:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    /* 2026-09-24 无障碍（焦点环统一口径）：本页原用 #CE1126 焦点环，与全局金环成了「一页两种焦点环」——
+       下面 4 处（.qn-chip / a.qn-fn / .help-toc-item / 搜索框）全部并入全局统一口径：
+       金环 2px / offset 2px + 深色补环（外圈 vs #FAFAF5 ≈ 4.7:1）。 */
+    .qn-chip:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     .qn-table-wrap { overflow-x:auto; margin-top:4px; }
     table.qn-matrix { width:100%; border-collapse:collapse; table-layout:fixed; min-width:640px; }
     table.qn-matrix th { font-size:0.72rem; font-weight:700; color:#374151; padding:8px; text-align:left; border-bottom:1.5px solid #E5E7EB; }
@@ -58,7 +61,7 @@
     .qn-cell { display:flex; flex-direction:column; gap:4px; }
     a.qn-fn { font-size:0.7rem; color:#374151; background:#fff; border:1px solid; border-radius:999px; padding:1px 8px; line-height:1.6; text-decoration:none; width:fit-content; transition:background-color 0.2s, border-color 0.2s; }
     a.qn-fn:hover { background:#F8F9FA; }
-    a.qn-fn:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    a.qn-fn:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     a.qn-fn-leader { border-color:#86EFAC; color:#15803D; }
     a.qn-fn-org    { border-color:#BAE6FD; color:#0369A1; }
     a.qn-fn-prop   { border-color:#93C5FD; color:#1D4ED8; }
@@ -115,14 +118,14 @@
     .help-toc { display:flex; flex-direction:column; gap:2px; border-left:1px solid #EEEFF2; padding-left:12px; }
     .help-toc-item { display:block; font-size:0.84rem; color:#4B5563; text-decoration:none; padding:5px 10px; border-radius:var(--radius-sm); line-height:1.5; transition:background-color .15s,color .15s; }
     .help-toc-item:hover { background:#F8F9FA; color:#111827; }
-    .help-toc-item:focus-visible { outline:2px solid #CE1126; outline-offset:2px; }
+    .help-toc-item:focus-visible { outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     .toc-anchor { display:block; scroll-margin-top:76px; }
 
     /* ── 顶部搜索框 ── */
     .help-search { position:relative; margin-bottom:24px; }
     .help-search-input { width:100%; border:1px solid #E5E7EB; border-radius:var(--radius-md); padding:10px 16px; font-size:0.9rem; background:#FFFFFF; color:#111827; outline:none; transition:border-color .15s, box-shadow .15s; }
     .help-search-input::placeholder { color:#6B7280; }
-    .help-search-input:focus { border-color:#CE1126; box-shadow:0 0 0 3px rgba(206,17,38,0.08); }
+    .help-search-input:focus { border-color:#CE1126; outline:2px solid var(--party-gold); outline-offset:2px; box-shadow:0 0 0 6px rgba(0,0,0,0.55); }
     .help-search-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:#FFFFFF; border:1px solid #EEEFF2; border-radius:var(--radius-md); box-shadow:0 8px 24px rgba(0,0,0,0.08); z-index:30; max-height:320px; overflow-y:auto; padding:4px; }
     .help-search-result { display:block; width:100%; text-align:left; padding:8px 12px; font-size:0.86rem; color:#374151; background:none; border:none; border-radius:var(--radius-sm); cursor:pointer; }
     .help-search-result:hover { background:#FDF2F2; color:#CE1126; }
@@ -206,13 +209,14 @@
   </style>
 </head>
 <body>
+<a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>
 
 <header id="app-header"></header>
 <div id="sidebar-overlay"></div>
 <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
 <div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 min-w-0">
+  <main id="main-content" class="flex-1 px-4 py-6 md:px-8 min-w-0">
     <div class="doc-wrap">
 
       <!-- ========== 页眉 ========== -->

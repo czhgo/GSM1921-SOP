@@ -30,7 +30,7 @@ status: active
 
 原「工程演进与设计方法论.md」（[3]文档系统管理 + [4]网站设计 + [5]AI coding 工程方法论，专供人类阅读）已按知识类型分流归位至各权威文件，源文件于 2026-09-04 删除。去向：
 
-- **[4] 网站设计方法论与判例** → `content/04_web_design/`：总承接档 [evolution/DESIGN_METHODOLOGY.md](../04_web_design/evolution/DESIGN_METHODOLOGY.md)（设计论证/反论/判例档案）；论证对应的规范正文归位各权威源——design-system/COMPONENT_SPEC.md（原 §4.2 组件设计论证）、design-system/DESIGN_SYSTEM.md（原 §4.5/§4.7 动效分层段）、data/DATA_MODEL.md §4.7/§4.8（原 §4.9/§6.13 视图按需取用、§6.14 看板动态派生）、module/SOP_WEBSITE_GUIDE.md §C（原 §4.11 SOP 回写）
+- **[4] 网站设计方法论与判例** → `content/04_web_design/`：总承接档 [evolution/DESIGN_METHODOLOGY.md](../04_web_design/evolution/DESIGN_METHODOLOGY.md)（设计论证/反论/判例档案）；论证对应的规范正文归位各权威源——design-system/DESIGN_SYSTEM.md（原 §4.2 组件设计论证、原 §4.5/§4.7 动效分层段）、data/DATA_MODEL.md §4.7/§4.8（原 §4.9/§6.13 视图按需取用、§6.14 看板动态派生）、module/SOP_WEBSITE_GUIDE.md §C（原 §4.11 SOP 回写）
 - **[5] AI coding 方法** → `content/05_ai_coding/` 各分篇：CONTEXT_MANAGEMENT.md（原 §2.1/§2.2/§2.5/§3.1/§6.1/§6.5 等）、REVIEW_AND_EXPRESSION.md（原 §1.6/§3.4/§3.7/§4.6/§4.7/§4.8/§4.15/§5.10/§6.2/§6.18/§7.1 段/§7.2~§7.5 等）、FILE_OPERATION_RULES.md（原 §2.3/§5.1/§5.11 等）
 - **[3] 文档系统管理** → content/03_doc_system/：DOC_MAP.md（原 §5.6 梳理方法论 / §7.6 拆分操作经验，见其 3.1/3.2 节）、PROCESS_GUIDE.md（原 §3.8/§6.8 等）、OPERATIONS_GUIDE.md、USAGE_POLICY.md、SSOT_INDEX.md（各承接同题章节）；文档治理类小节另归 [content/05_ai_coding/DOCUMENT_GOVERNANCE.md](../05_ai_coding/DOCUMENT_GOVERNANCE.md)（原 §1.1/§1.2/§1.3/§3.6/§5.2-§5.4——命名/SSOT/历史不可变/文件归置；原 §4.8/§4.18/§5.9/§6.4/§6.15/§6.27——内容治理/spec 全流程/被否决残留）
 - **[2] 支部制度判例** → `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`（原 §6.12 补课闭环）

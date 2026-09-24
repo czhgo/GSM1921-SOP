@@ -52,7 +52,10 @@ function _renderDevCards() {
           <span class="font-medium text-sm text-gray-800">${card.label}</span>
         </div>
         <p class="text-xs text-gray-500 mb-2">${card.desc}</p>
-        <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" style="${solidAccentStyle(accent, accentBorder)};">登录</button>
+        <!-- 2026-09-24 无障碍：9 张身份卡的按钮可访问名原为清一色「登录」（身份名「组织委员」等
+             只在兄弟 <span> 里、不进可访问名）⇒ 读屏分不出身份。此处把身份名并入按钮的可访问名；
+             视觉与点击行为不变（点击仍由外层 .login-card 的委托处理）。 -->
+        <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" aria-label="以 ${card.label} 身份登录" style="${solidAccentStyle(accent, accentBorder)};">登录</button>
       </div>
     `;
   }).join('');

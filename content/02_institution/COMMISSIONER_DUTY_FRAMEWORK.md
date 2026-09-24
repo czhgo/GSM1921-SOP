@@ -192,7 +192,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 ### C.3 权限色系编码（已迁移至设计系统色板）
 
-> **身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [COLOR_SYSTEM.md §2.3 角色识别色系](../04_web_design/design-system/COLOR_SYSTEM.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [COLOR_SYSTEM.md §2.7 主题色配色规则](../04_web_design/design-system/COLOR_SYSTEM.md#27-主体色配色规则给定主体主题色-x-打样样板)。本表不再维护固定角色色值。
+> **身份不再保留既有固定颜色设定**——引入自定义主题色色板，角色识别色统一由 [DESIGN_SYSTEM.md §2.3 角色识别色系](../04_web_design/design-system/DESIGN_SYSTEM.md) 管理；工作台内强调色（tab 激活/主按钮/标签/chips）由各角色**主题色（可自选）** 决定，见 [DESIGN_SYSTEM.md §2.7 主体色配色规则](../04_web_design/design-system/DESIGN_SYSTEM.md#27-主体色配色规则给定主体主题色-x-打样样板)。本表不再维护固定角色色值。
 
 ---
 

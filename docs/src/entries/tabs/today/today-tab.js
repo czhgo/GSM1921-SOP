@@ -178,7 +178,7 @@ function _todoSummaryBlock(s) {
 /** 三块全空 → 卡片不消失，仅示一句空态 */
 function _allEmptyHtml() {
   return `
-    <div class="card rounded-lg p-5">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-center gap-2 py-6">
         <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
         <p class="text-sm text-gray-500">今天暂无安排</p>
@@ -241,7 +241,7 @@ function _leaderSemesterRemindHtml(personId) {
   const key = _lsrMarkKey(personId);
   if (!key || _lsrGet(key)) return ''; // 本学年同窗已提醒过
   return `
-    <div class="card rounded-lg p-4 border-l-4" style="border-left-color:${ACCENT};" data-leader-sem-remind="1">
+    <div class="card rounded-xl p-4 border-l-4" style="border-left-color:${ACCENT};" data-leader-sem-remind="1">
       <div class="flex items-start gap-3">
         <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center" style="background:${ACCENT_BG};color:${ACCENT};">${icon('bell', { className: 'icon-base w-4 h-4' })}</span>
         <div class="flex-1 min-w-0">
@@ -335,7 +335,7 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
     const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
 
     const body = total === 0 ? _allEmptyHtml() : `
-      <div class="card rounded-lg p-5">
+      <div class="card rounded-xl p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
           <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
           <div class="lg:col-span-1 min-w-0 space-y-5">

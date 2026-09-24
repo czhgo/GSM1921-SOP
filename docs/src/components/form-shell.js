@@ -3,7 +3,7 @@
 // 收敛 write-tab/taskforce-tab 等 5 处复制粘贴的"灰底块 + 标题 + 取消/保存按钮行"：
 //   - 外壳/按钮 HTML 唯一实现（class 统一 record-*，消除 act-sub-*/sub-* 双轨类名）
 //   - 各调用方只传 title + body（字段差异留在调用方，保持零行为变化）
-// 设计源：COMPONENT_SPEC §4.3 输入统一原则 + §4.2 内嵌面板（card rounded-xl p-4）+ 按钮档位 text-sm px-4 py-[7px]
+// 设计源：DESIGN_SYSTEM §4.3 输入统一原则 + §4.2 内嵌面板（card rounded-xl p-4）+ 按钮档位 text-sm px-4 py-[7px]
 // 美学批次：B1 共用小表单 / B2 将在此基础上演进字段积木（FormField 目录）
 
 /** 渲染行内记录表单外壳（card 面板 + 标题 + body + 取消/保存按钮行） */

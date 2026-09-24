@@ -5,7 +5,7 @@
 
 import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260924a';
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
-import { persist } from '../core/data-adapter.js?v=20260924a';
+import { persist, getDataSource, getAdapter } from '../core/data-adapter.js?v=20260924a';
 import { generateId } from '../core/id.js?v=20260924a';
 import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
 import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260924a';
@@ -246,15 +246,37 @@ export function declareOnlineAttend({ activityId, personId } = {}) {
 //   交活动组织方重新确认，修改痕迹留存。同学反映『出勤了但没记上』时，纪检委员先调查核实，
 //   确属漏记的按打回处理。」`D-456`：**打回是「打包确认」里的例外处理路径**。
 // 落成：
-//   · 申诉队列 = 本模块自管 localStorage 键 `gsm1921-attendance-appeals`
-//     （`gsm1921-` 前缀 → `?reset=demo` 自动清理；做法同 services/member-confirmation.js 的自管键；
-//      mock-adapter / 服务端资源表清单不动，本队列只承载读链）。
+//   · 申诉队列 = `mockDB.attendanceAppeals`（内存读链）＋ 双形态持久（2026-09-24 批次 169 收口）：
+//       - mock 形态：自管 localStorage 键 `gsm1921-attendance-appeals`（`gsm1921-` 前缀 →
+//         `?reset=demo` 自动清理；做法同 services/member-confirmation.js 的自管键；原路径不变）；
+//       - api 形态：服务端表 `attendance_appeals`（端点 `GET/POST/PATCH /api/v1/attendance-appeals`，
+//         见 server/routes/resources.js 末「申诉队列」段），`init()` 拉取填 `mockDB.attendanceAppeals`
+//         ⇒ **清本机缓存不丢队列**；写在 api 形态同发端点（fire-and-forget，本地已记、下次 init 以服务端为准）。
 //   · 「打回」的**回退态**落在考勤记录本体上（`returnedBy / returnedAt / returnReason`）：
 //     记录回到「待确认」，且打回留痕**可见**（不再只藏 updatedBy/updatedAt）。
 export const ATTENDANCE_APPEALS_KEY = 'gsm1921-attendance-appeals';
 
-/** 读取出勤申诉队列（存储不可用 / 数据损坏 → []） */
+/** 是否 api 形态（申诉队列以服务端表为权威） */
+function _isApiForm() {
+  try { return getDataSource() === 'api'; } catch (_) { return false; }
+}
+
+/** api 形态：把一次申诉写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+function _syncAppealToServer(fn, what) {
+  if (!_isApiForm()) return;
+  try {
+    const call = fn(getAdapter());
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn(`[AttendanceAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    }
+  } catch (e) {
+    console.warn(`[AttendanceAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+  }
+}
+
+/** 读取出勤申诉队列（api 形态读 init 拉取的服务端缓存；mock 形态读本地键；不可用 / 损坏 → []） */
 export function loadAttendanceAppeals() {
+  if (Array.isArray(mockDB.attendanceAppeals)) return [...mockDB.attendanceAppeals];
   try {
     if (typeof localStorage === 'undefined') return [];
     const arr = JSON.parse(localStorage.getItem(ATTENDANCE_APPEALS_KEY) || '[]');
@@ -263,6 +285,8 @@ export function loadAttendanceAppeals() {
 }
 
 function _saveAttendanceAppeals(list) {
+  mockDB.attendanceAppeals = [...list]; // 内存读链（两形态同源）
+  if (_isApiForm()) return;             // api 形态：不落本机（服务端表为权威）
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(ATTENDANCE_APPEALS_KEY, JSON.stringify(list));
   } catch (_) { /* 存储不可用：不阻塞流程 */ }
@@ -289,6 +313,8 @@ export function createAttendanceAppeal({ personId, activityId, note } = {}) {
     createdAt: new Date().toISOString(),
   });
   _saveAttendanceAppeals(all);
+  // api 形态：同发服务端入队端点（本地已乐观入队；服务端在下一次 init 成为权威）
+  _syncAppealToServer(a => (a.attendanceAppeals ? a.attendanceAppeals.create(all[all.length - 1]) : null), '申诉提交');
   return { ok: true };
 }
 
@@ -306,6 +332,7 @@ export function closeAttendanceAppeal(appealId, { by, note, status = 'closed' } 
   it.decidedAt = new Date().toISOString();
   if (note) it.decisionNote = String(note);
   _saveAttendanceAppeals(all);
+  _syncAppealToServer(a => (a.attendanceAppeals ? a.attendanceAppeals.patch(appealId, { status, note: note || '' }) : null), '申诉关闭');
   return { ok: true };
 }
 
@@ -326,6 +353,7 @@ export function returnAttendanceAppeal(appealId, { by, note } = {}) {
   it.returnedAt = at;
   it.returnNote = String(note || '').trim();
   _saveAttendanceAppeals(all);
+  _syncAppealToServer(a => (a.attendanceAppeals ? a.attendanceAppeals.patch(appealId, { status: 'returned', note: it.returnNote }) : null), '申诉打回');
   const records = loadAttendanceRecords();
   const rec = records.find(r => r.personId === it.personId && r.activityId === it.activityId);
   if (rec) {
@@ -420,6 +448,7 @@ export function resolveAttendanceAppeal({ appealId, actorId, status, absenceReas
   it.decidedAt = new Date().toISOString();
   if (note) it.decisionNote = String(note);
   _saveAttendanceAppeals(all);
+  _syncAppealToServer(a => (a.attendanceAppeals ? a.attendanceAppeals.patch(appealId, { status: 'closed', note: note || '' }) : null), '申诉确认关闭');
   return { ok: true };
 }
 

@@ -14,6 +14,53 @@ const _escHandlers = new Map();
 // 会把**底下那个还没提交的表单浮窗**关掉（表单一关、nudge 却还在，用户已填内容无声丢失）。
 // 故 Esc 只在「没有 blocking 浮窗」时才生效（nudge 自身本就不挂 Esc 监听）。
 const _blockingModalIds = new Set();
+// 2026-09-24 无障碍（对话框语义 / 焦点接管）：本组件此前用 div 拼浮窗——无 role="dialog"、无 aria-modal、
+// 打开不把焦点移入、背景仍可 Tab（实测：打开「写入活动」后 activeElement=BODY、浮窗后 53 个可聚焦元素在 Tab 序列）。
+// 现补两本台账：
+//   · `_openers`    —— 打开浮窗前的 `document.activeElement`（关闭时把焦点**还给打开它的那个元素**）；
+//   · `_inertState` —— 打开时给「浮窗之外的 body 子元素」（header / 侧栏 / 主内容）保存的 inert 原值，
+//                      关闭时逐条还原（**不是**一律设 false——侧栏折叠态本就 inert，不能被顺手解除）。
+// 嵌套浮窗（nudge 压在表单浮窗之上）由「逐层保存 / 逐层还原」自然处理。
+const _openers = new Map();
+const _inertState = new Map();
+
+/** 浮窗内可聚焦元素的选择器（排除 tabindex="-1" 这类只可编程聚焦的节点） */
+const _FOCUSABLE = 'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+/**
+ * 把焦点移入浮窗：优先「正文（.modal-body）里第一个可聚焦元素」——
+ * 避免一进浮窗焦点就落在右上角 × 上；正文里没有可聚焦元素时退回 panel 内任意可聚焦元素；
+ * 再没有就把 panel 自身设为 tabindex="-1" 后聚焦（此时至少要读得到标题）。
+ */
+function _focusInto(panel) {
+  const target = panel.querySelector(`.modal-body ${_FOCUSABLE}`) || panel.querySelector(_FOCUSABLE);
+  if (target) { target.focus(); return; }
+  panel.setAttribute('tabindex', '-1');
+  panel.focus();
+}
+
+/** 打开浮窗时：把浮窗之外的 body 子元素设为 inert（覆盖 header / 侧栏 / 主内容），并记下原值供还原 */
+function _applyInert(overlay, id) {
+  const saved = [];
+  for (const el of Array.from(document.body.children)) {
+    if (el === overlay) continue; // 浮窗自己（及其内容）不得 inert，否则浮窗内也点不动 / 聚焦不了
+    saved.push([el, el.inert]);
+    el.inert = true;
+  }
+  _inertState.set(id, saved);
+}
+
+/** 关闭浮窗时：还原 inert 原值 + 把焦点还给打开它的元素 */
+function _releaseInert(id) {
+  const saved = _inertState.get(id);
+  if (saved) {
+    for (const [el, prev] of saved) { if (document.contains(el)) el.inert = prev; }
+    _inertState.delete(id);
+  }
+  const opener = _openers.get(id);
+  _openers.delete(id);
+  if (opener && document.contains(opener) && typeof opener.focus === 'function') opener.focus();
+}
 
 /**
  * 打开一个浮窗
@@ -47,11 +94,19 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   // 关闭已有同 id 浮窗
   closeModal(id);
 
+  // 打开前的焦点位置：关闭时还给它（键盘用户不再被丢回页面开头）
+  const opener = document.activeElement;
+  const titleId = `modal-title-${id}`;
+
   const overlay = document.createElement('div');
   overlay.id = `modal-overlay-${id}`;
   overlay.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
 
   const panel = document.createElement('div');
+  // role="dialog" + aria-modal + aria-labelledby：让读屏把浮窗识别为模态对话框并以标题为名
+  panel.setAttribute('role', 'dialog');
+  panel.setAttribute('aria-modal', 'true');
+  panel.setAttribute('aria-labelledby', titleId);
   panel.style.cssText = `width:${width};max-width:calc(100vw - 32px);max-height:85vh;background:var(--surface-card);border-radius:var(--radius-md);box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;animation:slideUp 0.2s ease;overflow:hidden;`;
 
   const settingsHTML = settingsLinkHTML(settingsLink);
@@ -64,7 +119,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
 
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">
-      <h3 class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
+      <h3 id="${titleId}" class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
       ${closeBtnHTML}
     </div>
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
@@ -75,6 +130,11 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
 
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
+
+  // 背景 inert（浮窗之外的 body 子元素）——浮窗开着时背景不进 Tab 序列、读屏也读不到；
+  // 关闭时由 `_releaseInert` 逐条还原（保留他处对 inert 的使用，如折叠侧栏）
+  _applyInert(overlay, id);
+  _openers.set(id, opener);
 
   // 三条「非按钮」关闭路径（遮罩点击 / × / Esc）**只在 dismissable 时挂**——
   // nudge 弹窗要求「必须点击按钮才可以关闭」：不点遮罩关、不按 Esc 关、不自动超时。
@@ -103,6 +163,9 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   // 回调
   if (onMount) onMount(panel);
 
+  // 焦点接管：最后一步移入浮窗（在 onMount 之后，确保业务自己绑的控件已在位）
+  _focusInto(panel);
+
   return panel;
 }
 
@@ -119,6 +182,7 @@ export function closeModal(id) {
   }
   const overlay = document.getElementById(`modal-overlay-${id}`);
   if (overlay) overlay.remove();
+  _releaseInert(id); // 还原背景 inert + 焦点还给打开它的元素（无浮窗时是空操作）
 }
 
 /**

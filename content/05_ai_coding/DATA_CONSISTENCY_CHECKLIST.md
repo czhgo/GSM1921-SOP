@@ -187,8 +187,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps`） | `version-stamp.test.mjs::S1–S6 + D1–D9` | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/list-filter.js`（引擎内置分页）· `components/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
-| R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/COMPONENT_SPEC.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
-| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `COMPONENT_SPEC.md §4.10` |
+| R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
+| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DESIGN_SYSTEM.md §4.10` |
 | R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
 | R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
 | R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
@@ -226,6 +226,64 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 1. **本表是索引，不是判据**——判据在守卫文件（`server/test/*.test.mjs`）与「详述处」所指文档；本表只回答「一条规则由谁守、守没守住、去哪看」。
 2. **新增 / 修改规则必须同时更新本表**（谁改谁负责）——漏更本表即视为该规则未登记。
 3. **本表的数字由 `server/test/doc-consistency.test.mjs::S9` 守卫**——该断言由批次 44 的另一条工作流落地（立表时实测 `doc-consistency` 仅存 S1–S8，尚无 S9）。**在 S9 落地前，本表断言号为人工维护**：改表须重新实测上列守卫文件的断言，不得凭记忆写。
+
+---
+
+## 0.3 浏览器存储键白名单（2026-09-24 批次 169，支书逐字「不能什么都依靠浏览器缓存」）
+
+> **一句话**：全仓每一个 `localStorage` / `sessionStorage` 键都必须落进下面**三档之一**；**新键未登记即红灯**。
+> **机器判据**＝`server/test/localstorage-key-guard.test.mjs`（纯 node，断言 L1–L3）：枚举全仓键字面量、逐键归类、
+> 命中未登记键时给出「请登记到白名单或改为服务端权威」的提示。**本表是它的镜像**（改表即改守卫映射，两处同批动）。
+> **三档口径**：
+> - **A 服务端权威**（server-authoritative）：该键的真相在服务端表 / 快照，本机键只是镜像 / 缓存 / mock 形态的对应物；**清了不丢数据**（或只是回到服务端值）。
+> - **B 本机临时白名单**（local-only）：语义上**就应当只在本机**（草稿 / 预览 / mock 形态专属 / 设计如此）——**不上服务端**，逐条写理由。
+> - **C UI 偏好与会话**（ui-pref-session）：主题 / 字号 / 强调色 / 个人偏好前缀 / 登录会话 / 标签页 / 令牌。
+
+**A 档：服务端权威（16 个键）**
+
+| 键 | 语义 | 服务端对应物 |
+|---|---|---|
+| `workflowos_branch_db_v1` | mock 形态整库落盘 | api 形态＝服务端快照与各业务表 |
+| `gsm1921-residence-overrides` | 在册/滞留状态（**本机键仅 mock 形态用**） | `users` 行的 `residenceStatus`/`residenceNote`/`residenceHistory` |
+| `gsm1921-member-confirmations` | 成员变更确认队列 | 表 `member_confirmations`（批次 163） |
+| `gsm1921-attendance-appeals` | 出勤申诉队列 | 表 `attendance_appeals`（批次 169） |
+| `gsm1921-inspection-appeals` | 考察申诉队列 | 表 `inspection_appeals`（批次 169） |
+| `gsm1921-issue-unread-`（前缀） | 逐人未读标记 | 表 `issue_unread`（批次 169） |
+| `sop_org_os_auth_audit` | 授权审计留痕 | 表 `auth_audit`（批次 169） |
+| `gsm1921-issue-cache-v3` / `gsm1921-issue-cache` / `gsm1921-issue-cache-version` | 意见反馈读缓存 + 版本号 | 表 `issues` |
+| `gsm1921-feedback-migrated` / `gsm1921-feedback-submissions` | 旧版反馈迁移标记 / 迁移源 | 同上（迁移的是种子，非用户数据） |
+| `issue_reveals` | 匿名反馈「查看真身」留痕（mock 形态本地同构） | 表 `issue_reveals` |
+| `gsm1921-milestone-cache` | 批次里程碑读缓存 | 表 `milestones`（内容单一源 `docs/data/milestones.json`） |
+| `workflowos_taskforces_v1` / `workflowos_notices_v1` | 专班 / 通知旧单域键（已被整库键取代） | 服务端资源表 `taskforces` / `notices` |
+
+**B 档：本机临时白名单（10 个键）——「允许只在本机」及理由**
+
+| 键 | 语义 | 为什么**不上服务端** |
+|---|---|---|
+| `gsm1921-base-data-preview` | 本机临时·**预览**（换组织前「本地看效果」） | 服务的正是「只看效果、不改真数据」——服务端化会把「预览」变成「真改」（`org-base-data-preview.js`） |
+| `gsm1921-issue-drafts` | 本机临时·**草稿**（未提交的反馈/评论） | 草稿 payload 可能含**匿名真身** ⇒ 落服务端即破坏匿名承诺（`issues.js`） |
+| `gsm1921-workforce-draft` | 本机临时·**草稿**（支书台「拟定分工」未提交内容） | 属该设备上未完成的工作，不是组织决定（`workforce-panel.js`） |
+| `workflowos_leader_activity_draft` | 本机临时·**草稿**（组长「写入活动」表单暂存） | 同上；刷新恢复用（`write-tab.js`） |
+| `wizard-draft-`（前缀） | 本机临时·**草稿**（换组织向导未走完，按支部一份） | 同上（`org-setup-wizard.js`） |
+| `gsm1921-members-overlay` | **mock 形态专属**：成员档案覆盖层 | api 形态读链走 server `users`、写走 `/members*` 端点 ⇒ 无需服务端化（`person.js`） |
+| `gsm1921-accounts` | **mock 形态专属**：可持久化账号层 | api 形态账号承载＝server `users` 表行（`accounts.js`） |
+| `gsm1921-dev-stage-overrides` | 本机派生留痕（**暂留本机·未服务端化**）：派生「进入当前阶段日期」提醒 | **本批只登记**（未自创第二套口径）；如需跨设备可读，另裁后改服务端权威（`member-confirmation.js`） |
+| `gsm1921-issue-submitter-token` | **设计如此·本机令牌**（随机、不可反查人的防刷令牌） | 按设计只在本设备；落服务端反成身份线索（`issues.js`） |
+| `gsm1921-init-state` | 本机·初始化态闸门（「正在初始化」的内存语义落盘位） | 非业务数据，纯本标签页运行态（`init-reset.js`） |
+
+**C 档：UI 偏好与会话（19 个键）**
+
+| 键 | 语义 |
+|---|---|
+| `workflowos_theme` / `workflowos_font_size` / `workflowos_accent_role` | UI 偏好·主题 / 字号 / 强调色 |
+| `gsm1921-pref-`（前缀） | UI 偏好·个人偏好键空间（`theme.js` / `preferences.js`） |
+| `workflowos_tab_*`（6 个：`secretary`/`org`/`prop`/`disc`/`leader`/`visitor`） | UI 偏好·工作台页签记忆（各 `ws-*-entry.js` 的 `storageKey`） |
+| `gsm1921-api-token` / `gsm1921-login-user` / `gsm1921-tab-id` / `gsm1921-session-snap` | 会话·API token / 登录人 / 本标签页 ID / 会话快照 |
+| `sop_org_os_session` / `sop_org_os_data_version` / `cps-`（前缀） | 会话·跨页状态会话 / 数据版本 / 跨页单值参数前缀 |
+| `gsm1921-remote-probe` | UI 偏好·远端变更探测开关（`off`/`0`/`false`＝关） |
+| `sop_org_os_assigned_roles` | 历史遗留键·仅启动清理一次（`roles.js` 已无调用方） |
+
+> **新增键怎么办（判据即提示）**：① 若它的真相应当由服务端承载（可被他人 / 其他设备读到）⇒ **改为服务端权威**（照 `server/db.js::SEMANTIC_TABLES` + `server/routes/resources.js` 的「语义端点域」模板）；② 若它**确实只应在本机** ⇒ 登记进上表 B 档 + `server/test/localstorage-key-guard.test.mjs` 的同名映射，并写明「为什么不上服务端」。
 
 ---
 

@@ -1,7 +1,12 @@
 // role: [工程师]+[AI]
 // issues.js — GitHub Issue 风格意见反馈数据服务
-// 权威源 docs/data/issues.json + localStorage 个人草稿
+// 权威源 docs/data/issues.json（mock）/ 服务端 issues 表（api） + localStorage 个人草稿
+// ⚠ 2026-09-24 批次 169：**逐人未读标记**（`IssueNotify`）原只存本机键 `gsm1921-issue-unread-<assigneeId>`
+//   ⇒ 清缓存即清零、换设备读不到。现 api 形态落服务端表 `issue_unread`（端点 `GET/POST /api/v1/issue-unread`，
+//   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
+//   mock 形态原路径（本机键）一字未改。
 
+import { mockDB } from '../core/domain.js?v=20260924a';
 import { AuthStore } from './auth.js?v=20260924a';
 import { PersonStore } from './person.js?v=20260924a';
 import { bumpToken } from '../core/version-token.js?v=20260924a'; // P2 渲染守卫失效（spec §四.1）
@@ -31,7 +36,7 @@ function _displayName(id) {
 }
 
 const ISSUES_JSON_PATH = './data/issues.json';
-const DRAFT_KEY = 'gsm1921-issue-drafts';
+const DRAFT_KEY = 'gsm1921-issue-drafts'; // 本机草稿（**仅本机·不上服务端**：未提交的反馈/评论草稿，其 payload 可能含匿名真身；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 // 2026-07-30 v2：新增 dispatchHistory/comments.kind/hidden/mergedInto 字段，需重新加载 mock 数据
 // 2026-08-01 v3：反馈数据长 ID（u_org_commissioner 等）统一改短 ID（u_org），强制清旧缓存重拉
 // 2026-09-13 v4：反馈指派/审计身份统一改真实成员 ID（u_org→p11 等），缓存版本号 +1 强制清旧缓存重拉
@@ -1129,33 +1134,67 @@ export function deriveIssueDisplayState(issue) {
   return { key: 'open', label: '开放中', badgeClass: 'bg-green-100 text-green-700' };
 }
 
-/** 通知未读计数（按被指派人 personId 维度，localStorage 标记） */
+/** 通知未读计数（按被指派人 personId 维度；api 形态＝服务端表 issue_unread，mock 形态＝本机键） */
 const UNREAD_KEY_PREFIX = 'gsm1921-issue-unread-';
+
+/** api 形态的服务端未读表缓存（`init()` 自 `GET /api/v1/issue-unread` 拉取；mock 形态恒为 undefined） */
+function _unreadServerRows() {
+  return Array.isArray(mockDB.issueUnread) ? mockDB.issueUnread : null;
+}
+
+/** 读某人的未读 issueId 集合（api 形态取服务端缓存、mock 形态取本机键；顺序＝写入序） */
+function _readUnreadIds(assigneeId) {
+  const rows = _unreadServerRows();
+  if (rows) return rows.filter(r => r.assigneeId === assigneeId && r.unread === true).map(r => r.issueId);
+  try { return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + assigneeId) || '[]'); } catch { return []; }
+}
+
+/** api 形态：把一次未读标记同步到服务端（fire-and-forget；本地已乐观记，下次 init 以服务端为准） */
+function _syncUnreadToServer(assigneeId, issueId, unread) {
+  if (!_isApiMode()) return;
+  try {
+    const call = getAdapter().issueUnread.set({ assigneeId, issueId, unread: !!unread });
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn('[IssueNotify] api 形态未读标记落服务端失败（本地已记，下次 init 以服务端为准）：', e));
+    }
+  } catch (e) {
+    console.warn('[IssueNotify] api 形态未读标记落服务端失败（本地已记，下次 init 以服务端为准）：', e);
+  }
+}
+
+/** 写某人的未读标记（api 形态＝服务端缓存行 + 同发端点；mock 形态＝本机键原路径） */
+function _writeUnread(assigneeId, issueId, unread) {
+  const rows = _unreadServerRows();
+  if (rows) {
+    const id = `${assigneeId}:${issueId}`;
+    const idx = rows.findIndex(r => r.id === id);
+    const next = { id, assigneeId, issueId, unread: !!unread, at: new Date().toISOString() };
+    mockDB.issueUnread = idx >= 0
+      ? [...rows.slice(0, idx), { ...rows[idx], ...next }, ...rows.slice(idx + 1)]
+      : [...rows, next];
+    _syncUnreadToServer(assigneeId, issueId, unread);
+    return;
+  }
+  try {
+    const key = UNREAD_KEY_PREFIX + assigneeId;
+    const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+    if (unread) set.add(issueId); else set.delete(issueId);
+    localStorage.setItem(key, JSON.stringify([...set]));
+  } catch {}
+}
 
 export const IssueNotify = {
   /** 标记某条指派为未读（被指派人维度） */
   markUnread(assigneeId, issueId) {
-    try {
-      const key = UNREAD_KEY_PREFIX + assigneeId;
-      const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
-      set.add(issueId);
-      localStorage.setItem(key, JSON.stringify([...set]));
-    } catch {}
+    _writeUnread(assigneeId, issueId, true);
   },
   /** 标记已读 */
   markRead(assigneeId, issueId) {
-    try {
-      const key = UNREAD_KEY_PREFIX + assigneeId;
-      const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
-      set.delete(issueId);
-      localStorage.setItem(key, JSON.stringify([...set]));
-    } catch {}
+    _writeUnread(assigneeId, issueId, false);
   },
   /** 获取未读反馈 ID 列表 */
   getUnread(assigneeId) {
-    try {
-      return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + assigneeId) || '[]');
-    } catch { return []; }
+    return _readUnreadIds(assigneeId);
   },
   /** 获取未读数 */
   getUnreadCount(assigneeId) {
@@ -1163,23 +1202,13 @@ export const IssueNotify = {
   },
   /** 标记某 issue 为「待终审」未读（支书维度） */
   markSecretaryReviewPending(issueId) {
-    try {
-      const set = new Set(JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]'));
-      set.add(issueId);
-      localStorage.setItem(UNREAD_KEY_PREFIX + 'secretary-review', JSON.stringify([...set]));
-    } catch {}
+    _writeUnread('secretary-review', issueId, true);
   },
   markSecretaryReviewRead(issueId) {
-    try {
-      const set = new Set(JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]'));
-      set.delete(issueId);
-      localStorage.setItem(UNREAD_KEY_PREFIX + 'secretary-review', JSON.stringify([...set]));
-    } catch {}
+    _writeUnread('secretary-review', issueId, false);
   },
   getSecretaryReviewUnread() {
-    try {
-      return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + 'secretary-review') || '[]');
-    } catch { return []; }
+    return _readUnreadIds('secretary-review');
   },
 };
 
@@ -1427,7 +1456,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
-  let html = `<div class="card rounded-xl p-6">`;
+  let html = `<div class="card rounded-xl p-5">`;
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
@@ -1507,7 +1536,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   IssueNotify.markRead(userId, issueId);
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-6">`;
+  let html = `<div class="card rounded-xl p-5">`;
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
@@ -1590,7 +1619,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   if (!issue) return;
   const ds = deriveIssueDisplayState(issue);
 
-  let html = `<div class="card rounded-xl p-6">`;
+  let html = `<div class="card rounded-xl p-5">`;
   html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;

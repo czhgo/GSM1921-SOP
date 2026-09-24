@@ -21,6 +21,7 @@ after(async () => { if (browser) await browser.close(); });
 async function newIsolatedPage() {
   const context = await browser.newContext();
   const page = await context.newPage();
+  await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   return { context, page };
 }
 

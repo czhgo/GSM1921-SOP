@@ -5,7 +5,7 @@
 
 import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../core/domain.js?v=20260924a';
 import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
-import { persist } from '../core/data-adapter.js?v=20260924a';
+import { persist, getDataSource, getAdapter } from '../core/data-adapter.js?v=20260924a';
 import { generateId } from '../core/id.js?v=20260924a';
 import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
 import { INSPECTION_RECORDS } from '../mock/index.js?v=20260924a';
@@ -273,12 +273,34 @@ export function inspectionToWide(records) {
 //   考察的 `recordedBy` ＝ **上传人**（组织者 / 组长 / 组织委员），确认人不落字段
 //   （`confirmInspectionRecord` 只改 `status`）——故考察打回的回退态由「`status` 回 `pending`」
 //   ＋ `returnedBy / returnedAt / returnReason` 表达（字段名与考勤打回逐字一致，便于同一套读法）。
-// 存储：申诉队列＝本模块自管 localStorage 键（`gsm1921-` 前缀 → `?reset=demo` 自动清理，
-//   做法同 `services/attendance.js` 的出勤申诉队列；mock-adapter / 服务端资源表清单不动）。
+// 存储：申诉队列＝`mockDB.inspectionAppeals`（内存读链）＋ 双形态持久（2026-09-24 批次 169 收口）：
+//   mock 形态自管 localStorage 键（`gsm1921-` 前缀 → `?reset=demo` 自动清理，做法同 services/attendance.js
+//   的出勤申诉队列；原路径不变）；api 形态落服务端表 `inspection_appeals`
+//   （端点 GET/POST/PATCH /api/v1/inspection-appeals，见 server/routes/resources.js 末「申诉队列」段），
+//   `init()` 拉取填缓存 ⇒ **清本机缓存不丢队列**。
 export const INSPECTION_APPEALS_KEY = 'gsm1921-inspection-appeals';
 
-/** 读取考察申诉队列（存储不可用 / 数据损坏 → []） */
+/** 是否 api 形态（申诉队列以服务端表为权威） */
+function _isApiForm() {
+  try { return getDataSource() === 'api'; } catch (_) { return false; }
+}
+
+/** api 形态：把一次申诉写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+function _syncAppealToServer(fn, what) {
+  if (!_isApiForm()) return;
+  try {
+    const call = fn(getAdapter());
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn(`[InspectionAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    }
+  } catch (e) {
+    console.warn(`[InspectionAppeal] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+  }
+}
+
+/** 读取考察申诉队列（api 形态读 init 拉取的服务端缓存；mock 形态读本地键；不可用 / 损坏 → []） */
 export function loadInspectionAppeals() {
+  if (Array.isArray(mockDB.inspectionAppeals)) return [...mockDB.inspectionAppeals];
   try {
     if (typeof localStorage === 'undefined') return [];
     const arr = JSON.parse(localStorage.getItem(INSPECTION_APPEALS_KEY) || '[]');
@@ -287,6 +309,8 @@ export function loadInspectionAppeals() {
 }
 
 function _saveInspectionAppeals(list) {
+  mockDB.inspectionAppeals = [...list]; // 内存读链（两形态同源）
+  if (_isApiForm()) return;             // api 形态：不落本机（服务端表为权威）
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(INSPECTION_APPEALS_KEY, JSON.stringify(list));
   } catch (_) { /* 存储不可用：不阻塞流程 */ }
@@ -313,6 +337,7 @@ export function createInspectionAppeal({ personId, activityId, note } = {}) {
     createdAt: new Date().toISOString(),
   });
   _saveInspectionAppeals(all);
+  _syncAppealToServer(a => (a.inspectionAppeals ? a.inspectionAppeals.create(all[all.length - 1]) : null), '申诉提交');
   return { ok: true };
 }
 
@@ -331,6 +356,7 @@ export function closeInspectionAppeal(appealId, { by, note, status = 'closed' } 
   it.decidedAt = new Date().toISOString();
   if (note) it.decisionNote = String(note);
   _saveInspectionAppeals(all);
+  _syncAppealToServer(a => (a.inspectionAppeals ? a.inspectionAppeals.patch(appealId, { status, note: note || '' }) : null), '申诉关闭');
   return { ok: true };
 }
 
@@ -350,6 +376,7 @@ export function returnInspectionAppeal(appealId, { by, note } = {}) {
   it.returnedAt = at;
   it.returnNote = String(note || '').trim();
   _saveInspectionAppeals(all);
+  _syncAppealToServer(a => (a.inspectionAppeals ? a.inspectionAppeals.patch(appealId, { status: 'returned', note: it.returnNote }) : null), '申诉打回');
   const records = loadInspectionRecords();
   const rec = records.find(r => r.personId === it.personId && r.activityId === it.activityId);
   if (rec) {
@@ -441,6 +468,7 @@ export function resolveInspectionAppeal({ appealId, actorId, level, content, not
   it.decidedAt = new Date().toISOString();
   if (note) it.decisionNote = String(note);
   _saveInspectionAppeals(all);
+  _syncAppealToServer(a => (a.inspectionAppeals ? a.inspectionAppeals.patch(appealId, { status: 'closed', note: note || '' }) : null), '申诉确认关闭');
   return { ok: true };
 }
 

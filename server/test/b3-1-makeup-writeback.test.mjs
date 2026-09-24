@@ -14,6 +14,7 @@ const check = (name, ok, detail = '') => {
 // 独立上下文，避免污染共享 localStorage
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
 const p = await ctx.newPage();
+await p.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
 const errs = [];
 p.on('pageerror', (e) => errs.push(String(e)));
 

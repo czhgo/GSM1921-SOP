@@ -577,7 +577,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
         </div>`;
 
   return `
-    <div id="att-queue" class="card rounded-lg p-4 mb-4">
+    <div id="att-queue" class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认考勤</h3>
         <div class="flex gap-3 text-xs">
@@ -680,7 +680,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
     </div>`;
   };
   return `
-    <div class="card rounded-lg p-4 mb-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">出勤申诉（待核实）</h3>
         <span class="text-xs text-gray-500">同学反映「我参加了但没记上」→ 先核实，属实的交活动组织方确认</span>
@@ -744,12 +744,19 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   }
 
   return `
-    <div class="card rounded-lg p-4 mb-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h3>
         ${toggleBtn}
       </div>
-      <div class="text-xs text-gray-500 mb-3">会议考勤的上传位<b>按会议类型分</b>（2026-09-21 批次 132 · 支书当日口径一，修正「一律组织者」）：<b>党课 / 支部党员大会＝纪检委员</b>（本卡即其承载面）· <b>党小组会 / 组织生活会 / 主题党日＝该场活动组织者</b>（组长台「考勤上传」）· <b>支委会不考勤</b>（规模小）。本卡只列<b>您本人可上传</b>的会议场次（您为纪检委员，或您为例外承担的支书 / 副支书）；纪检另管确认（下方「待确认考勤」打包确认）与统计核对（明细 / 汇总 / 导出照既有面）。应到计算规则（支书 2026-09-06 裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由录入人在下方单独勾选「到场补录」</div>
+      <p class="text-xs text-gray-500 mb-1"><b>上传位按会议类型分</b>：<b>党课 / 支部党员大会＝纪检委员</b>（本卡即其承载面）· <b>党小组会 / 组织生活会 / 主题党日＝该场活动组织者</b>（组长台「考勤上传」）· <b>支委会不考勤</b>。</p>
+      <details class="mb-3">
+        <summary class="text-xs text-gray-500 cursor-pointer select-none">上传位口径与应到计算规则 ▾</summary>
+        <div class="text-[11px] text-gray-500 leading-5 mt-1.5 space-y-1">
+          <p>（2026-09-21 批次 132 · 支书当日口径一，修正「一律组织者」）本卡只列<b>您本人可上传</b>的会议场次（您为纪检委员，或您为例外承担的支书 / 副支书）；纪检另管确认（下方「待确认考勤」打包确认）与统计核对（明细 / 汇总 / 导出照既有面）。</p>
+          <p>应到计算规则（支书 2026-09-06 裁定）：<b>预应到 K</b>（在册党员 − 滞留剔除；党课列席不计应到）→ 滞留到场补录 <b>L</b> → <b>实际应到 = K+L</b>；候选中滞留者默认不计（灰态可见原因），「全选应到名单」不含滞留，线下到场由录入人在下方单独勾选「到场补录」。</p>
+        </div>
+      </details>
       ${body}
     </div>
   `;
@@ -988,7 +995,7 @@ function _buildMatrixCardHTML(ctx, allRecords, actById, filterActivityId, accent
     .join('');
 
   return `
-    <div class="card rounded-lg p-5 mb-4">
+    <div class="card rounded-xl p-5 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤矩阵</h3>
         <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 逻辑照旧） -->
@@ -1073,7 +1080,7 @@ function _buildTableCardHTML(ctx, allRecords, longData, actById, filterActivityI
   const totalPending = allRecords.filter(r => !r.recordedBy && !isRegular(r)).length;
   const totalAuto = allRecords.filter(r => !r.recordedBy && isRegular(r)).length;
   return `
-    <div class="card rounded-lg p-5">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
         <div class="flex items-center gap-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">考勤汇总（导出 / 打印）</h3>
@@ -1209,11 +1216,15 @@ function _renderTable(longData, allRecords, actById, accent, accentBorder, ctx) 
 function _buildGroupMeetingReadonlyHTML() {
   const recorderSemantic = recorderRolesOf('党小组会').map(r => ROLE_LABELS[r] || r).join('/');
   return `
-    <div class="card rounded-lg p-4">
+    <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">党小组会考勤（纪检只读掌握）</h3>
       </div>
-      <div class="text-[11px] text-gray-500 leading-5 mb-3">党小组会考勤由<b>本组组长</b>上传（记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType）；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理，改/删走纪检确认流程</div>
+      <p class="text-[11px] text-gray-500 leading-5 mb-1">党小组会考勤由<b>本组组长</b>上传；纪检纪律台<b>只读查看、不代传、不在此审改</b>——异常（缺勤/请假）请在「待确认考勤」队列处理。</p>
+      <details class="mb-3">
+        <summary class="text-[11px] text-gray-500 cursor-pointer select-none">记录人与改删口径 ▾</summary>
+        <div class="text-[11px] text-gray-500 leading-5 mt-1.5">记录人=${recorderSemantic}，submittedBy 可辨；记录人映射单一源 = policy recorderByType；改/删走纪检确认流程。</div>
+      </details>
       <div class="overflow-x-auto"><div id="disc-group-meeting-host"></div></div>
     </div>
   `;

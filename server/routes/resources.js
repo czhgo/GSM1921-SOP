@@ -912,7 +912,7 @@ export function createResourcesRouter(db) {
   // ── 批次里程碑（只读；内容单一源 = docs/data/milestones.json，由 seed.js 播种）──
   router.get('/milestones', requireAuth(db), (req, res) => res.json(listTable(db, 'milestones')));
 
-  router.get('/snapshot/versions', requireAuth(db), (req, res) => res.json({ versions: _allCollectionVersions(db) })); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）
+  router.get('/snapshot/versions', requireAuth(db), (req, res) => res.json({ versions: _allCollectionVersions(db) })); registerExtraSemanticRoutes(router, db); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）；2026-09-24 批次 169 追加申诉/未读/审计三组语义端点（函数体置文件末，保上文行号）
   return router;
 }
 
@@ -1172,3 +1172,129 @@ const ORG_COMMISSIONER_ROLE_SET = new Set(ORG_COMMISSIONER_ROLES);
 // 三委数据交接类型元数据（单一源 = services/handoff.js::HANDOFF_TYPES，勿在本文件另写一份类型表）
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../docs/src/services/handoff.js';
 import { ORG_COMMISSIONER_ROLES } from '../../docs/src/core/constants.js';
+
+// ════════════════════════════════════════════════════════════════
+//  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
+// ════════════════════════════════════════════════════════════════
+// 由来（支书 2026-09-24 逐字：「我们必须把网页升级成系统！！【浏览器缓存固然有用但不能什么都依靠浏览器缓存！！】」）：
+//   四处原先**只有浏览器本地一份**——出勤/考察申诉队列各只存 localStorage 键
+//   `gsm1921-attendance-appeals` / `gsm1921-inspection-appeals`；意见反馈未读标记按人分键
+//   `gsm1921-issue-unread-<assigneeId>`；授权审计留痕只存 `sop_org_os_auth_audit`
+//   ⇒ 清缓存即队列/标记/留痕灭失、换设备读不到。现按**语义端点域**模板（同 handoffs / member_confirmations）
+//   落服务端表：`server/db.js::SEMANTIC_TABLES` 建表，前端 `init()` 拉取填缓存
+//   （`docs/src/core/data-adapter.js::_loadAuxCollections`），写口改经本组端点 ⇒ 服务器为权威。
+// 纪律（三条，同上批）：① **故意不进快照 payload**（写口是语义端点，走快照会被防抖窗口里的陈旧缓存覆盖）；
+//   ② 写门照既有 requireXxx 中间件、角色集取 constants.js 单一源；③ 表在 `SEMANTIC_TABLES`
+//   ⇒ 无通用 CRUD、不参与快照事务。
+// ⚠ **本段整体置文件末**：`createResourcesRouter` 内只以一个**同行追加**的
+//   `registerExtraSemanticRoutes(router, db)` 调用它——上文（`:919-1040` 等）行号是 README-server.md 的
+//   取证靶点（doc-line-ref.test.mjs 逐条核），在 router 内插行会整体漂移 ⇒ 同 server/db.js「新增一律追加在尾部」纪律。
+function registerExtraSemanticRoutes(router, db) {
+  const APPEAL_STATUSES = ['pending', 'returned', 'closed'];
+  const APPEAL_PATCH_KEYS = ['status', 'note'];
+  // 申诉处置位＝支委层（纪检/支书/组织/宣传）+ 党小组组长（「交组织方重新确认」的重确认位）——
+  //   角色集由 constants.js::BRANCH_COMMISSION_ROLES 单一源派生，勿手写角色字符串
+  const APPEAL_DISPOSITION_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+  // 申诉读（可按支部 / 状态过滤）
+  const readAppeals = (req, table) => {
+    let rows = listTable(db, table);
+    if (req.query.branchId) rows = rows.filter((r) => (r.branchId || 'br-b1') === req.query.branchId);
+    if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
+    return rows;
+  };
+  // 申诉提交（当事人本人；防冒名：personId 必须＝登录人）
+  const submitAppeal = (req, res, table, idPrefix) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const personId = body.personId ? String(body.personId) : '';
+    const activityId = body.activityId ? String(body.activityId) : '';
+    if (!personId || !activityId) return res.status(400).json({ error: '缺少必要字段：personId/activityId' });
+    if (personId !== String(req.actor.id)) return res.status(403).json({ error: '无权限：申诉仅可由当事人本人提交' });
+    const id = body.id ? String(body.id) : `${idPrefix}-${randomUUID().slice(0, 8)}`;
+    if (db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id)) return res.status(409).json({ error: '该申诉 id 已存在' });
+    const row = {
+      id,
+      branchId: req.actor.branchId || 'br-b1',
+      personId,
+      activityId,
+      note: typeof body.note === 'string' ? body.note.trim() : '',
+      status: 'pending',
+      createdAt: body.createdAt || new Date().toISOString(),
+    };
+    writeRow(db, table, row);
+    res.status(201).json(row);
+  };
+  // 申诉处置（纪检核实后关闭 / 打回；组织方重新确认后关闭）——仅 pending 可处置、终态幂等拒绝
+  const disposeAppeal = (req, res, table) => {
+    const row = getRow(db, table, req.params.id);
+    if (!row) return res.status(404).json({ error: '申诉不存在' });
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const bad = Object.keys(body).find((k) => !APPEAL_PATCH_KEYS.includes(k));
+    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${APPEAL_PATCH_KEYS.join(' / ')}）` });
+    const status = body.status === undefined ? 'closed' : String(body.status);
+    if (!APPEAL_STATUSES.includes(status)) return res.status(400).json({ error: `status 须为：${APPEAL_STATUSES.join(' / ')}` });
+    if (row.status !== 'pending') return res.status(400).json({ error: `当前状态 ${row.status} 不可再处置` });
+    const at = new Date().toISOString();
+    const note = typeof body.note === 'string' ? body.note.trim() : '';
+    const next = status === 'returned'
+      ? { ...row, status, returnedBy: req.actor.id, returnedAt: at, returnNote: note }
+      : { ...row, status, decidedBy: req.actor.id, decidedAt: at, ...(note ? { decisionNote: note } : {}) };
+    writeRow(db, table, next);
+    res.json(next);
+  };
+  // ── 出勤申诉队列（SOP-B-42 / D-456；前端 services/attendance.js）──
+  router.get('/attendance-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'attendance_appeals')));
+  router.post('/attendance-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'attendance_appeals', 'appeal'));
+  router.patch('/attendance-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'attendance_appeals'));
+  // ── 考察申诉队列（SOP-B-10；前端 services/inspection.js）──
+  router.get('/inspection-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'inspection_appeals')));
+  router.post('/inspection-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'inspection_appeals', 'inspAppeal'));
+  router.patch('/inspection-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'inspection_appeals'));
+  // ── 意见反馈「逐人未读标记」（前端 services/issues.js::IssueNotify）──
+  // 行＝{ id: `${assigneeId}:${issueId}`, assigneeId, issueId, unread:true, at }；销项＝unread:false（保留行便于审计）
+  // ⚠ 写门＝requireAuth（**与 mock 形态同口径**）：标记是「指派 / 答复」写链的副产品——**由派发方**替被指派人
+  //   落未读（见 docs/src/services/issues.js:609,786 的 markUnread 调用点）。服务端只落不判定
+  //   「该 actor 是否真派发过」；如需收严另裁（如实登记，未自创第二套口径）。
+  const issueUnreadId = (assigneeId, issueId) => `${assigneeId}:${issueId}`;
+  const UNREAD_WRITE_KEYS = ['assigneeId', 'issueId', 'unread'];
+  router.get('/issue-unread', requireAuth(db), (req, res) => {
+    let rows = listTable(db, 'issue_unread');
+    if (req.query.assigneeId) rows = rows.filter((r) => r.assigneeId === req.query.assigneeId);
+    if (req.query.open === '1') rows = rows.filter((r) => r.unread === true);
+    res.json(rows);
+  });
+  router.post('/issue-unread', requireAuth(db), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const bad = Object.keys(body).find((k) => !UNREAD_WRITE_KEYS.includes(k));
+    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${UNREAD_WRITE_KEYS.join(' / ')}）` });
+    const assigneeId = body.assigneeId ? String(body.assigneeId) : '';
+    const issueId = body.issueId ? String(body.issueId) : '';
+    if (!assigneeId || !issueId) return res.status(400).json({ error: '缺少必要字段：assigneeId/issueId' });
+    const id = issueUnreadId(assigneeId, issueId);
+    const prev = getRow(db, 'issue_unread', id) || {};
+    const row = { ...prev, id, assigneeId, issueId, unread: body.unread !== false, at: new Date().toISOString() };
+    writeRow(db, 'issue_unread', row);
+    res.json(row);
+  });
+  // ── 授权审计留痕（T-190；前端 services/auth.js）──
+  // 只增不改的治理档案：读＝支委层（赋权留痕是支委治理记录）；写＝登录用户（赋权动作内部调用，服务端只落不判定）
+  const AUTH_AUDIT_KEYS = ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action'];
+  router.get('/auth-audit', requireRole(db, new Set(BRANCH_COMMISSION_ROLES)), (req, res) => res.json(listTable(db, 'auth_audit')));
+  router.post('/auth-audit', requireAuth(db), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const bad = Object.keys(body).find((k) => !AUTH_AUDIT_KEYS.includes(k));
+    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${AUTH_AUDIT_KEYS.join(' / ')}）` });
+    const id = body.id ? String(body.id) : `auth-${randomUUID().slice(0, 8)}`;
+    if (db.prepare('SELECT id FROM auth_audit WHERE id = ?').get(id)) return res.json(getRow(db, 'auth_audit', id)); // 幂等：同 id 不重复落
+    const row = {
+      id,
+      targetPersonId: body.targetPersonId ? String(body.targetPersonId) : null,
+      role: body.role ? String(body.role) : null,
+      scopeRef: body.scopeRef !== undefined && body.scopeRef !== null ? String(body.scopeRef) : '',
+      authorizedBy: body.authorizedBy ? String(body.authorizedBy) : (req.actor ? req.actor.id : null),
+      authorizedAt: body.authorizedAt || new Date().toISOString().slice(0, 10),
+      action: body.action === 'revoke' ? 'revoke' : 'grant',
+    };
+    writeRow(db, 'auth_audit', row);
+    res.status(201).json(row);
+  });
+}

@@ -233,7 +233,7 @@ export function getPersonName(id) {
 // ════════════════════════════════════════════════════════════════
 
 /** members 持久覆盖层的 localStorage 键（demo 重置集经 gsm1921- 前缀自动纳入） */
-export const MEMBER_OVERLAY_KEY = 'gsm1921-members-overlay';
+export const MEMBER_OVERLAY_KEY = 'gsm1921-members-overlay'; // **mock 形态专属**（api 形态读链不走它、写走 server users ⇒ 无需服务端化；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 const MEMBER_OVERLAY_VERSION = 1;
 
 /** 成员档案允许持久化的字段白名单（防 by/ok 等操作噪音写入档案） */

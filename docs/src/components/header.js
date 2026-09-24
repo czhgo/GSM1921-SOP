@@ -208,6 +208,14 @@ function _bindHamburger(header) {
   const overlay = document.getElementById('sidebar-overlay');
   if (!hamburger || !sidebar) return;
 
+  // 2026-09-24 无障碍：折叠态的侧栏只是 `transform: translateX(-100%)` 移出视口——元素仍在文档流里、
+  // 8 条导航链接**全部留在 Tab 序列**（DOM 顺序 header → 侧栏 → main ⇒ 键盘用户前 8 个 Tab 停在看不见的控件上）。
+  // 故折叠/展开时同步 `inert`（属性不是 CSS，必须在此切换）：折叠＝不可聚焦不可读，展开＝恢复。
+  const syncSidebarInert = () => {
+    sidebar.inert = sidebar.classList.contains('sidebar-collapsed');
+  };
+  syncSidebarInert(); // 首屏：模板里侧栏自带 `sidebar-collapsed` ⇒ 页面一进来即为 inert
+
   hamburger.addEventListener('click', () => {
     const collapsed = sidebar.classList.contains('sidebar-collapsed');
     if (collapsed) {
@@ -217,12 +225,14 @@ function _bindHamburger(header) {
       sidebar.classList.add('sidebar-collapsed');
       if (overlay) overlay.classList.remove('visible');
     }
+    syncSidebarInert();
   });
 
   if (overlay) {
     overlay.addEventListener('click', () => {
       overlay.classList.remove('visible');
       sidebar.classList.add('sidebar-collapsed');
+      syncSidebarInert();
     });
   }
 }

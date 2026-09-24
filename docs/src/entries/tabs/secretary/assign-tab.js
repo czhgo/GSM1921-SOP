@@ -37,13 +37,13 @@ function _accentHex() {
 //   逐块标注「本位是谁 / 支书为何可介入」（赋权按角色分工分散到对应入口、不集中在单一页面 —— 但支书
 //   在三个情景里都有份，故支书台保留三块统一入口）。
 const ASSIGN_TAB_HTML = `
-  <div class="card rounded-xl p-6 mb-6">
+  <div class="card rounded-xl p-5 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景① 常设赋权（党小组组长 / 支委身份）</h3>
-    <p class="text-xs text-gray-500 mb-1"><strong>本位＝支书 / 副支书</strong>（副书同权）——最初只有党委给支书配置，其余身份由支书 / 副支书配置。</p>
-    <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯。</p>
+    <p class="text-xs text-gray-500 mb-3"><strong>本位＝支书 / 副支书</strong>（副书同权）——最初只有党委给支书配置，其余身份由支书 / 副支书配置；设党小组组长＝系统内设 + 记录可追溯（替代口头 / 群聊指派）。</p>
     <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4 mb-4">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
-      <p class="text-xs text-gray-500 mb-3"><strong>本位＝支书 / 副支书</strong>（副书同权）：选本支部在册成员 → 选身份 → 保存，可改派、可撤销。支书本人与副支书的身份由<strong>党委</strong>配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</p>
+      <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
+      <details class="mb-3"><summary class="text-xs text-gray-500 cursor-pointer select-none">身份边界 ▾</summary><div class="text-[11px] text-gray-500 leading-5 mt-1.5">支书本人与副支书的身份由<strong>党委</strong>配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</div></details>
       <div id="bc-assign-area"></div>
     </div>
     <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
@@ -53,14 +53,14 @@ const ASSIGN_TAB_HTML = `
       <div id="assign-leaders-list"></div>
     </div>
   </div>
-  <div class="card rounded-xl p-6 mb-6">
+  <div class="card rounded-xl p-5 mb-6">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景② 活动项目赋权（组织者 / 深度参与者）</h3>
-    <p class="text-xs text-gray-500 mb-4"><strong>本位＝党小组组长</strong>（办活动⇒党小组承办，活动赋权由本组组长做）。<strong>支书为何可介入</strong>：支书在三个情景里都有份——此处是支书台的活动赋权统一入口（给同志赋权项目角色，赋权后该同志在该场活动中拥有相应权限）。</p>
+    <p class="text-xs text-gray-500 mb-1"><strong>本位＝党小组组长</strong>（办活动⇒党小组承办）。</p><details class="mb-4"><summary class="text-xs text-gray-500 cursor-pointer select-none">支书为何可介入 ▾</summary><div class="text-[11px] text-gray-500 leading-5 mt-1.5">支书在三个情景里都有份——此处是支书台的活动赋权统一入口（给同志赋权项目角色，赋权后该同志在该场活动中拥有相应权限）。</div></details>
     <div id="project-auth-panel"></div>
   </div>
-  <div class="card rounded-xl p-6">
+  <div class="card rounded-xl p-5">
     <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景③ 专班赋权（组织者 / 深度参与者）</h3>
-    <p class="text-xs text-gray-500 mb-4"><strong>本位＝组织委员</strong>（专班的招募统筹归组织委员收口）。<strong>支书为何可介入</strong>：同上——支书台保留专班赋权统一入口（赋权后该同志在该专班中拥有相应权限）。</p>
+    <p class="text-xs text-gray-500 mb-4"><strong>本位＝组织委员</strong>（专班招募统筹收口）。<strong>支书可介入</strong>：同上——本台保留专班赋权统一入口（赋权后在该专班中拥有相应权限）。</p>
     <div id="tf-auth-panel"></div>
   </div>
 `;

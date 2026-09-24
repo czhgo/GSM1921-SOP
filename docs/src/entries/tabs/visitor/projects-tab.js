@@ -337,7 +337,7 @@ function _renderTaskCard(r, statusLabel, statusClass) {
     ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full border flex-shrink-0 ${offline ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}" title="${offline ? '组织者已在写入活动时标为「去线下做」——线下（微信等）完成，由组织者确认完成，不进系统产出链' : '组织者已在写入活动时标为「系统内做」——在本页完成，产出由系统后台同步'}">${DEEP_WORK_MODE_LABEL[r.deepMode]}</span>`
     : '';
   return `
-    <div class="visitor-task-card p-3 rounded-lg bg-white" data-act-id="${r.projectId}">
+    <div class="visitor-task-card p-3 rounded-xl bg-white" data-act-id="${r.projectId}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${statusClass[r.status] || 'bg-gray-100 text-gray-600'}">${statusLabel[r.status] || r.status}</span>
@@ -376,7 +376,7 @@ function _renderProjectCard(project, currentUserId) {
   };
 
   return `
-    <div class="visitor-proj-card p-3 rounded-lg bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
+    <div class="visitor-proj-card p-3 rounded-xl bg-white" data-tf-id="${project.type === '专班' ? project.id : ''}" data-act-id="${project.type === '活动' ? project.id : ''}">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 border ${project.type === '活动' ? 'text-red-700 border-red-200' : 'text-amber-700 border-amber-200'}">${project.typeBadge}</span>

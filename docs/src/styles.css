@@ -216,6 +216,33 @@ body {
 .hidden { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
 
+/* 「跳到主要内容」跳转链接（2026-09-24 无障碍）：22 个页面 <body> 首个元素。
+   默认复用 .visually-hidden（不可见、不进视觉流），**键盘聚焦时**显形——
+   红底白字（.skip-link 与 --party-red 对比度约 5.4:1），位置固定在浮层之上（z-index 高于浮窗 500）。
+   显形位置放在 header（56px 高）之下的左上角（top: 60px）：真机实测过 top: 8px 会把 header 左端的
+   汉堡按钮盖住（Playwright 报 `skip-link intercepts pointer events`——此刻想用鼠标点汉堡会误触跳转）。 */
+.skip-link:focus,
+.skip-link:focus-visible {
+  position: fixed;
+  top: 60px;
+  left: 8px;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 8px 14px;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  z-index: 1000;
+  background: var(--party-red);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-decoration: none;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ICON SYSTEM — CSS 类驱动尺寸与对齐
    icon() 默认输出 class="icon-base"，不硬编码 width/height
@@ -557,10 +584,9 @@ textarea.input-flat {
 .cs-trigger:hover {
   border-color: var(--neutral-300);
 }
-.cs-trigger:focus-visible {
-  outline: 2px solid var(--party-gold);
-  outline-offset: 1px;
-}
+/* .cs-trigger 是 <button>（见 components/custom-select.js）⇒ 焦点环走全局 button:focus-visible 的
+   统一口径（金环 2px / offset 2px + 深色补环）；原此处的 `outline: 2px solid var(--party-gold); offset 1px`
+   是同一金色但 offset 不同、且无深色补环（1.34:1 不达标）——2026-09-24 无障碍修复时删除，避免两种口径并存。 */
 .cs-select.is-open .cs-trigger {
   border-color: var(--party-gold);
 }
@@ -723,10 +749,9 @@ button:disabled { cursor: not-allowed; }
   border-radius: 9999px;
   background: var(--app-accent, #B91C1C);
 }
-.radio-accent:focus-visible {
-  outline: 2px solid var(--app-accent-border, rgba(185, 28, 28, 0.4));
-  outline-offset: 1px;
-}
+/* .radio-accent 是 <input type="radio"> ⇒ 焦点环走全局 input:focus-visible 的统一口径；
+   原此处 `outline: 2px solid var(--app-accent-border, rgba(185,28,28,.4))` 实测 vs #FAFAF5 ≈ 2.07:1（不达标），
+   2026-09-24 无障碍修复时删除（不删则它比全局更特异、会盖住统一口径）。 */
 /* 复选框：accent-color 原生定制（勾选色随主题色，保留原生选中语义） */
 .checkbox-accent {
   accent-color: var(--app-accent, #B91C1C);
@@ -2430,8 +2455,12 @@ html.theme-dark .tf-section-head {
   border-color: color-mix(in srgb, var(--sb-color) 45%, transparent);
 }
 .status-badge:focus-visible {
+  /* 2026-09-24 无障碍修复：.status-badge 是 <span role="button" tabindex="0">（见 components/status-badge.js），
+     不匹配全局 `button/a/input:focus-visible` ⇒ 焦点环须在此显式声明；口径与全局同名同值
+     （金环 2px / offset 2px + 深色补环；原仅金环 1.34:1 不达标）。 */
   outline: 2px solid var(--party-gold);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
 .status-badge[data-disabled] {
   cursor: not-allowed;
@@ -3351,26 +3380,40 @@ html.theme-dark .tf-section-head {
    ACCESSIBILITY — Focus Visible
    （支书 2026-08-07 指令：删去红边，改淡金替代——可点击组件聚焦圈统一为党徽金，
    避免与党建红主色混淆、视觉刺眼）
+   2026-09-24 无障碍修复（焦点环对比度）：金色单环在浅色底上**不达标**——实测
+   #FFD700 vs 页面底 #FAFAF5 = 1.34:1、vs 白卡 1.40:1、vs 选中底 #FEE2E2 = 1.15:1（要求 ≥3:1）。
+   故**保留党徽金主环**（金 vs 其外侧深色 ≈10:1，仍是唯一主视觉），并在金环**内外各补一圈半透明深色**
+   （外圈 vs #FAFAF5 ≈ 4.7:1）⇒ 焦点指示整体在金环内外任一背景上都 ≥3:1。
+   outlined 的金环 geometry 不变（2px / offset 2px），深色补环由 box-shadow 承担——
+   之所以不用 outline 承担深色：`.input-flat` / 登录页等处的 `outline: none` 会把它整个抹掉（同批已修 `.input-flat`）。
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible {
   outline: 2px solid var(--party-gold);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
 
-/* select 元素聚焦时不显示原生红色 outline——其视觉反馈由 .input-flat:focus
-   的边框颜色（primary-500）承担，避免双重反馈和"红色框"审美问题 */
-select.input-flat:focus,
-select.input-flat:focus-visible {
-  outline: none;
+/* 输入 / 下拉类控件聚焦（2026-09-24 无障碍修复「焦点环统一口径」）：
+   原写法主动 `outline: none`，只留 .input-flat:focus 的 1px 金边（金 vs 底 1.34:1 ⇒ 不达标），
+   与全局焦点环成了**两种口径**。现并入同一口径：金环 2px / offset 2px + 深色补环（与全局同名同值）。 */
+.input-flat:focus,
+.input-flat:focus-visible {
+  outline: 2px solid var(--party-gold);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
 
-/* 普通 input-flat 输入框聚焦（支书指令 2026-08-06）：只保留 .input-flat:focus
-   的金色边框，去掉全局 input:focus-visible 的红色 outline 圈 */
-input.input-flat:focus,
-input.input-flat:focus-visible {
-  outline: none;
+/* 登录页输入框（login.html 自带 `.login-input:focus` 的淡红 glow `rgba(206,17,38,.12)` ≈1.15:1，
+   与其 `focus:outline-none` 一起把统一焦点环盖掉了 ⇒ 该页成了「一页两种焦点环」）。
+   login.html 不在本批可改面内（只允许加 skip link / main id），故在全局样式表里以**更高特异性**
+   （`input.login-input` 0-2-1 > `.login-input` 0-2-0）补上同一口径，不动那个页面。 */
+input.login-input:focus,
+input.login-input:focus-visible {
+  outline: 2px solid var(--party-gold);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4790,6 +4833,41 @@ html.theme-dark .agg-count-badge {
    ═══════════════════════════════════════════════════════════════ */
 .nav-flash-highlight {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENT: Modal 动效关键帧（2026-09-24）
+   components/modal.js 的 overlay / panel 内联样式声明了 `animation:fadeIn .15s` / `animation:slideUp .2s`，
+   但全仓此前**没有 @keyframes fadeIn / slideUp**（tailwind-config.js 里虽定义了同名 keyframes，
+   但 Play CDN 只为「被用到的 animate-* 工具类」生成，本站无人使用 ⇒ 每次开浮窗都是硬切）。
+   此处补上同名关键帧让那两条声明生效（0.15s 淡入 / 0.2s 上浮），并纳入下方「减少动效」兜底。
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY — 减少动效（prefers-reduced-motion）全局兜底（2026-09-24）
+   此前只有 login.html / about.css / about-entry.js 三处各自覆盖，styles.css 零覆盖 ⇒
+   侧栏 350ms 位移、浮窗进出、toast 位移、`scrollIntoView({behavior:'smooth'})`、
+   `.ws-tab-scroll{scroll-behavior:smooth}` 在用户已声明「减少动效」时仍全速运行。
+   口径：动效压缩到不可感知（0.01ms，保留 animation/transition 事件语义），平滑滚动改瞬时。
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 

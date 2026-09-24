@@ -9,7 +9,7 @@
 // 纯 ESM、零依赖（不 import 任何 ?v= 模块）：浏览器 / Node 双端可加载、可单测。
 // 输入参数由向导侧（components/org-setup-wizard.js）组装现读数：
 //   branchInfo   { id, name, headerTitle, desc, type, secretaryName }
-//   theme        { presetId, name, accentHex }（可调令牌预设；固定红/金说明内建，见 COLOR_SYSTEM.md §2.1/§2.8）
+//   theme        { presetId, name, accentHex }（可调令牌预设；固定红/金说明内建，见 DESIGN_SYSTEM.md §2.1/§2.8）
 //   modulesSummary { total, visibleCount, hiddenLabels[], orderChanged }
 //   blocksSummary  { outputTotal, outputHiddenLabels[], wbHiddenLabels[] }
 //   workforce    Array<{ module: string, owner: string }>（ownerDisplay 已展开为角色名/姓名）
@@ -44,9 +44,9 @@ const REPLACE_ENTRIES = [
     files: ['content/02_institution/sop/'],
   },
   {
-    group: '配色系统（content/04_web_design/design-system/COLOR_SYSTEM.md + docs/src/styles.css）',
-    desc: '党建红 party-red（#CE1126）与党徽金 party-gold（#FFD700）为固定合规底线、不可替换；可调的是角色识别层强调色（--app-accent 三件套，向导主题预设即写这组 CSS 变量）。改站内其它固定令牌须同步 COLOR_SYSTEM 与 styles.css :root。',
-    files: ['content/04_web_design/design-system/COLOR_SYSTEM.md', 'docs/src/styles.css'],
+    group: '配色系统（content/04_web_design/design-system/DESIGN_SYSTEM.md + docs/src/styles.css）',
+    desc: '党建红 party-red（#CE1126）与党徽金 party-gold（#FFD700）为固定合规底线、不可替换；可调的是角色识别层强调色（--app-accent 三件套，向导主题预设即写这组 CSS 变量）。改站内其它固定令牌须同步 DESIGN_SYSTEM 与 styles.css :root。',
+    files: ['content/04_web_design/design-system/DESIGN_SYSTEM.md', 'docs/src/styles.css'],
   },
   {
     group: '支部默认策略（docs/src/core/policy-defaults.js）',
@@ -92,7 +92,7 @@ export function buildOrgWizardReport({
   if (info.secretaryName) L.push(`- 现任支书：${info.secretaryName}`);
   L.push(`- 支部自述：${(info.desc || '').trim() ? (info.desc || '').trim().replace(/\n+/g, ' / ') : '（未填写）'}`);
   L.push(`- 主题预设：${_themeLabel(theme)}`);
-  L.push('  - 可调范围仅限角色识别层强调色（--app-accent 三件套）；固定令牌不改：党建红 party-red `#CE1126` 与党徽金 party-gold `#FFD700`（COLOR_SYSTEM.md §2.1 合规底线）。');
+  L.push('  - 可调范围仅限角色识别层强调色（--app-accent 三件套）；固定令牌不改：党建红 party-red `#CE1126` 与党徽金 party-gold `#FFD700`（DESIGN_SYSTEM.md §2.1 合规底线）。');
   L.push('');
   const mods = modulesSummary || {};
   const total = mods.total || 0;

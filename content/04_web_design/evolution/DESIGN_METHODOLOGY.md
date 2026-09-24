@@ -5,20 +5,20 @@ role: "[工程师]+[AI]"
 created: 2026-09-04
 last_updated: "2026-09-05"
 status: active
-related_files: [../design-system/DESIGN_SYSTEM.md, ../design-system/COLOR_SYSTEM.md, ../design-system/COMPONENT_SPEC.md, ../data/DATA_MODEL.md, ../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
+related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
 ---
 
 # 设计理念与方法论承接（设计论证与方法档案）
 
 > **2026-09-04 承接**：原 content/insights/工程演进与设计方法论.md [4] 标签小节分流至此（支书裁决：04=纯系统设计）；本文档承接通用设计方法论与设计判例，供工程师与 AI 设计决策时阅读。
-> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/动效/排版）、[COLOR_SYSTEM.md](../design-system/COLOR_SYSTEM.md)（色彩）、[COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)（组件）、[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
+> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/色彩/排版/组件/动效）、[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
 > **出处注记**：每小节保留「（原 insights §N）」出处；源文件（content/insights/工程演进与设计方法论.md）已于 2026-09-04 清理，历史交叉引用由 insights 承接声明（content/insights/README.md）兜底。
 
 ---
 
 ## 一、系统与工作台设计方法论
 
-> 本节承接系统级与工作台级的设计方法论与判例（原 insights §4.4 / §4.10 / §4.12 / §4.13 / §4.14）。规范权威源：DESIGN_SYSTEM §一（设计哲学）、COLOR_SYSTEM §2.7（主体色配色规则）、DATA_MODEL §2.18~§2.20（待办/通知派生）。
+> 本节承接系统级与工作台级的设计方法论与判例（原 insights §4.4 / §4.10 / §4.12 / §4.13 / §4.14）。规范权威源：DESIGN_SYSTEM §一（设计哲学）、§2.7（主体色配色规则）、DATA_MODEL §2.18~§2.20（待办/通知派生）。
 
 ### 1.1 架构演进：大型单体文件拆分——路由+子模块模式（原 insights §4.4）
 
@@ -70,7 +70,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../design-system/COLOR_SYSTEM
 
 ### 1.4 主体色配色规则——论证档案（原 insights §4.13）
 
-> **规范权威源**：配色规则五条与全部色值（tab 激活态用主体色 X、品牌金统一层、状态色全局统一、暖白底、灰只做中性；角色冷色系/活动暖色系双权威源分离；语义红保留清单）已权威落位于 [COLOR_SYSTEM.md](../design-system/COLOR_SYSTEM.md) §2.7 主体色配色规则（打样样板）。本文档仅承接原 §4.13 中规范文件未展开的**论证部分**——规则与色值一律以 COLOR_SYSTEM §2.7 为准。
+> **规范权威源**：配色规则五条与全部色值（tab 激活态用主体色 X、品牌金统一层、状态色全局统一、暖白底、灰只做中性；角色冷色系/活动暖色系双权威源分离；语义红保留清单）已权威落位于 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) §2.7 主体色配色规则（打样样板）。本文档仅承接原 §4.13 中规范文件未展开的**论证部分**——规则与色值一律以 DESIGN_SYSTEM §2.7 为准。
 
 **为什么"红色太多、意义不明确"是危险的？** 红色同时承担品牌语义（党建红标签）、告警语义（超期/删除/必填）与角色语义（参与者身份色）时，用户无法区分"这是身份色还是警示色"——多种颜色语义相互冲突。T-185 修复轮确立**双权威源分离**：角色维度冷色系（`ROLE_COLORS`：组织者天蓝/深度参与紫/参与者灰/发起人靛蓝），活动类型维度暖色系（`getActivityTypeColors()`：三会一课红/主题党日金），红色收敛到品牌+告警语义。后续任何页面的"装饰红"（本应为主题色却用了品牌红）一律按此修正。
 
@@ -82,7 +82,7 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../design-system/COLOR_SYSTEM
 >
 > - 出处：T-184 打样 + T-185 修复 + T-144 推广（2026-08-01）
 > - 涉及乙部：C-4（视觉体验持续优化）
-> - 关联：COLOR_SYSTEM §2.7（规则已落位）、1.3.1 最小三成本、1.3.2 全站视觉一致性排查
+> - 关联：DESIGN_SYSTEM §2.7（规则已落位）、1.3.1 最小三成本、1.3.2 全站视觉一致性排查
 
 ### 1.5 审美审计轮方法论——字号档位、细体克制与四阶段闭环（原 insights §4.14）
 

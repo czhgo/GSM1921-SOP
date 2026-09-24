@@ -424,3 +424,21 @@ test('清理：移除内存桩覆盖，恢复服务端基线（滞留仅示范 p
   assert.equal(getDetainedMembers().length, 2);
   assert.equal(getMeetingRosterIds({ type: '支部党员大会' }).length, 19);
 });
+
+// ── i) 在册状态单轨化（2026-09-24 批次 169）：api 形态服务端为唯一权威 ──
+// 支书逐字「浏览器缓存固然有用但不能什么都依靠浏览器缓存」——本断言即「清缓存不丢在册状态」的机器判据：
+//   在 api 形态下，**往本机覆盖键直接塞一份伪造覆盖**（等价于旧版残留 / 另一台设备的本机态），
+//   在册/滞留读数与应到名单**一律不受其影响**（本模块在 api 形态不读 localStorage 覆盖）。
+test('api 形态单轨：本机 RESIDENCE_KEY 覆盖对在册/滞留读数无效（服务端单一权威，清缓存不丢状态）', () => {
+  localStorage.setItem(RESIDENCE_KEY, JSON.stringify({
+    p1: { residenceStatus: RESIDENCE.DETAINED, residenceNote: '本机伪造覆盖', residenceHistory: [] },
+  }));
+  try {
+    assert.equal(getResidenceOf(PersonStore.getById('p1')).residenceStatus, RESIDENCE.CAMPUS,
+      'api 形态不读本机覆盖：p1 仍为服务端值「在校」');
+    assert.ok(getMeetingRosterIds({ type: '支部党员大会' }).includes('p1'), 'p1 仍在应到（本机覆盖未生效）');
+    assert.deepEqual(getDetainedMembers().map(p => p.id).sort(), ['p5', 'p9'], '滞留名单仅服务端示范 p5/p9');
+  } finally {
+    localStorage.removeItem(RESIDENCE_KEY);
+  }
+});

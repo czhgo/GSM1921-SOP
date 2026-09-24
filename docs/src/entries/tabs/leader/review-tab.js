@@ -75,14 +75,13 @@ function renderPendingCard(item) {
   const statusLabel = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
   const statusColor = REVIEW_STATUS_COLOR[rev?.reviewStatus || ReviewStatus.NOT_SUBMITTED] || 'bg-gray-100 text-gray-600';
   return `
-    <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}">
+    <div class="leader-review-item p-3 rounded-xl bg-white ${rev?.reviewStatus === ReviewStatus.REJECTED ? 'border border-red-100' : 'border border-gray-50'}" title="复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）">
       <div class="flex items-center justify-between">
         <div class="flex-1 min-w-0">
           <a href="./activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
             <div class="text-sm font-medium text-gray-800">${act.title || '未命名'}</div>
             <div class="text-xs text-gray-500 mt-0.5">${act.date || ''} ${act.type ? '· ' + act.type : ''}</div>
           </a>
-          <div class="text-[11px] text-gray-500 mt-1">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）</div>
         </div>
         <div class="flex items-center gap-2 ml-4">
           <span class="text-xs px-1.5 py-0.5 rounded-full ${statusColor}">${statusLabel}</span>
@@ -126,7 +125,7 @@ export function reviewStatusSectionHtml(ctx) {
   const { pending, completed } = _reviewBuckets();
 
   return `
-    <div class="card rounded-lg p-4">
+    <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>

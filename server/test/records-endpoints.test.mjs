@@ -280,3 +280,126 @@ test('T1-⑤ 真机：api 形态写入后，清空本机存储的新客户端仍
     await browser.close();
   }
 });
+
+// ════════════════════════════════════════════════════════════════
+//  T2（2026-09-24 批次 169）：申诉队列 / 反馈未读标记 / 授权审计留痕四域的「服务端对源」验收
+//  判据同 T1：写入后换一个**本机什么都没有**的新客户端再读，结果必须一致（＝「清 localStorage 仍在」）。
+// ════════════════════════════════════════════════════════════════
+
+/** 带 token 的裸请求（T2 用；GET / 任意方法 send） */
+function apiClient(token) {
+  return {
+    get: (p) => fetch(`${base}${p}`, { headers: { Authorization: `Bearer ${token}` } }),
+    send: (method, p, body) => fetch(`${base}${p}`, {
+      method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body ?? {}),
+    }),
+  };
+}
+
+test('T2-① attendance_appeals：本人提交 → 新客户端读得到；纪检处置后终态落库；冒名 / 越权被拒', async () => {
+  const org = await freshClient('p11');
+  const created = await (await apiClient(org.token).send('POST', '/api/v1/attendance-appeals', { personId: 'p11', activityId: 'act-1', note: 'T2 验收' })).json();
+  assert.ok(created.id && created.status === 'pending');
+  // 清缓存等价：再开全新客户端（本机无任何本地队列）读
+  const rows = await (await freshClient('p11')).get('/api/v1/attendance-appeals?status=pending');
+  assert.ok(rows.some((a) => a.id === created.id), '清缓存后新客户端仍读得到刚提交的出勤申诉');
+  // 冒名：替他人提交 403
+  assert.equal((await apiClient(org.token).send('POST', '/api/v1/attendance-appeals', { personId: 'p3', activityId: 'act-1' })).status, 403, '替他人提交应 403');
+  // 越权处置：普通成员（participant）403
+  const p3 = await freshClient('p3');
+  assert.equal((await apiClient(p3.token).send('PATCH', `/api/v1/attendance-appeals/${created.id}`, { status: 'closed' })).status, 403, '非处置位应 403');
+  // 纪检 p10 处置 → 终态
+  const disc = await freshClient('p10');
+  const disp = await apiClient(disc.token).send('PATCH', `/api/v1/attendance-appeals/${created.id}`, { status: 'closed', note: '已核实' });
+  assert.equal(disp.status, 200);
+  const done = await disp.json();
+  assert.equal(done.status, 'closed');
+  assert.equal(done.decidedBy, 'p10');
+  // 新客户端复核终态（不信本机内存）
+  const all = await (await freshClient('p10')).get('/api/v1/attendance-appeals');
+  assert.equal(all.find((a) => a.id === created.id).status, 'closed');
+  // 终态不可再处置；未登录 401
+  assert.equal((await apiClient(disc.token).send('PATCH', `/api/v1/attendance-appeals/${created.id}`, { status: 'returned' })).status, 400);
+  assert.equal((await fetch(`${base}/api/v1/attendance-appeals`)).status, 401);
+});
+
+test('T2-② inspection_appeals：同出勤申诉口径（本人提交 / 纪检打回 / 新客户端读得到）', async () => {
+  const leader = await freshClient('p1'); // 组长也是当事人
+  const created = await (await apiClient(leader.token).send('POST', '/api/v1/inspection-appeals', { personId: 'p1', activityId: 'act-1', note: 'T2 验收' })).json();
+  assert.ok(created.id && created.status === 'pending');
+  const rows = await (await freshClient('p1')).get('/api/v1/inspection-appeals?status=pending');
+  assert.ok(rows.some((a) => a.id === created.id), '清缓存后新客户端仍读得到刚提交的考察申诉');
+  // 纪检打回 → status returned + 留痕
+  const disc = await freshClient('p10');
+  const ret = await apiClient(disc.token).send('PATCH', `/api/v1/inspection-appeals/${created.id}`, { status: 'returned', note: '请补证' });
+  assert.equal(ret.status, 200);
+  const done = await ret.json();
+  assert.equal(done.status, 'returned');
+  assert.equal(done.returnedBy, 'p10');
+  assert.equal(done.returnNote, '请补证');
+  const all = await (await freshClient('p10')).get('/api/v1/inspection-appeals');
+  assert.equal(all.find((a) => a.id === created.id).status, 'returned');
+});
+
+test('T2-③ issue_unread：置未读 → 新客户端读得到；销项后不再计入；缺字段 400', async () => {
+  const org = await freshClient('p11');
+  const c = apiClient(org.token);
+  assert.equal((await c.send('POST', '/api/v1/issue-unread', { assigneeId: 'p11', issueId: 'issue-t2', unread: true })).status, 200);
+  const openRows = await (await freshClient('p11')).get('/api/v1/issue-unread?assigneeId=p11&open=1');
+  assert.ok(openRows.some((r) => r.issueId === 'issue-t2'), '清缓存后新客户端仍读得到未读标记');
+  // 销项（已读）
+  assert.equal((await c.send('POST', '/api/v1/issue-unread', { assigneeId: 'p11', issueId: 'issue-t2', unread: false })).status, 200);
+  const after = await (await freshClient('p11')).get('/api/v1/issue-unread?assigneeId=p11&open=1');
+  assert.ok(!after.some((r) => r.issueId === 'issue-t2'), '销项后不再计入未读');
+  assert.equal((await c.send('POST', '/api/v1/issue-unread', { assigneeId: 'p11' })).status, 400, '缺 issueId 应 400');
+});
+
+test('T2-④ auth_audit：追加留痕 → 支书新客户端读得到；非支委层读 403；同 id 幂等不重复落', async () => {
+  const org = await freshClient('p11');
+  const body = { id: 'auth-t2-1', targetPersonId: 'p7', role: 'organizer', scopeRef: 'act-1', authorizedBy: 'p11', authorizedAt: '2026-09-24', action: 'grant' };
+  assert.equal((await apiClient(org.token).send('POST', '/api/v1/auth-audit', body)).status, 201);
+  assert.equal((await apiClient(org.token).send('POST', '/api/v1/auth-audit', body)).status, 200, '同 id 幂等：不重复落');
+  const rows = await (await freshClient('p13')).get('/api/v1/auth-audit');
+  assert.equal(rows.filter((r) => r.id === 'auth-t2-1').length, 1, '同 id 只落一条');
+  assert.equal(rows.find((r) => r.id === 'auth-t2-1').targetPersonId, 'p7');
+  // 非支委层读 → 403
+  const p3 = await freshClient('p3');
+  assert.equal((await apiClient(p3.token).get('/api/v1/auth-audit')).status, 403);
+  assert.equal((await fetch(`${base}/api/v1/auth-audit`)).status, 401);
+});
+
+test('T2-⑤ 四域不参与快照写穿：集合版本基线里不含 attendanceAppeals / inspectionAppeals / issueUnread / authAudit', async () => {
+  const sec = await freshClient('p13');
+  const { versions } = await sec.get('/api/v1/snapshot/versions');
+  for (const k of ['attendanceAppeals', 'inspectionAppeals', 'issueUnread', 'authAudit']) {
+    assert.ok(!(k in versions), `${k} 是语义端点域，不应出现在快照集合版本基线里`);
+  }
+});
+
+test('T2-⑥ 前端 init() 拉取：新客户端 init 后四域进 mockDB 缓存（数据层证据，堵适配器组名写错）', async () => {
+  /** localStorage / sessionStorage 内存桩（data-adapter 惰性访问） */
+  const makeStorage = (init = {}) => {
+    const m = new Map(Object.entries(init).map(([k, v]) => [String(k), String(v)]));
+    return {
+      getItem: (k) => (m.has(String(k)) ? m.get(String(k)) : null),
+      setItem: (k, v) => m.set(String(k), String(v)),
+      removeItem: (k) => { m.delete(String(k)); },
+      clear: () => m.clear(),
+      key: (i) => [...m.keys()][i] ?? null,
+      get length() { return m.size; },
+    };
+  };
+  globalThis.localStorage = makeStorage();
+  const token = await login('p13');
+  globalThis.sessionStorage = makeStorage({ 'gsm1921-api-token': token });
+  const { setDataSource, init } = await import('../../docs/src/core/data-adapter.js?v=20260924a');
+  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260924a');
+  setDataSource('api', { apiBaseUrl: base, authToken: token });
+  await init();
+  for (const k of ['attendanceAppeals', 'inspectionAppeals', 'issueUnread', 'authAudit']) {
+    assert.ok(Array.isArray(mockDB[k]), `init() 后 mockDB.${k} 应为数组（＝适配器组名与 _loadAuxCollections 对齐）`);
+  }
+  assert.ok(mockDB.attendanceAppeals.some((a) => a.status === 'closed'), 'init 拉取到的申诉队列含上例已经服务端处置的记录');
+  assert.ok(mockDB.issueUnread.some((r) => r.assigneeId === 'p11'), 'init 拉取到的未读标记含上例已服务端销项的行（unread:false 也回读）');
+});

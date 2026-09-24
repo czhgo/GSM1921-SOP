@@ -943,9 +943,9 @@ async function _loadAuxCollections(mockDB) {
     }
     if (mockDB[key] === undefined) mockDB[key] = fallback;
   };
-  await pull('handoffs', 'handoffs', []);
-  await pull('memberConfirmations', 'pendingMemberConfirmations', []);
-  await pull('milestones', 'milestones', []);
+  await pull('handoffs', 'handoffs', []); await pull('attendanceAppeals', 'attendanceAppeals', []);
+  await pull('memberConfirmations', 'pendingMemberConfirmations', []); await pull('inspectionAppeals', 'inspectionAppeals', []);
+  await pull('milestones', 'milestones', []); await pull('issueUnread', 'issueUnread', []); await pull('authAudit', 'authAudit', []);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1000,6 +1000,11 @@ const REMOTE_PROBE_AUX = [
   { group: 'handoffs', key: 'handoffs' },
   { group: 'memberConfirmations', key: 'pendingMemberConfirmations' },
   { group: 'milestones', key: 'milestones' },
+  // 2026-09-24 批次 169：申诉队列 / 反馈未读标记 / 授权审计留痕（同属语义端点域，同取法）
+  { group: 'attendanceAppeals', key: 'attendanceAppeals' },
+  { group: 'inspectionAppeals', key: 'inspectionAppeals' },
+  { group: 'issueUnread', key: 'issueUnread' },
+  { group: 'authAudit', key: 'authAudit' },
 ];
 
 /** 探测开关读取（缺省 / 存储不可用 ⇒ 开）。每次现读 ⇒ 运维改键立即生效，无需重载。 */

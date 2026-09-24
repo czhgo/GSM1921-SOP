@@ -17,7 +17,7 @@ import { pagerHtml } from '../../../components/pager.js?v=20260924a';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
-  <div id="issue-list-panel" class="card rounded-xl p-6">
+  <div id="issue-list-panel" class="card rounded-xl p-5">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">反馈管理</h3>
       <div class="flex items-center gap-2 text-xs">
@@ -336,7 +336,7 @@ function renderIssueDetail(issueId) {
   const ds = deriveIssueDisplayState(issue);
   const assigneeLabel = issue.assigneeRole ? ROLE_LABELS[issue.assigneeRole] || issue.assigneeRole : '未指派';
 
-  let html = `<div class="card rounded-xl p-6">`;
+  let html = `<div class="card rounded-xl p-5">`;
 
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;

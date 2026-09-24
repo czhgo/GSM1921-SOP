@@ -114,7 +114,7 @@ const CALENDAR_TAB_HTML = `
   <!-- 统计条（紧凑文本概览） -->
   <div id="secretary-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 mb-4 py-2 border-b border-gray-100"></div>
   <!-- 活动日历（2026-08-05：「写入活动」并入日历卡片头部，删除原独立活动写入卡片） -->
-  <div class="card rounded-xl p-6 mb-4">
+  <div class="card rounded-xl p-5 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
       <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 h-8 px-4 text-sm inline-flex items-center gap-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">

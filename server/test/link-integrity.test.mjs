@@ -310,6 +310,7 @@ test('L4 浏览器实测：登录态跳转逻辑（未登录直达登录页 / �
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
 
     // 1. 未登录：首页 workspace 链接应被 main-entry 改为 login.html（消除绕路）
     await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });

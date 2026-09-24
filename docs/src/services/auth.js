@@ -237,15 +237,15 @@ function _appendAuditEntries(scopeRef, actorId, entries, action) {
   return entries.length;
 }
 
-// ── 审计快照存储（独立 localStorage 键，移出 /docs 代码栈）──────────
-// T-190：赋权审计快照不再是 mockDB 实体，独立持久化，杜绝双轨数据。
-// revoke 为追加 action:'revoke' 记录（快照只增不改），判定时取最新一条。
+// ── 审计快照存储（T-190 独立持久化；2026-09-24 批次 169 补服务端权威 auth_audit 表）──
+// T-190：赋权审计快照不再是 mockDB 业务实体（只增不改，判定取最新一条），独立持久化杜绝双轨。
+// api：服务端表 `auth_audit`（GET/POST /api/v1/auth-audit）为权威——读 init 缓存、写同发端点；mock：本机键。
 const AUDIT_KEY = 'sop_org_os_auth_audit';
 
 function _getAuthRecords() {
   try {
-    const raw = localStorage.getItem(AUDIT_KEY);
-    if (!raw) return [];
+    if (Array.isArray(mockDB.authAudit)) return [...mockDB.authAudit]; // api：服务端缓存为权威
+    const raw = localStorage.getItem(AUDIT_KEY); if (!raw) return [];   // mock：本机键
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (_) { return []; }
@@ -253,7 +253,7 @@ function _getAuthRecords() {
 
 function _saveAuthRecords(records) {
   try { localStorage.setItem(AUDIT_KEY, JSON.stringify(records)); } catch (_) { /* quota exceeded 静默降级 */ }
-}
+  _syncAuthAuditToServer(records); mockDB.authAudit = records; }
 
 // ════════════════════════════════════════════════
 // AuthStore API
@@ -761,3 +761,35 @@ export const AuthStore = {
 // 消费方：`AuthStore.canDo`（权限集）/ `AuthStore.authorize`（赋权链）/ `_getUserRoleFromMemory`（读回角色）。
 ROLE_PERMISSIONS['deputy-leader'] = ROLE_PERMISSIONS['leader'];
 AUTHORIZE_CHAIN['deputy-leader'] = AUTHORIZE_CHAIN['leader'];
+
+// ════════════════════════════════════════════════════════════════
+//  审计留痕的服务端同步（2026-09-24 批次 169；集中置尾 = 上文行号是 README-server.md 的取证靶点）
+// ════════════════════════════════════════════════════════════════
+// 病灶：赋权审计留痕原先**只有本机一份**（键 sop_org_os_auth_audit）⇒ 清缓存即留痕灭失；
+//   而留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺**可被事后核对**（没有它，承诺无从证伪）。
+// 现 api 形态落服务端表 `auth_audit`（端点 GET/POST /api/v1/auth-audit，见 server/routes/resources.js 末
+//   「授权审计留痕」段），`init()` 拉取填 `mockDB.authAudit`（data-adapter.js::_loadAuxCollections）。
+// 同步口径：**只发本机新增的行**（服务端已存在的 id 不重发）；失败仅告警、下次 init 以服务端为准。
+// ⚠ 动态 import（不在文件顶部静态引入 data-adapter）：本文件顶部 import 段被 README-server.md 按行号引用，
+//   插行会整体漂移（同上方 deputy-leader 的处置）。
+let _auditSyncedIds = null; // null = 未初始化；首次同步时以「服务端缓存里已有的 id」为起点
+
+/** api 形态：把新增的审计留痕同步到服务端（fire-and-forget；失败仅告警） */
+function _syncAuthAuditToServer(records) {
+  const rows = Array.isArray(records) ? records : [];
+  if (_auditSyncedIds === null) {
+    _auditSyncedIds = new Set((Array.isArray(mockDB.authAudit) ? mockDB.authAudit : []).map((r) => r && r.id));
+  }
+  const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
+  if (!fresh.length) return;
+  fresh.forEach((r) => _auditSyncedIds.add(r.id));
+  import('../core/data-adapter.js?v=20260924a').then(async ({ getDataSource, getAdapter }) => {
+    if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
+    const a = getAdapter();
+    if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
+    for (const r of fresh) await a.authAudit.create(r);
+  }).catch((e) => {
+    fresh.forEach((r) => _auditSyncedIds.delete(r.id)); // 失败回滚登记 → 下次写重试
+    console.warn('[AuthStore] api 形态审计留痕落服务端失败（本地已记，下次 init 以服务端为准）：', e);
+  });
+}

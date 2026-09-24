@@ -24,6 +24,7 @@
 </head>
 
 <body>
+<a href="#main-content" class="visually-hidden skip-link">跳到主要内容</a>
 
 <header id="app-header"></header>
 
@@ -32,7 +33,7 @@
 <aside id="app-sidebar" class="sidebar-collapsed"></aside>
 
 <div class="sidebar-main-content pt-16 min-h-screen">
-  <main class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
+  <main id="main-content" class="flex-1 px-4 py-6 md:px-8 overflow-y-auto min-w-0">
     <section id="view-dashboard" class="view-section">
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-6">
@@ -41,7 +42,7 @@
           <p class="text-xs text-gray-500" style="max-width:640px;margin:8px auto 0;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）；当前页面展示的是<strong>示例组织</strong>的一套部署。</p>
         </div>
         <div id="dashboard-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4"></div>
-        <div class="card rounded-xl p-6 mb-6">
+        <div class="card rounded-xl p-5 mb-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">重要通知</h3>
             <span id="dashboard-notice-count" class="text-xs text-gray-500"></span>
@@ -49,7 +50,7 @@
           <div id="dashboard-notice-list" class="text-sm text-gray-500"><p>加载中…</p></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div class="card rounded-xl p-6">
+          <div class="card rounded-xl p-5">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">近期活动</h3>
               <div class="flex items-center gap-3">
@@ -92,7 +93,7 @@
               <div id="dashboard-activity-list" class="text-sm text-gray-500"></div>
             </div>
           </div>
-          <div class="card rounded-xl p-6" id="dashboard-taskforce-card">
+          <div class="card rounded-xl p-5" id="dashboard-taskforce-card">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-title-cn text-base font-semibold text-gray-800">专班进展</h3>
               <a href="./workspace/org.html" class="text-xs text-blue-600 hover:text-blue-800">查看全部 →</a>
@@ -101,7 +102,7 @@
           </div>
         </div>
         <!-- 活动风采 -->
-        <div class="card rounded-xl p-6 mt-6" id="dashboard-gallery-card">
+        <div class="card rounded-xl p-5 mt-6" id="dashboard-gallery-card">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-title-cn text-base font-semibold text-gray-800">活动风采</h3>
             <a href="./archive.html" class="text-xs text-blue-600 hover:text-blue-800">归档库 →</a>

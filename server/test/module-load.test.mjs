@@ -57,6 +57,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${BASE}/login.html`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 

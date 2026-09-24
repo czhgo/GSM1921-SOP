@@ -266,7 +266,7 @@ function _historyRowHtml(h) {
 /** 进展区空态（支部尚无成员归组时） */
 function _noGroupHintHtml() {
   return `
-    <div class="card rounded-xl p-8 text-center">
+    <div class="card rounded-xl p-5 text-center">
       <p class="text-sm text-gray-500">支部暂无党小组成员</p>
       <p class="text-xs text-gray-500 mt-1">成员归入党小组后，此处显示跨组进展（组员汇报 / 复盘状态 / 活动与考勤）</p>
     </div>`;

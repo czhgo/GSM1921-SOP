@@ -65,7 +65,7 @@ export function renderContent(ctx) {
     ${_buildSupervisionCardHTML(supervisionRows, overdueDays, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
     ${_buildInspectionProxyCardHTML(proxyActivities)}
-    <div class="card rounded-lg p-5">
+    <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">考察总表</h3>
@@ -451,7 +451,7 @@ function _buildInspectionProxyCardHTML(activities = []) {
       </div>
     </div>` : '';
   return `
-    <div class="card rounded-lg p-4 mb-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
         <button id="btn-disc-upload-insp" class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
@@ -574,7 +574,7 @@ function _buildSupervisionCardHTML(rows, overdueDays, returnedRecs = []) {
         </div>
       </div>`;
   return `
-    <div class="card rounded-lg p-4 mb-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">督办清单（未闭环 / 超期）</h3>
         <div class="flex gap-3 text-xs">
@@ -612,7 +612,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
       </div>`;
   };
   return `
-    <div class="card rounded-lg p-4 mb-4" id="insp-appeal-card">
+    <div class="card rounded-xl p-4 mb-4" id="insp-appeal-card">
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察申诉（待核实）</h3>
         <span class="text-xs text-gray-500">同学报「我参与了但没记上」——纪检<b>先核实</b>，属实再打回上传方</span>
@@ -689,7 +689,7 @@ function _buildTaskforceRosterHTML() {
   }).join('');
 
   return `
-    <div class="card rounded-lg p-4 mb-4">
+    <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">专班名单</h3>
         <span class="text-xs text-gray-500">名单由组织委员管理，纪检只读同步（前置）</span>

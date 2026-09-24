@@ -63,7 +63,7 @@ const dtDraft = { date: '', location: '', title: '', desc: '', orgIds: null, dee
 
 // C6（2026-09-12）跨整页刷新草稿保护：dtDraft 同步落 localStorage，F5/误关闭后可恢复；
 // 存在未提交内容时 beforeunload 二次确认，避免「填了一半刷新即丢光且无提醒」。
-const DT_DRAFT_KEY = 'workflowos_leader_activity_draft';
+const DT_DRAFT_KEY = 'workflowos_leader_activity_draft'; // 本机草稿（**仅本机·不上服务端**：组长「写入活动」未提交的表单暂存，刷新恢复用；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 
 function _dtDraftDirty() {
   return !!(dtDraft.date || dtDraft.location || dtDraft.title || dtDraft.desc

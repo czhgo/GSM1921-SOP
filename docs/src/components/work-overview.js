@@ -236,21 +236,21 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   container.innerHTML = `
     <div class="space-y-4">
       ${dutyCardHtml(prefix)}
-      <div class="card rounded-lg p-4">
+      <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">汇报</h4>
           <span class="text-xs text-gray-500">${requests.length + openMine.length} 条待行动 · 请我汇报行内填写 / 开放汇报到「我的处置」</span>
         </div>
         ${reportBody}
       </div>
-      <div class="card rounded-lg p-4">
+      <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">卡点</h4>
           <span class="text-xs text-gray-500">我的超期 + 条线缺口 · ${blockerRows.length} 项</span>
         </div>
         ${blockerBody}
       </div>
-      <div class="card rounded-lg p-4">
+      <div class="card rounded-xl p-4">
         <div class="flex items-center justify-between mb-3">
           <h4 class="font-title-cn text-sm font-bold text-gray-700">在办</h4>
           <span class="text-xs text-gray-500">我的在办 · 点击条目直达详情</span>
@@ -439,7 +439,7 @@ function _jumpToTodoTab(container, prefix, groupKey) {
 /** 在办下钻详情（活动/专班只读知情视图，返回按钮回概况） */
 async function _renderOverviewDetail(container, detail, accent, onBack) {
   container.innerHTML = `
-    <div class="card rounded-lg p-4">
+    <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
         <button type="button" class="wo-detail-back text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100" style="background:var(--neutral-100);color:var(--neutral-700);">← 返回工作概况</button>
         <span class="text-xs text-gray-500">${detail.kind === 'activity' ? '活动详情 · 只读知情' : '专班详情 · 只读知情'}</span>

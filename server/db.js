@@ -156,4 +156,15 @@ export const SEMANTIC_TABLES = [
   'member_confirmations',
   // 批次里程碑（内容单一源 = docs/data/milestones.json，seed.js 播种；端点只读）
   'milestones',
+  // ── 2026-09-24 批次 169（支书逐字「不能什么都依靠浏览器缓存」）：三域「只有本机一份」的收口 ──
+  // 出勤申诉队列 / 考察申诉队列（端点见 resources.js「申诉队列」段；写门见各端点 requireXxx）——
+  //   原各只存 localStorage 键 gsm1921-attendance-appeals / gsm1921-inspection-appeals ⇒ 清缓存即队列灭失。
+  'attendance_appeals',
+  'inspection_appeals',
+  // 意见反馈「逐人未读标记」（端点见 resources.js「反馈未读标记」段）——原按人分键
+  //   gsm1921-issue-unread-<assigneeId> 存 localStorage ⇒ 清缓存即清零、换设备读不到。
+  'issue_unread',
+  // 授权审计留痕（端点见 resources.js「授权审计留痕」段）——原只存 localStorage 键 sop_org_os_auth_audit
+  //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
+  'auth_audit',
 ];

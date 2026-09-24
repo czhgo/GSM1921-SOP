@@ -389,6 +389,7 @@ test('mock 形态：常规出口（成员/支书）看不到真身；党委核�
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
     await page.goto(`${base}/index.html`, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const out = await page.evaluate(async () => {
       const { IssueStore } = await import('/src/services/issues.js?v=20260924a');

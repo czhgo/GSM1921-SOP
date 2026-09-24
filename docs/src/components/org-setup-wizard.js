@@ -49,7 +49,7 @@ export const WIZARD_STEPS = [
   { id: 5, label: '验证与重置' },
 ];
 
-// ── 主题预设（仅「可调令牌」= 角色识别层强调色 --app-accent 三件套，COLOR_SYSTEM §2.3.2/§2.8）──
+// ── 主题预设（仅「可调令牌」= 角色识别层强调色 --app-accent 三件套，DESIGN_SYSTEM §2.3.2/§2.8）──
 // 党建红 party-red（#CE1126）与党徽金 party-gold（#FFD700）为固定合规底线 → 不提供任何预设/更改；
 // 预设取既有角色识别色系（accent 色相），id 与 core/config-clean THEME_PRESET_IDS 白名单一致。
 export const THEME_PRESETS = [
@@ -91,7 +91,7 @@ export function applyThemePreset(presetId) {
 }
 
 // ── 草稿（localStorage，按支部一份）─────────────────────────────
-const DRAFT_PREFIX = 'wizard-draft-';
+const DRAFT_PREFIX = 'wizard-draft-'; // 本机草稿前缀（**仅本机·不上服务端**：换组织向导未走完的草稿，按支部一份；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 function _draftKey(branchId) { return DRAFT_PREFIX + branchId; }
 function _readDraft(branchId) {
   try {
@@ -704,7 +704,7 @@ function _step4Html(S, branch) {
     ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
     ['术语/使用策略', 'content/03_doc_system/USAGE_POLICY.md + docs/src/core/policy-defaults.js'],
     ['制度 SOP', 'content/02_institution/sop/（支书/组织/宣传/纪检/组长指南）'],
-    ['配色系统', 'content/04_web_design/design-system/COLOR_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
+    ['配色系统', 'content/04_web_design/design-system/DESIGN_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
     ['支部默认策略', 'docs/src/core/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],
   ].map(([t, d]) =>
     `<div class="flex items-start gap-2 py-1.5 border-b border-gray-50 last:border-0">
