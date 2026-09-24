@@ -3,32 +3,34 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/state.js?v=20260923a';
-import { BranchService } from '../../../services/runtime.js?v=20260923a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260923a';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/signup.js?v=20260923a';
-import { AuthStore } from '../../../services/auth.js?v=20260923a';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260923a';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260923a'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260923a';
-import { NoticeStore } from '../../../services/notice.js?v=20260923a';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260923a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../core/data-adapter.js?v=20260923a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260923a';
-import { generateId } from '../../../core/id.js?v=20260923a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260923a';
+import { setState } from '../../../core/state.js?v=20260924a';
+import { BranchService } from '../../../services/runtime.js?v=20260924a';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/taskforce.js?v=20260924a';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/signup.js?v=20260924a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/review.js?v=20260924a';
+import { loadInspectionRecords } from '../../../services/inspection.js?v=20260924a'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/todo.js?v=20260924a';
+import { NoticeStore } from '../../../services/notice.js?v=20260924a';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain.js?v=20260924a'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../core/data-adapter.js?v=20260924a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
+import { generateId } from '../../../core/id.js?v=20260924a';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260924a';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/constants.js?v=20260923a';
-import { icon } from '../../../core/icons.js?v=20260923a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260923a';
-import { recordFormShell } from '../../../components/forms.js?v=20260923a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260923a';
-import { badgeHtml } from '../../../components/badges.js?v=20260923a';
+import { isActivityEnded } from '../../../core/constants.js?v=20260924a';
+import { icon } from '../../../core/icons.js?v=20260924a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
+import { recordFormShell } from '../../../components/forms.js?v=20260924a';
+// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/modal.js::confirmNudge）
+import { confirmNudge } from '../../../components/modal.js?v=20260924a';
+import { renderQueryView } from '../../../components/query-view.js?v=20260924a';
+import { badgeHtml } from '../../../components/badges.js?v=20260924a';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260923a';
-import { getPersonName, PersonStore } from '../../../services/person.js?v=20260923a';
+import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260924a';
+import { getPersonName, PersonStore } from '../../../services/person.js?v=20260924a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -669,11 +671,19 @@ function _tfRenderContribBlock(panel, tf, ctx) {
   }
 
   // 代录提交：成功仅重置自身（选人/说明清空），另刷新写块②（新增待核条目与工作量计数）
-  mount.querySelector('#btn-add-tf-contrib')?.addEventListener('click', () => {
+  mount.querySelector('#btn-add-tf-contrib')?.addEventListener('click', async () => {
     const desc = (mount.querySelector('#tf-contrib-desc')?.value || '').trim();
     if (!desc) { showToast('error', '请填写贡献说明'); return; }
     const ids = _tfContribPicker ? _tfContribPicker.getSelected() : [];
     if (ids.length === 0) { showToast('error', '请选择要代录的成员'); return; }
+    // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/modal.js::confirmNudge`）：
+    //   **专班的承担人（组织者）**是这一步的本位（本台是「组织委员代录（兜底）」位，代录属**例外代办**）
+    //   ⇒ 操作人不是该专班组织者时，**写库前**弹一次确认（点「仍由我继续」才继续）。
+    //   弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；「取消」＝放弃本次代录。
+    if (!isTaskforceOrganizer(currentUserId, tf.id)) {
+      const _homeOk = await confirmNudge({ nudgeKey: 'taskforce-upload', context: tf.name });
+      if (!_homeOk) return;
+    }
     const res = TaskForceRecordStore.addContributions(tf.id, { personIds: ids, desc, by: currentUserId });
     if (!res) { showToast('error', '代录失败：贡献说明为空或所选人员非该专班成员'); return; }
     showToast('success', `已代录 ${res.added} 名成员产出，请逐条核验`);
@@ -881,9 +891,17 @@ function _tfRenderSubsBlock(panel, tf, ctx) {
         form.remove();
       });
 
-      form.querySelector('.record-save-btn').addEventListener('click', () => {
+      form.querySelector('.record-save-btn').addEventListener('click', async () => {
         const name = form.querySelector('.f-name').value.trim();
         if (!name) { showToast('error', '请填写材料名称'); return; }
+        // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/modal.js::confirmNudge`）：
+        //   **材料上传主体一律组织者**——专班材料的一般写入人是**该专班的组织者**；本台由组织委员
+        //   代加材料属**例外代办** ⇒ 操作人不是该专班组织者时，**写库前**弹一次确认。
+        //   弹窗**必须点按钮才能关**；「取消」＝放弃本次添加（表单保留）。
+        if (!isTaskforceOrganizer(currentUserId, tf.id)) {
+          const _homeOk = await confirmNudge({ nudgeKey: 'taskforce-upload', context: tf.name });
+          if (!_homeOk) return;
+        }
         const cur = _tfSubsData(tf.id);
         cur.materials.push({
           name,

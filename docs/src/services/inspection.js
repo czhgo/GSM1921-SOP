@@ -3,16 +3,18 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../core/domain.js?v=20260923a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
-import { generateId } from '../core/id.js?v=20260923a';
-import { bumpToken } from '../core/version-token.js?v=20260923a'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../mock/index.js?v=20260923a';
-import { isInitStateActive } from './init-reset.js?v=20260923a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName, mentorsOf } from './person.js?v=20260923a';
-import { TodoStore, TodoSourceType, halfYearPeriodOf, halfYearPeriodLabel, halfYearPeriodOptions } from './todo.js?v=20260923a';
-import { loadActivities } from './activity.js?v=20260923a';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../core/domain.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
+import { persist } from '../core/data-adapter.js?v=20260924a';
+import { generateId } from '../core/id.js?v=20260924a';
+import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../mock/index.js?v=20260924a';
+import { isInitStateActive } from './init-reset.js?v=20260924a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from './person.js?v=20260924a';
+import { TodoStore, TodoSourceType } from './todo.js?v=20260924a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260924a';
+// 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
+import { isTaskforceOrganizer } from './taskforce.js?v=20260924a';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -140,34 +142,6 @@ export function getRecordsBySource(sourceType, sourceId) {
   });
 }
 
-// ════════════════════════════════════════════════════════════════
-//  培养联系人考察记录（挂在既有考察记录上，加两栏）—— 2026-09-23 批次 157
-// ════════════════════════════════════════════════════════════════
-//  母本出处（逐字）：《组织委员工作流程指南》附录 A「积极分子阶段」——
-//    「培养联系人考察记录（每半年一次，含考察意见和培养建议）」（`组织委员工作流程指南.md:191`；
-//     `:181` 表「积极分子」行同列该交付物）。
-//  支书 2026-09-23 裁定（推荐档①，逐字）：「挂在现有考察记录上加两栏（"是哪位培养联系人写的" +
-//    "第几期"），不分家」⇒ **不新造实体 / 不新造表**：两栏就是既有 InspectionRecord 上的两个可选字段——
-//    · `mentorId`：这条考察是哪位培养联系人写的（取值限该成员的培养联系人，单一源 `person.js::mentorsOf`）；
-//    · `period`：第几期（自然半年期 `YYYY-H1` / `YYYY-H2`——与「半年考察提醒」同口径，单一源 `todo.js`）。
-//  「含考察意见和培养建议」＝既有记录的 `content` 文本栏，**不重造**（本批未新增意见 / 建议字段）。
-//  ⚠ 两栏都是**可选**：没标注培养联系人的记录，形状与改动前完全一致（不写这两个键）。
-// ════════════════════════════════════════════════════════════════
-
-// 半年期次助手再导出（单一源 = services/todo.js::halfYearPeriodOf / halfYearPeriodLabel /
-// halfYearPeriodOptions；考察域消费方走本入口，勿另写第二份半年口径——同 services/thought-report.js 做法）
-export { halfYearPeriodOf, halfYearPeriodLabel, halfYearPeriodOptions };
-
-/** 该成员的培养联系人候选（写口下拉用；未指派 → 空数组 ⇒ 该人的这两栏不出现） */
-export function mentorChoicesOf(personId) {
-  return mentorsOf(getPersonById(personId)).map(id => ({ value: id, label: getPersonName(id) || id }));
-}
-
-/** 当前自然半年期（写口「第几期」下拉的缺省） */
-export function currentInspectionPeriod() {
-  return halfYearPeriodOf(new Date().toISOString());
-}
-
 // ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/inspection.js 原样提升）──
 const _personName = (id) => getPersonName(id);
 // R-16（2026-09-13）：改从 loadActivities()（mockDB 优先）取（API 模式新建活动的标题此前回退成 id）
@@ -192,11 +166,6 @@ export function inspectionToDisplay(records) {
     recordedByName: _personName(r.recordedBy),
     recordedAt: r.recordedAt,
     status: r.status || 'pending',
-    // 培养联系人考察记录两栏（批次 157）：未标注 → null / 空串（既有记录形状不变）
-    mentorId: r.mentorId || null,
-    mentorName: r.mentorId ? _personName(r.mentorId) : '',
-    period: r.period || null,
-    periodLabel: r.period ? halfYearPeriodLabel(r.period) : '',
   }));
 }
 
@@ -219,11 +188,6 @@ export function inspectionToLong(records) {
     content: r.content || r.role, // P1-5：content 优先，旧数据以 role 兜底
     status: r.status,
     recordedByName: r.recordedBy ? _personName(r.recordedBy) : '',
-    // 培养联系人考察记录两栏（批次 157）：未标注 → null / 空串（考察总表明细据此出两列）
-    mentorId: r.mentorId || null,
-    mentorName: r.mentorId ? _personName(r.mentorId) : '',
-    period: r.period || null,
-    periodLabel: r.period ? halfYearPeriodLabel(r.period) : '',
   }));
 }
 
@@ -479,3 +443,23 @@ export function resolveInspectionAppeal({ appealId, actorId, level, content, not
   _saveInspectionAppeals(all);
   return { ok: true };
 }
+
+/**
+ * 考察上传「本位」判据（2026-09-23 支书 nudge 裁定 · 单一源）——「这一步**一般由谁**上传」。
+ * 与 `canUploadInspection`（**谁有权**：还含「支书 / 副支书例外承担」与「本组组长」这一上传位）分开：
+ * 本位＝**该场活动（专班）的组织者**——
+ *   · 活动：**考察记录由组织者上传**（`D-287`「材料上传主体一律组织者」· `D-315`）；
+ *   · 专班：上传＝专班实际负责人（组织者），组织委员＝建档汇总、**不直接录原始数据**
+ *     （CF §D 考察管理表「专班考察：上传/修改」行）。
+ * 供「越俎代庖」nudge 判「操作人是不是本位」——本位操作人走原路径、零打扰。
+ * @param {string} personId 操作人
+ * @param {string} sourceType SourceType.ACTIVITY / SourceType.TASKFORCE
+ * @param {string} sourceId 活动 id / 专班 id
+ * @returns {boolean}
+ */
+export function isInspectionHomePosition(personId, sourceType, sourceId) {
+  if (!personId || !sourceType || !sourceId) return false;
+  if (sourceType === SourceType.TASKFORCE) return isTaskforceOrganizer(personId, sourceId);
+  return isActivityOrganizer(personId, sourceId);
+}
+

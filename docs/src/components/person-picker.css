@@ -29,11 +29,13 @@
 /* 表单容器内与 input-flat/cs-select 等宽对齐（支书 2026-08-08：选人/选项目框体统一） */
 .person-picker-wrapper.inline-full,
 #project-auth-picker-container .person-picker-wrapper,
+#tf-auth-picker-container .person-picker-wrapper,
 #auth-person-picker-slot .person-picker-wrapper {
   display: block;
   width: 100%;
 }
 #project-auth-picker-container .person-picker-trigger,
+#tf-auth-picker-container .person-picker-trigger,
 #auth-person-picker-slot .person-picker-trigger {
   width: 100%;
   max-width: none;

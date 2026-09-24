@@ -11,31 +11,34 @@
 // 「支部治理·快捷块说明」仍建设中（分组结构可见性即角色化验收点）。
 // 登录态：非纯静态——readLoginSnapshot() + 动态 import auth（同 sidebar.js 模式）。
 
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260923a';
-import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.js?v=20260923a';
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260923a';
-import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260923a';
-import { icon } from '../core/icons.js?v=20260923a';
-import { escHtml as esc } from '../core/utils.js?v=20260923a';
-import { getCapabilities } from '../core/registry.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260924a';
+import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.js?v=20260924a';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260924a';
+import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260924a';
+import { icon } from '../core/icons.js?v=20260924a';
+import { escHtml as esc } from '../core/utils.js?v=20260924a';
+import { getCapabilities } from '../core/registry.js?v=20260924a';
 import {
   coreTabIdsOf, sameIdOrder, applyPersonalTabOrder, readPersonalTabOrder,
   savePersonalTabOrder, resetPersonalTabOrder,
-} from '../services/preferences.js?v=20260923a';
+} from '../services/preferences.js?v=20260924a';
 // 批4（2026-09-09 支书批「域参数」）：制度默认单一源 = policy-defaults（设置页展示「制度默认」行与域参数默认值）
-import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS } from '../core/policy-defaults.js?v=20260923a';
+import { POLICY_DEFAULTS, ACTIVITY_APPROVAL_MODES, ACTIVITY_APPROVAL_MODE_LABELS } from '../core/policy-defaults.js?v=20260924a';
 // 数据层初始化（2026-09-09 冒烟修复，同 wizard/search 独立页模式）：设置页治理区（支部信息/默认顺序/
 // 制度参数/域参数）与「我的工作台」需读支部配置——注册适配器并恢复本地 mock 数据（或 API 模式 init），
 // 否则整页加载后 mockDB 恒空 → 治理区误显「未找到您所属支部」且写口（保存默认顺序/域参数）不可达。
-import { BranchService } from '../services/runtime.js?v=20260923a';
-import { registerApiAdapter, setDataSource, init as dataInit } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
+import { hydrateDataSource } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
 
 // 2026-09-09 支部归属显式化/审计内核：变更记录展示与回滚按钮需要操作者姓名、单键回滚白名单
-import { getPersonName } from '../services/person.js?v=20260923a';
-import { CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260923a';
+import { getPersonName } from '../services/person.js?v=20260924a';
+import { CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260924a';
+// 2026-09-23 支书批「判别依据可感」：「当前形态 · 归属判定」卡的数据源 = branch.getAffiliationShape
+// （数据源/判定段/支部 id 单一源，判定逻辑不在此复制第二遍）
+import { getAffiliationShape } from '../services/branch.js?v=20260924a';
 
 // 支部治理区归属缺失统一文案（2026-09-09 支书批「未绑定支部」口径：支部语境一律 getBoundBranch 判定，
 // 不再回退示例支部 br-b1；由党委在『支部管理』中确认归属后才可见本支部治理内容）
@@ -44,7 +47,7 @@ const GOV_NO_BRANCH_TEXT = '未找到您所属支部——请先由党委在『�
 // ── 数据层按需加载（同 sidebar staticShell 模式：确已登录才动态 import auth）──
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260923a');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260924a');
   return _authModule;
 }
 
@@ -137,6 +140,59 @@ const SECTION_META = {
   },
 };
 
+// ═══════════════ 当前形态 · 归属判定（2026-09-23 支书批「判别依据可感」）═══════════════
+// 支书原话：「我并不理解 有的地方显示成 示例组织，有的光华管理学院本科生党支部。这个判别依据/判别代码能
+// 不能做得更加可感一点。因为我无法测试 api 模式！」→ 本卡把「顶栏那个组织名从哪来」摊开：
+//   当前数据源（api/mock）+ 依据（sessionStorage 有无 API token，只判有/无、不显示原文）/
+//   归属判定命中的段（1–5，业务语言 + 顶栏最终组织名）/ 所属支部 id / 登录人与角色 / 代码版本戳。
+// 数据与判定单一源 = branch.getAffiliationShape（不复制判定）。
+// 落点：挂在「外观」区（唯一全角色+访客都可见的分区）——不新增左栏分区，因分区数被
+// S14 文档一致性锁定为 10（README-server.md / help.html §5.4 同源），故未登录也能自查形态。
+/** 活动代码版本戳（取页面脚本的 ?v=；CODE_VERSION 未导出，故取能读到的那个） */
+function _activeCodeStamp() {
+  try {
+    for (const s of document.querySelectorAll('script[src]')) {
+      const m = /[?&]v=([\w.-]+)/.exec(s.getAttribute('src') || '');
+      if (m) return m[1];
+    }
+  } catch (_) { /* 忽略 */ }
+  return '未知';
+}
+
+/** 「当前形态 · 归属判定」卡（体例照既有卡；判定/数据源全部取自 getAffiliationShape） */
+function shapeCardHtml() {
+  const { personId, role } = _session;
+  const shape = getAffiliationShape(personId || undefined);
+  const isApi = shape.source === 'api';
+  const who = personId
+    ? `${getPersonName(personId) || '（档案缺姓名）'}（${personId}）· ${ROLE_LABELS[role] || role || '角色未知'}`
+    : '未登录（访客）';
+  const rows = [
+    ['当前数据源',
+      `${isApi ? 'api（已连服务器）' : 'mock（本地演示）'}`
+      + `<div class="text-[11px] text-gray-500 mt-0.5">依据：sessionStorage 中<b>${shape.tokenPresent ? '有' : '无'}</b> API 登录 token（只判有/无，不显示内容）</div>`],
+    ['归属判定',
+      `命中第 ${shape.segment} 段 —— ${esc(shape.segmentLabel)}`
+      + `<div class="text-[11px] text-gray-500 mt-0.5">顶栏最终组织名：${esc(shape.title)}</div>`],
+    ['所属支部 id', shape.branchId ? esc(shape.branchId) : '无（未解析到有效归属支部）'],
+    ['当前登录人 / 角色', esc(who)],
+    ['代码版本戳', `?v=${esc(_activeCodeStamp())}`],
+  ].map(([k, v]) => `<div class="settings-kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
+  return `
+    <div class="settings-card" style="margin-top:16px;">
+      <div class="settings-card-head">
+        <h2 class="settings-card-title">当前形态 · 归属判定</h2>
+        <span class="settings-badge">自查</span>
+      </div>
+      <p class="settings-card-desc">「顶栏那个组织名是从哪来的」在这里摊开：数据源与依据、归属判定命中的是哪一段、所属支部、登录人与角色、代码版本戳。<b>不开调试器</b>也能核对现在是本地演示（mock）还是已连服务器（api）。</p>
+      <dl class="settings-kv">${rows}</dl>
+      <div class="settings-note" style="margin-top:14px;">
+        <span class="settings-note-dot"></span>
+        「示例组织（未登录）」＝未登录/查无档案的第 5 段中性占位；「未绑定支部」＝已登录但档案无有效归属的第 4 段中性占位；两者都不代表真实支部名。
+      </div>
+    </div>`;
+}
+
 // ═══════════════ 渲染 =═══════════════
 let _currentRole = '';
 let _currentSectionId = 'appearance';
@@ -186,6 +242,7 @@ function renderPanel(panel) {
         <p class="settings-card-desc">字号、明暗主题与强调色的个人偏好设置 —— 保存后全站即时生效。</p>
         <div id="appearance-controls-host" class="mt-2"></div>
       </div>
+      ${shapeCardHtml()}
     `;
     const host = panel.querySelector('#appearance-controls-host');
     host.innerHTML = appearanceControlsHTML({ accentFallbackRole: _currentRole, scopeNote });
@@ -243,11 +300,11 @@ async function buildMyWorkspaceModel(role, personId) {
   if (!stem) return null;
   const scope = `workspace:${stem}`;
   // 能力模块副作用导入即注册（同 ws-*-entry 模式）；branch.js 数据链较重，随用随载
-  await import(`../modules/capabilities/${stem}-workspace.js?v=20260923a`);
+  await import(`../modules/capabilities/${stem}-workspace.js?v=20260924a`);
   const cap = getCapabilities({ scope }).find(c => c.id === `${stem}-workspace`);
   const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
   if (!rawTabs.length) return null;
-  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260923a');
+  const { applyTabPolicy, getBranchIdOfPerson } = await import('../services/branch.js?v=20260924a');
   // 支部策略口径与 workspace-shell 一致：支部层工作台应用 config.modules；党委台不受支部配置影响
   let base = rawTabs;
   if (scope !== 'workspace:party-committee' && role !== 'party-staff') {
@@ -470,7 +527,7 @@ async function renderBranchGovSection(panel, sectionId) {
   }
   panel.innerHTML = govEmptyHtml('加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     const branch = br.getBoundBranch(personId);
     if (!branch) {
       panel.innerHTML = govEmptyHtml(GOV_NO_BRANCH_TEXT);
@@ -487,7 +544,7 @@ async function renderBranchGovSection(panel, sectionId) {
     } else if (_currentSectionId === 'branch-default-tab-order') {
       // 2026-09-09 冒烟修复：先注册支书工作台能力模块（buildBranchOrderModel 读注册表取 tab 清单；
       // 设置页独立加载，不先经 workspace-shell/我的工作台则能力未注册 → 误显「未能读取…页签清单」）
-      await import('../modules/capabilities/secretary-workspace.js?v=20260923a');
+      await import('../modules/capabilities/secretary-workspace.js?v=20260924a');
       if (seq !== _govSeq) return;
       const model = buildBranchOrderModel(br, branch);
       if (!model) { panel.innerHTML = govEmptyHtml('未能读取该支部工作台页签清单。'); return; }
@@ -545,7 +602,7 @@ async function openWizardEmbed(panel) {
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
   try {
-    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260923a');
+    const { mountOrgSetupWizard } = await import('../components/org-setup-wizard.js?v=20260924a');
     if (seq !== _govSeq || !host) return;
     mountOrgSetupWizard(host, { actor: { personId, role }, branchId: _govBranchId, embed: true });
   } catch (e) {
@@ -657,7 +714,7 @@ async function runConfigHistoryRollback(panel, entryAt) {
   if (!window.confirm('确认回滚此条配置更改？系统将把该项恢复到本次变更前的值，并追加一条回滚记录（回滚本身可查不可再回滚）。')) return;
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     const res = await br.rollbackBranchConfig(_govBranchId, { by: personId, targetEntryAt: entryAt });
     if (!res.ok) {
       if (_currentSectionId === 'branch-config-history' && seq === _govSeq) showCfgHistStatus(panel, res.reason || '回滚失败。', true);
@@ -777,7 +834,7 @@ async function saveBranchOrder(panel) {
   const hidden = Array.isArray(m.modules?.hiddenTabIds) ? m.modules.hiddenTabIds : [];
   const canNull = !hidden.length && sameIdOrder(cur, m.baseBizIds);
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     await br.updateBranchModules(m.branchId, canNull ? null : { hiddenTabIds: hidden, tabOrder: cur }, m.rawTabs);
     await refreshBranchOrder(panel, canNull
       ? '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。'
@@ -793,7 +850,7 @@ async function resetBranchOrder(panel) {
   const m = _bwsModel;
   if (!m) return;
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     await br.updateBranchModules(m.branchId, null, m.rawTabs);
     await refreshBranchOrder(panel, '已恢复系统默认顺序 —— 全体成员下一刷新按默认全开 · 注册顺序。');
   } catch (e) {
@@ -806,7 +863,7 @@ async function resetBranchOrder(panel) {
 async function refreshBranchOrder(panel, msg) {
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     const branch = br.getBranchById(_govBranchId);
     if (!branch || seq !== _govSeq) return;
     const model = buildBranchOrderModel(br, branch);
@@ -940,7 +997,7 @@ async function renderPolicySection(panel, sectionId) {
   }
   panel.innerHTML = policyEmptyHtml(SECTION_META[sectionId]?.title || '设置', '加载支部配置…');
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     // 2026-09-09 归属显式化：支部语境用 getBoundBranch（无归属 → 统一提示，不兜底示例支部）
     const branch = br.getBoundBranch(personId);
     if (!branch) {
@@ -1076,7 +1133,7 @@ async function runActivityApprovalAction(panel, action) {
   const patch = action === 'reset' ? { activityApproval: null } : { activityApproval: { mode } };
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === 'branch-policy-params') showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1254,7 +1311,7 @@ async function runPolicyAction(panel, cardId, action) {
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;
   try {
-    const br = await import('../services/branch.js?v=20260923a');
+    const br = await import('../services/branch.js?v=20260924a');
     const res = await br.savePolicyOverrides(_govBranchId, patch, { actor: { personId, role } });
     if (!res.ok) {
       if (_currentSectionId === cardId) showPolicyStatus(panel, res.reason || '保存失败（无权限或参数非法）。', true);
@@ -1331,24 +1388,16 @@ async function init() {
   renderHeader('settings', { staticShell: true });
 }
 
-// 数据层初始化（2026-09-09 冒烟修复）：已登录且有 token 时切 API 数据源；否则恢复本地 mock
-// （同 search/wizard 独立页口径——BranchService.loadDB 含 reset/init 触发链与 init 态种子过滤）。
-registerApiAdapter(ApiAdapter);
-const _savedToken = (() => { try { return sessionStorage.getItem('gsm1921-api-token'); } catch { return null; } })();
-if (_savedToken) {
-  setDataSource('api', { apiBaseUrl: '', authToken: _savedToken });
-  try {
-    await dataInit();
-  } catch (e) {
-    console.warn('[settings] API 数据加载失败，回退本地 mock', e);
-    setDataSource('mock');
-  }
-} else {
-  try {
-    BranchService.loadDB();
-  } catch (e) {
-    console.warn('[settings] mock 数据加载失败', e);
-  }
+// 数据层初始化（P0-2 2026-09-23 收敛）：判定唯一源＝core/data-adapter.js::hydrateDataSource——
+// 有 token 走 api、**失败即失败**（「无法连接服务器」错误态 + 重试，不再静默回退可写 mock＝静默丢单）；
+// 无 token 走本地 mock（同 search/wizard 独立页口径——BranchService.loadDB 含 reset/init 触发链与 init 态种子过滤）。
+try {
+  await hydrateDataSource({
+    apiAdapter: ApiAdapter,
+    loadMock: () => { try { BranchService.loadDB(); } catch (e) { console.warn('[settings] mock 数据加载失败', e); } },
+  });
+} catch (e) {
+  console.warn('[settings] 数据层初始化异常', e);
 }
 
 init();

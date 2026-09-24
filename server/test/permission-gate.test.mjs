@@ -663,3 +663,146 @@ test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受
   assert.equal(n.actionable, true, '标记可行动（供待办派生）');
   assert.equal(n.targetUrl, 'workspace/secretary.html?tab=work-map', '落点指向支部分工');
 });
+
+// 2026-09-23 支书裁定（情景①）：「赋权给党小组组长/支委（最初的人员配置只有党委给支书配置，剩下的身份
+//   由书记来配置）」⇒ `users` 写门对**本支部现任支书 / 副支书**开一格：配置本支部成员的支委身份
+//   （组织 / 宣传 / 纪检委员；撤销＝回落普通参与者）。**副书同权**——2026-09-23 支书追裁「副支书也可配」
+//   （与本仓通例 `SECRETARY_AND_DEPUTY_ROLES`「支书/副支书同页同权」一致）。本测试逐条钉住「放宽的边界」
+//   与「仍然 403 的几类」。
+// 判据单一源＝`docs/src/core/constants.js::branchCommissionerWriteDeny`（服务端 `_branchCommissionerGateDeny`
+//   只做取行搬运、同源同一判据，勿在两处各判一次）。
+test('支委身份写门：本支部现任支书 / 副支书可配本支部成员为组织/宣传/纪检委员（含改派与撤销位）；越权一律 403', async () => {
+  const { token: secToken } = await login('p13');   // br-b1 现任支书（branches.secretaryId='p13'）
+  const { token: depToken } = await login('p14');   // br-b1 副支书（副书同权 ⇒ 与支书同权）
+  const { token: orgToken } = await login('p11');   // br-b1 组织委员（非一把手层 ⇒ 403）
+  const { token: partToken } = await login('p5');   // br-b1 普通成员（⇒ 403）
+  const { token: pcToken } = await login('p_pc');   // 党委组织员（users 写门原口径，仍放行）
+  const roleOf = async (uid) => (await (await fetch(`${base}/api/v1/users`, { headers: authHeaders(secToken) })).json()).find((u) => u.id === uid)?.role;
+
+  // ① 支书把本支部普通成员 p3 配为宣传委员 → 200 + 实际落库
+  const ok = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(ok.status, 200, '★ 本支部现任支书可授予本支部成员支委身份');
+  assert.equal((await ok.json()).role, 'prop-commissioner');
+  assert.equal(await roleOf('p3'), 'prop-commissioner', 'users.role 实际变更落库');
+
+  // ①b 改派到另一支委身份（宣传 → 纪检）→ 200
+  const reassign = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'disc-commissioner' }),
+  });
+  assert.equal(reassign.status, 200, '改派到另一支委身份放行');
+  assert.equal(await roleOf('p3'), 'disc-commissioner');
+
+  // ①c 撤销位（回落 participant）→ 200（撤销不是「授予」，故单独放行）
+  const revoke = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'participant' }),
+  });
+  assert.equal(revoke.status, 200, '撤销（回落普通参与者）放行');
+  assert.equal(await roleOf('p3'), 'participant');
+
+  // ①d 副书同权（2026-09-23 支书追裁「副支书也可配」）：副支书把 p3 配为宣传委员 → 200 + 实际落库
+  const depOk = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(depOk.status, 200, '★ 本支部现任副支书同权：可授予本支部成员支委身份');
+  assert.equal((await depOk.json()).role, 'prop-commissioner');
+  assert.equal(await roleOf('p3'), 'prop-commissioner', '副支书写入实际落库');
+
+  // ①e 副支书的改派与撤销位 → 200（同一判据、同一白名单）
+  const depReassign = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'disc-commissioner' }),
+  });
+  assert.equal(depReassign.status, 200, '副支书改派放行');
+  const depRevoke = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'participant' }),
+  });
+  assert.equal(depRevoke.status, 200, '副支书撤销（回落普通参与者）放行');
+  assert.equal(await roleOf('p3'), 'participant');
+
+  // ② 改自己支书身份 → 403（一把手层归党委，`D-585`）
+  const selfTry = await fetch(`${base}/api/v1/users/p13`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'secretary' }),
+  });
+  assert.equal(selfTry.status, 403, '支书不得改自己的支书身份');
+  assert.equal(await roleOf('p13'), 'secretary', '越权请求未改动落库值');
+
+  // ②b 改副支书身份（靶标现任 deputy-secretary）→ 403
+  const targetDeputy = await fetch(`${base}/api/v1/users/p14`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(targetDeputy.status, 403, '支书不得改副支书身份（一把手层归党委）');
+  assert.equal(await roleOf('p14'), 'deputy-secretary');
+
+  // ②c 白名单外的角色键 → 403（逐键；靶标＝本支部普通成员 p3）
+  for (const r of ['secretary', 'deputy-secretary', 'party-staff', 'leader', 'organizer', 'deep']) {
+    const bad = await fetch(`${base}/api/v1/users/p3`, {
+      method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: r }),
+    });
+    assert.equal(bad.status, 403, `支书不得把本支部成员配成白名单外角色「${r}」`);
+  }
+  assert.equal(await roleOf('p3'), 'participant', '白名单外的越权请求未改动落库值');
+
+  // ②d 一把手层靶标仍归党委：党委先建一位 br-b1 的副支书行 p72（另一人的副支书身份）
+  const mkDeputy = await fetch(`${base}/api/v1/users`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ id: 'p72', name: '支部副支书72', role: 'deputy-secretary', branchId: 'br-b1' }),
+  });
+  assert.equal(mkDeputy.status, 201, '党委组织员可建本支部副支书行');
+  // 副支书改支书靶标 → 403
+  const depToSec = await fetch(`${base}/api/v1/users/p13`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(depToSec.status, 403, '副支书不得改支书身份（一把手层归党委）');
+  assert.equal(await roleOf('p13'), 'secretary');
+  // 副支书改另一人的副支书靶标 → 403（一把手层归党委）
+  const depToDep = await fetch(`${base}/api/v1/users/p72`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(depToDep.status, 403, '副支书不得改副支书身份（含另一人的副支书靶标；一把手层归党委）');
+  assert.equal(await roleOf('p72'), 'deputy-secretary', '越权请求未改动落库值');
+  // 副支书改白名单外的角色键 → 403
+  for (const r of ['secretary', 'deputy-secretary', 'party-staff', 'leader', 'organizer', 'deep']) {
+    const bad = await fetch(`${base}/api/v1/users/p3`, {
+      method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: r }),
+    });
+    assert.equal(bad.status, 403, `副支书不得把本支部成员配成白名单外角色「${r}」`);
+  }
+  assert.equal(await roleOf('p3'), 'participant', '副支书的白名单外越权请求未改动落库值');
+
+  // ③ 跨支部 → 403（党委组织员建 br-x 成员 p71；br-b1 的支书 / 副支书改 → 403）
+  const mkCross = await fetch(`${base}/api/v1/users`, {
+    method: 'POST', headers: authHeaders(pcToken),
+    body: JSON.stringify({ id: 'p71', name: '跨支部成员71', role: 'participant', branchId: 'br-x' }),
+  });
+  assert.equal(mkCross.status, 201, '党委组织员可建跨支部成员');
+  const cross = await fetch(`${base}/api/v1/users/p71`, {
+    method: 'PATCH', headers: authHeaders(secToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(cross.status, 403, '支书不得配置异支部成员的支委身份');
+  assert.equal(await roleOf('p71'), 'participant', '跨支部越权请求未改动落库值');
+  const crossDep = await fetch(`${base}/api/v1/users/p71`, {
+    method: 'PATCH', headers: authHeaders(depToken), body: JSON.stringify({ role: 'prop-commissioner' }),
+  });
+  assert.equal(crossDep.status, 403, '副支书不得配置异支部成员的支委身份');
+  assert.equal(await roleOf('p71'), 'participant', '跨支部越权请求未改动落库值（副支书）');
+
+  // ④ 一把手层以外的身份者尝试改 → 403（组织委员 / 普通成员同一靶标 p3）
+  for (const [who, tok] of [['组织委员', orgToken], ['普通成员', partToken]]) {
+    const deny = await fetch(`${base}/api/v1/users/p3`, {
+      method: 'PATCH', headers: authHeaders(tok), body: JSON.stringify({ role: 'prop-commissioner' }),
+    });
+    assert.equal(deny.status, 403, `${who}不得配置支委身份`);
+  }
+  assert.equal(await roleOf('p3'), 'participant', '非一把手层的越权请求未改动落库值');
+
+  // ⑤ 党委侧原口径**未收窄**：party-staff 仍可写 users（本次是放宽、不是收窄）
+  const pcOk = await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(pcToken), body: JSON.stringify({ role: 'org-commissioner' }),
+  });
+  assert.equal(pcOk.status, 200, '党委组织员的 users 写门原样（未被本次放宽收窄）');
+  await fetch(`${base}/api/v1/users/p3`, {
+    method: 'PATCH', headers: authHeaders(pcToken), body: JSON.stringify({ role: 'participant' }),
+  }); // 复原演示种子，避免影响同文件后续用例
+  assert.equal(await roleOf('p3'), 'participant', '演示种子角色已复原');
+});

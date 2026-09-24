@@ -65,7 +65,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260923a`);
+          await import(`/src/${rel}?v=20260924a`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -95,6 +95,10 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
 //     `dataInit(` 与裸 `init(` 两种写法（**只认这两个装配名，认 `xxx.init()` 会把无关调用放进来**）。
 //   **形乙（经共享入口装配）**：`bootstrapPage(`（`core/bootstrap.js` 内即 `registerApiAdapter` + `init`，
 //     首页 `main-entry.js` 走这一形）。
+//   **形丙（经 P0-2 收敛入口装配，2026-09-23 新增）**：`hydrateDataSource(`（`core/data-adapter.js` 的
+//     P0-2 唯一收敛点：内部 `registerApiAdapter` + `setDataSource('api')` + `init()`，且**有 token 时
+//     init 失败即显式失败、不再静默回落 mock**）。11 个独立页由「形甲手写复制」改为调它一处——
+//     **判据不弱化**：这一形比形甲更强（装配 + 失败即失败 + 形态可断言 `getRuntimeMode`）。
 // 白名单（免检；**逐条写明理由**）：`about.html`（纯说明页，不读业务数据）· `help.html`（纯说明页）·
 //   `login.html`（登录页，登录前无支部数据可装配）。
 // ⚠ 本项只加这一条静态断言；**未扩 `page-sweep`、未把 `entries/**` 纳入 E1**（那属方案 B / C）。
@@ -118,11 +122,14 @@ test('E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装�
     const src = readFileSync(join(docsDir, 'src', 'entries', entry), 'utf8');
     const selfHydrate = /registerApiAdapter\s*\(/.test(src) && /(?:dataInit|\binit)\s*\(/.test(src);
     const viaBootstrap = /bootstrapPage\s*\(/.test(src);
-    if (!selfHydrate && !viaBootstrap) {
-      problems.push(`${page} → ${entry}：既未自装配（registerApiAdapter + init），也未经 core/bootstrap.js 装配（bootstrapPage）`);
+    // 形丙（P0-2 收敛入口）：hydrateDataSource 内部即「注册适配器 + 切 api 数据源 + init()」，
+    // 且失败即显式失败（不静默回落 mock）——比形甲更强，故与形甲/形乙并列受理。
+    const viaHydrate = /\bhydrateDataSource\s*\(/.test(src);
+    if (!selfHydrate && !viaBootstrap && !viaHydrate) {
+      problems.push(`${page} → ${entry}：既未自装配（registerApiAdapter + init），也未经 core/bootstrap.js 装配（bootstrapPage），也未走 P0-2 收敛入口（hydrateDataSource）`);
       continue;
     }
-    checked.push(`${page}(${selfHydrate ? '自装配' : '经 bootstrap'})`);
+    checked.push(`${page}(${selfHydrate ? '自装配' : viaBootstrap ? '经 bootstrap' : '经 hydrateDataSource'})`);
   }
   console.log(`[E2] 独立页装配：受检 ${checked.length} 页 / 白名单 ${WHITELIST.size} 页 → ${checked.join(' ')}`);
   assert.deepEqual(problems, [], `独立页数据源装配缺失（api 形态下会静默退回本地）：\n${problems.join('\n')}`);

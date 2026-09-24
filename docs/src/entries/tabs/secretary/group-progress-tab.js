@@ -27,29 +27,29 @@
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260923a';
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260923a';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260923a';
-import { IssueStore } from '../../../services/issues.js?v=20260923a';
-import { loadActivities } from '../../../services/activity.js?v=20260923a';
-import { loadActivityReviews } from '../../../services/review.js?v=20260923a';
-import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260923a';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260923a';
-import { getMeetingRosterIds } from '../../../services/roster.js?v=20260923a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260923a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { PersonStore, getPersonName } from '../../../services/person.js?v=20260924a';
+import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260924a';
+import { IssueStore } from '../../../services/issues.js?v=20260924a';
+import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { loadActivityReviews } from '../../../services/review.js?v=20260924a';
+import { loadAttendanceRecords } from '../../../services/attendance.js?v=20260924a';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260924a';
+import { getMeetingRosterIds } from '../../../services/roster.js?v=20260924a';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260923a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { openModal, closeModal } from '../../../components/modal.js?v=20260924a';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/party-group.js?v=20260923a';
+} from '../../../services/party-group.js?v=20260924a';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/group-view.js?v=20260923a';
+} from '../../../services/group-view.js?v=20260924a';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -442,7 +442,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
           <div class="p-2.5 rounded-lg bg-white border border-gray-50">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
-                <a href="../activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
+                <a href="./activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
                   <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
                   <div class="text-xs text-gray-500 mt-0.5">${esc(act.date || '')}${act.type ? ' · ' + esc(act.type) : ''}</div>
                 </a>

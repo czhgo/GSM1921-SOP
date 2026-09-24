@@ -3,20 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260923a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260923a';
-import { flashHighlight } from '../../../core/utils.js?v=20260923a';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260923a';
+import { icon } from '../../../core/icons.js?v=20260924a';
+import { renderQueryView } from '../../../components/query-view.js?v=20260924a';
+import { flashHighlight } from '../../../core/utils.js?v=20260924a';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260924a';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260923a';
-import { canSignup } from '../../../components/signup-panel.js?v=20260923a';
-import { AuthStore } from '../../../services/auth.js?v=20260923a';
+import { isActivityLive } from '../../../core/constants.js?v=20260924a';
+import { canSignup } from '../../../components/signup-panel.js?v=20260924a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260923a';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260923a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260924a';
+import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260924a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/pager.js?v=20260923a';
+import { pagerHtml } from '../../../components/pager.js?v=20260924a';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -55,7 +55,7 @@ function _organizerEntryHtml(a) {
 // 列表行（列表/查询共用；行内主区为可点击详情链接，行尾为报名/表态入口）
 function _activityRowHtml(a) {
   const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
-  const href = `../activity.html?id=${a.id || ''}`;
+  const href = `./activity.html?id=${a.id || ''}`;
   return `
     <div class="flex items-center gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all" data-visitor-act-id="${a.id || ''}">
       <a href="${href}" class="flex items-center gap-3 flex-1 min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;color:inherit;" aria-label="查看活动详情：${a.title || '未命名'}">
@@ -205,7 +205,7 @@ function _renderActCalendarView(sorted, highlightId) {
               const color = ACTIVITY_TYPE_COLORS[a.type || a.category] || { bg: '#F9FAFB', dot: '#6B7280' };
               const day = (a.date || '').substring(8, 10);
               return `
-                <a href="../activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
+                <a href="./activity.html?id=${a.id || ''}" class="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-gray-50 hover:shadow-sm transition-all cursor-pointer" data-visitor-act-id="${a.id || ''}">
                   <div class="text-center flex-shrink-0 w-10">
                     <div class="text-lg font-bold" style="color:${color.text || color.dot};line-height:1;">${day || '?'}</div>
                     <div class="text-xs text-gray-500">日</div>

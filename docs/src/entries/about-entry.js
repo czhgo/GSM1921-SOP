@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { getBasePath } from '../core/utils.js?v=20260923a';
-import { icon } from '../core/icons.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { getBasePath } from '../core/utils.js?v=20260924a';
+import { icon } from '../core/icons.js?v=20260924a';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），
@@ -378,7 +378,7 @@ function renderHero() {
       <canvas class="ab-particle-canvas" aria-hidden="true"></canvas>
       <div class="ab-hero-inner">
         <h1 class="ab-hero-title">从入党申请人<br/>到正式党员</h1>
-        <p class="ab-hero-subtitle">以示例组织（光华管理学院本科生党支部）为例</p>
+        <p class="ab-hero-subtitle">以示例组织为例</p>
         <p class="ab-hero-subtitle" style="letter-spacing:0.02em;font-size:clamp(13px,1.5vw,15px);line-height:1.9;margin:14px auto 0;max-width:600px;">本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）；当前页面展示的是<strong>示例组织</strong>的一套部署。</p>
         <div class="ab-hero-rule"></div>
         <div class="ab-hero-scroll-hint" aria-hidden="true">
@@ -502,7 +502,7 @@ function renderPhilosophy() {
         <div class="ab-chapter-eyebrow">成长机会</div>
         <h2 class="ab-chapter-title">三个成长机会</h2>
         <p class="ab-chapter-sub" data-stagger>
-          示例组织（光华管理学院本科生党支部）提供三个并列的成长机会。
+          示例组织提供三个并列的成长机会。
         </p>
         <div class="ab-philosophy-opportunities">${cards}</div>
       </div>

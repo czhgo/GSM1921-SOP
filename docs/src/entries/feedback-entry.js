@@ -1,45 +1,34 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
 // D-486（2026-09-18 批次 88）：本页必须先 hydrate API 数据源再取数——与 activity / archive 独立页同款标准形。
 // 此前本页连 runtime.js 都未 import ⇒ api 形态下 getDataSource() 仍是 mock，意见列表读的是本地
 // issues.json / localStorage（种子能开、服务端新数据打不开）。本批与评论写链（issue-detail.js 改走
 // 服务层）一并处置——只补 hydrate 而写链没接，会把「评论落本机、自见」变成「评论静默丢失」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
-import { IssueStore } from '../services/issues.js?v=20260923a';
-import { MilestoneStore } from '../services/milestones.js?v=20260923a';
-import { showToast, getBasePath } from '../core/utils.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { renderIssueList } from '../components/issue-list.js?v=20260923a';
-import { renderIssueDetail } from '../components/issue-detail.js?v=20260923a';
-import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260923a';
-import { renderIssueForm } from '../components/issue-form.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
+import { IssueStore } from '../services/issues.js?v=20260924a';
+import { MilestoneStore } from '../services/milestones.js?v=20260924a';
+import { showToast, getBasePath } from '../core/utils.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { renderIssueList } from '../components/issue-list.js?v=20260924a';
+import { renderIssueDetail } from '../components/issue-detail.js?v=20260924a';
+import { scrollDetailIntoView } from '../components/detail-anchor.js?v=20260924a';
+import { renderIssueForm } from '../components/issue-form.js?v=20260924a';
 
 renderSidebar('feedback');
 renderHeader('feedback');
 
-/** 数据 hydrate（批次 88 · D-486）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+/** 数据 hydrate（批次 88 · D-486）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。
+ *  P0-2（2026-09-23）：判定收敛到 core/data-adapter.js::hydrateDataSource——有 token 时 init() 失败即
+ *  **显式失败**（「无法连接服务器」错误态 + 重试），不再回退可写 mock（那会把「评论落本机」变成静默丢单）。 */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[feedback-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染
   } catch (e) {
     console.warn('[feedback-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {

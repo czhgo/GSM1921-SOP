@@ -40,6 +40,8 @@ async function loginAs(browser, role) {
     page.click('#login-form button[type="submit"]'),
   ]);
   await page.waitForTimeout(1200);
+  // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   return page;
 }
 
@@ -97,6 +99,9 @@ test('核心闭环：议程讨论文件类型 → 记录通过 → 自动归档 
     await page.selectOption('.wp-agenda-doc', draftDoc.id);
 
     await page.click('[data-action="wp-submit"]');
+    // 本位 nudge（2026-09-23 支书裁定）：**活动由党小组组长写入** ⇒ 支书以写入者身份提交时，写链前会弹
+    //   「本步一般由党小组组长写入」确认；必须点主按钮「仍由我继续」才放行（不许点遮罩 / 按 Esc 关）。
+    await page.click('[data-nudge-confirm]').catch(() => {});
     // 等创建完成（日历出现新活动标题）
     await page.waitForFunction(
       (u) => {

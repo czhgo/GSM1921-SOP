@@ -6,3 +6,5 @@ uploads/*
 !uploads/.gitkeep
 .browsers/
 .tmp/
+# 备份产物（P0-5 scripts/backup.mjs 缺省输出目录）：含库与附件，属运行时数据，不入库
+backups/

@@ -9,51 +9,40 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { PersonStore, getPersonName, mentorsOf, menteesOf } from '../services/person.js?v=20260923a';
-import { getBranchById } from '../services/branch.js?v=20260923a';
-import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { PersonStore, getPersonName } from '../services/person.js?v=20260924a';
+import { getBranchById } from '../services/branch.js?v=20260924a';
+import { openPersonEditModal } from '../components/person-edit-modal.js?v=20260924a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260923a';
-import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260923a';
-import { badgeHtml } from '../components/badges.js?v=20260923a';
-import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260923a';
-import { loadActivities } from '../services/activity.js?v=20260923a';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../core/constants.js?v=20260924a';
+import { getBasePath, escHtml as esc, fmtDt } from '../core/utils.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
+import { countThoughtReportsByPerson } from '../services/thought-report.js?v=20260924a';
+import { loadActivities } from '../services/activity.js?v=20260924a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：关联概览的「参与活动」计数同样收窄
-import { filterActivitiesForViewer } from '../services/visibility.js?v=20260923a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260923a';
-import { loadAttendanceRecords } from '../services/attendance.js?v=20260923a';
-import { loadInspectionRecords } from '../services/inspection.js?v=20260923a';
+import { filterActivitiesForViewer } from '../services/visibility.js?v=20260924a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260924a';
+import { loadAttendanceRecords } from '../services/attendance.js?v=20260924a';
+import { loadInspectionRecords } from '../services/inspection.js?v=20260924a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
-/** 数据 hydrate（批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+/** 数据 hydrate（批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。
+ *  P0-2（2026-09-23）：判定收敛到 core/data-adapter.js::hydrateDataSource——有 token 时 init() 失败即
+ *  **显式失败**（「无法连接服务器」错误态 + 重试），不再回退可写 mock（否则「编辑档案」落本机＝静默丢单）。 */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[person-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染
   } catch (e) {
     console.warn('[person-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {
@@ -156,29 +145,6 @@ function render() {
 
   const statsHtml = relatedCounts(member.id).map(statCell).join('');
 
-  // 培养联系人（到人；2026-09-23 批次 156）：母本《组织委员工作流程指南》附录 A「积极分子登记表（…培养联系人）」
-  //  ＋《发展党员工作细则》第九条「一至两名正式党员」。两向都现取档案（「按人查」）——
-  //  向上一行＝谁培养我；向下一行＝我作为培养联系人带着谁。指派 / 改派在成员名册（本页只读）。
-  const mentorNames = mentorsOf(member).map((id) => getPersonName(id));
-  const menteeNames = menteesOf(member.id).map((m) => getPersonName(m.id));
-  const showMentorBlock = mentorNames.length > 0 || menteeNames.length > 0
-    || ['积极分子', '发展对象'].includes(member.developStage);
-  const mentorBlockHtml = showMentorBlock ? `
-    <div class="mb-6">
-      <h3 class="text-sm font-semibold text-gray-700 mb-3">培养联系人</h3>
-      <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">培养联系人（谁培养我）</p>
-          <p class="text-sm font-medium text-gray-800">${mentorNames.length ? esc(mentorNames.join('、')) : '—'}</p>
-        </div>
-        <div class="rounded-xl bg-gray-50 px-4 py-3">
-          <p class="text-xs text-gray-500 mb-0.5">我作为培养联系人带的（${menteeNames.length} 人）</p>
-          <p class="text-sm font-medium text-gray-800">${menteeNames.length ? esc(menteeNames.join('、')) : '—'}</p>
-        </div>
-      </div>
-      <p class="text-[11px] text-gray-400 mt-2">培养联系人的指派 / 改派在「成员名册」（积极分子行内「培养联系人」列）；本页只读。</p>
-    </div>` : '';
-
   cardEl.innerHTML = `
     <!-- 标题区 -->
     <div class="mb-5 pb-5 border-b border-gray-100">
@@ -214,8 +180,6 @@ function render() {
         </div>
       </div>
     </div>
-
-    ${mentorBlockHtml}
 
     <!-- 在册管理 -->
     <div class="mb-6">

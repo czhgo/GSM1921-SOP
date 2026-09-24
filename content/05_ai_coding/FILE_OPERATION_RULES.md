@@ -4,7 +4,7 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-09-05"
 status: active
-related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_FLOW.md]
+related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md]
 ---
 
 # 文件操作纪律（05 AI 协作方法论层分篇）
@@ -72,7 +72,21 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04
 2. 每次入口脚本版本 bump 时，同步检查该入口的所有组件导入是否已带同一版本参数
 3. 浏览器疑似"旧代码复活"时，先验证磁盘/服务器/提交记录三层再怀疑代码本身——三层无误即锁定缓存因素
 
-**生效条件**：`docs/` 静态部署 + ES module + `?v=` 缓存策略。若改用构建工具 contenthash 输出或 Service Worker 缓存，本条自动失效。与 [DATA_FLOW.md §4.3 缓存版本链三件套](../04_web_design/data/DATA_FLOW.md)（数据层 localStorage）互补——本条管组件模块层。
+**生效条件**：`docs/` 静态部署 + ES module + `?v=` 缓存策略。若改用构建工具 contenthash 输出或 Service Worker 缓存，本条自动失效。与 [DATA_MODEL.md §4.3 缓存版本链三件套](../04_web_design/data/DATA_MODEL.md)（数据层 localStorage）互补——本条管组件模块层。
+
+## 版本戳（`?v=`）的作用域与变更频率
+
+**戳改的是什么**：只有三类 **URL 缓存键字符串**——① `docs/src/**/*.js`（含 `mock/` 等数据文件）中 import / export / 动态 import 的相对规格符；② 各 html 的 entry script、公共 `<script src=…/src/*.js>` 与样式表 `href`；③ `server/test/*.mjs` 的 import 规格符与独立版本字面量（判据＝`version-next.mjs::isCacheKeyLine`）。附带只把 `cross-page-state.js` 的运行时自检常量 `CODE_VERSION` +1。**行内的函数体与数据字面量一字未动。**
+
+| 疑问 | 是 / 不是 | 为什么 |
+|---|---|---|
+| 函数、运算逻辑每次都在变吗？ | **不是** | 全站 bump 只替换上述三类 URL 串；同一份逻辑换个 URL 取值仍是同一份逻辑 |
+| 数据能切换，函数也一起切换吗？ | **不是** | 数据文件（`docs/src/mock/*.js`）里的**数据字面量**从不被改写；被改的只有它自己 import 规格符那一行，与别处 import 它的那一行 |
+| 数据与函数的变化频率一样吗？ | **不一样** | 函数只在有实质改动时才变；戳是**每次发版都换**的缓存键，与内容变没变无关 |
+
+**为什么频率不同却仍要全站同戳**：无构建的 ESM 部署下，`?v=` 就是模块 URL 的缓存键——**同一次发版内全站必须同值**。同一模块若按两个不同 URL 被加载，浏览器即视为**两个模块实例**，各自的模块级状态（注册表 / 共享状态）互不可见 → 页面静默空白（判例见 [TEST_AND_VERIFICATION.md](TEST_AND_VERIFICATION.md)「共享状态模块版本分裂」节）。故「函数没改就不换戳」在这套部署形态下不成立：**换戳的单位是发版，不是单个文件的改动**。
+
+**已知代价（如实）**：① 每次 bump 全站约 300 个文件在 git 里显示为改动，实际手改的只有少数几个；② bump 会让「最后一次提交日」不再等于「实质改动日」——实测有 7 行 `TIMESTAMPS` 表行日期早于同一格备注所记的最后改动日。**处置口径**：`TIMESTAMPS` 按批刷新、以文件 `frontmatter` 的 `last_updated` 为派生源（`CLAUDE.md R-83`），**不逐行按提交日重刷**。
 
 ## 同区域连续编辑相互覆盖陷阱（T-213 判例）（原 KNOWN_PITFALLS §14）
 

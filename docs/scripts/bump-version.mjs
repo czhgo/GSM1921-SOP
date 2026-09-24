@@ -8,6 +8,7 @@
 //   浏览器按 URL 缓存 ES Module → 部署后旧模块与新代码混用 → "数据一会显示一会不显示"。
 // 本脚本：给 docs/src/**/*.js 中所有相对路径 import/export/动态 import 统一加 ?v=VERSION，
 //   同时统一各 html 的 entry script 与 styles.css 版本号，使每次发布 bump 一次即彻底换新。
+// 作用域与变更频率的工程说明（函数 / 数据为何不随戳变、为何必须全站同戳）见 content/05_ai_coding/FILE_OPERATION_RULES.md「版本戳（?v=）的作用域与变更频率」节。
 //
 // 用法：
 //   node docs/scripts/bump-version.mjs            # 无参：读仓库现有戳推导「同日续号」（如已有 20260914b → 20260914c）

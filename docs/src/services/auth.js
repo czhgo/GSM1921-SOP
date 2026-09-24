@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260923a';
-import { PEOPLE } from '../mock/index.js?v=20260923a';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../core/constants.js?v=20260924a';
+import { PEOPLE } from '../mock/index.js?v=20260924a';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20260923a';
-import { getPersonById, getPersonName } from './person.js?v=20260923a';
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { NoticeStore } from './notice.js?v=20260923a';
-import { updateActivity } from './mock.js?v=20260923a';
-import { TaskForceRecordStore } from './taskforce.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
-import { enableApiMode } from './runtime.js?v=20260923a';
-import { generateId } from '../core/id.js?v=20260923a';
+import { verifyLogin } from './accounts.js?v=20260924a';
+import { getPersonById, getPersonName } from './person.js?v=20260924a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { NoticeStore } from './notice.js?v=20260924a';
+import { updateActivity } from './mock.js?v=20260924a';
+import { TaskForceRecordStore } from './taskforce.js?v=20260924a';
+import { persist } from '../core/data-adapter.js?v=20260924a';
+import { enableApiMode } from './runtime.js?v=20260924a';
+import { generateId } from '../core/id.js?v=20260924a';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -97,10 +97,10 @@ const PROJECT_PERMISSIONS = {
 // 统一记录"谁可以赋权什么角色"，由 authorize() 的 context 参数区分:
 //   context 为空 → 常设角色赋权（系统级，如支委赋权组长）
 //   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
-// 注: 支委（支书/副支书/三委员）由配置文件预设，不在系统赋权范围内
+// 注: 支委中「支书 / 副支书」由**党委**配置、不在本链（`D-585`）；其余支委身份（组织 / 宣传 / 纪检委员）由**本支部现任支书 / 副支书**配置 —— 2026-09-23 支书裁定＋追裁「副支书也可配」（见 services/appointment.js::appointBranchCommissioner）
 const AUTHORIZE_CHAIN = {
-  'secretary':         ['leader', 'deputy-leader', 'organizer', 'deep'],
-  'deputy-secretary':  ['leader', 'deputy-leader', 'organizer', 'deep'],
+  'secretary':         ['leader', 'deputy-leader', 'organizer', 'deep', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+  'deputy-secretary':  ['leader', 'deputy-leader', 'organizer', 'deep', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
   'org-commissioner':  ['organizer', 'deep'],
   'leader':            ['organizer', 'deep'],
   'organizer':         ['deep'],

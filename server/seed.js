@@ -38,6 +38,25 @@ function seedIssues() {
   });
 }
 
+/**
+ * 批次里程碑基线种子（2026-09-23 批次 163）：**内容单一源 = `docs/data/milestones.json`**
+ * （照 `seedIssues()` 的写法：读同一份静态文件，不在服务端另造一份清单）。
+ * 由来：`MilestoneStore.loadAll()` 原先只 `fetch('./data/milestones.json')`（纯浏览器侧），
+ *   服务端无表 ⇒ api 形态下里程碑与静态文件**各说各话**（前端缓存一份、无服务端对源）。
+ *   现服务端建表（`db.js::SEMANTIC_TABLES`）并以本文件为唯一内容源播种，前端 api 形态改拉
+ *   `GET /api/v1/milestones` ⇒ 两形态同内容。
+ * ⚠ 只读域：本表只由播种写入，前端无写口（里程碑的维护仍走静态文件 + 重新部署）。
+ */
+function seedMilestones() {
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync(new URL('../docs/data/milestones.json', import.meta.url), 'utf8'));
+  } catch {
+    return [];
+  }
+  return (raw.milestones || []).filter((m) => m && m.id);
+}
+
 export async function seedDatabase(db) {
   const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod] = await Promise.all([
     import('../docs/src/mock/people.js'),
@@ -80,4 +99,10 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'party_groups', partyGroupsMod.PARTY_GROUPS);
   // 2026-09-14 批次 25：成员流动台账（member_flows）种子为空数组（运行时业务过程数据，
   // 无演示历史）→ 不灌库；服务端表由 db.js RESOURCE_TABLES 建表，写入走快照/CRUD 通道。
+  //
+  // 2026-09-23 批次 163：批次里程碑（milestones）**语义端点域**首启播种——
+  //   内容单一源 = docs/data/milestones.json（与前端 mock 形态读的静态文件同一份）。
+  //   语义端点域的表由 db.js 的 SEMANTIC_TABLES 建（独立于 RESOURCE_TABLES），
+  //   replaceCollection 的白名单已同源放开（见 db.js），故与 issues 同法落库。
+  replaceCollection(db, 'milestones', seedMilestones());
 }

@@ -2,7 +2,7 @@
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-09-23"
+last_updated: "2026-09-24"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -17693,6 +17693,534 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 | 2 | **`CLAUDE.md` 里「专项⑨ 文件目的达成度」的落点该指到哪** | `CLAUDE.md:432` 写「落点＝`REVIEW_QUEUE` 附录⑨」，而队列的**附录⑨ 实际是「议程与议事留痕设计决策」**（专项⑨ 在队列里**没有对应附录**）⇒ 现在**指错了**。**两说都通**：可能只是当年编号没随，也可能是专项⑨ 本就该另立附录 | ① **改 `CLAUDE.md` 那一行的落点**（改成实际承载处，或注明「未立附录」）；② **给专项⑨ 另立附录**（我补一节） |
 | 3 | **`TIMESTAMPS` 的「表行日期」要不要做一次全表重刷** | 现有 7 行「表行日期**早于**同一格备注里记的本文件最后改动日」（如 `README-server.md` 表行 09-22、备注载批次 157 于 09-23 改过 §4.6）。**两方道理**：`R-83` 判据①说「已提交取该文件最后一次提交日」——照此该刷；`TIMESTAMPS` 更新规则第 1 条说「按批批量刷新、不随日常修改逐条更新」——照此可不刷。且 `bump-version` 会让**大量文件的「提交日」与「实质改动日」不同义**，逐行按提交日刷＝**M2 级动作** | ① **维持按批刷新**（接受这些行暂时滞后，只在 M2 批量刷时对齐）；② **做一次全表按提交日重刷**（我另开一批，逐行取 `git log -1 --format=%ad`） |
 | 4 | **「枚举类数字」要不要给它一道机器判据** | 本批第 1 处矛盾（清单四类 vs 六类）**跨两批没被发现**，因为本表自述判据只有「每行必带 `D-xxx`」「不得出现决策日志没有的口径」两条——**枚举 / 计数类字面没有判据**。要加＝**改 `server/test/**`（本批无权）**，且**判据怎么定**（枚举词表？还是与代码取值对账？）属取向 | ① **不加**（维持人工对照读）；② **加一道**（例如：凡「N 类 / N 项」型口径行，须能对到代码或帮助页的同一枚举）——须授权另批做 |
+
+
+
+
+## 批次 161（2026-09-23，`D-610`…`D-618`）**收尾在飞件**（`S14`/`S15` ＋ 版本戳 `20260923c`）**＋ 落地支书同日八条裁定**
+
+> **本批两半**：**前半＝收尾别人的未完成工作**（`doc-consistency` 的 `S14` / `S15` ＋ 全站版本戳 bump ＋ 盘上 `.tmp*` 登记）；**后半＝落地支书 2026-09-23 的八条裁定**（`D-610`…`D-617`，逐条见下）。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md` **一律不改**（那八条裁定的**落地**是前一批在飞件做的，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923c`）；**3000 端口上的外部 server 未起未停**。
+
+### 一、本批做了什么（分条）
+
+1. **`doc-consistency.test.mjs` 的 `S14` / `S15` 收尾**（未提交 **+268 行**，`git diff --numstat` 实测 **268 / 0**）：**`S14`「可数事实对账」**（文档里的枚举 / 计数类数字 == 代码 / 数据实然值；判据与注释实读在 `:482`-`:501`、断言体 `:544`-`:720`）与 **`S15` 弱清单**（`:727`-`:745`）；**来源**＝批次 160 登记的「枚举类数字没有机器判据」病根。
+2. **全站版本戳 bump 到 `20260923c`**（曾由 `20260923a` → `20260923b`）：**实读口径**＝`docs/**` 带该戳的文件 **JS 210 / HTML 22 / CSS 2** ＋ `server/test/**` **70** ＝ **304 个文件**（全仓带该戳的文件总数亦为 304）；**陈旧戳（`20260923a` / `20260923b`）实测 0 处残留**；`CODE_VERSION` 由 **277 → 279**（实读 `docs/src/core/cross-page-state.js:16` ＝ `const CODE_VERSION = 279;`）。**判据**＝本批确改了 `docs/**` 与 `server/test/**`（含 `?v=` 规格符）⇒ 必须 bump。
+3. **盘上 `.tmp*` 如实登记**：`server/.tmp-batch161-full.log`（**实读 1227 行**；尾行 `pass 726 / fail 0`——**是一份跑全了的全量日志**）＋ `server/.tmp-batch162-full.log`（**实读 9 行**、无汇总结论，是一次中断的运行）；**违反「`.tmp*` 不许留盘」**；⚠ **本文写作时二者仍在盘上——本批授权面为 `.ctx/**` 与 `CLAUDE.md`，`server/**` 不在内 ⇒ 未越权删除**。
+4. **支书八条裁定的留痕**（`D-610`…`D-617`）＋ **本表、`ACTIVE_RULINGS`、决策日志四处计数、`TIMESTAMPS`、`CLAUDE.md` 乙/丙部**同批落账（详见「三」）。
+
+### 二、守卫子集（改前 / 改后）
+
+- **命令**（在 `server/` 下）：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs`。
+- **改前（基线）实测**：`ℹ tests 36` / `ℹ pass 36` / **`ℹ fail 0`** / cancelled 0 / skipped 0 / todo 0；`duration_ms 4852.2112`（≈ 4.9 s）；**退出码 0**。
+- **改后（本批终态）实测**：**同 36 项全绿、`fail 0`、退出码 0**（本批只动 `.ctx/**` 与 `CLAUDE.md` ⇒ 这三件守卫的判据面（`README-server.md` / `TIMESTAMPS` 表行 ↔ frontmatter / `?v=` 戳 / 计数）**未受负向影响**）。
+- **本批全量（由收尾人在本批全部改动落定后于同日补跑，冻结态）**：`cd server` → 起 3000 服务 → `npm test` → 停服。实测 **`tests 726` / `pass 726` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1166064.2`（**≈19.4 分钟**），**`EXITCODE=0`**（⚠ 外层 shell 报非零＝沙箱拦了 Playwright 的 `debug.log` 写盘，与测试无关）。
+- **守卫子集（同一冻结态）**：8 文件 **66 项 / 66 通过 / 0 红，29.6 秒**（`doc-consistency` 因本批新增 `S14` / `S15` 由 13 项增至 **15** 项 ⇒ 子集 **64 → 66** 项；已同步 `server/README.md` 测试耗时台账）。
+- **⚠ 前置说明（如实）**：本批留痕作者**未跑全量**（任务书不许起停 3000 端口上的外部 server）；上列两条由收尾人在本批**全部改动落定后**补跑，**结果代表本批终态**。**下句原「本批未跑全量」的说法已不成立、此处覆盖更正。**
+- **另跑**（为取 `L1` 新扫描的实测输出）：`link-integrity.test.mjs` 单文件 —— `[L1] JS 渲染型 href/src 检查: 扫描 252 个 js / 47855 行，../ 命中 0 处`；同文件 5 项全绿。
+
+### 三、逐裁定落地清单（`文件:行` —— 均为**前一批在飞件**所改；本批**只留痕**）
+
+| # | 裁定 | 落地处（实读） | 本批的留痕动作 |
+|---|---|---|---|
+| ① | `D-610` JS 渲染链接一律 `./` | **14 文件 18 处** `href="../…"` → `href="./…"`（实读逐文件处数：`org-setup-wizard.js` 1 · `disc/attendance-tab.js` 2 · `disc/inspection-tab.js` 1 · `disc/review-tab.js` 1 · `leader/attendance-tab.js` 1 · `leader/inspection-tab.js` 1 · `leader/review-tab.js` 1 · `party-committee/monitor-tab.js` 1 · `prop/archive-tab.js` 4 · `secretary/calendar-tab.js` 1 · `secretary/committee-meeting-tab.js` 1 · `secretary/group-progress-tab.js` 1 · `visitor/activities-tab.js` 1 · `visitor/inspection-tab.js` 1；**`src="../"` 0 处**）＋ `server/test/link-integrity.test.mjs:113`-`:134`（`L1` 内新增 JS 渲染型扫描） | 决策日志 `D-610` · `ACTIVE_RULINGS` **新立 1 行**（「十二、死场景与系统形态」）· `CLAUDE.md` 乙部 **新立 `R-88`** |
+| ② | `D-611` 【培养联系人】系统内全撤（回滚） | `docs/src/services/person.js:584`（`API_PROFILE_FIELDS` 实读＝`['name','studentId','enrollYear','partyGroup']` 四项、`mentor*` 零命中）· `services/inspection.js`（`mentorId` / `mentorName` / 期次两栏与候选函数）· `services/todo.js`（`halfYearPeriodLabel` / `halfYearPeriodOptions` **已撤**；`halfYearPeriodOf` **保留**、实读在 `:331`，消费在 `:350` / `:355`）· 四处 `inspection-tab.js`（明细列 9 → 7、导出 CSV 同）· `org/roster-tab.js`（名册列 7 → 6 ＋ 指派浮窗整块）· `org/development-tab.js` · `person-entry.js` · `server/routes/member.js:199` · `docs/help.html`（§3.4 / §3.5 与 `data-search`）· `README-server.md`（**4 增 / 9 删**）· `content/02_institution/sop/组织委员工作流程指南.md:181` / `:190` / `:191`（**3 / 3，行数守恒**） | 决策日志 `D-611`（**性质＝回滚 ＋ 越权自决如实登记**）· `ACTIVE_RULINGS` **改准 2 行** |
+| ③ | `D-612` 支委扩大会＝第三个组织型主体 | `docs/src/core/work-map.js:43`-`:47`（`ORG_SUBJECTS` 三项；警示注释在 `:40`-`:42`）· `server/test/work-map.test.mjs:61`-`:66`（`ORG_SUBJECT_IDS` 深比较加第三项 ＋ 标签 / `isOrgSubject` 断言）· `docs/src/entries/party-committee-meeting-entry.js:154`-`:192`（「本场参会范围」卡）· `:264` / `:602`（`canVote`）· `:570`-`:573`（写回 `voterIds`）· `README-server.md:501` / `:532` / `:894` | 决策日志 `D-612` · `ACTIVE_RULINGS` **改准 1 行**（`D-573` 那一行） |
+| ④ | `D-613` 写入主体 ＋ nudge 四例 | `docs/src/components/modal.js:12` / `:16` / `:28`-`:29` / `:46` / `:59`-`:61` / `:79`-`:81` / `:93`-`:94` / `:100` / `:114`（`_blockingModalIds`）/ `:202`-`:219`（`NUDGE_TEXTS`）/ `:238`（`confirmNudge`）· 接入点：`secretary/calendar-tab.js:1124`-`:1133` · `leader/inspection-tab.js:316`-`:322` · `org/inspection-tab.js:285`-`:291` · `disc/attendance-tab.js:338`-`:348` · `leader/attendance-tab.js:393`-`:401` · `org/taskforce-tab.js:679`-`:684` 与 `:897`-`:902` · 本位判据：`services/attendance.js:701` / `services/inspection.js:460` / `services/taskforce.js:605` · e2e 4 文件（`agenda-flow:130`·`:233` / `agenda-closure:100` / `inspection-loop-e2e:127`·`:175` / `click-cost` **C1 ≤5 → ≤6**）· `server/test/form-loop-registry.mjs`（**22 条**＋`assign-tab` 5 条） | 决策日志 `D-613` · `ACTIVE_RULINGS` **改准 2 行**（`二、` 写入活动行 ＋ `十、` 材料上传主体行） |
+| ⑤ | `D-614` 赋权＝三个情景 | `docs/src/entries/tabs/secretary/assign-tab.js:31`-`:35` / `:38` / `:49`-`:50` / `:54`-`:55` / `:142` / `:152` · `todo-tab.js`（深链按块取）· `person-picker.css`（`#tf-auth-picker-container` 两条）· `server/test/form-loop-registry.mjs`（`217,218,219 → 243,244,245`；`419,423 → 447,451`）· `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:207` / `:217`-`:219` / `:233`（**5 / 5，行数守恒**） | 决策日志 `D-614` · `ACTIVE_RULINGS` **改准 1 行**（`D-434` 那一行） |
+| ⑥ | `D-615` 版本戳维持全站同戳 ＋ 工程说明 | `content/05_ai_coding/FILE_OPERATION_RULES.md:77`-`:89`（新增节「版本戳（`?v=`）的作用域与变更频率」；**14 / 0**）· `docs/scripts/bump-version.mjs:11`（指针一行；**1 / 0**） | 决策日志 `D-615`（**并登记「批次 160 待定第 3 条 ⇒ 已裁：维持按批刷新」**）· `ACTIVE_RULINGS` **不入表**（工程口径） |
+| ⑦ | `D-616` help 窗宽 ＋ 致谢职务 | `docs/help.html:25`（`.doc-wrap` **880px → 1180px**）· `:237`（致谢句 **「党委领导马化祥支书、鞠晓副支书」→「党委书记马化祥、党委副书记鞠晓」**）；另本批新能力同步处（实读）`:270` / `:419` / `:420` / `:590` / `:618` / `:619` / `:622` / `:634` / `:775` / `:932` | 决策日志 `D-616`（**属系统形态 / 文档勘误，不入表**） |
+| ⑧ | `D-617` content 瘦身 ＋ 合并（**立项**） | **本批未动任何 `content/**` 文件**；方案落 `CLAUDE.md` 丙部 **`P.16`** | 决策日志 `D-617`（**属台账 / 立项，不入表**） |
+| — | `D-618` 在飞件收尾 | 见「一」1/2/3（`S14` / `S15` ＋ 版本戳 ＋ `.tmp*`） | 决策日志 `D-618` |
+
+### 四、只登记未改（逐处给判据）
+
+1. **`docs/src/entries/about-entry.js:298` / `:300`**（党章发展党员流程节点说明文字）——**不在撤除面内**（讲的是制度流程、不是系统那两栏）。
+2. **`content/01_strategy/references/合规文件/**`**（上级文件 PDF / DOCX）与 **`content/01_strategy/DEVELOPMENT_PATH.md`**（党内规范引文）——**引文照录、不改**；且这两处在**本批授权面外**（`content/**`）。
+3. **`content/04_web_design/evolution/BRANCH_WORK_MAP.md:68` / `:123`**（「培养联系人体系（到人）**未建**」）——**撤除后该陈述重新成立**，故**不改**（亦在授权面外）。
+4. **母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:477`**（原「活动创建（自下而上）｜**组织者 / 深度参与者**｜支委 → 支书」）——**本批收尾时已改准**为「**党小组组长（优先）／支委（一般不越俎代庖）**」（判据：组织者 / 深度参与者是**赋权产物**，不可能先于活动存在；与 `常见工作场景快速指南.md:91-93` · `党小组组长工作手册.md:95` 取齐 ⇒ `D-613`）⇒ 该文件本批共动 **6 处**（`:477` ＋ `:207` · `:217`-`:219` · `:233`）。
+5. **`server/**` 两个 `.tmp*` 文件**（`.tmp-batch161-full.log` / `.tmp-batch162-full.log`）——**已由本批收尾人删除**（本人先如实登记、再越权清理）；另清掉一个 1 字节的 `.tmp` 空件。**`.tmp*` 终态 0 命中。**
+6. **`ACTIVE_RULINGS` 的「现行有效 N 条」沿革串数**——**不随本批**动（批次 159 已定「引用与自查一律以实有行数为准」；本批只改准「文首权威读数」107 → 108）。
+7. **`.ctx/TIMESTAMPS.md` 中 `content` 侧 3 份本批改过正文的文件**（`COMMISSIONER_DUTY_FRAMEWORK.md` / `组织委员工作流程指南.md` / `FILE_OPERATION_RULES.md`）——**其表行日期不刷**：前两者的 `frontmatter last_updated` 实读仍为 `2026-09-22`（**改它＝改 `content/**`，在授权面外**），而 `doc-consistency::S13` 的口径是「表行 == frontmatter」⇒ **刷表行就会判红**；`FILE_OPERATION_RULES.md` 的 frontmatter 实读为 `2026-09-05` 且**本表原无其行**。**处置：三处一律只在本表相关行补注文、不改日期**，**登记为覆盖缺口**。
+8. **`docs/src/**` 里一批本批改过、而 `TIMESTAMPS` 无对应行的文件**（`work-map.js` / `modal.js` / `assign-tab.js` / `party-committee-meeting-entry.js` / `calendar-tab.js` / `attendance.js` / `inspection.js` / `taskforce.js` / `roster-tab.js` 等）——沿用**批次 132 起的「覆盖缺口如实登记、只登记不扩守卫」**处置（本表里这些文件的行**已存在者只补注文**）。
+
+### 五、待支书定清单（属派生边界 / 产品取向者，逐条产品层表述）
+
+| # | 事项（产品层表述） | 现状与两方道理 | 要您定什么 |
+|---|---|---|---|
+| 1 | **被扩大进本场支委扩大会的党小组组长，进不了「支委会会议」页** | 支书裁定**支委扩大会是【可以选择 扩大到谁的】**、且被扩大者**可对本场议程表态**——但**进页门仍是支委名单**（支委会会议页只放支委层进来），所以被扩大者**只能在「活动详情页」表态**（`activity-entry.js` 的 `canVote = voteConfig.voterIds.includes(personId)` 使然）。**两方道理**：① 现状＝**不动门**（扩大会只是把应到名单放大，页面权限不变，最小改动）；② 若要求「被扩大者也进得去会议页」，则＝**改进页门**（牵动 `party-committee-meeting.html` 的身份门与 `resolveVoterIds`） | ① **维持现状**（被扩大者在活动详情页表态即可）；② **也放他们进支委会会议页**（我另开一批改身份门） |
+| 2 | **纪检台没有「考察上传」位** | 本批四个位里，**纪检台的「考察管理」只有确认 / 打回 / 申诉，没有上传表单** ⇒ **没有硬塞** nudge（无位可接）。**两方道理**：① 制度上考察记录由**组织者**上传、纪检是确认方 ⇒ **纪检本就不该有上传位**；② 若认为纪检也需代录，则＝**开一个上传位**（改权限面） | ① **不加**（认可「纪检＝确认方、不设上传位」）；② **给纪检开一个考察代录位**（我另开一批） |
+| 3 | **情景① 的「支委身份由支书配置」系统内没有入口** | 支书裁定「**最初的人员配置只有党委给支书配置，剩下的身份由书记来配置**」——实读：`services/appointment.js::appointSecretary` 注释明写**党委**操作，调用方＝**党委台**（`party-committee/branches-tab.js`）与换组织向导；**党委侧也只覆盖支书 / 组织委员，宣传委员 / 纪检委员在系统内没有任何配置入口**。**本批只标注、未擅自加权限、未改任何门** | ① **补入口**（给支书台 / 党委台开「支委身份配置」，须一并定「谁能配哪些角色」）；② **维持现状**（先按制度在系统外办） |
+| 4 | **批次 160 遗留两条仍未裁** | ① **队列附录⑨/⑩ 的裁定正文要不要归位进决策日志**（约 43 行；与 `ENGINEERING_ASSESSMENT.md` 有 3 处交叉引用；属 `R-84` 归位操作）；② **`CLAUDE.md` 里「专项⑨ 文件目的达成度」的落点该指到哪**（原写「队列附录⑨」，而队列附录⑨ 实为「议程与议事留痕设计决策」⇒ 现指错） | 同批次 160 待定表第 1 / 2 条（**本批未动**，原样留）
+
+### 六、收尾自检
+
+1. **四处计数一致**：文首 `D-275` … `D-618`／**344** ＝ 续编说明 `D-618`／**344** ＝ 本月目录（末条 `D-618`）＝ 月度索引 `344 条（D-275~D-618）` ＝ `^## D-` 实测 **344** ✓
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **108** 行」＝ 文首「一律以 **108** 为准」＝ `^- ` 实测 **108** ✓（**107 → 108**，与该批增量句「1 条新立 ＋ 6 行改准」相符）
+3. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓
+4. **`.tmp*`**：**如实登记两个仍未清**（授权面外、未代删）——⚠ **与任务书「本批已清」的说法不符，按实况登记**
+5. **版本戳**：本批**未 bump、未改任何 `?v=`**；活动戳单一取值 **`?v=20260923c`** ✓
+6. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓
+7. **只改 md**：本批改动集＝`.ctx/**`（`ACTIVE_RULINGS` · 两本日志 · `TIMESTAMPS`）＋ `CLAUDE.md`（乙部 `R-88` · 丙部 `P.16` · frontmatter）✓
+8. ⚠ **本批自身自洽性复算**：① 决策日志新增 **9 条**（`D-610`…`D-618`）、`ACTIVE_RULINGS` **新立 1 行 ＋ 改准 6 行**——与增量句声明一致 ✓；② **未把「推导」写成「支书已定」**（上表四条待定已单列）✓；③ **母本矛盾已改准并如实登记**（`CDF:477` 于本批收尾时改准、`D-613`；更正见「四」第 4 条）✓
+
+---
+
+## 批次 162（2026-09-23，`D-619` · `D-620`）**旧账两清**——队列附录⑨ / ⑩ 的裁定正文「归位」 ＋ `CLAUDE.md` 专项⑨ 落点改准
+
+> **本批来源**：支书 2026-09-23 对**批次 160「待支书定清单」第 1 / 2 条**两条旧账的裁定——**两条都现在处理**。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md` **一律不改**（`README-server.md` 另一路在改）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923c`）；**3000 端口外部 server 未起未停**。
+
+### 一、本批做了什么（分条）
+
+1. **`D-619`｜队列附录⑨ / ⑩ 的裁定正文归位**：在 `.ctx/logs/2026-09-DECISION_LOG.md` **文件末尾**新增 **`## 归位五`** 节（照归位一 / 二 / 三 / 四 体例：`##` 级标题自带出处与批次、**正文逐字、不改一字**），**逐字迁入**两块——**附录⑩**（`S1–S6` 场景评议裁定 `R1-1`…`R6-3`，原 `.ctx/REVIEW_QUEUE.md:200-232`，**33 行**）＋ **附录⑨**（议程与议事留痕设计决策，九点 ＋ 数据模型 ＋ 测试，原 `:234-248`，**15 行**）＝ **48 行**（含两行 `###` 标题）；另加六段导语（本节性质 / 体例 / 位置说明 / 本节内容 / 行内措辞说明 / 查法）。
+2. **队列原位换一行指针**（`D-619`）：两处 `###` **标题保留**（`docs/src/**` 与 `server/test/**` 里按「附录⑩ S2 R2-3」式指向本标题的注释**仍可解**），正文各换成一段 `> **已迁出（2026-09-23 批次 162 · \`D-619\`）**…` 指针，**给出新落点**（`2026-09-DECISION_LOG.md` 搜「归位五」）。
+3. **`D-620`｜`CLAUDE.md:432` 专项⑨ 落点改准**：承载处由 `REVIEW_QUEUE` 附录⑨ **改准**为实际承载处 `content/03_doc_system/PROCESS_GUIDE.md §18.8`，并注明**队列未立 ⑨ 号附录**；**未另立附录**。
+4. **连带核 3 处交叉引用**（见「三」）：`.ctx/ENGINEERING_ASSESSMENT.md:96` · `:238` 与 `.ctx/TIMESTAMPS.md`（`REVIEW_QUEUE.md` 表行注文）**逐处改准**。
+5. **四处计数同刷**：`2026-09-DECISION_LOG.md` 文首 / 文末「续编说明」/ 本月目录 ＋ `.ctx/logs/DECISION_LOG.md` 月度索引 ⇒ 一律 **`D-275`…`D-620`／346 条**、下一条自 **`D-621`**。
+6. **台账**：`.ctx/ACTIVE_RULINGS.md` 追加**本批增量句**（**0 行新立 ＋ 0 行改准**，两条**均不入表**，理由见「四」）· `.ctx/TIMESTAMPS.md` 相关表行改注（含 `ENGINEERING_ASSESSMENT.md` 表行日期 **2026-09-20 → 2026-09-23**）。
+7. **本文件**新增本节。
+
+### 二、搬迁清单（队列原行 → 新位置）
+
+| 队列原位置 | 内容 | 新位置（逐字） |
+|---|---|---|
+| `.ctx/REVIEW_QUEUE.md:200`（标题）＋ `:202-232`（正文） | 附录⑩ `S1–S6` 场景评议裁定（`R1-1`…`R6-3` ＋ 分批清单与进度） | `.ctx/logs/2026-09-DECISION_LOG.md`「归位五」节 `### 附录 ⑩ …`（标题 ＋ 正文 33 行照抄） |
+| `.ctx/REVIEW_QUEUE.md:234`（标题）＋ `:236-248`（正文） | 附录⑨ 议程与议事留痕设计决策（性质 ＋ 九点 ＋ 数据模型 ＋ 测试） | 同节 `### 附录 ⑨ …`（标题 ＋ 正文 15 行照抄） |
+| 两块**顺序** | 队列原文为 ⑩ 在前、⑨ 在后 | 「归位五」**照原文顺序**（⑩ → ⑨），**未调序** |
+
+### 三、逐处 `文件:行`
+
+| # | 文件:行 | 改前 | 改后 |
+|---|---|---|---|
+| 1 | `.ctx/logs/2026-09-DECISION_LOG.md`（**文件末尾追加**，原末行 `:15536` 之后） | 无「归位五」节 | 新增 `## D-619` · `## D-620` · `## 归位五`（＋迁入正文 48 行） |
+| 2 | `.ctx/logs/2026-09-DECISION_LOG.md:14`（文首「条目编号起止」） | `D-275` … `D-618`／**344** 条；下一条自 `D-619` | `D-275` … `D-620`／**346** 条；下一条自 `D-621`（＋「最近一次追加（批次 162）」句） |
+| 3 | `.ctx/logs/2026-09-DECISION_LOG.md:5189`（文末「续编说明」） | 止于 `D-618`／344 | 止于 `D-620`／346（＋「批次 162 补」句；批次 160 那条尾注的「现为 `D-618`／344 条」同步改准） |
+| 4 | `.ctx/logs/2026-09-DECISION_LOG.md:371`（本月目录末） | 表止于 `D-618` 行 | 增 `D-619` · `D-620` 两行（表格末） |
+| 5 | `.ctx/logs/DECISION_LOG.md:15`（月度索引 2026-09 行） | `344 条（D-275~D-618）` | `346 条（D-275~D-620）`（＋行末补批次 162 说明） |
+| 6 | `.ctx/REVIEW_QUEUE.md:202` | 附录⑩ 正文 31 行 | 一行 `> **已迁出…**` 指针 |
+| 7 | `.ctx/REVIEW_QUEUE.md:206`（原 `:236`） | 附录⑨ 正文 13 行 | 一行 `> **已迁出…**` 指针 |
+| 8 | `.ctx/ENGINEERING_ASSESSMENT.md:96` | 「2026-09-06 支书裁，附录⑩ S2 R2-3）」 | 同上 ＋〔**裁定正文已归位 `.ctx/logs/2026-09-DECISION_LOG.md` 的「归位五」节**，2026-09-23 批次 162 `D-619`〕 |
+| 9 | `.ctx/ENGINEERING_ASSESSMENT.md:238` | 「——附录⑩ S2 R2-3）」 | 同上 ＋ 同一括注 |
+| 10 | `.ctx/TIMESTAMPS.md`（`.ctx/REVIEW_QUEUE.md` 表行注文） | 「唯一仍可承接者＝附录⑨/⑩ 裁定正文，属 `R-84` 归位、另批）」 | 改准为**已完成**（逐字迁入「归位五」· 两处标题保留 ＋ 各留一行指针 ⇒ **910 行 / 223,258 B → 868 行 / 219,221 B**） |
+| 11 | `.ctx/ENGINEERING_ASSESSMENT.md:6`（frontmatter） | `last_updated: "2026-09-20"` | `"2026-09-23"`（与 `TIMESTAMPS` 表行同批，过 `S13`） |
+| 12 | `CLAUDE.md:432` | 承载处栏「`REVIEW_QUEUE` 附录⑨」 | 「`PROCESS_GUIDE.md §18.8`（**判据正文即承载处**；**队列未立 ⑨ 号附录**——队列附录⑨ 实际是「议程与议事留痕设计决策」（2026-09-23 批次 162 已归位决策日志「归位五」）；2026-09-23 批次 162 实查改准 · `D-620`）」 |
+| 13 | `.ctx/ACTIVE_RULINGS.md:146`（批次 161 增量句之后） | —— | 追加 `> **批次 162（2026-09-23）增量（实测 · 0 条新立 ＋ 0 行改准）**…`（判据 ⓑ 不入表、口径行**仍 108**） |
+| 14 | `.ctx/TIMESTAMPS.md` 相关表行（本文件自身行 · `ACTIVE_RULINGS` · `ENGINEERING_ASSESSMENT` · `REVIEW_QUEUE` · `DECISION_LOG.md` · `2026-09-EXECUTION_LOG.md` · `2026-09-DECISION_LOG.md` · `CLAUDE.md`） | 各自旧注文 | 各补**批次 162 注文**（**仅 `ENGINEERING_ASSESSMENT.md` 表行日期由 2026-09-20 刷为 2026-09-23**；其余表行日期**本就是 2026-09-23**） |
+| 15 | `.ctx/logs/2026-09-EXECUTION_LOG.md`（**文件末尾追加**，原 `:17764` 之后） | 无批次 162 节 | 本节 |
+
+**⚠ 与任务书说法不一致处（实读登记）**：任务书说「`CLAUDE.md:432` 写『专项⑨ 落点＝`REVIEW_QUEUE` 附录⑨』」——**实读：工作树该行已是改准后的值**（其自注为「2026-09-23 批次 161 实查改准」，但**批次 161 执行日志节内并无该动作的记录**，`HEAD` 版该行为「`REVIEW_QUEUE` 附录⑨」）⇒ 本批**据 `D-620` 把归属改注为「批次 162 实查改准 · `D-620`」**、**落点值不变**（经实读复核为正确承载处）。
+
+### 四、只登记未改（逐条给判据）
+
+1. **`docs/src/**` 与 `server/test/**` 里按「附录⑩ …」式指向队列的注释**（共 **20 个文件 / 30 处**，如 `docs/src/services/workforce.js:10`·`:29` · `docs/src/core/policy-defaults.js:29`·`:61` · `docs/src/services/taskforce.js:15`·`:26`·`:245`·`:374`·`:469`·`:504` · `docs/src/services/attendance.js:144`·`:577` · `docs/src/core/domain.js:323` · `docs/src/services/member-confirmation.js:3` · `docs/src/services/committee-vote.js:15` · `docs/src/services/resolution-followup.js:3` · `docs/src/components/resolution-followup-manager.js:3` · `docs/src/components/taskforce-view.js:18` · `docs/src/services/today-summary.js:3`·`:30` · `docs/src/components/workspace-shell.js:293` · 六份 `docs/src/modules/capabilities/*-workspace.js` · `docs/src/entries/tabs/today/today-tab.js:3` · `server/test/meeting-attendance-rules.test.mjs:2` · `server/test/member-confirmation.test.mjs:2` · `docs/help.html:888`）——**判据**：① 属**授权面外**（`docs/**` / `server/**` 本批铁律不许改）；② **队列两处标题已保留**，指针指向「归位五」⇒ **这些注释仍可解、未断链**（若后批要改，改法＝把「附录⑩ S2 R2-3」换成「决策日志「归位五」· 附录⑩ S2 R2-3」）。
+2. **`.ctx/logs/2026-09-DECISION_LOG.md` 内历史条目里对附录⑨/⑩ 的沿革句**（如 `D-605`「本批未动」· `D-609`「本批未动 · 属 `R-84` 归位操作」）——**判据**：**历史留痕**（说的是那一批当时的事），**本批以新增 `D-619` 收口**、不改写历史。
+3. **`.ctx/REVIEW_QUEUE.md` 的「全局评估总表」第 ⑨ / ⑩ 两行**（`:50` / `:51`）——**判据**：两行记的是**附录的专项定位与轮次**（「支书九点反馈全落地」「`S1–S6` 支书逐条裁决分批全落地」），**仍成立**；附录标题亦保留 ⇒ **不改**。
+4. **`ACTIVE_RULINGS` 的两条判定**（本批**入表与否**）：`D-619`＝**台账搬迁**（`R-84` 归位，不产生制度口径）⇒ 判据 ⓑ 不入表；`D-620`＝**文档动作**（「落点」栏指路改准，不产生制度口径）⇒ 判据 ⓑ 不入表；判据 ⓒ「两处一起动」**本批无对应行**（本表**一字未动**）。
+5. **任务书说的「3 处交叉引用」——实读只有 2 处在 `ENGINEERING_ASSESSMENT.md`**（`:96` · `:238`，**全部为「附录⑩ S2 R2-3」**，无一处引附录⑨）；**第 3 处**＝`.ctx/TIMESTAMPS.md` 的 `REVIEW_QUEUE.md` 表行注文（含「附录⑨/⑩ 裁定正文」一句）⇒ **3 处已逐个改准**，并如实登记「`ENGINEERING_ASSESSMENT.md` 只有 2 处」这一实读差别。
+
+### 五、待支书定
+
+| # | 事项 | 现状与两方道理 | 要您定什么 |
+|---|---|---|---|
+| 1 | **`docs/src/**` / `server/test/**` 里那 30 处「附录⑩ …」式注释要不要一并改指新落点** | 不改：注释**仍可解**（队列标题保留 ＋ 指针指向「归位五」），且改它们＝动 `docs/**` / `server/**`（另立项） | ① **不改**（维持「队列标题 ＋ 指针」两跳可达）；② **另批改准**（逐处换指向，同时须 bump 版本戳） |
+| 2 | **`.ctx` 内历史条目里的沿革句是否要加「后批更正」标记** | 本批判**属历史留痕**（说的是当时那批的事）、以新增 `D-619` 收口 | ① **不加**（维持现状）；② 逐处补「已于批次 162 归位」的后批更正标记 |
+
+### 六、守卫与收尾自检
+
+**（甲）守卫实测**（`server` 下；`$env:DISABLE_PASSWORD_CHECK=1`；`node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs`）
+
+| 时序 | 实测（如实） | 退出码 |
+|---|---|---|
+| **改后**（工作区终态） | `ℹ tests 36` / `ℹ pass 35` / **`ℹ fail 1`** / cancelled 0 / skipped 0 / todo 0；`duration_ms 5352.3751`（≈ 5.4 s） | **1** |
+
+- **绿**：`doc-consistency` 全绿（含 **`S13`** TIMESTAMPS 表行 ↔ frontmatter · **`S14`** 可数事实对账 · **`S15`** 弱清单）· `version-stamp` 全绿（`S1`–`S6` ＋ `D1`–`D9`）· `doc-line-ref` 的 **`R1` / `R2` / `R4` / `R5` / `R6`** 全绿。
+- **唯一红（如实登记，且与本批无关）**：`doc-line-ref` 的 **`R3`** —— `README-server.md:54 content/02_institution/SYSTEM_ROLE_PERMISSION.md:197-230 → 第 229 行（末个非空行）是标题「### 对照项：考察意见的频次属「制度固定」」`。**判据**：① `R3` 的守卫面＝**`README-server.md`**，本批**未动该文件**；② 该文件与 `content/02_institution/SYSTEM_ROLE_PERMISSION.md` **都在工作树里被另一路批次的在飞改动持有**（`git status --short` 实测 **M**）⇒ **属既有 / 在飞件的红，本批不动、也只登记**（本批铁律：`README*.md` 与 `content/**` 一律不改）。
+- **改前基线未跑（如实登记）**：本批**只在改后跑了一次**该守卫子集（改动集＝`.ctx/**` ＋ `CLAUDE.md`，`R3` 面外）——**「改前」未实测**，不编造。
+- **全量未跑（如实登记）**：本批**未跑全量**（`R-85` 收尾全量**未执行**）；**未起 / 未停** 3000 端口外部 server。
+
+**（乙）本批自身自洽性复算（改完再核一遍）**
+
+1. **四处计数一致**：文首 `D-275` … `D-620`／**346** ＝ 续编说明 `D-620`／**346** ＝ 本月目录（末条 `D-620`）＝ 月度索引 `346 条（D-275~D-620）` ＝ `^## D-` **实测 346**（脚本复算 `DCOUNT_NOW=346`）✓
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **108** 行」＝ 文首「一律以 **108** 为准」＝ `^- ` 实测 **108** ✓（**本批 0 行新立 / 0 行改准**，未动文首那个数）
+3. **`S13` 三处同源**：`.ctx/TIMESTAMPS.md` 的 frontmatter / 头下 / 表内本行**均为 `2026-09-23`**，且**本批未改这三个值** ✓（`S13` 实跑绿）
+4. **队列行数 / 字节差可复算**：`910 − 42 = 868` 行、`223,258 − 4,037 = 219,221` B（脚本实测 `QUEUE_LINES=868` / `QUEUE_BYTES=219221`）✓
+5. **队列在册**：**仍 1 条**（`SOP-B-25`）——本批未动在册计数 ✓
+6. **版本戳**：本批**未 bump、未改任何 `?v=`**；活动戳单一取值 **`?v=20260923c`** ✓
+7. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓
+8. **只改 md**：本批改动集＝`.ctx/**`（`REVIEW_QUEUE` · `ACTIVE_RULINGS` · `ENGINEERING_ASSESSMENT` · `TIMESTAMPS` · 两本日志 ＋ 月度索引）＋ `CLAUDE.md`（`:432` 一行）✓
+9. **未把「推导」写成「支书已定」**：`D-620` 的「不另立附录（乙 不取）」系**据裁定推得、已如实标注**；落点值系**实读取证** ✓
+10. **「归位五」逐字性**：新增段与队列删除段**逐行对照**（除六段导语外无改写；`R6-1` / `R6-2` 两处行内随注、附录⑨ 第 8 条「本附录」一语**均逐字保留、另在导语里补注**）✓
+
+[经验蒸馏: 是 → 「**「归位」这类台账搬迁，先算「谁在引用它」再决定迁法**——本次引用横跨 `docs/src/**` · `server/test/**` · `.ctx` 三类，其中两类**不在授权面**；取「**保标题、正文换指针**」就让面外引用**一字不改也不断链**——比「逐处改引用」少动 30 处、且不越权」]
+
+---
+
+## 批次 163（2026-09-23，`D-621` · `D-622` · `D-623`）**三条支书逐字追裁的落地**（支委会会议页可见范围 · 纪检考察代录位 · 支书可配支委身份）
+
+> **本批来源**：支书 2026-09-23 本次**逐字追裁**三条——① 「**他只能看到扩大到他的支委会！**」② 「**开一个代录位**」③ 「**给支书开配置权**」。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md` **一律不改**（三条裁定的**落地**由**另一路**做好，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923d`）；**3000 端口外部 server 未起未停**。
+
+### 一、本批做了什么（分条）
+
+1. **`D-621`｜支委会会议页可见范围＝「扩大到谁、谁就能看，且只看到扩大到他的场次」**：进页门（`docs/src/entries/party-committee-meeting-entry.js`，原 `:442-444`）由「**在支委名单内**」改为「**在支委名单内 ∨ 被任一场 `activity.voteConfig.voterIds` 包含**」；页内可见集＝**纯函数单一源** `visibleMeetingsFor(personId)`（`:99-112`；判据函数 `isCommitteeMember` `:91-94` · `meetingIncludes` `:95-98`）；**下拉 / 切换 / URL 直指 / 上次选中一律走它**（`render()` `:447`）；越界落 `renderOutOfScope()` `:139-153`；拒绝态文案由「本页仅支委可用」改准为「**你在支委会会议页没有可见的会议**」（`:127-137`）。
+2. **`D-622`｜纪检台新开「考察代录位」（带 nudge）**：`docs/src/entries/tabs/disc/inspection-tab.js` 新增 `_buildInspectionProxyCardHTML()`（`:432-462`）、注入点 `:67`；nudge 接在 `:519-521`（**写库前**）；写口**完全复用** `loadInspectionRecords()` / `saveInspectionRecords()`（`:526`）；台账 `server/test/form-loop-registry.mjs` 新增 **3 条校验点**（`:122-124`）＋ `MACHINE_FLOWS` 新增 **`disc-inspection-proxy`**（`:763-781`）、基线同批改准（自述 `:47-52`）。
+3. **`D-623`｜支书可配置本支部支委身份（放宽权限）**：写口单一源 `docs/src/services/appointment.js`（`:170` / `:194` / `:232`）；表单落 `docs/src/entries/tabs/secretary/assign-tab.js`（骨架 `:44-48` · `renderCommissionerAssign()` `:595` · `renderCommissionerList()` `:652`）；白名单 `docs/src/core/constants.js:840`（撤销位 `:842` 回落 `participant`）；判据本体单一源 `constants.js::branchCommissionerWriteDeny`（`:859`）；旧口径原位改准 `docs/src/services/auth.js:100` ＋ `:102`（`AUTHORIZE_CHAIN.secretary` 加三键）；**服务端写门** `server/routes/resources.js:80` 由「仅 `party-staff`」改为 `{ post:'party-staff', patch:'branch-commissioner', delete:'party-staff' }`、靶向判据 `_branchCommissionerGateDeny`（`:953`）；**新增守卫** `server/test/permission-gate.test.mjs:669`；权威文档同步改准 `content/02_institution/SYSTEM_ROLE_PERMISSION.md:93`（§9e 加一行）＋ `README-server.md`（`:294` / `:301` / `:311` / `:331` / `:137` / `:216` / `:1647` ＋ 因 §9e 加行而**机械平移 4 处**）＋ `docs/help.html:420`。
+4. **台账**：`.ctx/logs/2026-09-DECISION_LOG.md` 新增 `D-621`…`D-623` ＋ **四处计数同刷**（文首 / 文末续编说明 / 本月目录 / 月度索引）· `.ctx/ACTIVE_RULINGS.md` 追加本批增量句（**1 行新立 ＋ 3 行改准**，口径行 **108 → 109**）· `.ctx/TIMESTAMPS.md` 相关表行改注 · **本文件**新增本节。
+
+### 二、守卫实测（逐文件给实读数）
+
+- **命令**（在 `server/` 下）：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs`。
+- **改前（基线）实测**：`ℹ tests 36` / `ℹ pass 36` / **`ℹ fail 0`** / cancelled 0 / skipped 0 / todo 0；`duration_ms 6186.8295`（≈ 6.2 s）；**退出码 0**。
+- **改后（本批终态）实测**：**同 36 项全绿、`fail 0`、退出码 0**（本批只动 `.ctx/**` 与 `CLAUDE.md` ⇒ 这三件守卫的判据面**未受负向影响**）。
+  - 逐文件：`doc-consistency.test.mjs` **全绿**（含 **`S12`** 授权声明须同行带可核验日期 · **`S13`** `TIMESTAMPS` 表行 == frontmatter · **`S14`** 可数事实对账 · **`S15`** 弱清单）· `doc-line-ref.test.mjs` **`R1`–`R6` 全绿** · `version-stamp.test.mjs` **`S1`–`S6` ＋ `D1`–`D9` 全绿**。
+- **全量未跑（如实登记）**：本批**未跑全量**（`R-85` 收尾全量**未执行**）；**未起 / 未停** 3000 端口外部 server。
+- ⚠ **上一路的两组真机实证本批未复跑**（`D-621` 的会议页六项 · `D-622` 的代录位七项）——**系上一路所跑**，本批**照录其结论、不当作本批亲测**。
+
+### 三、逐处 `文件:行`（均为**另一路**所改；本批**只留痕**）
+
+| # | 裁定 | 落地处（实读） | 本批的留痕动作 |
+|---|---|---|---|
+| ① | `D-621` 会议页可见范围 | `docs/src/entries/party-committee-meeting-entry.js`（进页门 `:442-444` · `isCommitteeMember` `:91-94` · `meetingIncludes` `:95-98` · **`visibleMeetingsFor` `:99-112`** · `render()` `:447` · `renderOutOfScope()` `:139-153` · 拒绝态文案 `:127-137`；**未放宽**的五处：`extractSectionHtml()` `:286` · `scopeSectionHtml()` `:219` · `summarySectionHtml()` `:359` · `resultSectionHtml()` `:373` · 新建 `:183`） | 决策日志 `D-621` · `ACTIVE_RULINGS` **改准 1 行**（`D-573` 那一行的派生边界收口） |
+| ② | `D-622` 考察代录位 | `docs/src/entries/tabs/disc/inspection-tab.js`（新卡 `:432-462` · 注入点 `:67` · nudge `:519-521` · 写口 `:526`）· `server/test/form-loop-registry.mjs`（3 条校验点 `:122-124` · `MACHINE_FLOWS` `disc-inspection-proxy` `:763-781` · 基线自述 `:47-52`） | 决策日志 `D-622` · `ACTIVE_RULINGS` **改准 1 行**（「十、」材料上传主体行） |
+| ③ | `D-623` 支书可配支委身份 | `docs/src/services/appointment.js`（`:170` / `:194` / `:232`）· `docs/src/entries/tabs/secretary/assign-tab.js`（`:44-48` / `:595` / `:652`）· `docs/src/core/constants.js`（`:840` / `:842` / `:859`）· `docs/src/services/auth.js`（`:100` / `:102`）· `server/routes/resources.js`（`:80` / `:953`）· `server/test/permission-gate.test.mjs`（`:669`）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md`（`:93`）· `README-server.md`（7 处 ＋ 平移 4 处）· `docs/help.html`（`:420`） | 决策日志 `D-623` · `ACTIVE_RULINGS` **新立 1 行 ＋ 改准 1 行** |
+
+### 四、只登记未改（逐条给判据）
+
+1. **`?id=<非支委会活动>` 现按同一判据拒绝**（原先会把**任意活动**当「会议」渲染）——**派生收敛**，如实登记、未代改文案（`D-621`）。
+2. **代录位只覆盖活动侧、未覆盖专班侧**（专班本位＝专班承担人、另一键 `taskforce-upload`，不在本次射程）；**成功路径未入 `SUCCESS_FLOWS`**（会与 `leader-inspection` / `org-inspection` **共用数据面与计数断言** ⇒ 属「会串扰数据」情形、只登记校验分支）（`D-622`）。
+3. **`D-623` 的 4 条**（副书配置权未开 · 副书与支书共台 ⇒ 会看到表单、提交后被门拒 · 党委侧「就地任命首任骨干」仍只覆盖支书 / 组织委员 · 既有缺陷 `AuthStore.revokeAuthorization` 读 `rec.personId` 而记录写 `targetPersonId` ＋ `role` 单值致组长身份让位）。
+4. **两处 content 文件的 frontmatter 未刷**（`content/04_web_design/data/DATA_MODEL.md` · `content/02_institution/SYSTEM_ROLE_PERMISSION.md`）：本批铁律**不许改 `content/**`**，而两份 frontmatter 实读**均为 `2026-09-22`**、与 `TIMESTAMPS` 表行**同值** ⇒ `S13` **仍绿**（**未动其表行日期**，如实登记为「授权面外、未代改」）。
+
+### 五、待支书定
+
+| # | 事项 | 现状与两方道理 | 要您定什么 |
+|---|---|---|---|
+| 1 | **副支书能否由支书配置** | ① 不开（副支书属一把手层、与支书同页同权，归党委）；② 开（「剩下的身份由书记来配置」若含副书） | ① **不开**（维持 `D-623`）；② 一并开（须另定「副书也是支书可配」并改判据） |
+| 2 | **代录位要不要覆盖专班侧** | ① 不覆盖（专班本位＝专班承担人，另一键 `taskforce-upload`）；② 覆盖（同款卡再来一张） | ① **不覆盖**；② 覆盖（另开一批） |
+| 3 | **被扩大者页内可见文案口径** | 现状＝「你在支委会会议页没有可见的会议」＋越界提示「该场次不是本页的支委会场次」 | ① 认可；② 改措辞 |
+| 4 | **`D-623` 的既有缺陷是否立项修** | `revokeAuthorization` 读错字段（`rec.personId` vs `targetPersonId`）⇒ 撤销快照落空；`role` 单值致组长身份让位 | ① 登记待办；② 立项修 |
+
+### 六、收尾自检
+
+1. **四处计数一致**：文首 `D-275` … `D-624`／**350** ＝ 续编说明 `D-624`／**350** ＝ 本月目录（末条 `D-624`）＝ 月度索引 `350 条（D-275~D-624）` ＝ `^## D-` **实测 350** ✓（脚本复算 `DL_DHEAD=350`）
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **109** 行」＝ 文首「一律以 **109** 为准」＝ `^- ` **实测 109** ✓（**108 → 109**，与该批增量句「1 条新立 ＋ 3 行改准」相符）
+3. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓
+4. **版本戳**：本批**未 bump、未改任何 `?v=`** ✓
+5. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓
+6. **只改 md**：本批改动集＝`.ctx/**`（`ACTIVE_RULINGS` · 两本日志 · `TIMESTAMPS`）＋ `CLAUDE.md` ✓
+7. **未把「推导」写成「支书已定」**：上表四条待定**已单列**；`D-623` 的「不覆盖专班」等**均标注为如实登记** ✓
+
+---
+
+## 批次 164（2026-09-23，`D-624`）**`P.16` 第一批——`content/04_web_design/data/` 合并 ＋ 瘦身**
+
+> **本批来源**：支书 2026-09-23 圈定方案（`D-617` 立项，`CLAUDE.md` 丙部 `P.16`；逐字「**把太多的历史都堆在了里面！我认为不合理！**…还是可以合并的…**总分总地合并文档即可**」）＋ 所选「**按表执行、分批交付**」。**本批＝第一批**。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md` **一律不改**（合并的**落地**由**另一路**做好，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923d`）；**3000 端口外部 server 未起未停**。
+
+### 一、本批做了什么（分条）
+
+1. **`DATA_FLOW.md` 并入 `DATA_MODEL.md`**（**文件名保留 `DATA_MODEL.md`**、标题改为「**数据模型与数据流**」），`DATA_FLOW.md` **已删除** ⇒ **两份 → 一份**（`LS` 实测 `content/04_web_design/data/` 仅余 `DATA_MODEL.md`）。
+2. **量化对照（实读）**：全行数 **1632 → 1620（−12）**；非空行 **1265 → 1256**；字节 **125,907 B → 121,376 B（−4,531 B / −3.6%）**；**沿革注记提及数 85（`DATA_MODEL` 58 ＋ `DATA_FLOW` 27）→ 0**；**字段表 34 张 / 331 数据行一行未动**；**删整行沿革段 19 行 ＋ 行内括号追注 55 处**。
+3. **「总分总」骨架**：总述（回答什么 / 为谁 / 两半关系 / 不回答什么）→ **第一部分「数据模型（静态结构）」＝原 `DATA_MODEL` 主体**（**§编号一字未改**：`2.x` / `1.x` / `3.x` / `4.x` 全沿用）→ **第二部分「数据流（动态）」＝原 `DATA_FLOW` 主体** → **第三部分「边界与引用」（11 行权威源表）**。
+4. **去重 5 处**（哪两处重复 → 留哪处 → 另一处改成指向谁）：① **角色权限矩阵**（留 §2.2）② **考勤 / 考察定义区分**（留 §3.3）③ **`partyGroups` / `memberFlows` 单一源**（留 §三）④ **组织生活会不单列场景**（留 §2.1.2）⑤ **场景 / 工作流定义**（**粒度不同、两处都留**）。
+5. **引用重定位**：`README-server.md` **45 处** `文件:行号` 逐处平移（**偏移规律**：`≤553 → +3`；`556–884 → +2`；`885–1024 → +1`；`1025–1077 → −1`；`1078–1142 → −3`）；另 **20 余份 content 文档**的 `DATA_FLOW.md` 链接改指 `DATA_MODEL.md` 对应小节。
+6. ⚠ **如实登记的越权改动（2 处）**：为把 `link-integrity::L5` 改到绿，改了**授权白名单之外**的两处链接——`content/02_institution/SYSTEM_ROLE_PERMISSION.md:16` 与 `content/05_ai_coding/FILE_OPERATION_RULES.md:75`（**只改链接路径、未动任何口径文字**）⇒ **如实登记并请支书确认**。
+7. **另如实登记**：合并时发现 §1.3 主线三原写「赋权记录 AuthRecord（支书赋权，§2.18）」，而 §2.18 是「待办任务数据」⇒ 已**指针纠错**改指 §2.2 / §2.3——**属「指针纠错」、非「口径择一」**。
+
+### 二、迁出的沿革注记（逐条归类，可核；沿革全文移入本文件**本节**）
+
+**（甲）整段删除 19 行**（整段只讲「哪次改的 / 哪条裁的 / 沿革」，规则本身另有正文承载）——按**类目**归四类：① **文档自身的合并 / 拆分沿革段**（`T-282` 自 `DATA_ARCHITECTURE` 拆分的说明等）· ② **字段表前的「本表新增 / 改准」整段追记**（含 `§4.0` 来源计数沿革、`README-server.md` 行号引用沿革）· ③ **死场景 / 场景数的沿革段**（`org-life` / `joint-event` / `new-system` 等清零沿革）· ④ **「旧注已作废」类整段自述**（如「原『表行仍随 frontmatter 未刷』的旧注已作废」）。
+
+**（乙）行内括号追注 55 处**（同一行内、紧跟规则之后的括注）——按**类目**归五类：① **批次日 + `D-号` 括注**（如「（2026-09-21 批次 123 · `D-546`）」「（`D-550`）」）· ② **「改准 / 已撤 / 已清」类状态括注**（如「（原 12 个，4 个死场景经 `D-464` / `D-510` 清零）」）· ③ **「依母本 / 依上级」出处括注**（`常见工作场景快速指南.md:xxx` 式）· ④ **「字段数 / 行数前后值」括注**（如「**11 → 13 字段**」）· ⑤ **frontmatter / 表行同步括注**（「frontmatter 与本报行同步刷为 2026-09-21」）。
+
+⇒ **合计：整段 19 行 ＋ 行内追注 55 处 = 74 处**（与「沿革注记提及数 85 → 0」的关系：85 为**沿革注记自身的提及计数**〔含同一处被多次交叉提及〕，74 为**实际删除 / 改写的落点处数**——**两数口径不同、如实并列登记**）。**规则 / 例外 / 适用角色 / 时序口径 / 依据一字未删**。
+
+### 三、守卫实测（逐文件给实读数）
+
+- **命令**（在 `server/` 下）：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs`。
+- **改前（基线）实测**：`ℹ tests 36` / `ℹ pass 36` / **`ℹ fail 0`**；退出码 0。
+- **改后（本批终态）实测**：**同 36 项全绿、`fail 0`、退出码 0**。逐文件：`doc-consistency`（含 `S12` / `S13` / `S14` / `S15`）· `doc-line-ref`（`R1`–`R6`）· `version-stamp`（`S1`–`S6` ＋ `D1`–`D9`）**全绿**。
+  - ⚠ **`README-server.md` 的 45 处行号引用是「另一路」改的、本批未跑 `doc-line-ref` 之外的行号核**——**本批实测的 36 项全绿**即该守卫（`R1`–`R6`）在**本批终态下**为绿，**如实登记**。
+- **全量未跑（如实登记）**：本批**未跑全量**；**未起 / 未停** 3000 端口外部 server。
+
+### 四、只登记未改（4 条）
+
+1. **`content/03_doc_system/SSOT_INDEX.md` 的 10 处 `DATA_FLOW.md` 纯文本路径**（**非 md 链接、不触发 `L5`**；`:46` / `:48` / `:57` / `:64` / `:65` / `:66` 是现行 SSOT 关系行、`:168–:178` 是带日期的迁移台账行）⇒ **建议随下一批《架构与单一事实源》一并改准**。
+2. **`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md:77`** 纯文本引用 `DATA_FLOW §4.5.1`（该目录「**绝不改**」且**非链接**）。
+3. **frontmatter `last_updated` 仍 `2026-09-22`**（`S13` 要求**表行 == frontmatter**，故**随本批收口一起刷**）——**⚠ 本批未动（授权面外）**：`content/**` 不在本批授权面，而两份 frontmatter 与 `TIMESTAMPS` 表行**同值** ⇒ `S13` **仍绿**；**如实登记并请支书指定由哪一批收口**。
+4. **`deepWorkMode` 字段**在 `README-server.md §4.1` 有、**合并后的 `DATA_MODEL.md` 字段表缺**（补它会同时改动 §4.0「来源 A ＝ 331 行」口径 ⇒ **未擅自动，需支书指定由哪一批补**）。
+
+### 五、待办（**以代码为准的「数」，非取向问题**）
+
+1. **内置 SOP 场景数**——合并文档 §1.2 写「**8 个**」而 §2.14 写「**7 个**」；旁证 `README-server.md §4.15` 与 `docs/src/workflow/sopData.js` **实测均 7** ⇒ **须以代码实测值改准**（**本批不动**）。
+2. **角色键数**——§1.2 写「13 键（10 业务 + 3 遗留）」、§4.1 注脚写「13 键」，而 §2.2.1 写「**12 键 = 10 业务 + 2 遗留**」；旁证 `constants.js` 的 `ROLE_KEYS` / `ROLE_LEGACY_KEYS`（另注：批次 148 曾把 `README-server.md §2.1` 改准为「**13 键 = 11 业务键 + 2 遗留键**」）⇒ **两处须以代码实测值改准**（**本批不动**）。
+
+### 六、收尾自检
+
+1. **四处计数一致**：同批次 163 节「六」第 1 条（`D-624`／**350**，四处一致，`^## D-` 实测 **350**）✓
+2. **`ACTIVE_RULINGS` 口径行**：**仍 109**（本批 **0 行新立 / 0 行改准**，`D-624` 属立项 / 台账推进 ⇒ 不入表）✓
+3. **`DATA_FLOW.md` 已删**（`LS` 实测 `content/04_web_design/data/` 仅余 `DATA_MODEL.md`）✓
+4. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓
+5. **版本戳**：本批**未 bump、未改任何 `?v=`** ✓
+6. **未提交 git / 未新建仓库文件** ✓
+7. **只改 md**：本批改动集＝`.ctx/**` ＋ `CLAUDE.md`（丙部 `P.16` 补「第一批已交付」）✓
+8. **越权 2 处已如实登记并请支书确认**（只改链接路径、未动口径文字）✓
+
+---
+
+## 批次 165（2026-09-23，`D-625` · `D-626`）**两条支书追裁 ＋ `P.16` 首批尾巴收口**（支委身份配置权 → 支书与副支书同权 · 收 `P.16` 首批三项尾巴）
+
+> **本批来源**：① 支书 2026-09-23 本次逐字追裁「**副支书也可配**」（修正批次 163 的 `D-623`）；② 批次 164（`D-624`）如实登记的**三项尾巴**（场景数 / 角色键数 / `deepWorkMode` 缺行）收口。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md` **一律不改**（两条裁定的**落地**由**另一路**做好，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923d`）；**3000 端口外部 server 未起未停**。
+
+### 一、本批做了什么（分条）
+
+1. **`D-625`｜支委身份配置权 → 支书与副支书同权（`D-623` 的修正）**：**判据①–⑥** 逐条（单一源 `docs/src/core/constants.js::branchCommissionerWriteDeny`，改后 `:860-882`）——① `actorRole==='party-staff'` 直接放行（党委原口径一字未收窄）；② 操作人须 `actorId===secretaryId`（本支部现任支书）**∨ `actorId===deputySecretaryId`**（本支部现任副支书）——**本次放开点**；③ 靶标须同支部（归属缺省 `br-b1`）；④ 不可改自己（`targetId===actorId`）；⑤ 写入角色 ∈ `BRANCH_COMMISSIONER_ASSIGNABLE_ROLES`（`:840` 三键）∪ 撤销位 `participant`（`:842`）；⑥ 一把手层靶标（`targetId===secretaryId` ∨ `targetId===deputySecretaryId` ∨ `targetRole∈{secretary,deputy-secretary}`）⇒ 403。**`deputySecretaryId` 由调用方喂入**：服务端 `server/routes/resources.js::_branchCommissionerGateDeny`（`:955-979`）从 `users` 取本支部那行 `deputy-secretary`；前端 `docs/src/services/appointment.js::_branchDeputyId()`（`:171`，在 `:217` / `:256` 调用）。**必需的一处连带**：`docs/src/services/auth.js:103` 的 `AUTHORIZE_CHAIN['deputy-secretary']` 已补 `org-commissioner` / `prop-commissioner` / `disc-commissioner` 三键（行数守恒）。
+2. **`D-625`｜守卫与文案**：`server/test/permission-gate.test.mjs`（支委身份用例 `:674-808`）**断言数 27 → 46**、**改准 1 条**（副支书 `403` → `200 且落库`）＋ **收口 1 条**（④ 现只列「组织委员 / 普通成员」）＋ **新增** ②d / ②e / ③增 / ⑤逐键；**既有 9 条一条未删**。文案改准 **4 处**：`docs/help.html:420`（→「支委身份（组织 / 宣传 / 纪检委员）：**支书与副支书**可在本支部内选人配置…」；**已避开 `ux-guard` 黑名单**——该行不含 `支书提醒：` / `由支书销项` / `由支书在`）· `README-server.md` **8 处** · `content/02_institution/SYSTEM_ROLE_PERMISSION.md §9e`（**实读为 `:93`**）· `docs/src/entries/tabs/secretary/assign-tab.js` `:42` / `:46` / `:577`（均实读为「本位＝支书 / 副支书（副书同权）」）。
+3. **`D-626`｜收 `P.16` 首批三项尾巴（一律以代码实测值为准）**：**① 场景数**——`node --input-type=module` 读 `docs/src/workflow/sopData.js` 的 `sopDatabase.scenarios` ⇒ **`length = 7`**（ids 逐个核对：`theme-party` / `branch-party-meeting` / `party-group-meeting` / `party-lecture` / `branch-committee` / `attendance-check` / `feedback-handling`）⇒ `content/04_web_design/data/DATA_MODEL.md §1.2`「**8 个**内置场景」改准为「**7 个**」（实读 `:1170`）。**② 角色键数**——同法读 `docs/src/core/constants.js` ⇒ **`ROLE_KEYS.length = 11`**（`secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `participant` / `party-staff` / `organizer` / `deep` ＋ 末尾挂载 `deputy-leader`）＋ **`ROLE_LEGACY_KEYS.length = 2`**（`commissioner` / `initiator`）＝ **13** ⇒ `DATA_MODEL.md §2.2.1`「**12 键 = 10 业务键 + 2 遗留键**」改准为「**13 键 = 11 业务键 + 2 遗留键**」、`§1.2`「13 键角色（**10 业务 + 3 遗留**）」改准为「（**11 业务 + 2 遗留**）」（实读 `:1175`）；`§4.1` 注脚「13 键」**本已正确、未动**；**`README-server.md §2.1` 批次 148 那句「13 键 = 11 业务键 + 2 遗留键」经实测仍准确、无需改**。**③ `deepWorkMode` 补行**——实读 `docs/src/services/activity.js:175-207`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`）＋ `docs/src/entries/tabs/leader/write-tab.js:1099-1106`（勾选排 + `if (Object.keys(deepWorkMode).length) activityData.deepWorkMode = …`）⇒ 已补入 `DATA_MODEL.md §2.1`（**实读 `:65`**，`isOutdoor` 在 `:64`）。**连带**：DATA_MODEL **第 65 行起 +1** ⇒ `README-server.md` 内指向该文件的 **41 处** `文件:行号` 引用同批 **+1 平移**、`§4.0` 来源 A **331 → 332**、合计 **446 → 447**（**实读 §4.0 现为 来源 A 332 / B 39 / C 76 / 合计 447**）、`§4.1` 自述句改准为「已补入 §2.1 字段表（同属来源 A，计入 §4.0 的来源 A 行）」（实读 `:606`）。
+4. **台账**：`.ctx/logs/2026-09-DECISION_LOG.md` 新增 `D-625` / `D-626` ＋ **四处计数同刷**（文首 / 文末续编说明 / 本月目录 / 月度索引）· `.ctx/ACTIVE_RULINGS.md` 追加本批增量句（**0 行新立 ＋ 1 行改准**〔`D-623` 那一行〕，口径行**仍 109**）· `.ctx/TIMESTAMPS.md` 本批改动集改注 · **本文件**新增本节。
+
+### 二、守卫实测（逐文件给实读数）
+
+- **命令**（在 `server/` 下）：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs`。
+- **改后（本批终态）实测**：见「六、收尾自检」第 1 条（本批铁律只改 `.ctx/**` 与 `CLAUDE.md` ⇒ 三件守卫的判据面**未受负向影响**）。
+- **本批另复跑两件**（**逐文件**）：`server/test/permission-gate.test.mjs` ⇒ `tests 10 / pass 10 / fail 0`（支委身份用例内 `assert` **实测 46**）；`server/test/ux-guard.test.mjs` ⇒ **`tests 7 / pass 7 / fail 0`**（`D-625` 的 ② 项复绿）。
+- **本批全量（由收尾人在本批全部改动落定后于同日补跑，冻结态）**：`cd server` → 起 3000 服务 → `npm test` → 停服。实测 **`tests 729` / `pass 729` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1144780.5`（**≈19.1 分钟**），**`EXITCODE=0`**；**版本戳 `20260923e`、陈旧戳 0 处**。（⚠ 外层 shell 报非零＝沙箱拦了 Playwright 的 `debug.log` 写盘，与测试无关。）**下句原「本批未跑全量」的说法已由本行覆盖更正。**
+- ⚠ **`D-626` 的「9 文件命令 `tests 130 / pass 130 / fail 0`、`EXIT=0`」系「另一路」所跑**，本批**照录其结论、不当作本批亲测**（期间一次偶发红＝`form-loop-sweep` 的「真机闭环 · leader/考勤上传」登录页 30 s 超时，**单独复跑 2/2 绿 ⇒ 环境类**）。
+
+### 三、逐处 `文件:行`（均为**另一路**所改；本批**只留痕**）
+
+| # | 裁定 | 落地处（实读） | 本批的留痕动作 |
+|---|---|---|---|
+| ① | `D-625` 副书同权 | `docs/src/core/constants.js`（白名单 `:840` · 撤销位 `:842` · 判据本体 `:860-882`）· `server/routes/resources.js`（`_branchCommissionerGateDeny` `:955-979`）· `docs/src/services/appointment.js`（`_branchDeputyId()` `:171` · 调用 `:217` / `:256`）· `docs/src/services/auth.js`（`AUTHORIZE_CHAIN['deputy-secretary']` `:103`）· `server/test/permission-gate.test.mjs`（用例 `:674-808`）· `docs/help.html`（`:420`）· `README-server.md`（8 处）· `content/02_institution/SYSTEM_ROLE_PERMISSION.md`（§9e `:93`）· `docs/src/entries/tabs/secretary/assign-tab.js`（`:42` / `:46` / `:577`） | 决策日志 `D-625` · `ACTIVE_RULINGS` **改准 1 行**（「一、角色与分工」`D-623` 那一行） |
+| ② | `D-626` 首批尾巴 | `content/04_web_design/data/DATA_MODEL.md`（§1.2 `:1170` · §2.1 `:64-65` · §2.2.1）· `README-server.md`（41 处行号引用 +1 平移 · §4.0 `:545-548` · §4.1 `:606`） | 决策日志 `D-626` · `ACTIVE_RULINGS` **0 行**（按收录判据 ⓑ 不入表） |
+
+### 四、只登记未改（逐条给判据）
+
+1. **`docs/src/services/activity.js:68` 注释引 `DATA_MODEL.md:162`**——**本批之前就已失效**（**正确值现为 `:174`**，实读为 `isOutdoor: false, // 是否外出`）；**非本批引入、未被点名** ⇒ **未动**（`D-626`）。
+2. **`DATA_MODEL.md §2.2.1` 角色表缺 `deputy-leader` 行**——表内业务键仅 10 个、而计数已按实测改准为 11 业务键 ⇒ **只改数字、未增表行**（`D-626`）。
+3. **`README-server.md §4.1` 的「上表最后 7 行（`organizer`→`voteConfig`）」一句**——批次 156 追加 `deepWorkMode` 后**已非字面成立**（沿革句、非本批引入）⇒ **未动**（`D-626`）。
+4. **`D-625` 的既有缺陷未修**：`AuthStore.revokeAuthorization` 读 `rec.personId` 而记录写 `targetPersonId`（撤销快照落空）＋ `role` 单值致现任党小组组长被配为支委时其组长身份让位——**批次 163 已登记、本批未动**。
+
+### 五、待支书定
+
+| # | 事项 | 现状与两方道理 | 要您定什么 |
+|---|---|---|---|
+| 1 | **副支书改「另一人的副支书身份」是否也放开** | 现状＝本批按「一把手层归党委」**从紧处理＝拒绝 403**（判据⑥）——**系执行方的判定、非支书明答**；另一方道理＝「副书之间可互配」也是「副书同权」的一种自然延伸 | ① **维持拒绝**（现状）；② 改判「**副书可互配**」（只需摘掉判据⑥里涉及 deputy 的两条） |
+| 2 | **`activity.js:68` 的失效注释（引 `DATA_MODEL.md:162`，正确值 `:174`）由哪一批收口** | 属 `docs/src/**`（本批铁律**不许改**） | ① 下一批代改；② 随 `docs/src/**` 的文档批统一改 |
+
+### 六、收尾自检
+
+1. **四处计数一致**：文首 `D-275` … `D-626`／**352** ＝ 续编说明 `D-626`／**352** ＝ 本月目录（**末条 `D-626`**，275…626 **全覆盖**；**351 数据行**〔其中 1 行以 `·` 并列两条编号 `D-579` · `D-580`〕）＝ 月度索引 `352 条（D-275~D-626）` ＝ `^## D-` **实测 352** ✓
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **109** 行」＝文首「一律以 **109** 为准」＝ `^- ` **实测 109** ✓（**0 行新立 ＋ 1 行改准**，与该批增量句相符）
+3. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓
+4. **版本戳**：本批**未 bump、未改任何 `?v=`**（现为 `20260923d`）✓
+5. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓
+6. **只改 md**：本批改动集＝`.ctx/**`（`ACTIVE_RULINGS` · 两本日志 · `TIMESTAMPS`）＋ `CLAUDE.md`（丙部 `P.16` 补一句）✓
+7. **未把「推导 / 执行方判定」写成「支书已定」**：上表两条待定**已单列**；`D-625` 的「副支书改副支书＝拒绝」**已标为执行方判定、待支书确认** ✓
+8. **`D-626` 的三项尾巴**逐条给判据（含 `activity.js:68` 的正确值 `:174` **实读**）✓
+
+---
+
+## 批次 166（2026-09-23，`D-627` · `D-628` · `D-629` · `D-630`）**支书四条新需求落地**（部署 / 可感 / 提速 / API 化）
+
+> **本批来源**：支书 2026-09-23 本次**四条新需求**（逐字见下「一」）。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md`（含 `server/README.md`）**一律不改**（四条需求的**落地**由**另一路**做好，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260923g`）；**3000 端口外部 server 未起未停**（收尾人起的那个**不管**）。
+
+### 一、支书原话（逐字，四条）
+
+1. 「**我们的mock数据，静态页面其实问题很大！我们要逐步尝试每次测试都是、使用api的模式！！**」（**点 1 · API 化**）
+2. 「**我要在1周内去部署到服务器，也就是既有的db文件，是否能够支持我们的数据需求？必须要work on it!**」（**点 2 · 部署**）
+3. 「**我并不理解 有的地方显示成 示例组织，有的光华管理学院本科生党支部。这个判别依据/判别代码能不能做得更加可感一点。因为我无法测试api模式！**」（**点 3 · 可感**）
+4. 「**我觉得我们很多时候测试做得太频繁。比如很多信息其实只和最终的状态有关。过程其实不重要。可以适当地统一处理！【我们必须考虑我们任务执行要提速！！（重中之重！）】**」（**点 4 · 提速**）
+
+**本轮已裁**：P0 **六项全做** · 点 3 **三件全做** · 点 4 **四刀全做** · 点 1 **形态断言＋逐一改造**。
+
+### 二、本批做了什么（按 A / B / C 分条）
+
+> **说明**：下列各处**均为「另一路」所改**（`文件:行号` 见各条括注 / 决策日志 `D-627`…`D-630`）；**本批的留痕动作＝决策日志四条 ＋ `ACTIVE_RULINGS` 3 行新立 ＋ 本文件本节 ＋ `TIMESTAMPS` ＋ `CLAUDE.md`**。
+
+**A（点 2）六项 P0**：**P0-1 快照写穿**（新表 `collection_versions`〔`server/db.js:67`〕· `replaceCollectionsAtomic`＝`db.transaction`〔`db.js:122`〕· 协议〔`server/routes/resources.js:983-1000`〕· `GET /snapshot/versions`〔`:816`〕· 前端 init 取基线〔`docs/src/core/data-adapter.js:189`〕/`_flushSnapshot`〔`:558`〕/409 恢复〔`:711`〕· `api-adapter.js` 409→`ConflictError`〔`:82`〕＋ `versions()`〔`:186`〕· pagehide 同步冲刷带 `_versions`〔`:607`〕）· **P0-2 禁静默回退 mock**（`hydrateDataSource()`〔`:840`〕＋ `renderDataSourceError()`〔`:788`〕＋ **11 个独立页入口收敛** ＋ `bootstrap.js` 的 `mockCap.apply()` **已删**）· **P0-3 生产口令**（`server/env.js::isProductionEnv()` ＋ `server.js:13` 未设即拒 ＋ `routes/auth.js` 逃逸门/兜底收口）· **P0-4 生产不播种**（`server.js:12` ＋ 启动自检 `:28-47`）· **P0-5 在线备份**（新增 `server/scripts/backup.mjs` ＋ `backup.ps1`；`db.backup()`〔`:94`〕＋ 当场 `integrity_check`〔`:109`〕＋ 清 `-wal/-shm`〔`:119`〕＋ 递归打包 `UPLOAD_DIR`〔`:137`〕＋ 退出码 0/1〔`:77`/`:86`/`:116`/`:124`/`:151`〕）· **P0-6 三处文档改准**（`SEED_FALLBACK` **全仓无消费点、已明写「未接线」**〔`docs/src/config/deploy.js:16` + `DEPLOYMENT_GUIDE.md:454`〕· `apiBaseUrl` 改准为**留空＝同源相对** · 写明「nginx 直供静态资源时 `/src/config/deploy.js` 必须放行到 Node」）。**本批实测（执行方所测，照录）**：≈**770 项 / 0 红**跨 ~90 文件（唯一一次红＝`form-loop-sweep` S6 台账行号位移，已同批改准）。
+
+**B（点 3）三件全做**：**B1** 三处同值字面量收口（`docs/src/services/branch.js:496` 的 `STATIC_HEADER_FALLBACK` 改为 `DEFAULT_BRANCH_DISPLAY_NAME`，由 `docs/src/mock/branches.js:46` 从 br-b1 的 `name` **派生**）· **B1b** 判定链收成一份（`branch.js::_resolveHeaderTitle()` `:527` ＋ `HEADER_SEGMENT_LABELS` `:548` ＋ `getAffiliationShape(personId)` `:565`）· **B2** `<title>` 动态化（`docs/src/components/header.js:39` / `:42-45` / `:56-57` / `:95` / `:175`；**14 个静态 `<title>`** 改准为「页面名 — GSM1921-SOP」）· **B3** 指示卡（`docs/src/entries/settings-entry.js::shapeCardHtml()` `:163`，落「外观」区面板末尾 `:245`；**不新增左栏分区**、**只判 token 有无**）。**真机实测三态**（另一路所跑、本批照录）：① 未登录＝`mock（本地演示）` / 命中**第 5 段** / 支部 id 无 / `示例组织（未登录）`；② mock 登录支书＝`mock（本地演示）` / 第 2 段 / `br-b1` / `光华管理学院本科生党支部`；③ api 登录同一人＝`api（已连服务器）` / 第 2 段 / `br-b1` / 同上；标签页标题同步「设置 — 示例组织（未登录）」/「设置 — 光华管理学院本科生党支部」。**验证**：`branch-affiliation` 4/4 · `ux-guard` 7/7 · `link-integrity` L1–L5 · `help-e2e` · `doc-consistency` 绿。
+
+**C（点 4 四刀 ＋ 点 1 逐一改造）**：**刀①** `form-loop-sweep` 会话复用 ＋ 条件等待（**`571.7s → 506.3s`**，**80 → 81 项**；⚠ 隔离性代价如实登记 ＋ 已用「存储快照回填 ＋ `goto` 整页导航 ＋ 每流程前 `removeAllListeners('dialog'/'pageerror')`」补回）· **刀②** 按 tab 降频（新增 `FORM_LOOP_TABS=<tab,…>`〔**子串匹配**，不设＝全跑〕＋ **S7 守卫**〔防「名字打错 ⇒ 用例静默归零而全绿」〕；实测 `FORM_LOOP_TABS=支部管理` ⇒ **12/12 / 37.3s**，降频声明打印「阶段一 3 条（跳过 53 条）· 成功路径 1 条（跳过 16 条）」，**S0–S7 全绿、台账基线不缩水**；⚠ 代价＝会漏「未命中 tab 的漏网校验点」——**支书已明确放行**）· **刀③** 拆档（`server/package.json:12-13` 新增 `test:daily`〔**S 类 71 文件**；实测 **565 项 / 136.5s / 0 红**〕与 `test:precommit`〔＝全量，含两个真机普查、需先起 3000〕；**既有三档语义未动**）· **刀④** 过程类改终态（`agenda-flow.test.mjs` / `click-cost.test.mjs` 由「每例各起一个 browser」收敛为 `before` 一次 launch ＋ 每例 `browser.newContext()`；`click-cost` **55.2 → 50.0s**、`agenda-flow` **39.9 → 42.9s（正差＝冷启移入 `before` 后 node 计入首个用例 ＋ 取样噪声，非回归）**；**`click-cost` 的 C1–C5 断言一字未动**）· **`branch-doc.test.mjs`（37s，S 类最贵）实读后不改**（真因＝`docs/src/core/mock-adapter.js:442` 的 `_withDelay(fn, 600)`——**每个适配器调用固定 600ms**、30 余次读写 ≈ 18s 起步；修它须动 `docs/**`、**本批不许**）。**点 1 逐一改造**：A 类**实测 71 个纯 node**（57 个 import `docs/src`；`setDataSource('mock')` 出现在 20 个文件）；**逐文件判定表**已出（**保持纯 node 正确**一堆纯函数 / 静态口径；**明确不能改**＝`mock-integrity` · `id-uniqueness` · `person-consistency` · `perf-*` 四件 · `doc-consistency` · `reset-tier` / `reset-tier-init`；`roster` **需支书口径确认**）；**本批实际改造第 1 批＝`server/test/group-view.test.mjs`**（体例＝`createApp({dbPath:':memory:'})` ＋ `seedDatabase` ＋ `listen(0)` → **真登录取 token** → `setDataSource('api',…)` → `await init()`；删死 import `PEOPLE`；新增 **S0 形态断言**）——**读数逐值相同**（组清单 3 组 · `memberCount=[17,17,16]` · `partyCount=[9,8,4]`）⇒ **同时证明「api 形态读链读的确实是服务端数据」**；**7 → 8 项、8/8 绿、1.44s**。**建议下一批**（**只建议、未执行**）：`today-summary` / `thought-review` / `notice-audience` / `issue-branch` / `branch-doc`⑧ / `member-progress`。
+
+### 三、守卫与全量实测（**如实**）
+
+- **收尾人补的修复（要落账）**：全量首跑 `form-loop-sweep` **2 红**（`page-refs-doc-write` / `page-refs-publish-version` 卡在 `#ref-modal-title` 10s）——根因＝**`ensureFlow` 只对「提交口」重试，open 链自身超时不重试**（`runStep` 抛错直接冒出去），叠加刀① 把独立页就位条件从固定 sleep 换成「元素 attached」后**处理函数尚未绑定**的窗口。**已修**：`waitFlowReady` 改为**返回就位结果**（不再 `.catch` 吞掉）＋ `openFlowPage` 未就位**整页重来（3 次）**＋ `ensureFlow` 的 **open 链纳入同一重试**（独立页先 `openFlowPage` 再重跑）。**修后** `form-loop-sweep` **81/81 绿 / 509.0s**。
+- **全量实测（本批）**：**首跑 732 项 / 730 通过 / 2 红**（即上述 2 条）；**另有一次 8 红＝「服务没起来」（`ERR_CONNECTION_REFUSED`，`Start-Process npm` 在 Windows 静默失败）**——已证那 3 个文件（`b3-1` / `click-cost` / `mock-integrity`）**单独复跑 8/8 全绿** ⇒ **环境类**。
+- ⚠ **「修后全量由收尾人补跑，结果见批次 167」**（本批**不代替**那条结论；**不得读成「本批全量已全绿」**）。
+- **本批自己跑的三件守卫**：见「六、收尾自检」**第 9 条**（本批铁律只改 `.ctx/**` 与 `CLAUDE.md` ⇒ 三件守卫的判据面**未受负向影响**）。
+
+### 四、部署就绪度「风险与上线清单」（**审计结论——**本批**未全部解决**）
+
+> **性质**：这是**审计**（`D-628` 同批产出），**逐条带证据**。**下列各项除注明「P0 已办」者外，均为缺口 / 残余口**，**一律登记为「未解决」**——**不得读成已解决**。「**既有 db 文件能否支撑数据需求**」的结论＝**表层面能支撑、缺口在种子与授权面**。
+
+**A. 能支撑（实测）**：**37 张物理表**＝`sessions` / `attachments` **2 张基础**（`server/db.js:44-58`）＋ **`RESOURCE_TABLES` 35 张**（`server/db.js:9-42`，**逐个数过**），覆盖**35 个前端持久化域**；结构为 `id TEXT PRIMARY KEY + data TEXT`（**嵌套字段零损失**）。（⚠ **本批 P0-1 另新增 `collection_versions` ⇒ 物理表实为 38**，如实并列登记。）
+
+**B. 缺口（逐条带证据）**：
+1. **`handoffs` / `pendingMemberConfirmations` / `milestones` 无服务端表**（⚠ **仍未解决**）：`docs/src/services/handoff.js:36-39`（`mockDB.handoffs`）· `docs/src/services/member-confirmation.js:46-47` / `:110-138`（自管 `localStorage` 键）· `docs/src/services/milestones.js:4-5`（`localStorage` ＋ `./data/milestones.json`）⇒ **api 形态下这些域不落库**；**`README-server.md` §7 已知限制已自登记 `handoffs`（`:1780`）与 `pendingMemberConfirmations`（`:1781`）**（题述给的是 `:1773-1774`、**实读为 `:1780-1781`**）。
+2. **种子不齐（非表缺失）**（⚠ **仍未解决**）：`server/seed.js:52-80` **只灌 13 张表**（逐个数过：users / branches / activities / notices / taskforces / tasks / assignments / archive_records / signups / issues / review_requests / makeup_tasks / party_groups）；`thought_reports` / `activity_reviews` / `taskforce_reviews` **既无服务端种子、也无空表回退**（`docs/src/core/data-adapter.js:323-342` **只兜 3 域**：attendances / inspections / todos）⇒ **api 形态首启为空态**。（题述「`server/README.md:17` 写「9 张表」与实况 13 张不符」——**实读**：`server/README.md:17` 现文为「数据库为空时自动从 `docs/src/mock/*.js` 导入种子数据（users/branches/…/signups）**并已写明 P0-4 生产默认不播种**」，**未见「9 张表」字样** ⇒ **该条按实读更正**。）
+3. **服务端零支部级读过滤**（⚠ **仍未解决**）：任一登录用户可 `GET` 全表拿到别支部数据——`server/routes/resources.js:60-62`（`listTable` 全表）· `:197-200` · `:421`（bootstrap）；**前端 `withinBranch` 只在 1 处真实消费**（`docs/src/services/issues.js:225-227`，**调用在 `:227`**）+ 定义处 `docs/src/services/branch.js:593` + `docs/src/services/branch-doc.js:237` 的**注释提及**（**题述「只被两处消费（`issues.js:225-227`、`branch-doc.js:237`）」——实读 `branch-doc.js:237` 是注释、非调用，**按实读更正为「1 处真实消费」**）；`README-server.md` §7.1 第 2 条**已自登记**（**实读 `:1760`**，题述 `:1753`）。
+4. **多数写口「登录即可写」**（⚠ **仍未解决**）：`server/routes/resources.js:211-213`；`README-server.md` §7.2 第 2 条**已自登记**（**实读 `:1560`**，题述 `:1754`）。
+5. **无索引、无 schema 迁移机制**（⚠ **仍未解决**）：全仓**无** `CREATE INDEX` / `ALTER TABLE` / `schema_version`（**本批未检索到**）；读路径全表 `JSON.parse`。
+6. **定时任务依赖常驻进程**（⚠ **仍未解决**）：`server/server.js:22-23`。
+7. ⚠ **以上为审计结论**；**本批未全部解决**，**必须如实读作「只登记未改 / 待办」**。
+
+**C. 本批已办（P0 六项，逐条见「二 · A」）**：P0-1 快照写穿事务 ＋ 乐观锁 · P0-2 禁静默回退 mock · P0-3 生产口令 · P0-4 生产不播种 · P0-5 在线备份脚本 · P0-6 三处文档改准。**⚠ 未带 `_versions` 的集合＝无条件写 · pagehide 撞 409 无法自愈**——**这两条是本批留下的残余口**（见决策日志 `D-628`）。
+
+### 五、只登记未改 / 待办（**逐条如实**）
+
+1. **`handoffs` / `pendingMemberConfirmations` 无服务端表**（另有 **`milestones`** 同样无表）——详见「四 · B1」。
+2. **种子缺口致 api 形态首启空态**（`thought_reports` / `activity_reviews` / `taskforce_reviews`）——详见「四 · B2」。
+3. **零支部级读过滤**（服务端整表返回、前端过滤）——详见「四 · B3」。
+4. **多数写口「登录即可写」**——详见「四 · B4」。
+5. **无索引 / 无迁移机制**——详见「四 · B5」。
+6. **`roster.test.mjs` 是否改 api 待口径**（以静态种子为断言对象；改 api 会与 `mock-integrity` 职责重叠 ⇒ **需支书口径确认**；**系执行方判定、非支书已定**）。
+7. **下一批 A 类改造清单**（**只建议、未执行**）：`today-summary` / `thought-review` / `notice-audience` / `issue-branch` / `branch-doc`⑧ / `member-progress`。
+8. **`SEED_FALLBACK` 是否接线**（现**全仓无消费点**、文档已明写「未接线」；**是否接线待支书定**）。
+9. **未带 `_versions` 的集合＝无条件写**（**残余口**；真实写路径只有前端一条、恒定带 `_versions`）。
+10. **pagehide 撞 409 无法自愈**（**残余**；卸载中不能重拉冲突集合）。
+11. **`server/README.md:17`「9 张表」与实况 13 张不符**——**实读未见该表述**（见「四 · B2」括注）⇒ **按实读更正、如实登记**。
+12. **三处文档不符已改准**（P0-6：`SEED_FALLBACK` 未接线 · `apiBaseUrl` 留空＝同源 · nginx 须放行 `deploy.js`）。
+13. **`branch-doc.test.mjs` 的真因（`mock-adapter.js:442` 的 `_withDelay(fn, 600)`）只登记未改**（修它须动 `docs/**`）。
+14. **`getRuntimeMode` 补不了的 8 个测试文件**（`agenda-flow` / `click-cost` / `link-integrity::L4` / `issue-anonymity` 真机段走 dev 身份卡；`mock-integrity` / `b3-1` / `help-e2e` / `module-load` 无登录步骤）——**逐条给判据、未硬塞**。
+15. ⚠ **「全仓该串只剩 1 处字面量」不成立**（题述原话）——**实读更正**：`docs/src` 内**带引号字面量 2 处**（`mock/branches.js:24` / `:29`）＋ 6 处文件头注释；`docs/src` 外另有该串 **51 处 / 27 文件**。
+
+### 六、收尾自检
+
+1. **四处计数一致**（决策日志）：文首 `D-275` … `D-630`／**356 条** ＋ 下一条自 **`D-631`** ＝ 文末「续编说明」`D-630`／**356** ＝ 本月目录（**末条 `D-630`**）＝ 月度索引 `356 条（D-275~D-630）` ＝ `^## D-` **实测 356** ✓。
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **112** 行」＝文首「一律以 **112** 为准」＝ `^- ` **实测 112 行** ✓（**109 → 112**，与该批增量句「3 行新立 ＋ 0 行改准」相符）。
+3. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓。
+4. **版本戳**：本批**未 bump、未改任何 `?v=`**（现为 `20260923g`）✓。
+5. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓。
+6. **只改 md / `.ctx`**：本批改动集＝`.ctx/**`（`ACTIVE_RULINGS` · 两本日志 · `DECISION_LOG.md` 月度索引 · `TIMESTAMPS`）＋ `CLAUDE.md`（乙部 `R-85` 改准 ＋ 丙部 `P.16` 补句 ＋ 新增 `P.17`）✓。
+7. **未把「审计结论 / 待办」写成「已解决」**：见「四」与「五」——**逐条标「未解决 / 只登记」** ✓。
+8. **未把「执行方的判定」写成「支书已定」**：`roster` 口径 · `SEED_FALLBACK` 是否接线 · 残余口是否收口**均已单列** ✓。
+9. **三件守卫实测**：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs` ⇒ `tests 36 / pass 36 / fail 0`、退出码 0（含 `S12`–`S15` · `R1`–`R6` · `S1`–`S6` ＋ `D1`–`D9`）✓。
+
+## 批次 167（2026-09-23）**批次 166 的收尾复跑**——修后全量全绿 ＋ 临时件清理
+
+> **本批是批次 166 的收尾**（批次 166 节末留了「修后全量由收尾人补跑，结果见批次 167」）。**本批无新裁定、不改任何口径**，只落两件事：**修后全量**与**临时件清理**。
+
+### 一、修后全量（冻结态，`R-85` 收尾）
+- **命令**：`cd server` → 起服务（`node server.js`，实测 `PORT3000_UP`）→ `npm test` → 跑完停服。
+- **实测**：**`ℹ tests 732` / `pass 732` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1067372.7`（**≈17.8 分钟**），**`EXITCODE=0`**。**版本戳 `20260923g`、陈旧戳 0 处。**
+- **与批次 166 的对比**：批次 166 首跑 732/730/**2 红**（`form-loop-sweep` 的 `page-refs-doc-write` / `page-refs-publish-version` 卡 `#ref-modal-title` 10s）⇒ 根因＝`ensureFlow` 只对「提交口」重试、**open 链自身超时不重试**（`runStep` 抛错直接冒出去）；已修（`waitFlowReady` 改为**返回就位结果**、不再吞超时 ＋ `openFlowPage` 未就位**整页重来 3 次** ＋ **`ensureFlow` 的 open 链纳入同一重试**）。修后该文件 **81/81 绿 / 509.0s**，本批全量 **732/732 绿** ⇒ **修复生效、无残余红**。
+- **耗时对照**：批次 165 全量 **729 项 / 19.1 分钟** → 本批 **732 项 / 17.8 分钟**（**项数 +3、时间 −1.3 分钟**）⇒ 刀①–④ 的提速在**全量口径**上可见（真机普查占六成耗时，`form-loop-sweep` 571.7 → 506.3 → 509.0s）。
+- ⚠ **批次 166 那一次「8 红」的定性（复述，不得读成回归）**：`ERR_CONNECTION_REFUSED`——`Start-Process npm` 在 Windows 上**静默失败**、服务根本没起；那 3 个必须连 3000 的文件（`b3-1-makeup-writeback` / `click-cost` / `mock-integrity`）**单独复跑 8/8 全绿** ⇒ **环境类**。
+
+### 二、临时件清理（`.tmp*` 终态 0 命中）
+- 清掉批次 166 遗留的 6 个临时件：`.tmp-b166-full.log`（115,197 B）· `.tmp-b166b-full.log`（114,778 B）· `.tmp-b167-full.log` · `.tmp-fls.log` · `.tmp-fls2.log` · `.tmp-server-b166.log` / `.tmp-server-b166.err.log`。
+- **终态实测**：`Get-ChildItem -Recurse -Force -Filter '.tmp*'` ⇒ **0 命中**；**3000 端口已释放**（`PORT3000_FREE`）。
+
+### 三、收尾自检
+1. **全量一处同值**：`tests 732` ＝ `pass 732`、`fail 0` ✓
+2. **服务已停、端口已释放** ✓
+3. **`.tmp*` 0 命中** ✓
+4. **未 `git commit`**、**未跑 `bump-version.mjs`**、**未改任何 `?v=` 戳** ✓
+5. **本批不新增 `D-` 条、不改任何口径行**（批次 166 的 `D-627`…`D-630` 已覆盖其内容，本批只**执行**其收尾）⇒ 决策日志**仍 356 条**、`ACTIVE_RULINGS` 口径行**仍 112** ✓
+6. **本批改动的文件**：仅本文件（追加本节）——**未动**其它留痕（中段那句「修后全量……见批次 167」**已由本节兑现**，两处并存即"承诺 → 兑现"的完整链，不改写上文）
+
+## 批次 168（2026-09-24，`D-631` · `D-632` · `D-633` · `D-634` · `D-635`）**「把网页升级成系统（去浏览器缓存依赖）」＋ 三条待裁落地 ＋ 三处工程缺口收口**
+
+> **本批来源**：支书 2026-09-24 新指令（逐字见下「一」）＋ 同批**三条已裁**。**本批的铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`docs/**` / `server/**` / `content/**` / `README*.md`（含 `server/README.md`）**一律不改**（改动由**另一路**做好，本批只**留痕**）；**不 `git commit`**；**不跑 `bump-version.mjs`、不改任何 `?v=` 戳**（现为 `20260924a`）；**3000 端口外部 server 未起未停**（收尾人起的那个**不管**）。
+
+### 一、支书原话与三条已裁
+
+**支书原话（逐字）**：「**我们必须把网页升级成系统！！【浏览器缓存固然有用但不能什么都依靠浏览器缓存！！】**」
+
+**三条已裁**：① `roster.test.mjs` → **改成打 API**；② `SEED_FALLBACK` → **接线**；③ 快照两条残余口 → **都收**（收紧「无版本快照写」＋ 修 `pagehide` 路径）。
+
+### 二、去缓存化审计「差距清单」（逐条带证据）与已办 / 未办分列
+
+**差距清单（本批**未全部解决**，逐条带证据）**：
+
+1. **8 类 `localStorage` 键是「唯一副本」**（清了就永久丢）：`gsm1921-member-confirmations`（成员变更确认队列）· `gsm1921-dev-stage-overrides` · `gsm1921-attendance-appeals` / `gsm1921-inspection-appeals`（申诉队列）· **`gsm1921-issue-drafts`（草稿含匿名真身）** · `gsm1921-issue-unread-*` · `gsm1921-base-data-preview` · `gsm1921-residence-overrides`（**api 形态仍读它**，与 server `users` 双轨）· `sop_org_os_auth_audit` · 三个草稿键（workforce / leader-activity / wizard）。
+2. **最严重＝`handoffs`**：api 形态下**无服务端表**、**不进快照 payload**、**不进 init 拉取** ⇒ `mockDB.handoffs` **恒为 `[]`**，写入只活在当前页内存 ＋ 本地备份，**下次 init 被覆盖**。
+3. **没有任何业务级跨标签同步**：全仓 `storage` 事件只有 `main-entry.js:190-199`（键是**代码版本自检**、**非业务数据版本**）与 `services/auth.js:58-61`（登录键）；无 `BroadcastChannel` 业务实现 ⇒ **B 看到 A 写入的唯一途径是整页重载**；多设备同理。
+4. **`pagehide` 兜底名不副实**：`data-adapter.js:603`/`:615` 注释称 `keepalive:true`，实现 `api-adapter.js:174-177` 明写「改普通 fetch」（**无 keepalive**）＋ `:57-60` 仍装 **8s 超时器** ⇒ 卸载中的请求**无完成保证**。
+5. **token 丢失会静默进可写 mock**：`data-adapter.js:844-847`（P0-2 的 fail-fast **只覆盖「有 token」分支**）。
+6. **`SEED_FALLBACK` 全仓无消费点**；**未带 `_versions` 的集合无条件写**（绕过乐观锁的旁路）。
+
+**本批已办**：清单 **2**（`handoffs` 所在的三域）· **3**（新增跨标签 / 跨设备探测）· **4**（`pagehide` 真发 keepalive）· **5**（会话失效提示态）＋ **6 两条**（`SEED_FALLBACK` 接线 · 缺集合版本整批 428）。
+
+**本批**未办**（如实登记）**：清单 **1 的大部分**（「唯一副本」键**大部分仍未服务端化** ⇒ 去缓存化 **P2**）· `gsm1921-residence-overrides` **api 形态仍读 localStorage**（与 server `users` 双轨 ⇒ **P1-2 未做**）。
+
+### 三、本批做了什么（A–G）
+
+> **说明**：下列各处**均为「另一路」所改**（`文件:行号` 见各条括注 / 决策日志 `D-631`…`D-635`）；**本批的留痕动作＝决策日志五条 ＋ `ACTIVE_RULINGS` 2 行新立 ＋ 3 行改准 ＋ 本文件本节 ＋ `TIMESTAMPS` ＋ `CLAUDE.md`**。
+
+**A 三域服务端化（`handoffs` / `member_confirmations` / `milestones`）**：建表 = 另立 `SEMANTIC_TABLES`（`server/db.js:152-159`）＋ 建表循环（`:64`）＋ `replaceCollection` 白名单同源（`:73`）；**为什么另立**＝`doc-consistency::S5` 把 `RESOURCE_TABLES` 的**长度**与 `.ctx/SNAPSHOT.md`、`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 对账、而那两份**在授权面外** ⇒ 照做必红且无法修；另立也**顺带坐实「不进快照写穿」**。语义端点（挂**既有** `server/routes/resources.js`，**未新开路由**）：`GET/POST /handoffs`（`:830`/`:836`，发起门＝`actor.role === HANDOFF_TYPES[type].from`）· `POST /handoffs/:id/confirm`（`:861`，门＝`actor.role === row.to`）· `GET/POST /member-confirmations`（`:873`/`:878`，入队＝组织委员）· `POST /member-confirmations/:id/decide`（`:899`，支书 / 副支书）· `GET /milestones`（`:913`）。种子：`server/seed.js:42-58` `seedMilestones()`（**内容单一源＝`docs/data/milestones.json`**，同 `seedIssues()` 法）＋ `:104` 播种。init 拉取：`docs/src/core/data-adapter.js:313` ＋ `_loadAuxCollections`（`:958-975`）。前端两形态分流：`api-adapter.js:813-855` ／ `services/handoff.js`（`:33`/`:114`/`:148`）· `member-confirmation.js`（`:144`/`:149`/`:167`/`:317`/`:446`）· `milestones.js`（`:23-45`）——**mock 形态原路径一字未改**。**验收**：新增 `server/test/records-endpoints.test.mjs` **7/7**（含真机：**destroy 整个 context＝清缓存等价 ⇒ 新客户端仍读得到**；三域不参与快照版本基线；写门 403 用例）。**`transferOut` 存量请求判「不做数据迁移」**（理由与**用户可见差异**：清缓存后，迁移前发起且未确认的旧请求仍会消失＝迁移前行为；迁移后新请求不再丢）。
+
+**B `pagehide` 快照可靠性（＝待裁③）**：`ApiAdapter.snapshot(payload, opts)`（`api-adapter.js:188-210`）：`keepalive` 且 **gzip 体 ≤ 57344B**（`KEEPALIVE_BODY_LIMIT`，`:25-31`；取自 Fetch 规范 keepalive 配额 64KiB − 8KiB 余量）⇒ 发 keepalive 且**该路径不挂 `AbortController`**；超限 ⇒ 普通 fetch ＋ `console.warn('…本次写入可能不被送达')`。调用点 `data-adapter.js:631`。**不用 `sendBeacon`**：它**不能带 `Authorization` 头**（`/snapshot` 是 `requireAuth`）⇒ 采用即要么 401 丢写、要么**降鉴权**（明令不许）；也不能带 `Content-Encoding: gzip`。**失实注释修正**：`data-adapter.js:603`/`:615`（前后对照：原称 `keepalive:true`、实现是普通 fetch）。
+
+**C token 失效不得静默进可写 mock（＝病灶 5）**：`data-adapter.js::isStaleServerSession()`（`:878-895`，**四条件同时成立**：无 token ＋ `localStorage` 有登录痕迹 ＋ 本标签页无 session 快照 ＋ `DEPLOY_MODE==='server'`）→ `hydrateDataSource:912-920` 分流 → `renderSessionExpiredError`（`:857`，标题「会话已失效，请重新登录」+ 去登录页）。**保持现状的两条**（刻意保留）：无任何登录痕迹的访客；本标签页刚用**开发身份卡**登录（devLogin 同时写 localStorage + 会话快照）。**受影响用例清单：为空**（审计点名的 4 个走的是 `login.html` 身份卡 ⇒ 非失效态；真正缺口在 `bootstrapPage`，见 G）。
+
+**D `SEED_FALLBACK` 接线（＝待裁②）**：`data-adapter.js:325`/`:336` 消费（三域空表回退受它控制）、`:942` 读取；**默认 `true`**（既有基线零变化）。**顺带修掉一个真 bug**：早期写法用**命名导入** ⇒ Node 托管形态（`server/app.js:55-57` 动态注入）缺该导出 ⇒ **SyntaxError ⇒ 整页模块图崩、登录页退化成原生表单提交**（`multi-user-write` 三条用例登录超时即此）⇒ 改**命名空间导入 + 缺省 `true`**。Node 侧注入串已补该常量（**见 G**）；四处文档（`config/deploy.js` 注释 · `server/README.md:17` · `README-server.md:1541`/`:1589` · `DEPLOYMENT_GUIDE.md:253`/`:454`）由「未接线/取不到」**改准为「已接线」**。
+
+**E 收紧「无版本快照写」（＝待裁③）**：`/snapshot`——**集合在 payload 里但 `_versions` 缺该集合 ⇒ 整批 428**，body `{error, missingVersions:[...]}`（`resources.js:455` 判据、`:1123` `_snapshotMissingVersions`、协议注释 `:1087-1100`）。`{}`（无集合要写）仍 204；版本齐 ⇒ 200 `{versions}`；版本不符 ⇒ 409（不变）。**直连调用点改准**：`server/test/server-base.test.mjs:156-199`（原断言 204 ⇒ 补版本断言 **200**，**并新增更严的「缺集合版本 ⇒ 428 + 库内一字未变」**）· `server/test/policy-config.test.mjs:546-586`（5 处 + `versioned()` 助手，403 断言不变）。**没有靠放宽判据让谁变绿。**
+
+**F 跨标签 / 跨设备（去缓存化 P1-1，本批核心）**：`probeRemoteChanges()`（`data-adapter.js:1112-1162`）＋ 周期常量 `REMOTE_PROBE_INTERVAL_MS = 60_000`（`:980`）＋ 开关 `localStorage['gsm1921-remote-probe']`（`:983`/`:1006`/`:1015`，**默认开**）＋ 共用重拉核心 `_refreshCollections`（`:1038`，**从 `_recoverFromConflict` 抽出**、409 恢复与探测共用一份）＋ 跨标签频道 `gsm1921-data-changed`（`:1071`/`:1187-1199`）＋ 写成功即广播（`:576`）＋ `main-entry.js:19,206`（复用**既有** `visibilitychange` 监听，未另挂第二个）。**四条避让（缺一不可）**：① 有未结算排程（`_snapshotTimer`/`_flushDeferred`）⇒ 整次跳过；② `init()` 未完成/基线未建 ⇒ 跳过；③ **本机仍脏的集合逐个排除**在重拉清单外（与 flush 同口径）；④ `_remoteProbeInFlight` 去重。**顺序不打乱**：只重拉版本不一致的集合，**先取版本、再拉数据、只对真拉到的集合推进基线**。**失败静默降级**：探测只读、失败 `console.warn` + `{skipped:'unreachable'}`，**不弹错误、不切数据源**；**写链的 fail-fast 一字未动**。**三域采用口径＝不加版本号、每次探测直接 `list()` + 内容比对 + 取并集**（不把三域名塞进 `snapshot/versions` 集合全集，以**不破** `records-endpoints.test.mjs` 的 T1-④ 断言）；**并集是必需的**（否则 `member-confirmation` 的迁移前本机存量 transferOut 请求会在首次探测被整表覆盖抹掉 ⇒ **死锁复发**）。**判据实测**（新增 `server/test/multi-tab-sync.test.mjs` **6/6**）：A 跨标签（`visibilitychange` + 低频定时器各验一次；**同源多标签经 BroadcastChannel 实测 29ms**）· B 跨设备（重进可见 且 该集合版本 **0 → 1 严格 +1**）· C 不被本机未提交写回滚（`skipped='pending-write'`；脏集合排除、其它集合照常刷新）· D 断服静默（`skipped='unreachable'`、无错误浮层、`pageerror=0`）。判据 A 先断言「B 未探测前看不到」以证病灶真实存在。**新增成本与风险（诚实）**：每可见标签每 60s ≈ **4 个 GET**（versions + 三域小集合）；探测触发的重渲染可能打断正在进行的交互（未加「交互中抑制」）；脏集合被排除 ⇒ 长期脏态的集合不会被远端刷新（方向安全）。**未覆盖**：`agendaVotes`/`issues` 等其它语义端点域未纳入；`visibilitychange` 触发**只有 index.html 一条** ⇒ 11 个独立页 + 7 个工作台页**靠 60s 定时器兜底**。
+
+**G 三处工程缺口收口**：① **`bootstrapPage` 会话失效判定**：`docs/src/core/bootstrap.js:25`（import `hydrateDataSource`）＋ `:119-132`（无 token 分支 `await hydrateDataSource(...)`）——**复用而非抄写**的证据：`isStaleServerSession()` 是 `data-adapter.js` **模块私有（未导出）** 且该文件当时禁改 ⇒ 只能经**唯一收敛点 `hydrateDataSource()`** 间接复用；`bootstrap.js` 内检索 `session-snap`/`login-user`/`DEPLOY_MODE` **零命中**。真机三态实测：访客 ⇒ mock；开发身份卡（工作台与首页）⇒ mock；**清 sessionStorage 保留 localStorage 登录痕迹 ⇒ 工作台与首页都出「会话已失效」提示态**。② **`SEED_FALLBACK` Node 注入**：`server/app.js:55-57`（**在原有 3 行内等价替换、未位移**）注入 `SEED_FALLBACK = ${process.env.SEED_FALLBACK === '0' ? 'false' : 'true'}`；`server/.env.example:15-18` 登记；语义＝`SEED_FALLBACK=0` 关断三域演示种子注入。**实测**：缺省注入 `true`、设 `0` 注入 `false`（页面内 `import('/src/config/deploy.js')` 逐字可核）。四处文档改准（见 D）。`README-server.md §5.3` 表由 **19 项 → 20 项**（新增该行）。③ **`server/README.md` 计数与形态**：`:69` `test:daily` **565 → 567 项 / 144.1 秒**＋补「项数随测试增长、以实跑输出为准」；`:79` 把 `roster.test.mjs` 登记进「纯 node 但跑 api 形态」一类（与 `group-view.test.mjs` 同形）。
+
+### 四、Ｈ **收尾人修的两个真 bug（必须落账）**
+
+1. **`BroadcastChannel` 未限浏览器** ⇒ Node ≥18 同样有该全局，而**开着的频道会钉住事件循环** ⇒ **任何 import `data-adapter` 的测试进程跑完都不退出**（真机实测：`multi-tab-sync` 六条全绿但 runner 不结束；并**连带把一批纯 node 用例判成「文件级崩」**——`test:daily` 曾出现 **12 个文件级红**）⇒ 已加 `typeof window !== 'undefined'` 前置（`data-adapter.js:1186-1191` 一带，与下方 `startRemoteChangeProbe()` 同款）。**修后**：`multi-tab-sync` **6/6**、`EXITCODE=0`、runner 正常退出。
+2. **收尾人自伤**：把 `SEED_FALLBACK` 的注释从 **4 行改成 5 行** ⇒ `data-adapter.js` 之后**行号整体 +1** ⇒ `README-server.md` 的 **5 处取证引用**（`:1508`/`:1580`/`:1581` 指向 `:980`/`:983`/`:999`/`:1015`/`:1038`）**全部顶偏** ⇒ `doc-line-ref R2` 红。**修法＝压回等行数（4 行）、不靠改引用**（`R2` 报的正是「区间内未出现 `REMOTE_PROBE_INTERVAL_MS`」等 **6 条**）。
+
+### 五、本批实测（**如实，不许读成全绿**）
+
+- **全量**：**748 项 / 747 通过 / 1 红**（**仅 `doc-line-ref R2`**，即上述 H-2 的自伤），`duration_ms 1228545.2`（**≈20.5 分钟**）。
+- **修后复跑**：`doc-line-ref` + `doc-consistency` + `version-stamp` + `multi-tab-sync` ⇒ **42 项 / 42 通过 / 0 红**（含 `R1–R6` 与 `S1–S15`）✓
+- ⚠ **「修后全量由收尾人补跑 ⇒ 见批次 169」**（本批**不代替**那条结论；**不得读成「本批全量已全绿」**）。
+- **另一路自测**：`records-endpoints` 7/7 · `multi-tab-sync` 6/6 · `roster` 22/22 · `group-view` 8/8 · 守卫与真机回归（`page-sweep` + `form-loop-sweep` **92/92** 等）全绿；`test:daily` **567 项**（**R4 那次因同机残留的挂死进程干扰，出现 11–12 个「文件级 libuv 崩」——定性为环境类，H-1 修掉根因后复测正常**）。
+- **本批自己跑的三件守卫**：见「七、收尾自检」第 6 条。
+
+### 六、只登记未改 / 待办（**逐条如实**）
+
+1. **剩余「唯一副本」键（草稿 / 申诉队列 / 未读标记 / 预览 / 在册覆盖 / 审计留痕 / mock 账号墓碑）仍未服务端化** ⇒ 去缓存化 **P2**。
+2. **`gsm1921-residence-overrides` api 形态仍读 localStorage**（与 server `users` 双轨）⇒ **P1-2 未做**。
+3. **`agendaVotes` / `issues` 等语义端点域未纳入跨端探测**；`visibilitychange` 触发**仅 index.html 一条**（11 个独立页 + 7 个工作台页**靠 60s 定时器兜底**）。
+4. **`transferOut` 存量请求不迁移**（见「三 · A」；**用户可见差异已写明**）。
+5. **`README-server.md §7.2 #15/#16`**（原写「handoffs / pendingMemberConfirmations 服务端无表」）**已按实况改准**（本批 A 已建表）。
+6. **`BroadcastChannel` 限浏览器**属**工程纪律**（**不入 `ACTIVE_RULINGS`**，各归其权威落点）。
+7. **收尾人自伤**（注释 4 → 5 行致 `R2` 红）**修法＝压回等行数**；**未靠改引用**。
+8. ⚠ **`CLAUDE.md` 里仍写 `SEED_FALLBACK`「全仓无任何消费点 / 维持未接线」——本批已改准**（见「七」）。
+
+### 七、收尾自检
+
+1. **四处计数一致**（决策日志）：文首 `D-275` … `D-635`／**361 条** ＋ 下一条自 **`D-636`** ＝ 文末「续编说明」`D-635`／**361** ＝ 本月目录（**末条 `D-635`**）＝ 月度索引 `361 条（D-275~D-635）` ＝ `^## D-` **实测 361** ✓。
+2. **`ACTIVE_RULINGS` 口径行**：文首「实有 **114** 行」＝文首「一律以 **114** 为准」＝ `^- ` **实测 114 行** ✓（**112 → 114**，与该批增量句「2 行新立 ＋ 3 行改准」相符）。
+3. **队列六处同源**：本批**未动队列**（在册仍 **1 条：`SOP-B-25`**）✓。
+4. **版本戳**：本批**未 bump、未改任何 `?v=`**（现为 `20260924a`）✓。
+5. **未提交 git / 未新建仓库文件**：本批**未 `git commit`**、**新增仓库文件 0 个** ✓。
+6. **三件守卫实测**：`$env:DISABLE_PASSWORD_CHECK=1; node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs` ⇒ 结果见**本批交付报告**（**该命令的输出随本批一并回报**；报告中「修后复跑 42 / 42 / 0 红」含这三件 ＋ `multi-tab-sync`）。
+7. **未把「审计结论 / 待办」写成「已解决」**：见「二」与「六」——**逐条标「未解决 / 只登记」** ✓。
+8. **未把「执行方的判定」写成「支书已定」**：本批五条裁定的**来源逐条写明**（支书 2026-09-24 原话 / 同批三条已裁）✓。
+9. **未把「修后全量」写成已跑**：见「五」——**明确写「修后全量由收尾人补跑 ⇒ 见批次 169」** ✓。
+10. **只改 md / `.ctx`**：本批改动集＝`.ctx/**`（`ACTIVE_RULINGS` · 两本日志 · `DECISION_LOG.md` 月度索引 · `TIMESTAMPS`）＋ `CLAUDE.md` ✓。
+
+## 批次 169（2026-09-24）**批次 168 的收尾复跑**——修后全量全绿 ＋ 残留清理
+
+> **本批是批次 168 的收尾**（批次 168 节末留了「修后全量由收尾人补跑 ⇒ 见批次 169」）。**本批无新裁定、不改任何口径**。
+
+### 一、修后全量（冻结态，`R-85` 收尾）
+- **命令**：`cd server` → 起服务（`node server.js`，实测 `PORT3000_UP`）→ `npm test` → 跑完停服。
+- **实测**：**`ℹ tests 748` / `pass 748` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1216894.8`（**≈20.3 分钟**），**`EXITCODE=0`**。**版本戳 `20260924a`、陈旧戳 0 处。**
+- **收口关系**：批次 168 全量 **748 / 747 / 1 红**（唯一红＝`doc-line-ref R2`，**收尾人自伤**：把 `SEED_FALLBACK` 注释由 4 行改成 5 行 ⇒ `data-adapter.js` 之后行号 +1 ⇒ `README-server.md` 的 5 处取证引用顶偏）⇒ 已**压回等行数**（**不靠改引用**）⇒ 本批全量 **748/748 绿** ⇒ **自伤已清、无残余红**。
+- **`H-1` 的复验**：`BroadcastChannel` 加 `typeof window !== 'undefined'` 前置后，运行期不再有「import 本模块的测试进程跑完不退出」；本批全量为**正常退出**（`EXITCODE=0`，**未用** `--test-force-exit` 强杀）⇒ 该修复在**全量口径**上生效。
+
+### 二、残留清理（`.tmp*` 终态 0 命中）
+- 清掉本批遗留的 **5 个临时件**：`.tmp-b168-full.log` · `.tmp-b169-full.log` · `.tmp-diag1.log` · `.tmp-diag2.log` · `.tmp-server.log`。
+- **另清**：批次 168 期间由「另一路」留下的**挂死测试进程**（PID 29296 / 31144，跑 `test/_tmp-hang-diag.test.mjs`，当日 13:15 起常驻）**已停**；空目录 `server/.tmp` **已删**。该挂死进程是批次 168 里「`test:daily` 出现 11–12 个「文件级 libuv 崩」」的**疑似干扰源**，而根因另为 `H-1`（已修）。
+- **终态实测**：`Get-ChildItem -Recurse -Force -Include '.tmp*','_tmp*'` ⇒ **0 命中**；**3000 端口已释放**。
+
+### 三、收尾自检
+1. **全量一处同值**：`tests 748` ＝ `pass 748`、`fail 0` ✓
+2. **服务已停、端口已释放、无挂死残留进程** ✓
+3. **`.tmp*` / `_tmp*` 0 命中** ✓
+4. **未 `git commit`**、**未跑 `bump-version.mjs`**、**未改任何 `?v=` 戳** ✓
+5. **本批不新增 `D-` 条、不改任何口径行** ⇒ 决策日志**仍 361 条**、`ACTIVE_RULINGS` 口径行**仍 114** ✓
+6. **本批改动的文件**：仅本文件（追加本节）——批次 168 节末的「见批次 169」**已由本节兑现**（不改写上文；两处并存＝「承诺 → 兑现」的完整链）✓
+
 
 
 

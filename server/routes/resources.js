@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { requireAuth, requireCommissioner, requireRole } from './auth.js';
-import { replaceCollection } from '../db.js';
+import { replaceCollectionsAtomic, readCollectionVersions } from '../db.js';
 import { deleteUploadedFile } from './uploads.js';
 import { afterResourceWrite } from '../services/mailer-hooks.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
@@ -13,7 +13,7 @@ import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, s
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
 import { POLICY_OVERRIDE_SECTIONS } from '../../docs/src/core/policy-defaults.js';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, branchCommissionerWriteDeny, hashSubmitterToken, isAnonymousForced } from '../../docs/src/core/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -77,7 +77,7 @@ const MEMBER_FLOW_ROLE_SET = new Set(MEMBER_FLOW_ROLES);
 const RESOURCE_WRITE_GATE = {
   branches: 'party-staff',
   appointmentRecords: 'party-staff',
-  users: 'party-staff',
+  users: { post: 'party-staff', patch: 'branch-commissioner', delete: 'party-staff' },
   reviewRequests: { post: 'branch-committee', patch: 'party-staff', delete: 'party-staff' },
   // 通知（2026-09-13 dogfood 权限专项）：发布=支书/副支书/组织/宣传，管理（编辑/删除）=发布者+纪检；
   // 角色名单单一源 = constants.js::NOTICE_PUBLISH_ROLES / NOTICE_MANAGE_ROLES（与前端 NoticePermission 同源）
@@ -89,7 +89,7 @@ const RESOURCE_WRITE_GATE = {
 };
 
 /** 资源写角色门判定（在 requireAuth 之后、handler 内调用；未设门资源一律放行） */
-function _assertResourceWrite(actor, name, method, body) {
+function _assertResourceWrite(actor, name, method, body, targetId, db) {
   const gate = RESOURCE_WRITE_GATE[name];
   if (!gate) return true; // 未设门：由既有 writeAuth（requireAuth / requireCommissioner）把关
   const need = typeof gate === 'string' ? gate : gate[method];
@@ -114,9 +114,9 @@ function _assertResourceWrite(actor, name, method, body) {
   if (need === 'notice-manage') return !!actor && NOTICE_MANAGE_ROLE_SET.has(actor.role);
   // 党小组管理：仅支书（含副支书）——角色名单单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES
   if (need === 'secretary') return !!actor && SECRETARY_AND_DEPUTY_ROLE_SET.has(actor.role);
-  // 成员流动登记：组织委员 + 支书/副支书——单一源 constants.js::MEMBER_FLOW_ROLES（勿手写）
+  // 成员流动登记：组织委员 + 支书/副支书——单一源 constants.js::MEMBER_FLOW_ROLES（勿手写）；支委身份配置（users 的 patch 门）见文件末 _branchCommissionerGateDeny
   if (need === 'member-flow') return !!actor && MEMBER_FLOW_ROLE_SET.has(actor.role);
-  return true;
+  return need === 'branch-commissioner' ? _branchCommissionerGateDeny(db, actor, targetId, body) === null : true;
 }
 
 /** 写门 403 文案（按资源给可懂原因，勿用一句万金油） */
@@ -217,7 +217,7 @@ export function createResourcesRouter(db) {
     // （空模板/复制双形态创建，party-staff 门控，见 L2 配置路由之前）；本通用 POST 跳过 branches。
     if (name !== 'branches') {
       router.post(`/${name}`, writeAuth, (req, res) => {
-        if (!_assertResourceWrite(req.actor, name, 'post', req.body)) {
+        if (!_assertResourceWrite(req.actor, name, 'post', req.body, req.params.id, db)) {
           return res.status(403).json({ error: _writeDenyMsg(name) });
         }
         const row = req.body;
@@ -245,7 +245,7 @@ export function createResourcesRouter(db) {
 
     // 更新：局部合并 patch（与前端 update(id, patch) 语义一致）
     router.patch(`/${name}/:id`, writeAuth, (req, res) => {
-      if (!_assertResourceWrite(req.actor, name, 'patch', req.body)) {
+      if (!_assertResourceWrite(req.actor, name, 'patch', req.body, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
       }
       const id = req.params.id;
@@ -270,7 +270,7 @@ export function createResourcesRouter(db) {
 
     // 删除
     router.delete(`/${name}/:id`, writeAuth, (req, res) => {
-      if (!_assertResourceWrite(req.actor, name, 'delete', null)) {
+      if (!_assertResourceWrite(req.actor, name, 'delete', null, req.params.id, db)) {
         return res.status(403).json({ error: _writeDenyMsg(name) });
       }
       // 活动写门：删除同样受限（防普通成员清库）
@@ -426,9 +426,9 @@ export function createResourcesRouter(db) {
     res.json(out);
   });
 
-  // 全量快照写穿透：认证后整表替换（data-adapter persist() 的落库目标）
-  // 2026-09-01：支持 gzip 压缩体（前端 CompressionStream 压缩，规避大 payload 传输限制）；
-  // 兼容未压缩 JSON（server-base.test.mjs 等直连用例；批次 48 由 snapshot.test.js 等五件合并而来）。
+  // 全量快照写穿透：认证后整表替换（data-adapter persist() 的落库目标）。**P0-1（2026-09-23）**：
+  // ① 逐集合乐观锁——payload._versions（集合名→基线版本）与服务端 collection_versions 比对，不一致 ⇒ **409 + conflicts**（不覆盖）；**payload 里出现但 `_versions` 里没有的集合 ⇒ 整批 428（不再无条件写）**。② 全部集合替换 + 版本 +1 在**同一事务**内（要么全成、要么全不动）；带 `_versions` ⇒ 200 + `{versions}`，未带（且 payload 无集合）⇒ 204。
+  // 2026-09-01：支持 gzip 压缩体（前端 CompressionStream 压缩，规避大 payload 传输限制）；兼容未压缩 JSON（server-base.test.mjs 等直连用例；批次 48 由 snapshot.test.js 等五件合并而来）。
   router.post('/snapshot', requireAuth(db), (req, res) => {
     let payload = req.body;
     try {
@@ -451,10 +451,10 @@ export function createResourcesRouter(db) {
     }
     const snapshotDeny = _snapshotActivityApprovalGateDeny(db, payload, req.actor);
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
-    for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
-      if (Array.isArray(payload[name])) replaceCollection(db, table, payload[name]);
-    }
-    res.status(204).end();
+    const baseVersions = _snapshotBaseVersions(payload);
+    const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });
+    if (baseVersions) { const conflicts = _snapshotVersionConflicts(db, payload, baseVersions); if (conflicts.length) return res.status(409).json({ error: '数据已被他人更新，本次写入未生效（版本冲突，请刷新后重试）', conflicts }); }
+    const nextVersions = replaceCollectionsAtomic(db, _snapshotWrites(payload)); return baseVersions ? res.json({ versions: nextVersions }) : res.status(204).end();
   });
 
   // ── L2 支部工作流模块配置（2026-09-03 支书裁定：支部自治/支书操作/核心固定）────────
@@ -813,7 +813,106 @@ export function createResourcesRouter(db) {
     db.prepare('INSERT OR REPLACE INTO issues (id, data) VALUES (?, ?)').run(issue.id, JSON.stringify(issue));
     res.json(sanitizeIssue(issue));
   });
+  // ════════════════════════════════════════════════════════════════
+  //  语义端点：三委数据交接 / 成员变更确认队列 / 批次里程碑（2026-09-23 批次 163）
+  // ════════════════════════════════════════════════════════════════
+  // 由来（支书 2026-09-23 逐字：「我们必须把网页升级成系统！！【浏览器缓存固然有用但不能什么都依靠浏览器缓存！！】」）：
+  //   这三域此前**只有浏览器本地一份**——`handoffs` 有本地落盘却不在快照 payload / init 拉取 / 资源名映射里
+  //   （api 形态下 `mockDB.handoffs` 恒空、刷新即丢）；成员变更确认队列只存 localStorage 键
+  //   `gsm1921-member-confirmations`（清缓存 = 旧版 transferOut 存量请求死锁）；`milestones` 只读静态文件。
+  //   现按**语义端点域**模板（同 `agenda_votes`）落服务端表：`server/db.js::SEMANTIC_TABLES` 建表，
+  //   前端 `init()` 逐域拉取填充 mockDB 缓存（与 agendaVotes 同一取法）、写口改经本组端点 ⇒ 服务器为权威。
+  // 纪律（三条）：① **故意不进快照 payload**——这三域的写口是本组语义端点，若走快照会被 800ms 防抖窗口里的
+  //   陈旧缓存覆盖（与 agendaVotes 同理）；② 写门照既有 requireXxx 中间件，角色集一律取 constants.js 单一源；
+  //   ③ 表在 `SEMANTIC_TABLES`（独立于 `RESOURCE_TABLES`）⇒ 无通用 CRUD、不参与快照事务。
+  // ── 三委数据交接（T-304 C2 §E.2）──
+  // 类型元数据单一源 = `docs/src/services/handoff.js::HANDOFF_TYPES`（from/to 由类型派生，**不采信客户端自述**）。
+  router.get('/handoffs', requireAuth(db), (req, res) => {
+    let rows = listTable(db, 'handoffs');
+    if (req.query.to) rows = rows.filter((h) => h.to === req.query.to);
+    if (req.query.status) rows = rows.filter((h) => h.status === req.query.status);
+    res.json(rows);
+  });
+  router.post('/handoffs', requireAuth(db), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const meta = HANDOFF_TYPES_SRC[body.type];
+    if (!meta) return res.status(400).json({ error: '未知交接类型' });
+    if (req.actor.role !== meta.from) return res.status(403).json({ error: '无权限：本类数据交接须由发起方角色发起' });
+    const id = body.id ? String(body.id) : `ho-${randomUUID().slice(0, 8)}`;
+    if (db.prepare('SELECT id FROM handoffs WHERE id = ?').get(id)) return res.status(409).json({ error: '该交接 id 已存在' });
+    const row = {
+      id,
+      type: body.type,
+      from: meta.from,
+      to: meta.to,
+      refType: String(body.refType || ''),
+      refLabel: String(body.refLabel || ''),
+      refId: String(body.refId || ''),
+      note: typeof body.note === 'string' ? body.note : '',
+      status: 'pending',
+      createdAt: body.createdAt || new Date().toISOString(),
+      confirmedAt: null,
+      confirmedBy: null,
+    };
+    writeRow(db, 'handoffs', row);
+    res.status(201).json(row);
+  });
+  // 接收方确认（销项状态落库）：仅该行的 `to` 角色可确认；非 pending ⇒ 幂等原样返回
+  router.post('/handoffs/:id/confirm', requireAuth(db), (req, res) => {
+    const row = getRow(db, 'handoffs', req.params.id);
+    if (!row) return res.status(404).json({ error: '交接记录不存在' });
+    if (row.to !== req.actor.role) return res.status(403).json({ error: '无权限：仅接收方可确认该交接' });
+    if (row.status !== 'pending') return res.json(row);
+    const next = { ...row, status: 'done', confirmedAt: new Date().toISOString(), confirmedBy: req.actor.role };
+    writeRow(db, 'handoffs', next);
+    res.json(next);
+  });
+  // ── 名册成员变更确认请求队列（附录⑩ S4）──
+  // 发起＝组织委员（与 services/member-confirmation.js::submitMemberChange 同口径：阶段/在册滞留下方写权）；
+  // 决策＝支书/副支书（副书同权，单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES，与本文件既有集合同源）。
+  router.get('/member-confirmations', requireAuth(db), (req, res) => {
+    let rows = listTable(db, 'member_confirmations');
+    if (req.query.status) rows = rows.filter((r) => r.status === req.query.status);
+    res.json(rows);
+  });
+  router.post('/member-confirmations', requireRole(db, ORG_COMMISSIONER_ROLE_SET), (req, res) => {
+    const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    const { id: rawId, personId, kind, action, to } = body;
+    if (!personId || !action || !to) return res.status(400).json({ error: '缺少必要字段：personId/action/to' });
+    const id = rawId ? String(rawId) : `mc-${randomUUID().slice(0, 8)}`;
+    if (db.prepare('SELECT id FROM member_confirmations WHERE id = ?').get(id)) return res.status(409).json({ error: '该请求 id 已存在' });
+    const row = {
+      ...body,
+      id,
+      kind: kind || 'change',
+      personId,
+      action,
+      to,
+      status: 'pending',
+      decidedBy: null,
+      decidedAt: null,
+      rejectNote: '',
+    };
+    writeRow(db, 'member_confirmations', row);
+    res.status(201).json(row);
+  });
+  router.post('/member-confirmations/:id/decide', requireRole(db, SECRETARY_AND_DEPUTY_ROLE_SET), (req, res) => {
+    const row = getRow(db, 'member_confirmations', req.params.id);
+    if (!row) return res.status(404).json({ error: '待确认请求不存在' });
+    const { decision, note } = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
+    if (decision !== 'approved' && decision !== 'rejected') return res.status(400).json({ error: 'decision 须为 approved 或 rejected' });
+    if (row.status !== 'pending') return res.status(400).json({ error: `当前状态 ${row.status} 不可再决策` });
+    const at = new Date().toISOString();
+    const next = decision === 'rejected'
+      ? { ...row, status: 'rejected', decidedBy: req.actor.id, decidedAt: at, rejectNote: (typeof note === 'string' && note.trim()) ? note.trim() : '支书未确认生效，请求已退回' }
+      : { ...row, status: 'approved', decidedBy: req.actor.id, decidedAt: at };
+    writeRow(db, 'member_confirmations', next);
+    res.json(next);
+  });
+  // ── 批次里程碑（只读；内容单一源 = docs/data/milestones.json，由 seed.js 播种）──
+  router.get('/milestones', requireAuth(db), (req, res) => res.json(listTable(db, 'milestones')));
 
+  router.get('/snapshot/versions', requireAuth(db), (req, res) => res.json({ versions: _allCollectionVersions(db) })); // P0-1 集合版本基线查询（前端 init() 取基线；返回全集，未出现过的集合＝0）
   return router;
 }
 
@@ -924,3 +1023,152 @@ function _activityCreateGatePatch(db, actor) {
   } catch { mode = 'off'; }
   return pendingApprovalPatchOnWrite(mode);
 }
+
+// ════════════════════════════════════════════════════════════════
+//  `users` 写门的**靶向判据**：支书 / 副支书配置本支部支委身份（2026-09-23 支书裁定 · 情景①）
+// ════════════════════════════════════════════════════════════════
+// 由来（**放宽权限、须精确**）：`users` 的 patch 门原为「仅 party-staff」（见上方 RESOURCE_WRITE_GATE）。
+//   支书 2026-09-23 裁定「最初的人员配置只有党委给支书配置，剩下的身份由书记来配置」⇒ 给支书开
+//   **本支部、支委身份（组织 / 宣传 / 纪检委员）** 这一格写权；**2026-09-23 支书追裁「副支书也可配」**
+//   ⇒ 同权扩到本支部现任副支书（`SECRETARY_AND_DEPUTY_ROLES` 同页同权，与本仓通例一致）；
+//   **党委侧口径一字未收窄**（`party-staff` 仍全量可写）。
+// 判据**单一源**＝`docs/src/core/constants.js::branchCommissionerWriteDeny`（本函数只把「靶行 / 靶支部 /
+//   现任支书 / 现任副支书」从库里取出来喂给它，**不另写第二套**）。被拒的几类（该函数注释为权威，此处摘要）：
+//   · 非本支部现任支书 / 副支书者（组织 / 宣传 / 纪检委员 / 普通成员等）→ 403；
+//   · 靶标与操作人不同支部 → 403；靶标即支书本人 / 现任主席位（`secretary` / `deputy-secretary`）→ 403
+//     （一把手层归党委，`D-585`：换届选举涉及支委班子身份赋权，由党委改变支部设置）；
+//   · 写入角色键不在白名单（含 `secretary` / `deputy-secretary` / `party-staff` / `leader` / `organizer` / `deep` …）→ 403；
+//     撤销位 `participant` 例外（降级，不是授予）。
+// 前端同一判据的消费点＝`docs/src/services/appointment.js::appointBranchCommissioner`（角色双链写 + 审计留痕）。
+// ⚠ 本块置于文件末尾、且上文对该门的三处改动均为**等行数替换**：不改动任何既有行号
+//   （README-server.md 有大量 `文件:行号` 引用指向本文件，`doc-line-ref` 守卫逐条核）。
+
+/**
+ * `users` 写门的靶向判据：允许 → null；拦截 → 403 文案。
+ * @param {Object} db better-sqlite3 实例
+ * @param {{role?:string,id?:string,branchId?:string}} actor 写者（requireAuth 注入）
+ * @param {string} targetId 靶行 id（`req.params.id`）
+ * @param {Object} body 本次补丁
+ * @returns {string|null}
+ */
+function _branchCommissionerGateDeny(db, actor, targetId, body) {
+  const readRow = (table, id) => {
+    if (!id) return null;
+    const row = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
+    return row ? JSON.parse(row.data) : null;
+  };
+  const myBranchId = (actor && actor.branchId) || 'br-b1';
+  const target = readRow('users', targetId);
+  const branch = readRow('branches', myBranchId);
+  const patch = (body && typeof body === 'object' && !Array.isArray(body)) ? body : {};
+  // 本支部现任副支书（副书同权，2026-09-23 支书追裁）：判据侧只认「本支部那一行 deputy-secretary」
+  const deputyRow = db.prepare('SELECT data FROM users').all()
+    .map(r => JSON.parse(r.data))
+    .find(u => u.role === 'deputy-secretary' && ((u.branchId || 'br-b1') === myBranchId));
+  return branchCommissionerWriteDeny({
+    actorRole: actor && actor.role,
+    actorId: actor && actor.id,
+    actorBranchId: myBranchId,
+    targetId: targetId ? String(targetId) : '',
+    targetRole: target && target.role,
+    targetBranchId: target && (target.branchId || 'br-b1'),
+    secretaryId: branch && branch.secretaryId,
+    deputySecretaryId: deputyRow ? deputyRow.id : null,
+    role: patch.role,
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  快照写穿的**集合版本号（乐观锁）**协议（2026-09-23 P0-1 · 支书裁定「六项 P0 全做」）
+// ════════════════════════════════════════════════════════════════
+// 病灶（丢数据）：`POST /snapshot` 逐集合 `DELETE + INSERT`（无事务）+ 无并发保护 ⇒
+//   ① 中途异常留下**半空集合**；② 两个在线会话**同集合**先后写，后写者以内存的落后快照**整表覆盖**
+//   前写者刚落库的数据（前写者数据静默消失）。
+// 协议（本段是判据单一源；前端消费点 = `docs/src/core/data-adapter.js` 的 `_flushSnapshot`）：
+//   · 请求：payload 内带 `_versions`（对象：集合名 → 该集合**基线版本**，＝前端上次同步到该集合时的服务端版本）。
+//   · 响应：带 `_versions` ⇒ 200 `{versions:{集合名:新版本}}`；payload 无集合（如 `{}`）⇒ 204（形状不变）。
+//   · 冲突：某集合 `_versions[name] !== 服务端当前版本` ⇒ **整批 409**（不写任何集合），
+//     body `{error, conflicts:[{collection, base, current}]}`。
+//   · **缺版本 ⇒ 整批 428**（2026-09-23 批次 163 收紧）：payload 里出现（数组值）而 `_versions` 里**没有**该集合
+//     ⇒ 拒绝，body `{error, missingVersions:[集合名…]}`。原「未带 `_versions` 的集合按无条件写」是一条
+//     **绕过乐观锁的旁路**（任何直连调用可整表覆盖而不触发冲突检测），现封掉；直连调用须自带 `_versions`
+//     （`GET /api/v1/snapshot/versions` 取基线，或首次上传带 0）。
+//   边界一「首次上传」：服务端 collection_versions 无该行 ⇒ 服务端基线 = **0**；前端带 0 ⇒ 命中（放行）。
+//   边界二「空数组」：合法清空（`[]` 是「本次要写的集合」）——同样走版本比对与版本 +1，不特殊放行。
+// 并发安全：本文件 handler 全同步（better-sqlite3 同步 API），比对与写之间无 await 让出点
+//   ⇒ 同进程内「比对 → 写」是原子的；跨进程竞态由 db.js 的 `replaceCollectionsAtomic` 事务兜底（要么全成、要么全不动）。
+// ⚠ 本段置于文件末尾（同本文件既有的「末尾追加以保行号」纪律）：上下文的 `文件:行号` 引用由
+//   `doc-line-ref.test.mjs` 逐条核，函数声明提升 ⇒ 置于尾部对上方 handler 无影响。
+
+/** 快照 payload 的基线版本表；未携带（非对象/数组）⇒ null（＝所有集合都算「缺版本」，见 §缺版本 ⇒ 428） */
+function _snapshotBaseVersions(payload) {
+  const v = payload && payload._versions;
+  return (v && typeof v === 'object' && !Array.isArray(v)) ? v : null;
+}
+
+/** 本次要写的集合清单（payload 里值为数组的资源名 → 表名）；数组(含空数组)才是「要写」，缺键/非数组不动该表 */
+function _snapshotWrites(payload) {
+  const out = [];
+  for (const [name, table] of Object.entries(RESOURCE_TABLES)) {
+    if (Array.isArray(payload[name])) out.push({ name, table, rows: payload[name] });
+  }
+  return out;
+}
+
+/**
+ * 缺版本集合清单（2026-09-23 批次 163）：**payload 里要写、而 `_versions` 里没有基线**的集合名。
+ * 非空 ⇒ 调用方整批 428（不写任何集合）。空 payload（无集合要写）恒返回 `[]` ⇒ 仍走 204。
+ * @returns {string[]}
+ */
+function _snapshotMissingVersions(payload, baseVersions) {
+  return _snapshotWrites(payload)
+    .filter((w) => !baseVersions || !Object.prototype.hasOwnProperty.call(baseVersions, w.name))
+    .map((w) => w.name);
+}
+
+/** 集合版本全集（未出现过的集合补 0）——前端 init() 取基线用，保证「每个集合都有基线」 */
+function _allCollectionVersions(db) {
+  const stored = readCollectionVersions(db);
+  const out = {};
+  for (const name of Object.keys(RESOURCE_TABLES)) out[name] = stored[name] || 0;
+  return out;
+}
+
+/** 逐集合版本比对：返回冲突清单（空数组＝无冲突）。缺版本的集合由 `_snapshotMissingVersions` 先挡（428） */
+function _snapshotVersionConflicts(db, payload, baseVersions) {
+  const stored = readCollectionVersions(db);
+  const conflicts = [];
+  for (const w of _snapshotWrites(payload)) {
+    if (!Object.prototype.hasOwnProperty.call(baseVersions, w.name)) continue;
+    const base = Number(baseVersions[w.name]);
+    const current = stored[w.name] || 0;
+    if (!Number.isFinite(base) || base !== current) {
+      conflicts.push({ collection: w.name, base: Number.isFinite(base) ? base : null, current });
+    }
+  }
+  return conflicts;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  语义端点域（`SEMANTIC_TABLES` 三表）的读写原语与单一源常量（2026-09-23 批次 163）
+// ════════════════════════════════════════════════════════════════
+// 置于文件末尾：① 与上文「末尾追加以保行号」纪律一致（上文有大量 `文件:行号` 取证引用，本段未改动其行号）；
+//   ② 函数声明提升 + import 声明提升 ⇒ 上方 `createResourcesRouter` 内的 handler 可安全引用。
+
+/** 单行读（JSON 解码；不存在 ⇒ null）——三张语义表共用 */
+function getRow(db, table, id) {
+  const row = db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(String(id));
+  return row ? JSON.parse(row.data) : null;
+}
+
+/** 单行写（整条 JSON 字符串；`id` 主键 upsert）——三张语义表共用 */
+function writeRow(db, table, row) {
+  db.prepare(`INSERT OR REPLACE INTO ${table} (id, data) VALUES (?, ?)`).run(row.id, JSON.stringify(row));
+}
+
+// 组织委员角色集（单一源 = constants.js::ORG_COMMISSIONER_ROLES；「成员变更确认」发起门的写权口径，
+//   与 `routes/member.js` 的同名集合同源，勿手写角色字符串）
+const ORG_COMMISSIONER_ROLE_SET = new Set(ORG_COMMISSIONER_ROLES);
+// 三委数据交接类型元数据（单一源 = services/handoff.js::HANDOFF_TYPES，勿在本文件另写一份类型表）
+import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../docs/src/services/handoff.js';
+import { ORG_COMMISSIONER_ROLES } from '../../docs/src/core/constants.js';

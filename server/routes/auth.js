@@ -4,17 +4,17 @@ import { randomUUID } from 'node:crypto';
 // P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
 import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/constants.js';
 
-// ── 登录口令校验（2026-09-03 P1b 运行安全；支书裁定「做，可开关」）────────────
+// ── 登录口令校验（2026-09-03 P1b 运行安全；2026-09-23 P0-3 生产硬挡）────────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。
-// 现状：默认校验口令。口令 = 支部统一登录口令，env LOGIN_PASSWORD 可换，缺省 '123456'
-//   （与前端演示账号密码一致，登录体验不变；同时堵住「直连 API 猜 personId」通道）。
-// 逃逸门：env DISABLE_PASSWORD_CHECK=1 恢复旧行为（内网单机演示/测试套件用）。
+// 现状：默认校验口令。口令 = 支部统一登录口令，env LOGIN_PASSWORD 可换，缺省 '123456'（与前端演示账号密码一致，登录体验不变；同时堵住「直连 API 猜 personId」通道）。
+// **生产形态**（isProductionEnv，单一源 server/env.js）：启动即要求 LOGIN_PASSWORD（缺省口令不得上线，见 server.js）；
+//   逃逸门 DISABLE_PASSWORD_CHECK **一律不认**，且口令比对不含 '123456' 兜底 ⇒ 生产不存在「无口令也能登录」。
 function passwordCheckDisabled() {
-  return process.env.DISABLE_PASSWORD_CHECK === '1';
+  return process.env.DISABLE_PASSWORD_CHECK === '1' && !isProductionEnv();
 }
 function loginPasswordOk(password) {
   return typeof password === 'string' && password.length > 0 &&
-    password === (process.env.LOGIN_PASSWORD || '123456');
+    password === (process.env.LOGIN_PASSWORD || (isProductionEnv() ? '' : '123456'));
 }
 
 export function createAuthRouter(db) {
@@ -95,3 +95,7 @@ const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
 export function requireCommissioner(db) {
   return requireRole(db, COMMISSIONER_ROLES);
 }
+
+// 运行形态判定单一源（P0-3）：`APP_ENV=production` 或 `NODE_ENV=production`，见 server/env.js。
+// ⚠ 置尾以保上文行号（`auth.js:12-14` / `:17` / `:92-97` 等是 README-server.md 的取证靶点）；import 声明被提升，置尾不影响语义。
+import { isProductionEnv } from '../env.js';

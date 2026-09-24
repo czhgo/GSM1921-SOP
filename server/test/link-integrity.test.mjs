@@ -109,6 +109,35 @@ test('L1 静态链接：全部 HTML href/src 目标存在 + 锚点存在', async
   }
 
   console.log(`[L1] 静态链接检查: ${stats.checked} 个本地链接 + ${stats.anchors} 个锚点 + ${stats.external} 个外部URL`);
+
+  // L1 内追加：JS 渲染型 href/src —— docs/src/**/*.js 模板字符串/字符串里渲染的 href="../…"、src="../…"
+  // 判据：docs/src/core/utils.js::getBasePath 约定——各 workspace/*.html 以 <base href="../"> 把基准 URL 调到
+  //      docs/ 根（见 docs/workspace/*.html 第 5 行），JS 动态渲染内容同样受 <base> 解析，故渲染型路径须写 './xxx'。
+  //      写 '../xxx' 在本地以 docs/ 为站点根时会被浏览器夹回根目录“恰好能跑”，但 docs/ 作为 GitHub Pages 项目站
+  //      按子路径发布（docs/.nojekyll 正为此存在）时会跳出站点根 → 404。此前 L1 只扫静态 HTML、L2 只扫 location.href
+  //      赋值，模板字符串里渲染的 href 属空白区，故在此补齐。
+  // 排除：整行注释、ESM 规格符（from '…' / import(…)）、Node 读取语境（new URL(…)）。
+  const srcIssues = [];
+  let renderLines = 0;
+  const jsFiles = walk(join(DOCS, 'src'), '.js');
+  const renderUrlRe = /\b(?:href|src)\s*=\s*["'`]\.\.\//;
+  for (const js of jsFiles) {
+    const relJs = relative(DOCS, js).replace(/\\/g, '/');
+    readFileSync(js, 'utf8').split(/\r?\n/).forEach((line, i) => {
+      const t = line.trim();
+      if (!t || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return; // 整行注释
+      if (/\bfrom\s*["'`]|\bimport\s*\(|\bnew\s+URL\s*\(/.test(line)) return; // ESM 规格符 / Node 读取语境
+      renderLines++;
+      if (renderUrlRe.test(line)) srcIssues.push(`${relJs}:${i + 1} → ${t.slice(0, 90)}`);
+    });
+  }
+  console.log(`[L1] JS 渲染型 href/src 检查: 扫描 ${jsFiles.length} 个 js / ${renderLines} 行，../ 命中 ${srcIssues.length} 处`);
+  if (srcIssues.length > 0) {
+    console.log("[L1] ⚠️ 渲染型 ../ 路径 " + srcIssues.length + " 项（基准在 docs/ 根，应写 './'）：");
+    srcIssues.forEach((s, idx) => console.log(`  ${idx + 1}. ${s}`));
+  }
+  assert.equal(srcIssues.length, 0, `渲染型 ../ 路径 ${srcIssues.length} 项（应写 './'）:\n${srcIssues.join('\n')}`);
+
   if (issues.length > 0) {
     console.log('[L1] ⚠️ 发现 ' + issues.length + ' 项：');
     issues.forEach((i, idx) => console.log(`  ${idx + 1}. ${i}`));

@@ -2,41 +2,41 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260923a';
-import { NoticeStore } from '../services/notice.js?v=20260923a';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { getPersonById } from '../services/person.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260924a';
+import { NoticeStore } from '../services/notice.js?v=20260924a';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { getPersonById } from '../services/person.js?v=20260924a';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260923a';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260924a';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity.js；另有「交回状态」须读该场复盘记录（services/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260923a';
-import { loadActivityReviews } from '../services/review.js?v=20260923a';
-import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260923a';
-import { getActivityTypeColors } from '../core/constants.js?v=20260923a';
-import { getAppState } from '../core/state.js?v=20260923a';
-import { badgeHtml } from '../components/badges.js?v=20260923a';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260924a';
+import { loadActivityReviews } from '../services/review.js?v=20260924a';
+import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260924a';
+import { getActivityTypeColors } from '../core/constants.js?v=20260924a';
+import { getAppState } from '../core/state.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo } from '../services/visibility.js?v=20260923a';
+import { isActivityVisibleTo } from '../services/visibility.js?v=20260924a';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260923a';
-import { enhanceSelects } from '../components/custom-select.js?v=20260923a';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260923a';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260923a';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260923a';
-import { fetchVotes } from '../services/committee-vote.js?v=20260923a';
+import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260924a';
+import { enhanceSelects } from '../components/custom-select.js?v=20260924a';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260924a';
+import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260924a';
+import { renderVoteWidget } from '../components/vote-widget.js?v=20260924a';
+import { fetchVotes } from '../services/committee-vote.js?v=20260924a';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../core/pending-writes.js?v=20260923a';
+import { settleWrites } from '../core/pending-writes.js?v=20260924a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -55,21 +55,9 @@ renderHeader('dashboard');
  */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[activity-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    // 数据源判定收敛（P0-2）：有 token 走 api、失败即失败（显式错误态 + 重试）；无 token 走本地演示形态
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染
   } catch (e) {
     console.warn('[activity-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {

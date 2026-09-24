@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-20"
+last_updated: "2026-09-23"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md]
 ---
@@ -93,7 +93,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.4 超参数可调性 —— 84/100
 
 得分项（已参数化或已声明，判据：代码近旁可答「可调/不可调 + 默认出处」）：
-- **policy-defaults.js 集中默认单一源**（行动线 P3c，2026-09-05）：票决门槛（应到 >2/3 且无反对，2026-09-06 支书裁，附录⑩ S2 R2-3）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定 + 出处 + 消费点；消费点一律引用派生，不在业务层新写字面量。
+- **policy-defaults.js 集中默认单一源**（行动线 P3c，2026-09-05）：票决门槛（应到 >2/3 且无反对，2026-09-06 支书裁，附录⑩ S2 R2-3〔**裁定正文已归位 `.ctx/logs/2026-09-DECISION_LOG.md` 的「归位五」节**，2026-09-23 批次 162 `D-619`〕）/ 会议类型与上传位例外 / 考察超期天数 / 应到名单 roster（partyStages+excludeDetained，**已含滞留口径**，2026-09-06）逐项标注 branch-default 可调 / institutional 固定 + 出处 + 消费点；消费点一律引用派生，不在业务层新写字面量。
 - **域参数（L2）config 驱动落地（2026-09-09 批4 支书批）**：`POLICY_OVERRIDABLE` 覆盖白名单（只定义于 policy-defaults，每项 = path/type/钳制范围/domain 域节）三键——纪检考察超期 `inspection.overdueDays` / 组织滞留集中复核窗 `memberConfirmation.semesterDetainedWindows` / 组长学期提醒开关 `leader.semesterReportReminder.enabled`——经**设置 → 支部治理「域参数」卡 UI 覆盖**（域负责人仅本域、支书/副支书/party-staff 全量；值=覆盖、null=恢复该域默认、整体 null=全量恢复）；读侧 `applyPolicyOverrides` 注入 `POLICY_DEFAULTS`，全站判定随参数生效；净化/钳制单一源 = config-clean `sanitizeConfigPolicyOverrides`（server 与前端 branch.js 同源）。
 - **制度参数 UI（同批）**：设置 → 支部治理「支部制度参数」卡把票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因作为**制度默认只读展示区**（支书/副视角，数据单一源 = policy-defaults，含域参数默认行）——「可调/不可调 + 默认出处」在 UI 可见；放开为支部可调 = 放行程序（支书裁决 → 登记白名单 → kind 注释同步 → 审计 why 回填，反向收权同理，见 PARTY_COMMITTEE_DESIGN §2.6）。
 - 表决配置 optionSet/voterScope/quorumCheck：默认=场景函数 vote-config.defaultVoteConfig(scenarioId)，每活动 voteConfig 可覆盖。
@@ -235,7 +235,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P2a | R6 结构性统一：tab id 收敛——`core/tab-nav.js` 纯决策 + tab-bar 守卫（原随 L4 一并做的拆分提前单做） | ✅ 已完成（2026-09-03；隐藏 tab 回退首个可见 tab、杜绝静默白屏，tab-nav 4 态绿） |
 | P2b | R4 结构性统一：写活动场景选择清单收敛单一源（constants `SCENARIO_WRITE_IDS/SCENARIO_LABELS` 派生） | ✅ 已完成（2026-09-03；scene-write-sync 3 断言绿，写路径无第二份字面量） |
 | P2c | R9 结构性统一：授权语义角色集单一源（constants 四常量；至此去重队列 8/8 收口，P0b 2 项复核保留为有意决定） | ✅ 已完成（2026-09-03；五处本地手写角色集清零，roles-sync 4 断言绿） |
-| P3a | 阈值参数化：票决门槛（quorum/veto）→ policy-defaults 常量默认 + evaluateWorkforceVotes(opts) 覆盖（2026-09-06 支书裁语义收紧：应到 >2/3 且无反对、弃权允许——附录⑩ S2 R2-3） | ✅ 已做（2026-09-05 初版 + 2026-09-06 语义裁；默认行为不变，用例绿） |
+| P3a | 阈值参数化：票决门槛（quorum/veto）→ policy-defaults 常量默认 + evaluateWorkforceVotes(opts) 覆盖（2026-09-06 支书裁语义收紧：应到 >2/3 且无反对、弃权允许——附录⑩ S2 R2-3〔**裁定正文已归位 `.ctx/logs/2026-09-DECISION_LOG.md` 的「归位五」节**，2026-09-23 批次 162 `D-619`〕） | ✅ 已做（2026-09-05 初版 + 2026-09-06 语义裁；默认行为不变，用例绿） |
 | P3b | 纪检会议考勤类型单源：`MEETING_ATTENDANCE_TYPES` 自 policy-defaults 派生导出，disc tab 引用（消双写） | ✅ 已做（2026-09-05；全仓该类型清单无第二份字面量） |
 | P3c | 建立 `core/policy-defaults.js`：业务阈值/名单（上传位例外、超期天数、应到 roster 等）集中默认 + 逐项注释「支部默认/制度固定」 | ✅ 已完成（2026-09-05 spec open-source-deploy-improve；`policy-config.test.mjs::T1–T5` 5/5 绿——该 5 条原为 `policy-defaults-sync.test.mjs`，2026-09-15 批次 47-F 第二组并入同域文件，消费点改引用） |
 | P3d | 模块组合声明契约：capabilities/模块元数据补 depends/combinesWith/exclusive（草案）+ config 校验扩展 | ✅ v0 已完成（2026-09-05；module-compose 纯校验 + 失败态测试 6/6 绿 + capability-registry 7/7 绿 + 契约文档节）；服务端 config 校验留 v1 |

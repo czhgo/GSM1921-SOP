@@ -5,7 +5,7 @@ role: "[用户]+[AI]"
 last_updated: "2026-09-22"
 version: "2.2"
 status: active
-related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
+related_files: [CLAUDE.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/insights/党支部管理与实务经验沉淀.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---
 
 # 组织者与深度参与者的扁平化设计
@@ -86,4 +86,4 @@ related_files: [CLAUDE.md, content/04_web_design/data/DATA_FLOW.md, content/02_i
 
 > **实现落点（系统侧）**：组织者（organizer）/深度参与者（deep）为活动/专班的项目角色——权限与赋权链见 `docs/src/services/auth.js` 的 `PROJECT_PERMISSIONS` / `AUTHORIZE_CHAIN`（组织委员赋专班角色、党小组组长赋活动角色、组织者可赋深度参与者）；赋权入口与待办联动见 [COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §D.1.1 赋权入口设计。
 >
-> 详细设计见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md) §三
+> 详细设计见 [DATA_MODEL.md §3.1 三级管理架构](../04_web_design/data/DATA_MODEL.md)

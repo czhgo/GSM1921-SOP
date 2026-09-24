@@ -822,3 +822,61 @@ ROLE_PAGE_MAP.workspace['deputy-leader'] = 'leader.html'; // 同组长一套工�
 ROLE_COLORS['deputy-leader'] = { ...ROLE_COLORS.leader };
 ACCENT_COLORS['deputy-leader'] = { ...ACCENT_COLORS.leader };
 ROLE_THEME_CLASS['deputy-leader'] = ROLE_THEME_CLASS.leader;
+
+// ════════════════════════════════════════════════════════════════
+//  支书/副支书自配「本支部支委身份」白名单与写门判据（2026-09-23 支书裁定 · 情景① 写口落地）
+// ════════════════════════════════════════════════════════════════
+// 支书口径（逐字）：「赋权主要是3个情景，一是赋权给党小组组长/支委（也就是最初的人员配置只有党委给
+//   支书配置，剩下的身份由书记来配置）」⇒ 情景① 除「党委配支书」这一件外，**支部层面、非一把手**的
+//   支委身份（组织 / 宣传 / 纪检委员）由**本支部现任支书 / 副支书**配置（可改派、可撤销）。
+// 白名单（严，只放开这三席）：
+//   · 可授予＝组织委员 / 宣传委员 / 纪检委员；撤销＝回落 `BRANCH_COMMISSIONER_FALLBACK_ROLE`（普通参与者）。
+//   · **不含 `secretary`**：支书本人的支书身份归党委（`D-585`「换届选举涉及到支委班子身份赋权的
+//     问题，应当由党委来改变支部设置！！」）。
+//   · **不含 `deputy-secretary`**：副支书与支书同页同权（`SECRETARY_AND_DEPUTY_ROLES`）、属一把手层，
+//     其身份变更同样归党委 ⇒ 可配者含副支书，**被配者不含支书 / 副支书**（含另一人的副支书身份）。
+// 消费方（单一源，勿各自手写第二份）：`docs/src/services/appointment.js`（写口）、
+//   `server/routes/resources.js`（`users` 写门）、`docs/src/entries/tabs/secretary/assign-tab.js`（表单选项）。
+export const BRANCH_COMMISSIONER_ASSIGNABLE_ROLES = ['org-commissioner', 'prop-commissioner', 'disc-commissioner'];
+/** 撤销支委身份时回落的身份（降级位；**不是**「可授予身份」，故不并入上表） */
+export const BRANCH_COMMISSIONER_FALLBACK_ROLE = 'participant';
+
+/**
+ * 「支书 / 副支书配置本支部支委身份」写门判据（**唯一实现**——前端写口与 server `users` 写门共用，勿另写一份）：
+ * 允许 → `null`；拒绝 → 原因文案（调用方据此 403）。
+ *
+ * 谁在什么条件下可改谁（2026-09-23 支书裁定「副支书也可配」；一把手层依 `D-585` 归党委）：
+ *   ① `party-staff`（党委组织员）→ **原样放行**（`users` 写门原有口径；本次是放宽、不是收窄）；
+ *   ② 其余角色只有**该支部现任支书 ∨ 该支部现任副支书**可改（`actorId === secretaryId` /
+ *      `actorId === deputySecretaryId`）——两者以外的一切身份（委员 / 组长 / 普通成员）一律拒；
+ *   ③ 靶标须与操作人**同支部**（归属缺省 `br-b1`，与全仓同口径）——跨支部一律拒；
+ *   ④ 写入身份 ∈ 白名单 ∪ {撤销回落位}——白名单外的角色键（含 `secretary` / `deputy-secretary` /
+ *      `party-staff` / `leader` / `organizer` / `deep` …）一律拒；
+ *   ⑤ **一把手层不可动**：靶标现任身份是 `secretary` / `deputy-secretary`（或靶标即现任支书 / 副支书本人）一律拒。
+ * @param {{actorRole?:string, actorId?:string, actorBranchId?:string, targetId?:string,
+ *          targetRole?:string, targetBranchId?:string, secretaryId?:string, deputySecretaryId?:string, role?:string}} p
+ * @returns {string|null}
+ */
+export function branchCommissionerWriteDeny(p) {
+  const s = p || {};
+  const branchOf = (b) => b || 'br-b1';
+  if (s.actorRole === 'party-staff') return null; // 党委侧 users 写门原样（本次只放宽、不收窄）
+  // 一把手层同权（2026-09-23 支书追裁「副支书也可配」）：本支部现任支书 ∨ 本支部现任副支书
+  const isBranchSecretary = !!s.secretaryId && s.actorId === s.secretaryId;
+  const isBranchDeputy = !!s.deputySecretaryId && s.actorId === s.deputySecretaryId;
+  if (!isBranchSecretary && !isBranchDeputy) {
+    return '无权限：支委身份配置仅限本支部现任支书 / 副支书（users 写门仍仅党委组织员）';
+  }
+  if (branchOf(s.actorBranchId) !== branchOf(s.targetBranchId)) {
+    return '无权限：仅可配置本支部成员的支委身份（跨支部一律拒）';
+  }
+  if (!s.targetId || s.targetId === s.actorId) return '无权限：不可改自己的身份';
+  if (s.role !== BRANCH_COMMISSIONER_FALLBACK_ROLE && !BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(s.role)) {
+    return '无权限：只可配置本支部的组织 / 宣传 / 纪检委员身份（撤销＝回落普通参与者）；支书 / 副支书身份由党委配置';
+  }
+  if (s.targetId === s.secretaryId || s.targetId === s.deputySecretaryId
+    || s.targetRole === 'secretary' || s.targetRole === 'deputy-secretary') {
+    return '无权限：支书 / 副支书身份由党委配置（换届选举涉及支委班子身份赋权，由党委改变支部设置）';
+  }
+  return null;
+}

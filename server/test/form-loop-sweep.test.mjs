@@ -17,7 +17,15 @@
 //   **整页重载后仍成立**（＝落库 + 列表刷新的唯一证据；只断言当场 DOM 变化会假绿）。
 //   两阶段**互不蕴含**：一条流程可能只在前阶段、也可能只在后阶段。
 // 另加台账守卫（防「只修一处」复发）：规模基线 / 白名单必带 reason / machine:true 全部纳入真机 / 无僵尸条目 / 出处文案存在。
+// 2026-09-23 提速批（支书「任务执行要提速」）：
+//   刀① 会话复用 + 条件等待：每账号只登录一次、跨流程复用同一 page；固定 sleep
+//        （登录后 1500ms / openTab 1000ms / 独立页 1500ms / 重载后 1500·2500ms）全部换成
+//        **可判定的条件等待**（判据见 waitShellSettled / openTab / waitFlowReady 注释）。
+//        复用 page 丢掉的「新 context = 干净存储」隔离，用「登录态存储快照回填」补回（见 SESSIONS）。
+//   刀② 按 tab 降频：`FORM_LOOP_TABS=<tab1,tab2>` 只跑命中 tab 的真机流程（不设＝全跑）；
+//        S0–S6 台账守卫照跑、规模基线不缩水，另立 S7 防「tab 名打错 ⇒ 真机用例静默归零」。
 // 运行：node --test --test-concurrency=1 test/form-loop-sweep.test.mjs（需 DISABLE_PASSWORD_CHECK=1，同其它 e2e）
+// 降频：$env:FORM_LOOP_TABS='活动管理,通知发布'; node --test --test-concurrency=1 test/form-loop-sweep.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -52,6 +60,9 @@ before(async () => {
   browser = await chromium.launch({ headless: true });
 });
 after(async () => {
+  for (const s of SESSIONS.values()) {
+    try { await s.page.close(); } catch (_) { /* 已关闭 */ }
+  }
   if (browser) await browser.close();
   if (server) {
     server.closeAllConnections?.();
@@ -59,10 +70,45 @@ after(async () => {
   }
 });
 
-async function loginAs(studentId, pageName, targetPath) {
-  const page = await browser.newPage();
+// ── 会话复用（2026-09-23 提速批·刀①）────────────────────────────────────
+// 原实现**每条流程各开一个 page**（`browser.newPage()` = 新 context + 新存储），并重走一遍
+// login.html → 填表 → POST /auth/login → 重定向 → 应用首载，另加两处固定 sleep
+// （登录后 1500ms、openTab 内 1000ms）。78 条流程 ⇒ 光「重复登录 + 白等」就约 3 分钟。
+// 现改为：**每个演示账号只登录一次**，之后每条流程复用同一 page，只做
+// 「重置存储 → goto 目标页 → 条件等待就位」。
+//
+// ⚠ 复用 page 会让「新 context = 干净存储」这层**天然隔离**失效，必须显式补回（见 `SESSIONS`）：
+//   登录成功后立刻记下**当时的存储全量快照**（localStorage + sessionStorage，含身份三键
+//   `gsm1921-login-user` / `gsm1921-tab-id` / `gsm1921-session-snap` 与 API token），
+//   每条流程开跑前把两个存储**清空后写回这份快照** ⇒ 该流程开局看到的存储与
+//   「全新 context 里刚登录成功」逐键相同。
+//   为什么用「快照回填」而不是「枚举若干身份键后保留」：身份键是别人代码里的实现细节，
+//   枚举法漏掉一个就是**静默**的身份/会话缺失（表现为奇怪的假红或假绿）；快照回填按构造即正确。
+//   页面内 JS 状态无需处理：`goto` 是整页导航，模块与 DOM 全部重建（与开新 page 等价）。
+//
+// ⚠ 另一处只有开新 page 才天然成立的隔离：`runStep` 的 `dialogAnswer` 用 `page.once('dialog')`
+//   装**一次性应答器**——那条流程若没触发对话框，应答器会跨流程存活并吃掉下一条流程的原生
+//   对话框（判据互相冒充，方向最坏）。故每流程前 `removeAllListeners('dialog')` 一并清掉。
+const SESSIONS = new Map(); // studentId → { page, storage }
+
+/** 重置客户端存储到「刚登录成功」那一态（复用 page 的隔离性替代手段） */
+async function resetClientState(session) {
+  const { page, storage } = session;
+  page.removeAllListeners('dialog');     // 清掉上一条流程可能残留的一次性应答器
+  page.removeAllListeners('pageerror');
   page.__errs = [];
   page.on('pageerror', (e) => page.__errs.push(e.message));
+  await page.evaluate((snap) => {
+    localStorage.clear();
+    sessionStorage.clear();
+    for (const [k, v] of Object.entries(snap.local)) localStorage.setItem(k, v);
+    for (const [k, v] of Object.entries(snap.session)) sessionStorage.setItem(k, v);
+  }, storage);
+}
+
+/** 建会话页（**每个账号只做一次**）：登录 → 等壳层就位 → 记下存储快照 */
+async function createSession(studentId, pageName) {
+  const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
@@ -83,26 +129,147 @@ async function loginAs(studentId, pageName, targetPath) {
       if (attempt === 1) throw e;
     }
   }
-  // 等数据加载（LOADING→IDLE 的 setState 重渲染）稳定后再切 tab：避免壳层 _renderCurrentTab
-  // 与切 tab 动态 import 的「旧 tab 内容晚到覆盖新 tab」竞态（同 page-sweep 的做法，此处留更足余量）。
-  await page.waitForTimeout(1500);
-  // 批次 47-D 续（2026-09-16）：**独立页支持**。台账里有 13 处校验点**不在工作台 tab 上**，
-  //   落在 `docs/*.html` 独立页（feedback / search / thought-report / activity）——
-  //   原 schema 只会走 `workspace/<page>.html`，这些站点**结构性不可达**，只能长期挂 machine:false
-  //   （「够不到」被记成了「自动化不了」）。故：先照常登录拿到会话，再**直达**目标路径；
-  //   独立页没有 `button[role="tab"]`，`ensureFlow` 会跳过切 tab。
-  if (targetPath) {
-    await page.goto(`${base}${targetPath}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1500);
+  await waitShellSettled(page);
+  // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：会话必须是 api 形态
+  await assertApiMode(page);
+  // **刚登录成功那一刻**的存储快照（隔离性的单一源，见文件上方的说明）
+  const storage = await page.evaluate(() => {
+    const dump = (s) => Object.fromEntries(Object.keys(s).map((k) => [k, s.getItem(k)]));
+    return { local: dump(localStorage), session: dump(sessionStorage) };
+  });
+  return { page, storage };
+}
+
+/** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = core/data-adapter.js::getRuntimeMode） */
+async function assertApiMode(page) {
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+}
+
+/** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
+ *  原来那条固定等待赌的是「1.5 秒后整块重渲染一定 settle 了」——它**不可判**，重负载下并不成立，
+ *  且正是文件里自记的「旧 tab 内容晚到覆盖新 tab」竞态没能防住的原因。硬判据两条：
+ *   ① 壳层已渲染出 tab 条（排除「还没开始加载」时 `status` 恰为初值 IDLE 的假就位）；
+ *   ② 数据加载已 LOADING→IDLE（初始整块渲染已落地，不会再有晚到的一次重渲染覆盖已切好的 tab）。
+ *  另加**有界宽限**（`waitTabLoadingGrace`）：让初始渲染收尾，但**不拿它当硬判据**——原因见该函数注释。
+ *  独立页（`docs/*.html`）没有 tab 条、也不走 loadWorkspaceData ⇒ 用 `waitFlowReady` 落到
+ *  该流程真正要操作的那个载体上（见其注释）。 */
+async function waitShellSettled(page) {
+  await page.waitForFunction(async () => {
+    if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
+    const { getAppState, STATE } = await import('/src/core/state.js?v=20260924a');
+    const st = getAppState();
+    // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
+    //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
+    //   LOADING→IDLE 整块重渲染**回滚**回默认 tab（实测：party-committee 台三条流程因此
+    //   切 tab 超时）。`activeModule` 初值 = 'dashboard'，`loadWorkspaceData` 起手置
+    //   'workspace'（data-loader.js:52,74）⇒「activeModule='workspace' 且 status=IDLE」
+    //   才是「这一轮数据加载**已经跑完**」的可判定条件。
+    return st.activeModule === 'workspace' && st.status === STATE.IDLE;
+  }, null, { timeout: 45000 });
+  await waitTabLoadingGrace(page);
+}
+
+/** tab 内容容器的「渲染中」标记（`data-ws-tab-loading`，tab-bar `_beginTabLoading`/`_endTabLoading`）
+ *  收尾的**有界宽限**——**故意只作宽限、不作硬判据**（2026-09-23 本批实测踩到）：
+ *  tab-bar 的 `_endTabLoading` 带「本次渲染仍是当前渲染」守卫（`seq === _renderSeq`），
+ *  而被 `_renderInFlight` 去重的那一次渲染**不会再有自己的 done** ⇒ 该标记可能**永久滞留**在容器上。
+ *  拿它当硬条件 → 明明内容已渲染好却被判超时（本批首跑就是这么红的：三条 party-committee /
+ *  secretary 流程 15.5s 超时）。**内容是否就位另有权威判据**：`ensureFlow` 等提交口（3×12s 重试）
+ *  与 `checkAssert` 的有界重试——那才是判据；本条只负责「常见情况下别抢跑」。 */
+async function waitTabLoadingGrace(page, ms = 3000) {
+  await page.waitForFunction(() => {
+    const el = document.querySelector('[id$="-tab-content"]');
+    return !el || el.dataset.wsTabLoading !== '1';
+  }, null, { timeout: ms }).catch(() => {});
+}
+
+/** 流程「就位标记」选择器：取该流程第一步要点的东西（`open[]` / `ready` / 提交口）。
+ *  独立页没有统一的壳层就位条件（无 tab 条、不走 loadWorkspaceData），故落到**该流程自己要操作的
+ *  载体**上——那才是它真正需要的「本态已到」。无可用选择器时返回 null（调用方跳过等待）。 */
+function flowReadySel(flow) {
+  const steps = [...(flow.open || []), ...(flow.fill || []), { click: flow.ready }];
+  for (const s of steps) {
+    const sel = s?.click || s?.waitFor || s?.dispatchSubmit
+      || s?.setValue?.selector || s?.selectValue?.selector || s?.selectOption?.selector
+      || s?.setChecked?.selector || s?.openPicker?.trigger;
+    if (sel) return sel;
   }
+  return null;
+}
+
+/** 独立页就位：等流程第一步的载体挂上（**有界**）。返回是否就位——**调用方据此重试整页**。
+ *  ⚠ 2026-09-23 提速批：原实现超时后 `.catch(() => {})` 吞掉继续往下走，于是由下游那个 10s
+ *    `waitForSelector` 报红（`/search.html` 两条流程在全量高负载下各超时一次）。就位失败**不是**
+ *    被测产品的病，而是"页面还没渲染好就开跑"——所以改为**把就位结果交回调用方重试**，
+ *    而不是在守卫里白等或放大固定 sleep（与 `openTab` 的点击重试同一理由）。 */
+async function waitFlowReady(page, flow, timeoutMs = 15000) {
+  const sel = flowReadySel(flow);
+  if (!sel) return true;
+  try {
+    await page.waitForSelector(sel, { state: 'attached', timeout: timeoutMs });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 打开流程所在页面：复用账号会话页（必要时直达 `flow.path`），返回就位后的 page。
+ *  等价于原来的 `loginAs(ACCOUNTS[flow.page], flow.page, flow.path)`，但不再重复登录。
+ *  独立页（`flow.path`）就位失败时**整页重来**（最多 3 次）——API 形态下数据加载 + 渲染在
+ *  高负载时可能超出有界窗口，重试比放大 sleep 更稳且更快。 */
+async function openFlowPage(flow) {
+  const studentId = ACCOUNTS[flow.page];
+  let session = SESSIONS.get(studentId);
+  if (!session) {
+    session = await createSession(studentId, flow.page);
+    SESSIONS.set(studentId, session);
+  }
+  const { page } = session;
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    await resetClientState(session);
+    await page.goto(`${base}${flow.path || `/workspace/${flow.page}.html`}`, { waitUntil: 'domcontentloaded' });
+    if (flow.path) {
+      if (await waitFlowReady(page, flow)) break;
+      // 最后一次仍未就位 ⇒ 交下游照旧报红（不掩盖真回归），但把尝试次数写进日志便于归因
+      if (attempt === maxAttempts) console.warn(`[form-loop] 独立页就位失败 ×${maxAttempts}：${flow.path}`);
+    } else {
+      await waitShellSettled(page);
+      break;
+    }
+  }
+  await assertApiMode(page);
   return page;
 }
 
-async function openTab(page, label) {
-  await page.evaluate((l) => {
-    [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
-  }, label);
-  await page.waitForTimeout(1000);
+async function openTab(page, label, timeoutMs = 15000) {
+  // 条件等待替代固定 1000ms。硬判据＝**目标 tab 按钮真的进入激活态**（`tab-btn-active`，
+  // 与 `activateTab` 同源判据——它才是「真的切过去了」的判定；只等时间等不到「旧 tab 内容
+  // 晚到覆盖新 tab」那一类竞态）。随后只给内容渲染收尾一个**有界宽限**（理由见 `waitTabLoadingGrace`：
+  // 那个标记本身会滞留，不能当硬判据）。
+  // ⚠ **一次点击不够、必须带重试**：整页首次渲染期内的点击会被随后的 LOADING→IDLE 整块重渲染
+  //   **回滚**回默认 tab（实测 party-committee 台三条流程因此超时——`waitShellSettled` 已尽量把
+  //   「加载已跑完」作为点击前提，但壳层与数据加载的时序不保证；重试一次即可落定）。
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    await page.evaluate((l) => {
+      [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l))?.click();
+    }, label);
+    try {
+      await page.waitForFunction((l) => {
+        const btn = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l));
+        return !!btn && btn.classList.contains('tab-btn-active');
+      }, label, { timeout: Math.max(1500, Math.min(5000, deadline - Date.now())) });
+      await waitTabLoadingGrace(page);
+      return;
+    } catch (e) {
+      if (Date.now() >= deadline) {
+        // 报「切 tab 没成」时把当前 tab 条一并打出来（原实现只等 1s，出错时的诊断信息为零）
+        const tabs = await page.evaluate(() => [...document.querySelectorAll('button[role="tab"]')].map((b) => b.textContent.trim())).catch(() => []);
+        throw new Error(`切 tab「${label}」超时（${timeoutMs}ms）：该按钮未进入激活态；当前 tab 条=${JSON.stringify(tabs)}`);
+      }
+    }
+  }
 }
 
 /**
@@ -315,9 +482,22 @@ async function ensureFlow(page, flow, readySel) {
   const first = (flow.submit || flow.act || [])[0] || {};
   const submitSel = readySel || first.click || first.dispatchSubmit;
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    // 独立页（`flow.path`）没有 tab 条，跳过切 tab（否则点击静默无效、诊断还会误报「tab 列表为空」）
-    if (!flow.path) await openTab(page, flow.tab);
-    for (const s of flow.open) await runStep(page, s);
+    // ⚠ 2026-09-23 提速批：**open 链本身也要纳入重试**。原实现只对「提交口」重试（下面的 catch），
+    //   open 链里的 `waitFor` 一旦超时就**直接冒出去**（不重试）⇒ 间歇性红（全量里
+    //   `page-refs-publish-version` 卡在 `#ref-modal-title` 10s 就是这个形态）。
+    //   成因不是产品的病：① 该流程的 open 链是一条**真实前置链**（写文件 → 落库 → 列表刷新 → 点「上传新版」），
+    //   API 形态下含 800ms 快照防抖的真实往返；② 独立页可能「元素已挂、处理函数尚未绑定」，
+    //   此时点击被吞、浮窗不出现。故：open 链失败 ⇒ 独立页**整页重来**后重跑同一链。
+    try {
+      // 独立页（`flow.path`）没有 tab 条，跳过切 tab（否则点击静默无效、诊断还会误报「tab 列表为空」）
+      if (!flow.path) await openTab(page, flow.tab);
+      for (const s of flow.open) await runStep(page, s);
+    } catch (e) {
+      if (attempt === 2) throw new Error(`${e.message}（open 链重试 3 次仍失败）`);
+      if (flow.path) await openFlowPage(flow);
+      await page.waitForTimeout(800);
+      continue;
+    }
     try {
       await page.waitForSelector(submitSel, { state: 'attached', timeout: 12000 });
       return;
@@ -446,7 +626,9 @@ async function checkAssert(page, a, base = {}) {
  *  表现为「载体在 DOM 里但不可见」（内容渲染了、容器仍是 hidden），看着像产品病，其实是切 tab 没成。 */
 async function activateTab(page, label) {
   for (let i = 0; i < 10; i += 1) {
-    await openTab(page, label);
+    // 单次切 tab 只给 4s（重载后壳层可能还没接上，短超时快速重试优于长等一次）；
+    // 超时**不抛出**——本函数自带 10 次重试与「切不回去」的违规上报，不能被单次超时打断。
+    await openTab(page, label, 4000).catch(() => {});
     const active = await page.evaluate((l) => {
       const btn = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(l));
       return !!btn && btn.classList.contains('tab-btn-active');
@@ -517,10 +699,16 @@ async function sweepSuccessFlow(page, flow) {
     //   （「载体不在位」看着像产品病，其实是守卫自己没等页面就绪）。**同一手段（`path`）对应两种页面形态，
     //   判据必须落在「页面形态」上，不能落在「用了哪个手段到达」上。**
     if (flow.independent) {
-      await page.waitForTimeout(2500);
+      // 固定 2500ms → 条件等待：等该流程的载体在重载后重新挂上（有界；下游 checkAssert 仍有重试兜底）
+      // ⚠ 2026-09-23 提速批：重载后同样可能"还没渲染好"，故与 `openFlowPage` 同款——未就位就再重载（最多 3 次）
+      let ready = await waitFlowReady(page, flow);
+      for (let i = 1; i < 3 && !ready; i++) {
+        await page.reload({ waitUntil: 'domcontentloaded' });
+        ready = await waitFlowReady(page, flow);
+      }
     } else {
-      await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });
-      await page.waitForTimeout(1500); // 同 loginAs：等 LOADING→IDLE 重渲染稳定再切 tab
+      // 「等 tab 条 + 固定 1500ms」→ 条件等待「壳层已就位」（判据同 openFlowPage，见 waitShellSettled）
+      await waitShellSettled(page);
       if (!(await activateTab(page, flow.tab))) v.push(`重载后无法切回「${flow.tab}」：tab 未进入激活态（下列断言结果不可信）`);
     }
     // 批次 47-V（2026-09-16）：`reopen[]`——**「详情面板 / 浮窗」类写口在整页重载后会被收起**
@@ -658,6 +846,31 @@ test('S6 台账行号未同步即红灯：每条登记项的 line 必须真的�
   assert.deepEqual(bad, [], `台账行号未同步，请改为实际行号（台账指错地方＝读的人一定读歪）：\n${bad.join('\n')}`);
 });
 
+// ── 降频开关（2026-09-23 提速批·刀②，支书已放行）────────────────────────
+// `FORM_LOOP_TABS=<tab1,tab2>`（逗号分隔，**子串匹配**——与 `openTab` 定位 tab 的口径一致）
+// ⇒ **只跑命中这些 tab 的真机流程**；**不设＝全跑**（默认行为一字不变 ⇒ 提交前的全量档无需任何改动）。
+// ⚠ 支书放行的是「**降频**」，不是「永久少测」：
+//   · 降频只影响**真机流程的执行条数**；S0–S6 台账守卫照跑，**规模基线不随降频缩水**
+//     （守卫断言的是 form-loop-registry.mjs 的台账数据，与「跑几条」无关）。
+//   · 打错的 tab 名会**一条真机用例都不跑而全绿**（比红更坏）⇒ S7 强制「每个请求的 tab 名必须至少命中一条流程」。
+const TAB_FILTER = String(process.env.FORM_LOOP_TABS || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+const matchTab = (flow) => TAB_FILTER.length === 0 || TAB_FILTER.some((t) => flow.tab.includes(t));
+const MACHINE_IN_SCOPE = MACHINE_FLOWS.filter(matchTab);
+const SUCCESS_IN_SCOPE = SUCCESS_FLOWS.filter(matchTab);
+
+test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名必须至少命中一条流程', () => {
+  if (TAB_FILTER.length === 0) {
+    console.log(`[降频] 未设 FORM_LOOP_TABS ⇒ 全跑：阶段一 ${MACHINE_FLOWS.length} 条 · 成功路径 ${SUCCESS_FLOWS.length} 条`);
+    return;
+  }
+  const miss = TAB_FILTER.filter((t) => !MACHINE_FLOWS.some((f) => f.tab.includes(t)) && !SUCCESS_FLOWS.some((f) => f.tab.includes(t)));
+  assert.deepEqual(miss, [], `FORM_LOOP_TABS 里有 tab 名一条流程都没命中（真机用例会静默归零、全绿无证据，请核对 tab 名）：${miss.join(' / ')}`);
+  const skippedM = MACHINE_FLOWS.length - MACHINE_IN_SCOPE.length;
+  const skippedS = SUCCESS_FLOWS.length - SUCCESS_IN_SCOPE.length;
+  console.log(`[降频] FORM_LOOP_TABS=${TAB_FILTER.join(',')} ⇒ 阶段一 ${MACHINE_IN_SCOPE.length} 条（跳过 ${skippedM} 条）· 成功路径 ${SUCCESS_IN_SCOPE.length} 条（跳过 ${skippedS} 条）`);
+});
+
 /** 真机闭环普查（逐流程）────────────────────────────────────────────── */
 
 /** 未捕获脚本错误（`pageerror`）——**第三类判据，2026-09-16 批次 47-M 新增**。
@@ -673,24 +886,21 @@ function uncaughtErrors(page) {
   return (page.__errs || []).filter((m) => /ReferenceError|TypeError|is not a function|is not defined|Cannot read/.test(m));
 }
 
-for (const flow of MACHINE_FLOWS) {
+for (const flow of MACHINE_IN_SCOPE) {
   test(`真机闭环 · ${flow.page}/${flow.tab}（${flow.id}）：空必填点提交须报可见提示且载体在位`, async () => {
-    const page = await loginAs(ACCOUNTS[flow.page], flow.page, flow.path);
-    try {
-      await ensureFlow(page, flow);
-      const violations = await sweepFlow(page, flow);
-      const errs = uncaughtErrors(page);
-      if (errs.length) violations.push(`真机跑该流程时抛出未捕获脚本错误（这类错误往往就是「静默」的成因）：\n      ${errs.join('\n      ')}`);
-      assert.deepEqual(violations, [], `${flow.id} 表单闭环普查不通过：\n${violations.map((x) => '  - ' + x).join('\n')}`);
-    } finally {
-      await page.close();
-    }
+    const page = await openFlowPage(flow);
+    await ensureFlow(page, flow);
+    const violations = await sweepFlow(page, flow);
+    const errs = uncaughtErrors(page);
+    if (errs.length) violations.push(`真机跑该流程时抛出未捕获脚本错误（这类错误往往就是「静默」的成因）：\n      ${errs.join('\n      ')}`);
+    assert.deepEqual(violations, [], `${flow.id} 表单闭环普查不通过：\n${violations.map((x) => '  - ' + x).join('\n')}`);
+    // 会话页在 `after` 统一关闭（复用 page ⇒ 不能在这里 close）
   });
 }
 
 // ── 真机成功路径普查（逐流程，Q-23-44）─────────────────────────────────
 
-for (const flow of SUCCESS_FLOWS) {
+for (const flow of SUCCESS_IN_SCOPE) {
   test(`真机成功路径 · ${flow.page}/${flow.tab}（${flow.id}）：填对→触发→须成功提示且动作真生效${flow.reload ? '（含整页重载·落库）' : ''}`, async () => {
     // 白名单流程（已坐实的产品缺口）：**跳过执行**，但把缺口大声打出来——
     // 与阶段一 `machine:false` 同规：白名单是「登记」，不是「隐藏」。
@@ -700,15 +910,12 @@ for (const flow of SUCCESS_FLOWS) {
     }
     // 批次 47-M（2026-09-16）：补传 `flow.path`——**独立页的成功路径流程也要直达**
     //   （原实现只走 `workspace/<page>.html`，本阶段首次出现独立页流程，不传就停在错误的页面上白等超时）。
-    const page = await loginAs(ACCOUNTS[flow.page], flow.page, flow.path);
-    try {
-      await ensureFlow(page, flow, flow.ready);
-      const violations = await sweepSuccessFlow(page, flow);
-      const errs = uncaughtErrors(page);
-      if (errs.length) violations.push(`真机跑该成功路径时抛出未捕获脚本错误：\n      ${errs.join('\n      ')}`);
-      assert.deepEqual(violations, [], `${flow.id} 成功路径普查不通过：\n${violations.map((x) => '  - ' + x).join('\n')}`);
-    } finally {
-      await page.close();
-    }
+    const page = await openFlowPage(flow);
+    await ensureFlow(page, flow, flow.ready);
+    const violations = await sweepSuccessFlow(page, flow);
+    const errs = uncaughtErrors(page);
+    if (errs.length) violations.push(`真机跑该成功路径时抛出未捕获脚本错误：\n      ${errs.join('\n      ')}`);
+    assert.deepEqual(violations, [], `${flow.id} 成功路径普查不通过：\n${violations.map((x) => '  - ' + x).join('\n')}`);
+    // 会话页在 `after` 统一关闭（复用 page ⇒ 不能在这里 close）
   });
 }

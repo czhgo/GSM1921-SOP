@@ -6,13 +6,13 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
-import { generateId } from '../core/id.js?v=20260923a';
-import { bumpToken, tokenOf } from '../core/version-token.js?v=20260923a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { persist } from '../core/data-adapter.js?v=20260924a';
+import { generateId } from '../core/id.js?v=20260924a';
+import { bumpToken, tokenOf } from '../core/version-token.js?v=20260924a';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from './activity.js?v=20260923a';
+import { PENDING_APPROVAL_STATUS } from './activity.js?v=20260924a';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -334,29 +334,6 @@ export function halfYearPeriodOf(dateStr) {
   const month = Number(m[2]);
   if (month < 1 || month > 12) return null;
   return `${m[1]}-H${month <= 6 ? 1 : 2}`;
-}
-
-/** 自然半年期键 → 中文标签（'2026-H2' → '2026年下半年'；非法值原样返回） */
-export function halfYearPeriodLabel(period) {
-  const m = /^(\d{4})-H([12])$/.exec(String(period || ''));
-  if (!m) return String(period || '');
-  return `${m[1]}年${m[2] === '1' ? '上' : '下'}半年`;
-}
-
-/**
- * 可选自然半年期（手填下拉；含近 N 年两个半年，新期次在前）——「第几期」的取值集
- * @param {number} [years=2] 覆盖年数（含当前年）
- * @returns {Array<{value:string,label:string}>}
- */
-export function halfYearPeriodOptions(years = 2) {
-  const y0 = new Date().getFullYear();
-  const out = [];
-  for (let i = 0; i < Math.max(1, years); i++) {
-    const y = y0 - i;
-    out.push({ value: `${y}-H2`, label: halfYearPeriodLabel(`${y}-H2`) });
-    out.push({ value: `${y}-H1`, label: halfYearPeriodLabel(`${y}-H1`) });
-  }
-  return out;
 }
 
 /**

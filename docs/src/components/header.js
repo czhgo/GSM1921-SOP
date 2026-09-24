@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260923a';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../core/constants.js?v=20260924a';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../core/theme.js?v=20260923a';
-import { getBasePath } from '../core/utils.js?v=20260923a';
-import { icon } from '../core/icons.js?v=20260923a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260923a';
-import { badgeHtml } from './badges.js?v=20260923a';
-import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260923a';
+import { resolveAppliedAccentRole } from '../core/theme.js?v=20260924a';
+import { getBasePath } from '../core/utils.js?v=20260924a';
+import { icon } from '../core/icons.js?v=20260924a';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../core/data-adapter.js?v=20260924a';
+import { badgeHtml } from './badges.js?v=20260924a';
+import { readLoginSnapshot } from '../core/login-snapshot.js?v=20260924a';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../services/branch.js?v=20260923a';
+import { getHeaderTitle } from '../services/branch.js?v=20260924a';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,12 +22,27 @@ import { getHeaderTitle } from '../services/branch.js?v=20260923a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../services/auth.js?v=20260923a');
+  if (!_authModule) _authModule = import('../services/auth.js?v=20260924a');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260923a');
+  if (!_noticeModule) _noticeModule = import('../services/notice.js?v=20260924a');
   return _noticeModule;
+}
+
+// ── 浏览器标签页标题（2026-09-23 支书批「判别依据可感」）────────────────────────
+// 标签页标题随登录账号动态更新：`<页面名> — <当前组织名>`；组织名 = getHeaderTitle（与顶栏 h1 同一判定源，1–5 段）。
+// 页面名 = 本模块加载时静态 <title> 里分隔符「 — 」之前的部分——静态 title 一律 `<页面名> — 中性串`
+// （中性串 = 产品名 GSM1921-SOP：对任何部署实例都成立，不 claim 任何具体支部名）。
+const DOC_TITLE_SEP = ' — ';
+const _STATIC_PAGE_TITLE = (typeof document !== 'undefined' && document) ? String(document.title || '') : '';
+const PAGE_NAME = _STATIC_PAGE_TITLE.split(DOC_TITLE_SEP)[0].trim();
+
+/** 刷新浏览器标签页标题（组织名由调用方传入 = getHeaderTitle 结果；页面名取静态 <title> 快照） */
+function _applyDocumentTitle(orgTitle) {
+  if (typeof document === 'undefined' || !document) return;
+  const next = PAGE_NAME ? `${PAGE_NAME}${DOC_TITLE_SEP}${orgTitle}` : orgTitle;
+  if (document.title !== next) document.title = next;
 }
 
 // 数据变更订阅（2026-08-05，消除"确认已读后角标不更新"）：
@@ -75,6 +90,7 @@ async function _renderNotificationBadge() {
  * 即时刷新 header 品牌标题（2026-09-10「归属显示不一致」修复）
  * 只改 h1 文本（textContent），不重建 header DOM——不触碰汉堡/铃铛/身份标签的事件绑定，无闪烁。
  * 数据未加载时 getHeaderTitle 返回静态兜底名，本函数在 loadDB 完成（DATA_LOADED）后归还真实支部名。
+ * 2026-09-23：同批刷新浏览器标签页标题（同一标题值 + 页面名），DATA_LOADED / DATA_CHANGED / 登录后重绘三路共用。
  */
 async function _refreshHeaderTitle() {
   const header = document.getElementById('app-header');
@@ -89,6 +105,7 @@ async function _refreshHeaderTitle() {
   }
   const title = getHeaderTitle(personId || undefined);
   if (h1.textContent !== title) h1.textContent = title;
+  _applyDocumentTitle(title);
 }
 
 function _roleLabelHTML(role) {
@@ -154,6 +171,8 @@ export async function renderHeader(activeModule, opts = {}) {
   //   分支数据尚未加载（时序）→ 静态兜底名（getHeaderTitle 内处理），数据到达后由 _refreshHeaderTitle 归还真实支部名；
   //   未登录静态壳（personId 缺省）→ 中性占位「示例组织（未登录）」。
   const headerTitle = getHeaderTitle(personId || undefined);
+  // 2026-09-23：浏览器标签页标题同源刷新（渲染路径；未登录/登出后重绘即回到「示例组织（未登录）」）
+  _applyDocumentTitle(headerTitle);
 
   header.innerHTML = `
     <div class="header-content">

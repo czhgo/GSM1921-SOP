@@ -44,6 +44,8 @@ async function loginAs(sid, ws) {
     page.click('button[type="submit"]'),
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
+  // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -124,6 +126,10 @@ test('组长台·考察上传：点选后「关面板即已选」也必须出现
       ts[2].value = '复核：材料报送及时';
     });
     await page.evaluate(() => document.getElementById('insp-form-submit')?.click());
+    // 本位 nudge（2026-09-23 支书裁定）：考察记录的写入本位＝**该场活动的组织者** ⇒ 本台登录人不是
+    //   该场组织者（本组组长非组织者＝监督位）时，**提交前**弹「本步一般由该场活动的组织者写入」确认，
+    //   必须点主按钮「仍由我继续」才放行（该弹窗不许点遮罩 / 按 Esc 关）。本位操作人无此弹窗，点不到即跳过。
+    await page.evaluate(() => document.querySelector('[data-nudge-confirm]')?.click());
     await page.waitForFunction(() => (document.getElementById('toast-container')?.textContent || '').includes('考察上传成功'), { timeout: 8000 });
     await page.waitForTimeout(400);
 
@@ -168,6 +174,10 @@ test('组织台·专班考察上传：同一条闭环（选专班 + 点选人员
       ts[1].value = '复核：协作配合良好';
     });
     await page.evaluate(() => document.getElementById('org-insp-form-submit')?.click());
+    // 本位 nudge（2026-09-23 支书裁定）：**专班考察的上传本位＝该专班承担人（组织者）**，组织委员在本台是
+    //   「建档汇总」位 ⇒ 由本台代录时**提交前**弹确认，必须点主按钮「仍由我继续」才放行（不许点遮罩 / 按 Esc 关）。
+    //   本位操作人（本人即该专班组织者）无此弹窗，点不到即跳过。
+    await page.evaluate(() => document.querySelector('[data-nudge-confirm]')?.click());
     await page.waitForFunction(() => (document.getElementById('toast-container')?.textContent || '').includes('专班考察上传成功'), { timeout: 8000 });
   } finally {
     await page.close();

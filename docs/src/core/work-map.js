@@ -31,9 +31,19 @@
 //   ⚠ 别与系统里既有的党委表达混：`constants.js` 的 **`party-staff`（党委组织员）是角色键**（有
 //   `ROLE_LABELS` / `ROLE_PAGE_MAP` → 党委工作台 `party-committee.html`，可登录）；本注册表的
 //   `party-committee` 是**组织型主体 id**，只作「谁负责」的答案——本批**未动 `party-staff` 那条链**。
+// 2026-09-23（支书裁定·裁定甲，逐字）：「支委会和支委扩大会 **都是【法人】性质的**。支委扩大会是
+//   **可以选择 扩大到谁的**，其中 党小组组长（代组长）是可以打包的，便于扩大时方便选择。」
+//   ⇒ 新增第三个组织型主体 `expanded-committee`（支委扩大会）——与 `branch-committee`（支委会）**并列**、
+//   **两者都是法人性质**（能作「谁负责 / 承担方」的答案，但不是自然人、不是角色键）。承载形态：
+//   同一场支委会议（活动 `type='支委会'`），**扩大到谁**在该场活动上选定——落点＝既有
+//   `voteConfig.voterIds`（应到名单，单一源 `services/vote-config.js::resolveVoterIds`），**不新增字段**。
+//   ⚠ **别与 SOP 场景任务里那个同名字符串混**：`executor:'expanded-committee'`（`workflow/sopData.js`
+//   「活动报备」一条；标签在 `workflow/renderer.js`）是**渲染层标签**（执行者标签），**不是主体**、
+//   不进本注册表；本注册表的 `expanded-committee` 是**组织型主体 id**——**同名但不是一回事**。
 export const ORG_SUBJECTS = {
   'branch-committee': { label: '支委会' },
   'party-committee': { label: '党委' },
+  'expanded-committee': { label: '支委扩大会' },
 };
 export const ORG_SUBJECT_IDS = Object.keys(ORG_SUBJECTS);
 export const ORG_SUBJECT_LABELS = Object.fromEntries(

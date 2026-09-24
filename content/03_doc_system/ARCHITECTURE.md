@@ -176,7 +176,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
 │   ├── 04_web_design/                [工程师]+[AI] 网站设计层（设计理念与思路档案）
-│   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 静态模型 / DATA_FLOW 数据流）
+│   │   ├── data/                      [工程师]+[AI] 数据权威（DATA_MODEL 数据模型与数据流）
 │   │   ├── design-system/             [工程师]+[AI] 全站通用规范（DESIGN_SYSTEM / COLOR_SYSTEM / COMPONENT_SPEC / CLICK_ROUTING）
 │   │   ├── module/                    [工程师]+[AI] 页面与模块设计（SOP_WEBSITE_GUIDE / MODULE_UI_DESIGN / ABOUT_PAGE_DESIGN / AGENDA_AND_REFERENCE_DESIGN）
 │   │   ├── deploy/                    [工程师]+[AI] 部署与集成设计（DEPLOYMENT_GUIDE / AUTHENTICATION_MODEL / WECHAT_INTEGRATION / PKU_PARTY_INTEGRATION）
@@ -214,7 +214,7 @@ Layer 7: 审计参考层（审计与参考）
 
 ### Activity（活动记录）
 
-> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值为 `draft`/`published`/`ongoing`/`completed`/`cancelled` 五态——含 `cancelled`，见 [domain.js:16](../../docs/src/core/domain.js) 与 DATA_MODEL §2.1 字段表，展示一律用生命周期派生态；组织者由 `assignments` 主源派生）与 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体未同步。
+> **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值为 `draft`/`published`/`ongoing`/`completed`/`cancelled` 五态——含 `cancelled`，见 [domain.js:16](../../docs/src/core/domain.js) 与 DATA_MODEL §2.1 字段表，展示一律用生命周期派生态；组织者由 `assignments` 主源派生）与 [DATA_MODEL.md §第二部分](../04_web_design/data/DATA_MODEL.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体未同步。
 
 mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
 
@@ -226,7 +226,7 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 
 - **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
 - **版本防御**： `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
-- **根结构完整键表见权威源**：[DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md) §4.2.1（存储键/字段/版本校验全量清单），本处不复刻。
+- **根结构完整键表见权威源**：[DATA_MODEL.md §4.2.1](../04_web_design/data/DATA_MODEL.md)（存储键/字段/版本校验全量清单），本处不复刻。
 
 ---
 

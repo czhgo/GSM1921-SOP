@@ -2,22 +2,36 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260923a';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260923a';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260923a';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260923a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260923a';
-import { SourceType, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260923a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260924a';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260924a';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/inspection.js?v=20260924a';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260924a';
+import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260924a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
+import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain.js?v=20260924a';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260923a';
-import { badgeHtml } from '../../../components/badges.js?v=20260923a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260923a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260923a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260923a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260924a';
+import { badgeHtml } from '../../../components/badges.js?v=20260924a';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
+import { HandoffStore } from '../../../services/handoff.js?v=20260924a';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260924a';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260923a';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260924a';
+// 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
+//   本位判据单一源 `services/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
+import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260924a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
+// 「本位」nudge 确认弹窗（单一源 = components/modal.js::confirmNudge）
+import { confirmNudge } from '../../../components/modal.js?v=20260924a';
+import { generateId } from '../../../core/id.js?v=20260924a';
+
+// 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
+let _discInspFormVisible = false;
+let _discInspPickerInstance = null;
 
 export function renderContent(ctx) {
   const container = document.getElementById('disc-tab-content');
@@ -38,11 +52,19 @@ export function renderContent(ctx) {
   const tagColor = { 'activity': 'bg-blue-50 text-blue-600', 'taskforce': 'bg-green-50 text-green-700' };
   const statusColor = { 'confirmed': 'bg-green-100 text-green-700', 'pending': 'bg-orange-100 text-orange-700', 'overdue': 'bg-red-100 text-red-700' };
   const overdueDays = POLICY_DEFAULTS.inspection.overdueDays; // 超期文案天数（批4 单一源派生）
+  // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：来源＝活动侧（本位＝该场活动的组织者），
+  //   与组长 / 组织台「考察上传」**同一来源集**（未归档、未取消的会议类活动；此处不按上传位收窄——
+  //   纪检本就不是该场组织者，正是「本位不在时就地代录」）。
+  const proxyActivities = filterActivitiesForViewer(loadActivities(), 'disc-commissioner')
+    .filter(a => (a.type === '党小组会' || a.type === '主题党日' || a.type === '党课' || a.type === '支部党员大会')
+      && a.status !== 'cancelled' && !a.archived)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   container.innerHTML = `
     ${_buildTaskforceRosterHTML()}
     ${_buildSupervisionCardHTML(supervisionRows, overdueDays, returnedRecs)}
     ${_buildAppealCardHTML(pendingAppeals, returnedAppeals)}
+    ${_buildInspectionProxyCardHTML(proxyActivities)}
     <div class="card rounded-lg p-5">
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div class="flex items-center gap-2">
@@ -168,15 +190,13 @@ export function renderContent(ctx) {
       countUnit: '条',
       emptyMessage: '无匹配考察记录',
       table: {
-        colSpan: 9,
+        colSpan: 7,
         headHtml: `<tr>
             <th>姓名</th>
             <th>来源</th>
             <th>类别</th>
             <th>内容</th>
             <th>记录人</th>
-            <th>培养联系人</th>
-            <th>期次</th>
             <th>状态</th>
             <th>操作</th>
           </tr>`,
@@ -190,12 +210,10 @@ export function renderContent(ctx) {
         return `
             <tr${rowBg ? ` class="${rowBg}"` : ''}>
               <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(i.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(i.personId))}</a></td>
-              <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="../activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
+              <td class="text-gray-600">${i.activityId ? `<a class="text-blue-600 hover:underline" href="./activity.html?id=${i.activityId}">${i.source}</a>` : i.source}</td>
               <td><span class="px-1.5 py-0.5 rounded text-xs ${i.sourceType === '活动' ? tagColor.activity : tagColor.taskforce}">${i.sourceType === '活动' ? '活动' : '专班'}</span></td>
               <td class="text-gray-600">${i.content || i.role}</td>
               <td class="text-gray-600">${i.recordedByName ? esc(i.recordedByName) : '—'}</td>
-              <td class="text-gray-600">${i.mentorName ? esc(i.mentorName) : '—'}</td>
-              <td class="text-gray-600">${i.periodLabel ? esc(i.periodLabel) : '—'}</td>
               <td><span class="px-1.5 py-0.5 rounded-full text-xs ${statusCls}">${statusLabelOf(i)}</span></td>
               <td>${isReturned
                 ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
@@ -332,8 +350,8 @@ export function renderContent(ctx) {
       // 与引擎同口径复算当前筛选结果（关键词 + 来源类别 + 状态）
       const st = longHandle ? longHandle.state : null;
       const rows = longRows.filter(r => _matchLongRow(r, st))
-        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', i.mentorName || '', i.periodLabel || '', statusLabelOf(i)]);
-      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '培养联系人', '期次', '状态'], rows);
+        .map(i => [i.name, i.source, i.sourceType, i.level, i.role || i.content, i.recordedByName || '', statusLabelOf(i)]);
+      downloadCSV(`考察总表_${stamp}.csv`, ['姓名', '来源', '类别', '参与层级', '内容/角色', '记录人', '状态'], rows);
     } else {
       // 宽表「所见即所得」：列随矩阵当前列上限（未展开＝最近 6 项），行随姓名检索；按项目视图导出转置后的形态
       const searchEl = document.getElementById('insp-search-input');
@@ -384,7 +402,157 @@ export function renderContent(ctx) {
     renderContent(ctx);
   });
 
+  // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：折叠/展开只切该容器 hidden，
+  // 保态同组长 / 组织台判例——已选活动 / 人员 / 逐人考察内容在收起展开间不丢。
+  container.querySelector('#btn-disc-upload-insp')?.addEventListener('click', () => {
+    const panel = container.querySelector('#disc-insp-form-panel');
+    const btn = container.querySelector('#btn-disc-upload-insp');
+    if (!panel) { // 首次打开（表单未渲染）：走 _discInspFormVisible 渲染表单 + 创建人员选择器
+      _discInspFormVisible = true;
+      renderContent(ctx);
+      return;
+    }
+    const collapsed = panel.classList.toggle('hidden');
+    if (btn) btn.textContent = collapsed ? '代录考察表单' : '收起表单';
+  });
+  if (_discInspFormVisible) _initDiscInspForm(container, ctx);
+
   renderWide();
+}
+
+// ── 考察代录位（2026-09-23 支书追裁「开一个代录位」）──
+// 病灶：纪检台只有确认 / 打回 / 申诉（`S0`/`S6` 之外的那半——**没有上传位**），上传方（该场活动的
+//   组织者）未到位时无处录入。支书原话（逐字）：「**开一个代录位**」。
+// 口径：**写口与字段全部复用既有实现**——同一服务层函数（`loadInspectionRecords` / `saveInspectionRecords`）、
+//   同一字段集（与组长台「考察上传」逐字同款的记录字段：sourceType/activityId/sourceName/personId/level/
+//   content/role/recordedBy/recordedAt/status），**不新增字段、不新造实体**；**本位仍＝该场活动的组织者**
+//   （判据单一源 `services/inspection.js::isInspectionHomePosition` → `services/activity.js::isActivityOrganizer`）
+//   ⇒ 纪检在**非本位**时代录，**提交前**弹一次「本位」nudge（`components/modal.js::confirmNudge`，
+//   `nudgeKey` 复用 `inspection-upload`，文案单一源 `NUDGE_TEXTS`，不另造文案键）。
+function _buildInspectionProxyCardHTML(activities = []) {
+  const formHtml = _discInspFormVisible ? `
+    <div class="mt-3 p-4 rounded-lg bg-white border border-gray-100 shadow-sm" id="disc-insp-form-panel">
+      <div class="text-xs font-bold text-gray-600 mb-3">代录考察表单（本位＝该场活动的组织者）</div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择活动 <span class="text-red-600">*</span></label>
+        <select id="disc-insp-act-select" class="input-flat w-full">
+          <option value="">请选择活动</option>
+          ${activities.map(a => `<option value="${esc(a.id)}" data-title="${esc(a.title || '')}">${esc(a.title || '未命名')}（${esc(a.date || '—')}）</option>`).join('')}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择人员 <span class="text-red-600">*</span></label>
+        <div id="disc-insp-person-picker-container"></div>
+      </div>
+      <div id="disc-insp-content-rows" class="mb-3"></div>
+      <div class="flex items-center gap-3">
+        <button id="disc-insp-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;cursor:pointer;">提交代录</button>
+        <button id="disc-insp-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+      </div>
+    </div>` : '';
+  return `
+    <div class="card rounded-lg p-4 mb-4">
+      <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
+        <button id="btn-disc-upload-insp" class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
+      </div>
+      <div class="text-[11px] text-gray-500 leading-5 mb-3">考察记录的写入本位是<strong>该场活动的组织者</strong>——上传方未到位时，纪检可在此代录；记录照常入下方考察总表「待确认」，确认权仍在本页。<strong>不是你本位时，提交前会先弹一次确认</strong>。</div>
+      ${formHtml}
+    </div>`;
+}
+
+/** 考察代录表单：事件绑定（同组长台考察上传判例——选人即渲染逐人填写框、重建保态、提交带本位 nudge） */
+function _initDiscInspForm(container, ctx) {
+  const pickerContainer = container.querySelector('#disc-insp-person-picker-container');
+  if (pickerContainer) {
+    _discInspPickerInstance = new PersonPicker({
+      mode: 'multi',
+      placeholder: '选择人员',
+      accentColor: '#C8102E',
+      onSelect: (ids) => { _renderDiscInspContentRows(ids); },
+    });
+    _discInspPickerInstance.render(pickerContainer);
+  }
+  _renderDiscInspContentRows([]);
+
+  // 取消 = 收起（保态：保留已选与逐人填写内容；仅提交成功后才重置会话）
+  container.querySelector('#disc-insp-form-cancel')?.addEventListener('click', () => {
+    const panel = container.querySelector('#disc-insp-form-panel');
+    if (panel) panel.classList.add('hidden');
+    const btn = container.querySelector('#btn-disc-upload-insp');
+    if (btn) btn.textContent = '代录考察表单';
+  });
+
+  container.querySelector('#disc-insp-form-submit')?.addEventListener('click', async () => {
+    const actSelect = container.querySelector('#disc-insp-act-select');
+    const activityId = actSelect?.value;
+    if (!activityId) { showToast('error', '请选择要代录的活动'); return; }
+    const activityTitle = actSelect?.selectedOptions[0]?.dataset.title || activityId;
+
+    const selectedIds = _discInspPickerInstance ? _discInspPickerInstance.getSelected() : [];
+    if (selectedIds.length === 0) { showToast('error', '请选择人员'); return; }
+
+    const actorId = getDiscCommissionerId();
+    // 与组长台「考察上传」逐字同款的记录字段集（同一服务层函数写库，不新增字段）
+    const records = [];
+    for (const personId of selectedIds) {
+      const contentEl = container.querySelector(`#disc-insp-content-${personId}`);
+      const content = contentEl ? contentEl.value.trim() : '';
+      if (!content) { showToast('error', `请填写 ${getPersonName(personId)} 的考察内容`); return; }
+      records.push({
+        id: generateId('insp'),
+        sourceType: SourceType.ACTIVITY,
+        activityId,
+        sourceName: null,
+        personId,
+        level: ParticipationLevel.ORGANIZE,
+        content,
+        role: '组织者',
+        recordedBy: actorId,
+        recordedAt: new Date().toISOString(),
+        status: 'pending',
+      });
+    }
+
+    // 本位 nudge（单一源 `components/modal.js::confirmNudge`）：考察记录的写入本位＝**该场活动的组织者**
+    //   ⇒ 纪检在本台代录必然不是本位 ⇒ **写库前**弹一次确认（必须点按钮才能关；「取消」＝放弃本次代录）。
+    if (!isInspectionHomePosition(actorId, SourceType.ACTIVITY, activityId)) {
+      const _homeOk = await confirmNudge({ nudgeKey: 'inspection-upload', context: activityTitle });
+      if (!_homeOk) return;
+    }
+
+    const all = loadInspectionRecords();
+    all.push(...records);
+    saveInspectionRecords(all);
+
+    showToast('success', `考察代录成功，共 ${records.length} 条记录，等待纪检确认`);
+    _discInspFormVisible = false;
+    if (_discInspPickerInstance) { _discInspPickerInstance.destroy(); _discInspPickerInstance = null; }
+    renderContent(ctx);
+  });
+}
+
+/** 逐人考察内容行（选人即渲染；重建前收下已填内容 ⇒ 改选人员不清空已写内容，同组长 / 组织台判例） */
+function _renderDiscInspContentRows(selectedIds) {
+  const rowsContainer = document.getElementById('disc-insp-content-rows');
+  if (!rowsContainer) return;
+  if (selectedIds.length === 0) {
+    rowsContainer.innerHTML = '';
+    return;
+  }
+  const kept = {};
+  rowsContainer.querySelectorAll('textarea[id^="disc-insp-content-"]').forEach((t) => {
+    kept[t.id.slice('disc-insp-content-'.length)] = t.value;
+  });
+  rowsContainer.innerHTML = `
+    <div class="text-xs font-bold text-gray-600 mb-2">逐人考察内容</div>
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+      ${selectedIds.map(pid => `
+        <div class="p-2 rounded-lg bg-white">
+          <div class="text-xs font-medium text-gray-800 mb-1">${esc(getPersonName(pid) || pid)}</div>
+          <textarea id="disc-insp-content-${pid}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="请填写考察内容描述">${esc(kept[pid] || '')}</textarea>
+        </div>`).join('')}
+    </div>`;
 }
 
 // ── 督办清单卡（SOP-B-10 · 以人为第一列）──

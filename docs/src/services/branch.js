@@ -3,23 +3,23 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { getPersonById } from './person.js?v=20260923a';
-import { PARTY_COMMITTEE } from '../mock/branches.js?v=20260923a';
-import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260923a';
-import { listCapabilities } from '../core/registry.js?v=20260923a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { getPersonById } from './person.js?v=20260924a';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../mock/branches.js?v=20260924a';
+import { getAdapter, persist, getDataSource } from '../core/data-adapter.js?v=20260924a';
+import { listCapabilities } from '../core/registry.js?v=20260924a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260923a';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../core/config-clean.js?v=20260924a';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260923a';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../core/config-clean.js?v=20260924a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../core/work-map.js?v=20260923a';
+import { expandWorkforce } from '../core/work-map.js?v=20260924a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260923a';
-import { randomHex } from '../core/id.js?v=20260923a';
+import { POLICY_OVERRIDE_SECTIONS } from '../core/policy-defaults.js?v=20260924a';
+import { randomHex } from '../core/id.js?v=20260924a';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../core/constants.js?v=20260923a';
+import { isCoreTab } from '../core/constants.js?v=20260924a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -295,7 +295,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260923a');
+      const { ApiAdapter } = await import('../core/api-adapter.js?v=20260924a');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -488,9 +488,12 @@ export function getBranchIdOfPerson(personId) {
   return person?.branchId || 'br-b1';
 }
 
-// 静态壳兜底名之一：分支数据尚未加载时的兜底（时序竞态用——非真实支部名软编码；
-// 接入真实支部数据后由各支部 config.headerTitle/name 覆盖）
-const STATIC_HEADER_FALLBACK = '光华管理学院本科生党支部';
+// 静态壳兜底名：分支数据尚未加载时的兜底（时序竞态用）——**单一源派生，不再复制字面量**：
+// 取自 mock/branches.js 演示支部 br-b1 的档案名（DEFAULT_BRANCH_DISPLAY_NAME）。
+// ⚠ 段②（真实归属：支部 config.headerTitle / name）与段③（本兜底）在本演示实例下取到**同一个字面量**，
+//   但来源不同：段②读 mockDB.branches 里的支部数据（改支部名/页眉名即变），段③是模块加载期固化的兜底
+//   （数据未加载时根本读不到支部记录）。肉眼分辨不了时看 getAffiliationShape().segment（1–5 段号 + 业务语言）。
+const STATIC_HEADER_FALLBACK = DEFAULT_BRANCH_DISPLAY_NAME;
 
 // 未登录中性占位（2026-09-10 支书批「归属显示不一致」修复）：未登录/查无档案时不再走
 // getBranchIdOfPerson 的 br-b1 数据解析兜底（那会显示"示例支部名"像是真有归属），
@@ -505,31 +508,73 @@ export function isLoaded() {
 /**
  * header 品牌软编码（2026-09-09 支书批「支部归属显式化」A2；2026-09-10 时序/占位修复）：
  *   config.headerTitle → branch.name；支部名随支部配置档案更换显示——不硬编码示例支部名。
- * 判定顺序：
+ * 判定顺序（段号 = 本注释序号，getAffiliationShape() 回报同一段号）：
  *   1) party-staff（党委级角色，不属于任一支部）→ 院系党委名（前置不变）；
  *   2) getBoundBranch 有效归属 → 该支部 config.headerTitle / name / 静态兜底名；
+ *      ⚠ 段②与段③在本演示实例下**取到同一个字面量**，来源不同：段②=支部数据（可被改支部名/页眉名改变）
+ *   （数据来自 mockDB.branches）；段③=模块加载期固化的兜底常量。肉眼分辨不了就看段号。
  *   3) 有 person 档案但分支数据尚未加载（loadDB 未完成）→ 静态兜底名 STATIC_HEADER_FALLBACK
  *      （时序修复：避免加载竞态把登录人误报「未绑定支部」；数据到达后 header 重绘归还真实支部名）；
  *   4) 有 person 档案且数据已加载、确无有效归属支部（branchId 空/查无）→ 中性占位「未绑定支部」
  *      （不再泄漏示例支部名；opts.placeholder 可覆盖）；
  *   5) 无 person（未登录静态壳/查无档案）→ 中性占位 GUEST_HEADER_PLACEHOLDER
  *      （保留「示例」含义，不泄漏示例支部名）。
+ * ⚠ 本函数是**唯一判定实现**（getHeaderTitle / getAffiliationShape 共用），勿在别处复制判定。
  * @param {string} [personId] 当前登录人 personId（缺省 = 未登录静态壳）
  * @param {{ placeholder?: string }} [opts]
+ * @returns {{ title: string, segment: number }}
  */
-export function getHeaderTitle(personId, opts = {}) {
+function _resolveHeaderTitle(personId, opts = {}) {
   const placeholder = (opts && opts.placeholder) || '未绑定支部';
   const person = personId ? getPersonById(personId) : null;
-  // 党委级角色：header 显示院系党委名（不属于任一支部）
-  if (person?.role === 'party-staff') return PARTY_COMMITTEE.name;
+  // 段① 党委级角色：header 显示院系党委名（不属于任一支部）
+  if (person?.role === 'party-staff') return { title: PARTY_COMMITTEE.name, segment: 1 };
   const bound = getBoundBranch(personId);
-  if (bound) return bound.config?.headerTitle || bound.name || STATIC_HEADER_FALLBACK;
-  // 分支数据尚未加载（时序）：静态兜底名，而非误报「未绑定支部」
-  if (person && !isLoaded()) return STATIC_HEADER_FALLBACK;
-  // 登录且有 person 档案、但无有效归属支部 → 中性占位（支书语义：真无支部不显示示例支部名）
-  if (person) return placeholder;
-  // 未登录 / 查无档案（静态壳）：中性占位（示例组织，不泄漏示例支部名）
-  return GUEST_HEADER_PLACEHOLDER;
+  // 段② 真实归属（支部数据可改）：支部页眉显示名 config.headerTitle → name
+  if (bound) return { title: bound.config?.headerTitle || bound.name || STATIC_HEADER_FALLBACK, segment: 2 };
+  // 段③ 分支数据尚未加载（时序）：加载期兜底名，而非误报「未绑定支部」
+  if (person && !isLoaded()) return { title: STATIC_HEADER_FALLBACK, segment: 3 };
+  // 段④ 登录且有 person 档案、但无有效归属支部 → 中性占位（支书语义：真无支部不显示示例支部名）
+  if (person) return { title: placeholder, segment: 4 };
+  // 段⑤ 未登录 / 查无档案（静态壳）：中性占位（示例组织，不泄漏示例支部名）
+  return { title: GUEST_HEADER_PLACEHOLDER, segment: 5 };
+}
+
+export function getHeaderTitle(personId, opts = {}) {
+  return _resolveHeaderTitle(personId, opts).title;
+}
+
+/** header 归属判定段号（1–5，顺序同 getHeaderTitle）→ 业务语言（「当前形态」指示卡与注释共用本表） */
+export const HEADER_SEGMENT_LABELS = {
+  1: '党委级角色（不属于任一支部）——显示院系党委名',
+  2: '按你的支部档案（getBoundBranch）解析到本支部——显示该支部页眉显示名',
+  3: '数据尚未加载完成（loadDB 未完成）——暂用默认支部名兜底，数据到达后自动归还真实支部名',
+  4: '已登录，但档案里没有有效归属支部——显示「未绑定支部」中性占位',
+  5: '未登录 / 查无档案——显示「示例组织（未登录）」中性占位',
+};
+
+/**
+ * 当前形态 · 归属判定（2026-09-23 支书批「判别依据可感」）——单一源查询，供「设置 → 当前形态」指示卡使用：
+ * 不开调试器即可核对「当前数据源是哪个 / 顶栏那个组织名是哪一段判定命中的 / 所属支部 id / 登录人」。
+ * 判定段与最终组织名 = _resolveHeaderTitle（本函数不复制判定）。
+ * ⚠ 不回报 token 原文，只回报有/无（tokenPresent）。
+ * @param {string} [personId] 当前登录人 personId（缺省 = 未登录静态壳）
+ * @returns {{ source: 'mock'|'api', tokenPresent: boolean, segment: number, segmentLabel: string,
+ *             branchId: string, title: string, dataLoaded: boolean }}
+ */
+export function getAffiliationShape(personId) {
+  const { title, segment } = _resolveHeaderTitle(personId);
+  const bound = getBoundBranch(personId);
+  let tokenPresent = false;
+  try { tokenPresent = !!sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式/无 sessionStorage */ }
+  return {
+    source: getDataSource(),
+    tokenPresent,
+    segment,
+    segmentLabel: HEADER_SEGMENT_LABELS[segment] || '',
+    branchId: bound ? bound.id : '',
+    title,
+  };
 }
 
 /**

@@ -4,7 +4,7 @@ type: governance
 role: "[用户]+[AI]"
 last_updated: "2026-09-22"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_FLOW.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/FLAT_ORGANIZATION_DESIGN.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
 
 # 党支书工作交接文档
@@ -411,14 +411,14 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 - 原P-007（党建与党务——都是「管理事，服务人」的工作）：2026-08-09 迁出至 `content/insights/党支部管理与实务经验沉淀.md` §1.2（同源不同视角）；作为 meta 级论断从汇编删除——区分两分法给成员带来理解压力，全部文档统一使用 T1 官方定义叙述
 - 原P-011：2026-08-09 并入 P-010 并弃用比喻
 - 原P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-012 分工的运行保障（提出需求与统筹执行）；2026-08-28 该原话随设计系统内容移出至 COMMISSIONER_DUTY_FRAMEWORK §F.6
-- 原P-008（视图按需取用原则）：2026-07-20 迁出至 insights 经验沉淀（§4.9）；2026-09-04 随工程方法论分流归位至 `content/04_web_design/data/DATA_FLOW.md` §4.7（§4.9 原则 + §6.13 判例同置）
+- 原P-008（视图按需取用原则）：2026-07-20 迁出至 insights 经验沉淀（§4.9）；2026-09-04 随工程方法论分流归位至 `content/04_web_design/data/DATA_MODEL.md` §4.7（§4.9 原则 + §6.13 判例同置）
 - 原P-021（经验沉淀按需正反两面论）：2026-07-20 迁出至 insights 经验沉淀（§3.7）；2026-09-04 随工程方法论分流归位至 `content/05_ai_coding/REVIEW_AND_EXPRESSION.md`（原 §3.7 节，母本：CLAUDE.md H30.4 规则 2）
 - 原P-022（写入型 vs 支撑型角色分类）：2026-08-04 删除——写入门禁机制真实存在，但该分类的角色清单与 auth.js 权限表不符、系统未使用此命名，支书奥卡姆剃刀裁决清除
 - 原P-016（一改具改原则——修改一处必须全仓同步）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（一改具改操作流程母本，权威源在 CLAUDE.md H30.1）；本文件不再展开
 - 原P-017（甲部自省原则——执行失败时先反思制度）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（甲部自省原则，权威源在 CLAUDE.md H30.1）
 - 原P-018（支书讲出的重要道理必须检查是否写入 guides/Harness——不得只记决策不沉淀原则）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md`（原则沉淀机制）+ `content/05_ai_coding/CONTEXT_MANAGEMENT.md`（已收录，上下文丢失教训节条目 10）
 - 原P-024（SOP 与 guides 各自独立——理念与执行互不替代）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §1.1（文档权威层级定义母本）
-- 原P-026（人才库与原始材料库相区分——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/data/DATA_FLOW.md` §3.3（人才库数据流）
+- 原P-026（人才库与原始材料库相区分——画像数据库与原始记录的关系）：2026-08-09 迁出至 `content/04_web_design/data/DATA_MODEL.md` §3.3（人才库数据流）
 - 原P-029（身份与权限相区分——身份选择和模式选择是两个独立决策）：2026-08-09 迁出至 `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` §G.3（身份权限）；原论断已退役（2026-08-08），保留为历史决策记录
 - 原P-027（支书的审批反馈是活动执行方向把握的关键环节——报备审批是双向关系）：2026-08-09 拆解迁出——①组织性框架内表达例证 → 本文件 P-008 讲解块（报备审批作为「在框架内说真话」的具体例子）；②支书对已开展活动可否补充意见的 UI 设计 → `content/04_web_design/module/SOP_WEBSITE_GUIDE.md`（支书全局概览设计任务）；③报备/审批程序规范化 → `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §审批流程规范
 

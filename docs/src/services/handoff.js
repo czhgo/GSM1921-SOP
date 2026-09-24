@@ -8,11 +8,40 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
-import { bumpToken } from '../core/version-token.js?v=20260923a'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260923a';
-import { generateId } from '../core/id.js?v=20260923a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { persist, getDataSource, getAdapter } from '../core/data-adapter.js?v=20260924a';
+import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260924a';
+import { generateId } from '../core/id.js?v=20260924a';
+
+// ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
+// 病灶：handoffs 有本地落盘（mock-adapter 域清单）却**不在**快照 payload / init 拉取列表 / 服务端资源名映射
+//   ⇒ api 形态下 `mockDB.handoffs` 恒为 `[]`，写入只活在当前页内存 + 本地备份，下次 init 被覆盖（刷新即丢）。
+// 现分流（两形态并存、互不回归）：
+//   · 读：**两形态同源**——读 `mockDB.handoffs` 缓存；api 形态下该缓存由 `init()` 从
+//     `GET /api/v1/handoffs` 拉取填充（见 data-adapter.js::_loadAuxCollections）。
+//   · 写：mock 形态＝现有本地路径（mockDB + persist，一字未改）；api 形态＝在上述本地写之外
+//     **同发语义端点**（`POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`）落服务端。
+// ⚠ 为什么写口保持**同步签名**（`create` 返回 handoff、`confirm` 返回 boolean）而不改成 async：
+//   调用方全是同步用法（`if (HandoffStore.confirm(...)) n += 1`：`entries/tabs/org/todo-tab.js:44`、
+//   `components/handoff-inbox.js:81`），改 async 会让判据变成「Promise 恒真」= 假绿。
+//   ⇒ 采用「本地乐观写 + 服务端同步（失败仅告警）」：服务端在**下一次 init** 成为权威
+//   （写失败不静默——走 console.warn + `persist()` 的待办/快照通道）。
+function _isApi() {
+  try { return getDataSource() === 'api'; } catch (_) { return false; }
+}
+function _syncToServer(fn, what) {
+  if (!_isApi()) return;
+  try {
+    const adapter = getAdapter();
+    const call = fn(adapter);
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    }
+  } catch (e) {
+    console.warn(`[HandoffStore] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+  }
+}
 
 // ── 交接类型元数据（from→to + 展示文案） ──
 // IA-C1 Task2：domain 显式打标（handoff-* 键无法从前缀推断，逐型归域——
@@ -81,6 +110,8 @@ export const HandoffStore = {
       confirmedBy: null,
     };
     _save([..._load(), handoff]);
+    // T1：api 形态同发服务端语义端点（本地已乐观写入；服务端在下一次 init 成为权威）
+    _syncToServer((a) => a.handoffs && typeof a.handoffs.create === 'function' ? a.handoffs.create(handoff) : null, '交接发起');
     // 后台同步：交接生成 → 接收方待办 +1（信息流最畅通，接收方工作台直接可见）
     try {
       TodoStore.create({
@@ -113,6 +144,8 @@ export const HandoffStore = {
     h.confirmedAt = new Date().toISOString();
     h.confirmedBy = actorRole;
     _save(list);
+    // T1：api 形态同发服务端确认端点（销项状态落库；服务端在下一次 init 成为权威）
+    _syncToServer((a) => a.handoffs && typeof a.handoffs.confirm === 'function' ? a.handoffs.confirm(id) : null, '交接确认');
     try {
       TodoStore.completeBySource(TodoSourceType.MANUAL, id);
     } catch (e) {

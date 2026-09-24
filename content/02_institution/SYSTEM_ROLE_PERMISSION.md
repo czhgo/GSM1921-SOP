@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-22"
+last_updated: "2026-09-23"
 status: active
 related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 ---
@@ -13,7 +13,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 > **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)，两者为不同维度、勿混读。
 > **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C 为**逐操作位视图**（上传/确认/监督/备案），本文件为**权限键级视图**——详见 §9f 说明。
 >
-> **数据流设计与界面实现路径**见 [DATA_FLOW.md](../04_web_design/data/DATA_FLOW.md)。
+> **数据流设计与界面实现路径**见 [DATA_MODEL.md §三 / §四](../04_web_design/data/DATA_MODEL.md)。
 
 > **待办派生语义**：具体活动/专班任务不与支委身份静态绑定；谁做什么 = 由该具体的人在该活动/专班承担的角色（组织者/执行者/组长）派生其待办并广播。本节矩阵是待办派生规则集，非静态全能授权；标注 `--` 表示仅因身份不会收到该键待办（除非其为该活动承担者）。
 
@@ -90,6 +90,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | 授权人 | 可赋权角色 | 权限名 |
 |--------|-----------|--------|
 | 支书/副支书 | 党小组组长（常设） | `authorize` |
+| 支书 / 副支书（本支部现任） | **本支部支委身份**：组织 / 宣传 / 纪检委员（常设；撤销＝回落普通参与者）——**不含支书 / 副支书**（一把手层归党委，`D-585`） | 写层业务守卫（`services/appointment.js::appointBranchCommissioner`） |
 | 支书/副支书 + 组织委员 | 组织者/深度参与者（专班） | `authorize_taskforce` |
 | 党小组组长 | 组织者/深度参与者（项目） | `assign_project_role` |
 | 组织者 | 深度参与者（项目） | `assign_project_role` |

@@ -14,12 +14,19 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260923a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260924a';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
 /** 请求超时（ms）。keepalive 请求不设超时，见 _request 注释 */
 const REQUEST_TIMEOUT_MS = 8000;
+
+/**
+ * keepalive 请求体上限（字节）——**T2（2026-09-23 批次 163）的择路阈值**。
+ * 取值来源：Fetch 规范的 `keepalive` 标志对请求体有配额，浏览器实现（Chrome / Firefox）**统一为 64 KiB（65536B）**；
+ * 本处取 **64KiB − 8KiB = 57344B**，余量留给请求头与序列化差异（宁保守，超限即回退普通请求，见 snapshot()）。
+ */
+const KEEPALIVE_BODY_LIMIT = 64 * 1024 - 8 * 1024;
 
 /**
  * gzip 压缩字符串（快照 payload 压缩传输；Chrome 80+ / 现代浏览器支持 CompressionStream）
@@ -79,7 +86,11 @@ async function _request(path, options = {}) {
     error.status = response.status;
     error.type = response.status === 404 ? 'NotFoundError' :
                  response.status === 403 ? 'PermissionError' :
+                 response.status === 409 ? 'ConflictError' :
                  response.status === 401 ? 'AuthError' : 'ApiError';
+    // P0-1（2026-09-23）：409 版本冲突需读**结构化 body**（conflicts 清单）——调用方据它决定「重拉哪些集合」。
+    // 读不出 JSON（非本仓服务端/无 body）时不吞错：error.body 留 null，仅凭 status 判。
+    try { error.body = await response.json(); } catch { error.body = null; }
     throw error;
   }
   if (response.status === 204) return null;
@@ -157,22 +168,46 @@ export const ApiAdapter = {
   },
 
   /**
-   * 全量快照写穿：将当前 mockDB 的 25 个快照域整体覆盖写入后端（认证保护）。
+   * 全量快照写穿：将当前 mockDB 的快照域整体覆盖写入后端（认证保护）。
    * 由 data-adapter 的 persist() 防抖调度调用；P2 资源级 CRUD 落地前，
    * 这是服务层写入穿透到服务器的唯一通道。
-   * @param {Object} payload - 快照 payload（不含 users，含聚合域 __root__ 单行）
-   * @returns {Promise<null>} 204 No Content
+   * P0-1（2026-09-23）：payload 携带 `_versions`（集合名→基线版本）时服务端做乐观锁，
+   * 版本不一致 ⇒ 409（error.type='ConflictError'，error.body.conflicts 给出冲突集合）；无冲突 ⇒ 200 + `{ versions }`。
+   * **P0-1 收紧（2026-09-23 批次 163）**：payload 里出现而 `_versions` 里没有的集合 ⇒ 服务端**整批 428**
+   *   （原「未带版本即无条件写」的旁路已封）⇒ 调用方必须给 payload 里每个集合都带上基线版本。
+   * @param {Object} payload - 快照 payload（不含 users，含聚合域 __root__ 单行；须含 `_versions`）
+   * @param {Object} [opts]
+   * @param {boolean} [opts.keepalive] - **卸载路径专用**（pagehide 同步冲刷）：按体量择路发 keepalive 请求
+   * @returns {Promise<{versions:Object}|null>} 带 `_versions` 时 200 + `{versions}`；否则 204 → null
    */
-  snapshot(payload) {
-    // 2026-09-01 点验修复：keepalive 请求体有 64KB 硬限制，全量快照 payload（25 域）常超限
-    // 导致 API 模式下活动创建/议程记录写穿静默失败。改普通 fetch 保证写穿；
-    // 并 gzip 压缩 payload（66KB → ~10KB），规避大请求体传输限制（沙箱代理/网络层）。
-    // 卸载瞬间丢失的写入由 localStorage 备份兜底（刷新后 loadDB 恢复，下次 persist 补写）。
-    return _gzip(JSON.stringify(payload)).then((body) => _request('/api/v1/snapshot', {
-      method: 'POST',
-      headers: { 'Content-Encoding': 'gzip' },
-      body,
-    }));
+  snapshot(payload, opts = {}) {
+    // 2026-09-01 点验修复：全量快照 payload 常超 keepalive 体量上限 ⇒ 原先一律改普通 fetch；
+    // 但普通 fetch 在**导航卸载期无完成保证**（T2 病灶：切页瞬间的写入可能整批丢失）。
+    // 2026-09-23 批次 163（T2）改为**按体量择路**：
+    //   · 调用方声明 keepalive（只有 pagehide 同步冲刷这条路）**且** gzip 后的请求体 ≤ KEEPALIVE_BODY_LIMIT
+    //     ⇒ 发 keepalive 请求（浏览器接管完成）；该路径在 _request 里**不挂 AbortController**
+    //     （8s 超时 abort 会在切页瞬间掐断在途写）；
+    //   · 超限 ⇒ 回退普通 fetch，并**显式告警「本次可能不被送达」**（绝不静默，本地备份仍在，下次 persist 补写）。
+    // gzip 压缩保留（66KB → ~10KB）：既规避大请求体传输限制，也让多数快照落进 keepalive 体量以内。
+    const wantKeepalive = opts.keepalive === true;
+    return _gzip(JSON.stringify(payload)).then((body) => {
+      const useKeepalive = wantKeepalive && body.byteLength <= KEEPALIVE_BODY_LIMIT;
+      if (wantKeepalive && !useKeepalive) {
+        console.warn(`[ApiAdapter] 快照体量 ${body.byteLength}B 超过 keepalive 上限 ${KEEPALIVE_BODY_LIMIT}B，`
+          + '已回退普通请求——本次写入可能不被送达（本地备份仍在，下次 persist 会补写）');
+      }
+      return _request('/api/v1/snapshot', {
+        method: 'POST',
+        headers: { 'Content-Encoding': 'gzip' },
+        body,
+        ...(useKeepalive ? { keepalive: true } : {}),
+      });
+    });
+  },
+
+  /** 集合版本号全集（P0-1 乐观锁的**基线**来源）：{ 集合名: 版本 }，未出现过的集合为 0 */
+  versions() {
+    return _get('/api/v1/snapshot/versions');
   },
 
   // ── 资源分组接口 ──────────────────────────────────────────
@@ -770,6 +805,50 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/agenda-votes', data);
+    },
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  //  2026-09-23 批次 163（T1）：三域补服务端对源 —— 语义端点组
+  // ════════════════════════════════════════════════════════════════
+  // 体例同 agendaVotes：**语义端点域、故意不进快照 payload**（写口走这些端点，防抖快照会以陈旧缓存覆盖），
+  //   `init()` 逐域 `list()` 拉取填充 mockDB 缓存（供服务层同步读），写在 api 形态经这些方法落服务端。
+  // 服务端实现 = `server/routes/resources.js` 末「语义端点：三委数据交接 / 成员变更确认队列 / 批次里程碑」段；
+  //   表 = `server/db.js::SEMANTIC_TABLES`。
+  handoffs: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/handoffs${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/handoffs', data);
+    },
+
+    confirm(id) {
+      return _post(`/api/v1/handoffs/${id}/confirm`);
+    },
+  },
+
+  memberConfirmations: {
+    list(params = {}) {
+      const query = new URLSearchParams(params).toString();
+      return _get(`/api/v1/member-confirmations${query ? '?' + query : ''}`);
+    },
+
+    create(data) {
+      return _post('/api/v1/member-confirmations', data);
+    },
+
+    decide(id, body) {
+      return _post(`/api/v1/member-confirmations/${id}/decide`, body || {});
+    },
+  },
+
+  // 批次里程碑：只读（内容单一源 = docs/data/milestones.json，服务端由 seed.js 播种）
+  milestones: {
+    list() {
+      return _get('/api/v1/milestones');
     },
   },
 };

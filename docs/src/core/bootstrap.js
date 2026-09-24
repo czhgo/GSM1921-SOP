@@ -4,31 +4,31 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { IssueStore } from '../services/issues.js?v=20260923a';
-import { MilestoneStore } from '../services/milestones.js?v=20260923a';
-import { CrossPageState } from './cross-page-state.js?v=20260923a';
-import { getBasePath } from './utils.js?v=20260923a';
-import { enhanceSelects } from '../components/custom-select.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { IssueStore } from '../services/issues.js?v=20260924a';
+import { MilestoneStore } from '../services/milestones.js?v=20260924a';
+import { CrossPageState } from './cross-page-state.js?v=20260924a';
+import { getBasePath } from './utils.js?v=20260924a';
+import { enhanceSelects } from '../components/custom-select.js?v=20260924a';
 // 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
-import { isPartyStaffBranchDemoAllowed } from '../modules/branch-demo-nav.js?v=20260923a';
+import { isPartyStaffBranchDemoAllowed } from '../modules/branch-demo-nav.js?v=20260924a';
 // A② 归档兜底放行门（2026-09-10）：支书/副支书 archive=Y 兜底权限——可进入宣传台归档兜底面
-import { isArchiveFallbackPage } from './constants.js?v=20260923a';
+import { isArchiveFallbackPage } from './constants.js?v=20260924a';
 // 组织者兜底放行门（2026-09-19 批次 91 · SOP-B-17）：判定需读活动数据，故单一源落在服务层
-import { isOrganizerFallbackPage } from '../services/activity.js?v=20260923a';
+import { isOrganizerFallbackPage } from '../services/activity.js?v=20260924a';
 // 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
 // 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20260923a';
-import { registerApiAdapter, init } from './data-adapter.js?v=20260923a';
-import { ApiAdapter } from './api-adapter.js?v=20260923a';
-import { getCapabilities } from './registry.js?v=20260923a';
+import { getAppliedAccentColors } from './theme.js?v=20260924a';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from './data-adapter.js?v=20260924a';
+import { ApiAdapter } from './api-adapter.js?v=20260924a';
+import { getCapabilities } from './registry.js?v=20260924a';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../modules/capabilities/data-source.js?v=20260923a';
+import '../modules/capabilities/data-source.js?v=20260924a';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../modules/capabilities/components.js?v=20260923a';
+import '../modules/capabilities/components.js?v=20260924a';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -95,22 +95,41 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
   }
 
   // 恢复 API 数据源：已登录且存在 token 时切换到后端（认证由 api-adapter 读取 authToken）
-  // M4 数据源注册化：经注册表读取数据源能力（getCapabilities 按 scope='data-source' 过滤），
-  // 行为零变化——有 token 时 apply api 数据源，服务器不可达回退 apply mock 数据源。
+  // M4 数据源注册化：经注册表读取数据源能力（getCapabilities 按 scope='data-source' 过滤）。
+  // **P0-2（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）**：有 token ⇒ 这是**真系统会话**，
+  //   init() 失败**不得**回落 apply mock（原实现静默 `mockCap.apply()` ⇒ 用户以为在真系统里操作、
+  //   实际只写浏览器，下次登录被服务端数据覆盖 ⇒ **静默丢单**）。现改为**显式失败**：
+  //   页面渲染「无法连接服务器 + 重试」错误态（共享实现 = core/data-adapter.js::renderDataSourceError）。
+  //   无 token（本地演示形态）不在此分支：保持原样（那条路是刻意保留的）。
   // registerApiAdapter 幂等（重复注册仅覆盖同一实例），与 runtime.js 的注册不冲突
   registerApiAdapter(ApiAdapter);
   const savedToken = sessionStorage.getItem('gsm1921-api-token');
   const dataSourceCaps = getCapabilities({ scope: 'data-source' });
   const apiCap = dataSourceCaps.find(c => c.id === 'api-data-source');
-  const mockCap = dataSourceCaps.find(c => c.id === 'mock-data-source');
   if (savedToken && apiCap && typeof apiCap.apply === 'function') {
     apiCap.apply({ apiBaseUrl: '', authToken: savedToken });
     try {
       await init(); // 从后端拉取全量数据填充 mockDB（读路径）
     } catch (e) {
-      console.warn('[bootstrap] API 数据加载失败，回退本地 mock 模式', e);
-      if (mockCap && typeof mockCap.apply === 'function') mockCap.apply(); // 服务器不可达→完整回退本地模式
+      console.error('[bootstrap] API 数据加载失败——显式失败（有 token 时不回落可写 mock，避免静默丢单）', e);
+      renderDataSourceError(e && e.message);
+      return { user: null, dataSourceError: e };
     }
+  }
+
+  // ── T4（2026-09-23 批次 163）：无 token 也**不得无条件**静默进可写 mock ──
+  // 病灶同 P0-2 / T3：真系统用户会话失效（sessionStorage 被清 / 换标签）后，工作台与首页由本页
+  //   `bootstrapPage` 装配、**不调** `hydrateDataSource`（那是 11 个独立页的收敛点）⇒ 原先照常进
+  //   可写 mock、无任何提示，用户以为在真系统里操作、下次登录被服务端数据覆盖（静默丢单）。
+  // 修法＝**复用（而非抄写）唯一收敛点** `core/data-adapter.js::hydrateDataSource`：其内
+  //   `isStaleServerSession()`（三条件单一判据）+ `renderSessionExpiredError()`（同一浮层）已就位，
+  //   本页只按返回值处置，**不另写第二份判定**。三种「正常本地演示」仍放行可写 mock（均由该判据内部排除）：
+  //     · 无任何登录痕迹的访客（首次访问 / 纯本地演示）；
+  //     · 本标签页刚用开发身份卡登录（`AuthStore.devLogin` 同写 localStorage + 会话快照）；
+  //     · `DEPLOY_MODE !== 'server'`（GitHub Pages 静态托管）。
+  if (!savedToken) {
+    const hydrated = await hydrateDataSource({ apiAdapter: ApiAdapter });
+    if (!hydrated.ok) return { user: null, sessionExpired: true };
   }
 
   // 登录检查

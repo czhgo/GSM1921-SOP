@@ -9,6 +9,11 @@
 // 走遮罩点击/关闭按钮/程序化 closeModal 关闭时监听残留 → 反复打开同一 id 浮窗会累积 keydown
 // 监听（内存泄漏 + 多次无谓 closeModal）。现改为**按 id 登记**，closeModal 统一注销（全路径覆盖）。
 const _escHandlers = new Map();
+// 「必须点按钮才能关」的浮窗 id 集（`openModal({dismissable:false})` ⇒ 现只有「本位」nudge，见 `confirmNudge`）。
+// 它开着时，**其它浮窗的 Esc 关闭一律让位**——2026-09-23 真机核验发现：nudge 弹在写入浮窗之上时按一下 Esc，
+// 会把**底下那个还没提交的表单浮窗**关掉（表单一关、nudge 却还在，用户已填内容无声丢失）。
+// 故 Esc 只在「没有 blocking 浮窗」时才生效（nudge 自身本就不挂 Esc 监听）。
+const _blockingModalIds = new Set();
 
 /**
  * 打开一个浮窗
@@ -20,6 +25,8 @@ const _escHandlers = new Map();
  * @param {string} [options.width='480px'] - 浮窗宽度
  * @param {string} [options.accentColor='#3B82F6'] - 标题栏强调色
  * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（可选；不传则无此行）
+ * @param {boolean} [options.dismissable=true] - 是否可「非按钮」关闭（点遮罩 / 按 Esc / 右上角 ×）。
+ *   缺省 true＝既有行为；**false 只给「本位」nudge 用**（见 `confirmNudge`）——那种弹窗**必须点按钮才能关**。
  * @returns {HTMLElement} 浮窗面板元素
  */
 // 2026-09-21 批次 138（支书第 ⑤ 条「浮窗的特定位置 → 跳转 setting」）：把批次 99 在支书台「写入活动」
@@ -36,7 +43,7 @@ export function settingsLinkHTML(settingsLink) {
     : '';
 }
 
-export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6', settingsLink = null }) {
+export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6', settingsLink = null, dismissable = true }) {
   // 关闭已有同 id 浮窗
   closeModal(id);
 
@@ -49,10 +56,16 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
 
   const settingsHTML = settingsLinkHTML(settingsLink);
 
+  // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
+  // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
+  const closeBtnHTML = dismissable
+    ? `<button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
+    : '';
+
   panel.innerHTML = `
     <div style="padding:16px 20px;border-bottom:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:space-between;">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">${title}</h3>
-      <button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>
+      ${closeBtnHTML}
     </div>
     <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
       ${bodyHtml}
@@ -63,20 +76,29 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
-  // 点击遮罩关闭
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal(id);
-  });
+  // 三条「非按钮」关闭路径（遮罩点击 / × / Esc）**只在 dismissable 时挂**——
+  // nudge 弹窗要求「必须点击按钮才可以关闭」：不点遮罩关、不按 Esc 关、不自动超时。
+  if (dismissable) {
+    // 点击遮罩关闭
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeModal(id);
+    });
 
-  // 关闭按钮
-  panel.querySelector(`[data-modal-close="${id}"]`).addEventListener('click', () => closeModal(id));
+    // 关闭按钮
+    panel.querySelector(`[data-modal-close="${id}"]`).addEventListener('click', () => closeModal(id));
 
-  // ESC 关闭（监听按 id 登记，closeModal 全路径统一注销）
-  const escHandler = (e) => {
-    if (e.key === 'Escape') closeModal(id);
-  };
-  _escHandlers.set(id, escHandler);
-  document.addEventListener('keydown', escHandler);
+    // ESC 关闭（监听按 id 登记，closeModal 全路径统一注销）
+    const escHandler = (e) => {
+      if (e.key !== 'Escape') return;
+      // 有 blocking 浮窗（nudge）在顶 ⇒ 让位：不得把底下的表单浮窗关掉（见 _blockingModalIds 注释）
+      if (_blockingModalIds.size > 0) return;
+      closeModal(id);
+    };
+    _escHandlers.set(id, escHandler);
+    document.addEventListener('keydown', escHandler);
+  } else {
+    _blockingModalIds.add(id);
+  }
 
   // 回调
   if (onMount) onMount(panel);
@@ -89,6 +111,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
  * @param {string} id - 浮窗标识
  */
 export function closeModal(id) {
+  _blockingModalIds.delete(id); // blocking 浮窗关闭即摘牌（Esc 让位随之解除）
   const escHandler = _escHandlers.get(id);
   if (escHandler) {
     document.removeEventListener('keydown', escHandler);
@@ -158,3 +181,91 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
     }
   });
 }
+
+// ════════════════════════════════════════════════════════════════
+//  「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源）
+// ════════════════════════════════════════════════════════════════
+// 支书原话（逐字）：「我觉得 所有涉及到 可以介入但一般不越俎代庖的场景，可以有一个弹窗提示一下，
+//   【一般由谁来写入】，然后弹窗要点击确认才可以关闭。这样来实现越俎代庖的一种 nudge式的防止。」
+// ⇒ 体例：标题「本步一般由…写入」；正文一行说清**一般由谁写入 + 为什么**（业务语言，不给用户看裁定编号）；
+//   两个动作＝主按钮「仍由我继续」（继续执行原动作）／次按钮「取消」（放弃本次动作）。
+// ⚠ **硬要求（与其它浮窗故意不同，勿"顺手统一"）**：**必须点按钮才能关**——
+//   不点遮罩关、不按 Esc 关、**不自动超时**（走的正是 `openModal({dismissable:false})`）。
+// ⚠ **只在「不是你本位」时弹**：本位操作人走原路径、零打扰 ——「是不是本位」由**调用点**判，
+//   判据单一源＝各服务的 `isXxxHomePosition`（见 `services/attendance.js` / `services/inspection.js` /
+//   `services/taskforce.js`），本组件只负责「弹」这一件事。
+// ⚠ 「一般由谁写入」的**业务口径**（不写裁定号给用户看）：
+//   · 活动写入 ＝ 党小组组长写入（母本《党小组组长工作手册》「创建活动仅限支书、副支书和党小组组长」＋
+//     《常见工作场景快速指南》「活动由党小组组长写入」，写入时同时指定本场组织者）；
+//   · 考察 / 考勤上传 ＝ 材料上传主体一律「组织者」（该场活动 / 该专班的组织者）；
+//   · 考勤另按会议类型分（党课 / 支部党员大会＝纪检委员，党小组会 / 组织生活会 / 主题党日＝该场组织者）。
+export const NUDGE_TEXTS = {
+  'activity-write': {
+    who: '党小组组长',
+    why: '支部的活动由各党小组组长写入——写入时同时指定本次活动的组织者，本场的任务与通知发布随该指定归到组织者。支书 / 副支书也可以写入，但一般不由其代办。',
+  },
+  'inspection-upload': {
+    who: '该场活动的组织者',
+    why: '考察记录由该场活动的组织者上传——谁组织这场，谁上传本场材料；上传后交纪检委员确认。',
+  },
+  'attendance-upload': {
+    who: '该场活动的组织者',
+    why: '考勤由该场活动的组织者上传（党课 / 支部党员大会的上传位在纪检委员），上传后交纪检委员确认。',
+  },
+  'taskforce-upload': {
+    who: '该专班的组织者',
+    why: '专班的材料与考察由该专班承担人（组织者）提交；组织委员负责建档与汇总，一般不直接录原始数据。',
+  },
+};
+
+/** nudge 文案里的用户可见文本转义（活动 / 专班名称来自表单，不能直接拼进 HTML） */
+function _nudgeEsc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/**
+ * 「本位」nudge 确认弹窗（2026-09-23 支书裁定）：**只在操作人不是本位时**由调用点调用。
+ * 三个动作语义：点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
+ * 弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；关闭一律走 `closeModal`（不留监听）。
+ * @param {Object} options
+ * @param {'activity-write'|'inspection-upload'|'attendance-upload'|'taskforce-upload'} options.nudgeKey
+ *   nudge 场景键（**单一源**：文案取自 `NUDGE_TEXTS`；同时落到弹窗 DOM 供统计 / 测试锚定）
+ * @param {string} [options.who] 本位承担人（不传取 `NUDGE_TEXTS[nudgeKey].who`）
+ * @param {string} [options.why] 「为什么」（不传取 `NUDGE_TEXTS[nudgeKey].why`）
+ * @param {string} [options.context] 具体对象名（活动 / 专班名称），用于正文点名
+ * @returns {Promise<boolean>} true＝仍由我继续；false＝取消
+ */
+export function confirmNudge({ nudgeKey, who, why, context = '' }) {
+  const text = NUDGE_TEXTS[nudgeKey] || { who: '本位承担人', why: '' };
+  const whoText = who || text.who;
+  const whyText = why || text.why;
+  const id = `nudge-${nudgeKey}`;
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      closeModal(id);
+      resolve(ok);
+    };
+    const panel = openModal({
+      id,
+      title: `本步一般由${whoText}写入`,
+      width: '460px',
+      dismissable: false,
+      bodyHtml: `
+        <p style="margin:0 0 10px;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>写入。${_nudgeEsc(whyText)}</p>
+        <p style="margin:0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+          <button type="button" data-nudge-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+          <button type="button" data-nudge-confirm class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:var(--app-accent,#B91C1C);cursor:pointer;">仍由我继续</button>
+        </div>`,
+      onMount: (p) => {
+        p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));
+        p.querySelector('[data-nudge-cancel]')?.addEventListener('click', () => finish(false));
+      },
+    });
+    panel.dataset.nudgeKey = nudgeKey; // 统计 / 测试锚定（`#modal-overlay-nudge-<key>` 亦可定位）
+  });
+}
+

@@ -128,19 +128,21 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 ```javascript
 // runtime.js 中调用：
 setDataSource('api', {
-  apiBaseUrl: 'https://<计算中心提供的域名>/api/v1',
+  apiBaseUrl: '',            // ⚠ 留空 = 同源相对（api-adapter 的请求 path 已含 `/api/v1/...`）
   authToken: '<JWT Token>',
 });
 ```
 
-UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。DataAdapter 架构详见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4。API 需满足以下规范：
+> ⚠ **不要把 `/api/v1` 写进 `apiBaseUrl`**（2026-09-23 改准）：`api-adapter.js` 的每个请求 `path` **本身就含** `/api/v1/...`（如 `_get('/api/v1/activities')`），再拼一个 `/api/v1` 会得到 `/api/v1/api/v1/activities` ⇒ **全部接口 404**。代码里所有切换点都传 **`apiBaseUrl: ''`（同源相对）**——前后端同源部署（Node 同时托管 `docs/` 与 `/api/v1`，或反向代理把 `/api/v1/` 转给 Node）时这是唯一正确取值；只有前端与后端**不同源**时才需要填域名前缀（且**不含** `/api/v1`），同时还要解决 CORS（服务端未挂 CORS 中间件，见下）。
+
+UI 层零改动，通过 `getAdapter()` 访问数据自动走 API 适配器。DataAdapter 架构详见 [DATA_MODEL.md §4.4](../data/DATA_MODEL.md)。API 需满足以下规范：
 
 - RESTful 风格
 - JSON 响应格式
 - JWT 会话认证
 - 分页查询支持（`?page=1&per_page=20`）
 - 月份分组查询支持（`?month=2026-07`）
-- 完整路由设计见 DATA_FLOW.md §4.4.5
+- 完整路由设计见 DATA_MODEL.md §4.4.5
 
 #### 3.2.5 信息安全与多级可见性
 
@@ -248,13 +250,13 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 #### 3.7.1 演示与公开门面
 
 - **在线演示（路径 A）**：GitHub Pages 静态托管 `docs/` 即得演示版——含 50 人演示支部种子、演示登录账号模式，学校/评审可直接浏览系统全貌；`about.html` 为公开叙事页（「支部的故事」，静态托管专属，有后端时隐藏）。
-- **真实部署防污染开关**：正式上线（路径 B/C）须按附录 A.2「真实部署 checklist」执行——`DISABLE_SEED=1`（空库不导入演示种子）+ `SEED_FALLBACK=false` + 关闭 services 层 9 处空表回退，防止演示种子混入真实账本。
+- **真实部署防污染开关**：正式上线（路径 B/C）须按附录 A.2「真实部署 checklist」执行——**设 `APP_ENV=production`（2026-09-23 P0-3/P0-4 起的主推做法：生产形态**口令强校验 + 不认 `DISABLE_PASSWORD_CHECK` + 默认不播种**）**，或显式 `DISABLE_SEED=1`（空库不导入演示种子），并关闭 services 层空表回退，防止演示种子混入真实账本。另有前端构建期常量 `SEED_FALLBACK`（`docs/src/config/deploy.js`）**自 2026-09-23 批次 163 起已接线、改它生效**：置 `false` 时 `core/data-adapter.js::init()` 不再为**考勤/考察/待办**三域注入演示种子（默认 `true` 保持演示行为）。⚠ **两种托管形态都可关断**——**静态托管 / 直接以 `docs/` 为根**：改 `docs/src/config/deploy.js` 常量；**Node 托管（路径 B/C）**：`/src/config/deploy.js` 由 `server/app.js` 动态注入，注入值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`，缺省 `true`；**2026-09-24 已接线**，见 `README-server.md` §5.3 第 20 项）。它**只覆盖那三处**，不替代服务端种子关断。
 
 #### 3.7.2 文档与代码交付清单（提供给计算中心的文档）
 
 | 文档 | 位置 | 内容 |
 |------|------|------|
-| 数据架构设计 | `content/04_web_design/data/DATA_MODEL.md` + `content/04_web_design/data/DATA_FLOW.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
+| 数据架构设计 | `content/04_web_design/data/DATA_MODEL.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
 | API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（35 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
 | 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 35 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
@@ -441,23 +443,26 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 北大 IAAA 单点登录 | 登录落点的最终目标，门控触发条件已预留（见 §3.5） | 依赖计算中心对接推进 |
 | AI 本地部署 | 计算中心 GPU 上的推理服务（见 §3.6） | 依赖计算中心资源 |
 
-### A.2 真实部署 checklist（2026-09-02 部署件登记）
+### A.2 真实部署 checklist（2026-09-02 部署件登记；2026-09-23 按「六项 P0」重核）
 
-> 供 B 路径（Node 自托管正式使用）与 C 路径（计算中心对接）落地时逐项执行。代码基座已就绪（server.js DISABLE_SEED / deploy.js SEED_FALLBACK）。
+> 供 B 路径（Node 自托管正式使用）与 C 路径（计算中心对接）落地时逐项执行。代码基座已就绪（`server/env.js` 的运行形态判定 / `server.js` 的 DISABLE_SEED 与生产默认不播种 / `scripts/backup.mjs`）。
 
 **新建库启动（首次，防演示种子混入真实账本）**
 
-1. `server/` 启动加 `DISABLE_SEED=1`：空库**不导入** 50 人演示支部种子，全新建库直接录入真实人员（server.js 已支持该 env）
-2. `docs/src/config/deploy.js`：`DEPLOY_MODE` 改 `'server'`，`SEED_FALLBACK` 改 `false`
-3. 逐一关闭 **services 层 9 处空表回退**（`_loadX` 空则注入演示 seed：attendance/inspection/review/thought-report/activity/makeup/notice/todo/signup）——统一挂 `SEED_FALLBACK` 条件。**原因**：空表回退只填前端缓存本无害，但用户任一后续写会触发快照上传，把回退的演示种子整体写到服务端，污染真实账本
+1. **设 `APP_ENV=production`**（2026-09-23 P0-3/P0-4）：生产形态下 ① **未设 `LOGIN_PASSWORD` 启动即拒**（进程退出并打印原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**；③ 空库**默认不播种**（不再依赖「记得加 `DISABLE_SEED=1`」）。等价显式做法：`DISABLE_SEED=1`（空库不导入 50 人演示支部种子，全新建库直接录入真实人员）。
+2. **设 `LOGIN_PASSWORD`**（所有账号共用的统一口令）；可改的其余项见 `server/.env.example`。
+3. **关断前端空域回退（防污染真实账本）**：路径 B/C 是 Node 托管，`/src/config/deploy.js` 由 `server/app.js` 动态注入（`DEPLOY_MODE` 恒为 `'server'`，**无需手改磁盘常量**）⇒ **设环境变量 `SEED_FALLBACK=0`**（注入串据此注入 `false`，**2026-09-24 已接线**，见 `server/.env.example`）：置 `false` 后 `core/data-adapter.js::init()` **不再**为考勤 / 考察 / 待办三域回退注入演示种子（缺省 `true`＝演示形态）。若改用静态托管形态，则改 `docs/src/config/deploy.js` 的 `DEPLOY_MODE` 与 `SEED_FALLBACK` 常量即可。它**只管那三处**，不替代第 1 步/第 4 步（2026-09-24 改准）。
+4. 逐一关闭 **services 层 9 处空表回退**（`_loadX` 空则注入演示 seed：attendance/inspection/review/thought-report/activity/makeup/notice/todo/signup）。**原因**：空表回退只填前端缓存本无害，但用户任一后续写会触发快照上传，把回退的演示种子整体写到服务端，污染真实账本。
+5. **确认库内只有真人**：看启动日志的 `[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集）；若演示种子账号 > 0 而这是正式库 ⇒ 换空库重建（生产形态已默认不播种）。
 
 **日常运维**
 
-4. 备份 = 复制 `server/data.db`（先停服务更稳妥；正常停止后单文件即完整快照）
-5. 恢复 = 停服务 → 用备份文件替换 `data.db` → 启动（users 表非空不会重新 seed）
-6. 更新 = 覆盖 `docs/` 与 `server/` 代码（保留 `data.db` 不动）→ `npm start`
-7. 上传目录 = 附件物理文件所在处（缺省 `server/uploads/`，可由 `UPLOAD_DIR` 改；服务首次启动会自动建目录）：**该目录须可写**（不可写则所有上传失败），且**须与 `data.db` 一并纳入备份**——附件文件只在磁盘上，丢库可重建、丢文件不可恢复
-8. 反向代理的**请求体上限须 ≥ 上传上限**（上传上限＝**10MB**，见 `server/routes/uploads.js` 的 `MAX_SIZE`）：如 nginx 的 `client_max_body_size` 至少设 `10m`（低于此值时，大图在**代理层**就被拦下，表现为 413 或连接中断，与后端 413 是两层不同的失败）
+6. **备份 = 跑脚本，不要手拷库文件**（2026-09-23 P0-5）：`cd server; .\scripts\backup.ps1`（或 `node scripts/backup.mjs --out <目录>`）——数据库走 SQLite **在线备份**（`db.backup()`，**含 WAL 内容的一致性快照，不需停服**）+ `uploads/` 整目录 + 备份当场校验。⚠ **只拷 `data.db` 会丢最近写入**（WAL 未并回）**且会丢附件物理文件**（库里只有元数据）。用法与定时备份建议见 `server/README.md`「备份与恢复」。
+7. 恢复 = **停服务** → 用备份的 `data.db` 覆盖库文件（并删除同目录 `data.db-wal` / `data.db-shm`）→ 用备份的 `uploads/` 覆盖附件目录 → 启动（users 表非空不会重新 seed）。
+8. 更新 = 覆盖 `docs/` 与 `server/` 代码（保留 `data.db` 不动）→ `npm start`。
+9. 上传目录 = 附件物理文件所在处（缺省 `server/uploads/`，可由 `UPLOAD_DIR` 改；服务首次启动会自动建目录）：**该目录须可写**（不可写则所有上传失败），且**须与 `data.db` 一并纳入备份**——附件文件只在磁盘上，丢库可重建、丢文件不可恢复。
+10. 反向代理的**请求体上限须 ≥ 上传上限**（上传上限＝**10MB**，见 `server/routes/uploads.js` 的 `MAX_SIZE`）：如 nginx 的 `client_max_body_size` 至少设 `10m`（低于此值时，大图在**代理层**就被拦下，表现为 413 或连接中断，与后端 413 是两层不同的失败）。另 `/snapshot` 原始体上限 4MB（前端 gzip 压缩后传输，通常远小于该值）。
+11. ⚠ **若由 nginx 直接托管 `docs/` 静态资源**：必须把 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`）——该文件是 Node **动态注入**路由（`server/app.js`），不是磁盘上的静态文件；被静态托管走会返回磁盘版 `DEPLOY_MODE='static'` ⇒ **「关于」门面与部署形态判定会错**（2026-09-23 P0-6 改准）。
 
 ### A.3 风险与依赖
 
@@ -473,7 +478,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 | 文档 | 角色 |
 |------|------|
-| [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4 | DataAdapter 数据抽象（mock/api）权威源 |
+| [DATA_MODEL.md §4.4](../data/DATA_MODEL.md) | DataAdapter 数据抽象（mock/api）权威源 |
 | [AUTHENTICATION_MODEL.md](AUTHENTICATION_MODEL.md) | 部署形态 / 登录态 / 门控统一模型（§4.1 摘要） |
 | [WECHAT_INTEGRATION.md](WECHAT_INTEGRATION.md) | 微信协同与小程序专项设计（§4.2 摘要） |
 | [PKU_PARTY_INTEGRATION.md](PKU_PARTY_INTEGRATION.md) | 北大党校/智慧党建对接专项设计（§4.3 摘要） |

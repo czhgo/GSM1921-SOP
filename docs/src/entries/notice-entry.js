@@ -1,43 +1,32 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260923a';
-import { getBasePath, showToast } from '../core/utils.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { getPersonById } from '../services/person.js?v=20260923a';
-import { badgeHtml } from '../components/badges.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../services/notice.js?v=20260924a';
+import { getBasePath, showToast } from '../core/utils.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { getPersonById } from '../services/person.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend } from '../services/attendance.js?v=20260923a';
-import { loadActivities } from '../services/activity.js?v=20260923a';
+import { declareOnlineAttend } from '../services/attendance.js?v=20260924a';
+import { loadActivities } from '../services/activity.js?v=20260924a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
-/** 通知详情页数据 hydrate：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+/** 通知详情页数据 hydrate：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。
+ *  P0-2（2026-09-23）：判定收敛到 core/data-adapter.js::hydrateDataSource——有 token 时 init() 失败即
+ *  **显式失败**（「无法连接服务器」错误态 + 重试），不再回退可写 mock（静默丢单）。 */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[notice-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染
   } catch (e) {
     console.warn('[notice-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {

@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260923a"></script>
+<script src="./src/theme-init.js?v=20260924a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>帮助 — 示例组织（光华管理学院本科生党支部）</title>
+  <title>帮助 — GSM1921-SOP</title>
   <meta name="description" content="帮助 — 系统说明书">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,14 +13,16 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260923a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260923a">
+  <script src="./src/tailwind-config.js?v=20260924a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260924a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <style>
     /* ═══════════ 帮助页（系统说明书）文档样式 ═══════════ */
-    .doc-wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 72px; }
+    /* 内容窗宽（2026-09-23 支书裁定）：原 880px 扣掉左目录 220px 后正文仅约 550px，实际阅读窗过窄。
+       抬到 1180px ⇒ 正文可用约 850px（长文一行约 45–50 个汉字，落在舒适阅读区间）。 */
+    .doc-wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 72px; }
     .doc-card { background:#FFFFFF; border:1px solid #EEEFF2; border-radius:20px; padding:36px 40px; margin-bottom:22px; box-shadow:0 1px 3px rgba(0,0,0,0.03); scroll-margin-top:76px; }
     .doc-h2 { font-family:'Noto Serif SC','STZhongsong',serif; font-size:1.35rem; font-weight:700; color:#1F2937; letter-spacing:0.02em; line-height:1.3; display:flex; align-items:baseline; gap:12px; }
     .doc-h2 .doc-num { color:#CE1126; font-weight:800; font-size:1.5rem; }
@@ -232,7 +234,7 @@
         <h2 class="doc-h2">致谢</h2>
         <hr class="doc-divider">
         <p class="doc-p doc-ack">
-          感谢<strong>党委领导马化祥支书、鞠晓副支书</strong>对本支部数字化管理探索的大力支持。
+          感谢<strong>党委书记马化祥、党委副书记鞠晓</strong>对本支部数字化管理探索的大力支持。
           感谢支部委员：赵雅萱、代艺、徐瑗依、秦若琳、韩思宁、辛长乐、侯嘉嵘、王峥旭、王溪斌、悦佳荷——正是各位委员在各自岗位上精益求精的实务耕耘，才为本系统的设计提供了丰富的场景素材与实践检验。
           特别感谢<strong>赵雅萱、闫鑫岳</strong>同志对于宣传档案工作的鼎力指导。
           特别感谢<strong>韩思宁、辛长乐</strong>同志对于党小组工作组织和考勤考察划分的工作方法创新。
@@ -265,7 +267,7 @@
               <tr><td><a href="./activity.html">活动详情</a></td><td>单个活动的详情页：议程 / 报名 / 线上表态 / 考勤与产出记录；报名、表态、记录需登录</td><td>公共可看；操作需登录</td><td>首页日历与活动卡、工作台内活动行、待办、通知等链接</td></tr>
               <tr><td><a href="./notice.html">通知详情</a></td><td>单条通知的正文（读后消未读需登录）</td><td>公共可看</td><td>首页通知区；工作台待办「未读通知」条</td></tr>
               <tr><td><a href="./taskforce.html">专班详情</a></td><td>单个专班的详情页：招募 / 分工 / 进展（专班为跨小组集中推进形态）</td><td>公共可看；报名、操作需登录</td><td>首页专班卡；工作台「专班管理 / 知情查看（专班分段）」行内链接</td></tr>
-              <tr><td><a href="./party-committee-meeting.html">支委会会议页</a></td><td>线上召开支委会的会议页：选线上召开 → 从既有来源（专班报送 / 意见反馈）提取议程 → 委员线上表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：<strong>线上与线下完全同等效力</strong>（线上表决与线上记录的讨论结果即终局，不需线下追认）</td><td>需登录，且仅本支部支委名单内可进（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）；名单外只呈现「本页仅支委可用」</td><td>支书台「我的职责」段「支委会会议」页签 →「打开支委会会议页 →」；支委也可直接访问</td></tr>
+              <tr><td><a href="./party-committee-meeting.html">支委会会议页</a></td><td>线上召开支委会的会议页：选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会、选定扩大到谁）→ 提取议程 → 表态 → 支书汇总截止 → 留存并查阅讨论结果。效力口径：<strong>线上与线下完全同等效力</strong>（线上表决与线上记录的讨论结果即终局，不需线下追认）</td><td>需登录，且须<strong>在本支部支委名单内</strong>（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）<strong>或被某场支委会扩大到</strong>——支委看<strong>全部</strong>支委会场次；<strong>被扩大的人只看得到扩大到他的那些场次，并在该场表态</strong>；两者皆非者只呈现「你在支委会会议页没有可见的会议」</td><td>支书台「我的职责」段「支委会会议」页签 →「打开支委会会议页 →」；支委与被扩大的人也可直接访问</td></tr>
               <tr><td><a href="./thought-report.html">思想汇报阅读</a></td><td>单篇思想汇报的<strong>长文阅读页</strong>：期次 / 提交人 / 状态 / 字数 + 正文 + 审阅留痕；篇幅少于 1200 字的会标「触发警告审阅」<strong>（只给提交人本人看；不影响提交与归档）</strong>；组织委员可就地<strong>打回要求本人补充</strong>，本人被<strong>打回后</strong>可就地改后重交；也可按人聚合（<code>?personId=</code>）看某人全部期次</td><td>需登录；<strong>仅本人与支委层</strong>可读</td><td>成员台 / 组织台「思想汇报」列表点击某篇；通知深链</td></tr>
               <tr><td><a href="./person.html">成员档案</a></td><td>单个成员的<strong>完整档案页</strong>：基础档案 / 在册管理与变更留痕 / 关联概览（思想汇报、活动、专班、考勤、考察计数）；组织委员 / 支书 / 副支书可打开「档案编辑」模态</td><td>需登录</td><td>各「第一列是人」的表格点击姓名或「编辑」入口</td></tr>
               <tr><td><a href="./feedback.html">意见反馈</a></td><td>提交建议与问题，支书反馈并跟进处理</td><td>页面公共；提交需登录</td><td>侧边栏「意见反馈」</td></tr>
@@ -414,8 +416,8 @@
               <tr><td>待办</td><td>支书 / 副支书</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>全局概况</td><td>支书 / 副支书</td><td>汇报 / 卡点 / 在办三区 + 按人视图（各角色在办，可点击直达）+ 维度态势</td><td>「工作台」段第 3 位；点某人行看其条线在办</td></tr>
               <tr><td>活动管理</td><td>支书 / 副支书</td><td>支部活动日历与写入：三会一课 / 主题党日 / 线上异步表决，可带议程（待讨论名单）与报名</td><td>「我的职责」段；「+ 写入活动」选模板 → 填表单 → 创建；点日历格子进详情 / 记录</td></tr>
-              <tr><td>支委会会议</td><td>支书 / 副支书（页签入口）；支委（会议页内表态）</td><td>线上召开支委会的入口与统计：场次 / 线上召开数 / 未截止数；点开进「支委会会议」页——选线上召开 → 提取议程（专班报送 / 意见反馈）→ 支委在线表态 → 汇总截止 → 留存并查阅讨论结果</td><td>「我的职责」段；点「打开支委会会议页 →」进独立页 party-committee-meeting.html（也可由支委直接从该页链接进入表态）</td></tr>
-              <tr><td>赋权管理</td><td>支书 / 副支书</td><td>向下赋权（组长 / 组织者 / 深度参与者），赋权链计算知情边界</td><td>「我的职责」段；「添加赋权」选人 + 选权限 → 保存；需要撤销时点该条撤销</td></tr>
+              <tr><td>支委会会议</td><td>支书 / 副支书（页签入口）；支委（会议页内表态）；被扩大进本场的人（可进会议页，但只看得到扩大到他的那些场次，并在该场表态）</td><td>线上召开支委会的入口与统计：场次 / 线上召开数 / 未截止数；点开进「支委会会议」页——选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会并选定扩大到谁；党小组组长（含代组长）可一键打包）→ 提取议程 → 表态 → 汇总截止 → 留存并查阅讨论结果</td><td>「我的职责」段；点「打开支委会会议页 →」进独立页 party-committee-meeting.html（支委看全部场次；被扩大的人在该页只看得到扩大到他的场次）</td></tr>
+              <tr><td>赋权管理</td><td>支书 / 副支书</td><td>按三个情景赋权：① 常设赋权（党小组组长 / 支委身份）——<strong>支委身份（组织 / 宣传 / 纪检委员）：支书与副支书可在本支部内选人配置</strong>，可改派、可撤销；支书本人与副支书的身份由<strong>党委</strong>配置 ② 活动项目赋权（本位＝党小组组长，支书亦可）③ 专班赋权（本位＝组织委员，支书亦可）；赋权链计算知情边界</td><td>「我的职责」段；情景① 卡内「选择本支部在册成员 + 选身份 → 确认授予 / 改派」，撤销点该条「撤销」；「添加赋权」选人 + 选权限 → 保存</td></tr>
               <tr><td>通知发布</td><td>支书 / 副支书</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「我的职责」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
               <tr><td>上报党委</td><td>支书 / 副支书</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「我的职责」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
               <tr><td>党小组</td><td>支书 / 副支书</td><td>党小组清单与管理写口（新增 / 改名 / 解散，写权归支书与副支书）+ 未分组成员的归组入口；各党小组组员进展跨组只读掌握（知情不代操作）；组内待答复汇报可「请组长关注」，支书不代组长答复。解散非空组时组内成员转为「未分组」（党小组会应到不计、支部大会应到照计）</td><td>「我的职责」段；「+ 新增」建组 / 行内改名 / 解散组；未分组行内下拉逐个归组；点组名查看进展 / 行内「请组长关注」请求组长答复</td></tr>
@@ -481,7 +483,7 @@
               <tr><td>工作概况</td><td>纪检委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
               <tr><td>考勤管理</td><td>纪检委员</td><td>全支部考勤管理与活动签到数据（与组织侧同源共享）；内部分段切换「考勤 / 补课」——补课为缺勤成员补课任务管理（生成任务 → 成员完成 → 考勤回写 / 逾期处理）</td><td>「我的职责」段；切「考勤」分段按活动 / 人员查考勤 → 缺勤记录生成补课；切「补课」分段对缺勤记录「发起补课」→ 跟进完成回写</td></tr>
               <tr><td>活动监督复盘</td><td>纪检委员</td><td>活动监督（纪检视角）与复盘评议记录</td><td>「我的职责」段；点开活动 → 记录监督结论 / 评议</td></tr>
-              <tr><td>考察管理</td><td>纪检委员</td><td>考察材料在纪检线的查看 / 汇总</td><td>「我的职责」段；按对象查看考察记录</td></tr>
+              <tr><td>考察管理</td><td>纪检委员</td><td>考察材料在纪检线的查看 / 汇总 / 确认 / 打回 / 申诉核实；另有「<strong>考察代录</strong>」位（上传方未到位时代其录入，不是本位时提交前弹确认）</td><td>「我的职责」段；按对象查看考察记录；「代录考察表单」选活动 + 人员 → 逐人考察内容 → 提交</td></tr>
               <tr><td>知情查看</td><td>纪检委员</td><td>活动与专班进展只读知情查看，内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
               <tr><td>我的处置</td><td>纪检委员</td><td>经手反馈的处理记录</td><td>「制度与答复」段</td></tr>
             </tbody>
@@ -585,6 +587,7 @@
           <h4 class="help-card-title">创建会议活动（支部党员大会 / 支委会 / 党课 / 党小组会）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 副支书工作台 →「我的职责」段「活动管理」→ 活动日历卡右上「写入活动」；党小组组长工作台 →「我的职责」段「活动管理」（「写活动」决策树）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书（天然写入权，建四类会议均可）；党小组组长建<strong>本组党小组会</strong>（组内场景；本组活动一律先报备，见 1.3）。组织、宣传、纪检委员无活动写入权。</p>
+          <p class="help-card-desc"><strong>一般由谁写入：</strong>活动的一般承担人是<strong>党小组组长</strong>。操作人不是他时，提交前弹「本步一般由党小组组长写入」确认窗——除点「取消」外，弹窗<strong>必须点按钮才能关闭</strong>，点「仍由我继续」才放行（只表示本次按例外办，不改动任何权限）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步（支书台，两步式）：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「写入活动」→ ①选模板：点「三会一课」模板卡 → 点子类：支部党员大会 / 支委会 / 党小组会 / 党课（主题党日卡属 3.2）。</li>
@@ -612,11 +615,11 @@
         <div class="help-card" id="card-dom31-vote" data-search="会务 线上异步表决 线上支委会 支委会会议页 表态 同意 异议 附言 赞成 反对 弃权 表决截止 记录决议 同等效力">
           <h4 class="help-card-title">线上异步表决（决策类：支委会 / 支部党员大会）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书创建活动表单「会议形式」选「线上异步表决」（仅支委会 / 支部党员大会两类决策场景出现此选项）；表态区在活动详情页「议程与表决 · 线上异步表决」区（activity.html）。</p>
-          <p class="help-card-desc"><strong>支委会另有一条会议线：</strong>支书台「支委会会议」页签 → <a href="./party-committee-meeting.html">支委会会议页</a>（选线上召开 → 提取议程 → 委员表态 → 汇总截止 → 留存并查阅讨论结果），与详情页表决是同一套记录。<strong>效力口径：线上与线下完全同等效力</strong>——线上表决与线上记录的讨论结果即终局，不需线下追认（2026-09-20 定案）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>支书创建并配置参与范围；被固化名单（应到快照）内的支委 / 有表决权党员在详情页表态；支书汇总截止后记录决议。</p>
+          <p class="help-card-desc"><strong>支委会另有一条会议线：</strong>支书台「支委会会议」页签 → <a href="./party-committee-meeting.html">支委会会议页</a>（选线上召开 → 定本场参会范围（默认支委层，可改为支委扩大会并选定扩大到谁、党小组组长（含代组长）可一键打包）→ 提取议程 → 表态 → 汇总截止 → 留存并查阅讨论结果），与详情页表决是同一套记录。<strong>谁能进：支委看全部场次；被扩大的人也能进，但只看得到扩大到他的那些场次，并在该场表态。</strong><strong>效力口径：线上与线下完全同等效力</strong>——线上表决与线上记录的讨论结果即终局，不需线下追认（2026-09-20 定案）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>支书创建并配置参与范围；被固化名单（应到快照）内的支委 / 有表决权党员在详情页表态——<strong>被扩大进本场的人（如党小组组长）在支委会会议页可进的场次里同样按本场应到名单表态</strong>；支书汇总截止后记录决议。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支书创建支委会 / 支部党员大会，会议形式选「线上异步表决」：支委会参与范围固定「支委」，表态选项为交流式（同意 / 异议 / 附言，异议须附言）；支部党员大会可切参与范围「正式党员」或「正式党员 + 预备党员」，选项为正式表决（赞成 / 反对 / 弃权 + 附言选填）。人数按现时「在校 / 滞留」状态自动剔除滞留成员，创建时固化为应到名单快照。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支书创建支委会 / 支部党员大会，会议形式选「线上异步表决」：支委会参与范围在本表单固定「支委」（同场参会范围可在支委会会议页扩大为支委扩大会，见上），表态选项为交流式（同意 / 异议 / 附言，异议须附言）；支部党员大会可切参与范围「正式党员」或「正式党员 + 预备党员」，选项为正式表决（赞成 / 反对 / 弃权 + 附言选填）。人数按现时「在校 / 滞留」状态自动剔除滞留成员，创建时固化为应到名单快照。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">被圈定人员打开活动详情页 → 逐条议程表态区选一项并（按需）附言提交；同人可改票（重复提交自动覆盖上次选择），非应到名单登录人可见「仅应到表决人可表态」提示。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支书在详情页汇总表态进度，截止后对各议程项「记录通过 / 记录未通过」（接上条议程记录）；汇总区另有<strong>表态矩阵</strong>（行＝议题、列＝应到成员，一屏看全各议题的表决分布；无记名表决只显示已投 / 未投，不显示具体选择）。</li>
           </ol>
@@ -628,6 +631,7 @@
           <h4 class="help-card-title">考勤上传（组长 → 纪检确认）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>党小组组长工作台 →「我的职责」段「考勤上传」。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（党小组会记录人 = 本组组长，兼该场组织者）；<strong>主题党日 / 组织生活会</strong> 的上传归<strong>该场活动组织者</strong>（本人是组织者时就在本表单里）；<strong>党课 / 支部党员大会</strong> 的上传位在<strong>纪检委员</strong>（见 3.3 会议考勤录入卡）；<strong>支委会不考勤</strong>；组长非组织者的其它活动为监督位（督促上传）。</p>
+          <p class="help-card-desc"><strong>一般由谁上传：</strong>考勤的一般承担人按会议类型分——党课 / 支部党员大会＝<strong>纪检委员</strong>，党小组会 / 组织生活会 / 主题党日＝<strong>该场组织者</strong>。上传人不是该场本位时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传考勤表单」→ 选活动：仅列本组长可上传且未归档的活动（本组党小组会 / 本人为组织者的主题党日、组织生活会）。</li>
@@ -762,31 +766,32 @@
 
         <!-- 3.4 考察 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.4</span>考察</h3>
-        <p class="doc-p">考察材料是发展党员链条的素材：<strong>组长 / 组织按上传位提交 → 纪检确认（含超期提醒）→ 交接归集组织建档</strong>。活动类考察由组长（本组党小组会 / 本人组织活动）上传；专班类考察由专班负责人 / 组织委员上传；纪检不代传。已确认的记录如有误，纪检可<strong>「打回」交上传方重新确认</strong>（回退到待确认、修改痕迹留存）——与考勤打回同一套做法。</p>
+        <p class="doc-p">考察材料是发展党员链条的素材：<strong>组长 / 组织按上传位提交 → 纪检确认（含超期提醒）→ 交接归集组织建档</strong>。活动类考察由组长（本组党小组会 / 本人组织活动）上传；专班类考察由专班负责人 / 组织委员上传；纪检一般只确认——<strong>上传方未到位时，纪检台「考察管理」的「考察代录」位可代录</strong>（写入本位仍是该场活动的组织者，不是本位时提交前弹确认）。已确认的记录如有误，纪检可<strong>「打回」交上传方重新确认</strong>（回退到待确认、修改痕迹留存）——与考勤打回同一套做法。</p>
 
-        <div class="help-card" id="card-dom34-upload" data-search="考察 上传 考察上传 党小组 专班 组织委员 组长 考察内容 待确认 培养联系人 期次 半年">
-          <h4 class="help-card-title">考察上传（组长 · 活动侧 / 组织 · 专班侧）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组长台「我的职责」段「考察上传」；组织台「我的职责」段「考察上传」（专班侧）。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（活动侧上传位：本组党小组会 / 本人组织的活动）；组织委员 / 专班负责人（专班侧上传位）；纪检只确认不上传。</p>
+        <div class="help-card" id="card-dom34-upload" data-search="考察 上传 考察上传 党小组 专班 组织委员 组长 考察内容 待确认">
+          <h4 class="help-card-title">考察上传（组长 · 活动侧 / 组织 · 专班侧）+ 纪检代录</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组长台「我的职责」段「考察上传」；组织台「我的职责」段「考察上传」（专班侧）；<strong>纪检台「我的职责」段「考察管理」的「考察代录」位</strong>（代上传方录入）。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（活动侧上传位：本组党小组会 / 本人组织的活动）；组织委员 / 专班负责人（专班侧上传位）；<strong>纪检委员（代录位）</strong>——纪检一般只确认，上传方未到位时可代录（表单与字段同组长台考察上传，记录照常入「待确认」）。</p>
+          <p class="help-card-desc"><strong>一般由谁上传：</strong>考察的一般承担人是<strong>该场活动的组织者</strong>。上传人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步（组长 · 活动侧）：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">「上传考察表单」→ 来源类型「活动」→ 选具体活动（仅列本人可上传、未归档的本组党小组会 / 本人组织活动）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">选人员 → 逐人填写考察内容描述 → 提交。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>该成员有培养联系人时</strong>，该行下方多出「培养联系人 / 第几期」两个下拉（培养联系人＝在成员名册指派的那一至两名；第几期＝自然半年，默认当前半年）——这是母本《组织委员工作流程指南》附录 A 的「<strong>培养联系人考察记录</strong>（每半年一次，含考察意见和培养建议）」，<strong>不另建一张表</strong>，就挂在同一条考察记录上；考察意见 / 培养建议写在上面的「考察内容」框里。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:6px;"><strong>几步（组织 · 专班侧）：</strong>「上传考察表单」→ 选专班（招募中 / 运行中）→ 选人员 → 逐人考察内容 → 提交（提示「自动投递：纪检确认 → 考察总表（组织委员建档），无需选择接收方」）。</p>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传后记录状态 = 待确认（记录上传人），自动进入纪检「考察管理」考察总表（活动视图 / 人视图均可查）；本页下方列表回显本人上传记录与确认状态（待确认 / 已确认）；专班考察行可点开查看详情（上传人 / 时间 / 参与层级 / 内容）。<strong>留空即普通考察记录</strong>（不写培养联系人 / 期次这两栏）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>几步（纪检 · 代录）：</strong>纪检台「考察管理」→「代录考察表单」→ 选活动（未归档、未取消的会议类活动）→ 选人员 → 逐人考察内容 → 提交。<strong>不是本位（不是该场活动的组织者）时，提交前弹确认窗</strong>（必须点按钮才能关，点「仍由我继续」才放行）；代录写入本位仍归该场活动的组织者，记录照常入考察总表「待确认」，确认权仍在纪检台。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>上传后记录状态 = 待确认（记录上传人），自动进入纪检「考察管理」考察总表（活动视图 / 人视图均可查）；本页下方列表回显本人上传记录与确认状态（待确认 / 已确认）；专班考察行可点开查看详情（上传人 / 时间 / 参与层级 / 内容）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>仅限本人上传位（非本组党小组会 / 非本人组织活动提交被拦）；逐人考察内容为空不允许提交。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">打回</span>纪检打回后，本页下方出现「<strong>纪检打回 · 待你确认</strong>」区：记录类点「确认并提交」（清打回痕、回纪检「待确认」队列复核）；申诉类选参与层级、填考察内容后「补录并提交」——<strong>确认权仍在纪检</strong>，上传方只负责把更正交回源头。</p>
         </div>
 
-        <div class="help-card" id="card-dom34-confirm" data-search="考察 纪检 考察管理 考察总表 确认 删除 超期提醒 7天 待确认 专班名单 培养联系人 期次 半年 导出">
+        <div class="help-card" id="card-dom34-confirm" data-search="考察 纪检 考察管理 考察总表 确认 删除 超期提醒 7天 待确认 专班名单">
           <h4 class="help-card-title">纪检确认与超期提醒</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>纪检台 →「我的职责」段「考察管理」。</p>
-          <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（考察总表确认 / 删除）；专班名单区只读同步组织委员管理的专班及考察确认进度。</p>
+          <p class="help-card-desc"><strong>谁来用：</strong>纪检委员（考察总表确认 / 删除；<strong>另有「考察代录」位</strong>——代上传方录入，不是本位时提交前弹确认）；专班名单区只读同步组织委员管理的专班及考察确认进度。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>默认宽表「按人」</strong>（每人参加过的考察来源横向列出），可切「<strong>按项目</strong>」（某来源都有谁被考察）与「<strong>明细</strong>」（原按人次长表）：三者是同一份数据的换视角 + 下钻。列只取最近 6 项，可「显示全部 N 项」；宽表<strong>人这一维每页 10 人</strong>，可翻页；明细表按来源 / 状态（待确认 / 已确认 / 超期）筛选或搜索姓名 / 内容，每页 10 条；明细表带「<strong>培养联系人 / 期次</strong>」两列（标注了是哪位培养联系人写的、哪一半年期时才有值，未标注为「—」；导出 CSV 同列）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>默认宽表「按人」</strong>（每人参加过的考察来源横向列出），可切「<strong>按项目</strong>」（某来源都有谁被考察）与「<strong>明细</strong>」（原按人次长表）：三者是同一份数据的换视角 + 下钻。列只取最近 6 项，可「显示全部 N 项」；宽表<strong>人这一维每页 10 人</strong>，可翻页；明细表按来源 / 状态（待确认 / 已确认 / 超期）筛选或搜索姓名 / 内容，每页 10 条。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">对「待确认 / 超期」行「确认」（误传可「删除」，仅待确认可删）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">已确认行有误可「<strong>打回</strong>」：填一句打回原因 → 记录回到「待确认」并留痕，交上传方重新确认（上传方确认前不占纪检待办）。</li>
           </ol>
@@ -812,16 +817,16 @@
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.5</span>成员发展</h3>
         <p class="doc-p">发展党员工作的三个动作面：<strong>发展管线推进（组织台「发展数据」）、思想汇报提交即入库归档（成员提交 ↔ 组织委员查看调用、必要时打回）、成员名册与变更确认（阶段 / 在册滞留变更与移出均须支书确认）</strong>。支部党员大会「待讨论名单」记录通过后自动生成的成员变更申请链（组织审批 → 支书确认 → 阶段更新）也从这里看进度（详见 3.1 议程与记录）。</p>
 
-        <div class="help-card" id="card-dom35-pipeline" data-search="成员发展 发展党员 发展数据 管线 积极分子 发展对象 预备党员 正式党员 推进 转正 培养联系人">
+        <div class="help-card" id="card-dom35-pipeline" data-search="成员发展 发展党员 发展数据 管线 积极分子 发展对象 预备党员 正式党员 推进 转正">
           <h4 class="help-card-title">发展管线推进</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台 →「我的职责」段「发展数据」。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>组织委员（发展管线追踪与推进）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">看管线概览：积极分子 → 发展对象 → 预备党员 → 正式党员 四段人数与候选人卡片（每卡：姓名 / 党小组 / 进入当前阶段日期 / 考察 N 条 / 思想汇报已归档 N 篇 / <strong>培养联系人</strong>）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">看管线概览：积极分子 → 发展对象 → 预备党员 → 正式党员 四段人数与候选人卡片（每卡：姓名 / 党小组 / 进入当前阶段日期 / 考察 N 条 / 思想汇报已归档 N 篇）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">按阶段筛选；对候选人点「推进至下一阶段」→ 确认。其中<strong>「积极分子 → 发展对象」这一步须先经支委会讨论通过</strong>（讨论挂在既有支委会会议议程上）——讨论通过后才可发起阶段变更。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>推进即更新阶段与「进入当前阶段」日期并写入发展档案，卡片与管线计数即时刷新；正式党员段显示「已转正」；考察条数、思想汇报归档数随各域写库自动归集到卡片（不再在此页展开全文，详细查看去组织台「思想汇报」/ 人才库）。大会 / 支委会「待讨论名单」记录通过自动生成的成员变更申请，在组织台「待办」页「成员变更审批」区逐条处理（通过 → 广播全体支委 → 支书确认 → 阶段更新）。<strong>培养联系人</strong>在本页只读呈现（未指派时给「去名册指派」深链）——指派 / 改派在「成员名册」（见 3.5），成员档案页双向可查（谁培养我 / 我带着谁）。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>推进即更新阶段与「进入当前阶段」日期并写入发展档案，卡片与管线计数即时刷新；正式党员段显示「已转正」；考察条数、思想汇报归档数随各域写库自动归集到卡片（不再在此页展开全文，详细查看去组织台「思想汇报」/ 人才库）。大会 / 支委会「待讨论名单」记录通过自动生成的成员变更申请，在组织台「待办」页「成员变更审批」区逐条处理（通过 → 广播全体支委 → 支书确认 → 阶段更新）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">注意</span>正式确认（阶段变更生效 + 应到名单联动）以「成员名册」行内变更经支书确认为准（见 3.5 成员名册）；本页推进面向发展管线日常追踪，两处同读一份人员档案。</p>
         </div>
 
@@ -839,7 +844,7 @@
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>打回必填意见（否则拦截）；仅提交人本人可修改重交；已打回、待本人补充的篇目不得重复打回；仅组织委员角色可打回（其它角色打开仅提示无权限）。<strong>篇幅提示只提示、不拦提交，且只给提交人本人看</strong>。</p>
         </div>
 
-        <div class="help-card" id="card-dom35-roster" data-search="成员发展 成员名册 新增 行内调整 党小组 发展阶段 在册 滞留 支书确认 移出 已转出 学期末复核 培养联系人 指派">
+        <div class="help-card" id="card-dom35-roster" data-search="成员发展 成员名册 新增 行内调整 党小组 发展阶段 在册 滞留 支书确认 移出 已转出 学期末复核">
           <h4 class="help-card-title">成员名册（新增 / 行内调整 / 变更确认 / 移出）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台 →「我的职责」段「成员名册」；变更确认 / 退回在支书台「待办」页处理。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>组织委员（名单管理主位：新增、行内调整、发起变更 / 移出）；支书 / 副支书（「成员变更待确认」组逐项确认生效或退回）；纪检 / 组长读同一名单（应到名单联动）。</p>
@@ -849,9 +854,8 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">行内调整：改「党小组」或维护「滞留备注」→ 保存 = 即时生效；改「发展阶段」或切「在册状态（在校 ↔ 滞留）」→ 保存后行格出现「阶段变更 · 待确认 / 在册状态 · 待确认」小标（不即时落档）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支书确认：支书台「待办」→「成员变更待确认」组逐项「确认生效 / 退回」（退回可填原因）；行内恢复可编辑并回现值。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">移出：行尾「移出」→ 弹窗说明引用检查 → 确认移出（有历史则行显「移出待确认」，待支书确认）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;"><strong>培养联系人</strong>：积极分子行内「培养联系人」列点「＋ 指派」→ 选一至两名<strong>正式党员</strong>（滞留党员可见但不可选）→ 保存；列上显示姓名，点姓名即改派；清空后保存 = 撤销指派。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>新增 / 即时字段保存 → 名册与应到名单即时生效（支部应到 = 在册党员 − 滞留剔除，页头实时显示支部与各组应到）；发展阶段、在册滞留变更经支书「确认生效」后落地并记录（滞留含备注，纪检考勤 / 会议应到随之剔除、通知照发）；移出 = 引用清单化：无历史或仅安全引用（未开始活动分工 / 未生效报名 / 未读广播）→ 自动解除后直接移出；有历史（考勤 / 考察 / 思想汇报 / 复盘 / 表态 / 长期分工等）→ 支书确认后转「已转出」标注并移出（原记录保留、不删不匿名，专班负责人保留提示先移交）；学期末窗口（6/15–7/15、12/15–次年 1/15）支书台自动出现「学期末滞留集中复核」提醒（滞留名单一览，延续或解除由组织委员在名册发起）；<strong>培养联系人</strong>（一人最多两名正式党员）按人指派、随成员档案落库——成员档案页双向可查（谁培养我 / 我作为培养联系人带着谁），积极分子由谁培养不再只散在线下文本里。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>新增 / 即时字段保存 → 名册与应到名单即时生效（支部应到 = 在册党员 − 滞留剔除，页头实时显示支部与各组应到）；发展阶段、在册滞留变更经支书「确认生效」后落地并记录（滞留含备注，纪检考勤 / 会议应到随之剔除、通知照发）；移出 = 引用清单化：无历史或仅安全引用（未开始活动分工 / 未生效报名 / 未读广播）→ 自动解除后直接移出；有历史（考勤 / 考察 / 思想汇报 / 复盘 / 表态 / 长期分工等）→ 支书确认后转「已转出」标注并移出（原记录保留、不删不匿名，专班负责人保留提示先移交）；学期末窗口（6/15–7/15、12/15–次年 1/15）支书台自动出现「学期末滞留集中复核」提醒（滞留名单一览，延续或解除由组织委员在名册发起）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>支书退回的变更不生效（组织委员可重新发起）；同一人同字段已有待确认请求 → 重复发起拦截；移出待确认期间禁重复操作；现任支书（或任一支书）不可移出（须先完成支书交接）；移出后读链不匿名——姓名仍可解析并标「已转出」。</p>
         </div>
 
@@ -926,6 +930,7 @@
           <h4 class="help-card-title">运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台知情查看（专班分段）展开详情，条件为运行中且本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>专班成员本人逐条填报本人产出（by = 填报人）；组织委员逐条核验（同意入档 / 退回补料，全程记录），另有「组织委员代录（备用入口）」位（单条代录后仍须逐条核）。</p>
+          <p class="help-card-desc"><strong>一般由谁写入：</strong>专班材料与贡献记录的一般承担人是<strong>该专班的组织者</strong>。代录人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员在「我的产出填报」填本人产出说明（必填，如「完成专题稿件的采访与初稿撰写」）→「填报本条产出」。</li>
@@ -1492,12 +1497,12 @@
       </div><!-- /help-layout -->
 
       <div class="text-center pb-4">
-        <p class="text-xs text-gray-500">示例组织（光华管理学院本科生党支部） · GSM1921-SOP</p>
+        <p class="text-xs text-gray-500">GSM1921-SOP</p>
       </div>
     </div>
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260923a"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260924a"></script>
 </body>
 </html>

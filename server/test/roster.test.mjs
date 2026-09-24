@@ -10,7 +10,17 @@
 //   （两文件各写一遍），并让「应到 = 候选 − 禁用 = 表决名单」三个面在同一文件内可对读。
 //   **未并**：`roster-ui-logic.test.mjs`（**不同域**：成员名册表单纯逻辑，与应到口径无关）。
 //
-// 纯 Node 测试（无浏览器、不起 server）：
+// 形态（提速批：**A 类（纯 node + mock 静态种子）→ B 类（起内存服务打 API）**，
+//   支书裁定「`roster.test.mjs` → 改成打 API」）：
+//   改造前断言对象是 `docs/src/mock/people.js` / `docs/src/mock/activities.js` 的**静态种子**；
+//   现改为：起 `:memory:` 服务 → `seedDatabase` → **真登录**取 token → `setDataSource('api')` → `init()`
+//   ⇒ 应到名单 / 候选+禁用集合 / 表决名单 / 滞留名单全部读**服务端 users**（init 灌入 mockDB 缓存）。
+//   体例照同批姊妹件 `group-view.test.mjs`，及既有 B 类先例 `permission-gate.test.mjs` / `server-base.test.mjs`。
+//   **判据一字未改**（应到口径 / 基数 / 字段 / 筛选 / 在册状态 / 导出等断言原样保留），**只换数据来源**；
+//   另加 S1「两形态同源」断言——同一批读数在 api 形态与 mock 形态（静态种子）**逐值一致**，
+//   正是 `mock-integrity` 所守「前端种子＝服务端种子」的等价性（在此可断言，不靠旁证）。
+//
+// 覆盖：
 //   ── 一、应到口径（原 roster.test.mjs，2026-09-06 支书已批）──
 //   覆盖 支部大会/党课应到 = 党员（正式+预备）非滞留；滞留剔除（示范 p5/p9）；党课列席不计应到；
 //   党小组会按组口径（本组党员非滞留）；无小组语境不猜测；全选/候选集一致性；p_pc 非党员不入选；
@@ -21,41 +31,124 @@
 //      与 roster 同集；线上支委会=支委名单，若支委滞留则剔）；历史快照 act-31 保持原值；
 //   ③ 党小组会组内候选 = 组内党员（非滞留入应到、滞留禁选），与纪检同口径。
 // 口径单一源 = core/policy-defaults.js attendance.roster（partyStages / excludeDetained）。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性，同 attendance-batch）。
-import { test } from 'node:test';
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性，同 attendance-batch）——
+//   **api 形态下尤其致命**：少了 `?v=` 就是**两份 data-adapter 实例**，适配器注册不到、`init()` 直接抛
+//   「API 适配器尚未实现」（`group-view.test.mjs` 自述实测踩过一次）。
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260923a';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260923a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260923a';
+// ── localStorage / sessionStorage 内存桩（成员档案读链惰性访问需要；照 group-view.test 同款）──
+// roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。
+function makeStorage(init = {}) {
+  const m = new Map(Object.entries(init).map(([k, v]) => [String(k), String(v)]));
+  return {
+    getItem: (k) => (m.has(String(k)) ? m.get(String(k)) : null),
+    setItem: (k, v) => m.set(String(k), String(v)),
+    removeItem: (k) => { m.delete(String(k)); },
+    clear: () => { m.clear(); },
+    key: (i) => [...m.keys()][i] ?? null,
+    get length() { return m.size; },
+  };
+}
+globalThis.localStorage = makeStorage();
+
+import { createApp } from '../app.js';
+import { seedDatabase } from '../seed.js';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260924a';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260924a';
 import {
   getMeetingRoster, getMeetingRosterIds, getMeetingRosterCandidates, getDetainedMembers,
   getRosterStats, getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/roster.js?v=20260923a';
+} from '../../docs/src/services/roster.js?v=20260924a';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260923a';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260923a';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260924a';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/vote-config.js?v=20260924a';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260924a';
+// mock 形态对照源（**仅 S1「两形态同源」断言用**；其余用例的断言对象一律是服务端数据）：
+//   前端静态种子 PEOPLE / ACTIVITIES 与服务端种子是同源两份，S1 即断言二者读数逐值一致。
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260924a';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260924a';
 
-// ── localStorage 内存桩（saveResidenceChange 运行期覆盖用例需要；node 默认无 localStorage）──
-// roster.js 在函数体内以 typeof 守卫惰性访问 → 桩在 import 之后、用例之前建立即可。
-const _store = new Map();
-globalThis.localStorage = {
-  getItem: (k) => (_store.has(String(k)) ? _store.get(String(k)) : null),
-  setItem: (k, v) => _store.set(String(k), String(v)),
-  removeItem: (k) => { _store.delete(String(k)); },
-  clear: () => { _store.clear(); },
-};
+// ════════════════════════════════════════════════════════════════
+//  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
+// ════════════════════════════════════════════════════════════════
+const _app = createApp({ dbPath: ':memory:' });
+await seedDatabase(_app.locals.db);
+const _server = _app.listen(0);
+const _base = `http://127.0.0.1:${_server.address().port}`;
+const _loginRes = await fetch(`${_base}/api/v1/auth/login`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ personId: 'p13' }),
+});
+assert.equal(_loginRes.status, 200, 'B 类现场：真登录须 200（DISABLE_PASSWORD_CHECK=1 时 personId 直登）');
+const { token: _token } = await _loginRes.json();
+globalThis.sessionStorage = makeStorage({ 'gsm1921-api-token': _token });
+setDataSource('api', { apiBaseUrl: _base, authToken: _token });
+await init();
 
-// ── 常量（口径单一源）────────────────────────────────────────
+after(async () => {
+  _server.closeAllConnections?.();
+  await new Promise((r) => _server.close(r));
+});
+
+// 形态断言（**可断言**，不靠旁证）：本文件用例必须跑在 api 形态上
+test('S0 形态：api 形态 + 有会话 token（数据来自服务端，不是本地静态种子）', () => {
+  const mode = getRuntimeMode();
+  assert.equal(mode.source, 'api', `本文件必须在 api 形态下跑（实测 ${JSON.stringify(mode)}）`);
+  assert.equal(mode.hasToken, true, 'api 形态应存在会话 token');
+});
+
+// ── S1 两形态同源（防线）：同一批读数在 api 形态与 mock 形态（静态种子）逐值一致 ──
+// 守的是 `mock-integrity` 那条「前端种子＝服务端种子」的等价性：同一批读数在两种形态下**逐值相同**，
+// 同时证明「api 读链读的确实是服务端数据」（否则空集/错集会立刻与 mock 形态读数不等）。
+test('S1 两形态同源：api 形态读数与原 mock 形态（静态种子）逐值一致（= mock-integrity 所守等价性）', () => {
+  const read = () => ({
+    members: PersonStore.getMembers().map(p => [p.id, p.name, p.developStage, p.partyGroup, p.role, p.branchId]),
+    detained: getDetainedMembers().map(p => [p.id, getResidenceOf(p).residenceStatus, p.residenceNote]),
+    branchRoster: getMeetingRosterIds({ type: '支部党员大会' }),
+    lessonRoster: getMeetingRosterIds({ type: '党课' }),
+    group2Roster: getMeetingRosterIds({ type: '党小组会', groupId: '第二党小组' }),
+    branchCandidates: (() => {
+      const { candidates, disabledIds } = getMeetingRosterCandidates({ type: '支部党员大会' });
+      return { ids: candidates.map(p => p.id), disabledIds };
+    })(),
+    stats: getRosterStats({ type: '支部党员大会' }),
+    group2Stats: getRosterStats({ type: '党小组会', groupId: '第二党小组' }),
+    formalOnly: resolveVoterIds('formal-only'),
+    committee: resolveVoterIds('committee'),
+    formalPlusPrep: resolveVoterIds('formal-plus-prep'),
+  });
+  const apiRead = read();
+  let mockRead;
+  try {
+    setDataSource('mock'); // 切回 mock 形态：PersonStore 读链取静态种子 PEOPLE
+    mockRead = read();
+  } finally {
+    setDataSource('api'); // 复位（后续用例仍须在 api 形态）
+  }
+  assert.deepEqual(apiRead, mockRead, 'api 形态读数须与 mock 形态逐值一致（前端种子 = 服务端种子）');
+  assert.equal(apiRead.branchRoster.length, 19, '且 api 形态确读到服务端数据（非空集冒充）');
+  // 人员域同源（直比 id 集）：服务端 users ≡ 前端静态 PEOPLE
+  assert.deepEqual(PersonStore.getMembers().map(p => p.id), PEOPLE.map(p => p.id), '服务端 users id 集 ≡ 前端 PEOPLE');
+  // 活动域同源：服务端 activities（mockDB 缓存）与原静态种子逐值一致（历史快照 act-31 取值）
+  const apiAct31 = (mockDB.activities || []).find(a => a.id === 'act-31');
+  const mockAct31 = ACTIVITIES.find(a => a.id === 'act-31');
+  assert.deepEqual(apiAct31?.voteConfig?.voterIds, mockAct31?.voteConfig?.voterIds, 'act-31 voterIds 两形态一致');
+});
+
+// ── 常量（口径单一源；数据来自服务端 users —— api 形态 init() 已灌入 mockDB 缓存）──
 const cfg = getRosterConfig();
 const PARTY_STAGES = cfg.partyStages; // ['正式党员','预备党员']（policy 单一源）
-const PARTY_MEMBERS = PEOPLE.filter(p => PARTY_STAGES.includes(p.developStage));
+const MEMBERS = PersonStore.getMembers();
+const PARTY_MEMBERS = MEMBERS.filter(p => PARTY_STAGES.includes(p.developStage));
 const BRANCH_PARTY = PARTY_MEMBERS.filter(p => p.branchId === 'br-b1' || p.branchId === undefined);
 // 支部党员大会会议应到（党员非滞留 19）与线上表决名单的关系：
 //   resolveVoterIds('formal-plus-prep') === getMeetingRosterIds({type:'支部党员大会'})（同集断言见 ②）
 const BRANCH_ROSTER = getMeetingRosterIds({ type: '支部党员大会' });
-// 历史快照 act-31（mock/activities.js，数据保持原值不动）：voterIds = 12 名正式党员（含滞留 p5/p9）
-const ACT31 = ACTIVITIES.find(a => a.id === 'act-31');
+// 历史快照 act-31（服务端 activities，与 mock/activities.js 同源）：voterIds = 12 名正式党员（含滞留 p5/p9）
+const ACT31 = (mockDB.activities || []).find(a => a.id === 'act-31');
 const FORMAL_IDS = ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'];
 
 // ════════════════════════════════════════════════════════════════
@@ -100,7 +193,7 @@ test('支部党员大会应到 = 党员非滞留 = 19（在册党员 21 − 滞�
 // ── d) 党课列席不计应到 ─────────────────────────────────────
 test('党课列席（积极分子/发展对象）不计应到：仅党员进候选', () => {
   const ids = new Set(getMeetingRosterIds({ type: '党课' }));
-  for (const p of PEOPLE) {
+  for (const p of MEMBERS) {
     if (PARTY_STAGES.includes(p.developStage)) {
       if (getResidenceOf(p).residenceStatus === RESIDENCE.DETAINED) {
         assert.ok(!ids.has(p.id), `${p.id}（滞留党员）不在应到`);
@@ -139,7 +232,7 @@ test('候选集 = 全选范围（getMeetingRosterIds 同源）；p_pc 党委组�
   assert.ok(!getMeetingRosterIds({ type: '支部党员大会' }).includes('p_pc'), 'p_pc 不再出现在全选范围');
   assert.ok(!getMeetingRosterIds({ type: '支部党员大会', branchId: 'br-b1' }).includes('p_pc'));
   // 在校缺省：未标注 residenceStatus 的人员默认「在校」
-  const p1 = PEOPLE.find(p => p.id === 'p1');
+  const p1 = MEMBERS.find(p => p.id === 'p1');
   assert.equal(getResidenceOf(p1).residenceStatus, RESIDENCE.CAMPUS);
 });
 
@@ -155,7 +248,7 @@ test('getRosterStats：支部大会 expected 19 = partyTotal 21 − detainedPart
 });
 
 // ── h) 组织委员维护（写覆盖 + 留痕；应到即时剔除；改回恢复）──
-// 写覆盖用例集中在第一部分末位：内存桩内写入不影响静态种子；用例结束清桩保持文件内纯净
+// 写覆盖用例集中在第一部分末位：内存桩内写入不影响服务端种子；用例结束清桩保持文件内纯净
 //（第二部分 ② 另有「支委滞留」写覆盖用例，自行 try/finally 收尾；两者互不残留）。
 test('saveResidenceChange：写覆盖 + 留痕 {from,to,updatedBy,updatedAt}；应到即时剔除；无变化不产生冗余留痕', () => {
   const rosterOf = () => getMeetingRosterIds({ type: '支部党员大会' });
@@ -190,9 +283,9 @@ test('saveResidenceChange：写覆盖 + 留痕 {from,to,updatedBy,updatedAt}；�
   assert.equal(saveResidenceChange({ personId: 'p1', actorId: 'p11', status: '离校' }), null);
   assert.equal(saveResidenceChange({ personId: 'p_unknown', actorId: 'p11', status: RESIDENCE.DETAINED }), null);
 
-  // 用例收尾：清空桩，避免对同文件后续用例造成残留（静态种子不受影响）
+  // 用例收尾：清空桩，避免对同文件后续用例造成残留（服务端种子不受影响）
   localStorage.removeItem(RESIDENCE_KEY);
-  assert.equal(getDetainedMembers().length, 2, '清理后仅剩静态示范滞留 2 名');
+  assert.equal(getDetainedMembers().length, 2, '清理后仅剩服务端示范滞留 2 名');
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -255,7 +348,7 @@ test('②resolveVoterIds 现时剔滞留：formal-only = 10（12 正式 − 滞�
   assert.equal(formal.length, 10, '正式党员 12 − 滞留 2 = 10（剔除 p5/p9）');
   assert.ok(!formal.includes('p5') && !formal.includes('p9'), '滞留党员不出现在线上表决名单');
   assert.ok(formal.includes('p1') && formal.includes('p14'), '在校正式党员在名单');
-  assert.ok(formal.every(id => { const p = PEOPLE.find(x => x.id === id); return p && p.developStage === '正式党员'; }));
+  assert.ok(formal.every(id => { const p = MEMBERS.find(x => x.id === id); return p && p.developStage === '正式党员'; }));
   // 线上支委会 = 支委名单（权威 5 人 p10~p14，均非滞留）
   assert.deepEqual(resolveVoterIds('committee'), ['p10', 'p11', 'p12', 'p13', 'p14']);
 });
@@ -325,8 +418,8 @@ test('③组内候选 = roster：第二党小组候选 8（党员）→ 禁用 p
   assert.ok(p5.residenceNote, '滞留备注随候选可见（title 备注源）');
 });
 
-// ── 收尾清理：确保本文件不留运行期覆盖（静态种子不受影响）──
-test('清理：移除内存桩覆盖，恢复静态基线（滞留仅示范 p5/p9）', () => {
+// ── 收尾清理：确保本文件不留运行期覆盖（服务端种子不受影响）──
+test('清理：移除内存桩覆盖，恢复服务端基线（滞留仅示范 p5/p9）', () => {
   localStorage.removeItem(RESIDENCE_KEY);
   assert.equal(getDetainedMembers().length, 2);
   assert.equal(getMeetingRosterIds({ type: '支部党员大会' }).length, 19);

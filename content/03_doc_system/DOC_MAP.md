@@ -86,7 +86,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | [工程师]+[AI] | 组织者与深度参与者的扁平化设计 | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支委系统设计（含专班、赋权关系链、§审批流程规范） | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计（[用户]/[工程师]/[AI] 三类标记 + 协作方式 + 存储读取机制） | OPERATIONS_GUIDE.md、USAGE_POLICY.md |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | SERVICE_CATALOG.md、DATA_MODEL.md、DATA_FLOW.md、COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | SERVICE_CATALOG.md、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |
@@ -118,8 +118,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型设计（静态模型权威：20 类数据模型字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/data/DATA_FLOW.md` | [工程师]+[AI] | 数据流设计（动态数据流权威：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md |
+| `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统规范（设计哲学/排版/交互反馈/响应式/深色模式/设计资产/快速参考；2026-08-24 §二→COLOR_SYSTEM、§四→COMPONENT_SPEC） | docs/src/styles.css |
 | `content/04_web_design/design-system/COLOR_SYSTEM.md` | [工程师]+[AI] | 色彩系统规范（色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/styles.css |
 | `content/04_web_design/design-system/COMPONENT_SPEC.md` | [工程师]+[AI] | 组件规范（按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-08-24 自 DESIGN_SYSTEM 拆分） | docs/src/components/* |
@@ -131,12 +130,12 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针；2026-09-04 按阅读对象重构，原计算中心对接全案并入 §三） | AUTHENTICATION_MODEL.md、WECHAT_INTEGRATION.md、PKU_PARTY_INTEGRATION.md |
 | `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_GUIDE.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
-| `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、DATA_FLOW.md、SOP_WEBSITE_GUIDE.md |
+| `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
 | `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座；2026-09-17 收敛：逐批沿革迁入月度日志，本体只维护**当前值**） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「现在工程化到几成、下一步该改哪里」**：五维**当前**打分（模块化 **97** / 插件化 75 / 开源化 **75** / 超参数 78 / 组合 78）+ 工程做法纪律 + 行动线 P0~P4 的**当前**状态。⚠ **逐批沿革与「为何 +1」论证已于 2026-09-17 迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md`**（原行曾写「综合≈76」，现状见文件本体 §5.2） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
 | `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
-| `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md、COMPONENT_SPEC.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
+| `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md、COMPONENT_SPEC.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发；支书逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
 | `content/04_web_design/deploy/AUTHENTICATION_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
 | `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
@@ -245,7 +244,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 系统优化 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | content/02_institution/sop/对应 SOP |
 | 了解支委系统设计 | content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） |
-| 了解登录系统设计前置 | content/04_web_design/data/DATA_FLOW.md §3.4（已实现登录态：AuthStore/账号体系/存储键） | content/04_web_design/deploy/AUTHENTICATION_MODEL.md（登录场景模型与门控） |
+| 了解登录系统设计前置 | content/04_web_design/data/DATA_MODEL.md §3.4（已实现登录态：AuthStore/账号体系/存储键） | content/04_web_design/deploy/AUTHENTICATION_MODEL.md（登录场景模型与门控） |
 | 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵） |
 | 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |

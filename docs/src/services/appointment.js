@@ -6,10 +6,19 @@
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）；
 // mock 纯本地：users 演示行（u_*）无 person 档案 → role 同步静默跳过，记录/secretaryId 仍完整。
 
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { getAdapter, persist } from '../core/data-adapter.js?v=20260923a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { getAdapter, persist } from '../core/data-adapter.js?v=20260924a';
 // R5-1（2026-09-06）：就地任命需补齐 person.role（角色双链读链 = person 档案，见 appointInauguralOfficers 注释）
-import { PersonStore } from './person.js?v=20260923a';
+import { PersonStore } from './person.js?v=20260924a';
+// 2026-09-23 支书裁定（情景①）：支书自配本支部支委身份——留痕复用既有审计快照（AuthStore），判据与白名单
+// 单一源 = core/constants.js（勿在本文件另写角色名单；server/users 写门同源同一判据）
+import { AuthStore } from './auth.js?v=20260924a';
+import {
+  ROLE_LABELS,
+  BRANCH_COMMISSIONER_ASSIGNABLE_ROLES,
+  BRANCH_COMMISSIONER_FALLBACK_ROLE,
+  branchCommissionerWriteDeny,
+} from '../core/constants.js?v=20260924a';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);
@@ -134,4 +143,125 @@ export async function appointInauguralOfficers({ branchId, secretaryId = null, o
     out.org = true;
   }
   return { ok: true, ...out };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  支书配置本支部支委身份（2026-09-23 支书裁定 · 情景① 写口落地；本文件追加导出，不改既有导出）
+// ════════════════════════════════════════════════════════════════
+// 语义（裁定逐字与白名单见 core/constants.js 的 BRANCH_COMMISSIONER_ASSIGNABLE_ROLES / 判据
+//   branchCommissionerWriteDeny）：可授予＝组织委员 / 宣传委员 / 纪检委员，撤销＝回落普通参与者；
+//   操作人＝本支部现任支书 ∨ 本支部现任副支书（副书同权，2026-09-23 支书追裁）；拒：支书本人与副支书的
+//   一把手层身份（归党委，`D-585`）· 跨支部成员 · 白名单外的角色键 · 支书 / 副支书以外的身份者。
+// 角色双链（同 appointInauguralOfficers 注释，缺一即「能登录成委员、支委会却不算委员」）：
+//   ① PersonStore.saveMember({ id, role }) —— 成员档案链（mock：members 覆盖层；api：server users，
+//      经通用 users 写口的**靶向写门**放行——服务端与前端**同一份判据** branchCommissionerWriteDeny）；
+//      此链同时是支委会应到 / 委员判定链（vote-config 按档案读 role）。
+//   ② _syncUserRole(id, role) —— mock 本地账号缓存 mockDB.users（演示成员无该行 → 静默，同既有写法）。
+// 留痕（**复用既有单一源、不新造表**）：AuthStore 的审计快照（localStorage `sop_org_os_auth_audit`，只增不改）
+//   ——与「常设赋权（组长）/ 项目赋权（组织者·深参）」是**同一份**赋权记录：授予走 AuthStore.authorize
+//   （auth.js 的 AUTHORIZE_CHAIN 已加「支书 → 三委员」三键，同名同角色按人去重），撤销 / 改派的旧席位走
+//   AuthStore.recordProjectRevokes(null, …, actorId)（同一写口 `_appendAuditEntries`，追加 action:'revoke'）。
+// ⚠ 数据边界（如实登记，与 R5-1「就地任命首任骨干」同族）：`users.role` / `person.role` 是**单值**——把某位
+//   现任党小组组长配为支委时，其组长身份随之让位（一行里放不下两个常设身份）；本函数不迁移其它席位。
+// ⚠ `AuthStore.revokeAuthorization` 有一处既有缺陷（读 `rec.personId`，而审计记录写的是 `targetPersonId`
+//   ⇒ 撤销快照的 targetPersonId 落空），本批**未改**（不在本次授权面内）⇒ 撤销留痕故走
+//   recordProjectRevokes（同一写口、形状正确）。
+
+/** 本支部现任副支书 personId（副书同权 2026-09-23 支书追裁；单一源＝成员档案 role，无 → null） */
+function _branchDeputyId(branchId) {
+  const bid = branchId || 'br-b1';
+  const p = PersonStore.getMembers().find(m => (m.branchId || 'br-b1') === bid && m.role === 'deputy-secretary');
+  return (p && p.id) || null;
+}
+
+/** 本支部现任支委身份（现值；单一源＝成员档案 role，附最近一条审计快照供展示） */
+export function listBranchCommissioners(branchId) {
+  const bid = branchId || 'br-b1';
+  const grantByKey = new Map();
+  AuthStore.getAuthorizations()
+    .filter(r => BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(r.role))
+    .forEach(r => {
+      if (r.targetPersonId && r.action !== 'revoke') grantByKey.set(`${r.targetPersonId}|${r.role}`, r);
+    });
+  return PersonStore.getMembers()
+    .filter(p => (p.branchId || 'br-b1') === bid && BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(p.role))
+    .map(p => ({
+      personId: p.id,
+      name: p.name,
+      role: p.role,
+      roleLabel: ROLE_LABELS[p.role] || p.role,
+      record: grantByKey.get(`${p.id}|${p.role}`) || null,
+    }));
+}
+
+/**
+ * 配置 / 改派本支部支委身份（本支部现任支书 / 副支书；判据单一源见 core/constants.js::branchCommissionerWriteDeny）
+ * @param {{ branchId: string, personId: string, role: string, actorId?: string }} opts role ∈ 白名单（组织/宣传/纪检委员）
+ * @returns {Promise<{ok: boolean, reason?: string, recordId?: string}>}
+ */
+export async function appointBranchCommissioner({ branchId, personId, role, actorId } = {}) {
+  const branch = (mockDB.branches || []).find(b => b.id === branchId);
+  if (!branch) return { ok: false, reason: `支部 ${branchId} 不存在` };
+  if (!personId) return { ok: false, reason: '缺少被配置人（personId）' };
+  const target = PersonStore.getById(personId);
+  if (!target) return { ok: false, reason: '成员不存在（档案中无该 id）' };
+  const actor = actorId || (AuthStore.getCurrentUser() || {}).personId || null;
+  const deny = branchCommissionerWriteDeny({
+    actorRole: (AuthStore.getCurrentUser() || {}).role || AuthStore.getUserRole(actor),
+    actorId: actor,
+    actorBranchId: branchId,
+    targetId: String(personId),
+    targetRole: target.role,
+    targetBranchId: target.branchId || branchId,
+    secretaryId: branch.secretaryId,
+    deputySecretaryId: _branchDeputyId(branchId),
+    role,
+  });
+  if (deny) return { ok: false, reason: deny };
+
+  // ① 档案链（mock：members 覆盖层；api：server users 经 users 写门）——改派时旧席位由现值改写让位
+  const r = await PersonStore.saveMember({ id: String(personId), role });
+  if (!r || !r.ok) return { ok: false, reason: `支委身份配置失败：${(r && r.reason) || '未知原因'}` };
+  // ② mock 本地账号缓存（演示成员无该行 → 静默；与 appointInauguralOfficers ② 同写法）
+  _syncUserRole(String(personId), role);
+  // ③ 留痕：改派则先给旧席位补一条 revoke（审计快照只增不改），再追加新席位的 grant
+  if (BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(target.role) && target.role !== role) {
+    AuthStore.recordProjectRevokes(null, [{ personId: String(personId), role: target.role }], actor);
+  }
+  const grant = await AuthStore.authorize(actor, String(personId), role, {});
+  persist();
+  return { ok: true, recordId: (grant && grant.id) || '' };
+}
+
+/**
+ * 撤销本支部支委身份（回落普通参与者；判据与上同一份）
+ * @param {{ branchId: string, personId: string, role: string, actorId?: string }} opts role = 被撤销的支委身份
+ * @returns {Promise<{ok: boolean, reason?: string}>}
+ */
+export async function revokeBranchCommissioner({ branchId, personId, role, actorId } = {}) {
+  const branch = (mockDB.branches || []).find(b => b.id === branchId);
+  if (!branch) return { ok: false, reason: `支部 ${branchId} 不存在` };
+  if (!BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.includes(role)) return { ok: false, reason: '该身份不在支书可配置的支委身份白名单内' };
+  const target = PersonStore.getById(personId);
+  if (!target) return { ok: false, reason: '成员不存在（档案中无该 id）' };
+  const actor = actorId || (AuthStore.getCurrentUser() || {}).personId || null;
+  const deny = branchCommissionerWriteDeny({
+    actorRole: (AuthStore.getCurrentUser() || {}).role || AuthStore.getUserRole(actor),
+    actorId: actor,
+    actorBranchId: branchId,
+    targetId: String(personId),
+    targetRole: target.role,
+    targetBranchId: target.branchId || branchId,
+    secretaryId: branch.secretaryId,
+    deputySecretaryId: _branchDeputyId(branchId),
+    role: BRANCH_COMMISSIONER_FALLBACK_ROLE,
+  });
+  if (deny) return { ok: false, reason: deny };
+
+  const r = await PersonStore.saveMember({ id: String(personId), role: BRANCH_COMMISSIONER_FALLBACK_ROLE });
+  if (!r || !r.ok) return { ok: false, reason: `支委身份撤销失败：${(r && r.reason) || '未知原因'}` };
+  _syncUserRole(String(personId), BRANCH_COMMISSIONER_FALLBACK_ROLE);
+  AuthStore.recordProjectRevokes(null, [{ personId: String(personId), role }], actor);
+  persist();
+  return { ok: true };
 }

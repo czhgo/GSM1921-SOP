@@ -1,31 +1,73 @@
 // role: [工程师]+[AI]
 // server/test/group-view.test.mjs — 党小组分组只读聚合口径单测（支书台「党小组进展」D8，2026-09-08）
-// 纯 Node 测试（无浏览器、不起 server）：
-//   覆盖 组清单（partyGroup 聚合顺序/组长/党员数/成员数）、branch 过滤、组员口径（不含组长）、
-//   待答复汇报开放数（open/closed/hidden/merged/组长自身排除）、本组活动判定（organizer 属组/
-//   取消/归档）、复盘分桶（无记录/未提交/已打回 → pending；已上传/批注中/已确认 → completed）。
+// 形态（2026-09-23 提速批 · 任务二第 1 批：**A 类（纯 node+mock）→ B 类（起内存服务打 API）**）：
+//   改造前是纯 mock 形态，`PersonStore.getMembers()` 读的是 `docs/src/mock/people.js` **静态种子**。
+//   而本仓已坐实的架构缺口恰恰是「**api 形态下前端部分读链仍返回静态种子**」——
+//   `server/test/form-loop-registry.mjs` 47-S 自纠处点名：`org-roster-member-add-save` 那条缺口的成因。
+//   故本文件改为：起 `:memory:` 服务 → `seedDatabase` → **真登录**取 token → `setDataSource('api')` → `init()`。
+//   ⇒ 组清单 / 党员数 / 组员口径三类**读到的东西必须来自服务端 users**，不再是从本地静态种子读。
+//   体例照既有 B 类先例：`permission-gate.test.mjs` / `server-base.test.mjs` / `member-persist.test.mjs` 的 api 段。
+// 覆盖（**判据一字未改**，只换数据来源）：组清单（partyGroup 聚合顺序/组长/党员数/成员数）、branch 过滤、
+//   组员口径（不含组长）、待答复汇报开放数（open/closed/hidden/merged/组长自身排除）、本组活动判定
+//   （organizer 属组/取消/归档）、复盘分桶（无记录/未提交/已打回 → pending；已上传/批注中/已确认 → completed）。
 // 口径单一源注释见 docs/src/services/group-view.js 头部。
-// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）。
-import { test } from 'node:test';
+// ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）——**api 形态下尤其致命**：
+//   少了 `?v=` 就是**两份 data-adapter 实例**，适配器注册不到、`init()` 直接抛「API 适配器尚未实现」（实测踩过一次）。
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-// ── localStorage 内存桩（成员档案读链惰性访问需要；照 roster.test 同款）──
-const _store = new Map();
-globalThis.localStorage = {
-  getItem: (k) => (_store.has(String(k)) ? _store.get(String(k)) : null),
-  setItem: (k, v) => _store.set(String(k), String(v)),
-  removeItem: (k) => { _store.delete(String(k)); },
-  clear: () => { _store.clear(); },
-};
+// ── localStorage / sessionStorage 内存桩（成员档案读链惰性访问需要；照 roster.test 同款）──
+function makeStorage(init = {}) {
+  const m = new Map(Object.entries(init).map(([k, v]) => [String(k), String(v)]));
+  return {
+    getItem: (k) => (m.has(String(k)) ? m.get(String(k)) : null),
+    setItem: (k, v) => m.set(String(k), String(v)),
+    removeItem: (k) => { m.delete(String(k)); },
+    clear: () => { m.clear(); },
+    key: (i) => [...m.keys()][i] ?? null,
+    get length() { return m.size; },
+  };
+}
+globalThis.localStorage = makeStorage();
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260923a';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260923a';
-import { isPartyMember } from '../../docs/src/services/roster.js?v=20260923a';
-import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260923a';
+import { createApp } from '../app.js';
+import { seedDatabase } from '../seed.js';
+import { PersonStore } from '../../docs/src/services/person.js?v=20260924a';
+import { isPartyMember } from '../../docs/src/services/roster.js?v=20260924a';
+import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260924a';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/group-view.js?v=20260923a';
+} from '../../docs/src/services/group-view.js?v=20260924a';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260924a';
+
+// ── B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存 ──
+const _app = createApp({ dbPath: ':memory:' });
+await seedDatabase(_app.locals.db);
+const _server = _app.listen(0);
+const _base = `http://127.0.0.1:${_server.address().port}`;
+const _loginRes = await fetch(`${_base}/api/v1/auth/login`, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ personId: 'p13' }),
+});
+assert.equal(_loginRes.status, 200, 'B 类现场：真登录须 200（DISABLE_PASSWORD_CHECK=1 时 personId 直登）');
+const { token: _token } = await _loginRes.json();
+globalThis.sessionStorage = makeStorage({ 'gsm1921-api-token': _token });
+setDataSource('api', { apiBaseUrl: _base, authToken: _token });
+await init();
+
+after(async () => {
+  _server.closeAllConnections?.();
+  await new Promise((r) => _server.close(r));
+});
+
+// 形态断言（**可断言**，不靠旁证）：本文件用例必须跑在 api 形态上
+test('S0 形态：api 形态 + 有会话 token（数据来自服务端，不是本地静态种子）', () => {
+  const mode = getRuntimeMode();
+  assert.equal(mode.source, 'api', `本文件必须在 api 形态下跑（实测 ${JSON.stringify(mode)}）`);
+  assert.equal(mode.hasToken, true, 'api 形态应存在会话 token');
+});
 
 const MEMBERS = PersonStore.getMembers();
 

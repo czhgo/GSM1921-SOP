@@ -4,21 +4,21 @@
 // C⑤（2026-09-10 支书裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain.js?v=20260923a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260923a';
+import { mockDB } from '../../../core/domain.js?v=20260924a';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260924a';
 // C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
 // 复用 services/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/roster.js?v=20260923a';
+import { getRosterStats } from '../../../services/roster.js?v=20260924a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getCommitteeName } from '../../../services/branch.js?v=20260923a';
-import { getPersonName } from '../../../services/person.js?v=20260923a';
+import { getCommitteeName } from '../../../services/branch.js?v=20260924a';
+import { getPersonName } from '../../../services/person.js?v=20260924a';
 // P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/appointment.js?v=20260923a';
+import { listAppointments } from '../../../services/appointment.js?v=20260924a';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（modules/branch-demo-nav.js）：
 // 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260923a';
+import { bindBranchDemoButtons } from '../../../modules/branch-demo-nav.js?v=20260924a';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 
@@ -105,7 +105,7 @@ export async function renderContent(ctx) {
           <div>
             <p class="text-xs text-gray-500 mb-2">近期活动</p>
             <div class="flex flex-wrap gap-2">
-              ${recent.map(a => `<a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
+              ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
             </div>
           </div>` : ''}
           <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">

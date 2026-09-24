@@ -3,7 +3,7 @@
 // 本 tab 只做**入口**（页签体例照既有 *-workspace.js 的 lazy render）：真正的开会链路
 // 在独立页 docs/party-committee-meeting.html（选线上召开 → 提取议程 → 委员表态 → 汇总截止 → 查阅讨论结果）。
 // 不在本 tab 内平铺列表/表格：支委会场次会随年份增长，避免第二套分页口径（见 D-522「入口＝支书台新增会议页」）。
-import { mockDB } from '../../../core/domain.js?v=20260923a';
+import { mockDB } from '../../../core/domain.js?v=20260924a';
 
 /** 支委会场次统计（type='支委会' 或 scenarioId='branch-committee'；线上＝voteConfig.mode==='async'） */
 function countMeetings() {
@@ -31,7 +31,7 @@ export function renderContent() {
           <span>未截止 <strong>${open}</strong></span>
         </div>
         <div class="mt-3">
-          <a href="../party-committee-meeting.html" class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;text-decoration:none;">打开支委会会议页 →</a>
+          <a href="./party-committee-meeting.html" class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;text-decoration:none;">打开支委会会议页 →</a>
         </div>
       </div>
     </div>`;

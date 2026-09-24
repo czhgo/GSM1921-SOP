@@ -9,9 +9,9 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
-} from '../../docs/src/core/work-map.js?v=20260923a';
-import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260923a';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260923a';
+} from '../../docs/src/core/work-map.js?v=20260924a';
+import { sanitizeConfigWorkforce } from '../../docs/src/core/config-clean.js?v=20260924a';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/constants.js?v=20260924a';
 
 let server, base, token;
 
@@ -58,9 +58,14 @@ test('模块目录：14 项（「三会一课」批次 145 拆为 4 个模块）
 });
 
 test('组织型主体＝「类似法人」不是自然人（批次 141）：取值与角色键不重叠、不进 ROLE_KEYS / 身份→页面映射；两模块缺省主责＝支委会', () => {
-  assert.deepEqual(ORG_SUBJECT_IDS, ['branch-committee', 'party-committee']);
+  // 2026-09-23（支书裁定·裁定甲）：新增**第三个**组织型主体 `expanded-committee`（支委扩大会）——
+  //   与 `branch-committee`（支委会）并列、两者都是法人性质；三条硬判据对新项同样成立（下方循环即核）。
+  assert.deepEqual(ORG_SUBJECT_IDS, ['branch-committee', 'party-committee', 'expanded-committee']);
   assert.equal(ORG_SUBJECT_LABELS['branch-committee'], '支委会');
   assert.equal(ORG_SUBJECT_LABELS['party-committee'], '党委'); // 批次 149（election 承担方＝党委）
+  assert.equal(ORG_SUBJECT_LABELS['expanded-committee'], '支委扩大会'); // 2026-09-23 裁定甲
+  assert.equal(isOrgSubject('expanded-committee'), true);
+  assert.equal(isOrgSubject('branch-committee-meeting'), false, '模块 id 不是主体 id（批次 145 拆模块的刻意命名）');
   const keySet = new Set(ROLE_KEYS);
   const pageMaps = Object.values(ROLE_PAGE_MAP);
   for (const id of ORG_SUBJECT_IDS) {

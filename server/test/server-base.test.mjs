@@ -153,6 +153,11 @@ test('未登录上传返回 401', async () => {
 
 // ── ⑤ 快照全量回写（原 snapshot.test.js，2 条；**置末**——它会改 activities）──
 
+/** 集合版本基线（T5 批次 163 起 `/snapshot` **拒收缺版本的集合**：428 ⇒ 直连调用须自带 `_versions`） */
+async function versionsOf(token) {
+  return (await (await fetch(`${base}/api/v1/snapshot/versions`, { headers: { Authorization: `Bearer ${token}` } })).json()).versions;
+}
+
 test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   const tokenRes = await fetch(`${base}/api/v1/auth/login`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -163,16 +168,36 @@ test('snapshot 全量覆盖保存后能读回新增活动', async () => {
   const activities = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
   activities.push({ id: 'act-new', title: '新增测试活动', date: '2026-08-30' });
 
+  // T5（2026-09-23 批次 163）：payload 里出现的集合必须随 `_versions` 带上基线版本，否则整批 428
+  const versions = await versionsOf(token);
   const res = await fetch(`${base}/api/v1/snapshot`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ activities }),
+    body: JSON.stringify({ activities, _versions: { activities: versions.activities || 0 } }),
   });
-  assert.equal(res.status, 204);
+  assert.equal(res.status, 200);
 
   // 原变量名 `after` 遮蔽了 node:test 的 `after`（合并后成陷阱）⇒ 改名，判据不变。
   const afterList = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
   assert.ok(afterList.some(a => a.id === 'act-new'), '快照保存后应能读回新增活动');
+});
+
+test('snapshot 缺集合版本号 ⇒ 整批 428（不再无条件写）', async () => {
+  const { token } = await (await fetch(`${base}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ personId: 'p13' }),
+  })).json();
+  const before = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
+  const res = await fetch(`${base}/api/v1/snapshot`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ activities: [{ id: 'act-forged', title: '缺版本直写' }] }),
+  });
+  assert.equal(res.status, 428, '缺 `_versions` 的集合须被拒（原「无条件写」旁路已封）');
+  const body = await res.json();
+  assert.deepEqual(body.missingVersions, ['activities'], '结构化 body 须点名缺版本的集合');
+  const after = await (await fetch(`${base}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json();
+  assert.deepEqual(after, before, '被拒后库内一字未变');
 });
 
 test('snapshot 未登录返回 401', async () => {

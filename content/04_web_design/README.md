@@ -20,7 +20,7 @@ status: active
 | 子目录 | 内容 | 文件 |
 |--------|------|------|
 | [`design-system/`](design-system/) | 设计系统规范（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) · [COLOR_SYSTEM.md](design-system/COLOR_SYSTEM.md) · [COMPONENT_SPEC.md](design-system/COMPONENT_SPEC.md) · [CLICK_ROUTING.md](design-system/CLICK_ROUTING.md) |
-| [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md) · [DATA_FLOW.md](data/DATA_FLOW.md) |
+| [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） |
 | [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) · [AUTHENTICATION_MODEL.md](deploy/AUTHENTICATION_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
 | [`evolution/`](evolution/) | 演进与校验（架构演进/契约与画布/党委两级治理/设计方法论承接；工程化评估已迁 `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 迁入、2026-09-09 更名「工程化评估与改造行动线」）） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) · [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
@@ -43,9 +43,9 @@ status: active
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
 | [DATA_MODEL.md](data/DATA_MODEL.md) | 数据模型设计：20 类数据模型字段定义 + 写入验证 + 待办/通知派生 + 归档扩展字段 | **唯一权威**——静态数据模型定义（2026-08-24 拆分自原数据架构总文件，路由文件已删） |
-| [DATA_FLOW.md](data/DATA_FLOW.md) | 数据流设计：数据架构总览 + 参与者数据流 + 前端数据流（状态管理/持久化/数据源边界/DataAdapter） | **唯一权威**——动态数据流设计（2026-08-24 拆分自原数据架构总文件，路由文件已删） |
+| [DATA_MODEL.md](data/DATA_MODEL.md) | 数据模型与数据流：§2.x 数据模型（字段表/枚举/表结构）+ §1.x·§3.x·§4.x 数据流（数据架构总览/参与者数据流/前端数据流：状态管理/持久化/数据源边界/DataAdapter） | **唯一权威**——数据模型与数据流（2026-08-24 拆分自原数据架构总文件） |
 
-> 引用指引（原数据架构路由壳并入说明）：查"字段定义/数据结构" → DATA_MODEL.md；查"数据如何产生、流动、聚合 / DataAdapter / 持久化键" → DATA_FLOW.md。
+> 引用指引（原数据架构路由壳并入说明）：查"字段定义/数据结构" → DATA_MODEL.md §2.x；查"数据如何产生、流动、聚合 / DataAdapter / 持久化键" → DATA_MODEL.md §1.x·§3.x·§4.x。
 
 ### 设计系统（design-system/）
 
@@ -78,7 +78,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / DATA_FLOW / SOP_WEBSITE_GUIDE |
+| [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论，2026-09-04 承接自 insights [4] 标签小节） | 论证档案——论证/反论/判例/生效条件在此；规范权威源 = DESIGN_SYSTEM / COMPONENT_SPEC / COLOR_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) | 架构演进（2026-09-03 精简：评估正文压为 §二 历史结论段，保留 §八 工作流块拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | 历史探索与愿景定位（现行方向判断依据 = .ctx/ENGINEERING_ASSESSMENT.md） |
 | [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义） | **唯一权威**——工作流块封装契约（2026-09-03 定稿） |
 | [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，支书 2026-09-03 放行编码） | **唯一权威**——支部工作地图/分工载体设计 |

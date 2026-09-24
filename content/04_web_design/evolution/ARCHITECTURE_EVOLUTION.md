@@ -5,14 +5,14 @@ role: "[工程师]+[AI]"
 created: 2026-08-22
 last_updated: "2026-09-05"
 status: active
-related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
+related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../03_doc_system/ARCHITECTURE.md, ../../05_ai_coding/README.md]
 ---
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
-> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型权威源）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（工程化评估与改造行动线——评估结论的现行承接）。
+> **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（工程化评估与改造行动线——评估结论的现行承接）。
 
 ---
 
@@ -37,7 +37,7 @@ related_files: [DATA_MODEL.md, DATA_FLOW.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GU
 - **演进路径 M1~M8 已全部落地（2026-08-22 → 2026-08-30）**：M1 注册表骨架（register/get/mount 三原语 + 活动日历首例）→ M2 工作台 tab 收敛（组长工作台样板先行）→ M3 数据源与工作流场景注册化（6 工作台全薄壳化）→ M4 迭代机制落地（unregister/resolveDeps、版本统一 20260823b）→ M5 入口/HTML 瘦身（公共脚本抽取 + main-entry 拆分）→ M6 组件能力化（components.js 注册层）→ M7 环境/角色开关消费点启用 → M8 代码减负（todo-tab/workspace-shell 抽壳、死代码清理，**净减 ~930 行**）。
 - **支书铁律（2026-08-30，M8）**：「模块化只见代码增多，少见代码减少」——每个 M 阶段必须伴随净代码减负或持平，禁止纯横向拆分堆叠（防屎山代码）。
 - **迭代机制设计（一句话结论）**：功能开关 = 能力清单按环境/角色过滤（`getCapabilities({ scope, role, env })`）；版本化 = 注册表整体版本替代各处 `?v=` 手改；灰度与回滚 = 能力按 scope 分批开放、问题能力单独注销即回滚。
-- **与既有文档的关系（原 §七，维持不变）**：DATA_MODEL/DATA_FLOW（注册化不动数据模型）、SOP_WEBSITE_GUIDE（场景注册化是 SOP-系统联动方法论的延伸）、DEPLOYMENT_GUIDE（M3/M4 依赖后端/小程序路径的环境配置）、ARCHITECTURE.md（注册表落地后回写为其中一节）。
+- **与既有文档的关系（原 §七，维持不变）**：DATA_MODEL（注册化不动数据模型）、SOP_WEBSITE_GUIDE（场景注册化是 SOP-系统联动方法论的延伸）、DEPLOYMENT_GUIDE（M3/M4 依赖后端/小程序路径的环境配置）、ARCHITECTURE.md（注册表落地后回写为其中一节）。
 
 ---
 

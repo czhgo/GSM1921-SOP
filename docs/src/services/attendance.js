@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260923a';
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
-import { generateId } from '../core/id.js?v=20260923a';
-import { bumpToken } from '../core/version-token.js?v=20260923a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260923a';
-import { isInitStateActive } from './init-reset.js?v=20260923a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260923a';
-import { getRosterStats } from './roster.js?v=20260923a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260923a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../core/domain.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
+import { persist } from '../core/data-adapter.js?v=20260924a';
+import { generateId } from '../core/id.js?v=20260924a';
+import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../mock/index.js?v=20260924a';
+import { isInitStateActive } from './init-reset.js?v=20260924a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from './person.js?v=20260924a';
+import { getRosterStats } from './roster.js?v=20260924a';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260924a';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -685,3 +685,32 @@ export function listGroupMeetingAttendance(records) {
   }
   return view.sort((x, y) => (y.date || '').localeCompare(x.date || ''));
 }
+
+/**
+ * 考勤「本位」判据（2026-09-23 支书 nudge 裁定 · 单一源）——「这一步**一般由谁**上传」。
+ * 与 `canUploadAttendance`（**谁有权**）是两件事：权限面还含**例外承担**（支书 / 副支书有权代上传）、
+ * 「本组组长」这一上传位；本函数只答**本位**，供「越俎代庖」nudge 判「操作人是不是本位」。
+ * 口径（按支书 2026-09-21 批次 132 当日口径 · `D-558`，修正「会议考勤一律组织者」）：
+ *   **支委会＝不考勤**（任何人无本位）· **党课 / 支部党员大会＝纪检委员**
+ *   （表内角色键**剔除**「例外承担」的支书 / 副支书 ⇒ 本位唯一为纪检委员）·
+ *   **党小组会 / 组织生活会 / 主题党日 / 其余活动＝该场活动的组织者**（判据同 `canUploadAttendance` 末段）。
+ * @param {string} personId 操作人
+ * @param {string} activityId 目标活动
+ * @returns {boolean} 操作人是否处在本步的本位
+ */
+export function isAttendanceHomePosition(personId, activityId) {
+  if (!personId || !activityId) return false;
+  const activity = loadActivities().find(a => a.id === activityId);
+  if (!activity) return false;
+  // 支委会（不考勤的会议类型）：不设考勤 ⇒ 无本位（同 canUploadAttendance 首段判据）
+  if (POLICY_DEFAULTS.attendance.noAttendanceTypes.includes(activity.type)) return false;
+  // 党小组会＝该场会议的组织者（与 canUploadAttendance 的「本组上传位」分开：本组组长非组织者＝监督位）
+  if (activity.type === '党小组会') return isActivityOrganizer(personId, activityId);
+  // 「非组织者位」的会议类型（党课 / 支部党员大会）：本位＝表内角色键 − 例外承担
+  const exceptions = POLICY_DEFAULTS.attendance.uploaderExceptions.secretaryDeputy;
+  const homeRoles = (ATTENDANCE_RECORDER_BY_TYPE[activity.type] || []).filter(r => !exceptions.includes(r));
+  if (homeRoles.length > 0) return homeRoles.includes((getPersonById(personId) || {}).role);
+  // 组织者位活动（组织生活会 / 主题党日 / 其余）——判据单一源 = services/activity.js::isActivityOrganizer
+  return isActivityOrganizer(personId, activityId);
+}
+

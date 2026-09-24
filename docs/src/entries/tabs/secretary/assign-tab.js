@@ -2,25 +2,28 @@
 // entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260923a';
-import { AuthStore } from '../../../services/auth.js?v=20260923a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260923a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260924a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { liveMembers, PersonStore } from '../../../services/person.js?v=20260924a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260923a';
+import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/party-group.js?v=20260923a';
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260923a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260923a';
-import { ROLE_LABELS } from '../../../core/constants.js?v=20260923a';
+import { groupOptions } from '../../../services/party-group.js?v=20260924a';
+import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260924a';
+import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
+import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/constants.js?v=20260924a';
+// 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/appointment.js
+//（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/constants.js）
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/appointment.js?v=20260924a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260923a';
-import { loadActivities } from '../../../services/activity.js?v=20260923a';
-import { badgeHtml } from '../../../components/badges.js?v=20260923a';
-import { TodoStore } from '../../../services/todo.js?v=20260923a';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260924a';
+import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { badgeHtml } from '../../../components/badges.js?v=20260924a';
+import { TodoStore } from '../../../services/todo.js?v=20260924a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260923a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -28,10 +31,21 @@ function _accentHex() {
   return getAppliedAccentColors('secretary').accent;
 }
 
+// 2026-09-23（支书裁定·裁定乙，逐字）：「赋权主要是3个情景，一是赋权给党小组组长/支委（也就是最初的
+//   人员配置只有党委给支书配置，剩下的身份由书记来配置）；二是活动（支书/党小组组长）做项目赋权；
+//   三是专班（支书/组织委员）做专班赋权」⇒ tab 内分三块（**tab 名与 tab 本身不变**），
+//   逐块标注「本位是谁 / 支书为何可介入」（赋权按角色分工分散到对应入口、不集中在单一页面 —— 但支书
+//   在三个情景里都有份，故支书台保留三块统一入口）。
 const ASSIGN_TAB_HTML = `
   <div class="card rounded-xl p-6 mb-6">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">常设赋权</h3>
-    <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯</p>
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景① 常设赋权（党小组组长 / 支委身份）</h3>
+    <p class="text-xs text-gray-500 mb-1"><strong>本位＝支书 / 副支书</strong>（副书同权）——最初只有党委给支书配置，其余身份由支书 / 副支书配置。</p>
+    <p class="text-xs text-gray-500 mb-3">设党小组组长——角色指派靠口头/群聊，系统内设+记录可追溯。</p>
+    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4 mb-4">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
+      <p class="text-xs text-gray-500 mb-3"><strong>本位＝支书 / 副支书</strong>（副书同权）：选本支部在册成员 → 选身份 → 保存，可改派、可撤销。支书本人与副支书的身份由<strong>党委</strong>配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</p>
+      <div id="bc-assign-area"></div>
+    </div>
     <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
     <div id="assign-area"></div>
     <div class="border-t border-gray-100 mt-6 pt-4">
@@ -39,10 +53,15 @@ const ASSIGN_TAB_HTML = `
       <div id="assign-leaders-list"></div>
     </div>
   </div>
-  <div class="card rounded-xl p-6">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">项目赋权</h3>
-    <p class="text-xs text-gray-500 mb-4">为同志赋权项目角色（组织者/深度参与者），赋权后该同志在对应活动/专班中拥有相应权限。</p>
+  <div class="card rounded-xl p-6 mb-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景② 活动项目赋权（组织者 / 深度参与者）</h3>
+    <p class="text-xs text-gray-500 mb-4"><strong>本位＝党小组组长</strong>（办活动⇒党小组承办，活动赋权由本组组长做）。<strong>支书为何可介入</strong>：支书在三个情景里都有份——此处是支书台的活动赋权统一入口（给同志赋权项目角色，赋权后该同志在该场活动中拥有相应权限）。</p>
     <div id="project-auth-panel"></div>
+  </div>
+  <div class="card rounded-xl p-6">
+    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景③ 专班赋权（组织者 / 深度参与者）</h3>
+    <p class="text-xs text-gray-500 mb-4"><strong>本位＝组织委员</strong>（专班的招募统筹归组织委员收口）。<strong>支书为何可介入</strong>：同上——支书台保留专班赋权统一入口（赋权后该同志在该专班中拥有相应权限）。</p>
+    <div id="tf-auth-panel"></div>
   </div>
 `;
 
@@ -60,7 +79,8 @@ export function renderContent() {
     renderProjectAuthPanel();
   }
   renderAssignLeaders();
-  renderProjectAuthRecords();
+  renderCommissionerAssign();
+  PROJECT_AUTH_BLOCKS.forEach(renderProjectAuthRecords);
 }
 
 /** 渲染当前党小组组长列表（数字一致性审计 2026-08-07：主源 = PEOPLE 预设 + 审计快照运行时授予，与 renderAuthRecords 同源） */
@@ -117,102 +137,117 @@ function renderAssignLeaders() {
 }
 
 // ── 项目角色赋权（organizer/deep，2026-08-02 自 members.html 迁入支书工作台） ──
-/** 项目赋权 PersonPicker 实例（选人规范 §2.2：选择具体人一律用 PersonPicker，可搜索） */
-let _projectAuthPicker = null;
+// 2026-09-23（裁定乙）：按「情景② 活动 / 情景③ 专班」**分两块**——两者本位不同（活动＝党小组组长、
+//   专班＝组织委员），故各配一套表单；同一套写法由 `_renderAuthBlock(cfg)` 承载（不复制两遍模板）。
+//   选人规范 §2.2：被赋权人选择用 PersonPicker（姓名/学号搜索）。
+const PROJECT_ROLES = ['organizer', 'deep'];
 
-/** 渲染项目赋权表单（首次进入 tab 时构建，避免全局刷新丢失输入） */
+/** 两块（情景② / 情景③）的钩子 id 与数据源；`key==='activity'` 沿用既有 id（外部深链/台账按它取） */
+const PROJECT_AUTH_BLOCKS = [
+  {
+    key: 'activity', label: '活动',
+    panelId: 'project-auth-panel',
+    pickerId: 'project-auth-picker-container',
+    selectId: 'project-id-select',
+    roleName: 'project-role',
+    btnId: 'confirm-project-auth-btn',
+    recordsId: 'project-auth-records-list',
+    recordsStateKey: 'secretary-project-auth-records',
+  },
+  {
+    key: 'taskforce', label: '专班',
+    panelId: 'tf-auth-panel',
+    pickerId: 'tf-auth-picker-container',
+    selectId: 'tf-project-select',
+    roleName: 'tf-role',
+    btnId: 'confirm-tf-auth-btn',
+    recordsId: 'tf-auth-records-list',
+    recordsStateKey: 'secretary-tf-auth-records',
+  },
+];
+
+/** PersonPicker 实例（每块一个；destroy 后重建，避免全局刷新丢失输入） */
+const _authPickers = { activity: null, taskforce: null };
+
+/** 项目下拉选项：活动＝date 降序；专班＝createdAt 降序（T223 新者在前） */
+function _projectOptionsOf(key) {
+  if (key === 'taskforce') {
+    return TaskForceRecordStore.getAll()
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      .map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
+  }
+  return [...loadActivities()]
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
+}
+
+/** 渲染两块项目赋权表单（首次进入 tab 时构建） */
 function renderProjectAuthPanel() {
-  const container = document.getElementById('project-auth-panel');
+  PROJECT_AUTH_BLOCKS.forEach(_renderAuthBlock);
+}
+
+function _renderAuthBlock(cfg) {
+  const container = document.getElementById(cfg.panelId);
   if (!container) return;
 
-  const projectRoles = ['organizer', 'deep'];
-  // 候选被赋权人：排除支委（支委为常设角色，无需被赋权项目角色）
-
   container.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择被赋权人</label>
-        <div id="project-auth-picker-container"></div>
+        <div id="${cfg.pickerId}"></div>
       </div>
       <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-type-select">选择项目类型</label>
-        <select id="project-type-select" class="input-flat w-full">
-          <option value="activity">活动</option>
-          <option value="taskforce">专班</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="project-id-select">选择项目</label>
-        <select id="project-id-select" class="input-flat w-full">
-          ${[...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('')}
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium" for="${cfg.selectId}">选择${cfg.label}项目</label>
+        <select id="${cfg.selectId}" class="input-flat w-full">
+          ${_projectOptionsOf(cfg.key)}
         </select>
       </div>
       <div>
         <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择角色</label>
         <div class="flex gap-3 pt-1">
-          ${projectRoles.map(r => `
+          ${PROJECT_ROLES.map(r => `
             <label class="flex items-center gap-2 text-xs">
-              <input type="radio" name="project-role" value="${r}" class="radio-accent">
+              <input type="radio" name="${cfg.roleName}" value="${r}" class="radio-accent">
               <span>${ROLE_LABELS[r] || r}</span>
             </label>
           `).join('')}
         </div>
       </div>
     </div>
-    <button id="confirm-project-auth-btn" type="button" class="btn-accent text-sm px-4 py-[7px]">
+    <button id="${cfg.btnId}" type="button" class="btn-accent text-sm px-4 py-[7px]">
       确认赋权
     </button>
     <div class="mt-6">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2">已赋权记录</h4>
-      <div id="project-auth-records-list"></div>
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2">已赋权记录（本块＝${cfg.label}）</h4>
+      <div id="${cfg.recordsId}"></div>
     </div>
   `;
 
   // 选人规范 §2.2：被赋权人选择用 PersonPicker（姓名/学号搜索），替换原 select 罗列人名
-  _projectAuthPicker?.destroy();
-  const pickerContainer = document.getElementById('project-auth-picker-container');
-  _projectAuthPicker = new PersonPicker({
+  // 候选被赋权人：排除支委（支委为常设角色，无需被赋权项目角色）
+  _authPickers[cfg.key]?.destroy();
+  _authPickers[cfg.key] = new PersonPicker({
     mode: 'single',
     placeholder: '搜索姓名或学号选择被赋权人',
     filter: p => !AuthStore.isCommissioner(p.role),
     accentColor: _accentHex(),
     onSelect: () => {},
   });
-  _projectAuthPicker.render(pickerContainer);
+  _authPickers[cfg.key].render(document.getElementById(cfg.pickerId));
 
-  bindProjectTypeSwitch();
-  bindConfirmProjectAuth();
-  renderProjectAuthRecords();
+  bindConfirmProjectAuth(cfg);
+  renderProjectAuthRecords(cfg);
 }
 
-/** 项目类型切换：活动/专班联动项目下拉 */
-function bindProjectTypeSwitch() {
-  const typeSelect = document.getElementById('project-type-select');
-  const idSelect = document.getElementById('project-id-select');
-  if (!typeSelect || !idSelect) return;
-
-  typeSelect.addEventListener('change', () => {
-    const type = typeSelect.value;
-    if (type === 'activity') {
-      idSelect.innerHTML = [...loadActivities()].sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
-    } else {
-      // T223 专班新者在前（createdAt 降序）
-      idSelect.innerHTML = TaskForceRecordStore.getAll()
-        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-        .map(tf => `<option value="${tf.id}" data-type="taskforce">${tf.name}</option>`).join('');
-    }
-  });
-}
-
-/** 确认项目赋权（organizer/deep） */
-function bindConfirmProjectAuth() {
-  const btn = document.getElementById('confirm-project-auth-btn');
+/** 确认项目赋权（organizer/deep）——两块共用同一套写法，仅钩子与项目源不同 */
+function bindConfirmProjectAuth(cfg) {
+  const btn = document.getElementById(cfg.btnId);
   if (!btn) return;
 
   btn.addEventListener('click', async () => {
-    const personId = (_projectAuthPicker?.getSelected() || [])[0] || '';
-    const projectId = document.getElementById('project-id-select')?.value;
-    const role = document.querySelector('input[name="project-role"]:checked')?.value;
+    const personId = (_authPickers[cfg.key]?.getSelected() || [])[0] || '';
+    const projectId = document.getElementById(cfg.selectId)?.value;
+    const role = document.querySelector(`input[name="${cfg.roleName}"]:checked`)?.value;
 
     if (!personId) { showToast('error', '请选择被赋权人'); return; }
     if (!projectId) { showToast('error', '请选择项目'); return; }
@@ -227,7 +262,7 @@ function bindConfirmProjectAuth() {
 
     if (result.ok) {
       showToast('success', '项目角色赋权成功');
-      renderProjectAuthRecords();
+      renderProjectAuthRecords(cfg);
     } else if (result.id) {
       showToast('warn', '该同志在此项目已有相同角色赋权');
     } else {
@@ -236,18 +271,20 @@ function bindConfirmProjectAuth() {
   });
 }
 
-/** 渲染项目角色赋权记录（organizer/deep + 撤销） */
-function renderProjectAuthRecords() {
-  const listEl = document.getElementById('project-auth-records-list');
+/** 渲染本块项目角色赋权记录（organizer/deep + 撤销）；按 scopeRef 归属活动 / 专班分流 */
+function renderProjectAuthRecords(cfg) {
+  const listEl = document.getElementById(cfg.recordsId);
   if (!listEl) return;
 
-  const records = AuthStore.getAuthorizations().filter(r =>
-    ['organizer', 'deep'].includes(r.role) && r.scopeRef
-  );
+  const tfById = new Map(TaskForceRecordStore.getAll().map(t => [t.id, t]));
+  const records = AuthStore.getAuthorizations().filter(r => {
+    if (!['organizer', 'deep'].includes(r.role) || !r.scopeRef) return false;
+    return cfg.key === 'taskforce' ? tfById.has(r.scopeRef) : !tfById.has(r.scopeRef);
+  });
 
   // 统一检索引擎（按人：被赋权人姓名；≤8 行引擎自动不渲染检索条）
   const rows = records.map(r => {
-    const project = loadActivities().find(a => a.id === r.scopeRef) || TaskForceRecordStore.getAll().find(t => t.id === r.scopeRef);
+    const project = loadActivities().find(a => a.id === r.scopeRef) || tfById.get(r.scopeRef);
     return {
       ...r,
       name: getPersonName(r.targetPersonId) || r.targetPersonId,
@@ -257,13 +294,13 @@ function renderProjectAuthRecords() {
     };
   });
   renderFilteredList(listEl, {
-    stateKey: 'secretary-project-auth-records',
+    stateKey: cfg.recordsStateKey,
     rows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     countUnit: '人',
     listClass: 'space-y-0',
-    emptyMessage: '暂无项目角色赋权记录',
+    emptyMessage: `暂无${cfg.label}项目角色赋权记录`,
     rowHtml: (r) => `
       <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50">
         <div>
@@ -285,7 +322,7 @@ function renderProjectAuthRecords() {
       if (!btn) return;
       if (await AuthStore.revokeAuthorization(btn.dataset.recordId)) {
         showToast('success', '已撤销赋权');
-        renderProjectAuthRecords();
+        renderProjectAuthRecords(cfg);
       }
     });
   }
@@ -531,6 +568,131 @@ function renderAuthRecords() {
         renderAuthRecords();
       } else {
         showToast('error', '撤销失败');
+      }
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  情景① · 支委身份配置（2026-09-23 支书裁定：「最初只有党委给支书配置，其余身份由支书配置」；副书同权）
+//  · 写口单一源＝services/appointment.js（appointBranchCommissioner / revokeBranchCommissioner /
+//    listBranchCommissioners）——本处只渲染表单与清单，**不直接改 mockDB**；
+//  · 可授予身份白名单单一源＝core/constants.js::BRANCH_COMMISSIONER_ASSIGNABLE_ROLES（组织 / 宣传 / 纪检委员）；
+//    支书本人与副支书的身份归党委（`D-585`）⇒ 既不进白名单、也不进候选人名单。
+// ════════════════════════════════════════════════════════════════
+
+/** 本支部 id（登录人归属；缺省 br-b1，与全仓同口径） */
+function _myBranchId() {
+  const me = getPersonById(AuthStore.getCurrentUser()?.personId);
+  return (me && me.branchId) || 'br-b1';
+}
+
+/** 支委身份配置的 PersonPicker 实例与当前选中人（重渲染时 destroy 后重建，避免全局刷新丢输入） */
+let _bcPicker = null;
+let _bcSelectedPersonId = null;
+
+/** 渲染支委身份配置块（表单 + 本支部现任支委身份清单） */
+function renderCommissionerAssign() {
+  const host = document.getElementById('bc-assign-area');
+  if (!host) return;
+  const bid = _myBranchId();
+  host.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">选择本支部在册成员 <span class="text-red-600">*</span></label>
+        <div id="bc-picker-slot"></div>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 mb-1.5 block font-medium">要授予的支委身份 <span class="text-red-600">*</span></label>
+        <div class="flex gap-3 pt-1 flex-wrap">
+          ${BRANCH_COMMISSIONER_ASSIGNABLE_ROLES.map((r) => `
+            <label class="flex items-center gap-2 text-xs">
+              <input type="radio" name="bc-role" value="${r}" class="radio-accent">
+              <span>${ROLE_LABELS[r] || r}</span>
+            </label>`).join('')}
+        </div>
+        <p class="text-[11px] text-gray-500 mt-1">支书 / 副支书身份由党委配置，不在本表</p>
+      </div>
+    </div>
+    <button id="bc-assign-confirm" type="button" class="btn-accent text-sm px-4 py-[7px]">确认授予 / 改派</button>
+    <div class="border-t border-gray-100 mt-5 pt-4">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-2">当前支委身份（本支部）</h4>
+      <div id="bc-assign-list"></div>
+    </div>
+  `;
+
+  // 候选＝本支部在册成员；排除支书 / 副支书（一把手层身份由党委配置，不在此处改）
+  _bcPicker?.destroy();
+  _bcPicker = new PersonPicker({
+    mode: 'single',
+    placeholder: '搜索姓名或学号选择同志',
+    filter: (p) => (p.branchId || 'br-b1') === bid && p.role !== 'secretary' && p.role !== 'deputy-secretary',
+    accentColor: _accentHex(),
+    onSelect: (ids) => { _bcSelectedPersonId = ids[0] || null; },
+  });
+  if (_bcSelectedPersonId) _bcPicker.setSelected([_bcSelectedPersonId]);
+  _bcPicker.render(document.getElementById('bc-picker-slot'));
+
+  document.getElementById('bc-assign-confirm')?.addEventListener('click', async () => {
+    const personId = (_bcPicker?.getSelected() || [])[0] || '';
+    const role = document.querySelector('input[name="bc-role"]:checked')?.value || '';
+    if (!personId) { showToast('error', '请选择本支部在册成员'); return; }
+    if (!role) { showToast('error', '请选择要授予的支委身份'); return; }
+    const res = await appointBranchCommissioner({ branchId: bid, personId, role });
+    if (!res || !res.ok) { showToast('error', `配置失败：${(res && res.reason) || '未知原因'}`); return; }
+    showToast('success', `已将 ${getPersonName(personId)} 配置为${ROLE_LABELS[role] || role}（可改派 / 可撤销）`);
+    _bcSelectedPersonId = null;
+    renderCommissionerAssign();
+  });
+
+  renderCommissionerList(bid);
+}
+
+/** 渲染本支部现任支委身份清单（现值单一源＝成员档案 role；撤销经写口服务层） */
+function renderCommissionerList(bid) {
+  const listEl = document.getElementById('bc-assign-list');
+  if (!listEl) return;
+  const rows = listBranchCommissioners(bid).map((r) => {
+    const name = r.name || getPersonName(r.personId);
+    return { ...r, name, _roleLabel: r.roleLabel, _since: r.record ? (r.record.authorizedAt || '') : '' };
+  });
+  renderFilteredList(listEl, {
+    stateKey: 'secretary-assign-commissioners',
+    rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    countUnit: '人',
+    listClass: 'space-y-1',
+    emptyMessage: '本支部暂无组织 / 宣传 / 纪检委员记录',
+    rowHtml: (r) => `
+      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${esc(r.name).charAt(0)}</div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.name)}</a>
+              ${badgeHtml(r._roleLabel, 'danger')}
+            </div>
+            <p class="text-xs text-gray-500 mt-0.5">本支部现任${esc(r._roleLabel)}${r._since ? ' · 赋权于 ' + esc(r._since) : ''}</p>
+          </div>
+        </div>
+        <button type="button" class="bc-revoke text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50" data-person-id="${esc(r.personId)}" data-role="${esc(r.role)}">撤销</button>
+      </div>
+    `,
+  });
+
+  // 撤销事件委托（引擎筛选重渲染后仍可点）；dataset 守卫防重复绑定
+  if (!listEl.dataset.revokeBound) {
+    listEl.dataset.revokeBound = '1';
+    listEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.bc-revoke');
+      if (!btn) return;
+      const res = await revokeBranchCommissioner({ branchId: _myBranchId(), personId: btn.dataset.personId, role: btn.dataset.role });
+      if (res && res.ok) {
+        showToast('success', '已撤销该支委身份（回落普通参与者）');
+        renderCommissionerAssign();
+      } else {
+        showToast('error', `撤销失败：${(res && res.reason) || '未知原因'}`);
       }
     });
   }

@@ -5,13 +5,13 @@ role: "[工程师]+[AI]"
 created: 2026-09-04
 last_updated: "2026-09-05"
 status: active
-related_files: [../design-system/DESIGN_SYSTEM.md, ../design-system/COLOR_SYSTEM.md, ../design-system/COMPONENT_SPEC.md, ../data/DATA_MODEL.md, ../data/DATA_FLOW.md, ../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
+related_files: [../design-system/DESIGN_SYSTEM.md, ../design-system/COLOR_SYSTEM.md, ../design-system/COMPONENT_SPEC.md, ../data/DATA_MODEL.md, ../../05_ai_coding/REVIEW_AND_EXPRESSION.md]
 ---
 
 # 设计理念与方法论承接（设计论证与方法档案）
 
 > **2026-09-04 承接**：原 content/insights/工程演进与设计方法论.md [4] 标签小节分流至此（支书裁决：04=纯系统设计）；本文档承接通用设计方法论与设计判例，供工程师与 AI 设计决策时阅读。
-> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/动效/排版）、[COLOR_SYSTEM.md](../design-system/COLOR_SYSTEM.md)（色彩）、[COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)（组件）、[DATA_MODEL.md](../data/DATA_MODEL.md)（静态数据模型）、[DATA_FLOW.md](../data/DATA_FLOW.md)（动态数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
+> **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/动效/排版）、[COLOR_SYSTEM.md](../design-system/COLOR_SYSTEM.md)（色彩）、[COMPONENT_SPEC.md](../design-system/COMPONENT_SPEC.md)（组件）、[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
 > **出处注记**：每小节保留「（原 insights §N）」出处；源文件（content/insights/工程演进与设计方法论.md）已于 2026-09-04 清理，历史交叉引用由 insights 承接声明（content/insights/README.md）兜底。
 
 ---

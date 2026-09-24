@@ -1,49 +1,38 @@
 // role: [工程师]+[AI]
 // archive-entry.js — 归档库独立入口
 // 2026-07-30: Tab 分类（活动/专班/通知），替代原单一列表
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { getPersonById } from '../services/person.js?v=20260923a';
-import { loadActivities } from '../services/activity.js?v=20260923a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260923a';
-import { getActivityTypeColors } from '../core/constants.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { getPersonById } from '../services/person.js?v=20260924a';
+import { loadActivities } from '../services/activity.js?v=20260924a';
+import { TaskForceRecordStore } from '../services/taskforce.js?v=20260924a';
+import { getActivityTypeColors } from '../core/constants.js?v=20260924a';
 // 活动「已结束」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived
-import { isActivityEnded } from '../core/constants.js?v=20260923a';
-import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260923a';
-import { getBasePath } from '../core/utils.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
-import { badgeHtml } from '../components/badges.js?v=20260923a';
+import { isActivityEnded } from '../core/constants.js?v=20260924a';
+import { NoticeStore, resolveNoticeUrl } from '../services/notice.js?v=20260924a';
+import { getBasePath } from '../core/utils.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../components/pager.js?v=20260923a';
+import { pagerHtml } from '../components/pager.js?v=20260924a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下归档库读的是本地备份，
 // 服务端已归档的活动 / 专班 / 通知看不到。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
 
 renderSidebar('archive');
 renderHeader('archive');
 
-/** 数据 hydrate（批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+/** 数据 hydrate（批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。
+ *  P0-2（2026-09-23 支书裁定「不许静默降级」）：判定收敛到 core/data-adapter.js::hydrateDataSource
+ *  ——有 token 时 init() 失败即**显式失败**（「无法连接服务器」错误态 + 重试），不再回退可写 mock（静默丢单）。 */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[archive-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染（本页不再继续渲染业务内容）
   } catch (e) {
     console.warn('[archive-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {

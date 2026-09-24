@@ -38,10 +38,10 @@ version: "4.1"
 
 ---
 
-## B. 系统架构设计（权威见 ARCHITECTURE / DATA_MODEL / DATA_FLOW / AUTHENTICATION_MODEL）
+## B. 系统架构设计（权威见 ARCHITECTURE / DATA_MODEL / AUTHENTICATION_MODEL）
 
 > **2026-09-03 收敛**：本节原 B.1~B.6 展开（MPA 页面结构 / canDo() 权限判定 / 支委看板路由与细则 / 日历范围限定 / 赋权链 / 数据模型全家福）均已由权威源表达，不再在本指南重复：
-> - 页面/组件/服务分层、`AuthStore.canDo()` 权限判定、`AUTHORIZE_CHAIN`、数据模型 → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（静态模型权威）+ [DATA_FLOW.md](../data/DATA_FLOW.md)（动态数据流权威）
+> - 页面/组件/服务分层、`AuthStore.canDo()` 权限判定、`AUTHORIZE_CHAIN`、数据模型 → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（数据权威：§2.x 静态模型 / §1.x·§3.x·§4.x 动态数据流）
 > - 角色权限矩阵 / 写入门禁 / 赋权链 → [系统角色权限矩阵](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md，权限矩阵唯一权威）+ [COMMISSIONER_DUTY_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（逐操作位视图）
 > - 部署形态 / 登录态 / 门控 → [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)
 > 以下仅保留本指南独有的决策摘要与历史注记。
@@ -134,9 +134,9 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-## E. 数据映射规则（权威见 DATA_MODEL / DATA_FLOW / ARCHITECTURE）
+## E. 数据映射规则（权威见 DATA_MODEL / ARCHITECTURE）
 
-> **2026-09-03 收敛**：原 E.1（数据源架构：页面 → 入口 JS → mock/api + localStorage 键）与 E.2（跨页面状态管理）已由权威源承接——页面/入口/数据源对应见 [DATA_FLOW.md](../data/DATA_FLOW.md)（§4.4 DataAdapter 与持久化键）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（字段与键）；MPA 分层见 [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)。以下保留本指南独有的 **SOP-系统同步边界**（改 SOP 时的成本与雷区判断，SOP 维护必读）。
+> **2026-09-03 收敛**：原 E.1（数据源架构：页面 → 入口 JS → mock/api + localStorage 键）与 E.2（跨页面状态管理）已由权威源承接——页面/入口/数据源对应见 [DATA_MODEL.md](../data/DATA_MODEL.md)（§4.4 DataAdapter 与持久化键；字段与键见 §2.x），MPA 分层见 [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)。以下保留本指南独有的 **SOP-系统同步边界**（改 SOP 时的成本与雷区判断，SOP 维护必读）。
 
 ### E.3 同步安全区（低成本变更）
 
@@ -160,9 +160,9 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-## G. Mock 数据 vs 真实鉴权（权威见 AUTHENTICATION_MODEL / DATA_FLOW）
+## G. Mock 数据 vs 真实鉴权（权威见 AUTHENTICATION_MODEL / DATA_MODEL）
 
-> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4（mock/api 数据源）；权限判定体系权威见 [系统角色权限矩阵 §9b/§9e](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
+> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_MODEL.md §4.4](../data/DATA_MODEL.md)（mock/api 数据源）；权限判定体系权威见 [系统角色权限矩阵 §9b/§9e](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
 
 ### G.3 不变的设计原则
 
@@ -181,4 +181,4 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / DATA_FLOW / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、支委看板体系、日历限定、赋权链全量重写、系列活动模型。*
+*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、支委看板体系、日历限定、赋权链全量重写、系列活动模型。*

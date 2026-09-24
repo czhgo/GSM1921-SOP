@@ -20,38 +20,38 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260923a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260923a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260923a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260924a';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260924a';
+import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260924a';
 import {
   POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
-} from '../../docs/src/core/policy-defaults.js?v=20260923a';
+} from '../../docs/src/core/policy-defaults.js?v=20260924a';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity.js
 import {
   pendingApprovalPatchOnWrite, canApproveActivity, PENDING_APPROVAL_STATUS,
   // ⑨ 批次 151（启用端：待批可见性 / 支委会档复用线上表决）
   activityApprovalVoteOf, openCommitteeVoteForActivity, applyActivityApprovalResult,
-} from '../../docs/src/services/activity.js?v=20260923a';
+} from '../../docs/src/services/activity.js?v=20260924a';
 // ⑨ 待批可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）
 import {
   canSeePendingApprovalActivities, isActivityVisibleTo, filterActivitiesForViewer,
-} from '../../docs/src/services/visibility.js?v=20260923a';
+} from '../../docs/src/services/visibility.js?v=20260924a';
 // 批次 47-F 第二组并入：消费点导出面（原 policy-defaults-sync.test.mjs 的导入）
-import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260923a';
-import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260923a';
-import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260923a';
+import { MEETING_ATTENDANCE_TYPES } from '../../docs/src/services/attendance.js?v=20260924a';
+import { WORKFORCE_VOTE_DEFAULT } from '../../docs/src/services/workforce.js?v=20260924a';
+import { getOverdueRecords } from '../../docs/src/services/inspection.js?v=20260924a';
 import {
   sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides,
-} from '../../docs/src/core/config-clean.js?v=20260923a';
+} from '../../docs/src/core/config-clean.js?v=20260924a';
 import {
   savePolicyOverrides, canManagePolicyOverrides, getBranchById,
-} from '../../docs/src/services/branch.js?v=20260923a';
+} from '../../docs/src/services/branch.js?v=20260924a';
 import {
   semesterDetainedWindowsLabel,
-} from '../../docs/src/services/member-confirmation.js?v=20260923a';
+} from '../../docs/src/services/member-confirmation.js?v=20260924a';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
-} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260923a';
+} from '../../docs/src/entries/tabs/today/today-tab.js?v=20260924a';
 // HTTP 域（PATCH /branches/:id/config policyOverrides 写口与 server 同源校验）
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -544,6 +544,14 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(body),
   });
   const listAll = async (token) => (await (await fetch(`${_httpBase}/api/v1/activities`, { headers: { Authorization: `Bearer ${token}` } })).json());
+  // T5（2026-09-23 批次 163）：`/snapshot` 拒收**缺集合版本号**的集合（整批 428）⇒ 直连调用须自带 `_versions`
+  // （基线取自 GET /api/v1/snapshot/versions；集合在 payload 里出现就必须有版本）
+  const versioned = async (token, payload) => {
+    const v = (await (await fetch(`${_httpBase}/api/v1/snapshot/versions`, { headers: { Authorization: `Bearer ${token}` } })).json()).versions;
+    const _versions = {};
+    for (const k of Object.keys(payload)) _versions[k] = v[k] || 0;
+    return { ...payload, _versions };
+  };
   const setMode = (token, mode) => _patchConfig(token, { config: { policyOverrides: mode ? { activityApproval: { mode } } : null } });
 
   // 开启档（secretary）
@@ -559,21 +567,21 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
   const all = await listAll(sec);
   const forged = all.map((a) => (a.id === created.id ? { ...a, status: 'published', approval: undefined } : a));
   // ①-a 偷改（无批准语义）⇒ 403，且库内该行**未变**（整表写入未落）
-  const r1 = await snapshot(sec, { activities: forged });
+  const r1 = await snapshot(sec, await versioned(sec, { activities: forged }));
   assert.equal(r1.status, 403);
   assert.match((await r1.json()).error, /待批/);
   assert.equal((await listAll(sec)).find((a) => a.id === created.id).status, PENDING_APPROVAL_STATUS, '被拦后库内仍是待批');
   // ①-b 普通成员伪造批准语义 ⇒ 403（角色不符该活动固化档位，不采信行内自述）
-  assert.equal((await snapshot(mem, { activities: forged.map((a) => (a.id === created.id ? { ...a, approval: { required: true, mode: 'secretary', state: 'approved' } } : a)) })).status, 403);
-  // ①-c 未变行（待批照旧待批）⇒ 照旧放行（正常同步不被拦）
-  assert.equal((await snapshot(sec, { activities: all })).status, 204);
-  // ①-d 不含 activities 键的整表写入 ⇒ 照旧放行
+  assert.equal((await snapshot(mem, await versioned(mem, { activities: forged.map((a) => (a.id === created.id ? { ...a, approval: { required: true, mode: 'secretary', state: 'approved' } } : a)) }))).status, 403);
+  // ①-c 未变行（待批照旧待批）⇒ 照旧放行（正常同步不被拦）；带 `_versions` ⇒ 200 + {versions}
+  assert.equal((await snapshot(sec, await versioned(sec, { activities: all }))).status, 200);
+  // ①-d 不含 activities 键的整表写入 ⇒ 照旧放行（无集合要写，也就无版本要求）
   assert.equal((await snapshot(sec, {})).status, 204);
   // ①-e 合法批准（支书 ＋ 批准语义）⇒ 放行且转 published
   const approved = all.map((a) => (a.id === created.id
     ? { ...a, status: 'published', approval: { required: true, mode: 'secretary', state: 'approved', by: 'p13', at: '2026-09-22T03:00:00.000Z' } }
     : a));
-  assert.equal((await snapshot(sec, { activities: approved })).status, 204);
+  assert.equal((await snapshot(sec, await versioned(sec, { activities: approved }))).status, 200);
   assert.equal((await listAll(sec)).find((a) => a.id === created.id).status, 'published');
 
   // 关闭档（默认）⇒ 直建口照旧（原样写入）

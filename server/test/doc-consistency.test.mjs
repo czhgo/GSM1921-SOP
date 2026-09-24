@@ -20,6 +20,7 @@
 //   S10 §0.2 引用的守卫必须登记进 README 测试清单（堵「守卫悄悄缺席」——批 43 的 page-sweep 即长期缺席）
 //   S11 README 里的守卫条目必须指到真实存在的文件与断言号（口径同 S9，覆盖 README）
 //   S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）
+//   S14 可数事实对账（枚举 / 计数类数字，文档声称值 == 代码实然值）＋ S15 弱清单（2026-09-23 批次 161）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -476,3 +477,270 @@ test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated
   assert.deepEqual(problems, [],
     `TIMESTAMPS.md 表行与文件 frontmatter 漂移（口径：**以 frontmatter 为准**，把表行日期改成 frontmatter 的值）：\n  ${problems.join('\n  ')}`);
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S14 / S15（2026-09-23 批次 161）：**可数事实对账**——把文档里出现的「确定数字」与
+//   代码 / 数据的实然值逐条对账。
+//
+// 来源（批次 160 登记的病根）：「拟上会」清单类数**跨两批没被任何人发现**——`ACTIVE_RULINGS`
+//   与队列写「四类」、系统与帮助页是「六类」。病根：那张表的自述判据只有「每行必带 `D-xxx`」
+//   「不得出现决策日志里没有的口径」两条，**「枚举 / 计数类数字」没有任何守卫看着**
+//   ⇒ 它能在两批之间悄悄漂掉。支书第 4 条：「这样的上下文污染一定还存在！！请一定要还
+//   仓库文档天朗气清的上下文环境！」⇒ 本守卫补这一类：**加一道防线，让枚举类数字不再悄悄漂**。
+//
+// 取数原则（批次 160 的教训：同一件事换条正则能数出 4 与 6 两个值）：
+//   · **权威值**一律从代码 / 数据取——能 import 的就 import（取运行时真值）；不能 import 的
+//     按**锚定到具体函数体 / 小节 / 表块**取，**不做全文撒网**；
+//   · **文档声称值**一律从**锚定行**取（标题行 / 指名行 / 表行），一处一句，不做模糊匹配；
+//   · 分两档：**硬判据**（能自动取得权威值 ＋ 能从文本可靠抽出该数）⇒ 直接断言相等；
+//     **弱清单**（取值定义不清、或有正当沿革）⇒ 只登记不判红，但登记也带基线（防
+//     「正则失效 ⇒ 一条都解析不到 ⇒ 断言恒真」，也防口径成批变松）。
+//
+// ⚠ 边界（不假装覆盖）：只核「文档明写了一个数 ↔ 代码实然」这一对；**文档没写数、只列几项**
+//   的地方（角色键列举式说明等）不判——那一半只能靠人读。
+// ─────────────────────────────────────────────────────────────────────────────
+const DECISION_LOG = join(ROOT, '.ctx', 'logs', '2026-09-DECISION_LOG.md');
+const MONTH_INDEX = join(ROOT, '.ctx', 'logs', 'DECISION_LOG.md');
+const RULINGS = join(ROOT, '.ctx', 'ACTIVE_RULINGS.md');
+const QUEUE = join(ROOT, '.ctx', 'REVIEW_QUEUE.md');
+const README_SERVER = join(ROOT, 'README-server.md');
+const AGENDA_FORM = join(SRC, 'entries', 'tabs', 'secretary', 'agenda-form.js');
+const SETTINGS_ENTRY = join(SRC, 'entries', 'settings-entry.js');
+const RESOURCES_ROUTE = join(ROOT, 'server', 'routes', 'resources.js');
+
+/** 取「第一条命中锚点」的那一行；取不到给空串 */
+const lineWith = (text, re) => text.split(/\r?\n/).find((l) => re.test(l)) || '';
+
+/** 取某小节（标题行 → 下一个同级 / 更高级标题之前） */
+function section(text, re) {
+  const lines = text.split(/\r?\n/);
+  const s = lines.findIndex((l) => re.test(l));
+  if (s < 0) return '';
+  const e = lines.findIndex((l, i) => i > s && /^#{1,4} /.test(l));
+  return lines.slice(s, e < 0 ? lines.length : e).join('\n');
+}
+
+/** 只取一个捕获组（不转数字——中文数字交给 cn 转） */
+const m = (line, re, g = 1) => { const x = re.exec(line); return x ? x[g] : null; };
+
+/** 「N」→ 数字（阿拉伯数字直取；中文数字一~十 / 十一~十九） */
+function cn(v) {
+  if (v === null || v === undefined) return null;
+  if (/^\d+$/.test(v)) return Number(v);
+  const t = /^十([一二三四五六七八九])$/.exec(v);
+  if (t) return 10 + CN_NUM[t[1]];
+  return CN_NUM[v] ?? null;
+}
+const CN_NUM = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+
+/** 从「（…· …· …）」式列举里数项数（分隔符＝` · `；取该行第一对全角括号） */
+function enumCount(line) {
+  const a = line.indexOf('（');
+  const b = line.indexOf('）', a + 1);
+  if (a < 0 || b < 0) return null;
+  return line.slice(a + 1, b).split(' · ').filter((s) => s.trim()).length;
+}
+
+test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
+  const problems = [];
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/work-map.js?v=20260924a');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260924a');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/constants.js?v=20260924a');
+  const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
+
+  /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
+  const eq = (fact, where, got, real, hint = '') => {
+    if (got === null) {
+      problems.push(`【${fact}】${where}：数**抽不出来**（锚点或写法变了）——请按实况改准该处写法，或改准判据`);
+      return;
+    }
+    if (got !== real) problems.push(`【${fact}】${where} 写 ${got}，实然 ${real}${hint ? `（${hint}）` : ''}`);
+  };
+  const claude = read(join(ROOT, 'CLAUDE.md'));
+  const rs = read(README_SERVER);
+  const help = read(HELP);
+  const snap = read(SNAPSHOT);
+
+  // ① 支部分工模块数（权威＝`work-map.js` 的 WORK_MAP_MODULES 长度）
+  const modReal = WORK_MAP_MODULES.length;
+  const s35 = section(rs, /^### 3\.5 /);
+  eq('支部分工模块数', 'README-server.md §3.5 标题「共 N 个」', cn(m(lineWith(s35, /^### 3\.5 /), /共\s*([\d一二两三四五六七八九十]+)\s*个/)), modReal);
+  eq('支部分工模块数', 'README-server.md §3.5 正文「下列 N 个模块 id」', cn(m(lineWith(s35, /^> 后端若要写支部配置/), /只能是下列\s*([\d一二两三四五六七八九十]+)\s*个/)), modReal);
+  eq('支部分工模块数', 'README-server.md §3.5 表体行数', (s35.match(/^\| \d+ \| `/gm) || []).length, modReal);
+  eq('支部分工模块数', 'CLAUDE.md R-58「支部工作地图 N 项固定模块目录」', cn(m(lineWith(claude, /支部工作地图/), /支部工作地图 \*\*(\d+) 项\*\*固定模块目录/)), modReal);
+
+  // ② 内置 SOP 场景数（权威＝`sopData.js` 的 scenarios 长度）
+  eq('内置 SOP 场景数', 'README-server.md §4.15「内置场景共 N 个」', cn(m(lineWith(rs, /\*\*内置场景共/), /内置场景共\s*([\d一二两三四五六七八九十]+)\s*个/)), sopDatabase.scenarios.length);
+
+  // ③ 角色键数（权威＝`constants.js` 的 ROLE_KEYS / ROLE_LEGACY_KEYS）
+  const bizReal = ROLE_KEYS.length;
+  const legacyReal = ROLE_LEGACY_KEYS.length;
+  const totalReal = bizReal + legacyReal;
+  const s21 = section(rs, /^### 2\.1 /);
+  const s21Head = lineWith(s21, /^### 2\.1 /);
+  eq('角色键数（合计）', 'README-server.md §2.1 标题', cn(m(s21Head, /（(\d+) 键/)), totalReal);
+  eq('角色键数（业务）', 'README-server.md §2.1 标题', cn(m(s21Head, /(\d+) 业务键/)), bizReal);
+  eq('角色键数（遗留）', 'README-server.md §2.1 标题', cn(m(s21Head, /(\d+) 遗留键/)), legacyReal);
+  eq('角色键数（合计）', 'README-server.md §2 导语「共 N 键」', cn(m(lineWith(rs, /本节分四层/), /共\s*([\d一二两三四五六七八九十]+)\s*键/)), totalReal);
+  eq('角色键数（合计）', 'README-server.md §2.1 表体行数', (s21.match(/^\| \d+ \| `/gm) || []).length, totalReal);
+  const srp = read(join(ROOT, 'content', '02_institution', 'SYSTEM_ROLE_PERMISSION.md'));
+  const srp9a0 = lineWith(srp, /本表为角色键的权威清单/);
+  eq('角色键数（合计）', 'SYSTEM_ROLE_PERMISSION §9a0', cn(m(srp9a0, /(\d+) 键全表/)), totalReal);
+  eq('角色键数（业务）', 'SYSTEM_ROLE_PERMISSION §9a0', cn(m(srp9a0, /(\d+) 业务键/)), bizReal);
+  eq('角色键数（遗留）', 'SYSTEM_ROLE_PERMISSION §9a0', cn(m(srp9a0, /(\d+) 遗留键/)), legacyReal);
+
+  // ④ 「拟上会」清单类数（权威＝`agenda-form.js::buildAgendaCandidates` 里 group 的取值集）
+  const afSrc = read(AGENDA_FORM);
+  const afStart = afSrc.indexOf('export function buildAgendaCandidates');
+  const afLinesFrom = afSrc.slice(afStart).split(/\r?\n/);
+  let afDepth = 0, afEnd = afLinesFrom.length - 1;
+  for (let i = 0; i < afLinesFrom.length; i++) {
+    for (const ch of afLinesFrom[i]) { if (ch === '{') afDepth++; else if (ch === '}') afDepth--; }
+    if (i > 0 && afDepth === 0) { afEnd = i; break; }
+  }
+  const afBody = afLinesFrom.slice(0, afEnd + 1).join('\n');
+  const agendaGroups = new Set();
+  for (const l of afBody.split(/\r?\n/)) {
+    if (!/group:/.test(l)) continue;
+    for (const g of l.matchAll(/'([A-Za-z]+)'/g)) agendaGroups.add(g[1]);
+  }
+  const agendaReal = agendaGroups.size;
+  eq('「拟上会」清单类数', 'ACTIVE_RULINGS.md 的 `D-411` 行「共 N 类」', cn(m(lineWith(read(RULINGS), /^- .*一键导入议程/), /共\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal,
+    `系统 group 取值＝${[...agendaGroups].sort().join(' / ')}`);
+  eq('「拟上会」清单类数', 'docs/help.html §3.1 括注列举', enumCount(lineWith(help, /「拟上会」清单<\/strong>里勾/)), agendaReal);
+  eq('「拟上会」清单类数', 'REVIEW_QUEUE.md `SOP-B-33`「现为 N 类」', cn(m(lineWith(read(QUEUE), /^> \*\*已闭环\*\*：裁定 `D-552`/), /现为\s*([\d一二两三四五六七八九十]+)\s*类/)), agendaReal);
+
+  // ⑤ ACTIVE_RULINGS 口径行数（权威＝该文件 `^- ` 实测；文首「权威读数」须与它一致）
+  const ar = read(RULINGS);
+  const arLines = ar.split(/\r?\n/).filter((l) => l.startsWith('- ')).length;
+  const arHead = lineWith(ar, /\*\*口径行数（权威/);
+  eq('ACTIVE_RULINGS 口径行数', '同文件文首「实有 N 行」', cn(m(arHead, /实有\s*([\d一二两三四五六七八九十]+)\s*行/)), arLines);
+  eq('ACTIVE_RULINGS 口径行数', '同文件文首「一律以 N 为准」', cn(m(arHead, /一律以\s*([\d一二两三四五六七八九十]+)\s*为准/)), arLines);
+
+  // ⑥ 决策日志条目数（权威＝`^## D-` 实测；文首 / 文末续编说明 / 本月目录 / 月度索引四处同源）
+  const dl = read(DECISION_LOG);
+  const dNums = [...dl.matchAll(/^## D-(\d+)/gm)].map((x) => Number(x[1]));
+  const dReal = dNums.length;
+  const dMax = Math.max(...dNums);
+  const dlHead = lineWith(dl, /\*\*条目编号起止\*\*/);
+  eq('决策日志条目数', '2026-09-DECISION_LOG 文首「共 N 条」', cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-\d+`，共 (\d+) 条\*\*/)), dReal);
+  eq('决策日志末条编号', '2026-09-DECISION_LOG 文首', cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-(\d+)`/)), dMax);
+  eq('决策日志下一条编号', '2026-09-DECISION_LOG 文首「下一条自」', cn(m(dlHead, /下一条自 \*\*`D-(\d+)`\*\*/)), dMax + 1);
+  const dlCont = lineWith(dl, /\*\*本文件续编说明\*\*/);
+  eq('决策日志条目数', '2026-09-DECISION_LOG 文末「续编说明」段', cn(m(dlCont, /当前止于 `D-\d+`\*\*（共 \*\*(\d+)\*\* 条/)), dReal);
+  eq('决策日志末条编号', '2026-09-DECISION_LOG 文末「续编说明」段', cn(m(dlCont, /当前止于 `D-(\d+)`/)), dMax);
+  const tocNums = [...section(dl, /^## 本月目录/).matchAll(/`D-(\d+)`/g)].map((x) => Number(x[1]));
+  eq('决策日志末条编号', '2026-09-DECISION_LOG 本月目录末条', tocNums.length ? Math.max(...tocNums) : null, dMax);
+  const miCells = lineWith(read(MONTH_INDEX), /^\| 2026-09 \|/).split('|').map((s) => s.trim());
+  eq('决策日志条目数', '.ctx/logs/DECISION_LOG.md 月度索引', cn(m(miCells[3] || '', /^(\d+) 条（D-275~/)), dReal);
+  eq('决策日志末条编号', '.ctx/logs/DECISION_LOG.md 月度索引', cn(m(miCells[3] || '', /D-275~D-(\d+)）$/)), dMax);
+
+  // ⑦ 页面数（权威＝`docs/` 实况）
+  const rootsN = readdirSync(join(ROOT, 'docs')).filter((f) => f.endsWith('.html')).length;
+  const wsN = readdirSync(join(ROOT, 'docs', 'workspace')).filter((f) => f.endsWith('.html')).length;
+  eq('页面数（合计）', 'README-server.md §3.1 标题「共 N 个静态页」', cn(m(lineWith(rs, /^### 3\.1 /), /共\s*([\d一二两三四五六七八九十]+)\s*个静态页/)), rootsN + wsN);
+  const snapPages = lineWith(snap, /页面实测/);
+  eq('页面数（合计）', 'SNAPSHOT.md「页面实测 N=根+工作台」', cn(m(snapPages, /页面实测 (\d+)=/)), rootsN + wsN);
+  eq('根页数', 'SNAPSHOT.md', cn(m(snapPages, /=\s*(\d+) 根/)), rootsN);
+  eq('工作台页数', 'SNAPSHOT.md', cn(m(snapPages, /\+(\d+) 工作台/)), wsN);
+
+  // ⑧ 资源表数（权威＝`server/db.js` 的 RESOURCE_TABLES 长度）
+  const dbTables = (read(join(ROOT, 'server', 'db.js')).match(/const RESOURCE_TABLES = \[([\s\S]*?)\]/)[1].match(/'/g) || []).length / 2;
+  eq('资源表数', 'SNAPSHOT.md「资源表 N」', cn(m(lineWith(snap, /资源表 \d/), /资源表 (\d+)/)), dbTables);
+  eq('资源表数', 'README-server.md §7.3#25「与代码一致为 N 张」', cn(m(lineWith(rs, /现与代码一致为/), /现与代码一致为 \*\*(\d+) 张\*\*/)), dbTables);
+
+  // ⑨ 系统通知 kind 数（权威＝`server/system-notice-kinds.js` 的 KINDS 键集）
+  const kindReal = SYSTEM_NOTICE_KIND_NAMES.length;
+  eq('系统通知 kind 数', 'README-server.md §6.7「已注册的 kind（共 N 种）」', cn(m(lineWith(rs, /已注册的 kind/), /共\s*([\d一二两三四五六七八九十]+)\s*种/)), kindReal);
+  eq('系统通知 kind 数', 'README-server.md §6.7 依据行「N 个键」', cn(m(lineWith(rs, /KINDS` 注册表/), /注册表，(\d+) 个键/)), kindReal);
+  eq('系统通知 kind 数', 'README-server.md 文件表「N 种 kind」', cn(m(lineWith(rs, /系统派生通知：/), /系统派生通知：(\d+) 种 kind/)), kindReal);
+
+  // ⑩ 路由数（权威＝`server/routes/**` 声明数 ＋ `server/app.js` 声明数，减循环声明、加循环展开）
+  const routeSrc = walkJs(join(ROOT, 'server', 'routes')).map(read).join('\n');
+  const declAll = (routeSrc.match(/\brouter\.(get|post|patch|delete|put)\s*\(/g) || []).length;
+  const declLoop = (read(RESOURCES_ROUTE).match(/router\.(get|post|patch|delete|put)\(`\/\$\{name\}/g) || []).length;
+  const declApp = (read(join(ROOT, 'server', 'app.js')).match(/\bapp\.(get|post|patch|delete|put)\s*\(/g) || []).length;
+  const resNames = (read(RESOURCES_ROUTE).match(/const RESOURCE_TABLES = \{([\s\S]*?)\n\};/)[1].match(/^\s{2}(\w+):/gm) || []).length;
+  const routeExplicit = declAll - declLoop + declApp;
+  const routeExpanded = resNames + (resNames - 1) + resNames + resNames;
+  const routeLine = lineWith(rs, /展开后总路由数/);
+  eq('路由数（显式声明）', 'README-server.md §6 数量口径', cn(m(routeLine, /显式声明的路由 (\d+) 条/)), routeExplicit);
+  eq('路由声明数', 'README-server.md §6 数量口径', cn(m(routeLine, /`router\.\*` 声明 \*\*(\d+) 条\*\*/)), declAll);
+  eq('路由循环声明数', 'README-server.md §6 数量口径', cn(m(routeLine, /其中 \*\*(\d+) 条在通用资源循环里\*\*/)), declLoop);
+  eq('app 路由声明数', 'README-server.md §6 数量口径', cn(m(routeLine, /`server\/app\.js` 的 (\d+) 条/)), declApp);
+  eq('资源名数', 'README-server.md §6 数量口径', cn(m(routeLine, /（(\d+) 个资源名，见 §6\.2）/)), resNames);
+  eq('路由数（循环展开）', 'README-server.md §6 数量口径', cn(m(routeLine, /循环展开 (\d+) 条/)), routeExpanded);
+  eq('路由数（合计）', 'README-server.md §6 数量口径', cn(m(routeLine, /＝(\d+) ＋ (\d+) ＝ (\d+) 条/, 3)), routeExplicit + routeExpanded);
+  eq('路由数（显式声明）', 'README-server.md §6 数量口径（算式左项）', cn(m(routeLine, /＝(\d+) ＋ (\d+) ＝ \d+ 条/)), routeExplicit);
+
+  // ⑪ 设置中心分区数（权威＝`settings-entry.js` 的 SECTION_META 键集）
+  const seSrc = read(SETTINGS_ENTRY);
+  const seFrom = seSrc.indexOf('const SECTION_META = {');
+  const seBlock = seSrc.slice(seFrom, seSrc.indexOf('\n};', seFrom));
+  const secReal = (seBlock.match(/^ {2}'[a-z-]+': \{/gm) || []).length;
+  eq('设置中心分区数', 'README-server.md §3.4「左栏共 N 个分区」', cn(m(lineWith(rs, /左栏共/), /左栏共\s*([\d一二两三四五六七八九十]+)\s*个分区/)), secReal);
+  eq('设置中心分区数', 'docs/help.html §5.4 标题', cn(m(lineWith(help, /doc-h3-badge">5\.4<\/span>设置中心分区一览/), /设置中心分区一览（(\d+) 个分区/)), secReal);
+  eq('设置中心分区数', 'docs/help.html §5.4 卡标题', cn(m(lineWith(help, /个分区：每区管什么/), /help-card-title">(\d+) 个分区/)), secReal);
+  const secTableAt = help.indexOf('个分区：每区管什么');
+  const secTable = help.slice(secTableAt, help.indexOf('</tbody>', secTableAt));
+  eq('设置中心分区数', 'docs/help.html §5.4 表体行数', (secTable.match(/^\s*<tr><td>/gm) || []).length, secReal);
+  eq('设置中心分区数', 'docs/help.html §0.4「N 个分区逐区一览」', cn(m(lineWith(help, /个分区逐区一览/), /(\d+) 个分区逐区一览/)), secReal);
+  // 支书 / 副支书可见区数（权威＝「外观」＋「我的工作台」〔该角色有工作台时才发〕＋ SECRETARY_GOV 四区）
+  const secGov = /const SECRETARY_GOV = \[([\s\S]*?)\];/.exec(seSrc)?.[1] || '';
+  const govN = (secGov.match(/\{ id: '/g) || []).length;
+  eq('支书可见设置分区数', 'docs/help.html §5.4「支书 / 副支书 N 区」', cn(m(lineWith(help, /支书 \/ 副支书 \d+ 区/), /支书 \/ 副支书 (\d+) 区/)), 2 + govN);
+
+  // ⑫ 队列在册条数（权威＝「实施批次计划 ·（一）逐条归组」表「条数」列之和）
+  const q = read(QUEUE);
+  const qFrom = q.indexOf('（一）逐条归组');
+  const groupTable = q.slice(qFrom, q.indexOf('| **合计** |', qFrom));
+  const rowSums = [...groupTable.matchAll(/^\|\s[^|]*\|\s[^|]*\|\s*(\d+)\s*\|\s*$/gm)].map((x) => Number(x[1]));
+  assert.ok(rowSums.length >= 10, `REVIEW_QUEUE.md 逐条归组表只解析到 ${rowSums.length} 个「条数」格（基线 10）：表结构或判据变了`);
+  const qReal = rowSums.reduce((a, b) => a + b, 0);
+  const sumLine = lineWith(q, /^\| \*\*合计\*\* \|/);
+  eq('队列在册条数', 'REVIEW_QUEUE.md 合计行「N 条」', cn(m(sumLine, /\*\*(\d+) 条\*\*/)), qReal);
+  eq('队列在册条数', 'REVIEW_QUEUE.md 合计行「N ✓」', cn(m(sumLine, /\| \*\*(\d+)\*\* ✓ \|/)), qReal);
+  eq('队列在册条数', 'REVIEW_QUEUE.md 阶段 A「在册 N 条」', cn(m(lineWith(q, /^> \*\*在册 \d+ 条\*\*（/), /\*\*在册 (\d+) 条\*\*/)), qReal);
+  eq('队列在册条数', 'REVIEW_QUEUE.md「（一）逐条归组（现况：N 条在册）」', cn(m(lineWith(q, /逐条归组（现况/), /现况：\*\*([\d一二两三四五六七八九十]+) 条在册\*\*/)), qReal);
+  eq('队列在册条数', 'REVIEW_QUEUE.md 机器判据提示「现况＝N 条」', cn(m(lineWith(q, /机器判据提示/), /现况＝([\d一二两三四五六七八九十]+) 条/)), qReal);
+  eq('队列在册条数', 'REVIEW_QUEUE.md 阶段 B「在册 N 条」', cn(m(lineWith(q, /^> \*\*状态与现况/), /\*\*在册 (\d+) 条\*\*/)), qReal);
+  const relNums = q.split(/\r?\n/).filter((l) => /与在册计数的关系/.test(l))
+    .map((l) => cn(m(l, /阶段 B 在册\*\*仍 ([\d一二两三四五六七八九十]+) 条/)));
+  assert.ok(relNums.length >= 5, `REVIEW_QUEUE.md 只解析到 ${relNums.length} 处「与在册计数的关系」行（基线 5）：判据可能失效`);
+  relNums.forEach((n, i) => eq('队列在册条数', `REVIEW_QUEUE.md「与在册计数的关系」第 ${i + 1} 处`, n, qReal));
+
+  assert.deepEqual(problems, [],
+    `文档里的「枚举 / 计数」与代码 / 数据实然值不符（口径：**以代码 / 数据实然值为准**）：\n  ${problems.join('\n  ')}`);
+  // 非空转：实然值本身不得为 0 / NaN（否则公式写坏，断言会变成恒真）
+  [['支部分工模块数', modReal], ['内置场景数', sopDatabase.scenarios.length], ['角色键数', totalReal],
+    ['拟上会类数', agendaReal], ['ACTIVE_RULINGS 口径行', arLines], ['决策日志条目', dReal],
+    ['页面数', rootsN + wsN], ['资源表数', dbTables], ['通知 kind 数', kindReal],
+    ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列在册', qReal],
+  ].forEach(([k, v]) => assert.ok(Number.isFinite(v) && v > 0, `S14 的实然值「${k}」＝${v}：解析式写坏了，断言会变成恒真`));
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S15 弱清单（同批）：**取值定义不清 / 或有正当沿革**的枚举数字——不判红，只登记 + 基线。
+//   防两件事：① 「正则失效 ⇒ 一条都解析不到 ⇒ 断言恒真」（给下限）；② 「口径成批变松」
+//   （给上限）。⚠ 弱清单**不是空壳**：每条都断言「它还认得那个写法」或「编号自洽」。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登记（带基线，防僵尸与变松）', () => {
+  // ① ACTIVE_RULINGS 各批增量句里的「现行有效 N 条」——**沿革串数、不是行数**
+  //    （批次 159 已立口径「引用与自查一律以 107 为准」）：不判红，只登记句数与末值。
+  const ar = read(RULINGS);
+  const histN = (ar.match(/现行有效[^\n]{0,40}条/g) || []).length;
+  assert.ok(histN >= 10, `ACTIVE_RULINGS 只解析到 ${histN} 句「现行有效 N 条」（下限 10）：沿革句被删或写法变了`);
+  assert.match(ar, /不是行数/, 'ACTIVE_RULINGS 文首未写明「各批累加数**不是行数**」——读者会把沿革串数当现况');
+
+  // ② CLAUDE.md 的纪律条数（`R-NN`）：**无别处转引 ⇒ 没有「文档声称值」可比** ⇒ 只登记编号自洽。
+  const claude = read(join(ROOT, 'CLAUDE.md'));
+  const rIds = [...claude.matchAll(/^\| (R-\d+) \|/gm)].map((x) => x[1]);
+  assert.ok(rIds.length >= 55, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 纪律行（下限 55）：解析失效或行被删`);
+  assert.equal(new Set(rIds).size, rIds.length, `CLAUDE.md 的 R-NN 编号有重复：${rIds.filter((id, i) => rIds.indexOf(id) !== i).join(' / ')}`);
+
+  // ③ 角色键「列举式」说明（括注写「含 …」＝非穷举）：**不判穷举**，只登记处数（防被当成穷举清单读）。
+  const rs = read(README_SERVER);
+  const listedLines = rs.split(/\r?\n/).filter((l) => /角色键（含 /.test(l));
+  assert.ok(listedLines.length >= 1, 'README-server.md 未解析到「角色键（含 …）」式列举（≥1 处）：写法变了或该说明被删');
+});
+

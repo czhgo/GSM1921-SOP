@@ -2,19 +2,19 @@
 // 纪检委员工作台 Tab：活动监督复盘（T-279 M3 拆分）
 // 活动流程监督（超时提醒）+ 活动复盘监督（批注/打回/确认）+ 经验沉淀督促清单。
 
-import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260923a';
-import { persist } from '../../../core/data-adapter.js?v=20260923a';
-import { reviewToDisplay } from '../../../services/review.js?v=20260923a';
-import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260923a';
-import { loadActivities } from '../../../services/activity.js?v=20260923a';
-import { showToast } from '../../../core/utils.js?v=20260923a';
-import { openFormModal } from '../../../components/modal.js?v=20260923a';
-import { NoticeStore } from '../../../services/notice.js?v=20260923a';
-import { generateId } from '../../../core/id.js?v=20260923a';
-import { getPersonById } from '../../../services/person.js?v=20260923a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260923a';
+import { mockDB, ReviewStatus } from '../../../core/domain.js?v=20260924a';
+import { persist } from '../../../core/data-adapter.js?v=20260924a';
+import { reviewToDisplay } from '../../../services/review.js?v=20260924a';
+import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/review.js?v=20260924a';
+import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { showToast } from '../../../core/utils.js?v=20260924a';
+import { openFormModal } from '../../../components/modal.js?v=20260924a';
+import { NoticeStore } from '../../../services/notice.js?v=20260924a';
+import { generateId } from '../../../core/id.js?v=20260924a';
+import { getPersonById } from '../../../services/person.js?v=20260924a';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260924a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260923a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260924a';
 
 // ── 超期提醒真实触达（2026-09-10）───────────────────────────────
 // 依据：纪检委员工作流程指南 §3.1「超时确认后可触发邮件提醒」、党小组组长工作手册
@@ -97,7 +97,7 @@ export function renderContent(ctx) {
   const flowRowHtml = (r) => `
             <div class="flex items-center justify-between p-3 rounded-xl bg-white ${r.overdue ? 'border border-red-100' : ''}">
               ${r.activityId
-                ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+                ? `<a href="./activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
                      <div class="text-sm font-medium text-gray-800">${r.activity}</div>
                      <div class="text-xs text-gray-500 mt-0.5">组织者：${r.organizer}</div>
                    </a>`

@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260923a';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260923a';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260923a';
+import { icon } from '../../../core/icons.js?v=20260924a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260924a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260924a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/modal.js?v=20260923a';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260923a';
-import { mockDB } from '../../../core/domain.js?v=20260923a';
-import { bumpToken } from '../../../core/version-token.js?v=20260923a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260923a';
-import { isApiMode } from '../../../services/runtime.js?v=20260923a';
-import { AuthStore } from '../../../services/auth.js?v=20260923a';
-import { getPersonName } from '../../../services/person.js?v=20260923a';
-import { generateId } from '../../../core/id.js?v=20260923a';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260923a';
+import { settingsLinkHTML } from '../../../components/modal.js?v=20260924a';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260924a';
+import { mockDB } from '../../../core/domain.js?v=20260924a';
+import { bumpToken } from '../../../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity.js?v=20260924a';
+import { isApiMode } from '../../../services/runtime.js?v=20260924a';
+import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { getPersonName } from '../../../services/person.js?v=20260924a';
+import { generateId } from '../../../core/id.js?v=20260924a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/external-dispatch.js?v=20260924a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260923a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/secretary-overview.js?v=20260924a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/runtime.js?v=20260923a';
+import { BranchService } from '../../../services/runtime.js?v=20260924a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260923a';
+import { renderFilteredList } from '../../../components/list-filter.js?v=20260924a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -310,7 +310,7 @@ function _renderEndedUnarchivedSection(activities) {
 function _endedUnarchivedCardHtml(a) {
   return `
       <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
-        <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+        <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : ''}
@@ -329,7 +329,7 @@ function _renderPublicityDraftSection(rows) {
   if (!rows || rows.length === 0) return '';
   const items = rows.map(r => `
       <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3">
-        <a href="../activity.html?id=${encodeURIComponent(r.activity.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+        <a href="./activity.html?id=${encodeURIComponent(r.activity.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(r.rec.title || '未命名初稿')}</span>
             <span class="text-xs px-1.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200 shrink-0">待审核</span>
@@ -361,7 +361,7 @@ function _renderPendingArchiveSection(activities) {
     const typeLabel = a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : '';
     return `
       <div class="p-3 rounded-xl bg-amber-50/60 border border-dashed border-amber-200 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
-        <a href="../activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+        <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
             ${typeLabel}
@@ -424,7 +424,7 @@ function _archiveRowHtml(r) {
       </div>
       <span class="text-xs text-gray-500">归档日期：${r.archiveDate}${r.fileName ? ` · 材料：${escHtml(r.fileName)}` : ''}</span>`;
   const leftBlock = r.activityId
-    ? `<a href="../activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
+    ? `<a href="./activity.html?id=${encodeURIComponent(r.activityId)}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看关联活动详情">${titleBlock}</a>`
     : `<div class="flex-1 min-w-0">${titleBlock}</div>`;
   return `
     <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-center justify-between gap-3"${r.activityId ? ` data-archive-id="${r.activityId}"` : ''}>

@@ -3,15 +3,29 @@
 // 覆盖：支书创建三会一课活动全流程点击数 + 活动详情查看点击数 + 待办行动点击数
 // 基线：REVIEW_QUEUE 附录⑤（进入工作台→可执行事项 ≤2 跳 / 待办行动按钮 1 次直达）
 // 运行：node --test server/test/click-cost.test.mjs（server 需在 3000 端口）
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 
 const BASE = 'http://localhost:3000';
 
+// 2026-09-23 提速批·刀④（只改「起浏览器的时机」，**断言一字未动**，含 C1 的 ≤6 次点击基线）：
+// 原 5 条用例各 `chromium.launch()` 一次 ⇒ 白付 5 次浏览器冷启；改为整文件 launch 一次。
+// 隔离性不变：每条用例仍各自 `browser.newContext()`（＝独立 localStorage/sessionStorage），
+// 只是浏览器本体复用（原 `browser.newPage()` 本身就是「新 context + 新 page」）。
+let browser;
+before(async () => { browser = await chromium.launch({ headless: true }); });
+after(async () => { if (browser) await browser.close(); });
+
+/** 每例一个独立 context（与原来 `browser.newPage()` 的隔离性等价） */
+async function newIsolatedPage() {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  return { context, page };
+}
+
 // 登录辅助：开发模式选身份（1 次点击）
-async function loginAs(browser, role) {
-  const page = await browser.newPage();
+async function loginAs(page, role) {
   await page.goto(`${BASE}/login.html`, { waitUntil: 'domcontentloaded' });
   await page.locator('#dev-toggle').first().check();
   await page.locator(`.login-card[data-role="${role}"]`).first().click(); // 点击 1
@@ -21,10 +35,11 @@ async function loginAs(browser, role) {
 }
 
 // 场景 A：支书创建三会一课（党小组会）活动
-test('C1 支书创建三会一课活动：点击次数统计（目标 ≤5 次）', async () => {
-  const browser = await chromium.launch({ headless: true });
+// 2026-09-23 支书裁定「一般由谁写入」nudge 落地后：支书写入活动**多一次确认点击**（「仍由我继续」）⇒ 基线 ≤5 → ≤6。
+test('C1 支书创建三会一课活动：点击次数统计（含 nudge 确认，目标 ≤6 次）', async () => {
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
     let clicks = 0;
     const click = async (loc, desc) => { await loc.first().click(); clicks++; console.log(`  [点击 ${clicks}] ${desc}`); };
 
@@ -48,6 +63,11 @@ test('C1 支书创建三会一课活动：点击次数统计（目标 ≤5 次�
     const pageErrors = [];
     page.on('pageerror', e => pageErrors.push(String(e).slice(0, 160)));
     await click(page.locator('[data-action="wp-submit"]'), '按钮「创建活动」');
+    // 本位 nudge（2026-09-23 支书裁定）：**活动由党小组组长写入**（母本《党小组组长工作手册》「创建活动仅限
+    //   支书、副支书和党小组组长」），支书写入属**例外代办** ⇒ 写链前弹「本步一般由党小组组长写入」确认，
+    //   必须点主按钮「仍由我继续」才放行（该弹窗不许点遮罩 / 按 Esc 关，故意如此）。
+    //   ⚠ 这一次点击是**支书 2026-09-23 裁定的 nudge 步骤本身**（不是新增决策点）⇒ 下方基线由 ≤5 改准为 ≤6。
+    await click(page.locator('[data-nudge-confirm]'), '确认弹窗「仍由我继续」');
     // 轮询等待：创建完成后日历自动出现新活动（反馈闭环，无需手动操作）
     await page.waitForFunction(
       (u) => {
@@ -77,7 +97,7 @@ test('C1 支书创建三会一课活动：点击次数统计（目标 ≤5 次�
       };
     }, uniqueTitle);
     const st = await page.evaluate(async (u) => {
-      const m = await import('/src/core/state.js?v=20260923a');
+      const m = await import('/src/core/state.js?v=20260924a');
       const acts = m.getAppState().activities || [];
       return {
         appStateCount: acts.length,
@@ -95,17 +115,19 @@ test('C1 支书创建三会一课活动：点击次数统计（目标 ≤5 次�
     const actTag = page.locator('#cal-main-grid .cal-activity-item[title*="T283"]');
     const exists = await actTag.count() > 0;
     console.log(`[C1] 创建活动「${uniqueTitle}」出现于日历: ${exists ? '✓' : '✗'} ｜ 总点击 ${clicks} 次`);
-    console.log(`[C1] 点击链路: 登录(1) → Tab(1) → 写入活动(1) → 选模板(1) → 创建(1)`);
+    console.log(`[C1] 点击链路: 登录(1) → Tab(1) → 写入活动(1) → 选模板(1) → 创建(1) → nudge 确认(1，支书 2026-09-23 裁定)`);
     assert.ok(exists, '新活动应出现在日历');
-    assert.ok(clicks <= 5, `创建三会一课活动应 ≤5 次点击，实际 ${clicks}`);
-  } finally { await browser.close(); }
+    // 2026-09-23 支书裁定「一般由谁写入」nudge：支书写入活动属例外代办 ⇒ 多一次「仍由我继续」确认点击。
+    // 判据口径未变（仍判「进入活动管理后建一场活动的点击成本」），只是把这一次**裁定要求的确认**计入。
+    assert.ok(clicks <= 6, `创建三会一课活动应 ≤6 次点击（含 nudge 确认），实际 ${clicks}`);
+  } finally { await context.close(); }
 });
 
 // 场景 B：活动详情查看点击数
 test('C2 支书查看活动详情：进入工作台后 ≤2 次点击可见', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
     let clicks = 0;
     const click = async (loc, desc) => { await loc.first().click(); clicks++; console.log(`  [点击 ${clicks}] ${desc}`); };
 
@@ -127,14 +149,14 @@ test('C2 支书查看活动详情：进入工作台后 ≤2 次点击可见', as
     console.log(`[C2] 详情标题: ${title} ｜ 总点击 ${clicks} 次（进入工作台后 2 次直达详情：Tab+条目）`);
     assert.ok(title.length > 0, '详情应打开');
     assert.ok(clicks <= 2, `详情查看应 ≤2 次点击，实际 ${clicks}`);
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 // 场景 C：支书待办可见（R6-3「今天」置首新语义：默认落点=「今天」，待办必见=今天页 + ≤1 跳待办 tab）
 test('C3 支书待办可见：默认落点「今天」，切待办 tab ≤1 次点击即见待办', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
 
     // 新语义（2026-09-08 起）：登录默认落点 =「今天」tab；[data-ws-memo="today"] 渲染即工作台可达
     await page.waitForFunction(() => {
@@ -157,7 +179,7 @@ test('C3 支书待办可见：默认落点「今天」，切待办 tab ≤1 次�
     console.log(`[C3] 待办 tab ${extraClicks} 次点击即见待办 ${itemCount} 条: ${itemCount >= 1 ? '✓' : '✗'}`);
     assert.ok(itemCount >= 1, '切到待办 tab 后应可见待办条目（待办必见 ≤1 跳）');
     assert.ok(extraClicks <= 1, `待办必见应 ≤1 次额外点击，实际 ${extraClicks}`);
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -169,8 +191,8 @@ const DECISION_TERMS = ['L1', 'L2', 'L3', 'L4'];
 const WHITE_LABELS = ['活动类型', '活动形式', '时长', '发起方向', '承办党小组'];
 
 /** 组长登录 → 活动管理 tab → 打开建活动面板（返回点击计数与 page） */
-async function openLeaderCreatePanel(browser) {
-  const page = await loginAs(browser, 'leader');
+async function openLeaderCreatePanel(page) {
+  await loginAs(page, 'leader');
   let clicks = 0;
   const click = async (loc, desc) => { await loc.first().click(); clicks++; console.log(`  [点击 ${clicks}] ${desc}`); };
   await page.waitForFunction(() => document.querySelector('.leader-tab-btn[data-leader-tab="write"]'), { timeout: 12000 });
@@ -181,9 +203,9 @@ async function openLeaderCreatePanel(browser) {
 }
 
 test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1–L4、直接提交成功（旧流程 ≥5 次）', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const { page, click, getClicks } = await openLeaderCreatePanel(browser);
+    const { click, getClicks } = await openLeaderCreatePanel(page);
     await page.waitForSelector('#dt-title', { timeout: 10000 }); // 进面板即出表单（无「全选齐」阻隔）
 
     // ① 首屏可见文本不含 L1–L4 缩写；白话摘要呈现派生的默认值
@@ -193,7 +215,7 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
       (document.getElementById('dt-panel-wrap').innerText.split('\n').find(l => l.includes('当前设置')) || '').trim());
     console.log(`[C4] 首屏默认摘要：${summary}`);
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260923a');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260924a');
       return m.currentLeaderGroup().group;
     });
     assert.ok(summary.includes('活动类型'), '首屏应显示白话「活动类型」摘要');
@@ -220,13 +242,13 @@ test('C4 组长建活动（默认预选）：决策点选 0 次、首屏无 L1�
     console.log(`[C4] 对比：旧流程需 L1+承办+L2+L3+L4 共 5 次决策点选方出表单`);
     assert.ok(saved, '默认预选后直接提交应创建成功');
     assert.ok(clicks <= 3, `组长常规建活动应 ≤3 次点击（Tab+创建+提交），实际 ${clicks}`);
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/时长/发起方向/承办党小组 并提交', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const { page } = await openLeaderCreatePanel(browser);
+    await openLeaderCreatePanel(page);
     await page.waitForSelector('#dt-title', { timeout: 10000 });
 
     // 展开高级设置 → 白话分区齐全、仍无 L1–L4
@@ -249,7 +271,7 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     await page.locator('.dt-l4-btn[data-value="top-down"]').click();
     // L1 变更会重置承办党小组 → 回选组长本组
     const myGroup = await page.evaluate(async () => {
-      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260923a');
+      const m = await import('/src/entries/tabs/leader/_shared.js?v=20260924a');
       return m.currentLeaderGroup().group;
     });
     await page.waitForSelector(`.dt-host-btn[data-value="${myGroup}"]`, { timeout: 5000 });
@@ -274,5 +296,5 @@ test('C5 组长建活动（高级层展开）：仍可改 活动类型/形式/�
     assert.equal(rec.duration, 'long', '时长应=长期');
     assert.equal(rec.direction, 'top-down', '发起方向应=自上而下');
     assert.equal(rec.hostGroup, myGroup, '承办党小组应=组长本组');
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });

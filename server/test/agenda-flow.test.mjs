@@ -11,23 +11,34 @@ import { seedDatabase } from '../seed.js';
 
 let server;
 let BASE;
+let browser; // 2026-09-23 提速批：**整个文件只 launch 一次**（原每条用例各 launch 一次，5 条 ⇒ 白付 5 次浏览器冷启）
 
 before(async () => {
   const app = createApp({ dbPath: ':memory:' });
   await seedDatabase(app.locals.db);
   server = app.listen(0);
   BASE = `http://127.0.0.1:${server.address().port}`;
+  browser = await chromium.launch({ headless: true });
 });
 
 after(async () => {
+  if (browser) await browser.close();
   if (server) {
     server.closeAllConnections?.();
     await new Promise((r) => server.close(r));
   }
 });
 
-async function loginAs(browser, role) {
-  const page = await browser.newPage();
+/** 每例一个**独立 context**（＝独立 localStorage/sessionStorage）。
+ *  原写法 `browser.newPage()` 本身就是「新 context + 新 page」⇒ 这里只是把浏览器冷启提到 before，
+ *  用例之间的隔离性**一字未变**（仍是每例全新存储）。 */
+async function newIsolatedPage() {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  return { context, page };
+}
+
+async function loginAs(page, role) {
   await page.goto(`${BASE}/login.html`, { waitUntil: 'domcontentloaded' });
   await page.locator('#dev-toggle').first().check();
   await page.locator(`.login-card[data-role="${role}"]`).first().click();
@@ -63,9 +74,9 @@ async function setMonth(page, month) {
 
 // A1：三会一课活动详情显示议程（act-8 7月支部党员大会；2026-09-06 基线刷新：原 5 月批次重排至 7 月）
 test('A1 活动详情显示会议议程（含主持人）', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
     await gotoCalendar(page);
     await setMonth(page, '2026-07');
     await page.waitForSelector('.cal-activity-item[data-act-id="act-8"]', { timeout: 10000 });
@@ -78,14 +89,14 @@ test('A1 活动详情显示会议议程（含主持人）', async () => {
     assert.ok(text.includes('民主评议党员'), '议程第3条应显示');
     assert.ok(text.includes('组织委员'), '主持人应显示');
     console.log('[A1] ✅ 详情议程显示通过');
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 // A2：创建三会一课活动时写入议程 → 详情显示
 test('A2 创建三会一课活动写入议程并显示', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
     await gotoCalendar(page);
     await page.click('#ws-sec-write-btn');
     await page.waitForSelector('[data-action="select-template"][data-category="three-meetings"]', { timeout: 10000 });
@@ -127,6 +138,9 @@ test('A2 创建三会一课活动写入议程并显示', async () => {
     const a2cons = [];
     page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') a2cons.push(m.text().slice(0, 250)); });
     await page.click('[data-action="wp-submit"]');
+    // 本位 nudge（2026-09-23 支书裁定）：**活动由党小组组长写入** ⇒ 支书台 / 副支书台以写入者身份提交时，
+    //   写链前会弹「本步一般由党小组组长写入」确认；必须点主按钮「仍由我继续」才放行（不许点遮罩 / 按 Esc 关）。
+    await page.click('[data-nudge-confirm]').catch(() => {});
     // 等创建完成 + 日历出现
     await page.waitForFunction(
       (u) => {
@@ -159,14 +173,14 @@ test('A2 创建三会一课活动写入议程并显示', async () => {
     assert.ok(text.includes('学习《中国共产党章程》'), '议程第1条应显示');
     assert.ok(text.includes('讨论本月积极分子考察'), '议程第2条应显示');
     console.log('[A2] ✅ 创建写入议程→详情显示通过');
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 // A3：详情行内编辑议程 → 保存 → 更新显示 + localStorage 持久化
 test('A3 详情编辑议程保存后更新并持久化', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'secretary');
+    await loginAs(page, 'secretary');
     await gotoCalendar(page);
     await setMonth(page, '2026-08');
     await page.waitForSelector('.cal-activity-item[data-act-id="act-27"]', { timeout: 10000 });
@@ -208,15 +222,15 @@ test('A3 详情编辑议程保存后更新并持久化', async () => {
     assert.ok(stored && stored.some(a => a.item === '修改后的议程第一条'), 'localStorage 应持久化修改');
     assert.ok(stored && stored.some(a => a.item === '新增议程条目'), 'localStorage 应持久化新增');
     console.log('[A3] ✅ 详情编辑议程→保存→持久化通过');
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });
 
 // A4（副书同权 2026-09-10 修复）：副支书可见并可用「编辑议程」入口 + 议程结果记录
 // 依据 content/02_institution/SYSTEM_ROLE_PERMISSION.md:141「副书同权」；仅议程结果区/编辑界面放开。
 test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const { context, page } = await newIsolatedPage();
   try {
-    const page = await loginAs(browser, 'deputy-secretary');
+    await loginAs(page, 'deputy-secretary');
     await gotoCalendar(page);
     // 新建三会一课活动（议程条目经 collectAgendaRows 带 id → 结果记录按钮渲染）
     await page.click('#ws-sec-write-btn');
@@ -227,6 +241,8 @@ test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async ()
     await page.fill('#wp-location', '光华1号楼203会议室');
     await page.locator('.wp-agenda-item').first().fill('副书同权议程验证');
     await page.click('[data-action="wp-submit"]');
+    // 本位 nudge（2026-09-23 支书裁定）：同上（副支书写入活动亦属「一般由党小组组长写入」的例外代办）
+    await page.click('[data-nudge-confirm]').catch(() => {});
     await page.waitForFunction((u) => {
       const grid = document.querySelector('#cal-main-grid');
       return grid ? grid.innerHTML.includes(u) : false;
@@ -246,5 +262,5 @@ test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async ()
     const txt = await page.locator('#agenda-block').innerText();
     assert.ok(txt.includes('通过'), '副支书应能记录议程结果');
     console.log(`[A4] editBtn=1 resultBtns=${resultBtns} ✅ 副书同权通过`);
-  } finally { await browser.close(); }
+  } finally { await context.close(); }
 });

@@ -27,21 +27,21 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../core/domain.js?v=20260923a';
-import { persist } from '../core/data-adapter.js?v=20260923a';
+import { mockDB } from '../core/domain.js?v=20260924a';
+import { persist, getDataSource, getAdapter } from '../core/data-adapter.js?v=20260924a';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../core/id.js?v=20260923a';
-import { bumpToken } from '../core/version-token.js?v=20260923a'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../core/id.js?v=20260924a';
+import { bumpToken } from '../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260923a';
-import { PersonStore, findRemovedRecord } from './person.js?v=20260923a';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260923a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
+import { PersonStore, findRemovedRecord } from './person.js?v=20260924a';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260924a';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260923a';
+import { DEVELOP_STAGE_OPTIONS } from './org-base-data-preview.js?v=20260924a';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260923a';
+import { isActivityNotStarted, RESIDENCE } from '../core/constants.js?v=20260924a';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -124,6 +124,55 @@ function _hydrate() {
 function _all() {
   _hydrate();
   return mockDB.pendingMemberConfirmations;
+}
+
+// ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
+// 病灶：本队列原先**只有 localStorage 一份**（键 gsm1921-member-confirmations）⇒ 清缓存 = 队列消失；
+//   而**旧版 transferOut 存量请求的唯一出口就是这个队列**（见下方 submitMemberChange / _applyApproved
+//   的「存量兼容」注释）⇒ 清缓存即死锁。
+// 现分流（两形态并存、互不回归）：
+//   · 读：两形态同源读 `mockDB.pendingMemberConfirmations`；api 形态下该缓存由 `init()` 从
+//     `GET /api/v1/member-confirmations` 拉取填充（见 data-adapter.js::_loadAuxCollections）
+//     ⇒ 服务端成为队列的权威副本，清本机缓存不再丢队列。
+//   · 写：mock 形态＝现有本地路径（localStorage + mockDB + persist，一字未改）；
+//     api 形态＝在上述本地写之外同发语义端点（`POST /api/v1/member-confirmations` 入队 /
+//     `POST /api/v1/member-confirmations/:id/decide` 决策）。
+// ⚠ 存量数据（旧版已落库在本机的 transferOut pending）**不做迁移**：它们仍在 localStorage 里、
+//   仍由本机的支书确认链处理完（`_applyApproved` 的 kind==='transferOut' 分支保留不动）；
+//   服务端只承载**迁移后新发起**的请求。用户可见差异：清掉本机缓存后，那些「迁移前发起、尚未确认」的
+//   旧请求会消失（迁移前的行为本就如此）；迁移后新发起的请求清缓存不会再丢。
+function _isApi() {
+  try { return getDataSource() === 'api'; } catch (_) { return false; }
+}
+
+/** api 形态：把一次写同步到服务端（失败仅告警——本地乐观已记，next init 以服务端为准） */
+function _syncToServer(fn, what) {
+  if (!_isApi()) return;
+  try {
+    const adapter = getAdapter();
+    const call = fn(adapter);
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e));
+    }
+  } catch (e) {
+    console.warn(`[MemberConfirmation] api 形态${what}落服务端失败（本地已记，下次 init 以服务端为准）：`, e);
+  }
+}
+
+/**
+ * api 形态的**决策**同步（await 版，见 decideConfirmation 调用点）。
+ * 失败不阻断：迁移前已落本机、服务端无对应行的存量请求（服务端 404）必须仍能在本机处理完，
+ * 否则「旧版 transferOut 存量请求」会再度死锁（见本文件顶部与 submitMemberChange 的存量兼容注释）。
+ */
+async function _syncDecisionToServer(reqId, decision, note) {
+  if (!_isApi()) return;
+  try {
+    const adapter = getAdapter();
+    if (!adapter.memberConfirmations || typeof adapter.memberConfirmations.decide !== 'function') return;
+    await adapter.memberConfirmations.decide(reqId, { decision, note });
+  } catch (e) {
+    console.warn('[MemberConfirmation] api 形态决策落服务端失败（存量请求/服务端无对应行属预期；本地仍按本机队列处理）：', e);
+  }
 }
 
 function _save() {
@@ -264,6 +313,9 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
   mockDB.pendingMemberConfirmations = [..._all(), request];
   bumpToken('memberConfirmation'); // P0：成员变更确认请求队列写口 bump（支书待办页成员确认组新鲜度）
   _save();
+  // T1：api 形态同发服务端入队端点（本地已乐观入队；服务端在下一次 init 成为权威）
+  _syncToServer((a) => a.memberConfirmations && typeof a.memberConfirmations.create === 'function'
+    ? a.memberConfirmations.create(request) : null, '成员变更请求入队');
   return { ok: true, request };
 }
 
@@ -389,6 +441,9 @@ export async function decideConfirmation(reqId, { decision, by, note } = {}) {
   const at = new Date().toISOString();
   req.decidedBy = by || null;
   req.decidedAt = at;
+  // T1（api 形态）：先把决策落到服务端语义端点（**await**）——本地成功态排在「服务端已落库」之后。
+  // 容忍失败：迁移前已在本机落库、服务端无对应行的存量请求必须仍能处理完（否则死锁复发）。
+  await _syncDecisionToServer(reqId, decision, note);
   if (decision === 'rejected') {
     req.status = 'rejected';
     req.rejectNote = (note === undefined || note === null ? '' : String(note).trim()) || '支书未确认生效，请求已退回';

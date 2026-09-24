@@ -13,46 +13,35 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../components/sidebar.js?v=20260923a';
-import { renderHeader } from '../components/header.js?v=20260923a';
-import { BranchService } from '../services/runtime.js?v=20260923a';
-import { AuthStore } from '../services/auth.js?v=20260923a';
+import { renderSidebar } from '../components/sidebar.js?v=20260924a';
+import { renderHeader } from '../components/header.js?v=20260924a';
+import { BranchService } from '../services/runtime.js?v=20260924a';
+import { AuthStore } from '../services/auth.js?v=20260924a';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { registerApiAdapter, init as dataInit, setDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260923a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260923a';
-import { getPersonName } from '../services/person.js?v=20260923a';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260923a';
-import { badgeHtml } from '../components/badges.js?v=20260923a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
+import { getPersonName } from '../services/person.js?v=20260924a';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../core/utils.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../services/thought-report.js?v=20260923a';
+} from '../services/thought-report.js?v=20260924a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
 
-/** 数据 hydrate（D-484 · 批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。 */
+/** 数据 hydrate（D-484 · 批次 87）：API 会话走 data-adapter init（服务端权威）；否则本地 loadDB。
+ *  P0-2（2026-09-23）：判定收敛到 core/data-adapter.js::hydrateDataSource——有 token 时 init() 失败即
+ *  **显式失败**（「无法连接服务器」错误态 + 重试），不再回退可写 mock（静默丢单）。 */
 async function _hydrateData() {
   try {
-    registerApiAdapter(ApiAdapter);
-    let token = null;
-    try { token = sessionStorage.getItem('gsm1921-api-token'); } catch (_) { /* 隐私模式无 sessionStorage */ }
-    if (token) {
-      setDataSource('api', { apiBaseUrl: '', authToken: token });
-      try {
-        await dataInit();
-      } catch (e) {
-        console.warn('[thought-report-entry] API 数据加载失败，回退本地 mock', e);
-        setDataSource('mock');
-        BranchService.loadDB();
-      }
-    } else {
-      BranchService.loadDB();
-    }
+    const r = await hydrateDataSource({ apiAdapter: ApiAdapter, loadMock: () => BranchService.loadDB() });
+    if (!r.ok) return; // 错误态已由共享实现渲染
   } catch (e) {
     console.warn('[thought-report-entry] 数据加载异常（仍尝试内存兜底）', e);
   } finally {

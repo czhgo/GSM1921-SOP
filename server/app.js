@@ -50,10 +50,10 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // GET /api/v1/report/:domain（JSON 拉取）/ /report/export（CSV）/ POST /report/trigger（手动推送）
   app.use('/api/v1', createReportRouter(app.locals.db));
 
-  // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）
-  // 依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六（构建时注入，非运行时探测）
+  // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）＋空域种子回退开关
+  // SEED_FALLBACK（依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六·构建时注入；SEED_FALLBACK=0 ⇒ false，缺省 true）
   app.get('/src/config/deploy.js', (req, res) => {
-    res.type('application/javascript').send('export const DEPLOY_MODE = "server";\n');
+    res.type('application/javascript').send(`export const DEPLOY_MODE = "server";\nexport const SEED_FALLBACK = ${process.env.SEED_FALLBACK === '0' ? 'false' : 'true'};\n`);
   });
 
   // 静态托管：无后缀请求自动补 .html（T-304 遗留修复——登录跳转在部分浏览器/内嵌视图

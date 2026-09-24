@@ -101,6 +101,6 @@ related_files: [docs/src/components/sidebar.js, docs/src/components/header.js, d
 
 ## 八、与既有文档的关系
 
-- 数据源抽象（mock / api）：见 [DATA_FLOW.md](../data/DATA_FLOW.md) §4.4
+- 数据源抽象（mock / api）：见 [DATA_MODEL.md §4.4](../data/DATA_MODEL.md)
 - 对接学校计算中心的部署方案：见 [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) §三（与学校/党校对接总叙事与决策矩阵；计算中心托管对接前置见 §3.4、步骤见 §3.5）
 - 可见性规则（谁能看到谁）：见 [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 原则 9
