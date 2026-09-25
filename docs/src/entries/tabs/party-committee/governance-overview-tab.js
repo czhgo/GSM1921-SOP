@@ -45,6 +45,7 @@ function _governanceMemoKey(branches, noticeCount) {
 export function renderContent(ctx) {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
+  el.dataset.currentTab = 'governance-overview'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
 
   const branches = (mockDB.branches || []).filter(b => b && b.id);
   const noticeCount = (mockDB.notices || []).length;

@@ -39,6 +39,7 @@ function _actorId() {
 export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
+  el.dataset.currentTab = 'branches'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
   const branches = mockDB.branches || [];
   const members = PersonStore.getMembers(); // 现读档案（种子 + members 覆盖层），导入落库后即时吃到
 

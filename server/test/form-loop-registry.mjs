@@ -86,16 +86,19 @@ export const VALIDATION_SITES = [
   // 2026-09-23（裁定乙）：支书台「赋权管理」按三个情景分块（情景② 活动 / 情景③ 专班各一套表单，
   //   校验共用一个实现）⇒ 台账行号随块位移（`:217,218,219` → `:243,244,245`；`:419,423` → `:447,451`）。
   //   校验实现只有一处（同一 `bindConfirmProjectAuth` 两处绑）⇒ **校验点条数与流程条数均不变**（不加新条目）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 252, field: '被赋权人', flow: 'secretary/赋权管理·项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 253, field: '项目', flow: 'secretary/赋权管理·项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 254, field: '角色', flow: 'secretary/赋权管理·项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 456, field: '同志', flow: 'secretary/赋权管理·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 460, field: '党小组', flow: 'secretary/赋权管理·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-09-25（支书裁「全按对象归位」· 原「赋权管理」tab 删除）：情景①② 并入支书台「党小组与活动」、
+  //   情景③ 并入组织委员台「专班管理」——实现仍在这同一文件（`assign-tab.js` 改为分块渲染模块，不再注册 tab）
+  //   ⇒ file/field/msg **均不变**（故 S2–S4 判据零改动），只把行号按新文件实况改准（S6：行号须落在文案那一行）。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 272, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 273, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 274, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 476, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 480, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
-  //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 639, field: '支委人选', flow: 'secretary/赋权管理·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 640, field: '支委身份', flow: 'secretary/赋权管理·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 714, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 659, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 660, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 726, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -146,16 +149,18 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 258, field: '专班', flow: 'org/考察上传', machine: true, msg: '请选择专班' },
   { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 262, field: '人员', flow: 'org/考察上传', machine: true, msg: '请选择人员' },
   { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 268, field: '考察内容（逐人）', flow: 'org/考察上传', machine: true, msg: '的考察内容' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1336, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1337, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1338, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1339, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 628, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 676, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 678, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 896, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 995, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1054, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
+  // 2026-09-25（赋权按对象归位）：本台 `taskforce` tab 追加「情景③ 专班赋权」分区 ⇒ 该文件上文行号整体 +8
+  //   （新增 import / 挂载宿主 / 挂载调用），下列行号按新实况改准（S6：行号须落在文案那一行）。
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1344, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1345, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1346, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1347, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 636, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 684, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 686, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 904, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1003, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1062, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
   { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 166, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
@@ -178,11 +183,11 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1220, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 138, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 156, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 167, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 92, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择目标支部' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 93, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 139, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 157, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 168, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 96, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择目标支部' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 97, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
   // 批次 47-P（2026-09-16）：**党委台 · 上报审批 · 驳回意见**——本条是「**改种子解锁一条**」的首个样本。
   // ⚠ 原 reason 是这样写的：「实测 `[data-rq-act="reject"]` 计数 **0**——驳回按钮只在**待批复**的支部上报事项上渲染，
   //   而种子无『支部上报党委』条目」。**这句实测是对的，但停在「现象」就下了结论**——
@@ -204,7 +209,7 @@ export const VALIDATION_SITES = [
   //   **(c)** 唯一抓住它的是「**把提示文案本身当断言对象**」的真机判据——**机器读到的是空文本，人才会说「怎么只弹了个 i」**。
   //   ⇒ 已有静态守卫 `ux-guard ⑥`（showToast 调用约定，防「参数写反」）**只匹配两参形态**，单参从它眼皮下走过；
   //     本批已**在同一守卫里补上「参数个数」这一维**（原判据的盲区）。三处已修（补 type）。
-  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 104, field: '意见', flow: 'party-committee/上报审批·驳回', machine: true, msg: '驳回请填写意见' },
+  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 105, field: '意见', flow: 'party-committee/上报审批·驳回', machine: true, msg: '驳回请填写意见' },
 
   // ── 成员（visitor）台 ──
   { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 129, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
@@ -838,7 +843,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '.tf-contrib-verify-btn[data-decision="reject"]' }],
     expect: [
-      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 626, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 634, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
     ],
   },
   {
@@ -1053,7 +1058,8 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 批次 47-D 续（2026-09-16）：**支书台 · 赋权管理 · 项目赋权**——一条流程覆盖该表单**三处**校验点。
+    // 批次 47-D 续（2026-09-16）：**支书台 · 党小组与活动 · 活动项目赋权**——一条流程覆盖该表单**三处**校验点。
+    // 2026-09-25（赋权按对象归位）：情景② 并入「党小组与活动」tab ⇒ 落点 tab 名改准（DOM/载体不变）。
     // 台账原挂 machine:false 的理由是「需先选定场景/项目，字段联动，前置交互复杂」——**真机证伪**：
     //   ① 被赋权人（PersonPicker）**默认空** → 点提交第一条报的就是它，可达；
     //   ② 「项目」下拉**默认已选中首项**（`loadActivities()` 直接铺 option、无空项）→ 需在 `open[]` 里
@@ -1063,7 +1069,7 @@ export const MACHINE_FLOWS = [
     //   是把「读起来复杂」当成了「跑不通」（同批第三例：见批 ⑨/⑫ 的同类教训）。
     id: 'secretary-assign-project-auth',
     page: 'secretary',
-    tab: '赋权管理',
+    tab: '党小组与活动',
     open: [
       { waitFor: '#confirm-project-auth-btn' },
       { setValue: { selector: '#project-id-select', value: '' } },
@@ -1076,13 +1082,13 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 批次 47-D 续（2026-09-16）：**支书台 · 赋权管理 · 常设赋权（设党小组组长）**——同一 tab 的另一个浮态，**一处 2 个校验点**。
+    // 批次 47-D 续（2026-09-16）：**支书台 · 党小组与活动 · 常设赋权（设党小组组长）**——同一 tab 的另一个浮态，**一处 2 个校验点**。
     // 入口 `#ws-sec-assign-btn` → `#auth-panel-container`；提交口 `[data-auth-action="confirm"]`。
     // 校验序＝同志 → 党小组；两处都**不需要预先点组**（`selectedGroup` 初值 null），
     // 故 satisfy 只选人即可让第二条可达（与反馈详情的「共载体」坑不同：这里两个判据各读各的状态）。
     id: 'secretary-assign-group-leader',
     page: 'secretary',
-    tab: '赋权管理',
+    tab: '党小组与活动',
     open: [
       { click: '#ws-sec-assign-btn' },
       { waitFor: '[data-auth-action="confirm"]' },
@@ -1094,7 +1100,7 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 2026-09-23（支书裁定 · 情景①）：**支书台 · 赋权管理 · 支委身份配置**——情景① 卡内新增的写口
+    // 2026-09-23（支书裁定 · 情景①）：**支书台 · 党小组与活动 · 支委身份配置**——情景① 卡内新增的写口
     //   （选本支部在册成员 → 选支委身份 → 保存；可改派 / 可撤销）。该表单**出厂即在位**（不在折叠面板里，
     //   也不靠按钮展开）⇒ `open` 只需等提交口即可（空数组在此处不适用：内容由 tab 懒加载后同步渲染，
     //   等待提交口本身就是「就位」判据）。
@@ -1102,7 +1108,7 @@ export const MACHINE_FLOWS = [
     //   故 satisfy 选一人即可让第二条可达（与同 tab 的「常设赋权」那条同形）。
     id: 'secretary-assign-branch-commissioner',
     page: 'secretary',
-    tab: '赋权管理',
+    tab: '党小组与活动',
     open: [
       { waitFor: '#bc-assign-confirm' },
     ],

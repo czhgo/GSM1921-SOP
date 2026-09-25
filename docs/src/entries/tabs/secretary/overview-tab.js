@@ -328,7 +328,8 @@ function renderDimensionView(container) {
   if (attendance.makeupPending) pushEx(2, '补课未完成', `${attendance.makeupPending} 人`, '纪检委员', { urge: 'attendance-makeup' });
   if (inspection.overdueInspections) pushEx(3, '考察超期', `${inspection.overdueInspections} 条`, '纪检委员', { urge: 'inspection-overdue' });
   if (inspection.pendingInspections) pushEx(2, '考察待确认', `${inspection.pendingInspections} 条`, '纪检委员', { urge: 'inspection-pending' });
-  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'assign' });
+  // 2026-09-25（赋权按对象归位）：原直达「赋权管理」tab 已删 ⇒ 直达收编赋权①②的「党小组与活动」
+  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'group-progress' });
   if (propaganda.pendingArchive) pushEx(1, '待归档', `${propaganda.pendingArchive} 个活动`, '宣传委员', { urge: 'archive-pending' });
   exceptions.sort((a, b) => b.level - a.level);
 
@@ -471,7 +472,7 @@ function renderDimensionView(container) {
       const tabId = btn.dataset.direct;
       const tabBtn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
       if (tabBtn) tabBtn.click();
-      const tabLabels = { calendar: '活动管理', assign: '赋权管理', notification: '通知发布' };
+      const tabLabels = { calendar: '活动管理', 'group-progress': '党小组与活动', notification: '通知发布' };
       showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });

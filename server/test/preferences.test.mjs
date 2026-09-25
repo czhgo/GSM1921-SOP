@@ -29,7 +29,6 @@ function secretaryTabs() {
     { id: 'overview', label: '全局概况', groupLabel: '工作台', coreTab: true, render: () => {} },
     { id: 'calendar', label: '活动管理', groupLabel: '党建', render: () => {} },
     { id: 'work-map', label: '支部分工', groupLabel: '党建', render: () => {} },
-    { id: 'assign', label: '赋权管理', groupLabel: '党建', render: () => {} },
     { id: 'branch-config', label: '支部配置', groupLabel: '党建', render: () => {} },
     { id: 'notification', label: '通知发布', groupLabel: '党建', render: () => {} },
     { id: 'tf-view', label: '专班查看', groupLabel: '党建', render: () => {} },
@@ -39,7 +38,7 @@ function secretaryTabs() {
   ];
 }
 const CORE = ['today', 'todo', 'overview'];
-const BUSINESS = ['calendar', 'work-map', 'assign', 'branch-config', 'notification', 'tf-view', 'group-progress', 'feedback', 'report-up'];
+const BUSINESS = ['calendar', 'work-map', 'branch-config', 'notification', 'tf-view', 'group-progress', 'feedback', 'report-up'];
 const ids = (list) => (Array.isArray(list) ? list.map(t => t.id) : list);
 
 function businessIdsOf(tabs) {
@@ -97,7 +96,7 @@ test('过期 id 忽略、新注册页签按默认相对位置追加业务尾部'
   tabs.push({ id: 'new-module', label: '新模块', groupLabel: '党建', render: () => {} }); // 新页签（未入偏好）
   const mine = ['feedback', 'branch-config', 'ghost-tab', 'report-up']; // ghost 过期；新模块缺失
   const out = resolveTabOrder(tabs, mine);
-  assert.deepEqual(businessIdsOf(out), ['feedback', 'branch-config', 'report-up', 'calendar', 'work-map', 'assign', 'notification', 'tf-view', 'group-progress', 'new-module']);
+  assert.deepEqual(businessIdsOf(out), ['feedback', 'branch-config', 'report-up', 'calendar', 'work-map', 'notification', 'tf-view', 'group-progress', 'new-module']);
 });
 
 test('过期快照自愈：偏好仅缺默认尾部若干项 → 效果等同默认，返回原数组', () => {
@@ -158,7 +157,7 @@ test('save 有调整 → 写键（返回 true）；reset 恢复默认 = 删键',
 test('applyPersonalTabOrder：无偏好原样；写入后按序；清键/重置后回默认', () => {
   const tabs = secretaryTabs();
   assert.equal(applyPersonalTabOrder(tabs, 'u-sec-3', 'workspace:secretary'), tabs, '无偏好 → 原数组（缓存 null）');
-  const mine = ['feedback', 'calendar', 'work-map', 'assign', 'branch-config', 'notification', 'tf-view', 'group-progress', 'report-up'];
+  const mine = ['feedback', 'calendar', 'work-map', 'branch-config', 'notification', 'tf-view', 'group-progress', 'report-up'];
   writePersonalTabOrder('u-sec-3', 'workspace:secretary', mine);
   const out = applyPersonalTabOrder(tabs, 'u-sec-3', 'workspace:secretary');
   assert.deepEqual(businessIdsOf(out), mine, '写后读即生效（缓存同步）');

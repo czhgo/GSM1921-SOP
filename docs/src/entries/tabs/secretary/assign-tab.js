@@ -1,6 +1,17 @@
 // role: [工程师]+[AI]
-// entries/tabs/secretary/assign-tab.js — 支书工作台·赋权管理 tab（懒加载模块）
+// entries/tabs/secretary/assign-tab.js — 赋权「三情景」分块渲染模块（**2026-09-25 起不再注册为 tab**）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
+//
+// 内容已按对象归位（2026-09-25 支书裁「全按对象归位」· 原话「如果是情景，活动就归党小组；专班就归专班」）：
+//   · 情景①（设党小组组长 / 支委身份）＋ 情景②（活动项目赋权）⇒ 支书台「党小组与活动」tab
+//     （`entries/tabs/secretary/group-progress-tab.js` import 本模块的 mount* 分块）
+//   · 情景③（专班赋权）⇒ 组织委员台「专班管理」
+//     （`entries/tabs/org/taskforce-tab.js` import 本模块的 mountTaskforceProjectAuth）
+// 故本文件**不再注册为 tab**：`modules/capabilities/secretary-workspace.js` 已删 `assign` 行、
+//   `?tab=assign` 已删（不做兼容映射）。本文件**仅余上述三处的分块渲染**（三个 mount* 导出 + 其私有实现）。
+// **权限判定一字未改**（列表/表单渲染之外，写口仍走 `AuthStore.authorize` / `services/appointment.js`）。
+// 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
+//   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
 import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260924a';
 import { AuthStore } from '../../../services/auth.js?v=20260924a';
@@ -33,54 +44,68 @@ function _accentHex() {
 
 // 2026-09-23（支书裁定·裁定乙，逐字）：「赋权主要是3个情景，一是赋权给党小组组长/支委（也就是最初的
 //   人员配置只有党委给支书配置，剩下的身份由书记来配置）；二是活动（支书/党小组组长）做项目赋权；
-//   三是专班（支书/组织委员）做专班赋权」⇒ tab 内分三块（**tab 名与 tab 本身不变**），
-//   逐块标注「本位是谁 / 支书为何可介入」（赋权按角色分工分散到对应入口、不集中在单一页面 —— 但支书
-//   在三个情景里都有份，故支书台保留三块统一入口）。
-const ASSIGN_TAB_HTML = `
-  <div class="card rounded-xl p-5 mb-6">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景① 常设赋权（党小组组长 / 支委身份）</h3>
-    <p class="text-xs text-gray-500 mb-3"><strong>本位＝支书 / 副支书</strong>（副书同权）——最初只有党委给支书配置，其余身份由支书 / 副支书配置；设党小组组长＝系统内设 + 记录可追溯（替代口头 / 群聊指派）。</p>
-    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4 mb-4">
+//   三是专班（支书/组织委员）做专班赋权」；2026-09-25 支书再裁「**全按对象归位**」⇒
+//   情景①② 落「党小组与活动」、情景③ 落组织委员台「专班管理」；原「本位＝谁」制度句与 2 处折叠说明
+//   搬入 `docs/help.html` 定点（C7），界面各留一行 + 深链。**权限判定不变**（写口仍是既有服务层）。
+
+/** 情景① 分块（设党小组组长 + 支委身份配置）——落点＝支书台「党小组与活动」tab，与「组 / 组长」同区 */
+const LEADER_ASSIGN_HTML = `
+  <div class="border-t border-gray-100 mt-4 pt-3.5">
+    <div class="flex items-center justify-between mb-1">
+      <h4 class="font-title-cn text-sm font-bold text-gray-700">组长指派与支委身份</h4>
+      <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
+    </div>
+    <p class="text-[11px] text-gray-500 mb-2.5">设党小组组长，或为本支部成员配置支委身份（组织 / 宣传 / 纪检委员）——可改派、可撤销。<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a></p>
+    <div id="assign-area"></div>
+    <div id="assign-leaders-list" class="mt-3"></div>
+    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4 mt-4">
       <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
       <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
-      <details class="mb-3"><summary class="text-xs text-gray-500 cursor-pointer select-none">身份边界 ▾</summary><div class="text-[11px] text-gray-500 leading-5 mt-1.5">支书本人与副支书的身份由<strong>党委</strong>配置（换届涉及支委班子身份赋权，由党委改变支部设置）。</div></details>
       <div id="bc-assign-area"></div>
     </div>
-    <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
-    <div id="assign-area"></div>
-    <div class="border-t border-gray-100 mt-6 pt-4">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>
-      <div id="assign-leaders-list"></div>
-    </div>
-  </div>
-  <div class="card rounded-xl p-5 mb-6">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景② 活动项目赋权（组织者 / 深度参与者）</h3>
-    <p class="text-xs text-gray-500 mb-1"><strong>本位＝党小组组长</strong>（办活动⇒党小组承办）。</p><details class="mb-4"><summary class="text-xs text-gray-500 cursor-pointer select-none">支书为何可介入 ▾</summary><div class="text-[11px] text-gray-500 leading-5 mt-1.5">支书在三个情景里都有份——此处是支书台的活动赋权统一入口（给同志赋权项目角色，赋权后该同志在该场活动中拥有相应权限）。</div></details>
-    <div id="project-auth-panel"></div>
-  </div>
-  <div class="card rounded-xl p-5">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-1">情景③ 专班赋权（组织者 / 深度参与者）</h3>
-    <p class="text-xs text-gray-500 mb-4"><strong>本位＝组织委员</strong>（专班招募统筹收口）。<strong>支书可介入</strong>：同上——本台保留专班赋权统一入口（赋权后在该专班中拥有相应权限）。</p>
-    <div id="tf-auth-panel"></div>
-  </div>
-`;
+  </div>`;
 
-/** 渲染赋权管理 tab（常设赋权 + 项目赋权，支书 2026-08-02 迁入） */
-export function renderContent() {
-  const tc = document.getElementById('secretary-tab-content');
-  if (!tc) return;
-  if (tc.dataset.currentTab !== 'assign') {
-    tc.innerHTML = ASSIGN_TAB_HTML;
-    tc.dataset.currentTab = 'assign';
-    const assignArea = document.getElementById('assign-area');
-    document.getElementById('ws-sec-assign-btn')?.addEventListener('click', () => {
-      toggleAuthPanel(assignArea);
-    });
-    renderProjectAuthPanel();
-  }
+/** 情景② 分块（活动项目赋权）——落点＝支书台「党小组与活动」tab（跟活动走） */
+const ACTIVITY_AUTH_HTML = `
+  <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4">
+    <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">活动项目赋权（组织者 / 深度参与者）</h4>
+    <p class="text-[11px] text-gray-500 mb-3">为某一场活动给同志赋项目角色（组织者 / 深度参与者）。<a href="./help.html#card-copy-assign-activity" class="text-sky-600 hover:underline" title="见帮助：活动项目赋权（本位 / 赋权口径）">见帮助 · 活动赋权</a></p>
+    <div id="project-auth-panel"></div>
+  </div>`;
+
+/** 情景③ 分块（专班赋权）——落点＝组织委员台「专班管理」 */
+const TF_AUTH_HTML = `
+  <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4">
+    <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">专班赋权（组织者 / 深度参与者）</h4>
+    <p class="text-[11px] text-gray-500 mb-3">为某一个专班给同志赋项目角色（组织者 / 深度参与者）。<a href="./help.html#card-copy-assign-taskforce" class="text-sky-600 hover:underline" title="见帮助：专班赋权（本位 / 赋权口径）">见帮助 · 专班赋权</a></p>
+    <div id="tf-auth-panel"></div>
+  </div>`;
+
+/** 情景①② 挂载（支书台「党小组与活动」tab 调用）——传 host 容器，本模块负责分块 HTML 与事件 */
+export function mountLeaderAssign(host) {
+  if (!host) return;
+  host.innerHTML = LEADER_ASSIGN_HTML;
+  const assignArea = document.getElementById('assign-area');
+  const btn = document.getElementById('ws-sec-assign-btn');
+  btn?.addEventListener('click', () => toggleAuthPanel(assignArea));
+  // 面板展开态随模块自持：重渲染时按当前态对齐按钮文案并重建面板（避免「文案/面板」不同步）
+  if (authPanel.open && assignArea) { if (btn) btn.textContent = '收起面板'; renderAuthPanel(assignArea); }
   renderAssignLeaders();
   renderCommissionerAssign();
-  PROJECT_AUTH_BLOCKS.forEach(renderProjectAuthRecords);
+}
+
+/** 情景② 挂载（支书台「党小组与活动」tab 调用） */
+export function mountActivityProjectAuth(host) {
+  if (!host) return;
+  host.innerHTML = ACTIVITY_AUTH_HTML;
+  _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'activity'));
+}
+
+/** 情景③ 挂载（组织委员台「专班管理」调用） */
+export function mountTaskforceProjectAuth(host) {
+  if (!host) return;
+  host.innerHTML = TF_AUTH_HTML;
+  _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'taskforce'));
 }
 
 /** 渲染当前党小组组长列表（数字一致性审计 2026-08-07：主源 = PEOPLE 预设 + 审计快照运行时授予，与 renderAuthRecords 同源） */
@@ -179,11 +204,6 @@ function _projectOptionsOf(key) {
   return [...loadActivities()]
     .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
     .map(a => `<option value="${a.id}" data-type="activity">${a.title}（${a.date}）</option>`).join('');
-}
-
-/** 渲染两块项目赋权表单（首次进入 tab 时构建） */
-function renderProjectAuthPanel() {
-  PROJECT_AUTH_BLOCKS.forEach(_renderAuthBlock);
 }
 
 function _renderAuthBlock(cfg) {

@@ -25,6 +25,7 @@ const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分�
 export async function renderContent(ctx) {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
+  el.dataset.currentTab = 'monitor'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
   const activities = ctx?.activities || mockDB.activities || [];
   const branches = mockDB.branches || [];
 

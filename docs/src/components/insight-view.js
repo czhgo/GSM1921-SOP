@@ -43,6 +43,11 @@ function _syncSegBtns(container, view) {
  */
 export function renderInsightView(container, opts = {}) {
   if (!container) return;
+  // 跨 tab 共享容器约定（同 todo / overview / calendar / group-progress …）：登记当前 tab 标记，防
+  //   「活动管理 → 知情查看 → 活动管理」残留旧内容（calendar-tab 等以 dataset.currentTab 守卫决定是否重建骨架）。
+  //   本组件被 6 台共用（支书 / 纪检 / 组长 / 组织 / 宣传 / 成员），各台此 tab 的注册 id 统一为 `tf-view`
+  //   ⇒ 标记即 'tf-view'（与各调用点注册 id 同值）。
+  container.dataset.currentTab = 'tf-view';
   // 深链定位优先（仅首次）：定位目标属于哪一段就切到哪一段（对齐合并前「直达即落在该 tab」的行为）；
   // 已消费过的同一目标不再强制，避免重渲染把用户手切的分段顶回去。
   const hlKey = opts.highlightActId ? `a:${opts.highlightActId}` : (opts.highlightTfId ? `t:${opts.highlightTfId}` : null);

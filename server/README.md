@@ -53,6 +53,15 @@ node scripts/backup.mjs --out /srv/bak/20260923
   3. 用备份的 `uploads/` 覆盖 `UPLOAD_DIR` 目录（保留原目录权限）；
   4. 启动服务，看启动日志的 `[server] 自检 · users 计数=…` 确认数据已回来。
 - 定时备份建议：用系统计划任务（Windows 任务计划程序 / cron）每日调用 `scripts/backup.ps1`（或 `node scripts/backup.mjs`），并把 `server/backups/` 之外的副本另存到别的磁盘或对象存储。
+- **恢复演练（2026-09-25，已可复现）**：`server/test/backup-restore.test.mjs` 在临时库造数据 → **真跑** `scripts/backup.mjs` 真实入口（child process）→ 破坏原库 → 恢复到**新路径** → 断言 `PRAGMA integrity_check=ok` + 行 / 字段逐值一致 + 附件还原。**实测**（本机）：未 checkpoint 的 `data.db-wal` = **696312 B** 时，`db.backup()` 副本 `users` **3 行齐全**（含 WAL 内容）；而**只拷主文件**的副本里 `users` 表**根本不存在**（0 行）——这正是「不能 `copy data.db`」的实证。
+
+### 库结构版本与迁移（2026-09-25）
+
+- **版本号**：库内 `PRAGMA user_version` 记 schema 版本；单一源＝`server/db.js` 末尾 `MIGRATIONS` 列表（每项 `{ version, name, tables?, up(db) }`，`version` 严格递增且唯一）。
+- **启动自动应用**：`initDb` 末尾调用 `applyMigrations(db)`——未应用的迁移**按序、在一个事务内**执行、每项跑完写回 `user_version`，并打印 `[db] schema vN（本次应用 M 项）`。**失败即抛**（better-sqlite3 `transaction` 整体回滚，含 `user_version` 与 DDL）⇒ 启动报错，**绝不静默吞**；幂等可重入（已应用者跳过）。
+- **v1 基线**：把机制落地时的 schema 现状登记下来（`up()` 幂等重放既有 `CREATE TABLE IF NOT EXISTS`）⇒ **既有真库首启即登记为 v1、一行数据不动**；**既有建表路径一字未改**（机制是叠加，不是替换）。**今后新增/变更结构一律追加 `v2+`**，并在其 `tables` 里登记表名。
+- **纪律（可判红）**：新增/变更结构却没写 migration ⇒ `server/test/db-integrity-guard.test.mjs` 的 **G5 / G6** 判红：G5＝`db.js` 自建表必须被「v1 冻结基线 ∪ 迁移声明」覆盖（并核 v1 基线已冻结、不得被悄悄加表）；G6＝全 `server/` 的 `ALTER TABLE` 只许出现在 migration 段内。
+- **验收**：`server/test/db-migration.test.mjs`（应用 / 幂等可重入 / 失败回滚 / 失败不吞 / 启动日志）、`server/test/db-integrity-guard.test.mjs`（完整性 / 版本对齐 / 列表自检 / 非空转 / 纪律）、`server/test/backup-restore.test.mjs`（备份 → 恢复演练）。运行：在 `server/` 下 `node --test test/db-migration.test.mjs test/db-integrity-guard.test.mjs test/backup-restore.test.mjs`（纯 node，无需起服务）。
 
 ## 部署对接
 

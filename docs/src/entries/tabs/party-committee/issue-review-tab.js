@@ -42,6 +42,7 @@ function realSubmitter(r) {
 export async function renderContent() {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
+  el.dataset.currentTab = 'issue-review'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
 
   // ── 角色闸门（前端半侧）：非党委一律不渲染真身，也不发起核查请求 ──
   const me = AuthStore.getCurrentUser();

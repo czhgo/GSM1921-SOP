@@ -65,7 +65,7 @@ export function initDb(dbPath) {
     db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
   }
   db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
-  return db;
+  applyMigrations(db); return db; // 迁移机制接入点（2026-09-25）：与 return 同行 ⇒ 上文行号零漂移（db.js 是 README-server.md 取证靶点）
 }
 
 // 辅助：整表替换写入（写穿透快照用）。table 限定白名单，杜绝 SQL 注入。
@@ -168,3 +168,104 @@ export const SEMANTIC_TABLES = [
   //   ⇒ 清缓存即留痕灭失。留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺可被事后核对（只增不改）。
   'auth_audit',
 ];
+
+// ════════════════════════════════════════════════════════════════
+//  最小可用迁移机制（2026-09-25）：PRAGMA user_version 版本号 + 有序 migration 列表
+// ════════════════════════════════════════════════════════════════
+// 病灶（只读审计实测）：全库 45 张表**没有任何版本化迁移**——建表全在 initDb 的
+//   `CREATE TABLE IF NOT EXISTS`（`SCHEMA` / `RESOURCE_TABLES` / `SEMANTIC_TABLES` / `collection_versions`）里，
+//   `PRAGMA user_version` 恒为 0；表结构变更语句（`ALTER`）全库 0 处。「结构改了但线上库没跟着改」无从发现＝头号技术债。
+// 做法（**叠加，不替换**）：既有 `CREATE TABLE IF NOT EXISTS` 路径**一字不动**（仍负责建表）；
+//   本机制只在其上补「版本号 + 有序迁移」：
+//   · `MIGRATIONS` ＝ `[{ version, name, tables?, up(db) }]`（version 严格递增、唯一）；
+//   · `v1` ＝ **基线迁移**：把「机制落地时的 schema 现状」登记下来——`up()` 幂等重放 db.js 自建的
+//     CREATE TABLE IF NOT EXISTS（此刻 initDb 已建过，纯幂等重放，**不改数据、不删改既有路径**），
+//     并把 `user_version` 由 0 抬到 1 ⇒ 既有真库（含数据）首次启动即登记为 v1，**一行数据不动**。
+//   · 今后**新增或变更结构一律走 v2、v3…**（在 up() 里建表 / ALTER，并在 `tables` 里登记表名）。
+// 启动期：`initDb` 末尾调用 `applyMigrations(db)`——未应用的迁移**按序、在一个事务内**执行，每项跑完写回
+//   `user_version`；**失败即抛**（better-sqlite3 `transaction` 自动整体回滚，含 `user_version` 与 DDL）⇒
+//   **启动报错、绝不静默吞**。幂等可重入：已应用（version ≤ user_version）者跳过。
+// ⚠ 本段整体置于文件末尾：上文 `SCHEMA` / `initDb` / `replaceCollection` 的行号是 `README-server.md` 的取证
+//   靶点（`doc-line-ref.test.mjs` 逐条核）——接入点与 `return db;` **同行**，故上文行号零漂移。
+
+/** v1 基线覆盖的**全部** db.js 自建表（冻结现状：35 资源表 + 7 语义表 + `sessions`/`attachments` + `collection_versions`） */
+const BASELINE_TABLES = [
+  ...RESOURCE_TABLES,
+  ...SEMANTIC_TABLES,
+  'sessions', 'attachments',
+  COLLECTION_VERSIONS_TABLE,
+];
+
+/**
+ * 有序迁移列表。每项＝`{ version, name, tables?, up(db) }`：
+ *   · `version`：正整数，**严格递增且唯一**（`validateMigrations` 自检）；
+ *   · `name`：可读标识；
+ *   · `tables`：本项新增 / 变更的表名（供守卫核对「新增结构是否写了迁移」；基线项登记现状表名）；
+ *   · `up(db)`：幂等变更（建表 / ALTER）；**须可在事务内重入**。
+ * ⚠ 新增结构**必须**追加新的 version（并在 `tables` 里登记表名），否则 `db-integrity-guard` 会判红。
+ */
+export const MIGRATIONS = [
+  {
+    version: 1,
+    name: 'baseline-2026-09-25',
+    tables: BASELINE_TABLES,
+    up(db) {
+      // 幂等重放 db.js 自建 DDL（此刻 initDb 已完成同样动作 ⇒ 纯标记；既有路径与数据不受影响）
+      db.exec(SCHEMA);
+      for (const t of [...RESOURCE_TABLES, ...SEMANTIC_TABLES]) {
+        db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
+      }
+      db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
+    },
+  },
+];
+
+/** 迁移列表的最大版本（＝目标 schema 版本；守卫据此核 `user_version`，防「有迁移没跑」/「版本号被手改」） */
+export const SCHEMA_VERSION = MIGRATIONS.reduce((mx, m) => Math.max(mx, m.version), 0);
+
+/**
+ * 迁移列表自检（守卫与启动期共用）：version 严格递增且唯一、每项有 name 与 up 函数。
+ * @returns {string[]} 问题清单（空数组＝通过）
+ */
+export function validateMigrations(list) {
+  const problems = [];
+  if (!Array.isArray(list) || list.length < 1) return ['迁移列表为空'];
+  const seen = new Set();
+  let prev = 0;
+  list.forEach((m, i) => {
+    const at = `第 ${i + 1} 项（${m && m.name ? m.name : '无名'}）`;
+    if (!m || !Number.isInteger(m.version) || m.version < 1) { problems.push(`${at} 的 version 非法：${m && m.version}`); return; }
+    if (seen.has(m.version)) problems.push(`${at} 的 version 重复：${m.version}`);
+    if (m.version <= prev) problems.push(`${at} 的 version 未严格递增：${m.version} ≤ 前一项 ${prev}`);
+    if (typeof m.name !== 'string' || !m.name.trim()) problems.push(`${at} 缺 name（迁移须可读可辨）`);
+    if (typeof m.up !== 'function') problems.push(`${at} 缺 up 函数（空迁移＝写了等于没写）`);
+    seen.add(m.version);
+    prev = m.version;
+  });
+  return problems;
+}
+
+/**
+ * 应用未应用的迁移：自检列表 → 取 `user_version` → 过滤 `version > current` 并**按序**在一个事务内执行，
+ * 每项跑完写回 `user_version` → 打印已应用版本。**失败向上抛（不吞）**，事务整体回滚。
+ * @param {Object} db better-sqlite3 实例
+ * @param {Array} [list=MIGRATIONS] 迁移列表（仅测试注入用；生产恒为 `MIGRATIONS`）
+ * @returns {{from:number, to:number, applied:number[]}}
+ */
+export function applyMigrations(db, list = MIGRATIONS) {
+  const problems = validateMigrations(list);
+  if (problems.length) throw new Error(`[db] 迁移列表自检未通过，拒绝启动：\n  ${problems.join('\n  ')}`);
+  const current = Number(db.pragma('user_version', { simple: true })) || 0;
+  const pending = list.filter((m) => m.version > current).sort((a, b) => a.version - b.version);
+  if (!pending.length) return { from: current, to: current, applied: [] };
+  const run = db.transaction(() => {
+    for (const m of pending) {
+      m.up(db);
+      db.pragma(`user_version = ${m.version}`);
+    }
+  });
+  run();
+  const to = pending[pending.length - 1].version;
+  console.log(`[db] schema v${to}（本次应用 ${pending.length} 项）`);
+  return { from: current, to, applied: pending.map((m) => m.version) };
+}

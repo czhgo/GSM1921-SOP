@@ -33,20 +33,30 @@ registerCapability({
           const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${target}"]`);
           if (btn) btn.click();
         },
+        // 2026-09-25（支书裁「按『党小组与活动』这个名落地」）：党小组 tab 更名并收编党小组活动后，
+        //   活动管理的写操作从 tab 名上不再一眼可寻 ⇒ 今日页补「建活动 / 看日历」紧凑入口。
+        //   实现单一源 = group-progress-tab.js::openActivityWriteEntry（复用既有「写入活动」入口，不新造表单）。
+        onCreateActivity: () => import('../../entries/tabs/secretary/group-progress-tab.js?v=20260924a').then(m => m.openActivityWriteEntry()),
       });
     }) },
     { id: 'todo', label: '待办', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/secretary/todo-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     { id: 'overview', label: '全局概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../../entries/tabs/secretary/overview-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // ── 我的职责（写操作） ──
     { id: 'calendar', label: '活动管理', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/calendar-tab.js?v=20260924a').then(m => m.renderContent(ctx?.appState)) },
-    { id: 'assign', label: '赋权管理', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/assign-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
+    // 2026-09-25 支书裁「赋权按对象归位」⇒ 原「赋权管理」`assign` tab **删除**（`?tab=assign` 同删，不做兼容映射）：
+    //   情景① 设党小组组长 / 支委身份、情景② 活动项目赋权 → 本台「党小组与活动」（见下 group-progress）；
+    //   情景③ 专班赋权 → 组织委员台「专班管理」。
     { id: 'notification', label: '通知发布', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/notification-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // P3 党委后台（2026-09-02）：支部关键事项上报党委（发展节点/活动报备；党委批驳结论回传本页）
     { id: 'report-up', label: '上报党委', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/report-up-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
-    // 党小组（2026-09-14 批次 25 由「党小组进展」升级，label 改名、id 保持 group-progress 以保住
-    //   ?tab= 深链 / 个人 tab 顺序偏好 / 支部 config 的 hiddenTabIds·tabOrder 既有键）：党小组升为一等实体，
-    //   本 tab = 管理区（新增/改名/解散 + 未分组行内归组，写权支书/副支书）+ 进展区（原跨组只读知情，功能全保留）
-    { id: 'group-progress', label: '党小组', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/group-progress-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
+    // 党小组与活动（2026-09-14 批次 25 由「党小组进展」升级为「党小组」；2026-09-25 支书裁「按
+    //   『党小组与活动』这个名落地」⇒ label 再改并收编「党小组活动」分区；同日再裁「赋权按对象归位」
+    //   ⇒ 收编 情景①（设党小组组长 / 支委身份）＋ 情景②（活动项目赋权）。**id 始终保持 group-progress**
+    //   以保住 ?tab= 深链 / 个人 tab 顺序偏好 / 支部 config 的 hiddenTabIds·tabOrder 三类既有键）：
+    //   本 tab = 管理区（新增/改名/解散 + 未分组行内归组 + 组长指派/支委身份，写权支书/副支书）+ 党小组活动
+    //   （方向 bottom-up 的活动只读列示、可点进详情，新建复用既有写入入口；含活动项目赋权）+
+    //   进展区（原跨组只读知情，功能全保留）
+    { id: 'group-progress', label: '党小组与活动', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/group-progress-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // 支委会会议（2026-09-20 批次 105 · D-526）：线上召开支委会的入口页签——本 tab 只做入口（场次统计 +
     //   直达独立页），开会链路在 docs/party-committee-meeting.html（提取议程 / 委员表态 / 汇总截止 / 查阅讨论结果）。
     //   复用既有实体（活动 + agendaVotes + votesLocked），不新增表；效力口径已定（线上与线下完全同等效力，D-538），

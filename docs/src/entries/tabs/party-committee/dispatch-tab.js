@@ -32,6 +32,10 @@ function _readFormState(el) {
 export function renderContent() {
   const el = document.getElementById('party-committee-tab-content');
   if (!el) return;
+  // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab 标记。
+  //   本台 `party-config` 以 `dataset.currentTab` 守卫决定是否重建骨架，其余 tab 原不登记该标记
+  //   ⇒「支部配置 → 本 tab → 支部配置」会因守卫读到陈旧标记 'party-config' 而跳过重建、残留本 tab 内容。
+  el.dataset.currentTab = 'dispatch';
   const me = AuthStore.getCurrentUser();
   if (!me) return;
   const prev = _readFormState(el);

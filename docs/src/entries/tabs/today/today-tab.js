@@ -175,13 +175,36 @@ function _todoSummaryBlock(s) {
     </div>`;
 }
 
-/** 三块全空 → 卡片不消失，仅示一句空态 */
-function _allEmptyHtml() {
+/** 三块全空 → 卡片不消失，仅示一句空态（若接了活动管理快捷入口，同卡底部仍留住入口，防空日把写操作埋掉） */
+function _allEmptyHtml(activityEntry = '') {
   return `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-center gap-2 py-6">
         <span class="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
         <p class="text-sm text-gray-500">今天暂无安排</p>
+      </div>
+      ${activityEntry ? `<div class="pt-4 mt-2 border-t border-gray-100">${activityEntry}</div>` : ''}
+    </div>`;
+}
+
+/** 活动管理快捷入口（2026-09-25）：党小组 tab 更名「党小组与活动」并收编党小组活动后，活动管理的写操作
+ *  从 tab 名上不再一眼可寻 ⇒ 今日页留一手（防高频动作被埋）。**形态沿用本页既有「块头 + 行按钮」体例**
+ *  （同 _dutyBlock：h3 ＋ 带圆点的行按钮，点击复用既有 `.today-go` 约定），不新造第三种视觉；
+ *  文案「建活动 / 看日历」共 6 字（≤60 字，DESIGN_SYSTEM §4.18 C1）。 */
+function _activityEntryBlock() {
+  const rowBtn = 'today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm text-gray-800 cursor-pointer';
+  return `
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-title-cn text-sm font-bold text-gray-700">活动管理</h3>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" class="${rowBtn}" data-go="create-activity" title="新建活动（打开既有「写入活动」表单）">
+          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>建活动
+        </button>
+        <button type="button" class="${rowBtn}" data-go="activities" title="打开活动日历（日历仍显示全部活动）">
+          <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-gray-400"></span>看日历
+        </button>
       </div>
     </div>`;
 }
@@ -310,8 +333,10 @@ function bindLeaderSemesterRemind(container, personId, onNav) {
  * @param {(tabId:string)=>void} [params.onNav] — 可空：切 tab 回调；到期/逾期行与「全部」跳转用
  *   （未提供则相关点击为空操作，组件仍可独立预览）。tabId 语义：'todo'=待办；
  *   会议「全部」用 'activities'（各工作台活动列表所在 tab 的语义 id，接线时按台映射/无则忽略）。
+ * @param {()=>void} [params.onCreateActivity] — 可空：活动管理快捷入口「建活动」回调（直达既有「写入活动」入口）。
+ *   仅接线的工作台传入（当前＝支书台）；未传入则不渲染该快捷入口（其余台的今日页形态不变）。
  */
-export function renderTodayTab(container, { personId, role, onNav } = {}) {
+export function renderTodayTab(container, { personId, role, onNav, onCreateActivity } = {}) {
   if (!container) return;
 
   // P2 渲染守卫：数据键未变且现 DOM 为上次真实产物 → 整卡保留（跳过 buildTodaySummary
@@ -333,8 +358,10 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
 
     // 批4：组长开学周提醒条（仅组长角色；开关/窗口/防重复见 _leaderSemesterRemindHtml）
     const leaderSemReminder = role === 'leader' ? _leaderSemesterRemindHtml(personId) : '';
+    // 活动管理快捷入口（仅接线的工作台传入 onCreateActivity 时渲染；其余台此处为空串，形态不变）
+    const activityEntry = typeof onCreateActivity === 'function' ? _activityEntryBlock() : '';
 
-    const body = total === 0 ? _allEmptyHtml() : `
+    const body = total === 0 ? _allEmptyHtml(activityEntry) : `
       <div class="card rounded-xl p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
           <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
@@ -342,10 +369,16 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
             ${_dueBlock(summary)}
             ${_todoSummaryBlock(summary)}
             ${_dutyBlock(summary)}
+            ${activityEntry}
           </div>
         </div>
       </div>`;
 
+    // 跨 tab 共享容器约定（同 todo/overview/assign/…）：本 tab 渲染时登记当前 tab 标记。
+    // ⚠ 本 tab 此前缺此登记（2026-09-25 真机实测：活动管理 → 今天 → 活动管理，因 calendar-tab 的
+    //   `dataset.currentTab` 守卫读到陈旧标记 'calendar' 而跳过整块重绘，残留上一 tab 内容）。
+    //   本批的「建活动 / 看日历」与「+ 新建党小组活动」都要落回活动管理，故必须补上这一登记。
+    container.dataset.currentTab = 'today';
     container.innerHTML = `
       <div class="space-y-4" data-ws-memo="today">
         <h2 class="font-title-cn text-lg font-bold text-gray-800">今天 · <span class="text-base font-normal text-gray-500">${esc(dateLabel)}</span></h2>
@@ -353,7 +386,8 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
         ${body}
       </div>`;
 
-    // 行点击：会议/分工 → 活动详情页；到期/逾期 → onNav('todo')（无 onNav 则空操作）
+    // 行点击：会议/分工 → 活动详情页；到期/逾期 → onNav('todo')（无 onNav 则空操作）；
+    //   活动管理快捷入口：建活动 → onCreateActivity（直达既有「写入活动」入口）；看日历 → onNav('activities')
     container.querySelectorAll('.today-go').forEach(btn => {
       btn.addEventListener('click', () => {
         const go = btn.dataset.go;
@@ -362,6 +396,10 @@ export function renderTodayTab(container, { personId, role, onNav } = {}) {
           if (id) window.location = 'activity.html?id=' + encodeURIComponent(id);
         } else if (go === 'todo' && typeof onNav === 'function') {
           onNav('todo');
+        } else if (go === 'create-activity' && typeof onCreateActivity === 'function') {
+          onCreateActivity();
+        } else if (go === 'activities' && typeof onNav === 'function') {
+          onNav('activities');
         }
       });
     });

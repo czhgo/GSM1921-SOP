@@ -335,9 +335,13 @@ for (const w of WORKS) {
 //    那 P1/P2/P3 就是**恒真**（查了个寂寞）。故断言普查确实覆盖到「本该分页」的样本。
 //    ⚠ 依赖顶层 test 串行执行（本仓 `npm test` 固定 `--test-concurrency=1`）。
 test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人维 / 手写表格」样本', () => {
-  console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
   // 实测基线（2026-09-15 首次普查）：65 tab / 53 个引擎列表（其中 12 个总数 > 10）/ 4 个矩阵 / 2 张手写表格
-  assert.ok(SWEEP.tabs >= 65, `普查 tab 数少于基线 65（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
+  // 2026-09-25（支书裁「赋权按对象归位」）：支书台删除 `assign` / 赋权管理 tab（情景①② 并入「党小组与活动」、
+  //   情景③ 并入组织委员台「专班管理」，组织台只在既有 `taskforce` tab 内加分区、台数不变）⇒ 普查 tab 总数
+  //   **67 → 66**。本守卫的 `>=` 门槛自首次普查后未随各批新增 tab 上调，长期低于实测（本次改前实测 67）；本批
+  //   按「实测值」把门槛改准为 **66**（比原 65 更严，非放宽；范围未缩水：七台全部 tab 仍逐一进页面）。
+  console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
+  assert.ok(SWEEP.tabs >= 66, `普查 tab 数少于基线 66（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
   assert.ok(SWEEP.listsOverPage >= 12, `「总数 > 10 的引擎列表」样本少于基线 12（实测 ${SWEEP.listsOverPage}）：分页断言可能恒真`);
   assert.ok(SWEEP.matrices >= 4, `矩阵样本少于基线 4（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
   assert.ok(SWEEP.tables >= 2, `手写表格样本少于基线 2（实测 ${SWEEP.tables}）：P3 断言恒真`);

@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  entries/tabs/secretary/group-progress-tab.js — 支书工作台·党小组 tab
 // ════════════════════════════════════════════════════════════════
-// 沿革：2026-09-08 D8 新增「党小组进展」（跨组只读知情）；2026-09-14 批次 25 升级为「党小组」——
+// 沿革：2026-09-08 D8 新增「党小组进展」（跨组只读知情）；2026-09-14 批次 25 升级为「党小组」；2026-09-25 更名「党小组与活动」并收编「党小组活动」分区（判据单一源见文件末）——
 //   党小组升为一等实体（mock/party-groups.js + services/party-group.js），本 tab 由**纯只读**升级为
 //   「管理区（写） + 进展区（只读）」两层：
 //   ① 未分组归组条：ungroupedMembers() 非空时显示「未分组 N 人」，每人一个活组下拉（groupOptions()）
@@ -50,6 +50,10 @@ import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
 } from '../../../services/group-view.js?v=20260924a';
+// 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①（设党小组组长 / 支委）+ 情景②（活动项目赋权）
+//   由本 tab 承载（情景③ 专班赋权归组织委员台「专班管理」）。实现单一源＝entries/tabs/secretary/assign-tab.js
+//   （该文件已不注册为 tab，仅余 mount* 分块）⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260924a';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -73,7 +77,7 @@ function _branchId() {
 /** tab 入口（懒加载；ctx 提供 accent 等主题上下文） */
 export function renderContent() {
   const container = document.getElementById('secretary-tab-content');
-  if (!container) return;
+  if (!container) return; container.dataset.currentTab = 'group-progress'; // 跨 tab 共享容器约定（同 todo/overview/…）：登记当前 tab 标记，防「活动管理 → 本 tab → 活动管理」残留旧内容
   _renderAll(container);
 }
 
@@ -104,7 +108,7 @@ function _renderAll(container) {
   container.innerHTML = `
     <div class="space-y-4">
       ${_ungroupedBarHtml(ungrouped, canManage)}
-      ${_manageCardHtml(entities, statOf, canManage)}
+      ${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
       ${history.length ? _historyCardHtml(history) : ''}
       ${group ? `
         ${_groupSwitchHtml(viewGroups, group, issues)}
@@ -114,7 +118,8 @@ function _renderAll(container) {
       : _noGroupHintHtml()}
     </div>`;
 
-  _bindEvents(container);
+  _bindEvents(container); _renderGroupActivities(container, activities);
+  _mountAssignBlocks(container); // 情景①（组长指派 / 支委身份）＋ 情景②（活动项目赋权）分块挂载
   // 已载则先同步渲染（未载由 _fillReports 首拉后增量填充，避免 0 高后插）
   if (group && _issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
   if (group) _fillReports(container, group, members);
@@ -138,6 +143,12 @@ function _statMap(viewGroups) {
     map.set(g.groupName, { leaderId: g.leaderId, memberCount: g.memberCount, partyCount: g.partyCount });
   }
   return map;
+}
+
+/** 赋权分块挂载（情景① 组长指派/支委身份 · 情景② 活动项目赋权）：宿主随本 tab 渲染，实现单一源＝assign-tab.js */
+function _mountAssignBlocks(container) {
+  mountLeaderAssign(container.querySelector('#gp-leader-assign-host'));
+  mountActivityProjectAuth(container.querySelector('#gp-activity-auth-host'));
 }
 
 // ── ① 未分组归组条（写；无权限只读） ──────────────────────────
@@ -191,7 +202,7 @@ function _manageCardHtml(entities, statOf, canManage) {
           ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">+ 新增党小组</button>' : ''}
         </div>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案派生（指派在「赋权管理」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
+      <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
@@ -208,6 +219,7 @@ function _manageCardHtml(entities, statOf, canManage) {
           <tbody>${rows}</tbody>
         </table>
       </div>
+      <div id="gp-leader-assign-host"></div>
     </div>`;
 }
 
@@ -761,4 +773,71 @@ function _openDissolveModal(container, id) {
       });
     },
   });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  收编分区：党小组活动（2026-09-25 支书裁「按『党小组与活动』这个名落地」·只收编党小组活动）
+// ════════════════════════════════════════════════════════════════
+// 判据**单一源** ＝ 活动 `direction === 'bottom-up'`——即活动详情页「活动方向」显示的「自下而上（党小组发起）」
+//   （`entries/activity-entry.js:306`；仓内把活动标成「党小组发起」的**唯一展示口径**）。**不引入第二判据**：
+//   `hostGroup`（承办党小组，README-server §4.20）只用于考勤「应到」推导、且多数活动为空，不是收编依据。
+// 呈现：只读列表（行点进 `activity.html?id=` 详情）＋「+ 新建党小组活动」——新建**复用既有写入入口**
+//   （calendar-tab.js 的「写入活动」浮窗，见下方 openActivityWriteEntry），**不新造表单**。
+// 重复渲染边界：本分区只给**只读展示**，不提供任何**按活动**的可写入口 ⇒ 与「活动管理」tab 不存在同一场活动的
+//   两份可写入口（日历仍显示全部活动、仍保留通用「写入活动」入口；两处新建都落同一个既有浮窗，口径一致）。
+// 列表走统一检索引擎（renderFilteredList）：大数目自动分页（page-sweep P11「自建列表未分页」不适用于本分区）。
+// ⚠ 本段**置于文件末尾**：不改动上文任何行的行号——`form-loop-sweep` 按 `group-progress-tab.js:726` 取证。
+
+/** 党小组活动分区骨架（列表由 _renderGroupActivities 经统一检索引擎填入 #gp-group-activities） */
+function _groupActivitySectionHtml() {
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-1">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组活动</h4>
+        <button type="button" class="gp-new-activity btn-accent-soft text-xs px-3 py-1.5 rounded-lg shrink-0">+ 新建党小组活动</button>
+      </div>
+      <p class="text-[11px] text-gray-500 mb-2.5">党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；支部部署的活动见「活动管理」。新建走既有「写入活动」，填表时在「高级选项 · 发起方向」选「自下而上」。</p>
+      <div id="gp-group-activities"></div>
+      <div id="gp-activity-auth-host" class="mt-3.5"></div>
+    </div>`;
+}
+
+/** 党小组活动（判据＝direction==='bottom-up'，date 降序）——只读，经统一检索引擎渲染（分页/空态由引擎提供） */
+function _renderGroupActivities(container, activities) {
+  const host = container.querySelector('#gp-group-activities');
+  // 新建入口（元素随 innerHTML 重建 → 逐次绑定即幂等）
+  container.querySelector('.gp-new-activity')?.addEventListener('click', openActivityWriteEntry);
+  if (!host) return;
+  const rows = (activities || [])
+    .filter(a => a && a.direction === 'bottom-up')
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  renderFilteredList(host, {
+    stateKey: 'secretary-group-activities',
+    rows,
+    countUnit: '场',
+    listClass: 'space-y-1.5',
+    emptyMessage: '暂无党小组发起的活动（方向「自下而上」）——新建时选「自下而上」即在此归集',
+    rowHtml: (a) => `
+      <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors" style="text-decoration:none;color:inherit;" title="查看活动详情">
+        <span class="text-xs text-gray-500 w-20 shrink-0 tabular-nums">${esc(a.date || '—')}</span>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">${esc(a.type || '活动')}</span>
+        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
+        ${a.organizer ? `<span class="text-xs text-gray-500 shrink-0">${esc(getPersonName(a.organizer))}</span>` : ''}
+        <span class="text-xs text-gray-500 shrink-0">›</span>
+      </a>`,
+  });
+}
+
+/** 复用既有「写入活动」入口（**不新造表单**）：切到「活动管理」tab → 待其渲染后点既有「写入活动」按钮开浮窗。
+ *  ⚠ 写入浮窗定义在 calendar-tab.js（本批不改它）⇒ 只能经既有按钮入口触发；下方 2s 兜底覆盖
+ *    「党委下钻只读视图已移除该入口 / 渲染失败」两种点不到的情形（静默收手，不抛错）。 */
+export function openActivityWriteEntry() {
+  const tabBtn = document.querySelector('.secretary-tab-btn[data-secretary-tab="calendar"]');
+  if (tabBtn) tabBtn.click();
+  let tries = 0;
+  const timer = setInterval(() => {
+    const writeBtn = document.getElementById('ws-sec-write-btn');
+    if (writeBtn) { clearInterval(timer); writeBtn.click(); return; }
+    if (++tries >= 40) clearInterval(timer);
+  }, 50);
 }

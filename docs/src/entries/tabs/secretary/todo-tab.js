@@ -768,8 +768,9 @@ function handleTodoAction(todo, ctx) {
     return;
   }
   // 根据 actionType 跳转到对应 tab（renderTabBar 统一按钮类名）
+  // 2026-09-25（赋权按对象归位）：authorize 原落「赋权管理」tab（已删）⇒ 落收编赋权①②的「党小组与活动」
   const tabMap = {
-    authorize: 'assign',
+    authorize: 'group-progress',
     write: 'calendar',
     review: 'feedback',
     notify: 'notification',
@@ -779,7 +780,7 @@ function handleTodoAction(todo, ctx) {
     const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${targetTab}"]`);
     if (btn) btn.click();
     // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）
-    if (targetTab === 'assign' && todo.actionType === 'authorize') {
+    if (targetTab === 'group-progress' && todo.actionType === 'authorize') {
       expandAssignPanelForTodo(todo);
     }
     showToast('info', `已跳转，请处理：${todo.title}`);
@@ -796,7 +797,7 @@ function jumpToCalendar(group) {
   showToast('info', `已跳转到活动管理，请跟进：${group.title}${first && first.name ? `（${first.name}）` : ''}`);
 }
 
-/** t5c：赋权管理 tab 落地后，按待办 scope 自动展开对应赋权面板 */
+/** t5c：赋权分块落地「党小组与活动」tab 后，按待办 scope 自动展开对应赋权面板（情景①② 在本台；情景③ 已按对象归位组织委员台） */
 function expandAssignPanelForTodo(todo) {
   const scope = todo.actionData?.scope;
   const sourceId = todo.actionData?.sourceId;

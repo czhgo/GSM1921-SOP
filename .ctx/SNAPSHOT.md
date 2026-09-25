@@ -87,6 +87,10 @@ GSM1921-SOP/
     └── logs/                   ← 执行日志+决策日志（临时 spec 受管区 .trae/specs 用后即删，禁入 content）
 ```
 
+> **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
+>
+> **30 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `compliance_references` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports` · `weekly_reports`。
+
 ## II. 分层架构（D-218 正交维度模型）
 
 | Layer | 名称 | 位置 | 角色 |

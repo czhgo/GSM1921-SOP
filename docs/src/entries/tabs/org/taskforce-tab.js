@@ -31,6 +31,10 @@ import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=2
 import { getPersonName, PersonStore } from '../../../services/person.js?v=20260924a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
 import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+// 情景③ 专班赋权（2026-09-25 支书裁「全按对象归位」：专班赋权归本台「专班管理」）——
+//   实现单一源＝entries/tabs/secretary/assign-tab.js::mountTaskforceProjectAuth（该模块已不注册为 tab，
+//   仅余分块渲染）⇒ 本 tab 只挂载，不新造第二套表单/视觉；权限判定仍在 assign-tab/AuthStore 一处。
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20260924a';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -81,6 +85,7 @@ export function renderContent(ctx) {
     </div>
     <div id="tf-detail-panel" class="hidden card rounded-xl p-5"></div>
     <div id="org-activity-progress" class="mt-4"></div>
+    <div id="org-tf-assign-host" class="mt-4"></div>
   `;
 
   function renderKanban() {
@@ -230,6 +235,9 @@ export function renderContent(ctx) {
 
   // ── 活动进度区块（原追踪看板内容融入） ──
   _renderActivityProgress(activities, ctx);
+
+  // ── 情景③ 专班赋权（从支书台「赋权管理」按对象归位到本台） ──
+  mountTaskforceProjectAuth(document.getElementById('org-tf-assign-host'));
 
   // ── 招募状态流转按钮事件委托（recruiting → active → archived；挂各桶宿主，捕获阶段） ──
   function bindStatusButtons(host) {

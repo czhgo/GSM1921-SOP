@@ -19153,6 +19153,198 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 6. **本批不新增 `D-` 条、不改任何口径行** ⇒ 决策日志**仍 375 条**、`ACTIVE_RULINGS` 口径行**仍 118** ✓
 7. **提交**：本批内容按支书指令**提交一版（不 push）** ✓
 
+## 批次 188（2026-09-25，`D-650`）**后端加固三件 —— 最小可用迁移机制 ＋ 备份→恢复演练 ＋ 完整性 / 版本自检守卫**
+
+> **本批来源**：支书令「**后端的事情立刻补！！**」。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `server/**` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 190**。
+
+### 一、前提与硬证据（**实读实测**）
+
+- `server/data.db`：**0.46 MB**（实读 **479,232 B ≈ 0.457 MB**）/ **45 张表** / 全库 **317 行** / **30 张空表** / 无 `uploads/` / `journal_mode=wal`。
+- 栈：`express@4.19` ＋ **`better-sqlite3@^12`**（**同步驱动、单进程、单写者**）。
+- **加固前 `db.js`：0 处 `PRAGMA user_version`、0 处 `ALTER TABLE`** ⇒ **无版本化迁移机制**——结构改了而线上库不跟着改，**无从发现**（**头号技术债**）。
+
+### 二、三件交付（逐条）
+
+1. **最小可用迁移机制**：`PRAGMA user_version` ＋ 有序 `MIGRATIONS` 列表（`{version,name,up}`）；启动期 `db.js` 内 `applyMigrations(db)` **按序、单事务**执行，跑完写回版本；**幂等、可重入、失败回滚且不吞**（抛错拒启动）；启动日志 `[db] schema vN（本次应用 M 项）`。
+   - **切法**：`v1 = baseline-2026-09-25`（**幂等标记迁移**：幂等重放 `db.js` 自建的 DDL，全是 `IF NOT EXISTS` 且 `initDb` 此刻已建过 ⇒ **纯标记、无副作用**）；既有真库首启即登记为 v1。**既有 `CREATE TABLE IF NOT EXISTS` 路径一字未改**（**叠加不替换**）。今后新增 / 变更结构一律走 `v2…`。
+   - **★ 行号零漂移**：接入点放在 `server/db.js` 的 **`return db;` 那一行**（`:68`）⇒ 该文件被 `README-server.md` 取证的靶点（`:2` / `:9-42` / `:37-41` / `:41` / `:44-58` / `:45-49` / `:50-57` / `:62` / `:64-66` / `:45-57` / `:152-159` / `:68`）**全部保持有效**。导出：`MIGRATIONS`（`:207-221`）· `SCHEMA_VERSION`（`:224`）· `validateMigrations` · `applyMigrations`。改后 `db.js` **＋103/−1 行**。
+   - **真机验证（对真库副本，未动 `data.db` 本体）**：`user_version 0→1` · `行数 317→317` · `表 45→45`；`data.db` 的 size 与 **mtime 前后完全相同** ⇒ **本体未被触碰**（`-wal` 恒 0 字节）。
+   - **幂等 / 回滚 / 不吞的实测**：M2（二次 `initDb` 无迁移日志、`applied:[]`、版本 / 表 / 行不动）· M4（注入「v1 建表 ＋ v2 抛错」⇒ 抛错、`user_version` 仍 0、临时表**不存在**＝回滚生效）· M4 / M5 `assert.throws`。
+2. **备份→恢复演练（可复现）**＝`server/test/backup-restore.test.mjs`：**真 spawn `server/scripts/backup.mjs`**（非「文件存在」式假绿）→ 破坏原库（删 `.db` / `-wal` / `-shm`）→ 恢复到**新路径** → 断言（`integrity_check=ok`、`users` **逐值一致**、嵌套字段逐值、行数一致、附件内容一致）。
+   - **★ WAL 实证（最有价值的一条）**：未 checkpoint 的 `data.db-wal`＝**696,312 B** 时，`db.backup()` 副本 `users` **3 行齐全（含 WAL 内容）**；而**只拷主文件**的副本里 `users` **表根本不存在**（0 行）⇒ **「绝不能直接 `copy data.db`」有实锤**。
+3. **完整性 / 版本自检守卫**＝`server/test/db-integrity-guard.test.mjs`：`G1` `integrity_check=ok` · `G2` `user_version === SCHEMA_VERSION`（防「有迁移没跑」/「版本号被手改」）· `G3` 列表自检（严格递增唯一 ＋ 有 name/up）· `G4` 非空转（抽取基线：`db.js` 自建表集合须恰＝冻结基线 **45 张**；合成反例覆盖「重复版本 / 非递增 / 缺 name / 缺 up / 空列表 / version 非法」）· **`G5`「往 `RESOURCE_TABLES` 加表却没写 migration 即红」**（v1 基线**冻结**，防「往基线塞表」绕过）· **`G6` 全 `server/` 的 `ALTER TABLE` 只许出现在 migration 段内**（带「扫描 ≥10 文件」的非空转判据）。
+
+### 三、★ 反例实测（判据非空转）
+
+- **临时加一个重复版本号的迁移** ⇒ **5 项中 2 红**（`G1` / `G2` 报「迁移列表自检未通过，拒绝启动：…version 重复／未严格递增」、`G3` 报「`MIGRATIONS` 本身未通过自检」）⇒ **撤销后 5 项全绿**，`grep REVERSE-TEST db.js` ＝ **0**（**反例未留盘**）。
+
+### 四、★ 实读更正（**必须落账**）
+
+1. **「45 张表大部分由各模块自建」不成立**：全 `server/` **仅 `db.js` 有建表语句**（45 张 ＝ 35 资源表 ＋ 7 语义表 ＋ `sessions` / `attachments` / `collection_versions`），各 routes 无建表 ⇒ **守卫只需解析 `db.js`**。
+2. `db.js` **改前是 170 行**（**不是任务书说的 160 行**）。（⚠ **收尾人复算**：现盘 Get-Content 计 **271 行** / `git diff --numstat` 计 **＋103/−1**；与「170＋103−1＝272」**差 1**，成因属**行末换行 / CRLF 口径差异**，**只登记不擅改**。）
+3. **「仅 4 处 `CREATE TABLE IF NOT EXISTS`」＝字面串 4 次**，但**模板循环展开后实建 45 张**。
+
+### 五、⚠ 只登记（**未处理，不得写成已办**）
+
+1. **单写者**（长事务阻塞全站写；WAL 只救读不救写）· **30 张空表**（结构先行、数据未落地）· 附件走磁盘（当前 0 个，方向正确）。
+2. **3 个新测试未加进** `package.json` 的 `test:daily` / `test:fast` 显式清单（**全量 `npm test` 自动发现，故已在提交前档内**；README 已给直跑命令）。
+3. `server/README.md` 的「S 类 **71** 文件」**本就与实况不符**（实测非 playwright 测试文件 **78**，含新增 3）——**未改**。
+4. **`G6` 目前 0 处 `ALTER`** ⇒ 该条现为**结构性防线**，**待首个 `ALTER` 才有实证**。
+
+### 六、实测
+
+- **新增 3 文件 12/12** ＋ **指定既有 7 件 84/84**（`server-base` / `reset-tier` / `reset-tier-init` / `records-endpoints` / `doc-line-ref` / `doc-consistency` / `version-stamp`）；`doc-line-ref` 单跑 **R1–R6 全绿**（其间 R2 曾因 README 行号写偏一红，已改准 `206-220/223` → `207-221/224`）。
+- ⚠ **不得读成「全量绿」**：本批**未跑全量**；**收尾全量由收尾人另跑（见批次 190）**。
+
+### 七、台账动作（本批）
+
+1. **决策日志**：新增 `D-650`（＋四处计数同步）。
+2. **`ACTIVE_RULINGS`**：**新立 2 行**（「十二、死场景与系统形态」）⇒ **口径行 118 → 120**。
+3. **`TIMESTAMPS`**：`server/db.js` / `server/README.md` / `README-server.md` 行刷 **2026-09-25**；`server/test/*.test.mjs` 通配行改注（3 个新文件并入）。
+4. 本节。
+
+### 八、收尾自检
+
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`。
+
+## 批次 189（2026-09-25，`D-651`）**支书台 tab 改造 —— `group-progress` 更名「党小组与活动」＋ 只收编党小组活动 ＋ 补快捷入口**
+
+> **本批来源**：支书三条裁定（逐字）「**按「党小组与活动」这个名落地**」＋ **tab 改名** · **补快捷入口** · **只收编党小组活动**。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `docs/**` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 190**。
+
+### 一、三条裁定与落点
+
+1. **改名**：`docs/src/modules/capabilities/secretary-workspace.js` 的 `group-progress` 项 `label: '党小组'` → **`'党小组与活动'`**；**`id` 保持不变**。
+   - **理由（逐条）**：该 id 被 **三类既有键引用**——`?tab=` 深链 / 个人 tab 顺序偏好（localStorage `gsm1921-pref-<personId>-tab-order-workspace:secretary`）/ 支部 config 的 `hiddenTabIds`·`tabOrder`；**且多处测试直接断言该 id**（`preferences` 拖拽日志、`branch-module-catalog` 等）⇒ **改 id 须迁移三类键、无收益、风险大**。
+2. **引用同步（「指这个 tab」的地方）**：`docs/help.html` **§2.1 tab 行（`:427`）** ＋ 定点卡 `#card-copy-party-group` 内 **3 处**（`:576` / `:580` / `:582`）＋ 复盘定点卡 `#card-copy-review-submit` 内 **2 处**（`:588` / `:592`）。**grep 后零命中故未动**：`modules/references.js` · `core/function-catalog.js` · `tabs/secretary/overview-tab.js` 的 `tabLabels`。
+3. **只收编党小组活动**：该 tab 内新增分区「党小组活动」（`_groupActivitySectionHtml()`，注入位置在「党小组清单」卡之后；**行数 1:1 ⇒ `:714` 未位移**，`form-loop-sweep` 的取证行仍含「组名不能为空」）。
+   - **判据单一源＝`direction === 'bottom-up'`**（`docs/src/entries/activity-entry.js:306`「自下而上（党小组发起）」；辅证 `services/roles.js:47`、`components/work-overview.js:313`）。**`hostGroup` 被实读否决**：它是「**承办**党小组」、只用于考勤应到推导、种子多数为空 ⇒ **不完整**。
+   - **新建入口复用既有浮窗**：`openActivityWriteEntry()` → 切「活动管理」tab → 点既有 `#ws-sec-write-btn`（**未新造表单**）。列表走统一检索引擎 `renderFilteredList`，行**只读**、点行进 `activity.html?id=`。
+4. **★ 逐场核对（真机）**：**16 场 bottom-up**，分区内每场均为**一个只读 `<a>`**（`button`/`input`/`select`/`textarea`/`form` 计数全 **0**）⇒ 脚本输出「核对 16 行 / 期望 16；违规=[]」；分区卡内**除分页控件外唯一写控件**＝`["+ 新建党小组活动"]`（不绑定任何 `data-act-id`）；**「活动管理」tab 内所有 `data-act-id` 节点上无写控件** ⇒ **同一场党小组活动不在两处各给一份可写入口**。
+5. **「活动管理」tab 零改动**：**日历仍全量**（真机实测「活动查询」计数＝**共 33 条** ＝ bottom-up 16 ＋ 非 bottom-up 17，**未按方向切一半**）。
+6. **补快捷入口**：落 `docs/src/entries/tabs/today/today-tab.js`（**今天页**——支书台登录落点，正是「留一手」处）；形态**复用本页既有 `_dutyBlock` 体例**（**未新增视觉**）；文案「活动管理」＋「建活动」＋「看日历」＝**10 字**（≤60，合 `DESIGN_SYSTEM §4.18 C1`）；`建活动` → 既有写入浮窗（实测打开）、`看日历` → 落 `#calendar-view-section`（实测）。
+
+### 二、★ 发现既有缺陷（**非本批引入，真机可复现**）
+
+- `#secretary-tab-content` 跨 tab 复用，而 `calendar-tab.js` 用 `tc.dataset.currentTab` 守卫决定是否重建骨架；**今天 / 党小组与活动 / 知情查看** 渲染时**不登记**该标记 ⇒「**活动管理 → 今天 → 活动管理**」「活动管理 → 知情查看 → 活动管理」**残留上一 tab 内容**。
+- **授权面内已修今天与党小组**（补 `container.dataset.currentTab=…`，与 todo/overview/assign 既有约定一致）。
+- ⚠ **「知情查看」路径（`components/insight-view.js`）超授权面未修，实测仍残留 ⇒ 待裁**（**不得写成已修**）。
+
+### 三、⚠ 只登记（**未做，不得写成已办**）
+
+1. **`?tab=assign` 去向未定、本批未删**——支书**已裁「直接删」**，但三情景去向正与支书协作确认中（见 `D-649`；**不得写成已办**）。
+2. **日历侧「提示入口指向新分区 / 就地开浮窗」未做**（需改 `calendar-tab.js`，**超授权面**）。
+3. `entries/party-committee-meeting-entry.js:216`（「可到支书台「党小组」确认组长设置」）· `README-server.md:389` 表行 `group-progress / 党小组` · `content/**` 与 `.ctx/**` 的旧名 —— **超授权面或禁改面，未改**。
+4. **空日（`total=0`）下的快捷入口变体未真机跑到**（演示种子支书有待办 ⇒ 不可达），仅代码路径保证。
+
+### 四、实测
+
+- 静态 **9 件 ＋ 追加 3 件静态守卫 ⇒ 83/83**；追加 `filter-row` / `branch-module-catalog` / `preferences` / `group-view` ⇒ **54/54**；真机 `page-sweep` **11/11**（普查 tab=67 · 引擎列表=67 · 裸手写表格=2 · 裸控件=0）、`click-cost` **5/5**；本批专项真机核对 **15/15**。
+- （首跑曾 `doc-line-ref R2` 红在 `README-server.md:1556 → server/db.js:223`，经核为**另一路后端迁移批的在途引用漂移**，该路补齐后复跑全绿 ⇒ **与本批无关**，如实登记。）
+- ⚠ **不得读成「全量绿」**：**收尾全量由收尾人另跑（见批次 190）**。
+
+### 五、台账动作（本批）
+
+1. **决策日志**：新增 `D-651`（＋四处计数同步）。
+2. **`ACTIVE_RULINGS`**：**不入表**（`?tab=assign` 去向未定、无新通则），在批次增量句里写明「**待裁、未动**」。
+3. **`TIMESTAMPS`**：`docs/help.html` 行**加注**（日期仍 `2026-09-25`）；`docs/src/modules/capabilities/secretary-workspace.js` / `docs/src/entries/tabs/secretary/group-progress-tab.js` / `docs/src/entries/tabs/today/today-tab.js` **本表原无行 ⇒ 覆盖缺口如实登记、不补行**。
+4. 本节。
+
+### 六、收尾自检
+
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`。
+
+## 批次 190（2026-09-25，`D-652`）**赋权三情景「全按对象归位」＋ 删 `assign` tab ＋ 修跨 tab 残留缺陷 ＋ 30 张空表台账标注**
+
+> **本批来源**：支书三条裁定（逐字）「**全按对象归位（推荐）**」·「**立即修（推荐）**」（跨 tab 残留缺陷）·「**台账标注（推荐）**」（30 张空表）。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `docs/**` / `README-server.md` / `server/test/**` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 191**。
+
+### 一、三情景「全按对象归位」（逐条给落点）
+
+1. **① 设党小组组长 / 支委身份** → 支书台**「党小组与活动」tab 的「党小组清单」卡内、与「组 / 组长」同区**（**未另起分区**；宿主 `#gp-leader-assign-host`，`group-progress-tab.js:222`；挂载 `_mountAssignBlocks`（`:149-151`）→ `mountLeaderAssign`（`assign-tab.js:85`，HTML `LEADER_ASSIGN_HTML:52`））。
+2. **② 活动项目赋权** → 同 tab 的**「党小组活动」分区下方**（跟活动走；宿主 `#gp-activity-auth-host`，`group-progress-tab.js:801`；`mountActivityProjectAuth`（`assign-tab.js:98`，HTML `:69`））。
+3. **③ 专班赋权** → 组织委员台**「专班管理」**（宿主 `#org-tf-assign-host`，`org/taskforce-tab.js:88`；`:240` 调 `mountTaskforceProjectAuth`（`assign-tab.js:105`，HTML `:77`））。
+4. **★ `assign-tab.js` 处置＝保留（不删）**：它仍是三处的**共同实现**（`group-progress-tab.js:56` 与 `org/taskforce-tab.js:37` 两处 import）；文件头已写明「不再注册为 tab…仅余三处分块渲染（三个 `mount*` 导出 ＋ 私有实现）」＋ 三情景去向 ＋「权限判定一字未改」。
+   - **为什么不是「一 tab 一文件」的彻底搬平（如实登记，理由很硬）**：`hex-hardcode-guard` 的 **H1/H2 是逐文件 ratchet**——把 `assign-tab.js` 的硬编码色值搬进 `group-progress-tab.js` / `taskforce-tab.js` 会**同时**触发「新增 (文件,值)」与「逐文件处数 > 基线」，而**基线纪律明令禁止上调** ⇒ **只能搬「功能落点」、实现留一处**。
+5. **制度文本迁移**：3 张**新 help 定点**（`docs/help.html` `#sec-copy-anchors` 节内）：`card-copy-assign-leader`（`:599`）· `card-copy-assign-activity`（`:611`）· `card-copy-assign-taskforce`（`:622`），均带 `data-copy-key` / `data-search` / `data-copy-source`；界面侧 3 处**一行 ＋ 深链**（`assign-tab.js` L58 / L72 / L80）。**逐字零丢失**（含原两处 `<details>` 的「身份边界」与「支书为何可介入」正文，**仅加前缀**）。
+6. **`copy-master-guard` 命中数**：改前 **13 条 / 10 文件** → 改后 **13 条 / 10 文件**（**持平，未上升**）。
+7. **权限判定未改的证据**：写口一行未动（`AuthStore.authorize` / `services/appointment.js::appointBranchCommissioner|revokeBranchCommissioner` / `AuthStore.syncProjectRoles`）；**7 处字段级校验文案与控制流一字未改**（`form-loop-registry.mjs` 台账 **file / field / msg 零改动**，只改行号）；真机三条赋权闭环改后全绿。
+
+### 二、删 `assign` tab 的连带（逐处落账）
+
+- `secretary-workspace.js:46`（删注册行）· `core/function-catalog.js:24`（`tab:'assign'` → `'group-progress'`；`desc` / `usage` 改准；**`name` 保持「赋权管理」**——因 `generateMindmapText()` 用它生成**根 `README.md` 功能地图**，而根 `README.md` 当时不在授权面 ⇒ 改名会破 `catalog-sync T3`）· 同文件 `:55`（`12 tab` → `11 tab`、「党小组」→「党小组与活动」）· `overview-tab.js:330→332`（`direct:'assign'` → `'group-progress'`）与 `:474→475`（`tabLabels`）· `todo-tab.js:772→773`（`authorize:'assign'` → `'group-progress'`）＋ `:782→783` 守卫同步 ＋ `:799` 注释 · `docs/help.html`（§0.1 表 `12 个 tab` → `11 个`（`:282`）· §2.1 标题（`:413`）· §2.1 表删「赋权管理」行并改写「党小组与活动」行 · `#card-copy-party-group` 内「指派入口在『赋权管理』」→ 改指同卡「组长指派」）· `README-server.md`（§3.2.1 `— 12 个` → `— 11 个`、删 assign 行并重排编号、`group-progress` 行改名并补情景①②、§3.2.2 `taskforce` 行补情景③）。
+- **既有测试断言「改准」（逐条：原文 → 新现实，均非放宽）**：`preferences.test.mjs`（fixture 删 `assign`；`BUSINESS` 删 `'assign'`；`:100` / `:161` 两处期望数组删 `'assign'`）· `form-loop-registry.mjs`（7 条 `assign-tab.js` 行号 `252/253/254/456/460/639/640` → `272/273/274/476/480/659/660`（+20）；3 条 `MACHINE_FLOWS.tab` `'赋权管理'` → `'党小组与活动'`，DOM / 载体 / carrier 未动；10 条 `taskforce-tab.js` 行号 +8 ＋ 1 处 expect `626→634`；`group-progress-tab.js` 组名行 `714→726`；**S0 规模基线 101/56 未动**）· `page-sweep.test.mjs`（门槛 **`>=65` → `>=66`**，**比原更严**：原值落后实测 2，本批删 assign 后实测 66，注释同批说明 67→66）。
+
+### 三、`?tab=assign` 与旧支部 config 的**实测行为**
+
+- **`?tab=assign` 直达** ⇒ **降级到「今天」**、**0 pageerror**、无白屏（**未做兼容映射**，按裁定直接删）。
+- **旧支部 config 带 `assign`**：注入 `hiddenTabIds:['assign','calendar']`、`tabOrder:['assign','group-progress']` ⇒ `applyTabPolicyPure` **无异常**，输出 `['today','group-progress']`（`assign` 在旧配置里**原样保留但应用时被确定性忽略**：库里无该 id 的 tab，过滤 / 排序自然不命中）；**新配置由注册表派生 ⇒ 不会再生 `assign`**（**不留半生效**）。
+
+### 四、修跨 tab 残留缺陷（支书裁：立即修）＋ 4 台核对
+
+- **病灶**：`#secretary-tab-content` 跨 tab 复用，而 `calendar-tab.js` 用 `tc.dataset.currentTab` 守卫决定是否重建骨架；**「知情查看」渲染时不登记该标记** ⇒「活动管理 → 知情查看 → 活动管理」**残留上一 tab 内容**。
+- **修法**：`docs/src/components/insight-view.js:50` 渲染时补 `container.dataset.currentTab = 'tf-view';`（6 台此 tab 注册 id 统一 `tf-view`；体例照抄 `today` / `overview` / `todo` / `group-progress`）。
+- **4 台逐台真机核对（全绿）**：支书台按真实病灶跑「活动管理 → 知情查看 → 活动管理」⇒ 切回后 `#insight-seg-body` 计数 **0**、`#ws-sec-write-btn` 在位；纪检 / 组长 / 组织台跑「知情查看 → 我的处置 → 知情查看」⇒ 返回后内容在位且非空；四台 `pageerror` 均 0。
+- **★ 同型隐患另 1 处（只登记、未修）**：`docs/src/entries/tabs/party-committee/party-config-tab.js:17`（「本 tab 守卫 ＋ 同台其它 tab 不登记标记」同型）；**该文件当时不在授权面 ⇒ 未修，待裁**（下一批正在处置，见批次 191）。
+
+### 五、30 张空表 → **台账标注**（本批第二件）
+
+- **前提（已实测）**：`server/data.db` **45 张表**、全库 **317 行**、其中 **30 张为空**（结构先行、数据未落地）。
+- **做了什么**：在 `.ctx/SNAPSHOT.md` 的 `§I 全局物理拓扑`（`db.js` / `data.db` 两行一带）**之后**新增一段「**数据表现状（台账标注）**」——写明 **45 张表 / 317 行 / 30 张空表** ＋ **逐表清单**（30 张）＋ **注记的性质＝台账标注、不代表功能不可用**（**是标注、不是处理**）；同批另两条「**单写者**」「**附件走磁盘**」**本就建议不动**，一并说明。
+- **30 张空表清单**（以上一批后端实测为准，照录）：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `compliance_references` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports` · `weekly_reports`。
+- ⚠ **不许改 `server/**`**（表清单**从 `.ctx` 侧写**、**不新增 `.ctx` 独立文件**——落在 `SNAPSHOT.md` **既有小节里**）；⚠ **不许写成「已修复」**——这是**标注、不是处理**。
+
+### 六、诚实项四条（**只登记，不得写成已办**）
+
+1. **党委台同型隐患未修**（`party-committee/party-config-tab.js:17`——「本 tab 守卫 ＋ 同台其它 tab 不登记标记」同型；**超授权面**）。
+2. **根 `README.md` 功能地图未改**（**授权面外**）⇒ 连带使 `function-catalog` 条目 `name` **不能改名**（`generateMindmapText()` 用它生成根 README 的功能地图，改名会破 `catalog-sync T3`）。
+3. **未为「情景③ 专班赋权」新增 `MACHINE_FLOWS` 真机流程**（**避免上调 `FLOWS_BASELINE`**；该表单已在**真机专项 V3** 与页面渲染中核对）。
+4. `assign-tab.js` / `taskforce-tab.js` 在 `entries/**`，`module-load E1` **显式排除该目录** ⇒ 其语法由 `page-sweep` / `form-loop-sweep` 真机加载兜底（**不是「已覆盖」**）。
+
+### 七、实测（**非全量**）
+
+- ① 要求批 11 个文件 **78/78**；② `page-sweep` 七台全绿（`[普查覆盖] tab=66` ≥ 门槛 66；S1–S3 绿）；③ `click-cost` **5/5**（C1＝5 次点击 ≤6）；④ 自写专项 **V1–V6 全绿**（①tab 列表无「赋权管理」且党小组与活动含情景①②；②`?tab=assign`＝今天、0 error；③组织台专班管理含情景③；④**组长指派入口恰 1 处**；⑤4 台知情查看往返不残留；⑥旧 config 带 assign 不报错不半生效）；⑤ `form-loop-sweep`（`FORM_LOOP_TABS=党小组与活动`：S0–S7 ＋ 3 条赋权真机闭环绿；`FORM_LOOP_TABS=专班管理`：**pass 16 / fail 0**）；⑥ 静态 6 件 **52/52**（hex 处数 2009 ≤ 基线 2025）。
+- ⚠ **不得读成「全量绿」**：本批**未跑全量**；**收尾全量由收尾人另跑（见批次 191）**。
+
+### 八、台账动作（本批）
+
+1. **决策日志**：新增 `D-652`（＋**四处计数同步**：文首 / 续编说明 / 本月目录 / 月度索引）。
+2. **`ACTIVE_RULINGS`**：**新立 1 行**（「十二、死场景与系统形态」加「同一容器跨 tab 复用：每个 tab 的渲染必须登记 `dataset.currentTab`」）＋ **改准 3 行**（`D-434` 赋权三情景落点 · `D-623` 情景① 表单落点 · `D-648` 的 `assign-tab` 制度文本去留）⇒ **口径行 120 → 121**。
+3. **`TIMESTAMPS`**：`docs/src/entries/tabs/org/taskforce-tab.js` / `server/test/form-loop-registry.mjs` 两行**刷 2026-09-25 并加注**；`docs/help.html` / `README-server.md` / `.ctx/SNAPSHOT.md` 三行**加注**（日期仍 `2026-09-25`）；`docs/src/modules/capabilities/secretary-workspace.js` / `docs/src/entries/tabs/secretary/{assign-tab,group-progress-tab,overview-tab,todo-tab}.js` / `docs/src/components/insight-view.js` / `docs/src/core/function-catalog.js` / `server/test/page-sweep.test.mjs` / `server/test/preferences.test.mjs` **本表原无行 ⇒ 覆盖缺口如实登记、不补行**。
+4. **`.ctx/SNAPSHOT.md`**：30 张空表台账标注（见「五」）。
+5. 本节。
+
+### 九、收尾自检
+
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`。
+- **提交前全量见批次 191**（由收尾人另跑；本批自测**非全量**）。
+
+## 批次 191（2026-09-25）**批次 188–190 的提交前全量**——全绿
+
+> **本批是批次 188 / 189 / 190 的提交前档**（那三节末留了「提交前全量见批次 191」）。**本批无新裁定、不改任何口径。**
+
+### 一、全量（冻结态，`R-85`）
+- **命令**：`cd server` → 起服务（`node server.js`，实测 `PORT3000_UP`）→ `npm test` → 跑完停服。
+- **首跑**：`ℹ tests 786` / `pass 785` / **`fail 1`**，`duration_ms 1199250.1`（≈20.0 分钟）。
+- **唯一红项**：`S6 台账行号未同步即红灯` —— **6 条**行号漂移，**全部落在批次 190 收尾那一路改过的文件**：`entries/tabs/party-committee/branches-tab.js`（`138→139` · `156→157` · `167→168`）· `dispatch-tab.js`（`92→96` · `93→97`）· `review-tab.js`（`104→105`）。
+- **收尾人处置**：按 `S6` 报文**只改行号**（**判据 / 文案 / 载体一字未动**，同 `D-644` 之后的既有处置口径）⇒ `S6` 单跑 **`tests 1` / `pass 1`** 绿。
+- **复跑（本批最终读数）**：**`ℹ tests 786` / `pass 786` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1169461.6`（**≈19.5 分钟**），**`EXITCODE=0`**。版本戳 `20260924a`、陈旧戳 0 处。
+- **测试数 774 → 786（+12）**：批次 188 新增三个后端加固测试（`db-migration` / `backup-restore` / `db-integrity-guard`，合计 12 项）。
+- **与上一轮全绿的对照**：`774/774/0`（批次 187）⇒ 本轮在**多做了后端迁移机制与备份恢复演练、tab 改名与赋权按对象归位（删 `assign` tab）、跨 tab 残留缺陷修复（含党委台 6 个兄弟 tab）、根 README 功能地图改准**之后仍 **786/786/0** ⇒ **本批未引入回归**。
+
+### 二、诚实项
+- 批次 188 / 189 / 190 各自的实测（`12/12` · `84/84` · `83/83` · `54/54` · `78/78` · `55/55` · `52/52` ＋ 真机 `page-sweep` 11/11 · `click-cost` 5/5 · 专项 V1–V6 · 党委台 6 条往返）**均非全量**；本节的全量是**它们共同的提交前档**。
+
+### 三、清理与收尾自检
+1. **全量一处同值**：`tests 786` ＝ `pass 786`、`fail 0` ✓
+2. **守卫四件套复跑**（`doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `link-integrity`）⇒ **41/41 绿** ✓
+3. **服务已停、端口已释放、无残留进程** ✓
+4. **`.tmp*` / `_tmp*` 0 命中** ✓
+5. **未跑 `bump-version.mjs`**、**未改任何 `?v=` 戳** ✓
+6. **本批不新增 `D-` 条、不改任何口径行** ⇒ 决策日志**仍 378 条**、`ACTIVE_RULINGS` 口径行**仍 121** ✓
+7. **提交**：批次 188–191 按支书指令**提交一版（不 push）** ✓
+
 
 
 
