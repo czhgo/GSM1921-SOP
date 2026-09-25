@@ -21,7 +21,7 @@ status: active
 |--------|------|------|
 | [`design-system/`](design-system/) | 设计系统（视觉/色彩/组件/点击落点） | [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md)（《设计系统》一份承全部） |
 | [`data/`](data/) | 数据架构（模型/流） | [DATA_MODEL.md](data/DATA_MODEL.md)（数据模型与数据流） |
-| [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) · [AUTHENTICATION_MODEL.md](deploy/AUTHENTICATION_MODEL.md) · [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) · [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) |
+| [`deploy/`](deploy/) | 部署与集成（路径/认证/外部对接） | [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md)（《部署与对外对接》一份承全部：部署路径 + 对接 + 认证门控 + 微信协同 + 北大对接） |
 | [`module/`](module/) | 页面/模块设计（UI 与 SOP 联动） | [SOP_WEBSITE_GUIDE.md](module/SOP_WEBSITE_GUIDE.md) · [MODULE_UI_DESIGN.md](module/MODULE_UI_DESIGN.md) · [ABOUT_PAGE_DESIGN.md](module/ABOUT_PAGE_DESIGN.md) · [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)（草案） |
 | [`evolution/`](evolution/) | 演进与校验（架构演进/契约与画布/党委两级治理/设计方法论承接；工程化评估已迁 `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 迁入、2026-09-09 更名「工程化评估与改造行动线」）） | [ARCHITECTURE_EVOLUTION.md](evolution/ARCHITECTURE_EVOLUTION.md) · [WORKFLOW_BLOCK_CONTRACT.md](evolution/WORKFLOW_BLOCK_CONTRACT.md) · [BRANCH_WORK_MAP.md](evolution/BRANCH_WORK_MAP.md) · [PARTY_COMMITTEE_DESIGN.md](evolution/PARTY_COMMITTEE_DESIGN.md) · [ROLE_PERMISSION_DESIGN.md](evolution/ROLE_PERMISSION_DESIGN.md) · [DESIGN_METHODOLOGY.md](evolution/DESIGN_METHODOLOGY.md) |
 
@@ -34,7 +34,7 @@ status: active
 本目录设计稿类文件的 frontmatter `status` 与速查表「权威源」列状态词的语义：
 
 - **active**——现行有效：当前承担该主题权威（速查表常标 **唯一权威**），以此为准；
-- **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)、`deploy/PKU_PARTY_INTEGRATION.md`；
+- **draft**——草案未定稿（速查表标「草案·待实施」）：尚未放行实施，如 [AGENDA_AND_REFERENCE_DESIGN.md](module/AGENDA_AND_REFERENCE_DESIGN.md)；
 - **landed / 已落地 YYYY-MM-DD**——设计结论已实现：文档转为**设计论证档案**，不再承担现行权威；现行权威见该行标注（如 MODULE_UI_DESIGN → [DESIGN_SYSTEM.md](design-system/DESIGN_SYSTEM.md) §四 组件规范 + SOP_WEBSITE_GUIDE、AGENDA_AND_REFERENCE_DESIGN → references.js + calendar-tab.js + member-change-panel.js、ROLE_PERMISSION_DESIGN → SYSTEM_ROLE_PERMISSION §9a0/§9b/§9c + 代码 `ROLE_KEYS`）或实现代码（如 BRANCH_WORK_MAP → `work-map-tab.js` + `workforce-panel.js`）；
 - **论证档案**——只承载论证（为什么）、反论（为什么不是）、判例与生效条件，规范正文以对应权威源文件为准。
 
@@ -57,10 +57,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针） | **唯一权威**——部署路径决策与对外对接诉求（2026-08-24 并入原 SCHOOL_IT_DEPLOYMENT 内容；2026-09-04 重构为对外总案） |
-| [AUTHENTICATION_MODEL.md](deploy/AUTHENTICATION_MODEL.md) | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | **唯一权威**——部署形态 / 登录态 / 门控的统一模型 |
-| [PKU_PARTY_INTEGRATION.md](deploy/PKU_PARTY_INTEGRATION.md) | 北大党校与智慧党建系统对接设计 | **唯一权威**——北大党建系统对接总体设计 |
-| [WECHAT_INTEGRATION.md](deploy/WECHAT_INTEGRATION.md) | 微信协同与小程序设计方案 | **唯一权威**——小程序侧设计 |
+| [DEPLOYMENT_GUIDE.md](deploy/DEPLOYMENT_GUIDE.md) | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | **唯一权威**——部署路径决策、对外对接诉求、部署形态/登录态/门控统一模型、小程序侧设计、北大党建系统对接总体设计 |
 
 ### 页面/模块设计（module/）
 

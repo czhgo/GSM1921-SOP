@@ -472,8 +472,15 @@ test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated
   // 非空转基线（2026-09-17 批次 61 实测：236 条 5 列行 = 比对 60 + 无 frontmatter 159 + 已删除/通配 12
   //   + 目录 3 + 白名单 2；表结构由 4 列改 5 列只是**插入一列**，登记行总数与各档计数均不变）；掉到基线以下＝口径被写松（大量行被静默跳过）
   //   ⚠ 新增的「移入归档日」列**不参与**「表行 ↔ frontmatter」比对（它无 frontmatter 对应物）
-  assert.ok(compared >= 60,
-    `S13 只比对到 ${compared} 行（基线 60）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
+  //   下限 60 → 58（2026-09-24 · `P.16` 文档合并批）：有 frontmatter 的 `.md` 被合并删除后，
+  //   其登记行按既有跳过条件（文件不存在）自然不再比对 ⇒ 下限随真实可比对数下调（本条只防「口径被写松」，不锁文件数）。
+  //   下限 58 → 55（2026-09-25 · `P.16` 第四批《部署与对外对接》）：同因——本批再删 3 份带 frontmatter 的
+  //   `.md`（`AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION`）。
+  //   ⚠ **这是第三次下调**（60→58→55）⇒「每合并一批就要改一个字面量」本身是设计债：真正的防线是下面的
+  //   `problems` 必须为空（漂移检测）与上面的 `rows.length >= 200`（解析非空转）；本字面量只是二级防呆。
+  //   建议后续改为**推导式**（由「登记行中文件仍存在者」的条数派生）⇒ 已登记为待办，未在本次擅改判据类型。
+  assert.ok(compared >= 55,
+    `S13 只比对到 ${compared} 行（基线 55）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
   assert.deepEqual(problems, [],
     `TIMESTAMPS.md 表行与文件 frontmatter 漂移（口径：**以 frontmatter 为准**，把表行日期改成 frontmatter 的值）：\n  ${problems.join('\n  ')}`);
 });

@@ -214,7 +214,17 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
     await pushAndPersist(a.page, { archiveRecords: { id: 'p11-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' } });
     await settle(a.page);
     // 服务端库为权威（表名＝资源名的 snake_case：archiveRecords → archive_records）
-    assert.ok(idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1'), '前置：设备 A 的写入应已落服务端');
+    // ⚠ **有界轮询等落库**（2026-09-25 · 批次 182 收尾）：原写法是「settle（定长 1800ms）之后只查一次」
+    //   ⇒ 在**全量负载**下防抖快照写穿可能尚未完成，本前置断言假红（实测：两次连续全量都红在这一行，
+    //   而单跑该文件恒绿）——属**测试鲁棒性缺陷**，非被测功能缺陷。
+    //   改为轮询**同一条件**（有界 20 × 300ms）：判据语义一字不变（仍要求「必须真的落库」），
+    //   只把「定长等待」换成「等到为止」。同族体例见本文件 `waitIdle`。
+    let landed = false;
+    for (let i = 0; i < 20; i++) {
+      if (idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1')) { landed = true; break; }
+      await a.page.waitForTimeout(300);
+    }
+    assert.ok(landed, '前置：设备 A 的写入应已落服务端');
     v1 = await versions(base, tokenA);
   } finally {
     await a.ctx.close();

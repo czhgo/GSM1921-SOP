@@ -191,7 +191,7 @@ function _manageCardHtml(entities, statOf, canManage) {
           ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">+ 新增党小组</button>' : ''}
         </div>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案（组长身份 + 组内归属）派生，指派入口在「赋权管理」；改名会同步改写该组全部成员的档案归属；解散允许非空组，组内成员转为「未分组」。</p>
+      <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案派生（指派在「赋权管理」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
@@ -480,7 +480,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；支书只读查看，点击已复盘行可展开详情。</p>
+      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>

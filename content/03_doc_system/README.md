@@ -10,7 +10,7 @@ status: active
 
 > **定位：** 本目录存放**知识类型 3：全仓库文档系统管理的技术方法**——回答"文档系统如何被治理、上下文如何管理、一改具改如何执行"。
 > **受众：** [工程师]（系统维护者、开发者）
-> **目录入口（2026-09-03 精简）**：本 README 仅列文件清单与子目录；逐篇一句话说明、权威层级与全仓库导航见 [DOC_MAP.md](DOC_MAP.md)——**DOC_MAP 承担全仓库导航**；母本子本关系注册见 [SSOT_INDEX.md](SSOT_INDEX.md)。
+> **目录入口（2026-09-03 精简）**：本 README 仅列文件清单与子目录；逐篇一句话说明、权威层级与全仓库导航见 [DOC_MAP.md](DOC_MAP.md)——**DOC_MAP 承担全仓库导航**；母本子本关系注册见 [ARCHITECTURE.md §十](ARCHITECTURE.md#十单一事实源注册表与权威源治理)。
 
 ## 文件清单
 
@@ -20,14 +20,12 @@ status: active
 - [PROCESS_GUIDE.md](PROCESS_GUIDE.md) — 运行标准·流程机制（甲部修改流程/吸收外部输入/周期性任务/支书评议）
 - [USAGE_POLICY.md](USAGE_POLICY.md) — P0 强制执行的使用规范（术语 §一 + AI 展开原则 §二 + Emoji 边界 §三）
 - [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
-- [SERVICE_CATALOG.md](SERVICE_CATALOG.md) — 统一服务目录（系统所有服务功能 + 角色权限映射）
 
-> FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 SERVICE_CATALOG.md 为准。
+> FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 ARCHITECTURE.md §十一 为准。
 
 ### 二、项目架构与母本注册
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — 核心架构说明（分层架构/数据模型/变更流水线），技术全景唯一权威
-- [SSOT_INDEX.md](SSOT_INDEX.md) — 母本注册表（全工作区母本子本关系的唯一权威注册）
+- [ARCHITECTURE.md](ARCHITECTURE.md) — 架构与单一事实源（分层架构/仓库结构/数据模型/变更流水线 + 单一事实源注册表 + 统一服务目录），技术全景唯一权威
 
 ## 子目录
 

@@ -148,7 +148,7 @@ function _proposalCards(proposals, outcomesByAct) {
           <div class="flex flex-wrap gap-1.5 mt-1.5">${lines.join('')}</div>
         </div>
         <div class="shrink-0 flex flex-col gap-1.5 items-end">
-          <a href="secretary.html?activityId=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
+          <a href="./workspace/secretary.html?activityId=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
           ${!adopted ? (adoptable
             ? `<button type="button" class="wf-adopt px-2.5 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700" data-id="${a.id}">采纳生效</button>`
             : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-500 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}

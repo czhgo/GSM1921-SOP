@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-23"
+last_updated: "2026-09-25"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md]
 ---
@@ -58,7 +58,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
   - **翻页标记单一源下沉**：抽为**叶子件** `components/pager.js`（避免与矩阵相互成环），并把全站**另有 6 处手写翻页控件**并轨到此（`.archive-page-btn`/`.issue-page-btn`/`.qv-page-btn`/`.feedback-page-btn`/`.visitor-act-page-btn`/`att-table-prev·next` 全部撤除）；
   - **矩阵能力补全**：人维分页（每页 10 人，行/列两个方向同一切片）、`cellClass` 单元格附加类钩子；
   - **宽表推广三域**：支部分工（人×工作项）、专班报名总表（人×专班）、表态矩阵并入单一源 → **全站矩阵实现收敛为 1 处**（矩阵收敛白名单清空）；随之清掉 `styles.css` 中被取代的 5 条 `.vs-matrix*` 死样式与失真注释（第 5 次特批）。
-  - **矩阵推广收口（批次 41，2026-09-15）**：末域「思想汇报台账」迁入**人 × 期次**宽表（行＝在册成员、列＝期次、cell＝最需处理状态 + 篇数）→ **矩阵「待迁清单」清空**（COMPONENT_SPEC §4.10）；顺带补 `listAllThoughtReports()` **全量归一出口**，把读侧归一收成唯一出口（§3.4 R25）。
+  - **矩阵推广收口（批次 41，2026-09-15）**：末域「思想汇报台账」迁入**人 × 期次**宽表（行＝在册成员、列＝期次、cell＝最需处理状态 + 篇数）→ **矩阵「待迁清单」清空**（`DESIGN_SYSTEM.md §4.10`；**2026-09-25 批次 179 改准**：原 `COMPONENT_SPEC.md` 已并入 `DESIGN_SYSTEM.md`、**§ 号一字未改**）；顺带补 `listAllThoughtReports()` **全量归一出口**，把读侧归一收成唯一出口（§3.4 R25）。
 
 失分项 / 残项（后续跟踪）：
 - 徽章/选择器等组件出口仍散：除三库外，query-view/picker/modal 等仍被各层逐文件直连。
@@ -98,7 +98,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - **制度参数 UI（同批）**：设置 → 支部治理「支部制度参数」卡把票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因作为**制度默认只读展示区**（支书/副视角，数据单一源 = policy-defaults，含域参数默认行）——「可调/不可调 + 默认出处」在 UI 可见；放开为支部可调 = 放行程序（支书裁决 → 登记白名单 → kind 注释同步 → 审计 why 回填，反向收权同理，见 PARTY_COMMITTEE_DESIGN §2.6）。
 - 表决配置 optionSet/voterScope/quorumCheck：默认=场景函数 vote-config.defaultVoteConfig(scenarioId)，每活动 voteConfig 可覆盖。
 - 分工归属 config.workforce（SOP 缺省责任人，支委会议题改派）。
-- 色值：styles.css 令牌与 COLOR_SYSTEM 固定/可调四层表对齐——党建红 `--party-red`/党徽金 `--party-gold` 固定不可调（已声明令牌化）、`--accent-*` 主题自选；styles.css ↔ COLOR_SYSTEM ↔ constants 三源一致、零游离字面量（行动线 P3e / 8.6 色值收敛）。
+- 色值：styles.css 令牌与 `DESIGN_SYSTEM.md §二`（原 `COLOR_SYSTEM.md`；**2026-09-25 批次 179 改准**）固定/可调四层表对齐——党建红 `--party-red`/党徽金 `--party-gold` 固定不可调（已声明令牌化）、`--accent-*` 主题自选；styles.css ↔ `DESIGN_SYSTEM.md §二` ↔ constants 三源一致、零游离字面量（行动线 P3e / 8.6 色值收敛）。
 
 失分项 / 残项（后续跟踪）：
 - 全量 config 引擎未达：仅 `POLICY_OVERRIDABLE` 白名单三键可经 UI 覆盖；未登记项（branch-default 未登记 / institutional 制度项）仍源码层改——放开须走放行程序（支书裁决，见 PARTY_COMMITTEE_DESIGN §2.6，行动线 P4d）。
@@ -239,7 +239,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P3b | 纪检会议考勤类型单源：`MEETING_ATTENDANCE_TYPES` 自 policy-defaults 派生导出，disc tab 引用（消双写） | ✅ 已做（2026-09-05；全仓该类型清单无第二份字面量） |
 | P3c | 建立 `core/policy-defaults.js`：业务阈值/名单（上传位例外、超期天数、应到 roster 等）集中默认 + 逐项注释「支部默认/制度固定」 | ✅ 已完成（2026-09-05 spec open-source-deploy-improve；`policy-config.test.mjs::T1–T5` 5/5 绿——该 5 条原为 `policy-defaults-sync.test.mjs`，2026-09-15 批次 47-F 第二组并入同域文件，消费点改引用） |
 | P3d | 模块组合声明契约：capabilities/模块元数据补 depends/combinesWith/exclusive（草案）+ config 校验扩展 | ✅ v0 已完成（2026-09-05；module-compose 纯校验 + 失败态测试 6/6 绿 + capability-registry 7/7 绿 + 契约文档节）；服务端 config 校验留 v1 |
-| P3e | 色板令牌收敛：styles.css 令牌与 COLOR_SYSTEM 对齐，固定/可调标注在文件头注释与四层表（8.6 落地：党建红/党徽金固定令牌化、`--accent-deep` 历史存量收敛为雾紫三源一致） | ✅ 已完成（2026-09-05；全仓无游离业务色字面量，品牌/角色色一律走令牌） |
+| P3e | 色板令牌收敛：styles.css 令牌与 `DESIGN_SYSTEM.md §二`（原 `COLOR_SYSTEM.md`；**2026-09-25 批次 179 改准**）对齐，固定/可调标注在文件头注释与四层表（8.6 落地：党建红/党徽金固定令牌化、`--accent-deep` 历史存量收敛为雾紫三源一致） | ✅ 已完成（2026-09-05；全仓无游离业务色字面量，品牌/角色色一律走令牌） |
 | 8.7-① | 支书台分工面板保态（最小操作成本）：发起表单区 `#wf-form-zone` 独立于议题列表容器，列表重建不触碰表单 DOM | ✅ 已完成（2026-09-05） |
 | 8.7-② | 支书台分工面板多议题票决判定并行：串行 for…of → `Promise.allSettled`（单失败 console.warn 不阻断）——缩短支书等待 | ✅ 已完成（2026-09-05） |
 | 8.7-③ | 纪检会议考勤录入「收起/展开」保态：容器 CSS `hidden` 切换（不销毁 PersonPicker、不重建 innerHTML），仅提交成功后才重置会话（外部 re-render 重建为既有行为，已注释说明） | ✅ 已完成（2026-09-05） |
@@ -281,7 +281,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 单一源**组件**登记（新增件须登记） | `README.md` 开发路径 · 单一源组件登记处 |
 | 本轮/历轮的**原始动作记录** | `.ctx/logs/2026-09-EXECUTION_LOG.md`（批次条目） |
 | 评审遗留与特批记录 | `.ctx/REVIEW_QUEUE.md`（Q 台账 + 附录） |
-| 术语与口径唯一化 | `content/03_doc_system/USAGE_POLICY.md`（母本表见 `SSOT_INDEX.md`） |
+| 术语与口径唯一化 | `content/03_doc_system/USAGE_POLICY.md`（母本表见 `ARCHITECTURE.md §十`；**2026-09-25 批次 179 改准**：原 `SSOT_INDEX.md` 已并入该处） |
 | 当前版本基线 | `.ctx/SNAPSHOT.md`（版本里程碑 + 生成段） |
 
 ### 5.4 每批任务的入口顺序（三步，谁改谁负责）

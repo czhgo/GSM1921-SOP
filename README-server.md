@@ -9,7 +9,7 @@
 > - **示例组织**：仓库自带的一份演示数据（某高校院系本科生党支部，50 名成员 + 1 名党委组织员），用于开箱即跑，**可整体替换**。
 > - **mock / api 两种形态**：同一套前端代码，数据源可以在「浏览器本地假数据（mock）」与「后端接口（api）」之间切换，**界面零改动**。
 
-**依据**：`server/README.md`（后端自述）、`README.md`（根说明）、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md`（部署与对外对接总案，唯一权威源）。
+**依据**：`server/README.md`（后端自述）、`README.md`（根说明）、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md`（部署与对外对接，唯一权威源）。
 
 ---
 
@@ -43,7 +43,7 @@
 | 前端 `docs/` | 纯静态 ESM 页面（无打包器、无构建步骤，浏览器直接加载） | mock：浏览器本地存储 + 内存 | 全部使用者 |
 | 后端 `server/` | 可选一体化 Node 服务（Express + better-sqlite3 单进程），同时托管 `docs/` 静态页与 `/api/v1` 接口 | SQLite 单文件持久化 | 需要账号登录与数据持久化时启用 |
 
-**依据**：`README.md:3`、`README.md:207`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:32-39`。
+**依据**：`README.md:3`、`README.md:207`（技术形态：原生 ESM、无打包器/无构建步骤）、`server/README.md:3`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:28-35`。
 
 ### 1.2 与「SOP 母本」的关系
 
@@ -73,7 +73,7 @@
 2. **对接准备阶段**：`DEPLOYMENT_GUIDE.md` 明确把「计算中心托管」标为 🔶 准备阶段（代码已就绪、待对接），微信小程序标为 🔶 规划阶段（**无代码**）。
 3. **公网演示只是「示例组织的一个部署」**，不代表系统的适用范围；同一套引擎可被多个组织分别部署、互不干扰。
 
-**依据**：`docs/src/mock/accounts.js:1`（「Mock 登录账号（模拟 IAAA 校验）」）、`docs/src/mock/people.js:66`、`docs/src/mock/branches.js`（支部种子 `br-b1`）、`server/README.md:17-19`、`README.md:77-81`、`README.md:180`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:47-54`（就绪度表）、`content/04_web_design/deploy/AUTHENTICATION_MODEL.md:75`（IAAA 为后续目标）。
+**依据**：`docs/src/mock/accounts.js:1`（「Mock 登录账号（模拟 IAAA 校验）」）、`docs/src/mock/people.js:66`、`docs/src/mock/branches.js`（支部种子 `br-b1`）、`server/README.md:17-19`、`README.md:77-81`、`README.md:180`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:43-48`（就绪度表）、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:454`（IAAA 为后续目标）。
 
 ---
 
@@ -368,7 +368,7 @@
 | | `docs/workspace/visitor.html` | 成员工作台（普通参与者） | 强制登录 |
 | | `docs/workspace/party-committee.html` | 党委工作台（组织级） | 强制登录 |
 
-**依据**：`docs/` 目录实况（15 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/AUTHENTICATION_MODEL.md:64-75`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
+**依据**：`docs/` 目录实况（15 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
 
 ### 3.2 各工作台页签（共 67 个）
 
@@ -1485,7 +1485,7 @@
 
 | 项 | 要求 | 依据 |
 |---|---|---|
-| Node.js | **`Node ≥ 22`**（根说明与部署文档现已一致）；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x`，**Node 18 不可用**；**`server/package.json` 未声明 `engines`**（建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:50`、`server/package.json` |
+| Node.js | **`Node ≥ 22`**（根说明与部署文档现已一致）；依赖 `better-sqlite3@12` 的 `engines` 为 `20.x \|\| 22.x`，**Node 18 不可用**；**`server/package.json` 未声明 `engines`**（建议按 ≥ 22 准备） | `README.md:15`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:46`、`server/package.json` |
 | 运行依赖（4 个） | `express ^4.19.0`、`better-sqlite3 ^12.0.0`、`multer ^1.4.5-lts.1`、`nodemailer ^9.0.6` | `server/package.json:14-19` |
 | 开发依赖（仅测试用） | `playwright 1.60.0`（**锁定版本**）；全新环境需先 `npx playwright install chromium` 下载浏览器 | `server/package.json:20-22`、`server/README.md:69` |
 | 前端依赖 | **无**——原生 ESM，**无打包器、无构建步骤**，浏览器直接加载 `docs/src/*.js` | `README.md:15`、`README.md:207` |
@@ -1507,7 +1507,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**2026-09-23 P0-2 改（不许静默降级）**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/core/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
 - **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/core/data-adapter.js:1112-1162`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/main-entry.js:201-207`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/core/data-adapter.js:980`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/core/data-adapter.js:983`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/core/data-adapter.js:1020`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1169` / `:1180`）。
 - 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 保持 `DEPLOY_MODE = 'static'`；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
-- ⚠ **反向代理的约束（2026-09-23 P0-6 核对项）**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` §五。
+- ⚠ **反向代理的约束（2026-09-23 P0-6 核对项）**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` 附录 A.2。
 - ⚠ **上传目录与请求体上限（2026-09-23 P0-6 核对项）**：反向代理须允许 `client_max_body_size ≥ 10m`（`server/routes/uploads.js:52` 的上传上限；另有 `/snapshot` 4MB 与 JSON 体 2MB），并保证 `UPLOAD_DIR`（缺省 `server/uploads/`）**对 Node 进程可写**，否则上传 500/413。
 
 **依据**：`server/server.js:1-23`、`server/README.md:5-19`、`:31-33`、`server/app.js:55-57`、`server/package.json:6-13`。
@@ -1540,7 +1540,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 19 | `APP_ENV` | **运行形态**：置 `production` ⇒ 生产形态（口令强校验 / 不认逃逸门 / 默认不播种）；等价开关 `NODE_ENV=production` | 否（**生产部署必设**） | 未设置（＝非生产：本地/演示/测试） | `server/env.js`、`server/server.js:12-13` |
 | 20 | `SEED_FALLBACK` | **前端空域种子回退开关**（Node 托管形态下由 `server/app.js` 注入进 `/src/config/deploy.js`）：置 `0` ⇒ 注入 `false`，不给「考勤 / 考察 / 待办」三域注入演示种子 | 否 | 未设置（＝`true`，演示形态） | `server/app.js:55-57`、`server/.env.example:15-18` |
 
-> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `DEPLOYMENT_GUIDE.md:241`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断（**2026-09-24 已接线**；此前登记过的「Node 托管下取不到、改不动」口径已作废）。消费点＝`docs/src/core/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
+> 另有**部署文档提到但代码中未使用**的变量，**未取证**（不要照抄）：`AI_API_BASE_URL`（AI 推理服务，见 `DEPLOYMENT_GUIDE.md:237`——在代码中未检索到消费点）。另有 `SEED_FALLBACK`（**已进上表第 20 项**）：它是**前端构建期常量**（`docs/src/config/deploy.js`）——**静态托管 / 直接以 `docs/` 为根**时改该常量即生效；**Node 托管形态下 `/src/config/deploy.js` 由 `server/app.js` 动态注入**，注入值改由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ `false`，缺省 `true`；见 `server/app.js:55-57`、`server/.env.example`）⇒ 该形态下发 `SEED_FALLBACK=0` 即可关断（**2026-09-24 已接线**；此前登记过的「Node 托管下取不到、改不动」口径已作废）。消费点＝`docs/src/core/data-adapter.js::init()` 的考勤/考察/待办三域空表回退判据（命名空间读取，缺该导出按 `true`），默认 `true`＝演示形态（**保持既有测试基线不变**）。⚠ 它**只覆盖那三处**，**不替代**关断手段：服务端种子仍靠 `DISABLE_SEED=1`（或生产形态默认不播种）+ `DEPLOYMENT_GUIDE.md` 附录 A.2 的 services 层空表回退清单。
 
 ### 5.4 数据存储形态
 
@@ -1561,7 +1561,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 1 | **资源列表读口需登录** | `GET /api/v1/<资源名>`（30 个）与 `GET /api/v1/bootstrap` **默认要登录**（未登录 401）；**唯一公开的资源读口＝`GET /api/v1/issues`**（处置结果公开可见，出口已脱敏）；`GET /api/v1/health` 公开。**白名单口径＝「有明确裁定公开的才公开」**，故 `users`（含姓名/学号）、考勤、考察、思想汇报、附件元数据等**一律不再公开**。**2026-09-18 批次 81 收紧前**为「全部公开」（那是本文件旧版所记的现状） | `server/routes/resources.js:187-200`（逐表读口）、`:421`（bootstrap）、`:700`（issues 公开） |
 | 2 | **多数写口仅要求登录** | 30 类资源里只有 `branchDocs` / `fileSpaceRecords` / `imageRecords` 三张用支委门（后两张 2026-09-21 批次 120 起）；其余（`activities` 除外有专门写门）**默认「登录即可写」**——普通成员可写 `todos`/`attendances`/`inspections`/`taskforces` 等 | `server/routes/resources.js:211-213` |
 | 3 | **无 CORS 配置** | 未挂载 CORS 中间件 → 只能**同源部署**（前端与 API 同一域名/端口）；跨域调用会被浏览器拦截 | `server/app.js`（无 cors 挂载） |
-| 4 | **无 HTTPS** | 服务自身只提供 HTTP；token 明文传输。真实部署应由反向代理终止 TLS | `server/server.js:21`；HTTPS 为对接前置条件见 `DEPLOYMENT_GUIDE.md:204` |
+| 4 | **无 HTTPS** | 服务自身只提供 HTTP；token 明文传输。真实部署应由反向代理终止 TLS | `server/server.js:21`；HTTPS 为对接前置条件见 `DEPLOYMENT_GUIDE.md:200` |
 | 5 | **token 无过期时间** | `sessions` 表**没有过期字段**，退出登录靠显式 `POST /auth/logout` 删行；账号流出（`transferOut`）会使在途会话失效 | `server/db.js:45-49`、`server/routes/auth.js:74-77` |
 | 6 | **无全局限流** | 只有意见反馈提交按 `tokenHash` 做频率窗口（10 分钟内 20 条）与判重（5 分钟同内容） | `server/routes/resources.js:696-698`（窗口与上限）、`:747-752`（判重 / 限频判定） |
 | 7 | **单进程 / 单文件库** | `better-sqlite3` 为同步 API；**不支持多实例并行写同一库**（横向扩容需改架构） | `server/db.js:2`、`:62` |
@@ -1585,16 +1585,16 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
 | 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171` |
-| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:211,219` |
+| 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:207,215` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |
 | 5 | **组织名称 / 主题 / 术语** | 支部名与 `config.headerTitle`；主题预设 `themePreset`（需支书特批的配色见 `DESIGN_SYSTEM.md` §二 色彩系统）；术语权威源 `content/03_doc_system/USAGE_POLICY.md` | `README.md:168-175` |
 | 6 | **制度参数默认值** | `docs/src/core/policy-defaults.js`（支部可调项）；制度固定项勿改 | `docs/src/core/policy-defaults.js:6-15` |
-| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，这是 2026-09-23 P0-4 起的主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（**自 2026-09-23 批次 163 起已接线**，关的是 `core/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`，**2026-09-24 已接线**；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:253`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
+| 7 | **关闭演示数据回退（防污染真实账本）** | ① 设 **`APP_ENV=production`**（生产形态**默认不播种**，这是 2026-09-23 P0-4 起的主推做法）；② 仍可显式 `DISABLE_SEED=1`（等价、更直白）；③ 前端空域回退开关 `SEED_FALLBACK` 置 `false`（**自 2026-09-23 批次 163 起已接线**，关的是 `core/data-adapter.js::init()` 里考勤/考察/待办三域的空表回退）——**静态托管 / 直接以 `docs/` 为根** ⇒ 改 `docs/src/config/deploy.js` 常量；**Node 托管** ⇒ 设环境变量 `SEED_FALLBACK=0`（由 `server/app.js:55-57` 注入 `false`，**2026-09-24 已接线**；缺省 `true`＝演示形态）；④ 按部署文档附录 A.2 逐项关闭 services 层其余空表回退 | `DEPLOYMENT_GUIDE.md:249`、`docs/src/config/deploy.js`、`server/app.js:55-57`、`server/env.js` |
 | 8 | **平台对接地址** | `REPORT_WEBHOOK_URL` / `REPORT_TOKEN` / `REPORT_BASE_URL` / `REPORT_ADMIN_MAIL`；邮件 `SMTP_*` | `server/.env.example:23-36` |
 | 9 | **API 基址** | 前端切换 API 形态时的 `apiBaseUrl`（`services/runtime.js` 的 `setDataSource('api', {...})`），对接计算中心域名 | `DEPLOYMENT_GUIDE.md:124-134` |
-| 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `DEPLOYMENT_GUIDE.md:195-204` |
-| 11 | **未接入项（需另行开发）** | ① 北大党校 / 智慧党建平台的数据同步（**规划，无代码**）；② 微信小程序（**规划，无代码**）；③ AI 本地推理（**规划**）；④ 北大 IAAA 单点登录（门控已预留落点，**未接入**） | `DEPLOYMENT_GUIDE.md:51-52,85-88,221-244` |
+| 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `DEPLOYMENT_GUIDE.md:193-202` |
+| 11 | **未接入项（需另行开发）** | ① 北大党校 / 智慧党建平台的数据同步（**规划，无代码**）；② 微信小程序（**规划，无代码**）；③ AI 本地推理（**规划**）；④ 北大 IAAA 单点登录（门控已预留落点，**未接入**） | `DEPLOYMENT_GUIDE.md:47-48,81-84,217-240` |
 
 ---
 
@@ -1825,13 +1825,13 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 项 | 现状 | 依据 |
 |---|---|---|---|
-| 19 | 北大党校系统（培训进度等）只读同步 | **规划（M0-M2），无代码** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:85` |
-| 20 | 北大智慧党建平台（党旗飘飘）双向协同 | **规划（M0-M4），无代码**；设计稿状态仍为 `draft` | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:86`、`content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md:7`（`status: draft`） |
-| 21 | 微信小程序（移动端协同） | **规划阶段、无代码**（设计文档本身状态为 `active`，即设计有效、实现未开始） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:52`、`content/04_web_design/deploy/WECHAT_INTEGRATION.md:6` |
-| 22 | AI 本地推理（经验提炼 / 通知智能路由 / 活动建议） | **规划，无代码**；部署文档里写的 `AI_API_BASE_URL` 在代码中**检索不到消费点（未取证）** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:221-244` |
-| 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/AUTHENTICATION_MODEL.md:75`、`DEPLOYMENT_GUIDE.md:219` |
+| 19 | 北大党校系统（培训进度等）只读同步 | **规划（M0-M2），无代码** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:81` |
+| 20 | 北大智慧党建平台（党旗飘飘）双向协同 | **规划（M0-M4），无代码**；设计稿为待确认稿（七项实施口径未定） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:82`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:879`（§6.9 待确认清单） |
+| 21 | 微信小程序（移动端协同） | **规划阶段、无代码**（设计文档本身状态为 `active`，即设计有效、实现未开始） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:48`、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:7` |
+| 22 | AI 本地推理（经验提炼 / 通知智能路由 / 活动建议） | **规划，无代码**；部署文档里写的 `AI_API_BASE_URL` 在代码中**检索不到消费点（未取证）** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:217-240` |
+| 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:454`、`DEPLOYMENT_GUIDE.md:215` |
 | 24 | API 形态下的「一键重置」 | 前端 `?reset=` 三档**只在无 token 的 mock 形态生效**；API 形态没有对应接口，重置需运维手工删 `data.db` | `server/README.md:19` |
-| 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐（批次 110）**：部署文档原写「32 资源表」，现与代码一致为 **35 张**——后端按 **35 张**实现（本条保留记录，便于比对旧版文档） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:104,162,182,261,432` vs `server/db.js:9-42` |
+| 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐（批次 110）**：部署文档原写「32 资源表」，现与代码一致为 **35 张**——后端按 **35 张**实现（本条保留记录，便于比对旧版文档） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:100,158,178,257,962` vs `server/db.js:9-42` |
 
 > **另有一处需要说明的「未取证」**：`server/test/` 下的测试套件规模（文件数/断言数）本文件不写具体数字——它随开发持续增长，`server/README.md:37` 明确「本文件不维护固定计数，以 `server/test/` 实际目录为准」。
 
@@ -1889,9 +1889,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 |---|---|---|
 | `content/04_web_design/data/DATA_MODEL.md` | **静态数据模型唯一权威源**（§2.1–§2.29 字段表，即本文 §4 的来源 A） | §4 全节 |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | **系统角色权限矩阵（代码键级权威）**：§9a0 角色键全表、§9a–§9l 各矩阵与裁定 | §2 全节、§7.2#17 |
-| `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | **部署与对外对接总案（部署路径唯一权威源）**：就绪度、对接前置、邮件与上报 | §1、§5、§7.3 |
-| `content/04_web_design/deploy/AUTHENTICATION_MODEL.md` | 部署形态 / 登录态 / 门控四层模型 | §3.1、§5.6 |
-| `content/04_web_design/deploy/{PKU_PARTY_INTEGRATION,WECHAT_INTEGRATION}.md` | 北大党校·智慧党建对接 / 微信协同专项设计稿 | §7.3 |
+| `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | **部署与对外对接（部署路径唯一权威源）**：就绪度、对接前置、邮件与上报、认证与登录门控、微信协同与小程序、北大党校/智慧党建对接 | §1、§5、§7.3 |
 | `content/04_web_design/README.md` | 设计层索引与「权威源速查」（含各文件状态语义） | §7.3 |
 | `content/README.md` | 内容中心 5 类知识类型与「母本→子本」关系 | §1.2 |
 | `README.md`（根） | 系统定位、功能地图、关键机制、替换入口总表、开发纪律 | §1、§3.4、§5.6 |

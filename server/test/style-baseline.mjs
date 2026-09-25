@@ -20,10 +20,8 @@ export const HEX_BASELINE = {
   'docs/login.html': { c: 5, v: [
       '#7a0010', '#9b0000', '#ce1126', '#e5e7eb', '#fecaca',
   ] },
-  'docs/settings.html': { c: 15, v: [
-      '#000', '#15803d', '#a7f3d0', '#b45309', '#b91c1c', '#c8102e', '#ecfdf5', '#fde68a', '#fff',
-      '#fffbeb',
-  ] },
+  // `docs/settings.html` 条目已于 2026-09-25 移除（收基线）：该页整体重做后
+  //   页面级 <style> 归零、页面内硬编码 hex 清零 ⇒ 按本守卫自身纪律（收基线＝删条目）删去。
   'docs/src/about.css': { c: 50, v: [
       '#14161a', '#1b1e24', '#22262d', '#33383f', '#3b3226', '#6c6254', '#756b5d', '#7c5c14', '#7e7870',
       '#94897a', '#948e85', '#a80f1c', '#a9a398', '#aba191', '#c9a227', '#ce1126', '#e3c24f', '#e6dfd2',
@@ -336,7 +334,10 @@ export const HEX_BASELINE = {
 
 /** 硬编码 hex 规模下限（守卫的非空转判据：低于此值说明抽取口径失效或台账被删减） */
 export const HEX_TOTAL_BASELINE = 2025;
-export const HEX_FILE_BASELINE = 93;
+// 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
+//   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
+//   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
+export const HEX_FILE_BASELINE = 92;
 export const HEX_VALUE_BASELINE = 168;
 
 /** 控件小字基线：`文件 → { c: 站点数, sig: { '标签|小字类': 处数 } }`

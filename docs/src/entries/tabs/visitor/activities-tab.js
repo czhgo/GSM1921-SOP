@@ -48,7 +48,7 @@ function _organizerEntryHtml(a) {
   if (!me || !isActivityOrganizer(me.personId, a.id)) return '';
   return `<div class="flex items-center gap-1.5 flex-shrink-0">
       <button type="button" class="visitor-group-notice-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-red-200 text-red-700 hover:bg-red-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" data-act-id="${a.id}" style="cursor:pointer;">发布本组通知</button>
-      <a href="leader.html?tab=attendance" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤上传 / 打回确认</a>
+      <a href="./workspace/leader.html?tab=attendance" class="text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="text-decoration:none;" title="本场组织者的上传位：考勤上传与纪检打回后的待确认项">考勤上传 / 打回确认</a>
     </div>`;
 }
 

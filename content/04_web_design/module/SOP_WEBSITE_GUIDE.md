@@ -43,7 +43,7 @@ version: "4.1"
 > **2026-09-03 收敛**：本节原 B.1~B.6 展开（MPA 页面结构 / canDo() 权限判定 / 支委看板路由与细则 / 日历范围限定 / 赋权链 / 数据模型全家福）均已由权威源表达，不再在本指南重复：
 > - 页面/组件/服务分层、`AuthStore.canDo()` 权限判定、`AUTHORIZE_CHAIN`、数据模型 → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）+ [DATA_MODEL.md](../data/DATA_MODEL.md)（数据权威：§2.x 静态模型 / §1.x·§3.x·§4.x 动态数据流）
 > - 角色权限矩阵 / 写入门禁 / 赋权链 → [系统角色权限矩阵](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md，权限矩阵唯一权威）+ [COMMISSIONER_DUTY_FRAMEWORK.md §C](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（逐操作位视图）
-> - 部署形态 / 登录态 / 门控 → [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)
+> - 部署形态 / 登录态 / 门控 → [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)
 > 以下仅保留本指南独有的决策摘要与历史注记。
 
 ### B.3 支委看板视图体系
@@ -162,7 +162,7 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ## G. Mock 数据 vs 真实鉴权（权威见 AUTHENTICATION_MODEL / DATA_MODEL）
 
-> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_MODEL.md §4.4](../data/DATA_MODEL.md)（mock/api 数据源）；权限判定体系权威见 [系统角色权限矩阵 §9b/§9e](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
+> **2026-09-03 收敛**：原 G.1「当前处于 Mock 状态的功能」与 G.2「赋权链的 Mock 与真实形态」属部署与认证模型展开，权威见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)（5 场景两轴正交 / 登录门控四层 / 构建注入配置）与 [DATA_MODEL.md §4.4](../data/DATA_MODEL.md)（mock/api 数据源）；权限判定体系权威见 [系统角色权限矩阵 §9b/§9e](../../02_institution/SYSTEM_ROLE_PERMISSION.md)。以下 G.3/G.4 为本指南独有的历史决策注记（编号沿用原文，避免历史交叉引用失效）。
 
 ### G.3 不变的设计原则
 

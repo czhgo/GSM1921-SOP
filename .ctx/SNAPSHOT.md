@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-09-21"
+last_updated: "2026-09-25"
 status: "ACTIVE"
 date: "2026-09-15"
 version: "v53"
@@ -73,8 +73,8 @@ GSM1921-SOP/
 ├── content/
 │   ├── 01_strategy/            ← [用户] 战略路线层（DEVELOPMENT_PATH + SECRETARY_DIRECTIVES（支书原话 P-001~P-016 基线，原 SECRETARY_PRONOUNCEMENTS 更名）+ references/）
 │   ├── 02_institution/         ← [用户] 组织制度层（sop/ + COMMISSIONER_DUTY_FRAMEWORK + FLAT_ORGANIZATION_DESIGN + ROLE_CLASSIFICATION + SYSTEM_ROLE_PERMISSION）
-│   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE + SSOT_INDEX + OPERATIONS_GUIDE + PROCESS_GUIDE + USAGE_POLICY + SERVICE_CATALOG + DOC_MAP）
-│   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ 五子目录；DESIGN_SYSTEM/SOP_WEBSITE_GUIDE/PARTY_COMMITTEE_DESIGN 等；**`design-system/` 2026-09-24 批次 172 四份合一后只剩 `DESIGN_SYSTEM.md`**（原 `COMPONENT_SPEC` / `COLOR_SYSTEM` / `CLICK_ROUTING` 已并入）· **`data/` 2026-09-23 批次 164 合并后只剩 `DATA_MODEL.md`**（原 `DATA_FLOW` 已并入）；工程化评估已迁 .ctx/（ENGINEERING_ASSESSMENT.md），2026-09-08（更名 2026-09-09））
+│   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE《架构与单一事实源》+ OPERATIONS_GUIDE + PROCESS_GUIDE + USAGE_POLICY + DOC_MAP ＋ `工作模板/`；**2026-09-25 批次 179 三份合一后**，原 `SSOT_INDEX` / `SERVICE_CATALOG` **已并入 `ARCHITECTURE.md` 的 §十 / §十一**）
+│   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ 五子目录；DESIGN_SYSTEM/SOP_WEBSITE_GUIDE/PARTY_COMMITTEE_DESIGN 等；**`design-system/` 2026-09-24 批次 172 四份合一后只剩 `DESIGN_SYSTEM.md`**（原 `COMPONENT_SPEC` / `COLOR_SYSTEM` / `CLICK_ROUTING` 已并入）· **`data/` 2026-09-23 批次 164 合并后只剩 `DATA_MODEL.md`**（原 `DATA_FLOW` 已并入）· **`deploy/` 2026-09-25 批次 181 四份合一后只剩 `DEPLOYMENT_GUIDE.md`**《部署与对外对接》（原 `AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION` 已并入；`D-645`）；工程化评估已迁 .ctx/（ENGINEERING_ASSESSMENT.md），2026-09-08（更名 2026-09-09））
 │   ├── 05_ai_coding/           ← [工程师] AI编码层（DOCUMENT_GOVERNANCE / CONTEXT_MANAGEMENT / REVIEW_AND_EXPRESSION / TEST_AND_VERIFICATION 等分篇）
 │   ├── insights/               ← [用户]+[AI] 经验沉淀（党支部管理与实务经验沉淀.md + README）
 │   └── README.md
@@ -91,7 +91,7 @@ GSM1921-SOP/
 
 | Layer | 名称 | 位置 | 角色 |
 |-------|------|------|------|
-| 0 | 宪章层 | `CLAUDE.md` + `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] |
+| 0 | 宪章层 | `CLAUDE.md` + `content/03_doc_system/ARCHITECTURE.md §十`（原 `SSOT_INDEX.md`；2026-09-25 批次 179 并入） | [工程师]+[AI] |
 | 1 | 上下文层 | `CLAUDE.md`（HARNESS 入口）+ `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] |
 | 2 | 理念维度 | `content/01_strategy/` + `content/04_web_design/`（为什么这样做/为什么这样设计） | [用户]/[工程师] |
 | 2.5 | 治理维度 | `content/03_doc_system/`（系统治理规范） | [工程师] |
@@ -110,9 +110,7 @@ GSM1921-SOP/
 | 文件 | 状态 | 说明 |
 |------|------|------|
 | `CLAUDE.md` | ✅ | 上下文入口：甲部(H10-H100 约束力三层)+乙部(执行)+丙部(待决策)；H60 含「向支书提问准则」 |
-| `content/03_doc_system/ARCHITECTURE.md` | ✅ | 分层架构+数据模型+变更流水线 |
-| `content/03_doc_system/SSOT_INDEX.md` | ✅ | 母本注册表+同步触发矩阵 |
-| `content/03_doc_system/SERVICE_CATALOG.md` | ✅ | 统一服务目录（服务清单+角色权限矩阵） |
+| `content/03_doc_system/ARCHITECTURE.md` | ✅ | 《架构与单一事实源》（分层架构 + 仓库结构 + 数据模型 + 变更流水线 ＋ **§十 母本注册表 / 同步触发矩阵** ＋ **§十一 统一服务目录（服务清单 + 角色权限矩阵）**；**2026-09-25 批次 179 三份合一**：原 `SSOT_INDEX.md` / `SERVICE_CATALOG.md` 两份并入本文件并删除） |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | ✅ | 系统角色权限矩阵（角色键全表 §9a0 + 权限矩阵/赋权链，代码键级权威） |
 
 ### 前端页面（HTML 实测 22 个：15 根 + 7 工作台；以 docs/ 实况为准——清单以 `docs/*.html` 与 `docs/workspace/*.html` 实测为准）
@@ -177,7 +175,7 @@ GSM1921-SOP/
 | 参与者（普通参与者） | 成员工作台（个人视角：查看支委工作成果+个人考勤+思想汇报+待办） |
 | 党委组织员（党委级·不属于支部） | 党委工作台（全院支部台账+支部管理（新建/改名/任命）+上报审批+下发通知+支部配置） |
 
-> 角色键/矩阵全量权威：`docs/src/core/constants.js` ROLE_KEYS/ROLE_LABELS/ROLE_PAGE_MAP + SYSTEM_ROLE_PERMISSION.md + SERVICE_CATALOG.md；可见性/操作权按赋权链计算（P-015 按人视图），支书工作台中文一律「支书」。
+> 角色键/矩阵全量权威：`docs/src/core/constants.js` ROLE_KEYS/ROLE_LABELS/ROLE_PAGE_MAP + SYSTEM_ROLE_PERMISSION.md + `ARCHITECTURE.md §十一（统一服务目录与角色-服务权限矩阵）`（原 `SERVICE_CATALOG.md`；2026-09-25 批次 179 并入）；可见性/操作权按赋权链计算（P-015 按人视图），支书工作台中文一律「支书」。
 
 ## VI. 版本里程碑
 

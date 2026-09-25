@@ -130,7 +130,7 @@ export function reviewStatusSectionHtml(ctx) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。</p>
+      <p class="text-[11px] text-gray-500 mb-3 -mt-1.5">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；本区只读。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
 
       <!-- 待复盘 -->
       <div class="mb-3">

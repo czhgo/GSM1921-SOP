@@ -18,6 +18,7 @@ import { ROLE_LABELS, ROLE_PAGE_MAP, getAccentColors } from '../core/constants.j
 import { resolveAppliedAccentRole } from '../core/theme.js?v=20260924a';
 import { appearanceControlsHTML, bindAppearanceControls } from '../components/appearance-controls.js?v=20260924a';
 import { icon } from '../core/icons.js?v=20260924a';
+import { badgeHtml } from '../components/badges.js?v=20260924a';
 import { escHtml as esc } from '../core/utils.js?v=20260924a';
 import { getCapabilities } from '../core/registry.js?v=20260924a';
 import {
@@ -177,17 +178,17 @@ function shapeCardHtml() {
     ['所属支部 id', shape.branchId ? esc(shape.branchId) : '无（未解析到有效归属支部）'],
     ['当前登录人 / 角色', esc(who)],
     ['代码版本戳', `?v=${esc(_activeCodeStamp())}`],
-  ].map(([k, v]) => `<div class="settings-kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
+  ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="settings-card" style="margin-top:16px;">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">当前形态 · 归属判定</h2>
-        <span class="settings-badge">自查</span>
+    <div class="card rounded-xl p-5 mt-4">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">当前形态 · 归属判定</h2>
+        ${badgeHtml('自查', 'neutral')}
       </div>
-      <p class="settings-card-desc">「顶栏那个组织名是从哪来的」在这里摊开：数据源与依据、归属判定命中的是哪一段、所属支部、登录人与角色、代码版本戳。<b>不开调试器</b>也能核对现在是本地演示（mock）还是已连服务器（api）。</p>
-      <dl class="settings-kv">${rows}</dl>
-      <div class="settings-note" style="margin-top:14px;">
-        <span class="settings-note-dot"></span>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">「顶栏那个组织名是从哪来的」在这里摊开：数据源与依据、归属判定命中的是哪一段、所属支部、登录人与角色、代码版本戳。<b>不开调试器</b>也能核对现在是本地演示（mock）还是已连服务器（api）。</p>
+      <dl class="kv-list">${rows}</dl>
+      <div class="hint-box mt-3.5">
+        <span class="hint-dot"></span>
         「示例组织（未登录）」＝未登录/查无档案的第 5 段中性占位；「未绑定支部」＝已登录但档案无有效归属的第 4 段中性占位；两者都不代表真实支部名。
       </div>
     </div>`;
@@ -200,20 +201,20 @@ let _currentSectionId = 'appearance';
 function renderGroups(container) {
   const groups = buildGroups(_currentRole);
   container.innerHTML = groups.map(g => `
-    <div class="settings-group">
-      <div class="settings-group-caption">${g.caption}</div>
-      <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-1.5">
+      <div class="mx-1 text-[11px] font-bold tracking-wide text-gray-500">${g.caption}</div>
+      <div class="flex flex-col gap-0.5">
         ${g.items.map(it => `
           <button type="button" class="settings-group-item ${it.id === _currentSectionId ? 'active' : ''}" data-section="${it.id}">
             <span>${it.label}</span>
-            ${SECTION_META[it.id]?.badge ? `<span class="settings-mini-badge">建设中</span>` : ''}
+            ${SECTION_META[it.id]?.badge ? badgeHtml('建设中', 'neutral') : ''}
           </button>
         `).join('')}
       </div>
     </div>
   `).join('') + `
-    <p style="margin:0 4px;font-size:0.72rem;line-height:1.75;color:var(--neutral-500);">分区随登录身份显示——你只会看到与本人身份相关的区。</p>
-    ${location.hash ? '<a href="#" id="settings-back-link" style="margin:0 4px;font-size:0.72rem;color:var(--app-accent,#B91C1C);text-decoration:underline;">← 返回上一页</a>' : ''}`;
+    <p class="mx-1 text-[11px] leading-relaxed text-gray-500">分区随登录身份显示——你只会看到与本人身份相关的区。</p>
+    ${location.hash ? '<a href="#" id="settings-back-link" class="mx-1 text-xs text-[var(--app-accent)] underline">← 返回上一页</a>' : ''}`;
   container.querySelectorAll('.settings-group-item').forEach(btn => {
     btn.addEventListener('click', () => {
       _currentSectionId = btn.dataset.section;
@@ -234,12 +235,12 @@ function renderPanel(panel) {
       ? '外观偏好随当前账号保存，切换登录人互不影响；未登录访客的外观保存在本浏览器。'
       : '当前为访客浏览：外观偏好保存在本浏览器；登录后外观将随账号独立保存。';
     panel.innerHTML = `
-      <div class="settings-card">
-        <div class="settings-card-head">
-          <h2 class="settings-card-title">外观</h2>
-          <span class="settings-badge settings-badge-live">即时生效</span>
+      <div class="card rounded-xl p-5">
+        <div class="flex items-center gap-2.5 mb-2">
+          <h2 class="font-title-cn text-base font-bold text-gray-800">外观</h2>
+          ${badgeHtml('即时生效', 'success')}
         </div>
-        <p class="settings-card-desc">字号、明暗主题与强调色的个人偏好设置 —— 保存后全站即时生效。</p>
+        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">字号、明暗主题与强调色的个人偏好设置 —— 保存后全站即时生效。</p>
         <div id="appearance-controls-host" class="mt-2"></div>
       </div>
       ${shapeCardHtml()}
@@ -269,14 +270,14 @@ function renderPanel(panel) {
   }
 
   panel.innerHTML = `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">${meta.title}</h2>
-        ${meta.badge ? `<span class="settings-badge">${meta.badge}</span>` : ''}
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">${meta.title}</h2>
+        ${meta.badge ? badgeHtml(meta.badge, 'neutral') : ''}
       </div>
-      <p class="settings-card-desc">${meta.desc}</p>
-      <div class="settings-note">
-        <span class="settings-note-dot"></span>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${meta.desc}</p>
+      <div class="hint-box">
+        <span class="hint-dot"></span>
         建设中 · 随后续批次开放。${meta.note}
       </div>
     </div>
@@ -341,40 +342,44 @@ function mywsCardHtml(model) {
     const i = curIdx.get(id);
     const isMine = !locked && i !== undefined && i !== defIdx.get(id);
     const statusTag = locked
-      ? `<span class="myws-tag myws-tag-locked">${icon('lock', { className: 'icon-base w-3 h-3' })} 核心固定</span>`
+      ? badgeHtml(`${icon('lock', { className: 'icon-base w-3 h-3' })} 核心固定`, 'neutral', { extraClass: 'gap-1' })
       : (isMine
-        ? '<span class="myws-tag myws-tag-mine">我的调整</span>'
-        : '<span class="myws-tag myws-tag-default">默认</span>');
+        ? badgeHtml('我的调整', 'warning')
+        : badgeHtml('默认', 'success'));
+    const actCls = 'btn-action px-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-30';
     const acts = locked ? '' : `
-      <button type="button" class="myws-act" data-myws="move" data-id="${id}" data-dir="-1" title="上移" aria-label="上移 ${tab.label || id}" ${i === 0 ? 'disabled' : ''}>${icon('chevronUp', { className: 'icon-base w-4 h-4' })}</button>
-      <button type="button" class="myws-act" data-myws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${i === biz.length - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>
-      ${isMine ? `<button type="button" class="myws-act" data-myws="restore-row" data-id="${id}" title="恢复该行默认位置" aria-label="恢复 ${tab.label || id} 默认位置">${icon('undo', { className: 'icon-base w-4 h-4' })}</button>` : ''}`;
+      <button type="button" class="${actCls}" data-myws="move" data-id="${id}" data-dir="-1" title="上移" aria-label="上移 ${tab.label || id}" ${i === 0 ? 'disabled' : ''}>${icon('chevronUp', { className: 'icon-base w-4 h-4' })}</button>
+      <button type="button" class="${actCls}" data-myws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${i === biz.length - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>
+      ${isMine ? `<button type="button" class="${actCls}" data-myws="restore-row" data-id="${id}" title="恢复该行默认位置" aria-label="恢复 ${tab.label || id} 默认位置">${icon('undo', { className: 'icon-base w-4 h-4' })}</button>` : ''}`;
+    const gripCls = locked
+      ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
+      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
-        <span class="myws-grip" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="myws-name">${tab.label || id}</span>
-        <span class="myws-chip">${tab.groupLabel || '页签'}</span>
-        <span class="myws-badges">${statusTag}</span>
-        <span class="myws-acts">${acts}</span>
+        <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
+        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${tab.label || id}</span>
+        ${badgeHtml(tab.groupLabel || '页签', 'neutral')}
+        <span class="flex items-center gap-1.5 shrink-0">${statusTag}</span>
+        <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
       </li>`;
   }).join('');
   return `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">我的工作台</h2>
-        <span class="myws-top-actions">
-          <button type="button" class="myws-btn-ghost" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h2>
+        <span class="ml-auto flex items-center gap-2">
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
         </span>
       </div>
-      <p class="settings-card-desc">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
       <ul class="myws-list" data-myws-list="1">${rows}</ul>
-      <p class="myws-status" data-myws-status aria-live="polite"></p>
-      <div class="myws-hint">${hint}</div>
+      <p class="status-line" data-myws-status aria-live="polite"></p>
+      <div class="hint-box mt-3.5">${hint}</div>
     </div>`;
 }
 
 function mywsEmptyHtml(text) {
-  return `<div class="settings-card"><h2 class="settings-card-title">我的工作台</h2><p class="settings-card-desc">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h2 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h2><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 function showMywsStatus(panel, msg, isErr = false) {
@@ -514,7 +519,7 @@ let _bwsModel = null;  // 工作台默认顺序当前渲染模型（行操作/�
 const GOV_ROLES = new Set(['secretary', 'deputy-secretary']); // 支部治理分组可见角色（与 buildGroups 同源）
 
 function govEmptyHtml(text) {
-  return `<div class="settings-card"><h2 class="settings-card-title">支部治理</h2><p class="settings-card-desc">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h2 class="font-title-cn text-base font-bold text-gray-800">支部治理</h2><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 区块分发：支部信息与向导 / 工作台默认顺序 */
@@ -569,23 +574,23 @@ function renderBranchInfoCard(panel, br, branch) {
     ['类别', org.type || '—'],
     ['页眉显示名', org.headerTitle || org.name || '—'],
     ['支部自述', org.desc || '—'],
-  ].map(([k, v]) => `<div class="settings-kv-row"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
+  ].map(([k, v]) => `<div class="kv-row"><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
   panel.innerHTML = `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">支部信息与向导</h2>
-        <span class="settings-badge">${roleLabel} · 本支部</span>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h2>
+        ${badgeHtml(`${roleLabel} · 本支部`, 'neutral')}
       </div>
-      <p class="settings-card-desc">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
-      <dl class="settings-kv">${kv}</dl>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
+      <dl class="kv-list">${kv}</dl>
     </div>
-    <div class="gov-wizard-card">
-      <span class="gov-wizard-ic">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
-      <div class="gov-wizard-t">
-        <b>换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>
-        <span>把支部配置收进 4 步引导：填写支部信息 → 组合模块 → 定分工 → 校准术语。支书 / 副支书（副书同权）限本支部；党委组织员可切任意支部。</span>
+    <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5 border-l-[3px] border-l-[var(--party-red)]">
+      <span class="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-[var(--app-accent-bg)] text-[var(--app-accent)]">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
+      <div class="flex-1 min-w-0">
+        <b class="block text-sm text-gray-800 leading-snug">换组织向导（支部信息 / 模块组合 / 分工 / 术语）</b>
+        <span class="block mt-1 text-xs leading-relaxed text-gray-500">把支部配置收进 4 步引导：填写支部信息 → 组合模块 → 定分工 → 校准术语。支书 / 副支书（副书同权）限本支部；党委组织员可切任意支部。</span>
       </div>
-      <button type="button" class="bws-btn-primary" data-gov="wizard-open">打开换组织向导（内嵌）</button>
+      <button type="button" class="btn-accent text-sm px-4 py-[7px] shrink-0" data-gov="wizard-open">打开换组织向导（内嵌）</button>
     </div>`;
   bindBranchGovDelegates(panel);
 }
@@ -595,9 +600,9 @@ async function openWizardEmbed(panel) {
   const { role, personId } = _session;
   const seq = ++_govSeq;
   panel.innerHTML = `
-    <div class="gov-wizard-bar">
-      <button type="button" class="gov-wizard-back" data-gov="wizard-close">${icon('arrowLeft', { className: 'icon-base w-3.5 h-3.5' })} 返回支部信息</button>
-      <span class="gov-wizard-tip">换组织向导 · 内嵌（同源组件；改动即时生效并记录变更）</span>
+    <div class="flex items-center gap-3 flex-wrap mb-3">
+      <button type="button" class="btn-action btn-action-gray" data-gov="wizard-close">${icon('arrowLeft', { className: 'icon-base w-3.5 h-3.5' })} 返回支部信息</button>
+      <span class="text-xs text-gray-500">换组织向导 · 内嵌（同源组件；改动即时生效并记录变更）</span>
     </div>
     <div id="settings-wizard-host"></div>`;
   const host = panel.querySelector('#settings-wizard-host');
@@ -657,20 +662,20 @@ function _cfgHistoryRowHtml(h) {
   const brief = isRollback
     ? `回滚前：${esc(_cfgBrief(h.from))}　→　恢复为：${esc(_cfgBrief(h.to))}`
     : `从：${esc(_cfgBrief(h.from))}　→　到：${esc(_cfgBrief(h.to))}`;
-  const whyHtml = h.why ? `<div style="margin-top:2px;"><span class="text-[11px] text-gray-500">依据/出处：</span><span class="text-[11px]" style="color:var(--app-accent,#B91C1C);">${esc(h.why)}</span></div>` : '';
+  const whyHtml = h.why ? `<div class="mt-0.5"><span class="text-[11px] text-gray-500">依据/出处：</span><span class="text-[11px] text-[var(--app-accent)]">${esc(h.why)}</span></div>` : '';
   return `
-    <li class="cfg-hist-row" style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--neutral-200,#E5E7EB);border-radius:10px;background:#fff;">
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-          <span class="cfg-hist-key" style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:9999px;color:var(--app-accent,#B91C1C);background:var(--app-accent-bg,rgba(185,28,28,0.08));">${esc(whatLabel)}</span>
-          ${isRollback ? '<span style="font-size:10px;padding:1px 6px;border-radius:9999px;background:#FEF3C7;color:#92400E;">已回滚</span>' : ''}
+    <li class="flex items-start gap-2.5 p-3 border border-[var(--neutral-200)] rounded-xl bg-[var(--surface-card)]">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          ${badgeHtml(esc(whatLabel), 'neutral')}
+          ${isRollback ? badgeHtml('已回滚', 'warning') : ''}
           <span class="text-[11px] font-medium text-gray-700">${esc(who)}</span>
           <span class="text-[11px] text-gray-500">${esc(when)}</span>
         </div>
-        <div class="text-[12px] text-gray-600" style="margin-top:4px;word-break:break-all;">${brief}</div>
+        <div class="text-[12px] text-gray-600 mt-1 break-all">${brief}</div>
         ${whyHtml}
       </div>
-      ${rollbackable ? `<button type="button" class="bws-btn-primary bws-btn-primary-sm" data-gov="rollback" data-at="${esc(h.at)}" title="将该项恢复到本次变更前的值并记录变更" style="flex-shrink:0;">回滚此更改</button>` : ''}
+      ${rollbackable ? `<button type="button" class="btn-accent text-xs px-3 py-1.5 shrink-0" data-gov="rollback" data-at="${esc(h.at)}" title="将该项恢复到本次变更前的值并记录变更">回滚此更改</button>` : ''}
     </li>`;
 }
 
@@ -683,16 +688,16 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
     : [];
   const rowsHtml = history.length
     ? [...history].slice(-50).reverse().map(_cfgHistoryRowHtml).join('')
-    : '<p class="text-sm" style="color:var(--neutral-500,#6B7280);padding:8px 2px;">暂无配置变更记录</p>';
+    : '<p class="text-[13px] text-gray-500 py-2 px-0.5">暂无配置变更记录</p>';
   panel.innerHTML = `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">配置变更记录</h2>
-        <span class="settings-badge">${esc(roleLabel)} · 本支部 · 审计</span>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">配置变更记录</h2>
+        ${badgeHtml(`${esc(roleLabel)} · 本支部 · 审计`, 'neutral')}
       </div>
-      <p class="settings-card-desc">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由支书 / 副支书（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
-      <ul class="cfg-hist-list" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:0;list-style:none;">${rowsHtml}</ul>
-      <p class="myws-status" data-cfg-hist-status aria-live="polite"></p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由支书 / 副支书（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
+      <ul class="flex flex-col gap-2 mt-3 p-0 list-none">${rowsHtml}</ul>
+      <p class="status-line" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
   bindBranchGovDelegates(panel);
   if (statusMsg) showCfgHistStatus(panel, statusMsg);
@@ -762,13 +767,13 @@ function buildBranchOrderModel(br, branch) {
 /** 行徽标：核心锁定 / 相对当前支部默认顺序 默认 or 调整中 */
 function bwsRowBadgeHtml(model, tab, i) {
   if (model.coreIds.has(tab.id)) {
-    return `<span class="myws-tag myws-tag-locked">${icon('lock', { className: 'icon-base w-3 h-3' })} 核心固定</span>`;
+    return badgeHtml(`${icon('lock', { className: 'icon-base w-3 h-3' })} 核心固定`, 'neutral', { extraClass: 'gap-1' });
   }
   const savedIdx = model.savedDisplay.indexOf(tab.id);
   const moved = savedIdx !== i;
   return moved
-    ? '<span class="myws-tag myws-tag-mine">调整中</span>'
-    : '<span class="myws-tag myws-tag-default">默认</span>';
+    ? badgeHtml('调整中', 'warning')
+    : badgeHtml('默认', 'success');
 }
 
 function branchOrderCardHtml(model) {
@@ -787,33 +792,36 @@ function branchOrderCardHtml(model) {
     const bizIdx = locked ? -1 : model.bizIds.indexOf(id);
     const bizLen = model.bizIds.length;
     const acts = locked ? '' : `
-      <button type="button" class="myws-act" data-bws="move" data-id="${id}" data-dir="-1" title="上移" aria-label="上移 ${tab.label || id}" ${bizIdx === 0 ? 'disabled' : ''}>${icon('chevronUp', { className: 'icon-base w-4 h-4' })}</button>
-      <button type="button" class="myws-act" data-bws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${bizIdx === bizLen - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>`;
+      <button type="button" class="btn-action px-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-30" data-bws="move" data-id="${id}" data-dir="-1" title="上移" aria-label="上移 ${tab.label || id}" ${bizIdx === 0 ? 'disabled' : ''}>${icon('chevronUp', { className: 'icon-base w-4 h-4' })}</button>
+      <button type="button" class="btn-action px-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-30" data-bws="move" data-id="${id}" data-dir="1" title="下移" aria-label="下移 ${tab.label || id}" ${bizIdx === bizLen - 1 ? 'disabled' : ''}>${icon('chevronDown', { className: 'icon-base w-4 h-4' })}</button>`;
+    const gripCls = locked
+      ? 'shrink-0 flex items-center text-gray-300 cursor-not-allowed'
+      : 'shrink-0 flex items-center text-gray-400 cursor-grab active:cursor-grabbing touch-none';
     return `
       <li class="myws-row${locked ? ' is-locked' : ''}" draggable="${!locked}" data-id="${id}" data-locked="${locked ? '1' : '0'}">
-        <span class="myws-grip" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
-        <span class="myws-name">${esc(tab.label || id)}</span>
-        <span class="myws-chip">${esc(tab.groupLabel || '页签')}</span>
-        <span class="myws-badges">${bwsRowBadgeHtml(model, tab, bizIdx)}</span>
-        <span class="myws-acts">${acts}</span>
+        <span class="${gripCls}" title="${locked ? '核心固定，不可拖动' : '拖拽排序'}">${icon('grip', { className: 'icon-base w-4 h-4' })}</span>
+        <span class="flex-1 min-w-0 text-[13px] font-semibold text-gray-800 leading-snug">${esc(tab.label || id)}</span>
+        ${badgeHtml(esc(tab.groupLabel || '页签'), 'neutral')}
+        <span class="flex items-center gap-1.5 shrink-0">${bwsRowBadgeHtml(model, tab, bizIdx)}</span>
+        <span class="flex items-center gap-0.5 shrink-0">${acts}</span>
       </li>`;
   }).join('');
   const modulesNull = !model.modules;
   const dirty = !sameIdOrder(model.bizIds, model.savedDisplay);
   return `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">工作台默认顺序</h2>
-        <span class="myws-top-actions">
-          <button type="button" class="myws-btn-ghost" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
-          <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">工作台默认顺序</h2>
+        <span class="ml-auto flex items-center gap-2">
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
+          <button type="button" class="btn-accent text-xs px-3 py-1.5" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
         </span>
       </div>
-      <p class="settings-card-desc">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
-      <div class="bws-callout">${icon('bell', { className: 'icon-base w-3.5 h-3.5 myws-tag' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${roleLabel}设定支部工作台默认页签顺序 —— 保存后<strong>全体成员下一刷新按新默认</strong>；成员仍可在「个人设置 → 我的工作台」做个人调整。</p>
+      <div class="hint-box mb-3">${icon('bell', { className: 'icon-base w-3.5 h-3.5 mt-0.5 text-gray-400' })}<span>影响全体成员：此处变更写入支部默认配置，全员工作台随之生效；行徽标「默认」表示与当前支部默认一致，「调整中」表示有未保存的位置调整。</span></div>
       <ul class="myws-list" data-bws-list="1">${rows}</ul>
-      <p class="myws-status" data-bws-status aria-live="polite"></p>
-      ${coreHint ? `<div class="myws-hint">${coreHint}</div>` : ''}
+      <p class="status-line" data-bws-status aria-live="polite"></p>
+      ${coreHint ? `<div class="hint-box mt-3.5">${coreHint}</div>` : ''}
     </div>`;
 }
 
@@ -972,7 +980,7 @@ const DOMAIN_CARD_META = {
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
 function policyEmptyHtml(title, text) {
-  return `<div class="settings-card"><h2 class="settings-card-title">${title}</h2><p class="settings-card-desc">${text}</p></div>`;
+  return `<div class="card rounded-xl p-5"><h2 class="font-title-cn text-base font-bold text-gray-800">${title}</h2><p class="text-[13px] leading-relaxed text-gray-500 mt-2 mb-0">${text}</p></div>`;
 }
 
 /** 统一入口：支部制度参数（支书/副）/ 域参数卡（域负责人）——可见角色不匹配给提示 */
@@ -1048,12 +1056,10 @@ function _noAttendanceLabel() {
 }
 
 function branchPolicyLockedCardHtml(branch) {
-  const { role } = _session;
-  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const meetingChips = (POLICY_DEFAULTS.attendance.meetingTypes || []).map(t =>
-    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-[var(--app-accent-bg)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)] border border-[var(--app-accent-border)] whitespace-nowrap" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">${esc(t)}</span>`).join('');
+    `<span class="tint-pill" style="--tint:var(--app-accent)">${esc(t)}</span>`).join('');
   const reasonChips = (POLICY_DEFAULTS.attendance.reasons || []).map(r =>
-    `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200 whitespace-nowrap">${esc(r.label)}</span>`).join('');
+    `<span class="tint-pill" style="--tint:var(--neutral-500)">${esc(r.label)}</span>`).join('');
   const rows = [
     ['票决通过门槛', _quorumLabel()],
     ['会议应到名单核对', _rosterLabel()],
@@ -1061,20 +1067,19 @@ function branchPolicyLockedCardHtml(branch) {
     ['不考勤的会议类型', _noAttendanceLabel()],
     ['考勤记录人', _recorderLabel()],
     ['请假/缺席标因', `<span class="flex flex-wrap gap-1.5 pt-0.5">${reasonChips}</span>`],
-  ].map(([k, v]) => `<div class="settings-kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
+  ].map(([k, v]) => `<div class="kv-row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('');
   return `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">支部制度参数</h2>
-        <span class="settings-badge">${esc(roleLabel)} · 本支部</span>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h2>
       </div>
-      <p class="settings-card-desc">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须支书/党委裁决后在系统层变更。</p>
-      <dl class="settings-kv">${rows}</dl>
-      <div class="settings-note" style="margin-top:14px;">
-        <span class="settings-note-dot"></span>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须支书/党委裁决后在系统层变更。</p>
+      <dl class="kv-list">${rows}</dl>
+      <div class="hint-box mt-3.5">
+        <span class="hint-dot"></span>
         制度刚性锁定 · 改须党委/支书裁决。上方展示值即当前支部现行规则（含开源部署调整面，均不在本页直改）。
       </div>
-      <div class="myws-hint">
+      <div class="hint-box mt-3.5">
         <b>支部制度里的可调项分两类。</b>一是本区下方<b>「活动批准门」</b>卡（支部自选开关，支书/副支书可直改）；二是时限类（考勤确认 / 汇总 / 补课链等）、篇幅字数类（思想汇报 1500 建议 / 1200 警告审阅线）与补课范围等，已在制度参数里登记为「支部可调」（母本所写数字即默认值），本页只作「制度默认」只读展示，须支书 / 党委裁决后在系统层变更。域「职责参数」归纪检 / 组织 / 组长各自在左栏对应卡中调整。
       </div>
     </div>`;
@@ -1099,13 +1104,13 @@ function activityApprovalCardHtml(branch, P) {
   const opts = ACTIVITY_APPROVAL_MODES.map(m =>
     `<option value="${m}" ${m === cur ? 'selected' : ''}>${esc(ACTIVITY_APPROVAL_MODE_LABELS[m] || m)}</option>`).join('');
   return `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">活动批准门</h2>
-        <span class="settings-badge">支书 · 本支部可调</span>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">活动批准门</h2>
+        ${badgeHtml('支书 · 本支部可调', 'info')}
       </div>
-      <p class="settings-card-desc">办活动要不要先过一道批准门。<b>默认关闭</b>：关闭时活动写入与现在完全一样（写入即照常推进）；开启后写入即落「待批」，批准前不推进、批准后才发布、不批准则终止。档位可定「${esc(ACTIVITY_APPROVAL_MODE_LABELS.secretary)}」或「${esc(ACTIVITY_APPROVAL_MODE_LABELS['branch-committee'])}」。</p>
-      <div class="settings-kv-row">
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">办活动要不要先过一道批准门。<b>默认关闭</b>：关闭时活动写入与现在完全一样（写入即照常推进）；开启后写入即落「待批」，批准前不推进、批准后才发布、不批准则终止。档位可定「${esc(ACTIVITY_APPROVAL_MODE_LABELS.secretary)}」或「${esc(ACTIVITY_APPROVAL_MODE_LABELS['branch-committee'])}」。</p>
+      <div class="kv-row">
         <dt>批准门档位</dt>
         <dd>
           <select id="pol-approval-mode" class="input-flat text-xs w-56">${opts}</select>
@@ -1113,10 +1118,10 @@ function activityApprovalCardHtml(branch, P) {
         </dd>
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
-        <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-approval-save>保存</button>
-        <button type="button" class="myws-btn-ghost" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        <button type="button" class="btn-accent text-xs px-3 py-1.5" data-approval-save>保存</button>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
       </div>
-      <p class="myws-status" data-pol-status aria-live="polite"></p>
+      <p class="status-line" data-pol-status aria-live="polite"></p>
     </div>`;
 }
 
@@ -1161,18 +1166,18 @@ function _overridesOf(branch) {
 function domainCardHtml(meta, branch, P) {
   const po = _overridesOf(branch);
   const hasOverride = !!po[meta.section];
-  const statusHtml = `<p class="myws-status" data-pol-status aria-live="polite"></p>`;
+  const statusHtml = `<p class="status-line" data-pol-status aria-live="polite"></p>`;
   if (meta.section === 'inspection') {
     const def = P.inspection.overdueDays;
     const cur = (Number.isInteger(po.inspection?.overdueDays) ? po.inspection.overdueDays : def);
     return `
-      <div class="settings-card">
-        <div class="settings-card-head">
-          <h2 class="settings-card-title">纪检职责参数</h2>
-          <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+      <div class="card rounded-xl p-5">
+        <div class="flex items-center gap-2.5 mb-2">
+          <h2 class="font-title-cn text-base font-bold text-gray-800">纪检职责参数</h2>
+          ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="settings-card-desc">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、支书台「考察超期未确认」提醒 deadline 同源生效。</p>
-        <div class="settings-kv-row">
+        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、支书台「考察超期未确认」提醒 deadline 同源生效。</p>
+        <div class="kv-row">
           <dt>考察确认超期</dt>
           <dd>
             <label class="flex items-center gap-2">
@@ -1184,8 +1189,8 @@ function domainCardHtml(meta, branch, P) {
           </dd>
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
-          <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-disc">保存</button>
-          <button type="button" class="myws-btn-ghost" data-pol-reset="domain-disc" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+          <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-disc">保存</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-disc" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
         </div>
         ${statusHtml}
       </div>`;
@@ -1200,14 +1205,14 @@ function domainCardHtml(meta, branch, P) {
     const winLabel = (w, cross) => `${pad(w[0])}-${pad(w[1])} ～ ${cross ? '次年 ' : ''}${pad(w[2])}-${pad(w[3])}`;
     const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
     return `
-      <div class="settings-card">
-        <div class="settings-card-head">
-          <h2 class="settings-card-title">组织职责参数</h2>
-          <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+      <div class="card rounded-xl p-5">
+        <div class="flex items-center gap-2.5 mb-2">
+          <h2 class="font-title-cn text-base font-bold text-gray-800">组织职责参数</h2>
+          ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="settings-card-desc">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：支书台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
+        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：支书台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
         <div class="space-y-3">
-          <div class="settings-kv-row">
+          <div class="kv-row">
             <dt>区间 1</dt>
             <dd class="flex items-center gap-1.5 flex-wrap">
               ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>
@@ -1215,7 +1220,7 @@ function domainCardHtml(meta, branch, P) {
               <span class="text-[11px] text-gray-500">默认 ${winLabel(def[0] || w1, false)}</span>
             </dd>
           </div>
-          <div class="settings-kv-row">
+          <div class="kv-row">
             <dt>区间 2</dt>
             <dd class="flex items-center gap-1.5 flex-wrap">
               ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>
@@ -1226,8 +1231,8 @@ function domainCardHtml(meta, branch, P) {
         </div>
         <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
-          <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-org">保存</button>
-          <button type="button" class="myws-btn-ghost" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+          <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-org">保存</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
         </div>
         ${statusHtml}
       </div>`;
@@ -1236,25 +1241,25 @@ function domainCardHtml(meta, branch, P) {
   const defOn = !!P.leader.semesterReportReminder?.enabled;
   const curOn = typeof po.leader?.semesterReportReminder?.enabled === 'boolean' ? po.leader.semesterReportReminder.enabled : defOn;
   return `
-    <div class="settings-card">
-      <div class="settings-card-head">
-        <h2 class="settings-card-title">组长职责参数</h2>
-        <span class="settings-badge">${esc(meta.roleLabel)} 可调</span>
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center gap-2.5 mb-2">
+        <h2 class="font-title-cn text-base font-bold text-gray-800">组长职责参数</h2>
+        ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
       </div>
-      <p class="settings-card-desc">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
-      <div class="settings-kv-row">
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期组员进展自动归集提醒：每学期开学周（3 月 / 9 月首周）在组长工作台提醒一次「逐人归集本组组员进展」。频率固定学期制。</p>
+      <div class="kv-row">
         <dt>学期提醒</dt>
         <dd>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="pol-leader-enabled" class="w-4 h-4 accent-[var(--app-accent,#B91C1C)]" ${curOn ? 'checked' : ''}>
+            <input type="checkbox" id="pol-leader-enabled" class="w-4 h-4 accent-[var(--app-accent)]" ${curOn ? 'checked' : ''}>
             <span class="text-xs text-gray-700">开启「学期组员进展归集提醒」（默认开）</span>
           </label>
           <div class="text-[11px] text-gray-500 mt-1">频率：每学期（3 月 / 9 月开学首周提醒一次；首次查看后本学期不再重复弹）。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致（开启）'}。</div>
         </dd>
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
-        <button type="button" class="bws-btn-primary bws-btn-primary-sm" data-pol-save="domain-leader">保存</button>
-        <button type="button" class="myws-btn-ghost" data-pol-reset="domain-leader" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-leader">保存</button>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-leader" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
       </div>
       ${statusHtml}
     </div>`;

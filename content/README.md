@@ -23,4 +23,4 @@ status: active
 
 所有系统逻辑、数据模型和 UI 行为必须从 SOP 文档推导而来（CLAUDE.md H30.2 制度→代码母本子本关系）。
 
-> 知识类型权威层级定义见 [OPERATIONS_GUIDE.md §1.1](03_doc_system/OPERATIONS_GUIDE.md)，母本子本关系注册表见 [SSOT_INDEX.md](03_doc_system/SSOT_INDEX.md)。
+> 知识类型权威层级定义见 [OPERATIONS_GUIDE.md §1.1](03_doc_system/OPERATIONS_GUIDE.md)，母本子本关系注册表见 [ARCHITECTURE.md §十](03_doc_system/ARCHITECTURE.md#十单一事实源注册表与权威源治理)。

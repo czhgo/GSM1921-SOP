@@ -5,15 +5,15 @@ role: "[工程师]+[AI]"
 last_updated: "2026-09-17"
 version: "2.5"
 status: active
-related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md]
+related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md]
 ---
 
 # 文档导航映射
 
 > **本文档为导航图**：按 5 类知识类型组织，标注每个文件的受众。
 > **权威层级定义**（5 类知识类型、裁决规则）见 [OPERATIONS_GUIDE.md §1.1](OPERATIONS_GUIDE.md#11-文档权威层级5-类知识类型)。
-> **母本子本关系注册表**见 [SSOT_INDEX.md](SSOT_INDEX.md)。
-> 三者关系：§1.1 定义层级 → DOC_MAP 标注层级 → SSOT_INDEX 注册关系。
+> **母本子本关系注册表**见 [ARCHITECTURE.md §十](ARCHITECTURE.md#十单一事实源注册表与权威源治理)。
+> 三者关系：§1.1 定义层级 → DOC_MAP 标注层级 → ARCHITECTURE §十 注册关系。
 > **受众：** [工程师]+[AI]
 
 ---
@@ -53,7 +53,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | 受众 | 入口文件 | 说明 |
 |------|---------|------|
 | [用户] | `README.md`（根目录） | 项目门面，一句话说清是什么 |
-| [工程师]+[AI] | `content/03_doc_system/ARCHITECTURE.md` | 核心架构说明，技术全景 |
+| [工程师]+[AI] | `content/03_doc_system/ARCHITECTURE.md` | 架构与单一事实源，技术全景 |
 | [工程师]+[AI] | `CLAUDE.md`（根目录） | Harness（甲乙丙三部）、AI 执行依据 |
 | [用户]+[AI] | `content/01_strategy/SECRETARY_DIRECTIVES.md` | 党支书工作交接文档（项目顶级战略文档） |
 
@@ -86,7 +86,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | [工程师]+[AI] | 组织者与深度参与者的扁平化设计 | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支委系统设计（含专班、赋权关系链、§审批流程规范） | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计（[用户]/[工程师]/[AI] 三类标记 + 协作方式 + 存储读取机制） | OPERATIONS_GUIDE.md、USAGE_POLICY.md |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | SERVICE_CATALOG.md、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |
@@ -106,9 +106,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/03_doc_system/PROCESS_GUIDE.md` | [工程师]+[AI] | 运行标准·流程机制类（§15 甲部修改流程、§16 吸收外部输入、§17 周期性任务、§18 支书评议工作流细节；2026-08-24 自 OPERATIONS_GUIDE 拆分） | CLAUDE.md H60/H30.1 |
 | `content/03_doc_system/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + AI 展开原则 §二 + Emoji 边界 §三，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
-| `content/03_doc_system/SSOT_INDEX.md` | [工程师]+[AI] | 母本注册表、溯源参考（Agent/Skill 配置已迁出，见 ARCHITECTURE.md） | ARCHITECTURE.md |
-| `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 核心架构说明、分层架构、数据模型、变更流水线 | README.md（架构图引用） |
-| `content/03_doc_system/SERVICE_CATALOG.md` | [工程师]+[AI] | 统一服务目录（服务清单+角色权限矩阵） | DATA_MODEL.md / SYSTEM_ROLE_PERMISSION.md / COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 架构与单一事实源（分层架构、仓库结构、数据模型、变更流水线 + 单一事实源注册表 + 统一服务目录） | README.md（架构图引用） |
 | `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
 | `content/03_doc_system/README.md` | [工程师]+[AI] | 文档系统管理层目录索引 | — |
 
@@ -125,8 +123,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
 | `content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 SYSTEM_ROLE_PERMISSION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
-| `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接总案（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 专项细节指针；2026-09-04 按阅读对象重构，原计算中心对接全案并入 §三） | AUTHENTICATION_MODEL.md、WECHAT_INTEGRATION.md、PKU_PARTY_INTEGRATION.md |
-| `content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md` | [工程师]+[AI] | 北大党校与智慧党建系统对接设计（党校单向爬取 + 智慧党建双向同步 + 数据映射 + 小程序归位说明 + 待确认清单） | DEPLOYMENT_GUIDE.md、WECHAT_INTEGRATION.md、DATA_MODEL.md |
+| `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、DESIGN_SYSTEM.md、ARCHITECTURE.md |
 | `content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md` | [工程师]+[AI] | 架构演进（2026-09-03 精简：组件化落地评估历史结论 + §八 拖拽编排远期愿景；评估承接见 .ctx/ENGINEERING_ASSESSMENT.md「工程化评估与改造行动线」） | .ctx/ENGINEERING_ASSESSMENT.md、DATA_MODEL.md、SOP_WEBSITE_GUIDE.md |
 | `.ctx/ENGINEERING_ASSESSMENT.md`（2026-09-08 自 content/04_web_design/evolution 迁入 .ctx/；2026-09-09 更名自 MODULARIZATION_ASSESSMENT：评估职能归审计底座；2026-09-17 收敛：逐批沿革迁入月度日志，本体只维护**当前值**） | [工程师]+[AI] | 工程化评估与改造行动线——**回答「现在工程化到几成、下一步该改哪里」**：五维**当前**打分（模块化 **97** / 插件化 75 / 开源化 **75** / 超参数 78 / 组合 78）+ 工程做法纪律 + 行动线 P0~P4 的**当前**状态。⚠ **逐批沿革与「为何 +1」论证已于 2026-09-17 迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md`**（原行曾写「综合≈76」，现状见文件本体 §5.2） | ARCHITECTURE_EVOLUTION.md、CLAUDE.md（工程化方向判断依据） |
 | `.ctx/REVIEW_QUEUE.md`（2026-09-17 收敛：已闭环项迁入月度日志，本体只留未闭环；此前**未登记于本表**，2026-09-17 补登） | [工程师]+[AI] | 支书评议队列——**回答「哪些评议与裁定还没闭环」**：待裁 / 待登记 / 进行中 / 待落地事项 + W4 专项评议循环承接区（全局评估总表 / 评议方法总索引 / 附录 ①–⑪） | CLAUDE.md H60/H60.6、各批次执行日志 |
@@ -134,8 +131,6 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
 | `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发；支书逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
-| `content/04_web_design/deploy/AUTHENTICATION_MODEL.md` | [工程师]+[AI] | 部署与认证场景模型（5 场景两轴正交 + 侧边栏统一 + 登录门控四层 + 构建注入配置） | docs/src/config/deploy.js、docs/src/components/sidebar.js、docs/src/core/bootstrap.js |
-| `content/04_web_design/deploy/WECHAT_INTEGRATION.md` | [工程师]+[AI] | 微信协同与小程序设计方案（文件流分类+宣传墙/档案分层浏览+过程性汇报集成+小程序路径评估） | DESIGN_SYSTEM.md（原则 10/13）、T-230 |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）
@@ -165,7 +160,7 @@ related_files: [OPERATIONS_GUIDE.md, SSOT_INDEX.md, CLAUDE.md, ARCHITECTURE.md, 
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `CLAUDE.md`（根目录） | [工程师]+[AI] | Harness（甲乙丙三部）、执行路线图、AI 协作规则、授权机制 | SSOT_INDEX、README |
+| `CLAUDE.md`（根目录） | [工程师]+[AI] | Harness（甲乙丙三部）、执行路线图、AI 协作规则、授权机制 | ARCHITECTURE.md §十、README |
 | `README.md`（根目录） | [用户] | 项目门面，一句话说清是什么 | — |
 | `.ctx/TIMESTAMPS.md` | [工程师] | 文件时间戳注册表（含周期性任务追踪表） | CLAUDE.md |
 | `.ctx/SNAPSHOT.md` | [AI] | 系统快照、AI 快速同步入口（审计追溯层） | ARCHITECTURE.md、CLAUDE.md |
@@ -212,7 +207,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 - **文件 1（content/insights/党支部管理与实务经验沉淀.md）**：党支部管理与实务 + 共识性组织智慧——面向"管理事，服务人"叙事
 - **文件 2（content/insights/工程演进与设计方法论.md）**：工程演进 + 设计方法论 + 架构迁移方法论 + 共识性组织智慧——面向 AI-driven 仓库工作流
 
-**2026-09-04 二次分流（工程方法论 → 各知识类型权威文件）**：文件 2 中属仓库级系统治理规范与制度判例的章节，按知识类型归并至既有权威文件——03_doc_system/（PROCESS_GUIDE、USAGE_POLICY、DOC_MAP、SSOT_INDEX、OPERATIONS_GUIDE）与 02_institution/（COMMISSIONER_DUTY_FRAMEWORK）承接各自同题章节，并入文本均保留出处注「（原 insights §N）」，去重融合、不产生双份；源文件已删除（2026-09-04，承接声明见 [content/insights/README.md](../insights/README.md)）。
+**2026-09-04 二次分流（工程方法论 → 各知识类型权威文件）**：文件 2 中属仓库级系统治理规范与制度判例的章节，按知识类型归并至既有权威文件——03_doc_system/（PROCESS_GUIDE、USAGE_POLICY、DOC_MAP、ARCHITECTURE.md §十、OPERATIONS_GUIDE）与 02_institution/（COMMISSIONER_DUTY_FRAMEWORK）承接各自同题章节，并入文本均保留出处注「（原 insights §N）」，去重融合、不产生双份；源文件已删除（2026-09-04，承接声明见 [content/insights/README.md](../insights/README.md)）。
 
 **拆分条件**（什么条件下用知识类型拆分）：① 单文件已膨胀到 10+ 章或 1000+ 行——跨主题切换上下文成本已高于拆分成本；② 知识类型存在明确的理论边界——同一类知识的内部细分不构成拆分依据；③ 拆分后每个文件都能独立承载完整的知识子体系。
 
@@ -241,11 +236,11 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |
 | 查看 SOP 系统优化 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md | content/02_institution/sop/对应 SOP |
 | 了解支委系统设计 | content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） |
-| 了解登录系统设计前置 | content/04_web_design/data/DATA_MODEL.md §3.4（已实现登录态：AuthStore/账号体系/存储键） | content/04_web_design/deploy/AUTHENTICATION_MODEL.md（登录场景模型与门控） |
-| 查看服务清单与权限矩阵 | content/03_doc_system/SERVICE_CATALOG.md | content/02_institution/SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵） |
+| 了解登录系统设计前置 | content/04_web_design/data/DATA_MODEL.md §3.4（已实现登录态：AuthStore/账号体系/存储键） | content/04_web_design/deploy/DEPLOYMENT_GUIDE.md §四（登录场景模型与门控） |
+| 查看服务清单与权限矩阵 | content/03_doc_system/ARCHITECTURE.md §十一 | content/02_institution/SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵） |
 | 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |
-| 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/SSOT_INDEX.md |
+| 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/ARCHITECTURE.md §十 |
 | 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
-| 查看母本子本关系 | content/03_doc_system/SSOT_INDEX.md | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
+| 查看母本子本关系 | content/03_doc_system/ARCHITECTURE.md §十 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
 | 查看支书重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |

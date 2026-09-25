@@ -13,7 +13,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 > **总述：** 本文是系统**数据**的唯一权威源，回答两件事——**「有哪些数据、每类数据的字段是什么」**（第一部分 · 数据模型，静态结构）与**「数据如何产生、流动、聚合」**（第二部分 · 数据流，动态过程）。两半是同一套数据的两个切面：模型侧定义结构，流侧定义过程；结构变更或流向变更都须两侧同步。第三部分列出本文不重复展开的权威源。
 > **受众：** [工程师]+[AI] —— 供开发决策参考，确保数据结构变更时全栈一致。
 > **权限矩阵**：本文档含权限简表，完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，代码键级权威）。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md) / [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **权限矩阵的完整定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（冲突时以权威源为准）；③ **架构分层与目录结构** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；④ **登录门控与部署** → [DEPLOYMENT_GUIDE.md §四 / §二](../deploy/DEPLOYMENT_GUIDE.md)。
 
 ---
 
@@ -1286,7 +1286,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 3.4 登录态说明
 
-> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md)。
+> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)。
 
 ---
 
@@ -1613,8 +1613,8 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 | 考勤 / 考察 / 补课的制度规则 | [纪检委员工作流程指南.md](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 三级管理架构与分工 | [FLAT_ORGANIZATION_DESIGN.md](../../02_institution/FLAT_ORGANIZATION_DESIGN.md) |
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
-| 服务清单与代码落点 | [SERVICE_CATALOG.md](../../03_doc_system/SERVICE_CATALOG.md) |
-| 登录 / 认证门控 | [AUTHENTICATION_MODEL.md](../deploy/AUTHENTICATION_MODEL.md) |
+| 服务清单与代码落点 | [ARCHITECTURE.md §十一](../../03_doc_system/ARCHITECTURE.md#十一统一服务目录与角色-服务权限矩阵) |
+| 登录 / 认证门控 | [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md) |
 | 部署与 mock / api 切换 | [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md) |
 | SOP 场景与任务模板 | `docs/src/workflow/sopData.js`（场景与任务定义）+ `docs/src/workflow/definitions.js`（工作流定义） |
 | 数据一致性判据与断言方法 | [DATA_CONSISTENCY_CHECKLIST.md](../../05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md) |

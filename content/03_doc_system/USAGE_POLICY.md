@@ -366,7 +366,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 
 ### 行业共识词（可自行查证，一句话带过）
 
-- **SSOT**（Single Source of Truth）：单一事实源——同一信息只在一处权威定义、其余只引用，本仓母本/子本关系注册见 [SSOT_INDEX.md](SSOT_INDEX.md)
+- **SSOT**（Single Source of Truth）：单一事实源——同一信息只在一处权威定义、其余只引用，本仓母本/子本关系注册见 [ARCHITECTURE.md §十](ARCHITECTURE.md#十单一事实源注册表与权威源治理)
 - **SOP**（Standard Operating Procedure）：标准作业程序——把制度写成可执行的分步流程，制度母本在 `content/02_institution/sop/`
 - **UI**（User Interface）：用户界面
 - **ROADMAP**（路线图）：分阶段推进计划（如工作流模块化 L1→L5 愿景、各类整改批次 B1→B4）

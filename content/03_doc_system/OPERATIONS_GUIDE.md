@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 last_updated: "2026-09-17"
 version: "3.3"
 status: active
-related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/README.md, content/03_doc_system/SSOT_INDEX.md, content/03_doc_system/PROCESS_GUIDE.md]
+related_files: [CLAUDE.md, content/03_doc_system/USAGE_POLICY.md, content/02_institution/ROLE_CLASSIFICATION.md, content/03_doc_system/DOC_MAP.md, content/05_ai_coding/README.md, content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/PROCESS_GUIDE.md]
 ---
 
 # 运行标准与操作规范
@@ -657,7 +657,7 @@ Guides 文件不使用数字编号，使用**语义化文件名**（大写+下�
 
 ### 12.1 适用范围
 
-本规范适用于 `content/` 目录下所有 `.md` 文件的命名。根目录文件（`CLAUDE.md`、`ARCHITECTURE.md`、`SSOT_INDEX.md`、`SECRETARY_DIRECTIVES.md`、`README.md`）和 `.ctx/` 下日志文件遵循既有约定，不强制适用本规范。
+本规范适用于 `content/` 目录下所有 `.md` 文件的命名。根目录文件（`CLAUDE.md`、`ARCHITECTURE.md`、`SECRETARY_DIRECTIVES.md`、`README.md`）和 `.ctx/` 下日志文件遵循既有约定，不强制适用本规范。
 
 ### 12.2 命名标准
 

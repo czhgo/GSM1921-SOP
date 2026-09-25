@@ -556,6 +556,47 @@
         <p class="doc-note">用法习惯：翻到你自己那台后，头几次只需要记住两个位置——「待办」（系统替你把要做的事列好并指明去哪做）和「我的职责」组里的职责 tab（写操作都在这）。其余 tab 按需查看即可。</p>
       </section>
 
+      <!-- ========== 口径定点（界面深链落点 · DESIGN_SYSTEM §4.18 C7/C8 · 2026-09-25 立） ==========
+           本节是**界面说明行的制度口径定点**：每条口径在本页只有一处、且有稳定锚点，界面侧只留「一句话 ＋ 深链」。
+           登记表（单一源）＝每张卡片的三个属性（无需另建台账文件，也无需改目录/检索机制）：
+             id="card-copy-<key>"            锚点 id ＝ 界面深链 ./help.html#card-copy-<key> 的目标（命名规则 card-copy-<slug>）
+             data-copy-key="<key>"           口径主键（登记主键；守卫按它核登记完整性、防台账被删空）
+             data-copy-source="<file,file>"  该口径**原挂在界面的哪个文件**（迁移去向可反查）
+             data-search="<关键词…>"         沿用既有检索体例（help-catalog 只把 .help-card[data-search] 收进搜索索引）
+           迁移纪律：被删掉的界面语义在本节**逐字可查**（原句照录），界面侧不得再复述；两处同口径只登记一次（C3 同屏/跨屏复述）。 -->
+      <section class="doc-card" id="sec-copy-anchors">
+        <h2 class="doc-h2"><span class="doc-num">附</span>口径定点（界面深链落点）</h2>
+        <hr class="doc-divider">
+        <p class="doc-p doc-lead">
+          界面上的说明行只留「一句话 ＋ 指向这里」；制度口径在本页<strong>各只一处</strong>，并带稳定锚点——界面深链一律写 <code>./help.html#card-copy-&lt;key&gt;</code>。
+          本节条目都是「界面说明行搬家」来的：原句在本节<strong>逐字保留</strong>（信息不丢，只换位置），界面侧删掉的那部分语义都能在这里查到；卡片属性里另记着它原来挂在哪份界面文件，便于反查与防回潮。
+        </p>
+
+        <div class="help-card" id="card-copy-party-group" data-copy-key="party-group" data-copy-source="docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="党小组 组长 派生 成员档案 组内归属 指派 赋权管理 改名 档案归属 解散 非空组 未分组 党小组清单 写权 副支书 归组">
+          <h3 class="help-card-title">党小组与组长（组长怎么产生 · 改名与解散各牵动什么）</h3>
+          <p class="help-card-desc"><strong>原文（原为支书台「党小组」tab 的「党小组清单」卡导语，2026-09-25 起不在界面复述）：</strong>组长由成员档案（组长身份 + 组内归属）派生，指派入口在「赋权管理」；改名会同步改写该组全部成员的档案归属；解散允许非空组，组内成员转为「未分组」。</p>
+          <ul class="doc-list" style="margin-top:8px;">
+            <li><strong>组长怎么产生</strong>：组长不单独建表，而是从成员档案的「组长身份 ＋ 所在党小组」两项推出来——档案一改，组长口径跟着变；指派与撤销都在支书台「赋权管理」的常设赋权（情景① 党小组组长），不在这张清单上设入口。</li>
+            <li><strong>改名牵动谁</strong>：改的是这个组的名字，组里全体成员的档案归属一并改成新名（不必逐个成员去改）；此后该组的活动、考勤与复盘统计继续按新名归集。</li>
+            <li><strong>解散的边界（允许非空组）</strong>：<strong>非空组也允许解散</strong>，不要求先清空；组内成员落到「未分组」，可在「党小组」tab 顶部「未分组」一行再逐个归入别的组。解散后该组退出下拉与统计，留痕仍留着可查；解散原因可填可不填。</li>
+            <li><strong>谁能写</strong>：新增 / 改名 / 解散三个写口只对支书与副支书开放（副书同权）；界面按钮的显隐只是提示，写没写成以服务层返回为准。组名与权限的单一来源在 <code>docs/src/services/party-group.js</code>（界面不自己维护组名清单）。</li>
+            <li><strong>相关</strong>：§2.1 支书工作台「党小组」行、§2.5 组长工作台「组员进展」行；组员向组长汇报与「请组长关注」的口径见支书台「党小组」tab 的「组员进展摘要」卡。</li>
+          </ul>
+        </div>
+
+        <div class="help-card" id="card-copy-review-submit" data-copy-key="review-submit" data-copy-source="docs/src/entries/tabs/leader/review-tab.js,docs/src/entries/tabs/secretary/group-progress-tab.js" data-search="复盘 我的复盘 复盘提交 组织者 深度参与者 只读 待复盘 已复盘 打回 退回 纪检批注 真问题 组长台 支书台 组员进展 党小组 本组活动复盘状态">
+          <h3 class="help-card-title">活动复盘提交位（谁提交 · 哪里只读 · 待复盘与打回怎么算）</h3>
+          <p class="help-card-desc"><strong>原文（两条界面说明行，2026-09-25 起不在界面复述）：</strong>① 组长台「组员进展」页内区块导语：复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；本区仅展示状态，不提供提交。 ② 支书台「党小组」tab「本组活动复盘状态」卡导语：复盘由活动组织者 / 深度参与者提交（成员端「我的复盘」）；支书只读查看，点击已复盘行可展开详情。</p>
+          <ul class="doc-list" style="margin-top:8px;">
+            <li><strong>提交位只有一个</strong>：复盘在<strong>成员端「我的复盘」</strong>交，由该活动的组织者或深度参与者来写（被赋权后那场活动才在他页上出现填写入口）；普通成员也在同一页看自己参与过的复盘，但没有提交表单。</li>
+            <li><strong>哪里只读</strong>：组长台「组员进展」页里的「本组活动复盘状态」区块、支书台「党小组」tab 的「本组活动复盘状态」卡，都只摆状态、不放提交入口——组长与支书都不代提交、不代答复。</li>
+            <li><strong>展开看什么</strong>：已复盘的行可点开，内容为该场复盘的正文、提出的真问题、纪检委员批注与提交时间（只读）。</li>
+            <li><strong>两个桶怎么分</strong>：待复盘＝还没交、或被退回要求修改的；已复盘＝已上传 / 批注中 / 已确认的。活动被取消或归档才退出这张表——活动办完仍留在待复盘里，直到复盘交齐。</li>
+            <li><strong>相关</strong>：§2.5 组长工作台「组员进展」行、§2.6 成员工作台「我的复盘」行；活动域手册（3.2）的复盘一节。</li>
+          </ul>
+        </div>
+      </section>
+
       <!-- ========== 功能总览区（catalog 驱动的检索总览；第 2 章之后、第 3 章之前） ========== -->
       <p class="doc-note" style="margin-bottom:22px;">以下「功能总览」（功能地图 + 按组分组的全部功能卡片）是目录驱动的检索总览：卡片 = 功能的一句话名册；用法细则在第 3 章「域手册」，跨角色先后顺序在第 4 章「业务链路」，党委侧操作与支部配置在第 5 章。页顶搜索全文覆盖本页全部卡片。</p>
 
