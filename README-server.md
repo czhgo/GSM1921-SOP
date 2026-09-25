@@ -1584,7 +1584,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
-| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171` |
+| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171`。2026-09-25 批次 189 起，首启播种的表另含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；逐表口径与判据见 server/seed.js 末尾「批次 189」段 |
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:207,215` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |

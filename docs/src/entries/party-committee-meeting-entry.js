@@ -119,7 +119,11 @@ function renderShellDenied() {
   ROOT.innerHTML = `
     <div class="card rounded-xl p-5 text-center">
       <p class="font-title-cn text-base font-bold text-gray-800">你在支委会会议页没有可见的会议</p>
-      <p class="text-sm text-gray-500 mt-2">支委会会议页对本支部支委（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）开放，看得到<strong>全部</strong>支委会场次；<strong>被扩大进某场支委会（支委扩大会）的人也能进本页，但只看得到「扩大到你的」那一场</strong>，并在该场表态。当前账号既不在本支部支委名单内，也没有任何一场支委会扩大到你的范围。</p>
+      <p class="text-sm text-gray-500 mt-2">你不在此页可见范围内；可用范围口径见下。</p>
+      <details class="mt-2 text-left">
+        <summary class="text-xs text-gray-500 cursor-pointer select-none">谁能进本页 ▾</summary>
+        <div class="text-xs text-gray-500 leading-5 mt-1">支委（支书 / 副支书 / 组织 / 宣传 / 纪检委员）看得到全部支委会场次；被扩大进某场支委扩大会的人也能进（但只看得到扩大到他的那一场，并在该场表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
+      </details>
       <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
     </div>`;
 }
@@ -145,7 +149,11 @@ function expandedScopeNoticeHtml(n) {
   return `
     <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
       <p class="text-xs font-semibold text-blue-800">你被扩大进 ${n} 场支委会（支委扩大会）</p>
-      <p class="text-[11px] text-blue-800 mt-1.5 leading-relaxed">本页只列<strong>扩大到你的</strong>那些场次——其余支委会没有扩大到你的范围，不进下方列表、也不能打开（经链接直指会被拒）。在这几场里，你可按本场应到名单表态，并查阅议程与讨论结果；议程提取与参会范围调整是支委侧的写入位、汇总截止与记录讨论结果归支书 / 副支书，这些不在你的范围内。</p>
+      <p class="text-[11px] text-blue-800 mt-1.5 leading-relaxed">本页只列扩大到你的那些场次（其余不进列表、直指也打不开）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <details class="mt-1">
+        <summary class="text-[11px] text-blue-800 cursor-pointer select-none">被扩大者的可见与可做 ▾</summary>
+        <div class="text-[11px] text-blue-800 leading-5 mt-1">在这几场里你可按应到名单表态、查阅议程与讨论结果；议程提取与范围调整、汇总截止与记录讨论结果归支委侧，不在你的范围内。</div>
+      </details>
     </div>`;
 }
 
@@ -219,7 +227,11 @@ function scopeSectionHtml(act) {
   return `
     <div class="card rounded-xl p-5">
       <p class="text-sm font-semibold text-gray-700 mb-1">本场参会范围（支委层 / 支委扩大会）</p>
-      <p class="text-[11px] text-gray-500 mb-3">支委会与支委扩大会<strong>都是法人性质</strong>（支书 2026-09-23 裁定）：同一场支委会可按需<strong>扩大到谁</strong>。默认＝支委层（现状不变）；勾「扩大会」后逐位选，或一键勾「全体党小组组长（代组长）」。名单写在本场活动的既有应到名单字段上（<code>voteConfig.voterIds</code>，与线上表态门同一口径），不新增字段。</p>
+      <p class="text-[11px] text-gray-500 mb-3">支委会与支委扩大会都是法人性质；默认支委层，可扩大到党小组组长（代组长）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></p>
+      <details class="mb-3">
+        <summary class="text-[11px] text-gray-500 cursor-pointer select-none">参会范围口径 ▾</summary>
+        <div class="text-[11px] text-gray-500 leading-5 mt-1">同一场支委会可按需选扩大到谁：勾「扩大会」后逐位选，或一键勾全体党小组组长（代组长）；未勾＝维持支委层现状。名单落在本场活动既有应到名单字段（与线上表态门同一口径），不新增字段。</div>
+      </details>
       ${editable ? `
       <label class="flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" id="pcm-expanded"${expandedIds.length ? ' checked' : ''}>
@@ -410,11 +422,10 @@ function rulingNoticeHtml() {
   return `
     <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
       <p class="text-xs font-semibold text-amber-800">① 线上与线下完全同等效力（2026-09-20 定案）：线上表决与线上记录的讨论结果即终局，不需线下追认。</p>
-      <p class="text-[11px] text-amber-800 mt-1.5 leading-relaxed">
-        以下三条是由上面这条口径推导出来的，尚未逐条明答，请支书确认或推翻：② 讨论结果的可见范围与线下一致（即支委会内部）；
-        ③ 支委缺席按线下同一规则处理；④ 线上支委会也走线下会议的那套任务（两条线合流）。
-        确认之前，本页不代作判定，只如实呈现已存记录（表态 / 锁定 / 结果）。
-      </p>
+      <details class="mt-1.5">
+        <summary class="text-[11px] text-amber-800 cursor-pointer select-none">由该口径推导、尚待确认的三条（② ③ ④）▾</summary>
+        <div class="text-[11px] text-amber-800 leading-5 mt-1">以下三条由上面这条口径推出，尚未逐条明答，请支书确认或推翻：② 讨论结果可见范围与线下一致（支委会内部）；③ 支委缺席按线下同一规则；④ 线上支委会也走线下那套任务（两条线合流）。确认前本页不代作判定，只如实呈现已存记录（锁定 / 结果 / 表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
+      </details>
     </div>`;
 }
 

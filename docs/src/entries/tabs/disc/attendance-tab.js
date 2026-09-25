@@ -712,7 +712,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
   if (_meetFormVisible) {
     // 稳定容器 #disc-meet-body（保态折叠挂点）：收起/取消只切 hidden，不重建 innerHTML、不销毁 picker
     const bodyInner = meetings.length === 0
-      ? `<div class="py-3 text-xs text-gray-500">当前没有您可上传的会议考勤——<b>党课 / 支部党员大会</b>由<b>纪检委员</b>上传（本卡）；<b>党小组会 / 主题党日 / 组织生活会</b>由<b>该场活动组织者</b>在组长台「考勤上传」上传；<b>支委会不考勤</b>。异常（缺勤 / 请假）请在下方「待确认考勤」队列做打包确认。</div>`
+      ? `<div class="py-3 text-xs text-gray-500">当前没有您可上传的会议考勤（上传位按会议类型分）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤上传位</a></div>`
       : `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
         <div>
@@ -739,7 +739,12 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <button id="disc-meet-submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="${accentStyle}cursor:pointer;">提交录入</button>
         <button id="disc-meet-cancel" class="text-sm px-4 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
-      <div class="mt-3 text-[11px] text-gray-500">录入即确认（recordedBy=录入人本人＝该场会议的纪检委员 / 支书 / 副支书）；未到（缺勤/请假）者须选标因（<b>事假 / 病假</b> / 无故 / 其它，纪检认定·固定枚举；<b>事假须提前 1 天申请、病假可事后补</b>——该句只是时效提示，<b>不作校验、不拦提交</b>）；滞留线下到场者勾选「到场补录」计入到席（落「滞留·到场」标记）；已录条目将覆盖（本人更正）· 新增/更正/跳过计数见提交回执</div>`;
+      <div class="mt-3 text-[11px] text-gray-500">录入即确认（录入人本人记名；缺勤 / 请假须选标因）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a>
+        <details class="mt-1">
+          <summary class="text-[11px] text-gray-500 cursor-pointer select-none">标注原因与更正口径 ▾</summary>
+          <div class="leading-5 mt-1">标因：事假 / 病假 / 无故 / 其它（纪检认定）；时效为提示、非校验。滞留到场勾「到场补录」；已录由本人更正。详见帮助。</div>
+        </details>
+      </div>`;
     body = `<div id="disc-meet-body">${bodyInner}</div>`;
   }
 

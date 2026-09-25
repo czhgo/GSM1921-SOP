@@ -176,10 +176,9 @@ const BASELINE = {
     '未找到您所属支部——请先由党委在『支部管理』中确认归属',        // 设置页未绑定支部提示（与 §5.4 同句）
     '档案/职责参数等）每次保存自动留痕：操作人、时间、变更项、前后', // 设置页配置留痕说明（与 §5.4 同句）
   ],
-  'docs/src/entries/tabs/disc/attendance-tab.js': [
-    '；党小组会/主题党日/组织生活会由该场活动组织者在组长台「考勤上传」上传', // 纪检台考勤上传位口径（与 §3.3 同句）
-    '录入即确认（recordedBy=录入人本人＝该场会议的纪检委员/支书/副支书）；',  // 考勤录入口径（与 §3.3 同句）
-  ],
+  // `docs/src/entries/tabs/disc/attendance-tab.js` 条目已于 2026-09-25「文案存量清理」批移除（收基线）：
+  //   该文件两条同句（考勤上传位 / 录入即确认）已改为「一行摘要 ＋ help 深链 #card-copy-attendance-record」
+  //   ⇒ 界面不再复述制度母本，按本守卫自身纪律（收基线＝删条目）删去。
   'docs/src/entries/tabs/org/inspection-tab.js': [
     '自动投递：纪检确认→考察总表（组织委员建档），无需',          // 考察自动投递口径（与 §3.4 同句）
   ],
@@ -194,12 +193,16 @@ const BASELINE = {
   ],
 };
 
-/** 基线规模（下限防「台账被删减」，条目数一致防「改台账不如实声明」） */
-const BASELINE_FILE_COUNT = 10;
-const BASELINE_TOTAL = 13;
+/** 基线规模（下限防「台账被删减」，条目数一致防「改台账不如实声明」）
+ *  2026-09-25「文案存量清理」批收基线：`disc/attendance-tab.js`（2 条）已改为「一行 ＋ help 深链」
+ *  ⇒ 文件 10 → 9、条数 13 → 11（两处同步下调，见上）；下限随真实值下调，**只降不升**。 */
+const BASELINE_FILE_COUNT = 9;
+const BASELINE_TOTAL = 11;
 
-/** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空 */
-const COPY_CARD_BASELINE = 2;
+/** 定点登记表（help.html 里 data-copy-key 卡片数）的下限，防台账被删空
+ *  2026-09-25「文案存量清理」批：本批新增 4 张定点（issue-reveal / pcm-scope / attendance-record / makeup-scope）
+ *  ⇒ 连同上一批 3 张共 7 张；下限随真实值上调（**只升不降**）。 */
+const COPY_CARD_BASELINE = 7;
 
 const SCAN = scan();
 
@@ -254,8 +257,8 @@ test('N3 非空转：抽取口径可用（含 20/19 字边界）+ 基线规模�
 
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const baseFiles = Object.keys(BASELINE);
-  assert.ok(BASELINE_FILE_COUNT >= 10, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 10）——台账被删减或抽取口径失效`);
-  assert.ok(BASELINE_TOTAL >= 13, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 13）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_FILE_COUNT >= 9, `基线文件数过少（声明 ${BASELINE_FILE_COUNT}，下限 9）——台账被删减或抽取口径失效`);
+  assert.ok(BASELINE_TOTAL >= 11, `基线条数过少（声明 ${BASELINE_TOTAL}，下限 11）——台账被删减或抽取口径失效`);
   assert.equal(baseFiles.length, BASELINE_FILE_COUNT,
     `基线条目数与声明的文件数不一致（实测 ${baseFiles.length} / 声明 ${BASELINE_FILE_COUNT}）`);
   assert.equal(baseFiles.reduce((a, f) => a + BASELINE[f].length, 0), BASELINE_TOTAL,

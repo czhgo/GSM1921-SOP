@@ -65,10 +65,16 @@ export async function renderContent() {
         </div>
         <span class="text-xs px-2.5 py-1 rounded-full bg-red-50 text-red-700 shrink-0">仅党委可见</span>
       </div>
-      <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-1">
-        <p class="text-xs text-amber-800"><b>① 本页仅党委可见</b>：匿名 = 前端展示层匿名，后台记录真实提交人；查看真身的权限只有党委有。</p>
-        <p class="text-xs text-amber-800"><b>② 每次查看都会留痕</b>（谁 / 何时 / 看了哪些匿名条目）：留痕让「只有党委能看」这句承诺可被事后核对。</p>
-        <p class="text-xs text-amber-800"><b>③ 党支部内部（含支书）看不到本页信息</b>：支书只负责处置——「处置」与「查看真身」是两项分开的权限。</p>
+      <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <p class="text-xs text-amber-800">仅党委可见 · 每次查看留痕 · 支部内部（含支书）看不到真身　<a href="./help.html#card-copy-issue-reveal" class="text-sky-600 hover:underline" title="见帮助：匿名反馈核查（身份边界 / 留痕 / 处置权与查看权分离）">见帮助 · 查看真身权限</a></p>
+        <details class="mt-1.5">
+          <summary class="text-[11px] text-amber-800 cursor-pointer select-none">身份边界与留痕口径 ▾</summary>
+          <div class="text-[11px] text-amber-800 leading-5 mt-1 space-y-1">
+            <p>匿名＝前端展示层匿名，后台留真身；看真身只归党委。</p>
+            <p>每次查看记一条痕（谁 / 何时 / 看了哪些），供事后核对。</p>
+            <p>支书的处置权与看真身权是两码事，本页对支部内部（含支书）不可见。</p>
+          </div>
+        </details>
       </div>
       <div>
         <p class="text-xs text-gray-500 mb-2">反馈清单</p>
@@ -125,8 +131,6 @@ function cardHtml(r) {
         <span class="text-xs text-gray-400">${esc(fmtDt(r.submittedAt))}</span>
       </div>
       <p class="text-sm font-medium text-gray-800">${esc(r.title)}</p>
-      <p class="text-xs text-gray-500 mt-1">真实提交人：<b class="text-gray-800">${esc(who.name)}</b>（${esc(who.id)}）${
-        r.anonymous ? '<span class="text-gray-400"> · 对外显示「匿名」，不公开真身</span>' : '<span class="text-gray-400"> · 对外本就公开</span>'
-      }</p>
+      <p class="text-xs text-gray-500 mt-1">真实提交人：<b class="text-gray-800">${esc(who.name)}</b>（${esc(who.id)}）</p>
     </div>`;
 }

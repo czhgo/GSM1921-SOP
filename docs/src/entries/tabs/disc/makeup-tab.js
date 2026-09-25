@@ -81,8 +81,11 @@ export function renderContent(containerEl) {
             <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-gray-600">已超期</span><span class="font-bold text-red-700">${overdueTasks.length}</span></div>
           </div>
         </div>
-        <div class="text-xs text-gray-500 mb-3">缺勤/请假的<b>支部党员大会与党课</b>须在 7 日内补课（T+7），纪检委员确认完成；支委会不补课，主题党日不强制补课，党小组会按该场活动「要求补课」的勾选进入名单；请假且线上参会不补课</div>
-        <div class="text-[11px] text-gray-500 leading-5 mb-3">补课记录随考勤一并归档（<b>系统自动同步</b>，随「考勤管理」的「提交考勤统计至支委会」一并与考勤汇总交付支委会）——<b>不另设个人「补课记录归档审查」动作</b>（D-285：归档不依赖个人重复劳动）</div>
+        <p class="text-xs text-gray-500 mb-2">补课范围按会议类型分：仅支部党员大会与党课须 7 日内补课（T+7）。<a href="./help.html#card-copy-makeup-scope" class="text-sky-600 hover:underline">见帮助 · 补课范围与归档</a></p>
+        <details class="mb-3">
+          <summary class="text-[11px] text-gray-500 cursor-pointer select-none">补课范围与归档口径 ▾</summary>
+          <div class="text-[11px] text-gray-500 leading-5 mt-1">支委会与主题党日均不补课（后者不强制），党小组会依该场勾选进名单；请假且线上参会者不补课。补课记录随考勤自动归档（随「考勤管理」一并交付支委会），不另设「补课记录归档审查」个人动作——归档不靠重复劳动。</div>
+        </details>
         <div class="overflow-x-auto">
           <div id="disc-makeup-host"></div>
         </div>

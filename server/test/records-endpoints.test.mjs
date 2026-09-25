@@ -74,21 +74,28 @@ test('T1-① handoffs：发起 → 新客户端（清缓存等价）待接收条
   assert.equal(created.to, 'org-commissioner', 'to 由 type 派生');
 
   const beforeClear = await org.get('/api/v1/handoffs?status=pending');
-  assert.equal(beforeClear.filter((h) => h.to === 'org-commissioner').length, 1);
+  // ⚠ 2026-09-25 批次 189：本表**已有服务端种子**（`server/seed.js::SEED_HANDOFFS` 的 `ho-seed-1`，
+  //   纪检→组织、status=pending）⇒ 判据由「＝1（当时该表为空）」改准为「＝**种子 1 条 ＋ 本次发起 1 条**」。
+  //   这不是放宽：原来是拿「表为空」当隐含前提，现在把种子条数**显式写进判据**（种子变了即红）。
+  const SEEDED_PENDING_TO_ORG = 1; // `ho-seed-1`
+  assert.equal(beforeClear.filter((h) => h.to === 'org-commissioner').length, SEEDED_PENDING_TO_ORG + 1,
+    `待接收条数＝服务端种子 ${SEEDED_PENDING_TO_ORG} 条（ho-seed-1）＋ 本次发起 1 条`);
 
   // 「清 localStorage 后重进」＝**再开一个全新客户端**重读（本机无任何本地队列/缓存）
   const reopened = await freshClient('p11');
   const afterClear = (await reopened.get('/api/v1/handoffs?status=pending')).filter((h) => h.to === 'org-commissioner');
   assert.deepEqual(afterClear, beforeClear.filter((h) => h.to === 'org-commissioner'),
     '清缓存前后「待接收」交接必须一致（服务端为权威）');
-  assert.equal(afterClear[0].id, created.id);
+  // 判据「本次发起的那条仍在」按 id 命中（原写 `afterClear[0].id` 只在「该表当时仅此一行」时成立）
+  assert.ok(afterClear.some((h) => h.id === created.id), '本次发起的交接在清缓存后仍可读（服务端为权威）');
 
   // 接收方确认 → 状态落库（再开新客户端复核，而非信本机内存）
   const confirm = await org.post(`/api/v1/handoffs/${created.id}/confirm`);
   assert.equal(confirm.status, 200);
   assert.equal((await confirm.json()).status, 'done');
   const reopened2 = await freshClient('p11');
-  assert.equal((await reopened2.get('/api/v1/handoffs?status=pending')).length, 0, '确认后不再计入待接收');
+  assert.equal((await reopened2.get('/api/v1/handoffs?status=pending')).filter((h) => h.id === created.id).length, 0,
+    '确认后本条不再计入待接收（同表内的种子待接收行不受影响）');
   const all = await reopened2.get('/api/v1/handoffs');
   assert.equal(all.find((h) => h.id === created.id).status, 'done');
   assert.equal(all.find((h) => h.id === created.id).confirmedBy, 'org-commissioner');
@@ -123,20 +130,27 @@ test('T1-② member_confirmations：入队 → 新客户端支书待确认条数
   const req = await enqueue.json();
 
   const beforeClear = await sec.get('/api/v1/member-confirmations?status=pending');
-  assert.equal(beforeClear.length, 1);
+  // ⚠ 2026-09-25 批次 189：本队列**已有服务端种子**（`server/seed.js::SEED_MEMBER_CONFIRMATIONS` 的
+  //   `mc-seed-1`，status=pending）⇒ 判据由「＝1（当时该表为空）」改准为「＝**种子 1 条 ＋ 本次入队 1 条**」。
+  //   这不是放宽：种子条数被显式写进判据（种子增删即红）。
+  const SEEDED_PENDING = 1; // `mc-seed-1`
+  assert.equal(beforeClear.length, SEEDED_PENDING + 1,
+    `待确认条数＝服务端种子 ${SEEDED_PENDING} 条（mc-seed-1）＋ 本次入队 1 条`);
 
   // 清缓存等价：全新客户端重读
   const reopened = await freshClient('p13');
   const afterClear = await reopened.get('/api/v1/member-confirmations?status=pending');
   assert.deepEqual(afterClear, beforeClear, '清缓存前后「支书待确认」必须一致（服务端为权威）');
-  assert.equal(afterClear[0].id, req.id);
+  // 判据「本次入队的那条仍在」按 id 命中（原写 `afterClear[0].id` 只在「该表当时仅此一行」时成立）
+  assert.ok(afterClear.some((r) => r.id === req.id), '本次入队的请求在清缓存后仍可读（服务端为权威）');
 
   // 支书决策（副书同权）→ 终态落库
   const decide = await sec.post(`/api/v1/member-confirmations/${req.id}/decide`, { decision: 'approved' });
   assert.equal(decide.status, 200);
   assert.equal((await decide.json()).status, 'approved');
   const reopened2 = await freshClient('p13');
-  assert.equal((await reopened2.get('/api/v1/member-confirmations?status=pending')).length, 0);
+  assert.equal((await reopened2.get('/api/v1/member-confirmations?status=pending')).filter((r) => r.id === req.id).length, 0,
+    '本条决策后不再计入待确认（同队列内的种子待确认行不受影响）');
   const decided = (await reopened2.get('/api/v1/member-confirmations')).find((r) => r.id === req.id);
   assert.equal(decided.status, 'approved');
   assert.equal(decided.decidedBy, 'p13', '决策人留痕');
