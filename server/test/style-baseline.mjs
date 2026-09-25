@@ -6,7 +6,21 @@
 
 /** 硬编码 hex 基线：`文件 → { c: 处数, v: 该文件现存允许的 hex 值（小写） }`
  *  扫描范围＝docs 下全部 .js / .mjs / .css / .html（排除 docs/assets/vendor 第三方目录）
- *  抽取口径＝`#` + 3/4/6/8 位十六进制（CSS 颜色合法长度）+ 右侧词边界，且排除 HTML 实体（&#10003; 之类） */
+ *  抽取口径＝`#` + 3/4/6/8 位十六进制（CSS 颜色合法长度）+ 右侧词边界，且排除 HTML 实体（&#10003; 之类）
+ *
+ *  ── 存量清理（2026-09-25 美学与链接存量批）：**不改观感，逐处「原值 → 既有 :root 令牌」** ──
+ *  换取原则＝只替换**与 `docs/src/styles.css :root` 令牌值逐字相等**的颜色字面量（同一位置前后色值肉眼等效：
+ *  令牌值就是原字面量的值）；不做新造色、不碰 Tailwind 任意值类（`…-[#hex]`）、不碰 JS 颜色函数入参 /
+ *  映射键 / `${hex}15` 类 alpha 拼接（那些 hex 是**逻辑入参**，换 var() 会坏）。5 个文件共清 **52 处**：
+ *  `person-picker.css` 24→4（#9ca3af→--neutral-400 · #f3f4f6→--neutral-100 · #1f2937→--neutral-800 ·
+ *  #e5e7eb→--neutral-200 · #6b7280→--neutral-500 · #d1d5db→--neutral-300 · #fde68a→--party-gold-light ·
+ *  #ffffff→--neutral-0）· `roster-tab.js` 15→2（#3b82f6→--accent-blue · #ef4444→--functional-error ·
+ *  #374151→--neutral-700）· `references.js` 23→17（#f3f4f6→--neutral-100 · #6b7280→--neutral-500 ·
+ *  #ef4444→--functional-error）· `modal.js` 17→8（#3b82f6→--accent-blue · #ef4444→--functional-error ·
+ *  #374151→--neutral-700）· `dashboard/stats.js` 19→15（#10b981→--functional-success ·
+ *  #ef4444→--functional-error · #3b82f6→--functional-info · #9ca3af→--neutral-400）。
+ *  ⚠ 剩下的 hex 多是**无同名令牌的 Tailwind 色阶**（#f9fafb / #fef3c7 / #94a3b8 …）或**深色态专用字面量**
+ *  （`--acc-text-dark:#CBD5E1`），**不动**（不新造色）。 */
 export const HEX_BASELINE = {
   'docs/help.html': { c: 568, v: [
       '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827', '#15803d', '#1d4ed8',
@@ -47,9 +61,8 @@ export const HEX_BASELINE = {
       '#f0f9ff', '#f5f3ff', '#f7fee7', '#f9fafb', '#fbcfe8', '#fde68a', '#fdf2f8', '#fecaca', '#fef2f2',
       '#fffbeb',
   ] },
-  'docs/src/components/dashboard/stats.js': { c: 19, v: [
-      '#059669', '#10b981', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626', '#ef4444',
-      '#f59e0b', '#f97316',
+  'docs/src/components/dashboard/stats.js': { c: 15, v: [
+      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626', '#f59e0b', '#f97316',
   ] },
   'docs/src/components/form-shell.js': { c: 1, v: [
       '#c8102e',
@@ -78,8 +91,8 @@ export const HEX_BASELINE = {
   'docs/src/components/member-change-panel.js': { c: 1, v: [
       '#b91c1c',
   ] },
-  'docs/src/components/modal.js': { c: 17, v: [
-      '#374151', '#3b82f6', '#b91c1c', '#cbd5e1', '#ef4444', '#f87171',
+  'docs/src/components/modal.js': { c: 8, v: [
+      '#b91c1c', '#cbd5e1', '#f87171',
   ] },
   'docs/src/components/org-setup-wizard.js': { c: 18, v: [
       '#16a34a', '#c8102e', '#ce1126', '#ef4444', '#ffd700', '#fff',
@@ -87,9 +100,8 @@ export const HEX_BASELINE = {
   'docs/src/components/overview-dispatch-bar.js': { c: 1, v: [
       '#b91c1c',
   ] },
-  'docs/src/components/person-picker.css': { c: 24, v: [
-      '#1f2937', '#6b7280', '#92400e', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6', '#f9fafb', '#fde68a',
-      '#fef3c7', '#ffffff',
+  'docs/src/components/person-picker.css': { c: 4, v: [
+      '#92400e', '#f9fafb', '#fef3c7',
   ] },
   'docs/src/components/person-picker.js': { c: 8, v: [
       '#000', '#047857', '#1d4ed8', '#6b7280', '#991b1b', '#a16207', '#ce1126',
@@ -198,8 +210,8 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
       '#000',
   ] },
-  'docs/src/entries/tabs/org/roster-tab.js': { c: 15, v: [
-      '#374151', '#3b82f6', '#cbd5e1', '#ef4444',
+  'docs/src/entries/tabs/org/roster-tab.js': { c: 2, v: [
+      '#cbd5e1',
   ] },
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [
       '#67e8f9',
@@ -291,9 +303,8 @@ export const HEX_BASELINE = {
   'docs/src/entries/wizard-entry.js': { c: 2, v: [
       '#c8102e',
   ] },
-  'docs/src/modules/references.js': { c: 23, v: [
-      '#047857', '#1d4ed8', '#6b7280', '#b45309', '#c8102e', '#d1fae5', '#dbeafe', '#ecfdf5', '#ef4444',
-      '#f3f4f6', '#fef3c7',
+  'docs/src/modules/references.js': { c: 17, v: [
+      '#047857', '#1d4ed8', '#b45309', '#c8102e', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
   ] },
   'docs/src/services/branch-doc.js': { c: 1, v: [
       '#b45309',
@@ -337,6 +348,8 @@ export const HEX_TOTAL_BASELINE = 2025;
 // 93 → 92（2026-09-25）：`docs/settings.html` 整体重做后其硬编码 hex 清零 ⇒ 该条目按收基线纪律删除，
 //   条目数随之 −1（H3 要求「基线条目数 ＝ 声明文件数」，两处必须同步动）。
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
+//   2026-09-25 存量清理批再清 52 处（5 个文件 c 下调，见上 HEX_BASELINE 头注）⇒ H4 现显示 ↓68（2025−1957）；
+//   条目数不变（92，无文件清零）；全站 distinct 值仍为 168（被清的值在其它文件仍存）。
 export const HEX_FILE_BASELINE = 92;
 export const HEX_VALUE_BASELINE = 168;
 
@@ -367,25 +380,28 @@ export const HEX_MOVE_LEDGER = [];
 
 /** 控件小字基线：`文件 → { c: 站点数, sig: { '标签|小字类': 处数 } }`
  *  判据对象＝`<button>` / `<a>` / `<input>` / `<select>` 的 class 里出现 text-[9px] / text-[10px] / text-[11px]
- *  （只记 `标签|小字类` 签名，不记整串 class——else 同心圆：改圆角/内边距会误伤台账） */
+ *  （只记 `标签|小字类` 签名，不记整串 class——else 同心圆：改圆角/内边距会误伤台账）
+ *
+ *  收基线（2026-09-25 美学与链接存量批）：**14 处已改准档位**（`text-[11px]` → `text-[13px]`，控件单档 13px）
+ *  ——`org-setup-wizard.js`(2) · `resolution-followup-manager.js`(2) · `disc/attendance-tab.js`(4) ·
+ *  `org/talent-tab.js`(1) · `org/todo-tab.js`(1) · `prop/archive-tab.js`(1) · `secretary/workforce-panel.js`(1) ·
+ *  `today/today-tab.js`(1) · `leader/attendance-tab.js`(1)；这 9 个文件控件小字已清零 ⇒ 按收基线纪律**删除条目**。
+ *  台账 12 文件 / 23 处 ⇒ **3 文件 / 9 处**（下表仅剩「本批不动」的 3 个文件，逐条理由见下）。*/
 export const CTRL_SMALL_BASELINE = {
+  // 保留理由：`inspector.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 3 处保留不动。
   'docs/src/components/inspector.js': { c: 3, sig: {"button|text-[11px]":3} },
-  'docs/src/components/org-setup-wizard.js': { c: 2, sig: {"button|text-[11px]":1,"a|text-[11px]":1} },
-  'docs/src/components/resolution-followup-manager.js': { c: 2, sig: {"button|text-[11px]":2} },
+  // 保留理由：`work-overview.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 1 处保留不动。
   'docs/src/components/work-overview.js': { c: 1, sig: {"button|text-[11px]":1} },
-  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 4, sig: {"button|text-[11px]":4} },
-  'docs/src/entries/tabs/leader/attendance-tab.js': { c: 1, sig: {"button|text-[11px]":1} },
-  'docs/src/entries/tabs/org/talent-tab.js': { c: 1, sig: {"button|text-[11px]":1} },
+  // 保留理由：本批任务明列「绝不改」（刚被赋权归位批改过）⇒ 5 处保留不动。
   'docs/src/entries/tabs/org/taskforce-tab.js': { c: 5, sig: {"button|text-[11px]":5} },
-  'docs/src/entries/tabs/org/todo-tab.js': { c: 1, sig: {"button|text-[11px]":1} },
-  'docs/src/entries/tabs/prop/archive-tab.js': { c: 1, sig: {"button|text-[11px]":1} },
-  'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 1, sig: {"button|text-[11px]":1} },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 1, sig: {"button|text-[11px]":1} },
 };
 
-/** 控件小字规模下限（非空转判据） */
-export const CTRL_SMALL_TOTAL_BASELINE = 23;
-export const CTRL_SMALL_FILE_BASELINE = 12;
+/** 控件小字规模下限（非空转判据）
+ *  ⚠ 2026-09-25 随收基线**下调** 12→3 文件 / 23→9 处：本批真清掉 14 处（9 个文件归零并删条目），
+ *   台账实存＝3 文件 / 9 处。此值只是「防台账被悄悄删空」的二级防呆——真正的防线是 T1（新增即红）与
+ *   T3（僵尸登记：文件不存在 / 已清零未删条目即红）。**不得**为变绿把它继续调大或补条目。 */
+export const CTRL_SMALL_TOTAL_BASELINE = 9;
+export const CTRL_SMALL_FILE_BASELINE = 3;
 
 /** 全站 text-[9/10/11px] 计数（含非控件落点，只作缩减进度口径） */
 export const SMALL_TEXT_TOTAL_BASELINE = 370;

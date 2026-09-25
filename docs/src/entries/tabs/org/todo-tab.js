@@ -156,7 +156,7 @@ export const { renderContent } = createTodoTab({
   extraTopHtml: () => {
     const pending = HandoffStore.listByRole('org-commissioner').filter(h => h.type === 'inspection-report');
     const guide = pending.length > 0
-      ? `<button type="button" id="org-handoff-guide" class="text-[11px] text-left text-blue-700 hover:text-blue-900 underline decoration-dotted truncate" style="cursor:pointer;">有 ${pending.length} 条考察记录待接收 —— 到「考察」域折组行内点「确认接收」→</button>`
+      ? `<button type="button" id="org-handoff-guide" class="text-[13px] text-left text-blue-700 hover:text-blue-900 underline decoration-dotted truncate" style="cursor:pointer;">有 ${pending.length} 条考察记录待接收 —— 到「考察」域折组行内点「确认接收」→</button>`
       : `<span class="text-[11px] text-gray-500 truncate">暂无待接收的考察记录（纪检提交后此处给出指路）</span>`;
     return `
     <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">

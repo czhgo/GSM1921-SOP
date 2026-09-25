@@ -187,6 +187,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps`） | `version-stamp.test.mjs::S1–S6 + D1–D9` | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/list-filter.js`（引擎内置分页）· `components/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
+| 「硬编码 hex」存量回归：`DESIGN_SYSTEM.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DESIGN_SYSTEM.md §2.8` | `hex-hardcode-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DESIGN_SYSTEM.md §2.8` · `server/test/style-baseline.mjs` |
+| 「控件小字」存量回归：`DESIGN_SYSTEM.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DESIGN_SYSTEM.md §4.3` | `control-font-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DESIGN_SYSTEM.md §4.3` · `server/test/style-baseline.mjs` |
 | R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
 | R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DESIGN_SYSTEM.md §4.10` |
 | R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
@@ -216,6 +218,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
 | 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
 | 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
+| 链接完整性·补：**JS 渲染型 href/src 的「裸文件名」**按所在页 `<base>` 规则解析后须指向真实文件（工作台页 `<base href="../">` ⇒ 裸 `x.html` 落到站点根 `docs/x.html`；两种页面基准都汇到 `docs/` ⇒ 与宿主页面无关） | `docs/workspace/*.html` 的 `<base href="../">` · `docs/src/core/utils.js::getBasePath` | `link-target-guard.test.mjs::L6–L7` | 已闭环 | 本文件 §链接完整性校验 |
 | 清单类同步（功能目录结构 / 链路键集 / 功能地图 / 表决枚举 / 官方制度链接） | `docs/src/core/function-catalog.js` · `mermaid-sources.js` · `vote-config.js` · `modules/references.js` | `catalog-sync.test.mjs::T1–T5`（批次 47-F 五件并一） | 已闭环 | `README.md` 顶部功能地图 · `REVIEW_QUEUE` 批次 47-F |
 | 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
 | Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |

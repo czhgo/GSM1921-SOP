@@ -19466,6 +19466,102 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 6. **本批不新增 `D-` 条、不改任何口径行** ⇒ 决策日志**仍 380 条**、`ACTIVE_RULINGS` 口径行**仍 122** ✓
 7. **提交**：批次 192–194 按支书指令**提交一版（不 push）** ✓
 
+## 批次 195（2026-09-25，`D-655`）**真库重建（让演示种子真正生效）**
+
+> **本批来源**：支书裁（逐字）「**重建真库**」。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `server/data.db` 重建与 `backups/pre-rebuild-20260925/` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 197**。
+
+### 一、逐步步骤（**可控可回滚**）
+1. **先备份**：`node scripts/backup.mjs --out backups\pre-rebuild-20260925` ⇒ 实测 **468.0 KB** · `integrity_check=ok` · `users=51 行` · 附件目录为空**已跳过**（沿用批次 188 立的「一律 `db.backup()`」纪律、**不直接 `copy` 主文件**）。
+2. **现库移走**（**两份都留、可回滚**）：`data.db` / `data.db-wal` / `data.db-shm` 三个文件移入同一备份目录、更名为 `data.db.original-before-rebuild` 等；移后 `server/` 下**无任何库文件**（实测为空）。
+3. **起一次服务**（**空库自动建表 ＋ 播种**）。**日志逐字证据**：① `[db] schema v1（本次应用 1 项）`——**批次 188 的迁移机制在真库上的首次实际应用**（此前只在「真库副本」上证过 `user_version 0→1`）；② `[server] 已导入种子数据`；③ `[server] 自检 · users 计数=51；演示种子账号=51`。
+4. **实测结果**：`表 45` / **`全库 380 行`** / **`空表 16`** / `user_version=1` / `integrity_check=ok` / `journal_mode=wal` / 库文件 `472 KB`。
+
+### 二、回滚方式（**逐字记**）
+停服 → 用 `backups/pre-rebuild-20260925/data.db.original-before-rebuild`（或同一目录下的备份副本 `data.db`）**覆盖库文件**、**并删除同目录 `data.db-wal` / `data.db-shm`** → 启动。
+
+### 三、★ 三点必须如实落账（**不得含糊**）
+1. **对「559 行」的更正**：批次 192 报的 `322 → 559` 是**在「旧库副本」上量的**（旧库本就多出 `sessions=156` ＋ `todos=23`）；**本次是全新建库 ⇒ `380` 才是「纯种子」的真实总量**。换算关系：`559 = 380 + 156(sessions) + 23(todos)`。
+2. **★ `todos` 是种子真缺口（待裁，不得写成已办）**：grep 实测 **`server/seed.js` 没有播种 `todos`**（全 `server/` 只有 `routes/resources.js` 写、`routes/leader-progress.js` 读；无 `seedTodos` 之类）⇒ **新库里「待办」是空的**；旧库那 23 行是**运行时攒出来的**。同理 `sessions` 空属**正确**（新库无登录）。另 `notices` 种子为 **12**（旧库 13 ⇒ 以种子为准）。
+3. **16 空表构成** ＝ 批次 192 判的 **14 张（11 不播 ＋ 3 跳过）＋ `sessions`（正确）＋ `todos`（缺口）**。
+
+### 四、⚠ 不得读成「种子已补全」
+本批做的是「**让批次 192 的种子在真库上生效**」——**`todos` 仍缺口**，而它是**种子的播种面**问题（改 `server/seed.js` 属另一件事）⇒ **本批只登记、不擅补**。
+
+### 五、台账动作（本批）
+1. **决策日志**：新增 `D-655`（＋四处计数同步）。
+2. **`ACTIVE_RULINGS`**：**改准 1 行**（`D-653` 那一行补「空库首启播种 ⇒ 重建才生效」＋「`todos` 属种子缺口（待裁）」），**本条新立 0 行** ⇒ 口径行**仍 122**。
+3. **`TIMESTAMPS`**：**本批无表行需改**——`server/data.db` **是数据文件、不入本表**；`backups/pre-rebuild-20260925/` 为新增数据目录、本表不登记。
+4. 本节。
+
+### 六、收尾自检
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（数据动作由同一批的改动面落地）。
+
+## 批次 196（2026-09-25，`D-656`）**美学与链接存量**
+
+> **本批来源**：支书选定「**美学与链接存量**」这条线（**裁定原话未逐字记录**）。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `server/test/**` · `docs/src/**` · `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` · `server/README.md` · 根 `README.md` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 197**。
+
+### 一、新链接守卫（**本批头等交付**）＝`server/test/link-target-guard.test.mjs`（`L6`/`L7`）
+1. **判据**：`docs/src/**/*.js` 里**渲染型 href/src** 出现**裸文件名**（`^[a-z][a-z0-9-]*\.html$`，不以 `./` `/` `../` scheme 开头）⇒ **按 `<base>` 规则解析后目标文件必须真实存在**。
+2. **★ 机理与口径（本 bug 的关键，逐字落账）**：`docs/workspace/*.html` 有 `<base href="../">` ⇒ 基准 `docs/`；`docs/*.html` 无 `<base>` ⇒ 基准＝所在目录＝也在 `docs/` ⇒ **两种页面的基准都汇到 `docs/`** ⇒ **裸名目标与「渲染进哪个页面」无关、恒为 `docs/<name>`** ⇒ **共享件无需判定宿主具体是哪张页**（取两种页面的**交集**：裸名必须指向 `docs/` 根级真实存在的文件）。
+3. **唯一失真风险（如实登记）**：若将来出现**位于新子目录且不带 `<base>`** 的页面复用同一 JS ⇒ 裸名会解析到该子目录、被误判为红；**届时处置**＝给该页补 `<base href="../">` 或渲染路径改写为 `./…` / `getBasePath()+…`（推荐）；**本守卫不为未出现的页面形态提前放宽**。
+4. **抽取口径**：只取「属性值本身是引号字符串」的形态（`href = getBasePath() + 'x.html'` 这类**拼接不命中**，本就与页面位置解耦）；剔除整行注释 / ESM 规格符 / `new URL(…)`；捕获值先剥 `#hash` / `?query` 再分类（`bare` 判红面 / `prefixed` / `external` / `dynamic` / `skip` / `other`）。
+5. **正样本**：已修的两处（`secretary/workforce-panel.js` 与 `visitor/activities-tab.js`，均已是 `./workspace/…`）⇒ `L7③` 断言「已修样本无裸名回退」通过。
+6. **反例实测**（临时把 `workforce-panel.js` 改回裸名 ⇒ **双红** ⇒ 撤销，**反例未留盘**）：`[L6] … 裸名 8 处，不存在 1 处` ＋ `workforce-panel.js:151 → "secretary.html?activityId=${a.id}" ⇒ 解析为 docs/secretary.html，但该文件不存在`。
+7. **非空转判据**：合成样本分类逐项对表（`bare` / `prefixed` / `external` / `dynamic` / `skip` / `other`）＋ **规模下限**（`js ≥ 180`，实测 **252**；渲染引用 ≥100，实测 **141**）＋ 已修样本 ＋ `L7` 前提断言（凡带 `<base>` 的页面其基准必须仍是 `docs/`——**机理被改即红**）。
+8. **当前实测**：`扫描 252 个 js / 141 处引用，其中裸名 7 处，不存在 0 处`；7 处＝`thought-report.html` ×6 ＋ `search.html` ×1（**均指向真实存在的 `docs/` 根级页 ⇒ 非 bug**）。
+9. **★ 实读更正**：任务点名的「已知非 bug」清单**少了第 7 处**——`docs/src/entries/person-entry.js:78`（`href: \`thought-report.html?personId=…\``，渲染进 `person.html` 根级页 ⇒ `docs/thought-report.html` 存在）。
+
+### 二、hex 清 52 处（2009 → **1957**，`H4` 实测 **↓68**）
+- **选面原则**：**只清「hex 与 `styles.css :root` 令牌值逐字相等、且处在纯 CSS 值语境」的**（等价性＝**令牌值就是原字面量的值**，同一位置前后色值肉眼等效）。
+- **逐文件**：`components/person-picker.css` **24→4** · `entries/tabs/org/roster-tab.js` **15→2** · `modules/references.js` **23→17** · `components/modal.js` **17→8** · `components/dashboard/stats.js` **19→15**（合计 **−52**）。
+- **不动原则**：不新造色；不碰 Tailwind 任意值类（`…-[#hex]`）；不碰 JS 颜色函数入参 / 映射键 / `${hex}15` alpha 拼接；不碰深色态字面量；不碰无同名令牌的 Tailwind 色阶。
+- **★ `H4` top5 全部登记不动（逐条理由）**：`help.html=568`（帮助页＝文档页，`§4.18.1` 不受界面规范约束 ＋ `@media print` 必须显式色值，守卫已 `allowNew` 例外）· `styles.css=467`（README **具名禁改清单**，须支书特批）· `core/constants.js=137`（hex 是**函数入参 / 映射键 / alpha 拼接**，换 `var()` 会坏逻辑）· `org/taskforce-tab.js=58`（本批任务明列**绝不改**）· `about.css=50`（关于页＝文档页）。
+- **基线收线动作**：`style-baseline.mjs` 里 5 条 `c` 下调（24→4 / 15→2 / 23→17 / 17→8 / 19→15，合计 −52）并从 `v` 删已清零的值；**无文件清零 ⇒ 条目数仍 92**；全站 distinct 仍 **168**；`HEX_TOTAL_BASELINE` **有意保持 2025**（存量起点）；**`H5` 搬移台账本批未用**（无文件搬移 / 拆分，台账仍 0 条）。
+
+### 三、控件 11px：14 处改档（→`text-[13px]`）、9 处保留
+- **改档 14 处**（`text-[11px]` → `text-[13px]`，即 `§4.3` 控件单档 `0.8125rem`）：`org-setup-wizard.js:318/319` · `resolution-followup-manager.js:35/36` · `disc/attendance-tab.js:556/557/728/729` · `org/talent-tab.js:161` · `org/todo-tab.js:159` · `prop/archive-tab.js:1081` · `secretary/workforce-panel.js:203` · `today/today-tab.js:75` · `leader/attendance-tab.js:128` ⇒ **9 个文件控件小字清零 ⇒ 按收基线纪律删条目**；**只改字号档、padding 类一字未动（按钮只会变大不会变小）**。
+- **保留 9 处（进基线并给理由）**：`inspector.js` 3 处 ＋ `work-overview.js` 1 处（均在 README **禁改清单**，须支书特批）· `org/taskforce-tab.js` 5 处（本批明列**绝不改**）。
+- **实测渲染字号**：代表位 `.today-all` 改后类 ⇒ **13px**；临时换回 ⇒ **11px**；还原 ⇒ **13px**。
+- **基线收线**：`CTRL_SMALL_BASELINE` **12 文件 / 23 处 → 3 文件 / 9 处**；`T3` 非空转规模下限随之 **10→3 文件 / 20→9 处**（**必做**：清掉 14 处会让 9 个文件归零、旧下限必失败；**已在代码注释写明「只是二级防呆，真防线＝`T1` 新增即红 ＋ `T3` 僵尸登记」**）。
+
+### 四、三条守卫登记（此前登记的待办，本批补）
+- `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2`：R17 行后**新增 2 行**（硬编码 hex 存量回归 → `hex-hardcode-guard::H1–H5`；控件小字存量回归 → `control-font-guard::T1–T4`）；`link-integrity::L1–L5` 行后**新增 1 行**（裸文件名链接 → `link-target-guard::L6–L7`）⇒ **`§0.2` 现 24 行**。
+- **根 `README.md` 的 `### 测试`**（**`doc-consistency::S10` 常驻断言所必需的落点**）＋ **`server/README.md` 的 `## 测试说明`**（新增 blockquote）都登记了。
+- ⚠ **实读更正**：任务说登记进 `server/README.md`「测试」清单，但 `S10` 断言的**守卫清单实际在根 `README.md` 的 `### 测试` 小节**；`server/README.md` 的是 `## 测试说明` ⇒ **两处都登记**（动了一个不在任务「只改」清单内的文件＝**为「必须跑到绿」所必需**，已明示）。
+- **计数同步**：**无「共 N 个守卫」类计数**；唯一相关的是 `server/README.md` 的「守卫子集 **8 文件 / 66 项**」——**故意不把三条加进该子集命令**，故其计数与耗时表**一字未动**（三条已由 `test:daily` 全覆盖）。
+- **`§3.4` ↔ `§0.2` 同步**：`§3.4` 在 `.ctx/ENGINEERING_ASSESSMENT.md`（**绝不改**）；本次新增的 `§0.2` 行**不是 R 编号行**、`§3.4` 也未列 ⇒ **无需也无法同步**，如实登记。
+
+### 五、⚠ 只登记 / 未做（**逐条不得写成已办**）
+- **9 处控件 11px 保留**（8 处在 README 禁改清单、5 处在绝不改的 `taskforce-tab.js`）· **hex top5 全部登记不动**（这使本批 hex 清理量 52 处小于 top5 体量）· **非控件小字 358 处只报不判**（给最重 10 文件清单）· **`SMALL_TEXT_*` 基线未调**（保留起点 370）· **未把三条守卫加进「守卫子集 8 文件」** · **每个改动控件未逐一实测字号**（同批 14 处为同一类替换，实测 1 个代表位）。
+
+### 六、★ 实读更正三条
+1. 全站小字**实测 381 处 / 57 文件**（任务写 370/56；某次改动加了 11 处且未同批收基线，`T4` 只报不判故未红）⇒ **保持基线 370 作「进度起点」、漂移如实登记**（现清后 **367**）。
+2. 非控件实测 **358**（任务 347）。
+3. **文档 ↔ 代码色值不一致**：`DESIGN_SYSTEM.md §2.8` 写 `--functional-success #16A34A` / `--functional-warning #D97706`，而 `styles.css :root` 实为 **`#10B981` / `#F59E0B`** ⇒ 本次**以代码实况为准**做等价替换，**只登记不改**（`DESIGN_SYSTEM.md` 允改仅限「确需澄清 token 口径」，本处属口径不符、牵涉面不明）。
+
+### 七、`TIMESTAMPS` 改动行清单（**逐行**）
+- **刷为 2026-09-25 ＋ 加注**：`README.md`（`### 测试` 登记三条守卫）· `docs/src/components/person-picker.css`（hex 24→4）· `docs/src/entries/tabs/org/roster-tab.js`（hex 15→2）· `docs/src/modules/references.js`（hex 23→17）· `docs/src/components/modal.js`（hex 17→8）· `docs/src/components/org-setup-wizard.js`（控件 2 处）· `docs/src/entries/tabs/leader/attendance-tab.js`（控件 1 处）· `docs/src/entries/tabs/org/todo-tab.js`（控件 1 处）· `docs/src/entries/tabs/org/talent-tab.js`（控件 1 处）· `docs/src/entries/tabs/prop/archive-tab.js`（控件 1 处）· `docs/src/entries/tabs/disc/attendance-tab.js`（控件 4 处 ⇒ 本文件清零）。
+- **加注（日期仍 2026-09-25）**：`server/test/*.test.mjs`（新增 `link-target-guard.test.mjs` ＋ 两守卫基线）· `server/test/style-baseline.mjs`（hex 5 条 `c` 下调 / `CTRL_SMALL_BASELINE` 12/23 → 3/9 / `T3` 下限）· `server/README.md`（`## 测试说明` 新增 blockquote）。
+- **⚠ 覆盖缺口（**只登记、不补行**）**：`docs/src/components/dashboard/stats.js` · `docs/src/components/resolution-followup-manager.js` · `docs/src/entries/tabs/secretary/workforce-panel.js` · `docs/src/entries/tabs/today/today-tab.js` —— **本表原无这四行**（沿用批次 132 起的「覆盖缺口如实登记、只登记不补行」处置）。
+- **⚠ 一处按 `S13` 口径处置（**如实登记**）**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 的**表行日期保持 `2026-09-21`**——其正文（`§0.2`）本批已改，但 **frontmatter `last_updated` 仍 `2026-09-21`**（属 `content/**` 禁改面 ⇒ 未代刷）；`S13` 口径明写「**以 frontmatter 为准**」，若强刷为 `2026-09-25` 则跨面判红（处置同批次 111 的 `DATA_MODEL.md` 先例）。
+- **另注**：`server/data.db` **是数据文件、不入 `TIMESTAMPS`**（且本批真库重建属数据动作，已在批次 195 节单独落账）；`server/test/link-target-guard.test.mjs` 由 `server/test/*.test.mjs` 通配行覆盖。
+
+### 八、实测（**非全量**）
+- `hex-hardcode-guard` ＋ `control-font-guard` ＋ `link-target-guard` **11/11**（`H4: 1957 ↓68` · `T4: 控件 9 处/3 文件` · `L6: 252 js / 141 引用 / 裸名 7 / 不存在 0`）· 静态 7 件 **56/56** · 真机 `page-sweep` **11/11**（tab=66；尺规 控件=112/数据格=818）· `click-cost` **5/5**（`C1` 总点击 5 ≤6）· 追加 `form-loop-sweep` **81/81**。
+- ⚠ **不得读成「全量绿」**：本批**未跑全量**；**提交前全量见批次 197**。
+- ⚠ **首跑 `S13` 红并已改准**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 表行原刷 `2026-09-25` 而 frontmatter 为 `2026-09-21` ⇒ 按 `S13` 口径「**以 frontmatter 为准**」**把表行改回 `2026-09-21`**（正文已改、frontmatter 未随刷，属 `content/**` 禁改面 ⇒ 只登记）；改后三件套（`doc-consistency` / `doc-line-ref` / `version-stamp`）**全绿**。
+
+### 九、台账动作（本批）
+1. **决策日志**：新增 `D-656`（＋四处计数同步，`380 → 382`）。
+2. **`ACTIVE_RULINGS`**：**改准 1 行**（`D-610` 那一行补「**裸文件名按 `<base>` 解析后断言目标存在**」＋ `L6`/`L7`；**本条新立 0 行** ⇒ 口径行**仍 122**）。
+3. **`TIMESTAMPS`**：见本节「七」逐行清单。
+4. 本节。
+
+### 十、收尾自检
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
+
 
 
 

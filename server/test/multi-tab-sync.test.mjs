@@ -63,6 +63,13 @@ async function preparePage(page, origin, path = '/index.html') {
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   await page.goto(`${origin}${path}`, { waitUntil: 'domcontentloaded' });
+  // ⚠ **必须把该页置前**（2026-09-25 批次 197）：Chromium 对**非前台页**的 `setTimeout` 有节流
+  //   （后台页可被压到分钟级）⇒ 防抖快照写穿（800ms）**永远不会跑**，写入静默滞留内存。
+  //   实测：本文件**作为首个文件**单跑时页面即为前台、一切正常；**前面还有别的文件**时该页
+  //   可能不是前台 ⇒ 判据B 的前置断言恒假（本地数据完好、却始终无 POST）。
+  //   本用例的前提本就是「一个可见的标签页/设备」（判据A 亦断言 `document.visibilityState==='visible'`），
+  //   故此处显式置前，使前提名副其实——**不是放宽断言**。
+  await page.bringToFront();
   await page.evaluate(async () => {
     const t0 = Date.now();
     for (;;) {
@@ -214,15 +221,19 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
     await pushAndPersist(a.page, { archiveRecords: { id: 'p11-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' } });
     await settle(a.page);
     // 服务端库为权威（表名＝资源名的 snake_case：archiveRecords → archive_records）
-    // ⚠ **有界轮询等落库**（2026-09-25 · 批次 182 收尾）：原写法是「settle（定长 1800ms）之后只查一次」
-    //   ⇒ 在**全量负载**下防抖快照写穿可能尚未完成，本前置断言假红（实测：两次连续全量都红在这一行，
-    //   而单跑该文件恒绿）——属**测试鲁棒性缺陷**，非被测功能缺陷。
-    //   改为轮询**同一条件**（有界 20 × 300ms）：判据语义一字不变（仍要求「必须真的落库」），
-    //   只把「定长等待」换成「等到为止」。同族体例见本文件 `waitIdle`。
+    // ⚠ **等落库**（2026-09-25 · 批次 182 立、批次 197 加强）：原写法是「settle（定长 1800ms）之后只查一次」
+    //   ⇒ 全量负载下防抖快照写穿尚未完成，本前置断言假红（单跑恒绿）。
+    //   批次 182 改为「有界轮询同一条件（20 × 300ms）」；**批次 197 实测仍不够**：真库补满演示种子后
+    //   快照负载变大，全量下 6s 预算被用尽（实测该用例 8.9s、轮询耗尽）⇒ 本批**加强为两步**：
+    //   ① 先**等本机写管线排空**（复用本文件既有的 `waitIdle`，它轮询探测直到不再 `pending-write`/`in-flight`）；
+    //   ② 再**有界轮询 60 × 500ms（最长 30s）**确认落库。
+    //   判据语义一字不变（仍要求「**必须真的落库**」），只是把等待预算放大到能容纳真实写入耗时；
+    //   **不是放宽断言、不是删用例**。若将来又不够，应先查快照写路径的耗时，而不是继续加预算。
+    try { await waitIdle(a.page); } catch { /* 排空失败：不视为断言失败，仍走下面的有界轮询兜底 */ }
     let landed = false;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 60; i++) {
       if (idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1')) { landed = true; break; }
-      await a.page.waitForTimeout(300);
+      await a.page.waitForTimeout(500);
     }
     assert.ok(landed, '前置：设备 A 的写入应已落服务端');
     v1 = await versions(base, tokenA);

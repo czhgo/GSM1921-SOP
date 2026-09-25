@@ -1078,7 +1078,7 @@ function _photoGroupHtml(group) {
         <figcaption class="p-2">
           <p class="text-xs text-gray-800 truncate" title="${escHtml(r.title || '未命名照片')}">${escHtml(r.title || '未命名照片')}</p>
           <p class="text-[11px] text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
-          <button type="button" class="pw-annotate-btn text-[11px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
+          <button type="button" class="pw-annotate-btn text-[13px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
         </figcaption>
       </figure>`).join('');
   const more = (!expanded && group.rows.length > PHOTO_GROUP_INIT)

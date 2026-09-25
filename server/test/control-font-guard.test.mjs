@@ -133,8 +133,8 @@ test('T3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
     '抽取口径过宽：控件上的正常档（text-xs）被误判为小字');
   // ② 基线规模下限（低于此值说明台账被删减或口径失效）
   const files = Object.keys(CTRL_SMALL_BASELINE);
-  assert.ok(CTRL_SMALL_FILE_BASELINE >= 10 && files.length >= 10, `控件小字基线文件数过少（实测 ${files.length} / 声明 ${CTRL_SMALL_FILE_BASELINE}，下限 10）`);
-  assert.ok(CTRL_SMALL_TOTAL_BASELINE >= 20, `控件小字基线处数过少（声明 ${CTRL_SMALL_TOTAL_BASELINE}，下限 20）`);
+  assert.ok(CTRL_SMALL_FILE_BASELINE >= 3 && files.length >= 3, `控件小字基线文件数过少（实测 ${files.length} / 声明 ${CTRL_SMALL_FILE_BASELINE}，下限 3）`);
+  assert.ok(CTRL_SMALL_TOTAL_BASELINE >= 9, `控件小字基线处数过少（声明 ${CTRL_SMALL_TOTAL_BASELINE}，下限 9）`);
   assert.equal(files.length, CTRL_SMALL_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');
   // ③ 僵尸登记：基线文件必须存在，且该文件仍应有控件小字站点
   const gone = files.filter((f) => !existsSync(join(ROOT, f)));

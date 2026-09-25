@@ -72,7 +72,7 @@ function _count(n) {
 
 /** 每块右上「全部」小链接（点击经 onNav 跳对应 tab；onNav 未提供时为空操作，便于独立预览） */
 function _allBtn(kind) {
-  return `<button type="button" class="today-all text-[11px] text-gray-500 hover:text-gray-600 transition-colors flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
+  return `<button type="button" class="today-all text-[13px] text-gray-500 hover:text-gray-600 transition-colors flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
 }
 
 /** 今天有会（左大块 C 排法）：时间 / 名称 / 类型 行；点击 → activity.html */

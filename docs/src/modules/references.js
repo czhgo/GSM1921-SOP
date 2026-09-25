@@ -183,7 +183,7 @@ function _institutionStatusOf(d) {
       : { label: '草案', bg: '#FEF3C7', fg: '#B45309' };
   }
   if (d.status === INSTITUTION_PENDING_PARTY_MEETING) return { label: '待党员大会表决', bg: '#DBEAFE', fg: '#1D4ED8' };
-  return { label: '停用', bg: '#F3F4F6', fg: '#6B7280' };
+  return { label: '停用', bg: 'var(--neutral-100)', fg: 'var(--neutral-500)' };
 }
 
 /** 制度状态徽标：现行（绿）/ 草案·已退回（黄）/ 待党员大会表决（蓝）/ 停用（灰） */
@@ -708,7 +708,7 @@ export class ReferencesModule {
       <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
         ${purposeSelectHtml}
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:#EF4444;">*</span></label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
           <input id="ref-modal-title" class="input-flat w-full" placeholder="如：积极分子考察表模板 / 支部例会制度" value="${editing ? _esc(editing.title || '') : ''}" />
         </div>
         <div>
@@ -717,7 +717,7 @@ export class ReferencesModule {
         </div>
         ${instBoxHtml}
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:#EF4444;">*</span>'}</label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" id="ref-modal-file-label">${editing ? '替换文件（可选，不选则保留原文件）' : '选择文件 <span style="color:var(--functional-error);">*</span>'}</label>
           <input id="ref-modal-file" type="file" accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xlsx,.mp4"
             class="block w-full text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 file:text-xs hover:file:bg-blue-100 transition-colors cursor-pointer" style="color:var(--neutral-600);" />
         </div>
@@ -755,7 +755,7 @@ export class ReferencesModule {
         instBox.classList.toggle('hidden', !inst);
         fileLabel.innerHTML = inst
           ? '附件（可选；正文与附件可并存，正文优先网页阅读）'
-          : '选择文件 <span style="color:#EF4444;">*</span>';
+          : '选择文件 <span style="color:var(--functional-error);">*</span>';
       };
       purposeSel.addEventListener('change', syncPurpose);
     }
@@ -857,7 +857,7 @@ export class ReferencesModule {
       </div>
       <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
         <div>
-          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:#EF4444;">*</span></label>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);">标题 <span style="color:var(--functional-error);">*</span></label>
           <input id="ref-pub-title" class="input-flat w-full" value="${_esc(doc.title || '')}" />
         </div>
         <div>

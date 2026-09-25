@@ -553,8 +553,8 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
       <div class="flex items-center justify-between flex-wrap gap-2 pt-2 mt-1 border-t border-gray-100">
         <span class="text-xs text-gray-500">已勾选 <b class="att-batch-count tabular-nums text-gray-700">${checkedCount}</b> / ${total} 条${total > visible.length ? '（未展开项请先展开）' : ''}</span>
         <span class="flex items-center gap-2">
-          <button type="button" id="att-queue-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">${checkedCount === visible.length ? '已全选' : '全选'}</button>
-          <button type="button" id="att-queue-clear" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
+          <button type="button" id="att-queue-select-all" class="text-[13px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">${checkedCount === visible.length ? '已全选' : '全选'}</button>
+          <button type="button" id="att-queue-clear" class="text-[13px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
           <button type="button" class="att-batch-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 disabled:opacity-50" style="${solidAccentStyle(accent, accentBorder)};cursor:${checkedCount ? 'pointer' : 'not-allowed'};" ${checkedCount ? '' : 'disabled'}>一次确认所选（${checkedCount}）</button>
         </span>
       </div>
@@ -725,8 +725,8 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
           <div class="flex items-center justify-between mb-1.5">
             <label class="text-xs text-gray-500 block font-medium">参会人员（逐人状态） <span class="text-red-600">*</span></label>
             <div class="flex gap-2">
-              <button type="button" id="disc-meet-select-all" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="仅全选应到名单（党员正式+预备且非滞留）">全选应到名单</button>
-              <button type="button" id="disc-meet-clear" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
+              <button type="button" id="disc-meet-select-all" class="text-[13px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="仅全选应到名单（党员正式+预备且非滞留）">全选应到名单</button>
+              <button type="button" id="disc-meet-clear" class="text-[13px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">清空</button>
             </div>
           </div>
           <div id="disc-meet-picker"></div>

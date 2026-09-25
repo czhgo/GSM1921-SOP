@@ -103,6 +103,11 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
   > ⚠ `permission-gate` / `server-base` 两项要求**跳过口令校验**：手跑这条命令前**先设 `DISABLE_PASSWORD_CHECK=1`**（`npm test` 的 scripts 已默认注入，手跑不设会红——实测不设时该两项 **7 pass / 13 fail**）。**无需先起服务**。
 
+  > **另三条「美学 / 链接」lint 守卫（2026-09-25 批次，纯 node、不需起服务；已含在 `npm run test:daily` 的 S 类全量里，故**未**计入上面的「守卫子集 8 文件」）**：
+  > · `test/hex-hardcode-guard.test.mjs` —— **硬编码 hex 存量回归**（`H1–H5`：现状之外的 (文件, 值) 判红 · 逐文件处数 ratchet · 非空转 · 缩减进度 · 搬移例外台账；基线数据＝`test/style-baseline.mjs`，口径见 `DESIGN_SYSTEM.md §2.8`）。
+  > · `test/control-font-guard.test.mjs` —— **控件小字存量回归**（`T1–T4`：`<button>/<a>/<input>/<select>` 挂 `text-[11px]/[10px]/[9px]` 即红；`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）。
+  > · `test/link-target-guard.test.mjs` —— **JS 渲染型 href/src 的「裸文件名」**（`L6–L7`：工作台页 `<base href="../">` 下写裸 `x.html` 会解析到站点根 ⇒ 404，须按 `<base>` 规则断言目标真实存在）。
+
   | 守卫 | 两次取样（秒） | 项 | 它挡什么 |
   |---|---|---|---|
   | `link-integrity` | 9.5 / 10.6 | 5 | 全站死链——`docs/**/*.html` 的 href/src（含 base href 解析）与 `docs/src/**` 的跳转目标，逐个落到真实文件 / `#锚点` / HTTP 200 |

@@ -125,7 +125,7 @@ export function renderContent(ctx) {
       <div class="mb-3">
         <div class="flex items-center justify-between mb-1.5">
           <label class="text-xs text-gray-500 block font-medium">选择参会人员 <span class="text-red-600">*</span></label>
-          <button type="button" id="att-clear-selection" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="清空当前已选人员（含默认选中的报名者）">清空选择</button>
+          <button type="button" id="att-clear-selection" class="text-[13px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;" title="清空当前已选人员（含默认选中的报名者）">清空选择</button>
         </div>
         <div id="att-person-picker-container"></div>
       </div>

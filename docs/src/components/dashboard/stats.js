@@ -12,10 +12,10 @@ import { icon } from '../../core/icons.js?v=20260924a';
 import { isActivityArchived } from '../../core/constants.js?v=20260924a';
 
 const ATTENDANCE_STATUS_DOT = {
-  present:  { text: '出勤', cls: 'text-green-700', dot: '#10B981' },
-  absent:   { text: '缺勤', cls: 'text-red-600',  dot: '#EF4444' },
+  present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
+  absent:   { text: '缺勤', cls: 'text-red-600',  dot: 'var(--functional-error)' },
   leave:    { text: '请假', cls: 'text-orange-500', dot: '#F97316' },
-  made_up:  { text: '已补', cls: 'text-blue-500', dot: '#3B82F6' },
+  made_up:  { text: '已补', cls: 'text-blue-500', dot: 'var(--functional-info)' },
 };
 
 // 弹窗的 document 级关闭监听防重绑定（统计卡即时刷新会反复调用）
@@ -145,7 +145,7 @@ function _bindAttendancePopover(activities, attendanceRecords, thisMonth, user) 
         ? '<p class="text-xs text-gray-500 text-center py-4">本月暂无考勤记录</p>'
         : myRecords.map(r => {
             const act = activities.find(a => a.id === r.activityId);
-            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-500', dot: '#9CA3AF' };
+            const s = ATTENDANCE_STATUS_DOT[r.status] || { text: r.status, cls: 'text-gray-500', dot: 'var(--neutral-400)' };
             return `
               <div class="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-b-0">
                 <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${s.dot};"></span>

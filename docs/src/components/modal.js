@@ -70,7 +70,7 @@ function _releaseInert(id) {
  * @param {string} options.bodyHtml - 浮窗内容 HTML
  * @param {Function} options.onMount - 浮窗挂载后的回调（绑定事件等），参数为浮窗容器
  * @param {string} [options.width='480px'] - 浮窗宽度
- * @param {string} [options.accentColor='#3B82F6'] - 标题栏强调色
+ * @param {string} [options.accentColor='var(--accent-blue)'] - 标题栏强调色
  * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（可选；不传则无此行）
  * @param {boolean} [options.dismissable=true] - 是否可「非按钮」关闭（点遮罩 / 按 Esc / 右上角 ×）。
  *   缺省 true＝既有行为；**false 只给「本位」nudge 用**（见 `confirmNudge`）——那种弹窗**必须点按钮才能关**。
@@ -90,7 +90,7 @@ export function settingsLinkHTML(settingsLink) {
     : '';
 }
 
-export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = '#3B82F6', settingsLink = null, dismissable = true }) {
+export function openModal({ id, title, bodyHtml, onMount, width = '480px', accentColor = 'var(--accent-blue)', settingsLink = null, dismissable = true }) {
   // 关闭已有同 id 浮窗
   closeModal(id);
 
@@ -197,18 +197,18 @@ export function closeModal(id) {
  * @param {Object} [options.initialValues] - 初始值（编辑模式）
  * @param {{href:string,text:string}} [options.settingsLink] - 页脚「设置」入口（透传 openModal，可选）
  */
-export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = '#3B82F6', initialValues = {}, settingsLink = null }) {
+export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提交', accentColor = 'var(--accent-blue)', initialValues = {}, settingsLink = null }) {
   const fieldsHtml = fields.map(f => {
     const val = initialValues[f.key] || '';
-    const req = f.required ? '<span style="--acc-text-dark:#F87171;color:#EF4444;">*</span>' : '';
+    const req = f.required ? '<span style="--acc-text-dark:#F87171;color:var(--functional-error);">*</span>' : '';
     if (f.type === 'select') {
       const opts = (f.options || []).map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
-      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat w-full">${opts}</select></div>`;
+      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><select data-field="${f.key}" class="input-flat w-full">${opts}</select></div>`;
     }
     if (f.type === 'textarea') {
-      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:#374151;resize:vertical;">${val}</textarea></div>`;
+      return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><textarea data-field="${f.key}" rows="3" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:var(--neutral-700);resize:vertical;">${val}</textarea></div>`;
     }
-    return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:#374151;margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:#374151;" /></div>`;
+    return `<div style="margin-bottom:14px;"><label style="--acc-text-dark:#CBD5E1;display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;" class="text-body-sm">${f.label}${req}</label><input data-field="${f.key}" type="${f.type || 'text'}" value="${val}" placeholder="${f.placeholder || ''}" class="input-flat-sm w-full" style="--acc-text-dark:#CBD5E1;color:var(--neutral-700);" /></div>`;
   }).join('');
 
   const bodyHtml = `

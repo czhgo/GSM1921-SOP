@@ -315,8 +315,8 @@ function _headHtml(S, branch, org, isStaff) {
           <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并记录变更</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="text-[11px] px-2.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90" style="background:#C8102E;">新建支部…</button>` : ''}
-          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[11px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
+          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="text-[13px] px-2.5 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90" style="background:#C8102E;">新建支部…</button>` : ''}
+          ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
         </div>
       </div>
       ${picker}

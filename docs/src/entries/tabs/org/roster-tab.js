@@ -291,7 +291,7 @@ function _openAddForm() {
   openFormModal({
     id: 'roster-add-member',
     title: '新增成员',
-    accentColor: _ctx?.accent || '#3B82F6',
+    accentColor: _ctx?.accent || 'var(--accent-blue)',
     fields: [
       { key: 'name', label: '姓名', type: 'text', required: true, placeholder: '成员姓名（必填）' },
       { key: 'studentId', label: '学号', type: 'text', placeholder: '学号（推荐填写；全站唯一，不可与既有成员重复）' },
@@ -352,13 +352,13 @@ function _askRemove(personId) {
   openModal({
     id: 'roster-del-confirm',
     title: '登记流出（移出名册）',
-    accentColor: '#EF4444',
+    accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-2">确认将「${esc(name)}」移出成员名册？</p>
       <p class="text-xs text-gray-500 mb-4">登记即生效：该成员移出名册、账号停用，不再出现在成员名单与应到统计中。原考勤与考察历史保留（不删不匿名），可在「成员流动」台账中查看并撤销纠正。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" data-roster-del-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-roster-del-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#EF4444;cursor:pointer;">确认登记流出</button>
+        <button type="button" data-roster-del-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--functional-error);cursor:pointer;">确认登记流出</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-roster-del-cancel]')?.addEventListener('click', () => closeModal('roster-del-confirm'));
@@ -489,10 +489,10 @@ function _skippedHtml(skipped) {
 // ── 登记流入（单人 / 粘贴多行 二选一）──────────────────────────
 
 function _openIntakeModal() {
-  const accent = _ctx?.accent || '#3B82F6';
+  const accent = _ctx?.accent || 'var(--accent-blue)';
   const groupOpts = ['<option value="">未分组</option>', ...groupOptions().map(g => `<option value="${esc(g)}">${esc(g)}</option>`)].join('');
-  const inputStyle = '--acc-text-dark:#CBD5E1;color:#374151;';
-  const labelStyle = 'display:block;font-weight:500;color:#374151;margin-bottom:4px;';
+  const inputStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
+  const labelStyle = 'display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
   const MODE_ON = 'text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200';
   const MODE_OFF = 'text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50';
   openModal({
@@ -509,11 +509,11 @@ function _openIntakeModal() {
       </div>
       <div data-intake-pane="single">
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">姓名 <span style="color:#EF4444;">*</span></label>
+          <label class="text-body-sm" style="${labelStyle}">姓名 <span style="color:var(--functional-error);">*</span></label>
           <input data-intake="name" type="text" class="input-flat-sm w-full" placeholder="成员姓名（必填）" style="${inputStyle}">
         </div>
         <div style="margin-bottom:14px;">
-          <label class="text-body-sm" style="${labelStyle}">学号 <span style="color:#EF4444;">*</span></label>
+          <label class="text-body-sm" style="${labelStyle}">学号 <span style="color:var(--functional-error);">*</span></label>
           <input data-intake="studentId" type="text" class="input-flat-sm w-full" placeholder="学号（账号由此派生，必填）" style="${inputStyle}">
         </div>
         <div style="margin-bottom:14px;">
@@ -604,11 +604,11 @@ function _closeOutflow() {
 function _openOutflowModal() {
   _outflowPicker?.destroy();
   _outflowPicker = null;
-  const accent = _ctx?.accent || '#3B82F6';
+  const accent = _ctx?.accent || 'var(--accent-blue)';
   const branchId = _branchId();
   const today = new Date().toISOString().slice(0, 10);
-  const inputStyle = '--acc-text-dark:#CBD5E1;color:#374151;';
-  const labelStyle = 'display:block;font-weight:500;color:#374151;margin-bottom:4px;';
+  const inputStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
+  const labelStyle = 'display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
   openModal({
     id: 'flow-outflow',
     title: '登记流出',
@@ -676,7 +676,7 @@ function _askRevoke(flowId) {
   openModal({
     id: 'flow-revoke-confirm',
     title: '撤销台账记录',
-    accentColor: '#EF4444',
+    accentColor: 'var(--functional-error)',
     bodyHtml: `
       <p class="text-sm text-gray-700 mb-2">确认撤销「${esc(who)}」的这条${inDir ? '流入' : '流出'}记录？</p>
       <p class="text-xs text-gray-500 mb-4">撤销保留台账留痕（该行标注「已撤销」），并回滚成员在册状态与账号：${inDir
@@ -684,7 +684,7 @@ function _askRevoke(flowId) {
         : '撤销流出 → 该成员恢复在册、账号恢复'}。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" data-flow-revoke-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-flow-revoke-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#EF4444;cursor:pointer;">确认撤销</button>
+        <button type="button" data-flow-revoke-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--functional-error);cursor:pointer;">确认撤销</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-flow-revoke-cancel]')?.addEventListener('click', () => closeModal('flow-revoke-confirm'));

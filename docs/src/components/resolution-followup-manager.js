@@ -32,8 +32,8 @@ function _rowHtml(f, { canManage }) {
   const done = f.status === FOLLOWUP_STATUS.COMPLETED;
   const act = canManage
     ? (done
-      ? `<button type="button" class="fu-act shrink-0 text-[11px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-amber-700 hover:border-amber-200" data-act="reopen" data-fid="${esc(f.id)}" title="误销项可恢复为待落实">恢复</button>`
-      : `<button type="button" class="fu-act shrink-0 text-[11px] px-2 py-0.5 rounded-lg text-white font-medium bg-green-600 hover:bg-green-700" data-act="complete" data-fid="${esc(f.id)}" title="确认该项已落实（销项，责任人跟进待办同步完成）">销项</button>`)
+      ? `<button type="button" class="fu-act shrink-0 text-[13px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-amber-700 hover:border-amber-200" data-act="reopen" data-fid="${esc(f.id)}" title="误销项可恢复为待落实">恢复</button>`
+      : `<button type="button" class="fu-act shrink-0 text-[13px] px-2 py-0.5 rounded-lg text-white font-medium bg-green-600 hover:bg-green-700" data-act="complete" data-fid="${esc(f.id)}" title="确认该项已落实（销项，责任人跟进待办同步完成）">销项</button>`)
     : '';
   return `
     <div class="fu-row flex items-start gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 mb-1.5 text-xs">

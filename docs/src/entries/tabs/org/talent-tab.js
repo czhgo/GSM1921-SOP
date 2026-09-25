@@ -158,7 +158,7 @@ export function renderContent(ctx) {
               ${tip && !tip.jump ? `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-md border ${tip.cls}">${esc(tip.text)}</div>` : ''}
             </div>
             ${tip && tip.jump
-              ? `<button type="button" class="talent-dev-jump mt-1.5 text-[11px] px-2 py-1 rounded-md border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去发展数据 →</button>`
+              ? `<button type="button" class="talent-dev-jump mt-1.5 text-[13px] px-2 py-1 rounded-md border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去发展数据 →</button>`
               : ''}
           </div>`;
   };

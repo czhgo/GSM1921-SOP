@@ -78,7 +78,7 @@
 /* ── 下拉箭头 ──────────────────────────────────────────────────── */
 .person-picker-arrow {
   flex-shrink: 0;
-  color: #9CA3AF;
+  color: var(--neutral-400);
   transition: transform 0.2s;
 }
 
@@ -116,7 +116,7 @@
 /* ── 面板头部 ──────────────────────────────────────────────────── */
 .person-picker-header {
   padding: 16px 16px 12px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid var(--neutral-100);
 }
 
 .person-picker-header-row {
@@ -129,7 +129,7 @@
 .person-picker-title {
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #1F2937;
+  color: var(--neutral-800);
   margin: 0;
 }
 
@@ -138,7 +138,7 @@
   height: 28px;
   border-radius: var(--radius-sm);
   border: none;
-  background: #F3F4F6;
+  background: var(--neutral-100);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -147,7 +147,7 @@
 }
 
 .person-picker-close-btn:hover {
-  background: #E5E7EB;
+  background: var(--neutral-200);
 }
 
 .person-picker-search {
@@ -185,8 +185,8 @@
   transition: all 0.15s;
   white-space: nowrap;
   background: #F9FAFB;
-  color: #6B7280;
-  border-color: #E5E7EB;
+  color: var(--neutral-500);
+  border-color: var(--neutral-200);
 }
 
 .person-picker-tab.active {
@@ -254,11 +254,11 @@
   background: transparent;
 }
 .person-picker-item.disabled .person-picker-item-name {
-  color: #9CA3AF;
+  color: var(--neutral-400);
 }
 .person-picker-item.disabled .person-picker-item-avatar {
-  background: #F3F4F6;
-  color: #D1D5DB;
+  background: var(--neutral-100);
+  color: var(--neutral-300);
 }
 .person-picker-item-lock {
   font-size: 0.625rem;
@@ -266,7 +266,7 @@
   border-radius: var(--radius-sm);
   background: #FEF3C7;
   color: #92400E;
-  border: 1px solid #FDE68A;
+  border: 1px solid var(--party-gold-light);
   flex-shrink: 0;
 }
 
@@ -278,8 +278,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: #F3F4F6;
-  color: #6B7280;
+  background: var(--neutral-100);
+  color: var(--neutral-500);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -303,7 +303,7 @@
 .person-picker-item-name {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1F2937;
+  color: var(--neutral-800);
 }
 
 .person-picker-item-stage {
@@ -326,7 +326,7 @@
 
 .person-picker-item-role {
   font-size: 0.625rem;
-  color: #6B7280;
+  color: var(--neutral-500);
 }
 
 .person-picker-check {
@@ -336,7 +336,7 @@
 /* ── 底部操作栏（多选模式） ────────────────────────────────────── */
 .person-picker-footer {
   padding: 10px 16px;
-  border-top: 1px solid #F3F4F6;
+  border-top: 1px solid var(--neutral-100);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -361,9 +361,9 @@
   font-size: 0.6875rem;
   padding: 3px 10px;
   border-radius: 999px;
-  border: 1px solid #E5E7EB;
-  background: #FFFFFF;
-  color: #6B7280;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  color: var(--neutral-500);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -380,7 +380,7 @@
 
 .person-picker-count {
   font-size: 0.75rem;
-  color: #6B7280;
+  color: var(--neutral-500);
 }
 
 .person-picker-confirm {

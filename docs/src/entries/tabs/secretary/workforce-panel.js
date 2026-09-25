@@ -200,7 +200,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         <div id="wf-rows" class="flex flex-col gap-2">
           ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-500">至少一行（模块 → 新负责人）</div>'}
         </div>
-        <button type="button" id="wf-add-row" class="self-start text-[11px] px-2.5 py-1 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">＋ 加一行</button>
+        <button type="button" id="wf-add-row" class="self-start text-[13px] px-2.5 py-1 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">＋ 加一行</button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <label class="flex flex-col gap-1 text-xs text-gray-500">支委会日期
             <input id="wf-date" type="date" value="${esc(date)}" class="input-flat text-xs">

@@ -312,6 +312,14 @@ export async function init() {
       //   （真机用例据此等待 init 完成；若拉取在解锁之后，读侧会撞上「缓存尚未填完」的窗口）。
       await _loadAuxCollections(mockDB); mockDB._loaded = true;
 
+      // ⚠ **基线必须在任何 `await` 之前捕获**（2026-09-25 批次 197 修**静默丢写**竞态）：
+      //   下面两个 SEED_FALLBACK 回退块里有 `await import(...)` ⇒ 若把 `_captureBase` 放在其后，
+      //   基线捕获会被推后成异步；而页面就绪判据（`mockDB._loaded`）**不等这个回退** ⇒ 用户在
+      //   「数据已加载、基线尚未捕获」的窗口里写入时，那笔写入会被**后来捕获的基线一并吞进基线**，
+      //   随后 flush 判「无脏集合」⇒ **跳过上传、写入静默丢失**（实测：真库 `todos` 为空时必进该分支，
+      //   单跑与全量均可复现；老库因 `todos` 非空、分支不进，故长期潜伏未现）。
+      //   回退数据**仍不进脏集合**（保持 Z5「不污染服务器」语义）——由回退块内 `_commitBase` 显式登记。
+      _captureBase(mockDB);
       // 2026-08-06 扎口修复（Z5）：服务端 seed 仅覆盖 7 张表，attendances/inspections/todos 在 API 模式下为空 → 回退本地 mock 种子（**受 `config/deploy.js::SEED_FALLBACK` 控制**：真实部署置 false 即不注入演示数据，见下），
       // 避免首屏考勤/考察/待办空白。注意：回退仅填充 mockDB 缓存，【不触发 persist/快照写穿】，
       // 否则页面加载期（800ms 防抖窗口内）会以落后的本地缓存覆盖服务器上其他入口刚写入的数据
@@ -328,6 +336,7 @@ export async function init() {
           const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260924a');
           if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
           if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
+          _commitBase(mockDB, ['attendances', 'inspections']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
         } catch (e) {
           console.warn('[DataAdapter] init: 考勤/考察 seed 回退失败：', e);
@@ -337,6 +346,7 @@ export async function init() {
         try {
           const { SEED_TODOS } = await import('../services/todo.js?v=20260924a');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
+          _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
         } catch (e) {
           console.warn('[DataAdapter] init: 待办 seed 回退失败：', e);
@@ -344,8 +354,7 @@ export async function init() {
       }
 
       // 2026-09-02 增量快照：以「init 拉取完成态」为基线，flush 只上传与基线有差异的集合
-      // （回退种子亦计入基线 → 不会自动污染服务器，契合 Z5 注释语义）
-      _captureBase(mockDB);
+      // （回退种子亦计入基线 → 不会自动污染服务器，契合 Z5 注释语义；见上方竞态修复）
     } catch (e) {
       console.error('[DataAdapter] init: API 模式初始化失败：', e);
       throw e;
