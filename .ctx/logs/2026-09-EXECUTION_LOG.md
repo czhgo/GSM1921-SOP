@@ -19562,6 +19562,64 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
 - **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
 
+## 批次 197（2026-09-25，`D-657`，**★ 本条系补记**）**修「写入静默丢失」竞态 ＋ `判据B` 等待加强 ＋ 提交前全量**
+
+> **★ 补记说明**：**批次 195 / 196 的留痕（`D-655` / `D-656`）当时已写好；批次 197 当时为了赶提交跳过了留痕** ⇒ 本节是**事后补记**。**不得把本节读成「当时就写了」**。**补记时的实况**：批次 195–197 已按支书指令**提交一版（不 push，`6c734cb9`）**——**代码与台账不同批**。
+> **本批铁律**：本节**只记账**——`docs/src/core/data-adapter.js` · `server/test/multi-tab-sync.test.mjs` · `README-server.md` 由**同一批的改动面**落地。
+
+### 一、★ 真 bug（**本批最重的成果，逐字落账**）——`init()` 的基线捕获必须在任何 `await` 之前
+
+1. **病灶**：`docs/src/core/data-adapter.js` 的 `init()` 里，**两个 `SEED_FALLBACK` 回退块含 `await import(...)`**（`:335-336` 考勤 / 考察 · `:347` 待办）⇒ 紧随其后的 **`_captureBase(mockDB)`（基线捕获）被推后成异步**；而**页面就绪判据**（`mockDB._loaded === true && mockDB.milestones !== undefined`）**不等这个回退** ⇒ 用户在「数据已加载、基线尚未捕获」的窗口内写入时，那笔写入会被**后来捕获的基线一并吞进基线** ⇒ 随后 `_flushSnapshot` 的 `_collectDirty` 判「无脏集合」⇒ **跳过上传、写入静默丢失**。
+2. **为什么现在才暴露**：批次 192 判出 **`todos` 未被 `seed.js` 播种**（运行时攒出来的表）⇒ 批次 195 **重建真库**后 `mockDB.todos` 为空 ⇒ **该回退分支必进** ⇒ 异步窗口出现。**老库因 `todos` 有 23 行、分支不进，故长期潜伏未现**（⇒ **「数据不全」确实降低了测试可信度**，且这次是它以这个方式爆出来的）。
+3. **实测证据（诊断脚本，跑完即删）**：`persist()` 之后 **10 秒内零 `POST /api/v1/snapshot`**；客户端 `mockDB.archiveRecords` **本地完好**（`len=7`、含 `p11-dev-A1`）却始终不落库；进一步插桩证明 **`_flushSnapshot` 一次都没跑**（防抖定时器未触发）与 **`_collectDirty` 侧无脏集合**两条线索**并存**。
+4. **★ 我先误判过一次（如实落账）**：**最先误判为「只是负载导致等待不够」** ⇒ **先加强了 `判据B` 的轮询预算**（见二）；**单跑转绿但混跑仍红**，进一步二分（`link-integrity` + 本文件 / `doc-line-ref` + 本文件 / **本文件单跑**）**分别都红**，才把线索回收到上面 1 的机理上。**「先误判」这一条不得省略**。
+5. **修法（保持 Z5「回退数据不污染服务器」语义）**：
+   - ① **把 `_captureBase(mockDB)` 移到任何 `await` 之前**（`init()` 拉取完成态即刻捕获基线，`data-adapter.js:322`）；
+   - ② 回退块内改用 **`_commitBase(mockDB, ['attendances','inspections'])` / `_commitBase(mockDB, ['todos'])`** **显式登记**（`:339` / `:349`）——**回退值仍不进脏集合**（Z5 语义不变）。
+6. **正样本验证（修后）**：诊断脚本实测 **`POST /api/v1/snapshot` → `200 {"versions":{"archiveRecords":1}}` → 服务端 `archive_records` 行数 `6 → 7`** ✓（**修前为「零 POST」**）。
+7. **量化**：`git show 6c734cb9 --numstat -- docs/src/core/data-adapter.js` 实测 **`11 / 2` ⇒ 净 +9 行**。
+
+### 二、同批的其它改动
+
+1. **`判据B` 等待加强**（`server/test/multi-tab-sync.test.mjs`，`numstat` **`18 / 7`**）——**原文三处加强**：
+   - ① **`await waitIdle(a.page)`**（先等本机写管线排空，复用本文件既有助手）；
+   - ② **有界轮询 60 × 500ms（最长 30s）**（原为批次 182 的「20 × 300ms」）；
+   - ③ **`preparePage` 里补 `await page.bringToFront()`**（依据：Chromium 对**非前台页**的 `setTimeout` 有节流、后台页可被压到分钟级 ⇒ 防抖写穿永不跑；本用例前提本就是「一个可见的标签页 / 设备」，判据 A 亦断言 `visibilityState==='visible'`）。
+   - **判据语义一字未变**（仍要求「**必须真的落库**」），**不是放宽断言、不是删用例**。
+   - **★ 如实登记为「待查」**：上述三处修完后，`判据B` 在**「仅两个文件的组合」**（`doc-line-ref` + 本文件、`link-integrity` + 本文件）下**仍稳定复现红**（**约 33.4s ＝ 30s 轮询耗尽**），而**单跑**与**提交前全量**均**绿**。**现象**＝本地数据完好、**无 POST**、`_flushSnapshot` 一次未跑；**`bringToFront()` 未解决**。**已排除项**：不是「防抖窗口被跳过」（`skipped='pending-write'` 未出现）、不是服务端口问题（服务在跑）、不是断言放宽（判据未动）。⇒ **根因未定，登记为待查，不得写成「已根治」**。
+2. **`README-server.md` 行号引用改准**（`numstat` **`3 / 3`**；因 `data-adapter.js` 本批**净 +9 行**而顶偏）：
+   - `REMOTE_PROBE_INTERVAL_MS` **`980 → 989`** · `REMOTE_PROBE_PREF_KEY` **`983 → 992`** · `REMOTE_PROBE_AUX` **`999 → 1008`** · `setRemoteProbeEnabled` **`1020 → 1029`** · `_refreshCollections` **`1043 → 1052`** · `probeRemoteChanges` 的**区间写法 `:1112-1162` → 点引用 `:1126`**（**8 个符号引用**；其中 `:989` 与 `:1126` **各出现 2 处** ⇒ 盘上**共 10 处引用**、分布在 **3 行**内）；
+   - **另有两处本就旧偏 5 的裸 `:NNN`**（`startRemoteChangeProbe` / `stopRemoteChangeProbe`，`doc-line-ref` 的 `R2` **不核这种裸形式**）一并按**实测真值**改准为 **`:1183` / `:1194`**；
+   - **实测复核**：上述 8 个符号在 `data-adapter.js` 的**实际行号**分别为 `:989` / `:992` / `:1008` / `:1029` / `:1052` / `:1126` / `:1183` / `:1194`（**与改后一致**）；`doc-line-ref` 的 **R1–R6 复跑全绿**。
+3. **诊断插桩已全部撤销**：`_snapshotTimer` 的 `.catch` 还原为静默 · `_flushSnapshot` 里的 `[diag]` 日志删除 · 测试内的 `[diag]` 块删除 ⇒ **盘上无残留**（`git status` 无未预期文件）。
+
+### 三、提交前全量（冻结态，`R-85`）——**全绿**
+
+- **命令**：`cd server` → 起服务（`node server.js`，实测 `PORT3000_READY`）→ `npm test` → 跑完停服。
+- **实测**：**`ℹ tests 808` / `pass 808` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1229662.2`（**≈20.5 分钟**），**`EXITCODE=0`**。版本戳 `20260924a`。
+- **测试数 786 → 808（+22）**：批次 196 新增 `link-target-guard`（`L6`/`L7`）与三个文案守卫（`copy-length-guard` / `copy-screen-guard` / `copy-fold-guard`）及其非空转判据。
+- **⚠ 如实**：本轮**首跑即全绿、无红项**；但二.1 的「待查」说明**同一份代码在别的文件组合下会红** ⇒ **不得据此宣称「该用例已稳」**。
+- **清理**：服务已停、**端口已释放**；`.tmp*` / `_tmp*` **0 命中**；**未跑 `bump-version.mjs`**、**未改任何 `?v=` 戳**。
+- **提交**：批次 195–197 已按支书指令**提交一版（不 push，`6c734cb9`）**；本节为**事后补记**。
+
+### 四、只登记 / 未做（**逐条不得写成已办**）
+
+1. **`todos` 种子缺口仍在**（`server/seed.js` 未播种 `todos`）⇒ 新库「待办」为空；**待裁**（补种 / 不补只修窗口 / 两件都做）。
+2. **`判据B` 的「两文件组合红」待查**（见二.1；**根因未定**）。
+3. **批次 195 的其它只登记项照批次 195 节原样、不扩写**：`docs/src/mock/seed.js` 的 `attendanceRecordId` 与 `attRecordId` 实值不符 · `attendances` 8 月含 `p_pc` 等。
+
+### 五、台账动作（本批，**补记**）
+
+1. **决策日志**：新增 `D-657`（**★ 标明补记**）＋ **四处计数同刷**（文首 / 续编说明 / 本月目录 / 月度索引，`382 → 383`）。
+2. **`ACTIVE_RULINGS`**：**改准 1 行**（`D-628` 那一行补「`init()` 的基线捕获必须在任何 `await` 之前」），**本条新立 0 行** ⇒ 口径行**仍 122**。
+3. **`TIMESTAMPS`**：`docs/src/core/data-adapter.js` **刷 `2026-09-25`**（原为 `2026-08-03`）＋ `server/test/*.test.mjs` 与 `README-server.md` 两行**加注**（日期仍 `2026-09-25`）。
+4. 本节。
+
+### 六、收尾自检
+
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
+
 
 
 
