@@ -4,25 +4,29 @@
 // ════════════════════════════════════════════════════════════════
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
-// 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，
-// 此处按「同色系提亮一档」为每个颜色条目补 bgDark/textDark/borderDark，
-// 由 JS 模板写入 --acc-bg-dark/--acc-text-dark/--acc-border-dark 变量，
-// CSS html.theme-dark [style*="--acc-bg-dark"] 规则完成深色覆盖（与 badge--* 深色语义平行）。
+// 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
+// 补 bgDark/textDark/borderDark（映射来自 _TEXT_DARK_MAP），由 JS 模板写入 --acc-bg-dark/--acc-text-dark/
+// --acc-border-dark，CSS html.theme-dark [style*="--acc-bg-dark"] 规则完成覆盖（与 badge--* 深色语义平行）。
+// _C ＝ 本文件**唯一硬编码色值源**（DESIGN_SYSTEM §2.8）：其余颜色一律引用此处、不再写裸 hex；表项名＝语义名/色阶名。
+// ⚠ 大小写即语义：amber600 / blue500 / emerald500 写小写（沿用 _TEXT_DARK_MAP 原有键的字符形态）——accDarkParts 按串精确查表、不做归一化，改大写即查不到而回落 slate300。
+const _C = {
+  black: '#000', sky700: '#0369A1', emerald700: '#047857', emerald600: '#059669', cyan700: '#0E7490',
+  sky500: '#0EA5E9', emerald500: '#10b981', green600: '#16A34A', blue700: '#1D4ED8', green500: '#22C55E',
+  cyan400: '#22D3EE', blue600: '#2563EB', emerald400: '#34D399', sky400: '#38BDF8', blue500: '#3b82f6',
+  green400: '#4ADE80', gray600: '#4B5563', indigo600: '#4F46E5', blue400: '#60A5FA', gray500: '#6B7280',
+  violet600: '#7C3AED', sky300: '#7DD3FC', amber800: '#92400E', slate400: '#94A3B8', red800: '#991B1B',
+  redBrandDeep: '#9B0000', yellow700: '#A16207', indigo300: '#A5B4FC', violet400: '#A78BFA', partyRed: '#B91C1C',
+  orange700: '#C2410C', violet300: '#C4B5FD', slate300: '#CBD5E1', partyRedBrand: '#CE1126', amber600: '#d97706',
+  red600: '#DC2626', red400: '#F87171', orange400: '#FB923C', amber400: '#FBBF24', red50: '#FEF2F2',
+  yellow50: '#FEFCE8', partyGold: '#FFD700', white: '#fff',
+};
+/** 日间文字色 → 深色提亮色（键/值均取自 _C；键的字符形态原样保留，勿改大小写）——本表汇总 d8 组件内联标签 / d10 表态组件与状态图标 / S6 强调色提亮（亮色保持自身，violet-400→violet-300）三批补充。 */
 const _TEXT_DARK_MAP = {
-  '#991B1B': '#F87171', '#A16207': '#FBBF24', '#4B5563': '#94A3B8',
-  '#B91C1C': '#F87171', '#C2410C': '#FB923C', '#0369A1': '#38BDF8',
-  '#7C3AED': '#A78BFA', '#6B7280': '#94A3B8', '#0E7490': '#22D3EE',
-  '#4F46E5': '#A5B4FC', '#22C55E': '#4ADE80', '#0EA5E9': '#38BDF8',
-  '#2563EB': '#60A5FA',
-  // 各组件内联标签补充映射（d8 深色适配：阶段徽章/看板头/操作按钮等）
-  '#1D4ED8': '#60A5FA', '#047857': '#34D399', '#92400E': '#FBBF24',
-  '#d97706': '#FBBF24', '#3b82f6': '#60A5FA', '#10b981': '#34D399',
-  '#9B0000': '#F87171', '#16A34A': '#4ADE80',
-  // 表态组件/状态图标补充（d10 全局扫尾：reactions 选中态 / toast 状态色等）
-  '#059669': '#34D399', '#DC2626': '#F87171',
-  // 强调色补充（主题色个性化可选色中的亮色，本身已亮，深色下保持自身）
-  '#7DD3FC': '#7DD3FC',
-  '#A78BFA': '#C4B5FD', // deep 强调色（violet-400 → 深色提亮至 violet-300，S6 与语义色同源）
+  [_C.red800]: _C.red400, [_C.yellow700]: _C.amber400, [_C.gray600]: _C.slate400, [_C.partyRed]: _C.red400, [_C.orange700]: _C.orange400,
+  [_C.sky700]: _C.sky400, [_C.violet600]: _C.violet400, [_C.gray500]: _C.slate400, [_C.cyan700]: _C.cyan400, [_C.indigo600]: _C.indigo300,
+  [_C.green500]: _C.green400, [_C.sky500]: _C.sky400, [_C.blue600]: _C.blue400, [_C.blue700]: _C.blue400, [_C.emerald700]: _C.emerald400,
+  [_C.amber800]: _C.amber400, [_C.amber600]: _C.amber400, [_C.blue500]: _C.blue400, [_C.emerald500]: _C.emerald400, [_C.redBrandDeep]: _C.red400,
+  [_C.green600]: _C.green400, [_C.emerald600]: _C.emerald400, [_C.red600]: _C.red400, [_C.sky300]: _C.sky300, [_C.violet400]: _C.violet300,
 };
 function _hexToRgbStr(hex) {
   const h = hex.replace('#', '');
@@ -31,15 +35,15 @@ function _hexToRgbStr(hex) {
 function _applyDark(map) {
   const out = {};
   for (const [k, v] of Object.entries(map)) {
-    const d = _TEXT_DARK_MAP[v.text] || '#CBD5E1';
+    const d = _TEXT_DARK_MAP[v.text] || _C.slate300;
     out[k] = { ...v, bgDark: `rgba(${_hexToRgbStr(d)}, 0.16)`, textDark: d, borderDark: `rgba(${_hexToRgbStr(d)}, 0.35)` };
   }
   return out;
 }
 
 /**
- * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——供组件内联标签使用，
- * 与 CSS `html.theme-dark [style*="--acc-bg-dark"]` 覆盖规则配套。
+ * 为颜色对象映射表补深色三件套（bgDark/textDark/borderDark）——供组件内联标签使用，与 CSS
+ * `html.theme-dark [style*="--acc-bg-dark"]` 覆盖规则配套。
  * @param {Object<string,{bg:string,text:string,border:string}>} map
  * @returns 深色三件套增强版映射表
  */
@@ -63,7 +67,7 @@ export function accDarkVars(hex) {
  * @returns {{ bg:string, text:string, border:string }}
  */
 export function accDarkParts(hex) {
-  const d = _TEXT_DARK_MAP[hex] || '#CBD5E1';
+  const d = _TEXT_DARK_MAP[hex] || _C.slate300;
   return {
     bg: `rgba(${_hexToRgbStr(d)}, 0.16)`,
     text: d,
@@ -72,8 +76,8 @@ export function accDarkParts(hex) {
 }
 
 /**
- * 内联实色圆点深色提亮（d9）：深色系 hex → 同色系提亮色；本身已亮的色（500 色阶等）保持原色，
- * 深色下无需提亮。配合 styles.css `html.theme-dark [style*="--acc-dot-dark"]` 覆盖规则。
+ * 内联实色圆点深色提亮（d9）：深色系 hex → 同色系提亮色；本身已亮的色（500 色阶等）保持原色，深色下无需提亮。
+ * 配合 styles.css `html.theme-dark [style*="--acc-dot-dark"]` 覆盖规则。
  * @param {string} hex — 日间圆点背景色（深色文字色或亮色均可）
  * @returns {string} — '--acc-dot-dark:<提亮色>;'
  */
@@ -86,18 +90,18 @@ export function dotDarkVars(hex) {
 // ── 角色颜色 ────────────────────────────────────────────────────
 
 export const ROLE_COLORS = _applyDark({
-  'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同支书）
-  leader:              { bg: 'rgba(34, 197, 94, 0.15)',  text: '#22C55E',  border: 'rgba(34, 197, 94, 0.40)' },  // 翠绿#22C55E
-  commissioner:        { bg: 'rgba(194, 65, 12, 0.15)',  text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 同纪检#C2410C
-  'org-commissioner':  { bg: 'rgba(14, 165, 233, 0.10)',  text: '#0EA5E9',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0EA5E9
-  'prop-commissioner': { bg: 'rgba(37, 99, 235, 0.10)',   text: '#2563EB',  border: 'rgba(37, 99, 235, 0.30)' },  // 海蓝#2563EB
-  'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: '#C2410C',  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
-  organizer:           { bg: 'rgba(14, 165, 233, 0.10)', text: '#0369A1',  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0369A1（sky-700，角色色系冷色）
-  deep:                { bg: 'rgba(124, 58, 237, 0.10)', text: '#7C3AED',  border: 'rgba(124, 58, 237, 0.30)' },  // 紫罗兰#7C3AED（violet-600，与组织者区分）
-  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: '#6B7280', border: 'rgba(107, 114, 128, 0.30)' },  // 中性灰（默认身份，红不再充当参与者角色色，2026-08-01 修正）
-  initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: '#4F46E5',  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
-  all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: '#0E7490',  border: 'rgba(14, 116, 144, 0.20)' },
-  secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: '#B91C1C',  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
+  'deputy-secretary':  { bg: 'rgba(185, 28, 28, 0.10)',   text: _C.partyRed,  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（同支书）
+  leader:              { bg: 'rgba(34, 197, 94, 0.15)',  text: _C.green500,  border: 'rgba(34, 197, 94, 0.40)' },  // 翠绿#22C55E
+  commissioner:        { bg: 'rgba(194, 65, 12, 0.15)',  text: _C.orange700,  border: 'rgba(194, 65, 12, 0.30)' },  // 同纪检#C2410C
+  'org-commissioner':  { bg: 'rgba(14, 165, 233, 0.10)',  text: _C.sky500,  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0EA5E9
+  'prop-commissioner': { bg: 'rgba(37, 99, 235, 0.10)',   text: _C.blue600,  border: 'rgba(37, 99, 235, 0.30)' },  // 海蓝#2563EB
+  'disc-commissioner': { bg: 'rgba(194, 65, 12, 0.10)',   text: _C.orange700,  border: 'rgba(194, 65, 12, 0.30)' },  // 深橙#C2410C
+  organizer:           { bg: 'rgba(14, 165, 233, 0.10)', text: _C.sky700,  border: 'rgba(14, 165, 233, 0.30)' },  // 天蓝#0369A1（sky-700，角色色系冷色）
+  deep:                { bg: 'rgba(124, 58, 237, 0.10)', text: _C.violet600,  border: 'rgba(124, 58, 237, 0.30)' },  // 紫罗兰#7C3AED（violet-600，与组织者区分）
+  participant:         { bg: 'rgba(107, 114, 128, 0.10)', text: _C.gray500, border: 'rgba(107, 114, 128, 0.30)' },  // 中性灰（默认身份，红不再充当参与者角色色，2026-08-01 修正）
+  initiator:           { bg: 'rgba(79, 70, 229, 0.10)', text: _C.indigo600,  border: 'rgba(79, 70, 229, 0.30)' },  // 靛蓝#4F46E5（indigo-600，发起人）
+  all:                 { bg: 'rgba(14, 116, 144, 0.08)',  text: _C.cyan700,  border: 'rgba(14, 116, 144, 0.20)' },
+  secretary:           { bg: 'rgba(185, 28, 28, 0.10)',   text: _C.partyRed,  border: 'rgba(185, 28, 28, 0.30)' },  // 党建红（不动）
 });
 
 // ── 活动类别颜色（两大类：三会一课=党建红 / 主题党日=党建金）──
@@ -105,19 +109,17 @@ export const ROLE_COLORS = _applyDark({
 
 const ACTIVITY_CAT_COLOR = _applyDark({
   // ── 三会一课系（党建红 #CE1126）──
-  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
-  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
-  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
-  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: '#991B1B', border: 'rgba(206, 17, 38, 0.25)' },  // 党课
+  'branch-party-meeting': { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支部党员大会
+  'branch-committee':      { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 支委会
+  'party-group-meeting':   { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党小组会
+  'party-lecture':         { bg: 'rgba(206, 17, 38, 0.08)',  text: _C.red800, border: 'rgba(206, 17, 38, 0.25)' },  // 党课
   // ── 主题党日系（党徽金 #FFD700，2026-08-01 支书要求"再亮一些"，原 #D4AF37 偏灰/脏）──
-  'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: '#A16207', border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
+  'theme-party':           { bg: 'rgba(255, 215, 0, 0.12)', text: _C.yellow700, border: 'rgba(255, 215, 0, 0.35)' },  // 主题党日
   // ── 默认 ──
-  'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: '#4B5563', border: 'rgba(107, 114, 128, 0.25)' },
+  'default':               { bg: 'rgba(107, 114, 128, 0.08)', text: _C.gray600, border: 'rgba(107, 114, 128, 0.25)' },
 });
 
-/**
- * scenarioId → 活动类别键 映射
- */
+/** scenarioId → 活动类别键 映射 */
 const SCENARIO_TO_CATEGORY = {
   'branch-party-meeting': 'branch-party-meeting',
   'branch-committee':     'branch-committee',
@@ -129,8 +131,7 @@ const SCENARIO_TO_CATEGORY = {
 };
 
 /**
- * 根据活动对象返回对应的颜色。
- * 优先级：scenarioId → domain → 默认灰色
+ * 根据活动对象返回对应的颜色。优先级：scenarioId → domain → 默认灰色
  * @param {Object} activity — { scenarioId?, domain?, activityType?, duration? }
  * @returns {{ bg:string, text:string, border:string }}
  */
@@ -162,8 +163,7 @@ export const ACTIVITY_TYPE_LABELS = {
 };
 
 /**
- * 首页日历格子内2字缩写（格子宽度受限，完整标签显示不下）
- * 支书 2026-07-31 指示：日历简称使用"党会""党课""党日"
+ * 首页日历格子内2字缩写（格子宽度受限，完整标签显示不下）；支书 2026-07-31 指示：日历简称使用"党会""党课""党日"
  */
 export const ACTIVITY_TYPE_SHORT = {
   // ── 三会一课 ──
@@ -381,18 +381,18 @@ function hexToRgba(hex, alpha) {
 }
 
 export const ACCENT_COLORS = {
-  secretary:           { hex: '#B91C1C' },  // 党建红（不动）
-  'deputy-secretary':  { hex: '#B91C1C' },  // 党建红（同支书）
-  leader:              { hex: '#22C55E' },  // 翠绿
-  'org-commissioner':  { hex: '#0EA5E9' },  // 天蓝
-  'prop-commissioner': { hex: '#2563EB' },  // 海蓝
-  'disc-commissioner': { hex: '#C2410C' },  // 深橙
-  commissioner:        { hex: '#C2410C' },  // 同纪检（遗留键）
-  organizer:           { hex: '#7DD3FC' },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
-  deep:                { hex: '#A78BFA' },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
-  participant:         { hex: '#A16207', bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
-  all:                 { hex: '#0E7490' },  // 深青
-  purple:              { hex: '#7C3AED' },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
+  secretary:           { hex: _C.partyRed },  // 党建红（不动）
+  'deputy-secretary':  { hex: _C.partyRed },  // 党建红（同支书）
+  leader:              { hex: _C.green500 },  // 翠绿
+  'org-commissioner':  { hex: _C.sky500 },  // 天蓝
+  'prop-commissioner': { hex: _C.blue600 },  // 海蓝
+  'disc-commissioner': { hex: _C.orange700 },  // 深橙
+  commissioner:        { hex: _C.orange700 },  // 同纪检（遗留键）
+  organizer:           { hex: _C.sky300 },  // 亮天蓝 = 语义色 #0369A1（sky-700）同色系提亮（sky-300），同源（S6）
+  deep:                { hex: _C.violet400 },  // 雾紫 = 语义色 #7C3AED（violet-600）同色系提亮（violet-400），同源（S6）
+  participant:         { hex: _C.yellow700, bg: 'rgba(255,215,0,0.12)', border: 'rgba(255,215,0,0.35)' },  // 金（主题党日胶囊三件套：亮金底+深金字+亮金边框，2026-08-08 四审改，与主题活动色同源）
+  all:                 { hex: _C.cyan700 },  // 深青
+  purple:              { hex: _C.violet600 },  // 紫罗兰 = deep 语义色本身；色板专用别名键（非角色键，S8），供主题色选色板取用
 };
 
 // ── 主题色个性化（支书指令 2026-08-06：侧边栏设置，所有角色均可选）──
@@ -409,7 +409,7 @@ export const ACCENT_COLORS = {
 export const ACCENT_PALETTE = [
   { key: 'secretary',          hex: ACCENT_COLORS.secretary.hex,            label: '红' },
   { key: 'disc-commissioner',  hex: ACCENT_COLORS['disc-commissioner'].hex, label: '橙' },
-  { key: 'participant',        hex: '#FFD700',            label: '金' },
+  { key: 'participant',        hex: _C.partyGold,            label: '金' },
   { key: 'leader',             hex: ACCENT_COLORS.leader.hex,               label: '绿' },
   { key: 'all',                hex: ACCENT_COLORS.all.hex,                  label: '青' },
   { key: 'org-commissioner',   hex: ACCENT_COLORS['org-commissioner'].hex,  label: '天蓝' },
@@ -470,7 +470,7 @@ export function getAccentColors(role, bgAlpha = 0.1, borderAlpha = 0.3) {
 
 // 品牌亮色映射：金色日/夜淡底统一用亮金底 #FFD700（主题党日胶囊同源，支书 2026-08-08 四审定稿）
 const DEEP_ACCENT_RULES = {
-  '#A16207': { light: '#FFD700' },
+  [_C.yellow700]: { light: _C.partyGold },
 };
 
 /** hex → [h, s, l]（h:0-360, s:0-1, l:0-1） */
@@ -557,19 +557,19 @@ export function solidAccentStyle(accent, border) {
   // 兜底：bootstrap 首帧渲染时 accent 可能为 undefined（瞬态，随后 setState 重渲染），
   // 此时返回党建红实底白字（系统默认色），避免 _relativeLuminance 对非 hex 输入崩溃。
   if (!accent || typeof accent !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(accent)) {
-    return 'background:#B91C1C;color:#fff';
+    return `background:${_C.partyRed};color:${_C.white}`;
   }
   const branded = DEEP_ACCENT_RULES[accent];
   // 深字（日/夜一致）：深色 accent（感知亮度 < 0.25）用本身；浅色 accent 调暗至 30% 明度（淡底可读）
   const text = branded ? accent : (_relativeLuminance(accent) < 0.25 ? accent : _darken(accent, 30));
   // 夜间深字（R-9 ⑥ 2026-09-11 对比度收口）：夜间底色为不透明浅底，浅底上原深字对比仅 3.3–4.8，
   // 统一再压深一档（65% 原字 + 35% 黑）——浅底仍为同色系淡底深字，全 accent ≥ 4.5（实测 5.99–9.79）。
-  const textDark = `color-mix(in srgb, ${text} 65%, #000)`;
+  const textDark = `color-mix(in srgb, ${text} 65%, ${_C.black})`;
   // 淡底（日）：accent 调亮至 84% 明度 @12% 透明
   const bg = _rgba(branded ? branded.light : _lighten(accent, 84), 0.12);
   // 淡底（夜）：accent 调亮至 86% 明度完全不透明——span 状态徽章风格（如 bg-cyan-100），叠深背景仍清晰可见
   const bgDark = branded ? branded.light : _lighten(accent, 86);
-  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${textDark};background:var(--acc-bg);color:var(--acc-text,#fff)`;
+  return `--acc-bg:${bg};--acc-text:${text};--acc-bg-dark:${bgDark};--acc-text-dark:${textDark};background:var(--acc-bg);color:var(--acc-text,${_C.white})`;
 }
 
 // ── 活动类型颜色（中文标签版，用于卡片/列表视图）──────────────────
@@ -577,16 +577,16 @@ export function solidAccentStyle(accent, border) {
 
 const _ACTIVITY_TYPE_BASE = {
   // 三会一课系（党建红）
-  '党课':         { bg: '#FEF2F2', dot: '#CE1126' },
-  '支委会':       { bg: '#FEF2F2', dot: '#CE1126' },
-  '党小组会':     { bg: '#FEF2F2', dot: '#CE1126' },
-  '支部党员大会': { bg: '#FEF2F2', dot: '#CE1126' },
-  '组织生活会':   { bg: '#FEF2F2', dot: '#CE1126' },
+  '党课':         { bg: _C.red50, dot: _C.partyRedBrand },
+  '支委会':       { bg: _C.red50, dot: _C.partyRedBrand },
+  '党小组会':     { bg: _C.red50, dot: _C.partyRedBrand },
+  '支部党员大会': { bg: _C.red50, dot: _C.partyRedBrand },
+  '组织生活会':   { bg: _C.red50, dot: _C.partyRedBrand },
   // 主题党日系（党徽金 #FFD700，2026-08-01 亮金化；text=深金文字供日期数字、dotBorder=金点描边恢复暖底可辨性）
-  '主题党日':     { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
-  '共建':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
-  '参访':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
-  '座谈':         { bg: '#FEFCE8', dot: '#FFD700', text: '#A16207', dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '主题党日':     { bg: _C.yellow50, dot: _C.partyGold, text: _C.yellow700, dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '共建':         { bg: _C.yellow50, dot: _C.partyGold, text: _C.yellow700, dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '参访':         { bg: _C.yellow50, dot: _C.partyGold, text: _C.yellow700, dotBorder: 'rgba(161, 98, 7, 0.35)' },
+  '座谈':         { bg: _C.yellow50, dot: _C.partyGold, text: _C.yellow700, dotBorder: 'rgba(161, 98, 7, 0.35)' },
 };
 
 // ── 活动权威分类（2026-08-07 类型体系归一：两大顶层，非并列关系用层级表达）──
@@ -596,12 +596,12 @@ const _ACTIVITY_TYPE_BASE = {
 export const ACTIVITY_CLASSIFICATION = {
   'three-meetings': {
     label: '三会一课',
-    color: '#CE1126',
+    color: _C.partyRedBrand,
     subtypes: ['支部党员大会', '支委会', '党小组会', '党课'],
   },
   'theme-party': {
     label: '主题党日',
-    color: '#FFD700',
+    color: _C.partyGold,
     carriers: ['理论学习', '实践参访', '交流座谈', '其他'], // 与写入表单 THEME_PARTY_DIMENSIONS.carriers 对齐
   },
 };

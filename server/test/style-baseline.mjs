@@ -57,7 +57,40 @@
  *     调色板；`@media print` **不在** help.html，在 `docs/src/styles.css:4313`，且打印段用的是 `white`
  *     关键字与 `var()`，无需显式 hex）。
  *  ④ **`HEX_TOTAL_BASELINE` 有意保持 2025**（存量起点）：H4 据此显示 ↓134（2025−1891）。
- *     条目数 91 不变（无文件清零）；全站 distinct 值仍 168（被清的值在别处仍存）。 */
+ *     条目数 91 不变（无文件清零）；全站 distinct 值仍 168（被清的值在别处仍存）。
+ *
+ *  ── 存量清理（2026-09-26 · 深色覆盖段 token 化批）：再清 **138 处**（1891→1753），口径＝「深色段字面量 → var(--*)」──
+ *  支书裁定（2026-09-26，本批）：把 `docs/src/styles.css` **深色覆盖段**（`html.theme-dark …` 规则体）里**与该段令牌深色值逐字相等**
+ *  的颜色字面量换成 `var(--*)`。**等价性是硬前提**：这些规则只在 `html.theme-dark` 下匹配，被引令牌全站仅在
+ *  `:root`（浅色）与 `html.theme-dark`（深色）定义过（无元素级/内联覆盖）⇒ `var()` 在此段解析出的值 ＝ 原字面量
+ *  （逐字节等价），**浅色态不受影响**（这些规则在浅色下不匹配）。只动 `styles.css`（唯一 c 变动：467 → 329）。
+ *  · 取令牌按**值对齐**：`#141D2F→--surface-card` · `#1A2438→--surface-elevated` · `#0B1220→--surface-page` ·
+ *    `#111827→--neutral-50` · `#1E293B→--neutral-100` · `#334155→--neutral-200` · `#475569→--neutral-300` ·
+ *    `#94A3B8→--neutral-400`（`.text-gray-400`）/`--neutral-500`（其余灰字）· `#CBD5E1→--neutral-600` ·
+ *    `#E2E8F0→--neutral-700` · `#F1F5F9→--neutral-800` · `#F8FAFC→--neutral-900` ·
+ *    `#34D399→--functional-success` · `#FBBF24→--functional-warning` · `#F87171→--functional-error` ·
+ *    `#60A5FA→--functional-info`。⚠ `#1E293B`＝`--neutral-100` **也**＝`--surface-hover`（深色同值）⇒ 取名只是**名义**
+ *    （等价性不受影响），本批**统一取中性阶**以免同名歧义。取值不新增、令牌取值一字未改。
+ *  · **有意不碰**（同批已核，逐处理由见执行报告）：① `var(--acc-border-dark, #334155)` 的**兜底字面量**
+ *    （§2.8 兜底约定，属「var 兜底」档，非「深色段属性值」档）；② 深色段内**不等于任何深色令牌值**的 80 处
+ *    （`#64748B` · `#243244` · `#FB923C` · `#FCA5A5` · `#93C5FD` · `#4ADE80` · `#38BDF8` · `#A78BFA` ·
+ *    `#22D3EE` · `#C4B5FD` · `#FDBA74` · `#FDE68A` · `#D97706` · `#1B1E24` · `#8A6D1F` · `#D4AF37` · `#C9A227` ·
+ *    `#BEF264` · `#A3E635` · `#67E8F9` · `#6EE7B7` · `#FACC15` · `#86EFAC` · `#FCD34D` · `#FDE047` · `#D8B4FE` ·
+ *    `#FDA4AF` · `#7DD3FC` · `#5EEAD4` · `#AEB6C2` · 及 `var()` 兜底 `#B91C1C`/`#CE1126`/`#6366F1`/`#6B7280`/
+ *    混合目标 `#FFFFFF`/`#fff`）——**无同名深色令牌**，硬换会变观感（不新造色）；③ 令牌定义块
+ *    `html.theme-dark { … }`（其 23 处 hex 是**令牌定义本身**）不动。
+ *  · `HEX_TOTAL_BASELINE` **仍保持 2025**（存量起点）⇒ H4 本批显示 ↓272（2025−1753）；条目数 91 不变
+ *    （无文件清零）；全站 distinct 值仍 168（被清的值仍存于令牌定义处）。**H5 不加条目**：本批是**同文件内
+ *    字面量 → var()**，不是文件间搬移（`HEX_MOVE_LEDGER` 的 ①②③ 判据——值须已离开 `from`、已进入 `to`——不适用）。 */
+
+// ── 存量清理（2026-09-26 · `core/constants.js` 色值单一源批）：清 **70 处**（该文件 137→67）──
+// 口径＝「裸 hex 字面量 → **同文件内唯一色值表 `_C` 的语义令牌名**」（**不是**跨文件搬移 ⇒ `HEX_MOVE_LEDGER` 不登记）：
+//   · 映射键族 `_TEXT_DARK_MAP`（50 处）改为 `[_C.x]: _C.y`，由 `_C` 派生；
+//   · 值 / 入参 / 兜底字面量 63 处改 `_C.*`（ROLE_COLORS · ACTIVITY_CAT_COLOR · ACCENT_COLORS · ACCENT_PALETTE ·
+//     DEEP_ACCENT_RULES · solidAccentStyle · _ACTIVITY_TYPE_BASE · ACTIVITY_CLASSIFICATION · 两处 `|| '#CBD5E1'` 兜底）；
+//   · 注释 / jsdoc 里 24 处 hex **保留**（说明性文字，非逻辑字面量）。
+// 43 个色值此后各只出现一次（都在 `_C` 表内）；**值集合一字未变**（distinct 仍 45：注释里的 `#d4af37` / `#fee2e2` 仍在）
+//   ⇒ H1/H2 判据不受影响，仅该文件 c 137→67（全站 distinct 168 与条目数 91 均不变）。
 
 export const HEX_BASELINE = {
   'docs/help.html': { c: 568, v: [
@@ -176,7 +209,7 @@ export const HEX_BASELINE = {
   'docs/src/components/workspace-shell.js': { c: 1, v: [
       '#c8102e',
   ] },
-  'docs/src/core/constants.js': { c: 137, v: [
+  'docs/src/core/constants.js': { c: 67, v: [
       '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9', '#10b981', '#16a34a', '#1d4ed8',
       '#22c55e', '#22d3ee', '#2563eb', '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
       '#60a5fa', '#6b7280', '#7c3aed', '#7dd3fc', '#92400e', '#94a3b8', '#991b1b', '#9b0000', '#a16207',
@@ -354,7 +387,7 @@ export const HEX_BASELINE = {
   'docs/src/services/org-wizard-report.js': { c: 4, v: [
       '#ce1126', '#ffd700',
   ] },
-  'docs/src/styles.css': { c: 467, v: [
+  'docs/src/styles.css': { c: 329, v: [
       '#000', '#0284c7', '#059669', '#0b1220', '#0ea5e9', '#0f172a', '#10b981', '#111827', '#141d2f',
       '#15803d', '#1a2438', '#1b1e24', '#1d4ed8', '#1e293b', '#1f2937', '#22c55e', '#22d3ee', '#243244',
       '#2563eb', '#2a1a22', '#334155', '#34d399', '#374151', '#38bdf8', '#3b82f6', '#475569', '#4a000a',
@@ -385,6 +418,10 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   条目数不变（92，无文件清零）；全站 distinct 值仍为 168（被清的值在其它文件仍存）。
 //   2026-09-26 续批再清 50 处 ⇒ H4 现显示 ↓118（2025−1907）；`taskforce-entry.js` 清零删条目 ⇒ 条目数 92→91
 //   （H3「条目数 ＝ 声明文件数」同步）；全站 distinct 值仍为 168（仍无值消失至零）。
+//   2026-09-26 末批（特批解禁）再清 16 处 ⇒ 1907→1891（H4 ↓134）。
+//   2026-09-26 深色覆盖段 token 化批再清 138 处（`styles.css` c 467→329，见上 HEX_BASELINE 头注）
+//   ⇒ H4 现显示 ↓272（2025−1753）；条目数仍 91；全站 distinct 值仍为 168（被清的值仍存于令牌定义处，
+//   **H5 不加条目**——本批是同文件内「字面量 → var()」，非文件间搬移）。
 export const HEX_FILE_BASELINE = 91;
 export const HEX_VALUE_BASELINE = 168;
 

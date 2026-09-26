@@ -1997,7 +1997,7 @@ button:disabled { cursor: not-allowed; }
   border-color: var(--primary-200);
 }
 
-html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-today { background-color: color-mix(in srgb, var(--primary-700) 16%, #141D2F) !important; border-color: color-mix(in srgb, var(--primary-700) 45%, #334155) !important; }
+html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-today { background-color: color-mix(in srgb, var(--primary-700) 16%, var(--surface-card)) !important; border-color: color-mix(in srgb, var(--primary-700) 45%, var(--neutral-200)) !important; }
 
 .cal-cell-mobile.selected {
   border-color: var(--primary-700) !important;
@@ -2145,7 +2145,7 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 html.theme-dark .ov-sub-tab-active {
-  background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, #141D2F);
+  background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, var(--surface-card));
   color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #fff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
@@ -2156,15 +2156,15 @@ html.theme-dark .ov-sub-tab-active {
   background: color-mix(in srgb, var(--tint, #CE1126) 8%, transparent);
 }
 html.theme-dark .stat-icon-tint {
-  background: color-mix(in srgb, var(--tint, #CE1126) 14%, #141D2F);
+  background: color-mix(in srgb, var(--tint, #CE1126) 14%, var(--surface-card));
 }
 .tf-section-head {
   background: color-mix(in srgb, var(--tint, #6366F1) 6%, transparent);
   border-bottom: 2px solid color-mix(in srgb, var(--tint, #6366F1) 15%, transparent);
 }
 html.theme-dark .tf-section-head {
-  background: color-mix(in srgb, var(--tint, #6366F1) 12%, #141D2F);
-  border-bottom-color: color-mix(in srgb, var(--tint, #6366F1) 35%, #334155);
+  background: color-mix(in srgb, var(--tint, #6366F1) 12%, var(--surface-card));
+  border-bottom-color: color-mix(in srgb, var(--tint, #6366F1) 35%, var(--neutral-200));
 }
 
 @media (min-width: 769px) {
@@ -4412,35 +4412,35 @@ label .text-red-500 {
   }
 
   /* ── ② 高频 Tailwind 中性类（Play CDN 后加载，须 !important） ── */
-  html.theme-dark .bg-white        { background-color: #141D2F !important; }
-  html.theme-dark .bg-gray-50      { background-color: #111827 !important; }
-  html.theme-dark .bg-gray-100     { background-color: #1E293B !important; }
-  html.theme-dark .bg-gray-200     { background-color: #334155 !important; }
-  html.theme-dark .bg-gray-400     { background-color: #475569 !important; }
+  html.theme-dark .bg-white        { background-color: var(--surface-card) !important; }
+  html.theme-dark .bg-gray-50      { background-color: var(--neutral-50) !important; }
+  html.theme-dark .bg-gray-100     { background-color: var(--neutral-100) !important; }
+  html.theme-dark .bg-gray-200     { background-color: var(--neutral-200) !important; }
+  html.theme-dark .bg-gray-400     { background-color: var(--neutral-300) !important; }
   html.theme-dark .bg-gray-50\/50  { background-color: rgba(15, 23, 42, 0.55) !important; }
-  html.theme-dark .bg-neutral-100  { background-color: #1E293B !important; }
-  html.theme-dark .text-gray-900   { color: #F8FAFC !important; }
-  html.theme-dark .text-gray-800   { color: #F1F5F9 !important; }
-  html.theme-dark .text-gray-700   { color: #E2E8F0 !important; }
-  html.theme-dark .text-gray-600   { color: #CBD5E1 !important; }
-  html.theme-dark .text-gray-500   { color: #94A3B8 !important; }
-  html.theme-dark .text-gray-400   { color: #94A3B8 !important; }
+  html.theme-dark .bg-neutral-100  { background-color: var(--neutral-100) !important; }
+  html.theme-dark .text-gray-900   { color: var(--neutral-900) !important; }
+  html.theme-dark .text-gray-800   { color: var(--neutral-800) !important; }
+  html.theme-dark .text-gray-700   { color: var(--neutral-700) !important; }
+  html.theme-dark .text-gray-600   { color: var(--neutral-600) !important; }
+  html.theme-dark .text-gray-500   { color: var(--neutral-500) !important; }
+  html.theme-dark .text-gray-400   { color: var(--neutral-400) !important; }
   html.theme-dark .text-gray-300   { color: #64748B !important; }
-  html.theme-dark .border-gray-50  { border-color: #1E293B !important; }
+  html.theme-dark .border-gray-50  { border-color: var(--neutral-100) !important; }
   html.theme-dark .border-gray-100 { border-color: #243244 !important; }
-  html.theme-dark .border-gray-200 { border-color: #334155 !important; }
-  html.theme-dark .border-gray-300 { border-color: #475569 !important; }
+  html.theme-dark .border-gray-200 { border-color: var(--neutral-200) !important; }
+  html.theme-dark .border-gray-300 { border-color: var(--neutral-300) !important; }
 
   /* hover 态（列表/按钮/卡片悬停） */
-  html.theme-dark .hover\:bg-gray-50:hover   { background-color: #1E293B !important; }
+  html.theme-dark .hover\:bg-gray-50:hover   { background-color: var(--neutral-100) !important; }
   html.theme-dark .hover\:bg-gray-100:hover  { background-color: #243244 !important; }
-  html.theme-dark .hover\:bg-gray-200:hover  { background-color: #334155 !important; }
-  html.theme-dark .hover\:border-gray-200:hover { border-color: #475569 !important; }
+  html.theme-dark .hover\:bg-gray-200:hover  { background-color: var(--neutral-200) !important; }
+  html.theme-dark .hover\:border-gray-200:hover { border-color: var(--neutral-300) !important; }
   html.theme-dark .hover\:border-gray-300:hover { border-color: #64748B !important; }
-  html.theme-dark .hover\:text-gray-600:hover   { color: #CBD5E1 !important; }
-  html.theme-dark .hover\:text-gray-700:hover   { color: #E2E8F0 !important; }
-  html.theme-dark .hover\:text-gray-800:hover   { color: #F1F5F9 !important; }
-  html.theme-dark .hover\:text-gray-900:hover   { color: #F8FAFC !important; }
+  html.theme-dark .hover\:text-gray-600:hover   { color: var(--neutral-600) !important; }
+  html.theme-dark .hover\:text-gray-700:hover   { color: var(--neutral-700) !important; }
+  html.theme-dark .hover\:text-gray-800:hover   { color: var(--neutral-800) !important; }
+  html.theme-dark .hover\:text-gray-900:hover   { color: var(--neutral-900) !important; }
 
   /* ── 语义浅底标签：深色半透明底 + 提亮文字（保持语义识别） ── */
   html.theme-dark .bg-red-50      { background-color: rgba(239, 68, 68, 0.10) !important; }
@@ -4464,26 +4464,26 @@ label .text-red-500 {
   html.theme-dark .hover\:bg-blue-50:hover    { background-color: rgba(96, 165, 250, 0.10) !important; }
   html.theme-dark .hover\:bg-blue-100:hover   { background-color: rgba(96, 165, 250, 0.16) !important; }
   html.theme-dark .hover\:bg-sky-100:hover    { background-color: rgba(56, 189, 248, 0.16) !important; }
-  html.theme-dark .text-red-600    { color: #F87171 !important; }
+  html.theme-dark .text-red-600    { color: var(--functional-error) !important; }
   html.theme-dark .text-orange-600 { color: #FB923C !important; }
-  html.theme-dark .text-green-600  { color: #34D399 !important; }
-  html.theme-dark .text-blue-600   { color: #60A5FA !important; }
-  html.theme-dark .text-amber-600  { color: #FBBF24 !important; }
+  html.theme-dark .text-green-600  { color: var(--functional-success) !important; }
+  html.theme-dark .text-blue-600   { color: var(--functional-info) !important; }
+  html.theme-dark .text-amber-600  { color: var(--functional-warning) !important; }
   html.theme-dark .text-sky-600    { color: #38BDF8 !important; }
-  html.theme-dark .hover\:text-red-500:hover   { color: #F87171 !important; }
+  html.theme-dark .hover\:text-red-500:hover   { color: var(--functional-error) !important; }
   html.theme-dark .hover\:text-red-600:hover   { color: #FCA5A5 !important; }
-  html.theme-dark .hover\:text-blue-700:hover  { color: #60A5FA !important; }
+  html.theme-dark .hover\:text-blue-700:hover  { color: var(--functional-info) !important; }
   html.theme-dark .hover\:text-blue-800:hover  { color: #93C5FD !important; }
 
   /* ── ③ 硬编码浅色组件 ── */
   /* 状态徽章（T-217 行内状态轻交互胶囊：色点 + 文字 + 下拉） */
   html.theme-dark .status-badge {
-    background-color: color-mix(in srgb, var(--sb-color) 14%, #141D2F) !important;
+    background-color: color-mix(in srgb, var(--sb-color) 14%, var(--surface-card)) !important;
     border-color: color-mix(in srgb, var(--sb-color) 42%, transparent) !important;
     color: color-mix(in srgb, var(--sb-color) 80%, #FFFFFF) !important;
   }
   html.theme-dark .status-badge:hover {
-    background-color: color-mix(in srgb, var(--sb-color) 20%, #141D2F) !important;
+    background-color: color-mix(in srgb, var(--sb-color) 20%, var(--surface-card)) !important;
     border-color: color-mix(in srgb, var(--sb-color) 58%, transparent) !important;
   }
   /* R-14 特批三：pending 深色态提亮（浅色态见 .status-badge[data-status="pending"]） */
@@ -4492,19 +4492,19 @@ label .text-red-500 {
   }
   /* 状态徽章弹层 */
   html.theme-dark .status-badge-popover {
-    background: #1A2438 !important;
+    background: var(--surface-elevated) !important;
     border-color: var(--neutral-200) !important;
   }
 
   /* help 页右侧圆点目录 tooltip（help-entry.js 渲染的活类） */
   html.theme-dark .help-toc-dot-tooltip {
-    background: #1A2438 !important;
-    color: #E2E8F0 !important;
-    border-color: #334155 !important;
+    background: var(--surface-elevated) !important;
+    color: var(--neutral-700) !important;
+    border-color: var(--neutral-200) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
   }
   html.theme-dark .help-toc-dot-tooltip::after {
-    border-left-color: #1A2438 !important;
+    border-left-color: var(--surface-elevated) !important;
   }
   html.theme-dark .help-toc-dot-item.is-active .help-toc-dot-tooltip {
     background: rgba(206, 17, 38, 0.18) !important;
@@ -4515,86 +4515,86 @@ label .text-red-500 {
     border-left-color: rgba(206, 17, 38, 0.18) !important;
   }
   html.theme-dark .help-toc-dot-mark {
-    background: #475569 !important;
+    background: var(--neutral-300) !important;
   }
   html.theme-dark .help-toc-dot-item:hover .help-toc-dot-mark {
-    background: #94A3B8 !important;
+    background: var(--neutral-500) !important;
   }
-  html.theme-dark .help-toc-item { color: #CBD5E1 !important; }
+  html.theme-dark .help-toc-item { color: var(--neutral-600) !important; }
 
   /* help 页（系统说明书 doc 静态页）深色适配——正文内联 .doc-* / .qn-* / .nav-tree 全硬编码浅色，逐一覆盖 */
-  html.theme-dark .doc-card { background: #141D2F !important; border-color: #334155 !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important; }
-  html.theme-dark .doc-h2 { color: #F1F5F9 !important; }
+  html.theme-dark .doc-card { background: var(--surface-card) !important; border-color: var(--neutral-200) !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important; }
+  html.theme-dark .doc-h2 { color: var(--neutral-800) !important; }
   html.theme-dark .doc-h2 .doc-num { color: var(--party-red) !important; }
-  html.theme-dark .doc-divider { background: linear-gradient(90deg,#CE1126 0 64px,#334155 64px 100%) !important; }
-  html.theme-dark .doc-h3 { color: #E2E8F0 !important; }
+  html.theme-dark .doc-divider { background: linear-gradient(90deg,#CE1126 0 64px,var(--neutral-200) 64px 100%) !important; }
+  html.theme-dark .doc-h3 { color: var(--neutral-700) !important; }
   html.theme-dark .doc-h3-badge { background: rgba(206, 17, 38, 0.12) !important; border-color: rgba(206, 17, 38, 0.32) !important; color: #FCA5A5 !important; }
-  html.theme-dark .doc-p { color: #CBD5E1 !important; }
-  html.theme-dark .doc-p strong { color: #F8FAFC !important; }
-  html.theme-dark .doc-lead { color: #94A3B8 !important; }
-  html.theme-dark .doc-lead strong { color: #E2E8F0 !important; }
-  html.theme-dark .doc-ack { color: #CBD5E1 !important; }
-  html.theme-dark .doc-ack strong { color: #F8FAFC !important; }
-  html.theme-dark .nav-tree { background: #111827 !important; border-color: #334155 !important; color: #94A3B8 !important; }
-  html.theme-dark .qn-common { background: #1E293B !important; border-color: #334155 !important; }
-  html.theme-dark .qn-common-label { color: #94A3B8 !important; }
-  html.theme-dark .qn-chip { color: #CBD5E1 !important; background: #141D2F !important; border-color: #475569 !important; }
-  html.theme-dark .qn-chip:hover { border-color: #94A3B8 !important; background: #1E293B !important; }
-  html.theme-dark .qn-matrix th { color: #CBD5E1 !important; border-bottom-color: #334155 !important; }
-  html.theme-dark .qn-matrix td { color: #94A3B8 !important; border-bottom-color: #243244 !important; }
-  html.theme-dark .qn-matrix td.qn-domain { color: #F1F5F9 !important; }
-  html.theme-dark td.qn-empty { background: #0B1220 !important; }
-  html.theme-dark a.qn-fn { color: #CBD5E1 !important; background: #141D2F !important; }
-  html.theme-dark a.qn-fn:hover { background: #1E293B !important; }
+  html.theme-dark .doc-p { color: var(--neutral-600) !important; }
+  html.theme-dark .doc-p strong { color: var(--neutral-900) !important; }
+  html.theme-dark .doc-lead { color: var(--neutral-500) !important; }
+  html.theme-dark .doc-lead strong { color: var(--neutral-700) !important; }
+  html.theme-dark .doc-ack { color: var(--neutral-600) !important; }
+  html.theme-dark .doc-ack strong { color: var(--neutral-900) !important; }
+  html.theme-dark .nav-tree { background: var(--neutral-50) !important; border-color: var(--neutral-200) !important; color: var(--neutral-500) !important; }
+  html.theme-dark .qn-common { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
+  html.theme-dark .qn-common-label { color: var(--neutral-500) !important; }
+  html.theme-dark .qn-chip { color: var(--neutral-600) !important; background: var(--surface-card) !important; border-color: var(--neutral-300) !important; }
+  html.theme-dark .qn-chip:hover { border-color: var(--neutral-500) !important; background: var(--neutral-100) !important; }
+  html.theme-dark .qn-matrix th { color: var(--neutral-600) !important; border-bottom-color: var(--neutral-200) !important; }
+  html.theme-dark .qn-matrix td { color: var(--neutral-500) !important; border-bottom-color: #243244 !important; }
+  html.theme-dark .qn-matrix td.qn-domain { color: var(--neutral-800) !important; }
+  html.theme-dark td.qn-empty { background: var(--surface-page) !important; }
+  html.theme-dark a.qn-fn { color: var(--neutral-600) !important; background: var(--surface-card) !important; }
+  html.theme-dark a.qn-fn:hover { background: var(--neutral-100) !important; }
   html.theme-dark a.qn-fn-leader { border-color: #4ADE80 !important; color: #4ADE80 !important; }
   html.theme-dark a.qn-fn-org    { border-color: #38BDF8 !important; color: #38BDF8 !important; }
-  html.theme-dark a.qn-fn-prop   { border-color: #60A5FA !important; color: #93C5FD !important; }
+  html.theme-dark a.qn-fn-prop   { border-color: var(--functional-info) !important; color: #93C5FD !important; }
   html.theme-dark a.qn-fn-disc   { border-color: #FB923C !important; color: #FDBA74 !important; }
-  html.theme-dark a.qn-fn-member { border-color: #64748B !important; color: #CBD5E1 !important; }
-  html.theme-dark a.qn-fn-sec    { border-color: #F87171 !important; color: #FCA5A5 !important; }
-  html.theme-dark .doc-table th { background: #111827 !important; color: #CBD5E1 !important; border-bottom-color: #334155 !important; }
-  html.theme-dark .doc-table td { color: #CBD5E1 !important; border-bottom-color: #243244 !important; }
-  html.theme-dark .doc-list li { color: #CBD5E1 !important; }
+  html.theme-dark a.qn-fn-member { border-color: #64748B !important; color: var(--neutral-600) !important; }
+  html.theme-dark a.qn-fn-sec    { border-color: var(--functional-error) !important; color: #FCA5A5 !important; }
+  html.theme-dark .doc-table th { background: var(--neutral-50) !important; color: var(--neutral-600) !important; border-bottom-color: var(--neutral-200) !important; }
+  html.theme-dark .doc-table td { color: var(--neutral-600) !important; border-bottom-color: #243244 !important; }
+  html.theme-dark .doc-list li { color: var(--neutral-600) !important; }
   html.theme-dark .doc-list li::before { background: var(--party-red) !important; }
   html.theme-dark .doc-note { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
   html.theme-dark .doc-key { background: rgba(206, 17, 38, 0.12) !important; color: #FCA5A5 !important; }
-  html.theme-dark .doc-key strong { color: #F87171 !important; }
-  html.theme-dark .doc-duo-item { background: #1E293B !important; border-color: #334155 !important; }
-  html.theme-dark .doc-duo-item h4 { color: #E2E8F0 !important; }
-  html.theme-dark .doc-duo-item p { color: #CBD5E1 !important; }
-  html.theme-dark .doc-finder { background: #1E293B !important; border-color: #334155 !important; }
-  html.theme-dark .doc-finder h4 { color: #94A3B8 !important; }
-  html.theme-dark .doc-fpair { color: #CBD5E1 !important; background: #141D2F !important; border-color: #475569 !important; }
-  html.theme-dark .doc-fpair strong { color: #F1F5F9 !important; }
-  html.theme-dark .doc-farrow { color: #475569 !important; }
-  html.theme-dark .doc-quote { color: #FBBF24 !important; }
-  html.theme-dark .doc-mini { background: #1E293B !important; border-color: #334155 !important; }
-  html.theme-dark .doc-mini h4 { color: #F87171 !important; }
-  html.theme-dark .doc-mini p { color: #CBD5E1 !important; }
+  html.theme-dark .doc-key strong { color: var(--functional-error) !important; }
+  html.theme-dark .doc-duo-item { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
+  html.theme-dark .doc-duo-item h4 { color: var(--neutral-700) !important; }
+  html.theme-dark .doc-duo-item p { color: var(--neutral-600) !important; }
+  html.theme-dark .doc-finder { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
+  html.theme-dark .doc-finder h4 { color: var(--neutral-500) !important; }
+  html.theme-dark .doc-fpair { color: var(--neutral-600) !important; background: var(--surface-card) !important; border-color: var(--neutral-300) !important; }
+  html.theme-dark .doc-fpair strong { color: var(--neutral-800) !important; }
+  html.theme-dark .doc-farrow { color: var(--neutral-300) !important; }
+  html.theme-dark .doc-quote { color: var(--functional-warning) !important; }
+  html.theme-dark .doc-mini { background: var(--neutral-100) !important; border-color: var(--neutral-200) !important; }
+  html.theme-dark .doc-mini h4 { color: var(--functional-error) !important; }
+  html.theme-dark .doc-mini p { color: var(--neutral-600) !important; }
   /* 免责声明卡（内联深金配色）深色微调 */
   html.theme-dark section#sec-disclaimer { background: #1B1E24 !important; border-color: #8A6D1F !important; }
   html.theme-dark #sec-disclaimer .doc-h2 { color: #D4AF37 !important; }
   html.theme-dark #sec-disclaimer .doc-p { color: #C9A227 !important; }
-  html.theme-dark #sec-disclaimer .doc-divider { background: linear-gradient(90deg,#D97706 0 64px,#334155 64px 100%) !important; }
+  html.theme-dark #sec-disclaimer .doc-divider { background: linear-gradient(90deg,#D97706 0 64px,var(--neutral-200) 64px 100%) !important; }
 
   /* 角色层级组件（help.html 内联 .rh-* 硬编码浅色）深色适配：深底 + 角色色提亮一档 */
-  html.theme-dark .rh-intro { color: #CBD5E1 !important; }
-  html.theme-dark .rh-term { color: #94A3B8 !important; }
+  html.theme-dark .rh-intro { color: var(--neutral-600) !important; }
+  html.theme-dark .rh-term { color: var(--neutral-500) !important; }
   html.theme-dark .rh-term em { color: #FCA5A5 !important; }
-  html.theme-dark .rh-connector { color: #475569 !important; }
+  html.theme-dark .rh-connector { color: var(--neutral-300) !important; }
   html.theme-dark .rh-line-v { color: #A78BFA !important; background: rgba(139, 92, 246, 0.16) !important; }
   html.theme-dark .rh-line-h { color: #22D3EE !important; background: rgba(34, 211, 238, 0.12) !important; }
-  html.theme-dark .rh-card { border-color: #334155 !important; }
+  html.theme-dark .rh-card { border-color: var(--neutral-200) !important; }
   html.theme-dark .rh-card:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important; }
   html.theme-dark .rh-card.role-secretary { background: rgba(185, 28, 28, 0.22) !important; border-color: rgba(248, 113, 113, 0.35) !important; }
   html.theme-dark .rh-card.role-secretary .rh-name { color: #FCA5A5 !important; }
-  html.theme-dark .rh-card.role-secretary .rh-tag { color: #F87171 !important; }
+  html.theme-dark .rh-card.role-secretary .rh-tag { color: var(--functional-error) !important; }
   html.theme-dark .rh-card.role-org { background: rgba(139, 92, 246, 0.18) !important; border-color: rgba(139, 92, 246, 0.35) !important; }
   html.theme-dark .rh-card.role-org .rh-name { color: #C4B5FD !important; }
   html.theme-dark .rh-card.role-org .rh-tag { color: #A78BFA !important; }
   html.theme-dark .rh-card.role-prop { background: rgba(59, 130, 246, 0.18) !important; border-color: rgba(96, 165, 250, 0.35) !important; }
   html.theme-dark .rh-card.role-prop .rh-name { color: #93C5FD !important; }
-  html.theme-dark .rh-card.role-prop .rh-tag { color: #60A5FA !important; }
+  html.theme-dark .rh-card.role-prop .rh-tag { color: var(--functional-info) !important; }
   html.theme-dark .rh-card.role-disc { background: rgba(217, 119, 6, 0.18) !important; border-color: rgba(251, 146, 60, 0.35) !important; }
   html.theme-dark .rh-card.role-disc .rh-name { color: #FDBA74 !important; }
   html.theme-dark .rh-card.role-disc .rh-tag { color: #FB923C !important; }
@@ -4602,33 +4602,33 @@ label .text-red-500 {
   html.theme-dark .rh-card.role-leader .rh-name { color: #BEF264 !important; }
   html.theme-dark .rh-card.role-leader .rh-tag { color: #A3E635 !important; }
   html.theme-dark .rh-card.role-member { background: rgba(148, 163, 184, 0.15) !important; border-color: rgba(148, 163, 184, 0.30) !important; }
-  html.theme-dark .rh-card.role-member .rh-name { color: #E2E8F0 !important; }
-  html.theme-dark .rh-card.role-member .rh-tag { color: #94A3B8 !important; }
+  html.theme-dark .rh-card.role-member .rh-name { color: var(--neutral-700) !important; }
+  html.theme-dark .rh-card.role-member .rh-tag { color: var(--neutral-500) !important; }
   html.theme-dark .rh-card.role-organizer { background: rgba(6, 182, 212, 0.15) !important; border-color: rgba(34, 211, 238, 0.30) !important; }
   html.theme-dark .rh-card.role-organizer .rh-name { color: #67E8F9 !important; }
   html.theme-dark .rh-card.role-organizer .rh-tag { color: #22D3EE !important; }
   html.theme-dark .rh-card.role-deep { background: rgba(16, 185, 129, 0.15) !important; border-color: rgba(52, 211, 153, 0.30) !important; }
   html.theme-dark .rh-card.role-deep .rh-name { color: #6EE7B7 !important; }
-  html.theme-dark .rh-card.role-deep .rh-tag { color: #34D399 !important; }
+  html.theme-dark .rh-card.role-deep .rh-tag { color: var(--functional-success) !important; }
 
   /* ── ④ 激活 Tab：内联 --tab-accent-bg 是浅色透明叠加，深色下直接覆盖为 深色底+强调色 ── */
   html.theme-dark .tab-btn-active {
-    background: color-mix(in srgb, var(--tab-accent) 18%, #141D2F) !important;
-    border-color: color-mix(in srgb, var(--tab-accent) 60%, #334155) !important;
+    background: color-mix(in srgb, var(--tab-accent) 18%, var(--surface-card)) !important;
+    border-color: color-mix(in srgb, var(--tab-accent) 60%, var(--neutral-200)) !important;
     color: color-mix(in srgb, var(--tab-accent) 55%, white) !important;
   }
 
   /* 侧边栏激活导航（module-tab.active）：深色底 --surface-active #2A1A22 + 原红字 #CE1126 对比仅 2.94:1，
      提亮为功能红 #F87171（与 badge--danger 深色语义一致） */
-  html.theme-dark .module-tab.active { color: #F87171 !important; }
-  html.theme-dark .module-tab.active svg { color: #F87171 !important; }
+  html.theme-dark .module-tab.active { color: var(--functional-error) !important; }
+  html.theme-dark .module-tab.active svg { color: var(--functional-error) !important; }
 
   /* 侧边栏字号/主题三态按钮激活态：--primary-50 浅红未在深色反转（残留 #FEE2E2），
      与 tab-btn-active 同构改为 深色底+提亮红字 */
   html.theme-dark .font-size-btn.active,
   html.theme-dark .theme-btn.active {
-    background: color-mix(in srgb, var(--primary-700) 18%, #141D2F) !important;
-    border-color: color-mix(in srgb, var(--primary-700) 60%, #334155) !important;
+    background: color-mix(in srgb, var(--primary-700) 18%, var(--surface-card)) !important;
+    border-color: color-mix(in srgb, var(--primary-700) 60%, var(--neutral-200)) !important;
     color: color-mix(in srgb, var(--primary-700) 72%, white) !important;
   }
 
@@ -4722,32 +4722,32 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .btn-md-amber,
   html.theme-dark .btn-md-gray {
     background: rgba(148, 163, 184, 0.10) !important;
-    color: #CBD5E1 !important;
-    border-color: #334155 !important;
+    color: var(--neutral-600) !important;
+    border-color: var(--neutral-200) !important;
   }
   html.theme-dark .btn-action-red,
-  html.theme-dark .btn-md-red     { color: #F87171 !important; }
+  html.theme-dark .btn-md-red     { color: var(--functional-error) !important; }
   html.theme-dark .btn-action-blue,
-  html.theme-dark .btn-md-blue    { color: #60A5FA !important; }
+  html.theme-dark .btn-md-blue    { color: var(--functional-info) !important; }
   html.theme-dark .btn-action-green,
-  html.theme-dark .btn-md-green   { color: #34D399 !important; }
+  html.theme-dark .btn-md-green   { color: var(--functional-success) !important; }
   html.theme-dark .btn-action-amber,
-  html.theme-dark .btn-md-amber   { color: #FBBF24 !important; }
+  html.theme-dark .btn-md-amber   { color: var(--functional-warning) !important; }
   html.theme-dark .btn-action-orange { color: #FB923C !important; }
 
-  html.theme-dark .badge--success { background: rgba(52, 211, 153, 0.16); color: #34D399; }
-  html.theme-dark .badge--warning { background: rgba(251, 191, 36, 0.16); color: #FBBF24; }
-  html.theme-dark .badge--danger  { background: rgba(248, 113, 113, 0.16); color: #F87171; }
-  html.theme-dark .badge--info    { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
-  html.theme-dark .badge--neutral { background: #1E293B; color: #CBD5E1; }
-  html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: #FBBF24; border-color: rgba(251, 191, 36, 0.35); }
+  html.theme-dark .badge--success { background: rgba(52, 211, 153, 0.16); color: var(--functional-success); }
+  html.theme-dark .badge--warning { background: rgba(251, 191, 36, 0.16); color: var(--functional-warning); }
+  html.theme-dark .badge--danger  { background: rgba(248, 113, 113, 0.16); color: var(--functional-error); }
+  html.theme-dark .badge--info    { background: rgba(96, 165, 250, 0.16); color: var(--functional-info); }
+  html.theme-dark .badge--neutral { background: var(--neutral-100); color: var(--neutral-600); }
+  html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: var(--functional-warning); border-color: rgba(251, 191, 36, 0.35); }
   html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
   /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
      与 badge--neutral 同构覆盖。
      S7（2026-09-12，dogfood）：本条与上方 .badge--* 深色分支同特异性且位置在后 → 对带变体类的
      元素逐条覆盖，深色下全部徽章退化为中性灰（红/琥珀色义丢失）。改以 :not([class*="badge--"])
      限定「确实无变体类」的元素，与顺序解耦，变体色义恢复。 */
-  html.theme-dark .badge:not([class*="badge--"]) { background: #1E293B; color: #CBD5E1; }
+  html.theme-dark .badge:not([class*="badge--"]) { background: var(--neutral-100); color: var(--neutral-600); }
 
   /* ── Tailwind 语义色补齐（T231 第二轮：700/500 级文字、50 级浅底、200 级边框）──
      深色下统一「深色半透明底 + 提亮文字」，与 badge--* 深色语义完全平行。 */
@@ -4762,9 +4762,9 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .bg-yellow-50    { background-color: rgba(250, 204, 21, 0.10) !important; }
   html.theme-dark .bg-emerald-50   { background-color: rgba(52, 211, 153, 0.10) !important; }
   html.theme-dark .bg-red-50\/40   { background-color: rgba(239, 68, 68, 0.06) !important; }
-  html.theme-dark .text-red-500    { color: #F87171 !important; }
+  html.theme-dark .text-red-500    { color: var(--functional-error) !important; }
   html.theme-dark .text-orange-500 { color: #FB923C !important; }
-  html.theme-dark .text-blue-500   { color: #60A5FA !important; }
+  html.theme-dark .text-blue-500   { color: var(--functional-info) !important; }
   html.theme-dark .text-yellow-500 { color: #FACC15 !important; }
   html.theme-dark .text-red-700    { color: #FCA5A5 !important; }
   html.theme-dark .text-orange-700 { color: #FDBA74 !important; }
@@ -4802,14 +4802,14 @@ html.theme-dark [style*="--acc-dot-dark"] {
      浅色：色值 10% 叠加透明 + 色字 + 28% 边框（与原 ROLE_COLORS rgba 底同构）；
      深色：色值 16% 叠加卡片底 + 提亮字 + 40% 边框，与 badge--* 深色平行。 */
   html.theme-dark .tint-pill {
-    background: color-mix(in srgb, var(--tint, #6B7280) 16%, #141D2F) !important;
-    color: color-mix(in srgb, var(--tint, #6B7280) 62%, #F8FAFC) !important;
-    border-color: color-mix(in srgb, var(--tint, #6B7280) 40%, #334155) !important;
+    background: color-mix(in srgb, var(--tint, #6B7280) 16%, var(--surface-card)) !important;
+    color: color-mix(in srgb, var(--tint, #6B7280) 62%, var(--neutral-900)) !important;
+    border-color: color-mix(in srgb, var(--tint, #6B7280) 40%, var(--neutral-200)) !important;
   }
 
   /* 语义圆点深色提亮（与 tint-pill 平行：同色值提亮 70% 混合近白） */
   html.theme-dark .tint-dot {
-    background-color: color-mix(in srgb, var(--tint, #6B7280) 70%, #F8FAFC) !important;
+    background-color: color-mix(in srgb, var(--tint, #6B7280) 70%, var(--neutral-900)) !important;
   }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4824,7 +4824,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
 }
 html.theme-dark .agg-count-badge {
   background: rgba(248, 113, 113, 0.16);
-  color: #F87171;
+  color: var(--functional-error);
 }
 
 /* ═══════════════════════════════════════════════════════════════
