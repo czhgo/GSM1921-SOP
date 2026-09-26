@@ -158,12 +158,12 @@ function _renderTfCard(t) {
 function _contribTagOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + getPersonName(c.verifiedBy) : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · ' + getPersonName(c.verifiedBy) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
+    return `<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
   }
-  return '<span class="ml-1 inline-block align-middle text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="ml-1 inline-block align-middle text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
 /** 只读详情：基本信息 + 成员工作量汇总 + （B批）本人产出填报入口 */
@@ -238,7 +238,7 @@ function _renderTfDetail(container, tf, highlightId) {
           ? `<ul class="mt-1 space-y-0.5">${(m.contributions || []).map(c => {
               const desc = typeof c === 'string' ? c : (c.desc || c.description || c.title || JSON.stringify(c));
               const meta = (c && typeof c === 'object' && (c.by || c.at))
-                ? `<span class="text-[10px] text-gray-500"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
+                ? `<span class="text-[11px] text-gray-500"> · ${[c.by ? getPersonName(c.by) : '', c.at ? String(c.at).slice(0, 16).replace('T', ' ') : ''].filter(Boolean).join(' ')}</span>`
                 : '';
               return `<li class="text-[12px] text-gray-500 pl-2">${desc}${meta}${_contribTagOf(c)}</li>`;
             }).join('')}</ul>`

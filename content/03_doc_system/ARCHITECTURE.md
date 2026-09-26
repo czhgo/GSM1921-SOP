@@ -339,7 +339,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
 | `SECRETARY_DIRECTIVES.md` | `CLAUDE.md` H90（外部权威源索引） | 党支书工作交接文档是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
 | `SECRETARY_DIRECTIVES.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。党支书工作交接文档是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_DIRECTIVES 为准 |
-| `SECRETARY_DIRECTIVES.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §G` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本；§G 扁平化设计是子本展开（2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入该文件 §G） |
+| `SECRETARY_DIRECTIVES.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §G` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本；§G 扁平化设计是子本展开 |
 | `本文 §十` | `本文 §一~§八（架构主体）` | 注册表是架构说明的溯源参考 |
 
 #### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）
@@ -372,7 +372,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` §19（术语使用规范） | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 OPERATIONS_GUIDE.md §19 一致（原 `USAGE_POLICY.md` 已于 2026-09-26 批次 202 并入本文件 §19） |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` §19（术语使用规范） | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 OPERATIONS_GUIDE.md §19 一致 |
 | `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行与协作规范→全仓。§1–§14 文档规范 / §15–§18 流程机制 / §19–§23 使用规范 / §24–§31 文件角色分类，全仓库必须遵守 |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` + `docs/src/core/constants.js` | `docs/src/core/state.js`（角色枚举消费方） | 系统角色键→代码。角色键权威全表在 SYSTEM_ROLE_PERMISSION.md §9a0，代码侧单一源 `ROLE_KEYS`（constants.js）；state.js `ROLE_TYPES` 为首页日历分组用途的角色枚举 |
 

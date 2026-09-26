@@ -78,7 +78,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
 - **全量跑**：`npm test`（等价 `npm run test:full`）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。
 - **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
 - **两条日常命令（2026-09-23 提速批·刀③ 拆档）**——回答「改代码时跑什么 / 提交前跑什么」：
-  - **日常（改代码时）**：`npm run test:daily` —— **S 类 ＝ 不 `import 'playwright'` 的纯 node 文件，当前 71 个**（判据可复核：`node --test` 前不必起服务、不驱动浏览器）。**含全部守卫子集**（下节 8 文件）。实测 **567 项 / 567 通过 / 0 红 / 144.1 秒（2026-09-24 本机实测）**；**项数随测试增长、耗时随机器负载浮动，均以实跑输出为准**。
+  - **日常（改代码时）**：`npm run test:daily` —— **S 类 ＝ 不 `import 'playwright'` 的纯 node 文件，当前 83 个**（判据可复核：`node --test` 前不必起服务、不驱动浏览器）；**该命令的显式清单现 71 个**（`server/package.json` 的 `test:daily`），**其余 12 个 S 类文件未入该清单、随 `npm test` 自动发现**——**2026-09-26 批次 205 改准**（原文写「当前 71 个」，把「显式清单数」当成了「S 类总数」）。**含全部守卫子集**（下节 8 文件）。实测 **567 项 / 567 通过 / 0 红 / 144.1 秒（2026-09-24 本机实测）**；**项数随测试增长、耗时随机器负载浮动，均以实跑输出为准**。
     - ⚠ **日常档不含「形态断言」那几项**：`getRuntimeMode()` 形态断言落在 **P 类真机文件**（`form-loop-sweep` / `page-sweep` / `multi-user-write`），都不在 test:daily 里。改到**真机交互 / 数据源形态 / 登录会话**时，别只跑日常档——用下面的**降频开关**定向跑真机，或直接跑提交前档。
   - **提交前（交付 / 收尾）**：`npm run test:precommit` —— 等价全量（自动发现 `server/test/` 全部 `*.test.{js,mjs}`）；**先 `npm start` 起服务**（`click-cost` / `mock-integrity` / `b3-1-makeup-writeback` 要连 3000），跑完停服。
 - **真机普查降频开关（2026-09-23 提速批·刀②，支书已放行「按 tab 降频」）**——只跑关心的 tab，不改任何判据、不缩任何台账基线：
@@ -103,13 +103,24 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
   > ⚠ `permission-gate` / `server-base` 两项要求**跳过口令校验**：手跑这条命令前**先设 `DISABLE_PASSWORD_CHECK=1`**（`npm test` 的 scripts 已默认注入，手跑不设会红——实测不设时该两项 **7 pass / 13 fail**）。**无需先起服务**。
 
-  > **另三条「美学 / 链接」lint 守卫（2026-09-25 批次，纯 node、不需起服务；已含在 `npm run test:daily` 的 S 类全量里，故**未**计入上面的「守卫子集 8 文件」）**：
+  > **另有一批「美学 / 链接 / 文案 / 数据库」守卫与专项件（纯 node 或真机不一，纯 node 者属 S 类、随 `npm test` 自动发现；故**未**计入上面的「守卫子集 8 文件」）——**2026-09-26 批次 205 补全并改准**（原文只列 3 条、且误写「已含在 `npm run test:daily` 的 S 类全量里」：实读 `test:daily` 显式清单 **71 文件**、S 类〔不 `import 'playwright'` 的纯 node 测试文件〕共 **83 个** ⇒ 下列多数**不在** `test:daily` 显式清单内，只在 `npm test` / `test:precommit` 里跑）**：
   > · `test/hex-hardcode-guard.test.mjs` —— **硬编码 hex 存量回归**（`H1–H5`：现状之外的 (文件, 值) 判红 · 逐文件处数 ratchet · 非空转 · 缩减进度 · 搬移例外台账；基线数据＝`test/style-baseline.mjs`，口径见 `DESIGN_SYSTEM.md §2.8`）。
   > · `test/control-font-guard.test.mjs` —— **控件小字存量回归**（`T1–T4`：`<button>/<a>/<input>/<select>` 挂 `text-[11px]/[10px]/[9px]` 即红；`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）。
+  > · `test/small-text-guard.test.mjs` —— **非控件小字禁止档**（2026-09-26 末批；`P1–P3`：**任意落点**出现 `text-[9px]`/`text-[10px]` 即红——档位表外（`DESIGN_SYSTEM.md §3.2` 最低档＝Overline 11px）；`text-[11px]` 非控件处合规只计进度。口径写进 `DESIGN_SYSTEM.md §3.2.1`）。
   > · `test/link-target-guard.test.mjs` —— **JS 渲染型 href/src 的「裸文件名」**（`L6–L7`：工作台页 `<base href="../">` 下写裸 `x.html` 会解析到站点根 ⇒ 404，须按 `<base>` 规则断言目标真实存在）。
+  > · `test/copy-master-guard.test.mjs`（纯 node）—— **界面复述制度母本（C7）**（`N1–N4`：界面文案与制度母本「连续 ≥20 字重合」即红，须改写成一行 ＋ `help.html` 深链；基线 11 条 / 9 文件）。
+  > · `test/copy-length-guard.test.mjs`（纯 node）—— **界面文案长度存量（C1/C2/C5/C6）**（`L1–L6`：卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字；源码静态近似）。
+  > · `test/copy-screen-guard.test.mjs`（**真机**）—— **同屏复述（C3）＋ 每屏「文案 ÷ 控件」（C4）**（`M1–M4`：7 台 × 默认视图，自起自停）。
+  > · `test/copy-fold-guard.test.mjs`（纯 node）—— **折叠区口径是否有 help 同义段（C8）**（`F1`/`F2`：机器判不了「同义」⇒ **只报不判**）。
+  > · `test/copy-anchor-guard-e2e.test.mjs`（**真机**）—— **口径定点锚点真机可达 / 可检索**（`A1–A3`）。
+  > · `test/mock-api-parity.test.mjs`（纯 node，需 `DISABLE_PASSWORD_CHECK=1`）—— **mock 与 api 两形态读数一致 ＋ 服务端真按同源播种**（`S0` / `P1–P3`；承重臂＝服务端 HTTP 原始行，防 `SEED_FALLBACK` 假绿）。
+  > · `test/db-migration.test.mjs`（纯 node）—— **版本化迁移验收**（`M1–M6`：新建库 / 幂等 / 既有库兼容 / 失败回滚 / 失败不吞 / 非空转）。
+  > · `test/backup-restore.test.mjs`（纯 node）—— **备份 → 破坏 → 恢复演练**（`B1`：真 spawn `scripts/backup.mjs`；反证「只 `copy data.db` 丢 WAL 尾」）。
+  > · `test/db-integrity-guard.test.mjs`（纯 node）—— **完整性 / 版本自检 ＋ 「新增结构须写 migration」纪律**（`G1–G6`：`ALTER TABLE` 只许出现在 migration 段内）。
+  > · `test/localstorage-key-guard.test.mjs`（纯 node）—— **浏览器存储键必须登记**（`L1–L3`：键 ⊆ 三档白名单，`DATA_CONSISTENCY_CHECKLIST.md §0.3` 是其镜像）。
 
   > **另有一条「元数据」守卫（2026-09-26 批次 204，纯 node、不需起服务）**：
-  > · `test/frontmatter-freshness.test.mjs` —— **`R-83`「改了必须刷卡」机检**（`F1–F3`：`content/**` 登记行备注日期不得晚于表行日期〔git-free〕· frontmatter `last_updated` 不得早于该文件最后一次提交日、工作树干净却写超前日期亦红〔git；浅克隆因抽取面不足判红、无 git **只报不判**〕· 纯判据正负例）。⚠ **未列入 `npm run test:daily` 的显式文件清单**——该清单在 `server/package.json`，**不在本批授权面（未改）**；本件随 `npm test` / `npm run test:precommit` 的自动发现运行（`F2` 需**完整克隆**）。
+  > · `test/frontmatter-freshness.test.mjs` —— **`R-83`「改了必须刷卡」机检**（**合并 / 改引用的批须同批刷 `frontmatter.last_updated` 并同步 `TIMESTAMPS.md` 表行**；`F1–F3`：`content/**` 登记行备注日期不得晚于表行日期〔git-free〕· frontmatter `last_updated` 不得早于该文件最后一次提交日、工作树干净却写超前日期亦红〔git；浅克隆因抽取面不足判红、无 git **只报不判**〕· 纯判据正负例）。⚠ **未列入 `npm run test:daily` 的显式文件清单**——该清单在 `server/package.json`，**不在本批授权面（未改）**；本件随 `npm test` / `npm run test:precommit` 的自动发现运行（`F2` 需**完整克隆**）。
 
   | 守卫 | 两次取样（秒） | 项 | 它挡什么 |
   |---|---|---|---|

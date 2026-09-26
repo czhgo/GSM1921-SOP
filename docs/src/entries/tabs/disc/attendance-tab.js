@@ -663,7 +663,7 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals, actById, accent, 
   const row = (a, canAct) => {
     const act = actById.get(a.activityId);
     return `<div class="flex items-center gap-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#0EA5E9"></span>
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky)"></span>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(a.personId)}" class="text-sm font-medium text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(a.personId))}</a>
@@ -852,7 +852,7 @@ function _renderDiscMeetDetainedMakeup() {
           title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
           <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
           <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>
-          <span class="text-[10px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">滞留</span>
+          <span class="text-[11px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 align-middle">滞留</span>
           ${checked ? badgeHtml('滞留·到场', 'warning') : ''}
         </label>`;
       }).join('')}
@@ -954,7 +954,7 @@ function _renderDiscMeetStatusRows(selectedIds) {
             </select>
             <span class="reason-note-${pid} text-[11px] text-gray-400 whitespace-nowrap" title="时效提示（不是校验，不拦提交）">${esc(absenceReasonNote(reasonValue))}</span>
           </span>
-          ${preStatus ? '<span class="text-[10px] text-amber-700 whitespace-nowrap">已录·更正</span>' : ''}
+          ${preStatus ? '<span class="text-[11px] text-amber-700 whitespace-nowrap">已录·更正</span>' : ''}
         </div>`;
       }).join('')}
     </div>`;

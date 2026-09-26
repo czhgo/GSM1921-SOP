@@ -51,7 +51,7 @@ function _cardHtml(activity, item, { canManage }) {
   const followups = Array.isArray(item.followups) ? item.followups : [];
   const doneCount = followups.filter((f) => f.status === FOLLOWUP_STATUS.COMPLETED).length;
   const chip = followups.length > 0
-    ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
+    ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full ${doneCount === followups.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">落实 ${doneCount}/${followups.length}</span>`
     : '';
   const rows = followups.length > 0
     ? followups.map((f) => _rowHtml(f, { canManage })).join('')
@@ -64,7 +64,7 @@ function _cardHtml(activity, item, { canManage }) {
         <input type="date" class="fu-new-deadline input-flat text-xs" title="落实时限" />
         <button type="button" class="fu-add px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">添加待落实</button>
       </div>
-      <p class="text-[10px] text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
+      <p class="text-[11px] text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';
   return `
     <div class="fu-card rounded-xl border border-gray-200 bg-white p-3.5 mt-3" data-activity-id="${esc(activity.id)}" data-item-id="${esc(item.id)}">
@@ -87,7 +87,7 @@ export function resolutionFollowupSectionHtml({ activity, canManage = false }) {
   if (passedItems.length === 0) return '';
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
-      <p class="text-[10px] text-gray-500 mb-1">决议待落实 · 自动督办（生成跟进任务 → 到期催办 → 逾期进支书工作台待办）</p>
+      <p class="text-[11px] text-gray-500 mb-1">决议待落实 · 自动督办（生成跟进任务 → 到期催办 → 逾期进支书工作台待办）</p>
       ${passedItems.map((item) => _cardHtml(activity, item, { canManage })).join('')}
     </div>`;
 }

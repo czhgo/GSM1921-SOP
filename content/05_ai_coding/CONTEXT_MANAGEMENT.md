@@ -2,7 +2,7 @@
 title: "上下文管理与防失忆"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-19"
+last_updated: "2026-09-26"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md]
 ---

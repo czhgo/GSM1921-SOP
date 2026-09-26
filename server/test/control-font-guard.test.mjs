@@ -12,7 +12,9 @@
 //   T1 新增站点：扫描到基线之外的 (文件, 标签|小字类) ⇒ 红
 //   T2 逐文件站点数 ratchet：> 基线 ⇒ 红（存量不得增长）
 //   T3 非空转自检：① 抽取口径合成样本（控件命中 / 非控件不命中 / class 跨行命中）；
-//                  ② 基线规模下限（防台账被删减）；③ 僵尸登记（基线文件不存在 / 该文件已无小字控件）⇒ 红
+//                  ② 台账规模自洽 ＋ 空台账零存量（2026-09-26 末批：全站控件小字已清零 ⇒ 台账清空，
+//                     「非空转」由数字下限改为更强的「空台账 ⇒ 全站实测须为 0」）；③ 僵尸登记
+//                     （基线文件不存在 / 该文件已无小字控件）⇒ 红
 //   T4 缩减进度：控件口径与全站口径计数打印
 //
 // 口径边界（**不得**自行放宽或加严）：
@@ -117,7 +119,7 @@ test('T2 处数 ratchet：逐文件控件小字站点数不得高于基线', () 
 });
 
 // ── T3 非空转自检 ────────────────────────────────────────────────────
-test('T3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记', () => {
+test('T3 非空转：抽取口径可用 + 台账规模自洽（空台账 ⇒ 全站须为 0）+ 无僵尸登记', () => {
   // ① 抽取口径正例：控件命中（含 class 属性体，且能取到 class）
   assert.deepEqual(ctrlSignatures('<button class="text-[11px] px-2">a</button>'), { 'button|text-[11px]': 1 },
     '抽取口径失效：控件上的 text-[11px] 未被抽出（守卫会恒真）');
@@ -131,11 +133,18 @@ test('T3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
     '抽取口径过宽：<span> 上的小字被当成控件小字');
   assert.deepEqual(ctrlSignatures('<button class="text-xs">正常档</button>'), {},
     '抽取口径过宽：控件上的正常档（text-xs）被误判为小字');
-  // ② 基线规模下限（低于此值说明台账被删减或口径失效）
+  // ② 台账规模自洽 ＋ 空台账零存量（非空转；2026-09-26 末批：全站控件小字已清零，台账随之清空）
   const files = Object.keys(CTRL_SMALL_BASELINE);
-  assert.ok(CTRL_SMALL_FILE_BASELINE >= 2 && files.length >= 2, `控件小字基线文件数过少（实测 ${files.length} / 声明 ${CTRL_SMALL_FILE_BASELINE}，下限 2）`);
-  assert.ok(CTRL_SMALL_TOTAL_BASELINE >= 4, `控件小字基线处数过少（声明 ${CTRL_SMALL_TOTAL_BASELINE}，下限 4）`);
   assert.equal(files.length, CTRL_SMALL_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');
+  const ctrlNow = scan().reduce((a, r) => a + r.total, 0);
+  if (!files.length) {
+    // 台账已清空 ⇒ 全站实测也必须为 0；否则是「台账被删空而存量还在」（比数字下限更强的非空转判据）
+    assert.equal(ctrlNow, CTRL_SMALL_TOTAL_BASELINE,
+      `控件小字台账已删空（声明 ${CTRL_SMALL_FILE_BASELINE} 文件 / ${CTRL_SMALL_TOTAL_BASELINE} 处），但全站实测仍有 ${ctrlNow} 处控件小字（台账被删空 ⇒ 收基线纪律被绕过）`);
+  } else {
+    assert.ok(CTRL_SMALL_FILE_BASELINE >= 1 && CTRL_SMALL_TOTAL_BASELINE >= 1,
+      `台账非空但规模下限被调成 0（实测 ${files.length} 文件 / 声明 ${CTRL_SMALL_FILE_BASELINE}·${CTRL_SMALL_TOTAL_BASELINE}）`);
+  }
   // ③ 僵尸登记：基线文件必须存在，且该文件仍应有控件小字站点
   const gone = files.filter((f) => !existsSync(join(ROOT, f)));
   assert.deepEqual(gone, [], `基线条目指向不存在的文件（应从 style-baseline.mjs 移除）：\n  ${gone.join('\n  ')}`);

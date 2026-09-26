@@ -169,7 +169,7 @@ function _showParticipantModal(act) {
     + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
     + '如需查看任务详情，请前往对应的工作台页面。</p>'
     + '<button class=" text-sm text-white px-4 py-[7px] rounded-lg mt-4 w-full transition-colors" '
-    + 'style="background:#CE1126;">关闭</button>';
+    + 'style="background:var(--party-red);">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -303,7 +303,7 @@ function _buildOutputsSectionHTML(activity) {
   // 产出物行：色点 + 名称 + 自动投递去向 + 状态徽标
   const row = (label, route, statusHtml) => `
     <div class="flex items-center gap-2 text-xs py-1">
-      <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${route && route.color || '#9CA3AF'};"></span>
+      <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${route && route.color || 'var(--neutral-400)'};"></span>
       <span class="text-gray-600 flex-shrink-0">${label}</span>
       <span class="text-gray-500 text-[11px] flex-1 truncate">${route ? route.route : ''}</span>
       ${statusHtml}
@@ -430,7 +430,7 @@ function _showCloseBlockModal(activity, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-sm text-white px-4 py-[7px] rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+    + '<button class="text-sm text-white px-4 py-[7px] rounded-lg w-full transition-colors" style="background:var(--party-red);">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -733,7 +733,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
               <span class="text-gray-700 w-14 shrink-0 truncate">${esc(getPersonById(pid)?.name || pid)}</span>
               <input type="text" class="ap-note input-flat flex-1 text-xs" data-person-id="${esc(pid)}" placeholder="备注（选填）">
             </label>`).join('')}
-          <button type="button" class="ap-submit text-[11px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
+          <button type="button" class="ap-submit text-[13px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
         </div>` : '';
       html += `<li class="flex items-start gap-2 text-xs">
         <span class="text-gray-500 flex-shrink-0 w-4">${i + 1}.</span>
@@ -750,8 +750,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         </div>
         ${canRecord && !perPerson ? `
           <div class="flex gap-1 shrink-0">
-            <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
-            <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[11px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">未通过</button>
+            <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[13px] px-2 py-0.5 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
+            <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[13px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">未通过</button>
           </div>` : ''}
       </li>`;
     });
@@ -1335,7 +1335,7 @@ function _openActivityEditModal(activity, tasks, managementRole) {
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button id="ae-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button id="ae-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">保存</button>
+        <button id="ae-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>
     `,
     onMount: (panel) => {

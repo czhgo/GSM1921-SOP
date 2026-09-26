@@ -854,7 +854,7 @@ function _outdoorChecklistDetailsHtml(a) {
     <details class="leader-outdoor-check mt-1">
       <summary class="text-[11px] text-gray-500 cursor-pointer select-none">外出提醒清单（${OUTDOOR_CHECKLIST.length} 项）</summary>
       <ul class="mt-1 pl-4 list-disc text-[11px] text-gray-500 leading-5">${OUTDOOR_CHECKLIST.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>
-      <div class="mt-0.5 text-[10px] text-gray-400">提醒，非必填、不校验</div>
+      <div class="mt-0.5 text-[11px] text-gray-400">提醒，非必填、不校验</div>
     </details>`;
 }
 

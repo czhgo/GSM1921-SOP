@@ -207,7 +207,7 @@ function _rosterStatBox(label, main, sub) {
   return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
     <p class="text-[11px] text-gray-500">${esc(label)}</p>
     <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
-    ${sub ? `<p class="text-[10px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
+    ${sub ? `<p class="text-[11px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
   </div>`;
 }
 
@@ -217,7 +217,7 @@ function _rosterDraftHtml(branchId) {
   if (!d) return '';
   const s = d.stats;
   const groupParts = Object.entries(s.perGroup || {}).map(([g, v]) =>
-    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[10px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[11px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
   return `
     <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">

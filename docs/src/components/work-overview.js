@@ -112,16 +112,16 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   const pendingDispatches = listPendingByReceiver(role);
   const dispatchRows = pendingDispatches.map(d => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span>
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span>
       <span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
-      <button type="button" class="ed-confirm-btn text-[11px] px-2.5 py-1 rounded-lg text-white flex-shrink-0" data-ed-id="${d.id}" style="background:#16A34A;">确认收到</button>
+      <button type="button" class="ed-confirm-btn text-[13px] px-2.5 py-1 rounded-lg text-white flex-shrink-0" data-ed-id="${d.id}" style="background:#16A34A;">确认收到</button>
     </div>`);
 
   const blockerRows = [];
   dispatchRows.forEach(r => blockerRows.push(r));
-  myBlockers.forEach(b => blockerRows.push(`<button type="button" class="wo-inline-item flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full text-left" data-wo-jump="todo-all" title="前往待办查看该超期项"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></button>`));
-  lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
+  myBlockers.forEach(b => blockerRows.push(`<button type="button" class="wo-inline-item flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full text-left" data-wo-jump="todo-all" title="前往待办查看该超期项"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></button>`));
+  lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
   const blockerBody = blockerRows.length
     ? `<div class="space-y-1.5">${blockerRows.join('')}</div>`
@@ -176,7 +176,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       deadline: a.date || '',
       html: `
         <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-info);"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
           <span class="text-[11px] text-gray-500 flex-shrink-0">活动</span>
         </button>`,

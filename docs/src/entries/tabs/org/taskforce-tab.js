@@ -178,7 +178,7 @@ export function renderContent(ctx) {
         const variant = rec.status === SignupStatus.APPROVED ? 'success'
           : rec.status === SignupStatus.PENDING ? 'warning'
             : rec.status === SignupStatus.REJECTED ? 'danger' : 'neutral';
-        return `<span class="inline-flex flex-col items-center gap-0.5">${badgeHtml(SIGNUP_STATUS_LABELS[rec.status] || rec.status, variant)}<span class="text-[10px] text-gray-500">${esc(SIGNUP_ROLE_LABELS[rec.role] || rec.role || '')}</span></span>`;
+        return `<span class="inline-flex flex-col items-center gap-0.5">${badgeHtml(SIGNUP_STATUS_LABELS[rec.status] || rec.status, variant)}<span class="text-[11px] text-gray-500">${esc(SIGNUP_ROLE_LABELS[rec.role] || rec.role || '')}</span></span>`;
       },
       personLabel: '成员',
       itemLabel: '专班',
@@ -372,12 +372,12 @@ function _tfContribMetaOf(c) {
 function _tfContribStatusOf(c) {
   if (!c || typeof c !== 'object' || !c.id) return '';
   if (c.verifiedStatus === 'approved') {
-    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · 核验人 ' + getPersonName(c.verifiedBy) : ''}</span>`;
+    return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">已入档${c.verifiedBy ? ' · 核验人 ' + getPersonName(c.verifiedBy) : ''}</span>`;
   }
   if (c.verifiedStatus === 'rejected') {
-    return `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
+    return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-700">已退回${c.rejectNote ? ' · ' + c.rejectNote : ''}</span>`;
   }
-  return '<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
+  return '<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">待核</span>';
 }
 
 /** 打开专班详情：只读信息/状态区壳层 + 各写块独立容器（分块渲染） */
@@ -576,7 +576,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
         const contribCount = (m.contributions || []).length;
         const contribList = (m.contributions || []).length > 0
           ? `<ul class="mt-1 space-y-0.5">${m.contributions.map(c =>
-              `<li class="text-[12px] text-gray-500 pl-2">${_tfContribTextOf(c)}<span class="text-[10px] text-gray-500">${_tfContribMetaOf(c)}</span><span class="ml-1 align-middle">${_tfContribStatusOf(c)}</span></li>`
+              `<li class="text-[12px] text-gray-500 pl-2">${_tfContribTextOf(c)}<span class="text-[11px] text-gray-500">${_tfContribMetaOf(c)}</span><span class="ml-1 align-middle">${_tfContribStatusOf(c)}</span></li>`
             ).join('')}</ul>`
           : '<span class="text-[12px] text-gray-500 pl-2">暂无贡献记录</span>';
         return `
@@ -606,7 +606,7 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       emptyMessage: '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
       rowHtml: (c) => {
         const actions = c.verifiedStatus ? '' : `
-              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:#10B981;">同意入档</button>
+              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:var(--functional-success);">同意入档</button>
               <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="reject">退回补料</button>`;
         return `
               <div class="flex items-start gap-2 rounded-lg bg-white px-2.5 py-1.5">
@@ -763,7 +763,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:#10B981;">通过</button>
+              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:var(--functional-success);">通过</button>
               <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
@@ -959,7 +959,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
       : '';
     return `
       <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-        <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
+        <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
             ${stageTag}
@@ -1096,7 +1096,7 @@ function _showDissolveBlockModal(tf, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:#CE1126;">知道了</button>';
+    + '<button class="text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:var(--party-red);">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());

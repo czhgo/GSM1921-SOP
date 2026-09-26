@@ -566,9 +566,7 @@ async function renderBranchGovSection(panel, sectionId) {
 
 // ── 支部信息与向导（info）──────────────────────────────────────────
 function renderBranchInfoCard(panel, br, branch) {
-  const { role } = _session;
   const org = br.getBranchOrg(branch.id);
-  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const kv = [
     ['支部名称', org.name || '—'],
     ['类别', org.type || '—'],
@@ -579,7 +577,6 @@ function renderBranchInfoCard(panel, br, branch) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h2>
-        ${badgeHtml(`${roleLabel} · 本支部`, 'neutral')}
       </div>
       <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
       <dl class="kv-list">${kv}</dl>
@@ -1097,6 +1094,10 @@ function branchPolicySectionHtml(branch) {
 }
 
 function activityApprovalCardHtml(branch, P) {
+  // 2026-09-26 批次 206：「支书」原先写死（副支书登录亦显示「支书」，文案与实现不符）⇒ 按既有单一源
+  //   （同 renderBranchInfoCard / renderConfigHistorySection / branchOrderCardHtml 的 roleLabel 体例）渲染真实角色
+  const { role } = _session;
+  const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';
   const po = _overridesOf(branch);
   const def = (P.activityApproval && P.activityApproval.mode) || 'off';
   const cur = ACTIVITY_APPROVAL_MODES.includes(po.activityApproval?.mode) ? po.activityApproval.mode : def;
@@ -1107,7 +1108,7 @@ function activityApprovalCardHtml(branch, P) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">活动批准门</h2>
-        ${badgeHtml('支书 · 本支部可调', 'info')}
+        ${badgeHtml(`${esc(roleLabel)} · 本支部可调`, 'info')}
       </div>
       <p class="text-[13px] leading-relaxed text-gray-500 mb-4">办活动要不要先过一道批准门。<b>默认关闭</b>：关闭时活动写入与现在完全一样（写入即照常推进）；开启后写入即落「待批」，批准前不推进、批准后才发布、不批准则终止。档位可定「${esc(ACTIVITY_APPROVAL_MODE_LABELS.secretary)}」或「${esc(ACTIVITY_APPROVAL_MODE_LABELS['branch-committee'])}」。</p>
       <div class="kv-row">

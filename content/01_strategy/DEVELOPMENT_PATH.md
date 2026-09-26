@@ -13,6 +13,8 @@ related_files: [ARCHITECTURE.md, CLAUDE.md, content/04_web_design/data/DATA_MODE
 >
 > - 与 [DATA_MODEL.md §3 参与者数据流设计](../04_web_design/data/DATA_MODEL.md)（数据流，含三级参与者数据流）、[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵）、[COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计）的关系见附录 A。
 > - 第三章 P-016「恢复对话能力」是「党建+科研」这一方面的重要战略选择——恢复对话能力是「党建+科研」的目标，不是党建全局的根本目标。
+>
+> **沿革去向（2026-09-26 批次 206）**：本文件原有的**记账式沿革注记**（「某节原为独立文件…并入…」一类，记录过去的编辑动作、不含现行规则）已**成段迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 206）」（含「原句 → 去向」逐字对照）。
 
 # 发展路径
 
@@ -292,5 +294,5 @@ DEVELOPMENT_PATH.md 回答“为什么”——支部为什么存在、为什么
 
 - **与 DATA_MODEL.md（数据流部分 §3）的关系**：DATA_MODEL.md 侧重数据流与界面实现，是本文档在执行层的落地。本文档确立的“组织性与成员成长”叙事，是 DATA_MODEL.md 三级参与者数据流的上游战略依据。
 - **与 SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵）的关系**：权限矩阵服务于本文档的战略路线。若某项权限设计实质上制造了“谁听谁的”层级关系，则违背“理解真实”的认知（身份由分工决定——组织者和深度参与者之间没有上下级，只是分工内容不同），需重新审视。
-- **与 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 的关系**：§G 的“组织者与深度参与者扁平化”是“理解真实”认知的具体实现——身份由分工决定，组织者和深度参与者之间没有上下级，只是分工内容不同。（该节原为独立文件 `FLAT_ORGANIZATION_DESIGN.md`，2026-09-26 并入 `COMMISSIONER_DUTY_FRAMEWORK.md`。）
+- **与 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) 的关系**：§G 的“组织者与深度参与者扁平化”是“理解真实”认知的具体实现——身份由分工决定，组织者和深度参与者之间没有上下级，只是分工内容不同。
 - **与 insights 的关系**：insights（[党支部管理与实务经验沉淀.md](../insights/党支部管理与实务经验沉淀.md)）记录“历届支委集体萃取的可跨届复用的组织智慧”（经验层的“怎么做更好”），本文档记录“指导实践的战略路线”（战略层的“为什么这样做”）。两者是“战略—经验”闭环：战略指引实践方向，实践沉淀经验反哺战略校准；当经验与战略冲突时，提交支书决策，不得自行取舍。

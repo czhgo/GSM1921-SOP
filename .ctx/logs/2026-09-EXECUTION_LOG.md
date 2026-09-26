@@ -20130,3 +20130,114 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 
 **提交前全量见批次 205。**
 
+---
+
+## 批次 205–207（2026-09-26，`D-664`）**「未完成的工作全面完成」——三路并发收口 ＋ `F2` 存量红清偿**
+
+> **本批令（逐字）**：「**未完成的工作全面完成！！**」。**三路并发 ＋ 一路收尾**（路一 台账与索引收口 · 路二 美学存量 · 路三 产品 / 文档残余 · 路四 `F2` 存量红清偿）。**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**；3000 端口**无**常驻服务、**只跑纯 node 守卫**。
+
+### 一、路一 · 台账与索引全面收口
+
+- **`TIMESTAMPS.md` 覆盖缺口处置由「不补行」改为「补行」**：机械复核（`git log -1 --format=%ad --date=short` vs frontmatter）后**补了 10 行**（`04_web_design/evolution/{BRANCH_WORK_MAP,DESIGN_METHODOLOGY,PARTY_COMMITTEE_DESIGN,ROLE_PERMISSION_DESIGN,WORKFLOW_BLOCK_CONTRACT}.md` · `04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` · `05_ai_coding/{CONTEXT_MANAGEMENT,DOCUMENT_GOVERNANCE,FILE_OPERATION_RULES,REVIEW_AND_EXPRESSION,TEST_AND_VERIFICATION}.md`）。
+  - **★ 实读更正**：`02_institution/SYSTEM_ROLE_PERMISSION.md` **本表早已有行**（故不是 11 份而是 **10** 份）。
+- **守卫索引收口**（`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md`）：`§0.2` **由 39 行 → 51 行**（**新增 12 行**：`doc-line-ref R1–R6` · `frontmatter-freshness F1–F3` · `copy-master-guard N1–N4` · `copy-length-guard L1–L6` · `copy-screen-guard M1–M4` · `copy-fold-guard`（**只报不判**）· `copy-anchor-guard-e2e A1–A3` · `mock-api-parity S0/P1–P3` · `db-migration M1–M6` · `backup-restore B1` · `db-integrity-guard G1–G6` · `localstorage-key-guard L1–L3`）；既有行 `R26` 的 `doc-consistency::S1–S12` **改准为 `S1–S15`**。
+  - **★ 实读更正**：**`style-baseline.mjs` 不是 `.test.*`**（是数据模块）⇒ **不能进 `§0.2`**（仍以「基线数据」形态挂在 hex 行内）。
+  - **`§0.2 ↔ §3.4` 同步约束**：实读 `§0.2` 的「主从关系」段（逐字：「…守卫实现唯一处 ＝ `server/test/*.test.mjs`；本表只是索引，不是判据……」）⇒ **无「同一批行须两处同列」的硬约束**（`§3.4` 收 `R13–R30` 编号规则，本批新增行均非 R 编号行）；只把 `§3.4` 的 `R26` 行描述由「到 S9」改准为「现到 `S1–S15`」。
+- **`CLAUDE.md R-85` 的「S 类 71 文件」改准为「显式清单 71 文件；S 类实读 83 个」**（依据：`server/test/` 实读 **114** 个 `.test.{js,mjs}`（108 mjs ＋ 6 js），其中 **31** 个 `import 'playwright'` ⇒ **S 类＝114−31＝83**；`package.json::test:daily` 显式清单实读 **71** ⇒ 原文把「显式清单数」当成了「S 类总数」）。⚠ 其余写死数（`706 例 / 695 pass / 11 fail`、`48 批`、`约 146 例`）**均为历史沿革叙述、非现况，未动**。
+- **`DATA_CONSISTENCY_CHECKLIST.md` 的 stale 数字**：`§4 考勤` `151 条` → **`152`**（依据：`att1~att43` 43 ＋ `att900` 1 ＋ 8 月生成段 108 ＝ 152；原文既漏计 `att900`、又写在剔除 `p_pc` 之前）；`§5 考察 42` / `§6 通知 12` / `§2 活动 33` **实读复核无误、未动**；`§7 待办` 无写死计数；`T-280-B5` 的「仅 seed 8 集合、不覆盖 `attendances`/`inspections`/`todos`」**改准为**「`replaceCollection` **30 个集合**（实读）、**已覆盖** `attendances`(152) / `inspections`(42) / `todos`(2)」。
+- **`server/README.md`**：守卫清单**补全 10 条**；并**改准两处失实口径**：①「S 类…当前 **71** 个」→ **83**（写明 `test:daily` 显式清单 71）；② 原句「已含在 `npm run test:daily` 的 S 类全量里」**失实**（那几条多在 `test:daily` 清单外）⇒ 改为「属 S 类、随 `npm test` 自动发现」。`README-server.md` **逐条实读后无 stale 计数 ⇒ 未改**。
+- **⚠ 越界如实披露**：**根 `README.md` 的 `### 测试` 清单补登 10 个守卫 ＋ `doc-consistency` 范围 `S1–S13 → S1–S15`**。理由：`doc-consistency::S10` **硬要求**「`§0.2` 引用的每个守卫都必须登记进根 `README.md` 的 `### 测试`」⇒ 不补则 `S10` 必红；根 `README.md` 既不在白名单、也不在禁改名单，为「必须跑到绿」而**最小改动（仅该清单行）**。
+
+### 二、路二 · 美学存量一次清干净（含此前「需特批」者——本批视为已特批）
+
+- **hex 再清 16 处：1907 → 1891**（`H4` **距基线 ↓134**）。口径＝最保守（HTML `style="…"` 内、与 `styles.css :root` 令牌值逐字相等；再排除 `var(--x,#hex)` 兜底 / `--acc-*-dark` 深色态 / JS 函数入参与映射键）。**逐文件**：`inspector.js` 4 · `work-overview.js` 4 · `taskforce-tab.js` 4 · `secretary/overview-tab.js` 3 · `disc/attendance-tab.js` 1。**收基线**：`inspector 23→19` · `work-overview 16→12` · `taskforce-tab 58→54` · `overview-tab 30→27` · `disc/attendance-tab 20→19`；条目数 91 不变。
+- **`constants.js` 137 处 ⇒ 判「不重构」**（**逐条证据**：映射键 `_TEXT_DARK_MAP` / `dotDarkVars(hex)` **按 hex 串查表**、`_hexToRgbStr` **解析 `#RRGGBB`**、`${color}15` 与 `color-mix(… ${text} …)` **alpha 拼接** ⇒ 换 `var()` 会**查不到 / 拼坏**；`getComputedStyle` 方案**不可行**：它是**构建期纯常量**、被 services/components 与 **node 侧测试 / mock 形态** import ⇒ 引入 DOM 依赖会让 `node --test` 直接报错（`module-load` 现可跑通是硬证据）；另有 34 处**无同名令牌**、2 处在注释里）。
+- **`styles.css` 467 处 ⇒ 分类统计（实读更正）**：**令牌定义仅 92（19.7%）**（浅色 `:root` 69 ＋ 深色 `html.theme-dark` 23）· **`var(--x,#hex)` 兜底 53**（§2.8 文档化约定）· **规则内属性值 322**（其中 **130 处**落在深色覆盖段、**与该段令牌深色值逐字相等**）⇒ **该文件一个字节未动**（改令牌＝改全站观感；深色层刻意用绝对色值与变量层解耦）；**130 处登记「换 var 也 0 观感变化」、供支书后续裁定**。
+- **4 个禁改文件的 hex**：见上（清了 15 处）；**不能 token 化的逐条给理由**（`taskforce-tab` 的状态色映射表与 `${color}15` / `dotDarkVars` 入参；`inspector:844` 的 `#B91C1C` 与 `:root` 等值的只有**角色识别色** `--accent-secretary`，按值换令牌会把 §2.8 **①品牌统一层**的党建红**错标成②角色识别层**（**语义错**））。
+- **`help.html` / `about.css` ⇒ 进 `EXCEPTIONS`（allowNew）**，且**实读更正**：**`help.html` 不含 `@media print`**（打印样式在 `styles.css:4313`，用 `white` 关键字与 `var(--neutral-200)`、**无需显式 hex**）⇒ 例外理由据实改为「文档页自带 `doc-*` 调色板 ＋ 深色由 `html.theme-dark .doc-*` 显式覆盖」；`about.css` 自带作用域隔离的 `--ab-*` 暖纸色板。
+- **控件 11px 剩 4 处 ⇒ 已清**（`inspector.js` :736/:753/:754 ＋ `work-overview.js` :118，→ `text-[13px]`、**padding 一字未动**）⇒ `CTRL_SMALL_BASELINE` **→ `{}`**、`TOTAL` / `FILE_BASELINE = 0`；`T3` 的「数字下限」**替换为更强的判据**「**空台账 ⇒ 全站实测控件小字必须为 0**」（台账被删空而存量还在即红）；`T1/T2/T4` 一字未改。实测 `站点 0 / 文件 0`。
+- **★ 非控件小字口径已立（本路第二个承重件）**：据 `DESIGN_SYSTEM §3.2 字号层级`表（**表内最低档＝Overline 11px，无 10/9px 档**）＋ `§4.3 规范行`（「**禁用 `text-[11px]`/`text-[10px]` 控件字号**」）＋ `§4.3 ④`（「**禁止**…控件字号；现存项登记为基线，**新增即红**」）⇒ **取并集**定：**`text-[9px]` / `text-[10px]` 任意落点一律禁止（上限 0）；`text-[11px]` ＝ 表内 Overline 档、非控件处合规不判红**（控件处仍归 `control-font-guard`）。**为何不是自创更严**＝11px 是表自己写定的最低档、10/9px 在表里不存在。**28 处 `text-[10px]` 全数改到 `text-[11px]`**（只改字号档）；新守卫 **`server/test/small-text-guard.test.mjs`**（`P1` 判红 / `P2` 非空转含**反例实测** / `P3` 进度）；口径**写进 `DESIGN_SYSTEM.md` 新增 `#### 3.2.1`**（含逐字引据块）。实测改后：`9px=0 · 10px=0 · 11px=358`。
+
+### 三、路三 · 产品侧与文档侧残余
+
+- **3 枚同形徽标**（实读：**都在 `docs/src/entries/settings-entry.js`**、`settings.html` 已无徽标 ⇒ **`settings.html` 未改**）：① `支部信息与向导`「${roleLabel} · 本支部」**删净**（与批次 184 **完全同形同判**；同时删掉只服务它的两个局部变量 ⇒ 无孤儿代码；真机实测 `徽标=[]`）· ② `配置变更记录`「… · 本支部 · **审计**」**保留并说明**（角色标签本就动态正确；「审计」确有实义＝该卡是本支部配置变更的审计留痕）· ③ `活动批准门`「支书 · 本支部可调」**改准为动态角色**。
+- **★「支书」写死的修法与实测**：照本页**既有单一源**体例（`const { role } = _session; const roleLabel = role === 'deputy-secretary' ? '副支书' : '支书';`）在 `activityApprovalCardHtml` 内加同两行 ⇒ **真机实测：副支书登录时徽标＝「副支书 · 本支部可调」**（改前为「支书 · 本支部可调」）；`pageerror` 0。
+- **`_commitBase` 同族残余 ⇒ 已修**：回退块原把 `['attendances','inspections']` **并列写死**（只要其一为空就进块，却把**并未被回退覆盖**的那一键也推进基线 ⇒ 若该键在 `await import` 期间被并发写即丢）⇒ 改为按真实判据算 `filled`、**只登记实际被注入的键**；**Z5 语义一字未变**；**净行数 0**（`numstat 3 3`）。**`['todos']` 那处不改**（外层守卫就是 `!mockDB.todos.length` ⇒ 键集恰等于注入键集、**无并列键可误推**；其残余属**另一机理**、改它会破坏 Z5）⇒ **登记**。
+- **就绪判据 ⇒ 判「不改 ＋ 理由 ＋ 残余风险」**：实读 `_loaded` 置位点 3 处（`services/mock.js:60` 由 `main-entry.js:32` **同步**调用 ⇒ init 未开始就已置真；`mock-adapter.js:465`；`data-adapter.js:322` 在 `_loadAuxCollections` 之后、回退块之前）＋ **消费方清单**（`mock-adapter.js:51` · `services/notice.js:206` · `services/branch.js:505` · `data-adapter.js:1134` · 两个真机门）。**不改的三条理由**：① 「把 `_loaded` 挪到回退块之后」**已被批次 197 逐字否决**（会把「就绪」绑到**与业务无关的演示回退**上 ⇒ `SEED_FALLBACK=false` 时判据随部署形态变形、且推迟首屏就绪；**该理由实读后仍成立**）；② 「新增 `initDone` 承诺」**在本批硬约束下不可行且无收益**（加行必然 ⇒ 违反净 0 行；`domain.js` 不在可改面；只在 api 分支置位会**制造第二套就绪语义**；**既有消费方一律读 `_loaded` ⇒ 新承诺＝死代码**）；③ **根因已由批次 201 根治**（`_captureBase` 已前移到任何 `await` 之前 ⇒ 窗口**在构造上不存在**）。**残余风险**：若将来真库三表再次为空（新部署 / 换库），api 形态下就绪门可能在回退注入前放行、消费方**短暂读到空数组**（**不涉数据丢失**）；批次 198 已补 `todos` 种子、`seed.js` 现覆盖 30 集合 ⇒ **当前触发条件不成立**。
+- **沿革瘦身扫尾**：本轮再迁 **3 段 / 2 文件**（`01_strategy/DEVELOPMENT_PATH.md` 附录 A 一条 · `03_doc_system/ARCHITECTURE.md` §十 / §十一 各一条）⇒ 落本文件**新增附节**（**未新开文件**；`numstat 53 0` ⇒ **只新增、既有留痕正文一字未改**）；**逐字对照表** ＋ **判「不许搬」的判据（逐类：沿革总指针 / 承担现状口径的承接声明 / 确立日期｜背景 / 文档自身台账与去向指针表 / 现行结构溯源节题注记 / 已是「一行去指针」的迁出登记 / 含可点链接的合并注记 / 清单本体 / 禁改面〔被 `README-server.md` 按行号取证的文件〕）** ＋ **仍剩清单（粗扫 160 处 / 19 文件；建议后续搬 `insights/README.md` 两条；判「不再动」＝`DATA_CONSISTENCY_CHECKLIST.md`〔清单本体〕；禁改面 4 份）** ⇒ **未扫全，不得读成「沿革已瘦身完毕」**。
+
+### 四、路四（收尾） · `F2` 存量红清偿
+
+- **改前实测红名单恰 9 条**（守卫原文 `<期望> = []` vs 9 条「`last_updated` 写 X，但该文件最后一次提交是 2026-09-26——改了没刷卡」）：`01_strategy/README.md`(09-23) · `02_institution/sop/纪检委员工作流程指南.md`(09-24) · `03_doc_system/工作模板/经验沉淀辅助提示词.md`(08-30) · `04_web_design/README.md`(09-25) · `05_ai_coding/{CONTEXT_MANAGEMENT(09-19),FILE_OPERATION_RULES(09-24),README(09-13),REVIEW_AND_EXPRESSION(09-19)}.md` · `content/README.md`(09-25)。
+- **9 份改前均非 dirty**（`git status -- <f>` 为空）⇒ 刷成 **`2026-09-26`＝它们的真实最后提交日**（**不是「因为 dirty 才刷今天」**）；`git diff --numstat -- <我改的 9 份>` **全为 `1 1`**（**只动 frontmatter 一行**、正文一字未动）。
+- **`.ctx/TIMESTAMPS.md` 同步 9 行日期**（逐行：`:87/:105/:121/:149/:163/:164/:166/:167/:182`）；**9 份都有 5 列表行 ⇒ 未触发补行**；**另修 3 处会随清偿而失真的备注**（原写「本备注刻意不写日期——该文件 frontmatter 早于最后一次提交日〔属 `R-83` 债〕…」⇒ 清偿后为假 ⇒ 最小改写为「2026-09-26 已清偿 `R-83` 债…」；**补写的日期＝表行日期，`F1` 仍绿**）。
+- **防再欠机制复核**：守卫头注 / `CLAUDE.md R-83` 末段 / `CLAUDE.md H40` 第 6 条 **均已说清「必须同批刷两处」⇒ 未改**；**`server/README.md` 那句说不清**（只有判据简写、**无义务句**）⇒ **补一句**（最小）。
+- **反例自检（不留盘）**：把 `content/README.md` 临时改回 `2026-09-25` ⇒ `F2` 单跑 **1 fail** 并指名 ⇒ 还原 ⇒ **四件套 `39/39` 绿**。
+- ⚠ **一处需指明**：`git status` 里唯一 `??` 是 **`server/test/small-text-guard.test.mjs`**（**路二的新守卫、交付物**，非残留）；任务提到的 `server/scan-tmp.mjs` **工作树中不存在**。
+
+### 五、只登记（本批未做 / 未扫全，逐条不得读成已办）
+
+- `['todos']` 那处 `_commitBase`（另一机理、改它会破坏 Z5）· **就绪判据**（判「不改」）· **沿革剩余清单**（粗扫 160 处 / 19 文件，**未扫全**）· **`styles.css` 130 处深色等值字面量**（**未动**、候裁）· **`test:daily` 未含新守卫**（`server/package.json` 不在本批授权面 ⇒ 只随 `npm test` 自动发现）· **`README-server.md` 未改**（逐条实读后无 stale 计数）· **根 `README.md` 越界**（为 `S10` 必绿而最小改动，如实披露）· **`constants.js` 不重构** · **`styles.css` 未动**。
+
+### 六、本批实测（**非全量**）
+
+- **四件套**：`node --test --test-concurrency=1 test/doc-consistency.test.mjs test/doc-line-ref.test.mjs test/version-stamp.test.mjs` **全绿**（含 `frontmatter-freshness`）⇒ 合计 **39/39**。**未跑真机 / 未跑全量**（3000 端口无服务）。
+- **反例**：`content/README.md` 临时改回 `2026-09-25` ⇒ `F2` 单跑 **1 fail** 并指名 ⇒ 还原 ⇒ 绿（**不留盘**）。
+- **计数复算**：`^## D-` **389 → 390**（本批新增 `D-664`）· `ACTIVE_RULINGS` `^- ` **123**（本批 0 行新立 ＋ 3 行改准）· **`?v=` 未改**（仍 `20260924a`）。
+- **`git status --porcelain`**：唯一 `??` ＝ `server/test/small-text-guard.test.mjs`（**路二新守卫、交付物**）。
+
+**提交前全量见批次 208。**
+
+---
+
+## 附：`content/**` 沿革注记迁出（2026-09-26 批次 206）
+
+> **本节性质＝沿革落点**（`P.16` 第 3 条「沿革迁 `.ctx/logs`」的落地；`OPERATIONS_GUIDE §5.1`「内容成段迁走之后，原位只留一行迁出去向说明 ＋ 原标题保留」的**另一端**）。
+> **本节只做「守成」**：**本文件（`.ctx/logs/**`）既有历史留痕正文一字未改**，本节为**新增**。**逐字保留**从 `content/**` 迁出的沿革注记原文（搬家＝逐字保留，非删除）；**「原句 → 去向」对照见下表**。
+> **落点选择**：沿用批次 202 已确立的既有落点（本文件），**未新开文件**。
+
+### 一、本轮迁出（3 段 / 2 份文件）
+
+> **判据（为什么这 3 段可搬）**：它们是**纯编辑动作记录**——只记「某内容原先在哪、哪批并到哪」，**不含现行规则、不含对现读者的指路增量**（其指路功能由同句/同行的现行内容承担，或已由批次 202 的本节记载覆盖）⇒ 搬走后**现读者零损失**。
+
+| # | 文件（原位） | 原句（逐字） | 去向 |
+|---|---|---|---|
+| ① | `content/01_strategy/DEVELOPMENT_PATH.md` 附录 A「与其他文件/知识类型的关系」之「与 COMMISSIONER_DUTY_FRAMEWORK.md §G 的关系」条末 | `（该节原为独立文件 \`FLAT_ORGANIZATION_DESIGN.md\`，2026-09-26 并入 \`COMMISSIONER_DUTY_FRAMEWORK.md\`。）` | 该并合事实已由**批次 202 本节附节**（`OPERATIONS_GUIDE` 合并节）与 `content/03_doc_system/DOC_MAP.md:86`、`ARCHITECTURE.md` 相关行记载覆盖；原位按 §5.1 留「沿革去向」一行指针。 |
+| ② | `content/03_doc_system/ARCHITECTURE.md` §十 单一事实源注册表「`SECRETARY_DIRECTIVES.md` → `…COMMISSIONER_DUTY_FRAMEWORK.md §G`」行末 | `（2026-09-26 原 \`FLAT_ORGANIZATION_DESIGN.md\` 全文并入该文件 §G）` | 同 ①。该行**第 3 列现行内容**（「§G 扁平化设计是子本展开」）已承担指路；文件头 `:15①` 已写明「沿革与『哪一批做了什么』→ `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`」（**原位指针已存在**）。 |
+| ③ | `content/03_doc_system/ARCHITECTURE.md` §十一 变更传播矩阵「`OPERATIONS_GUIDE.md` §19（术语使用规范）」行末 | `（原 \`USAGE_POLICY.md\` 已于 2026-09-26 批次 202 并入本文件 §19）` | 该并入事实已由**批次 202 本节附节**（`USAGE_POLICY` → §19–§23 升格映射）记载；同 ②，文件头 `:15①` 即原位指针。 |
+
+**★ 留指针（依 `OPERATIONS_GUIDE §5.1`）**：① 的原位**新增一行**「**沿革去向（2026-09-26 批次 206）**：… 已**成段迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：`content/**` 沿革注记迁出（2026-09-26 批次 206）」（含「原句 → 去向」逐字对照）」；② ③ 原位所在文件的**总指针已存在于文件头 `:15①`**（「本文不回答：① 沿革与『哪一批做了什么』→ `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`」）⇒ **不再重复加行**（同节同指不二次加）。⚠ **原标题（§十 / §十一 / 附录 A）一律保留**。
+
+### 二、判「不许搬」及判据（逐类给判据，**必须落账**）
+
+| 类别 | 实例（文件：要点） | 判据（为什么不许搬） |
+|---|---|---|
+| **沿革总指针** | `content/03_doc_system/ARCHITECTURE.md:15①` · `DOC_MAP.md:37`（「本表 2026-09-17 才立」） | 它们**本就不含沿革正文**，而是「沿革去哪儿查」的**一行指针** ⇒ 正是 §5.1 要求的「原位指针」，搬走即断链。 |
+| **承担现状口径的承接声明** | `content/insights/README.md §「2026-09-04 工程方法论分流（承接声明）」`（9 行） | 该节明写「**无法精确对应的历史交叉引用，以本文档承接声明兜底指路**」＝**对现读者有效用**（兜底指路），非纯沿革 ⇒ 不许搬（同批次 202 对「确立日期｜确立背景」的判据）。 |
+| **确立日期｜确立背景** | `content/03_doc_system/{DOC_MAP.md §3.1/§3.2, OPERATIONS_GUIDE.md 各节}` · `content/03_doc_system/ARCHITECTURE.md:397` | 它们**解释现行规则为何如此写**（生效条件）⇒ **属现状口径**（批次 202 判据逐字沿用）。 |
+| **文档自身台账 / 去向指针表** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md`「变更历史」段 · `content/01_strategy/SECRETARY_DIRECTIVES.md:408-423`「已迁出/已删除论断」去向表 | **文档自身台账**（批次 154 已判「该留」）＋**去向指针表**（现读者据此找旧论断的新家）⇒ 搬走会让现读者找不到。 |
+| **现行结构溯源（节题注记）** | `content/05_ai_coding/*` 各节题「（原 KNOWN_PITFALLS §N）」「（原 insights §N）」 | 告诉现读者**该节从哪来、与哪节同源**（避免重复维护、便于比对）⇒ 现行结构信息，非纯沿革。 |
+| **已是「一行去指针」的迁出登记** | `content/02_institution/README.md:14` 与 `:28` | 二者已是 §5.1 意义上的**去指针**（指向现行权威源 `OPERATIONS_GUIDE.md §24–§31`）⇒ 搬走＝把指针搬走。 |
+| **含可点链接的合并注记** | `content/03_doc_system/DOC_MAP.md:87`（内含 `[OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)` 链接） | 删该括注＝**现读者失去入口链接** ⇒ 不许搬。 |
+| **清单本体（日期是内容的一部分）** | `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md`（粗扫 107 处日期/批次）· `TEST_AND_VERIFICATION.md`（7） | 那些日期/批次是**范本、判例、真机核对记录的内容本身**（如「第三范本（2026-09-13 批次 23 新增）」），不是「记账式沿革」⇒ 搬走即删内容。 |
+| **禁改面（本批授权外）** | `content/04_web_design/data/DATA_MODEL.md` · `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` · `content/README.md` · `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | 这四份被 `README-server.md` **按 `文件:行号` 逐条取证引用**（`doc-line-ref` 的 R1/R2/R6 守着），而 `README-server.md` **不在本批可改面** ⇒ 改动会顶偏行号引用且无法同批改准 ⇒ **本轮不动**。 |
+
+### 三、仍剩哪些（**按文件分组的后续清单**；本批未做）
+
+> **口径**：下表的「命中数」＝该文件内**粗扫**「日期 / 批次 / 原为 / 迁入 / 并入」字样的行数（**不等于**「待搬段数」——逐段判后多数属上表「不许搬」的类别）。**本批未逐条裁定**，**登记为后续批**，**不得读成「已扫全」**。
+
+| 文件 | 粗扫命中 | 建议（后续批） |
+|---|---|---|
+| `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` | 107 | **判为不予搬**（清单本体），仅需在后续批**逐条复核**是否有掺入的纯沿革。 |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | 10 | **禁改面**（README-server 行号引用）＋「变更历史」属自身台账 ⇒ 后续批如需动，须先解决行号引用面。 |
+| `content/05_ai_coding/TEST_AND_VERIFICATION.md` | 7 | 判例立规（内容）⇒ 复核有无纯沿革。 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | 7 | 确立日期/背景 ＋ 批次 202 指针 ⇒ 复核。 |
+| `content/insights/README.md` | 4 | 承接声明**不许搬**；「2026-09-14 批次 37–39 追加」「2026-09-15 批次 44 追加」两条为**追加型沿革**⇒ **建议后续批搬**（本轮未做）。 |
+| `content/04_web_design/evolution/BRANCH_WORK_MAP.md` | 4 | 复核有无纯沿革（本轮未做）。 |
+| `content/03_doc_system/DOC_MAP.md` | 3 | 本轮**未动**（`:86`/`:87`/`:206` 逐一判为「含指路/链接」）⇒ 后续批复核。 |
+| `content/03_doc_system/ARCHITECTURE.md` | 3 | 本轮搬 **2** 段；余 `:81`（分层树内「2026-09-26 批次 202 四份合一并迁入…」）⇒ 后续批复核。 |
+| `content/02_institution/README.md` · `COMMISSIONER_DUTY_FRAMEWORK.md` · `content/03_doc_system/README.md` · `content/04_web_design/module/MODULE_UI_DESIGN.md` | 各 2 | 复核（如 `03 README:19` 行末批次 202 记注、`COMMISSIONER_DUTY_FRAMEWORK:32` 编号注记）。 |
+| `content/01_strategy/{DEVELOPMENT_PATH,SECRETARY_DIRECTIVES}.md` · `content/04_web_design/{README,data/DATA_MODEL,module/SOP_WEBSITE_GUIDE,evolution/ROLE_PERMISSION_DESIGN}.md` · `content/05_ai_coding/{DOCUMENT_GOVERNANCE,FILE_OPERATION_RULES}.md` | 各 1–4 | 逐条复核（`DEVELOPMENT_PATH` 本轮已搬 1 段）。 |
+
+
+

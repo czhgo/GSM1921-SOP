@@ -35,7 +35,29 @@
  *  深色态字面量（`#F87171`/`#FCA5A5` 等，本轮曾误改 7 处、已逐处还原）；③ JS 对象映射 **keys**（`{'#CE1126':…}`）
  *  与 `${c}15` 类 **alpha 拼接**（如 `taskforce-view.js::dotDarkVars`，换 `var()` 会拼坏）；④ Tailwind 任意值类
  *  `…-[#hex]`；⑤ 禁改文件（`styles.css` / `inspector.js` / `work-overview.js` / `secretary/overview-tab.js`）
- *  与 H4 top5 特批文件（`help.html` / `about.css` / `constants.js` / `taskforce-tab.js`）。 */
+ *  与 H4 top5 特批文件（`help.html` / `about.css` / `constants.js` / `taskforce-tab.js`）。
+ *
+ *  ── 存量清理（2026-09-26 美学存量清理末批 · 特批解禁批）：再清 **16 处**（1907→1891），口径与前两批同 ──
+ *  支书「未完成的工作全面完成」⇒ 前几批标「需支书特批」的文件本批视为已特批，逐项处置：
+ *  ① 仍守「HTML `style="…"` 属性内 + 与 `:root` 令牌值逐字等值 + 非 `var()` 兜底 + 非 `--acc-*-dark`
+ *     深色态字面量 + 非 JS 函数入参」的最保守口径，清 16 处（5 个文件 c 下调）：
+ *     `inspector.js` 23→19（#CE1126→--party-red ×3 · #9CA3AF→--neutral-400 ×1）·
+ *     `work-overview.js` 16→12（#F59E0B→--functional-warning ×2 · #EF4444→--functional-error ×1 ·
+ *     #3B82F6→--functional-info ×1）· `taskforce-tab.js` 58→54（#10B981→--functional-success ×3 ·
+ *     #CE1126→--party-red ×1）· `secretary/overview-tab.js` 30→27（#EF4444→--functional-error ×1 ·
+ *     #F59E0B→--functional-warning ×1 · #0EA5E9→--accent-sky ×1）·
+ *     `disc/attendance-tab.js` 20→19（#0EA5E9→--accent-sky ×1）。
+ *  ② **有意不碰**（逐处理由见执行报告）：`--tint:<hex>` 内联颜色变量（深色由 CSS color-mix + 单独
+ *     `--acc-text-dark` 驱动，token 化会二次适配 ⇒ 改深色渲染）；`dotDarkVars('#hex')` 一类**函数入参**
+ *     （函数按 hex 串查 `_TEXT_DARK_MAP` 映射表，换成 `var()` 会查不到 ⇒ 深色圆点回退浅色）；
+ *     `#B91C1C`（与 `:root` 等值的只有角色识别色 `--accent-secretary/-deputy-secretary`，按值换令牌会把
+ *     §2.8-①品牌统一层的党建红错标成②角色识别色）。
+ *  ③ 同批 `about.css`（50 处）进 `EXCEPTIONS`：关于页＝文档页（§4.18.1），自带作用域隔离的 `--ab-*`
+ *     暖纸色板，无全局同名令牌 ⇒ 不可清（不许新造色）。`help.html` 例外理由订正（其内联 `<style>` 是文档页
+ *     调色板；`@media print` **不在** help.html，在 `docs/src/styles.css:4313`，且打印段用的是 `white`
+ *     关键字与 `var()`，无需显式 hex）。
+ *  ④ **`HEX_TOTAL_BASELINE` 有意保持 2025**（存量起点）：H4 据此显示 ↓134（2025−1891）。
+ *     条目数 91 不变（无文件清零）；全站 distinct 值仍 168（被清的值在别处仍存）。 */
 
 export const HEX_BASELINE = {
   'docs/help.html': { c: 568, v: [
@@ -89,7 +111,7 @@ export const HEX_BASELINE = {
   'docs/src/components/insight-view.js': { c: 4, v: [
       '#000', '#b91c1c', '#fff',
   ] },
-  'docs/src/components/inspector.js': { c: 23, v: [
+  'docs/src/components/inspector.js': { c: 19, v: [
       '#15803d', '#16a34a', '#34d399', '#4ade80', '#60a5fa', '#92400e', '#9ca3af', '#b91c1c', '#ce1126',
       '#d97706', '#f87171', '#fbbf24',
   ] },
@@ -148,9 +170,8 @@ export const HEX_BASELINE = {
       '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6', '#60a5fa', '#6366f1', '#6b7280',
       '#94a3b8', '#a5b4fc', '#d97706', '#dc2626', '#f87171', '#fbbf24',
   ] },
-  'docs/src/components/work-overview.js': { c: 16, v: [
-      '#0ea5e9', '#16a34a', '#3b82f6', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c', '#cbd5e1', '#ef4444',
-      '#f59e0b',
+  'docs/src/components/work-overview.js': { c: 12, v: [
+      '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c', '#cbd5e1', '#ef4444', '#f59e0b',
   ] },
   'docs/src/components/workspace-shell.js': { c: 1, v: [
       '#c8102e',
@@ -194,8 +215,8 @@ export const HEX_BASELINE = {
   'docs/src/entries/settings-entry.js': { c: 13, v: [
       '#000', '#6b7280', '#92400e', '#b91c1c', '#e5e7eb', '#fef3c7', '#fff',
   ] },
-  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 20, v: [
-      '#000', '#0ea5e9', '#14b8a6', '#16a34a', '#94a3b8', '#b91c1c', '#ef4444', '#f59e0b', '#fff',
+  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 19, v: [
+      '#000', '#14b8a6', '#16a34a', '#94a3b8', '#b91c1c', '#ef4444', '#f59e0b', '#fff',
   ] },
   'docs/src/entries/tabs/disc/inspection-tab.js': { c: 12, v: [
       '#000', '#94a3b8', '#b45309', '#b91c1c', '#c8102e', '#fff',
@@ -231,10 +252,10 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [
       '#67e8f9',
   ] },
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 58, v: [
+  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 54, v: [
       '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6', '#60a5fa', '#6366f1', '#6b7280',
-      '#8b5cf6', '#94a3b8', '#a5b4fc', '#b91c1c', '#c4b5fd', '#ce1126', '#d97706', '#dc2626', '#f87171',
-      '#fbbf24', '#fff',
+      '#8b5cf6', '#94a3b8', '#a5b4fc', '#b91c1c', '#c4b5fd', '#d97706', '#dc2626', '#f87171', '#fbbf24',
+      '#fff',
   ] },
   'docs/src/entries/tabs/org/thought-review-tab.js': { c: 2, v: [
       '#000', '#b91c1c',
@@ -278,9 +299,9 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/secretary/notification-tab.js': { c: 7, v: [
       '#b91c1c', '#ce1126', '#fff',
   ] },
-  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 30, v: [
-      '#0ea5e9', '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#b91c1c', '#d97706', '#ef4444', '#f59e0b',
-      '#fbbf24', '#fff',
+  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 27, v: [
+      '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#b91c1c', '#d97706', '#ef4444', '#f59e0b', '#fbbf24',
+      '#fff',
   ] },
   'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 5, v: [
       '#16a34a', '#6b7280', '#c8102e', '#d97706',
@@ -404,23 +425,30 @@ export const HEX_MOVE_LEDGER = [];
  *
  *  收基线（2026-09-26 美学存量清理续批）：`org/taskforce-tab.js` 5 处已改准档位（`text-[11px]`→`text-[13px]`，
  *  **只改字号档、padding 一字不动**）——上一批因「本批任务明列绝不改」而保留，本批该禁令已解 ⇒ 清掉该 5 处。
- *  该文件控件小字清零 ⇒ 删条目。台账 3 文件 / 9 处 ⇒ **2 文件 / 4 处**（仅剩 README 禁改清单 2 文件）。*/
-export const CTRL_SMALL_BASELINE = {
-  // 保留理由：`inspector.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 3 处保留不动。
-  'docs/src/components/inspector.js': { c: 3, sig: {"button|text-[11px]":3} },
-  // 保留理由：`work-overview.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 1 处保留不动。
-  'docs/src/components/work-overview.js': { c: 1, sig: {"button|text-[11px]":1} },
-};
+ *  该文件控件小字清零 ⇒ 删条目。台账 3 文件 / 9 处 ⇒ **2 文件 / 4 处**（仅剩 README 禁改清单 2 文件）。*
+ *
+ *  收基线（2026-09-26 美学存量清理末批 · 特批解禁批）：README 禁改清单**本批已特批** ⇒ 最后 4 处
+ *  （`inspector.js` 3 处 · `work-overview.js` 1 处）也改准档位（`text-[11px]`→`text-[13px]`，**padding 一字未动**）。
+ *  两文件控件小字**清零** ⇒ 按收基线纪律**删条目** ⇒ 台账 **0 文件 / 0 处**（全站控件小字存量归零）。
+ *  ⚠ 台账清空后「非空转」不再靠数字下限，改由 **T3 的「空台账 ⇒ 全站实测须为 0」**判据承担（更强：
+ *   台账被删空而存量还在时判红）；`CTRL_SMALL_TOTAL_BASELINE` / `CTRL_SMALL_FILE_BASELINE` 随之下调为 0。 */
+export const CTRL_SMALL_BASELINE = {};
 
 /** 控件小字规模下限（非空转判据）
  *  ⚠ 2026-09-25 随收基线**下调** 12→3 文件 / 23→9 处；2026-09-26 续批再下调 3→2 文件 / 9→4 处
- *   （`org/taskforce-tab.js` 5 处清零删条目），台账实存＝2 文件 / 4 处。此值只是「防台账被悄悄删空」的
- *   二级防呆——真正的防线是 T1（新增即红）与 T3（僵尸登记：文件不存在 / 已清零未删条目即红）。
+ *   （`org/taskforce-tab.js` 5 处清零删条目）；**末批再把最后 2 文件 / 4 处清零 ⇒ 两台账均归 0**。
+ *  此值只是「防台账被悄悄删空」的二级防呆；台账空置后，真正的防线是 T1（新增即红）与
+ *   T3 的「空台账 ⇒ 全站实测控件小字必须为 0」（存量还在却把台账删空即红）。
  *   **不得**为变绿把它继续调大或补条目。 */
-export const CTRL_SMALL_TOTAL_BASELINE = 4;
-export const CTRL_SMALL_FILE_BASELINE = 2;
+export const CTRL_SMALL_TOTAL_BASELINE = 0;
+export const CTRL_SMALL_FILE_BASELINE = 0;
 
-/** 全站 text-[9/10/11px] 计数（含非控件落点，只作缩减进度口径） */
+/** 全站 text-[9/10/11px] 计数（含非控件落点，只作缩减进度口径）
+ *  口径变更（2026-09-26 末批）：`text-[9px]`/`text-[10px]` 定为**禁止档**（低于 §3.2 档位表最低档
+ *   Overline 11px；判据与守卫＝`server/test/small-text-guard.test.mjs`）⇒ 现存 28 处 `text-[10px]`
+ *   全数改到 `text-[11px]`（档位表内 Overline 档）。故按值基线由 `{'text-[11px]':321,'text-[10px]':49}`
+ *   改写为 `{'text-[11px]':362,'text-[10px]':0}`（**不是**「为变绿补条目」——总量口径始终只报不判，
+ *   此改是让台账与「9/10px 禁止」的新口径一致）。`SMALL_TEXT_TOTAL_BASELINE` 保持 370 起点不动。 */
 export const SMALL_TEXT_TOTAL_BASELINE = 370;
 export const SMALL_TEXT_FILE_BASELINE = 56;
-export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":321,"text-[10px]":49};
+export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};

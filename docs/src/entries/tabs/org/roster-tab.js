@@ -211,7 +211,7 @@ function _listHeaderHtml() {
 
 /** 「待确认」小标（阶段/在册 pending 时显示；行内对应格下方） */
 function _pendingPill(text, title) {
-  return `<span class="inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
+  return `<span class="inline-flex text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap" title="${esc(title)}">${text}</span>`;
 }
 
 /** 名单行（只读展示；编辑统一走成员档案模态，pending 显示「待确认」小标） */
@@ -227,9 +227,9 @@ function _rowHtml(p, pend) {
       <div class="min-w-0">
         <div class="text-sm font-medium text-gray-800 flex items-center gap-1.5 min-w-0">
           <span class="truncate">${esc(getPersonName(p.id))}</span>
-          ${detained ? `<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
+          ${detained ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100 flex-shrink-0" title="${esc(rs.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">滞留</span>` : ''}
         </div>
-        ${roleLabel ? `<div class="text-[10px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
+        ${roleLabel ? `<div class="text-[11px] text-gray-500 truncate">${esc(roleLabel)}</div>` : ''}
       </div>
       <div class="text-xs text-gray-800 truncate">${p.partyGroup ? esc(p.partyGroup) : '<span class="text-gray-400">未分组</span>'}</div>
       <div class="flex flex-col gap-0.5 min-w-0">

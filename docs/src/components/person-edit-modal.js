@@ -66,7 +66,7 @@ const FIELD_OWNER = {
 /** 归属小标签（灰色 chip，仅供识别，不是可点击控件） */
 function ownerTag(field) {
   const label = FIELD_OWNER[field] || '档案资料';
-  return `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100 flex-shrink-0">${esc(label)}</span>`;
+  return `<span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-50 text-gray-500 border border-gray-100 flex-shrink-0">${esc(label)}</span>`;
 }
 
 /** 完整档案行（只读）：字段名 + 值 + 归属标签；highlight=true → 主题色浅底高亮 */
@@ -95,9 +95,9 @@ function residenceOptions(current) {
 }
 
 /** 「立即生效」小标（档案属性直改；浅底语义类，非可点击控件） */
-const TAG_INSTANT = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 whitespace-nowrap flex-shrink-0">立即生效</span>';
+const TAG_INSTANT = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100 whitespace-nowrap flex-shrink-0">立即生效</span>';
 /** 「报支书确认」小标（制度链；与名册「待确认」小标同源语义） */
-const TAG_CONFIRM = '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
+const TAG_CONFIRM = '<span class="text-[11px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 whitespace-nowrap flex-shrink-0">报支书确认</span>';
 
 /** 字段分组容器：标题 + 说明 + 若干字段行（让操作者一眼看清该组走哪条写路径） */
 function groupBox({ title, desc, rows }) {

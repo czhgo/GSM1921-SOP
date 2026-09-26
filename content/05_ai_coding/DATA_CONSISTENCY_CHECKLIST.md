@@ -194,7 +194,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
 | R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
 | R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
-| R26 说明文件里的「数字与名称」须指到代码出处（**含「守卫自身须登记进 README 测试清单」**——守卫存在却无人可见＝半个没做） | 各说明文件 ↔ 代码注册数组 · `README.md` 测试清单 | `doc-consistency.test.mjs::S1–S12` | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24 / Q-23-37` |
+| R26 说明文件里的「数字与名称」须指到代码出处（**含「守卫自身须登记进 README 测试清单」**——守卫存在却无人可见＝半个没做） | 各说明文件 ↔ 代码注册数组 · `README.md` 测试清单 | `doc-consistency.test.mjs::S1–S15`（**2026-09-26 批次 205 改准**：原写 `S1–S12`；现到 **S1–S15**，另含 S13 时间戳↔frontmatter／S14 可数事实对账／S15 弱清单） | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24 / Q-23-37` |
 | R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（**95** 条校验点台账，**91** 条可自动化 / **4** 条逐条 reason，含「需跨页前置链」「服务层重复守卫」分列——批 47-W/47-X/47-Y/47-Z 由 84/9 升为 **91/2**；**批次 91 再增 2 条**（本组通知发布口，`services/notice.js`）⇒ **现余 4 条＝服务层重复守卫 1 · 缺稳定前置待解锁 3**，各条归属均写在 reason 内） | `form-loop-sweep.test.mjs::S0–S5` + **54 条真机闭环** + **17 条真机成功路径**（每条另加「未捕获脚本错误」判据） | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44 / 批次 47-W / 47-X / 47-Y / 47-Z` |
 | R73 台账完备性**三缺一**：规模不缩水（S0）/ 已登记项全覆盖（S2）/ **全站是否都已登记（无守卫）**——**漏登记时三条守卫全绿** | `server/test/form-loop-registry.mjs`（批 47-R 补登 1 处遗漏：`thought-report-entry.js:287`） | **暂无守卫**（如实登记，不假装已覆盖；第 ③ 缺靠人工按文案搜同类发现） | 半闭环（缺第 ③ 缺的守卫） | `CLAUDE.md R-73` · `REVIEW_QUEUE 批次 47-R` |
 | 内容单一源同时承载**可见性不同**的两类数据时，公开面必须显式过滤（且列表与统计同一口径） | `docs/data/issues.json`（公开匿名反馈 + 内部汇报同文件）· `docs/src/components/issue-list.js` · `server/seed.js::seedIssues()`（按 `kind` 分流脱敏） | `page-sweep.test.mjs`（公开反馈页）· 真机探针取证（公开页 4 行 / 无汇报标题） | 已闭环 | `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
@@ -223,12 +223,24 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
 | Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
 | 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
+| `README-server.md` 的「`文件:行号`」取证引用逐条指向真实位置（含短式 `:192` / 逗号续列 / md 区间不越节 / 「零命中」类关键词取证仍成立 / 行为词型引用须带可校验锚点） | `README-server.md` 的**383 处**引用 · `docs/src/**` 行为词 | `doc-line-ref.test.mjs::R1–R6` | 已闭环（**换说法机检不了** ⇒ 该半落 `CLAUDE.md R-87` 纪律） | `CLAUDE.md R-87` · 本文件 §链接完整性校验 |
+| `R-83`「改过文件必须刷 `frontmatter.last_updated`」的机检件（表行日期 ↔ frontmatter ↔ 该文件最后一次提交日） | `.ctx/TIMESTAMPS.md` · 各 `content/**` frontmatter | `frontmatter-freshness.test.mjs::F1–F3`（`F1` git-free · `F2` git〔浅克隆判红、无 git 只报不判〕） | 已闭环（⚠ **`F2` 现存 9 处红**——9 份 `content/**` 的 `last_updated` 早于其最后提交日，属 `content/**` 授权面外、待另路面收） | `CLAUDE.md R-83` · `.ctx/TIMESTAMPS.md` |
+| 界面文案与制度母本「**连续 ≥20 字重合即红**」（制度原文不进界面，改写成一行 ＋ `docs/help.html` 深链） | `DESIGN_SYSTEM.md §4.18 C7` · `docs/src/**` 界面文本 | `copy-master-guard.test.mjs::N1–N4` | 已闭环（基线 **11 条 / 9 文件**） | `DESIGN_SYSTEM.md §4.18` |
+| 界面文案长度存量回归（卡片导语 ≤60 字 · 单段 ≤80 字 · 单句括注 ≤2 个 · 空态 ≤30 字） | `DESIGN_SYSTEM.md §4.18 C1/C2/C5/C6` | `copy-length-guard.test.mjs::L1–L6` | 已闭环（**源码静态近似**、逐类基线 ratchet；`L6` 只报不判） | `DESIGN_SYSTEM.md §4.18` |
+| 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DESIGN_SYSTEM.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DESIGN_SYSTEM.md §4.18` |
+| 折叠区口径与 `help.html` 是否**同义**（C8）——**机器判不了「同义」⇒ 只登记不判红** | `DESIGN_SYSTEM.md §4.18 C8` · `docs/src/**` 折叠区 · `docs/help.html` | `copy-fold-guard.test.mjs::F1/F2`（**只报不判**） | 半闭环（如实登记：C8 落「纪律 ＋ 人检清单」，守卫不越界假装覆盖） | `DESIGN_SYSTEM.md §4.18` |
+| 口径定点锚点**真机可达 / 可检索**（深链直达且目标可见；搜索 → 点结果 → 卡片高亮） | `docs/help.html` 的 `card-copy-*` 定点卡片 · `help-catalog.js` 运行时索引 | `copy-anchor-guard-e2e.test.mjs::A1–A3` | 已闭环（CDN 一律 `route.abort`、不依赖外网） | `DESIGN_SYSTEM.md §4.18` |
+| mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/mock/**` 语料 · `server/seed.js` · `server/routes/resources.js` | `mock-api-parity.test.mjs::S0 / P1–P3` | 已闭环（表集合 5 张：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`） | `.ctx/logs/2026-09-DECISION_LOG.md`（`D-658`） |
+| 数据库结构变更必须走**版本化迁移**（`PRAGMA user_version` ＋ 有序 `MIGRATIONS`；新建库 / 幂等可重入 / 既有库兼容 / 失败回滚 / 失败不吞） | `server/db.js`（`MIGRATIONS` / `SCHEMA_VERSION` / `applyMigrations`） | `db-migration.test.mjs::M1–M6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
+| SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
+| 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
+| 浏览器存储键必须登记（键 ⊆ 三档白名单：服务端权威 / 本机临时 / UI 偏好与会话；**新键未登记即红**） | 本文件 **§0.3 浏览器存储键白名单**（守卫的镜像；**改表即改守卫映射、两处同批动**） | `localstorage-key-guard.test.mjs::L1–L3` | 已闭环 | 本文件 §0.3 |
 
 **使用说明**
 
 1. **本表是索引，不是判据**——判据在守卫文件（`server/test/*.test.mjs`）与「详述处」所指文档；本表只回答「一条规则由谁守、守没守住、去哪看」。
 2. **新增 / 修改规则必须同时更新本表**（谁改谁负责）——漏更本表即视为该规则未登记。
-3. **本表的数字由 `server/test/doc-consistency.test.mjs::S9` 守卫**——该断言由批次 44 的另一条工作流落地（立表时实测 `doc-consistency` 仅存 S1–S8，尚无 S9）。**在 S9 落地前，本表断言号为人工维护**：改表须重新实测上列守卫文件的断言，不得凭记忆写。
+3. **本表的数字由 `server/test/doc-consistency.test.mjs::S9` 守卫**——该断言由批次 44 的另一条工作流落地（立表时实测 `doc-consistency` 仅存 S1–S8，尚无 S9）。**在 S9 落地前，本表断言号为人工维护**：改表须重新实测上列守卫文件的断言，不得凭记忆写。**（2026-09-26 批次 205：本表新增 12 行**——把已落地但未登记进本索引的守卫逐条补上：`doc-line-ref` / `frontmatter-freshness` / `copy-master-guard` / `copy-length-guard` / `copy-screen-guard` / `copy-fold-guard` / `copy-anchor-guard-e2e` / `mock-api-parity` / `db-migration` / `backup-restore` / `db-integrity-guard` / `localstorage-key-guard`；**断言号一律实读**各守卫文件里的 `test(...)` 名，不凭记忆。**与 `§3.4` 的关系**：本批新增**均非 R 编号行**，而 `.ctx/ENGINEERING_ASSESSMENT.md §3.4` 收的是 R13–R30 编号规则 ⇒ **无需在 §3.4 补行**；两处是「方法论口述版 ↔ 可执行索引」的分工，非同一批行的两处副本。）
 
 ---
 
@@ -391,7 +403,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 4. 考勤数据
 
-**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（151 条记录，att1~att151；att1~att43 为显式种子段，att44 起由 8 月活动生成器追加）
+**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（**152 条记录**：显式种子段 `att1`~`att43` ＋ 隔离段 `att900`，`att44`~`att151` 由 8 月活动生成器追加〔`_AUGUST_EVENTS`：act-26 全员 50 ＋ act-27 支委班子 8 ＋ act-29 全员 50 ＝ 108〕；**2026-09-26 批次 205 改准**：原写「151 条记录，att1~att151」——既漏计隔离段 `att900`，且批次 192/195 剔除党委组织员 `p_pc`〔`_ALL_PERSON_IDS` 按 `branchId` 过滤〕后实测为 **152**）
 **运行时**：`mockDB.attendances`（由 `seed.js` 注入）
 **Service**：`docs/src/services/attendance.js`
 
@@ -759,7 +771,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [x] **表↔域映射**：资源名 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES **当前 30 名**全通；本条为 2026-08-24 当时的 **26 名**实测记录，口径详见 §跨类别同源校验）✅
 - [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
-- [x] **空表回退**：代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅
+- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
 - [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅
 - [x] **聚合域 round-trip**：快照写穿 `[{id:'__root__', body}]` → 读回 `__root__` 单行 + body 深比较一致 → 清理写回空 ✅
 - [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项等；历史票证专项脚本已随 2026-08-30 清理归档），含 e2e-login 回归

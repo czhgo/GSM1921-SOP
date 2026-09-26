@@ -12,8 +12,9 @@
 //                  ② 基线规模下限（防台账被删减）；③ 僵尸登记（基线文件不存在 / 该文件已无 hex）⇒ 红
 //   H4 缩减进度：打印当前处数 / 值 / 文件数与基线对照（只报不判）
 //
-// 例外台账（逐条给理由，见 EXCEPTIONS）：`docs/help.html`（文档页 + 打印样式）；
-//   第三方片段 `docs/assets/vendor/**` 在扫描范围外（gsap / ScrollTrigger / lenis 构建产物）。
+// 例外台账（逐条给理由，见 EXCEPTIONS）：`docs/help.html`（文档页自带 `doc-*` 调色板）·
+//   `docs/src/about.css`（关于页文档页自带 `--ab-*` 暖纸色板）；第三方片段 `docs/assets/vendor/**`
+//   在扫描范围外（gsap / ScrollTrigger / lenis 构建产物）。
 //
 // 收基线纪律：删存量 hex 后**同一批**更新 style-baseline.mjs（删该值 / 减 c）——进度自动前进；
 //   **不得**为变绿而把新值补进基线。
@@ -47,7 +48,12 @@ const EXCEPTIONS = [
   {
     file: 'docs/help.html',
     allowNew: true,
-    reason: '帮助页＝文档页（DESIGN_SYSTEM §4.18.1 明确帮助页/关于页不受界面规范约束），自带 doc-card/help-card 样式体系，且含 @media print 打印样式——打印必须显式色值（不能取主题变量）。故该文件只计进度、不因新增判红。',
+    reason: '帮助页＝文档页（DESIGN_SYSTEM §4.18.1 明确 help.html/about.html 是文档页、不受界面规范约束），页内自带 `<style>` 文档样式体系（doc-card / help-card / help-toc）+ 大量内联 style 文档标注；其硬编码 hex 属该文件自带的文档调色板（深色态由 `styles.css` 的 `html.theme-dark .doc-*` 段显式覆盖），非工作台界面配色。故该文件只计进度、不因新增判红。⚠ 订正（2026-09-26 末批实读）：本文件**不含** `@media print`（全站打印样式在 `docs/src/styles.css:4313`，且该段用的是 `white` 关键字与 `var(--neutral-200)`，**无需**显式 hex）——旧理由里的「含 @media print 打印样式」与实况不符，此处据实改写。',
+  },
+  {
+    file: 'docs/src/about.css',
+    allowNew: true,
+    reason: '关于页＝文档页（DESIGN_SYSTEM §4.18.1 同条豁免）。该文件自带**作用域隔离**的 `--ab-*` 暖纸印刷色板（`.ab-about{--ab-paper-0:#FAF8F4;…--ab-red:#CE1126;--ab-gold:#C9A227}`，明注「不影响全局/help 页」）——其中与全局 `:root` 等值的少数几处（如 `#CE1126`）**正是它自己的令牌定义**，其余 46 处为暖纸 / 墨色专有色与深色态字面量，**无全局同名令牌**（§2.8 口径「不许新造色」⇒ 不可清）。故整文件进例外，只计进度、不因新增判红。',
   },
 ];
 

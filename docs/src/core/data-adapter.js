@@ -334,9 +334,9 @@ export async function init() {
         try {
           const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260924a');
           const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260924a');
-          if (!mockDB.attendances.length) mockDB.attendances = ATTENDANCE_RECORDS.map(r => ({ ...r }));
-          if (!mockDB.inspections.length) mockDB.inspections = INSPECTION_RECORDS.map(r => ({ ...r }));
-          _commitBase(mockDB, ['attendances', 'inspections']); // 回退值计入基线 ⇒ 不上传
+          const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
+          for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
+          _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
           console.info('[DataAdapter] init: 考勤/考察空集合已回退本地 seed');
         } catch (e) {
           console.warn('[DataAdapter] init: 考勤/考察 seed 回退失败：', e);

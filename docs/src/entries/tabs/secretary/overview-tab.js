@@ -223,7 +223,7 @@ function renderBlockerSection(people, today) {
 
   const html = rows.map(r => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">${r.role.label}</span>
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${r.title} 超期 ${r.count} 项</span>
       <span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${r.deadline}</span>
@@ -346,7 +346,7 @@ function renderDimensionView(container) {
   const pendingDispatches = listPendingByReceiver('secretary');
   const dispatchRows = pendingDispatches.map(d => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#F59E0B;"></span>
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">${d.senderName}</span>
@@ -358,7 +358,7 @@ function renderDimensionView(container) {
   const weeklyPending = listWeeklyReportsPendingReview();
   const weeklyRows = weeklyPending.map(r => `
     <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#0EA5E9;"></span>
+      <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--accent-sky);"></span>
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周报待审核</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${r.week}（${r.weekRange}）· ${getPersonName(r.submittedBy) || '宣传委员'} 报送于 ${r.submittedAt || '—'}</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">宣传委员</span>
