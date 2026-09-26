@@ -2,7 +2,7 @@
 title: "系统角色权限矩阵（代码键级权威）"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-23"
+last_updated: "2026-09-26"
 status: active
 related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/constants.js]
 ---

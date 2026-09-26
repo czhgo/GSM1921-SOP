@@ -2,7 +2,7 @@
 title: "文档系统管理层索引——全仓库文档系统管理的技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-26"
 status: active
 ---
 

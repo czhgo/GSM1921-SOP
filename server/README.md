@@ -108,11 +108,14 @@ node scripts/backup.mjs --out /srv/bak/20260923
   > · `test/control-font-guard.test.mjs` —— **控件小字存量回归**（`T1–T4`：`<button>/<a>/<input>/<select>` 挂 `text-[11px]/[10px]/[9px]` 即红；`DESIGN_SYSTEM.md §4.3` 控件字号单档 13px）。
   > · `test/link-target-guard.test.mjs` —— **JS 渲染型 href/src 的「裸文件名」**（`L6–L7`：工作台页 `<base href="../">` 下写裸 `x.html` 会解析到站点根 ⇒ 404，须按 `<base>` 规则断言目标真实存在）。
 
+  > **另有一条「元数据」守卫（2026-09-26 批次 204，纯 node、不需起服务）**：
+  > · `test/frontmatter-freshness.test.mjs` —— **`R-83`「改了必须刷卡」机检**（`F1–F3`：`content/**` 登记行备注日期不得晚于表行日期〔git-free〕· frontmatter `last_updated` 不得早于该文件最后一次提交日、工作树干净却写超前日期亦红〔git；浅克隆因抽取面不足判红、无 git **只报不判**〕· 纯判据正负例）。⚠ **未列入 `npm run test:daily` 的显式文件清单**——该清单在 `server/package.json`，**不在本批授权面（未改）**；本件随 `npm test` / `npm run test:precommit` 的自动发现运行（`F2` 需**完整克隆**）。
+
   | 守卫 | 两次取样（秒） | 项 | 它挡什么 |
   |---|---|---|---|
   | `link-integrity` | 9.5 / 10.6 | 5 | 全站死链——`docs/**/*.html` 的 href/src（含 base href 解析）与 `docs/src/**` 的跳转目标，逐个落到真实文件 / `#锚点` / HTTP 200 |
   | `module-load` | 4.8 / 5.0 | 2 | 浏览器内 import 全部 `docs/src` 模块：语法错 / 同作用域重复声明 / 顶层未定义引用（E1）＋ 每个顶层页真的装配了数据源（E2） |
-  | `doc-consistency` | 1.9 / 1.9 | 15 | 文档口径与代码实况一致（各台 tab 数与名称 · 数据五数 · 页面数 · 旧界面名黑名单 · 单一源组件登记 · §0.2 索引与 README 清单齐备 · 授权声明带日期 · `TIMESTAMPS` 与 frontmatter 对齐 · **S14 可数事实对账**〔枚举 / 计数类数字须等于代码 / 数据实然值〕· **S15 弱清单**〔取不到权威值的只登记不判红、但带基线〕） |
+  | `doc-consistency` | 1.9 / 1.9 | 15 | 文档口径与代码实况一致（各台 tab 数与名称 · 数据五数 · 页面数 · 旧界面名黑名单 · 单一源组件登记 · §0.2 索引与 README 清单齐备 · 授权声明带日期 · `TIMESTAMPS` 与 frontmatter 对齐〔**规模＝推导式恒等式**：已比对 ＋ 各档已跳过 ＝ 登记总数，跳过逐档须有理由〕 · **S14 可数事实对账**〔枚举 / 计数类数字须等于代码 / 数据实然值〕· **S15 弱清单**〔取不到权威值的只登记不判红、但带基线〕） |
   | `permission-gate` | 1.8 / 1.8 | 9 | 资源级写角色门——branches / users / activities / notices 等越权须 403 |
   | `doc-line-ref` | 1.6 / 1.6 | 6 | `README-server.md` 的「`文件:行号`」引用逐条指向真实位置（行号失效＝后端照着找不到东西） |
   | `version-stamp` | 1.5 / 1.6 | 15 | `?v=` 版本戳单一源、只前进、补戳判据自洽（同页两个模块实例＝页面静默空白） |

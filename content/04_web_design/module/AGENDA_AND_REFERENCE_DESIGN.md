@@ -3,7 +3,7 @@ title: "会议议程与资料查询设计"
 type: design
 role: "[工程师]+[AI]"
 created: "2026-08-31"
-last_updated: "2026-09-21"
+last_updated: "2026-09-26"
 status: landed
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, docs/search.html, docs/src/modules/references.js, docs/src/entries/tabs/secretary/calendar-tab.js, server/routes/resources.js]
 ---

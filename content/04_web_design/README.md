@@ -2,7 +2,7 @@
 title: "网站设计层索引——网站系统的设计想法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-05"
+last_updated: "2026-09-25"
 status: active
 ---
 

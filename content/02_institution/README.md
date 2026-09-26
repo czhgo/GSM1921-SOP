@@ -2,7 +2,7 @@
 title: "制度层索引——支部发展和管理的制度"
 type: index
 role: "[用户]+[工程师]+[AI]"
-last_updated: "2026-09-22"
+last_updated: "2026-09-26"
 status: active
 ---
 

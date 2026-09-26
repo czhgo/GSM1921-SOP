@@ -2,7 +2,7 @@
 title: "评议与表达纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-04"
+last_updated: "2026-09-19"
 status: active
 related_files: [CLAUDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---

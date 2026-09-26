@@ -2,7 +2,7 @@
 title: "战略层索引——支部发展和管理的战略"
 type: index
 role: "[用户]+[AI]"
-last_updated: "2026-09-22"
+last_updated: "2026-09-23"
 status: active
 ---
 

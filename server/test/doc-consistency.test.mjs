@@ -403,8 +403,8 @@ test('S12 授权声明必须同行带可核验日期（防「注释伪造支书�
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// S13（2026-09-17 批次 60，支书裁定「改为派生 + 守卫比对」）：**TIMESTAMPS 表行日期必须等于该文件
-//   frontmatter 的 `last_updated`——漂移即红灯**。
+// S13（2026-09-17 批次 60，支书裁定「改为派生 + 守卫比对」；2026-09-26 批次 204 规模判据改**推导式**）：
+//   **TIMESTAMPS 表行日期必须等于该文件 frontmatter 的 `last_updated`——漂移即红灯**。
 //
 // 来源（支书 2026-09-17 已裁 · 逐字）：「**改为派生 + 守卫比对**」——`.ctx/TIMESTAMPS.md` 的登记行
 //   日期不再靠人记得同步，而是**以文件 frontmatter 为派生源**：一致即绿、漂移即红。
@@ -415,27 +415,47 @@ test('S12 授权声明必须同行带可核验日期（防「注释伪造支书�
 // 判据（**精确到日，不许「差不多」「只比年-月」**）：
 //   · 计入比对：登记行指向**真实存在的文件**、且该文件**有 frontmatter 且含 `last_updated`**；
 //     表行日期必须**逐字等于** frontmatter 的 `last_updated`（`YYYY-MM-DD`）。
-//   · 跳过（裁定认可的「只人工维护」的三块，**不报红**）：① 文件不存在 / 已删除（属「已删除文件记录」
-//     块）；② **无 frontmatter** 的文件（`.js` / `.html` / `.css` / `.json` 类）；③ 通配登记行（`*`）
-//     与目录行。
-//   · **白名单（`TIMESTAMPS_SKIP_WHITELIST`，仅 2 条，逐条给理由）**：文件**有 frontmatter 但无
-//     `last_updated` 字段**者——不静默放过（无字段即红灯），只有进白名单的才跳过：
-//       ① `.ctx/snapshots/SNAPSHOT_v3_20260502.md`——快照件用 `date` / `archived_at` 表达时点，
-//          无 `last_updated`；属历史归档件，本批不改（补字段＝改历史件体例）。
-//       ② `.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md`——归档件用 `archived_from` /
-//          `archived_date` 表达时点，无 `last_updated`；同上属历史归档件，不改。
-//     ⚠ **白名单不能更宽**：这三块之外任何一条「跳过」都必须是**机制性**的（文件不存在 / 无 frontmatter /
-//       目录 / 通配），而不是「这条对不上就不比」——后者＝把守卫写松。新增白名单须逐条写明理由。
+//   · 跳过：**每一档都必须给出机制性理由**（见下），跳过**不许静默扩大**：
+//       ① **白名单**（`TIMESTAMPS_SKIP_WHITELIST`，仅 2 条）：有 frontmatter 但无 `last_updated` 字段的
+//          历史归档件，逐条写明理由（见常量）；
+//       ② **已删除**（文件不存在）：该行**备注必须能读出「删除抄录」**（含 `🗑️` 且含「已删除 / 已合并 /
+//          迁移 / 并入」等字样）——「登记项消失」必须可解释（墓碑台账：文件已删 ＋ 删于哪一批）；
+//       ③ **无 frontmatter**：`.md` / `.markdown`（文档类）者**不得靠扩展名混过**，须逐条登记进
+//          `TIMESTAMPS_NO_FM_MD_OK`（本批实读 7 条）；其余类按**扩展名白名单**（`TIMESTAMPS_NO_FM_EXT_OK`）
+//          机械跳过（代码 / 样式 / 数据 / 资源类不带 YAML 属常态）；
+//       ④ **目录行 / 通配行（`*`）**：机制性跳过。
+//     ⚠ **白名单与两份名单都不能更宽**：新增须逐条写明理由（各带上限）。
+//
+// ★ 规模判据＝**推导式恒等式**（2026-09-26 批次 204 起；取代 2026-09-24~26 那串手改字面量）：
+//   **已比对 ＋ 各档已跳过 ＝ 登记总数**——每一行都必须落进某一档，「登记项」不会凭空空消失；
+//   某档变大时必须满足该档自己的理由约束（已删除要墓碑、无头 `.md` 要逐条登记）。
+//   **故不再需要「每合并一批就手改一个整数」**——历史值串 `60 → 58 → 55 → 54 → 51` 的「五次下调」
+//   即该设计债的实证（每次都是「删了几份带 frontmatter 的 `.md` ⇒ 可比对数下降 ⇒ 手改一个整数」），
+//   留此一句供审计；**新形态不再出现该动作**。
 //
 // ⚠ 边界（不假装覆盖）：本守卫只核「表行 ↔ frontmatter」这一对；**frontmatter 自身是否滞后于
-//   该文件最后一次提交**（批次 59 列出 16 行）由 `R-83` 的「提交后必刷」纪律管，本守卫不越界
-//   （表行仍以 frontmatter 为准，故这类会让表行跟着 frontmatter 一起滞后——本批已单列供复核）。
+//   该文件最后一次提交**由 `server/test/frontmatter-freshness.test.mjs`（`R-83` 的机检件）核，本守卫不越界。
 const TIMESTAMPS = join(ROOT, '.ctx', 'TIMESTAMPS.md');
-/** 允许「表行 ↔ frontmatter」不比的登记行（本批 2 条：有 frontmatter 但无 `last_updated` 字段的历史归档件） */
+/** 白名单：**有 frontmatter 但无 `last_updated` 字段**的历史归档件（不静默放过；新增须逐条给理由，上限 2） */
 const TIMESTAMPS_SKIP_WHITELIST = [
   '.ctx/snapshots/SNAPSHOT_v3_20260502.md', // 快照件用 date / archived_at 表达时点，无 last_updated 字段
   '.ctx/logs/archive/2026-05-early-EXECUTION_LOG.md', // 归档件用 archived_date 表达时点，无 last_updated 字段
 ];
+/** **无 frontmatter 的 markdown 登记行**：不能靠扩展名混过（`.md` 与「代码 / 样式」不同），须逐条登记理由（上限 12） */
+const TIMESTAMPS_NO_FM_MD_OK = [
+  'README.md',                                        // 仓库门面：纯 Markdown 入口，按全仓惯例不带 YAML 头
+  'README-members.md',                                // 成员版说明：同上
+  'README-server.md',                                 // 后端对接说明：同上
+  'server/README.md',                                 // 后端子目录说明：同上
+  '.ctx/ACTIVE_RULINGS.md',                           // 审计台账（`.ctx` 底座）：按 `.ctx` 体例不带 YAML 头
+  '.ctx/logs/DECISION_LOG.md',                        // 决策日志月度索引：日志件、非文档
+  '.ctx/logs/archive/2026-05-DECISION_LOG.md',        // 归档决策日志：同上
+];
+/** 无 frontmatter 时可按**扩展名**机械跳过的非文档类文件（代码 / 样式 / 数据 / 资源；无扩展名串为空） */
+const TIMESTAMPS_NO_FM_EXT_OK = new Set([
+  '.js', '.mjs', '.cjs', '.html', '.css', '.json', '.txt', '.yml', '.yaml',
+  '.ps1', '.example', '.gitignore', '.png', '.jpg', '.svg', '.ico', '.woff2', '.csv', '',
+]);
 
 test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated（漂移即红灯）', () => {
   const rows = [];
@@ -445,52 +465,75 @@ test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated
     // 5 列表行＝['', 文件路径, last_updated, 移入归档日, 角色, 备注, '']（2026-09-17 批次 61 加列后）；
     //   「周期性任务最后执行时间」表虽同为 5 列，但 c[2] 是任务名（非日期）⇒ 自然排除；「已删除文件记录」表 3 列（c.length 5）亦排除
     if (c.length !== 7 || !/^\d{4}-\d{2}-\d{2}/.test(c[2]) || c[1] === '文件路径') continue;
-    rows.push({ path: c[1], date: c[2].slice(0, 10) });
+    rows.push({ path: c[1], date: c[2].slice(0, 10), note: c[5] });
   }
+  // ① 解析非空转（**登记面规模**；注意这不是 2026-09-24~26 那个被反复下调的「可比对数」字面量）
   assert.ok(rows.length >= 200, `TIMESTAMPS 只解析到 ${rows.length} 条 5 列登记行（基线 200：2026-09-17 批次 61 实测 236 条，加列只是插入一列、行数不变）：解析或表结构异常，断言可能恒真`);
 
   const problems = [];
-  let compared = 0;
+  const compared = [];   // 逐行「表行 ↔ frontmatter」逐字相等者
+  const skips = new Map(); // 档名 → 行[]（每行恰好落一档；见下方恒等式）
+  const add = (k, r) => { if (!skips.has(k)) skips.set(k, []); skips.get(k).push(r); };
+
   for (const r of rows) {
-    if (TIMESTAMPS_SKIP_WHITELIST.includes(r.path)) continue;
+    if (TIMESTAMPS_SKIP_WHITELIST.includes(r.path)) { add('白名单（有 frontmatter 无 last_updated 的历史归档件）', r); continue; }
+    if (r.path.includes('*')) { add('通配登记行', r); continue; }
     const abs = join(ROOT, r.path);
-    if (!existsSync(abs) || statSync(abs).isDirectory()) continue; // 已删除 / 通配 / 目录行：属人工维护块
+    if (!existsSync(abs)) {
+      // ② 已删除：必须有「墓碑抄录」——否则「登记项消失」不可解释（使「跳过」不能静默扩大）
+      if (!(r.note.includes('🗑️') && /已删除|已合并|迁移|并入|拆分|拆为|改名/.test(r.note))) {
+        problems.push(`${r.path}：登记行指向的文件不存在，且备注里读不到删除抄录（须含 🗑️ 与「已删除 / 已合并 / 迁移 / 并入」等字样）——「登记项消失」必须可解释`);
+      }
+      add('已删除（文件不存在；须有墓碑抄录）', r); continue;
+    }
+    if (statSync(abs).isDirectory()) { add('目录行', r); continue; }
     let src;
-    try { src = read(abs); } catch { continue; } // 读不了的（二进制等）：不计入
+    try { src = read(abs); } catch { problems.push(`${r.path}：登记行存在但文件读不出——须核实`); add('读不出（须核实）', r); continue; }
     const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(src)?.[1];
-    if (!fm) continue; // 无 frontmatter：属人工维护块
+    if (!fm) {
+      // ③ 无 frontmatter：**文档类（.md）不得靠扩展名混过**（须逐条登记），其余类按扩展名白名单机械跳过
+      if (/\.(md|markdown)$/i.test(r.path)) {
+        if (!TIMESTAMPS_NO_FM_MD_OK.includes(r.path)) {
+          problems.push(`${r.path}：markdown 类文件无 frontmatter，且未登记进 TIMESTAMPS_NO_FM_MD_OK——新增此类须逐条给理由`);
+        }
+        add('无 frontmatter 的 markdown（须逐条登记理由）', r);
+      } else {
+        const ext = (/\.([a-z0-9]+)$/i.exec(r.path)?.[0] || '').toLowerCase();
+        if (!TIMESTAMPS_NO_FM_EXT_OK.has(ext)) {
+          problems.push(`${r.path}：无 frontmatter 且扩展名「${ext || '(无)'}」不在允许清单——跳过理由不明`);
+        }
+        add('无 frontmatter 的非文档文件（按扩展名机械跳过）', r);
+      }
+      continue;
+    }
     const fmd = /^last_updated:[ \t]*["']?(\d{4}-\d{2}-\d{2})/m.exec(fm)?.[1];
     if (!fmd) { // 有 frontmatter 却无 last_updated 字段 ⇒ 红灯（除非已进白名单）
       problems.push(`${r.path}：该文件有 frontmatter 但无 last_updated 字段——须补字段，或按理由进 TIMESTAMPS_SKIP_WHITELIST`);
-      continue;
+      add('有 frontmatter 无 last_updated（须补字段）', r); continue;
     }
-    compared++;
+    compared.push(r);
     if (r.date === fmd) continue;
     const days = Math.round((Date.parse(r.date) - Date.parse(fmd)) / 86400000);
     problems.push(`${r.path}：表行写 ${r.date}，frontmatter 写 ${fmd}（差 ${days > 0 ? '+' : ''}${days} 天）`);
   }
-  // 非空转基线（2026-09-17 批次 61 实测：236 条 5 列行 = 比对 60 + 无 frontmatter 159 + 已删除/通配 12
-  //   + 目录 3 + 白名单 2；表结构由 4 列改 5 列只是**插入一列**，登记行总数与各档计数均不变）；掉到基线以下＝口径被写松（大量行被静默跳过）
-  //   ⚠ 新增的「移入归档日」列**不参与**「表行 ↔ frontmatter」比对（它无 frontmatter 对应物）
-  //   下限 60 → 58（2026-09-24 · `P.16` 文档合并批）：有 frontmatter 的 `.md` 被合并删除后，
-  //   其登记行按既有跳过条件（文件不存在）自然不再比对 ⇒ 下限随真实可比对数下调（本条只防「口径被写松」，不锁文件数）。
-  //   下限 58 → 55（2026-09-25 · `P.16` 第四批《部署与对外对接》）：同因——本批再删 3 份带 frontmatter 的
-  //   `.md`（`AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION`）。
-  //   下限 55 → 54（2026-09-26 · `P.16` 第五批《支部组织与委员体系》）：同因——本批再删 1 份带 frontmatter
-  //   的 `.md`（`content/02_institution/FLAT_ORGANIZATION_DESIGN.md` 全文并入
-  //   `COMMISSIONER_DUTY_FRAMEWORK.md` 的 §G）；该文件有 frontmatter，其登记行按既有跳过条件
-  //   （文件不存在）自然不再比对 ⇒ 可比对数 55 → 54。
-  //   ⚠ **这是第四次下调**（60→58→55→54）⇒「每合并一批就要改一个字面量」本身是设计债：真正的防线是下面的
-  //   `problems` 必须为空（漂移检测）与上面的 `rows.length >= 200`（解析非空转）；本字面量只是二级防呆。
-  //   建议后续改为**推导式**（由「登记行中文件仍存在者」的条数派生）⇒ 已登记为待办，未在本次擅改判据类型。
-  //   下限 54 → 51（2026-09-26 · `P.16` 第六批《运行与协作规范》）：同因——本批再删 **3** 份带 frontmatter
-  //   的 `.md`（`content/03_doc_system/PROCESS_GUIDE.md` / `content/03_doc_system/USAGE_POLICY.md` 并入
-  //   `OPERATIONS_GUIDE.md`；`content/02_institution/ROLE_CLASSIFICATION.md` 迁入并并入 `OPERATIONS_GUIDE.md §24–§31`）；
-  //   该三文件均有 frontmatter，其登记行按既有跳过条件（文件不存在）自然不再比对 ⇒ 可比对数 54 → 51。
-  //   ⚠ **这是第五次下调**（60→58→55→54→51）⇒ **仍不是放宽判据**（真防线仍是 `problems` 为空与 `rows >= 200`）；
-  //   本批**未**改判据类型（保持字面量二级防呆），只按下调先例同步字面量。
-  assert.ok(compared >= 51,
-    `S13 只比对到 ${compared} 行（基线 51）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
+
+  // ★ 规模判据＝**推导式恒等式**（2026-09-26 批次 204 起，取代 2026-09-24~26 那串手改字面量）：
+  //   **已比对 ＋ 各档已跳过 ＝ 登记总数** —— 每一行都必须落进某一档（未分类 ⇒ 本式不成立 ⇒ 红灯）。
+  //   某档变大时，其**档内理由约束**（已删除要墓碑 / 无头 `.md` 要登记）会替人说话 ⇒ 不再需要手改整数。
+  const skipTotal = [...skips.values()].reduce((a, b) => a + b.length, 0);
+  assert.equal(compared.length + skipTotal, rows.length,
+    `S13 规模恒等式不成立：已比对 ${compared.length} ＋ 已跳过 ${skipTotal} ≠ 登记总数 ${rows.length}（有登记行未落进任何一档）`);
+
+  // 两份名单：不得僵尸化（改好后须撤下），也不得悄悄变宽
+  const zombieWl = TIMESTAMPS_SKIP_WHITELIST.filter((p) => !rows.some((r) => r.path === p));
+  assert.deepEqual(zombieWl, [], `TIMESTAMPS_SKIP_WHITELIST 里有已不在登记面的路径（僵尸白名单，请删除）：\n  ${zombieWl.join('\n  ')}`);
+  assert.ok(TIMESTAMPS_SKIP_WHITELIST.length <= 2,
+    `TIMESTAMPS_SKIP_WHITELIST 涨到 ${TIMESTAMPS_SKIP_WHITELIST.length} 条（上限 2）：白名单只许逐条给理由、不许悄悄变宽`);
+  const zombieMd = TIMESTAMPS_NO_FM_MD_OK.filter((p) => !rows.some((r) => r.path === p));
+  assert.deepEqual(zombieMd, [], `TIMESTAMPS_NO_FM_MD_OK 里有已不在登记面的路径（僵尸名单，请删除）：\n  ${zombieMd.join('\n  ')}`);
+  assert.ok(TIMESTAMPS_NO_FM_MD_OK.length <= 12,
+    `无 frontmatter 的 markdown 登记行名单涨到 ${TIMESTAMPS_NO_FM_MD_OK.length} 条（上限 12）：新增此类须逐条给理由`);
+
   assert.deepEqual(problems, [],
     `TIMESTAMPS.md 表行与文件 frontmatter 漂移（口径：**以 frontmatter 为准**，把表行日期改成 frontmatter 的值）：\n  ${problems.join('\n  ')}`);
 });

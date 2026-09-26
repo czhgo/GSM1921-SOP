@@ -3,7 +3,7 @@ title: "About 页面设计系统——超参数设定原则"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-05"
+last_updated: "2026-09-26"
 status: active
 related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYSTEM.md, DEPLOYMENT_GUIDE.md]
 ---
