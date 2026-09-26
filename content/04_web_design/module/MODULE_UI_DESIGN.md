@@ -159,9 +159,9 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 模板资产模块负责**存储与版本管理**，「党建」Tab 分组负责**引用与填充**。
 
-#### 与 ROLE_CLASSIFICATION.md 的关联
+#### 与 OPERATIONS_GUIDE.md（文件角色分类体系）的关联
 
-引用渲染机制见 [ROLE_CLASSIFICATION.md 对应章节](../../02_institution/ROLE_CLASSIFICATION.md)。
+引用渲染机制见 [OPERATIONS_GUIDE.md §27 协作方式](../../03_doc_system/OPERATIONS_GUIDE.md)（原 `ROLE_CLASSIFICATION.md`，2026-09-26 批次 202 迁入《运行与协作规范》）。
 
 ### 实施细则
 
@@ -345,7 +345,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) | 视觉规范权威源（色彩/字体/间距/卡片样式） |
 | [DATA_MODEL.md](../data/DATA_MODEL.md)（§三） | 三级管理架构数据流 |
 | [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) | 支委系统设计 |
-| [ROLE_CLASSIFICATION.md](../../02_institution/ROLE_CLASSIFICATION.md) | 制度文件渲染（[用户] 文件引用渲染机制） |
+| [OPERATIONS_GUIDE.md §24–§31](../../03_doc_system/OPERATIONS_GUIDE.md) | 制度文件渲染（[用户] 文件引用渲染机制；原 `ROLE_CLASSIFICATION.md`，2026-09-26 批次 202 迁入《运行与协作规范》） |
 | [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) | 系统角色权限矩阵（模块可见性/权限依据，2026-09-05 自 ROLE_CLASSIFICATION §九 迁出） |
 | [SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md) | 日历视图范围限定（§B.3） |
 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) | 数据变更规则 |

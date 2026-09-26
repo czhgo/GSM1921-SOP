@@ -34,9 +34,9 @@ const REPLACE_ENTRIES = [
     files: ['content/02_institution/SYSTEM_ROLE_PERMISSION.md'],
   },
   {
-    group: '术语与使用策略（content/03_doc_system/USAGE_POLICY.md）',
-    desc: '系统内术语说明/使用策略的制度文档（含会议类型、考勤规则等说明）；配套 docs/src/core/policy-defaults.js 的 branch-default 项。',
-    files: ['content/03_doc_system/USAGE_POLICY.md'],
+    group: '术语与使用策略（content/03_doc_system/OPERATIONS_GUIDE.md §19–§23《运行与协作规范》）',
+    desc: '系统内术语说明/使用策略的制度文档（含会议类型、考勤规则等说明；2026-09-26 批次 202 起原 USAGE_POLICY.md 并入 OPERATIONS_GUIDE.md 的 §19–§23）；配套 docs/src/core/policy-defaults.js 的 branch-default 项。',
+    files: ['content/03_doc_system/OPERATIONS_GUIDE.md'],
   },
   {
     group: '制度 SOP（content/02_institution/sop/）',

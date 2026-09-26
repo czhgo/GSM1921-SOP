@@ -4,7 +4,7 @@ type: governance
 role: "[用户]+[AI]"
 last_updated: "2026-09-22"
 status: active
-related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/ROLE_CLASSIFICATION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/USAGE_POLICY.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
+related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/insights/党支部管理与实务经验沉淀.md]
 ---
 
 # 党支书工作交接文档
@@ -83,7 +83,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 >
 > 其中第（2）点「组织性如何判定的过程」，由「两个向度」（P-014）与「探索机会」（P-015）补充展开——这正是「管理事，服务人」完整叙事的关键一环。
 >
-> **AI 展开原则（原P-046，2026-07-16 融入）**：AI 作为支书的秘书，写出的话应该就是「grill 支书后的话」——经过与支书的思想交互、反复锤炼，秘书的展开与支书的原话在精神上应无张力。读者无需看到「这段是支书的，那是 AI 的」区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代支书会用人话（如「核心价值」替代「宝贵机会」），或者方向对但措辞走形，或者精神重心偏移，或者私加支书没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是支书说的还是秘书写的——这才是正确的状态。规范落地：[USAGE\_POLICY.md §二](../03_doc_system/USAGE_POLICY.md) + [OPERATIONS\_GUIDE.md §13.6](../03_doc_system/OPERATIONS_GUIDE.md)。
+> **AI 展开原则（原P-046，2026-07-16 融入）**：AI 作为支书的秘书，写出的话应该就是「grill 支书后的话」——经过与支书的思想交互、反复锤炼，秘书的展开与支书的原话在精神上应无张力。读者无需看到「这段是支书的，那是 AI 的」区隔标注，因为吃透精神后两者本应一致。问题只在于 AI 没吃透就写了——用自己概括的术语替代支书会用人话（如「核心价值」替代「宝贵机会」），或者方向对但措辞走形，或者精神重心偏移，或者私加支书没说的逻辑链。排查的目标是找到没吃透的地方，修正到吃透。吃透后的重写，读者分不出是支书说的还是秘书写的——这才是正确的状态。规范落地：[OPERATIONS\_GUIDE.md §20](../03_doc_system/OPERATIONS_GUIDE.md) + [OPERATIONS\_GUIDE.md §13.6](../03_doc_system/OPERATIONS_GUIDE.md)。
 >
 > **与 CLAUDE.md H100 的关系**：本条是元命题记录，CLAUDE.md 甲部 H100「项目产出声明」承载该元命题的治理层锚点。详细叙事见 [DEVELOPMENT\_PATH.md](DEVELOPMENT_PATH.md) 第一章。
 
@@ -407,7 +407,7 @@ related_files: [CLAUDE.md, ARCHITECTURE.md, content/01_strategy/DEVELOPMENT_PATH
 
 **已迁出/已删除论断**（不再保留在本文件）：
 
-- 原P-006（党建与党务工作理论——党建工作不等同于创新探索，党务工作不等同于合规运行，区分的是工作内容）：2026-08-09 迁出至 `content/03_doc_system/USAGE_POLICY.md` §1.1.1（T1 官方定义知识）+ `content/insights/党支部管理与实务经验沉淀.md` §1.1（本质属性判定）
+- 原P-006（党建与党务工作理论——党建工作不等同于创新探索，党务工作不等同于合规运行，区分的是工作内容）：2026-08-09 迁出至 `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md` §1.1.1，2026-09-26 批次 202 并入）+ `content/insights/党支部管理与实务经验沉淀.md` §1.1（本质属性判定）
 - 原P-007（党建与党务——都是「管理事，服务人」的工作）：2026-08-09 迁出至 `content/insights/党支部管理与实务经验沉淀.md` §1.2（同源不同视角）；作为 meta 级论断从汇编删除——区分两分法给成员带来理解压力，全部文档统一使用 T1 官方定义叙述
 - 原P-011：2026-08-09 并入 P-010 并弃用比喻
 - 原P-013（提出需求与招募统筹分离——发起是提出需求，招募是统筹执行）：2026-08-09 并入 P-012 分工的运行保障（提出需求与统筹执行）；2026-08-28 该原话随设计系统内容移出至 COMMISSIONER_DUTY_FRAMEWORK §F.6

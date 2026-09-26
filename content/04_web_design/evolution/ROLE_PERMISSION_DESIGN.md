@@ -69,7 +69,7 @@ status: landed
 | S2 | 6 个工作台能力声明 `requiredRoles`（visitor/leader/org/prop/disc + 新建 `secretary-workspace`） | ✅ |
 | S3 | 支书入口 tab 清单从硬编码改为经能力注册表读取（renderCtx 模式，与组长入口同构） | ✅ |
 | S4 | COMMISSIONER_ROLES 双定义语义注释区分（constants 条条委员 / auth 授权链），代码不改行为 | ✅ |
-| S5 | SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表入库（13 键 = 10 业务键 + 3 遗留键；含 2026-09-02 增补 `party-staff`；2026-09-05 随 §九 迁入该文件，原 ROLE_CLASSIFICATION.md §9a0）+ 访客不属于角色 + 语义约定 | ✅ |
+| S5 | SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表入库（13 键 = 10 业务键 + 3 遗留键；含 2026-09-02 增补 `party-staff`；2026-09-05 随 §九 迁入该文件，原 ROLE_CLASSIFICATION.md §9a0〔该文件 2026-09-26 批次 202 已并入 `03_doc_system/OPERATIONS_GUIDE.md` §24–§31〕）+ 访客不属于角色 + 语义约定 | ✅ |
 
 ### 4.2 后续步骤（支书 2026-08-30 裁定：实施无行为变更项 S6/S7/S8/S10；S9 文档登记映射不改代码）
 

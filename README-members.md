@@ -134,7 +134,7 @@ npm start
 | 架构是什么 | [ARCHITECTURE.md](content/03_doc_system/ARCHITECTURE.md) |
 | 制度在哪 | [content/02_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md) |
 | 理论/为什么 | [SECRETARY_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) + [DEVELOPMENT_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [content/insights/](content/insights/) |
-| 术语不明 | [USAGE_POLICY.md](content/03_doc_system/USAGE_POLICY.md)（全仓库术语权威源） |
+| 术语不明 | [OPERATIONS_GUIDE.md §19](content/03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》全仓库术语权威源） |
 | 系统怎么验证 | `cd server && npm test`，测试说明见 [server/README.md](server/README.md) |
 
 ---
@@ -195,7 +195,7 @@ npm start
 
 1. **数据**：人员/活动/通知/专班/考勤/档案集中在 `docs/src/mock/`，整体替换即换组织（`accounts.js` 换登录账号）
 2. **角色与权限**：角色清单单一事实源 `docs/src/core/constants.js`，系统自动派生侧边栏/配色/能力门
-3. **配色与术语**：设置中心「外观」换明暗主题与强调色（侧边栏右下角 设置 → 外观，全站即时生效）；术语权威源 `content/03_doc_system/USAGE_POLICY.md`（党建红/党徽金为固定合规底线）
+3. **配色与术语**：设置中心「外观」换明暗主题与强调色（侧边栏右下角 设置 → 外观，全站即时生效）；术语权威源 `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》；党建红/党徽金为固定合规底线）
 4. **支部配置**：侧边栏右下角 设置 → 支部治理（支书 / 副支书，副书同权）或 wizard.html 内分步向导可视化完成（模块启停、分工、术语指引、验证重置）
 5. **正式起步**：试用后用 `?reset=init` 一键初始化（清业务数据、留组织骨架），或转 API 形态持久化
 

@@ -4,7 +4,7 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-09-17"
 status: active
-related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/SSOT_INDEX.md]
+related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/ARCHITECTURE.md]
 ---
 
 # 文档治理与一改具改（05 AI 协作方法论层分篇）
@@ -28,7 +28,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03
 
 ## 分层体系冲突记录（原 KNOWN_PITFALLS §7）
 
-> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §1.4](../03_doc_system/OPERATIONS_GUIDE.md#14-一致性检查规范)，定期扫描任务见 [PROCESS_GUIDE.md §17.2 Q4](../03_doc_system/PROCESS_GUIDE.md#172-周期性任务清单)。
+> **本节聚焦仓库 7 套分层体系（5 类知识类型 / T1-T3 术语层级 / 热温冷三层 / content/ 目录结构层级 / 文件角色分类 / insights 5 类知识类型结构 / ARCHITECTURE.md 五层架构）的命名、引用、混淆判例**。一致性检查规范见 [OPERATIONS_GUIDE.md §1.4](../03_doc_system/OPERATIONS_GUIDE.md#14-一致性检查规范)，定期扫描任务见 [OPERATIONS_GUIDE.md §17.2 Q4](../03_doc_system/OPERATIONS_GUIDE.md#172-周期性任务清单)。
 
 ### 7.1 L1/L2/L3 与 T1/T2/T3 混淆事件（已解决）
 
@@ -83,7 +83,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03
 
 命名构成认知框架，而非单纯标签——词汇的精确性影响认知的清晰度，改名揭示"这个名字对应什么样的认知"。
 
-**命名体系要区分官方术语与内部约定**：官方术语（制度文件、上级文件中的原词）直接采用权威定义、不可改写；内部约定词在引用时标注其约定性质，不得提升为官方标准——读者若把约定词当作官方术语，会按官方语义理解而产生认知偏差。本项目术语层级的完整定义见 [USAGE_POLICY.md §1.7](../03_doc_system/USAGE_POLICY.md)。
+**命名体系要区分官方术语与内部约定**：官方术语（制度文件、上级文件中的原词）直接采用权威定义、不可改写；内部约定词在引用时标注其约定性质，不得提升为官方标准——读者若把约定词当作官方术语，会按官方语义理解而产生认知偏差。本项目术语层级的完整定义见 [OPERATIONS_GUIDE.md §19.5 术语权威层级](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》；原 `USAGE_POLICY.md`，2026-09-26 批次 202 并入 §19.5）。
 
 **判断路由（什么条件下该改名）**：①名字承载技术隐喻而使用者是日常用户——换日常用语；②导航层级冗余——以板块合并消除层级；③命名与真实结构/工作形态不一致——改中立表述。仅当名字造成认知偏差时才改，纯审美偏好不改。
 

@@ -3,7 +3,7 @@ title: "工程化评估与改造行动线"
 type: audit_report
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-25"
+last_updated: "2026-09-26"
 status: active
 related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md, content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md, content/04_web_design/module/SOP_WEBSITE_GUIDE.md, content/04_web_design/deploy/DEPLOYMENT_GUIDE.md, .ctx/REVIEW_QUEUE.md, CLAUDE.md, content/03_doc_system/DOC_MAP.md]
 ---
@@ -281,7 +281,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 单一源**组件**登记（新增件须登记） | `README.md` 开发路径 · 单一源组件登记处 |
 | 本轮/历轮的**原始动作记录** | `.ctx/logs/2026-09-EXECUTION_LOG.md`（批次条目） |
 | 评审遗留与特批记录 | `.ctx/REVIEW_QUEUE.md`（Q 台账 + 附录） |
-| 术语与口径唯一化 | `content/03_doc_system/USAGE_POLICY.md`（母本表见 `ARCHITECTURE.md §十`；**2026-09-25 批次 179 改准**：原 `SSOT_INDEX.md` 已并入该处） |
+| 术语与口径唯一化 | `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md`，2026-09-26 批次 202 并入。母本表见 `ARCHITECTURE.md §十`；**2026-09-25 批次 179 改准**：原 `SSOT_INDEX.md` 已并入该处） |
 | 当前版本基线 | `.ctx/SNAPSHOT.md`（版本里程碑 + 生成段） |
 
 ### 5.4 每批任务的入口顺序（三步，谁改谁负责）

@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-09-25"
+last_updated: "2026-09-26"
 status: "ACTIVE"
 date: "2026-09-15"
 version: "v53"
@@ -72,8 +72,8 @@ GSM1921-SOP/
 │   └── data.db                 ← SQLite 单文件库（运行时产物）
 ├── content/
 │   ├── 01_strategy/            ← [用户] 战略路线层（DEVELOPMENT_PATH + SECRETARY_DIRECTIVES（支书原话 P-001~P-016 基线，原 SECRETARY_PRONOUNCEMENTS 更名）+ references/）
-│   ├── 02_institution/         ← [用户] 组织制度层（sop/ + COMMISSIONER_DUTY_FRAMEWORK + FLAT_ORGANIZATION_DESIGN + ROLE_CLASSIFICATION + SYSTEM_ROLE_PERMISSION）
-│   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE《架构与单一事实源》+ OPERATIONS_GUIDE + PROCESS_GUIDE + USAGE_POLICY + DOC_MAP ＋ `工作模板/`；**2026-09-25 批次 179 三份合一后**，原 `SSOT_INDEX` / `SERVICE_CATALOG` **已并入 `ARCHITECTURE.md` 的 §十 / §十一**）
+│   ├── 02_institution/         ← [用户] 组织制度层（sop/ + COMMISSIONER_DUTY_FRAMEWORK + SYSTEM_ROLE_PERMISSION；原 FLAT_ORGANIZATION_DESIGN 已于 2026-09-26 批次 201 并入 COMMISSIONER_DUTY_FRAMEWORK §G、原 ROLE_CLASSIFICATION 已于 2026-09-26 批次 202 迁入 03_doc_system/OPERATIONS_GUIDE.md §24–§31）
+│   ├── 03_doc_system/          ← [工程师] 系统治理层（ARCHITECTURE《架构与单一事实源》+ OPERATIONS_GUIDE《运行与协作规范》+ DOC_MAP ＋ `工作模板/`；**2026-09-26 批次 202 四份合一后**，原 `PROCESS_GUIDE` / `USAGE_POLICY` 与自 02 迁入的 `ROLE_CLASSIFICATION` **已并入 `OPERATIONS_GUIDE.md`**（§15–§18 / §19–§23 / §24–§31）并删除；**2026-09-25 批次 179 三份合一后**，原 `SSOT_INDEX` / `SERVICE_CATALOG` **已并入 `ARCHITECTURE.md` 的 §十 / §十一**）
 │   ├── 04_web_design/          ← [工程师] 设计理念层（data/ deploy/ design-system/ evolution/ module/ 五子目录；DESIGN_SYSTEM/SOP_WEBSITE_GUIDE/PARTY_COMMITTEE_DESIGN 等；**`design-system/` 2026-09-24 批次 172 四份合一后只剩 `DESIGN_SYSTEM.md`**（原 `COMPONENT_SPEC` / `COLOR_SYSTEM` / `CLICK_ROUTING` 已并入）· **`data/` 2026-09-23 批次 164 合并后只剩 `DATA_MODEL.md`**（原 `DATA_FLOW` 已并入）· **`deploy/` 2026-09-25 批次 181 四份合一后只剩 `DEPLOYMENT_GUIDE.md`**《部署与对外对接》（原 `AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION` 已并入；`D-645`）；工程化评估已迁 .ctx/（ENGINEERING_ASSESSMENT.md），2026-09-08（更名 2026-09-09））
 │   ├── 05_ai_coding/           ← [工程师] AI编码层（DOCUMENT_GOVERNANCE / CONTEXT_MANAGEMENT / REVIEW_AND_EXPRESSION / TEST_AND_VERIFICATION 等分篇）
 │   ├── insights/               ← [用户]+[AI] 经验沉淀（党支部管理与实务经验沉淀.md + README）
@@ -148,7 +148,7 @@ GSM1921-SOP/
 
 | 理论 | 核心公式 | 详细文档 |
 |------|---------|---------|
-| 组织性 | 在「管理事，服务人」中获得成长；组织性是资源而非门槛 | USAGE_POLICY.md §一（2026-09-03 支书裁定）+ insights 党支部管理与实务经验沉淀.md §1 |
+| 组织性 | 在「管理事，服务人」中获得成长；组织性是资源而非门槛 | OPERATIONS_GUIDE.md §19（《运行与协作规范》术语使用规范；2026-09-03 支书裁定；原 USAGE_POLICY.md 已于 2026-09-26 批次 202 并入）+ insights 党支部管理与实务经验沉淀.md §1 |
 | 专班 | 活动之外考察积极分子的载体；赋权是运行支撑机制，工作量记录是运行保障机制 | COMMISSIONER_DUTY_FRAMEWORK.md §A.3~A.8 |
 | 赋权关系链 | 党支书→支委/党小组组长；党小组组长→组织者/深度参与者；组织委员→专班成员 | COMMISSIONER_DUTY_FRAMEWORK.md §C |
 | SOP 母本·系统实施 | 文本SOP是母本，系统是实施层；同步有边界（母本优先，先改 SOP 再同步系统，避免死循环） | SOP_WEBSITE_GUIDE.md §C.2（原 SOP_WEB 更名） |

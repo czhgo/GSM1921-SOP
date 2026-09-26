@@ -702,7 +702,7 @@ function _step4Html(S, branch) {
     ['演示数据与人员档案', 'docs/src/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
     ['系统常量', 'docs/src/core/constants.js（角色/文案/活动类型/产出块目录）'],
     ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
-    ['术语/使用策略', 'content/03_doc_system/USAGE_POLICY.md + docs/src/core/policy-defaults.js'],
+    ['术语/使用策略', 'content/03_doc_system/OPERATIONS_GUIDE.md §19–§23（《运行与协作规范》）+ docs/src/core/policy-defaults.js'],
     ['制度 SOP', 'content/02_institution/sop/（支书/组织/宣传/纪检/组长指南）'],
     ['配色系统', 'content/04_web_design/design-system/DESIGN_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
     ['支部默认策略', 'docs/src/core/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],

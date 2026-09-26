@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-09-25"
+last_updated: "2026-09-26"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -17,7 +17,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 > **职能（2026-09-17 立，规范见 [OPERATIONS_GUIDE §5.1](content/03_doc_system/OPERATIONS_GUIDE.md)）**
 > **回答什么问题**：「**AI 每次开工必须遵守什么**」——通用的工作方式与指导思想、硬性规则（甲部）、本轮具体执行事项（乙部）、待支书决策事项（丙部）。判定「一个做法算不算违规」时，也以本文件为准。
-> **不回答什么**：① **判例的完整论证过程**——本文件只留「**规则 + 守卫 + 状态 + 指针**」一行，详版在 `.ctx/REVIEW_QUEUE.md`（未闭环）与 `.ctx/logs/`（已闭环归档）；② **工程现状与评分** → `.ctx/ENGINEERING_ASSESSMENT.md`；③ **文档目录与各文件职能** → `content/03_doc_system/DOC_MAP.md`；④ **系统架构细节** → `content/03_doc_system/ARCHITECTURE.md`；⑤ **测试清单与运行方式** → `README.md` / `server/README.md`；⑥ **术语与命名** → `content/03_doc_system/USAGE_POLICY.md`。
+> **不回答什么**：① **判例的完整论证过程**——本文件只留「**规则 + 守卫 + 状态 + 指针**」一行，详版在 `.ctx/REVIEW_QUEUE.md`（未闭环）与 `.ctx/logs/`（已闭环归档）；② **工程现状与评分** → `.ctx/ENGINEERING_ASSESSMENT.md`；③ **文档目录与各文件职能** → `content/03_doc_system/DOC_MAP.md`；④ **系统架构细节** → `content/03_doc_system/ARCHITECTURE.md`；⑤ **测试清单与运行方式** → `README.md` / `server/README.md`；⑥ **术语与命名** → `content/03_doc_system/OPERATIONS_GUIDE.md` §19–§23（《运行与协作规范》使用规范；原 `USAGE_POLICY.md`，2026-09-26 批次 202 并入）。
 > **谁什么时候读**：`[工程师]+[AI]`，**每次会话必读**（active）；支书按需查某条规则的出处。
 
 ***
@@ -154,7 +154,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 ① 描述**当前状态/规则**（非历史过程）；② 内容**可执行引用**（读即用）；③ 变更立即影响后续任务。
 
 - **对照**：知识资产（`content/insights/`，人类阅读、非 AI 活跃上下文）；过程产物（spec/plan/一次性脚本，任务闭环即归档或删除）
-- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/OPERATIONS_GUIDE/DOC_MAP/USAGE_POLICY〔**2026-09-25 批次 179 改准**：原列的 `SSOT_INDEX` 与 `SERVICE_CATALOG` 已由本批**三份合一**并入 `ARCHITECTURE.md` 的 §十 / §十一〕）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/DATA_MODEL/COMMISSIONER 相关在动对应代码/数据时读〔**2026-09-24 批次 170–174 改准**：原列的 `DATA_FLOW` 已于批次 164 并入 `DATA_MODEL`、`COMPONENT_SPEC` 已于批次 172 并入 `DESIGN_SYSTEM`〕；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——FILE_OPERATION_RULES/TEST_AND_VERIFICATION/DOCUMENT_GOVERNANCE/CONTEXT_MANAGEMENT【active】/REVIEW_AND_EXPRESSION——+ DATA_CONSISTENCY_CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
+- **当前上下文文件清单**：本文件（甲/乙/丙部）· `.ctx/SNAPSHOT.md`（当前基线）· `.ctx/TIMESTAMPS.md`（文件注册表）· `.ctx/REVIEW_QUEUE.md`（评议队列）· `content/03_doc_system/`（ARCHITECTURE/OPERATIONS_GUIDE〔**《运行与协作规范》**，**2026-09-26 批次 202**：`PROCESS_GUIDE`＋`USAGE_POLICY`＋迁入的 `ROLE_CLASSIFICATION` 已并入本文件；原列名 `USAGE_POLICY` 现为 §19–§23〕/DOC_MAP〔**2026-09-25 批次 179 改准**：原列的 `SSOT_INDEX` 与 `SERVICE_CATALOG` 已由本批**三份合一**并入 `ARCHITECTURE.md` 的 §十 / §十一〕）· `content/04_web_design/`（设计知识防逃逸、按需活跃：DESIGN_SYSTEM/DATA_MODEL/COMMISSIONER 相关在动对应代码/数据时读〔**2026-09-24 批次 170–174 改准**：原列的 `DATA_FLOW` 已于批次 164 并入 `DATA_MODEL`、`COMPONENT_SPEC` 已于批次 172 并入 `DESIGN_SYSTEM`〕；evolution/DESIGN_METHODOLOGY.md 设计决策前读）· `content/05_ai_coding/`（AI 协作方法论层：README + 5 分篇——FILE_OPERATION_RULES/TEST_AND_VERIFICATION/DOCUMENT_GOVERNANCE/CONTEXT_MANAGEMENT【active】/REVIEW_AND_EXPRESSION——+ DATA_CONSISTENCY_CHECKLIST.md 手册；read_strategy 按 README 标注读）· `server/README.md`（测试/部署）· 项目记忆（跨会话）
 - **现行有效裁定速查**：`.ctx/ACTIVE_RULINGS.md`（**现行有效裁定**的只读投影——按主题分组、每条一句话结论 ＋ `D-xxx` 指针；**权威源＝`.ctx/logs/2026-MM-DECISION_LOG.md`**，口径冲突以权威源为准）
 - **待落地实施批次计划**：待落地的归组、批次顺序与依赖证据见 `.ctx/REVIEW_QUEUE.md` 的「实施批次计划（2026-09-18 批次 79 立）」节（条数以该节「逐条归组」实测为准——不写死数字；全文与未做清单在 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 79）
 - **失忆闭环指针**：支书裁决落活层闭环规则见 `content/05_ai_coding/CONTEXT_MANAGEMENT.md`
@@ -196,7 +196,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 **吸收外部输入原则**：当支书或外部来源提供新的评议/文档/制度更新时，必须识别变更范围，归位到权威源，并触发一改具改。具体操作流程见 guides。
 
-→ 详细操作流程见 [PROCESS\_GUIDE.md §16](content/03_doc_system/PROCESS_GUIDE.md)
+→ 详细操作流程见 [OPERATIONS\_GUIDE.md §16（《运行与协作规范》）](content/03_doc_system/OPERATIONS_GUIDE.md)
 
 ### H30.2 设计母本与子本
 
@@ -209,7 +209,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | 理论→工程  | `content/{01_strategy,02_institution,03_doc_system,04_web_design,05_ai_coding}/*.md` | `docs/src/*.js`                | guides 定义设计，代码实现设计                                           |
 | 路线图→执行 | `CLAUDE.md` 乙部                                                                       | `.ctx/logs/*-EXECUTION_LOG.md` | 完成事项从乙部删除，写入执行日志                                             |
 | 经验→沉淀  | `.ctx/logs/DECISION_LOG.md`                                                          | `content/insights/*.md`        | 决策日志定期沉淀为经验沉淀                                                |
-| 术语→全仓  | `content/03_doc_system/USAGE_POLICY.md`                                              | 全仓库所有文件                        | 术语变更触发一改具改                                                   |
+| 术语→全仓  | `content/03_doc_system/OPERATIONS_GUIDE.md` §19（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md` 已并入）                                              | 全仓库所有文件                        | 术语变更触发一改具改                                                   |
 
 ### H30.3 Guides 与 Insights 的定位
 
@@ -244,16 +244,16 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 □ 1. 确认修改范围：哪些文件受影响？
 □ 2. 检查钩稽：CLAUDE.md / guides 中是否有对该文件的引用？
 □ 3. 一改具改：全仓库搜索相关引用，逐一同步更新；完成后 Grep 验证零残留（H30.1）
-□ 4. 术语合规：修改内容是否符合 USAGE_POLICY.md §一？
+□ 4. 术语合规：修改内容是否符合 OPERATIONS_GUIDE.md §19（《运行与协作规范》术语使用规范；原 USAGE_POLICY.md）？
 □ 5. 母本优先：若涉及 SOP 制度变更，先改 content/02_institution/sop/ 再改代码
 □ 6. YAML 更新：🔴 任何有 YAML frontmatter 的文件被修改后，必须更新 last_updated 字段。子任务修改文件时同样必须遵守。遗漏即违规。
 □ 7. 记录日志：写入 .ctx/logs/YYYY-MM-EXECUTION_LOG.md
 □ 8. 乙部更新：若涉及执行事项，更新 CLAUDE.md 乙部
-□ 9. 表达合规：若本次修改涉及支书原话展开，必须调用 USAGE_POLICY.md §二（AI 展开原则，含 2.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
+□ 9. 表达合规：若本次修改涉及支书原话展开，必须调用 OPERATIONS_GUIDE.md §20（《运行与协作规范》AI 展开原则，含 20.3 五条可复用检查规则）自查（"而非"警惕/"所以"因果链/反面假设/私加强调/元叙事标签）
 □ 10. 反论合规：若本次修改涉及反论（"为什么不是..."），必须按 OPERATIONS_GUIDE.md §11.6 自检清单逐项验证，含§11.7历史范畴检查（被否定项是否仍在使用）和§11.8 AI治理技术特殊性（涉及AI工具使用时需联网补充）
 □ 11. 概念命名合规：若本次修改涉及概念命名或标签创建，必须按 H40.1 概念命名守则自检
 □ 12. 设计原则自检（EP-06 修复，2026-08-30 AI逃逸捕捉第三轮）：若本次修改涉及 UI/工作台/数据流/组件/颜色，必须对照 DESIGN_SYSTEM.md 相关原则的「可验证条件」与 DESIGN_SYSTEM.md §十（点击落点映射）分层落点自检；改颜色必须过 DESIGN_SYSTEM §7.3 深色自查 9 条
-□ 13. 文档目的达成度自查（2026-09-05 专项⑨）：若本次新建/大改 content 文档，按 PROCESS_GUIDE.md §18.8 五类判据自查——宣称目的真的实现了吗（不是形式主义小点）；新文档验收用「读完能做什么」判据
+□ 13. 文档目的达成度自查（2026-09-05 专项⑨）：若本次新建/大改 content 文档，按 OPERATIONS_GUIDE.md §18.8（《运行与协作规范》）五类判据自查——宣称目的真的实现了吗（不是形式主义小点）；新文档验收用「读完能做什么」判据
 ```
 
 ### H40.1 概念命名守则 \[工作表达]
@@ -360,7 +360,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 >
 > **元原则**（支书 2026-08-09）：**支书所有的原话都是一个 big picture 下的不同侧面，一定要去体悟这种统一性和一致性，对支书的原话融会贯通！**——评议支书原话时，须把每条原话放回整个论述体系，理解它与其他原话的统一性和关联（区分"论述的扩充"与"表达的修正"），而非孤立地逐条审视。支书原话会随时间和实践深入而更精确：①可能和原来的表达不同（要反复确认，取其精华、去其糟粕）；②大部分情况是对既有论述的扩充（支书在阅读 AI 扩充后意识到表达不清楚连 AI 都会误解，何况于人，故会强调这些问题）。
 >
-> **细节指针**：抽样规则、预审维度体系、评议记录格式、概念复用性扫描流程、三类评议类型速查（反论/理论复用/补丁审查）的完整规定见 [PROCESS\_GUIDE.md §18](content/03_doc_system/PROCESS_GUIDE.md)。
+> **细节指针**：抽样规则、预审维度体系、评议记录格式、概念复用性扫描流程、三类评议类型速查（反论/理论复用/补丁审查）的完整规定见 [OPERATIONS\_GUIDE.md §18（《运行与协作规范》）](content/03_doc_system/OPERATIONS_GUIDE.md)。
 >
 > **向支书提问/请裁的准则**（支书 2026-09-06 定稿）：**支书不是决断代码的，而是决断 strategy、product、marketing 的。** AI 负责代码与工程方案。凡需支书裁决的事项，一律先翻译成「战略/产品/运营叙事」层的选项与建议（附上下文、取舍、推荐档），禁止拿代码实现细节、字段命名、技术参数、内部机制等"代码层选择题"去问支书。做一个好秘书：**把决策做薄、把问题做厚**——能由 AI 消化执行的不上报，只把「方向/口径/产品形态/对外叙事/取舍原则」留给支书。适用场景含 H60 评议、REVIEW_QUEUE 逐条问裁、立项/设计审批、AskUserQuestion 提问。
 > **向支书报告的表现准则**（支书 2026-09-06 补强）：向支书的一切文字（总结/报告/提问/方案）只陈述**它意味着什么交互、什么功能、什么产品含义**；**禁止把代码实现细节（文件路径/行号/commit/内部机制/测试内部）作为请裁或汇报内容**；技术细节只写进代码注释、子代理任务、执行日志等"给 AI 自己看"的层。写完自检：通读一遍，凡支书需"读代码才能懂"的句子都要重写成产品语言（判例：2026-09-06 支书提醒"不要给支书看纯代码，而是告知交互与功能"）。
@@ -429,7 +429,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | ⑥ 减负评议     | 2026-08-13 支书发起 | 全仓库减负专项（制度层混入实现层等）                  | REVIEW\_QUEUE 附录⑥ |
 | ⑦ AI逃逸捕捉   | 2026-08-30 支书引入 | 提示词体系逃逸点五维扫描（E1-E5，rule-based 收敛）          | REVIEW\_QUEUE 附录⑦ |
 | ⑧ 功能实现评议  | 2026-08-30 支书引入 | SOP/设计考量 ↔ 代码实现对照核查（描述的功能是否已实现，判例：思想汇报） | REVIEW\_QUEUE 附录⑧ |
-| ⑨ 文件目的达成度 | 2026-09-05 支书发起 | 每篇文件真实现所宣称目的（五类判据 + v1.1 补充，判据正文见 [PROCESS\_GUIDE.md §18.8](content/03_doc_system/PROCESS_GUIDE.md)） | PROCESS\_GUIDE.md §18.8（**判据正文即承载处**；**队列未立 ⑨ 号附录**——队列附录⑨ 实际是「议程与议事留痕设计决策」（2026-09-23 批次 162 已归位决策日志「归位五」）；2026-09-23 批次 162 实查改准 · `D-620`） |
+| ⑨ 文件目的达成度 | 2026-09-05 支书发起 | 每篇文件真实现所宣称目的（五类判据 + v1.1 补充，判据正文见 [OPERATIONS\_GUIDE.md §18.8](content/03_doc_system/OPERATIONS_GUIDE.md)） | OPERATIONS\_GUIDE.md §18.8（**判据正文即承载处**；**队列未立 ⑨ 号附录**——队列附录⑨ 实际是「议程与议事留痕设计决策」（2026-09-23 批次 162 已归位决策日志「归位五」）；2026-09-23 批次 162 实查改准 · `D-620`；**2026-09-26 批次 202**：原 `PROCESS_GUIDE.md` 已并入本文件 §18） |
 
 **机制要点**：
 
@@ -494,7 +494,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 当支书表达"反思""值得思考""为什么还在"等反思信号时，AI **必须**按以下流程执行，不得只口头反思：
 
-1. **定位权威源最近变更**：读 [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md) §1 术语表 + [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
+1. **定位权威源最近变更**：读 [OPERATIONS\_GUIDE.md §19 术语使用规范](content/03_doc_system/OPERATIONS_GUIDE.md) + [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md) 最新 P 编号，确认最近一次定义/术语/层级变更是什么（如 2026-08-03 确立党建/党务 T1 官方定义）
 2. **沿链接传播排查**：从权威源出发，**追踪所有链接"指向"的 content/docs 文件**，有选择地读取被引用文件，确认定义是否已同步（🔴 支书补充要求：不能只看权威源本身，必须顺链接读下游）
 3. **全仓 Grep 旧表述**：搜索被降级/替换的旧术语、旧定义、旧层级表述，列出全部残留位置
 4. **一改具改**：按 H30.1 全仓同步修正；区分「定义残留」（必须改）与「合法功能分区标题/UI 标签」（保留，如 `## 党建工作` 章节标题、`【党建工作】` 场景前缀）
@@ -545,14 +545,14 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | 看检查清单      | 本文件 H40                                                                                   |
 | 看乙部/丙部规则   | 本文件 H50                                                                                   |
 | 看支书评议工作流   | 本文件 H60                                                                                   |
-| 看甲部修改流程    | [PROCESS\_GUIDE.md §15](content/03_doc_system/PROCESS_GUIDE.md)                     |
+| 看甲部修改流程    | [OPERATIONS\_GUIDE.md §15（《运行与协作规范》）](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看日志规范      | [OPERATIONS\_GUIDE.md §10](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看面向用户表述规范  | [OPERATIONS\_GUIDE.md §13](content/03_doc_system/OPERATIONS_GUIDE.md)                     |
 | 看理论基石      | [SECRETARY\_DIRECTIVES.md](content/01_strategy/SECRETARY_DIRECTIVES.md)（项目顶级战略文档） |
 | 看经验沉淀      | [content/insights/](content/insights/)                                                    |
 | 看已知陷阱      | [05 AI 协作方法论 README.md](content/05_ai_coding/README.md)（5 分篇索引）          |
 | 看运行标准      | [OPERATIONS\_GUIDE.md](content/03_doc_system/OPERATIONS_GUIDE.md)                         |
-| 看术语规范      | [USAGE\_POLICY.md](content/03_doc_system/USAGE_POLICY.md)                                 |
+| 看术语规范      | [OPERATIONS\_GUIDE.md §19（《运行与协作规范》术语使用规范）](content/03_doc_system/OPERATIONS_GUIDE.md)                                 |
 | 查 SOP 流程   | [content/02\_institution/sop/INDEX.md](content/02_institution/sop/INDEX.md)               |
 | 查决策历史      | `.ctx/logs/DECISION_LOG.md`                                                               |
 | 查执行日志      | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`                                                      |
@@ -582,7 +582,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 | 层级                | 内容                                           | 权威源                                                                                                                                                           |
 | ----------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ① 总论叙事            | "管理事，服务人"——从入党申请人到正式党员的完整路径，囊括②和③            | [DEVELOPMENT\_PATH.md](content/01_strategy/DEVELOPMENT_PATH.md) + [SECRETARY\_DIRECTIVES.md P-002/P-003](content/01_strategy/SECRETARY_DIRECTIVES.md) |
-| ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` + `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`                                  |
+| ② 组织架构与 SOP       | 一整套组织架构、分工、SOP                               | `content/02_institution/sop/` + `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md`（《支部组织与委员体系》，含原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入的 §G）                                  |
 | ③ AI-driven 仓库工作流 | 一整套关于 AI-driven 的组织形态的仓库工作流（上下文、Harness、提示词） | 本文件 CLAUDE.md（Harness）+ `content/03_doc_system/OPERATIONS_GUIDE.md` + `.ctx/`（审计底座）                                                                           |
 
 ### H100.2 逻辑缺漏与支书亲补
@@ -785,9 +785,9 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
       |---|---|---|---|---|
       | 02《支部组织与委员体系》 | `FLAT_ORGANIZATION_DESIGN` ＋ `COMMISSIONER_DUTY_FRAMEWORK` | 1（支部有哪些角色、彼此怎么分工） | **合并** | 同一读者（[用户]+[AI]）问同一类问题；两文本就互相引用（专班定义 ↔ 组织者分工）⇒ **2026-09-26 已落地**：`FLAT_ORGANIZATION_DESIGN.md` 全文并入 `COMMISSIONER_DUTY_FRAMEWORK.md`（标题改《支部组织与委员体系》）的 §G |
       | 02 `SYSTEM_ROLE_PERMISSION` | 单份 | 1 | **保留独立** | 角色键 / 权限键的**代码键级权威**——与「组织形态」不同话题 |
-      | 02 `ROLE_CLASSIFICATION` | 单份 | 1 | **迁 `03_doc_system`** | 讲全仓库文件的 `[用户]` / `[工程师]` / `[AI]` 受众分类，属文档治理（原方案已如此裁）；**尚未落地** |
+      | 02 `ROLE_CLASSIFICATION` | 单份 | 1 | **迁 `03_doc_system`** | 讲全仓库文件的 `[用户]` / `[工程师]` / `[AI]` 受众分类，属文档治理（原方案已如此裁）；**2026-09-26 批次 202 已落地**（迁入《运行与协作规范》§24–§31） |
       | 03《架构与单一事实源》 | 已交付 3 份合一（`ARCHITECTURE` ＋ `SSOT_INDEX` ＋ `SERVICE_CATALOG`） | 1 | **合并（已交付）** | 架构描述 ＋ 母本注册 ＋ 服务目录，同一读者同一问 |
-      | 03《运行与协作规范》 | `OPERATIONS_GUIDE` ＋ `PROCESS_GUIDE` ＋ `USAGE_POLICY` ＋ 迁入的 `ROLE_CLASSIFICATION` | 1（本仓文档怎么治理、运行按什么规矩） | **合并（待做）** | 三者同为「运行标准」（`PROCESS_GUIDE` 本就是 `OPERATIONS_GUIDE` 的 T-282 拆分）；`USAGE_POLICY` 的术语节与 `OPERATIONS_GUIDE` 重叠 |
+      | 03《运行与协作规范》 | `OPERATIONS_GUIDE` ＋ `PROCESS_GUIDE` ＋ `USAGE_POLICY` ＋ 迁入的 `ROLE_CLASSIFICATION` | 1（本仓文档怎么治理、运行按什么规矩） | **合并（2026-09-26 批次 202 已落地）** | 三者同为「运行标准」（`PROCESS_GUIDE` 本就是 `OPERATIONS_GUIDE` 的 T-282 拆分；`USAGE_POLICY` 的术语节与 `OPERATIONS_GUIDE` 重叠） |
       | 03 `工作模板/经验沉淀辅助提示词` | 单份 | 1（怎么让 AI 提炼经验） | **分而治之 · 保留独立** | 它是**提示词模板 / 工具**（`type: template`），不是「规范」——与前四份不同话题；⚠ **原方案把它并入《运行与协作规范》不成立** |
       | 03 `DOC_MAP` | 单份 | 1 | **保留独立** | 文档导航入口，与「运行标准」不同话题 |
       | 04《设计系统》 | 已交付 4 份合一 | 1 | **合并（已交付）** | 设计哲学 / 色彩 / 组件 / 点击落点，同一读者同一问 |
@@ -796,7 +796,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
       | 04《架构演进与方法论》 | `ARCHITECTURE_EVOLUTION` ＋ `DESIGN_METHODOLOGY` ＋ `WORKFLOW_BLOCK_CONTRACT` ＋ `ROLE_PERMISSION_DESIGN` ＋ `PARTY_COMMITTEE_DESIGN` ＋ `BRANCH_WORK_MAP` | **6**（架构演进 / 设计论证方法论 / 块封装契约 / 权限收敛 / 党委两级治理 / 工作地图设计） | **分而治之** | 六份回答**不同话题**、体裁也不同（探索 / 论证档案 / 契约 / 设计定案 / 设计稿）——强并为一份＝把无关话题塞进一个筐；⇒ **2026-09-26 已落地**：六份**各加「本文负责 / 本文不负责 → 去哪找」边界头** |
       | 04《模块设计》 | `MODULE_UI_DESIGN` ＋ `ABOUT_PAGE_DESIGN` ＋ `AGENDA_AND_REFERENCE_DESIGN` ＋ `SOP_WEBSITE_GUIDE` | **4**（工作台模块 UI / about 页超参数 / 会议议程与资料查询 / SOP↔系统联动方法论） | **分而治之** | 四份是四个不同页面 / 不同问题（前二＝界面设计细则；其三＝议程的数据与权限；其四＝SOP 文本优化方法论）——保持独立；⇒ **2026-09-26 已落地**：四份**各加同上的「本文负责 / 本文不负责 → 去哪找」边界头**（防与 `DESIGN_SYSTEM` / `MODULE_UI_DESIGN` 复述） |
     - **已交付 4 组「是否本不该合」复核结论**：**均无「本不该合」**——四组各自**话题同一**，且**未产生大段复述**（`DATA_MODEL`＝结构面＋过程面；`DESIGN_SYSTEM`＝哲学＋色彩＋组件＋点击落点；`ARCHITECTURE`＝分层＋母本注册＋服务目录；`DEPLOYMENT_GUIDE`＝部署路径＋对外对接三块）⇒ **不建议回拆**（且四组已产生取证引用依赖：`README-server.md` 的 `文件:行号` 引用与各文件内部 `§` 引用）。
-  - ⚠ **待支书圈**：结构分组的取舍、以及「哪些文件保留独立 / 哪些迁类」（`SYSTEM_ROLE_PERMISSION` · `DOC_MAP` 为什么留、`ROLE_PERMISSION_DESIGN` / `PARTY_COMMITTEE_DESIGN` 迁不迁 `02`）**均属产品取向**；**方案表请支书圈定后我按表分批做**。裁定见 `D-617`（同一决定亦落在 `.ctx/logs/2026-09-DECISION_LOG.md`）。**第一批已交付（2026-09-23 批次 164 · `D-624`）**：`content/04_web_design/data/` 两文件已合并——`DATA_FLOW.md` **并入** `DATA_MODEL.md`（**文件名保留 `DATA_MODEL.md`**、标题改为「**数据模型与数据流**」），`DATA_FLOW.md` **已删除** ⇒ **两份 → 一份**；**字段表 34 张 / 331 数据行一行未动**、**沿革注记提及数 85 → 0**（删整段 19 行 ＋ 行内追注 55 处，沿革移入执行日志批次 164）、全行 1632 → 1620 / 非空行 1265 → 1256 / 字节 125,907 → 121,376 B（−3.6%）；**§编号一字未改**（`README-server.md` 45 处行号引用按四段偏移规律机械平移）。**目标结构与「一份一份合、每合一版」纪律保留不变**；余下份数随后续批次交付。**首批尾巴三项已收口（2026-09-23 批次 165 · `D-626`）**：内置场景数 / 角色键数**以代码实测取齐**（`docs/src/workflow/sopData.js` 的 `scenarios.length`＝**7** · `docs/src/core/constants.js` 的 `ROLE_KEYS` **11** ＋ `ROLE_LEGACY_KEYS` **2** ＝ **13**）⇒ `DATA_MODEL.md §1.2` 「8 个」→「**7 个**」、`§2.2.1` 「12 键 = 10 业务 + 2 遗留」→「**13 键 = 11 业务 + 2 遗留**」；**`deepWorkMode` 已补入字段表**（`§2.1`，现 `:65`）。**「一份一份合、每合一版」纪律保留**。**2026-09-23 批次 166 未推进合并**（本批四条新需求落在部署 / 可感 / 提速 / API 化上——**未动任何 `content/**` 文件**，**第二份合并尚未开始**，目标结构与「一份一份合、每合一版」纪律保留不变）。**进度改准（2026-09-25 批次 179 · `D-644`；本句系**就地补注**、**不覆写**上句）**：**已交付三份**——**第一批**＝《数据模型与数据流》（2026-09-23 批次 164 · `D-624`，`content/04_web_design/data/` 两文件合一）· **第二批**＝《设计系统》（**2026-09-24 批次 172** · `D-638`，`content/04_web_design/design-system/` **四份合一**）· **第三批**＝《架构与单一事实源》（**2026-09-25 批次 179** · `D-644`，`content/03_doc_system/` **三份合一**：`SSOT_INDEX` / `SERVICE_CATALOG` 并入 `ARCHITECTURE.md` 的 §十 / §十一 并删除）。**目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）与「一份一份合、每合一版」纪律保留不变**；⚠ **上句「第二份合并尚未开始」是批次 166 当时的实然**（第二批批次 172 的交付**当时未回写此处**，本批一并补记）。**进度改准（2026-09-25 批次 181 · `D-645`；本句系**就地补注**、**不覆写**上句）**：**已交付四份**——**第一批**＝《数据模型与数据流》（2026-09-23 批次 164 · `D-624`，`content/04_web_design/data/` 两文件合一）· **第二批**＝《设计系统》（2026-09-24 批次 172 · `D-638`，`content/04_web_design/design-system/` 四份合一）· **第三批**＝《架构与单一事实源》（2026-09-25 批次 179 · `D-644`，`content/03_doc_system/` 三份合一）· **第四批**＝《部署与对外对接》（**2026-09-25 批次 181** · `D-645`，`content/04_web_design/deploy/` **四份合一**：`AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION` **并入** `DEPLOYMENT_GUIDE.md`〔**标题改《部署与对外对接》**〕并删除）。**目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）与「一份一份合、每合一版」纪律保留不变**。⚠ **本批未改 `:777` 的方案表各行**（**属支书的方案裁定、不覆写**）。**进度改准（2026-09-26 批次 201；本句系就地补注、不覆写上句）**：**第五份已交付**——**第五批**＝《支部组织与委员体系》（`content/02_institution/` **两文件合一**：`FLAT_ORGANIZATION_DESIGN.md` **全文并入** `COMMISSIONER_DUTY_FRAMEWORK.md`〔**标题改《支部组织与委员体系》**〕的 **§G** 并删除）；**同批另有 2 组判为「分而治之」并已落地**——《架构演进与方法论》（`content/04_web_design/evolution/`）**六份** ＋ 《模块设计》（`content/04_web_design/module/`）**四份**，**各加「本文负责 / 本文不负责 → 去哪找」边界头**（**未合并、未删文件**）。⚠ **本批同样未改上方方案裁定各行**，只在其后就地增设「★ 重审 · 新口径与逐组重审结论」；**原「目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）」自本批起按新口径读**（**分工明确为准、数量非目标**）。
+  - ⚠ **待支书圈**：结构分组的取舍、以及「哪些文件保留独立 / 哪些迁类」（`SYSTEM_ROLE_PERMISSION` · `DOC_MAP` 为什么留、`ROLE_PERMISSION_DESIGN` / `PARTY_COMMITTEE_DESIGN` 迁不迁 `02`）**均属产品取向**；**方案表请支书圈定后我按表分批做**。裁定见 `D-617`（同一决定亦落在 `.ctx/logs/2026-09-DECISION_LOG.md`）。**第一批已交付（2026-09-23 批次 164 · `D-624`）**：`content/04_web_design/data/` 两文件已合并——`DATA_FLOW.md` **并入** `DATA_MODEL.md`（**文件名保留 `DATA_MODEL.md`**、标题改为「**数据模型与数据流**」），`DATA_FLOW.md` **已删除** ⇒ **两份 → 一份**；**字段表 34 张 / 331 数据行一行未动**、**沿革注记提及数 85 → 0**（删整段 19 行 ＋ 行内追注 55 处，沿革移入执行日志批次 164）、全行 1632 → 1620 / 非空行 1265 → 1256 / 字节 125,907 → 121,376 B（−3.6%）；**§编号一字未改**（`README-server.md` 45 处行号引用按四段偏移规律机械平移）。**目标结构与「一份一份合、每合一版」纪律保留不变**；余下份数随后续批次交付。**首批尾巴三项已收口（2026-09-23 批次 165 · `D-626`）**：内置场景数 / 角色键数**以代码实测取齐**（`docs/src/workflow/sopData.js` 的 `scenarios.length`＝**7** · `docs/src/core/constants.js` 的 `ROLE_KEYS` **11** ＋ `ROLE_LEGACY_KEYS` **2** ＝ **13**）⇒ `DATA_MODEL.md §1.2` 「8 个」→「**7 个**」、`§2.2.1` 「12 键 = 10 业务 + 2 遗留」→「**13 键 = 11 业务 + 2 遗留**」；**`deepWorkMode` 已补入字段表**（`§2.1`，现 `:65`）。**「一份一份合、每合一版」纪律保留**。**2026-09-23 批次 166 未推进合并**（本批四条新需求落在部署 / 可感 / 提速 / API 化上——**未动任何 `content/**` 文件**，**第二份合并尚未开始**，目标结构与「一份一份合、每合一版」纪律保留不变）。**进度改准（2026-09-25 批次 179 · `D-644`；本句系**就地补注**、**不覆写**上句）**：**已交付三份**——**第一批**＝《数据模型与数据流》（2026-09-23 批次 164 · `D-624`，`content/04_web_design/data/` 两文件合一）· **第二批**＝《设计系统》（**2026-09-24 批次 172** · `D-638`，`content/04_web_design/design-system/` **四份合一**）· **第三批**＝《架构与单一事实源》（**2026-09-25 批次 179** · `D-644`，`content/03_doc_system/` **三份合一**：`SSOT_INDEX` / `SERVICE_CATALOG` 并入 `ARCHITECTURE.md` 的 §十 / §十一 并删除）。**目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）与「一份一份合、每合一版」纪律保留不变**；⚠ **上句「第二份合并尚未开始」是批次 166 当时的实然**（第二批批次 172 的交付**当时未回写此处**，本批一并补记）。**进度改准（2026-09-25 批次 181 · `D-645`；本句系**就地补注**、**不覆写**上句）**：**已交付四份**——**第一批**＝《数据模型与数据流》（2026-09-23 批次 164 · `D-624`，`content/04_web_design/data/` 两文件合一）· **第二批**＝《设计系统》（2026-09-24 批次 172 · `D-638`，`content/04_web_design/design-system/` 四份合一）· **第三批**＝《架构与单一事实源》（2026-09-25 批次 179 · `D-644`，`content/03_doc_system/` 三份合一）· **第四批**＝《部署与对外对接》（**2026-09-25 批次 181** · `D-645`，`content/04_web_design/deploy/` **四份合一**：`AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION` **并入** `DEPLOYMENT_GUIDE.md`〔**标题改《部署与对外对接》**〕并删除）。**目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）与「一份一份合、每合一版」纪律保留不变**。⚠ **本批未改 `:777` 的方案表各行**（**属支书的方案裁定、不覆写**）。**进度改准（2026-09-26 批次 201；本句系就地补注、不覆写上句）**：**第五份已交付**——**第五批**＝《支部组织与委员体系》（`content/02_institution/` **两文件合一**：`FLAT_ORGANIZATION_DESIGN.md` **全文并入** `COMMISSIONER_DUTY_FRAMEWORK.md`〔**标题改《支部组织与委员体系》**〕的 **§G** 并删除）；**同批另有 2 组判为「分而治之」并已落地**——《架构演进与方法论》（`content/04_web_design/evolution/`）**六份** ＋ 《模块设计》（`content/04_web_design/module/`）**四份**，**各加「本文负责 / 本文不负责 → 去哪找」边界头**（**未合并、未删文件**）。⚠ **本批同样未改上方方案裁定各行**，只在其后就地增设「★ 重审 · 新口径与逐组重审结论」；**原「目标结构（`02` 4 → 2 · `03` 7 → 3 · `04` 20 → 5）」自本批起按新口径读**（**分工明确为准、数量非目标**）。**进度改准（2026-09-26 批次 202；本句系就地补注、不覆写上句）**：**第六份已交付**——**第六批**＝《运行与协作规范》（`content/03_doc_system/OPERATIONS_GUIDE.md`〔**文件名保留**，标题改《运行与协作规范》〕：`PROCESS_GUIDE.md`〔§15–§18〕＋ `USAGE_POLICY.md`〔§19–§23〕**并入并删除**；`ROLE_CLASSIFICATION.md` **自 `content/02_institution/` 迁入**本文件 §24–§31 并删除）；**同批沿革瘦身**＝四份源文件的**记账式沿革注记**逐字迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 202 附节（含「原句 → 去向」对照），正文原位留去向说明行。**02 目录现剩 2 份非 README**（`COMMISSIONER_DUTY_FRAMEWORK` + `SYSTEM_ROLE_PERMISSION`）、**03 目录现剩 4 份非 README**（`ARCHITECTURE` / `OPERATIONS_GUIDE`【《运行与协作规范》】/ `DOC_MAP` / `工作模板/经验沉淀辅助提示词`）。**目标结构与「一份一份合、每合一版」纪律保留不变**。
 
 - **P.17（2026-09-23 批次 166 归口 · **2026-09-24 批次 168 已裁已办 ⇒ 本项关闭**）**：批次 166 归口的三项待裁项**均已在批次 168 裁定并落地**（裁定见 `.ctx/logs/2026-09-DECISION_LOG.md` 的 `D-631`…`D-635`；本节保留原三项，逐项标「已裁已办」与落地实况）：
   1. **`roster.test.mjs`** ⇒ **改成打 API（已办）**：与 `mock-integrity` 的分工边界＝后者仍守「前端种子 ＝ 服务端种子」的**等价性**，`roster` 改走真服务端读链（同批「A 类逐一改造」续作，落地见 `D-630` / `D-631`）。

@@ -1220,7 +1220,7 @@ li + li { margin-top: 0.25em; }
 | 系统角色权限矩阵（角色键级权威） | [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) |
 | 支委职责与赋权框架 | [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md) |
-| 术语使用规范 | [USAGE_POLICY.md](../../03_doc_system/USAGE_POLICY.md) |
+| 术语使用规范 / 文件角色分类 | [OPERATIONS_GUIDE.md §19–§31](../../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》） |
 | 文档地图与单一事实源索引 | [DOC_MAP.md](../../03_doc_system/DOC_MAP.md) / [ARCHITECTURE.md §十](../../03_doc_system/ARCHITECTURE.md#十单一事实源注册表与权威源治理) |
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
 | 组件与样式的实现母本（代码） | `docs/src/styles.css` · `docs/src/components/*` |

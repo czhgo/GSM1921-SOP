@@ -16,9 +16,7 @@ status: active
 
 ### 一、运行标准与使用规范
 
-- [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) — 运行标准·文档规范（YAML/术语/角色/编码/文档关系/编号/文档层级/一致性检查）
-- [PROCESS_GUIDE.md](PROCESS_GUIDE.md) — 运行标准·流程机制（甲部修改流程/吸收外部输入/周期性任务/支书评议）
-- [USAGE_POLICY.md](USAGE_POLICY.md) — P0 强制执行的使用规范（术语 §一 + AI 展开原则 §二 + Emoji 边界 §三）
+- [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) — **《运行与协作规范》**（§1–§14 运行标准·文档规范 ＋ §15–§18 运行标准·流程机制 ＋ §19–§23 使用规范〔术语 §19 / AI 展开 §20 / Emoji §21 / 决策记录 §22 / 词典 §23，P0〕＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `02_institution/ROLE_CLASSIFICATION` 已并入本文件并删除）
 - [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
 
 > FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 ARCHITECTURE.md §十一 为准。

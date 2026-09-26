@@ -939,7 +939,7 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 | 前端设计规范（视觉、组件、点击落点） | [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) |
 | 架构分层与单一事实源注册表 / 服务目录 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
 | 文档导航与权威层级定义 | [DOC_MAP.md](../../03_doc_system/DOC_MAP.md) / [OPERATIONS_GUIDE.md §1.1](../../03_doc_system/OPERATIONS_GUIDE.md) |
-| 术语使用规范 | [USAGE_POLICY.md](../../03_doc_system/USAGE_POLICY.md) |
+| 术语使用规范 / 文件角色分类 | [OPERATIONS_GUIDE.md §19–§31](../../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》） |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../../01_strategy/SECRETARY_DIRECTIVES.md) / [DEVELOPMENT_PATH.md](../../01_strategy/DEVELOPMENT_PATH.md) |
 | 后端安装 / 启动 / 测试 / 部署对接说明 | [server/README.md](../../../server/README.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/2026-09-EXECUTION_LOG.md` |

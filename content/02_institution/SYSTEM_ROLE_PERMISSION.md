@@ -4,13 +4,13 @@ type: governance
 role: "[工程师]+[AI]"
 last_updated: "2026-09-23"
 status: active
-related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
+related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/constants.js]
 ---
 
 # 系统角色权限矩阵（代码键级权威）
 
 > **定位：** 本文件为**系统运行角色**（登录态/权限键/赋权链）的键级权威——角色键全表对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，权限矩阵与赋权链对齐 `docs/src/services/auth.js` 的 `ROLE_PERMISSIONS`/`PROJECT_PERMISSIONS`/`AUTHORIZE_CHAIN`（`AuthStore.canDo`）。
-> **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)，两者为不同维度、勿混读。
+> **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [OPERATIONS_GUIDE.md §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系；原 `ROLE_CLASSIFICATION.md` 已于 2026-09-26 批次 202 迁入并删除），两者为不同维度、勿混读。
 > **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C 为**逐操作位视图**（上传/确认/监督/备案），本文件为**权限键级视图**——详见 §9f 说明。
 >
 > **数据流设计与界面实现路径**见 [DATA_MODEL.md §三 / §四](../04_web_design/data/DATA_MODEL.md)。
@@ -47,7 +47,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 ## 9a. 活动写入门禁
 
-> **来源：**[USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) §1.3 — 术语权威源。
+> **来源：**[OPERATIONS_GUIDE.md §19.3](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》术语使用规范；原 `USAGE_POLICY.md`，2026-09-26 已并入） — 术语权威源。
 
 **写入门禁**：仅支书、副支书、党小组组长持有 `create_activity` 权限，可直接创建/修改活动数据（见 §9b 矩阵）；宣传委员、纪检委员不持有该权限，通过审核、确认、备案等流程间接参与。专班创建走 `initiate_taskforce`/`authorize_taskforce` 通道（组织委员持有，见 §9b）。
 
@@ -151,7 +151,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 
 ## 9i. 党小组管理与成员流动登记写权
 
-> **定位与键级说明**：党小组管理（新增/改名/解散党小组、归组未分组成员）与成员流动登记（流入登记含批量 / 流出登记含批量 / 台账撤销）**均未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h 支部 config 写权同理，不硬凑缺键、不入 §9b 的 16 操作列）。术语（未分组 / 成员流动台账 / 复式记账）见 [USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md) 内部代号简明词典——该文件为术语权威源。
+> **定位与键级说明**：党小组管理（新增/改名/解散党小组、归组未分组成员）与成员流动登记（流入登记含批量 / 流出登记含批量 / 台账撤销）**均未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与 §9h 支部 config 写权同理，不硬凑缺键、不入 §9b 的 16 操作列）。术语（未分组 / 成员流动台账 / 复式记账）见 [OPERATIONS_GUIDE.md §23](../03_doc_system/OPERATIONS_GUIDE.md) 内部代号简明词典——该文件为术语权威源。
 
 | 角色 | 党小组管理（新增/改名/解散党小组、归组未分组成员） | 成员流动登记（流入/流出登记含批量、台账撤销） |
 |---|:---:|:---:|
@@ -160,7 +160,7 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 | 党小组组长 | -- | -- |
 | 其余角色（宣传委员/纪检委员/成员等） | -- | -- |
 
-> 注：① **登记即生效，不再需要支书二次确认**——本条只覆盖**成员流动登记（流入/流出/撤销）**：登记即生效、可撤销并留痕，支书不再做二次确认。**发展节点审批链**（发展阶段变更 / 在册状态 / 移出，经组织委员报送 → 支书确认方生效，见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）**不属本条**。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 USAGE_POLICY.md 词典节，本节不重复定义。
+> 注：① **登记即生效，不再需要支书二次确认**——本条只覆盖**成员流动登记（流入/流出/撤销）**：登记即生效、可撤销并留痕，支书不再做二次确认。**发展节点审批链**（发展阶段变更 / 在册状态 / 移出，经组织委员报送 → 支书确认方生效，见根 [README-members.md:57](../../README-members.md)；流程档案 [AGENDA_AND_REFERENCE_DESIGN.md:120](../04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md)）**不属本条**。② **新增成员自动建号**——账号即学号、口令为支部统一默认口令；账号层可持久化，成员加入支部即可登录该支部。③ 台账记账口径（复式记账）与「未分组」语义的权威定义见上引 OPERATIONS_GUIDE.md §23 词典节，本节不重复定义。
 
 > 注：④ **API 形态写门与两处语义端点**：`POST /members/:id/transfer-out`（流出软标记）与 `POST /members/:id/undo-transfer-out`（撤销流出、清软标记）的角色集与上表一致（组织委员 + 支书/副支书，同支部 + 幂等）。**流入建档**则一分为二——`POST /members`（名册新增）保持 R-10 口径的「组织委员专属」，`POST /members/intake`（成员流动·流入登记）写门为上表的「组织委员 + 支书/副支书」。**成员流动单列语义端点、不放宽** `/members` 的**名册越权面**。两处端点为**同一实现体、两个写门**（`server/routes/member.js::createMemberRow`）。
 
@@ -251,8 +251,8 @@ related_files: [ROLE_CLASSIFICATION.md, docs/src/core/constants.js]
 - **2026-09-17（支书裁定）**：新增 §9l「制度参数的可调口径：过程时限与补课范围/时限」——**① 通例**：母本里的各类**过程时限**（**活动后 / 活动前 N 天、N 小时**这种「几天内办完」的时间口径——考勤确认、补课通知、材料归档、宣传产出、复盘等环节在内）**统一属可配置的制度参数**，**母本所写的数字即默认值**，**不同支部可调**；**可调性只登记在本节，母本不逐处加「可调」字样**。**② 同族已明确项**：**补课范围**（支部党员大会 / 党课）与**补课时限**（活动后 7 天内闭环）为**支部可调**的默认值。两项均与既有「支部制度参数」口径（支部可调 / 制度固定）对齐，本节只登记可调性，不改任何默认值与实现。
 - **2026-09-17（支书改裁，批次 51）**：新增 §9j「匿名意见反馈的『查看真身』权限」——**查看真身仅 `party-staff`（党委）**，且**每次查看留痕**（`issue_reveals` 表）；**党支部内部（含支书）不可见**（支书只有处置权，「处置」与「查看真身」是两项分开的权限）。匿名＝**前端展示层匿名**、后台记真实提交人 `_realPersonId`。**适用范围**：本改裁**只落在意见反馈**——「正式表决无记名」维持 2026-09-12 原裁定不变（逐人选项不落库）。属写层业务守卫（未入 ROLE_PERMISSIONS 键集）；同批在 §9a0 补「党委**保留对匿名事项的核查权**」这一例外。
 
-- **2026-09-14（支书裁定）**：新增 §9i「党小组管理与成员流动登记写权」矩阵节——党小组管理（新增/改名/解散/归组）授支书/副支书（副书同权），组织委员仅可查看清单与未分组人数；成员流动登记（流入/流出含批量、台账撤销）授组织委员（名册所在岗位）+ 支书/副支书同等登记权，**登记即生效、不再需支书二次确认**（与既往「成员移出需支书确认」的差异已在注①写明）；同时登记「新增成员自动建号（账号即学号、口令为支部统一默认口令）」。属写层业务守卫（未入 ROLE_PERMISSIONS 键集）。术语权威定义见 [USAGE_POLICY.md](../03_doc_system/USAGE_POLICY.md)。
+- **2026-09-14（支书裁定）**：新增 §9i「党小组管理与成员流动登记写权」矩阵节——党小组管理（新增/改名/解散/归组）授支书/副支书（副书同权），组织委员仅可查看清单与未分组人数；成员流动登记（流入/流出含批量、台账撤销）授组织委员（名册所在岗位）+ 支书/副支书同等登记权，**登记即生效、不再需支书二次确认**（与既往「成员移出需支书确认」的差异已在注①写明）；同时登记「新增成员自动建号（账号即学号、口令为支部统一默认口令）」。属写层业务守卫（未入 ROLE_PERMISSIONS 键集）。术语权威定义见 [OPERATIONS_GUIDE.md §23](../03_doc_system/OPERATIONS_GUIDE.md)。
 - **2026-09-09（支书审定定稿）**：新增 §9h「支部 config 写权」矩阵节——随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（2026-09-09 审定定稿）同步：config 写权属写层业务守卫（未入 ROLE_PERMISSIONS 键集，遵循 §9f 不硬凑缺键约定），表为守卫语义的文档化；含副书同权（2026-09-09 支书批）、域负责人仅本域参数、顶层治理字段仅 party-staff 三要点。
-- **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。
+- **2026-09-05**：自 ROLE_CLASSIFICATION.md §九 迁出为独立文件（名实分离修复——该文件回归纯文件角色分类，本文件承担系统运行角色权限矩阵的键级权威）。迁出时同步修复：9a0 补 `party-staff`（党委组织员，组织级）行，真实对齐 constants.js `ROLE_KEYS`/`ROLE_LABELS`/`ROLE_PAGE_MAP`；9a0 登记表述改指 constants.js `ROLE_PAGE_MAP`（2026-09 已自 auth.js 迁入常量层）；9a 引用纠错（USAGE_POLICY §1.2.5 → §1.3）；9f 增补双轨约定（CF §C 逐操作位视图 ↔ 本文件键级视图）。〔**2026-09-26 批次 202 补注**：`ROLE_CLASSIFICATION.md` 与 `USAGE_POLICY.md` 已分别并入 [OPERATIONS_GUIDE.md](../03_doc_system/OPERATIONS_GUIDE.md) 的 §24–§31 与 §19；本条为历史留痕、原句保留〕
 - **2026-09-05（A1 批1 落代码）**：`dispatch_line`（条线下发）键入集——授予组织/宣传/纪检三委员（auth.js `ROLE_PERMISSIONS`，canDo 可判定），9f 增映射行、9b 附注说明；交互流消费侧待建、不入 16 操作列（不硬凑列原则）。
-- 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 ROLE_CLASSIFICATION.md §八 变更历史。
+- 前身沿革：本节原为 ROLE_CLASSIFICATION.md §九（PERMISSION_MATRIX.md → MANAGEMENT_MODE.md → ROLE_CLASSIFICATION §九，2026-07-08 迁入；2026-07-12 §九 重写 9a~9g；2026-08-29 增 9a0），历史记录见 [OPERATIONS_GUIDE.md §31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系·变更历史；该节原为 `ROLE_CLASSIFICATION.md` §八，2026-09-26 批次 202 随该文件并入并升格为 §31）。

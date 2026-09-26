@@ -483,8 +483,14 @@ test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated
   //   ⚠ **这是第四次下调**（60→58→55→54）⇒「每合并一批就要改一个字面量」本身是设计债：真正的防线是下面的
   //   `problems` 必须为空（漂移检测）与上面的 `rows.length >= 200`（解析非空转）；本字面量只是二级防呆。
   //   建议后续改为**推导式**（由「登记行中文件仍存在者」的条数派生）⇒ 已登记为待办，未在本次擅改判据类型。
-  assert.ok(compared >= 54,
-    `S13 只比对到 ${compared} 行（基线 54）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
+  //   下限 54 → 51（2026-09-26 · `P.16` 第六批《运行与协作规范》）：同因——本批再删 **3** 份带 frontmatter
+  //   的 `.md`（`content/03_doc_system/PROCESS_GUIDE.md` / `content/03_doc_system/USAGE_POLICY.md` 并入
+  //   `OPERATIONS_GUIDE.md`；`content/02_institution/ROLE_CLASSIFICATION.md` 迁入并并入 `OPERATIONS_GUIDE.md §24–§31`）；
+  //   该三文件均有 frontmatter，其登记行按既有跳过条件（文件不存在）自然不再比对 ⇒ 可比对数 54 → 51。
+  //   ⚠ **这是第五次下调**（60→58→55→54→51）⇒ **仍不是放宽判据**（真防线仍是 `problems` 为空与 `rows >= 200`）；
+  //   本批**未**改判据类型（保持字面量二级防呆），只按下调先例同步字面量。
+  assert.ok(compared >= 51,
+    `S13 只比对到 ${compared} 行（基线 51）：口径被写松了——大量行被静默跳过，请检查跳过条件`);
   assert.deepEqual(problems, [],
     `TIMESTAMPS.md 表行与文件 frontmatter 漂移（口径：**以 frontmatter 为准**，把表行日期改成 frontmatter 的值）：\n  ${problems.join('\n  ')}`);
 });

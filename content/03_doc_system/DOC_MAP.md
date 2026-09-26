@@ -42,9 +42,9 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 本仓库文件按三类角色标记：`[用户]` / `[工程师]` / `[AI]`，支持复合标记（如 `[用户]+[AI]`）。
 
-定义见 [ROLE_CLASSIFICATION.md §一](../02_institution/ROLE_CLASSIFICATION.md)。
+定义见 [OPERATIONS_GUIDE.md §24 三分类定义](./OPERATIONS_GUIDE.md)。
 
-**废弃概念**：`[人]`/`[人机]` 已于 2026-07-11 废弃，详见 ROLE_CLASSIFICATION.md §一。
+**废弃概念**：`[人]`/`[人机]` 已于 2026-07-11 废弃，详见 OPERATIONS_GUIDE.md §24。
 
 ---
 
@@ -84,8 +84,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支部组织与委员体系（支部组织形态 + 委员系统设计 + 专班、赋权关系链 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入 §G） | SECRETARY_DIRECTIVES.md |
-| `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计（[用户]/[工程师]/[AI] 三类标记 + 协作方式 + 存储读取机制） | OPERATIONS_GUIDE.md、USAGE_POLICY.md |
-| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
+| `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 `ROLE_CLASSIFICATION.md` §九 迁出——该文件已于 2026-09-26 批次 202 并入 [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) §24–§31） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |
 | `content/02_institution/sop/常见工作场景快速指南.md` | [用户]+[AI] | 快速使用指南 | INDEX |
 | `content/02_institution/sop/支委与党小组定人定责定岗说明.md` | [用户]+[AI] | 职责分工文档 | INDEX |
@@ -101,9 +100,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | 运行标准·文档规范类（权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14） | CLAUDE.md（H90 指针）、全仓库 |
-| `content/03_doc_system/PROCESS_GUIDE.md` | [工程师]+[AI] | 运行标准·流程机制类（§15 甲部修改流程、§16 吸收外部输入、§17 周期性任务、§18 支书评议工作流细节；2026-08-24 自 OPERATIONS_GUIDE 拆分） | CLAUDE.md H60/H30.1 |
-| `content/03_doc_system/USAGE_POLICY.md` | [工程师]+[AI] | 使用规范（术语标准 §一 + AI 展开原则 §二 + Emoji 边界 §三，合并自 TERMINOLOGY.md + EMOJI_POLICY.md） | 全仓库 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | [工程师]+[AI] | **《运行与协作规范》**（§1–§14 文档规范类：权威层级 §1、术语 §2、文档关系 §3、文件角色 §4、YAML §5、编码 §6、排版 §7、有机性 §8、编号 §9、日志 §10、反论 §11、命名 §12、面向用户表述 §13、角色操作 §14 ＋ §15–§18 流程机制类 ＋ §19–§23 使用规范类〔术语/AI 展开/Emoji/决策记录/词典〕 ＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `ROLE_CLASSIFICATION` 已并入并删除） | CLAUDE.md（H40/H60/H70/H90 指针）、全仓库 |
 | `content/03_doc_system/DOC_MAP.md` | [工程师]+[AI] | 本文档：全局导航中心 | 所有文件 |
 | `content/03_doc_system/ARCHITECTURE.md` | [工程师]+[AI] | 架构与单一事实源（分层架构、仓库结构、数据模型、变更流水线 + 单一事实源注册表 + 统一服务目录） | README.md（架构图引用） |
 | `content/03_doc_system/工作模板/经验沉淀辅助提示词.md` | [用户]+[AI] | 经验沉淀辅助提示词模板 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md |
@@ -180,7 +177,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 **5 维度审查清单**：
 
 1. **层级归位**：文件是否放在与其知识类型匹配的目录（对照 §二 5 类知识类型）
-2. **术语合规**：是否符合 [USAGE_POLICY.md §一](USAGE_POLICY.md) 当前定义，是否含废弃术语
+2. **术语合规**：是否符合 [OPERATIONS_GUIDE.md §19](OPERATIONS_GUIDE.md) 当前定义，是否含废弃术语
 3. **写作风格**：是否避免生硬排比、程式化格式，是否有人话表述
 4. **版块裁剪**：是否含越界内容——实施路径/时限表/检查清单/表单 → 02_institution/sop/；代码块/伪代码 → 删除（设计文档不是代码仓库）；AI 编码方法论 → 05_ai_coding/；通用方法论沉淀 → insights/
 5. **一致性**：文件间交叉引用是否断裂，是否有 `../../../` 等破损路径
@@ -206,7 +203,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 - **文件 1（content/insights/党支部管理与实务经验沉淀.md）**：党支部管理与实务 + 共识性组织智慧——面向"管理事，服务人"叙事
 - **文件 2（content/insights/工程演进与设计方法论.md）**：工程演进 + 设计方法论 + 架构迁移方法论 + 共识性组织智慧——面向 AI-driven 仓库工作流
 
-**2026-09-04 二次分流（工程方法论 → 各知识类型权威文件）**：文件 2 中属仓库级系统治理规范与制度判例的章节，按知识类型归并至既有权威文件——03_doc_system/（PROCESS_GUIDE、USAGE_POLICY、DOC_MAP、ARCHITECTURE.md §十、OPERATIONS_GUIDE）与 02_institution/（COMMISSIONER_DUTY_FRAMEWORK）承接各自同题章节，并入文本均保留出处注「（原 insights §N）」，去重融合、不产生双份；源文件已删除（2026-09-04，承接声明见 [content/insights/README.md](../insights/README.md)）。
+**2026-09-04 二次分流（工程方法论 → 各知识类型权威文件）**：文件 2 中属仓库级系统治理规范与制度判例的章节，按知识类型归并至既有权威文件——03_doc_system/（PROCESS_GUIDE、USAGE_POLICY、DOC_MAP、ARCHITECTURE.md §十、OPERATIONS_GUIDE；**2026-09-26 批次 202 起 `PROCESS_GUIDE` / `USAGE_POLICY` 已并入 `OPERATIONS_GUIDE.md` 的 §15–§18 / §19–§23**）与 02_institution/（COMMISSIONER_DUTY_FRAMEWORK）承接各自同题章节，并入文本均保留出处注「（原 insights §N）」，去重融合、不产生双份；源文件已删除（2026-09-04，承接声明见 [content/insights/README.md](../insights/README.md)）。
 
 **拆分条件**（什么条件下用知识类型拆分）：① 单文件已膨胀到 10+ 章或 1000+ 行——跨主题切换上下文成本已高于拆分成本；② 知识类型存在明确的理论边界——同一类知识的内部细分不构成拆分依据；③ 拆分后每个文件都能独立承载完整的知识子体系。
 
@@ -225,10 +222,10 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查 SOP 流程 | content/02_institution/sop/INDEX.md | 对应功能委员 SOP |
 | 使用 Skill 工作流 | content/05_ai_coding/README.md | 对应 Skill 定义 |
 | 提交改进反馈 | content/04_web_design/module/SOP_WEBSITE_GUIDE.md §E | content/02_institution/sop/对应文件 |
-| 了解角色分类体系 | content/02_institution/ROLE_CLASSIFICATION.md | （含可扩展性评估 §七） |
+| 了解角色分类体系 | content/03_doc_system/OPERATIONS_GUIDE.md §24–§31 | （含可扩展性评估 §30） |
 | 了解系统角色权限矩阵 | content/02_institution/SYSTEM_ROLE_PERMISSION.md | （角色键全表 §9a0 + 权限矩阵 §9b/§9c + 赋权链 §9e；双轨见 §9f） |
 | 查看设计系统规范 | content/04_web_design/design-system/DESIGN_SYSTEM.md | docs/src/styles.css |
-| 了解 Emoji 使用规范 | content/03_doc_system/USAGE_POLICY.md §三 | CLAUDE.md 钩稽矩阵 |
+| 了解 Emoji 使用规范 | content/03_doc_system/OPERATIONS_GUIDE.md §21 | CLAUDE.md 钩稽矩阵 |
 | 查看日历功能规划（设计论证档案） | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） | docs/src/components/calendar.js |
 | 查看品牌标签设计 | content/04_web_design/data/DATA_MODEL.md | CLAUDE.md |
 | 查官方合规 | content/01_strategy/references/合规文件/ | content/02_institution/sop/溯源 |
@@ -239,7 +236,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 查看服务清单与权限矩阵 | content/03_doc_system/ARCHITECTURE.md §十一 | content/02_institution/SYSTEM_ROLE_PERMISSION.md（系统角色权限矩阵） |
 | 运行/编写测试 | [server/README.md](../../server/README.md) 测试说明 | CLAUDE.md H25（AI 必知测试命令） |
 | 理解架构变更 | content/03_doc_system/ARCHITECTURE.md §八 | content/03_doc_system/ARCHITECTURE.md §十 |
-| 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/02_institution/ROLE_CLASSIFICATION.md |
+| 了解三类文件角色规范 | content/03_doc_system/OPERATIONS_GUIDE.md §14 | content/03_doc_system/OPERATIONS_GUIDE.md §24–§31 |
 | 查看文档权威层级 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 | 本文档 §二 |
 | 查看母本子本关系 | content/03_doc_system/ARCHITECTURE.md §十 | content/03_doc_system/OPERATIONS_GUIDE.md §1.1 |
 | 查看支书重要论断 | content/01_strategy/SECRETARY_DIRECTIVES.md | CLAUDE.md H90 |

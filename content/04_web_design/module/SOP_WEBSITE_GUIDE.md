@@ -184,4 +184,4 @@ SOP 是给人读的制度文件，网页是给机器执行的信息系统。当�
 
 ---
 
-*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / ARCHITECTURE / AUTHENTICATION_MODEL / SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、支委看板体系、日历限定、赋权链全量重写、系列活动模型。*
+*本指南原为 SOP 文档优化方法论 + 系统架构 / 数据映射 / Mock-vs-鉴权 的整合稿。2026-09-03 精简：架构与数据类展开收敛至 DATA_MODEL / ARCHITECTURE / DEPLOYMENT_GUIDE（原 AUTHENTICATION_MODEL）/ SYSTEM_ROLE_PERMISSION（2026-09-05 自 ROLE_CLASSIFICATION §九 迁出）等权威源，本指南保留 SOP 文档优化方法论（§A / §C）与独有决策摘要、历史注记（§B.3 / §E.3-4 / §G.3-4）。2026-05-06 v4.0 更新：全面反映 T25-T29 架构决策——MPA 架构、Mode 统一、支委看板体系、日历限定、赋权链全量重写、系列活动模型。*

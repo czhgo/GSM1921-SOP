@@ -2,7 +2,7 @@
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-09-25"
+last_updated: "2026-09-26"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -19829,3 +19829,194 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
 - ⚠ **不得把「只登记 / 越权」写成已办**；⚠ **不得把「未复现」写成「已稳定修复」**；⚠ **不得把各批自测写成「全量绿」**。
 - **提交前全量见批次 202**。
+
+---
+
+## 批次 202（2026-09-26，`D-662`）**03《运行与协作规范》合并（第六份交付）＋ `ROLE_CLASSIFICATION` 迁入 ＋ 沿革瘦身**
+
+> **本批来源**：支书令（逐字）① 「**执行吧先放宽禁改面，合并 03 运行与协作规范**」；② 「**该瘦身的地方也可以适当瘦身！**」。承接批次 201（`D-660`）支书重审 `P.16` 目标后的「只登记、待做」项。
+> **本批铁律**：**只改 `.ctx/**` 与 `CLAUDE.md`**——`content/**` 的合并与引用改准、根 `README*.md`、`docs/src` 两文件字符串引用、`server/test/**` 两文件，均由**同一批的「另一路」落地**，本批**只记账**。**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**。⚠ **本批实测为非全量 59/59**（8 守卫合并一跑）；**提交前全量见批次 203**。
+> ⚠ **本节与下方「附：…沿革注记（2026-09-26 批次 202）」节的分工**：**附节由本批实施方在此之前已写**（**本批未改其一字**）——**「原句 → 去向」对照表与「未迁出及判据」全在附节**，**本节只指向它、不重复抄全文**。
+
+### 一、★ 授权面放宽（本批口径变化，必须落账）
+
+支书本批**放宽**既往「`.ctx` 禁改 / `CLAUDE.md` 只许改 `P.16` 段 / 根 `README*.md` 禁改」的约束：
+
+- **可改**＝`content/03_doc_system/**` · `content/**` 中**为引用改准所必需**的文件 · **`CLAUDE.md`（不限段）** · **根 `README.md` / `README-members.md` / `README-server.md`** · **`.ctx/**`（**仅限三件事**：① **沿革迁入** ② **指向被合并 / 被删文件的引用改准** ③ `TIMESTAMPS.md` 必要登记；**不得改写任何历史留痕正文**）· `server/test/**`（**仅**按新现实改准已失效断言）· `docs/**` 中指向被合并文件的链接 / 引用。
+- **仍禁**＝`docs/src/**` 逻辑（**仅允许两处字符串引用改准**）· `server/` 非测试代码 · `docs/settings.html` · `content/**` 与 03 组无关的实质内容。
+- **口径说明（如实）**：本条把批次 201 已交付 5 批之「另一路」**由默许上写为明文**——即「合并类批次」的引用改准必然跨这些面，**授权面按需放宽**；而 `.ctx` 的开放**严格限于三件事**、**不得改史**（本批实际执行＝`SNAPSHOT` / `ENGINEERING_ASSESSMENT` / `ACTIVE_RULINGS` / `REVIEW_QUEUE` / `TIMESTAMPS` 五份**只改引用 / 加注**，`.ctx/logs/**` 与 `.ctx/snapshots/**` 一字未动）。
+
+### 二、先判后合（判定表逐份落账）
+
+| 文件 | 是同一话题吗 | 判定 | 理由 |
+|---|---|---|---|
+| `OPERATIONS_GUIDE`（运行标准·文档规范 §1–14） | — | **合并（宿主）** | 保留主文件名、标题改《运行与协作规范》 |
+| `PROCESS_GUIDE`（流程机制 §15–18） | **是** | **合并** | 它本就是 `OPERATIONS_GUIDE` 的 **T-282 拆分**（编号承 §1–14 顺延为 §15–18）⇒ 并回后**编号零改动** |
+| `USAGE_POLICY`（术语 / AI 展开 / Emoji / 词典） | **是** | **合并** | 其术语节与 `OPERATIONS_GUIDE §2` 本就重叠（§2 已直指它为权威源） |
+| `ROLE_CLASSIFICATION`（文件角色分类体系） | **是（迁类后）** | **合并**（自 `02_institution` **迁入 `03`** 再并入） | 它讲全仓文件的 `[用户]/[工程师]/[AI]` 受众分类 ＝ **文档治理**，与支部组织无关；原方案即如此裁（`D-660`） |
+| `03 工作模板/经验沉淀辅助提示词` | **否** | **分而治之 · 保留独立** | 它是**提示词模板 / 工具**（`type: template`），**不是规范** |
+| `03 DOC_MAP` | **否** | 保留独立 | 文档导航入口（仅改准其内导航行） |
+| `02 SYSTEM_ROLE_PERMISSION` | **否** | 保留独立 | 角色键 / 权限键的**代码键级权威**（仅改引用） |
+
+### 三、合并交付与升格映射
+
+- **宿主**：`content/03_doc_system/OPERATIONS_GUIDE.md`（**保留主文件名**，与已交付 5 份体例一致）；**标题《运行与协作规范》**；frontmatter 实读 **`version: "4.0"`**（原 3.3）、**`last_updated: "2026-09-26"`**；`merged_from` **3 行**（逐行注「已删除」与并入节段）；`related_files` 去已删文件；新增 **总述 / 受众 / 本文不回答**。
+- **升格映射（编号一字未改处必须清楚）**：`OPERATIONS_GUIDE` §1–§14 **原地不动** · `PROCESS_GUIDE` → **§15 / §16 / §17 / §18** · `USAGE_POLICY` 一~四与词典 → **§19（19.1–19.6）/ §20（20.1–20.4）/ §21 / §22 / §23** · `ROLE_CLASSIFICATION` 一~八 → **§24–§31**。
+- **信息零丢失**：四份原文**逐字并入**（仅改小节号与「本文件」→「本节 / 本部分」）；**最短路径 / checklist / 命令 / 表格一律不改写**；**唯一例外**＝`PROCESS_GUIDE §18` 内的 `***` 分隔符按 `§7.1` **自身规定**改为 `---`（**文档自订规则自洽、非改写**）。⚠ **「未迁出及判据」见附节末**。
+
+### 四、引用改准要点（**逐处全文见附节 / 决策日志 `D-662`「决定 7」，本节只列骨架**）
+
+- `CLAUDE.md`：`:20/:157/:199/:212/:247/:252/:256/:363/:432/:497/:548/:555` **改准**（`PROCESS_GUIDE` / `USAGE_POLICY` → `OPERATIONS_GUIDE.md §15–§18 / §19–§21`）＋ `:585` **改准旧文件名**（`FLAT_ORGANIZATION_DESIGN.md` → `COMMISSIONER_DUTY_FRAMEWORK.md`）＋ `:788/:790/:799` **补注**（03 合并不再「待做」）。
+- `content/03_doc_system/{ARCHITECTURE,DOC_MAP,README}.md` · `content/02_institution/{README,SYSTEM_ROLE_PERMISSION,COMMISSIONER_DUTY_FRAMEWORK}.md` · `content/01_strategy/SECRETARY_DIRECTIVES.md` · `content/04_web_design/**` **7 处**（`DESIGN_SYSTEM:1223` · `DEPLOYMENT_GUIDE:942` · `MODULE_UI_DESIGN:162/164/348` · `SOP_WEBSITE_GUIDE:187` · `ROLE_PERMISSION_DESIGN:72` · `PARTY_COMMITTEE_DESIGN:133`）· `content/05_ai_coding/{DOCUMENT_GOVERNANCE（含顺手修准 `SSOT_INDEX.md` 旧债）,TEST_AND_VERIFICATION}.md` · `content/insights/README.md:34`。
+- 根 `README.md:175` / `README-members.md:137,198` / `README-server.md:1592`。
+- `docs/src/services/org-wizard-report.js:37,39` 与 `docs/src/components/org-setup-wizard.js:705`（**仅字符串引用、无逻辑改动**）。
+- `server/test/wizard-report.test.mjs:67`（断言 `'USAGE_POLICY.md'` → `'OPERATIONS_GUIDE.md'`）· `server/test/doc-consistency.test.mjs` 的 `S13` 下限（见「七」）。
+- `.ctx/{SNAPSHOT:75,76,151;ENGINEERING_ASSESSMENT:284;ACTIVE_RULINGS:147,345;REVIEW_QUEUE:394;TIMESTAMPS:477,478}`（**只改引用 / 加注**）。⚠ **`.ctx/logs/**` 与 `.ctx/snapshots/**` 历史留痕一字未改**。
+
+### 五、`ROLE_CLASSIFICATION` 迁入
+
+- 落 `OPERATIONS_GUIDE.md` 的 **Part V（§24–§31）**；**原文件已删除**。
+- 02 侧引用改准：`02_institution/README.md` 的目录说明行 ＋「二、角色分类」表**整节改为「迁出登记」行**；`SYSTEM_ROLE_PERMISSION.md`；`COMMISSIONER_DUTY_FRAMEWORK.md`。
+- 其**枚举处**（02 README 清单 · `DOC_MAP` 02 表 · `ARCHITECTURE` 分层树与结构树）一并改准。
+- **frontmatter `role` 取文件自身 YAML 的 `[工程师]+[AI]`**（`ARCHITECTURE.md` 树里原写 `[用户]+[AI]` **不一致**，以文件自身 YAML 为准）。
+
+### 六、沿革瘦身（对象 / 落点 / 不许搬及判据 / 留指针）
+
+- **对象**＝**本批合并所涉 4 份文件**的**记账式沿革注记（11 段）**：`OPERATIONS_GUIDE` 头拆分说明 ＋ §1.1 旧 L0-L4 映射表 ＋ §10 外移归位句；`PROCESS_GUIDE` 头定位 / 拆分说明 ＋ §15/§16/§17 来源句；`USAGE_POLICY` 头合并来源 ＋ §四 决策记录两表 ＋ 文末产出行；`ROLE_CLASSIFICATION` 头定位句。
+- **落点**＝**`.ctx/logs/2026-09-EXECUTION_LOG.md`**（**既有落点、未新开文件**）的**新增附节**（即下方「附：03《运行与协作规范》合并——自源文件迁出的沿革注记（2026-09-26 批次 202）」）。
+- **★ 判「不许搬」及判据（必须落账）**：`USAGE_POLICY §19.3/§19.6/§20/§21`、`OPERATIONS_GUIDE §7.1/§8/§11/§12/§13/§13.7`、`PROCESS_GUIDE §18` 各节的「**确立日期｜确立背景**」——**判据＝它们不只是历史，还在解释现行规则为何如此写**（属**生效条件 / 现状口径**）；`ROLE_CLASSIFICATION §31 变更历史` / `§30 迭代计划`——**判据＝属文档自身台账**（2026-09-22 批次 154 已判「该留」）⇒ 搬走会让现读者找不到。
+- **留指针（依本仓惯例＝`OPERATIONS_GUIDE §5.1`「内容成段迁走之后，原位只留一行迁出去向说明 ＋ 原标题保留」）**：§1.1 表体、§10 节首**各留一行去向说明**；§15/§16/§17、Part IV 头**各留一句括注**。
+- **范围控制**：**只做本批合并所涉 4 份**；其余文件的沿革瘦身**登记为后续**（本批未做）。
+
+### 七、判据改准（`S13` 第五次下调 ＋ 为何不是放宽 ＋ 待核可）
+
+- `doc-consistency::S13` 非空转下限 **`>= 54` → `>= 51`**（**第五次下调**：60→58→55→54→51）。
+- **为何改**：本批**再删 3 份带 frontmatter 的 `.md`**（`PROCESS_GUIDE.md` / `USAGE_POLICY.md` / `02_institution/ROLE_CLASSIFICATION.md`），其登记行按既有跳过条件（**文件不存在**）**自然不再比对** ⇒ 可比对数 **54 → 51**。
+- **★ 不是放宽判据**：**真防线（`problems` 为空 ＋ `rows >= 200`）一字未动**；本字面量只是**二级防呆**。
+- **登记为越权 / 待核可**（与既往四次同口径，不得读成「无副作用」）。**`S14` 未改**（其锚定数字本批未动 ⇒ 全绿）。
+- `server/test/wizard-report.test.mjs:67` 断言改准（**源文件已删、旧断言必红**）⇒ **非弱化**。
+
+### 八、实读更正（四条）
+
+1. **03 组实际成员＝7 份非 README**（`OPERATIONS_GUIDE` / `PROCESS_GUIDE` / `USAGE_POLICY` / `DOC_MAP` / `ARCHITECTURE` / `README` / `工作模板/经验沉淀辅助提示词`，与 `CLAUDE.md:776`「7→3」的「7」一致）。
+2. **`CLAUDE.md` 实际引用 ≈18 处、且并非全部需改**——`:18/:203/:225/:252/:253/:297/:298/:376–382/:424–436` 等指向 `OPERATIONS_GUIDE.md` 的 `§1.x/§5.1/§10/§10.5/§11.x/§13/§14/§17/§18.x` **本就正确**（宿主文件名与 §1–§18 编号都没变）⇒ **实际改动 10 处 ＋ 3 处补注**；另**原几处「`OPERATIONS_GUIDE.md §18.x`」在合并后由「错指」变「正确」**（§18 原在 `PROCESS_GUIDE`）。
+3. `USAGE_POLICY §1.4/§1.5/§1.6/§二/§三` → `§19.4/§19.5/§19.6/§20/§21`；而 **`§1.7`（`DOCUMENT_GOVERNANCE` 引用）与 `§1.1.1`（`SECRETARY_DIRECTIVES` 引用）本就已不存在** ⇒ 按「术语权威层级 / 术语使用规范」改准（→ `§19.5` / `§19`）。
+4. `02_institution/ROLE_CLASSIFICATION.md` 的 frontmatter `role` 原为 `[工程师]+[AI]`（`ARCHITECTURE.md` 树里写 `[用户]+[AI]` **不一致**）⇒ 本批按**文件自身 YAML** 取 `[工程师]+[AI]`。
+
+### 九、只登记（**不得写成已办**）
+
+1. `.ctx` 里的**历史决策 / 台账正文**（如 `D-660` 那一行「只登记未做」的**原句**）**未改写**，只**原位加「2026-09-26 批次 202 补注」**；`D-660` 的**裁定本体未动**。
+2. **`R-83` 债务**：本批被改引用 / 加注的 **16 份 `content/**` 的 `last_updated` 未刷**（沿用已交付 5 批口径），已在 `.ctx/TIMESTAMPS.md` 的 `OPERATIONS_GUIDE` 行**如实登记**。
+3. `docs/src/core/constants.js:182` 的 `ROLE_CLASSIFICATION §九` 历史注释**按「`docs/src/core/**` 禁改」保留未动**。
+4. **未做全仓其它文件的沿革瘦身**（按范围控制，只做本批合并所涉 4 份）。
+
+### 十、本批台账落点
+
+- **决策日志**（`.ctx/logs/2026-09-DECISION_LOG.md`）：本条 `D-662` ＋ **四处计数同刷**＝文首「`D-275` … `D-662`，共 **388** 条；下一条自 `D-663`」＝ 文末「续编说明」段同值 ＝ 本月目录 **＋1 行（末条 `D-662`）**＋ 说明行「截至 2026-09-26 批次 202 的实测」＝ 月度索引（`.ctx/logs/DECISION_LOG.md`「**388 条（D-275~D-662）**」）；**`^## D-` 实测 388**。
+- **`.ctx/ACTIVE_RULINGS.md`**：**0 行新立 ＋ 1 行改准**（`D-660` 那一行补「合并＝逐字搬家 ＋ 引用改准；沿革迁 `.ctx/logs` 且**承担现状口径的段落不许搬**；授权面可按需放宽」）⇒ **口径行仍 123**。
+- **`.ctx/logs/2026-09-EXECUTION_LOG.md`**：**本条（批次 202 正节）**；**下方附节由实施方此前已写、本批未改其一字**。
+- **`.ctx/TIMESTAMPS.md`**：本批改过文件刷 `2026-09-26` / `content/**` 行只加注 / 三份被删文件在册行改注 🗑️。
+
+### 十一、收尾自检
+
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- ⚠ **不得把「只登记 / 越权」写成已办**；⚠ **不得把各批自测写成「全量绿」**（**本批实测为非全量 59/59**）。
+- **提交前全量见批次 203**。
+
+---
+
+## 附：03《运行与协作规范》合并——自源文件迁出的沿革注记（2026-09-26 批次 202）
+
+> **本节性质＝沿革落点**（`P.16` 第 3 条「沿革迁 `.ctx/logs`」的落地；`OPERATIONS_GUIDE §5.1`「内容成段迁走之后，原位只留一行迁出去向说明」的**另一端**）。
+> **本批合并**：`content/03_doc_system/OPERATIONS_GUIDE.md`（宿主，标题改《运行与协作规范》）⇐ 并入 `PROCESS_GUIDE.md`（§15–§18）＋ `USAGE_POLICY.md`（§19–§23）＋ 自 `content/02_institution/` **迁入**的 `ROLE_CLASSIFICATION.md`（§24–§31）；**三份被并入文件已删除**。
+> **本节逐字保留**从四份源文件**迁出的沿革注记原文**（搬家＝逐字保留，非删除）；**「原句 → 去向」对照见文末表**。
+
+### 一、自 `OPERATIONS_GUIDE.md` 迁出
+
+**① 文件头拆分说明（原 `OPERATIONS_GUIDE.md` 标题下第一段）——逐字**：
+
+> **拆分说明（2026-08-24 T-282）**：本文件为「文档规范」类运行标准（§1-§14，权威层级/术语/关系/角色/YAML/编码/排版/有机性/编号/日志/反论/命名/面向用户表述/角色操作）。「流程机制」类（§15-§18：甲部修改/吸收外部输入/周期性任务/支书评议）已迁至 [PROCESS_GUIDE.md](PROCESS_GUIDE.md)，章节编号保持原编号（引用锚点仅文件路径变化）。
+
+**② §1.1「与旧 L0-L4 模型的映射」（历史迁移参考）——原表逐字**：
+
+| 旧层级                                                                    | 新位置                                                                                                | 迁移理由                               |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 旧 L0 核心层（CLAUDE.md/SSOT\_INDEX/ARCHITECTURE/SECRETARY\_PRONOUNCEMENTS） | CLAUDE.md 保留根目录；其他文件按知识类型归入 content/01\_strategy/ + content/03\_doc\_system/                       | 知识类型划分取代"核心层"概念，根目录仅保留 Harness 和门面 |
+| 旧 L1 理论层（strategy/+design/+insights/）                                  | 按知识类型拆分到 content/01\_strategy/、content/02\_institution/、content/04\_web\_design/、content/insights/ | 知识类型比"理论层"更细粒度                     |
+| 旧 L2 治理层（governance/+sop/）                                             | content/03\_doc\_system/ + content/02\_institution/sop/                                            | 治理规范归知识类型 3，SOP 归知识类型 2            |
+| 旧 L3 实现层（docs/src/ + .github/）                                         | 保持 docs/src/；.github/ 已于 2026-07-21 物理迁出至 `D:\GitHub\System-Residual\.github\`                     | 实现层独立于知识类型                         |
+| 旧 L4 审计参考层（.ctx/ + content/references/）                                | .ctx/ 保留；content/references/ 拆分到 content/01\_strategy/references/ + content/03\_doc\_system/工作模板/  | 审计与参考按知识类型细分                       |
+
+**③ §10 日志规范 节首归位注记（原为独立一行）——逐字**：
+
+> **本节为 CLAUDE.md 原 H6 内容的外移归位（2026-08-11 甲部重编后为 H90）**。定义执行日志与决策日志的权责划分、写入铁律、模板、编号与分片规则。
+
+### 二、自 `PROCESS_GUIDE.md` 迁出
+
+**④ 文件头定位 / 拆分说明（原 `PROCESS_GUIDE.md` 标题下 blockquote）——逐字**：
+
+> **定位：** 本文件是「流程机制」类运行标准的唯一权威源（原 OPERATIONS_GUIDE.md §15-§18）——甲部修改流程 / 吸收外部输入操作流程 / 周期性任务与自动唤醒 / 支书评议工作流细节。文档「规范」类标准（权威层级/术语/YAML/编码/排版/编号/日志/反论/命名/表述等 §1-§14）见 [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md)。
+> **受众：** [工程师]+[AI]
+> **拆分说明**：2026-08-24 自 OPERATIONS_GUIDE.md 拆分（T-282 content 体系优化）——规范类 §1-14 留在 OPERATIONS_GUIDE.md，流程类 §15-18 迁至本文件。章节编号保持原编号，引用锚点不变（仅文件路径变化）。
+
+**⑤ §15 甲部修改流程 节首归位注记（原为独立句）——逐字**：
+
+> **本节为 CLAUDE.md 原 H4 内容的外移归位（2026-08-11 甲部重编后为 H50）**。
+
+**⑥ §16 吸收外部输入操作流程 节首合并归位注记（原为独立句）——逐字**：
+
+> **本节为原** **`content/governance/SYNC_EXTERNAL.md`** **的合并归位**（2026-07-11 合并）。
+
+**⑦ §17 周期性任务与自动唤醒机制 节首合并来源注记（原为独立句）——逐字**：
+
+> **合并来源**：RECURRING\_TASKS.md（2026-07-12 合并）。本节为经常性工作管理机制的权威源。
+
+### 三、自 `USAGE_POLICY.md` 迁出
+
+**⑧ 文件头 受众 / 优先级 / 合并来源（原 `USAGE_POLICY.md` 标题下 blockquote）——逐字**：
+
+> **受众：** [工程师] | **优先级**：P0（强制执行）
+> **合并来源**: TERMINOLOGY.md + EMOJI_POLICY.md（2026-07-12 合并）
+
+**⑨ 「四、决策记录」两表——原表逐字**：
+
+> ### 4.1 Emoji 决策记录
+>
+> | 日期 | 决策 | 上下文 |
+> |------|------|--------|
+> | 2026-05-02 | 确立 Emoji 使用边界规范（T4） | 系统零 Emoji，文档有限度使用 |
+>
+> ### 4.2 合并决策
+>
+> | 日期 | 决策 | 上下文 |
+> |------|------|--------|
+> | 2026-07-12 | 合并 TERMINOLOGY.md + EMOJI_POLICY.md → USAGE_POLICY.md（T88） | governance/ 目录精简优化，使用规范归一 |
+
+**⑩ 文末合并产出行——逐字**：
+
+> *本规范由 USAGE_POLICY.md 合并任务（T88, 2026-07-12）产出，合并自 TERMINOLOGY.md + EMOJI_POLICY.md。*
+
+### 四、自 `ROLE_CLASSIFICATION.md`（原 `content/02_institution/`）迁出
+
+**⑪ 文件头定位（原 `ROLE_CLASSIFICATION.md` 标题下 blockquote）——逐字**：
+
+> **定位：** 本文档定义 Org OS 仓库中所有文件的角色分类标准，确保人机协作边界清晰、权限可控。
+
+### 五、「原句 → 去向」对照表
+
+| # | 原句来源 | 原句要点 | 去向 |
+|---|---|---|---|
+| ① | `OPERATIONS_GUIDE.md` 头 | 拆分说明（2026-08-24 T-282）§1-14 / §15-18 | 本节一·① |
+| ② | `OPERATIONS_GUIDE.md §1.1` | 与旧 L0-L4 模型的映射（历史迁移参考）表 | 本节一·②（原位留去向说明行） |
+| ③ | `OPERATIONS_GUIDE.md §10` 头 | 「本节为 CLAUDE.md 原 H6 内容的外移归位（2026-08-11 甲部重编后为 H90）」 | 本节一·③（原位留去向说明行） |
+| ④ | `PROCESS_GUIDE.md` 头 | 定位 / 受众 / 拆分说明（2026-08-24 T-282） | 本节二·④ |
+| ⑤ | `PROCESS_GUIDE.md §15` 头 | 「本节为 CLAUDE.md 原 H4 内容的外移归位（2026-08-11 甲部重编后为 H50）」 | 本节二·⑤（合并后 §15 原位留一句括注） |
+| ⑥ | `PROCESS_GUIDE.md §16` 头 | 「本节为原 `content/governance/SYNC_EXTERNAL.md` 的合并归位（2026-07-11 合并）」 | 本节二·⑥（合并后 §16 原位留一句括注） |
+| ⑦ | `PROCESS_GUIDE.md §17` 头 | 「合并来源：RECURRING_TASKS.md（2026-07-12 合并）」 | 本节二·⑦（合并后 §17 原位留一句括注） |
+| ⑧ | `USAGE_POLICY.md` 头 | 受众 / P0 优先级 / 合并来源（TERMINOLOGY + EMOJI_POLICY，2026-07-12） | 本节三·⑧（合并后 Part IV 原位留一句括注） |
+| ⑨ | `USAGE_POLICY.md` §四 | Emoji 决策记录 · 合并决策两表 | 本节三·⑨（合并后 §22 保留题、留去向说明） |
+| ⑩ | `USAGE_POLICY.md` 文末 | 合并产出行（T88, 2026-07-12） | 本节三·⑩ |
+| ⑪ | `ROLE_CLASSIFICATION.md` 头 | 定位（文件角色分类标准） | 本节四·⑪（合并后 Part V 以新定位头替代） |
+
+> ⚠ **未迁出（判定「不许搬」及判据）**：`USAGE_POLICY.md §19.3／§19.6／§20／§21` 各节的「确立日期 ｜ 确立背景」、`OPERATIONS_GUIDE §7.1/§8/§11/§12/§13/§13.7` 各节的「确立日期 ｜ 确立背景」、`PROCESS_GUIDE §18` 各节「确立背景」、`ROLE_CLASSIFICATION §31 变更历史`／`§30 迭代计划`——**判据**：它们**不只是历史、还在解释现行规则为何如此写**（属生效条件 / 现状口径），或属**文档自身台账**（`ROLE_CLASSIFICATION §31`，2026-09-22 批次 154 已判「该留」，与 `SYSTEM_ROLE_PERMISSION.md ## 变更历史` 同族）⇒ 搬到 `.ctx` 会让现读者找不到。
+

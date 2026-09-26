@@ -23,7 +23,7 @@ related_files: [CLAUDE.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/
 
 > **总述：** 本文是支部**组织形态与角色分工**的唯一权威源，回答三件事——① **支部怎么组织**（§A 设计背景与核心定义 / §B 条块双线职责体系）；② **每个角色能做什么**（§C 支委权限矩阵 / §D 操作入口与 UI 体系 / §E 三委数据协作流 / §F 条块交互机制）；③ **项目层角色（组织者 / 深度参与者）怎么分工**（§G 扁平化设计）。另有 §审批流程规范 定义全部审批场景的统一流程、状态机与权限矩阵。
 > **受众：**[用户]+[AI] — 用户决策参考 + AI 自主读取作为实施上下文。
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **角色键 / 权限键的键级定义** → [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（代码键级权威；本文 §C 为逐操作位视图，双轨约定见其 §9f）；③ **条块职责明细表** → [sop/支委与党小组定人定责定岗说明.md](sop/支委与党小组定人定责定岗说明.md) §二；④ **数据结构与数据流（实体字段表）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；⑤ **界面视觉规范（色彩 / 组件）** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)；⑥ **工作台界面布局的设计论证** → [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)；⑦ **仓库文件的 `[用户]` / `[工程师]` / `[AI]` 受众分类** → [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)（讲的是全仓库文件的受众分类，与支部组织无关，故不并入本文）。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **角色键 / 权限键的键级定义** → [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（代码键级权威；本文 §C 为逐操作位视图，双轨约定见其 §9f）；③ **条块职责明细表** → [sop/支委与党小组定人定责定岗说明.md](sop/支委与党小组定人定责定岗说明.md) §二；④ **数据结构与数据流（实体字段表）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；⑤ **界面视觉规范（色彩 / 组件）** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)；⑥ **工作台界面布局的设计论证** → [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)；⑦ **仓库文件的 `[用户]` / `[工程师]` / `[AI]` 受众分类** → [OPERATIONS_GUIDE.md §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系；原 `ROLE_CLASSIFICATION.md`，2026-09-26 批次 202 迁入 `03_doc_system`——讲的是全仓库文件的受众分类，与支部组织无关，故不并入本文）。
 
 ---
 
@@ -458,7 +458,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 - [MODULE_UI_DESIGN.md](../04_web_design/module/MODULE_UI_DESIGN.md)（已落地 2026-09-03，设计论证档案）
 - [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)
 - [SYSTEM_ROLE_PERMISSION.md](./SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，键级权威）
-- [ROLE_CLASSIFICATION.md](./ROLE_CLASSIFICATION.md)（文件角色分类体系）
+- [OPERATIONS_GUIDE.md §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系；原 `ROLE_CLASSIFICATION.md`）
 - [支委与党小组定人定责定岗说明](./sop/支委与党小组定人定责定岗说明.md)
 - [纪检委员工作流程指南](./sop/纪检委员工作流程指南.md)
 - [组织委员工作流程指南](./sop/组织委员工作流程指南.md)
@@ -478,7 +478,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 **详细步骤**：党小组组长汇集相关信息（活动方案/需求）→ 支委扩大会讨论研究 → 通过则推进执行，驳回则调整方案重新提交。状态机与权限矩阵见 §六、§七。
 
-> 活动方案的讨论与发起权限见 [USAGE_POLICY.md §1.3 活动写入门禁](../03_doc_system/USAGE_POLICY.md) 与 [系统角色权限矩阵 §9b](./SYSTEM_ROLE_PERMISSION.md)。
+> 活动方案的讨论与发起权限见 [OPERATIONS_GUIDE.md §19.3 活动写入门禁](../03_doc_system/OPERATIONS_GUIDE.md) 与 [系统角色权限矩阵 §9b](./SYSTEM_ROLE_PERMISSION.md)。
 
 ### 二、专班立项审议
 

@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institut
 
 > **总述：** 本文是系统**架构与单一事实源**的唯一权威源，回答三件事——① **系统怎么分层、物理分布在哪**（§四 分层架构 / §五 仓库结构）；② **母本/子本关系怎么注册、变更怎么传播**（§八 SSOT 双向变更流水线 / §十 单一事实源注册表与权威源治理）；③ **系统有哪些服务、谁有权限**（§十一 统一服务目录与角色-服务权限矩阵）。三分互为依据：分层架构是物理承载，注册表规定「谁是母本、冲突以谁为准」，服务目录把架构与制度落成可盘的实现清单——任一处改动的溯源链路都回 §八 与 §十。
 > **受众：** [工程师]+[AI]
-> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语与使用规范** → [USAGE_POLICY.md](./USAGE_POLICY.md)；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
+> **本文不回答**：① **沿革与「哪一批做了什么」** → `.ctx/logs/YYYY-MM-EXECUTION_LOG.md`；② **数据结构与数据流（实体字段表 / 枚举 / 表结构）** → [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)；③ **系统角色权限矩阵（角色键级权威）** → [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **文档导航与权威层级定义** → [DOC_MAP.md](./DOC_MAP.md) 与 [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md)；⑤ **术语与使用规范 / 文件角色分类** → [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（《运行与协作规范》：§19 术语 / §20 AI 展开 / §21 Emoji / §24–§31 文件角色分类）；⑥ **前端设计规范** → [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md)。
 
 ---
 
@@ -44,9 +44,9 @@ Org OS 是光华管理学院本科生党支部的组织运行操作系统。它�
 | 机制 | 说明 | 权威源 |
 |------|------|--------|
 | Harness 工作流 | CLAUDE.md 甲乙丙三部：工作流、执行事项、待决策 | CLAUDE.md |
-| 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [PROCESS_GUIDE.md §17](./PROCESS_GUIDE.md) |
+| 周期任务机制 | 周/月/季/年级自动唤醒任务（含 W4 专项评议循环） | [OPERATIONS_GUIDE.md §17](./OPERATIONS_GUIDE.md) |
 | Skill 工作流 | 专项任务按 Skill 规范执行（SOP→代码、经验提炼、日志归档等） | [05 AI 协作方法论层 README](../05_ai_coding/README.md) |
-| 文件角色分类 | `[用户]/[工程师]/[AI]` 三类受众 + 复合标记，AI 权限边界 | [ROLE_CLASSIFICATION.md](../02_institution/ROLE_CLASSIFICATION.md) |
+| 文件角色分类 | `[用户]/[工程师]/[AI]` 三类受众 + 复合标记，AI 权限边界 | [OPERATIONS_GUIDE.md §24–§31](./OPERATIONS_GUIDE.md) |
 
 ### 任务优先级
 
@@ -73,15 +73,12 @@ Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
   └─ content/02_institution/              [用户]+[AI] 组织制度层
       ├── sop/                            [用户]+[AI] 制度母本，所有代码逻辑的来源
       ├── COMMISSIONER_DUTY_FRAMEWORK.md       [用户]+[AI] 支部组织与委员体系（含扁平化设计 §G）
-      ├── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
       └── SYSTEM_ROLE_PERMISSION.md       [工程师]+[AI] 系统角色权限矩阵（代码键级权威）
 
 Layer 3: 知识类型 3 — 文档系统治理（文档怎么治理、术语、运行标准）
   └─ content/03_doc_system/               [工程师]+[AI] 系统治理层
       ├── ARCHITECTURE.md                 [工程师]+[AI] 架构与单一事实源（分层架构 + 单一事实源注册表 + 统一服务目录，本文件）
-      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行标准·文档规范（§1-14）
-      ├── PROCESS_GUIDE.md                [工程师]+[AI] 运行标准·流程机制（§15-18）
-      ├── USAGE_POLICY.md                 [工程师]+[AI] 使用规范（术语+Emoji）
+      ├── OPERATIONS_GUIDE.md             [工程师]+[AI] 运行与协作规范（§1–§14 文档规范 ＋ §15–§18 流程机制 ＋ §19–§23 使用规范 ＋ §24–§31 文件角色分类体系；2026-09-26 批次 202 四份合一并迁入 `02_institution/ROLE_CLASSIFICATION`）
       └── DOC_MAP.md                      [工程师]+[AI] 文档导航中心
 
 Layer 4: 知识类型 4+5 — 网站设计 + AI 编码
@@ -160,14 +157,11 @@ Layer 7: 审计参考层（审计与参考）
 │   │   │   ├── 纪检委员工作流程指南.md [用户]+[AI] 纪检委员 SOP
 │   │   │   └── 党小组组长工作手册.md   [用户]+[AI] 党小组组长操作指南
 │   │   ├── COMMISSIONER_DUTY_FRAMEWORK.md [用户]+[AI] 支部组织与委员体系（含扁平化设计 §G）
-│   │   ├── ROLE_CLASSIFICATION.md    [用户]+[AI] 文件角色分类体系
 │   │   ├── SYSTEM_ROLE_PERMISSION.md [工程师]+[AI] 系统角色权限矩阵（角色键全表 + 权限矩阵，代码键级权威）
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
 │   ├── 03_doc_system/                [工程师]+[AI] 文档系统治理层（文档怎么治理、术语、运行标准）
 │   │   ├── ARCHITECTURE.md           [工程师]+[AI] 架构与单一事实源（本文件）
-│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行标准·文档规范（§1-14）
-│   │   ├── PROCESS_GUIDE.md          [工程师]+[AI] 运行标准·流程机制（§15-18）
-│   │   ├── USAGE_POLICY.md           [工程师]+[AI] 使用规范（术语+Emoji）
+│   │   ├── OPERATIONS_GUIDE.md       [工程师]+[AI] 运行与协作规范（§1–§14 文档规范 ＋ §15–§18 流程机制 ＋ §19–§23 使用规范 ＋ §24–§31 文件角色分类体系）
 │   │   ├── DOC_MAP.md                [工程师]+[AI] 文档导航中心
 │   │   ├── 工作模板/                  [用户]+[AI] 经验沉淀辅助提示词
 │   │   └── README.md                 [工程师]+[AI] 文档系统治理层目录索引
@@ -378,8 +372,8 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
-| `content/03_doc_system/USAGE_POLICY.md` | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 USAGE_POLICY.md §一 一致 |
-| `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行标准→全仓。YAML/编码/编号/文档关系/权威层级/三类文件角色规范/§15 周期性任务，全仓库必须遵守 |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` §19（术语使用规范） | 全仓库 + `docs/src/core/constants.js` | 术语→全仓。术语变更触发一改具改（H30.1）。代码中的术语必须与 OPERATIONS_GUIDE.md §19 一致（原 `USAGE_POLICY.md` 已于 2026-09-26 批次 202 并入本文件 §19） |
+| `content/03_doc_system/OPERATIONS_GUIDE.md` | 全仓库 | 运行与协作规范→全仓。§1–§14 文档规范 / §15–§18 流程机制 / §19–§23 使用规范 / §24–§31 文件角色分类，全仓库必须遵守 |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` + `docs/src/core/constants.js` | `docs/src/core/state.js`（角色枚举消费方） | 系统角色键→代码。角色键权威全表在 SYSTEM_ROLE_PERMISSION.md §9a0，代码侧单一源 `ROLE_KEYS`（constants.js）；state.js `ROLE_TYPES` 为首页日历分组用途的角色枚举 |
 
 #### 审计参考层 → content/ 制度
@@ -425,7 +419,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | CLAUDE.md | 规则增删改、链长策略变更、/ask 与 /confirm 规范变更 | 全仓库所有引用方 |
 | 本文 §十（注册表） | 映射关系增删改 | 受影响的子本文件 |
 | content/02_institution/sop/*.md | 制度条款/流程步骤/术语变更 | docs/src/ 对应代码文件（见 sop-web-sync 映射表） |
-| content/03_doc_system/USAGE_POLICY.md | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
+| content/03_doc_system/OPERATIONS_GUIDE.md §19（术语使用规范） | 术语增删改 | docs/src/core/constants.js + 全仓库引用 |
 | content/04_web_design/data/DATA_MODEL.md | 数据字段定义变更 | docs/src/ 对应数据结构代码 |
 
 #### 同步执行步骤
@@ -474,7 +468,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 >
 > **受众：** [工程师]+[AI] — 工程师决策参考 + AI 自主读取作为实施上下文。
 >
-> 引用流程：[USAGE_POLICY.md §一](./USAGE_POLICY.md)（术语与使用规范，含 2026-09-03 支书裁定）→ [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（支委系统）→ [系统角色权限矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md）
+> 引用流程：[OPERATIONS_GUIDE.md §19–§31](./OPERATIONS_GUIDE.md)（《运行与协作规范》：术语与使用规范 ＋ 文件角色分类，含 2026-09-03 支书裁定；原 `USAGE_POLICY.md` / `ROLE_CLASSIFICATION.md` 已于 2026-09-26 批次 202 并入）→ [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型）→ [COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（支委系统）→ [系统角色权限矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md)（SYSTEM_ROLE_PERMISSION.md）
 >
 > **阅读约定**：本节只盘点「有哪些服务、由哪些代码实现、谁有权限」。服务间数据流与依赖见 [DATA_MODEL.md §1.3](../04_web_design/data/DATA_MODEL.md)；页面路由与入口映射见 §五 仓库结构；权限矩阵权威源为 [系统角色权限矩阵 §9b](../02_institution/SYSTEM_ROLE_PERMISSION.md)。
 
@@ -578,8 +572,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 系统角色权限矩阵（角色键级权威、操作粒度矩阵） | [SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md) |
 | 支委职责与赋权框架 | [COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 文档导航与权威层级定义 | [DOC_MAP.md](./DOC_MAP.md) / [OPERATIONS_GUIDE.md §1.1](./OPERATIONS_GUIDE.md) |
-| 运行标准·文档规范 / 流程机制 | [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md) / [PROCESS_GUIDE.md](./PROCESS_GUIDE.md) |
-| 术语使用规范 | [USAGE_POLICY.md](./USAGE_POLICY.md) |
+| 运行标准·文档规范 / 流程机制 / 使用规范 / 文件角色分类 | [OPERATIONS_GUIDE.md](./OPERATIONS_GUIDE.md)（《运行与协作规范》） |
 | 前端设计规范 | [DESIGN_SYSTEM.md](../04_web_design/design-system/DESIGN_SYSTEM.md) |
 | 支书裁定原文（P-xxx 系列） | [SECRETARY_DIRECTIVES.md](../01_strategy/SECRETARY_DIRECTIVES.md) |
 | 沿革与「哪一批做了什么」 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` |
