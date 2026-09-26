@@ -88,7 +88,7 @@ export const ATTENDANCE_RECORDS = [
   //   是 `init-reset.js::INIT_SEED_ID_PATTERNS.attendances = /^att\d+$/`（`mock-adapter.js` 的 merge 同判据），
   //   `?reset=init` 靠它把演示种子从库里剔除。本条初版 id 写成 `att-sep-1`（**不匹配**）⇒ 剔除漏掉它
   //   ⇒ 空态不空（`attendances.length` 1 !== 0）。**「造种子」不只是造出内容，还要落在既有的种子 id 空间里。**
-  // ⚠ 取 `att900`（**隔离段**）：避开 8 月生成器的连续区间（现 `att44`–`att153`，随 `_AUGUST_EVENTS` 增长而增长），
+  // ⚠ 取 `att900`（**隔离段**）：避开 8 月生成器的连续区间（现 `att44`–`att151`，随 `_AUGUST_EVENTS` 增长而增长），
   //   留足余量以免将来撞号（真撞了 M1 的唯一性断言也会红，不会静默）。
   { id: 'att900', personId: 'p5', activityId: 'act-31', status: AttendanceStatus.ABSENT, recordedBy: 'p10', recordedAt: '2026-09-10T18:00:00Z', overdue: false },
 ];
@@ -109,8 +109,13 @@ export const ATTENDANCE_RECORDS = [
 // 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/vote-config.js resolveVoterIds('committee')），
 // p1/p2/p4 = 三组长；勿据此名单增删支委，成员变更请改 vote-config 权威源。
 const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];
-// 全员（三党小组 17/17/16 共 50 人）
-const _ALL_PERSON_IDS = PEOPLE.map(p => p.id);
+// 全员（三党小组 17/17/16 共 50 人）——**限本支部成员**：
+// 2026-09-26 本批改准：原 `PEOPLE.map(p => p.id)` 会把**党委组织员 p_pc**（`branchId: null`，不属任一支部，
+//   见 `people.js`）一并写进 act-26/act-29 的「全员出席」⇒ 生产 2 条游离于支部成员集之外的考勤行，
+//   且与本常量上注「共 50 人」自相矛盾（实得 51）。既有三处口径均把 p_pc 排除在支部名单外
+//   （`roster.test`「p_pc 不入选」· `base-data-preview.test`「本支部成员 50 名，不含 p_pc」· `group-view.test`
+//   「三组合计 50，p_pc 剔除」）⇒ 本处按支部归属过滤，回到 50。
+const _ALL_PERSON_IDS = PEOPLE.filter((p) => p.branchId).map((p) => p.id);
 
 const _AUGUST_EVENTS = [
   { activityId: 'act-26', recordedAt: '2026-08-01T20:00:00Z', people: _ALL_PERSON_IDS },

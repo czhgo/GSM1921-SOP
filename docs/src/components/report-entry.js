@@ -27,7 +27,7 @@ export function renderReportEntryHtml({ accent = '#B91C1C', accentRgba = 'rgba(1
     if (me) unread = IssueNotify.getUnreadCount(me.personId) || 0;
   } catch {}
   const badge = unread > 0
-    ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:#EF4444;color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>`
+    ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:var(--functional-error);color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>`
     : '';
   return `
     <button id="btn-report-entry" type="button"
@@ -106,7 +106,7 @@ async function openReportModal() {
       const btn = document.getElementById('btn-report-entry');
       if (me && btn) {
         const unread = IssueNotify.getUnreadCount(me.personId) || 0;
-        btn.innerHTML = `一键汇报${unread > 0 ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:#EF4444;color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>` : ''}`;
+        btn.innerHTML = `一键汇报${unread > 0 ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:var(--functional-error);color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>` : ''}`;
       }
     } catch {}
   });

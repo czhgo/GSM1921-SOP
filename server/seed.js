@@ -93,7 +93,8 @@ export async function seedDatabase(db) {
   // 与 mock 态**同源**（`docs/src/mock/seed.js::SEED_MAKEUP_TASKS`，经 mock-adapter._seedInitialData 注入）
   // ⇒ 两形态一致；补它的直接动因：成员台「考勤概况 · 去补课」入口只在「本人 pending 补课任务」存在时渲染，
   //   而该表原无种子（`data-adapter.js` 原注「由纪检操作生成，空属合理」）⇒ api 形态下该入口恒不存在。
-  //   本条任务＝`att-sep-1`（p5 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释）。
+  //   本条任务＝`att900`（p5 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
+  //   `attendanceRecordId` 原误写 `att-sep-1`，2026-09-26 已按真实 id 改准为 `att900`）。
   replaceCollection(db, 'makeup_tasks', seedMod.SEED_MAKEUP_TASKS);
   // 2026-09-14 批次 25：党小组一等实体种子（br-b1 现有三组；组长由成员档案派生不落本表）
   replaceCollection(db, 'party_groups', partyGroupsMod.PARTY_GROUPS);
@@ -158,6 +159,27 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'auth_audit', SEED_AUTH_AUDIT);
   // 支书任期记录（形状 = `appointmentRecords` 通用 CRUD；现任一条、`to: null`，与 branches.secretaryId 自洽）
   replaceCollection(db, 'appointment_records', SEED_APPOINTMENT_RECORDS);
+
+  // ════════════════════════════════════════════════════════════════
+  //  批次 195+（2026-09-26）：待办（todos）基线种子（**补已知缺口**）
+  // ════════════════════════════════════════════════════════════════
+  // 口径判定（先实读三处再动手：`services/todo.js` 的 `SEED_TODOS` · `routes/resources.js` 的 todos 写口 ·
+  //   `routes/leader-progress.js` 的 todos 读口径）：`todos` 在本系统里**两种性质并存**，故按纪律①播种——
+  //   · **运行时派生**是常态：通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/
+  //     成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办——这些**不落种子**，由演示过程自然产生；
+  //   · 但另有一小批**独立台账型种子**：`docs/src/services/todo.js::SEED_TODOS`（2 条：宣传委员「提交七一活动
+  //     新闻稿」·支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，**不引用任何活动/任务/
+  //     人员实体** ⇒ 零孤立引用）——由前端 `seedTodos()`（各工作台入口调用）与 `data-adapter.js::init()` 的
+  //     `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
+  // 处方：**从 `SEED_TODOS` 同源播种**（与 mock 形态逐值一致；前端 seedTodos() 读的正是同一常量），
+  //   **不在服务端另造第二份清单**（与 `seedIssues()`／`seedMilestones()` 同一纪律）。
+  // 直接动因：本文件原先**未播种 `todos`** ⇒ api 形态首启「待办」恒空，全靠前端空表回退兜底；
+  //   而那回退分支（`data-adapter.js::init()`）曾引爆**静默丢写竞态**（批次 197 已修：基线捕获提前到任何
+  //   `await` 之前）。补种后该分支**不再被走到**（附带收益；`SEED_FALLBACK`/`DISABLE_SEED`/生产默认不播种
+  //   三条开关语义**一字未改**）。
+  // 幂等：`replaceCollection` = `DELETE FROM todos` + 整表 `INSERT` ⇒ 重复播种只覆盖、不叠加。
+  const { SEED_TODOS } = await import('../docs/src/services/todo.js?v=20260924a');
+  replaceCollection(db, 'todos', SEED_TODOS);
 }
 
 // ════════════════════════════════════════════════════════════════

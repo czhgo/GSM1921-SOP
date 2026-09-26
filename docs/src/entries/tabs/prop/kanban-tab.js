@@ -50,17 +50,17 @@ export function renderContent(ctx) {
   container.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:#2563eb;border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(37,99,235,0.06);color:var(--accent-prop-commissioner);border-bottom:2px solid rgba(37,99,235,0.15);">待启动 (${pending.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-pending-host"></div>
       </div>
       <div class="card rounded-xl p-0 overflow-hidden">
-        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, #3b82f6 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
+        <div class="px-4 py-3 font-title-cn text-sm font-bold" style="--acc-bg-dark:rgba(96,165,250,0.10);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.25);background:rgba(59,130,246,0.06);color:color-mix(in srgb, var(--accent-blue) 60%, #000);border-bottom:2px solid rgba(59,130,246,0.15);">进行中 (${active.length})</div>
         <div class="p-3 space-y-2 min-h-[120px]" id="kanban-active-host"></div>
       </div>
     </div>
     ${completed.length > 0 ? `
     <details class="card rounded-xl p-0 overflow-hidden">
-      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:#4B5563;border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
+      <summary class="px-4 py-3 font-title-cn text-sm font-bold cursor-pointer select-none" style="--acc-bg-dark:rgba(148,163,184,0.10);--acc-text-dark:#94A3B8;--acc-border-dark:rgba(148,163,184,0.25);background:rgba(107,114,128,0.06);color:var(--neutral-600);border-bottom:2px solid rgba(107,114,128,0.15);">已归档 (${completed.length})</summary>
       <div class="p-3 space-y-2" id="kanban-completed-host"></div>
     </details>` : ''}
   `;

@@ -380,7 +380,7 @@ function _createPanelHtml(S, isStaff) {
       </div>`;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-[10px] font-normal text-gray-500">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
+      <p class="text-xs font-semibold text-gray-700">新建支部… <span class="text-[11px] font-normal text-gray-500">（从空组织模板起步，或复制现有支部为模板；创建后当前向导自动切到新支部）</span></p>
       <div class="flex flex-wrap items-center gap-4">
         <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
           <input type="radio" name="wz-create-mode" value="empty" ${isCopy ? '' : 'checked'} class="shrink-0">
@@ -402,7 +402,7 @@ function _createPanelHtml(S, isStaff) {
         </div>
       </div>
       ${appointSection}
-      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
+      <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="${subtle}">取消</button>
         <button type="button" data-wz-act="do-create" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;">创建支部</button>
@@ -440,7 +440,7 @@ function _basePanelHtml(S) {
   const n = st.rows.length;
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
-      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[10px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
+      <p class="text-xs font-semibold text-gray-700">成员基础数据预览 <span class="text-[11px] font-normal text-gray-500">（本地预览：仅覆盖姓名/党小组归属/发展阶段/在校·滞留，不写 mockDB / 种子持久）</span></p>
       <p class="text-[11px] text-gray-500">下载「成员名单模板」→ 按真实名册改 JSON → 「导入名单(JSON)预览」：应到人数 / 党员分布即时可见变化（⑤ 验证与重置、纪检考勤等的应到名单来源一致）；「清除预览」一键回种子。</p>
       <p class="text-[11px] text-amber-700">注意：业务历史（活动/考勤/议程/专班等）仍关联演示成员，正式换数据请按「换壳工作单」落仓库文件。</p>
       <div class="flex flex-wrap items-center gap-2">
@@ -463,7 +463,7 @@ function _baseStatBox(label, main, sub) {
   return `<div class="rounded-lg border border-blue-100 bg-white p-2.5">
     <p class="text-[11px] text-gray-500">${esc(label)}</p>
     <p class="text-base font-bold text-gray-800 leading-tight">${main}</p>
-    ${sub ? `<p class="text-[10px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
+    ${sub ? `<p class="text-[11px] text-gray-500 mt-0.5">${esc(sub)}</p>` : ''}
   </div>`;
 }
 
@@ -471,7 +471,7 @@ function _baseStatBox(label, main, sub) {
 function _baseDraftHtml(S, draft) {
   const s = draft.stats;
   const groupParts = Object.entries(s.perGroup).map(([g, v]) =>
-    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[10px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
+    `<span class="whitespace-nowrap">${esc(g)} <b class="text-gray-800">${v.expected}</b><span class="text-[11px] text-gray-500"> / 在册 ${v.partyTotal}</span></span>`).join(' · ');
   return `
     <div class="rounded-lg border border-green-200 bg-white p-3 space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -502,13 +502,13 @@ function _copyPanelHtml(S, branches) {
     ? targets.map(b => `
       <label class="flex items-center gap-2 py-1 px-1 rounded cursor-pointer hover:bg-white">
         <input type="checkbox" data-wz-copy-target value="${esc(b.id)}" ${S.copySel.has(b.id) ? 'checked' : ''} class="shrink-0">
-        <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-[10px] text-gray-500">（${esc(b.id)}）</span></span>
+        <span class="text-xs text-gray-700 min-w-0 truncate">${esc(b.name)}<span class="text-[11px] text-gray-500">（${esc(b.id)}）</span></span>
       </label>`).join('')
     : '<p class="text-[11px] text-gray-500 py-1">暂无其它支部可复制——请先由党委在「支部管理」中创建支部。</p>';
   return `
     <div class="rounded-lg border border-blue-100 bg-blue-50/40 p-3 mt-2.5 space-y-2">
       <p class="text-xs font-semibold text-gray-700">复制配置到支部…</p>
-      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐个支部记录变更来源（<code class="text-[10px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>）。</p>
+      <p class="text-[11px] text-gray-500">源：<b class="text-gray-700">${sourceName}</b>；将模块/块组合、角色分工与组织档案（页眉/自述/主题预设）复制给勾选的目标支部，逐个支部记录变更来源（<code class="text-[11px] bg-white px-1 py-0.5 rounded border border-blue-100">config-copied</code>）。</p>
       <div class="rounded-lg bg-white border border-blue-100 px-2 py-1 max-h-44 overflow-y-auto">${rows}</div>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-copy" class="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors">取消</button>
@@ -526,8 +526,8 @@ function _stepperHtml(S) {
     const isCur = S.step === st.id;
     const clickable = isDone || st.id <= maxReached;
     const badge = isDone
-      ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
-      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
+      ? '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold text-white shrink-0" style="background:#16A34A;">✓</span>'
+      : `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 ${isCur ? 'text-white' : 'text-gray-600 bg-gray-100'}" style="${isCur ? `background:${accent};` : ''}">${st.id}</span>`;
     return `<button type="button" data-wz-step="${st.id}" ${clickable && !isCur ? '' : 'disabled'}
       class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${isCur ? 'font-semibold' : ''} ${clickable && !isCur ? 'hover:bg-gray-100 text-gray-600' : ''} ${!clickable ? 'opacity-45 cursor-not-allowed' : ''}"
       style="${isCur ? `--acc-text-dark:color-mix(in srgb, ${accent} 55%, #fff);background:${accentRgba};color:${accent};border:1px solid ${accentBorder};` : ''}">${badge}${esc(st.label)}</button>`;
@@ -567,7 +567,7 @@ function _step1Html(S, branch, org, isStaff) {
   }).join('');
   const fixedChips = FIXED_THEME_TOKENS.map((t) =>
     `<span class="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">
-      <span class="w-3 h-3 rounded-full" style="background:${t.hex};"></span>${esc(t.name)}<span class="text-[10px] text-gray-500">固定</span></span>`).join('');
+      <span class="w-3 h-3 rounded-full" style="background:${t.hex};"></span>${esc(t.name)}<span class="text-[11px] text-gray-500">固定</span></span>`).join('');
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
@@ -576,7 +576,7 @@ function _step1Html(S, branch, org, isStaff) {
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <label class="flex flex-col gap-1 text-xs text-gray-500">
-          支部名称（官方名）${canEditName ? '' : '<span class="text-[10px] text-amber-700">党委管理，支书只读</span>'}
+          支部名称（官方名）${canEditName ? '' : '<span class="text-[11px] text-amber-700">党委管理，支书只读</span>'}
           <input id="wz-org-name" type="text" value="${esc(org.name)}" placeholder="支部官方名" ${canEditName ? '' : 'disabled'}
             class="input-flat w-full ${canEditName ? '' : 'bg-gray-50 text-gray-500'}">
         </label>
@@ -590,7 +590,7 @@ function _step1Html(S, branch, org, isStaff) {
         <textarea id="wz-org-desc" rows="2" placeholder="例：以高质量党建引领人才培养的样板支部……" class="input-flat w-full">${esc(org.desc)}</textarea>
       </label>
       <div>
-        <p class="text-xs font-semibold text-gray-600 mb-1.5">主题预设 <span class="text-[10px] font-normal text-gray-500">（仅可调令牌=强调色 --app-accent 三件套；固定红/金不可提供更改）</span></p>
+        <p class="text-xs font-semibold text-gray-600 mb-1.5">主题预设 <span class="text-[11px] font-normal text-gray-500">（仅可调令牌=强调色 --app-accent 三件套；固定红/金不可提供更改）</span></p>
         <div class="flex flex-wrap items-center gap-1.5 mb-2">${fixedChips}</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${presetCards}</div>
       </div>
@@ -631,16 +631,16 @@ function _step2Html(S, branch) {
         <span class="text-[11px] text-gray-500">对支部工作台成员「下次进入」生效；点击开关 → 保存本步</span>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[10px] font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
-        <div class="flex flex-wrap gap-2 mb-1">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-[10px] text-gray-500">固定</span></span>`).join('')}</div>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">业务模块 <span class="text-[11px] font-normal text-gray-500">（支书工作台 tab；核心组固定不可关）</span></p>
+        <div class="flex flex-wrap gap-2 mb-1">${coreTabs.map(t => `<span class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-500">${esc(t.label)}<span class="text-[11px] text-gray-500">固定</span></span>`).join('')}</div>
         <div class="flex flex-wrap gap-2 mt-2">${businessTabs.map(t => chip('module', t.id, t.label, !hidden.has(t.id))).join('')}</div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">活动产出块 <span class="text-[10px] font-normal text-gray-500">（活动详情「添加记录」按钮集）</span></p>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">活动产出块 <span class="text-[11px] font-normal text-gray-500">（活动详情「添加记录」按钮集）</span></p>
         <div class="flex flex-wrap gap-2">${OUTPUT_BLOCK_DEFS.map(d => chip('block', d.id, d.label, !bHidden.has(d.id))).join('')}</div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-[10px] font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks）</span></p>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-[11px] font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks）</span></p>
         <div class="flex flex-wrap gap-2">${BLOCK_MANIFESTS.map(m => chip('wblock', m.blockId, m.name + ' · ' + (PROV_LABEL[m.provenance] || m.provenance || ''), !wbHidden.has(m.blockId))).join('')}</div>
       </div>
       <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
@@ -666,11 +666,11 @@ function _step3Html(S, branch) {
     // ——它**不是**可新指派的下拉候选（本批未扩派单面），只保证现值正确回显、不被误显示成某个角色位。
     const orgOpt = assign.ownerType === 'org'
       ? `<option value="org:${esc(assign.ownerId)}" selected>${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（组织主体 · 保留现指定）</option>` : '';
-    const sub = m.sub && m.sub.length ? `<span class="text-[10px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
+    const sub = m.sub && m.sub.length ? `<span class="text-[11px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return `<div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-center py-1.5 border-b border-gray-50 last:border-0">
       <div class="min-w-0">
         <p class="text-xs font-medium text-gray-700 truncate">${esc(m.name)}${sub}</p>
-        <p class="text-[10px] text-gray-500 truncate">${esc(m.desc || '')}</p>
+        <p class="text-[11px] text-gray-500 truncate">${esc(m.desc || '')}</p>
       </div>
       <select data-wz-wf-sel data-module="${esc(m.id)}" class="input-flat text-xs min-w-[180px]">
         ${personOpt}
@@ -739,15 +739,15 @@ function _step5Html(S, branch, org) {
         <p class="text-xs font-semibold text-gray-700">应到名单核对（现读数）</p>
         <p class="text-[11px] text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
         <p class="text-xs text-gray-700 mt-2">在册党员 <b class="text-gray-900">${stats.partyTotal}</b> 人 − 滞留剔除 <b class="text-gray-900">${stats.detainedParty}</b> 人 = 应到 <b class="text-red-600">${stats.expected}</b> 人</p>
-        <p class="text-[10px] text-gray-500 mt-1">计算规则：docs/src/core/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
+        <p class="text-[11px] text-gray-500 mt-1">计算规则：docs/src/core/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">演示重置 ?reset=1</p>
-        <p class="text-[11px] text-gray-500 mt-1">浏览器演示：在任意页面 URL 末尾加 <code class="text-[10px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部演示存储并回到种子初始态（含本向导配置）——仅 mock 演示模式，生产数据不受影响。</p>
+        <p class="text-[11px] text-gray-500 mt-1">浏览器演示：在任意页面 URL 末尾加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-amber-200">?reset=1</code> 访问，一键清除本域全部演示存储并回到种子初始态（含本向导配置）——仅 mock 演示模式，生产数据不受影响。</p>
       </div>
       <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-3">
         <p class="text-xs font-semibold text-gray-700">回归验证</p>
-        <p class="text-[11px] text-gray-500 mt-1">改仓库文件（②清单）后：<code class="text-[10px] bg-white px-1 py-0.5 rounded border border-gray-200">cd server && npm test</code>（node --test）确认全绿再交付。</p>
+        <p class="text-[11px] text-gray-500 mt-1">改仓库文件（②清单）后：<code class="text-[11px] bg-white px-1 py-0.5 rounded border border-gray-200">cd server && npm test</code>（node --test）确认全绿再交付。</p>
       </div>
       <div>
         <p class="text-xs font-semibold text-gray-600 mb-1.5">步骤完成情况（存档于 localStorage 草稿，可续走）</p>

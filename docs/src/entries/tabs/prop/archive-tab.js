@@ -282,7 +282,7 @@ function _renderArchiveFallbackBanner() {
   const me = AuthStore.getCurrentUser();
   if (!me || !ARCHIVE_FALLBACK_ROLES.includes(me.role)) return '';
   return `
-    <div class="rounded-xl border border-dashed px-4 py-2.5 mb-3 text-xs leading-relaxed" style="border-color:rgba(185,28,28,0.35);background:rgba(185,28,28,0.05);color:#B91C1C;">
+    <div class="rounded-xl border border-dashed px-4 py-2.5 mb-3 text-xs leading-relaxed" style="border-color:rgba(185,28,28,0.35);background:rgba(185,28,28,0.05);color:var(--accent-secretary);">
       <b>归档兜底视图</b> — 支书/副支书进入宣传台仅用于「代归档」兜底：本页只呈现「档案归档」，其余宣传台功能不可用；完成归档后请返回支书工作台。
     </div>`;
 }
@@ -779,7 +779,7 @@ function _showArchiveUploadModal(ctx) {
       const isImage = f.type && f.type.startsWith('image/');
       const thumb = isImage
         ? `<img src="${previewUrls[i]}" class="w-9 h-9 rounded object-cover border border-gray-200 flex-shrink-0" alt="" />`
-        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:#3b82f6;">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
+        : `<span class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;background:rgba(59,130,246,0.1);color:var(--accent-blue);">${icon('fileText', { className: 'w-4 h-4' })}</span>`;
       return `<div class="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
         ${thumb}
         <div class="flex-1 min-w-0">

@@ -490,7 +490,7 @@ function renderTaskforce(tf) {
         ? '<p class="text-sm text-gray-500">暂无成员</p>'
         : `<div class="flex flex-wrap gap-2.5">${members.map(x => `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50">
-              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#8B5CF6;">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--accent-violet-light);">${(getPersonById(x.personId)?.name || '?').slice(0, 1)}</span>
               <span class="text-xs font-medium text-gray-700">${getPersonById(x.personId)?.name || x.personId}</span>
               <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}

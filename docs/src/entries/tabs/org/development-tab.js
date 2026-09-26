@@ -188,7 +188,7 @@ export function renderContent(ctx) {
             const dotColor = i <= stageIdx ? sc.dot : '#E5E7EB';
             const isCurrent = i === stageIdx;
             return `<span style="--acc-dot-dark:${i <= stageIdx ? sc.dot : '#334155'};width:${isCurrent ? '10px' : '6px'};height:${isCurrent ? '10px' : '6px'};border-radius:50%;background:${dotColor};display:inline-block;transition:all 0.2s;"></span>`;
-          }).join('<span style="--acc-bg-dark:#334155;width:12px;height:1.5px;background:#E5E7EB;display:inline-block;vertical-align:middle;"></span>');
+          }).join('<span style="--acc-bg-dark:#334155;width:12px;height:1.5px;background:var(--neutral-200);display:inline-block;vertical-align:middle;"></span>');
 
           return `
             <div class="p-4 rounded-lg bg-white border border-gray-50 hover:shadow-sm transition-shadow" data-dev-person-id="${c.personId}">

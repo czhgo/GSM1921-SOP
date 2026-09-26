@@ -199,7 +199,7 @@ function _manageCardHtml(entities, statOf, canManage) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组清单</h4>
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-500">${canManage ? '支书/副支书可管理' : '只读查看'}</span>
-          ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">+ 新增党小组</button>' : ''}
+          ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">+ 新增党小组</button>' : ''}
         </div>
       </div>
       <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
@@ -304,7 +304,7 @@ function _groupCardHtml(g, activeGroup, issues) {
   return `
     <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? 'bg-red-50/50' : 'bg-white hover:bg-gray-50'}"
       data-group="${esc(g.groupName)}"
-      style="${isActive ? 'border-color:rgba(185,28,28,0.45);--acc-bg-dark:rgba(239,68,68,0.12);' : 'border-color:#F3F4F6;'}">
+      style="${isActive ? 'border-color:rgba(185,28,28,0.45);--acc-bg-dark:rgba(239,68,68,0.12);' : 'border-color:var(--neutral-100);'}">
       <div class="flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-800">${esc(g.groupName)}</span>
         <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">
@@ -334,8 +334,8 @@ function _memberProgressCardHtml(group, issues) {
 
 function _reportsLoadingHtml() {
   return `
-    <div class="flex items-center gap-1.5 text-xs rounded-lg bg-gray-100 px-3 py-1.5 w-fit" style="color:#9CA3AF;">
-      <span class="inline-block w-3 h-3 rounded-full animate-spin" style="border:2px solid #E5E7EB;border-top-color:#9CA3AF;"></span>
+    <div class="flex items-center gap-1.5 text-xs rounded-lg bg-gray-100 px-3 py-1.5 w-fit" style="color:var(--neutral-400);">
+      <span class="inline-block w-3 h-3 rounded-full animate-spin" style="border:2px solid var(--neutral-200);border-top-color:var(--neutral-400);"></span>
       加载汇报…
     </div>`;
 }
@@ -682,7 +682,7 @@ function _openAddGroupModal(container) {
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" id="gp-add-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-add-confirm" class="${BTN_PRIMARY}" style="background:#CE1126;cursor:pointer;">新增</button>
+        <button type="button" id="gp-add-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">新增</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-add-cancel')?.addEventListener('click', () => closeModal('gp-add-group'));
@@ -717,7 +717,7 @@ function _openRenameModal(container, id) {
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" id="gp-rename-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-rename-confirm" class="${BTN_PRIMARY}" style="background:#CE1126;cursor:pointer;">保存</button>
+        <button type="button" id="gp-rename-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-rename-cancel')?.addEventListener('click', () => closeModal('gp-rename'));
@@ -757,7 +757,7 @@ function _openDissolveModal(container, id) {
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" id="gp-dissolve-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-dissolve-confirm" class="${BTN_PRIMARY}" style="background:#CE1126;cursor:pointer;">确认解散</button>
+        <button type="button" id="gp-dissolve-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">确认解散</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-dissolve-cancel')?.addEventListener('click', () => closeModal('gp-dissolve'));

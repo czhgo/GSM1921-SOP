@@ -662,7 +662,7 @@ function _askMcReject(reqId, api) {
       <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
         <button type="button" data-mc-reject-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-mc-reject-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:#6B7280;cursor:pointer;">确认退回</button>
+        <button type="button" data-mc-reject-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--neutral-500);cursor:pointer;">确认退回</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-mc-reject-cancel]')?.addEventListener('click', () => closeModal('mc-reject-modal'));
@@ -836,8 +836,8 @@ function _committeeTfRowHtml(req, act) {
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
     ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
-       <button type="button" class="tf-cr-result text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#6366F1;" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
-    : `<button type="button" class="tf-cr-arrange text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:#CE1126;" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
+       <button type="button" class="tf-cr-result text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:var(--accent-indigo);" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
+    : `<button type="button" class="tf-cr-arrange text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:var(--party-red);" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
     <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
       <div class="flex items-start gap-2">
@@ -919,10 +919,10 @@ async function _openTfDecisionModal(req, activityId, api) {
             : (req.kind === 'initiate' ? '退回草稿（可修改后重新报送）' : '专班继续运行')) + '。</p>'}
     </div>
     ${status === 'pending'
-      ? '<button type="button" class="tf-modal-close text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:#6366F1;">知道了</button>'
+      ? '<button type="button" class="tf-modal-close text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:var(--accent-indigo);">知道了</button>'
       : `<div style="display:flex;gap:12px;justify-content:flex-end;">
           <button type="button" class="tf-modal-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-          <button type="button" id="tf-decision-apply" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:#CE1126;">按表决结果生效</button>
+          <button type="button" id="tf-decision-apply" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:var(--party-red);">按表决结果生效</button>
         </div>`}
   `;
   const close = () => overlay.remove();

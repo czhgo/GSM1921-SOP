@@ -19620,6 +19620,108 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
 - **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
 
+## 批次 198（2026-09-25，`D-658`）**补 `todos` 种子 ＋ 种子真实性审计**
+
+> **本批来源**（支书两条令，逐字）：①「**我认为我们有一些模拟数据在 server 中！体现一定可以体现出我们真实使用的功能和问题！**」②「**先补 todos 种子**」。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `server/seed.js` · `docs/src/mock/seed.js` · `docs/src/mock/attendance.js` · `README-server.md` · 新增 `server/test/mock-api-parity.test.mjs` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 200**。
+
+### 一、★ 补 `todos` 种子：性质判定与依据（先说清）
+1. **先实读三处**（`docs/src/services/todo.js` 的 `SEED_TODOS` · `server/routes/resources.js` 的 todos 写口 · `server/routes/leader-progress.js` 的 todos 读口径）后判定：`todos` **两种性质并存**——
+   - **运行时派生是常态**：通知（`NoticeTodoDeriver`）· 活动·专班生命周期（`LifecycleTodoDeriver`）· 成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办 ⇒ **不落种子**；
+   - **另有一小批独立台账型种子**：`docs/src/services/todo.js::SEED_TODOS`（**2 条**：宣传委员「提交七一活动新闻稿」· 支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`、**不引用任何活动 / 任务 / 人员实体** ⇒ **零孤立引用**）——由前端 `seedTodos()` 与 `data-adapter.js::init()` 的空表回退**两处**注入。
+2. **落点**：`server/seed.js::seedDatabase()` 末尾 `const { SEED_TODOS } = await import('../docs/src/services/todo.js?v=20260924a'); replaceCollection(db, 'todos', SEED_TODOS);`——**从 `SEED_TODOS` 同源播种**（**不在服务端另造第二份**，与 `seedIssues()` / `seedMilestones()` 同一纪律）。
+3. **幂等**：`replaceCollection` ＝ `DELETE FROM todos` ＋ 整表 `INSERT` ⇒ 重复播种只覆盖、不叠加（实测重种两次读数一致 PASS）。
+4. **开关语义一字未改**：仍受 `SEED_FALLBACK`（前端回退）· `DISABLE_SEED`（关播种）· **生产默认不播种**（`D-635`）三条约束。
+
+### 二、量化（**真库副本实测，`data.db` 本体未动**）
+- **空表 16 → 15**；**全库行数 380 → 380**（`todos +2` 与「本批 `p_pc` 改准使 `attendances −2`」**相抵 ⇒ 净 0**）· `todos` 行数 ＝ `SEED_TODOS`.length ＝ **2** 且逐值相同。
+- **★ 附带收益（如实记）**：补种后 `docs/src/core/data-adapter.js` 的 `if (SEED_FALLBACK && !mockDB.todos.length)` 分支**在正常播种下不再被走到**（`attendances` / `inspections` 两分支同理）——**那正是批次 197 静默丢写竞态的引爆条件** ⇒ 该形状在**正常路径**上不再活跃（但 `DISABLE_SEED` 时仍活）。
+
+### 三、种子真实性审计（覆盖度 ＋ 两形态一致性）
+1. **覆盖度矩阵**（功能 / 页面 → 服务端表 → 有无数据 → 判定）**结论**：**唯一「应当有数据却为空」的是 `todos`（本批已补）**；其余空白**逐条有理由、与批次 192 裁决一致**（聚合域 `{}` 才对 · 审批链派生不能预置 · 只增治理留痕不能伪造 · 快照版本表预置会让 409 失真 · `member_flows` 明文「首启为空即正确初始态」· `branch_docs` 既有裁决「制度文本从空开始」· 指向 `server/uploads/` 真实文件的三张表只种元数据＝死链）。
+2. **两形态逐表逐值比对**（`docs/src/mock/**` 语料 vs 服务端 HTTP 原始行，**18 张表**）⇒ **0 差异**（原因：服务端种子绝大多数**直接 import** `docs/src/mock/**` 具名导出 ⇒ 两侧同源同值）。**本批前的唯一真差异是 `todos`**（服务端 0 行，且被 `SEED_FALLBACK` 空表回退**掩盖**——读数看着一致、实则服务端没播种）。
+3. **★ 4 条已知可疑项的逐条定案（逐条落账）**：
+   - **① `att-sep-1` vs `att900` ⇒ 判「mock 语料错」（孤儿引用）**：依据＝**真实使用口径**——纪检台 `makeup-tab.js:133-141` 的「确认完成 → 按 `attendanceRecordId` 回写考勤 `made_up`」会 `find` 落空 ⇒ **B3-1 回写静默失效**；且 `attendance.js:93` 实 id 确为 `att900`，两文件注释都写 `att900`。**处置＝改 mock 语料** → `'att900'`（`docs/src/mock/seed.js`）。
+   - **② `notices` 12 vs 13 ⇒ 未复现差异**：真库实测 **12** 行，id 集合与 `MOCK_NOTICES` 逐条一致 ⇒ **无处置（登记）**。（批次 195 曾据「真库 13」登记过，**本条是更正**。）
+   - **③ `p_pc` 入 8 月「全员出席」⇒ 判「mock 语料错」**：依据＝① 同常量上注写「共 50 人」而代码得 51（自相矛盾）；② `DATA_CONSISTENCY_CHECKLIST.md:394` 记「**151 条**（att1~att151）＝43+(50+8+50)」——**正是排除 `p_pc` 的口径**（`p_pc` 于 2026-09-02 才加入 `PEOPLE`，静默把 51 塞进生成器 ⇒ **回归**）；③ `roster` / `base-data-preview` / `group-view` 三处既有口径均「`p_pc` 不入支部名单」。**处置＝改 mock 语料**（`_ALL_PERSON_IDS = PEOPLE.filter((p) => p.branchId).map((p) => p.id)`）⇒ **`attendances` 154 → 152**。
+   - **④ `inspections` 跳过 `insp-17` ⇒ 非缺陷（本就该这样）**：随 2026-08「删除考察活动类型」连带删除，执行日志与 `DATA_CONSISTENCY_CHECKLIST.md:419` 均有明文 ⇒ **登记不修**。
+
+### 四、★ 新守卫 `server/test/mock-api-parity.test.mjs`（本批防线）
+1. **表集合 5 张**（`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`）。
+2. **判据**：**`A0` 形态 ＋ `P1`（服务端表 ≡ mock 语料，**走 HTTP 原始行**）＋ `P2`（两形态读数一致）＋ `P3`（非空转：表集合 ≥5、逐表读数 >0 且 ≥各表 min〔todos 2 / notices 12 / attendances 150 / inspections 42 / makeup 1〕、比对行数合计 ≥200 ＋ 比较器自检）**。
+3. **★ 反例实测的关键洞察（逐字落账）**：临时注释掉 `replaceCollection(db,'todos',…)` ⇒ **`P1` 判红**（`行数不等：0 vs 2（服务端表为空）`）而 **`P2` 仍绿** ⇒ **证明「只看两形态一致」会假绿**（`SEED_FALLBACK` 用同一份语料顶替）⇒ **服务端「到底播没播」只有 `P1`（HTTP 路）判得出**，这正是本守卫的**承重臂**。反例**已撤销、未留盘**。
+
+### 五、「就绪判据 vs 异步回退」⇒ **只登记（未改）**
+- 就绪判据（`mockDB._loaded === true && mockDB.milestones !== undefined`，见 `records-endpoints.test.mjs:234`、`multi-tab-sync.test.mjs:78`）**不等**那两个 `SEED_FALLBACK` `await` 块（`_loaded = true` 在 `data-adapter.js:313` 置位，**早于** 333/345 行的回退块）⇒ **形状仍在**。
+- **为何只登记**：根在 `docs/src/core/data-adapter.js`（**批次 198 的禁改面**），且测试侧无法 `await` 页面内部 `init()`；在测试里给谓词补条件属治标、且会把判据绑死到具体回退表。
+
+### 六、只登记（**逐条不得写成已办**）
+① 就绪判据只登记 · ② `DATA_CONSISTENCY_CHECKLIST.md:394` 的「151 条」仍 stale（`content/**` 禁改；现为 **152**）· ③ `.ctx` 决策日志记 `attendances(154)` 属**历史留痕**（现为 152）· ④ `insp-17` 非缺陷 · ⑤ api 形态 `mockDB.activities` 缺 mock-adapter 给 mock 形态补的 `executor/visibility/createdBy` 派生字段 ⇒ **属 adapter 转换层差异**（`docs/src/core/**` 禁改），**不是「语料 vs 种子」差异**，故未纳入守卫。
+
+### 七、实测（**非全量**）
+- `mock-api-parity` **4/4** · ＋`roster` **27/27** · `mock-integrity` **2/2**（起临时服务、已停；`[M1] 零问题`）· 10 文件 **105/105** · `doc-line-ref` **6/6** · 真机 `page-sweep` **11/11** · 追加回归 14 文件 **110/110** ⇒ 合计 **255 pass / 0 fail**。
+- ⚠ **不得读成「全量绿」**：本批**未跑全量**；**提交前全量见批次 200**。
+
+### 八、台账动作（本批）
+1. **决策日志**：新增 `D-658`（＋四处计数同步，`383 → 385`）。
+2. **`ACTIVE_RULINGS`**：**改准 1 行**（`D-653` 那一行补「服务端演示数据必须与前端 mock 语料同源同值 ＋ 『服务端到底播没播』必须走 HTTP 路验（两形态一致会被 `SEED_FALLBACK` 掩盖而假绿）」）；**本条新立 0 行** ⇒ 口径行**仍 122**。
+3. **`TIMESTAMPS`**：见下一节逐行清单。
+4. 本节。
+
+### 九、收尾自检
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
+
+## 批次 199（2026-09-25，`D-659`）**美学存量清理（续）**
+
+> **本批来源**：支书 2026-09-25 选定的线「**美学存量清理（续）**」（**裁定原话未逐字记录**）。**本批铁律**：只改 `.ctx/**` 与 `CLAUDE.md`——故 `docs/src/**` 24 个文件 · `server/test/style-baseline.mjs` · `server/test/control-font-guard.test.mjs` · `content/04_web_design/design-system/DESIGN_SYSTEM.md` 由**同一批的改动面**落地，本批**只记账**。**提交前全量见批次 200**。
+
+### 一、hex 再清 50 处：1957 → 1907（`H4` 实测 ↓118；值 168 持平 · 文件 92 → 91）
+- **口径（最保守）**：只清「**HTML `style="…"` 属性内、且与 `docs/src/styles.css :root` 令牌值逐字相等**」的（等价性＝令牌值就是原字面量的值 ⇒ **渲染结果不变**）。
+- **涉及 22 个文件**（逐文件 `c` 下调）：`group-progress-tab.js` 15→7 · `signup-panel.js` 6→1 · `secretary/todo-tab.js` 6→1 · `visitor/review-tab.js` 5→1 · `prop/kanban-tab.js` 8→5 · `prop/tasks-tab.js` 9→6 · `secretary/assign-tab.js` 12→10 · `today/today-tab.js` 8→6 · `report-entry.js` 6→4 · `taskforce-view.js` 26→24 · `leader/write-tab.js` 24→22 · `prop/archive-tab.js` 4→2 · 其余各 −1（`issue-list.js` 15→14 · `report-inbox.js` 6→5 · `tab-bar.js` 5→4 · `activity-entry.js` 11→10 · `leader/members-tab.js` 6→5 · `org/development-tab.js` 9→8 · `secretary/notification-tab.js` 8→7 · `visitor/activities-tab.js` 12→11 · `visitor/projects-tab.js` 11→10）＋ `entries/taskforce-entry.js` **1 → 0（唯一清零 ⇒ 删条目）**。
+- **同批收基线**（`server/test/style-baseline.mjs`）：22 文件 `c` 下调并删已消失值；`HEX_FILE_BASELINE` **92 → 91**；`HEX_VALUE_BASELINE` 仍 **168**、`HEX_TOTAL_BASELINE` **有意保持 2025**（存量起点）；**未往基线补任何新值**。
+- **未往基线补任何新值**；**有意不碰**：`var(--app-accent, #B91C1C)` 兜底字面量（§2.8 兜底规则**明文规定**该写法 ⇒ **文档化约定**）· `--acc-*-dark` 深色态字面量（本轮曾误改 7 处、已逐处还原）· JS 对象映射 **keys** 与 `${hex}15` 类 **alpha 拼接** · Tailwind 任意值类 `…-[#hex]`。
+- **「扩大口径」（Tailwind 既有色阶类替换）本轮未触发**：凡落在 `style=` 内的等值字面量都恰有同名 `:root` 令牌（token 化更准确）。
+
+### 二、控件 11px：`org/taskforce-tab.js` 5 处已清 · 剩 4 处待特批
+- **已清 5 处**（→ `text-[13px]`，**padding 一字未动**；上一批因「本批明列绝不改」而保留，**本批它不再是禁区**）；该文件控件小字清零 ⇒ 按收基线纪律**删条目**。
+- **剩 4 处**（`inspector.js` 3 ＋ `work-overview.js` 1，**README 禁改清单** ⇒ **待支书特批**）。
+- **收基线**：`CTRL_SMALL_BASELINE` **3 文件 / 9 处 → 2 文件 / 4 处**（`server/test/control-font-guard.test.mjs` 的 `T3` 规模下限同步改 **≥4 处 / ≥2 文件**，**未弱化 `T1`/`T2`**）。
+
+### 三、非控件小字 ⇒ **结论＝缺口径，只报不判**
+- **逐字实读的三条既有口径**（`DESIGN_SYSTEM.md`）：§3.2 字号层级表 `Caption .text-caption 0.75rem(12px) 标签/注释` ＋ `Overline .text-overline 0.6875rem(11px) 分类标签`（**11px 是档位表内的合规档**）；§4.3 ④ 原文 `禁止 text-[11px]/text-[10px] 控件字号（与规范 Caption 档冲突）`（**限定语是「控件」**）；§4.3 ⑦ 原文 `Caption/徽标（text-xs 12px）不在本口径内…`。
+- ⇒ **文档无「非控件小字下限」条款**；`text-[11px]` 对非控件是**表内合规档**、不能判红；`text-[10px]/[9px]` 落在**表外**但**无「非控件禁止表外字号」的明文** ⇒ 依令**不自创更严口径** ⇒ **只报不判**，并**登记「缺口径」请支书定**（**未新增守卫**）。
+- **另照令清了最刺眼的一处**：`docs/src/components/org-setup-wizard.js` **21 处 `text-[10px]` → `text-[11px]`**（表外 → 表内最低档）；**逐处等价性说明**＝全是 `<span>/<p>/<code>` 上的**括注 / 注释**（父级口诀 `（…）`、代码片 `branch-created` / `cd server && npm test`、步骤序号、「固定」「党委管理，支书只读」），**均为附注而非正文** ⇒ 归 §3.2 注记档；**padding / 布局未动，仅字号 +1px**。
+- **最重 10 文件（实读 362 处 / 57 文件）**：`org-setup-wizard.js 62` · `party-committee-meeting-entry.js 24` · `org/taskforce-tab.js 19` · `inspector.js 18` · `disc/attendance-tab.js 15` · `settings-entry.js 14` · `secretary/calendar-tab.js 11` · `secretary/todo-tab.js 11` · `secretary/workforce-panel.js 11` · `party-committee/branches-tab.js 10`。另 `text-[10px]` 剩 **28 处 / 12 文件**（表外，**只报不判**）。
+
+### 四、文档↔代码色值不一致 ⇒ **判 `styles.css :root` 为权威**，**改文档 8 处**
+- **依据**：① `styles.css :root` 是**令牌的定义值**、浏览器实际渲染的就是它；② 全站 token 等值字面量 `#10B981` **18 处 >** `#16A34A` **16 处**；③ **文档所写的 `#D97706` 实为另一个令牌 `--accent-amber` 的值**，与「状态琥珀」语义**冲突**。
+- **处置**：把 `content/04_web_design/design-system/DESIGN_SYSTEM.md` **同一口径的 8 处**改准（`#16A34A→#10B981`、`#D97706→#F59E0B`）：§2.5 Token 表 **2 行** · §2.8 判例 **3 条**（L246/L257/L270）· §2.8 四层分类表 **2 格**（L300/L302）· 「深色模式约定」表 **1 格**（L1108）。改后全文**已无** `#16A34A` / `#D97706`。
+
+### 五、「需支书特批」清单（**未经特批一律未动**）
+`styles.css` 467（**禁改清单** ＋ **此处 hex 就是令牌定义本身**，改它＝改全站观感）· `core/constants.js` 137（hex 是**函数入参 / 映射键 / `${hex}15` alpha 拼接**，换 `var()` 会拼坏）· `org/taskforce-tab.js` 58（hex 仍列特批；本批只解除了**控件小字**禁令）· `help.html` 568（文档页 ＋ `@media print` **必须显式色值**；台账 `EXCEPTIONS` 已登记 `allowNew`）· `about.css` 50（文档页）· **`inspector.js` / `work-overview.js` / `secretary/overview-tab.js`**（README 禁改清单；**实读清单还含 `secretary/overview-tab.js`** ⇒ 指令未点到，本轮据此未动）。
+
+### 六、只登记 / 未做
+① **未动 `var(--app-accent, #B91C1C)` 兜底字面量（约 60 处）**——§2.8「兜底规则」**明文规定**该写法 ⇒ 属**文档化约定**、非游离 hardcode · ② **未动 `jsvalue` 类 hex（约 160 处）**（映射键 / alpha 拼接，换 `var()` 会拼坏）· ③ **未动 Tailwind 任意值类 `…-[#hex]`（26 处）** 与**深色态字面量** · ④ 5 个特批 / 禁改文件的 hex 与 inspector / work-overview 的控件 11px **只登记未动** · ⑤ **非控件小字未立守卫**（缺口径）。
+
+### 七、实读更正（三条）
+1. 指令说「§2.8 写 `--functional-success #16A34A`」——**带 token 名的值行其实在 §2.5**，§2.8 只有语义叙述（「完成绿 #16A34A」）；两处同属一口径、已一并改准。
+2. README「禁改清单」实读为 `content/` · `styles.css` · `core/mock-adapter.js` · `inspector.js` · `roster.js` · `work-overview.js` · **`secretary/overview-tab.js`**（**多出的最后一项**指令未点到）。
+3. 非控件小字**起点实读为 367 处 / 57 文件**（非指令说的 381），清后 **362**；基线 `SMALL_TEXT_TOTAL_BASELINE=370` 与实测起点差 3（口径本就不同，**保留起点 370 不判**）。
+
+### 八、实测（**非全量**）
+- `hex` ＋ `control-font` **9/9** · 静态组 7 件 **65/65** · 真机 `page-sweep` **11/11** · `click-cost` **5/5** · 补跑 `copy-screen-guard` ＋ `form-loop-sweep` **92/92** · 26 个改动 JS `node --check` 全通过。
+- ⚠ **`click-cost` 那次命令退出码 1 系沙箱在跑完后拦截 Playwright 写自身 `debug.log`**，非用例失败——摘要明确 `pass 5 / fail 0`。
+- ⚠ **不得读成「全量绿」**：本批**未跑全量**；**提交前全量见批次 200**。
+
+### 九、`TIMESTAMPS` 改动行清单（**逐行**）
+- **刷为 2026-09-25**：`docs/src/**` 24 个文件（见「一」「二」「三」逐文件）＋ `server/seed.js` · `docs/src/mock/seed.js` · `docs/src/mock/attendance.js`（批次 198 所改）＋ `server/test/style-baseline.mjs` · `server/test/control-font-guard.test.mjs` · `README-server.md`。
+- **加注（日期仍 2026-09-25）**：`server/test/*.test.mjs`（新增 `mock-api-parity.test.mjs`）· `content/04_web_design/design-system/DESIGN_SYSTEM.md`（**表行日期保持 `2026-09-15`**——其 frontmatter `last_updated` 即 `2026-09-15`、按 `S13` 口径「以 frontmatter 为准」不可刷，否则跨面判红；处置同批次 193 先例）。
+- **⚠ 覆盖缺口（**只登记、不补行**）**（**10 个文件**）：`docs/src/components/report-entry.js` · `docs/src/components/report-inbox.js` · `docs/src/components/signup-panel.js` · `docs/src/components/taskforce-view.js` · `docs/src/entries/taskforce-entry.js` · `docs/src/entries/tabs/secretary/assign-tab.js` · `docs/src/entries/tabs/secretary/group-progress-tab.js` · `docs/src/entries/tabs/secretary/notification-tab.js` · `docs/src/entries/tabs/secretary/todo-tab.js` · `docs/src/entries/tabs/today/today-tab.js`——**本表原无这些行**（沿用批次 132 起的「覆盖缺口如实登记、只登记不补行」处置）。
+
+### 十、收尾自检
+- **未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`** ✓
+- **本批改动面（受铁律约束）**：仅 `.ctx/**` 与 `CLAUDE.md`（实现动作由同一批的改动面落地）。
+
 
 
 

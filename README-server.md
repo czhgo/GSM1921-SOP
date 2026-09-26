@@ -1004,6 +1004,7 @@
 | actionData | object \| null | 否 | 行动数据（如赋权参数 `{scope, sourceId, sourceName}`，默认 null） |
 
 **分类默认展开态**：赋权类 / 审核类默认展开；归档类 / 通知类 / 提交类 / 追踪类默认折叠。**派生规则**：通知 `actionable=true` 时，系统为 `actionRoles` 中每个角色自动生成一条待办。
+**两种来源（2026-09-26 补记）**：①**运行时派生**是常态——通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/ 成员台参与（`VisitorTodoDeriver`）在业务动作发生时派生，**不落种子**；②**独立台账型种子**——`server/seed.js` 从 `docs/src/services/todo.js::SEED_TODOS` **同源**播种 **2 条**（宣传委员「提交七一活动新闻稿」· 支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，不引用活动/任务/人员实体 ⇒ 零孤立引用）。⚠ 2026-09-26 之前本表**未播种** ⇒ API 形态首启「待办」恒空、靠前端空表回退（`SEED_FALLBACK`）顶替；现与 mock 形态逐值一致（守卫 `server/test/mock-api-parity.test.mjs`）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:755-814`、`:818-856`。
 
 ### 4.20 通知扩展字段（通知 → 待办派生机制）
@@ -1383,7 +1384,7 @@
 | status | `'pending'\|'in_progress'\|'submitted'` | 是 | 状态流转：待接收 → 进行中 → 已提交（只前进、不后退） |
 | createdAt | string（YYYY-MM-DD） | 是 | 创建日期 |
 
-**服务端无种子**（`server/seed.js` 未播种本表）；示例数据在前端 `PROP_TASKS_SEED`（宣传台「宣传任务」页首次渲染时兜底注入 `mockDB`）。⇒ **API 形态首启本表为空**，与公开演示形态不一致，**如实登记**。
+**服务端有种子**（`server/seed.js` 从 `SEED_PROP_TASKS` 播种 **8 条**；该常量**逐字复刻**前端私有常量 `docs/src/entries/tabs/prop/tasks-tab.js::PROP_TASKS_SEED`，两形态读数一致）。⚠ 2026-09-26 更正：2026-09-25 批次 189 起本表**已播种**，原「服务端无种子 ⇒ API 形态首启本表为空」的记录**已过期**（本轮种子真实性审计实读 `server/seed.js` 与真库计数 `prop_tasks = 8` 后改准）。
 **依据**：`docs/src/entries/tabs/prop/tasks-tab.js:10-19,29-36,99`、`docs/src/core/domain.js:279`、`server/routes/resources.js:39,159`。
 
 ### 4.41 文件外发确认（ExternalDispatch，**来源 C·2026-09-19 批次 98 补**）
@@ -1584,7 +1585,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 要替换的 | 做法 | 依据 |
 |---|---|---|---|
-| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171`。2026-09-25 批次 189 起，首启播种的表另含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；逐表口径与判据见 server/seed.js 末尾「批次 189」段 |
+| 1 | **示例成员与账号** | 换 `docs/src/mock/people.js`、`accounts.js`、`branches.js`、`party-groups.js`、`activities.js`、`notices.js`、`taskforces.js`、`seed.js`；或**空库起步**（`DISABLE_SEED=1`）后从系统内录入 | `server/seed.js:41-83`、`README.md:171`。2026-09-25 批次 189 起，首启播种的表另含 15 张（考勤 / 考察 / 活动复盘 / 专班复盘 / 思想汇报 / 宣传周报 / 宣传任务 / 文件流外发确认 / 支书任期记录 / 三委数据交接 / 成员变更确认队列 / 出勤与考察申诉队列 / 反馈未读标记 / 授权审计留痕），使「只有结构、没有数据」的表首启即有真行；**2026-09-26 再补 `todos`（同为单据型种子，见 §4.19；同源 `docs/src/services/todo.js::SEED_TODOS`）⇒ 合计 16 张**。逐表口径与判据见 server/seed.js 末尾「批次 189」段（`todos` 见文件末「待办基线种子」段） |
 | 2 | **登录口令** | 设 `LOGIN_PASSWORD`（**并确认未开 `DISABLE_PASSWORD_CHECK`**）；接入学校统一认证（IAAA）时替换 `POST /auth/login` 的校验逻辑 | `server/routes/auth.js:12-18`、`DEPLOYMENT_GUIDE.md:207,215` |
 | 3 | **演示支委名单 / 默认支部 id** | `COMMITTEE_IDS` 与 `'br-b1'` 兜底常量（见 §5.5 第 16、17 条） | 同上 |
 | 4 | **示例反馈种子** | `docs/data/issues.json`（服务端播种时读取；内部汇报型不脱敏、公开型脱敏） | `server/seed.js:19-39`、`:67` |

@@ -94,7 +94,7 @@ export async function renderContent(ctx) {
   // 故引擎翻页/筛选重绘行后按钮依旧有监听。
   const blockerRowHtml = (b) => `
         <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
-          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
+          <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span>
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
           <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"

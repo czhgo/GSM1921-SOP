@@ -606,8 +606,8 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       emptyMessage: '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
       rowHtml: (c) => {
         const actions = c.verifiedStatus ? '' : `
-              <button class="tf-contrib-verify-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:#10B981;">同意入档</button>
-              <button class="tf-contrib-verify-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="reject">退回补料</button>`;
+              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:#10B981;">同意入档</button>
+              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="reject">退回补料</button>`;
         return `
               <div class="flex items-start gap-2 rounded-lg bg-white px-2.5 py-1.5">
                 <div class="flex-1 min-w-0">
@@ -763,8 +763,8 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:#10B981;">通过</button>
-              <button class="tf-signup-review-btn text-[11px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
+              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:#10B981;">通过</button>
+              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
       </div>`,
@@ -955,7 +955,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
     // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
     const canDel = currentUserId && (!p.by || p.by === currentUserId);
     const delBtn = canDel
-      ? `<button class="tf-progress-del-btn text-[11px] text-red-600 hover:text-red-700" data-progress-id="${p.id}">删除</button>`
+      ? `<button class="tf-progress-del-btn text-[13px] text-red-600 hover:text-red-700" data-progress-id="${p.id}">删除</button>`
       : '';
     return `
       <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">

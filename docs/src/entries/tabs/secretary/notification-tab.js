@@ -330,7 +330,7 @@ function _openNoticeEditModal(notice) {
       </div>
       <div class="flex justify-end gap-2 mt-4">
         <button id="ne-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button id="ne-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">保存</button>
+        <button id="ne-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>
     `,
     onMount: (panel) => {

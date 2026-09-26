@@ -101,7 +101,11 @@ export const SEED_MAKEUP_TASKS = [
     id: 'mk-seed-1',
     personId: 'p5',
     activityId: 'act-31',
-    attendanceRecordId: 'att-sep-1',
+    // 2026-09-26 本批改准：原写 'att-sep-1'（**对不上任何考勤行**）——`attendance.js` 里那条实际 id 是
+    //   `att900`（该文件注释专门解释了为何必须是 `att900`：`?reset=init` 的种子识别口径 `/^att\d+$/`）。
+    //   引用不上的后果是**真功能失效**：纪检台 `makeup-tab.js:133-141` 的「确认完成 → 按本字段回写考勤
+    //   made_up」会 `records.find(...)` 落空 ⇒ **B3-1 回写静默不生效**（完成≠真实产物）。故按真实 id 改准。
+    attendanceRecordId: 'att900',
     activityName: '9月支部党员大会（线上异步表决）',
     personName: '宋佳宁',
     absentDate: '2026-09-10',

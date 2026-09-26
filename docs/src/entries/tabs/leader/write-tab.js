@@ -613,7 +613,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
         return `
           ${i > 0 ? `<div class="flex-1 h-0.5 rounded" style="--acc-dot-dark:${lineColor === accent ? _dtSelDark.text : '#475569'};background:${lineColor};"></div>` : ''}
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : '#F3F4F6'};color:color-mix(in srgb, ${dotColor} 60%, #000);border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
+            <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold" style="--acc-bg-dark:${isDone || isActive ? _dtSelDark.bg : '#1E293B'};--acc-text-dark:${isDone || isActive ? _dtSelDark.text : '#94A3B8'};--acc-border-dark:${isDone || isActive ? _dtSelDark.border : '#475569'};background:${isDone || isActive ? accentRgba : 'var(--neutral-100)'};color:color-mix(in srgb, ${dotColor} 60%, #000);border:1.5px solid ${dotColor};">${isDone ? '&#10003;' : i + 1}</div>
             <span class="text-xs ${isActive ? 'font-bold' : ''}" style="--acc-text-dark:${dotColor === accent ? _dtSelDark.text : '#CBD5E1'};color:color-mix(in srgb, ${dotColor} 60%, #000);">${s}</span>
           </div>
         `;
@@ -839,7 +839,7 @@ function _openOutdoorChecklistModal(activityTitle) {
       <ul class="list-disc pl-5 text-sm text-gray-700 space-y-0.5">${items}</ul>
       <div class="mt-3 text-[11px] text-gray-500 leading-5">该清单是<b>提醒</b>——不是必填项，也不作系统校验；写不写、什么时候做，由组织者按现场情况把握。</div>
       <div class="flex justify-end mt-4">
-        <button type="button" id="outdoor-checklist-ok" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:#CE1126;cursor:pointer;">知道了</button>
+        <button type="button" id="outdoor-checklist-ok" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">知道了</button>
       </div>`,
     onMount: (root) => {
       root.querySelector('#outdoor-checklist-ok')?.addEventListener('click', () => closeModal('leader-outdoor-checklist'));

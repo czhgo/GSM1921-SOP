@@ -117,7 +117,7 @@ function _renderInboxDetail(r, accent, draft = '') {
       <div class="rounded-lg p-2 ${bg}"${bgDark}>
         <div class="flex items-center gap-1.5 mb-1">
           <span class="text-xs font-medium text-gray-700">${icon} ${getPersonName(c.author) || '匿名'}</span>
-          ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:#B91C1C;">正式答复</span>' : ''}
+          ${c.kind === 'reply' ? '<span class="text-xs px-1 py-0.5 rounded font-medium" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;background:rgba(185,28,28,0.1);color:var(--accent-secretary);">正式答复</span>' : ''}
           <span class="text-xs text-gray-500">${c.createdAt}</span>
         </div>
         <p class="text-xs text-gray-600 whitespace-pre-wrap">${c.body}</p>

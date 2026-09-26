@@ -272,7 +272,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
         ? ''
 
-        : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:#E5E7EB;display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
+        : `<span style="--acc-bg-dark:#334155;width:1px;height:14px;background:var(--neutral-200);display:inline-block;margin-right:4px;vertical-align:middle;"></span>`;
 
       groupHtml = `<span class="tab-group-label shrink-0 inline-flex items-center gap-1.5" style="pointer-events:none;user-select:none;">${divider}<span style="padding:1px 5px;border-radius:3px;--acc-bg-dark:${_grpDark.bg};--acc-text-dark:${_grpDark.text};--acc-border-dark:${_grpDark.border};background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);font-weight:600;letter-spacing:0.5px;vertical-align:middle;" class="text-[11px]">${groupLabel}</span></span>`;
 

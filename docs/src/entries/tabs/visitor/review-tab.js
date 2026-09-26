@@ -232,14 +232,14 @@ function _renderReviewDetail(rev) {
   return `
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100">${rev.reviewContent || ''}</div>
-      ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-200" style="border-left:3px solid #F59E0B;">
-        <div class="flex items-center gap-1.5 text-[11px] text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#F59E0B;"></span>提出的真问题（${issues.length}）</div>
+      ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-200" style="border-left:3px solid var(--functional-warning);">
+        <div class="flex items-center gap-1.5 text-[11px] text-amber-700 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--functional-warning);"></span>提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${i}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${rev.submittedAt.slice(0, 16).replace('T', ' ')}</div>` : ''}
       ${rev.annotation ? `
-        <div class="mt-2 p-2 rounded-lg border border-blue-200" style="border-left:3px solid #3B82F6;">
-          <div class="flex items-center gap-1.5 text-xs text-blue-600 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:#3B82F6;"></span>纪检委员批注</div>
+        <div class="mt-2 p-2 rounded-lg border border-blue-200" style="border-left:3px solid var(--accent-blue);">
+          <div class="flex items-center gap-1.5 text-xs text-blue-600 font-bold mb-1"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--accent-blue);"></span>纪检委员批注</div>
           <div class="text-xs text-blue-700">${rev.annotation}</div>
         </div>
       ` : ''}

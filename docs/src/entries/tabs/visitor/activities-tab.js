@@ -26,7 +26,7 @@ const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 function _actEntryHtml(a, href) {
   const btns = [];
   if (canSignup('activity', a)) {
-    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="background:#CE1126;text-decoration:none;">去报名</a>`);
+    btns.push(`<a href="${href}" aria-label="报名活动：${a.title || ''}" class="text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90 flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" style="background:var(--party-red);text-decoration:none;">去报名</a>`);
   }
   const me = AuthStore.getCurrentUser();
   const voterIds = (a.voteConfig && Array.isArray(a.voteConfig.voterIds)) ? a.voteConfig.voterIds : [];

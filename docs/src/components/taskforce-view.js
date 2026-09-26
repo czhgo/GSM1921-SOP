@@ -197,7 +197,7 @@ function _renderTfDetail(container, tf, highlightId) {
       <div class="rounded-lg bg-gray-50 p-2.5">
         <textarea id="tfv-my-contrib-desc" rows="2" placeholder="本人产出说明（必填），如：完成专题稿件的采访与初稿撰写…" class="input-flat w-full resize-none"></textarea>
         <div class="flex justify-end mt-2">
-          <button id="tfv-contrib-add" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:#10B981;">填报本条产出</button>
+          <button id="tfv-contrib-add" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--functional-success);">填报本条产出</button>
         </div>
       </div>
     </div>` : '';
@@ -270,7 +270,7 @@ function _renderTfDetail(container, tf, highlightId) {
       emptyMessage: '暂无进度记录',
       rowHtml: (p) => `
           <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
-            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:#10B981;"></span>
+            <span class="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--functional-success);"></span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 ${p.stage ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#10B98115;color:#0D9488;">${p.stage}</span>` : ''}

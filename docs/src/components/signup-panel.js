@@ -79,7 +79,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
+        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
           报名
         </button>
       </div>`;
@@ -104,7 +104,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:#CE1126;">
+        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
           重新申请
         </button>
       </div>`;
@@ -138,12 +138,12 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
       <p class="text-xs font-medium text-gray-500 mb-2">待审核申请（${pendingList.length}）</p>
       ${pendingList.map(s => `
         <div class="flex items-center gap-2.5 py-2">
-          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#F59E0B;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--functional-warning);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
-            <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" data-signup-id="${s.id}" data-approve="1" style="background:#10B981;">通过</button>
+            <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" data-signup-id="${s.id}" data-approve="1" style="background:var(--functional-success);">通过</button>
             <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
           </span>
         </div>`).join('')}
@@ -220,7 +220,7 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
       emptyMessage: '暂无已报名成员',
       rowHtml: (s) => `
         <div class="flex items-center gap-2.5 py-2">
-          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:#CE1126;">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
+          <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0" style="background:var(--party-red);">${(getPersonById(s.personId)?.name || '?').slice(0, 1)}</span>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}

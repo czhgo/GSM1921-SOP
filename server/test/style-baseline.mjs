@@ -20,7 +20,23 @@
  *  #374151→--neutral-700）· `dashboard/stats.js` 19→15（#10b981→--functional-success ·
  *  #ef4444→--functional-error · #3b82f6→--functional-info · #9ca3af→--neutral-400）。
  *  ⚠ 剩下的 hex 多是**无同名令牌的 Tailwind 色阶**（#f9fafb / #fef3c7 / #94a3b8 …）或**深色态专用字面量**
- *  （`--acc-text-dark:#CBD5E1`），**不动**（不新造色）。 */
+ *  （`--acc-text-dark:#CBD5E1`），**不动**（不新造色）。
+ *
+ *  ── 存量清理（2026-09-26 美学存量清理续批）：再清 **50 处**（1957→1907），仍守同一等价性原则 ──
+ *  本轮只动**「HTML `style="…"` 属性内、且与 :root 令牌值逐字相等」**的字面量（最保守的「纯 CSS 值语境」）：
+ *  22 个文件 c 下调（`group-progress-tab.js` 15→7 · `signup-panel.js` 6→1 · `todo-tab.js` 6→1 ·
+ *  `visitor/review-tab.js` 5→1 · `visitor/projects-tab.js` 11→10 · `assign-tab.js` 12→10 ·
+ *  `report-entry.js` 6→4 · `report-inbox.js` 6→5 · `notification-tab.js` 8→7 · `today-tab.js` 8→6 ·
+ *  `kanban-tab.js` 8→5 · `tasks-tab.js` 9→6 · `archive-tab.js` 4→2 · `writing`/`activity-entry`/`activities-tab`/
+ *  `development-tab`/`members-tab`/`tab-bar`/`issue-list`/`taskforce-view`/`leader/write-tab` 各 −1~−2）；
+ *  `taskforce-entry.js` 唯一一处清空 ⇒ 删条目（文件数 92→91）。
+ *  ⚠ **有意不碰**（同批已核）：① `var(--app-accent, #B91C1C)` 兜底字面量——§2.8 兜底规则**明文规定**该写法
+ *  （「归档/反馈/通知等非工作台页回退党建红 `#B91C1C`」），属**文档化约定**而非游离 hardcode；② `--acc-*-dark`
+ *  深色态字面量（`#F87171`/`#FCA5A5` 等，本轮曾误改 7 处、已逐处还原）；③ JS 对象映射 **keys**（`{'#CE1126':…}`）
+ *  与 `${c}15` 类 **alpha 拼接**（如 `taskforce-view.js::dotDarkVars`，换 `var()` 会拼坏）；④ Tailwind 任意值类
+ *  `…-[#hex]`；⑤ 禁改文件（`styles.css` / `inspector.js` / `work-overview.js` / `secretary/overview-tab.js`）
+ *  与 H4 top5 特批文件（`help.html` / `about.css` / `constants.js` / `taskforce-tab.js`）。 */
+
 export const HEX_BASELINE = {
   'docs/help.html': { c: 568, v: [
       '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827', '#15803d', '#1d4ed8',
@@ -84,7 +100,7 @@ export const HEX_BASELINE = {
   'docs/src/components/issue-form.js': { c: 9, v: [
       '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171', '#fbbf24',
   ] },
-  'docs/src/components/issue-list.js': { c: 15, v: [
+  'docs/src/components/issue-list.js': { c: 14, v: [
       '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#991b1b', '#a16207', '#ce1126', '#f87171',
       '#fbbf24',
   ] },
@@ -113,22 +129,22 @@ export const HEX_BASELINE = {
       '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280', '#cbd5e1', '#d97706', '#dc2626',
       '#f3f4f6',
   ] },
-  'docs/src/components/report-entry.js': { c: 6, v: [
-      '#b91c1c', '#ef4444', '#fff',
+  'docs/src/components/report-entry.js': { c: 4, v: [
+      '#b91c1c', '#fff',
   ] },
-  'docs/src/components/report-inbox.js': { c: 6, v: [
+  'docs/src/components/report-inbox.js': { c: 5, v: [
       '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171',
   ] },
-  'docs/src/components/signup-panel.js': { c: 6, v: [
-      '#10b981', '#c8102e', '#ce1126', '#f59e0b',
+  'docs/src/components/signup-panel.js': { c: 1, v: [
+      '#c8102e',
   ] },
   'docs/src/components/status-badge.js': { c: 1, v: [
       '#9ca3af',
   ] },
-  'docs/src/components/tab-bar.js': { c: 5, v: [
-      '#000', '#334155', '#b91c1c', '#e5e7eb', '#ffd700',
+  'docs/src/components/tab-bar.js': { c: 4, v: [
+      '#000', '#334155', '#b91c1c', '#ffd700',
   ] },
-  'docs/src/components/taskforce-view.js': { c: 26, v: [
+  'docs/src/components/taskforce-view.js': { c: 24, v: [
       '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6', '#60a5fa', '#6366f1', '#6b7280',
       '#94a3b8', '#a5b4fc', '#d97706', '#dc2626', '#f87171', '#fbbf24',
   ] },
@@ -160,9 +176,8 @@ export const HEX_BASELINE = {
       '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280', '#900', '#b91c1c', '#c2410c',
       '#ce1126', '#f87171', '#fee', '#ffd700',
   ] },
-  'docs/src/entries/activity-entry.js': { c: 11, v: [
-      '#000', '#6b7280', '#8b5cf6', '#94a3b8', '#a16207', '#ce1126', '#f87171', '#fbbf24', '#fde68a',
-      '#ffd700',
+  'docs/src/entries/activity-entry.js': { c: 10, v: [
+      '#000', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171', '#fbbf24', '#fde68a', '#ffd700',
   ] },
   'docs/src/entries/archive-entry.js': { c: 1, v: [
       '#6b7280',
@@ -194,17 +209,17 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/leader/inspection-tab.js': { c: 1, v: [
       '#000',
   ] },
-  'docs/src/entries/tabs/leader/members-tab.js': { c: 6, v: [
-      '#000', '#60a5fa', '#b91c1c', '#ef4444', '#fff',
+  'docs/src/entries/tabs/leader/members-tab.js': { c: 5, v: [
+      '#000', '#60a5fa', '#b91c1c', '#fff',
   ] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [
       '#fbbf24',
   ] },
-  'docs/src/entries/tabs/leader/write-tab.js': { c: 24, v: [
+  'docs/src/entries/tabs/leader/write-tab.js': { c: 22, v: [
       '#000', '#0e7490', '#10b981', '#1e293b', '#334155', '#3b82f6', '#475569', '#6b7280', '#94a3b8',
-      '#cbd5e1', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb', '#f3f4f6',
+      '#cbd5e1', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb',
   ] },
-  'docs/src/entries/tabs/org/development-tab.js': { c: 9, v: [
+  'docs/src/entries/tabs/org/development-tab.js': { c: 8, v: [
       '#000', '#06b6d4', '#10b981', '#334155', '#3b82f6', '#e5e7eb', '#f59e0b',
   ] },
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
@@ -236,17 +251,17 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/party-committee/review-tab.js': { c: 1, v: [
       '#c8102e',
   ] },
-  'docs/src/entries/tabs/prop/archive-tab.js': { c: 4, v: [
-      '#3b82f6', '#60a5fa', '#999', '#b91c1c',
+  'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
+      '#60a5fa', '#999',
   ] },
-  'docs/src/entries/tabs/prop/kanban-tab.js': { c: 8, v: [
-      '#000', '#2563eb', '#3b82f6', '#4b5563', '#60a5fa', '#94a3b8', '#ce1126',
+  'docs/src/entries/tabs/prop/kanban-tab.js': { c: 5, v: [
+      '#000', '#60a5fa', '#94a3b8', '#ce1126',
   ] },
-  'docs/src/entries/tabs/prop/tasks-tab.js': { c: 9, v: [
-      '#000', '#10b981', '#34d399', '#3b82f6', '#60a5fa', '#d97706', '#fbbf24',
+  'docs/src/entries/tabs/prop/tasks-tab.js': { c: 6, v: [
+      '#000', '#34d399', '#60a5fa', '#fbbf24',
   ] },
-  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 12, v: [
-      '#9b0000', '#b91c1c', '#f87171', '#fee2e2', '#fff',
+  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 10, v: [
+      '#b91c1c', '#f87171', '#fff',
   ] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 12, v: [
       '#b91c1c', '#ce1126', '#ffd700', '#fff',
@@ -257,10 +272,10 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/secretary/feedback-tab.js': { c: 3, v: [
       '#b91c1c', '#fff',
   ] },
-  'docs/src/entries/tabs/secretary/group-progress-tab.js': { c: 15, v: [
-      '#16a34a', '#9ca3af', '#ce1126', '#e5e7eb', '#ef4444', '#f3f4f6', '#f59e0b', '#fbbf24',
+  'docs/src/entries/tabs/secretary/group-progress-tab.js': { c: 7, v: [
+      '#16a34a', '#ce1126', '#ef4444', '#f59e0b', '#fbbf24',
   ] },
-  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 8, v: [
+  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 7, v: [
       '#b91c1c', '#ce1126', '#fff',
   ] },
   'docs/src/entries/tabs/secretary/overview-tab.js': { c: 30, v: [
@@ -270,16 +285,16 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 5, v: [
       '#16a34a', '#6b7280', '#c8102e', '#d97706',
   ] },
-  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 6, v: [
-      '#6366f1', '#6b7280', '#ce1126',
+  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
+      '#6b7280',
   ] },
   'docs/src/entries/tabs/secretary/work-map-tab.js': { c: 5, v: [
       '#000', '#b91c1c', '#cbd5e1', '#fff',
   ] },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 8, v: [
+  'docs/src/entries/tabs/today/today-tab.js': { c: 6, v: [
       '#000', '#9ca3af', '#b91c1c', '#ef4444',
   ] },
-  'docs/src/entries/tabs/visitor/activities-tab.js': { c: 12, v: [
+  'docs/src/entries/tabs/visitor/activities-tab.js': { c: 11, v: [
       '#6b7280', '#ce1126', '#f9fafb', '#fca5a5',
   ] },
   'docs/src/entries/tabs/visitor/attendance-tab.js': { c: 2, v: [
@@ -288,17 +303,14 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/visitor/inspection-tab.js': { c: 2, v: [
       '#000', '#f3f4f6',
   ] },
-  'docs/src/entries/tabs/visitor/projects-tab.js': { c: 11, v: [
-      '#000', '#b91c1c', '#ce1126', '#fca5a5', '#fff',
+  'docs/src/entries/tabs/visitor/projects-tab.js': { c: 10, v: [
+      '#000', '#b91c1c', '#fca5a5', '#fff',
   ] },
-  'docs/src/entries/tabs/visitor/review-tab.js': { c: 5, v: [
-      '#3b82f6', '#f59e0b', '#fbbf24',
+  'docs/src/entries/tabs/visitor/review-tab.js': { c: 1, v: [
+      '#fbbf24',
   ] },
   'docs/src/entries/tabs/visitor/todo-tab.js': { c: 3, v: [
       '#a16207', '#fbbf24', '#ffd700',
-  ] },
-  'docs/src/entries/taskforce-entry.js': { c: 1, v: [
-      '#8b5cf6',
   ] },
   'docs/src/entries/wizard-entry.js': { c: 2, v: [
       '#c8102e',
@@ -350,7 +362,9 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `HEX_TOTAL_BASELINE` **有意保持 2025**：它是「存量起点」，H4 会据此显示 ↓15 的缩减进度（该文件真少了 15 处）。
 //   2026-09-25 存量清理批再清 52 处（5 个文件 c 下调，见上 HEX_BASELINE 头注）⇒ H4 现显示 ↓68（2025−1957）；
 //   条目数不变（92，无文件清零）；全站 distinct 值仍为 168（被清的值在其它文件仍存）。
-export const HEX_FILE_BASELINE = 92;
+//   2026-09-26 续批再清 50 处 ⇒ H4 现显示 ↓118（2025−1907）；`taskforce-entry.js` 清零删条目 ⇒ 条目数 92→91
+//   （H3「条目数 ＝ 声明文件数」同步）；全站 distinct 值仍为 168（仍无值消失至零）。
+export const HEX_FILE_BASELINE = 91;
 export const HEX_VALUE_BASELINE = 168;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
@@ -386,22 +400,25 @@ export const HEX_MOVE_LEDGER = [];
  *  ——`org-setup-wizard.js`(2) · `resolution-followup-manager.js`(2) · `disc/attendance-tab.js`(4) ·
  *  `org/talent-tab.js`(1) · `org/todo-tab.js`(1) · `prop/archive-tab.js`(1) · `secretary/workforce-panel.js`(1) ·
  *  `today/today-tab.js`(1) · `leader/attendance-tab.js`(1)；这 9 个文件控件小字已清零 ⇒ 按收基线纪律**删除条目**。
- *  台账 12 文件 / 23 处 ⇒ **3 文件 / 9 处**（下表仅剩「本批不动」的 3 个文件，逐条理由见下）。*/
+ *  台账 12 文件 / 23 处 ⇒ **3 文件 / 9 处**（下表仅剩「本批不动」的 3 个文件，逐条理由见下）。
+ *
+ *  收基线（2026-09-26 美学存量清理续批）：`org/taskforce-tab.js` 5 处已改准档位（`text-[11px]`→`text-[13px]`，
+ *  **只改字号档、padding 一字不动**）——上一批因「本批任务明列绝不改」而保留，本批该禁令已解 ⇒ 清掉该 5 处。
+ *  该文件控件小字清零 ⇒ 删条目。台账 3 文件 / 9 处 ⇒ **2 文件 / 4 处**（仅剩 README 禁改清单 2 文件）。*/
 export const CTRL_SMALL_BASELINE = {
   // 保留理由：`inspector.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 3 处保留不动。
   'docs/src/components/inspector.js': { c: 3, sig: {"button|text-[11px]":3} },
   // 保留理由：`work-overview.js` 在 README「禁改清单」（须支书特批才内改），本批无特批 ⇒ 1 处保留不动。
   'docs/src/components/work-overview.js': { c: 1, sig: {"button|text-[11px]":1} },
-  // 保留理由：本批任务明列「绝不改」（刚被赋权归位批改过）⇒ 5 处保留不动。
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 5, sig: {"button|text-[11px]":5} },
 };
 
 /** 控件小字规模下限（非空转判据）
- *  ⚠ 2026-09-25 随收基线**下调** 12→3 文件 / 23→9 处：本批真清掉 14 处（9 个文件归零并删条目），
- *   台账实存＝3 文件 / 9 处。此值只是「防台账被悄悄删空」的二级防呆——真正的防线是 T1（新增即红）与
- *   T3（僵尸登记：文件不存在 / 已清零未删条目即红）。**不得**为变绿把它继续调大或补条目。 */
-export const CTRL_SMALL_TOTAL_BASELINE = 9;
-export const CTRL_SMALL_FILE_BASELINE = 3;
+ *  ⚠ 2026-09-25 随收基线**下调** 12→3 文件 / 23→9 处；2026-09-26 续批再下调 3→2 文件 / 9→4 处
+ *   （`org/taskforce-tab.js` 5 处清零删条目），台账实存＝2 文件 / 4 处。此值只是「防台账被悄悄删空」的
+ *   二级防呆——真正的防线是 T1（新增即红）与 T3（僵尸登记：文件不存在 / 已清零未删条目即红）。
+ *   **不得**为变绿把它继续调大或补条目。 */
+export const CTRL_SMALL_TOTAL_BASELINE = 4;
+export const CTRL_SMALL_FILE_BASELINE = 2;
 
 /** 全站 text-[9/10/11px] 计数（含非控件落点，只作缩减进度口径） */
 export const SMALL_TEXT_TOTAL_BASELINE = 370;

@@ -326,7 +326,7 @@ function renderProjectAuthRecords(cfg) {
         <div>
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.targetPersonId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r._personName)}</a>
           <span class="text-xs text-gray-500 ml-2">${r._projectName}</span>
-          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:#FEE2E2;color:#9B0000;">${r._roleLabel}</span>
+          <span class="badge ml-2" style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:var(--primary-100);color:var(--primary-800);">${r._roleLabel}</span>
           <span class="text-xs text-gray-500 ml-2">${r.authorizedAt || ''}</span>
         </div>
         <button type="button" class="revoke-project-auth text-xs text-gray-500 hover:text-red-600" data-record-id="${r.id}">撤销</button>

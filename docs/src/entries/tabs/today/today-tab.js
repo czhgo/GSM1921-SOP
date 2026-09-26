@@ -168,7 +168,7 @@ function _todoSummaryBlock(s) {
       </div>
       <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
         data-go="todo" title="前往待办处理">
-        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${t.overdue ? '#EF4444' : '#9CA3AF'};"></span>
+        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${t.overdue ? 'var(--functional-error)' : 'var(--neutral-400)'};"></span>
         <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">逾期 ${t.overdue} · 今日到期 ${t.dueToday} · 待办合计 ${t.total}</span>
         <span class="text-xs text-gray-500 flex-shrink-0">›</span>
       </button>
