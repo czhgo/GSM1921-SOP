@@ -21,9 +21,10 @@ import('../modules/help-catalog.js?v=20260924a')
   .catch((err) => console.warn('[help] catalog 渲染失败', err));
 
 // ── 右侧圆点目录（参考关于页 .help-toc-nav）──
-// 2026-09-07 起：help 重组为 0–7 章编号骨架（0 入口速查 / 1 快速上手 / 2 角色工作台导览 /
-// 3 域手册 / 4 业务链路 / 5 党委与配置 / 6 这个系统在干什么 / 7 技术架构）；
-// 各章已全部成章（C1 骨架 + C2 域手册 + C3 链路与党委配置收口）；
+// 2026-09-07 起：help 重组为 0–8 章编号骨架（0 入口速查 / 1 快速上手 / 2 角色工作台导览 /
+// 3 域手册 / 4 设置逐项 / 5 业务链路 / 6 党委与配置 / 7 这个系统在干什么 / 8 技术架构）；
+// 2026-09-27：新增「4 设置逐项」（设置说明书自原第 5 章 5.4 独立成章，插在域手册与业务链路之间），
+//   原 4 业务链路 → 5、原 5 党委与配置 → 6、原 6 → 7、原 7 → 8（章号与全仓引用同批改准）；
 // 与 help.html 静态章节 id、help-catalog.js 左侧目录树保持同一序列。
 const TOC_ITEMS = [
   { id: 'sec-ack',        label: '致谢' },
@@ -31,10 +32,11 @@ const TOC_ITEMS = [
   { id: 'sec-quickstart', label: '1 快速上手' },
   { id: 'sec-roles',      label: '2 角色工作台导览' },
   { id: 'sec-domains',    label: '3 域手册' },
-  { id: 'sec-flows',      label: '4 业务链路' },
-  { id: 'sec-admin',      label: '5 党委与配置' },
-  { id: 'sec-what',       label: '6 这个系统在干什么' },
-  { id: 'sec-tech',       label: '7 技术架构' },
+  { id: 'sec-settings',   label: '4 设置逐项' },
+  { id: 'sec-flows',      label: '5 业务链路' },
+  { id: 'sec-admin',      label: '6 党委与配置' },
+  { id: 'sec-what',       label: '7 这个系统在干什么' },
+  { id: 'sec-tech',       label: '8 技术架构' },
   { id: 'sec-disclaimer', label: '免责声明' },
 ];
 

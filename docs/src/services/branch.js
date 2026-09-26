@@ -365,14 +365,15 @@ export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
 // 净化唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides，与 server PATCH /branches/:id/config 同源）。
 // 角色守卫（批3 副书同权谓词同口径扩展）：
 //   · party-staff / 本支部现任支书 / 本副支书 → 全量 policyOverrides；
-//   · 本支部域负责人（纪检=inspection · 组织=memberConfirmation · 组长=leader）→ 仅自己域节（含 null=恢复该域默认）。
+//   · 本支部域负责人（纪检=inspection/attendance/review/makeup · 组织=memberConfirmation/thoughtReport ·
+//     组长=leader）→ 仅自己域节（含 null=恢复该域默认）。
 // 消费点：设置中心「支部治理 · 域参数」卡（L2）保存/恢复默认；读侧注入 = applyEffectivePolicyDefaultsForPerson。
 
-/** 域负责人角色 → 可管域节（纪检/组织/组长；其余角色无域节 = 不可管任何域参数） */
+/** 域负责人角色 → 可管域节集合（纪检/组织/组长；一域可辖多节，2026-09-27 支书「补入口」批扩表；其余角色=不可管任何域参数） */
 export const POLICY_SECTION_BY_DOMAIN_ROLE = {
-  'disc-commissioner': 'inspection',
-  'org-commissioner': 'memberConfirmation',
-  leader: 'leader',
+  'disc-commissioner': ['inspection', 'attendance', 'review', 'makeup'],
+  'org-commissioner': ['memberConfirmation', 'thoughtReport'],
+  leader: ['leader'],
 };
 
 /** 操作者角色解析（actor.role 优先；缺省回退档案角色） */
@@ -385,8 +386,8 @@ function _actorRoleOf(actor) {
  * 纯判定：某人能否管理 policyOverrides（批4；供 UI 可见性与写口共用，勿在别处另写规则）。
  * @param {{ personId: string, role?: string }} actor
  * @param {string} branchId
- * @returns {{ ok: boolean, scope: 'all'|string|null, reason?: string }}
- *   scope='all'=支书/副支书/party-staff 全量；scope=域节=仅该域；null=无权
+ * @returns {{ ok: boolean, scope: 'all'|string[]|null, reason?: string }}
+ *   scope='all'=支书/副支书/party-staff 全量；scope=域节数组=仅该域各节；null=无权
  */
 export function canManagePolicyOverrides(actor, branchId) {
   const personId = actor && actor.personId;
@@ -432,7 +433,7 @@ export async function savePolicyOverrides(branchId, overrides, opts = {}) {
   let changed = false;
   for (const sec of Object.keys(overrides)) {
     if (!POLICY_OVERRIDE_SECTIONS.includes(sec)) continue; // 未知节忽略（白名单外）
-    if (perm.scope !== 'all' && sec !== perm.scope) continue; // 域负责人不可改他人域节
+    if (perm.scope !== 'all' && !perm.scope.includes(sec)) continue; // 域负责人不可改他人域节
     if (overrides[sec] === null) {
       if (Object.prototype.hasOwnProperty.call(nextPo, sec)) { delete nextPo[sec]; changed = true; }
       continue;

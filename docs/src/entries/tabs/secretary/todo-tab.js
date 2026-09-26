@@ -12,6 +12,8 @@ import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.j
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
 import { PendingTarget } from '../../../core/pending-target.js?v=20260924a';
 import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260924a';
+// 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
+import { confirmNudge } from '../../../components/modal.js?v=20260924a';
 import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/todo.js?v=20260924a';
 import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260924a';
 import { badgeHtml } from '../../../components/badges.js?v=20260924a';
@@ -123,6 +125,22 @@ const _urge = createUrgeController({
   onDone: (ctx) => renderContent(ctx),
   titleSuffix: '（催办一般归组织委员 · 本条属例外操作）',
 });
+
+// 本位 nudge（2026-09-27 支书裁定「两处都加」· 单一源 `components/modal.js::confirmNudge`）：
+//   材料催缴与审核督办**归组织委员**（本位）——支书 / 副支书有权催办，但**一般不越俎代庖**（母本口径见
+//   `.ctx/ACTIVE_RULINGS.md`「一、角色与分工」的 `D-391`）。本台（支书 / 副支书）发起催办属**例外代办**
+//   ⇒ **发通知前**弹一次确认（必须点按钮才能关；「取消」＝放弃本次催办）。
+//   ⚠ **本位操作人不弹、零打扰**：催办主位在组织委员台（`org/todo-tab.js`，本位即组织委员），那一侧**不接本 nudge**。
+const _urgeWithNudge = {
+  urgeStateOf: _urge.urgeStateOf,
+  onUrgeTodo: async (group, ctx) => {
+    if (AuthStore.getCurrentUser()?.role !== 'org-commissioner') {
+      const _homeOk = await confirmNudge({ nudgeKey: 'todo-urge', context: group?.title });
+      if (!_homeOk) return;
+    }
+    _urge.onUrgeTodo(group, ctx);
+  },
+};
 
 // ════════════════════════════════════════════════════════════════
 //  兜底直执（白名单：仅①归档 ②复盘；2026-09-10 支书裁定）
@@ -258,8 +276,9 @@ const _tab = createTodoTab({
   onAction: (todo, ctx) => handleTodoAction(todo, ctx),
   // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 共享控制器）：支书/副支书待办页各域条目（含实时组）
   // 可催办责任人；按责任角色经 NoticeStore 发定向通知（无新数据字段，通知记录即留痕）；opt-in 传入壳/列表。
-  urgeStateOf: _urge.urgeStateOf,
-  onUrgeTodo: _urge.onUrgeTodo,
+  // 2026-09-27：外层包本位 nudge（材料催办一般归组织委员；本台催办属例外代办 ⇒ 发通知前确认）。
+  urgeStateOf: _urgeWithNudge.urgeStateOf,
+  onUrgeTodo: _urgeWithNudge.onUrgeTodo,
   // IA-C1 Task4：实时组（支书派生/决议逾期/成员变更等）并入对应域折组
   buildRealtimeGroups: _buildRealtimeGroups,
   // 自定义详情（confirm/remind/成员变更确认逐项面板；种子行动类走内置概要）

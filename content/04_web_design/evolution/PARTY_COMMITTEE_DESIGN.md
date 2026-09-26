@@ -3,7 +3,7 @@ title: "院系党委后台——支部多实例两级治理设计定案"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-02
-last_updated: "2026-09-26"
+last_updated: "2026-09-27"
 status: approved-by-secretary
 related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/accounts.js, server/seed.js, server/db.js, docs/src/core/data-adapter.js, docs/src/core/constants.js, docs/src/services/auth.js, docs/src/modules/capabilities/]
 ---
@@ -80,7 +80,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 工作流匹配：支部内 decision-tree/sop-scenarios 消费自身 config.modules 显隐后的工作流集合（如硕博支部不需要的模块由支书在本支部配置中停用），场景引擎已注册式可配，仅需支部级过滤。
 
-> **远期形态**：config 的"清单/画布组合"将演进为「工作流块拖拽编排」（支部把已注册的工作流块拖进画布 → 自动写回 modules 与场景清单）——见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标）。数据模型不变，块即注册表中的能力+元数据。
+> **远期形态**：见 [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八（开源项目目标：config 清单/画布组合演进为「工作流块拖拽编排」；数据模型不变，块即注册能力 + 元数据）。
 
 ### 2.6 配置写权与变更流分层（2026-09-09 审定定稿）
 
@@ -94,7 +94,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | ② 支部 config · 组织档案层 | `headerTitle` / `desc` / `themePreset`（config 域） | 现任支书/副支书（本支部 · 副书同权 2026-09-09）或 party-staff；**顶层 `name` 治理字段仅 party-staff**（支书/副不可改官方名；改名同步 headerTitle） | 保存即生效；追加 configChangeHistory | 换组织向导①（设置 → 支部治理 → 支部信息与向导 内嵌，或 wizard.html 独立页） |
 | ③ 支部 config · modules/blocks | `modules`（tab 默认序/显隐）、`blocks`（产出块/工作流块显隐） | 现任支书/副支书（本支部 · 副书同权）或 party-staff；**核心组固定**不可关、不参与排序 | 保存即生效（成员下次进入工作台生效）；留痕 | 设置 → 支部治理「工作台默认顺序」卡直存 / 换组织向导② chips；null=默认全开 |
 | ④ 支部 config · workforce | `workforce`（模块分工归属） | 现任支书/副支书（本支部 · 副书同权）或 party-staff | 落库即生效；留痕 | **日常** = 支书台「支部分工」**支委会议题（M2）表决通过后落库**；**换壳/部署** = 向导③直写 |
-| ⑤ 域参数层 L2 | `config.policyOverrides`（白名单 `POLICY_OVERRIDABLE` 三键：纪检超期 `inspection.overdueDays` / 组织滞留复核窗 `memberConfirmation.semesterDetainedWindows` / 组长学期提醒 `leader.semesterReportReminder.enabled`） | 域负责人**仅本域**（纪检/组织/组长，设置左栏「域参数」卡）；支书/副支书/party-staff **全量** | 保存即生效（读侧注入 `applyEffectivePolicyDefaultsForPerson` 覆盖 `POLICY_DEFAULTS`，全站判定随参数走）；留痕 | 设置 → 支部治理「域参数 · 纪检/组织/组长」卡；值 = 覆盖、null = 恢复该域默认 |
+| ⑤ 域参数层 L2 | `config.policyOverrides`（白名单 `POLICY_OVERRIDABLE`：纪检域＝考察超期 `inspection.overdueDays` / 考勤与复盘时限 `attendance.*`·`review.*` / 补课范围与时限 `makeup.*`；组织域＝滞留复核窗 `memberConfirmation.semesterDetainedWindows` / 思想汇报篇幅字数 `thoughtReport.wordHint`·`wordSoftMin`；组长域＝学期提醒 `leader.semesterReportReminder.enabled`；支书域＝活动批准门 `activityApproval.mode`） | 域负责人**仅本域**（纪检/组织/组长，设置左栏「域参数」卡）；支书/副支书/party-staff **全量** | 保存即生效（读侧注入 `applyEffectivePolicyDefaultsForPerson` 覆盖 `POLICY_DEFAULTS`，全站判定随参数走）；留痕 | 设置 → 支部治理「域参数 · 纪检/组织/组长」卡；值 = 覆盖、null = 恢复该域默认 |
 | ⑥ 制度刚性层 L3 | 制度默认（展示位）锁定的五组：票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因 | **只读展示**（支书/副视角，设置 → 支部治理「支部制度参数」卡）——无在线写权 | 不产生 config 变更 | 改须党委/支书裁决后**源码层变更**（policy-defaults.js 字面量及消费点）；放开为支部可调须走「放行程序」 |
 | 旁路 · 党委治理字段 | branches 顶层 `name` / `type` / `secretaryId` / `status` | **仅 party-staff**（党委台支部管理/任命/建支部）——支书/副不可经设置改 | 不入 config 域；顶层改名经 org 写口记一条 history（what=name），secretaryId 走任命链 | 党委台「支部管理 / 支书任命」；建支部 = 空模板/复制（向导「新建支部…」与党委台同口，仅 party-staff） |
 
@@ -118,7 +118,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 3. **同步 settings 展示与 kind 注释**：该项从「支部制度参数」只读区移入对应「域参数」卡（或新增卡），kind 注释改注「域参数（L2）· 支书裁 YYYY-MM-DD」；
 4. **依据编号回填审计 why**：覆盖写留痕补裁决依据（随 2026-09-09 审计内核落地，见变更流）。
 
-反向收权同理：从 `POLICY_OVERRIDABLE` 摘除 + 撤设置页控件 + kind 注释回注「不可经 UI 覆盖」。现状白名单内**无**制度可调项（设置页「支部制度可调参数：暂无」为预期态），三键均为域参数。
+反向收权同理：从 `POLICY_OVERRIDABLE` 摘除 + 撤设置页控件 + kind 注释回注「不可经 UI 覆盖」。
+
+**本批放行登记（2026-09-27 · 支书裁定「补入口，让它们真可调」）**：按本程序放行三族制度可调项——① **时限类**（考勤录入提醒 / 汇总期限 / 出勤率提示线 · 复盘提醒 / 提交期限）归**纪检域**；② **补课范围与时限**归**纪检域**（母本《纪检委员工作流程指南》§1.4「补课制度」/「补课制度执行」表列于纪检职权）；③ **篇幅字数类**（思想汇报建议 1500 / 警告审阅线 1200）归**组织域**（母本《组织委员工作流程指南》§二「思想汇报归档」归口组织委员）。四步逐条落实：① 支书裁决（本句）→ ② 登记 `POLICY_OVERRIDABLE`（`docs/src/core/policy-defaults.js`：`attendance.*`·`review.*`·`makeup.*`·`thoughtReport.*`，含钳制范围与 `domain`；域→节映射改为一域可辖多节）→ ③ 设置页移入对应「域参数」卡（纪检 / 组织）→ ④ 依据「支书裁定」回填。⚠ 补课范围的**活动级勾选**仍「只能加不能减」（`D-545`）——本批放开的是**支部级**制度参数，不改单场刚性。
 
 #### 变更流（保存即生效 + 留痕 + 回滚 + 历史上限）
 

@@ -49,6 +49,10 @@ import {
 import {
   semesterDetainedWindowsLabel,
 } from '../../docs/src/services/member-confirmation.js?v=20260924a';
+// ⑪ 2026-09-27「补入口」批：补课范围/时限 call-time 消费点（makeup.js 读 POLICY_DEFAULTS）
+import {
+  makeupDefaultActivityTypes, makeupDeadlineDays, isMakeupRequired,
+} from '../../docs/src/services/makeup.js?v=20260924a';
 import {
   leaderSemesterReportTermKey, isLeaderSemesterRemindWindow,
 } from '../../docs/src/entries/tabs/today/today-tab.js?v=20260924a';
@@ -147,7 +151,13 @@ test('① policy-defaults 批4：新节结构与默认值（memberConfirmation/l
     [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))],
     POLICY_OVERRIDE_SECTIONS,
   );
-  assert.deepEqual(POLICY_OVERRIDE_SECTIONS, ['inspection', 'memberConfirmation', 'leader', 'activityApproval']);
+  // 2026-09-27 支书裁定「补入口，让它们真可调」：白名单由 4 节扩到 8 节（顺序＝表内声明序）。
+  //   纪检域＝inspection / attendance / review / makeup；组织域＝memberConfirmation / thoughtReport；
+  //   组长域＝leader；支书域＝activityApproval。
+  assert.deepEqual(
+    POLICY_OVERRIDE_SECTIONS,
+    ['inspection', 'memberConfirmation', 'leader', 'activityApproval', 'attendance', 'review', 'makeup', 'thoughtReport'],
+  );
 });
 
 // ── ⑧ 活动批准门（2026-09-22 批次 150 · 支书裁定「可开关的制度参数（默认关）」）───────
@@ -285,9 +295,9 @@ test('④ 角色守卫：支书/副/party-staff 全量；纪检/组织/组长仅
   assert.equal(perm({ personId: 'p13', role: 'secretary' }).scope, 'all');
   assert.equal(perm({ personId: 'p14', role: 'deputy-secretary' }).ok, true, '副书同权');
   assert.equal(perm({ personId: 'p_pc', role: 'party-staff' }).ok, true);
-  assert.equal(perm({ personId: 'p10', role: 'disc-commissioner' }).scope, 'inspection', '纪检=inspection 域');
-  assert.equal(perm({ personId: 'p11', role: 'org-commissioner' }).scope, 'memberConfirmation');
-  assert.equal(perm({ personId: 'p1', role: 'leader' }).scope, 'leader');
+  assert.deepEqual(perm({ personId: 'p10', role: 'disc-commissioner' }).scope, ['inspection', 'attendance', 'review', 'makeup'], '纪检域＝考察超期 / 考勤与复盘时限 / 补课范围与时限');
+  assert.deepEqual(perm({ personId: 'p11', role: 'org-commissioner' }).scope, ['memberConfirmation', 'thoughtReport']);
+  assert.deepEqual(perm({ personId: 'p1', role: 'leader' }).scope, ['leader']);
   assert.equal(perm({ personId: 'p3', role: 'participant' }).ok, false, '普通成员无权');
 });
 
@@ -589,4 +599,56 @@ test('⑩ HTTP：快照口只拦不该发生的状态迁移（其余整表写入
   const mk2 = await post(sec, { title: '直建活动乙', type: '主题党日', status: 'published' });
   assert.equal(mk2.status, 201);
   assert.equal((await mk2.json()).status, 'published', '关闭档时直建原样写入（零行为变化）');
+});
+
+// ── ⑪ 白名单扩表（2026-09-27 支书裁定「补入口，让它们真可调」）─────────────────
+// 三族制度可调项入白名单：时限类（attendance/review）· 补课范围与时限（makeup）→ 纪检域；
+//   篇幅字数类（thoughtReport）→ 组织域。判据＝净化值域 + 域负责人落库 + 域外拒绝 + 读侧真生效。
+test('⑪ 时限 / 补课 / 篇幅三族入白名单：净化值域 + 域负责人落库 + 域外拒绝 + 读侧生效', async () => {
+  // 净化：三族取值合法保留、越界钳制、类型不符丢弃
+  assert.deepEqual(
+    sanitizeConfigPolicyOverrides({ attendance: { entryRemindDays: 3, summaryDeadlineDays: 2, lowRateHint: 80 } }),
+    { attendance: { entryRemindDays: 3, summaryDeadlineDays: 2, lowRateHint: 80 } },
+  );
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ attendance: { lowRateHint: 150 } }), { attendance: { lowRateHint: 100 } }, '出勤率提示线钳 0–100');
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ review: { overdueDays: 7, deadlineDays: 10 } }), { review: { overdueDays: 7, deadlineDays: 10 } });
+  assert.deepEqual(
+    sanitizeConfigPolicyOverrides({ makeup: { branchAssembly: false, partyClass: true, deadlineDays: 7 } }),
+    { makeup: { branchAssembly: false, partyClass: true, deadlineDays: 7 } },
+  );
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ makeup: { branchAssembly: 'no' } }), {}, '布尔严格（字符串丢弃）');
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ thoughtReport: { wordHint: 1500, wordSoftMin: 1200 } }), { thoughtReport: { wordHint: 1500, wordSoftMin: 1200 } });
+  assert.deepEqual(sanitizeConfigPolicyOverrides({ thoughtReport: { wordHint: 999999 } }), { thoughtReport: { wordHint: 10000 } }, '篇幅上界钳制');
+
+  // 域负责人落库 + 域外拒绝
+  beginMockCase();
+  const r1 = await savePolicyOverrides('br-b1',
+    { attendance: { entryRemindDays: 3 }, review: { overdueDays: 5 }, makeup: { partyClass: false, deadlineDays: 10 } },
+    { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  assert.equal(r1.ok, true);
+  assert.deepEqual(po().attendance, { entryRemindDays: 3 }, '纪检可写 attendance 节');
+  assert.deepEqual(po().review, { overdueDays: 5 });
+  assert.deepEqual(po().makeup, { partyClass: false, deadlineDays: 10 });
+  const r2 = await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 2000, wordSoftMin: 1500 } }, { actor: { personId: 'p11', role: 'org-commissioner' } });
+  assert.equal(r2.ok, true);
+  assert.deepEqual(po().thoughtReport, { wordHint: 2000, wordSoftMin: 1500 });
+  // 纪检不可写组织域 thoughtReport（域外节被忽略，未落地）
+  await savePolicyOverrides('br-b1', { thoughtReport: { wordHint: 3000 } }, { actor: { personId: 'p10', role: 'disc-commissioner' } });
+  assert.deepEqual(po().thoughtReport, { wordHint: 2000, wordSoftMin: 1500 }, '纪检不可改组织域 thoughtReport');
+
+  // 读侧注入 + 新开放项真生效（补课范围/时限随参数走；makeup.js call-time 读 POLICY_DEFAULTS）
+  applyBranchPolicyOverrides({ config: BR().config });
+  assert.equal(POLICY_DEFAULTS.attendance.entryRemindDays, 3, '考勤录入提醒随覆盖生效');
+  assert.equal(POLICY_DEFAULTS.review.overdueDays, 5);
+  assert.deepEqual(POLICY_DEFAULTS.makeup, { branchAssembly: true, partyClass: false, deadlineDays: 10 }, '补课覆盖生效（未覆盖叶保持默认 branchAssembly=true）');
+  assert.deepEqual(makeupDefaultActivityTypes(), ['支部党员大会'], '关掉党课后：制度硬要求类型仅剩支部党员大会');
+  assert.equal(isMakeupRequired({ type: '党课' }), false, '党课不再要求补课（支部级参数生效）');
+  assert.equal(isMakeupRequired({ type: '支部党员大会' }), true, '支部党员大会仍要求补课');
+  assert.equal(makeupDeadlineDays(), 10, '补课时限随覆盖生效');
+  assert.equal(POLICY_DEFAULTS.thoughtReport.wordHint, 2000);
+  // 复位：回出厂默认
+  applyBranchPolicyOverrides({ config: {} });
+  assert.equal(POLICY_DEFAULTS.attendance.entryRemindDays, 1);
+  assert.deepEqual(makeupDefaultActivityTypes(), ['支部党员大会', '党课']);
+  assert.equal(makeupDeadlineDays(), 7);
 });

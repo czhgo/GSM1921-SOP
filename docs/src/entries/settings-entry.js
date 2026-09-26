@@ -116,17 +116,17 @@ const SECTION_META = {
   },
   'branch-config-history': {
     title: '配置变更记录', batch: '', badge: '',
-    desc: '本支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动留痕：操作人、时间、变更项、前后变化与依据。单项变更可由支书 / 副支书（副书同权）回滚，回滚本身再记一条。',
+    desc: '支部配置每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。',
     note: '只读列表（最新在前，展示最近 50 条；历史保留最近 100 条）；回滚仅限单键变更。',
   },
   'domain-disc': {
     title: '纪检职责参数', batch: '批 4', badge: '',
-    desc: '纪检职责参数（考察确认超期天数）——纪检委员可调，纪检台超期判定/支书台考察提醒随参数生效。',
+    desc: '纪检职责参数（考察超期 / 考勤与复盘时限 / 补课范围与时限）——纪检委员可调，纪检台与支书台提醒、判定随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-org': {
     title: '组织职责参数', batch: '批 4', badge: '',
-    desc: '组织职责参数（学期末滞留集中复核窗口）——组织委员可调，支书待办提醒窗口与文案随参数生效。',
+    desc: '组织职责参数（学期末滞留复核窗口 / 思想汇报篇幅字数）——组织委员可调，支书待办窗口与提交页字数提示随参数生效。',
     note: '参数卡片编辑 + 恢复默认。',
   },
   'domain-leader': {
@@ -185,7 +185,7 @@ function shapeCardHtml() {
         <h2 class="font-title-cn text-base font-bold text-gray-800">当前形态 · 归属判定</h2>
         ${badgeHtml('自查', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">「顶栏那个组织名是从哪来的」在这里摊开：数据源与依据、归属判定命中的是哪一段、所属支部、登录人与角色、代码版本戳。<b>不开调试器</b>也能核对现在是本地演示（mock）还是已连服务器（api）。</p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">「顶栏那个组织名从哪来」在这里摊开：数据源与依据、命中的归属段、所属支部、当前登录人与角色、代码版本戳，无需调试器即可自查。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
         <span class="hint-dot"></span>
@@ -577,9 +577,13 @@ function renderBranchInfoCard(panel, br, branch) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">支部信息与向导</h2>
+        ${badgeHtml('档案 · 只读展示', 'neutral')}
       </div>
       <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部基础档案只读展示（名称等治理字段归党委管理）；需要调整支部信息 / 模块组合 / 分工 / 术语时，打开换组织向导 —— 每步保存即时生效并记录变更。</p>
       <dl class="kv-list">${kv}</dl>
+      <div class="hint-box mt-3.5">
+        <b>改名 / 改自述，去哪改</b>：官方名与类别归党委（党委台「支部管理」）；页眉名、自述、主题与模块组合在本页「打开换组织向导」内改。
+      </div>
     </div>
     <div class="card rounded-xl p-4 mt-4 flex flex-col sm:flex-row sm:items-center gap-3.5 border-l-[3px] border-l-[var(--party-red)]">
       <span class="w-[42px] h-[42px] shrink-0 flex items-center justify-center rounded-xl bg-[var(--app-accent-bg)] text-[var(--app-accent)]">${icon('flag', { className: 'icon-base w-5 h-5' })}</span>
@@ -692,7 +696,7 @@ function renderConfigHistorySection(panel, br, branch, statusMsg) {
         <h2 class="font-title-cn text-base font-bold text-gray-800">配置变更记录</h2>
         ${badgeHtml(`${esc(roleLabel)} · 本支部 · 审计`, 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部配置（工作台模块 / 产出块 / 分工 / 组织档案 / 职责参数等）每次保存自动记录变更：操作人、时间、变更内容、前后变化与变更理由。单项变更可由支书 / 副支书（副书同权）回滚，回滚本身再记录一次；历史保留最近 100 条。</p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">每次保存自动记账（谁 / 何时 / 改了哪一项 / 前后值 / 依据）；单键改动可回滚，回滚本身再记一条。</p>
       <ul class="flex flex-col gap-2 mt-3 p-0 list-none">${rowsHtml}</ul>
       <p class="status-line" data-cfg-hist-status aria-live="polite"></p>
     </div>`;
@@ -970,9 +974,9 @@ function bindBranchOrderDnD(panel) {
 // 数据链：制度默认与输入默认值 = POLICY_DEFAULTS（工厂值，本页不注入覆盖 → 展示「制度默认」）；
 //   当前生效覆盖 = branch.config.policyOverrides；保存后写入 config（留痕同 configChangeHistory）。
 const DOMAIN_CARD_META = {
-  'domain-disc': { role: 'disc-commissioner', roleLabel: '纪检委员', section: 'inspection', sectionLabel: '纪检域' },
-  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', section: 'memberConfirmation', sectionLabel: '组织域' },
-  'domain-leader': { role: 'leader', roleLabel: '党小组组长', section: 'leader', sectionLabel: '组长域' },
+  'domain-disc': { role: 'disc-commissioner', roleLabel: '纪检委员', sections: ['inspection', 'attendance', 'review', 'makeup'], sectionLabel: '纪检域' },
+  'domain-org': { role: 'org-commissioner', roleLabel: '组织委员', sections: ['memberConfirmation', 'thoughtReport'], sectionLabel: '组织域' },
+  'domain-leader': { role: 'leader', roleLabel: '党小组组长', sections: ['leader'], sectionLabel: '组长域' },
 };
 const LOCKED_POLICY_ROLES = new Set(['secretary', 'deputy-secretary']); // 制度锁定展示 = 支书/副视角
 
@@ -1069,15 +1073,21 @@ function branchPolicyLockedCardHtml(branch) {
     <div class="card rounded-xl p-5">
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">支部制度参数</h2>
+        ${badgeHtml('制度默认 · 只读', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">支部级制度参数的「制度默认」集中展示（本项由系统统一维护）。本页不开放直改：制度刚性锁定，如需按支部调整须支书/党委裁决后在系统层变更。</p>
+      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">下面五组的当前取值集中摆出，供核对；本卡不放控件，改它们要走制度裁决与放行程序（见下）。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
-        <span class="hint-dot"></span>
-        制度刚性锁定 · 改须党委/支书裁决。上方展示值即当前支部现行规则（含开源部署调整面，均不在本页直改）。
+        <b>为什么只读</b>：这五组是全支部一致的口径，改动牵动票决、应到与考勤判定，故不随支部各自调整。
       </div>
       <div class="hint-box mt-3.5">
-        <b>支部制度里的可调项分两类。</b>一是本区下方<b>「活动批准门」</b>卡（支部自选开关，支书/副支书可直改）；二是时限类（考勤确认 / 汇总 / 补课链等）、篇幅字数类（思想汇报 1500 建议 / 1200 警告审阅线）与补课范围等，已在制度参数里登记为「支部可调」（母本所写数字即默认值），本页只作「制度默认」只读展示，须支书 / 党委裁决后在系统层变更。域「职责参数」归纪检 / 组织 / 组长各自在左栏对应卡中调整。
+        <b>要改，去哪改（放行程序）</b>：① 支书出裁决与依据 → ② 由工程侧登记进可覆盖白名单并改消费点 → ③ 随版本部署生效。本页不提供入口，各支部也不各改一套。参见 <a href="./help.html#card-admin-settings-sections" class="text-sky-600 hover:underline">帮助 · 设置中心分区一览</a>。
+      </div>
+      <div class="hint-box mt-3.5">
+        <b>本区可直改：「活动批准门」</b>：支部自选开关，支书 / 副支书在本区直接调。
+      </div>
+      <div class="hint-box mt-3.5">
+        <b>时限类 / 篇幅字数类 / 补课范围：现已可调</b>（2026-09-27 起）——在左栏「纪检职责参数」「组织职责参数」卡里改，不在本卡。
       </div>
     </div>`;
 }
@@ -1166,28 +1176,64 @@ function _overridesOf(branch) {
 
 function domainCardHtml(meta, branch, P) {
   const po = _overridesOf(branch);
-  const hasOverride = !!po[meta.section];
+  const hasOverride = meta.sections.some((s) => !!po[s]);
   const statusHtml = `<p class="status-line" data-pol-status aria-live="polite"></p>`;
-  if (meta.section === 'inspection') {
+  const curState = `当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。`;
+  if (meta.role === 'disc-commissioner') {
     const def = P.inspection.overdueDays;
     const cur = (Number.isInteger(po.inspection?.overdueDays) ? po.inspection.overdueDays : def);
+    const ad = P.attendance; const rd = P.review; const mk = P.makeup;
+    const numIn = (sec, leaf, dflt) => (Number.isInteger(po[sec]?.[leaf]) ? po[sec][leaf] : dflt);
+    const cEntry = numIn('attendance', 'entryRemindDays', ad.entryRemindDays);
+    const cSum = numIn('attendance', 'summaryDeadlineDays', ad.summaryDeadlineDays);
+    const cLow = numIn('attendance', 'lowRateHint', ad.lowRateHint);
+    const cRev = numIn('review', 'overdueDays', rd.overdueDays);
+    const cRevD = numIn('review', 'deadlineDays', rd.deadlineDays);
+    const cMkD = numIn('makeup', 'deadlineDays', mk.deadlineDays);
+    const mkAsm = typeof po.makeup?.branchAssembly === 'boolean' ? po.makeup.branchAssembly : mk.branchAssembly;
+    const mkCls = typeof po.makeup?.partyClass === 'boolean' ? po.makeup.partyClass : mk.partyClass;
+    const numField = (id, v, min, max, pre, post) => `
+            <label class="flex items-center gap-2">
+              <span class="text-xs text-gray-600">${pre}</span>
+              <input type="number" id="${id}" class="input-flat text-xs w-20 text-center" min="${min}" max="${max}" value="${v}" inputmode="numeric">
+              <span class="text-xs text-gray-600">${post}</span>
+            </label>`;
+    const row = (label, field, hint) => `
+        <div class="kv-row">
+          <dt>${label}</dt>
+          <dd>${field}
+            <div class="text-[11px] text-gray-500 mt-1">${hint}</div>
+          </dd>
+        </div>`;
     return `
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2.5 mb-2">
           <h2 class="font-title-cn text-base font-bold text-gray-800">纪检职责参数</h2>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察记录「超期未确认」判定天数。保存后：纪检台「考察总表」超期提醒与文案、支书台「考察超期未确认」提醒 deadline 同源生效。</p>
-        <div class="kv-row">
-          <dt>考察确认超期</dt>
-          <dd>
-            <label class="flex items-center gap-2">
-              <span class="text-xs text-gray-600">超过</span>
-              <input type="number" id="pol-inp-disc-days" class="input-flat text-xs w-20 text-center" min="1" max="90" value="${cur}" inputmode="numeric">
-              <span class="text-xs text-gray-600">天未确认判超期</span>
-            </label>
-            <div class="text-[11px] text-gray-500 mt-1">范围 1–90 天；默认 ${def} 天（制度默认）。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。</div>
-          </dd>
+        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">考察超期、考勤与复盘时限、补课范围与时限。保存后：纪检台判定、支书台提醒与补课判据同源生效。</p>
+        <div class="space-y-3">
+          ${row('考察确认超期', numField('pol-inp-disc-days', cur, 1, 90, '超过', '天未确认判超期'), `范围 1–90 天；默认 ${def} 天。${curState}`)}
+          ${row('考勤录入提醒', numField('pol-disc-entry-remind', cEntry, 1, 30, '活动结束超过', '天未录入判提醒'), `范围 1–30 天；默认 ${ad.entryRemindDays} 天（母本 24h）。`)}
+          ${row('考勤汇总期限', numField('pol-disc-summary-days', cSum, 1, 30, '截止 = 活动日 +', '天'), `范围 1–30 天；默认 ${ad.summaryDeadlineDays} 天（母本 48h）。`)}
+          ${row('出勤率提示线', numField('pol-disc-low-rate', cLow, 0, 100, '低于', '% 仅提示本人'), `范围 0–100；默认 ${ad.lowRateHint}%。只提示、不触发处置。`)}
+          ${row('复盘提醒', numField('pol-disc-review-remind', cRev, 1, 90, '活动结束超过', '天未交复盘判提醒'), `范围 1–90 天；默认 ${rd.overdueDays} 天。`)}
+          ${row('复盘提交期限', numField('pol-disc-review-deadline', cRevD, 1, 90, '截止 = 活动日 +', '天'), `范围 1–90 天；默认 ${rd.deadlineDays} 天。`)}
+          <div class="kv-row">
+            <dt>补课范围</dt>
+            <dd>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="pol-disc-makeup-assembly" class="w-4 h-4 accent-[var(--app-accent)]" ${mkAsm ? 'checked' : ''}>
+                <span class="text-xs text-gray-700">支部党员大会须补课</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer mt-1">
+                <input type="checkbox" id="pol-disc-makeup-class" class="w-4 h-4 accent-[var(--app-accent)]" ${mkCls ? 'checked' : ''}>
+                <span class="text-xs text-gray-700">党课须补课</span>
+              </label>
+              <div class="text-[11px] text-gray-500 mt-1">制度硬要求类型；单场活动仍只能加不能减。</div>
+            </dd>
+          </div>
+          ${row('补课时限', numField('pol-disc-makeup-deadline', cMkD, 1, 30, '活动后', '天内闭环'), `范围 1–30 天；默认 ${mk.deadlineDays} 天（T+7）。`)}
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-disc">保存</button>
@@ -1196,7 +1242,7 @@ function domainCardHtml(meta, branch, P) {
         ${statusHtml}
       </div>`;
   }
-  if (meta.section === 'memberConfirmation') {
+  if (meta.role === 'org-commissioner') {
     const def = P.memberConfirmation.semesterDetainedWindows;
     const cur = Array.isArray(po.memberConfirmation?.semesterDetainedWindows) && po.memberConfirmation.semesterDetainedWindows.length
       ? po.memberConfirmation.semesterDetainedWindows : def;
@@ -1205,13 +1251,15 @@ function domainCardHtml(meta, branch, P) {
     const pad = (v) => String(v).padStart(2, '0');
     const winLabel = (w, cross) => `${pad(w[0])}-${pad(w[1])} ～ ${cross ? '次年 ' : ''}${pad(w[2])}-${pad(w[3])}`;
     const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
+    const cHint = (Number.isInteger(po.thoughtReport?.wordHint) ? po.thoughtReport.wordHint : P.thoughtReport.wordHint);
+    const cSoft = (Number.isInteger(po.thoughtReport?.wordSoftMin) ? po.thoughtReport.wordSoftMin : P.thoughtReport.wordSoftMin);
     return `
       <div class="card rounded-xl p-5">
         <div class="flex items-center gap-2.5 mb-2">
           <h2 class="font-title-cn text-base font-bold text-gray-800">组织职责参数</h2>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期末滞留集中复核提醒窗口（每年两段：每学期末集中复核在册滞留）。保存后：支书台「学期末滞留集中复核」提醒窗口与文案同源生效。</p>
+        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期末滞留集中复核窗口、思想汇报篇幅建议与警告审阅线。保存后：支书台提醒窗口与提交页字数提示同源生效。</p>
         <div class="space-y-3">
           <div class="kv-row">
             <dt>区间 1</dt>
@@ -1229,8 +1277,30 @@ function domainCardHtml(meta, branch, P) {
               <span class="text-[11px] text-gray-500">默认 ${winLabel(def[1] || w2, true)}（止月小于起月 = 跨年）</span>
             </dd>
           </div>
+          <div class="kv-row">
+            <dt>思想汇报建议篇幅</dt>
+            <dd>
+              <label class="flex items-center gap-2">
+                <span class="text-xs text-gray-600">建议</span>
+                <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cHint}" inputmode="numeric">
+                <span class="text-xs text-gray-600">字以上</span>
+              </label>
+              <div class="text-[11px] text-gray-500 mt-1">范围 100–10000；默认 ${P.thoughtReport.wordHint} 字。只写在提示文案里。</div>
+            </dd>
+          </div>
+          <div class="kv-row">
+            <dt>警告审阅线</dt>
+            <dd>
+              <label class="flex items-center gap-2">
+                <span class="text-xs text-gray-600">少于</span>
+                <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cSoft}" inputmode="numeric">
+                <span class="text-xs text-gray-600">字触发警告审阅</span>
+              </label>
+              <div class="text-[11px] text-gray-500 mt-1">范围 100–10000；默认 ${P.thoughtReport.wordSoftMin} 字。提醒只给提交人本人，不影响提交。</div>
+            </dd>
+          </div>
         </div>
-        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。当前${hasOverride ? '已按本支部调整值生效' : '与制度默认一致'}。</div>
+        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。${curState}</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-org">保存</button>
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
@@ -1275,18 +1345,41 @@ function showPolicyStatus(panel, msg, isErr = false) {
   el._polT = setTimeout(() => { el.textContent = ''; }, 3600);
 }
 
-/** 读域卡当前输入 → 保存 patch（非法输入给出提示并返回 null） */
+/** 读域卡当前输入 → 保存 patch（多节；非法输入给出提示并返回 null） */
 function _readDomainPatch(meta, panel) {
-  if (meta.section === 'inspection') {
-    const el = panel.querySelector('#pol-inp-disc-days');
-    const days = el ? parseInt(el.value, 10) : NaN;
-    if (!Number.isInteger(days) || days < 1 || days > 90) {
-      showPolicyStatus(panel, '请输入 1–90 之间的整数天数。', true);
+  const readInt = (id) => {
+    const el = panel.querySelector('#' + id);
+    const v = el ? parseInt(el.value, 10) : NaN;
+    return v;
+  };
+  const intField = (id, min, max, label) => {
+    const v = readInt(id);
+    if (!Number.isInteger(v) || v < min || v > max) {
+      showPolicyStatus(panel, `${label}请输入 ${min}–${max} 之间的整数。`, true);
       return null;
     }
-    return { inspection: { overdueDays: days } };
+    return v;
+  };
+  if (meta.role === 'disc-commissioner') {
+    const days = intField('pol-inp-disc-days', 1, 90, '考察确认超期');
+    if (days === null) return null;
+    const entry = intField('pol-disc-entry-remind', 1, 30, '考勤录入提醒');
+    const summary = intField('pol-disc-summary-days', 1, 30, '考勤汇总期限');
+    const low = intField('pol-disc-low-rate', 0, 100, '出勤率提示线');
+    const rRev = intField('pol-disc-review-remind', 1, 90, '复盘提醒');
+    const rDead = intField('pol-disc-review-deadline', 1, 90, '复盘提交期限');
+    const mkDead = intField('pol-disc-makeup-deadline', 1, 30, '补课时限');
+    if ([entry, summary, low, rRev, rDead, mkDead].some((v) => v === null)) return null;
+    const asm = panel.querySelector('#pol-disc-makeup-assembly');
+    const cls = panel.querySelector('#pol-disc-makeup-class');
+    return {
+      inspection: { overdueDays: days },
+      attendance: { entryRemindDays: entry, summaryDeadlineDays: summary, lowRateHint: low },
+      review: { overdueDays: rRev, deadlineDays: rDead },
+      makeup: { branchAssembly: !!asm && asm.checked, partyClass: !!cls && cls.checked, deadlineDays: mkDead },
+    };
   }
-  if (meta.section === 'memberConfirmation') {
+  if (meta.role === 'org-commissioner') {
     const read = (id) => {
       const el = panel.querySelector('#' + id);
       const v = el ? parseInt(el.value, 10) : NaN;
@@ -1300,7 +1393,14 @@ function _readDomainPatch(meta, panel) {
         return null;
       }
     }
-    return { memberConfirmation: { semesterDetainedWindows: windows } };
+    const hint = read('pol-org-word-hint');
+    const soft = read('pol-org-word-soft');
+    if (!(hint >= 100 && hint <= 10000)) { showPolicyStatus(panel, '建议篇幅请输入 100–10000 之间的整数。', true); return null; }
+    if (!(soft >= 100 && soft <= 10000)) { showPolicyStatus(panel, '警告审阅线请输入 100–10000 之间的整数。', true); return null; }
+    return {
+      memberConfirmation: { semesterDetainedWindows: windows },
+      thoughtReport: { wordHint: hint, wordSoftMin: soft },
+    };
   }
   const el = panel.querySelector('#pol-leader-enabled');
   return { leader: { semesterReportReminder: { enabled: !!el && el.checked } } };
@@ -1312,7 +1412,7 @@ async function runPolicyAction(panel, cardId, action) {
   const { role, personId } = _session;
   if (!meta || !personId) return;
   const patch = action === 'reset'
-    ? { [meta.section]: null }
+    ? Object.fromEntries(meta.sections.map((s) => [s, null]))
     : _readDomainPatch(meta, panel);
   if (action === 'save' && !patch) return; // 输入非法已提示
   const seq = ++_govSeq;

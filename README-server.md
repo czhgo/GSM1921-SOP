@@ -481,7 +481,7 @@
 | 我的工作台 | 登录用户 | 调整**本人**页签顺序（核心页签不可动）；仅本账号生效 |
 | 支部治理 | 支书 / 副支书（支部信息与向导 / 工作台默认顺序 / 支部制度参数 / **配置变更记录**）；纪检 / 组织 / 组长各自的「职责参数」卡（各管本域）；党委组织员另有「快捷块说明」 | 支部配置与域参数；普通成员、访客不可见 |
 
-> **左栏共 10 个分区**（外观 · 我的工作台 · 支部信息与向导 · 工作台默认顺序 · 支部制度参数 · 配置变更记录 · 纪检 / 组织 / 组长职责参数 · 支部治理快捷块说明）；逐区「管什么 + 谁能看到」见系统内【帮助】页 §5.4（裁定 `D-516`），本表只给三档归属。
+> **左栏共 10 个分区**（外观 · 我的工作台 · 支部信息与向导 · 工作台默认顺序 · 支部制度参数 · 配置变更记录 · 纪检 / 组织 / 组长职责参数 · 支部治理快捷块说明）；逐区「管什么 + 谁能看到」见系统内【帮助】页 §4.1（**2026-09-27 起设置逐项独立成章：原 §5.4 迁入 §4.1**；裁定 `D-516`），本表只给三档归属。
 
 **依据**：`README.md:117`（设置中心分区）、`README-members.md:109-117`（设置中心分区）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:136-150`（§9h）。
 
@@ -1596,6 +1596,18 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 9 | **API 基址** | 前端切换 API 形态时的 `apiBaseUrl`（`services/runtime.js` 的 `setDataSource('api', {...})`），对接计算中心域名 | `DEPLOYMENT_GUIDE.md:124-134` |
 | 10 | **学校侧要提供的环境** | 域名 + ICP 备案、数据库、API 服务器、HTTPS（责任方为支书/计算中心） | `DEPLOYMENT_GUIDE.md:193-202` |
 | 11 | **未接入项（需另行开发）** | ① 北大党校 / 智慧党建平台的数据同步（**规划，无代码**）；② 微信小程序（**规划，无代码**）；③ AI 本地推理（**规划**）；④ 北大 IAAA 单点登录（门控已预留落点，**未接入**） | `DEPLOYMENT_GUIDE.md:47-48,81-84,217-240` |
+
+**部署前自检与演示账号清理（可执行）**
+
+> 上线前把「**库内只有真人** ＋ **口令已换**」两件事做完；判定与背景见 `DEPLOYMENT_GUIDE.md` 附录 A.2 第 1 / 5 条，完整命令见 `server/README.md`「部署前自检与清理演示账号」。
+
+1. **看启动日志**：`npm start` 打印 `[server] 自检 · users 计数=…；演示种子账号=…`——真实库应为 **`演示种子账号=0`**（判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集）。若 > 0 且是正式库 ⇒ 走下一步。
+2. **列出现有演示账号（只读，不删）**：`cd server` 后
+   ```bash
+   node --input-type=module -e "import Database from 'better-sqlite3'; import { PEOPLE } from '../docs/src/mock/people.js'; const db=new Database(process.env.DB_PATH||'./data.db',{readonly:true}); const demo=new Set(PEOPLE.map(p=>p.id)); const hit=db.prepare('SELECT id FROM users').all().map(r=>r.id).filter(id=>demo.has(id)); console.log('库内演示账号数='+hit.length, hit.join(','));"
+   ```
+3. **清理**：**推荐空库起步**——停服 → 移走 `data.db`（及 `data.db-wal` / `data.db-shm`）→ 以 `APP_ENV=production`（或 `DISABLE_SEED=1`）启动，空库不播种、从系统内录真实人员。若本库已有真实数据：**先 `.\scripts\backup.ps1` 备份**，停服后按需删演示账号（`sessions` / 业务表可能有引用，删前确认这些也属演示数据）。
+4. **换口令**：设 `LOGIN_PASSWORD=<强口令>`（生产形态不设 ⇒ 启动即拒），确认未设 `DISABLE_PASSWORD_CHECK`（详见 §5.3 / §5.6）。
 
 ---
 

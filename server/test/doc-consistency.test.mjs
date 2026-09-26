@@ -739,16 +739,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   const seBlock = seSrc.slice(seFrom, seSrc.indexOf('\n};', seFrom));
   const secReal = (seBlock.match(/^ {2}'[a-z-]+': \{/gm) || []).length;
   eq('设置中心分区数', 'README-server.md §3.4「左栏共 N 个分区」', cn(m(lineWith(rs, /左栏共/), /左栏共\s*([\d一二两三四五六七八九十]+)\s*个分区/)), secReal);
-  eq('设置中心分区数', 'docs/help.html §5.4 标题', cn(m(lineWith(help, /doc-h3-badge">5\.4<\/span>设置中心分区一览/), /设置中心分区一览（(\d+) 个分区/)), secReal);
-  eq('设置中心分区数', 'docs/help.html §5.4 卡标题', cn(m(lineWith(help, /个分区：每区管什么/), /help-card-title">(\d+) 个分区/)), secReal);
+  eq('设置中心分区数', 'docs/help.html §4.1 标题（2026-09-27 起：设置逐项独立成章，原 §5.4 迁入 §4.1）', cn(m(lineWith(help, /doc-h3-badge">4\.1<\/span>设置中心分区一览/), /设置中心分区一览（(\d+) 个分区/)), secReal);
+  eq('设置中心分区数', 'docs/help.html §4.1 卡标题', cn(m(lineWith(help, /个分区：每区管什么/), /help-card-title">(\d+) 个分区/)), secReal);
   const secTableAt = help.indexOf('个分区：每区管什么');
   const secTable = help.slice(secTableAt, help.indexOf('</tbody>', secTableAt));
-  eq('设置中心分区数', 'docs/help.html §5.4 表体行数', (secTable.match(/^\s*<tr><td>/gm) || []).length, secReal);
+  eq('设置中心分区数', 'docs/help.html §4.1 表体行数', (secTable.match(/^\s*<tr><td>/gm) || []).length, secReal);
   eq('设置中心分区数', 'docs/help.html §0.4「N 个分区逐区一览」', cn(m(lineWith(help, /个分区逐区一览/), /(\d+) 个分区逐区一览/)), secReal);
   // 支书 / 副支书可见区数（权威＝「外观」＋「我的工作台」〔该角色有工作台时才发〕＋ SECRETARY_GOV 四区）
   const secGov = /const SECRETARY_GOV = \[([\s\S]*?)\];/.exec(seSrc)?.[1] || '';
   const govN = (secGov.match(/\{ id: '/g) || []).length;
-  eq('支书可见设置分区数', 'docs/help.html §5.4「支书 / 副支书 N 区」', cn(m(lineWith(help, /支书 \/ 副支书 \d+ 区/), /支书 \/ 副支书 (\d+) 区/)), 2 + govN);
+  eq('支书可见设置分区数', 'docs/help.html §4.1「支书 / 副支书 N 区」', cn(m(lineWith(help, /支书 \/ 副支书 \d+ 区/), /支书 \/ 副支书 (\d+) 区/)), 2 + govN);
 
   // ⑫ 队列在册条数（权威＝「实施批次计划 ·（一）逐条归组」表「条数」列之和）
   const q = read(QUEUE);

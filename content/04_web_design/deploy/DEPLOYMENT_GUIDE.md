@@ -994,6 +994,83 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 10. 反向代理的**请求体上限须 ≥ 上传上限**（上传上限＝**10MB**，见 `server/routes/uploads.js` 的 `MAX_SIZE`）：如 nginx 的 `client_max_body_size` 至少设 `10m`（低于此值时，大图在**代理层**就被拦下，表现为 413 或连接中断，与后端 413 是两层不同的失败）。另 `/snapshot` 原始体上限 4MB（前端 gzip 压缩后传输，通常远小于该值）。
 11. ⚠ **若由 nginx 直接托管 `docs/` 静态资源**：必须把 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`）——该文件是 Node **动态注入**路由（`server/app.js`），不是磁盘上的静态文件；被静态托管走会返回磁盘版 `DEPLOY_MODE='static'` ⇒ **「关于」门面与部署形态判定会错**。
 
+### A.2.1 版本回滚（含「回滚后 DB 是否要一起回」）
+
+> **先分清两件事**：**恢复**（A.2 第 7 条）＝用备份把**库**拉回过去；**回滚**＝把**代码**退回上一个可用版本。**多数回滚不动 DB**。
+
+**回滚代码（默认不动 DB）**
+
+1. **先备份再动手**：`cd server; .\scripts\backup.ps1`（或 `node scripts/backup.mjs --out <目录>`）——留一份「回滚前的现状」，见 A.2 第 6 条 / `server/README.md`「备份与恢复」。
+2. **停服**（`systemctl stop gsm1921` / `pm2 stop gsm1921`，或结束 `npm start` 进程）。
+3. **退代码**：`git fetch --tags` → `git checkout <上一个可用 tag / commit> -- docs/ server/`（或整树 `git checkout <旧版本>`）。`docs/` 与 `server/` 的 `?v=` 戳随代码提交、回退后自动回到旧戳——**不要再跑 `bump-version.mjs`**，否则版本链又前进。
+4. **启动**：`cd server; npm start`；看日志 `[db] schema vN（本次应用 M 项）` 与 `[server] 自检 · users 计数=…`。
+5. **冒烟**：`curl -fsS http://127.0.0.1:<PORT>/api/v1/health` ⇒ `{"ok":true}`；再登录一次。
+
+**回滚后 DB 要不要一起回？——判据**
+
+- **默认：不回**。迁移机制**只向前应用、不回退 `user_version`**（`server/db.js::applyMigrations`：只跑 `version > user_version` 的项）。旧代码启动时没有更新的迁移可跑 ⇒ **一行 DDL 不跑、数据一行不动**；本仓 `MIGRATIONS` 目前只有 `v1` 基线（幂等重放既有建表、不改写数据）⇒ **代码回滚与 DB 无关**。
+- **必须回 DB 的唯一情形**：本次升级做了**破坏性结构变更或数据改写**，旧代码读不了新库（本仓当前无此情形）。此时按 **A.2 第 7 条恢复**：停服 → 用**升级前**的备份 `data.db` 覆盖库文件、并删除同目录 `data.db-wal` / `data.db-shm` → 用备份的 `uploads/` 覆盖附件目录 → 启动。
+- ⚠ **回 DB 会丢掉**「升级 → 回滚」之间产生的真实写入 ⇒ **只在确认「新版本写坏了数据」时做**，且**先把现状库另存一份**再覆盖；遇 SQLite **WAL** 陷阱一律用脚本备份（只拷 `data.db` 会丢最近写入，见 A.2 第 6 条）。
+
+**「当前版本」的锚点**：库结构版本＝启动日志 `schema vN`；前端缓存版本＝全站 `?v=` 戳（随代码提交，见 A.2 checklist 与 `README-server.md` §5.3）。
+
+### A.2.2 进程管理与日志（守护 / 重启策略 / 日志落点与轮转）
+
+> **为什么必须常驻**：服务内置定时任务——每日 **03:00** 批量上报 ＋ 每 **10 分钟**会议提醒扫描（`server/services/reporting.js::startScheduler`，按**服务器本地时间**触发）⇒ 进程一停，定时任务即停。
+
+**方式一 · systemd（Linux 服务器，推荐）**
+
+```ini
+# /etc/systemd/system/gsm1921.service
+[Unit]
+Description=GSM1921-SOP 支部管理引擎
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/gsm1921/server
+EnvironmentFile=/etc/gsm1921.env        # 放 APP_ENV=production / LOGIN_PASSWORD=… / PORT=3000 等
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+User=gsm1921
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload && sudo systemctl enable --now gsm1921
+systemctl status gsm1921      # 存活状态
+journalctl -u gsm1921 -f      # 实时日志
+```
+
+**方式二 · PM2（跨平台；先 `npm i -g pm2`）**
+
+```bash
+cd /srv/gsm1921/server
+pm2 start server.js --name gsm1921 --time
+pm2 save && pm2 startup       # 开机自启
+pm2 logs gsm1921              # 日志
+```
+
+**方式三 · 容器**：仓库**不含 Dockerfile**。以 `node:22` 为基础镜像、`WORKDIR /app`、`CMD ["node","server.js"]`，把 `DB_PATH` 指向的数据文件与 `UPLOAD_DIR` 挂成**卷**（否则重启即丢库与附件），环境变量经容器注入，重启策略 `--restart unless-stopped`。
+
+**日志落点与轮转**
+
+- **应用自身不写日志文件**，全部 `console.log` / `console.error` 走 **stdout / stderr**，由进程管理器收集：systemd → journald（`/etc/systemd/journald.conf` 设 `SystemMaxUse=200M` 即自动轮转）；PM2 → `~/.pm2/logs/`（`pm2 install pm2-logrotate` ＋ `pm2 set pm2-logrotate:max_size 10M`）；容器 → `docker logs` ＋ 日志驱动上限。
+- **要盯的三行**：`[server] 自检 · users 计数=…；演示种子账号=…`（库内是否只有真人）· `[db] schema vN（本次应用 M 项）`（迁移是否已应用）· `[server] ⛔ 启动被拒`（生产未设 `LOGIN_PASSWORD`）。
+
+### A.2.3 健康检查与上线自检
+
+**已具备（本批判定：不必新增）**
+
+- **存活探针**：`GET /api/v1/health` → `{"ok":true}`（**公开、无门**，`server/app.js`）。接监控 / 负载均衡用：`curl -fsS http://127.0.0.1:<PORT>/api/v1/health`（反代后走域名）。
+- **启动自检**：`[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集；真实库应为 `演示种子账号=0`）。
+- **库完整性 / 迁移纪律 / 备份恢复**：`server/test/db-integrity-guard.test.mjs`（`G1–G6`）· `db-migration.test.mjs`（`M1–M6`）· `backup-restore.test.mjs`——上线前跑一次作回归基线。
+
+**判定「不加」的三条理由**：① 已有公开 `/api/v1/health`，够做存活探针；② 「深度检查」（探库可写 / 队列积压）需改 `server/` 业务代码，超出「只补部署文档」的范围，且单进程 ＋ SQLite 形态下收益低；③ 真正的自检需求（库内是否只有真人、结构是否对齐）**已由启动日志与上述守卫覆盖**。若日后改多实例 / 多库，再按需加「就绪探针（readiness）」，代价＝新增一条只读路由 ＋ 一条守卫用例。
+
 ### A.3 风险与依赖
 
 | 风险 | 影响 | 缓解 |

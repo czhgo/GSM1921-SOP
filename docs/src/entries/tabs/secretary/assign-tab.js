@@ -24,6 +24,8 @@ import { getPersonById, getPersonName } from '../../../services/person.js?v=2026
 import { groupOptions } from '../../../services/party-group.js?v=20260924a';
 import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260924a';
 import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
+// 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
+import { confirmNudge } from '../../../components/modal.js?v=20260924a';
 import { ROLE_LABELS, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/constants.js?v=20260924a';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/constants.js）
@@ -40,6 +42,19 @@ import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '..
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
 function _accentHex() {
   return getAppliedAccentColors('secretary').accent;
+}
+
+// ── 本位 nudge 的「本位」判据（2026-09-27 · 逐情景给，不一刀切）──────────────────────────
+// 母本口径（`.ctx/ACTIVE_RULINGS.md`「一、角色与分工」`D-434` / `D-614`）：「赋权共三个情景」——
+//   ① 常设赋权（党小组组长 / 支委身份；赋权者＝支书 / 副支书〔副书同权〕）
+//   ② 活动项目赋权（本位＝党小组组长）
+//   ③ 专班赋权（本位＝组织委员）
+// **本位操作人不弹、零打扰**（判据只此一处，三个写口共用）。
+function _isAuthHomeRole(key) {
+  const r = AuthStore.getCurrentUser()?.role;
+  if (key === 'taskforce') return r === 'org-commissioner';
+  if (key === 'activity') return r === 'leader' || r === 'deputy-leader';
+  return r === 'secretary' || r === 'deputy-secretary'; // 情景①（常设赋权·standing）
 }
 
 // 2026-09-23（支书裁定·裁定乙，逐字）：「赋权主要是3个情景，一是赋权给党小组组长/支委（也就是最初的
@@ -273,6 +288,18 @@ function bindConfirmProjectAuth(cfg) {
     if (!projectId) { showToast('error', '请选择项目'); return; }
     if (!role) { showToast('error', '请选择角色'); return; }
 
+    // 本位 nudge（2026-09-27 支书裁定「两处都加」· 单一源 `components/modal.js::confirmNudge`）：
+    //   情景② 活动项目赋权本位＝党小组组长、情景③ 专班赋权本位＝组织委员（判据 `_isAuthHomeRole`）⇒ 操作人
+    //   不是本位时，**写库前**弹一次确认（必须点按钮才能关；「取消」＝放弃本次赋权）。本位操作人不弹、零打扰。
+    if (!_isAuthHomeRole(cfg.key)) {
+      const _projLabel = document.getElementById(cfg.selectId)?.selectedOptions?.[0]?.textContent?.trim() || '';
+      const _homeOk = await confirmNudge({
+        nudgeKey: cfg.key === 'taskforce' ? 'assign-taskforce' : 'assign-activity',
+        context: _projLabel,
+      });
+      if (!_homeOk) return;
+    }
+
     const result = await AuthStore.authorize(
       AuthStore.getCurrentUser()?.personId,
       personId,
@@ -481,6 +508,12 @@ async function handleConfirmLeader() {
     return;
   }
 
+  // 本位 nudge（2026-09-27 · 情景① 常设赋权本位＝支书 / 副支书〔副书同权〕）⇒ 非本位操作人写库前弹确认。
+  if (!_isAuthHomeRole('standing')) {
+    const _homeOk = await confirmNudge({ nudgeKey: 'assign-leader', context: getPersonName(authPanel.selectedPersonId) || '' });
+    if (!_homeOk) return;
+  }
+
   // 调用 AuthStore，role='leader', scope='group', scopeRef=党小组名
   const result = await AuthStore.authorize(
     AuthStore.getCurrentUser()?.personId,
@@ -658,6 +691,11 @@ function renderCommissionerAssign() {
     const role = document.querySelector('input[name="bc-role"]:checked')?.value || '';
     if (!personId) { showToast('error', '请选择本支部在册成员'); return; }
     if (!role) { showToast('error', '请选择要授予的支委身份'); return; }
+    // 本位 nudge（2026-09-27 · 情景① 常设赋权本位＝支书 / 副支书）⇒ 非本位操作人写库前弹确认。
+    if (!_isAuthHomeRole('standing')) {
+      const _homeOk = await confirmNudge({ nudgeKey: 'assign-leader', context: getPersonName(personId) || '' });
+      if (!_homeOk) return;
+    }
     const res = await appointBranchCommissioner({ branchId: bid, personId, role });
     if (!res || !res.ok) { showToast('error', `配置失败：${(res && res.reason) || '未知原因'}`); return; }
     showToast('success', `已将 ${getPersonName(personId)} 配置为${ROLE_LABELS[role] || role}（可改派 / 可撤销）`);

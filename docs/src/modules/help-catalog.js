@@ -9,19 +9,21 @@ import { FUNCTION_GROUPS, FUNCTION_CATALOG } from '../core/function-catalog.js?v
 import { generateMindmapText, FLOW_LINKS } from '../core/mermaid-sources.js?v=20260924a';
 import { escHtml as esc } from '../core/utils.js?v=20260924a';
 
-// 目录树（左）：0–7 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
+// 目录树（左）：0–8 章 + 致谢/免责声明（与 help.html 静态章节 id、help-entry.js TOC_ITEMS 同一序列）
 // 2026-09-07 C1 批次：原「功能地图/党建等组卡片/业务链路/权限体系」目录项随章节骨架重组撤销——
-// 卡片组仍由 catalog 渲染（检索总览，位于第 2 章导览之后）；单功能细则/链路/党委配置已分别成章（第 3/4/5 章，C2/C3 完成）。
+// 卡片组仍由 catalog 渲染（检索总览，位于第 2 章导览之后）；单功能细则/链路/党委配置已分别成章（第 3/5/6 章，C2/C3 完成）。
+// 2026-09-27：新增「4 设置逐项」（原第 5 章 5.4 独立成章），原 4/5/6/7 依次顺延为 5/6/7/8。
 const TOC_CHAPTERS = [
   { id: 'sec-ack',        label: '致谢' },
   { id: 'sec-entries',    label: '0 入口速查' },
   { id: 'sec-quickstart', label: '1 快速上手' },
   { id: 'sec-roles',      label: '2 角色工作台导览' },
   { id: 'sec-domains',    label: '3 域手册' },
-  { id: 'sec-flows',      label: '4 业务链路' },
-  { id: 'sec-admin',      label: '5 党委与配置' },
-  { id: 'sec-what',       label: '6 这个系统在干什么' },
-  { id: 'sec-tech',       label: '7 技术架构' },
+  { id: 'sec-settings',   label: '4 设置逐项' },
+  { id: 'sec-flows',      label: '5 业务链路' },
+  { id: 'sec-admin',      label: '6 党委与配置' },
+  { id: 'sec-what',       label: '7 这个系统在干什么' },
+  { id: 'sec-tech',       label: '8 技术架构' },
   { id: 'sec-disclaimer', label: '免责声明' },
 ];
 

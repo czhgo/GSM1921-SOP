@@ -470,11 +470,16 @@ async function render() {
        ${summarySectionHtml(act)}
        ${resultSectionHtml(act, votes)}`;
 
+  // 正常视图的返回入口（2026-09-27）：与「被拒 / 越权」态（renderShellDenied）**逐字同款**——
+  //   原正常视图只有 html 级「← 返回首页」，进得来却回不到自己的工作台。落点＝页头卡内、
+  //   与既有导航同区；href 体例照抄 renderShellDenied（本页在 docs/ 根、无 `<base>` ⇒ `./workspace/…` 正确解析）。
+  const page = AuthStore.getPageForRole('workspace', me.role) || 'visitor.html';
   ROOT.innerHTML = `
     <div class="space-y-5">
       <div class="card rounded-xl p-5">
         <h2 class="font-title-cn text-xl font-bold text-gray-800">支委会会议（线上召开）</h2>
         <p class="text-sm text-gray-500 mt-1.5">一条链：选线上召开 → 定本场参会范围（默认支委层，可扩大为支委扩大会、选定扩大到谁）→ 提取/整理议程 → 委员表态 → 汇总并截止 → 留存、查阅讨论结果。</p>
+        <p class="text-sm mt-4"><a href="./workspace/${esc(page)}" class="text-blue-600 hover:underline">← 返回我的工作台</a></p>
       </div>
       ${rulingNoticeHtml()}
       ${committeeViewer ? '' : expandedScopeNoticeHtml(list.length)}

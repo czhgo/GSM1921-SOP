@@ -473,15 +473,15 @@ export function createResourcesRouter(db) {
     const isStaff = actor.role === 'party-staff';
     const isSecretary = !!branch.secretaryId && actor.id === branch.secretaryId;
     const isDeputyHere = actor.role === 'deputy-secretary' && (actor.branchId || 'br-b1') === branch.id;
-    // 批4（2026-09-09 支书批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节
-    // policyOverrides（inspection=纪检 · memberConfirmation=组织 · leader=组长），与前端 branch.js 同口径。
-    const DOMAIN_SECTION_BY_ROLE = { 'disc-commissioner': 'inspection', 'org-commissioner': 'memberConfirmation', leader: 'leader' };
-    let domainSection = null;
+    // 批4（2026-09-09 支书批「域参数」）：域负责人（本支部纪检/组织/组长）仅可写自己域节 policyOverrides，
+    //   与前端 branch.js::POLICY_SECTION_BY_DOMAIN_ROLE 同口径——一域可辖多节（2026-09-27 支书「补入口」批）。
+    const DOMAIN_SECTIONS_BY_ROLE = { 'disc-commissioner': ['inspection', 'attendance', 'review', 'makeup'], 'org-commissioner': ['memberConfirmation', 'thoughtReport'], leader: ['leader'] };
+    let domainSections = [];
     if (!isStaff && !isSecretary && !isDeputyHere && (actor.branchId || 'br-b1') === branch.id) {
-      domainSection = DOMAIN_SECTION_BY_ROLE[actor.role] || null;
+      domainSections = DOMAIN_SECTIONS_BY_ROLE[actor.role] || [];
     }
     const fullRights = isStaff || isSecretary || isDeputyHere;
-    if (!fullRights && !domainSection) {
+    if (!fullRights && !domainSections.length) {
       return res.status(403).json({ error: '无权限：仅本支部现任支书/副支书或党委组织员可配置（域负责人仅可改本域参数）' });
     }
 
@@ -551,11 +551,11 @@ export function createResourcesRouter(db) {
         : {};
       const nextPo = { ...prevPo };
       if (!fullRights) {
-        // 域负责人：只允许声明自己域节（null=恢复该域默认）
+        // 域负责人：只允许声明自己域节（一域可辖多节；null=恢复该域默认）
         if (p === null || p === undefined || typeof p !== 'object' || Array.isArray(p)
-          || !Object.prototype.hasOwnProperty.call(p, domainSection)
-          || Object.keys(p).some(k => k !== domainSection)) {
-          return res.status(400).json({ error: `域负责人仅可配置本域参数（policyOverrides.${domainSection}，或置 null 恢复该域默认）` });
+          || !Object.keys(p).some(k => domainSections.includes(k))
+          || Object.keys(p).some(k => !domainSections.includes(k))) {
+          return res.status(400).json({ error: `域负责人仅可配置本域参数（policyOverrides.${domainSections.join(' / ')}，或置 null 恢复该域默认）` });
         }
       }
       if (p === null) {
@@ -565,7 +565,7 @@ export function createResourcesRouter(db) {
       } else {
         for (const sec of Object.keys(p)) {
           if (!POLICY_OVERRIDE_SECTIONS.includes(sec)) continue; // 白名单外节忽略
-          if (!fullRights && sec !== domainSection) continue;     // 域负责人收窄（前述 400 已兜底）
+          if (!fullRights && !domainSections.includes(sec)) continue; // 域负责人收窄（前述 400 已兜底）
           if (p[sec] === null) {
             if (Object.prototype.hasOwnProperty.call(nextPo, sec)) delete nextPo[sec];
             continue;

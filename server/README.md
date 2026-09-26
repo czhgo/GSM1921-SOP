@@ -94,6 +94,18 @@ node scripts/backup.mjs --out /srv/bak/20260923
 - **测试节奏（2026-09-15 支书定；2026-09-23 提速批按支书「任务执行要提速」重排）**：**日常只跑与改动面相关的定向守卫**（或直接 `npm run test:daily`，实测约 2.3 分钟）；**全量只在交付/提交前跑**（`npm run test:precommit`）。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 56 条真机闭环 ＋ 17 条成功路径）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」；**只关心某几个 tab 时用上面的 `FORM_LOOP_TABS` 降频开关**（支书 2026-09-23 放行「按 tab 降频」，不必整份跑完）。
 - **测试耗时台账（2026-09-21 支书定；2026-09-23 批次 159 按实测重数）**：下表是**本机实测**（2026-09-21，开发机常规终端，`--test-concurrency=1` 串行；项数与守卫子集耗时于 2026-09-23 复核），用来回答三件事——**改代码时跑什么、收尾跑什么、怎么跑最省时间**。**口径**：耗时给的是**量级与量程**，不是承诺（同一项两次取样可差一到七个百分点——`link-integrity` 9.5 / 10.6 秒；机器忙起来还会更长）；**「有多少文件、多少项」仍以上一句「套件规模（动态口径）」为准**（会随开发增长的计数不写死，相对稳定的耗时才值得记）。
 
+  **⓪ 四档套件实测（2026-09-27 本机实测；`--test-concurrency=1` 串行）**——把「各档跑多久、跑什么」集中一处，供**按改动面选跑哪档**：
+
+  | 命令 | 文件 / 项 | 实测耗时（本批） | 覆盖 / 何时跑 |
+  |---|---|---|---|
+  | `npm run test:fast` | 19 文件 / **82 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
+  | `npm run test:core` | 8 文件 / **36 项** | **≈96 秒** | 议程 / 表决、成员变更、多端写入、模块加载、帮助 E2E；改核心流程 |
+  | `npm run test:daily` | 84 文件 / **617 项** | **≈147 秒（约 2.5 分钟）** | 全部 S 类纯 node（含全部守卫）；**改代码时的日常档** |
+  | `npm test`（全量 / `test:precommit`） | 全目录 / **808 项** | **≈20.5 分钟**（1,229,662ms） | 含两个真机普查 ＋ 三个需 3000 服务的文件；**收尾 / 交付前跑**。⚠ 本格为**引用值**（批次 197 实测，见 `.ctx/logs/2026-09-DECISION_LOG.md` `D-657`），非本批重跑 |
+
+  **单文件最慢（2026-09-27 单跑实测）**：`form-loop-sweep` **81 项 / 539.8 秒（约 9 分钟）** · `page-sweep` **11 项 / 114.6 秒** · `multi-tab-sync` **6 项 / 24.7 秒** · `link-integrity` **5 项 / 9.9 秒**；`click-cost` ≈50 秒 · `agenda-flow` ≈40 秒 · `branch-doc` ≈36 秒（后三者 2026-09-23 提速批实测、本批未重测；`click-cost` 需 3000 常驻服务）。
+  **怎么用（据上表规划跑测时机）**：改文档 / 文案 → `test:fast`（**秒级，约 35 秒**）；改核心流程 / 数据源形态 → `test:core`（约 96 秒）或直接 `test:daily`（**分钟级，约 2.5 分钟**）；改真机交互 / 登录会话 → 按 tab 定向跑 `form-loop-sweep`（单 tab ≈40 秒，见下方降频开关）；**收尾 / 提交前** → 起服务后 `npm run test:precommit`（＝全量，**约 20 分钟**，最贵的一步就是它本身）。
+
   **① 过程中（每批改代码、落盘后即跑）：守卫子集 —— 一条命令约 30 秒（8 文件 / 66 项，2026-09-23 批次 161 实测 29.6 秒；批次 159 同一命令 64 项时四次取样 25.3–29.1 秒；2026-09-21 同一命令 63 项时实测 20.9–22.1 秒 ⇒ **项数随守卫增长，以实跑输出为准**）**
   > 2026-09-23 提速批：**日常更推荐直接 `npm run test:daily`**（约 2.4 分钟）——它**已包含上述 8 个文件中的 6 个**（`link-integrity` / `module-load` 两个真机件**不在**该档——`test:daily` 定义＝S 类〔不 `import 'playwright'`〕，二者分别在 `test:fast` / `test:core`），并额外覆盖全部 S 类纯 node 测试（含 api 形态的 `permission-gate` / `server-base` / `group-view` 等）。本守卫子集仍是「只想跑最少的几条」时的最快选择。
 
@@ -157,3 +169,35 @@ node scripts/backup.mjs --out /srv/bak/20260923
   - **最贵的一步就是全量本身，起服务可以忽略**：起服务约 3 秒；提速批后全量里**两个真机普查仍占掉约 10 分钟**——改后实测：`form-loop-sweep` ≈ 506 秒（81 项：56 条真机闭环 ＋ 17 条成功路径 ＋ S0–S7 台账守卫）、`page-sweep` ≈ 113 秒（11 项：七台 × 全部 tab）；**其余文件合计约 4.5 分钟**。单文件最慢的十来个（**2026-09-21 批次 159 单跑实测**，提速批前的量级参考，未逐项重测）：`page-sweep` 111.5 秒 · `click-cost` 50.0 · `agenda-flow` 42.0 · `branch-doc` 37.0 · `multi-user-write` 27.1 · `async-vote` 26.4 · `party-committee` 19.4 · `relation-matrix` 16.6 · `agenda-closure` 15.6 · `branch-config-audit` 12.3（**第 11–20 位在 4–11 秒**〔按全量日志内该文件用例耗时求和〕：`inspection-loop-e2e` 11.4 · `party-committee-review` 10.2 · `module-config-e2e` 9.1 · `block-entry-guard-e2e` 8.1 · `block-canvas-e2e` 7.9 · `link-integrity` 7.0 · `party-committee-dispatch` 6.8 · `mock-integrity` 5.7 · `block-config-ui-e2e` 5.3 · `e2e-login` 5.2；**其余 70 余文件合计仅约 49 秒**）。
   - **推荐顺序（2026-09-23 提速批重排）**：① 改代码 → `npm run test:daily`（约 2.3 分钟，**已含**上面那条守卫子集）；② **若动过 `docs/src/**` 或 `server/**`，先 bump 版本戳再跑**——改了文件不 bump 即版本链分裂，`version-stamp` 必红，白跑一轮；③ **动过真机流程 / 数据源形态 / 登录会话时别只跑日常档** → 用 `FORM_LOOP_TABS=<相关 tab>` 定向跑一次 `form-loop-sweep`（单 tab 约 40 秒，见上文降频开关实测）；④ 一批做完 / 交付前 → **起一次服务** → `npm run test:precommit`（＝全量）→ 停服：三个依赖外部服务的文件跟着全量一起跑，**不要为它们单独起停一轮**。
 - **Playwright**：锁定 `1.60.0`（配套 chromium 二进制随本机缓存）；全新环境需先 `npx playwright install chromium` 下载浏览器。
+
+## 部署前自检与清理演示账号（可执行）
+
+> 上线前把两件事做完：**库内只有真人** ＋ **口令已换**。判定与背景见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 附录 A.2 第 1 / 5 条。
+
+**① 看启动日志（最快）**：`npm start` 会打印
+
+```text
+[server] 自检 · users 计数=51；演示种子账号=51
+[server] ⚠ 库内含演示种子账号（50 人演示支部）。真实使用前请以空库起步（生产形态已默认不播种）并清理演示账号。
+```
+
+真实库应当是 **`演示种子账号=0`**。计数判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集。
+
+**② 列出现有演示账号（只读，不删）**：在 `server/` 下执行（`DB_PATH` 缺省 `./data.db`）
+
+```bash
+node --input-type=module -e "import Database from 'better-sqlite3'; import { PEOPLE } from '../docs/src/mock/people.js'; const db=new Database(process.env.DB_PATH||'./data.db',{readonly:true}); const demo=new Set(PEOPLE.map(p=>p.id)); const hit=db.prepare('SELECT id FROM users').all().map(r=>r.id).filter(id=>demo.has(id)); console.log('库内演示账号数='+hit.length); console.log(hit.join(','));"
+```
+
+**③ 清理（二选一）**
+
+- **推荐 · 空库起步**（A.2 第 1 / 5 条）：停服 → 移走 `data.db` 及其 `data.db-wal` / `data.db-shm`（附件按需归档）→ 以 **`APP_ENV=production`**（或 `DISABLE_SEED=1`）启动 ⇒ 空库不播种，从系统内录入真实人员。
+- **原库删演示账号**（仅当本库已有真实数据、不愿重建）：**先备份**（`.\scripts\backup.ps1`），停服后执行——⚠ 演示账号可能牵连 `sessions` 与业务表（活动/考勤/考察/待办…）的引用，删前请确认这些业务数据同属演示数据；**更稳妥仍是空库起步**：
+
+```bash
+node --input-type=module -e "import Database from 'better-sqlite3'; import { PEOPLE } from '../docs/src/mock/people.js'; const db=new Database(process.env.DB_PATH||'./data.db'); const demo=new Set(PEOPLE.map(p=>p.id)); const stmt=db.prepare('DELETE FROM users WHERE id = ?'); let n=0; for (const id of demo) n += stmt.run(id).changes; console.log('已删除演示账号 =', n);"
+```
+
+> 本批**只演练到「能列出将删除的账号」为止，未真删**（命令与 `readonly:true` 列表法已实跑）。
+
+**④ 换口令**：设 `LOGIN_PASSWORD=<强口令>`（生产形态不设 ⇒ 启动即拒）；确认**未设** `DISABLE_PASSWORD_CHECK`。见 `.env.example` 与 `README-server.md` §5.3 / §5.6。

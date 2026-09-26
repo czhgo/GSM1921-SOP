@@ -2,7 +2,7 @@
 title: "2026年9月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-09-27"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-08-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -20423,6 +20423,62 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **计数复算**：`^## D-` **391** · `ACTIVE_RULINGS` `^- ` **123** · **`?v=` 未改**（仍 `20260924a`）。
 
 **提交前全量见批次 210。**
+
+---
+
+## 批次 211–212（2026-09-27，`D-666`）**help/setting 系统性更新 ＋ 支委四点裁定落地**
+
+> **本批令（逐字）**：「请系统性地更新好【help】和【setting】！**特别是 help，这是我认为整个项目最好的说明书展示地（顺序很重要！）！把每一个细微的设置都讲得清楚！**`div`setting 的部分我根本无法调整 anything！！」；他选中的 `div` ＝ 设置页「**支部制度参数**」只读卡。**四个裁定（问 → 答）**：① 时限类/篇幅字数类/补课范围制度写着「支部可调」但系统无入口 ⇒ 「**补入口，让它们真可调**」；② 「马化祥是党委书记；鞠晓是党委副书记，这两个是特例」⇒ 「**仅称谓，已改准即可**」；③ 支委会页面跳转问题未能复现 ⇒ 「**从支委会页回不到工作台**」；④ 催办（材料催缴）与赋权三情景要不要也加 nudge ⇒ 「**两处都加**」。**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**；3000 端口**有**常驻服务（**未停 / 未杀 / 未占**）、**只跑纯 node 守卫**。
+
+### 一、路一 · help 系统性重构（信息架构主刀）
+
+- **实读诊断三条真病灶**：①「设置逐项」原先只占 `0.4` 一个小节、**细则寄生在第 5 章「党委与配置」的 5.4 里**（读者路径完全错位）；② 页顶搜索「活动批准门」「票决门槛」**改前实测零结果**（关键参数搜不到）；③ 存量自相矛盾：§5 章 lead 写「**9 个分区**」而 §5.4 写「**10 个分区**」。
+- **改法**：把设置从党委章**整段搬出、独立成第 4 章「设置逐项」（4.1–4.8）**，插在「3 域手册」之后、「业务链路」之前；后续章顺延 **4→5（业务链路）· 5→6（党委与配置）· 6→7（系统理念）· 7→8（技术架构）**；**0.4 降为「速览 ＋ 指路」**；**每一项设置答四问**（管什么 / 现在是什么·默认从哪来 / 谁能改·在哪改 / 改与不改）；内含 **`4.6` 制度参数逐项**、`4.7` 活动批准门、`4.8` 各域职责参数与配置变更记录。
+- **内容窗宽度**：**1180 → 1320px**（真机实测正文 `818 → 958px`；上次 2026-09-23 只从 880→1180、**仍窄**，1920 视口左右各空 ~370px）；**判据未改准**（`page-sweep` 尺规量的是控件/数据格，与容器宽无关 ⇒ **不是放宽**）。
+- **引用改准**：`help.html` 内 ~40 处章节号/徽标/lead；**左目录两处写死数组**（`help-entry.js::TOC_ITEMS` 10→11、`help-catalog.js::TOC_CHAPTERS` 同）；`doc-consistency` S14 的 §5.4 锚点→§4.1；`README-server.md`/`README.md`/`README-members.md` 各 1 处。
+- **实读更正**：左侧目录树**不是**从章节生成的，是**两处写死数组**（章号一变必须两处同改）；原 §5 lead 的「9 个分区」与 §5.4 的「10 个分区」存量不自洽（本批消除）。
+- ⚠ **只登记未做**：`附 口径定点` 与 `图 功能地图` 的**物理位置未动**（它们是检索附录、非业务章；`copy-anchor-guard-e2e` 与 catalog 按 id/属性定位、位置无关）；保留 id 名 `card-admin-settings-sections`（另一路已写死深链，改名即死链）。
+- 实测：**155 项全绿**（copy 族 / doc 族 / page-sweep 真机全过）；搜索命中新增内容（`活动批准门`/`票决门槛`/`补课范围`/`1200`/`1500`/`支委会批准`…）。
+
+### 二、路二 · setting 可调性 —— 查出真缺陷并修
+
+- **★ 真缺陷（本批最值钱的一条）**：卡片文案写「时限类/篇幅字数类/补课范围**已登记为『支部可调』**」，但代码里——`POLICY_OVERRIDABLE` **只有 4 项**；写口 `branch.js:434` 对**白名单外静默 `continue`**（no-op）⇒ **界面根本无入口**。这就是支书「我根本无法调整 anything」的根因。
+- **修法（按支书裁定）**：白名单 **4 → 12 条**（新增 `attendance×3`/`review×2`/`makeup×3`/`thoughtReport×2`）。**域归属按母本依据判**（逐族给依据）：**时限类 → 纪检域**（纪检指南 §一 检查清单 / §三 复盘）· **补课范围与时限 → 纪检域**（纪检指南 §1.4「补课制度执行」明确列为纪检职权）· **篇幅字数 → 组织域**（组织指南 §二「思想汇报归口组织委员」）。**无「母本未定」项**。
+- **★ 实读发现「补课范围」是编译期常量**（`MAKEUP_DEFAULT_ACTIVITY_TYPES` 模块级字面量 ＋ `+7` 硬编码）⇒ **必须改消费点**：改成 `makeupDefaultActivityTypes()` / `makeupDeadlineDays()` call-time 读 `POLICY_DEFAULTS`。
+- **★ 实读发现「域→节映射」前后端各一份**（前端 `branch.js::POLICY_SECTION_BY_DOMAIN_ROLE` 单节字符串 ＋ 服务端 `routes/resources.js::DOMAIN_SECTION_BY_ROLE`）⇒ **两侧都改**为数组（否则部署形态域负责人写不进新节）；`resources.js` 改**净零行**（+11/−11）以免顶偏 `README-server.md:336` 的行引用。
+- **设置页**：**并入既有域卡**（纪检卡 9 控件 / 组织卡 2 控件），体例逐字照抄既有 `data-pol-*`（`runPolicyAction`/`data-pol-save`/`[data-pol-status]`）；**不另立卡**（避免扰动 `SECTION_META` 分区数 10——该数被 `S04/S14` 对账）。
+- **「支部制度参数」只读卡文案改准**：去掉误导，写明「**要改，去哪改（放行程序）**：① 支书出裁决与依据 → ② 工程侧登记进可覆盖白名单 → ③ 随版本部署生效」＋「**时限类/篇幅字数类/补课范围：现已可调，在左栏『纪检/组织职责参数』卡改**」＋ 深链到 help；卡头加「制度默认 · 只读」徽标。
+- **口径声明同步**：`PARTY_COMMITTEE_DESIGN.md §2.6⑤` 与放行程序节（新增「**本批放行登记（2026-09-27）**」四步 ＋ 依据 ＋ `D-545` 单场刚性不变）· `SYSTEM_ROLE_PERMISSION.md §9l` 新增「现已开放入口」小节 ＋ §9h 写权矩阵改准 · **help 4.6 从「暂无入口」改为「现已可调」**（**不许留矛盾**）· 两文件 frontmatter `last_updated` 刷 **2026-09-27** 并同步 `.ctx/TIMESTAMPS.md` 表行（两处同值）。
+- **守卫**：`policy-config.test.mjs` 白名单镜像断言改准（**加严**：域 scope 由字符串 `equal` 改数组 `deepEqual` 逐元素核 ＋ **新增 ⑪**：值域钳制/域负责人落库/**域外节被忽略**/读侧注入/`makeup.js` call-time 真生效）。**逐条说明「为何不是放宽」**。
+- **真机实测（逐角色）**：纪检改 6 项 → 落库 → **真生效**（`makeupDefaultActivityTypes()=['支部党员大会']`、`isMakeupRequired({type:'党课'})=false`、`makeupDeadlineDays()=14`）· 组织改 2000/1600 → `wordHint()=2000` ✓ · **域外不可改**（纪检拿不到组织域控件、成员拿不到纪检域控件）✓ · 支书经写口可改四节 ✓。
+- ⚠ **只登记未做**：`README-server.md` §3.4 等处**仍是旧口径**（“节白名单仅 inspection/memberConfirmation/leader”，且本就漏 `activityApproval`）——该文件在硬约束「绝不改」面 ⇒ **文档漂移如实登记**。
+
+### 三、路三 · 支委会返回链接 ＋ 两处 nudge
+
+- **支委会页正常视图加「← 返回我的工作台」**：实读既有体例＝`party-committee-meeting-entry.js::renderShellDenied()`（`:118` 取 `AuthStore.getPageForRole('workspace', role)`、`:127` 那行链接），**逐字照抄**加到**正常视图页头卡内**；实测该页**没有** `<base href="../">`（`base` 只在 `docs/workspace/*.html`）⇒ `./workspace/xxx.html` 从 `docs/` 解析正确。**真机实测**：`/party-committee-meeting.html` → 点该链接 → `/workspace/secretary.html` ✓。
+- **nudge 加两处**：`modal.js::NUDGE_TEXTS` **新增 4 键**（`todo-urge`→组织委员 · `assign-leader`→支书/副支书 · `assign-activity`→党小组组长 · `assign-taskforce`→组织委员），**文案全部引母本原文**（`ACTIVE_RULINGS.md:205/206/211`）。调用点：**材料催办**＝`entries/tabs/secretary/todo-tab.js`（外层包；**本位＝组织委员**）· **赋权三情景**＝`assign-tab.js` 三处写口（**逐情景给本位判据、不一刀切**：常设→支书∨副支书 / 活动→组长∨副组长 / 专班→组织委员）。**均在本位操作人不弹、在全部校验之后写链之前接入**。**真机实测**：非本位**必弹**、**Esc 与点遮罩都关不掉**、点「取消」**不落库**、点「仍由我继续」落库；本位**不弹**、直达 ✓。
+- ⚠ **如实登记的实读更正与局限**：① 催办调用点**实际在 `docs/src/components/todo-tab-shell.js:474 createUrgeController`**（支书台 / 组织台**共用**；先前以为在 `entries/tabs/*/todo-tab-shell.js`）⇒ 为守边界把 nudge 包在 `entries/tabs/secretary/todo-tab.js` 外层；② **赋权三情景中 ①常设（支书台）与 ③专班（组织委员台）现形态下「永不弹」**（入口只在各自本位台，操作人即本位）⇒ **守卫已加，但目前没有"越俎代庖者"可达**（只有情景② 会弹）。
+- **守卫改准**：`form-loop-registry.mjs` 的 assign-tab 3 处 / todo-tab 1 处 **行号机械改准**（S6「行号须落在文案那一行」；`file/field/msg` 不变、S0 基线 101/56 不变、S2–S5 一字未动）；**`click-cost` 未改**（新 nudge **不在**其链路内，C1 实测仍 5 次 ≤6）。
+- **help**：**只加不重排**补 3 处（§1.2 待办条目补催办口径 · `#card-copy-assign-activity` 与 `#card-copy-assign-taskforce` 各补「一般由谁写入」一行；**措辞刻意与 `NUDGE_TEXTS` 不同**，避免 `copy-master-guard` C7「≥20 字重合」判红）。
+- ⚠ **只登记未做**：`modal.js` 的 `confirmNudge` JSDoc `@param` **只列原 4 键**（任务要求 modal.js「仅新增 `NUDGE_TEXTS` 键」）⇒ 未补。
+
+### 四、路四 · goal 剩余项实读核查（只出结论，唯一落盘＝测试耗时台账）
+
+- ★ **测试耗时台账已落 `server/README.md`**（支书 item 0 的要求）：`test:fast` **82 项 / 34.6 秒** · `test:core` **36 项 / 96.3 秒** · `test:daily` **617 项 / 146.8 秒** · **全量 808 项 / ≈20.5 分钟（引用批次 197 实测，本批未重跑全量）**；**单件最慢**：`form-loop-sweep` **81 项 / 539.8 秒（约 9 分钟）** · `page-sweep` 11/114.6s · `multi-tab-sync` 6/24.7s · `link-integrity` 5/9.9s · `click-cost` ≈50s；**并附「按改动面选跑哪档」的用法**（改文档→`test:fast` 秒级；改核心→`test:core` 或 `test:daily` 分钟级；收尾→全量 ~20 分钟）。
+- **版本戳（item 3）**：戳**只改 URL 缓存键字符串**（`bump-version.mjs:79/96-115/135-164/181-195`），**函数体与数据字面量从不被改写** ⇒ 支书担心的「数据切换⇒函数也换」**不成立**；**仓里早有权威解答**（`content/05_ai_coding/FILE_OPERATION_RULES.md:77-89`）。**真正的代价**：mock 数据以 **ES 模块内联**（`docs/src/mock/*.js`）⇒ 数据模块 URL 随发版换戳、**即使数据没变也会重下**（无构建形态的固有代价）；运行期数据走各自 `Cache-Control`、**不走这个戳**（数据面与代码面的缓存策略本就分开）。判：**当前形态下该设计合理、不宜改**。
+- **nudge（item 4）**：4 个核心写入位**已全部落地**且「必须点按钮才关」已满足；缺口＝催办、赋权（**本批已补**，见「三」）。
+- **培养联系人（item 8）**：**系统里确实没有**（`docs/src/services/person.js` 无 `mentorIds`/`mentorsOf`/`menteesOf`；裁定链 `D-600/601` 落地 → **`D-611` 全撤**）；残留仅 4 处**党内规范/制度描述**（`about-entry.js:298,300`、`DEVELOPMENT_PATH.md:182/188/189`、上级规范原文、`BRANCH_WORK_MAP.md:68/123` 记「未建」）⇒ **建议保留**（撤的是系统功能、不是制度要求）。
+- **赋权管理 tab（item 7）**：**该移除，且已于 2026-09-25 按「赋权按对象归位」移除（`D-652`）**——支书台 tab 清单已无 `assign`（`secretary-workspace.js:22-74`，`:46-48` 有留痕原话与现指向）；`assign-tab.js` 仍在但**已不是 tab**（被「党小组与活动」/「专班管理」复用，建议保留）。**判据**：原职能＝赋权三情景，**都是挂在具体对象上的写操作、非该 tab 独有**；按对象归位后每个 tab 各司其职。
+- **支委会/扩大会（item 6）**：建模＝活动实体（`type='支委会'`/`scenarioId='branch-committee'`）；**「法人性质」的系统对应物＝组织型主体** `work-map.js::ORG_SUBJECTS`（`branch-committee`/`party-committee`/**`expanded-committee`**，口径「类似法人、不是自然人」，不可登录，`ACTIVE_RULINGS.md:203`）；**「扩大到谁」已支持一键打包「全体党小组组长（代组长）」**（`party-committee-meeting-entry.js:211-254`，落 `voteConfig.voterIds`）；**「代组长」无独立身份键**（`ACTIVE_RULINGS.md:200`「代组长＝组长」；`deputy-leader`＝**副组长**）⇒ ⚠ **语义风险已登记**（勾选标签的「代组长」括注可能与「副组长」混淆）。
+- **ACTIVE_RULINGS vs `content/02*`（item 1）**：**差异应保留**（前者＝**裁定投影**：按行为/主题切 13 节、一行一口径、必带 `D-xxx`、行数守恒、逐批增量句；后者＝**制度本体**：按制度域切 A–I 章/9a–9l 矩阵、本身即权威正文）；**结论：可借鉴前者的「防漂移纪律」到母本，但不并文件**。
+- **马化祥/鞠晓（item 5）**：全仓只在 `help.html:247` 致谢句出现；**系统无「党委书记/党委副书记」角色键**（党委侧只有 `party-staff`＝党委组织员）⇒ 支书已裁「**仅称谓，已改准即可**」⇒ **本项闭环**。
+
+### 五、本批实测（**非全量**）
+
+- 路一 copy 族 / doc 族 / page-sweep 真机全过（**155 项全绿**）；路二 `policy-config.test.mjs`（改准 ＋ 新增 ⑪）绿 ＋ 真机逐角色实测；路三 `form-loop-registry.mjs` / `form-loop-sweep` 相关守卫绿；路四只出实读结论。
+- **本批实测为非全量**（各路只跑自己那几组守卫；**不得写成「全量绿」**）。
+
+**提交前全量见批次 213。**
 
 
 

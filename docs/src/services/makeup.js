@@ -11,13 +11,14 @@
 //   线上参会**不计入出席**（记「请假」）、**只免补课**。
 //
 // **活动级勾选与制度范围的两层关系（支书 2026-09-20 定案 · 批次 123）**：
-//   支书原话「**分类型：硬要求刚性，其余可关**」——① **制度硬要求类型（＝`MAKEUP_DEFAULT_ACTIVITY_TYPES`）
+//   支书原话「**分类型：硬要求刚性，其余可关**」——① **制度硬要求类型（＝`makeupDefaultActivityTypes()`）
 //   的补课，任何单场活动都关不掉**：活动级勾选对它们**只能加、不能减**（勾了仍要补、不勾也照补，
 //   写入侧也无「关闭」入口）；② **其余类型**（党小组会、支委会、主题党日等，本就不在制度默认范围内）
 //   **逐场开关**：勾 = 本场要补、不勾 = 本场不补。⇒「只有两项的名单」是硬要求名单**唯一的判据源**，
 //   消费点勿另写第二份，也别把某项从这里挪走当成「关掉」。见 `D-467` / `D-545`。
 
 import { mockDB, AttendanceStatus } from '../core/domain.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../core/policy-defaults.js?v=20260924a';
 import { persist } from '../core/data-adapter.js?v=20260924a';
 import { PEOPLE } from '../mock/index.js?v=20260924a';
 import { getPersonById } from './person.js?v=20260924a';
@@ -26,26 +27,46 @@ import { findActivityById } from '../services/activity.js?v=20260924a';
 import { generateId } from '../core/id.js?v=20260924a';
 
 /**
- * 补课范围的**制度默认**活动类型（单一源；消费点勿另写字面量）。
- * 现行口径 = 支部党员大会 + 党课（`D-293` / `D-306`）；支委会、党小组会、主题党日**不在**默认范围内。
+ * 制度硬要求补课类型（补课范围判据的**单一出口／call-time**）——支部级可调。
+ * 现行口径 = 支部党员大会 + 党课（`D-293` / `D-306`）；支委会、党小组会、主题党日**不在**范围内。
  * 党小组会等「按该次活动情形定」的场合，走活动级勾选 `activity.requireMakeup`（`SOP-B-6`）。
+ * ⚠ 2026-09-27 支书裁定「补入口，让它们真可调」⇒ 改由 `POLICY_DEFAULTS.makeup` 派生
+ *   （`branchAssembly` / `partyClass`；登记 `POLICY_OVERRIDABLE` 纪检域，读侧注入后随支部覆盖变）；
+ *   消费点勿另写字面量。
+ * @returns {string[]}
  */
-export const MAKEUP_DEFAULT_ACTIVITY_TYPES = ['支部党员大会', '党课'];
+export function makeupDefaultActivityTypes() {
+  const m = POLICY_DEFAULTS.makeup || {};
+  const out = [];
+  if (m.branchAssembly !== false) out.push('支部党员大会');
+  if (m.partyClass !== false) out.push('党课');
+  return out;
+}
+
+/**
+ * 补课闭环时限（活动后 N 天内；**单一出口／call-time**，登记 `POLICY_OVERRIDABLE` 纪检域）。
+ * 默认 = `POLICY_DEFAULTS.makeup.deadlineDays`（母本「活动后 7 天内」→ T+7 = 7）。
+ * @returns {number}
+ */
+export function makeupDeadlineDays() {
+  const d = (POLICY_DEFAULTS.makeup || {}).deadlineDays;
+  return Number.isInteger(d) ? d : 7;
+}
 
 /**
  * 该场活动是否要求补课（补课范围判据的**单一出口**）
  * · `activity.requireMakeup === true` → 要求（活动级勾选：党小组会等按需，写入活动时勾选）；
- * · 其余按制度默认范围（仅支部党员大会 / 党课）。
+ * · 其余按制度范围（`makeupDefaultActivityTypes()`：默认支部党员大会 / 党课；支部级可调）。
  * ⚠ **只能加、不能减**（支书 2026-09-20 定案「硬要求刚性，其余可关」）：活动级标记为 `false` /
- *   缺省时，制度默认范围**照旧生效**——支部党员大会与党课不因单场未勾（或显式置 false）而免补课。
- *   故本函数**不读「显式 false」**：那是不可减的表达，不是「关」。
+ *   缺省时，制度范围**照旧生效**——不因单场未勾（或显式置 false）而免补课。
+ *   故本函数**不读「活动级显式 false」**：那是不可减的表达，不是「关」。
  * @param {Object|null} activity
  * @returns {boolean}
  */
 export function isMakeupRequired(activity) {
   if (!activity) return false;
   if (activity.requireMakeup === true) return true;
-  return MAKEUP_DEFAULT_ACTIVITY_TYPES.includes(activity.type);
+  return makeupDefaultActivityTypes().includes(activity.type);
 }
 
 /**
@@ -103,7 +124,7 @@ export function autoGenerateMakeupTask(attendanceRecord) {
   const person = getPersonById(personId);
   const absentDate = activity.date || new Date().toISOString().split('T')[0];
   const deadline = new Date(absentDate);
-  deadline.setDate(deadline.getDate() + 7);
+  deadline.setDate(deadline.getDate() + makeupDeadlineDays());
 
   const task = {
     id: generateId('mk'),

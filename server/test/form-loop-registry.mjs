@@ -89,15 +89,20 @@ export const VALIDATION_SITES = [
   // 2026-09-25（支书裁「全按对象归位」· 原「赋权管理」tab 删除）：情景①② 并入支书台「党小组与活动」、
   //   情景③ 并入组织委员台「专班管理」——实现仍在这同一文件（`assign-tab.js` 改为分块渲染模块，不再注册 tab）
   //   ⇒ file/field/msg **均不变**（故 S2–S4 判据零改动），只把行号按新文件实况改准（S6：行号须落在文案那一行）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 272, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 273, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 274, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 476, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 480, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-09-27（本位 nudge 两处增设批）：`assign-tab.js` 三处写口各接一次 nudge（情景① 既在
+  //   `handleConfirmLeader` 也在「支委身份配置」写口、情景②③ 在 `bindConfirmProjectAuth`）⇒ 该文件
+  //   在既有校验点之前插行 ⇒ 下方 7 处 line 按**实况**改准（`272,273,274` → `287,288,289`；
+  //   `476,480` → `503,507`；`659,660` → `692,693`）。file/field/msg **均不变**（S2–S5 判据零改动）；
+  //   nudge 位于「全部校验之后、写链之前」⇒ 空必填分支**仍只报校验提示、不弹 nudge**，本台账流程保持不变。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 287, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 288, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 289, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 503, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 507, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 659, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 660, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 692, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 693, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
   { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 726, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
@@ -108,7 +113,9 @@ export const VALIDATION_SITES = [
   //   · 可达链（本批真机跑通）：支书本人也有该写权（`person-entry.js::EDIT_ROLES = 支书/副支书/组织委员`）⇒
   //     `person.html?id=p7` → 编辑档案 → 改「发展阶段」→ 保存（报出「已报送支书确认 1 项」）→ 回支书台「待办」→
   //     `[data-mc-id][data-decision="rejected"]` 即在位。**无需造种子、无需改产品、无需跨角色会话**。
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 672, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
+  // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
+  //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 691, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 559, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 570, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 580, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },

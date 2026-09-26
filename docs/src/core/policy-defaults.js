@@ -6,8 +6,8 @@
 // 默认=本科生党支部设计；开源部署可调；制度裁决固定项勿改。
 // 逐项标注 kind + 域负责人：
 //   - branch-default = 支部默认值（开源部署可按支部制度调整；登记于 POLICY_OVERRIDABLE 者为
-//     「域参数(L2)」——支书 2026-09-09 批：域负责人（纪检=考察确认超期 / 组织=滞留复核窗口 /
-//     组长=学期组员进展提醒）可经 config.policyOverrides 覆盖，读侧注入生效，全站判定随参数走）
+//     「域参数(L2)」——域负责人可经 config.policyOverrides 覆盖，读侧注入生效，全站判定随参数走。
+//     现行域节：纪检=考察超期/考勤与复盘时限/补课范围与时限；组织=滞留复核窗口/思想汇报篇幅；组长=学期提醒）
 //   - institutional  = 制度裁决固定项（勿改；改须支书裁决）
 // 消费点只引用本文件派生，不在业务层新写字面量（批4 副本收编：inspection-tab 超期天数与文案、
 //   secretary-overview 考勤/复盘提醒阈值与 deadline、member-confirmation 滞留复核窗口与文案、
@@ -89,12 +89,14 @@ const _FACTORY = {
     // 考勤录入提醒阈值（支书台自动提醒：活动结束 >entryRemindDays 天仍无考勤记录 → 提醒纪检录入）
     // kind 'branch-default'：域=纪检监督侧（支书待办派生消费）。批4 副本收编（2026-09-09 支书批）：
     //   secretary-overview _aggAttendanceRemind 由字面量 3 改引用本常量，勿在业务层另写字面量。
+    // ⚠ 2026-09-27 支书裁定（逐字「补入口，让它们真可调」）⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–30 天）。
     // ⚠ 默认值＝母本数字（2026-09-20 批次 115 取齐，裁定 `D-536`；可调性依 §9l 通例「母本所写数字即默认值」）：
     //   母本《纪检委员工作流程指南》检查清单「活动结束后」写「24h 内打包确认考勤数据（党小组活动）
     //   或录入考勤（会议）」；本系统以**整日**表达 ⇒ 24h → **1 天**。此前默认 3 天与母本不同数，已取齐。
     entryRemindDays: 1,
     // 考勤明细录入期限（同一提醒项 deadline = 活动日 + summaryDeadlineDays）
     // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggAttendanceRemind 消费；勿另写字面量）。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–30 天）。
     // ⚠ 默认值＝母本数字（2026-09-20 批次 115 取齐，裁定 `D-536`）：母本该处相邻一条写「48h 内发出
     //   补课通知」——两处时限同属 §9l 通例的**可调过程时限**，本项按「母本数字即默认值」取 48h → **2 天**
     //   （整日表达）。此前默认 5 天与母本不同数，已取齐。
@@ -103,6 +105,7 @@ const _FACTORY = {
     // kind 'branch-default'：**只作提示、不触发任何动作**（不生成补课 / 不影响评优 / 不生成处置）。
     //   ⚠ 它是**提示线、不是制度门槛**——母本不设达标线（存量无出处的「学期出勤率低于 80%」已删）；
     //   本参数只用来「让相关成员知道出勤率偏低这件事」，支部可自行调整（同 §9l 制度参数可调口径）。
+    //   ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，0–100）。
     //   消费点：services/attendance.js::listLowAttendanceSessions（勿在业务层另写字面量）。
     lowRateHint: 80,
   },
@@ -126,9 +129,11 @@ const _FACTORY = {
     // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
     // kind 'branch-default'：域=纪检监督侧。批4 副本收编（2026-09-09 支书批）：
     //   secretary-overview _aggReviewRemind 由字面量 7 改引用本常量，勿在业务层另写字面量。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–90 天）。
     overdueDays: 7,
     // 复盘提交期限（同一提醒项 deadline = 活动日 + deadlineDays）
     // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggReviewRemind 消费；勿另写字面量）。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–90 天）。
     deadlineDays: 10,
   },
   leader: {
@@ -156,8 +161,24 @@ const _FACTORY = {
     // 消费点：services/thought-report.js::wordCountHint（提交侧 / 重交侧 / 阅读侧字数提示唯一出口）。
     //   ⚠ 2026-09-18 批次 86：`wordSoftMin` 由 800 跟到 1200（D-387 落地），
     //     并补齐「警告审阅」语义；此前「组织初阅会据此把关」的措辞随初阅门取消一并删除。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（组织域，100–10000；
+    //   母本《组织委员工作流程指南》§二「思想汇报归档」= 思想汇报归口组织委员）。
     wordHint: 1500,
     wordSoftMin: 1200,
+  },
+  makeup: {
+    // 补课范围与时限（`SOP-B-6` / `D-293` / `D-545`；沿用「支部党员大会 + 党课」制度默认）。
+    // kind 'branch-default'：域=纪检·补课制度执行（母本《纪检委员工作流程指南》§1.4「补课制度」＋
+    //   「补课制度执行」表——「补课：补课制度执行」列于纪检职权；《常见工作场景快速指南》三会一课
+    //   考勤规则亦归纪检）。⚠ 2026-09-27 支书裁定「补入口，让它们真可调」⇒ 登记 POLICY_OVERRIDABLE（纪检域）。
+    // 语义（三层不混）：
+    //   · branchAssembly / partyClass ＝**制度硬要求类型**是否要求补课（默认均 true）；**支部级**可调，
+    //     但**单场活动**仍「只能加不能减」（硬要求刚性，见 services/makeup.js 头注 `D-545`）；
+    //   · deadlineDays ＝补课闭环时限（活动后 N 天内；母本「活动后 7 天内」→ T+7 = 7）。
+    // 消费点：services/makeup.js::makeupDefaultActivityTypes / makeupDeadlineDays（call-time 读本对象）。
+    branchAssembly: true,
+    partyClass: true,
+    deadlineDays: 7,
   },
   activityApproval: {
     // 活动批准门（**支部可开关的制度参数**，默认关）——2026-09-22 批次 150 · 支书裁定（逐字）：
@@ -181,10 +202,11 @@ const _FACTORY = {
 export const POLICY_DEFAULTS = _clone(_FACTORY);
 
 /**
- * config.policyOverrides 可覆盖白名单（域参数 L2，支书 2026-09-09 批；全覆盖路径均在
- * POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定）。
+ * config.policyOverrides 可覆盖白名单（域参数 L2，支书 2026-09-09 批；2026-09-27 支书「补入口」批扩表）。
+ * 全覆盖路径均在 POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定。
  * 净化/钳制唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides（本表唯一消费方，
  * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防止两套校验未同步的情况）。
+ * ⚠ `domain` = 域负责人角色键（谁能改）；一域可辖多节（如纪检域＝inspection/attendance/review/makeup）。
  */
 export const POLICY_OVERRIDABLE = [
   { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
@@ -192,6 +214,19 @@ export const POLICY_OVERRIDABLE = [
   { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },
   // 活动批准门（2026-09-22 批次 150）：支部级可调制度参数，归支书域（支书/副支书/party-staff 可改）。
   { path: ['activityApproval', 'mode'], type: 'enum', values: ['off', 'secretary', 'branch-committee'], domain: 'secretary' },
+  // ── 时限类（2026-09-27 支书裁定「补入口，让它们真可调」）——纪检域（母本《纪检委员工作流程指南》考勤 / 复盘检查清单）──
+  { path: ['attendance', 'entryRemindDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  { path: ['attendance', 'summaryDeadlineDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  { path: ['attendance', 'lowRateHint'], type: 'int', min: 0, max: 100, domain: 'disc-commissioner' },
+  { path: ['review', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
+  { path: ['review', 'deadlineDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
+  // ── 补课范围与时限（2026-09-27 同上）——纪检域（母本《纪检委员工作流程指南》§1.4 补课制度 / 「补课制度执行」表）──
+  { path: ['makeup', 'branchAssembly'], type: 'boolean', domain: 'disc-commissioner' },
+  { path: ['makeup', 'partyClass'], type: 'boolean', domain: 'disc-commissioner' },
+  { path: ['makeup', 'deadlineDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  // ── 篇幅字数类（2026-09-27 同上）——组织域（母本《组织委员工作流程指南》§二「思想汇报归档」归口组织委员）──
+  { path: ['thoughtReport', 'wordHint'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
+  { path: ['thoughtReport', 'wordSoftMin'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
 ];
 
 /** 活动批准门三态取值（单一源；校验与界面标签共用） */

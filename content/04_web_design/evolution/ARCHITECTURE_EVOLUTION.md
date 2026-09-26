@@ -61,7 +61,7 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 | 层 | 内容 | 状态 |
 |---|---|---|
 | L1 能力目录化 | 能力注册表 = 全仓能力的单一目录（M1~M8 已全落地，2026-08-30） | 已落地 |
-| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03，支部自治/核心固定；2026-09-09 批3 操作位收口 设置→支部治理，支书/副同权，原支书台「工作台配置」tab 废止）**——设置→支部治理「工作台默认顺序」卡直存 + 「支部信息与向导」内嵌向导② chips 启停排序 | 已落地（L2 定案） |
+| L2 支部组合化 | 支部 config.modules（hiddenTabIds/tabOrder）从已注册工作台 tab 中排列组合；**已落地（2026-09-03 支部自治/核心固定；2026-09-09 操作位收口）**——写权与操作位见 [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6 | 已落地（L2 定案） |
 | L3 块封装契约 | 把一条 SOP 封装为一个「工作流块」：声明输入（发起角色/必填字段）、阶段（节点与顺序）、产出（待办/通知/归档联动） | 已落地（2026-09-03，S1~S4）→ 见 [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md) §六/§七 |
 | L4 拖拽编排 | 画布拖拽块 → 连线定顺序/条件 → 导出为版本化工作流定义 JSON（可预览、可回退） | 远期愿景 |
 | L5 块市场/分享 | 编排好的工作流块可命名、可导出、可复用于其他支部（开源社区的场景库） | 远期愿景 |
