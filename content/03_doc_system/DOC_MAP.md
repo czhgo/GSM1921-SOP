@@ -83,8 +83,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
-| `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | [工程师]+[AI] | 组织者与深度参与者的扁平化设计 | SECRETARY_DIRECTIVES.md |
-| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支委系统设计（含专班、赋权关系链、§审批流程规范） | SECRETARY_DIRECTIVES.md |
+| `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | [用户]+[AI] | 支部组织与委员体系（支部组织形态 + 委员系统设计 + 专班、赋权关系链 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入 §G） | SECRETARY_DIRECTIVES.md |
 | `content/02_institution/ROLE_CLASSIFICATION.md` | [工程师]+[AI] | 文件角色分类体系设计（[用户]/[工程师]/[AI] 三类标记 + 协作方式 + 存储读取机制） | OPERATIONS_GUIDE.md、USAGE_POLICY.md |
 | `content/02_institution/SYSTEM_ROLE_PERMISSION.md` | [工程师]+[AI] | 系统角色权限矩阵（角色键全表 9a0 + 权限矩阵/赋权链，代码键级权威；2026-09-05 自 ROLE_CLASSIFICATION.md §九 迁出） | ARCHITECTURE.md §十一、DATA_MODEL.md、COMMISSIONER_DUTY_FRAMEWORK.md |
 | `content/02_institution/sop/INDEX.md` | [用户]+[AI] | SOP 导航目录 | ARCHITECTURE.md |

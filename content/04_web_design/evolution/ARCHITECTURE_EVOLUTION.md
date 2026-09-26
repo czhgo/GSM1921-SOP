@@ -10,6 +10,9 @@ related_files: [DATA_MODEL.md, SOP_WEBSITE_GUIDE.md, DEPLOYMENT_GUIDE.md, ../../
 
 # 架构演进——组件化落地评估与轻量插件化设计
 
+> **本文负责**：系统架构的**演进方向与承载机制**——组件化落地的历史结论、M1~M8 落地账、L1~L5 层级愿景，以及 L3/L4 的架构锚点与 YAGNI 边界。
+> **本文不负责**：① **架构的现行描述**（分层 / 目录结构 / 单一事实源注册表）→ [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)；② **工程化现状与下一步改造行动线** → [ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（本文件的评估正文已由它承接）；③ **L3 块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **支部工作地图（L4 的设计稿）** → [BRANCH_WORK_MAP.md](BRANCH_WORK_MAP.md)。
+
 > **定位**：一次关于系统架构的探索——「高度组件化、高度可复用」的目标落地到什么程度？距离「一切皆插件」的灵活性还有多远？上线后的多轮迭代靠什么机制承载？本文档只表达探索与选择，不代表最终结论，更不代表方案完备。
 > **受众**：[工程师]+[AI]（架构维护者、开发者）+ 愿意给出架构反馈的外部评审者
 > **关联**：[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流权威源）、[SOP_WEBSITE_GUIDE.md](../module/SOP_WEBSITE_GUIDE.md)（SOP-系统联动方法论）、[DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)（部署落地路径）、[ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md)（核心架构说明）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（工程化评估与改造行动线——评估结论的现行承接）。

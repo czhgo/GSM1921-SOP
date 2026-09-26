@@ -308,18 +308,18 @@ export async function init() {
 
       console.info('[DataAdapter] init: API 模式，已从后端拉取数据到缓存');
       // 持久化守卫解锁：mockDB 已由服务器数据填充，允许本地备份写（persist → mock-adapter.saveDB）。
+      // ⚠ **基线捕获必须在任何 `await` 之前**（2026-09-25 批次 197 立、2026-09-26 批次 201 改准）：就绪信号
+      //   `mockDB._loaded === true` **不等于** init 已完成 —— `entries/main-entry.js:32` 同步调
+      //   `services/mock.js::loadDB()`，其 API 分支（`:59`）**立刻**置真 ⇒ 真机就绪门（`preparePage`）
+      //   实际只剩 `milestones !== undefined`，而它是 `_loadAuxCollections` 第 5/7 个 pull 赋的 ⇒ **门比基线早**。
+      //   原先 `_captureBase` 落在那个 pull 之后 ⇒ 门后写入被随后捕获的基线一并吞进基线 ⇒ `_collectDirty`
+      //   判「无脏集合」⇒ 防抖 flush **不发 POST**、写入静默滞留内存（实测：推入后 3s 零 POST、本地数组完好、
+      //   无整页重载）；同一机理也覆盖其后的 `SEED_FALLBACK` 回退块（内含 `await import`）。改准＝移到
+      //   **与上文 25 个 payload 域同一同步块**（`_loadAuxCollections` 只碰不进快照 payload 的语义域）⇒ 基线逐键不变。
+      _captureBase(mockDB);
       // T1（批次 163）：**三域语义端点拉取先于解锁**——`_loaded === true` 是「缓存已完整」的可观测判据
       //   （真机用例据此等待 init 完成；若拉取在解锁之后，读侧会撞上「缓存尚未填完」的窗口）。
       await _loadAuxCollections(mockDB); mockDB._loaded = true;
-
-      // ⚠ **基线必须在任何 `await` 之前捕获**（2026-09-25 批次 197 修**静默丢写**竞态）：
-      //   下面两个 SEED_FALLBACK 回退块里有 `await import(...)` ⇒ 若把 `_captureBase` 放在其后，
-      //   基线捕获会被推后成异步；而页面就绪判据（`mockDB._loaded`）**不等这个回退** ⇒ 用户在
-      //   「数据已加载、基线尚未捕获」的窗口里写入时，那笔写入会被**后来捕获的基线一并吞进基线**，
-      //   随后 flush 判「无脏集合」⇒ **跳过上传、写入静默丢失**（实测：真库 `todos` 为空时必进该分支，
-      //   单跑与全量均可复现；老库因 `todos` 非空、分支不进，故长期潜伏未现）。
-      //   回退数据**仍不进脏集合**（保持 Z5「不污染服务器」语义）——由回退块内 `_commitBase` 显式登记。
-      _captureBase(mockDB);
       // 2026-08-06 扎口修复（Z5）：服务端 seed 仅覆盖 7 张表，attendances/inspections/todos 在 API 模式下为空 → 回退本地 mock 种子（**受 `config/deploy.js::SEED_FALLBACK` 控制**：真实部署置 false 即不注入演示数据，见下），
       // 避免首屏考勤/考察/待办空白。注意：回退仅填充 mockDB 缓存，【不触发 persist/快照写穿】，
       // 否则页面加载期（800ms 防抖窗口内）会以落后的本地缓存覆盖服务器上其他入口刚写入的数据

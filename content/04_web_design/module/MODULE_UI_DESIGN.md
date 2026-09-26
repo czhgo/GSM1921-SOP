@@ -11,6 +11,9 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 # 模块界面设计
 
+> **本文负责**：工作台**模块层面的界面布局、交互逻辑与视图切换**的设计论证——「党建」Tab 分组（该组名的历史沿革见下方现状注记）的子功能边界、日历四视图（月 / 周 / 日 / 列表）的布局与筛选、文本溢出与折叠、快速聚焦视图。
+> **本文不负责**：① **视觉规范**（色彩 / 字体 / 间距 / 卡片样式）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；② **数据模型与字段** → [DATA_MODEL.md](../data/DATA_MODEL.md)；③ **角色权限的键级定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **会议议程与资料查询的数据与权限** → [AGENDA_AND_REFERENCE_DESIGN.md](AGENDA_AND_REFERENCE_DESIGN.md)；⑤ **about 公开页** → [ABOUT_PAGE_DESIGN.md](ABOUT_PAGE_DESIGN.md)。
+
 > **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DESIGN_SYSTEM.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。

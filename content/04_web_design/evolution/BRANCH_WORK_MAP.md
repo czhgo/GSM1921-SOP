@@ -10,6 +10,9 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 
 # 支部工作地图设计稿（平铺模块 + 按人双视图）
 
+> **本文负责**：**支部工作地图的设计稿**——平铺模块清单与 tier 分层、平铺 + 按人两种视图、分工由支部自行建设的规则、与既有资产的映射、能力缺口与 YAGNI 边界、裁决与落地进度。
+> **本文不负责**：① **模块目录的现行取值** → `docs/src/core/work-map.js` 与 `README-server.md §3.5`（本稿写「11 项 / 11 模块」处均为 2026-09-03 沿革）；② **L4 拖拽编排的架构锚点与 L1~L5 分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；③ **块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **角色职责明细** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。
+
 > **已落地 2026-09-04**：本设计已实现（代码：docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js；测试：server/test/work-map.test.mjs 绿）；本文档继续承担设计论证档案。
 
 > **2026-09-03 支书裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」支书台入口 + 支委会议题生效（可会前草稿）**全链路放行**。（裁决出处见 2026-09-03 执行日志 `.ctx/logs/2026-09-EXECUTION_LOG.md`；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号）

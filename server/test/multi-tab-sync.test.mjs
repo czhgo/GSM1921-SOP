@@ -12,6 +12,24 @@
 //     （该集合保持本机内容，其它集合照常刷新）。
 //   判据 D（断开时静默）：停掉服务后触发探测 ⇒ **无错误浮层**（`#data-source-error` 不出现）、
 //     无 `pageerror`、页面仍可用（数据读得到、DOM 未被替换成错误态）。
+//
+// ── 2026-09-26 批次 201：判据B「两文件组合红」的**根因已定**，并已在产品侧修准 ──────────────
+// 现象（批次 197 记录）：判据B 在「仅两文件组合」（`doc-line-ref` / `link-integrity` + 本文件）下红约
+//   33.4s＝轮询耗尽；而本地数据完好（`mockDB.archiveRecords` 含那行）、**零 `POST /api/v1/snapshot`**。
+// 根因（本批实测，非推测）：**不是**「等待预算不够」，也**不是**「非前台页 `setTimeout` 节流」——
+//   · 后者已实测**否证**：headless 下 `document.visibilityState` 恒为 `visible`（`bringToFront()` 前后
+//     一致），页内手动量 50ms / 800ms 定时器实测 57–66ms / 804–813ms（无节流）；
+//   · 真因：`init()` 的基线捕获 `_captureBase` 原先落在 **任何 `await` 之后**，而页面就绪信号
+//     `mockDB._loaded` 在 init **早期**就为真（`entries/main-entry.js:32` 同步调
+//     `services/mock.js::loadDB()`，其 API 分支**立刻**置真）⇒ 本文件的就绪门实际只剩
+//     `milestones !== undefined`，而它是 `_loadAuxCollections` 第 5/7 个 pull 赋的、**比 `_captureBase` 早**
+//     ⇒ 门满足后写入的那一笔被随后捕获的基线一并吞进基线 ⇒ `_collectDirty` 判「无脏集合」
+//     ⇒ 防抖 flush **不发 POST**（不是没跑）⇒ 轮询服务端**永远等不到** ⇒ 加预算在构造上无效。
+// 处置：① 产品侧（`docs/src/core/data-adapter.js`）把 `_captureBase` 移到任何 `await` 之前
+//   （净行数 0、基线内容逐键不变、语义零变化）；② 本文件把「等落库」改为**等产品自己的结算承诺**
+//   （`core/pending-writes.js::settleWrites()`）——跑一次即定、真丢写立刻报红，不再靠等更久掩盖。
+// 实测（本机，诊断脚本）：就绪门一满足即写 ⇒ **修前 6/6 静默丢写**（3s 零 POST、本地数组完好、无整页
+//   重载）；**修后 1/1 落库**（POST 出现在推入后 868ms＝800ms 防抖 + 68ms）。
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
@@ -63,12 +81,13 @@ async function preparePage(page, origin, path = '/index.html') {
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
   await page.route('**://cdn.tailwindcss.com/**', (r) => r.abort());
   await page.goto(`${origin}${path}`, { waitUntil: 'domcontentloaded' });
-  // ⚠ **必须把该页置前**（2026-09-25 批次 197）：Chromium 对**非前台页**的 `setTimeout` 有节流
-  //   （后台页可被压到分钟级）⇒ 防抖快照写穿（800ms）**永远不会跑**，写入静默滞留内存。
-  //   实测：本文件**作为首个文件**单跑时页面即为前台、一切正常；**前面还有别的文件**时该页
-  //   可能不是前台 ⇒ 判据B 的前置断言恒假（本地数据完好、却始终无 POST）。
-  //   本用例的前提本就是「一个可见的标签页/设备」（判据A 亦断言 `document.visibilityState==='visible'`），
-  //   故此处显式置前，使前提名副其实——**不是放宽断言**。
+  // ⚠ 置前（2026-09-25 批次 197 加）：**保留**，但它的作用已被本批（2026-09-26 批次 201）**实测纠正**——
+  //   批次 197 当时判「非前台页 `setTimeout` 被节流 ⇒ 防抖写穿永不跑」，**该判据已实测否证**：
+  //   headless 下 `document.visibilityState` **恒为 `visible`**（`bringToFront()` 前后读数一致），
+  //   页内手动量 50ms / 800ms 定时器实测 **57–66ms / 804–813ms**（无节流）；且加上 `bringToFront()`
+  //   之后判据B 的红**并未消失**（批次 197 已如实登记）⇒ 判据B 另有根因，见文件头「批次 201」段。
+  //   此处继续置前，仅因本判据的前提本就是「一个**可见**的标签页 / 设备」（判据A 亦断言
+  //   `visibilityState==='visible'`）——**不是**「加预算、放宽断言」的手段。
   await page.bringToFront();
   await page.evaluate(async () => {
     const t0 = Date.now();
@@ -218,24 +237,34 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
   const a = await openApiPage(base, 'p10');
   let bToken, v1, seen;
   try {
-    await pushAndPersist(a.page, { archiveRecords: { id: 'p11-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' } });
-    await settle(a.page);
-    // 服务端库为权威（表名＝资源名的 snake_case：archiveRecords → archive_records）
-    // ⚠ **等落库**（2026-09-25 · 批次 182 立、批次 197 加强）：原写法是「settle（定长 1800ms）之后只查一次」
-    //   ⇒ 全量负载下防抖快照写穿尚未完成，本前置断言假红（单跑恒绿）。
-    //   批次 182 改为「有界轮询同一条件（20 × 300ms）」；**批次 197 实测仍不够**：真库补满演示种子后
-    //   快照负载变大，全量下 6s 预算被用尽（实测该用例 8.9s、轮询耗尽）⇒ 本批**加强为两步**：
-    //   ① 先**等本机写管线排空**（复用本文件既有的 `waitIdle`，它轮询探测直到不再 `pending-write`/`in-flight`）；
-    //   ② 再**有界轮询 60 × 500ms（最长 30s）**确认落库。
-    //   判据语义一字不变（仍要求「**必须真的落库**」），只是把等待预算放大到能容纳真实写入耗时；
-    //   **不是放宽断言、不是删用例**。若将来又不够，应先查快照写路径的耗时，而不是继续加预算。
-    try { await waitIdle(a.page); } catch { /* 排空失败：不视为断言失败，仍走下面的有界轮询兜底 */ }
-    let landed = false;
-    for (let i = 0; i < 60; i++) {
-      if (idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1')) { landed = true; break; }
-      await a.page.waitForTimeout(500);
-    }
-    assert.ok(landed, '前置：设备 A 的写入应已落服务端');
+    // ⓪ 写入 + **等产品自己的「落库已结算」承诺**（`core/pending-writes.js::settleWrites`）。
+    //   为什么是它、而不是「轮询服务端直到该行出现」：本前置要证的正是「这次写真的存下去了」，
+    //   `persist()` 在排程那一刻就把这笔写登记进 `pending-writes`、`_flushSnapshot` 落地/失败时结算
+    //   ⇒ 结算 = POST 已返回 200（`_flushSnapshot` 在 `snapshot()` 返回之后才 resolve 那个 deferred）。
+    //   ⚠ 2026-09-26 批次 201 **实测纠正**：批次 182 / 197 把这里的等待从「20 × 300ms」加到
+    //   「`waitIdle` + 60 × 500ms（30s）」是**治错对象**——那两次红都不是「写得慢」：诊断脚本实测
+    //   **推入后 3 秒零 `POST /api/v1/snapshot`、本地数组完好、无整页重载**，即 **flush 跑了但
+    //   `_collectDirty` 判「无脏集合」⇒ 产品自己决定不发这个 POST**（根因＝init 的基线捕获晚于就绪信号，
+    //   已在 `docs/src/core/data-adapter.js` 修准，见文件头「批次 201」段）⇒ **轮询服务端永远等不到**，
+    //   加预算在构造上无效。现改为**有界结算等待**：结算完成仍查不到 = **真丢写**，立刻报红；
+    //   15s 上界只用于把「迟迟不结算」变成明确失败，**不给慢留余地**。**判据语义一字未变**。
+    const settleRes = await a.page.evaluate(async (row) => {
+      const { mockDB } = await import('/src/core/domain.js?v=20260924a');
+      const { persist } = await import('/src/core/data-adapter.js?v=20260924a');
+      const { settleWrites } = await import('/src/core/pending-writes.js?v=20260924a');
+      mockDB.archiveRecords.push(row);
+      persist();
+      const t0 = Date.now();
+      const settled = settleWrites().then(() => 'ok', (e) => `error:${(e && e.message) || e}`);
+      const expired = new Promise((r) => setTimeout(() => r('timeout'), 15000));
+      return { status: await Promise.race([settled, expired]), ms: Date.now() - t0 };
+    }, { id: 'p11-dev-A1', title: 'P1-1 跨设备', archivedAt: '2026-09-24' });
+    assert.equal(settleRes.status, 'ok',
+      `设备 A 的写入未在 15s 内结算（settleWrites=${settleRes.status}，耗时 ${settleRes.ms}ms）——「防抖快照没跑」与「跑了却判无脏集合」是两件事，须先查清再放行`);
+    // 服务端库为权威（表名＝资源名的 snake_case：archiveRecords → archive_records）。
+    // 结算即 POST 已返回（且服务端 handler 全同步）⇒ 此刻的读就是权威值，**无需再轮询**。
+    const landed = idsIn('archive_records', 'p11-dev-A1').includes('p11-dev-A1');
+    assert.ok(landed, '前置：设备 A 的写入应已落服务端（结算已完成却查不到 ⇒ 快照并未真正落库）');
     v1 = await versions(base, tokenA);
   } finally {
     await a.ctx.close();

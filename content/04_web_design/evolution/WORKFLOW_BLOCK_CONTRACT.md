@@ -10,6 +10,9 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 # 工作流块封装契约
 
+> **本文负责**：**工作流块封装契约（L3）**——块差异化的三个可组装维度、`block manifest v1` 字段规格与取值校验、与既有资产的映射表、两个示例块、编码落地拆分与进度。
+> **本文不负责**：① **L1~L5 愿景与目标分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；② **能力 / 场景注册表的现行实现** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 `docs/src/core/registry.js`；③ **表单字段渲染器的现行定义** → `docs/src/components/forms.js` 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；④ **支部可组合配置的操作位与写权** → [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6。
+
 > **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
 > **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 支书（交互与边界裁决人）
 > **关联**：[ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §8（愿景与 §8.5 草案）、[ENGINEERING_ASSESSMENT.md](../../../.ctx/ENGINEERING_ASSESSMENT.md)（行动线 P2）、[PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md)（两级治理）。

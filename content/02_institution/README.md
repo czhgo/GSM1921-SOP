@@ -10,7 +10,7 @@ status: active
 
 > **定位：** 本目录存放**知识类型 2：支部发展和管理的制度**——回答"支部如何运作、分工、专班、报备审批"。
 > **受众：** [用户]+[工程师]（党支书、支委、系统维护者）
-> 本目录内部区分：制度设计（FLAT_ORGANIZATION_DESIGN/COMMISSIONER_DUTY_FRAMEWORK/ROLE_CLASSIFICATION/SYSTEM_ROLE_PERMISSION）+ 方法指引（SOP 文件），作为文件合并参考
+> 本目录内部区分：制度设计（COMMISSIONER_DUTY_FRAMEWORK［《支部组织与委员体系》，含原 FLAT_ORGANIZATION_DESIGN 扁平化设计 §G］/ROLE_CLASSIFICATION/SYSTEM_ROLE_PERMISSION）+ 方法指引（SOP 文件），作为文件合并参考
 
 ---
 
@@ -20,8 +20,7 @@ status: active
 
 | 文件 | 一句话说明 | 权威源 |
 |------|-----------|--------|
-| [FLAT_ORGANIZATION_DESIGN.md](FLAT_ORGANIZATION_DESIGN.md) | 扁平化组织设计（组织者与深度参与者的扁平化设计） | **唯一权威**——扁平化参与途径 |
-| [COMMISSIONER_DUTY_FRAMEWORK.md](COMMISSIONER_DUTY_FRAMEWORK.md) | 支委职能 + 党小组交互 + 专班设计 + §审批流程规范 | **唯一权威**——委员系统、专班与审批流程 |
+| [COMMISSIONER_DUTY_FRAMEWORK.md](COMMISSIONER_DUTY_FRAMEWORK.md) | 支部组织与委员体系（支部组织形态 + 委员职能 + 党小组交互 + 专班设计 + §G 扁平化设计〔组织者 / 深度参与者〕+ §审批流程规范；2026-09-26 原 FLAT_ORGANIZATION_DESIGN.md 全文并入 §G） | **唯一权威**——支部组织与角色分工、委员系统、专班与审批流程 |
 
 ### 二、角色分类
 

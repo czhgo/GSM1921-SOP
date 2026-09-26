@@ -8,6 +8,9 @@ status: landed
 
 # 权限功能合一收敛设计
 
+> **本文负责**：**角色权限「四处分散声明 → 单一事实源」的收敛设计档案**——收敛前差异清单、收敛目标与派生关系、S1~S10 迁移与验收记录。
+> **本文不负责**：① **现行角色键 / 权限矩阵的权威清单** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（内容层）与 `docs/src/core/constants.js`（代码层）；② **角色分工的制度定义** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)；③ **色值的现行规范** → [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) §二。
+
 > **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（支书 2026-08-29 全收敛裁定 + 2026-08-29 实施）。

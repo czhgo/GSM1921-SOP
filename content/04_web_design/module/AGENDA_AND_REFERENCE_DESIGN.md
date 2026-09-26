@@ -10,6 +10,9 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 
 # 会议议程与资料查询设计
 
+> **本文负责**：**会议议程与资料查询的设计**——议程事项的封装组装、会前草案与资料查询、会后少重复录入、议程相关的数据与权限、验收条件。
+> **本文不负责**：① **数据结构与字段** → [DATA_MODEL.md](../data/DATA_MODEL.md)；② **角色权限的键级定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ **审批状态机与审批权限矩阵** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) §审批流程规范；④ **日历与工作台 tab 的布局** → [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md)。
+
 > **已落地（2026-09-01）**：本设计结论已实现（对照实读：`docs/src/modules/references.js` 支部文件/草案 CRUD + `docs/src/entries/tabs/secretary/calendar-tab.js` 议程与会后衔接 + `docs/src/components/member-change-panel.js` 成员变更面板 + `server/db.js` RESOURCE_TABLES 中 `branch_docs` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` 表 + `server/routes/resources.js` CRUD，配套 server/test/ member-change-flow、agenda-* 系列测试）；本文档继续承担设计论证档案，验收条件见 §五（已达成，2026-09-05 复核）。
 
 > **目标**：让资料查询中的支部文件与重要会议的议程形成一条可追溯的工作路径，并将会议完成后的重复录入收束为少量有责任归属的动作。

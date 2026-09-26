@@ -10,6 +10,9 @@ related_files: [docs/src/about.css, docs/src/entries/about-entry.js, DESIGN_SYST
 
 # About 页面设计系统——超参数设定原则
 
+> **本文负责**：**about 公开页的专项设计**——「叙事册」风格与每个超参数（字号 / 倾斜 / 字距 / 高度 / 间距 / 透明度 / 停留时长）的设定原则，以及 about 页专属色板 tokens。
+> **本文不负责**：① **全站视觉规范**（本文是它下面 about 页的专项细则）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；② **系统形态与对外叙事** → [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md) §一；③ **工作台模块与日历界面** → [MODULE_UI_DESIGN.md](MODULE_UI_DESIGN.md)。
+
 > **定位**：about 页设计的权威依据（保留「叙事册」风格）。**每个超参数的设定原则显式化**——任何一个数值（字号/倾斜/字距/高度/间距/透明度/停留时长）都必须能回答「为什么这样设定」。后续改动有据可依、可审（2026-08-19 T-272 确立：「对于每一个超参数，设定的原则是什么？要有自觉」）。
 > **受众**：[工程师]+[AI]（任何修改 about 页的开发者）
 > **关联**：[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（全站设计系统）→ 本文档为 about 页专项细则。

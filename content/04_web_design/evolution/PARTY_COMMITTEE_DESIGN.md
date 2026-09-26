@@ -10,6 +10,9 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 # 院系党委后台——支部多实例两级治理设计定案
 
+> **本文负责**：**院系党委 → 支部多实例两级治理的设计定案**——方向选择记录、两级组织模型、支部配置档案与配置写权分层、两级角色可见范围、数据模型横向扩展、功能分期与验收原则。
+> **本文不负责**：① **党委台界面与服务落点清单** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；② **角色键与权限键** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；③ **部署形态与对外对接** → [DEPLOYMENT_GUIDE.md](../deploy/DEPLOYMENT_GUIDE.md)；④ **L4 拖拽编排的架构锚点** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八。
+
 > **性质：设计图与方向选择说明**（为什么这样做、选了什么方向）。
 > 执行路线图（怎么一步步落地）另置过程 spec（`.trae/specs/`，**用后即删**）；落地过程台账在 `.ctx/logs/`。本文档为常驻设计记录，**不承载执行步骤、测试清单与过程台账**。
 

@@ -1247,7 +1247,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | **普通参与者**（考勤记录层） | 参加但无具体分工 | 出席 | 考勤记录：出勤 |
 | **归档层** | 纪检委员（执行人） | 汇总考勤/考察记录 | 考勤（对象：党员+预备党员；适用：三会一课；状态：出勤/请假/缺勤；提交：支委会，组织委员接收建档）+ 考察（对象：深度参与者和组织者；适用：所有支部工作；层级：组织/深度参与；提交：组织委员建档每月） |
 
-> 完整的分工记录、桥梁作用、考勤/考察规则详见 [FLAT_ORGANIZATION_DESIGN.md](../../02_institution/FLAT_ORGANIZATION_DESIGN.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
+> 完整的分工记录、桥梁作用、考勤/考察规则详见 [COMMISSIONER_DUTY_FRAMEWORK.md §G（原 FLAT_ORGANIZATION_DESIGN.md）](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) + [纪检委员工作流程指南 §1.2](../../02_institution/sop/纪检委员工作流程指南.md)。
 
 #### 3.1.2 数据流
 
@@ -1611,7 +1611,7 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 | 角色键与权限矩阵（含赋权链、模块可见性） | [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（代码键级权威）+ [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) |
 | 角色键的代码单一源 | `docs/src/core/constants.js`（`ROLE_KEYS` / `ROLE_LEGACY_KEYS`）、`docs/src/core/state.js`（首页日历角色枚举） |
 | 考勤 / 考察 / 补课的制度规则 | [纪检委员工作流程指南.md](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
-| 三级管理架构与分工 | [FLAT_ORGANIZATION_DESIGN.md](../../02_institution/FLAT_ORGANIZATION_DESIGN.md) |
+| 三级管理架构与分工 | [COMMISSIONER_DUTY_FRAMEWORK.md §G（原 FLAT_ORGANIZATION_DESIGN.md）](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |
 | 服务清单与代码落点 | [ARCHITECTURE.md §十一](../../03_doc_system/ARCHITECTURE.md#十一统一服务目录与角色-服务权限矩阵) |
 | 登录 / 认证门控 | [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md) |

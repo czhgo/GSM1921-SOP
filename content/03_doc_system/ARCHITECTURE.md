@@ -72,8 +72,7 @@ Layer 1: 知识类型 1 — 战略（支部为什么存在、根本目标、战�
 Layer 2: 知识类型 2 — 制度（组织架构、分工、SOP）
   └─ content/02_institution/              [用户]+[AI] 组织制度层
       ├── sop/                            [用户]+[AI] 制度母本，所有代码逻辑的来源
-      ├── COMMISSIONER_DUTY_FRAMEWORK.md       [用户]+[AI] 支委系统框架
-      ├── FLAT_ORGANIZATION_DESIGN.md                  [用户]+[AI] 扁平化设计
+      ├── COMMISSIONER_DUTY_FRAMEWORK.md       [用户]+[AI] 支部组织与委员体系（含扁平化设计 §G）
       ├── ROLE_CLASSIFICATION.md          [用户]+[AI] 文件角色分类体系
       └── SYSTEM_ROLE_PERMISSION.md       [工程师]+[AI] 系统角色权限矩阵（代码键级权威）
 
@@ -160,8 +159,7 @@ Layer 7: 审计参考层（审计与参考）
 │   │   │   ├── 组织委员工作流程指南.md [用户]+[AI] 组织委员 SOP
 │   │   │   ├── 纪检委员工作流程指南.md [用户]+[AI] 纪检委员 SOP
 │   │   │   └── 党小组组长工作手册.md   [用户]+[AI] 党小组组长操作指南
-│   │   ├── COMMISSIONER_DUTY_FRAMEWORK.md [用户]+[AI] 支委系统框架
-│   │   ├── FLAT_ORGANIZATION_DESIGN.md            [用户]+[AI] 扁平化设计
+│   │   ├── COMMISSIONER_DUTY_FRAMEWORK.md [用户]+[AI] 支部组织与委员体系（含扁平化设计 §G）
 │   │   ├── ROLE_CLASSIFICATION.md    [用户]+[AI] 文件角色分类体系
 │   │   ├── SYSTEM_ROLE_PERMISSION.md [工程师]+[AI] 系统角色权限矩阵（角色键全表 + 权限矩阵，代码键级权威）
 │   │   └── README.md                 [用户]+[AI] 制度层目录索引
@@ -347,7 +345,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `CLAUDE.md` 乙部 | `.ctx/logs/YYYY-MM-EXECUTION_LOG.md` | 路线图→执行。完成事项从乙部删除，写入执行日志 |
 | `SECRETARY_DIRECTIVES.md` | `CLAUDE.md` H90（外部权威源索引） | 党支书工作交接文档是理论基石的母本。新增论断时同步更新 CLAUDE.md H90 索引表 |
 | `SECRETARY_DIRECTIVES.md` | `content/01_strategy/DEVELOPMENT_PATH.md` | 理论基石→战略展开。党支书工作交接文档是母本（木本），DEVELOPMENT_PATH 是子本（AI 扩充的战略叙事）。冲突时以 SECRETARY_DIRECTIVES 为准 |
-| `SECRETARY_DIRECTIVES.md` | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本，FLAT_ORGANIZATION_DESIGN 是子本展开 |
+| `SECRETARY_DIRECTIVES.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §G` | 理论基石→制度设计。扁平化论断（P-009/P-010）的母本；§G 扁平化设计是子本展开（2026-09-26 原 `FLAT_ORGANIZATION_DESIGN.md` 全文并入该文件 §G） |
 | `本文 §十` | `本文 §一~§八（架构主体）` | 注册表是架构说明的溯源参考 |
 
 #### content/ 内部及交叉（strategy ↔ institution ↔ doc_system ↔ web_design ↔ insights）
@@ -355,7 +353,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 母本 | 子本 | 同步规则 |
 |------|------|---------|
 | `content/01_strategy/DEVELOPMENT_PATH.md` | `content/04_web_design/data/DATA_MODEL.md §第二部分（数据流）` | 战略→设计。DEVELOPMENT_PATH 是上游战略依据，DATA_MODEL 的数据流部分是数据流设计的落地 |
-| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/FLAT_ORGANIZATION_DESIGN.md` | 战略→设计。FLAT_ORGANIZATION_DESIGN 的扁平化是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
+| `content/01_strategy/DEVELOPMENT_PATH.md` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md §G` | 战略→设计。§G 扁平化设计是"理解真实"认知的具体实现。冲突时以 DEVELOPMENT_PATH 为准 |
 | `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | 数据流→支委系统。DATA_MODEL §3 定义三级参与者数据流，COMMISSIONER_DUTY_FRAMEWORK 细化支委系统设计 |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | `content/02_institution/sop/*.md`（双向） | 双向修改规则（CLAUDE.md H30.2 制度→代码）。规则0：文本SOP是母本；规则2：先改SOP母本→再改系统代码→验证 |
 | `content/insights/党支部管理与实务经验沉淀.md` | `content/01_strategy/`、`content/04_web_design/` | 经验→设计反馈。insights 是经验沉淀，可反哺战略和设计校准。当经验与战略冲突时提交支书决策 |
@@ -486,7 +484,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 >
 > **范围声明**：本表为**主要服务索引**（非全量枚举，随系统演进补充）——**全量以 [`docs/src/services/`](../../docs/src/services/)（前端）与 [`server/routes/`](../../server/routes/)（后端）目录实际文件为准**。
 >
-> 关联制度缩写：CF=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型与数据流）、FLAT=[FLAT_ORGANIZATION_DESIGN.md](../02_institution/FLAT_ORGANIZATION_DESIGN.md)、RC=[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，9a0~9g）、PC=[PARTY_COMMITTEE_DESIGN.md](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（党委后台 P1-P3）；其余为 [sop/](../02_institution/sop/) 制度指南。
+> 关联制度缩写：CF=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)、DA=[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md)（数据模型与数据流）、FLAT=[COMMISSIONER_DUTY_FRAMEWORK.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（§G 扁平化设计；2026-09-26 原 FLAT_ORGANIZATION_DESIGN.md 并入）、RC=[SYSTEM_ROLE_PERMISSION.md](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵，9a0~9g）、PC=[PARTY_COMMITTEE_DESIGN.md](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)（党委后台 P1-P3）；其余为 [sop/](../02_institution/sop/) 制度指南。
 
 | 服务 | 服务文件 | 入口页面 | 核心操作 | 关联制度 |
 |------|---------|---------|---------|---------|

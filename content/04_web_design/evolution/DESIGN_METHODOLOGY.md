@@ -10,6 +10,9 @@ related_files: [../design-system/DESIGN_SYSTEM.md, ../data/DATA_MODEL.md, ../../
 
 # 设计理念与方法论承接（设计论证与方法档案）
 
+> **本文负责**：**设计决策的论证档案**——「为什么这么做 / 为什么不是别的做法 / 什么条件下失效」：系统与工作台设计方法论、前端实现判例、工作台行为底线、叙述性人读方法论。
+> **本文不负责**：① **规范形态**（规则 / 色值 / 组件标准 / 数据约束）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) 与 [DATA_MODEL.md](../data/DATA_MODEL.md)（冲突时以规范为准）；② **架构演进的方向选择** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md)；③ **AI 编码 / 上下文 / 测试验证方法** → [content/05_ai_coding/](../../05_ai_coding/)（AI 协作方法论 5 分篇）。
+
 > **2026-09-04 承接**：原 content/insights/工程演进与设计方法论.md [4] 标签小节分流至此（支书裁决：04=纯系统设计）；本文档承接通用设计方法论与设计判例，供工程师与 AI 设计决策时阅读。
 > **方法论文体与规范文体分离**：设计结论的规范形态（规则/色值/组件标准/数据约束）以 design-system/ 与 data/ 各唯一权威源为准——[DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)（设计哲学/色彩/排版/组件/动效）、[DATA_MODEL.md](../data/DATA_MODEL.md)（数据模型与数据流）；本文档只承载**论证（为什么）、反论（为什么不是）、判例（什么条件下失效）与生效条件**。规范与论证冲突时以权威源规范为准。
 > **出处注记**：每小节保留「（原 insights §N）」出处；源文件（content/insights/工程演进与设计方法论.md）已于 2026-09-04 清理，历史交叉引用由 insights 承接声明（content/insights/README.md）兜底。
