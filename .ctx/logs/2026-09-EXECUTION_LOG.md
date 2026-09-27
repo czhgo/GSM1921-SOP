@@ -20480,5 +20480,47 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 
 **提交前全量见批次 213。**
 
+---
+
+## 批次 213（2026-09-27，`D-667`）**UI 风格从标准层统一（真机量测驱动）＋ 挂起三项推进到底**
+
+> **本批令（逐字）**：「**完全存在着风格不统一的问题…有的字大有的字小，有的行距宽有的窄。有的看起来更「方」「硬」，有的「圆」「软」。一定要按照标准去统一！！启动浏览器视觉检查清楚！！**」⇒ 主现场＝**支书台「党小组与活动」**。**两路并行**：第一路＝UI 视觉一致（量测驱动）；第二路＝挂起三项推进到底。**本批铁律**：**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**；3000 端口**有**常驻服务（**未停 / 未杀 / 未占**）、**只跑纯 node 守卫**。
+> **⚠ 第二路报告丢失**：**其报告未返回** ⇒ 本批据 `git diff` **实读复核并补记**；**其自测绿度不明 ⇒ 不得写成「全量绿」**。
+
+### 一、第一路 · UI 风格从标准层统一（真机量测驱动）
+
+- **量测**：`listen(0)` ＋ chromium，**7 账号 × 全部 tab ＝ 42 屏**，逐元素落 9 个属性，按「区块 × 元素类型」分层去重（**主现场 244 条**）。
+- **★ 四症状根因（逐条）**：① **字大字小** ⇒ **标准缺「角色→档位」映射**（`§3.2` 只列 class 清单、没规定谁用哪档）＋ **标准自相矛盾**（`§3.3.1` 说 `h3 text-base` 16 / `§4.3` 说内嵌面板 `text-sm` 14）⇒ 各台各取一档（支书台 14 vs 纪检 / 组织 / 组长台 16；85 处 vs ~50 处）。② **行距宽窄** ⇒ **任意值类不携行高**（`text-[11px]` 只改字号、行高继承）⇒ 11px 段落 lh 16.5 反而比 12px 的 16 更宽；另实测 `body` 基准行高 ＝ **1.5**（Tailwind preflight 压过 `styles.css` 的 1.6）⇒ **文档写的 1.6 与生产不符**。③ **方硬 vs 圆软** ⇒ **主因不是圆角档、是卡片质地**：`.card` ＝「无边框 ＋ 5% 阴影」，同页 `.gp-group-card` / 内嵌行块 ＝「1px 边框 ＋ 无阴影」；且 `.card` **违反 `§4.2`**（明文「边框 1px / 阴影 无」），因 `§4.2` 与 `§4.16` 自相矛盾，实现按 `§4.16` 走了阴影。④ **次要项**：同一类元素圆角越档（徽标 `rounded-md` 6px 11 处）。
+- **标准补齐**：新增 **`§3.2.2`「文本档位-角色映射」**（8 档：24/20 · 16 · 14 · 12 · 导语/附注/徽标 12 · 列表项 14 · 正文/表格/控件 13 · 分类标签 11）＋ 行高规则；新增 **`§4.19`「形状·边框·阴影档位表」**（圆角三档：卡片 12 / 控件·按钮·行块 8 / 徽标 pill；边框两级；阴影唯一去处＝浮层），并以可核判据消解两处标准自相矛盾（`§3.3.1`↔`§4.3`、`§4.2`↔`§4.16`）。**档位全部取自真机实测在用集合、未新造**。
+- **实现改法（从共享层）**：`.card` / `.card-flat` 由「无边框 ＋ 阴影」→「1px `--neutral-200` ＋ 无阴影」（hover 改边框色）；`group-progress-tab.js` 9 处 `text-[11px]`→`text-xs`、2 处去行级边线；5 处徽标 `rounded-md`→pill；8 处块/钮/标签 `rounded-md`(6px)→`rounded-lg`(8px)。
+- **改后分布**：卡片导语 `12×9＋11×4` → `12×13＋11×1`（余 1 处来自**禁改面** `assign-tab.js`）；**全站 `rounded-md` 归零**；`text-[11px]` 370 → **350**。
+- **新守卫** `server/test/text-tier-guard.test.mjs`（4 pass）：`<p>` 上禁 `text-[9px]/[10px]`、`text-[11px]` 仅限「标签形态」；含正负例、非空转、僵尸登记、进度台账；基线 ＝ `style-baseline.mjs::P_TEXT_TIER_BASELINE`（28 文件 / 84 处，减去本批清零项 ＝ 收基线）。
+- **判「不许改」**：页面级主卡 16 vs 内嵌 14 保留层级差异（已在 `§3.2.2` 写明谁用哪档）；正文 vs 表头、主/次/危险按钮层级保留；`.gp-group-card` 语义边线保留；三种徽标圆角并存、跨台标题 16/14 未迁移、UA 默认 11.2px ⇒ **登记待另批**。
+- **只登记未做**：全站 `<p>` 11px **28 文件 / 84 处** 与 `text-[11px]` **350 处** 只建台账未清；`.card` 新增 1px 边框 ＝ 全站卡片新增细边（按 `§4.2` 统一执行）。
+
+### 二、第二路 · 挂起三项推进到底（**其报告丢失 ⇒ 以本批 `git diff` 实读为准**）
+
+- **项一 `README-server.md` 旧口径改准**：四处实读并改准（`:162` 组织域 ＋`thoughtReport` · `:184` 纪检域 ＋`attendance`/`review`/`makeup` · `:310` 写权表改「全量：可改全部 8 个节 / 域负责人各管本域节 / `activityApproval` 归支书域」 · `:1114` `policyOverrides` 白名单「共 8 节、14 条叶项，单一源 ＝ `POLICY_OVERRIDABLE`」）；并同步 `OPERATIONS_GUIDE.md`「域参数（L2）」＋ `DATA_MODEL` / `DEPLOYMENT_GUIDE` / `ARCHITECTURE_EVOLUTION` 各 2–4 行；四份 `content/**` frontmatter 与 `.ctx/TIMESTAMPS.md` 表行同批刷 `2026-09-27`。
+- **项二 赋权 nudge 可达性**：**母本依据**＝`COMMISSIONER_DUTY_FRAMEWORK.md §D.1.1` 赋权入口表 ＋ `ACTIVE_RULINGS` `D-434` / `D-614` ⇒ **支书台是统一入口（非唯一）**；**★ 查出真缺陷**：情景③（专班赋权）的支书台同项入口一度漏挂（`todo-tab.js::expandAssignPanelForTodo` 对 `scope==='taskforce'` 找的 `#tf-auth-panel` 在支书台并不存在 ⇒ 曾是死分支）⇒ 按母本**补回**（`mountActivityProjectAuth` 一并渲染情景③）；⚠ **情景①（常设赋权）无「非本位入口」**（母本只写「赋权者＝支书/副支书」）⇒ `assign-leader` nudge **现形态不可达、如实标注**。
+- **项三 沿革判据成文（**本批补齐**）**：**实读核实结论＝第二路未落地**（`content/**` 对「判据族 / 九类 / 沿革瘦身」**零命中**）⇒ 本批写入 **`content/03_doc_system/OPERATIONS_GUIDE.md` 新增 `§5.2`「沿革瘦身判据」**（**既有权威落点、未新开文件**）：九类判据族逐类给「**判据 ＋ 一个正例 ＋ 一个反例**」＋ **完成标准**（命中已全部归类；只有「既不承担现状口径、也不属任何判据族」的纯历史段落才搬）＋ **剩余可数事实**（可搬项 ＝ 0 · 判据族保护 ＝ 24 份文件〔批次 208 记「约 47 个『文件 × 段落』单元」，本批未重扫、不造精确值〕· 判不再动 ＝ 1 份 · 禁改面 ＝ 4 份 · 本批复核算式：命中编辑动作词 **231 行 / 28 文件**）＋ **可复核口径**。
+- **实读复核（`git diff`）**：第二路改 = `README-server.md` · `content/03_doc_system/OPERATIONS_GUIDE.md` · `content/04_web_design/{data/DATA_MODEL,deploy/DEPLOYMENT_GUIDE,evolution/ARCHITECTURE_EVOLUTION}.md` · `docs/src/entries/tabs/secretary/assign-tab.js` · `docs/src/components/{inspector,work-overview}.js` · `docs/src/entries/tabs/secretary/overview-tab.js` · `.ctx/TIMESTAMPS.md`（4 行）。
+
+### 三、本批（记账 / 项三）改动文件清单（`git status` 口径）
+
+- `content/03_doc_system/OPERATIONS_GUIDE.md`（**项三新增 `§5.2`**）
+- `.ctx/logs/2026-09-DECISION_LOG.md`（`D-667` ＋ 四处计数）
+- `.ctx/logs/DECISION_LOG.md`（月度索引 392 → 393 条）
+- `.ctx/logs/2026-09-EXECUTION_LOG.md`（本正节，**纯新增**）
+- `.ctx/ACTIVE_RULINGS.md`（**0 行新立 ＋ 2 行改准**；口径行**仍 123**）
+- `.ctx/TIMESTAMPS.md`（本批改过 / 已改文件刷 / 加注）
+
+### 四、自校验（本批实测）
+
+- **5 件验证命令**（`node --test --test-concurrency=1 test/doc-consistency … test/text-tier-guard`）：**43 / 43 / 0 红**（`doc-consistency` 15 · `doc-line-ref` 6 · `version-stamp` 15 · `frontmatter-freshness` 3 · `text-tier-guard` 4）。
+- **计数复算**：`^## D-` **393**（新增 `D-667`）· `ACTIVE_RULINGS` `^- ` **123**（0 行新立 ＋ 2 行改准）· **`?v=` 未改**（仍 `20260924a`，100 文件 / 679 处）。
+- ⚠ **本批实测为非全量**（只跑收尾 5 件套）；⚠ **不得把「只登记 / 未做」写成已办**（跨台标题 16/14 未迁移 · 84 处 `<p>` 11px 未清 · 情景① nudge 不可达 · 三种徽标圆角并存 · UA 11.2px · 全站 `text-[11px]` 350 处只建台账 · `DESIGN_SYSTEM.md` frontmatter 未刷）。
+
+**提交前全量见批次 214。**
+
 
 

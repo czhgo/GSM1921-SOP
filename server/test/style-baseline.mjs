@@ -489,3 +489,54 @@ export const CTRL_SMALL_FILE_BASELINE = 0;
 export const SMALL_TEXT_TOTAL_BASELINE = 370;
 export const SMALL_TEXT_FILE_BASELINE = 56;
 export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};
+
+/** 「段落/导语档」基线（2026-09-27 文本档位统一批，给 `text-tier-guard.test.mjs` 消费）
+ *  `文件 → { c: 处数, v: 出现档位（px） }`
+ *
+ *  口径（据既有事实推导，写进 `DESIGN_SYSTEM.md §3.2.2`）：**`<p>` 是说明/导语段落**，属正文说明类，
+ *  按 §3.2 档位表应取 **Caption 12px 起**（`text-xs`）；而 **11px（Overline 档）是「分类标签形态」专用档**
+ *  （§3.2 Overline 行：font-weight 600 + `letter-spacing` 0.12em + 大写；§3.2.1 亦把 11px 非控件口径
+ *  定义为「＝本表 Overline 档」）。⇒ `<p>` 上出现 `text-[9px]/[10px]/[11px]` 即「把标签档当正文档用」，
+ *  与同页其他说明段（12px）**字号与行高双双不一致**（11px 任意值类不携行高 ⇒ 继承 1.5 ⇒ 16.5px；
+ *  `text-xs` 携固定行高 16px —— 实测证据见本批交付报告）。
+ *
+ *  本批处置（**从标准层统一，只改实报面**）：支书实报面＝「党小组与活动」tab ⇒
+ *  `entries/tabs/secretary/group-progress-tab.js` 的 6 处 `<p>` 11px 已改到 `text-xs`（收基线删条目）；
+ *  其余 28 文件 / 84 处为**存量台账**（不是正当例外），逐批收敛、新增即红。
+ *  ⚠ 收基线＝删条目 / 减 c；不得为变绿补条目。 */
+export const P_TEXT_TIER_BASELINE = {
+  'docs/src/components/form-field.js': { c: 2, v: [11] },
+  'docs/src/components/inspector.js': { c: 1, v: [11] },
+  'docs/src/components/org-setup-wizard.js': { c: 23, v: [11] },
+  'docs/src/components/person-edit-modal.js': { c: 2, v: [11] },
+  'docs/src/components/resolution-followup-manager.js': { c: 2, v: [11] },
+  'docs/src/components/signup-panel.js': { c: 1, v: [11] },
+  'docs/src/entries/notice-entry.js': { c: 1, v: [11] },
+  'docs/src/entries/party-committee-meeting-entry.js': { c: 9, v: [11] },
+  'docs/src/entries/settings-entry.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/org/development-tab.js': { c: 2, v: [11] },
+  'docs/src/entries/tabs/org/inspection-tab.js': { c: 2, v: [11] },
+  'docs/src/entries/tabs/org/roster-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 4, v: [11] },
+  'docs/src/entries/tabs/party-committee/branches-tab.js': { c: 6, v: [11] },
+  'docs/src/entries/tabs/prop/archive-tab.js': { c: 3, v: [11] },
+  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 4, v: [11] },
+  'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 6, v: [11] },
+  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 4, v: [11] },
+  'docs/src/entries/tabs/today/today-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/tabs/visitor/thought-report-tab.js': { c: 1, v: [11] },
+  'docs/src/entries/wizard-entry.js': { c: 1, v: [11] },
+};
+
+/** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线） */
+export const P_TEXT_TIER_TOTAL_BASELINE = 84;
+export const P_TEXT_TIER_FILE_BASELINE = 28;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 84, 10: 0, 9: 0 };

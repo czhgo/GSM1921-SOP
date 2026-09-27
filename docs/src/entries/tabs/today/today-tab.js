@@ -83,7 +83,7 @@ function _meetingRows(items) {
       <span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${esc(m.title || '未命名会议')}</span>
-      ${m.type ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(m.type)}</span>` : ''}
+      ${m.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(m.type)}</span>` : ''}
       <span class="text-xs text-gray-500 flex-shrink-0">›</span>
     </button>`).join('');
 }
@@ -140,7 +140,7 @@ function _dutyRows(items) {
       data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
-      ${d.role ? `<span class="text-[11px] px-1.5 py-0.5 rounded-md flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(d.role)}</span>` : ''}
+      ${d.role ? `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(d.role)}</span>` : ''}
       <span class="text-xs text-gray-500 flex-shrink-0">›</span>
     </button>`).join('');
 }

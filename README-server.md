@@ -159,7 +159,7 @@
 | 权限键 | `view_all`、`record_inspection`、`manage_taskforce`、`initiate_taskforce`、`authorize_taskforce`、`archive`、`dispatch_line` + 意见反馈基础键 7 个 ＋ **处置键 8 个**（`D-550` 起计入支委层） |
 | 不能做什么 | 不持 `create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_attendance`、`summarize_inspection`、`authorize`、`manage_members`（**不能设/取消组长**）；不能增减党小组（只能看清单与未分组人数） |
 | 审批位 | ① 成员变更申请**审批**（`POST /api/v1/member-change-requests/:id/approve`，**组织委员专属**）；② 思想汇报**打回**（事后反馈，须附意见；提交即入库，不需要审批归档）；③ 名册**新增成员**与**档案行内编辑**（专属写门）；④ 成员流动（流入/流出）登记 |
-| 特例 | 域参数：可改**本域** `policyOverrides.memberConfirmation`（学期末滞留集中复核窗口） |
+| 特例 | 域参数：可改**本域** `policyOverrides.memberConfirmation`（学期末滞留集中复核窗口）/ `thoughtReport`（思想汇报建议篇幅与警告审阅线，2026-09-27 批起入白名单） |
 | 依据 | `docs/src/services/auth.js:80`、`server/routes/member.js:91,230,280`、`server/routes/resources.js:473-476`、`server/system-notice-kinds.js:106-111`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:152-165`（§9i） |
 
 #### 2.2.4 `prop-commissioner` 宣传委员
@@ -181,7 +181,7 @@
 | 权限键 | `view_all`、`record_attendance`（**唯一持有该键的常设角色**）、`summarize_inspection`、`record_inspection`、`manage_taskforce`、`initiate_taskforce`、`dispatch_line` + 意见反馈基础键 7 个 ＋ **处置键 8 个**（`D-550` 起计入支委层） |
 | 不能做什么 | 不持 `create_activity`、`fill_review`（**除非其本人是该活动的组织者**，否则只收「监督组织者复盘」的审批待办）、`authorize*`、`assign_project_role`、`manage_members` |
 | 审批位 | ① 考勤**确认**（确认后缺勤自动派生补课任务）；② 考察**确认**（确认后录入考察档案）；③ 复盘**批注 / 打回 / 确认**；④ 通知**管理位**（编辑/删除，但不含发布） |
-| 特例 | ① 域参数：可改本域 `policyOverrides.inspection`（考察超期天数）；② 可见性投影与其他角色不同——其数据权限是「全员 × 考勤/考察」，**不含在办与汇报**（避免知情过载） |
+| 特例 | ① 域参数：可改本域 `policyOverrides.inspection`（考察超期天数）/ `attendance`（考勤录入提醒、汇总期限、出勤率提示线）/ `review`（复盘提醒与提交期限）/ `makeup`（补课范围与时限，2026-09-27 批起扩表）；② 可见性投影与其他角色不同——其数据权限是「全员 × 考勤/考察」，**不含在办与汇报**（避免知情过载） |
 | 依据 | `docs/src/services/auth.js:82`、`docs/src/core/constants.js:259-260`、`docs/src/services/visibility.js:53`、`server/routes/resources.js:473-476` |
 
 #### 2.2.6 `leader` 党小组组长
@@ -307,7 +307,7 @@
 
 | 写对象 | 允许角色 | 落点 |
 |---|---|---|
-| 支部 `config`（modules/blocks/workforce/组织档案/域参数） | 全量：`party-staff` / 本支部**现任支书** / 本支部**副支书**；域参数：纪检（`inspection` 节）、组织（`memberConfirmation` 节）、组长（`leader` 节） | `server/routes/resources.js:466-652` |
+| 支部 `config`（modules/blocks/workforce/组织档案/域参数） | 全量：`party-staff` / 本支部**现任支书** / 本支部**副支书**（可改全部 8 个节）；域参数（域负责人各管本域节）：纪检（`inspection`/`attendance`/`review`/`makeup`）· 组织（`memberConfirmation`/`thoughtReport`）· 组长（`leader`）；`activityApproval` 归支书域、仅全量权者可改 | `server/routes/resources.js:466-652` |
 | 支部顶层治理字段（`name`/`type`/`secretaryId`/`status`） | **仅 `party-staff`** | `server/routes/resources.js:78-80` |
 | **本支部支委身份**（组织 / 宣传 / 纪检委员；`users` 的 `PATCH`） | 仅**本支部现任支书 / 副支书**（`branches.secretaryId` / 本支部现任 `deputy-secretary` 那一行）；靶标限**本支部成员**、写入身份限**白名单 ∪ 撤销回落 `participant`**；跨支部 / 白名单外角色键 / 支书·副支书身份一律 **403** | `server/routes/resources.js:80,119`（`_branchCommissionerGateDeny`）、`docs/src/core/constants.js::branchCommissionerWriteDeny` |
 | 党小组管理（新增/改名/解散/归组） | 支书 + 副支书 | `server/routes/resources.js:86,116` |
@@ -1111,7 +1111,7 @@
 | modules | object \| null | 否 | 工作流模块配置：`{hiddenTabIds:[], tabOrder:[]}`——**null＝全开**；核心页签固定不可关、不参与排序 |
 | blocks | object \| null | 否 | 产出块 / 工作流块显隐：`{outputBlocks?:{hiddenBlockIds,blockOrder}, workflowBlocks?:{hiddenBlockIds}}`——null＝全开。⚠ `outputBlocks.blockOrder` **当前无 UI 写入口**（能力在、入口无） |
 | workforce | object \| null | 否 | 模块分工归属：`{[moduleId]:{ownerType:'role'\|'person'\|'none', ownerId}}`——null＝缺省分工（按制度责任人列） |
-| policyOverrides | object \| null | 否 | 域参数覆盖：`{节:{叶:值}\|null}`——节白名单仅 `inspection` / `memberConfirmation` / `leader`；null＝恢复默认 |
+| policyOverrides | object \| null | 否 | 域参数覆盖：`{节:{叶:值}\|null}`——节白名单共 8 节：`inspection` / `memberConfirmation` / `leader` / `activityApproval` / `attendance` / `review` / `makeup` / `thoughtReport`（白名单单一源＝`docs/src/core/policy-defaults.js::POLICY_OVERRIDABLE`，共 14 条叶项）；null＝恢复默认 |
 | configChangeHistory | array | 否 | 配置写留痕：`{by,at,what,from?,to?,why?}`——逐键 diff 追加，**保留最近 100 条**；单键可回滚、回滚再留一痕、历史不改写 |
 | fileSpaceIsolated | boolean | 是 | 支部文件 / 附件是否按支部隔离存储空间（默认 true） |
 

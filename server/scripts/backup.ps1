@@ -1,4 +1,4 @@
-﻿﻿﻿﻿# 备份入口（Windows / PowerShell 版，P0-5 2026-09-23）
+﻿﻿﻿﻿﻿﻿﻿﻿# 备份入口（Windows / PowerShell 版，P0-5 2026-09-23）
 #   实际执行体 = scripts/backup.mjs（SQLite 在线备份 .backup + 附件目录打包 + 备份自检）
 # 用法:
 #   .\backup.ps1                          # 备份到 server\backups\<时间戳>\

@@ -181,7 +181,7 @@ export function renderContent(ctx) {
           // C① 只读化（2026-09-10 支书裁定）：移除直写「推进至X」，改为名册深链——阶段变更经名册发起、支书确认。
           const actionHtml = !isLast
             ? `<a class="dev-goto-roster-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" href="./workspace/org.html?tab=roster&highlight=${encodeURIComponent(c.personId)}" title="发展阶段变更需在成员名册发起，经支书确认后生效（下一节点：${nextStage}）" style="text-decoration:none;">去名册发起变更 →</a>`
-            : `<span class="text-xs px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-200">已转正</span>`;
+            : `<span class="text-xs px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">已转正</span>`;
 
           // 进度条（当前阶段高亮）
           const progressDots = STAGE_ORDER.map((s, i) => {

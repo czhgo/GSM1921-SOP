@@ -162,7 +162,7 @@ function _ungroupedBarHtml(ungrouped, canManage) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">未分组 <span class="text-xs text-gray-500 font-normal">${ungrouped.length} 人</span></h4>
         <span class="text-xs text-gray-500">${canAssign ? '选定即归入' : '只读查看'}</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">${options.length === 0
+      <p class="text-xs text-gray-500 mb-2.5">${options.length === 0
         ? '支部暂无在册党小组，请先在下方「党小组清单」新增党小组，再逐个归组。'
         : (canAssign
           ? '逐个选择所属党小组即完成归组；选择「移出党小组」保持未分组。'
@@ -202,7 +202,7 @@ function _manageCardHtml(entities, statOf, canManage) {
           ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">+ 新增党小组</button>' : ''}
         </div>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
+      <p class="text-xs text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
@@ -312,7 +312,7 @@ function _groupCardHtml(g, activeGroup, issues) {
         </span>
       </div>
       <div class="text-xs text-gray-500 mt-1.5">组长：${g.leaderId ? esc(getPersonName(g.leaderId)) : '<span class="text-gray-500">未设置</span>'}</div>
-      <div class="text-[11px] text-gray-500 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</div>
+      <div class="text-xs text-gray-500 mt-0.5">党员 ${g.partyCount} 人 · 成员 ${g.memberCount} 人</div>
     </button>`;
 }
 
@@ -327,7 +327,7 @@ function _memberProgressCardHtml(group, issues) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">组员进展摘要</h4>
         <span class="text-xs text-gray-500">组员向组长汇报 · 支书只读</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">支书不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
+      <p class="text-xs text-gray-500 mb-2.5">支书不代组长答复；对待答复行可「请组长关注」——请求直达组长「我的处置」，不落答复 ${leaderNote}</p>
       <div id="gp-reports" class="space-y-1.5">${inner}</div>
     </div>`;
 }
@@ -397,7 +397,7 @@ function _renderReportsList(hostEl, group, allIssues) {
             <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.submittedBy)}" class="text-sm font-medium text-gray-800 shrink-0 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(submitterName)}</a>
             <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${esc(r.title)}</span>
           </div>
-          <div class="text-[11px] text-gray-500">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>
+          <div class="text-xs text-gray-500">${esc(r.submittedAt || '')}${r.requestedBy ? ' · ' + esc(getPersonName(r.requestedBy)) + ' 请汇报' : ''}</div>
         </div>
         <span class="text-xs px-1.5 py-0.5 rounded-full ${st.cls} shrink-0">${st.label}</span>
         ${askBtn}
@@ -451,7 +451,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
     : pending.map(({ act, rev }) => {
         const label = rev ? REVIEW_STATUS_LABELS[rev.reviewStatus] : '未提交';
         return `
-          <div class="p-2.5 rounded-lg bg-white border border-gray-50">
+          <div class="p-2.5 rounded-lg bg-white">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <a href="./activity.html?id=${encodeURIComponent(act.id || '')}" class="block" style="text-decoration:none;color:inherit;" title="查看活动详情">
@@ -471,7 +471,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
     : completed.map(({ act, rev }) => {
         const isExpanded = _expandedReviewId === act.id;
         return `
-          <div class="gp-review-item p-2.5 rounded-lg bg-white border border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors gp-review-toggle" data-act-id="${act.id}">
+          <div class="gp-review-item p-2.5 rounded-lg bg-white cursor-pointer hover:bg-gray-50 transition-colors gp-review-toggle" data-act-id="${act.id}">
             <div class="flex items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <div class="text-sm font-medium text-gray-800 truncate">${esc(act.title || '未命名')}</div>
@@ -492,7 +492,7 @@ function _reviewStatusCardHtml(group, members, activities, reviews) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动复盘状态</h4>
         <span class="text-xs text-gray-500">待复盘 ${pending.length} · 已复盘 ${completed.length}</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
+      <p class="text-xs text-gray-500 mb-3">复盘由活动组织者 / 深度参与者提交（入口：成员端「我的复盘」）；支书只读，点开看详情。<a href="./help.html#card-copy-review-submit" class="text-sky-600 hover:underline" title="见帮助：活动复盘提交位（谁提交 / 哪里只读 / 待复盘与打回口径）">见帮助 · 活动复盘</a></p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">待复盘 <span class="text-gray-500 font-normal">(${pending.length})</span></div>
         <div class="space-y-1.5">${pendingRows}</div>
@@ -511,7 +511,7 @@ function _reviewDetailHtml(rev) {
     <div class="mt-3 pt-3 border-t border-gray-100">
       <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded-lg border border-gray-100 whitespace-pre-wrap">${esc(rev.reviewContent || '')}</div>
       ${issues.length ? `<div class="mt-2 p-2 rounded-lg border border-amber-100 bg-amber-50">
-        <div class="text-[11px] text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
+        <div class="text-xs text-amber-700 font-bold mb-1">提出的真问题（${issues.length}）</div>
         <ul class="space-y-0.5">${issues.map(i => `<li class="text-xs text-amber-800" style="--acc-text-dark:#FBBF24;">· ${esc(i)}</li>`).join('')}</ul>
       </div>` : ''}
       ${rev.submittedAt ? `<div class="text-xs text-gray-500 mt-1">提交时间：${esc(String(rev.submittedAt).slice(0, 16).replace('T', ' '))}</div>` : ''}
@@ -570,7 +570,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
         <h4 class="font-title-cn text-sm font-bold text-gray-700">本组活动与考勤概览</h4>
         <span class="text-xs text-gray-500">组织者属本组 · 只读</span>
       </div>
-      <p class="text-[11px] text-gray-500 mb-3">近期活动按日期降序${groupActs.length > 4 ? `，共 ${groupActs.length} 场，仅示最近 4 场` : ''}</p>
+      <p class="text-xs text-gray-500 mb-3">近期活动按日期降序${groupActs.length > 4 ? `，共 ${groupActs.length} 场，仅示最近 4 场` : ''}</p>
       <div class="mb-3">
         <div class="text-xs font-bold text-gray-600 mb-1.5">近期活动</div>
         <div class="space-y-0.5">${recentRows}</div>
@@ -796,7 +796,7 @@ function _groupActivitySectionHtml() {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组活动</h4>
         <button type="button" class="gp-new-activity btn-accent-soft text-xs px-3 py-1.5 rounded-lg shrink-0">+ 新建党小组活动</button>
       </div>
-      <p class="text-[11px] text-gray-500 mb-2.5">党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；支部部署的活动见「活动管理」。新建走既有「写入活动」，填表时在「高级选项 · 发起方向」选「自下而上」。</p>
+      <p class="text-xs text-gray-500 mb-2.5">党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；支部部署的活动见「活动管理」。新建走既有「写入活动」，填表时在「高级选项 · 发起方向」选「自下而上」。</p>
       <div id="gp-group-activities"></div>
       <div id="gp-activity-auth-host" class="mt-3.5"></div>
     </div>`;

@@ -94,15 +94,18 @@ export const VALIDATION_SITES = [
   //   在既有校验点之前插行 ⇒ 下方 7 处 line 按**实况**改准（`272,273,274` → `287,288,289`；
   //   `476,480` → `503,507`；`659,660` → `692,693`）。file/field/msg **均不变**（S2–S5 判据零改动）；
   //   nudge 位于「全部校验之后、写链之前」⇒ 空必填分支**仍只报校验提示、不弹 nudge**，本台账流程保持不变。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 287, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 288, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 289, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 503, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 507, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-09-27（同批补「非本位入口」· 情景③ 支书台同项入口补回 ＋ 注释扩写）：该文件**再下移 18 行**
+  //   ⇒ 下方 7 处 line 按**实况**再改准（`287,288,289` → `305,306,307`；`503,507` → `521,525`；
+  //   `692,693` → `710,711`）。file/field/msg **均不变**（S2–S5 判据零改动）。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 305, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 306, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 307, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 521, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 525, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 692, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 693, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 710, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 711, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
   { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 726, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。

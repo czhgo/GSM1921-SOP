@@ -194,8 +194,8 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         </div>
         ${draft ? `<div class="flex items-center gap-2 text-[11px] text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>
-            <button type="button" id="wf-load-draft" class="px-2 py-0.5 rounded-md text-red-700 border border-red-200 hover:bg-red-50">载入编辑</button>
-            <button type="button" id="wf-del-draft" class="px-2 py-0.5 rounded-md text-gray-500 hover:text-red-600">删除草稿</button>
+            <button type="button" id="wf-load-draft" class="px-2 py-0.5 rounded-lg text-red-700 border border-red-200 hover:bg-red-50">载入编辑</button>
+            <button type="button" id="wf-del-draft" class="px-2 py-0.5 rounded-lg text-gray-500 hover:text-red-600">删除草稿</button>
           </div>` : ''}
         <div id="wf-rows" class="flex flex-col gap-2">
           ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-500">至少一行（模块 → 新负责人）</div>'}

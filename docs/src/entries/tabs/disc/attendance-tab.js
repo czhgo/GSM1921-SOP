@@ -808,7 +808,7 @@ function _renderDiscMeetRosterHint() {
   const detainedHtml = detained.length === 0
     ? '<span class="text-gray-500">无滞留党员</span>'
     : detained.map(p => `
-      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 align-middle"
+      <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 align-middle"
         title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">${esc(p.name)} · 滞留</span>`).join(' ');
   hintEl.innerHTML = `
     <span>应到计算规则：预应到 <b class="text-gray-600">K=${K}</b>（在册党员 ${stats.partyTotal} − 滞留剔除 ${stats.detainedParty}；党课列席不计应到）→ 滞留到场补录 <b class="text-amber-700">L=${L}</b> → 实际应到 <b class="text-gray-800">K+L=${K + L}</b>（补录者计「到席」，档案按在场展示）</span>
@@ -848,7 +848,7 @@ function _renderDiscMeetDetainedMakeup() {
       ${detained.map(p => {
         const checked = _meetMakeupIds.has(p.id);
         return `
-        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border transition-colors cursor-pointer select-none ${checked ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white hover:bg-gray-50'}"
+        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors cursor-pointer select-none ${checked ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white hover:bg-gray-50'}"
           title="${esc(p.residenceNote || '滞留：组织关系保留、应到剔除、通知照发')}">
           <input type="checkbox" id="disc-meet-makeup-${p.id}" ${checked ? 'checked' : ''} class="accent-amber-600" style="cursor:pointer;">
           <span class="text-xs font-medium text-gray-700">${esc(p.name)}</span>

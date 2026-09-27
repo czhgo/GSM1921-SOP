@@ -2,11 +2,21 @@
 // entries/tabs/secretary/assign-tab.js — 赋权「三情景」分块渲染模块（**2026-09-25 起不再注册为 tab**）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 //
-// 内容已按对象归位（2026-09-25 支书裁「全按对象归位」· 原话「如果是情景，活动就归党小组；专班就归专班」）：
-//   · 情景①（设党小组组长 / 支委身份）＋ 情景②（活动项目赋权）⇒ 支书台「党小组与活动」tab
-//     （`entries/tabs/secretary/group-progress-tab.js` import 本模块的 mount* 分块）
-//   · 情景③（专班赋权）⇒ 组织委员台「专班管理」
-//     （`entries/tabs/org/taskforce-tab.js` import 本模块的 mountTaskforceProjectAuth）
+// 内容已按对象归位（2026-09-25 支书裁「全按对象归位」）＋ 2026-09-27 批次 213 按母本补齐非本位入口：
+//   · 情景①（设党小组组长 / 支委身份）⇒ **本位入口**＝支书台「党小组与活动」tab
+//     （`group-progress-tab.js:150` import `mountLeaderAssign`）
+//   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「活动管理」内联（`entries/tabs/leader/write-tab.js`）
+//     ＋ **支书台「党小组与活动」** 同项入口（`group-progress-tab.js:151` import `mountActivityProjectAuth`）
+//   · 情景③（专班赋权）⇒ **本位入口**＝组织委员台「专班管理」
+//     （`entries/tabs/org/taskforce-tab.js:240` import `mountTaskforceProjectAuth`）
+//     ＋ **支书台「党小组与活动」** 同项入口（同上 `mountActivityProjectAuth` 一并挂载）
+// 母本口径（`content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §D.1.1 赋权入口表；`.ctx/ACTIVE_RULINGS.md`
+//   「一、角色与分工」`D-434`/`D-614`）：「**支书在三个情景里都可介入**」——②③ 均写「支书亦可 / 支书台『赋权管理』
+//   同项入口」⇒ 支书台是**统一入口**（不是唯一入口）。2026-09-25「按对象归位」只搬了「本位落点」、③ 的支书台
+//   同项入口一度漏挂（`secretary/todo-tab.js::expandAssignPanelForTodo` 对 `scope==='taskforce'` 找的
+//   `#tf-auth-panel` 在支书台并不存在 ⇒ 曾是死分支）⇒ 本批按母本补回（`mountActivityProjectAuth` 一并渲染情景③）。
+// ⚠ **情景① 无「非本位入口」**（母本只写「赋权者＝支书 / 副支书」，未写「他人亦可」）⇒ `assign-leader` nudge
+//   在现形态下**不可达**（操作人恒为本位）——**如实标注、不假装可达**，见 `_isAuthHomeRole` 注释。
 // 故本文件**不再注册为 tab**：`modules/capabilities/secretary-workspace.js` 已删 `assign` 行、
 //   `?tab=assign` 已删（不做兼容映射）。本文件**仅余上述三处的分块渲染**（三个 mount* 导出 + 其私有实现）。
 // **权限判定一字未改**（列表/表单渲染之外，写口仍走 `AuthStore.authorize` / `services/appointment.js`）。
@@ -45,11 +55,16 @@ function _accentHex() {
 }
 
 // ── 本位 nudge 的「本位」判据（2026-09-27 · 逐情景给，不一刀切）──────────────────────────
-// 母本口径（`.ctx/ACTIVE_RULINGS.md`「一、角色与分工」`D-434` / `D-614`）：「赋权共三个情景」——
+// 母本口径（`.ctx/ACTIVE_RULINGS.md`「一、角色与分工」`D-434` / `D-614`；CDF §D.1.1）：「赋权共三个情景」——
 //   ① 常设赋权（党小组组长 / 支委身份；赋权者＝支书 / 副支书〔副书同权〕）
-//   ② 活动项目赋权（本位＝党小组组长）
-//   ③ 专班赋权（本位＝组织委员）
+//   ② 活动项目赋权（本位＝党小组组长，支书亦可）
+//   ③ 专班赋权（本位＝组织委员，支书亦可）
 // **本位操作人不弹、零打扰**（判据只此一处，三个写口共用）。
+// ⚠ **可达性（2026-09-27 批次 213 实读，如实标注）**：
+//   · ① `assign-leader`：入口只在支书台（操作人＝支书 / 副支书＝本位）⇒ **现形态下不可达**——母本无「非本位亦可」，
+//     不擅自开口子；保留为「日后若开口子」的守卫，不假装它是活的。
+//   · ② `assign-activity`：本位＝组长（其入口在组长台 `write-tab.js`），支书台即非本位入口 ⇒ **可达**（会弹）。
+//   · ③ `assign-taskforce`：组织委员台＝本位（不弹）、支书台＝非本位（本批补回，见 `mountActivityProjectAuth`）⇒ **可达**。
 function _isAuthHomeRole(key) {
   const r = AuthStore.getCurrentUser()?.role;
   if (key === 'taskforce') return r === 'org-commissioner';
@@ -88,7 +103,7 @@ const ACTIVITY_AUTH_HTML = `
     <div id="project-auth-panel"></div>
   </div>`;
 
-/** 情景③ 分块（专班赋权）——落点＝组织委员台「专班管理」 */
+/** 情景③ 分块（专班赋权）——本位落点＝组织委员台「专班管理」；支书台「党小组与活动」为同项入口（母本 §D.1.1） */
 const TF_AUTH_HTML = `
   <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4">
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">专班赋权（组织者 / 深度参与者）</h4>
@@ -109,14 +124,17 @@ export function mountLeaderAssign(host) {
   renderCommissionerAssign();
 }
 
-/** 情景② 挂载（支书台「党小组与活动」tab 调用） */
+/** 情景② ＋ 情景③ 挂载（支书台「党小组与活动」tab 调用）——
+ *  支书台＝赋权「统一入口」（母本 CDF §D.1.1 / `D-434`：「支书在三个情景里都可介入」）：本台同时挂情景②
+ *  （活动项目赋权）与情景③（专班赋权，支书亦可）；情景③ 在此台属**非本位操作** ⇒ 写入前弹本位 nudge。 */
 export function mountActivityProjectAuth(host) {
   if (!host) return;
-  host.innerHTML = ACTIVITY_AUTH_HTML;
+  host.innerHTML = ACTIVITY_AUTH_HTML + TF_AUTH_HTML;
   _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'activity'));
+  _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'taskforce'));
 }
 
-/** 情景③ 挂载（组织委员台「专班管理」调用） */
+/** 情景③ 挂载（组织委员台「专班管理」调用；本台即本位 ⇒ 操作人不弹 nudge） */
 export function mountTaskforceProjectAuth(host) {
   if (!host) return;
   host.innerHTML = TF_AUTH_HTML;

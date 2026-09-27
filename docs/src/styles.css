@@ -374,27 +374,32 @@ body {
 
 /* ═══════════════════════════════════════════════════════════════
    COMPONENT: Card
+   ── 单一源（2026-09-27 统一批）：卡片质地按 DESIGN_SYSTEM §4.2 收敛为「白底 + 1px 中性边框 +
+      12px 圆角（--radius-md）+ 无阴影」——此前 `.card` 无边框、带 5% 阴影，与同页自定义卡（有边框、
+      无阴影）质地不一致（支书实报「有的方硬、有的圆软」）。§4.2 明文「边框 1px solid --neutral-200 /
+      阴影 无」；§4.2 硬性规则 4「纯展示卡不加 hover 伪装」⇒ 悬停只按 §4.2 规范表改 border-color、
+      不再用阴影（阴影在全站平地只保留给浮层，见 --shadow-dropdown）。
    ═══════════════════════════════════════════════════════════════ */
 .card-flat {
   background-color: var(--surface-card);
+  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-  transition: box-shadow var(--transition-normal), background-color var(--transition-normal);
+  transition: border-color var(--transition-normal), background-color var(--transition-normal);
 }
 
 .card-flat:hover {
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  border-color: var(--primary-300);
 }
 
 .card {
   background-color: var(--surface-card);
+  border: 1px solid var(--neutral-200);
   border-radius: var(--radius-md);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-  transition: box-shadow var(--transition-normal), background-color var(--transition-normal);
+  transition: border-color var(--transition-normal), background-color var(--transition-normal);
 }
 
 .card:hover {
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+  border-color: var(--primary-300);
 }
 
 /* ═══════════════════════════════════════════════════════════════

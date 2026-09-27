@@ -609,7 +609,7 @@ function _mcRefsSummaryHtml(summary) {
   const safeChips = safe.map(x => chip(x, 'bg-green-50 text-green-700 border border-green-100'));
   const keepChips = keep.map(x => chip(x, 'bg-gray-50 text-gray-600 border border-gray-200'));
   return `
-    <div class="rounded-md bg-white border border-gray-100 p-2 text-[11px] text-gray-500 space-y-1">
+    <div class="rounded-lg bg-white border border-gray-100 p-2 text-[11px] text-gray-500 space-y-1">
       <p>保持记录摘要：自动解除 <span class="tabular-nums font-medium text-gray-700">${safeTotal}</span> 项 · 转已转出标注 <span class="tabular-nums font-medium text-gray-700">${keepTotal}</span> 条</p>
       ${(safeChips.length || keepChips.length) ? `
       <details>
