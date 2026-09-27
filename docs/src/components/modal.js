@@ -86,7 +86,7 @@ function _releaseInert(id) {
 //   不必复制一份 HTML（避免"同一段标记两处各写一套"）。文案与样式与批次 99 手写那条逐字同款。
 export function settingsLinkHTML(settingsLink) {
   return settingsLink
-    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent,#B91C1C);text-decoration:underline;">${settingsLink.text}</a></div>`
+    ? `<div class="modal-settings-link" style="padding:10px 20px;border-top:1px solid var(--neutral-200);font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">相关设置：<a href="${settingsLink.href}" style="color:var(--app-accent);text-decoration:underline;">${settingsLink.text}</a></div>`
     : '';
 }
 
@@ -344,7 +344,7 @@ export function confirmNudge({ nudgeKey, who, why, context = '' }) {
         <p style="margin:0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
           <button type="button" data-nudge-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-          <button type="button" data-nudge-confirm class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:var(--app-accent,#B91C1C);cursor:pointer;">仍由我继续</button>
+          <button type="button" data-nudge-confirm class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:var(--app-accent);cursor:pointer;">仍由我继续</button>
         </div>`,
       onMount: (p) => {
         p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));

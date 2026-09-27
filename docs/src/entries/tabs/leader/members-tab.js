@@ -98,7 +98,7 @@ export async function renderContent(ctx) {
           <span class="text-sm font-medium text-gray-700 w-16 flex-shrink-0">${b.name}</span>
           <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title}</span>
           <button type="button" class="leader-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
-            style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);color:color-mix(in srgb, var(--app-accent,#B91C1C) 60%, #000);"
+            style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff);color:color-mix(in srgb, var(--app-accent) 60%, #000);"
             data-person-id="${b.personId}" data-role="${b.role}" data-note="${b.title}">了解进展</button>
         </div>`;
 

@@ -15,7 +15,7 @@ let _consumedHighlight = null;
 const SEG_ON_CLASSES = [
   'bg-[var(--app-accent-bg)]',
   'border-[var(--app-accent)]',
-  '[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]',
+  '[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]',
 ];
 const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
 
@@ -25,7 +25,7 @@ function _syncSegBtns(container, view) {
     const on = btn.dataset.iview === view;
     SEG_ON_CLASSES.forEach(c => btn.classList.toggle(c, on));
     SEG_OFF_CLASSES.forEach(c => btn.classList.toggle(c, !on));
-    if (on) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)');
+    if (on) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)');
     else btn.style.removeProperty('--acc-text-dark');
   });
 }

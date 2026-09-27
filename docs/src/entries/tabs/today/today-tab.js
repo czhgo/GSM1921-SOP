@@ -28,8 +28,8 @@ import { memoizeRender } from '../../../components/memoize-render.js?v=20260924a
 import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260924a';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
-const ACCENT = 'var(--app-accent, #B91C1C)';
-const ACCENT_BG = 'var(--app-accent-bg, rgba(185, 28, 28, 0.1))';
+const ACCENT = 'var(--app-accent)';
+const ACCENT_BG = 'var(--app-accent-bg)';
 
 // ── P2 渲染守卫（2026-09-07 · spec §四.1）────────────────────────
 // 今天卡为「读多写少」只读聚合视图：buildTodaySummary 内部已有 P0/P1 缓存，本守卫省的
@@ -102,7 +102,7 @@ function _meetingBlock(s) {
 /** 到期行（overdue=红字；due=常规，右侧示截止日期）；点击 → onNav('todo') */
 function _todoRows(items, overdue) {
   const titleCls = overdue ? 'text-red-600 font-medium' : 'text-gray-800';
-  const dot = overdue ? 'background:#EF4444;' : 'background:#9CA3AF;';
+  const dot = overdue ? 'background:var(--functional-error);' : 'background:#9CA3AF;';
   const dateCls = overdue ? 'text-red-600 font-medium' : 'text-gray-500';
   return items.map(t => `
     <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"

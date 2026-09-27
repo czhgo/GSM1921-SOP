@@ -3872,7 +3872,7 @@ label .text-red-500 {
 }
 
 .workflow-progress-bar.blocked {
-  background: #EF4444;
+  background: var(--functional-error);
 }
 
 /* ── State label ── */
@@ -3900,7 +3900,7 @@ label .text-red-500 {
 }
 
 .workflow-state-dot.blocked {
-  background: #EF4444;
+  background: var(--functional-error);
   box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
 }
 
@@ -4201,7 +4201,7 @@ label .text-red-500 {
 }
 
 .workflow-banner-icon {
-  color: #EF4444;
+  color: var(--functional-error);
   flex-shrink: 0;
   margin-top: 1px;
 }

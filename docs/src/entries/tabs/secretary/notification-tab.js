@@ -77,7 +77,7 @@ function renderNotificationForm() {
   html += `<div class="flex flex-wrap gap-2">`;
   NOTICE_AUDIENCE_OPTIONS.forEach(a => {
     const on = _selectedAudience.includes(a.value);
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -128,7 +128,7 @@ function handleNotifAction(e) {
           b.className = isSelected
             ? 'chip-accent-on chip-option text-sm px-4 py-2 rounded-lg font-medium'
             : 'chip-option text-sm px-4 py-2 rounded-lg';
-          if (isSelected) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)');
+          if (isSelected) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)');
           else b.style.removeProperty('--acc-text-dark');
         });
       }
@@ -298,7 +298,7 @@ function _openNoticeEditModal(notice) {
   const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
   const chips = NOTICE_AUDIENCE_OPTIONS.map(a => {
     const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
-    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${a.label}</button>`;
+    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
   }).join('');
 
   openModal({

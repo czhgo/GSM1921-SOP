@@ -35,7 +35,7 @@ let _view = 'person';
 const SEG_ON_CLASSES = [
   'bg-[var(--app-accent-bg)]',
   'border-[var(--app-accent)]',
-  '[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]',
+  '[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]',
 ];
 const SEG_OFF_CLASSES = ['bg-white', 'border-neutral-200', 'text-gray-600'];
 

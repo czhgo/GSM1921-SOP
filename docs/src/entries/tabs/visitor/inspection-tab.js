@@ -42,7 +42,7 @@ export function renderContent(ctx) {
   const myAppeals = loadInspectionAppeals().filter(a => a.personId === personId && a.status !== 'closed');
   const appealStatusLabel = (s) => s === 'returned' ? '已打回 · 待上传方补录' : '待纪检核实';
   const myAppealsHtml = myAppeals.length === 0 ? '' : `
-    <div class="mt-2 pt-2" style="border-top:1px solid var(--neutral-100, #F3F4F6);">
+    <div class="mt-2 pt-2" style="border-top:1px solid var(--neutral-100);">
       ${myAppeals.map(a => {
         const act = _acts.find(x => x.id === a.activityId);
         return `<div class="text-xs text-gray-500 truncate">${esc(act ? act.title : a.activityId)} · ${appealStatusLabel(a.status)}${a.returnNote ? `（${esc(a.returnNote)}）` : ''}</div>`;

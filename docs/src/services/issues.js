@@ -1482,7 +1482,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
       html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
@@ -1643,7 +1643,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
       html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
       if (c.kind === 'reply') {
-        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
       html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;

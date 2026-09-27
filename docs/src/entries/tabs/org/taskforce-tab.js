@@ -67,7 +67,7 @@ export function renderContent(ctx) {
          形态沿用考勤矩阵/考察总表的互斥小圆角钮组（data-view 切换逻辑照旧） -->
     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
       <div class="flex items-center gap-2" id="org-tf-view-btns">
-        <button type="button" class="org-tf-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-view="kanban">看板</button>
+        <button type="button" class="org-tf-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="kanban">看板</button>
         <button type="button" class="org-tf-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="matrix">报名总表</button>
       </div>
     </div>
@@ -78,7 +78,7 @@ export function renderContent(ctx) {
     <div id="org-tf-matrix-area" class="hidden">
       <!-- 转置双视图钮（缺省「按人」＝宽表默认，与全站口径一致）：data-mode 直接映射矩阵 mode -->
       <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns">
-        <button type="button" class="org-tf-mode-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-mode="byPerson">按人</button>
+        <button type="button" class="org-tf-mode-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-mode="byPerson">按人</button>
         <button type="button" class="org-tf-mode-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-mode="byItem">按项目</button>
       </div>
       <div id="org-tf-signup-matrix"></div>
@@ -202,8 +202,8 @@ export function renderContent(ctx) {
       const on = b === btn;
       b.classList.toggle('bg-[var(--app-accent-bg)]', on);
       b.classList.toggle('border-[var(--app-accent)]', on);
-      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
-      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
+      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', on);
+      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
       b.classList.toggle('bg-white', !on);
       b.classList.toggle('border-neutral-200', !on);
       b.classList.toggle('text-gray-600', !on);
@@ -223,8 +223,8 @@ export function renderContent(ctx) {
       const on = b === btn;
       b.classList.toggle('bg-[var(--app-accent-bg)]', on);
       b.classList.toggle('border-[var(--app-accent)]', on);
-      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', on);
-      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
+      b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', on);
+      if (on) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
       b.classList.toggle('bg-white', !on);
       b.classList.toggle('border-neutral-200', !on);
       b.classList.toggle('text-gray-600', !on);

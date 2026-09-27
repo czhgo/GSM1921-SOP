@@ -117,7 +117,7 @@ const CALENDAR_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-4">
     <div class="flex items-center justify-between mb-4">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动日历</h3>
-      <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 h-8 px-4 text-sm inline-flex items-center gap-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">
+      <button id="ws-sec-write-btn" type="button" class="btn-accent-soft shrink-0 h-8 px-4 text-sm inline-flex items-center gap-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
@@ -423,9 +423,9 @@ function renderWritePanel(container) {
   // 面包屑（替代原 5 步指示器）
   const step1Active = wp.step === 1;
   html += `<div class="flex items-center gap-2 mb-5 text-xs">`;
-  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>① 选模板</span>`;
+  html += `<span class="${step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>① 选模板</span>`;
   html += `<span class="text-gray-500">›</span>`;
-  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${!step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>② 填表单</span>`;
+  html += `<span class="${!step1Active ? 'text-accent font-semibold' : 'text-gray-500'}"${!step1Active ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>② 填表单</span>`;
   html += `</div>`;
 
   // 当前步骤内容
@@ -474,13 +474,13 @@ function renderTemplateStep() {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
       // 点击由 bindWritePanelEvents 委托（整卡 data-tpl-click；按钮自身 data-action 不受影响）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>`;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
       tpl.subtypes.forEach(sub => {
         const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
-        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>`;
+        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
         html += sub.label;
         html += `</button>`;
       });

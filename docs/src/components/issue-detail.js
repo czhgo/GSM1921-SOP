@@ -160,7 +160,7 @@ export function renderIssueDetail(issueId) {
                   <option value="wontfix" ${issue.closedReason === 'wontfix' ? 'selected' : ''}>不修复</option>
                   <option value="not_planned" ${issue.closedReason === 'not_planned' ? 'selected' : ''}>暂不计划</option>
                 </select>
-                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">应用</button>`
+                <button id="btn-apply-status" class="btn-accent-soft mt-2 w-full text-sm px-4 py-1.5 font-sans" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">应用</button>`
               : `<p class="text-gray-700 font-sans">${ISSUE_STATUS_LABELS[issue.status] || issue.status}${issue.closedReason ? ' · ' + (ISSUE_CLOSED_REASON_LABELS[issue.closedReason] || issue.closedReason) : ''}</p>`
             }
           </div>

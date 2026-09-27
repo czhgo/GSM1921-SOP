@@ -64,9 +64,9 @@ export function switchActivityView(view) {
   document.querySelectorAll('.activity-tab-btn').forEach(btn => {
     const isActive = btn.dataset.view === view;
     btn.className = `activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
+      isActive ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'
     }`;
-    if (isActive) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else btn.style.removeProperty('--acc-text-dark');
+    if (isActive) btn.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else btn.style.removeProperty('--acc-text-dark');
   });
 
   // 同步 URL
@@ -107,7 +107,7 @@ export function renderActivityList(activities, user) {
     ? CrossPageState.buildURL(getBasePath() + 'workspace/' + (AuthStore.getPageForRole('workspace', user.role) || 'visitor.html'), { view: 'activities' })
     : getBasePath() + 'login.html';
   const moreHtml = sorted.length > display.length
-    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue,#3B82F6);">查看更多活动（共 ${sorted.length} 条）→</a>`
+    ? `<a href="${moreUrl}" class="mt-2 flex items-center justify-center gap-1 py-2 text-xs font-medium rounded-lg transition-colors hover:bg-gray-50" style="color:var(--accent-blue);">查看更多活动（共 ${sorted.length} 条）→</a>`
     : '';
 
   container.innerHTML = '<div class="space-y-2">' + display.map(a => {

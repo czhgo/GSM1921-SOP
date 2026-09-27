@@ -110,8 +110,8 @@ export function renderContent(ctx) {
     <div class="flex items-center gap-2 mb-3">
       ${subTabs.map(t => `
         <button type="button"
-          class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
-          ${_projSubView === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}
+          class="visitor-proj-sub px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_projSubView === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+          ${_projSubView === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}
           data-proj-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -239,8 +239,8 @@ export function renderContent(ctx) {
         const active = b === btn;
         b.classList.toggle('bg-[var(--app-accent-bg)]', active);
         b.classList.toggle('border-[var(--app-accent)]', active);
-        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]', active);
-        if (active) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
+        b.classList.toggle('[color:color-mix(in_srgb,var(--app-accent)_60%,#000)]', active);
+        if (active) b.style.setProperty('--acc-text-dark', 'color-mix(in srgb, var(--app-accent) 55%, #fff)'); else b.style.removeProperty('--acc-text-dark');
         b.classList.toggle('bg-white', !active);
         b.classList.toggle('border-neutral-200', !active);
         b.classList.toggle('text-gray-600', !active);

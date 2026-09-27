@@ -368,7 +368,7 @@ function mywsCardHtml(model) {
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">我的工作台</h2>
         <span class="ml-auto flex items-center gap-2">
-          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-myws="reset-all" title="恢复全部默认（清除本账号顺序调整）" ${hasPref ? '' : 'disabled'}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复全部默认</button>
         </span>
       </div>
       <p class="text-[13px] leading-relaxed text-gray-500 mb-4">${label}工作台页签顺序 · 拖拽或按钮调整，即时保存（仅对当前账号生效）。</p>
@@ -814,7 +814,7 @@ function branchOrderCardHtml(model) {
       <div class="flex items-center gap-2.5 mb-2">
         <h2 class="font-title-cn text-base font-bold text-gray-800">工作台默认顺序</h2>
         <span class="ml-auto flex items-center gap-2">
-          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-bws="reset-all" title="恢复系统默认顺序（默认全开 + 注册序）" ${modulesNull ? 'disabled' : ''}>${icon('undo', { className: 'icon-base w-[13px] h-[13px]' })}恢复默认</button>
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-bws="save" title="保存为支部默认顺序" ${dirty ? '' : 'disabled'}>保存</button>
         </span>
       </div>
@@ -1130,7 +1130,7 @@ function activityApprovalCardHtml(branch, P) {
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-approval-save>保存</button>
-        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-approval-reset ${hasOverride ? '' : 'disabled'}>恢复默认</button>
       </div>
       <p class="status-line" data-pol-status aria-live="polite"></p>
     </div>`;
@@ -1237,7 +1237,7 @@ function domainCardHtml(meta, branch, P) {
         </div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-disc">保存</button>
-          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-disc" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-pol-reset="domain-disc" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
         </div>
         ${statusHtml}
       </div>`;
@@ -1303,7 +1303,7 @@ function domainCardHtml(meta, branch, P) {
         <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。${curState}</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-org">保存</button>
-          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+          <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
         </div>
         ${statusHtml}
       </div>`;
@@ -1330,7 +1330,7 @@ function domainCardHtml(meta, branch, P) {
       </div>
       <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
         <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-leader">保存</button>
-        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-pol-reset="domain-leader" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+        <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-pol-reset="domain-leader" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
       </div>
       ${statusHtml}
     </div>`;

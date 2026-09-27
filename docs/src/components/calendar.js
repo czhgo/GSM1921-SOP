@@ -185,7 +185,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
+        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;

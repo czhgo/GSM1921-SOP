@@ -228,7 +228,7 @@ function renderBlockerSection(people, today) {
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${r.title} 超期 ${r.count} 项</span>
       <span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${r.deadline}</span>
       <button type="button" class="sec-ask-report btn-accent-soft text-xs px-2.5 py-1 flex-shrink-0"
-        style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"
+        style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"
         data-person-id="${r.role.personIds[0]}" data-role="${r.role.role}" data-note="${r.title} 已超期">了解进展</button>
     </div>`).join('');
 
@@ -350,7 +350,7 @@ function renderDimensionView(container) {
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">${d.senderName}</span>
-      <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-ed-id="${d.id}">确认收到</button>
+      <button type="button" class="sec-ed-confirm btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-ed-id="${d.id}">确认收到</button>
     </div>`);
 
   // 宣传周报待审核（SOP-B-40 ②，2026-09-19 批次 94）：宣传委员报送后在此审核（通过 / 退回）。
@@ -362,8 +362,8 @@ function renderDimensionView(container) {
       <span class="text-sm font-medium text-gray-700 w-24 flex-shrink-0">周报待审核</span>
       <span class="text-xs text-gray-500 flex-1 truncate">${r.week}（${r.weekRange}）· ${getPersonName(r.submittedBy) || '宣传委员'} 报送于 ${r.submittedAt || '—'}</span>
       <span class="text-xs text-gray-500 w-16 flex-shrink-0">宣传委员</span>
-      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="approved">通过</button>
-      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="returned">退回</button>
+      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="approved">通过</button>
+      <button type="button" class="sec-weekly-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-weekly-id="${r.id}" data-weekly-decision="returned">退回</button>
     </div>`);
 
   const exceptionsHtml = (exceptions.length === 0 && dispatchRows.length === 0 && weeklyRows.length === 0)
@@ -373,8 +373,8 @@ function renderDimensionView(container) {
     : dispatchRows.join('') + weeklyRows.join('') + exceptions.map(e => {
         const dot = e.level === 3 ? '#EF4444' : e.level === 2 ? '#F59E0B' : '#3B82F6';
         const actionHtml = e.action.urge
-          ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
-          : `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)" data-direct="${e.action.direct}">直达处理</button>`;
+          ? `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-urge="${e.action.urge}">催办</button>`
+          : `<button type="button" class="sec-urge-btn btn-accent-soft text-xs px-2.5 py-1" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-direct="${e.action.direct}">直达处理</button>`;
         return `
           <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors">
             <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dot};"></span>
@@ -511,9 +511,9 @@ function _sparkline(series) {
   const area = `${line} L${pts[pts.length - 1][0].toFixed(1)},${h} L${pts[0][0].toFixed(1)},${h} Z`;
   return `
     <svg viewBox="0 0 ${w} ${h}" class="w-full h-10" preserveAspectRatio="none">
-      <path d="${area}" fill="var(--app-accent-bg, rgba(185,28,28,0.12))"></path>
-      <path d="${line}" fill="none" stroke="var(--app-accent, #B91C1C)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
-      ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i === pts.length - 1 ? 2.5 : 1.5}" fill="var(--app-accent, #B91C1C)"><title>${series[i].date} · 出勤率 ${series[i].rate}%</title></circle>`).join('')}
+      <path d="${area}" fill="var(--app-accent-bg)"></path>
+      <path d="${line}" fill="none" stroke="var(--app-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>
+      ${pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i === pts.length - 1 ? 2.5 : 1.5}" fill="var(--app-accent)"><title>${series[i].date} · 出勤率 ${series[i].rate}%</title></circle>`).join('')}
     </svg>`;
 }
 

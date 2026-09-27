@@ -70,7 +70,7 @@ async function openReportModal() {
       <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
       <div class="flex justify-end gap-2 mt-3">
         <button type="button" class="report-modal-close text-xs px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-        <button id="report-modal-submit" class="text-xs px-4 py-2 rounded-lg text-white" style="background:var(--app-accent,#B91C1C);">发出汇报</button>
+        <button id="report-modal-submit" class="text-xs px-4 py-2 rounded-lg text-white" style="background:var(--app-accent);">发出汇报</button>
       </div>
     </div>
   `;

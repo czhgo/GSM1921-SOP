@@ -92,290 +92,322 @@
 // 43 个色值此后各只出现一次（都在 `_C` 表内）；**值集合一字未变**（distinct 仍 45：注释里的 `#d4af37` / `#fee2e2` 仍在）
 //   ⇒ H1/H2 判据不受影响，仅该文件 c 137→67（全站 distinct 168 与条目数 91 均不变）。
 
+// ── 存量清理（2026-09-28 · 色彩二分批）：清 **74 处**（1619→1545）──
+// 口径＝「`var(--tok, <硬编码兜底>)` 且 `--tok` 已在 `:root` 有正式默认值 ⇒ 删兜底（逐字等值 ⇒ 零观感变化）」＋
+//   「`#EF4444`→`var(--functional-error)`（值等 ⇒ 零变化）」。含与 `classList.toggle(同一字面量)` 成对耦合的
+//   Tailwind 任意值类 `[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]`——类串与 toggle 字面量含同一子串，
+//   一次子串替换即成对同步；**23 文件 c 下调**（清单与「改前→改后」见执行报告）；`docs/src/services/issues.js` 清零 ⇒ 删条目（81→80）。
+//   distinct 值仍 167；`HEX_TOTAL_BASELINE` 有意保持 2025。**有意不碰**见下方 `HEX_FILE_BASELINE` 前的本批注。
+
 export const HEX_BASELINE = {
   'docs/help.html': { c: 568, v: [
-      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981', '#111827', '#15803d', '#1d4ed8',
-      '#1f2937', '#2563eb', '#374151', '#3b82f6', '#4b5563', '#4d7c0f', '#65a30d', '#6b7280', '#7a0010',
-      '#7c3aed', '#7c5a14', '#86efac', '#8b5cf6', '#92400e', '#93c5fd', '#991b1b', '#9a3412', '#9ca3af',
-      '#a7f3d0', '#b45309', '#b91c1c', '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb', '#ecfdf5',
-      '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1', '#f8f9fa', '#fafaf5', '#fafaf9',
-      '#fca5a5', '#fcfcfb', '#fdba74', '#fde68a', '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700',
-      '#fff', '#fffbeb', '#fffbfb', '#ffffff',
+      '#0369a1', '#047857', '#059669', '#06b6d4', '#0891b2', '#10b981',
+      '#111827', '#15803d', '#1d4ed8', '#1f2937', '#2563eb', '#374151',
+      '#3b82f6', '#4b5563', '#4d7c0f', '#65a30d', '#6b7280', '#7a0010',
+      '#7c3aed', '#7c5a14', '#86efac', '#8b5cf6', '#92400e', '#93c5fd',
+      '#991b1b', '#9a3412', '#9ca3af', '#a7f3d0', '#b45309', '#b91c1c',
+      '#bae6fd', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb', '#ecfdf5',
+      '#edeef0', '#eeeff2', '#f0dfa8', '#f1f2f4', '#f3f4f6', '#f6d1d1',
+      '#f8f9fa', '#fafaf5', '#fafaf9', '#fca5a5', '#fcfcfb', '#fdba74',
+      '#fde68a', '#fdf2f2', '#fdfbf4', '#fecaca', '#fef2f2', '#ffd700',
+      '#fff', '#fffbeb', '#fffbfb', '#ffffff'
   ] },
   'docs/login.html': { c: 5, v: [
-      '#7a0010', '#9b0000', '#ce1126', '#e5e7eb', '#fecaca',
+      '#7a0010', '#9b0000', '#ce1126', '#e5e7eb', '#fecaca'
   ] },
   // `docs/settings.html` 条目已于 2026-09-25 移除（收基线）：该页整体重做后
   //   页面级 <style> 归零、页面内硬编码 hex 清零 ⇒ 按本守卫自身纪律（收基线＝删条目）删去。
   'docs/src/about.css': { c: 50, v: [
-      '#14161a', '#1b1e24', '#22262d', '#33383f', '#3b3226', '#6c6254', '#756b5d', '#7c5c14', '#7e7870',
-      '#94897a', '#948e85', '#a80f1c', '#a9a398', '#aba191', '#c9a227', '#ce1126', '#e3c24f', '#e6dfd2',
-      '#e8e4dc', '#f0ebe2', '#f6f2eb', '#faf8f4', '#fbe9e4', '#fdf1ea', '#fff', '#fff8ee', '#fffdf6',
+      '#14161a', '#1b1e24', '#22262d', '#33383f', '#3b3226', '#6c6254',
+      '#756b5d', '#7c5c14', '#7e7870', '#94897a', '#948e85', '#a80f1c',
+      '#a9a398', '#aba191', '#c9a227', '#ce1126', '#e3c24f', '#e6dfd2',
+      '#e8e4dc', '#f0ebe2', '#f6f2eb', '#faf8f4', '#fbe9e4', '#fdf1ea',
+      '#fff', '#fff8ee', '#fffdf6'
   ] },
   'docs/src/components/activity-view.js': { c: 4, v: [
-      '#16a34a', '#9ca3af', '#d97706',
+      '#16a34a', '#9ca3af', '#d97706'
   ] },
-  'docs/src/components/appearance-controls.js': { c: 9, v: [
-      '#000', '#b91c1c', '#fff',
+  'docs/src/components/appearance-controls.js': { c: 5, v: [
+      '#000', '#b91c1c', '#fff'
   ] },
   'docs/src/components/badge.js': { c: 5, v: [
-      '#6b7280', '#a16207', '#f3f4f6', '#fde68a', '#fef3c7',
+      '#6b7280', '#a16207', '#f3f4f6', '#fde68a', '#fef3c7'
   ] },
-  'docs/src/components/calendar.js': { c: 13, v: [
-      '#000', '#b91c1c', '#fff',
+  'docs/src/components/calendar.js': { c: 11, v: [
+      '#000', '#fff'
   ] },
-  'docs/src/components/dashboard/activity-panel.js': { c: 7, v: [
-      '#000', '#3b82f6', '#6b7280', '#b91c1c', '#f9fafb', '#fff',
+  'docs/src/components/dashboard/activity-panel.js': { c: 4, v: [
+      '#000', '#6b7280', '#f9fafb', '#fff'
   ] },
   'docs/src/components/dashboard/gallery.js': { c: 19, v: [
-      '#6b7280', '#a7f3d0', '#bae6fd', '#bfdbfe', '#c4b5fd', '#d9f99d', '#e5e7eb', '#ecfdf5', '#eff6ff',
-      '#f0f9ff', '#f5f3ff', '#f7fee7', '#f9fafb', '#fbcfe8', '#fde68a', '#fdf2f8', '#fecaca', '#fef2f2',
-      '#fffbeb',
+      '#6b7280', '#a7f3d0', '#bae6fd', '#bfdbfe', '#c4b5fd', '#d9f99d',
+      '#e5e7eb', '#ecfdf5', '#eff6ff', '#f0f9ff', '#f5f3ff', '#f7fee7',
+      '#f9fafb', '#fbcfe8', '#fde68a', '#fdf2f8', '#fecaca', '#fef2f2',
+      '#fffbeb'
   ] },
   'docs/src/components/dashboard/stats.js': { c: 15, v: [
-      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626', '#f59e0b', '#f97316',
+      '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706',
+      '#dc2626', '#f59e0b', '#f97316'
   ] },
   'docs/src/components/header.js': { c: 5, v: [
-      '#000', '#7a0010', '#fff', '#ffffff',
+      '#000', '#7a0010', '#fff', '#ffffff'
   ] },
-  'docs/src/components/insight-view.js': { c: 4, v: [
-      '#000', '#b91c1c', '#fff',
+  'docs/src/components/insight-view.js': { c: 2, v: [
+      '#000', '#fff'
   ] },
   'docs/src/components/inspector.js': { c: 19, v: [
-      '#15803d', '#16a34a', '#34d399', '#4ade80', '#60a5fa', '#92400e', '#9ca3af', '#b91c1c', '#ce1126',
-      '#d97706', '#f87171', '#fbbf24',
+      '#15803d', '#16a34a', '#34d399', '#4ade80', '#60a5fa', '#92400e',
+      '#9ca3af', '#b91c1c', '#ce1126', '#d97706', '#f87171', '#fbbf24'
   ] },
-  'docs/src/components/issue-detail.js': { c: 13, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207', '#b91c1c', '#ce1126', '#f87171',
-      '#fbbf24', '#fff',
+  'docs/src/components/issue-detail.js': { c: 12, v: [
+      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
+      '#ce1126', '#f87171', '#fbbf24', '#fff'
   ] },
   'docs/src/components/issue-form.js': { c: 9, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171', '#fbbf24',
+      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
+      '#ce1126', '#f87171', '#fbbf24'
   ] },
   'docs/src/components/issue-list.js': { c: 14, v: [
-      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#991b1b', '#a16207', '#ce1126', '#f87171',
-      '#fbbf24',
+      '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#991b1b',
+      '#a16207', '#ce1126', '#f87171', '#fbbf24'
   ] },
   'docs/src/components/member-change-panel.js': { c: 1, v: [
-      '#b91c1c',
+      '#b91c1c'
   ] },
-  'docs/src/components/modal.js': { c: 8, v: [
-      '#b91c1c', '#cbd5e1', '#f87171',
+  'docs/src/components/modal.js': { c: 6, v: [
+      '#cbd5e1', '#f87171'
   ] },
   'docs/src/components/org-setup-wizard.js': { c: 8, v: [
-      '#16a34a', '#ce1126', '#ef4444', '#ffd700', '#fff',
+      '#16a34a', '#ce1126', '#ef4444', '#ffd700', '#fff'
   ] },
   'docs/src/components/overview-dispatch-bar.js': { c: 1, v: [
-      '#b91c1c',
+      '#b91c1c'
   ] },
   'docs/src/components/person-picker.css': { c: 4, v: [
-      '#92400e', '#f9fafb', '#fef3c7',
+      '#92400e', '#f9fafb', '#fef3c7'
   ] },
   'docs/src/components/person-picker.js': { c: 8, v: [
-      '#000', '#047857', '#1d4ed8', '#6b7280', '#991b1b', '#a16207', '#ce1126',
+      '#000', '#047857', '#1d4ed8', '#6b7280', '#991b1b', '#a16207',
+      '#ce1126'
   ] },
   'docs/src/components/query-view.js': { c: 2, v: [
-      '#3b82f6',
+      '#3b82f6'
   ] },
   'docs/src/components/reactions.js': { c: 10, v: [
-      '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280', '#cbd5e1', '#d97706', '#dc2626',
-      '#f3f4f6',
+      '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280',
+      '#cbd5e1', '#d97706', '#dc2626', '#f3f4f6'
   ] },
-  'docs/src/components/report-entry.js': { c: 4, v: [
-      '#b91c1c', '#fff',
+  'docs/src/components/report-entry.js': { c: 3, v: [
+      '#b91c1c', '#fff'
   ] },
   'docs/src/components/report-inbox.js': { c: 5, v: [
-      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171',
+      '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171'
   ] },
   'docs/src/components/status-badge.js': { c: 1, v: [
-      '#9ca3af',
+      '#9ca3af'
   ] },
   'docs/src/components/tab-bar.js': { c: 4, v: [
-      '#000', '#334155', '#b91c1c', '#ffd700',
+      '#000', '#334155', '#b91c1c', '#ffd700'
   ] },
   'docs/src/components/taskforce-view.js': { c: 24, v: [
-      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6', '#60a5fa', '#6366f1', '#6b7280',
-      '#94a3b8', '#a5b4fc', '#d97706', '#dc2626', '#f87171', '#fbbf24',
+      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6',
+      '#60a5fa', '#6366f1', '#6b7280', '#94a3b8', '#a5b4fc', '#d97706',
+      '#dc2626', '#f87171', '#fbbf24'
   ] },
   'docs/src/components/work-overview.js': { c: 12, v: [
-      '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c', '#cbd5e1', '#ef4444', '#f59e0b',
+      '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c',
+      '#cbd5e1', '#ef4444', '#f59e0b'
   ] },
   'docs/src/core/constants.js': { c: 67, v: [
-      '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9', '#10b981', '#16a34a', '#1d4ed8',
-      '#22c55e', '#22d3ee', '#2563eb', '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
-      '#60a5fa', '#6b7280', '#7c3aed', '#7dd3fc', '#92400e', '#94a3b8', '#991b1b', '#9b0000', '#a16207',
-      '#a5b4fc', '#a78bfa', '#b91c1c', '#c2410c', '#c4b5fd', '#cbd5e1', '#ce1126', '#d4af37', '#d97706',
-      '#dc2626', '#f87171', '#fb923c', '#fbbf24', '#fee2e2', '#fef2f2', '#fefce8', '#ffd700', '#fff',
+      '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9',
+      '#10b981', '#16a34a', '#1d4ed8', '#22c55e', '#22d3ee', '#2563eb',
+      '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
+      '#60a5fa', '#6b7280', '#7c3aed', '#7dd3fc', '#92400e', '#94a3b8',
+      '#991b1b', '#9b0000', '#a16207', '#a5b4fc', '#a78bfa', '#b91c1c',
+      '#c2410c', '#c4b5fd', '#cbd5e1', '#ce1126', '#d4af37', '#d97706',
+      '#dc2626', '#f87171', '#fb923c', '#fbbf24', '#fee2e2', '#fef2f2',
+      '#fefce8', '#ffd700', '#fff'
   ] },
   'docs/src/core/data-adapter.js': { c: 7, v: [
-      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb', '#fff',
+      '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb',
+      '#fff'
   ] },
   'docs/src/core/icons.js': { c: 1, v: [
-      '#fff',
+      '#fff'
   ] },
   'docs/src/core/utils.js': { c: 15, v: [
-      '#16a34a', '#1e293b', '#1f2937', '#3b82f6', '#e2e8f0', '#ef4444', '#eff6ff', '#f0fdf4', '#fef2f2',
-      '#fff',
+      '#16a34a', '#1e293b', '#1f2937', '#3b82f6', '#e2e8f0', '#ef4444',
+      '#eff6ff', '#f0fdf4', '#fef2f2', '#fff'
   ] },
   'docs/src/entries/about-entry.js': { c: 20, v: [
-      '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280', '#900', '#b91c1c', '#c2410c',
-      '#ce1126', '#f87171', '#fee', '#ffd700',
+      '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280',
+      '#900', '#b91c1c', '#c2410c', '#ce1126', '#f87171', '#fee',
+      '#ffd700'
   ] },
   'docs/src/entries/activity-entry.js': { c: 10, v: [
-      '#000', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171', '#fbbf24', '#fde68a', '#ffd700',
+      '#000', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171',
+      '#fbbf24', '#fde68a', '#ffd700'
   ] },
   'docs/src/entries/archive-entry.js': { c: 1, v: [
-      '#6b7280',
+      '#6b7280'
   ] },
   'docs/src/entries/help-entry.js': { c: 4, v: [
-      '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2',
+      '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2'
   ] },
-  'docs/src/entries/settings-entry.js': { c: 13, v: [
-      '#000', '#6b7280', '#92400e', '#b91c1c', '#e5e7eb', '#fef3c7', '#fff',
+  'docs/src/entries/settings-entry.js': { c: 6, v: [
+      '#fff'
   ] },
-  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 19, v: [
-      '#000', '#14b8a6', '#16a34a', '#94a3b8', '#b91c1c', '#ef4444', '#f59e0b', '#fff',
+  'docs/src/entries/tabs/disc/attendance-tab.js': { c: 13, v: [
+      '#000', '#14b8a6', '#16a34a', '#94a3b8', '#ef4444', '#f59e0b',
+      '#fff'
   ] },
-  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 11, v: [
-      '#000', '#94a3b8', '#b45309', '#b91c1c', '#fff',
+  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 6, v: [
+      '#000', '#94a3b8', '#b45309', '#fff'
   ] },
   'docs/src/entries/tabs/disc/review-tab.js': { c: 1, v: [
-      '#fbbf24',
+      '#fbbf24'
   ] },
   'docs/src/entries/tabs/leader/attendance-tab.js': { c: 1, v: [
-      '#000',
+      '#000'
   ] },
   'docs/src/entries/tabs/leader/inspection-tab.js': { c: 1, v: [
-      '#000',
+      '#000'
   ] },
-  'docs/src/entries/tabs/leader/members-tab.js': { c: 5, v: [
-      '#000', '#60a5fa', '#b91c1c', '#fff',
+  'docs/src/entries/tabs/leader/members-tab.js': { c: 3, v: [
+      '#000', '#60a5fa', '#fff'
   ] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [
-      '#fbbf24',
+      '#fbbf24'
   ] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 22, v: [
-      '#000', '#0e7490', '#10b981', '#1e293b', '#334155', '#3b82f6', '#475569', '#6b7280', '#94a3b8',
-      '#cbd5e1', '#ce1126', '#d1d5db', '#d97706', '#e5e7eb',
+      '#000', '#0e7490', '#10b981', '#1e293b', '#334155', '#3b82f6',
+      '#475569', '#6b7280', '#94a3b8', '#cbd5e1', '#ce1126', '#d1d5db',
+      '#d97706', '#e5e7eb'
   ] },
   'docs/src/entries/tabs/org/development-tab.js': { c: 8, v: [
-      '#000', '#06b6d4', '#10b981', '#334155', '#3b82f6', '#e5e7eb', '#f59e0b',
+      '#000', '#06b6d4', '#10b981', '#334155', '#3b82f6', '#e5e7eb',
+      '#f59e0b'
   ] },
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
-      '#000',
+      '#000'
   ] },
   'docs/src/entries/tabs/org/roster-tab.js': { c: 2, v: [
-      '#cbd5e1',
+      '#cbd5e1'
   ] },
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [
-      '#67e8f9',
+      '#67e8f9'
   ] },
-  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 54, v: [
-      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6', '#60a5fa', '#6366f1', '#6b7280',
-      '#8b5cf6', '#94a3b8', '#a5b4fc', '#b91c1c', '#c4b5fd', '#d97706', '#dc2626', '#f87171', '#fbbf24',
-      '#fff',
+  'docs/src/entries/tabs/org/taskforce-tab.js': { c: 46, v: [
+      '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6',
+      '#60a5fa', '#6366f1', '#6b7280', '#8b5cf6', '#94a3b8', '#a5b4fc',
+      '#c4b5fd', '#d97706', '#dc2626', '#f87171', '#fbbf24', '#fff'
   ] },
-  'docs/src/entries/tabs/org/thought-review-tab.js': { c: 2, v: [
-      '#000', '#b91c1c',
+  'docs/src/entries/tabs/org/thought-review-tab.js': { c: 1, v: [
+      '#000'
   ] },
   'docs/src/entries/tabs/org/todo-tab.js': { c: 1, v: [
-      '#3b82f6',
+      '#3b82f6'
   ] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
-      '#60a5fa', '#999',
+      '#60a5fa', '#999'
   ] },
   'docs/src/entries/tabs/prop/kanban-tab.js': { c: 5, v: [
-      '#000', '#60a5fa', '#94a3b8', '#ce1126',
+      '#000', '#60a5fa', '#94a3b8', '#ce1126'
   ] },
   'docs/src/entries/tabs/prop/tasks-tab.js': { c: 6, v: [
-      '#000', '#34d399', '#60a5fa', '#fbbf24',
+      '#000', '#34d399', '#60a5fa', '#fbbf24'
   ] },
   'docs/src/entries/tabs/secretary/assign-tab.js': { c: 3, v: [
-      '#f87171', '#fff',
+      '#f87171', '#fff'
   ] },
-  'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 12, v: [
-      '#b91c1c', '#ce1126', '#ffd700', '#fff',
+  'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 7, v: [
+      '#ce1126', '#ffd700', '#fff'
   ] },
-  'docs/src/entries/tabs/secretary/feedback-tab.js': { c: 3, v: [
-      '#b91c1c', '#fff',
+  'docs/src/entries/tabs/secretary/feedback-tab.js': { c: 1, v: [
+      '#fff'
   ] },
   'docs/src/entries/tabs/secretary/group-progress-tab.js': { c: 7, v: [
-      '#16a34a', '#ce1126', '#ef4444', '#f59e0b', '#fbbf24',
+      '#16a34a', '#ce1126', '#ef4444', '#f59e0b', '#fbbf24'
   ] },
-  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 7, v: [
-      '#b91c1c', '#ce1126', '#fff',
+  'docs/src/entries/tabs/secretary/notification-tab.js': { c: 4, v: [
+      '#ce1126', '#fff'
   ] },
-  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 27, v: [
-      '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#b91c1c', '#d97706', '#ef4444', '#f59e0b', '#fbbf24',
-      '#fff',
+  'docs/src/entries/tabs/secretary/overview-tab.js': { c: 19, v: [
+      '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#d97706', '#ef4444',
+      '#f59e0b', '#fbbf24', '#fff'
   ] },
   'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
-      '#16a34a', '#6b7280', '#d97706',
+      '#16a34a', '#6b7280', '#d97706'
   ] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
-      '#6b7280',
+      '#6b7280'
   ] },
-  'docs/src/entries/tabs/secretary/work-map-tab.js': { c: 5, v: [
-      '#000', '#b91c1c', '#cbd5e1', '#fff',
+  'docs/src/entries/tabs/secretary/work-map-tab.js': { c: 3, v: [
+      '#000', '#cbd5e1', '#fff'
   ] },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 6, v: [
-      '#000', '#9ca3af', '#b91c1c', '#ef4444',
+  'docs/src/entries/tabs/today/today-tab.js': { c: 4, v: [
+      '#000', '#9ca3af'
   ] },
   'docs/src/entries/tabs/visitor/activities-tab.js': { c: 11, v: [
-      '#6b7280', '#ce1126', '#f9fafb', '#fca5a5',
+      '#6b7280', '#ce1126', '#f9fafb', '#fca5a5'
   ] },
   'docs/src/entries/tabs/visitor/attendance-tab.js': { c: 2, v: [
-      '#3b82f6',
+      '#3b82f6'
   ] },
-  'docs/src/entries/tabs/visitor/inspection-tab.js': { c: 2, v: [
-      '#000', '#f3f4f6',
+  'docs/src/entries/tabs/visitor/inspection-tab.js': { c: 1, v: [
+      '#000'
   ] },
-  'docs/src/entries/tabs/visitor/projects-tab.js': { c: 10, v: [
-      '#000', '#b91c1c', '#fca5a5', '#fff',
+  'docs/src/entries/tabs/visitor/projects-tab.js': { c: 6, v: [
+      '#000', '#fca5a5', '#fff'
   ] },
   'docs/src/entries/tabs/visitor/review-tab.js': { c: 1, v: [
-      '#fbbf24',
+      '#fbbf24'
   ] },
   'docs/src/entries/tabs/visitor/todo-tab.js': { c: 3, v: [
-      '#a16207', '#fbbf24', '#ffd700',
+      '#a16207', '#fbbf24', '#ffd700'
   ] },
   'docs/src/modules/references.js': { c: 16, v: [
-      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
+      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5',
+      '#fef3c7'
   ] },
   'docs/src/services/branch-doc.js': { c: 1, v: [
-      '#b45309',
+      '#b45309'
   ] },
   'docs/src/services/decision-tree.js': { c: 4, v: [
-      '#ce1126', '#ffd700',
-  ] },
-  'docs/src/services/issues.js': { c: 2, v: [
-      '#b91c1c',
+      '#ce1126', '#ffd700'
   ] },
   'docs/src/services/notice.js': { c: 2, v: [
-      '#3b82f6', '#fff',
+      '#3b82f6', '#fff'
   ] },
   'docs/src/services/org-wizard-report.js': { c: 4, v: [
-      '#ce1126', '#ffd700',
+      '#ce1126', '#ffd700'
   ] },
-  'docs/src/styles.css': { c: 307, v: [
-      '#000', '#0284c7', '#059669', '#0b1220', '#0ea5e9', '#0f172a', '#10b981', '#111827', '#141d2f',
-      '#15803d', '#1a2438', '#1b1e24', '#1d4ed8', '#1e293b', '#1f2937', '#22c55e', '#22d3ee', '#243244',
-      '#2563eb', '#2a1a22', '#334155', '#34d399', '#374151', '#38bdf8', '#3b82f6', '#475569', '#4a000a',
-      '#4ade80', '#4b5563', '#5eead4', '#60a5fa', '#6366f1', '#64748b', '#67e8f9', '#6b7280', '#6ee7b7',
-      '#7a0010', '#7a838f', '#7c3aed', '#7dd3fc', '#86efac', '#8a6d1f', '#8b5cf6', '#93c5fd', '#94a3b8',
-      '#991b1b', '#9b0000', '#9ca3af', '#a16207', '#a3e635', '#a78bfa', '#aeb6c2', '#b91c1c', '#bae6fd',
-      '#bbf7d0', '#bef264', '#bfdbfe', '#c2410c', '#c4b5fd', '#c9a227', '#cbd5e1', '#ce1126', '#d1d5db',
-      '#d1fae5', '#d4af37', '#d8b4fe', '#d97706', '#dbeafe', '#dc2626', '#dcfce7', '#e0f2fe', '#e2e8f0',
-      '#e5e7eb', '#ede9fe', '#ef4444', '#eff6ff', '#f0fdf4', '#f1f5f9', '#f3f4f6', '#f59e0b', '#f87171',
-      '#f8f9fa', '#f8fafc', '#f9fafb', '#facc15', '#fafaf5', '#fb923c', '#fbbf24', '#fca5a5', '#fcd34d',
-      '#fda4af', '#fdba74', '#fde047', '#fde68a', '#fecaca', '#fed7aa', '#fee2e2', '#fef2f2', '#fef3c7',
-      '#ffd700', '#fff', '#fff7ed', '#fffbeb', '#ffffff',
+  'docs/src/styles.css': { c: 304, v: [
+      '#000', '#0284c7', '#059669', '#0b1220', '#0ea5e9', '#0f172a',
+      '#10b981', '#111827', '#141d2f', '#15803d', '#1a2438', '#1b1e24',
+      '#1d4ed8', '#1e293b', '#1f2937', '#22c55e', '#22d3ee', '#243244',
+      '#2563eb', '#2a1a22', '#334155', '#34d399', '#374151', '#38bdf8',
+      '#3b82f6', '#475569', '#4a000a', '#4ade80', '#4b5563', '#5eead4',
+      '#60a5fa', '#6366f1', '#64748b', '#67e8f9', '#6b7280', '#6ee7b7',
+      '#7a0010', '#7a838f', '#7c3aed', '#7dd3fc', '#86efac', '#8a6d1f',
+      '#8b5cf6', '#93c5fd', '#94a3b8', '#991b1b', '#9b0000', '#9ca3af',
+      '#a16207', '#a3e635', '#a78bfa', '#aeb6c2', '#b91c1c', '#bae6fd',
+      '#bbf7d0', '#bef264', '#bfdbfe', '#c2410c', '#c4b5fd', '#c9a227',
+      '#cbd5e1', '#ce1126', '#d1d5db', '#d1fae5', '#d4af37', '#d8b4fe',
+      '#d97706', '#dbeafe', '#dc2626', '#dcfce7', '#e0f2fe', '#e2e8f0',
+      '#e5e7eb', '#ede9fe', '#ef4444', '#eff6ff', '#f0fdf4', '#f1f5f9',
+      '#f3f4f6', '#f59e0b', '#f87171', '#f8f9fa', '#f8fafc', '#f9fafb',
+      '#facc15', '#fafaf5', '#fb923c', '#fbbf24', '#fca5a5', '#fcd34d',
+      '#fda4af', '#fdba74', '#fde047', '#fde68a', '#fecaca', '#fed7aa',
+      '#fee2e2', '#fef2f2', '#fef3c7', '#ffd700', '#fff', '#fff7ed',
+      '#fffbeb', '#ffffff'
   ] },
   'docs/src/tailwind-config.js': { c: 50, v: [
-      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a', '#4b5563', '#6b7280', '#7a0010',
-      '#8b5cf6', '#9b0000', '#9ca3af', '#ce1126', '#d1d5db', '#d97706', '#dc2626', '#e5e7eb', '#ef4444',
-      '#f3f4f6', '#f87171', '#f8f9fa', '#fca5a5', '#fde68a', '#fecaca', '#fee2e2', '#fef2f2', '#ffd700',
-      '#ffffff',
+      '#10b981', '#111827', '#1f2937', '#374151', '#3b82f6', '#4a000a',
+      '#4b5563', '#6b7280', '#7a0010', '#8b5cf6', '#9b0000', '#9ca3af',
+      '#ce1126', '#d1d5db', '#d97706', '#dc2626', '#e5e7eb', '#ef4444',
+      '#f3f4f6', '#f87171', '#f8f9fa', '#fca5a5', '#fde68a', '#fecaca',
+      '#fee2e2', '#fef2f2', '#ffd700', '#ffffff'
   ] },
 };
 
@@ -408,7 +440,24 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   6 个文件 c 下调（header 6→5 · org-setup-wizard 18→8 · references 17→16 · disc/inspection-tab 12→11 ·
 //   report-up-tab 5→3 · notice.js 3→2）。全站 distinct 值 168→167（`#c8102e` 全站消失）。
 //   `HEX_TOTAL_BASELINE` 有意保持 2025（存量起点）。
-export const HEX_FILE_BASELINE = 81;
+//   2026-09-28 色彩二分批（支书三条裁定：状态 vs 强调二分 + 存量全清含 Tailwind 耦合）：
+//   `docs/src/**` 内联样式的 `var(--tok, <硬编码兜底>)` 中，**`--tok` 已在 `:root` 有正式默认值者删兜底**
+//   （＝`var(--app-accent,#B91C1C)` / `var(--app-accent, #B91C1C)` / `var(--app-accent-bg,rgba(185,28,28,0.1))` 等
+//   ＋ `var(--accent-blue,#3B82F6)` / `var(--neutral-100, #F3F4F6)`）——**逐处与 `:root` 默认值逐字等值 ⇒ 观感零变化**
+//   （含与 `classList.toggle(同一字面量)` 成对耦合的 Tailwind 任意值类 `[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]`：
+//   因类串与 toggle 字面量含同一子串，**一次子串替换即成对同步**，两处逐字仍相同）；另 `#EF4444`→`var(--functional-error)`
+//   （值等 `--functional-error`，status 语义相符，零观感变化）3 处（styles.css）+ 1 处（today-tab.js）。
+//   ⇒ **23 文件 c 下调**（本轮实测合计 −74 处：1619→1545）·`HEX_BASELINE` 按实况重算条目 **81→80**
+//   （`docs/src/services/issues.js` 两处 `#b91c1c` 全在兜底里、删兜底后清零 ⇒ 按收基线纪律删条目）·
+//   全站 distinct 值仍 **167**（被清的值仍存于 `_C` 表 / `styles.css` 令牌定义 / `tailwind-config.js` 等处）。
+//   ⚠ 同批把若干**行已有存量漂移**的条目 c/v 一并按实况改准（如 `settings-entry.js` c 13→6：除本批 6 处 `#b91c1c` 外，
+//   另有历史批次已清但未随注的 1 处）——属「收基线按实况」，非放宽。
+//   **有意不碰**（同批逐处理由见执行报告）：`--tint` / `--tab-accent` / `--acc` / `--acc-border-dark` 等**元素级变量**的兜底
+//   （由元素自设、删了会变观感）；`#fff` / `#000`（`--neutral-0` 深色态反转为 `#0F172A` ⇒ 与 `#fff` **非全态等值**，按值换会变深色观感；
+//   `#000` 无同名令牌）；`#B91C1C`（＝`--accent-secretary` 角色识别色，与品牌层 `--party-red` 语义不同，按值换会把品牌红错标成②角色识别色）；
+//   `#DC2626`（＝`--primary-600`，与 status 语义**不符** ⇒ 不许按值换；且多处为 `${hex}15`/`color-mix(...)` **函数入参**，换 var() 会坏）；
+//   `#F87171`（深色提亮值，属已登记的 `--acc-*-dark` 元素级派生机制）。
+export const HEX_FILE_BASELINE = 80;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

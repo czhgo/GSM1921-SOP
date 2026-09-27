@@ -20786,3 +20786,63 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - `.ctx/TIMESTAMPS.md`：本批改过 / 已改文件刷 / 加注（见 `D-673` 影响范围与交付报告「TIMESTAMPS 改动行清单」）。
 - ⚠ **只登记 / 未做逐条不得读成已办**：见 `D-673`「一 / 三」。
 - ⚠ **本批实测为非全量**（只跑上述子集 ＋ 纯 node 守卫）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 224。**
+
+## 批次 225（2026-09-28，`D-674`）**立 U1/U3/U4 三条颜色规范 ＋ 「状态 vs 强调」二分 ＋ 存量色彩全清（去兜底 / Tailwind 耦合）**
+
+> **本批令（逐字）**：支书三条裁定——「**按「状态 vs 强调」二分（推荐）**」/「**连 Tailwind 耦合的一起清**」/「**U1 选中态底色档 ＋ U4 合法状态色类清单 ＋ U3 同色相共存规则**」**三项现在都定**。**改动面**＝`content/04_web_design/design-system/DESIGN_SYSTEM.md §2.9`（新增 `§2.9.1`/`§2.9.2`/`§2.9.3` ＋ 「规范未定项」表收口为「裁定表」 ＋ §九 补 3 行）· `docs/src/styles.css` · **21 个 `docs/src/**/*.js`（删兜底 / Tailwind 耦合成对同改）** · `server/test/{style-baseline.mjs,hex-hardcode-guard.test.mjs}` · `.ctx/**`（台账）。**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**；3000 端口**有常驻服务（未停 / 未杀 / 未占）**；**只跑纯 node 守卫 ＋ 若干真机子集**。
+
+### 一、立三条规范（进 `DESIGN_SYSTEM.md §2.9`）
+
+- **落点**＝`§2.9` 内（原「规范未定项」表**收口为「裁定表」**）＋ 新增 **`§2.9.1 U1`**（选中态卡片底色档：`--app-accent-bg`(0.10) ＋ `--app-accent-border`(0.30) ＋ `--app-accent` 字三件套，不许自写 rgba、不许用无关固定红充当主题色底，深色走 `html.theme-dark` 派生；**判据来源＝从既有合规样本归纳**）· **`§2.9.2 U4`**（合法状态色类白名单 `red/amber/green/blue` × `bg-50/100/600` ＋ `border-200` ＋ `text-600/700` ＋ 四条禁例）· **`§2.9.3 U3`**（同色相共存：颜色只作辅助、状态色一律走 Badge / 提示条 / 状态点形态）＋ §九 补 3 行；体例照 §3.2.2。
+- ★ **实读校正两处**：① 任务示例「不许 200 档」——实读 `border-*-200` 已在深色映射登记且广泛使用 ⇒ **列入白名单**；② 实读存在 `bg-*-600` 危险实底按钮（`workforce-panel.js:157/174` · `resolution-followup-manager.js:65`）⇒ **补列 `bg-600`**（否则规格不可用）。
+- **U2 改「已定 ＋ 已落地」**：`#C8102E` 全站归零（本批 `grep` **0 处**）；前批已把 **15 文件 / 34 处**统一改走 `var(--party-red)`（＝`#CE1126`），`_C` 表**不新增**该值。
+
+### 二、「状态 vs 强调」二分归位
+
+- ★ **实读结论：五套红的用例几乎全部是状态，无一处用于党务 / 品牌强调**。**套 A `#EF4444`（＝`--functional-error` 值）4 处改走 `var(--functional-error)`**（`styles.css:3875/3903/4204` ＋ `today/today-tab.js:105`；**值等 ⇒ 零观感变化**）；**套 B `#DC2626` / 套 C `#F87171` / 套 D `red-*` Tailwind 类逐值实读后多只登记**（理由分别为：无值等状态令牌 / 角色不符 · JS 函数入参换 `var()` 会坏 · 深色 `--acc-*-dark` 已登记派生机制 · 超白名单类改之会变观感）；**套 E `#C8102E` 已归零**。⚠ **三处「兼具两者语义」**（`styles.css:2659` · `styles.css:3927` · `inspector.js:844`）**已登记待裁、未自行折中**。
+
+### 三、存量全清（去兜底 ＋ Tailwind 耦合）
+
+- **① 删兜底**：`var(--tok, 硬编码)`（该令牌已在 `:root` / `html.theme-dark` 有正式默认值、逐字等值）**74 处 / 23 文件** → 去兜底（`var(--app-accent, #B91C1C)` · `var(--app-accent-bg, rgba(185,28,28,0.1))` 含空格与 0.12 变体 · `var(--accent-blue,#3B82F6)` · `var(--neutral-100, #F3F4F6)`）。
+- **② 换等价语义类未强换**（`.btn-accent` 是 `color-mix(--app-accent 80%,#1F2937)` **加深版** ≠ 原色 ⇒ 换类非零变化，登记）。
+- **③ 按值换令牌：仅 `#EF4444` 满足「值等 ＋ 语义相符」**（4 处）；其余逐类给理由不换（`#fff`/`#000` 深浅非全态等值 · `#b91c1c` 是角色识别色 · 等）。
+- **JS 侧兜底 ＋ Tailwind 耦合（成对改动）**：规则＝类串与 `classList.toggle(同一字面量)` 含**同一子串** `var(--app-accent,#B91C1C)` ⇒ **一次子串替换即成对同步（程序化、不手抄两遍）**。**成对名单**：`appearance-controls.js`(24/33) · `calendar.js`(188) · `dashboard/activity-panel.js`(67/69) · `insight-view.js`(18/28) · `org/taskforce-tab.js`(70/81/205–206/226–227) · `disc/inspection-tab.js`(82/335–336) · `disc/attendance-tab.js`(60/68/380–381/1009) · `visitor/projects-tab.js`(113–114/242–243) · `secretary/work-map-tab.js`(130–131) ＋ 各 tab 的 `setProperty('--acc-text-dark', …)`。
+- ★ **真机切换态实测**（临时脚本 `listen(0)`、跑完即删）：组织委员台「专班管理」的 `.org-tf-view-btn` / `.org-tf-mode-btn` —— 初始 `[T,F,T,F]` → 点第 2 钮 → `[F,T,T,F]` → 再点回 → `[T,F,T,F]`；选中钮类含**无兜底版** `var(--app-accent)`、**无**旧 `var(--app-accent,#B91C1C)` 残留 ⇒ **切换态仍生效** ✅。
+- **保留未删的「元素级变量兜底」清单**（`--tint` ×15 · `--tab-accent` · `--acc` · `--acc-border-dark` · `--ab-stage-from`（文档页）· `var(--app-accent-bg, var(--primary-50))`（兜底是另一令牌））——**理由＝这些 `--tok` 由元素自设、删兜底会变观感**。
+
+### 四、基线改前 → 改后 ＋ 归零证据
+
+- 内联（`style=` 内 hex，排除文档页）**180 → 139 处**；`var(--tok, 含 hex)` 兜底 **88 处 / 25 文件 → 18 处 / 4 令牌**；**全站硬编码 hex 处数 1619 → 1545**（`H4` **↓480** vs 存量起点 2025）；`HEX_FILE_BASELINE` **81 → 80**（`services/issues.js` 两处 `#b91c1c` 全在兜底里、删后清零 ⇒ **按纪律删条目**）；`HEX_VALUE_BASELINE` **167（不变）**；`HEX_TOTAL_BASELINE` **2025 有意保持**；`H3` 防呆下限 **`>=80` 未动**（**未放宽**）。**逐文件 c 下调 23 处**（清单见 `D-674`「四」）。`#C8102E` 归零：`grep` **0 处**。
+
+### 五、真机色值对照（浅 / 深两态）
+
+- 组织委员台主题＝**天蓝 `#0EA5E9`**（**非默认主题**，更能证「兜底是死码」）：浅色 `newMix == oldMix` / `newBg == oldBg` / `newAccent == oldAccent`；深色 `newMix == oldMix`；`pageerror` **无** ⇒ **删兜底零观感变化**。`#EF4444 → var(--functional-error)` 亦值等。
+
+### 六、断言 / 行号（为何不是放宽）
+
+- `server/test/style-baseline.mjs`：`HEX_FILE_BASELINE 81→80`（**收基线＝降上限、更严**）＋ `HEX_BASELINE` 对象**按实况重算 c/v**（只减不增、无新值入表、把历史漂移一并改准）。
+- `server/test/hex-hardcode-guard.test.mjs`：**只改 H3 的说明注释**（加本批 81 → 80 沿革 ＋ 明写「下限保持 80、**未放宽**」），**断言表达式一字未动**。**未放宽任何断言**。
+
+### 七、本批实测（非全量，如实写）
+
+- `hex` ＋ `text-tier` ＋ `small-text` ＋ `control-font` ＋ `ux` ＝ **23/23**（H4 报 处数 1545 · 值 167 · 文件 80）。
+- `page-sweep`（真机）＝ **11/11**（七台 × 全 tab、无脚本错误）。
+- `module-load` ＋ `link-integrity` ＋ `agenda-flow` ＋ `agenda-closure` ＝ **13/13**（E1 163/163）。
+- `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `frontmatter-freshness` ＋ `catalog-sync` ＋ `copy-length` ＋ `copy-master` ＝ **54/54**（S13 绿）。
+- `form-loop-sweep`（真机）＝ **81/81**（S0–S7 全绿）。
+- **`click-cost` 未跑**（`BASE` 硬编码 3000 且场景 A「创建活动」会**写入**支书正在审阅的常驻服务；本批只改颜色字符串、不涉点击逻辑）。
+- ⚠ **本批实测为非全量**；**不得把各路自测写成「全量绿」**；**提交前全量见批次 226。**
+
+### 八、只登记 / 未做逐条（不得读成已办）
+
+- 五套红 B/C/D 的逐值改准**大多只登记** · item ② **换等价语义类未强换** · **三处「兼具语义」待裁未折中** · **`click-cost` 未跑** · **实读校正两处**（内联色文件数实读 **≈47** 非 60、处数 180 吻合 · U4 示例「不许 200 档」与「补列 `bg-600`」按实读校正）。
+
+### 九、本批记账（台账 / 决策日志）
+
+- `.ctx/logs/2026-09-DECISION_LOG.md`：新增 **`D-674`**（按「背景与裁定 / 一 立三条规范 / 二 状态vs强调二分 / 三 存量全清 / 四 基线 / 五 真机 / 六 断言 / 七 实测 / 八 只登记」分节）＋ 本月目录 1 行 ＋ 文首「最近一次追加」改写 ＋ **四处计数同刷**为 **`D-275`…`D-674`／400 条**、下一条自 **`D-675`**（`^## D-` 实测复算 **400**）。
+- `.ctx/logs/DECISION_LOG.md`：月度索引 2026-09 行刷为 **400 条（D-275~D-674）** ＋ 行末补批次 225 速记。
+- `.ctx/ACTIVE_RULINGS.md`：文首补批次 225 增量句〔**0 行新立 ＋ 1 行改准 ＋ 1 条不入表** ⇒ 口径行**仍 128**〕；`D-643` 那一行**改准**（补四条颜色规范〔状态/强调二分 · `--app-accent-*` 三件套 · 状态色类白名单 ＋ 禁例 · 同色相共存形态〕＋ 补准「删兜底前提含 `html.theme-dark`」）；文首「实有 N 行」「一律以 N 为准」两处自述**仍为 128**（`grep -c '^- '` 实测 **128**）。
+- `.ctx/TIMESTAMPS.md`：本批改过 / 已改文件刷 / 加注 `2026-09-28`（`content/04_web_design/design-system/DESIGN_SYSTEM.md` · `docs/src/styles.css` · 21 个 `docs/src/**/*.js` · `server/test/{style-baseline.mjs,hex-hardcode-guard.test.mjs}` · 本文件自身行）。
+  - ⚠ **覆盖缺口如实登记（只登记、不补行）**＝本批改过而本表**原无其行**的 8 个 `docs/src/**` 文件：`components/appearance-controls.js` · `components/insight-view.js` · `components/report-entry.js` · `components/dashboard/activity-panel.js` · `entries/tabs/org/thought-review-tab.js` · `entries/tabs/secretary/feedback-tab.js` · `entries/tabs/secretary/notification-tab.js` · `entries/tabs/today/today-tab.js`。
+- ⚠ **只登记 / 未做逐条不得读成已办**：见 `D-674`「二 / 八」。
+- ⚠ **本批实测为非全量**（只跑纯 node 守卫 ＋ 真机子集）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 226。**

@@ -468,7 +468,7 @@ function renderIssueDetail(issueId) {
       html += `<div class="flex items-center gap-1.5 mb-1">`;
       html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${authorName}</span>`;
       if (isReply) {
-        html += `<span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">正式答复</span>`;
+        html += `<span class="text-xs px-1.5 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
       }
       html += `<span class="text-xs text-gray-500">${c.createdAt}</span>`;
       html += `</div>`;
@@ -486,7 +486,7 @@ function renderIssueDetail(issueId) {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     html += `<div class="flex gap-2">`;
     html += `<input type="text" id="issue-comment-input" class="input-flat flex-1" placeholder="添加评论…">`;
-    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">评论</button>`;
+    html += `<button data-detail-action="add-comment" class="btn-accent-soft text-xs px-3 py-2" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">评论</button>`;
     html += `<button data-detail-action="add-verdict" class="btn-accent text-xs px-3 py-2">批复</button>`;
     html += `</div>`;
     html += `<div class="flex gap-2">`;
