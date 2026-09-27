@@ -446,7 +446,7 @@ function _buildInspectionProxyCardHTML(activities = []) {
       </div>
       <div id="disc-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="disc-insp-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;cursor:pointer;">提交代录</button>
+        <button id="disc-insp-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);cursor:pointer;">提交代录</button>
         <button id="disc-insp-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
       </div>
     </div>` : '';
@@ -468,7 +468,7 @@ function _initDiscInspForm(container, ctx) {
     _discInspPickerInstance = new PersonPicker({
       mode: 'multi',
       placeholder: '选择人员',
-      accentColor: '#C8102E',
+      // accentColor 省略 ⇒ 用 PersonPicker 默认主题色（党建红，2026-09-28 统一）
       onSelect: (ids) => { _renderDiscInspContentRows(ids); },
     });
     _discInspPickerInstance.render(pickerContainer);

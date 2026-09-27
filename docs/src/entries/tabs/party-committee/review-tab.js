@@ -143,7 +143,7 @@ function cardHtml(r) {
         <textarea class="rq-decision input-flat w-full resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>
         <div class="flex justify-end gap-2 mt-2">
           <button data-rq-act="reject" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">驳回</button>
-          <button data-rq-act="approve" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">批准</button>
+          <button data-rq-act="approve" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">批准</button>
         </div>
       </div>` : `
       <div class="mt-2.5 rounded-lg ${r.status === 'approved' ? 'bg-green-50/60' : 'bg-gray-50'} p-2.5">

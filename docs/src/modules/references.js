@@ -358,7 +358,7 @@ export class ReferencesModule {
       ReferencesModule._setBranchFilterVisible(false);
       if (empty) empty.classList.add('hidden');
       if (loginHint) {
-        loginHint.innerHTML = `登录后查看支部文件 <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;text-decoration:none;">去登录</a>`;
+        loginHint.innerHTML = `登录后查看支部文件 <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);text-decoration:none;">去登录</a>`;
         loginHint.classList.remove('hidden');
       }
       if (addBtn) addBtn.classList.add('hidden');

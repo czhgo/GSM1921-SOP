@@ -135,11 +135,8 @@ export const HEX_BASELINE = {
   'docs/src/components/dashboard/stats.js': { c: 15, v: [
       '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706', '#dc2626', '#f59e0b', '#f97316',
   ] },
-  'docs/src/components/form-shell.js': { c: 1, v: [
-      '#c8102e',
-  ] },
-  'docs/src/components/header.js': { c: 6, v: [
-      '#000', '#7a0010', '#c8102e', '#fff', '#ffffff',
+  'docs/src/components/header.js': { c: 5, v: [
+      '#000', '#7a0010', '#fff', '#ffffff',
   ] },
   'docs/src/components/insight-view.js': { c: 4, v: [
       '#000', '#b91c1c', '#fff',
@@ -165,8 +162,8 @@ export const HEX_BASELINE = {
   'docs/src/components/modal.js': { c: 8, v: [
       '#b91c1c', '#cbd5e1', '#f87171',
   ] },
-  'docs/src/components/org-setup-wizard.js': { c: 18, v: [
-      '#16a34a', '#c8102e', '#ce1126', '#ef4444', '#ffd700', '#fff',
+  'docs/src/components/org-setup-wizard.js': { c: 8, v: [
+      '#16a34a', '#ce1126', '#ef4444', '#ffd700', '#fff',
   ] },
   'docs/src/components/overview-dispatch-bar.js': { c: 1, v: [
       '#b91c1c',
@@ -190,9 +187,6 @@ export const HEX_BASELINE = {
   'docs/src/components/report-inbox.js': { c: 5, v: [
       '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171',
   ] },
-  'docs/src/components/signup-panel.js': { c: 1, v: [
-      '#c8102e',
-  ] },
   'docs/src/components/status-badge.js': { c: 1, v: [
       '#9ca3af',
   ] },
@@ -205,9 +199,6 @@ export const HEX_BASELINE = {
   ] },
   'docs/src/components/work-overview.js': { c: 12, v: [
       '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c', '#cbd5e1', '#ef4444', '#f59e0b',
-  ] },
-  'docs/src/components/workspace-shell.js': { c: 1, v: [
-      '#c8102e',
   ] },
   'docs/src/core/constants.js': { c: 67, v: [
       '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9', '#10b981', '#16a34a', '#1d4ed8',
@@ -239,20 +230,14 @@ export const HEX_BASELINE = {
   'docs/src/entries/help-entry.js': { c: 4, v: [
       '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2',
   ] },
-  'docs/src/entries/notice-entry.js': { c: 1, v: [
-      '#c8102e',
-  ] },
-  'docs/src/entries/party-committee-meeting-entry.js': { c: 3, v: [
-      '#c8102e',
-  ] },
   'docs/src/entries/settings-entry.js': { c: 13, v: [
       '#000', '#6b7280', '#92400e', '#b91c1c', '#e5e7eb', '#fef3c7', '#fff',
   ] },
   'docs/src/entries/tabs/disc/attendance-tab.js': { c: 19, v: [
       '#000', '#14b8a6', '#16a34a', '#94a3b8', '#b91c1c', '#ef4444', '#f59e0b', '#fff',
   ] },
-  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 12, v: [
-      '#000', '#94a3b8', '#b45309', '#b91c1c', '#c8102e', '#fff',
+  'docs/src/entries/tabs/disc/inspection-tab.js': { c: 11, v: [
+      '#000', '#94a3b8', '#b45309', '#b91c1c', '#fff',
   ] },
   'docs/src/entries/tabs/disc/review-tab.js': { c: 1, v: [
       '#fbbf24',
@@ -296,15 +281,6 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/org/todo-tab.js': { c: 1, v: [
       '#3b82f6',
   ] },
-  'docs/src/entries/tabs/party-committee/branches-tab.js': { c: 6, v: [
-      '#c8102e',
-  ] },
-  'docs/src/entries/tabs/party-committee/dispatch-tab.js': { c: 1, v: [
-      '#c8102e',
-  ] },
-  'docs/src/entries/tabs/party-committee/review-tab.js': { c: 1, v: [
-      '#c8102e',
-  ] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
       '#60a5fa', '#999',
   ] },
@@ -333,8 +309,8 @@ export const HEX_BASELINE = {
       '#16a34a', '#38bdf8', '#3b82f6', '#94a3b8', '#b91c1c', '#d97706', '#ef4444', '#f59e0b', '#fbbf24',
       '#fff',
   ] },
-  'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 5, v: [
-      '#16a34a', '#6b7280', '#c8102e', '#d97706',
+  'docs/src/entries/tabs/secretary/report-up-tab.js': { c: 3, v: [
+      '#16a34a', '#6b7280', '#d97706',
   ] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [
       '#6b7280',
@@ -363,11 +339,8 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/visitor/todo-tab.js': { c: 3, v: [
       '#a16207', '#fbbf24', '#ffd700',
   ] },
-  'docs/src/entries/wizard-entry.js': { c: 2, v: [
-      '#c8102e',
-  ] },
-  'docs/src/modules/references.js': { c: 17, v: [
-      '#047857', '#1d4ed8', '#b45309', '#c8102e', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
+  'docs/src/modules/references.js': { c: 16, v: [
+      '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5', '#fef3c7',
   ] },
   'docs/src/services/branch-doc.js': { c: 1, v: [
       '#b45309',
@@ -378,13 +351,13 @@ export const HEX_BASELINE = {
   'docs/src/services/issues.js': { c: 2, v: [
       '#b91c1c',
   ] },
-  'docs/src/services/notice.js': { c: 3, v: [
-      '#3b82f6', '#c8102e', '#fff',
+  'docs/src/services/notice.js': { c: 2, v: [
+      '#3b82f6', '#fff',
   ] },
   'docs/src/services/org-wizard-report.js': { c: 4, v: [
       '#ce1126', '#ffd700',
   ] },
-  'docs/src/styles.css': { c: 329, v: [
+  'docs/src/styles.css': { c: 307, v: [
       '#000', '#0284c7', '#059669', '#0b1220', '#0ea5e9', '#0f172a', '#10b981', '#111827', '#141d2f',
       '#15803d', '#1a2438', '#1b1e24', '#1d4ed8', '#1e293b', '#1f2937', '#22c55e', '#22d3ee', '#243244',
       '#2563eb', '#2a1a22', '#334155', '#34d399', '#374151', '#38bdf8', '#3b82f6', '#475569', '#4a000a',
@@ -425,8 +398,18 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   （余 `#f87171`/`#fff` 为「危险」徽章深色字与 color-mix 白）；`group-progress-tab.js` 改走
 //   `var(--app-accent-*)`（该处原即 rgba、非 hex）⇒ c 仍 7；`styles.css` 给 `--app-accent` 三件套补正式
 //   默认值 + `.sel-accent-on` 去兜底 ⇒ c 仍 329（同批新增/移除的 hex 相抵）。全站 distinct 值仍 168。
-export const HEX_FILE_BASELINE = 90;
-export const HEX_VALUE_BASELINE = 168;
+//   2026-09-28 颜色存量批（支书裁定「色板外党建红 #C8102E 统一到规范值 #CE1126」）：
+//   `docs/` 下 15 文件 / 34 处 `#C8102E` 全部改走 `var(--party-red)`（＝#CE1126，品牌统一层令牌，
+//   逐处观感零变化——原值 #C8102E 与 #CE1126 均为党建红实底白字 CTA/党务标签；唯一例外：
+//   `disc/inspection-tab.js` 的 PersonPicker `accentColor`（JS 入参，仅供 hexToRgba/darkenHex 解析、
+//   不可换 var()）删去显式覆盖 ⇒ 回落到组件自带默认 `#CE1126`，与本批统一目标一致）。
+//   ⇒ 9 个文件 hex 清零（form-shell / signup-panel / workspace-shell / notice-entry /
+//   party-committee-meeting-entry / wizard-entry / party-committee{branches,dispatch,review}-tab）按收基线纪律删条目；
+//   6 个文件 c 下调（header 6→5 · org-setup-wizard 18→8 · references 17→16 · disc/inspection-tab 12→11 ·
+//   report-up-tab 5→3 · notice.js 3→2）。全站 distinct 值 168→167（`#c8102e` 全站消失）。
+//   `HEX_TOTAL_BASELINE` 有意保持 2025（存量起点）。
+export const HEX_FILE_BASELINE = 81;
+export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
  *

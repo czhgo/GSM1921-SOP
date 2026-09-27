@@ -50,7 +50,7 @@ export async function renderContent() {
           <p class="font-title-cn text-base font-bold text-gray-800">支部实例</p>
           <p class="text-xs text-gray-500 mt-0.5">支部不预设名字——由党委按实际情况创建/改名（硕博等支部随时可加）</p>
         </div>
-        <button id="branch-add-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">+ 新建支部</button>
+        <button id="branch-add-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">+ 新建支部</button>
       </div>
       <div id="branch-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -65,7 +65,7 @@ export async function renderContent() {
         </div>
         <div class="flex justify-end gap-2">
           <button id="branch-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200">取消</button>
-          <button id="branch-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">创建支部</button>
+          <button id="branch-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">创建支部</button>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,14 +90,14 @@ export async function renderContent() {
               <button class="branch-rename-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">改名</button>
               <button class="branch-appoint-toggle text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">任命支书</button>
               ${isEmpty
-                ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:#C8102E;" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
+                ? `<button type="button" class="text-xs px-2.5 py-1 rounded-lg text-white font-medium" style="background:var(--party-red);" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
                 : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
               <button type="button" class="branch-demo-enter text-xs px-2.5 py-1 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600 shrink-0" data-branch-id="${esc(bid)}"
                 title="打开该支部监控只读视图（演示形态，只读；不授予支部内部事务权限）">进入支部</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
-              <button class="branch-rename-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">保存</button>
+              <button class="branch-rename-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:var(--party-red);">保存</button>
             </div>
             <div class="branch-appoint-row hidden mt-2 space-y-2">
               <select class="branch-appoint-select input-flat w-full">
@@ -107,7 +107,7 @@ export async function renderContent() {
               </select>
               <div class="flex items-center justify-between gap-2">
                 <input class="branch-appoint-note input-flat w-full" placeholder="任命说明（可选，如 换届选举 2026-09）" />
-                <button class="branch-appoint-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">确认任命</button>
+                <button class="branch-appoint-save text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:var(--party-red);">确认任命</button>
               </div>
             </div>
             ${(() => { const h = listAppointments(bid); return h.length ? `
@@ -234,7 +234,7 @@ function _rosterDraftHtml(branchId) {
         <p class="text-[11px] text-gray-500">确认导入后：上述成员整体成为本支部成员（原属支部相应减员），成员名册与应到统计即时保存；「放弃」不写入。</p>
         <div class="flex gap-2">
           <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-white transition-colors" data-branch-roster-act="discard" data-branch-id="${esc(branchId)}">放弃</button>
-          <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:#C8102E;" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入保存</button>
+          <button type="button" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-opacity hover:opacity-90" style="background:var(--party-red);" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入保存</button>
         </div>
       </div>
     </div>`;

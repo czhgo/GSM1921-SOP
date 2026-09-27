@@ -463,9 +463,9 @@ input.input-flat.text-xs {
   color: #A16207;
 }
 .wp-dim-chip.wp-dim-on {
-  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  border-color: var(--app-accent, #B91C1C);
-  color: var(--app-accent, #B91C1C);
+  background-color: var(--app-accent-bg);
+  border-color: var(--app-accent);
+  color: var(--app-accent);
   font-weight: 500;
 }
 
@@ -482,9 +482,9 @@ input.input-flat.text-xs {
   color: #A16207;
 }
 .wp-brand-chip.wp-brand-on {
-  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  border-color: var(--app-accent, #B91C1C);
-  color: var(--app-accent, #B91C1C);
+  background-color: var(--app-accent-bg);
+  border-color: var(--app-accent);
+  color: var(--app-accent);
   font-weight: 500;
 }
 
@@ -499,9 +499,9 @@ input.input-flat.text-xs {
   color: #A16207;
 }
 .wp-agenda-kind.wp-agenda-kind-on {
-  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  border-color: var(--app-accent, #B91C1C);
-  color: var(--app-accent, #B91C1C);
+  background-color: var(--app-accent-bg);
+  border-color: var(--app-accent);
+  color: var(--app-accent);
   font-weight: 500;
 }
 
@@ -677,8 +677,8 @@ input.input-flat.text-xs[type="datetime-local"] {
   background: var(--neutral-100);
 }
 .cs-option.is-selected {
-  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  color: var(--app-accent, #B91C1C);
+  background: var(--app-accent-bg);
+  color: var(--app-accent);
   font-weight: 500;
 }
 .cs-option.is-disabled {
@@ -701,7 +701,7 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
 .btn-accent {
-  background: color-mix(in srgb, var(--app-accent, #B91C1C) 80%, #1F2937);
+  background: color-mix(in srgb, var(--app-accent) 80%, #1F2937);
   color: #fff;
   border-radius: var(--radius-sm);
   transition: filter var(--transition-fast), opacity var(--transition-fast);
@@ -710,9 +710,9 @@ button:disabled { cursor: not-allowed; }
 .btn-accent:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-accent-soft {
-  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  color: var(--app-accent, #B91C1C);
-  border: 1px solid var(--app-accent-border, rgba(185, 28, 28, 0.3));
+  background: var(--app-accent-bg);
+  color: var(--app-accent);
+  border: 1px solid var(--app-accent-border);
   border-radius: var(--radius-sm);
   transition: background-color var(--transition-fast), filter var(--transition-fast);
 }
@@ -725,16 +725,16 @@ button:disabled { cursor: not-allowed; }
   transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
 }
 .chip-option:hover {
-  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3));
-  color: var(--app-accent, #B91C1C);
+  border-color: var(--app-accent-border);
+  color: var(--app-accent);
 }
 .chip-accent-on {
-  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3)) !important;
-  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1)) !important;
-  color: var(--app-accent, #B91C1C) !important;
+  border-color: var(--app-accent-border) !important;
+  background: var(--app-accent-bg) !important;
+  color: var(--app-accent) !important;
 }
 /* 主题色文字（步骤指示/强调文字） */
-.text-accent { color: var(--app-accent, #B91C1C) !important; }
+.text-accent { color: var(--app-accent) !important; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
   background: var(--app-accent-bg) !important;
@@ -767,21 +767,21 @@ html.theme-dark .accent-avatar {
   vertical-align: middle;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.radio-accent:hover { border-color: var(--app-accent, #B91C1C); }
-.radio-accent:checked { border-color: var(--app-accent, #B91C1C); }
+.radio-accent:hover { border-color: var(--app-accent); }
+.radio-accent:checked { border-color: var(--app-accent); }
 .radio-accent:checked::after {
   content: '';
   position: absolute;
   inset: 3px;
   border-radius: 9999px;
-  background: var(--app-accent, #B91C1C);
+  background: var(--app-accent);
 }
 /* .radio-accent 是 <input type="radio"> ⇒ 焦点环走全局 input:focus-visible 的统一口径；
    原此处 `outline: 2px solid var(--app-accent-border, rgba(185,28,28,.4))` 实测 vs #FAFAF5 ≈ 2.07:1（不达标），
    2026-09-24 无障碍修复时删除（不删则它比全局更特异、会盖住统一口径）。 */
 /* 复选框：accent-color 原生定制（勾选色随主题色，保留原生选中语义） */
 .checkbox-accent {
-  accent-color: var(--app-accent, #B91C1C);
+  accent-color: var(--app-accent);
   width: 14px;
   height: 14px;
   cursor: pointer;
@@ -1013,9 +1013,9 @@ html.theme-dark .accent-avatar {
   cursor: not-allowed;
 }
 .page-num.is-current {
-  border-color: var(--app-accent-border, rgba(185, 28, 28, 0.3));
-  background-color: var(--app-accent-bg, rgba(185, 28, 28, 0.1));
-  color: var(--app-accent, #B91C1C);
+  border-color: var(--app-accent-border);
+  background-color: var(--app-accent-bg);
+  color: var(--app-accent);
   font-weight: 500;
 }
 
@@ -2166,14 +2166,14 @@ html.theme-dark .cal-cell-large.is-today, html.theme-dark .cal-cell-mobile.is-to
   transition: opacity 0.2s ease;
 }
 .ov-sub-tab-active {
-  background: var(--surface-card, #FFFFFF);
-  color: var(--app-accent, #B91C1C);
-  color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #000);
+  background: var(--surface-card);
+  color: var(--app-accent);
+  color: color-mix(in srgb, var(--app-accent) 55%, #000);
   box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12), 0 0 0 0.5px rgba(16, 24, 40, 0.04);
 }
 html.theme-dark .ov-sub-tab-active {
-  background: color-mix(in srgb, var(--app-accent, #B91C1C) 18%, var(--surface-card));
-  color: color-mix(in srgb, var(--app-accent, #B91C1C) 55%, #fff);
+  background: color-mix(in srgb, var(--app-accent) 18%, var(--surface-card));
+  color: color-mix(in srgb, var(--app-accent) 55%, #fff);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 

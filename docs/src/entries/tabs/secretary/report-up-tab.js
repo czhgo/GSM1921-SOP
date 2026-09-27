@@ -42,7 +42,7 @@ export function renderContent() {
           <div class="min-w-0">
             <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
           </div>
-          <button id="rq-submit-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:#C8102E;">+ 发起上报</button>
+          <button id="rq-submit-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:var(--party-red);">+ 发起上报</button>
         </div>
         <div id="rq-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4"></div>
         <div id="rq-list" class="space-y-3"></div>
@@ -99,7 +99,7 @@ function renderForm(branchId, me, tc) {
     </div>
     <div class="flex justify-end gap-2">
       <button id="rq-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200">取消</button>
-      <button id="rq-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">提交上报</button>
+      <button id="rq-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">提交上报</button>
     </div>`;
   wrap.querySelector('#rq-form-cancel')?.addEventListener('click', () => {
     wrap.classList.add('hidden');

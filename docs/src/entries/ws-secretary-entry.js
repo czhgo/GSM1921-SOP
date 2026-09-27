@@ -33,11 +33,22 @@ await createWorkspaceShell({
     }
     // 活动：定位活动管理日历视图 + 直达该活动详情
     const actId = nav.actId;
+    const act = actId ? (state.activities || []).find(a => a.id === actId) : null;
+    // ── 活动定位深链（?activityId=）按该活动的**实际承载**归位（2026-09-28 支书裁定「修深链兜底」）──
+    //   判据只用既有字段（activity.type / activity.scenarioId），不新造字段（DESIGN_SYSTEM §2.9 角色-令牌映射 / §10.2）。
+    //   · 支委会（type==='支委会' 或 scenarioId==='branch-committee'）⇒ 落「支委会」tab——该活动的实际承载
+    //     是支委会会议（表态/表决/记录决议）；系统通知 committee-vote-progress/-locked 亦以此为落点；
+    //   · 其余活动 ⇒ 落「活动管理」（活动自身详情面板）。
+    //   原实现无条件 activate('calendar')（D-671 所指「活动定位深链固定落活动管理」）⇒ 支委会类深链
+    //     一律落到与之无关的「活动管理」。仅收窄此一处：不改 ?tab= 语义、不改 tab 显示名、不放宽可见性。
+    if (act && (act.type === '支委会' || act.scenarioId === 'branch-committee')) {
+      shell.activate('committee-meeting'); // 目标 tab 若对该角色不可见，由 tab-bar 的 R6 守卫回退首个可见 tab
+      return { tabId: 'committee-meeting' };
+    }
     shell.activate('calendar');
     if (actId) {
       // 必须先清 _navTarget 再 setState——setState 同步触发重渲染，若目标未清
       // 会再次进入本分支无限递归（RangeError: Maximum call stack size exceeded）。
-      const act = (state.activities || []).find(a => a.id === actId);
       setState({
         selectedActivityId: actId,
         viewMode: 'detail',

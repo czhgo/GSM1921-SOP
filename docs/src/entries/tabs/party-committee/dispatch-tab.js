@@ -75,7 +75,7 @@ export function renderContent() {
           </div>
         </div>
         <div class="flex justify-end gap-2">
-          <button id="dispatch-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">下发</button>
+          <button id="dispatch-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">下发</button>
         </div>
       </div>
 

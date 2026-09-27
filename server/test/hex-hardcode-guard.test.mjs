@@ -188,8 +188,11 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
     ('&#10003; href="#sec-ack" url(#g) #12 #xyz abcdef'.match(HEX_RE) || []).length, 0,
     '抽取口径过宽：HTML 实体（&#10003;）/锚点/非法长度被当成色值');
   // ② 基线规模下限（低于此值说明台账被删减或口径失效；正常批次只会缓慢下降）
+  // ⚠ 2026-09-28 颜色存量批随收基线**下调** 85→80：`#C8102E`→`var(--party-red)` 后 9 个文件 hex 清零、
+  //   条目按纪律删除（同日 H3 僵尸检查也强制删）⇒ 声明文件数 90→81，防呆下限同批下沉。
+  //   这是「下限随存量对齐」、非削弱判据：真正判红的是 H1（新增值）/ H2（处数上涨）/ 下方僵尸登记。
   const files = Object.keys(HEX_BASELINE);
-  assert.ok(HEX_FILE_BASELINE >= 85 && files.length >= 85, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 85）`);
+  assert.ok(HEX_FILE_BASELINE >= 80 && files.length >= 80, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 80）`);
   assert.ok(HEX_TOTAL_BASELINE >= 1700, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1700）`);
   assert.ok(HEX_VALUE_BASELINE >= 140, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 140）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

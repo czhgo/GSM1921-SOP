@@ -60,7 +60,7 @@ if (!me) {
     <p class="font-title-cn text-sm font-bold text-gray-800">请先登录</p>
     <p class="text-xs text-gray-500 mt-1">换组织向导需要登录态：党委组织员可配置任意支部；现任支书可直达本支部（wizard.html?branch=自己的支部）。</p>
     <div class="flex gap-2 mt-3">
-      <a href="./login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;">去登录</a>
+      <a href="./login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);">去登录</a>
       <a href="./index.html" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">返回主页</a>
     </div>
     <p class="text-[11px] text-gray-600 mt-3">开发演示：本地访问可用 <code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">?dev=party-staff</code> 或 <code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">?dev=secretary</code> 快速进入。</p>`);
@@ -76,7 +76,7 @@ if (!me) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">仅限本支部</p>
       <p class="text-xs text-gray-500 mt-1">现任支书只能配置自己的支部（${esc(own)}）；请求的支部「${esc(reqBranch)}」不在权限范围。</p>
-      <a href="./wizard.html?branch=${esc(own)}" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;">进入本支部向导</a>`);
+      <a href="./wizard.html?branch=${esc(own)}" class="inline-block mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);">进入本支部向导</a>`);
   } else if (!branch || branch.secretaryId !== me.personId) {
     showNotice(`
       <p class="font-title-cn text-sm font-bold text-gray-800">非现任支书</p>

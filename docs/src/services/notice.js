@@ -658,7 +658,7 @@ export function resolveNoticeUrl(n, currentRole = null) {
 
 /** P3 党委下发来源徽标（红底白字，与支部自发的通知区分；下发=党委→支委层治理通道） */
 function committeeSourceChip() {
-  return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:#C8102E;color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
+  return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }
 
 export function renderNoticeList(containerId, limit = 5) {

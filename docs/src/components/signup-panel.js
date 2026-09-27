@@ -69,7 +69,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
     body = `
       <div class="flex items-center gap-2 flex-wrap">
         <p class="text-sm text-gray-500">请登录后报名参与。</p>
-        <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:#C8102E;text-decoration:none;">去登录</a>
+        <a href="${getBasePath()}login.html" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90" style="background:var(--party-red);text-decoration:none;">去登录</a>
       </div>`;
   } else if (!mySignup) {
     body = `

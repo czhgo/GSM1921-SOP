@@ -180,7 +180,7 @@ function selectSectionHtml() {
         <label class="text-xs text-gray-500">新建线上支委会名称（可留空）
           <input id="pcm-new-title" class="input-flat text-xs mt-1 block" style="min-width:240px" placeholder="如：9 月支委会（线上）">
         </label>
-        <button id="pcm-create" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">新建线上支委会</button>` : ''}
+        <button id="pcm-create" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">新建线上支委会</button>` : ''}
       </div>
       <p class="text-[11px] text-gray-500 mt-2">${committeeViewer
         ? '「线上召开」＝沿用既有活动的异步表决配置（支委为应到名单，委员线上表态）。本页不改动活动本身的线下流程设置。'
@@ -246,7 +246,7 @@ function scopeSectionHtml(act) {
         <div class="mt-1">${leaderRows}</div>
       </div>
       <div class="mt-3 flex items-center gap-3 flex-wrap">
-        <button id="pcm-save-scope" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">保存本场参会范围</button>
+        <button id="pcm-save-scope" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">保存本场参会范围</button>
         <span class="text-[11px] text-gray-500">${esc(rangeText)}</span>
       </div>` : `
       <p class="text-xs text-gray-600">${esc(rangeText)}</p>
@@ -313,7 +313,7 @@ function extractSectionHtml(act, candidates = []) {
       <p class="text-[11px] text-gray-500 mb-3">一张「拟上会」清单（不按来源各做入口）：勾选后加入本场议程，只在议程项上留回指，不改动来源本身。</p>
       <div class="space-y-3">${groupsHtml}</div>
       <div class="mt-3 flex items-center gap-3">
-        <button id="pcm-extract" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;">加入本场议程</button>
+        <button id="pcm-extract" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">加入本场议程</button>
         <span class="text-[11px] text-gray-500">勾选后可一次加入多条</span>
       </div>
     </div>`;

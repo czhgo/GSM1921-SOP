@@ -204,7 +204,7 @@ export async function createWorkspaceShell(opts) {
 
   <span><b>党委演示只读视图 · ${escHtml(_branchName)}</b> — 该支书工作台（branch 上下文）；以党委组织员会话只读查看，写操作按角色权限拒绝</span>
 
-  <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:#C8102E;">← 返回党委治理总览</a>
+  <a href="./workspace/party-committee.html" class="font-semibold whitespace-nowrap" style="color:var(--party-red);">← 返回党委治理总览</a>
 
 </div>`;
 

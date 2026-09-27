@@ -165,7 +165,7 @@ function renderNoticeDetail(n) {
       <div class="flex items-center gap-2.5 mb-3">
         <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${pri.bg} ${pri.text}">${pri.label}</span>
         ${isUnread ? badgeHtml('未读', 'warning') : ''}
-        ${n.source === 'committee' ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white" style="background:#C8102E;">党委下发</span>' : ''}
+        ${n.source === 'committee' ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-white" style="background:var(--party-red);">党委下发</span>' : ''}
       </div>
 
       <!-- 通知者 / 被通知者 / 时间 —— 信息条，非邮箱 UI -->

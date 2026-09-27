@@ -20739,3 +20739,50 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - `.ctx/TIMESTAMPS.md`：本批改过 / 已改文件刷 / 加注（见 `D-671` / `D-672` 影响范围与交付报告「TIMESTAMPS 改动行清单」）。
 - ⚠ **只登记 / 未做逐条不得读成已办**：见本节「七」。
 - ⚠ **本批实测为非全量**（只跑纯 node 守卫 ＋ 若干真机子集）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 222。**
+
+## 批次 223（2026-09-28，`D-673`）**深链兜底按场景归位 ＋ 全站 `#C8102E` 统一到 `#CE1126` ＋ 存量硬编码兜底清理（低风险部分）**
+
+> **本批令（逐字）**：支书四条裁定——「**修深链兜底（推荐）**」/「**统一到 #CE1126（推荐）**」/「**认可这个变化（推荐）**」（首页活动子页签激活态显为党建红 ⇒ 无需动）/「**开专批清理存量（推荐）**」。**本批改动面**＝`docs/src/**`（深链 1 文件 ＋ 色值 15 文件 ＋ `styles.css`）· `server/test/{style-baseline.mjs,hex-hardcode-guard.test.mjs}` · `.ctx/**`（台账）。**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**；3000 端口**有常驻服务（未停 / 未杀 / 未占）**；**只跑纯 node 守卫**。
+
+### 一、★ 深链兜底按「场景归位」（`docs/src/entries/ws-secretary-entry.js`）
+
+- **实读把全部深链解析器列清**：`docs/src/components/workspace-shell.js:464-494`（通用解析）· `docs/src/core/cross-page-state.js:80-159`（载体）· **6 个 `entries/ws-*-entry.js`** · 独立页 `activity-entry.js:103-126` / `party-committee-meeting-entry.js` · 生成方 `main-entry.js:105-141` / `system-notice-templates.js:110/119`。**结论＝只有 `ws-secretary-entry.js` 那一句是「活动定位深链一律落 `calendar`」**（属**无条件** `shell.activate('calendar')`）；其余 5 台的 `actId` 都落各自角色域 tab（`tf-view`/`write`/`attendance`/`taskforce`/`kanban`/`projects`…）**非 calendar**。
+- ★ **实读更正（重要）**：**`D-671` 记的根因位置 `workspace-shell.js:27-48` 是误记**——那里是通用解析器、**不含 tab 硬编码**；真正那句在 `ws-secretary-entry.js`（原 `:36`）。**本批记正。**
+- **规则**（只用既有字段、不新造；引 `§2.9`/`§10.2`）：`activity.type==='支委会'` 或 `activity.scenarioId==='branch-committee'` ⇒ 落**「支委会」tab**（`committee-meeting`；该活动的实际承载＝支委会会议〔表态/表决/记录决议〕，系统通知 `committee-vote-*` 亦以此为落点）；**其余活动 ⇒ 落「活动管理」（`calendar`）**——该 tab 内渲染的就是**该活动自身的详情面板**（`viewMode:'detail'`）；**目标 tab 不可见 ⇒ 不加判据、不放开可见性**（`tab-bar.js:492` R6 守卫自带「回退首个可见 tab」）。
+- **改法**：由「无条件 `activate('calendar')`」改为**先按上述字段判定**再 `activate`。
+- **真机逐处（改前→改后）**：`?activityId=act-27`（支委会 published）→ `committee-meeting`；`act-2`（支委会 completed）→ `committee-meeting`；`act-31`（支部党员大会 async 表决）→ `calendar`；`act-1`（党小组会）/`act-3`（主题党日）→ `calendar`；`act-99999`（不存在）→ `calendar`；**改前＝全部 → `calendar`**；`?tab=work-map` → `work-map`（**`?tab=` 语义一字未动**）。
+- ⚠ **只登记未做（附理由）**：「无法判定 ⇒ 重定向 `activity.html?id=`」**未实现**——① 对秘书台而言 `calendar` 内渲的就是该活动自身详情（符合「落活动详情 / 对应域 tab」）② 壳内 `location.href` 跳独立页会与数据加载竞态、且**打破「`secretary.html?activityId=` 打开秘书台该活动 inspector」的既有功能契约**（`async-vote` E2E 的**支部党员大会**就依赖它落到 calendar）③ 不可见一路由 `tab-bar.js:492` R6 内建回退 ⇒ **判为有意不改**。
+
+### 二、`#C8102E` → `#CE1126`（实读 15 文件 / 34 处）
+
+- **逐处**（`文件:行` ＋ 该处语义）：`modules/references.js:361`（去登录主 CTA）· `entries/notice-entry.js:168`（党委下发党务标签）· `entries/party-committee-meeting-entry.js:183/249/316`（新建线上支委会 / 保存参会范围 / 加入本场议程 主 CTA×3）· `components/header.js:276`（党委下发标签）· `components/form-shell.js:17`（保存按钮 accent 缺省值）· `entries/wizard-entry.js:63/79`（主 CTA×2）· `components/org-setup-wizard.js:318/408/491/515/598/648/694/725/806/820`（向导主 CTA×10）· `services/notice.js:661`（党委下发标签）· `components/workspace-shell.js:207`（返回党委治理总览链接色）· `entries/tabs/disc/inspection-tab.js:449/471`（提交代录主 CTA ／ PersonPicker `accentColor` **JS 入参**）· `components/signup-panel.js:72` · `entries/tabs/party-committee/{branches-tab:53/68/93/100/110/237, dispatch-tab:78, review-tab:146}` · `entries/tabs/secretary/report-up-tab.js:45/102`。
+- **改法**：**33 处 CSS / style 语境全部改走 `var(--party-red)`（＝`#CE1126`；判据 `§2.9`「主 CTA / 党务标签 → 品牌统一层」）**；**唯一例外**＝`disc/inspection-tab.js:471` 的 `accentColor:'#C8102E'` 是 **JS 入参**（`person-picker.js:105-111` 会拿它做 `hexToRgba()`/`darkenHex()` 运算、并作 SVG `stroke`）⇒ **换 `var()` 会算坏** ⇒ **删去显式覆盖、回落组件默认 `#CE1126`**（与本批统一目标同值）。
+- **基线收线**（`server/test/style-baseline.mjs`）：**删条目 9 条**（`form-shell`·`signup-panel`·`workspace-shell`·`notice-entry`·`party-committee-meeting-entry`·`wizard-entry`·`party-committee/{branches,dispatch,review}-tab` 的 hex **真清零** ⇒ `HEX_FILE_BASELINE` **90→81**）＋ **c 下调 6 条**（`header` 6→5 · `org-setup-wizard` 18→8 · `references` 17→16 · `disc/inspection-tab` 12→11 · `report-up-tab` 5→3 · `services/notice.js` 3→2）＋ **`HEX_VALUE_BASELINE` 168→167**（`#c8102e` 全站消失）＋ `HEX_TOTAL_BASELINE` **有意保持 2025**。
+- **`hex-hardcode-guard.test.mjs:190-192`**：H3 的**防呆下限 85→80**（声明文件数 90→81 ⇒ 下限须随存量对齐，否则「下限>实况」恒红）；**未被削弱**＝H1（新增(文件,值)即红）· H2（逐文件处数上涨即红）· 僵尸登记 · H4/H5 **全未动**。
+- **结果**：`hex-hardcode-guard` 全绿；**hex 处数 1675 → 1619（↓406 vs 存量起点 2025）**、**值 168 → 167**、**文件 81**；真机 `--party-red` 实算 `rgb(206,17,38)`、**旧 `#C8102E`（`rgb(200,16,46)`）命中元素数 = 0**。
+- ⚠ **实读更正**：`§2.9` U2 称「4 个文件」、任务说「5 个文件」，**实为 15 文件 / 34 处**；`§2.9` U2 称「`_C` 表无 `#C8102E`」**正确**（`_C.partyRedBrand` 已是 `#CE1126`）⇒ **本批未动 `constants.js`**。
+
+### 三、存量兜底清理（只做低风险部分）
+
+- **实读口径更正**：`var(--tok, <硬编码兜底>)` 实为 **111 处 / 25 文件**（`§2.9` 称 84 处 ⇒ 口径差异：是否计 `--acc-text-dark` / rgba 兜底）。
+- **本批做的（低风险①「`--tok` 已在 `:root` 有正式默认值 ⇒ 删兜底」）**——**仅 `docs/src/styles.css` 一个文件**（纯 CSS 值语境、无类名耦合）：`var(--app-accent, #B91C1C)` ×21 → `var(--app-accent)`（`:root:101` ＝ `var(--accent-secretary)` ＝ `#B91C1C`）· `var(--app-accent-bg, rgba(185,28,28,0.1))` ×~7 → 去兜底（`:102` 逐字等值）· `var(--app-accent-border, rgba(185,28,28,0.3))` ×~4 → 去兜底（`:103` 逐字等值）· `var(--surface-card, #FFFFFF)` ×1（`.ov-sub-tab-active`）→ 去兜底（`:81 #FFFFFF`；深色态 `:4423 #141D2F`）。涉及选择器 `.wp-dim-chip.wp-dim-on`·`.wp-brand-chip.wp-brand-on`·`.wp-agenda-kind…-on`·`.cs-option.is-selected`·`.btn-accent`·`.btn-accent-soft`·`.chip-option:hover`·`.chip-accent-on`·`.text-accent`·`.radio-accent`·`.checkbox-accent`·`.page-num.is-current`·`.ov-sub-tab-active`。
+- **零观感变化证明（浅 / 深两态）**：`.btn-accent` 背景 `color-mix(in srgb, #B91C1C 80%, #1F2937)` → `color-mix(in srgb, var(--app-accent) 80%, #1F2937)`（`--app-accent` 浅色解析 `#B91C1C`＝`rgb(185,28,28)`）⇒ **两态计算值相同**；`.btn-accent-soft`/`.chip-accent-on`/`.text-accent`/`.radio-accent`/`.checkbox-accent`/`.page-num.is-current` 同理；`--app-accent` **在 `html.theme-dark` 未被覆盖**（头注「党建红 `--party-red` 系不变」）⇒ 深浅一致；`.ov-sub-tab-active` 浅 `#FFFFFF` / 深 `#141D2F` **两态均不变**；**实机 `oldHit=0`**。基线 `styles.css` c **329→307**、全站 **1675→1619**。
+- **只登记未做**：① 的 **JS 侧同类兜底（约 60+ 处 / 20+ 文件）**——分两形态：ⓐ 纯 `style="…"` 属性值（**可安全删**）ⓑ **Tailwind 任意值类** `[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]`（**与 `classList.toggle(同一字面量)` 成对耦合**，须逐文件同步改两处、否则切换态失效 ⇒ **风险升档、不动**）；② 内联色已有等价语义类 ⇒ 换类（**未做**）；③ 内联色恰好等于某令牌 ⇒ 换 `var(--tok)`（**未做**；**依据前批既有教训**「按值换令牌会把品牌红 / 角色识别色**错标**」，须逐值比对）；**中 / 高风险（只登记）**＝「危险红」**五套并存**（`#EF4444`/`#DC2626`/`#F87171`/`red-600`/`#C8102E`）该归谁 · 功能色当主题色用 · 观感变化类 · Tailwind 类与 toggle 耦合者 ⇒ **须支书裁语义**（与 `§2.9` U1–U4 同类）。**明确排除（不可删）**＝元素级变量 `var(--tint, …)`/`var(--acc-border-dark, #334155)`/`var(--tab-accent, …)`/`var(--acc, …)`（`:root` 无定义，删兜底会变观感）。
+
+### 四、本批实测（非全量，如实写）
+
+- `agenda-flow` ＋ `agenda-closure` ＝ **6/6**（A5 绿）。
+- `form-loop-sweep` ＋ `page-sweep` ＋ `link-integrity` ＋ `module-load` ＋ `ux-guard` ＝ **112 pass / 0 fail**（S0–S7、L1–L5、E1/E2、7 台真机）。
+- `hex` ＋ `text-tier` ＋ `small-text` ＋ `control-font` ＝ **16/16**。
+- `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `frontmatter-freshness` ＋ `copy-length` ＋ `copy-master` ＝ **49/49**。
+- `click-cost` ＝ **5/5**；`link-target-guard` ＝ **7/7**（⚠ 浏览器组 exit code 1 系沙箱禁写 playwright `debug.log`，**`fail 0`、非测试失败**）。
+- ⚠ **本批实测为非全量**（只跑上述子集 ＋ 纯 node 守卫）；**不得把各路自测写成「全量绿」**；**提交前全量见批次 224**。
+
+### 五、本批记账（台账 / 决策日志）
+
+- `.ctx/logs/2026-09-DECISION_LOG.md`：新增 **`D-673`** ＋ 本月目录 1 行 ＋ 文首「最近一次追加」改写 ＋ 文首 / 续编说明 / 本月目录 / 月度索引**四处计数同刷**为 **`D-275`…`D-673`／399 条**、下一条自 **`D-674`**（`^## D-` 实测复算 **399**）。
+- `.ctx/logs/DECISION_LOG.md`：月度索引 2026-09 行刷为 **399 条（D-275~D-673）** ＋ 行末补批次 223 速记。
+- `.ctx/ACTIVE_RULINGS.md`：文首补批次 223 增量句〔**0 行新立 ＋ 2 行改准 ＋ 0 条不入表** ⇒ 口径行**仍 128**〕；`D-671` 深链那一行**改准**（补「**活动定位深链必须按活动承载归位**」＋ **更正根因位置为 `ws-secretary-entry.js`**）＋ `D-643` 那一行**改准**（补「**色板外色值一律收敛到规范令牌、不得留第二套同义色**」＋「**删硬编码兜底的前提＝该令牌已在 `:root` 有正式默认值；元素级变量（`--tint` 等）的兜底不许删**」）；文首「实有 N 行」「一律以 N 为准」两处自述**仍为 128**（`grep -c '^- '` 实测 **128**）。
+- `.ctx/TIMESTAMPS.md`：本批改过 / 已改文件刷 / 加注（见 `D-673` 影响范围与交付报告「TIMESTAMPS 改动行清单」）。
+- ⚠ **只登记 / 未做逐条不得读成已办**：见 `D-673`「一 / 三」。
+- ⚠ **本批实测为非全量**（只跑上述子集 ＋ 纯 node 守卫）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 224。**
