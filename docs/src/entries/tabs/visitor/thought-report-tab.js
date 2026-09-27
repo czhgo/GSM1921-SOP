@@ -64,7 +64,7 @@ export function renderContent(ctx) {
     tc.innerHTML = `
       <div class="mb-3 p-3 rounded-lg bg-white">
         <p class="text-sm font-semibold text-gray-800">我的思想汇报</p>
-        <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇 · 提交即入库归档至个人档案</p>
+        <p class="text-xs text-gray-500 mt-0.5">已提交 ${total} 篇 · 提交即入库归档至个人档案；本页只收本人提交，组织侧台账在组织委员台「思想汇报」。</p>
       </div>
       <div class="mb-3 p-3 rounded-lg bg-white border border-gray-100">
         <p class="text-xs font-medium text-gray-600 mb-2">提交思想汇报</p>

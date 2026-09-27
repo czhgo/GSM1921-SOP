@@ -121,7 +121,7 @@ const CALENDAR_TAB_HTML = `
         ${icon('pencil', { className: 'w-3.5 h-3.5' })}
         写入活动
       </button>
-    </div>
+    </div><p class="text-xs text-gray-500 mb-3">本页是活动的写入主线：全支部日历＋写入＋查询；组长台「活动管理」只写本组、无全支部日历。</p>
     <div id="calendar-view-section" class="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div class="lg:col-span-3">
         <div class="flex flex-wrap items-center gap-2 mb-3">

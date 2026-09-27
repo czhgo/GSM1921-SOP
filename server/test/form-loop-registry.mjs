@@ -110,12 +110,14 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 541, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
-  //   2026-09-27（批次 215）：支委身份配置拆为**支部层独立卡**（上移至党小组清单之前）⇒ line 随实况改准。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 726, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 727, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
-  // 2026-09-27（批次 215）：`group-progress-tab.js` 顶部**区块顺序重排**（新增「支委身份配置」宿主与挂载、
-  //   文件头补「区块顺序」注释）⇒ 该文件既有登记下移 ⇒ `726` → `746`（S6：行号须落在文案那一行；file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 746, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  //   2026-09-27（支委会迁移批）：支委身份配置**整体迁入支书台「支委会」tab 的「机构构成」段**
+  //   （判据＝支部大会选举支委 → 支委会讨论分工）⇒ 落点 tab 名改准（`file/field/msg` 与行号均不变，
+  //   写口与 DOM ID 一字未改）。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 726, field: '支委人选', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 727, field: '支委身份', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  // 2026-09-27（支委会迁移批）：`group-progress-tab.js` 删去「支委身份配置」宿主与挂载、进展区四卡改折叠下沉
+  //   ⇒ 该文件既有登记下移 ⇒ `746` → `768`（S6：行号须落在文案那一行；file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 768, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -1119,15 +1121,17 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 2026-09-23（支书裁定 · 情景①）：**支书台 · 党小组与活动 · 支委身份配置**——情景① 卡内新增的写口
+    // 2026-09-23（支书裁定 · 情景①）：**支书台 · 支委会 · 支委身份配置**——情景① 卡内新增的写口
     //   （选本支部在册成员 → 选支委身份 → 保存；可改派 / 可撤销）。该表单**出厂即在位**（不在折叠面板里，
     //   也不靠按钮展开）⇒ `open` 只需等提交口即可（空数组在此处不适用：内容由 tab 懒加载后同步渲染，
     //   等待提交口本身就是「就位」判据）。
+    //   2026-09-27（支委会迁移批）：落点由「党小组与活动」迁入「支委会」tab 的「机构构成」段 ⇒ tab 名改准
+    //   （DOM/载体/校验序一字不变；写口与 ID 未改）。
     //   校验序＝人选 → 身份；两处各读各的状态（人选读 PersonPicker 选中集、身份读 radio 勾选），
     //   故 satisfy 选一人即可让第二条可达（与同 tab 的「常设赋权」那条同形）。
     id: 'secretary-assign-branch-commissioner',
     page: 'secretary',
-    tab: '党小组与活动',
+    tab: '支委会',
     open: [
       { waitFor: '#bc-assign-confirm' },
     ],

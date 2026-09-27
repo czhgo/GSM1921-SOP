@@ -51,17 +51,21 @@ registerCapability({
     { id: 'report-up', label: '上报党委', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/report-up-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // 党小组与活动（2026-09-14 批次 25 由「党小组进展」升级为「党小组」；2026-09-25 支书裁「按
     //   『党小组与活动』这个名落地」⇒ label 再改并收编「党小组活动」分区；同日再裁「赋权按对象归位」
-    //   ⇒ 收编 情景①（设党小组组长 / 支委身份）＋ 情景②（活动项目赋权）。**id 始终保持 group-progress**
+    //   ⇒ 收编 情景②（活动项目赋权）。2026-09-27 支委会迁移批：情景①b「支委身份配置」按组织层级迁出
+    //   （支部层 → 支书台「支委会」tab），本 tab 只余 情景①a 组长指派（组层）。**id 始终保持 group-progress**
     //   以保住 ?tab= 深链 / 个人 tab 顺序偏好 / 支部 config 的 hiddenTabIds·tabOrder 三类既有键）：
-    //   本 tab = 管理区（新增/改名/解散 + 未分组行内归组 + 组长指派/支委身份，写权支书/副支书）+ 党小组活动
+    //   本 tab = 管理区（新增/改名/解散 + 未分组行内归组 + 组长指派，写权支书/副支书）+ 党小组活动
     //   （方向 bottom-up 的活动只读列示、可点进详情，新建复用既有写入入口；含活动项目赋权）+
-    //   进展区（原跨组只读知情，功能全保留）
+    //   进展区（原跨组只读知情，功能全保留；2026-09-27 支委会迁移批折叠下沉）
     { id: 'group-progress', label: '党小组与活动', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/secretary/group-progress-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
-    // 支委会会议（2026-09-20 批次 105 · D-526）：线上召开支委会的入口页签——本 tab 只做入口（场次统计 +
-    //   直达独立页），开会链路在 docs/party-committee-meeting.html（提取议程 / 委员表态 / 汇总截止 / 查阅讨论结果）。
-    //   复用既有实体（活动 + agendaVotes + votesLocked），不新增表；效力口径已定（线上与线下完全同等效力，D-538），
-    //   可见范围 / 缺席 / 是否并行线下任务三条由该口径推导、支书未逐条明答（待确认）。
-    { id: 'committee-meeting', label: '支委会会议', groupLabel: '我的职责', render: () => import('../../entries/tabs/secretary/committee-meeting-tab.js?v=20260924a').then(m => m.renderContent()) },
+    // 支委会（2026-09-20 批次 105 · D-526 建「支委会会议」入口；2026-09-27 支委会迁移批改名「支委会」并
+    //   承接「机构构成」——判据：支部大会选举支委 → 支委会讨论分工）：顶部「机构构成」（支委身份配置：
+    //   组织 / 宣传 / 纪检委员；实现单一源＝assign-tab.js::mountCommissionerAssign），下接「支委会会议」
+    //   入口（场次统计 + 直达独立页）；开会链路在 docs/party-committee-meeting.html（提取议程 / 委员表态 /
+    //   汇总截止 / 查阅讨论结果）。复用既有实体（活动 + agendaVotes + votesLocked），不新增表；
+    //   效力口径已定（线上与线下完全同等效力，D-538），可见范围 / 缺席 / 是否并行线下任务三条由该口径推导、
+    //   支书未逐条明答（待确认）。
+    { id: 'committee-meeting', label: '支委会', groupLabel: '我的职责', render: () => import('../../entries/tabs/secretary/committee-meeting-tab.js?v=20260924a').then(m => m.renderContent()) },
     // ── 知情查看（纯只读：无职责≠无知情权，支书 2026-08-08 裁定） ──
     // 2026-09-14 批次 25：同质薄壳合并——本 tab 由「专班查看」并入「知情查看」（活动/专班分段，只读），
     //   与纪检/组长/组织三台同名同义（组件单一源 = components/insight-view.js）。

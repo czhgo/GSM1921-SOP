@@ -25,15 +25,18 @@
 // 规范：筛选一律用下拉（禁 chip 筛选）；表格样式单一源（styles.css::.data-table 提供表头/行线/悬停/内边距，
 //   数据格与表头一律由该 CSS 类族提供，各表勿再重复声明）；弹窗走 components/modal.js；
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
-// 区块顺序（2026-09-27 批次 215 · 支书裁「div 支委为什么在党小组的下面」）——自上而下：
-//   ① 未分组归组条（组层·待分配；异常提醒置顶）→ ② **支委身份配置**（**支部层**：组织 / 宣传 / 纪检委员，
-//   独立卡，宿主 `#gp-commissioner-host`）→ ③ 党小组清单（组层实体：新增 / 改名 / 解散）＋ 组长指派
-//   （组层人事，同一张卡内 `#gp-leader-assign-host`）→ ④ 党小组活动（组层活动，只读归集）→ ⑤ 变更留痕
-//   → ⑥ 进展区（跨组只读知情）。
-//   **判据**（母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A：「组织关系上，支委会领导党小组」）：
-//   支部层先于组层——原顺序把「支委身份配置」嵌在「党小组清单」卡**之后**，与「支委会 → 党小组」的组织层级相反；
-//   本批把它拆为**支部层独立卡**并上移至党小组清单之前（实现单一源＝assign-tab.js::mountCommissionerAssign）。
-//   ⚠ **只动渲染顺序与分组**（宿主与挂载点移动），不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
+// 区块顺序（2026-09-27 · 支委会迁移批：支书裁「支委配置归支委会」＋本 tab 减负）——自上而下：
+//   ① 未分组归组条（组层·待分配；异常提醒置顶）→ ② 党小组清单（组层实体：新增 / 改名 / 解散）＋ 组长指派
+//   （组层人事，同一张卡内 `#gp-leader-assign-host`）→ ③ 党小组活动（组层活动，只读归集）→ ④ 变更留痕
+//   → ⑤ 进展区（跨组只读知情，**默认折叠**：首屏只 load 组管理，点开才渲染跨组进展）。
+//   **沿革/判据**：2026-09-27 批次 215 曾把「支委身份配置」拆为支部层独立卡置于党小组清单之前
+//   （母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A「支委会领导党小组」）；**本批（2026-09-27）按支书裁定**
+//   「支委配置归支委会」——「支部大会选举支委 → 支委会讨论分工」⇒ 支委身份配置（情景①b）整体迁入支书台
+//   「支委会」tab（实现单一源＝assign-tab.js::mountCommissionerAssign，宿主改由 committee-meeting-tab 提供）；
+//   本 tab 只余 情景①a 组长指派（组层）。
+//   减负（R7）：进展区四卡（跨组进展 / 组员进展摘要 / 本组活动复盘状态 / 本组活动与考勤概览）默认**不渲染**，
+//   点「展开跨组进展」才渲染（`_progressOpen`）——与既有「变更留痕」折叠同体例、只作分层不改功能。
+//   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
 import { AuthStore } from '../../../services/auth.js?v=20260924a';
@@ -59,10 +62,11 @@ import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
 } from '../../../services/group-view.js?v=20260924a';
-// 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①（设党小组组长 / 支委）+ 情景②（活动项目赋权）
-//   由本 tab 承载（情景③ 专班赋权归组织委员台「专班管理」）。实现单一源＝entries/tabs/secretary/assign-tab.js
-//   （该文件已不注册为 tab，仅余 mount* 分块）⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth, mountCommissionerAssign } from './assign-tab.js?v=20260924a';
+// 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
+//   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
+//   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
+//   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260924a';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -72,6 +76,7 @@ let _selectedGroup = null;      // 当前选中党小组名（进展区）
 let _expandedReviewId = null;   // 已展开复盘详情活动 id（只读展开态）
 let _issuesLoaded = false;      // issues 权威源是否已加载（避免未载时徽标误显 0）
 let _historyOpen = false;       // 组级变更留痕是否展开
+let _progressOpen = false;      // 进展区（跨组只读）是否展开（R7 减负：默认折叠、展开才渲染四卡）
 
 /** 当前登录人（personId + role；role 供权限门与写口双重校验同源） */
 function _me() {
@@ -114,26 +119,23 @@ function _renderAll(container) {
   const group = viewGroups.find(g => g.groupName === _selectedGroup) || null;
 
   const history = listGroupHistory();
-  // 区块顺序＝① 未分组条 → ② 支委身份配置（支部层，独立卡）→ ③ 党小组清单＋组长指派（组层）
-  //   → ④ 党小组活动 → ⑤ 变更留痕 → ⑥ 进展区（只读知情）；判据与拆分说明见文件头「区块顺序」。
+  // 区块顺序＝① 未分组条 → ② 党小组清单＋组长指派（组层）→ ③ 党小组活动 → ④ 变更留痕
+  //   → ⑤ 进展区（只读知情，默认折叠）；判据与沿革见文件头「区块顺序」。
   container.innerHTML = `
     <div class="space-y-4">
       ${_ungroupedBarHtml(ungrouped, canManage)}
-      ${_commissionerHostHtml()}${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
+      ${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
       ${history.length ? _historyCardHtml(history) : ''}
-      ${group ? `
-        ${_groupSwitchHtml(viewGroups, group, issues)}
-        ${_memberProgressCardHtml(group, issues)}
-        ${_reviewStatusCardHtml(group, members, activities, reviews)}
-        ${_activityAttendanceCardHtml(group, members, branchId, activities, attRecords)}`
-      : _noGroupHintHtml()}
+      ${group ? _progressSectionHtml(viewGroups, group, members, activities, reviews, attRecords, branchId, issues) : _noGroupHintHtml()}
     </div>`;
 
   _bindEvents(container); _renderGroupActivities(container, activities);
-  _mountAssignBlocks(container); // 情景①b 支委身份配置（支部层）＋ 情景①a 组长指派（组层）＋ 情景②③ 项目赋权分块挂载
-  // 已载则先同步渲染（未载由 _fillReports 首拉后增量填充，避免 0 高后插）
-  if (group && _issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
-  if (group) _fillReports(container, group, members);
+  _mountAssignBlocks(container); // 情景①a 组长指派（组层）＋ 情景②③ 项目赋权分块挂载
+  // 进展区默认折叠（R7）：展开态才渲染四卡并填汇报（未展开不 load，减负首屏）
+  if (group && _progressOpen) {
+    if (_issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
+    _fillReports(container, group, members);
+  }
 }
 
 /** 本支部党小组实体清单（active 置前，其后按 seq 升序；含已解散以显示状态） */
@@ -156,17 +158,10 @@ function _statMap(viewGroups) {
   return map;
 }
 
-/** 情景①b 宿主（**支部层**支委身份配置卡）——**自带卡壳**（`card` 类在宿主上），卡内容由
- *  assign-tab.js::mountCommissionerAssign 填入 ⇒ **不另包一层纯包裹 div**（同 `#gp-activity-auth-host`）。
- *  置于「党小组清单」**之前**（支部层 → 组层，判据见文件头「区块顺序」）。 */
-function _commissionerHostHtml() {
-  return '<div id="gp-commissioner-host" class="card rounded-xl p-4"></div>';
-}
-
-/** 赋权分块挂载（情景①a 组长指派 · 情景①b 支委身份配置 · 情景②③ 项目赋权）：宿主随本 tab 渲染，
- *  实现单一源＝assign-tab.js——本文件只给落点宿主，不新造第二套视觉/表单。挂载序＝页面区块序。 */
+/** 赋权分块挂载（情景①a 组长指派 · 情景②③ 项目赋权）：宿主随本 tab 渲染，
+ *  实现单一源＝assign-tab.js——本文件只给落点宿主，不新造第二套视觉/表单。挂载序＝页面区块序。
+ *  （情景①b 支委身份配置已按 2026-09-27 支书裁定迁支书台「支委会」tab，宿主改由 committee-meeting-tab 提供。） */
 function _mountAssignBlocks(container) {
-  mountCommissionerAssign(container.querySelector('#gp-commissioner-host'));
   mountLeaderAssign(container.querySelector('#gp-leader-assign-host'));
   mountActivityProjectAuth(container.querySelector('#gp-activity-auth-host'));
 }
@@ -292,6 +287,28 @@ function _historyRowHtml(h) {
       <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">${esc(h.groupName)}</span>
       <span class="text-xs text-gray-700 flex-1 min-w-0 truncate">${esc(what)}</span>
       <span class="text-xs text-gray-500 shrink-0">${esc(who || '—')}</span>
+    </div>`;
+}
+
+/** 进展区折叠壳（R7 减负）：首屏不渲染四卡，点「展开跨组进展」才渲染（`_progressOpen`）。
+ *  逐块判据：四块（跨组进展 / 组员进展摘要 / 本组活动复盘状态 / 本组活动与考勤概览）**均为「支书跨组只读知情」**、
+ *  属 L2 全局视角，不是本 tab 主问（组怎么分、谁在什么组、组里发起了什么活动）——**折叠**（不删、不降功能：
+ *  展开后 DOM 与事件一字不减）。跨组进展块虽属支书日常知情，但**它只是进展的组选择器**（进入进展区才有用），
+ *  故随区一并折叠、不单独留守首屏。 */
+function _progressSectionHtml(viewGroups, group, members, activities, reviews, attRecords, branchId, issues) {
+  return `
+    <div class="card rounded-xl p-4">
+      <div class="flex items-center justify-between mb-1">
+        <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展（只读知情）</h4>
+        <button type="button" class="gp-progress-toggle text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;">${_progressOpen ? '收起' : '展开跨组进展'}</button>
+      </div>
+      <p class="text-xs text-gray-500 mb-2.5">支书跨组只读掌握（知情≠操作）：组员汇报 / 复盘状态 / 活动与考勤。点右上「展开跨组进展」查看。</p>
+      ${_progressOpen ? `<div class="space-y-4">
+        ${_groupSwitchHtml(viewGroups, group, issues)}
+        ${_memberProgressCardHtml(group, issues)}
+        ${_reviewStatusCardHtml(group, members, activities, reviews)}
+        ${_activityAttendanceCardHtml(group, members, branchId, activities, attRecords)}
+      </div>` : ''}
     </div>`;
 }
 
@@ -643,6 +660,11 @@ function _bindDelegated(container) {
     if (e.target.closest('.gp-history-toggle')) {
       _historyOpen = !_historyOpen;
       _renderAll(container);
+      return;
+    }
+    if (e.target.closest('.gp-progress-toggle')) {
+      _progressOpen = !_progressOpen;
+      _renderAll(container);
     }
   });
 
@@ -806,7 +828,8 @@ function _openDissolveModal(container, id) {
 // 重复渲染边界：本分区只给**只读展示**，不提供任何**按活动**的可写入口 ⇒ 与「活动管理」tab 不存在同一场活动的
 //   两份可写入口（日历仍显示全部活动、仍保留通用「写入活动」入口；两处新建都落同一个既有浮窗，口径一致）。
 // 列表走统一检索引擎（renderFilteredList）：大数目自动分页（page-sweep P11「自建列表未分页」不适用于本分区）。
-// ⚠ 本段**置于文件末尾**：不改动上文任何行的行号——`form-loop-sweep` 按 `group-progress-tab.js:726` 取证。
+// ⚠ 本段位于文件末尾区——`form-loop-sweep` 按 `group-progress-tab.js:768` 取证（2026-09-27 支委会迁移批
+//   因顶部删「支委配置」宿主与挂载、进展区改折叠，既有登记行号随实况由 `:746` 改准为 `:768`）。
 
 /** 党小组活动分区骨架（列表由 _renderGroupActivities 经统一检索引擎填入 #gp-group-activities） */
 function _groupActivitySectionHtml() {

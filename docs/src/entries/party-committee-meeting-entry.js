@@ -421,10 +421,10 @@ function resultSectionHtml(act, votes) {
 function rulingNoticeHtml() {
   return `
     <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-4">
-      <p class="text-xs font-semibold text-amber-800">① 线上与线下完全同等效力（2026-09-20 定案）：线上表决与线上记录的讨论结果即终局，不需线下追认。</p>
+      <p class="text-xs font-semibold text-amber-800">效力口径（已定）· 线上与线下完全同等效力（2026-09-20 定案）：线上表决与线上记录的讨论结果即终局，不需线下追认。</p>
       <details class="mt-1.5">
-        <summary class="text-[11px] text-amber-800 cursor-pointer select-none">由该口径推导、尚待确认的三条（② ③ ④）▾</summary>
-        <div class="text-[11px] text-amber-800 leading-5 mt-1">以下三条由上面这条口径推出，尚未逐条明答，请支书确认或推翻：② 讨论结果可见范围与线下一致（支委会内部）；③ 支委缺席按线下同一规则；④ 线上支委会也走线下那套任务（两条线合流）。确认前本页不代作判定，只如实呈现已存记录（锁定 / 结果 / 表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
+        <summary class="text-[11px] text-amber-800 cursor-pointer select-none">由该口径推导、尚待确认的三条 ▾</summary>
+        <div class="text-[11px] text-amber-800 leading-5 mt-1">以下三条由上面这条口径推出，尚未逐条明答，请支书确认或推翻：其一 讨论结果可见范围与线下一致（支委会内部）；其二 支委缺席按线下同一规则；其三 线上支委会也走线下那套任务（两条线合流）。确认前本页不代作判定，只如实呈现已存记录（锁定 / 结果 / 表态）。<a href="./help.html#card-copy-pcm-scope" class="text-sky-600 hover:underline">见帮助 · 支委会页可见范围</a></div>
       </details>
     </div>`;
 }

@@ -99,6 +99,10 @@ test('A3 迁移在界面上真生效：说明行已缩成一行 ＋ 深链（导
   // 支书台「党小组」tab：清单卡导语 → #card-copy-party-group；本组活动复盘状态卡导语 → #card-copy-review-submit
   const sec = await newPage();
   await loginAndOpenTab(sec, '2300010001', 'secretary', '党小组');
+  // 2026-09-27（R7 减负）：该 tab 的「跨组进展」区（含「本组活动复盘状态」卡）默认折叠 ⇒ 先展开再核深链。
+  //   **不是放宽**：深链仍在、仍各恰 1 处、导语仍 ≤60 字——只是落点由「首屏」改到「展开态」（一键可达）。
+  await sec.locator('.gp-progress-toggle').first().waitFor({ timeout: 20000 });
+  await sec.locator('.gp-progress-toggle').first().click();
   for (const id of ['card-copy-party-group', 'card-copy-review-submit']) {
     const link = sec.locator(`a[href="./help.html#${id}"]`);
     await link.first().waitFor({ timeout: 20000 });

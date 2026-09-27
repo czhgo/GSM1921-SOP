@@ -3,13 +3,13 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 //
 // 内容已按对象归位（2026-09-25 支书裁「全按对象归位」）＋ 2026-09-27 批次 213 按母本补齐非本位入口：
-//   · 情景①（设党小组组长 / 支委身份）⇒ **本位入口**＝支书台「党小组与活动」tab
-//     ——**2026-09-27 批次 215 按组织层级拆两块**（判据＝母本 CDF §A「支委会领导党小组」）：
-//     ①a 组长指派（组层）：宿主 `#gp-leader-assign-host`（「党小组清单」卡内），import `mountLeaderAssign`
-//     ①b 支委身份配置（**支部层**）：宿主 `#gp-commissioner-host`（页首独立卡，置于「党小组清单」之前），
-//         import `mountCommissionerAssign`——同一写口与 ID 不变，仅落点/渲染顺序改准
+//   · 情景①（设党小组组长 / 支委身份）⇒ **本位入口**＝支书台（2026-09-27 支委会迁移批按支书裁定拆落点）：
+//     ①a 组长指派（组层）：宿主 `#gp-leader-assign-host`（「党小组与活动」tab「党小组清单」卡内），
+//        import `mountLeaderAssign`；
+//     ①b 支委身份配置（**支部层**）：宿主 `#cm-commissioner-host`（**支书台「支委会」tab 的「机构构成」段**，
+//        由 committee-meeting-tab.js 提供），import `mountCommissionerAssign`——同一写口与 ID 不变，仅落点迁移
 //   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「活动管理」内联（`entries/tabs/leader/write-tab.js`）
-//     ＋ **支书台「党小组与活动」** 同项入口（`group-progress-tab.js:151` import `mountActivityProjectAuth`）
+//     ＋ **支书台「党小组与活动」** 同项入口（`group-progress-tab.js` import `mountActivityProjectAuth`）
 //   · 情景③（专班赋权）⇒ **本位入口**＝组织委员台「专班管理」
 //     （`entries/tabs/org/taskforce-tab.js:240` import `mountTaskforceProjectAuth`）
 //     ＋ **支书台「党小组与活动」** 同项入口（同上 `mountActivityProjectAuth` 一并挂载）
@@ -78,7 +78,7 @@ function _isAuthHomeRole(key) {
 // 2026-09-23（支书裁定·裁定乙，逐字）：「赋权主要是3个情景，一是赋权给党小组组长/支委（也就是最初的
 //   人员配置只有党委给支书配置，剩下的身份由书记来配置）；二是活动（支书/党小组组长）做项目赋权；
 //   三是专班（支书/组织委员）做专班赋权」；2026-09-25 支书再裁「**全按对象归位**」⇒
-//   情景①② 落「党小组与活动」、情景③ 落组织委员台「专班管理」；原「本位＝谁」制度句与 2 处折叠说明
+//   情景①a 落「党小组与活动」（组层）、①b 落「支委会」（支部层）、情景② 落「党小组与活动」、情景③ 落组织委员台「专班管理」；
 //   搬入 `docs/help.html` 定点（C7），界面各留一行 + 深链。**权限判定不变**（写口仍是既有服务层）。
 
 /** 情景①a 分块（设党小组组长）——落点＝支书台「党小组与活动」tab 的「党小组清单」卡内（**组层**，与「组 / 组长」同区）。
@@ -95,9 +95,9 @@ const LEADER_ASSIGN_HTML = `
     <div id="assign-leaders-list" class="mt-3"></div>
   </div>`;
 
-/** 情景①b 分块（支委身份配置）——落点＝支书台「党小组与活动」tab 的**支部层独立卡**，
- *  置于「党小组清单」**之前**（支部层先于组层；同判据见上）。**卡壳由落点提供**（宿主
- *  `#gp-commissioner-host` 自带 `card` 类，故本块只出卡内容，不另包一层纯包裹 div——
+/** 情景①b 分块（支委身份配置）——落点＝支书台「支委会」tab 的**机构构成段**（2026-09-27 支书裁定
+ *  「支委配置归支委会」，由「党小组与活动」迁入；宿主由 committee-meeting-tab.js 提供）。**卡壳由落点提供**
+ *  （宿主 `#cm-commissioner-host` 所在的机构构成卡自带卡壳，故本块只出卡内容，不另包纯包裹 div——
  *  同 `#gp-activity-auth-host` 既有形态）。 */
 const COMMISSIONER_ASSIGN_HTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
@@ -132,8 +132,8 @@ export function mountLeaderAssign(host) {
   renderAssignLeaders();
 }
 
-/** 情景①b 挂载（支书台「党小组与活动」tab 调用；宿主＝**支部层独立卡**，置于「党小组清单」之前）：
- *  支委身份配置（组织 / 宣传 / 纪检委员）——支部层班子配置，可改派、可撤销。 */
+/** 情景①b 挂载（支书台「支委会」tab 调用；宿主＝「机构构成」段内 `#cm-commissioner-host`）：
+ *  支委身份配置（组织 / 宣传 / 纪检委员）——支部班子配置，可改派、可撤销。 */
 export function mountCommissionerAssign(host) {
   if (!host) return;
   host.innerHTML = COMMISSIONER_ASSIGN_HTML;
