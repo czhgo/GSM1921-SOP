@@ -91,6 +91,17 @@
   --functional-error:   #EF4444;
   --functional-info:    #3B82F6;
 
+  /* ── 主题色运行时令牌（--app-accent 三件套）· 正式默认值（2026-09-28）──
+     7 个工作台由 bootstrapPage（core/bootstrap.js）/ theme.js 在 <html> 上注入当前用户主题色，
+     覆盖此处默认值；归档 / 反馈 / 通知 / 帮助 / 关于等非工作台页**不注入** ⇒ 此前每个组件各自写
+     `var(--app-accent, <党建红 hex>)` 硬编码兜底（DESIGN_SYSTEM §2.8 兜底规则），兜底值散落各处。
+     此处给三件套**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）：
+     组件此后可直接写 var(--app-accent) / var(--app-accent-bg) / var(--app-accent-border)，
+     不须再带硬编码兜底。⚠ 取 `var(--accent-secretary)` 而非再写 hex（二者同值）。 */
+  --app-accent:        var(--accent-secretary);
+  --app-accent-bg:     rgba(185, 28, 28, 0.1);
+  --app-accent-border: rgba(185, 28, 28, 0.3);
+
   /* ── Shape — 圆角 ── */
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -726,9 +737,20 @@ button:disabled { cursor: not-allowed; }
 .text-accent { color: var(--app-accent, #B91C1C) !important; }
 /* 列表行选中态（无边框，用于模板/子项选中） */
 .sel-accent-on {
-  background: var(--app-accent-bg, rgba(185, 28, 28, 0.1)) !important;
-  color: var(--app-accent, #B91C1C) !important;
+  background: var(--app-accent-bg) !important;
+  color: var(--app-accent) !important;
   font-weight: 500;
+}
+
+/* 主题色首字块（人名首字头像）：主题色浅底 + 主题色字；夜间提亮同色系字（口径同内联
+   `--acc-text-dark`，此处以类规则实现，免去三处各自写内联样式 + 硬编码兜底）。
+   ——2026-09-28 收敛：原 assign-tab.js 三处内联（含硬编码兜底）各写一份，现统一到本类（DESIGN_SYSTEM §2.8）。 */
+.accent-avatar {
+  background: var(--app-accent-bg);
+  color: var(--app-accent);
+}
+html.theme-dark .accent-avatar {
+  color: color-mix(in srgb, var(--app-accent) 55%, #fff);
 }
 
 .radio-accent {
@@ -3387,38 +3409,39 @@ html.theme-dark .tf-section-head {
    避免与党建红主色混淆、视觉刺眼）
    2026-09-24 无障碍修复（焦点环对比度）：金色单环在浅色底上**不达标**——实测
    #FFD700 vs 页面底 #FAFAF5 = 1.34:1、vs 白卡 1.40:1、vs 选中底 #FEE2E2 = 1.15:1（要求 ≥3:1）。
-   故**保留党徽金主环**（金 vs 其外侧深色 ≈10:1，仍是唯一主视觉），并在金环**内外各补一圈半透明深色**
-   （外圈 vs #FAFAF5 ≈ 4.7:1）⇒ 焦点指示整体在金环内外任一背景上都 ≥3:1。
-   outlined 的金环 geometry 不变（2px / offset 2px），深色补环由 box-shadow 承担——
-   之所以不用 outline 承担深色：`.input-flat` / 登录页等处的 `outline: none` 会把它整个抹掉（同批已修 `.input-flat`）。
+   故为**无边框控件（按钮 / 链接）**保留党徽金主环，并在其外补一圈半透明深色
+   （外圈 vs #FAFAF5 ≈ 4.7:1）⇒ 焦点指示整体 ≥3:1。
+   2026-09-28 修正（支书实机实报「输入框聚焦时很诡异的黄框」）：该批把**输入族**也并入了
+   「金环（2px / offset 2px）+ 深色发光」同一口径，与设计系统 §4.3「聚焦**边框** ＝ var(--party-gold)；
+   无外发光」、§5.2「输入框聚焦：边框变主色、无外发光」、§5.3「禁止 box-shadow 发光扩散」相悖——
+   有边框的输入族只应以**边框变金**作焦点反馈。故输入族（.input-flat 系 / 登录框 / 下拉触发器）
+   的 outline 与 box-shadow 一律收回，只留边框变金；金环 + 深色补环仅保留给无边框的按钮 / 链接。
    ═══════════════════════════════════════════════════════════════ */
 button:focus-visible,
-a:focus-visible,
-input:focus-visible {
+a:focus-visible {
   outline: 2px solid var(--party-gold);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
 }
 
-/* 输入 / 下拉类控件聚焦（2026-09-24 无障碍修复「焦点环统一口径」）：
-   原写法主动 `outline: none`，只留 .input-flat:focus 的 1px 金边（金 vs 底 1.34:1 ⇒ 不达标），
-   与全局焦点环成了**两种口径**。现并入同一口径：金环 2px / offset 2px + 深色补环（与全局同名同值）。 */
+/* 有边框的输入 / 下拉 / 登录控件聚焦（2026-09-28）：焦点反馈＝边框变金（§4.3 / §5.2），
+   不画 outline、不加发光（§5.3）——原「金环 + 深色发光」即支书所报的「诡异黄框」。
+   （.input-flat:focus 的 border-color 见上文 424 行 / select.input-flat:focus 见 528 行。） */
 .input-flat:focus,
-.input-flat:focus-visible {
-  outline: 2px solid var(--party-gold);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
-}
-
-/* 登录页输入框（login.html 自带 `.login-input:focus` 的淡红 glow `rgba(206,17,38,.12)` ≈1.15:1，
-   与其 `focus:outline-none` 一起把统一焦点环盖掉了 ⇒ 该页成了「一页两种焦点环」）。
-   login.html 不在本批可改面内（只允许加 skip link / main id），故在全局样式表里以**更高特异性**
-   （`input.login-input` 0-2-1 > `.login-input` 0-2-0）补上同一口径，不动那个页面。 */
+.input-flat:focus-visible,
 input.login-input:focus,
-input.login-input:focus-visible {
-  outline: 2px solid var(--party-gold);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.55);
+input.login-input:focus-visible,
+.cs-trigger:focus,
+.cs-trigger:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+/* login 页自带 .login-input:focus 的红边与下拉触发器 .cs-trigger 的默认边框：聚焦一并归金。 */
+input.login-input:focus,
+input.login-input:focus-visible,
+.cs-trigger:focus,
+.cs-trigger:focus-visible {
+  border-color: var(--party-gold);
 }
 
 /* ═══════════════════════════════════════════════════════════════

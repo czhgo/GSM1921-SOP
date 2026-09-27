@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-09-27"
+last_updated: "2026-09-28"
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -333,7 +333,47 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 强调文字 | `.text-accent` | 步骤指示/重要文字 |
 | hover 卡片 | `.tip-trigger[data-tip]` | CSS 零 JS 轻量 tooltip（提交人悬停等） |
 
-**兜底规则**：以上语义类均以 `var(--app-accent, #B91C1C)` 兜底——7 个工作台经 `bootstrapPage` 注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档/反馈/通知等非工作台页回退党建红 `#B91C1C`，保证任何页面可渲染。
+**兜底规则**：7 个工作台经 `bootstrapPage`（`docs/src/core/bootstrap.js`）/ `theme.js` 在 `<html>` 上注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档 / 反馈 / 通知 / 帮助 / 关于等**非工作台页不注入**。自 2026-09-28 起，`--app-accent` 三件套已在 `docs/src/styles.css :root` 给出**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）⇒ 组件此后可直接写 `var(--app-accent)`，**不必再带硬编码兜底**（旧写法 `var(--app-accent, #B91C1C)` 属存量，逐步收敛）。保证任何页面可渲染。
+
+### 2.9 颜色角色 → 令牌 映射（2026-09-28 立 · 补「标准缺档」）
+
+> **为什么要立这一节（诊断依据，非凭空新增）**：§2.8 给了**四层分类**与「遇到某边框该用什么色」的**决策路径**，
+> 但**没有一份「哪种角色在哪种组件里用哪个令牌」的映射**——于是 §2.8 的四层语义在**实现层落不到具体令牌名**上，
+> 新写的组件各自解读，同一角色出现多种令牌（同一「危险」既有 `--functional-error`、又有 `red-600`、又有裸 hex）。
+> 实读证据（2026-09-28 全站扫描 `docs/src/**/*.js`）：`style="…"` 内含色值的写法 **180 处 / 60 文件**、
+> 形如 `var(--tok, <硬编码兜底>)` 的兜底 **84 处**；其中**近期新写的 div 组件**（`committee-meeting-tab.js` /
+> `assign-tab.js` / `group-progress-tab.js`）出现**新造硬编码**（如内联 `#C8102E`、`rgba(185,28,28,0.45)`），
+> 而早期按本规范落地的样板组件（`.btn-accent*` / `.chip-accent-on` / `.sel-accent-on` / `tab-bar.js`）
+> **零新造硬编码**——支书 2026-09-28 判「新组件很没有自觉」的技术根因即此。
+> ⇒ **「不统一」的根不在实现者手滑，而在标准没有给「角色 → 令牌」**。本节把它写成表。
+
+**角色-令牌表**（有限档；**同一行＝同一语义层，同层必须同令牌**。`§` ＝依据节）：
+
+| 颜色角色 | 令牌（写法） | 什么时候用 | 什么时候**不许**用 | 依据 |
+|---|---|---|---|---|
+| **主题色 / 强调色** | `--app-accent` / `--app-accent-bg` / `--app-accent-border`（三件套；`styles.css :root` 有正式默认值，工作台由 `bootstrapPage` 覆盖） | tab 激活态、主按钮、次级按钮描边、选中项（chip / 列表行 / 卡片）、强调文字、强调卡边框、行内「主题色首字块」 | 状态语义（完成 / 告警 / 待处理 / 进行中）；品牌合规视觉（党徽金）；正文与边框的中性层级 | §2.7 规则1 · §2.8 ② · §2.8 兜底规则 |
+| ↳ 主题色·深色态派生 | `--acc-bg-dark` / `--acc-text-dark` / `--acc-border-dark` / `--acc-dot-dark`（**元素内联**变量；由 `styles.css` 的 `html.theme-dark [style*="--acc-*-dark"]` 规则消费；构造函数 `applyDark` / `accDarkVars` / `accDarkParts` / `dotDarkVars` 见 `docs/src/core/constants.js`） | 主题色浅底块在**深色模式**下的同色系提亮（底 = 提亮色 @16%，字 = 提亮色，边框 = 提亮色 @35%；圆点 = 实色提亮）。**本批（2026-09-28）补登记**——此前只在代码注释里，规范未载 | 日间态；非主题色的状态块；**不得自造**本四件套之外的私有派生名（新增须先登记进本表） | §2.8 ② · §7.1 |
+| **语义动作类**（推荐的落法） | `.btn-accent`（主操作）· `.btn-accent-soft`（次级）· `.chip-accent-on`（chip 选中）· `.sel-accent-on`（行选中）· `.text-accent`（强调文字）· `.radio-accent` / `.checkbox-accent`（选择器）· `.accent-avatar`（主题色首字块） | 上表「主题色」各场景**优先用这些类**（类内已含日 / 夜两套与兜底） | 另写一份等价内联样式；另造同义类 | §2.8 语义动作类与选择器表 |
+| **功能色（状态层）** | `--functional-success` / `--functional-warning` / `--functional-error` / `--functional-info`；语义 Tailwind 类（`bg-amber-50` / `text-amber-700` / `bg-green-50` …）作日间落点 | 只表语义状态：完成 / 待处理 / 告警超期 / 进行中 / API 模式（Badge、状态指示器、表单校验提示） | 身份归属、装饰、大面积背景；与品牌红 / 品牌金 / 主题色互换 | §2.5 · §2.7 规则3 · §2.8 ③ |
+| ↳ 功能色·深色态 | `styles.css` 的 `html.theme-dark .bg-{red,orange,green,blue,amber}-{50,100}` 段（**已登记**映射） | 上列 Tailwind 状态类在深色模式的提亮映射 | 未登记的自造映射 | §7.2 |
+| **中性阶** | `--neutral-0…900` | 文字层级（`--neutral-700/800` 正文标题）、边框（`--neutral-200`）、分割线、占位（`--neutral-400`）、辅助文字（`--neutral-500`） | 任何身份 / 状态 / 强调语义（§2.7 规则5「灰只做中性」） | §2.4 · §2.7 规则5 · §2.8 ④ |
+| **表面 / 背景** | `--surface-page`（页面底）· `--surface-card`（卡片）· `--surface-elevated`（浮层）· `--surface-header` · `--surface-sidebar` · `--surface-hover` · `--surface-active` | 组件层级深度：页面 / 卡片 / 浮层 / 悬停 / 激活 | 文字色；作强调语义；`--neutral-50` **不作页面底色** | §2.6 · §2.7 规则4 |
+| **品牌统一层** | `--party-red`(`#CE1126`) · `--party-gold`(`#FFD700`) / `--party-gold-light` / 金黄字 `#A16207` | 主 CTA、党务标签、强调卡边框、主题党日类别、待办行动按钮、通知徽章 | 角色识别（色条 / 标签）、状态指示、正文、任何「个人可选的强调 / 选中语义」 | §2.2 · §2.3.1 |
+| **角色识别色** | `ROLE_COLORS`（`docs/src/core/constants.js`，角色键 → `{bg,text,border}`）· `--accent-<role>`（`styles.css`） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.7「角色色系与活动色系彻底分离」 |
+| **活动类别色** | `ACTIVITY_CAT_COLOR` / `getActivityTypeColors()`（`constants.js`） | 活动类型维度：日历圆点、类型徽章、主题党日系 | 角色身份维度 | §2.7 同上 |
+
+**「同一角色只用一种令牌」的可判口径**：上表任一行内，同一语义层**不得混用**其它行的令牌，也不得用裸 hex / rgba
+替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/hex-hardcode-guard.test.mjs`（H1/H2 挡
+**新增硬编码 hex**；⚠ 边界——它**只数字面量、不判「角色用错色」**，那一半见下）。
+
+**规范未定项（如实标注 —— 不替规范编，须支书裁定）**：
+
+| # | 未定项 | 现状（实读） | 需裁什么 |
+|---|---|---|---|
+| U1 | 「选中态卡片」的**底色档** | §2.7 规则1 只说主题色浅底 `rgba(X,0.10~0.12)`；实现层并存 `--app-accent-bg`(0.1) / Tailwind `bg-red-50/50` / `rgba(185,28,28,0.45)` 三种 | 选中卡统一取 `--app-accent-bg` 还是单独一档（如 0.12）？ |
+| U2 | `#C8102E` 这类**色板外党建红** | `docs/src/core/constants.js` 的 `_C` 表**无**此值；§2.2 党建红定义为 `#CE1126`；全站仍有 4 个文件在用 `#C8102E`（存量） | 是否把 `#C8102E` 收拢进色板（或一律改 `#CE1126` / `--primary-700`）？ |
+| U3 | **功能色与主题色同色相时的边界** | §2.8 给了判例表，但未给「不允许同色相」的判据 | 是否禁止「主题色=红 + 同块用告警红」并存？ |
+| U4 | 状态层**合法 Tailwind 色类清单** | §2.8 只写「存量约 69 处本期不动、新增按四层取色」，未列哪些 Tailwind 色类算合法状态类 | 是否出白名单（`amber/red/blue/green-50/100` + `text-*-700/800`）？ |
 
 ---
 
@@ -1296,6 +1336,7 @@ li + li { margin-top: 0.25em; }
 | 我需要... | 操作 |
 |----------|------|
 | 查主色值 | → §2.2 主色表 |
+| 查「某颜色角色该用哪个令牌」（主题色 / 功能色 / 中性 / 表面 / 角色识别） | → §2.9 颜色角色 → 令牌 映射 |
 | 查「哪种元素用哪一档字号 / 行高」 | → §3.2.2 文本档位-角色映射 |
 | 查「某类元素圆角 / 边框 / 阴影该取哪档」 | → §4.19 形状·边框·阴影档位表 |
 | 查「某种数据格式该用哪种视图」 | → §4.10.1 数据格式 → 视图模式对照表 |

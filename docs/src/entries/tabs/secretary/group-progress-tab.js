@@ -339,9 +339,9 @@ function _groupCardHtml(g, activeGroup, issues) {
   const isActive = g.groupName === activeGroup.groupName;
   const openCount = _issuesLoaded ? countOpenReportsByGroup(issues, g) : null;
   return `
-    <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? 'bg-red-50/50' : 'bg-white hover:bg-gray-50'}"
+    <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
       data-group="${esc(g.groupName)}"
-      style="${isActive ? 'border-color:rgba(185,28,28,0.45);--acc-bg-dark:rgba(239,68,68,0.12);' : 'border-color:var(--neutral-100);'}">
+      style="${isActive ? 'border-color:var(--app-accent-border);background:var(--app-accent-bg);' : 'border-color:var(--neutral-100);'}">
       <div class="flex items-center justify-between gap-2">
         <span class="text-sm font-semibold text-gray-800">${esc(g.groupName)}</span>
         <span class="gp-open-badge text-xs px-1.5 py-0.5 rounded-full ${openCount ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}">

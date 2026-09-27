@@ -52,7 +52,7 @@ export function renderContent() {
           <span>待记录结论 <strong>${pendingResult}</strong></span>
         </div>
         <div class="mt-3">
-          <a href="./party-committee-meeting.html" class="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:#C8102E;text-decoration:none;">打开支委会会议页 →</a>
+          <a href="./party-committee-meeting.html" class="btn-accent inline-flex items-center gap-1 text-xs px-3 py-1.5 font-medium" style="text-decoration:none;">打开支委会会议页 →</a>
         </div>
       </div>
     </div>`;

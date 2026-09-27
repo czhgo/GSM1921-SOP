@@ -20,6 +20,9 @@ import { AuthStore } from './auth.js?v=20260924a';
 import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260924a';
 import { fetchVotesStrict } from './committee-vote.js?v=20260924a';
 import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from './todo.js?v=20260924a';
+// 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
+//   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
+import { generateId } from '../core/id.js?v=20260924a';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
@@ -121,6 +124,9 @@ export async function createWorkforceProposalActivity(branchId, changes, note = 
     // （支委若滞留则剔，roster 口径；历史活动快照不回改）
     voteConfig: { ...defaultVoteConfig('branch-committee'), voterIds: resolveVoterIds('committee') }, // deliberative / committee / quorum=false
     agenda: [{
+      // id 必填：线上表态按议程项 id 挂载（见本文件顶部 2026-09-28 注）
+      id: generateId('ag'),
+      kind: 'normal',
       item: '审议支部分工调整',
       content: `${note ? `${note}\n` : ''}${lines.join('\n')}`,
     }],

@@ -137,6 +137,10 @@ function _proposalCards(proposals, outcomesByAct) {
     const statusChip = adopted
       ? '<span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700">已生效</span>'
       : _outcomeHtml(outcome);
+    // 「去表决」落点（2026-09-28 修）：表决入口＝本次支委会活动的线上表态页（支委会会议页，读 ?id=<活动id>）。
+    //   原写 ./workspace/secretary.html?activityId= ⇒ 命中支书台壳的活动定位深链
+    //   （workspace-shell.js::onNavTarget 固定 activate('calendar')）→ 落到「活动管理」，
+    //   与本卡的「表决」语义不符（支书 2026-09-28 实机 dogfood 实报）。
     return `
       <div class="rounded-xl border ${adopted ? 'border-green-200 bg-green-50/40' : 'border-gray-200 bg-white'} p-3 flex items-center gap-3">
         <div class="min-w-0 flex-1">
@@ -148,7 +152,7 @@ function _proposalCards(proposals, outcomesByAct) {
           <div class="flex flex-wrap gap-1.5 mt-1.5">${lines.join('')}</div>
         </div>
         <div class="shrink-0 flex flex-col gap-1.5 items-end">
-          <a href="./workspace/secretary.html?activityId=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
+          <a href="./party-committee-meeting.html?id=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
           ${!adopted ? (adoptable
             ? `<button type="button" class="wf-adopt px-2.5 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700" data-id="${a.id}">采纳生效</button>`
             : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-500 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}

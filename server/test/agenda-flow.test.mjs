@@ -265,3 +265,47 @@ test('A4 副支书议程编辑 / 结果记录可用（副书同权）', async ()
     console.log(`[A4] editBtn=1 resultBtns=${resultBtns} ✅ 副书同权通过`);
   } finally { await context.close(); }
 });
+
+// A5（2026-09-28 批：去表决 dogfood 实报修复）：支书台「支部分工」的「去表决」应落到
+//   **本次支委会活动的线上表态页**（docs/party-committee-meeting.html?id=<活动id>），
+//   而不是支书台的「活动管理」tab（原 href 写成 secretary.html?activityId= ⇒ 命中支书台壳的
+//   活动定位深链 workspace-shell.js::onNavTarget 固定 activate('calendar')）。同时断言该落点页
+//   真的渲染出「我的表态」表决位（议题议程项带 id）——否则「去表决」到了页也没处投。
+test('A5 支部分工「去表决」落到支委会会议页且表态位在位（非活动管理）', async () => {
+  const { context, page } = await newIsolatedPage();
+  try {
+    await loginAs(page, 'secretary');
+    // 支部分工 tab → 发起一条分工调整议题（= 一场支委会表决活动）
+    await page.click('.secretary-tab-btn[data-secretary-tab="work-map"]');
+    await page.waitForSelector('#wf-open', { timeout: 10000 });
+    await page.click('#wf-open');
+    await page.waitForSelector('#wf-rows .wf-row', { timeout: 10000 });
+    await page.selectOption('.wf-row .wf-module', await page.$eval('.wf-row .wf-module', (s) => s.options[0].value));
+    await page.selectOption('.wf-row .wf-owner', await page.$eval('.wf-row .wf-owner', (s) => {
+      const o = [...s.options].find((x) => x.value && !x.value.startsWith('none'));
+      return o ? o.value : '';
+    }));
+    await page.click('#wf-submit');
+    await page.waitForSelector('a:has-text("去表决")', { timeout: 15000 });
+
+    const href = await page.locator('a:has-text("去表决")').first().getAttribute('href');
+    console.log(`[A5] 「去表决」href = ${href}`);
+    // ① 目标＝支委会会议页（带本次活动 id）
+    assert.match(href, /party-committee-meeting\.html\?id=/, '「去表决」应指向支委会会议页 ?id=<活动id>');
+    assert.ok(!href.includes('secretary.html?activityId='), '「去表决」不得再走支书台活动定位深链（会落到「活动管理」）');
+
+    // ② 真机点它：落到支委会会议页
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {}),
+      page.locator('a:has-text("去表决")').first().click(),
+    ]);
+    assert.ok(page.url().includes('/party-committee-meeting.html'), `应落到支委会会议页，实际 ${page.url()}`);
+    await page.waitForSelector('.vote-panel', { timeout: 15000 });
+    const tabTitle = await page.locator('h2').first().innerText();
+    const voteText = await page.locator('.vote-panel').first().innerText();
+    console.log(`[A5] 落地标题=${tabTitle.trim()} 表态位=${voteText.replace(/\n/g, ' ')}`);
+    assert.ok(tabTitle.includes('支委会会议'), '落地页应为支委会会议页');
+    assert.ok(voteText.includes('我的表态'), '落点页应渲染「我的表态」表决位（议题议程项须带 id）');
+    console.log('[A5] ✅ 去表决落点与表态位通过');
+  } finally { await context.close(); }
+});

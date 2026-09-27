@@ -88,7 +88,7 @@ const LEADER_ASSIGN_HTML = `
   <div class="border-t border-gray-100 mt-4 pt-3.5">
     <div class="flex items-center justify-between mb-1">
       <h4 class="font-title-cn text-sm font-bold text-gray-700">组长指派</h4>
-      <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
+      <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">设党小组组长</button>
     </div>
     <p class="text-[11px] text-gray-500 mb-2.5">设党小组组长（组长身份由成员档案派生，可改派、可撤销）。<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a></p>
     <div id="assign-area"></div>
@@ -195,7 +195,7 @@ function renderAssignLeaders() {
       const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
       return `
       <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
+        <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">${personName.charAt(0)}</div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
@@ -466,7 +466,7 @@ function renderAuthPanel(assignArea) {
   partyGroups.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
     const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
-    html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)"' : ''}>${group}</button>`;
+    html += `<button data-auth-action="select-group" data-value="${group}" class="${cls}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${group}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -626,7 +626,7 @@ function renderAuthRecords() {
       return `
       <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">
+          <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">
             ${personName.charAt(0)}
           </div>
           <div class="min-w-0 flex-1">
@@ -759,7 +759,7 @@ function renderCommissionerList(bid) {
     rowHtml: (r) => `
       <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${esc(r.name).charAt(0)}</div>
+          <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">${esc(r.name).charAt(0)}</div>
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.name)}</a>

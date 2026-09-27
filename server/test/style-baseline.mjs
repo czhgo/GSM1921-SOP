@@ -314,14 +314,11 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/prop/tasks-tab.js': { c: 6, v: [
       '#000', '#34d399', '#60a5fa', '#fbbf24',
   ] },
-  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 10, v: [
-      '#b91c1c', '#f87171', '#fff',
+  'docs/src/entries/tabs/secretary/assign-tab.js': { c: 3, v: [
+      '#f87171', '#fff',
   ] },
   'docs/src/entries/tabs/secretary/calendar-tab.js': { c: 12, v: [
       '#b91c1c', '#ce1126', '#ffd700', '#fff',
-  ] },
-  'docs/src/entries/tabs/secretary/committee-meeting-tab.js': { c: 1, v: [
-      '#c8102e',
   ] },
   'docs/src/entries/tabs/secretary/feedback-tab.js': { c: 3, v: [
       '#b91c1c', '#fff',
@@ -422,7 +419,13 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   2026-09-26 深色覆盖段 token 化批再清 138 处（`styles.css` c 467→329，见上 HEX_BASELINE 头注）
 //   ⇒ H4 现显示 ↓272（2025−1753）；条目数仍 91；全站 distinct 值仍为 168（被清的值仍存于令牌定义处，
 //   **H5 不加条目**——本批是同文件内「字面量 → var()」，非文件间搬移）。
-export const HEX_FILE_BASELINE = 91;
+//   2026-09-28 颜色章法批（支书「新组件没章法」）：① `committee-meeting-tab.js` 唯一处 `#C8102E` 内联
+//   主按钮底色改走语义类 `.btn-accent` ⇒ 该文件 hex 清零、按收基线纪律删条目，条目数 91→90；
+//   ② `assign-tab.js` 三处主题色首字块内联（含硬编码兜底）收敛为语义类 `.accent-avatar` ⇒ c 10→3
+//   （余 `#f87171`/`#fff` 为「危险」徽章深色字与 color-mix 白）；`group-progress-tab.js` 改走
+//   `var(--app-accent-*)`（该处原即 rgba、非 hex）⇒ c 仍 7；`styles.css` 给 `--app-accent` 三件套补正式
+//   默认值 + `.sel-accent-on` 去兜底 ⇒ c 仍 329（同批新增/移除的 hex 相抵）。全站 distinct 值仍 168。
+export const HEX_FILE_BASELINE = 90;
 export const HEX_VALUE_BASELINE = 168;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
