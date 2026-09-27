@@ -25,6 +25,15 @@
 // 规范：筛选一律用下拉（禁 chip 筛选）；表格样式单一源（styles.css::.data-table 提供表头/行线/悬停/内边距，
 //   数据格与表头一律由该 CSS 类族提供，各表勿再重复声明）；弹窗走 components/modal.js；
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
+// 区块顺序（2026-09-27 批次 215 · 支书裁「div 支委为什么在党小组的下面」）——自上而下：
+//   ① 未分组归组条（组层·待分配；异常提醒置顶）→ ② **支委身份配置**（**支部层**：组织 / 宣传 / 纪检委员，
+//   独立卡，宿主 `#gp-commissioner-host`）→ ③ 党小组清单（组层实体：新增 / 改名 / 解散）＋ 组长指派
+//   （组层人事，同一张卡内 `#gp-leader-assign-host`）→ ④ 党小组活动（组层活动，只读归集）→ ⑤ 变更留痕
+//   → ⑥ 进展区（跨组只读知情）。
+//   **判据**（母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A：「组织关系上，支委会领导党小组」）：
+//   支部层先于组层——原顺序把「支委身份配置」嵌在「党小组清单」卡**之后**，与「支委会 → 党小组」的组织层级相反；
+//   本批把它拆为**支部层独立卡**并上移至党小组清单之前（实现单一源＝assign-tab.js::mountCommissionerAssign）。
+//   ⚠ **只动渲染顺序与分组**（宿主与挂载点移动），不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
 import { AuthStore } from '../../../services/auth.js?v=20260924a';
@@ -53,7 +62,7 @@ import {
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①（设党小组组长 / 支委）+ 情景②（活动项目赋权）
 //   由本 tab 承载（情景③ 专班赋权归组织委员台「专班管理」）。实现单一源＝entries/tabs/secretary/assign-tab.js
 //   （该文件已不注册为 tab，仅余 mount* 分块）⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260924a';
+import { mountLeaderAssign, mountActivityProjectAuth, mountCommissionerAssign } from './assign-tab.js?v=20260924a';
 
 /** 缺省支部（与 services/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -105,10 +114,12 @@ function _renderAll(container) {
   const group = viewGroups.find(g => g.groupName === _selectedGroup) || null;
 
   const history = listGroupHistory();
+  // 区块顺序＝① 未分组条 → ② 支委身份配置（支部层，独立卡）→ ③ 党小组清单＋组长指派（组层）
+  //   → ④ 党小组活动 → ⑤ 变更留痕 → ⑥ 进展区（只读知情）；判据与拆分说明见文件头「区块顺序」。
   container.innerHTML = `
     <div class="space-y-4">
       ${_ungroupedBarHtml(ungrouped, canManage)}
-      ${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
+      ${_commissionerHostHtml()}${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
       ${history.length ? _historyCardHtml(history) : ''}
       ${group ? `
         ${_groupSwitchHtml(viewGroups, group, issues)}
@@ -119,7 +130,7 @@ function _renderAll(container) {
     </div>`;
 
   _bindEvents(container); _renderGroupActivities(container, activities);
-  _mountAssignBlocks(container); // 情景①（组长指派 / 支委身份）＋ 情景②（活动项目赋权）分块挂载
+  _mountAssignBlocks(container); // 情景①b 支委身份配置（支部层）＋ 情景①a 组长指派（组层）＋ 情景②③ 项目赋权分块挂载
   // 已载则先同步渲染（未载由 _fillReports 首拉后增量填充，避免 0 高后插）
   if (group && _issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
   if (group) _fillReports(container, group, members);
@@ -145,8 +156,17 @@ function _statMap(viewGroups) {
   return map;
 }
 
-/** 赋权分块挂载（情景① 组长指派/支委身份 · 情景② 活动项目赋权）：宿主随本 tab 渲染，实现单一源＝assign-tab.js */
+/** 情景①b 宿主（**支部层**支委身份配置卡）——**自带卡壳**（`card` 类在宿主上），卡内容由
+ *  assign-tab.js::mountCommissionerAssign 填入 ⇒ **不另包一层纯包裹 div**（同 `#gp-activity-auth-host`）。
+ *  置于「党小组清单」**之前**（支部层 → 组层，判据见文件头「区块顺序」）。 */
+function _commissionerHostHtml() {
+  return '<div id="gp-commissioner-host" class="card rounded-xl p-4"></div>';
+}
+
+/** 赋权分块挂载（情景①a 组长指派 · 情景①b 支委身份配置 · 情景②③ 项目赋权）：宿主随本 tab 渲染，
+ *  实现单一源＝assign-tab.js——本文件只给落点宿主，不新造第二套视觉/表单。挂载序＝页面区块序。 */
 function _mountAssignBlocks(container) {
+  mountCommissionerAssign(container.querySelector('#gp-commissioner-host'));
   mountLeaderAssign(container.querySelector('#gp-leader-assign-host'));
   mountActivityProjectAuth(container.querySelector('#gp-activity-auth-host'));
 }

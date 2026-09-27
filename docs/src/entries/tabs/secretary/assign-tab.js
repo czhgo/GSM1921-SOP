@@ -4,7 +4,10 @@
 //
 // 内容已按对象归位（2026-09-25 支书裁「全按对象归位」）＋ 2026-09-27 批次 213 按母本补齐非本位入口：
 //   · 情景①（设党小组组长 / 支委身份）⇒ **本位入口**＝支书台「党小组与活动」tab
-//     （`group-progress-tab.js:150` import `mountLeaderAssign`）
+//     ——**2026-09-27 批次 215 按组织层级拆两块**（判据＝母本 CDF §A「支委会领导党小组」）：
+//     ①a 组长指派（组层）：宿主 `#gp-leader-assign-host`（「党小组清单」卡内），import `mountLeaderAssign`
+//     ①b 支委身份配置（**支部层**）：宿主 `#gp-commissioner-host`（页首独立卡，置于「党小组清单」之前），
+//         import `mountCommissionerAssign`——同一写口与 ID 不变，仅落点/渲染顺序改准
 //   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「活动管理」内联（`entries/tabs/leader/write-tab.js`）
 //     ＋ **支书台「党小组与活动」** 同项入口（`group-progress-tab.js:151` import `mountActivityProjectAuth`）
 //   · 情景③（专班赋权）⇒ **本位入口**＝组织委员台「专班管理」
@@ -78,22 +81,28 @@ function _isAuthHomeRole(key) {
 //   情景①② 落「党小组与活动」、情景③ 落组织委员台「专班管理」；原「本位＝谁」制度句与 2 处折叠说明
 //   搬入 `docs/help.html` 定点（C7），界面各留一行 + 深链。**权限判定不变**（写口仍是既有服务层）。
 
-/** 情景① 分块（设党小组组长 + 支委身份配置）——落点＝支书台「党小组与活动」tab，与「组 / 组长」同区 */
+/** 情景①a 分块（设党小组组长）——落点＝支书台「党小组与活动」tab 的「党小组清单」卡内（**组层**，与「组 / 组长」同区）。
+ *  2026-09-27 批次 215：原「组长指派与支委身份」一块按组织层级**拆为两块**（支委身份＝支部层，见下）——
+ *  判据＝母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A「组织关系上，支委会领导党小组」。 */
 const LEADER_ASSIGN_HTML = `
   <div class="border-t border-gray-100 mt-4 pt-3.5">
     <div class="flex items-center justify-between mb-1">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700">组长指派与支委身份</h4>
+      <h4 class="font-title-cn text-sm font-bold text-gray-700">组长指派</h4>
       <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff)">设党小组组长</button>
     </div>
-    <p class="text-[11px] text-gray-500 mb-2.5">设党小组组长，或为本支部成员配置支委身份（组织 / 宣传 / 纪检委员）——可改派、可撤销。<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a></p>
+    <p class="text-[11px] text-gray-500 mb-2.5">设党小组组长（组长身份由成员档案派生，可改派、可撤销）。<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a></p>
     <div id="assign-area"></div>
     <div id="assign-leaders-list" class="mt-3"></div>
-    <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-4 mt-4">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
-      <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
-      <div id="bc-assign-area"></div>
-    </div>
   </div>`;
+
+/** 情景①b 分块（支委身份配置）——落点＝支书台「党小组与活动」tab 的**支部层独立卡**，
+ *  置于「党小组清单」**之前**（支部层先于组层；同判据见上）。**卡壳由落点提供**（宿主
+ *  `#gp-commissioner-host` 自带 `card` 类，故本块只出卡内容，不另包一层纯包裹 div——
+ *  同 `#gp-activity-auth-host` 既有形态）。 */
+const COMMISSIONER_ASSIGN_HTML = `
+    <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
+    <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
+    <div id="bc-assign-area"></div>`;
 
 /** 情景② 分块（活动项目赋权）——落点＝支书台「党小组与活动」tab（跟活动走） */
 const ACTIVITY_AUTH_HTML = `
@@ -111,7 +120,7 @@ const TF_AUTH_HTML = `
     <div id="tf-auth-panel"></div>
   </div>`;
 
-/** 情景①② 挂载（支书台「党小组与活动」tab 调用）——传 host 容器，本模块负责分块 HTML 与事件 */
+/** 情景①a 挂载（支书台「党小组与活动」tab 调用；宿主＝「党小组清单」卡内）：组长指派 */
 export function mountLeaderAssign(host) {
   if (!host) return;
   host.innerHTML = LEADER_ASSIGN_HTML;
@@ -121,6 +130,13 @@ export function mountLeaderAssign(host) {
   // 面板展开态随模块自持：重渲染时按当前态对齐按钮文案并重建面板（避免「文案/面板」不同步）
   if (authPanel.open && assignArea) { if (btn) btn.textContent = '收起面板'; renderAuthPanel(assignArea); }
   renderAssignLeaders();
+}
+
+/** 情景①b 挂载（支书台「党小组与活动」tab 调用；宿主＝**支部层独立卡**，置于「党小组清单」之前）：
+ *  支委身份配置（组织 / 宣传 / 纪检委员）——支部层班子配置，可改派、可撤销。 */
+export function mountCommissionerAssign(host) {
+  if (!host) return;
+  host.innerHTML = COMMISSIONER_ASSIGN_HTML;
   renderCommissionerAssign();
 }
 
@@ -178,13 +194,13 @@ function renderAssignLeaders() {
       const personName = name;
       const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
       return `
-      <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group" data-record-id="${record ? record.id : ''}">
+      <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group">
         <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold" style="--acc-text-dark:color-mix(in srgb, var(--app-accent,#B91C1C) 55%, #fff);background:var(--app-accent-bg,rgba(185,28,28,0.1));color:var(--app-accent,#B91C1C);">${personName.charAt(0)}</div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2 flex-wrap">
             <span class="text-sm font-medium text-gray-700">${personName}</span>
             ${badgeHtml('党小组组长', 'danger')}
-            ${preset ? '<span class="text-xs text-gray-500">预设</span>' : ''}
+            ${preset ? '<span class="text-xs text-gray-500" title="预设＝该组长身份出厂即随成员档案、非本次系统内赋权；系统内赋权的组长列在「设党小组组长」面板内并带「撤销」">预设</span>' : ''}
           </div>
           <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + record.authorizedAt : ''}</p>
         </div>
@@ -749,7 +765,7 @@ function renderCommissionerList(bid) {
               <a href="${getBasePath()}person.html?id=${encodeURIComponent(r.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(r.name)}</a>
               ${badgeHtml(r._roleLabel, 'danger')}
             </div>
-            <p class="text-xs text-gray-500 mt-0.5">本支部现任${esc(r._roleLabel)}${r._since ? ' · 赋权于 ' + esc(r._since) : ''}</p>
+            ${r._since ? `<p class="text-xs text-gray-500 mt-0.5">赋权于 ${esc(r._since)}</p>` : ''}
           </div>
         </div>
         <button type="button" class="bc-revoke text-xs text-gray-500 hover:text-red-700 transition-colors opacity-0 group-hover:opacity-100 ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50" data-person-id="${esc(r.personId)}" data-role="${esc(r.role)}">撤销</button>

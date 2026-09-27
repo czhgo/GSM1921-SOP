@@ -97,16 +97,25 @@ export const VALIDATION_SITES = [
   // 2026-09-27（同批补「非本位入口」· 情景③ 支书台同项入口补回 ＋ 注释扩写）：该文件**再下移 18 行**
   //   ⇒ 下方 7 处 line 按**实况**再改准（`287,288,289` → `305,306,307`；`503,507` → `521,525`；
   //   `692,693` → `710,711`）。file/field/msg **均不变**（S2–S5 判据零改动）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 305, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 306, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 307, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 521, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 525, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-09-27（批次 215 · 支书裁「div 支委为什么在党小组的下面」）：情景① **按组织层级拆两块**——
+  //   ①a 组长指派（组层）· ①b 支委身份配置（**支部层独立卡**，上移至「党小组清单」之前）。`assign-tab.js`
+  //   拆块后 `LEADER_ASSIGN_HTML` 后半的支委块独立成 `COMMISSIONER_ASSIGN_HTML`（净下移 16 行）＋
+  //   `mountLeaderAssign` 拆出 `mountCommissionerAssign`（净下移 7 行）⇒ 下方 7 处 line 按**实况**再改准
+  //   （`305,306,307` → `321,322,323`；`521,525` → `537,541`；`710,711` → `726,727`）。
+  //   file/field/msg **均不变**（S2–S5 判据零改动；写口与 DOM ID 一字未改，真机流程载体不失配）。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 321, field: '被赋权人', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 322, field: '项目', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 323, field: '角色', flow: 'secretary/党小组与活动·活动项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 537, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 541, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 710, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 711, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 726, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  //   2026-09-27（批次 215）：支委身份配置拆为**支部层独立卡**（上移至党小组清单之前）⇒ line 随实况改准。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 726, field: '支委人选', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 727, field: '支委身份', flow: 'secretary/党小组与活动·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  // 2026-09-27（批次 215）：`group-progress-tab.js` 顶部**区块顺序重排**（新增「支委身份配置」宿主与挂载、
+  //   文件头补「区块顺序」注释）⇒ 该文件既有登记下移 ⇒ `726` → `746`（S6：行号须落在文案那一行；file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 746, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
