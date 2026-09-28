@@ -20,23 +20,23 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/state.js?v=20260928h';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/state.js?v=20260928i';
 
-import { bootstrapPage } from '../../core/bootstrap.js?v=20260928h';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260928h';
-import { flashHighlight, escHtml } from '../../core/utils.js?v=20260928h';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260928h';
-import { getCapabilities } from '../../core/registry.js?v=20260928h';
-import { loadWorkspaceData } from '../../core/data-loader.js?v=20260928h';
+import { bootstrapPage } from '../../core/bootstrap.js?v=20260928i';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260928i';
+import { flashHighlight, escHtml } from '../../core/utils.js?v=20260928i';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260928i';
+import { getCapabilities } from '../../core/registry.js?v=20260928i';
+import { loadWorkspaceData } from '../../core/data-loader.js?v=20260928i';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260928h';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260928i';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20260928h';
-import { AuthStore } from '../../services/core/auth.js?v=20260928h';
-import { BranchService } from '../../services/core/runtime.js?v=20260928h';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260928h';
+import { TodoStore } from '../../services/governance/todo.js?v=20260928i';
+import { AuthStore } from '../../services/core/auth.js?v=20260928i';
+import { BranchService } from '../../services/core/runtime.js?v=20260928i';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260928i';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260928h';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260928i';
 
 
 
@@ -93,6 +93,23 @@ const NAV_SUPPRESS_MS = 3000;
  * @param {Object} [opts.fallbackExtras] 空表回退时随 activities 一并 setState 的附加状态（如支书 viewType/managementRole）
 
  */
+
+/**
+ * 能力未对当前身份开放时的**显式提示卡**（G1 第①项，2026-09-28）。
+ * 不静默渲染空工作台：正常路径由 `core/bootstrap.js` 的页门先行拦截，本卡是**组合后授权收窄**
+ * （能力未对身份开放 / 能力被 config 收起）的兜底——判据落在事实上，不留静默（R-75）。
+ */
+function _renderCapabilityDenied(containerId, { capId, scope, role }) {
+  const root = document.getElementById(containerId);
+  if (!root) return;
+  root.innerHTML = `
+    <div class="card rounded-xl p-6 max-w-xl">
+      <h2 class="font-title-cn text-base font-bold text-gray-800 mb-2">该工作台未对你的身份开放</h2>
+      <p class="text-xs text-gray-600 leading-relaxed mb-1">你的身份不在该工作台的可达角色内，页面未渲染。</p>
+      <p class="text-xs text-gray-500">如需访问，请联系管理员调整你的身份或工作台组合。</p>
+    </div>`;
+  console.warn(`[ws-shell] 能力 ${capId}（scope=${scope}）未对角色 ${role || '(未登录)'} 开放——已渲染显式提示卡`);
+}
 
 export async function createWorkspaceShell(opts) {
 
@@ -304,9 +321,26 @@ export async function createWorkspaceShell(opts) {
 
     // M2e 注册表衔接：tab 清单经能力注册表读取（scope 能力），入口不再硬编码
 
-    const cap = getCapabilities({ scope }).find(c => c.id === capId);
+    // requiredRoles 门禁消费（G1 第①项，2026-09-28）：**先按 viewer 角色查**——`getCapabilities`
+    // 的 role 过滤即 requiredRoles 的单一源消费者（core/registry.js:57）；查不到再按 scope **兜底**。
+    // 兜底不是「绕过门禁」，而是三条**各有单一源**的放行门（三者均由 core/bootstrap.js 页门统一裁决，
+    // 本壳与之同口径、不另立第二套）：
+    //   · 党委组织员「进入支部（演示）」→ modules/branch-demo-nav.js::isPartyStaffBranchDemoAllowed
+    //   · 支书 / 副支书代归档（仅 prop.html 归档兜底面）→ core/constants.js::isArchiveFallbackPage
+    //   · 组织者兜底（仅 leader.html 上传位）→ services/activity/activity.js::isOrganizerFallbackPage
+    // 两查皆空 ⇒ **显式拒绝**（渲染可读提示卡），不再静默渲染空壳。
+    const _viewerRole = (() => {
+      try { return (typeof AuthStore?.getCurrentUser === 'function' && AuthStore.getCurrentUser()?.role) || null; } catch (_) { return null; }
+    })();
+    const cap = getCapabilities({ scope, role: _viewerRole }).find(c => c.id === capId)
+      || getCapabilities({ scope }).find(c => c.id === capId);
 
-    const rawTabs = cap && typeof cap.tabs === 'function' ? cap.tabs() : [];
+    if (!cap) {
+      _renderCapabilityDenied(containerId, { capId, scope, role: _viewerRole });
+      return;
+    }
+
+    const rawTabs = typeof cap.tabs === 'function' ? cap.tabs() : [];
 
     // L2 支部工作流模块配置（2026-09-03 支书裁定：支书操作/tab 级/核心固定）：
 

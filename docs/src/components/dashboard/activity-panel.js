@@ -5,18 +5,18 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/state.js?v=20260928h';
-import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260928h';
-import { getPersonName } from '../../services/member/person.js?v=20260928h';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260928h';
-import { AuthStore } from '../../services/core/auth.js?v=20260928h';
-import { getActivityTypeColors } from '../../core/constants.js?v=20260928h';
+import { setState, getAppState } from '../../core/state.js?v=20260928i';
+import { _fmtDate, getBasePath } from '../../core/utils.js?v=20260928i';
+import { getPersonName } from '../../services/member/person.js?v=20260928i';
+import { CrossPageState } from '../../core/cross-page-state.js?v=20260928i';
+import { AuthStore } from '../../services/core/auth.js?v=20260928i';
+import { getActivityTypeColors } from '../../core/constants.js?v=20260928i';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/constants.js?v=20260928h';
-import { badgeHtml } from '../ui/badges.js?v=20260928h';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260928h';
-import { populateMonthSelector } from '../record/calendar.js?v=20260928h';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260928h';
+import { isActivityArchived } from '../../core/constants.js?v=20260928i';
+import { badgeHtml } from '../ui/badges.js?v=20260928i';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260928i';
+import { populateMonthSelector } from '../record/calendar.js?v=20260928i';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/registry.js?v=20260928i';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });

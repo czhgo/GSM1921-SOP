@@ -2,16 +2,16 @@
 // ws-leader-entry.js — 组长工作台入口（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../components/shell/workspace-shell.js?v=20260928h';
-import { renderReportEntryHtml, bindReportEntry } from '../components/record/reporting.js?v=20260928h';
-import { flashHighlight } from '../core/utils.js?v=20260928h';
-import { loadActivities } from '../services/activity/activity.js?v=20260928h';
-import { SignupStore } from '../services/activity/signup.js?v=20260928h';
-import { TaskForceRecordStore } from '../services/activity/taskforce.js?v=20260928h';
-import { seedTodos } from '../services/governance/todo.js?v=20260928h';
-import { filterByRole } from './tabs/leader/_shared.js?v=20260928h';
+import { createWorkspaceShell } from '../components/shell/workspace-shell.js?v=20260928i';
+import { renderReportEntryHtml, bindReportEntry } from '../components/record/reporting.js?v=20260928i';
+import { flashHighlight } from '../core/utils.js?v=20260928i';
+import { loadActivities } from '../services/activity/activity.js?v=20260928i';
+import { SignupStore } from '../services/activity/signup.js?v=20260928i';
+import { TaskForceRecordStore } from '../services/activity/taskforce.js?v=20260928i';
+import { seedTodos } from '../services/governance/todo.js?v=20260928i';
+import { filterByRole } from './tabs/leader/_shared.js?v=20260928i';
 // 副作用导入触发组长工作台能力注册（tab 清单，M2e）
-import '../modules/capabilities/leader-workspace.js?v=20260928h';
+import '../modules/capabilities/leader-workspace.js?v=20260928i';
 
 await createWorkspaceShell({
   accentRole: 'leader',

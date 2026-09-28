@@ -2,7 +2,7 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-27"
+last_updated: "2026-09-28"
 version: "4.0"
 status: active
 merged_from:

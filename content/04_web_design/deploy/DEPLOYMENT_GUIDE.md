@@ -3,7 +3,7 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-27"
+last_updated: "2026-09-28"
 status: active
 related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---

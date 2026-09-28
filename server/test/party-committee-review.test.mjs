@@ -67,7 +67,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   // 等 app header 渲染（工作台引导登录完成信号）
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928i')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 切到指定 tab（workspace-shell 周期重绘 → evaluate 直接点 DOM，避免 actionability flaky） */
@@ -142,7 +142,7 @@ async function waitForServerNotice(title, contains, timeout = 8000) {
 /** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
 async function pageHasNotice(page, title, contains) {
   return page.evaluate(async ({ t, c }) => {
-    const { NoticeStore } = await import('/src/services/governance/notice.js?v=20260928h');
+    const { NoticeStore } = await import('/src/services/governance/notice.js?v=20260928i');
     NoticeStore.init();
     return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
   }, { t: title, c: contains });

@@ -15,13 +15,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928h';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260928h';
-import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928h';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928i';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260928i';
+import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928i';
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
-} from '../../docs/src/services/branch/branch-doc.js?v=20260928h';
+} from '../../docs/src/services/branch/branch-doc.js?v=20260928i';
 
 // ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();

@@ -131,6 +131,27 @@ test('decision-tree 消费点经注册表读取场景（getScenario 回退 sopDa
   assert.match(src, /cap\.get\(scenarioId\)/);
 });
 
+test('requiredRoles 门禁被 workspace-shell 消费（先按角色查；两查皆空 ⇒ 显式提示卡，不静默空壳）', async () => {
+  // G1 第①项（2026-09-28）：此前 workspace-shell 只 getCapabilities({scope}) 不传 role ⇒
+  // requiredRoles（各台 capabilities 由 constants.rolesForPage 派生）形同元数据、组合后授权弱。
+  // 本守卫钉住两点：① 按 viewer 角色查（role 过滤＝requiredRoles 的单一源消费）；
+  //   ② 两查皆空时渲染显式提示卡（不得静默渲染空工作台——R-75：判据落在事实上）。
+  const src = await readFile(
+    new URL('../../docs/src/components/shell/workspace-shell.js', import.meta.url),
+    'utf8',
+  );
+  assert.match(src, /getCapabilities\(\{\s*scope,\s*role:\s*_viewerRole\s*\}\)/,
+    'workspace-shell 须按 viewer 角色查能力（requiredRoles 的消费点）');
+  assert.doesNotMatch(src, /getCapabilities\(\{ scope \}\)\.find\(c => c\.id === capId\)\s*\n\s*;\s*\n\s*const rawTabs/,
+    '不得退回「只按 scope 查」的单查写法');
+  assert.match(src, /if \(!cap\) \{\s*_renderCapabilityDenied\(/,
+    '能力两查皆空须渲染显式提示（不得静默空壳）');
+  // 兜底的三条放行门须在注释里指名单一源（防后来者误当「绕过门禁」而删）
+  for (const gate of ['isPartyStaffBranchDemoAllowed', 'isArchiveFallbackPage', 'isOrganizerFallbackPage']) {
+    assert.ok(src.includes(gate), `兜底放行门须指名单一源 ${gate}（不另立第二套判定）`);
+  }
+});
+
 test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 api，回退 mock）', async () => {
   const src = await readFile(
     new URL('../../docs/src/core/bootstrap.js', import.meta.url),
