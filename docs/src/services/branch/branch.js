@@ -3,23 +3,23 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain.js?v=20260928r';
-import { getPersonById } from '../member/person.js?v=20260928r';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../mock/branches.js?v=20260928r';
-import { getAdapter, persist, getDataSource } from '../../core/data-adapter.js?v=20260928r';
-import { listCapabilities } from '../../core/registry.js?v=20260928r';
+import { mockDB } from '../../core/domain.js?v=20260928s';
+import { getPersonById } from '../member/person.js?v=20260928s';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../mock/branches.js?v=20260928s';
+import { getAdapter, persist, getDataSource } from '../../core/data-adapter.js?v=20260928s';
+import { listCapabilities } from '../../core/registry.js?v=20260928s';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../../core/config-clean.js?v=20260928r';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../../core/config-clean.js?v=20260928s';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../core/config-clean.js?v=20260928r';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../core/config-clean.js?v=20260928s';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/work-map.js?v=20260928r';
+import { expandWorkforce } from '../../core/work-map.js?v=20260928s';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../../core/policy-defaults.js?v=20260928r';
-import { randomHex } from '../../core/id.js?v=20260928r';
+import { POLICY_OVERRIDE_SECTIONS } from '../../core/policy-defaults.js?v=20260928s';
+import { randomHex } from '../../core/id.js?v=20260928s';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/constants.js?v=20260928r';
+import { isCoreTab } from '../../core/constants.js?v=20260928s';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -109,37 +109,48 @@ export function getBranchOutputBlocks(branchId) {
   return getBranchById(branchId)?.config?.blocks ?? null;
 }
 
+/**
+ * 按支部自定义 order 重排 id 列表（纯）——产出块 / 工作流块**共用单一实现**。
+ * 语义：order 内出现的靠前，未出现的保持传入原序、统一排在已列出者之后
+ * （Infinity 同值 ⇒ 依赖 Array.sort 稳定性保持原序）。
+ * @param {string[]} defIds - 注册目录顺序的 id 列表
+ * @param {string[]|null} order - 支部自定义顺序（null/空 ⇒ 原样返回）
+ */
+export function orderByIds(defIds, order) {
+  if (!Array.isArray(order) || !order.length) return defIds.slice();
+  const idx = new Map(order.map((id, i) => [id, i]));
+  return defIds.slice().sort((a, b) => {
+    const ia = idx.has(a) ? idx.get(a) : Infinity;
+    const ib = idx.has(b) ? idx.get(b) : Infinity;
+    return ia - ib;
+  });
+}
+
 /** 按支部产出块策略过滤/排序块 id 列表（纯：传 defIds + config.blocks） */
 export function applyOutputBlockPolicy(defIds, blocks) {
   const { hidden, order } = getOutputBlockPolicy(blocks);
-  const visible = defIds.filter(id => !hidden.has(id));
-  if (order && order.length) {
-    const idx = new Map(order.map((id, i) => [id, i]));
-    visible.sort((a, b) => {
-      const ia = idx.has(a) ? idx.get(a) : Infinity;
-      const ib = idx.has(b) ? idx.get(b) : Infinity;
-      return ia - ib;
-    });
-  }
-  return visible;
+  return orderByIds(defIds.filter(id => !hidden.has(id)), order);
 }
 
 // ── 工作流块策略（L3 S3，2026-09-03 支书裁定：config.blocks 增 workflowBlocks）──────
-// config.blocks.workflowBlocks = { hiddenBlockIds: string[] }；null/缺省=全开。
+// config.blocks.workflowBlocks = { hiddenBlockIds: string[], blockOrder?: string[] }；null/缺省=全开、注册顺序。
+// L3「流程组合」（2026-09-28 批次 246，支书定「块差异＝流程组合」）：**启停 ＋ 顺序** 两个面都归支部可配——
+//   顺序复用上方 orderByIds 单一实现（与产出块同口径，不再另写排序）。
 // 目录单一源：workflow/blocks/manifests.js BLOCK_MANIFESTS（主题党日/专班等整条 SOP 入口块）。
 
-/** 解析工作流块策略：{ hidden:Set }（纯） */
+/** 解析工作流块策略：{ hidden:Set, order:string[]|null }（纯） */
 export function getWorkflowBlockPolicy(blocks) {
   const cfg = blocks?.workflowBlocks;
   return {
     hidden: new Set(Array.isArray(cfg?.hiddenBlockIds) ? cfg.hiddenBlockIds : []),
+    order: Array.isArray(cfg?.blockOrder) && cfg.blockOrder.length ? cfg.blockOrder : null,
   };
 }
 
-/** 按支部工作流块策略过滤块 id 列表（纯：传 defIds + config.blocks） */
+/** 按支部工作流块策略过滤 / 排序块 id 列表（纯：传 defIds + config.blocks） */
 export function applyWorkflowBlockPolicy(defIds, blocks) {
-  const { hidden } = getWorkflowBlockPolicy(blocks);
-  return defIds.filter(id => !hidden.has(id));
+  const { hidden, order } = getWorkflowBlockPolicy(blocks);
+  return orderByIds(defIds.filter(id => !hidden.has(id)), order);
 }
 
 /** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认）——单一实现 = core/config-clean.js sanitizeConfigBlocks（2026-09-03 P1a 收口，勿另写） */
@@ -295,7 +306,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../core/api-adapter.js?v=20260928r');
+      const { ApiAdapter } = await import('../../core/api-adapter.js?v=20260928s');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),

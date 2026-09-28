@@ -29,7 +29,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 | 维度 | 含义 | manifest 载体 | 现状锚点 |
 |------|------|--------------|---------|
-| ① 流程组合 | 做哪些流程、启停与顺序 | `stages` + 支部 `config.modules/blocks` 启停 | ✅ config.modules/blocks（已落地） |
+| ① 流程组合 | 做哪些流程、启停与顺序 | `stages` + 支部 `config.modules/blocks`（启停 `hiddenBlockIds` ＋ 顺序 `blockOrder`） | ✅ config.modules/blocks（已落地；**2026-09-28 批次 246**：`workflowBlocks.blockOrder` 落地 ⇒ **顺序亦支部可配**） |
 | ② 表单条目 | 一个块的表单显示哪些字段、哪些必填 | `inputs.fields`（字段级可启停/可必填覆盖） | ⬜ 本契约新增（渲染 = forms.js 积木） |
 | ③ 参与人范围 | 流程涉及哪些人/角色/组织模式（如 普通党员 vs 组织者+深度参与者） | `participants`（角色集合可配置） | ⬜ 本契约新增（名单解析 = person 服务） |
 
@@ -257,3 +257,11 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - ✅ S4 已完成（2026-09-03，支书裁定挂载 主题党日创建侧）：calendar-tab（支书台写入面板）接入 manifest 驱动试点——①入口守卫：支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响）；②表单元数据单一源：主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST.inputs.fields.title（默认态渲染与既有完全一致）。测试 block-entry-guard-e2e（停用→消失+提示→恢复→回归）+ write-hover 回归（默认态整卡可点语义不变）全绿。
 
 > L3 契约面 S1~S4 已落地（2026-09-03）；S2 独立渲染桥已于 2026-09-09 代码减负撤回（见上），S4 manifest 驱动为存活路径。L4 画布编辑器形态（拖拽→写 config.blocks.workflowBlocks）此前 YAGNI 排除，待后续批次。
+
+**S3 扩展：① 流程组合的「顺序」面落地（2026-09-28 批次 246）**——支书同日裁定「**块差异＝流程组合**」（§〇 三轴取 ①）后：
+
+- `config.blocks.workflowBlocks` 增 **`blockOrder`**（与 `outputBlocks.blockOrder` 同口径；净化唯一实现 = `core/config-clean.js`，排序单一实现 = `services/branch/branch.js::orderByIds`，产出块 / 工作流块共用）。
+- 换组织向导第②步「工作流块」由**只可启停**升为**可排序**（▲▼ 按钮 —— 键盘可达的按钮等价路径），并内联「**组合体检**」：消费 `workflow/blocks/orchestration.js::composePlan`（**编排内核首次进入生产路径**，此前仅测试 import）＋ 目录外 id 检测。
+- 同批修掉旧缺陷：向导保存第②步写死 `outputBlocks.blockOrder: []` ⇒ **静默抹掉已按其它入口设过的顺序**；现改为原样保留。
+- 测试：`server/test/workflow-block-config.test.mjs` 扩 `blockOrder` 纯函数 ＋ HTTP 往返断言（含「排序未接线即红」的反例）。
+- **未做（余下）**：块清单按**既有场景 id** 铺开到其余场景（支书同日裁「复用既有场景 id」）、运行时面（任务派生消费组合产物）、L4 画布 UI。

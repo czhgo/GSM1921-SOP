@@ -7,14 +7,14 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260928r';
+import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260928s';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from './policy-defaults.js?v=20260928r';
+} from './policy-defaults.js?v=20260928s';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -93,7 +93,11 @@ export function sanitizeConfigBlocks(blocks) {
     };
   }
   if (blocks.workflowBlocks) {
-    out.workflowBlocks = { hiddenBlockIds: cleanIdList(blocks.workflowBlocks.hiddenBlockIds, BLOCKS_LIMIT) };
+    out.workflowBlocks = {
+      hiddenBlockIds: cleanIdList(blocks.workflowBlocks.hiddenBlockIds, BLOCKS_LIMIT),
+      // L3 流程组合（2026-09-28 批次 246）：工作流块亦支持支部级顺序（与 outputBlocks.blockOrder 同口径）
+      blockOrder: cleanIdList(blocks.workflowBlocks.blockOrder, BLOCKS_LIMIT),
+    };
   }
   return out;
 }

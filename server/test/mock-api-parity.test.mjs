@@ -48,15 +48,15 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928r';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928r';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928s';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928s';
 // ── mock 形态语料（单一源；服务端 seed.js 亦从这些具名导出播种 ⇒ 两侧本应逐值相同）──
-import { MOCK_NOTICES } from '../../docs/src/mock/notices.js?v=20260928r';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260928r';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260928r';
-import { SEED_MAKEUP_TASKS } from '../../docs/src/mock/seed.js?v=20260928r';
+import { MOCK_NOTICES } from '../../docs/src/mock/notices.js?v=20260928s';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260928s';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260928s';
+import { SEED_MAKEUP_TASKS } from '../../docs/src/mock/seed.js?v=20260928s';
 // `SEED_TODOS` 不在 `mock/**`（它是服务层常量，前端 seedTodos() 读的正是它）——服务端 seed.js 同源 import
-import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20260928r';
+import { SEED_TODOS } from '../../docs/src/services/governance/todo.js?v=20260928s';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存

@@ -14,31 +14,33 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260928r';
-import { getCapabilities } from '../../core/registry.js?v=20260928r';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/constants.js?v=20260928r';
-import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/work-map.js?v=20260928r';
+import { mockDB } from '../../core/domain.js?v=20260928s';
+import { getCapabilities } from '../../core/registry.js?v=20260928s';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/constants.js?v=20260928s';
+import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/work-map.js?v=20260928s';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../modules/capabilities/secretary-workspace.js?v=20260928r';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260928r';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/utils.js?v=20260928r';
-import { WORK_MAP_MODULES } from '../../core/work-map.js?v=20260928r';
+import '../../modules/capabilities/secretary-workspace.js?v=20260928s';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260928s';
+// L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260928s';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/utils.js?v=20260928s';
+import { WORK_MAP_MODULES } from '../../core/work-map.js?v=20260928s';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
-  getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy,
+  getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20260928r';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260928r';
+} from '../../services/branch/branch.js?v=20260928s';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260928s';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20260928r';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260928r';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260928r';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260928r';
+} from '../../services/branch/org-base-data-preview.js?v=20260928s';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260928s';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260928s';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260928s';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260928r';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260928s';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -166,6 +168,8 @@ export function mountOrgSetupWizard(host, opts) {
     modOrder: null,
     bHidden: null,     // Set output block id
     wbHidden: null,    // Set workflow block id
+    bOrder: null,      // 产出块顺序（本步无排序 UI，只为「原样保存」不丢）
+    wbOrder: null,     // 工作流块顺序（▲▼ 可调；L3 流程组合 2026-09-28 批次 246）
     wfSnapshot: null,  // 展开 workforce（保存时全量写回）
     // 阶段二（2026-09-06）：「复制配置到支部…」小面板展开态 + 多选目标集
     copyOpen: false,
@@ -611,12 +615,17 @@ function _step2Html(S, branch) {
   S.modHidden = hidden;
   const order = policy.order || businessTabs.map(t => t.id);
   S.modOrder = order;
-  const bPolicy = getOutputBlockPolicy(getBranchOutputBlocks(S.branchId));
+  const blocksCfg = getBranchOutputBlocks(S.branchId);
+  const bPolicy = getOutputBlockPolicy(blocksCfg);
   const bHidden = S.bHidden || new Set(bPolicy.hidden);
   S.bHidden = bHidden;
-  const wPolicy = getWorkflowBlockPolicy(getBranchOutputBlocks(S.branchId));
+  // 产出块顺序：本步无排序 UI，但**必须原样保存**（旧实现写死 blockOrder: [] ⇒ 静默抹掉已设顺序）
+  if (S.bOrder === null) S.bOrder = bPolicy.order || [];
+  const wPolicy = getWorkflowBlockPolicy(blocksCfg);
   const wbHidden = S.wbHidden || new Set(wPolicy.hidden);
   S.wbHidden = wbHidden;
+  // L3 流程组合（2026-09-28 批次 246）：工作流块**可排序**（▲▼）——「做哪些流程（启停）＋ 什么顺序」两面都归支部
+  if (S.wbOrder === null) S.wbOrder = orderByIds(BLOCK_MANIFESTS.map(m => m.blockId), wPolicy.order);
   const { accent, accentRgba, accentBorder } = _presetAccent(getBranchOrg(S.branchId).themePreset || 'red');
   const chipStyle = (on) => on
     ? `background:${accentRgba};border-color:${accentBorder};color:${accent};`
@@ -624,6 +633,26 @@ function _step2Html(S, branch) {
   const chip = (attr, id, label, on) =>
     `<button type="button" data-wz-chip="${attr}" data-id="${esc(id)}" class="text-xs px-3 py-1.5 rounded-lg border transition-all ${on ? '' : 'opacity-45'}" style="${chipStyle(on)}">${esc(label)}</button>`;
   const chipOn = (attr, set) => !set.has(attr);
+  // 可排序块行（工作流块专用）：chip 本体不变（`_paintChips` 仍按 `[data-wz-chip]` 重绘），右侧 ▲▼ 是
+  //   **键盘可达的按钮等价路径**（拖拽只在设置页的 tab 顺序上；向导侧不引拖拽，免与 chip 点击混手势）。
+  const moveBtn = (id, label, dir, disabled) =>
+    `<button type="button" data-wz-move="wblock" data-id="${esc(id)}" data-dir="${dir}"${disabled ? ' disabled' : ''} class="px-1.5 py-0.5 text-xs leading-none border border-gray-200 rounded bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed" aria-label="${dir < 0 ? '上移' : '下移'}工作流块 ${esc(label)}">${dir < 0 ? '▲' : '▼'}</button>`;
+  const wblockRow = (id, label, on, i, len) =>
+    `<span class="inline-flex items-center gap-1">${chip('wblock', id, label, on)}<span class="inline-flex flex-col gap-0.5">${moveBtn(id, label, -1, i === 0)}${moveBtn(id, label, 1, i === len - 1)}</span></span>`;
+  // 目录内、按支部顺序 → 行；**目录外 id**（配置持久化后目录变更）由下方体检点名（不静默丢）
+  const wbById = new Map(BLOCK_MANIFESTS.map(m => [m.blockId, m]));
+  const wbEffective = S.wbOrder.filter(id => wbById.has(id));
+  const wbRows = wbEffective.map((id, i) => {
+    const m = wbById.get(id);
+    return wblockRow(id, m.name + ' · ' + (PROV_LABEL[m.provenance] || m.provenance || ''), !wbHidden.has(id), i, wbEffective.length);
+  }).join('');
+  // 组合体检：`composePlan`（内核在**生产路径**上的第一个消费点）＋ 目录外 id 检测
+  const unknownWbIds = [...new Set([...(wPolicy.order || []), ...wbHidden])].filter(id => !wbById.has(id));
+  const wbEnabled = wbEffective.filter(id => !wbHidden.has(id));
+  const comp = composePlan(wbEnabled);
+  const composeHint = (!comp.ok || unknownWbIds.length)
+    ? `<p class="text-xs text-red-700 mt-1.5">组合体检：${[...comp.errors, ...unknownWbIds.map(id => `配置含目录外块 ${id}`)].map(esc).join('；')}</p>`
+    : `<p class="text-xs text-green-700 mt-1.5">组合体检：通过（启用 ${wbEnabled.length} 块${wPolicy.order ? '，顺序已自定义' : ''}）</p>`;
   return `
     <div class="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
       <div class="flex items-center justify-between">
@@ -640,8 +669,9 @@ function _step2Html(S, branch) {
         <div class="flex flex-wrap gap-2">${OUTPUT_BLOCK_DEFS.map(d => chip('block', d.id, d.label, !bHidden.has(d.id))).join('')}</div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-[11px] font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks）</span></p>
-        <div class="flex flex-wrap gap-2">${BLOCK_MANIFESTS.map(m => chip('wblock', m.blockId, m.name + ' · ' + (PROV_LABEL[m.provenance] || m.provenance || ''), !wbHidden.has(m.blockId))).join('')}</div>
+        <p class="text-xs font-bold text-gray-600 mb-1.5">工作流块 <span class="text-[11px] font-normal text-gray-500">（整条 SOP 入口，L3 愿景；目录源 workflow/blocks。▲▼ 调顺序＝流程组合）</span></p>
+        <div class="flex flex-wrap items-center gap-2">${wbRows}</div>
+        ${composeHint}
       </div>
       <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
         <button type="button" data-wz-act="reset-modules" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">恢复默认（全开）</button>
@@ -823,7 +853,7 @@ function _footerHtml(S, isStaff) {
 
 // ═══ 事件 ═══
 function _onClick(S, e) {
-  const el = e.target && e.target.closest ? e.target.closest('[data-wz-act],[data-wz-step],[data-wz-chip]') : null;
+  const el = e.target && e.target.closest ? e.target.closest('[data-wz-act],[data-wz-step],[data-wz-chip],[data-wz-move]') : null;
   if (!el) return;
   // 步骤条跳转（已完成步可点击回看；完成报告页点步骤条回到向导视图）
   if (el.hasAttribute('data-wz-step')) {
@@ -844,6 +874,20 @@ function _onClick(S, e) {
     if (set.has(id)) set.delete(id); else set.add(id);
     S.dirty[2] = true;
     _paintChips(S);
+    return;
+  }
+  // 工作流块排序（▲▼ 按钮等价路径；L3 流程组合 2026-09-28 批次 246）
+  if (el.hasAttribute('data-wz-move')) {
+    const id = el.getAttribute('data-id');
+    const dir = Number(el.getAttribute('data-dir')) || 1;
+    const list = S.wbOrder || [];
+    const i = list.indexOf(id);
+    const j = i + dir;
+    if (i >= 0 && j >= 0 && j < list.length) {
+      const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+      S.dirty[2] = true;
+      _render(S);
+    }
     return;
   }
   const act = el.getAttribute('data-wz-act');
@@ -1099,9 +1143,10 @@ async function _saveOrg(S) {
 // ── ② 保存模块/块 ──
 async function _saveModules(S) {
   const rawTabs = _branchTabs();
+  // 产出块顺序**原样保留**（旧实现写死 [] ⇒ 静默抹掉已设顺序）；工作流块顺序＝本步 ▲▼ 调出的顺序
   const blockPayload = {
-    outputBlocks: { hiddenBlockIds: [...(S.bHidden || [])], blockOrder: [] },
-    workflowBlocks: { hiddenBlockIds: [...(S.wbHidden || [])] },
+    outputBlocks: { hiddenBlockIds: [...(S.bHidden || [])], blockOrder: [...(S.bOrder || [])] },
+    workflowBlocks: { hiddenBlockIds: [...(S.wbHidden || [])], blockOrder: [...(S.wbOrder || [])] },
   };
   await updateBranchModules(S.branchId, { hiddenTabIds: [...(S.modHidden || [])], tabOrder: [...(S.modOrder || [])] }, rawTabs, blockPayload);
   return true;

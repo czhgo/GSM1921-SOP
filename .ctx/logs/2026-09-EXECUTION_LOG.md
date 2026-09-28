@@ -21069,3 +21069,23 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **⚠ 动手前发现的契约约束（本批**只登记、不动手**）**：`WORKFLOW_BLOCK_CONTRACT.md §二`「字段取值合法性」明写 **`blockId` 须与 capability / scenario id **一一对应**（`^[a-z][a-z0-9-]{2,63}$`），注册表缺失即契约失效**；而**该契约落在 `content/**`（支书批改层）** ⇒「同类场景铺开」时**为新命名一套「流程块 id」、还是复用既有 scenarioId**，属**须支书裁的口径**。**未裁之前不动**（不新造 id 命名空间、不改 `content/**`）。
 - **验收**：`doc-consistency`（含 `S14`）· `timestamps-note-guard`（`N1`–`N7`）复跑全绿；本批**只改 md / `.ctx`**（`ENGINEERING_ASSESSMENT.md` §六 ＋ `.ctx/TIMESTAMPS.md` 一行），**未改任何代码**。
 
+---
+
+## 批次 246（2026-09-28）：G3-3 第二层 · 配置面落地——流程组合的「顺序」面 ＋ 编排内核首次进生产路径
+
+> **来源**：支书 2026-09-28 两项裁决（批次 245 记录）：块差异口径＝**流程组合**；顺序＝**先全站推广**；命名口径＝**复用既有场景 id**；面＝**先配置面**。
+
+- **摸底（只读调研）结论**：`workflow/blocks/orchestration.js` 的 `blocksForScope` / `composePlan` / `compilePlan` / `blockCount` 在 `docs/src/**` 里**零生产导入**（仅测试直接 import）⇒ 「内核已就绪但完全未接线」；「块构成」唯一入口＝换组织向导第②步，且**只做停用 / 启用**（`workflowBlocks` 只写 `hiddenBlockIds`，**无增删、无排序**）；**画布 / 块拖拽 UI 不存在**。
+- **本条要解决的问题**：`WORKFLOW_BLOCK_CONTRACT §〇` 把「① 流程组合」的载体写成「`stages` ＋ 支部 `config.modules/blocks` **启停**」——**只覆盖了「做哪些流程」，没覆盖「什么顺序」**，而 §〇 的「含义」列明明写着「启停**与顺序**」。本批把「顺序」补成支部可配的**落库字段**，即「流程组合」名副其实。
+- **落地点（4 处代码 ＋ 1 处守卫）**：
+  1. `docs/src/core/config-clean.js::sanitizeConfigBlocks`：`workflowBlocks` 增 `blockOrder`（与 `outputBlocks.blockOrder` **同形**，净化后恒带）。
+  2. `docs/src/services/branch/branch.js`：新增**纯函数 `orderByIds(defIds, order)`** 作排序**单一实现**（order 内靠前；未列出的保持原序排其后，靠 `Array.sort` 稳定性）——`applyOutputBlockPolicy` 与 `applyWorkflowBlockPolicy` **共用**它（消掉原先只在产出块里内联的那份排序）；`getWorkflowBlockPolicy` 增返 `order`。
+  3. `docs/src/components/governance/org-setup-wizard.js`：步骤②「工作流块」由**只可启停**升为**可排序**——每块配 **▲▼ 按钮**（`data-wz-move`，含 `aria-label`「上移/下移工作流块 …」、首末位 `disabled`）作**键盘可达的按钮等价路径**（向导侧不引拖拽，免与 chip 点击混手势）；下方内联「**组合体检**」＝`composePlan(启用块序列)` 的错误 ＋ **目录外 id 检测**（配置持久化后目录变更 ⇒ 点名而非静默丢）。**这是 `orchestration` 内核的第一个生产消费点。**
+  4. **同批修旧缺陷**：`_saveModules` 原写死 `outputBlocks.blockOrder: []` ⇒ 若顺序曾由其它入口设过，**保存第②步即被静默抹掉**；现改为**原样保留**，且工作流块写本步 ▲▼ 调出的顺序。
+  5. `server/test/workflow-block-config.test.mjs`：扩 `blockOrder` 纯函数断言（生效 / 与隐藏叠加 / 空数组归一 / **反例锁死「排序未接线即红」**）＋ HTTP 往返断言。
+- **过程中抓出的红（同批改准，非绕开）**：① `wizard-config.test.mjs:142` 的 `config.blocks` 期望形状缺 `blockOrder` ⇒ 补准（净化后 `workflowBlocks` 与 `outputBlocks` **同形**）；② `text-tier-guard` 抓到本批新增的 `text-[11px]`（体检行 `<p>`）与 `text-[10px]`（▲▼）⇒ **改回尺度类** `text-xs`（不新增字体档位硬编码）。
+- **纪律动作**：`node docs/scripts/bump-version.mjs` ⇒ `20260928r → 20260928s`（JS 216 / HTML 22 / CSS 2 / server-test 84；陈旧戳 **0 残留**）。
+- **验收**：`npm run test:daily` **647/647 / 0 红**；`workflow-block-config` / `block-orchestration` / `block-manifest` / `module-compose` / `module-load` 合跑 **21/21**。
+- **同步**：`WORKFLOW_BLOCK_CONTRACT.md` §〇 ①轴锚点 ＋ §七 新增「S3 扩展」小节；`ENGINEERING_ASSESSMENT.md` §六 G3-3 转🟢（第二层·配置面）；`ACTIVE_RULINGS` 留痕（**口径行仍 130**，未产生新口径）；`.ctx/TIMESTAMPS.md` 仅改 `config-clean.js` **日期列**（2026-09-22 → 2026-09-28）——**备注列一字未加**（`N2` 余量仅 175 字，按 `R-89` 沿革入本日志）。
+- **余下（未做，如实登记）**：块清单按**既有场景 id** 铺开到其余 6 个场景（含各场景 `sopRef` / `capabilityId` / `outputs` 语义，须逐场景读母本后落，不猜）；运行时面（任务派生消费组合产物）；L4 画布 UI；② 表单条目 / ③ 参与人范围 两轴的支部可配面。
+

@@ -30,15 +30,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928r';
-import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260928r';
-import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20260928r';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928s';
+import { registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260928s';
+import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20260928s';
 import {
   buildConfigPackage,
   applyConfigPackage,
   PACKAGE_KIND,
   PACKAGE_VERSION,
-} from '../../docs/src/services/branch/org-config-package.js?v=20260928r';
+} from '../../docs/src/services/branch/org-config-package.js?v=20260928s';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务在函数体内惰性访问）──
 const _store = new Map();
@@ -141,7 +141,8 @@ test('copy：源→单 target 生效（modules/blocks/workforce/org），逐 tar
   assert.deepEqual(t1.config.modules, { hiddenTabIds: ['calendar'], tabOrder: ['report-up'] });
   assert.deepEqual(t1.config.blocks, {
     outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] },
-    workflowBlocks: { hiddenBlockIds: ['theme-day'] },
+    // 2026-09-28 批次 246：workflowBlocks 与 outputBlocks 同形（净化后恒带 blockOrder，含顺序＝流程组合）
+    workflowBlocks: { hiddenBlockIds: ['theme-day'], blockOrder: [] },
   });
   assert.deepEqual(t1.config.workforce, {
     'branch-party-meeting': { ownerType: 'role', ownerId: 'secretary' },
