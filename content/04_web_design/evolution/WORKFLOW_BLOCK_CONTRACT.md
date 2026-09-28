@@ -256,7 +256,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，支书裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。
 - ✅ S4 已完成（2026-09-03，支书裁定挂载 主题党日创建侧）：calendar-tab（支书台写入面板）接入 manifest 驱动试点——①入口守卫：支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响）；②表单元数据单一源：主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST.inputs.fields.title（默认态渲染与既有完全一致）。测试 block-entry-guard-e2e（停用→消失+提示→恢复→回归）+ write-hover 回归（默认态整卡可点语义不变）全绿。
 
-> L3 契约面 S1~S4 已落地（2026-09-03）；S2 独立渲染桥已于 2026-09-09 代码减负撤回（见上），S4 manifest 驱动为存活路径。L4 画布编辑器形态（拖拽→写 config.blocks.workflowBlocks）此前 YAGNI 排除，待后续批次。
+> L3 契约面 S1~S4 已落地（2026-09-03）；S2 独立渲染桥已于 2026-09-09 代码减负撤回（见上），S4 manifest 驱动为存活路径。**§六 S2 行声明的「存活验收 ＝ S4 表单元数据单一源 E2E」曾长期缺失（实测全仓 0 处断言）——已于 2026-09-29 批次 252 补上**：`server/test/block-entry-guard-e2e.test.mjs` 第四段＝**真机断言**（主题党日 Step2 标题字段渲染出 manifest 声明的 hint）＋**源码反证**（该 hint 不得硬编码在写面板源码 ⇒ 只能来自 manifest）＋**三会一课对照**（该 hint 不出现）。L4 画布编辑器形态（拖拽→写 config.blocks.workflowBlocks）此前 YAGNI 排除，待后续批次。
 
 **S3 扩展：① 流程组合的「顺序」面落地（2026-09-28 批次 246）**——支书同日裁定「**块差异＝流程组合**」（§〇 三轴取 ①）后：
 
