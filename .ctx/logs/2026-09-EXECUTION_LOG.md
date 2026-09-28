@@ -21058,3 +21058,14 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **同批登记（待另批）**：「**通知面收敛**」观察项（属制度内容，须支书另批）——`H-2` 的顺带产物。
 - **验收**：`doc-consistency`（含 `S14` 对 `ACTIVE_RULINGS` 口径行数 **130** 的机检）· `doc-line-ref` · `timestamps-note-guard` 全绿；`npm run test:daily` 复跑 **647/647 / 0 红**。
 
+---
+
+## 批次 245（2026-09-28）：G3-3「全站推广」方案定稿 ＋ 动手前的契约约束登记
+
+> **来源**：支书 2026-09-28 对 G3-3 的两项裁决（见批次 244 记录的同一轮 `AskUserQuestion`）。
+
+- **已裁两项**（记入 `ENGINEERING_ASSESSMENT.md §六 G3-3`）：① **「块差异」口径＝「流程组合」**——即 `WORKFLOW_BLOCK_CONTRACT §〇` 三轴（① 流程组合 / ② 表单条目 / ③ 参与人范围）中的**第 ① 轴**，与支书 2026-09-03 的原裁定同源；② **顺序＝先「全站推广」**（画布 UI 另批）。
+- **摸底（只读调研）结论**：`workflow/blocks/orchestration.js` 内核（`blocksForScope` / `composePlan` / `compilePlan` / `blockCount`）在 `docs/src/**` 里**零生产导入**（仅测试直接 import）⇒ **内核已就绪但完全未接线**；现只有 **2 个块**（`theme-party-day` / `taskforce-run`）；用户可见的「块构成」唯一入口＝换组织向导第 ② 步，且**只做停用 / 启用**（写 `config.blocks.workflowBlocks.hiddenBlockIds`，**无增删、无排序**）；**画布 / 块拖拽 UI 不存在**（全站仅 tab 排序有拖拽）；`config.blocks` 三处读写口＝`org-setup-wizard.js`（配置主体）· `party-config-tab.js`（党委台入口，委托给向导）· `org-config-package.js`（整包导入导出）。
+- **⚠ 动手前发现的契约约束（本批**只登记、不动手**）**：`WORKFLOW_BLOCK_CONTRACT.md §二`「字段取值合法性」明写 **`blockId` 须与 capability / scenario id **一一对应**（`^[a-z][a-z0-9-]{2,63}$`），注册表缺失即契约失效**；而**该契约落在 `content/**`（支书批改层）** ⇒「同类场景铺开」时**为新命名一套「流程块 id」、还是复用既有 scenarioId**，属**须支书裁的口径**。**未裁之前不动**（不新造 id 命名空间、不改 `content/**`）。
+- **验收**：`doc-consistency`（含 `S14`）· `timestamps-note-guard`（`N1`–`N7`）复跑全绿；本批**只改 md / `.ctx`**（`ENGINEERING_ASSESSMENT.md` §六 ＋ `.ctx/TIMESTAMPS.md` 一行），**未改任何代码**。
+
