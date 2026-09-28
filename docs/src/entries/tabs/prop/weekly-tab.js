@@ -2,24 +2,24 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260928s';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260928s';
-import { showToast } from '../../../core/utils.js?v=20260928s';
-import { persist } from '../../../core/data-adapter.js?v=20260928s';
-import { mockDB } from '../../../core/domain.js?v=20260928s';
-import { AuthStore } from '../../../services/core/auth.js?v=20260928s';
-import { generateId } from '../../../core/id.js?v=20260928s';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260928s';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260928s';
-import { getPersonName } from '../../../services/member/person.js?v=20260928s';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20260928s';
+import { icon } from '../../../core/icons.js?v=20260928t';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260928t';
+import { showToast } from '../../../core/utils.js?v=20260928t';
+import { persist } from '../../../core/data-adapter.js?v=20260928t';
+import { mockDB } from '../../../core/domain.js?v=20260928t';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928t';
+import { generateId } from '../../../core/id.js?v=20260928t';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928t';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260928t';
+import { getPersonName } from '../../../services/member/person.js?v=20260928t';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20260928t';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { WEEKLY_REPORTS_SEED } from '../../../mock/prop.js?v=20260928s';
+import { WEEKLY_REPORTS_SEED } from '../../../mock/prop.js?v=20260928t';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
 function _loadWeeklyReports() {

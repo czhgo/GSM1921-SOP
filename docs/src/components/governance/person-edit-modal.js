@@ -28,14 +28,14 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20260928s';
-import { PersonStore } from '../../services/member/person.js?v=20260928s';
-import { getBranchById } from '../../services/branch/branch.js?v=20260928s';
+import { openModal, closeModal } from '../ui/modal.js?v=20260928t';
+import { PersonStore } from '../../services/member/person.js?v=20260928t';
+import { getBranchById } from '../../services/branch/branch.js?v=20260928t';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/constants.js?v=20260928s';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20260928s';
-import { AuthStore } from '../../services/core/auth.js?v=20260928s';
-import { showToast, escHtml as esc, getBasePath } from '../../core/utils.js?v=20260928s';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/constants.js?v=20260928t';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20260928t';
+import { AuthStore } from '../../services/core/auth.js?v=20260928t';
+import { showToast, escHtml as esc, getBasePath } from '../../core/utils.js?v=20260928t';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';

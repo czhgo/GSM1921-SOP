@@ -8,8 +8,8 @@
 // 运行：cd server; node --test --test-concurrency=1 test/module-compose.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveConflicts, assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928s';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260928s';
+import { resolveConflicts, assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928t';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260928t';
 
 // ── ① 通过例：依赖链合法、无互斥同含、无环 ──
 test('assertComposeValid：组合干净返回 true', () => {
@@ -71,9 +71,12 @@ test('resolveConflicts：收集式一次返回三类问题全集', () => {
 // ── ④ manifests 接线：试点块清单组合声明干净（P3d 元数据已落地）──
 test('接线：manifests.js 全量块清单 assertComposeValid 干净 + depends/conflictsWith 已声明', () => {
   assert.equal(assertComposeValid(BLOCK_MANIFESTS), true);
+  // 块清单（含 2026-09-28 批次 248 铺开的三会一课四块）——**有意写成显式清单**：
+  // 增删块必须同批改准本断言（ratchet），防「目录悄悄长/缩」。
   assert.deepEqual(
     BLOCK_MANIFESTS.map((m) => m.blockId),
-    ['theme-party-day', 'taskforce-run'],
+    ['theme-party-day', 'taskforce-run',
+      'branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'],
   );
   for (const m of BLOCK_MANIFESTS) {
     assert.ok(Array.isArray(m.depends) && m.depends.length === 0, `${m.blockId}.depends 应为空数组（P3d v0 元数据）`);

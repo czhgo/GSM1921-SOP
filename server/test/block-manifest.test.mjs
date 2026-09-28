@@ -13,10 +13,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
-} from '../../docs/src/workflow/blocks/manifests.js?v=20260928s';
-import { assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928s';
-import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260928s';
-import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260928s';
+} from '../../docs/src/workflow/blocks/manifests.js?v=20260928t';
+import { assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928t';
+import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260928t';
+import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260928t';
 
 let server;
 let BASE;
@@ -44,7 +44,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260928s');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260928t');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规
@@ -82,7 +82,10 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
       return out;
     });
 
-    assert.deepEqual(result.ids, ['theme-party-day', 'taskforce-run'], '试点块清单应为 主题党日 + 专班');
+    assert.deepEqual(result.ids, [
+      'theme-party-day', 'taskforce-run',
+      'branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture',
+    ], '块清单 = S1 试点两块 ＋ 2026-09-28 批次 248 铺开的三会一课四块（增删块须同批改准本断言）');
     assert.equal(result.allOk, true, `试点 manifest 应全部合规（不合规 ${result.invalidCount} 个）`);
     assert.equal(result.invalidCount, 0);
     assert.equal(result.antiExamples.provenance, true, 'provenance 反例应被拦截');

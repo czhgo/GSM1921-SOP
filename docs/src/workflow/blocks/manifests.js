@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260928s';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260928t';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260928s';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260928t';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -94,8 +94,70 @@ export const TASKFORCE_RUN_MANIFEST = {
   validation: { initiatorRoles: ['secretary', 'org-commissioner'], requiredSop: true, enabledByDefault: true },
 };
 
-/** 全量块清单（S1 试点目录） */
-export const BLOCK_MANIFESTS = [THEME_PARTY_DAY_MANIFEST, TASKFORCE_RUN_MANIFEST];
+// ── L3 块清单铺开：三会一课四场景（2026-09-28 批次 248）────────────────────
+// 支书裁定（2026-09-28）：「块差异＝**流程组合**」＋「同类场景铺开**复用既有场景 id**」。
+// 逐条事实来源（可核，不猜）：
+//   · `blockId` ＝ **既有 SOP 场景 id**（`workflow/sopData.js::sopDatabase.scenarios` 的四个三会一课场景）；
+//   · `sopRef` ＝ `常见工作场景快速指南.md`——其 `## 三会一课` 下正是「支部委员会 / 支部党员大会 / 党课 / 党小组会」四小节；
+//   · `capabilityId` ＝ `activity-calendar`——四场景均由**活动日历写入面板**创建
+//     （`calendar-tab.js::WRITE_TEMPLATES` 的 `three-meetings` 子类，派生自 `SCENARIO_WRITE_IDS['three-meetings']`）；
+//   · `scope` ＝ `['workspace:secretary']`——该写面板**只在 secretary.html 呈现**（`calendar-tab.js` 原注：
+//     「本写入面板仅在支书/副支书工作台（secretary.html）呈现」）；
+//   · `inputs.fields` ＝ 该写面板**真实呈现的扁平字段**（`calendar-tab.js::renderFormStep`：名称 / 日期 / 地点必填，
+//     时间 / 主持人 / 备注选填）。**结构化区（会议议程 / 线上异步表决）刻意不在此声明**——它们由既有引擎数据承载
+//     （`sopData` / `vote-config`），manifest 只做 L3 粗粒度元数据（契约 §一「块不独立于既有机制存在」）；
+//   · `stages` / `outputs` / `events` 取与主题党日块**同形**的粗粒度（写入活动 → 考勤；活动 / 考勤 / 待办 ＋ 考勤·宣传产出块；
+//     `data:activity:created`）——四场景与主题党日同走 `writeActivityWithSOP` 一条写口。
+const THREE_MEETINGS_SOP_REF = 'content/02_institution/sop/常见工作场景快速指南.md';
+
+/** 造一个三会一课场景块（每次调用返回**全新对象**，避免四条 manifest 共享嵌套引用） */
+function _threeMeetingsBlock(blockId, name) {
+  return {
+    blockId,
+    name,
+    version: '1.0.0',
+    provenance: 'institution-common',
+    sopRef: THREE_MEETINGS_SOP_REF,
+    capabilityId: 'activity-calendar',
+    scope: ['workspace:secretary'],
+    depends: [],
+    conflictsWith: [],
+    inputs: {
+      fields: [
+        { fieldId: 'title', label: '活动名称', kind: 'textField', required: true, requiredConfigurable: false, hint: '', enabledDefault: true },
+        { fieldId: 'date', label: '日期', kind: 'dateField', required: true, requiredConfigurable: false, hint: '', enabledDefault: true },
+        { fieldId: 'location', label: '地点', kind: 'textField', required: true, requiredConfigurable: false, hint: '', enabledDefault: true },
+        { fieldId: 'time', label: '时间', kind: 'textField', required: false, requiredConfigurable: false, hint: '如 14:00-16:00', enabledDefault: true },
+        { fieldId: 'host', label: '主持人', kind: 'textField', required: false, requiredConfigurable: false, hint: '默认为当前用户', enabledDefault: true },
+        { fieldId: 'desc', label: '备注', kind: 'textareaField', required: false, requiredConfigurable: false, hint: '活动内容/目标等', enabledDefault: true },
+      ],
+    },
+    participants: { mode: 'fixed', defaultRoles: ['party-member'], orgMode: 'none' },
+    stages: [
+      { id: 'create', kind: 'decision-tree', outputs: ['activity'] },
+      { id: 'attend', kind: 'engine', outputs: ['attendance'] },
+    ],
+    outputs: {
+      entities: ['activity', 'attendance', 'todo'],
+      outputBlocks: ['attendance', 'publicity'],
+    },
+    events: { emits: ['data:activity:created'], listens: [] },
+    validation: { initiatorRoles: ['secretary'], requiredSop: true, enabledByDefault: true },
+  };
+}
+
+/** 三会一课四块（blockId 即既有场景 id；顺序与 `SCENARIO_WRITE_IDS['three-meetings']` 一致） */
+export const THREE_MEETINGS_MANIFESTS = [
+  { blockId: 'branch-party-meeting', name: '支部党员大会块' },
+  { blockId: 'branch-committee', name: '支委会块' },
+  { blockId: 'party-group-meeting', name: '党小组会块' },
+  { blockId: 'party-lecture', name: '党课块' },
+].map(({ blockId, name }) => _threeMeetingsBlock(blockId, name));
+
+/** 全量块清单（S1 试点目录 ＋ 三会一课四块） */
+export const BLOCK_MANIFESTS = [
+  THEME_PARTY_DAY_MANIFEST, TASKFORCE_RUN_MANIFEST, ...THREE_MEETINGS_MANIFESTS,
+];
 
 /**
  * 校验单个块 manifest（纯函数；错误累积返回）

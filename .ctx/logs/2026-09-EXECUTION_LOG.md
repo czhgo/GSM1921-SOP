@@ -21102,3 +21102,26 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **验收**：`block-manifest` **5/5**（含新 `S5`，控制台实测 `scenario 7 / definition 3 / capability 14 / 例外 2`）；本批**未改 `docs/src`** ⇒ **无需 bump**。
 - **同步**：`WORKFLOW_BLOCK_CONTRACT §七` 补「§二 由警告升级为机检」小节；`REVIEW_QUEUE` 新增 `H-10` ＋ 本节规模 9 → 10 条；`ACTIVE_RULINGS` 留痕（**口径行仍 130**）。
 
+---
+
+## 批次 248（2026-09-29）：G3-3 第三层 · 同类场景铺开——三会一课四块入册 ＋ 入口守卫同步铺开
+
+> **来源**：支书 2026-09-28 裁「同类场景铺开**复用既有场景 id**」＋「**先配置面**」（配置面已于批次 246 落地）。本批把**清单面**补齐，且**先把事实读清再写**（不猜）。
+
+- **取证在先（逐条可核，全部落到母本 / 单一源）**：
+  - `blockId` ＝ **既有 SOP 场景 id**：`workflow/sopData.js::sopDatabase.scenarios` 的四个三会一课场景；
+  - `sopRef` ＝ `常见工作场景快速指南.md`——实读其标题，`## 三会一课` 下正是「支部委员会 / 支部党员大会 / 党课 / 党小组会」四小节；
+  - `capabilityId` ＝ `activity-calendar`——四场景由**活动日历写入面板**创建（`calendar-tab.js::WRITE_TEMPLATES` 的子类派生自 `SCENARIO_WRITE_IDS['three-meetings']`，四者全在）；
+  - `scope` ＝ `['workspace:secretary']`——`calendar-tab.js` 原注：「本写入面板**仅在支书/副支书工作台（secretary.html）呈现**」；
+  - `inputs.fields` ＝ 该写面板**真实呈现的扁平字段**（`renderFormStep`：名称 / 日期 / 地点必填，时间 / 主持人 / 备注选填）——**结构化区（会议议程 / 线上异步表决）刻意不声明**，由既有引擎数据承载（契约 §一「块不独立于既有机制存在」）。
+- **落地**：`manifests.js` 新增 `THREE_MEETINGS_MANIFESTS`（用**工厂函数**逐条造**全新对象**，避免四条共享嵌套引用）⇒ `BLOCK_MANIFESTS` **2 块 → 6 块**；`calendar-tab.js` **入口守卫铺开**——`_scenarioBlockOn(scenarioId)`（**无对应块的场景恒 true** ⇒ 未铺开时行为不变）过滤三会一课子类按钮，停用提示句改为**复用同一句**并点名被停用的块（**不新增小字号档**）。
+- **过程中抓出的红（同批改准，非绕开）**：
+  1. `block-manifest::S1` 与 `module-compose` 的**显式块清单断言**（`['theme-party-day','taskforce-run']`）⇒ 同批改准为 6 条（**有意保留 ratchet**：增删块必须改断言）；
+  2. `doc-line-ref::R2`——本批在 `calendar-tab.js` 插行 ⇒ `README-server.md` 的 `calendar-tab.js:1087-1103`（括注 `voteConfig`）位移 **+15** ⇒ 改签为 `:1102-1118`；
+  3. `frontmatter-freshness::F2`——**日期已跨到 2026-09-29**，而 `WORKFLOW_BLOCK_CONTRACT.md` 的 `last_updated` 仍 2026-09-28（批次 247 提交日 09-29）⇒ 刷为 `2026-09-29`，`TIMESTAMPS` 表行同刷（`S13` 同值）；
+  4. **连带改签**：`server/test/form-loop-registry.mjs` 四条 `calendar-tab.js` 行号（`1092/1093/1094` → `1107/1108/1109`、`1056` → `1071`，实测四处以 `showToast` 文案逐条命中）。
+- **纪律动作**：`node docs/scripts/bump-version.mjs` ⇒ `20260928s → 20260928t`（JS 216 / HTML 22 / CSS 2 / server-test 84；陈旧戳 **0 残留**）。
+- **验收**：`npm run test:daily` **647/647 / 0 红**；`block-manifest`（`S1–S5`）· `module-compose` · `block-entry-guard-e2e`（**两段**：主题党日 ＋ 三会一课）· `block-config-ui-e2e` · `block-canvas-e2e` · `wizard-config` · `workflow-block-config` 合跑 **32/32 全绿**。
+- **同步**：`WORKFLOW_BLOCK_CONTRACT §七`（铺开已办 ＋ 余下两块说明）· `ENGINEERING_ASSESSMENT §六 G3-3`（第三层 🟢）· `SNAPSHOT v55 → v56`（§I `workflow/` 标注 6 块）· `README-server.md` 行号改签 · `.ctx/TIMESTAMPS.md` 6 格**只改日期列**（备注列一字未加，`N2` 预算仍紧）· `ACTIVE_RULINGS` 留痕（**口径行仍 130**）。
+- **如实登记的边界**：① `docs/src/workflow/blocks/manifests.js` **本表原无其行**（沿用「只登记不补行」的覆盖缺口惯例）；② 余下两块 `attendance-check` / `feedback-handling` **未做**——其**写入口不在活动日历**，能力归属须先定（不猜）；③ 运行时面（任务派生消费组合产物）与 L4 画布 UI **未做**。
+

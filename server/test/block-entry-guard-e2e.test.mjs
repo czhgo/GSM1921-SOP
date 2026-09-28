@@ -1,6 +1,8 @@
-// server/test/block-entry-guard-e2e.test.mjs — L3 S4 主题党日块入口守卫 E2E（2026-09-03）
-// 支部停用 theme-party-day（config.blocks.workflowBlocks）→ 支书台写入面板 Step1 主题党日模板卡消失 + 停用提示
-// → 恢复默认 → 模板卡回归（默认态与既有行为完全一致）。
+// server/test/block-entry-guard-e2e.test.mjs — L3 S4 工作流块入口守卫 E2E
+// ①（2026-09-03）支部停用 theme-party-day（config.blocks.workflowBlocks）→ 支书台写入面板 Step1 主题党日模板卡
+//    消失 + 停用提示 → 恢复默认 → 模板卡回归（默认态与既有行为完全一致）。
+// ②（2026-09-28 批次 248，块清单铺开）三会一课四场景各有块（blockId ＝ 场景 id）——停用某块 ⇒ **该场景的模板
+//    按钮消失**（同判据）＋ 停用提示点名；恢复默认 ⇒ 回归。
 // 自包含：createApp(:memory:) + seedDatabase + 账号密码登录 + API 配置写口。
 
 import { test, before, after } from 'node:test';
@@ -59,7 +61,7 @@ async function openWriteStep1(page) {
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928s')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928t')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());
@@ -101,4 +103,48 @@ test('S4 主题党日块入口守卫：停用 → Step1 模板卡消失 → 恢�
   } finally { await page3.close(); }
 
   console.log('[S4] 主题党日块入口守卫: 停用→模板消失+提示 → 恢复→回归 闭环通过');
+});
+
+/** 读 Step1 里三会一课四个子类按钮（空值＝主题党日那张唯一按钮，滤掉） */
+async function readThreeMeetingSubtypes(page) {
+  return page.evaluate(() => [...document.querySelectorAll('button[data-subtype]')]
+    .map((b) => b.dataset.subtype).filter(Boolean));
+}
+
+test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党课块」→ 该场景模板按钮消失 → 恢复回归', async () => {
+  const staffToken = await apiLogin('p_pc');
+
+  // ① 基线：四个三会一课子类按钮都在
+  const p1 = await newPage();
+  try {
+    await openWriteStep1(p1);
+    assert.deepEqual((await readThreeMeetingSubtypes(p1)).sort(),
+      ['branch-committee', 'branch-party-meeting', 'party-group-meeting', 'party-lecture'],
+      '默认四个三会一课子类都在');
+  } finally { await p1.close(); }
+
+  // ② 支部停用 party-lecture（党课块）→ 只有该场景的按钮消失 + 提示点名它
+  await patchBlocks(staffToken, {
+    outputBlocks: { hiddenBlockIds: [], blockOrder: [] },
+    workflowBlocks: { hiddenBlockIds: ['party-lecture'] },
+  });
+  const p2 = await newPage();
+  try {
+    await openWriteStep1(p2);
+    const subs = await readThreeMeetingSubtypes(p2);
+    assert.equal(subs.includes('party-lecture'), false, '停用后「党课」模板按钮消失');
+    assert.equal(subs.length, 3, '其余三会一课子类不受影响');
+    const notice = await p2.evaluate(() => document.body.textContent.includes('工作流块「党课块」已由支部配置停用'));
+    assert.equal(notice, true, '停用提示点名「党课块」');
+  } finally { await p2.close(); }
+
+  // ③ 恢复默认 → 党课按钮回归
+  await patchBlocks(staffToken, null);
+  const p3 = await newPage();
+  try {
+    await openWriteStep1(p3);
+    assert.equal((await readThreeMeetingSubtypes(p3)).includes('party-lecture'), true, '恢复默认后「党课」按钮回归');
+  } finally { await p3.close(); }
+
+  console.log('[S4+] 三会一课块入口守卫: 停用党课块→按钮消失+点名提示 → 恢复→回归 闭环通过');
 });

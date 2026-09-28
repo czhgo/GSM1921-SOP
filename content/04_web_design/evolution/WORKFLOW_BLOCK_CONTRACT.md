@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-28"
+last_updated: "2026-09-29"
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
@@ -264,6 +264,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - 换组织向导第②步「工作流块」由**只可启停**升为**可排序**（▲▼ 按钮 —— 键盘可达的按钮等价路径），并内联「**组合体检**」：消费 `workflow/blocks/orchestration.js::composePlan`（**编排内核首次进入生产路径**，此前仅测试 import）＋ 目录外 id 检测。
 - 同批修掉旧缺陷：向导保存第②步写死 `outputBlocks.blockOrder: []` ⇒ **静默抹掉已按其它入口设过的顺序**；现改为原样保留。
 - 测试：`server/test/workflow-block-config.test.mjs` 扩 `blockOrder` 纯函数 ＋ HTTP 往返断言（含「排序未接线即红」的反例）。
-- **未做（余下）**：块清单按**既有场景 id** 铺开到其余场景（支书同日裁「复用既有场景 id」）、运行时面（任务派生消费组合产物）、L4 画布 UI。
+- ✅ **块清单已铺开：三会一课四块入册（2026-09-29 批次 248）**——按支书裁「同类场景铺开**复用既有场景 id**」：`branch-party-meeting`（支部党员大会）/ `branch-committee`（支委会）/ `party-group-meeting`（党小组会）/ `party-lecture`（党课），**blockId 即既有 SOP 场景 id**；`sopRef` 同指 `常见工作场景快速指南.md`（其 `## 三会一课` 下正是四小节）；`capabilityId` ＝ `activity-calendar`（四场景同由活动日历写入面板创建）；`scope` ＝ `workspace:secretary`（写面板只在支书台呈现）；`inputs.fields` ＝ 该写面板**真实的扁平字段**（名称 / 日期 / 地点必填，时间 / 主持人 / 备注选填）——**结构化区（会议议程 / 线上异步表决）刻意不声明**，由既有引擎数据承载。**入口守卫同步铺开**：支部停用某块 ⇒ 该场景的模板按钮消失 ＋ 停用提示点名（E2E `block-entry-guard` 增第三段闭环）。
+- **未做（余下）**：`attendance-check`（查考勤记录）/ `feedback-handling`（处理意见建议反馈）两块——**这两者的写入口不在活动日历**，能力归属须先定（**不猜**）；运行时面（任务派生消费组合产物）；L4 画布 UI。
 
 **§二「注册表对应」由警告升级为机检（2026-09-28 批次 247）**：§二 原写「`blockId` 与 capability / scenario id 一一对应，**注册表缺失即契约失效**」，但**此前无任何机检**——实测**试点块自己就违反它**：`taskforce-run` 与 `capabilityId: 'taskforce'` 均不在 capability / scenario / definition 三表任一处（`theme-party-day` 是 definition id ⇒ **合法**）。现由 `server/test/block-manifest.test.mjs::S5` 落成机检：两个 id 必须落在**从单一源实读**的三表内，或在**显式例外台账**（`REGISTRY_EXCEPTIONS`，每条写理由）内；含非空转下限与「造未注册 id 必红」的反例。**专班一项的口径（改名/登记 vs 承认自创块可无注册 id）待支书裁**——见 `.ctx/REVIEW_QUEUE.md` 的 `H-10`。
