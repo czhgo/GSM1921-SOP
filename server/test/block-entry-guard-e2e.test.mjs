@@ -148,3 +148,34 @@ test('S4+ 三会一课块入口守卫（2026-09-28 批次 248）：停用「党�
 
   console.log('[S4+] 三会一课块入口守卫: 停用党课块→按钮消失+点名提示 → 恢复→回归 闭环通过');
 });
+
+test('S4++ 三会一课四块全停用（2026-09-29 批次 249）：子类按钮全消失 ＋ 空态文案 ＋ 提示逐块点名 → 恢复回归', async () => {
+  const staffToken = await apiLogin('p_pc');
+  const ALL4 = ['branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'];
+
+  await patchBlocks(staffToken, {
+    outputBlocks: { hiddenBlockIds: [], blockOrder: [] },
+    workflowBlocks: { hiddenBlockIds: ALL4 },
+  });
+  const p1 = await newPage();
+  try {
+    await openWriteStep1(p1);
+    assert.deepEqual(await readThreeMeetingSubtypes(p1), [], '四块全停用后三会一课子类按钮**全消失**');
+    const txt = await p1.evaluate(() => document.body.textContent);
+    assert.ok(txt.includes('本类目下的工作流块均已由支部配置停用。'), '显示「本类目全停用」空态文案');
+    // 逐块点名（`<块名>块` 只出现在停用提示句里 ⇒ 可精确断言提示覆盖了全部四块）
+    ['支部党员大会块', '支委会块', '党小组会块', '党课块'].forEach((n) => {
+      assert.ok(txt.includes(n), `停用提示应点名「${n}」`);
+    });
+  } finally { await p1.close(); }
+
+  // 恢复默认 → 四块按钮全回归
+  await patchBlocks(staffToken, null);
+  const p2 = await newPage();
+  try {
+    await openWriteStep1(p2);
+    assert.deepEqual((await readThreeMeetingSubtypes(p2)).sort(), [...ALL4].sort(), '恢复默认后四个子类全部回归');
+  } finally { await p2.close(); }
+
+  console.log('[S4++] 三会一课块全停用: 四按钮全消失+空态+逐块点名 → 恢复→四块回归 闭环通过');
+});

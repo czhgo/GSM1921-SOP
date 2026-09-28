@@ -21125,3 +21125,16 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **同步**：`WORKFLOW_BLOCK_CONTRACT §七`（铺开已办 ＋ 余下两块说明）· `ENGINEERING_ASSESSMENT §六 G3-3`（第三层 🟢）· `SNAPSHOT v55 → v56`（§I `workflow/` 标注 6 块）· `README-server.md` 行号改签 · `.ctx/TIMESTAMPS.md` 6 格**只改日期列**（备注列一字未加，`N2` 预算仍紧）· `ACTIVE_RULINGS` 留痕（**口径行仍 130**）。
 - **如实登记的边界**：① `docs/src/workflow/blocks/manifests.js` **本表原无其行**（沿用「只登记不补行」的覆盖缺口惯例）；② 余下两块 `attendance-check` / `feedback-handling` **未做**——其**写入口不在活动日历**，能力归属须先定（不猜）；③ 运行时面（任务派生消费组合产物）与 L4 画布 UI **未做**。
 
+---
+
+## 批次 249（2026-09-29）：把「同类场景铺开」由「靠人记得」变成**机检收口**（`scene-write-sync` ④ ＋ 入口守卫第四段）
+
+> **来源**：批次 248 手工铺开三会一课四块，**靠的是「我记得」**——这正是本仓反复吃亏的形态（漏注册 / 漏登记 / 漏铺守卫已出现三次）。本批把它钉成判据，并顺手把余下两块的「不属本层」讲清。**本批未改 `docs/src`**（只改测试与 md）⇒ **无需 bump**。
+
+- **新判据（`scene-write-sync` ④）「块目录 ⊇ 写入选项目录」**：`SCENARIO_WRITE_IDS` 里**每个可写入的场景都必须在册块**（两侧均从单一源实读：`constants.js` × `manifests.js`）；**唯一别名** `theme-party → theme-party-day`（契约 §四 原例 id、历史命名不改）列入文件内 `BLOCK_ID_ALIASES` 并写理由；含**非空转下限**（块 ≥2 / 可写入场景 ≥5）＋ **反例锁死**（造 `ghost-scenario` ⇒ 必须被报出）。⇒ **今后「同类场景铺开漏项」即红**。
+- **据此收口第三层的完成范围**：可写入场景＝**三会一课 4 ＋ 主题党日 1**，**现已全部有块**（主题党日由历史块 `theme-party-day` 覆盖）⇒ **「同类场景铺开」完成**（判据是机检，不是自述）。**`attendance-check` / `feedback-handling` 明确不属本层**：二者**不在 `SCENARIO_WRITE_IDS`**（无活动写入入口）⇒ 铺块即**空转件**；若日后给写入口，届时由 ④ 自动要求铺块。
+- **入口守卫侧加固**（`block-entry-guard-e2e` 新增第三段＝第四段整体）：**四块一次性全停用** ⇒ 断言①四个子类按钮**全消失**、②「本类目下的工作流块均已由支部配置停用。」空态文案出现、③停用提示**逐块点名**四块（`<块名>块` 只在提示句里出现 ⇒ 可精确断言覆盖整目录）、④恢复默认后四个全回归。**一次页载覆盖整目录**（不逐块开页，省时且覆盖更全）。
+- **验收**：`scene-write-sync` **4/4**、`block-entry-guard-e2e` **3/3**（三段闭环），合跑 **7/7 全绿**；`npm run test:daily` 复跑 **647/647 / 0 红**。
+- **同步**：`WORKFLOW_BLOCK_CONTRACT §七`（铺开完成判据 ＋ 余下两块的「不属本层」reason）· `ENGINEERING_ASSESSMENT §六 G3-3`（第三层转 ✅ 并落机检判据）· `ACTIVE_RULINGS` 留痕（**口径行仍 130**）。
+- **⚠ 同批提出待裁（`AskUserQuestion`）**：「支部停用某块」是否应**服务端硬执行**（直连 API 写该场景活动 ⇒ 403）——现状是**仅前端入口守卫**（服务端活动写门 `_assertActivityWrite` 只按**角色 × 活动类型**判，不看 `config.blocks`）⇒ 属「守卫只守表层」同族；但**硬执行与否是产品 / 制度口径**（防误操作 vs 防越权），**不代裁**。
+
