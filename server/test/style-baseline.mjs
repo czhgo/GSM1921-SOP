@@ -373,7 +373,7 @@ export const HEX_BASELINE = {
   'docs/src/services/activity/decision-tree.js': { c: 4, v: [
       '#ce1126', '#ffd700'
   ] },
-  'docs/src/services/governance/notice.js': { c: 2, v: [
+  'docs/src/components/governance/notice-view.js': { c: 2, v: [
       '#3b82f6', '#fff'
   ] },
   'docs/src/services/branch/org-wizard-report.js': { c: 4, v: [
@@ -484,6 +484,18 @@ export const HEX_VALUE_BASELINE = 167;
  *  收尾：搬移批次结束、基线按新文件重设后，台账条目**保留**（它是「这次搬移合法」的凭据；删掉它，
  *   历史搬移就无从复核）。 */
 export const HEX_MOVE_LEDGER = [
+  {
+    id: 'notice.js → notice-view.js（G1 第③项：服务层不产 UI，通知视图层整块搬出）',
+    from: 'docs/src/services/governance/notice.js',
+    to: ['docs/src/components/governance/notice-view.js'],
+    values: ['#fff', '#3b82f6'],
+    fromValues: ['#3b82f6', '#fff'],
+    reason: '2026-09-28 · G1 第③项「服务层不产 UI」：通知列表卡片 / 铃铛下拉浮窗 / 发布本组通知浮窗（含 2 处'
+      + '硬编码色值）**逐字整块**由 services/governance/notice.js 搬到 components/governance/notice-view.js，'
+      + '零行为变化、仅落点变化 ⇒ 按支书 2026-09-25 裁定的搬移例外重设基线（值集一字不变）。'
+      + '同批 `services/governance/issues.js` 的「我的处置」视图段搬往 components/feedback/issue-dispatch-view.js，'
+      + '该段本无硬编码色值 ⇒ 不生成台账条目。',
+  },
   {
     id: 'org-roster → org-member-flow（R10 成员流动拆 tab）',
     from: 'docs/src/entries/tabs/org/roster-tab.js',

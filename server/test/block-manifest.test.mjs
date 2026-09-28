@@ -5,9 +5,16 @@
 // 运行：node --test server/test/block-manifest.test.mjs（自包含 server，TMP 需指向可写目录）
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
+import {
+  BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
+} from '../../docs/src/workflow/blocks/manifests.js?v=20260928n';
+import { assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928n';
 
 let server;
 let BASE;
@@ -35,7 +42,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260928j');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260928n');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规
@@ -86,4 +93,53 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
   } finally {
     await browser.close();
   }
+});
+
+// ════════════════════════════════════════════════════════════════
+//  S2–S4「**未同步即红**」系列（G1 第④项，2026-09-28）
+// ════════════════════════════════════════════════════════════════
+//  病灶：manifest 是**声明式元数据**，此前只有「加载期 console.warn、不阻断」（manifests.js 末段）：
+//    ① `sopRef` 只校验「非空字符串」，**不校验制度文件真实存在**——2026-09-13 实测断链 2 处，
+//       靠人肉 content 自检才发现（块指不回制度文本＝溯源失效）；
+//    ② `depends` / `conflictsWith` 引用缺失 / 互斥同含 / 成环，`assertComposeValid` 的异常
+//       被 `try{...}catch{console.warn}` 吞掉——**组合错配可以静默上线**；
+//    ③ `capabilityId` 只在「该 id 恰好在 CAPABILITY_PROVENANCE 里登记」时才对照 provenance，
+//       **未登记的 id 被静默放过**（能力名写错 / 新块漏登无人知）。
+//  本组把这三项从「警告」升级为「红」：**清单与实现不同步即停**（不再靠人记得）。
+const REPO_ROOT = fileURLToPath(new URL('../../', import.meta.url));
+
+test('S2 未同步即红：manifest.sopRef 指向的制度文件必须真实存在（防制度溯源断链回潮）', () => {
+  const missing = BLOCK_MANIFESTS
+    .filter((m) => !existsSync(join(REPO_ROOT, m.sopRef)))
+    .map((m) => `${m.blockId} → ${m.sopRef}`);
+  assert.deepEqual(missing, [],
+    '以下块的 sopRef 指向不存在的文件（块必须能指回真实制度文本）：\n  ' + missing.join('\n  '));
+  console.log(`[S2] sopRef 制度溯源：${BLOCK_MANIFESTS.length} 块全部指向真实文件`);
+});
+
+test('S3 未同步即红：块组合声明必须真合法（引用 ∈ 块清单 / 无互斥同含 / depends 不成环）', () => {
+  // 加载期只 warn；这里要求**必须不抛**。
+  assert.doesNotThrow(() => assertComposeValid(BLOCK_MANIFESTS),
+    '块组合声明不合法（depends/conflictsWith 与块清单不同步）');
+  const ids = new Set(BLOCK_MANIFESTS.map((m) => m.blockId));
+  for (const m of BLOCK_MANIFESTS) {
+    for (const dep of m.depends || []) {
+      assert.ok(ids.has(dep), `${m.blockId}.depends 引用了不存在的块「${dep}」`);
+    }
+    for (const c of m.conflictsWith || []) {
+      assert.ok(ids.has(c), `${m.blockId}.conflictsWith 引用了不存在的块「${c}」`);
+    }
+  }
+  console.log(`[S3] 组合声明：${BLOCK_MANIFESTS.length} 块合法（引用均在册、无互斥同含、depends 无环）`);
+});
+
+test('S4 未同步即红：manifest.capabilityId 必须在 CAPABILITY_PROVENANCE 登记（防能力名写错/新块漏登）', () => {
+  const unregistered = BLOCK_MANIFESTS
+    .map((m) => m.capabilityId)
+    .filter((id) => !Object.prototype.hasOwnProperty.call(CAPABILITY_PROVENANCE, id));
+  assert.deepEqual(unregistered, [],
+    '以下 capabilityId 未在 manifests.js::CAPABILITY_PROVENANCE 登记（原先被静默放过）：\n  '
+    + unregistered.join('\n  ')
+    + '\n修法：新块在本表登记「capabilityId → 制度来源」（institution-common | branch-custom）。');
+  console.log(`[S4] capabilityId 登记：${BLOCK_MANIFESTS.length} 块全部在册`);
 });

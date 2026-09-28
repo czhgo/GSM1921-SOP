@@ -9,20 +9,20 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20260928j';
-import { NoticeStore } from '../governance/notice.js?v=20260928j';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20260928j';
-import { ROLE_LABELS } from '../../core/constants.js?v=20260928j';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928j';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/work-map.js?v=20260928j';
-import { getPersonName } from '../member/person.js?v=20260928j';
-import { AuthStore } from '../core/auth.js?v=20260928j';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260928j';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20260928j';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20260928j';
+import { BranchService } from '../core/runtime.js?v=20260928n';
+import { NoticeStore } from '../governance/notice.js?v=20260928n';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20260928n';
+import { ROLE_LABELS } from '../../core/constants.js?v=20260928n';
+import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928n';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/work-map.js?v=20260928n';
+import { getPersonName } from '../member/person.js?v=20260928n';
+import { AuthStore } from '../core/auth.js?v=20260928n';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260928n';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20260928n';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20260928n';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/id.js?v=20260928j';
+import { generateId } from '../../core/id.js?v=20260928n';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 

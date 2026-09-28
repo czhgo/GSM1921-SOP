@@ -138,7 +138,7 @@
 | 特例 / 边界 | ① **看不到匿名反馈的真实提交人**——「处置」与「查看真身」是两项分开的权限（真身仅党委可查）；② 支部 config 全量可写，但**不含支部官方名 `name`**（仅 `party-staff` 可改）；③ 党小组管理（新增/改名/解散/归组）仅支书（含副支书）；④ 进宣传工作台只放行「档案归档」页（代归档兜底），不获得其它页签；⑤ **支委身份配置**：可把**本支部成员**配为组织 / 宣传 / 纪检委员（可改派、可撤销）——**支书本人与副支书的身份由党委配置**，不在此列；**副支书与支书同权**（2026-09-23 支书裁定·情景① ＋ 追裁「副支书也可配」） |
 | 依据 | `docs/src/services/core/auth.js:78`、`:68-75`、`docs/src/core/constants.js:198-200`（`BRANCH_COMMISSION_ROLES`）、`docs/src/core/constants.js:327-333`（归档兜底）、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:167-180`（§9j）、`server/routes/resources.js:77-89`（党小组门） |
 
-> **⚠「仍专属支书」的清单（2026-09-21 批次 126 · `D-550` 同批收口）**：该批只把「**品牌认定**」「**意见处置**」两件从「支书专属」移出（改归支委会 / 支委层），改后**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:616`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/services/governance/notice.js:820`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:125`）。`SECRETARY_ROLES` 的注释已同批写明「品牌认定、意见处置已移出本集」（`docs/src/core/constants.js:201`）。
+> **⚠「仍专属支书」的清单（2026-09-21 批次 126 · `D-550` 同批收口）**：该批只把「**品牌认定**」「**意见处置**」两件从「支书专属」移出（改归支委会 / 支委层），改后**仍专属支书**的为——① **活动信息编辑**（巡查面板按钮，前端按 `SECRETARY_ROLES` 判：`docs/src/components/record/inspector.js:616`）；② **全支部通知发布**（本组通知发布口的注释明写「全支部通知仍归支书」：`docs/src/components/governance/notice-view.js:182`）；③ **名册成员变更确认链的阶段语义端点**（服务端走 `SECRETARY_AND_DEPUTY_ROLES`，属既有支书写链：`server/routes/member.js:125`）。`SECRETARY_ROLES` 的注释已同批写明「品牌认定、意见处置已移出本集」（`docs/src/core/constants.js:201`）。
 
 #### 2.2.2 `deputy-secretary` 副支书
 
@@ -147,7 +147,7 @@
 | 支部身份 | 与支书**同页共台**（`secretary.html`）；示例组织中为 `p14` |
 | 权限键 | 与支书**完全一致**（含意见反馈基础键 7 个 ＋ **处置键 8 个**——2026-09-21 批次 126 · `D-550` 由「仅支书」放开，两角色同持） |
 | 副书同权范围（制度与代码均已确认） | 成员变更确认、在册状态镜像、发展阶段推进、移出/撤销流出确认、议程结果区与编辑议程、支部 config（modules/blocks/workforce/组织档案/域参数全量）、线上表决截止、党小组管理、成员流动登记、**支委身份配置**（本支部支委身份＝组织 / 宣传 / 纪检委员，2026-09-23 支书裁定·情景① ＋ 追裁「副支书也可配」） |
-| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:620`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/services/governance/notice.js:820`） |
+| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:620`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
 | 特例 | 代码里「副书同权」实现为常量 `SECRETARY_AND_DEPUTY_ROLES = ['secretary','deputy-secretary']`，被成员变更确认、党小组管理、表决截止等多处写门引用 |
 | 依据 | `docs/src/services/core/auth.js:79`、`docs/src/core/constants.js:204`、`server/routes/member.js:125`、`server/routes/committee.js:161`、`server/routes/resources.js:74,116` |
 
@@ -912,7 +912,7 @@
 | title / body | string | 标题 / 正文 |
 | scope | `'permanent'\|'global'\|'role'\|'scenario'` | 影响范围：底层架构 / 全局规则 / 支委分工 / 特定场景 |
 | types | string[] | 类型标签（对现状的性质：`bug` 缺陷 / `enhancement` 增强 / `proposal` 提案 / `question` 疑问；多选、必填） |
-| domain | string | **事项领域**（2026-09-21 批次 126 · `D-551`，**属来源 C：`DATA_MODEL.md` 字段表未列**）：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）。单一源 `docs/src/services/governance/issues.js:1705-1710`（`ISSUE_DOMAINS`）；落库见 `server/routes/resources.js:735` 与 `:769` |
+| domain | string | **事项领域**（2026-09-21 批次 126 · `D-551`，**属来源 C：`DATA_MODEL.md` 字段表未列**）：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）。单一源 `docs/src/services/governance/issues.js:1244-1249`（`ISSUE_DOMAINS`）；落库见 `server/routes/resources.js:735` 与 `:769` |
 | status | `'open'\|'closed'` | 开放 / 关闭 |
 | closedReason / closedAt | 枚举 / string \| null | 关闭原因（`completed` 已解决 / `duplicate` 重复 / `wontfix` 不修复 / `not_planned` 暂不计划）/ 关闭时间 |
 | submittedBy / submittedAt | string | 提交人**对外展示值**（匿名时恒为字符串 `'匿名'`，实名时为成员短 ID）/ 提交日期 |

@@ -3,29 +3,29 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260928j';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260928n';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/core/auth.js?v=20260928j';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260928j';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928n';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260928n';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260928j';
-import { flashHighlight } from '../../../core/utils.js?v=20260928j';
+import { isActivityLive } from '../../../core/constants.js?v=20260928n';
+import { flashHighlight } from '../../../core/utils.js?v=20260928n';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/member/party-group.js?v=20260928j';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260928n';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
 // 活动状态文案改走 components/record/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20260928j';
-import { getAppState } from '../../../core/state.js?v=20260928j';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20260928n';
+import { getAppState } from '../../../core/state.js?v=20260928n';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928j';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928n';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
 // 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20260928j';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20260928n';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20260928j';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20260928n';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。

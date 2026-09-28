@@ -66,7 +66,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260928j`);
+          await import(`/src/${rel}?v=20260928n`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -134,4 +134,26 @@ test('E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装�
   }
   console.log(`[E2] 独立页装配：受检 ${checked.length} 页 / 白名单 ${WHITELIST.size} 页 → ${checked.join(' ')}`);
   assert.deepEqual(problems, [], `独立页数据源装配缺失（api 形态下会静默退回本地）：\n${problems.join('\n')}`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  E3 分层方向（G1 第③项，2026-09-28）：**服务层不产 UI**
+// ════════════════════════════════════════════════════════════════
+//  病灶（实测）：`services/governance/issues.js` 尾部住着「我的处置」整套渲染（470+ 行）、
+//  `services/governance/notice.js` 尾部住着通知列表 / 浮窗 / 发布口（230+ 行）——服务层因此
+//  import 了组件（list-filter / badges / modal），依赖方向反了（服务 → 组件）。
+//  做法：把 UI 段**整块搬**到 `components/**`（逐字搬迁、零行为变化），服务层只留数据与口径；
+//  组件反向 import 服务层（方向正确）。本守卫静态扫描防回潮：服务层出现 `from '...components/...'` 即红。
+test('E3 分层方向：服务层不得 import 组件（服务层不产 UI；组件 → 服务 才对）', () => {
+  const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
+  const offenders = [];
+  for (const rel of collectJsFiles(join(root, 'services'), root)) {
+    const src = readFileSync(join(root, rel), 'utf8');
+    // 只看 import/export 语句（注释里提到组件路径做说明不算越界）
+    if (/from\s+['"][^'"]*components\//.test(src)) offenders.push(rel);
+  }
+  assert.deepEqual(offenders, [],
+    '服务层不得 import 组件（分层方向：组件 → 服务，反向即越界）。'
+    + `以下文件越界：\n  ${offenders.join('\n  ')}\n`
+    + '修法：把 UI 渲染**整块搬**到 components/**（逐字搬迁、零行为变化），服务层只留数据与单一源口径。');
 });

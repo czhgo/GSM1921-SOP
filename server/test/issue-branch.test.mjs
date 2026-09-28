@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260928j';
+const V = '?v=20260928n';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -105,11 +105,14 @@ test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛
 
 test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/参与的反馈」区', () => {
   const issues = read(join(SRC_DIR, 'services', 'governance', 'issues.js'));
+  // G1 第③项（2026-09-28）：「我的处置」视图层自服务层迁出（服务层不产 UI）——
+  // 渲染相关断言改读组件 components/feedback/issue-dispatch-view.js；数据出口断言仍读服务层。
+  const view = read(join(SRC_DIR, 'components', 'feedback', 'issue-dispatch-view.js'));
   assert.match(issues, /getMyIssues\(userId\) \{/, 'IssueStore 须暴露 getMyIssues（我提交/参与的反馈）');
-  assert.match(issues, /mydispatch-myissues-host/, 'renderMyDispatchTab 须渲染成员参与区宿主');
-  assert.match(issues, /function _renderMyIssueDetail\(/, '成员答复详情须存在（追加说明，issue 答复口径）');
+  assert.match(view, /mydispatch-myissues-host/, 'renderMyDispatchTab 须渲染成员参与区宿主');
+  assert.match(view, /function _renderMyIssueDetail\(/, '成员答复详情须存在（追加说明，issue 答复口径）');
   // 成员参与绝不放大写权：详情仅 addComment('comment')，不出现提交处置结果/关闭
-  const seg = issues.slice(issues.indexOf('function _renderMyIssueDetail('));
+  const seg = view.slice(view.indexOf('function _renderMyIssueDetail('));
   assert.match(seg, /addComment\(issueId, userId, role, body, 'comment'\)/, '成员仅能追加说明（kind=comment）');
   assert.ok(!/submit-result/.test(seg), '成员参与详情不得提供「提交处置结果」（写权不外扩）');
 });

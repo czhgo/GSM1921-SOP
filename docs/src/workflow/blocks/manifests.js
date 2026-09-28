@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260928j';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260928n';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260928j';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260928n';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -18,7 +18,9 @@ const ORG_MODE_SET = new Set(['none', 'organizer-deep']);
 const OUTPUT_BLOCK_IDS = new Set((OUTPUT_BLOCK_DEFS || []).map(b => b.id));
 
 // capabilityId → 制度来源权威对照（防「通用制度谎报为支部自创」；新块须在此登记）
-const CAPABILITY_PROVENANCE = {
+// ⚠ 2026-09-28（G1 第④项）：本表已**经守卫对账**——`block-manifest.test.mjs::S4` 要求每条
+//   manifest 的 capabilityId 在本表有登记（未登记＝能力名写错/新块漏登，原先被静默放过）。
+export const CAPABILITY_PROVENANCE = {
   'activity-calendar': 'institution-common', // 三会一课/主题党日 = 全党通用
   'taskforce': 'branch-custom',              // 专班 = 支部自创制度尝试
 };

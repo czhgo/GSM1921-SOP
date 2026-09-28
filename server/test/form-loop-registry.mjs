@@ -72,8 +72,8 @@ export const VALIDATION_SITES = [
   //   `machine:false` 的原因是**前置数据随赋权而变**：要跑到这处校验，须先在同一演示库里造出
   //   「该演示账号恰是某场活动组织者」的稳定前置（7 个演示账号的组织者身份随库内容变化），
   //   故本批只登记、不造数据（同 `components/governance/resolution-followup-manager.js` 由「造出真机可达且自洽的前置」解锁的前例）。
-  { file: SRC + 'services/governance/notice.js', line: 862, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
-  { file: SRC + 'services/governance/notice.js', line: 863, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
+  { file: SRC + 'components/governance/notice-view.js', line: 224, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
+  { file: SRC + 'components/governance/notice-view.js', line: 225, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1092, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1093, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
   { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1094, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
@@ -270,12 +270,14 @@ export const VALIDATION_SITES = [
   //   ⚠ **诚实更正（2026-09-17 批次 52，黑话第 8 轮落地时由 S6 当场抓出）**：本组 5 处行号**当时被写成
   //   「已按实况同步」，实测全部又偏了 +4**（`issues.js` 上部随后又增了 4 行）⇒ **那句自述是错的**。
   //   这不是「守卫太严」，恰是 S6 存在的理由：**行号是台账里唯一没人核的那一半，不核就一定偏**（R-80）。
-  //   已按 S6 报文更正为**实际行号**（判据与文案一字未改）；**下次改 `issues.js` 必须重核本组 5 条**。
-  { file: SRC + 'services/governance/issues.js', line: 1342, field: '汇报内容', flow: 'service/一键汇报', machine: true, msg: '请填写汇报内容' },
-  { file: SRC + 'services/governance/issues.js', line: 1518, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
-  { file: SRC + 'services/governance/issues.js', line: 1595, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
-  { file: SRC + 'services/governance/issues.js', line: 1601, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
-  { file: SRC + 'services/governance/issues.js', line: 1675, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:p5`、issue-002/003 的 `participants` 含 p11/p1/p13，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(p5)/组织台(p11)/组长台(p1)/宣传台(p12) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
+  //   已按 S6 报文更正为**实际行号**（判据与文案一字未改）；**下次改本组所属文件必须重核本组 5 条**。
+  //   ⚠ 2026-09-28（G1 第③项）：本组 5 条所属**代码已由 `services/governance/issues.js` 整块搬到**
+  //     `components/feedback/issue-dispatch-view.js`（服务层不产 UI）⇒ 台账 file/line 已同批改签。
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 145, field: '汇报内容', flow: 'service/一键汇报', machine: true, msg: '请填写汇报内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 321, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 398, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 404, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
+  { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 478, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:p5`、issue-002/003 的 `participants` 含 p11/p1/p13，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(p5)/组织台(p11)/组长台(p1)/宣传台(p12) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
   { file: SRC + 'components/record/report-entry.js', line: 99, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
   { file: SRC + 'components/record/report-inbox.js', line: 217, field: '答复内容', flow: 'component/汇报收件箱·答复', machine: true, msg: '请填写答复内容' },
   { file: SRC + 'components/governance/work-overview.js', line: 380, field: '汇报内容', flow: 'component/工作概况·汇报', machine: true, msg: '请填写汇报内容' },
@@ -1193,8 +1195,8 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-mydispatch-action="comment"]' }],
     expect: [
-      { file: SRC + 'services/governance/issues.js', field: '评论内容', msg: '请输入评论内容', carrier: '#mydispatch-comment-input' },
-      { file: SRC + 'services/governance/issues.js', field: '处置结果内容', msg: '请输入处置结果内容', carrier: '#mydispatch-comment-input', submit: { click: '[data-mydispatch-action="submit-result"]' } },
+      { file: SRC + 'components/feedback/issue-dispatch-view.js', field: '评论内容', msg: '请输入评论内容', carrier: '#mydispatch-comment-input' },
+      { file: SRC + 'components/feedback/issue-dispatch-view.js', field: '处置结果内容', msg: '请输入处置结果内容', carrier: '#mydispatch-comment-input', submit: { click: '[data-mydispatch-action="submit-result"]' } },
     ],
   },
   {
@@ -1335,7 +1337,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-mydispatch-action="submit-report"]' }],
     expect: [
-      { file: SRC + 'services/governance/issues.js', field: '汇报内容', msg: '请填写汇报内容', carrier: '[id^="report-req-input-"]' },
+      { file: SRC + 'components/feedback/issue-dispatch-view.js', field: '汇报内容', msg: '请填写汇报内容', carrier: '[id^="report-req-input-"]' },
     ],
   },
   {
@@ -1361,7 +1363,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-mydispatch-action="comment"]' }],
     expect: [
-      { file: SRC + 'services/governance/issues.js', field: '评论内容', msg: '请输入评论内容', carrier: '#mydispatch-comment-input' },
+      { file: SRC + 'components/feedback/issue-dispatch-view.js', field: '评论内容', msg: '请输入评论内容', carrier: '#mydispatch-comment-input' },
     ],
   },
   {
