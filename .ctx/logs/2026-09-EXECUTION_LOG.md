@@ -21022,3 +21022,15 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **`H-1` / `H-2` / `H-5`** 三条涉制度口径 / 评议结论 ⇒ **只登记、不代裁**（未改 `/issues` 读口、未改 `authorize`、未改 `REVIEW_QUEUE` 全局评估总表）。
 - **方案 B（把 `entries/**` 纳入 `module-load` E1）未做**——`E4` 已覆盖「运行时真装配」这一维，方案 B 留待需要时。
 
+---
+
+## 批次 242（2026-09-28）：README / SNAPSHOT / EA 当前值同步
+
+> **来源**：支书第 3 条「请更新好所有的 README 和 SNAPSHOT 等文件」。纯**当前值改准**，不含新口径、不动 `content/**`。
+
+- **`README.md`**：测试守卫清单里 `module-load.test.mjs` 补断言号 `E1`–`E4`（此前只写文件名）。
+- **`.ctx/SNAPSHOT.md`**：`v54 → v55`；§I 目录树的 `workflow/` 行补 **`blocks/orchestration.js`＝通用编排内核**（批次 239 新增件此前未登记）；**标题行 `— v53` 改准为 `— v55`**（批次 236 只刷了 frontmatter、漏了标题，属「两处同源副本未同步」，本批一并改准）。
+- **`.ctx/ENGINEERING_ASSESSMENT.md`**：① §5.2「测试规模（当前值）」**620 → 638**（并注明 ＋18 的来源＝批次 238–241 新增断言）；② §六 G3-2 补 ✅（此前只写问题陈述、缺状态标记，与 G3-1 体例不一）· G3-3 补 🟡「第一层已落 ＋ 余下三层」；③ §一 残项句里「台账备注列膨胀」的 `71,888 字` 补明「此后由 `timestamps-note-guard::N2` 以 75,000 预算机检，只降不升」（避免被读成「当前值」）。
+- **`.ctx/TIMESTAMPS.md`**：`.ctx/SNAPSHOT.md` 行改「当前基线（v55…」并加本批短注（`data-adapter.js` 行日期 2026-09-26 → 2026-09-28）。
+- **验收**：`doc-consistency`（`S10`–`S15`）· `timestamps-note-guard`（`N1`–`N7`）· `doc-line-ref`（`R1`–`R6`）全绿；`npm run test:daily` 复跑 **638/638 / 0 红**。
+

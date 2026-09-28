@@ -5,10 +5,10 @@ role: "[AI]"
 last_updated: "2026-09-28"
 status: "ACTIVE"
 date: "2026-09-15"
-version: "v54"
+version: "v55"
 ---
 
-# System Snapshot — v53
+# System Snapshot — v55
 
 > 当前活跃基线。历史快照见 `.ctx/snapshots/`。
 
@@ -60,7 +60,7 @@ GSM1921-SOP/
 │       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/org-config-package/appointment/workforce…））
 │       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
 │       ├── modules/            ← 业务模块（capabilities/ 能力注册 12 件 + 跨页件 3 件：help-catalog/references/branch-demo-nav；后者各成一类，不再细分——见 ENGINEERING_ASSESSMENT §六 G2 残余结算）
-│       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests）
+│       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests + **`blocks/orchestration.js`＝通用编排内核**：范围过滤 / 组合校验 / 稳定拓扑序 / 编译为既有 definition 形状的纯数据；2026-09-28 批次 239）
 │       └── styles.css          ← 全局样式
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口（DISABLE_SEED=1 env 支持）
