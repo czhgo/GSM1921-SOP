@@ -89,12 +89,12 @@ export function setDataSource(source, options = {}) {
   if (options.authToken) _authToken = options.authToken;
   // ── **装配标记**（2026-09-28 批次 241 · 收 `H-3` / `SOP-B-44` 方案 C）───────────────
   // 把「运行时究竟装配成哪种数据源」写成一条**真机（真实浏览器）可读**的属性：守卫此前只能做**静态**断言
-  //   （页入口源码里有没有『装配形』），而「源码里有装配调用」≠「运行时真装配成功」——`getDataSource() === 'api'`
-  //   那一维**至今没有守卫**。写进 DOM 而非直接调它：本模块取值在**模块实例内部**，另一条 URL `import()` 会读到
-  //   **另一个实例**（默认 'mock'）⇒ 假红；故 DOM 属性是**跨模块实例、跨脚本**都能读到的落点（`module-load.test.mjs::E4` 据此断言）。
-  // ⚠ **适用边界**（2026-09-29 批次 258 实测补，`REVIEW_QUEUE H-14`）：本标记**只在调用过本函数的装配路径**上可信——
-  //   实测有经 API 装配（`/api/v1/snapshot/versions`、`/users`、`/activities`… 全 200）却仍读作 `mock` 的入口 ⇒ 判
-  //   「是否 api」须**限定页面 / 路径**、不可外推「全站可信」；无副作用：只读标记、非浏览器（Node）自动跳过。
+  //   （页入口源码里有没有『装配形』），而「源码里有装配调用」≠「运行时真装配成功」——`getDataSource() === 'api'` 那一维
+  //   **至今没有守卫**。写进 DOM 而非直接调它：本模块取值在**模块实例内部**，另一个 URL `import()` 会读到**另一实例**
+  //   （默认 'mock'）⇒ 假红；故 DOM 属性是**跨模块实例、跨脚本**都能读到的落点（`module-load.test.mjs::E4` 据此断言）。
+  // ⚠ **读法边界**（2026-09-29 批次 259 实测补，`REVIEW_QUEUE H-14`）：落定值可信，但**必须钉在目标页读**——
+  //   只注 token、无登录态时工作台页会**重定向到 `login.html`**，而登录页上 runtime.js 写的是 `mock` ⇒ **读晚即读错页**；
+  //   无副作用：只读标记、非浏览器（Node）自动跳过。
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.dataset.dataSource = source;
   }
