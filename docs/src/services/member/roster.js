@@ -24,15 +24,15 @@
 // 消费点：纪检会议考勤录入（disc attendance-tab 候选与全选）、成员档案维护 UI、支书复核卡。
 // ════════════════════════════════════════════════════════════════
 
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928n';
+import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928q';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自持一份与
 //   org-base-data-preview 同值的副本，两处维护；现统一 import 叶子模块，防循环依赖见该文件注释）。
-import { RESIDENCE } from '../../core/constants.js?v=20260928n';
-import { PersonStore } from './person.js?v=20260928n';
+import { RESIDENCE } from '../../core/constants.js?v=20260928q';
+import { PersonStore } from './person.js?v=20260928q';
 // 双形态判定（mock/api）：api 形态下在册状态以服务端 users 行为权威，本模块不再读 localStorage 覆盖
 //   （2026-09-24 批次 169）。data-adapter 为零静态业务依赖的叶子模块（仅 import pending-writes）⇒ 无环。
-import { getDataSource } from '../../core/data-adapter.js?v=20260928n';
-import { mockDB } from '../../core/domain.js?v=20260928n';
+import { getDataSource } from '../../core/data-adapter.js?v=20260928q';
+import { mockDB } from '../../core/domain.js?v=20260928q';
 
 /** 运行期覆盖的 localStorage 键（组织委员维护写入；与 members UI / 纪检表单同源读取；
  *  ⚠ **仅 mock 形态生效**——api 形态本键恒不被读写，在册状态以服务端 users 行为单一权威） */

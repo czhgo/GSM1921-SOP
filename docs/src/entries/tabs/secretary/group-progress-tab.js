@@ -39,34 +39,34 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260928n';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260928n';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260928n';
-import { IssueStore } from '../../../services/governance/issues.js?v=20260928n';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260928n';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20260928n';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260928n';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260928n';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260928n';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928n';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928q';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260928q';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260928q';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260928q';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928q';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20260928q';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260928q';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260928q';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260928q';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928q';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928n';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260928n';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928q';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260928q';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20260928n';
+} from '../../../services/member/party-group.js?v=20260928q';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20260928n';
+} from '../../../services/member/group-view.js?v=20260928q';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
 //   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260928n';
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260928q';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -821,7 +821,7 @@ function _openDissolveModal(container, id) {
 //  收编分区：党小组活动（2026-09-25 支书裁「按『党小组与活动』这个名落地」·只收编党小组活动）
 // ════════════════════════════════════════════════════════════════
 // 判据**单一源** ＝ 活动 `direction === 'bottom-up'`——即活动详情页「活动方向」显示的「自下而上（党小组发起）」
-//   （`entries/activity-entry.js:306`；仓内把活动标成「党小组发起」的**唯一展示口径**）。**不引入第二判据**：
+//   （`entries/pages/activity-entry.js:306`；仓内把活动标成「党小组发起」的**唯一展示口径**）。**不引入第二判据**：
 //   `hostGroup`（承办党小组，README-server §4.20）只用于考勤「应到」推导、且多数活动为空，不是收编依据。
 // 呈现：只读列表（行点进 `activity.html?id=` 详情）＋「+ 新建党小组活动」——新建**复用既有写入入口**
 //   （calendar-tab.js 的「写入活动」浮窗，见下方 openActivityWriteEntry），**不新造表单**。

@@ -15,10 +15,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { memoizeRender } from '../../docs/src/components/ui/memoize-render.js?v=20260928n';
+import { memoizeRender } from '../../docs/src/components/ui/memoize-render.js?v=20260928q';
 import {
   calendarMemoKey, calendarGridNeedsRebuild,
-} from '../../docs/src/components/record/calendar.js?v=20260928n';
+} from '../../docs/src/components/record/calendar.js?v=20260928q';
 
 // ── 桩容器对象（模拟 container：dataset / firstElementChild / innerHTML / querySelector）──
 function makeContainer(initialHtml = '', hasChild = false) {

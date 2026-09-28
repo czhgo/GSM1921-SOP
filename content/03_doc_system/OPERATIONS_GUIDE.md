@@ -1651,7 +1651,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **域参数（L2）**：登记于 `POLICY_OVERRIDABLE` 白名单、可经设置「域参数」卡 UI 覆盖的支部参数——**现行 8 个节 / 14 条叶项**：纪检域（`inspection.overdueDays` 考察超期 · `attendance.entryRemindDays`/`summaryDeadlineDays`/`lowRateHint` 考勤录入提醒 / 汇总期限 / 出勤率提示线 · `review.overdueDays`/`deadlineDays` 复盘提醒 / 提交期限 · `makeup.branchAssembly`/`partyClass`/`deadlineDays` 补课范围与时限）/ 组织域（`memberConfirmation.semesterDetainedWindows` 滞留集中复核窗 · `thoughtReport.wordHint`/`wordSoftMin` 思想汇报篇幅）/ 组长域（`leader.semesterReportReminder.enabled` 学期提醒开关）/ 支书域（`activityApproval.mode` 活动批准门）；写权 = 域负责人仅本域、支书/副支书/党委组织员全量；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效
 - **支部制度参数**：设置 → 支部治理「支部制度参数」卡（支书/副支书视角）——票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因的**制度默认只读展示区**（数据单一源 = policy-defaults）
 - **制度默认（展示位）**：policy-defaults 各键在设置页只读列出的「现行口径」展示值（含域参数默认行）——**展示层无写权**，界面值随源码默认/覆盖变化
-- **制度刚性（锁定）**：L3 制度项（票决门槛 / 应到口径 / 会议类型 / 记录人 / 标因）在设置页**只读锁定展示、不开放直改**——改须支书/党委裁决后在系统层变更（[settings-entry.js](../../docs/src/entries/settings-entry.js) 批4 分层注释同口径）
+- **制度刚性（锁定）**：L3 制度项（票决门槛 / 应到口径 / 会议类型 / 记录人 / 标因）在设置页**只读锁定展示、不开放直改**——改须支书/党委裁决后在系统层变更（[settings-entry.js](../../docs/src/entries/pages/settings-entry.js) 批4 分层注释同口径）
 - **POLICY_OVERRIDABLE**：域参数覆盖**白名单**（`policy-defaults.js` 导出数组，每项 = path/type/钳制范围/domain 域节）——**只定义于 policy-defaults**，config-clean 为其唯一净化消费方；白名单 = 可经 UI 覆盖的域参数全集，白名单外一律不可经 UI 写
 - **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/branch/org-wizard-report.js)）
 

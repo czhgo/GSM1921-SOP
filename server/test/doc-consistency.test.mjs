@@ -565,7 +565,8 @@ const RULINGS = join(ROOT, '.ctx', 'ACTIVE_RULINGS.md');
 const QUEUE = join(ROOT, '.ctx', 'REVIEW_QUEUE.md');
 const README_SERVER = join(ROOT, 'README-server.md');
 const AGENDA_FORM = join(SRC, 'entries', 'tabs', 'secretary', 'agenda-form.js');
-const SETTINGS_ENTRY = join(SRC, 'entries', 'settings-entry.js');
+// 2026-09-28（G2 残余）：独立页入口已按判据分入 entries/pages/（settings 属独立页）
+const SETTINGS_ENTRY = join(SRC, 'entries', 'pages', 'settings-entry.js');
 const RESOURCES_ROUTE = join(ROOT, 'server', 'routes', 'resources.js');
 
 /** 取「第一条命中锚点」的那一行；取不到给空串 */
@@ -603,9 +604,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/work-map.js?v=20260928n');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260928n');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/constants.js?v=20260928n');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/work-map.js?v=20260928q');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260928q');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/constants.js?v=20260928q');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

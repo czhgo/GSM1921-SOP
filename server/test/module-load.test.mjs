@@ -66,7 +66,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260928n`);
+          await import(`/src/${rel}?v=20260928q`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -117,10 +117,13 @@ test('E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装�
   for (const page of pages) {
     if (WHITELIST.has(page)) continue;
     const html = readFileSync(join(docsDir, page), 'utf8');
-    const m = /<script type="module" src="\.\/src\/entries\/([\w-]+\.js)/.exec(html);
+    // 2026-09-28（G2 残余）：入口按判据分入 `entries/workspace/`（7 个工作台壳）与
+    //   `entries/pages/`（15 个独立页）；`tabs/` 早已按台分组。此处两处都受理。
+    const m = /<script type="module" src="\.\/src\/entries\/(pages|workspace)\/([\w-]+\.js)/.exec(html);
     if (!m) { problems.push(`${page} 未找到 entries 入口脚本`); continue; }
-    const entry = m[1];
-    const src = readFileSync(join(docsDir, 'src', 'entries', entry), 'utf8');
+    const entryDir = m[1];
+    const entry = m[2];
+    const src = readFileSync(join(docsDir, 'src', 'entries', entryDir, entry), 'utf8');
     const selfHydrate = /registerApiAdapter\s*\(/.test(src) && /(?:dataInit|\binit)\s*\(/.test(src);
     const viaBootstrap = /bootstrapPage\s*\(/.test(src);
     // 形丙（P0-2 收敛入口）：hydrateDataSource 内部即「注册适配器 + 切 api 数据源 + init()」，

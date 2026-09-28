@@ -1313,7 +1313,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
                            │
                            ▼
                     _onStateChange(appState)
-                    (由 entries/main-entry.js 注册的 renderUI)
+                    (由 entries/pages/main-entry.js 注册的 renderUI)
                            │
                            ▼
                       全量重新渲染
@@ -1540,7 +1540,7 @@ UI 层零改动。
 
 ### 4.5 数据写入模式
 
-> 实现细节见 `docs/src/` 对应文件（`services/core/mock.js`、`core/state.js`、`entries/main-entry.js`）。
+> 实现细节见 `docs/src/` 对应文件（`services/core/mock.js`、`core/state.js`、`entries/pages/main-entry.js`）。
 > 写入数据验证设计见 §2.17。
 
 #### 4.5.1 成员流入/流出写路径

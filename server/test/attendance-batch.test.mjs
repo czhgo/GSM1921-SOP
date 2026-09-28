@@ -16,14 +16,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928n';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260928n';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928q';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260928q';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   canUploadAttendance,
   loadAttendanceRecords,
-} from '../../docs/src/services/activity/attendance.js?v=20260928n';
+} from '../../docs/src/services/activity/attendance.js?v=20260928q';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 被操作人 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

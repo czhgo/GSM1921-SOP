@@ -239,22 +239,22 @@ export const HEX_BASELINE = {
       '#16a34a', '#1e293b', '#1f2937', '#3b82f6', '#e2e8f0', '#ef4444',
       '#eff6ff', '#f0fdf4', '#fef2f2', '#fff'
   ] },
-  'docs/src/entries/about-entry.js': { c: 20, v: [
+  'docs/src/entries/pages/about-entry.js': { c: 20, v: [
       '#0e7490', '#0ea5e9', '#15803d', '#2563eb', '#64748b', '#6b7280',
       '#900', '#b91c1c', '#c2410c', '#ce1126', '#f87171', '#fee',
       '#ffd700'
   ] },
-  'docs/src/entries/activity-entry.js': { c: 10, v: [
+  'docs/src/entries/pages/activity-entry.js': { c: 10, v: [
       '#000', '#6b7280', '#94a3b8', '#a16207', '#ce1126', '#f87171',
       '#fbbf24', '#fde68a', '#ffd700'
   ] },
-  'docs/src/entries/archive-entry.js': { c: 1, v: [
+  'docs/src/entries/pages/archive-entry.js': { c: 1, v: [
       '#6b7280'
   ] },
-  'docs/src/entries/help-entry.js': { c: 4, v: [
+  'docs/src/entries/pages/help-entry.js': { c: 4, v: [
       '#7a0010', '#ce1126', '#d1d5db', '#fdf2f2'
   ] },
-  'docs/src/entries/settings-entry.js': { c: 6, v: [
+  'docs/src/entries/pages/settings-entry.js': { c: 6, v: [
       '#fff'
   ] },
   'docs/src/entries/tabs/disc/attendance-tab.js': { c: 13, v: [
@@ -569,9 +569,9 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/person-edit-modal.js': { c: 2, v: [11] },
   'docs/src/components/governance/resolution-followup-manager.js': { c: 2, v: [11] },
   'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
-  'docs/src/entries/notice-entry.js': { c: 1, v: [11] },
-  'docs/src/entries/party-committee-meeting-entry.js': { c: 9, v: [11] },
-  'docs/src/entries/settings-entry.js': { c: 1, v: [11] },
+  'docs/src/entries/pages/notice-entry.js': { c: 1, v: [11] },
+  'docs/src/entries/pages/party-committee-meeting-entry.js': { c: 9, v: [11] },
+  'docs/src/entries/pages/settings-entry.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/disc/attendance-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
@@ -590,7 +590,7 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 4, v: [11] },
   'docs/src/entries/tabs/today/today-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/visitor/thought-report-tab.js': { c: 1, v: [11] },
-  'docs/src/entries/wizard-entry.js': { c: 1, v: [11] },
+  'docs/src/entries/pages/wizard-entry.js': { c: 1, v: [11] },
 };
 
 /** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线） */
@@ -634,7 +634,7 @@ export const DEAD_SELECTOR_BASELINE = [
 export const DYNAMIC_SELECTOR_WHITELIST = [
   {
     name: 'ab-edge--task',
-    reason: '关于页工作流 SVG 连线：`docs/src/entries/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '
+    reason: '关于页工作流 SVG 连线：`docs/src/entries/pages/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '
       + '按 `e.type ∈ {task, info, file}` 拼接（`.ab-edge--task` 走此路生成，非游离死类）。',
   },
   {
@@ -647,7 +647,7 @@ export const DYNAMIC_SELECTOR_WHITELIST = [
   },
   {
     name: 'ab-flow-line--task',
-    reason: '关于页镜组流程线：`docs/src/entries/about-entry.js:699` 以模板串 ab-flow-line ab-flow-line--${f.type} '
+    reason: '关于页镜组流程线：`docs/src/entries/pages/about-entry.js:699` 以模板串 ab-flow-line ab-flow-line--${f.type} '
       + '按 `f.type ∈ {task, info, file}` 拼接（`.ab-flow-line--task` 走此路生成）。',
   },
   {

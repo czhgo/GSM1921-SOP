@@ -321,7 +321,7 @@ export const VALIDATION_SITES = [
   //   （前者不修，中者可造数据，后者应补 schema）。本批首次给这一类打了标。
   { file: SRC + 'services/governance/review.js', line: 144, field: '复盘总结', flow: 'service/活动复盘', machine: false, msg: '请填写复盘总结', reason: '【批 47-M 结构性不可达·服务层重复守卫】唯一 UI 调用点 `visitor/review-tab.js:181` 已先做同文案判据后才调用本函数 ⇒ 真机上本守卫**永远不是第一个报出来的**，UI 层实测已由同名额登记（`entries/tabs/visitor/review-tab.js` 182）。本函数为公开导出（`todo-domain-view.test.mjs` 断言支书「代提交复盘」走同链），服务层是 mock/api 双态的边界，故保留为防御性重复守卫。**归类：不修，只标**' },
   { file: SRC + 'services/member/roster-ui-logic.js', line: 96, field: '成员姓名', flow: 'service/名册新增成员', machine: true, msg: '请填写成员姓名（必填）' },
-  { file: SRC + 'entries/thought-report-entry.js', line: 284, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
+  { file: SRC + 'entries/pages/thought-report-entry.js', line: 284, field: '修改后的思想汇报内容', flow: '思想汇报页·修改', machine: true, msg: '请填写修改后的思想汇报内容' },
   // 批次 47-R（2026-09-16）**新增登记**：打回意见（同一独立页、另一提交口）。
   // ⚠ 说明为何此前不在台账里：S0/S2 只保证「规模不缩水」与「machine:true 全被覆盖」，
   //   **不保证「全站校验点都已登记」**——本条即是一处**台账遗漏**（原 92 条漏了这一处）。
@@ -329,7 +329,7 @@ export const VALIDATION_SITES = [
   //   ⇒ 该处一直可达，只是**没人登记、也就没人跑**。**这就是「台账不是全量」的实例：漏登记＝漏发现。**
   // 2026-09-18 批次 86（`SOP-B-28` 取消初阅门）：打回由「初阅决定」改为**事后反馈**（可对任一篇发起），
   //   文案随之由「打回须填写初阅意见」改准为「打回须填写意见」；行号随本批改动同步。
-  { file: SRC + 'entries/thought-report-entry.js', line: 261, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
+  { file: SRC + 'entries/pages/thought-report-entry.js', line: 261, field: '打回意见', flow: '思想汇报页·打回', machine: true, msg: '打回须填写意见' },
 ];
 
 // ── 真机闭环流程清单 ────────────────────────────────────────────────────
@@ -1461,7 +1461,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#tr-resubmit-confirm' }],
     expect: [
-      { file: SRC + 'entries/thought-report-entry.js', field: '修改后的思想汇报内容', msg: '请填写修改后的思想汇报内容', carrier: '#tr-resubmit-content' },
+      { file: SRC + 'entries/pages/thought-report-entry.js', field: '修改后的思想汇报内容', msg: '请填写修改后的思想汇报内容', carrier: '#tr-resubmit-content' },
     ],
   },
   {
@@ -1476,7 +1476,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#tr-reject-confirm' }],
     expect: [
-      { file: SRC + 'entries/thought-report-entry.js', field: '打回意见', msg: '打回须填写意见', carrier: '#tr-reject-note' },
+      { file: SRC + 'entries/pages/thought-report-entry.js', field: '打回意见', msg: '打回须填写意见', carrier: '#tr-reject-note' },
     ],
   },
 ];

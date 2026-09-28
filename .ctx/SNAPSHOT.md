@@ -53,12 +53,12 @@ GSM1921-SOP/
 │   │   └── party-committee.html← 党委工作台（党委组织员·全院支部治理，组织级角色非支部角色）
 │   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（版本号推导纯函数单一源）
 │   └── src/                    ← ESM 模块化源码
-│       ├── entries/            ← 页面入口（根 entry + tabs/ 按工作台分组的业务 tab，随页面/工作台增长）
+│       ├── entries/            ← 页面入口（**2026-09-28 按判据分三类**：`pages/` 独立页入口 15 · `workspace/` 角色工作台薄壳入口 7 · `tabs/` 各台业务 tab）
 │       ├── components/         ← 共享组件（**2026-09-28 目录分层**：`dashboard/` · `ui/`（基础件与库：badges/forms/modal/custom-select/pager/list-filter/relation-matrix…）· `shell/`（页面外壳：header/sidebar/tab-bar/workspace-shell…）· `feedback/`（反馈域）· `record/`（实体视图：activity-view/taskforce-view/insight-view/todo-*/report-*/inspector…）· `governance/`（治理与人员面板：person-picker/vote-*/member-change-panel/work-overview…））
 │       ├── core/               ← 核心工具（constants/registry/domain/theme/data-adapter/mock-adapter/policy-defaults/module-compose 等）
 │       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/org-config-package/appointment/workforce…））
 │       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09）
-│       ├── modules/            ← 业务模块（capabilities/ 能力注册 + help-catalog/references）
+│       ├── modules/            ← 业务模块（capabilities/ 能力注册 12 件 + 跨页件 3 件：help-catalog/references/branch-demo-nav；后者各成一类，不再细分——见 ENGINEERING_ASSESSMENT §六 G2 残余结算）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests）
 │       └── styles.css          ← 全局样式
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）

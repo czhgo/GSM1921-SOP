@@ -223,7 +223,9 @@ docs/src/
               shell/（页面外壳）· feedback/（反馈域）· record/（实体视图）
               governance/（治理与人员面板）· dashboard/（首页面板）
   modules/capabilities/  工作台能力注册（每台一张 tab 清单声明）
-  entries/    页面入口与 tabs/{各台 tab}（today 共享「今天」渲染）
+  entries/    页面入口；**按判据分三类**——pages/（独立页入口 15 个）· workspace/（角色工作台薄壳入口 7 个）
+              · tabs/{各台 tab}（早已按台分组；today 共享「今天」渲染）
+  modules/    能力注册表与跨页件（capabilities/ 已分组；余 3 件各成一类，见 §六 G2 残余结算）
   mock/       演示数据（整体替换即换组织）
 content/      分层权威源：01_strategy（支书战略与批改）/ 02_institution（制度母本）
               / 03_doc_system（文档治理）/ 04_web_design（设计档案）/ 05_ai_coding（协作方法论）/ insights（经验沉淀）

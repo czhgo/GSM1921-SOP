@@ -973,8 +973,8 @@ li + li { margin-top: 0.25em; }
 | 6 | 进度与占比 | 进度条 / 迷你条 | 面向「未完成」的推进度 | 本 §4.10「执行层仪表盘」KPI 进度条 | 「已完成 N/总数」无差异存量统计（违 §一 原则11） | **并入既有**（本 §4.10 执行层仪表盘；只补判据） |
 | 7 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `docs/src/entries/tabs/secretary/report-up-tab.js:39-40`（统计条）；`docs/src/entries/tabs/party-committee/governance-overview-tab.js` | `docs/src/entries/tabs/secretary/committee-meeting-tab.js:29-31`「支委会场次 N」＝累计存量数（原则11 违例候选） | **并入既有**（本 §4.10 执行层仪表盘 KPI 顶栏；只补判据） |
 | 8 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 单一源同第 3 行 `docs/src/components/ui/relation-matrix.js` | 各域自造矩阵（已收，守卫 `server/test/relation-matrix.test.mjs`） | **并入既有**（同第 3 行单一源；只补判据） |
-| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
-| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 9 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `docs/src/entries/pages/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；`docs/src/entries/tabs/party-committee/dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，本 §4.12「筛选行载体」） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
+| 10 | 一句话结论 | 提示条（notice bar） | 结论 / 口径需常驻可见、不占流程序号 | `docs/src/entries/pages/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 §4.18.3 C7） | **新增**（视图＝§4.10 表外既有实现；判据 / 反例新增） |
 | 11 | 时间分布 | 日历（月 / 周 / 日 / 列表四视图） | 以「日期」为主索引 | `docs/src/components/record/calendar.js`；本 §4.10 日历视图行 | — | **并入既有**（本 §4.10 日历视图行；只补判据） |
 | 12 | 表单录入 | 表单视图（载体四选一：悬浮 / 就地 / 内联 / 跳转） | 录入动作，按字段数与主次选载体 | 本 §4.12 交互载体决策规范；`#calendar-create-panel` | 载体误用（本 §4.12 明写防两极化） | **并入既有**（本 §4.12；只补判据） |
 

@@ -523,8 +523,8 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 进度与占比 | 进度条 / 迷你条 | 面向"未完成"的推进度 | `DESIGN_SYSTEM.md §4.10 执行层仪表盘`（KPI 进度条） | 「已完成 N/总数」存量统计（违原则11，`DESIGN_SYSTEM.md §一 原则11`） |
 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `secretary/report-up-tab.js:40`（统计条）；党委台`governance-overview-tab.js` | **`secretary/committee-meeting-tab.js:28-32`「支委会场次 N」＝累计存量数**（原则11 违例候选） |
 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 同「跨期/交叉对比」单一源 `relation-matrix.js` | 各域自造矩阵（已收，守卫 `relation-matrix.test.mjs`） |
-| 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `entries/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；党委台`dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，`DESIGN_SYSTEM.md §4.12 筛选行载体`） |
-| 一句话结论 | 提示条（notice bar） | 结论/口径需常驻可见、不占流程序号 | `entries/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 `DESIGN_SYSTEM.md §4.18.3 C7`） |
+| 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `entries/pages/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；党委台`dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，`DESIGN_SYSTEM.md §4.12 筛选行载体`） |
+| 一句话结论 | 提示条（notice bar） | 结论/口径需常驻可见、不占流程序号 | `entries/pages/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 `DESIGN_SYSTEM.md §4.18.3 C7`） |
 | 时间分布 | 日历（月/周/日/列表四视图） | 以"日期"为主索引 | `docs/src/components/record/calendar.js`；`DESIGN_SYSTEM.md §4.10 日历视图` | — |
 | 表单录入 | 表单视图（载体四选一：悬浮/就地/内联/跳转） | 录入动作，按字段数与主次选载体 | `DESIGN_SYSTEM.md §4.12 交互载体决策`；`#calendar-create-panel` | 载体误用（`DESIGN_SYSTEM.md §4.12` 明写防两极化） |
 
@@ -533,7 +533,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | # | 位置 | 同屏混了哪几类数据格式 | 证据 |
 |---|---|---|---|
 | 1 | 支书台 **党小组与活动**（`group-progress`） | 表 + 单 + 轴 + 卡 + KPI **（5–6 类）** | `secretary/group-progress-tab.js:119-130`（`_renderAll` 一次拼出未分组条＋支委配置卡＋组清单表＋活动列＋留痕卡＋进展区四卡） |
-| 2 | **支委会会议页**（`party-committee-meeting.html`） | 句 + 下拉选择 + 勾 + 列 + 表（投票 widget）+ 句 **（6 类）** | `entries/party-committee-meeting-entry.js:477-488`（五段 + 提示条同屏） |
+| 2 | **支委会会议页**（`party-committee-meeting.html`） | 句 + 下拉选择 + 勾 + 列 + 表（投票 widget）+ 句 **（6 类）** | `entries/pages/party-committee-meeting-entry.js:477-488`（五段 + 提示条同屏） |
 | 3 | 支书台 **支部分工**（`work-map`） | 板 + 关 + 单 **（3 类）** | `secretary/work-map-tab.js:34`（平铺卡）/`:58`（矩阵）/`workforce-panel.js`（表单） |
 | 4 | 组织台 **成员名册**（`roster`） | 表 + 轴 + 单 **（3 类）** | `org/roster-tab.js:24-27`（名册表＋成员流动台账＋编辑模态） |
 | 5 | 组织台 **专班管理**（`taskforce`） | 板 + 单 + 阵 **（3 类）** | `org/taskforce-tab.js:2-4`（看板＋招募表单＋报名矩阵） |
@@ -545,7 +545,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 ### 四.3 「支委会」界面专项（裁定① ＋ 支书"支委会的界面也非常混乱"）
 
-**实读对象**：`docs/party-committee-meeting.html`（37 行外壳）＋ `docs/src/entries/party-committee-meeting-entry.js`（761 行）＋ 支书台「支委会会议」tab（`docs/src/entries/tabs/secretary/committee-meeting-tab.js`，38 行）＋ 工作地图 `scenarioId='branch-committee'`（`docs/src/core/work-map.js:43-46` / `:93`）。
+**实读对象**：`docs/party-committee-meeting.html`（37 行外壳）＋ `docs/src/entries/pages/party-committee-meeting-entry.js`（761 行）＋ 支书台「支委会会议」tab（`docs/src/entries/tabs/secretary/committee-meeting-tab.js`，38 行）＋ 工作地图 `scenarioId='branch-committee'`（`docs/src/core/work-map.js:43-46` / `:93`）。
 
 #### ① 它现在为什么"混乱"（逐条 · 引 `文件:行` 与母本原文）
 

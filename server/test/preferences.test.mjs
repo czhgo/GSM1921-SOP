@@ -18,7 +18,7 @@ import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/core/preferences.js?v=20260928n';
+} from '../../docs/src/services/core/preferences.js?v=20260928q';
 
 // ── 测试辅助 ──
 // 支书台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
@@ -185,7 +185,7 @@ test('sameIdOrder 等值判定', () => {
 
 // ══════════════════════════════════════════════════════════════════════════
 // 真实拖拽 E2E（支书裁定 B：以 Playwright 机测替代真机手测）
-// 真实机制：entries/settings-entry.js bindMyWorkspace 绑定的 HTML5 DnD 事件链
+// 真实机制：entries/pages/settings-entry.js bindMyWorkspace 绑定的 HTML5 DnD 事件链
 //   （dragstart → dragover 实时 insertBefore → drop/dragend → finishDrag →
 //    savePersonalTabOrder 落 localStorage）；本用例用 Playwright locator.dragTo
 //   触发 Chromium 真实鼠标序列，由浏览器派发原生 drag 事件（非脚本模拟）。
@@ -216,7 +216,7 @@ test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload
       page.click('button[type="submit"]'),
     ]);
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-    await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928n')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928q')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.goto(`${base}/settings.html`, { waitUntil: 'domcontentloaded' });
     await page.click('.settings-group-item[data-section="my-workspace"]');
     await page.waitForFunction(() => document.querySelectorAll('.myws-list .myws-row').length > 3, null, { timeout: 15000 });

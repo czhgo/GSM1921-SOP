@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain.js?v=20260928n';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928n';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928n';
-import { generateId } from '../../core/id.js?v=20260928n';
-import { bumpToken } from '../../core/version-token.js?v=20260928n'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../mock/index.js?v=20260928n';
-import { isInitStateActive } from '../core/init-reset.js?v=20260928n'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20260928n';
-import { getRosterStats } from '../member/roster.js?v=20260928n';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260928n';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain.js?v=20260928q';
+import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928q';
+import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928q';
+import { generateId } from '../../core/id.js?v=20260928q';
+import { bumpToken } from '../../core/version-token.js?v=20260928q'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../mock/index.js?v=20260928q';
+import { isInitStateActive } from '../core/init-reset.js?v=20260928q'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20260928q';
+import { getRosterStats } from '../member/roster.js?v=20260928q';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260928q';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];

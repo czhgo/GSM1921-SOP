@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260928n';
+const V = '?v=20260928q';
 const DEFS = ['attendance', 'inspection', 'publicity', 'materials'];
 
 test('产出块：默认（null）全开且保持注册顺序', async () => {

@@ -166,13 +166,13 @@ const BASELINE = {
   'docs/src/core/system-notice-templates.js': [
     '已报送支委会表决，表决通过后将开放招募（截止',                // 系统通知模板正文（与 §3.6 专班说明同句）
   ],
-  'docs/src/entries/about-entry.js': [
+  'docs/src/entries/pages/about-entry.js': [
     '本系统面向各类党支部与学生组织——每个组织可部署自己的实例（自有名称、人员、制度、配色与数据）；当前页面展示的是示例组织的一套部署。', // 关于页首段与 help 页眉同句
   ],
-  'docs/src/entries/party-committee-meeting-entry.js': [
+  'docs/src/entries/pages/party-committee-meeting-entry.js': [
     '线上表决与线上记录的讨论结果即终局，不需线下追认',            // 支委会会议页效力口径（与 §0.1 同句）
   ],
-  'docs/src/entries/settings-entry.js': [
+  'docs/src/entries/pages/settings-entry.js': [
     '未找到您所属支部——请先由党委在『支部管理』中确认归属',        // 设置页未绑定支部提示（与 §5.4 同句）
     '档案/职责参数等）每次保存自动留痕：操作人、时间、变更项、前后', // 设置页配置留痕说明（与 §5.4 同句）
   ],

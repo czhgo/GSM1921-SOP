@@ -225,7 +225,7 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 ### 依赖链
 
 ```
-content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → services → state → components → entries/main-entry.js → UI
+content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → services → state → components → entries/pages/main-entry.js → UI
 ```
 
 所有 mutation 必须经过 Service 层；UI 层禁止直接操作 `mockDB`。

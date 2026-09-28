@@ -296,7 +296,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 **制度文件查询**：不属于任何角色工作台，应链接到外部 search 界面（含党章、党支部工作条例、发展党员工作细则等 12371 子页面）。
 
-> 实现细节见 `docs/src/` 对应文件（`entries/search-entry.js`、`modules/references.js`、`styles.css`）。
+> 实现细节见 `docs/src/` 对应文件（`entries/pages/search-entry.js`、`modules/references.js`、`styles.css`）。
 
 ---
 
