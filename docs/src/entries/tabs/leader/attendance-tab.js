@@ -9,35 +9,35 @@
 //   core/bootstrap.js::isOrganizerFallbackPage）；下拉按 `MEETING_ATTENDANCE_TYPES ∪ {党小组会, 主题党日}`
 //   列活动，写口仍逐场由 `canUploadAttendance` 判定（非本页可传者即便在类型清单里也传不了）。
 
-import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition } from '../../../services/attendance.js?v=20260924a';
-import { loadMakeupTasks } from '../../../services/makeup.js?v=20260924a';
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { loadActiveAttendanceRecords, canUploadAttendance, appendAttendanceRecords, loadAttendanceAppeals, resolveAttendanceAppeal, reconfirmReturnedRecord, MEETING_ATTENDANCE_TYPES, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20260928h';
+import { loadMakeupTasks } from '../../../services/activity/makeup.js?v=20260928h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：组长台非支委层 ⇒ 待批活动
 // 不出现在本页的活动下拉与考勤关联行里（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260924a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260928h';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260924a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
-// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/modal.js?v=20260924a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260924a';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20260928h';
+import { PersonPicker } from '../../../components/governance/person-picker.js?v=20260928h';
+// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260928h';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260928h';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
+// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { attendanceToLong } from '../../../services/attendance.js?v=20260924a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260924a';
-import { generateId } from '../../../core/id.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
+import { attendanceToLong } from '../../../services/activity/attendance.js?v=20260928h';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260928h';
+import { generateId } from '../../../core/id.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928h';
 // ③批（支书 2026-09-06）：党小组会考勤候选 = 本组应到名单（党员非滞留）；
 // 滞留者「可见但不可选」（灰态 + 「滞留」徽标 + title 备注，同纪检口径）
-import { getMeetingRosterCandidates, getRosterStats } from '../../../services/roster.js?v=20260924a';
-import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260924a';
-import { currentLeaderGroup } from './_shared.js?v=20260924a';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260924a';
+import { getMeetingRosterCandidates, getRosterStats } from '../../../services/member/roster.js?v=20260928h';
+import { solidAccentStyle, accDarkVars } from '../../../core/constants.js?v=20260928h';
+import { currentLeaderGroup } from './_shared.js?v=20260928h';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
 
 // 私有状态（随模块自持，不污染入口）
 let _attFormVisible = false;
@@ -63,7 +63,7 @@ export function renderContent(ctx) {
   );
 
   // 可上传的活动类型＝会议考勤类型（党课/支部党员大会/组织生活会）＋ 党小组会 / 主题党日；
-  // 类型清单单一源 = services/attendance.js MEETING_ATTENDANCE_TYPES（policy-defaults 派生），勿另写字面量。
+  // 类型清单单一源 = services/activity/attendance.js MEETING_ATTENDANCE_TYPES（policy-defaults 派生），勿另写字面量。
   // A1-2026-09-05 上传位门禁：列表仅保留本人可上传（本组党小组会 / 本人为该活动组织者）且未归档的活动
   // （2026-09-21 批次 132：党课 / 支部党员大会的判据是「纪检委员」，本页角色非纪检时自然不在列）
   const UPLOADABLE_ACTIVITY_TYPES = [...MEETING_ATTENDANCE_TYPES, '党小组会', '主题党日'];
@@ -390,10 +390,10 @@ function _initAttForm(container, eligibleActivities, ctx) {
       });
     }
 
-    // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/modal.js::confirmNudge`）：
+    // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/ui/modal.js::confirmNudge`）：
     //   **考勤的上传本位按会议类型分**（支书 2026-09-21 当日口径一 · `D-558`）：**党课 / 支部党员大会＝
     //   纪检委员**；**党小组会 / 组织生活会 / 主题党日 / 其余＝该场活动的组织者**（判据单一源 =
-    //   `services/attendance.js::isAttendanceHomePosition`）⇒ 操作人**不是本场本位**时（如本组组长并非
+    //   `services/activity/attendance.js::isAttendanceHomePosition`）⇒ 操作人**不是本场本位**时（如本组组长并非
     //   本场组织者＝监督位）属**例外代办** ⇒ **写库前**弹一次确认。本位操作人走原路径、零打扰。
     //   ⚠ 本台登录人（组长）在上传位内通常就是本场组织者 ⇒ 常规路径**不弹**。
     //   弹窗**必须点按钮才能关**；「取消」＝放弃本次上传（表单与已选人员保留）。

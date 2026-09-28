@@ -39,11 +39,11 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20260924a';
+const V = '?v=20260928h';
 const BLOCK_IDS = ['theme-party-day', 'taskforce-run'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
-  const { applyWorkflowBlockPolicy, getWorkflowBlockPolicy } = await import(`../../docs/src/services/branch.js${V}`);
+  const { applyWorkflowBlockPolicy, getWorkflowBlockPolicy } = await import(`../../docs/src/services/branch/branch.js${V}`);
 
   // ① null=全开，保持清单顺序
   assert.deepEqual(applyWorkflowBlockPolicy(BLOCK_IDS, null), BLOCK_IDS, 'null=全开');

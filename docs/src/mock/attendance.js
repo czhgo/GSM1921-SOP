@@ -1,7 +1,7 @@
-// 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/attendance.js；
+// 数据域接线批次二（2026-09-03）：展示格式化 attendanceToLong 已提升至 services/activity/attendance.js；
 // 本文件退化为纯考勤种子数据仓（PEOPLE 供全员出席名单生成）。
-import { PEOPLE } from './people.js?v=20260924a';
-import { AttendanceStatus } from '../core/domain.js?v=20260924a';
+import { PEOPLE } from './people.js?v=20260928h';
+import { AttendanceStatus } from '../core/domain.js?v=20260928h';
 
 // 最后更新：2026-09-06（演示数据基线刷新）
 // 显式段 att1~att43 的 recordedAt 随关联活动重排同步平移（recordedAt = 活动日当天），
@@ -106,7 +106,7 @@ export const ATTENDANCE_RECORDS = [
 // 状态分布：出勤为主；按 (idx + 事件偏移) 确定性抽取请假/缺勤，统一待纪检确认（recordedBy null）。
 
 // 支委班子出席快照（支书/副支书/三委员/三组长 共 8 人）——系 act-27 考勤出席名单，非支委集合定义：
-// 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/vote-config.js resolveVoterIds('committee')），
+// 前五位 p13/p14/p11/p12/p10 = 支委五人（权威名单：services/activity/vote-config.js resolveVoterIds('committee')），
 // p1/p2/p4 = 三组长；勿据此名单增删支委，成员变更请改 vote-config 权威源。
 const _BRANCH_COMMITTEE_IDS = ['p13', 'p14', 'p11', 'p12', 'p10', 'p1', 'p2', 'p4'];
 // 全员（三党小组 17/17/16 共 50 人）——**限本支部成员**：

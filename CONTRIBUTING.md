@@ -38,7 +38,7 @@ npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_P
 
 ## 四、工程纪律（改代码前必读）
 
-1. **统一扎口**：同一业务事实只允许一份可编辑副本。新增/发现重复 → 先在库/单一源出口收敛（如 `components/forms.js`、`core/constants.js`、`core/config-clean.js`），再删第二份。判据：同一事实出现第二份即扎口。
+1. **统一扎口**：同一业务事实只允许一份可编辑副本。新增/发现重复 → 先在库/单一源出口收敛（如 `components/ui/forms.js`、`core/constants.js`、`core/config-clean.js`），再删第二份。判据：同一事实出现第二份即扎口。
 2. **数据域接线**：人员/名单/种子一律经 `services/*` 获取，UI 层不得从 `mock/*` 直接 import 数据常量。
 3. **跨端共享**：server 与前端要共用的净化/校验/清单 → 放 `docs/src/core/`（零依赖纯 ESM），server 直接 import；**不得在两端各写一份**。
 4. **用于防止未同步的情况的测试**：任何"双端/多处同义清单"收敛后，补键集双向断言测试（示例：`server/test/catalog-sync.test.mjs`（T2 链路键集 / T4 表决枚举）、`roles-sync`、`scene-write-sync`）。

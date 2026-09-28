@@ -11,7 +11,7 @@
 //     S8 分页控件单一源（.page-btn / .page-num；当前页 .is-current，禁借 .chip-accent-on）
 //     S9 选人载体：select 列人名只允许「任命 / 指派到人」四处例外（§4.13 语义两分）
 //     S10 分页内置统一引擎（凡经引擎渲染的表一律分页；翻页控件走 .page-btn/.page-num 单一源）
-//     S11 翻页标记单一源（class="page-btn"/"page-num" 只允许由 components/pager.js 产出）
+//     S11 翻页标记单一源（class="page-btn"/"page-num" 只允许由 components/ui/pager.js 产出）
 //     S12 手写表格收敛台账（`<table` 只允许出现在登记在案的位置）
 //   口径层 D1：单档口径同源（.lf-btn / .data-table / .input-flat 全站只剩 38px 高 × 13px 字一套）
 //   口径层 D2：档位算式显式（内边距 + 显式行高 + 边框 = 38），禁靠 UA 或 CDN 工具类给行高
@@ -57,7 +57,7 @@ test('S1 筛选行与表格类族在 styles.css 单一源在位', () => {
 });
 
 test('S2 统一检索引擎的分面已是下拉（不得再出现 chip 分面）', () => {
-  const src = read(join(SRC_DIR, 'components', 'list-filter.js'));
+  const src = read(join(SRC_DIR, 'components', 'ui', 'list-filter.js'));
   assert.ok(!/chip-option|chip-accent-on|lf-chip/.test(src),
     'list-filter.js 不得再引用 chip 类（分面一律下拉，2026-09-14 批次 27 裁定）');
   assert.match(src, /class="input-flat text-xs lf-select"/, '分面渲染须为 .lf-select 下拉');
@@ -103,7 +103,7 @@ test('S5 控件档位唯一：清 10px 下拉死规则 + 触发器不再补 32px
   const css = read(CSS);
   assert.ok(!/select\.input-flat\.text-\\\[10px\\\]/.test(css) && !/\.cs-trigger\.input-flat\.text-\\\[10px\\\]/.test(css),
     'styles.css 不得残留 text-[10px] 下拉档死规则（已被规范禁止；大字模式字号覆盖规则不属此列）');
-  const cs = read(join(SRC_DIR, 'components', 'custom-select.js'));
+  const cs = read(join(SRC_DIR, 'components', 'ui', 'custom-select.js'));
   assert.ok(!/classList\.add\('h-8'\)/.test(cs),
     '下拉触发器不得再补 h-8（32px）——须与 input-flat 同为 38px，否则同排底部错位');
 });
@@ -131,7 +131,7 @@ test('S7 自写搜索框须落在 .lf-kw（筛选行载体单一源）', () => {
   // 防回潮：新增的筛选搜索框若自写 flex-1 min-w-[140px] 就会重新长出第二套载体。
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {
-    if (rel(f) === 'components/person-picker.js') continue; // 选人器内嵌搜索（表单内，非筛选行）
+    if (rel(f) === 'components/governance/person-picker.js') continue; // 选人器内嵌搜索（表单内，非筛选行）
     lines(f).forEach((line, i) => {
       if (!/input-flat/.test(line)) return;
       if (!/placeholder="搜索/.test(line)) return;
@@ -168,9 +168,9 @@ test('S8 分页控件单一源（禁借 chip 选中态）', () => {
 test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人」四处例外（详见 DESIGN_SYSTEM §4.13）', () => {
   const ALLOW = new Set([
     'entries/tabs/party-committee/branches-tab.js',  // 党委台任命支书
-    'components/org-setup-wizard.js',                // 换组织向导内任命
+    'components/governance/org-setup-wizard.js',                // 换组织向导内任命
     'entries/tabs/secretary/workforce-panel.js',     // 支书台分工到人（角色 或 到人）
-    'components/resolution-followup-manager.js',     // 决议落实责任人（同口径）
+    'components/governance/resolution-followup-manager.js',     // 决议落实责任人（同口径）
   ]);
   // 判据：某行 `<option>` 的内容直接插值「人名变量」（p / m / person / member 的 .name）。
   // 注：不可按「文件里既有 <select> 又有人源」判——那样会把「下拉选活动/类型 + 同一文件另有
@@ -196,8 +196,8 @@ test('S9 选人载体：用 select 列人名的只允许「任命 / 指派到人
 // 判据：分页必须是**引擎级能力**（一处实现、N 处受益），而不是各页各写一版；
 //   凡经 renderFilteredList 渲染的表一律分页（禁调用点私自关掉），翻页控件走 .page-btn/.page-num 单一源。
 test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私自关掉分页）', () => {
-  const src = read(join(SRC_DIR, 'components', 'list-filter.js'));
-  const pager = read(join(SRC_DIR, 'components', 'pager.js'));
+  const src = read(join(SRC_DIR, 'components', 'ui', 'list-filter.js'));
+  const pager = read(join(SRC_DIR, 'components', 'ui', 'pager.js'));
   assert.match(src, /pageSize:\s*10/, '统一引擎须内置分页缺省 10 条/页');
   assert.match(pager, /data-lf-page/, '翻页控件单一源（pager.js）须渲染翻页控件（data-lf-page）');
   assert.match(pager, /class="page-btn"|class="page-num/, '翻页控件须走 .page-btn / .page-num 单一源（批次 28）');
@@ -219,10 +219,10 @@ test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私�
 // 判例：批次 34 把分页做进引擎后，全站**仍有 6 处手写翻页控件**（归档库 / 反馈列表 / 查询视图 /
 //   成员活动列表 / 考勤总表 / 支书台反馈），形态与类名各写一遍（.archive-page-btn / .issue-page-btn /
 //   .qv-page-btn / .feedback-page-btn / .visitor-act-page-btn / att-table-prev…）——即「能力散落在调用点」。
-// 判据：翻页**标记**（class="page-btn" / class="page-num"）全站只允许由 components/pager.js 产出；
+// 判据：翻页**标记**（class="page-btn" / class="page-num"）全站只允许由 components/ui/pager.js 产出；
 //   消费方只能读 `[data-lf-page]`，不得自带标记字面量。
-test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/pager.js 产出', () => {
-  const ALLOW = new Set(['components/pager.js']);
+test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/ui/pager.js 产出', () => {
+  const ALLOW = new Set(['components/ui/pager.js']);
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {
     const r = rel(f);
@@ -234,9 +234,9 @@ test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/pa
     });
   }
   assert.deepEqual(offenders, [],
-    `翻页标记须由 components/pager.js 单一源产出（消费方只读 [data-lf-page]）：\n${offenders.join('\n')}`);
+    `翻页标记须由 components/ui/pager.js 单一源产出（消费方只读 [data-lf-page]）：\n${offenders.join('\n')}`);
   // 防僵尸：单一源本身须仍在产出标记
-  const pager = read(join(SRC_DIR, 'components', 'pager.js'));
+  const pager = read(join(SRC_DIR, 'components', 'ui', 'pager.js'));
   assert.match(pager, /class="page-btn"/, 'pager.js 须仍产出翻页标记（否则白名单掩盖了回潮）');
 });
 
@@ -246,8 +246,8 @@ test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/pa
 // 判据：全站 `<table` 只允许出现在**登记在案**的位置；新写一处表必须先进本台账（而不是各页各写一遍）。
 test('S12 手写表格收敛台账：`<table` 只允许出现在登记在案的位置', () => {
   const ALLOW = new Map([
-    ['components/list-filter.js', '统一检索引擎（表格模式单一源：.data-table 外壳由本件产出）'],
-    ['components/relation-matrix.js', '「人 × 项目」矩阵单一源'],
+    ['components/ui/list-filter.js', '统一检索引擎（表格模式单一源：.data-table 外壳由本件产出）'],
+    ['components/ui/relation-matrix.js', '「人 × 项目」矩阵单一源'],
     ['entries/tabs/disc/attendance-tab.js', '考勤明细（导出 / 打印专用明细表；分页已走单一源 pager.js）'],
     ['entries/tabs/secretary/group-progress-tab.js', '党小组清单（行数＝党小组数，天然有界）'],
   ]);

@@ -2,7 +2,7 @@
 // 校验 docs/src/core/constants.js 的授权语义角色集（server requireRole 与前端 AuthStore.isCommissioner 共用）：
 //   ① 全部角色 ∈ ROLE_KEYS 枚举；
 //   ② 业务语义「条条三委员」⊆ 授权支委集（含支书/副支书），防止两套语义混淆（勿把授权集指向条条集）；
-//   ③ server/routes 与前端 services/auth.js 不再手写 5 支委授权列表（特征串只允许出现在 constants.js）。
+//   ③ server/routes 与前端 services/core/auth.js 不再手写 5 支委授权列表（特征串只允许出现在 constants.js）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -11,7 +11,7 @@ import {
   ROLE_KEYS, ROLE_LEGACY_KEYS,
   BRANCH_COMMISSION_ROLES, SECRETARY_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE, COMMITTEE_IDS,
   COMMISSIONER_ROLES,
-} from '../../docs/src/core/constants.js?v=20260924a';
+} from '../../docs/src/core/constants.js?v=20260928h';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
@@ -41,7 +41,7 @@ test('演示支部支委名单 COMMITTEE_IDS = 5 人（p10~p14）', () => {
 test('server 路由与前端鉴权不再手写 5 支委授权列表（特征串仅在 constants.js 出现 1 次）', () => {
   const files = [
     'docs/src/core/constants.js',
-    'docs/src/services/auth.js',
+    'docs/src/services/core/auth.js',
     'server/routes/auth.js',
     'server/routes/member.js',
     'server/routes/committee.js',

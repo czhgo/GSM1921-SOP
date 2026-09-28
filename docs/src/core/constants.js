@@ -198,7 +198,7 @@ export const ROLE_LEGACY_KEYS = ['commissioner', 'initiator']; // 遗留键：�
 export const BRANCH_COMMISSION_ROLES = [
   'secretary', 'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner',
 ]; // 授权支委（含支书/副支书）
-export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权）。2026-09-21 批次 126（D-550）：品牌认定、意见处置已移出本集 ⇒ 归支委会（支委层＝BRANCH_COMMISSION_ROLES）；本集现只判「仍专属支书」的前端按钮（消费点 components/inspector.js::isSecretary＝活动信息编辑等），服务端不再以本集为门
+export const SECRETARY_ROLES = ['secretary']; // 支书专属（副支书/委员不越权）。2026-09-21 批次 126（D-550）：品牌认定、意见处置已移出本集 ⇒ 归支委会（支委层＝BRANCH_COMMISSION_ROLES）；本集现只判「仍专属支书」的前端按钮（消费点 components/record/inspector.js::isSecretary＝活动信息编辑等），服务端不再以本集为门
 // 副书同权（2026-09-11 支书裁定）：支书侧写链（名册在册镜像/发展阶段/移出确认等）副支书同权，
 // 与上一行的关系收口（2026-09-21 批次 126 · D-550）：品牌认定、意见处置已由「支书专属」移出、归支委会 ⇒ 落在支委层（BRANCH_COMMISSION_ROLES，本位副支书在内），两集之争到此为止；「仍专属支书」的清单见上一行。server requireRole 与前端共用单一源。
 export const SECRETARY_AND_DEPUTY_ROLES = ['secretary', 'deputy-secretary'];
@@ -213,13 +213,13 @@ export const ORG_COMMISSIONER_ROLES = ['org-commissioner'];
 // ── 成员流入/流出登记角色集（单一源，2026-09-14 支书裁定）────────────
 // 登记（成员流动台账 + 成员建档/建号/流出停用）权限 = 组织委员 + 支书/副支书。
 // 由既有角色集派生（勿另写角色名单数组——roles-sync 守卫拦「5 支委授权列表」副本）。
-// 消费方：server/routes/resources.js 写门（memberFlows）与前端 services/member-flow.js::canRegisterFlow 同源。
+// 消费方：server/routes/resources.js 写门（memberFlows）与前端 services/member/member-flow.js::canRegisterFlow 同源。
 export const MEMBER_FLOW_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, ...ORG_COMMISSIONER_ROLES];
 
 // ── 名单检索条出现门槛（单一源，2026-09-13 支书裁定）──────────────────
 // 语义：第一列是人/活动的表格，**当前视图行数 > 本阈值**才渲染「关键词 + 分面 chips」检索条；
 //   行数不足不渲染（3~7 行的小表加搜索框即过拟合——支书明确判据）。
-// 消费点：components/list-filter.js（人员表与活动表共用同一引擎）；勿在业务层另写字面量。
+// 消费点：components/ui/list-filter.js（人员表与活动表共用同一引擎）；勿在业务层另写字面量。
 export const SEARCH_FILTER_MIN_ROWS = 8;
 
 // ── 党员发展阶段序（单一源，2026-09-13 收敛）───────────────────────
@@ -232,7 +232,7 @@ export const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '
 
 // ── 在册状态枚举（单一源，2026-09-13 收敛 Q-21-3）───────────────────
 // 语义：组织关系在本支部、人是否在校（成员档案 residenceStatus；缺省=在校）。
-// 原 services/roster.js 与 services/org-base-data-preview.js 各写一份同值字面量
+// 原 services/member/roster.js 与 services/branch/org-base-data-preview.js 各写一份同值字面量
 // （roster 的语义主场在 roster，而 preview 不能 import roster——person.js → preview 是单向依赖，
 //   preview 反向 import 即成环），属「同一口径两处维护」。本项目统一收敛至本文件（无任何 import 的
 //   叶子模块，双端可载），roster / preview 与全部消费点一律 import 本文件，防循环依赖问题自然消解。
@@ -247,7 +247,7 @@ export const RESIDENCE = {
 //   ① 党委台只能把自己的核心组改名为「首页」，再靠整台豁免绕开判定——一物两名；
 //   ② 任何改标签文案的动作都会悄悄改动**权限语义**（哪些 tab 可被支部配置隐藏）。
 // 现改为**注册表显式声明**：tab 对象上写 `coreTab: true`（见各台 capabilities/*-workspace.js），
-// 显示标签只负责显示。判定函数唯一源在本文件，services/branch.js 与 services/preferences.js 共用。
+// 显示标签只负责显示。判定函数唯一源在本文件，services/branch/branch.js 与 services/core/preferences.js 共用。
 export function isCoreTab(tab) {
   return !!(tab && tab.coreTab === true);
 }
@@ -255,7 +255,7 @@ export function isCoreTab(tab) {
 // ── 通知发布/管理角色（2026-09-13 dogfood 权限专项：前后端「单一源」，勿各自手写）──
 // 发布 = 支委层中除纪检（纪检为会议纪律通报场景，只需管理位）；管理（编辑/删除）= 支委层全体。
 // 由 BRANCH_COMMISSION_ROLES 派生（勿再手写角色名单——roles-sync 守卫「5 支委授权列表只允许出现在授权集」会拦）。
-// 消费方：前端 services/notice.js::NoticePermission、server routes/resources.js 资源写门（notices）。
+// 消费方：前端 services/governance/notice.js::NoticePermission、server routes/resources.js 资源写门（notices）。
 export const NOTICE_PUBLISH_ROLES = BRANCH_COMMISSION_ROLES.filter((r) => r !== 'disc-commissioner');
 export const NOTICE_MANAGE_ROLES = [...BRANCH_COMMISSION_ROLES];
 
@@ -301,7 +301,7 @@ export const ROLE_LABELS = {
   'all':               '全体相关',
 };
 
-// ── 角色到页面映射（T-2026-09-011 R2 单一源化：原居 services/auth.js，提升至此纯净层供 auth/capabilities 双端共享）
+// ── 角色到页面映射（T-2026-09-011 R2 单一源化：原居 services/core/auth.js，提升至此纯净层供 auth/capabilities 双端共享）
 // organizer/deep 无独立 workspace 页面（T-141 角色单页制重构后归入工作台）；header view-switcher 仅展示有独立页面的身份
 export const ROLE_PAGE_MAP = {
   workspace: {
@@ -609,7 +609,7 @@ export const ACTIVITY_CLASSIFICATION = {
 const _THREE_MEETINGS_SUBTYPES = ACTIVITY_CLASSIFICATION['three-meetings'].subtypes;
 
 // ── 活动写入可选项目录（单一源 2026-09-03 P2b）──────────────────────
-// 供 services/decision-tree.js（支书/组长写活动场景选择）与 entries/tabs/secretary/calendar-tab.js
+// 供 services/activity/decision-tree.js（支书/组长写活动场景选择）与 entries/tabs/secretary/calendar-tab.js
 //  WRITE_TEMPLATES 共用——id 顺序与中文名均派生自上方 ACTIVITY_CLASSIFICATION（subtypes 为权威中文名序列），
 //  主题党日 id 与 SCENARIO_TO_CATEGORY 键对齐；消费端不再各自手写场景清单（一改具改）。
 export const SCENARIO_WRITE_IDS = {
@@ -644,7 +644,7 @@ export function classifyActivityType(type) {
 //    · 本节的 is* 函数 = **存储态谓词**（只读 status / archived 两个存储字段），供筛选、集合过滤、
 //      统计口径使用——不依赖任务进度，纯函数、可在任意层调用。
 //    · 活动生命周期 **展示态**（草稿/已发布/进行中/待归档/已执行/已归档/已取消）的唯一源
-//      在 components/inspector.js：`ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus(activity, allTasks)`
+//      在 components/record/inspector.js：`ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus(activity, allTasks)`
 //      + `activityLifecycleBadgeHtml(...)`（执行态由任务进度派生，见 DATA_MODEL.md §2.1 与
 //      DATA_CONSISTENCY_CHECKLIST「活动生命周期展示态」条）。徽章/文案一律用那一套，
 //      **不要**在别处另写一套中文标签（本节曾短暂加过 ACTIVITY_LIFECYCLE_LABELS，属重复源，已撤除）。
@@ -761,7 +761,7 @@ export const ISSUE_CLOSED_REASON_LABELS = {
 // 只用于判重与频率限制。输入 = 随机 token 本身（不含 personId、不使用任何 salt/固定盐），
 // 故不可由 personId 推导、不可反查提交人——与「后台记真实提交人 `_realPersonId`」**互不影响**：
 // 防刷判重仍只认 tokenHash；真身另行落库，仅党委在必要时可查、每次查看留痕。
-// 纯同步函数、node/browser 同源：server/routes/resources.js 与前端 services/issues.js 共用，
+// 纯同步函数、node/browser 同源：server/routes/resources.js 与前端 services/governance/issues.js 共用，
 // 防止两端算法未同步的情况（FNV-1a 双通道 → 16 hex，随机 128bit token 的判重/限频抗碰撞足够）。
 export function hashSubmitterToken(token) {
   const s = String(token == null ? '' : token);
@@ -808,9 +808,9 @@ export const NOTICE_AUDIENCE_OPTIONS = Object.entries(NOTICE_AUDIENCE_SENTINELS)
 //   的工作台。但是后台还是知道谁是组长，谁是副组长的」。
 // ⇒ 落法：**两个可区分的身份**（`leader` / `deputy-leader`，后台据此分辨谁是组长、谁是副组长）·
 //   **同一套工作台**（`ROLE_PAGE_MAP.workspace` 两条都指 `leader.html`，不另做副组长的台）·
-//   **不硬切分正副职责**（权限集与组长同一份，见 `services/auth.js` 文件末同源挂载）·
+//   **不硬切分正副职责**（权限集与组长同一份，见 `services/core/auth.js` 文件末同源挂载）·
 //   **任务优先打给组长**（凡按 `role === 'leader'` 解析的锚点〔履职待办派生 / 会议记录人 / 产出块负责人〕
-//   只落组长；「本组组长」这一格的解析单一源 `services/group-view.js::listPartyGroups` 组长优先、组内无
+//   只落组长；「本组组长」这一格的解析单一源 `services/member/group-view.js::listPartyGroups` 组长优先、组内无
 //   组长时才回落副组长）。
 // ⚠ 为什么写在文件末而不写进上方各自的字面量：`README-server.md` 按**行号**引用本文件
 //   （`:106` → `ROLE_KEYS:185-191` · `ROLE_LABELS:288-302` · `ROLE_PAGE_MAP:306-318`），插行会使那些引用
@@ -835,7 +835,7 @@ ROLE_THEME_CLASS['deputy-leader'] = ROLE_THEME_CLASS.leader;
 //     问题，应当由党委来改变支部设置！！」）。
 //   · **不含 `deputy-secretary`**：副支书与支书同页同权（`SECRETARY_AND_DEPUTY_ROLES`）、属一把手层，
 //     其身份变更同样归党委 ⇒ 可配者含副支书，**被配者不含支书 / 副支书**（含另一人的副支书身份）。
-// 消费方（单一源，勿各自手写第二份）：`docs/src/services/appointment.js`（写口）、
+// 消费方（单一源，勿各自手写第二份）：`docs/src/services/branch/appointment.js`（写口）、
 //   `server/routes/resources.js`（`users` 写门）、`docs/src/entries/tabs/secretary/assign-tab.js`（表单选项）。
 export const BRANCH_COMMISSIONER_ASSIGNABLE_ROLES = ['org-commissioner', 'prop-commissioner', 'disc-commissioner'];
 /** 撤销支委身份时回落的身份（降级位；**不是**「可授予身份」，故不并入上表） */

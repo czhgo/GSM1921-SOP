@@ -87,7 +87,7 @@ export const SEED_REVIEW_REQUESTS = [
 // **为什么必须补**：去补课入口 `.visitor-att-makeup-btn` 只在「**本人** pending 补课任务」存在时渲染，
 //   而本表**原无任何种子**（`data-adapter.js:312` 明确写「makeupTasks 无静态种子（由纪检操作生成），空属合理，不回退」）
 //   ⇒ api/mock 两形态首启都空 ⇒ 该判据**结构性不可达**（批 47-X 真机实测入口计数 0）。
-// **为什么自洽（R-78 ②）**：这条任务**就是** `services/makeup.js::autoGenerateMakeupTask()` 对
+// **为什么自洽（R-78 ②）**：这条任务**就是** `services/activity/makeup.js::autoGenerateMakeupTask()` 对
 //   `att900`（p5 · act-31 · `AttendanceStatus.ABSENT` · 已由 p10 确认）的**派生结果**——
 //   字段与 `autoGenerateMakeupTask` 落库形状逐项对齐（含 `attendanceRecordId: 'att900'`、
 //   `deadline` = 缺勤日 +7 天、`proofContent: null`、`status: 'pending'`、`isMandatory: true`

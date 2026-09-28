@@ -1,0 +1,1728 @@
+// role: [工程师]+[AI]
+// issues.js — GitHub Issue 风格意见反馈数据服务
+// 权威源 docs/data/issues.json（mock）/ 服务端 issues 表（api） + localStorage 个人草稿
+// ⚠ 2026-09-24 批次 169：**逐人未读标记**（`IssueNotify`）原只存本机键 `gsm1921-issue-unread-<assigneeId>`
+//   ⇒ 清缓存即清零、换设备读不到。现 api 形态落服务端表 `issue_unread`（端点 `GET/POST /api/v1/issue-unread`，
+//   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
+//   mock 形态原路径（本机键）一字未改。
+
+import { mockDB } from '../../core/domain.js?v=20260928h';
+import { AuthStore } from '../core/auth.js?v=20260928h';
+import { PersonStore } from '../member/person.js?v=20260928h';
+import { bumpToken } from '../../core/version-token.js?v=20260928h'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../core/data-adapter.js?v=20260928h';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/constants.js?v=20260928h';
+// 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
+import { trackWrite } from '../../core/pending-writes.js?v=20260928h';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20260928h';
+import { generateId, randomHex } from '../../core/id.js?v=20260928h';
+// 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
+//   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
+//   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
+//     · 校验失败那几处（「请我汇报」行内 / 我发起汇报详情 / 待处置详情两处 / 我提交反馈详情）——
+//       **抛在 `return` 之前**，于是「点提交后既无提示、也没反应」，用户看到的是一个死按钮，
+//       而病灶（缺必填）连一句话都没说；
+//     · 成功那几处（汇报已发出 / 评论已添加 / 已确认收到 / 处置结果已提交 / 说明已提交）——
+//       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
+//   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
+//   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
+import { showToast } from '../../core/utils.js?v=20260928h';
+// 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
+import { renderFilteredList } from '../../components/ui/list-filter.js?v=20260928h';
+
+/** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
+function _displayName(id) {
+  return id ? PersonStore.getName(id) : '';
+}
+
+const ISSUES_JSON_PATH = './data/issues.json';
+const DRAFT_KEY = 'gsm1921-issue-drafts'; // 本机草稿（**仅本机·不上服务端**：未提交的反馈/评论草稿，其 payload 可能含匿名真身；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
+// 2026-07-30 v2：新增 dispatchHistory/comments.kind/hidden/mergedInto 字段，需重新加载 mock 数据
+// 2026-08-01 v3：反馈数据长 ID（u_org_commissioner 等）统一改短 ID（u_org），强制清旧缓存重拉
+// 2026-09-13 v4：反馈指派/审计身份统一改真实成员 ID（u_org→p11 等），缓存版本号 +1 强制清旧缓存重拉
+//   （键名保持 v3 不变，仅版本号递进——reset 清理清单与既有测试零改动）
+const CACHE_KEY = 'gsm1921-issue-cache-v3';
+export const ISSUE_CACHE_KEY = CACHE_KEY; // 供其它模块（issue-detail 等）写回同一缓存键，防止键名未同步的情况
+const CACHE_VERSION_KEY = 'gsm1921-issue-cache-version';
+const CACHE_VERSION = '4';
+const MIGRATED_KEY = 'gsm1921-feedback-migrated';
+// 对外匿名（后台记真身）防刷令牌（2026-09-12 裁定；2026-09-17 改裁更正措辞）：客户端首次提交生成随机 token 存本地，
+// 提交时只把其哈希（tokenHash）随记录落库，仅用于判重/频率限制——不可反查提交人（真身另行落库，见下方匿名口径）。
+const SUBMITTER_TOKEN_KEY = 'gsm1921-issue-submitter-token';
+
+let _issuesCache = null;
+
+/** 当前是否 API 形态（mock/api 双形态判定；data-adapter 为零静态依赖叶子模块） */
+function _isApiMode() {
+  return getDataSource() === 'api';
+}
+
+/** 读取（缺省则生成）本浏览器的随机提交令牌 */
+function _getSubmitterToken() {
+  try {
+    let t = localStorage.getItem(SUBMITTER_TOKEN_KEY);
+    if (!t) {
+      t = randomHex();
+      localStorage.setItem(SUBMITTER_TOKEN_KEY, t);
+    }
+    return t;
+  } catch {
+    return randomHex();
+  }
+}
+
+/**
+ * **只读**地取本浏览器提交令牌（无则返回 null）。
+ * 读路径专用：不得因为「看一眼我的反馈」就给从未提交过的浏览器生成令牌（副作用）。
+ */
+function _peekSubmitterToken() {
+  try {
+    return localStorage.getItem(SUBMITTER_TOKEN_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+// ── 匿名口径（2026-09-17 支书裁定，本次改裁）─────────────────────────────
+// 依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+//   查看匿名的权限只有党委有。**」
+//   · 匿名 = **前端展示层匿名**：后台记真实提交人（`_realPersonId`），**常规读出口一律脱敏**；
+//   · **可见范围＝仅党委**：党支部内部（含支书）看不到真身——「处置」与「查看真身」是**两项分开的权限**；
+//   · **适用范围**：本改裁只落在意见反馈。「正式表决无记名」维持 2026-09-12 原裁定不变
+//     （2026-09-17 支书就表决单独裁定「表决保持真无记名」）——本文件与表决无关，勿外推。
+// 与旧实现的关键差别：2026-09-12「真匿名」原为「读取/回写时删除 `_realPersonId`」（删了就没了），
+//   本次改裁改为「库里留真身、出口脱敏」——故旧迁移函数整段撤除，**不再删除**本地记录里的真身。
+
+/** 真身同族键（与 server/routes/resources.js 的 ISSUE_IDENTITY_KEYS 同源同口径）：任何常规读出口都不得带出 */
+const ISSUE_IDENTITY_KEYS = ['_realPersonId', 'realPersonId', 'submitterId'];
+
+/** 当前登录人是否党委（唯一有权查看匿名反馈真实提交人的角色；与 server 侧 PARTY_STAFF_ROLE 同源） */
+function _isPartyStaff() {
+  return PARTY_STAFF_ROLE.includes(AuthStore.getCurrentUser()?.role);
+}
+
+/**
+ * **脱敏序列化（默认出口）**：拷贝后剥掉真身同族键——一切常规读都走它。
+ * 只剥不外泄、不回写（与 server 同名同口径实现一致）。
+ */
+function _sanitizeIssue(rec) {
+  if (!rec || typeof rec !== 'object') return rec;
+  const out = { ...rec };
+  for (const k of ISSUE_IDENTITY_KEYS) delete out[k];
+  return out;
+}
+
+/** **留痕序列化（唯一例外）**：只给党委核查出口用。**不得用于任何其他出口**。 */
+function _revealIssue(rec) {
+  const out = _sanitizeIssue(rec);
+  out.realPersonId = (rec && rec._realPersonId) || null;
+  return out;
+}
+
+const _sanitizeIssues = (list) => (list || []).map(_sanitizeIssue);
+
+/** 草稿脱敏（草稿 payload 同样可能带真身——匿名草稿在本机留真身、出口脱敏） */
+function _sanitizeDraft(d) {
+  if (!d || typeof d !== 'object') return d;
+  return { ...d, payload: d.payload ? _sanitizeIssue(d.payload) : d.payload };
+}
+
+/** 原始草稿（**含真身**）：写链与审核内部专用；对外出口一律经 _sanitizeDraft */
+function _rawDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || '[]'); } catch { return []; }
+}
+
+/** 原始记录（**含真身**）：写链与党委核查出口内部专用；其余出口一律经 _sanitizeIssue(s) */
+function _rawById(id) {
+  return (_issuesCache || []).find(i => i.id === id);
+}
+
+// ── 留痕（与服务端表 `issue_reveals` 同名同构：id/by/byRole/at/revealedIds）──
+// 2026-09-17 支书裁定：查看匿名的权限只有党委有 ⇒ **每次党委核查都留一条痕**——
+// 留痕的意义＝让「只有党委能看」这句承诺**可被事后核对**（否则它只是一句无从证伪的声明）。
+// api 形态由服务端写入（前端不能自行造/改留痕：该表不在 resources.js 通用 CRUD 映射内）；
+// mock 形态写入本地同名表，两形态行为一致。
+const ISSUE_REVEALS_KEY = 'issue_reveals';
+export const ISSUE_REVEALS = ISSUE_REVEALS_KEY;
+
+function _readRevealTraces() {
+  try { return JSON.parse(localStorage.getItem(ISSUE_REVEALS_KEY) || '[]'); } catch { return []; }
+}
+
+/** mock 形态写一条留痕（谁 / 何时 / 看了哪些**匿名**条目——实名真身本就公开，不计入） */
+function _writeRevealTrace(rows) {
+  const me = AuthStore.getCurrentUser() || {};
+  const trace = {
+    id: generateId('reveal', '-'),
+    by: me.personId || null,
+    byRole: me.role || null,
+    at: new Date().toISOString(),
+    revealedIds: (rows || []).filter(r => r.anonymous).map(r => r.id),
+  };
+  try {
+    const list = _readRevealTraces();
+    list.push(trace);
+    localStorage.setItem(ISSUE_REVEALS_KEY, JSON.stringify(list));
+  } catch {}
+  return trace;
+}
+
+/**
+ * 处置写口双形态同步：API 形态下把变更后的 issue 处置字段 PATCH 回服务端（fire-and-forget）。
+ * mock 形态为本地 localStorage，无需同步。
+ *
+ * 2026-09-17 批次 49：这条链**不走 persist()**（feedback 域是独立 localStorage 域，写链直连 REST），
+ * 故必须**自己登记进 pending-writes** —— 否则紧随其后的成功提示在它上面看不见等待对象，
+ * 仍会「先报成功、PATCH 还在飞」。登记后：PATCH 失败 ⇒ 成功提示改报失败（原实现只 console.warn）。
+ */
+function _syncIssueToApi(issue) {
+  if (!_isApiMode() || !issue) return;
+  try {
+    trackWrite(getAdapter().issues.update(issue.id, {
+      status: issue.status,
+      closedReason: issue.closedReason ?? null,
+      closedAt: issue.closedAt ?? null,
+      assignee: issue.assignee ?? null,
+      assigneeRole: issue.assigneeRole ?? null,
+      dispatchHistory: issue.dispatchHistory || [],
+      comments: issue.comments || [],
+      commentCount: issue.commentCount || 0,
+      participants: issue.participants || [],
+      hidden: !!issue.hidden,
+      mergedInto: issue.mergedInto ?? null,
+      resultPending: !!issue.resultPending,
+    }));
+  } catch (e) {
+    console.warn('[IssueStore] API 处置同步异常：', e);
+    trackWrite(Promise.reject(e));
+  }
+}
+
+/**
+ * P2（2026-09-07 · spec §四.1）：汇报/反馈写版本戳 +1。
+ * 支书待办页 extraTopHtml「待答复收件箱/汇报时间线」等渲染守卫 key 以 tokenOf('issue')
+ * 为数据版本（IssueStore 走 localStorage，不在 mockDB length 指纹覆盖内 → 须写口显式 bump）：
+ * 汇报被答复/状态变化后 → 键变 → 渲染守卫落重建，收件箱/时间线即时刷新。
+ */
+function _noteIssueChange() {
+  bumpToken('issue');
+}
+
+/** 获取当前登录用户 personId（plan 中为 AuthStore.getCurrentPersonId，修正为实际 API） */
+function _currentPersonId() {
+  return AuthStore.getCurrentUser()?.personId || '匿名';
+}
+
+// ── 支部归属（每个组织独立 issue 空间，2026-09-15 支书裁定）───────────────
+// 口径单一源 = services/branch/branch.js（勿另写第二套）：
+//   · 读取过滤 viewer 所属支部 → withinBranch（登录=本人所属支部；未登录/无档案→部署默认支部 'br-b1'）；
+//   · 写入归属 branchId → getBranchIdOfPerson（与读取同源；公共反馈页未登录落部署默认支部 'br-b1'）。
+// 默认支部依据：mock/branches.js BRANCHES 唯一实例 br-b1（支部 id 为多支部演示基线）。
+function _viewerId() {
+  return AuthStore.getCurrentUser()?.personId || null;
+}
+
+/** 新建 issue 的支部归属（写入口径唯一源；登录=本人所属支部，未登录=部署默认支部 'br-b1'） */
+function _writeBranchId() {
+  return getBranchIdOfPerson(_viewerId());
+}
+
+/** 按 viewer 所属支部过滤 issue 列表（唯一源 withinBranch；缺 branchId 存量按部署默认支部惰性兼容） */
+function _withinViewerBranch(list) {
+  return withinBranch(list || [], _viewerId());
+}
+
+/**
+ * 处置审计落款角色（2026-09-13 dogfood 同类彻查）：原 assignIssue/closeIssue/mergeIssues 一律
+ * 硬编码 authorRole='secretary'，副支书（副书同权）经手时审计被记成支书——与「催办签发人写死」
+ * 同类的身份错位。改为取当前登录用户真实角色；无会话（node 单测）回退 'secretary' 保持既有行为。
+ */
+function _currentRole() {
+  return AuthStore.getCurrentUser()?.role || 'secretary';
+}
+
+/** 是否意见处置侧（写回服务端的处置人；与 server PATCH /issues 的 ISSUE_DISPOSITION_SET 同源单一源＝支委层，2026-09-21 批次 126 · D-550） */
+function _isDispositionRole(role) {
+  return !!role && BRANCH_COMMISSION_ROLES.includes(role);
+}
+
+export const IssueStore = {
+  /**
+   * 从权威源加载所有 issue（带 localStorage 缓存）
+   * @returns {Promise<Array>} issues 列表
+   */
+  async loadAll() {
+    // API 形态：以服务器为权威源（GET /api/v1/issues）；服务端出口已脱敏（真身只在党委出口）
+    if (_isApiMode()) {
+      try {
+        const rows = await getAdapter().issues.list();
+        _issuesCache = Array.isArray(rows) ? rows : [];
+        return _sanitizeIssues(_issuesCache);
+      } catch (e) {
+        console.warn('[IssueStore] API 形态加载反馈失败：', e);
+        _issuesCache = [];
+        return [];
+      }
+    }
+    // 优先从内存缓存读
+    if (_issuesCache) return _sanitizeIssues(_issuesCache);
+    // 缓存版本检查：版本不匹配则丢弃旧缓存，强制从 issues.json 重新加载
+    try {
+      const cachedVer = localStorage.getItem(CACHE_VERSION_KEY);
+      if (cachedVer !== CACHE_VERSION) {
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.setItem(CACHE_VERSION_KEY, CACHE_VERSION);
+      }
+    } catch {}
+    // 其次从 localStorage 缓存读（**不再删除 `_realPersonId`**：2026-09-17 支书裁定口径 = 库里留真身、出口脱敏）
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        _issuesCache = JSON.parse(cached);
+        return _sanitizeIssues(_issuesCache);
+      }
+    } catch {}
+    // 最后从 issues.json 拉取
+    try {
+      const resp = await fetch(ISSUES_JSON_PATH);
+      const data = await resp.json();
+      _issuesCache = data.issues || [];
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+      return _sanitizeIssues(_issuesCache);
+    } catch {
+      _issuesCache = [];
+      return [];
+    }
+  },
+
+  /** 同步读取（需先调用 loadAll）——按 viewer 所属支部过滤（跨支部 issue 不可见）；出口脱敏 */
+  getAll() {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []));
+  },
+
+  /** 按 ID 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
+  getById(id) {
+    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.id === id));
+  },
+
+  /** 按 number 获取（按 viewer 所属支部过滤：跨支部 issue 不可见）；出口脱敏 */
+  getByNumber(num) {
+    return _sanitizeIssue(_withinViewerBranch(_issuesCache || []).find(i => i.number === num));
+  },
+
+  /** 获取下一个可用 number（全库编号，不按支部过滤——支部间编号全局唯一） */
+  nextNumber() {
+    const list = _issuesCache || [];
+    return list.reduce((max, i) => Math.max(max, i.number || 0), 0) + 1;
+  },
+
+  /** 过滤（按 viewer 所属支部过滤后再按维度筛选）；出口脱敏 */
+  filter({ status, scope, type, milestone, keyword, kind } = {}) {
+    let list = _withinViewerBranch(_issuesCache || []);
+    if (status && status !== 'all') list = list.filter(i => i.status === status);
+    if (scope && scope !== 'all') list = list.filter(i => i.scope === scope);
+    if (type && type !== 'all') list = list.filter(i => (i.types || []).includes(type));
+    if (milestone && milestone !== 'all') list = list.filter(i => i.milestone === milestone);
+    // 批次 47-Q（2026-09-16，支书裁定「加过滤 + 种进同源」）：**按题种类过滤**。
+    // 本域混装两类东西，语义判别字段就是 `kind`：
+    //   · 公开匿名反馈（`docs/data/issues.json` 的 issue-001~004）——**无 `kind` 字段**（历史形态）；
+    //   · 内部汇报（`kind: 'report'`，由「一键汇报 / 了解进展」生成）——**带名**（submittedBy/assignee 指向真人）。
+    // 公开匿名反馈页**只应显示前者**（内部汇报含真人归属与内部事项），故该页查询一律传 `kind: 'feedback'`
+    // （`= 无 kind 或 kind!=='report'`）。**不传则不筛**——既有调用方行为一字不变（当前仅公开页在用）。
+    if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      list = list.filter(i =>
+        (i.title || '').toLowerCase().includes(kw) ||
+        (i.body || '').toLowerCase().includes(kw)
+      );
+    }
+    return _sanitizeIssues(list);
+  },
+
+  /** 统计（按 viewer 所属支部过滤；`kind` 语义同 filter） */
+  countByStatus({ kind } = {}) {
+    let list = _withinViewerBranch(_issuesCache || []);
+    if (kind) list = list.filter(i => (i.kind || 'feedback') === kind);
+    return {
+      total: list.length,
+      open: list.filter(i => i.status === 'open').length,
+      closed: list.filter(i => i.status === 'closed').length,
+    };
+  },
+
+  // ── 草稿（localStorage）──
+
+  /**
+   * 读取个人草稿（**出口脱敏**：不再删除库里的 `_realPersonId`——匿名草稿在本机留真身、支书侧看不到）
+   * ⚠ 2026-09-17 支书裁定：撤除原「读取时删除 `_realPersonId` 并回写」的历史迁移（删了就没了，
+   *   与本次改裁「后台记录真实情况」相反）。草稿真身仅经党委核查出口可见。
+   */
+  getDrafts() {
+    return _rawDrafts().map(_sanitizeDraft);
+  },
+
+  /**
+   * 添加草稿（新建/评论/反应都先进草稿）
+   * @param {Object} draft
+   * @param {string} [authorOverride] 覆盖草稿作者（匿名提交时传「匿名」——作者字段不落真实 personId，
+   *   真身落在 payload 的 `_realPersonId`，仅供党委核查出口追溯）
+   */
+  addDraft(draft, authorOverride) {
+    // 2026-09-28 支书裁定「静态模式只保留侧边栏/about 等区别，所有数据都走服务器 API」：
+    // 无 API 会话（mock 形态）= **只读演示**——反馈域是独立 localStorage 写链（不走 persist），
+    // 故在此单独判。未登录访客可达的写口只有反馈提交一处，本判据即覆盖该面。
+    if (isDemoReadOnly()) {
+      throw Object.assign(new Error(demoReadOnlyMessage()), { type: 'DemoReadOnlyError' });
+    }
+    const list = _rawDrafts();
+    const record = {
+      draftId: generateId('dft', '-'),
+      type: draft.type, // 'new-issue' | 'comment' | 'reaction'
+      targetIssueId: draft.targetIssueId || null,
+      payload: draft.payload,
+      author: authorOverride || _currentPersonId(),
+      createdAt: new Date().toISOString().slice(0, 10),
+      status: 'pending', // pending | approved | rejected
+      reviewNote: null,
+    };
+    list.push(record);
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(list)); } catch {}
+    return _sanitizeDraft(record);
+  },
+
+  /**
+   * 提交意见反馈（**匿名＝前端展示层匿名**，2026-09-17 支书裁定口径）
+   * 匿名：submittedBy='匿名' + anonymous:true，**但本机/后台记真实提交人 `_realPersonId`**
+   *   （「后台记录真实情况」）；一切常规读出口脱敏，真身只有党委核查出口可见。
+   * 实名：按现口径记真实 personId（展示层经 PersonStore 解析姓名）。
+   * 防刷：客户端随机令牌 → 只落 tokenHash（API 形态由服务端哈希，mock 形态本地哈希），仅用于判重/限频。
+   * @returns {Promise<Object>} API 形态返回落库记录（服务端已脱敏）；mock 形态返回新建草稿（出口亦已脱敏）
+   */
+  async submitIssue({ title, body, scope, types = [], domain = '', anonymous = true } = {}) {
+    const now = new Date().toISOString().slice(0, 10);
+    const token = _getSubmitterToken();
+    // 支部归属：登录=本人所属支部，未登录（公共反馈页）=部署默认支部（写入口径单一源 _writeBranchId）
+    const branchId = _writeBranchId();
+    if (_isApiMode()) {
+      const record = await getAdapter().issues.create({
+        title, body, scope, types, domain,
+        branchId,
+        anonymous: !!anonymous,
+        submitterToken: token, // 服务端仅存其哈希（tokenHash），不留原始 token
+        submittedAt: now,
+      });
+      _issuesCache = _issuesCache || [];
+      // 服务端已按其口径落真身（`_realPersonId`）并回传脱敏记录 ⇒ 本机缓存同样不含真身（党委核查走服务端出口）
+      _issuesCache.push(record);
+      _noteIssueChange();
+      return _sanitizeIssue(record);
+    }
+    return this.addDraft({
+      type: 'new-issue',
+      payload: {
+        title, body, scope, types, domain,
+        branchId,
+        submittedBy: anonymous ? '匿名' : _currentPersonId(),
+        anonymous: !!anonymous,
+        // 2026-09-17 支书裁定「后台记录真实情况」：匿名反馈在本地库里留真实提交人，
+        // 出口（getDrafts/getAll/getById…）一律脱敏，仅党委核查出口（getIssuesForPartyReview）可见。
+        // 实名不重复存（真身即 submittedBy）。
+        ...(anonymous ? { _realPersonId: _currentPersonId() } : {}),
+        tokenHash: hashSubmitterToken(token),
+        submittedAt: now,
+      },
+    }, anonymous ? '匿名' : undefined);
+  },
+
+  /** 支书审核通过：合并到 issues.json（实际操作：本地更新+提示支书保存文件） */
+  approveDraft(draftId) {
+    // 审核是**写链**：走原始草稿（含 `_realPersonId`），真身随 payload 并入 issue 记录（本地库留真身）
+    const drafts = _rawDrafts();
+    const d = drafts.find(x => x.draftId === draftId);
+    if (!d) return null;
+    d.status = 'approved';
+    d.reviewNote = 'approved by secretary';
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); } catch {}
+
+    // 应用到本地缓存（模拟"合并到 issues.json"）
+    if (d.type === 'new-issue') {
+      const issue = {
+        ...d.payload,
+        id: generateId('issue', '-'),
+        number: this.nextNumber(),
+        // 支部归属：草稿携带优先（提交时已按写入口径落 branchId）；存量草稿缺省按当前口径补（部署默认支部）
+        branchId: d.payload.branchId || _writeBranchId(),
+        status: 'open',
+        closedReason: null,
+        closedAt: null,
+        submittedAt: new Date().toISOString().slice(0, 10),
+        reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
+        mentions: [],
+        references: [],
+        comments: [],
+        // 匿名反馈不记录任何参与者（防止经 participants 反查提交人）
+        participants: d.payload.anonymous ? [] : [d.author],
+        commentCount: 0,
+      };
+      _issuesCache = _issuesCache || [];
+      // R-24（2026-09-13）：API 形态必须**落服务端**——原实现只写本地缓存，
+      // 随后 loadAll() 用服务端数据覆盖 → 表现为「点通过提示成功但列表仍 0 条」。
+      // 服务端不接受自述身份/编号字段（落库白名单），只提交内容字段，由服务端生成 id/number/时间。
+      if (_isApiMode()) {
+        getAdapter().issues.create({
+          title: issue.title, body: issue.body, scope: issue.scope, types: issue.types,
+          branchId: issue.branchId,
+          anonymous: issue.anonymous !== false,
+          submitterToken: (d.payload && d.payload.submitterToken) || undefined,
+        }).then((row) => {
+          if (row) _issuesCache = [row, ...(_issuesCache || []).filter(x => x.id !== issue.id)];
+          _noteIssueChange();
+        }).catch((e) => console.warn('[IssueStore] 草稿通过写入服务端失败：', e));
+        return _sanitizeIssue(issue);
+      }
+      _issuesCache.push(issue);
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+      return _sanitizeIssue(issue);
+    }
+    if (d.type === 'comment') {
+      const issue = _rawById(d.targetIssueId);
+      if (issue) {
+        issue.comments.push({
+          id: generateId('cmt', '-'),
+          author: d.author,
+          body: d.payload.body,
+          createdAt: new Date().toISOString().slice(0, 10),
+          hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+        });
+        if (!issue.participants.includes(d.author)) issue.participants.push(d.author);
+        issue.commentCount = (issue.commentCount || 0) + 1;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+      }
+    }
+    if (d.type === 'reaction') {
+      const issue = _rawById(d.targetIssueId);
+      if (issue) {
+        const list = issue.reactions[d.payload.type] || [];
+        if (!list.includes(d.author)) list.push(d.author);
+        issue.reactions[d.payload.type] = list;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+      }
+    }
+    _noteIssueChange(); // P2：草稿审核通过并入 issues → 写版本 +1
+    return _sanitizeDraft(d);
+  },
+
+  /** 支书驳回 */
+  rejectDraft(draftId, reason) {
+    const drafts = _rawDrafts();
+    const d = drafts.find(x => x.draftId === draftId);
+    if (!d) return null;
+    d.status = 'rejected';
+    d.reviewNote = reason;
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(drafts)); } catch {}
+    return _sanitizeDraft(d);
+  },
+
+  // ── 意见处置（支委层；2026-09-21 批次 126 · D-550 由「支书专属」放开）：直接修改缓存，API 形态经 _syncIssueToApi 写回服务端 ──
+  // ⚠ 写链一律经 `_rawById` 取**原始记录**（改的是库里那条，含真身字段不动），出口再脱敏——
+  //   若写链改的是脱敏副本，处置会静默丢失（副本回写覆盖真身）。2026-09-17 支书裁定口径。
+
+  /** 改状态（意见处置） */
+  changeStatus(id, status, closedReason = null) {
+    const issue = _rawById(id);
+    if (!issue) return null;
+    issue.status = status;
+    if (status === 'closed') {
+      issue.closedReason = closedReason || 'completed';
+      issue.closedAt = new Date().toISOString().slice(0, 10);
+    } else {
+      issue.closedReason = null;
+      issue.closedAt = null;
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：状态变更（含关闭/重开）→ 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端（mock 形态 no-op）
+    return _sanitizeIssue(issue);
+  },
+
+  /** 支书软隐藏评论 */
+  hideComment(issueId, commentId, reason) {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    const c = (issue.comments || []).find(c => c.id === commentId);
+    if (!c) return null;
+    c.hidden = true;
+    c.hiddenBy = _currentPersonId();
+    c.hiddenReason = reason;
+    c.hiddenAt = new Date().toISOString().slice(0, 10);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：评论隐藏 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
+    return _sanitizeIssue(issue);
+  },
+
+  /** 支书编辑 issue */
+  editIssue(id, updates) {
+    const issue = _rawById(id);
+    if (!issue) return null;
+    Object.assign(issue, updates);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：编辑（隐藏/指派/隐藏/备注等汇聚点）→ 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
+    return _sanitizeIssue(issue);
+  },
+
+  /** 支书设置 assignee（旧接口，保留兼容；新代码用 assignIssue） */
+  setAssignee(id, personId) {
+    return this.editIssue(id, { assignee: personId });
+  },
+
+  // ── 2026-07-30 新增：反馈分发与处置（spec §3.1） ──────────────
+
+  /**
+   * 支书指派反馈给某人
+   * @param {string} issueId
+   * @param {string} assigneeId   被指派人 personId（如 'p11'）
+   * @param {string} assigneeRole 被指派人角色键（'org-commissioner' | 'leader' | 'secretary' | ...）
+   * @param {string} note         指派备注（可选）
+   * @returns {Object|null} 更新后的 issue
+   */
+  assignIssue(issueId, assigneeId, assigneeRole, note = '') {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    const prevAssignee = issue.assignee || null;
+    const by = _currentPersonId();
+    const at = new Date().toISOString().slice(0, 10);
+    issue.assignee = assigneeId;
+    issue.assigneeRole = assigneeRole || null;
+    // 指派历史时间线
+    if (!Array.isArray(issue.dispatchHistory)) issue.dispatchHistory = [];
+    issue.dispatchHistory.push({ from: prevAssignee, to: assigneeId, by, at, note });
+    // 同时作为评论时间线的一条 kind='dispatch' 事件
+    if (!Array.isArray(issue.comments)) issue.comments = [];
+    issue.comments.push({
+      id: generateId('cmt', '-'),
+      author: by,
+      authorRole: _currentRole(),
+      body: note ? `指派给 ${assigneeRole || assigneeId}：${note}` : `指派给 ${assigneeRole || assigneeId}`,
+      createdAt: at,
+      kind: 'dispatch',
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    issue.commentCount = (issue.commentCount || 0) + 1;
+    if (!issue.participants.includes(by)) issue.participants.push(by);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：指派 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
+    // 触发通知：被指派人工作台「我的处置」Tab 角标 +1
+    if (assigneeId && assigneeId !== by) {
+      IssueNotify.markUnread(assigneeId, issueId);
+    }
+    return _sanitizeIssue(issue);
+  },
+
+  /**
+   * 添加评论 / 批复 / 处置结果
+   * @param {string} issueId
+   * @param {string} author       personId
+   * @param {string} authorRole   角色键
+   * @param {string} body         正文
+   * @param {string} kind         'comment' | 'verdict' | 'dispatch' | 'result'
+   * @returns {Object|null} 更新后的 issue
+   */
+  addComment(issueId, author, authorRole, body, kind = 'comment') {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    if (!Array.isArray(issue.comments)) issue.comments = [];
+    const at = new Date().toISOString().slice(0, 10);
+    issue.comments.push({
+      id: generateId('cmt', '-'),
+      author,
+      authorRole: authorRole || null,
+      body,
+      createdAt: at,
+      kind,
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    issue.commentCount = (issue.commentCount || 0) + 1;
+    if (!issue.participants.includes(author)) issue.participants.push(author);
+    // 处置结果提交后，标记 issue 为「待终审」（resultPending=true），等待支书关闭
+    if (kind === 'result') {
+      issue.resultPending = true;
+      issue.resultSubmittedAt = at;
+      // 触发支书工作台「待终审」高亮
+      IssueNotify.markSecretaryReviewPending(issueId);
+    }
+    // 对外匿名（2026-09-12 裁定；2026-09-17 改裁更正措辞）：取消对提交人的定向通知/回推——答复一律公开在意见列表，
+    // 若按 submittedBy 定向推送会泄露匿名提交人身份（支书追问只能公开留言）。
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：评论/答复/处置结果 → 写版本 +1（支书收件箱时间线渲染守卫失效）
+    // API 形态：处置侧（支委层）的评论/批复/正式答复写回服务端
+    //（成员汇报评论 authorRole ∉ 支委层 → 不触发；与服务端 PATCH /issues 同源，单一源 BRANCH_COMMISSION_ROLES）
+    if (_isDispositionRole(authorRole)) _syncIssueToApi(issue);
+    return _sanitizeIssue(issue);
+  },
+
+  /**
+   * 关闭反馈（意见处置）
+   * @param {string} issueId
+   * @param {string} reason  'completed' | 'duplicate' | 'wontfix' | 'not_planned'
+   * @param {string} note    关闭备注（可选）
+   */
+  closeIssue(issueId, reason = 'completed', note = '') {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    issue.status = 'closed';
+    issue.closedReason = reason;
+    issue.closedAt = new Date().toISOString().slice(0, 10);
+    issue.resultPending = false;
+    // 关闭后清除「待终审」未读标记
+    IssueNotify.markSecretaryReviewRead(issueId);
+    if (note) {
+      // 关闭备注作为 verdict 评论记录
+      this.addComment(issueId, _currentPersonId(), _currentRole(), `关闭反馈（${reason}）：${note}`, 'verdict');
+    }
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：关闭 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
+    return _sanitizeIssue(issue);
+  },
+
+  /** 重新开放（意见处置） */
+  reopenIssue(issueId) {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    issue.status = 'open';
+    issue.closedReason = null;
+    issue.closedAt = null;
+    issue.resultPending = false;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：重开 → 写版本 +1
+    _syncIssueToApi(issue); // API 形态：处置写回服务端
+    return _sanitizeIssue(issue);
+  },
+
+  // ── 2026-08-10 新增：工作汇报闭环（kind='report'） ────────────
+
+  /**
+   * 成员主动发起工作汇报（发往支书；三类：进度/卡点/请示）
+   * @param {{ category: 'progress'|'blocked'|'ask', body: string }} params
+   * @returns {Object|null} 新建的汇报 issue
+   */
+  submitReport({ category = 'progress', body = '' } = {}) {
+    if (!body.trim()) return null;
+    const by = _currentPersonId();
+    const now = new Date().toISOString().slice(0, 10);
+    const issue = {
+      id: generateId('report', '-'),
+      number: this.nextNumber(),
+      branchId: _writeBranchId(),
+      title: `【${REPORT_CATEGORIES[category] || '进度'}汇报】`,
+      body: body.trim(),
+      kind: 'report',
+      reportCategory: category,
+      scope: 'report',
+      types: [category],
+      status: 'open',
+      closedReason: null,
+      closedAt: null,
+      submittedBy: by,
+      submittedAt: now,
+      assignee: null, // 未指派 → 默认发往支书待答复
+      assigneeRole: null,
+      dispatchHistory: [],
+      comments: [],
+      participants: [by],
+      commentCount: 0,
+      reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
+      mentions: [],
+      references: [],
+      resultPending: false,
+    };
+    _issuesCache = _issuesCache || [];
+    _issuesCache.push(issue);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：发起汇报 → 写版本 +1（支书收件箱新条）
+    // 支书"待答复"高亮（复用 secretary-review 未读通道）
+    IssueNotify.markSecretaryReviewPending(issue.id);
+    return issue;
+  },
+
+  /**
+   * 支书"了解进展"：请某人就某事项汇报（温和请求，界面措辞不用"要求"）
+   * @param {string} targetPersonId — 被请汇报人 personId
+   * @param {string} targetRole      — 被请汇报人角色键
+   * @param {string} note            — 请汇报事项（选填）
+   * @returns {Object|null} 新建的请求 issue
+   */
+  requestReport(targetPersonId, targetRole = null, note = '') {
+    if (!targetPersonId) return null;
+    const by = _currentPersonId();
+    const now = new Date().toISOString().slice(0, 10);
+    const noteText = (note || '').trim();
+    const issue = {
+      id: generateId('report-req', '-'),
+      number: this.nextNumber(),
+      branchId: _writeBranchId(),
+      title: noteText ? `了解进展：${noteText}` : '了解进展：请同步当前进度',
+      body: noteText || '请同步当前进度',
+      kind: 'report',
+      reportCategory: 'progress',
+      scope: 'report',
+      types: ['request'],
+      status: 'open',
+      closedReason: null,
+      closedAt: null,
+      submittedBy: by,       // 支书发起
+      requestedBy: by,       // 标记"了解进展"来源
+      requestedAt: now,
+      requestedNote: noteText,
+      assignee: targetPersonId,
+      assigneeRole: targetRole || null,
+      dispatchHistory: [{ from: null, to: targetPersonId, by, at: now, note: noteText || '了解进展' }],
+      comments: [],
+      participants: [by, targetPersonId],
+      commentCount: 0,
+      reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
+      mentions: [],
+      references: [],
+      resultPending: false,
+    };
+    _issuesCache = _issuesCache || [];
+    _issuesCache.push(issue);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：请汇报请求 → 写版本 +1
+    // 被请汇报人工作台「我的处置」角标 +1
+    IssueNotify.markUnread(targetPersonId, issue.id);
+    return issue;
+  },
+
+  /** 汇报人确认已收到答复 → 关闭闭环 */
+  confirmReport(issueId) {
+    const issue = _rawById(issueId);
+    if (!issue) return null;
+    if (!Array.isArray(issue.comments)) issue.comments = [];
+    issue.comments.push({
+      id: generateId('cmt', '-'),
+      author: _currentPersonId(),
+      authorRole: null,
+      body: '已收到答复',
+      createdAt: new Date().toISOString().slice(0, 10),
+      kind: 'verdict',
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    issue.status = 'closed';
+    issue.closedReason = 'completed';
+    issue.closedAt = new Date().toISOString().slice(0, 10);
+    issue.resultPending = false;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：汇报闭环确认 → 写版本 +1
+    return _sanitizeIssue(issue);
+  },
+
+  /** 我发起的汇报（全部状态；按 viewer 所属支部过滤）；出口脱敏 */
+  getMyReports(userId) {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.kind === 'report' && i.submittedBy === userId && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 支书请我汇报、尚未提交的请求（按 viewer 所属支部过滤）；出口脱敏 */
+  getReportRequestsFor(userId) {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.kind === 'report' && i.requestedBy && i.assignee === userId &&
+      i.status === 'open' && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 支书待答复/待终审的汇报（开放中，含成员主动汇报与请求后的回应；按 viewer 所属支部过滤）；出口脱敏 */
+  getSecretaryPendingReports() {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.kind === 'report' && i.status === 'open' && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 某人发起的全部汇报（按 viewer 所属支部过滤）；出口脱敏 */
+  getReportsBySubmitter(personId) {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.kind === 'report' && i.submittedBy === personId && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 支书隐藏反馈（不在公开列表显示） */
+  hideIssue(issueId) {
+    return this.editIssue(issueId, { hidden: true });
+  },
+
+  /** 支书取消隐藏 */
+  unhideIssue(issueId) {
+    return this.editIssue(issueId, { hidden: false });
+  },
+
+  /**
+   * 支书合并反馈：将 sourceId 合并到 targetId
+   * - source 标记 mergedInto=targetId 并隐藏
+   * - target 评论时间线追加一条 merge 事件
+   */
+  mergeIssue(sourceId, targetId) {
+    const source = _rawById(sourceId);
+    const target = _rawById(targetId);
+    if (!source || !target) return null;
+    source.mergedInto = targetId;
+    source.hidden = true;
+    source.status = 'closed';
+    source.closedReason = 'duplicate';
+    source.closedAt = new Date().toISOString().slice(0, 10);
+    if (!Array.isArray(target.comments)) target.comments = [];
+    target.comments.push({
+      id: generateId('cmt-merge', '-'),
+      author: _currentPersonId(),
+      authorRole: _currentRole(),
+      body: `合并自 #${source.number || source.id}：${source.title || ''}`,
+      createdAt: new Date().toISOString().slice(0, 10),
+      kind: 'verdict',
+      hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+    });
+    target.commentCount = (target.commentCount || 0) + 1;
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
+    _noteIssueChange(); // P2：合并 → 写版本 +1
+    _syncIssueToApi(source); // API 形态：处置写回服务端
+    _syncIssueToApi(target);
+    return { source: _sanitizeIssue(source), target: _sanitizeIssue(target) };
+  },
+
+  /** 被指派给某人的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
+  getAssignedTo(userId) {
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.assignee === userId && i.status === 'open' && !i.hidden && !i.mergedInto
+    ));
+  },
+
+  /** 被指派给某角色的反馈（开放中；按 viewer 所属支部过滤）；出口脱敏 */
+  getAssignedToRole(role) {
+    return _withinViewerBranch(_issuesCache || []).filter(i =>
+      i.assigneeRole === role && i.status === 'open' && !i.hidden && !i.mergedInto
+    ).map(_sanitizeIssue);
+  },
+
+  /**
+   * 我提交 / 参与的反馈（成员台「我的处置」用，2026-09-15 支书裁定「每个人都可以参与答复」）：
+   * 满足任一即算「我的」——① 本人提交（`submittedBy===userId`）② 列在参与者（`participants`）中
+   * ③ **本浏览器提交过**（`tokenHash` 与本地随机令牌的哈希相符）。不含工作汇报（`kind='report'`）。
+   *
+   * 第 ③ 条是 2026-09-17（支书裁定「加不可反查的本人标识」）新增的 —— 补的正是
+   * **正式部署下本区恒空**这个用户可见缺口：api 形态把 `submittedBy`/`participants` 一律按对外匿名
+   * 脱敏（`server/seed.js::seedIssues`），①② 因此在正式部署下**结构上认不出人**。
+   * 而提交时客户端本就带了一个**随机令牌**（`SUBMITTER_TOKEN_KEY`，与 personId 无关），
+   * 服务端只存它的哈希 `tokenHash`（本就随 `GET /api/v1/issues` 返回）⇒ 浏览器拿本地令牌
+   * 自算哈希、自己比对即可「认出我提交过哪几条」，而 **tokenHash 本身推不出提交人**
+   * （含支书、含拿到常规读出口数据的人）——自认需求得到满足，且不额外扩大真身可见面。
+   * ⚠ 与现实口径的关系（2026-09-17 改裁）：匿名是**对外匿名、后台记真身**——真身另存
+   * `_realPersonId`，仅党委可查（每次查看留痕），**不经 tokenHash 泄露**；tokenHash 只判重/限频，
+   * 「防刷线」与「真身线」两条线互不影响。
+   *
+   * ⚠ 如实登记的边界：令牌在本浏览器本地（localStorage）⇒ **换设备 / 清除浏览器数据后无法回认**
+   * （这是「不可反查」的必然代价：没有身份就没有跨设备的找回依据）。同浏览器内换登录账号亦然——
+   * 本判据认的是「这台浏览器提交过」，不认「这个账号提交过」。
+   *
+   * 按 viewer 所属支部过滤（跨支部 issue 不可见）。**出口脱敏**（不含真身；自认只认 tokenHash）。
+   */
+  getMyIssues(userId) {
+    if (!userId) return [];
+    const myToken = _peekSubmitterToken();
+    const myHash = myToken ? hashSubmitterToken(myToken) : null;
+    return _sanitizeIssues(_withinViewerBranch(_issuesCache || []).filter(i =>
+      i.kind !== 'report' && !i.hidden && !i.mergedInto &&
+      (i.submittedBy === userId || (i.participants || []).includes(userId) ||
+        (!!myHash && i.tokenHash === myHash))
+    ));
+  },
+
+  /** 支书设置 milestone */
+  setMilestone(id, milestoneId) {
+    return this.editIssue(id, { milestone: milestoneId });
+  },
+
+  /** 导出为 JSON（供支书手动同步到 issues.json）；**出口脱敏**（支书侧看不到匿名真身） */
+  exportJSON() {
+    return JSON.stringify({
+      version: 1,
+      updatedAt: new Date().toISOString().slice(0, 10),
+      issues: _sanitizeIssues(_issuesCache || []),
+    }, null, 2);
+  },
+
+  // ── 写链回写（**内部写链专用**，非读出口）─────────────────────────────────
+  // 背景（2026-09-17 支书裁定）：常规读出口（getById/getAll/filter…）自本次改裁起**一律脱敏**，
+  //   故「取记录 → 就地改 → 回写缓存」这类既有写链（components/feedback/issue-detail.js 的评论口）必须
+  //   ① 取**原始记录**（否则改动落在副本上，静默丢失）；② 回写**原始缓存**（否则用脱敏副本覆盖
+  //   缓存，会把库里的匿名真身抹掉——与「后台记录真实情况」相反）。
+
+  /** 写链专用：取原始记录（**含真身**，live 对象；改动即落内存缓存）。展示/出口一律走 getById */
+  getRawById(id) {
+    return _rawById(id);
+  },
+
+  /**
+   * 写链专用：把内存缓存（**保留真身**）序列化回 localStorage 缓存键（与 CACHE_KEY 同键）。
+   * @returns {boolean} 是否写成功（失败由调用方告警并登记，不得静默吞掉）
+   */
+  persistCacheFromWrite() {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache || []));
+      return true;
+    } catch { return false; }
+  },
+
+  // ── 党委核查出口（2026-09-17 支书裁定：查看匿名的权限只有党委有）────────────
+
+  /**
+   * **党委核查出口（唯一带真身的读口）** —— 列出反馈及其真实提交人（含匿名项）。
+   *
+   * 口径（支书 2026-09-17 原话）：「后台记录真实情况，匿名是前端的。但是我们也强调清楚，
+   *   查看匿名的权限只有党委有。」⇒ 本方法**只给党委台「匿名反馈核查」页用**；
+   *   不得用于任何常规读（常规读一律走 getAll/getById/filter… 的脱敏出口）。
+   *
+   * 双形态同构（形状一致）：
+   *   · mock：从本地记录读 `_realPersonId`（脱敏后补 `realPersonId`），本地写一条留痕；
+   *   · api ：`GET /api/v1/issues/reveal`（服务端鉴权 party-staff，否则 403；命中即由服务端写留痕）。
+   * 角色闸门（前端）：非党委角色一律返回 `forbidden: true` + 空列表，**不带真身**（服务端另有 403 兜底）。
+   *
+   * @returns {Promise<{rows: Array, traced: boolean, trace: Object|null, forbidden: boolean}>}
+   *   rows     反馈列表；每条含 `realPersonId`（匿名项=真实提交人 id；实名项=null，真身即 submittedBy）
+   *   traced   本次查看**是否已留痕**（api 由服务端记、mock 本地同名表记——两形态都为 true）
+   *   trace    留痕记录（mock 形态为本地写入的那一条；api 形态服务端不回读 ⇒ null，以 traced 表明已记）
+   *   forbidden 调用者非党委（未授权），此时 rows 恒为空
+   */
+  async getIssuesForPartyReview() {
+    if (!_isPartyStaff()) {
+      return { rows: [], traced: false, trace: null, forbidden: true };
+    }
+    if (_isApiMode()) {
+      const rows = await getAdapter().issues.reveal();
+      // 服务端已补 realPersonId（真身来自其 `_realPersonId`）；此处只做形态归一，**不重算**
+      return {
+        rows: (Array.isArray(rows) ? rows : []).map(r => ({ ...r, realPersonId: r.realPersonId || null })),
+        traced: true,
+        trace: null,
+        forbidden: false,
+      };
+    }
+    if (!_issuesCache) await this.loadAll();
+    // mock：库（本地记录）里留真身 ⇒ 出口补出；留痕写本地同名表（与服务端 issue_reveals 同构）
+    const rows = (_issuesCache || []).map(_revealIssue);
+    const trace = _writeRevealTrace(rows);
+    return { rows, traced: true, trace, forbidden: false };
+  },
+
+  /** 本地留痕（mock 形态；api 形态由服务端表 `issue_reveals` 记录，前端不可造/改）——供党委台展示「留痕已记」 */
+  getRevealTraces() {
+    return _readRevealTraces();
+  },
+
+  // ── 旧数据迁移 ──
+
+  /** 从 FeedbackStore 旧数据迁移 */
+  migrateFromFeedbackStore() {
+    if (localStorage.getItem(MIGRATED_KEY)) return 0;
+    try {
+      const raw = localStorage.getItem('gsm1921-feedback-submissions');
+      if (!raw) { localStorage.setItem(MIGRATED_KEY, '1'); return 0; }
+      const oldList = JSON.parse(raw);
+      _issuesCache = _issuesCache || [];
+      let added = 0;
+      oldList.forEach((f, i) => {
+        const newIssue = {
+          id: f.id || ('issue-migrated-' + i),
+          number: this.nextNumber(),
+          branchId: _writeBranchId(), // 存量旧反馈无支部 → 按当前口径归部署默认支部
+          title: f.painPointFile || f.scenarioName || '迁移的反馈 #' + (i + 1),
+          body: [f.painPointDetail, f.proposedFix].filter(Boolean).join('\n\n'),
+          scope: f.scope || 'scenario',
+          types: ['bug'],
+          status: f.status === 'done' ? 'closed' : 'open',
+          closedReason: f.status === 'done' ? 'completed' : null,
+          closedAt: f.status === 'done' ? f.submittedAt : null,
+          submittedBy: f.submittedBy || '匿名',
+          submittedAt: f.submittedAt || new Date().toISOString().slice(0, 10),
+          assignee: null,
+          milestone: null,
+          reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
+          mentions: [],
+          references: [],
+          comments: (f.comments || []).map((c, ci) => ({
+            id: 'cmt-migrated-' + i + '-' + ci,
+            author: c.author || '匿名',
+            body: c.text || '',
+            createdAt: c.date || f.submittedAt,
+            hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
+          })),
+          participants: [f.submittedBy, ...(f.comments || []).map(c => c.author)].filter(Boolean),
+          commentCount: (f.comments || []).length,
+        };
+        _issuesCache.push(newIssue);
+        added++;
+      });
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache));
+        localStorage.setItem(MIGRATED_KEY, '1');
+        // 归一：迁移完成后清理旧键，避免历史提交数据残留污染（P2）
+        localStorage.removeItem('gsm1921-feedback-submissions');
+      } catch {}
+      return added;
+    } catch { return 0; }
+  },
+
+  /** 清除缓存（开发调试用） */
+  clearCache() {
+    _issuesCache = null;
+    try {
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  工作汇报（Report）——复用 Issue 结构，kind='report'
+//  与意见反馈（kind 缺省/'feedback'）同源同库，UI 以 kind 分流。
+//  分类（支书 2026-08-10 裁定）：进度 / 卡点 / 请示
+//  "了解进展"请求：支书主动请人汇报（requestedBy/requestedAt/requestedNote），
+//  界面措辞刻意避开"要求"二字（支书 2026-08-10 裁定），以温和请求语义呈现。
+// ════════════════════════════════════════════════════════════════
+
+export const REPORT_CATEGORIES = {
+  progress: '进度',
+  blocked:  '卡点',
+  ask:      '请示',
+};
+
+// ════════════════════════════════════════════════════════════════
+//  派生显示状态（UI 层使用，数据层不存储）
+//  根据 status / assignee / resultPending 派生「开放中 / 已指派 / 处置中 / 待终审 / 已关闭」
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 计算反馈的派生显示状态
+ * @param {Object} issue
+ * @returns {{ key: string, label: string, badgeClass: string }}
+ */
+export function deriveIssueDisplayState(issue) {
+  if (!issue) return { key: 'unknown', label: '未知', badgeClass: 'bg-gray-100 text-gray-600' };
+  if (issue.status === 'closed') {
+    return { key: 'closed', label: '已关闭', badgeClass: 'bg-gray-100 text-gray-600' };
+  }
+  // 工作汇报分支（kind='report'）
+  if (issue.kind === 'report') {
+    // 支书"了解进展"请求、成员尚未回应 → 待汇报
+    if (issue.requestedBy && !issue.resultPending) {
+      return { key: 'to-report', label: '待汇报', badgeClass: 'bg-blue-100 text-blue-700' };
+    }
+    // 成员已提交汇报内容，等待支书答复 → 待答复
+    if (issue.resultPending) {
+      return { key: 'pending-review', label: '待答复', badgeClass: 'bg-amber-100 text-amber-700' };
+    }
+    return { key: 'open', label: '进行中', badgeClass: 'bg-green-100 text-green-700' };
+  }
+  // 开放中分支（意见反馈）
+  if (issue.resultPending) {
+    return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+  }
+  if (issue.assignee) {
+    // 有指派人，且评论时间线中存在 kind='result' 但 resultPending 还未触发（理论上不会）— 简化为「处置中」
+    const hasResult = (issue.comments || []).some(c => c.kind === 'result');
+    if (hasResult) {
+      return { key: 'pending-review', label: '待终审', badgeClass: 'bg-amber-100 text-amber-700' };
+    }
+    return { key: 'assigned', label: '已指派', badgeClass: 'bg-blue-100 text-blue-700' };
+  }
+  return { key: 'open', label: '开放中', badgeClass: 'bg-green-100 text-green-700' };
+}
+
+/** 通知未读计数（按被指派人 personId 维度；api 形态＝服务端表 issue_unread，mock 形态＝本机键） */
+const UNREAD_KEY_PREFIX = 'gsm1921-issue-unread-';
+
+/** api 形态的服务端未读表缓存（`init()` 自 `GET /api/v1/issue-unread` 拉取；mock 形态恒为 undefined） */
+function _unreadServerRows() {
+  return Array.isArray(mockDB.issueUnread) ? mockDB.issueUnread : null;
+}
+
+/** 读某人的未读 issueId 集合（api 形态取服务端缓存、mock 形态取本机键；顺序＝写入序） */
+function _readUnreadIds(assigneeId) {
+  const rows = _unreadServerRows();
+  if (rows) return rows.filter(r => r.assigneeId === assigneeId && r.unread === true).map(r => r.issueId);
+  try { return JSON.parse(localStorage.getItem(UNREAD_KEY_PREFIX + assigneeId) || '[]'); } catch { return []; }
+}
+
+/** api 形态：把一次未读标记同步到服务端（fire-and-forget；本地已乐观记，下次 init 以服务端为准） */
+function _syncUnreadToServer(assigneeId, issueId, unread) {
+  if (!_isApiMode()) return;
+  try {
+    const call = getAdapter().issueUnread.set({ assigneeId, issueId, unread: !!unread });
+    if (call && typeof call.catch === 'function') {
+      call.catch((e) => console.warn('[IssueNotify] api 形态未读标记落服务端失败（本地已记，下次 init 以服务端为准）：', e));
+    }
+  } catch (e) {
+    console.warn('[IssueNotify] api 形态未读标记落服务端失败（本地已记，下次 init 以服务端为准）：', e);
+  }
+}
+
+/** 写某人的未读标记（api 形态＝服务端缓存行 + 同发端点；mock 形态＝本机键原路径） */
+function _writeUnread(assigneeId, issueId, unread) {
+  const rows = _unreadServerRows();
+  if (rows) {
+    const id = `${assigneeId}:${issueId}`;
+    const idx = rows.findIndex(r => r.id === id);
+    const next = { id, assigneeId, issueId, unread: !!unread, at: new Date().toISOString() };
+    mockDB.issueUnread = idx >= 0
+      ? [...rows.slice(0, idx), { ...rows[idx], ...next }, ...rows.slice(idx + 1)]
+      : [...rows, next];
+    _syncUnreadToServer(assigneeId, issueId, unread);
+    return;
+  }
+  try {
+    const key = UNREAD_KEY_PREFIX + assigneeId;
+    const set = new Set(JSON.parse(localStorage.getItem(key) || '[]'));
+    if (unread) set.add(issueId); else set.delete(issueId);
+    localStorage.setItem(key, JSON.stringify([...set]));
+  } catch {}
+}
+
+export const IssueNotify = {
+  /** 标记某条指派为未读（被指派人维度） */
+  markUnread(assigneeId, issueId) {
+    _writeUnread(assigneeId, issueId, true);
+  },
+  /** 标记已读 */
+  markRead(assigneeId, issueId) {
+    _writeUnread(assigneeId, issueId, false);
+  },
+  /** 获取未读反馈 ID 列表 */
+  getUnread(assigneeId) {
+    return _readUnreadIds(assigneeId);
+  },
+  /** 获取未读数 */
+  getUnreadCount(assigneeId) {
+    return this.getUnread(assigneeId).length;
+  },
+  /** 标记某 issue 为「待终审」未读（支书维度） */
+  markSecretaryReviewPending(issueId) {
+    _writeUnread('secretary-review', issueId, true);
+  },
+  markSecretaryReviewRead(issueId) {
+    _writeUnread('secretary-review', issueId, false);
+  },
+  getSecretaryReviewUnread() {
+    return _readUnreadIds('secretary-review');
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  「我的处置」Tab 渲染工具（各角色工作台复用）
+//  2026-07-30 新增：被指派人视角的反馈列表+详情+评论/提交处置结果
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * 渲染「我的处置」Tab 内容
+ * @param {string} role 角色键（如 'org-commissioner'）
+ * @param {string} userId 被指派人 personId（如 'p11'）
+ * @returns {string} HTML
+ */
+export function renderMyDispatchTab(role, userId) {
+  // 支书规则（2026-08-01）：带时间字段的列示按提交时间倒序（最新在前）——三区行序现由引擎 sort 承载
+  //（单一源见 bindMyDispatchEvents）；此处排序仅用于取「请我汇报」块标题的发起人（最新一条）
+  const issues = IssueStore.getAssignedTo(userId);
+  const unread = IssueNotify.getUnread(userId);
+
+  // 标记全部已读
+  unread.forEach(id => IssueNotify.markRead(userId, id));
+
+  // ── 我的汇报（2026-08-10 新增，支书裁定：信息双向互动）──
+  const reportRequests = IssueStore.getReportRequestsFor(userId)
+    .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '')); // IA-C2：取最新一条作块标题发起人
+  const myReports = IssueStore.getMyReports(userId);
+  // 我提交 / 参与的反馈（2026-09-15 支书裁定「每个人都可以参与答复」）——成员（participant）亦可在此答复
+  const myIssues = IssueStore.getMyIssues(userId);
+
+  let html = `<div class="space-y-3">`;
+
+  // ① 上级"了解进展"请求（待我汇报，行内填写即发；发起人可能是支书或组长）
+  //  三区行内容统一改由检索引擎渲染（本函数只出宿主 div——引擎需 DOM 就位后才可挂载，
+  //  挂载与行内动作委托均见 bindMyDispatchEvents）
+  if (reportRequests.length) {
+    const requesterName = _displayName(reportRequests[0].requestedBy) || '上级';
+    html += `<div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3">`;
+    html += `<p class="text-xs font-medium text-blue-700 mb-2">${requesterName}请汇报 · ${reportRequests.length}</p>`;
+    html += `<div id="mydispatch-req-host"></div>`;
+    html += `</div>`;
+  }
+
+  // ② 我发起的汇报（追踪 + 详情 + 确认收到）
+  if (myReports.length) {
+    html += `<div class="rounded-xl border border-gray-100 bg-white p-3">`;
+    html += `<p class="text-xs font-medium text-gray-700 mb-2">我发起的汇报 · ${myReports.length}</p>`;
+    html += `<div id="mydispatch-myreports-host"></div>`;
+    html += `</div>`;
+  }
+
+  // ③ 指派给我的反馈（原有）
+  // IA-C2 收敛（2026-09-06）：块标题与 ①/② 对齐、明示计数；超期优先不适用（issue/report 无 deadline 字段），
+  // 排序沿用支书 2026-08-01「带时间字段按提交时间倒序」裁定（登记）。空态由引擎 emptyMessage 承载（文案原样）。
+  html += `<p class="text-xs font-medium text-gray-700 mb-1">指派给我的反馈 · ${issues.length}</p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">开放中指派，可评论或提交处置结果</p>`;
+  html += `<div id="mydispatch-issues-host"></div>`;
+
+  // ④ 我提交 / 参与的反馈（每个人都可以参与答复——成员亦可对自己提交/参与的反馈追加说明）
+  // ⚠ 口径（2026-09-17 支书裁定 `Q-23-48` 走「加不可反查的本人标识」，本批落地）：
+  //   api 形态下公开反馈的 `submittedBy`/`participants` 一律按对外匿名脱敏（`server/seed.js::seedIssues`），
+  //   故「按人回认」在正式部署下靠不住。改走**本浏览器随机令牌的哈希**（`getMyIssues` 第 ③ 条判据）：
+  //   提交时客户端带一个与 personId 无关的随机令牌，服务端只存哈希 ⇒ 浏览器自己认得出「我提交过哪几条」，
+  //   而 **tokenHash 本身推不出提交人**（仅判重/限频；真身另存 `_realPersonId`，仅党委可查、每次留痕
+  //   ——见本文件顶部匿名口径）。边界如实写出：换设备/清浏览器数据后认不回。
+  html += `<div class="rounded-xl border border-gray-100 bg-white p-3 mt-3">`;
+  html += `<p class="text-xs font-medium text-gray-700 mb-1">我提交 / 参与的反馈 · ${myIssues.length}</p>`;
+  html += `<p class="text-xs text-gray-500 mb-2">本浏览器提交的反馈可在此回看（按提交时的随机令牌比对，不以提交人身份为判据；换设备或清除浏览器数据后无法回认）</p>`;
+  html += `<div id="mydispatch-myissues-host"></div>`;
+  html += `</div>`;
+
+  html += `</div>`;
+  html += `<div id="mydispatch-detail" class="hidden"></div>`;
+  return html;
+}
+
+/** 重渲染「我的处置」Tab（汇报/评论动作后调用）
+ *  E-3（2026-09-09）：整 tab 重建前收集各「了解进展」待填行未提交草稿，重建后回填——
+ *  提交某行不丢其它行已填内容（原实现整表重建清所有行草稿）。 */
+function _rerenderMyDispatch(container, role, userId) {
+  if (!container) return;
+  const drafts = new Map();
+  container.querySelectorAll('input[id^="report-req-input-"]').forEach(inp => {
+    if (inp.value) drafts.set(inp.id, inp.value);
+  });
+  container.innerHTML = renderMyDispatchTab(role, userId);
+  bindMyDispatchEvents(container, role, userId);
+  drafts.forEach((v, id) => {
+    const el = container.querySelector('#' + id);
+    if (el) el.value = v; // 提交行已随数据移出/重建 → 无对应元素自然跳过
+  });
+}
+
+/**
+ * 绑定「我的处置」Tab 事件（在 tab 内容渲染后调用）
+ * 2026-09-14 批次 37：三区各接一个统一检索引擎实例（① 请我汇报 / ② 我发起的汇报 / ③ 指派给我的反馈）。
+ * 数据按同一 userId 从 IssueStore 现取（与 renderMyDispatchTab 同源，按 submittedAt 倒序——排序交引擎 sort）；
+ * 行内动作一律事件委托：委托宿主 div 由 renderMyDispatchTab 每次新建、引擎只重绘其内部，
+ * 故筛选/翻页后仍有效，且不随每次渲染叠加监听。
+ */
+export function bindMyDispatchEvents(container, role, userId) {
+  const bySubmittedDesc = (a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || '');
+
+  // ① 请我汇报（行内填写即发）
+  const reqHost = container.querySelector('#mydispatch-req-host');
+  if (reqHost) {
+    renderFilteredList(reqHost, {
+      stateKey: 'mydispatch-report-requests',
+      rows: IssueStore.getReportRequestsFor(userId),
+      keyword: { keys: ['title', 'body'], placeholder: '搜索汇报事项…' },
+      sort: bySubmittedDesc,
+      countUnit: '条',
+      listClass: 'space-y-0', // 行自带 mb-2（8px），保持原行间距
+      emptyMessage: '暂无待我汇报的请求',
+      rowHtml: (r) => `
+        <div class="rounded-lg bg-white border border-blue-100 p-3 mb-2">
+          <p class="text-sm font-medium text-gray-800">${r.title}</p>
+          ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
+          <div class="flex gap-2 mt-2">
+            <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">
+            <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors flex-shrink-0">汇报</button>
+          </div>
+        </div>`,
+    });
+    reqHost.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-mydispatch-action="submit-report"]');
+      if (!el) return;
+      const id = el.dataset.issueId;
+      const input = document.getElementById('report-req-input-' + id);
+      const body = input?.value?.trim();
+      if (!body) { showToast('error', '请填写汇报内容'); return; }
+      IssueStore.addComment(id, userId, role, body, 'result');
+      // E-3：提交行立即清空再整 tab 重渲染——已发内容不回填到该行输入框
+      //（该行因 requestedBy+open 过滤在 ① 区仍保留，仅草稿清空）
+      if (input) input.value = '';
+      showToast('success', '汇报已发出，等待支书答复');
+      _rerenderMyDispatch(container, role, userId);
+    });
+  }
+
+  // ② 我发起的汇报（点击行进详情，含确认收到）
+  const myReportHost = container.querySelector('#mydispatch-myreports-host');
+  if (myReportHost) {
+    renderFilteredList(myReportHost, {
+      stateKey: 'mydispatch-my-reports',
+      rows: IssueStore.getMyReports(userId),
+      keyword: { keys: ['title', 'body'], placeholder: '搜索汇报事项…' },
+      sort: bySubmittedDesc,
+      countUnit: '条',
+      listClass: 'space-y-0', // 原行间无间距
+      emptyMessage: '暂无我发起的汇报',
+      rowHtml: (r) => {
+        const ds = deriveIssueDisplayState(r);
+        return `
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-report" data-issue-id="${r.id}">
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
+          <span class="text-xs text-gray-500">${REPORT_CATEGORIES[r.reportCategory] || '进度'}</span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${r.title}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${r.submittedAt || '—'}</span>
+        </div>`;
+      },
+    });
+    myReportHost.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-mydispatch-action="open-report"]');
+      if (!el) return;
+      _renderMyReportDetail(el.dataset.issueId, role, userId, container);
+    });
+  }
+
+  // ③ 指派给我的反馈（点击行进详情；空态文案由 emptyMessage 原样承载）
+  const issuesHost = container.querySelector('#mydispatch-issues-host');
+  if (issuesHost) {
+    renderFilteredList(issuesHost, {
+      stateKey: 'mydispatch-issues',
+      rows: IssueStore.getAssignedTo(userId),
+      keyword: {
+        keys: ['title', 'name'],
+        placeholder: '搜索反馈标题 / 提交人…',
+        get: (i, k) => (k === 'name' ? _displayName(i.submittedBy) : i[k]),
+      },
+      sort: bySubmittedDesc,
+      countUnit: '条',
+      listClass: 'space-y-3', // 原根容器 .space-y-3 作用于行间 → 迁至结果区
+      emptyMessage: '暂无待处置反馈',
+      rowHtml: (issue) => {
+        const ds = deriveIssueDisplayState(issue);
+        const dispatchNote = (issue.dispatchHistory || []).find(d => d.to === userId);
+        return `
+        <div class="p-3 rounded-xl bg-white border border-gray-100 hover:border-gray-200 cursor-pointer transition-all" data-mydispatch-action="open" data-issue-id="${issue.id}">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-gray-500 font-mono">#${issue.number}</span>
+            <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>
+          </div>
+          <p class="text-sm text-gray-800 font-medium">${issue.title}</p>
+          ${dispatchNote?.note ? `<p class="text-xs text-blue-600 mt-1">支书备注：${dispatchNote.note}</p>` : ''}
+          <div class="text-xs text-gray-500 mt-1">${_displayName(issue.submittedBy)} · ${issue.submittedAt} · ${issue.commentCount || 0} 评论</div>
+        </div>`;
+      },
+    });
+    issuesHost.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-mydispatch-action="open"]');
+      if (!el) return;
+      _renderMyDispatchDetail(el.dataset.issueId, role, userId, container);
+    });
+  }
+
+  // ④ 我提交 / 参与的反馈（成员亦可对自己提交/参与的反馈追加说明——写权不外扩到处置他人反馈）
+  const myIssuesHost = container.querySelector('#mydispatch-myissues-host');
+  if (myIssuesHost) {
+    renderFilteredList(myIssuesHost, {
+      stateKey: 'mydispatch-my-issues',
+      rows: IssueStore.getMyIssues(userId),
+      keyword: { keys: ['title', 'body'], placeholder: '搜索反馈标题…' },
+      sort: bySubmittedDesc,
+      countUnit: '条',
+      listClass: 'space-y-0', // 原行间无间距
+      emptyMessage: '暂无我提交或参与的反馈',
+      rowHtml: (issue) => {
+        const ds = deriveIssueDisplayState(issue);
+        return `
+        <div class="flex items-center gap-2 py-1.5 px-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors" data-mydispatch-action="open-my-issue" data-issue-id="${issue.id}">
+          <span class="text-xs text-gray-500 font-mono flex-shrink-0">#${issue.number}</span>
+          <span class="text-xs px-1.5 py-0.5 rounded-full ${ds.badgeClass} flex-shrink-0">${ds.label}</span>
+          <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${issue.title}</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${issue.commentCount || 0} 评论</span>
+          <span class="text-xs text-gray-500 flex-shrink-0">${issue.submittedAt || '—'}</span>
+        </div>`;
+      },
+    });
+    myIssuesHost.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-mydispatch-action="open-my-issue"]');
+      if (!el) return;
+      _renderMyIssueDetail(el.dataset.issueId, role, userId, container);
+    });
+  }
+}
+
+/** 我的汇报详情（对话时间线 + 支书答复确认收到） */
+function _renderMyReportDetail(issueId, role, userId, container) {
+  const detailEl = container.querySelector('#mydispatch-detail');
+  if (!detailEl) return;
+  const issue = IssueStore.getById(issueId);
+  if (!issue) return;
+  IssueNotify.markRead(userId, issueId);
+  const ds = deriveIssueDisplayState(issue);
+  const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
+
+  let html = `<div class="card rounded-xl p-5">`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<div class="flex items-center gap-2 mb-2">`;
+  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `</div>`;
+  if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<span>${REPORT_CATEGORIES[issue.reportCategory] || '进度'}汇报</span>`;
+  html += `<span>发出：${issue.submittedAt}</span>`;
+  if (issue.closedAt) html += `<span>已办结：${issue.closedAt}</span>`;
+  html += `</div>`;
+
+  // 对话时间线（kind 含 reply 正式答复）
+  html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">对话</span><div class="space-y-2">`;
+  const comments = (issue.comments || []).filter(c => !c.hidden);
+  if (!comments.length) {
+    html += `<p class="text-xs text-gray-500">暂无对话，等待支书答复</p>`;
+  } else {
+    comments.forEach(c => {
+      const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
+      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+      const kindDark = c.kind === 'reply' ? ' style="--acc-bg-dark:rgba(239,68,68,0.12);"' : '';
+      html += `<div class="rounded-lg p-2.5 ${kindBg}"${kindDark}>`;
+      html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
+      if (c.kind === 'reply') {
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+      }
+      html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
+      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+    });
+  }
+  html += `</div></div>`;
+
+  if (issue.status === 'open') {
+    html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
+    if (hasReply) {
+      html += `<button data-mydispatch-action="confirm-received" class="text-xs px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">确认已收到答复</button>`;
+    }
+    html += `<div class="flex items-center gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+
+  detailEl.innerHTML = html;
+  detailEl.classList.remove('hidden');
+  const listDiv = detailEl.previousElementSibling;
+  if (listDiv) listDiv.classList.add('hidden');
+
+  detailEl.querySelectorAll('[data-mydispatch-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.mydispatchAction;
+      if (action === 'back') {
+        detailEl.classList.add('hidden');
+        if (listDiv) listDiv.classList.remove('hidden');
+      } else if (action === 'comment') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入评论内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'comment');
+        showToast('success', '评论已添加');
+        _renderMyReportDetail(issueId, role, userId, container);
+      } else if (action === 'confirm-received') {
+        IssueStore.confirmReport(issueId);
+        showToast('success', '已确认收到，汇报办结完成');
+        _rerenderMyDispatch(container, role, userId);
+      }
+    });
+  });
+}
+
+function _renderMyDispatchDetail(issueId, role, userId, container) {
+  const detailEl = container.querySelector('#mydispatch-detail');
+  if (!detailEl) return;
+  const issue = IssueStore.getById(issueId);
+  if (!issue) return;
+  IssueNotify.markRead(userId, issueId);
+  const ds = deriveIssueDisplayState(issue);
+
+  let html = `<div class="card rounded-xl p-5">`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<div class="flex items-center gap-2 mb-2">`;
+  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `</div>`;
+  if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<span>#${issue.number}</span><span>提交人：${_displayName(issue.submittedBy)}</span><span>提交时间：${issue.submittedAt}</span>`;
+  html += `</div>`;
+
+  // 指派历史
+  if (issue.dispatchHistory?.length) {
+    html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
+    html += `<span class="text-xs font-medium text-gray-700 block mb-2">指派历史</span><div class="space-y-1">`;
+    issue.dispatchHistory.forEach(d => {
+      html += `<div class="text-xs text-gray-500">● ${d.at} · ${_displayName(d.to)}${d.note ? '：' + d.note : ''}</div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 评论时间线
+  html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">评论与事件</span><div class="space-y-2">`;
+  (issue.comments || []).forEach(c => {
+    if (c.hidden) return;
+    const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'verdict' ? '★' : '';
+    const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+    html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+    html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
+    html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
+    html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+  });
+  html += `</div></div>`;
+
+  if (issue.status === 'open') {
+    html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
+    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
+    html += `<button data-mydispatch-action="submit-result" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+
+  detailEl.innerHTML = html;
+  detailEl.classList.remove('hidden');
+  const listDiv = detailEl.previousElementSibling;
+  if (listDiv) listDiv.classList.add('hidden');
+
+  detailEl.querySelectorAll('[data-mydispatch-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.mydispatchAction;
+      if (action === 'back') {
+        detailEl.classList.add('hidden');
+        if (listDiv) listDiv.classList.remove('hidden');
+      } else if (action === 'comment') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入评论内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'comment');
+        showToast('success', '评论已添加');
+        _renderMyDispatchDetail(issueId, role, userId, container);
+      } else if (action === 'submit-result') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入处置结果内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'result');
+        showToast('success', '处置结果已提交，等待支书终审');
+        _renderMyDispatchDetail(issueId, role, userId, container);
+      }
+    });
+  });
+}
+
+/**
+ * 我提交 / 参与的反馈详情（每个人都可以参与答复，2026-09-15 支书裁定）。
+ * 只读时间线 + 追加说明（kind='comment'）；不提供指派/关闭/提交处置结果——处置他人反馈仍按原角色口径，
+ * 此处不放大任何写权（成员仅能对自己提交/参与的 issue 追加说明）。
+ */
+function _renderMyIssueDetail(issueId, role, userId, container) {
+  const detailEl = container.querySelector('#mydispatch-detail');
+  if (!detailEl) return;
+  const issue = IssueStore.getById(issueId);
+  if (!issue) return;
+  const ds = deriveIssueDisplayState(issue);
+
+  let html = `<div class="card rounded-xl p-5">`;
+  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<div class="flex items-center gap-2 mb-2">`;
+  html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
+  html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
+  html += `</div>`;
+  if (issue.body) html += `<p class="text-sm text-gray-600 whitespace-pre-wrap mb-4">${issue.body}</p>`;
+  html += `<div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4 pb-4 border-b border-gray-100">`;
+  html += `<span>#${issue.number}</span><span>提交人：${_displayName(issue.submittedBy)}</span><span>提交时间：${issue.submittedAt}</span>`;
+  if (issue.closedAt) html += `<span>关闭时间：${issue.closedAt}</span>`;
+  html += `</div>`;
+
+  // 评论与事件时间线（含支书正式答复/批复）
+  html += `<div class="mb-4"><span class="text-xs font-medium text-gray-700 block mb-3">评论与答复</span><div class="space-y-2">`;
+  const comments = (issue.comments || []).filter(c => !c.hidden);
+  if (!comments.length) {
+    html += `<p class="text-xs text-gray-500">暂无评论，等待答复</p>`;
+  } else {
+    comments.forEach(c => {
+      const kindIcon = c.kind === 'dispatch' ? '→' : c.kind === 'result' ? '✓' : c.kind === 'reply' ? '答' : c.kind === 'verdict' ? '★' : '';
+      const kindBg = c.kind === 'dispatch' ? 'bg-blue-50' : c.kind === 'result' ? 'bg-green-50' : c.kind === 'reply' ? 'bg-red-50/70' : c.kind === 'verdict' ? 'bg-amber-50' : 'bg-gray-50';
+      html += `<div class="rounded-lg p-2.5 ${kindBg}">`;
+      html += `<span class="text-xs font-medium text-gray-700">${kindIcon} ${_displayName(c.author)}</span>`;
+      if (c.kind === 'reply') {
+        html += `<span class="text-xs px-1 py-0.5 rounded font-medium ml-1" style="background:var(--app-accent-bg);color:var(--app-accent);">正式答复</span>`;
+      }
+      html += `<span class="text-xs text-gray-500 ml-1">${c.createdAt}</span>`;
+      html += `<p class="text-xs text-gray-600 mt-0.5">${c.body}</p></div>`;
+    });
+  }
+  html += `</div></div>`;
+
+  if (issue.status === 'open') {
+    html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
+    html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="补充说明…">`;
+    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">提交说明</button>`;
+    html += `</div></div>`;
+  }
+  html += `</div>`;
+
+  detailEl.innerHTML = html;
+  detailEl.classList.remove('hidden');
+  const listDiv = detailEl.previousElementSibling;
+  if (listDiv) listDiv.classList.add('hidden');
+
+  detailEl.querySelectorAll('[data-mydispatch-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.mydispatchAction;
+      if (action === 'back') {
+        detailEl.classList.add('hidden');
+        if (listDiv) listDiv.classList.remove('hidden');
+      } else if (action === 'comment') {
+        const body = document.getElementById('mydispatch-comment-input')?.value?.trim();
+        if (!body) { showToast('error', '请输入说明内容'); return; }
+        IssueStore.addComment(issueId, userId, role, body, 'comment');
+        showToast('success', '说明已提交');
+        _renderMyIssueDetail(issueId, role, userId, container);
+      }
+    });
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+//  事项领域（第二档字段）· 单一源 —— 2026-09-21 批次 126（`SOP-B-32` 取甲档 · `D-550`）
+//  四类照母本《常见工作场景快速指南》「意见建议类型」表（content/02_institution/sop/
+//  常见工作场景快速指南.md:439-444）：制度建设建议 / 活动组织建议 / 工作流程建议 / 其他建议；
+//  「建议归口」逐条照该表「处理方式」列（支委会讨论制度修改 / 支书转相关党小组组长处理 /
+//  支书提交相关条条委员研究 / 支书提交支委会研究）。
+//  ⚠ 本批只做「**给出建议归口**」（呈现给填写人 / 处置人），**不自动改派单**——是否指派、指派给谁，
+//    仍由处置人在既有「指派」动作里决定（既有承载＝人工指派五类目标，未改）。
+//  消费点：components/feedback/issue-form.js（表单第三档 + 实时提示）· components/feedback/issue-detail.js（详情元信息）·
+//    entries/tabs/secretary/feedback-tab.js（支书台详情元信息）。勿在业务层另写第二份四类名单。
+//  2026-09-22 批次 155：补母本该表第三列「**反馈时间**」（`replyHint`）——母本《常见工作场景快速
+//    指南》「意见建议类型」表（`:439-444`）逐条＝下次支委会后 / 1周内 / 2周内 / 1个月内；系统此前
+//    只有「建议归口」（＝该表「处理方式」列），**反馈时间无对应物**（欠拟合）。落点同 `suggest`：
+//    本单一源出值、同 3 个展示点呈现（**只呈现母本写的时限口径，不改任何流转 / 不设催办门**）。
+// ════════════════════════════════════════════════════════════════
+export const ISSUE_DOMAINS = [
+  { value: 'institution', label: '制度建设建议', suggest: '支委会（讨论制度修改）', replyHint: '下次支委会后' },
+  { value: 'activity', label: '活动组织建议', suggest: '相关党小组组长', replyHint: '1周内' },
+  { value: 'workflow', label: '工作流程建议', suggest: '相关条条委员', replyHint: '2周内' },
+  { value: 'other', label: '其他建议', suggest: '支委会（研究）', replyHint: '1个月内' },
+];
+
+/** 领域值 → 中文名（未知值原样回显，不吞） */
+export function issueDomainLabel(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? hit.label : (value || '');
+}
+
+/** 领域值 → 建议归口（母本「处理方式」列；未选 / 未知 → 空串＝无可给的建议） */
+export function issueDomainSuggest(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? hit.suggest : '';
+}
+
+/** 领域值 → 反馈时间（母本「反馈时间」列；未选 / 未知 → 空串＝无可给的时限口径） */
+export function issueDomainReplyHint(value) {
+  const hit = ISSUE_DOMAINS.find((d) => d.value === value);
+  return hit ? (hit.replyHint || '') : '';
+}

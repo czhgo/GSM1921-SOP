@@ -2,26 +2,26 @@
 // ════════════════════════════════════════════════════════════════
 //  config-clean.js — 支部 config（modules/blocks）净化唯一实现（P1a 单向权威，2026-09-03）
 //  消费方（两端共用同一实现，防止未同步的情况）：
-//    docs/src/services/branch.js（前端写路径：party-config 配置 UI / 支书操作）
+//    docs/src/services/branch/branch.js（前端写路径：party-config 配置 UI / 支书操作）
 //    server/routes/resources.js（PATCH /branches/:id/config）
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260924a';
+import { WORK_MAP_IDS, canDisableModule } from './work-map.js?v=20260928h';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from './policy-defaults.js?v=20260924a';
+} from './policy-defaults.js?v=20260928h';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
 const BLOCKS_LIMIT = 50;
 
 // ── 配置变更留痕审计内核共享常量（2026-09-09 支书批：支部 config 审计 why+回滚+上限）────────
-// 单一源供两端消费：docs/src/services/branch.js（mock 直写形态）与 server/routes/resources.js
+// 单一源供两端消费：docs/src/services/branch/branch.js（mock 直写形态）与 server/routes/resources.js
 // （PATCH /branches/:id/config 与 /branches/:id/config/rollback）——双形态同源，防止未同步的情况。
 // config.configChangeHistory 现逐键留痕 {by,at,what,from,to,why?}；why=依据/出处（可选，来源页回填
 // 如 REVIEW_QUEUE 附录编号）；单键回滚以 ROLLBACKABLE 键白名单收敛（跨键/聚合留痕不回滚）。

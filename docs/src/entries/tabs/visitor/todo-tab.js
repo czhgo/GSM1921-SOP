@@ -2,15 +2,15 @@
 // 参与者工作台 Tab：待办（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/utils.js?v=20260924a';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260924a';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260924a';
+import { showToast } from '../../../core/utils.js?v=20260928h';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20260928h';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260928h';
 
 // G3 修正（2026-08-08）：参与者视角按钮用金浅底（纯亮金 #FFD700 实底过艳）
 const GOLD_BTN_STYLE = '--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(255,215,0,0.12);color:#A16207;border:1px solid rgba(255,215,0,0.35);';
 
 function _handleTodoAction(todo) {
-  // 直达跳转（通知阅读 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  // 直达跳转（通知阅读 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
   const tabMap = {

@@ -23,8 +23,8 @@ status: landed
 | 声明 | 位置 | 现状（收敛前） |
 |------|------|----------------|
 | 能力注册表 requiredRoles | `core/registry.js` + `modules/capabilities/*.js` | 全仓无任何非空值（死代码）；支书工作台无能力注册 |
-| sidebar/导航可见性 | `components/sidebar.js` | 读 `auth.js` ROLE_PAGE_MAP，不读能力清单 |
-| auth 角色判定 | `services/auth.js` | 无单一 ROLES 常量，4 表 1 集合散落 |
+| sidebar/导航可见性 | `components/shell/sidebar.js` | 读 `auth.js` ROLE_PAGE_MAP，不读能力清单 |
+| auth 角色判定 | `services/core/auth.js` | 无单一 ROLES 常量，4 表 1 集合散落 |
 | constants 角色色彩 | `core/constants.js` | 4 张表键集不一致，色值冲突 |
 
 ## 2. 差异清单（收敛前审计结论）

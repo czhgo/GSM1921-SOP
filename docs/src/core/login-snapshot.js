@@ -4,8 +4,8 @@
 // 跳转过来时，侧边栏/顶栏要显示工作台入口/退出登录/身份标签，与 app 页一致；
 // 但静态页不得预加载数据层（auth→runtime→mock 全链）。本模块只读 localStorage/
 // sessionStorage 快照判断登录态，零依赖零副作用；确需完整登录态时由调用方按需
-// 动态 import services/auth.js。
-// ⚠️ 键名与 services/auth.js 的 LOGIN_KEY/TAB_KEY/SESSION_KEY 保持一致，
+// 动态 import services/core/auth.js。
+// ⚠️ 键名与 services/core/auth.js 的 LOGIN_KEY/TAB_KEY/SESSION_KEY 保持一致，
 //    修改时须两处同步（C-2 一改具改巡检项）。
 const LOGIN_KEY = 'gsm1921-login-user';
 const TAB_KEY = 'gsm1921-tab-id';

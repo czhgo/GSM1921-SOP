@@ -5,11 +5,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260924a';
+const V = '?v=20260928h';
 const DEFS = ['attendance', 'inspection', 'publicity', 'materials'];
 
 test('产出块：默认（null）全开且保持注册顺序', async () => {
-  const { applyOutputBlockPolicy, getOutputBlockPolicy } = await import(`../../docs/src/services/branch.js${V}`);
+  const { applyOutputBlockPolicy, getOutputBlockPolicy } = await import(`../../docs/src/services/branch/branch.js${V}`);
   assert.deepEqual(applyOutputBlockPolicy(DEFS, null), DEFS, 'null=全开');
   const p = getOutputBlockPolicy(null);
   assert.equal(p.hidden.size, 0);
@@ -17,7 +17,7 @@ test('产出块：默认（null）全开且保持注册顺序', async () => {
 });
 
 test('产出块：隐藏+排序生效（脏数据含未知 id 不崩）', async () => {
-  const { applyOutputBlockPolicy } = await import(`../../docs/src/services/branch.js${V}`);
+  const { applyOutputBlockPolicy } = await import(`../../docs/src/services/branch/branch.js${V}`);
   const blocks = { outputBlocks: { hiddenBlockIds: ['publicity', 'nope'], blockOrder: ['materials', 'inspection', 'attendance'] } };
   const out = applyOutputBlockPolicy(DEFS, blocks);
   assert.deepEqual(out, ['materials', 'inspection', 'attendance'], 'publicity 隐藏且按 order 排序');
@@ -27,7 +27,7 @@ test('产出块：隐藏+排序生效（脏数据含未知 id 不崩）', async 
 });
 
 test('产出块：全部停用 → 空数组（消费端显示提示）', async () => {
-  const { applyOutputBlockPolicy } = await import(`../../docs/src/services/branch.js${V}`);
+  const { applyOutputBlockPolicy } = await import(`../../docs/src/services/branch/branch.js${V}`);
   const out = applyOutputBlockPolicy(DEFS, { outputBlocks: { hiddenBlockIds: [...DEFS], blockOrder: [] } });
   assert.deepEqual(out, [], '全停用为空');
 });

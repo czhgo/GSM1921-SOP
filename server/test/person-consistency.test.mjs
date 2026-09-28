@@ -20,9 +20,9 @@
 //
 //  结构层（S）——静态扫描 docs/src，防回潮：
 //    S1 禁止模块加载期人员快照：模块顶层 `const X = PersonStore.getMembers();`
-//       （模块只求值一次 → 成员增删后该模块内永久陈旧）；必须改用 services/person.js 的 liveMembers()
+//       （模块只求值一次 → 成员增删后该模块内永久陈旧）；必须改用 services/member/person.js 的 liveMembers()
 //    S2 禁止凭姓名认身份：`find(p => p.name === …)`（取首个命中 → 重名/改名即错配）；
-//       姓名匹配只允许「先按 id、姓名仅唯一命中才采纳」的写法（见 services/taskforce.js _resolveLegacyMember）
+//       姓名匹配只允许「先按 id、姓名仅唯一命中才采纳」的写法（见 services/activity/taskforce.js _resolveLegacyMember）
 //
 //  ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性，见 base-data-preview.test.mjs 注）；
 //     bump 版本后本文件戳须同步（DATA_CONSISTENCY_CHECKLIST「版本戳同步」条）。
@@ -34,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260924a';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260924a';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260924a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260924a';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260924a';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260924a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260924a';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260924a';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260924a';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260928h';
+import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260928h';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260928h';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260928h';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260928h';
+import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260928h';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260928h';
+import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260928h';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260928h';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -217,7 +217,7 @@ test('S1 禁止模块加载期人员快照：顶层 PersonStore.getMembers() 一
   const offenders = [];
   for (const file of walkJs(SRC_DIR)) {
     const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
-    if (rel === 'services/person.js') continue; // 定义处
+    if (rel === 'services/member/person.js') continue; // 定义处
     const src = readFileSync(file, 'utf8');
     src.split(/\r?\n/).forEach((line, i) => {
       if (isCommentLine(line)) return;
@@ -229,7 +229,7 @@ test('S1 禁止模块加载期人员快照：顶层 PersonStore.getMembers() 一
   }
   assert.deepEqual(offenders, [],
     '发现模块加载期人员快照（成员增删后该模块内永久陈旧 → 表里显示的名单/字段与实际档案不符）。'
-    + '请改用 services/person.js 的 liveMembers()：`const PEOPLE = liveMembers();`');
+    + '请改用 services/member/person.js 的 liveMembers()：`const PEOPLE = liveMembers();`');
 });
 
 test('S2 禁止凭姓名认身份：find(p => p.name === …)（重名/改名即错配）', () => {
@@ -250,12 +250,12 @@ test('S2 禁止凭姓名认身份：find(p => p.name === …)（重名/改名即
 });
 
 test('S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落点）', () => {
-  const src = readFileSync(join(SRC_DIR, 'services', 'person.js'), 'utf8');
-  assert.match(src, /export function liveMembers\s*\(/, 'services/person.js 必须导出 liveMembers()（人员清单实时视图）');
+  const src = readFileSync(join(SRC_DIR, 'services', 'member', 'person.js'), 'utf8');
+  assert.match(src, /export function liveMembers\s*\(/, 'services/member/person.js 必须导出 liveMembers()（人员清单实时视图）');
 });
 
 test('S4 RESIDENCE 单一源：全站只允许 core/constants.js 一处定义（Q-21-3 防回潮）', () => {
-  // 病灶（2026-09-13 收敛前）：services/roster.js 与 services/org-base-data-preview.js 各写一份同值
+  // 病灶（2026-09-13 收敛前）：services/member/roster.js 与 services/branch/org-base-data-preview.js 各写一份同值
   //   { CAMPUS:'在校', DETAINED:'滞留' }——preview 不能 import roster（person→preview→roster 成环），
   //   于是「为避免循环依赖」长期默认两处维护、仅靠单测断言同值。现收敛至无 import 的叶子模块
   //   core/constants.js，本守卫拦「再长出第二份定义」。
@@ -271,9 +271,9 @@ test('S4 RESIDENCE 单一源：全站只允许 core/constants.js 一处定义（
     'RESIDENCE 只允许在 core/constants.js 定义一次；roster.js / org-base-data-preview.js 等一律 import 该单一源'
     + '（防循环依赖说明见 constants.js 该常量注释）');
   // 两个原定义点必须仍在消费（防「守卫绿了但模块不认这个枚举」的假绿）
-  for (const rel of ['services/roster.js', 'services/org-base-data-preview.js']) {
+  for (const rel of ['services/member/roster.js', 'services/branch/org-base-data-preview.js']) {
     const src = readFileSync(join(SRC_DIR, rel), 'utf8');
-    assert.match(src, /import \{[^}]*\bRESIDENCE\b[^}]*\} from '\.\.\/core\/constants\.js/,
-      `${rel} 必须从 core/constants.js 导入 RESIDENCE`);
+    assert.match(src, /import \{[^}]*\bRESIDENCE\b[^}]*\} from '(\.\.\/)+core\/constants\.js/,
+      `${rel} 必须从 core/constants.js 导入 RESIDENCE（2026-09-28 目录分层后两文件均在二级目录 ⇒ 相对路径为 ../../core/constants.js）`);
   }
 });

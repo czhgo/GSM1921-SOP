@@ -3,20 +3,20 @@
 // 由 attendance-tab 传入分段容器调用；原为独立 tab，内部逻辑原样保留）。
 // 补课口径（现行 = D-293）：范围＝支部党员大会 + 党课（支委会不补、主题党日不强制补课、
 // 党小组会按写入活动时的勾选），缺勤/请假的这些场次须在 T+7 内补课，纪检委员确认完成；
-// 请假且线上参会的**不补课**（判据单一源 = services/makeup.js::shouldGenerateMakeupTask）。
+// 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/makeup.js?v=20260924a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260924a';
-import { AttendanceStatus } from '../../../core/domain.js?v=20260924a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260924a';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/handoff-inbox.js?v=20260924a';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20260928h';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20260928h';
+import { AttendanceStatus } from '../../../core/domain.js?v=20260928h';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260928h';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20260928h';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260924a';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。

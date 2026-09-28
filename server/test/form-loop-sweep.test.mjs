@@ -142,7 +142,7 @@ async function createSession(studentId, pageName) {
 
 /** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = core/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -156,7 +156,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/state.js?v=20260924a');
+    const { getAppState, STATE } = await import('/src/core/state.js?v=20260928h');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -276,7 +276,7 @@ async function openTab(page, label, timeoutMs = 15000) {
  * 载体探针（**可见性与文本的单一源**）：既判「用户能否看到并操作该字段的载体」，也取该载体的文本。
  * 载体友好判定：允许「原生控件被视觉隐藏但可见容器在」的两种统一改造——
  *   · select.input-flat 由 custom-select 增强：原生 select 加 .cs-native 被 clip 隐藏，
- *     可见载体是 .cs-select 内的 .cs-trigger（唯一源 components/custom-select.js）；
+ *     可见载体是 .cs-select 内的 .cs-trigger（唯一源 components/ui/custom-select.js）；
  *   · checkbox/radio 以 .hidden 藏于可见 label（chip）内：可见载体即该 label。
  * 判定的仍是「用户能否看到并操作该字段的载体」，不改变「报必填而载体不在位＝违规」的判据。
  * ⚠ 两阶段**共用本函数**：2026-09-16 阶段二初版另写了一份只量 rect 的弱判据，真机立刻误报
@@ -875,7 +875,7 @@ test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名
 
 /** 未捕获脚本错误（`pageerror`）——**第三类判据，2026-09-16 批次 47-M 新增**。
  *  为什么必须有它：前两类判据都从「提示文本」出发，而**有些病灶根本不产出文本**——
- *  批 47-M 真机抓到：`services/issues.js` 用了 11 次 `showToast(...)` 却从未 import 它，
+ *  批 47-M 真机抓到：`services/governance/issues.js` 用了 11 次 `showToast(...)` 却从未 import 它，
  *  运行到这些行一律抛 `ReferenceError: showToast is not defined`。于是：
  *    · 校验失败那几处**抛在 return 之前** ⇒ 点提交后「既无提示也无反应」，看着像死按钮；
  *    · 成功那几处**抛在写之后** ⇒ 数据已落库、界面一声不吭，用户以为没生效而重复提交。

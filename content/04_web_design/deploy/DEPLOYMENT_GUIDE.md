@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-08-19
 last_updated: "2026-09-27"
 status: active
-related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, docs/src/components/sidebar.js, docs/src/components/header.js, docs/login.html, docs/src/services/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
+related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
 
 # 部署与对外对接
@@ -119,7 +119,7 @@ related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, doc
 
 #### 3.2.4 API 设计要求
 
-`services/runtime.js` 已预留 mock/api 切换点，DataAdapter 抽象层已实现，对接后只需：
+`services/core/runtime.js` 已预留 mock/api 切换点，DataAdapter 抽象层已实现，对接后只需：
 
 ```javascript
 // runtime.js 中调用：
@@ -257,8 +257,8 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 35 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
 | Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
 | 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
-| 运行时插槽 | `docs/src/services/runtime.js` | 初始化入口，注册适配器实例 |
-| 认证流程说明 | `docs/src/services/auth.js` + 本文件 §四 | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
+| 运行时插槽 | `docs/src/services/core/runtime.js` | 初始化入口，注册适配器实例 |
+| 认证流程说明 | `docs/src/services/core/auth.js` + 本文件 §四 | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
 | 可见性规则说明 | 本文件 §3.2.5 | 多级可见性的过滤逻辑 |
 | AI 接入需求 | 本文件 §3.6 | AI 本地部署的场景和模型要求 |
 | 前端页面清单 | `docs/` 目录 | 所有 HTML 页面及其功能说明 |
@@ -377,9 +377,9 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 | 上报数据域 | 数据来源（本系统） |
 |-----------|-------------------|
 | 党员信息 | `mock/people` / 服务端 users 表（成员档案存于 users，无独立 members 表） |
-| 活动记录 | `services/activity.js`（activities 资源） |
-| 考勤记录 | `services/attendance.js`（attendances 资源，取 `status: confirmed` 或已自动确认） |
-| 学习记录 | `services/makeup.js`（makeupTasks 完成态） |
+| 活动记录 | `services/activity/activity.js`（activities 资源） |
+| 考勤记录 | `services/activity/attendance.js`（attendances 资源，取 `status: confirmed` 或已自动确认） |
+| 学习记录 | `services/activity/makeup.js`（makeupTasks 完成态） |
 
 #### 3.9.7 后续扩展（预留边界，本期不做）
 
@@ -473,10 +473,10 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 ### 4.7 代码落点
 
 - `docs/src/config/deploy.js`（新增）：`DEPLOY_MODE` 常量
-- `docs/src/components/sidebar.js`：footer「关于」按 `DEPLOY_MODE` 显隐；「退出登录」按登录态显隐
+- `docs/src/components/shell/sidebar.js`：footer「关于」按 `DEPLOY_MODE` 显隐；「退出登录」按登录态显隐
 - `docs/src/core/bootstrap.js`：L1 页面门控（工作台强制跳登录）沿用，其余页面不强制
 - 各写入功能 / 身份组件：按 L2 / L3 / L4 补登录引导或隐藏（逐处实施）
-- `docs/src/components/header.js`：身份标签在未登录时隐藏（已实现，复核）
+- `docs/src/components/shell/header.js`：身份标签在未登录时隐藏（已实现，复核）
 
 ### 4.8 与既有文档的关系
 
@@ -488,7 +488,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 ## 五、微信协同与小程序设计
 
-> **落地状态（2026-09-05）**：**已实现部分**——网页端发送方登记制 + 外发确认闭环（`docs/src/services/external-dispatch.js`「已发/已收」+ 接收方工作台确认，原则 13）与宣传墙/档案浏览底座；**规划部分**——小程序本体（WebView 套壳短期 → Taro 跨端中期）与微信订阅消息原生批复（§5.4/§5.5），依赖路径 B/C 后端上线与企业主体前置。本章为该主题唯一权威设计源（设计权威不分已实现/规划，实现差异以本注为准）。
+> **落地状态（2026-09-05）**：**已实现部分**——网页端发送方登记制 + 外发确认闭环（`docs/src/services/activity/external-dispatch.js`「已发/已收」+ 接收方工作台确认，原则 13）与宣传墙/档案浏览底座；**规划部分**——小程序本体（WebView 套壳短期 → Taro 跨端中期）与微信订阅消息原生批复（§5.4/§5.5），依赖路径 B/C 后端上线与企业主体前置。本章为该主题唯一权威设计源（设计权威不分已实现/规划，实现差异以本注为准）。
 >
 > **定位**：承接 2026-08-10 战略目标（「如果这个系统可以做成一个小程序或者服务号，就可以低成本和微信本来的功能协同了！」）与 2026-08-11 三项决策，明确文件流分类、浏览功能形态、过程性汇报集成方式与小程序落地路径。
 > **受众**：[工程师]+[AI]

@@ -9,14 +9,15 @@
 //  C 批（R4-1/R4-2/R4-3，支书裁定，2026-09-06）：
 //   · 发展阶段 / 在册滞留 = 组织委员发起 → 支书确认生效（双层留痕、可退回）——
 //     提交经 member-confirmation.submitMemberChange，生效前行格显示「待确认」；
-//     C①-补（2026-09-10）：阶段变更时同源写入 gsm1921-dev-stage-overrides，
+//     C①-补（2026-09-10，**2026-09-28 服务端化**）：阶段变更时同源落档「进入当前阶段日期」为成员档案字段
+//     `developStageSince`（原为本机键 gsm1921-dev-stage-overrides，已降级为遗留键），
 //     恢复组织台发展节点提醒派生；
 //   · 「移出」（2026-09-14 批次 25 起）= member-flow.js::registerOutflow（登记即生效）：
 //     单人即登记流出（软标记移出 + 账号停用 + 记台账 + 留痕），原考勤/考察历史保留、可撤销；
 //     旧「有历史 → 报支书确认（转「已转出」）」分支随流出登记即生效一并移除。
 //
 //  2026-09-13（支书 grill-me 面谈定案「模态内分流」）：
-//   行内不再就地编辑；行内「编辑」统一打开成员档案编辑模态 components/person-edit-modal.js——
+//   行内不再就地编辑；行内「编辑」统一打开成员档案编辑模态 components/governance/person-edit-modal.js——
 //   模态内按写路径分组：姓名/学号/党小组（档案属性）直改即时生效；发展阶段/在册状态/在册备注
 //   （制度变更）报支书确认后生效，逐行小标区分「立即生效」/「报支书确认」。本 Tab 仅保留入口
 //   与「待确认」可见性（listPendingConfirmations）。
@@ -25,7 +26,7 @@
 //   （登记即生效）、对账行、台账表、撤销。**2026-09-28 批次 220 · R10：该面板已拆为独立 tab**（org/member-flow-tab.js，
 //   判据＝一 tab 一问：名册答「有谁」、流动答「人怎么变」）⇒ 本 tab 只保留名册与行内「移出」这一行操作。
 //   名册行内「移出」仍走 member-flow.js::registerOutflow（单人即登记流出：软标记移出 + 账号停用 + 记台账 + 留痕）。
-//   硬规范：台账筛选/分页统一走检索引擎 components/list-filter.js（迁移至「成员流动」tab 后仍适用）；
+//   硬规范：台账筛选/分页统一走检索引擎 components/ui/list-filter.js（迁移至「成员流动」tab 后仍适用）；
 //   登记流出选人用 PersonPicker（同上）；登记/撤销角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 //
 //  本 Tab 职责边界（与「人才库」talent-tab 分工，避免重复建设）：
@@ -34,37 +35,37 @@
 //     两处编辑同一数据链（PersonStore + roster 覆盖层），
 //     任一改动即被应到口径（纪检考勤/支书复核卡）与对方界面读到。
 //  数据/枚举单一源：PersonStore.getMembers（含 members 持久覆盖层 + 预览叠加）；
-//    党小组 = services/party-group.js::groupOptions()（活组，按 seq 升序；运行时为准，禁写死组名）；
+//    党小组 = services/member/party-group.js::groupOptions()（活组，按 seq 升序；运行时为准，禁写死组名）；
 //    发展阶段 = org-base-data-preview 的 DEVELOP_STAGE_OPTIONS（由静态种子派生，禁造新枚举）；
 //    在册状态 = core/constants.js.RESIDENCE（单一源）。
 //  在册滞留写链（与纪检/支书复核同源，防覆盖层与档案互相遮蔽）：
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/person.js?v=20260924a';
-import { getRosterStats, getResidenceOf } from '../../../services/roster.js?v=20260924a';
-import { listPendingConfirmations } from '../../../services/member-confirmation.js?v=20260924a';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/org-base-data-preview.js?v=20260924a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20260928h';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20260928h';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20260928h';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/party-group.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260924a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
-import { openModal, closeModal, openFormModal } from '../../../components/modal.js?v=20260924a';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/constants.js?v=20260928h';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928h';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20260928h';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/person-edit-modal.js?v=20260924a';
+import { openPersonEditModal } from '../../../components/governance/person-edit-modal.js?v=20260928h';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/roster-ui-logic.js?v=20260924a';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20260928h';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member-flow.js?v=20260924a';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20260928h';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260924a';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260928h';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260924a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260928h';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;

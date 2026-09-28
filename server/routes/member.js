@@ -17,8 +17,8 @@ import {
   // 2026-09-14 批次 30（支书裁定 Q-23-10）：成员流动登记角色集单一源 —— 承载「流入登记」一路写门
   MEMBER_FLOW_ROLES as MEMBER_FLOW_ROLE_KEYS,
 } from '../../docs/src/core/constants.js';
-// 发展阶段枚举单一源 = docs/src/services/org-base-data-preview.js（静态种子派生，勿另写枚举）
-import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/org-base-data-preview.js';
+// 发展阶段枚举单一源 = docs/src/services/branch/org-base-data-preview.js（静态种子派生，勿另写枚举）
+import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
@@ -142,8 +142,14 @@ export function createMemberRouter(db) {
     writeRow(db, 'member_change_requests', updated);
 
     // 更新成员发展阶段（缺省回退：toStage 为空则沿用原阶段）
+    // 2026-09-28 服务端化：一并落 developStageSince（进入当前阶段日期，取自申请的 entryDate）——
+    // 原记在本机 localStorage 覆盖档案 gsm1921-dev-stage-overrides（跨设备不可读），已撤除。
     if (user) {
       const merged = { ...user, developStage: existing.toStage || user.developStage };
+      if (existing.toStage) {
+        const d = String(existing.entryDate || '').slice(0, 10);
+        merged.developStageSince = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : new Date().toISOString().slice(0, 10);
+      }
       db.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(existing.personId, JSON.stringify(merged));
     }
     res.json(updated);
@@ -170,6 +176,12 @@ export function createMemberRouter(db) {
     if (typeof toStage !== 'string' || !DEVELOP_STAGE_OPTIONS.includes(toStage)) {
       return res.status(400).json({ error: `developStage 须为：${DEVELOP_STAGE_OPTIONS.join(' / ')}` });
     }
+    // developStageSince（进入当前阶段日期）：可选随行落档（2026-09-28 服务端化——原为本机
+    // localStorage 覆盖档案 gsm1921-dev-stage-overrides，跨设备不可读）。非 'YYYY-MM-DD' ⇒ 400。
+    const since = body.developStageSince;
+    if (since !== undefined && since !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(since))) {
+      return res.status(400).json({ error: "developStageSince 须为 'YYYY-MM-DD'" });
+    }
     const userRow = db.prepare('SELECT data FROM users WHERE id = ?').get(req.params.id);
     if (!userRow) return res.status(404).json({ error: '成员不存在' });
     const user = JSON.parse(userRow.data);
@@ -179,6 +191,7 @@ export function createMemberRouter(db) {
       return res.status(403).json({ error: '无权限：仅可推进本支部成员的发展阶段' });
     }
     const merged = { ...user, developStage: toStage };
+    if (since) merged.developStageSince = String(since);
     writeRow(db, 'users', merged);
     res.json(merged);
   });

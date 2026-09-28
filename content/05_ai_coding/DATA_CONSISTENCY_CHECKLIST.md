@@ -62,11 +62,11 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第三范本（2026-09-13 批次 23 新增）**：`server/test/notice-audience.test.mjs`——通知受众口径分裂的两层法（发布侧写入值与消费侧判定同源 + 取数口与可见性门分离），是「**同一类缺陷（口径分裂）在第二处实体的复现**」（前有活动生命周期展示态、人员字段，这里是通知受众）。
 
-> **第四范本（2026-09-14 批次 24 新增）**：`RESIDENCE` 枚举「两份同值定义」收敛（`services/roster.js` & `services/org-base-data-preview.js` → `core/constants.js` 单一源），守卫落 `person-consistency.test.mjs` **S4**。要点三条：① **定义点放在依赖图的叶子**（无 import 的模块）——原先「为避免循环依赖只能两处维护」的说法，本质是把枚举放在了依赖图的中间层（`person → preview → roster` 成环），移到叶子即消解；② 原定义点**不保留 re-export 兼容层**（两条 import 路径＝隐性两源）；③ 守卫必须两层——旧的「两份同值断言」在单一源下**恒真＝假绿**，须替换为数据层**取值契约断言** + 结构层**唯一性静态扫描**（全仓只允许一处 `export const X =`，并断言原定义点仍在 import 它）。
+> **第四范本（2026-09-14 批次 24 新增）**：`RESIDENCE` 枚举「两份同值定义」收敛（`services/member/roster.js` & `services/branch/org-base-data-preview.js` → `core/constants.js` 单一源），守卫落 `person-consistency.test.mjs` **S4**。要点三条：① **定义点放在依赖图的叶子**（无 import 的模块）——原先「为避免循环依赖只能两处维护」的说法，本质是把枚举放在了依赖图的中间层（`person → preview → roster` 成环），移到叶子即消解；② 原定义点**不保留 re-export 兼容层**（两条 import 路径＝隐性两源）；③ 守卫必须两层——旧的「两份同值断言」在单一源下**恒真＝假绿**，须替换为数据层**取值契约断言** + 结构层**唯一性静态扫描**（全仓只允许一处 `export const X =`，并断言原定义点仍在 import 它）。
 
 > **第五范本（2026-09-14 批次 24 新增·非实体类一致性）**：**版本戳（缓存键）同值**——同一模块被多处 import 时若 `?v=` 不一致，浏览器会按 URL **分裂出第二个模块实例**（注册表/共享状态读空）。守卫＝`docs/scripts/bump-version.mjs` 的**收尾自检**：改写后扫描全仓 `?v=`，报告与本版本不一致的残留（**要守的是「改完有无陈旧残留」，不是「本次改了几个」**）；自检须与改写**同源跳过注释行**（注释里的版本号是人工注记、不是缓存键），且 stamper 须覆盖全部动态导入形态（含**模板字符串** `` import(`…/${stem}-workspace.js?v=…`) ``）。**推广**：凡「同一 URL/键必须在全站同值」的口径（版本戳、资源戳、CSS `url()` 资源），都适用于「生成 → 自检残留」这一对动作。
 
-> **第六范本（2026-09-14 批次 25–35 新增·「能力散落在调用点」类）**：**分页 / 矩阵 / 版本号推导**三项都不是「同一事实抄了几份」，而是**同一能力在调用点各写一遍**——分页散落 5 处而**统一检索引擎自身没有分页**（其承载的 28 处表无分页）；人×项目矩阵三处各自实现（考勤矩阵 / 考察人视图 / 表决 `.vs-matrix`）；版本号推导内联在发版脚本里且无参运行会把同日戳往回写。**判据**：凡「可能无限增长」的能力（分页 / 虚拟滚动 / 排序 / 转置矩阵 / 版本号推导）**一律做在引擎层或组件层并由守卫锁住**，调用点不得私自关掉（守卫扫全站 `pageSize: 0` 为零）。**落点**：`components/list-filter.js`（引擎内置分页）、`components/relation-matrix.js`（互为转置双视图 + 项目维列上限 + 一键展开）、`docs/scripts/version-next.mjs`（纯函数）。**守卫**：`filter-row.test.mjs::S10`、`relation-matrix.test.mjs` S1–S4、`version-stamp.test.mjs` S1–S3+D1–D6。
+> **第六范本（2026-09-14 批次 25–35 新增·「能力散落在调用点」类）**：**分页 / 矩阵 / 版本号推导**三项都不是「同一事实抄了几份」，而是**同一能力在调用点各写一遍**——分页散落 5 处而**统一检索引擎自身没有分页**（其承载的 28 处表无分页）；人×项目矩阵三处各自实现（考勤矩阵 / 考察人视图 / 表决 `.vs-matrix`）；版本号推导内联在发版脚本里且无参运行会把同日戳往回写。**判据**：凡「可能无限增长」的能力（分页 / 虚拟滚动 / 排序 / 转置矩阵 / 版本号推导）**一律做在引擎层或组件层并由守卫锁住**，调用点不得私自关掉（守卫扫全站 `pageSize: 0` 为零）。**落点**：`components/ui/list-filter.js`（引擎内置分页）、`components/ui/relation-matrix.js`（互为转置双视图 + 项目维列上限 + 一键展开）、`docs/scripts/version-next.mjs`（纯函数）。**守卫**：`filter-row.test.mjs::S10`、`relation-matrix.test.mjs` S1–S4、`version-stamp.test.mjs` S1–S3+D1–D6。
 
 > **第七范本（2026-09-14 批次 31/33 新增·「口径寄生环境」类）**：控件档位高度看似「写着 34px / 42px」，实际渲染高度由 `内边距 + 行高 + 边框` 算出，而**行高一项原先没在任何单一源里显式声明**——靠 UA 默认与 Tailwind CDN 的 `text-*` 工具类供给；结果同一表单实测出 **42 / 43 / 47 三值并存**（增强下拉触发器 43、无 text 类的裸输入框 47）。**判据**：凡「由多个属性合成出来的量」（高度 / 间距 / 字号），**每个参与合成的项都必须在单一源里显式声明**；不得由环境（UA 默认、CDN 工具类、继承）供给。**附带纪律（量测侧）**：**尺规类真机复核必须在生产同构环境**——Tailwind / 字体 CDN 一律不得 abort，否则缺 preflight 会让行高退化，量出的尺寸全是**伪证**（本批首跑据此误报「27 处 32px」，同构复测证伪后如实更正）。**守卫**：`filter-row.test.mjs::D1 / D2`（按算式核算五处载体高度；缺行高声明即红，并含对旧版样式的**病灶复现**）。
 
@@ -76,9 +76,9 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第十范本（2026-09-14 批次 30 新增·「为修一个 bug 复制一份实现」类）**：同一业务动作（流入登记建档）因**入口不同**而角色门不同（名册新增＝组织委员专属；成员流动登记＝组织委员 + 支书/副支书），直接放宽门会破坏另一条既有断言，而「再写一份实现」会留下两套口径。**修法**：**同一实现体、两个写门**——处理体抽为具名函数，分别挂不同 `requireRole`。**判据**：凡「同一动作 + 不同入口 + 不同门」的组合，先问「能不能同一个实现体挂多门」，再考虑拆实现；拆实现须在规范里显式声明两处语义与同步责任（本批落 `SYSTEM_ROLE_PERMISSION §9i 注④` 与 `DATA_FLOW §4.5.1`）。**守卫**：`member-flow.test.mjs::S4`、`permission-gate.test.mjs` ⑤d/⑥/⑦、`member-persist.test.mjs` api ⑫。
 
-> **第十一范本（2026-09-14 批次 37–38 新增·「能力已收进引擎 ≠ 已收口」类）**：批次 34 把分页做进统一检索引擎后，**26 处调用点受益**——但批次 37 全量审计发现**未接引擎的手写渲染仍有 13 处以上**（表格 4 处 + 卡片列表 9 处以上），批次 38 又发现 **6 处手写翻页控件**（归档库 `.archive-page-btn` / 反馈列表 `.issue-page-btn` / 支书台反馈 `.feedback-page-btn` / 通用查询视图 `.qv-page-btn` / 成员活动列表 `.visitor-act-page-btn` / 考勤明细 `id="att-table-prev/next"`），类名与属性各写一遍。**判据**：**「能力已收进引擎」只覆盖「已在引擎内的调用点」，覆盖不了「绕过引擎、各写一版」的地方**——所以判定方法必须是**反向枚举**：不只查「谁在用这个单一源」，还要查「**谁在做同一件事却没走单一源**」（前者查的是**单一源的使用点**，后者查的才是**同一能力的全部实现点**）。**处置（批次 37）**：支书裁定「全量收口（表格 + 卡片列表一并接引擎）」＋「同时补筛选（筛选 + 分页一站式）」，**21 个文件接入引擎**；引擎补一条：**既无关键词也无分面时不渲染检索条**（供「只需分页」的桶/分组子列表复用，避免每组顶一条空检索条）。**边界判断**：看板分桶 / 待办域折组 / 按期次分组这类**分组结构**，做法是「每组一个引擎实例、只给分页、保留分组与折叠观感」，而不是推平成单层列表。**守卫**：`filter-row.test.mjs` 的 S3 收紧为「全站表格只允许 `.data-table`」、S10 改断言 `components/pager.js` 内 `if (pages <= 1)`、**新增 S11**（翻页标记 `class="page-btn"`/`page-num` 只允许由 `pager.js` 产出）、**新增 S12**（手写表格收敛台账：`<table` 只允许出现在 4 个登记位置，带防僵尸断言）。
+> **第十一范本（2026-09-14 批次 37–38 新增·「能力已收进引擎 ≠ 已收口」类）**：批次 34 把分页做进统一检索引擎后，**26 处调用点受益**——但批次 37 全量审计发现**未接引擎的手写渲染仍有 13 处以上**（表格 4 处 + 卡片列表 9 处以上），批次 38 又发现 **6 处手写翻页控件**（归档库 `.archive-page-btn` / 反馈列表 `.issue-page-btn` / 支书台反馈 `.feedback-page-btn` / 通用查询视图 `.qv-page-btn` / 成员活动列表 `.visitor-act-page-btn` / 考勤明细 `id="att-table-prev/next"`），类名与属性各写一遍。**判据**：**「能力已收进引擎」只覆盖「已在引擎内的调用点」，覆盖不了「绕过引擎、各写一版」的地方**——所以判定方法必须是**反向枚举**：不只查「谁在用这个单一源」，还要查「**谁在做同一件事却没走单一源**」（前者查的是**单一源的使用点**，后者查的才是**同一能力的全部实现点**）。**处置（批次 37）**：支书裁定「全量收口（表格 + 卡片列表一并接引擎）」＋「同时补筛选（筛选 + 分页一站式）」，**21 个文件接入引擎**；引擎补一条：**既无关键词也无分面时不渲染检索条**（供「只需分页」的桶/分组子列表复用，避免每组顶一条空检索条）。**边界判断**：看板分桶 / 待办域折组 / 按期次分组这类**分组结构**，做法是「每组一个引擎实例、只给分页、保留分组与折叠观感」，而不是推平成单层列表。**守卫**：`filter-row.test.mjs` 的 S3 收紧为「全站表格只允许 `.data-table`」、S10 改断言 `components/ui/pager.js` 内 `if (pages <= 1)`、**新增 S11**（翻页标记 `class="page-btn"`/`page-num` 只允许由 `pager.js` 产出）、**新增 S12**（手写表格收敛台账：`<table` 只允许出现在 4 个登记位置，带防僵尸断言）。
 
-> **第十二范本（2026-09-14 批次 38 新增·「移动单一源的位置 = 一次全仓改签」类）**：批次 38 把 `pagerHtml` 从 `components/list-filter.js` **移出**到 `components/pager.js`（理由是 `relation-matrix → list-filter → inspector → vote-summary-panel → relation-matrix` 会成**模块环**，单一源必须落在**不依赖任何业务模块的叶子件**上），但只改了 `relation-matrix.js` 与新写的 `pager.js`，**忘了同步另外 6 个刚从 `list-filter.js` 引入 `pagerHtml` 的文件** → 运行时 `SyntaxError: The requested module './list-filter.js' does not provide an export named 'pagerHtml'`，**一次性打红 17 个测试（含 5 个 e2e）**。**判据**：单一源**换文件 / 换名字**时，必须 grep **旧路径的全量引用**（含 `?v=` 版本戳形式）**逐一改签**，并在改完后断言「旧路径 **0 命中**」；**「改了引用方 A 就以为改完了」是典型遗漏**，且**静态守卫 S11 全绿**（它只查标记字面量）、**单文件局部跑也不报错**——**只有全量 e2e 才暴露**，与既有「同一套数据原则执行盲区」（只查被删字段、不查读端）**同源**。
+> **第十二范本（2026-09-14 批次 38 新增·「移动单一源的位置 = 一次全仓改签」类）**：批次 38 把 `pagerHtml` 从 `components/ui/list-filter.js` **移出**到 `components/ui/pager.js`（理由是 `relation-matrix → list-filter → inspector → vote-summary-panel → relation-matrix` 会成**模块环**，单一源必须落在**不依赖任何业务模块的叶子件**上），但只改了 `relation-matrix.js` 与新写的 `pager.js`，**忘了同步另外 6 个刚从 `list-filter.js` 引入 `pagerHtml` 的文件** → 运行时 `SyntaxError: The requested module './list-filter.js' does not provide an export named 'pagerHtml'`，**一次性打红 17 个测试（含 5 个 e2e）**。**判据**：单一源**换文件 / 换名字**时，必须 grep **旧路径的全量引用**（含 `?v=` 版本戳形式）**逐一改签**，并在改完后断言「旧路径 **0 命中**」；**「改了引用方 A 就以为改完了」是典型遗漏**，且**静态守卫 S11 全绿**（它只查标记字面量）、**单文件局部跑也不报错**——**只有全量 e2e 才暴露**，与既有「同一套数据原则执行盲区」（只查被删字段、不查读端）**同源**。
 
 > **第十三范本（2026-09-15 批次 44 新增·「同一病灶只修一处 = 没修完」类）**：支书批次 32 实报的「考察上传报必填、框却不在位」修好后，**同一个病灶类在全站还有 ≥50 处**（提交动作的字段级必填校验点；实测登记 **92 处**，分布 20+ 文件）——**只修了支书点名的那一处，等于没修这一类**。**判据**：**病灶不是「一处 bug」，而是「一类形态」**——修完一处后必须立刻回答「**同一形态在全站还有几处**」（用**语义**特征去枚举，不是按文件名/关键词猜），并按规模决定处置：>1 处即须建**台账**（逐条登记 file / 字段 / 流程 / 可自动化与否 + 理由）＋**真机覆盖**（能自动化的流程逐条跑闭环，不能自动化的必须写清**为什么**），再由守卫把「新增一处未纳入覆盖」变成红灯（防再次只修一处）。**本批落地**：`server/test/form-loop-registry.mjs`（92 条校验点台账，21 条真机可驱动、71 条逐条写明 reason）＋ `server/test/form-loop-sweep.test.mjs`（10 条真机闭环流程 + S0–S4 台账守卫：规模不得静默缩水 / 白名单必带 reason / machine:true 全部纳入覆盖 / 无僵尸条目 / 出处文案存在）。**核心判据（真机）**：**报「请填写 X」时 X 的可见载体必须在位**；载体不在位却报字段级必填 ⇒ 违规（正是支书实报的那类）；既无提示也无提交成功后 ⇒ 静默失败，同样违规。
 
@@ -101,7 +101,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > **已查明来源（供裁定）**：该提醒出自 **2026-09-09 批4「域参数」**（参数 `leader.semesterReportReminder`，频率固定学期制、开学首周提醒一次；[today-tab.js:185](file:///d:/GitHub/GSM1921-SOP/docs/src/entries/tabs/today/today-tab.js#L185) 注明「支书批」）→ 故待裁的是**做法（人工收集 vs 服务端汇总）**，不是它是否存在。
 > **第十五范本（2026-09-15 批次 47-B 新增·「问句在位但没人守」类）**：支书实报「考勤、考察里人作首列的表格字体很小」。查下去有**两级病根**：① **单档被 CDN 工具类压过**——表格 13px 只声明在 `<table>` 上、由数据格**继承**，而 workspace 页依赖 CDN Tailwind，其 `.text-xs`(12px) 与原规则**同特异性**且注入在后 → 数据格挂 `class="text-xs"` 时**生产实际渲染 12px**（继承永远输给直接声明）；② **真机 ≠ 真环境**——批 43 的 `page-sweep` 把 `cdn.tailwindcss.com` 路由**中断**了，于是上面那个越界**在量测环境里根本不存在**，真机普查一直报 **0 违规**。**判据**：**「真机锁体验」的前提是量测环境与生产一致**；环境被静音，锁到的是假象（比没有守卫更危险）。**更值钱的元教训**：本表**第四问「量测环境」自 2026-09-14 就在位**，批 43 仍踩了它、且**无人发现**——**问句在位 ≠ 有人执行**；凡问句若指不到一个守卫，就只是口号。**对策**：① 被静音的外部资源**逐条登记「为何不影响被测属性」**（`page-sweep.test.mjs::S2` 常驻断言，新增静音项不同步台账即红灯）；② 会**影响**被测属性的资源，必须先把该属性做成**与它无关**（单档改为**直接声明**到 `th/td`，特异性高于单类工具类 → 不论 CDN 在场与否渲染一致，**离线量测重新有效**；`filter-row.test.mjs::D3` 锁住）；③ 数据格**元素自身**不得挂小字类（`filter-row.test.mjs::S13`）；④ 真机侧加 **P6–P9**（控件档 / 数据格档 / 裸控件 / 分页钮例外）与 **S3 非空转**。
 
-> **第十七范本（2026-09-16 批次 47-M 新增·「病灶不产出文本时，判据自己也看不见它」类）**：真机普查在组长台「我的处置」跑一条新流程时报「**静默失败**」——点「评论」既无校验提示也无成功提示。顺着读源码才查出根因：`docs/src/services/issues.js` 里 **11 处 `showToast(...)`，却从未 `import` 它**，页面也没有把它挂到 `window` 上 ⇒ 运行时**一律抛 `ReferenceError: showToast is not defined`**。**这类病灶对现有两类判据而言是「不可见」的**：阶段一判据问「提示文本对不对」、阶段二问「成功提示 + 真生效 + 重载后仍在」——**两者都从「文本」出发**，而这里根本**不产出文本**；于是只会被记成「静默失败」，**成因完全查不出来**（要靠人顺藤摸到模块头部）。**用户可见后果分两半**：① **校验失败**处抛在 `return` **之前** ⇒ 点提交毫无反应（死按钮），病灶（缺必填）一句话都没说；② **成功**处抛在**写之后** ⇒ 数据已落库、界面一声不吭，用户以为没生效而**重复提交**。**判据（本批落地）**：**在「文本判据」之外补一条「异常判据」**——真机跑每条流程后断言**无未捕获脚本错误**（`pageerror`：`ReferenceError` / `TypeError` / `is not defined` / `Cannot read`），**只算真·未捕获异常，不含 console 噪声与资源加载失败**（字体被 abort 是普查故意为之）。**更值钱的元教训**：**「静默」是症状不是病因**；只要判据全都建立在「用户看得见的文本」上，就总有一类病灶**连判据都描述不出它**。凡遇到「查不出为什么静默」的情形，**先问「有没有一个异常 / 状态 / 网络层面的证据被我们丢掉了」**，再回去读代码。**另一半根因（台账层面）**：这 11 处所在的 5 个校验点**长期被含糊 reason 挂在 `machine:false` 白名单里** ⇒ **白名单不只是「没测」，它会持续掩盖白名单里的病灶**——这正是 `REVIEW_QUEUE 47-L/47-M` 要求「每条 `machine:false` 必须写实测计数 + 纳入条件」的理由。**守卫**：`form-loop-sweep.test.mjs`（每条流程 + 每条成功路径各施加一次）。
+> **第十七范本（2026-09-16 批次 47-M 新增·「病灶不产出文本时，判据自己也看不见它」类）**：真机普查在组长台「我的处置」跑一条新流程时报「**静默失败**」——点「评论」既无校验提示也无成功提示。顺着读源码才查出根因：`docs/src/services/governance/issues.js` 里 **11 处 `showToast(...)`，却从未 `import` 它**，页面也没有把它挂到 `window` 上 ⇒ 运行时**一律抛 `ReferenceError: showToast is not defined`**。**这类病灶对现有两类判据而言是「不可见」的**：阶段一判据问「提示文本对不对」、阶段二问「成功提示 + 真生效 + 重载后仍在」——**两者都从「文本」出发**，而这里根本**不产出文本**；于是只会被记成「静默失败」，**成因完全查不出来**（要靠人顺藤摸到模块头部）。**用户可见后果分两半**：① **校验失败**处抛在 `return` **之前** ⇒ 点提交毫无反应（死按钮），病灶（缺必填）一句话都没说；② **成功**处抛在**写之后** ⇒ 数据已落库、界面一声不吭，用户以为没生效而**重复提交**。**判据（本批落地）**：**在「文本判据」之外补一条「异常判据」**——真机跑每条流程后断言**无未捕获脚本错误**（`pageerror`：`ReferenceError` / `TypeError` / `is not defined` / `Cannot read`），**只算真·未捕获异常，不含 console 噪声与资源加载失败**（字体被 abort 是普查故意为之）。**更值钱的元教训**：**「静默」是症状不是病因**；只要判据全都建立在「用户看得见的文本」上，就总有一类病灶**连判据都描述不出它**。凡遇到「查不出为什么静默」的情形，**先问「有没有一个异常 / 状态 / 网络层面的证据被我们丢掉了」**，再回去读代码。**另一半根因（台账层面）**：这 11 处所在的 5 个校验点**长期被含糊 reason 挂在 `machine:false` 白名单里** ⇒ **白名单不只是「没测」，它会持续掩盖白名单里的病灶**——这正是 `REVIEW_QUEUE 47-L/47-M` 要求「每条 `machine:false` 必须写实测计数 + 纳入条件」的理由。**守卫**：`form-loop-sweep.test.mjs`（每条流程 + 每条成功路径各施加一次）。
 
 ---
 
@@ -124,7 +124,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第二十六范本（2026-09-17 批次 47-Z 新增·「写下的前置条件本身是一条跨人假设」类）**：台账里最后一条 `machine:false`（支书台「待办·退回」的「请填写退回原因」，`secretary/todo-tab.js:672`）的 reason 写着「退回浮态只在**有 pending 成员变更确认**时挂载……纳入条件：**组织委员**在**某台**发起一次成员变更（名册报送）→ 该待办即出现」。**前半句是实测事实，后半句却是一条从没核过的跨人假设**——该队列是**纯客户端**的：`mockDB.pendingMemberConfirmations` ＋ 自管 localStorage 键 `gsm1921-member-confirmations`（`member-confirmation.js` **没有任何服务端表**，**mock / api 两态同源**）⇒ 请求**只存在于产生它的那个浏览器会话里**，组织委员在另一台发起、支书这边**根本看不到**。真正的前置是「**同一会话内先产生过一条请求**」——而支书本人也在该写权内（`person-entry.js::EDIT_ROLES = 支书/副支书/组织委员`）⇒ 可达链＝`person.html?id=p7` →「编辑档案」→ 改「发展阶段」→ 保存（报「已报送支书确认 1 项」）→ 回支书台「待办」→ 退回按钮在位。**判据**——① **登记里的「纳入条件」本身也要核**：凡出现「**某人 / 某角色**在**某处**先做一次」这类**跨人 · 跨会话**描述，必须先问「**这份数据是存在服务端，还是只在本会话**」——**存在哪里，决定了谁能看见它**（R-78 末句「登记的理由本身也要核」的最强实例：reason 写得越像结论，越容易免检）；② **「造可达前置」有两种形态**：**种子**（47-W/X/Y 走的路）或**真机动作链**（本条：不造任何数据，让产品自己走出来）——**能走出来的，就不要造**（造种子会引入「种子是否自洽」的新风险）；③ 判据的前置**可能不在同一张页面上** ⇒ 为它补 `{ goto }` / `{ openTab }` 两步能力（**跨页前置链**，与 `dialogAnswer` / `reopen[]` 同规：**形态逼出来的能力，不是为凑覆盖**）。**守卫**：`form-loop-sweep.test.mjs`（新增 `secretary-todo-reject-reason`；`FLOWS_BASELINE` 53 → 54；`machine:false` 3 → 2，**余 2 条均有裁定归属**）。
 
-> **第二十七范本（2026-09-17 批次 49 新增·「判据要落在『用户看到成功』的那一刻」类）**：全站 `showToast('success', …)` **175 处**，其中约 **113 处**是「**先弹成功、落库在后台跑**」——根因只有一条：持久化汇聚点 `persist()` 是**同步 void 函数**（api 形态只 `setTimeout` 排一次 800ms 防抖快照），**调用方无法 await**，而快照失败**只 `console.warn`** ⇒ 用户「提交后立刻关页 / 刷新」可能**提示成功、其实没存上**，且**无从察觉**。**最容易走错的路**是「把 113 个调用点逐个改成 `await persist()`」——那样每次新增写口都要人记得加 await，且服务层函数要集体改 async（波及所有同步消费返回值的调用点）。**正解＝换一个落点**：把判据收口到**「用户看到成功的那一刻」**——新增叶子件 `core/pending-writes.js`（`trackWrite` / `settleWrites`），`showToast` 的 success 分支先 `await settleWrites()`，失败或超时**改报失败**（等待期间给「保存中…」过渡态）⇒ **新增写口天然受约束，不会因遗忘而复发**（对照 R-67：**不是修 113 处，而是把 113 处变成同一个判断**）。**判据**——① 凡「先报结果、后台再干活」的地方，**判据要么落在结果那一刻，要么就别报**（「任何情况下都不许在未确认时声称成功」，超时也报超时而非成功）；② **登记要发生在「排程那一刻」，不能等真跑起来才登记**——否则等待方会在「**已排程、未 flush**」的空窗里看到「无在途写」而**放行**（判据白设，本条实做时差点踩到）；③ **异步空窗是隐形杀手**：凡由异步触发落库的链路（原 `services/mock.js::saveDB` 用**动态 import** `.then(persist)`）都必须在排程那一刻登记，否则等待方**看不见它**；④ **卸载路径要善后**：`pagehide` 同步冲刷由浏览器接管、本上下文无法再观测 ⇒ 必须**结算排程**，否则等待的 promise 永远挂着、成功提示**永不出**（**比不修更坏**）；⑤ **失败必须报出来**——「失败的证据不得被成功吞没」（同 R-77 精神），原实现把落库失败静默成 `console.warn`、用户照样看到「成功」。**⑥（本范本的第二半，2026-09-17 批次 49 收尾全量实做时补）新机制会造出新的判据干扰源**：本范本给等待期加了一条「保存中…」**过渡态**，于是**「提示容器里有字」不再等于「已有裁决」**——过渡态**抢在**裁决之前把成功路径守卫的等待条件满足掉了，全量首跑即读到「i保存中…i保存中…」，**被报成「成功提示不符」**（**方向最坏：它把人引去改断言字，而真问题一个字都没被说出来**）。**判据**——(a) 修法是**把判据从「有字」收紧为「有裁决」**，并**另立一条独立违规「一直停在过渡态」**（否则一个**永不结算**的在途写会被读成「文案不符」）；**不是**放宽判据，**也不是**把等待窗口调长——**等待条件本身被过渡态满足了，调窗口治不了**（这与「窗口不足」（R-74）是**两个不同方向**的病，别混为一谈）；(b) **推广**：**中间态是新的判据干扰源**——凡引入加载态 / 提交中 / 过渡提示，**同批内**扫一遍所有「等待其出现」的判据（含守卫与产品自身的 loading 判定），问一句「**等到的会不会是过渡态**」；(c) 顺带印证了本仓一条老纪律：**改一处机制，要连带审它改变的所有「别人的前提」**（本次被改变的前提是**守卫的等待条件**，而不是产品行为）。**守卫**：`pending-writes.test.mjs`（W1–W4 行为层 + W5–W9 接线层）· `form-loop-sweep.test.mjs`（`readToast` 只认裁决 + 「一直停在过渡态」独立违规）。
+> **第二十七范本（2026-09-17 批次 49 新增·「判据要落在『用户看到成功』的那一刻」类）**：全站 `showToast('success', …)` **175 处**，其中约 **113 处**是「**先弹成功、落库在后台跑**」——根因只有一条：持久化汇聚点 `persist()` 是**同步 void 函数**（api 形态只 `setTimeout` 排一次 800ms 防抖快照），**调用方无法 await**，而快照失败**只 `console.warn`** ⇒ 用户「提交后立刻关页 / 刷新」可能**提示成功、其实没存上**，且**无从察觉**。**最容易走错的路**是「把 113 个调用点逐个改成 `await persist()`」——那样每次新增写口都要人记得加 await，且服务层函数要集体改 async（波及所有同步消费返回值的调用点）。**正解＝换一个落点**：把判据收口到**「用户看到成功的那一刻」**——新增叶子件 `core/pending-writes.js`（`trackWrite` / `settleWrites`），`showToast` 的 success 分支先 `await settleWrites()`，失败或超时**改报失败**（等待期间给「保存中…」过渡态）⇒ **新增写口天然受约束，不会因遗忘而复发**（对照 R-67：**不是修 113 处，而是把 113 处变成同一个判断**）。**判据**——① 凡「先报结果、后台再干活」的地方，**判据要么落在结果那一刻，要么就别报**（「任何情况下都不许在未确认时声称成功」，超时也报超时而非成功）；② **登记要发生在「排程那一刻」，不能等真跑起来才登记**——否则等待方会在「**已排程、未 flush**」的空窗里看到「无在途写」而**放行**（判据白设，本条实做时差点踩到）；③ **异步空窗是隐形杀手**：凡由异步触发落库的链路（原 `services/core/mock.js::saveDB` 用**动态 import** `.then(persist)`）都必须在排程那一刻登记，否则等待方**看不见它**；④ **卸载路径要善后**：`pagehide` 同步冲刷由浏览器接管、本上下文无法再观测 ⇒ 必须**结算排程**，否则等待的 promise 永远挂着、成功提示**永不出**（**比不修更坏**）；⑤ **失败必须报出来**——「失败的证据不得被成功吞没」（同 R-77 精神），原实现把落库失败静默成 `console.warn`、用户照样看到「成功」。**⑥（本范本的第二半，2026-09-17 批次 49 收尾全量实做时补）新机制会造出新的判据干扰源**：本范本给等待期加了一条「保存中…」**过渡态**，于是**「提示容器里有字」不再等于「已有裁决」**——过渡态**抢在**裁决之前把成功路径守卫的等待条件满足掉了，全量首跑即读到「i保存中…i保存中…」，**被报成「成功提示不符」**（**方向最坏：它把人引去改断言字，而真问题一个字都没被说出来**）。**判据**——(a) 修法是**把判据从「有字」收紧为「有裁决」**，并**另立一条独立违规「一直停在过渡态」**（否则一个**永不结算**的在途写会被读成「文案不符」）；**不是**放宽判据，**也不是**把等待窗口调长——**等待条件本身被过渡态满足了，调窗口治不了**（这与「窗口不足」（R-74）是**两个不同方向**的病，别混为一谈）；(b) **推广**：**中间态是新的判据干扰源**——凡引入加载态 / 提交中 / 过渡提示，**同批内**扫一遍所有「等待其出现」的判据（含守卫与产品自身的 loading 判定），问一句「**等到的会不会是过渡态**」；(c) 顺带印证了本仓一条老纪律：**改一处机制，要连带审它改变的所有「别人的前提」**（本次被改变的前提是**守卫的等待条件**，而不是产品行为）。**守卫**：`pending-writes.test.mjs`（W1–W4 行为层 + W5–W9 接线层）· `form-loop-sweep.test.mjs`（`readToast` 只认裁决 + 「一直停在过渡态」独立违规）。
 
 > **第二十八范本（「出口脱敏 ≠ 写口脱敏」类）**：匿名反馈的读出口曾按「**读取时把身份字段从库里删掉**」脱敏；改口径后，`server/routes/resources.js::sanitizeIssue` 改成「**只剥不外泄、不回写**」——**出口这一层做对了**。但同一条记录上还有一个**整条回写**的写口：`PATCH /issues/:id`（支书处置：指派 / 关闭 / 回复）**先脱敏读出记录、再把整个对象写回** ⇒ 每处置一次，库里那条匿名反馈的真实提交人（`_realPersonId`）就被**永久擦掉**一次；前端 `_syncIssueToApi` 在每次处置都会走这条路，**而全程没有任何提示**（既不报错，也没有「有字段被改写」的迹象）。**这类缺陷的结构特征**——「**读时脱敏 + 整条回写**」并存：**只要这两件事落在同一条记录上，写口就会把「库里本该有的东西」当成「出口该剥的东西」一起擦掉**。**判据**——① **脱敏是出口的事，不是写口的事**：出口剥掉的字段**不得成为写回输入**（写口要拿**未脱敏**的原记录，或只写本次真正要改的字段）；② 「**有一个出口脱敏，就要有一个写口保证不顺手把库里的东西擦掉**」——两者**成对**成立（判例出处：`CLAUDE.md` R-24 的匿名口径改裁把「库里留真身、出口脱敏」定了下来，写口这一侧必须同步跟上）；③ **静默 + 不可逆是最坏的部分**：擦除不报错、不提示，且**每写一次擦一次**（不可逆，事后补不回来）⇒ 判据要**常驻**（修了不加守卫＝还会回来）。**为什么不是「写回时也一并剥掉更保险」**：因为「**库里存不存真身**」与「**出口给不给真身**」是两件事——脱敏的职责只有**出口**这一层；写口顺手剥掉＝把**存储**也当成出口用，换来的是**不可逆的数据损毁**，而出口剥掉是**可逆**的（改口径即可决定给不给）。**守卫**：`issue-anonymity.test.mjs`（「处置不清真身」：反复 PATCH 后库里仍含真身，且常规出口始终脱敏）。
 
@@ -154,7 +154,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 13. **同类规模**——我这次修的是「**一处**」还是「**一类**」？同一形态在全站**还有几处**（我数过没有）？>1 处时我建了台账与真机覆盖吗？新增同类时守卫会变红吗？（→ 同类病灶须先数规模再动手；只修一处＝没修完）
 14. **工具脚本的改写面**——我这份数据/口径里，有没有会被**工具脚本**命中的字面形态（路径、文件名、版本戳、可被批量替换的名字）？哪个脚本会来改写它？我做了构造免疫与防污染断言吗？（→ 补戳/改名/一改具改/格式化都属此类；被改写要**一眼可辨**，不能伪装成别的问题）
 15. **小字的用途**——我加的这段小字（`text-xs` / `text-[11px]` / `text-[10px]`），是在做**辅助**（提示 / 徽标 / 单位 / 状态），还是在**讲背景信息**？若是后者：它该出现在这个页面上吗，还是应归到「知情查看 / 制度与答复」？（支书 2026-09-15 原话：「有很多辅助小字都脱离了使用辅助的功能，而是讲很多背景信息，这是我所不喜欢的」——**拿不准就问支书**，登记 `REVIEW_QUEUE Q-23-39`）
-16. **静默的成因**——我说「这里静默失败 / 没反应 / 查不出原因」时，**判据本身是不是只看得见「文本」**？我有没有丢掉**异常 / 状态 / 网络**层面的证据（未捕获脚本错误、请求失败、状态机没推进）？这个「静默」是不是**被某条白名单长期挡在真机之外**才一直没人发现？（→ 批次 47-M：`services/issues.js` 11 处 `showToast` 未导入 ⇒ `ReferenceError`，两类文本判据都只能把它记成「静默失败」而查不出成因；见「范本第十七」）
+16. **静默的成因**——我说「这里静默失败 / 没反应 / 查不出原因」时，**判据本身是不是只看得见「文本」**？我有没有丢掉**异常 / 状态 / 网络**层面的证据（未捕获脚本错误、请求失败、状态机没推进）？这个「静默」是不是**被某条白名单长期挡在真机之外**才一直没人发现？（→ 批次 47-M：`services/governance/issues.js` 11 处 `showToast` 未导入 ⇒ `ReferenceError`，两类文本判据都只能把它记成「静默失败」而查不出成因；见「范本第十七」）
 17. **守卫守的是一维还是整个接口**——我为这个接口/组件建的守卫，是**按「接口的完整约定」逐维覆盖**（参数个数 / 顺序 / 允许枚举 / 返回值 / 状态机），还是**只把「上次踩过的那个坑」写成唯一判据**？同接口的其它形态是否从它眼皮下走过？（→ 批次 47-P：`ux-guard ⑥`「防参数写反」**只匹配两参形态**，而真实存在的**单参** `showToast('文案')` 恰恰从它眼皮下走过 ⇒ 用户只看到「只有图标、没有文字」的空提示；见「范本第十八」）
 18. **这份内容同时还给谁看**——我要改的这个文件 / 表 / 数据，是**只有内部可见**，还是**同时也是公开面（或另一种可见性）的来源**？我加进去的东西，**在那个面上该不该出现**？（→ 批次 47-Q：`issues.json` 既是内部汇报的单一源、又是**公开匿名反馈页**的数据源，直种＝内部汇报上公开页；见「范本第十九」）
 19. **我补的种子会不会把要测的那一支挡住**——我为了让某个按钮 / 表单出现而补的数据，是否同时决定了它**落在哪个状态分支**（哪一列、哪套 UI、是只读还是可写）？**该分支正是我要测的那一支吗**？这个表单有没有**出厂预填**（尤其是「上一次的内容」）使必填分支走不到？（→ 批次 47-R：给「我的复盘」补归属时挑到了**已有复盘记录**的活动 ⇒ 行卡落进「已复盘」列、渲染只读详情，**没有复盘表单**；见「范本第二十」）
@@ -185,19 +185,19 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 规则/口径 | 权威判据出处 | 守卫（文件::断言号） | 状态 | 详述处 |
 |---|---|---|---|---|
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps`） | `version-stamp.test.mjs::S1–S6 + D1–D9` | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
-| R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/list-filter.js`（引擎内置分页）· `components/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
+| R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/ui/list-filter.js`（引擎内置分页）· `components/ui/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
 | 「硬编码 hex」存量回归：`DESIGN_SYSTEM.md §2.8` 四层分类取色，**新增即红** · 逐文件处数 ratchet · 搬移例外台账（人工声明 + 逐值对照） | `docs/src/styles.css :root` 取色令牌 · `DESIGN_SYSTEM.md §2.8` | `hex-hardcode-guard.test.mjs::H1–H5` | 已闭环（存量 1957 处 / 168 值 / 92 文件；存量起点 2025 ⇒ ↓68） | `DESIGN_SYSTEM.md §2.8` · `server/test/style-baseline.mjs` |
 | 「控件小字」存量回归：`DESIGN_SYSTEM.md §4.3` 控件字号**单档 13px**，禁控件挂 `text-[11px]/[10px]/[9px]`（新增即红 · 逐文件站点数 ratchet） | `DESIGN_SYSTEM.md §4.3` | `control-font-guard.test.mjs::T1–T4` | 已闭环（控件 9 处 / 3 文件；全站 `text-[9/10/11px]` 367 处为进度口径） | `DESIGN_SYSTEM.md §4.3` · `server/test/style-baseline.mjs` |
 | R18 选人载体语义两分（选名单成员走 PersonPicker；任命/指派到人允许下拉） | `content/04_web_design/design-system/DESIGN_SYSTEM.md §4.13` | `filter-row.test.mjs::S9` | 已闭环（例外登记 4 处） | `§3.4 R18` · `REVIEW_QUEUE Q-23-13` |
-| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DESIGN_SYSTEM.md §4.10` |
-| R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
+| R15/R23/R24/R25 人×项目矩阵单一源（互为转置 / 项目维封顶 6 / 人维分页 / 只给挂载点不吞语义） | `components/ui/relation-matrix.js` | `relation-matrix.test.mjs::S1–S6 + 真机①②` | 已闭环 | `§3.4 R15 / R23 / R24 / R25` · `DESIGN_SYSTEM.md §4.10` |
+| R16 党小组活组清单单一源（禁字面量 / 模块加载期派生快照 / 种子枚举代跑） | `services/member/party-group.js::groupOptions()` | `party-group.test.mjs::S1–S4` | 已闭环 | `§3.4 R16` |
 | R19 同一动作多入口（不同角色门）须同一实现体挂多门 | `server/routes/member.js::createMemberRow` | `member-flow.test.mjs::S4` · `permission-gate.test.mjs::⑤d / ⑥ / ⑦` · `member-persist.test.mjs::api ⑫` | 已闭环 | `§3.4 R19` · `REVIEW_QUEUE Q-23-10` |
-| R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
+| R20 状态与载体须同一次变化驱动 + 销毁前先摘回调 | `components/governance/person-picker.js` | `inspection-loop-e2e.test.mjs`（组长台 / 组织台两条真机）· `ux-guard.test.mjs::⑦` | 已闭环 | `§3.4 R20` · `REVIEW_QUEUE Q-23-14` |
 | R26 说明文件里的「数字与名称」须指到代码出处（**含「守卫自身须登记进 README 测试清单」**——守卫存在却无人可见＝半个没做） | 各说明文件 ↔ 代码注册数组 · `README.md` 测试清单 | `doc-consistency.test.mjs::S1–S15`（**2026-09-26 批次 205 改准**：原写 `S1–S12`；现到 **S1–S15**，另含 S13 时间戳↔frontmatter／S14 可数事实对账／S15 弱清单） | 已闭环 | `§3.4 R26` · `REVIEW_QUEUE Q-23-24 / Q-23-37` |
-| R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（**95** 条校验点台账，**91** 条可自动化 / **4** 条逐条 reason，含「需跨页前置链」「服务层重复守卫」分列——批 47-W/47-X/47-Y/47-Z 由 84/9 升为 **91/2**；**批次 91 再增 2 条**（本组通知发布口，`services/notice.js`）⇒ **现余 4 条＝服务层重复守卫 1 · 缺稳定前置待解锁 3**，各条归属均写在 reason 内） | `form-loop-sweep.test.mjs::S0–S5` + **54 条真机闭环** + **17 条真机成功路径**（每条另加「未捕获脚本错误」判据） | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44 / 批次 47-W / 47-X / 47-Y / 47-Z` |
+| R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（**95** 条校验点台账，**91** 条可自动化 / **4** 条逐条 reason，含「需跨页前置链」「服务层重复守卫」分列——批 47-W/47-X/47-Y/47-Z 由 84/9 升为 **91/2**；**批次 91 再增 2 条**（本组通知发布口，`services/governance/notice.js`）⇒ **现余 4 条＝服务层重复守卫 1 · 缺稳定前置待解锁 3**，各条归属均写在 reason 内） | `form-loop-sweep.test.mjs::S0–S5` + **54 条真机闭环** + **17 条真机成功路径**（每条另加「未捕获脚本错误」判据） | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44 / 批次 47-W / 47-X / 47-Y / 47-Z` |
 | R73 台账完备性**三缺一**：规模不缩水（S0）/ 已登记项全覆盖（S2）/ **全站是否都已登记（无守卫）**——**漏登记时三条守卫全绿** | `server/test/form-loop-registry.mjs`（批 47-R 补登 1 处遗漏：`thought-report-entry.js:287`） | **暂无守卫**（如实登记，不假装已覆盖；第 ③ 缺靠人工按文案搜同类发现） | 半闭环（缺第 ③ 缺的守卫） | `CLAUDE.md R-73` · `REVIEW_QUEUE 批次 47-R` |
-| 内容单一源同时承载**可见性不同**的两类数据时，公开面必须显式过滤（且列表与统计同一口径） | `docs/data/issues.json`（公开匿名反馈 + 内部汇报同文件）· `docs/src/components/issue-list.js` · `server/seed.js::seedIssues()`（按 `kind` 分流脱敏） | `page-sweep.test.mjs`（公开反馈页）· 真机探针取证（公开页 4 行 / 无汇报标题） | 已闭环 | `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
+| 内容单一源同时承载**可见性不同**的两类数据时，公开面必须显式过滤（且列表与统计同一口径） | `docs/data/issues.json`（公开匿名反馈 + 内部汇报同文件）· `docs/src/components/feedback/issue-list.js` · `server/seed.js::seedIssues()`（按 `kind` 分流脱敏） | `page-sweep.test.mjs`（公开反馈页）· 真机探针取证（公开页 4 行 / 无汇报标题） | 已闭环 | `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
 | 显示接口须按其**完整约定**逐维守卫（参数个数 / 顺序）——只守「见过的错误形态」＝守一半 | `docs/src/core/utils.js::showToast(type, message)`（两参） | `ux-guard.test.mjs::⑥`（两维：**参数顺序写反** + **参数个数不足**）· 真机侧 `form-loop-sweep.test.mjs::pc-review-reject-note` | 已闭环（3 处单参真实调用已修） | `CLAUDE.md R-72` · `范本第十八` · `§0.1 第十七问` · `REVIEW_QUEUE 批次 47-P` |
 | R28-附 工具脚本会把「数据」当「代码」改写（补戳正则命中路径数据） | `docs/scripts/version-next.mjs::isCacheKeyLine`（缓存键语境单一源；`bump-version.mjs` 补戳与自检同判据） | `form-loop-sweep.test.mjs::S4`（防污染断言：数据里不得出现 `?v=`）· `version-stamp.test.mjs::S4–S6 / D7–D9` | 已闭环（批次 46 ① 根治 Q-23-33） | `范本第十四` · `REVIEW_QUEUE Q-23-33` |
 | R-74 「等信号出现」的判据**等待窗口必须覆盖真实耗时**——长链（串行多写口）窗口不足时，会把「**慢**」误判成「**没成**」并把排查方向带偏 | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].toastTimeoutMs`（缺省 4s 不动旧行为；长链显式声明） | `form-loop-sweep.test.mjs`（`leader-write-activity-save` 首用；`writeActivityWithSOP` 串行 16 个写口 × 600ms ⇒ 约 10s） | 已闭环 | `CLAUDE.md R-74` · `范本第二十一` · `§0.1 第二十问` · `REVIEW_QUEUE 批次 47-S` |
@@ -205,16 +205,16 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R-76 **默认挑中的那一项可能是「不能写的那一项」**：凡动作需「从若干项里挑一项」，须显式声明「挑出来的那项要满足什么条件」（含**它的类型决定了会改变多少**），不得用「第一项」代过；**有成功提示 ≠ 动作生效**（提示可把空转写在脸上）；**判据判「改变了什么」（`countUp` 增量），不判「世界此刻正好等于什么」（绝对值会随种子与同批其它流程变动）** | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].fill[].selectOption = { selector, notText / text }` · `asserts[].countUp` | `form-loop-sweep.test.mjs`（`selectOption` 选步 + `countUp` 断言；`leader-attendance-upload-submit` 首用） | 已闭环 | `CLAUDE.md R-76` · `范本第二十三` · `§0.1 第二十二问` · `REVIEW_QUEUE 批次 47-T` |
 | R-77 **判据之间不得互相冒充**：同一条数据面上，写入的标记**不得是另一条判据断言语料的子串**（否则前者真写入会把后者顶替成立——**把红变成绿**，比假红更难发现） | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].asserts[].text`（语料互不包含） | `form-loop-sweep.test.mjs::S5`（「标记子串」常驻断言；**上线前已在旧代码上证明它会红**：改「通知标题」⇒ 三条命中） | 已闭环 | `CLAUDE.md R-77` · `范本第二十四` · `§0.1 第二十三问` · `REVIEW_QUEUE 批次 47-U` |
 | R-78 **「判据不可达」只有两条出口**：造出**真机可达**的种子，或**如实登记**为不可达（无第三条路：放宽判据 / 改弱断言 / 改 `machine` 了事，都是「让守卫看起来在守」）；**造的种子必须自洽**（不得绕过产品自身校验造出「永远不可能出现」的状态），且**位置须不扰动既有判据**；顺手把靠偶然事实成立的入口**显式化**；**登记的理由本身也要核**（口径错了等于没登记） | `docs/src/mock/activities.js::act-35`（线下支委会·议程项 `result:'passed'`）· `docs/src/mock/taskforces.js::tf-001`（补演示账号成员 p5 + **一条待核产出**）· `docs/src/mock/seed.js::SEED_MAKEUP_TASKS` + `docs/src/mock/attendance.js::att900`（9 月缺勤＝补课任务的**派生源**，两形态同源注入；**id 须落在既有种子 id 空间**——初版 `att-sep-1` 不匹配 `/^att\d+$/` ⇒ `?reset=init` 剔不净，被 `reset-tier-init::C2` 当场抓住）· `server/test/form-loop-registry.mjs::secretary-inspector-resolution` / `visitor-insight-taskforce-contribution` / `org-taskforce-reject-reason` / `visitor-attendance-makeup-proof` / `secretary-todo-reject-reason`（**第 7 处＝无种子可造，改走「同一会话内的真机前链」**） | `form-loop-sweep.test.mjs`（四批共 7 处 `machine:false → true`；`FLOWS_BASELINE` 49 → **54**；新能力 **`dialogAnswer`**（原生 `window.prompt` 校验点须在触发步**之前**注册一次性应答器，否则 dismiss→`null` 连空值分支都到不了）与 **`{ goto }` / `{ openTab }`**（**跨页前置链**：有些校验点的前置**不在同一张页面上**，`open[]` 里先跳走造前置、跳回后切 tab））· `mock-integrity` M1/M2 · `agenda-flow` / `agenda-closure` / `today-summary` / `taskforce-lifecycle` / `workforce-gate` / `member-progress` / `b3-1-makeup-writeback` / `attendance-batch` / `async-vote` / `page-sweep` 复测全绿 | 已闭环（`Q-23-48` 为**换理由**后的待裁项） | `CLAUDE.md R-78` · `范本第二十五 / 第二十六` · `§0.1 第二十四 / 第二十五问` · `REVIEW_QUEUE 批次 47-W / 47-X / 47-Y / 47-Z` |
-| R-79 **「成功」是对用户的承诺**：不许在**未确认落库**时声称成功；判据要落在「**用户看到成功的那一刻**」（不逐调用点改 113 处，一处收口 ⇒ 新增写口天然受约束）；**登记须发生在排程那一刻**（否则等待方会在「已排程、未 flush」的空窗里放行）；**卸载路径须结算排程**（否则等待的 promise 永挂 ⇒ 提示永不出，**比不修更坏**）；**失败必须报出来**（不得 `console.warn` 了事——失败的证据不得被成功吞没）；走异步的写链（动态 import）与**外部写链**（REST / 本地缓存）都要登记 | `docs/src/core/pending-writes.js`（叶子件：`trackWrite` / `hasPendingWrites` / `settleWrites`）· `docs/src/core/utils.js::showToast`（success 分支先 `await settleWrites()`，失败或超时**改报失败**、等待期给「保存中…」过渡态）· `docs/src/core/data-adapter.js`（`persist()` 两分支登记 + **`_scheduleSnapshot` 排程即登记** + `_flushSnapshot` 失败结算并上抛 + `_flushSnapshotSync` 结算排程）· `docs/src/services/mock.js::saveDB`（去动态 import，改静态 `persist()`；该文件本就静态 import 同模块）· `docs/src/services/issues.js::_syncIssueToApi` · `docs/src/components/issue-detail.js`（原**空 `catch`** 补登记）· `docs/src/entries/tabs/leader/attendance-tab.js`（「批量设状态」文案更正——**只改 DOM 不落库者不得写「已设为」**） | `server/test/pending-writes.test.mjs`（W1–W4 行为层：落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection；W5–W9 结构层：success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与快照**排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import）· `form-loop-sweep.test.mjs::leader-attendance-batch-status`（toast 文案同步改字）· `form-loop-sweep.test.mjs`（`readToast` **只认裁决**——过渡态「保存中…」不算数；并新增「**一直停在过渡态**」独立违规——R-79 ⑧） | 已闭环（⚠ **api 形态的端到端**——真服务端 + 失败注入——**尚无真机证据**，如实登记为缺口） | `CLAUDE.md R-79` · `范本第二十七` · `§0.1 第二十六问` · `REVIEW_QUEUE 批次 49` |
+| R-79 **「成功」是对用户的承诺**：不许在**未确认落库**时声称成功；判据要落在「**用户看到成功的那一刻**」（不逐调用点改 113 处，一处收口 ⇒ 新增写口天然受约束）；**登记须发生在排程那一刻**（否则等待方会在「已排程、未 flush」的空窗里放行）；**卸载路径须结算排程**（否则等待的 promise 永挂 ⇒ 提示永不出，**比不修更坏**）；**失败必须报出来**（不得 `console.warn` 了事——失败的证据不得被成功吞没）；走异步的写链（动态 import）与**外部写链**（REST / 本地缓存）都要登记 | `docs/src/core/pending-writes.js`（叶子件：`trackWrite` / `hasPendingWrites` / `settleWrites`）· `docs/src/core/utils.js::showToast`（success 分支先 `await settleWrites()`，失败或超时**改报失败**、等待期给「保存中…」过渡态）· `docs/src/core/data-adapter.js`（`persist()` 两分支登记 + **`_scheduleSnapshot` 排程即登记** + `_flushSnapshot` 失败结算并上抛 + `_flushSnapshotSync` 结算排程）· `docs/src/services/core/mock.js::saveDB`（去动态 import，改静态 `persist()`；该文件本就静态 import 同模块）· `docs/src/services/governance/issues.js::_syncIssueToApi` · `docs/src/components/feedback/issue-detail.js`（原**空 `catch`** 补登记）· `docs/src/entries/tabs/leader/attendance-tab.js`（「批量设状态」文案更正——**只改 DOM 不落库者不得写「已设为」**） | `server/test/pending-writes.test.mjs`（W1–W4 行为层：落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection；W5–W9 结构层：success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与快照**排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import）· `form-loop-sweep.test.mjs::leader-attendance-batch-status`（toast 文案同步改字）· `form-loop-sweep.test.mjs`（`readToast` **只认裁决**——过渡态「保存中…」不算数；并新增「**一直停在过渡态**」独立违规——R-79 ⑧） | 已闭环（⚠ **api 形态的端到端**——真服务端 + 失败注入——**尚无真机证据**，如实登记为缺口） | `CLAUDE.md R-79` · `范本第二十七` · `§0.1 第二十六问` · `REVIEW_QUEUE 批次 49` |
 | R-80 **台账里「没被核到的那一半」会自己走偏**：台账条目里**每一个字段都要有判据**（`file` 有、`msg` 有、`line` 没有 ⇒ 只守了一半）；判据取**精确命中**（声明的那一行本身须含该文案），**不给容差**——给容差＝放任它继续走偏 | `server/test/form-loop-registry.mjs`（93 处校验点的 `line` 逐条更正——实做时查出 **11 条行号未同步**：本批改动下移 5 条 + 历史跑偏 6 条） | `form-loop-sweep.test.mjs::S6`（**新增**；与 `S4` 合看＝「**文件在 → 文案在 → 位置对**」三层可核） | 已闭环 | `CLAUDE.md R-80` · `§0.1 第二十七问` · `REVIEW_QUEUE 批次 49` |
 | 出口脱敏 ≠ 写口脱敏：**读时脱敏 + 整条回写**并存的写口，会把库里只该在出口剥掉的东西顺手擦掉（**脱敏是出口的事，不是写口的事**；擦除静默且不可逆 ⇒ 判据须常驻） | `server/routes/resources.js::sanitizeIssue`（只剥不外泄、不回写）· `PATCH /issues/:id`（写回须拿**未脱敏的原记录**，或只写本次真要改的字段） | `issue-anonymity.test.mjs::处置不清真身`（支书反复 PATCH 后库里仍含真身，且常规出口始终脱敏） | 已闭环 | `CLAUDE.md R-81` · `范本第二十八` · `§0.1 第二十八问` |
 | R27 静态断言锁形态、真机全站普查锁体验（七台 × 全 tab，含真机尺规与**二级视图审次**、**自建列表分页**）+ **普查须与生产同环境** | `server/test/page-sweep.test.mjs` · `server/test/form-loop-sweep.test.mjs` | `page-sweep.test.mjs::S0–S3 + 七台真机普查` · `form-loop-sweep.test.mjs::S0–S6 + 54 条真机流程 + 17 条真机成功路径`（每条流程另加「**未捕获脚本错误**」判据） | 已闭环（`Q-23-40` 两处**已接引擎**、台账清空） | `§3.4 R27` · `CLAUDE.md R-68 / R-71` · `REVIEW_QUEUE Q-23-28 / Q-23-34 / Q-23-40 / Q-23-44`（⚠ **`machine:true` 只保证「必填校验分支」，成功路径另由 `SUCCESS_FLOWS` 覆盖**） |
 | R29 授权声明必须可核验：**功能不得随批次「一起进」**；注释里的「支书批 / 裁定」须**同行带日期**（防止给未逐项批准的功能伪造授权凭证） | 各源码注释（`docs/src` + `server`；判据**收窄**到「支书作为批准者的断言」，业务语汇如「报支书确认」不计） | `doc-consistency.test.mjs::S12` | 已闭环（13 条已**逐条回查补齐真实日期**、迁移台账**清空**＝此后零容忍；**日期能否指到问答记录机器查不了**，该半截靠支书复核） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41 / Q-23-42` |
-| R30 面向用户的「人工收集 / 归集 / 汇总」类要求，凡数据可由服务端算出者**须由服务端代劳**；聚合口径**单一源**（两端不得各写一套） | 纯聚合 `docs/src/services/member-progress.js::aggregateMemberProgress`（服务端同源 import）· 读接口 `server/routes/leader-progress.js` · 前端双态入口 `loadMemberProgress` | `member-progress.test.mjs::S1–S4`（S1＝**结构单一源**：接口源码不得出现自写判定） | 已闭环（`Q-23-41 ②`；47-I 已落 `today` 呈报实况 + 组长台改走载入器） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41` |
-| 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/mock/people.js`（PEOPLE）· `services/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
+| R30 面向用户的「人工收集 / 归集 / 汇总」类要求，凡数据可由服务端算出者**须由服务端代劳**；聚合口径**单一源**（两端不得各写一套） | 纯聚合 `docs/src/services/member/member-progress.js::aggregateMemberProgress`（服务端同源 import）· 读接口 `server/routes/leader-progress.js` · 前端双态入口 `loadMemberProgress` | `member-progress.test.mjs::S1–S4`（S1＝**结构单一源**：接口源码不得出现自写判定） | 已闭环（`Q-23-41 ②`；47-I 已落 `today` 呈报实况 + 组长台改走载入器） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41` |
+| 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/mock/people.js`（PEOPLE）· `services/member/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
 | 实体 id 唯一 + 生成单一源（第二范本） | `core/id.js::generateId / randomHex` | `id-uniqueness.test.mjs::S1–S3 + D1–D4` | 已闭环 | 本文件 §0 第二范本 · §跨类别同源校验 |
 | 通知受众写入值与判定同源（第三范本） | `core/constants.js::NOTICE_AUDIENCE_SENTINELS` | `notice-audience.test.mjs::N1–N8` | 已闭环 | 本文件 §0 第三范本 · §6 |
-| issue 支部归属（写入取本人支部、读侧单一源 `withinBranch`） | `services/branch.js::getBranchIdOfPerson` | `issue-branch.test.mjs::S1–S4 + D1–D3` | 已闭环 | `REVIEW_QUEUE Q-23-27` |
+| issue 支部归属（写入取本人支部、读侧单一源 `withinBranch`） | `services/branch/branch.js::getBranchIdOfPerson` | `issue-branch.test.mjs::S1–S4 + D1–D3` | 已闭环 | `REVIEW_QUEUE Q-23-27` |
 | 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
 | 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
 | 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
@@ -282,7 +282,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | `wizard-draft-`（前缀） | 本机临时·**草稿**（换组织向导未走完，按支部一份） | 同上（`org-setup-wizard.js`） |
 | `gsm1921-members-overlay` | **mock 形态专属**：成员档案覆盖层 | api 形态读链走 server `users`、写走 `/members*` 端点 ⇒ 无需服务端化（`person.js`） |
 | `gsm1921-accounts` | **mock 形态专属**：可持久化账号层 | api 形态账号承载＝server `users` 表行（`accounts.js`） |
-| `gsm1921-dev-stage-overrides` | 本机派生留痕（**暂留本机·未服务端化**）：派生「进入当前阶段日期」提醒 | **本批只登记**（未自创第二套口径）；如需跨设备可读，另裁后改服务端权威（`member-confirmation.js`） |
+| `gsm1921-dev-stage-overrides` | **遗留键（2026-09-28 已服务端化）**：原「进入当前阶段日期」本机覆盖档案 | 该事实已改挂成员档案字段 **`developStageSince`**（服务端权威、随 `users` 表落库、跨设备可读）；写口＝支书确认生效（`member-confirmation.js::_applyApproved` 与 `developStage` 同一笔），读口＝`loadStageEntryDates()`。本键只剩「init 档移除清单」引用（清旧机残留），**不得再出现业务读写**（`member-confirmation.js` / `init-reset.js`） |
 | `gsm1921-issue-submitter-token` | **设计如此·本机令牌**（随机、不可反查人的防刷令牌） | 按设计只在本设备；落服务端反成身份线索（`issues.js`） |
 | `gsm1921-init-state` | 本机·初始化态闸门（「正在初始化」的内存语义落盘位） | 非业务数据，纯本标签页运行态（`init-reset.js`） |
 
@@ -347,7 +347,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/activities.js` → `ACTIVITIES` 常量（**33 条记录，act-1~act-35（act-28 已删除）**；实测口径＝`mock-integrity` M1 打印 `ACTIVITIES`）
 **运行时**：`mockDB.activities`（由 `seed.js` 注入）
-**Service**：`docs/src/services/activity.js`
+**Service**：`docs/src/services/activity/activity.js`
 
 **展示页面**：
 
@@ -378,7 +378,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/taskforces.js` → `MOCK_TASKFORCES` 常量（8 条记录，tf-001~tf-008）
 **运行时**：`mockDB.taskforces`（由 `seed.js` 注入）
-**Service**：`docs/src/services/taskforce.js` → `TaskForceRecordStore`
+**Service**：`docs/src/services/activity/taskforce.js` → `TaskForceRecordStore`
 
 **展示页面**：
 
@@ -405,7 +405,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（**152 条记录**：显式种子段 `att1`~`att43` ＋ 隔离段 `att900`，`att44`~`att151` 由 8 月活动生成器追加〔`_AUGUST_EVENTS`：act-26 全员 50 ＋ act-27 支委班子 8 ＋ act-29 全员 50 ＝ 108〕；**2026-09-26 批次 205 改准**：原写「151 条记录，att1~att151」——既漏计隔离段 `att900`，且批次 192/195 剔除党委组织员 `p_pc`〔`_ALL_PERSON_IDS` 按 `branchId` 过滤〕后实测为 **152**）
 **运行时**：`mockDB.attendances`（由 `seed.js` 注入）
-**Service**：`docs/src/services/attendance.js`
+**Service**：`docs/src/services/activity/attendance.js`
 
 **展示页面**：
 
@@ -430,7 +430,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/inspection.js` → `INSPECTION_RECORDS` 常量（42 条记录，insp-1~insp-43（insp-17 已删除））
 **运行时**：`mockDB.inspections`（由 `seed.js` 注入）
-**Service**：`docs/src/services/inspection.js`
+**Service**：`docs/src/services/activity/inspection.js`
 
 **展示页面**：
 
@@ -455,7 +455,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（12 条记录，notice-101~notice-108 + notice-110 + notice-001/notice-005/notice-011）
 **运行时**：`mockDB.notices`（由 `seed.js` 注入）
-**Service**：`docs/src/services/notice.js` → `NoticeStore`
+**Service**：`docs/src/services/governance/notice.js` → `NoticeStore`
 
 **展示页面**：
 
@@ -478,7 +478,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 7. 待办数据
 
 **存储**：`mockDB.todos`（运行时由 NoticeTodoDeriver/LifecycleTodoDeriver 派生）
-**Service**：`docs/src/services/todo.js` → `TodoStore` + `NoticeTodoDeriver` + `LifecycleTodoDeriver`
+**Service**：`docs/src/services/governance/todo.js` → `TodoStore` + `NoticeTodoDeriver` + `LifecycleTodoDeriver`
 
 **展示页面**：
 
@@ -508,7 +508,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - **主源**：活动角色 `mockDB.activities[].assignments` / 专班成员 `mockDB.taskforces[].members`（统一英文编码 `organizer`/`deep`）
 - **审计快照**：localStorage `sop_org_os_auth_audit`（只增不改；revoke 为追加记录，判定取最新一条）
 - **常设赋权**（党小组组长 leader）：AuthStore 赋权链（AUTHORIZE_CHAIN），快照同样记录
-- **Service**：`docs/src/services/auth.js` → `AuthStore`（authorize / revokeAuthorization / syncProjectRoles 三合一：写主源 + 追加快照 + 通知）
+- **Service**：`docs/src/services/core/auth.js` → `AuthStore`（authorize / revokeAuthorization / syncProjectRoles 三合一：写主源 + 追加快照 + 通知）
 
 **展示页面**：
 
@@ -533,7 +533,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 9. 反馈数据
 
 **存储**：`docs/data/issues.json`（权威源）+ localStorage `gsm1921-issue-drafts`（个人草稿）
-**Service**：`docs/src/services/issues.js` → `IssueStore`（旧 FeedbackStore 已弃用，保留 shim 兼容）
+**Service**：`docs/src/services/governance/issues.js` → `IssueStore`（旧 FeedbackStore 已弃用，保留 shim 兼容）
 
 **展示页面**：
 
@@ -555,7 +555,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`mockDB.makeupTasks`（`core/domain.js` 初始化 `[]`，经 `core/data-adapter.js` 持久化；服务端模式路由 `/api/v1/makeupTasks`）
 **运行时**：`mockDB.makeupTasks`
-**Service**：`docs/src/services/makeup.js`
+**Service**：`docs/src/services/activity/makeup.js`
 
 **展示页面**：
 
@@ -580,7 +580,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/review.js` → `REVIEW_RECORDS`（11 条活动复盘）+ `TASKFORCE_REVIEW_RECORDS`（2 条专班复盘）
 **运行时**：`mockDB.activityReviews` / `mockDB.taskforceReviews`（P1-4 修复后写入 mockDB + persist()，刷新不丢失）
-**Service**：`docs/src/services/review.js`
+**Service**：`docs/src/services/governance/review.js`
 
 **展示页面**：
 
@@ -604,7 +604,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 **存储**：`docs/src/mock/seed.js` → `SEED_ASSIGNMENTS`（5 条种子数据）
 **运行时**：`mockDB.assignments`
-**Service**：无独立 Service——分工数据经 `core/data-adapter.js`（adapter.assignments）读写，权限联动 `services/auth.js`（syncProjectRoles）
+**Service**：无独立 Service——分工数据经 `core/data-adapter.js`（adapter.assignments）读写，权限联动 `services/core/auth.js`（syncProjectRoles）
 
 **展示页面**：
 
@@ -641,7 +641,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 15. 文件空间数据
 
 **存储**：`mockDB.fileSpaceRecords`（运行时动态创建）
-**Service**：`docs/src/services/mock.js`（通用 CRUD）
+**Service**：`docs/src/services/core/mock.js`（通用 CRUD）
 
 **展示页面**：
 
@@ -661,7 +661,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > 认证与页面门控链路（设计权威源：AUTHENTICATION_MODEL.md §四 登录门控四层）。核心：登录态由 auth.js 单一判定，页面身份校验防错位。
 
 **存储**：`localStorage gsm1921-login-user`（`{personId, role, tabId}`）+ `sessionStorage gsm1921-tab-id` / `gsm1921-session-snap`
-**Service**：`docs/src/services/auth.js` → `AuthStore`（login / devLogin / logout / getCurrentUser）；`docs/src/core/bootstrap.js`（门控执行）
+**Service**：`docs/src/services/core/auth.js` → `AuthStore`（login / devLogin / logout / getCurrentUser）；`docs/src/core/bootstrap.js`（门控执行）
 
 **同源校验点**：
 
@@ -686,7 +686,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 专班成员 personId ↔ people.js：专班 members 数组中 personId 在 PEOPLE 中存在
 - [ ] 活动写入→日历/统计联动：支书/组长写入活动后，首页日历和统计卡片同步更新
 - [ ] 首页统计卡口径（main-entry `_renderStats`）：本月活动=未归档且属本月 / 活跃专班=active+recruiting / 未读通知=activeOnly 且未读 / 个人考勤率=(present+made_up)/total（90/70 阈值三色）
-- [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
+- [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/record/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
 - [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
@@ -703,9 +703,9 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
 - [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
-- [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/roster.js` 与 `services/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
+- [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/member/roster.js` 与 `services/branch/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
 - [ ] 版本戳同值（缓存键一致性）：全站 `?v=<release>` 与本次发布版本**处处一致**——`docs/scripts/bump-version.mjs` 收尾自检须报「陈旧戳 0 处残留」；任一 `?v=` 落后即会让浏览器按 URL 分裂出第二个模块实例（注册表/共享状态读空）。**注意**：注释里的版本号是人工注记、不算缓存键（自检与改写同源跳过注释行）；**模板字符串动态 import**（`` import(`…/${stem}-workspace.js?v=…`) ``）也在覆盖范围内
-- [ ] 党小组清单单一源（2026-09-14 收敛，批次 29 加固）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序，读口 `services/party-group.js::groupOptions()`）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；**且须防两类绕过「字面量扫描」的等价病灶**——① 模块加载期**派生快照**（`const X = [...new Set(PEOPLE.map(p => p.partyGroup))]`：展开 `liveMembers()` 的 Proxy 即把实时视图冻结，与 `const PEOPLE = getMembers()` 同病；实测病灶 `components/person-picker.js`）；② 运行时用**种子枚举代跑**（`org-base-data-preview::PARTY_GROUP_OPTIONS` 只属预览种子期口径，运行时一律 `groupOptions()`；实测病灶 `services/branch-roster-import.js` 的导入行净化与按组应到统计、`entries/tabs/visitor/projects-tab.js` 的筛选项）。断言方式＝结构层 `party-group.test.mjs::S4`；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
+- [ ] 党小组清单单一源（2026-09-14 收敛，批次 29 加固）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序，读口 `services/member/party-group.js::groupOptions()`）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；**且须防两类绕过「字面量扫描」的等价病灶**——① 模块加载期**派生快照**（`const X = [...new Set(PEOPLE.map(p => p.partyGroup))]`：展开 `liveMembers()` 的 Proxy 即把实时视图冻结，与 `const PEOPLE = getMembers()` 同病；实测病灶 `components/governance/person-picker.js`）；② 运行时用**种子枚举代跑**（`org-base-data-preview::PARTY_GROUP_OPTIONS` 只属预览种子期口径，运行时一律 `groupOptions()`；实测病灶 `services/member/branch-roster-import.js` 的导入行净化与按组应到统计、`entries/tabs/visitor/projects-tab.js` 的筛选项）。断言方式＝结构层 `party-group.test.mjs::S4`；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
 - [ ] 账号与成员档案同源（2026-09-14）：账号由学号派生（账号即学号），成员新增/流出与账号建号/停用必须成对发生；禁出现「档案有此人、账号层没有」或反向的孤项
 - [ ] 档案「软标记」与撤销同源（2026-09-14 批次 29）：凡以**软标记**表达的状态（`transferOut` 等）都必须有**对称的清除口**，且清除须走**语义端点**——只打标记不清标记，会出现「撤销后账号仍 401 / 读链仍排除该行＝成员实际回不来」（实测病灶：API 形态撤销流出）。**口径**：mock 形态「save 即复活」自动清 `removedIds`，API 形态须 `POST /members/:id/undo-transfer-out`（与打标记端**同角色集** + 同支部 + 幂等 + 不接收字段）；接线选项 `saveMember(record, { restoreFromTransferOut: true })`。断言方式＝`member-persist.test.mjs` api ⑪（含病灶复现）+ `permission-gate.test.mjs` ⑤c + `member-flow.test.mjs` S4
 - [ ] 版本戳单一源（2026-09-14 批次 29 常态守卫）：除发版脚本的收尾自检外，**「全站活动版本戳取值集合规模为 1」已升为测试常驻守卫**（`version-stamp.test.mjs::S3`）；发版脚本无参运行须按「读仓库现有戳 → 同日 max 字母 +1」推导，且**只允许前进**（小于现有最大戳即报错退出，防「同日版本号回退」静默通过）
@@ -771,7 +771,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [x] **表↔域映射**：资源名 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES **当前 30 名**全通；本条为 2026-08-24 当时的 **26 名**实测记录，口径详见 §跨类别同源校验）✅
 - [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
-- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
+- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/governance/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
 - [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅
 - [x] **聚合域 round-trip**：快照写穿 `[{id:'__root__', body}]` → 读回 `__root__` 单行 + body 深比较一致 → 清理写回空 ✅
 - [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项等；历史票证专项脚本已随 2026-08-30 清理归档），含 e2e-login 回归

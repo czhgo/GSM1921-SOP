@@ -1,20 +1,20 @@
-import { PEOPLE } from './people.js?v=20260924a';
+import { PEOPLE } from './people.js?v=20260928h';
 
 // ════════════════════════════════════════════════════════════════
 //  种子数据仓（re-export 收口，2026-09-03 数据域接线试点）
-//  人员数据域唯一出口 = services/person.js（PersonStore + getPersonById/getPersonName）。
+//  人员数据域唯一出口 = services/member/person.js（PersonStore + getPersonById/getPersonName）。
 //  本文件不再中转 person 函数（UI/服务层禁从 mock 取人名）；
 //  PEOPLE（人员种子数组）与各业务种子/展示格式化函数仍由此中转（收口批次推进中）。
 // ════════════════════════════════════════════════════════════════
 
 export { PEOPLE };
 
-export { ACTIVITIES } from './activities.js?v=20260924a';
-export { ATTENDANCE_RECORDS } from './attendance.js?v=20260924a';
-export { INSPECTION_RECORDS } from './inspection.js?v=20260924a';
-export { THOUGHT_REPORTS } from './thought-reports.js?v=20260924a';
-export { PARTY_GROUPS } from './party-groups.js?v=20260924a';
-export { MEMBER_FLOWS } from './member-flows.js?v=20260924a';
-export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from './review.js?v=20260924a';
-export { MOCK_NOTICES } from './notices.js?v=20260924a';
-export { MOCK_TASKFORCES } from './taskforces.js?v=20260924a';
+export { ACTIVITIES } from './activities.js?v=20260928h';
+export { ATTENDANCE_RECORDS } from './attendance.js?v=20260928h';
+export { INSPECTION_RECORDS } from './inspection.js?v=20260928h';
+export { THOUGHT_REPORTS } from './thought-reports.js?v=20260928h';
+export { PARTY_GROUPS } from './party-groups.js?v=20260928h';
+export { MEMBER_FLOWS } from './member-flows.js?v=20260928h';
+export { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from './review.js?v=20260928h';
+export { MOCK_NOTICES } from './notices.js?v=20260928h';
+export { MOCK_TASKFORCES } from './taskforces.js?v=20260928h';

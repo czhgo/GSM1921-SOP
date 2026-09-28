@@ -2,12 +2,12 @@
 // 组长工作台 Tab：待办（T-279 M2 拆分；T-304 代码减负 2026-08-30：骨架并入 todo-tab-shell）
 // 最小三成本原则落地：进入即见首条详情，减一次点击。
 
-import { showToast } from '../../../core/utils.js?v=20260924a';
-import { createTodoTab } from '../../../components/todo-tab-shell.js?v=20260924a';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260924a';
+import { showToast } from '../../../core/utils.js?v=20260928h';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20260928h';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260928h';
 
 function _handleTodoAction(todo, ctx) {
-  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   // 根据 actionType 跳转到对应 tab
   // 无生产者残留键清理（IA-C1 Task5 登记 2026-09-06）：actionKey 级 attendance-upload/review-submit

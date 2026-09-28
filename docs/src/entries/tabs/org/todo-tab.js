@@ -6,25 +6,26 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/utils.js?v=20260924a';
-import { generateId } from '../../../core/id.js?v=20260924a';
-import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260924a';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260924a';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/todo.js?v=20260924a';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260924a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260924a';
-import { PersonStore } from '../../../services/person.js?v=20260924a';
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260924a';
-import { openFormModal } from '../../../components/modal.js?v=20260924a';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260924a';
-// 发展推进覆盖（进入当前阶段日期）读口：与成员变更确认链确认生效写口同源（member-confirmation.js，同 localStorage 键位）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260924a';
+import { showToast, flashHighlight } from '../../../core/utils.js?v=20260928h';
+import { generateId } from '../../../core/id.js?v=20260928h';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260928h';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260928h';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260928h';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260928h';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260928h';
+import { PersonStore } from '../../../services/member/person.js?v=20260928h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260928h';
+import { openFormModal } from '../../../components/ui/modal.js?v=20260928h';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260928h';
+// 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
+// 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260928h';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
 // 支书有权催办、但**一般不越俎代庖**（其台保留入口、标注为例外）。
-// 判据未改：责任人 = urgeRolesOf（services/todo.js 单一源）；无责任人或责任人即本人 → 不渲染入口。
+// 判据未改：责任人 = urgeRolesOf（services/governance/todo.js 单一源）；无责任人或责任人即本人 → 不渲染入口。
 const _urge = createUrgeController({
   selfRoles: ['org-commissioner'],
   context: () => ({ activities: loadActivities(), people: PersonStore.getAll() }),
@@ -32,7 +33,7 @@ const _urge = createUrgeController({
 });
 
 function _handleTodoAction(todo, ctx) {
-  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   const actionKey = todo.actionKey || '';
   // 2026-09-08 裁决批一（D3 交接去顶卡入域折组）：组织接收 纪检→组织 考察记录提交——
@@ -110,7 +111,7 @@ function _buildOrgRealtimeGroups(ctx) {
   }
   const devGroup = buildDevelopNodeRemindGroup({
     members: PersonStore.getMembers(),
-    overrides: loadDevStageOverrides(),
+    overrides: loadStageEntryDates(),
   });
   if (devGroup) groups.push(devGroup);
 
@@ -120,7 +121,7 @@ function _buildOrgRealtimeGroups(ctx) {
   const halfYearGroup = buildHalfYearInspectionRemindGroup({
     members: PersonStore.getMembers(),
     records: loadInspectionRecords(),
-    overrides: loadDevStageOverrides(),
+    overrides: loadStageEntryDates(),
   });
   if (halfYearGroup) groups.push(halfYearGroup);
 
@@ -140,7 +141,7 @@ export const { renderContent } = createTodoTab({
   role: 'org-commissioner',
   onAction: _handleTodoAction,
   // 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）：**主位在组织委员**——本台各域条目（含实时组）
-  // 可催办责任人；与支书台共用 components/todo-tab-shell.js::createUrgeController（同一实现、同一判据）。
+  // 可催办责任人；与支书台共用 components/record/todo-tab-shell.js::createUrgeController（同一实现、同一判据）。
   urgeStateOf: _urge.urgeStateOf,
   onUrgeTodo: _urge.onUrgeTodo,
   // 2026-09-08 裁决批一（D1/D3）：成员变更审批并入「成员发展」域实时组

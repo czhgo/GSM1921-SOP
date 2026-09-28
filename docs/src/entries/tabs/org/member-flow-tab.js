@@ -10,29 +10,29 @@
 //     其台账留痕 / 撤销在本 tab（原提示句「可随时在『成员流动』台账撤销纠正」指向此）。
 //  口径（沿用原「成员流动」面板，2026-09-14 批次 25 支书裁定）：登记即生效；台账只增不删，
 //   登错由「撤销」留痕（revokedAt/revokedBy）+ 回滚在册状态。
-//  硬规范：台账筛选/分页统一走检索引擎 components/list-filter.js（关键词：姓名/学号/经手人；
+//  硬规范：台账筛选/分页统一走检索引擎 components/ui/list-filter.js（关键词：姓名/学号/经手人；
 //   方向分面：流入/流出；筛选行禁 chip）；选人硬规范：登记流出一律用 PersonPicker（禁 select 罗列人名）；
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { getBranchIdOfPerson } from '../../../services/branch.js?v=20260924a';
-import { getPersonName } from '../../../services/person.js?v=20260924a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260928h';
+import { getPersonName } from '../../../services/member/person.js?v=20260928h';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/party-group.js?v=20260924a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260924a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260928h';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260928h';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928h';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member-flow.js?v=20260924a';
+} from '../../../services/member/member-flow.js?v=20260928h';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
+import { PersonPicker } from '../../../components/governance/person-picker.js?v=20260928h';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260924a';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260928h';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;

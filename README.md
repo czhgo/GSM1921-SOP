@@ -132,7 +132,7 @@ mindmap
 - **项目维列封顶「最近 6 项」**（活动/专班逐年累积，列不能无限长），可一键「显示全部 N 项」；**人维分页：每页 10 人**（人多时翻页看更多人，`rowLimit: 0` 才不分页）；横向滚动时**首列吸附**，维度名不丢。
 - **宽表已推广到「支部分工」（平铺模块 / 按人 / 按项目 三视图）、「专班报名总表」（人 × 专班）、「表态汇总」（议题 × 应到成员）、「思想汇报台账」（人 × 期次：行＝支部在册成员、列＝期次新→旧，格内＝该期最需处理的状态徽标，未提交显示「—」——谁哪期漏交一眼可见；**可按「按人 / 按期次」互转视角**）**——凡二元关系域一律复用同一矩阵，不再各造一套表格；各域「待迁清单」已清空。
 - **筛选器与表格同一档字号/组件**（全站单档 **13px / 38px**）；筛选行只在结果多于 8 行时出现，空维度自动隐藏。
-- **凡数据可能无限增长的列表一律分页**（每页 10 条，页码记住；不足一页不出翻页控件）；**翻页控件单一源 [components/pager.js](docs/src/components/pager.js)**（`pagerHtml`，统一检索引擎与宽表矩阵共用，各页不得自造第二套）。
+- **凡数据可能无限增长的列表一律分页**（每页 10 条，页码记住；不足一页不出翻页控件）；**翻页控件单一源 [components/ui/pager.js](docs/src/components/ui/pager.js)**（`pagerHtml`，统一检索引擎与宽表矩阵共用，各页不得自造第二套）。
 
 ### 3.3 支书工作台（支书 / 副支书共台）
 
@@ -198,6 +198,10 @@ npm start
 
 访问 `http://127.0.0.1:3000/login.html`。环境变量模板见 [server/.env.example](server/.env.example)；安装/启动/测试/部署对接详见 [server/README.md](server/README.md)。
 
+> ⚠ **为什么在浏览器里「只看到 HTML 文档、不是网页」**：本系统是原生 ESM 模块应用——页面必须**经 HTTP 服务**提供，浏览器才会把它当网页（加载 `<script type="module">`、发起 `/api/v1` 请求）。若用 `file://` 打开（双击 `docs/index.html`，或在编辑器里预览该文件），浏览器只按「文档」渲染：模块被跨源策略拦下、接口无从发起 ⇒ 看到的就只是一份 HTML 文本。**正确入口＝从服务访问**：`http://127.0.0.1:3000/login.html`（`npm start` 后），或把 `docs/` 交给任意静态服务器（如 `npx serve docs`）。路径不要用 `file:///...`。
+>
+> ⚠ **只读演示**：**没有 API 会话时**（静态托管 / 未登录 / 本机演示），系统按**只读演示**运行——可浏览、可点开，一切写操作会提示「当前为只读演示：数据不会保存到本机，请登录后使用服务器数据」，**不再把数据存在浏览器本地**（避免「以为存上了、登录后被服务端数据覆盖」）。登录（[accounts.js](docs/src/mock/accounts.js) 演示账号，密码 `123456`）后即切到服务器数据形态。本地开发需临时放行本机可写时，置环境变量 `DEMO_READONLY=0` 启动（仅本地/测试用）。
+
 ---
 
 ## 六、开发路径
@@ -211,8 +215,13 @@ npm start
 ```
 docs/src/
   core/       常量/主题/能力注册表/版本令牌/数据适配（mock-adapter 禁改）
-  services/   数据 CRUD 与权限计算（UI 层禁止直改数据源）
-  components/ 视图组件（含共享渲染器：向导/批量确认/汇报/决议督办/统一检索引擎 list-filter/人×项目矩阵 relation-matrix…）
+  services/   数据 CRUD 与权限计算（UI 层禁止直改数据源）；**按域分子目录**
+              core/（底座与横切）· member/（人与名册）· activity/（活动与会务）
+              governance/（治理与反馈）· branch/（支部组织与配置）
+  components/ 视图组件；**按角色分子目录**
+              ui/（基础件与库里：badges/forms/modal/pager/list-filter/relation-matrix…）
+              shell/（页面外壳）· feedback/（反馈域）· record/（实体视图）
+              governance/（治理与人员面板）· dashboard/（首页面板）
   modules/capabilities/  工作台能力注册（每台一张 tab 清单声明）
   entries/    页面入口与 tabs/{各台 tab}（today 共享「今天」渲染）
   mock/       演示数据（整体替换即换组织）
@@ -222,7 +231,7 @@ content/      分层权威源：01_strategy（支书战略与批改）/ 02_insti
 server/       可选后端 + 测试套件（server/test）
 ```
 
-**单一源组件（新增件在此登记，防各处另写一版）**：`components/list-filter.js`（统一检索引擎：关键词 + 分面 + 计数 + **分页**，全站按人/按活动表共用；既无关键词也无分面时不渲染检索条，供「只需分页」的桶/分组子列表复用）、`components/pager.js`（**翻页标记单一源** `pagerHtml`：自 list-filter 下沉为叶子件，统一检索引擎与宽表矩阵共用，页数 ≤1 不出控件）、`components/relation-matrix.js`（**人 × 项目矩阵**：按人 / 按项目互为转置、项目维列上限 6 + 一键展开、**人维分页每页 10 人**（`rowLimit` 可配，0＝不分页）、`cellClass` 单元格附加类钩子、横向滚动 + 首列吸附）、`components/insight-view.js`（**知情查看单一源**：活动 / 专班只读分段，纪检 / 组长 / 组织 / 宣传 / 成员 / 支书台复用）、`components/person-picker.js`（选人载体）、`services/party-group.js`（党小组活组清单 `groupOptions()`）、`services/member-flow.js`（成员流动登记与复式记账对账）、`docs/scripts/version-next.mjs`（版本号推导纯函数）。
+**单一源组件（新增件在此登记，防各处另写一版）**：`components/ui/list-filter.js`（统一检索引擎：关键词 + 分面 + 计数 + **分页**，全站按人/按活动表共用；既无关键词也无分面时不渲染检索条，供「只需分页」的桶/分组子列表复用）、`components/ui/pager.js`（**翻页标记单一源** `pagerHtml`：自 list-filter 下沉为叶子件，统一检索引擎与宽表矩阵共用，页数 ≤1 不出控件）、`components/ui/relation-matrix.js`（**人 × 项目矩阵**：按人 / 按项目互为转置、项目维列上限 6 + 一键展开、**人维分页每页 10 人**（`rowLimit` 可配，0＝不分页）、`cellClass` 单元格附加类钩子、横向滚动 + 首列吸附）、`components/record/insight-view.js`（**知情查看单一源**：活动 / 专班只读分段，纪检 / 组长 / 组织 / 宣传 / 成员 / 支书台复用）、`components/governance/person-picker.js`（选人载体）、`services/member/party-group.js`（党小组活组清单 `groupOptions()`）、`services/member/member-flow.js`（成员流动登记与复式记账对账）、`docs/scripts/version-next.mjs`（版本号推导纯函数）。
 
 content/ 文档是**支书批改的权威源**（制度先改文本、后同步代码）；.ctx/ 是逐次工作的审计底座（执行日志记「做了什么/改了哪些文件」，决策日志记「为什么选 A 不选 B」）。
 

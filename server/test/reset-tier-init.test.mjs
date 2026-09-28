@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/reset-tier-init.test.mjs — C3 一键初始化档 ?reset=init（2026-09-08）
 // reset 分层档案：demo（回演示种子）/ preview（清运行时预览覆盖）/ init（初始化新支部空业务态）三档并存；
-// 本文件覆盖 init 档（mock-adapter 禁改 → reset/清库逻辑经可改入口 services/mock.js loadDB
+// 本文件覆盖 init 档（mock-adapter 禁改 → reset/清库逻辑经可改入口 services/core/mock.js loadDB
 // 前置 handleInitResetIfRequested 兜底；纯函数 trimInitBlob/collectInitKeys 供测试与执行共用）：
 //   ① trimInitBlob（纯）：白名单主库键（_schema/users/branches/appointmentRecords）原样保留；
 //      业务过程域（activities/attendances/activityReviews/inspections/taskforces/notices/
@@ -16,7 +16,7 @@
 //      · API 模式（sessionStorage 有 token）：?reset=init 跳过——不动存储、不导航（两形态断言）
 //      · 静态形态：主库裁剪写回（白名单保留/业务清空）+ 独立业务键移除 + 白名单保留 + 去参整页导航
 //      · 非 init 档位（demo/preview/未知/缺省）→ false 不动作（不抢占既有档位）
-//   ⑤ 接线冒烟：services/mock.js loadDB()（mock 数据源）在 ?reset=init 下先于 MockAdapter.loadDB
+//   ⑤ 接线冒烟：services/core/mock.js loadDB()（mock 数据源）在 ?reset=init 下先于 MockAdapter.loadDB
 //      执行初始化并导航（可改 reset 触发链生效）
 // 纯 Node + 内存桩，无浏览器/服务器依赖；模块经 ?v= query 导入（与 reset-tier/empty-template 同法）。
 // 运行：node --test test/reset-tier-init.test.mjs（server 目录）
@@ -27,11 +27,11 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/init-reset.js?v=20260924a');
-// 接线冒烟（⑤）：走 services/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/mock.js?v=20260924a');
+} = await import('../../docs/src/services/core/init-reset.js?v=20260928h');
+// 接线冒烟（⑤）：走 services/core/mock.js loadDB 可改 reset 链（数据源默认 mock）
+const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20260928h');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain.js?v=20260924a');
+const { mockDB } = await import('../../docs/src/core/domain.js?v=20260928h');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -314,7 +314,7 @@ test('执行：非 init 档位（demo/preview/别名/未知/缺省）→ false �
 });
 
 // ═══════════════ ⑤ 接线（可改 reset 触发链） ═══════════════
-test('接线：services/mock.js loadDB（mock 数据源）在 ?reset=init 下先于 MockAdapter.loadDB 执行初始化并导航', () => {
+test('接线：services/core/mock.js loadDB（mock 数据源）在 ?reset=init 下先于 MockAdapter.loadDB 执行初始化并导航', () => {
   const { ls, win } = stubGlobals({
     search: '?reset=init',
     href: 'http://127.0.0.1:3000/index.html?reset=init',
@@ -458,7 +458,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity.js?v=20260924a');
+  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20260928h');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

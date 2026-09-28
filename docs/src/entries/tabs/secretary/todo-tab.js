@@ -8,45 +8,45 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260924a';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/utils.js?v=20260928h';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/pending-target.js?v=20260924a';
-import { createTodoTab, createUrgeController } from '../../../components/todo-tab-shell.js?v=20260924a';
+import { PendingTarget } from '../../../core/pending-target.js?v=20260928h';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260928h';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/modal.js?v=20260924a';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/todo.js?v=20260924a';
-import { SecretaryTodoDeriver } from '../../../services/secretary-overview.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/attendance.js?v=20260924a';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/inspection.js?v=20260924a';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260924a';
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
-import { mockDB } from '../../../core/domain.js?v=20260924a';
-import { persist } from '../../../core/data-adapter.js?v=20260924a';
-import { bumpToken } from '../../../core/version-token.js?v=20260924a'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/person.js?v=20260924a';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260924a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260928h';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20260928h';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20260928h';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20260928h';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20260928h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
+import { mockDB } from '../../../core/domain.js?v=20260928h';
+import { persist } from '../../../core/data-adapter.js?v=20260928h';
+import { bumpToken } from '../../../core/version-token.js?v=20260928h'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20260928h';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/constants.js?v=20260928h';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/theme.js?v=20260924a';
-import { IssueStore } from '../../../services/issues.js?v=20260924a';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/taskforce.js?v=20260924a';
-import { fetchVotes } from '../../../services/committee-vote.js?v=20260924a';
-import { resolveVoterIds } from '../../../services/vote-config.js?v=20260924a';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/reporting.js?v=20260924a';
+import { getAppliedAccentColors } from '../../../core/theme.js?v=20260928h';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260928h';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20260928h';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20260928h';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20260928h';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20260928h';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/member-change-panel.js?v=20260924a';
-import { tryDirectJump } from '../../../components/todo-jump.js?v=20260924a';
-import { buildOverdueRemindGroupNow } from '../../../services/resolution-followup.js?v=20260924a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260928h';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260928h';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20260928h';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member-confirmation.js?v=20260924a';
-import { getDetainedMembers, getResidenceOf } from '../../../services/roster.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20260928h';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
-// 与组织委员台共用同一实现；判据仍在 services/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/state.js?v=20260924a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260924a';
+// 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
+import { setState } from '../../../core/state.js?v=20260928h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260928h';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -110,13 +110,13 @@ function bindTodoDetailExtras(container, api) {
     });
   });
   // 兜底直执白名单（2026-09-10 支书裁定）：①归档 ②复盘 补入口——支书/副支书可直接代执行
-  // A③（2026-09-10）：代提交复盘复用既有复盘表单（services/review.js），深链复盘位后直接挂载表单
+  // A③（2026-09-10）：代提交复盘复用既有复盘表单（services/governance/review.js），深链复盘位后直接挂载表单
   container.querySelector('.secretary-todo-detail-archive')?.addEventListener('click', () => _gotoArchiveTarget(api.selectedTodo));
   container.querySelector('.secretary-todo-detail-review')?.addEventListener('click', () => _gotoReviewTarget(api.selectedTodo, api));
 }
 
 // ── 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController）──
-//  · 判据未改：责任人 = urgeRolesOf（services/todo.js 单一源）；无责任人或责任人即本人 → 隐藏入口
+//  · 判据未改：责任人 = urgeRolesOf（services/governance/todo.js 单一源）；无责任人或责任人即本人 → 隐藏入口
 //  · D-391：催办的**主位**已开到组织委员台（org/todo-tab.js）——本台（支书/副支书）**权限保留**，
 //    但按裁定「一般不越俎代庖」，故入口 title 标注为**例外操作**；两侧共用同一实现与同一判据。
 const _urge = createUrgeController({
@@ -126,7 +126,7 @@ const _urge = createUrgeController({
   titleSuffix: '（催办一般归组织委员 · 本条属例外操作）',
 });
 
-// 本位 nudge（2026-09-27 支书裁定「两处都加」· 单一源 `components/modal.js::confirmNudge`）：
+// 本位 nudge（2026-09-27 支书裁定「两处都加」· 单一源 `components/ui/modal.js::confirmNudge`）：
 //   材料催缴与审核督办**归组织委员**（本位）——支书 / 副支书有权催办，但**一般不越俎代庖**（母本口径见
 //   `.ctx/ACTIVE_RULINGS.md`「一、角色与分工」的 `D-391`）。本台（支书 / 副支书）发起催办属**例外代办**
 //   ⇒ **发通知前**弹一次确认（必须点按钮才能关；「取消」＝放弃本次催办）。
@@ -147,7 +147,7 @@ const _urgeWithNudge = {
 //  A②（2026-09-10）：代归档深链宣传台归档 tab（?tab=archive&highlight=<activityId>）并定位该活动；
 //  无活动 id / 无宣传台页面权限 → 降级为活动管理定位该活动并给出目标提示。
 //  A③（2026-09-10）：代提交复盘深链本台活动管理该活动的复盘位，并直接挂载既有复盘表单
-//  （表单/校验/落库链路单一源 = services/review.js，与成员端「我的复盘」同一套，勿另写字段）；
+//  （表单/校验/落库链路单一源 = services/governance/review.js，与成员端「我的复盘」同一套，勿另写字段）；
 //  提交以代填留痕标注；入口仅支书/副支书（既有 fill_review 权限）可用。
 // ════════════════════════════════════════════════════════════════
 
@@ -219,7 +219,7 @@ function _canDelegateReview() {
   return AuthStore.canDo(me.personId, 'fill_review');
 }
 
-/** 代提交复盘表单：把既有复盘表单（services/review.js 单一实现）挂载到浮窗，预置该活动上下文 */
+/** 代提交复盘表单：把既有复盘表单（services/governance/review.js 单一实现）挂载到浮窗，预置该活动上下文 */
 function _openDelegateReviewForm(act, actId, api) {
   const me = AuthStore.getCurrentUser();
   if (!me) return;
@@ -769,7 +769,7 @@ function confirmGroup(group, api) {
 
 // ── 行动跳转（种子行动类 / 提醒类跳活动管理） ──────────────────
 function handleTodoAction(todo, ctx) {
-  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/todo-jump.js（2026-09-04）
+  // 直达跳转（通知阅读 T-234 F1 / 报名审核 T-233）已收敛于 components/record/todo-jump.js（2026-09-04）
   if (tryDirectJump(todo)) return;
   // 无生产者残留键登记（IA-C1 Task5 2026-09-06）：taskforce-approval 旧「专班发起支书单人审批」
   // 待办不再派生（专班发起已改支委会表决，R3-1）；保留兼容处理旧存量：打开即提示并销该待办，
@@ -841,7 +841,7 @@ function expandAssignPanelForTodo(todo) {
 // ════════════════════════════════════════════════════════════════
 //  B批 3.2-2/3/4：专班待议（支委会）区
 //  报送发起/解散（listCommitteeRequests）→ 支书「排入支委会表决」创建线上表决活动
-//  （services/taskforce.js createTaskforceVoteActivity）→ 委员在线表态 →
+//  （services/activity/taskforce.js createTaskforceVoteActivity）→ 委员在线表态 →
 //  「查看表决结果并生效」：fetchVotes + evaluateCommitteeVote 判定 → applyCommitteeDecision 落果。
 // ════════════════════════════════════════════════════════════════
 

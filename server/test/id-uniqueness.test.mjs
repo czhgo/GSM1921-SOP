@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  「全站实体 id 唯一性」守卫（2026-09-13 Q-21-2 全站排查后立）
 // ════════════════════════════════════════════════════════════════
-//  起因（实测暴露）：`services/thought-report.js` 的 `'tr_' + Date.now()` 在**同毫秒连提两篇**
+//  起因（实测暴露）：`services/governance/thought-report.js` 的 `'tr_' + Date.now()` 在**同毫秒连提两篇**
 //  时生成同一 id（重复主键 → 归集/初阅指向错乱）。全站排查后又发现 30+ 处同型写法
 //  （`'ed_' / 'ho_' / 'cmt-' / 'notice-' / `mk_` + personId …），其中「时间戳是唯一区分因子」
 //  者在批量写入、连点、同毫秒两次调用时**必撞**。
@@ -11,7 +11,7 @@
 //  禁止再写 `前缀 + Date.now()`；禁止用 `Math.random()` 参与 id 生成。
 //  前缀契约：连字符前缀（`tf-` / `notice-` / `cmt-` / `mc-` …）必须传 `sep='-'`——
 //    `sourceId.startsWith('tf-')` 用于区分专班/活动（activity-entry.js、todo-jump.js），
-//    `startsWith('notice-')` 见 services/todo.js 与种子 `notice-101…110`。
+//    `startsWith('notice-')` 见 services/governance/todo.js 与种子 `notice-101…110`。
 //
 //  两层法（与 `person-consistency.test.mjs` 同构，见 DATA_CONSISTENCY_CHECKLIST §0）：
 //    结构层 S1：禁止「前缀 + Date.now()」生成实体 id（回潮即红）
@@ -35,8 +35,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import * as MOCK from '../../docs/src/mock/index.js?v=20260924a';
-import { generateId, randomHex } from '../../docs/src/core/id.js?v=20260924a';
+import * as MOCK from '../../docs/src/mock/index.js?v=20260928h';
+import { generateId, randomHex } from '../../docs/src/core/id.js?v=20260928h';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -129,7 +129,7 @@ test('D4 唯一源可用：generateId 保留前缀与分隔符，且连续生成
   assert.match(tf, /^tf-[0-9a-f-]{8,}$/i, '连字符前缀必须显式传 sep 并保留连字符');
 
   assert.ok(generateId('notice', '-').startsWith('notice-'), 'notice- 前缀契约必须成立');
-  // randomHex 必须是**真十六进制**且长度精确：services/branch.js 用它产出 `br-<8hex>`
+  // randomHex 必须是**真十六进制**且长度精确：services/branch/branch.js 用它产出 `br-<8hex>`
   // （server/test/empty-template.test.mjs 与 branch-roster-import.test.mjs 断言该形态）
   assert.match(randomHex(), /^[0-9a-f]+$/, 'randomHex 必须返回十六进制（降级链亦不得退化为 base36）');
   assert.equal(randomHex(4).length, 8, 'randomHex(4) 必须恰好 8 位（br-<8hex> 形态契约依赖此长度）');
@@ -163,7 +163,7 @@ const isCommentLine = (line) => /^\s*(\/\/|\*|\/\*)/.test(line);
 /**
  * 该行是否在为「实体 id」赋值。
  * 判定：`id: …` / `draftId: …` / `record.id = …` / `const msgId = …`（词首 `id` 或以大写 `Id` 结尾）。
- * **不认 `uid`**：`const uid = 'qv-' + Math.random()`（components/query-view.js）是 DOM 元素 id，
+ * **不认 `uid`**：`const uid = 'qv-' + Math.random()`（components/governance/query-view.js）是 DOM 元素 id，
  * 不落库、不参与实体引用，故不入扫描（首版正则误命中，已收紧）。
  */
 const isIdAssignment = (line) => /(\b\w*Id|\bid)\s*[:=]/.test(line);

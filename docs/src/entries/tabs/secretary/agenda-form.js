@@ -6,11 +6,11 @@
 // 2026-09-21 批次 127（`SOP-B-33` 取乙档）：本文件**再加一处纯函数** `buildAgendaCandidates`——
 // 「拟上会」清单的归集单一源（写议程时从这一张清单勾）；IO 仍由各处 UI 自己做（见下方该段注释）。
 
-import { generateId } from '../../../core/id.js?v=20260924a';
-// 事项领域单一源（services/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
+import { generateId } from '../../../core/id.js?v=20260928h';
+// 事项领域单一源（services/governance/issues.js 末尾的 ISSUE_DOMAINS；四类逐字照母本
 // 《常见工作场景快速指南》「意见建议类型」表）——本模块只取「标签 / 建议归口」两个纯函数，
 // 不读 IssueStore（IO 由调用方做）。
-import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/issues.js?v=20260924a';
+import { ISSUE_DOMAINS, issueDomainLabel, issueDomainSuggest } from '../../../services/governance/issues.js?v=20260928h';
 
 /**
  * 将创建/编辑表单的议程行收集为规范化议程数组。
@@ -91,7 +91,7 @@ export function collectAgendaRows(rows = []) {
 //      （批次 127 / `SOP-B-27`）：**先上会讨论通过，才可发起阶段变更**。
 //   ⑤ `brand` 品牌认定提案 —— 支书 2026-09-21 口径二（逐字）：「**支委/党小组组长均可以提案，
 //      支委会（如果有党小组组长则是支委扩大会）通过后确定。**」；候选＝**已提案、尚未认定**的活动
-//      （判据单一源 `services/activity.js::listBrandProposals` / `brandProposalOf`）；
+//      （判据单一源 `services/activity/activity.js::listBrandProposals` / `brandProposalOf`）；
 //      勾入后议程行带 `brandActivityId`，**记录「通过」才置 `isBrand`**（`applyBrandDesignationResult`）。
 //   ⚠ **未放「上报事项」**（`reviewRequests`）：它走**支部 → 党委**通道（`secretary/report-up-tab.js:1`-`:6`），
 //     且母本里「上报党委」是支委会决议**之后**的下游动作（`DEVELOPMENT_PATH.md:207`）——不是该上会的事。
@@ -119,10 +119,10 @@ export const AGENDA_CANDIDATE_GROUPS = [
  * @param {Object} input
  * @param {Array} [input.taskforceProposals] 专班报送（`TaskForceRecordStore.listCommitteeRequests()` 产物）
  * @param {Array} [input.issues] 意见反馈（调用方先 `IssueStore.loadAll()`，再取**未办结 / 未隐藏 / 未合并**）
- * @param {Array} [input.draftDocs] 支部文件（调用方按 `services/branch-doc.js::isAgendaDraftDoc` 取：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
+ * @param {Array} [input.draftDocs] 支部文件（调用方按 `services/branch/branch-doc.js::isAgendaDraftDoc` 取：普通文件草案 ＋ 制度链上尚未成为现行版的两种态）
  * @param {Array} [input.members] 成员档案（`PersonStore.getMembers()`；本函数只取「积极分子」作推荐候选）
- * @param {Object} [input.stageEntries] 发展推进覆盖档案（`loadDevStageOverrides()` 产物：{ personId: { stage, entryDate } }）
- * @param {Array} [input.brandProposals] 品牌认定提案（`services/activity.js::listBrandProposals()` 产物：
+ * @param {Object} [input.stageEntries] 发展推进派生态（`loadStageEntryDates()` 产物：{ personId: { stage, entryDate } }；单一源＝成员档案字段 `developStageSince`）
+ * @param {Array} [input.brandProposals] 品牌认定提案（`services/activity/activity.js::listBrandProposals()` 产物：
  *   `{ id, title, proposal }`；调用方可自行补齐 `proposedByName` 供展示）
  * @returns {Array<{group:string, refId:string, text:string, meta:string, item:string, host:string,
  *   kinds:string[], branchDocId?:string, brandActivityId?:string, personIds?:string[], toStage?:string}>}
@@ -214,7 +214,7 @@ export function buildAgendaCandidates({
 
   // ⑤ 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：候选＝已提案、尚未认定的活动；
   //    议程行带 `brandActivityId`（回指被提案的那场活动）——**记录「通过」才置 `isBrand`**
-  //    （判据与状态迁移单一源 `services/activity.js::applyBrandDesignationResult`）。
+  //    （判据与状态迁移单一源 `services/activity/activity.js::applyBrandDesignationResult`）。
   for (const bp of Array.isArray(brandProposals) ? brandProposals : []) {
     if (!bp || !bp.id) continue;
     const title = bp.title || bp.id;

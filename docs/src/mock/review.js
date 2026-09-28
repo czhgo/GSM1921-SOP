@@ -3,11 +3,11 @@
 // 复盘状态流转：未提交→已上传→批注中→确认/打回
 // 组织者提交复盘报告，纪检委员批注/打回/确认
 
-// 数据域接线批次二（2026-09-03）：展示格式化 reviewToDisplay 已提升至 services/review.js；
+// 数据域接线批次二（2026-09-03）：展示格式化 reviewToDisplay 已提升至 services/governance/review.js；
 // 本文件退化为纯复盘种子数据仓。
 // 2026-09-06 基线刷新：时间字段随关联活动重排（活动新日期见 activities.js 头注）同步平移，
 //   正文中旧人名/月份词同步更新（人名与 people.js 一致）。
-import { ReviewStatus } from '../core/domain.js?v=20260924a';
+import { ReviewStatus } from '../core/domain.js?v=20260928h';
 
 /**
  * 活动复盘记录

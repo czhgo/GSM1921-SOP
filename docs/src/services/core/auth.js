@@ -1,0 +1,795 @@
+// role: [工程师]+[AI]
+// services/core/auth.js — 权限系统（重构版）
+// 设计文档: docs/superpowers/specs/2026-07-12-permission-system-redesign-design.md
+//
+// 核心变化:
+//   - 去掉 stance/view/mode 三元组
+//   - 去掉 AUTHZ_CHAIN + scope 双轨制
+//   - 改为: 常设角色 + 项目角色 → canDo() 统一判定
+//   - 链式赋权: AUTHORIZE_CHAIN 定义谁可以赋权什么角色
+//   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
+//     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
+
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/constants.js?v=20260928h';
+import { PEOPLE } from '../../mock/index.js?v=20260928h';
+// 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
+// 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
+//   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
+import { verifyLogin } from './accounts.js?v=20260928h';
+import { getPersonById, getPersonName } from '../member/person.js?v=20260928h';
+import { mockDB } from '../../core/domain.js?v=20260928h';
+import { NoticeStore } from '../governance/notice.js?v=20260928h';
+import { updateActivity } from './mock.js?v=20260928h';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20260928h';
+import { persist } from '../../core/data-adapter.js?v=20260928h';
+import { enableApiMode } from './runtime.js?v=20260928h';
+import { generateId } from '../../core/id.js?v=20260928h';
+
+// ── 登录状态 ─────────────────────────────────────
+const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
+const TAB_KEY = 'gsm1921-tab-id';         // sessionStorage: 当前标签页唯一 ID（A-11 防串扰）
+const SESSION_KEY = 'gsm1921-session-snap'; // sessionStorage: 本标签页登录会话快照
+const SESSION_TOKEN_KEY = 'gsm1921-api-token'; // sessionStorage: API 认证 token（runtime.js enableApiMode 写入）
+
+// A-11 多标签页登录防串扰：每个标签页生成唯一 tabId。
+// 登录写入 localStorage（带 tabId）+ sessionStorage 快照；
+// getCurrentUser 校验 tabId——localStorage 被其它标签页覆盖时回退到本页快照，B 页登录不再改变 A 页身份。
+function _getTabId() {
+  let id = null;
+  try { id = sessionStorage.getItem(TAB_KEY); } catch {}
+  if (!id) {
+    id = generateId('tab', '-');
+    try { sessionStorage.setItem(TAB_KEY, id); } catch {}
+  }
+  return id;
+}
+
+function _writeLogin(data) {
+  const payload = { ...data, tabId: _getTabId() };
+  try {
+    localStorage.setItem(LOGIN_KEY, JSON.stringify(payload));
+    // 本标签页会话快照（不含 tabId，供被覆盖时回退）
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ personId: data.personId, role: data.role }));
+  } catch {}
+}
+
+// 其它标签页改动登录状态 → 派发 auth-changed 事件，供页面刷新用户区（防串扰辅助）
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key !== LOGIN_KEY) return;
+    document.dispatchEvent(new CustomEvent('gsm1921:auth-changed', { detail: { storageEvent: e } }));
+  });
+}
+
+// ── 权限表 ──────────────────────────────────────
+// issue.* 权限项遵循 GitHub Issue 风格权限矩阵（spec §五）
+//   全员基础权限（view/create/comment/reaction/mention/reference/edit.own）通过 _ISSUE_PERMS_ALL 注入
+//   意见处置权限（status.change/close/comment.hide/edit.others/milestone.manage/assignee.set/drafts.merge/drafts.reject）
+//   ＝支委会职权（2026-09-21 批次 126 · D-550：由「仅支书」放开）⇒ 支委层五角色（支书/副支书/组织/宣传/纪检）均持
+const _ISSUE_PERMS_ALL = [
+  'issue.view', 'issue.create', 'issue.comment.add', 'issue.reaction.toggle',
+  'issue.mention', 'issue.reference', 'issue.edit.own',
+];
+const _ISSUE_PERMS_DISPOSITION = [
+  'issue.status.change', 'issue.close', 'issue.comment.hide', 'issue.edit.others',
+  'issue.milestone.manage', 'issue.assignee.set', 'issue.drafts.merge', 'issue.drafts.reject',
+];
+const ROLE_PERMISSIONS = {
+  'secretary':         ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_DISPOSITION],
+  'deputy-secretary':  ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'authorize', 'archive', 'manage_members', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_DISPOSITION],
+  'org-commissioner':  ['view_all', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'authorize_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_DISPOSITION],
+  'prop-commissioner': ['view_all', 'manage_taskforce', 'initiate_taskforce', 'archive', 'dispatch_line', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_DISPOSITION],
+  'disc-commissioner': ['view_all', 'record_attendance', 'summarize_inspection', 'record_inspection', 'manage_taskforce', 'initiate_taskforce', 'dispatch_line', ..._ISSUE_PERMS_ALL, ..._ISSUE_PERMS_DISPOSITION],
+  'leader':            ['view_all', 'create_activity', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role', ..._ISSUE_PERMS_ALL],
+  'participant':       ['view_public', ..._ISSUE_PERMS_ALL], // record_inspection 已收敛（2026-09-05 支书裁：无「本人写」路径，矩阵 §9d 改 '--'，本人素材走活动参与记录）
+};
+// dispatch_line（条线下发，A1-2026-09-05 落代码）：组织线/宣传线/纪检线职能任务下发，授予对应支委；
+// 与 assign_task（支书/副支书/组长派执行）分两类——键级已入集（canDo 可判定），交互流消费侧待建。
+// 文档映射：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9f（权限名语义说明）+ CF §C.2。
+// 注：§9b 16 操作矩阵列不并该键（消费侧未建、不硬凑列），见该文件变更历史 2026-09-05 条目。
+
+const PROJECT_PERMISSIONS = {
+  'organizer': ['view_project', 'assign_task', 'modify_assignment', 'mark_complete', 'fill_review', 'record_inspection', 'assign_project_role'],
+  'deep':       ['view_project', 'mark_complete'],
+};
+
+// ── 赋权链 ──────────────────────────────────────
+// 统一记录"谁可以赋权什么角色"，由 authorize() 的 context 参数区分:
+//   context 为空 → 常设角色赋权（系统级，如支委赋权组长）
+//   context = { projectId } → 项目角色指派（项目级，如组长指派组织者）
+// 注: 支委中「支书 / 副支书」由**党委**配置、不在本链（`D-585`）；其余支委身份（组织 / 宣传 / 纪检委员）由**本支部现任支书 / 副支书**配置 —— 2026-09-23 支书裁定＋追裁「副支书也可配」（见 services/branch/appointment.js::appointBranchCommissioner）
+const AUTHORIZE_CHAIN = {
+  'secretary':         ['leader', 'deputy-leader', 'organizer', 'deep', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+  'deputy-secretary':  ['leader', 'deputy-leader', 'organizer', 'deep', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'],
+  'org-commissioner':  ['organizer', 'deep'],
+  'leader':            ['organizer', 'deep'],
+  'organizer':         ['deep'],
+};
+
+// ── 常设角色集合 ────────────────────────────────
+// 支委授权角色（支书/副支书/组织/宣传/纪检）——vote-config.js resolveVoterIds('committee') 依此过滤
+// （people.js role + isCommissioner），为前端支委名单的角色底层源；
+// P2c（2026-09-03）：授权集单一源 = constants.js BRANCH_COMMISSION_ROLES（勿手写，server requireRole 同源）
+const COMMISSIONER_ROLES = new Set(BRANCH_COMMISSION_ROLES);
+
+// ── 获取用户的常设角色 ──────────────────────────
+// 优先级: 赋权记录 > mock 数据
+function _getUserRoleFromMemory(personId) {
+  // 1. 检查赋权记录（组长 / 副组长由支委赋权）——取最新一条判定（revoke 追加语义）
+  const records = _getAuthRecords();
+  const groupRecs = records.filter(r => r.targetPersonId === personId && (r.role === 'leader' || r.role === 'deputy-leader'));
+  if (groupRecs.length > 0) {
+    const latest = groupRecs[groupRecs.length - 1]; // 数组顺序即时间顺序（批次 139：组正 / 副同取更晚一条）
+    if (latest.action !== 'revoke') return latest.role;
+  }
+
+  // 2. 检查 mock 数据（新格式: role 单一值）
+  const person = getPersonById(personId);
+  if (person && person.role) return person.role;
+
+  return 'participant';
+}
+
+// ── 获取用户在项目中的项目角色 ──────────────────
+// 统一读入口：一级读主源（活动 assignments / 专班 members 运行时数据），
+// 二级回退审计快照（仅历史数据；按角色取最新一条 action 判定是否已回收）。
+// 注：主源优先于快照——若主源登记 participant 而快照有更新的 organizer/deep，以主源为准（快照仅历史兜底）。
+function _getProjectRole(personId, projectId) {
+  if (!projectId) return null;
+
+  // 一级：主源 — 活动 assignments
+  const activity = mockDB.activities.find(a => a.id === projectId);
+  if (activity && Array.isArray(activity.assignments)) {
+    const rec = activity.assignments.find(a => a.personId === personId);
+    if (rec) return rec.role;  // 'organizer' | 'deep' | 'participant'
+  }
+
+  // 一级：主源 — 专班 members
+  const tf = mockDB.taskforces.find(t => t.id === projectId);
+  if (tf && Array.isArray(tf.members)) {
+    const m = tf.members.find(m => m.personId === personId);
+    if (m) return m.role;  // 'organizer' | 'deep' | 'participant'
+  }
+
+  // 二级：审计快照回退（按 (personId, role, scopeRef) 取最新一条，revoke 视为已回收）
+  const records = _getAuthRecords();
+  const roleRecs = records.filter(r =>
+    r.targetPersonId === personId &&
+    r.role && ['organizer', 'deep'].includes(r.role) &&
+    r.scopeRef === projectId
+  );
+  const latestByRole = {};
+  roleRecs.forEach(r => { latestByRole[r.role] = r; }); // 数组顺序即时间顺序
+  for (const role of ['organizer', 'deep']) {
+    const rec = latestByRole[role];
+    if (rec && rec.action !== 'revoke') return role;
+  }
+
+  return null;
+}
+
+// ── 根据 projectId 取项目名称（用于赋权通知文案）──────────────────
+function _getProjectName(projectId) {
+  if (!projectId) return null;
+  const a = mockDB.activities.find(x => x.id === projectId);
+  if (a) return a.title;
+  const t = mockDB.taskforces.find(x => x.id === projectId);
+  if (t) return t.name;
+  return null;
+}
+
+// ── 项目角色赋权通知（organizer / deep 被赋权时推送）──────────────
+function _notifyProjectAuth(projectId, authorizerId, targetPersonId, role) {
+  // 赋权通知直达目标人员业务页（业务页直达优先）：
+  //   - 党小组组长 → 组长工作台
+  //   - 其余 → 参与人工作台，活动项目附带 activityId 高亮定位
+  //   - 专班项目无活动页可高亮 → 仅进入参与人工作台（项目分工页含专班）
+  const person = getPersonById(targetPersonId);
+  const isActivity = !!mockDB.activities.find(x => x.id === projectId);
+  const targetPage = person?.role === 'leader'
+    ? 'workspace/leader.html'
+    : (isActivity ? `workspace/visitor.html?activityId=${projectId}` : 'workspace/visitor.html');
+
+  const authorizerName = getPersonName(authorizerId) || authorizerId || '系统';
+  const projectName = _getProjectName(projectId) || '未命名项目';
+  const roleLabel = ROLE_LABELS[role] || role;
+
+  // 确保 NoticeStore 已初始化（幂等兜底）
+  if (typeof NoticeStore.init === 'function' && NoticeStore._notices.length === 0) {
+    NoticeStore.init();
+  }
+
+  // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
+  NoticeStore.addSystem('project-auth-granted', projectId, {
+    targetPage, authorizerName, projectName, roleLabel,
+  });
+}
+
+// ── 同步活动顶层 organizer 派生字段（原则7 同一套数据）──────────────
+// 顶层 activity.organizer 是历史遗留字段，全仓 41 处读端（archive/main/inspector/todo/roles/
+// ws-leader-entry 等）仍消费它。T-190 主源为 activity.assignments，本函数保证二者一致：
+// activity.organizer = assignments 中首个 organizer 的 personId；无 organizer 时置 null。
+// 支书裁决（2026-08-02）：采用"同步派生字段"方案统一双轨，不迁移 41 处读端。
+function _syncTopLevelOrganizer(activity) {
+  if (!activity) return;
+  const orgAssign = Array.isArray(activity.assignments)
+    ? activity.assignments.find(a => a.role === 'organizer')
+    : null;
+  activity.organizer = orgAssign ? orgAssign.personId : null;
+}
+
+// ── 追加审计快照条目 ──────────────────────────────
+function _appendAuditEntries(scopeRef, actorId, entries, action) {
+  if (!Array.isArray(entries) || entries.length === 0) return 0;
+  const records = _getAuthRecords();
+  entries.forEach(e => {
+    records.push({
+      id: generateId('auth', '-'),
+      targetPersonId: e.personId,
+      role: e.role || null,
+      scopeRef,
+      authorizedBy: actorId || null,
+      authorizedAt: new Date().toISOString().slice(0, 10),
+      action, // 'grant' | 'revoke'
+    });
+  });
+  _saveAuthRecords(records);
+  return entries.length;
+}
+
+// ── 审计快照存储（T-190 独立持久化；2026-09-24 批次 169 补服务端权威 auth_audit 表）──
+// T-190：赋权审计快照不再是 mockDB 业务实体（只增不改，判定取最新一条），独立持久化杜绝双轨。
+// api：服务端表 `auth_audit`（GET/POST /api/v1/auth-audit）为权威——读 init 缓存、写同发端点；mock：本机键。
+const AUDIT_KEY = 'sop_org_os_auth_audit';
+
+function _getAuthRecords() {
+  try {
+    if (Array.isArray(mockDB.authAudit)) return [...mockDB.authAudit]; // api：服务端缓存为权威
+    const raw = localStorage.getItem(AUDIT_KEY); if (!raw) return [];   // mock：本机键
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_) { return []; }
+}
+
+function _saveAuthRecords(records) {
+  try { localStorage.setItem(AUDIT_KEY, JSON.stringify(records)); } catch (_) { /* quota exceeded 静默降级 */ }
+  _syncAuthAuditToServer(records); mockDB.authAudit = records; }
+
+// ════════════════════════════════════════════════
+// AuthStore API
+// ════════════════════════════════════════════════
+export const AuthStore = {
+  /**
+   * 账号密码校验（登录域收口 2026-09-03：UI 不直连 mock 账号仓；真实后端接入时替换实现）
+   * @param {string} studentId
+   * @param {string} password
+   * @returns {{ ok: boolean, personId: string|null }}
+   */
+  verifyCredentials(studentId, password) {
+    return verifyLogin(studentId, password);
+  },
+
+  /**
+   * 登录（本地角色判定 + 后端 token 会话，失败静默降级本地模式）
+   * @param {string} personId
+   * @param {string} [password] 账号密码（后端 /login 校验口令；演示账号=123456）
+   * @returns {Promise<void>}
+   */
+  async login(personId, password) {
+    const role = _getUserRoleFromMemory(personId);
+    _writeLogin({ personId, role });
+
+    // 后端登录获取 token（失败静默降级到本地，不阻断使用）
+    try {
+      const r = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId, password }),
+      });
+      const data = r.ok ? await r.json() : null;
+      if (data && data.token) {
+        enableApiMode(data.token);
+        // 以后端返回的角色为准刷新本地会话
+        if (data.user && data.user.role) {
+          _writeLogin({ personId: data.user.id || personId, role: data.user.role });
+        }
+        console.info('[AuthStore] 已切换至 API 数据源');
+      }
+    } catch (e) {
+      console.warn('[AuthStore] 后端登录失败，保持本地模式', e);
+    }
+  },
+
+  /**
+   * 开发模式直接登录（选身份）
+   * 附带清除各工作台 Tab 缓存记忆（workflowos_tab_*），
+   * 使开发模式打开页面始终显示默认 Tab（支书 2026-08-02 反馈"浏览器缓存干扰默认显示"）。
+   * @param {string} role
+   */
+  devLogin(role) {
+    // 找到该角色的第一个 mock 用户
+    const person = PEOPLE.find(p => p.role === role);
+    const personId = person ? person.id : 'p5';
+    _writeLogin({ personId, role });
+    // 修复（2026-08-05）：开发模式是纯 mock 路径，必须清除残留 API token，
+    // 否则 bootstrap 检测到 sessionStorage['gsm1921-api-token'] 会把开发模式劫持为 API 模式
+    // （复现：账号登录后切开发模式卡片 → 28 个 /api/v1 请求）。
+    try { sessionStorage.removeItem(SESSION_TOKEN_KEY); } catch (_) {}
+    // 开发模式默认显示：清除 Tab 记忆，打开页面显示 defaultTab
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('workflowos_tab_')) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch (_) { /* localStorage 不可用时静默降级 */ }
+  },
+
+  logout() {
+    try {
+      localStorage.removeItem(LOGIN_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      // 修复（2026-08-05）：退出登录必须同时清除 API token，否则重新进入开发模式
+      // 仍会因残留 token 被切回 API 数据源（开发模式与真实后端混淆）。
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    } catch {}
+  },
+
+  /**
+   * 获取当前登录用户
+   * @returns {{ personId: string, role: string } | null}
+   */
+  getCurrentUser() {
+    try {
+      const raw = localStorage.getItem(LOGIN_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      // A-11 防串扰：localStorage 中的登录若由其它标签页写入（tabId 不匹配），
+      // 回退到本标签页会话快照，避免 B 页登录改变 A 页身份。
+      if (data.tabId && data.tabId !== _getTabId()) {
+        const snapRaw = sessionStorage.getItem(SESSION_KEY);
+        if (snapRaw) return JSON.parse(snapRaw);
+        return null;
+      }
+      // 迁移：旧格式 { userId, role } → 新格式 { personId, role }
+      if (data.userId && !data.personId) {
+        data.personId = data.userId;
+        delete data.userId;
+        localStorage.setItem(LOGIN_KEY, JSON.stringify(data));
+      }
+      return data;
+    } catch { return null; }
+  },
+
+  /**
+   * 获取用户的常设角色
+   */
+  getUserRole(personId) {
+    return _getUserRoleFromMemory(personId);
+  },
+
+  /**
+   * 获取用户的有效角色（回退常设角色）
+   * 用途：sidebar/header 等组件根据有效角色决定跳转目标
+   * @param {string} personId
+   * @returns {string} 角色 ID
+   */
+  getEffectiveRole(personId) {
+    return this.getUserRole(personId);
+  },
+
+  /**
+   * 获取用户在项目内的项目角色
+   */
+  getProjectRole(personId, projectId) {
+    return _getProjectRole(personId, projectId);
+  },
+
+  /**
+   * 获取该用户持有的所有项目角色（去重）
+   * 用于 sidebar 渲染"可达的工作台页面"
+   * @param {string} personId
+   * @returns {string[]} - 如 ['organizer', 'deep']
+   */
+  getUserProjectRoles(personId) {
+    if (!personId) return [];
+    const projectRoleSet = new Set();
+
+    // 仅读主源（活动 assignments / 专班 members）；审计快照只增不改，不做读源
+    mockDB.activities.forEach(a => {
+      if (Array.isArray(a.assignments)) {
+        a.assignments.forEach(rec => {
+          if (rec.personId === personId && ['organizer', 'deep'].includes(rec.role)) {
+            projectRoleSet.add(rec.role);
+          }
+        });
+      }
+    });
+
+    mockDB.taskforces.forEach(t => {
+      if (Array.isArray(t.members)) {
+        t.members.forEach(m => {
+          if (m.personId === personId && ['organizer', 'deep'].includes(m.role)) {
+            projectRoleSet.add(m.role);
+          }
+        });
+      }
+    });
+
+    return [...projectRoleSet];
+  },
+
+  /**
+   * 便捷判定该用户是否持有某项目角色
+   * @param {string} personId
+   * @param {string} role - 'organizer' | 'deep'
+   * @returns {boolean}
+   */
+  hasProjectRole(personId, role) {
+    if (!personId || !role) return false;
+    return this.getUserProjectRoles(personId).includes(role);
+  },
+
+  /**
+   * 该用户可达的所有 workspace 页面（standing + project）
+   * 用于 sidebar 渲染"工作台"链接或子菜单
+   * @param {string} personId
+   * @returns {Array<{ role: string, page: string, label: string }>}
+   */
+  getAccessibleWorkspacePages(personId) {
+    if (!personId) return [];
+    const pages = [];
+    const standingRole = _getUserRoleFromMemory(personId);
+
+    // 1. standing role 对应页面（来自 ROLE_PAGE_MAP.workspace）
+    const standingPage = (ROLE_PAGE_MAP.workspace || {})[standingRole];
+    if (standingPage) {
+      pages.push({
+        role: standingRole,
+        page: standingPage,
+        label: ROLE_LABELS[standingRole] || standingRole,
+      });
+    }
+
+    // 2. 项目角色（organizer/deep）**没有独立工作台页**——内容落在成员工作台（workspace/visitor.html），
+    //    首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）；此处 page 值仅是历史占位，
+    //    唯一调用方 sidebar.js 只取 pages.length 判定「工作台」入口是否渲染、不读本字段。
+    const projectRoles = this.getUserProjectRoles(personId);
+    projectRoles.forEach(role => {
+      pages.push({
+        role,
+        page: 'index.html',
+        label: ROLE_LABELS[role] || role,
+      });
+    });
+
+    return pages;
+  },
+
+  /**
+   * 统一权限判定
+   * @param {string} personId
+   * @param {string} action - 权限名（如 'create_activity'）
+   * @param {{ projectId?: string }} context - 项目上下文
+   * @returns {boolean}
+   */
+  canDo(personId, action, context = {}) {
+    const userRole = _getUserRoleFromMemory(personId);
+    const perms = ROLE_PERMISSIONS[userRole] || [];
+
+    // 全局权限判定
+    if (perms.includes(action)) return true;
+    if (perms.includes('view_all') && action.startsWith('view_')) return true;
+
+    // 项目上下文: 常设 + 项目角色取并集
+    if (context.projectId) {
+      const projectRole = _getProjectRole(personId, context.projectId);
+      if (projectRole) {
+        const projectPerms = PROJECT_PERMISSIONS[projectRole] || [];
+        if (projectPerms.includes(action)) return true;
+        if (projectPerms.includes('view_project') && action.startsWith('view_')) return true;
+      }
+    }
+
+    return false;
+  },
+
+  /**
+   * 赋权（三合一：写主源 + 追加快照 + 发通知）
+   * @param {string} authorizerId - 授权人 ID
+   * @param {string} targetPersonId - 被赋权人 ID
+   * @param {string} role - 角色
+   * @param {{ projectId?: string }} context
+   * @returns {Promise<{ ok: boolean, id: string }>}
+   */
+  async authorize(authorizerId, targetPersonId, role, context = {}) {
+    if (!authorizerId || !targetPersonId || !role) return { ok: false, id: '' };
+
+    // 校验: 授权人是否有权赋权该角色
+    const authorizerRole = _getUserRoleFromMemory(authorizerId);
+    const allowedRoles = AUTHORIZE_CHAIN[authorizerRole] || [];
+    if (!allowedRoles.includes(role)) return { ok: false, id: '' };
+
+    const scopeRef = context.projectId || null;
+
+    // 查重（审计快照：grant 且未撤销，取最新一条判定）
+    const records = _getAuthRecords();
+    const dupRecs = records.filter(r =>
+      r.targetPersonId === targetPersonId &&
+      r.role === role &&
+      (r.scopeRef || null) === scopeRef
+    );
+    const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
+    if (latestDup && latestDup.action !== 'revoke') return { ok: false, id: latestDup.id };
+
+    // ① 写主源（活动 assignments / 专班 members，合并去重）
+    // 仅 organizer/deep 有主源载体（与 revoke 对称）；leader 等角色只走审计快照，防止污染主源。
+    try {
+      if (scopeRef && (role === 'organizer' || role === 'deep')) {
+        const activity = mockDB.activities.find(a => a.id === scopeRef);
+        if (activity) {
+          const current = Array.isArray(activity.assignments) ? activity.assignments : [];
+          const updated = await updateActivity(scopeRef, {
+            assignments: [
+              ...current.filter(x => !(x.personId === targetPersonId && x.role === role)),
+              { personId: targetPersonId, role },
+            ],
+          });
+          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
+          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
+        } else {
+          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+          if (tf) {
+            const cur = Array.isArray(tf.members) ? tf.members : [];
+            TaskForceRecordStore.update(scopeRef, {
+              members: [
+                ...cur.filter(m => !(m.personId === targetPersonId && m.role === role)),
+                { personId: targetPersonId, role, contributions: [] },
+              ],
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthStore] authorize 写主源失败：', e);
+      return { ok: false, id: '' };
+    }
+
+    // ② 追加审计快照
+    const id = generateId('auth', '-');
+    records.push({
+      id,
+      targetPersonId,
+      role,
+      scopeRef,
+      authorizedBy: authorizerId,
+      authorizedAt: new Date().toISOString().slice(0, 10),
+      action: 'grant',
+    });
+    _saveAuthRecords(records);
+
+    // ③ 赋权通知（organizer / deep）
+    if (role === 'organizer' || role === 'deep') {
+      _notifyProjectAuth(scopeRef, authorizerId, targetPersonId, role);
+    }
+
+    return { ok: true, id };
+  },
+
+  /**
+   * 撤销赋权（三合一：删主源 + 追加 revoke 快照）
+   * 快照只增不改：保留原 grant 记录，追加一条 action='revoke' 记录。
+   * @param {string} recordId - 审计快照记录 ID
+   * @returns {Promise<boolean>}
+   */
+  async revokeAuthorization(recordId) {
+    if (!recordId) return false;
+    const records = _getAuthRecords();
+    const rec = records.find(r => r.id === recordId);
+    if (!rec) return false;
+
+    const { personId, role, scopeRef } = rec;
+
+    // 删主源（仅 organizer/deep 有主源载体）
+    if (scopeRef && role && (role === 'organizer' || role === 'deep')) {
+      try {
+        const activity = mockDB.activities.find(a => a.id === scopeRef);
+        if (activity && Array.isArray(activity.assignments)) {
+          const updated = await updateActivity(scopeRef, {
+            assignments: activity.assignments.filter(x => !(x.personId === personId && x.role === role)),
+          });
+          _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
+          persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
+        } else {
+          const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+          if (tf && Array.isArray(tf.members)) {
+            TaskForceRecordStore.update(scopeRef, {
+              members: tf.members.filter(m => !(m.personId === personId && m.role === role)),
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('[AuthStore] revoke 写主源失败：', e);
+        return false; // 主源未删成功不追加 revoke 快照，避免快照与主源不一致
+      }
+    }
+
+    // 追加 revoke 快照
+    _appendAuditEntries(scopeRef, rec.authorizedBy || null, [{ personId, role }], 'revoke');
+    return true;
+  },
+
+  getAuthorizations() {
+    return _getAuthRecords();
+  },
+
+  /**
+   * 整组同步项目角色（活动详情 / 专班详情内联编辑共用）
+   * 三合一：写主源（全量覆盖 organizer/deep，保留 participant 等其它角色）+
+   * 追加快照（新增 grant / 移除 revoke）+ 通知。
+   * @param {{ scopeRef: string, assignments: Array<{personId:string, role:string}>, actorId?: string }} opts
+   * @returns {Promise<{ added: number, removed: number }>}
+   */
+  async syncProjectRoles({ scopeRef, assignments = [], actorId }) {
+    if (!scopeRef) return { added: 0, removed: 0 };
+    const desired = assignments.filter(x => x.personId && (x.role === 'organizer' || x.role === 'deep'));
+
+    const activity = mockDB.activities.find(a => a.id === scopeRef);
+    const tf = mockDB.taskforces.find(t => t.id === scopeRef);
+    let current = [];
+    if (activity) {
+      current = Array.isArray(activity.assignments)
+        ? activity.assignments.filter(x => x.role === 'organizer' || x.role === 'deep')
+        : [];
+    } else if (tf) {
+      current = Array.isArray(tf.members)
+        ? tf.members.filter(m => m.role === 'organizer' || m.role === 'deep')
+        : [];
+    } else {
+      return { added: 0, removed: 0 };
+    }
+
+    const currentKeys = new Set(current.map(x => x.personId + ':' + x.role));
+    const desiredKeys = new Set(desired.map(x => x.personId + ':' + x.role));
+    const added = desired.filter(x => !currentKeys.has(x.personId + ':' + x.role));
+    const removed = current.filter(x => !desiredKeys.has(x.personId + ':' + x.role));
+
+    // 写主源：保留非 organizer/deep 条目（活动 participant / 专班含 contributions 的成员）
+    try {
+      if (activity) {
+        const nonProj = Array.isArray(activity.assignments)
+          ? activity.assignments.filter(x => x.role !== 'organizer' && x.role !== 'deep')
+          : [];
+        const updated = await updateActivity(scopeRef, { assignments: [...nonProj, ...desired] });
+        _syncTopLevelOrganizer(updated); // 原则7：顶层 organizer 与主源 assignments 同步派生
+        persist(); // 活动主源写入后落盘（updateActivity 不自动 persist）
+      } else if (tf) {
+        const prevMembers = Array.isArray(tf.members) ? tf.members : [];
+        const contributionsById = {};
+        prevMembers.forEach(m => { if (m.personId) contributionsById[m.personId] = m.contributions || []; });
+        // 保留非 organizer/deep 成员（participant 等，含 contributions），与活动分支对齐
+        const nonProj = prevMembers.filter(m => m.role !== 'organizer' && m.role !== 'deep');
+        const desiredWithCtx = desired.map(x => ({
+          personId: x.personId,
+          role: x.role,
+          contributions: contributionsById[x.personId] || [],
+        }));
+        TaskForceRecordStore.update(scopeRef, { members: [...nonProj, ...desiredWithCtx] });
+      }
+    } catch (e) {
+      console.warn('[AuthStore] syncProjectRoles 写主源失败：', e);
+      return { added: 0, removed: 0 }; // 主源未写成功不追加审计快照，避免快照与主源不一致
+    }
+
+    // 追加快照 + 通知
+    _appendAuditEntries(scopeRef, actorId, added, 'grant');
+    added.forEach(x => _notifyProjectAuth(scopeRef, actorId, x.personId, x.role));
+    _appendAuditEntries(scopeRef, actorId, removed, 'revoke');
+
+    return { added: added.length, removed: removed.length };
+  },
+
+  /**
+   * 记录项目角色授予（主源已写入后的快照+通知，创建活动内联赋权/专班招募用）
+   * @param {string} scopeRef - 活动或专班 ID
+   * @param {Array<{personId:string, role:string}>} assignments
+   * @param {string} [actorId]
+   * @returns {number} 实际新增快照条数
+   */
+  recordProjectGrants(scopeRef, assignments, actorId) {
+    if (!scopeRef || !Array.isArray(assignments)) return 0;
+    const records = _getAuthRecords();
+    let count = 0;
+    assignments.forEach(a => {
+      if (!a.personId || (a.role !== 'organizer' && a.role !== 'deep')) return;
+      const dupRecs = records.filter(r =>
+        r.targetPersonId === a.personId && r.role === a.role && r.scopeRef === scopeRef
+      );
+      const latestDup = dupRecs.length > 0 ? dupRecs[dupRecs.length - 1] : null;
+      if (latestDup && latestDup.action !== 'revoke') return;
+      records.push({
+        id: generateId('auth', '-'),
+        targetPersonId: a.personId,
+        role: a.role,
+        scopeRef,
+        authorizedBy: actorId || null,
+        authorizedAt: new Date().toISOString().slice(0, 10),
+        action: 'grant',
+      });
+      _notifyProjectAuth(scopeRef, actorId, a.personId, a.role);
+      count++;
+    });
+    _saveAuthRecords(records);
+    return count;
+  },
+
+  /**
+   * 批量记录项目角色回收（专班解散等批量场景：主源由调用方清空，此处只追加快照）
+   * @param {string} scopeRef
+   * @param {Array<{personId:string, role?:string}>} entries
+   * @param {string} [actorId]
+   * @returns {number}
+   */
+  recordProjectRevokes(scopeRef, entries, actorId) {
+    return _appendAuditEntries(scopeRef, actorId, entries || [], 'revoke');
+  },
+
+  // ── 辅助方法 ────────────────────────────────
+
+  getRoleLabel(role) {
+    return ROLE_LABELS[role] || role;
+  },
+
+  getPageForRole(module, role) {
+    return (ROLE_PAGE_MAP[module] || {})[role] || null;
+  },
+
+  isCommissioner(role) {
+    return COMMISSIONER_ROLES.has(role);
+  },
+};
+
+// ════════════════════════════════════════════════════════════════
+//  副组长键的权限 / 赋权链（2026-09-21 批次 139 · 裁定 `D-571`，系照支书 2026-09-21 口径落）
+// ════════════════════════════════════════════════════════════════
+// 支书口径第 ③ 层：「我们并不像〔想〕给组长和副组长明确分工，而由他们自己探讨分工。所以设定了两者同样
+//   的工作台。但是后台还是知道谁是组长，谁是副组长的」⇒ **系统不硬切分正副职责**：副组长的权限集与
+//   赋权链**与同组组长同一份**（同一数组引用，未复制第二份，避免两处维护走偏）。
+// ⚠ 为什么不写进上方 ROLE_PERMISSIONS / AUTHORIZE_CHAIN 字面量：`README-server.md` 按**行号**逐个引用
+//   本文件的角色行与 `:90-106` / `:474-493`，插行会整体漂移（本批不许改 README）⇒ 集中在文件末挂载。
+// 消费方：`AuthStore.canDo`（权限集）/ `AuthStore.authorize`（赋权链）/ `_getUserRoleFromMemory`（读回角色）。
+ROLE_PERMISSIONS['deputy-leader'] = ROLE_PERMISSIONS['leader'];
+AUTHORIZE_CHAIN['deputy-leader'] = AUTHORIZE_CHAIN['leader'];
+
+// ════════════════════════════════════════════════════════════════
+//  审计留痕的服务端同步（2026-09-24 批次 169；集中置尾 = 上文行号是 README-server.md 的取证靶点）
+// ════════════════════════════════════════════════════════════════
+// 病灶：赋权审计留痕原先**只有本机一份**（键 sop_org_os_auth_audit）⇒ 清缓存即留痕灭失；
+//   而留痕的意义＝让「谁给谁赋了什么角色」这条治理承诺**可被事后核对**（没有它，承诺无从证伪）。
+// 现 api 形态落服务端表 `auth_audit`（端点 GET/POST /api/v1/auth-audit，见 server/routes/resources.js 末
+//   「授权审计留痕」段），`init()` 拉取填 `mockDB.authAudit`（data-adapter.js::_loadAuxCollections）。
+// 同步口径：**只发本机新增的行**（服务端已存在的 id 不重发）；失败仅告警、下次 init 以服务端为准。
+// ⚠ 动态 import（不在文件顶部静态引入 data-adapter）：本文件顶部 import 段被 README-server.md 按行号引用，
+//   插行会整体漂移（同上方 deputy-leader 的处置）。
+let _auditSyncedIds = null; // null = 未初始化；首次同步时以「服务端缓存里已有的 id」为起点
+
+/** api 形态：把新增的审计留痕同步到服务端（fire-and-forget；失败仅告警） */
+function _syncAuthAuditToServer(records) {
+  const rows = Array.isArray(records) ? records : [];
+  if (_auditSyncedIds === null) {
+    _auditSyncedIds = new Set((Array.isArray(mockDB.authAudit) ? mockDB.authAudit : []).map((r) => r && r.id));
+  }
+  const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
+  if (!fresh.length) return;
+  fresh.forEach((r) => _auditSyncedIds.add(r.id));
+  import('../../core/data-adapter.js?v=20260928h').then(async ({ getDataSource, getAdapter }) => {
+    if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
+    const a = getAdapter();
+    if (!a.authAudit || typeof a.authAudit.create !== 'function') return;
+    for (const r of fresh) await a.authAudit.create(r);
+  }).catch((e) => {
+    fresh.forEach((r) => _auditSyncedIds.delete(r.id)); // 失败回滚登记 → 下次写重试
+    console.warn('[AuthStore] api 形态审计留痕落服务端失败（本地已记，下次 init 以服务端为准）：', e);
+  });
+}

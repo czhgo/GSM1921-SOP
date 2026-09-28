@@ -100,7 +100,7 @@ test('③ 反馈指派与「我的处置」不得使用演示占位 ID（u_*）�
 
 // ── ④ 通知消费端统一受众门（根因哨兵）：list() 必须按 audience / actionRoles 过滤 ──
 test('④ 通知消费端（NoticeStore.list）必须按受众/行动角色过滤——签发人不得收到自己下发的催办', () => {
-  const src = readFileSync(join(DOCS, 'src/services/notice.js'), 'utf8');
+  const src = readFileSync(join(DOCS, 'src/services/governance/notice.js'), 'utf8');
   assert.match(src, /actionRoles\.includes\(/, 'NoticeStore.list 缺少 actionRoles 受众过滤');
   assert.match(src, /audience\.includes\(/, 'NoticeStore.list 缺少 audience 角色数组过滤');
   assert.match(src, /audience === 'committee'/, "NoticeStore.list 缺少 audience==='committee'（党委下发通道）过滤");

@@ -245,7 +245,7 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 
 ## 单一源搬迁后的引用改签遗漏（局部绿、全量红）（2026-09-14 批次 38 判例立规）
 
-**问题**：批次 38 把翻页标记 `pagerHtml` 从 `components/list-filter.js` **移出**到新叶子件 `components/pager.js`（因为 `relation-matrix → list-filter → inspector → vote-summary-panel → relation-matrix` 会成**模块环**，单一源必须落在**不依赖任何业务模块的叶子件**上），但只改了 `relation-matrix.js` 与新写的 `pager.js`，**漏改另外 6 个刚从 `list-filter.js` 引入 `pagerHtml` 的文件**。运行时抛 `SyntaxError: The requested module './list-filter.js' does not provide an export named 'pagerHtml'`，**一次性打红 17 个测试（含 5 个 e2e）**。
+**问题**：批次 38 把翻页标记 `pagerHtml` 从 `components/ui/list-filter.js` **移出**到新叶子件 `components/ui/pager.js`（因为 `relation-matrix → list-filter → inspector → vote-summary-panel → relation-matrix` 会成**模块环**，单一源必须落在**不依赖任何业务模块的叶子件**上），但只改了 `relation-matrix.js` 与新写的 `pager.js`，**漏改另外 6 个刚从 `list-filter.js` 引入 `pagerHtml` 的文件**。运行时抛 `SyntaxError: The requested module './list-filter.js' does not provide an export named 'pagerHtml'`，**一次性打红 17 个测试（含 5 个 e2e）**。
 
 **根因**：
 1. **把「新位置已就位」当成「改签已完成」**——搬迁被窄化为「写新文件 + 改一个调用方」，未把「旧路径的全量引用」当成待办清单逐条勾销；「改了引用方 A 就以为改完了」。

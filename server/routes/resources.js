@@ -315,7 +315,7 @@ export function createResourcesRouter(db) {
   }
 
   // ── 立项⑤ 阶段A：支部语义创建 POST /branches（2026-09-06）────────────
-  // 空模板初始化 / 复制现有支部为模板——双形态口径与前端 services/branch.js createBranch
+  // 空模板初始化 / 复制现有支部为模板——双形态口径与前端 services/branch/branch.js createBranch
   // （EMPTY_BRANCH_TEMPLATE + buildNewBranchRecord）一致：server 内联同语义，
   // 双形态一致性由 server/test/empty-template.test.mjs ⑤ 断言守护（防止两端未同步的情况）。
   // 门控：party-staff（与 PATCH /branches/:id/config 同风格 requireAuth + 角色判定）。
@@ -405,7 +405,7 @@ export function createResourcesRouter(db) {
     res.json(act);
   });
 
-  router.post('/activities/:id/brand', requireRole(db, BRANCH_COMMITTEE_ROLES), (req, res) => { // 品牌认定**取消**口（2026-09-21 批次 132 · 支书口径二）：**只能取消、不能认定**——认定唯一入口＝支委会议程项「记录结果 · 通过」（services/agenda-follow-up.js 的 brand-designation 分支）；原文「任一登录用户 POST 即翻转 isBrand」＝「点一下即认定」的后门，本批收掉（门收支委层 / 非品牌态 400 / 取消留痕）
+  router.post('/activities/:id/brand', requireRole(db, BRANCH_COMMITTEE_ROLES), (req, res) => { // 品牌认定**取消**口（2026-09-21 批次 132 · 支书口径二）：**只能取消、不能认定**——认定唯一入口＝支委会议程项「记录结果 · 通过」（services/activity/agenda-follow-up.js 的 brand-designation 分支）；原文「任一登录用户 POST 即翻转 isBrand」＝「点一下即认定」的后门，本批收掉（门收支委层 / 非品牌态 400 / 取消留痕）
     const existing = db.prepare('SELECT data FROM activities WHERE id = ?').get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'not found' });
     const current = JSON.parse(existing.data);
@@ -755,7 +755,7 @@ export function createResourcesRouter(db) {
     const id = 'issue-' + randomUUID().slice(0, 8);
     // 支部归属（每个组织独立 issue 空间，2026-09-15 支书裁定）：服务端权威取登录人所属支部，
     // 不采信客户端自述（防伪造跨支部）；无支部/党委级人员 → 部署默认支部 'br-b1'
-    //（与前端 services/issues.js 写入口径 getBranchIdOfPerson / 读过滤 withinBranch 同源）。
+    //（与前端 services/governance/issues.js 写入口径 getBranchIdOfPerson / 读过滤 withinBranch 同源）。
     const branchId = actor.branchId || 'br-b1';
     // 落库白名单：匿名 → submittedBy='匿名' 且 participants 为空，**但落真实提交人 `_realPersonId`**
     //（2026-09-17 支书改裁「后台记录真实情况」）；实名 → 按现口径记 actor.id（真身即 submittedBy，不重复存）
@@ -826,7 +826,7 @@ export function createResourcesRouter(db) {
   //   陈旧缓存覆盖（与 agendaVotes 同理）；② 写门照既有 requireXxx 中间件，角色集一律取 constants.js 单一源；
   //   ③ 表在 `SEMANTIC_TABLES`（独立于 `RESOURCE_TABLES`）⇒ 无通用 CRUD、不参与快照事务。
   // ── 三委数据交接（T-304 C2 §E.2）──
-  // 类型元数据单一源 = `docs/src/services/handoff.js::HANDOFF_TYPES`（from/to 由类型派生，**不采信客户端自述**）。
+  // 类型元数据单一源 = `docs/src/services/governance/handoff.js::HANDOFF_TYPES`（from/to 由类型派生，**不采信客户端自述**）。
   router.get('/handoffs', requireAuth(db), (req, res) => {
     let rows = listTable(db, 'handoffs');
     if (req.query.to) rows = rows.filter((h) => h.to === req.query.to);
@@ -868,7 +868,7 @@ export function createResourcesRouter(db) {
     res.json(next);
   });
   // ── 名册成员变更确认请求队列（附录⑩ S4）──
-  // 发起＝组织委员（与 services/member-confirmation.js::submitMemberChange 同口径：阶段/在册滞留下方写权）；
+  // 发起＝组织委员（与 services/member/member-confirmation.js::submitMemberChange 同口径：阶段/在册滞留下方写权）；
   // 决策＝支书/副支书（副书同权，单一源 constants.js::SECRETARY_AND_DEPUTY_ROLES，与本文件既有集合同源）。
   router.get('/member-confirmations', requireAuth(db), (req, res) => {
     let rows = listTable(db, 'member_confirmations');
@@ -922,10 +922,10 @@ export function createResourcesRouter(db) {
 // 支书裁定（2026-09-22，逐字）：「加一道（推荐）」——选项说明逐字：「现在"只在前端判状态"，直调 API 可以
 //   绕过这道门（数据能对上，但不严谨）。」
 // 为什么落在**既有 PATCH 上判状态转移**（而不另开专用审批端点）：前端写入链早已收敛到
-//   `docs/src/services/activity.js::approveActivity / rejectActivity` 两枚写口（二者产出的补丁天然带
+//   `docs/src/services/activity/activity.js::approveActivity / rejectActivity` 两枚写口（二者产出的补丁天然带
 //   `status` ＋ `approval` 语义）⇒ 在 PATCH 上加一条**状态转移判据**即可一一对应、不必新增端点与适配器方法；
 //   且门是**叠加**在既有角色门之后的第二道（角色门答「谁能写活动」，本门答「谁能把待批改成已发布/已取消」）。
-// 判据（单一源＝`docs/src/services/activity.js::canApproveActivity` / `PENDING_APPROVAL_STATUS`，勿在此另写）：
+// 判据（单一源＝`docs/src/services/activity/activity.js::canApproveActivity` / `PENDING_APPROVAL_STATUS`，勿在此另写）：
 //   · 既有行**不是** `pending-approval` ⇒ 不拦（本门只管批准门这道关）；
 //   · 补丁仍把状态留在 `pending-approval` ⇒ 不拦（没改状态）；
 //   · 离开待批态 ⇒ 必须**带批准语义**（发布＝`approval.state='approved'`；终止＝`'rejected'`）**且**写者角色
@@ -936,8 +936,8 @@ export function createResourcesRouter(db) {
 //   其余整表写入照旧放行）。
 // ⚠ 本块（含 import）置于文件末尾：**不改动上文任何行号**——README-server.md 里有 380 处 `文件:行号` 引用
 //   指向本文件（`doc-line-ref` 守卫逐条核），插入一行即整段漂移；ESM 的 import 声明在模块顶层任意位置均被提升，
-//   置末尾不影响语义（本项目既有同法：`services/decision-tree.js` 用动态 import 保行号）。
-import { canApproveActivity, PENDING_APPROVAL_STATUS, pendingApprovalPatchOnWrite } from '../../docs/src/services/activity.js';
+//   置末尾不影响语义（本项目既有同法：`services/activity/decision-tree.js` 用动态 import 保行号）。
+import { canApproveActivity, PENDING_APPROVAL_STATUS, pendingApprovalPatchOnWrite } from '../../docs/src/services/activity/activity.js';
 
 /** 批准门状态转移拦截文案 */
 const ACTIVITY_APPROVAL_TRANSITION_DENY_MSG = '无权限：该活动处于「待批」，不得直接改为发布/取消——须经批准（补丁须携带批准语义 approval.state）';
@@ -976,7 +976,7 @@ function _activityApprovalGateDeny(prevRow, body, actor) {
 //      判据**逐行复用上面那道 PATCH 门 `_activityApprovalGateDeny`**（喂「库内行 vs 快照行」），**不另写第二套判据**。
 //   ② `POST /api/v1/activities`（直建通道）——**档位开启时**按写入链同一补丁落 `pending-approval`（不再由调用方
 //      自定「已发布」）；**档位关闭（默认）时一字不改**（原样写入，零行为变化）。
-// 档位／补丁怎么取（与写入链同源）：补丁形状单一源＝`docs/src/services/activity.js::pendingApprovalPatchOnWrite`；
+// 档位／补丁怎么取（与写入链同源）：补丁形状单一源＝`docs/src/services/activity/activity.js::pendingApprovalPatchOnWrite`；
 //   档位取值＝该支部 `config.policyOverrides.activityApproval.mode`——与前端读侧注入 `applyBranchPolicyOverrides`
 //   落进 `POLICY_DEFAULTS` 的是**同一个白名单键**（`core/policy-defaults.js::POLICY_OVERRIDABLE`），
 //   **不在服务端另造档位映射 / 阈值**。
@@ -1039,7 +1039,7 @@ function _activityCreateGatePatch(db, actor) {
 //     （一把手层归党委，`D-585`：换届选举涉及支委班子身份赋权，由党委改变支部设置）；
 //   · 写入角色键不在白名单（含 `secretary` / `deputy-secretary` / `party-staff` / `leader` / `organizer` / `deep` …）→ 403；
 //     撤销位 `participant` 例外（降级，不是授予）。
-// 前端同一判据的消费点＝`docs/src/services/appointment.js::appointBranchCommissioner`（角色双链写 + 审计留痕）。
+// 前端同一判据的消费点＝`docs/src/services/branch/appointment.js::appointBranchCommissioner`（角色双链写 + 审计留痕）。
 // ⚠ 本块置于文件末尾、且上文对该门的三处改动均为**等行数替换**：不改动任何既有行号
 //   （README-server.md 有大量 `文件:行号` 引用指向本文件，`doc-line-ref` 守卫逐条核）。
 
@@ -1169,8 +1169,8 @@ function writeRow(db, table, row) {
 // 组织委员角色集（单一源 = constants.js::ORG_COMMISSIONER_ROLES；「成员变更确认」发起门的写权口径，
 //   与 `routes/member.js` 的同名集合同源，勿手写角色字符串）
 const ORG_COMMISSIONER_ROLE_SET = new Set(ORG_COMMISSIONER_ROLES);
-// 三委数据交接类型元数据（单一源 = services/handoff.js::HANDOFF_TYPES，勿在本文件另写一份类型表）
-import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../docs/src/services/handoff.js';
+// 三委数据交接类型元数据（单一源 = services/governance/handoff.js::HANDOFF_TYPES，勿在本文件另写一份类型表）
+import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../docs/src/services/governance/handoff.js';
 import { ORG_COMMISSIONER_ROLES } from '../../docs/src/core/constants.js';
 
 // ════════════════════════════════════════════════════════════════
@@ -1241,18 +1241,18 @@ function registerExtraSemanticRoutes(router, db) {
     writeRow(db, table, next);
     res.json(next);
   };
-  // ── 出勤申诉队列（SOP-B-42 / D-456；前端 services/attendance.js）──
+  // ── 出勤申诉队列（SOP-B-42 / D-456；前端 services/activity/attendance.js）──
   router.get('/attendance-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'attendance_appeals')));
   router.post('/attendance-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'attendance_appeals', 'appeal'));
   router.patch('/attendance-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'attendance_appeals'));
-  // ── 考察申诉队列（SOP-B-10；前端 services/inspection.js）──
+  // ── 考察申诉队列（SOP-B-10；前端 services/activity/inspection.js）──
   router.get('/inspection-appeals', requireAuth(db), (req, res) => res.json(readAppeals(req, 'inspection_appeals')));
   router.post('/inspection-appeals', requireAuth(db), (req, res) => submitAppeal(req, res, 'inspection_appeals', 'inspAppeal'));
   router.patch('/inspection-appeals/:id', requireRole(db, APPEAL_DISPOSITION_ROLE_SET), (req, res) => disposeAppeal(req, res, 'inspection_appeals'));
-  // ── 意见反馈「逐人未读标记」（前端 services/issues.js::IssueNotify）──
+  // ── 意见反馈「逐人未读标记」（前端 services/governance/issues.js::IssueNotify）──
   // 行＝{ id: `${assigneeId}:${issueId}`, assigneeId, issueId, unread:true, at }；销项＝unread:false（保留行便于审计）
   // ⚠ 写门＝requireAuth（**与 mock 形态同口径**）：标记是「指派 / 答复」写链的副产品——**由派发方**替被指派人
-  //   落未读（见 docs/src/services/issues.js:609,786 的 markUnread 调用点）。服务端只落不判定
+  //   落未读（见 docs/src/services/governance/issues.js:609,786 的 markUnread 调用点）。服务端只落不判定
   //   「该 actor 是否真派发过」；如需收严另裁（如实登记，未自创第二套口径）。
   const issueUnreadId = (assigneeId, issueId) => `${assigneeId}:${issueId}`;
   const UNREAD_WRITE_KEYS = ['assigneeId', 'issueId', 'unread'];
@@ -1275,7 +1275,7 @@ function registerExtraSemanticRoutes(router, db) {
     writeRow(db, 'issue_unread', row);
     res.json(row);
   });
-  // ── 授权审计留痕（T-190；前端 services/auth.js）──
+  // ── 授权审计留痕（T-190；前端 services/core/auth.js）──
   // 只增不改的治理档案：读＝支委层（赋权留痕是支委治理记录）；写＝登录用户（赋权动作内部调用，服务端只落不判定）
   const AUTH_AUDIT_KEYS = ['id', 'targetPersonId', 'role', 'scopeRef', 'authorizedBy', 'authorizedAt', 'action'];
   router.get('/auth-audit', requireRole(db, new Set(BRANCH_COMMISSION_ROLES)), (req, res) => res.json(listTable(db, 'auth_audit')));

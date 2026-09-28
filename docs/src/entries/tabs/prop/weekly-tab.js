@@ -2,17 +2,17 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/icons.js?v=20260924a';
-import { solidAccentStyle } from '../../../core/constants.js?v=20260924a';
-import { showToast } from '../../../core/utils.js?v=20260924a';
-import { persist } from '../../../core/data-adapter.js?v=20260924a';
-import { mockDB } from '../../../core/domain.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { generateId } from '../../../core/id.js?v=20260924a';
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
-import { NoticeStore } from '../../../services/notice.js?v=20260924a';
-import { getPersonName } from '../../../services/person.js?v=20260924a';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/secretary-overview.js?v=20260924a';
+import { icon } from '../../../core/icons.js?v=20260928h';
+import { solidAccentStyle } from '../../../core/constants.js?v=20260928h';
+import { showToast } from '../../../core/utils.js?v=20260928h';
+import { persist } from '../../../core/data-adapter.js?v=20260928h';
+import { mockDB } from '../../../core/domain.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { generateId } from '../../../core/id.js?v=20260928h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260928h';
+import { getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20260928h';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
@@ -263,7 +263,7 @@ export function renderContent(ctx) {
 function _renderWeeklyReportItem(report) {
   const statusStyle = WEEKLY_STATUS_STYLE[report.status];
   const isSubmitted = report.status === 'submitted';
-  // 审核位状态（SOP-B-40 ②）：单一源 = services/secretary-overview.js::weeklyReviewStatusOf
+  // 审核位状态（SOP-B-40 ②）：单一源 = services/governance/secretary-overview.js::weeklyReviewStatusOf
   const reviewStatus = weeklyReviewStatusOf(report);
   const reviewBadge = reviewStatus
     ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_REVIEW_STYLE[reviewStatus]}">支书${WEEKLY_REVIEW_LABELS[reviewStatus]}</span>`

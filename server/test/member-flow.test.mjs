@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260924a';
+const V = '?v=20260928h';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -31,14 +31,14 @@ globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem
 
 const { mockDB } = await import(`../../docs/src/core/domain.js${V}`);
 const { MockAdapter } = await import(`../../docs/src/core/mock-adapter.js${V}`);
-const { PersonStore, MEMBER_OVERLAY_KEY } = await import(`../../docs/src/services/person.js${V}`);
+const { PersonStore, MEMBER_OVERLAY_KEY } = await import(`../../docs/src/services/member/person.js${V}`);
 const { setDataSource, registerMockAdapter } = await import(`../../docs/src/core/data-adapter.js${V}`);
 const { MEMBER_FLOW_ROLES } = await import(`../../docs/src/core/constants.js${V}`);
 const {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} = await import(`../../docs/src/services/member-flow.js${V}`);
-const { verifyLogin, isAccountActive, findAccountByPersonId } = await import(`../../docs/src/services/accounts.js${V}`);
+} = await import(`../../docs/src/services/member/member-flow.js${V}`);
+const { verifyLogin, isAccountActive, findAccountByPersonId } = await import(`../../docs/src/services/core/accounts.js${V}`);
 
 registerMockAdapter(MockAdapter);
 
@@ -70,21 +70,21 @@ const _overlayRemovedIds = () => {
 // ═══════════════ 结构层 ═══════════════
 
 test('S1 全站不得再出现「流出待支书确认」旧口径（transferOut pending 分支已移除）', () => {
-  const src = read(join(SRC_DIR, 'services', 'member-confirmation.js'));
+  const src = read(join(SRC_DIR, 'services', 'member', 'member-confirmation.js'));
   assert.ok(!/refsSummary:\s*\{/.test(src), '不得再构造 transferOut pending 的 refsSummary');
   assert.ok(!/direct:\s*false/.test(src), '流出不再有「非直接」分支（登记即生效）');
   assert.ok(!/kind:\s*'transferOut'/.test(src), '不得再建 kind=transferOut 的待确认请求');
 });
 
 test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server/routes/member.js）', () => {
-  const person = read(join(SRC_DIR, 'services', 'person.js'));
+  const person = read(join(SRC_DIR, 'services', 'member', 'person.js'));
   assert.match(person, /'enrollYear'/, '前端成员档案字段白名单须含 enrollYear');
   const member = read(join(ROOT, 'server', 'routes', 'member.js'));
   assert.match(member, /PROFILE_FIELDS\s*=\s*\[[^\]]*'enrollYear'/, 'PROFILE_FIELDS 须含 enrollYear');
   assert.match(member, /CREATE_FIELDS\s*=\s*\[[^\]]*'enrollYear'/, 'CREATE_FIELDS 须含 enrollYear');
-  const roster = read(join(SRC_DIR, 'services', 'roster-ui-logic.js'));
+  const roster = read(join(SRC_DIR, 'services', 'member', 'roster-ui-logic.js'));
   assert.match(roster, /enrollYear/, '新增成员校验须采集/校验 enrollYear');
-  const modal = read(join(SRC_DIR, 'components', 'person-edit-modal.js'));
+  const modal = read(join(SRC_DIR, 'components', 'governance', 'person-edit-modal.js'));
   assert.match(modal, /enrollYear/, '完整档案展示须含 enrollYear（只读）');
 });
 
@@ -94,7 +94,7 @@ test('S3 写门角色集来自单一源（不得手写角色字符串）', () =>
   assert.match(res, /memberFlows:\s*'member-flow'/, 'memberFlows 写门须设为 member-flow');
   assert.ok(!/\['org-commissioner'/.test(res), 'resources.js 不得手写角色数组');
 
-  const svc = read(join(SRC_DIR, 'services', 'member-flow.js'));
+  const svc = read(join(SRC_DIR, 'services', 'member', 'member-flow.js'));
   assert.match(svc, /MEMBER_FLOW_ROLES/, 'member-flow.js 须 import MEMBER_FLOW_ROLES（单一源）');
   assert.ok(!/\['org-commissioner'/.test(svc), 'member-flow.js 不得手写角色数组');
 
@@ -116,7 +116,7 @@ test('S4 撤销流出须清 server 软标记（Q-23-5；三处接线齐备）', 
   const adapter = read(join(SRC_DIR, 'core', 'api-adapter.js'));
   assert.match(adapter, /undoTransferOut\(id\)/, 'api-adapter.members 须暴露 undoTransferOut');
 
-  const svc = read(join(SRC_DIR, 'services', 'member-flow.js'));
+  const svc = read(join(SRC_DIR, 'services', 'member', 'member-flow.js'));
   assert.match(svc, /restoreFromTransferOut:\s*true/, 'revokeFlow 复活成员须带 restoreFromTransferOut（接线单一源）');
   // 2026-09-14 批次 30（支书裁定 Q-23-10）：流入建档须走成员流动专用端点
   assert.match(svc, /memberFlowIntake:\s*true/, 'registerIntake 建档须带 memberFlowIntake（走 /members/intake）');

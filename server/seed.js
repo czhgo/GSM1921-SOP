@@ -14,7 +14,7 @@ import { replaceCollection } from './db.js';
  *   · 不写 tokenHash（仅判重/限频用，种子无此需求）；
  *   · 保留处置类字段（assignee/assigneeRole/dispatchHistory/comments/reactions）用于演示指派与处置链路；
  *   · 支部归属 branchId（每个组织独立 issue 空间，2026-09-15 支书裁定）：取 issues.json 所载；
- *     存量缺省按部署默认支部 'br-b1'（与前端 services/issues.js 写入口径 getBranchIdOfPerson 同源）。
+ *     存量缺省按部署默认支部 'br-b1'（与前端 services/governance/issues.js 写入口径 getBranchIdOfPerson 同源）。
  */
 function seedIssues() {
   let raw;
@@ -144,7 +144,7 @@ export async function seedDatabase(db) {
   //   两形态同内容（mock 态由 tab 的 `_loadXxx()` 空集兜底注入同一份）。
   replaceCollection(db, 'weekly_reports', SEED_WEEKLY_REPORTS);
   replaceCollection(db, 'prop_tasks', SEED_PROP_TASKS);
-  // 文件流外发确认（形状 = `services/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
+  // 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
   replaceCollection(db, 'external_dispatches', SEED_EXTERNAL_DISPATCHES);
   // 三委数据交接（形状 = `routes/resources.js` 的 `POST /handoffs`；from/to 由 type 经 HANDOFF_TYPES 派生）
   replaceCollection(db, 'handoffs', SEED_HANDOFFS);
@@ -163,11 +163,11 @@ export async function seedDatabase(db) {
   // ════════════════════════════════════════════════════════════════
   //  批次 195+（2026-09-26）：待办（todos）基线种子（**补已知缺口**）
   // ════════════════════════════════════════════════════════════════
-  // 口径判定（先实读三处再动手：`services/todo.js` 的 `SEED_TODOS` · `routes/resources.js` 的 todos 写口 ·
+  // 口径判定（先实读三处再动手：`services/governance/todo.js` 的 `SEED_TODOS` · `routes/resources.js` 的 todos 写口 ·
   //   `routes/leader-progress.js` 的 todos 读口径）：`todos` 在本系统里**两种性质并存**，故按纪律①播种——
   //   · **运行时派生**是常态：通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/
   //     成员台参与（`VisitorTodoDeriver`）都在业务动作**发生时**派生待办——这些**不落种子**，由演示过程自然产生；
-  //   · 但另有一小批**独立台账型种子**：`docs/src/services/todo.js::SEED_TODOS`（2 条：宣传委员「提交七一活动
+  //   · 但另有一小批**独立台账型种子**：`docs/src/services/governance/todo.js::SEED_TODOS`（2 条：宣传委员「提交七一活动
   //     新闻稿」·支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，**不引用任何活动/任务/
   //     人员实体** ⇒ 零孤立引用）——由前端 `seedTodos()`（各工作台入口调用）与 `data-adapter.js::init()` 的
   //     `SEED_FALLBACK` 空表回退**两处**注入，属既有演示基线。
@@ -178,7 +178,7 @@ export async function seedDatabase(db) {
   //   `await` 之前）。补种后该分支**不再被走到**（附带收益；`SEED_FALLBACK`/`DISABLE_SEED`/生产默认不播种
   //   三条开关语义**一字未改**）。
   // 幂等：`replaceCollection` = `DELETE FROM todos` + 整表 `INSERT` ⇒ 重复播种只覆盖、不叠加。
-  const { SEED_TODOS } = await import('../docs/src/services/todo.js?v=20260924a');
+  const { SEED_TODOS } = await import('../docs/src/services/governance/todo.js?v=20260924a');
   replaceCollection(db, 'todos', SEED_TODOS);
 }
 
@@ -216,7 +216,7 @@ const SEED_PROP_TASKS = [
 ];
 
 /**
- * 文件流外发确认（形状 = `services/external-dispatch.js::addExternalDispatch` 的落库对象）。
+ * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。
  * `senderId`/`senderName` 取自 `people.js` 档案（p3 何晓峰 / p10 董建军）；`receiverRole` = 接收方角色键。
  * 一条待确认（`confirmedAt: null` ⇒ 接收方工作台「待确认外发」有行）、一条已确认（闭环留痕）。
  */
@@ -235,7 +235,7 @@ const SEED_EXTERNAL_DISPATCHES = [
 
 /**
  * 三委数据交接（形状 = `routes/resources.js` 的 `POST /handoffs`；`from`/`to` **由 type 经
- * `services/handoff.js::HANDOFF_TYPES` 派生**，此处逐字对齐该常量，不另写类型表）。
+ * `services/governance/handoff.js::HANDOFF_TYPES` 派生**，此处逐字对齐该常量，不另写类型表）。
  * 引用：`refType:'activity'` + `refId` 取真实活动 id（act-8 支部党员大会 / act-10 主题党日，
  * 两场均有考勤与考察记录 ⇒ 与「考勤统计 / 考察记录提交」的语义自洽）。
  * 一条 pending（纪检→组织，待接收方确认；接收方台账有行）+ 一条 done（已确认闭环留痕）。
@@ -257,7 +257,7 @@ const SEED_HANDOFFS = [
 
 /**
  * 名册成员变更确认队列（形状 = `POST /member-confirmations`；`action` 取值见
- * `services/member-confirmation.js::MC_ACTION_LABEL`（developStage / residence / transferOut），
+ * `services/member/member-confirmation.js::MC_ACTION_LABEL`（developStage / residence / transferOut），
  * 状态机 = `POST /member-confirmations/:id/decide`）。
  * 造 1 条**待确认**（`status:'pending'`）：p6 苏明哲（档案 `developStage:'发展对象'`）→ 预备党员，
  * 由组织委员发起、待支书确认 ⇒ 支书台「待确认」队列首启即有真行（终态行由演示过程自然产生，**不预置**，
@@ -323,7 +323,7 @@ const SEED_AUTH_AUDIT = [
 ];
 
 /**
- * 支书任期记录（形状 = `appointmentRecords` 通用 CRUD / `services/appointment.js::listAppointments`
+ * 支书任期记录（形状 = `appointmentRecords` 通用 CRUD / `services/branch/appointment.js::listAppointments`
  * 的排序键 `from`）。一条**现任**记录（`to: null`）：`branchId` = br-b1、`secretaryId` = p13
  * ⇒ 与 `branches.br-b1.secretaryId`（`mock/branches.js`）一致；后续换届由 `appointSecretary()`
  * 自行「封口现任 + 新建」⇒ 本行是**真实链路的起点**，不是终态伪造。

@@ -5,7 +5,7 @@ role: "[工程师]+[AI]"
 created: 2026-09-02
 last_updated: "2026-09-27"
 status: approved-by-secretary
-related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/accounts.js, server/seed.js, server/db.js, docs/src/core/data-adapter.js, docs/src/core/constants.js, docs/src/services/auth.js, docs/src/modules/capabilities/]
+related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/accounts.js, server/seed.js, server/db.js, docs/src/core/data-adapter.js, docs/src/core/constants.js, docs/src/services/core/auth.js, docs/src/modules/capabilities/]
 ---
 
 # 院系党委后台——支部多实例两级治理设计定案
@@ -18,7 +18,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 
 > 定位：光华管理学院党委（**院系级**，非全校）→ 动态支部多实例的两级治理架构。支书 2026-09-02 逐段批准（Part 1 架构 / Part 2 分期），P3 范围与形态 2026-09-03 裁定。
 >
-> **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部监控台账）、branches-tab.js（P1 支部管理 + P2 支书任命；任命链 `docs/src/services/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
+> **落地状态（P1~P3 代码/测试已入仓）**：党委台 tabs 在 `docs/src/entries/tabs/party-committee/`——monitor-tab.js（P1 支部监控台账）、branches-tab.js（P1 支部管理 + P2 支书任命；任命链 `docs/src/services/branch/appointment.js`）、party-config-tab.js（§2.5 支部配置收拢：config.modules/blocks 启停）、review-tab.js（P3 上报审批）、dispatch-tab.js（P3 下发通知）；测试：`server/test/party-committee.test.mjs`（P1+P2 E2E）、`server/test/party-committee-review.test.mjs`、`server/test/party-committee-dispatch.test.mjs`（P3 双向通道）。
 
 ## 0. 方向选择说明（支书 2026-09-02 逐项决策记录）
 
@@ -58,7 +58,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 ```
 
 - 新表 `branches`：`id`（br-*）、`name`（党委命名）、`type`（可选类别标签，不预设枚举则留自由文本）、`secretaryId`（现任支书 personId，P2 后由任命驱动）、`createdAt`、`status`。
-- 核心数据域挂 `branchId`（users/people/activities/taskforces 等）；**落地口径**：存量数据迁入 br-b1，老数据缺省视为 br-b1（惰性维度迁移，不逐行回填）；支部内隔离一律收敛于 `services/branch.js`（`getBranchIdOfPerson`/`withinBranch`），各 tab 不手写过滤（防止未同步的情况）。
+- 核心数据域挂 `branchId`（users/people/activities/taskforces 等）；**落地口径**：存量数据迁入 br-b1，老数据缺省视为 br-b1（惰性维度迁移，不逐行回填）；支部内隔离一律收敛于 `services/branch/branch.js`（`getBranchIdOfPerson`/`withinBranch`），各 tab 不手写过滤（防止未同步的情况）。
 
 ### 2.5 支部配置档案（开源通用性 · 2026-09-02 支书补充）
 
@@ -98,7 +98,7 @@ related_files: [docs/src/core/domain.js, docs/src/mock/people.js, docs/src/mock/
 | ⑥ 制度刚性层 L3 | 制度默认（展示位）锁定的五组：票决门槛 / 应到口径 / 会议考勤类型 / 记录人 / 标因 | **只读展示**（支书/副视角，设置 → 支部治理「支部制度参数」卡）——无在线写权 | 不产生 config 变更 | 改须党委/支书裁决后**源码层变更**（policy-defaults.js 字面量及消费点）；放开为支部可调须走「放行程序」 |
 | 旁路 · 党委治理字段 | branches 顶层 `name` / `type` / `secretaryId` / `status` | **仅 party-staff**（党委台支部管理/任命/建支部）——支书/副不可经设置改 | 不入 config 域；顶层改名经 org 写口记一条 history（what=name），secretaryId 走任命链 | 党委台「支部管理 / 支书任命」；建支部 = 空模板/复制（向导「新建支部…」与党委台同口，仅 party-staff） |
 
-> 代码守卫同口径：server `PATCH /branches/:id/config`（fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）与前端 `services/branch.js`（updateBranchModules / updateBranchBlocks / updateBranchWorkforce / updateBranchOrg / savePolicyOverrides / canManagePolicyOverrides）同一语义——两侧不写第二套规则。
+> 代码守卫同口径：server `PATCH /branches/:id/config`（fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）与前端 `services/branch/branch.js`（updateBranchModules / updateBranchBlocks / updateBranchWorkforce / updateBranchOrg / savePolicyOverrides / canManagePolicyOverrides）同一语义——两侧不写第二套规则。
 
 #### 词条收口（从展示到覆盖，逐层收窄）
 

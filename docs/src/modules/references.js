@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../core/icons.js?v=20260924a';
-import { getBasePath, showToast } from '../core/utils.js?v=20260924a';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260924a';
-import { AuthStore } from '../services/auth.js?v=20260924a';
-import { loadActivities } from '../services/activity.js?v=20260924a';
-import { PEOPLE } from '../mock/people.js?v=20260924a';
+import { icon } from '../core/icons.js?v=20260928h';
+import { getBasePath, showToast } from '../core/utils.js?v=20260928h';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../core/data-adapter.js?v=20260928h';
+import { AuthStore } from '../services/core/auth.js?v=20260928h';
+import { loadActivities } from '../services/activity/activity.js?v=20260928h';
+import { PEOPLE } from '../mock/people.js?v=20260928h';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../services/branch-doc.js?v=20260924a';
+} from '../services/branch/branch-doc.js?v=20260928h';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../components/list-filter.js?v=20260924a';
+import { renderFilteredList } from '../components/ui/list-filter.js?v=20260928h';
 
 const SITE_GROUPS = [
   {
@@ -230,7 +230,7 @@ export class ReferencesModule {
 
   static async _loadBranchDocs() {
     try {
-      // 支部隔离读侧收敛点（2026-09-10）：经 services/branch-doc.js listDocs 读取——
+      // 支部隔离读侧收敛点（2026-09-10）：经 services/branch/branch-doc.js listDocs 读取——
       // 按当前归属支部过滤（支书/副支书/其它角色←本支部；党委/未登录无归属则不过滤）。
       // 勿再直读 adapter 的 branchDocs 全量（那会绕过隔离、跨支部可见）。
       ReferencesModule._branchDocs = await listDocs();
@@ -649,7 +649,7 @@ export class ReferencesModule {
     btn.style.borderColor = on ? 'var(--primary-300)' : '';
   }
 
-  // ── 写入 / 修改 / 删除（制度文本经 services/branch-doc.js 纯逻辑；附件上传仍在本模块）──
+  // ── 写入 / 修改 / 删除（制度文本经 services/branch/branch-doc.js 纯逻辑；附件上传仍在本模块）──
 
   static _openEditor(docId) {
     const editing = docId ? ReferencesModule._branchDocs.find(d => d.id === docId) : null;
@@ -803,7 +803,7 @@ export class ReferencesModule {
     });
   }
 
-  /** 保存统一走 services/branch-doc.js（含用途/状态/版本语义 + 支书权限校验）；
+  /** 保存统一走 services/branch/branch-doc.js（含用途/状态/版本语义 + 支书权限校验）；
    *  2026-09-21 批次 129：**编辑制度草案**走 `updateInstitutionDraft`（起草人修改，不升版本号），
    *  其余（新建制度／新建·编辑普通文件）仍走 `saveDoc`。 */
   static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file, asDraft = false }) {

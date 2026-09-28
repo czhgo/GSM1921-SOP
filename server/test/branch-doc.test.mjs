@@ -15,13 +15,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260924a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260924a';
-import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260924a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928h';
+import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260928h';
+import { getAdapter, registerMockAdapter, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928h';
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   listDocs, listVersions, buildDocVersionsView, renderDocBody, BODY_MAX_LEN,
-} from '../../docs/src/services/branch-doc.js?v=20260924a';
+} from '../../docs/src/services/branch/branch-doc.js?v=20260928h';
 
 // ── localStorage 内存桩（member-persist 头 60 行同款做法）──
 const _store = new Map();
@@ -477,7 +477,7 @@ test('⑨ 消费端经 listDocs 读支部文件（资料查询 / 活动写入会
   ];
   for (const [name, rel] of cases) {
     const src = await readFile(new URL(rel, import.meta.url), 'utf8');
-    assert.match(src, /from\s+'[^']*services\/branch-doc\.js[^']*'/, `${name} 须由 services/branch-doc.js 引入读接口`);
+    assert.match(src, /from\s+'[^']*services\/branch\/branch-doc\.js[^']*'/, `${name} 须由 services/branch/branch-doc.js 引入读接口`);
     assert.match(src, /import\s*\{[\s\S]*?\blistDocs\b[\s\S]*?\}\s*from/, `${name} 须 import listDocs`);
     assert.match(src, /await\s+listDocs\s*\(|await\s+listBranchDocs\s*\(/, `${name} 读列表须经 listDocs()`);
     assert.ok(!/getAdapter\(\)\.branchDocs\.list\(\)/.test(src), `${name} 不得再直读 getAdapter().branchDocs.list()`);

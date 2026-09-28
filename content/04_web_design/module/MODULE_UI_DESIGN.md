@@ -14,7 +14,7 @@ related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04
 > **本文负责**：工作台**模块层面的界面布局、交互逻辑与视图切换**的设计论证——「党建」Tab 分组（该组名的历史沿革见下方现状注记）的子功能边界、日历四视图（月 / 周 / 日 / 列表）的布局与筛选、文本溢出与折叠、快速聚焦视图。
 > **本文不负责**：① **视觉规范**（色彩 / 字体 / 间距 / 卡片样式）→ [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md)；② **数据模型与字段** → [DATA_MODEL.md](../data/DATA_MODEL.md)；③ **角色权限的键级定义** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)；④ **会议议程与资料查询的数据与权限** → [AGENDA_AND_REFERENCE_DESIGN.md](AGENDA_AND_REFERENCE_DESIGN.md)；⑤ **about 公开页** → [ABOUT_PAGE_DESIGN.md](ABOUT_PAGE_DESIGN.md)。
 
-> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DESIGN_SYSTEM.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/04_web_design/design-system/DESIGN_SYSTEM.md §四 组件规范 + content/04_web_design/module/SOP_WEBSITE_GUIDE.md + 代码 docs/src/components/record/calendar.js 等）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **定位：** 本文档是系统功能模块界面设计的单一权威源，涵盖「党建」Tab 分组和日历功能模块的界面布局、交互逻辑、视图切换设计。
 > **现状注记（2026-09-15）**：工作台 Tab 分组已按行为性质重排为「工作台 / 我的职责 / 知情查看 / 制度与答复」四组（党委台为院级三组「首页 / 全院治理 / 支部治理」）——本文中「党建」Tab 分组即该组的历史组名，对应现行「我的职责」组；下文属设计论证原文，保留当时表述。
@@ -261,7 +261,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 #### 数据存储方案
 
-**当前方案：纯前端 localStorage**——实现难度低，数据容量约 5-10MB 足够存储数百条活动和数千条任务，适用于 MVP/Demo/单人使用阶段。将 `SANDBOX_MODE` 改为 `false` 并取消注释持久化恢复代码即可获得跨刷新持久化能力。**（历史方案注：该方案已被 server 后端 + DataAdapter 取代——2026-09-03 起系统走 mock/api 双模式数据层，`docs/src/services/runtime.js` 默认 mock、接后端切 api，localStorage 持久化不再承担权威状态；见 [DATA_MODEL.md](../data/DATA_MODEL.md) §4）**
+**当前方案：纯前端 localStorage**——实现难度低，数据容量约 5-10MB 足够存储数百条活动和数千条任务，适用于 MVP/Demo/单人使用阶段。将 `SANDBOX_MODE` 改为 `false` 并取消注释持久化恢复代码即可获得跨刷新持久化能力。**（历史方案注：该方案已被 server 后端 + DataAdapter 取代——2026-09-03 起系统走 mock/api 双模式数据层，`docs/src/services/core/runtime.js` 默认 mock、接后端切 api，localStorage 持久化不再承担权威状态；见 [DATA_MODEL.md](../data/DATA_MODEL.md) §4）**
 
 #### 数据结构 Schema 设计
 
@@ -375,7 +375,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 **码表（本节全表通用）**
 - **数据格式码**：`表`＝多行同字段｜`卡`＝单实体档案｜`阵`＝跨期/交叉对比（矩阵）｜`轴`＝流状事件（时间轴/日志）｜`板`＝分类归属（看板/分列）｜`条`＝进度与占比（进度条/迷你条）｜`KPI`＝少量关键数｜`关`＝两两关系（关系图/矩阵）｜`勾`＝可逐项勾选清单（复选列表）｜`句`＝一句话结论（提示条）｜`历`＝时间分布（日历）｜`单`＝表单录入。
-- **视图码**：同名码 ＋ `列`(列表) / `折`(折叠) / `段`(分段钮) / `钻`(详情或子页) / `矩`(转置矩阵, 单一源 `components/relation-matrix.js`)。
+- **视图码**：同名码 ＋ `列`(列表) / `折`(折叠) / `段`(分段钮) / `钻`(详情或子页) / `矩`(转置矩阵, 单一源 `components/ui/relation-matrix.js`)。
 - **判定码**：`纯`｜`混装`｜`超载`｜`纯·保留`（有母本依据的正当差异，**不许抹平**）。
 
 #### 四.1.1 支书（`secretary.html`，11 条）
@@ -390,7 +390,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 上报党委（`report-up`） | 报给党委的事批复了没有？ | ①统计条（待批复/已批准/已驳回）②发起上报③上报记录列表 | KPI＋表＋单 | KPI 条＋列＋单 | 纯 | — |
 | 党小组与活动（`group-progress`） | 党小组怎么分、谁在什么组、组里发起了什么活动？（**组层**） | ①未分组归组条②**支委身份配置（支部层）**③党小组清单＋组长指派④党小组活动⑤变更留痕⑥进展区（组切换/组员进展摘要/本组活动复盘/本组活动与考勤概览） | 表＋单＋表＋轴＋卡＋KPI | 列＋单＋折 | **混装＋越层** | **②支委身份配置 → 迁「支委会」**（裁定①）；⑥进展区（跨组只读，L2）建议折叠下沉（与"组管理"不同层次） |
 | 支委会会议（`committee-meeting`） | 支委会开了几场、哪场要线上开？（现） | ①入口卡（支委会场次/线上召开/未截止 三数＋打开支委会会议页） | KPI | KPI 条＋钻 | 纯（纯入口壳） | 建议承接裁定①的支委身份配置 → 则本 tab 问句改为「**支委会（机构）由谁组成、议了什么事、结论如何？**」，见 §四.3 |
-| 知情查看（`tf-view`） | 全支部的活动/专班都有哪些？（只读） | ①活动分段（`components/activity-view.js` 只读）②专班分段（`taskforce-view.js`） | 表＋卡 | 列＋段＋钻 | 纯 | — |
+| 知情查看（`tf-view`） | 全支部的活动/专班都有哪些？（只读） | ①活动分段（`components/record/activity-view.js` 只读）②专班分段（`taskforce-view.js`） | 表＋卡 | 列＋段＋钻 | 纯 | — |
 | 支部分工（`work-map`） | 每项工作归谁负责？ | ①14 模块平铺卡②按人/按项目宽表③分工调整工具（发起支委会议题/跟踪/采纳） | 板＋关＋单 | 平铺卡＋转置矩阵＋单 | 混装 | ③"改分工"（写）与①②"看分工"（读）两件事 ⇒ 建议 ③折叠为按钮 |
 | 反馈管理（`feedback`） | 大家的意见反馈处理到哪了？ | ①待审核草稿（折叠）②筛选条③反馈列表（分页）④详情处置（指派/状态/评论/隐藏/合并） | 表＋轴 | 列＋筛＋钻 | 纯 | — |
 
@@ -426,7 +426,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 人才库（`talent`） | 各发展阶段同志，考察/汇报攒了多少？ | 发展阶段分组只读观察卡 | 卡 | 卡列 | 纯 | — |
 | 发展数据（`development`） | 发展党员管线卡在谁、哪一步？ | ①管线概览②阶段筛选③只读追踪④参与汇总（以人第一列） | KPI＋表 | 条＋列 | 纯 | — |
 | 知情查看（`tf-view`） | 全支部活动/专班有哪些？（只读） | 活动/专班两分段 | 表＋卡 | 列＋段 | 纯 | — |
-| 我的处置（`my-dispatch`） | 分到我头上的反馈答复了吗？ | 处置清单（`services/issues.js`） | 表 | 列 | 纯 | — |
+| 我的处置（`my-dispatch`） | 分到我头上的反馈答复了吗？ | 处置清单（`services/governance/issues.js`） | 表 | 列 | 纯 | — |
 
 #### 四.1.4 宣传委员（`prop.html`，9 条）
 
@@ -515,17 +515,17 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 | 数据格式 / 形态 | 该用的视图 | 判据（什么信号决定用它） | 本仓实例（`文件:行`） | 反例（本仓用错的实例） |
 |---|---|---|---|---|
-| 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 第一列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/list-filter.js`；组织台`entries/tabs/org/roster-tab.js` | 小表强加检索条（已修，`BRANCH_WORK_MAP.md:87`） |
+| 多行同字段 | 表格（`.data-table` ＋ 统一检索引擎分页） | 第一列是同一维度、行数 > 1；行数 > `SEARCH_FILTER_MIN_ROWS`(8) 才挂检索条 | `docs/src/components/ui/list-filter.js`；组织台`entries/tabs/org/roster-tab.js` | 小表强加检索条（已修，`BRANCH_WORK_MAP.md:87`） |
 | 单实体档案 | 卡片（`.card`，一份=一卡） | 一条记录、字段多、需并读 | 党委台`entries/tabs/party-committee/monitor-tab.js:32`；组织台`talent-tab.js`（发展观察卡） | 「全量成员档案平铺」被收敛为卡片观察（`org/talent-tab.js:3-6` 头注即反例记录） |
-| 跨期 / 交叉对比 | 矩阵（`components/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目/人×期次） | `DESIGN_SYSTEM.md §4.10 转置双视图`；`disc/attendance-tab.js`、`org/thought-review-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细/导出」下钻，`DESIGN_SYSTEM.md §4.10 转置双视图`） |
-| 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `secretary/group-progress-tab.js:268`（变更留痕）；`components/issue-detail.js`（评论流） | — |
+| 跨期 / 交叉对比 | 矩阵（`components/ui/relation-matrix.js` 转置双视图，默认宽表） | 二元关系（人×项目/人×期次） | `DESIGN_SYSTEM.md §4.10 转置双视图`；`disc/attendance-tab.js`、`org/thought-review-tab.js` | long form 当主视图（2026-09-14 裁定降为「明细/导出」下钻，`DESIGN_SYSTEM.md §4.10 转置双视图`） |
+| 流状事件 | 时间轴 / 日志（行＝时间＋动作＋人） | 有先后、需留痕、只增不改 | `secretary/group-progress-tab.js:268`（变更留痕）；`components/feedback/issue-detail.js`（评论流） | — |
 | 分类归属 | 看板 / 分列（只渲染有内容的分桶） | 每行必落且仅落一桶 | `org/taskforce-tab.js`（三桶）；`prop/kanban-tab.js:24` | **空桶恒渲染撑 `min-h-[120px]`**（已修，`BRANCH_WORK_MAP.md:61`） |
 | 进度与占比 | 进度条 / 迷你条 | 面向"未完成"的推进度 | `DESIGN_SYSTEM.md §4.10 执行层仪表盘`（KPI 进度条） | 「已完成 N/总数」存量统计（违原则11，`DESIGN_SYSTEM.md §一 原则11`） |
 | 少量关键数 | KPI 条（页首内联一行） | ≤ 约 5 个摘要数、进入即见 | `secretary/report-up-tab.js:40`（统计条）；党委台`governance-overview-tab.js` | **`secretary/committee-meeting-tab.js:28-32`「支委会场次 N」＝累计存量数**（原则11 违例候选） |
 | 两两关系 | 关系图 / 矩阵 | 关系是主体、非时序 | 同「跨期/交叉对比」单一源 `relation-matrix.js` | 各域自造矩阵（已收，守卫 `relation-matrix.test.mjs`） |
 | 可逐项勾选的清单 | 复选列表 | 逐项独立、需一次提交多条 | `entries/party-committee-meeting-entry.js:292`（拟上会清单 `pcm-cand` 复选）；党委台`dispatch-tab.js`（支部勾选） | chip 承担筛选（禁，`DESIGN_SYSTEM.md §4.12 筛选行载体`） |
 | 一句话结论 | 提示条（notice bar） | 结论/口径需常驻可见、不占流程序号 | `entries/party-committee-meeting-entry.js:421-430`（效力口径提示条） | 制度原文进界面（违 `DESIGN_SYSTEM.md §4.18.3 C7`） |
-| 时间分布 | 日历（月/周/日/列表四视图） | 以"日期"为主索引 | `docs/src/components/calendar.js`；`DESIGN_SYSTEM.md §4.10 日历视图` | — |
+| 时间分布 | 日历（月/周/日/列表四视图） | 以"日期"为主索引 | `docs/src/components/record/calendar.js`；`DESIGN_SYSTEM.md §4.10 日历视图` | — |
 | 表单录入 | 表单视图（载体四选一：悬浮/就地/内联/跳转） | 录入动作，按字段数与主次选载体 | `DESIGN_SYSTEM.md §4.12 交互载体决策`；`#calendar-create-panel` | 载体误用（`DESIGN_SYSTEM.md §4.12` 明写防两极化） |
 
 **★ 回答支书的「而不是直接摊开」——哪些 tab 现在把多种数据格式"直接摊在一屏"**（逐处列出）：
@@ -621,7 +621,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 | # | 跨台同名的 tab | 各台职责差异（实读） | 建议 | 判据 |
 |---|---|---|---|---|
-| 1 | **知情查看**（`tf-view`，6 台：支书/组织/纪检/组长/宣传/成员） | 同义、组件单一源 `components/insight-view.js`；**默认分段不同**（支书台缺省 `defaultView:'taskforce'`〔`secretary-workspace.js:69`〕，其余缺省 `activity`） | **不改名** | `DESIGN_SYSTEM.md §一 原则7`（同一套数据、多入口） |
+| 1 | **知情查看**（`tf-view`，6 台：支书/组织/纪检/组长/宣传/成员） | 同义、组件单一源 `components/record/insight-view.js`；**默认分段不同**（支书台缺省 `defaultView:'taskforce'`〔`secretary-workspace.js:69`〕，其余缺省 `activity`） | **不改名** | `DESIGN_SYSTEM.md §一 原则7`（同一套数据、多入口） |
 | 2 | **我的处置**（`my-dispatch`，5 台：组织/纪检/组长/宣传/成员） | 同功能同权限（`visitor/my-dispatch-tab.js:4` 明写与四台同名） | **不改名** | 同上（同一功能不设两个名字，`visitor-workspace.js:50-51`） |
 | 3 | **活动管理** | 支书台 `calendar`＝**全支部日历＋写入＋查询**；组长台 `write`＝**本组写入**（无日历） | 建议加副标：支书台「活动管理（全支部）」/ 组长台「活动管理（本组）」 | 同名但语义两分＝**L2 全支部 vs L1 本组**（`DESIGN_SYSTEM.md §一 原则9`） |
 | 4 | **考察上传** | 组织台 `org/inspection-tab.js`＝**专班考察**；组长台 `leader/inspection-tab.js`＝**党小组活动考察** | 建议加副标：（专班）/（本组活动） | 同名但**数据域不同** |

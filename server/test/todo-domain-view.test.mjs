@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260924a';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928h';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260924a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260924a';
+} from '../../docs/src/core/mock-adapter.js?v=20260928h';
+import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928h';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/todo.js?v=20260924a';
+} from '../../docs/src/services/governance/todo.js?v=20260928h';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -452,7 +452,7 @@ test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 
 // 背景：① 党委「进入支部（演示）」下钻（secretary.html?branch=<id>）时，bootstrap 身份门调用
 //   未定义函数 _partyStaffBranchDemoAllowed → ReferenceError/白屏；② 演示横幅用 escHtml 未导入，
 //   同路径再次 ReferenceError；③ 支书「代提交复盘」须复用既有复盘表单，不得另写一套字段。
-// 口径：演示放行门单一源 = modules/branch-demo-nav.js；复盘表单单一源 = services/review.js。
+// 口径：演示放行门单一源 = modules/branch-demo-nav.js；复盘表单单一源 = services/governance/review.js。
 test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引用/字段分叉回归）', () => {
   const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
   const read = (rel) => readFileSync(join(root, rel), 'utf8');
@@ -467,14 +467,14 @@ test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引�
     'bootstrap 不得再调用未定义的 _partyStaffBranchDemoAllowed（演示下钻 ReferenceError 回归）');
 
   // ② 演示横幅用 escHtml：workspace-shell 使用时须自 core/utils.js 导入
-  const shell = read('components/workspace-shell.js');
+  const shell = read('components/shell/workspace-shell.js');
   if (/\bescHtml\(/.test(shell)) {
-    assert.match(shell, /import \{[^}]*\bescHtml\b[^}]*\} from '\.\.\/core\/utils\.js/,
+    assert.match(shell, /import \{[^}]*\bescHtml\b[^}]*\} from '(\.\.\/)+core\/utils\.js/,
       'workspace-shell 使用 escHtml 须导入（党委演示横幅 ReferenceError 回归）');
   }
 
   // ③ 复盘表单单一源：review.js 导出渲染 + 提交；成员端/支书代填两处复用，不另写字段
-  const review = read('services/review.js');
+  const review = read('services/governance/review.js');
   assert.match(review, /export function renderActivityReviewFormHtml\(/, 'review.js 应导出复盘表单渲染');
   assert.match(review, /export function submitActivityReviewForm\(/, 'review.js 应导出复盘表单提交链路');
   const visitor = read('entries/tabs/visitor/review-tab.js');

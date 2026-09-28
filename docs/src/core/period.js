@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════════════════
 //  背景：思想汇报是**面板数据**——同一 personId 下可有多篇，时间维 = 期次（季度）。
 //  提取到 core 的原因（避免环依赖 + 文案未同步）：
-//   · 服务层（services/thought-report.js）用它做提交/归集/阅读分组；
+//   · 服务层（services/governance/thought-report.js）用它做提交/归集/阅读分组；
 //   · 通知模板（core/system-notice-templates.js）用它把期次渲染成中文标签——
 //     若把期次函数放在 services 层，core 就会反向依赖 services（成环）。
 //  纯 ESM、零依赖，浏览器 / Node 双端可加载（与 policy-defaults 同层约定）。

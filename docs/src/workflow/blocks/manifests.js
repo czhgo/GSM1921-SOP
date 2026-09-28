@@ -4,12 +4,12 @@
 // 支书 2026-09-03 裁定（v1.1 §〇）：块差异化 = ①流程组合 ②表单条目（fields 可收拢）③参与人范围（participants 可配）；
 // 制度来源分层 provenance ∈ institution-common（三会一课等全党通用）| branch-custom（支部自创制度尝试）。
 // S1 试点块（支书点名）：主题党日（通用）+ 专班运行（自创，验 organizer-deep 组织模式）。
-// 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/forms.js，执行走既有引擎/services。
+// 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260924a';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/constants.js?v=20260928h';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/module-compose.js?v=20260924a';
+import { assertComposeValid } from '../../core/module-compose.js?v=20260928h';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);

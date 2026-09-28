@@ -54,9 +54,9 @@ GSM1921-SOP/
 │   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（版本号推导纯函数单一源）
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（根 entry + tabs/ 按工作台分组的业务 tab，随页面/工作台增长）
-│       ├── components/         ← 共享组件（含 dashboard/ 子目录；todo-list/custom-select/person-picker/org-setup-wizard/workforce-duty-card/forms/badges/reporting 等）
+│       ├── components/         ← 共享组件（**2026-09-28 目录分层**：`dashboard/` · `ui/`（基础件与库：badges/forms/modal/custom-select/pager/list-filter/relation-matrix…）· `shell/`（页面外壳：header/sidebar/tab-bar/workspace-shell…）· `feedback/`（反馈域）· `record/`（实体视图：activity-view/taskforce-view/insight-view/todo-*/report-*/inspector…）· `governance/`（治理与人员面板：person-picker/vote-*/member-change-panel/work-overview…））
 │       ├── core/               ← 核心工具（constants/registry/domain/theme/data-adapter/mock-adapter/policy-defaults/module-compose 等）
-│       ├── services/           ← 服务层（auth/branch/roster/person/workforce/attendance/agenda-*/vote-config/org-config-package 等，随域增长）
+│       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/org-config-package/appointment/workforce…））
 │       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09）
 │       ├── modules/            ← 业务模块（capabilities/ 能力注册 + help-catalog/references）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests）
@@ -158,12 +158,12 @@ GSM1921-SOP/
 | 高频零跳转 | 最小三成本的最终验收标准——完成一个高频工作需要操作多少次？信息展示与操作是否同地 | DESIGN_SYSTEM.md §一 原则10 |
 | 按人视图·知情边界 | 谁能看到谁由赋权链（执行委托）计算得出；看与做相区分，可见性不授予操作权 | DESIGN_SYSTEM.md §一 原则9 + visibility.js (P-015) |
 | 知情必达 vs 审核把关 | 通知/阅读回执属「知情必达」（需触达全员，逐人确认合理）；质量把关类（考勤/考察/宣传材料/组织发展）属「审核」=源头审校+异常驱动+抽查——两类不可混同 | REVIEW_QUEUE 附录⑤ 检查要点库（2026-08-29 第5轮入库）+ attendance.js 实施基准 |
-| 应到名单·滞留党员 | 「滞留党员」=关系在·人不在；三会+党课应到=党员（正式+预备）非滞留（在册 21−滞留 2=应到 19）、党小组会按组；候选可见可辨禁选、通知照发 | services/roster.js + REVIEW_QUEUE 附录⑧（2026-09-06 支书裁，T-041/T-046） |
+| 应到名单·滞留党员 | 「滞留党员」=关系在·人不在；三会+党课应到=党员（正式+预备）非滞留（在册 21−滞留 2=应到 19）、党小组会按组；候选可见可辨禁选、通知照发 | services/member/roster.js + REVIEW_QUEUE 附录⑧（2026-09-06 支书裁，T-041/T-046） |
 | 向支书提问准则 | 支书决断 strategy/product/marketing，AI 负责代码工程；请裁呈「选项+上下文+推荐+默认」，把决策做薄 | CLAUDE.md H60（T-043） |
 | SOP 回写 | 将网页中已实现的工作逻辑反整合到SOP中（用业务语言），使SOP成为规范、结构化、清晰的制度母本 | SOP_WEBSITE_GUIDE.md §C.5（原 insights 工程演进与设计方法论 §4.11 承接） |
 | 打卡化判定 | 完成必须对应真实产物——`complete(task)` 的副作用集合仅含状态翻转即为打卡化设计缺陷 | DESIGN_METHODOLOGY.md §3.1（原 insights §6.23） |
 | 能力注册表·插件化 | 功能单元按「能力声明」注册（register/get/mount 三原语 + unregister/resolveDeps），消费点从清单读取自动发现；6 工作台薄壳化 + 数据源/场景注册化 + 入口/HTML 瘦身（M1-M4 + HTML 公共资源抽取方案A 完成；量化评估见 .ctx/ENGINEERING_ASSESSMENT.md（工程化评估与改造行动线），2026-09-06 v4 综合≈76） | ARCHITECTURE_EVOLUTION.md §二（插件化演进）+ §八（拖拽编排愿景）+ .ctx/ENGINEERING_ASSESSMENT.md |
-| 归属显式化 | 支部语境归属判定一律 `getBoundBranch`（person 无 branchId/查无分支→null，不被示例支部冒充）；登录无归属 header 中性「未绑定支部」，设置支部治理/域参数提示先由党委确认归属、换组织向导不唤起 | services/branch.js + settings-entry.js（T-075①，2026-09-09） |
+| 归属显式化 | 支部语境归属判定一律 `getBoundBranch`（person 无 branchId/查无分支→null，不被示例支部冒充）；登录无归属 header 中性「未绑定支部」，设置支部治理/域参数提示先由党委确认归属、换组织向导不唤起 | services/branch/branch.js + settings-entry.js（T-075①，2026-09-09） |
 | config 颗粒度·审计内核 | 支部 config 写权六层：个人偏好（无留痕）→ 组织档案/modules/blocks/workforce（configChangeHistory 留痕 why）→ 域参数 L2（POLICY_OVERRIDABLE 白名单，各域负责人仅本域）→ 制度刚性 L3（只读锁定）；单键变更可回滚（历史保留 100 条、回滚再留一痕、历史不改写） | PARTY_COMMITTEE_DESIGN.md §2.6（2026-09-09 审定定稿）+ SYSTEM_ROLE_PERMISSION.md §9h + settings-entry.js/config-clean.js/policy-defaults.js |
 
 ## V. 权限矩阵摘要

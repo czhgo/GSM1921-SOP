@@ -60,7 +60,7 @@ export const SCHEMA_VERSION = 1;
  *   未标注 = 默认「在校」。
  * @property {string}  [residenceNote] - 状态备注（原因/起止文字；组织委员维护）
  * @property {Array<{from:'在校'|'滞留', to:'在校'|'滞留', updatedBy:string, updatedAt:string, note?:string}>} [residenceHistory]
- *   - 状态变更留痕（组织委员维护时追加，支书可复核查看；运行期覆盖存 services/roster.js RESIDENCE_KEY）
+ *   - 状态变更留痕（组织委员维护时追加，支书可复核查看；运行期覆盖存 services/member/roster.js RESIDENCE_KEY）
  */
 
 /**
@@ -223,7 +223,7 @@ export const mockDB = {
     { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
     { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
     // 演示账号（mockDB users 种子）：下列 name 为演示文案，**不是组清单判定源**——
-    // 名册/赋权等处的组数/组名一律以 services/party-group.js::groupOptions() 为准；
+    // 名册/赋权等处的组数/组名一律以 services/member/party-group.js::groupOptions() 为准；
     // 新增/解散党小组不改动本演示账号（保持演示账号登录稳定，勿改为动态派生）。
     { id: 'u_leader_1', role: 'leader',        name: '第一党小组组长' },
     { id: 'u_leader_2', role: 'leader',        name: '第二党小组组长' },

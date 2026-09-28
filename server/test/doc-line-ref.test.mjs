@@ -78,7 +78,7 @@ const SHORT_REF = /(?<![A-Za-z0-9_./-]):((?:\d+(?:\s*[-–]\s*\d+)?)(?:\s*,\s*\d
 /** 二级判据的例外（逐条给理由；R5 会核它们不是僵尸、也不会悄悄变多） */
 const ANCHOR_EXCEPTIONS = [
   {
-    ref: 'docs/src/services/vote-config.js:41,44',
+    ref: 'docs/src/services/activity/vote-config.js:41,44',
     why: '括注（`voteConfig` 取值）写的是**概念名**：41/44 行是 defaultVoteConfig 的两个 return 字面量（取值即 voteConfig），' +
       '而「voteConfig」这个词只出现在函数名 defaultVoteConfig 与该函数上方注释里，不在 41/44 行内 —— 引用本身是对的，是判据的启发式够不到。',
   },
@@ -261,8 +261,8 @@ test('R4 「零命中 / 检索不到消费点」类关键词取证仍成立（�
   const DOC_DEPUTY_LEADER_HITS = [
     'docs/src/core/constants.js',        // 身份键 / 标签 / 页面映射 / 颜色三处（文件末集中挂载）
     'docs/src/entries/login-entry.js',   // 开发身份卡「党小组副组长」
-    'docs/src/services/auth.js',         // 权限集 / 赋权链挂载 + 角色读回
-    'docs/src/services/group-view.js',   // 「本组组长」解析：组长优先、无组长时才回落副组长
+    'docs/src/services/core/auth.js',         // 权限集 / 赋权链挂载 + 角色读回
+    'docs/src/services/member/group-view.js',   // 「本组组长」解析：组长优先、无组长时才回落副组长
   ].sort();
   const hitsDoc = [];
   (function walk(dir) {

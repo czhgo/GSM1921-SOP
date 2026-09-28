@@ -7,9 +7,9 @@
 //
 // 复用（不另造第二事实源、不新增表）：
 //   · 会议实体 = 既有「活动」（type='支委会' / scenarioId='branch-committee'，voteConfig 表决配置）
-//   · 表态 = `services/committee-vote.js` + `mockDB.agendaVotes`（既有异步表决机制，本页只挂既有组件）
-//   · 汇总/截止 = `components/vote-summary-panel.js`（既有支书端汇总矩阵 + 截止）
-//   · 讨论结果留存 = 议程项 result（`services/agenda-follow-up.js::recordAgendaResult`，与
+//   · 表态 = `services/activity/committee-vote.js` + `mockDB.agendaVotes`（既有异步表决机制，本页只挂既有组件）
+//   · 汇总/截止 = `components/governance/vote-summary-panel.js`（既有支书端汇总矩阵 + 截止）
+//   · 讨论结果留存 = 议程项 result（`services/activity/agenda-follow-up.js::recordAgendaResult`，与
 //     inspector「记录会议结果」同一函数）；锁定态 = 活动 `votesLocked`（既有）
 //
 // 效力口径**已定**（支书 2026-09-20 定案，见 D-538）：线上支委会与线下支委会**完全同等效力**——
@@ -19,34 +19,34 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../components/sidebar.js?v=20260924a';
-import { renderHeader } from '../components/header.js?v=20260924a';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260924a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
-import { mockDB } from '../core/domain.js?v=20260924a';
-import { AuthStore } from '../services/auth.js?v=20260924a';
-import { PersonStore, getPersonName } from '../services/person.js?v=20260924a';
-import { BranchService } from '../services/runtime.js?v=20260924a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260924a';
-import { IssueStore } from '../services/issues.js?v=20260924a';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/vote-config.js?v=20260924a';
-import { fetchVotes, tallyForItem } from '../services/committee-vote.js?v=20260924a';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260924a';
-import { renderVoteSummary } from '../components/vote-summary-panel.js?v=20260924a';
-import { recordAgendaResultForActivity } from '../services/agenda-follow-up.js?v=20260924a';
+import { renderSidebar } from '../components/shell/sidebar.js?v=20260928h';
+import { renderHeader } from '../components/shell/header.js?v=20260928h';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../core/data-adapter.js?v=20260928h';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260928h';
+import { mockDB } from '../core/domain.js?v=20260928h';
+import { AuthStore } from '../services/core/auth.js?v=20260928h';
+import { PersonStore, getPersonName } from '../services/member/person.js?v=20260928h';
+import { BranchService } from '../services/core/runtime.js?v=20260928h';
+import { TaskForceRecordStore } from '../services/activity/taskforce.js?v=20260928h';
+import { IssueStore } from '../services/governance/issues.js?v=20260928h';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../services/activity/vote-config.js?v=20260928h';
+import { fetchVotes, tallyForItem } from '../services/activity/committee-vote.js?v=20260928h';
+import { renderVoteWidget } from '../components/governance/vote-widget.js?v=20260928h';
+import { renderVoteSummary } from '../components/governance/vote-summary-panel.js?v=20260928h';
+import { recordAgendaResultForActivity } from '../services/activity/agenda-follow-up.js?v=20260928h';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260924a';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch-doc.js?v=20260924a';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../entries/tabs/secretary/agenda-form.js?v=20260928h';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../services/branch/branch-doc.js?v=20260928h';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
-//   打包的」；**不另造组长名单**（同 services/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../services/group-view.js?v=20260924a';
-import { loadDevStageOverrides } from '../services/member-confirmation.js?v=20260924a';
+//   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
+import { listPartyGroups } from '../services/member/group-view.js?v=20260928h';
+import { loadStageEntryDates } from '../services/member/member-confirmation.js?v=20260928h';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../services/activity.js?v=20260924a';
-import { showToast, escHtml as esc } from '../core/utils.js?v=20260924a';
-import { generateId } from '../core/id.js?v=20260924a';
+import { listBrandProposals } from '../services/activity/activity.js?v=20260928h';
+import { showToast, escHtml as esc } from '../core/utils.js?v=20260928h';
+import { generateId } from '../core/id.js?v=20260928h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -67,7 +67,7 @@ async function _hydrateData() {
 }
 
 // ── 基础读取（全部读既有数据源，不复制）────────────────────────────────
-/** 支委名单（单一源 = services/vote-config.js::resolveVoterIds('committee')） */
+/** 支委名单（单一源 = services/activity/vote-config.js::resolveVoterIds('committee')） */
 function committeeIds() { return resolveVoterIds('committee'); }
 /** 支委会场次（既有活动实体；按日期新→旧） */
 function meetings() {
@@ -188,7 +188,7 @@ function selectSectionHtml() {
     </div>`;
 }
 
-/** 党小组组长（含代组长）候选——单一源 `services/group-view.js::listPartyGroups`（组内无组长时由该源回落次选身份） */
+/** 党小组组长（含代组长）候选——单一源 `services/member/group-view.js::listPartyGroups`（组内无组长时由该源回落次选身份） */
 function groupLeaderOptions() {
   const seen = new Set();
   const out = [];
@@ -204,7 +204,7 @@ function groupLeaderOptions() {
  * 本场参会范围（支委层 / 支委扩大会）——支书 2026-09-23 裁定甲：
  *   支委会与支委扩大会**都是法人性质**；支委扩大会可**选择扩大到谁**，党小组组长（代组长）可**打包**。
  * 落点＝本场活动的**既有**应到名单字段 `voteConfig.voterIds`（与表态门 / 汇总同一口径，单一源
- *   `services/vote-config.js::resolveVoterIds('committee')`）——**不新增字段**。
+ *   `services/activity/vote-config.js::resolveVoterIds('committee')`）——**不新增字段**。
  * 未勾「扩大会」时保存回 = 支委层名单，与现状逐字一致。
  * 可编辑面**仅支委**（既有渲染条件保持不变）：被扩大进本场的人只能看范围与表态，改不了名单。
  */
@@ -267,7 +267,7 @@ async function loadCandidates() {
   } catch (e) { console.warn('[party-committee-meeting] 制度草案加载失败：', e); }
   try { src.members = PersonStore.getMembers(); }
   catch (e) { console.warn('[party-committee-meeting] 成员档案读取失败：', e); }
-  try { src.stageEntries = loadDevStageOverrides(); }
+  try { src.stageEntries = loadStageEntryDates(); }
   catch (e) { console.warn('[party-committee-meeting] 发展推进档案读取失败：', e); }
   try {
     // 品牌认定提案（2026-09-21 批次 132 · 支书口径二）：已提案、尚未认定的活动（判据单一源 activity.js）

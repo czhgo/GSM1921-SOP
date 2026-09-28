@@ -3,7 +3,7 @@
 //  entries/tabs/today/today-tab.js — 「今天」共享渲染组件（R6-3，C 排法）
 // ════════════════════════════════════════════════════════════════
 // 六角色工作台（支书/副书、组织、宣传、纪检、组长、普通成员）共用；
-// 数据源 = services/today-summary.js buildTodaySummary（实时同源派生，无第二份存储）。
+// 数据源 = services/governance/today-summary.js buildTodaySummary（实时同源派生，无第二份存储）。
 // 本组件只读：不内建任何处理能力，全部点击直达对应处理处（≤1 跳）——
 //   会议/分工行 → activity.html?id=…；到期/逾期行 → onNav('todo')（onNav 未提供则空操作）。
 // 顶部卡 C 排法（支书视觉对照已定）：左大块「今天有会 n」/右上「今天到期 n」/右下「我的分工 n」；
@@ -12,20 +12,20 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260924a';
-import { icon } from '../../../core/icons.js?v=20260924a';
-import { buildTodaySummary } from '../../../services/today-summary.js?v=20260924a';
+import { escHtml as esc, _fmtDate } from '../../../core/utils.js?v=20260928h';
+import { icon } from '../../../core/icons.js?v=20260928h';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260928h';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member-progress.js?v=20260924a';
-import { resolveVisibleTargets } from '../../../services/visibility.js?v=20260924a';
-import { mockDB } from '../../../core/domain.js?v=20260924a';
-import { tokenOf } from '../../../core/version-token.js?v=20260924a'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/roster.js?v=20260924a'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260924a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260924a'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260928h';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260928h';
+import { mockDB } from '../../../core/domain.js?v=20260928h';
+import { tokenOf } from '../../../core/version-token.js?v=20260928h'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260928h'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260928h'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260928h'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260928h';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';

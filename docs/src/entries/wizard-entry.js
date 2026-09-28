@@ -4,16 +4,16 @@
 //   · 现任支书（role=secretary 且为目标支部 secretaryId）→ 限本支部（?branch=br-b1 直达；不新增支书台常驻 tab）
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
 //   · 未登录 / 其它角色 / 非现任支书 → 提示卡（无权限不渲染向导）
-// 主体共用 components/org-setup-wizard.js（party-config tab 同源）。
-import { BranchService } from '../services/runtime.js?v=20260924a'; // 副作用注册适配器 + BranchService 绑定（loadDB）
-import { hydrateDataSource } from '../core/data-adapter.js?v=20260924a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
-import { AuthStore } from '../services/auth.js?v=20260924a';
-import { getBranchById, getBranchIdOfPerson } from '../services/branch.js?v=20260924a';
-import { mountOrgSetupWizard } from '../components/org-setup-wizard.js?v=20260924a';
-import { renderSidebar } from '../components/sidebar.js?v=20260924a';
-import { renderHeader } from '../components/header.js?v=20260924a';
-import { escHtml as esc } from '../core/utils.js?v=20260924a';
+// 主体共用 components/governance/org-setup-wizard.js（party-config tab 同源）。
+import { BranchService } from '../services/core/runtime.js?v=20260928h'; // 副作用注册适配器 + BranchService 绑定（loadDB）
+import { hydrateDataSource } from '../core/data-adapter.js?v=20260928h';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260928h';
+import { AuthStore } from '../services/core/auth.js?v=20260928h';
+import { getBranchById, getBranchIdOfPerson } from '../services/branch/branch.js?v=20260928h';
+import { mountOrgSetupWizard } from '../components/governance/org-setup-wizard.js?v=20260928h';
+import { renderSidebar } from '../components/shell/sidebar.js?v=20260928h';
+import { renderHeader } from '../components/shell/header.js?v=20260928h';
+import { escHtml as esc } from '../core/utils.js?v=20260928h';
 
 renderSidebar('wizard');
 renderHeader('wizard');

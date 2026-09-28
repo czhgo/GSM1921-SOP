@@ -96,7 +96,7 @@
 // 口径＝「`var(--tok, <硬编码兜底>)` 且 `--tok` 已在 `:root` 有正式默认值 ⇒ 删兜底（逐字等值 ⇒ 零观感变化）」＋
 //   「`#EF4444`→`var(--functional-error)`（值等 ⇒ 零变化）」。含与 `classList.toggle(同一字面量)` 成对耦合的
 //   Tailwind 任意值类 `[color:color-mix(in_srgb,var(--app-accent,#B91C1C)_60%,#000)]`——类串与 toggle 字面量含同一子串，
-//   一次子串替换即成对同步；**23 文件 c 下调**（清单与「改前→改后」见执行报告）；`docs/src/services/issues.js` 清零 ⇒ 删条目（81→80）。
+//   一次子串替换即成对同步；**23 文件 c 下调**（清单与「改前→改后」见执行报告）；`docs/src/services/governance/issues.js` 清零 ⇒ 删条目（81→80）。
 //   distinct 值仍 167；`HEX_TOTAL_BASELINE` 有意保持 2025。**有意不碰**见下方 `HEX_FILE_BASELINE` 前的本批注。
 
 export const HEX_BASELINE = {
@@ -124,16 +124,16 @@ export const HEX_BASELINE = {
       '#e8e4dc', '#f0ebe2', '#f6f2eb', '#faf8f4', '#fbe9e4', '#fdf1ea',
       '#fff', '#fff8ee', '#fffdf6'
   ] },
-  'docs/src/components/activity-view.js': { c: 4, v: [
+  'docs/src/components/record/activity-view.js': { c: 4, v: [
       '#16a34a', '#9ca3af', '#d97706'
   ] },
-  'docs/src/components/appearance-controls.js': { c: 5, v: [
+  'docs/src/components/shell/appearance-controls.js': { c: 5, v: [
       '#000', '#b91c1c', '#fff'
   ] },
-  'docs/src/components/badge.js': { c: 5, v: [
+  'docs/src/components/ui/badge.js': { c: 5, v: [
       '#6b7280', '#a16207', '#f3f4f6', '#fde68a', '#fef3c7'
   ] },
-  'docs/src/components/calendar.js': { c: 11, v: [
+  'docs/src/components/record/calendar.js': { c: 11, v: [
       '#000', '#fff'
   ] },
   'docs/src/components/dashboard/activity-panel.js': { c: 4, v: [
@@ -149,72 +149,72 @@ export const HEX_BASELINE = {
       '#059669', '#3b82f6', '#94a3b8', '#9ca3af', '#d1d5db', '#d97706',
       '#dc2626', '#f59e0b', '#f97316'
   ] },
-  'docs/src/components/header.js': { c: 5, v: [
+  'docs/src/components/shell/header.js': { c: 5, v: [
       '#000', '#7a0010', '#fff', '#ffffff'
   ] },
-  'docs/src/components/insight-view.js': { c: 2, v: [
+  'docs/src/components/record/insight-view.js': { c: 2, v: [
       '#000', '#fff'
   ] },
-  'docs/src/components/inspector.js': { c: 19, v: [
+  'docs/src/components/record/inspector.js': { c: 19, v: [
       '#15803d', '#16a34a', '#34d399', '#4ade80', '#60a5fa', '#92400e',
       '#9ca3af', '#b91c1c', '#ce1126', '#d97706', '#f87171', '#fbbf24'
   ] },
-  'docs/src/components/issue-detail.js': { c: 12, v: [
+  'docs/src/components/feedback/issue-detail.js': { c: 12, v: [
       '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
       '#ce1126', '#f87171', '#fbbf24', '#fff'
   ] },
-  'docs/src/components/issue-form.js': { c: 9, v: [
+  'docs/src/components/feedback/issue-form.js': { c: 9, v: [
       '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#a16207',
       '#ce1126', '#f87171', '#fbbf24'
   ] },
-  'docs/src/components/issue-list.js': { c: 14, v: [
+  'docs/src/components/feedback/issue-list.js': { c: 14, v: [
       '#000', '#2563eb', '#60a5fa', '#6b7280', '#94a3b8', '#991b1b',
       '#a16207', '#ce1126', '#f87171', '#fbbf24'
   ] },
-  'docs/src/components/member-change-panel.js': { c: 1, v: [
+  'docs/src/components/governance/member-change-panel.js': { c: 1, v: [
       '#b91c1c'
   ] },
-  'docs/src/components/modal.js': { c: 6, v: [
+  'docs/src/components/ui/modal.js': { c: 6, v: [
       '#cbd5e1', '#f87171'
   ] },
-  'docs/src/components/org-setup-wizard.js': { c: 8, v: [
+  'docs/src/components/governance/org-setup-wizard.js': { c: 8, v: [
       '#16a34a', '#ce1126', '#ef4444', '#ffd700', '#fff'
   ] },
-  'docs/src/components/overview-dispatch-bar.js': { c: 1, v: [
+  'docs/src/components/governance/overview-dispatch-bar.js': { c: 1, v: [
       '#b91c1c'
   ] },
   'docs/src/components/person-picker.css': { c: 4, v: [
       '#92400e', '#f9fafb', '#fef3c7'
   ] },
-  'docs/src/components/person-picker.js': { c: 8, v: [
+  'docs/src/components/governance/person-picker.js': { c: 8, v: [
       '#000', '#047857', '#1d4ed8', '#6b7280', '#991b1b', '#a16207',
       '#ce1126'
   ] },
-  'docs/src/components/query-view.js': { c: 2, v: [
+  'docs/src/components/governance/query-view.js': { c: 2, v: [
       '#3b82f6'
   ] },
-  'docs/src/components/reactions.js': { c: 10, v: [
+  'docs/src/components/feedback/reactions.js': { c: 10, v: [
       '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280',
       '#cbd5e1', '#d97706', '#dc2626', '#f3f4f6'
   ] },
-  'docs/src/components/report-entry.js': { c: 3, v: [
+  'docs/src/components/record/report-entry.js': { c: 3, v: [
       '#b91c1c', '#fff'
   ] },
-  'docs/src/components/report-inbox.js': { c: 5, v: [
+  'docs/src/components/record/report-inbox.js': { c: 5, v: [
       '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171'
   ] },
-  'docs/src/components/status-badge.js': { c: 1, v: [
+  'docs/src/components/ui/status-badge.js': { c: 1, v: [
       '#9ca3af'
   ] },
-  'docs/src/components/tab-bar.js': { c: 4, v: [
+  'docs/src/components/shell/tab-bar.js': { c: 4, v: [
       '#000', '#334155', '#b91c1c', '#ffd700'
   ] },
-  'docs/src/components/taskforce-view.js': { c: 24, v: [
+  'docs/src/components/record/taskforce-view.js': { c: 24, v: [
       '#000', '#0d9488', '#10b981', '#10b98115', '#34d399', '#3b82f6',
       '#60a5fa', '#6366f1', '#6b7280', '#94a3b8', '#a5b4fc', '#d97706',
       '#dc2626', '#f87171', '#fbbf24'
   ] },
-  'docs/src/components/work-overview.js': { c: 12, v: [
+  'docs/src/components/governance/work-overview.js': { c: 12, v: [
       '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c',
       '#cbd5e1', '#ef4444', '#f59e0b'
   ] },
@@ -367,16 +367,16 @@ export const HEX_BASELINE = {
       '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5',
       '#fef3c7'
   ] },
-  'docs/src/services/branch-doc.js': { c: 1, v: [
+  'docs/src/services/branch/branch-doc.js': { c: 1, v: [
       '#b45309'
   ] },
-  'docs/src/services/decision-tree.js': { c: 4, v: [
+  'docs/src/services/activity/decision-tree.js': { c: 4, v: [
       '#ce1126', '#ffd700'
   ] },
-  'docs/src/services/notice.js': { c: 2, v: [
+  'docs/src/services/governance/notice.js': { c: 2, v: [
       '#3b82f6', '#fff'
   ] },
-  'docs/src/services/org-wizard-report.js': { c: 4, v: [
+  'docs/src/services/branch/org-wizard-report.js': { c: 4, v: [
       '#ce1126', '#ffd700'
   ] },
   'docs/src/styles.css': { c: 304, v: [
@@ -445,7 +445,7 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   因类串与 toggle 字面量含同一子串，**一次子串替换即成对同步**，两处逐字仍相同）；另 `#EF4444`→`var(--functional-error)`
 //   （值等 `--functional-error`，status 语义相符，零观感变化）3 处（styles.css）+ 1 处（today-tab.js）。
 //   ⇒ **23 文件 c 下调**（本轮实测合计 −74 处：1619→1545）·`HEX_BASELINE` 按实况重算条目 **81→80**
-//   （`docs/src/services/issues.js` 两处 `#b91c1c` 全在兜底里、删兜底后清零 ⇒ 按收基线纪律删条目）·
+//   （`docs/src/services/governance/issues.js` 两处 `#b91c1c` 全在兜底里、删兜底后清零 ⇒ 按收基线纪律删条目）·
 //   全站 distinct 值仍 **167**（被清的值仍存于 `_C` 表 / `styles.css` 令牌定义 / `tailwind-config.js` 等处）。
 //   ⚠ 同批把若干**行已有存量漂移**的条目 c/v 一并按实况改准（如 `settings-entry.js` c 13→6：除本批 6 处 `#b91c1c` 外，
 //   另有历史批次已清但未随注的 1 处）——属「收基线按实况」，非放宽。
@@ -551,12 +551,12 @@ export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};
  *  其余 28 文件 / 84 处为**存量台账**（不是正当例外），逐批收敛、新增即红。
  *  ⚠ 收基线＝删条目 / 减 c；不得为变绿补条目。 */
 export const P_TEXT_TIER_BASELINE = {
-  'docs/src/components/form-field.js': { c: 2, v: [11] },
-  'docs/src/components/inspector.js': { c: 1, v: [11] },
-  'docs/src/components/org-setup-wizard.js': { c: 23, v: [11] },
-  'docs/src/components/person-edit-modal.js': { c: 2, v: [11] },
-  'docs/src/components/resolution-followup-manager.js': { c: 2, v: [11] },
-  'docs/src/components/signup-panel.js': { c: 1, v: [11] },
+  'docs/src/components/ui/form-field.js': { c: 2, v: [11] },
+  'docs/src/components/record/inspector.js': { c: 1, v: [11] },
+  'docs/src/components/governance/org-setup-wizard.js': { c: 23, v: [11] },
+  'docs/src/components/governance/person-edit-modal.js': { c: 2, v: [11] },
+  'docs/src/components/governance/resolution-followup-manager.js': { c: 2, v: [11] },
+  'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
   'docs/src/entries/notice-entry.js': { c: 1, v: [11] },
   'docs/src/entries/party-committee-meeting-entry.js': { c: 9, v: [11] },
   'docs/src/entries/settings-entry.js': { c: 1, v: [11] },

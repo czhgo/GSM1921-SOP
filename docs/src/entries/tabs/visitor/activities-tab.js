@@ -3,20 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/icons.js?v=20260924a';
-import { renderQueryView } from '../../../components/query-view.js?v=20260924a';
-import { flashHighlight } from '../../../core/utils.js?v=20260924a';
-import { getActivityTypeColors } from '../../../core/constants.js?v=20260924a';
+import { icon } from '../../../core/icons.js?v=20260928h';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260928h';
+import { flashHighlight } from '../../../core/utils.js?v=20260928h';
+import { getActivityTypeColors } from '../../../core/constants.js?v=20260928h';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260924a';
-import { canSignup } from '../../../components/signup-panel.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { isActivityLive } from '../../../core/constants.js?v=20260928h';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity.js?v=20260924a';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260924a';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20260928h';
+import { openGroupNoticeComposer } from '../../../services/governance/notice.js?v=20260928h';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/pager.js?v=20260924a';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260928h';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -40,7 +40,7 @@ function _actEntryHtml(a, href) {
 // 组织者的入口（2026-09-19 批次 91 · SOP-B-17 / `D-308` · `D-309` · §9k）：
 // 「组织者是一种信息流与任务流」——本人被指定为某场活动的组织者时，这场活动的
 //   ① 发布口（发布本组通知）与 ② 上传位（考勤上传 / 纪检打回后的「待你确认」）
-// 就从这一行可达；解除指定即收回（判据 = `services/activity.js::isActivityOrganizer`）。
+// 就从这一行可达；解除指定即收回（判据 = `services/activity/activity.js::isActivityOrganizer`）。
 // ⚠ 上传位现承载在组长台「考勤上传」（写口判据 = `canUploadAttendance`，组织者本人恒在门内），
 //   此处只做「按人带路」，**不复制第二套表单**（否则同一条口径两处维护）。
 function _organizerEntryHtml(a) {

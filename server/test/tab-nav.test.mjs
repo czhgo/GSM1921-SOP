@@ -1,9 +1,9 @@
 // server/test/tab-nav.test.mjs — R6 导航守卫纯函数测试（2026-09-03 P2a）
 // 覆盖：初始 tab 决策优先级 / 非法（被隐藏）default|saved|priority 回退 / 目标 tab 回退 /
-// 空清单兜底。消费方 = docs/src/components/tab-bar.js（浏览器侧），本文件直测纯决策。
+// 空清单兜底。消费方 = docs/src/components/shell/tab-bar.js（浏览器侧），本文件直测纯决策。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/tab-nav.js?v=20260924a';
+import { resolveInitialTab, resolveTargetTab } from '../../docs/src/core/tab-nav.js?v=20260928h';
 
 const TABS = [{ id: 'todo' }, { id: 'calendar' }, { id: 'feedback' }];
 

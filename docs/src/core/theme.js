@@ -18,9 +18,9 @@
 //     登录人页面在冻结读取点取到的是全局键残留/默认 → 首帧小闪烁为已接受局限（5c 前记录，不变），
 //     DOMContentLoaded 二次 sync 以本人 person 值作最终覆盖。主题算法与 CSS 变量体系不变。
 
-import { readLoginSnapshot } from './login-snapshot.js?v=20260924a';
+import { readLoginSnapshot } from './login-snapshot.js?v=20260928h';
 // 强调色 DOM 生效（person 覆盖 → --app-accent 三件套）与解析复用 constants 纯静态表；constants 零依赖，无环
-import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260924a';
+import { ACCENT_COLORS, getAccentColors } from './constants.js?v=20260928h';
 
 const THEME_KEY = 'workflowos_theme';        // 主题（历史全局键；访客回落 / theme-init 首帧读取）
 const FONT_KEY = 'workflowos_font_size';     // 字号（历史全局键；bootstrap.js 启动读取）
@@ -225,7 +225,7 @@ let _resyncScheduled = false;
  *   ES module（defer 语义）加载序列中会以全局键值再次应用 —— 而 module 顶层 await（bootstrapPage
  *   等）完成前 DOMContentLoaded 不会触发，故注册 DOMContentLoaded 二次 sync：以本人 person 值作
  *   最终覆盖（避免 bootstrap 以全局残留覆盖登录人 class/变量；首帧小闪烁为已接受局限，不变）。
- * 由 components/sidebar.js 模块顶层调用（全站每页都经 sidebar 渲染，天然覆盖所有页面）。
+ * 由 components/shell/sidebar.js 模块顶层调用（全站每页都经 sidebar 渲染，天然覆盖所有页面）。
  */
 export function syncAppearanceForActiveUser() {
   if (typeof document === 'undefined') return;

@@ -7,19 +7,19 @@
 // 数据口径（服务层统计，勿直读裸 seed）：
 //   · 支部实例 = mockDB.branches（branch.js 读写同一数据源；loadDB 后为实时实例）
 //   · 在册成员合计 = PersonStore.getMembers() 按 branchId 过滤后逐支部求和（含 members 覆盖层/预览，实时统计）
-//   · 在册党员 / 滞留 = services/roster.js getRosterStats 逐支部上卷为全院合计（与会议「应到名单」同口径：
+//   · 在册党员 / 滞留 = services/member/roster.js getRosterStats 逐支部上卷为全院合计（与会议「应到名单」同口径：
 //     党员=正式/预备，滞留=组织关系保留但人不在校、应到剔除；含组织委员运行期覆盖）
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain.js?v=20260924a';
-import { PersonStore } from '../../../services/person.js?v=20260924a';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/roster.js?v=20260924a';
-import { getCommitteeName } from '../../../services/branch.js?v=20260924a';
-import { escHtml as esc } from '../../../core/utils.js?v=20260924a';
-import { tokenOf } from '../../../core/version-token.js?v=20260924a'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/org-base-data-preview.js?v=20260924a'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/memoize-render.js?v=20260924a'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain.js?v=20260928h';
+import { PersonStore } from '../../../services/member/person.js?v=20260928h';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260928h';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20260928h';
+import { escHtml as esc } from '../../../core/utils.js?v=20260928h';
+import { tokenOf } from '../../../core/version-token.js?v=20260928h'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260928h'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260928h'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）

@@ -5,11 +5,11 @@
 // 考察查询以人为中心，写入以活动/专班的具体工作计入
 // 考勤=0-1变量对所有人成立；考察=对深度参与者和组织者的工作量记录
 
-// 数据域接线批次二（2026-09-03）：展示格式化 inspectionToDisplay/Long/Wide 已提升至 services/inspection.js；
+// 数据域接线批次二（2026-09-03）：展示格式化 inspectionToDisplay/Long/Wide 已提升至 services/activity/inspection.js；
 // 本文件退化为纯考察种子数据仓。
 // 2026-09-06 基线刷新：recordedAt 随关联活动/专班时间轴同步平移（活动新日期见 activities.js 头注）；
 //   注释中旧人名同步（与 people.js 一致）。
-import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260924a';
+import { ParticipationLevel, SourceType } from '../core/domain.js?v=20260928h';
 
 export const INSPECTION_RECORDS = [
   // ── 活动考察记录 ──────────────────────────────────────────

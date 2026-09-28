@@ -19,7 +19,7 @@
 //     （`<…>` 整段去掉 ⇒ title / placeholder / aria-label 等**属性值不计**入，与 §4.18.5「可见文案＝文本节点」同口径；
 //      上一批已把逐行重复说明改成 `title` 悬浮，正落在此口径的排除面上）→ 解 HTML 实体 → 去空白。
 //   · **「说明性文本」＝中文句子**：重合段里至少含 N 个汉字（C7 说的是「整句」）。
-//     纯 ASCII 的页名 / 文件路径 / 标识符（`party-committee.html`、`/services/party-group.js`、
+//     纯 ASCII 的页名 / 文件路径 / 标识符（`party-committee.html`、`/services/member/party-group.js`、
 //     `content/02_institution/sop/`）不是「整句」，实测它们会与 help 里的同名可见文本假命中 ⇒ 明确排除。
 //   · 归一化：去空白（含全角空格）。**不做数字替换**——C7 原文无此口径（「数字→N」只属 C3）。
 //   · 判「连续 ≥20 字」：在去空白的界面文本上滑窗，任一 20 字窗出现在母本中即命中，再向两侧扩到最大重合段。
@@ -159,7 +159,7 @@ function scan() {
  * （about / settings / 通知模板等均不在本批授权面内）⇒ 逐条登记为基线，待各自批次收。
  */
 const BASELINE = {
-  'docs/src/components/org-setup-wizard.js': [
+  'docs/src/components/governance/org-setup-wizard.js': [
     '模块/块组合、角色分工与组织档案（页眉/自述/主题',            // 换组织向导表单标签（与 §5.2 向导说明同句）
     '；日常分工调整请走支书台「支部分工」的支委会议题流程',        // 向导内嵌分工说明（与 §5.2 同句）
   ],

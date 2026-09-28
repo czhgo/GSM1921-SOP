@@ -81,7 +81,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 #### 赋权记录数据结构
 
-> 赋权审计记录（只增不改，撤销追加 action:'revoke'）数据结构见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.3「项目角色赋权与审计（现行，T-190）」——审计键 `sop_org_os_auth_audit`（AUDIT_KEY，services/auth.js）；§2.18 是赋权类**待办**（category:'auth'）的数据结构，非赋权记录本身。
+> 赋权审计记录（只增不改，撤销追加 action:'revoke'）数据结构见 [DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.3「项目角色赋权与审计（现行，T-190）」——审计键 `sop_org_os_auth_audit`（AUDIT_KEY，services/core/auth.js）；§2.18 是赋权类**待办**（category:'auth'）的数据结构，非赋权记录本身。
 
 ---
 
@@ -432,7 +432,7 @@ E1（ORGANIZATION_BUILDING_MODULE）定义了工作台 Tab 分组功能（组名
 
 统一使用"组织者"，不使用"活动组织者"（活动与专班并列，组织者不绑定活动）。
 
-> **实现落点（系统侧）**：组织者（organizer）/深度参与者（deep）为活动/专班的项目角色——权限与赋权链见 `docs/src/services/auth.js` 的 `PROJECT_PERMISSIONS` / `AUTHORIZE_CHAIN`（组织委员赋专班角色、党小组组长赋活动角色、组织者可赋深度参与者）；赋权入口与待办联动见 §D.1.1 赋权入口设计。
+> **实现落点（系统侧）**：组织者（organizer）/深度参与者（deep）为活动/专班的项目角色——权限与赋权链见 `docs/src/services/core/auth.js` 的 `PROJECT_PERMISSIONS` / `AUTHORIZE_CHAIN`（组织委员赋专班角色、党小组组长赋活动角色、组织者可赋深度参与者）；赋权入口与待办联动见 §D.1.1 赋权入口设计。
 >
 > 详细设计见 [DATA_MODEL.md §3.1 三级管理架构](../04_web_design/data/DATA_MODEL.md)
 

@@ -5,24 +5,24 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/inspection.js?v=20260924a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260928h';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/thought-report.js?v=20260924a';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/person.js?v=20260924a';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20260928h';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20260928h';
 // S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadDevStageOverrides } from '../../../services/member-confirmation.js?v=20260924a';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260928h';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
+// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
-import { getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260924a';
-// SOP-B-30 / D-396：活动参与汇总（以人为第一列）——数据与考勤同源（services/attendance.js 单一读口）
-import { listActivityParticipationByPerson } from '../../../services/attendance.js?v=20260924a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
+import { getBasePath, escHtml as esc } from '../../../core/utils.js?v=20260928h';
+// SOP-B-30 / D-396：活动参与汇总（以人为第一列）——数据与考勤同源（services/activity/attendance.js 单一读口）
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20260928h';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：候选人列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）
@@ -42,6 +42,8 @@ const STAGE_COLOR = {
 // （积极分子/发展对象/预备党员），与人员库全系统同源一致。
 // C①（2026-09-10 支书裁定）：原「推进覆盖档案」localStorage 直写（gsm1921-dev-stage-overrides）已移除——
 //   阶段唯一来源 = 人员库 developStage（名册发起变更 → 支书确认 → PersonStore.saveMember 落档）。
+// C①-补（2026-09-28 服务端化）：当时的「进入当前阶段日期」也一并落人员库（`PersonStore.getMembers()` 的
+//   `developStageSince` 字段），本机覆盖键随之撤除 —— 读口＝`member-confirmation.js::loadStageEntryDates()`。
 
 function _isAgendaKind(a, k) {
   return (Array.isArray(a.kinds) && a.kinds.includes(k)) || a.kind === k;
@@ -96,7 +98,7 @@ function _buildCandidates() {
         developStage: p.developStage,
         role: p.role || '',
         // C③（2026-09-10 支书裁定）：无真实日期则**不显示**该行，禁止兜底假日期（原 `|| '2026-01-01'`）
-        entryDate: (loadDevStageOverrides()[p.id] || {}).entryDate || null,
+        entryDate: (loadStageEntryDates()[p.id] || {}).entryDate || null,
         inspCount,
         reportCount,
         meeting: _sourceMeetingOf(p.id),

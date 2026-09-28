@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260924a"></script>
+<script src="./src/theme-init.js?v=20260928h"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260924a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260924a">
+  <script src="./src/tailwind-config.js?v=20260928h"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260928h">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -584,7 +584,7 @@
             <li><strong>组长怎么产生</strong>：组长不单独建表，而是从成员档案的「组长身份 ＋ 所在党小组」两项推出来——档案一改，组长口径跟着变；设党小组组长（指派与撤销）就在本 tab「组长指派」区（2026-09-25 赋权按对象归位后自此进入），不在这张清单上设入口。</li>
             <li><strong>改名牵动谁</strong>：改的是这个组的名字，组里全体成员的档案归属一并改成新名（不必逐个成员去改）；此后该组的活动、考勤与复盘统计继续按新名归集。</li>
             <li><strong>解散的边界（允许非空组）</strong>：<strong>非空组也允许解散</strong>，不要求先清空；组内成员落到「未分组」，可在「党小组与活动」tab 顶部「未分组」一行再逐个归入别的组。解散后该组退出下拉与统计，留痕仍留着可查；解散原因可填可不填。</li>
-            <li><strong>谁能写</strong>：新增 / 改名 / 解散三个写口只对支书与副支书开放（副书同权）；界面按钮的显隐只是提示，写没写成以服务层返回为准。组名与权限的单一来源在 <code>docs/src/services/party-group.js</code>（界面不自己维护组名清单）。</li>
+            <li><strong>谁能写</strong>：新增 / 改名 / 解散三个写口只对支书与副支书开放（副书同权）；界面按钮的显隐只是提示，写没写成以服务层返回为准。组名与权限的单一来源在 <code>docs/src/services/member/party-group.js</code>（界面不自己维护组名清单）。</li>
             <li><strong>相关</strong>：§2.1 支书工作台「党小组与活动」行、§2.5 组长工作台「组员进展」行；组员向组长汇报与「请组长关注」的口径见支书台「党小组与活动」tab 的「组员进展摘要」卡。</li>
           </ul>
         </div>
@@ -608,7 +608,7 @@
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：情景① 按组织层级分两处——<strong>支委身份配置</strong>在支书 / 副支书台「支委会」tab 的<strong>「机构构成」段</strong>（2026-09-27 支委会迁移批由「党小组与活动」迁入；判据＝支部大会选举支委 → 支委会讨论分工）、<strong>组长指派</strong>在「党小组与活动」tab「党小组清单」卡内与「组 / 组长」同区（不再单设「赋权管理」页签）。</li>
             <li><strong>能做什么</strong>：设党小组组长（选人 + 选党小组 → 确认，可撤销）；配置支委身份（组织 / 宣传 / 纪检委员，在本支部在册成员中选人 → 选身份 → 确认授予 / 改派，可撤销）。</li>
-            <li><strong>身份边界</strong>：支书本人与副支书的身份由<strong>党委</strong>配置（不在本表）；可授予身份白名单单一源＝<code>docs/src/core/constants.js</code> 的 <code>BRANCH_COMMISSIONER_ASSIGNABLE_ROLES</code>；写口单一源＝<code>docs/src/services/appointment.js</code>。</li>
+            <li><strong>身份边界</strong>：支书本人与副支书的身份由<strong>党委</strong>配置（不在本表）；可授予身份白名单单一源＝<code>docs/src/core/constants.js</code> 的 <code>BRANCH_COMMISSIONER_ASSIGNABLE_ROLES</code>；写口单一源＝<code>docs/src/services/branch/appointment.js</code>。</li>
             <li><strong>谁能写</strong>：支书与副支书（副书同权）；界面按钮显隐只是提示，写没写成以服务层返回为准。</li>
             <li><strong>相关</strong>：§2.1 支书工作台「支委会」行（支委身份配置）与「党小组与活动」行（组长指派）；本页 #card-copy-party-group（组长派生口径）。</li>
           </ul>
@@ -621,7 +621,7 @@
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：支书台「党小组与活动」tab 的「党小组活动」区下方（跟活动走）。</li>
             <li><strong>能做什么</strong>：选被赋权人 → 选活动项目 → 选角色（组织者 / 深度参与者）→ 确认赋权；已赋权记录可撤销。</li>
-            <li><strong>口径</strong>：赋权后该同志在该场活动内承担对应职责、并进入赋权链的知情边界；候选人为非支委成员；选人走 <code>PersonPicker</code>（姓名 / 学号搜索），写口单一源＝<code>docs/src/services/auth.js</code> 的 <code>AuthStore.authorize</code>。</li>
+            <li><strong>口径</strong>：赋权后该同志在该场活动内承担对应职责、并进入赋权链的知情边界；候选人为非支委成员；选人走 <code>PersonPicker</code>（姓名 / 学号搜索），写口单一源＝<code>docs/src/services/core/auth.js</code> 的 <code>AuthStore.authorize</code>。</li>
             <li><strong>相关</strong>：#card-copy-assign-leader（常设赋权）、#card-copy-assign-taskforce（专班赋权）；§2.1 支书工作台「党小组与活动」行。</li>
           </ul>
         </div>
@@ -633,7 +633,7 @@
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：组织委员台「专班管理」tab（原支书台「赋权管理」情景③ 按对象归位到此）。</li>
             <li><strong>能做什么</strong>：选被赋权人 → 选专班项目 → 选角色（组织者 / 深度参与者）→ 确认赋权；已赋权记录可撤销。专班详情内的「成员角色」保存同样走赋权链。</li>
-            <li><strong>口径</strong>：赋权后该同志在该专班内承担对应职责、并进入赋权链的知情边界；写口单一源＝<code>docs/src/services/auth.js</code> 的 <code>AuthStore.authorize</code> / <code>syncProjectRoles</code>。</li>
+            <li><strong>口径</strong>：赋权后该同志在该专班内承担对应职责、并进入赋权链的知情边界；写口单一源＝<code>docs/src/services/core/auth.js</code> 的 <code>AuthStore.authorize</code> / <code>syncProjectRoles</code>。</li>
             <li><strong>相关</strong>：#card-copy-assign-leader（常设赋权）、#card-copy-assign-activity（活动赋权）；§2.2 组织委员工作台「专班管理」行。</li>
           </ul>
         </div>
@@ -1775,6 +1775,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/help-entry.js?v=20260924a"></script>
+<script type="module" src="./src/entries/help-entry.js?v=20260928h"></script>
 </body>
 </html>

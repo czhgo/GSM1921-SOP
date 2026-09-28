@@ -121,10 +121,11 @@ test('sop-scenarios.js 注册场景能力（scope/scenario + list/get）', async
 
 test('decision-tree 消费点经注册表读取场景（getScenario 回退 sopDatabase）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/services/decision-tree.js', import.meta.url),
+    new URL('../../docs/src/services/activity/decision-tree.js', import.meta.url),
     'utf8',
   );
-  assert.match(src, /import \{ getCapabilities \} from '\.\.\/core\/registry\.js/);
+  // 相对深度不写死（(../)+ 兼容任意层级）——2026-09-28 目录分层后 decision-tree.js 在 services/activity/（二级）
+  assert.match(src, /import \{ getCapabilities \} from '(\.\.\/)+core\/registry\.js/);
   assert.match(src, /capabilities\/sop-scenarios\.js/);
   assert.match(src, /function getScenario\(scenarioId\)/);
   assert.match(src, /cap\.get\(scenarioId\)/);

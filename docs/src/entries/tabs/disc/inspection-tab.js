@@ -2,32 +2,32 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/taskforce.js?v=20260924a';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/inspection.js?v=20260924a';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/inspection.js?v=20260924a';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/inspection.js?v=20260924a';
-import { inspectionToLong, inspectionToWide } from '../../../services/inspection.js?v=20260924a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
-import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain.js?v=20260924a';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260928h';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20260928h';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20260928h';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20260928h';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20260928h';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain.js?v=20260928h';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260924a';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260924a';
+import { POLICY_DEFAULTS } from '../../../core/policy-defaults.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928h';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260928h';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/relation-matrix.js?v=20260924a';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20260928h';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
-//   本位判据单一源 `services/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
-import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
-// 「本位」nudge 确认弹窗（单一源 = components/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/modal.js?v=20260924a';
-import { generateId } from '../../../core/id.js?v=20260924a';
+//   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { PersonPicker } from '../../../components/governance/person-picker.js?v=20260928h';
+// 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260928h';
+import { generateId } from '../../../core/id.js?v=20260928h';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -426,8 +426,8 @@ export function renderContent(ctx) {
 // 口径：**写口与字段全部复用既有实现**——同一服务层函数（`loadInspectionRecords` / `saveInspectionRecords`）、
 //   同一字段集（与组长台「考察上传」逐字同款的记录字段：sourceType/activityId/sourceName/personId/level/
 //   content/role/recordedBy/recordedAt/status），**不新增字段、不新造实体**；**本位仍＝该场活动的组织者**
-//   （判据单一源 `services/inspection.js::isInspectionHomePosition` → `services/activity.js::isActivityOrganizer`）
-//   ⇒ 纪检在**非本位**时代录，**提交前**弹一次「本位」nudge（`components/modal.js::confirmNudge`，
+//   （判据单一源 `services/activity/inspection.js::isInspectionHomePosition` → `services/activity/activity.js::isActivityOrganizer`）
+//   ⇒ 纪检在**非本位**时代录，**提交前**弹一次「本位」nudge（`components/ui/modal.js::confirmNudge`，
 //   `nudgeKey` 复用 `inspection-upload`，文案单一源 `NUDGE_TEXTS`，不另造文案键）。
 function _buildInspectionProxyCardHTML(activities = []) {
   const formHtml = _discInspFormVisible ? `
@@ -514,7 +514,7 @@ function _initDiscInspForm(container, ctx) {
       });
     }
 
-    // 本位 nudge（单一源 `components/modal.js::confirmNudge`）：考察记录的写入本位＝**该场活动的组织者**
+    // 本位 nudge（单一源 `components/ui/modal.js::confirmNudge`）：考察记录的写入本位＝**该场活动的组织者**
     //   ⇒ 纪检在本台代录必然不是本位 ⇒ **写库前**弹一次确认（必须点按钮才能关；「取消」＝放弃本次代录）。
     if (!isInspectionHomePosition(actorId, SourceType.ACTIVITY, activityId)) {
       const _homeOk = await confirmNudge({ nudgeKey: 'inspection-upload', context: activityTitle });

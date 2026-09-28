@@ -1639,7 +1639,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名；**2026-09-26 该文件已全文并入 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（《支部组织与委员体系》）**，故 `FLAT_ORGANIZATION_DESIGN.md` 现亦为历史文件名（引用一律改指 `COMMISSIONER_DUTY_FRAMEWORK.md §G`）
 - **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DESIGN_SYSTEM.md §十 点击落点映射](../04_web_design/design-system/DESIGN_SYSTEM.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
 - **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
-- **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
+- **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/core/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 
 > **2026-09-09 补录**（支部 config 写权分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) / [§9h 写权矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md) 审定定稿）：
@@ -1653,7 +1653,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **制度默认（展示位）**：policy-defaults 各键在设置页只读列出的「现行口径」展示值（含域参数默认行）——**展示层无写权**，界面值随源码默认/覆盖变化
 - **制度刚性（锁定）**：L3 制度项（票决门槛 / 应到口径 / 会议类型 / 记录人 / 标因）在设置页**只读锁定展示、不开放直改**——改须支书/党委裁决后在系统层变更（[settings-entry.js](../../docs/src/entries/settings-entry.js) 批4 分层注释同口径）
 - **POLICY_OVERRIDABLE**：域参数覆盖**白名单**（`policy-defaults.js` 导出数组，每项 = path/type/钳制范围/domain 域节）——**只定义于 policy-defaults**，config-clean 为其唯一净化消费方；白名单 = 可经 UI 覆盖的域参数全集，白名单外一律不可经 UI 写
-- **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/org-wizard-report.js)）
+- **换壳工作单**：换组织向导步骤④生成下载的 Markdown——「已完成配置摘要 + 待手动替换仓库文件清单 + 验证点」；向导①②③ 在线可改已即时写入 config，仓库文件内容（mock 数据 / constants / 权限矩阵 / 术语 / 制度 SOP / 配色固定令牌 / policy-defaults 未登记项）一律出工作单**人工替换、不经设置页**（[org-wizard-report.js](../../docs/src/services/branch/org-wizard-report.js)）
 
 > **2026-09-14 补录**（成员流动与党小组相关黑话，随 [SYSTEM_ROLE_PERMISSION.md §9i](../02_institution/SYSTEM_ROLE_PERMISSION.md) 党小组管理/成员流动登记写权与 [BRANCH_WORK_MAP.md](../04_web_design/evolution/BRANCH_WORK_MAP.md) 党小组一等实体落地注记同期定案）：
 

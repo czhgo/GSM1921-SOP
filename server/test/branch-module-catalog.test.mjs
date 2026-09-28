@@ -6,13 +6,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260924a'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
+const V = '?v=20260928h'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
 
 test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源）', async () => {
   await import(`../../docs/src/modules/capabilities/secretary-workspace.js${V}`);
   await import(`../../docs/src/modules/capabilities/party-committee-workspace.js${V}`);
 
-  const branchMod = await import(`../../docs/src/services/branch.js${V}`);
+  const branchMod = await import(`../../docs/src/services/branch/branch.js${V}`);
   const catalog = branchMod.listBranchModuleCatalog();
   assert.ok(Array.isArray(catalog), '目录返回数组');
   const sec = catalog.find(c => c.capId === 'secretary-workspace');
@@ -24,7 +24,7 @@ test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注�
 });
 
 test('L2：默认全开；配置子集后业务 tab 过滤/排序生效，核心组固定不可关（纯函数）', async () => {
-  const branchMod = await import(`../../docs/src/services/branch.js${V}`);
+  const branchMod = await import(`../../docs/src/services/branch/branch.js${V}`);
 
   // 模拟支书工作台 tabs（含核心组 + 三个业务组 tab）
   // 2026-09-14：核心组判定由「显示标签反推」改为注册表显式声明 → fixture 必须带 coreTab: true

@@ -31,13 +31,13 @@ const _FACTORY = {
     //   语义裁定：quorum=2/3 为「严格超过」——出席/应到 >2/3 才达出席门槛（2/3 整界不过，
     //   如应到 3 出席 2 仍不足）；vetoOnObject=true 为「反对=0」——交流式 'object'（异议）与
     //   正式 'oppose'（反对）同口径视为反对，任一即否决；'abstain'（弃权）计出席不计赞成与反对。
-    //   开源部署可按支部制度调整；消费点：services/workforce.js evaluateWorkforceVotes（勿另写字面量）。
+    //   开源部署可按支部制度调整；消费点：services/branch/workforce.js evaluateWorkforceVotes（勿另写字面量）。
     //   （制度默认展示位：设置中心·支部制度参数 只读列出；不在 policyOverrides 白名单 = 不可经 UI 覆盖。）
     voteThreshold: { quorum: 2 / 3, vetoOnObject: true },
   },
   attendance: {
     // 会议考勤的类型清单（＝**哪些会议类型设考勤**；上传位按类型分，见下方 recorderByType / noAttendanceTypes 与
-    //   services/attendance.js::canUploadAttendance）。kind 'branch-default'：出处 CF §C.1a 会议考勤；导出去重冻结导出面
+    //   services/activity/attendance.js::canUploadAttendance）。kind 'branch-default'：出处 CF §C.1a 会议考勤；导出去重冻结导出面
     //   （MEETING_ATTENDANCE_TYPES 由此派生）。⚠ 2026-09-21 批次 132（支书口径一「三会，支委会规模小可以不考勤」，修正 `D-548` 的一刀切）：支委会不考勤 ⇒ 移出本表、入 `noAttendanceTypes`。
     meetingTypes: ['党课', '支部党员大会', '组织生活会'],
     // **不设考勤的会议类型**（口径一）：单源消费 = canUploadAttendance · 支书台「考勤待录入」提醒 · 设置中心
@@ -52,7 +52,7 @@ const _FACTORY = {
     // 语义：应到 = 组织关系在本支部的党员（developStage ∈ partyStages）且非滞留；
     //   滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。
     //   党课列席（积极分子/发展对象）不计应到；党小组会另按本组党员口径（范围=本组，规则同）。
-    // 消费点：services/roster.js getMeetingRoster（派生导出，勿在业务层新写字面量）。
+    // 消费点：services/member/roster.js getMeetingRoster（派生导出，勿在业务层新写字面量）。
     roster: {
       partyStages: ['正式党员', '预备党员'],
       excludeDetained: true,
@@ -106,7 +106,7 @@ const _FACTORY = {
     //   ⚠ 它是**提示线、不是制度门槛**——母本不设达标线（存量无出处的「学期出勤率低于 80%」已删）；
     //   本参数只用来「让相关成员知道出勤率偏低这件事」，支部可自行调整（同 §9l 制度参数可调口径）。
     //   ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，0–100）。
-    //   消费点：services/attendance.js::listLowAttendanceSessions（勿在业务层另写字面量）。
+    //   消费点：services/activity/attendance.js::listLowAttendanceSessions（勿在业务层另写字面量）。
     lowRateHint: 80,
   },
   inspection: {
@@ -120,7 +120,7 @@ const _FACTORY = {
     // 学期末滞留集中复核窗口（每学期末一次；组织域 L2，支书 2026-09-09 批）
     // kind 'branch-default'：语义=滞留集中复核 半年窗 起月日-止月日，每窗 [起月,起日,止月,止日]；
     //   默认 [06-15..07-15] ∪ [12-15..次年01-15]（次窗跨年：止月<起月 → 止于次年）。
-    //   2026-09-09 从 services/member-confirmation.js shouldShowSemesterDetainedRemind 硬编码迁出，
+    //   2026-09-09 从 services/member/member-confirmation.js shouldShowSemesterDetainedRemind 硬编码迁出，
     //   消费点改派生（窗口判定 + 支书待办窗口文案）；登记 POLICY_OVERRIDABLE → 组织委员可经
     //   config.policyOverrides.memberConfirmation.semesterDetainedWindows 覆盖，支书待办随窗口变化。
     semesterDetainedWindows: [[6, 15, 7, 15], [12, 15, 1, 15]],
@@ -157,8 +157,8 @@ const _FACTORY = {
     //   · wordSoftMin ＝ **警告审阅线**（1200）——低于它触发「警告审阅」（**提醒提交人本人**），
     //                     **≠ 门槛、≠ 达标线**；
     //   · 「**不影响提交**」＝**硬约束**——低于任何数字都**照常提交、照常入库归档**，
-    //                     系统**不拦截、不自动退回、不自动打回**（见 services/thought-report.js）。
-    // 消费点：services/thought-report.js::wordCountHint（提交侧 / 重交侧 / 阅读侧字数提示唯一出口）。
+    //                     系统**不拦截、不自动退回、不自动打回**（见 services/governance/thought-report.js）。
+    // 消费点：services/governance/thought-report.js::wordCountHint（提交侧 / 重交侧 / 阅读侧字数提示唯一出口）。
     //   ⚠ 2026-09-18 批次 86：`wordSoftMin` 由 800 跟到 1200（D-387 落地），
     //     并补齐「警告审阅」语义；此前「组织初阅会据此把关」的措辞随初阅门取消一并删除。
     // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（组织域，100–10000；
@@ -173,9 +173,9 @@ const _FACTORY = {
     //   考勤规则亦归纪检）。⚠ 2026-09-27 支书裁定「补入口，让它们真可调」⇒ 登记 POLICY_OVERRIDABLE（纪检域）。
     // 语义（三层不混）：
     //   · branchAssembly / partyClass ＝**制度硬要求类型**是否要求补课（默认均 true）；**支部级**可调，
-    //     但**单场活动**仍「只能加不能减」（硬要求刚性，见 services/makeup.js 头注 `D-545`）；
+    //     但**单场活动**仍「只能加不能减」（硬要求刚性，见 services/activity/makeup.js 头注 `D-545`）；
     //   · deadlineDays ＝补课闭环时限（活动后 N 天内；母本「活动后 7 天内」→ T+7 = 7）。
-    // 消费点：services/makeup.js::makeupDefaultActivityTypes / makeupDeadlineDays（call-time 读本对象）。
+    // 消费点：services/activity/makeup.js::makeupDefaultActivityTypes / makeupDeadlineDays（call-time 读本对象）。
     branchAssembly: true,
     partyClass: true,
     deadlineDays: 7,
@@ -187,8 +187,8 @@ const _FACTORY = {
     //   出处（2026-09-22 逐字核过）＝母本《常见工作场景快速指南》`:242-251`（共建活动八步流程）`:245`「必须经支书同意后方可推进；
     //   不批准则终止」（2026-09-22 核）⇒ 开启时以「支书批准」为准（母本档）；支部若把这道门放到支委会，可改选支委会档。
     //   ⚠ 默认关 ⇒ 关闭时活动写入链与全部行为与改动前完全一致（零行为变化）。
-    // 消费点：services/decision-tree.js::writeActivityWithSOP（开启时写入即「待批」）·
-    //   services/activity.js 的审批动作与判据（勿在页面另写第二份）。
+    // 消费点：services/activity/decision-tree.js::writeActivityWithSOP（开启时写入即「待批」）·
+    //   services/activity/activity.js 的审批动作与判据（勿在页面另写第二份）。
     mode: 'off',
   },
 };
@@ -205,7 +205,7 @@ export const POLICY_DEFAULTS = _clone(_FACTORY);
  * config.policyOverrides 可覆盖白名单（域参数 L2，支书 2026-09-09 批；2026-09-27 支书「补入口」批扩表）。
  * 全覆盖路径均在 POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定。
  * 净化/钳制唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides（本表唯一消费方，
- * 覆盖写入（services/branch.js savePolicyOverrides）与读侧注入共用，防止两套校验未同步的情况）。
+ * 覆盖写入（services/branch/branch.js savePolicyOverrides）与读侧注入共用，防止两套校验未同步的情况）。
  * ⚠ `domain` = 域负责人角色键（谁能改）；一域可辖多节（如纪检域＝inspection/attendance/review/makeup）。
  */
 export const POLICY_OVERRIDABLE = [

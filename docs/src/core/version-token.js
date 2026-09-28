@@ -10,7 +10,7 @@
 //   - bumpToken(key) 在**可改的源写口**（services/*.js 实际写 mockDB 处）调用；
 //   - tokenOf(key) 供聚合入口计算复合键（单调不减；resetAllTokens 后归零）；
 //   - resetAllTokens() 在整体重置/loadDB/overlay 导入入口调用（mock-adapter 禁改 →
-//     由 services/mock.js loadDB 等可改入口代为调用）。
+//     由 services/core/mock.js loadDB 等可改入口代为调用）。
 //  纯 ESM 叶子模块：零依赖，保证任意调用方（无论宿主 ?v= 后缀差异）import 到
 //  同一模块实例 —— Map 状态全局共享，跨模块实例缓存失效一致。
 // ════════════════════════════════════════════════════════════════

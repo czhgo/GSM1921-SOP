@@ -36,7 +36,7 @@
 //   ⇒ 新增第三个组织型主体 `expanded-committee`（支委扩大会）——与 `branch-committee`（支委会）**并列**、
 //   **两者都是法人性质**（能作「谁负责 / 承担方」的答案，但不是自然人、不是角色键）。承载形态：
 //   同一场支委会议（活动 `type='支委会'`），**扩大到谁**在该场活动上选定——落点＝既有
-//   `voteConfig.voterIds`（应到名单，单一源 `services/vote-config.js::resolveVoterIds`），**不新增字段**。
+//   `voteConfig.voterIds`（应到名单，单一源 `services/activity/vote-config.js::resolveVoterIds`），**不新增字段**。
 //   ⚠ **别与 SOP 场景任务里那个同名字符串混**：`executor:'expanded-committee'`（`workflow/sopData.js`
 //   「活动报备」一条；标签在 `workflow/renderer.js`）是**渲染层标签**（执行者标签），**不是主体**、
 //   不进本注册表；本注册表的 `expanded-committee` 是**组织型主体 id**——**同名但不是一回事**。

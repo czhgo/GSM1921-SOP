@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260924a';
+const V = '?v=20260928h';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -38,8 +38,8 @@ globalThis.sessionStorage = {
 
 const { mockDB } = await import(`../../docs/src/core/domain.js${V}`);
 const { setDataSource } = await import(`../../docs/src/core/data-adapter.js${V}`);
-const { IssueStore } = await import(`../../docs/src/services/issues.js${V}`);
-const { AuthStore } = await import(`../../docs/src/services/auth.js${V}`);
+const { IssueStore } = await import(`../../docs/src/services/governance/issues.js${V}`);
+const { AuthStore } = await import(`../../docs/src/services/core/auth.js${V}`);
 
 setDataSource('mock');
 
@@ -76,7 +76,7 @@ test('S1 docs/data/issues.json 存量 4 条 issue 均逐条携带 branchId（支
 });
 
 test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/seed 均写 branchId', () => {
-  const issues = read(join(SRC_DIR, 'services', 'issues.js'));
+  const issues = read(join(SRC_DIR, 'services', 'governance', 'issues.js'));
   assert.match(issues, /const branchId = _writeBranchId\(\);/, 'submitIssue 须按 _writeBranchId 落 branchId');
   assert.match(issues, /branchId:\s*d\.payload\.branchId \|\| _writeBranchId\(\)/,
     'approveDraft 新建 issue 须补 branchId（草稿优先，存量缺省口径兜底）');
@@ -92,9 +92,9 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
 });
 
 test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛（勿另写第二套支部口径）', () => {
-  const issues = read(join(SRC_DIR, 'services', 'issues.js'));
-  assert.match(issues, /import \{ withinBranch, getBranchIdOfPerson \} from '\.\/branch\.js\?v=20260924a'/,
-    '须 import branch.js 单一源（withinBranch/getBranchIdOfPerson）');
+  const issues = read(join(SRC_DIR, 'services', 'governance', 'issues.js'));
+  assert.match(issues, /import \{ withinBranch, getBranchIdOfPerson \} from '(\.\.\/)+branch\/branch\.js\?v=\d{8}[a-z]'/,
+    '须 import branch.js 单一源（withinBranch/getBranchIdOfPerson）——2026-09-28 目录分层后 issues.js 在 services/governance/、branch.js 在 services/branch/，相对路径为 ../branch/branch.js');
   assert.match(issues, /function _withinViewerBranch\(list\) \{\s*return withinBranch\(list \|\| \[\], _viewerId\(\)\);/, 
     '过滤器须经 withinBranch 单一源实现');
   const n = (issues.match(/_withinViewerBranch\(/g) || []).length;
@@ -104,7 +104,7 @@ test('S3 读取过滤单一源：issues.js 经 branch.js 的 withinBranch 收敛
 });
 
 test('S4 成员参与接线：getMyIssues 出口 + 我的处置 tab「我提交/参与的反馈」区', () => {
-  const issues = read(join(SRC_DIR, 'services', 'issues.js'));
+  const issues = read(join(SRC_DIR, 'services', 'governance', 'issues.js'));
   assert.match(issues, /getMyIssues\(userId\) \{/, 'IssueStore 须暴露 getMyIssues（我提交/参与的反馈）');
   assert.match(issues, /mydispatch-myissues-host/, 'renderMyDispatchTab 须渲染成员参与区宿主');
   assert.match(issues, /function _renderMyIssueDetail\(/, '成员答复详情须存在（追加说明，issue 答复口径）');

@@ -21,7 +21,7 @@
 // 2026-09-17 批次 49：成功提示的统一等待点。本文件刻意**全部使用动态 import** 以避开
 // 环依赖，此处是唯一静态 import —— 因 pending-writes 是**叶子模块**（零依赖），静态引入不成环，
 // 且必须同步可用（persist() 在排程那一刻就要登记，不能等一个 await）。
-import { trackWrite } from './pending-writes.js?v=20260924a';
+import { trackWrite } from './pending-writes.js?v=20260928h';
 
 /**
  * DataAdapter Interface — 统一数据访问接口
@@ -205,7 +205,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260924a');
+      const { mockDB } = await import('./domain.js?v=20260928h');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -299,7 +299,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260924a');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260928h');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -310,7 +310,7 @@ export async function init() {
       // 持久化守卫解锁：mockDB 已由服务器数据填充，允许本地备份写（persist → mock-adapter.saveDB）。
       // ⚠ **基线捕获必须在任何 `await` 之前**（2026-09-25 批次 197 立、2026-09-26 批次 201 改准）：就绪信号
       //   `mockDB._loaded === true` **不等于** init 已完成 —— `entries/main-entry.js:32` 同步调
-      //   `services/mock.js::loadDB()`，其 API 分支（`:59`）**立刻**置真 ⇒ 真机就绪门（`preparePage`）
+      //   `services/core/mock.js::loadDB()`，其 API 分支（`:59`）**立刻**置真 ⇒ 真机就绪门（`preparePage`）
       //   实际只剩 `milestones !== undefined`，而它是 `_loadAuxCollections` 第 5/7 个 pull 赋的 ⇒ **门比基线早**。
       //   原先 `_captureBase` 落在那个 pull 之后 ⇒ 门后写入被随后捕获的基线一并吞进基线 ⇒ `_collectDirty`
       //   判「无脏集合」⇒ 防抖 flush **不发 POST**、写入静默滞留内存（实测：推入后 3s 零 POST、本地数组完好、
@@ -332,8 +332,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260924a');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260924a');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260928h');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260928h');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -344,7 +344,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/todo.js?v=20260924a');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20260928h');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
@@ -375,6 +375,9 @@ export function persist() {
     // 2026-09-17 批次 49：mock 形态是**同步** localStorage 写，写失败（配额/隐私模式）
     // 原实现会把异常抛给调用点、而调用点多在 showToast 之前 ⇒ 用户拿到的是「成功」。
     // 改为登记失败、由成功提示侧统一改报失败（不静默、也不中断业务流）。
+    // 2026-09-28 支书裁定「静态模式只保留侧边栏/about 等区别，所有数据都走服务器 API」：
+    // 无 API 会话（mock 形态）= **只读演示**——不落库，并登记失败让成功提示侧改报失败。
+    if (isDemoReadOnly()) { trackWrite(Promise.reject(Object.assign(new Error(DEMO_READONLY_MESSAGE), { type: 'DemoReadOnlyError' }))); return; }
     try {
       _mockAdapter?.saveDB();
     } catch (e) {
@@ -573,7 +576,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('./domain.js?v=20260924a');
+    const { mockDB } = await import('./domain.js?v=20260928h');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -730,11 +733,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('./domain.js?v=20260924a');
+  const { mockDB } = await import('./domain.js?v=20260928h');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('./utils.js?v=20260924a');
+    const { showToast } = await import('./utils.js?v=20260928h');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -854,7 +857,7 @@ export function renderSessionExpiredError() {
 
 /**
  * 「本机存在失效的服务端会话痕迹」判据（**T3 单一判据**，2026-09-23 批次 163）。
- * 三条同时成立才为真（键名单一源＝`services/auth.js` 的 `LOGIN_KEY` / `SESSION_KEY`，`login-snapshot.js` 同款）：
+ * 三条同时成立才为真（键名单一源＝`services/core/auth.js` 的 `LOGIN_KEY` / `SESSION_KEY`，`login-snapshot.js` 同款）：
  *   ① 本机有登录痕迹：localStorage `gsm1921-login-user` 在场（＝这台机器上登录过，不论哪个标签页/哪次会话）；
  *   ② 本标签页**没有**会话快照：sessionStorage `gsm1921-session-snap` 缺失 ⇒ 本标签页从未登录过
  *      （登录是别的标签页或早先的会话留下的）——**正是「token 失效（sessionStorage 被清）/ 换标签」的形态**；
@@ -918,12 +921,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE } from '../config/deploy.js?v=20260924a';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20260928h';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20260924a';
+import * as _deployConfig from '../config/deploy.js?v=20260928h';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════
@@ -1094,7 +1097,7 @@ function _postDataChangedBroadcast(collections) {
 /**
  * 三域探测结果的采用口径：**服务端为权威，但保留「本机独有」的行**（服务端没有该 id 的行）。
  * 为什么不是整表覆盖：成员变更确认队列有一条**明确保留**的存量路径——批次 163 裁定「迁移前已落本机的
- *   存量 transferOut 请求不做迁移、仍由本机支书确认链处理完」（见 `docs/src/services/member-confirmation.js`
+ *   存量 transferOut 请求不做迁移、仍由本机支书确认链处理完」（见 `docs/src/services/member/member-confirmation.js`
  *   顶部注释），而本机队列的 localStorage 兜底**只在缓存为空时才载入**（`_hydrate`）⇒ 若探测整表覆盖，
  *   那些存量请求会在首次探测（≤1 个周期）被抹掉、**死锁复发**。取并集则：服务端行原样采用 + 本机独有行保留。
  * `handoffs` / `milestones` 同走并集（正常路径下不会出现本机独有行：api 形态写入都会同步到服务端；
@@ -1218,3 +1221,33 @@ if (typeof window !== 'undefined' && typeof BroadcastChannel === 'function') {
 
 // 自动挂表：任意页面只要加载了本模块即具备低频探测能力；mock 形态下每次 tick 直接返回（零网络）。
 if (typeof window !== 'undefined') startRemoteChangeProbe();
+
+// ════════════════════════════════════════════════════════════════
+//  演示形态只读（2026-09-28 支书裁定）：**单一判据** + 提示文案单一源
+// ════════════════════════════════════════════════════════════════
+// 口径：`docs/src/config/deploy.js::DEMO_READONLY`（默认 `true`，唯一逃逸门＝环境变量
+//   `DEMO_READONLY=0`，见该文件注释）**且**当前数据源是 `mock`（无 API 会话）。
+//   ⇒ 静态托管 / 未登录访客 / 本机演示：可浏览、可点开，写操作一律显式失败并给出
+//     可读提示（**不再落浏览器本地**，杜绝「以为存上了、登录后被服务端覆盖」）。
+// 消费点（**只此两处，新增写口须回到这里判**）：
+//   · `persist()` 的 mock 分支——mockDB 系全部业务写的汇聚点；
+//   · `services/governance/issues.js` 的反馈域写链（独立 localStorage 域，不走 persist）。
+// 为什么不是逐页面禁用按钮：判据放在**持久化汇聚点**，与写口数量解耦（同 `pending-writes` 的机制纪律）；
+//   未登录访客可达的写口只有反馈提交一处，其余写口都在登录后才可达（登录 ⇒ 有 token ⇒ api 形态）。
+// ⚠ 如实登记的边界：`api-adapter` 之外的**适配器级 mock 写**（如 `MockAdapter.branchDocs.create`）
+//   在本轮未被拦截——但那些入口都在工作台内、需登录才可达（登录即 api 形态），故只读演示下不可达。
+/** 只读演示的提示文案（单一源；成功提示侧与各写口复用同一句） */
+const DEMO_READONLY_MESSAGE = '当前为只读演示：数据不会保存到本机，请登录后使用服务器数据。';
+
+/**
+ * 是否处于「只读演示」形态（**唯一判据**，测试与运维据此断言）。
+ * @returns {boolean} true = mock（无 API 会话）且 `DEMO_READONLY` 未放行 ⇒ 写操作应被拒绝
+ */
+export function isDemoReadOnly() {
+  return DEMO_READONLY === true && DATA_SOURCE === 'mock';
+}
+
+/** 只读演示的提示文案（供 UI 侧构造可读提示，避免各处自写一句） */
+export function demoReadOnlyMessage() {
+  return DEMO_READONLY_MESSAGE;
+}

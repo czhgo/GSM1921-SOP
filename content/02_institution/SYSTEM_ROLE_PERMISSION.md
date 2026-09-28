@@ -9,7 +9,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/constan
 
 # 系统角色权限矩阵（代码键级权威）
 
-> **定位：** 本文件为**系统运行角色**（登录态/权限键/赋权链）的键级权威——角色键全表对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，权限矩阵与赋权链对齐 `docs/src/services/auth.js` 的 `ROLE_PERMISSIONS`/`PROJECT_PERMISSIONS`/`AUTHORIZE_CHAIN`（`AuthStore.canDo`）。
+> **定位：** 本文件为**系统运行角色**（登录态/权限键/赋权链）的键级权威——角色键全表对齐 `docs/src/core/constants.js` 的 `ROLE_KEYS`/`ROLE_LEGACY_KEYS`，权限矩阵与赋权链对齐 `docs/src/services/core/auth.js` 的 `ROLE_PERMISSIONS`/`PROJECT_PERMISSIONS`/`AUTHORIZE_CHAIN`（`AuthStore.canDo`）。
 > **文件角色分类体系**（[用户]/[工程师]/[AI] 标记）见 [OPERATIONS_GUIDE.md §24–§31](../03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》文件角色分类体系；原 `ROLE_CLASSIFICATION.md` 已于 2026-09-26 批次 202 迁入并删除），两者为不同维度、勿混读。
 > **双轨约定**：[COMMISSIONER_DUTY_FRAMEWORK.md](./COMMISSIONER_DUTY_FRAMEWORK.md) §C 为**逐操作位视图**（上传/确认/监督/备案），本文件为**权限键级视图**——详见 §9f 说明。
 >
@@ -90,7 +90,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/constan
 | 授权人 | 可赋权角色 | 权限名 |
 |--------|-----------|--------|
 | 支书/副支书 | 党小组组长（常设） | `authorize` |
-| 支书 / 副支书（本支部现任） | **本支部支委身份**：组织 / 宣传 / 纪检委员（常设；撤销＝回落普通参与者）——**不含支书 / 副支书**（一把手层归党委，`D-585`） | 写层业务守卫（`services/appointment.js::appointBranchCommissioner`） |
+| 支书 / 副支书（本支部现任） | **本支部支委身份**：组织 / 宣传 / 纪检委员（常设；撤销＝回落普通参与者）——**不含支书 / 副支书**（一把手层归党委，`D-585`） | 写层业务守卫（`services/branch/appointment.js::appointBranchCommissioner`） |
 | 支书/副支书 + 组织委员 | 组织者/深度参与者（专班） | `authorize_taskforce` |
 | 党小组组长 | 组织者/深度参与者（项目） | `assign_project_role` |
 | 组织者 | 深度参与者（项目） | `assign_project_role` |
@@ -135,7 +135,7 @@ related_files: [content/03_doc_system/OPERATIONS_GUIDE.md, docs/src/core/constan
 
 ## 9h. 支部 config 写权（config 写权分层）
 
-> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
+> **定位与键级说明**：支部 config（branches.config 各域）写权**未入 auth.js ROLE_PERMISSIONS 键集**——按 §9f 双轨约定属「写层业务守卫」类（与建档/监督/导入等操作位限定同理，不硬凑缺键）；守卫同口径在 `services/branch/branch.js`（`updateBranchModules` / `updateBranchBlocks` / `updateBranchWorkforce` / `updateBranchOrg` / `savePolicyOverrides` / `canManagePolicyOverrides`）与 server `PATCH /branches/:id/config`（resources.js：fullRights = party-staff / 本支部现任支书 / 本副支书；域负责人仅本域 policyOverrides）。分层矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)。
 
 | 角色 | config.modules/blocks | config.workforce | org 档案（headerTitle/desc/themePreset） | 域参数 policyOverrides（L2） | 顶层治理字段 name/type/secretaryId/status |
 |---|:---:|:---:|:---:|:---:|:---:|

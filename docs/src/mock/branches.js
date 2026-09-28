@@ -15,7 +15,7 @@ export const PARTY_COMMITTEE = {
  *   { hiddenTabIds: string[], tabOrder: string[] }——null = 默认全开（现有 46 功能不变）；
  *   核心组 tab（待办/工作概况等 groupLabel='工作台'）固定显示，不可隐藏、不参与排序。
  * config.headerTitle: header 品牌软编码（**可改写项**——换组织向导里单独改「页眉显示名」时写本项；
- *   为空/缺省时 header 回退 branch.name，见 services/branch.js::getHeaderTitle 段②）
+ *   为空/缺省时 header 回退 branch.name，见 services/branch/branch.js::getHeaderTitle 段②）
  * config.fileSpaceIsolated: 支部文件（branchDocs）与附件一支部一独立存储空间
  */
 export const BRANCHES = [
@@ -39,8 +39,8 @@ export const BRANCHES = [
 
 /**
  * 时序兜底显示名（分支数据尚未加载时 header 的兜底）——**单一源**：演示支部 br-b1 的档案名（上方 name）。
- * services/branch.js::getHeaderTitle 段③ 引用本值；勿在别处再写同一字符串字面量。
+ * services/branch/branch.js::getHeaderTitle 段③ 引用本值；勿在别处再写同一字符串字面量。
  * ⚠ 段②（真实支部数据）与段③（本兜底）在本演示实例下会取到**同一个字面量**、来源不同；
- *   要分辨当前生效的是哪一段，看 services/branch.js::getAffiliationShape().segment（1–5）。
+ *   要分辨当前生效的是哪一段，看 services/branch/branch.js::getAffiliationShape().segment（1–5）。
  */
 export const DEFAULT_BRANCH_DISPLAY_NAME = BRANCHES.find(b => b.id === 'br-b1')?.name || '示例组织';

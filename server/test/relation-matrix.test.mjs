@@ -22,7 +22,7 @@ import { seedDatabase } from '../seed.js';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
-const MATRIX = join(SRC_DIR, 'components', 'relation-matrix.js');
+const MATRIX = join(SRC_DIR, 'components', 'ui', 'relation-matrix.js');
 
 const read = (f) => readFileSync(f, 'utf8');
 const rel = (f) => relative(SRC_DIR, f).split('\\').join('/');
@@ -62,7 +62,7 @@ test('S2 参与方不得自造矩阵：矩阵表头与横向滚动容器只允�
       if (/<th class="sticky left-0"/.test(line)) offenders.push(`${rel(f)}:${i + 1} 自造矩阵表头`);
     });
   }
-  assert.deepEqual(offenders, [], `人×项目矩阵一律走 components/relation-matrix.js：\n${offenders.join('\n')}`);
+  assert.deepEqual(offenders, [], `人×项目矩阵一律走 components/ui/relation-matrix.js：\n${offenders.join('\n')}`);
 });
 
 test('S3 宽表默认：考勤矩阵默认「按人」、考察默认宽表（long form 降为明细/导出）', () => {
@@ -94,11 +94,11 @@ test('S4 矩阵类实现收敛台账：全站只允许单一源矩阵（表态�
 // 判据：人维分页是矩阵的**缺省能力**；仅当该域人维本身有界（单场固定名单、非随年份累积）才可豁免，
 //   且豁免必须**登记在案**——防「私自关掉分页」与「白名单僵尸」两类回潮。
 test('S5 人维分页不得被调用点私自关掉（rowLimit: 0 须登记备案，且白名单防僵尸）', () => {
-  const ALLOW = new Set(['components/vote-summary-panel.js']); // 表态矩阵：人维＝本场应到（单场有界），须一屏看全
+  const ALLOW = new Set(['components/governance/vote-summary-panel.js']); // 表态矩阵：人维＝本场应到（单场有界），须一屏看全
   const hits = [];
   for (const f of walkJs(SRC_DIR)) {
     const r = rel(f);
-    if (r === 'components/relation-matrix.js') continue;
+    if (r === 'components/ui/relation-matrix.js') continue;
     const src = read(f);
     if (/rowLimit:\s*0\b/.test(src) && !ALLOW.has(r)) hits.push(`${r} 私自关掉人维分页`);
     if (ALLOW.has(r) && !/renderRelationMatrix\(/.test(src)) hits.push(`${r} 白名单僵尸（已不再调用矩阵）`);
@@ -157,7 +157,7 @@ async function loginDisc() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -181,7 +181,7 @@ async function loginOrg() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260924a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260928h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }

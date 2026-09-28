@@ -10,7 +10,7 @@
 // 覆盖（**判据一字未改**，只换数据来源）：组清单（partyGroup 聚合顺序/组长/党员数/成员数）、branch 过滤、
 //   组员口径（不含组长）、待答复汇报开放数（open/closed/hidden/merged/组长自身排除）、本组活动判定
 //   （organizer 属组/取消/归档）、复盘分桶（无记录/未提交/已打回 → pending；已上传/批注中/已确认 → completed）。
-// 口径单一源注释见 docs/src/services/group-view.js 头部。
+// 口径单一源注释见 docs/src/services/member/group-view.js 头部。
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）——**api 形态下尤其致命**：
 //   少了 `?v=` 就是**两份 data-adapter 实例**，适配器注册不到、`init()` 直接抛「API 适配器尚未实现」（实测踩过一次）。
 import { test, after } from 'node:test';
@@ -32,14 +32,14 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { PersonStore } from '../../docs/src/services/person.js?v=20260924a';
-import { isPartyMember } from '../../docs/src/services/roster.js?v=20260924a';
-import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260924a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20260928h';
+import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20260928h';
+import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260928h';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/group-view.js?v=20260924a';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260924a';
+} from '../../docs/src/services/member/group-view.js?v=20260928h';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928h';
 
 // ── B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存 ──
 const _app = createApp({ dbPath: ':memory:' });

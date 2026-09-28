@@ -10,7 +10,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260924a';
+const V = '?v=20260928h';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const CAP_DIR = join(SRC_DIR, 'modules', 'capabilities');
@@ -48,7 +48,7 @@ test('S1 全站不得写死组名清单（白名单＝种子/档案语料/演示
     'mock/people.js',            // 成员档案语料（partyGroup 取值）
     'mock/activities.js',        // 活动语料（hostGroup 取值）
     'mock/attendance.js',        // 考勤语料（partyGroup 快照）
-    'services/todo.js',          // 待办种子文案（「设置第三党小组组长」）
+    'services/governance/todo.js',          // 待办种子文案（「设置第三党小组组长」）
     'core/domain.js',            // 演示用户域（u_leader_N 名称文案，非清单判定源）
   ]);
   const offenders = [];
@@ -70,7 +70,7 @@ test('S2 三处原硬编码点已收敛到活组清单', () => {
   assert.ok(!/const PARTY_GROUPS\s*=\s*\[/.test(assign), '支书台赋权管理不得再写死组清单');
   assert.match(assign, /groupOptions\(\)/, '赋权管理的组清单须取 groupOptions()');
 
-  const dt = read(join(SRC_DIR, 'services', 'decision-tree.js'));
+  const dt = read(join(SRC_DIR, 'services', 'activity', 'decision-tree.js'));
   assert.ok(!/HOST_GROUPS\s*:\s*\[/.test(dt), '组长建活动的承办组选项不得写死');
 
   const write = read(join(SRC_DIR, 'entries', 'tabs', 'leader', 'write-tab.js'));
@@ -83,14 +83,14 @@ test('S2 三处原硬编码点已收敛到活组清单', () => {
 test('S3 核心组由注册表显式声明（不再以显示标签反推）', () => {
   // 2026-09-14：原判据写死为「groupLabel 内容为工作台」，改标签文案会悄悄改动权限语义（可隐藏性）；
   //   党委台只能改名「首页」再靠整台豁免绕开 → 一物两名。现改 coreTab 显式声明，判定单一源 = isCoreTab。
-  const shell = read(join(SRC_DIR, 'components', 'workspace-shell.js'));
+  const shell = read(join(SRC_DIR, 'components', 'shell', 'workspace-shell.js'));
   assert.ok(!/groupLabel\s*===\s*'工作台'/.test(shell), 'workspace-shell 不得再以标签反推核心组');
-  const prefs = read(join(SRC_DIR, 'services', 'preferences.js'));
+  const prefs = read(join(SRC_DIR, 'services', 'core', 'preferences.js'));
   assert.ok(!/groupLabel\s*===\s*CORE_GROUP_LABEL/.test(prefs) && !/CORE_GROUP_LABEL\s*=/.test(prefs),
     'preferences 不得再自持核心组标签判定（须共用 constants.js::isCoreTab）');
   assert.match(prefs, /isCoreTab/, 'preferences 须 import 单一源判定');
 
-  const branches = read(join(SRC_DIR, 'services', 'branch.js'));
+  const branches = read(join(SRC_DIR, 'services', 'branch', 'branch.js'));
   assert.match(branches, /isCoreTab/, 'branch.js 须 import 单一源判定');
 
   // 六台核心三件套（today/todo/overview）都要带 coreTab: true
@@ -111,8 +111,8 @@ test('S4 组清单不得「派生化快照」或「用种子枚举代跑」（�
   //      逐行净化与按组应到统计 —— 新增组的行被判非法回退、统计缺组）。
   // 唯一正解：运行时一律 groupOptions()（活组按 seq 升序）。
   const ALLOW_SEED_ENUM = new Set([
-    'services/org-base-data-preview.js', // 种子期/预览期口径的定义方（含循环依赖规避说明）
-    'services/init-reset.js',            // 清档回种子的注释引用
+    'services/branch/org-base-data-preview.js', // 种子期/预览期口径的定义方（含循环依赖规避说明）
+    'services/core/init-reset.js',            // 清档回种子的注释引用
   ]);
   const offenders = [];
   for (const f of walkJs(SRC_DIR)) {
@@ -141,8 +141,8 @@ test('S4 组清单不得「派生化快照」或「用种子枚举代跑」（�
 
 // ── 数据层 ──────────────────────────────────────────────────────────
 
-const pgMod = await import(`../../docs/src/services/party-group.js${V}`);
-const personMod = await import(`../../docs/src/services/person.js${V}`);
+const pgMod = await import(`../../docs/src/services/member/party-group.js${V}`);
+const personMod = await import(`../../docs/src/services/member/person.js${V}`);
 
 test('D1 活组清单：种子三组、按 seq 升序、已解散组不入清单', () => {
   const active = pgMod.listActiveGroups();

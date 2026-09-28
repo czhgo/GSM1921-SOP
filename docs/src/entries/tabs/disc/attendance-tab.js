@@ -12,38 +12,38 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260924a';
-import { generateId } from '../../../core/id.js?v=20260924a';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/attendance.js?v=20260924a';
-import { getPersonById, getPersonName } from '../../../services/person.js?v=20260924a';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain.js?v=20260928h';
+import { generateId } from '../../../core/id.js?v=20260928h';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20260928h';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260928h';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/roster.js?v=20260924a';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260924a';
-import { loadActivities } from '../../../services/activity.js?v=20260924a';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20260928h';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/constants.js?v=20260928h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260928h';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/signup.js?v=20260924a';
-import { autoGenerateMakeupTask } from '../../../services/makeup.js?v=20260924a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260924a';
-import { NoticeStore } from '../../../services/notice.js?v=20260924a';
-import { enhanceSelects } from '../../../components/custom-select.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20260928h';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20260928h';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260928h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260928h';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/list-filter.js?v=20260924a';
-import { pagerHtml } from '../../../components/pager.js?v=20260924a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260928h';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260928h';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=20260924a';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260924a';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260924a';
-import { HandoffStore } from '../../../services/handoff.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
-// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/modal.js?v=20260924a';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260928h';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260928h';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260928h';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { PersonPicker } from '../../../components/governance/person-picker.js?v=20260928h';
+// 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260928h';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260924a';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260928h';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -335,9 +335,9 @@ export function renderContent(ctx) {
         overdue: false,
       });
     }
-    // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/modal.js::confirmNudge`）：
+    // 本位 nudge（2026-09-23 支书裁定 · 单一源 `components/ui/modal.js::confirmNudge`）：
     //   会议考勤的上传本位**按会议类型分**（支书 2026-09-21 当日口径一 · `D-558`）——本卡承载的是
-    //   **党课 / 支部党员大会＝纪检委员**这一档（判据单一源 = `services/attendance.js::isAttendanceHomePosition`）；
+    //   **党课 / 支部党员大会＝纪检委员**这一档（判据单一源 = `services/activity/attendance.js::isAttendanceHomePosition`）；
     //   支书 / 副支书有权上传（例外承担）但**一般由纪检委员写入** ⇒ 操作人不是本位时**写库前**弹一次确认。
     //   ⚠ 常规路径（本人＝纪检委员、本卡即其本位）**不弹**；弹窗**必须点按钮才能关**，「取消」＝放弃本次录入。
     const _meetActorId = AuthStore.getCurrentUser()?.personId || DISC_COMMISSIONER_ID;
@@ -490,7 +490,7 @@ let _meetPickerInstance = null;
 // 附录⑩ A批·S1（2026-09-06）：「滞留党员到场补录」勾选集合（纪检单独勾选；随活动切换重置、
 // 提交成功清空）。滞留者默认不计应到（候选内灰态禁选），线下到场经此补录计入到席（实际应到=K+L）。
 let _meetMakeupIds = new Set();
-// 会议考勤的类型清单：单源 = services/attendance.js MEETING_ATTENDANCE_TYPES（开源超参数，可调）；
+// 会议考勤的类型清单：单源 = services/activity/attendance.js MEETING_ATTENDANCE_TYPES（开源超参数，可调）；
 // 上传位**按会议类型分**（2026-09-21 批次 132 · 支书口径一，修正批次 124 的「一律组织者」）：
 //   党课 / 支部党员大会＝纪检（本卡）；党小组会 / 组织生活会 / 主题党日＝该场组织者；支委会不考勤。
 //   本表只用于「列哪些类型算会议考勤」，逐场放行仍由 canUploadAttendance 判定。

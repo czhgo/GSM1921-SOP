@@ -3,29 +3,29 @@
 // 支书 2026-08-10 裁定第5点：区分「我的分工」（以人为中心）与「全局分工」（全局查询）。
 // REVIEW_QUEUE J2 裁定（2026-08-08）：首页专班跳转 → 项目分工 tab 定位高亮专班卡片（ctx.highlightTfId 一次性消费）。
 
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260924a';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260928h';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
+// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { ROLE_COLORS } from '../../../core/constants.js?v=20260924a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { ROLE_COLORS } from '../../../core/constants.js?v=20260928h';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/constants.js?v=20260924a';
-import { flashHighlight } from '../../../core/utils.js?v=20260924a';
+import { isActivityLive } from '../../../core/constants.js?v=20260928h';
+import { flashHighlight } from '../../../core/utils.js?v=20260928h';
 // 党小组筛选项单一源（活组按 seq 升序；2026-09-14 批次 29 收敛，原从成员档案派生）
-import { groupOptions } from '../../../services/party-group.js?v=20260924a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260928h';
 // 活动生命周期展示态单一源（2026-09-13 支书裁定：「活动与专班是并列的概念，各走各的」）——
-// 活动状态文案改走 components/inspector.js，专班状态词维持各自来源，不强行统一。
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/inspector.js?v=20260924a';
-import { getAppState } from '../../../core/state.js?v=20260924a';
+// 活动状态文案改走 components/record/inspector.js，专班状态词维持各自来源，不强行统一。
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../../../components/record/inspector.js?v=20260928h';
+import { getAppState } from '../../../core/state.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-14 裁定）：手写 lf-bar 筛选整体收敛为 keyword + facets + 分页
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928h';
 // 「我的任务」承担人单一源（2026-09-19 批次 93 · SOP-B-31）：按项目内身份读，复用组织者身份单一源
 // 「勾掉即关闭」（2026-09-21 批次 137 · SOP-B-9 乙档）：写口同在这份单一源里（只认本人担的那步）
 // 深参分工的完成方式（2026-09-23 批次 156）：系统内做 / 去线下做 —— 判据与文案同一份单一源
-import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity.js?v=20260924a';
+import { listMyProjectTasks, completeMyProjectTask, deepWorkModeOf, DEEP_WORK_MODE, DEEP_WORK_MODE_LABEL } from '../../../services/activity/activity.js?v=20260928h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「我的任务」按活动可见性收窄
-import { isActivityVisibleTo } from '../../../services/visibility.js?v=20260924a';
+import { isActivityVisibleTo } from '../../../services/core/visibility.js?v=20260928h';
 
 // 子视图（`SOP-B-31` 已定口径一）：**主口径＝「我的任务」**（按「我」切），
 // 「项目分工」是**同一份事实的转置**（按「项目」切）——同一份数据、两种切法，不建第二份清单。
@@ -53,7 +53,7 @@ export function renderContent(ctx) {
       const personnel = _buildPersonnel(a.id, a.assignments || [], authRecords);
       const organizer = PEOPLE.find(p => p.id === a.organizer);
       // 支书裁定（2026-09-13）：「活动与专班是并列的概念，各走各的」——
-      // 活动的状态文案单一源 = components/inspector.js 生命周期展示态（草稿/已发布/进行中/待归档/已执行/已归档/已取消），
+      // 活动的状态文案单一源 = components/record/inspector.js 生命周期展示态（草稿/已发布/进行中/待归档/已执行/已归档/已取消），
       // 不再本地手写映射；专班分支沿用 _tfStatusLabel/_tfStatusColor，二者不强行统一。
       const lifecycle = ACTIVITY_LIFECYCLE[deriveActivityLifecycleStatus(a, allTasks)] || ACTIVITY_LIFECYCLE.draft;
       return {
@@ -124,7 +124,7 @@ export function renderContent(ctx) {
   const host = tc.querySelector('#visitor-proj-host');
 
   function renderList() {
-    // 主口径「我的任务」：同一份事实按「我」切（承担人单一源见 services/activity.js）
+    // 主口径「我的任务」：同一份事实按「我」切（承担人单一源见 services/activity/activity.js）
     if (_projSubView === 'tasks') { renderTaskList(); return; }
 
     // 子视图基准：我的分工 = 我参与的项目（以人为中心）；全局分工 = 全部项目
@@ -171,14 +171,14 @@ export function renderContent(ctx) {
   }
 
   // 主口径「我的任务」（`SOP-B-31` 已定口径一 · 二）：只列**按项目内身份派给本人**的 SOP 任务节点
-  //  （组织者那份 / 深度参与者那份）；承担人判据单源＝`services/activity.js::listMyProjectTasks`。
+  //  （组织者那份 / 深度参与者那份）；承担人判据单源＝`services/activity/activity.js::listMyProjectTasks`。
   //  ⚠ 与「我的分工」是**同一份事实的转置**（此按「我」切、彼按「项目」切），不是第二份数据。
   //  2026-09-21 批次 137（`SOP-B-9` 乙档「勾掉即关闭」）：**未完成**行多一个「勾掉」动作——
-  //   落点就在这张既有卡片上（**不另开一处**），写口＝`services/activity.js::completeMyProjectTask`
+  //   落点就在这张既有卡片上（**不另开一处**），写口＝`services/activity/activity.js::completeMyProjectTask`
   //  （只认本人担的那步 ⇒ 不担这一步的人看不到、也勾不了）；勾掉即该步关闭，无前置门。
   function renderTaskList() {
     // 待批活动的任务不列（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：任务标题会带出活动名 ⇒ 与活动
-    // 列表同一可见性判据（单一源 `services/visibility.js`）；关闭档位时无待批活动 ⇒ 过滤为空转。
+    // 列表同一可见性判据（单一源 `services/core/visibility.js`）；关闭档位时无待批活动 ⇒ 过滤为空转。
     const rows = listMyProjectTasks(currentUserId)
       .filter(x => isActivityVisibleTo(x.activity, AuthStore.getCurrentUser()?.role))
       .map(x => ({
@@ -190,7 +190,7 @@ export function renderContent(ctx) {
       status: x.task.status || 'pending',
       date: x.task.date || x.activity.date || '',
       // 深参那份的完成方式（2026-09-23 批次 156）：组织者在写入活动时逐项标「系统内做 / 去线下做」；
-      // 按 SOP 节点键（`task.taskId`，与写入表单 `data-deep-work` 同键）取，读取口径单一源同 services/activity.js
+      // 按 SOP 节点键（`task.taskId`，与写入表单 `data-deep-work` 同键）取，读取口径单一源同 services/activity/activity.js
       deepMode: x.projectRole === 'deep' ? deepWorkModeOf(x.activity, x.task.taskId) : null,
     }));
     // 状态中文标签（与 Task.status 枚举一一对应；位置与项目卡一致：右上角状态位）
@@ -300,7 +300,7 @@ function _buildPersonnelFromTf(tf, authRecords) {
 }
 
 // _actStatusLabel 已撤除（2026-09-13 支书裁定）：活动状态文案改走生命周期展示态单一源
-// （components/inspector.js::ACTIVITY_LIFECYCLE），本文件不再自持活动中文状态映射。
+// （components/record/inspector.js::ACTIVITY_LIFECYCLE），本文件不再自持活动中文状态映射。
 function _actStatusColor(status) {
   const map = { completed: 'bg-green-100 text-green-700', ongoing: 'bg-green-100 text-green-700', published: 'bg-blue-100 text-blue-700', draft: 'bg-yellow-100 text-yellow-700', cancelled: 'bg-red-100 text-red-700' };
   return map[status] || 'bg-gray-100 text-gray-600';

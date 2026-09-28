@@ -1,6 +1,6 @@
 // member-flows.js — 成员流动台账（流入/流出）Mock 种子（2026-09-14 批次 25，支书裁定）
 // 数据模型对齐 domain.js mockDB.memberFlows。
-// 口径（本文与 services/member-flow.js 一起构成「成员流动台账」来源）：
+// 口径（本文与 services/member/member-flow.js 一起构成「成员流动台账」来源）：
 //   · 复式记账：每次成员流入 / 流出各记一笔台账；表头对账行「期初在册 + 流入合计 − 流出合计 = 当前在册」
 //     （自然语言表述，回答「谁在我们名册、谁不在」）。
 //   · 记录结构：{ id, branchId, direction:'in'|'out', personId, name, studentId, enrollYear,

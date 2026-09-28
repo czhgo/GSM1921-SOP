@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { recordAgendaResult } from '../../docs/src/services/agenda-follow-up.js?v=20260924a';
+import { recordAgendaResult } from '../../docs/src/services/activity/agenda-follow-up.js?v=20260928h';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据与状态迁移的单一源
-import { applyBrandDesignationResult } from '../../docs/src/services/activity.js?v=20260924a';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260924a';
+import { applyBrandDesignationResult } from '../../docs/src/services/activity/activity.js?v=20260928h';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928h';
 
 function createHarness() {
   const db = {
@@ -113,7 +113,7 @@ test('未通过的成员变更不创建申请', async () => {
 // ── 品牌认定：提案 → 支委会审议通过后确定（2026-09-21 批次 132 · 支书口径二）──────────
 // 口径：支委/党小组组长均可提案；支委会（有党小组组长参会即支委扩大会）通过后确定。
 // 落成：`isBrand` 只能由支委会议程项记录「通过」置位——本组用例证明「通过才算认定 / 不通过不算」。
-// ⚠ 写口＝`services/activity.js::commitBrandDesignationResult`（活动主源单点改写 ⇒ mock/api 同码），
+// ⚠ 写口＝`services/activity/activity.js::commitBrandDesignationResult`（活动主源单点改写 ⇒ mock/api 同码），
 //   故断言落在 mockDB.activities 上（不走 adapter：那条路会被紧随其后的页面快照回滚，真机实测）。
 
 /** 被提案的那场活动（品牌认定的对象）——放进 mockDB（写口改的是活动主源） */

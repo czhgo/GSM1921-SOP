@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/pending-writes.js?v=20260924a';
+import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/pending-writes.js?v=20260928h';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -111,16 +111,16 @@ test('W8 快照失败必须能被等待方看见（不得只告警）', () => {
 
 test('W9 不走 persist() 的外部写链也要登记；saveDB 不得再用动态 import 触发落库', () => {
   // 反馈处置是独立 localStorage 域，写链直连 REST（不经 persist）⇒ 必须自登记
-  assert.match(read('docs/src/services/issues.js'), /trackWrite\(getAdapter\(\)\.issues\.update\(/,
+  assert.match(read('docs/src/services/governance/issues.js'), /trackWrite\(getAdapter\(\)\.issues\.update\(/,
     '反馈处置写链须登记进等待点');
   // 评论写链已于批次 88（2026-09-18 · `D-486` / `D-489`）改走服务层单一写口 `IssueStore.addComment`
   // ⇒ 组件内原有的本地写 catch 与 `trackWrite` 随之下线（read('.../issue-detail.js') 已无 `trackWrite`）；
-  //   登记点移到 `services/issues.js` 的 `_syncIssueToApi`（与上一条同链）——本处改守现行形态：
+  //   登记点移到 `services/governance/issues.js` 的 `_syncIssueToApi`（与上一条同链）——本处改守现行形态：
   //   「该服务层外部写链失败也须登记，不得只 console.warn 吞掉」。
-  assert.match(read('docs/src/services/issues.js'), /trackWrite\(Promise\.reject\(e\)\)/,
+  assert.match(read('docs/src/services/governance/issues.js'), /trackWrite\(Promise\.reject\(e\)\)/,
     '服务层外部写链失败须登记（不得只 console.warn 吞掉）');
   // saveDB 原用动态 import 触发 persist：至少延后一个任务 ⇒ 成功提示在空窗里提前放行。
-  const saveDbFn = fnBody(read('docs/src/services/mock.js'), 'export function saveDB()');
+  const saveDbFn = fnBody(read('docs/src/services/core/mock.js'), 'export function saveDB()');
   assert.doesNotMatch(saveDbFn, /import\(/, 'BranchService 写链不得再用动态 import 触发落库（存在异步空窗）');
   assert.match(saveDbFn, /persist\(\)/, '仍须触发快照写穿（Z1 语义不可丢）');
 });

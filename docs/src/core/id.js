@@ -11,10 +11,10 @@
 //    因子」者在批量写入、连点、同毫秒两次调用时**必撞**。
 //  裁定：**所有实体 id 一律经本模块生成**，禁止再写 `前缀 + Date.now()`。
 //    · 前缀语义保留；**连字符前缀必须显式传 sep**——`tf-` / `notice-` 是既有硬契约
-//      （`sourceId.startsWith('tf-')` 用于区分专班/活动；`notice-` 前缀见 services/todo.js
+//      （`sourceId.startsWith('tf-')` 用于区分专班/活动；`notice-` 前缀见 services/governance/todo.js
 //      与种子 `notice-101…110`），传错分隔符会静默打断跳转。
 //    · 降级链（见 randomHex）：randomUUID → getRandomValues → Math.random。
-//      `services/branch.js::_newBranchId` 曾自行实现同一降级链（注释「不依赖
+//      `services/branch/branch.js::_newBranchId` 曾自行实现同一降级链（注释「不依赖
 //      crypto.randomUUID，浏览器/node 双端可用」）——本次收敛至此，勿再另建。
 //    · 回归守卫：`server/test/id-uniqueness.test.mjs`（结构层扫描 + 数据层唯一性断言）。
 // ════════════════════════════════════════════════════════════════
@@ -38,7 +38,7 @@ export function randomHex(bytes = 16) {
   } catch {
     /* 落到下方兜底 */
   }
-  // 末级兜底：必须是**真十六进制**（不得用 base36——`services/branch.js` 依赖
+  // 末级兜底：必须是**真十六进制**（不得用 base36——`services/branch/branch.js` 依赖
   //   `randomHex(4)` 产出恰好 8 位 hex 以维持 `br-<8hex>` 的既有形态契约）
   let out = '';
   while (out.length < bytes * 2) out += Math.floor(Math.random() * 16).toString(16);

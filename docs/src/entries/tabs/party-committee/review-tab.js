@@ -2,17 +2,17 @@
 // 党委工作台 Tab：上报审批（P3 党委后台，2026-09-02）
 // 党委侧处理端（双向通道党委半侧）：各支部上报（发展节点/活动报备）在此逐项批/驳，
 // 意见随结论回传支部侧；已处理历史可查。
-// 数据源：reviewRequests（services/review-request.js，mock 与 API 双引擎同源）
+// 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { getPersonName } from '../../../services/person.js?v=20260924a';
-import { getBranchById } from '../../../services/branch.js?v=20260924a';
-import { decideReviewRequest, listReviewRequests } from '../../../services/review-request.js?v=20260924a';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260924a';
+import { mockDB } from '../../../core/domain.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { getBranchById } from '../../../services/branch/branch.js?v=20260928h';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260928h';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260928h';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928h';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },

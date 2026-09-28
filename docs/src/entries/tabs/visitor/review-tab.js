@@ -3,24 +3,24 @@
 // SOP 复盘提交归「组织者」——组织者可能是党小组组长，也可能是被赋权的普通成员。
 // 本 tab 让担任组织者/深度参与者的成员在自己的工作台即可提交复盘，复盘提交人 = 当前用户（组织者）。
 
-import { loadActivities, reviewRequestOf } from '../../../services/activity.js?v=20260924a';
-// 复盘表单（字段/校验/提交链路）唯一实现 = services/review.js（2026-09-10 A③）：
+import { loadActivities, reviewRequestOf } from '../../../services/activity/activity.js?v=20260928h';
+// 复盘表单（字段/校验/提交链路）唯一实现 = services/governance/review.js（2026-09-10 A③）：
 // 成员端本 tab 与支书「代提交复盘」共用同一套字段与落库链路，勿在此另写表单。
-import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/review.js?v=20260924a';
-import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260924a';
-import { liveMembers, PersonStore } from '../../../services/person.js?v=20260924a';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/person.js liveMembers 说明
+import { loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20260928h';
+import { ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260928h';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260928h';
+// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
+// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：成员台非支委层 ⇒ 待批活动不进「我的复盘」清单
-import { filterActivitiesForViewer } from '../../../services/visibility.js?v=20260924a';
-import { showToast } from '../../../core/utils.js?v=20260924a';
-import { scrollDetailIntoView } from '../../../components/detail-anchor.js?v=20260924a';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260928h';
+import { showToast } from '../../../core/utils.js?v=20260928h';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260928h';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 status!=='cancelled' && !archived
-import { isActivityLive } from '../../../core/constants.js?v=20260924a';
+import { isActivityLive } from '../../../core/constants.js?v=20260928h';
 
 // 私有状态（随模块自持，不污染入口）
 let _reviewExpandedId = null;
@@ -86,7 +86,7 @@ export function renderContent(ctx) {
     const isExpanded = _reviewExpandedId === act.id;
     // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会点名的「额外要求复盘」——
     // 组织者侧仍走本页这张既有表单（**不新开第二种填写方式**），只多一个来源标记；
-    // 判据单一源＝services/activity.js（本页不另写）。⚠ 不提供任何「已交回后自行更新」入口。
+    // 判据单一源＝services/activity/activity.js（本页不另写）。⚠ 不提供任何「已交回后自行更新」入口。
     const req = reviewRequestOf(act);
     const reqBadge = req
       ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700" title="支委会要求：${(req.note || '').replace(/"/g, '&quot;')}">支委会要求</span>`
@@ -174,7 +174,7 @@ export function renderContent(ctx) {
   // 事件委托：引擎筛选会重渲染行，故把监听挂在各列表宿主上（宿主随整页 innerHTML 重建，无监听堆积）
   [pendingHost, completedHost].filter(Boolean).forEach(host => {
     host.addEventListener('click', (e) => {
-      // 复盘提交（落库链路 = services/review.js::submitActivityReviewForm 单一源）
+      // 复盘提交（落库链路 = services/governance/review.js::submitActivityReviewForm 单一源）
       const submitBtn = e.target.closest('.btn-review-submit');
       if (submitBtn) {
         const actId = submitBtn.dataset.actId;

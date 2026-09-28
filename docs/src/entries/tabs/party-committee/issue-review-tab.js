@@ -13,14 +13,14 @@
 //
 // 视觉/交互沿用党委台既有页签写法（与 review-tab.js 同款：卡片头 + renderFilteredList 引擎列表），
 // 不自创样式（docs/src/styles.css 为禁改清单文件，未改动）。
-// 真身数据出口单一源：services/issues.js::IssueStore.getIssuesForPartyReview（两形态同构）。
+// 真身数据出口单一源：services/governance/issues.js::IssueStore.getIssuesForPartyReview（两形态同构）。
 
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { PARTY_STAFF_ROLE } from '../../../core/constants.js?v=20260924a';
-import { IssueStore } from '../../../services/issues.js?v=20260924a';
-import { getPersonName } from '../../../services/person.js?v=20260924a';
-import { escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260924a';
-import { renderFilteredList } from '../../../components/list-filter.js?v=20260924a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { PARTY_STAFF_ROLE } from '../../../core/constants.js?v=20260928h';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260928h';
+import { getPersonName } from '../../../services/member/person.js?v=20260928h';
+import { escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260928h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928h';
 
 const SUBMIT_META = {
   anonymous: { label: '匿名提交', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },

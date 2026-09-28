@@ -14,7 +14,7 @@ import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。
 // 权威名单 = 活动 voteConfig.voterIds（前端创建活动时经 vote-config 固化写入活动）；
-// 前端唯一源 = docs/src/services/vote-config.js resolveVoterIds('committee')
+// 前端唯一源 = docs/src/services/activity/vote-config.js resolveVoterIds('committee')
 //   （people.js role + AuthStore.isCommissioner，排除 u_*）。名单变更请改前端权威源，勿在此增删成员。
 const COMMITTEE_IDS = new Set(BRANCH_COMMITTEE_IDS);
 // 支书侧写权角色集（含副支书＝副书同权 2026-09-11 支书裁定；单一源 = constants.js）
@@ -32,7 +32,7 @@ function writeRow(db, table, row) {
 }
 
 // 选项集枚举：position 按活动 voteConfig.optionSet 校验。
-// 业务单一源 = 前端 docs/src/services/vote-config.js OPTION_SETS（label/labels/objectRequiresNote 全量）；
+// 业务单一源 = 前端 docs/src/services/activity/vote-config.js OPTION_SETS（label/labels/objectRequiresNote 全量）；
 // 本表仅镜像 options 键集，键集一致性由 test/catalog-sync.test.mjs::T4 双向断言锁定（2026-09-03 P1a；
 // 2026-09-15 批次 47-F 由原 vote-option-sync.test.mjs 并入 catalog-sync.test.mjs）。
 //   deliberative（支委会交流式）：agree(同意)/object(异议)/comment(附言)

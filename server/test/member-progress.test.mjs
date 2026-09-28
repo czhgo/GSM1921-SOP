@@ -5,7 +5,7 @@
 //   后台服务器已经**自动把相关信息都计算汇总好了**」→ 裁定 **① 立纪律 + 加守卫**、**② 改为服务端汇总**。
 //
 // 本守卫四条：
-//   S1 **单一源（结构）**：接口**不得自行聚合**——必须 import `docs/src/services/member-progress.js`，
+//   S1 **单一源（结构）**：接口**不得自行聚合**——必须 import `docs/src/services/member/member-progress.js`，
 //      且 route 源码里不得出现自写判定（`isTodoExpired` / `AttendanceStatus` / `reportCategory` …）。
 //      这条专治本仓库反复吃亏的病：**同一口径在两端各写一套**。
 //   S2 **四项真被算到（非空转）**：造出在办/超期/缺勤/考察待确认/汇报卡点各一条，逐个断言——
@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { aggregateMemberProgress } from '../../docs/src/services/member-progress.js?v=20260924a';
+import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js?v=20260928h';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const TODAY = '2026-09-15';
@@ -77,8 +77,8 @@ test('S1 单一源（结构）：接口不得自行聚合，口径必须来自 m
   const src = readFileSync(join(ROOT, 'server', 'routes', 'leader-progress.js'), 'utf8');
   assert.match(
     src,
-    /from '\.\.\/\.\.\/docs\/src\/services\/member-progress\.js'/,
-    'route 未 import 单一源聚合模块 docs/src/services/member-progress.js——服务端若自写聚合，就是第二套口径',
+    /from '\.\.\/\.\.\/docs\/src\/services\/member\/member-progress\.js'/,
+    'route 未 import 单一源聚合模块 docs/src/services/member/member-progress.js——服务端若自写聚合，就是第二套口径',
   );
   for (const bad of ['isTodoExpired', 'AttendanceStatus', "=== 'absent'", 'reportCategory', "'pending'"]) {
     assert.ok(

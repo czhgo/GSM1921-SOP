@@ -105,7 +105,7 @@ test('T3 根 README.md 功能地图标记块与实时生成一致（防止未同
 // ── T4（原 vote-option-sync）：跨层表决枚举不得未同步（双向） ──────────────────
 // 前端为业务单一源（含 label/labels/objectRequiresNote），server 仅镜像 options 键集。
 test('T4 server OPTION_ENUMS 与前端 vote-config OPTION_SETS 键集双向一致', () => {
-  const optionSets = grabExport('docs/src/services/vote-config.js', 'OPTION_SETS');
+  const optionSets = grabExport('docs/src/services/activity/vote-config.js', 'OPTION_SETS');
 
   const serverKeys = Object.keys(OPTION_ENUMS).sort();
   const frontKeys = Object.keys(optionSets).sort();

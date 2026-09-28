@@ -2,41 +2,41 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../components/sidebar.js?v=20260924a';
-import { renderHeader } from '../components/header.js?v=20260924a';
-import { BranchService } from '../services/runtime.js?v=20260924a';
-import { mockDB } from '../core/domain.js?v=20260924a';
-import { TaskForceRecordStore } from '../services/taskforce.js?v=20260924a';
-import { NoticeStore } from '../services/notice.js?v=20260924a';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/signup.js?v=20260924a';
-import { AuthStore } from '../services/auth.js?v=20260924a';
-import { getPersonById } from '../services/person.js?v=20260924a';
+import { renderSidebar } from '../components/shell/sidebar.js?v=20260928h';
+import { renderHeader } from '../components/shell/header.js?v=20260928h';
+import { BranchService } from '../services/core/runtime.js?v=20260928h';
+import { mockDB } from '../core/domain.js?v=20260928h';
+import { TaskForceRecordStore } from '../services/activity/taskforce.js?v=20260928h';
+import { NoticeStore } from '../services/governance/notice.js?v=20260928h';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../services/activity/signup.js?v=20260928h';
+import { AuthStore } from '../services/core/auth.js?v=20260928h';
+import { getPersonById } from '../services/member/person.js?v=20260928h';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
-// 判据与写口单一源 = services/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity.js?v=20260924a';
+// 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../services/activity/activity.js?v=20260928h';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
-// 判据与写口单一源 = services/activity.js；另有「交回状态」须读该场复盘记录（services/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity.js?v=20260924a';
-import { loadActivityReviews } from '../services/review.js?v=20260924a';
-import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260924a';
-import { getActivityTypeColors } from '../core/constants.js?v=20260924a';
-import { getAppState } from '../core/state.js?v=20260924a';
-import { badgeHtml } from '../components/badges.js?v=20260924a';
+// 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../services/activity/activity.js?v=20260928h';
+import { loadActivityReviews } from '../services/governance/review.js?v=20260928h';
+import { getBasePath, escHtml as esc, showToast } from '../core/utils.js?v=20260928h';
+import { getActivityTypeColors } from '../core/constants.js?v=20260928h';
+import { getAppState } from '../core/state.js?v=20260928h';
+import { badgeHtml } from '../components/ui/badges.js?v=20260928h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo } from '../services/visibility.js?v=20260924a';
+import { isActivityVisibleTo } from '../services/core/visibility.js?v=20260928h';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../components/inspector.js?v=20260924a';
-import { enhanceSelects } from '../components/custom-select.js?v=20260924a';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/signup-panel.js?v=20260924a';
-import { renderShareButtonHtml, bindShareButton } from '../components/share-button.js?v=20260924a';
-import { renderVoteWidget } from '../components/vote-widget.js?v=20260924a';
-import { fetchVotes } from '../services/committee-vote.js?v=20260924a';
+import { activityLifecycleBadgeHtml } from '../components/record/inspector.js?v=20260928h';
+import { enhanceSelects } from '../components/ui/custom-select.js?v=20260928h';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../components/governance/signup-panel.js?v=20260928h';
+import { renderShareButtonHtml, bindShareButton } from '../components/shell/share-button.js?v=20260928h';
+import { renderVoteWidget } from '../components/governance/vote-widget.js?v=20260928h';
+import { fetchVotes } from '../services/activity/committee-vote.js?v=20260928h';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260924a';
-import { ApiAdapter } from '../core/api-adapter.js?v=20260924a';
+import { hydrateDataSource, notifyDataLoaded } from '../core/data-adapter.js?v=20260928h';
+import { ApiAdapter } from '../core/api-adapter.js?v=20260928h';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../core/pending-writes.js?v=20260924a';
+import { settleWrites } from '../core/pending-writes.js?v=20260928h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -79,7 +79,7 @@ const myId = currentUser?.personId || '';
 
 // HTML 转义统一走 core/utils.js escHtml（2026-09-03 去重收口）
 
-/** 活动状态 → 徽章（2026-09-13 收敛：活动一律走生命周期展示态单一源 components/inspector.js，
+/** 活动状态 → 徽章（2026-09-13 收敛：活动一律走生命周期展示态单一源 components/record/inspector.js，
  *  不再本地另写中文状态映射；专班保留本页映射 —— 词表 = 运行中/已完结） */
 const TF_STATUS_BADGE = {
   recruiting: ['招募中', 'success'],
@@ -153,11 +153,11 @@ function renderActivity(id) {
   const canSignup = _canSignup('activity', act);
   // 批次 123（支书 2026-09-20 定案）：「不设截止，但组织者可手动关」——**不新增「截止时点」字段**，
   // 只在活动上落布尔 `signupClosed`。关闭入口就在本页既有报名区块旁（不新开页面）；
-  // 呈现与放行**共用** services/signup.js::canCloseActivitySignup（组织者本场 ＋ 支书/副支书）。
+  // 呈现与放行**共用** services/activity/signup.js::canCloseActivitySignup（组织者本场 ＋ 支书/副支书）。
   const signupClosed = act.signupClosed === true;
   const canCloseSignup = canSignup && canCloseActivitySignup(myId, act);
   // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会……通过后确定」）：
-  //   判据单一源＝AuthStore.isCommissioner（支委层）＋ `services/activity.js::canProposeBrand`（含党小组组长）；
+  //   判据单一源＝AuthStore.isCommissioner（支委层）＋ `services/activity/activity.js::canProposeBrand`（含党小组组长）；
   //   **本页不再有「点一下即认定」**——只渲染 提案 / 撤回提案 / 取消已有认定（支委层，留痕）三种动作。
   const isCommittee = !!currentUser && AuthStore.isCommissioner(currentUser.role);
   const isBrandActive = act.isBrand === true;
@@ -361,7 +361,7 @@ function renderActivity(id) {
 
   // 品牌认定三动作（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）：**认定只能由支委会审议通过产生**。
   //   ① 提案（支委 / 党小组组长）② 撤回提案（提案人或支委层）③ 取消已有认定（支委层，留痕）。
-  //   写链单一源 = services/activity.js（落活动主源 → persist/snapshot 写穿服务端）；放行判据在服务函数内复算。
+  //   写链单一源 = services/activity/activity.js（落活动主源 → persist/snapshot 写穿服务端）；放行判据在服务函数内复算。
   const afterBrandWrite = async () => {
     try { await settleWrites(); } catch (e) { console.warn('[activity-entry] 落库未结算，仍刷新以读取最新状态：', e); }
     window.location.reload();
@@ -389,7 +389,7 @@ function renderActivity(id) {
   });
 
   // 追加复盘要求两动作（2026-09-21 批次 135 · 裁定二「按推荐档落」）：① 要求组织者复盘（支委会全体）
-  //   ② 撤回要求（发起人或支委会）。要求须写明一句内容；写链单一源＝services/activity.js，放行在服务内复算。
+  //   ② 撤回要求（发起人或支委会）。要求须写明一句内容；写链单一源＝services/activity/activity.js，放行在服务内复算。
   cardEl.querySelector('#review-request-btn')?.addEventListener('click', async () => {
     const note = window.prompt('要求组织者复盘——请写明一句要求内容（如「请补充这次活动的改进建议」）：', '');
     if (note === null) return;

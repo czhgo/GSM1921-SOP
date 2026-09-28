@@ -5,7 +5,7 @@
 //  由服务端写门放行，但该标记是客户端自述、可伪造——任一登录成员可发任意广播通知。
 //  本表把系统派生通知的**生成权收回服务端**：文案/受众/落点集中在本模板单一源，
 //  服务端 kind 注册表（server/system-notice-kinds.js）与前端 mock/离线模式
-//  （services/notice.js::addSystem）复用同一模板，杜绝「前端一套文案、后端一套文案」未同步。
+//  （services/governance/notice.js::addSystem）复用同一模板，杜绝「前端一套文案、后端一套文案」未同步。
 //
 //  约定：每个模板入参 vars = { sourceId, ...动态展示值 }；落点（targetUrl/targetType/targetId）
 //  一律由 sourceId 派生，客户端同名传入字段会被服务端 build 覆盖（不可伪造）。
@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from './period.js?v=20260924a';
+import { periodLabel } from './period.js?v=20260928h';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {

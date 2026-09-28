@@ -11,7 +11,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 # 工作流块封装契约
 
 > **本文负责**：**工作流块封装契约（L3）**——块差异化的三个可组装维度、`block manifest v1` 字段规格与取值校验、与既有资产的映射表、两个示例块、编码落地拆分与进度。
-> **本文不负责**：① **L1~L5 愿景与目标分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；② **能力 / 场景注册表的现行实现** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 `docs/src/core/registry.js`；③ **表单字段渲染器的现行定义** → `docs/src/components/forms.js` 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；④ **支部可组合配置的操作位与写权** → [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6。
+> **本文不负责**：① **L1~L5 愿景与目标分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；② **能力 / 场景注册表的现行实现** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 `docs/src/core/registry.js`；③ **表单字段渲染器的现行定义** → `docs/src/components/ui/forms.js` 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；④ **支部可组合配置的操作位与写权** → [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6。
 
 > **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
 > **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 支书（交互与边界裁决人）
@@ -40,7 +40,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 ## 一、契约总则（三条，先于一切字段定义）
 
 1. **块不独立于既有机制存在**：块 = 能力注册表中已注册能力/场景 + 一层元数据（manifest）。不新造第三套 id、不引入第二套执行引擎。
-2. **渲染不新造控件**：块声明的输入字段（inputs.fields）由既有 `components/forms.js` 库的字段积木渲染（textField/textareaField/selectField/dateField + label for/必填/aria 体系）。
+2. **渲染不新造控件**：块声明的输入字段（inputs.fields）由既有 `components/ui/forms.js` 库的字段积木渲染（textField/textareaField/selectField/dateField + label for/必填/aria 体系）。
 3. **执行不新造通道**：块产物仍走既有 services 层写入 + persist；跨面联动仍走 `DATA_CHANGED_EVENT`；权限仍在角色与支部 config 约束内。可视化只是「编排者」，不是新数据通道。
 
 ---
@@ -148,7 +148,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 | manifest 段 | 落地资产 | 现状 |
 |---|---|---|
 | identity/capability | `core/registry.js` 注册表 + `mock/branches.js config` | ✅ 已有（M1~M4 / 支部 config.modules） |
-| inputs.fields | `components/forms.js` 字段积木 | ✅ 已有（B2 交付；本契约使 forms 成为块输入渲染器） |
+| inputs.fields | `components/ui/forms.js` 字段积木 | ✅ 已有（B2 交付；本契约使 forms 成为块输入渲染器） |
 | workflow.stages | `WorkflowEngine` / scenario definitions | ✅ 已有（纯数据驱动，`docs/src/workflow/`） |
 | outputs.entities/outputBlocks | services 层写口 + `OUTPUT_BLOCK_DEFS` + config.blocks | ✅ 已有（2026-09-03 产出块目录与支部级启停） |
 | events | `DATA_CHANGED_EVENT` 广播 | ✅ 已有 |

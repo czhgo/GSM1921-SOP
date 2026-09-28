@@ -73,7 +73,7 @@ test('reviewRequests：本支部支委可提交，党委可审批，异支部/�
   const { token: pcToken } = await login('p_pc');    // 党委组织员
   const { token: p5Token } = await login('p5');      // 普通成员（非支委）
 
-  // ① 本支书提交 → 201（payload 镜像 services/review-request.js：status/createdAt 由服务层补）
+  // ① 本支书提交 → 201（payload 镜像 services/governance/review-request.js：status/createdAt 由服务层补）
   const create = await fetch(`${base}/api/v1/reviewRequests`, {
     method: 'POST', headers: authHeaders(secToken),
     body: JSON.stringify({ branchId: 'br-b1', type: 'develop-node', title: '权限门测试上报', content: '内容', status: 'pending', submittedBy: 'p13', createdAt: new Date().toISOString() }),

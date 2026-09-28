@@ -58,11 +58,11 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | hostGroup | string\|null | 否 | null | 承办党小组（组长写入时固化）。考勤「应到」与考察上传位判据优先取它、缺省回退组织者所属小组 |
 | assignments | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant'}>` | 否 | `[]` | 活动参与人 / 项目内角色的内联登记主源（边界见 §2.1.3）。创建时随指定写入，`AuthStore.authorize` 按它判项目身份；**非空时不再派生组长赋权待办** |
 | signupEnabled | boolean | 否 | `false` | 开放报名开关（SOP-B-2）：勾选后该活动可被报名；草稿态默认不可报名，须本字段为 `true` 才放开。**与下行的分工**：本字段＝写入活动时的「是否开放报名」，关闭动作见 `signupClosed` |
-| signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
+| signupClosed | boolean | 否 | `false` | 本场报名是否已**手动关闭**（SOP-B-2 · 支书 2026-09-20 定案「不设截止，但组织者可手动关」）：置 `true` 后成员不能**新报**（判据单一出口 `services/activity/signup.js::_sourceOpen`），**已报名者仍可自行取消**；可关者＝**本场组织者（判据 `isActivityOrganizer`）＋ 支书/副支书**，入口在活动详情页报名区块旁。**不设「报名截止时点」字段** |
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
 | voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下） |
 | isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**） |
-| deepWorkMode | object | 否 | -- | 深参分工的完成方式（2026-09-23 批次 156）：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
+| deepWorkMode | object | 否 | -- | 深参分工的完成方式（2026-09-23 批次 156）：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
 
 > **设计注记（活动写入表单必有地点字段，出处见 insights §6.6）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
 
@@ -229,7 +229,7 @@ ActivityRecord (主记录)
 > 权限矩阵、模块可见性、数据共享规则的完整定义见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) + [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)（历史模块可见性设计论证仍可读）。本节不重复展开，仅指向权威源。
 
 **关键规则要点**（详细规则见权威源）：
-- 基础 ACL 实现：[services/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/auth.js#L477-L496)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
+- 基础 ACL 实现：[services/core/auth.js `AuthStore.canDo(personId, action, context)`](../../../docs/src/services/core/auth.js#L477-L496)（ROLE_PERMISSIONS + PROJECT_PERMISSIONS 并集判定；旧 domain.js `can()` 已移除）
 - 特殊资源 `evaluation`（考察档案）: 仅 `secretary` 和 `org-commissioner` 可读写，其他角色绝对隔离
 - 宣传委员不可创建活动（仅党支书和党小组组长可创建），但任何活动创建后应自动出现在宣传委员的视图中
 - 支委身份选择：sidebar "支委" 卡片 → 模态框选择 → `setState({ selectedRole })` → 工作台「我的职责」Tab 分组面板按角色显示对应支委面板
@@ -237,7 +237,7 @@ ActivityRecord (主记录)
 
 ### 2.3 专班数据 (TaskForceRecord)
 
-> 专班为人员维度组织结构，由 `TaskForceRecordStore`（services/taskforce.js）实体化管理，存储于 `mockDB.taskforces`（随全量键 `workflowos_branch_db_v1` 持久化），组织委员面板看板展示。
+> 专班为人员维度组织结构，由 `TaskForceRecordStore`（services/activity/taskforce.js）实体化管理，存储于 `mockDB.taskforces`（随全量键 `workflowos_branch_db_v1` 持久化），组织委员面板看板展示。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -253,14 +253,14 @@ ActivityRecord (主记录)
 
 > **字段核对**：mock/seed 另含展示字段 `task`/`manager`/`initiator`/`capacity`/`deadline`（见 [mock/taskforces.js](../../../docs/src/mock/taskforces.js) 样本），未列为必填模型字段。
 
-**项目角色赋权与审计**：遗留键 `sop_org_os_assigned_roles` 已删除（services/roles.js 启动时清理一次存储残留，无调用方）。项目角色（organizer/deep）以**主源**为准——活动挂 `activity.assignments`、专班挂 `members`；`AuthStore.authorize` / `revokeAuthorization` / `syncProjectRoles` 写主源 + 追加审计快照：
+**项目角色赋权与审计**：遗留键 `sop_org_os_assigned_roles` 已删除（services/core/roles.js 启动时清理一次存储残留，无调用方）。项目角色（organizer/deep）以**主源**为准——活动挂 `activity.assignments`、专班挂 `members`；`AuthStore.authorize` / `revokeAuthorization` / `syncProjectRoles` 写主源 + 追加审计快照：
 
 ```js
 // 主源（运行时实体，随活动/专班持久化）
 activity.assignments: Array<{ personId, role: 'organizer' | 'deep' | 'participant' }>
 taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participant', contributions: string[] }>
 // 审计快照（独立 localStorage 键，只增不改；撤销为追加 action:'revoke' 记录，判定取最新一条）
-// 键: 'sop_org_os_auth_audit'（AUDIT_KEY，services/auth.js）
+// 键: 'sop_org_os_auth_audit'（AUDIT_KEY，services/core/auth.js）
 // 记录: { id, targetPersonId, role, scopeRef(活动/专班 ID), authorizedBy, authorizedAt, action: 'grant'|'revoke' }
 ```
 
@@ -393,7 +393,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.8 补课任务 (MakeupTask)
 
-> 类型定义位于 [makeup.js](../../../docs/src/services/makeup.js)（`autoGenerateMakeupTask` 动态生成）
+> 类型定义位于 [makeup.js](../../../docs/src/services/activity/makeup.js)（`autoGenerateMakeupTask` 动态生成）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -413,7 +413,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.9 通知数据 (Notice)
 
-> 类型定义位于 [notice.js](../../../docs/src/services/notice.js)
+> 类型定义位于 [notice.js](../../../docs/src/services/governance/notice.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -610,7 +610,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 > 意见反馈为 GitHub Issue 风格意见反馈系统，数据双轨（`issues.json` 权威源 + localStorage 草稿/缓存）。旧 FeedbackRecord 类型已弃用，保留向后兼容 shim（feedback.js）。
 
-> 类型定义与权威实现位于 [issues.js](../../../docs/src/services/issues.js)（IssueStore），权威源 `docs/data/issues.json`
+> 类型定义与权威实现位于 [issues.js](../../../docs/src/services/governance/issues.js)（IssueStore），权威源 `docs/data/issues.json`
 
 | 字段名 | 类型 | 说明 |
 |---|---|---|
@@ -1004,7 +1004,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.25 思想汇报数据 (ThoughtReport)
 
-> 类型定义位于 `docs/src/services/thought-report.js`；**期次纯函数单一源** `docs/src/core/period.js`。思想汇报为**面板数据**（同一 `personId` 名下可多期多篇），由独立阅读页 `docs/thought-report.html` 承载。
+> 类型定义位于 `docs/src/services/governance/thought-report.js`；**期次纯函数单一源** `docs/src/core/period.js`。思想汇报为**面板数据**（同一 `personId` 名下可多期多篇），由独立阅读页 `docs/thought-report.html` 承载。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -1015,7 +1015,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | period | string | 是 | 按 `submittedAt` 推导 | **期次（季度）**：格式 `YYYY-Qn`；提交时**手填**、缺省或非法按 `submittedAt` 推导；同一 `personId` 同一期次**允许多篇**（面板数据，数据层无唯一性约束） |
 | content | string | 是 | -- | 思想汇报正文（trim 后存储） |
 | submittedAt | string (ISO) | 是 | `new Date().toISOString()` | 提交时间 |
-| reviewStatus | `'needs_revision'\|'archived'` | 是 | `'archived'` | 思想汇报状态。**「组织委员初阅通过才归档」这道门已取消**——提交即入库即归档，**不再有「待初阅」态、也不再有待阅队列**；读取侧归一：旧数据无该字段 / 旧值 `'pending'` → 一律归 `archived`（`services/thought-report.js::_effective`，读取侧归一） |
+| reviewStatus | `'needs_revision'\|'archived'` | 是 | `'archived'` | 思想汇报状态。**「组织委员初阅通过才归档」这道门已取消**——提交即入库即归档，**不再有「待初阅」态、也不再有待阅队列**；读取侧归一：旧数据无该字段 / 旧值 `'pending'` → 一律归 `archived`（`services/governance/thought-report.js::_effective`，读取侧归一） |
 | reviewHistory | array | 否 | `[]` | 审阅留痕（读取侧归一为数组；组织委员「打回」时追加 `{decision, note, by, at}`） |
 
 > **注（冗余快照字段）**：`personName` 为历史留痕用的冗余快照；**展示一律以 `getPersonName(personId)` 现取**，快照仅作历史留痕，不参与身份判定（数据一致性守卫 D2 断言各域 `personName` 与权威源一致）。
@@ -1040,7 +1040,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **行为口径：**
 
-1. 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`（新增 `enrollYear` 须同步两处 + 前端 `docs/src/services/person.js` 的字段白名单与档案编辑模态）。
+1. 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`（新增 `enrollYear` 须同步两处 + 前端 `docs/src/services/member/person.js` 的字段白名单与档案编辑模态）。
 2. **账号联动**：新增成员即**自动建号**——**账号取学号**，口令取支部统一默认口令（沿用既有登录口令机制），不需人工另行注册；账号层为**可持久化账号层（种子账号 + 成员账号）**，成员加入支部即可登录该支部；账号随学号变更而变更，随成员流出一并停用。
 3. 变更分流：姓名/学号/党小组**立即生效**；发展阶段/在册状态须走成员变更确认链（组织委员发起 → 支书确认）。**流出登记（§2.28）登记即生效，不再走确认链。**
 4. `partyGroup` 为空即「未分组」：不属任何党小组——党小组会应到名单**不含**（按组名精确匹配），支部大会应到**照计**（党员且非滞留口径不变），表决名单**照计**（按发展阶段口径不变）。
@@ -1067,7 +1067,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 2. **解散**：允许解散**非空**党小组 → 组内成员 `partyGroup` 批量置空（转为「未分组」）+ `status='dissolved'` + 留痕；已解散组不可再被选用、不出现在任何下拉与统计。
 3. **改名**：同步批量改写组内成员档案的 `partyGroup`（避免档案与清单脱节）。
 4. **未分组口径**：见 §2.26 行为口径 4；支书台「党小组」tab 顶部显示「未分组 N 人」并提供**行内下拉逐个归组**（名册中未分组成员显示「未分组」标注）。
-5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/group-view.js::listPartyGroups`）；指派入口维持既有「赋权管理」，本实体只展示组长。
+5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/member/group-view.js::listPartyGroups`）；指派入口维持既有「赋权管理」，本实体只展示组长。
 6. **硬编码收敛**：支书台赋权管理的组清单、组长建活动的承办党小组选项、演示用户域一律读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
 7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DESIGN_SYSTEM.md §4.6）落地为支书台一个 tab。
 
@@ -1128,15 +1128,15 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 期次 | `docs/src/core/period.js` | 期次纯函数（`PERIOD_RE` / `periodOf` / `periodLabel` / `comparePeriodDesc` / `periodOptions` / `isValidPeriod`） |
 | 检索条门槛 | `docs/src/core/constants.js::SEARCH_FILTER_MIN_ROWS` | = 8，人/活动表共用；动态行数 `> 8` 才出现检索条 |
 | 活动存储态判据 | `docs/src/core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive` | 活动「已结束/已归档/未开始/仍在办」判据；全站禁止手写 `status==='completed' \|\| archived` |
-| 活动生命周期展示态 | `docs/src/components/inspector.js::ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` | 草稿/已发布/进行中/待归档/已执行/已归档/已取消（**本次确认唯一**） |
-| 统一名单检索引擎 | `docs/src/components/list-filter.js` | 关键词 + 分面 chips + 门槛显隐 + 同 `stateKey` 跨重渲染保筛选（人/活动共用） |
-| 成员档案编辑模态 | `docs/src/components/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
-| 人员清单实时视图 | `docs/src/services/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
+| 活动生命周期展示态 | `docs/src/components/record/inspector.js::ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` | 草稿/已发布/进行中/待归档/已执行/已归档/已取消（**本次确认唯一**） |
+| 统一名单检索引擎 | `docs/src/components/ui/list-filter.js` | 关键词 + 分面 chips + 门槛显隐 + 同 `stateKey` 跨重渲染保筛选（人/活动共用） |
+| 成员档案编辑模态 | `docs/src/components/governance/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
+| 人员清单实时视图 | `docs/src/services/member/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
 | 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 1200 }`（界面显示字数，不作硬性拦截；**「少于 1200 字触发警告审阅」的提醒只给提交人本人看**——支书定案「只给提交人本人」） |
 | 实体 id 生成 | `docs/src/core/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
-| 党小组清单 | `docs/src/services/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
-| 成员流动台账 | `docs/src/services/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
-| 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/person.js` 字段白名单与档案编辑模态须同步） |
+| 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
+| 成员流动台账 | `docs/src/services/member/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
+| 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/member/person.js` 字段白名单与档案编辑模态须同步） |
 | 「未分组」口径 | `partyGroup === ''` | 未分组 = 党小组归属为空串；**禁在各页自行判断别名** |
 | 账号与学号同值 | 账号层服务（成员新增/流出时同步） | 账号派生单一源：账号 = 学号 |
 
@@ -1286,7 +1286,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 3.4 登录态说明
 
-> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)。
+> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/core/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)。
 
 ---
 
@@ -1344,7 +1344,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/mock.js 仅保留 API 模式扎口代理） |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/core/mock.js 仅保留 API 模式扎口代理） |
 
 **全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
 
@@ -1392,13 +1392,13 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 键名 | 存储位置 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|---|
-| `gsm1921-login-user` | localStorage | 当前登录用户（含 tabId，A-11 防串扰） | JSON `{personId, role, tabId}` | [services/auth.js](../../../docs/src/services/auth.js)（LOGIN_KEY） |
-| `gsm1921-tab-id` | sessionStorage | 当前标签页唯一 ID | string `tab-*` | [services/auth.js](../../../docs/src/services/auth.js)（TAB_KEY） |
-| `gsm1921-session-snap` | sessionStorage | 本标签页登录会话快照（登录被其它页覆盖时回退） | JSON `{personId, role}` | [services/auth.js](../../../docs/src/services/auth.js)（SESSION_KEY） |
-| `gsm1921-api-token` | sessionStorage | API 认证 token（enableApiMode 写入；登出/开发模式清除） | string | [services/auth.js](../../../docs/src/services/auth.js)（SESSION_TOKEN_KEY） |
-| `sop_org_os_auth_audit` | localStorage | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/auth.js](../../../docs/src/services/auth.js)（AUDIT_KEY）；主源=活动 assignments / 专班 members |
-| `gsm1921-issue-cache-v3` / `gsm1921-issue-cache-version` | localStorage | 意见反馈缓存 + 缓存版本号（v3 不匹配强制重拉） | JSON / string | [services/issues.js](../../../docs/src/services/issues.js) |
-| `gsm1921-issue-drafts` | localStorage | 意见反馈草稿（新建/评论/反应） | JSON | [services/issues.js](../../../docs/src/services/issues.js)（DRAFT_KEY） |
+| `gsm1921-login-user` | localStorage | 当前登录用户（含 tabId，A-11 防串扰） | JSON `{personId, role, tabId}` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（LOGIN_KEY） |
+| `gsm1921-tab-id` | sessionStorage | 当前标签页唯一 ID | string `tab-*` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（TAB_KEY） |
+| `gsm1921-session-snap` | sessionStorage | 本标签页登录会话快照（登录被其它页覆盖时回退） | JSON `{personId, role}` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（SESSION_KEY） |
+| `gsm1921-api-token` | sessionStorage | API 认证 token（enableApiMode 写入；登出/开发模式清除） | string | [services/core/auth.js](../../../docs/src/services/core/auth.js)（SESSION_TOKEN_KEY） |
+| `sop_org_os_auth_audit` | localStorage | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（AUDIT_KEY）；主源=活动 assignments / 专班 members |
+| `gsm1921-issue-cache-v3` / `gsm1921-issue-cache-version` | localStorage | 意见反馈缓存 + 缓存版本号（v3 不匹配强制重拉） | JSON / string | [services/governance/issues.js](../../../docs/src/services/governance/issues.js) |
+| `gsm1921-issue-drafts` | localStorage | 意见反馈草稿（新建/评论/反应） | JSON | [services/governance/issues.js](../../../docs/src/services/governance/issues.js)（DRAFT_KEY） |
 | `sop_org_os_session` | sessionStorage | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
 | `sop_org_os_data_version` | localStorage | 数据版本号（跨页面同步，写入自增） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
 
@@ -1406,7 +1406,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 **持久化机制细节：**
 
-- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = false`（[core/mock-adapter.js](../../../docs/src/core/mock-adapter.js)，与 services/mock.js 对齐）——默认**跨刷新持久化**：localStorage 存在且 `_schema` 匹配的合法数据时全量恢复；无数据或数据被污染（核心数组为空）时回退加载初始 seed（`_seedInitialData`），并按种子基线增量同步（删除已移除种子/覆盖已变更种子/补齐缺失种子，保留用户运行时字段）
+- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = false`（[core/mock-adapter.js](../../../docs/src/core/mock-adapter.js)，与 services/core/mock.js 对齐）——默认**跨刷新持久化**：localStorage 存在且 `_schema` 匹配的合法数据时全量恢复；无数据或数据被污染（核心数组为空）时回退加载初始 seed（`_seedInitialData`），并按种子基线增量同步（删除已移除种子/覆盖已变更种子/补齐缺失种子，保留用户运行时字段）
 - Schema 版本校验：loadDB 检查 `_schema` 与当前 `SCHEMA_VERSION`（值为 1）是否匹配，不匹配则拒绝加载脏数据
 - 写入策略：CRUD 写操作后经 `persist()` / `MockAdapter.saveDB()` 将 mockDB 全量序列化到单一键；saveDB 含持久化守卫（`mockDB._loaded` 为 false 即 loadDB 完成前拒绝写入，防止加载早期空数据覆盖用户已存数据）
 - SANDBOX 清理（仅 `SANDBOX_MODE = true` 时启用，当前为 false 不触发）：`loadDB()` 不仅清理全量键，还清理旧版独立键（`assignment_records`/`attendance_records` 等 legacyKeys 兼容清理），随后重灌 seed
@@ -1430,10 +1430,10 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 数据域 | 唯一权威源 | 派生/引用方 | 说明 |
 |---|---|---|---|
 | 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
-| 发展党员追踪 | `PEOPLE.developStage` + localStorage 推进覆盖档案 `gsm1921-dev-stage-overrides` | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落覆盖档案 |
+| 发展党员追踪 | `PEOPLE.developStage` + `developStage` 变更时落档的 **`developStageSince`**（进入当前阶段日期；**2026-09-28 起在成员档案上、服务端权威**，原为本机覆盖档案 `gsm1921-dev-stage-overrides`） | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落成员档案字段（读口 `loadStageEntryDates()`） |
 | 反馈系统人员 ID | 真实成员短 ID（`p*`，如 `p13`/`p11`/`p1`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
-| `partyGroups` | `docs/src/services/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab、赋权管理组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
-| `memberFlows` | `docs/src/services/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」；实体见 §2.28 + 单一源登记见 §三 |
+| `partyGroups` | `docs/src/services/member/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab、赋权管理组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
+| `memberFlows` | `docs/src/services/member/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」；实体见 §2.28 + 单一源登记见 §三 |
 
 > 关联缓存版本链：`cross-page-state.js CODE_VERSION` + HTML `?v=` 参数 + `issues.js CACHE_VERSION` 三者任一升级都会强制用户浏览器丢弃旧 localStorage 缓存重新拉取，保证"数据干净、唯一数据源"落地。
 
@@ -1540,7 +1540,7 @@ UI 层零改动。
 
 ### 4.5 数据写入模式
 
-> 实现细节见 `docs/src/` 对应文件（`services/mock.js`、`core/state.js`、`entries/main-entry.js`）。
+> 实现细节见 `docs/src/` 对应文件（`services/core/mock.js`、`core/state.js`、`entries/main-entry.js`）。
 > 写入数据验证设计见 §2.17。
 
 #### 4.5.1 成员流入/流出写路径

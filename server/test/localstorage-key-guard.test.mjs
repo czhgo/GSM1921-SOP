@@ -62,18 +62,18 @@ const SKIP_DIRS = new Set(['node_modules', '.git', '.trae', '.vscode', 'assets',
 /** A 档：服务端权威（本机键＝镜像 / 缓存 / mock 形态对应物；清了不丢真相） */
 const SERVER_AUTHORITATIVE = {
   'workflowos_branch_db_v1': 'mock 形态的整库落盘；api 形态真相在服务端快照与各业务表（mock-adapter.js）',
-  'gsm1921-residence-overrides': '在册/滞留状态；api 形态以服务端 users 行（residenceStatus/Note/History）为唯一权威（2026-09-24 批次 169 单轨化；services/roster.js）',
-  'gsm1921-member-confirmations': '成员变更确认队列；服务端表 member_confirmations（2026-09-23 批次 163 服务端化；services/member-confirmation.js）',
-  'gsm1921-attendance-appeals': '出勤申诉队列；服务端表 attendance_appeals（2026-09-24 批次 169；services/attendance.js）',
-  'gsm1921-inspection-appeals': '考察申诉队列；服务端表 inspection_appeals（2026-09-24 批次 169；services/inspection.js）',
-  'sop_org_os_auth_audit': '授权审计留痕；服务端表 auth_audit（2026-09-24 批次 169；services/auth.js）',
-  'gsm1921-issue-cache-v3': '意见反馈读缓存；服务端 issues 表为权威（services/issues.js）',
+  'gsm1921-residence-overrides': '在册/滞留状态；api 形态以服务端 users 行（residenceStatus/Note/History）为唯一权威（2026-09-24 批次 169 单轨化；services/member/roster.js）',
+  'gsm1921-member-confirmations': '成员变更确认队列；服务端表 member_confirmations（2026-09-23 批次 163 服务端化；services/member/member-confirmation.js）',
+  'gsm1921-attendance-appeals': '出勤申诉队列；服务端表 attendance_appeals（2026-09-24 批次 169；services/activity/attendance.js）',
+  'gsm1921-inspection-appeals': '考察申诉队列；服务端表 inspection_appeals（2026-09-24 批次 169；services/activity/inspection.js）',
+  'sop_org_os_auth_audit': '授权审计留痕；服务端表 auth_audit（2026-09-24 批次 169；services/core/auth.js）',
+  'gsm1921-issue-cache-v3': '意见反馈读缓存；服务端 issues 表为权威（services/governance/issues.js）',
   'gsm1921-issue-cache': '意见反馈旧缓存键（历史版本；reactions.js 仍写、init-reset 清除）——真相同上游 issues 表',
   'gsm1921-issue-cache-version': '上条缓存的版本号（缓存失效用，非数据本体）',
   'gsm1921-feedback-migrated': '反馈迁移标记（一次性迁移用；迁移的是种子，非用户数据）',
   'gsm1921-feedback-submissions': '旧版反馈本地提交件（迁移源；migrateFeedbackSubmissions 处理后清除）',
-  'issue_reveals': '匿名反馈「查看真身」留痕；服务端表 issue_reveals（services/issues.js；mock 形态本地同构）',
-  'gsm1921-milestone-cache': '批次里程碑读缓存；服务端表 milestones（内容单一源 docs/data/milestones.json，seed.js 播种；services/milestones.js）',
+  'issue_reveals': '匿名反馈「查看真身」留痕；服务端表 issue_reveals（services/governance/issues.js；mock 形态本地同构）',
+  'gsm1921-milestone-cache': '批次里程碑读缓存；服务端表 milestones（内容单一源 docs/data/milestones.json，seed.js 播种；services/governance/milestones.js）',
   'workflowos_taskforces_v1': '专班旧单域键（已被整库键 workflowos_branch_db_v1 取代；taskforces 是服务端资源表）',
   'workflowos_notices_v1': '通知旧单域键（同上；notices 是服务端资源表）',
 };
@@ -81,14 +81,14 @@ const SERVER_AUTHORITATIVE = {
 /** B 档：本机临时白名单（**就应当只在本机**——逐条写明为何不上服务端） */
 const LOCAL_ONLY = {
   'gsm1921-base-data-preview': '本机临时·预览：换组织前「本地看效果」，绝不写 mockDB / 种子 / 服务器（org-base-data-preview.js）——服务端化会把「看效果」变成「真改数据」',
-  'gsm1921-issue-drafts': '本机临时·草稿：未提交的反馈/评论草稿，其 payload 可能含匿名真身 ⇒ 落服务端即破坏匿名承诺（services/issues.js）',
+  'gsm1921-issue-drafts': '本机临时·草稿：未提交的反馈/评论草稿，其 payload 可能含匿名真身 ⇒ 落服务端即破坏匿名承诺（services/governance/issues.js）',
   'gsm1921-workforce-draft': '本机临时·草稿：支书台「拟定分工」未提交内容，属该设备上未完成的工作（entries/tabs/secretary/workforce-panel.js）',
   'workflowos_leader_activity_draft': '本机临时·草稿：组长「写入活动」未提交的表单暂存（刷新恢复用；entries/tabs/leader/write-tab.js）',
-  'gsm1921-members-overlay': 'mock 形态专属：成员档案覆盖层；api 形态读链走 server users、写走 /members* 端点 ⇒ 无需服务端化（services/person.js）',
-  'gsm1921-accounts': 'mock 形态专属：可持久化账号层；api 形态账号承载＝server users 表行（services/accounts.js）',
-  'gsm1921-dev-stage-overrides': '本机派生留痕（暂留本机）：仅派生「进入当前阶段日期」提醒；本批只登记未服务端化（services/member-confirmation.js）',
-  'gsm1921-issue-submitter-token': '设计如此·本机令牌：随机不可反查人的防刷令牌（仅判重/限频用），按设计只在本设备（services/issues.js）',
-  'gsm1921-init-state': '本机·初始化态闸门：本标签页「正在初始化」的内存语义落盘位，非业务数据（services/init-reset.js）',
+  'gsm1921-members-overlay': 'mock 形态专属：成员档案覆盖层；api 形态读链走 server users、写走 /members* 端点 ⇒ 无需服务端化（services/member/person.js）',
+  'gsm1921-accounts': 'mock 形态专属：可持久化账号层；api 形态账号承载＝server users 表行（services/core/accounts.js）',
+  'gsm1921-dev-stage-overrides': '**2026-09-28 已服务端化**：事实改挂成员档案字段 `developStageSince`（服务端权威、跨设备可读）；本键降级为**遗留键**——代码中仅剩「init 档移除清单 / 清一次存储残留」引用，不再有业务读写',
+  'gsm1921-issue-submitter-token': '设计如此·本机令牌：随机不可反查人的防刷令牌（仅判重/限频用），按设计只在本设备（services/governance/issues.js）',
+  'gsm1921-init-state': '本机·初始化态闸门：本标签页「正在初始化」的内存语义落盘位，非业务数据（services/core/init-reset.js）',
 };
 
 /** C 档：UI 偏好与会话 */
@@ -108,10 +108,10 @@ const UI_PREF_SESSION = {
 
 /** 前缀型键（末尾的 `-`/`_` 即前缀语义；以 `startsWidth` 判定） */
 const SERVER_AUTHORITATIVE_PREFIXES = {
-  'gsm1921-issue-unread-': '逐人未读标记；服务端表 issue_unread（2026-09-24 批次 169；services/issues.js）',
+  'gsm1921-issue-unread-': '逐人未读标记；服务端表 issue_unread（2026-09-24 批次 169；services/governance/issues.js）',
 };
 const LOCAL_ONLY_PREFIXES = {
-  'wizard-draft-': '本机临时·草稿：换组织向导未走完的草稿，按支部一份（components/org-setup-wizard.js）',
+  'wizard-draft-': '本机临时·草稿：换组织向导未走完的草稿，按支部一份（components/governance/org-setup-wizard.js）',
 };
 const UI_PREF_SESSION_PREFIXES = {
   'gsm1921-pref-': 'UI 偏好·个人偏好键空间（theme.js / preferences.js）',
@@ -121,7 +121,7 @@ const UI_PREF_SESSION_PREFIXES = {
 
 /** 非存储键的常量例外（逐条给理由；`*_ACTION_KEY` 是业务动作键，不落存储） */
 const NON_STORAGE_CONST_NAMES = {
-  RESOLUTION_FOLLOWUP_ACTION_KEY: '待办「决议跟进」动作键（todo.actionKey），不写 localStorage/sessionStorage（services/resolution-followup.js）',
+  RESOLUTION_FOLLOWUP_ACTION_KEY: '待办「决议跟进」动作键（todo.actionKey），不写 localStorage/sessionStorage（services/governance/resolution-followup.js）',
 };
 
 // ════════════════════════════════════════════════════════════════

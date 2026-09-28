@@ -113,10 +113,10 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/notice.js（resolveNoticeUrl） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
-| `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/calendar.js |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/record/calendar.js |
 | `content/04_web_design/evolution/ROLE_PERMISSION_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 权限功能合一收敛设计（角色权限四处分散声明 → 单一事实源 ROLE_KEYS + 派生；S1~S10 已验收达成、设计论证档案） | 权威源 SYSTEM_ROLE_PERMISSION.md §9a0/§9b/§9c + 代码 ROLE_KEYS |
 | `content/04_web_design/module/SOP_WEBSITE_GUIDE.md` | [工程师]+[AI] | SOP 系统优化与同步指南 | CLAUDE.md H30.2 |
 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` | [工程师]+[AI] | 部署与对外对接（系统形态速览 + 四条落地路径与决策矩阵 + 学校/党校对接总叙事与决策矩阵 + 认证与登录门控 + 微信协同与小程序 + 北大党校与智慧党建对接） | DATA_MODEL.md、SYSTEM_ROLE_PERMISSION.md、DESIGN_SYSTEM.md、ARCHITECTURE.md |
@@ -226,7 +226,7 @@ insights 单文件膨胀后（10+ 章 / 1000+ 行），按**知识类型**拆分
 | 了解系统角色权限矩阵 | content/02_institution/SYSTEM_ROLE_PERMISSION.md | （角色键全表 §9a0 + 权限矩阵 §9b/§9c + 赋权链 §9e；双轨见 §9f） |
 | 查看设计系统规范 | content/04_web_design/design-system/DESIGN_SYSTEM.md | docs/src/styles.css |
 | 了解 Emoji 使用规范 | content/03_doc_system/OPERATIONS_GUIDE.md §21 | CLAUDE.md 钩稽矩阵 |
-| 查看日历功能规划（设计论证档案） | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） | docs/src/components/calendar.js |
+| 查看日历功能规划（设计论证档案） | content/04_web_design/module/MODULE_UI_DESIGN.md（已落地 2026-09-03） | docs/src/components/record/calendar.js |
 | 查看品牌标签设计 | content/04_web_design/data/DATA_MODEL.md | CLAUDE.md |
 | 查官方合规 | content/01_strategy/references/合规文件/ | content/02_institution/sop/溯源 |
 | 查看执行日志 | .ctx/logs/EXECUTION_LOG_INDEX.md | 对应月份日志 |

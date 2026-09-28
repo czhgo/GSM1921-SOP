@@ -35,7 +35,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   app.use('/api/v1', createSystemNoticesRouter(app.locals.db));
 
   // 组长台「组员进展」服务端汇总（2026-09-15 批次 47-I，Q-23-41 ②）：支书裁定把「逐人归集」改为
-  // 服务端汇总。聚合口径单一源 = docs/src/services/member-progress.js（前端 mock 态同一函数）。
+  // 服务端汇总。聚合口径单一源 = docs/src/services/member/member-progress.js（前端 mock 态同一函数）。
   app.use('/api/v1', createLeaderProgressRouter(app.locals.db));
 
   // 成员变更审批链路（议程记录通过 → 组织委员审批广播 → 支书确认更新阶段）
@@ -53,7 +53,7 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 部署形态注入：server 模式下前端 deploy.js 应标记为 'server'（有后端，无「关于」门面）＋空域种子回退开关
   // SEED_FALLBACK（依据 content/04_web_design/deploy/AUTHENTICATION_MODEL.md §六·构建时注入；SEED_FALLBACK=0 ⇒ false，缺省 true）
   app.get('/src/config/deploy.js', (req, res) => {
-    res.type('application/javascript').send(`export const DEPLOY_MODE = "server";\nexport const SEED_FALLBACK = ${process.env.SEED_FALLBACK === '0' ? 'false' : 'true'};\n`);
+    res.type('application/javascript').send(`export const DEPLOY_MODE = "server";\nexport const SEED_FALLBACK = ${process.env.SEED_FALLBACK === '0' ? 'false' : 'true'};\nexport const DEMO_READONLY = ${process.env.DEMO_READONLY === '0' ? 'false' : 'true'};\n`);
   });
 
   // 静态托管：无后缀请求自动补 .html（T-304 遗留修复——登录跳转在部分浏览器/内嵌视图

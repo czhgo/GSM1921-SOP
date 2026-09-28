@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260924a';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20260928h';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -624,8 +624,11 @@ export const ApiAdapter = {
   // R-11（2026-09-14 批次 29，Q-23-5）：撤销流出语义端点 —— 清除 transferOut 软标记使账号恢复；
   //   仅走 profile 补丁不会清除该标记（/login 仍按停用 401），故单列。
   members: {
-    setDevelopStage(id, developStage) {
-      return _post(`/api/v1/members/${id}/develop-stage`, { developStage });
+    setDevelopStage(id, developStage, developStageSince) {
+      // developStageSince（进入当前阶段日期）可选：随阶段同笔落档（2026-09-28 服务端化）
+      const body = { developStage };
+      if (developStageSince) body.developStageSince = developStageSince;
+      return _post(`/api/v1/members/${id}/develop-stage`, body);
     },
 
     setResidenceStatus(id, body) {
@@ -859,7 +862,7 @@ export const ApiAdapter = {
   //   `init()` 逐域 `list()` 拉取填充 mockDB 缓存（供服务层同步读），写在 api 形态经这些方法落服务端。
   // 服务端实现 = `server/routes/resources.js` 末「语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕」段；
   //   表 = `server/db.js::SEMANTIC_TABLES`。
-  // 出勤申诉队列（services/attendance.js；提交＝本人、处置＝支委层＋组长）
+  // 出勤申诉队列（services/activity/attendance.js；提交＝本人、处置＝支委层＋组长）
   attendanceAppeals: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -873,7 +876,7 @@ export const ApiAdapter = {
     },
   },
 
-  // 考察申诉队列（services/inspection.js；同出勤申诉口径）
+  // 考察申诉队列（services/activity/inspection.js；同出勤申诉口径）
   inspectionAppeals: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -887,7 +890,7 @@ export const ApiAdapter = {
     },
   },
 
-  // 意见反馈「逐人未读标记」（services/issues.js::IssueNotify；读态＝被指派人本人 / 支书「待终审」位）
+  // 意见反馈「逐人未读标记」（services/governance/issues.js::IssueNotify；读态＝被指派人本人 / 支书「待终审」位）
   issueUnread: {
     list(params = {}) {
       const query = new URLSearchParams(params).toString();
@@ -898,7 +901,7 @@ export const ApiAdapter = {
     },
   },
 
-  // 授权审计留痕（services/auth.js；只增不改的治理档案）
+  // 授权审计留痕（services/core/auth.js；只增不改的治理档案）
   authAudit: {
     list() {
       return _get('/api/v1/auth-audit');

@@ -206,7 +206,7 @@ Layer 7: 审计参考层（审计与参考）
 
 > **字段级定义见权威源**：[DATA_MODEL.md](../04_web_design/data/DATA_MODEL.md) §2.1（Activity 全量字段主表；status 存储字面值为 `draft`/`published`/`ongoing`/`completed`/`cancelled` 五态——含 `cancelled`，见 [domain.js:16](../../docs/src/core/domain.js) 与 DATA_MODEL §2.1 字段表，展示一律用生命周期派生态；组织者由 `assignments` 主源派生）与 [DATA_MODEL.md §第二部分](../04_web_design/data/DATA_MODEL.md)（数据流权威）。本处只记架构语义，不复刻字段表，避免双载体未同步。
 
-mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
+mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤经 `services/core/auth.js`（以 `activity.assignments` 为主源，`syncProjectRoles()` 保证与顶层 organizer 一致）。
 
 ### Task（任务）
 
@@ -214,7 +214,7 @@ mockDB 为唯一数据源，所有视图经 Service 层读取；按角色过滤�
 
 ### Storage Model
 
-- **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/mock.js`）
+- **键名**： `workflowos_branch_db_v1`（`localStorage`，见 `docs/src/services/core/mock.js`）
 - **版本防御**： `loadDB()` 检查 `_schema !== SCHEMA_VERSION` 时拒绝脏数据并 `console.warn`
 - **根结构完整键表见权威源**：[DATA_MODEL.md §4.2.1](../04_web_design/data/DATA_MODEL.md)（存储键/字段/版本校验全量清单），本处不复刻。
 
@@ -360,11 +360,11 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/`（角色权限引擎） | 设计→代码。数据流架构定义角色数据流与登录态说明（§3.4，已实现登录态），代码实现设计 |
 | `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` | `docs/src/`（专班管理 + 审批流程） | 设计→代码。支委系统设计定义专班管理逻辑和§审批流程规范，代码实现 |
 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | `docs/src/styles.css`、`docs/src/components/*` | 设计→样式/代码。设计系统是全局样式与各组件实现的母本（查色值见 §二，写组件见 §四，点击落点见 §十） |
-| `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/calendar.js` | 设计→代码。日历功能规划是日历渲染引擎的母本 |
+| `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/src/components/record/calendar.js` | 设计→代码。日历功能规划是日历渲染引擎的母本 |
 | `content/04_web_design/data/DATA_MODEL.md` | `docs/src/core/domain.js` | 数据→代码。数据字段定义权威源（含§写入数据验证设计），代码中的数据结构必须与 DATA_MODEL.md 一致 |
 | `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/core/state.js` | 设计→代码。DATA_MODEL §3.4 登录态说明是状态中心登录逻辑的母本 |
-| `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/services/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制 |
-| `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/services/auth.js` | 设计→代码。DATA_MODEL §3 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（含 `getPageForRole` 内部映射） |
+| `content/04_web_design/data/DATA_MODEL.md §3.4（登录态说明）` | `docs/src/services/core/auth.js`（未来） | 设计→代码（预留）。登录系统设计前置规范定义未来登录系统的用户身份模型和认证机制 |
+| `content/04_web_design/data/DATA_MODEL.md §3（参与者数据流设计）` | `docs/src/services/core/auth.js` | 设计→代码。DATA_MODEL §3 定义角色数据流模型，auth.js 实现 `getUserProjectRoles` / `hasProjectRole` / `getAccessibleWorkspacePages` 三个公开 API（含 `getPageForRole` 内部映射） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md` | `docs/index.html`（Module 4） | 设计→代码。模块界面设计是工作台模块 UI 的母本 |
 | `本文 §十一（服务目录）` | `docs/src/entries/*.js` | 治理→代码。服务清单是各入口文件服务实现的母本 |
 
@@ -482,37 +482,37 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 
 | 服务 | 服务文件 | 入口页面 | 核心操作 | 关联制度 |
 |------|---------|---------|---------|---------|
-| 活动管理 | `services/runtime.js`（BranchService 插槽）+ `services/decision-tree.js` + `services/activity.js`（读） | `workspace/secretary.html`、`workspace/leader.html` | 创建/编辑/发布/归档/品牌标签；决策树式创建引导（三会一课 / 主题党日，含共建性质、是否外出、活动载体三正交维度） | CF §审批 §一 |
-| 专班管理 | `services/taskforce.js` | `workspace/org.html` | 创建/招募（赋权）/运行跟踪/解散/工作量汇总 | CF §A.4/§A.6/§A.7 + CF §审批 §二 |
-| 分工记录 | `core/data-adapter.js`（assignments 主源）+ `services/auth.js`（syncProjectRoles） | 工作台分工闭环（leader/secretary） | 指派分工/跟踪完成度/标记完成/逾期检测/提交参与角色确认 | DA §2.6（AssignmentRecord）+ FLAT |
-| 考察记录 | `services/inspection.js` | `workspace/disc.html` | 上传/修改/确认录入总表/类别标签/超期提醒/单一活动或人员查询 | CF §C.1a + DA §2.5.1（InspectionRecord） |
-| 考勤管理 | `services/attendance.js` | `workspace/disc.html`、`workspace/visitor.html`（个人出勤率） | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询；出勤率汇总（支委会内部，不公示、不对外）与个人出勤率（当事人本人可见，只算自己） | CF §C.1a + CF §审批 §四 |
-| 补课管理 | `services/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
-| 复盘服务 | `services/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
-| 发展党员 | `core/domain.js`（developStage 四阶段）+ `core/data-adapter.js`（持久化） | `workspace/org.html` | 查看候选人列表/修改阶段状态/上传更新材料/标记缺失并提醒（思想汇报已数字化并实现：`services/thought-report.js` 提交即入库即归档，组织委员查看/调用——2026-08-30 支书决策） | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) + CF §C.1b |
+| 活动管理 | `services/core/runtime.js`（BranchService 插槽）+ `services/activity/decision-tree.js` + `services/activity/activity.js`（读） | `workspace/secretary.html`、`workspace/leader.html` | 创建/编辑/发布/归档/品牌标签；决策树式创建引导（三会一课 / 主题党日，含共建性质、是否外出、活动载体三正交维度） | CF §审批 §一 |
+| 专班管理 | `services/activity/taskforce.js` | `workspace/org.html` | 创建/招募（赋权）/运行跟踪/解散/工作量汇总 | CF §A.4/§A.6/§A.7 + CF §审批 §二 |
+| 分工记录 | `core/data-adapter.js`（assignments 主源）+ `services/core/auth.js`（syncProjectRoles） | 工作台分工闭环（leader/secretary） | 指派分工/跟踪完成度/标记完成/逾期检测/提交参与角色确认 | DA §2.6（AssignmentRecord）+ FLAT |
+| 考察记录 | `services/activity/inspection.js` | `workspace/disc.html` | 上传/修改/确认录入总表/类别标签/超期提醒/单一活动或人员查询 | CF §C.1a + DA §2.5.1（InspectionRecord） |
+| 考勤管理 | `services/activity/attendance.js` | `workspace/disc.html`、`workspace/visitor.html`（个人出勤率） | 上传/修改/确认+录入总表/总表修改/超期提醒/单一活动或人员查询；出勤率汇总（支委会内部，不公示、不对外）与个人出勤率（当事人本人可见，只算自己） | CF §C.1a + CF §审批 §四 |
+| 补课管理 | `services/activity/makeup.js` | `workspace/disc.html` | 自动生成补课任务/标记完成+回写考勤/导出统计 | [纪检委员工作流程指南](../02_institution/sop/纪检委员工作流程指南.md) |
+| 复盘服务 | `services/governance/review.js` | `workspace/disc.html` | 提交复盘/批注/打回/确认/超期提醒（未提交 → 已上传 → 批注中 → 确认/打回） | CF §审批 §五 + CF §C.1a |
+| 发展党员 | `core/domain.js`（developStage 四阶段）+ `core/data-adapter.js`（持久化） | `workspace/org.html` | 查看候选人列表/修改阶段状态/上传更新材料/标记缺失并提醒（思想汇报已数字化并实现：`services/governance/thought-report.js` 提交即入库即归档，组织委员查看/调用——2026-08-30 支书决策） | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) + CF §C.1b |
 | 档案宣传 | `core/data-adapter.js`（imageRecords 聚合）+ `modules/references.js` | `workspace/prop.html` | 档案归档/材料标准/模板管理/周报报送（图片随宣传材料走「档案归档」；**图片记录只有数据通道、图片管理界面未实现**） | [宣传委员工作流程指南](../02_institution/sop/宣传委员工作流程指南.md) + CF §C.1b |
-| 人员管理 | `services/person.js` | 各工作台（人才库/人员选择） | 人员查询/名称解析/档案展示 | — |
-| 待办服务 | `services/todo.js` | 各工作台 | 待办派生/标记完成/按分类展开收起（幂等去重） | — |
-| 支书总览 | `services/secretary-overview.js` | `workspace/secretary.html` | 全局统计/总览待办派生 | — |
-| 认证服务 | `services/auth.js`（AuthStore） | `login.html`（全站共用） | 登录态管理/赋权记录 CRUD/角色-页面映射（ROLE_PAGE_MAP） | — |
-| 权限服务 | `services/auth.js`（canDo + ROLE_PERMISSIONS）+ `services/roles.js` | 全站共用（侧边栏身份视图） | 统一角色选择/权限判定/角色赋权共享 | RC §9a0/9b/9e |
-| 通知服务 | `services/notice.js` | `index.html`、各工作台 | 发布/阅读/删除/审批流程关键节点触发 | — |
-| 反馈服务 | `services/issues.js` + `services/milestones.js` | `feedback.html` | 成员提交 / 支委会处置、由支书主持支委会（GitHub Issue 风格：列表/详情/新建） | — |
+| 人员管理 | `services/member/person.js` | 各工作台（人才库/人员选择） | 人员查询/名称解析/档案展示 | — |
+| 待办服务 | `services/governance/todo.js` | 各工作台 | 待办派生/标记完成/按分类展开收起（幂等去重） | — |
+| 支书总览 | `services/governance/secretary-overview.js` | `workspace/secretary.html` | 全局统计/总览待办派生 | — |
+| 认证服务 | `services/core/auth.js`（AuthStore） | `login.html`（全站共用） | 登录态管理/赋权记录 CRUD/角色-页面映射（ROLE_PAGE_MAP） | — |
+| 权限服务 | `services/core/auth.js`（canDo + ROLE_PERMISSIONS）+ `services/core/roles.js` | 全站共用（侧边栏身份视图） | 统一角色选择/权限判定/角色赋权共享 | RC §9a0/9b/9e |
+| 通知服务 | `services/governance/notice.js` | `index.html`、各工作台 | 发布/阅读/删除/审批流程关键节点触发 | — |
+| 反馈服务 | `services/governance/issues.js` + `services/governance/milestones.js` | `feedback.html` | 成员提交 / 支委会处置、由支书主持支委会（GitHub Issue 风格：列表/详情/新建） | — |
 | 归档检索 | `core/data-adapter.js`（只读聚合） | `archive.html`、`search.html` | 归档库（列表+画册视图）/全量资料查询 | — |
-| 会议议程编辑 | `services/agenda-editing.js` | 活动详情（三会一课议程编辑） | 议程结构化事项的纯数据处理：保持业务字段不被 UI 编辑覆盖 | — |
-| 会议议程会后衔接 | `services/agenda-follow-up.js` | 活动详情（会后） | 记录「通过/不通过」→ 派生文件/成员变更动作；支部党员大会做出席/赞成过半数硬校验 | — |
-| 线上支委会表态 | `services/committee-vote.js` | 活动详情（表决区块）、`party-committee-meeting.html`（支委会会议页） | 委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）；线上与线下完全同等效力 | — |
-| 支部服务 | `services/branch.js` | `workspace/party-committee.html` | 支部边界收敛点：人→支部归属、支部配置档案（header/主题/启停模块/工作地图/产出块策略） | PC（P1 支部实例） |
-| 支书任命 | `services/appointment.js` | `workspace/party-committee.html` | 任命 + 任期记录闭环（现任记录封口 → 新建现任；换届档案可查），双方 users.role 同步 | PC（P2 支书任命） |
-| 支部上报审批 | `services/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 上报审批） |
-| 报名登记 | `services/signup.js` | 活动/专班详情（报名区块） | 统一报名渠道：participant 报名即加入；organizer/deep 报名 + 发起人审核（pending → 通过/拒绝） | — |
-| 外发确认 | `services/external-dispatch.js` | 各工作台（任务/材料外发） | 发送方标记「已通过微信发送给 XX」→ 接收方工作台「确认收到」→ 可审计闭环（谁/何时/发给谁/何时确认） | — |
-| 三委数据交接 | `services/handoff.js` | disc/org 工作台 | 交接生成 → 自动为接收方派生待办 → 确认 → 待办销项 + 状态落库（双向可追溯）；协议三条＝纪检→组织（考勤统计、考察记录）· 组织→纪检（补课需求回执） | CF §E.2（数据交接协议） |
-| 思想汇报 | `services/thought-report.js` | `workspace/visitor.html`（提交）、`workspace/org.html`（查看/调用） | 提交即入库即归档：按 personId 算法自动归集至个人档案，无人工归档环节 | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
-| 全员可见性矩阵 | `services/visibility.js` | 全站共用（数据维度投影） | 「谁看谁」可见性投影（L0 个人 / L1 条线 / L2 全局）；看 ≠ 做，不授予操作权 | RC §9b + P-011（SECRETARY_DIRECTIVES） |
-| 表决配置 | `services/vote-config.js` | 活动创建（表决配置区块） | voteConfig 解析与场景默认：deliberative（交流式）/ formal（正式表决）参数化（optionSet/quorumCheck/voterScope） | — |
-| 支部分工提议 | `services/workforce.js` | `workspace/secretary.html`（支部分工）、各工作台概况（履职卡） | 改派提议（可会前草稿）→ 生成支委会议题 → 支委经表决 UI 表态（门槛：应到 2/3 且无异议，2026-09-05）→ 支书采纳生效 → 合并 config.workforce 落库 → 各工作台概况「支部安排·我的分工」履职卡可见 | BRANCH_WORK_MAP.md（L4 M2 闭环） |
-| Mock 服务层 | `services/mock.js` | （数据基础设施） | Mock 持久化/种子引擎（saveDB/loadDB/seed 同步收敛至 core/mock-adapter.js） | — |
+| 会议议程编辑 | `services/activity/agenda-editing.js` | 活动详情（三会一课议程编辑） | 议程结构化事项的纯数据处理：保持业务字段不被 UI 编辑覆盖 | — |
+| 会议议程会后衔接 | `services/activity/agenda-follow-up.js` | 活动详情（会后） | 记录「通过/不通过」→ 派生文件/成员变更动作；支部党员大会做出席/赞成过半数硬校验 | — |
+| 线上支委会表态 | `services/activity/committee-vote.js` | 活动详情（表决区块）、`party-committee-meeting.html`（支委会会议页） | 委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）；线上与线下完全同等效力 | — |
+| 支部服务 | `services/branch/branch.js` | `workspace/party-committee.html` | 支部边界收敛点：人→支部归属、支部配置档案（header/主题/启停模块/工作地图/产出块策略） | PC（P1 支部实例） |
+| 支书任命 | `services/branch/appointment.js` | `workspace/party-committee.html` | 任命 + 任期记录闭环（现任记录封口 → 新建现任；换届档案可查），双方 users.role 同步 | PC（P2 支书任命） |
+| 支部上报审批 | `services/governance/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 上报审批） |
+| 报名登记 | `services/activity/signup.js` | 活动/专班详情（报名区块） | 统一报名渠道：participant 报名即加入；organizer/deep 报名 + 发起人审核（pending → 通过/拒绝） | — |
+| 外发确认 | `services/activity/external-dispatch.js` | 各工作台（任务/材料外发） | 发送方标记「已通过微信发送给 XX」→ 接收方工作台「确认收到」→ 可审计闭环（谁/何时/发给谁/何时确认） | — |
+| 三委数据交接 | `services/governance/handoff.js` | disc/org 工作台 | 交接生成 → 自动为接收方派生待办 → 确认 → 待办销项 + 状态落库（双向可追溯）；协议三条＝纪检→组织（考勤统计、考察记录）· 组织→纪检（补课需求回执） | CF §E.2（数据交接协议） |
+| 思想汇报 | `services/governance/thought-report.js` | `workspace/visitor.html`（提交）、`workspace/org.html`（查看/调用） | 提交即入库即归档：按 personId 算法自动归集至个人档案，无人工归档环节 | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
+| 全员可见性矩阵 | `services/core/visibility.js` | 全站共用（数据维度投影） | 「谁看谁」可见性投影（L0 个人 / L1 条线 / L2 全局）；看 ≠ 做，不授予操作权 | RC §9b + P-011（SECRETARY_DIRECTIVES） |
+| 表决配置 | `services/activity/vote-config.js` | 活动创建（表决配置区块） | voteConfig 解析与场景默认：deliberative（交流式）/ formal（正式表决）参数化（optionSet/quorumCheck/voterScope） | — |
+| 支部分工提议 | `services/branch/workforce.js` | `workspace/secretary.html`（支部分工）、各工作台概况（履职卡） | 改派提议（可会前草稿）→ 生成支委会议题 → 支委经表决 UI 表态（门槛：应到 2/3 且无异议，2026-09-05）→ 支书采纳生效 → 合并 config.workforce 落库 → 各工作台概况「支部安排·我的分工」履职卡可见 | BRANCH_WORK_MAP.md（L4 M2 闭环） |
+| Mock 服务层 | `services/core/mock.js` | （数据基础设施） | Mock 持久化/种子引擎（saveDB/loadDB/seed 同步收敛至 core/mock-adapter.js） | — |
 | 线上表决 API | `server/routes/committee.js` | `/api/v1/agenda-votes`（API） | 异步表态提交/汇总/截止锁定服务端（voteConfig 校验；角色名单单一源 constants.js） | 与前端 committee-vote 配套（活动详情表决区块 ＋ 支委会会议页共用） |
 | 成员变更审批 API | `server/routes/member.js` | `/api/v1/member-change-requests`（API） | 成员变更申请 → 组织委员审批 → 全体支委广播 → 支书确认 → 更新 developStage | [组织委员工作流程指南](../02_institution/sop/组织委员工作流程指南.md) |
 | 数据上报 API | `server/routes/report.js` | `/api/v1/report`（API） | 四域（member/activity/attendance/study）JSON 拉取 / CSV 导出 / 触发推送 | DEPLOYMENT_GUIDE.md（数据上报对接） |

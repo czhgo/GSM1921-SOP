@@ -3,31 +3,31 @@
 // 党小组组长可创建党小组会、主题党日活动，写入后自动生成SOP任务节点。
 // 含决策树引导式写入（DecisionTreeState）+ 活动详情/子记录内联编辑 + 活动角色赋权。
 
-import { setState, getAppState } from '../../../core/state.js?v=20260924a';
-import { BranchService } from '../../../services/runtime.js?v=20260924a';
-import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/decision-tree.js?v=20260924a';
+import { setState, getAppState } from '../../../core/state.js?v=20260928h';
+import { BranchService } from '../../../services/core/runtime.js?v=20260928h';
+import { DecisionTreeState, DECISION_TREE_CONFIGS, renderWorkflowPanel, writeActivityWithSOP, hostGroups as buildHostGroupOptions } from '../../../services/activity/decision-tree.js?v=20260928h';
 // 党小组常态清单唯一来源（活组、按 seq 升序）——承办党小组选项不再写死
-import { groupOptions } from '../../../services/party-group.js?v=20260924a';
-import { AuthStore } from '../../../services/auth.js?v=20260924a';
-import { TodoStore, TodoSourceType } from '../../../services/todo.js?v=20260924a';
-import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260924a';
-import { persist } from '../../../core/data-adapter.js?v=20260924a';
-import { PersonPicker } from '../../../components/person-picker.js?v=20260924a';
-import { recordFormShell } from '../../../components/forms.js?v=20260924a';
-import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch.js?v=20260924a';
-import { badgeHtml } from '../../../components/badges.js?v=20260924a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260928h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260928h';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260928h';
+import { mockDB, OutputType, deriveOutputRoute } from '../../../core/domain.js?v=20260928h';
+import { persist } from '../../../core/data-adapter.js?v=20260928h';
+import { PersonPicker } from '../../../components/governance/person-picker.js?v=20260928h';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20260928h';
+import { getBranchIdOfPerson, getBranchOutputBlocks, applyOutputBlockPolicy } from '../../../services/branch/branch.js?v=20260928h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260928h';
 // 活动生命周期展示态单一源（草稿/已发布/进行中/待归档/已执行/已归档/已取消）——勿在本文件另造中文标签
-import { activityLifecycleBadgeHtml } from '../../../components/inspector.js?v=20260924a';
-import { showToast, escHtml } from '../../../core/utils.js?v=20260924a';
+import { activityLifecycleBadgeHtml } from '../../../components/record/inspector.js?v=20260928h';
+import { showToast, escHtml } from '../../../core/utils.js?v=20260928h';
 // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：本人被指定为该场组织者时，本台即可发布本组通知
-import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity.js?v=20260924a';
-import { openModal, closeModal } from '../../../components/modal.js?v=20260924a';
-import { openGroupNoticeComposer } from '../../../services/notice.js?v=20260924a';
-import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260924a';
-import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260924a';
-import { anchorDetailToTrigger } from '../../../components/detail-anchor.js?v=20260924a';
+import { isActivityOrganizer, findActivityById, OUTDOOR_CHECKLIST, isOutdoorActivity, PUBLICITY_DRAFT_STATUS, PUBLICITY_DRAFT_LABELS, publicityDraftStatusOf, setPublicityDraftStatus, DEEP_WORK_MODE } from '../../../services/activity/activity.js?v=20260928h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260928h';
+import { openGroupNoticeComposer } from '../../../services/governance/notice.js?v=20260928h';
+import { solidAccentStyle, accDarkVars, accDarkParts, OUTPUT_BLOCK_DEFS, isActivityEnded, ACTIVITY_SUBTYPES, normalizeActivityType } from '../../../core/constants.js?v=20260928h';
+import { filterByRole, getCurrentLeaderId, currentLeaderGroup } from './_shared.js?v=20260928h';
+import { anchorDetailToTrigger } from '../../../components/ui/detail-anchor.js?v=20260928h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/list-filter.js?v=20260924a';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260928h';
 
 /**
  * 活动角色可编辑性（dogfood 权限专项 2026-09-13）
@@ -167,7 +167,7 @@ export function renderContent(ctx) {
   const sorted = [...activities].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const display = [...sorted.filter(a => !isDone(a)), ...sorted.filter(a => isDone(a))];
 
-  // 活动状态徽标：单一源 = components/inspector.js 的活动生命周期展示态
+  // 活动状态徽标：单一源 = components/record/inspector.js 的活动生命周期展示态
   // （草稿/已发布/进行中/待归档/已执行/已归档/已取消；执行态由任务进度派生）。
   // 2026-09-13 收敛：原为本地二档「已发布/草稿」，属口径未同步（与 DATA_MODEL §2.1 全站徽章统一要求不符）。
   const _lifecycleBadge = (a) => activityLifecycleBadgeHtml(a, getAppState()?.tasks || []);
@@ -260,7 +260,7 @@ export function renderContent(ctx) {
         const cfg = configs[type];
         const cellOf = (item, key) => {
           if (key === 'time') return (item.recordedAt || '').slice(0, 16).replace('T', ' ') || '-';
-          // SOP-B-38：宣传初稿的状态位（标签单一源 = services/activity.js；缺省即「初稿」）；
+          // SOP-B-38：宣传初稿的状态位（标签单一源 = services/activity/activity.js；缺省即「初稿」）；
           // 被退回的带上宣传委员写的那句退回说明（留痕，供撰写人看见）
           if (key === 'draftStatus') {
             const st = publicityDraftStatusOf(item);
@@ -351,7 +351,7 @@ export function renderContent(ctx) {
         visBlocks.forEach(type => renderActSubTable(subsHost, type, actSubs[type] || [], type === 'attendance' || type === 'inspection'));
         // 删除子记录（D7：仅宣传/材料有删除按钮）：事件委托——引擎筛选/翻页会重绘行，行内直接绑定会失效
         subsHost.addEventListener('click', (e) => {
-          // SOP-B-38：宣传初稿「提交审核」→ 状态位改待审核（写口单一源 = services/activity.js），
+          // SOP-B-38：宣传初稿「提交审核」→ 状态位改待审核（写口单一源 = services/activity/activity.js），
           // 审核 / 定稿位在宣传委员台「档案归档」（本台只负责把它交上去）
           const reviewBtn = e.target.closest('.act-sub-review-btn');
           if (reviewBtn) {
@@ -497,7 +497,7 @@ export function renderContent(ctx) {
   const actListHost = container.querySelector('#leader-activity-list');
   actListHost?.addEventListener('click', (e) => {
     // 组织者的发布口（2026-09-19 批次 91 · SOP-B-17）：该行按钮优先于「展开详情」，
-    // 点它开「发布本组通知」浮窗（发布权 = 本人是该场组织者，见 services/notice.js::openGroupNoticeComposer）
+    // 点它开「发布本组通知」浮窗（发布权 = 本人是该场组织者，见 services/governance/notice.js::openGroupNoticeComposer）
     const noticeBtn = e.target.closest('.leader-group-notice-btn');
     if (noticeBtn) {
       e.preventDefault();
@@ -803,7 +803,7 @@ function _renderSopPreview() {
 //   完成**——系统内可承载的（如宣传文稿），由深度参与者在网页上完成、产出由系统在后台同步；系统无法承载的，
 //   走线下（微信等）完成、由组织者确认完成」。
 // 「逐项」＝组织者分配给深度参与者的那些项；项清单＝**该场景 SOP 任务链里 `executor==='deep'` 的节点**
-//   （单一源＝`services/decision-tree.js::DecisionTreeState.deepItems()`，不在此另列一份）。
+//   （单一源＝`services/activity/decision-tree.js::DecisionTreeState.deepItems()`，不在此另列一份）。
 // 当前只有主题党日链含深参节点 ⇒ 这一排勾选自然只在主题党日出现（母本那句本身也在主题党日一节内）。
 // 默认勾＝系统内做（＝既有口径零变化）；不勾＝去线下做（线下完成、由组织者确认）。落库见 activity.deepWorkMode。
 function _dtDeepWorkHtml() {
@@ -1078,7 +1078,7 @@ function _dtBindPanelArea(container, ctx, refresh) {
         location,
         description: desc || '',
         // 顶层 organizer 缺省＝创建人本人；若下方 assignments 已指定组织者，创建链路会按主源
-        // 把顶层 organizer 同步为被指定人（services/decision-tree.js::writeActivityWithSOP，原则7 同一套数据）
+        // 把顶层 organizer 同步为被指定人（services/activity/decision-tree.js::writeActivityWithSOP，原则7 同一套数据）
         organizer: currentLeaderId,
         direction: L4,
         duration: L3,
