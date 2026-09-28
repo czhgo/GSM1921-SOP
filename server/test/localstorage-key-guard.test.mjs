@@ -221,7 +221,7 @@ test('L1 全仓 localStorage / sessionStorage 键字面量 ⊆ 已知映射（�
     unregistered.map((k) => `${k}（出现处：${[...(callKeys.get(k) || []), ...(constKeys.get(k) || [])].join(' / ')}）`), [],
     '发现**未登记的浏览器存储键**——请二选一：\n'
     + '  ① 若它的真相应当由服务端承载（可被他人 / 其他设备读到）⇒ **改为服务端权威**'
-    + '（照 server/db.js::SEMANTIC_TABLES + server/routes/resources.js 的「语义端点域」模板）；\n'
+    + '（照 server/db.js::SEMANTIC_TABLES + server/routes/resources/semantic-routes.js 的「语义端点域」模板）；\n'
     + '  ② 若它**确实只应在本机**（草稿 / 预览 / mock 专属 / 偏好）⇒ **登记到白名单**'
     + '（本文件的三档映射 + content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md 的「浏览器存储键白名单」表），'
     + '并逐条写明「为什么不上服务端」。',

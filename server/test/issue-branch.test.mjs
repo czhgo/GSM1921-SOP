@@ -83,7 +83,7 @@ test('S2 写入口径锁定：前端 submitIssue/approveDraft 与服务端 POST/
   assert.ok((issues.match(/branchId:\s*_writeBranchId\(\)/g) || []).length >= 2,
     'submitReport/requestReport 等内部写口亦须落 branchId');
 
-  const resources = read(join(ROOT, 'server', 'routes', 'resources.js'));
+  const resources = read(join(ROOT, 'server', 'routes', 'resources', 'index.js'));
   assert.match(resources, /const branchId = actor\.branchId \|\| 'br-b1'/, 'server POST 须取登录人所属支部（权威）');
   assert.match(resources, /branchId,\n\s*title,/, 'server 落库记录须含 branchId');
 

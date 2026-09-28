@@ -17,12 +17,9 @@ import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
-const WEEKLY_REPORTS_SEED = [
-  { id: 'wr1', week: '第30周', weekRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
-  { id: 'wr2', week: '第29周', weekRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
-  { id: 'wr3', week: '第28周', weekRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
-  { id: 'wr4', week: '第31周', weekRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
-];
+// 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/mock/prop.js`（服务端 `server/seed.js` 同源 import，
+//   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
+import { WEEKLY_REPORTS_SEED } from '../../../mock/prop.js?v=20260928q';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
 function _loadWeeklyReports() {

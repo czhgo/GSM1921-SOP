@@ -89,10 +89,10 @@ test('S2 enrollYear 字段两侧白名单齐备（前端字段白名单 + server
 });
 
 test('S3 写门角色集来自单一源（不得手写角色字符串）', () => {
-  const res = read(join(ROOT, 'server', 'routes', 'resources.js'));
-  assert.match(res, /MEMBER_FLOW_ROLES/, 'resources.js 须 import MEMBER_FLOW_ROLES（单一源）');
+  const res = read(join(ROOT, 'server', 'routes', 'resources', 'gates.js'));
+  assert.match(res, /MEMBER_FLOW_ROLES/, 'resources/gates.js 须 import MEMBER_FLOW_ROLES（单一源）');
   assert.match(res, /memberFlows:\s*'member-flow'/, 'memberFlows 写门须设为 member-flow');
-  assert.ok(!/\['org-commissioner'/.test(res), 'resources.js 不得手写角色数组');
+  assert.ok(!/\['org-commissioner'/.test(res), 'resources/gates.js 不得手写角色数组');
 
   const svc = read(join(SRC_DIR, 'services', 'member', 'member-flow.js'));
   assert.match(svc, /MEMBER_FLOW_ROLES/, 'member-flow.js 须 import MEMBER_FLOW_ROLES（单一源）');

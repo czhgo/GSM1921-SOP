@@ -45,7 +45,9 @@ test('server 路由与前端鉴权不再手写 5 支委授权列表（特征串�
     'server/routes/auth.js',
     'server/routes/member.js',
     'server/routes/committee.js',
-    'server/routes/resources.js',
+    'server/routes/resources/index.js',
+    'server/routes/resources/gates.js',
+    'server/routes/resources/semantic-routes.js',
   ];
   // 特征串 = 5 支委授权列表尾部四角色同行情（手写列表时的经典一行式）
   const feature = `'deputy-secretary', 'org-commissioner', 'prop-commissioner', 'disc-commissioner'`;

@@ -139,11 +139,14 @@ export async function seedDatabase(db) {
   replaceCollection(db, 'taskforce_reviews', reviewMod.TASKFORCE_REVIEW_RECORDS);
   // 思想汇报（内容单一源 = `mock/thought-reports.js::THOUGHT_REPORTS`；含 tr-5「已打回」过渡态样本）
   replaceCollection(db, 'thought_reports', thoughtReportMod.THOUGHT_REPORTS);
-  // 宣传周报 / 宣传任务：内容源是**宣传台 tab 内的私有常量**（`prop/weekly-tab.js::WEEKLY_REPORTS_SEED`
-  //   / `prop/tasks-tab.js::PROP_TASKS_SEED`，未导出、不可 import）⇒ 本文件按该常量**逐字复刻**；
-  //   两形态同内容（mock 态由 tab 的 `_loadXxx()` 空集兜底注入同一份）。
-  replaceCollection(db, 'weekly_reports', SEED_WEEKLY_REPORTS);
-  replaceCollection(db, 'prop_tasks', SEED_PROP_TASKS);
+  // 宣传周报 / 宣传任务（**2026-09-28 批次 234 去冗余**）：**内容单一源 = `docs/src/mock/prop.js`**——
+  //   原先这两个常量在宣传台 tab 内为**私有**（未导出、不可 import），本文件按之**逐字复刻**了一份
+  //   ⇒ 两份字面量、须人工同步（该复刻块的原注释即写明「如后续把该常量导出，请改为 import 同源（勿留两份）」）。
+  //   现该常量已收进单一源模块：UI 侧（`prop/weekly-tab.js` / `prop/tasks-tab.js`）与本节**同源 import 同一份**——
+  //   UI 侧作 mockDB 空表兜底注入，本节作 api 形态首启播种 ⇒ 两形态同内容、且再无第二份可漂移。
+  const { WEEKLY_REPORTS_SEED, PROP_TASKS_SEED } = await import('../docs/src/mock/prop.js');
+  replaceCollection(db, 'weekly_reports', WEEKLY_REPORTS_SEED);
+  replaceCollection(db, 'prop_tasks', PROP_TASKS_SEED);
   // 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
   replaceCollection(db, 'external_dispatches', SEED_EXTERNAL_DISPATCHES);
   // 三委数据交接（形状 = `routes/resources.js` 的 `POST /handoffs`；from/to 由 type 经 HANDOFF_TYPES 派生）
@@ -185,35 +188,10 @@ export async function seedDatabase(db) {
 // ════════════════════════════════════════════════════════════════
 //  批次 189 的服务端种子常量（**置文件末**：上文 `seedDatabase` 内语句与上方的行号零漂移）
 // ════════════════════════════════════════════════════════════════
-// ⚠ 置尾理由与 `db.js` / `routes/resources.js` 同款：上文有大量 `文件:行号` 取证引用
+// ⚠ 置尾理由与 `db.js` / `server/routes/resources/` 同款：上文有大量 `文件:行号` 取证引用
 //   （`doc-line-ref.test.mjs` 逐条核 `README-server.md` 的引用）⇒ 新增一律追加在文件尾部。
-
-/**
- * 宣传周报（**逐字对齐** `docs/src/entries/tabs/prop/weekly-tab.js::WEEKLY_REPORTS_SEED`）。
- * 形状 = `{ id, week, weekRange, content, status:'submitted'|'draft', submittedAt }`（该 tab 的写口 `push` 形状）。
- * 该常量在 UI 文件内为**私有**（未导出）⇒ 此处复刻；如后续把该常量导出，请改为 import 同源（勿留两份）。
- */
-const SEED_WEEKLY_REPORTS = [
-  { id: 'wr1', week: '第30周', weekRange: '2026-07-20 ~ 2026-07-24', content: '1. 七一主题党日活动新闻稿发布\n2. 发展对象公示推送排版完成\n3. 上半年活动照片归档整理进行中', status: 'submitted', submittedAt: '2026-07-24' },
-  { id: 'wr2', week: '第29周', weekRange: '2026-07-13 ~ 2026-07-17', content: '1. 入党积极分子培训资料归档完成\n2. 组织生活会预告推送发布\n3. 配合组织委员完成发展对象材料审核', status: 'submitted', submittedAt: '2026-07-17' },
-  { id: 'wr3', week: '第28周', weekRange: '2026-07-06 ~ 2026-07-10', content: '1. 预备党员转正大会新闻稿起草\n2. 七一活动素材整理\n3. 宣传专栏内容更新', status: 'submitted', submittedAt: '2026-07-10' },
-  { id: 'wr4', week: '第31周', weekRange: '2026-07-27 ~ 2026-07-31', content: '', status: 'draft', submittedAt: null },
-];
-
-/**
- * 宣传任务（**逐字对齐** `docs/src/entries/tabs/prop/tasks-tab.js::PROP_TASKS_SEED`）。
- * 形状 = `{ id, source, type, summary, status:'pending'|'in_progress'|'submitted', createdAt }`。
- */
-const SEED_PROP_TASKS = [
-  { id: 'pt1', source: '支部委员会', type: '新闻稿', summary: '七一主题党日活动新闻稿', status: 'pending', createdAt: '2026-07-25' },
-  { id: 'pt2', source: '副支书', type: '推送排版', summary: '发展对象公示推送排版', status: 'in_progress', createdAt: '2026-07-24' },
-  { id: 'pt3', source: '支部委员会', type: '素材归档', summary: '上半年活动照片归档整理', status: 'in_progress', createdAt: '2026-07-22' },
-  { id: 'pt4', source: '组织委员', type: '周报报送', summary: '第30周党建工作周报', status: 'submitted', createdAt: '2026-07-21' },
-  { id: 'pt5', source: '支部委员会', type: '新闻稿', summary: '预备党员转正大会新闻稿', status: 'pending', createdAt: '2026-07-20' },
-  { id: 'pt6', source: '副支书', type: '推送排版', summary: '组织生活会预告推送', status: 'pending', createdAt: '2026-07-19' },
-  { id: 'pt7', source: '支部委员会', type: '素材归档', summary: '入党积极分子培训资料归档', status: 'submitted', createdAt: '2026-07-18' },
-  { id: 'pt8', source: '组织委员', type: '周报报送', summary: '第29周党建工作周报', status: 'submitted', createdAt: '2026-07-14' },
-];
+// 2026-09-28 批次 234：原在此的两个「逐字复刻」常量（宣传周报 `SEED_WEEKLY_REPORTS` / 宣传任务 `SEED_PROP_TASKS`）
+//   **已删** —— 二者与 `docs/src/mock/prop.js` 字面量完全重复，现改由该单一源同源 import（见 `seedDatabase()` 内）。
 
 /**
  * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。

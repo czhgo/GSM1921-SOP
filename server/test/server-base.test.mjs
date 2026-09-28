@@ -13,7 +13,7 @@
 //   故把它放在**最后**——不让它污染前面几条对列表的断言；`db` 用自己的内存库，与共享服务无耦合。
 //   ⚠ 顺手消除一处**变量遮蔽**：原 `snapshot.test.js` 在该用例内写 `const after = ...`，**遮蔽了 node:test
 //   的 `after`**——单文件时无害，合并后是陷阱，故改名 `afterList`（**判据不变**）。
-//   **引用链同步**：`server/package.json::test:fast`（五处 → 本文件一处）· `server/routes/resources.js:414`
+//   **引用链同步**：`server/package.json::test:fast`（五处 → 本文件一处）· `server/routes/resources/index.js:274`
 //   注释里的「snapshot.test.js 等直连用例」（五件未被 README / §0.2 / 其他守卫逐条列举，故只此两处）。
 //   **守的是什么**：api 形态（真服务端 + SQLite）的**底座**——写侧权威、读侧直取，全部不依赖浏览器。
 

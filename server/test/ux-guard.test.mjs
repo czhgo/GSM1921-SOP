@@ -167,6 +167,6 @@ test('⑤ 思想汇报系统通知 authorize 按服务端表复算（不采信�
   assert.match(src, /row\.personId === actor\.id/, 'thought-report-submitted 未校验提交人本人');
   const dbSrc = readFileSync(join(ROOT, 'server/db.js'), 'utf8');
   assert.match(dbSrc, /'thought_reports'/, 'server/db.js 缺 thought_reports 表');
-  const resources = readFileSync(join(ROOT, 'server/routes/resources.js'), 'utf8');
-  assert.match(resources, /thoughtReports: 'thought_reports'/, 'resources.js 缺 thoughtReports → thought_reports 映射');
+  const resources = readFileSync(join(ROOT, 'server/routes/resources/store.js'), 'utf8');
+  assert.match(resources, /thoughtReports: 'thought_reports'/, 'store.js 缺 thoughtReports → thought_reports 映射');
 });

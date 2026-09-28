@@ -58,6 +58,13 @@
 //   ⇒ 加严后当场抓出 **3 条硬红**（R2 收紧 1 条 + R6(a) 2 条），**均在 `README-server.md`**（本批授权面）
 //      ⇒ 已就地改准（`write-tab.js:1048,1050 → 1050,1052` · `archive-tab.js:873-892 → 920-987` ·
 //      `vote-config.js:54-67` 补锚 `resolveVoterIds`）；改后本守卫 R1–R6 全绿。
+// 批次 234（2026-09-28）后续说明：`server/routes/resources.js`（1301 行单文件）按内聚切分为
+//   `server/routes/resources/` 六件（`index.js` / `gates.js` / `approval-gates.js` / `snapshot-versions.js` /
+//   `store.js` / `semantic-routes.js`）⇒ README-server.md 里指向它的引用**必须逐条改签到具体文件**。
+//   其中原本靠**短式引用**（`:NNN` 承前一个完整引用的文件）的地方，一旦同一行内的多条短式引用落到
+//   **不同**新文件（如一行里既引 `index.js` 又引 `gates.js`），短式即无从表达 ⇒ 一律改写为**全式**。
+//   实测：短式由 45 条降到 **34** 条（全式相应增加，**引用总数基线未变**）；R1–R3 改后全绿，R6 亦未新增。
+//   ⇒ 本条只下调 R5 的**短式**下限（40 → 30，留余量），其余三条基线一字未动。
 // 运行：`node --test server/test/doc-line-ref.test.mjs`（纯 node，无浏览器 / 无服务依赖）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -302,7 +309,7 @@ test('R5 非空转：引用总数 / 被引文件数 / 带锚点引用数均有�
   assert.ok(FILES.length >= 55, `只解析到 ${FILES.length} 个被引文件（基线 55：批次 107 实测 62）：解析口径被改坏`);
   assert.ok(ANCHORED.length >= 30, `带锚点的引用只剩 ${ANCHORED.length} 条（基线 30：批次 107 实测 36）：二级判据在缩水`);
   const shortN = REFS.filter((r) => r.kind === '短式').length;
-  assert.ok(shortN >= 40, `短式引用只剩 ${shortN} 条（基线 40：批次 107 实测 45）：短式解析被改坏（短式最容易被漏）`);
+  assert.ok(shortN >= 30, `短式引用只剩 ${shortN} 条（基线 30：批次 107 实测 45、批次 234 资源切分后实测 34——同行的短式因落到不同新文件而改写为全式）：短式解析被改坏（短式最容易被漏）`);
 });
 
 // ── R6 语义漂移防线（2026-09-22 批次 147 新增）────────────────────────────────

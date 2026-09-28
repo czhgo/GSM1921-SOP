@@ -176,7 +176,7 @@ test('S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮�
 
 test('S5 数据五数：文档声明与代码实测一致（分口径，严禁互相代入）', () => {
   const dbSrc = read(join(ROOT, 'server', 'db.js'));
-  const resSrc = read(join(ROOT, 'server', 'routes', 'resources.js'));
+  const resSrc = read(join(ROOT, 'server', 'routes', 'resources', 'store.js'));
   const daSrc = read(join(SRC, 'core', 'data-adapter.js'));
   const domSrc = read(join(SRC, 'core', 'domain.js'));
 
@@ -567,7 +567,10 @@ const README_SERVER = join(ROOT, 'README-server.md');
 const AGENDA_FORM = join(SRC, 'entries', 'tabs', 'secretary', 'agenda-form.js');
 // 2026-09-28（G2 残余）：独立页入口已按判据分入 entries/pages/（settings 属独立页）
 const SETTINGS_ENTRY = join(SRC, 'entries', 'pages', 'settings-entry.js');
-const RESOURCES_ROUTE = join(ROOT, 'server', 'routes', 'resources.js');
+// 2026-09-28 批次 234：资源路由按内聚切分为 `server/routes/resources/` 目录 ——
+// 通用 CRUD 声明循环在 index.js（装配），资源名映射在 store.js（表访问原语）。
+const RESOURCES_ROUTE = join(ROOT, 'server', 'routes', 'resources', 'index.js');
+const RESOURCES_STORE = join(ROOT, 'server', 'routes', 'resources', 'store.js');
 
 /** 取「第一条命中锚点」的那一行；取不到给空串 */
 const lineWith = (text, re) => text.split(/\r?\n/).find((l) => re.test(l)) || '';
@@ -721,7 +724,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   const declAll = (routeSrc.match(/\brouter\.(get|post|patch|delete|put)\s*\(/g) || []).length;
   const declLoop = (read(RESOURCES_ROUTE).match(/router\.(get|post|patch|delete|put)\(`\/\$\{name\}/g) || []).length;
   const declApp = (read(join(ROOT, 'server', 'app.js')).match(/\bapp\.(get|post|patch|delete|put)\s*\(/g) || []).length;
-  const resNames = (read(RESOURCES_ROUTE).match(/const RESOURCE_TABLES = \{([\s\S]*?)\n\};/)[1].match(/^\s{2}(\w+):/gm) || []).length;
+  const resNames = (read(RESOURCES_STORE).match(/const RESOURCE_TABLES = \{([\s\S]*?)\n\};/)[1].match(/^\s{2}(\w+):/gm) || []).length;
   const routeExplicit = declAll - declLoop + declApp;
   const routeExpanded = resNames + (resNames - 1) + resNames + resNames;
   const routeLine = lineWith(rs, /展开后总路由数/);

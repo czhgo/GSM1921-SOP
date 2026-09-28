@@ -184,9 +184,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1062, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 166, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 167, field: '日期范围', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写日期范围' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 207, field: '周报内容', flow: 'prop/周报报送', machine: true, msg: '请填写周报内容' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 163, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 164, field: '日期范围', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写日期范围' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 204, field: '周报内容', flow: 'prop/周报报送', machine: true, msg: '请填写周报内容' },
   // 批次 47-M（2026-09-16）：**宣传委员台 · 档案归档 · 上传宣传材料浮窗**——一条流程覆盖该浮窗**两处**校验点。
   // ⚠ 台账原挂 machine:false 的两条理由都被真机证伪，且**证伪方式与 47-K「制度参考写入」完全同款**：
   //   ①「文件（文件选择器不可脚本设值）」——**把手段当成了结论**：该支只需文件**为空**即报，

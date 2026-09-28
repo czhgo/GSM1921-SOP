@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initDb } from './db.js';
 import { createAuthRouter } from './routes/auth.js';
-import { createResourcesRouter } from './routes/resources.js';
+import { createResourcesRouter } from './routes/resources/index.js';
 import { createUploadsRouter } from './routes/uploads.js';
 import { createReportRouter } from './routes/report.js';
 import { createMemberRouter } from './routes/member.js';
