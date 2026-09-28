@@ -648,8 +648,8 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 项 | 内容 | 代价 |
 |---|---|---|
 | R4 | 支委会页分步化（1–6 步）＋ 待确认口径折叠与流程分离 ＋ 场次选择改卡列 | 改 `party-committee-meeting-entry.js` 大段（`:477-488` 组装）；**真机复核 5 段 y 序**；`?v=` bump |
-| R5 | 「支部分工」改分工工具折叠；（写）与（读）分区 | 改 `secretary/work-map-tab.js`；`work-map.test.mjs` 复跑 |
-| R6 | 党委台「支部监控台账」字段分层（首屏/折叠） | 改 `party-committee/monitor-tab.js`；`party-committee.test.mjs` 复跑 |
+| R5 | 「支部分工」改分工工具折叠；（写）与（读）分区 | 改 `secretary/work-map-tab.js`；`work-map.test.mjs` 复跑。**✅ 已实施（2026-09-28 批次 220）**：读侧（平铺模块 / 按人 / 按项目）留首屏，写侧（分工调整工具：发起议题 / 跟踪 / 采纳）默认折叠（`_toolOpen`，体例照 `group-progress-tab.js::_progressOpen`）；展开后功能一字不减；`agenda-flow` A5 同批加一步「展开折叠卡」（判据未变） |
+| R6 | 党委台「支部监控台账」字段分层（首屏/折叠） | 改 `party-committee/monitor-tab.js`；`party-committee.test.mjs` 复跑。**✅ 已实施（2026-09-28 批次 220）**：首屏留「支部名 + 类别/现任支书 + 状态 + 成员规模 / 在册党员 / 滞留党员（规模与异常）」，明细（支书任期 / 发展阶段分布 / 思想汇报 / 组织生活类型 / 近期活动）折叠进 `<details>`（体例照 `makeup-tab.js`）；`party-committee.test.mjs` 用 `textContent` 判据不受影响、一字未改 |
 | R7 | 「党小组与活动」进展区折叠下沉 | ⚠ **改 `secretary/group-progress-tab.js` 会顶偏 `server/test/form-loop-sweep` 对 `:726` 的取证**（见该文件头 `:809`）⇒ **必须同批改准该断言** |
 
 **③ 高风险（拆分 tab / 迁移功能块 / 新建 tab）**
@@ -657,9 +657,9 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 | 项 | 内容 | 代价 |
 |---|---|---|
 | R8 | **支委身份配置从「党小组与活动」迁出 → 「支委会」**（裁定①） | 牵动：`secretary-workspace.js` 注册与 label（`:59`/`:64`）· `assign-tab.js::mountCommissionerAssign`（`:137`）落点 · `group-progress-tab.js` 删宿主 `#gp-commissioner-host`（`:162-164`/`:169`）· 制度文本 help 定点（`docs/help.html` `card-copy-*`）· `form-loop-registry` / `form-loop-sweep` 行号 · `tab-nav.test.mjs` / `module-load.test.mjs` · `doc-consistency::S1/S2`（help.html tab 表）· `?v=` bump · 真机全流程 |
-| R9 | 「支委会会议」tab 改名「支委会」并承载机构构成（R8 若选 A 案，此项与之合并） | 同 R8 |
-| R10 | 组织台「成员流动」从「成员名册」拆出新 tab | 牵动 `org-workspace.js` 注册（`:46`）· `roster-tab.js` 拆分 · help.html tab 表 · `S1/S2` · 真机 |
-| R11 | 纪检台「补课」从「考勤管理」拆出 | 牵动 `disc-workspace.js`（`:39`）· `makeup-tab.js` 深度链 `?tab=makeup` 兼容 · `S1/S2` |
+| R9 | 「支委会会议」tab 改名「支委会」并承载机构构成（R8 若选 A 案，此项与之合并） | 同 R8。**✅ 已实施（随 R8 A 案于 2026-09-27 批次 218 落地）——本项无剩余独立改名项**：`secretary-workspace.js:68` 注册 `{ id: 'committee-meeting', label: '支委会' }`（原「支委会会议」），承接「机构构成」（`assign-tab.js::mountCommissionerAssign`）；帮助页 §2.1 已列「支委会」行（§四.4 #6「全局概况」保留不改名、#3/#4/#5 副标另由 R2 走「页内导语」覆盖） |
+| R10 | 组织台「成员流动」从「成员名册」拆出新 tab | 牵动 `org-workspace.js` 注册（`:46`）· `roster-tab.js` 拆分 · help.html tab 表 · `S1/S2` · 真机。**✅ 已实施（2026-09-28 批次 220）**：新建 `entries/tabs/org/member-flow-tab.js`（承原「成员流动」面板全部功能，行内「移出」仍留名册）；`org-workspace.js` 在 `roster` 后注册 `{ id: 'member-flow', label: '成员流动' }`（11 → 12）；`docs/help.html` §0.1/§2.2 计数改 12 并加「成员流动」行；`page-sweep` 普查 tab 数基线同步 |
+| R11 | 纪检台「补课」从「考勤管理」拆出 | 牵动 `disc-workspace.js`（`:39`）· `makeup-tab.js` 深度链 `?tab=makeup` 兼容 · `S1/S2`。**⛔ 判定「不拆」· 只登记（2026-09-28 批次 220）**：母本 `content/02_institution/sop/纪检委员工作流程指南.md:26` 原文「**补课**：补课制度执行（**并入「考勤管理」一级分段**）」、`支委与党小组定人定责定岗说明.md:72`「考勤管理（**含补课分段**）」⇒ **补课在制度上就写作「考勤管理」的一环**（`§四.1.5` 该 tab 判定亦为「混装（已有分段缓解）⇒ 保留」）⇒ 不为拆而拆，不改代码 |
 
 > **排序原则**：改动面 × 风险 × 依赖 —— 先做零风险文案（R1–R3，无归属变动），再做中风险顺序/视图（R4–R7），最后做高风险拆分/迁移（R8–R11，涉及 tab 注册、help 表、守卫行号、深链）。
 

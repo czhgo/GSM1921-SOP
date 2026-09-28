@@ -2,6 +2,10 @@
 // 党委工作台 Tab：支部监控台账（P1 党委后台，2026-09-02）
 // 党委见全院：各支部运行概览（支部名/支书/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
 // C⑤（2026-09-10 支书裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
+// R6（2026-09-28 批次 220，MODULE_UI_DESIGN §四.1.8）：**字段分层**——单卡原载 8+ 字段属「超载」，
+//   首屏只留「监控一眼要看」（支部名 + 类别/现任支书 + 状态 + 成员规模 / 在册党员 / 滞留党员 三个规模与异常数），
+//   「点进去才看」的明细（支书任期 / 发展阶段分布 / 思想汇报 / 组织生活类型 / 近期活动）折叠进 `<details>`。
+//   折叠体例＝本仓既有 `<details>`（同 makeup-tab「补课范围与归档口径」）；折叠只分层、不减字段与功能。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
 import { mockDB } from '../../../core/domain.js?v=20260924a';
@@ -72,11 +76,10 @@ export async function renderContent(ctx) {
             <div>
               <p class="font-title-cn text-base font-bold text-gray-800">${b.config?.headerTitle || b.name}</p>
               <p class="text-xs text-gray-500 mt-0.5">${b.type || '支部'} · 现任支书：${secretaryName}</p>
-              <p class="text-xs text-gray-500 mt-0.5">${termText}</p>
             </div>
             <span class="text-xs px-2 py-0.5 rounded-full ${b.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'}">${b.status === 'active' ? '运行中' : b.status}</span>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div class="rounded-lg bg-gray-50 p-3">
               <p class="text-xs text-gray-500">成员规模</p>
               <p class="text-xl font-bold text-gray-800 mt-1">${members}<span class="text-xs font-normal text-gray-500"> 人</span></p>
@@ -89,26 +92,34 @@ export async function renderContent(ctx) {
               <p class="text-xs text-gray-500">滞留党员（应到剔除）</p>
               <p class="text-xl font-bold text-gray-800 mt-1">${detained}<span class="text-xs font-normal text-gray-500"> 人</span></p>
             </div>
-            <div class="rounded-lg bg-gray-50 p-3 col-span-1">
-              <p class="text-xs text-gray-500">发展阶段分布</p>
-              <p class="text-xs text-gray-600 mt-1.5 leading-5">${stageRows.map(r => `${r.s} ${r.n}`).join(' · ') || '—'}</p>
-            </div>
-            <div class="rounded-lg bg-gray-50 p-3">
-              <p class="text-xs text-gray-500">思想汇报</p>
-              <p class="text-xl font-bold text-gray-800 mt-1">${(mockDB.thoughtReports || []).filter(t => !t.branchId || t.branchId === b.id).length}</p>
-            </div>
-            <div class="rounded-lg bg-gray-50 p-3">
-              <p class="text-xs text-gray-500">组织生活类型</p>
-              <p class="text-xs text-gray-600 mt-1.5 leading-5">${Object.entries(typeCounts).map(([t, n]) => `${t} ${n}`).join(' · ') || '—'}</p>
-            </div>
           </div>
-          ${recent.length ? `
-          <div>
-            <p class="text-xs text-gray-500 mb-2">近期活动</p>
-            <div class="flex flex-wrap gap-2">
-              ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
+          <details class="mt-3">
+            <summary class="text-xs text-gray-500 cursor-pointer select-none">更多台账明细（支书任期 / 发展阶段 / 思想汇报 / 组织生活类型 / 近期活动）▾</summary>
+            <div class="mt-2 space-y-3">
+              <p class="text-xs text-gray-500">${termText}</p>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div class="rounded-lg bg-gray-50 p-3 col-span-1">
+                  <p class="text-xs text-gray-500">发展阶段分布</p>
+                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${stageRows.map(r => `${r.s} ${r.n}`).join(' · ') || '—'}</p>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                  <p class="text-xs text-gray-500">思想汇报</p>
+                  <p class="text-xl font-bold text-gray-800 mt-1">${(mockDB.thoughtReports || []).filter(t => !t.branchId || t.branchId === b.id).length}</p>
+                </div>
+                <div class="rounded-lg bg-gray-50 p-3">
+                  <p class="text-xs text-gray-500">组织生活类型</p>
+                  <p class="text-xs text-gray-600 mt-1.5 leading-5">${Object.entries(typeCounts).map(([t, n]) => `${t} ${n}`).join(' · ') || '—'}</p>
+                </div>
+              </div>
+              ${recent.length ? `
+              <div>
+                <p class="text-xs text-gray-500 mb-2">近期活动</p>
+                <div class="flex flex-wrap gap-2">
+                  ${recent.map(a => `<a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded px-2 py-1 hover:bg-gray-100 transition-colors" style="text-decoration:none;" title="查看活动详情（只读）">${a.date?.slice(5) || ''} ${a.title}</a>`).join('')}
+                </div>
+              </div>` : ''}
             </div>
-          </div>` : ''}
+          </details>
           <div class="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
             <p class="text-xs text-gray-500">监控只读视图 · 不授予支部内部事务权限</p>
             <button type="button" class="branch-demo-enter btn-accent text-xs px-3 py-1.5 rounded-lg font-medium shrink-0" data-branch-id="${b.id}"

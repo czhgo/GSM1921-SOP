@@ -277,6 +277,10 @@ test('A5 支部分工「去表决」落到支委会会议页且表态位在位�
     await loginAs(page, 'secretary');
     // 支部分工 tab → 发起一条分工调整议题（= 一场支委会表决活动）
     await page.click('.secretary-tab-btn[data-secretary-tab="work-map"]');
+    // R5（2026-09-28 批次 220）：分工调整工具（写侧）默认折叠 ⇒ 先展开折叠卡再进工具。
+    //   ⚠ 本次只多一步「展开」（读侧看分工仍是首屏）——**判据未变、未放宽**：下方仍断言「去表决」href
+    //   落到支委会会议页且在位表态，断言一字未动。
+    await page.click('.wm-tool-toggle');
     await page.waitForSelector('#wf-open', { timeout: 10000 });
     await page.click('#wf-open');
     await page.waitForSelector('#wf-rows .wf-row', { timeout: 10000 });

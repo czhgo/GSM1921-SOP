@@ -291,9 +291,6 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
       '#000'
   ] },
-  'docs/src/entries/tabs/org/roster-tab.js': { c: 2, v: [
-      '#cbd5e1'
-  ] },
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [
       '#67e8f9'
   ] },
@@ -457,7 +454,11 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `#000` 无同名令牌）；`#B91C1C`（＝`--accent-secretary` 角色识别色，与品牌层 `--party-red` 语义不同，按值换会把品牌红错标成②角色识别色）；
 //   `#DC2626`（＝`--primary-600`，与 status 语义**不符** ⇒ 不许按值换；且多处为 `${hex}15`/`color-mix(...)` **函数入参**，换 var() 会坏）；
 //   `#F87171`（深色提亮值，属已登记的 `--acc-*-dark` 元素级派生机制）。
-export const HEX_FILE_BASELINE = 80;
+//   2026-09-28 组织台「成员流动」拆 tab 批（R10：从 `org/roster-tab.js` 拆出 `org/member-flow-tab.js`）：
+//   `#cbd5e1`（2 处，均在流入/流出登记浮窗的 `--acc-text-dark` 内联覆盖里）**随代码整体搬入新文件**
+//   ⇒ 按收基线纪律**删 `org/roster-tab.js` 条目**（该文件 hex 清零）＋ 文件数声明 **80→79**（与实况同值）；
+//   搬移合法性由 `HEX_MOVE_LEDGER` 逐值对照（H5）；全站 distinct 值数不变（167，无新值）。
+export const HEX_FILE_BASELINE = 79;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
@@ -482,7 +483,17 @@ export const HEX_VALUE_BASELINE = 167;
  *
  *  收尾：搬移批次结束、基线按新文件重设后，台账条目**保留**（它是「这次搬移合法」的凭据；删掉它，
  *   历史搬移就无从复核）。 */
-export const HEX_MOVE_LEDGER = [];
+export const HEX_MOVE_LEDGER = [
+  {
+    id: 'org-roster → org-member-flow（R10 成员流动拆 tab）',
+    from: 'docs/src/entries/tabs/org/roster-tab.js',
+    to: ['docs/src/entries/tabs/org/member-flow-tab.js'],
+    values: ['#cbd5e1'],
+    fromValues: ['#cbd5e1'],
+    reason: '2026-09-28 批次 220 · R10：把原「成员名册」tab 内的「成员流动」面板（含流入/流出登记浮窗）'
+      + '整体拆为独立 tab ⇒ 其内联覆盖 `--acc-text-dark:#CBD5E1` 两处随代码搬到新文件；值集不变、未加深色。',
+  },
+];
 
 
 /** 控件小字基线：`文件 → { c: 站点数, sig: { '标签|小字类': 处数 } }`
@@ -575,3 +586,78 @@ export const P_TEXT_TIER_TOTAL_BASELINE = 84;
 export const P_TEXT_TIER_FILE_BASELINE = 28;
 /** 按值台账（只报不判；9/10px 是禁止档，恒为 0） */
 export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 84, 10: 0, 9: 0 };
+
+/** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
+ *
+ *  口径（守卫单一源）：扫 `docs` 下全部 `.css`（排除第三方 `docs/assets/vendor`）＋ `docs` 下 `.html` 页内
+ *  `<style>` 的**类选择器**，与 `docs` 下全部 `.js` 与 `.html` 全量文本做**词边界命中**比对：
+ *  `(?<![A-Za-z0-9_-])类名(?![A-Za-z0-9_-])`（词边界而非裸子串——裸子串会把 `ab-tl-dot` 误当 `tl-dot` 的引用）。
+ *  「零命中且不在 `DYNAMIC_SELECTOR_WHITELIST`」的类 ⇒ **新增死类即红**。
+ *
+ *  ⚠ **词边界也判不了「动态拼接」**（如 `` `ab-edge--${e.type}` ``）：这些类进 `DYNAMIC_SELECTOR_WHITELIST`、
+ *  由人工逐条登记生成处（守卫不自动推断）。
+ *
+ *  本批（2026-09-28）已把审计查出的**零引用类**删除（`styles.css` 65 类 · `about.css` 3 类）；
+ *  余 **1 条**留在台账（见下）——`person-picker.css` 的 `inline-full`：该文件**不在本批授权改动面**
+ *  （授权面＝`styles.css` / `about.css` / `docs/*.html` 页内 `<style>`），按「不许把拿不准的自行删掉」纪律
+ *  **只登记、未删**，待后续批次处置。
+ *  收基线纪律：本台账**只减不增**（删条目）；**不得**为变绿补条目、也**不得**把 `DYNAMIC_SELECTOR_WHITELIST`
+ *  当台账用（动态者是「曾被误判」而非「允许的死码」）。 */
+export const DEAD_SELECTOR_BASELINE = [
+  {
+    name: 'inline-full',
+    reason: '`docs/src/components/person-picker.css:30` 的 `.person-picker-wrapper.inline-full`：经复核**确为零引用**'
+      + '（`person-picker.js:179` 只写 `wrapper.className = "person-picker-wrapper"`，全仓无 `inline-full` 字面量；'
+      + '非动态拼接）。**未删原因**＝该文件不在本批授权改动面（授权面仅 `styles.css` / `about.css` / 页内 `<style>`）'
+      + '——按「拿不准 / 越面者单列报告、不自行删」纪律留台账，待后续批次处置。',
+  },
+];
+
+/** 动态拼接 / 第三方运行时白名单（**只报不判**：这些类在 `docs` 下全部 `.js` 与 `.html` 里「字面零命中」，
+ *  但由**模板字符串拼接**或**第三方库运行时**产生，删了会坏）。
+ *  逐条给「生成处 / 生成方式」；守卫只豁免**这些具名类**，其余零引用一律判红（不放宽任何判红面）。
+ *
+ *  纪律（守卫逐条机检，见 Z3）：① 每条**必须仍是零引用**（若已能字面命中 ⇒ 应删条目：僵尸登记判红）；
+ *  ② 必须**仍存在于 CSS**（否则应删条目）；③ 必须带 ≥20 字理由。 */
+export const DYNAMIC_SELECTOR_WHITELIST = [
+  {
+    name: 'ab-edge--task',
+    reason: '关于页工作流 SVG 连线：`docs/src/entries/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '
+      + '按 `e.type ∈ {task, info, file}` 拼接（`.ab-edge--task` 走此路生成，非游离死类）。',
+  },
+  {
+    name: 'ab-edge--info',
+    reason: '同 `ab-edge--task`：由 `about-entry.js:637` 的 `` ab-edge--${e.type} `` 拼接生成（`info` 档）。',
+  },
+  {
+    name: 'ab-edge--file',
+    reason: '同 `ab-edge--task`：由 `about-entry.js:637` 的 `` ab-edge--${e.type} `` 拼接生成（`file` 档）。',
+  },
+  {
+    name: 'ab-flow-line--task',
+    reason: '关于页镜组流程线：`docs/src/entries/about-entry.js:699` 以模板串 ab-flow-line ab-flow-line--${f.type} '
+      + '按 `f.type ∈ {task, info, file}` 拼接（`.ab-flow-line--task` 走此路生成）。',
+  },
+  {
+    name: 'ab-flow-line--info',
+    reason: '同 `ab-flow-line--task`：由 `about-entry.js:699` 的 `` ab-flow-line--${f.type} `` 拼接生成（`info` 档）。',
+  },
+  {
+    name: 'ab-flow-line--file',
+    reason: '同 `ab-flow-line--task`：由 `about-entry.js:699` 的 `` ab-flow-line--${f.type} `` 拼接生成（`file` 档）。',
+  },
+  {
+    name: 'lenis-smooth',
+    reason: '第三方平滑滚动库 Lenis 在 `html` 上**运行时**追加的状态类（见 `docs/assets/vendor/lenis.min.js`；'
+      + '`docs/src/about.css:32` 消费它改写 `scroll-behavior`）——库产类，源码无字面量，删了会坏。',
+  },
+  {
+    name: 'lenis-stopped',
+    reason: '同 `lenis-smooth`：Lenis 运行时追加在 `html` 上的停止态类（`docs/src/about.css:33` 消费）。',
+  },
+];
+
+/** 规模下限（非空转判据）：低于此值说明抽取口径失效或扫描面被削 */
+export const DEAD_SELECTOR_CSS_FILE_BASELINE = 5;   // styles.css + about.css + person-picker.css + help.html/login.html 页内 style
+export const DEAD_SELECTOR_CLASS_BASELINE = 400;    // 全站 distinct 类选择器（实测 635）
+export const DEAD_SELECTOR_CORPUS_FILE_BASELINE = 120; // docs/**/*.{js,html} 引用比对面文件数（实测远超）

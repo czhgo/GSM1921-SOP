@@ -8,7 +8,7 @@ import { registerCapability } from '../../core/registry.js?v=20260924a';
 import { rolesForPage } from '../../core/constants.js?v=20260924a';
 import { AuthStore } from '../../services/auth.js?v=20260924a';
 
-// 11 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
+// 12 个 tab 清单：render 为懒加载动态 import（相对本模块解析到 entries/tabs/org/）
 // tab 私有状态随模块自持；共享只读配置（accent/taskforce 分类/activities/导航目标）经 ctx 传入。
 registerCapability({
   id: 'org-workspace',
@@ -44,6 +44,11 @@ registerCapability({
     { id: 'taskforce', label: '专班管理', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/org/taskforce-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库=发展观察视图=只读画像，分工不重复建设）
     { id: 'roster', label: '成员名册', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/org/roster-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
+    // 成员流动（2026-09-28 批次 220 · R10：从「成员名册」拆出的独立 tab）——判据＝一 tab 一问：
+    //   名册答「支部在册成员有谁、档案状态如何」；本 tab 答「成员怎么变（流入 / 流出）」——原二者同装
+    //   「成员名册」属两个语义域混装（MODULE_UI_DESIGN.md §四.1.3「成员名册」行判定）。承原「成员流动」面板
+    //   全部功能（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）；行内「移出」仍在名册 tab。
+    { id: 'member-flow', label: '成员流动', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/org/member-flow-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     { id: 'talent', label: '人才库', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/org/talent-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     { id: 'development', label: '发展数据', groupLabel: '我的职责', render: (ctx) => import('../../entries/tabs/org/development-tab.js?v=20260924a').then(m => m.renderContent(ctx)) },
     // 知情查看（支书 2026-09-14 裁定：同质薄壳合并——原「活动查看（只读）」+「专班查看」并入本 tab 分段切换；

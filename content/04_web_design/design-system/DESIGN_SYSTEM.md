@@ -244,7 +244,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 1. **X 做工作台强调**：主按钮、标题装饰条、主要标签、**tab 激活态**均用主体色 X。tab 统一渲染方案即主题色三件套：浅底 `rgba(X,0.10~0.12)` + 边框 `rgba(X,0.30)` + X 文字（`tab-bar.js` 消费调用方 `accentColor`；2026-08-08 三审定稿）。
 2. **品牌金做统一层**：可交互强调卡边框、主题党日、待办行动按钮、通知徽章用党徽金，全站一致、不受 X 制约。
 3. **状态色全局统一**：完成绿 `#10B981` / 提醒琥珀 `#F59E0B` / 告警红 `#EF4444`，所有角色一致。
-4. **暖白底全局统一**：页面底色用暖白 `#FAFAF5`（替代偏冷的 `#F8F9FA`），衬托红金暖色系。**两者分工**：页面（body / 整页外框）底归 `--surface-page`（实读 `docs/src/styles.css` 的 `body { background-color: var(--surface-page) }`）；`--neutral-50 #F8F9FA` **不作页面底色**，只作**局部浅底**——hover 填充（表格行 / 按钮 / 图例）、卡片 active 填充、面板内底（如 `.data-table tbody tr:hover`、`.role-card.active`、`.vote-panel`）。
+4. **暖白底全局统一**：页面底色用暖白 `#FAFAF5`（替代偏冷的 `#F8F9FA`），衬托红金暖色系。**两者分工**：页面（body / 整页外框）底归 `--surface-page`（实读 `docs/src/styles.css` 的 `body { background-color: var(--surface-page) }`）；`--neutral-50 #F8F9FA` **不作页面底色**，只作**局部浅底**——hover 填充（表格行 / 按钮 / 图例）、卡片 active 填充、面板内底（如 `.data-table tbody tr:hover`、`.vote-panel`）。
 5. **灰只做中性**：灰度 `#6B7280` 降级为纯中性辅助——仅文字层级、边框、分割线，不再充当任何角色的身份色。
 
 **打样实例（普通参与者）**：
@@ -457,9 +457,11 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 | 用途 | CSS Font Family | 中文字体 | 英文/数字 | Class |
 |------|----------------|---------|----------|-------|
-| 正文/UI | `'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif` | 思源黑体 | 系统无衬线 | `.font-sans-primary` |
+| 正文/UI | `'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif` | 思源黑体 | 系统无衬线 | 已废止¹（原 `.font-sans-primary`） |
 | 标题/强调/标签/按钮 | `'STZhongsong', '华文中宋', 'Noto Serif SC', 'STSong', 'SimSun', serif` | 华文中宋 → 思源宋体 → 宋体 | Times New Roman | `.font-title-cn` |
-| 英文标题 | `'Times New Roman', 'Georgia', serif` | — | Times New Roman | `.font-title-en` |
+| 英文标题 | `'Times New Roman', 'Georgia', serif` | — | Times New Roman | 已废止¹（原 `.font-title-en`） |
+
+> ¹ **2026-09-28 死码清理批**：`.font-sans-primary` / `.font-title-en`（及 `.text-overline` 等）为**零引用死码**，已从 `styles.css` 删除。本表**字体族本身仍有效**——正文/UI 由 `body` 默认字体承担，英文标题族按需内联 `font-family`；「标题/强调/标签/按钮」仍由 `.font-title-cn` 承担。
 
 **字体使用规则**：
 
@@ -468,9 +470,9 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 页面主标题（h1） | `.font-title-cn` | 华文中宋，weight 800 |
 | 区块标题（h2/h3） | `.font-title-cn` | 华文中宋，weight 700-800 |
 | 表单标签（label） | 衬线字体（CSS规则） | 工作台内所有 label 自动应用 |
-| 按钮（.btn-primary） | 衬线字体 | 写入活动等关键操作按钮 |
+| 按钮 | 衬线字体 | 写入活动等关键操作按钮 |
 | 侧边栏标签 | 衬线字体 | module-tab span 自动应用 |
-| 正文/辅助文字 | `.font-sans-primary` | 思源黑体，保持可读性 |
+| 正文/辅助文字 | 已废止¹（原 `.font-sans-primary`） | 思源黑体，保持可读性 |
 | 输入框内文字 | 系统默认 | 跟随 body 字体 |
 
 **禁止使用黑体（Microsoft YaHei/Heiti SC）作为标题字体**。标题必须使用衬线字体（华文中宋/宋体系列）。
@@ -479,14 +481,16 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 | 层级 | Class | Font Size | Line Height | Font Weight | 用途 |
 |------|-------|-----------|-------------|-------------|------|
-| H1 | `.text-h1` | `1.5rem` (24px) | `1.4` | `800` | 页面主标题 |
-| H2 | `.text-h2` | `1.25rem` (20px) | `1.4` | `700` | 区块标题 |
-| H3 | `.text-h3` | `1.125rem` (18px) | `1.5` | `600` | 卡片标题 |
-| Body-L | `.text-body-lg` | `1rem` (16px) | `1.6` | `400` | 正文大 |
-| Body | `.text-body` | `0.875rem` (14px) | `1.6` | `400` | 正文标准 |
+| H1 | 已废止²（原 `.text-h1`） | `1.5rem` (24px) | `1.4` | `800` | 页面主标题 |
+| H2 | 已废止²（原 `.text-h2`） | `1.25rem` (20px) | `1.4` | `700` | 区块标题 |
+| H3 | 已废止²（原 `.text-h3`） | `1.125rem` (18px) | `1.5` | `600` | 卡片标题 |
+| Body-L | 已废止²（原 `.text-body-lg`） | `1rem` (16px) | `1.6` | `400` | 正文大 |
+| Body | 已废止²（原 `.text-body`） | `0.875rem` (14px) | `1.6` | `400` | 正文标准 |
 | Body-S | `.text-body-sm` | `0.8125rem` (13px) | `1.5` | `400` | 辅助说明 |
-| Caption | `.text-caption` | `0.75rem` (12px) | `1.4` | `400` | 标签/注释 |
-| Overline | `.text-overline` | `0.6875rem` (11px) | `1.3` | `600` | 分类标签 |
+| Caption | 已废止²（原 `.text-caption`） | `0.75rem` (12px) | `1.4` | `400` | 标签/注释 |
+| Overline | 已废止²（原 `.text-overline`） | `0.6875rem` (11px) | `1.3` | `600` | 分类标签 |
+
+> ² **2026-09-28 死码清理批**：`.text-h1` / `.text-h2` / `.text-h3` / `.text-body` / `.text-body-lg` / `.text-caption` / `.text-overline` 为**零引用死码**（`docs/**` 全量字符串零命中），已从 `styles.css` 删除（含 `html.font-size-large` 覆盖行）。**本表档位值（H1…Overline）一字未改、继续有效**；这些档位现由 Tailwind 档位类承担（`text-2xl` 24px · `text-xl` 20px · `text-lg` 18px · `text-base` 16px · `text-sm` 14px · `text-xs` 12px · `text-[11px]` 11px），**档位 → 角色**的现行映射见 §3.2.2 与 §3.3.1，`.text-body-sm`（13px）仍为现役类。
 
 #### 3.2.1 非控件小字口径（2026-09-26 立 · 据本表推导 · 可判）
 
@@ -496,7 +500,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 |----|------|------|
 | `text-[9px]` | **一律禁止**（任意落点） | 本表**表内无此档** |
 | `text-[10px]` | **一律禁止**（任意落点） | 本表**表内无此档** |
-| `text-[11px]` | **非控件处合规**（＝本表 `Overline` 档；现库存量多用 Tailwind 任意值类 `text-[11px]`，与 `.text-overline` 同档）；**控件处**仍按 §4.3 ②④ 判红 | 本表 `Overline` 行 |
+| `text-[11px]` | **非控件处合规**（＝本表 `Overline` 档；现库存量多用 Tailwind 任意值类 `text-[11px]`）；**控件处**仍按 §4.3 ②④ 判红 | 本表 `Overline` 行 |
 
 > **为何这是「据既有事实」而非自创更严**（逐字引据）：
 > ① 本小节上表**最低档**就是 `Overline` = `0.6875rem`（**11px**）那一行——表中**不存在** 10px / 9px 档；
@@ -521,7 +525,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 | 角色（同层必须同档） | 档（px） | 代表类 | 行高（计算后实值） | 字重 |
 |---|---|---|---|---|
-| 页面主标题 / 区块标题 | 24 / 20 | `.text-h1` / `.text-h2` | 1.4 | 800 / 700 |
+| 页面主标题 / 区块标题 | 24 / 20 | `text-2xl` / `text-xl` | 1.4 | 800 / 700 |
 | 页面级主卡标题（`card … p-5`） | 16 | `text-base` | 1.5（24px） | 600 |
 | **工作台内嵌面板标题**（`card … p-4`） | **14** | `text-sm` | 1.25rem（20px） | 700 |
 | 卡片内小分组标题 | 12 | `text-xs font-bold` | 1rem（16px） | 700 |
@@ -529,7 +533,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 附注 / meta 行 / 徽标文字 / 空态 / 提示条 | 12 | `text-xs` | 1rem（16px） | 400 |
 | 列表项标题 / 人名 / 行首 | 14 | `text-sm` | 1.25rem（20px） | 500 |
 | 正文 / 表格表头与数据格 / 表单控件 | 13 | `.input-flat` / `.data-table` | 表格 1.25rem、控件 1rem | 400 |
-| **分类标签**（侧栏组名 / 图例小标） | 11 | `text-[11px]` / `.text-overline` | 1.5（16.5px） | 600 |
+| **分类标签**（侧栏组名 / 图例小标） | 11 | `text-[11px]` | 1.5（16.5px） | 600 |
 
 **为何是这几档（判据＝从既有实现归纳，不新造）**：上表 8 档即全站真机实测**正文侧**实际在用的档位集合
 （11 / 12 / 13 / 14 / 16 / 18 / 20 / 24），每一档都有 §3.2 表内条目对得上——
@@ -540,7 +544,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 **行高规则（「行距宽窄」的根因与判据）**：
 
 1. **档位类必须自带行高**：正文/导语只用**携行高的档位类**（`text-xs`→16px、`text-sm`→20px、
-   `.text-body*`→1.5 / 1.6）；**禁止用不携行高的任意值类承担正文**——`text-[11px]` / `text-[13px]` 这类
+   `.text-body-sm`→1.5）；**禁止用不携行高的任意值类承担正文**——`text-[11px]` / `text-[13px]` 这类
    只改 font-size、**行高仍继承**，实测继承值为 **1.5**（见下条）⇒ 11px 段落行高 **16.5px**，
    **反而比 12px 段落的 16px 更高**，视觉上就是「小字行距更宽」。
 2. **基准行高的实测订正**：实测 `body` 计算行高 = **1.5**，**不是** `styles.css` 写的 `--leading-relaxed`(1.6)——
@@ -548,7 +552,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
    `styles.css` 的 body 声明。⇒ 上表「行高」一律给**计算后实值**；任何按 1.6 推算的档位都与生产不符。
 
 **Overline 形态判据（可机检的一半）**：`text-[11px]` 是 **Overline（标签）档**，只许出现在**标签**上
-（同标签 class 同时具备 600 字重、或 `tracking-*` / `uppercase` 之一，或即 `.text-overline`）；
+（同标签 class 同时具备 600 字重、或 `tracking-*` / `uppercase` 之一）；
 **`<p>` 段落（说明 / 导语）不得用 11px**（应取 Caption 12px）。守卫：`server/test/text-tier-guard.test.mjs`
 （判红面＝`<p>` 上的 9/10/11px；`<span>`/`<div>` 上 11px 形态可能合法、只计进度）。
 
@@ -577,13 +581,8 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 
 ```css
 /* 中文正文 */
-.text-body, .text-body-sm, .text-body-lg {
+.text-body-sm {
   letter-spacing: normal;
-}
-
-/* 英文短文本/标题 */
-.font-title-en, .text-overline {
-  letter-spacing: 0.02em;
 }
 
 /* 段落间距 */
@@ -592,6 +591,8 @@ p + p { margin-top: 0.75em; }
 /* 列表间距 */
 li + li { margin-top: 0.25em; }
 ```
+
+> **2026-09-28 死码清理批**：原示例中的 `.text-body` / `.text-body-lg` / `.font-title-en` / `.text-overline` 为**零引用死码**，已从 `styles.css` 删除，故本示例同步删去相应两行（中文正文只剩现役 `.text-body-sm`；英文短文本/标题的字距改由 `tracking-*` 工具类承担）。
 
 ---
 
@@ -632,7 +633,7 @@ li + li { margin-top: 0.25em; }
 | 悬停 | `border-color: var(--primary-300)`，不移位 |
 | 内边距 | `padding: 20px`（标准档），`padding: 16px`（紧凑档） |
 
-> CSS 实现见 `docs/src/styles.css`（`.card` / `.card-flat` 的圆角均为 `var(--radius-md)` = 12px）。禁止：`backdrop-filter`、`box-shadow`、`transform`。
+> CSS 实现见 `docs/src/styles.css`（`.card` 的圆角为 `var(--radius-md)` = 12px）。禁止：`backdrop-filter`、`box-shadow`、`transform`。
 > **内边距两档适用**：**标准档 20px** 用于页面级主卡片；**紧凑档 16px** 用于页内从属容器。局部例外见 §4.3「工作台内嵌面板」与 §4.9「日历图例容器」。
 > **结构性例外（不加卡片内边距；2026-09-24 按实现口径登记，三类之外不得再出现第四种取值）**：① **卡内自带分区**（看板列卡 / 折叠卡：卡内区头 `px-4 py-3` + 内容块各管内边距）用 `p-0` + `overflow-hidden`；② **纯容器卡**（弹窗卡 / 折叠容器：子块各管内边距）不挂内边距类；③ **单行条卡**（骨架条 / 待办折叠条 / 交接条）用 `px-4 py-2.5`，使条高与同行 38px 控件档对齐。
 > **越档值收敛方向**：`p-6`(24px) / `p-8`(32px) → 标准档 `p-5`(20px)；`p-3`(12px) / `p-3.5`(14px) → 紧凑档 `p-4`(16px)（即「越档值归到最近档」，禁止为凑数把已属两档的 `p-4`/`p-5` 再压小）。
@@ -859,7 +860,7 @@ li + li { margin-top: 0.25em; }
 
 保留左侧 4px 色条作为角色识别元素。
 
-> CSS 实现见 `docs/src/styles.css` 的 `.role-card` 和 `.role-card::before` 选择器。
+> CSS 实现见 `docs/src/styles.css` 的 `.role-card` 和 `.role-card::before` 选择器——**已废止（2026-09-28 死码清理批）**：该族（`.role-card` / `.role-card-left` / `.role-card-content` / `.role-card-title` / `.role-card-desc` / `.role-cards-container` / `.role-icon` / `.participant-card` / `.leader-card` / `.commissioner-card` / `.organizer-card` / `.deep-card` / `.archived-card`）为**零引用死码**，已全部删除，**无现役落点**；角色识别色条仍按 §4.2「边线语义」用 4px 宽（具体承载类由各页按现行实现选）。
 
 ### 4.8 支委嵌套子视图（Commissioner Nested View）
 
@@ -1188,7 +1189,7 @@ li + li { margin-top: 0.25em; }
 
 | 元素类 | 圆角 | 边框 | 阴影 |
 |---|---|---|---|
-| 卡片 / 面板（`.card` / `.card-flat`） | `--radius-md` 12px | `1px solid --neutral-200` | **无** |
+| 卡片 / 面板（`.card`） | `--radius-md` 12px | `1px solid --neutral-200` | **无** |
 | 弹窗 / 浮层容器 | `--radius-lg` 16px | 1px `--neutral-200`（或语义色） | `--shadow-dropdown`（**平地唯一允许的阴影去处**） |
 | 控件（输入框 / 下拉触发器 / 筛选钮）· 按钮 · **内嵌行块**（卡片内小卡 / 列表行块） | `--radius-sm` 8px | 控件 / 按钮 1px `--neutral-200`（或语义色）；**内嵌行块无边框**（§4.2「列表项白底原则」） | 无 |
 | 徽标 / 胶囊 / 圆点 / 头像 | `rounded-full` | 视语义（状态徽标可带 1px 同色系） | 无 |
@@ -1206,7 +1207,7 @@ li + li { margin-top: 0.25em; }
 2. **阴影只归浮层**：§4.1「装饰性禁令：禁止 `box-shadow`」＋ §4.2「卡片阴影 无」＋ §5.3「禁止 box-shadow
    发光扩散」三处一致 ⇒ **平地（卡片/面板/行块）一律无阴影**，`box-shadow` 全站只留给**浮层**
    （`--shadow-dropdown`、tooltip、focus 环）。此前 `.card` 带 5% 阴影、而同页「白底+边框」的自定义卡
-   无阴影 ⇒ 两种质地并存（＝「方硬 / 圆软」）⇒ 本批把 `.card`/`.card-flat` 收敛为本表第一行。
+   无阴影 ⇒ 两种质地并存（＝「方硬 / 圆软」）⇒ 本批把 `.card` 收敛为本表第一行。
 3. **§4.16「卡片 hover 渐入阴影」条款废止、适用范围限定为浮层**——它与 §4.1/§4.2/§5.3 直接冲突，且
    §4.2 硬性规则 4 明写「纯展示卡不加 hover 伪装」⇒ 平地卡片不得用 `box-shadow` 做 hover 反馈；
    `.card:hover` 按 §4.2 规范表只改 `border-color`（不移位、不加阴影）。
@@ -1311,12 +1312,7 @@ li + li { margin-top: 0.25em; }
     letter-spacing: 0.02em;
   }
 
-  .header-subtitle {
-    display: none;
-  }
-
-  .header-action-btn,
-  .status-pill {
+  .header-action-btn {
     display: none;
   }
 
@@ -1328,18 +1324,10 @@ li + li { margin-top: 0.25em; }
   #sidebar-main.sidebar-open {
     transform: translateX(0);
   }
-
-  .tl-spine {
-    width: 28px;
-  }
-
-  .tl-dot {
-    width: 28px;
-    height: 28px;
-    font-size: 0.65rem;
-  }
 }
 ```
+
+> **2026-09-28 死码清理批**：本示例原含 `.header-subtitle` / `.status-pill` / `.tl-spine` / `.tl-dot`（及其响应式段）——均为**零引用死码**，已随本条从 `styles.css`（含 `@media` 段）删除，故本示例同步删去。
 
 ---
 

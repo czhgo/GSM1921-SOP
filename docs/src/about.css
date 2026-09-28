@@ -182,7 +182,6 @@ html.theme-dark .ab-page-runner {
   align-items: center;
   gap: 10px;
   color: var(--ab-ink-faint);
-  animation: ab-bounce-hint 2.4s ease-in-out infinite;
 }
 .ab-scroll-text {
   font-size: 12px;
@@ -191,11 +190,6 @@ html.theme-dark .ab-page-runner {
 .ab-scroll-arrow {
   color: var(--ab-red);
 }
-@keyframes ab-bounce-hint {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(9px); }
-}
-
 /* ── 章节标题体系（油墨宋） ── */
 .ab-chapter {
   width: 100%;
@@ -273,16 +267,6 @@ html.theme-dark .ab-chapter-eyebrow {
 .ab-chapter--right { text-align: right; }
 .ab-chapter--right .ab-chapter-eyebrow { flex-direction: row-reverse; }
 .ab-chapter--right .ab-chapter-sub { text-align: right; margin-left: auto; }
-/* 工作流章引言（原长 sub 拆分后的收束说明，弱化层级，不抢两行短句主视觉） */
-.ab-exploration-why {
-  font-size: 14px;
-  color: var(--ab-ink-faint);
-  line-height: 1.8;
-  max-width: 640px;
-  margin: -24px 0 clamp(30px, 4.5vh, 48px);
-  text-wrap: pretty;
-}
-
 /* ── Section: 我们如何考察（全员三卡，党建贡献高亮） ── */
 .ab-review-grid {
   display: grid;
@@ -612,10 +596,6 @@ html.theme-dark .ab-chapter-eyebrow {
   stroke-width: 2.0;
   stroke-dasharray: 2 6;
 }
-.ab-edge-arrow {
-  /* fill 由 SVG 属性（终点色）决定，CSS 不覆盖 */
-}
-
 /* 节点：角色着色（fill 由 SVG 属性决定）+ 暖纸白字；weight=2 核心高频节点更大 */
 .ab-node-circle {
   stroke: var(--ab-paper-0);
@@ -769,15 +749,6 @@ html.theme-dark .ab-chapter-eyebrow {
 .ab-dialogue-inner {
   position: relative; /* 让 .ab-dialogue-flow 的 offsetTop 相对本容器（sticky progress 计算依赖） */
   text-align: center;
-}
-.ab-dialogue-coda {
-  font-family: var(--ab-display);
-  font-weight: 400;
-  font-size: clamp(19px, 2.6vw, 26px);
-  color: var(--ab-ink);
-  line-height: 1.8;
-  max-width: 680px;
-  margin: 40px auto 0;
 }
 /* 日出日落舞台（2026-08-13 批判性重构·去轮毂）：
    2026-08-14 支书指令「标题和动画视窗可以同时出现」：flow 改为 sticky 纵向容器——
@@ -1484,13 +1455,6 @@ html.theme-dark .ab-chapter-eyebrow {
   animation-range: entry 0% entry 100%;
 }
 
-/* 8. dialogue coda 入场渐显 */
-.ab-dialogue-coda {
-  animation: ab-rise-in 1s var(--ab-ease) both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 100%;
-}
-
 /* 9. 时间轴展开（替代 gsap.to——class 切换 + CSS transition）：
    初始收起（max-height 0 + opacity 0），.is-expanded 展开
    （基础样式 background/border/padding 等保留在原 .ab-tl-detail 规则处，此处只加收起态） */
@@ -1509,7 +1473,7 @@ html.theme-dark .ab-chapter-eyebrow {
 @media (prefers-reduced-motion: reduce) {
   .ab-hero-title, .ab-hero-subtitle, .ab-hero-rule, .ab-hero-inner, .ab-hero-scroll-hint,
   .ab-chapter-eyebrow, .ab-chapter-title, .ab-chapter-sub,
-  .ab-keyword, .ab-expect-card, .ab-philosophy-opp, .ab-review-card, .ab-dialogue-card, .ab-dialogue-coda,
+  .ab-expect-card, .ab-philosophy-opp, .ab-review-card, .ab-dialogue-card,
   .ab-tl-stage, .ab-tl-row, .ab-scene-svg, .ab-exploration-scene .ab-scene-svg, .ab-chapter {
     animation: none !important;
     opacity: 1 !important;

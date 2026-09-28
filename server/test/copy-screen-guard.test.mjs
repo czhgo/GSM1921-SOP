@@ -124,6 +124,9 @@ export function normalizeBlock(t) {
  * 登记纪律（§4.18.2 C4 原文）：比值 12–20 的屏**须逐屏登记理由**，>20 的屏记「待改造」。
  * ⚠ 本批已清 2 屏（`disc::考勤管理` / `disc::补课管理` 已降至 ≤12、`party-committee::匿名反馈核查` 47.5→31.1，
  *   详见报告 ④），基线按**清理后**实测登记（2026-09-25 两次真机实测数值逐屏一致 ⇒ 快照稳定）。
+ * 2026-09-28 批次 220（R6：党委台「支部监控台账」字段分层）：明细折进 `<details>` 后该屏比值降到 ≤12
+ *   ⇒ 按「不得为变绿补条目 / 收基线同批删条目」纪律，从 C4_BASELINE 与 C4_REASON **删** `party-committee::支部监控台账`
+ *   （进度前进；非放宽——M2 的 >12 判红与 M3 的僵尸检查一字未动）。
  */
 const C4_BASELINE = {
   'secretary::全局概况': { copy: 522, ctrls: 41, ratio: 12.73 },
@@ -139,7 +142,6 @@ const C4_BASELINE = {
   'disc::活动监督复盘': { copy: 1133, ctrls: 68, ratio: 16.66 },
   'disc::知情查看': { copy: 483, ctrls: 23, ratio: 21 },
   'leader::知情查看': { copy: 487, ctrls: 24, ratio: 20.29 },
-  'party-committee::支部监控台账': { copy: 334, ctrls: 20, ratio: 16.7 },
   'party-committee::上报审批': { copy: 206, ctrls: 17, ratio: 12.12 },
   'party-committee::匿名反馈核查': { copy: 467, ctrls: 15, ratio: 31.13 },
 };
@@ -158,7 +160,6 @@ const C4_REASON = {
   'disc::活动监督复盘': '复盘正文（成员提交）构成主体——§4.18.1 已认定「8 成是运行时数据」，非界面文案',
   'disc::知情查看': '待改造：只读一览条目元信息占比高，控件仅分段钮 2 个（分母小）',
   'leader::知情查看': '待改造：同上（只读一览 + 2 个分段钮）',
-  'party-committee::支部监控台账': '台账行数据为主',
   'party-committee::上报审批': '审批列表条目为主',
   'party-committee::匿名反馈核查': '待改造：本批已折顶部口径条（47.5 → 31.1）；余量主要是每条反馈的标题 / 正文 / 提交人等运行时数据',
 };

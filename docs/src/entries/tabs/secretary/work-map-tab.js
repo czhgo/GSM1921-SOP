@@ -7,6 +7,8 @@
 // 模块目录单一源 = core/work-map.js（14 项既有工作形式；「三会一课」已于 2026-09-22 批次 145 按形式
 //   拆为 4 个模块）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
+// R5（2026-09-28 批次 220，MODULE_UI_DESIGN §四.5）：读（看分工：平铺模块 / 按人 / 按项目）与写（分工调整工具）
+//   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
 import { escHtml as esc } from '../../../core/utils.js?v=20260924a';
@@ -21,6 +23,11 @@ import { renderRelationMatrix } from '../../../components/relation-matrix.js?v=2
 import { mountWorkforcePanel } from './workforce-panel.js?v=20260924a';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
+// R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
+//   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定见 MODULE_UI_DESIGN.md §四.1.3「支部分工」行
+//   「③折叠为按钮」）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
+//   展开态才挂载工具（未展开不 load，减负首屏）；功能不删（展开后 DOM/事件一字不减）。
+let _toolOpen = false;
 
 /** 负责人显示名：role → ROLE_LABELS；person → 姓名；org → 组织型主体名（如支委会，不是自然人） */
 function _ownerLabel(assign) {
@@ -103,6 +110,24 @@ function _renderMatrix(workforce) {
   });
 }
 
+/** R5：分工调整工具折叠壳（写侧）——首屏只留「看分工」（读侧：平铺模块 / 矩阵），
+ *  点「展开分工调整工具」才挂载 workforce-panel（发起议题 / 跟踪 / 采纳）。
+ *  逐块判据：① 平铺模块 ② 按人 / 按项目宽表 均答本 tab 主问「每项工作归谁负责」＝**读者要看的结论**（保留首屏）；
+ *  ③ 分工调整（发起支委会议题 / 跟踪表决 / 采纳生效）＝**偶尔要用的工具**（写操作）⇒ 折叠（不删、不降功能）。 */
+function _toolFoldHtml() {
+  return `
+    <div class="card rounded-xl p-4 mt-3" id="workforce-panel-card">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <h3 class="font-title-cn text-sm font-bold text-gray-700">分工调整（写）</h3>
+          <span class="text-xs text-gray-500">发起调整走支委会议题表决；跟踪与采纳亦在此</span>
+        </div>
+        <button type="button" class="wm-tool-toggle text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;">${_toolOpen ? '收起' : '展开分工调整工具'}</button>
+      </div>
+      ${_toolOpen ? '<div id="workforce-panel-host" class="mt-2"></div>' : ''}
+    </div>`;
+}
+
 /** 渲染支部分工 tab（tab-bar 懒加载调用） */
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');
@@ -117,6 +142,8 @@ export function renderContent() {
   const personId = me && (me.personId || me.id);
   const branchId = getBranchIdOfPerson(personId);
   const workforce = getBranchWorkforce(branchId); // 展开快照（缺省已兜底）
+  // L4 M2：分工调整工具（发起议题 / 跟踪 / 采纳）——仅支书/副支书可见（分工 = 支部自治）
+  const editable = me && (me.role === 'secretary' || me.role === 'deputy-secretary');
 
   const switchBar = `
     <div class="flex items-center gap-2 mb-3">
@@ -135,7 +162,7 @@ export function renderContent() {
     </div>`;
   const body = _view === 'modules' ? _modulesHtml(workforce) : `<div id="work-map-matrix"></div>`;
 
-  root.innerHTML = `${switchBar}${body}`;
+  root.innerHTML = `${switchBar}${body}${editable ? _toolFoldHtml() : ''}`;
   // 宽表视图（按人 / 按项目）：矩阵挂到宿主容器（_view → mode 映射在 _renderMatrix 内）
   if (_view !== 'modules') _renderMatrix(workforce);
   // 视图切换（纯排列切换，不换数据）；复用 overview 的 ov-sub-tab 激活样式
@@ -145,14 +172,13 @@ export function renderContent() {
       renderContent();
     });
   });
-  // L4 M2：分工调整工具（发起议题 / 跟踪 / 采纳）——仅支书/副支书可见（分工 = 支部自治）
-  const editable = me && (me.role === 'secretary' || me.role === 'deputy-secretary');
-  const oldHost = root.querySelector('#workforce-panel-host');
-  if (oldHost) oldHost.remove();
-  if (editable) {
-    const host = document.createElement('div');
-    host.id = 'workforce-panel-host';
-    root.appendChild(host);
-    mountWorkforcePanel(branchId, host).catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
+  // R5：分工调整工具折叠开关（默认折叠，展开才挂载；同 _progressOpen 体例）
+  root.querySelector('.wm-tool-toggle')?.addEventListener('click', () => {
+    _toolOpen = !_toolOpen;
+    renderContent();
+  });
+  // 展开态才挂载工具（仅支书/副支书可见）
+  if (editable && _toolOpen) {
+    mountWorkforcePanel(branchId, root.querySelector('#workforce-panel-host')).catch(e => console.error('[work-map] 分工调整面板渲染失败', e));
   }
 }

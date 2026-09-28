@@ -20846,3 +20846,46 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
   - ⚠ **覆盖缺口如实登记（只登记、不补行）**＝本批改过而本表**原无其行**的 8 个 `docs/src/**` 文件：`components/appearance-controls.js` · `components/insight-view.js` · `components/report-entry.js` · `components/dashboard/activity-panel.js` · `entries/tabs/org/thought-review-tab.js` · `entries/tabs/secretary/feedback-tab.js` · `entries/tabs/secretary/notification-tab.js` · `entries/tabs/today/today-tab.js`。
 - ⚠ **只登记 / 未做逐条不得读成已办**：见 `D-674`「二 / 八」。
 - ⚠ **本批实测为非全量**（只跑纯 node 守卫 ＋ 真机子集）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 226。**
+
+---
+
+## 批次 227（2026-09-28，`D-675`）**R5/R6/R9/R10/R11 收口 ＋ CSS 减负（冲突/冗余清理 ＋ 零引用类全删 ＋ 防再犯守卫）**
+
+> **本批令（逐字）**：支书「**请优先修复 R5/R6/R9/R10/R11 未完成的项**」「**请给我们 css 文件减负！！给定现在的功能下，能够把屎山——冲突代码、冗余代码进行一个清理！特别是冲突代码，如果你拿不准，一定要从产品维度提问我！**」。**四条 CSS 收尾裁定**＝① **零引用类全删 ＋ 同步改文档**（减负最大）② **`.badge` 等价合并** ③ **删 `.header-content{max-width:7xl}` 无效声明**（**不许**改成 1280px）④ **加一条台账式守卫**。**改动面**＝`docs/src/styles.css` · `docs/src/about.css` · `docs/login.html` · `docs/help.html` · `docs/src/entries/tabs/{org/roster-tab,org/member-flow-tab,party-committee/monitor-tab,secretary/work-map-tab}.js` · `docs/src/modules/capabilities/org-workspace.js` · `content/04_web_design/design-system/DESIGN_SYSTEM.md` · `content/04_web_design/module/MODULE_UI_DESIGN.md` · `server/test/{style-baseline.mjs,hex-hardcode-guard.test.mjs,dead-selector-guard.test.mjs,page-sweep.test.mjs,copy-screen-guard.test.mjs,agenda-flow.test.mjs}` · `server/README.md` · `.ctx/**`（台账）。**本台账落账 pass 只改 `.ctx/**` 与 `CLAUDE.md`**；**未 bump 任何 `?v=`（仍 `20260924a`）**、**未 `git commit`**、**未跑 `bump-version.mjs`**；3000 端口**有常驻服务（未停 / 未杀 / 未占）**；**只跑纯 node 守卫 ＋ 真机子集**。
+
+### 一、R5–R11 逐项结论
+
+- **R5「支部分工」折叠**：读侧（平铺模块 ＋ 按人 / 按项目宽表）留首屏、**写侧（发起议题 / 跟踪 / 采纳）默认折叠**（新增模块级 `_toolOpen` ＋ `_toolFoldHtml()`，体例照既有 `group-progress-tab.js::_progressOpen`；未展开不 load）；`agenda-flow` A5 同批加一步「展开折叠卡」（**断言一字未动**）；真机 **26 → 24 div**、纯包裹 **2 → 1**。
+- **R6「支部监控台账」字段分层**：首屏留「支部名 ＋ 类别 / 现任支书 ＋ 状态 ＋ 成员规模 / 在册党员 / 滞留党员」；**明细 5 项折进 `<details>`**（支书任期 / 发展阶段分布 / 思想汇报 / 组织生活类型 / 近期活动；体例照 `makeup-tab.js`）；★ **选 `<details>` 的关键理由＝折叠内容仍在 DOM ⇒ `party-committee.test.mjs` 的 `document.body.textContent.includes('支书任期')` 判据一字未改、天然成立**；真机 **17 → 19 div**（+2 层包裹，字段与功能未减）；`copy-screen-guard` 该屏比值折后 ≤12 ⇒ 按收基线纪律删条目。
+- **R9「tab 改名」＝无剩余独立项（实读更正）**：`§四.5 R9` 指的正是「「支委会会议」→「支委会」并承载机构构成」⇒ 已随 R8 于批次 218 落地（`secretary-workspace.js:68` / `help.html:427`）；`§四.4` 的可动行（加副标）已由 R2 走「页内导语」覆盖、label 未变 ⇒ 未改代码、只标注。
+- **R10「成员流动拆 tab」**：新建 `docs/src/entries/tabs/org/member-flow-tab.js`（原面板全部功能原样搬移；`canRegisterFlow` 角色门不变）；`org/roster-tab.js` 删流动面板与其函数 / 导入（保留行内「移出」）；`org-workspace.js` 在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（**11 → 12**）；`help.html` §0.1/§0.2/§2.2 同批改准（11→12 ＋ 新增行，只同步不重排）；`page-sweep` 门槛 **66 → 67**（上调＝更严）；`style-baseline`：删 `roster-tab.js` 的 hex 条（否则僵尸红）＋ `HEX_MOVE_LEDGER` 新增 1 条（from roster → to member-flow，`#cbd5e1`；H5 机检）＋ `HEX_FILE_BASELINE` 80→79 与 H3 上限同步；真机：`?tab=member-flow` 可达（`#flow-card` 在位）、`?tab=roster` 无 `#flow-card`；名册 **119 → 107 div**、新 tab 13 div。
+- **R11「补课拆 tab」＝⛔ 判「不拆」（母本依据）**：先实读母本 —— `纪检委员工作流程指南.md:26`（补课并入「考勤管理」一级分段）＋ `支委与党小组定人定责定岗说明.md:72`（纪检职能｜考勤管理（含补课分段））＋ `.ctx/ACTIVE_RULINGS.md` §四 ⇒ **补课在制度上本就属考勤管理的一环** ⇒ 不为拆而拆，未改代码、只标注。
+- **文档同批**：`MODULE_UI_DESIGN.md §四.5` 逐行追加「✅ 已实施（批次 / 日期）/ ⛔ 判定不拆 · 只登记」（未动总述句）；`server/README.md`「前端 DOM 结构基线」整节按本批实测改准（78 条 · 组织台 **11 → 12**）。
+- ⚠ **只登记**：`README-server.md`（根，禁改面）仍写组织台「11 个」＋ §3.2.2 roster 行含「成员流动面板」⇒ 文档漂移登记待下批。
+
+### 二、CSS 减负（两批合计）
+
+- **批次 226（冲突/冗余清理）**：`styles.css` **5049 → 4165 行 / 171,511 → 150,778 B**（−17.5% 行 / −12.1% 字节）、规则数 **842 → 717**；删**死码 121 条规则 / 35 组块**（`.pub-*` 22 条 · `party-stat` / `form-tree` / `commissioner-panel` 27 条 · Expand 组件 10 条 · Commissioner Modal / Kanban 13 条 · Workflow 死件 21 条 …）＋ `about.css` `.ab-edge-arrow{}` 空规则 / `.ab-hero-scroll-hint` 死 `animation` ＋ 孤立 `@keyframes ab-bounce-hint` ＋ `login.html` 页内第二套 focus 死声明（被 `styles.css:2809` 恒定压制）。**同批如实登记三处「任务书假设被实读推翻」**：`!important` 可去 **0 处**（321 处绝大多数是压 Play CDN 运行时注入的 Tailwind 类 / 元素内联 style 所必需）· **不存在「两套 `.chip-*`」**（只有 `.chip-option` ＋ `.chip-accent-on`）· 任务书举的 `var(--app-accent,#B91C1C)` **不成立**（`--app-accent` 实为 `#B91C1C`；`#0EA5E9` 是组织委员识别色）。
+- **批次 227（零引用类全删 ＋ 守卫）**：`styles.css` **4165 → 3497 行 / 150,778 → 133,129 B**（本批 −668 行 / −17,649 B）；**两批合计 5049 → 3497 行（−1552 行）· 171,511 → 133,129 B（−38,382 B）**。**删除范围＝65 个类**（词边界口径）——`.role-card` 整族 ~213 行（＋ `.role-icon` / 变体卡 / `@media` 两段）· `.text-h1/2/3` / `.text-body` / `.text-body-lg` / `.text-caption` / `.text-overline` / `.font-*` · `.card-flat` · `.btn-primary/-secondary` · `.status-pill` / `.status-dot`（＋只被它用的 `@keyframes pulseStatus`）· `.timeline-node` / `.tl-*` 整节 · `.header-subtitle` / `.theme-btn` / `.font-size-btn` / `.sidebar-*-toggle` / `.tint-dot` / `.hidden-completely` / `.party-emblem-fallback` / `.taskforce-item` / `.btn-action-blue` / `.btn-md-{blue,green,amber,gray}` / `.bg-yellow-50` / `.text-green/orange/yellow-*` / `.text-3xl` / `.text-[9px]/[10px]` / `.scrolled` / `label .text-red-500` 等；`about.css` **3 类**（净 −26 行）；只被死类用的令牌 `--tracking-tight` 一并删。★ **最大风险点（实读更正）**：**裸子串扫描双向都会错** —— 假阳性（`ab-tl-dot` 把 `tl-dot` 顶成「有引用」）＋ 假阴性（动态拼接 `ab-edge--${e.type}` / `ab-flow-line--${f.type}` 源码无字面量 ⇒ 误判为死类）⇒ 用**词边界**复核、动态拼接者一律不删并进白名单。
+- **`DESIGN_SYSTEM.md` 同步 10 处**（标「已废止」而非整句删）：§2 配色示例 · §3.1 字体家族表 3 格 · §3.2 字号层级表 7 格（档位值一字未改、改标「已废止²」）· §3.2.1 / §3.2.2 / §3.3.2 · §4.2 / §4.19 `.card-flat` · §4.7 角色卡（标「已废止（2026-09-28 死码清理批）、无现役落点」）· §6.3 移动端示例 4 项。
+- **`.badge` 等价合并**：真机核准旧块唯一生效声明＝`border:1px solid rgba(0,0,0,0.08)`（其余 10 条属性在同特异性、位置在后的新块里全被覆盖）⇒ 并入新块「T229 全站统一徽章组件」段、删旧块；真机 12 独立页 ＋ 5 工作台全部 `[class*="badge"]` 的 border / background / color / radius / font-size / padding **逐值相同（diff 0）**。
+- **删 `.header-content{max-width:7xl}` 无效声明**（`7xl` 非法 ⇒ 浏览器丢弃、从未生效）；真机 `.header-content` 计算 `maxWidth=none`、1280px 与 375px × 浅深两态改前 / 改后 `equal=true`（零观感变化）。
+- **真机对照（diff 0 的证据）**：12 独立页 ＋ 5 工作台 × 浅 / 深两态 ⇒ **68 次探针**：`pageerrors 0` · 删除的 74 个类名在 DOM 里 **0 命中** · 抽样选择器 × 16 属性 before/after **差异 0**。
+- ★ **新守卫 `server/test/dead-selector-guard.test.mjs`**（＋ `style-baseline.mjs` 增 `DEAD_SELECTOR_BASELINE` / `DYNAMIC_SELECTOR_WHITELIST` / 三条规模下限）：`Z1` 新增死类⇒红 · `Z2` 僵尸登记⇒红 · `Z3` 非空转（抽取口径正负例 ＋ 分类对表 ＋ 规模下限 ＋ 台账自检）· `Z4` 缩减进度（只报不判）。**动态拼接白名单**（只报不判、逐条给生成处）＝`ab-edge--{task,info,file}` / `ab-flow-line--{task,info,file}` / `lenis-smooth` / `lenis-stopped`；**台账**＝`[{ inline-full }]`（越授权面、只登记未删）。★ **反例实测**：临时加 `.zz-tmp-dead-probe{color:red}` ⇒ `Z1` 判红 ⇒ 撤销 ⇒ **4/4 绿**、不留盘。当前跑分：类选择器 636 · 零引用 9（台账 1 ＋ 白名单 8）。
+- ⚠ **只登记未做**：`inline-full`（`person-picker.css`，不在授权面）· 新守卫**未进 `package.json` 显式清单**（随 `npm test` 自动发现；已在 `server/README.md` 登记）· `docs/src/about.css` 另有**他人未提交**改动（删 `.ab-bounce-hint` / `.ab-edge-arrow`），**非本批**。
+
+### 三、本批实测（非全量，如实写）
+
+- `dead-selector-guard` **4/4**（＋反例红 → 撤 → 绿）· `hex` ＋ `text-tier` ＋ `small-text` ＋ `control-font` ＋ `ux` ＋ `filter-row` **39/39** · `page-sweep`（真机）**11/11**（控件 113 / 数据格 818 / 分页钮 131）· `module-load` ＋ `link-integrity` ＋ `click-cost`（`listen(0)` 等价自测）**12/12**（模块 163/163、HTTP 164/164）· `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `frontmatter-freshness` ＋ `catalog-sync` **44/44** · `copy-length` ＋ `copy-master` ＋ `copy-screen` **21/21**。
+- R 项侧：`work-map` / `party-committee` / `agenda-flow` / `agenda-closure` **16/16** · `capability-registry` / `tab-nav` / `branch-module-catalog` / `member-flow` / `localstorage-key-guard` **31/31** · `form-loop-sweep` **80/81**（1 条 `leader/我的处置` 切 tab 超时＝**环境抖动**，定向复跑 `FORM_LOOP_TABS=我的处置` **12/12 绿**）。
+- ⚠ **本批实测为非全量**；**不得把各路自测写成「全量绿」**；**提交前全量见批次 228。**
+
+### 四、本批记账（台账 / 决策日志）
+
+- `.ctx/logs/2026-09-DECISION_LOG.md`：新增 **`D-675`**（按「背景与裁定 / 一 R5–R11 / 二 CSS 两批 / 三 实测 / 四 只登记」分节）＋ 本月目录 1 行 ＋ 文首「最近一次追加」改写 ＋ **四处计数同刷**为 **`D-275`…`D-675`／401 条**、下一条自 **`D-676`**（`^## D-` 实测复算 **401**）。
+- `.ctx/logs/DECISION_LOG.md`：月度索引 2026-09 行刷为 **401 条（D-275~D-675）** ＋ 行末补批次 227 速记。
+- `.ctx/ACTIVE_RULINGS.md`：文首补批次 227 增量句〔**1 行新立 ＋ 2 行改准 ＋ 1 条不入表** ⇒ 口径行 **128 → 129**〕；「十二、死场景与系统形态」**新立 1 行**（「功能分域 / tab 拆分必须以母本为准（母本没支持就不拆）」）＋ `D-669` 那一行**改准**（读侧留首屏、写侧 / 工具默认折叠 ＋ 明细字段分层优先 `<details>` 以保断言）＋ `D-643` 那一行**改准**（零引用类全删 ＋ 文档标「已废止」不整句删 ＋ 死类台账式守卫）；文首「实有 N 行」／「一律以 N 为准」两处自述同刷为 **129**（`grep -c '^- '` 实测 **129**）。
+- `.ctx/TIMESTAMPS.md`：本批改过 / 已改文件刷 / 加注 `2026-09-28`（`docs/src/styles.css` · `docs/src/about.css` · `docs/login.html` · `docs/help.html` · `docs/src/entries/tabs/org/{roster-tab,member-flow-tab}.js` · `docs/src/entries/tabs/party-committee/monitor-tab.js` · `docs/src/entries/tabs/secretary/work-map-tab.js` · `docs/src/modules/capabilities/org-workspace.js` · `content/04_web_design/design-system/DESIGN_SYSTEM.md` · `content/04_web_design/module/MODULE_UI_DESIGN.md` · `server/test/{style-baseline.mjs,hex-hardcode-guard.test.mjs,page-sweep.test.mjs,copy-screen-guard.test.mjs,agenda-flow.test.mjs}` · `server/README.md` · 本文件自身行）。
+  - ⚠ **覆盖缺口如实登记（只登记、不补行）**＝本批改过而本表**原无其行**者：`docs/src/entries/tabs/org/member-flow-tab.js`（新增文件）· `server/test/dead-selector-guard.test.mjs`（新增文件；随 `server/test/*.test.mjs` 通配行）· `server/test/party-committee.test.mjs`（**实读：本批未修改**，故不列）。
+- ⚠ **只登记 / 未做逐条不得读成已办**：见 `D-675`「一 / 四」（`README-server.md` 文档漂移 · `inline-full` · 新守卫未进 `package.json` 显式清单 · `about.css` 他人改动非本批）。
+- ⚠ **本批实测为非全量**（只跑纯 node 守卫 ＋ 真机子集）；**不得把各路自测写成「全量绿」**。**提交前全量见批次 228。**

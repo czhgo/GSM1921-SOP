@@ -50,10 +50,10 @@
     .login-input {
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .login-input:focus {
-      border-color: #CE1126;
-      box-shadow: 0 0 0 3px rgba(206,17,38,0.12);
-    }
+    /* 聚焦态统一走 styles.css（input.login-input:focus）：边框变党徽金、无发光。
+       原此处 border-color / box-shadow 属第二套 focus，特异性更低（.login-input:focus = 0,2,0 ＜
+       input.login-input:focus = 0,2,1）恒被全局盖死 —— 2026-09-28 CSS 减负批删除
+       （真机浅/深两态计算值逐值相同：聚焦边框与发光均不变）。 */
     /* 登录按钮 */
     .login-btn {
       transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
