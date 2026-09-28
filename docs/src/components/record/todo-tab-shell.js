@@ -14,18 +14,18 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20260928i';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20260928j';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20260928i';
-import { renderDomainTodoList } from './todo-list.js?v=20260928i';
-import { badgeHtml } from '../ui/badges.js?v=20260928i';
-import { showToast } from '../../core/utils.js?v=20260928i';
-import { solidAccentStyle, ROLE_LABELS } from '../../core/constants.js?v=20260928i';
-import { AuthStore } from '../../services/core/auth.js?v=20260928i';
-import { mockDB } from '../../core/domain.js?v=20260928i';
-import { tokenOf } from '../../core/version-token.js?v=20260928i'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20260928i'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20260928j';
+import { renderDomainTodoList } from './todo-list.js?v=20260928j';
+import { badgeHtml } from '../ui/badges.js?v=20260928j';
+import { showToast } from '../../core/utils.js?v=20260928j';
+import { solidAccentStyle, ROLE_LABELS } from '../../core/constants.js?v=20260928j';
+import { AuthStore } from '../../services/core/auth.js?v=20260928j';
+import { mockDB } from '../../core/domain.js?v=20260928j';
+import { tokenOf } from '../../core/version-token.js?v=20260928j'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20260928j'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以

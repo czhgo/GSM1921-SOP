@@ -34,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260928i';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260928i';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260928i';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260928i';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260928i';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260928i';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260928i';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260928i';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260928i';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260928j';
+import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260928j';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260928j';
+import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260928j';
+import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260928j';
+import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260928j';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260928j';
+import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260928j';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260928j';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -247,6 +247,33 @@ test('S2 禁止凭姓名认身份：find(p => p.name === …)（重名/改名即
   assert.deepEqual(offenders, [],
     '发现凭姓名取首个命中来认定身份（重名/改名即张冠李戴）。'
     + '请改为：显式 id 优先精确匹配；无 id 时姓名匹配仅在「唯一命中」时采纳，否则留空待人工核对。');
+});
+
+// ── S5 选人域唯一出口（G1 第②项，2026-09-28）───────────────────────────────
+// §3.1「统一扎口」纪律：同域可以有若干实现文件，但**对外只暴露一个库文件**；
+// 调用方一律 import 该库、不直连内部实现（样板：ui/forms.js · ui/badges.js · record/reporting.js）。
+// 选人域＝person-picker（选人载体）+ person-edit-modal（档案编辑浮窗）⇒ 唯一出口
+// = components/governance/pickers.js。两条断言：① 除库自身外全站零直连；② 库确把两名重导出（防空壳）。
+test('S5 选人域唯一出口：除 governance/pickers.js 外全站不得直连实现文件（§3.1 扎口纪律）', () => {
+  const LIB_REL = 'components/governance/pickers.js';
+  const offenders = [];
+  for (const file of walkJs(SRC_DIR)) {
+    const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
+    if (rel === LIB_REL) continue; // 库自身
+    const src = readFileSync(file, 'utf8');
+    // 只看 import/export 语句（注释里引用路径做说明不算直连）
+    if (/from\s+['"][^'"]*components\/governance\/(person-picker|person-edit-modal)\.js/.test(src)) {
+      offenders.push(rel);
+    }
+  }
+  assert.deepEqual(offenders, [],
+    `以下文件直连选人域**实现文件**（须改从 ${LIB_REL} 导入——只改 import 来源一行，导入名不变）：\n  ${offenders.join('\n  ')}`);
+
+  const lib = readFileSync(join(SRC_DIR, LIB_REL), 'utf8');
+  assert.match(lib, /export \{ PersonPicker \} from '\.\/person-picker\.js/,
+    'pickers.js 须重导出 PersonPicker（防空壳库）');
+  assert.match(lib, /export \{ openPersonEditModal \} from '\.\/person-edit-modal\.js/,
+    'pickers.js 须重导出 openPersonEditModal（防空壳库）');
 });
 
 test('S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落点）', () => {

@@ -1,14 +1,14 @@
 // role: [工程师]+[AI]
 // issue-list.js — 反馈列表渲染
 
-import { IssueStore } from '../../services/governance/issues.js?v=20260928i';
-import { AuthStore } from '../../services/core/auth.js?v=20260928i';
-import { icon } from '../../core/icons.js?v=20260928i';
-import { getPersonName } from '../../services/member/person.js?v=20260928i';
-import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/constants.js?v=20260928i';
-import { badgeHtml } from '../ui/badges.js?v=20260928i';
+import { IssueStore } from '../../services/governance/issues.js?v=20260928j';
+import { AuthStore } from '../../services/core/auth.js?v=20260928j';
+import { icon } from '../../core/icons.js?v=20260928j';
+import { getPersonName } from '../../services/member/person.js?v=20260928j';
+import { ISSUE_STATUS_LABELS, ISSUE_CLOSED_REASON_LABELS } from '../../core/constants.js?v=20260928j';
+import { badgeHtml } from '../ui/badges.js?v=20260928j';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20260928i';
+import { pagerHtml } from '../ui/pager.js?v=20260928j';
 
 const SCOPE_LABELS = {
   permanent: '底层架构',
