@@ -21,6 +21,7 @@
 //   S11 README 里的守卫条目必须指到真实存在的文件与断言号（口径同 S9，覆盖 README）
 //   S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）
 //   S14 可数事实对账（枚举 / 计数类数字，文档声称值 == 代码实然值）＋ S15 弱清单（2026-09-23 批次 161）
+//   S16 守卫注册完整性：S 类测试文件必须全数列入 `test:daily`（防守卫孤儿化；2026-09-28 批次 243）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -831,5 +832,31 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   const rs = read(README_SERVER);
   const listedLines = rs.split(/\r?\n/).filter((l) => /角色键（含 /.test(l));
   assert.ok(listedLines.length >= 1, 'README-server.md 未解析到「角色键（含 …）」式列举（≥1 处）：写法变了或该说明被删');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S16 守卫注册完整性（2026-09-28 批次 243）：**S 类测试文件必须全数列入 `test:daily` 显式清单**。
+//   病灶（本批实测）：`dead-selector-guard`（批次 227 立）与 `text-tier-guard`（文本档位批立）两个
+//   **纯 node 守卫**——文件在、断言在、单跑全绿，却**不在任何 npm script 里**（`test:fast` / `test:daily`
+//   都是**显式清单**）⇒ **从不自动运行**。同类「漏注册」已第三次：批 43 的 `page-sweep`（`S10` 即为此立）、
+//   批次 239 的 `block-orchestration`（当批自补）、本次两个。**根因＝「新增守卫」没和「登记进日常档」绑定**。
+//   判据（单一源）：`server/test/` 下**不** `import 'playwright'` 的 `*.test.{js,mjs}`（＝S 类，`CLAUDE.md R-85`）
+//   必须 ⊆ `test:daily` 清单；两侧都设非空转下限（防解析写坏 ⇒ 差集恒空 ⇒ 漏注册也绿）。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S16 守卫注册完整性：S 类测试文件必须全数列入 test:daily（防守卫孤儿化）', () => {
+  const TDIR = join(ROOT, 'server', 'test');
+  const all = readdirSync(TDIR).filter((f) => /\.test\.(js|mjs)$/.test(f));
+  const playwrightRe = /from\s+['"]playwright['"]|import\(\s*['"]playwright['"]\s*\)/;
+  const sClass = all.filter((f) => !playwrightRe.test(read(join(TDIR, f))));
+  const pkg = JSON.parse(read(join(ROOT, 'server', 'package.json')));
+  const daily = new Set((pkg.scripts['test:daily'].match(/test\/[A-Za-z0-9_.-]+\.test\.m?js/g) || [])
+    .map((x) => x.replace(/^test\//, '')));
+  // 非空转：两侧都必须有规模（解析写坏 ⇒ 差集恒空 ⇒ 「漏注册」也判绿）
+  assert.ok(sClass.length >= 60 && daily.size >= 60,
+    `解析面不足（S 类 ${sClass.length} / test:daily ${daily.size}，下限均 60）：判据或 package.json 解析被写坏`);
+  const missing = sClass.filter((f) => !daily.has(f)).sort();
+  assert.deepEqual(missing, [],
+    `以下 S 类测试文件**不在 test:daily 清单**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
+    '  处置：加进 `server/package.json` 的 `test:daily`（S 类应全数入档，见 `CLAUDE.md R-85`）。');
 });
 

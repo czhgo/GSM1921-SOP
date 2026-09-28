@@ -21034,3 +21034,15 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **`.ctx/TIMESTAMPS.md`**：`.ctx/SNAPSHOT.md` 行改「当前基线（v55…」并加本批短注（`data-adapter.js` 行日期 2026-09-26 → 2026-09-28）。
 - **验收**：`doc-consistency`（`S10`–`S15`）· `timestamps-note-guard`（`N1`–`N7`）· `doc-line-ref`（`R1`–`R6`）全绿；`npm run test:daily` 复跑 **638/638 / 0 红**。
 
+---
+
+## 批次 243（2026-09-28）：守卫孤儿化（真缺陷）＋ `S16` 把「新增守卫须入日常档」钉成机检
+
+> **来源**：本批做 #3「更新好所有的 README / SNAPSHOT」时，为核对 `server/README.md` 的测试计数而**实读 `server/test/`**，发现两个守卫**从不在任何 npm script 里**。属本会话「代码健康评审」同族（守卫存在却没人跑）。
+
+- **缺陷（实测）**：`server/test/` 实读 **119** 个 `*.test.{js,mjs}`，其中 **31** 个 `import 'playwright'`（真机件），**88** 个为纯 node 的 **S 类**。而 `test:fast` / `test:daily` 都是**显式清单**：`dead-selector-guard.test.mjs`（批次 227 立）与 `text-tier-guard.test.mjs`（文本档位批立）**不在任何一份清单里** ⇒ 文件在、断言在、单跑全绿（**8 项 / ≈2.6 秒**），但**从不自动运行**。同类「漏注册」已是**第三次**（批 43 `page-sweep` → 立 `S10`；批次 239 `block-orchestration` 当批自补；本次两个）。
+- **修复**：把两个守卫补入 `test:fast` ＋ `test:daily`（**S 类应全数入档**，`CLAUDE.md R-85`）。两档计数随之改准：`test:fast` **19 → 23 文件 / 82 → 102 项**；`test:daily` **84 → 88 文件 / 617 → 647 项**。
+- **防再犯（新守卫）**：`doc-consistency.test.mjs` 新增 **`S16`**——**S 类测试文件必须 ⊆ `test:daily` 清单**（S 类 = `server/test/` 下不 `import 'playwright'` 者；两侧各设 ≥60 的非空转下限，防解析写坏 ⇒ 差集恒空 ⇒ 恒真）。**含义**：今后任何新守卫**若忘了登记进日常档，`S16` 当场判红**。**反例实测**：把两个守卫从 `test:daily` 拿掉 ⇒ `S16` 判红、**fail=1**（点出缺哪两个文件）；还原后复绿、无残留。
+- **文档同步**：`README.md`（`doc-consistency` 范围 `S1–S15 → S1–S16` ＋ 守卫清单补 `dead-selector-guard` / `text-tier-guard`）· `.ctx/ENGINEERING_ASSESSMENT.md`（§3.4 R26 范围 ＋ §5.2 测试规模 **620 → 647**）· `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md`（§0.2 R26 范围）· `server/README.md`（`:11` / 耗时台账三行）· `CLAUDE.md`（`R-85` 的 S 类 **84 → 88**）· `.ctx/TIMESTAMPS.md`（7 格短注；**备注列总字数仍在 `N2` 预算内**）。
+- **验收**：`doc-consistency` **16/16**（含新 `S16`）· `npm run test:daily` **647/647 / 0 红** · `npm run test:fast` **102/102 / 0 红**。
+

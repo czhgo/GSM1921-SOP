@@ -8,7 +8,7 @@ Node ESM + Express + better-sqlite3 单进程服务：同时托管前端静态�
 cd server
 npm install            # 安装依赖（含 devDependency playwright，用于 E2E）
 npm start              # 启动服务，默认端口 3000（可用 PORT 环境变量覆盖）
-npm test               # 全量（等价 npm run test:full / test:precommit，含两个真机普查；需先 npm start）；改代码时改跑 npm run test:daily（**S 类 84 文件 ＝ 该档显式清单全量**，约 2.4 分钟，见「测试说明」）
+npm test               # 全量（等价 npm run test:full / test:precommit，含两个真机普查；需先 npm start）；改代码时改跑 npm run test:daily（**S 类 88 文件 ＝ 该档显式清单全量**，约 2.4 分钟，见「测试说明」）
 npm run test:core      # 核心流程子集回归（议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等，文件清单见 server/package.json）
 npm run test:fast      # 快速回归子集（基础单元 + 目录/链接审计等，文件清单见 server/package.json）
 npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止时使用）
@@ -98,9 +98,9 @@ node scripts/backup.mjs --out /srv/bak/20260923
 
   | 命令 | 文件 / 项 | 实测耗时（本批） | 覆盖 / 何时跑 |
   |---|---|---|---|
-  | `npm run test:fast` | 19 文件 / **82 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
+  | `npm run test:fast` | 23 文件 / **102 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
   | `npm run test:core` | 8 文件 / **36 项** | **≈96 秒** | 议程 / 表决、成员变更、多端写入、模块加载、帮助 E2E；改核心流程 |
-  | `npm run test:daily` | 84 文件 / **617 项** | **≈147 秒（约 2.5 分钟）** | 全部 S 类纯 node（含全部守卫）；**改代码时的日常档** |
+  | `npm run test:daily` | 88 文件 / **647 项** | **≈147 秒（约 2.5 分钟）** | 全部 S 类纯 node（含全部守卫）；**改代码时的日常档** |
   | `npm test`（全量 / `test:precommit`） | 全目录 / **808 项** | **≈20.5 分钟**（1,229,662ms） | 含两个真机普查 ＋ 三个需 3000 服务的文件；**收尾 / 交付前跑**。⚠ 本格为**引用值**（批次 197 实测，见 `.ctx/logs/2026-09-DECISION_LOG.md` `D-657`），非本批重跑 |
 
   **单文件最慢（2026-09-27 单跑实测）**：`form-loop-sweep` **81 项 / 539.8 秒（约 9 分钟）** · `page-sweep` **11 项 / 114.6 秒** · `multi-tab-sync` **6 项 / 24.7 秒** · `link-integrity` **5 项 / 9.9 秒**；`click-cost` ≈50 秒 · `agenda-flow` ≈40 秒 · `branch-doc` ≈36 秒（后三者 2026-09-23 提速批实测、本批未重测；`click-cost` 需 3000 常驻服务）。
