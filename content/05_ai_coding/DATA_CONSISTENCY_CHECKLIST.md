@@ -235,6 +235,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 浏览器存储键必须登记（键 ⊆ 三档白名单：服务端权威 / 本机临时 / UI 偏好与会话；**新键未登记即红**） | 本文件 **§0.3 浏览器存储键白名单**（守卫的镜像；**改表即改守卫映射、两处同批动**） | `localstorage-key-guard.test.mjs::L1–L3` | 已闭环 | 本文件 §0.3 |
+| **台账备注列预算**（备注只写「现状 / 边界 / 为什么」；逐批沿革一律进 `.ctx/logs/**`——**新增即红、只降不升**） | `.ctx/TIMESTAMPS.md` 备注列 · 存量台账 `server/test/timestamps-note-baseline.mjs` · 纪律 `CLAUDE.md R-89` | `timestamps-note-guard.test.mjs::N1–N7` | 已闭环（存量 **174 条**待专项批收敛；放宽基线＝越权项） | `CLAUDE.md R-89` |
 
 **使用说明**
 

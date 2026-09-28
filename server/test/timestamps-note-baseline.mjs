@@ -1,0 +1,206 @@
+// role: [工程师]+[AI]
+// ════════════════════════════════════════════════════════════════
+//  server/test/timestamps-note-baseline.mjs —— TIMESTAMPS「备注列预算」的**存量台账**（数据文件，判据在 guard）
+// ════════════════════════════════════════════════════════════════
+// 由来（2026-09-28 批次 235，承支书「TIMESTAMPS 最后一列是历史负担」）：
+//   实测（本批）——登记 **273 行**、备注列合计 **93008 字符**（最长单格 5614）、
+//   含 T-编号 75 行 · 含「日期刷」复述 21 行 · 「批次 N」罗列 >3 次者 44 行 · 单格 >1000 字者 21 行。
+//   病根：备注列被当成「逐批沿革」的落点（写「本批改了什么」），而沿革的权威落点是 `.ctx/logs/**`（判据见 CLAUDE.md 台账纪律）。
+//
+// 用法（判据在 `timestamps-note-guard.test.mjs`）：四份清单与**实测命中集必须逐字相等**
+//   ⇒ ① 新增一处违规（新格子堆沿革 / 新 T-编号 / 新日期复述 / 新批次号罗列）**立刻判红**；
+//      ② 清单里的条目一旦不再命中（已收敛）**也判红**（僵尸条目须撤下）⇒ **天然「只降不升」**。
+// ⚠ **收敛路径**：把该格的历史沿革**迁移到 `.ctx/logs/**`**（保留一句指针），然后从本文件删掉该 path。
+//   禁止为变绿而**增**条目（增条目＝放宽守卫，属越权项，须支书核可并如实登记）。
+// ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
+
+/** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
+export const NOTE_TOTAL_BUDGET = 95000;
+/** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
+export const NOTE_TOTAL_HARD_CEIL = 95000;
+// 高水位沿革（只许下调）：2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
+//   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」）后实测 93,008，
+//   人工下调上限至 95,000（留 ≈2,000 字供「改了必须刷卡」的短注）。**再上调＝放宽守卫＝越权项。**
+/** 单格字数硬顶（超过即入清单） */
+export const NOTE_LONG_MAX = 1000;
+/** 单格「批次 N」出现次数硬顶（超过即入清单） */
+export const BATCH_MENTION_MAX = 3;
+/** 登记行数下限（非空转：解析口径被改坏即红） */
+export const ROWS_MIN = 245;
+
+/** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
+export const OVERLONG_BASELINE = [
+  '.ctx/ENGINEERING_ASSESSMENT.md',
+  '.ctx/SNAPSHOT.md',
+  '.ctx/logs/DECISION_LOG.md',
+  'CLAUDE.md',
+  'README-server.md',
+  'README.md',
+  'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
+  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
+  'content/03_doc_system/OPERATIONS_GUIDE.md',
+  'content/04_web_design/data/DATA_MODEL.md',
+  'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
+  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
+  'content/04_web_design/module/MODULE_UI_DESIGN.md',
+  'docs/help.html',
+  'docs/src/core/work-map.js',
+  'docs/src/styles.css',
+  'server/README.md',
+  'server/routes/resources.js',
+  'server/test/*.test.mjs',
+  'server/test/form-loop-registry.mjs',
+  'server/test/style-baseline.mjs',
+];
+
+/** 备注含 `T-\d*` 编号（75 行 · T-编号是执行日志的键，台账不应承载） */
+export const WITH_TID_BASELINE = [
+  '.ctx/logs/2026-08-EXECUTION_LOG.md',
+  'CLAUDE.md',
+  'content/03_doc_system/PROCESS_GUIDE.md',
+  'content/04_web_design/data/DATA_FLOW.md',
+  'content/04_web_design/data/DATA_MODEL.md',
+  'content/04_web_design/deploy/AUTHENTICATION_MODEL.md',
+  'content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md',
+  'content/04_web_design/deploy/WECHAT_INTEGRATION.md',
+  'content/04_web_design/design-system/COLOR_SYSTEM.md',
+  'content/04_web_design/design-system/COMPONENT_SPEC.md',
+  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
+  'content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md',
+  'content/04_web_design/module/ABOUT_PAGE_DESIGN.md',
+  'content/04_web_design/module/SOP_WEBSITE_GUIDE.md',
+  'docs/src/about.css',
+  'docs/src/components/role-hierarchy.js',
+  'docs/src/core/cross-page-state.js',
+  'docs/src/core/registry.js',
+  'docs/src/entries/pages/about-entry.js',
+  'docs/src/entries/tabs/disc/_shared.js',
+  'docs/src/entries/tabs/disc/attendance-tab.js',
+  'docs/src/entries/tabs/disc/inspection-tab.js',
+  'docs/src/entries/tabs/disc/makeup-tab.js',
+  'docs/src/entries/tabs/disc/my-dispatch-tab.js',
+  'docs/src/entries/tabs/disc/overview-tab.js',
+  'docs/src/entries/tabs/disc/review-tab.js',
+  'docs/src/entries/tabs/disc/tf-view-tab.js',
+  'docs/src/entries/tabs/disc/todo-tab.js',
+  'docs/src/entries/tabs/leader/_shared.js',
+  'docs/src/entries/tabs/leader/attendance-tab.js',
+  'docs/src/entries/tabs/leader/inspection-tab.js',
+  'docs/src/entries/tabs/leader/members-tab.js',
+  'docs/src/entries/tabs/leader/my-dispatch-tab.js',
+  'docs/src/entries/tabs/leader/overview-tab.js',
+  'docs/src/entries/tabs/leader/review-tab.js',
+  'docs/src/entries/tabs/leader/tf-view-tab.js',
+  'docs/src/entries/tabs/leader/todo-tab.js',
+  'docs/src/entries/tabs/leader/write-tab.js',
+  'docs/src/entries/tabs/org/development-tab.js',
+  'docs/src/entries/tabs/org/inspection-tab.js',
+  'docs/src/entries/tabs/org/my-dispatch-tab.js',
+  'docs/src/entries/tabs/org/overview-tab.js',
+  'docs/src/entries/tabs/org/talent-tab.js',
+  'docs/src/entries/tabs/org/taskforce-tab.js',
+  'docs/src/entries/tabs/org/todo-tab.js',
+  'docs/src/entries/tabs/prop/archive-tab.js',
+  'docs/src/entries/tabs/prop/kanban-tab.js',
+  'docs/src/entries/tabs/prop/my-dispatch-tab.js',
+  'docs/src/entries/tabs/prop/overview-tab.js',
+  'docs/src/entries/tabs/prop/tasks-tab.js',
+  'docs/src/entries/tabs/prop/todo-tab.js',
+  'docs/src/entries/tabs/prop/weekly-tab.js',
+  'docs/src/entries/tabs/visitor/activities-tab.js',
+  'docs/src/entries/tabs/visitor/attendance-tab.js',
+  'docs/src/entries/tabs/visitor/inspection-tab.js',
+  'docs/src/entries/tabs/visitor/overview-tab.js',
+  'docs/src/entries/tabs/visitor/projects-tab.js',
+  'docs/src/entries/tabs/visitor/todo-tab.js',
+  'docs/src/entries/workspace/ws-disc-commissioner-entry.js',
+  'docs/src/entries/workspace/ws-leader-entry.js',
+  'docs/src/entries/workspace/ws-org-commissioner-entry.js',
+  'docs/src/entries/workspace/ws-prop-commissioner-entry.js',
+  'docs/src/entries/workspace/ws-secretary-entry.js',
+  'docs/src/entries/workspace/ws-visitor-entry.js',
+  'docs/src/modules/capabilities/activity-calendar.js',
+  'docs/src/modules/capabilities/disc-workspace.js',
+  'docs/src/modules/capabilities/leader-workspace.js',
+  'docs/src/modules/capabilities/org-workspace.js',
+  'docs/src/modules/capabilities/prop-workspace.js',
+  'docs/src/modules/capabilities/visitor-workspace.js',
+  'docs/src/services/governance/secretary-overview.js',
+  'docs/src/services/member/person.js',
+  'docs/workspace/leader.html',
+  'docs/workspace/org.html',
+  'server/test/b3-1-makeup-writeback.test.mjs',
+];
+
+/** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 行） */
+export const WITH_DATE_ECHO_BASELINE = [
+  '.ctx/ENGINEERING_ASSESSMENT.md',
+  '.ctx/logs/DECISION_LOG.md',
+  'CLAUDE.md',
+  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
+  'content/02_institution/sop/INDEX.md',
+  'content/03_doc_system/OPERATIONS_GUIDE.md',
+  'content/04_web_design/data/DATA_MODEL.md',
+  'content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md',
+  'content/04_web_design/module/MODULE_UI_DESIGN.md',
+  'docs/src/components/governance/org-setup-wizard.js',
+  'docs/src/components/shell/header.js',
+  'docs/src/entries/pages/activity-entry.js',
+  'docs/src/entries/pages/notice-entry.js',
+  'docs/src/entries/pages/party-committee-meeting-entry.js',
+  'docs/src/entries/tabs/disc/inspection-tab.js',
+  'docs/src/entries/tabs/leader/write-tab.js',
+  'docs/src/entries/tabs/visitor/projects-tab.js',
+  'docs/src/entries/tabs/visitor/review-tab.js',
+  'docs/src/entries/workspace/ws-secretary-entry.js',
+  'docs/src/modules/references.js',
+  'docs/src/services/governance/notice.js',
+];
+
+/** 单格「批次 N」罗列 > BATCH_MENTION_MAX 次（49 行 · 沿革应进 `.ctx/logs/**`） */
+export const WITH_BATCH_MENTION_BASELINE = [
+  '.ctx/ENGINEERING_ASSESSMENT.md',
+  '.ctx/SNAPSHOT.md',
+  '.ctx/logs/DECISION_LOG.md',
+  'CLAUDE.md',
+  'README-members.md',
+  'README-server.md',
+  'README.md',
+  'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
+  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
+  'content/02_institution/sop/宣传委员工作流程指南.md',
+  'content/02_institution/sop/常见工作场景快速指南.md',
+  'content/02_institution/sop/支委与党小组定人定责定岗说明.md',
+  'content/02_institution/sop/纪检委员工作流程指南.md',
+  'content/02_institution/sop/组织委员工作流程指南.md',
+  'content/03_doc_system/SERVICE_CATALOG.md',
+  'content/03_doc_system/USAGE_POLICY.md',
+  'content/04_web_design/data/DATA_FLOW.md',
+  'content/04_web_design/data/DATA_MODEL.md',
+  'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
+  'content/04_web_design/design-system/COMPONENT_SPEC.md',
+  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
+  'content/04_web_design/module/MODULE_UI_DESIGN.md',
+  'content/insights/README.md',
+  'docs/help.html',
+  'docs/src/components/governance/org-setup-wizard.js',
+  'docs/src/components/record/inspector.js',
+  'docs/src/components/ui/modal.js',
+  'docs/src/core/data-adapter.js',
+  'docs/src/core/work-map.js',
+  'docs/src/entries/pages/party-committee-meeting-entry.js',
+  'docs/src/entries/pages/settings-entry.js',
+  'docs/src/entries/tabs/disc/attendance-tab.js',
+  'docs/src/entries/tabs/leader/write-tab.js',
+  'docs/src/entries/tabs/org/taskforce-tab.js',
+  'docs/src/entries/tabs/prop/archive-tab.js',
+  'docs/src/entries/tabs/secretary/calendar-tab.js',
+  'docs/src/entries/tabs/secretary/work-map-tab.js',
+  'docs/src/services/activity/activity.js',
+  'docs/src/styles.css',
+  'server/README.md',
+  'server/routes/resources.js',
+  'server/test/*.test.mjs',
+  'server/test/form-loop-registry.mjs',
+  'server/test/style-baseline.mjs',
+];
