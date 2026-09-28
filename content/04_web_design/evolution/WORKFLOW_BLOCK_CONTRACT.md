@@ -265,3 +265,5 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - 同批修掉旧缺陷：向导保存第②步写死 `outputBlocks.blockOrder: []` ⇒ **静默抹掉已按其它入口设过的顺序**；现改为原样保留。
 - 测试：`server/test/workflow-block-config.test.mjs` 扩 `blockOrder` 纯函数 ＋ HTTP 往返断言（含「排序未接线即红」的反例）。
 - **未做（余下）**：块清单按**既有场景 id** 铺开到其余场景（支书同日裁「复用既有场景 id」）、运行时面（任务派生消费组合产物）、L4 画布 UI。
+
+**§二「注册表对应」由警告升级为机检（2026-09-28 批次 247）**：§二 原写「`blockId` 与 capability / scenario id 一一对应，**注册表缺失即契约失效**」，但**此前无任何机检**——实测**试点块自己就违反它**：`taskforce-run` 与 `capabilityId: 'taskforce'` 均不在 capability / scenario / definition 三表任一处（`theme-party-day` 是 definition id ⇒ **合法**）。现由 `server/test/block-manifest.test.mjs::S5` 落成机检：两个 id 必须落在**从单一源实读**的三表内，或在**显式例外台账**（`REGISTRY_EXCEPTIONS`，每条写理由）内；含非空转下限与「造未注册 id 必红」的反例。**专班一项的口径（改名/登记 vs 承认自创块可无注册 id）待支书裁**——见 `.ctx/REVIEW_QUEUE.md` 的 `H-10`。

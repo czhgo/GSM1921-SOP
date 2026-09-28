@@ -5,7 +5,7 @@
 // 运行：node --test server/test/block-manifest.test.mjs（自包含 server，TMP 需指向可写目录）
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -15,6 +15,8 @@ import {
   BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
 } from '../../docs/src/workflow/blocks/manifests.js?v=20260928s';
 import { assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260928s';
+import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260928s';
+import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260928s';
 
 let server;
 let BASE;
@@ -142,4 +144,78 @@ test('S4 未同步即红：manifest.capabilityId 必须在 CAPABILITY_PROVENANCE
     + unregistered.join('\n  ')
     + '\n修法：新块在本表登记「capabilityId → 制度来源」（institution-common | branch-custom）。');
   console.log(`[S4] capabilityId 登记：${BLOCK_MANIFESTS.length} 块全部在册`);
+});
+
+// ════════════════════════════════════════════════════════════════
+//  S5 契约 §二「注册表对应」机检（2026-09-28 批次 247）
+// ════════════════════════════════════════════════════════════════
+//  契约 `WORKFLOW_BLOCK_CONTRACT §二 · 字段取值合法性` 明写：
+//    「blockId … **与 capability/scenario id 一一对应，注册表缺失即契约失效**」。
+//  实测（2026-09-28）：该条**此前无任何机检**，且**试点块自己就违反它**——
+//    `taskforce-run` 不在 capability（`core/registry.js` 注册项）/ scenario（`sopData.js`）/
+//    definition（`definitions.js`）三表任一处；`capabilityId: 'taskforce'` 亦非注册能力。
+//    （`theme-party-day` 是 **definition id** ⇒ 合法，不属违规。）
+//  本项把该条落成机检：**两个 id 必须落在注册集合内，或落在下方 `REGISTRY_EXCEPTIONS`
+//  显式例外台账里并写明理由**（台账 ＋ 机检，同 §0.2 台账式守卫体例）。
+//  三份集合一律**从单一源实读**（不手抄）：scenario ← `sopData.js`；definition ← `definitions.js`；
+//  capability ← 扫 `docs/src/modules/capabilities/*.js` 里 `registerCapability({ … id: '…' })`。
+const CAP_DIR = join(REPO_ROOT, 'docs', 'src', 'modules', 'capabilities');
+
+/** 契约 §二 允许的**显式例外**（每条须写理由；新块一律走注册三表，不得随手加例外） */
+const REGISTRY_EXCEPTIONS = {
+  blockId: {
+    'taskforce-run': 'S1 试点块（2026-09-03 支书点名「专班运行」）：专班是**支部自创制度尝试**，三表均无同名 id；本批只登记、不动试点存量（改名与否见 `REVIEW_QUEUE H-10`）',
+  },
+  capabilityId: {
+    taskforce: '同上：专班能力尚未在 `core/registry.js` 注册（能力注册表当前无 `taskforce`）；其制度来源另由 `CAPABILITY_PROVENANCE` 登记',
+  },
+};
+
+/** 从单一源实读三类已注册 id（scenario / definition / capability） */
+function _registeredIds() {
+  const scenarios = new Set((sopDatabase.scenarios || []).map((s) => s.scenarioId));
+  const definitions = new Set(Object.values(DEF_MODULE)
+    .filter((v) => v && typeof v === 'object' && typeof v.id === 'string').map((v) => v.id));
+  const capabilities = new Set();
+  for (const f of readdirSync(CAP_DIR).filter((n) => n.endsWith('.js'))) {
+    const src = readFileSync(join(CAP_DIR, f), 'utf8');
+    // 只取 registerCapability 声明块内的 id（避免把文件里其它 id 字面量当成能力名）
+    for (const m of src.matchAll(/registerCapability\(\{[\s\S]{0,400}?\bid:\s*'([^']+)'/g)) capabilities.add(m[1]);
+  }
+  return { scenarios, definitions, capabilities };
+}
+
+/** 纯函数：返回「既不在注册集合、也不在例外台账」的 id 清单（便于反例直接调用） */
+function _registryMisses(manifests, sets, exceptions) {
+  const known = new Set([...sets.scenarios, ...sets.definitions, ...sets.capabilities]);
+  const out = [];
+  for (const m of manifests) {
+    if (!known.has(m.blockId) && !(exceptions.blockId || {})[m.blockId]) {
+      out.push(`${m.blockId}（blockId 不在 capability / scenario / definition 三表，且未登记例外）`);
+    }
+    if (!sets.capabilities.has(m.capabilityId) && !(exceptions.capabilityId || {})[m.capabilityId]) {
+      out.push(`${m.blockId}.capabilityId=${m.capabilityId}（不在能力注册表，且未登记例外）`);
+    }
+  }
+  return out;
+}
+
+test('S5 契约 §二机检：manifest 的 blockId / capabilityId 必须落在注册三表或显式例外台账内', () => {
+  const sets = _registeredIds();
+  // 非空转：三表都必须真读到规模（解析写坏 ⇒ 集合空 ⇒ 什么都不缺 ⇒ 判据恒真）
+  assert.ok(sets.scenarios.size >= 5, `只读到 ${sets.scenarios.size} 个 SOP 场景 id（下限 5）：判据或单一源被写坏`);
+  assert.ok(sets.definitions.size >= 3, `只读到 ${sets.definitions.size} 个 workflow definition id（下限 3）`);
+  assert.ok(sets.capabilities.size >= 10, `只读到 ${sets.capabilities.size} 个能力 id（下限 10）`);
+  const misses = _registryMisses(BLOCK_MANIFESTS, sets, REGISTRY_EXCEPTIONS);
+  assert.deepEqual(misses, [],
+    '以下 id 不满足契约 §二「与 capability / scenario id 一一对应」且未登记例外：\n  '
+    + misses.join('\n  ')
+    + '\n修法：改用注册 id；确需例外则在本文件 REGISTRY_EXCEPTIONS 写明理由。');
+  // 反例锁死（证明判据不是恒真）：一个未注册 id 必须被报出
+  const probe = [...BLOCK_MANIFESTS, { blockId: 'ghost-not-registered', capabilityId: 'ghost-cap' }];
+  assert.equal(_registryMisses(probe, sets, REGISTRY_EXCEPTIONS).length, 2,
+    '反例：未注册的 blockId / capabilityId 必须各报 1 条（否则判据恒真、等于没检）');
+  console.log(`[S5] 契约 §二：${BLOCK_MANIFESTS.length} 块 id 均在册`
+    + `（scenario ${sets.scenarios.size} / definition ${sets.definitions.size} / capability ${sets.capabilities.size}`
+    + `；例外 ${Object.keys(REGISTRY_EXCEPTIONS.blockId).length + Object.keys(REGISTRY_EXCEPTIONS.capabilityId).length} 条）`);
 });

@@ -21089,3 +21089,16 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **同步**：`WORKFLOW_BLOCK_CONTRACT.md` §〇 ①轴锚点 ＋ §七 新增「S3 扩展」小节；`ENGINEERING_ASSESSMENT.md` §六 G3-3 转🟢（第二层·配置面）；`ACTIVE_RULINGS` 留痕（**口径行仍 130**，未产生新口径）；`.ctx/TIMESTAMPS.md` 仅改 `config-clean.js` **日期列**（2026-09-22 → 2026-09-28）——**备注列一字未加**（`N2` 余量仅 175 字，按 `R-89` 沿革入本日志）。
 - **余下（未做，如实登记）**：块清单按**既有场景 id** 铺开到其余 6 个场景（含各场景 `sopRef` / `capabilityId` / `outputs` 语义，须逐场景读母本后落，不猜）；运行时面（任务派生消费组合产物）；L4 画布 UI；② 表单条目 / ③ 参与人范围 两轴的支部可配面。
 
+---
+
+## 批次 247（2026-09-28）：把契约 §二「注册表对应」由「只写在契约里」升级为机检（`block-manifest::S5`）
+
+> **来源**：准备「块清单铺开」时先核对契约 §二的命名口径，**发现该条根本没机检，而且试点块自己就违反它**——这正是本批「先立判据、再扩清单」的次序理由（避免把违规 id 铺开成一批）。
+
+- **实测（先取证）**：从单一源实读三张注册表 ⇒ **scenario 7 条**（`theme-party` / `branch-party-meeting` / `party-group-meeting` / `party-lecture` / `branch-committee` / `attendance-check` / `feedback-handling`）· **definition 3 条**（`theme-party-day` / `short-term` / `long-term`）· **capability 14 条**（`activity-calendar` · `component:*`×3 · `mock-data-source` · `api-data-source` · 7 个 `*-workspace` · `sop-scenarios`）。
+- **发现（真缺陷 · 自违契约）**：契约 §二 写「`blockId` … **与 capability/scenario id 一一对应，注册表缺失即契约失效**」，而 —— `theme-party-day` 是 **definition id ⇒ 合法**；**`taskforce-run` 三表皆无**、**`capabilityId: 'taskforce'` 亦非注册能力** ⇒ **试点块自违其契约**，且**此前无任何机检**（S4 只查 `CAPABILITY_PROVENANCE` 那张本地表，查不出「能力名根本没注册」）。
+- **修法（本批落地）**：`server/test/block-manifest.test.mjs` 新增 **`S5`**——两个 id 必须落在**从单一源实读**的三表内，或落在文件内 `REGISTRY_EXCEPTIONS` **显式例外台账**（每条写理由）内；**非空转下限**（scenario ≥5 / definition ≥3 / capability ≥10，防解析写坏 ⇒ 集合空 ⇒ 恒真）＋ **反例锁死**（造 `ghost-not-registered` ⇒ 必须报 2 条）。例外台账现 **2 条**（`taskforce-run` / `taskforce`，各写理由并指向 `REVIEW_QUEUE H-10`）。
+- **口径冲突（待支书裁，已转 `H-10`）**：专班是**支部自创制度尝试**、三表本无同名 id ⇒ ① **改名 / 登记**（推荐：把 `taskforce` 补进能力注册表，或把 blockId 换成已注册 id ⇒ 例外可撤、契约仍是唯一口径）；② **承认「支部自创块允许无注册 id」**（须改 `content/**` 契约）。
+- **验收**：`block-manifest` **5/5**（含新 `S5`，控制台实测 `scenario 7 / definition 3 / capability 14 / 例外 2`）；本批**未改 `docs/src`** ⇒ **无需 bump**。
+- **同步**：`WORKFLOW_BLOCK_CONTRACT §七` 补「§二 由警告升级为机检」小节；`REVIEW_QUEUE` 新增 `H-10` ＋ 本节规模 9 → 10 条；`ACTIVE_RULINGS` 留痕（**口径行仍 130**）。
+
