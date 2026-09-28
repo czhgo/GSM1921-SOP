@@ -775,6 +775,28 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   assert.ok(relNums.length >= 5, `REVIEW_QUEUE.md 只解析到 ${relNums.length} 处「与在册计数的关系」行（基线 5）：判据可能失效`);
   relNums.forEach((n, i) => eq('队列在册条数', `REVIEW_QUEUE.md「与在册计数的关系」第 ${i + 1} 处`, n, qReal));
 
+  // ⑬ 真机台账规模（权威＝`server/test/form-loop-registry.mjs` 的**条目行**；2026-09-28 批次 240 · 收 `H-4`）
+  //    病灶（`H-4`）：README 自述「95 处校验点 / 91 条可自动化 / 4 条非自动化」是**旧口径的定格**——
+  //    台账早已长到 101 与 95 / 6，而**没有任何守卫核这几个数**：它与本表其它 12 项同属「可数事实」，
+  //    却整整漏在外面（换壳者据此估工作量会偏）。
+  //    ⚠ 计数判据（踩过的坑）：**只数条目行**（行首 `{ file:`），**注释里的 `machine:true` 不算**——
+  //    对整段做正则会把注释文本数进去（台账里 101 vs 95 的差额正是这么来的，本批实测）。
+  const frlSrc = read(join(ROOT, 'server', 'test', 'form-loop-registry.mjs'));
+  const vBody = frlSrc.slice(frlSrc.indexOf('export const VALIDATION_SITES'), frlSrc.indexOf('export const MACHINE_FLOWS'));
+  const mBody = frlSrc.slice(frlSrc.indexOf('export const MACHINE_FLOWS'), frlSrc.indexOf('export const SUCCESS_FLOWS'));
+  const vEntries = vBody.split(/\r?\n/).filter((l) => /^\s*\{\s*file:/.test(l));
+  const sitesManualReal = vEntries.filter((l) => /machine:\s*false/.test(l)).length;
+  const sitesAutoReal = vEntries.length - sitesManualReal;
+  const flowsReal = mBody.split(/\r?\n/).filter((l) => /^\s*\{\s*$/.test(l)).length;
+  // 台账基线常量是**独立的第二读**：两读必须相等 ⇒ 计数正则写坏时立刻红（防恒真）
+  eq('真机台账校验点总数', '台账 `SITES_BASELINE` 常量', cn(m(frlSrc, /export const SITES_BASELINE = (\d+);/)), vEntries.length);
+  eq('真机台账真机流程数', '台账 `FLOWS_BASELINE` 常量', cn(m(frlSrc, /export const FLOWS_BASELINE = (\d+);/)), flowsReal);
+  const readmeSrc = read(README);
+  eq('真机台账校验点总数', 'README.md「共 N 处校验点」', cn(m(readmeSrc, /共 \*\*(\d+)\*\* 处校验点/)), vEntries.length);
+  eq('真机台账可自动化条数', 'README.md「`machine:true` N 条可自动化」', cn(m(readmeSrc, /`machine:true` \*\*(\d+)\*\* 条可自动化/)), sitesAutoReal);
+  eq('真机台账非自动化条数', 'README.md「`machine:false` N 条非自动化」', cn(m(readmeSrc, /`machine:false` \*\*(\d+)\*\* 条非自动化/)), sitesManualReal);
+  eq('真机台账真机流程数', 'README.md「N 条真机闭环」', cn(m(readmeSrc, /\*\*(\d+) 条真机闭环\*\*/)), flowsReal);
+
   assert.deepEqual(problems, [],
     `文档里的「枚举 / 计数」与代码 / 数据实然值不符（口径：**以代码 / 数据实然值为准**）：\n  ${problems.join('\n  ')}`);
   // 非空转：实然值本身不得为 0 / NaN（否则公式写坏，断言会变成恒真）
@@ -782,6 +804,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     ['拟上会类数', agendaReal], ['ACTIVE_RULINGS 口径行', arLines], ['决策日志条目', dReal],
     ['页面数', rootsN + wsN], ['资源表数', dbTables], ['通知 kind 数', kindReal],
     ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列在册', qReal],
+    ['真机台账校验点', vEntries.length], ['真机台账真机流程', flowsReal],
   ].forEach(([k, v]) => assert.ok(Number.isFinite(v) && v > 0, `S14 的实然值「${k}」＝${v}：解析式写坏了，断言会变成恒真`));
 });
 
