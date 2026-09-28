@@ -17,14 +17,14 @@
 //   **逐场开关**：勾 = 本场要补、不勾 = 本场不补。⇒「只有两项的名单」是硬要求名单**唯一的判据源**，
 //   消费点勿另写第二份，也别把某项从这里挪走当成「关掉」。见 `D-467` / `D-545`。
 
-import { mockDB, AttendanceStatus } from '../../core/domain.js?v=20260928t';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928t';
-import { persist } from '../../core/data-adapter.js?v=20260928t';
-import { PEOPLE } from '../../mock/index.js?v=20260928t';
-import { getPersonById } from '../member/person.js?v=20260928t';
-import { loadAttendanceRecords, saveAttendanceRecords } from './attendance.js?v=20260928t';
-import { findActivityById } from './activity.js?v=20260928t';
-import { generateId } from '../../core/id.js?v=20260928t';
+import { mockDB, AttendanceStatus } from '../../core/domain.js?v=20260928u';
+import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928u';
+import { persist } from '../../core/data-adapter.js?v=20260928u';
+import { PEOPLE } from '../../mock/index.js?v=20260928u';
+import { getPersonById } from '../member/person.js?v=20260928u';
+import { loadAttendanceRecords, saveAttendanceRecords } from './attendance.js?v=20260928u';
+import { findActivityById } from './activity.js?v=20260928u';
+import { generateId } from '../../core/id.js?v=20260928u';
 
 /**
  * 制度硬要求补课类型（补课范围判据的**单一出口／call-time**）——支部级可调。

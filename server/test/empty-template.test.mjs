@@ -14,11 +14,11 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928t';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928u';
 import {
   EMPTY_BRANCH_TEMPLATE, buildNewBranchRecord,
   createBranch, getBranchById, getBranchOrg, auditEmptyBranchRecord,
-} from '../../docs/src/services/branch/branch.js?v=20260928t';
+} from '../../docs/src/services/branch/branch.js?v=20260928u';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 

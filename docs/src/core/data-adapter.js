@@ -21,7 +21,7 @@
 // 2026-09-17 批次 49：成功提示的统一等待点。本文件刻意**全部使用动态 import** 以避开
 // 环依赖，此处是唯一静态 import —— 因 pending-writes 是**叶子模块**（零依赖），静态引入不成环，
 // 且必须同步可用（persist() 在排程那一刻就要登记，不能等一个 await）。
-import { trackWrite } from './pending-writes.js?v=20260928t';
+import { trackWrite } from './pending-writes.js?v=20260928u';
 
 /**
  * DataAdapter Interface — 统一数据访问接口
@@ -88,13 +88,13 @@ export function setDataSource(source, options = {}) {
   if (options.apiBaseUrl) API_BASE_URL = options.apiBaseUrl;
   if (options.authToken) _authToken = options.authToken;
   // ── **装配标记**（2026-09-28 批次 241 · 收 `H-3` / `SOP-B-44` 方案 C）───────────────
-  // 把「运行时到底装配成了哪种数据源」写成一条**真机（真实浏览器）可读**的属性。
-  // 为什么非要有它：守卫此前只能做**静态**断言（页入口源码里有没有『装配形』），而
-  //   「源码里有装配调用」≠「运行时真装配成功」——`getDataSource() === 'api'` 那一维**至今没有守卫**。
-  // 为什么写进 DOM、而不是让守卫直接调 `getDataSource()`：本模块的取值存在**模块实例内部**，
-  //   守卫若另用一条 URL `import()` 本模块，读到的会是**另一个实例**（默认 'mock'）⇒ 假红。
-  //   DOM 属性是**跨模块实例、跨脚本**都能读到的唯一真相点（`module-load.test.mjs::E4` 据此断言）。
-  // 无副作用：只是一条只读标记，不参与任何业务判定；非浏览器环境（Node）自动跳过。
+  // 把「运行时究竟装配成哪种数据源」写成一条**真机（真实浏览器）可读**的属性：守卫此前只能做**静态**断言
+  //   （页入口源码里有没有『装配形』），而「源码里有装配调用」≠「运行时真装配成功」——`getDataSource() === 'api'`
+  //   那一维**至今没有守卫**。写进 DOM 而非直接调它：本模块取值在**模块实例内部**，另一条 URL `import()` 会读到
+  //   **另一个实例**（默认 'mock'）⇒ 假红；故 DOM 属性是**跨模块实例、跨脚本**都能读到的落点（`module-load.test.mjs::E4` 据此断言）。
+  // ⚠ **适用边界**（2026-09-29 批次 258 实测补，`REVIEW_QUEUE H-14`）：本标记**只在调用过本函数的装配路径**上可信——
+  //   实测有经 API 装配（`/api/v1/snapshot/versions`、`/users`、`/activities`… 全 200）却仍读作 `mock` 的入口 ⇒ 判
+  //   「是否 api」须**限定页面 / 路径**、不可外推「全站可信」；无副作用：只读标记、非浏览器（Node）自动跳过。
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.dataset.dataSource = source;
   }
@@ -216,7 +216,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('./domain.js?v=20260928t');
+      const { mockDB } = await import('./domain.js?v=20260928u');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -310,7 +310,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260928t');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20260928u');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -343,8 +343,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260928t');
-          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260928t');
+          const { ATTENDANCE_RECORDS } = await import('../mock/attendance.js?v=20260928u');
+          const { INSPECTION_RECORDS } = await import('../mock/inspection.js?v=20260928u');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -355,7 +355,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20260928t');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20260928u');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
@@ -587,7 +587,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('./domain.js?v=20260928t');
+    const { mockDB } = await import('./domain.js?v=20260928u');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -744,11 +744,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('./domain.js?v=20260928t');
+  const { mockDB } = await import('./domain.js?v=20260928u');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('./utils.js?v=20260928t');
+    const { showToast } = await import('./utils.js?v=20260928u');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -932,12 +932,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20260928t';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20260928u';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20260928t';
+import * as _deployConfig from '../config/deploy.js?v=20260928u';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════

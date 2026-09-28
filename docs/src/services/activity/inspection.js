@@ -3,18 +3,18 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain.js?v=20260928t';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928t';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928t';
-import { generateId } from '../../core/id.js?v=20260928t';
-import { bumpToken } from '../../core/version-token.js?v=20260928t'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../mock/index.js?v=20260928t';
-import { isInitStateActive } from '../core/init-reset.js?v=20260928t'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20260928t';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20260928t';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260928t';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain.js?v=20260928u';
+import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260928u';
+import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928u';
+import { generateId } from '../../core/id.js?v=20260928u';
+import { bumpToken } from '../../core/version-token.js?v=20260928u'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../mock/index.js?v=20260928u';
+import { isInitStateActive } from '../core/init-reset.js?v=20260928u'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20260928u';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20260928u';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260928u';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer } from './taskforce.js?v=20260928t';
+import { isTaskforceOrganizer } from './taskforce.js?v=20260928u';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
