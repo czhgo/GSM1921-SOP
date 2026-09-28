@@ -5,10 +5,10 @@
 // 动画：Lenis 平滑滚动 + CSS 滚动驱动（animation-timeline: view()）+ 原生 JS 驱动
 // 签名元素：收束致谢（三层小字）+ 探索区 SVG 关系网络 + 对话卡日出日落公转（文字正立）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260928q';
-import { renderHeader } from '../../components/shell/header.js?v=20260928q';
-import { getBasePath } from '../../core/utils.js?v=20260928q';
-import { icon } from '../../core/icons.js?v=20260928q';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260928r';
+import { renderHeader } from '../../components/shell/header.js?v=20260928r';
+import { getBasePath } from '../../core/utils.js?v=20260928r';
+import { icon } from '../../core/icons.js?v=20260928r';
 
 // ── 公开访问：不检查登录 ──
 // 静态壳模式（2026-08-12）：about 为纯静态文档，不加载 auth/notice 数据链（约 50 模块），

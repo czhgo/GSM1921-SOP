@@ -20986,3 +20986,39 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - 本节**未新增守卫**（评审报告性质）；`H-3` / `H-4` / `H-6` 的建议动作**未执行**，留待支书点头后按批推进。
 - 本节条目不进「（一）逐条归组」表（该表只收 SOP 逐章评议命题、其合计由 `doc-consistency::S14` 常驻对账）⇒ **队列在册数不受影响**（复跑 S14 全绿）。
 
+---
+
+## 批次 238–241（2026-09-28）：G3-2 收口 → G3-3 第一层 → 评审两条照办 → `H-3` 真机装配断言
+
+> **来源**：支书 2026-09-28 点选的 G3 三项（G3-1 已交付于批次 236）＋「代码健康综合评审」中「可直接照办」项。**本节为 238–241 四批的补记**——此前四批的沿革只落在 `TIMESTAMPS` 短注 / `REVIEW_QUEUE` / `CLAUDE.md` / 守卫内，**未进本日志**（`R-84`/`R-86`：过程应归日志）；本批一并补记。口径：只写可指认到文件 / 断言号 / 实测读数的过程。
+
+### 批次 238 — G3-2 全量 config 引擎收口
+- **落点**：`docs/src/core/policy-defaults.js` 新增 `POLICY_FIXED`（12 条**不可覆盖固定台账**，每条 `{path, kind, why, src}`；`kind` ∈ `institutional|branch-default|display`）· 守卫 `server/test/policy-config.test.mjs::R1–R3`（`R1` 每个叶键恰属「可覆盖白名单」∪「固定台账」两类之一、双向差集 · `R2` 每个 `kind/why/src` 写全、`institutional` 禁入白名单 · `R3` 恒等式 `14+12=26` ＋ 非空转下限）· `DATA_CONSISTENCY_CHECKLIST §0.2 R31` · `ACTIVE_RULINGS` 留痕。
+- **判定表结论**：未登记 12 项**全属制度 / 展示口径、无技参** ⇒ 可覆盖白名单**不扩**，收口为**机检台账**（消灭「未登记」第三态）。
+- **过程中抓出的错**：`R2` 抓到 3 处 `src: '同上'`（<4 字、非自含出处）⇒ 改为自含出处。
+- **验收**：`R1–R3` 全绿。
+
+### 批次 239 — G3-3 第一层：工作流块通用编排内核 ＋ 修真缺陷
+- **落点**：`docs/src/workflow/blocks/orchestration.js`（新；导出 `blocksForScope` / `composePlan` / `compilePlan` / `blockCount`；`compilePlan` 产出**纯数据**、含函数即报错；`composePlan` 复用 `validateBlockManifest` ＋ `resolveConflicts` 单一源、错误累积不抛、稳定拓扑序）· 守卫 `server/test/block-orchestration.test.mjs::O1–O5` · `DATA_CONSISTENCY_CHECKLIST §0.2 R32`。
+- **真缺陷（红 · 最重）**：`docs/src/core/module-compose.js::resolveConflicts` 的清单过滤**只认 `it.id`**，而 **L3 块清单键名是 `blockId`** ⇒ 传入块清单被过滤成**空集** ⇒ `missingRefs` / `mutual` / `cycles` 恒空 ⇒ `assertComposeValid(BLOCK_MANIFESTS)` 恒真；而 `block-manifest.test.mjs::S3` 断言的正是「它不抛」⇒ **假绿**。**修法**＝`itemId()` **双键名等价取用**（单一源、不新写第二套判据）；`O1` 用**反例**锁死「引用缺失必须真抛」。
+- **过程中抓出的错**：`O3`/`O4` fixture 非法（`blockId:'ka'` 不足 3 字 / `capabilityId:'activity-calendar'` 撞 provenance 对照）⇒ 改 `probe-a` 等 ＋ `capabilityId:'probe-cap'`；`assert.equal([null])` → `deepEqual`；`block-orchestration` 一度只入 `test:fast` 未入 `test:daily` ⇒ 二次补入（`daily` 633 → 638）。
+- **验收**：`O1–O5` 全绿。
+
+### 批次 240 — 收代码健康评审两条「可直接照办」项
+- **`H-4`**：`README.md` 三个 form-loop 台账计数按实读改准为 **101 / 95 / 6**（口径＝`SITES_BASELINE` 与 `VALIDATION_SITES` 内的 `machine` 标记）、「54 条」改 **56**；**纳入 `doc-consistency.test.mjs::S14` 第 ⑬ 项**（与 `server/test/form-loop-registry.mjs` 的**基线常量双读**互核 ⇒ 计数正则写坏立即红）；反例实测（README 写 102 ⇒ 精准判红并点出「写 102，实然 101」）。**关键坑**：只数**条目行**（行首 `{ file:`），**注释里的 `machine:true` 文本不计**。
+- **`H-6`**：落成 **`CLAUDE.md R-91`**——① **新写的引用**优先「符号名 ＋ §-号」、行号只作补充；② **数量型自述一律写「≥N」＋ 基线出处**、不写死精确数；③ **不回溯改存量**（改签仍按 `doc-line-ref` 同批完成）。
+- **过程中抓出的错**：`S14` 第 ⑬ 项一度落错测试块（`assert.deepEqual(problems, [],` 在文件里出现多处）⇒ 撤回、改用唯一长锚点；`REVIEW_QUEUE` `H-4`/`H-6` 编辑锚点与文件不符 ⇒ 重读取准后重做。
+
+### 批次 241 — 收 `H-3`（真机装配断言）＋ 修换戳引起的行号位移红
+- **装配标记**：`docs/src/core/data-adapter.js::setDataSource` 写 `document.documentElement.dataset.dataSource`。**为什么写进 DOM**（而不让守卫直接调 `getDataSource()`）：本模块的取值存在**模块实例内部**，守卫若另起一条 URL `import()` 本模块、读到的是**另一个实例**（默认 `'mock'`）⇒ **假红**。
+- **`module-load.test.mjs::E4`**：真 HTTP 登录（`POST /api/v1/auth/login` `{personId, password}` → `{token}`）→ `page.addInitScript` 注入 `sessionStorage['gsm1921-api-token']` → 依次访问**支书台 / 纪检台 / 组长台**三页、断言 `document.documentElement.dataset.dataSource === 'api'`；**非空转**＝`about.html` HTML 无静态 `data-source="api"` 且该页实测标记 ≠ `'api'`（离线跑，`cdn.tailwindcss.com` 一律 `route.abort`）。
+- **两轮探针证非空转**：① 只改 **3 处装配站点之一**（`data-adapter.js:922` / `modules/capabilities/data-source.js:32` / `services/core/runtime.js:30`）⇒ **不红**——因全仓有 3 处真装配站点；② 令标记**恒写 `mock`** ⇒ **fail=1、报出实测 `mock`**；还原后无残留。
+- **换戳引起的 2 红（真事故）**：补跑纪律动作 `docs/scripts/bump-version.mjs`（`20260928q → 20260928r`；JS 216 / HTML 22 / CSS 2 / server-test 84；陈旧戳 0 残留）后 `npm run test:daily` 出 **2 红**（`doc-line-ref::R1/R2`）。**根因**＝本批在 `data-adapter.js::setDataSource`（:86）**插行** ⇒ `README-server.md` 里指向该文件的 `文件:行号` 引用**整体位移 +11**。**同批改签 8 处**：`:1129→1140`（`probeRemoteChanges`）· `:992→1003`（`REMOTE_PROBE_INTERVAL_MS`）· `:995→1006`（`REMOTE_PROBE_PREF_KEY`）· `:1032→1043`（`setRemoteProbeEnabled`）· `:1186/:1197→:1197/:1208`（`start`/`stopRemoteChangeProbe`）· `:1011→1022`（`REMOTE_PROBE_AUX`）· `:1055→1066`（`_refreshCollections`）。
+- **落点**：`DATA_CONSISTENCY_CHECKLIST §0.2 R33`（新：运行时「页面真用上了服务端数据」可机检）· `README.md` 测试清单 `module-load.test.mjs` 补断言号 `E1–E4` · `REVIEW_QUEUE H-3` 转「已收」· `ACTIVE_RULINGS` 留痕。
+- **验收**：`npm run test:daily` **638/638 / 0 红**；`node --test test/module-load.test.mjs` **4/4**。
+
+### 本节边界（如实登记）
+- **G3-3 余下三层未做**：同类场景铺开（须先给「块差异」三口径）· 画布 UI · 全站推广 ＋ 键盘 / 按钮等价路径。
+- **`H-1` / `H-2` / `H-5`** 三条涉制度口径 / 评议结论 ⇒ **只登记、不代裁**（未改 `/issues` 读口、未改 `authorize`、未改 `REVIEW_QUEUE` 全局评估总表）。
+- **方案 B（把 `entries/**` 纳入 `module-load` E1）未做**——`E4` 已覆盖「运行时真装配」这一维，方案 B 留待需要时。
+

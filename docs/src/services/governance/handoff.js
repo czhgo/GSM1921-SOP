@@ -8,11 +8,11 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260928q';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928q';
-import { bumpToken } from '../../core/version-token.js?v=20260928q'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260928q';
-import { generateId } from '../../core/id.js?v=20260928q';
+import { mockDB } from '../../core/domain.js?v=20260928r';
+import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260928r';
+import { bumpToken } from '../../core/version-token.js?v=20260928r'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260928r';
+import { generateId } from '../../core/id.js?v=20260928r';
 
 // ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
 // 病灶：handoffs 有本地落盘（mock-adapter 域清单）却**不在**快照 payload / init 拉取列表 / 服务端资源名映射

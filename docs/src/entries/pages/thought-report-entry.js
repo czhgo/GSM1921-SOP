@@ -13,24 +13,24 @@
 //  （2026-09-21 批次 124：支书 2026-09-20 定案「只给提交人本人」——支委层读他人的汇报时看不到该标记，
 //   组织侧不经手篇幅）；**一律不影响提交与归档**。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260928q';
-import { renderHeader } from '../../components/shell/header.js?v=20260928q';
-import { BranchService } from '../../services/core/runtime.js?v=20260928q';
-import { AuthStore } from '../../services/core/auth.js?v=20260928q';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260928r';
+import { renderHeader } from '../../components/shell/header.js?v=20260928r';
+import { BranchService } from '../../services/core/runtime.js?v=20260928r';
+import { AuthStore } from '../../services/core/auth.js?v=20260928r';
 // D-484（批次 87）：本页必须先 hydrate API 数据源再取数——与 activity / notice 独立页同款标准形。
 // 此前本页只调 BranchService.loadDB()，而该函数在 API 模式直接 return（数据由 data-adapter.init()
 // 从服务器填充）⇒ 本页从未切数据源 / init ⇒ api 形态下退回本地 mock 读（种子打得开、新提交报「不存在」）。
-import { hydrateDataSource, notifyDataLoaded } from '../../core/data-adapter.js?v=20260928q';
-import { ApiAdapter } from '../../core/api-adapter.js?v=20260928q';
-import { getPersonName } from '../../services/member/person.js?v=20260928q';
-import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/utils.js?v=20260928q';
-import { badgeHtml } from '../../components/ui/badges.js?v=20260928q';
+import { hydrateDataSource, notifyDataLoaded } from '../../core/data-adapter.js?v=20260928r';
+import { ApiAdapter } from '../../core/api-adapter.js?v=20260928r';
+import { getPersonName } from '../../services/member/person.js?v=20260928r';
+import { getBasePath, showToast, escHtml as esc, fmtDt } from '../../core/utils.js?v=20260928r';
+import { badgeHtml } from '../../components/ui/badges.js?v=20260928r';
 import {
   loadThoughtReports, listThoughtReportsByPerson, listThoughtReportsByPersonGrouped,
   canReadThoughtReport, canReviewThoughtReport,
   rejectThoughtReport, resubmitThoughtReport,
   wordCountHint, periodLabel, comparePeriodDesc, THOUGHT_REVIEW_STATUS,
-} from '../../services/governance/thought-report.js?v=20260928q';
+} from '../../services/governance/thought-report.js?v=20260928r';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

@@ -54,21 +54,21 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260928q';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20260928q';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260928q';
+import { mockDB } from '../../docs/src/core/domain.js?v=20260928r';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20260928r';
+import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260928r';
 import {
   getMeetingRoster, getMeetingRosterIds, getMeetingRosterCandidates, getDetainedMembers,
   getRosterStats, getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20260928q';
+} from '../../docs/src/services/member/roster.js?v=20260928r';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260928q';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20260928q';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928q';
+import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260928r';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20260928r';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260928r';
 // mock 形态对照源（**仅 S1「两形态同源」断言用**；其余用例的断言对象一律是服务端数据）：
 //   前端静态种子 PEOPLE / ACTIVITIES 与服务端种子是同源两份，S1 即断言二者读数逐值一致。
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260928q';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260928q';
+import { PEOPLE } from '../../docs/src/mock/people.js?v=20260928r';
+import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260928r';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存

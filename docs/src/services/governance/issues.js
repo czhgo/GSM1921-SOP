@@ -6,16 +6,16 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain.js?v=20260928q';
-import { AuthStore } from '../core/auth.js?v=20260928q';
-import { PersonStore } from '../member/person.js?v=20260928q';
-import { bumpToken } from '../../core/version-token.js?v=20260928q'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../core/data-adapter.js?v=20260928q';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/constants.js?v=20260928q';
+import { mockDB } from '../../core/domain.js?v=20260928r';
+import { AuthStore } from '../core/auth.js?v=20260928r';
+import { PersonStore } from '../member/person.js?v=20260928r';
+import { bumpToken } from '../../core/version-token.js?v=20260928r'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../core/data-adapter.js?v=20260928r';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/constants.js?v=20260928r';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/pending-writes.js?v=20260928q';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20260928q';
-import { generateId, randomHex } from '../../core/id.js?v=20260928q';
+import { trackWrite } from '../../core/pending-writes.js?v=20260928r';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20260928r';
+import { generateId, randomHex } from '../../core/id.js?v=20260928r';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -26,7 +26,7 @@ import { generateId, randomHex } from '../../core/id.js?v=20260928q';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../../core/utils.js?v=20260928q';
+import { showToast } from '../../core/utils.js?v=20260928r';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
