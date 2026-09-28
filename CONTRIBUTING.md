@@ -53,7 +53,26 @@ npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_P
 - 提交纪律：**少而精**——相关改动攒批合并提交，不要逐文件零碎 commit。
 - **push 必须经支部负责人（支书）明确批准**，AI 不得自行 push。
 
-## 六、贡献前 Checklist
+## 六、发版（语义化 release）
+
+三步，全部有守卫兜底（`server/test/version-stamp.test.mjs::S7`）：
+
+```bash
+# ① 全链换戳（改过 docs/src 或 docs/ 静态资源后必做）
+node docs/scripts/bump-version.mjs
+# ② 把本次「对使用者可见的变更」逐条写进 CHANGELOG.md 的 [Unreleased] 段
+#    写在哪一类很重要：语义化升号按类别判 —— Added→次版本；仅 Fixed/Changed/Removed→修订；含 BREAKING→主版本
+# ③ 预演 → 落版（落版 = 写 CHANGELOG 版本段 + 同步 server/package.json + 打 vX.Y.Z tag）
+node docs/scripts/release.mjs            # 预演（默认，不改任何文件）
+node docs/scripts/release.mjs --apply    # 落版（要求 git 工作树干净）
+```
+
+- **为什么默认预演**：tag 一旦推出去就改不回来 ⇒ 先把「会改哪几行、会打什么 tag」摆在台面上，人看过再落版。
+- **`release.mjs` 不 push**：push 必须经支书明确批准（见 §五）。
+- **版本号纪律**：`CHANGELOG.md` 与 `server/package.json` 两处必须一致（守卫 `S7` 判红）；tag 名 = `v` + 版本号（如 `v0.2.0`）。
+- **CHANGELOG 的起点**：首次语义化发版 `0.1.0`。此前的逐批沿革在 `.ctx/logs/**`，**不在 CHANGELOG 补记**（无 tag 可回溯 ⇒ 补记即编造）。
+
+## 七、贡献前 Checklist
 
 - [ ] 无自造分类/术语（对照 T1/T2 权威）
 - [ ] 无新增重复实现（重复先扎口）
@@ -61,3 +80,4 @@ npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_P
 - [ ] 跨端共用逻辑已收敛（无两端双写）
 - [ ] 已跑 `npm test` 全绿
 - [ ] 改动攒批、中文注释、留日期缘由
+- [ ] 若本次发版：`CHANGELOG.md` 已写本次变更（且写在正确的类别段）、`?v=` 已 bump、`node docs/scripts/release.mjs` 预演通过

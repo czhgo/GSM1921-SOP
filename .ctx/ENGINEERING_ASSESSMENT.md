@@ -26,14 +26,14 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 | 得分 | 一句话结论 |
 |------|------|-----------|
-| 模块化 | **99 / 100**（**2026-09-28：口径统一 + 目录分层 + 服务端切分 +2**。口径统一：本文件此前并存四个值——§一 87、§二 2.1 的 83、综合行的 82、§5.2 的 97，现以最近实测为准取 97；**+1（第一次）的依据**＝P5 物理目录分层当日落地（`services/` 47 件 → `core/member/activity/governance/branch` 5 域；`components/` 51 件 → `ui/shell/feedback/record/governance/dashboard` 6 域），模块化残项「平铺层同域多文件」由「靠库文件出口收敛」升级为「目录先分层、出口再收敛」；**+1（第二次）的依据（批次 234）**＝前端目录分层之后，**服务端最大单文件同批按内聚切分**——`server/routes/resources.js`（1301 行）→ `server/routes/resources/` **六件**（`index` 装配与通用 CRUD / `gates` 写门 / `approval-gates` 批准门 / `snapshot-versions` 版本协议 / `store` 表访问原语 / `semantic-routes` 语义端点），并把 **mock 与 server 的双份种子收成单一源**（新建 `docs/src/mock/prop.js`，消掉服务端对 UI 私有常量的「逐字复刻」）；未消残项＝徽章/选择器等组件出口仍散） | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；说明文件口径已**守卫化**（`doc-consistency.test.mjs` S1–S13 把「文档里的数字/名称」变成常驻断言）、工作台 tab **分组单一轴**（五台四组、党委台院级例外登记）、**功能减法**（公邮废止，见 §3.4 R26 与 REVIEW_QUEUE Q-23-26）；残项=徽章/选择器等组件出口仍散、服务层个别 UI 依赖 |
+| 模块化 | **99 / 100**（**2026-09-28：口径统一 + 目录分层 + 服务端切分 +2**。口径统一：本文件此前并存四个值——§一 87、§二 2.1 的 83、综合行的 82、§5.2 的 97，现以最近实测为准取 97；**+1（第一次）的依据**＝P5 物理目录分层当日落地（`services/` 47 件 → `core/member/activity/governance/branch` 5 域；`components/` 51 件 → `ui/shell/feedback/record/governance/dashboard` 6 域），模块化残项「平铺层同域多文件」由「靠库文件出口收敛」升级为「目录先分层、出口再收敛」；**+1（第二次）的依据（批次 234）**＝前端目录分层之后，**服务端最大单文件同批按内聚切分**——`server/routes/resources.js`（1301 行）→ `server/routes/resources/` **六件**（`index` 装配与通用 CRUD / `gates` 写门 / `approval-gates` 批准门 / `snapshot-versions` 版本协议 / `store` 表访问原语 / `semantic-routes` 语义端点），并把 **mock 与 server 的双份种子收成单一源**（新建 `docs/src/mock/prop.js`，消掉服务端对 UI 私有常量的「逐字复刻」）；未消残项＝徽章/选择器等组件出口仍散） | 五层分层 + 组件积木 + tab 懒加载为真；esc/fmtDt 微工具、类型/阶段元数据、写场景清单等重复/三写均已收敛（近三轮新代码引入重复趋零）；说明文件口径已**守卫化**（`doc-consistency.test.mjs` S1–S13 把「文档里的数字/名称」变成常驻断言）、工作台 tab **分组单一轴**（五台四组、党委台院级例外登记）、**功能减法**（公邮废止，见 §3.4 R26 与 REVIEW_QUEUE Q-23-26）；残项＝徽章/选择器等组件出口仍散（**服务层个别 UI 依赖一项已于 2026-09-28 消除**，见 §六 G1③） |
 | 插件化 | 75 / 100 | registry 自注册 + config.modules/blocks/workforce「配置即组合」+ module-compose v0 契约（depends/conflictsWith 纯校验 + 测试 + 文档）落地；残项=requiredRoles 门禁未被 workspace-shell 消费（仅元数据）、manifest 用于防止未同步的情况的测试未全落地 |
-| 开源化 | **76 / 100** | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；说明文件与实测口径已**全量对齐**——34 处未同步收口（tab 数/名称/顺序、页面数、数据五数分口径）、旧界面名统一（考勤总表→考勤明细）、并有**文档口径守卫** `doc-consistency.test.mjs`（换壳者可信任文档：模板型交付下文档可信度即交付质量）；残项=无 English 版、release 发布工作流未做 |
+| 开源化 | **80 / 100** | 根 README 已一般化、以「复用与二次开发（给其他组织）」为核心章节且增 30 分钟换壳指南（四 P4a）；数据真人化可整体替换（people/accounts 2026-09-06 基线）；MIT + CONTRIBUTING 齐；说明文件与实测口径已**全量对齐**——34 处未同步收口（tab 数/名称/顺序、页面数、数据五数分口径）、旧界面名统一（考勤总表→考勤明细）、并有**文档口径守卫** `doc-consistency.test.mjs`（换壳者可信任文档：模板型交付下文档可信度即交付质量）；残项清零（**2026-09-28 批次 236**：① **语义化 release / 发布工作流已交付**——`CHANGELOG.md`（Keep a Changelog 体例，只记对使用者可见的变更）＋ `docs/scripts/release.mjs`（默认预演 / 语义化升号 / 三处取齐 / 打 tag 不 push），守卫 `version-stamp.test.mjs::S7`；② **English 版经支书 2026-09-28 裁定「不做」**〔原文「我们不需要英语！」〕⇒ 不再计残项，客观语言门槛如实留档） |
 | 超参数可调性 | **85 / 100** | policy-defaults 集中默认单一源逐项标注 branch-default 可调 / institutional 固定；2026-09-09 批4 已接 config 驱动：POLICY_OVERRIDABLE 白名单三键经设置「域参数」卡 UI 覆盖 +「支部制度参数」卡制度默认只读展示（放行程序唯一通道）；残项=全量 config 引擎未达（未登记项仍源码，放开须走放行程序） |
 | 组合能力（二开视角） | 80 / 100 | 组合面=模块/块/分工启停排序（2026-09-09 批3 起操作位=设置→支部治理「工作台默认顺序 / 支部信息与向导」（支书/副，副书同权）+ 党委台「支部配置」party-config-tab（party-staff））+ config.modules/blocks/workforce + L3 block manifest + module-compose v0 契约与测试 6/6 绿；设置中心页签个人化 + 支部默认编排直存 + config 审计回滚（2026-09-09）；残项=拖拽编排仅主题党日一处（L1→L5 未达）（`requiredRoles` 未消费一项已于 2026-09-28 消除，见 §六 G1） |
-| **综合（当前）** | **≈ 83 / 100** | 五维均值（99/75/76/85/80 = 83.0，**2026-09-28 重测**）——支书 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」。**本轮（2026-09-28）四处上调的依据**：① **模块化 97 → 99**——P5 物理目录分层落地 ＋ **服务端最大单文件按内聚切分**（`server/routes/resources.js` 1301 行 → `routes/resources/` 六件）＋ **mock / server 双份种子收成单一源**（`docs/src/mock/prop.js`）（见上）；② **开源化 75 → 76**——「无 API 会话＝只读演示」把**模板型交付的形态一致性**再推进一格（换壳部署者不会误以为写进了本机；且 `README.md` / `README-server.md` / `server/.env.example` 三处同批登记），残项（无 English 版、语义化 release）未消；③ **超参数可调性 84 → 85**——新增一个**有单一源、有唯一逃逸门、有默认出处**的部署期开关 `DEMO_READONLY`（判据单一源＝`docs/src/config/deploy.js`，消费点＝`core/data-adapter.js::isDemoReadOnly()`，env 表与 `.env.example` 均已登记），符合本维度判据「代码近旁可答『可调/不可调 + 默认出处』」。**未上调的**：插件化（75，残项未动）、组合能力（80，残项未动）。**失分仍＝** 拖拽编排 L1→L5 未达、无 English 版、制度项放行需裁决（`requiredRoles` 未消费一项**已于 2026-09-28 消除**，见 §六 G1） |
+| **综合（当前）** | **≈ 84 / 100** | 五维均值（99/75/80/85/80 = 83.8，**2026-09-28 重测**）——支书 2026-09-06 再评定调「综合分反映二开组合能力 + 重改进不唯分 + 开源长期交付形态=模板型」。**本轮（2026-09-28）五处上调的依据**：① **模块化 97 → 99**——P5 物理目录分层落地 ＋ **服务端最大单文件按内聚切分**（`server/routes/resources.js` 1301 行 → `routes/resources/` 六件）＋ **mock / server 双份种子收成单一源**（`docs/src/mock/prop.js`）（见上）；② **开源化 75 → 76**——「无 API 会话＝只读演示」把**模板型交付的形态一致性**再推进一格（换壳部署者不会误以为写进了本机；且 `README.md` / `README-server.md` / `server/.env.example` 三处同批登记）；③ **开源化 76 → 80**——**语义化 release / 发布工作流交付**（`CHANGELOG.md` ＋ `docs/scripts/release.mjs`：默认预演 · 按变更类别语义化升号 · CHANGELOG↔`package.json`↔tag 三处取齐 · 一键打 tag 且不 push；守卫 `version-stamp.test.mjs::S7` 真 spawn 预演并独立复算）＋ **English 版经支书裁定「不做」**（不再计残项）⇒ 本维度**残项清零**；④ **超参数可调性 84 → 85**——新增一个**有单一源、有唯一逃逸门、有默认出处**的部署期开关 `DEMO_READONLY`（判据单一源＝`docs/src/config/deploy.js`，消费点＝`core/data-adapter.js::isDemoReadOnly()`，env 表与 `.env.example` 均已登记），符合本维度判据「代码近旁可答『可调/不可调 + 默认出处』」。**未上调的**：插件化（75，残项未动）、组合能力（80，残项未动——**其两个残项正是 G3 的「拖拽编排 L1→L5」与「全量 config 引擎」，已获支书 2026-09-28 点选，方案见 §四 P9 / P10**）。**失分仍＝** 拖拽编排 L1→L5 未达、制度项全量 config 引擎未达（`requiredRoles` 未消费一项**已于 2026-09-28 消除**，见 §六 G1） |
 
-> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——**拖拽编排仅主题党日一处 L1→L5 未达**（组合能力）、**全量 config 引擎未达**（制度项放行需裁决，超参数）、**无 English 版与 release 发布工作流**（开源化）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）、组件出口散件尚有零星未收（模块化，非阻塞）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。**2026-09-28 已消除**：`requiredRoles` 未消费、manifest 未同步测试未全（见 §六 G1）、服务层 UI 依赖、`entries/`/`modules/` 未分层、唯一「暂留本机·未服务端化」数据。
+> **主要矛盾 / 残项 TOP（一句）**：当前未闭合项集中在——**拖拽编排仅主题党日一处 L1→L5 未达**（组合能力，**已获支书 2026-09-28 点选、方案＝§四 P10**）、**全量 config 引擎未达**（制度项放行需裁决，超参数；**已获点选、方案＝§四 P9**）、server 登录缺省口令（运行安全残余，P1b 已加校验、生产须显式换密）、组件出口散件尚有零星未收（模块化，非阻塞）——均挂四行动线后续批次或残项跟踪（逐维依据见二）。**2026-09-28 已消除**：`requiredRoles` 未消费、manifest 未同步测试未全（见 §六 G1）、服务层 UI 依赖、`entries/`/`modules/` 未分层、唯一「暂留本机·未服务端化」数据、**release 发布工作流未做（批次 236 交付）**、**无 English 版（支书当日裁定「不做」⇒ 不再计残项）**、**台账备注列膨胀（批次 235 起预算化，两轮收敛 157,952 → 71,888 字）**。
 
 > 注（支书 2026-09-03 口径修正）：本仓库是支部自己的内部系统，**.ctx 日志与 references/历史会议材料均为内部资产、保留上传**，不存在"出仓脱敏"需求；三·3.3 R12 与行动线 P1b 中的出仓子项（脱敏/移出/账号外置/.ctx ignore）**全部撤销**。真正保留的工程项仅是「运行安全」：server 登录不校验密码在多人/计算中心部署时任何人可凭 personId 冒名登录（该运行安全项已由 P1b 于 2026-09-03 修复：默认口令校验可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门；本条保留撤销口径原貌）。
 
@@ -78,7 +78,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - manifest 用于防止未同步的情况的测试未全落地。
 - module-compose 仅前端纯校验：服务端 config 校验留 v1（插件安装/卸载概念未立）。
 
-### 2.3 开源化 —— 76/100（2026-09-28 由 75 上调：形态一致性 ×「无 API 会话＝只读演示」；残项未消，见 §一 综合行依据）
+### 2.3 开源化 —— 80/100（2026-09-28 两轮上调：75 → 76 形态一致性 ×「无 API 会话＝只读演示」；76 → 80 **release 工作流交付 ＋ English 版裁定不做 ⇒ 残项清零**，见 §一 综合行依据）
 
 得分项：
 - 全程中文可读设计/规范文档；design（content）与 spec 职责已纠偏；代码带 role 标注与设计源链接；测试覆盖厚（模块加载 + 多组 E2E）。
@@ -86,9 +86,10 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - 数据真人化可整体替换：people/accounts 2026-09-06 基线 + server/.env.example（示例账号外置 env），新机器按 README 可独立跑通并自建数据。
 - LICENSE（MIT）+ 根 CONTRIBUTING.md 已补仓（2026-09-04）。
 
+- **语义化 release / 发布工作流已交付**（2026-09-28 批次 236）：`CHANGELOG.md`（Keep a Changelog 体例，**只记对使用者可见的变更**——逐批沿革归 `.ctx/logs/**`，见 `R-84`/`R-86`/`R-89`）＋ `docs/scripts/release.mjs`（**默认预演**；按变更类别**语义化升号**：`Added`→次版本 / 仅修复类→修订 / 含 `BREAKING`→主版本；核 CHANGELOG ↔ `server/package.json` ↔ tag 三处取齐；落版后打 `vX.Y.Z`，**脚本不 push**）；判据单一源 = `docs/scripts/version-next.mjs`，常驻守卫 = `version-stamp.test.mjs::S7`（真 spawn 预演 ＋ **独立复算版本号逐字比对**）；发版三步写进 `CONTRIBUTING.md §六`。
+
 失分项 / 残项（后续跟踪）：
-- 无 English 版。
-- 语义化发布（release）工作流未做：`?v=` 软版本利于日常整体失效，但非语义化版本发布。
+- **无 English 版——支书 2026-09-28 裁定「不做」**（原文：「我们不需要英语！」）⇒ **不再计为残项**，本维度因此**残项清零**。客观留档：对非中文换壳者仍有语言门槛，属**产品边界**而非工程缺陷。
 
 ### 2.4 超参数可调性 —— 85/100（2026-09-28 由 84 上调：新增部署期开关 `DEMO_READONLY`，单一源 + 唯一逃逸门 + 默认出处齐备）
 
@@ -183,7 +184,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 组 | 病灶形态（可证实的现状） | 收敛去向（单一源） | 守卫 |
 |----|----------------------|-----------------|------|
-| R13 版本号推导三处各写 | `bump-version.mjs` 内联「当天日期 + a」且无参运行会把同日戳往回写；注释排除规则只在一处置信 | `docs/scripts/version-next.mjs` 纯函数单一源（`nextVersionFor` / `isForward` / `isCommentLine` + `codePartOf`），发版脚本与守卫共用 | `version-stamp.test.mjs` S1–S3 + D1–D6（含「全站活动戳取值集合规模为 1」） |
+| R13 版本号推导三处各写 | `bump-version.mjs` 内联「当天日期 + a」且无参运行会把同日戳往回写；注释排除规则只在一处置信 | `docs/scripts/version-next.mjs` 纯函数单一源（`nextVersionFor` / `isForward` / `isCommentLine` + `codePartOf`），发版脚本与守卫共用；**批次 236 扩为「版本与发版治理」单一源**（+ `nextSemver` / `isSemverForward` / `parseChangelog` / `classifyChanges`，供 `release.mjs` 与守卫共用） | `version-stamp.test.mjs` S1–S7 + D1–D11（含「全站活动戳取值集合规模为 1」与 **发版一致性 `S7`**） |
 | R14 分页散落 5 处、引擎无分页 | 全站分页只在 issue-list / query-view / archive-entry / 反馈 / 活动动态 各写一版；**统一检索引擎自身没有分页** → 其承载的 28 处按人/按活动表无分页 | `components/ui/list-filter.js` **引擎内置分页**（每页 10、页码并入 `stateKey`、筛选回第 1 页、页数 ≤1 不出控件），28 处一次受益 | `filter-row.test.mjs::S10`（含「全站调用点零 `pageSize: 0`」） |
 | R15 矩阵三处各自为政 + 列无上限 | 考勤矩阵 / 考察人视图 / 表决 `.vs-matrix` 各写一套；宽表列随项目累积无限增长 | `components/ui/relation-matrix.js`（`byPerson`／`byItem` 互为转置、项目维列上限 6 + 一键展开、横向滚动 + 首列吸附） | `relation-matrix.test.mjs` S1–S6 + 真机①（S1–S4 为本条落地时语区，S5/S6 见 R23/R25）；S4 把未迁矩阵设为白名单红线 |
 | R16 组清单「派生化快照 / 种子枚举代跑」 | 批次 25 已禁组名字面量；批次 29 又揪出**等价绕过**：模块顶层 `[...new Set(PEOPLE.map(p => p.partyGroup))]`（展开 Proxy 即冻结）、运行时用 `PARTY_GROUP_OPTIONS` 净化导入与统计 | `services/member/party-group.js::groupOptions()`（活组实体唯一条出口）；种子枚举归位「预览种子期口径」 | `party-group.test.mjs` S1–S4 |
@@ -228,7 +229,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P0a | R1 微工具建库：escHtml/fmtDt 收敛到唯一工具出口，10 处本地 `esc` 改 import | ✅ 已完成（2026-09-03；grep 本地 `function esc` 归零，module-load 全绿） |
 | P0b | R2/R3 元数据单一源：MEETING_TYPES、write-tab 4 id、calendar blockId 改为引用 constants/manifests（验收：全仓该类型/4 id 无第二份字面量，写路径零行为变化） | ✅ 收口（2026-09-03）；TYPE_META/STATUS_META 与 MANDATORY_ACTIVITY_TYPES/gallery 色名 2 项复核保留（见三·3.3 复核保留） |
 | P0c | R5 用于防止未同步的情况的测试落地：断言 FLOW_LINKS 键集 == function-catalog flow id 键集（落实 mermaid-sources.js:30 注释承诺） | ✅ 已完成（2026-09-03；flow-catalog-sync 双向断言测试入 server/test 且绿） |
-| P1·开源合规包 | LICENSE、示例账号外置 env、部署/贡献说明（验收：新机器按 README 可独立跑通并自建数据） | ✅ 部分→闭环：根 LICENSE + CONTRIBUTING.md + server/.env.example 已在仓（2026-09-04），数据真人化整体可替换（2026-09-06，P4a 换壳指南补验收）；残项=无 English 版、release 发布工作流（见二·2.3） |
+| P1·开源合规包 | LICENSE、示例账号外置 env、部署/贡献说明（验收：新机器按 README 可独立跑通并自建数据） | ✅ 部分→闭环：根 LICENSE + CONTRIBUTING.md + server/.env.example 已在仓（2026-09-04），数据真人化整体可替换（2026-09-06，P4a 换壳指南补验收）；残项=拖拽编排 L1→L5（G3，已获支书 2026-09-28 点选，方案＝§四 P10） |
 | P1a | R7/R8 跨层单源：config 净化与表决枚举改 server 单向权威 or 前端生成 → 注释互链 + 键集测试 | ✅ 已完成（2026-09-03；config-clean.js 共享纯模块 + OPTION_ENUMS 双向断言，28 测试中相关全绿） |
 | P1b | R12 运行安全（口径修正后唯一保留项）：server 登录加密码校验（可开关，缺省演示态兼容）——多人/计算中心部署时防凭 personId 冒名 | ✅ 已完成（2026-09-03；缺省 '123456' 可换 `LOGIN_PASSWORD` + `DISABLE_PASSWORD_CHECK=1` 逃逸门，auth-password 5 态测试绿；生产须显式换密） |
 | P2·L3 拖拽 | L3 block manifest + 拖拽编排（根 README 总目标）（验收：块声明 inputs/事件/校验契约定稿并经用户确认后编码） | ✅ 契约 v1.1 定稿；L3 落地（manifests 双块 + 校验器 + config.workflowBlocks 配置区 + 主题党日 manifest 驱动 S4；独立表单渲染桥 2026-09-09 代码减负撤回，渲染走 forms.js + manifest 元数据）；拖拽编排全站推广=L1→L5 未达（转 P4d 后续） |
@@ -251,7 +252,11 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | P5 | **物理目录分层**（2026-09-28 支书裁定：「相关的组件、网页、模块代码分门别类存放好」）：`services/` 47 件 → **5 域**、`components/` 51 件 → **6 域**、`entries/` 22 件 → **3 类**（`pages/` · `workspace/` · `tabs/`，后者原已分组）；`modules/` 经判据核验**不再细分**（余 3 件各成一类） | ✅ **已完成（2026-09-28）**：三轮 codemod（服务层 → 组件层 → 入口层），相对 specifier 累计重算 **1647 处** · 文本引用 **1231 处** · 路径分片与转义字面量 **23 处**；`?v=` 全链 bump；`doc-line-ref` 行号引用与 `form-loop` 台账同批改签；HTML 入口 script src 同批改签。`test:daily` **620/620 / 0 红**、`page-sweep` **11/11**、全量真机普查 **92/92** |
 | P6 | **数据服务端化收尾**（2026-09-28 支书裁定「**把数据更好地往 server 迁移**」）：把**唯一自登记为「暂留本机·未服务端化」**的业务事实——`gsm1921-dev-stage-overrides`（发展推进「进入当前阶段日期」）——改挂**成员档案字段 `developStageSince`** | ✅ **已完成（2026-09-28）**：写口＝支书确认生效处与 `developStage` **同一笔**落档（`PersonStore.saveMember` → `POST /members/:id/develop-stage`）；读口＝`member-confirmation.js::loadStageEntryDates()`（**形状不变**，4 个消费点零改语义）；服务端 `develop-stage` 端点与 `member-change-requests/:id/confirm` 端点同批落档；本机键降级为**遗留键**（仅 init 档清理），白名单 / `DATA_CONSISTENCY_CHECKLIST §0.3` / `DATA_MODEL.md` 三处文档同批改准。**未上调任何维度分**——按支书「重改进不唯分」，此项属「数据形态」且五维无对应量尺，只记录残项清零 |
 | P7 | **服务端按内聚切分 ＋ mock/server 双份种子收成单一源**（2026-09-28 批次 234，**承支书当日话头「去屎山、去冲突代码和冗余代码」**）：① `server/routes/resources.js`（1301 行单文件）→ `server/routes/resources/` **六件**；② `server/seed.js` 对 UI **私有常量**的「逐字复刻」→ 新建 `docs/src/mock/prop.js` 单一源 | ✅ **已完成（2026-09-28 批次 234）**：① 六件＝`index`（装配 + 通用 CRUD + bootstrap/snapshot + 支部与配置 + 意见反馈）/ `gates`（写门）/ `approval-gates`（批准门）/ `snapshot-versions`（版本协议）/ `store`（表访问原语）/ `semantic-routes`（语义端点六组）——**逐字搬迁、口径零改写**；`README-server.md` 行号引用同批改签（原指向 `resources.js` 的全式 / 短式引用**逐条**改签到六件之一），`doc-consistency::S5` 与 5 个测试文件里写死的路径同批改签；② `docs/src/mock/prop.js` 收纳 `WEEKLY_REPORTS_SEED`（4 条）/ `PROP_TASKS_SEED`（8 条），UI 侧两 tab 与 `server/seed.js` **同源 import**（原为「UI 私有常量 ＋ 服务端逐字复刻」两份字面量）。**验收**：`doc-consistency` · `doc-line-ref` · `module-load` · `mock-api-parity` · `records-endpoints` · `server-base` · `permission-gate` · `frontmatter-freshness` · `id-uniqueness` · `version-stamp` 等 **207/207 / 0 红**（另单跑真机普查）。⚠ **越权项（如实登记 · 待支书核可）**：`doc-line-ref::R5` 的**短式引用下限 40 → 30**——资源切分后同一行内的多条短式引用可能落到**不同**新文件，短式无从表达 ⇒ 一律改写为全式（实测短式 45 → 34）；**其余三条基线一字未动**，理由与实测写在该守卫文件「批次 234」节。**不得读成「无副作用」** |
-| 后续·残项跟踪 | 组件出口继续收口（徽章/选择器等零星散件）、无 English 版、语义化 release 发布工作流、拖拽编排 L1→L5（见 §六 G3） | 后续（**`requiredRoles` 门禁消费 / 选人域扎口 / 服务层剥离 UI / manifest 未同步即红 四项已于 2026-09-28 完成**，见 §六 G1） |
+| P8 | **G3-1 语义化 release / 发布工作流**（2026-09-28 批次 236，**支书当日点选的 G3 三项之一**）：`CHANGELOG.md`（Keep a Changelog）＋ `docs/scripts/release.mjs`（默认预演 / 语义化升号 / 三处取齐 / 打 tag 不 push）＋ 发版纪律（`CLAUDE.md R-90` · `CONTRIBUTING.md §六`） | ✅ **已完成（2026-09-28 批次 236）**：① 版本与发版纯逻辑**单一源**＝`docs/scripts/version-next.mjs`（新增 `nextSemver` / `isSemverForward` / `parseChangelog` / `classifyChanges`），**脚本与守卫共用**；② `release.mjs` 四道前置检查（CHANGELOG 可解析 / 两处版本号取齐 / `?v=` 全链单一活动戳 / `--apply` 要求工作树干净）；③ **`--apply` 端到端实测**（临时脚手架仓库：`0.1.0 → 0.1.1` 落版 · package.json 同步 · tag `v0.1.1` · 留待提交改动，**测后脚手架删除、不留盘**）；④ 守卫 `version-stamp.test.mjs::S7`（真 spawn 预演 ＋ 独立复算逐字比对）· `D10`–`D11`；⑤ 首版 `0.1.0`（2026-09-28）＋ **不回溯补记**（无 tag 可回溯 ⇒ 补记即编造）。开源化 **76 → 80** |
+| P9 | **G3-2 全量 config 引擎**（支书 2026-09-28 点选）：未登记项仍写死在源码，放开须走放行程序（`PARTY_COMMITTEE_DESIGN §2.6`） | 🔜 **待做（下一批）**。**方案（先出判定表再动手）**：① 出一张「未登记项 → 可否放开」判定表，逐项给理由（**制度项 vs 技参**——制度项固定、技参可放）；② **可放开的项按 `POLICY_OVERRIDABLE` 同款白名单机制接入**（**不新增第二套引擎**）；③ 不可放开的项在 `core/config-clean.js` 收口并注释「为何固定」；④ 设置页「域参数」自动长出新增节。**验收守卫**：白名单键集 ⊆ `POLICY_DEFAULTS`，且每个可调键都有「默认出处 ＋ 唯一逃逸门」；未登记项若出现在源码即红 |
+| P10 | **G3-3 拖拽编排 L1→L5 全站推广**（支书 2026-09-28 点选；**组合能力主残项**）：现仅主题党日一处 | 🔜 **待做（最大一项）**。**方案（三层落地）**：① 把「主题党日」那套 manifest 驱动抽成**通用编排内核**（块声明 inputs / 事件 / 校验契约）；② 先在**同类活动场景**（党小组会 / 主题党日）铺开验证；③ 再推广到全站配置面（工作台默认顺序 / 出力块顺序），并**保留键盘与按钮等价路径**（无障碍纪律）。**验收守卫**：块 manifest 契约完整性（已有 `block-manifest::S2/S3/S4`）＋ 编排结果可由 config 单源复现 ＋ 拖拽与按钮两路径产出**等价**（真机断言） |
+| P11 | **English 版**（开源化残项） | ❌ **裁定不做**（支书 2026-09-28 原文「我们不需要英语！」）⇒ 从残项移出；客观语言门槛如实留档（产品边界，非工程缺陷） |
+| 后续·残项跟踪 | 组件出口继续收口（徽章/选择器等零星散件）、**G3 三项**（全量 config 引擎 / 拖拽编排 L1→L5 全站推广 / 语义化 release **已交付**——English 版已裁定不做） | 后续（**`requiredRoles` 门禁消费 / 选人域扎口 / 服务层剥离 UI / manifest 未同步即红 四项已于 2026-09-28 完成**，见 §六 G1；**G3-1 release 已于批次 236 完成**，见 §四 P8） |
 
 ---
 
@@ -267,8 +272,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 5.2 当前值（一屏看现状）
 
-
-- **模块化分（当前值）**：**99**（**2026-09-28**：口径统一（此前并存 87 / 83 / 82 / 97 四个值，一律取最近实测值 97）＋ **P5 物理目录分层当日落地 +1** ＋ **批次 234 服务端按内聚切分 ＋ mock/server 种子收单一源 +1**）。开源化 **76**（2026-09-28 由 75 上调）· 超参数 **85**（2026-09-28 由 84 上调）· 插件化 **75** · 组合能力 **80**；**综合 ≈ 83**（五维均值 83.0）。
+- **模块化分（当前值）**：**99**（**2026-09-28**：口径统一（此前并存 87 / 83 / 82 / 97 四个值，一律取最近实测值 97）＋ **P5 物理目录分层当日落地 +1** ＋ **批次 234 服务端按内聚切分 ＋ mock/server 种子收单一源 +1**）。开源化 **80**（2026-09-28 两轮上调：75 → 76 → 80——**release 工作流交付 ＋ English 版裁定不做 ⇒ 残项清零**）· 超参数 **85**（2026-09-28 由 84 上调）· 插件化 **75** · 组合能力 **80**（残项＝G3 的拖拽编排与全量 config 引擎，已获点选）；**综合 ≈ 84**（五维均值 83.8）。
 - **目录分层（当前值）**：`services/` **5 域**（core 8 · member 9 · activity 12 · governance 11 · branch 7 ＝ 47 件）· `components/` **6 域**（ui 13 · shell 6 · feedback 4 · record 11 · governance 13 · dashboard 4 ＝ 51 件）· `entries/` **3 类**（**2026-09-28 补做**：`pages/` 独立页入口 15 · `workspace/` 角色工作台薄壳 7 · `tabs/` 各台 tab 68，早已分组）。**不再细分**：`modules/` 余 3 件（help-catalog / references / branch-demo-nav）**各成一类、无共同判据**——按「分类要有判据、不做无差别搬家」如实收口（见 §六 G2）。迁移后 `test:daily` **620 项 / 620 通过 / 0 红**；`page-sweep` **11/11**（7 台 × 67 tab）。
 - **浏览器本地业务数据（当前值）**：**已无「暂留本机·未服务端化」的业务事实**——原唯一一项（`gsm1921-dev-stage-overrides`，发展推进「进入当前阶段日期」）已于 2026-09-28 改挂成员档案字段 `developStageSince`（见 §四 **P6**）。其余本机键按性质分三类且**都不该上服务端**：**草稿 / 预览**（issue 草稿、向导草稿、分工草稿、成员预览、组长写入草稿）· **本机令牌 / 运行态**（反馈防刷令牌、初始化态闸门）· **偏好与会话**（主题/字号/强调色、tab 记忆、登录会话与快照）。判定与逐条理由 = `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.3`（其机检镜像 = `server/test/localstorage-key-guard.test.mjs` 三档映射）。
 - **测试规模（当前值）**：**620 项 / 620 通过 / 0 红**（**2026-09-28** 本机实测 `npm run test:daily`，144,884ms ≈ 2.4 分钟；84 文件档；**此为 entries 分层落地后的那次**）。**口径提醒**：这是**日常档（S 类纯 node）**的读数，**不等于全量**——全量（含两个真机普查 `page-sweep` / `form-loop-sweep`）更慢且项数更多（本轮实测 **92/92 / 0 红**，646,888ms ≈ 10.8 分钟），跑法见 `server/README.md`「四条日常命令」。历史读数**不再并列**（避免又一处「同一事实几个值」，本文件本轮即因这类并存而失准）。
@@ -338,12 +342,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - **同批另完成（不属本级的另一条线）**：**数据服务端化收尾**——把唯一「暂留本机·未服务端化」的业务事实改挂成员档案字段，见 §四 **P6**（与目录分层**相互独立、各自可验证**）。
 - **同批补做（批次 234，前端分层之后的「服务端那一半」）**：`server/routes/resources.js`（1301 行，全仓最大单文件之一）按内聚切分为 `server/routes/resources/` **六件**（`index` / `gates` / `approval-gates` / `snapshot-versions` / `store` / `semantic-routes`），并把 **mock 与 server 的双份种子**收成单一源（`docs/src/mock/prop.js`）——**逐字搬迁、口径零改写**；见 §四 **P7**。**切分成本的实测（下一次动服务端单文件前必读）**：① **import 深度不可一律 +1**——该文件的依赖横跨三档（`auth.js` / `uploads.js` 在 `routes/`；`db.js` / `services/` 在 `server/`；`docs/src/**` 在仓根）⇒ 必须**逐条按「老目录解析 ⇒ 新目录重算」**；② 守卫与测试里**把 `server/routes/resources.js` 这一路径写死**的有 5 处（`issue-branch` / `member-flow` / `roles-sync` / `ux-guard` 的 `read(join(...))` 与 `server-base` 的注释），须同批改签；③ `doc-line-ref` 的**短式引用**在「同一行内的多条引用落到不同新文件」时无从表达 ⇒ 一律改写为全式（`R5` 短式下限随之 40 → 30，**越权项、已如实登记待支书核可**）。
 
-### G3 · 需支书裁决（制度项 / 长期项）
+### G3 · 已获支书点选 / 裁决（2026-09-28）
 
-- **全量 config 引擎**：未登记项仍写死在源码，放开须走放行程序（`PARTY_COMMITTEE_DESIGN §2.6`）。
-- **拖拽编排 L1→L5** 全站推广（现仅主题党日一处）。
-- **English 版** ＋ **语义化 release / 发布工作流**（开源化两个残项）。
-- **纪律**：每项**先出方案再动手**（本文件与 `content/**` 均为支书批改层）。
+- **G3-1 语义化 release / 发布工作流**：✅ **已于 2026-09-28 批次 236 交付**（→ §四 **P8**；纪律 `CLAUDE.md R-90` · `CONTRIBUTING.md §六`）。
+- **G3-2 全量 config 引擎**（→ §四 **P9**）：未登记项仍写死在源码，放开须走放行程序（`PARTY_COMMITTEE_DESIGN §2.6`）。
+- **G3-3 拖拽编排 L1→L5** 全站推广（现仅主题党日一处；→ §四 **P10**）。
+- **English 版：裁定不做**（支书 2026-09-28 原文「我们不需要英语！」）⇒ 从开源化残项移出（→ §四 **P11**）。
+- **纪律**：每项**先出方案再动手**（本文件与 `content/**` 均为支书批改层）；**G3 任何一项不得以「顺手一起做」进入 G0–G2 的批次**（`CLAUDE.md R-70`）。
 
 ### 梯度纪律（不许跳过）
 

@@ -6,8 +6,13 @@
 //     S3 全站活动版本戳单一源（活戳取值集合规模为 1）——注释里的历史注记不算缓存键
 //     S4 server-test 段补戳判据走 version-next 单一源（禁自带第二套正则）
 //     S5 server-test 段收尾自检与补戳同判据（否则冻结戳被判残留 / 数据被误报）
+//     S6 server-test 段补戳幂等（以活动戳干跑零改写）
+//     S7 **发版一致性**（2026-09-28 批次 236 · G3-1）：CHANGELOG 可解析且形态合法 · 与 `server/package.json`
+//        的 version 取齐 · 已发布版本唯一且降序 · **发版脚本与守卫同判据**（`release.mjs` 必须复用
+//        `version-next.mjs`）· **非空转＝真 spawn `release.mjs` 预演，独立复算版本号逐字比对**
 //   数据层 D1–D6：版本号推导纯函数口径（同日续号 / 跨日归零 / 空集 / 非法形态 / 字母用尽 / 只允许前进）
 //   数据层 D7–D9：server-test 段补戳判据的 fixture（缓存键语境改写 / 非语境逐字不变 / 自检同源）
+//   数据层 D10–D11：发版纯函数（语义化升号三档 / 只允许前进 / CHANGELOG 解析 + 占位不算变更）
 //
 // 背景（Q-23-8）：bump-version.mjs 原无参默认「当天日期 + a」，同日第二次发版会把全站戳往回写
 //   （实测 20260914b → 20260914a），而收尾自检只比对「是否等于本次 VERSION」故仍报「0 处残留 ✅」。
@@ -22,15 +27,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nextVersionFor, isForward, STAMP_RE, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps } from '../../docs/scripts/version-next.mjs';
+import {
+  nextVersionFor, isForward, STAMP_RE, isCommentLine, codePartOf, stampTestFileContent, cacheKeyStamps,
+  nextSemver, isSemverForward, parseChangelog, classifyChanges, CHANGELOG_PLACEHOLDER_RE,
+} from '../../docs/scripts/version-next.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const DOCS = join(ROOT, 'docs');
 const SRC_DIR = join(DOCS, 'src');
 const TEST_DIR = join(ROOT, 'server', 'test');
 const BUMP = join(DOCS, 'scripts', 'bump-version.mjs');
+const RELEASE = join(DOCS, 'scripts', 'release.mjs');
+const CHANGELOG = join(ROOT, 'CHANGELOG.md');
+const PKG_JSON = join(ROOT, 'server', 'package.json');
 
 const read = (f) => readFileSync(f, 'utf8');
 const rel = (f) => f.slice(ROOT.length + 1).replace(/\\/g, '/');
@@ -115,6 +127,62 @@ test('S6 server-test 段补戳幂等：以活动戳干跑零改写', () => {
   assert.deepEqual(dirtied, [],
     `以下 server/test 文件「干跑即被改写」——陈旧戳，或文件里含**形似 import 行的数据/fixture**被误当 import 规格符` +
     `（Q-23-33 同一形态，批 46 实测：version-stamp 自己的 fixture 即踩过）：${dirtied.join(', ')}`);
+});
+
+// ── 结构层：发版一致性（2026-09-28 批次 236 · G3-1「语义化 release」）──────
+// 本条的**承重臂**是最后那段「真 spawn 预演 + 独立复算」：静态扫源码只能证明「脚本里出现过函数名」，
+//   证明不了「脚本真按这套判据算出号」。故守卫**自己**用同一套纯函数算一遍，与脚本 stdout 逐字比对。
+
+test('S7 发版一致性：CHANGELOG 形态合法 · 与 package.json 取齐 · 预演可跑通且与判据同号', () => {
+  assert.ok(existsSync(CHANGELOG), '仓库根下应有 CHANGELOG.md（G3-1 语义化 release 的载体）');
+  assert.ok(existsSync(RELEASE), '应有 docs/scripts/release.mjs（发版工作流的单一入口）');
+
+  const changelog = read(CHANGELOG);
+  assert.match(changelog, /^##\s+\[Unreleased\]/m, 'CHANGELOG 须有 `## [Unreleased]` 段（Keep a Changelog 体例）');
+  const { unreleased, released } = parseChangelog(changelog);
+  assert.ok(released.length >= 1, `CHANGELOG 须至少记 1 个已发布版本（实测 ${released.length} 个）`);
+  const noDate = released.filter((r) => !r.date).map((r) => r.version);
+  assert.deepEqual(noDate, [],
+    `已发布版本缺日期——体例是 \`## [X.Y.Z] - YYYY-MM-DD\`（缺日期：${noDate.join(', ')}）`);
+  const versions = released.map((r) => r.version);
+  assert.equal(new Set(versions).size, versions.length, `已发布版本号不得重复：${versions.join(', ')}`);
+  const descending = [...versions].sort((a, b) => (isSemverForward(a, b) ? -1 : 1));
+  assert.deepEqual(versions, descending, `已发布版本须降序（新在前），实测：${versions.join(', ')}`);
+
+  const pkg = JSON.parse(read(PKG_JSON));
+  assert.equal(pkg.version, released[0].version,
+    `server/package.json 的 version（${pkg.version}）须与 CHANGELOG 最新已发布版本（${released[0].version}）取齐`);
+
+  // 脚本必须复用 version-next 的单一源（禁自带第二套升号 / 解析 / 判据）
+  const relSrc = read(RELEASE);
+  for (const fn of ['nextSemver', 'isSemverForward', 'parseChangelog', 'classifyChanges']) {
+    assert.match(relSrc, new RegExp(`\\b${fn}\\b`),
+      `release.mjs 须复用 version-next.mjs 的 \`${fn}\`——发版脚本与常驻守卫必须同判据（勿各写一套）`);
+  }
+
+  // ── 非空转（承重臂）：真 spawn 预演（dry-run），再把「脚本报的号」与「判据算的号」逐字比对 ──
+  let out = '';
+  try {
+    out = execFileSync('node', [RELEASE], { cwd: ROOT, encoding: 'utf8' });
+  } catch (e) {
+    assert.fail(`release.mjs 预演必须能跑通（退出码应为 0）：\n${e.stdout || ''}${e.stderr || ''}`);
+  }
+  assert.match(out, /\?v= 全链单一活动戳/, '预演须报告「?v= 全链单一活动戳」这道前置检查（C3）');
+  const m = /\[release\] 推导版本=(\d+\.\d+\.\d+)（当前=(\d+\.\d+\.\d+)/.exec(out);
+  assert.ok(m, `预演须打印机器可读的推导结果「[release] 推导版本=X（当前=Y）」——实测输出：\n${out}`);
+  assert.equal(m[2], pkg.version, '预演报的「当前版本」须等于 server/package.json 的 version');
+  const cls = classifyChanges(unreleased);
+  const expected = cls.empty ? pkg.version : nextSemver(pkg.version, cls);
+  assert.equal(m[1], expected,
+    `预演报的推导版本（${m[1]}）与守卫独立复算（${expected}）不一致——脚本与判据必须同号` +
+    `（注意：\`[Unreleased]\` 只有占位条目时属「无待发内容」⇒ 推导号应等于当前号，不得臆造下一个版本）`);
+  assert.ok(isSemverForward(m[1], pkg.version),
+    `推导版本 ${m[1]} 不得小于当前 ${pkg.version}（版本号只允许前进）`);
+  if (cls.empty) {
+    assert.equal(m[1], pkg.version,
+      `「无待发内容」时推导号必须等于当前号（实测 ${m[1]}）——否则预演会报出一个根本不存在的版本`);
+    assert.match(out, /本次不发版/, '「无待发内容」时预演须明确说「本次不发版」');
+  }
 });
 
 // ── 数据层（版本号推导纯函数）───────────────────────────────────────
@@ -223,5 +291,56 @@ test('D9 自检判据同源：只取缓存键语境下的戳（非语境与注�
   ].join('\n');
   assert.deepEqual(cacheKeyStamps(f).sort(), ['20260101a', '20260101b'],
     '自检只应看到缓存键语境下的戳；Node 读取语境与注释里的戳不算缓存键');
+});
+
+// ── 数据层：发版纯函数（2026-09-28 批次 236 · G3-1）──────────────────
+
+test('D10 语义化升号三档：BREAKING→主 / Added→次 / 其余→修订', () => {
+  assert.equal(nextSemver('0.1.0', { breaking: true, added: true }), '1.0.0', '含 BREAKING ⇒ 主版本 +1、其余归零');
+  assert.equal(nextSemver('0.1.3', { added: true, fixed: true }), '0.2.0', '有新增 ⇒ 次版本 +1、修订归零');
+  assert.equal(nextSemver('0.2.5', { fixed: true }), '0.2.6', '仅修复 ⇒ 修订 +1');
+  assert.equal(nextSemver('0.2.5', { changed: true, removed: true }), '0.2.6', '仅变更 / 移除（非破坏）⇒ 修订 +1');
+  assert.equal(nextSemver('1.9.9', {}), '1.9.10', '空类别 ⇒ 修订 +1');
+  assert.throws(() => nextSemver('0.1', {}), /非法语义化版本号/, '非法形态须显式报错，不得静默生成');
+  assert.throws(() => nextSemver('v0.1.0', {}), /非法语义化版本号/, '带 v 前缀不算版本号（tag 名另加 v）');
+});
+
+test('D11 语义化只允许前进 ＋ CHANGELOG 解析（占位条目不算是变更）', () => {
+  assert.equal(isSemverForward('0.2.0', '0.1.9'), true, '段内比较：0.2.0 > 0.1.9');
+  assert.equal(isSemverForward('0.1.10', '0.1.9'), true, '按段比较而非字典序');
+  assert.equal(isSemverForward('0.1.9', '0.2.0'), false, '不得回退');
+  assert.equal(isSemverForward('0.1.0', '0.1.0'), true, '同号视为前进（幂等）');
+  assert.equal(isSemverForward('0.1.0', ''), true, '首次发版视为前进');
+  assert.equal(isSemverForward('x.y.z', '0.1.0'), false, '非法形态一律不可前进');
+
+  const md = [
+    '# 变更日志',
+    '## [Unreleased]',
+    '### Added',
+    '- 新增：某能力',
+    '### Fixed',
+    '- 修复：某缺陷',
+    '## [0.1.0] - 2026-09-28',
+    '### Added',
+    '- 首个版本',
+  ].join('\n');
+  const { unreleased, released } = parseChangelog(md);
+  assert.deepEqual(released, [{ version: '0.1.0', date: '2026-09-28' }], '已发布版本须被解析出（含日期）');
+  assert.deepEqual(unreleased.Added, ['新增：某能力'], 'Unreleased 的 Added 条目须逐条取出');
+  assert.deepEqual(unreleased.Fixed, ['修复：某缺陷'], 'Unreleased 的 Fixed 条目须逐条取出');
+  const cls = classifyChanges(unreleased);
+  assert.equal(cls.empty, false, '有真条目 ⇒ 不算空');
+  assert.equal(cls.added, true, '有 Added ⇒ added');
+  assert.equal(nextSemver('0.1.0', cls), '0.2.0', '有新增 ⇒ 次版本');
+
+  // 占位（落版后脚本重置的 `- （暂无）`）**不是变更**——否则会推出「永远有内容可发」的假版本号
+  assert.ok(CHANGELOG_PLACEHOLDER_RE.test('（暂无）') && CHANGELOG_PLACEHOLDER_RE.test('(暂无)'));
+  const onlyPlaceholder = parseChangelog(['## [Unreleased]', '### Added', '- （暂无）', '## [0.1.0] - 2026-09-28'].join('\n'));
+  const emptyCls = classifyChanges(onlyPlaceholder.unreleased);
+  assert.equal(emptyCls.empty, true, '只有占位 ⇒ 视为「无待发内容」');
+  assert.equal(emptyCls.added, false, '占位不得被当成 Added');
+  // 未知类别不猜（`### 备注` 之类不参与解析）
+  const unknown = parseChangelog(['## [Unreleased]', '### 备注', '- 这不是标准类别'].join('\n'));
+  assert.equal(classifyChanges(unknown.unreleased).empty, true, '非 Keep a Changelog 白名单的类别不参与解析');
 });
 

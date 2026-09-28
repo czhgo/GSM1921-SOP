@@ -1,6 +1,6 @@
 // role: [工程师]+[AI]
 // ════════════════════════════════════════════════════════════════
-//  version-next.mjs — 版本号推导（bump-version.mjs 的纯逻辑件，可单测）
+//  version-next.mjs — 版本与发版治理的纯逻辑件（bump-version.mjs / release.mjs 共用，可单测）
 // ════════════════════════════════════════════════════════════════
 // 背景（2026-09-14 批次 28，Q-23-8 闭环）：
 //   bump-version.mjs 原无参默认版本号为「当天日期 + a」——**不含当日续号逻辑**，
@@ -143,5 +143,132 @@ export function cacheKeyStamps(content) {
     for (const m of codePartOf(line).matchAll(/\?v=([0-9]{8}[a-z])/g)) found.push(m[1]);
   }
   return [...new Set(found)];
+}
+
+// ════════════════════════════════════════════════════════════════
+//  发版治理（2026-09-28 批次 236 · G3-1「语义化 release / 发布工作流」）
+// ════════════════════════════════════════════════════════════════
+// 为什么要在这里、而不在 release.mjs 里：**发版脚本与常驻守卫必须同判据**（同 `?v=` 那一层的
+//   「补戳 / 自检共用」纪律）。脚本负责动作、守卫负责核账，两边若各写一套 semver 推导与
+//   CHANGELOG 解析，就会出现「脚本按 A 规则升号、守卫按 B 规则核账」的静默错位。
+
+/** 语义化版本号形态（`X.Y.Z`，三段十进制） */
+export const SEMVER_RE = /^(\d+)\.(\d+)\.(\d+)$/;
+
+/** CHANGELOG 的段落名（Keep a Changelog 允许的六类；本仓只用到前五类） */
+export const CHANGELOG_KINDS = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
+
+/**
+ * 由「变更类别」推导下一个语义化版本号（语义化的**判据**，不是随手 +1）：
+ *   · 破坏性变更（段内出现 `BREAKING`）→ **主版本 +1**，其余归零；
+ *   · 有新增（`### Added` 非空）→ **次版本 +1**，修订归零；
+ *   · 其余（仅 Changed / Fixed / Removed / Security）→ **修订 +1**。
+ * @param {string} current 当前版本号（`X.Y.Z`）
+ * @param {{breaking?:boolean, added?:boolean, changed?:boolean, fixed?:boolean, removed?:boolean}} changes 变更类别
+ * @returns {string} 下一个版本号
+ */
+export function nextSemver(current, changes = {}) {
+  const m = SEMVER_RE.exec(String(current || ''));
+  if (!m) throw new Error(`[version-next] 非法语义化版本号：${current}（须为 X.Y.Z）`);
+  const [maj, min, pat] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (changes.breaking) return `${maj + 1}.0.0`;
+  if (changes.added) return `${maj}.${min + 1}.0`;
+  return `${maj}.${min}.${pat + 1}`;
+}
+
+/**
+ * 语义化版本号只允许前进（三段落逐段比较；同号视为前进）。
+ * @param {string} candidate 拟用版本号
+ * @param {string} current 现有版本号（空串＝首次发版）
+ * @returns {boolean}
+ */
+export function isSemverForward(candidate, current) {
+  const a = SEMVER_RE.exec(String(candidate || ''));
+  if (!a) return false;
+  if (!current) return true;
+  const b = SEMVER_RE.exec(String(current));
+  if (!b) return false;
+  for (let i = 1; i <= 3; i++) {
+    const x = Number(a[i]);
+    const y = Number(b[i]);
+    if (x !== y) return x > y;
+  }
+  return true;
+}
+
+/**
+ * 解析 CHANGELOG：取出 `## [Unreleased]` 段落的**类别 → 条目**，以及全部已发布版本（降序）。
+ * 只认两种标题形态：`## [Unreleased]` 与 `## [X.Y.Z] - YYYY-MM-DD`（Keep a Changelog 体例）。
+ * `### 类别` 只认 `CHANGELOG_KINDS` 白名单内的名字；未知类别忽略（不猜、不报错——守卫另有形态判据）。
+ * @param {string} content CHANGELOG 全文
+ * @returns {{unreleased: Record<string,string[]>, released: Array<{version:string,date:string}>}}
+ */
+export function parseChangelog(content) {
+  const unreleased = {};
+  const released = [];
+  let section = null; // 'unreleased' | 'released'
+  let version = null;
+  let kind = null;
+  for (const raw of String(content).split(/\r?\n/)) {
+    const line = raw.trimEnd();
+    const h2 = /^##\s+(.*)$/.exec(line);
+    if (h2) {
+      const tail = h2[1].trim();
+      if (/^\[Unreleased\]/i.test(tail)) {
+        section = 'unreleased';
+        kind = null;
+        continue;
+      }
+      const rel = /^\[(\d+\.\d+\.\d+)\](?:\s*-\s*(\d{4}-\d{2}-\d{2}))?/.exec(tail);
+      if (rel) {
+        section = 'released';
+        version = rel[1];
+        released.push({ version, date: rel[2] || '' });
+        kind = null;
+        continue;
+      }
+      section = null; // 其它 h2（如文件头说明）不参与解析
+      continue;
+    }
+    const h3 = /^###\s+(.*)$/.exec(line);
+    if (h3) {
+      const name = h3[1].trim();
+      kind = CHANGELOG_KINDS.includes(name) ? name : null;
+      if (section === 'unreleased' && kind && !unreleased[kind]) unreleased[kind] = [];
+      continue;
+    }
+    const item = /^[-*]\s+(.*\S)\s*$/.exec(line);
+    if (item && section === 'unreleased' && kind) unreleased[kind].push(item[1]);
+  }
+  return { unreleased, released };
+}
+
+/**
+ * 占位条目（`（暂无）` / `(暂无)`）——**不是变更**：`[Unreleased]` 落版后由脚本重置为占位，
+ * 若把占位算作变更，会推出「永远有内容可发」的假版本号（实测：批次 236 预演首跑即把占位算成 Added → 0.2.0）。
+ */
+export const CHANGELOG_PLACEHOLDER_RE = /^[（(]\s*暂无\s*[）)]$/;
+
+/**
+ * 由 CHANGELOG 的 `[Unreleased]` 段落判定「变更类别」——供 `nextSemver` 用。
+ * 判据：段内任一条目含 `BREAKING`（不区分大小写）⇒ 破坏性；`Added` 非空 ⇒ 新增；
+ *   其余任一非空 ⇒ 一般变更；全空（含**只有占位**）⇒ `empty: true`（调用方据此判「无待发内容」）。
+ * @param {Record<string,string[]>} unreleased `parseChangelog` 的 `unreleased`
+ * @returns {{breaking:boolean, added:boolean, changed:boolean, fixed:boolean, removed:boolean, empty:boolean}}
+ */
+export function classifyChanges(unreleased) {
+  const real = {};
+  for (const [kind, items] of Object.entries(unreleased || {})) {
+    real[kind] = (items || []).filter((t) => !CHANGELOG_PLACEHOLDER_RE.test(String(t).trim()));
+  }
+  const all = Object.values(real).flat();
+  return {
+    breaking: all.some((t) => /BREAKING/i.test(t)),
+    added: real.Added?.length > 0,
+    changed: real.Changed?.length > 0,
+    fixed: real.Fixed?.length > 0,
+    removed: real.Removed?.length > 0,
+    empty: all.length === 0,
+  };
 }
 

@@ -2,10 +2,10 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-09-26"
+last_updated: "2026-09-28"
 status: "ACTIVE"
 date: "2026-09-15"
-version: "v53"
+version: "v54"
 ---
 
 # System Snapshot — v53
@@ -25,7 +25,8 @@ version: "v53"
 GSM1921-SOP/
 ├── README.md                   ← 对外门面（**通用化**：引擎/模板 + 各组织自有部署 + 起源故事；**功能地图置顶**于 `<!--FUNC-MAP:ANCHOR-->` 后）
 ├── README-members.md           ← 支部成员版（地图改为链接根 README；九章正文保留）
-├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南
+├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
+├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
 ├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 22=15 根+7 工作台，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
@@ -51,13 +52,13 @@ GSM1921-SOP/
 │   │   ├── disc.html           ← 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办）
 │   │   ├── visitor.html        ← 成员工作台（含思想汇报提交/待办）
 │   │   └── party-committee.html← 党委工作台（党委组织员·全院支部治理，组织级角色非支部角色）
-│   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（版本号推导纯函数单一源）
+│   ├── scripts/                ← bump-version.mjs（版本串纪律）/ gen-function-mermaid.mjs（README 图生成+防止未同步的情况）/ version-next.mjs（**版本与发版治理**纯函数单一源）/ release.mjs（**发版单一入口**：默认预演 · 按变更类别语义化升号 · CHANGELOG↔package.json↔tag 三处取齐 · 打 tag 不 push；2026-09-28 批次 236）
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（**2026-09-28 按判据分三类**：`pages/` 独立页入口 15 · `workspace/` 角色工作台薄壳入口 7 · `tabs/` 各台业务 tab）
 │       ├── components/         ← 共享组件（**2026-09-28 目录分层**：`dashboard/` · `ui/`（基础件与库：badges/forms/modal/custom-select/pager/list-filter/relation-matrix…）· `shell/`（页面外壳：header/sidebar/tab-bar/workspace-shell…）· `feedback/`（反馈域）· `record/`（实体视图：activity-view/taskforce-view/insight-view/todo-*/report-*/inspector…）· `governance/`（治理与人员面板：person-picker/vote-*/member-change-panel/work-overview…））
 │       ├── core/               ← 核心工具（constants/registry/domain/theme/data-adapter/mock-adapter/policy-defaults/module-compose 等）
 │       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/org-config-package/appointment/workforce…））
-│       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09）
+│       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
 │       ├── modules/            ← 业务模块（capabilities/ 能力注册 12 件 + 跨页件 3 件：help-catalog/references/branch-demo-nav；后者各成一类，不再细分——见 ENGINEERING_ASSESSMENT §六 G2 残余结算）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests）
 │       └── styles.css          ← 全局样式
@@ -66,7 +67,7 @@ GSM1921-SOP/
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
 │   ├── db.js                   ← 资源表 35（以 RESOURCE_TABLES 单一事实源为准；含 2026-09-17 匿名核查留痕表 issue_reveals）+ sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
-│   ├── routes/                 ← auth / resources（RESOURCE_WRITE_GATE 写角色门）/ uploads / report / member / committee
+│   ├── routes/                 ← auth / **resources/**（2026-09-28 批次 234 按内聚切分为**六件**：`index` 装配+通用 CRUD / `gates` 写门 / `approval-gates` 批准门 / `snapshot-versions` 版本协议 / `store` 表访问原语 / `semantic-routes` 语义端点）/ uploads / report / member / committee
 │   ├── services/               ← mailer.js（SMTP 双通道）+ mailer-hooks.js（事件钩子）+ reporting.js（四域上报）
 │   ├── test/                   ← 测试文件（.test.js/.test.mjs 混合，数量随目录增长；全量 npm test——命令见 CLAUDE.md H25；2026-09-05 起不再维护固定计数）
 │   └── data.db                 ← SQLite 单文件库（运行时产物）

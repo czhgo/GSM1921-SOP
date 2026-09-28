@@ -3,8 +3,8 @@
 //  server/test/timestamps-note-baseline.mjs —— TIMESTAMPS「备注列预算」的**存量台账**（数据文件，判据在 guard）
 // ════════════════════════════════════════════════════════════════
 // 由来（2026-09-28 批次 235，承支书「TIMESTAMPS 最后一列是历史负担」）：
-//   实测（本批）——登记 **273 行**、备注列合计 **93008 字符**（最长单格 5614）、
-//   含 T-编号 75 行 · 含「日期刷」复述 21 行 · 「批次 N」罗列 >3 次者 44 行 · 单格 >1000 字者 21 行。
+//   实测（本批）——登记 **273 行**、备注列合计 **71888 字符**（最长单格 3650）、
+//   含 T-编号 74 行 · 含「日期刷」复述 20 行 · 「批次 N」罗列 >3 次者 39 行 · 单格 >1000 字者 16 行。
 //   病根：备注列被当成「逐批沿革」的落点（写「本批改了什么」），而沿革的权威落点是 `.ctx/logs/**`（判据见 CLAUDE.md 台账纪律）。
 //
 // 用法（判据在 `timestamps-note-guard.test.mjs`）：四份清单与**实测命中集必须逐字相等**
@@ -15,7 +15,7 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
-export const NOTE_TOTAL_BUDGET = 95000;
+export const NOTE_TOTAL_BUDGET = 75000;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
@@ -32,25 +32,20 @@ export const ROWS_MIN = 245;
 export const OVERLONG_BASELINE = [
   '.ctx/ENGINEERING_ASSESSMENT.md',
   '.ctx/SNAPSHOT.md',
-  '.ctx/logs/DECISION_LOG.md',
   'CLAUDE.md',
-  'README-server.md',
   'README.md',
   'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/03_doc_system/OPERATIONS_GUIDE.md',
   'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
-  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
   'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'docs/help.html',
   'docs/src/core/work-map.js',
   'docs/src/styles.css',
   'server/README.md',
   'server/routes/resources.js',
-  'server/test/*.test.mjs',
   'server/test/form-loop-registry.mjs',
-  'server/test/style-baseline.mjs',
 ];
 
 /** 备注含 `T-\d*` 编号（75 行 · T-编号是执行日志的键，台账不应承载） */
@@ -65,7 +60,6 @@ export const WITH_TID_BASELINE = [
   'content/04_web_design/deploy/WECHAT_INTEGRATION.md',
   'content/04_web_design/design-system/COLOR_SYSTEM.md',
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
-  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
   'content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md',
   'content/04_web_design/module/ABOUT_PAGE_DESIGN.md',
   'content/04_web_design/module/SOP_WEBSITE_GUIDE.md',
@@ -135,7 +129,6 @@ export const WITH_TID_BASELINE = [
 /** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 行） */
 export const WITH_DATE_ECHO_BASELINE = [
   '.ctx/ENGINEERING_ASSESSMENT.md',
-  '.ctx/logs/DECISION_LOG.md',
   'CLAUDE.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/INDEX.md',
@@ -161,10 +154,8 @@ export const WITH_DATE_ECHO_BASELINE = [
 export const WITH_BATCH_MENTION_BASELINE = [
   '.ctx/ENGINEERING_ASSESSMENT.md',
   '.ctx/SNAPSHOT.md',
-  '.ctx/logs/DECISION_LOG.md',
   'CLAUDE.md',
   'README-members.md',
-  'README-server.md',
   'README.md',
   'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
@@ -179,7 +170,6 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
-  'content/04_web_design/design-system/DESIGN_SYSTEM.md',
   'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'content/insights/README.md',
   'docs/help.html',
@@ -200,7 +190,5 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'docs/src/styles.css',
   'server/README.md',
   'server/routes/resources.js',
-  'server/test/*.test.mjs',
   'server/test/form-loop-registry.mjs',
-  'server/test/style-baseline.mjs',
 ];

@@ -145,7 +145,7 @@ node scripts/backup.mjs --out /srv/bak/20260923
   | `doc-consistency` | 1.9 / 1.9 | 15 | 文档口径与代码实况一致（各台 tab 数与名称 · 数据五数 · 页面数 · 旧界面名黑名单 · 单一源组件登记 · §0.2 索引与 README 清单齐备 · 授权声明带日期 · `TIMESTAMPS` 与 frontmatter 对齐〔**规模＝推导式恒等式**：已比对 ＋ 各档已跳过 ＝ 登记总数，跳过逐档须有理由〕 · **S14 可数事实对账**〔枚举 / 计数类数字须等于代码 / 数据实然值〕· **S15 弱清单**〔取不到权威值的只登记不判红、但带基线〕） |
   | `permission-gate` | 1.8 / 1.8 | 9 | 资源级写角色门——branches / users / activities / notices 等越权须 403 |
   | `doc-line-ref` | 1.6 / 1.6 | 6 | `README-server.md` 的「`文件:行号`」引用逐条指向真实位置（行号失效＝后端照着找不到东西） |
-  | `version-stamp` | 1.5 / 1.6 | 15 | `?v=` 版本戳单一源、只前进、补戳判据自洽（同页两个模块实例＝页面静默空白） |
+  | `version-stamp` | 1.5 / 1.8 | 18 | `?v=` 版本戳单一源、只前进、补戳判据自洽（同页两个模块实例＝页面静默空白）＋ **发版一致性**（`S7`：CHANGELOG ↔ `server/package.json` ↔ tag 取齐；真 spawn `docs/scripts/release.mjs` 预演并独立复算版本号逐字比对） |
   | `server-base` | 1.4 / 1.4 | 11 | 服务端基座——建表 / 种子 / 资源读口与 bootstrap / 附件上传 / 快照全量回写 |
   | `scene-write-sync` | 0.4 / 0.4 | 3 | 写活动的场景目录单一源（四子会名序 · 平铺 id 全集 · 归类有效） |
 
