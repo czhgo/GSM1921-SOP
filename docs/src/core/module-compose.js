@@ -13,18 +13,29 @@
 
 /**
  * 收集式组合体检（不抛错，一次返回全部问题）
- * @param {Array<{id: string, depends?: string[], conflictsWith?: string[]}>} items - 组合清单
+ * @param {Array<{id?: string, blockId?: string, depends?: string[], conflictsWith?: string[]}>} items - 组合清单
+ *   （id 取 `id` 或 `blockId`，见 `itemId`）
  * @returns {{missingRefs: string[], mutual: Array<[string,string]>, cycles: string[][]}}
  *   missingRefs：depends/conflictsWith 引用了组合 id 集合之外的 id，形如 'a -> x'（a 引用缺失的 x）
  *   mutual：conflictsWith 双方同现于本组合的互斥对，按 id 排序规范化并去重，如 [['a','b']]
  *   cycles：depends 闭环路径（首尾同 id），DFS 检出、最小轮转规范化去重，如 [['a','b','a']]
  */
+/**
+ * 组合项 id 取法（**两种键名都认**）：模块注册项用 `id`；**L3 工作流块 manifest 用 `blockId`**。
+ * ⚠ 2026-09-28 批次 239 修缺陷（真事故）：原实现只认 `it.id` ⇒ 传入块清单（键名是 `blockId`）时
+ *   `list` 被过滤成**空集** ⇒ `missingRefs` / `mutual` / `cycles` **恒为空** ⇒ `assertComposeValid`
+ *   **恒真**；而 `server/test/block-manifest.test.mjs::S3` 断言的正是「它不抛」⇒ **假绿**
+ *   （＝「守卫只守表层」的又一实例，见 `REVIEW_QUEUE` 代码健康节）。现两种键名等价取用；
+ *   反例锁在 `server/test/block-orchestration.test.mjs::O1`（引用缺失必须真抛）。
+ */
+const itemId = (it) => (it && typeof it.id === 'string' && it.id) || (it && typeof it.blockId === 'string' && it.blockId) || '';
+
 export function resolveConflicts(items) {
   const result = { missingRefs: [], mutual: [], cycles: [] };
   if (!Array.isArray(items)) return result;
 
-  const list = items.filter((it) => it && typeof it.id === 'string' && it.id.length > 0);
-  const ids = new Set(list.map((it) => it.id));
+  const list = items.filter((it) => itemId(it));
+  const ids = new Set(list.map(itemId));
 
   // ── ① 引用存在性：depends / conflictsWith 的每个引用都必须 ∈ id 集合 ──
   for (const it of list) {
@@ -32,7 +43,7 @@ export function resolveConflicts(items) {
     const confl = Array.isArray(it.conflictsWith) ? it.conflictsWith : [];
     for (const ref of [...deps, ...confl]) {
       if (typeof ref !== 'string' || ref.length === 0 || !ids.has(ref)) {
-        result.missingRefs.push(`${it.id} -> ${ref}`);
+        result.missingRefs.push(`${itemId(it)} -> ${ref}`);
       }
     }
   }
@@ -43,7 +54,7 @@ export function resolveConflicts(items) {
     const confl = Array.isArray(it.conflictsWith) ? it.conflictsWith : [];
     for (const y of confl) {
       if (!ids.has(y)) continue; // 缺失引用已在 ① 记账
-      const pair = [it.id, y].sort();
+      const pair = [itemId(it), y].sort();
       const key = pair.join('\u0000');
       if (!mutualSeen.has(key)) {
         mutualSeen.add(key);
@@ -56,7 +67,7 @@ export function resolveConflicts(items) {
   const adj = new Map();
   for (const it of list) {
     const deps = Array.isArray(it.depends) ? it.depends : [];
-    adj.set(it.id, deps.filter((d) => ids.has(d)));
+    adj.set(itemId(it), deps.filter((d) => ids.has(d)));
   }
   const color = new Map();
   const stack = [];
@@ -85,7 +96,7 @@ export function resolveConflicts(items) {
     color.set(nodeId, 2);
   };
 
-  for (const id of list.map((it) => it.id)) {
+  for (const id of list.map(itemId)) {
     if ((color.get(id) || 0) === 0) dfs(id);
   }
 
