@@ -184,6 +184,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 规则/口径 | 权威判据出处 | 守卫（文件::断言号） | 状态 | 详述处 |
 |---|---|---|---|---|
+| R31 **每个 policy 参数恰属「可覆盖白名单」或「不可覆盖固定台账」两类之一**（消灭「未登记」第三态；放行＝移出固定台账并入白名单） | `docs/src/core/policy-defaults.js`（`POLICY_OVERRIDABLE` / `POLICY_FIXED`；放行三条见 `POLICY_FIXED` 头注） | `policy-config.test.mjs::R1–R3` | 已闭环（2026-09-28 批次 238 · G3-2） | `.ctx/ENGINEERING_ASSESSMENT.md §四 P9` |
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 + **发版一致性**（CHANGELOG ↔ `server/package.json` ↔ tag 取齐；发版走单一入口 `docs/scripts/release.mjs`，默认预演） | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps` ＋ 批次 236 新增 `nextSemver`/`isSemverForward`/`parseChangelog`/`classifyChanges`）· `docs/scripts/release.mjs` · `CHANGELOG.md` | `version-stamp.test.mjs::S1–S7 + D1–D11`（`S7` 真 spawn 预演并独立复算版本号逐字比对） | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/ui/list-filter.js`（引擎内置分页）· `components/ui/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |

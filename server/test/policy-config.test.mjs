@@ -24,7 +24,7 @@ import { mockDB } from '../../docs/src/core/domain.js?v=20260928q';
 import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260928q';
 import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260928q';
 import {
-  POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
+  POLICY_DEFAULTS, POLICY_OVERRIDABLE, POLICY_FIXED, POLICY_OVERRIDE_SECTIONS, activityApprovalMode,
 } from '../../docs/src/core/policy-defaults.js?v=20260928q';
 // ⑧ 活动批准门（2026-09-22 批次 150）：判据/写口/状态单一源 = services/activity/activity.js
 import {
@@ -651,4 +651,65 @@ test('⑪ 时限 / 补课 / 篇幅三族入白名单：净化值域 + 域负责�
   assert.equal(POLICY_DEFAULTS.attendance.entryRemindDays, 1);
   assert.deepEqual(makeupDefaultActivityTypes(), ['支部党员大会', '党课']);
   assert.equal(makeupDeadlineDays(), 7);
+});
+
+// ── R1–R3（2026-09-28 批次 238 · G3-2「全量 config 引擎」收口）：**「不能调」也有台账** ──────
+// 病灶：白名单（POLICY_OVERRIDABLE）之外此前是一片**模糊**——「未登记项」既可能是「制度裁决固定」
+//   （本就不该放开），也可能只是「还没登记」（属于该放开）⇒ 无人能在代码近旁回答
+//   「这个参数能不能调、为什么」，G3-2 因此卡在「未登记项仍写死在源码」。
+// 收口：把「不能调」的一类**逐项写成数据**（`POLICY_FIXED`：kind ＋ why ＋ src），并常驻断言
+//   **每个叶键恰属两类之一** ⇒ 「未登记」这个第三态被消灭（判据＝台账恒等式，不是注释）。
+
+/** 展平 POLICY_DEFAULTS 的全部叶键路径（判据与 POLICY_FIXED / POLICY_OVERRIDABLE 同形：`.` 连接） */
+function leafPaths(obj, prefix = [], out = []) {
+  for (const [k, v] of Object.entries(obj)) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) leafPaths(v, [...prefix, k], out);
+    else out.push([...prefix, k].join('.'));
+  }
+  return out;
+}
+
+test('R1 每个 policy 叶键恰属「白名单」或「固定台账」两类之一（无「未登记」第三态）', () => {
+  const leaves = leafPaths(POLICY_DEFAULTS);
+  const white = new Set(POLICY_OVERRIDABLE.map((o) => o.path.join('.')));
+  const fixed = new Set(POLICY_FIXED.map((o) => o.path.join('.')));
+  const unregistered = leaves.filter((p) => !white.has(p) && !fixed.has(p));
+  const ghost = [...white, ...fixed].filter((p) => !leaves.includes(p));
+  assert.deepEqual(unregistered, [],
+    `以下 policy 叶键**既不在白名单、也不在固定台账**（＝「未登记」，正是 G3-2 要消灭的模糊态）：\n  ${unregistered.join('\n  ')}\n` +
+    '  处置：能放开的走放行程序移入 POLICY_OVERRIDABLE（须支书裁决出处）；不能放开的入 POLICY_FIXED 并写明 kind/why/src。');
+  assert.deepEqual(ghost, [],
+    `以下路径**在台账里但已不在 POLICY_DEFAULTS**（台账漂移，须同批删条目）：\n  ${ghost.join('\n  ')}`);
+  assert.deepEqual(leaves.filter((p) => white.has(p) && fixed.has(p)), [],
+    '同一叶键不得同时出现在白名单与固定台账（两表互相冒充）');
+});
+
+test('R2 固定台账每项写全 kind / why / src；institutional 不得混入白名单', () => {
+  const KINDS = ['institutional', 'branch-default', 'display'];
+  for (const o of POLICY_FIXED) {
+    assert.ok(KINDS.includes(o.kind), `POLICY_FIXED 条目 ${o.path.join('.')} 的 kind 非法：${o.kind}`);
+    assert.ok(o.why && o.why.length >= 8, `POLICY_FIXED 条目 ${o.path.join('.')} 缺「为什么」（why）`);
+    assert.ok(o.src && o.src.length >= 4, `POLICY_FIXED 条目 ${o.path.join('.')} 缺出处（src）`);
+  }
+  const inst = POLICY_FIXED.filter((o) => o.kind === 'institutional').map((o) => o.path.join('.'));
+  const white = new Set(POLICY_OVERRIDABLE.map((o) => o.path.join('.')));
+  assert.deepEqual(inst.filter((p) => white.has(p)), [],
+    'institutional（制度裁决固定）一律不得进可覆盖白名单——那属「制度项放行」，须先有支书裁决并改本节 kind');
+  for (const o of POLICY_OVERRIDABLE) {
+    assert.ok(o.type, `POLICY_OVERRIDABLE 条目 ${o.path.join('.')} 缺 type（净化/钳制要用）`);
+    assert.ok(o.domain, `POLICY_OVERRIDABLE 条目 ${o.path.join('.')} 缺 domain（谁能改）`);
+  }
+});
+
+test('R3 非空转：叶键规模与两栏条数满足恒等式（防解析写坏后断言恒真）', () => {
+  const leaves = leafPaths(POLICY_DEFAULTS);
+  assert.ok(leaves.length >= 24, `只解析到 ${leaves.length} 个叶键（基线 24）：展平判据可能写坏`);
+  assert.ok(POLICY_OVERRIDABLE.length >= 10, `白名单只解析到 ${POLICY_OVERRIDABLE.length} 条（基线 10）`);
+  assert.ok(POLICY_FIXED.length >= 8, `固定台账只解析到 ${POLICY_FIXED.length} 条（基线 8）`);
+  assert.equal(POLICY_OVERRIDABLE.length + POLICY_FIXED.length, leaves.length,
+    `恒等式不成立：白名单 ${POLICY_OVERRIDABLE.length} ＋ 固定台账 ${POLICY_FIXED.length} ≠ 叶键 ${leaves.length}` +
+    '（R1 已逐项报差集，本式是它的量纲复核）');
+  const kinds = POLICY_FIXED.reduce((m, o) => ((m[o.kind] = (m[o.kind] || 0) + 1), m), {});
+  assert.ok(kinds.institutional >= 5,
+    `固定台账里 institutional 只 ${kinds.institutional} 条（G3-2 判定表结论应为 7）——判据可能被改松`);
 });

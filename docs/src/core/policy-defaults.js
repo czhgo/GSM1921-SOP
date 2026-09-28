@@ -9,6 +9,9 @@
 //     「域参数(L2)」——域负责人可经 config.policyOverrides 覆盖，读侧注入生效，全站判定随参数走。
 //     现行域节：纪检=考察超期/考勤与复盘时限/补课范围与时限；组织=滞留复核窗口/思想汇报篇幅；组长=学期提醒）
 //   - institutional  = 制度裁决固定项（勿改；改须支书裁决）
+//   - **「不能调」也有台账**（2026-09-28 批次 238 · G3-2）：不可经 UI 覆盖的叶键**逐项**列出在
+//     `POLICY_FIXED`（kind ＋ 为什么 ＋ 出处）⇒ 每个参数都恰属「白名单」或「固定台账」两类之一，
+//     不再有「未登记」的模糊态（守卫 `policy-config.test.mjs::R1`）。
 // 消费点只引用本文件派生，不在业务层新写字面量（批4 副本收编：inspection-tab 超期天数与文案、
 //   secretary-overview 考勤/复盘提醒阈值与 deadline、member-confirmation 滞留复核窗口与文案、
 //   组长学期提醒消费——一律改由本文件派生）。
@@ -227,6 +230,60 @@ export const POLICY_OVERRIDABLE = [
   // ── 篇幅字数类（2026-09-27 同上）——组织域（母本《组织委员工作流程指南》§二「思想汇报归档」归口组织委员）──
   { path: ['thoughtReport', 'wordHint'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
   { path: ['thoughtReport', 'wordSoftMin'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
+];
+
+/**
+ * **不可经 UI 覆盖**的参数台账（G3-2「全量 config 引擎」收口 · 2026-09-28 批次 238）。
+ *
+ * **为什么要有这份台账**：白名单（`POLICY_OVERRIDABLE`）之外此前是**一片模糊**——「未登记项」既可能是
+ *   「制度裁决固定」（本就不该放开），也可能只是「还没登记」（属于该放开）⇒ 无人能在代码近旁回答
+ *   「这个参数能不能调、为什么」。本台账把前一类**逐项写成数据**（原来只在注释里）：
+ * ```
+ *   每个叶键**恰属**两类之一：POLICY_OVERRIDABLE（可覆盖）｜ POLICY_FIXED（不可覆盖）
+ *   ⇒ 不再存在「未登记」的第三态（守卫 `policy-config.test.mjs::R1` 常驻断言该恒等式）
+ * ```
+ * **kind 取值**（与 `_FACTORY` 逐项注释的 kind 同义）：
+ *   · `'institutional'`        ＝ **制度裁决固定**（改须支书裁决；出处见 `src`）
+ *   · `'branch-default'`       ＝ **制度默认**（本可作支部默认值，但它是**制度口径**不是技参
+ *                                ⇒ 只作设置中心「支部制度参数」**只读展示**；**放开须走放行程序**）
+ *   · `'display'`              ＝ **展示口径**（不是阈值，仅用于界面表达，不参与覆盖）
+ * **放行程序**：把某项从本台账移入 `POLICY_OVERRIDABLE` 时，必须① 有支书裁决出处；② 补 `type/min/max` 与
+ *   `domain`；③ 同步设置页「域参数」节（`settings-entry.js`）与 `core/config-clean.js` 的钳制。
+ * **本台账只许减**（某项真被裁决放开时移出 ⇒ 移入白名单）；**新增条目**只允许在「新参数入 `_FACTORY`」同批发生。
+ *
+ * ⚠ 2026-09-28 判定表结论（G3-2 第一步）：`POLICY_DEFAULTS` **26 叶键**中，**14 条已登记**（域参数，域负责人可改）、
+ *   **12 条入本台账**——其中 `institutional` **7** 条、`branch-default`（制度默认只读）**4** 条、`display` **1** 条。
+ *   **无一条是「技参」** ⇒ 白名单**本批不扩**；G3-2 的实质交付＝**把「为何不可调」从注释升为可机检数据**。
+ */
+export const POLICY_FIXED = [
+  // ── workforce（票决门槛；制度裁决）──
+  { path: ['workforce', 'voteThreshold', 'quorum'], kind: 'institutional',
+    why: '支委会票决通过门槛（应到 2/3 且无反对）＝制度裁决，非技参', src: 'REVIEW_QUEUE 附录⑩ S2 R2-3（支书 2026-09-06 裁）' },
+  { path: ['workforce', 'voteThreshold', 'vetoOnObject'], kind: 'institutional',
+    why: '「反对=0」的否决口径（异议与反对同口径）＝制度裁决', src: '同上（语义裁定见 `_FACTORY` 注释）' },
+  // ── attendance：制度口径（只读展示；放开须放行程序）──
+  { path: ['attendance', 'meetingTypes'], kind: 'branch-default',
+    why: '「哪些会议设考勤」是制度口径（母本所写即默认），不是可放任的技参', src: 'CF §C.1a ＋ 支书 2026-09-21 口径一（批次 132 改准）' },
+  { path: ['attendance', 'noAttendanceTypes'], kind: 'branch-default',
+    why: '同上（支委会规模小不考勤）——与 `meetingTypes` 互斥成对', src: '支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'roster', 'partyStages'], kind: 'branch-default',
+    why: '「应到名单」口径（组织关系在本支部的党员阶段）＝制度口径', src: 'S1–S4 滞留党员设计（支书 2026-09-06 已批）' },
+  { path: ['attendance', 'roster', 'excludeDetained'], kind: 'branch-default',
+    why: '同上（滞留剔除）——与 `partyStages` 同一口径的两个叶', src: 'S1–S4 滞留党员设计（2026-09-06 支书已批）' },
+  // ── attendance：制度裁决固定 ──
+  { path: ['attendance', 'uploaderExceptions', 'secretaryDeputy'], kind: 'institutional',
+    why: '支书/副支书例外承担上传位＝**角色**例外，属制度', src: 'SYSTEM_ROLE_PERMISSION §9b 注' },
+  { path: ['attendance', 'recorderByType', '支部党员大会'], kind: 'institutional',
+    why: '考勤「上传位」按会议类型分派＝制度（错派即越权）', src: 'REVIEW_QUEUE 附录⑩ S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'recorderByType', '党课'], kind: 'institutional',
+    why: '同上（党课＝纪检）', src: 'S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'recorderByType', '党小组会'], kind: 'institutional',
+    why: '同上（党小组会＝本组组长）', src: 'S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'reasons'], kind: 'institutional',
+    why: '未到（请假/缺席）**标因固定枚举、禁造新枚举**（新增须支书裁决）', src: 'REVIEW_QUEUE 附录⑩ S1 R1-2' },
+  // ── leader：展示口径 ──
+  { path: ['leader', 'semesterReportReminder', 'frequency'], kind: 'display',
+    why: '学期制**展示口径**（不是阈值；开关 `enabled` 已可覆盖，频率固定学期制）', src: '`_FACTORY` 该节注释（支书 2026-09-09 批）' },
 ];
 
 /** 活动批准门三态取值（单一源；校验与界面标签共用） */
