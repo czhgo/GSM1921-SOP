@@ -21529,4 +21529,5 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **未立守卫**：`deploy/**`（含 `.sh` / `.ps1`）**不在任何现有守卫的扫描面内** ⇒ 覆盖缺口（已登记 `H-20`）。
 - **未修**：`server/package.json` 的 Windows 专有脚本语法（`set X=1&&` / `cmd /c rmdir`）⇒ Linux 上 `npm test` 不可用（不影响部署，只影响在服务器上跑测试）。
 - **未做**：S1（ETag/304 ＋ 诊断）与 S2（下推 ＋ 表达式索引）的代码；服务端支部级读过滤。⇒ 批次 270。
+- **补落一处真风险（同批）**：本仓 `core.autocrlf=true` ⇒ checkout 会把文本文件写成 CRLF，而 **CRLF 的 `.sh` 在 Linux 上直接报 `$'\r': command not found`**——`deploy/install.sh` / `deploy/update.sh` 正是要在 Linux 服务器上跑的脚本。⇒ 新增 **`.gitattributes`**（本批**只**声明 `*.sh text eol=lf`，不写 `* text=auto`——后者会一次性重规范化全仓、产生巨量无意义 diff）。实测 `git ls-files --eol -- deploy` ⇒ 两个 `.sh` 均为 `i/lf w/lf attr/text eol=lf` ✅。
 - 本批**未 push**。
