@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260929p';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260929q';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260929p';
-import { getBasePath } from '../../core/base/utils.js?v=20260929p';
-import { icon } from '../../core/base/icons.js?v=20260929p';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260929p';
-import { badgeHtml } from '../ui/badges.js?v=20260929p';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929p';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260929q';
+import { getBasePath } from '../../core/base/utils.js?v=20260929q';
+import { icon } from '../../core/base/icons.js?v=20260929q';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260929q';
+import { badgeHtml } from '../ui/badges.js?v=20260929q';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929q';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929p';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929q';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929p';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929p');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929q');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260929p');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260929q');
   return _noticeModule;
 }
 
