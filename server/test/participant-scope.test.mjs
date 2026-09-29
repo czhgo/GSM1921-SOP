@@ -15,9 +15,9 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20260929j';
-import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20260929j';
-import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20260929j';
+import { resolveVoterIds, resolveParticipantIds } from '../../docs/src/services/activity/vote-config.js?v=20260929l';
+import { cleanParticipantPolicies } from '../../docs/src/services/branch/config-clean.js?v=20260929l';
+import { getWorkflowBlockParticipantPolicy } from '../../docs/src/services/branch/branch.js?v=20260929l';
 
 let server, base;
 

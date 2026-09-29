@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260929j';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929j';
-import { getPersonName } from '../../../services/member/person.js?v=20260929j';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929l';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929l';
+import { getPersonName } from '../../../services/member/person.js?v=20260929l';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20260929j';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929j';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929j';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929j';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260929l';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929l';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929l';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929l';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929j';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929l';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20260929j';
+} from '../../../services/member/member-flow.js?v=20260929l';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929j';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929l';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260929j';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260929l';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -68,7 +68,7 @@ export function renderContent(ctx) {
 
   container.innerHTML = `
     <div class="space-y-4">
-      <p class="text-xs text-gray-500">本页管「成员怎么变」：支部成员的流入 / 流出登记与对账台账（登记即生效，留痕可撤销）。「支部在册成员有谁、档案状态如何」见「成员名册」。</p>
+      <p class="text-xs text-gray-500">成员流入 / 流出登记与对账台账。登记即生效，撤销留痕。在册成员与档案状态见「成员名册」。</p>
       ${_iaaaPendingCardHtml()}
       ${_flowCardHtml(canRegister)}
     </div>
