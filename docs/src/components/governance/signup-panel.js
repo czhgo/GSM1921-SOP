@@ -79,7 +79,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
+        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
           报名
         </button>
       </div>`;
@@ -104,7 +104,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
+        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
           重新申请
         </button>
       </div>`;

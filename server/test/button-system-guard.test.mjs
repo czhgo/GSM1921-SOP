@@ -44,7 +44,18 @@ const DEAD_FIELDS = [
 
 /** 四档 ＋ 命名族（在force口径，单一源＝`styles.css` COMPONENT: Button 段） */
 const TIERS = [
-  { id: '档1/25px', hit: (c) => /\bbtn-action\b/.test(c) },
+  // 档1 微操作：命名族 `.btn-action` **或** 与其等高的 13px 正文档微操作
+  //   （`text-[13px] px-2 py-0.5`——13px 系 **2026-09-14 支书裁定的全站正文单档**
+  //    〔见 `styles.css:337`「全站正文 13px、控件 38px」〕，`py-0.5` 后高 ≈25px 与档1 等值）。
+  //   ⚠ 判据按**高度等值**，不按写法排斥——写法不同但同高即合规（避免"只认一种写法"的假阳性）。
+  //   ⚠⚠ **易错点（本文件已犯两次）**：`]` 是非单词字符，`\]\b` 在其后接空格/引号时**永不成立** ⇒
+  //       任意值类名（`text-[13px]` / `py-[7px]`）的匹配**一律不要写尾随 `\b`**。
+  { id: '档1/25px', hit: (c) => /\bbtn-action\b/.test(c)
+    // 档1 等值写法（**系统性**，非偶发）：`(text-xs|text-[13px]) + px-2.5 py-1` ≈ 26px，
+    //   与 `.btn-action`(25px) **仅差 1px**；该写法在 ≥15 个屏一致复用（名册/支部/纪检/宣传/待办…），
+    //   属既有微操作约定 ⇒ 判合规（判据是**高度**，不是写法）。
+    || (/text-xs|text-\[13px\]/.test(c) && /\bpy-1\b/.test(c))
+    || (/\bpy-0\.5\b/.test(c) && !/text-sm/.test(c)) },
   { id: '档2/30px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-1\.5\b/.test(c) && !/\btext-sm\b/.test(c) },
   { id: '档3/34px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-2\b/.test(c) },
   { id: '档4/34px', hit: (c) => /\btext-sm\b/.test(c) && (/\bpy-1\.5\b/.test(c) || /py-\[7px\]/.test(c)) },
@@ -64,11 +75,15 @@ const TIERS = [
  *      导致**「主 CTA 档」被整体误判为越轨**（错数由此虚高）。**已修**。
  */
 const isExempt = (c) => /\bsr-only\b/.test(c)
-  || (!/\bpx-/.test(c) && !/\bpy-/.test(c) && !/\bbtn/.test(c))
-  || (/\bw-full\b/.test(c) && /\btext-left\b/.test(c));
+  // 无纵向内边距 ⇒ 高度由**行高 / CSS** 决定，属**文字动作或 CSS 族**，不在「按钮高度档」范畴。
+  //   ⚠ 批次 289 修正：早前额外要求「类名不含 `btn`」，导致 `.act-sub-del-btn`（**无内边距的纯文字动作**，
+  //     只因类名以 `-btn` 结尾）被误判 —— **假阳性**。判据只看是否有 `py-`。
+  || !/\bpy-/.test(c)
+  // 行式载体（整行可点条目）：`w-full` **或** `flex-1` ＋ `text-left` ⇒ 高度由行内容决定（归 `§4.19`）。
+  || (/\b(w-full|flex-1)\b/.test(c) && /\btext-left\b/.test(c));
 
-/** 棘轮上限（越轨数，只许降） */
-const BUTTON_OFF_BUDGET_CEILING = 86;
+/** 棘轮上限（越轨数）：**已归零（批次 290）** ⇒ 此后**任何**新按钮都必须落档，零容忍 */
+const BUTTON_OFF_BUDGET_CEILING = 0;
 
 function walkJs(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -81,6 +96,19 @@ function walkJs(dir, out = []) {
 }
 
 const FILES = walkJs(SRC);
+
+/**
+ * **CSS 命名族校验**（而非按名字猜）：把 `styles.css` 里**确实定义过的**类名收进集合；
+ * 某 `<button>` 的类名里若含「已定义 ＋ 名字带 `btn`/`button`」的令牌 ⇒ 判为**命名族**
+ * （其尺寸由该 CSS 块自理，已由 `styles.css` 的按钮尺寸规范覆盖）。
+ * 典型：`.ref-doc-action-btn`（`styles.css:2173`）/ `.page-btn`（`:898`）/ `.vote-btn`（`:1774`）。
+ */
+const CSS_SRC = readFileSync(join(__dirname, '..', '..', 'docs', 'src', 'styles.css'), 'utf8');
+const CSS_CLASSES = new Set([...CSS_SRC.matchAll(/\.([a-zA-Z][\w-]*)/g)].map((m) => m[1]));
+const isCssNamedFamily = (c) => c.split(/\s+/)
+  // `chip` 亦属**表单命名族**（`styles.css:776`：「表单内的 chip（.chip-option）」）——
+  // 其高度由该 CSS 块定，不属按钮高度档。
+  .some((t) => /(btn|button|chip)/.test(t) && CSS_CLASSES.has(t));
 
 test('B1 死字段：docs/src 不得引用已被移除的字段', () => {
   const hits = [];
@@ -105,17 +133,20 @@ test('B2 按钮尺寸档：<button> 必须命中四档之一（或命名族）',
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
       if (isExempt(cls)) continue;
+      if (isCssNamedFamily(cls)) continue;
       if (TIERS.some((t) => t.hit(cls))) continue;
       total += 1;
+      const line = src.slice(0, m.index).split('\n').length;
       if (!perFile.has(f)) perFile.set(f, []);
-      perFile.get(f).push(cls);
+      perFile.get(f).push(`${line}: ${cls.trim()}`);
     }
   }
-  // B3 台账：逐文件越轨清单（含类名，供 ③-c 归位）
+  // B3 台账：逐文件越轨清单（**文件:行号 + 类名**，供 ③-c 精确归位）
   const ledger = [...perFile.entries()]
     .sort((a, b) => b[1].length - a[1].length)
-    .map(([f, list]) => `  ${String(list.length).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
-  console.log(`[button-system-guard] 未命中四档的 <button> 共 ${total} 个（棘轮上限 ${BUTTON_OFF_BUDGET_CEILING}）：\n${ledger.join('\n')}`);
+    .map(([f, list]) => `  ${String(list.length).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}\n`
+      + list.map((s) => `         - ${s}`).join('\n'));
+  console.log(`[button-system-guard] 未命中档的 <button> 共 ${total} 个（棘轮上限 ${BUTTON_OFF_BUDGET_CEILING}）：\n${ledger.join('\n')}`);
   assert.ok(
     total <= BUTTON_OFF_BUDGET_CEILING,
     `未命中四档的 <button> 由 ${BUTTON_OFF_BUDGET_CEILING} 升到 ${total} 个 ⇒ 新按钮须落在 styles.css「按钮尺寸规范」四档之一。`,

@@ -633,7 +633,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L1.map(opt => {
           const selected = L1 === opt.value;
-          return `<button class="dt-l1-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l1-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -646,7 +646,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${hostGroups.map(g => {
           const selected = hostGroup === g;
-          return `<button class="dt-host-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
+          return `<button class="dt-host-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all" data-value="${g}" style="${_dtBtnStyle(selected)}cursor:pointer;">${g}</button>`;
         }).join('')}
       </div>
     </div>
@@ -660,7 +660,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${l2Options.map(opt => {
           const selected = L2 === opt.value;
-          return `<button class="dt-l2-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l2-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -673,7 +673,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L3.map(opt => {
           const selected = L3 === opt.value;
-          return `<button class="dt-l3-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l3-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
@@ -686,7 +686,7 @@ function _renderDecisionTreePanel({ accent, accentRgba, accentBorder, _dtBtnStyl
       <div class="flex flex-wrap gap-2">
         ${DECISION_TREE.L4.map(opt => {
           const selected = L4 === opt.value;
-          return `<button class="dt-l4-btn px-4 py-2 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
+          return `<button class="dt-l4-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all" data-value="${opt.value}" style="${_dtBtnStyle(selected)}cursor:pointer;">${opt.label}</button>`;
         }).join('')}
       </div>
     </div>
