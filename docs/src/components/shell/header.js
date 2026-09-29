@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260929v';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260929w';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260929v';
-import { getBasePath } from '../../core/base/utils.js?v=20260929v';
-import { icon } from '../../core/base/icons.js?v=20260929v';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260929v';
-import { badgeHtml } from '../ui/badges.js?v=20260929v';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929v';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260929w';
+import { getBasePath } from '../../core/base/utils.js?v=20260929w';
+import { icon } from '../../core/base/icons.js?v=20260929w';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260929w';
+import { badgeHtml } from '../ui/badges.js?v=20260929w';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929w';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929v';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929w';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929v';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929v');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929w');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260929v');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260929w');
   return _noticeModule;
 }
 
@@ -80,8 +80,11 @@ async function _renderNotificationBadge() {
     const badge = document.createElement('span');
     badge.id = 'notif-badge';
     badge.textContent = unread > 9 ? '9+' : String(unread);
-    badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);border:1.5px solid var(--primary-900);font-weight:600;color:#7A0010;display:flex;align-items:center;justify-content:center;padding:0 4px;';
-    badge.classList.add('text-xs');
+    // 批次 285（支书裁定：「有时候红色，参考微信消息提醒的做法，用数字小圆放在一角，是很有效的！」）：
+    //   未读数＝**提醒语义**（`§2.5` 功能色「只表语义状态」）⇒ 由党徽黄改为**红底白字数字圆角标**（微信范式）。
+    //   仍走令牌（`var(--party-red)`）与 Tailwind 工具类（`text-white`），**不落 hex 字面量**。
+    badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-red);font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;';
+    badge.classList.add('text-xs', 'text-white');
     bell.appendChild(badge);
   }
 }

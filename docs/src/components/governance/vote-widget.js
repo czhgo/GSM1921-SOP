@@ -6,9 +6,9 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260929v';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260929v';
-import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260929v';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260929w';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260929w';
+import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260929w';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 

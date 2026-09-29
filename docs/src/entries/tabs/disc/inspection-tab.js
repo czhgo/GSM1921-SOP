@@ -2,32 +2,32 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260929v';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20260929v';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20260929v';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20260929v';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20260929v';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260929v';
-import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain/domain.js?v=20260929v';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260929w';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20260929w';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20260929w';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20260929w';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20260929w';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260929w';
+import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain/domain.js?v=20260929w';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260929v';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260929v';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929v';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260929v';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260929v';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260929w';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260929w';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929w';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260929w';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260929w';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260929v';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260929w';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20260929v';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20260929w';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20260929v';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260929v';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929v';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929v';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260929w';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260929w';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929w';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929w';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20260929v';
-import { generateId } from '../../../core/base/id.js?v=20260929v';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260929w';
+import { generateId } from '../../../core/base/id.js?v=20260929w';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;

@@ -19,10 +19,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { assertComposeValid, resolveConflicts } from '../../docs/src/core/base/module-compose.js?v=20260929v';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929v';
-import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929v';
-import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929v';
+import { assertComposeValid, resolveConflicts } from '../../docs/src/core/base/module-compose.js?v=20260929w';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929w';
+import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929w';
+import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929w';
 
 test('O1 组合体检**不是恒真**（批次 239 修的真缺陷）：块清单键名 `blockId` 必须被认到', () => {
   // ① 反例：引用缺失必须真抛（修复前这里**不抛**——体检把整张清单过滤成了空集）
