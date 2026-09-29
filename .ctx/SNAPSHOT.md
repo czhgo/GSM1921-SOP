@@ -60,7 +60,7 @@ GSM1921-SOP/
 │       ├── data/               ← 数据形态层（**2026-09-29 批次 267 新立**）：`data-adapter`（门面）· `api-adapter` · `mock-adapter`（禁改）· `data-loader` ＋ `mock/`（演示数据种子）
 │       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/config-clean/org-config-package/appointment/workforce…））
 │       ├── data/mock/          ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
-│       ├── capabilities/       ← 能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**，11 件；与 `entries/` 对称：入口薄壳 ↔ 能力声明）
+│       ├── capabilities/       ← 能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**，12 件；与 `entries/` 对称：入口薄壳 ↔ 能力声明）
 │       ├── components/sections/ ← 页级板块渲染器（**2026-09-29 批次 267 新立**：`help-catalog` help 页目录树/章节卡片 · `references` 资料查询板块）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests〔**6 块**：试点 2 ＋ 2026-09-29 批次 248 铺开的三会一课 4〕 + **`blocks/orchestration.js`＝通用编排内核**：范围过滤 / 组合校验 / 稳定拓扑序 / 编译为既有 definition 形状的纯数据；2026-09-28 批次 239）
 │       └── styles.css          ← 全局样式

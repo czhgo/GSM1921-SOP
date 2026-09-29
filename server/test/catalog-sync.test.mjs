@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { generateMindmap } from '../../docs/scripts/gen-function-mermaid.mjs';
+import { generateReadmeBlock } from '../../docs/scripts/gen-function-mermaid.mjs';
 import { OPTION_ENUMS } from '../routes/committee.js';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根（含尾部分隔符）
@@ -93,13 +93,25 @@ test('T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防
 // ── T3（原 function-map-sync）：README 顶部功能地图 = 实时生成 ──────────────────
 // 2026-09-03 起：独立 FUNCTION_MAP.md 不再随仓库维护，仅校验 README 标记块。
 // 2026-09-09 起：功能地图迁至**根 README.md 顶部**（通用化门面；锚点 <!--FUNC-MAP:ANCHOR-->）。
+// 2026-09-29 起（批次 268）：标记块由「只有 mindmap」扩为**三章**（能力地图 / 关键业务链路表 /
+//   完整四章指针）——比较对象随之由 generateMindmap() 改为 generateReadmeBlock()；
+//   并加严**非空转判据**：三章各自的可识别特征必须真在块内（防「生成器退化 ⇒ 断言恒真」）。
 test('T3 根 README.md 功能地图标记块与实时生成一致（防止未同步的情况）', () => {
   const readme = readFileSync(`${ROOT}README.md`, 'utf8');
   assert.ok(readme.includes('<!--FUNC-MAP:ANCHOR-->'), 'README.md 含功能地图锚点');
   const m = /<!--FUNC-MAP:START-->([\s\S]*?)<!--FUNC-MAP:END-->/.exec(readme);
   assert.ok(m, 'README.md 已含标记块');
   const norm = (s) => s.replace(/\r\n/g, '\n').trim(); // 归一化行尾（工作区 CRLF / 生成 LF 均可）
-  assert.equal(norm(m[1]), norm(generateMindmap()), '标记块内容 = 实时生成');
+  const block = norm(m[1]);
+  assert.equal(block, norm(generateReadmeBlock()), '标记块内容 = 实时生成');
+
+  // 非空转判据（三章特征齐备；缺一即说明生成器退化、断言将恒真）
+  assert.ok(block.includes('```mermaid') && block.includes('mindmap'), '标记块须含能力地图 mindmap（第一章）');
+  const flowCount = grabExport(CATALOG, 'FUNCTION_CATALOG').filter((i) => i.kind === 'flow').length;
+  assert.ok(flowCount >= 12, `catalog flow 条目至少 12 条，实际 ${flowCount}`);
+  const rows = block.split('\n').filter((l) => /^\| .+ \| .+ \| \d+ 步 \| .+ \|$/.test(l));
+  assert.equal(rows.length, flowCount, `链路表数据行数须 = catalog flow 条数（${flowCount}），实得 ${rows.length}`);
+  assert.ok(block.includes('gen-function-mermaid.mjs'), '标记块须含完整四章指针命令（第三章）');
 });
 
 // ── T4（原 vote-option-sync）：跨层表决枚举不得未同步（双向） ──────────────────

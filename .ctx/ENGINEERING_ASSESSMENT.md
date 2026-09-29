@@ -27,14 +27,14 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 维度 | 得分 | 一句话结论（**当前**） |
 |------|------|-----------|
-| 模块化 | **99 / 100** | 五层分层（`core` / `services` / `components` / `modules(capabilities)` / `entries(tabs)`）+ 组件积木 + tab 动态 import 懒加载 + capability 自注册为真；域内出口收敛有样板与纪律（见 §3.1）；工作台 tab **分组单一轴**；说明文件口径已**守卫化**（`doc-consistency::S1–S16`）。**残项＝徽章 / 选择器等组件出口仍散** |
-| 插件化 | **75 / 100** | registry 自注册 + 按 scope 组装 + `config.modules/blocks/workforce`「配置即组合」（净化单一源 `services/branch/config-clean.js`，server 单向权威）+ L3 block manifest 契约 + `module-compose` v0 纯校验（depends / conflictsWith，测试 6/6 绿）。**残项＝`module-compose` 仍只做前端纯校验**（服务端 config 校验留 v1；「插件安装 / 卸载」概念未立） |
-| 开源化 | **80 / 100** | 全程中文可读的设计 / 规范文档 + 代码 `role` 标注与设计源链接 + 测试覆盖厚；根 README 以「复用与二次开发（给其他组织）」为核心章节且含 **30 分钟换壳指南** + 演示数据一键重置 `?reset=1`；数据可整体替换（`people` / `accounts` + `.env.example`）；LICENSE(MIT) + `CONTRIBUTING.md` + **语义化 release / 发布工作流**（`docs/scripts/release.mjs`；守卫 `version-stamp::S7`）。**残项＝无**（English 版经支书裁定「不做」，属产品边界、非工程缺陷） |
-| 超参数可调性 | **86 / 100** | `policy-defaults.js` 集中默认单一源，逐项标注「`branch-default` 可调 / `institutional` 固定」+ 出处 + 消费点；`POLICY_OVERRIDABLE` 白名单经**设置 → 支部治理「域参数」卡**可覆盖（域负责人仅本域），「支部制度参数」卡只读展示制度默认；**26 叶键 100% 有归属**（白名单 14 ＋ `POLICY_FIXED` 12，守卫 `policy-config::R1–R3` ⇒ 「未登记」第三态被消灭）。**残项＝无**（新增参数须同批入两类之一） |
-| 组合能力（二开视角） | **83 / 100** | 「配置即组合」：模块 / 块 / 分工的**启停 ＋ 排序**（支部默认层与个人偏好层分离、互不覆盖）＋ `configChangeHistory` 逐键留痕与单键回滚；L3 块契约（**6 块**）＋ 通用编排内核（范围过滤 / 组合校验 / 稳定拓扑序）＋ 换组织向导第②步内联「**组合体检**」。**残项＝画布 UI（L4 编辑器形态）· 运行时面（写口 / 任务派生是否消费组合产物——**口径待支书裁**）· ② 表单条目 / ③ 参与人范围两轴** |
-| **综合（当前）** | **≈ 85 / 100** | 五维均值 **99 / 75 / 80 / 86 / 83 = 84.6**。口径见上「再评定调」三条；**分数只作方向指引**——逐批「为何 +1 / 不加分」的论证见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：工程化评估逐批沿革」节 |
+| 模块化 | **99 / 100** | **分层已到子域级**（**2026-09-29 批次 267**）：`core/`（`base` · `domain` · `boot` · `session`）· `data/`（数据形态）· `services/`（5 域）· `components/`（7 域，含 `sections/`）· `capabilities/`（顶层，与 `entries/` 对称）· `entries/`（3 类）；**`modules/` 已消解**。＋ 组件积木 + tab 动态 import 懒加载 + capability 自注册为真；域内出口收敛有样板与纪律（见 §3.1）；工作台 tab **分组单一轴**；说明文件口径已**守卫化**（`doc-consistency::S1–S16`）。**残项＝徽章 / 选择器等组件出口仍散** |
+| 插件化 | **76 / 100** | registry 自注册 + 按 scope 组装 + `config.modules/blocks/workforce`「配置即组合」（净化单一源 `services/branch/config-clean.js`，server 单向权威）+ L3 block manifest 契约 + `module-compose` v0 纯校验。**2026-09-29 批次 268 加分（75 → 76）**：① **契约 §二 恢复「唯一口径」**——试点块 `taskforce` 落成**真能力**（`capabilities/taskforce.js`）且块 id 同批改准 ⇒ `block-manifest::S5` 的**显式例外台账清零**（6 块 id 全在册，`scenario 7 / definition 3 / capability 15`）；② 功能地图由「只有能力清单」改为**「能力地图 ＋ 12 条关键业务链路」双视角** ⇒ 能力的**可发现性**提高。**残项＝`module-compose` 仍只做前端纯校验**（服务端 config 校验留 v1；「插件安装 / 卸载」概念未立） |
+| 开源化 | **81 / 100** | 全程中文可读的设计 / 规范文档 + 代码 `role` 标注与设计源链接 + 测试覆盖厚；根 README 以「复用与二次开发（给其他组织）」为核心章节且含 **30 分钟换壳指南** + 演示数据一键重置 `?reset=1`；数据可整体替换（`people` / `accounts` + `.env.example`）；LICENSE(MIT) + `CONTRIBUTING.md` + **语义化 release / 发布工作流**（`docs/scripts/release.mjs`；守卫 `version-stamp::S7`）。**2026-09-29 批次 268 加分（80 → 81）**：**部署前筹备检查**落地两条——① `server.js` 补 **`SIGTERM`/`SIGINT` 优雅关闭**（常驻进程停止时在途请求不再被硬切断）；② `server/README.md` 新增「**部署前必知限制**」四表 + 优雅关闭用法 ⇒ 「换壳者拿得到真能上线的说明书」。**残项＝无**（English 版经支书裁定「不做」，属产品边界、非工程缺陷） |
+| 超参数可调性 | **86 / 100** | `policy-defaults.js` 集中默认单一源，逐项标注「`branch-default` 可调 / `institutional` 固定」+ 出处 + 消费点；`POLICY_OVERRIDABLE` 白名单经**设置 → 支部治理「域参数」卡**可覆盖（域负责人仅本域），「支部制度参数」卡只读展示制度默认；**26 叶键 100% 有归属**（白名单 14 ＋ `POLICY_FIXED` 12，守卫 `policy-config::R1–R3`）。**残项＝无**（新增参数须同批入两类之一） |
+| 组合能力（二开视角） | **83 / 100** | 「配置即组合」：模块 / 块 / 分工的**启停 ＋ 排序**（支部默认层与个人偏好层分离、互不覆盖）＋ `configChangeHistory` 逐键留痕与单键回滚；L3 块契约（**6 块**）＋ 通用编排内核（范围过滤 / 组合校验 / 稳定拓扑序）＋ 换组织向导第②步内联「**组合体检**」。**2026-09-29 批次 268 不加分**（如实登记）：本批只把「契约口径恢复 ＋ 例外清零」做完，**实质残项（运行时面 · 画布 UI · ②③ 两轴）未动**。**残项＝画布 UI（L4 编辑器形态）· 运行时面（写口 / 任务派生是否消费组合产物——**口径已定、待执行**）· ② 表单条目 / ③ 参与人范围两轴（**口径已定、待执行**）** |
+| **综合（当前）** | **≈ 85 / 100** | 五维均值 **99 / 76 / 81 / 86 / 83 = 85.0**。口径见上「再评定调」三条；**分数只作方向指引**——逐批「为何 +1 / 不加分」的论证见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：工程化评估逐批沿革」节 |
 
-> **残项 TOP（当前未闭合；逐条依据见 §二 各维残项与 §六）**：① **G3-3 余下**——画布 UI（L4）· **运行时面**（口径待裁）· ②③ 两轴；② **组件出口仍有散件**（模块化，非阻塞）；③ **`module-compose` 仅前端纯校验**（插件化，服务端 config 校验留 v1）；④ **运行安全**——生产形态须显式设 `LOGIN_PASSWORD`（缺省演示口令；生产未设**启动即拒**已落地）。
+> **残项 TOP（当前未闭合；逐条依据见 §二 各维残项与 §六）**：① **G3-3 余下**——画布 UI（L4）· **运行时面**（口径已定、待执行）· ②③ 两轴（口径已定、待执行）；② **组件出口仍有散件**（模块化，非阻塞）；③ **`module-compose` 仅前端纯校验**（插件化，服务端 config 校验留 v1）；④ **部署前必知限制四条**（服务端无支部级读过滤 · 多数写口仅登录 · 无业务字段索引 · token 无过期 / 统一口令）——已在 `server/README.md`「部署前必知限制」与 `README-server.md §7.1` 如实登记；⑤ **运行安全**——生产形态须显式设 `LOGIN_PASSWORD`（生产未设**启动即拒**已落地）。
 > **已闭合项不在此逐条罗列**（历次「已消除」清单见日志沿革节，避免本文件再长第二本沿革）。
 
 > 注（支书 2026-09-03 口径修正，**现行有效**）：本仓库是支部自己的内部系统，**.ctx 日志与 references / 历史会议材料均为内部资产、保留上传**，不存在「出仓脱敏」需求；三·3.3 R12 与行动线 P1b 中的出仓子项（脱敏 / 移出 / 账号外置 / .ctx ignore）**全部撤销**。保留的工程项仅是「**运行安全**」（见上残项 ④）。
@@ -46,7 +46,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 2.1 模块化 —— 99/100
 
 得分项：
-- **五层分层清晰**：`core` / `services` / `components` / `modules(capabilities)` / `entries(tabs)`；tab 动态 import 懒加载、capability 自注册。
+- **分层到子域级**（**2026-09-29 批次 267 收官**）：`core/`（`base` · `domain` · `boot` · `session` 四子域）· `data/`（数据形态：4 适配器 ＋ `mock/`）· `services/`（5 域）· `components/`（7 域，含 `sections/`）· `capabilities/`（顶层，与 `entries/` 对称）· `entries/`（3 类）· `workflow/` · `config/`；**`modules/` 已消解**；tab 动态 import 懒加载、capability 自注册。
 - **组件积木化**：徽章全站统一、表单字段 / 外壳（`forms.js`）、收件箱、汇报域（`reporting.js`）等；表单输入件已全局收编（`input-flat` 13px 单档、`label for` 关联、aria）。
 - **域内出口收敛有样板与纪律**（样板 = `forms.js` / `badges.js` / `reporting.js` 三库，纪律见 §3.1）；`esc` / `fmtDt` 微工具、类型 / 阶段元数据、写场景清单等重复 / 三写均已收敛。
 - **单一源 / 引擎化收敛台账**（口径与逐条判据见 **§3.4**，此处不复述）：版本号推导、分页、人 × 项目矩阵、翻页标记、控件档位与表格样式类族等**均已收进单一源并带守卫**；对应行动项 P0a–P2c 见 §四。
@@ -56,7 +56,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - **徽章 / 选择器等组件出口仍散**：除三库外，`query-view` / `picker` / `modal` 等仍被各层逐文件直连。
 - **手写表格收敛台账**仍留 2 处人工登记位（考勤明细 / 党小组清单，行数天然有界），未进一步收敛。
 
-### 2.2 插件化 —— 75/100
+### 2.2 插件化 —— 76/100
 
 得分项：
 - registry 自注册 + 按 scope 组装（`workspace:secretary` / `workspace:party-committee`）；支部实例化 + 支部级 `fileSpaceIsolated`。
@@ -68,7 +68,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 失分项 / 残项（后续跟踪）：
 - **`module-compose` 仅前端纯校验**：服务端 config 校验留 v1；「插件**安装 / 卸载**」概念未立（元数据只作声明，无生命周期）。
 
-### 2.3 开源化 —— 80/100
+### 2.3 开源化 —— 81/100
 
 得分项：
 - 全程中文可读的设计 / 规范文档；design（`content/`）与 spec 职责已纠偏；代码带 `role` 标注与设计源链接；测试覆盖厚（模块加载 + 多组 E2E）。
@@ -234,8 +234,8 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 5.2 当前值（一屏看现状）
 
-- **五维（当前）**：模块化 **99** · 插件化 **75** · 开源化 **80** · 超参数可调性 **86** · 组合能力 **83** ⇒ **综合 ≈ 85**（均值 84.6）。残项与依据见 §一 / §二。
-- **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 11 件** · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
+- **五维（当前）**：模块化 **99** · 插件化 **76** · 开源化 **81** · 超参数可调性 **86** · 组合能力 **83** ⇒ **综合 ≈ 85**（均值 85.0）。残项与依据见 §一 / §二。
+- **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 12 件**（2026-09-29 批次 268 增 `taskforce.js`） · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
 - **测试规模**：**动态口径，不写死**——以 `server/test/` 实测为准（分档见 `server/README.md`「测试耗时台账」）。
 - **纪律与判据索引（当前）**：`§3.4` 收敛台账 **R13–R30 共 19 行**（含 `R28-附` / `R29` / `R30`）；`CLAUDE.md` 现行纪律 **R-68 ~ R-80**（真机同环境量测 · 不得以「等裁定」结束回合 · 授权声明可核验 · 异常面下沉动作级 · 守卫覆盖按接口逐维数 · 台账完备性三缺一 · 等待窗口须覆盖真实耗时 · 判据落在事实上而非手段上 · 增量而非绝对值 · 判据之间不得互相冒充 · 「不可达」只有两条出口 · 「成功」须确认落库 · 每个字段都要有判据）；自查问句 = `DATA_CONSISTENCY_CHECKLIST §0.1`（**现到二十七问**）；范本 = 同文件（**第六–第二十七**）；判例集 = `content/05_ai_coding/TEST_AND_VERIFICATION.md`。**逐条「哪一批增了哪一问 / 哪一范本」属沿革 ⇒ 见日志**。
 - **浏览器本地业务数据（当前）**：**已无「暂留本机·未服务端化」的业务事实**。其余本机键按性质三类（草稿 / 预览 · 本机令牌 / 运行态 · 偏好与会话），判定与逐条理由 = `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.3`（机检镜像 = `localstorage-key-guard`）。
@@ -302,7 +302,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 - **G3-1 语义化 release / 发布工作流**：✅ 已交付（→ §四 **P8**；纪律 `CLAUDE.md R-90` · `CONTRIBUTING.md §六`）。
 - **G3-2 全量 config 引擎**：✅ 已收口（→ §四 **P9**；`POLICY_FIXED` 台账 ＋ 守卫 `policy-config::R1–R3`）。
 - **G3-3 拖拽编排 L1→L5**（→ §四 **P10**）：🟢 **前三层已落**（L1 内核 / L2 配置面 / L3 同类场景铺开）。支书已裁两项口径：① **「块差异」＝「流程组合」**（`WORKFLOW_BLOCK_CONTRACT §〇` 三轴取第 ① 轴；②③ 轴本批不作主口径）；② **推进顺序＝先「全站推广」**（画布 UI 另批）。契约约束：`§二` 要求 `blockId` 与既有 capability / scenario id **一一对应** ⇒ 铺开**复用既有场景 id**（`block-manifest::S5` 把「注册表对应」落成机检 + 显式例外台账）。
-  - **余下（待裁决，不代裁）**：① **运行时面**——「支部停用某块」是否**服务端硬执行**（现状：仅前端入口守卫，服务端活动写门 `_assertActivityWrite` 只按角色 × 活动类型判、**不看 `config.blocks`**）⇒ 属产品 / 制度口径；② **画布 UI（L4）**；③ **② 表单条目 / ③ 参与人范围两轴**（见 `.ctx/REVIEW_QUEUE.md` `H-11`）。
+  - **余下（口径已于 2026-09-29 批次 268 定稿 · 待执行；见 `D-679`）**：① **运行时面** ⇒ **采「服务端硬执行」**——本仓命题是「制度即代码：嵌入系统中**必须遵守**」，前端入口守卫只做到「看不见入口」、直连 API 仍可写 ⇒ 与命题不符；且按 `D-677`（API 优先）判据须落在 api 面的真实行为上。**执行三步**（批次 269）：ⓐ `scenarioId → blockId` 映射**从 `BLOCK_MANIFESTS` 派生**（三会一课四块 blockId ≡ scenarioId；主题党日别名 `theme-party → theme-party-day` 已在 `scene-write-sync` 登记）；ⓑ `gates.js` 新增 `_assertActivityBlockEnabled(db, actor, …)`，在活动 **POST** 与 **PATCH（改类型 / 场景时）** 两处调用 ⇒ 命中「该支部停用该块」⇒ **403 ＋ 可懂原因**；ⓒ **默认零影响**（支部 config 缺省 ⇒ 全块启用 ⇒ 既有用例行为不变）。② **画布 UI（L4）**；③ **② 表单条目 / ③ 参与人范围两轴**（**对齐口径已于同批定稿**：②＝以「**写面板真实字段**」为锚、**双向对齐**，支部可配面**只开两类策略** `hiddenFieldIds` ＋ `requiredOverrides`；`type` 这类由 Step1 模板卡承担者在 manifest 里标 `carrier`、不计入 Step2 表单字段。③＝**只配「名单解析模式」**（`participants.mode` 三档 ＋ `orgMode`），**具体人名一律不落 config**）。
 - **English 版：裁定不做**（支书 2026-09-28 原文「我们不需要英语！」）⇒ 从开源化残项移出（→ §四 **P11**）。
 - **纪律**：每项**先出方案再动手**（本文件与 `content/**` 均为支书批改层）；**G3 任何一项不得以「顺手一起做」进入 G0–G2 的批次**（`CLAUDE.md R-70`）。
 

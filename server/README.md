@@ -225,3 +225,22 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 > 本批**只演练到「能列出将删除的账号」为止，未真删**（命令与 `readonly:true` 列表法已实跑）。
 
 **④ 换口令**：设 `LOGIN_PASSWORD=<强口令>`（生产形态不设 ⇒ 启动即拒）；确认**未设** `DISABLE_PASSWORD_CHECK`。见 `.env.example` 与 `README-server.md` §5.3 / §5.6。
+
+### 部署前必知限制（服务端当前**不做**的四件事）
+
+> 来源：2026-09-29 批次 268「**部署前筹备检查**」。**权威份**（含逐条依据行号）＝`README-server.md §7.1 安全与权限类`；本节只作**部署前提醒**，不重复其依据。
+
+| # | 限制 | 对部署的含义 |
+|---|---|---|
+| 1 | **服务端不做支部级读取过滤** | 列表读口是**整表返回**，支部过滤由**前端** `withinBranch` 做 ⇒ **同一台服务器上驻多个支部时，任一已登录读者可拿到全部支部的数据**。⇒ **一实例一支部**部署；若必须多支部共用，**须先补服务端过滤**（属权限口径，见 `README-server.md §7.1 #2`） |
+| 2 | **多数资源写口只要求登录** | 30 类资源中只有 `branchDocs` / `fileSpaceRecords` / `imageRecords` 用支委门、`activities` 有活动写门，**其余任意登录成员可 POST / PATCH / DELETE**（`README-server.md §7.1 #3`）。⇒ 面向真实支部上线时，**以「成员都可信」为前提**；若不可信，须先补写门 |
+| 3 | **无业务字段索引** | 全库是 `(id TEXT PRIMARY KEY, data TEXT)` 宽表：`id` 有主键索引，**`data` 内字段无索引**、读路径一律取全表在 JS 里 `JSON.parse`。⇒ 数据量上到**万行级**前应先评估再优化（属**性能债**，非功能缺陷；本批**只登记未改**） |
+| 4 | **token 无过期 / 无刷新** · **口令是全支部统一口令** | 会话仅显式 logout 或账号流出时失效；系统**没有个人密码**概念（`README-server.md §7.1 #5 / #6`） |
+
+### 优雅关闭（2026-09-29 批次 268 新增）
+
+`server.js` 已挂 `SIGTERM` / `SIGINT`：收到信号 ⇒ ① 停止接新连接 → ② 等在途请求结束（**上限 5s**）→ ③ 关库 → ④ 退出码 0。
+
+⇒ systemd / PM2 / 容器**停止时请发 SIGTERM**（`systemctl stop` / `pm2 stop` / `docker stop` 默认就是它），**不要用 SIGKILL**，否则在途写入会被硬切断。
+
+⚠ **如实登记（未做）**：**未处理**排程中的定时任务（随进程退出中断、下次启动重新排期）；**未做** readiness / liveness 分离探针（存活探针仍只有 `GET /api/v1/health`）。

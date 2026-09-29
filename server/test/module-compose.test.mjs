@@ -8,8 +8,8 @@
 // 运行：cd server; node --test --test-concurrency=1 test/module-compose.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveConflicts, assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20260929b';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929b';
+import { resolveConflicts, assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20260929c';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929c';
 
 // ── ① 通过例：依赖链合法、无互斥同含、无环 ──
 test('assertComposeValid：组合干净返回 true', () => {
@@ -75,7 +75,7 @@ test('接线：manifests.js 全量块清单 assertComposeValid 干净 + depends/
   // 增删块必须同批改准本断言（ratchet），防「目录悄悄长/缩」。
   assert.deepEqual(
     BLOCK_MANIFESTS.map((m) => m.blockId),
-    ['theme-party-day', 'taskforce-run',
+    ['theme-party-day', 'taskforce',
       'branch-party-meeting', 'branch-committee', 'party-group-meeting', 'party-lecture'],
   );
   for (const m of BLOCK_MANIFESTS) {

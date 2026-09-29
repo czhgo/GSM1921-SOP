@@ -19,10 +19,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { assertComposeValid, resolveConflicts } from '../../docs/src/core/base/module-compose.js?v=20260929b';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929b';
-import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929b';
-import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929b';
+import { assertComposeValid, resolveConflicts } from '../../docs/src/core/base/module-compose.js?v=20260929c';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929c';
+import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929c';
+import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929c';
 
 test('O1 组合体检**不是恒真**（批次 239 修的真缺陷）：块清单键名 `blockId` 必须被认到', () => {
   // ① 反例：引用缺失必须真抛（修复前这里**不抛**——体检把整张清单过滤成了空集）
@@ -130,8 +130,8 @@ test('O5 编译产物 = **既有 definition 形状的纯数据**（含函数即�
       : v && typeof v === 'object' ? Object.values(v).reduce((n, x) => n + walkFns(x), 0) : 0);
   assert.equal(walkFns(c1.definitionPlan), 0, 'definitionPlan 不得含函数');
 
-  // ③ 无既有模板的块 ⇒ **warning 而非 error**（真实现状：`taskforce-run` 没有同名 definition）
-  const c2 = compilePlan(composePlan(['taskforce-run']).plan, { definitionsById: {} });
+  // ③ 无既有模板的块 ⇒ **warning 而非 error**（真实现状：`taskforce` 没有同名 definition）
+  const c2 = compilePlan(composePlan(['taskforce']).plan, { definitionsById: {} });
   assert.equal(c2.ok, true, '无模板不是错误');
   assert.deepEqual(c2.definitionPlan.templateIds, [null]);
   assert.match(c2.warnings.join('｜'), /无既有 definition 模板/);

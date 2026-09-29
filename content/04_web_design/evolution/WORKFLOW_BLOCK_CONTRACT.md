@@ -197,7 +197,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 ```jsonc
 {
-  "blockId": "taskforce-run",
+  "blockId": "taskforce",
   "name": "专班运行块",
   "version": "1.0.0",
   "provenance": "branch-custom",            // 专班 = 支部自己的制度尝试
@@ -268,4 +268,35 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - **未做（余下）**：运行时面（写口 / 任务派生是否消费组合产物 —— 口径待裁）· L4 画布 UI · ② 表单条目 / ③ 参与人范围 两轴的支部可配面。
 - **铺开的完成判据（2026-09-29 批次 249，机检非自述）**：`server/test/scene-write-sync.test.mjs` ④「**块目录 ⊇ 写入选项目录**」——`SCENARIO_WRITE_IDS` 的**每个可写入场景都必须在册块**（唯一别名 `theme-party → theme-party-day` 已登记并写理由；含非空转下限 ＋ 反例锁死）⇒ 今后**同类场景铺开漏项即红**。据此，「同类场景铺开」**已覆盖全部可写入场景**（三会一课 4 ＋ 主题党日 1）；`attendance-check` / `feedback-handling` **无活动写入入口**（不在 `SCENARIO_WRITE_IDS`），铺块即空转 ⇒ **不属本层范围**（若日后给写入口再铺）。入口守卫侧另由 `server/test/block-entry-guard-e2e.test.mjs` 三段闭环守住（单块停用 / 四块全停用空态 ＋ 逐块点名 / 恢复回归）。
 
-**§二「注册表对应」由警告升级为机检（2026-09-28 批次 247）**：§二 原写「`blockId` 与 capability / scenario id 一一对应，**注册表缺失即契约失效**」，但**此前无任何机检**——实测**试点块自己就违反它**：`taskforce-run` 与 `capabilityId: 'taskforce'` 均不在 capability / scenario / definition 三表任一处（`theme-party-day` 是 definition id ⇒ **合法**）。现由 `server/test/block-manifest.test.mjs::S5` 落成机检：两个 id 必须落在**从单一源实读**的三表内，或在**显式例外台账**（`REGISTRY_EXCEPTIONS`，每条写理由）内；含非空转下限与「造未注册 id 必红」的反例。**专班一项的口径（改名/登记 vs 承认自创块可无注册 id）待支书裁**——见 `.ctx/REVIEW_QUEUE.md` 的 `H-10`。
+**§二「注册表对应」由警告升级为机检（2026-09-28 批次 247）**：§二 原写「`blockId` 与 capability / scenario id 一一对应，**注册表缺失即契约失效**」，但**此前无任何机检**——实测**试点块自己就违反它**：`taskforce` 与 `capabilityId: 'taskforce'` 均不在 capability / scenario / definition 三表任一处（`theme-party-day` 是 definition id ⇒ **合法**）。现由 `server/test/block-manifest.test.mjs::S5` 落成机检：两个 id 必须落在**从单一源实读**的三表内，或在**显式例外台账**（`REGISTRY_EXCEPTIONS`，每条写理由）内；含非空转下限与「造未注册 id 必红」的反例。**专班一项的口径（改名/登记 vs 承认自创块可无注册 id）待支书裁**——见 `.ctx/REVIEW_QUEUE.md` 的 `H-10`。
+
+---
+
+## 八、余下三轴的**口径定稿**（2026-09-29 批次 268；系按支书令「待批项全部推进」落，见 `D-679`）
+
+> 本节只记**口径**（决定），不记过程；**实现进度**见本节末「执行与残余」。
+
+### 8.1 运行时面：**「支部停用某块」采服务端硬执行**
+
+- **为什么**：本仓命题是「制度即代码：把制度文本嵌入系统中**必须遵守**」；现前端只做到「入口看不见」——**直连 API 仍可写入**，与命题不符。按 `D-677`（**API 优先**：判据须落在 api 面的真实行为上），前端守卫不足以作为「停用」的判据。
+- **执行三步**：ⓐ `scenarioId → blockId` 映射**从 `BLOCK_MANIFESTS` 派生**（三会一课四块 `blockId ≡ scenarioId`；主题党日别名 `theme-party → theme-party-day` 已在 `server/test/scene-write-sync.test.mjs` 登记）；ⓑ `server/routes/resources/gates.js` 新增 `_assertActivityBlockEnabled(db, actor, …)`，在活动 **POST** 与 **PATCH（改类型 / 场景时）** 两处调用 ⇒ 命中「该支部停用该块」⇒ **403 ＋ 可懂原因**；ⓒ **默认零影响**——支部 config 缺省（未设 `hiddenBlockIds`）⇒ 全块启用 ⇒ 既有用例行为不变，**只在支部显式停用后生效**。
+- **边界**：只管「**活动写入**」这一面；**任务派生 / 通知**是否随块停用而停，**同批只登记**（不扩口径）。
+
+### 8.2 ② 表单条目轴：以「**写面板真实字段**」为锚，双向对齐；支部可配面**只开两类策略**
+
+- **对齐口径**：`inputs.fields[].fieldId` 必须**能在写面板源码里指到同名渲染位**。三种情形分别处置：① **已同源**（现只有 `title`）⇒ 保持；② **硬编码渲染**（如 `date` 由 Step2 直渲）⇒ **登记为字段并改走 manifest 读取**；③ **由 Step1 模板卡承担**（如 `type`）⇒ **在 manifest 里标注 `carrier: 'template-card'`、不计入 Step2 表单字段**——这样「声明 ↔ 实现」不再有第三态，也就不会再把「部分覆盖」误判成「不符」。
+- **支部可配面＝只开两类**：`hiddenFieldIds`（字段启停）＋ `requiredOverrides`（必填覆盖）。**第三类（重命名 / 重排 / 新增字段）在有真实消费者之前不开**（照本仓「不为整齐而加档」的纪律）。
+- **消费面**：写面板读 `getWorkflowBlockFieldPolicy(blockId)`（与 `getWorkflowBlockPolicy` **同族同净化单一源** `services/branch/config-clean.js`）。
+
+### 8.3 ③ 参与人范围轴：**只配「名单解析模式」，具体人名一律不落 config**
+
+- **口径**：`participants` 已有 `mode` / `defaultRoles` / `orgMode`。支部可配面＝**`mode` 三档**（`fixed` 按角色全集 / `organizer-deep` 组织者 ＋ 深度参与者 / `configurable`）＋ `orgMode`（`none` / `organizer-deep`）。
+- **为什么**：**具体人名一律不落 config**——否则成员名单会在「支部配置」与「成员档案」双轨，违 `D-392` 一线（人员以档案为唯一源）。
+- **消费点**：活动写面板的「参与人 / 应到名单」候选解析（现由 `services/.../vote-config.js::resolveVoterIds` 与 `member/person.js` 承担）——**只改「从哪取名单」，不改名单本身**。
+- **判据**：同一场活动在两种 `mode` 下，候选集合**可复现且可解释**。
+
+### 8.4 执行与残余（如实登记）
+
+- **本批（268）已落**：口径定稿（本节）＋ `taskforce` 能力登记与块 id 改准（`H-10` 推荐档 ①，`block-manifest::S5` **例外台账清零**）。
+- **未落（待执行）**：8.1 / 8.2 / 8.3 的**代码与守卫**——三者都要新增消费面与断言，**不动产品行为前先出这一节**正是本仓「先出方案再动手」的纪律。
+- ⚠ **§二 的「注册表对应」仍为唯一口径**：`REGISTRY_EXCEPTIONS` 已清零，**今后新块一律走注册三表**（`scenario` / `definition` / `capability`），确需例外者须在该文件逐条写理由。

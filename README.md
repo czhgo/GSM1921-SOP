@@ -20,9 +20,13 @@ MIT · Node ≥ 22 · 原生 ESM（无打包器/无构建步骤）· 纯本地�
 
 ## 功能地图
 
-> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/domain/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。
+> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本块三章（能力地图 / 关键业务链路表 / 完整四章指针）由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/domain/function-catalog.js 与 mermaid-sources.js 生成，勿手改（完整四章含逐条 flowchart 用同脚本 stdout 打印）。
 
 <!--FUNC-MAP:START-->
+
+### 一、能力地图（按制度域）
+
+> **读法**：本图按**制度域**分组（党建 / 宣传与档案 / 活动与专班 / 公共 / 角色工作台），与「角色工作台」不互斥——同一能力可能由多台承载，故「党建」组里既有页面也有职能。
 
 ```mermaid
 mindmap
@@ -71,6 +75,29 @@ mindmap
       党小组组长工作台（通用）
       成员工作台（通用）
 ```
+
+### 二、关键业务链路（12 条）
+
+> 本表**从单一源派生**（勿手改）：链路名与顺序取 `docs/src/core/domain/function-catalog.js` 的 flow 条目，起 / 终取 `docs/src/core/domain/mermaid-sources.js` 的 `FLOW_LINKS` 首 / 末节点，「经」＝该链路箭头步数。逐条 flowchart 见第三章。
+
+| 链路 | 起 | 经 | 终 |
+|------|----|----|----|
+| 支委会链路 | 支书 · 确定议题并提前通知 | 4 步 | 纪检委员 · 跟进请假缺勤补课 |
+| 线上支委会链路 | 支书 · 创建线上支委会并定稿议程 | 3 步 | 支书 · 记录会议决议 |
+| 党小组会链路 | 党小组组长 · 统筹时间·确定主题·提前通知 | 6 步 | 宣传委员 · 归档党小组会记录 |
+| 党课链路 | 支书 · 发布党课通知与学习材料 | 1 步 | 支书 · 提醒缺席党员补课 |
+| 主题党日链路 | 组织者 · 策划并发起活动 | 7 步 | 宣传委员 · 归档宣传与活动材料 |
+| 支部党员大会链路 | 党小组组长 · 统筹时间·确定会议主题 | 6 步 | 宣传委员 · 推文与工作记录归档 |
+| 专班链路 | 支书/组长/委员 · 发起专班 | 3 步 | 专班成员 · 执行分工并记录贡献 |
+| 发展党员链路 | 支委会 · 讨论推荐为发展对象 | 4 步 | 支书 · 确认并更新发展阶段 |
+| 考察积极分子链路 | 党小组组长 · 日常观察（态度与能力） | 4 步 | 支委会/支部党员大会 · 讨论是否发展 |
+| 制度制定与迭代链路 | 条条委员 · 起草制度初稿 | 6 步 | 条条委员 · 监督落实与适时修订 |
+| 补课回写链路 | 纪检委员 · 记录缺勤 | 3 步 | 纪检委员 · 考勤回写 / 逾期清除 |
+| 思想汇报链路 | 党员 · 提交思想汇报 | 2 步 | 组织委员 · 查看与调用 |
+
+### 三、完整四章（架构分层 · 服务依赖 · 数据流）
+
+> 完整四章（功能地图 · 12 条业务链路 flowchart · 架构分层 · 服务依赖）**不落盘**（免 README 臃肿）：运行 `node docs/scripts/gen-function-mermaid.mjs` 打印到 stdout 查看。
 
 <!--FUNC-MAP:END-->
 
@@ -228,7 +255,7 @@ docs/src/
               ui/（基础件与库里：badges/forms/modal/pager/list-filter/relation-matrix…）
               shell/（页面外壳）· sections/（页级板块：help-catalog/references；批次 267 新立）
               feedback/（反馈域）· record/（实体视图）· governance/（治理与人员面板）· dashboard/（首页面板）
-  capabilities/  能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**）
+  capabilities/  能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**；12 件）
               —— 与 `entries/` 对称：入口薄壳 ↔ 能力声明（每台一张 tab 清单）
   entries/    页面入口；**按判据分三类**——pages/（独立页入口 15 个）· workspace/（角色工作台薄壳入口 7 个）
               · tabs/{各台 tab}（早已按台分组；today 共享「今天」渲染）

@@ -21420,3 +21420,68 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 2. **`R-83` 欠账同批补刷**：Pass B 改动了 `content/**` 共 **26 份** md（＋根级 `README*.md` / `CONTRIBUTING.md` / `server/README.md`）⇒ 按 `R-83` 把它们一律刷为 **`2026-09-29`**：`content/**` **frontmatter 21 份** ＋ `TIMESTAMPS` 表行 **25 行**；另被搬迁的 `docs/src/**` 文件（无 frontmatter，属该表「人工维护三块」）**34 行**亦已于上节刷为该日。
 
 **未做（如实登记）**：`H-13` 的「API 级改写」仍待排批（本批只承接方向）；`H-18` 的三类盲区**本批只登记、未立机检**；本批**未 push**（支书口径：允许 commit、不允许 push）。
+
+## 批次 268（2026-09-29）：**部署前筹备检查 ＋ 评分更新 ＋ 功能地图重做 ＋ 待批项收口**（支书三条，`D-679`）
+
+> **来源**：支书口述三条——①「**更新好我们的评分问题！并作一次部署前的筹备工作检查！！查出问题 立刻按照梯度方向去改进！！**」②「**辛苦再次更新好 README 文档，特别是根目录 3 个。我们的功能地图 这个板块一定要重新思考一遍！！**」③「**待批项全部推进！！**」
+
+### 一、部署前筹备检查（逐项实读，非自述）
+
+**已有且为真**（复核通过）：`APP_ENV=production` 且未设 `LOGIN_PASSWORD` ⇒ **启动即拒**（`server/server.js:13`）· 生产**默认不播种**（`:12`）· 生产**不认** `DISABLE_PASSWORD_CHECK` · 存活探针 `GET /api/v1/health` 公开无门（`app.js:25`）· 备份**一律 `db.backup()` 在线快照**（含 WAL，`scripts/backup.mjs`）＋ 恢复/更新/回滚步骤（`DEPLOYMENT_GUIDE 附录 A.2 / A.2.1`）· 库结构**版本化迁移**（`user_version` ＋ `MIGRATIONS`，守卫 `db-integrity-guard` / `db-migration`）· 反代与静态托管两条硬要求（`client_max_body_size ≥ 10m`；**`/src/config/deploy.js` 必须单独放行到 Node**）· 上传上限 10MB（`routes/uploads.js` `MAX_SIZE`）· 上线必设 5 项（`.env.example`）· Node ≥ 22。
+
+**本批查出并处置的三类问题**：
+
+| # | 问题（实读） | 处置 |
+|---|---|---|
+| 1 | **服务端不做支部级读取过滤**：`GET /api/v1/<资源名>` 走 `listTable` **整表返回**（`routes/resources/store.js`），支部归属过滤只在**前端** `withinBranch` ⇒ **多支部共用一个实例时，任一已登录读者可拿到全部支部数据** | **只登记**（`README-server.md §7.1 #2` 早已如实写明；本批在 `server/README.md`「部署前必知限制」再次点名「**一实例一支部**」）。**不擅自改读门**——改权限口径须先裁（`§7.1` 原句「本文件不替裁」） |
+| 2 | **多数资源写口只要求登录**：30 类资源中仅 `branchDocs` / `fileSpaceRecords` / `imageRecords` 用支委门、`activities` 有活动写门，其余登录即可写 | 同上登记（`§7.1 #3`）；**不动** |
+| 3 | **无业务字段索引**：全库 `(id TEXT PRIMARY KEY, data TEXT)` 宽表，读路径**整表 `JSON.parse`**（`grep CREATE INDEX` ⇒ **0 命中**）；`id` 有主键索引、`data` 内字段无索引 | **新登记**（`server/README.md`「部署前必知限制」第 3 条 ＋ `REVIEW_QUEUE H-19`）；属**性能债**、非功能缺陷，**万行级前先评估** |
+| 4 | **无优雅关闭**：常驻进程（承载每日 03:00 上报 ＋ 每 10 分钟提醒）收到 `SIGTERM` 时 Node 默认**立即终止** ⇒ 在途请求被硬切断 | ✅ **已改**（本批唯一功能改动）：`server.js` 挂 `SIGTERM` / `SIGINT` ⇒ 停接新连接 → 等在途（**上限 5s**）→ 关库 → 退出 0。**未处理**排程中的定时任务、**未做** readiness/liveness 分离探针（均已如实登记） |
+
+**交付**：`server/README.md` 新增两节——「**部署前必知限制**」（四条表）＋「**优雅关闭**（用法与边界）」；`EA §一 残项 TOP` 增设第 ④ 条（部署前必知限制四条）。
+
+### 二、评分更新（`EA` 为唯一权威）
+
+| 维度 | 上批 | **本批** | 变动依据 |
+|---|---|---|---|
+| 模块化 | 99 | **99** | 批次 267 的分层已到**子域级**（`core/` 四子域 · `data/` 新立 · `capabilities/` 顶层）；属同一层内的整理，**不重复计分**；§一 / §二 2.1 的「五层分层」表述已按新布局改准 |
+| 插件化 | 75 | **76** | ① 契约 §二**恢复唯一口径**（`taskforce` 落成真能力 ＋ 块 id 改准 ⇒ `REGISTRY_EXCEPTIONS` **清零**）；② 功能地图改为「能力地图 ＋ 12 条关键链路」**双视角** |
+| 开源化 | 80 | **81** | ① `SIGTERM/SIGINT` 优雅关闭；② `server/README.md` 新增「部署前必知限制」⇒ 「换壳者拿得到真能上线的说明书」 |
+| 超参数可调性 | 86 | **86** | 本批未动可调参数面 |
+| 组合能力 | 83 | **83** | **如实不加分**：本批只把「契约口径恢复 ＋ 例外清零」做完，**实质残项（运行时面 · 画布 UI · ②③ 两轴）未动** |
+| **综合** | ≈85 | **≈85**（均值 **85.0**） | 三条上移、两条持平 |
+
+**同时收口 `H-5`「评测分三处并存」**（裁「**随现况**」）：`REVIEW_QUEUE` 总表行（`≈79 → ≈85`、五维、均值、严重度 TOP 删已消项、轮次 → `2026-09-29 v7`）＋ `content/03_doc_system/DOC_MAP.md:124`（`97/75/75/78/78 → 99/76/81/86/83`）均改准，并在两处写明「**本行只是镜像、分歧时以 EA 为准**」⇒ 评测分**单一源**在 EA。
+
+### 三、功能地图重做 ＋ 三份 README（子代理执行，逐项复跑验证）
+
+**功能地图**（根 `README.md` 的 `<!--FUNC-MAP:START/END-->` 块）由「**只有一张能力 mindmap**」改为**三章**：
+1. `### 一、能力地图（按制度域）`——原 mindmap 逐字保留，**新增「读法」行**：分组按**制度域**、与「角色工作台」不互斥（同一能力可由多台承载）；⇒ 消解了「`党建` 组里既有页面也有职能」的既有张力。
+2. `### 二、关键业务链路（12 条）`——**表格**呈现（`链路 | 起 | 经 | 终`，`起/终` 取 `FLOW_LINKS` 首末节点并剥 `A[...]` 轴标签），**全部从单一源派生、零手写**；⇒ 补上了原来缺的「**系统替你跑完哪些闭环**」这一视角。
+3. `### 三、完整四章`——一行指针 ＋ 命令（架构分层 / 服务依赖 / 数据流**不落盘**，避免 README 臃肿）。
+
+**改动与守卫同批**：`docs/scripts/gen-function-mermaid.mjs` 新增 `generateReadmeBlock()`（`applyToReadme` 改用它，stdout 打印完整四章的既有行为不变）；`server/test/catalog-sync.test.mjs::T3` 比较对象改为该函数并**加严非空转**（块内须含 `mindmap` ＋ **12 行链路表行** ＋ 指针命令）——`T1/T2/T4/T5` 一字未放宽。
+**根 README.md 标记块扩为三章 ⇒ 正文整体后移 ≥ 27 行** ⇒ `README-server.md` 中 **7 处指向根 README 的行号引用**按同一偏移改准（`doc-line-ref` 判据），`git diff --numstat` 实测 **7/7 零行数增量**。
+**读法核对**：`README.md` §六 目录结构与 `Get-ChildItem docs/src -Recurse -Directory` 实测**一致**；三份 README 全文检索旧布局写法（`docs/src/modules/` · `docs/src/mock/` · `docs/src/core/<单文件>.js`）**零命中**；`README-members.md` §七 架构表两处旧布局改准 ＋ §末功能地图指针改成「三章」。
+
+### 四、待批项收口（`D-679`，四条）
+
+1. **`H-10` 采推荐档 ①（登记 ＋ 改名）**：新增 `docs/src/capabilities/taskforce.js`（`registerCapability({ id:'taskforce', scope:['block'] })`）＋ 试点块 `blockId` 由 `taskforce-run` 改准为 `taskforce`（与 `capabilityId` 同名）⇒ **`block-manifest::S5` 的 `REGISTRY_EXCEPTIONS` 清零**（实测 `6 块 id 均在册：scenario 7 / definition 3 / capability 15；例外 0 条`）。**7 个文件随改**（1 manifests ＋ 5 测试/守卫 ＋ 1 契约示例）。
+2. **运行时面 ⇒ 采「服务端硬执行」**（口径定稿，见 `WORKFLOW_BLOCK_CONTRACT §八.1`）：`scenarioId → blockId` 映射**从 `BLOCK_MANIFESTS` 派生**；`gates.js` 增 `_assertActivityBlockEnabled(...)`，活动 **POST** 与 **PATCH（改类型 / 场景时）** 命中「支部已停用该块」⇒ **403 ＋ 可懂原因**；**默认零影响**。
+3. **② 表单条目轴 ⇒ 对齐口径定稿**（`§八.2`）：以「**写面板真实字段**」为锚、**双向对齐**；`type` 这类由 Step1 模板卡承担者在 manifest 标 `carrier`、不计入 Step2 字段；支部可配面**只开两类**（`hiddenFieldIds` ＋ `requiredOverrides`）。
+4. **③ 参与人范围轴 ⇒ 口径定稿**（`§八.3`）：**只配「名单解析模式」**（`participants.mode` 三档 ＋ `orgMode`），**具体人名一律不落 config**（人员以档案为唯一源）。
+
+⚠ **2/3/4 本批只定口径、未落代码**——三者都要新增消费面与断言，按「先出方案再动手」不得夹带（排批次 269）。**`H-13`（`b3-1` 的 API 级改写）亦仍待排批**（方向已由 `D-677` 定）。
+
+### 五、验证（`R-85`）
+
+- **`npm run test:daily`：650 / 650 / 0 红**；`block-manifest` / `module-compose` / `workflow-block-config` / `block-orchestration` **18 / 18 绿**（`S5` 打印「例外 **0** 条」）；功能地图侧 `catalog-sync` **5 / 5**、`doc-consistency` ＋ `doc-line-ref` ＋ `link-integrity` ＋ `link-target-guard` ＋ `import-path-guard` **36 / 36**，且 `--write` 干跑/落盘**双向幂等**。
+- **`?v=` 全链 bump `20260929b → 20260929c`**（JS 217 / HTML 22 / CSS 2 / server-test 84；`CODE_VERSION` +1；陈旧戳自检 **0 处残留**）。
+- **全量 `npm test`（先起 :3000）：862 项 / 859 通过 / 3 红**——逐项定因（**未以「偶发」结案**）：
+  - **`b3-1-makeup-writeback` ⇒ 既有已知红**（`H-13`；`server/README.md`「已知既有红」本会话已收至只余此 1 项；本批**未触碰**补课写入链）；
+  - **`mock-integrity::M2`（活动状态 × 子记录/任务/考勤无矛盾）⇒ 并行执行下的偶发**：单独复跑 **2 / 2 绿**（该用例读的是**运行中服务端**的状态，与并行跑的其它写入用例互相干扰）；
+  - **`form-loop-sweep::真机成功路径 · prop/周报报送`（耗时 47.1s）⇒ 同为偶发**：单独复跑 **81 / 81 绿**。
+  ⇒ **净结果＝无新回归**（基线 862 / 861 / 1 的「1」仍是 `b3-1`；另 2 项复跑即绿）。
+  ⚠ **如实登记**：本批**未**建立「并行 flake」的机检（两次偶发均发生在 `npm test` 的并行档）；若再复现，按 `H-13` 同族另立条目。
+
+**未做（如实登记）**：运行时面 / ②③ 两轴的代码与守卫（口径已定，排批次 269）· `H-13` API 级改写 · 部署前缺口 ①②③ 的收口（只登记，须先裁权限口径）· 本批**未 push**。

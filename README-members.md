@@ -166,8 +166,8 @@ npm start
 | 层 | 位置 | 职责 |
 |----|------|------|
 | **前台（页面）** | `docs/`（根页 + 工作台） | 页面骨架，零硬编码逻辑 |
-| **中台（逻辑）** | `docs/src/entries/` + `components/` + `core/` + `modules/capabilities/` | 角色工作台路由、视图渲染、能力注册 |
-| **后台（服务）** | `docs/src/services/` + `mock/` | 数据 CRUD、权限计算、持久化 |
+| **中台（逻辑）** | `docs/src/entries/` + `components/` + `core/` + `capabilities/` | 角色工作台路由、视图渲染、能力注册 |
+| **后台（服务）** | `docs/src/services/` + `data/` | 数据 CRUD、权限计算、持久化 |
 | **后端（可选）** | `server/`（Express + better-sqlite3 单进程） | 同源托管静态页 + `/api/v1` REST（账号登录、数据持久化） |
 | **母本层** | `content/02_institution/sop/` | 所有代码逻辑的制度来源 |
 
@@ -203,7 +203,7 @@ npm start
 
 ---
 
-> **系统功能地图**见根 [README.md](README.md#功能地图)（通用/特有标注；由 function-catalog 生成，勿手改）。
+> **系统功能地图**见根 [README.md](README.md#功能地图)（三章：能力地图（通用/特有标注）· 12 条关键业务链路表 · 完整四章指针；由 `function-catalog.js` + `mermaid-sources.js` 生成，勿手改）。
 
 ## License
 

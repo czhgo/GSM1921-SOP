@@ -11,11 +11,11 @@
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/base/utils.js?v=20260929b';
-import { icon } from '../../core/base/icons.js?v=20260929b';
-import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20260929b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929b';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20260929b';
+import { getBasePath } from '../../core/base/utils.js?v=20260929c';
+import { icon } from '../../core/base/icons.js?v=20260929c';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20260929c';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929c';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20260929c';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +29,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929c');
   return _authModule;
 }
 

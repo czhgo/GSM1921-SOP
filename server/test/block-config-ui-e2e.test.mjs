@@ -47,7 +47,7 @@ async function loginParty(page) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -102,9 +102,9 @@ test('S3 工作流块配置区：manifest 目录呈现 → 停用保存 → 重�
     // ① 工作流块 chips 呈现（manifest 目录 + 制度来源标签；默认全开无置灰）
     let chips = await wblockChips(party);
     assert.ok(chips.some(c => c.id === 'theme-party-day'), '主题党日块 chip 呈现');
-    assert.ok(chips.some(c => c.id === 'taskforce-run'), '专班块 chip 呈现');
+    assert.ok(chips.some(c => c.id === 'taskforce'), '专班块 chip 呈现');
     const themeChip = chips.find(c => c.id === 'theme-party-day');
-    const tfChip = chips.find(c => c.id === 'taskforce-run');
+    const tfChip = chips.find(c => c.id === 'taskforce');
     assert.ok(themeChip.label.includes('主题党日组织块') && themeChip.label.includes('通用制度'),
       `主题党日标注「通用制度」，实际：${themeChip.label}`);
     assert.ok(tfChip.label.includes('支部自创'), `专班块标注「支部自创」，实际：${tfChip.label}`);
@@ -125,7 +125,7 @@ test('S3 工作流块配置区：manifest 目录呈现 → 停用保存 → 重�
     await gotoWizardStep2(party);
     chips = await wblockChips(party);
     assert.equal(chips.find(c => c.id === 'theme-party-day')?.dimmed, true, '停用持久化：重进后置灰');
-    assert.equal(chips.find(c => c.id === 'taskforce-run')?.dimmed, false, '专班块保持启用');
+    assert.equal(chips.find(c => c.id === 'taskforce')?.dimmed, false, '专班块保持启用');
 
     // ④ 恢复默认（全开）→ reload 重进回归
     party.once('dialog', (d) => d.accept());

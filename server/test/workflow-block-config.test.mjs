@@ -39,8 +39,8 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20260929b';
-const BLOCK_IDS = ['theme-party-day', 'taskforce-run'];
+const V = '?v=20260929c';
+const BLOCK_IDS = ['theme-party-day', 'taskforce'];
 
 test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺段兼容', async () => {
   const { applyWorkflowBlockPolicy, getWorkflowBlockPolicy } = await import(`../../docs/src/services/branch/branch.js${V}`);
@@ -49,26 +49,26 @@ test('S3 工作流块策略（纯函数）：默认全开 / 隐藏过滤 / 缺�
   assert.deepEqual(applyWorkflowBlockPolicy(BLOCK_IDS, null), BLOCK_IDS, 'null=全开');
   assert.equal(getWorkflowBlockPolicy(null).hidden.size, 0, 'null 无隐藏');
 
-  // ② 隐藏 theme-party-day → 仅剩 taskforce-run
+  // ② 隐藏 theme-party-day → 仅剩 taskforce
   const out = applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { hiddenBlockIds: ['theme-party-day'] } });
-  assert.deepEqual(out, ['taskforce-run'], '隐藏生效');
+  assert.deepEqual(out, ['taskforce'], '隐藏生效');
 
   // ③ 旧 config 只有 outputBlocks（无 workflowBlocks）→ 全开兼容
   const old = applyWorkflowBlockPolicy(BLOCK_IDS, { outputBlocks: { hiddenBlockIds: ['publicity'] } });
   assert.deepEqual(old, BLOCK_IDS, '缺 workflowBlocks=兼容全开');
 
   // ④ 脏数据含未知 id 不崩
-  const dirty = applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { hiddenBlockIds: ['nope', 'taskforce-run'] } });
+  const dirty = applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { hiddenBlockIds: ['nope', 'taskforce'] } });
   assert.deepEqual(dirty, ['theme-party-day'], '未知 id 不崩');
 
   // ⑤─⑦ L3「流程组合」＝启停 ＋ **顺序**（2026-09-28 批次 246）：blockOrder 生效
-  const ordered = applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { blockOrder: ['taskforce-run'] } });
-  assert.deepEqual(ordered, ['taskforce-run', 'theme-party-day'], 'blockOrder 生效（order 内靠前，未列出者保持原序排其后）');
+  const ordered = applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { blockOrder: ['taskforce'] } });
+  assert.deepEqual(ordered, ['taskforce', 'theme-party-day'], 'blockOrder 生效（order 内靠前，未列出者保持原序排其后）');
   assert.notDeepEqual(ordered, BLOCK_IDS, '反例锁死：若排序未接线，结果会等于注册顺序 ⇒ 本断言即红');
-  assert.deepEqual(getWorkflowBlockPolicy({ workflowBlocks: { blockOrder: ['taskforce-run'] } }).order, ['taskforce-run'], 'order 解析');
+  assert.deepEqual(getWorkflowBlockPolicy({ workflowBlocks: { blockOrder: ['taskforce'] } }).order, ['taskforce'], 'order 解析');
   assert.deepEqual(
-    applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { hiddenBlockIds: ['theme-party-day'], blockOrder: ['taskforce-run'] } }),
-    ['taskforce-run'], '隐藏 + 顺序同时生效（先过滤再排序）');
+    applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { hiddenBlockIds: ['theme-party-day'], blockOrder: ['taskforce'] } }),
+    ['taskforce'], '隐藏 + 顺序同时生效（先过滤再排序）');
   assert.deepEqual(applyWorkflowBlockPolicy(BLOCK_IDS, { workflowBlocks: { blockOrder: [] } }), BLOCK_IDS, '空 order = 注册顺序');
   assert.equal(getWorkflowBlockPolicy({ workflowBlocks: { blockOrder: [] } }).order, null, '空 order 归一为 null（缺省语义）');
 });
@@ -92,18 +92,18 @@ test('S3 HTTP：workflowBlocks 写回/结构校验/恢复默认', async () => {
   assert.ok(b1.config.blocks.outputBlocks, 'outputBlocks 保留');
 
   // ② 单写 workflowBlocks（无 outputBlocks）→ 200（结构允许至少其一）
-  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce-run'] } } } });
+  const r2 = await patchConfig(staff, { config: { blocks: { workflowBlocks: { hiddenBlockIds: ['taskforce'] } } } });
   assert.equal(r2.status, 200, '仅 workflowBlocks 合法');
   const b2 = await r2.json();
-  assert.deepEqual(b2.config.blocks.workflowBlocks.hiddenBlockIds, ['taskforce-run'], '仅 workflowBlocks 落库');
+  assert.deepEqual(b2.config.blocks.workflowBlocks.hiddenBlockIds, ['taskforce'], '仅 workflowBlocks 落库');
 
   // ③ blockOrder 往返（L3 流程组合：顺序与启停同段落库）
   const r3 = await patchConfig(sec, {
-    config: { blocks: { workflowBlocks: { hiddenBlockIds: [], blockOrder: ['taskforce-run', 'theme-party-day'] } } },
+    config: { blocks: { workflowBlocks: { hiddenBlockIds: [], blockOrder: ['taskforce', 'theme-party-day'] } } },
   });
   assert.equal(r3.status, 200, 'workflowBlocks.blockOrder 可写');
   const b3 = await r3.json();
-  assert.deepEqual(b3.config.blocks.workflowBlocks.blockOrder, ['taskforce-run', 'theme-party-day'], 'blockOrder 原序往返');
+  assert.deepEqual(b3.config.blocks.workflowBlocks.blockOrder, ['taskforce', 'theme-party-day'], 'blockOrder 原序往返');
   assert.deepEqual(b3.config.blocks.workflowBlocks.hiddenBlockIds, [], '同段 hiddenBlockIds 同写不丢');
 
   // ④ 非法结构：非对象/缺两段 → 400

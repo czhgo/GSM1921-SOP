@@ -10,13 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20260929b';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20260929b';
-import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20260929b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20260929c';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20260929c';
+import { MEMBER_OVERLAY_KEY } from '../../docs/src/services/member/person.js?v=20260929c';
 import {
   getBoundBranch, getBranchIdOfPerson, getHeaderTitle, getBranchById, getCommitteeName, isLoaded,
-} from '../../docs/src/services/branch/branch.js?v=20260929b';
+} from '../../docs/src/services/branch/branch.js?v=20260929c';
 
 // ── localStorage 内存桩 + mock 适配器注册（people 为静态种子，读链即时可用）──
 const _store = new Map();

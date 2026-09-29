@@ -412,6 +412,7 @@ dynamic_role:
 | docs/src/capabilities/prop-workspace.js | 2026-09-29 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建） |
 | docs/src/capabilities/disc-workspace.js | 2026-09-29 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建） |
 | docs/src/capabilities/visitor-workspace.js | 2026-09-29 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
+| docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/references.js | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步） |
 
 ### docs/src/workflow/ (工作流层)

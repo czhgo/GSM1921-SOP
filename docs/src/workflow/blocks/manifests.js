@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/domain/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929b';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929c';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929b';
+import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929c';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -63,7 +63,7 @@ export const THEME_PARTY_DAY_MANIFEST = {
 
 // ── S1 试点块二：专班运行（支部自创制度源，验 ②③ 维度）─────────────
 export const TASKFORCE_RUN_MANIFEST = {
-  blockId: 'taskforce-run',
+  blockId: 'taskforce',
   name: '专班运行块',
   version: '1.0.0',
   provenance: 'branch-custom',
