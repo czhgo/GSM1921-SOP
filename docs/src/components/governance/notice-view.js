@@ -10,28 +10,48 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20260929l';
-import { openFormModal } from '../ui/modal.js?v=20260929l';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929l';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929l';
-import { AuthStore } from '../../services/core/auth.js?v=20260929l';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929l';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929l';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929l';
+import { badgeHtml } from '../ui/badges.js?v=20260929m';
+import { openFormModal } from '../ui/modal.js?v=20260929m';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929m';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929m';
+import { AuthStore } from '../../services/core/auth.js?v=20260929m';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929m';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929m';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929m';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
 }
 
-export function renderNoticeList(containerId, limit = 5) {
+/**
+ * 渲染通知列表。
+ *
+ * 2026-09-29 批次 280（支书评议 + 裁定）：**首页不该是消息垃圾桶**——
+ *   ① 首页只列「**人工发布**」的通知（`systemDerived !== true`）：活动发布 / 专班招募 / 报名等，
+ *      由对应角色**手动选择发布**才产生（支书逐字：「只有 创建活动/专班招募/报名 对应的角色手动选择了
+ *      发布通知 才会成为首页的通知」）；
+ *   ② **系统派生类**（`systemDerived === true`，其 kind 单一源＝`core/domain/system-notice-templates.js`，
+ *      当前 20 类）**按类聚合为一条**，置于列表**上方**（样式突出但**不写「置顶」二字**），
+ *      点开**就地展开**（支书逐字：「系统派生类…按类打包成一条，然后单独做一个 不写"置顶" 的置顶」
+ *      ／「待办催办…应当全部打包！！而不是应该 每一条都列出来」）。
+ *   ⚠ 判定**不按 kind 枚举**（枚举会随新增模板漂移）；只认 R-22 立的既有布尔 `systemDerived`（单一源）。
+ *   ⚠ `opts.groupSystem` 只由**首页**传（`main-entry.js`）；工作台沿用原行为——**默认零影响**。
+ */
+export function renderNoticeList(containerId, limit = 5, opts = {}) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   // 支书规则（2026-08-01）：任何带时间字段的列示一律按时间倒序（最新在前）
   // 支书裁决（2026-08-05）：重要通知仅保留未读，紧急通知无论已读未读均展示
-  const notices = NoticeStore.list({ activeOnly: true, limit, sortBy: 'date', retention: 'visible' });
+  const notices = NoticeStore.list({ activeOnly: true, sortBy: 'date', retention: 'visible' });
 
-  if (notices.length === 0) {
+  // 人工发布 / 系统派生 二分（同一次拉取，避免两侧口径漂移）
+  const groupSystem = opts.groupSystem === true;
+  const manual = groupSystem ? notices.filter((n) => n.systemDerived !== true) : notices;
+  const derived = groupSystem ? notices.filter((n) => n.systemDerived === true) : [];
+  const shown = groupSystem ? manual.slice(0, limit) : notices.slice(0, limit);
+
+  if (shown.length === 0 && derived.length === 0) {
     container.innerHTML = '<p class="text-sm text-gray-500">暂无通知</p>';
     return;
   }
@@ -41,7 +61,8 @@ export function renderNoticeList(containerId, limit = 5) {
     normal: badgeHtml('重要', 'info'),
   };
 
-  container.innerHTML = notices.map(n => `
+  /** 单条通知行（列表与聚合展开共用，避免落第二份标记） */
+  const rowHtml = (n) => `
     <div class="notice-item flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 hover:shadow-sm rounded-lg px-2 -mx-2 transition-all duration-200 group"
          data-target="${n.targetModule || ''}" data-notice-id="${n.id}" data-target-url="${n.targetUrl || ''}"
          title="${n.title} — ${n.content}">
@@ -54,11 +75,30 @@ export function renderNoticeList(containerId, limit = 5) {
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
-        ${!n.read ? `<button class="notice-confirm-read text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
+        ${!n.read ? `<button class="notice-confirm-read text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
         <span class="text-xs text-gray-500">${n.publishDate}</span>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+
+  // ── 系统派生类：按「类」（通知标题）聚合为一条，就地可展开 ──
+  let summaryHtml = '';
+  if (derived.length) {
+    const byClass = new Map();
+    for (const n of derived) {
+      const key = n.title || '系统通知';
+      if (!byClass.has(key)) byClass.set(key, []);
+      byClass.get(key).push(n);
+    }
+    summaryHtml = `<div class="space-y-1 pb-2 mb-1 border-b border-gray-100">${[...byClass.entries()].map(([label, list]) => `
+      <details class="text-xs">
+        <summary class="cursor-pointer text-gray-600 hover:text-gray-800 select-none">${label} · ${list.length} 条</summary>
+        <div class="mt-1">${list.map(rowHtml).join('')}</div>
+      </details>`).join('')}</div>`;
+  }
+
+  const listHtml = shown.length ? shown.map(rowHtml).join('')
+    : '<p class="text-sm text-gray-500">暂无新通知</p>';
+  container.innerHTML = summaryHtml + listHtml;
 
   // 绑定确认读取按钮：先弹出完整消息浮窗，浮窗中确认已读
   container.querySelectorAll('.notice-confirm-read').forEach(btn => {

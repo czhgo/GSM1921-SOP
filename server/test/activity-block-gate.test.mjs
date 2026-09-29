@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20260929l';
+import { SCENARIO_WRITE_IDS, SCENARIO_LABELS, BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js?v=20260929m';
 const { createApp } = await import('../app.js');
 const { seedBaseline } = await import('../seed-baseline.js');
 

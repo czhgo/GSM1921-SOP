@@ -4,27 +4,27 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20260929l';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20260929l';
-import { NoticeStore } from '../../services/governance/notice.js?v=20260929l';
+import { BranchService } from '../../services/core/runtime.js?v=20260929m';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20260929m';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260929m';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20260929l';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929l';
-import { getBasePath } from '../../core/base/utils.js?v=20260929l';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20260929l';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929l';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260929l';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20260929l';
-import { AuthStore } from '../../services/core/auth.js?v=20260929l';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929l';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20260929l';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20260929l';
-import '../../capabilities/activity-calendar.js?v=20260929l'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20260929m';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929m';
+import { getBasePath } from '../../core/base/utils.js?v=20260929m';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20260929m';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929m';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260929m';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20260929m';
+import { AuthStore } from '../../services/core/auth.js?v=20260929m';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20260929m';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20260929m';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20260929m';
+import '../../capabilities/activity-calendar.js?v=20260929m'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20260929l';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20260929l';
-import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20260929l';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20260929l';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20260929m';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20260929m';
+import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20260929m';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20260929m';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -78,15 +78,13 @@ function renderDashboard(state) {
 
   if (isLoading) return; // 等数据就绪再渲染其余区域，避免"暂无"→实际数据闪烁
 
-  renderNoticeList('dashboard-notice-list', 5);
+  renderNoticeList('dashboard-notice-list', 5, { groupSystem: true });
   const noticeCount = document.getElementById('dashboard-notice-count');
   if (noticeCount) {
     const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
-    // 2026-09-29 批次 279（支书评议）：**数字必须与列表一致**——列表只渲最新 5 条，
-    // 故 >5 时明写「显示最新 5、其余见右上角通知」，不得只报总数（原「8 条未读」而只见 5 条＝自相矛盾）。
-    noticeCount.textContent = activeUnread > 5
-      ? `共 ${activeUnread} 条未读 · 显示最新 5，其余见右上角通知`
-      : (activeUnread > 0 ? `${activeUnread} 条未读` : '');
+    // 2026-09-29 批次 280：首页通知已分「人工发布（列明细）/ 系统派生（按类归并）」两类，
+    // 故计数须与之**同口径**说明，不得只报总数（支书评议：数字与所见必须对得上）。
+    noticeCount.textContent = activeUnread > 0 ? `共 ${activeUnread} 条未读 · 系统派生已按类归并` : '';
   }
 
   renderTaskforceList(taskforces);
@@ -174,15 +172,13 @@ function _refreshDashboardSnapshot() {
   renderDashboardStats({ activities, taskforces, notices, attendanceRecords: loadActiveAttendanceRecords(), user });
   if (state.status === STATE.LOADING && activities.length === 0) return;
 
-  renderNoticeList('dashboard-notice-list', 5);
+  renderNoticeList('dashboard-notice-list', 5, { groupSystem: true });
   const noticeCount = document.getElementById('dashboard-notice-count');
   if (noticeCount) {
     const activeUnread = NoticeStore.list({ activeOnly: true }).filter(n => !n.read).length;
-    // 2026-09-29 批次 279（支书评议）：**数字必须与列表一致**——列表只渲最新 5 条，
-    // 故 >5 时明写「显示最新 5、其余见右上角通知」，不得只报总数（原「8 条未读」而只见 5 条＝自相矛盾）。
-    noticeCount.textContent = activeUnread > 5
-      ? `共 ${activeUnread} 条未读 · 显示最新 5，其余见右上角通知`
-      : (activeUnread > 0 ? `${activeUnread} 条未读` : '');
+    // 2026-09-29 批次 280：首页通知已分「人工发布（列明细）/ 系统派生（按类归并）」两类，
+    // 故计数须与之**同口径**说明，不得只报总数（支书评议：数字与所见必须对得上）。
+    noticeCount.textContent = activeUnread > 0 ? `共 ${activeUnread} 条未读 · 系统派生已按类归并` : '';
   }
 
   renderTaskforceList(taskforces);
