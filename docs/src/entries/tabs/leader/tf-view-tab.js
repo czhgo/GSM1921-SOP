@@ -6,7 +6,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20260929c').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20260929d').then(m => m.renderInsightView(el, {
     defaultView: 'taskforce',
     highlightTfId: ctx?.highlightTfId || null,
     onLocated: () => { if (ctx?.onNavLocated) ctx.onNavLocated(); },

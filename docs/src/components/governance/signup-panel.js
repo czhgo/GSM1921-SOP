@@ -4,16 +4,16 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20260929c';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20260929c';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20260929c';
-import { badgeHtml } from '../ui/badges.js?v=20260929c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20260929d';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20260929d';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20260929d';
+import { badgeHtml } from '../ui/badges.js?v=20260929d';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20260929c';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20260929d';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20260929c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260929d';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20260929c';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20260929d';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）

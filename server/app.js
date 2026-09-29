@@ -84,9 +84,12 @@ export function createApp({ dbPath = ':memory:' } = {}) {
   // 挂在 `express.static` 与错误处理之后**功能上仍正确**：4 参错误处理中间件对正常请求会被 Express 跳过，
   // 未命中静态文件的请求会继续往下走 ⇒ `/api/v1/auth/iaaa/*` 照常命中。
   app.use('/api/v1/auth/iaaa', createIaaaRouter(app.locals.db));
+  // 部署与对接自检（2026-09-29 批次 273：党委台「部署与对接」面板的数据源）。同上，挂在这里以保住上方行号。
+  app.use('/api/v1/setup', createSetupRouter(app.locals.db));
 
   return app;
 }
 
 // ⚠ import 声明被提升，**置尾不影响语义**（与 `server.js` 同一手法）：目的是保住上方行号不漂。
 import { createIaaaRouter } from './routes/iaaa.js';
+import { createSetupRouter } from './routes/setup.js';

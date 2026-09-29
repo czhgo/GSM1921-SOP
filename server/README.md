@@ -244,3 +244,23 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 ⇒ systemd / PM2 / 容器**停止时请发 SIGTERM**（`systemctl stop` / `pm2 stop` / `docker stop` 默认就是它），**不要用 SIGKILL**，否则在途写入会被硬切断。
 
 ⚠ **如实登记（未做）**：**未处理**排程中的定时任务（随进程退出中断、下次启动重新排期）；**未做** readiness / liveness 分离探针（存活探针仍只有 `GET /api/v1/health`）。
+
+---
+
+## 部署脚本与首启基线（2026-09-29 批次 269–273）
+
+**脚本都在仓库根的 `deploy/`**（随发布包分发）：
+
+| 文件 | 一句话 |
+|---|---|
+| `deploy/package.mjs` | 打发布包（白名单 ＋ 名单不出包的两道断言；默认不含 `node_modules`，`--with-deps` 连依赖一起打） |
+| `deploy/doctor.mjs` | **部署自检 ＋ 小白引导**（只读不改，退码 0/1）：Node 版本 · 文件位置 · 依赖 · 数据目录可写 · 生产必设环境变量 · IAAA 是否配置 · 服务是否在跑 |
+| `deploy/smoke.mjs` | 冒烟：健康 → 登录 → 读本人（退出码当门） |
+| `deploy/install.sh` / `install.ps1` | Linux / Windows 一键装（服务账号 · 依赖 · 环境文件 · systemd／计划任务 · 每日备份 · 冒烟） |
+| `deploy/update.sh` | 一键更新（**先备份**，换代码时**保留**库/附件/备份，失败给回滚步骤） |
+| `deploy/nginx.sample.conf` | 反代示例（⚠ `/src/config/deploy.js` 必须单独放行到 Node） |
+
+**首启（空库）自动建立组织基线**（`server/seed-baseline.js`，幂等、不覆盖）：**党委账号 1 名**（`role: party-staff`；学号可用 `BASELINE_PARTY_STAFF_ID` 指定）＋ **支部 1 个：光华管理学院本科生党支部**（id `br-b1`，支书席位空缺待任命）；**其余业务表全空、零成员名单**。
+理由：生产形态默认不播种，空库若不建这两样 ⇒ **谁都登不进来，也没人能建支部**（`POST /branches` 的门是 `party-staff`）。
+
+**部署与对接自检**：`GET /api/v1/setup/setup-status`（**仅党委组织员**）——党委台「支部配置」的「部署与对接」面板即由此驱动；**只回「有没有」，绝不回值**。详见 `README-server.md` 文末「附 4」。
