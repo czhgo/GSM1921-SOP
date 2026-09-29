@@ -15,24 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260929i';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929i';
-import { getPersonName } from '../../../services/member/person.js?v=20260929i';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929j';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929j';
+import { getPersonName } from '../../../services/member/person.js?v=20260929j';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20260929i';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929i';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929i';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260929j';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929j';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929j';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929j';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929i';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929j';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20260929i';
+} from '../../../services/member/member-flow.js?v=20260929j';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929i';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929j';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260929i';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260929j';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -68,9 +69,18 @@ export function renderContent(ctx) {
   container.innerHTML = `
     <div class="space-y-4">
       <p class="text-xs text-gray-500">本页管「成员怎么变」：支部成员的流入 / 流出登记与对账台账（登记即生效，留痕可撤销）。「支部在册成员有谁、档案状态如何」见「成员名册」。</p>
+      ${_iaaaPendingCardHtml()}
       ${_flowCardHtml(canRegister)}
     </div>
   `;
+
+  // ── 待确认入站（IAAA 自助建号 → 选支部 → 支部确认；批次 278）──
+  container.querySelector('#iaaa-pending-card')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.iaaa-approve, .iaaa-reject');
+    if (!btn) return;
+    _decideIaaaPending(btn.dataset.person, btn.classList.contains('iaaa-approve') ? 'approve' : 'reject');
+  });
+  _loadIaaaPending();
 
   // ── 成员流动面板：登记按钮 + 台账（引擎渲染）+ 撤销（对账行/台账内容由 _renderFlowBody 局部渲染）──
   container.querySelector('#flow-intake-btn')?.addEventListener('click', _openIntakeModal);
@@ -111,6 +121,69 @@ function _flowCardHtml(canRegister) {
       <div id="flow-reconcile-host" class="mb-3"></div>
       <div class="overflow-x-auto" id="flow-table-host"></div>
     </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  待确认入站（2026-09-29 批次 278）——IAAA 入站链的**界面闭环**
+//  链：统一身份认证认人 → 无号自动建号（`branchId: null`）→ 本人选支部（写 `joinIntent`）
+//      → **支部确认**（本卡：确认入站 / 驳回）→ 落 `branchId` 后该人方可进工作台。
+//  契约单一源＝`server/routes/iaaa.js`（守卫 `iaaa-onboarding` T1–T8 ＋ 真机 `iaaa-ui-onboarding`）。
+//  ⚠ 只读 / 只写**服务端**：本地演示形态无 token ⇒ 直接说明「需接入统一身份认证后方有」。
+// ════════════════════════════════════════════════════════════════
+
+/** 「待确认入站」卡片骨架（条目由 `_loadIaaaPending` 填充） */
+function _iaaaPendingCardHtml() {
+  return `
+    <div class="card rounded-xl p-4" id="iaaa-pending-card">
+      <div class="flex items-center gap-3 mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">待确认入站</h3>
+        <span class="text-xs text-gray-500">统一身份认证新建且已选本支部的申请</span>
+      </div>
+      <div id="iaaa-pending-host"></div>
+    </div>`;
+}
+
+/** 载入待确认清单（非确认人 403 ⇒ 中性说明；无 token ⇒ 本地演示说明） */
+async function _loadIaaaPending() {
+  const host = document.getElementById('iaaa-pending-host');
+  if (!host) return;
+  const token = getAuthToken();
+  if (!token) { host.innerHTML = '<p class="text-xs text-gray-500">本地演示形态无入站申请；接入统一身份认证后在此确认。</p>'; return; }
+  host.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
+  try {
+    const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending`, { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 403) { host.innerHTML = '<p class="text-xs text-gray-500">仅支书 / 副支书 / 组织委员可确认入站。</p>'; return; }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    if (!Array.isArray(rows) || !rows.length) { host.innerHTML = '<p class="text-xs text-gray-500">暂无待确认的入站申请。</p>'; return; }
+    host.innerHTML = `<div class="space-y-2">${rows.map((u) => `
+      <div class="flex items-center justify-between flex-wrap gap-2 text-xs border border-gray-200 rounded-lg px-3 py-2">
+        <span class="text-gray-700">${esc(u.name)} <span class="text-gray-500">${esc(u.studentId || '')}</span></span>
+        <span class="flex items-center gap-2">
+          <button type="button" class="iaaa-approve text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100" data-person="${esc(u.personId)}" style="cursor:pointer;">确认入站</button>
+          <button type="button" class="iaaa-reject text-xs px-3 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100" data-person="${esc(u.personId)}" style="cursor:pointer;">驳回</button>
+        </span>
+      </div>`).join('')}</div>`;
+  } catch (e) {
+    host.innerHTML = `<p class="text-xs text-red-600">待确认清单加载失败：${esc(e && e.message ? e.message : '')}</p>`;
+  }
+}
+
+/** 确认 / 驳回（服务端留痕走既有 `auth_audit`；成功后刷新清单） */
+async function _decideIaaaPending(personId, verb) {
+  const token = getAuthToken();
+  if (!token) return;
+  try {
+    const r = await fetch(`${getApiBaseUrl()}/api/v1/auth/iaaa/pending/${encodeURIComponent(personId)}/${verb}`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` },
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    showToast('success', verb === 'approve' ? '已确认入站' : '已驳回');
+    _loadIaaaPending();
+  } catch (e) {
+    showToast('error', '处理失败：' + (e && e.message ? e.message : ''));
+  }
 }
 
 /** 台账数据（同支部；筛选/分页由统一检索引擎处理，新→旧由数据层排序保证） */
