@@ -8,10 +8,10 @@
 //  （"标记已发送" 演进为 "发送到对方微信"，"确认收到" 保持同构）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260929d';
-import { persist } from '../../data/data-adapter.js?v=20260929d';
-import { NoticeStore } from '../governance/notice.js?v=20260929d';
-import { generateId } from '../../core/base/id.js?v=20260929d';
+import { mockDB } from '../../core/domain/domain.js?v=20260929g';
+import { persist } from '../../data/data-adapter.js?v=20260929g';
+import { NoticeStore } from '../governance/notice.js?v=20260929g';
+import { generateId } from '../../core/base/id.js?v=20260929g';
 
 /** 读取外发确认记录（mockDB 持久化） */
 export function loadExternalDispatches() {

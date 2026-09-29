@@ -7,9 +7,9 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/domain/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929d';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929g';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929d';
+import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929g';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
@@ -23,6 +23,15 @@ const OUTPUT_BLOCK_IDS = new Set((OUTPUT_BLOCK_DEFS || []).map(b => b.id));
 export const CAPABILITY_PROVENANCE = {
   'activity-calendar': 'institution-common', // 三会一课/主题党日 = 全党通用
   'taskforce': 'branch-custom',              // 专班 = 支部自创制度尝试
+};
+
+// 场景 id → 块 id 的**唯一允许别名**（2026-09-29 批次 274：从 `server/test/scene-write-sync.test.mjs`
+//   上提为**单一源**——因为「支部停用某块」的服务端硬执行（`server/routes/resources/gates.js`）也要用它，
+//   若各留一份就会出现「守卫认、运行时不认」的第二套）。
+//   默认对应＝**同名**（三会一课四块 `blockId ≡ scenarioId`）；唯一例外是主题党日块（契约 §四 原例 id，
+//   历史命名、不改）。**新增别名＝同批在此登记**（守卫与运行时门同读本表）。
+export const BLOCK_ID_ALIASES = {
+  'theme-party': 'theme-party-day',
 };
 
 // 制度溯源断链修复（2026-09-13 content 自检）：原 sopRef 指向 content/02_institution/sop/theme_party_day.md

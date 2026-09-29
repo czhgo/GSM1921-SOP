@@ -105,11 +105,19 @@ export function createSetupRouter(db) {
       'IAAA_REDIRECT_URI=https://<你的域名>/api/v1/auth/iaaa/callback',
     ].join('\n');
 
+    // 状态清单用的**短标签**（2026-09-29 批次 274：面板原先把 `label` 在「状态清单」与「还需改这些」里各说一遍
+    //   ⇒ 被真机普查守卫 `copy-screen-guard::M1` 判「同屏复述 7 处」＋「文案÷控件 43.2（>20 必须改造）」。
+    //   修法＝状态清单只出**短标签**（<15 字，不进复述判据），长句只出现一次且收进 `<details>` 折叠。）
+    const SHORT_LABEL = {
+      'app-env': '生产形态', password: '统一口令', 'db-path': '库文件路径', 'upload-dir': '附件目录',
+      'seed-fallback': '演示回退', baseline: '组织基线', 'no-demo': '无演示残留', iaaa: 'IAAA', schema: '库表版本',
+    };
+
     res.json({
       deploy: { mode: 'server', appEnv: isProd() ? 'production' : 'development', node: process.version },
       env,
       db: dbStat,
-      checklist,
+      checklist: checklist.map((c) => ({ ...c, short: SHORT_LABEL[c.id] || c.label })),
       envTemplate,
       // 只给「要改哪两处」的位置提示（不放代码内容）
       codeHint: '若《技术文档》的校验接口/字段名与本系统不同：只改 server/routes/iaaa.js 开头 5 行，'

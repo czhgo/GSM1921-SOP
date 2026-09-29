@@ -21715,3 +21715,47 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **UI 阶段未开**：画布 UI(L4) · IAAA 前端入口 · 选支部层 · 待确认队列 UI（⇒ IAAA 浏览器流仍不可用，服务端链可经 `IAAA_MOCK=1` 跑）。
 - `doctor.mjs` 未在真机验证；`install.sh` / `update.sh` 仍待真机首跑。
 - 本批**未 push**。
+
+
+## 批次 274（2026-09-29）：**`H-13` 修复（API 级改写）＋ 运行时面落地（支部停用某块＝服务端硬执行）**（支书令「先修这两件，完成后进 UI」，`D-685`）
+
+> **来源**（支书逐字）：「好的，**先修复 H-13 和运行时面**，完成后**进入 UI 阶段**！！」
+> ⇒ 这两件都是 `H-23`（UI 阶段准入判据）里**口径已定、只差执行**的项。
+
+### 一、`H-13`：`b3-1-makeup-writeback` → **API 级改写**（已收）
+
+**根因（本次实证更正，此前台账记的是错的）**：旧记「夹具日期过期 ⇒ 被列表时间窗过滤」——**不成立**：`docs/src/entries/tabs/disc/makeup-tab.js:29-30` 取**全表、无日期窗**。真根因＝**任务不在服务端**：
+- 旧用例以 `?dev=disc-commissioner`（**开发模式 = mock 形态**）登录，任务只注入前端 `mockDB` ＋ `persist()`；
+- **mock 形态的 `persist()` 不落库**；而「补课」列表在 **api 态**读的是 `GET /api/v1/makeupTasks` ⇒ 列表里**点不到** ⇒ 连带 3 项断言全红。
+
+**改写（判据全部落在服务端真值）**：① **API** 造前置态（`POST /api/v1/attendances` ＋ `POST /api/v1/makeupTasks`；`deadline = 今天 +4 天` ⇒ 状态「待补课」⇒ 按钮出现）；② 浏览器走**真 API 登录**（登录页表单 → 断言会话出现 `gsm1921-api-token`，**证明确实走服务端**，而非开发模式）；③ 点「确认完成」（`makeup-tab.js` 的回写分支）；④ 读回断言 `GET /api/v1/attendances`（`status=made_up` / `overdue=false` / `madeUpAt` 有）与 `GET /api/v1/makeupTasks`（`completed` / `completedAt` 有）；⑤ `DELETE` **自清**。
+**反例锁死**：断言前置态确为 `absent ＋ overdue=true`（否则「回写成功」可能是恒真）。
+**实测**：**1/1 绿**（9.7s）⇒ **全量档此前的唯一稳定红消除**。
+
+### 二、运行时面：**「支部停用某块」＝ 服务端硬执行**（契约 §8.1 三步全兑现）
+
+| 步 | 落地 |
+|---|---|
+| ⓐ 映射**单一源** | 活动 `type`（中文场景名）→ scenarioId（`SCENARIO_LABELS` **反查**）→ blockId（**同名**；唯一别名 `theme-party → theme-party-day`） |
+| ⓑ 两处断言 | `gates.js` 新增 `_assertActivityBlockEnabled(db, actor, type)` ＋ `activityBlockDisabledMsg(type)`；活动 **POST** 与 **PATCH（改类型/场景时）** 各调一次 ⇒ **403 ＋ 可懂原因**（点名场景 ＋ 指引去「换组织向导 · ②模块块组合」恢复） |
+| ⓒ 默认零影响 | 支部未设 `config.blocks.workflowBlocks.hiddenBlockIds` ⇒ 全块启用 ⇒ 既有行为**一字不变**；**只在显式停用后生效** |
+
+**边界（照契约 §8.1，不扩口径）**：只管「**活动写入**」；**DELETE 不设此门**（口径只列 POST/PATCH；停用 ≠ 禁止清理）；**任务派生 / 通知**是否随停用而停**仍只登记**。
+
+**同批单一源整治**：别名表 `BLOCK_ID_ALIASES` 从 `scene-write-sync.test.mjs` **上提到 `manifests.js`**——运行时门也要读它，留两份必生「**守卫认、运行时不认**」的第二套。
+
+### 三、实测
+
+- `server/test/activity-block-gate.test.mjs` **G1–G6 6/6 绿**：默认零影响（201）· 停用即 **403 ＋ 点名场景**（且**不复用**通用活动写门文案）· **按块**停用不影响他场景（201）· **PATCH 改类型**进入停用块同样 403 · **别名块 `theme-party-day`** 停用后场景「主题党日」被拒（⇒ 证明运行时门**读到了** `BLOCK_ID_ALIASES`）· **反例**：空清单恢复 201。
+- `scene-write-sync` **4/4**（改读单一源后）；`npm run test:daily` ⇒ **672 / 672 / 0**。
+- **连带改准行号引用 43 处**（`index.js` 插了 4 行）：`README-server.md` 40 · `CLAUDE.md` 1 · `.ctx/REVIEW_QUEUE.md` 1；⚠ `.ctx/logs/**` 历史日志**一律不动**。
+  ⚠ **值得记的认知**：`doc-line-ref::R1` **只抓「空行 / 锚点缺失」**——本次它只报出 3 处（`:264`），而**漂移 4 行的区间引用它抓不到**。故本批**按插入点规则全量改准**（≤73 不变 / 74–106 +2 / ≥107 +4），**不依赖守卫报错**。
+- `?v=` 全链 bump（`20260929d → 20260929e`；陈旧戳 0 残留）。
+
+### 四、未做（如实登记）
+
+- **`H-23` 余下**：**② 表单条目轴 / ③ 参与人范围轴**（口径已定见契约 §8.2/§8.3）——支书本批只点了 H-13 ＋ 运行时面。
+- **UI 阶段首批**（待开）：画布 UI(L4) · IAAA 前端入口 · 选支部阻断层 · 待确认入站队列。
+- 契约 §8.1 的**任务派生 / 通知**面仍未驱动（只登记）。
+- 全量档复跑结论见节末（需 server 在 :3000）。
+- 本批**未 push**。

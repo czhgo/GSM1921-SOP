@@ -7,9 +7,9 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260929d';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20260929d';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20260929d';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929g';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20260929g';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20260929g';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）
@@ -58,35 +58,32 @@ async function renderDeployPanel(host) {
 
   host.innerHTML = `
     <div class="rounded-lg border border-gray-200 bg-white p-4">
-      <p class="text-xs text-gray-500">部署与对接 · 部署期/运维自查（只读，密钥一概不回显）</p>
+      <p class="text-xs text-gray-500">部署与对接 · 只读自查（密钥一概不回显）</p>
       <p class="font-title-cn text-base font-bold text-gray-800 mt-0.5">
         ${bad.length === 0 ? '全部就绪' : `还需处理 ${bad.length} 项`}</p>
 
       <ul class="text-xs mt-2">
-        ${row(`运行形态：${data.deploy.appEnv}`, data.deploy.appEnv === 'production',
-          `Node ${data.deploy.node}`)}
-        ${(data.checklist || []).map((c) => row(c.label, c.ok)).join('')}
+        ${row(`运行形态 ${data.deploy.appEnv}`, data.deploy.appEnv === 'production', `Node ${data.deploy.node}`)}
+        ${(data.checklist || []).map((c) => row(c.short || c.label, c.ok)).join('')}
       </ul>
 
-      ${bad.length ? `<div class="mt-3 rounded border border-amber-200 bg-amber-50 p-3">
-        <p class="text-xs font-bold text-amber-800">你还需要改这些</p>
+      ${bad.length ? `<details class="mt-3 rounded border border-amber-200 bg-amber-50 p-2">
+        <summary class="text-xs font-bold text-amber-800 cursor-pointer">逐项怎么改（${bad.length}）</summary>
         <ol class="text-xs text-amber-900 mt-1 list-decimal pl-5 space-y-1">
-          ${bad.map((c) => `<li><b>${c.label}</b><br>${c.howto}</li>`).join('')}
-        </ol></div>` : ''}
+          ${bad.map((c) => `<li><b>${c.short || c.label}</b> · ${c.howto}</li>`).join('')}
+        </ol></details>` : ''}
 
-      <div class="mt-3 text-xs text-gray-600">
-        <p>库里现状：党委账号 <b>${data.db.partyStaff}</b> · 支部 <b>${data.db.branches}</b> ·
-           已归属成员 <b>${data.db.members}</b> · 待确认归属 <b>${data.db.unassigned}</b> ·
-           演示名册残留 <b>${data.db.demoAccounts}</b> · 库结构版本 v${data.db.schemaVersion}</p>
-        <p class="mt-1 text-gray-500">${data.codeHint || ''}</p>
-      </div>
+      <p class="mt-3 text-xs text-gray-600">库里现状：党委 ${data.db.partyStaff} · 支部 ${data.db.branches} ·
+         已归属 ${data.db.members} · 待确认归属 ${data.db.unassigned} · 演示残留 ${data.db.demoAccounts} · 库表 v${data.db.schemaVersion}</p>
 
-      <div class="mt-3">
-        <button id="pc-copy-env" class="text-xs px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50">
+      <details class="mt-2">
+        <summary class="text-xs text-gray-600 cursor-pointer">环境变量模板（可复制）</summary>
+        <p class="text-xs text-gray-500 mt-1">${data.codeHint || ''}</p>
+        <button id="pc-copy-env" class="mt-2 text-xs px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-50">
           复制环境变量模板</button>
         <span id="pc-copy-msg" class="text-xs text-green-700 ml-2"></span>
         <pre class="mt-2 text-[11px] leading-5 bg-gray-50 border border-gray-200 rounded p-2 overflow-x-auto">${esc(data.envTemplate)}</pre>
-      </div>
+      </details>
     </div>`;
 
   const btn = host.querySelector('#pc-copy-env');

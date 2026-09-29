@@ -19,7 +19,7 @@ import { BRANCH_COMMISSION_ROLES, hashSubmitterToken } from '../../../docs/src/c
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE } from './gates.js';
+import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, activityBlockDisabledMsg } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -71,6 +71,8 @@ export function createResourcesRouter(db) {
         if (name === 'activities' && !_assertActivityWrite(req.actor, row.type)) {
           return res.status(403).json({ error: ACTIVITY_WRITE_DENY_MSG });
         }
+        // 运行时面（批次 274）：**支部停用该块 ⇒ 服务端硬执行**（契约 §8.1；默认零影响，只在显式停用后生效）
+        if (name === 'activities' && !_assertActivityBlockEnabled(db, req.actor, row.type)) return res.status(403).json({ error: activityBlockDisabledMsg(row.type) });
         // 计票方式强制校验（仅活动）：正式表决不得写 named
         if (name === 'activities') {
           const ballotErr = _ballotModeReject(row.voteConfig);
@@ -100,6 +102,8 @@ export function createResourcesRouter(db) {
         const effType = (req.body && req.body.type) || prevRow.type;
         const gateDeny = _assertActivityWrite(req.actor, effType) ? _activityApprovalGateDeny(prevRow, req.body, req.actor) : ACTIVITY_WRITE_DENY_MSG;
         if (gateDeny) return res.status(403).json({ error: gateDeny });
+        // 运行时面（批次 274）：**改后的类型**落在已停用块 ⇒ 同 POST 口径拒写（契约 §8.1）
+        if (!_assertActivityBlockEnabled(db, req.actor, effType)) return res.status(403).json({ error: activityBlockDisabledMsg(effType) });
       }
       // 计票方式强制校验（仅活动、且显式携带 voteConfig）：正式表决不得改为 named
       if (name === 'activities' && req.body && req.body.voteConfig !== undefined) {

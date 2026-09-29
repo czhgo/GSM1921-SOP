@@ -10,8 +10,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   SCENARIO_WRITE_IDS, SCENARIO_LABELS, ACTIVITY_CLASSIFICATION,
-} from '../../docs/src/core/domain/constants.js?v=20260929d';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929d';
+} from '../../docs/src/core/domain/constants.js?v=20260929g';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929g';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
@@ -55,10 +55,10 @@ test('全部写入 id ∈ SCENARIO_TO_CATEGORY（归类有效）', () => {
 //  判据（两侧都从单一源实读）：`SCENARIO_WRITE_IDS` 里**每个可写入的场景**都必须有在册块；
 //    blockId 与场景 id 的对应＝**同名**，唯一例外是主题党日块（历史 id `theme-party-day`，
 //    系契约 §四 原例、不属可改名项）⇒ 列入 `BLOCK_ID_ALIASES` 并写明理由。
-/** 唯一允许的「块 id ≠ 场景 id」别名（每条须写理由；新增别名＝同批在此登记） */
-const BLOCK_ID_ALIASES = {
-  'theme-party': 'theme-party-day', // 契约 §四 原例 id（2026-09-03 S1 试点），历史命名、不改
-};
+/** 唯一允许的「块 id ≠ 场景 id」别名（每条须写理由）——
+ *  ⚠ 2026-09-29 批次 274：本表**已上提为单一源**（`manifests.js`），因为运行时门（`gates.js` 的
+ *  「支部停用某块」服务端硬执行）读的是**同一份**；留两份就会出现「守卫认、运行时不认」的第二套。 */
+import { BLOCK_ID_ALIASES } from '../../docs/src/workflow/blocks/manifests.js?v=20260929g';
 
 /** 纯函数：返回「可写入但没有在册块」的场景清单（便于反例直接调用） */
 function _missingBlocks(writeScenarios, blockIds, aliases) {

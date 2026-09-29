@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260929d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260929g';
 
 const rows = (db, t) => db.prepare(`SELECT data FROM ${t}`).all().map((r) => JSON.parse(r.data));
 const count = (db, t) => db.prepare(`SELECT COUNT(*) c FROM ${t}`).get().c;

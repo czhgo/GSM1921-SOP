@@ -157,3 +157,51 @@ function _branchCommissionerGateDeny(db, actor, targetId, body) {
 }
 
 export const ORG_COMMISSIONER_ROLE_SET = new Set(ORG_COMMISSIONER_ROLES);
+
+// ════════════════════════════════════════════════════════════════
+//  批次 274（2026-09-29）：运行时面 —— **「支部停用某块」服务端硬执行**（契约 §8.1，`D-685`）
+//
+//  · 为什么：本仓命题是「制度即代码：把制度文本嵌入系统中**必须遵守**」；原状态是前端只做到
+//    「入口看不见」——**直连 API 仍可写入**，与命题不符。按 `D-677`（**API 优先**：判据须落在
+//    api 面的真实行为上），前端守卫不足以作为「停用」的判据。
+//  · 映射**单一源**：活动 `type`（中文场景名）→ scenarioId（`SCENARIO_LABELS` **反查**）
+//    → blockId（**同名**；唯一别名 `theme-party → theme-party-day` 读 `BLOCK_ID_ALIASES`，
+//    与守卫 `server/test/scene-write-sync.test.mjs` **同读一份**，不会出现第二套）。
+//  · **默认零影响**：支部 `config.blocks.workflowBlocks.hiddenBlockIds` 缺省 ⇒ 全块启用 ⇒
+//    既有用例行为**一字不变**；**只在支部显式停用后生效**。
+//  · 边界（契约 §8.1）：只管「**活动写入**」这一面——POST 与 PATCH（改类型/场景时）；
+//    **任务派生 / 通知**是否随块停用而停，**同批只登记**（不扩口径）⇒ 故 DELETE 不设此门。
+//
+//  ⚠ 本段置于文件末尾：上方 `gates.js:24-36`（`RESOURCE_WRITE_GATE`）等行号是 `README-server.md`
+//    的取证靶点，**置尾追加不会让任何既有行号漂移**（import 声明被提升，置尾不影响语义）。
+// ════════════════════════════════════════════════════════════════
+import { SCENARIO_LABELS } from '../../../docs/src/core/domain/constants.js';
+import { BLOCK_ID_ALIASES } from '../../../docs/src/workflow/blocks/manifests.js';
+
+/** 活动写入被「支部停用该块」拒绝时的**可懂原因**（403 响应体用；区别于 `ACTIVITY_WRITE_DENY_MSG`） */
+export function activityBlockDisabledMsg(effectiveType) {
+  return `该活动所属场景「${effectiveType}」已被本支部**停用**（支部配置 → 工作流块），`
+    + '服务端拒绝写入。如需恢复，请由支书/党委在「换组织向导 · ② 模块块组合」重新启用该块。';
+}
+
+/**
+ * 运行时面判据：该支部**是否启用了**这条活动所属的工作流块。
+ * @param {import('better-sqlite3').Database} db
+ * @param {{branchId?:string|null}} actor 写入者（其支部即目标支部；党委 `branchId:null` ⇒ 走全仓「缺省支部」兜底）
+ * @param {string} effectiveType 活动类型（中文场景名）
+ * @returns {boolean} true = 放行（未停用 / 无关联块 / 支部未配置 / 读不到配置——**一律放行**，本门只管「显式停用」）
+ */
+export function _assertActivityBlockEnabled(db, actor, effectiveType) {
+  if (!effectiveType) return true;
+  const scenarioId = Object.keys(SCENARIO_LABELS).find((k) => SCENARIO_LABELS[k] === effectiveType);
+  if (!scenarioId) return true;                     // 非场景化活动 ⇒ 不涉块启停
+  const blockId = BLOCK_ID_ALIASES[scenarioId] || scenarioId;
+  const branchId = (actor && actor.branchId) || 'br-b1';   // 与全仓「缺省支部」兜底同口径
+  const row = db.prepare('SELECT data FROM branches WHERE id = ?').get(branchId);
+  if (!row) return true;                            // 支部不存在 ⇒ 交给其它门拦；本门不越权
+  let cfg; try { cfg = JSON.parse(row.data); } catch { return true; }
+  const hidden = cfg && cfg.config && cfg.config.blocks && cfg.config.blocks.workflowBlocks
+    && cfg.config.blocks.workflowBlocks.hiddenBlockIds;
+  if (!Array.isArray(hidden) || hidden.length === 0) return true;   // 缺省全开
+  return !hidden.includes(blockId);
+}
