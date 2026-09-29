@@ -21308,3 +21308,18 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **另**：`REVIEW_QUEUE H-5` 的**证据句与选项②数值**同步到新现况（`≈85` / `99/75/80/86/83` / `84.6`）——**H-5 本身仍为「待裁」**（该行是否随现况，属支书口径，本批只把它的「现状读数」改准，**不替支书选项**）。
 - **验证**：`npm run test:daily` **648/648 / 0 红**；EA 的 frontmatter `last_updated` 与 `TIMESTAMPS` 行**均已为 `2026-09-29`**（同日多次改动 ⇒ 日期不变量，未触碰备注列 ⇒ `timestamps-note-guard` 三份基线清单**一字未动**）。**未改 `docs/src/**` ⇒ 不触发收尾全量**（`R-85④`）。
 
+---
+
+## 批次 262（2026-09-29）：**`preferences` 长期红的根因定案并修复（真回归）＋ 补上漏掉的那一格守卫**（收 `H-12`② / 立 `H-15`）
+
+> **来源**：支书第 5 条「提出改进建议！！针对仓库健康！尤其是代码健康！」＋ `CLAUDE.md R-85③`「红须分**环境 / 陈旧断言 / 真回归**三类」——`server/README.md` 的「已知既有红 2 项」中，**第②项（`preferences` 真实拖拽超时）此前只做到「A/B 排除本会话引入」，根因未知 ⇒ 分类悬空**。本批把它**定案**。
+
+- **定位（探针，非推断）**：起内存服务 ＋ 真机登录支书 → 进设置页 → 点「我的工作台」⇒ 面板实测 `rows: 0`、`hasList: false`、**`panelText: "我的工作台 加载失败，请刷新页面重试。"`**；日志抓到 **`reqfail: …/src/entries/modules/capabilities/secretary-workspace.js net::ERR_ABORTED`** ＋ `Failed to fetch dynamically imported module`。
+- **根因**：`docs/src/entries/pages/settings-entry.js` 的一处**模板字面量动态 import** 写成 `` import(`../modules/capabilities/${stem}-workspace.js`) ``——该文件随 **P5 物理目录分层**从 `entries/` 平铺移入 `entries/pages/` 后**少一个 `../`** ⇒ 解析到**不存在**的 `docs/src/entries/modules/capabilities/…` ⇒ **404**。**这是用户可见的真 bug**：「设置 → 我的工作台」=**个人页签顺序编辑面整个是死的**。⇒ **分类＝真回归**（不是环境类、不是陈旧断言）。
+- **修复**：`../modules/` → `../../modules/`（一处）＋ 就地注明。实扫 `docs/src/entries/**`（正则 `[^./\\]\.\./(core|services|components|modules|workflow|mock|config|entries)/`）⇒ **同深度错引全仓仅此 1 处**。复跑 `preferences.test.mjs` **16/16 绿**（单跑 4.3s；原 19s 超时）。
+- **为什么长期无人拦（盲区取证）**：两只既有守卫**恰好绕开**——① `module-load::E1` 的 `collectJsFiles` **明写跳过 `entries/`**；② `link-integrity::L2` 自述**排除 ESM 规格符**（它守的是 `location.href=`）。⇒「目录分层改了深度、规格符没跟上」这一类**当时没有任何静态判据**。
+- **补机检（本条最要紧的交付）**：新增 `server/test/import-path-guard.test.mjs`——`G1` 相对规格符**字面量**（`from '…'` / 副作用 `import '…'` / `import('…')`）**查目标文件**；`G2` **模板字面量动态 import** 只查**静态前缀目录**（运行期片段静态判不了）；`G3` **非空转**（扫到的 `.js` ≥240、规格符 ≥1400；**实测 258 / 1618 ＝ 文件字面量 1617 ＋ 模板前缀 1**）＋ **现场反例**（临时造一条坏路径 ⇒ 必须被 `G1` 抓出 ⇒ 测后删除）。已登记进 `test:daily`（`S16` 要求）与 `README.md` 测试清单（`S10` 可见性）。
+- **连带改准**：`REVIEW_QUEUE` 立 **`H-15`**（并回填 `H-12` 第②项指针）· 本节规模 **14 → 15 条**（`P1` 5 → 6；已收/已裁 8 → 9）· `server/README.md` 的「已知既有红」**2 项 → 1 项**（并把四项实测数改准：`test:daily` 88→89 文件 / 648→650 项、全量 860→862 项 / `860/858/2`→`862/861/1`）· `SOP-E-1-①` 补状态行（EA 内部四值已消灭，只剩跨文件那份＝`H-5`）。
+- **验证（`R-85④` 收尾全量）**：`bump-version.mjs`（`20260928u → 20260929a`，陈旧戳 0 残留）→ 起 :3000 → `npm test` ＝ **`tests 862 / pass 861 / fail 1`**——**唯一红＝`b3-1`**（`H-13`，待裁）；同轮 **`form-loop-sweep` 全段 / `page-sweep` 全绿**，**`preferences` 已不在失败清单**。`test:daily` **650/650 / 0 红**。**md-only 的收尾改动（`server/README.md` / `.ctx/**`）不影响真机测试面**，故全量结论对最终树成立。
+- **⚠ 只登记（不在授权面）**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2` 的守卫索引**未补 `import-path-guard`**（`content/**` ＝支书批改层）⇒ 待支书核可后补；当前该守卫只在 `test:daily` 与根 `README.md` 可见。
+

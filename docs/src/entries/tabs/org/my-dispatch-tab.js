@@ -2,8 +2,8 @@
 // 组织委员工作台 Tab：我的处置（T-279 M3 拆分，照 M2 样板）
 // 过程性汇报/问题处置：组织委员答复提交人，支书仍全局可见。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20260928u';
-import { AuthStore } from '../../../services/core/auth.js?v=20260928u';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20260929a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929a';
 
 export function renderContent() {
   const el = document.getElementById('org-tab-content');

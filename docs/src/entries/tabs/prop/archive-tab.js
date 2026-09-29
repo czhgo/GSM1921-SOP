@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260928u';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260928u';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260928u';
+import { icon } from '../../../core/icons.js?v=20260929a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260929a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260929a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260928u';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260928u';
-import { mockDB } from '../../../core/domain.js?v=20260928u';
-import { bumpToken } from '../../../core/version-token.js?v=20260928u'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity/activity.js?v=20260928u';
-import { isApiMode } from '../../../services/core/runtime.js?v=20260928u';
-import { AuthStore } from '../../../services/core/auth.js?v=20260928u';
-import { getPersonName } from '../../../services/member/person.js?v=20260928u';
-import { generateId } from '../../../core/id.js?v=20260928u';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260928u';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260929a';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260929a';
+import { mockDB } from '../../../core/domain.js?v=20260929a';
+import { bumpToken } from '../../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity/activity.js?v=20260929a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20260929a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929a';
+import { getPersonName } from '../../../services/member/person.js?v=20260929a';
+import { generateId } from '../../../core/id.js?v=20260929a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260929a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260928u';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260929a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20260928u';
+import { BranchService } from '../../../services/core/runtime.js?v=20260929a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260928u';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），

@@ -10,8 +10,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   SCENARIO_WRITE_IDS, SCENARIO_LABELS, ACTIVITY_CLASSIFICATION,
-} from '../../docs/src/core/constants.js?v=20260928u';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260928u';
+} from '../../docs/src/core/constants.js?v=20260929a';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929a';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 

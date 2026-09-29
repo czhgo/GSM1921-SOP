@@ -9,29 +9,29 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260928u';
-import { renderHeader } from '../../components/shell/header.js?v=20260928u';
-import { BranchService } from '../../services/core/runtime.js?v=20260928u';
-import { AuthStore } from '../../services/core/auth.js?v=20260928u';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260928u';
-import { getBranchById } from '../../services/branch/branch.js?v=20260928u';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20260928u';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929a';
+import { renderHeader } from '../../components/shell/header.js?v=20260929a';
+import { BranchService } from '../../services/core/runtime.js?v=20260929a';
+import { AuthStore } from '../../services/core/auth.js?v=20260929a';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260929a';
+import { getBranchById } from '../../services/branch/branch.js?v=20260929a';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20260929a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/constants.js?v=20260928u';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/utils.js?v=20260928u';
-import { badgeHtml } from '../../components/ui/badges.js?v=20260928u';
-import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20260928u';
-import { loadActivities } from '../../services/activity/activity.js?v=20260928u';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/constants.js?v=20260929a';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/utils.js?v=20260929a';
+import { badgeHtml } from '../../components/ui/badges.js?v=20260929a';
+import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20260929a';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929a';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：关联概览的「参与活动」计数同样收窄
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260928u';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260928u';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260928u';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260928u';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260929a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929a';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260929a';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260929a';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../core/data-adapter.js?v=20260928u';
-import { ApiAdapter } from '../../core/api-adapter.js?v=20260928u';
+import { hydrateDataSource, notifyDataLoaded } from '../../core/data-adapter.js?v=20260929a';
+import { ApiAdapter } from '../../core/api-adapter.js?v=20260929a';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
