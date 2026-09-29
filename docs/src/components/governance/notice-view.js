@@ -101,13 +101,12 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     </div>`;
 
   // ── 同类：按「类」（通知标题）归并 ──
-  // 批次 286（支书第二轮评议）：
-  //   ① 「`badge badge--info`『3 条』我觉得很丑」⇒ 弃用**文字胶囊**，改**红底数字小圆**（沿批次 285 支书认可
-  //      的微信范式·提醒语义；>9 收敛 `9+`）；
+  // 2026-09-29 批次 286（支书第二轮评议）：
+  //   ① 「`badge badge--info`『3 条』我觉得很丑」⇒ 弃用**文字胶囊**，改**红底数字小圆**（沿 2026-09-29 批次 285 支书认可的微信范式·提醒语义；>9 收敛 `9+`）；
   //   ② 「每排就这么几个字，有点浪费」「字体大小不好看」⇒ 一类**不再独占一整行**——
   //      各类**并排成一行 chips**（`flex flex-wrap`，横向铺满、自动换行），类名升到 `text-sm`
   //      （与通知标题同档，不再用弱化的 `text-xs`），去掉冗余的「展开 ›」文字。
-  //   ⚠ 仍**不写「置顶」二字**（沿批次 280 裁定）；仍**不落 hex / 不新增字号档**（圆内文字用既有 `text-xs`）。
+  //   ⚠ 仍**不写「置顶」二字**（沿 2026-09-29 批次 280 支书裁定）；仍**不落 hex / 不新增字号档**（圆内文字用既有 `text-xs`）。
   let summaryHtml = '';
   if (byClassList.length) {
     const countCircle = (n) => '<span class="text-xs text-white font-semibold rounded-full flex items-center justify-center"'

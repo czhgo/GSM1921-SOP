@@ -80,7 +80,7 @@ async function _renderNotificationBadge() {
     const badge = document.createElement('span');
     badge.id = 'notif-badge';
     badge.textContent = unread > 9 ? '9+' : String(unread);
-    // 批次 285（支书裁定：「有时候红色，参考微信消息提醒的做法，用数字小圆放在一角，是很有效的！」）：
+    // 2026-09-29 批次 285（支书裁定：「有时候红色，参考微信消息提醒的做法，用数字小圆放在一角，是很有效的！」）：
     //   未读数＝**提醒语义**（`§2.5` 功能色「只表语义状态」）⇒ 由党徽黄改为**红底白字数字圆角标**（微信范式）。
     //   仍走令牌（`var(--party-red)`）与 Tailwind 工具类（`text-white`），**不落 hex 字面量**。
     badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-red);font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;';
