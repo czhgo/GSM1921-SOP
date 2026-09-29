@@ -19,34 +19,34 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929x';
-import { renderHeader } from '../../components/shell/header.js?v=20260929x';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20260929x';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20260929x';
-import { mockDB } from '../../core/domain/domain.js?v=20260929x';
-import { AuthStore } from '../../services/core/auth.js?v=20260929x';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260929x';
-import { BranchService } from '../../services/core/runtime.js?v=20260929x';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929x';
-import { IssueStore } from '../../services/governance/issues.js?v=20260929x';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260929x';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20260929x';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260929x';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20260929x';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260929x';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929y';
+import { renderHeader } from '../../components/shell/header.js?v=20260929y';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20260929y';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260929y';
+import { mockDB } from '../../core/domain/domain.js?v=20260929y';
+import { AuthStore } from '../../services/core/auth.js?v=20260929y';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260929y';
+import { BranchService } from '../../services/core/runtime.js?v=20260929y';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929y';
+import { IssueStore } from '../../services/governance/issues.js?v=20260929y';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260929y';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20260929y';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260929y';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20260929y';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260929y';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20260929x';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260929x';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20260929y';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260929y';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20260929x';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20260929x';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20260929y';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20260929y';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20260929x';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260929x';
-import { generateId } from '../../core/base/id.js?v=20260929x';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20260929y';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260929y';
+import { generateId } from '../../core/base/id.js?v=20260929y';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

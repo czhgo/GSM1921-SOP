@@ -9,11 +9,11 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260929x';
-import { AuthStore } from '../../services/core/auth.js?v=20260929x';
-import { showToast } from '../../core/base/utils.js?v=20260929x';
-import { getPersonName } from '../../services/member/person.js?v=20260929x';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260929x';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260929y';
+import { AuthStore } from '../../services/core/auth.js?v=20260929y';
+import { showToast } from '../../core/base/utils.js?v=20260929y';
+import { getPersonName } from '../../services/member/person.js?v=20260929y';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260929y';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）

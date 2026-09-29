@@ -6,5 +6,5 @@
 // 约定：components/ui/form-field.js 与 form-shell.js 为内部实现，可各自演进；新增表单函数也由本库对外。
 // 设计源：DESIGN_SYSTEM §4.3 输入统一原则 + B1/B2 表单美学批次
 
-export { labelHtml, errorHtml, textField, textareaField, selectField, dateField } from './form-field.js?v=20260929x';
-export { recordFormShell } from './form-shell.js?v=20260929x';
+export { labelHtml, errorHtml, textField, textareaField, selectField, dateField } from './form-field.js?v=20260929y';
+export { recordFormShell } from './form-shell.js?v=20260929y';
