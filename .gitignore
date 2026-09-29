@@ -18,6 +18,7 @@ desktop.ini
 
 # Server runtime artifacts
 server/data.db
+server/data.*.db*
 server/uploads/
 
 # Build output (project uses ESM directly, no bundler needed)
