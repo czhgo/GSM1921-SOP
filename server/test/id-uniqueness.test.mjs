@@ -35,8 +35,8 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import * as MOCK from '../../docs/src/data/mock/index.js?v=20260929s';
-import { generateId, randomHex } from '../../docs/src/core/base/id.js?v=20260929s';
+import * as MOCK from '../../docs/src/data/mock/index.js?v=20260929t';
+import { generateId, randomHex } from '../../docs/src/core/base/id.js?v=20260929t';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
