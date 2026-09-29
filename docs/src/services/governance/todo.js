@@ -6,13 +6,13 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260929q';
-import { persist } from '../../data/data-adapter.js?v=20260929q';
-import { generateId } from '../../core/base/id.js?v=20260929q';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20260929q';
+import { mockDB } from '../../core/domain/domain.js?v=20260929r';
+import { persist } from '../../data/data-adapter.js?v=20260929r';
+import { generateId } from '../../core/base/id.js?v=20260929r';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20260929r';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20260929q';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20260929r';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
