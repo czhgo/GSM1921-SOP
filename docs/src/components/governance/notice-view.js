@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20260929w';
-import { openFormModal } from '../ui/modal.js?v=20260929w';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929w';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929w';
-import { AuthStore } from '../../services/core/auth.js?v=20260929w';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929w';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929w';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929w';
+import { badgeHtml } from '../ui/badges.js?v=20260929x';
+import { openFormModal } from '../ui/modal.js?v=20260929x';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929x';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929x';
+import { AuthStore } from '../../services/core/auth.js?v=20260929x';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929x';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929x';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929x';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -100,22 +100,25 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
       </div>
     </div>`;
 
-  // ── 同类：按「类」（通知标题）归并为一条，就地可展开 ──
-  // 批次 284（支书评议：「summary 在提示的维度，这个UI设计很失败！」）：
-  //   原设计＝纯灰文字 `待办催办 · 3 条`，**看不出可点、可展开**，读起来像又一条通知 ⇒ **affordance 失败**。
-  //   改＝**明确的控件形态**：描边容器 ＋ 计数徽章（`badgeHtml`，与全站徽章同源）
-  //   ＋ 右侧「展开 ›」文字提示 ＋ hover 反馈；**保留原生 <details> 三角**（不隐藏 ⇒ 双三角会重复）。
-  //   ⚠ 仍**不写「置顶」二字**（沿批次 280 支书裁定）。
+  // ── 同类：按「类」（通知标题）归并 ──
+  // 批次 286（支书第二轮评议）：
+  //   ① 「`badge badge--info`『3 条』我觉得很丑」⇒ 弃用**文字胶囊**，改**红底数字小圆**（沿批次 285 支书认可
+  //      的微信范式·提醒语义；>9 收敛 `9+`）；
+  //   ② 「每排就这么几个字，有点浪费」「字体大小不好看」⇒ 一类**不再独占一整行**——
+  //      各类**并排成一行 chips**（`flex flex-wrap`，横向铺满、自动换行），类名升到 `text-sm`
+  //      （与通知标题同档，不再用弱化的 `text-xs`），去掉冗余的「展开 ›」文字。
+  //   ⚠ 仍**不写「置顶」二字**（沿批次 280 裁定）；仍**不落 hex / 不新增字号档**（圆内文字用既有 `text-xs`）。
   let summaryHtml = '';
   if (byClassList.length) {
-    summaryHtml = `<div class="space-y-1.5 pb-2.5 mb-1.5 border-b border-gray-100">${byClassList.map(([label, list]) => `
+    const countCircle = (n) => '<span class="text-xs text-white font-semibold rounded-full flex items-center justify-center"'
+      + ' style="min-width:16px;height:16px;padding:0 4px;background:var(--party-red);">'
+      + `${n > 9 ? '9+' : n}</span>`;
+    summaryHtml = `<div class="flex flex-wrap items-center gap-1.5 pb-3 mb-2 border-b border-gray-100">${byClassList.map(([label, list]) => `
       <details class="rounded-lg border border-gray-200 bg-white">
-        <summary class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs text-gray-700 hover:bg-gray-50 transition-colors">
-          <span class="font-medium text-gray-800">${label}</span>
-          ${badgeHtml(`${list.length} 条`, 'info')}
-          <span class="ml-auto text-gray-500">展开 ›</span>
+        <summary class="flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
+          <span class="font-medium">${label}</span>${countCircle(list.length)}
         </summary>
-        <div class="px-1">${list.map(rowHtml).join('')}</div>
+        <div class="px-1 pb-1">${list.map(rowHtml).join('')}</div>
       </details>`).join('')}</div>`;
   }
 
