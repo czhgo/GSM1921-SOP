@@ -21323,3 +21323,14 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **验证（`R-85④` 收尾全量）**：`bump-version.mjs`（`20260928u → 20260929a`，陈旧戳 0 残留）→ 起 :3000 → `npm test` ＝ **`tests 862 / pass 861 / fail 1`**——**唯一红＝`b3-1`**（`H-13`，待裁）；同轮 **`form-loop-sweep` 全段 / `page-sweep` 全绿**，**`preferences` 已不在失败清单**。`test:daily` **650/650 / 0 红**。**md-only 的收尾改动（`server/README.md` / `.ctx/**`）不影响真机测试面**，故全量结论对最终树成立。
 - **⚠ 只登记（不在授权面）**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2` 的守卫索引**未补 `import-path-guard`**（`content/**` ＝支书批改层）⇒ 待支书核可后补；当前该守卫只在 `test:daily` 与根 `README.md` 可见。
 
+---
+
+## 批次 263（2026-09-29）：**按支书指定启用两支 skill ＋ 按 `grill-me` 意图自审，修掉新守卫自身的一处脆弱点**
+
+> **来源**：支书第 1 条末的两个显式指令「`Use Skill: grill-me`」「`Use Skill: fullstack-developer`」。
+
+- **两支 skill 实调结果（如实登记）**：① `grill-me` —— **本体是空壳**（`SKILL.md` 仅一行「Run a `/grilling` session.」，`agents/openai.yaml` 只有显示名与 `allow_implicit_invocation:false`），**无任何可执行内容**；② `fullstack-developer` —— 内容为 **React / Next.js / Prisma / TypeScript** 栈的通则 + 示例代码，与本仓（**无构建的原生 ESM 多页 + Express + better-sqlite3**）**栈不同**、其条目（如「用 React Query 管服务端状态」「Zod 校验入参」）**在本仓无对应落点**，故**不采纳其具体做法**（本仓自有更严的 `CLAUDE.md` 纪律与守卫族）。**⇒ 改为落实其「意图」**：对「`grill-me`＝用连续诘问把方案压实」这一条，把我本会话自己的交付**自审一遍**。
+- **自审命中 1 条真脆弱点（本批即修）**：**批次 262 新增的 `import-path-guard` 的 `G3` 反例「在 `docs/src/` 下临时建 `.js` 再删」**——该守卫**扫的正是 `docs/src/**`**，而 `module-load::E1` 会 `import` `docs/src` 全部模块 ⇒ **两者并行跑时互为干扰**（E1 可能 import 到那个坏文件，或 G1 扫到它）。虽然三档脚本都带 `--test-concurrency=1`（当前不触发），但**判据本身不该依赖「谁先谁后」**。
+- **修法（零副作用）**：把判据实现抽成 `problemsFor(rel, file, text)` 单一函数（`G1` 对全量文件调它、`G3` 对**内存副本**调它）⇒ `G3` 用**注入内存的字符串副本**证「判据真会判」，**全程不落盘、无临时文件、无清理分支**；并把反例加严为**两条**（坏文件 ＋ 坏模板前缀）＋ **一条对照组**（同批注入的**好**规格符 `./core/utils.js` 不得被误报 ⇒ 同时证「不过严」）。同时删去随之无用的 `writeFileSync` / `rmSync` / `fileURLToPath` 三个 import。
+- **验证**：`node --test test/import-path-guard.test.mjs` **2/2 绿**；`Get-ChildItem docs/src -Recurse -Filter *probe*` **实测 0 个残留**（证「不落盘」）。**本批验证（`R-85④` 收尾全量，因本批改了 `server/test/**`）**：起 :3000 → `npm test` ＝ **`tests 862 / pass 861 / fail 1`**——**唯一红仍＝`b3-1`**（`H-13`，待裁）；`form-loop-sweep` 全段 / `page-sweep` 全绿，**`import-path-guard` 两断言在全量档内亦绿**（证它与 `module-load::E1` 同档串行运行无互扰）。本批**未改 `docs/src/**` / `server/*.js` / `server/routes/**` ⇒ 不触发 `bump-version`**（`20260929a` 戳系批次 262 所推、本批无新增缓存键）。
+

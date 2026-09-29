@@ -31,9 +31,8 @@
 // 运行：`node --test server/test/import-path-guard.test.mjs`（纯 node，无浏览器 / 无服务依赖）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync, existsSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
@@ -69,46 +68,50 @@ function specifiersOf(text) {
   return out;
 }
 
+/** 对「单文件内容」求问题集（G1/G2 的唯一判据实现；G1 对全量文件调用它、G3 用内存副本调用它） */
+function problemsFor(rel, file, text) {
+  const out = [];
+  for (const s of specifiersOf(text)) {
+    const pathPart = s.raw.split('?')[0];
+    if (!pathPart) continue;
+    const target = resolve(dirname(file), pathPart);
+    if (s.kind === 'file') {
+      if (!existsSync(target) || statSync(target).isDirectory()) {
+        out.push(`${rel} → \`${s.raw}\` 解析到不存在的文件（${target.slice(ROOT.length + 1).replace(/\\/g, '/')}）`);
+      }
+    } else if (!existsSync(target)) {
+      out.push(`${rel} → \`${s.raw}\`（模板前缀）解析到不存在的目录（${target.slice(ROOT.length + 1).replace(/\\/g, '/')}）`);
+    }
+  }
+  return out;
+}
+
 const FILES = collectJs(SRC);
 
 test('G1/G2 相对 ESM 规格符的路径必须存在（字面量查文件；模板前缀查目录）', () => {
   const problems = [];
   for (const file of FILES) {
-    const text = readFileSync(file, 'utf8');
     const rel = file.slice(ROOT.length + 1).replace(/\\/g, '/');
-    for (const s of specifiersOf(text)) {
-      const pathPart = s.raw.split('?')[0];
-      if (!pathPart) continue;
-      const target = resolve(dirname(file), pathPart);
-      if (s.kind === 'file') {
-        if (!existsSync(target) || statSync(target).isDirectory()) {
-          problems.push(`${rel} → \`${s.raw}\` 解析到不存在的文件（${target.slice(ROOT.length + 1).replace(/\\/g, '/')}）`);
-        }
-      } else if (!existsSync(target)) {
-        problems.push(`${rel} → \`${s.raw}\`（模板前缀）解析到不存在的目录（${target.slice(ROOT.length + 1).replace(/\\/g, '/')}）`);
-      }
-    }
+    problems.push(...problemsFor(rel, file, readFileSync(file, 'utf8')));
   }
   assert.deepEqual(problems, [], `相对 ESM 规格符指向不存在的目标（运行时必 404、真机才暴露）：\n  ${problems.join('\n  ')}`);
 });
 
-test('G3 非空转：扫描面与抽取量有下限，且判据真会判（现场造一条坏路径）', () => {
+test('G3 非空转：扫描面与抽取量有下限，且判据真会判（内存副本注入坏规格符，**不落盘**）', () => {
   assert.ok(FILES.length >= 240, `只扫到 ${FILES.length} 个 .js（基线 240：2026-09-29 实测 258）——抽取面被改坏了`);
   let total = 0;
   for (const f of FILES) total += specifiersOf(readFileSync(f, 'utf8')).length;
   assert.ok(total >= 1400, `只抽到 ${total} 条相对规格符（基线 1400：2026-09-29 实测 1618 = 文件字面量 1617 ＋ 模板前缀 1）——正则写坏后 G1/G2 会变成恒真`);
 
-  // 现场反例：在 docs/src 下临时建一个引用不存在路径的文件 ⇒ G1 必须报出来
-  const probe = join(SRC, '__import_path_probe.tmp.js');
-  try {
-    writeFileSync(probe, "import './no-such-dir/nope.js';\n", 'utf8');
-    const probs = [];
-    for (const s of specifiersOf(readFileSync(probe, 'utf8'))) {
-      const t = resolve(dirname(probe), s.raw.split('?')[0]);
-      if (!existsSync(t)) probs.push(s.raw);
-    }
-    assert.deepEqual(probs, ['./no-such-dir/nope.js'], '反例未被 G1 判据抓出——本守卫是空的');
-  } finally {
-    rmSync(probe, { force: true });
-  }
+  // 现场反例：**只喂内存副本**（借一个真实文件路径作解析基准），走与 G1 完全同一份判据实现。
+  // ⚠ 为什么不落盘造文件：本守卫扫的就是 `docs/src/**`，若在盘上临时造 `.js`，
+  //   与 `module-load::E1`（它 import docs/src 全部模块）**并行跑时会互相干扰** ⇒ 用内存副本既证「判据真会判」、又零副作用。
+  const base = join(SRC, '__probe__.js');
+  const fake = "import './no-such-dir/nope.js';\nconst m = await import(`./also-missing/${x}.js`);\nimport './core/utils.js';\n";
+  const got = problemsFor('docs/src/__probe__.js', base, fake);
+  assert.equal(got.length, 2, `反例应报 2 条（1 个坏文件 + 1 个坏模板前缀），实测 ${got.length}：${got.join(' | ')}`);
+  assert.ok(got[0].includes('./no-such-dir/nope.js'), '坏文件反例未被抓出');
+  assert.ok(got[1].includes('./also-missing/'), '坏模板前缀反例未被抓出');
+  // 对照组：同一次注入里的**好规格符**（`./core/utils.js`）不得被误报
+  assert.ok(!got.some((p) => p.includes('./core/utils.js')), '存在的好规格符被误报 ⇒ 判据过严');
 });
