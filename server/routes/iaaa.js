@@ -36,11 +36,29 @@ import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
 import { SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
 
+// ════════════════════════════════════════════════════════════════
+//  ★★★ 你要改的，就下面这 5 行（其余整份文件不用动） ★★★
+//  （2026-09-29 批次 272：参数名已按**公开实证**修正——授权页实测样本
+//    `https://iaaa.pku.edu.cn/iaaa/oauth.jsp?appID=webvpn&appName=WebVPN&redirectUrl=https%3A%2F%2F…`
+//    ⇒ **是 `appID` ＋ `redirectUrl`**，本件原先误写 `redirectURI`，已改。）
 const MOCK = process.env.IAAA_MOCK === '1';
-const AUTH_URL = process.env.IAAA_AUTH_URL || 'https://iaaa.pku.edu.cn/iaaa/oauth.jsp';
-const VERIFY_URL = process.env.IAAA_VERIFY_URL || 'https://iaaa.pku.edu.cn/iaaa/oauthlogin.do';
-const APP_ID = process.env.IAAA_APP_ID || '';
-const REDIRECT_URI = process.env.IAAA_REDIRECT_URI || '';
+const AUTH_URL = process.env.IAAA_AUTH_URL || 'https://iaaa.pku.edu.cn/iaaa/oauth.jsp';   // 授权页（公开实证）
+const VERIFY_URL = process.env.IAAA_VERIFY_URL || 'https://iaaa.pku.edu.cn/iaaa/oauthlogin.do'; // 换学号/姓名（⚠ 待技术文档确认）
+const APP_ID = process.env.IAAA_APP_ID || '';             // ← 计算中心在《技术文档》里给你的 appID
+const APP_NAME = process.env.IAAA_APP_NAME || '光华管理学院党支部管理系统';
+const REDIRECT_URI = process.env.IAAA_REDIRECT_URI || ''; // ← 你在备案申请里填的回调地址（必须一致）
+// ════════════════════════════════════════════════════════════════
+//  【怎么拿到上面那两个值（公开流程，可自助办）】
+//   1. 由**在校职工**（老师/党务老师）登录 https://portal.pku.edu.cn/ → 「办事大厅」→
+//      搜「**统一身份认证应用备案申请**」→ 在线填写并提交审批（**线上办理，无需纸质材料，无需去计算中心**）。
+//   2. 审批通过后，**计算中心会发《技术文档》**并沟通技术细节。⚠ 该集成服务**仅面向在校职工**。
+//   3. 把《技术文档》里的 `appID` 填进 `IAAA_APP_ID`；把你在备案里登记的回调地址填进 `IAAA_REDIRECT_URI`
+//      （形如 `https://<你的域名>/api/v1/auth/iaaa/callback`，**两端必须逐字一致**，否则 IAAA 会拒绝跳回）。
+//   4. 若《技术文档》里的「校验接口 URL / 返回字段名」与本文件不同 ⇒ **只改 `_verifyWithIaaa()` 里的
+//      `VERIFY_URL` 与字段名那一小段**（已在下方标 `← 可能要改`），其余链路不用动。
+//   服务热线 010-62751023 · its@pku.edu.cn（来自 `its.pku.edu.cn/portal_6.jsp`）
+//  【本地先试】不想等备案也能跑通全链：设 `IAAA_MOCK=1`，回调的 token 直接当学号（见 `deploy/doctor.mjs`）。
+// ════════════════════════════════════════════════════════════════
 
 const listUsers = (db) => db.prepare('SELECT data FROM users').all().map((r) => JSON.parse(r.data));
 const putUser = (db, u) => db.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(u.id, JSON.stringify(u));
@@ -79,16 +97,18 @@ async function _verifyWithIaaa(token) {
   try {
     const j = JSON.parse(text);
     if (j.success === false) throw new Error(j.msg || j.error || 'IAAA 校验失败');
-    // 常见字段名一并兼容（`userName` 为学号；姓名可能叫 `name` / `trueName`）
+    // ← 可能要改：以下字段名按「常见形态」兼容；若《技术文档》里的字段名不同，**只改这两行**
     studentId = j.userName || j.userid || j.userId || j.studentId || '';
     name = j.name || j.trueName || j.realName || '';
   } catch (e) {
     if (e && e.message && !/Unexpected|JSON/.test(e.message)) throw e;
+    // ← 可能要改：XML 形态（形如 `<userName>21000xxxx</userName>`）；字段名同样以《技术文档》为准
     const pick = (tag) => (text.match(new RegExp(`<${tag}>([^<]*)</${tag}>`)) || [])[1] || '';
     studentId = pick('userName') || pick('userid');
     name = pick('name') || pick('trueName');
   }
-  if (!studentId) throw new Error('IAAA 未返回学号（解析口径待接口文档确认）');
+  if (!studentId) throw new Error('IAAA 未返回学号（解析口径待《技术文档》确认；原始返回前 200 字：'
+    + text.slice(0, 200) + '）');
   return { studentId: String(studentId), name: name || String(studentId) };
 }
 
@@ -105,11 +125,14 @@ export function createIaaaRouter(db) {
     if (MOCK) return res.redirect(`./api/v1/auth/iaaa/callback?token=${encodeURIComponent(process.env.IAAA_MOCK_ID || '2026000001')}`);
     if (!APP_ID || !REDIRECT_URI) {
       return res.status(503).json({
-        error: 'IAAA 未配置：请设置 IAAA_APP_ID 与 IAAA_REDIRECT_URI（授权页 IAAA_AUTH_URL / 校验 IAAA_VERIFY_URL 可选，有缺省）',
-        hint: '本地联调可设 IAAA_MOCK=1',
+        error: 'IAAA 未配置：请设置 IAAA_APP_ID（计算中心《技术文档》给的 appID）与 IAAA_REDIRECT_URI（备案里登记的回调地址）',
+        howto: '备案流程：校内信息门户 → 办事大厅 → 搜「统一身份认证应用备案申请」→ 在线提交（仅面向在校职工）；审批后计算中心发《技术文档》。',
+        hint: '本地联调可设 IAAA_MOCK=1（回调 token 直接当学号）；配置自检跑 `node deploy/doctor.mjs`',
       });
     }
-    return res.redirect(`${AUTH_URL}?appID=${encodeURIComponent(APP_ID)}&redirectURI=${encodeURIComponent(REDIRECT_URI)}`);
+    // ⚠ 参数名按**公开实证**：`appID` ＋ `appName` ＋ `redirectUrl`（不是 redirectURI）
+    return res.redirect(`${AUTH_URL}?appID=${encodeURIComponent(APP_ID)}`
+      + `&appName=${encodeURIComponent(APP_NAME)}&redirectUrl=${encodeURIComponent(REDIRECT_URI)}`);
   });
 
   router.get('/callback', async (req, res) => {

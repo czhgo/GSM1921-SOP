@@ -37,6 +37,7 @@ const INCLUDE = [
   'server/server.js', 'server/app.js', 'server/db.js', 'server/env.js', 'server/seed.js',
   'server/seed-baseline.js', 'server/system-notice-kinds.js', 'server/package.json', 'server/package-lock.json',
   'server/routes', 'server/services', 'server/scripts',
+  'deploy',                       // 部署脚本本身要进包（说明书里让运维跑 `deploy/install.sh` / `doctor.mjs`）
   'README.md', 'README-server.md', 'LICENSE', 'CHANGELOG.md',
   'content/04_web_design/deploy', // 部署说明书（运维时需要就地查）
 ];
@@ -139,6 +140,101 @@ for (const f of files) {
   }
   fs.writeFileSync(dst, src);
   total += src.length;
+}
+
+// ── 包内说明书：**「种子包含什么 / 功能包含什么 / 三步部署」都从本包实际内容生成**（不手写，故不会过期）──
+//   2026-09-29 批次 272 新增（支书：「种子包含什么？功能包含什么？一定要尝试尽快部署好」）。
+{
+  const inStage = (rel) => path.join(stage, rel.split('/').join(path.sep));
+  const ls = (rel) => (fs.existsSync(inStage(rel)) ? fs.readdirSync(inStage(rel)) : []);
+  const pages = ls('docs').filter((f) => f.endsWith('.html'));
+  const works = ls('docs/workspace').filter((f) => f.endsWith('.html'));
+  const caps = ls('docs/src/capabilities').filter((f) => f.endsWith('.js'));
+  const manif = fs.existsSync(inStage('docs/src/workflow/blocks/manifests.js'))
+    ? fs.readFileSync(inStage('docs/src/workflow/blocks/manifests.js'), 'utf8') : '';
+  const blocks = [...manif.matchAll(/blockId:\s*'([^']+)'/g)].map((m) => m[1]);
+  const md = `# 发布包说明书（由 deploy/package.mjs 自动生成 · ${new Date().toISOString().slice(0, 16).replace('T', ' ')}）
+
+> 这一份是给**部署的人**看的：三条命令跑起来；下面「包含什么 / 种什么」**都是从本包实际内容数出来的**，
+> 不是手写的清单，所以永远和包里一致。
+
+## 一、三步部署（逐条复制执行）
+
+\`\`\`bash
+# ① 装依赖（目标机需能访问 npm 源；无外网时改用 --with-deps 打出来的包，跳过本条）
+cd server && npm ci --omit=dev
+
+# ② 配环境变量：把 deploy/env.production.example 复制成 /etc/gsm1921.env，
+#    至少改 LOGIN_PASSWORD（**必改**：生产未设 ⇒ 服务启动即拒）；IAAA 可选（见第四节）
+cp deploy/env.production.example /etc/gsm1921.env && vi /etc/gsm1921.env
+
+# ③ 一键装（建服务账号 + systemd + 每日备份 + 冒烟）；只想先试跑就用 npm start
+sudo bash deploy/install.sh
+\`\`\`
+
+装完/起服务后的两条自检：
+
+\`\`\`bash
+node deploy/doctor.mjs --env /etc/gsm1921.env        # 部署自检 + 「下一步做什么」
+node deploy/smoke.mjs --login <党委账号学号> <口令>   # 冒烟（存活 + 登录 + 读本人）
+\`\`\`
+
+## 二、这个包**包含**什么（实测自本包内容）
+
+| 项 | 数量 | 明细 |
+|---|---|---|
+| 静态页（根级） | **${pages.length}** | ${pages.join(' · ')} |
+| 角色工作台页 | **${works.length}** | ${works.join(' · ')} |
+| 能力声明件 | **${caps.length}** | ${caps.join(' · ')} |
+| 工作流块（blockId） | **${blocks.length}** | ${blocks.join(' · ')} |
+| 部署脚本 | 7 | \`package.mjs\`（打包）· \`smoke.mjs\`（冒烟）· \`doctor.mjs\`（自检）· \`install.sh\`（Linux 一键）· \`install.ps1\`（Windows 一键）· \`update.sh\`（一键更新）· \`nginx.sample.conf\` |
+
+**这个包**不含**（刻意排除，\`package.mjs\` 里有断言把关）**：测试件（\`server/test\`）· Playwright 浏览器（\`server/.browsers\`，543 MB）· 库文件（\`data.db\`）· 附件（\`uploads/\`）· 备份（\`backups/\`）· **任何成员名单**（见第五节）。
+
+## 三、首启会**种**什么（空库首启自动建立；**零成员名单**）
+
+- **党委账号 1 名** —— 角色 \`party-staff\`（党委组织员，组织级、不属于任何支部）。学号缺省 \`9000000001\`，可用环境变量 \`BASELINE_PARTY_STAFF_ID\` 指定。
+- **支部 1 个** —— **光华管理学院本科生党支部**（id \`br-b1\`；\`config\` 为空组织模板口径＝模块/块/分工全按默认；**支书席位空缺待任命**）。
+- **其余业务表全空** —— 成员请走「IAAA 登录 + 支部确认」（见第四节），或党委台「支部管理 → 导入成员名册」。
+- 幂等：已有数据时**什么都不做**；重复启动不会覆盖你改过的支部名/配置。
+
+> 这是「组织基线」，与**演示种子**（50 人名单 + 活动/考勤等，仅用于本地测试与演示）是两件事：
+> 生产形态**默认不播演示种子**，也不会把它们打进这个包。
+
+## 四、IAAA 统一身份认证（可选；不开也不影响用口令登录）
+
+开了之后的链路：**IAAA 认人 → 有号则登录 / 无号则自动建号 → 选支部 → 支部确认**。
+
+**怎么开通**（公开流程，可自助办）：
+1. 由**在校职工**（老师/党务老师）登录 <https://portal.pku.edu.cn/> →「办事大厅」→ 搜「**统一身份认证应用备案申请**」→ 在线填写并提交审批（**线上办理，无需纸质材料，无需跑计算中心**；⚠ 该集成服务**仅面向在校职工**）。
+2. 审批通过后，**计算中心会发《技术文档》**并沟通细节。
+3. 把《技术文档》里的 \`appID\` 填进环境变量 \`IAAA_APP_ID\`；把你在备案里登记的回调地址填进 \`IAAA_REDIRECT_URI\`
+   （形如 \`https://<你的域名>/api/v1/auth/iaaa/callback\`，**两端必须逐字一致**，否则 IAAA 会拒绝跳回）。
+
+**不想等备案先试**：设 \`IAAA_MOCK=1\`（回调的 token 直接当学号），全链可在本机跑通。
+**要改代码吗**：只有 \`server/routes/iaaa.js\` **开头那 5 行**（授权页/校验 URL/appID/回调）＋（若《技术文档》字段名不同）
+函数 \`_verifyWithIaaa()\` 里标了 \`← 可能要改\` 的两行 —— 全文件其余部分不用动。
+
+## 五、名单不出包（**这个包不含任何成员名单**）
+
+- 打包时已把 \`docs/src/data/mock/people.js\`（演示名册）与 \`accounts.js\`（学号+口令）**空壳化**，
+  并把其余文本件里的姓名**替换为占位**；
+- 出包前有**两道断言**：路径黑名单 **0** 命中、姓名/口令泄露 **0** 命中 —— 任一非 0 就**拒绝出包**；
+- 所以：**这个包里没有真名、没有学号、没有口令**。
+
+## 六、常见故障
+
+| 现象 | 原因 / 怎么办 |
+|---|---|
+| 启动打印 \`⛔ 启动被拒：…必须显式设置 LOGIN_PASSWORD\` | **这是故意的**：生产形态未设口令就拒启动。设 \`LOGIN_PASSWORD\` 后重启 |
+| 页面能开但数据空 | 正常：首启只有「党委 + 一个支部」，没有任何成员与业务数据 |
+| 大图上传失败 / 413 | 反代请求体上限要 **≥ 10m**（\`client_max_body_size 10m\`，见 \`deploy/nginx.sample.conf\`） |
+| 「关于」页显示成静态形态 | 反代把 \`/src/config/deploy.js\` 当静态文件了 —— 必须**单独放行到 Node**（同上文件里已写明） |
+| 想用「统一身份认证登录」 | ⚠ **前端入口尚未做**（后端链路已就绪）：先用**口令登录**（党委账号 + \`LOGIN_PASSWORD\`）；IAAA 可先照第四节去备案，前端入口随后补上 |
+| 忘记党委账号学号 | 看启动日志第一段「已建立最小组织基线…学号 …」，或用 \`BASELINE_PARTY_STAFF_ID\` 重建 |
+`;
+  fs.writeFileSync(inStage('DEPLOY.md'), md);
+  console.log(`[package]    包内已生成 DEPLOY.md（静态页 ${pages.length} · 工作台 ${works.length} · 能力 ${caps.length} · 块 ${blocks.length}）`);
 }
 
 // ── 断言②（**名单不泄露**）：消毒后再扫一遍，任何文本文件都不得残留名册姓名；账号类文件不得残留演示口令 ──
