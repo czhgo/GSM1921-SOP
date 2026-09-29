@@ -2,20 +2,20 @@
 // ws-visitor-entry.js — 参与者工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929y';
-import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929y';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929y';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929y';
-import { NoticeStore } from '../../services/governance/notice.js?v=20260929y';
-import { SignupStore } from '../../services/activity/signup.js?v=20260929y';
-import { AuthStore } from '../../services/core/auth.js?v=20260929y';
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260929y';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929z';
+import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929z';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929z';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929z';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260929z';
+import { SignupStore } from '../../services/activity/signup.js?v=20260929z';
+import { AuthStore } from '../../services/core/auth.js?v=20260929z';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260929z';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20260929y';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20260929z';
 // 副作用导入触发参与者工作台能力注册（tab 清单）
-import '../../capabilities/visitor-workspace.js?v=20260929y';
+import '../../capabilities/visitor-workspace.js?v=20260929z';
 
 await createWorkspaceShell({
   accentRole: 'participant',

@@ -618,6 +618,13 @@ li + li { margin-top: 0.25em; }
 | Normal | `.btn` | `40px` | `10px 20px` | `0.875rem` |
 | Compact | `.btn--sm` | `36px` | `8px 14px` | `0.8125rem` |
 
+#### 唯一入口（可机检口径）
+
+> **全站按钮一律走上表 `.btn` 体系**（四变体 ＋ 两尺寸档）；**禁止**在 `<button>` 上自组外观（如 `px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100` 这类散装工具类拼装）。
+> **机检判据**：凡 `<button …>` 起首标签的 `class` **不含 `btn`** 即判红。**例外**（不判）：① 纯文字 / 纯图标动作且语义为**导航**（如「全部 ›」「查看全部」）；② `<summary>` 折叠头（归 `§4.19`）；③ `sr-only` 等隐藏语义按钮。
+> **理由**：**同形不同源**是全站按钮漂移的唯一入口。批次 287 支书裁定：「如果是 button 我要求**所有的界面**都统一！」
+> **现状与执行**：全站 `<button>` 共 **316** 个未走 `.btn` 体系（批次 287 实测；早前口径误记 101＝`grep head_limit` 截断所致，**已更正**）；越轨逐文件台账由守卫 `button-system-guard` 打印；归位分批——**先「成员流动 / 首页 / 登录页」三屏，再铺开**；守卫为**棘轮**，每批归位后**必须同步下调上限**。
+
 > CSS 实现见 `docs/src/styles.css`。**装饰性禁令**：禁止 `linear-gradient`（纯色优于渐变）、`box-shadow`（扁平化不需要）、`transform: translateY(-Npx)`（上浮效果违反扁平原则）、`transform: scale()` 过大值（缩放反馈过于花哨）。**功能性允许**：`transform: scale(1.02)` 等微交互反馈、`transform` 用于 SVG 动画绘制（如 stroke-dashoffset 渐进绘制）。区分标准：transform 不得用于"装饰性动画"（如装饰性弹跳、缩放重影），但允许用于"功能性反馈"（如按钮点击微缩、SVG 动画绘制方向）。
 
 ### 4.2 卡片（Card）
