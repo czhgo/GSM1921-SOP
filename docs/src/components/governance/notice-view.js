@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20260929t';
-import { openFormModal } from '../ui/modal.js?v=20260929t';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929t';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929t';
-import { AuthStore } from '../../services/core/auth.js?v=20260929t';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929t';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929t';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929t';
+import { badgeHtml } from '../ui/badges.js?v=20260929u';
+import { openFormModal } from '../ui/modal.js?v=20260929u';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20260929u';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929u';
+import { AuthStore } from '../../services/core/auth.js?v=20260929u';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260929u';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260929u';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260929u';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -101,12 +101,21 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     </div>`;
 
   // ── 同类：按「类」（通知标题）归并为一条，就地可展开 ──
+  // 批次 284（支书评议：「summary 在提示的维度，这个UI设计很失败！」）：
+  //   原设计＝纯灰文字 `待办催办 · 3 条`，**看不出可点、可展开**，读起来像又一条通知 ⇒ **affordance 失败**。
+  //   改＝**明确的控件形态**：描边容器 ＋ 计数徽章（`badgeHtml`，与全站徽章同源）
+  //   ＋ 右侧「展开 ›」文字提示 ＋ hover 反馈；**保留原生 <details> 三角**（不隐藏 ⇒ 双三角会重复）。
+  //   ⚠ 仍**不写「置顶」二字**（沿批次 280 支书裁定）。
   let summaryHtml = '';
   if (byClassList.length) {
-    summaryHtml = `<div class="space-y-1 pb-2 mb-1 border-b border-gray-100">${byClassList.map(([label, list]) => `
-      <details class="text-xs">
-        <summary class="cursor-pointer text-gray-600 hover:text-gray-800 select-none">${label} · ${list.length} 条</summary>
-        <div class="mt-1">${list.map(rowHtml).join('')}</div>
+    summaryHtml = `<div class="space-y-1.5 pb-2.5 mb-1.5 border-b border-gray-100">${byClassList.map(([label, list]) => `
+      <details class="rounded-lg border border-gray-200 bg-white">
+        <summary class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs text-gray-700 hover:bg-gray-50 transition-colors">
+          <span class="font-medium text-gray-800">${label}</span>
+          ${badgeHtml(`${list.length} 条`, 'info')}
+          <span class="ml-auto text-gray-500">展开 ›</span>
+        </summary>
+        <div class="px-1">${list.map(rowHtml).join('')}</div>
       </details>`).join('')}</div>`;
   }
 

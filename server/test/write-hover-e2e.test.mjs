@@ -41,7 +41,7 @@ test('写入向导 Step1：hover 色块不进入，click 色块（非文字按�
       page.click('button[type="submit"]'),
     ]);
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929t')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929u')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
     // 切活动管理 tab → 打开写入面板（Step1 模板选择）
     await page.waitForFunction(() => {

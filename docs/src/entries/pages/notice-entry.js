@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // notice-entry.js — 通知详情独立入口
 // 2026-07-30: 增加邮件要素（通知者/被通知者/时间），但不采用邮箱 UI
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929t';
-import { renderHeader } from '../../components/shell/header.js?v=20260929t';
-import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20260929t';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20260929t';
-import { AuthStore } from '../../services/core/auth.js?v=20260929t';
-import { getPersonById } from '../../services/member/person.js?v=20260929t';
-import { badgeHtml } from '../../components/ui/badges.js?v=20260929t';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929u';
+import { renderHeader } from '../../components/shell/header.js?v=20260929u';
+import { NoticeStore, resolveNoticeUrl, canReadNotice } from '../../services/governance/notice.js?v=20260929u';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20260929u';
+import { AuthStore } from '../../services/core/auth.js?v=20260929u';
+import { getPersonById } from '../../services/member/person.js?v=20260929u';
+import { badgeHtml } from '../../components/ui/badges.js?v=20260929u';
 // S1（2026-09-12）：通知详情页必须先完成数据 hydrate（loadDB/API init）再按 id 取数，
 // 否则 NoticeStore 只剩 MOCK_NOTICES 内存兜底 → 用户/服务端通知一律「不存在或已过期」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20260929t';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20260929t';
-import { BranchService } from '../../services/core/runtime.js?v=20260929t';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20260929u';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260929u';
+import { BranchService } from '../../services/core/runtime.js?v=20260929u';
 // SOP-B-5（D-293）：通知确认时填「能否线上参会」——线上参会落该场考勤为「请假 + 线上」、只免补课
-import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20260929t';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929t';
+import { declareOnlineAttend } from '../../services/activity/attendance.js?v=20260929u';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929u';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
