@@ -2,14 +2,14 @@
 // ws-prop-commissioner-entry.js — 宣传委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929r';
-import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929r';
-import { flashHighlight } from '../../core/base/utils.js?v=20260929r';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929r';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929r';
-import { seedTodos } from '../../services/governance/todo.js?v=20260929r';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929s';
+import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929s';
+import { flashHighlight } from '../../core/base/utils.js?v=20260929s';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929s';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929s';
+import { seedTodos } from '../../services/governance/todo.js?v=20260929s';
 // 副作用导入触发宣传委员工作台能力注册（tab 清单）
-import '../../capabilities/prop-workspace.js?v=20260929r';
+import '../../capabilities/prop-workspace.js?v=20260929s';
 
 await createWorkspaceShell({
   accentRole: 'prop-commissioner',

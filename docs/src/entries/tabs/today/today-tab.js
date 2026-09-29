@@ -12,20 +12,20 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260929r';
-import { icon } from '../../../core/base/icons.js?v=20260929r';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260929r';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260929s';
+import { icon } from '../../../core/base/icons.js?v=20260929s';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260929s';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260929r';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260929r';
-import { mockDB } from '../../../core/domain/domain.js?v=20260929r';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260929r'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260929r'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260929r'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260929r'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260929s';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260929s';
+import { mockDB } from '../../../core/domain/domain.js?v=20260929s';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260929s'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260929s'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260929s'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260929s'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260929r';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260929s';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -364,13 +364,16 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     const body = total === 0 ? _allEmptyHtml(activityEntry) : `
       <div class="card rounded-xl p-5">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-5">
-          <section class="lg:col-span-2 min-w-0">${_meetingBlock(summary)}</section>
-          <div class="lg:col-span-1 min-w-0 space-y-5">
+          <!-- 2026-09-29 批次 283（支书评议：「这个左右有点不平衡。今日有会我觉得是少数，代办倒是多数！！」）：
+                **待办族占主位（左 · 2/3）**、「今天有会」退为辅列（右 · 1/3）——
+                视觉权重须与信息量一致，勿让少数派占主位。 -->
+           <div class="lg:col-span-2 min-w-0 space-y-5">
             ${_dueBlock(summary)}
             ${_todoSummaryBlock(summary)}
             ${_dutyBlock(summary)}
             ${activityEntry}
           </div>
+          <section class="lg:col-span-1 min-w-0">${_meetingBlock(summary)}</section>
         </div>
       </div>`;
 
