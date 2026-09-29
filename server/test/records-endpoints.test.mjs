@@ -61,44 +61,60 @@ async function freshClient(personId) {
 
 // ── ① 三委数据交接 ────────────────────────────────────────────────
 test('T1-① handoffs：发起 → 新客户端（清缓存等价）待接收条数一致；接收方确认后状态落库', async () => {
-  const disc = await freshClient('p10'); // 纪检委员＝发起方（attendance-archival 的 from）
-  const org = await freshClient('p11');  // 组织委员＝接收方（to）
+  // ⚠ 2026-09-29 批次 295（支书裁「**需要自动交接的 都要实现自动交接才对！不需要额外费口舌**」）：
+  //   **数据交接类**（`attendance-archival` / `inspection-report`，见 `handoff.js::AUTO_CONFIRM_TYPES`）
+  //   服务端**发起即 `done`** ⇒ 本条改用**仍是 `pending`** 的 `material-shortage`
+  //   （「补课需求回执」＝**待办**类：要纪检去补课，不是收下存档）来验「服务端为权威 ＋ 接收方可确认」这条机制本身。
+  const org = await freshClient('p11');  // 组织委员＝发起方（material-shortage 的 from）
+  const disc = await freshClient('p10'); // 纪检委员＝接收方（to）
 
-  const create = await disc.post('/api/v1/handoffs', {
-    type: 'attendance-archival', refType: 'attendance', refLabel: '考勤统计', refId: 'attendance', note: 'T1 验收',
+  const create = await org.post('/api/v1/handoffs', {
+    type: 'material-shortage', refType: 'activity', refLabel: '补课需求回执', refId: 'act-t1', note: 'T1 验收',
   });
   assert.equal(create.status, 201, JSON.stringify(await create.clone().json()));
   const created = await create.json();
   assert.equal(created.status, 'pending');
-  assert.equal(created.from, 'disc-commissioner', 'from 由 type 派生（不采信客户端自述）');
-  assert.equal(created.to, 'org-commissioner', 'to 由 type 派生');
+  assert.equal(created.from, 'org-commissioner', 'from 由 type 派生（不采信客户端自述）');
+  assert.equal(created.to, 'disc-commissioner', 'to 由 type 派生');
 
-  const beforeClear = await org.get('/api/v1/handoffs?status=pending');
-  // ⚠ 2026-09-25 批次 189：本表**已有服务端种子**（`server/seed.js::SEED_HANDOFFS` 的 `ho-seed-1`，
-  //   纪检→组织、status=pending）⇒ 判据由「＝1（当时该表为空）」改准为「＝**种子 1 条 ＋ 本次发起 1 条**」。
-  //   这不是放宽：原来是拿「表为空」当隐含前提，现在把种子条数**显式写进判据**（种子变了即红）。
-  const SEEDED_PENDING_TO_ORG = 1; // `ho-seed-1`
-  assert.equal(beforeClear.filter((h) => h.to === 'org-commissioner').length, SEEDED_PENDING_TO_ORG + 1,
-    `待接收条数＝服务端种子 ${SEEDED_PENDING_TO_ORG} 条（ho-seed-1）＋ 本次发起 1 条`);
+  const beforeClear = await disc.get('/api/v1/handoffs?status=pending');
+  // 该侧**无种子待接收行**（`ho-seed-1` 是纪检→组织、`to='org-commissioner'`）⇒ 判据＝本次 1 条。
+  assert.equal(beforeClear.filter((h) => h.to === 'disc-commissioner').length, 1,
+    '纪检侧待接收＝本次发起 1 条（该侧无种子待接收行）');
 
   // 「清 localStorage 后重进」＝**再开一个全新客户端**重读（本机无任何本地队列/缓存）
-  const reopened = await freshClient('p11');
-  const afterClear = (await reopened.get('/api/v1/handoffs?status=pending')).filter((h) => h.to === 'org-commissioner');
-  assert.deepEqual(afterClear, beforeClear.filter((h) => h.to === 'org-commissioner'),
+  const reopened = await freshClient('p10');
+  const afterClear = (await reopened.get('/api/v1/handoffs?status=pending')).filter((h) => h.to === 'disc-commissioner');
+  assert.deepEqual(afterClear, beforeClear.filter((h) => h.to === 'disc-commissioner'),
     '清缓存前后「待接收」交接必须一致（服务端为权威）');
   // 判据「本次发起的那条仍在」按 id 命中（原写 `afterClear[0].id` 只在「该表当时仅此一行」时成立）
   assert.ok(afterClear.some((h) => h.id === created.id), '本次发起的交接在清缓存后仍可读（服务端为权威）');
 
   // 接收方确认 → 状态落库（再开新客户端复核，而非信本机内存）
-  const confirm = await org.post(`/api/v1/handoffs/${created.id}/confirm`);
+  const confirm = await disc.post(`/api/v1/handoffs/${created.id}/confirm`);
   assert.equal(confirm.status, 200);
   assert.equal((await confirm.json()).status, 'done');
-  const reopened2 = await freshClient('p11');
+  const reopened2 = await freshClient('p10');
   assert.equal((await reopened2.get('/api/v1/handoffs?status=pending')).filter((h) => h.id === created.id).length, 0,
-    '确认后本条不再计入待接收（同表内的种子待接收行不受影响）');
+    '确认后本条不再计入待接收');
   const all = await reopened2.get('/api/v1/handoffs');
   assert.equal(all.find((h) => h.id === created.id).status, 'done');
-  assert.equal(all.find((h) => h.id === created.id).confirmedBy, 'org-commissioner');
+  assert.equal(all.find((h) => h.id === created.id).confirmedBy, 'disc-commissioner');
+});
+
+test('T1-①b 数据交接**自动落定**：attendance-archival / inspection-report 服务端发起即 done（无人工确认，留痕仍在）', async () => {
+  const disc = await freshClient('p10'); // 纪检委员＝两类数据交接的发起方
+  const org = await freshClient('p11');  // 组织委员＝接收方
+  for (const [type, refId] of [['inspection-report', 'insp-t1b'], ['attendance-archival', 'att-t1b']]) {
+    const r = await disc.post('/api/v1/handoffs', { type, refType: type, refLabel: type, refId });
+    assert.equal(r.status, 201, `${type}: ${JSON.stringify(await r.clone().json())}`);
+    const row = await r.json();
+    assert.equal(row.status, 'done', `${type} 须发起即落定（2026-09-29 批次 295 支书裁）`);
+    assert.equal(row.confirmedBy, 'system');
+    assert.ok(row.confirmedAt, '留痕仍在（confirmedAt 非空）');
+    const pending = await org.get('/api/v1/handoffs?status=pending');
+    assert.equal(pending.filter((h) => h.id === row.id).length, 0, `${type} 自动落定者不得进「待接收」`);
+  }
 });
 
 test('T1-① 写门：非发起方角色发起 403；非接收方确认 403', async () => {
@@ -229,8 +245,8 @@ test('T1-⑤ 真机：api 形态写入后，清空本机存储的新客户端仍
     await page.evaluate(async () => {
       const t0 = Date.now();
       for (;;) {
-        const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260929z');
-        const { mockDB } = await import('/src/core/domain/domain.js?v=20260929z');
+        const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260930a');
+        const { mockDB } = await import('/src/core/domain/domain.js?v=20260930a');
         if (getRuntimeMode().source === 'api' && mockDB._loaded === true && mockDB.milestones !== undefined) return;
         if (Date.now() - t0 > 20000) throw new Error('[T1-⑤] 页面数据层未在 20s 内就绪');
         await new Promise((r) => setTimeout(r, 50));
@@ -240,34 +256,42 @@ test('T1-⑤ 真机：api 形态写入后，清空本机存储的新客户端仍
   };
 
   try {
-    // A：纪检委员 p10 在真页面里发起交接（api 形态 ⇒ 经语义端点落服务端）
-    const a = await openApiPage('p10');
+    // A：组织委员 p11 在真页面里发起交接（api 形态 ⇒ 经语义端点落服务端）
+    // ⚠ 2026-09-29 批次 295：本条改用 `material-shortage`（仍 pending 的**待办**类）——
+    //   数据交接两类（inspection-report / attendance-archival）已改**发起即落定**（见 `AUTO_CONFIRM_TYPES`），
+    //   不再有「待接收」可读；本条要验的「服务端为权威（清缓存仍可读）」用仍 pending 的类来证。
+    const a = await openApiPage('p11');
     const created = await a.page.evaluate(async () => {
-      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260929z');
+      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260930a');
       return HandoffStore.create({
-        type: 'inspection-report', refType: 'inspection', refLabel: '考察记录提交（T1 真机）', refId: 'inspection',
+        type: 'material-shortage', refType: 'activity', refLabel: '补课需求回执（T1 真机）', refId: 'act-t1-real',
       });
     });
     assert.ok(created && created.id, '真页面里应成功发起交接');
     await a.page.waitForTimeout(800); // 服务端同步（乐观写 + fire-and-forget）落库窗口
     const beforeClear = await a.page.evaluate(async () => {
-      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260929z');
-      return HandoffStore.pendingCount('org-commissioner');
+      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260930a');
+      return HandoffStore.pendingCount('disc-commissioner');
     });
     await a.ctx.close(); // ⇒ 本机存储随 context 一起消失（＝清 localStorage 后重进）
 
-    // B：全新客户端（本机无任何缓存）→ 组织委员 p11 读待接收
-    const b = await openApiPage('p11');
-    const afterClear = await b.page.evaluate(async (id) => {
-      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260929z');
-      return { count: HandoffStore.pendingCount('org-commissioner'), hasId: HandoffStore.listByRole('org-commissioner').some((h) => h.id === id) };
+    // B：全新客户端（本机无任何缓存）→ 纪检委员 p10 读待接收（⚠ 只是「读」，本页用完即关——
+    //   后半段的「成员变更待确认队列」必须仍以**组织委员 p11** 的会话报送，勿把两者混用一个 page）
+    const bRead = await openApiPage('p10');
+    const afterClear = await bRead.page.evaluate(async (id) => {
+      const { HandoffStore } = await import('/src/services/governance/handoff.js?v=20260930a');
+      return { count: HandoffStore.pendingCount('disc-commissioner'), hasId: HandoffStore.listByRole('disc-commissioner').some((h) => h.id === id) };
     }, created.id);
     assert.equal(afterClear.count, beforeClear, `清缓存前后「待接收」条数须一致（清空前 ${beforeClear}，清空后 ${afterClear.count}）`);
     assert.equal(afterClear.hasId, true, '清缓存后重进仍应看到刚发起的交接（服务端为权威）');
+    await bRead.ctx.close();
+
+    // 组织委员 p11 的会话（成员变更报送方＝组织委员）
+    const b = await openApiPage('p11');
 
     // milestones：api 形态经服务端取（不再读静态文件），且与清空前一致
     const miles = await b.page.evaluate(async () => {
-      const { MilestoneStore } = await import('/src/services/governance/milestones.js?v=20260929z');
+      const { MilestoneStore } = await import('/src/services/governance/milestones.js?v=20260930a');
       return MilestoneStore.loadAll();
     });
     const fileRows = JSON.parse(readFileSync(new URL('../../docs/data/milestones.json', import.meta.url), 'utf8')).milestones;
@@ -275,7 +299,7 @@ test('T1-⑤ 真机：api 形态写入后，清空本机存储的新客户端仍
 
     // 待确认队列：同法（组织委员 p11 入队 → 换全新客户端以支书 p13 读）
     const enq = await b.page.evaluate(async () => {
-      const { submitMemberChange } = await import('/src/services/member/member-confirmation.js?v=20260929z');
+      const { submitMemberChange } = await import('/src/services/member/member-confirmation.js?v=20260930a');
       return submitMemberChange({ personId: 'p7', kind: 'residence', to: '滞留', note: 'T1 真机', by: 'p11' });
     });
     assert.equal(enq.ok, true, JSON.stringify(enq));
@@ -284,7 +308,7 @@ test('T1-⑤ 真机：api 形态写入后，清空本机存储的新客户端仍
 
     const c = await openApiPage('p13');
     const pend = await c.page.evaluate(async (id) => {
-      const { listPendingConfirmations } = await import('/src/services/member/member-confirmation.js?v=20260929z');
+      const { listPendingConfirmations } = await import('/src/services/member/member-confirmation.js?v=20260930a');
       return { has: listPendingConfirmations().some((r) => r.id === id), n: listPendingConfirmations().length };
     }, enq.request.id);
     assert.equal(pend.has, true, '清缓存后重进，支书仍应看到刚报送的待确认请求（服务端为权威）');
@@ -407,8 +431,8 @@ test('T2-⑥ 前端 init() 拉取：新客户端 init 后四域进 mockDB 缓存
   globalThis.localStorage = makeStorage();
   const token = await login('p13');
   globalThis.sessionStorage = makeStorage({ 'gsm1921-api-token': token });
-  const { setDataSource, init } = await import('../../docs/src/data/data-adapter.js?v=20260929z');
-  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20260929z');
+  const { setDataSource, init } = await import('../../docs/src/data/data-adapter.js?v=20260930a');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20260930a');
   setDataSource('api', { apiBaseUrl: base, authToken: token });
   await init();
   for (const k of ['attendanceAppeals', 'inspectionAppeals', 'issueUnread', 'authAudit']) {

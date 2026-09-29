@@ -16,10 +16,10 @@
 //     人维无论落在行（byPerson）还是列（byItem）都按同一页切片——转置只换视角，不换分页口径。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20260929z';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260930a';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20260929z';
+import { pagerHtml } from './pager.js?v=20260930a';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -50,6 +50,7 @@ function _stateOf(key) {
  * @param {string} [cfg.personUnit] 人维计数单位（缺省「人」）
  * @param {string} [cfg.emptyText] 空态文案
  * @param {string} [cfg.hintText] 列上限提示（缺省内置文案）
+ * @param {string} [cfg.headTitle] 首列表头悬浮说明（**非自明的图例**放这里，别再在表外加说明段——2026-09-29 批次 295）
  * @returns {{state:object}} 便于调用方读状态（如导出「所见即所得」）
  */
 export function renderRelationMatrix(host, cfg) {
@@ -95,9 +96,13 @@ export function renderRelationMatrix(host, cfg) {
       ${it.sub ? `<div class="text-[11px] text-gray-500">${esc(it.sub)}</div>` : ''}
     </td>`;
 
+  // 2026-09-29 批次 295（支书评议「**为什么每一列这么宽？这么写着不占地方吗？**」）：
+  //   根因＝`.data-table{width:100%}` ⇒ 列数少时每列被**拉伸填满**（格子只有徽标/「—」，信息量远小于列宽）。
+  //   修＝矩阵改挂 `.rm-table`（`.data-table.rm-table{width:auto}` ＋ 横向内边距收窄 ⇒ **列按内容定宽**）。
+  const headAttr = cfg.headTitle ? ` title="${esc(cfg.headTitle)}"` : '';
   const headRow = byPerson
-    ? `<th class="sticky left-0">${esc(cfg.personLabel || '姓名')}</th>${cols.map(itemTh).join('')}`
-    : `<th class="sticky left-0 align-top">${esc(cfg.itemLabel || '项目')}</th>${pagePersons.map(p => `<th class="text-center whitespace-nowrap">${esc(p.name)}</th>`).join('')}`;
+    ? `<th class="sticky left-0"${headAttr}>${esc(cfg.personLabel || '姓名')}</th>${cols.map(itemTh).join('')}`
+    : `<th class="sticky left-0 align-top"${headAttr}>${esc(cfg.itemLabel || '项目')}</th>${pagePersons.map(p => `<th class="text-center whitespace-nowrap">${esc(p.name)}</th>`).join('')}`;
 
   const body = byPerson
     ? pagePersons.map(p => `<tr>
@@ -126,7 +131,7 @@ export function renderRelationMatrix(host, cfg) {
           </button>` : ''}
         </div>` : ''}
       <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
-        <table class="data-table">
+        <table class="data-table rm-table">
           <thead><tr>${headRow}</tr></thead>
           <tbody>${body || empty}</tbody>
         </table>

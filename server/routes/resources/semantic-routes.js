@@ -6,7 +6,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
-import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../../docs/src/services/governance/handoff.js';
+import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../../docs/src/services/governance/handoff.js';
 import { BRANCH_COMMISSION_ROLES } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
@@ -163,6 +163,13 @@ export function registerExtraSemanticRoutes(router, db) {
     if (req.actor.role !== meta.from) return res.status(403).json({ error: '无权限：本类数据交接须由发起方角色发起' });
     const id = body.id ? String(body.id) : `ho-${randomUUID().slice(0, 8)}`;
     if (db.prepare('SELECT id FROM handoffs WHERE id = ?').get(id)) return res.status(409).json({ error: '该交接 id 已存在' });
+    // 2026-09-29 批次 295（支书裁「**需要自动交接的 都要实现自动交接才对！不需要额外费口舌**」）：
+    //   **数据交接类**（考勤统计 / 考察记录提交，见 `AUTO_CONFIRM_TYPES`）**发起即落定**——
+    //   与前端 mock 形态同源（同一份 `AUTO_CONFIRM_TYPES`，不得各写一份）；
+    //   留痕仍在（`confirmedAt` ＝ 发起时刻、`confirmedBy: 'system'`）。
+    //   `material-shortage`（补课需求回执）是**待办**（要纪检去补课、不是收下存档）⇒ 仍 `pending`。
+    const auto = AUTO_CONFIRM_TYPES.includes(body.type);
+    const now = new Date().toISOString();
     const row = {
       id,
       type: body.type,
@@ -172,10 +179,10 @@ export function registerExtraSemanticRoutes(router, db) {
       refLabel: String(body.refLabel || ''),
       refId: String(body.refId || ''),
       note: typeof body.note === 'string' ? body.note : '',
-      status: 'pending',
-      createdAt: body.createdAt || new Date().toISOString(),
-      confirmedAt: null,
-      confirmedBy: null,
+      status: auto ? 'done' : 'pending',
+      createdAt: body.createdAt || now,
+      confirmedAt: auto ? now : null,
+      confirmedBy: auto ? 'system' : null,
     };
     writeRow(db, 'handoffs', row);
     res.status(201).json(row);

@@ -6,21 +6,21 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20260929z';
-import { generateId } from '../../../core/base/id.js?v=20260929z';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260929z';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260929z';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260929z';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260929z';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260929z';
-import { PersonStore } from '../../../services/member/person.js?v=20260929z';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260929z';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260929z';
-import { openFormModal } from '../../../components/ui/modal.js?v=20260929z';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260929z';
+import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20260930a';
+import { generateId } from '../../../core/base/id.js?v=20260930a';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930a';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260930a';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930a';
+import { PersonStore } from '../../../services/member/person.js?v=20260930a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930a';
+import { openFormModal } from '../../../components/ui/modal.js?v=20260930a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930a';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260929z';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930a';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -151,30 +151,17 @@ export const { renderContent } = createTodoTab({
     await preloadMemberChangeRequests();
   },
   // 2026-09-08 裁决批一（D3/D6）：org 无队列顶卡（member 审批卡/交接箱移除）——
-  // 仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）；交接确认=「考察」域折组行内「确认接收」
-  // B6②（2026-09-12）：指路改为「有 pending 才显示且可点」——旧实现常驻指路指向不存在的域折组；
-  //   现按 HandoffStore 待接收的 inspection-report 交接动态渲染，点击滚动高亮该域折组行。
-  extraTopHtml: () => {
-    const pending = HandoffStore.listByRole('org-commissioner').filter(h => h.type === 'inspection-report');
-    const guide = pending.length > 0
-      ? `<button type="button" id="org-handoff-guide" class="text-[13px] text-left text-blue-700 hover:text-blue-900 underline decoration-dotted truncate" style="cursor:pointer;">有 ${pending.length} 条考察记录待接收 —— 到「考察」域折组行内点「确认接收」→</button>`
-      : `<span class="text-[11px] text-gray-500 truncate">暂无待接收的考察记录（纪检提交后此处给出指路）</span>`;
-    return `
+  // 仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
+  // 2026-09-29 批次 295（支书裁「**需要自动交接的 都要实现自动交接才对！不需要额外费口舌**」）：
+  //   考察/考勤两类数据交接**发起即落定**（见 services/governance/handoff.js::AUTO_CONFIRM_TYPES）
+  //   ⇒ 本条**不再有**「有待接收 —— 去点确认接收」的指路、也不再写「纪检提交后此处给出指路」那类空态解释
+  //   （那两段都是**替界面说话**）；本条只剩它真正的职责：**补课材料缺失 → 通知纪检**。
+  extraTopHtml: () => `
     <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
-      <div class="flex flex-col gap-0.5 min-w-0">
-        <span class="font-title-cn text-sm font-bold text-gray-800 flex-shrink-0">数据交接·考察建档</span>
-        ${guide}
-      </div>
-      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">标记补课材料缺失（通知纪检）</button>
-    </div>`;
-  },
+      <span class="font-title-cn text-sm font-bold text-gray-800">补课材料缺失</span>
+      <button id="org-shortage-btn" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors flex-shrink-0" style="cursor:pointer;">通知纪检</button>
+    </div>`,
   bindExtras: (container, ctx) => {
-    // B6②：指路可点 → 滚动定位并高亮「考察」域折组（handoff-inspection-report）
-    container.querySelector('#org-handoff-guide')?.addEventListener('click', () => {
-      const row = container.querySelector('[data-group-key="org-commissioner:handoff-inspection-report"]');
-      if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashHighlight(row); }
-      else showToast('info', '未找到「考察」域折组，请稍后重试');
-    });
     // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）
     bindMcBulk(container, { mode: 'org-approve', onDone: () => renderContent(ctx) });
     // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制；

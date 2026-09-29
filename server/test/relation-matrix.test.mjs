@@ -109,6 +109,10 @@ test('S5 人维分页不得被调用点私自关掉（rowLimit: 0 须登记备�
 // S6（2026-09-14 批次 41，Q-23-18 余项收口）
 // 支书裁定四项口径：cell＝状态优先 + 篇数小字 / 行＝支部全体在册成员 / 列＝最近 6 期 + 一键展开 /
 //   宽表替「按人浏览」、保留「待初阅队列」。
+// ⚠ **2026-09-29 批次 295 改裁（支书评「每一列这么宽…没有更高效的展示视图嘛」⇒ 选「紧凑化」）**：
+//   cell 由「**徽标 + 篇数小字**」改为 **状态小色块（2.5×2.5 圆点）**，篇数与状态全文进 `title` 悬浮；
+//   并给矩阵加 `.rm-table`（列**按内容定宽**、不拉伸）。⇒ 上句「篇数小字」这一半**已被本批改裁**，
+//   本文件的相关断言已随之改准（真机仍守「有可下钻链接 ＋ 未提交者显「—」」两条不变量）。
 // 判据用**语义标记**（是否接入单一源 + 列维语义 + 期次排序来源 + 行维实时视图），并要求
 //   旧「按人分组 + 组内每篇一行」的自建列表**不得回潮**——该形态行数随篇数无限增长，
 //   正是支书「可能会无限增长的表格」病灶的矩阵版。
@@ -157,7 +161,7 @@ async function loginDisc() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929z')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -181,7 +185,7 @@ async function loginOrg() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929z')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }

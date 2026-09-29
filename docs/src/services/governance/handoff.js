@@ -8,11 +8,11 @@
 //  接收方确认 → 待办自动销项 + 状态落库，双向可追溯。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260929z';
-import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20260929z';
-import { bumpToken } from '../../core/base/version-token.js?v=20260929z'; // P0 域缓存失效（spec §二.3）
-import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260929z';
-import { generateId } from '../../core/base/id.js?v=20260929z';
+import { mockDB } from '../../core/domain/domain.js?v=20260930a';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20260930a';
+import { bumpToken } from '../../core/base/version-token.js?v=20260930a'; // P0 域缓存失效（spec §二.3）
+import { TodoStore, TodoCategory, TodoActionType, TodoSourceType } from './todo.js?v=20260930a';
+import { generateId } from '../../core/base/id.js?v=20260930a';
 
 // ── 2026-09-23 批次 163（T1）：api 形态补服务端对源 ─────────────────────────
 // 病灶：handoffs 有本地落盘（mock-adapter 域清单）却**不在**快照 payload / init 拉取列表 / 服务端资源名映射
@@ -54,6 +54,16 @@ export const HANDOFF_TYPES = {
   'material-shortage':   { from: 'org-commissioner',  to: 'disc-commissioner', label: '补课需求回执', domain: 'attendance' },
 };
 
+/**
+ * **自动落定**的交接类型（2026-09-29 批次 295 · 支书裁「**需要自动交接的 都要实现自动交接才对！
+ * 不需要额外费口舌**」）：
+ *   · 纪检 → 组织委员的两类**数据交接**（考勤统计 · 考察记录提交）＝**发起即完成**——
+ *     不再要求接收方点「确认接收」（**留痕仍在**：`createdAt` / `confirmedAt`（＝发起时刻）/
+ *     `confirmedBy: 'system'` / `auto: true`）。
+ *   · ⚠ `material-shortage` **不在此列**：它不是「交接（收下存档）」而是**待办**（要纪检去补课）⇒ 仍 `pending`。
+ */
+export const AUTO_CONFIRM_TYPES = ['attendance-archival', 'inspection-report'];
+
 export const HANDOFF_ROLE_LABELS = {
   'disc-commissioner': '纪检委员',
   'prop-commissioner': '宣传委员',
@@ -89,12 +99,15 @@ export const HandoffStore = {
   },
 
   /**
-   * 发起交接（写入 + 自动派生接收方待办）
+   * 发起交接（写入；**自动落定类**发起即 `done`，其余派生接收方待办）
    * @param {{type:string, refType:string, refLabel:string, refId:string, note?:string}} data
    */
   create({ type, refType, refLabel, refId, note = '' }) {
     const meta = HANDOFF_TYPES[type];
     if (!meta) return null;
+    // 2026-09-29 批次 295：**自动落定类**（见 AUTO_CONFIRM_TYPES）发起即 `done`——不再要人工「确认接收」。
+    const auto = AUTO_CONFIRM_TYPES.includes(type);
+    const at = new Date().toISOString();
     const handoff = {
       id: generateId('ho'),
       type,
@@ -104,10 +117,11 @@ export const HandoffStore = {
       refLabel: refLabel || '',
       refId: refId || '',
       note,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      confirmedAt: null,
-      confirmedBy: null,
+      status: auto ? 'done' : 'pending',
+      createdAt: at,
+      confirmedAt: auto ? at : null,
+      confirmedBy: auto ? 'system' : null,
+      auto,
     };
     _save([..._load(), handoff]);
     // T1：api 形态同发服务端语义端点（本地已乐观写入；服务端在下一次 init 成为权威）

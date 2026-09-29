@@ -7,12 +7,12 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260929z';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929z';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20260929z';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260929z';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20260929z';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260929z';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930a';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20260930a';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930a';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20260930a';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 

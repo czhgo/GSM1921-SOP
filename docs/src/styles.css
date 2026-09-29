@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260929z');
+@import url('components/person-picker.css?v=20260930a');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -874,6 +874,18 @@ html.theme-dark .accent-avatar {
 .data-table tbody tr:hover {
   background-color: var(--neutral-50);
 }
+/* ── 人×项目关系矩阵（relation-matrix）：列按内容定宽（2026-09-29 批次 295 · 支书评议「每一列为什么这么宽」）──
+   `.data-table` 基类 `width:100%` ⇒ 列数少时被拉伸填满；矩阵单元格信息量小（状态色块 / 「—」），
+   拉伸即「占地方」。此修饰类只做两件事：**不拉伸** ＋ **横向内边距收窄**（纵向 8px 不动 ⇒ 行高口径不变）。 */
+.data-table.rm-table {
+  width: auto;
+}
+.data-table.rm-table th,
+.data-table.rm-table td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
 .data-table td {
   padding: 8px 12px;
 }

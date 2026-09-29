@@ -2,18 +2,18 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20260929z';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929z';
-import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929z';
-import { flashHighlight } from '../../core/base/utils.js?v=20260929z';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929z';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929z';
-import { SignupStore } from '../../services/activity/signup.js?v=20260929z';
-import { seedTodos } from '../../services/governance/todo.js?v=20260929z';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260929z';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20260929z';
+import { getAppState, setState } from '../../core/base/state.js?v=20260930a';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260930a';
+import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260930a';
+import { flashHighlight } from '../../core/base/utils.js?v=20260930a';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930a';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930a';
+import { SignupStore } from '../../services/activity/signup.js?v=20260930a';
+import { seedTodos } from '../../services/governance/todo.js?v=20260930a';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930a';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20260930a';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20260929z';
+import '../../capabilities/org-workspace.js?v=20260930a';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

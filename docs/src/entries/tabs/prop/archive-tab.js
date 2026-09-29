@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20260929z';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260929z';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260929z';
+import { icon } from '../../../core/base/icons.js?v=20260930a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260930a';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260930a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260929z';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929z';
-import { mockDB } from '../../../core/domain/domain.js?v=20260929z';
-import { bumpToken } from '../../../core/base/version-token.js?v=20260929z'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, isGalleryFeatured } from '../../../services/activity/activity.js?v=20260929z';
-import { isApiMode } from '../../../services/core/runtime.js?v=20260929z';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929z';
-import { getPersonName } from '../../../services/member/person.js?v=20260929z';
-import { generateId } from '../../../core/base/id.js?v=20260929z';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260929z';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260930a';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930a';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20260930a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, isGalleryFeatured } from '../../../services/activity/activity.js?v=20260930a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20260930a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930a';
+import { getPersonName } from '../../../services/member/person.js?v=20260930a';
+import { generateId } from '../../../core/base/id.js?v=20260930a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260930a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260929z';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260930a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20260929z';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929z';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -109,16 +109,33 @@ export function renderContent(ctx) {
     </div>
   `;
 
-  // 活动风采收录 / 撤下（2026-09-29 批次 294；写口单一源 = services/activity/activity.js::setGalleryFeatured）
-  container.querySelector('#prop-gallery-list')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.gallery-feature-btn');
-    if (!btn) return;
-    const me = AuthStore.getCurrentUser() || {};
-    const res = setGalleryFeatured({ activityId: btn.dataset.activityId, on: btn.dataset.on !== 'true', by: me.personId, role: me.role });
-    if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
-    showToast('success', btn.dataset.on === 'true' ? '已从活动风采撤下' : '已收录到活动风采');
-    renderContent(ctx);
-  });
+  // 活动风采收录列表（**统一检索引擎**：行数达门槛即出检索条并分页——见 `page-sweep` P11；
+  // 写口单一源 = services/activity/activity.js::setGalleryFeatured）
+  const gHost = container.querySelector('#prop-gallery-list');
+  if (gHost) {
+    renderFilteredList(gHost, {
+      stateKey: 'prop-gallery-candidates',
+      rows: listGalleryCandidates(),
+      keyword: { keys: ['title', 'date'], placeholder: '搜索活动名称…' },
+      countUnit: '个',
+      listClass: 'space-y-2',
+      emptyMessage: '无可收录的活动',
+      // 已收录在前；组内按活动日期倒序
+      sort: (a, b) => ((isGalleryFeatured(b) ? 1 : 0) - (isGalleryFeatured(a) ? 1 : 0))
+        || String(b.date || '').localeCompare(String(a.date || '')),
+      rowHtml: _galleryRowHtml,
+    });
+    // 收录 / 撤下（容器委托；列表重绘后仍有效）
+    gHost.addEventListener('click', (e) => {
+      const btn = e.target.closest('.gallery-feature-btn');
+      if (!btn) return;
+      const me = AuthStore.getCurrentUser() || {};
+      const res = setGalleryFeatured({ activityId: btn.dataset.activityId, on: btn.dataset.on !== 'true', by: me.personId, role: me.role });
+      if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
+      showToast('success', btn.dataset.on === 'true' ? '已从活动风采撤下' : '已收录到活动风采');
+      renderContent(ctx);
+    });
+  }
 
   // 归档记录列表：统一检索引擎（关键词 活动名/材料名 + 分面 类别/状态；≤8 行自动不渲染检索条）
   renderFilteredList(container.querySelector('#archive-list'), {
@@ -297,18 +314,19 @@ function _renderGallerySection() {
   const all = listGalleryCandidates();
   if (!all.length) return '';
   const featured = all.filter(isGalleryFeatured);
-  const rows = [...featured, ...all.filter(a => !isGalleryFeatured(a))];
   return `
     <div class="mb-6">
       <div class="flex items-center gap-2 mb-1.5">
         <h4 class="text-sm font-bold text-gray-700">活动风采</h4>
         <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">已收录 ${featured.length} 项</span>
       </div>
-      <div class="space-y-2" id="prop-gallery-list">${rows.map(_galleryRowHtml).join('')}</div>
+      <div id="prop-gallery-list"></div>
     </div>`;
 }
 
-/** 收录行（收 / 撤一枚开关；判据单源见 _renderGallerySection） */
+/** 收录行（收 / 撤一枚开关；判据单源见 _renderGallerySection）
+ *  ⚠ 2026-09-29 批次 295：**减文案**（贴合 §4.18 C4 每屏文案/控件比）——去掉类型 chip、
+ *  「活动日期：」前缀、以及「已收录」徽标（**按钮已说**：是「撤下」就说明已收录 ⇒ UI 自明）。 */
 function _galleryRowHtml(a) {
   const on = isGalleryFeatured(a);
   const btnCls = on
@@ -316,13 +334,9 @@ function _galleryRowHtml(a) {
     : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
   return `
       <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3">
-        <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
-          <div class="flex items-center gap-2 mb-0.5">
-            <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
-            ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : ''}
-            ${on ? '<span class="text-xs px-1.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200 shrink-0">已收录</span>' : ''}
-          </div>
-          <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
+        <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="${escHtml(a.title || '未命名活动')}">
+          <div class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</div>
+          <span class="text-xs text-gray-500">${escHtml(a.date || '—')}</span>
         </a>
         <button type="button" class="gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
                 data-activity-id="${escHtml(a.id)}" data-on="${on ? 'true' : 'false'}">${on ? '撤下' : '收录到活动风采'}</button>

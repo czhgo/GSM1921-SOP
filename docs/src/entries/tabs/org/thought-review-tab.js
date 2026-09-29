@@ -10,18 +10,18 @@
 //  打回（事后反馈）、正文阅读均在该页完成，本 tab 不再行内展开。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20260929z';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20260929z';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929z';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260929z';
+import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20260930a';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20260930a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930a';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930a';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260929z';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930a';
 
 // ── 审阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（无状态 / 状态非法 / 旧 'pending' → 已入库）
 const STATUS_META = {
-  needs_revision: { label: '已打回·待补充', cls: 'bg-red-100 text-red-700' },
-  archived:       { label: '已入库', cls: 'bg-green-100 text-green-700' },
+  needs_revision: { label: '已打回·待补充', dot: 'bg-red-600' },
+  archived:       { label: '已入库', dot: 'bg-green-600' },
 };
 
 /** 状态优先级（同一人同一期次多篇时，cell 取最靠前者——就高不就低） */
@@ -47,9 +47,10 @@ function _syncViewBtns(container) {
   });
 }
 
-const _statusBadgeHtml = (status) => {
+/** 台账单元格＝**状态小色块**（2026-09-29 批次 295 紧凑化：格内不再放文字徽标，全文进 title——支书评「每一列这么宽」） */
+const _statusDotHtml = (status) => {
   const m = STATUS_META[status] || STATUS_META.archived;
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full font-medium ${m.cls}">${m.label}</span>`;
+  return `<span class="inline-block w-2.5 h-2.5 rounded-sm ${m.dot}"></span>`;
 };
 
 export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等共享只读配置；本 tab 不需消费）
@@ -85,7 +86,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
 
     container.innerHTML = `
       <div class="card rounded-xl p-5">
-        <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报台账（人 × 期次）</h3>
           <div class="flex items-center gap-2">
             <button type="button" class="tr-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200" data-trview="person">按人</button>
@@ -93,9 +94,6 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
             <span class="text-xs text-gray-500">${members.length} 人 · ${periods.length} 期</span>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mb-3">${_view === 'period'
-          ? '行＝期次（新→旧）；列＝支部在册成员（每页 10 人）；徽标＝该成员该期状态（已打回·待补充 ＞ 已入库），多篇时附「N 篇」；「—」＝该期未提交。点击进入阅读页。'
-          : '行＝支部在册成员（每页 10 人）；列＝期次（新→旧，最近 6 期，可一键展开）；徽标＝该期次状态（已打回·待补充 ＞ 已入库，就高不就低），多篇时附「N 篇」；「—」＝该期次未提交。点击进入阅读页（单篇直达该篇，多篇进按人视图）。'}本页是组织侧台账（人 × 期次矩阵）；成员本人的提交在成员台「思想汇报」。</p>
         <div id="tr-ledger-host"></div>
       </div>
     `;
@@ -111,9 +109,9 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
       itemLabel: '期次',
       personUnit: '人',
       emptyText: '暂无思想汇报记录',
-      hintText: _view === 'period'
-        ? '行＝期次（新→旧）；列＝支部在册成员（每页 10 人）；「—」＝该期未提交'
-        : '行＝支部在册成员（每页 10 人）；列＝期次（新→旧，最近 6 期）；「—」＝该期未提交',
+      // 2026-09-29 批次 295（支书评「啰嗦」⇒ 说明段**全删**）：行列结构由表头自明；
+      // 真正非自明的两条（状态取「就高不就低」· 点击去向）改落**表头悬浮 title**（见 headTitle）。
+      headTitle: '状态＝该期次汇总（已打回·待补充 ＞ 已入库，就高不就低）；点色块进入阅读页',
       cell: (personId, period) => {
         const arr = bucket.get(`${personId}|${period}`);
         if (!arr || !arr.length) return null; // 空 → 组件渲染「—」（漏交可见）
@@ -125,9 +123,7 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
           ? `thought-report.html?id=${latest.id}`
           : `thought-report.html?personId=${encodeURIComponent(personId)}`;
         const tip = `${STATUS_META[status].label}${n > 1 ? ` · 共 ${n} 篇` : ''}`;
-        return `<a href="${href}" class="inline-flex items-center gap-1 hover:opacity-80 transition-opacity" title="${esc(tip)}">
-            ${_statusBadgeHtml(status)}${n > 1 ? `<span class="text-[11px] text-gray-500">${n} 篇</span>` : ''}
-          </a>`;
+        return `<a href="${href}" class="inline-flex items-center hover:opacity-80 transition-opacity" title="${esc(tip)}">${_statusDotHtml(status)}</a>`;
       },
     });
 
