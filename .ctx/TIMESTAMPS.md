@@ -542,3 +542,5 @@ dynamic_role:
 | .ctx/audit/ | 2026-08-04 | 空目录删除 |
 | server/uploads/ | 2026-08-04 | 空目录删除（uploads.js 运行时自动重建） |
 | docs/src/services/handover.js | 2026-08-06 | T-224 废除数据交接 |
+| docs/assets/vendor/gsap.min.js | 2026-09-29 | **零引用死资产**：支书 2026-08-14 裁决「gsap 是最大的害群之马」后 `about.html` 已删其引用（页面改 CSS `animation-timeline: view()` + 原生滚动，`DESIGN_SYSTEM.md` 已立「规避 JS 动画库」口径）；全仓 grep `gsap` 仅剩该关闭注释与历史日志 ⇒ 删（**72,214 B**；批次 265） |
+| docs/assets/vendor/ScrollTrigger.min.js | 2026-09-29 | 同上（随 `gsap.min.js` 同批删；**43,380 B**；批次 265） |

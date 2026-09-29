@@ -21346,3 +21346,14 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **R-83 补刷（本会话前几批的欠账，一处不落）**：本轮把**因本会话编辑而应刷、却仍是旧日期**的 3 行补齐——`README.md`（批次 262 加 `import-path-guard` 入测试清单）· `server/package.json`（同批加该守卫入 `test:daily`）· `docs/src/entries/pages/settings-entry.js`（批次 262 修路径）⇒ 三行均由 `2026-09-28` 刷为 `2026-09-29`；另 `README-members.md` 由 `2026-09-27` 刷为 `2026-09-29`。**新文件 `server/test/import-path-guard.test.mjs` 无需单行**（`server/test/*.test.mjs` **通配行**已覆盖，其日期已为 `2026-09-29`）。
 - **验证**：`npm run test:daily` **650/650 / 0 红**（含 `doc-consistency::S13` ／ `frontmatter-freshness::F1` ／ `timestamps-note-guard::N1–N7`——**仅改日期与行内文字、未增删表行**）。本批**未改 `docs/src/**` / `server/**` 代码 ⇒ 不触发 bump 与收尾全量**。
 
+---
+
+## 批次 265（2026-09-29）：**清掉 `docs/assets/vendor/` 两件**零引用死资产**（113 KB）**（承支书历次口径「去冗余」；立 `H-17`）
+
+> **来源**：支书第 5 条「针对仓库健康！尤其是**代码健康**」＋ 历次口径「**去屎山、去冲突代码和冗余代码**」。起因＝批次 264 顺手核查 `docs/**` 的资产引用（CSS `url()` / `@import` 与 HTML `src` **全部存在、无死链**）时，**发现 vendor 目录里有两个谁都不引用的库文件**。
+
+- **取证（实读，非推断）**：① `docs/about.html:24-25` 是**已关闭的注释**，记「2026-08-14 T-249 规避 GSAP：…**已删除 gsap.min.js / ScrollTrigger.min.js vendor 引用**（支书裁决「**gsap 是最大的害群之马**」）」；② `content/04_web_design/design-system/DESIGN_SYSTEM.md` 已立「**规避 JS 动画库**」口径（改 **CSS `animation-timeline: view()` ＋ 原生滚动**）；③ **全仓 grep `gsap` / `ScrollTrigger`** 命中**仅**：该关闭注释 · `docs/src/about.css` 注释 · `.ctx/logs/**` 历史日志 · **文件自身** ⇒ **零引用**；④ `git ls-files docs/assets/vendor` 共 **4 件**：`gsap.min.js` **72,214 B** ＋ `ScrollTrigger.min.js` **43,380 B**（死）· `lenis.css` 513 B ＋ `lenis.min.js` 18,429 B（**`about.html:27-28` 在用、保留**）。
+- **处置**：**删那两件**（合计 **115,594 B ≈ 113 KB**）。**改前先证「无守卫会被它弄红」**：`hex-hardcode-guard` / `control-font-guard` / `small-text-guard` / `dead-selector-guard` / `text-tier-guard` / `copy-*` **一律 `SKIP_DIRS = ['vendor']`**、`version-stamp::S1–S7` **亦跳过 `assets`**、`localstorage-key-guard` 跳过 `assets`、`link-target-guard` 走 `docs` 时**排除 `assets`** ⇒ **没有任何守卫把 vendor 文件名当基线或清单**；`docs/assets/vendor/**` **也不在禁改清单**（禁改清单实读为 work-overview / inspector / mock-adapter / secretary overview-tab / styles.css / roster / vote-summary-panel 等**具体文件**）。
+- **记账（`R-83③`「已删除文件记录」是人工维护三块之一）**：`.ctx/TIMESTAMPS.md` 的 `## 已删除文件记录` 节**补 2 行墓碑抄录**（原路径 ＋ 删除日期 ＋ 原因 ＋ 字节数 ＋ 批次号）；`REVIEW_QUEUE` 立 **`H-17`**（`P3` · 已修）并**写明盲区**——`docs/assets/**` **没有「死资产」守卫**（`dead-selector-guard` 只管 **CSS 类**；`page-sweep` 只看页面渲染）⇒「库被弃用、vendor 副本留下」这一类**当时无人拦**（与 `H-15` / `H-16` 同族：**弃用只做到引用层、没做到资产层**）。
+- **验证**：`npm run test:daily` **650/650 / 0 红**（删文件后 `link-integrity` / `catalog-sync` / 诸守卫全绿 ⇒ 反证「无引用」）。本批**未改 `docs/src/**` / `server/**` ⇒ 不触发 bump 与收尾全量**。
+
