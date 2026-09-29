@@ -3,23 +3,23 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20260929g';
-import { getPersonById } from '../member/person.js?v=20260929g';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20260929g';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20260929g';
-import { listCapabilities } from '../../core/boot/registry.js?v=20260929g';
+import { mockDB } from '../../core/domain/domain.js?v=20260929h';
+import { getPersonById } from '../member/person.js?v=20260929h';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20260929h';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20260929h';
+import { listCapabilities } from '../../core/boot/registry.js?v=20260929h';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20260929g';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20260929h';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20260929g';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20260929h';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20260929g';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20260929h';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20260929g';
-import { randomHex } from '../../core/base/id.js?v=20260929g';
+import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20260929h';
+import { randomHex } from '../../core/base/id.js?v=20260929h';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/domain/constants.js?v=20260929g';
+import { isCoreTab } from '../../core/domain/constants.js?v=20260929h';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -151,6 +151,52 @@ export function getWorkflowBlockPolicy(blocks) {
 export function applyWorkflowBlockPolicy(defIds, blocks) {
   const { hidden, order } = getWorkflowBlockPolicy(blocks);
   return orderByIds(defIds.filter(id => !hidden.has(id)), order);
+}
+
+// ── ② 表单条目轴：块级「字段策略」（契约 §8.2，2026-09-29 批次 275）──────────────
+// config.blocks.workflowBlocks.fieldPolicies ＝ { [blockId]: { hiddenFieldIds, requiredOverrides } }
+// 读侧与 `getWorkflowBlockPolicy` **同族**（同取 config.blocks.workflowBlocks 段）；净化单一实现
+//   ＝ `services/branch/config-clean.js::cleanFieldPolicies`（勿在别处另写净化）。
+// 语义：支部可配面**只开两类**——字段启停 ＋ 必填覆盖；第三类（重命名/重排/新增）不开。
+
+/** 解析某块的字段策略：{ hidden:Set, requiredOverrides:Object }（纯；无配置=全开、维持 manifest 必填） */
+export function getWorkflowBlockFieldPolicy(blockId, blocks) {
+  const pol = blocks?.workflowBlocks?.fieldPolicies?.[blockId];
+  return {
+    hidden: new Set(Array.isArray(pol?.hiddenFieldIds) ? pol.hiddenFieldIds : []),
+    requiredOverrides: (pol?.requiredOverrides && typeof pol.requiredOverrides === 'object' && !Array.isArray(pol.requiredOverrides))
+      ? pol.requiredOverrides : {},
+  };
+}
+
+/**
+ * 按字段策略对齐一份 manifest 声明字段（纯）：过滤被隐藏项、按 requiredOverrides 覆盖必填。
+ * `carrier:'template-card'` 条目**本就不在 Step2 呈现**（由 Step1 模板卡承担），一律不进结果——
+ * 这正是 §8.2「声明 ↔ 实现不再有第三态」的落点。
+ * @param {Array} fields manifest.inputs.fields
+ * @param {string} blockId
+ * @param {Object|null} blocks config.blocks
+ */
+export function applyWorkflowBlockFieldPolicy(fields, blockId, blocks) {
+  const { hidden, requiredOverrides } = getWorkflowBlockFieldPolicy(blockId, blocks);
+  return (Array.isArray(fields) ? fields : [])
+    .filter((f) => f && f.carrier !== 'template-card' && !hidden.has(f.fieldId))
+    .map((f) => (Object.prototype.hasOwnProperty.call(requiredOverrides, f.fieldId)
+      ? { ...f, required: !!requiredOverrides[f.fieldId] } : f));
+}
+
+// ── ③ 参与人范围轴：块级「名单解析模式」（契约 §8.3，2026-09-29 批次 275）──────────
+// config.blocks.workflowBlocks.participantPolicies ＝ { [blockId]: { mode?, orgMode? } }
+// 读侧与字段策略同族；净化单一实现 ＝ `services/branch/config-clean.js::cleanParticipantPolicies`。
+// ⚠ 本轴**只配「解析模式」，具体人名一律不落 config**（§8.3）；缺省（无覆盖）= 取 manifest 声明。
+/** 解析某块的「名单解析模式」覆盖：{ mode?, orgMode? }（纯；无覆盖 ⇒ {}） */
+export function getWorkflowBlockParticipantPolicy(blockId, blocks) {
+  const pol = blocks?.workflowBlocks?.participantPolicies?.[blockId];
+  if (!pol || typeof pol !== 'object' || Array.isArray(pol)) return {};
+  const out = {};
+  if (pol.mode === 'fixed' || pol.mode === 'configurable') out.mode = pol.mode;
+  if (pol.orgMode === 'none' || pol.orgMode === 'organizer-deep') out.orgMode = pol.orgMode;
+  return out;
 }
 
 /** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认）——单一实现 = services/branch/config-clean.js sanitizeConfigBlocks（2026-09-03 P1a 收口，勿另写） */
@@ -306,7 +352,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20260929g');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20260929h');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),

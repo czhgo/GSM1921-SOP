@@ -7,14 +7,14 @@
 //  语义采用 server 严格口径：id 只收非空字符串（不强制转串）、长度 ≤80、去重保序、限长截断。
 //  本文件为纯 ESM（仅依赖 work-map / policy-defaults 两个纯数据模块），浏览器与 node 双端可加载。
 // ════════════════════════════════════════════════════════════════
-import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20260929g';
+import { WORK_MAP_IDS, canDisableModule } from '../../core/domain/work-map.js?v=20260929h';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 白名单/复位/注入原语取自 policy-defaults
 // （单源：覆盖白名单 POLICY_OVERRIDABLE 只定义于 policy-defaults，本文件为其唯一净化消费方）
 import {
   POLICY_OVERRIDABLE,
   resetPolicyDefaults,
   applyPolicyOverrides,
-} from '../../core/domain/policy-defaults.js?v=20260929g';
+} from '../../core/domain/policy-defaults.js?v=20260929h';
 
 const MAX_ID_LEN = 80;
 const MODULES_LIMIT = 200;
@@ -98,6 +98,71 @@ export function sanitizeConfigBlocks(blocks) {
       // L3 流程组合（2026-09-28 批次 246）：工作流块亦支持支部级顺序（与 outputBlocks.blockOrder 同口径）
       blockOrder: cleanIdList(blocks.workflowBlocks.blockOrder, BLOCKS_LIMIT),
     };
+    // ② 表单条目轴（契约 §8.2，2026-09-29 批次 275）：块级「字段策略」——单一净化实现
+    if (blocks.workflowBlocks.fieldPolicies) {
+      out.workflowBlocks.fieldPolicies = cleanFieldPolicies(blocks.workflowBlocks.fieldPolicies);
+    }
+    // ③ 参与人范围轴（契约 §8.3，2026-09-29 批次 275）：块级「名单解析模式」——单一净化实现
+    if (blocks.workflowBlocks.participantPolicies) {
+      out.workflowBlocks.participantPolicies = cleanParticipantPolicies(blocks.workflowBlocks.participantPolicies);
+    }
+  }
+  return out;
+}
+
+// ③ 参与人范围轴（契约 §8.3）：可配面**只开两字段**——`mode` ∈ {fixed, configurable}、
+//   `orgMode` ∈ {none, organizer-deep}（均为 manifest 已有取值，**不新造枚举**）。
+const PARTICIPANT_MODE_SET = new Set(['fixed', 'configurable']);
+const PARTICIPANT_ORG_MODE_SET = new Set(['none', 'organizer-deep']);
+
+/**
+ * 净化 workflowBlocks.participantPolicies ＝ { [blockId]: { mode?, orgMode? } }
+ * 形状防脏：blockId ≤80 字、至多 BLOCKS_LIMIT 个；两字段各按白名单收，非法丢弃；
+ *   空壳（两字段皆缺）不保留。**不含任何具体人名**（§8.3：人名一律不落 config）。
+ */
+export function cleanParticipantPolicies(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+  const out = {};
+  let n = 0;
+  for (const [blockId, pol] of Object.entries(v)) {
+    if (n >= BLOCKS_LIMIT) break;
+    if (typeof blockId !== 'string' || !blockId || blockId.length > MAX_ID_LEN) continue;
+    const item = {};
+    if (PARTICIPANT_MODE_SET.has(pol?.mode)) item.mode = pol.mode;
+    if (PARTICIPANT_ORG_MODE_SET.has(pol?.orgMode)) item.orgMode = pol.orgMode;
+    if (!Object.keys(item).length) continue;
+    out[blockId] = item;
+    n++;
+  }
+  return out;
+}
+
+/**
+ * 净化 workflowBlocks.fieldPolicies ＝ { [blockId]: { hiddenFieldIds, requiredOverrides } }
+ * 语义（契约 §8.2）：支部可配面**只开两类**——`hiddenFieldIds`（字段启停）＋
+ *   `requiredOverrides`（必填覆盖）。第三类（重命名 / 重排 / 新增字段）**不开**。
+ * 形状防脏：blockId ≤80 字、至多 BLOCKS_LIMIT 个；hiddenFieldIds 走 cleanIdList；
+ *   requiredOverrides 只收**布尔值**（键 ≤80 字）。空壳（两类皆空）不保留。
+ */
+export function cleanFieldPolicies(v) {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return {};
+  const out = {};
+  let n = 0;
+  for (const [blockId, pol] of Object.entries(v)) {
+    if (n >= BLOCKS_LIMIT) break;
+    if (typeof blockId !== 'string' || !blockId || blockId.length > MAX_ID_LEN) continue;
+    const hiddenFieldIds = cleanIdList(pol?.hiddenFieldIds, BLOCKS_LIMIT);
+    const requiredOverrides = {};
+    const raw = pol?.requiredOverrides;
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      for (const [fid, val] of Object.entries(raw)) {
+        if (typeof fid !== 'string' || !fid || fid.length > MAX_ID_LEN) continue;
+        if (typeof val === 'boolean') requiredOverrides[fid] = val;
+      }
+    }
+    if (!hiddenFieldIds.length && !Object.keys(requiredOverrides).length) continue;
+    out[blockId] = { hiddenFieldIds, requiredOverrides };
+    n++;
   }
   return out;
 }

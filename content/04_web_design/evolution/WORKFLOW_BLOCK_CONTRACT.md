@@ -290,13 +290,40 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 ### 8.3 ③ 参与人范围轴：**只配「名单解析模式」，具体人名一律不落 config**
 
-- **口径**：`participants` 已有 `mode` / `defaultRoles` / `orgMode`。支部可配面＝**`mode` 三档**（`fixed` 按角色全集 / `organizer-deep` 组织者 ＋ 深度参与者 / `configurable`）＋ `orgMode`（`none` / `organizer-deep`）。
+> **2026-09-29 批次 275 更正**（支书过审）：原文「`mode` **三档**（`fixed` / `organizer-deep` / `configurable`）」**系笔误**——
+> `organizer-deep` 是 **`orgMode`** 的取值（`manifests.js` 校验：`mode ∈ {fixed, configurable}`、`orgMode ∈ {none, organizer-deep}`），
+> 且原文未定义「`mode` 如何改变候选集合」。本节据**现有模型实义**重写，并**补齐消费语义**。
+
+- **存储落点**：`config.blocks.workflowBlocks.participantPolicies[blockId] = { mode, orgMode }`
+  （与 `hiddenBlockIds` / `blockOrder` / `fieldPolicies` 同段；净化单一实现沿用 `services/branch/config-clean.js` 族）。
+  **缺省（无该段）= 取 manifest 声明** ⇒ **默认零影响**（既有用例行为逐字不变）。
+- **可配面**（只开两字段，均为 manifest 已有取值，**不新造枚举**）：
+  - `mode`：`fixed`（系统固化）| `configurable`（发起人可在候选内调整）——**决定名单可否被发起人调整**。
+  - `orgMode`：`none` | `organizer-deep`——**决定候选来源是否并入活动组织层**。
+- **消费语义（正交、确定性可复现）＝「从哪取名单」**：
+
+  | policy | 候选集合 |
+  | --- | --- |
+  | `orgMode:'none'` | `defaultRoles` 角色全集（＝ `resolveVoterIds(voterScope)` 现口径，**逐字不变**） |
+  | `orgMode:'organizer-deep'` | 角色全集 **∪** 本场活动的**组织者 ＋ 深度参与者**（来源＝活动/专班**指派**，**不落 config**） |
+
+  `mode` 不改变**候选集合**，只决定发起人**可否在候选内勾选**：`fixed` ⇒ 只读固化；`configurable` ⇒ 可在候选内调整。
+- **领域原则（支书 2026-09-29，本节据此收口）＝「人是人，岗位是岗位」**：组织者 / 深度参与者是**绑定到具体项目
+  （activity / taskforce）**的**岗位**，**不是档案角色、不新增 tab**——它只让该人对**那一件具体的事**获得操作权限。
+  ⇒ 因此本轴并入的是「**该场活动/专班的指派层**」，其效果落在**该具体 activity/taskforce 的操作权限**上，
+  **绝不**表现为「多一个 tab」或「人的角色变了」（与 §二 的 `blockId`/`capability` 注册面无关）。
 - **为什么**：**具体人名一律不落 config**——否则成员名单会在「支部配置」与「成员档案」双轨，违 `D-392` 一线（人员以档案为唯一源）。
-- **消费点**：活动写面板的「参与人 / 应到名单」候选解析（现由 `services/.../vote-config.js::resolveVoterIds` 与 `member/person.js` 承担）——**只改「从哪取名单」，不改名单本身**。
-- **判据**：同一场活动在两种 `mode` 下，候选集合**可复现且可解释**。
+  组织者/深度参与者是**活动指派**产物（非档案字段），故只作为「并入的层」，仍不落 config。
+- **消费点**：活动写面板的「参与人 / 应到名单」候选解析——**新增** `vote-config.js::resolveParticipantIds(voterScope, policy, assignedIds)`，
+  **追加在既有 `resolveVoterIds` 之后、既有 `:54-67` 一字不动**（该区间是 `README-server.md` 的行号靶点，不得漂移）；
+  `resolveVoterIds` 保留为「`orgMode:'none'` 支路」的唯一实现，供其内部复用（**不写第二套名单**）。
+- **判据**：给定 `(voterScope, policy, assignedIds)`，候选集合**确定性可复现**；
+  同一场活动把 `orgMode` 由 `none` 换 `organizer-deep`，候选差集**恰为**该活动的指派层（组织者 ＋ 深度参与者）。
 
 ### 8.4 执行与残余（如实登记）
 
 - **本批（268）已落**：口径定稿（本节）＋ `taskforce` 能力登记与块 id 改准（`H-10` 推荐档 ①，`block-manifest::S5` **例外台账清零**）。
-- **未落（待执行）**：8.1 / 8.2 / 8.3 的**代码与守卫**——三者都要新增消费面与断言，**不动产品行为前先出这一节**正是本仓「先出方案再动手」的纪律。
+- **8.1 已落**（**批次 274**，见 `D-685`）：服务端硬执行（`gates.js::_assertActivityBlockEnabled` 在活动 POST / PATCH 两处调用），守卫 `activity-block-gate` G1–G6。
+- **8.2 / 8.3 已落**（**批次 275**，见 `D-686`）：② `fieldPolicies`（`hiddenFieldIds` / `requiredOverrides`）＋ `carrier:'template-card'` ＋ 写面板消费；③ **§8.3 更正稿**（`mode` ＋ `orgMode`；**「三档」系笔误**）＋ 新增 `vote-config.js::resolveParticipantIds`（既有 `resolveVoterIds` 一字不动）＋ 写面板消费；两轴各配常驻守卫（`block-field-policy` · `participant-scope`），**默认零影响**。
+- **未落（待执行 / 待裁）**：§8.1 的**任务派生 / 通知**是否随块停用而停（**仍只登记**）；**画布 UI(L4) 与「按角色配置（块决定 tab）」＝新维度，先出方案、编码并入画布批**（见 `.ctx/REVIEW_QUEUE.md` `H-24`）。
 - ⚠ **§二 的「注册表对应」仍为唯一口径**：`REGISTRY_EXCEPTIONS` 已清零，**今后新块一律走注册三表**（`scenario` / `definition` / `capability`），确需例外者须在该文件逐条写理由。

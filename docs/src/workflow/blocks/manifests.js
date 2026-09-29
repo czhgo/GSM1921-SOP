@@ -7,11 +7,16 @@
 // 原则：块不独立于既有机制存在——manifest 仅元数据；渲染走 components/ui/forms.js，执行走既有引擎/services。
 // validateBlockManifest 为纯函数（浏览器/Node 均可用），白名单内联自 core/domain/constants.js（ROLE_KEYS/OUTPUT_BLOCK_DEFS）。
 
-import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929g';
+import { ROLE_KEYS, OUTPUT_BLOCK_DEFS } from '../../core/domain/constants.js?v=20260929h';
 // P3d v0 组合声明校验（2026-09-05）：块级 depends/conflictsWith 组合体检，见 WORKFLOW_BLOCK_CONTRACT
-import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929g';
+import { assertComposeValid } from '../../core/base/module-compose.js?v=20260929h';
 
 const FIELD_KINDS = new Set(['textField', 'textareaField', 'selectField', 'dateField']);
+// ② 表单条目轴（契约 §8.2，2026-09-29 批次 275）：字段「承载形态」白名单——
+//   `carrier:'template-card'` = 该条目**不在 Step2 表单里渲染**，而由 Step1「模板卡」承担
+//   （如主题党日的 `type`：类型由选模板那一步决定，Step2 不再出现类型控件）。
+//   有了这个标注，「声明 ↔ 实现」就不再存在第三态（既非表单字段、也非漏声明）。
+const FIELD_CARRIERS = new Set(['template-card']);
 const PROVENANCE_SET = new Set(['institution-common', 'branch-custom']);
 const PARTICIPANT_MODE_SET = new Set(['fixed', 'configurable']);
 const ORG_MODE_SET = new Set(['none', 'organizer-deep']);
@@ -54,7 +59,9 @@ export const THEME_PARTY_DAY_MANIFEST = {
     fields: [
       { fieldId: 'title', label: '活动名称', kind: 'textField', required: true, requiredConfigurable: false, hint: '如：学习两会精神主题党日', enabledDefault: true },
       { fieldId: 'date', label: '日期', kind: 'dateField', required: true, requiredConfigurable: false, hint: '', enabledDefault: true },
-      { fieldId: 'type', label: '类型', kind: 'selectField', required: true, requiredConfigurable: true, hint: '', enabledDefault: true, options: [{ value: 'theme', label: '主题党日' }] },
+      // ② §8.2 情形③：类型由**Step1 模板卡**承担（选「主题党日」模板即定型）⇒ 标 `carrier:'template-card'`，
+      //   不计入 Step2 表单字段（Step2 不渲染类型控件）。
+      { fieldId: 'type', label: '类型', kind: 'selectField', required: true, requiredConfigurable: true, hint: '', enabledDefault: true, carrier: 'template-card', options: [{ value: 'theme', label: '主题党日' }] },
     ],
   },
   participants: { mode: 'fixed', defaultRoles: ['party-member'], orgMode: 'none' },
@@ -201,6 +208,8 @@ export function validateBlockManifest(m) {
     if (!FIELD_KINDS.has(f.kind)) errors.push(`fields[${i}].kind 非法: ${f.kind}（仅 ${[...FIELD_KINDS].join('/')}）`);
     if (typeof f.label !== 'string' || !f.label) errors.push(`fields[${i}].label 缺失`);
     if (typeof f.required !== 'boolean') errors.push(`fields[${i}].required 须为布尔`);
+    // ② §8.2：可选承载标注——出现时须在白名单内（`template-card` = 由 Step1 模板卡承担）
+    if (f.carrier !== undefined && !FIELD_CARRIERS.has(f.carrier)) errors.push(`fields[${i}].carrier 非法: ${f.carrier}（仅 ${[...FIELD_CARRIERS].join('/')}）`);
   });
 
   // ── participants（参与人范围可组装）──

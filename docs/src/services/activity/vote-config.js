@@ -8,9 +8,9 @@
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20260929g';
-import { AuthStore } from '../core/auth.js?v=20260929g';
-import { isDetained } from '../member/roster.js?v=20260929g';
+import { PersonStore } from '../member/person.js?v=20260929h';
+import { AuthStore } from '../core/auth.js?v=20260929h';
+import { isDetained } from '../member/roster.js?v=20260929h';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -27,7 +27,7 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260929g';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260929h';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
@@ -64,6 +64,28 @@ export function resolveVoterIds(voterScope) {
     return [];
   }
   return list.filter((p) => !isDetained(p)).map((p) => p.id);
+}
+
+/**
+ * ③ 参与人范围轴（契约 §8.3，2026-09-29 批次 275）：「名单解析模式」的**消费面**（只改「从哪取名单」）。
+ * · `orgMode:'none'`（含缺省）⇒ 与 `resolveVoterIds` **逐字一致**（默认零影响）；本函数复用其为唯一实现。
+ * · `orgMode:'organizer-deep'` ⇒ 在角色全集上**并入该场活动/专班的指派层**（组织者 ＋ 深度参与者）。
+ * ⚠ 指派层是**项目绑定岗位**（支书 2026-09-29「人是人，岗位是岗位」）——**不是档案角色、不新增 tab**；
+ *   其效果只落在**该具体 activity/taskforce 的操作权限**上；具体人名**不落 config**（§8.3）。
+ * @param {string} voterScope 见 resolveVoterIds
+ * @param {{mode?:string, orgMode?:string}} [policy] 生效策略（支部覆盖 ?? manifest 声明）
+ * @param {string[]} [assignedIds] 该活动的指派层（组织者 ＋ 深度参与者）
+ * @returns {string[]} 候选名单（角色全集在前，指派层按入参顺序去重追加）
+ */
+export function resolveParticipantIds(voterScope, policy, assignedIds) {
+  const base = resolveVoterIds(voterScope);
+  if (policy?.orgMode !== 'organizer-deep') return base;
+  const seen = new Set(base);
+  const out = base.slice();
+  for (const id of (Array.isArray(assignedIds) ? assignedIds : [])) {
+    if (typeof id === 'string' && id && !seen.has(id)) { seen.add(id); out.push(id); }
+  }
+  return out;
 }
 
 export function optionSetOf(activity) {

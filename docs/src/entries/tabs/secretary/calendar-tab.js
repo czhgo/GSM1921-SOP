@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20260929g';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260929g';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260929g';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260929g';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260929g';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260929g';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929g';
-import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260929g';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260929g';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260929g';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20260929g';
-import { icon } from '../../../core/base/icons.js?v=20260929g';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260929g';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260929g';
+import { getAppState, setState } from '../../../core/base/state.js?v=20260929h';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260929h';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260929h';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260929h';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260929h';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260929h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260929h';
+import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260929h';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260929h';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260929h';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260929h';
+import { icon } from '../../../core/base/icons.js?v=20260929h';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260929h';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260929h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260929g';
-import { BranchService } from '../../../services/core/runtime.js?v=20260929g';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/domain/constants.js?v=20260929g';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260929h';
+import { BranchService } from '../../../services/core/runtime.js?v=20260929h';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/domain/constants.js?v=20260929h';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260929g';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260929g';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260929g';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260929g';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929g';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy } from '../../../services/branch/branch.js?v=20260929g';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260929h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260929h';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260929h';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260929h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929h';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20260929h';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260929g';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260929h';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260929g';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260929h';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260929g';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260929h';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -61,6 +61,39 @@ function _enabledWorkflowBlocks() {
 /** 主题党日块输入字段元数据（表单条目声明；无块/无字段回退硬编码等价项） */
 function _themeField(fieldId) {
   return THEME_PARTY_DAY_MANIFEST?.inputs?.fields?.find(f => f.fieldId === fieldId) || null;
+}
+
+// ② 表单条目轴（契约 §8.2，2026-09-29 批次 275）：当前模板 → 工作流块 id → 字段策略。
+//   · 块 id 来源：主题党日 = THEME_DAY_BLOCK_ID；三会一课 = 场景 id（blockId ≡ scenarioId）。
+//     其它模板（专班招募 / 表决类等）**无块** ⇒ 策略不生效、面板维持原样（默认零影响）。
+//   · 支部可配面只开两类：hiddenFieldIds（字段启停）/ requiredOverrides（必填覆盖）。
+function _currentBlockId() {
+  if (wp.selections.L1 === 'theme-day') return THEME_DAY_BLOCK_ID;
+  const sid = wp.selections._scenarioId || wp.getScenarioId?.();
+  return (sid && THREE_MEETING_BLOCK_IDS.has(sid)) ? sid : null;
+}
+/** 当前模板对应块的字段策略（无块 ⇒ 全开 / 无覆盖） */
+function _currentFieldPolicy() {
+  const blockId = _currentBlockId();
+  if (!blockId) return { hidden: new Set(), requiredOverrides: {} };
+  return getWorkflowBlockFieldPolicy(blockId, _myBranchBlocks());
+}
+/** 当前块某字段的 manifest 声明（无块 / 未声明 ⇒ null） */
+function _currentBlockField(fieldId) {
+  const blockId = _currentBlockId();
+  if (!blockId) return null;
+  const m = BLOCK_MANIFESTS.find(b => b.blockId === blockId);
+  return m?.inputs?.fields?.find(f => f.fieldId === fieldId) || null;
+}
+
+// ③ 参与人范围轴（契约 §8.3，2026-09-29 批次 275）：某块「生效的名单解析模式」＝
+//   支部覆盖 ?? manifest 声明（缺省 ⇒ manifest；两者皆无 ⇒ {}＝角色全集口径、默认零影响）。
+//   ⚠ 组织者/深度参与者是**项目绑定岗位**（支书「人是人，岗位是岗位」）——不外溢成 tab 或档案角色。
+function _effectiveParticipantPolicy(blockId) {
+  if (!blockId) return {};
+  const declared = BLOCK_MANIFESTS.find(b => b.blockId === blockId)?.participants || {};
+  const override = getWorkflowBlockParticipantPolicy(blockId, _myBranchBlocks());
+  return { mode: override.mode ?? declared.mode, orgMode: override.orgMode ?? declared.orgMode };
 }
 
 // 成员发展阶段（议程「待讨论名单」类型：与 people.js developStage 口径一致）
@@ -541,34 +574,56 @@ function renderFormStep() {
   }
   // SOP-B-18 乙档（2026-09-21 批次 137）：本组活动一律先报备——随表单出现、**不设门槛**（未报备仍可写入）。
   html += `</div><div class="mb-3 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50/60 text-xs text-gray-700 leading-5"><b class="text-gray-800">本组活动一律先报备</b>——把活动方案发到支委扩大群（有意见在群里交流），<b>报备通过后方才写入活动</b>。</div>`;
+  // ② 表单条目轴（契约 §8.2，2026-09-29 批次 275）：本屏字段策略——无块 = 全开/无覆盖
+  //   ⇒ 逐字渲染与既有完全一致（默认零影响）；只在支部显式配置后隐藏/改必填。
+  const fp = _currentFieldPolicy();
+  const fReq = (fid, dflt) => (Object.prototype.hasOwnProperty.call(fp.requiredOverrides, fid) ? !!fp.requiredOverrides[fid] : dflt);
+  const fHidden = (fid) => fp.hidden.has(fid);
+
   // 标题（必填）—— L3 S4：主题党日 title 字段 label/required/hint 以 manifest 声明为单一源（其余模板维持原样）
   const titleField = tpl.category === 'theme-day' ? _themeField('title') : null;
   const titleLabel = titleField?.label || '活动名称';
-  const titleRequired = titleField ? !!titleField.required : true;
+  const titleRequired = fReq('title', titleField ? !!titleField.required : true);
   const titleHint = titleField?.hint || '';
-  html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-600">*</span>' : ''}</label>`;
-  html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="${titleLabel}">`;
-  if (titleHint) html += `<p class="text-[11px] text-gray-500 mt-1">${titleHint}</p>`;
-  html += `</div>`;
+  if (!fHidden('title')) {
+    html += `<div class="mb-3">`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${titleLabel} ${titleRequired ? '<span class="text-red-600">*</span>' : ''}</label>`;
+    html += `<input type="text" id="wp-title" class="input-flat w-full" placeholder="${titleLabel}">`;
+    if (titleHint) html += `<p class="text-[11px] text-gray-500 mt-1">${titleHint}</p>`;
+    html += `</div>`;
+  }
 
-  // 日期 + 时间
-  html += `<div class="grid grid-cols-2 gap-3 mb-3">`;
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">日期 <span class="text-red-600">*</span></label>`;
-  html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
-  html += `</div>`;
-  html += `<div>`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
-  html += `<input type="text" id="wp-time" class="input-flat w-full" placeholder="如 14:00-16:00">`;
-  html += `</div>`;
-  html += `</div>`;
+  // 日期 + 时间（② §8.2：日期原由 Step2 直渲 ⇒ 现改走 manifest 读取；label/required/hint 缺省等价原硬编码）
+  const dateField = _currentBlockField('date');
+  const dateLabel = dateField?.label || '日期';
+  const dateRequired = fReq('date', true);
+  const showDate = !fHidden('date');
+  const showTime = !fHidden('time');
+  if (showDate || showTime) {
+    html += (showDate && showTime) ? `<div class="grid grid-cols-2 gap-3 mb-3">` : `<div class="mb-3">`;
+    if (showDate) {
+      html += `<div>`;
+      html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">${dateLabel} ${dateRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+      html += `<input type="date" id="wp-date" value="${today}" class="input-flat w-full">`;
+      html += `</div>`;
+    }
+    if (showTime) {
+      html += `<div>`;
+      html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">时间 <span class="text-gray-500">（选填）</span></label>`;
+      html += `<input type="text" id="wp-time" class="input-flat w-full" placeholder="如 14:00-16:00">`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
 
   // 地点（必填）
-  html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 <span class="text-red-600">*</span></label>`;
-  html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
-  html += `</div>`;
+  if (!fHidden('location')) {
+    const locRequired = fReq('location', true);
+    html += `<div class="mb-3">`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">地点 ${locRequired ? '<span class="text-red-600">*</span>' : '<span class="text-gray-500">（选填）</span>'}</label>`;
+    html += `<input type="text" id="wp-location" class="input-flat w-full" placeholder="活动地点">`;
+    html += `</div>`;
+  }
 
   // 主题党日正交维度（共建性质 / 是否外出 / 活动载体）
   if (tpl.category === 'theme-day') {
@@ -576,10 +631,12 @@ function renderFormStep() {
   }
 
   // 主持人（默认当前用户）
-  html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
-  html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
-  html += `</div>`;
+  if (!fHidden('host')) {
+    html += `<div class="mb-3">`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">主持人 <span class="text-gray-500">（选填）</span></label>`;
+    html += `<input type="text" id="wp-host" class="input-flat w-full" placeholder="默认为当前用户">`;
+    html += `</div>`;
+  }
 
   // 会议形式（2026-09-02 线上异步表决泛化 A 期：仅决策类场景——支委会/支部党员大会；
   // 默认线下开会保持现状；选「线上异步表决」后展开参与范围配置，见 renderVoteConfigSection）
@@ -626,10 +683,12 @@ function renderFormStep() {
   html += `</div>`;
 
   // 备注
-  html += `<div class="mb-3">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-500">（选填）</span></label>`;
-  html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
-  html += `</div>`;
+  if (!fHidden('desc')) {
+    html += `<div class="mb-3">`;
+    html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">备注 <span class="text-gray-500">（选填）</span></label>`;
+    html += `<textarea id="wp-desc" rows="2" class="input-flat w-full" placeholder="活动内容/目标等"></textarea>`;
+    html += `</div>`;
+  }
 
   // 参与人选择（选填，多选，2026-08-05 与「发布专班招募」表单对齐）
   html += `<div class="mb-3">`;
@@ -739,7 +798,9 @@ function renderThemeDayDimensions() {
  *  配置区默认隐藏，选「线上异步表决」后展开（事件见 bindWritePanelEvents）。
  */
 function renderVoteConfigSection(scenarioId) {
-  const countOf = (scope) => resolveVoterIds(scope).length;
+  // ③ §8.3：应到名单＝按「生效名单解析模式」解析；创建时指派层为空（组织者/深度参与者在该活动创建后才指派）
+  //   ⇒ 与既有 `resolveVoterIds` **逐字一致**（默认零影响）。
+  const countOf = (scope) => resolveParticipantIds(scope, _effectiveParticipantPolicy(scenarioId), []).length;
   const forcedAnonymous = isAnonymousForced(defaultVoteConfig(scenarioId)?.optionSet);
   let html = `<div class="mb-3 card rounded-xl p-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议形式</label>`;
@@ -1103,10 +1164,12 @@ async function handleSubmitActivity() {
     }
   }
 
-  // 校验必填项
-  if (!title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
-  if (!date) { showToast('error', '请选择日期'); dateEl?.focus(); return; }
-  if (!location) { showToast('error', '请填写活动地点'); locationEl?.focus(); return; }
+  // 校验必填项（② §8.2：被支部隐藏的字段不校验；必填以 requiredOverrides 覆盖为准，缺省等价原硬编码）
+  const sfp = _currentFieldPolicy();
+  const sReq = (fid, dflt) => (Object.prototype.hasOwnProperty.call(sfp.requiredOverrides, fid) ? !!sfp.requiredOverrides[fid] : dflt);
+  if (!sfp.hidden.has('title') && sReq('title', true) && !title) { showToast('error', '请填写活动名称'); titleEl?.focus(); return; }
+  if (!sfp.hidden.has('date') && sReq('date', true) && !date) { showToast('error', '请选择日期'); dateEl?.focus(); return; }
+  if (!sfp.hidden.has('location') && sReq('location', true) && !location) { showToast('error', '请填写活动地点'); locationEl?.focus(); return; }
 
   const scenarioId = wp.selections._scenarioId || wp.getScenarioId?.();
   if (!scenarioId) { showToast('error', '场景信息缺失，请重新选择模板'); return; }
@@ -1132,7 +1195,8 @@ async function handleSubmitActivity() {
       const ballotMode = isAnonymousForced(vc.optionSet)
         ? 'anonymous'
         : ((picked === 'anonymous' || picked === 'named') ? picked : vc.ballotMode);
-      voteConfig = { ...vc, ballotMode, voterScope, voterIds: resolveVoterIds(voterScope) };
+      // ③ §8.3：应到名单快照按「生效名单解析模式」解析（创建时指派层为空 ⇒ 等同既有角色全集口径）
+      voteConfig = { ...vc, ballotMode, voterScope, voterIds: resolveParticipantIds(voterScope, _effectiveParticipantPolicy(scenarioId), []) };
     }
   }
 
@@ -1305,9 +1369,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20260929g'),
-    import('../../../services/governance/issues.js?v=20260929g'),
-    import('../../../services/member/member-confirmation.js?v=20260929g'),
+    import('../../../services/activity/taskforce.js?v=20260929h'),
+    import('../../../services/governance/issues.js?v=20260929h'),
+    import('../../../services/member/member-confirmation.js?v=20260929h'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
