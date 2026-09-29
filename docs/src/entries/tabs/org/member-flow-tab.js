@@ -164,8 +164,8 @@ async function _loadIaaaPending() {
       <div class="flex items-center justify-between flex-wrap gap-2 text-xs border border-gray-200 rounded-lg px-3 py-2">
         <span class="text-gray-700">${esc(u.name)} <span class="text-gray-500">${esc(u.studentId || '')}</span></span>
         <span class="flex items-center gap-2">
-          <button type="button" class="iaaa-approve text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100" data-person="${esc(u.personId)}" style="cursor:pointer;">确认入站</button>
-          <button type="button" class="iaaa-reject text-xs px-3 py-1 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100" data-person="${esc(u.personId)}" style="cursor:pointer;">驳回</button>
+          <button type="button" class="iaaa-approve text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100" data-person="${esc(u.personId)}" style="cursor:pointer;">确认入站</button>
+          <button type="button" class="iaaa-reject text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100" data-person="${esc(u.personId)}" style="cursor:pointer;">驳回</button>
         </span>
       </div>`).join('')}</div>`;
   } catch (e) {
@@ -249,7 +249,7 @@ function _flowRowHtml(f) {
       <td class="${tdc}" title="${esc(f.note || '')}">${esc(f.note || '—')}</td>
       <td>${revoked
         ? `<span class="text-gray-400" title="已于 ${esc(String(f.revokedAt).slice(0, 10))} 撤销">已撤销</span>`
-        : `<button type="button" class="flow-revoke text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors whitespace-nowrap" data-flow-id="${esc(f.id)}" style="cursor:pointer;">撤销</button>`}</td>
+        : `<button type="button" class="flow-revoke btn-action btn-action-gray" data-flow-id="${esc(f.id)}" style="cursor:pointer;">撤销</button>`}</td>
     </tr>`;
 }
 

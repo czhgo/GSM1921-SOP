@@ -1,21 +1,32 @@
 /**
- * 按钮体系 ＋ 死字段 守卫（批次 287）
+ * 按钮体系 ＋ 死字段 守卫（批次 287 立 / 批次 288 按在force口径重写）
  *
- * 来源（支书 2026-09-29 裁定）：
- *   「如果是 button 我要求**所有的界面**都统一！」（支书 2026-09-29；落 `DESIGN_SYSTEM §4.1 唯一入口`）
- *   「历史的经验教训要谨防再犯！」（支书 2026-09-29；→ B1 死字段）
+ * 来源（支书裁定）：
+ *   「如果是 button 我要求**所有的界面**都统一！」（支书 2026-09-29）
+ *   「历史的经验教训要谨防再犯！」（支书 2026-09-29；→ B1）
+ *   在force尺寸口径＝`docs/src/styles.css` 的「按钮尺寸规范」（**支书指令 2026-08-06**
+ *   ：全站一次规范，**同一界面按钮高度差距不过大**）——**四档**。
+ *
+ * ⚠ 批次 287 的**错误**（本文件重写的原因）：当时把口径写成「按钮必须走 `.btn` 四变体」，
+ *   而 **`.btn` / `.btn--primary` / `.btn--sm` 在 `styles.css` 里根本不存在**
+ *   （实际只有 `.btn-action*` / `.btn-md*` / `.btn-tab*` / `.btn-accent*`）。
+ *   ⇒ 该口径指向未实现的类名、并把它自造的 316 个"越轨"当成缺陷。**已按在force四档重写**。
  *
  * B1【死字段】`docs/src/**` **不得引用已被移除的字段**。
  *   教训：批次 280 把首页通知归并建在 `systemDerived` 上，而该标记**已随 R-22 移除**
- *   （见 `docs/src/services/governance/notice.js` 批注）⇒ 判定恒假、**归并静默失灵**、
- *   界面看起来"没坏"但行为完全失效——这类错误静态可查，必须由守卫兜住。
+ *   （见 `docs/src/services/governance/notice.js` 批注）⇒ 判定恒假、**归并静默失灵**。
  *
- * B2【按钮体系】`<button>` 起首标签的 `class` 不含 `btn` 的数量 **≤ 上限**（只许降不许升）。
- *   `§4.1` 例外（不判）：纯文字/图标**导航**动作（「全部 ›」「查看全部」）、`<summary>` 折叠头、
- *   `sr-only` 等隐藏语义按钮。
- *   ⚠ 上限是**棘轮**：③-c 分批归位后**必须一并下调**（当前 101 ⇒ 逐批降到 0）。
+ * B2【按钮尺寸档】每个 `<button>` 必须命中**四档之一**（或命名族），否则＝**第五种高度**（越轨）。
+ *   档1 微操作 25px ：`.btn-action*`
+ *   档2 默认　30px ：`text-xs` + `py-1.5`
+ *   档3 行内对齐 34px：`text-xs` + `py-2`
+ *   档4 主 CTA 34px：`text-sm` + （`py-1.5` 带边框 / `py-[7px]` 无边框）
+ *   命名族（另有其自身尺寸口径）：`.btn-md*` / `.btn-tab*` / `.btn-accent*`
+ *   **例外**（非按钮，不判）：`sr-only` 隐藏语义按钮；**无 `px-`/`py-`/`btn` 的纯文字动作**（如「全部 ›」）。
+ *   ⚠ 上限是**棘轮**：归位后**必须一并下调**（批次 288 实测真值 103；三屏已归零，
+ *     早前 316＝错口径、147＝正则缺陷 `py-\[7px\]\b` 的 `\b` 永不成立 ⇒ 均已修）。
  *
- * 台账：B3 打印**逐文件越轨清单**，供 ③-c「先三屏、再铺开」归位使用。
+ * B3【台账】打印**逐文件越轨清单**，供 ③-c「先三屏、再铺开」归位使用。
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -31,8 +42,30 @@ const DEAD_FIELDS = [
   { key: 'systemDerived', reason: 'R-22 已移除该标记（notice.js 批注）；引用即判定恒假' },
 ];
 
-/** B2：`<button>` 未走 `.btn` 体系的**数量上限**（棘轮，只许下调） */
-const BUTTON_OFF_BUDGET_CEILING = 316;
+/** 四档 ＋ 命名族（在force口径，单一源＝`styles.css` COMPONENT: Button 段） */
+const TIERS = [
+  { id: '档1/25px', hit: (c) => /\bbtn-action\b/.test(c) },
+  { id: '档2/30px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-1\.5\b/.test(c) && !/\btext-sm\b/.test(c) },
+  { id: '档3/34px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-2\b/.test(c) },
+  { id: '档4/34px', hit: (c) => /\btext-sm\b/.test(c) && (/\bpy-1\.5\b/.test(c) || /py-\[7px\]/.test(c)) },
+  { id: '命名族', hit: (c) => /\b(btn-md|btn-tab|btn-accent)\b/.test(c) },
+];
+
+/**
+ * 例外（不判）：
+ *   ① `sr-only` 隐藏语义按钮；
+ *   ② **纯文字动作**（无 `px-`/`py-`/`btn`，如「全部 ›」）——导航，不是按钮；
+ *   ③ **行式载体**（`w-full` ＋ `text-left`，如首页「今天有会/本岗待办」整行可点条）——
+ *      高度由行内容决定，属 `§4.19` 内嵌行块，**不是按钮档**；强塞 25/30/34px 会破坏行布局。
+ *   ⚠ 批次 288 修正：早前 `py-\[7px\]\b` 中的 `\]` 后接空格 ⇒ `\b` 永不成立，
+ *      导致**「主 CTA 档」被整体误判为越轨**（错数由此虚高）。**已修**。
+ */
+const isExempt = (c) => /\bsr-only\b/.test(c)
+  || (!/\bpx-/.test(c) && !/\bpy-/.test(c) && !/\bbtn/.test(c))
+  || (/\bw-full\b/.test(c) && /\btext-left\b/.test(c));
+
+/** 棘轮上限（越轨数，只许降） */
+const BUTTON_OFF_BUDGET_CEILING = 103;
 
 function walkJs(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -59,7 +92,7 @@ test('B1 死字段：docs/src 不得引用已被移除的字段', () => {
   assert.deepEqual(hits, [], `发现对已移除字段的引用（判定会恒假、行为静默失灵）：\n${hits.join('\n')}`);
 });
 
-test('B2 按钮体系：未走 .btn 的 <button> 数量不得上升', () => {
+test('B2 按钮尺寸档：<button> 必须命中四档之一（或命名族）', () => {
   const perFile = new Map();
   let total = 0;
   for (const f of FILES) {
@@ -68,20 +101,20 @@ test('B2 按钮体系：未走 .btn 的 <button> 数量不得上升', () => {
     let m;
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
-      if (/\bbtn\b/.test(cls)) continue;
-      if (/sr-only/.test(cls)) continue;          // 隐藏语义按钮
-      if (/text-\[13px\]|text-gray-500 hover:text-gray-600/.test(cls)) continue; // 导航类纯文字动作
+      if (isExempt(cls)) continue;
+      if (TIERS.some((t) => t.hit(cls))) continue;
       total += 1;
-      perFile.set(f, (perFile.get(f) || 0) + 1);
+      if (!perFile.has(f)) perFile.set(f, []);
+      perFile.get(f).push(cls);
     }
   }
-  // B3 台账：逐文件越轨清单（供 ③-c 归位）
+  // B3 台账：逐文件越轨清单（含类名，供 ③-c 归位）
   const ledger = [...perFile.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
-  console.log(`[button-system-guard] 未走 .btn 体系的 <button> 共 ${total} 个（上限 ${BUTTON_OFF_BUDGET_CEILING}）：\n${ledger.join('\n')}`);
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([f, list]) => `  ${String(list.length).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
+  console.log(`[button-system-guard] 未命中四档的 <button> 共 ${total} 个（棘轮上限 ${BUTTON_OFF_BUDGET_CEILING}）：\n${ledger.join('\n')}`);
   assert.ok(
     total <= BUTTON_OFF_BUDGET_CEILING,
-    `未走 .btn 体系的 <button> 由 ${BUTTON_OFF_BUDGET_CEILING} 升到 ${total} 个 ⇒ 新按钮必须走 §4.1 的 .btn 四变体 ＋ 两尺寸档。`,
+    `未命中四档的 <button> 由 ${BUTTON_OFF_BUDGET_CEILING} 升到 ${total} 个 ⇒ 新按钮须落在 styles.css「按钮尺寸规范」四档之一。`,
   );
 });
