@@ -18,7 +18,7 @@ import {
   coreTabIdsOf, resolveTabOrder, applyPersonalTabOrder, readPersonalTabOrder,
   writePersonalTabOrder, clearPersonalTabOrder, savePersonalTabOrder, resetPersonalTabOrder,
   tabOrderStorageKey, sameIdOrder,
-} from '../../docs/src/services/core/preferences.js?v=20260929n';
+} from '../../docs/src/services/core/preferences.js?v=20260929p';
 
 // ── 测试辅助 ──
 // 支书台 tab 样例（注册序：核心三组置首 = groupLabel '工作台'，其后业务组）
@@ -216,7 +216,7 @@ test('真实拖拽：我的工作台页签尾部→靠前（DOM/持久化/reload
       page.click('button[type="submit"]'),
     ]);
     // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929n')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929p')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
     await page.goto(`${base}/settings.html`, { waitUntil: 'domcontentloaded' });
     await page.click('.settings-group-item[data-section="my-workspace"]');
     await page.waitForFunction(() => document.querySelectorAll('.myws-list .myws-row').length > 3, null, { timeout: 15000 });

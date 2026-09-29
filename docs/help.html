@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260929n"></script>
+<script src="./src/theme-init.js?v=20260929p"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260929n"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260929n">
+  <script src="./src/tailwind-config.js?v=20260929p"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260929p">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -285,7 +285,7 @@
               <tr><td><a href="./about.html">关于</a></td><td>支部故事、成长路径与工作哲学（叙事性介绍）</td><td>公共</td><td>侧边栏「关于」（静态托管形态显示）</td></tr>
               <tr><td><a href="./settings.html">设置</a></td><td>设置中心：外观（字号 / 明暗主题 / 强调色）、我的工作台页签顺序、支部治理（按登录角色分区，见本表下方说明）</td><td>公共可进；分区随登录角色显隐</td><td>侧边栏右下角「设置」</td></tr>
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任支书、副支书（本支部，副书同权）</td><td>直接访问 wizard.html；党委台「支部配置」与 设置→支部治理（支书 / 副支书）为同源内嵌入口（分步说明见第 6 章 6.2）</td></tr>
-              <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（11 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
+              <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（12 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
               <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（12 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（9 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（8 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -414,7 +414,7 @@
         </p>
 
         <!-- 2.1 支书工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>支书工作台（支书 / 副支书共台 · 11 tab）</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.1</span>支书工作台（支书 / 副支书共台 · 12 tab）</h3>
         <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/secretary.html">secretary.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -428,6 +428,7 @@
               <tr><td>通知发布</td><td>支书 / 副支书</td><td>发布通知；审批类变更同步广播；自动派生成员待办</td><td>「我的职责」段；「+ 发布」填标题正文 → 选送达范围 → 发布</td></tr>
               <tr><td>上报党委</td><td>支书 / 副支书</td><td>支部关键事项上报党委（发展节点 / 活动报备），批驳结论回传本页</td><td>「我的职责」段；「+ 上报」选事项类型 → 提交；查看回传结论</td></tr>
               <tr><td>党小组与活动</td><td>支书 / 副支书</td><td>区块自上而下＝① 未分组归组入口 → ② 「党小组清单」与管理写口（新增 / 改名 / 解散，写权归支书与副支书，含未分组成员的归组入口）、卡内「组长指派」设党小组组长 → ③ 「党小组活动」分区（活动方向为「自下而上」的党小组活动只读列示、可点进详情，新建复用既有「写入活动」入口，并含<strong>活动项目赋权</strong>——给同志赋该场活动的组织者 / 深度参与者）→ ④ 变更留痕 → ⑤ 「跨组进展」（默认折叠，点开看各党小组组员进展跨组只读掌握，知情不代操作）。组内待答复汇报可「请组长关注」，支书不代组长答复。解散非空组时组内成员转为「未分组」（党小组会应到不计、支部大会应到照计）。<strong>支委身份配置（支部层）已移至「支委会」tab 的「机构构成」段</strong></td><td>「我的职责」段；「+ 新增」建组 / 行内改名 / 解散组；未分组行内下拉逐个归组；「设党小组组长」展开面板选人 + 选组；支委身份配置见「支委会」tab「机构构成」段；「+ 新建党小组活动」复用「活动管理」的写入浮窗；点「展开跨组进展」查看进展 / 行内「请组长关注」请求组长答复</td></tr>
+              <tr><td>成员流动</td><td>支书 / 副支书</td><td>成员流入 / 流出登记与对账台账（登记即生效、撤销留痕），并在此确认「统一身份认证」新建号、已选本支部的入站申请。与组织台「成员流动」为<strong>同一页（同源组件）</strong>，两处入口</td><td>「我的职责」段；「＋ 登记流入 / 登记流出」录入；表内「撤销」留痕纠正；「待确认入站」卡上确认 / 驳回</td></tr>
               <tr><td>知情查看</td><td>支书 / 副支书</td><td>活动与专班进展只读知情（知情权：无职责亦有知情权），内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段查看，点活动卡 / 专班卡看详情</td></tr>
               <tr><td>支部分工</td><td>支书 / 副支书</td><td>支部工作地图：各模块定人定责定岗，平铺模块 / 按人 / 按项目三视图（默认按人宽表）</td><td>「知情查看」段；切「平铺模块 / 按人 / 按项目」视图查看分工与空缺</td></tr>
               <tr><td>反馈管理</td><td>支书 / 副支书</td><td>收阅成员意见反馈并跟进处理（开放 / 关闭）</td><td>「制度与答复」段；点开反馈 → 回复 / 标记关闭</td></tr>
@@ -1775,6 +1776,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20260929n"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20260929p"></script>
 </body>
 </html>

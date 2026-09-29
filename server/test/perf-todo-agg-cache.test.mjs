@@ -12,14 +12,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929n';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929p';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20260929n';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20260929n';
+} from '../../docs/src/data/mock-adapter.js?v=20260929p';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20260929p';
 import {
   TodoStore, TodoCategory, TodoStatus, WORK_DOMAIN,
-} from '../../docs/src/services/governance/todo.js?v=20260929n';
+} from '../../docs/src/services/governance/todo.js?v=20260929p';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
