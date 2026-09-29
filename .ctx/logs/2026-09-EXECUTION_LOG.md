@@ -21485,3 +21485,48 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
   ⚠ **如实登记**：本批**未**建立「并行 flake」的机检（两次偶发均发生在 `npm test` 的并行档）；若再复现，按 `H-13` 同族另立条目。
 
 **未做（如实登记）**：运行时面 / ②③ 两轴的代码与守卫（口径已定，排批次 269）· `H-13` API 级改写 · 部署前缺口 ①②③ 的收口（只登记，须先裁权限口径）· 本批**未 push**。
+
+
+## 批次 269（2026-09-29）：**部署自动化（一键脚本 ＋ 白名单打包）＋ 权限/性能口径收口**（支书答问落，`D-680`）
+
+> **来源**：支书两问——「① 对接方不帮我部署、要我自己部署 ⇒ **一个 exe 文档有必要吗**？我看到别的项目有各种后缀名……我们的代码散落在这些文件夹里，还能不能打包封装？手动部署一定很麻烦」「② 请针对刚才登记的**性能债和权限问题**给出具体修复方案」。四题答问：部署目标＝**学校给的测试机 + 账号**（平台待确认）· 打包＝**「配备好自动化脚本即可」** · 性能＝**S1 + S2** · 权限＝**先「一实例一支部」上线**。
+
+### 〇、科普：exe / 各种「后缀名」到底怎么选（答复支书第一问）
+
+- **「exe」不是目的，「一次拷贝、零手工步骤」才是目的**；exe 只是手段之一，**且只对 Windows 有效**。
+- **你看到的各种后缀不是同一件事的不同写法，而是面向不同系统的不同形态**：`.exe`（Windows 可执行）· `.msi`（Windows 安装包）· `.dmg` / `.pkg`（macOS）· `.deb` / `.rpm`（Linux 包管理）· `.AppImage`（Linux 免安装单文件）· `.tar.gz`（压缩包，解压即用）· `Dockerfile` / 镜像（容器）· `PKGBUILD` 等。**选哪个取决于「部署在哪台机器上」**。
+- **三个技术事实决定可行性**：① `better-sqlite3` 是**原生模块**（`.node` 二进制）⇒ 任何打包都**绑定「操作系统 ＋ CPU 架构 ＋ Node 大版本」** ⇒ **不可能一个 exe 通吃**；② Node 官方单文件方案（SEA）**不能把 `.node` 嵌进 exe**，必须让它作为**外部小文件**陪跑（或运行时解压到临时目录）⇒ 所谓「单文件」实际是「exe ＋ 一个 `better_sqlite3.node`」；③ **体积不是障碍**——应用负载只有 10.1 MB（不含依赖）／约 42 MB（含依赖），加一个 Node 运行时约 50 MB ⇒ 总包 < 100 MB。
+- **「学校给的测试机 + 账号」是什么**：这是高校 IT 的常见做法——给你一台**虚拟/物理服务器**（一台机器）＋ 一个**登录账号**（用户名/口令），你 SSH（Linux）或远程桌面（Windows）登进去，把系统装在那台机器上。**是不是 Linux，登进去一条命令就知道**：`uname -a`（打印 `Linux …` ⇒ Linux；报错 ⇒ 多半是 Windows，用 `ver` 看）。**两种情况的落地方式**：**Linux** ⇒ 本批的 `deploy/install.sh`（一键：装 systemd 服务 ＋ 备份 cron ＋ 冒烟）＋ `deploy/nginx.sample.conf`（反代）；**Windows** ⇒ 本批的 `deploy/install.ps1`（一键：生成启动脚本 ＋ 注册开机启动计划任务 ＋ 冒烟）。**两者都不需要在目标机上装开发工具**（Linux 只需 Node ≥ 22 ＋ npm）。
+- **结论（本批据此落）**：**不做 exe**，做**一键脚本 ＋ 白名单发布包**——它是 exe 的**前置**，且两个平台通用。
+
+### 一、交付：`deploy/` 七件（跨平台，纯 Node + shell）
+
+| 文件 | 作用 |
+|---|---|
+| `deploy/package.mjs` | **白名单打包器**：只挑运行时需要的（`docs/` ＋ `server/` 运行时件 ＋ 部署说明书），**黑名单断言**（`.browsers` / `data.db*` / `uploads` / `backups` / `test` / `node_modules` / `*.log` 命中即**拒绝打包**），产出 `dist/*.tar.gz` ＋ `SHA256SUMS` ＋ 包内 `MANIFEST.txt` |
+| `deploy/smoke.mjs` | **冒烟**：`/api/v1/health` ⇒ `{ok:true}`；`--login <personId> <口令>` 追加登录 ＋ `/api/v1/auth/me`；**退出码当门**（0/1） |
+| `deploy/install.sh` | **Linux 一键**：预检 → 建服务账号与目录 → `npm ci --omit=dev` → 写 `/etc/gsm1921.env`（**已存在则不动**）→ 装 systemd 单元（`KillSignal=SIGTERM`，配合优雅关闭）→ 装每日备份 cron → 冒烟 |
+| `deploy/install.ps1` | **Windows 一键**：预检 → `npm ci` → 生成 `deploy/start-server.cmd`（含生产变量，**口令留空**、已 gitignore）→ 注册开机启动计划任务 → 冒烟 |
+| `deploy/update.sh` | **一键更新**：预检新包 → **先备份**（`db.backup` 在线快照 ＋ uploads）→ 停服 → 替换 `docs/`+`server/` 代码（**保留** `data.db` / `uploads` / `backups`）→ 装依赖 → 起服 → 冒烟（不过则给出回滚步骤） |
+| `deploy/env.production.example` | 生产环境变量模板（含「生产必设 5 项」与「绝不设置」两条反例） |
+| `deploy/nginx.sample.conf` | 反代示例：**方案 A 全量代理**（推荐）/ 方案 B 静态托管 ＋ **`location = /src/config/deploy.js` 必须单独放行到 Node**（否则「关于」门面与部署形态判定会错）＋ `client_max_body_size 10m` |
+
+### 二、实测（本批真跑，非自述）
+
+- `node deploy/package.mjs` ⇒ ✅ `gsm1921-sop-v0.1.0-20260929.tar.gz`，**327 文件 / 解包 10.1 MB**（不含 `node_modules`），sha256 已写 `.sha256`。
+- `tar -tzf` 复核 ⇒ **黑名单命中 0**（无 `.browsers` / `data.db` / `backups` / `uploads` / `node_modules` / `test`）。**对比**：若「整目录拷过去」，会白带 `server/.browsers` **543.7 MB**。
+- `node deploy/smoke.mjs` ⇒ 存活 ✔ · 退出码 **0**；`--login p13 123456` ⇒ 存活 ＋ 登录 ＋ 读本人 **3/3 ✔ 退出码 0**；`--login p13 wrongpass` ⇒ **判红 · 退出码 1**（**非空转**：判据不是恒真）。
+- **踩到并修掉的两个真缺陷**（脚本自身）：① 登录**必须带 `personId`**（只传口令 ⇒ 401「未知人员」）；② **不能用 `process.exit()` 收尾**——Node 24 ＋ Windows 下会在 undici 句柄关闭中触发 libuv 断言（`Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)`）并返回垃圾退出码（实测 `-1073740791`）⇒ 改用 `process.exitCode`。
+
+### 三、性能债与权限：方案与次序修正（答复第二问）
+
+- **性能债的病灶修正**：读口是 `SELECT data FROM ${table}`（`store.js:46`，**唯一咽喉**）＋ JS `JSON.parse`；且实测**全仓 SQL 只有主键命中**（`WHERE id = ?`、`WHERE token = ?` 而 `sessions.token` 是主键）⇒ **裸加索引无用＝空转件**。**四档**：**S1**（ETag/304 ＋ 只读诊断，零结构改动）· **S2**（读过滤/取子集**下推** ＋ 表达式索引，走 `MIGRATIONS v2`）· **S3**（分页）· **S4**（高频字段真列化）。**本批裁定**：先 S1；**S2 与「服务端支部读过滤」同批**（否则无 `WHERE` 可用）。
+- **权限两处、各只有一个咽喉**：读侧 `listTable`（`store.js`）＋ 读口（`index.js:40-43`）；写侧 `RESOURCE_WRITE_GATE`（`gates.js:24-36`，**现仅 9 项**，其余「未设门一律放行」）。**本批裁定**：**先「一实例一支部」上线**（读过滤缺口在单支部下无实际风险），**读过滤列 P1**；写侧**排在读侧之后**（先收紧高危：`branches.config` / `users` / `appointmentRecords` / 留痕类）。
+
+### 四、待办与缺口（如实登记）
+
+- **未真机验证**：`install.sh` / `update.sh` / `install.ps1`（只做静态审读 ＋ 与 A.2/A.2.1 逐条对齐）⇒ **拿到测试机后第一件事就是跑一遍并逐条核对**。
+- **未立守卫**：`deploy/**`（含 `.sh` / `.ps1`）**不在任何现有守卫的扫描面内** ⇒ 覆盖缺口（已登记 `H-20`）。
+- **未修**：`server/package.json` 的 Windows 专有脚本语法（`set X=1&&` / `cmd /c rmdir`）⇒ Linux 上 `npm test` 不可用（不影响部署，只影响在服务器上跑测试）。
+- **未做**：S1（ETag/304 ＋ 诊断）与 S2（下推 ＋ 表达式索引）的代码；服务端支部级读过滤。⇒ 批次 270。
+- 本批**未 push**。

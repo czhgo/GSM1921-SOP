@@ -22,3 +22,9 @@ server/uploads/
 
 # Build output (project uses ESM directly, no bundler needed)
 docs/dist
+
+# 发布包产物（deploy/package.mjs 的输出）
+dist/
+
+# 部署脚本生成物（含口令 ⇒ 绝不入库）
+deploy/start-server.cmd
