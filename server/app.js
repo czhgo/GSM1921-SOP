@@ -79,5 +79,14 @@ export function createApp({ dbPath = ':memory:' } = {}) {
     res.status(500).json({ error: err.message || '服务器内部错误' });
   });
 
+  // IAAA 统一身份认证入站链路（2026-09-29 批次 271）：**必须挂在这里**——上方每一行（`:22`/`:23`/`:25`/`:27`/
+  // `:29-51`/`:55-57`/`:63-66`/`:71-80`）都是 `README-server.md` 的**取证靶点**，插在中间会整体漂移。
+  // 挂在 `express.static` 与错误处理之后**功能上仍正确**：4 参错误处理中间件对正常请求会被 Express 跳过，
+  // 未命中静态文件的请求会继续往下走 ⇒ `/api/v1/auth/iaaa/*` 照常命中。
+  app.use('/api/v1/auth/iaaa', createIaaaRouter(app.locals.db));
+
   return app;
 }
+
+// ⚠ import 声明被提升，**置尾不影响语义**（与 `server.js` 同一手法）：目的是保住上方行号不漂。
+import { createIaaaRouter } from './routes/iaaa.js';

@@ -1615,7 +1615,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（2026-09-24 批次 169 重核；新增 10 条语义端点路由——出勤/考察申诉队列（3＋3）· 反馈未读标记 · 授权审计留痕，见 §6.14 ⇒ 声明 48→58、显式 46→56、合计 165→175）**：**显式声明的路由 56 条**——＝各路由文件的 `router.*` 声明 **58 条**（`server/routes/` 实测 58，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **54 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝56 ＋ 119 ＝ 175 条**。
+> **数量口径（2026-09-24 批次 169 重核；新增 10 条语义端点路由——出勤/考察申诉队列（3＋3）· 反馈未读标记 · 授权审计留痕，见 §6.14 ⇒ 声明 48→58、显式 46→56、合计 165→175；**2026-09-29 批次 271 再核：新增 **IAAA 入站 5 条**（`/api/v1/auth/iaaa/*`，见**文末「附」**）⇒ 声明 58→63、显式 56→61、合计 175→180**）**：**显式声明的路由 61 条**——＝各路由文件的 `router.*` 声明 **63 条**（`server/routes/` 实测 63，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **59 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝61 ＋ 119 ＝ 180 条**。
 
 ### 6.1 认证（`server/routes/auth.js`）
 
@@ -1917,3 +1917,28 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 3. **区分「制度要求」与「系统实际」**：如「副组长」（§7.2#17）、「系列活动」（§7.2#9）、「数据交接」（§7.2#15）。
 4. **本文档为说明件，不是契约**：接口与字段的最终判定以**代码与测试**为准（守卫见 `server/test/doc-consistency.test.mjs`、`server/test/link-integrity.test.mjs`、`server/test/catalog-sync.test.mjs`）。
 
+---
+
+## 附：北大 IAAA 统一身份认证入站端点（2026-09-29 批次 271 新增 · **尚未与计算中心联调**）
+
+> ⚠ **本节置于文末、且不进 §6 编号**：目的是**不动任何既有行号**——本文件被 `doc-line-ref` 守卫按 `文件:行号` 取证，
+> 在中间插节会让其后**所有**引用失效。待与计算中心接口对齐后，再连同 `§6 数量口径` 一并整理进 §6。
+
+**口径**（支书 2026-09-29 逐字）：「这个系统，**如果有该人，就登录进去**，**如果没有这个人，那就要自动创建这个人的号**，
+并且**进入 选择支部**，然后**由支部 予以确认**！！」
+
+| 方法 | 路径 | 门 | 说明 |
+|---|---|---|---|
+| GET | `/api/v1/auth/iaaa/login` | 公开 | 302 到 IAAA 授权页；**未配置 `IAAA_APP_ID` / `IAAA_REDIRECT_URI` ⇒ 503 ＋ 可懂原因**；`IAAA_MOCK=1` ⇒ 造一条回调（本地端到端联调用） |
+| GET | `/api/v1/auth/iaaa/callback?token=…` | 公开（IAAA 回调） | 用凭证换「学号 ＋ 姓名」→ **有号则登录** ／ **无号则自动建号**（`role:'participant'`、**`branchId: null`**）→ 建会话。`?mode=json`（或 `Accept: application/json`）⇒ 返回 JSON；否则 302 到 `./login.html#iaaa=<会话 token>`（走 hash：不进服务端日志、不被 Referer 带出） |
+| POST | `/api/v1/auth/iaaa/bind-branch` | 本人（须已登录且 `branchId === null`） | **选支部**：写 `joinIntent`；⚠ **此刻仍不落 `branchId`** —— **选 ≠ 归属** |
+| GET | `/api/v1/auth/iaaa/pending` | **支书 / 副支书 / 组织委员** | **待确认入站清单**；非党委者**只看本支部**申请 |
+| POST | `/api/v1/auth/iaaa/pending/:personId/approve` | 同上 | **支部确认**：落 `branchId` ＋ 清意向 ＋ 留痕 |
+| POST | `/api/v1/auth/iaaa/pending/:personId/reject` | 同上 | 驳回：清意向、**保持未归属**（可重选）＋ 留痕 |
+
+**留痕**：复用既有 `auth_audit` 表（**不新增表**）——`action: 'join-approve' / 'join-reject'`、`scopeRef` ＝ 支部 id、
+`authorizedBy` ＝ 确认人 id；行形状同 `server/routes/resources/semantic-routes.js::AUTH_AUDIT_KEYS`（单一源，不另造一套）。
+
+**环境变量**：`IAAA_APP_ID` · `IAAA_REDIRECT_URI`（**须与计算中心登记的回调白名单一致**）· `IAAA_AUTH_URL`（缺省 `https://iaaa.pku.edu.cn/iaaa/oauth.jsp`）· `IAAA_VERIFY_URL`（缺省 `https://iaaa.pku.edu.cn/iaaa/oauthlogin.do`）· `IAAA_MOCK`（**仅联调，生产不设**）。
+
+**⚠ 未完成（如实登记）**：① **尚未拿到计算中心的接口文档** ⇒ 「用凭证换学号/姓名」的解析口径（`server/routes/iaaa.js::_verifyWithIaaa()`，已同时兼容 JSON 与 XML）**待对齐**；② **前端承载面未做**——登录页「统一身份认证登录」按钮、「选支部」界面、「待确认入站」队列 UI；③ 端点级测试 = `server/test/iaaa-onboarding.test.mjs`（T1–T7，**7/7 绿**，含越权 403 与反例锁死）。

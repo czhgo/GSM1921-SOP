@@ -21589,3 +21589,38 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
   `npm run test:daily` 与全量档见收尾节。
 - **未做**：IAAA 接入（等接口）· 「选支部 / 支部确认」的承载面（等裁）· 发布包名单断言的**常驻守卫**（目前只在打包时跑；`deploy/**` 仍无机检）。
 - 本批**未 push**。
+
+
+## 批次 271（2026-09-29）：**IAAA 入站链路落地（服务端全链 · 7/7 绿）**（支书第 2 条 ＋ 四题口径全取推荐档，`D-682`）
+
+> **来源**：承批次 270（支书第 2 条：接北大 IAAA）＋ 本批 `AskUserQuestion` 四题**支书全取推荐档**——① 形态 **IAAA OAuth** ② 建号 **无额外门槛（确认即门槛）** ③ 确认人 **支书/副支书/组织委员** ④ **不新增表**（留痕走 `auth_audit`）。
+
+### 一、交付：`server/routes/iaaa.js`（六条端点）＋ 挂载 ＋ 设备变量 ＋ 文档
+
+| 端点 | 门 | 行为 |
+|---|---|---|
+| `GET /api/v1/auth/iaaa/login` | 公开 | 302 到 IAAA 授权页；**未配置 `IAAA_APP_ID`/`IAAA_REDIRECT_URI` ⇒ 503 ＋ 可懂原因**；`IAAA_MOCK=1` ⇒ 造回调（本地端到端联调） |
+| `GET /api/v1/auth/iaaa/callback?token=` | 公开（回调） | 换「学号 ＋ 姓名」→ **有号则登录** ／ **无号则自动建号**（`role:'participant'`、`branchId:null`）→ 建会话；`?mode=json` ⇒ JSON，否则 302 到 `./login.html#iaaa=<token>` |
+| `POST /api/v1/auth/iaaa/bind-branch` | 本人（已登录且未归属） | **选支部**：写 `joinIntent`；⚠ **不落 `branchId`**（选 ≠ 归属） |
+| `GET /api/v1/auth/iaaa/pending` | 支书/副支书/组织委员 | **待确认入站清单**；非党委者只看本支部 |
+| `POST …/pending/:id/approve` | 同上 | **支部确认**：落 `branchId` ＋ 清意向 ＋ 留痕 `join-approve` |
+| `POST …/pending/:id/reject` | 同上 | 驳回：清意向、**保持未归属**（可重选）＋ 留痕 `join-reject` |
+
+**关键设计（协议可插拔）**：北大计算中心**尚未给接口文档** ⇒ 「认人」收敛为 `_verifyWithIaaa()`（只认 `IAAA_AUTH_URL`/`IAAA_VERIFY_URL`，**同时兼容 JSON 与 XML**）＋ `IAAA_MOCK=1` 本地假想 IAAA ⇒ **拿不到文档也能把全链跑通并锁进测试**；文档到手后只改这一处。
+
+**位置即设计（两处刻意的「不动行号」）**：`server/app.js` 的挂载放在**静态托管与错误处理之后、`return app` 之前**（`:22`–`:80` 全是 `README-server.md` 取证靶点）；`import` 置尾靠 ESM 提升生效（与 `server.js` 同一手法）。`README-server.md` 的新端点记在**文末「附」**（不进 §6 编号——中间插节会让其后所有 `文件:行号` 引用失效）。
+
+### 二、实测
+
+- `node --test test/iaaa-onboarding.test.mjs` ⇒ **7 / 7 绿**（含**反例**：越权跨支部确认 **403** 而党委可跨 ⇒ 200；无号建号后**能登录** `/auth/me`；同学号**不重复建号**；驳回后**可重选**）。
+- `npm run test:daily` ⇒ **660 / 660 / 0**（批次 270 的 653 ＋ 本批 7）。
+  ⚠ 期间 **`doc-consistency::S14` 先判红**（新增 5 条路由 ⇒ `README-server.md §6 数量口径` 写 56/58/175 而实然 61/63/180）⇒ **同批改准**（等量单行替换，**零行号漂移**）后复绿。
+- 读文档面六守卫复核：`doc-consistency` ＋ `doc-line-ref` ＋ `link-integrity` ＋ `frontmatter-freshness` ＋ `version-stamp` ＋ `import-path-guard` ⇒ **50 / 50 / 0**。
+- `README-server.md`：`§6 数量口径` 改准（**1920 行不变**）＋ 文末「附」追加（至 1945 行；**追加在 EOF ⇒ 既有引用零漂移**）。
+
+### 三、未做（如实登记）
+
+- **前端承载面三步未做**：① 登录页「统一身份认证登录」按钮；② 「选支部」界面（建议**不新开页面**——在共享入口 `core/boot/bootstrap.js` 判定「已登录且 `branchId` 为空 ⇒ 阻断式选支部层」，以免牵动页面计数类守卫）；③ 「待确认入站」队列（建议并入**既有** «成员流动» tab，避免新 tab 的 e2e 与计数同步）。⇒ **因此浏览器流目前不可用**，服务端链可经 `IAAA_MOCK=1` 直接跑。
+- **解析口径待对齐**：`_verifyWithIaaa()` 同时兼容 JSON/XML，属**待验证**而非已对齐 ⇒ **等计算中心接口文档**。
+- `README-server.md` 的 IAAA 端点暂在**文末「附」**，待接口对齐后连同 §6 一并归位（须 `re-pin` 行号）。
+- 本批**未 push**。
