@@ -115,8 +115,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     // 3b. P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：
     //     单一源 = data/data-adapter.js::getRuntimeMode()——本文件的真机链路必须在 api 形态下跑
     //     （有 token 时 init() 失败不再静默回落 mock，故这里必须确为 api，否则后面的写穿断言全部无意义）。
-    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
-    const runtimeMode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20260929h')).getRuntimeMode());
+    await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929i')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+    const runtimeMode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20260929i')).getRuntimeMode());
     assert.equal(runtimeMode.source, 'api', `真机用例须确为 api 形态（实测 ${JSON.stringify(runtimeMode)}）`);
     assert.equal(runtimeMode.hasToken, true, 'api 形态应存在会话 token');
 
@@ -159,8 +159,8 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
     await page.evaluate(async ({ uniqueTitle, dateStr }) => {
       // 版本串与当前全库一致（20260901c）：确保 import 的是页面主模块实例，
       // push/persist 作用于真实 mockDB（版本串不一致会加载孤儿实例，写穿落服务器但本地不渲染）
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
-      const { persist } = await import('/src/data/data-adapter.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
+      const { persist } = await import('/src/data/data-adapter.js?v=20260929i');
       mockDB.activities.push({
         id: 'act-e2e-' + Date.now(),
         title: uniqueTitle,
@@ -189,7 +189,7 @@ test('账号密码登录后直达工作台，切换 API 数据源且后端数据
         if (!landed) await new Promise((r) => setTimeout(r, 300));
       }
       if (!landed) {
-        await page.evaluate(() => import('/src/data/data-adapter.js?v=20260929h').then((m) => m.persist()));
+        await page.evaluate(() => import('/src/data/data-adapter.js?v=20260929i').then((m) => m.persist()));
       }
     }
     if (!landed) {

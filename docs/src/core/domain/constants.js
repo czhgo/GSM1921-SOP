@@ -332,6 +332,26 @@ export function isArchiveFallbackPage(role, page) {
   return ARCHIVE_FALLBACK_ROLES.includes(role) && norm(page) === norm(ARCHIVE_FALLBACK_PAGE);
 }
 
+/**
+ * **「待归属支部」判定**（2026-09-29 批次 277 —— IAAA 入站阻断层的**单一源**，勿在别处另写一份）。
+ *
+ * 支书 2026-09-29 原话：「如果没有这个人，那就要**自动创建这个人的号**，并且进入**选择支部**，
+ * 然后由**支部**予以确认」⇒ 未归属支部者**不得进入任何工作台**（他此刻看不到任何支部内容）；
+ * 放行条件＝支部确认（`users.branchId` 落定）。
+ *
+ * ⚠ 三条边界（防误伤）：
+ *   ① 只在 `branchId` **显式为 `null`** 时成立——**缺字段 ＝ 未知**（旧会话 / 开发模式 / mock 形态）⇒ **不拦**；
+ *   ② **组织级（党委组织员）排除**——党委**不属于任何支部**（见 `server/seed-baseline.js` 口径注释）；
+ *   ③ 消费端只有两处：`core/boot/bootstrap.js`（工作台进门）与 `entries/pages/login-entry.js`（登录页落地）。
+ *
+ * @param {{branchId?: string|null, role?: string}|null|undefined} user 登录快照（`AuthStore.getCurrentUser()`）
+ * @returns {boolean}
+ */
+export function isBranchPendingUser(user) {
+  if (!user) return false;
+  return user.branchId === null && !PARTY_STAFF_ROLE.includes(user.role);
+}
+
 /** 反查：哪些角色进入该页面（capability requiredRoles 单一源，消除各工作台字面量副本） */
 export function rolesForPage(page) {
   const out = [];

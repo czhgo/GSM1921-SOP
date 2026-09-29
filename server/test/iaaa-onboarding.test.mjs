@@ -13,6 +13,7 @@
 //  T5 确认入站：落 `branchId` ＋ `auth_audit` 留一条 `join-approve` ＋ 清单清空
 //  T6 **越权**：本支部组织委员**不能**批别支部的申请 ⇒ 403（党委可跨支部 ⇒ 200）
 //  T7 驳回：清意向、**保持未归属**（可重新选支部）＋ 留痕 `join-reject`
+//  T8 浏览器流的 302 落点必须是**绝对路径**（批次 277 补；防「相对路径被相对请求 URL 解析 ⇒ 404」）
 // ════════════════════════════════════════════════════════════════
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -155,4 +156,21 @@ test('T7 驳回：清意向、保持未归属（可重选）＋ 留痕 join-reje
 
   const again = await api('POST', '/api/v1/auth/iaaa/bind-branch', { token: applicant.token, body: { branchId: 'br-b1' } });
   assert.equal(again.status, 200, '驳回后可重新选支部（不锁死）');
+});
+
+// ⚠ 批次 277 新增：**浏览器流的 302 落点必须是绝对路径**。
+//   原实现写 `./api/v1/auth/iaaa/callback` 与 `./login.html#iaaa=…`；相对路径会被浏览器
+//   相对「请求 URL」解析（`/api/v1/auth/iaaa/` 之下）⇒ 实际落到
+//   `/api/v1/auth/iaaa/api/v1/auth/iaaa/callback` ⇒ **404**。批次 271 只测 `?mode=json`，
+//   浏览器流无人走 ⇒ 该缺陷当时未被发现（本用例即防这一类回归）。
+test('T8 浏览器流的 302 落点必须是绝对路径（否则被相对请求 URL 解析 ⇒ 404）', async () => {
+  const l = await api('GET', '/api/v1/auth/iaaa/login', { redirect: 'manual' });
+  assert.equal(l.status, 302, 'MOCK 下 /login 应 302');
+  assert.ok(String(l.location).startsWith('/'), `登录跳转须为绝对路径，实测 ${l.location}`);
+
+  const sid = `2026${randomUUID().slice(0, 6)}`;
+  const c = await api('GET', `/api/v1/auth/iaaa/callback?token=${encodeURIComponent(sid)}`, { redirect: 'manual' });
+  assert.equal(c.status, 302, '浏览器流回调应 302 回登录页');
+  assert.ok(String(c.location).startsWith('/login.html#iaaa='),
+    `回跳须为「绝对路径 ＋ hash」，实测 ${c.location}`);
 });

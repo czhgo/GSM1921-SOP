@@ -1930,7 +1930,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 方法 | 路径 | 门 | 说明 |
 |---|---|---|---|
 | GET | `/api/v1/auth/iaaa/login` | 公开 | 302 到 IAAA 授权页；**未配置 `IAAA_APP_ID` / `IAAA_REDIRECT_URI` ⇒ 503 ＋ 可懂原因**；`IAAA_MOCK=1` ⇒ 造一条回调（本地端到端联调用） |
-| GET | `/api/v1/auth/iaaa/callback?token=…` | 公开（IAAA 回调） | 用凭证换「学号 ＋ 姓名」→ **有号则登录** ／ **无号则自动建号**（`role:'participant'`、**`branchId: null`**）→ 建会话。`?mode=json`（或 `Accept: application/json`）⇒ 返回 JSON；否则 302 到 `./login.html#iaaa=<会话 token>`（走 hash：不进服务端日志、不被 Referer 带出） |
+| GET | `/api/v1/auth/iaaa/callback?token=…` | 公开（IAAA 回调） | 用凭证换「学号 ＋ 姓名」→ **有号则登录** ／ **无号则自动建号**（`role:'participant'`、**`branchId: null`**）→ 建会话。`?mode=json`（或 `Accept: application/json`）⇒ 返回 JSON；否则 302 到 `/login.html#iaaa=<会话 token>`（走 hash：不进服务端日志、不被 Referer 带出） |
 | POST | `/api/v1/auth/iaaa/bind-branch` | 本人（须已登录且 `branchId === null`） | **选支部**：写 `joinIntent`；⚠ **此刻仍不落 `branchId`** —— **选 ≠ 归属** |
 | GET | `/api/v1/auth/iaaa/pending` | **支书 / 副支书 / 组织委员** | **待确认入站清单**；非党委者**只看本支部**申请 |
 | POST | `/api/v1/auth/iaaa/pending/:personId/approve` | 同上 | **支部确认**：落 `branchId` ＋ 清意向 ＋ 留痕 |

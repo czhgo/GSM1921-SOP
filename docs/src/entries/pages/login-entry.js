@@ -2,13 +2,17 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20260929h';
-import { getAccentColors, solidAccentStyle, dotDarkVars } from '../../core/domain/constants.js?v=20260929h';
+import { AuthStore } from '../../services/core/auth.js?v=20260929i';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20260929i';
+import { escHtml } from '../../core/base/utils.js?v=20260929i';
 
-// 已登录则直接跳转
-const user = AuthStore.getCurrentUser();
-if (user) {
-  _goToWorkspace(user.role);
+// 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
+//   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。
+//   判据单一源＝`domain/constants.js::isBranchPendingUser`（与 `core/boot/bootstrap.js` 同源）。
+const _IAAA_HASH = /[#&]iaaa=/.test(window.location.hash || '');
+const _user = AuthStore.getCurrentUser();
+if (!_IAAA_HASH && !isBranchPendingUser(_user)) {
+  if (_user) _goToWorkspace(_user.role);
 }
 
 // 登录成功后按角色直达对应工作台（最小三成本：登录→工作台 ≤2 跳）
@@ -80,6 +84,8 @@ if (devToggle) {
     if (devToggle.checked) {
       devSection.classList.add('visible');
       defaultSection.style.display = 'none';
+      // 批次 277：切到开发模式时收起「选支部」面板（三者互斥，避免两面板同屏）
+      document.getElementById('login-branch')?.classList.remove('visible');
       _renderDevCards();
     } else {
       devSection.classList.remove('visible');
@@ -130,3 +136,151 @@ setTimeout(_ensureLoginVisible, 900);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') _ensureLoginVisible();
 });
+
+// ════════════════════════════════════════════════════════════════
+//  IAAA 统一身份认证 ＋ 「选支部」阻断层（2026-09-29 批次 277）
+//  契约单一源＝`server/routes/iaaa.js`（守卫 `server/test/iaaa-onboarding.test.mjs` T1–T8）：
+//    ① 点「统一身份认证登录」→ `GET /api/v1/auth/iaaa/login`
+//       （配置就绪 ⇒ 302 到 IAAA 授权页；未配置 ⇒ 503 ＋ 可懂原因；本地 `IAAA_MOCK=1` ⇒ 假想回调）
+//    ② 回调换会话后 302 回本页 `#iaaa=<会话 token>`（走 hash：不进服务端日志、不被 Referer 带出）
+//    ③ 本页取 token 落地会话（`AuthStore.startIaaaSession`）→ 已归属 ⇒ 进工作台；
+//       未归属（`branchId === null`）⇒ 就地「选择支部」→ `POST bind-branch` → 待支部确认。
+//  ⚠ 「选支部」复用本页（`#login-branch` 面板），**不新开页面**（不触发页面 × 页签计数类守卫）。
+// ════════════════════════════════════════════════════════════════
+const IAAA_LOGIN_URL = './api/v1/auth/iaaa/login';
+const IAAA_BIND_URL = './api/v1/auth/iaaa/bind-branch';
+const ME_URL = './api/v1/auth/me';
+
+function _token() {
+  try { return sessionStorage.getItem('gsm1921-api-token') || ''; } catch { return ''; }
+}
+function _authHeaders() {
+  const t = _token();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+function _iaaaNote(msg) {
+  const el = document.getElementById('iaaa-note');
+  if (!el) return;
+  if (!msg) { el.textContent = ''; el.classList.add('hidden'); return; }
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function _branchNote(msg) {
+  const el = document.getElementById('branch-note');
+  if (el) el.textContent = msg || '';
+}
+
+/** 显示「选择支部」面板（收起账号卡与开发模式卡） */
+function _showBranchPanel() {
+  const def = document.getElementById('login-default');
+  if (def) def.style.display = 'none';
+  const dev = document.getElementById('login-dev');
+  if (dev) dev.classList.remove('visible');
+  const panel = document.getElementById('login-branch');
+  if (panel) panel.classList.add('visible');
+  _loadBranches();
+}
+
+/** 支部清单 → 可选按钮（登录用户可读 `GET /api/v1/branches`） */
+async function _loadBranches() {
+  const list = document.getElementById('branch-list');
+  if (!list) return;
+  if (!_token()) { list.innerHTML = '<p class="text-xs text-gray-500">会话已失效，请重新登录。</p>'; return; }
+  list.innerHTML = '<p class="text-xs text-gray-500">正在加载…</p>';
+  try {
+    const r = await fetch('./api/v1/branches', { headers: _authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const body = await r.json();
+    const rows = Array.isArray(body) ? body : (body && body.data) || [];
+    if (!rows.length) { list.innerHTML = '<p class="text-xs text-gray-500">暂无可用支部，请联系党委组织员。</p>'; return; }
+    list.innerHTML = rows.map((b) => `<button type="button" class="login-btn w-full text-left text-sm px-3 py-2 rounded-lg border border-gray-300 bg-white font-medium hover:bg-gray-50" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
+    list.querySelectorAll('[data-branch]').forEach((btn) => {
+      btn.addEventListener('click', () => _bindBranch(btn.dataset.branch, btn.textContent.trim()));
+    });
+  } catch (e) {
+    list.innerHTML = `<p class="text-xs text-red-600">支部清单加载失败：${escHtml(e && e.message ? e.message : '')}</p>`;
+  }
+}
+
+/** 提交入站意向（服务端写 `joinIntent`；**此刻仍是 branchId null**，须支部确认） */
+async function _bindBranch(branchId, label) {
+  const list = document.getElementById('branch-list');
+  try {
+    const r = await fetch(IAAA_BIND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ..._authHeaders() },
+      body: JSON.stringify({ branchId }),
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+    if (list) list.innerHTML = `<p class="text-sm text-gray-700">已提交「${escHtml(label)}」的加入申请</p>`;
+    _branchNote('等待支部确认；确认后即可进入工作台。');
+  } catch (e) {
+    _branchNote('提交失败：' + (e && e.message ? e.message : ''));
+  }
+}
+
+/** 刷新确认状态：已归属 ⇒ 进工作台；否则提示仍在等待 */
+async function _refreshBranchStatus() {
+  try {
+    const r = await fetch(ME_URL, { headers: _authHeaders() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const me = await r.json();
+    if (me.branchId) { AuthStore.startIaaaSession(_token(), me); _goToWorkspace(me.role); return; }
+    _branchNote('仍在等待支部确认；若被驳回，请重新选择支部。');
+  } catch (e) {
+    _branchNote('状态查询失败：' + (e && e.message ? e.message : ''));
+  }
+}
+
+// ── ① IAAA 登录按钮：先探一次「是否已配置」，免得把 503 的 JSON 甩给用户 ──
+const iaaaBtn = document.getElementById('iaaa-login');
+if (iaaaBtn) {
+  iaaaBtn.addEventListener('click', async () => {
+    _iaaaNote('');
+    iaaaBtn.disabled = true;
+    try {
+      const r = await fetch(IAAA_LOGIN_URL, { redirect: 'manual' });
+      // 302（含跨域到 IAAA 授权页）在 fetch 里表现为 opaqueredirect / status 0
+      if (r.type === 'opaqueredirect' || r.status === 0 || (r.status >= 300 && r.status < 400)) {
+        window.location.assign(IAAA_LOGIN_URL);      // 交回浏览器跟随 302
+        return;
+      }
+      let msg = '统一身份认证暂不可用';
+      try { const j = await r.json(); msg = j.error || msg; } catch { /* 非 JSON 响应 */ }
+      _iaaaNote(msg);
+    } catch (e) {
+      _iaaaNote('无法连接服务器：' + (e && e.message ? e.message : ''));
+    } finally {
+      iaaaBtn.disabled = false;
+    }
+  });
+}
+
+// ── ② 回调落地：`#iaaa=<会话 token>`（取到后**立即**清 hash） ──
+async function _handleIaaaReturn() {
+  const m = /[#&]iaaa=([^&]+)/.exec(window.location.hash || '');
+  if (!m) return;
+  const token = decodeURIComponent(m[1]);
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  try {
+    const r = await fetch(ME_URL, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) throw new Error('会话校验失败（HTTP ' + r.status + '）');
+    const me = await r.json();
+    AuthStore.startIaaaSession(token, me);
+    if (me.branchId) { _goToWorkspace(me.role); return; }
+    _showBranchPanel();                              // 未归属 ⇒ 就地选支部
+  } catch (e) {
+    _iaaaNote('统一身份认证登录失败：' + (e && e.message ? e.message : ''));
+  }
+}
+
+// ── ③ 刷新按钮 ＋ 入口分派 ──
+const branchRefresh = document.getElementById('branch-refresh');
+if (branchRefresh) branchRefresh.addEventListener('click', _refreshBranchStatus);
+
+if (_IAAA_HASH) {
+  _handleIaaaReturn();
+} else if (new URLSearchParams(window.location.search).has('need-branch') || isBranchPendingUser(_user)) {
+  _showBranchPanel();
+}

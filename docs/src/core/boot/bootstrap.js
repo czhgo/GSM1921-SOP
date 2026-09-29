@@ -4,31 +4,31 @@
 // 第3轮 Task 9: dev 参数读取改用 CrossPageState.getParam（统一入口）
 // 2026-07-30: 改为 async，统一预加载所有 Service（IssueStore/MilestoneStore），消除跨页面数据不同步
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929h';
-import { renderHeader } from '../../components/shell/header.js?v=20260929h';
-import { AuthStore } from '../../services/core/auth.js?v=20260929h';
-import { IssueStore } from '../../services/governance/issues.js?v=20260929h';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20260929h';
-import { CrossPageState } from '../session/cross-page-state.js?v=20260929h';
-import { getBasePath } from '../base/utils.js?v=20260929h';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20260929h';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929i';
+import { renderHeader } from '../../components/shell/header.js?v=20260929i';
+import { AuthStore } from '../../services/core/auth.js?v=20260929i';
+import { IssueStore } from '../../services/governance/issues.js?v=20260929i';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20260929i';
+import { CrossPageState } from '../session/cross-page-state.js?v=20260929i';
+import { getBasePath } from '../base/utils.js?v=20260929i';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20260929i';
 // 立项⑦ B波 演示放行门（单一源，与「进入支部（演示）」按钮同口径）
-import { isPartyStaffBranchDemoAllowed } from '../../services/core/branch-demo-nav.js?v=20260929h';
+import { isPartyStaffBranchDemoAllowed } from '../../services/core/branch-demo-nav.js?v=20260929i';
 // A② 归档兜底放行门（2026-09-10）：支书/副支书 archive=Y 兜底权限——可进入宣传台归档兜底面
-import { isArchiveFallbackPage } from '../domain/constants.js?v=20260929h';
+import { isArchiveFallbackPage, isBranchPendingUser } from '../domain/constants.js?v=20260929i';
 // 组织者兜底放行门（2026-09-19 批次 91 · SOP-B-17）：判定需读活动数据，故单一源落在服务层
-import { isOrganizerFallbackPage } from '../../services/activity/activity.js?v=20260929h';
+import { isOrganizerFallbackPage } from '../../services/activity/activity.js?v=20260929i';
 // 强调色解析（R1-A 点⑤，2026-09-09）：person-aware 渲染时取色——替代只读全局键的
 // constants resolveAccentRole（冻结读取点语义，仅服务访客与首帧兜底）；--app-accent 与
 // 返回值（壳 ctx.accent → tab-bar/各 tab）统一取「当前作用域生效覆盖」，登录人改强调色后同源。
-import { getAppliedAccentColors } from './theme.js?v=20260929h';
-import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20260929h';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20260929h';
-import { getCapabilities } from './registry.js?v=20260929h';
+import { getAppliedAccentColors } from './theme.js?v=20260929i';
+import { registerApiAdapter, init, renderDataSourceError, hydrateDataSource } from '../../data/data-adapter.js?v=20260929i';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260929i';
+import { getCapabilities } from './registry.js?v=20260929i';
 // M4 数据源注册化：副作用导入触发 mock/api 数据源能力注册，bootstrap 经注册表选择数据源
-import '../../capabilities/data-source.js?v=20260929h';
+import '../../capabilities/data-source.js?v=20260929i';
 // M6（2026-08-30）：共享组件能力随全局引导注册（todo-list/calendar/custom-select），所有页面可发现组件清单
-import '../../capabilities/components.js?v=20260929h';
+import '../../capabilities/components.js?v=20260929i';
 
 // ════════════════════════════════════════════════════════════════
 // S2 自定义圆角下拉：全局自动增强（MutationObserver 防抖扫描）
@@ -151,6 +151,19 @@ export async function bootstrapPage({ module, accentRole, accentAlpha }) {
       window.location.href = base + 'login.html';
       return { user: null };
     }
+  }
+
+  // ── IAAA 入站「待归属」阻断层（2026-09-29 批次 277）──────────────────────────────
+  // 支书 2026-09-29 原话：「如果没有这个人，那就要自动创建这个人的号，并且进入**选择支部**，
+  //   然后由支部**予以确认**」⇒ **未归属支部者不得进入任何工作台**——他此刻看不到任何支部内容
+  //   （服务端亦按支部隔离）；放行条件＝支部确认（`users.branchId` 落定）。
+  // ⚠ 只在 `branchId` **显式为 `null`** 时生效（缺字段＝未知 ⇒ 不拦）；
+  //   **组织级（党委组织员）排除**——党委本就不属于任何支部 ⇒ 不得被本层挡住。
+  //   判据**单一源** ＝ `domain/constants.js::isBranchPendingUser`（登录页同一处消费，勿手写第二份）。
+  if (module === 'workspace' && isBranchPendingUser(user)) {
+    const base = window.location.pathname.includes('/workspace/') ? '../' : './';
+    window.location.href = base + 'login.html?need-branch=1';
+    return { user: null, needBranch: true };
   }
 
   // 字体二档调节：读取 localStorage 偏好并应用

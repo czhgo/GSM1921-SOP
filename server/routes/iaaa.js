@@ -24,7 +24,7 @@
 //    GET  /login                      → 302 到 IAAA 授权页（未配置且非 MOCK ⇒ 503 ＋ 可懂原因）
 //    GET  /callback?token=…           → 换学号姓名 → 有号登录 / 无号建号 → 建会话
 //                                       `?mode=json`（或 Accept: application/json）⇒ 返回 JSON；
-//                                       否则 **302 到 `./login.html#iaaa=<会话 token>`**（走 hash：不经服务端日志、
+//                                       否则 **302 到 `/login.html#iaaa=<会话 token>`**（走 hash：不经服务端日志、
 //                                       不被 Referer 带出；前端取到后立即 `history.replaceState` 清掉）
 //    POST /bind-branch                → 本人选支部（须已登录且 `branchId === null`）⇒ 写 `joinIntent`
 //    GET  /pending                    → 待确认入站清单（门＝支书/副支书/组织委员；可 `?branchId=` 过滤）
@@ -122,7 +122,11 @@ export function createIaaaRouter(db) {
   const router = express.Router();
 
   router.get('/login', (req, res) => {
-    if (MOCK) return res.redirect(`./api/v1/auth/iaaa/callback?token=${encodeURIComponent(process.env.IAAA_MOCK_ID || '2026000001')}`);
+    // ⚠ 批次 277：**必须绝对路径**——相对路径会被浏览器相对「请求 URL」解析
+    //   （`/api/v1/auth/iaaa/login` 的目录是 `/api/v1/auth/iaaa/`），
+    //   原写 `./api/v1/auth/iaaa/callback` ⇒ 实际落到 `/api/v1/auth/iaaa/api/v1/auth/iaaa/callback` ⇒ 404。
+    //   （批次 271 只有 `?mode=json` 用例，未走浏览器流故未暴露。）
+    if (MOCK) return res.redirect(`/api/v1/auth/iaaa/callback?token=${encodeURIComponent(process.env.IAAA_MOCK_ID || '2026000001')}`);
     if (!APP_ID || !REDIRECT_URI) {
       return res.status(503).json({
         error: 'IAAA 未配置：请设置 IAAA_APP_ID（计算中心《技术文档》给的 appID）与 IAAA_REDIRECT_URI（备案里登记的回调地址）',
@@ -175,7 +179,8 @@ export function createIaaaRouter(db) {
     const payload = { ok: true, token: session, user, created, needBranch: !user.branchId };
     if (wantsJson) return res.json(payload);
     // 浏览器流：走 hash 回登录页（hash 不进服务端日志、不被 Referer 带出；前端取到后立即清掉）
-    return res.redirect(`./login.html#iaaa=${encodeURIComponent(session)}`);
+    // ⚠ 批次 277：**绝对路径**（同 `/login` 处的理由——相对路径会被相对请求 URL 解析而 404）
+    return res.redirect(`/login.html#iaaa=${encodeURIComponent(session)}`);
   });
 
   // 本人选支部（须已登录且尚未归属）

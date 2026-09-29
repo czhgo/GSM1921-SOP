@@ -17,5 +17,5 @@
 //       「除本库外，全站不得出现对两个实现文件的 import」，回潮即红。
 // ════════════════════════════════════════════════════════════════
 
-export { PersonPicker } from './person-picker.js?v=20260929h';
-export { openPersonEditModal } from './person-edit-modal.js?v=20260929h';
+export { PersonPicker } from './person-picker.js?v=20260929i';
+export { openPersonEditModal } from './person-edit-modal.js?v=20260929i';

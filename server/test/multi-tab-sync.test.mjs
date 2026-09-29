@@ -92,8 +92,8 @@ async function preparePage(page, origin, path = '/index.html') {
   await page.evaluate(async () => {
     const t0 = Date.now();
     for (;;) {
-      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260929h');
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260929i');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       if (getRuntimeMode().source === 'api' && mockDB._loaded === true && mockDB.milestones !== undefined) return;
       if (Date.now() - t0 > 20000) throw new Error('[P1-1] 页面数据层未在 20s 内就绪');
       await new Promise((r) => setTimeout(r, 50));
@@ -125,7 +125,7 @@ const settle = (page, ms = 1800) => page.waitForTimeout(ms);
 
 /** 本机读写同一实例的探测入口（返回探测结果，供断言 skipped / changed） */
 const probe = (page) => page.evaluate(async () => {
-  const { probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20260929h');
+  const { probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20260929i');
   return probeRemoteChanges();
 });
 
@@ -141,8 +141,8 @@ async function waitIdle(page, tries = 20) {
 
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入若干集合 */
 const pushAndPersist = (page, rowsByCollection) => page.evaluate(async (map) => {
-  const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
-  const { persist } = await import('/src/data/data-adapter.js?v=20260929h');
+  const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
+  const { persist } = await import('/src/data/data-adapter.js?v=20260929i');
   for (const [collection, row] of Object.entries(map)) mockDB[collection].push(row);
   persist();
 }, rowsByCollection);
@@ -166,12 +166,12 @@ test('判据A 跨标签：A 写 flush 后，B 不整页重载即可见（① vis
     await settle(a.page);
     assert.ok(idsIn('notices', 'p11-tab-A1').includes('p11-tab-A1'), '前置：A 的写入应已落服务端');
     assert.equal(await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A1');
     }), false, 'B 未探测前不应看到 A 的记录（证明「不重载就看不见」的病灶真实存在）');
     await b.page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
     await b.page.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A1');
     }, null, { timeout: 15000 });
     console.log('[判据A-①] B 经 visibilitychange 探测看到 A 的记录（未重载）');
@@ -180,13 +180,13 @@ test('判据A 跨标签：A 写 flush 后，B 不整页重载即可见（① vis
     await pushAndPersist(a.page, { notices: noticeRow('p11-tab-A2') });
     await settle(a.page);
     const armed = await b.page.evaluate(async () => {
-      const m = await import('/src/data/data-adapter.js?v=20260929h');
+      const m = await import('/src/data/data-adapter.js?v=20260929i');
       m.stopRemoteChangeProbe();
       return m.startRemoteChangeProbe(400);
     });
     assert.equal(armed, true, '判据A-②：应能挂上探测定时器');
     await b.page.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.notices || []).some((n) => n.id === 'p11-tab-A2');
     }, null, { timeout: 15000 });
     console.log('[判据A-②] B 经低频定时器探测看到 A 的第二条记录（未重载）');
@@ -217,7 +217,7 @@ test('判据A-③ 同源多标签：A 标签写成功后，B 标签由 Broadcast
     await pushAndPersist(pageA, { notices: noticeRow('p11-tab-BC1') });
     const t0 = Date.now();
     await pageB.waitForFunction(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.notices || []).some((n) => n.id === 'p11-tab-BC1');
     }, null, { timeout: 20000 });
     const ms = Date.now() - t0;
@@ -249,9 +249,9 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
     //   加预算在构造上无效。现改为**有界结算等待**：结算完成仍查不到 = **真丢写**，立刻报红；
     //   15s 上界只用于把「迟迟不结算」变成明确失败，**不给慢留余地**。**判据语义一字未变**。
     const settleRes = await a.page.evaluate(async (row) => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
-      const { persist } = await import('/src/data/data-adapter.js?v=20260929h');
-      const { settleWrites } = await import('/src/core/session/pending-writes.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
+      const { persist } = await import('/src/data/data-adapter.js?v=20260929i');
+      const { settleWrites } = await import('/src/core/session/pending-writes.js?v=20260929i');
       mockDB.archiveRecords.push(row);
       persist();
       const t0 = Date.now();
@@ -274,7 +274,7 @@ test('判据B 跨设备：设备A写 → 设备B重进可见，且该集合版�
   try {
     bToken = b.token;
     seen = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.archiveRecords || []).some((r) => r.id === 'p11-dev-A1');
     });
   } finally {
@@ -295,8 +295,8 @@ test('判据C-① 防抖窗口内探测整次跳过，本机改动不被吞、�
   try {
     await waitIdle(b.page);
     const r = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
-      const { persist, probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
+      const { persist, probeRemoteChanges } = await import('/src/data/data-adapter.js?v=20260929i');
       mockDB.notices.push({
         id: 'p11-c1-local', title: 'p11-c1-local', content: 'x', priority: 'normal',
         publishDate: '2026-09-24', expireDate: '2026-10-01', read: false,
@@ -310,7 +310,7 @@ test('判据C-① 防抖窗口内探测整次跳过，本机改动不被吞、�
     await settle(b.page);
     assert.ok(idsIn('notices', 'p11-c1-local').includes('p11-c1-local'), '跳过探测后，本机改动应照常落库（未被吞）');
     const stillLocal = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return (mockDB.notices || []).some((n) => n.id === 'p11-c1-local');
     });
     assert.equal(stillLocal, true, '落库后本机记录仍在');
@@ -327,7 +327,7 @@ test('判据C-② 本机未 persist 的脏集合不重拉（其它集合照常�
     await waitIdle(b.page);
     // B 本机：weeklyReports 上有**未 persist** 的本地改动（`_collectDirty` 认为脏、但无在途写）
     await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       mockDB.weeklyReports.push({ id: 'p11-c2-local', week: 'W-local', content: 'x' });
     });
     // A 写两个集合：一个与 B 的脏集合同名（weeklyReports），一个是干净集合（archiveRecords）
@@ -338,7 +338,7 @@ test('判据C-② 本机未 persist 的脏集合不重拉（其它集合照常�
     await settle(a.page);
     const r = await probe(b.page);
     const local = await b.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
       return {
         keepLocal: (mockDB.weeklyReports || []).some((w) => w.id === 'p11-c2-local'),
         gotOther: (mockDB.archiveRecords || []).some((x) => x.id === 'p11-c2-arch'),
@@ -377,8 +377,8 @@ test('判据D 断服后探测静默：无错误浮层 / 无 pageerror / 页面�
     const r = await probe(page.page);
     assert.equal(r.skipped, 'unreachable', `断服时探测须静默降级为 unreachable（实测 ${JSON.stringify(r)}）`);
     const ui = await page.page.evaluate(async () => {
-      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929h');
-      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260929h');
+      const { mockDB } = await import('/src/core/domain/domain.js?v=20260929i');
+      const { getRuntimeMode } = await import('/src/data/data-adapter.js?v=20260929i');
       return {
         hasErrorOverlay: Boolean(document.getElementById('data-source-error')),
         stillUsable: Array.isArray(mockDB.notices) && mockDB.notices.length > 0,

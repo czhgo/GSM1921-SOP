@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260929h"></script>
+<script src="./src/theme-init.js?v=20260929i"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>登录 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260929h"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260929h">
+  <script src="./src/tailwind-config.js?v=20260929i"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260929i">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -97,10 +97,16 @@
       <h1 class="font-title text-lg font-bold text-white mb-1 tracking-wide">示例组织（未登录）</h1>
     </div>
 
-    <!-- 默认模式: 账号密码登录 -->
+    <!-- 默认模式: 统一身份认证（IAAA）＋ 演示账号密码 -->
     <div id="login-default" class="login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6">
       <h2 class="font-title text-base font-semibold text-gray-800 mb-1">登录</h2>
-      <p class="text-xs text-gray-500 mb-5">请使用学号和密码登录</p>
+      <p class="text-xs text-gray-500 mb-4">请选择登录方式</p>
+      <!-- 统一身份认证（北大 IAAA）· 批次 277：正式登录方式（备案未完成时按钮会给出可懂提示） -->
+      <button type="button" id="iaaa-login" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg bg-party-700 text-white font-medium hover:bg-party-800">统一身份认证登录</button>
+      <p class="text-xs text-gray-500 mt-2 leading-relaxed">北大 IAAA 统一身份认证。首次登录会自动建立账号，随后选择所属支部、由支部确认。</p>
+      <p id="iaaa-note" class="text-xs text-red-600 mt-2 leading-relaxed hidden"></p>
+      <div class="login-divider my-5"></div>
+      <p class="text-xs text-gray-500 mb-3">演示账号（学号 ＋ 密码）</p>
       <form id="login-form" class="space-y-4" novalidate>
         <div>
           <label for="student-id" class="block text-xs font-medium text-gray-600 mb-1.5">学号</label>
@@ -111,7 +117,7 @@
           <input type="password" id="password" class="login-input w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none" placeholder="请输入密码" autocomplete="current-password">
         </div>
         <p id="login-error" class="text-xs text-red-600 hidden">学号或密码错误，请重试</p>
-        <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg bg-party-700 text-white font-medium hover:bg-party-800">登录</button>
+        <button type="submit" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium hover:bg-gray-50">登录</button>
       </form>
       <div class="login-divider my-5"></div>
       <p class="text-center text-xs text-gray-500">Mock 校验 · 开发阶段</p>
@@ -124,6 +130,16 @@
       <div class="grid grid-cols-2 gap-3" id="dev-cards">
         <!-- 7 张卡片由 JS 动态生成 -->
       </div>
+    </div>
+
+    <!-- 选支部（IAAA 入站「待归属」）· 批次 277：由本面板承接，**不新开页面**
+         （与 #login-dev 同为「登录页内的一种模式」，复用 .dev-mode-section 的显隐类） -->
+    <div id="login-branch" class="dev-mode-section login-card-anim login-card-anim-delay-1 bg-white rounded-b-2xl shadow-sm border border-t-0 border-gray-200 p-6">
+      <h2 class="font-title text-base font-semibold text-gray-800 mb-1">选择支部</h2>
+      <p class="text-xs text-gray-500 mb-4">选择你所属的支部并提交；提交后需由支部确认，确认前看不到支部内容。</p>
+      <div id="branch-list" class="space-y-2"></div>
+      <p id="branch-note" class="text-xs mt-3 leading-relaxed"></p>
+      <button type="button" id="branch-refresh" class="login-btn w-full text-sm px-4 py-[7px] rounded-lg border border-gray-300 text-gray-700 bg-white font-medium mt-3 hover:bg-gray-50">刷新确认状态</button>
     </div>
 
     <!-- 开发模式开关 -->
@@ -139,6 +155,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/entries/pages/login-entry.js?v=20260929h"></script>
+  <script type="module" src="./src/entries/pages/login-entry.js?v=20260929i"></script>
 </body>
 </html>
