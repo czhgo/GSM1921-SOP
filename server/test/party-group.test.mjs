@@ -10,10 +10,10 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260929a';
+const V = '?v=20260929b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
-const CAP_DIR = join(SRC_DIR, 'modules', 'capabilities');
+const CAP_DIR = join(SRC_DIR, 'capabilities');
 
 // ── localStorage 内存桩（照 base-data-preview.test.mjs 既有做法）──
 // 成员档案写口 PersonStore.saveMember 在 mock 形态下要求 localStorage 可用，否则返回
@@ -44,12 +44,12 @@ test('S1 全站不得写死组名清单（白名单＝种子/档案语料/演示
   // 病灶：原三处写死清单（支书台赋权管理的组清单、组长建活动的承办组选项、演示用户域）只认种子里的三组，
   //   新增的组进不了下拉、被解散的组仍在选项里 → 清单必须来自党小组实体（groupOptions()）。
   const ALLOW = new Set([
-    'mock/party-groups.js',      // 种子（唯一原始来源）
-    'mock/people.js',            // 成员档案语料（partyGroup 取值）
-    'mock/activities.js',        // 活动语料（hostGroup 取值）
-    'mock/attendance.js',        // 考勤语料（partyGroup 快照）
+    'data/mock/party-groups.js',      // 种子（唯一原始来源）
+    'data/mock/people.js',            // 成员档案语料（partyGroup 取值）
+    'data/mock/activities.js',        // 活动语料（hostGroup 取值）
+    'data/mock/attendance.js',        // 考勤语料（partyGroup 快照）
     'services/governance/todo.js',          // 待办种子文案（「设置第三党小组组长」）
-    'core/domain.js',            // 演示用户域（u_leader_N 名称文案，非清单判定源）
+    'core/domain/domain.js',            // 演示用户域（u_leader_N 名称文案，非清单判定源）
   ]);
   const offenders = [];
   const re = /\[[^\]]*'第[一二三四五六七八九十]党小组'[^\]]*\]/;

@@ -6,16 +6,16 @@
 // - 帮助/关于移入主导航区
 // 2026-09-09（设置中心批1）：footer 增「设置」入口（→ settings.html）；
 // 原 footer 三块外观控件（字号/主题三态/强调色）迁往设置页外观区（components/shell/appearance-controls.js，
-// 键位语义不变）；外观偏好读写改走 core/theme.js 键空间适配层（登录人 person 键 / 访客全局键）。
+// 键位语义不变）；外观偏好读写改走 core/boot/theme.js 键空间适配层（登录人 person 键 / 访客全局键）。
 // 模块顶层调用 syncAppearanceForActiveUser()：每页壳加载即把当前登录人 person 偏好应用到 DOM
 // （R1-A 2026-09-09 支书裁决：不写全局键、person 无键=出厂默认不继承；冻结读取点
 // theme-init.js 首帧 / bootstrap.js 字号 / constants.js resolveAccentRole 保持全局键语义不改）。
 
-import { getBasePath } from '../../core/utils.js?v=20260929a';
-import { icon } from '../../core/icons.js?v=20260929a';
-import { syncAppearanceForActiveUser } from '../../core/theme.js?v=20260929a';
-import { readLoginSnapshot } from '../../core/login-snapshot.js?v=20260929a';
-import { DEPLOY_MODE } from '../../config/deploy.js?v=20260929a';
+import { getBasePath } from '../../core/base/utils.js?v=20260929b';
+import { icon } from '../../core/base/icons.js?v=20260929b';
+import { syncAppearanceForActiveUser } from '../../core/boot/theme.js?v=20260929b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260929b';
+import { DEPLOY_MODE } from '../../config/deploy.js?v=20260929b';
 
 // 外观键空间适配：页面壳加载即执行（全站每页均渲染 sidebar，天然覆盖公共页/工作台）
 syncAppearanceForActiveUser();
@@ -29,7 +29,7 @@ syncAppearanceForActiveUser();
 let AuthStore = null;
 let _authModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260929b');
   return _authModule;
 }
 

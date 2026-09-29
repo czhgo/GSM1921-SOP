@@ -14,33 +14,33 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { getCapabilities } from '../../core/registry.js?v=20260929a';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/constants.js?v=20260929a';
-import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/work-map.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20260929b';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20260929b';
+import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/domain/work-map.js?v=20260929b';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../modules/capabilities/secretary-workspace.js?v=20260929a';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260929a';
+import '../../capabilities/secretary-workspace.js?v=20260929b';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260929b';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260929a';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/utils.js?v=20260929a';
-import { WORK_MAP_MODULES } from '../../core/work-map.js?v=20260929a';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260929b';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20260929b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260929b';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20260929a';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260929a';
+} from '../../services/branch/branch.js?v=20260929b';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260929b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20260929a';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260929a';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260929a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260929a';
+} from '../../services/branch/org-base-data-preview.js?v=20260929b';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260929b';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260929b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260929b';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260929a';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260929b';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -692,7 +692,7 @@ function _step3Html(S, branch) {
     // 当前为「到人位」时附一项保留显示（最小实现：候选为支委角色位，到人位可保留原值/改回角色）
     const personOpt = assign.ownerType === 'person'
       ? `<option value="person:${esc(assign.ownerId)}" selected>到人：${esc(getPersonName(assign.ownerId) || assign.ownerId)}（保留现指定）</option>` : '';
-    // 当前为「组织主体位」时附一项保留显示（如缺省主责＝支委会；见 core/work-map.js::ORG_SUBJECTS）
+    // 当前为「组织主体位」时附一项保留显示（如缺省主责＝支委会；见 core/domain/work-map.js::ORG_SUBJECTS）
     // ——它**不是**可新指派的下拉候选（本批未扩派单面），只保证现值正确回显、不被误显示成某个角色位。
     const orgOpt = assign.ownerType === 'org'
       ? `<option value="org:${esc(assign.ownerId)}" selected>${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（组织主体 · 保留现指定）</option>` : '';
@@ -729,13 +729,13 @@ function _step3Html(S, branch) {
 // ── ④ 术语/制度/数据指引 + 换壳工作单 ──
 function _step4Html(S, branch) {
   const guide = [
-    ['演示数据与人员档案', 'docs/src/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
-    ['系统常量', 'docs/src/core/constants.js（角色/文案/活动类型/产出块目录）'],
+    ['演示数据与人员档案', 'docs/src/data/mock/（people.js 成员档案 / accounts.js 账号 / branches.js 支部种子 / activities.js 等活动示例）'],
+    ['系统常量', 'docs/src/core/domain/constants.js（角色/文案/活动类型/产出块目录）'],
     ['角色权限', 'content/02_institution/SYSTEM_ROLE_PERMISSION.md（矩阵单一源；代码侧 auth.js ROLE_PERMISSIONS 同步）'],
-    ['术语/使用策略', 'content/03_doc_system/OPERATIONS_GUIDE.md §19–§23（《运行与协作规范》）+ docs/src/core/policy-defaults.js'],
+    ['术语/使用策略', 'content/03_doc_system/OPERATIONS_GUIDE.md §19–§23（《运行与协作规范》）+ docs/src/core/domain/policy-defaults.js'],
     ['制度 SOP', 'content/02_institution/sop/（支书/组织/宣传/纪检/组长指南）'],
     ['配色系统', 'content/04_web_design/design-system/DESIGN_SYSTEM.md + docs/src/styles.css（:root 固定令牌不可改）'],
-    ['支部默认策略', 'docs/src/core/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],
+    ['支部默认策略', 'docs/src/core/domain/policy-defaults.js（branch-default 可按制度调；institutional 勿改）'],
   ].map(([t, d]) =>
     `<div class="flex items-start gap-2 py-1.5 border-b border-gray-50 last:border-0">
       <span class="text-xs font-semibold text-gray-700 shrink-0 w-28">${esc(t)}</span>
@@ -769,7 +769,7 @@ function _step5Html(S, branch, org) {
         <p class="text-xs font-semibold text-gray-700">应到名单核对（现读数）</p>
         <p class="text-[11px] text-gray-500 mt-1">支部党员大会/党课等应到 = 在册党员（正式 + 预备）非滞留；滞留剔除。</p>
         <p class="text-xs text-gray-700 mt-2">在册党员 <b class="text-gray-900">${stats.partyTotal}</b> 人 − 滞留剔除 <b class="text-gray-900">${stats.detainedParty}</b> 人 = 应到 <b class="text-red-600">${stats.expected}</b> 人</p>
-        <p class="text-[11px] text-gray-500 mt-1">计算规则：docs/src/core/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
+        <p class="text-[11px] text-gray-500 mt-1">计算规则：docs/src/core/domain/policy-defaults.js attendance.roster（换数据后回本页复查读数）</p>
       </div>
       <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3">
         <p class="text-xs font-semibold text-gray-700">演示重置 ?reset=1</p>
@@ -1422,7 +1422,7 @@ function _downloadBaseTemplate(S) {
   try {
     const tpl = buildPreviewTemplate();
     if (!tpl.people || !tpl.people.length) {
-      showToast('info', '当前无预置成员名册可导出（演示成员种子见 docs/src/mock/people.js）');
+      showToast('info', '当前无预置成员名册可导出（演示成员种子见 docs/src/data/mock/people.js）');
       return;
     }
     const blob = new Blob([JSON.stringify(tpl, null, 2)], { type: 'application/json;charset=utf-8' });

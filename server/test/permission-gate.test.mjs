@@ -669,7 +669,7 @@ test('分工自动传递（2026-09-13 支书裁定）：分工生效通知的受
 //   （组织 / 宣传 / 纪检委员；撤销＝回落普通参与者）。**副书同权**——2026-09-23 支书追裁「副支书也可配」
 //   （与本仓通例 `SECRETARY_AND_DEPUTY_ROLES`「支书/副支书同页同权」一致）。本测试逐条钉住「放宽的边界」
 //   与「仍然 403 的几类」。
-// 判据单一源＝`docs/src/core/constants.js::branchCommissionerWriteDeny`（服务端 `_branchCommissionerGateDeny`
+// 判据单一源＝`docs/src/core/domain/constants.js::branchCommissionerWriteDeny`（服务端 `_branchCommissionerGateDeny`
 //   只做取行搬运、同源同一判据，勿在两处各判一次）。
 test('支委身份写门：本支部现任支书 / 副支书可配本支部成员为组织/宣传/纪检委员（含改派与撤销位）；越权一律 403', async () => {
   const { token: secToken } = await login('p13');   // br-b1 现任支书（branches.secretaryId='p13'）

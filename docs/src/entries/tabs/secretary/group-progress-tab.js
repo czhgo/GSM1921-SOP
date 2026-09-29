@@ -3,14 +3,14 @@
 //  entries/tabs/secretary/group-progress-tab.js — 支书工作台·党小组 tab
 // ════════════════════════════════════════════════════════════════
 // 沿革：2026-09-08 D8 新增「党小组进展」（跨组只读知情）；2026-09-14 批次 25 升级为「党小组」；2026-09-25 更名「党小组与活动」并收编「党小组活动」分区（判据单一源见文件末）——
-//   党小组升为一等实体（mock/party-groups.js + services/member/party-group.js），本 tab 由**纯只读**升级为
+//   党小组升为一等实体（data/mock/party-groups.js + services/member/party-group.js），本 tab 由**纯只读**升级为
 //   「管理区（写） + 进展区（只读）」两层：
 //   ① 未分组归组条：ungroupedMembers() 非空时显示「未分组 N 人」，每人一个活组下拉（groupOptions()）
 //      + 「移出党小组」项（值 ''）——选定即 assignMemberToGroup(personId, 组名, {by, role})，行内逐个归组；
 //   ② 党小组清单（管理区）：组名 / 序号 / 组长（由 services/member/group-view.js::listPartyGroups 派生）/
 //      人数 / 党员数 / 状态 + 每行「改名」「解散」；「+ 新增党小组」走服务层默认名（第 N 党小组）；
 //      解散允许非空组，确认弹窗写明「组内 N 人将转为「未分组」」；按钮显隐与写口校验同源
-//      （canManagePartyGroups(role)，单一源 core/constants.js::SECRETARY_AND_DEPUTY_ROLES）；
+//      （canManagePartyGroups(role)，单一源 core/domain/constants.js::SECRETARY_AND_DEPUTY_ROLES）；
 //      组级变更留痕（服务层 history）由 listGroupHistory() 折叠展示；
 //   ③ 进展区（2026-09-08 原样保留，仅位置下移）：组切换卡片层 / 组员进展摘要 / 本组活动复盘状态 /
 //      本组活动与考勤概览——支书跨组只读掌握（知情≠操作），不代组长答复。
@@ -39,34 +39,34 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260929a';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260929a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929a';
-import { IssueStore } from '../../../services/governance/issues.js?v=20260929a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260929a';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20260929a';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260929a';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain.js?v=20260929a';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260929a';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/utils.js?v=20260929a';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260929b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929b';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260929b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260929b';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20260929b';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260929b';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260929b';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260929b';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260929b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260929a';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260929b';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260929b';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20260929a';
+} from '../../../services/member/party-group.js?v=20260929b';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20260929a';
+} from '../../../services/member/group-view.js?v=20260929b';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
 //   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260929a';
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260929b';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';

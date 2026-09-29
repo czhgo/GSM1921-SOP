@@ -8,11 +8,11 @@
 
 
 
-import { accDarkParts } from '../../core/constants.js?v=20260929a';
+import { accDarkParts } from '../../core/domain/constants.js?v=20260929b';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/tab-nav.js?v=20260929a';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20260929b';
 
 
 
@@ -210,7 +210,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   // 优先级：priorityTab（"有待办必见待办"，一次性）> localStorage 记忆 > defaultTab > tabs[0]
 
-  // R6 导航守卫（2026-09-03 P2a）：决策收敛到 core/tab-nav.js resolveInitialTab——
+  // R6 导航守卫（2026-09-03 P2a）：决策收敛到 core/boot/tab-nav.js resolveInitialTab——
 
   //   defaultTab/记忆/priority 若已被支部 config.modules 隐藏，一律回退首个可见 tab，杜绝静默无内容。
 

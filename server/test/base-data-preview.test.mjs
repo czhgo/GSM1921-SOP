@@ -5,25 +5,25 @@
 //   sanitizePreview 净化：合法通过 / 非法党小组 / 非法发展阶段 / 非法滞留状态 / 空姓名与白名单外 id 丢弃；
 //     stats 与 roster 口径一致（支部党员大会应到 = 党员 − 滞留、小组按组）
 //   applyPreview / clearPreview 读写 localStorage 预览键；PersonStore / roster 应到链读取叠加即时变化
-// 口径单一源 = core/policy-defaults.js attendance.roster（与 services/member/roster.js 同源）。
+// 口径单一源 = core/domain/policy-defaults.js attendance.roster（与 services/member/roster.js 同源）。
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260929a';
-// Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原分别在 roster.js 与
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260929b';
+// Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原分别在 roster.js 与
 //   org-base-data-preview.js 各写一份同值字面量；现全站唯一源，结构层唯一性守卫见
 //   person-consistency.test.mjs S4）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260929a';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929a';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20260929b';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929b';
 import {
   getMeetingRosterIds, getRosterStats,
-} from '../../docs/src/services/member/roster.js?v=20260929a';
+} from '../../docs/src/services/member/roster.js?v=20260929b';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, MEMBER_IDS,
-} from '../../docs/src/services/branch/org-base-data-preview.js?v=20260929a';
+} from '../../docs/src/services/branch/org-base-data-preview.js?v=20260929b';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();
@@ -41,7 +41,7 @@ const BRANCH_MEMBERS = PEOPLE.filter(p => p.branchId !== null && p.branchId !== 
 const PARTY_MEMBERS = BRANCH_MEMBERS.filter(p => PARTY_STAGES.includes(p.developStage));
 
 // ── a) 常量与模板结构 ─────────────────────────────────────
-test('常量：kind/version/键名与成员基底；RESIDENCE 取值契约（单一源 = core/constants.js）', () => {
+test('常量：kind/version/键名与成员基底；RESIDENCE 取值契约（单一源 = core/domain/constants.js）', () => {
   assert.equal(PREVIEW_KIND, 'gsm1921-base-data');
   assert.equal(PREVIEW_VERSION, 1);
   assert.equal(PREVIEW_KEY, 'gsm1921-base-data-preview');

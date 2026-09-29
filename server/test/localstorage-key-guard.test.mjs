@@ -53,7 +53,7 @@ const SCAN_FILES = (() => {
   return out;
 })();
 
-const SKIP_DIRS = new Set(['node_modules', '.git', '.trae', '.vscode', 'assets', 'data']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.trae', '.vscode', 'assets']);
 
 // ════════════════════════════════════════════════════════════════
 //  三档已知映射（键 → 语义；**逐条给理由**）
@@ -100,7 +100,7 @@ const UI_PREF_SESSION = {
   'gsm1921-login-user': '会话·登录人（localStorage 兜跨标签）',
   'gsm1921-tab-id': '会话·本标签页唯一 ID（sessionStorage）',
   'gsm1921-session-snap': '会话·本标签页登录会话快照（sessionStorage）',
-  'sop_org_os_session': '会话·跨页状态会话（core/cross-page-state.js）',
+  'sop_org_os_session': '会话·跨页状态会话（core/session/cross-page-state.js）',
   'sop_org_os_data_version': '会话·跨页数据版本（同上）',
   'gsm1921-remote-probe': 'UI 偏好·远端变更探测开关（data-adapter.js；off/0/false＝关）',
   'sop_org_os_assigned_roles': '历史遗留键·仅启动清理（roles.js 已无调用方，留一次 removeItem）',
@@ -115,7 +115,7 @@ const LOCAL_ONLY_PREFIXES = {
 };
 const UI_PREF_SESSION_PREFIXES = {
   'gsm1921-pref-': 'UI 偏好·个人偏好键空间（theme.js / preferences.js）',
-  'cps-': '会话·跨页单值参数前缀（core/cross-page-state.js）',
+  'cps-': '会话·跨页单值参数前缀（core/session/cross-page-state.js）',
   'workflowos_tab_': 'UI 偏好·工作台页签记忆（各 ws-*-entry.js 的 storageKey）',
 };
 

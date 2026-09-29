@@ -2,18 +2,18 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/state.js?v=20260929a';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929a';
-import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929a';
-import { flashHighlight } from '../../core/utils.js?v=20260929a';
-import { loadActivities } from '../../services/activity/activity.js?v=20260929a';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929a';
-import { SignupStore } from '../../services/activity/signup.js?v=20260929a';
-import { seedTodos } from '../../services/governance/todo.js?v=20260929a';
-import { solidAccentStyle } from '../../core/constants.js?v=20260929a';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20260929a';
+import { getAppState, setState } from '../../core/base/state.js?v=20260929b';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260929b';
+import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260929b';
+import { flashHighlight } from '../../core/base/utils.js?v=20260929b';
+import { loadActivities } from '../../services/activity/activity.js?v=20260929b';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260929b';
+import { SignupStore } from '../../services/activity/signup.js?v=20260929b';
+import { seedTodos } from '../../services/governance/todo.js?v=20260929b';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260929b';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20260929b';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../modules/capabilities/org-workspace.js?v=20260929a';
+import '../../capabilities/org-workspace.js?v=20260929b';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

@@ -1,5 +1,5 @@
 // docs/scripts/gen-function-mermaid.mjs — 功能目录 → mermaid 图生成器
-// 读 docs/src/core/function-catalog.js（文本求值，纯数据表达式），生成：
+// 读 docs/src/core/domain/function-catalog.js（文本求值，纯数据表达式），生成：
 //   ① 功能地图（mindmap，含通用/特有文本标记；文本来自共享模块 src/core/mermaid-sources.js）
 //   ② 12 条角色化业务链路（flowchart TD；节点=执行者:任务，源来自共享模块 FLOW_LINKS）
 //   ③ 架构分层（flowchart TD）
@@ -12,10 +12,10 @@
 //       node docs/scripts/gen-function-mermaid.mjs          # stdout 打印完整四章
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { generateMindmapText, FLOW_LINKS } from '../src/core/mermaid-sources.js';
+import { generateMindmapText, FLOW_LINKS } from '../src/core/domain/mermaid-sources.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url)); // docs/
-const CATALOG_PATH = fileURLToPath(new URL('../src/core/function-catalog.js', import.meta.url));
+const CATALOG_PATH = fileURLToPath(new URL('../src/core/domain/function-catalog.js', import.meta.url));
 const README_PATH = fileURLToPath(new URL('../../README.md', import.meta.url));
 
 export function loadCatalog() {
@@ -70,7 +70,7 @@ export function generateAll() {
   return [
     '# 系统功能地图与服务逻辑（FUNCTION_MAP）',
     '',
-    '> 本文件由 `node docs/scripts/gen-function-mermaid.mjs --write` 自动生成，勿手改；功能清单以 `docs/src/core/function-catalog.js` 为准。',
+    '> 本文件由 `node docs/scripts/gen-function-mermaid.mjs --write` 自动生成，勿手改；功能清单以 `docs/src/core/domain/function-catalog.js` 为准。',
     '',
     '## 功能地图',
     '',
@@ -108,7 +108,7 @@ export function applyToReadme(readme) {
   const section = [
     '## 功能地图',
     '',
-    '> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。',
+    '> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/domain/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。',
     '',
     start,
     '',

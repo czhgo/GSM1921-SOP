@@ -4,13 +4,13 @@
 //   覆盖 ① recorderByType 记录人映射（正式化单一源）、② 未到标因 reasons 固定枚举、
 //   ③ 滞留到场补录（预应到 K → 补录 L → 实际应到 K+L）与落行字段（status=present + detainedMakeup；
 //   纪检更正清除标记）、④ 党小组会考勤只读视图数据（组长小组会列表归属，纪检纪律台只读掌握）。
-// 口径/枚举单一源 = core/policy-defaults.js attendance（recorderByType / reasons / roster）。
+// 口径/枚举单一源 = core/domain/policy-defaults.js attendance（recorderByType / reasons / roster）。
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性，同 attendance-batch）。
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260929b';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -22,18 +22,18 @@ import {
   absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/activity/attendance.js?v=20260929a';
+} from '../../docs/src/services/activity/attendance.js?v=20260929b';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/member/roster.js?v=20260929a';
+} from '../../docs/src/services/member/roster.js?v=20260929b';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
 //   docs/src/entries/tabs/disc/_shared.js = 'p10'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
 const DISC = 'p10';
-// 示范滞留党员（docs/src/mock/people.js）：p5（第二党小组）、p9（第一党小组），均正式党员
+// 示范滞留党员（docs/src/data/mock/people.js）：p5（第二党小组）、p9（第一党小组），均正式党员
 const DETAINED_P5 = 'p5';
 // 组长 = 记录人锚点：第一党小组组长 p1（罗文杰）、第二党小组组长 p2（郭子睿）——role 'leader'
 

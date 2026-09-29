@@ -2,30 +2,30 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/icons.js?v=20260929a';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/constants.js?v=20260929a';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/utils.js?v=20260929a';
+import { icon } from '../../../core/base/icons.js?v=20260929b';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260929b';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260929b';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260929a';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../core/data-adapter.js?v=20260929a';
-import { mockDB } from '../../../core/domain.js?v=20260929a';
-import { bumpToken } from '../../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity/activity.js?v=20260929a';
-import { isApiMode } from '../../../services/core/runtime.js?v=20260929a';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929a';
-import { getPersonName } from '../../../services/member/person.js?v=20260929a';
-import { generateId } from '../../../core/id.js?v=20260929a';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260929a';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260929b';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929b';
+import { mockDB } from '../../../core/domain/domain.js?v=20260929b';
+import { bumpToken } from '../../../core/base/version-token.js?v=20260929b'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity/activity.js?v=20260929b';
+import { isApiMode } from '../../../services/core/runtime.js?v=20260929b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929b';
+import { getPersonName } from '../../../services/member/person.js?v=20260929b';
+import { generateId } from '../../../core/base/id.js?v=20260929b';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260929b';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260929a';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260929b';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20260929a';
+import { BranchService } from '../../../services/core/runtime.js?v=20260929b';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929b';
 
 // ── 档案归档 ─────────────────────────────────────────────
-// 种子数据已提升为全局（mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
+// 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
 // 保证产出物区/关闭条件等跨页同源读取；本页只做纯读。
 function _loadArchiveRecords() {
   return mockDB.archiveRecords || [];
@@ -1003,7 +1003,7 @@ function _readFileAsDataURL(file) {
 //     白名单与 10MB 上限、按日期分组展示三处都与内嵌形态相抵）。
 //  ② 既有内嵌 base64 的两处（本页「上传材料」/ 资料查询「支部文件」）**本批一字未改**——属既有实现。
 //  ⚠ 本地（无服务端）模式**没有上传接口** ⇒ 上传按钮禁用并写明依据（不自造第二套 base64 通道）。
-//  数据侧：图片记录域与 typedef 早已在（core/domain.js::ImageRecord / mock-adapter CRUD /
+//  数据侧：图片记录域与 typedef 早已在（core/domain/domain.js::ImageRecord / mock-adapter CRUD /
 //  data-adapter 拉取清单），本批补的是**界面消费者**（此前 `imageRecords` 无任何读渲染点）。
 // ════════════════════════════════════════════════════════════════
 

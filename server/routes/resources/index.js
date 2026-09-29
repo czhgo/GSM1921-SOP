@@ -6,14 +6,14 @@ import { requireAuth, requireCommissioner, requireRole } from '../auth.js';
 import { replaceCollectionsAtomic, readCollectionVersions } from '../../db.js';
 import { deleteUploadedFile } from '../uploads.js';
 import { afterResourceWrite } from '../../services/mailer-hooks.js';
-// P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/core/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
+// P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/services/branch/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
 // 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防止未同步的情况）
-import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../../docs/src/core/config-clean.js';
+import { sanitizeConfigModules, sanitizeConfigBlocks, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../../docs/src/services/branch/config-clean.js';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（server 写口与前端 branch.js 同源校验）
-import { POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/policy-defaults.js';
-// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（勿手写）
-import { BRANCH_COMMISSION_ROLES, hashSubmitterToken } from '../../../docs/src/core/constants.js';
+import { POLICY_OVERRIDE_SECTIONS } from '../../../docs/src/core/domain/policy-defaults.js';
+// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（勿手写）
+import { BRANCH_COMMISSION_ROLES, hashSubmitterToken } from '../../../docs/src/core/domain/constants.js';
 
 // 资源名 → 表名映射（与 data-adapter 的分组名对齐）
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
@@ -353,7 +353,7 @@ export function createResourcesRouter(db) {
       } else if (!m || typeof m !== 'object' || Array.isArray(m)) {
         return res.status(400).json({ error: 'config.modules 须为对象 { hiddenTabIds, tabOrder } 或 null' });
       } else {
-        nextConfig.modules = sanitizeConfigModules(m); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
+        nextConfig.modules = sanitizeConfigModules(m); // 净化唯一实现 = docs/src/services/branch/config-clean.js（与前端 branch.js 同源）
       }
     }
     if (hasBlocks) {
@@ -363,7 +363,7 @@ export function createResourcesRouter(db) {
       } else if (!b || typeof b !== 'object' || Array.isArray(b) || (!b.outputBlocks && !b.workflowBlocks)) {
         return res.status(400).json({ error: 'config.blocks 须为对象 { outputBlocks?, workflowBlocks? }（至少其一）或 null' });
       } else {
-        nextConfig.blocks = sanitizeConfigBlocks(b); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
+        nextConfig.blocks = sanitizeConfigBlocks(b); // 净化唯一实现 = docs/src/services/branch/config-clean.js（与前端 branch.js 同源）
       }
     }
     if (hasWorkforce) {
@@ -373,7 +373,7 @@ export function createResourcesRouter(db) {
       } else if (!wf || typeof wf !== 'object' || Array.isArray(wf)) {
         return res.status(400).json({ error: 'config.workforce 须为对象 { moduleId: { ownerType, ownerId } } 或 null' });
       } else {
-        nextConfig.workforce = sanitizeConfigWorkforce(wf); // 净化唯一实现 = docs/src/core/config-clean.js（与前端 branch.js 同源）
+        nextConfig.workforce = sanitizeConfigWorkforce(wf); // 净化唯一实现 = docs/src/services/branch/config-clean.js（与前端 branch.js 同源）
       }
     }
     if (hasOrg) {

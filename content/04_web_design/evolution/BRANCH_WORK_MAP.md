@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -11,13 +11,13 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 # 支部工作地图设计稿（平铺模块 + 按人双视图）
 
 > **本文负责**：**支部工作地图的设计稿**——平铺模块清单与 tier 分层、平铺 + 按人两种视图、分工由支部自行建设的规则、与既有资产的映射、能力缺口与 YAGNI 边界、裁决与落地进度。
-> **本文不负责**：① **模块目录的现行取值** → `docs/src/core/work-map.js` 与 `README-server.md §3.5`（本稿写「11 项 / 11 模块」处均为 2026-09-03 沿革）；② **L4 拖拽编排的架构锚点与 L1~L5 分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；③ **块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **角色职责明细** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。
+> **本文不负责**：① **模块目录的现行取值** → `docs/src/core/domain/work-map.js` 与 `README-server.md §3.5`（本稿写「11 项 / 11 模块」处均为 2026-09-03 沿革）；② **L4 拖拽编排的架构锚点与 L1~L5 分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；③ **块封装的字段规格** → [WORKFLOW_BLOCK_CONTRACT.md](WORKFLOW_BLOCK_CONTRACT.md)；④ **角色职责明细** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)。
 
 > **已落地 2026-09-04**：本设计已实现（代码：docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js；测试：server/test/work-map.test.mjs 绿）；本文档继续承担设计论证档案。
 
 > **2026-09-03 支书裁决（放行编码）**：① 模块清单照 11 项放行；② 「支部分工」支书台入口 + 支委会议题生效（可会前草稿）**全链路放行**。（裁决出处见 2026-09-03 执行日志 `.ctx/logs/2026-09-EXECUTION_LOG.md`；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号）
 
-> ⚠ **模块数现为 14 项**（2026-09-22 批次 145 把「三会一课」按形式拆为 4 个模块）：**本文其余各处写「11 项 / 11 模块」的，均为 2026-09-03 当时的沿革、不再代表现状**；模块目录的现状以 `docs/src/core/work-map.js` 与 `README-server.md §3.5` 为准。
+> ⚠ **模块数现为 14 项**（2026-09-22 批次 145 把「三会一课」按形式拆为 4 个模块）：**本文其余各处写「11 项 / 11 模块」的，均为 2026-09-03 当时的沿革、不再代表现状**；模块目录的现状以 `docs/src/core/domain/work-map.js` 与 `README-server.md §3.5` 为准。
 
 > **定位**：支部工作的组织视图与分工载体。支书 2026-09-03 三重命令：
 > ① **党建/党务二分已取消**（全仓废止，本稿不再出现该表达）；
@@ -29,7 +29,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 
 ## 一、模块清单（平铺；全部为既有工作形式，无分类筐、无自造项）
 
-> **分层（tier，2026-09-13 支书裁定）**：模块分两层——`norm` **工作程序/党内统一规范**（必办、须有人、跨支部一致、**不可停用**）与 `method` **工作方法**（本支部自选，**可停用**、也可随时复用；各支部最大差别正在工作方法）。判据单一源 = `docs/src/core/work-map.js` 的 `tier` 字段；面板按层分组呈现。
+> **分层（tier，2026-09-13 支书裁定）**：模块分两层——`norm` **工作程序/党内统一规范**（必办、须有人、跨支部一致、**不可停用**）与 `method` **工作方法**（本支部自选，**可停用**、也可随时复用；各支部最大差别正在工作方法）。判据单一源 = `docs/src/core/domain/work-map.js` 的 `tier` 字段；面板按层分组呈现。
 
 | 工作模块 | 层 | 既有资产 |
 |---|---|---|
@@ -85,13 +85,13 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 过拟合实例 | 原状 | 现修 |
 |---|---|---|
 | 小表强加检索条 | 少量行的表也渲染检索条，成本大于收益 | 门槛 `SEARCH_FILTER_MIN_ROWS = 8` 统一拦截（人/活动共用，动态行数 `> 8` 才出现检索条） |
-| 活动类型/状态各页自造口径 | 各 tab 各写一套判据与状态文案 | 收敛为单一源——存储态判据 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`（`core/constants.js`）、生命周期展示态走 `components/record/inspector.js::deriveActivityLifecycleStatus`、类型写 `normalizeActivityType` 权威子类中文名 |
+| 活动类型/状态各页自造口径 | 各 tab 各写一套判据与状态文案 | 收敛为单一源——存储态判据 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`（`core/domain/constants.js`）、生命周期展示态走 `components/record/inspector.js::deriveActivityLifecycleStatus`、类型写 `normalizeActivityType` 权威子类中文名 |
 | 模块加载期人员快照 ×13 | 模块顶层捕获人员清单，与后台写入未同步、有张冠李戴风险 | 改 `services/member/person.js::liveMembers()` 实时视图（只读 Proxy，写入走 PersonStore 写口） |
 
 欠拟合（已登记）：
 
 - 部分表「第一列是人」与「第一列是活动」同等重要（考勤矩阵、表态矩阵、考察人视图矩阵等）——本轮**不接入**统一检索（矩阵/转置结构，接入会破坏视图与分页），登记为**已知例外**；
-- 上述清单中「`Date.now()` 生成实体 id 的全站排查」与「`RESIDENCE` 常量两份同值定义」两项**已于 2026-09-14 批次 24 闭环**（id 收敛 `core/id.js` 单一源＋两层守卫；`RESIDENCE` 收敛 `core/constants.js` 单一源＋S4 结构层守卫）——权威留痕见 `.ctx/REVIEW_QUEUE.md`（Q-21-2 / Q-21-3）与 `CLAUDE.md`（R-35 / R-37）。
+- 上述清单中「`Date.now()` 生成实体 id 的全站排查」与「`RESIDENCE` 常量两份同值定义」两项**已于 2026-09-14 批次 24 闭环**（id 收敛 `core/base/id.js` 单一源＋两层守卫；`RESIDENCE` 收敛 `core/domain/constants.js` 单一源＋S4 结构层守卫）——权威留痕见 `.ctx/REVIEW_QUEUE.md`（Q-21-2 / Q-21-3）与 `CLAUDE.md`（R-35 / R-37）。
 
 ---
 
@@ -143,11 +143,11 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 > 裁决出处：2026-09-03 执行日志（`.ctx/logs/2026-09-EXECUTION_LOG.md`）；SECRETARY_DIRECTIVES.md 未收录该设计裁定，无对应 P 编号。
 
 **落地进度（攒批推进）**：
-- ✅ **M0 数据契约**：`docs/src/core/work-map.js`（11 模块目录 + 缺省分工 + `expandWorkforce` 快照展开，零依赖双端可加载）；`config-clean.js` 新增 `sanitizeConfigWorkforce`；server `PATCH /branches/:id/config` 支持 `config.workforce`（null=恢复缺省）；`branch.js` 新增 `getBranchWorkforce/updateBranchWorkforce`（写配置抽 `_saveBranchConfig` 共用）。
+- ✅ **M0 数据契约**：`docs/src/core/domain/work-map.js`（11 模块目录 + 缺省分工 + `expandWorkforce` 快照展开，零依赖双端可加载）；`config-clean.js` 新增 `sanitizeConfigWorkforce`；server `PATCH /branches/:id/config` 支持 `config.workforce`（null=恢复缺省）；`branch.js` 新增 `getBranchWorkforce/updateBranchWorkforce`（写配置抽 `_saveBranchConfig` 共用）。
 - ✅ **M1 地图视图**：支书台新增「支部分工」tab（党建组）——视图 A 平铺 11 模块卡 / 视图 B 按人分组（纯排列切换，同一份 workforce）；禁 SVG 图标（沿用支书台裁定）。
 - ✅ **M2 已落地**：`services/branch/workforce.js`（发起分工调整 = 创建「支委会」议题活动，voteConfig=deliberative 交流式，应到支委；议题列表；采纳 = 至少已有一名支委表态后合并 `config.workforce` 落库并标记活动）；`workforce-panel.js`（支书台「支部分工」tab 底部分工调整工具：发起表单 / 议题跟踪 / 去表决跳活动详情 / 采纳生效，仅支书/副支书可见）；`work-map.js` 增 `mergeWorkforceSnapshot`（模块白名单合并）。表决复用既有 agenda-votes 资产（本链路不重复造投票 UI）。
 - ✅ **M2 闭环补齐（2026-09-05，支书批准「批准，开工」）**：①票决通过判定 `evaluateWorkforceVotes`（应到支委 2/3 出席且无异议=通过）为采纳硬门槛，议题 extras 记 `voteOutcome`；②面板表单升级多行（模块→新负责人）+「存草稿/直接发起」，草稿=支书台本地暂存（`gsm1921-workforce-draft`）；③生效消费端 `components/governance/workforce-duty-card.js`——各工作台概况常驻「支部安排·我的分工」履职卡（实时读 config.workforce，可去履职跳本台对应 tab）；④`server/test/workforce-gate.test.mjs` 判定/合并快照纯测试 5 项全绿。演示验收闭环（改派发展党员→副支书）目视复核待浏览器环境。
 - 测试：`server/test/work-map.test.mjs`（目录唯一性/快照展开/**合并白名单**/净化/HTTP PATCH 含恢复默认）5 项绿；module-load 全量加载绿。
 - **可复用文档件已补**：`server/.env.example` 环境模板、根 `CONTRIBUTING.md` 贡献指南、README 演示账号指引修正 + 贡献引用。
-- ✅ **落地注记（2026-09-14 落地）· 党小组升为一等实体，本项不新增工作地图模块**：党小组由「成员档案 `partyGroup` 字段取值集合」升为一等实体——组清单持久化（`partyGroups` 域，活组取状态为 `active` 者、按 `seq` 排序）+ 新增/改名/解散 + 留痕；支书台「**党小组**」tab（由原「党小组进展」升级：清单 + 管理写口 + 进展只读 + 未分组提示）。**落点文件**：`docs/src/services/member/party-group.js`（写口单一源）、`docs/src/entries/tabs/secretary/group-progress-tab.js`、`docs/src/modules/capabilities/secretary-workspace.js`、`docs/src/mock/party-groups.js`（种子三组）、`server/routes/resources.js`（资源名 / `ID_PREFIX:'pg'` / 写门）。**测试证据**：`server/test/party-group.test.mjs` **9/9 通过**（结构层 S1-S3 + 数据层 D1-D6）；全量 `node --test --test-concurrency=1` **523/523 通过（0 失败）**；真机**串行**复核——党小组 tab 清单 3 行且进展区保留、写口链路（新增「第四党小组」→ 改名「（试改）」→ 解散空组转「已解散」→ 解散非空组「第三党小组」16 人转「未分组」→ 行内下拉归组 1 人后未分组 16 降到 15）、`PAGEERRORS: []`。**本项不新增工作地图模块**——理由：组织结构维护属既有模块的「职责有入口」（党的组织设置本就在三会一课/专班等既有模块的运行中承载），故模块清单维持 11 项、`docs/src/core/work-map.js` 的模块目录不增删，`server/test/work-map.test.mjs:36` 的模块数断言（11 项）不受影响。**状态：已落地（2026-09-14）**。
-- ✅ **落地注记（2026-09-14 批次 26）· 成员流入/流出登记（复式记账台账 + 对账 + 自动建号 + 登记即生效 + 撤销留痕），本项不新增工作地图模块**：**落点文件**：`docs/src/services/member/member-flow.js`（台账写口单一源：`loadMemberFlows` / `reconcile` 对账 / `registerIntake` 单人流入 / `registerIntakeBatch` 粘贴多行 / `registerOutflow` 多人流出 / `revokeFlow` 撤销 / `canRegisterFlow`）、`docs/src/services/core/accounts.js`（账号层可持久化：账号取学号、口令取支部统一默认口令）、`docs/src/entries/tabs/org/roster-tab.js`（组织台名册内「成员流动」面板）、`server/routes/resources.js`（写门 `memberFlows`）；配套 `docs/src/mock/member-flows.js` / `mockDB.memberFlows` / `server/db.js` 表 `member_flows` / `api-adapter` 资源组 / 快照 payload 与 init 拉取 / `init-reset` 清档。**测试证据**：`server/test/member-flow.test.mjs` **10 例通过**（两层法 S1–S3 / D1–D6）；全量 `node --test --test-concurrency=1` **533/533 通过（0 失败）**；真机**串行**复核（组织台名册「成员流动」）——面板与对账行在位（期初在册 51 · 流入 0 · 流出 0 · 当前在册 51）、单人流入成功（流入 1、当前在册 52）、批量粘贴三行（错误行回显「第 2 行：学号不能为空（账号由学号派生）」，其余两行照常入库，流入 3、当前在册 54）、流出弹窗含 PersonPicker 入口与流出日期与备注、`PAGEERRORS: []`；**未完成（如实标注）**：流出与撤销的 UI 点击链路未真机点到（复核脚本选择器未命中 PersonPicker 展开后的候选，脚本报 Malformed value 中断），该链路数据层已由 member-flow 单测覆盖。**本项不新增工作地图模块**——模块数仍为 11，`docs/src/core/work-map.js` 的模块目录不增删。**状态：已落地（2026-09-14）**。
+- ✅ **落地注记（2026-09-14 落地）· 党小组升为一等实体，本项不新增工作地图模块**：党小组由「成员档案 `partyGroup` 字段取值集合」升为一等实体——组清单持久化（`partyGroups` 域，活组取状态为 `active` 者、按 `seq` 排序）+ 新增/改名/解散 + 留痕；支书台「**党小组**」tab（由原「党小组进展」升级：清单 + 管理写口 + 进展只读 + 未分组提示）。**落点文件**：`docs/src/services/member/party-group.js`（写口单一源）、`docs/src/entries/tabs/secretary/group-progress-tab.js`、`docs/src/capabilities/secretary-workspace.js`、`docs/src/data/mock/party-groups.js`（种子三组）、`server/routes/resources.js`（资源名 / `ID_PREFIX:'pg'` / 写门）。**测试证据**：`server/test/party-group.test.mjs` **9/9 通过**（结构层 S1-S3 + 数据层 D1-D6）；全量 `node --test --test-concurrency=1` **523/523 通过（0 失败）**；真机**串行**复核——党小组 tab 清单 3 行且进展区保留、写口链路（新增「第四党小组」→ 改名「（试改）」→ 解散空组转「已解散」→ 解散非空组「第三党小组」16 人转「未分组」→ 行内下拉归组 1 人后未分组 16 降到 15）、`PAGEERRORS: []`。**本项不新增工作地图模块**——理由：组织结构维护属既有模块的「职责有入口」（党的组织设置本就在三会一课/专班等既有模块的运行中承载），故模块清单维持 11 项、`docs/src/core/domain/work-map.js` 的模块目录不增删，`server/test/work-map.test.mjs:36` 的模块数断言（11 项）不受影响。**状态：已落地（2026-09-14）**。
+- ✅ **落地注记（2026-09-14 批次 26）· 成员流入/流出登记（复式记账台账 + 对账 + 自动建号 + 登记即生效 + 撤销留痕），本项不新增工作地图模块**：**落点文件**：`docs/src/services/member/member-flow.js`（台账写口单一源：`loadMemberFlows` / `reconcile` 对账 / `registerIntake` 单人流入 / `registerIntakeBatch` 粘贴多行 / `registerOutflow` 多人流出 / `revokeFlow` 撤销 / `canRegisterFlow`）、`docs/src/services/core/accounts.js`（账号层可持久化：账号取学号、口令取支部统一默认口令）、`docs/src/entries/tabs/org/roster-tab.js`（组织台名册内「成员流动」面板）、`server/routes/resources.js`（写门 `memberFlows`）；配套 `docs/src/data/mock/member-flows.js` / `mockDB.memberFlows` / `server/db.js` 表 `member_flows` / `api-adapter` 资源组 / 快照 payload 与 init 拉取 / `init-reset` 清档。**测试证据**：`server/test/member-flow.test.mjs` **10 例通过**（两层法 S1–S3 / D1–D6）；全量 `node --test --test-concurrency=1` **533/533 通过（0 失败）**；真机**串行**复核（组织台名册「成员流动」）——面板与对账行在位（期初在册 51 · 流入 0 · 流出 0 · 当前在册 51）、单人流入成功（流入 1、当前在册 52）、批量粘贴三行（错误行回显「第 2 行：学号不能为空（账号由学号派生）」，其余两行照常入库，流入 3、当前在册 54）、流出弹窗含 PersonPicker 入口与流出日期与备注、`PAGEERRORS: []`；**未完成（如实标注）**：流出与撤销的 UI 点击链路未真机点到（复核脚本选择器未命中 PersonPicker 展开后的候选，脚本报 Malformed value 中断），该链路数据层已由 member-flow 单测覆盖。**本项不新增工作地图模块**——模块数仍为 11，`docs/src/core/domain/work-map.js` 的模块目录不增删。**状态：已落地（2026-09-14）**。

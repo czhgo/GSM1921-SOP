@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260929a');
+@import url('components/person-picker.css?v=20260929b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -92,7 +92,7 @@
   --functional-info:    #3B82F6;
 
   /* ── 主题色运行时令牌（--app-accent 三件套）· 正式默认值（2026-09-28）──
-     7 个工作台由 bootstrapPage（core/bootstrap.js）/ theme.js 在 <html> 上注入当前用户主题色，
+     7 个工作台由 bootstrapPage（core/boot/bootstrap.js）/ theme.js 在 <html> 上注入当前用户主题色，
      覆盖此处默认值；归档 / 反馈 / 通知 / 帮助 / 关于等非工作台页**不注入** ⇒ 此前每个组件各自写
      `var(--app-accent, <党建红 hex>)` 硬编码兜底（DESIGN_SYSTEM §2.8 兜底规则），兜底值散落各处。
      此处给三件套**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）：

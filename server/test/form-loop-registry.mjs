@@ -212,11 +212,11 @@ export const VALIDATION_SITES = [
   // 批次 47-P（2026-09-16）：**党委台 · 上报审批 · 驳回意见**——本条是「**改种子解锁一条**」的首个样本。
   // ⚠ 原 reason 是这样写的：「实测 `[data-rq-act="reject"]` 计数 **0**——驳回按钮只在**待批复**的支部上报事项上渲染，
   //   而种子无『支部上报党委』条目」。**这句实测是对的，但停在「现象」就下了结论**——
-  //   真问题是：**这个「前置」在 mock 与 api 两形态下都恒不存在**（`docs/src/mock/seed.js` 无上报种子、
+  //   真问题是：**这个「前置」在 mock 与 api 两形态下都恒不存在**（`docs/src/data/mock/seed.js` 无上报种子、
   //   `server/seed.js` 也未播种 `review_requests`）⇒ 支书在党委台**永远点不到「驳回」**，
   //   而这个「够不到」被记成了一条无害的白名单理由（正是 47-M 那条教训的翻版：**白名单会掩盖病灶**）。
   // 处置（支书 2026-09-16 裁定「允许改种子」）：补 `SEED_REVIEW_REQUESTS`（pending 一条）并**两形态同源**播种
-  //   （mock 走 `mock-adapter._seedInitialData()`、api 走 `server/seed.js`，都读 `mock/seed.js` 这一份），
+  //   （mock 走 `mock-adapter._seedInitialData()`、api 走 `server/seed.js`，都读 `data/mock/seed.js` 这一份），
   //   于是本条从「够不到」变成「真机可达」。
   // ⚠ **为什么必须两形态都种**：只种 mock 会让守卫变绿而支书在真实（api）演示里依旧点不到——
   //   那正是本仓库最忌讳的**假绿**。种子的「单一源」不是整洁癖，是「真机可达」这句话成立的前提。
@@ -286,7 +286,7 @@ export const VALIDATION_SITES = [
   //   详情不存在」**是事实**，但那只是**当时种子的事实**：该区只在有 `result:'passed'` 议程项时挂载，
   //   而原种子没有任何活动带 `result` ⇒ 结构性不可达。本批**按「造出真机可达且自洽的前置」处理**
   //   （而非维持不可达）：新增 `act-35`（线下支委会，议程项已通过——无 `voteConfig` 故不经表决硬校验，
-  //   是真机可达成状态；详见 `docs/src/mock/activities.js` 该条注释），入口＝支书台「活动管理」切到 2026-08。
+  //   是真机可达成状态；详见 `docs/src/data/mock/activities.js` 该条注释），入口＝支书台「活动管理」切到 2026-08。
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 143, field: '待落实事项', flow: 'component/决议落实', machine: true, msg: '请填写待落实事项' },
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 144, field: '责任人', flow: 'component/决议落实', machine: true, msg: '请选择责任人' },
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
@@ -307,11 +307,11 @@ export const VALIDATION_SITES = [
   //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」。
   { file: SRC + 'components/governance/org-setup-wizard.js', line: 1348, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
   { file: SRC + 'components/governance/org-setup-wizard.js', line: 1359, field: '首任支书', flow: 'component/组织配置向导', machine: true, msg: '请选择首任支书' },
-  { file: SRC + 'modules/references.js', line: 776, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
-  { file: SRC + 'modules/references.js', line: 779, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
-  { file: SRC + 'modules/references.js', line: 781, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
-  { file: SRC + 'modules/references.js', line: 900, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
-  { file: SRC + 'modules/references.js', line: 901, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
+  { file: SRC + 'components/sections/references.js', line: 776, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 779, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
+  { file: SRC + 'components/sections/references.js', line: 781, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
+  { file: SRC + 'components/sections/references.js', line: 900, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 901, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
   // 批次 47-M（2026-09-16）：**服务层与 UI 层的重复守卫**——这一条**不是「没去做」，也不是「种子不够」**，
   //   而是**结构上到不了**：`visitor/review-tab.js:181` 在**调它之前**就有一份同文案判据（`if (!content)` → return），
   //   故从任何 UI 入口都不可能让这份服务层守卫成为**第一个**报出来的那一个。
@@ -566,7 +566,7 @@ export const MACHINE_FLOWS = [
   {
     // 批次 47-W（2026-09-16）：**支书台 · 活动管理 · 巡查详情「决议落实」**——**一条流程覆盖三处校验点**（全部转正）。
     // 与上两条**共用同一条 open 链**（日历活动标签 → 巡查详情）——「同面板多块」的第三例（47-D 的收益点再次兑现：新增成本≈0）。
-    // ⚠ **本条的成立完全依赖新种子 `act-35`**（见 `docs/src/mock/activities.js` 该条注释）：
+    // ⚠ **本条的成立完全依赖新种子 `act-35`**（见 `docs/src/data/mock/activities.js` 该条注释）：
     //   该区只在**存在 `result:'passed'` 议程项**时挂载；原种子没有任何活动带 `result` ⇒ 三处**结构性不可达**
     //   （批 47-M 真机实测 `.fu-add` 计数 0，台账原 reason 属实）。本批按「**造出真机可达且自洽的前置**」处理，
     //   而**不是**给 act-31 挂 `result` 了事——那会造出「0 票却已通过」这种**真机永远不可能出现**的状态（假种子）。
@@ -595,7 +595,7 @@ export const MACHINE_FLOWS = [
     // 批次 47-X（2026-09-16）：**成员台 · 知情查看 · 专班分段 · 「我的产出填报」**——承 47-W 的 R-78 口径，再清一处不可达。
     // 入口链：知情查看 tab（`components/record/insight-view.js`）→ 分段钮 `.insight-view-btn[data-iview="taskforce"]`
     //   → 专班卡 `.tfv-card[data-tf-id="tf-001"]`（点击进只读详情）→ 详情内 `#tfv-contrib-add`（「填报本条产出」）。
-    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（本批改 `docs/src/mock/taskforces.js::tf-001`
+    // ⚠ **成立条件＝种子给 active 专班补一名演示账号成员**（本批改 `docs/src/data/mock/taskforces.js::tf-001`
     //   成员补 p5）：该填报区**只在 `tf.status==='active' && isMember` 时渲染**（`taskforce-view.js:194`），
     //   而原种子两只 active 专班的成员（p8+p9 / p4+p7）**全非演示账号** ⇒ 任何演示账号登录都看不到它（结构性不可达）。
     //   **造前置时守 R-78 ②**：只**加成员**、**不动状态**、容量内（2/5 → 3/5）⇒「某 active 专班的成员里有本人」
@@ -673,9 +673,9 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#ref-modal-confirm' }],
     expect: [
-      { file: SRC + 'modules/references.js', field: '标题', msg: '请填写标题', carrier: '#ref-modal-title', satisfy: { setValue: { selector: '#ref-modal-title', value: '（真机普查）制度标题' } } },
-      { file: SRC + 'modules/references.js', field: '要上传的文件', msg: '请选择要上传的文件', carrier: '#ref-modal-file', satisfy: { selectValue: { selector: '#ref-modal-purpose', value: 'institution' } } },
-      { file: SRC + 'modules/references.js', field: '制度正文', msg: '请填写制度正文', carrier: '#ref-modal-body' },
+      { file: SRC + 'components/sections/references.js', field: '标题', msg: '请填写标题', carrier: '#ref-modal-title', satisfy: { setValue: { selector: '#ref-modal-title', value: '（真机普查）制度标题' } } },
+      { file: SRC + 'components/sections/references.js', field: '要上传的文件', msg: '请选择要上传的文件', carrier: '#ref-modal-file', satisfy: { selectValue: { selector: '#ref-modal-purpose', value: 'institution' } } },
+      { file: SRC + 'components/sections/references.js', field: '制度正文', msg: '请填写制度正文', carrier: '#ref-modal-body' },
     ],
   },
   {
@@ -709,8 +709,8 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '#ref-pub-confirm' }],
     expect: [
-      { file: SRC + 'modules/references.js', field: '标题', msg: '请填写标题', carrier: '#ref-pub-title', satisfy: { setValue: { selector: '#ref-pub-title', value: '（真机普查）新版标题' } } },
-      { file: SRC + 'modules/references.js', field: '新版正文', msg: '请填写新版正文', carrier: '#ref-pub-body' },
+      { file: SRC + 'components/sections/references.js', field: '标题', msg: '请填写标题', carrier: '#ref-pub-title', satisfy: { setValue: { selector: '#ref-pub-title', value: '（真机普查）新版标题' } } },
+      { file: SRC + 'components/sections/references.js', field: '新版正文', msg: '请填写新版正文', carrier: '#ref-pub-body' },
     ],
   },
   {
@@ -845,7 +845,7 @@ export const MACHINE_FLOWS = [
     //   ⇒ 源码 `if (reason === null) return;` **直接 return，连空值分支都到不了**
     //   （源码 624-626：先判 `null`，再判 `.trim()` 为空）。**两个障碍缺一不可**。
     // 处置（R-78 两条出口里的「造真机可达的前置」）：
-    //   ① 种子：`docs/src/mock/taskforces.js::tf-001` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
+    //   ① 种子：`docs/src/data/mock/taskforces.js::tf-001` 给 p5 补**一条待核产出**（`{id,desc,by,at}` 且无
     //      `verifiedStatus`）——这正是成员在「我的产出填报」提交后的形状，产品自己就会产出它；
     //   ② 能力：`runStep` 新增 **`dialogAnswer`** 步骤（在**触发它的那一步之前**注册一次性应答器），
     //      本流程用 `answer:''` 打**空值分支**；`answer:'某原因'` 可打成功分支（留作后继复用）。
@@ -876,8 +876,8 @@ export const MACHINE_FLOWS = [
     //   ② 更关键的是**日期耦合**：该页只列**当月**活动（`visitor/attendance-tab.js:24-25`），
     //      而 7 月那条现成的 p5 缺勤（att38/act-11）**根本不在当月** ⇒ 就算照原方案「等纪检派生」也看不到。
     // 处置（R-78 出口一：造**可达且自洽**的前置）：
-    //   ① `docs/src/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：p5 · act-31 · 缺勤 · **已确认**）；
-    //   ② `docs/src/mock/seed.js::SEED_MAKEUP_TASKS` 补**该条的派生结果**（补课任务，`attendanceRecordId` 对得上、
+    //   ① `docs/src/data/mock/attendance.js` 补 **9 月**缺勤一条（`att-sep-1`：p5 · act-31 · 缺勤 · **已确认**）；
+    //   ② `docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS` 补**该条的派生结果**（补课任务，`attendanceRecordId` 对得上、
     //      `deadline` = 缺勤日 +7 天、`proofContent: null`）⇒ 与 `autoGenerateMakeupTask()` 落库形状逐项一致；
     //   ③ 两形态同源注入（`server/seed.js` 的 `replaceCollection('makeup_tasks')` ＋ `mock-adapter._seedInitialData`）
     //      ——**只种 mock 就是假绿**（47-S 的教训）。
@@ -1423,7 +1423,7 @@ export const MACHINE_FLOWS = [
   // 三处的共同点：**都缺「过渡态数据」而不是缺功能**（按钮只在某个状态分支里渲染，而种子里永远没有那个状态）。
   // 1) 成员台「我的复盘」：种子把 p5 排为 act-3 的 `deep`（复盘责任人）⇒ 行卡出现。
   // 2) 思想汇报「修改并重新提交」：种子补 tr-5（p5 · needs_revision）⇒ 本人可见修改态。
-  //    ⚠ 这条**只改 `docs/src/mock/thought-reports.js` 就够了**（与 47-P 的 `review_requests` 不同）：
+  //    ⚠ 这条**只改 `docs/src/data/mock/thought-reports.js` 就够了**（与 47-P 的 `review_requests` 不同）：
   //      `loadThoughtReports()` 在 `mockDB.thoughtReports` 为空时**回退模块常量** ⇒ api 形态同样看得到。
   // 3) 思想汇报「打回」（`#tr-reject-confirm`）：**这处此前压根没登记在台账里**——种子里 tr-4（p3）
   //    本就存在、组织委员一直可达，只是**没人登记、也就没人跑**。本批补登记并直接覆盖。

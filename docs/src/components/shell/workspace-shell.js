@@ -20,23 +20,23 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/state.js?v=20260929a';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20260929b';
 
-import { bootstrapPage } from '../../core/bootstrap.js?v=20260929a';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260929a';
-import { flashHighlight, escHtml } from '../../core/utils.js?v=20260929a';
-import { CrossPageState } from '../../core/cross-page-state.js?v=20260929a';
-import { getCapabilities } from '../../core/registry.js?v=20260929a';
-import { loadWorkspaceData } from '../../core/data-loader.js?v=20260929a';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20260929b';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260929b';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20260929b';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260929b';
+import { getCapabilities } from '../../core/boot/registry.js?v=20260929b';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20260929b';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260929a';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260929b';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20260929a';
-import { AuthStore } from '../../services/core/auth.js?v=20260929a';
-import { BranchService } from '../../services/core/runtime.js?v=20260929a';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260929a';
+import { TodoStore } from '../../services/governance/todo.js?v=20260929b';
+import { AuthStore } from '../../services/core/auth.js?v=20260929b';
+import { BranchService } from '../../services/core/runtime.js?v=20260929b';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260929b';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260929a';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260929b';
 
 
 
@@ -96,7 +96,7 @@ const NAV_SUPPRESS_MS = 3000;
 
 /**
  * 能力未对当前身份开放时的**显式提示卡**（G1 第①项，2026-09-28）。
- * 不静默渲染空工作台：正常路径由 `core/bootstrap.js` 的页门先行拦截，本卡是**组合后授权收窄**
+ * 不静默渲染空工作台：正常路径由 `core/boot/bootstrap.js` 的页门先行拦截，本卡是**组合后授权收窄**
  * （能力未对身份开放 / 能力被 config 收起）的兜底——判据落在事实上，不留静默（R-75）。
  */
 function _renderCapabilityDenied(containerId, { capId, scope, role }) {
@@ -195,7 +195,7 @@ export async function createWorkspaceShell(opts) {
 
   // ── 立项⑦ B波：党委「进入支部（演示）」演示只读横幅（2026-09-06；A⑤ 只读放开 2026-09-10）──
 
-  // party-staff 经 core/bootstrap.js 放行门进入支部层工作台（URL 携带 ?branch=）时，
+  // party-staff 经 core/boot/bootstrap.js 放行门进入支部层工作台（URL 携带 ?branch=）时，
 
   // 在内容区顶部给出「支部层 × 演示只读」标识与返回党委总览入口。
 
@@ -322,11 +322,11 @@ export async function createWorkspaceShell(opts) {
     // M2e 注册表衔接：tab 清单经能力注册表读取（scope 能力），入口不再硬编码
 
     // requiredRoles 门禁消费（G1 第①项，2026-09-28）：**先按 viewer 角色查**——`getCapabilities`
-    // 的 role 过滤即 requiredRoles 的单一源消费者（core/registry.js:57）；查不到再按 scope **兜底**。
-    // 兜底不是「绕过门禁」，而是三条**各有单一源**的放行门（三者均由 core/bootstrap.js 页门统一裁决，
+    // 的 role 过滤即 requiredRoles 的单一源消费者（core/boot/registry.js:57）；查不到再按 scope **兜底**。
+    // 兜底不是「绕过门禁」，而是三条**各有单一源**的放行门（三者均由 core/boot/bootstrap.js 页门统一裁决，
     // 本壳与之同口径、不另立第二套）：
-    //   · 党委组织员「进入支部（演示）」→ modules/branch-demo-nav.js::isPartyStaffBranchDemoAllowed
-    //   · 支书 / 副支书代归档（仅 prop.html 归档兜底面）→ core/constants.js::isArchiveFallbackPage
+    //   · 党委组织员「进入支部（演示）」→ services/core/branch-demo-nav.js::isPartyStaffBranchDemoAllowed
+    //   · 支书 / 副支书代归档（仅 prop.html 归档兜底面）→ core/domain/constants.js::isArchiveFallbackPage
     //   · 组织者兜底（仅 leader.html 上传位）→ services/activity/activity.js::isOrganizerFallbackPage
     // 两查皆空 ⇒ **显式拒绝**（渲染可读提示卡），不再静默渲染空壳。
     const _viewerRole = (() => {
@@ -359,7 +359,7 @@ export async function createWorkspaceShell(opts) {
       console.warn('[ws-shell] 支部工作流模块配置读取失败，按默认全开渲染', e);
     }
     // 个人 tab 顺序偏好（设置中心批2，2026-09-09 支书批准 v3）：个人顺序仅作用于业务组，
-    // 核心组（注册表显式声明 coreTab: true，判定单一源 core/constants.js::isCoreTab）保持注册序置前、
+    // 核心组（注册表显式声明 coreTab: true，判定单一源 core/domain/constants.js::isCoreTab）保持注册序置前、
     // 不参与排序；无偏好/与默认等效 → 原样（默认零 diff）。
     // 党委工作台（party-committee）无核心组，业务页签同样支持个人顺序（不受支部配置影响）。
     try {

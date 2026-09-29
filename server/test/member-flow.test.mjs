@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260929a';
+const V = '?v=20260929b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const read = (f) => readFileSync(f, 'utf8');
@@ -29,11 +29,11 @@ globalThis.localStorage = {
 };
 globalThis.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
-const { mockDB } = await import(`../../docs/src/core/domain.js${V}`);
-const { MockAdapter } = await import(`../../docs/src/core/mock-adapter.js${V}`);
+const { mockDB } = await import(`../../docs/src/core/domain/domain.js${V}`);
+const { MockAdapter } = await import(`../../docs/src/data/mock-adapter.js${V}`);
 const { PersonStore, MEMBER_OVERLAY_KEY } = await import(`../../docs/src/services/member/person.js${V}`);
-const { setDataSource, registerMockAdapter } = await import(`../../docs/src/core/data-adapter.js${V}`);
-const { MEMBER_FLOW_ROLES } = await import(`../../docs/src/core/constants.js${V}`);
+const { setDataSource, registerMockAdapter } = await import(`../../docs/src/data/data-adapter.js${V}`);
+const { MEMBER_FLOW_ROLES } = await import(`../../docs/src/core/domain/constants.js${V}`);
 const {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
@@ -98,7 +98,7 @@ test('S3 写门角色集来自单一源（不得手写角色字符串）', () =>
   assert.match(svc, /MEMBER_FLOW_ROLES/, 'member-flow.js 须 import MEMBER_FLOW_ROLES（单一源）');
   assert.ok(!/\['org-commissioner'/.test(svc), 'member-flow.js 不得手写角色数组');
 
-  const consts = read(join(SRC_DIR, 'core', 'constants.js'));
+  const consts = read(join(SRC_DIR, 'core', 'domain', 'constants.js'));
   assert.match(consts, /MEMBER_FLOW_ROLES\s*=/, '单一源常量 MEMBER_FLOW_ROLES 须存在于 constants.js');
 
   const member = read(join(ROOT, 'server', 'routes', 'member.js'));
@@ -113,7 +113,7 @@ test('S4 撤销流出须清 server 软标记（Q-23-5；三处接线齐备）', 
   assert.match(member, /undo-transfer-out'[\s\S]{0,200}?TRANSFER_OUT_ROLES/, '撤销端点须用与移出同源的角色集');
   assert.match(member, /delete merged\.transferOut/, '撤销端点须清除 transferOut 软标记');
 
-  const adapter = read(join(SRC_DIR, 'core', 'api-adapter.js'));
+  const adapter = read(join(SRC_DIR, 'data', 'api-adapter.js'));
   assert.match(adapter, /undoTransferOut\(id\)/, 'api-adapter.members 须暴露 undoTransferOut');
 
   const svc = read(join(SRC_DIR, 'services', 'member', 'member-flow.js'));

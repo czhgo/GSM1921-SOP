@@ -2,7 +2,7 @@
 title: "运行与协作规范"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 version: "4.0"
 status: active
 merged_from:
@@ -1626,7 +1626,7 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **UI**（User Interface）：用户界面
 - **ROADMAP**（路线图）：分阶段推进计划（如工作流模块化 L1→L5 愿景、各类整改批次 B1→B4）
 - **mock**（模拟/桩数据）：开发与演示期的替身数据，相对真实后端数据
-- **DataAdapter**（数据适配器）：隔离数据源的接口层，上层不关心数据来自 mock 还是真实后端（`docs/src/core/data-adapter.js`）
+- **DataAdapter**（数据适配器）：隔离数据源的接口层，上层不关心数据来自 mock 还是真实后端（`docs/src/data/data-adapter.js`）
 - **auth**（authentication / authorization）：认证与授权——登录与权限控制
 
 ### 内部黑话（真自造词，离开仓库读不懂）
@@ -1638,14 +1638,14 @@ AI 对支书原话的展开，目标是**吃透支书精神后用自己的语言
 - **canvas**：可视化拖拽「画布」——把工作流块拖入排列组合的编排界面（L4 愿景形态）；v0 落地于设置 → 支部治理「工作台默认顺序」/模块组合（支书/副同权）（[ARCHITECTURE_EVOLUTION.md §八](../04_web_design/evolution/ARCHITECTURE_EVOLUTION.md) 8.2/8.5）
 - **FLAT_DESIGN（旧词）**：扁平化组织设计权威文档的旧名，已改名 [FLAT_ORGANIZATION_DESIGN.md](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（组织者与深度参与者的扁平化设计 v2.2）——新文档/文件名一律用新名；**2026-09-26 该文件已全文并入 [COMMISSIONER_DUTY_FRAMEWORK.md §G](../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)（《支部组织与委员体系》）**，故 `FLAT_ORGANIZATION_DESIGN.md` 现亦为历史文件名（引用一律改指 `COMMISSIONER_DUTY_FRAMEWORK.md §G`）
 - **CLICK_MAP（旧词）**：点击落点规范的旧名，现行权威源为 [DESIGN_SYSTEM.md §十 点击落点映射](../04_web_design/design-system/DESIGN_SYSTEM.md)（「哪些地方可点、点了落在哪」的全局规范，支书 2026-08-29 分层原则裁定）
-- **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
-- **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/core/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain.js)，持久化由 `core/mock-adapter.js` 承担），勿绕过该层直接改数据
+- **ROLE_KEYS**：代码层角色英文键枚举（`secretary` / `deputy-secretary` / 各委员 / `leader`…）——角色标签、主题色、权限声明的单一事实源，对齐制度层角色键全表（[constants.js](../../docs/src/core/domain/constants.js) 导出，对照 [SYSTEM_ROLE_PERMISSION.md §9a0](../02_institution/SYSTEM_ROLE_PERMISSION.md)（系统角色权限矩阵））
+- **mockDB**：浏览器端「模拟数据库」对象（演示/无后端形态可用）——数据读写统一收敛于 [mock.js](../../docs/src/services/core/mock.js)（对象定义于 [domain.js](../../docs/src/core/domain/domain.js)，持久化由 `data/mock-adapter.js` 承担），勿绕过该层直接改数据
 - **CLAUDE.md（harness 文件名惯例）**：仓库约定「给 AI 的主指令文件」固定命名为 CLAUDE.md（根目录一份；harness = 规则/工作流骨架，分甲/乙/丙三部）；「CLAUDE.md Hxx / T-xxx」即指该文件的编号条款（[CLAUDE.md](../../CLAUDE.md)）
 
 > **2026-09-09 补录**（支部 config 写权分层相关黑话，随 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md) / [§9h 写权矩阵](../02_institution/SYSTEM_ROLE_PERMISSION.md) 审定定稿）：
 
 - **L2-L3 配置层**：支部 config **写权分层**——L2 = 支部可在线调的域参数层（policyOverrides）；L3 = 制度刚性只读锁定层（制度默认展示位）——⚠️ **与「L1-L4 阶段号」非同一编号体系**（后者 = 工作流「代码化→拖拽化」演进层号）；写权矩阵与词条收口见 [PARTY_COMMITTEE_DESIGN.md §2.6](../04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md)
-- **kind**：`policy-defaults.js` 每个业务默认键上的**类别标注字段**（取值 `branch-default` / `institutional`，附出处编号 + 消费点）——业务层一律引用派生导出，不在别处新写字面量（[policy-defaults.js](../../docs/src/core/policy-defaults.js)）
+- **kind**：`policy-defaults.js` 每个业务默认键上的**类别标注字段**（取值 `branch-default` / `institutional`，附出处编号 + 消费点）——业务层一律引用派生导出，不在别处新写字面量（[policy-defaults.js](../../docs/src/core/domain/policy-defaults.js)）
 - **branch-default**：kind 值之一 = **支部默认值**（源码单一源，开源部署可按支部制度调整）——**不自动进设置可调**（当前形态走换壳工作单源码改）；登记 `POLICY_OVERRIDABLE` 者升级为「域参数（L2）」可经 UI 覆盖
 - **institutional**：kind 值之一 = **制度裁决固定**项（考勤记录人 / 请假缺席标因 / 上传位例外等）——不因支部而异，改须党委/支书裁决后源码层变更
 - **域参数（L2）**：登记于 `POLICY_OVERRIDABLE` 白名单、可经设置「域参数」卡 UI 覆盖的支部参数——**现行 8 个节 / 14 条叶项**：纪检域（`inspection.overdueDays` 考察超期 · `attendance.entryRemindDays`/`summaryDeadlineDays`/`lowRateHint` 考勤录入提醒 / 汇总期限 / 出勤率提示线 · `review.overdueDays`/`deadlineDays` 复盘提醒 / 提交期限 · `makeup.branchAssembly`/`partyClass`/`deadlineDays` 补课范围与时限）/ 组织域（`memberConfirmation.semesterDetainedWindows` 滞留集中复核窗 · `thoughtReport.wordHint`/`wordSoftMin` 思想汇报篇幅）/ 组长域（`leader.semesterReportReminder.enabled` 学期提醒开关）/ 支书域（`activityApproval.mode` 活动批准门）；写权 = 域负责人仅本域、支书/副支书/党委组织员全量；读侧注入 `POLICY_DEFAULTS`，全站判定随参数生效

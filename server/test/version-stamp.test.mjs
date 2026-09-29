@@ -235,29 +235,29 @@ const NEW_V = '20260915z';
 const OLD_V = '20260101a';
 const FIXTURE_TEMPLATE = [
   '// 头注：对 docs/src 的相对 import 必须带 {OLD}（整行注释 → 逐字不变）',
-  "import { a } from '../../docs/src/core/domain.js{OLD}';",
-  "import { b } from '../../docs/src/core/state.js{NONE}';",
-  "import '/src/core/icons.js{NONE}';",
-  "  const c = await import('/src/core/data-adapter.js{OLD}');",
+  "import { a } from '../../docs/src/core/domain/domain.js{OLD}';",
+  "import { b } from '../../docs/src/core/base/state.js{NONE}';",
+  "import '/src/core/base/icons.js{NONE}';",
+  "  const c = await import('/src/data/data-adapter.js{OLD}');",
   '  const d = await import(' + TICK + '/src/${rel}{OLD}' + TICK + ');',
   "const V = '{OLD}';",
-  "  new URL('../../docs/src/core/registry.js{OLD}', import.meta.url),",
-  "const g = grab('docs/src/core/function-catalog.js{OLD}', 'FUNCTION_CATALOG');",
-  "const list = ['docs/src/core/constants.js{OLD}'];",
+  "  new URL('../../docs/src/core/boot/registry.js{OLD}', import.meta.url),",
+  "const g = grab('docs/src/core/domain/function-catalog.js{OLD}', 'FUNCTION_CATALOG');",
+  "const list = ['docs/src/core/domain/constants.js{OLD}'];",
   "  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 767, field: '退回原因' },",
 ];
 // 逐行期望：注释行与 Node 读取/台账行保持 `{OLD}`（逐字不变），其余取 `{NEW}`
 const EXPECTED_TEMPLATE = [
   '// 头注：对 docs/src 的相对 import 必须带 {OLD}（整行注释 → 逐字不变）',
-  "import { a } from '../../docs/src/core/domain.js{NEW}';",
-  "import { b } from '../../docs/src/core/state.js{NEW}';",
-  "import '/src/core/icons.js{NEW}';",
-  "  const c = await import('/src/core/data-adapter.js{NEW}');",
+  "import { a } from '../../docs/src/core/domain/domain.js{NEW}';",
+  "import { b } from '../../docs/src/core/base/state.js{NEW}';",
+  "import '/src/core/base/icons.js{NEW}';",
+  "  const c = await import('/src/data/data-adapter.js{NEW}');",
   '  const d = await import(' + TICK + '/src/${rel}{NEW}' + TICK + ');',
   "const V = '{NEW}';",
-  "  new URL('../../docs/src/core/registry.js{OLD}', import.meta.url),",
-  "const g = grab('docs/src/core/function-catalog.js{OLD}', 'FUNCTION_CATALOG');",
-  "const list = ['docs/src/core/constants.js{OLD}'];",
+  "  new URL('../../docs/src/core/boot/registry.js{OLD}', import.meta.url),",
+  "const g = grab('docs/src/core/domain/function-catalog.js{OLD}', 'FUNCTION_CATALOG');",
+  "const list = ['docs/src/core/domain/constants.js{OLD}'];",
   "  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 767, field: '退回原因' },",
 ];
 const fill = (lines, map) => lines.map((l) => l.replace(/\{(OLD|NEW|NONE)\}/g, (m, k) => map[k]));
@@ -285,7 +285,7 @@ test('D8 非 import 语境逐字不变（注释 / Node 读取 / 台账形态）'
 test('D9 自检判据同源：只取缓存键语境下的戳（非语境与注释不计）', () => {
   const f = [
     "import { a } from './x.js" + '?v=' + '20260101a' + "';",
-    "  new URL('../../docs/src/core/registry.js" + '?v=' + '20261231z' + "', import.meta.url),",
+    "  new URL('../../docs/src/core/boot/registry.js" + '?v=' + '20261231z' + "', import.meta.url),",
     '// 注释里的历史注记 ' + '?v=' + '20261231z',
     "const V = '" + '?v=' + '20260101b' + "';",
   ].join('\n');

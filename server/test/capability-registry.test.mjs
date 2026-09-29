@@ -14,7 +14,7 @@ import test from 'node:test';
 let registry;
 test.before(async () => {
   const src = await readFile(
-    new URL('../../docs/src/core/registry.js', import.meta.url),
+    new URL('../../docs/src/core/boot/registry.js', import.meta.url),
     'utf8',
   );
   const b64 = Buffer.from(src, 'utf8').toString('base64');
@@ -95,7 +95,7 @@ test('mountCapability 未注册抛错', async () => {
 // ── data-source / sop-scenarios 能力声明形态（静态断言） ──
 test('data-source.js 注册 mock/api 数据源能力（env/deps/apply）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/data-source.js', import.meta.url),
+    new URL('../../docs/src/capabilities/data-source.js', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'mock-data-source'/);
@@ -110,7 +110,7 @@ test('data-source.js 注册 mock/api 数据源能力（env/deps/apply）', async
 
 test('sop-scenarios.js 注册场景能力（scope/scenario + list/get）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/sop-scenarios.js', import.meta.url),
+    new URL('../../docs/src/capabilities/sop-scenarios.js', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'sop-scenarios'/);
@@ -125,7 +125,7 @@ test('decision-tree 消费点经注册表读取场景（getScenario 回退 sopDa
     'utf8',
   );
   // 相对深度不写死（(../)+ 兼容任意层级）——2026-09-28 目录分层后 decision-tree.js 在 services/activity/（二级）
-  assert.match(src, /import \{ getCapabilities \} from '(\.\.\/)+core\/registry\.js/);
+  assert.match(src, /import \{ getCapabilities \} from '(\.\.\/)+core\/boot\/registry\.js/);
   assert.match(src, /capabilities\/sop-scenarios\.js/);
   assert.match(src, /function getScenario\(scenarioId\)/);
   assert.match(src, /cap\.get\(scenarioId\)/);
@@ -154,7 +154,7 @@ test('requiredRoles 门禁被 workspace-shell 消费（先按角色查；两查�
 
 test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 api，回退 mock）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/core/bootstrap.js', import.meta.url),
+    new URL('../../docs/src/core/boot/bootstrap.js', import.meta.url),
     'utf8',
   );
   assert.match(src, /getCapabilities\(\{ scope: 'data-source' \}\)/);
@@ -165,7 +165,7 @@ test('bootstrap 数据源选择经注册表（行为零变化：有 token 走 ap
 
 test('components.js 注册共享组件能力（scope: component，M6）', async () => {
   const src = await readFile(
-    new URL('../../docs/src/modules/capabilities/components.js', import.meta.url),
+    new URL('../../docs/src/capabilities/components.js', import.meta.url),
     'utf8',
   );
   assert.match(src, /id: 'component:todo-list'/);

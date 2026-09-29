@@ -3,16 +3,16 @@
 //  attendance.js — 考勤记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
-import { ATTENDANCE_RECORDS } from '../../mock/index.js?v=20260929a';
-import { isInitStateActive } from '../core/init-reset.js?v=20260929a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20260929a';
-import { getRosterStats } from '../member/roster.js?v=20260929a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260929a';
+import { mockDB, AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../core/domain/domain.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b'; // P0 域缓存失效（spec §二.3）
+import { ATTENDANCE_RECORDS } from '../../data/mock/index.js?v=20260929b';
+import { isInitStateActive } from '../core/init-reset.js?v=20260929b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { PersonStore, getPersonById, getPersonName } from '../member/person.js?v=20260929b';
+import { getRosterStats } from '../member/roster.js?v=20260929b';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260929b';
 
 export function loadAttendanceRecords() {
   if (mockDB.attendances.length > 0) return [...mockDB.attendances];
@@ -46,7 +46,7 @@ export function saveAttendanceRecords(records) {
  *   可代上传）· **党小组会＝该场会议的组织者**（兼本组组长）· **组织生活会 / 主题党日 / 其余＝该场
  *   组织者** · **支委会＝不考勤**（`noAttendanceTypes`，故不在本清单内）。判据一律走
  *   `canUploadAttendance`（本文件），勿在消费点另判。
- * P3c 单一源 = core/policy-defaults.js（派生导出，导出去重冻结导出面）：
+ * P3c 单一源 = core/domain/policy-defaults.js（派生导出，导出去重冻结导出面）：
  * 默认=本科生党支部口径（党课/支部党员大会/组织生活会）；
  * 支委会归 noAttendanceTypes；党小组会/主题党日归组长·组织者位，不入此列。见 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3b。
  */
@@ -452,7 +452,7 @@ export function resolveAttendanceAppeal({ appealId, actorId, status, absenceReas
   return { ok: true };
 }
 
-// ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/attendance.js 原样提升）──
+// ── 展示格式化（2026-09-03 数据域接线批次二：自 data/mock/attendance.js 原样提升）──
 const _personName = (id) => getPersonName(id);
 // R-16（2026-09-13）：改从 loadActivities()（mockDB 优先）取——API 模式下新建活动不在静态种子
 // ACTIVITIES 中，此前台账只显示 act-xxxx 原始 id（人会看不懂是哪场活动）
@@ -604,7 +604,7 @@ export function listLowAttendanceSessions({ month, hint } = {}) {
 
 // ════════════════════════════════════════════════════════════════
 //  附录⑩ A批·S1 会务考勤规则域（支书裁定 2026-09-06）
-//  派生出口均以 core/policy-defaults.js attendance 为单一源，业务层勿新写字面量
+//  派生出口均以 core/domain/policy-defaults.js attendance 为单一源，业务层勿新写字面量
 // ════════════════════════════════════════════════════════════════
 
 /** 会议考勤记录人（按活动类型）— 单源 = policy attendance.recorderByType（R1-1 正式化）；深拷贝防消费点改动穿透 */

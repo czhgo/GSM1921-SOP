@@ -13,10 +13,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
-} from '../../docs/src/workflow/blocks/manifests.js?v=20260929a';
-import { assertComposeValid } from '../../docs/src/core/module-compose.js?v=20260929a';
-import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260929a';
-import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260929a';
+} from '../../docs/src/workflow/blocks/manifests.js?v=20260929b';
+import { assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20260929b';
+import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260929b';
+import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260929b';
 
 let server;
 let BASE;
@@ -44,7 +44,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260929a');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260929b');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规
@@ -155,14 +155,14 @@ test('S4 未同步即红：manifest.capabilityId 必须在 CAPABILITY_PROVENANCE
 //  契约 `WORKFLOW_BLOCK_CONTRACT §二 · 字段取值合法性` 明写：
 //    「blockId … **与 capability/scenario id 一一对应，注册表缺失即契约失效**」。
 //  实测（2026-09-28）：该条**此前无任何机检**，且**试点块自己就违反它**——
-//    `taskforce-run` 不在 capability（`core/registry.js` 注册项）/ scenario（`sopData.js`）/
+//    `taskforce-run` 不在 capability（`core/boot/registry.js` 注册项）/ scenario（`sopData.js`）/
 //    definition（`definitions.js`）三表任一处；`capabilityId: 'taskforce'` 亦非注册能力。
 //    （`theme-party-day` 是 **definition id** ⇒ 合法，不属违规。）
 //  本项把该条落成机检：**两个 id 必须落在注册集合内，或落在下方 `REGISTRY_EXCEPTIONS`
 //  显式例外台账里并写明理由**（台账 ＋ 机检，同 §0.2 台账式守卫体例）。
 //  三份集合一律**从单一源实读**（不手抄）：scenario ← `sopData.js`；definition ← `definitions.js`；
-//  capability ← 扫 `docs/src/modules/capabilities/*.js` 里 `registerCapability({ … id: '…' })`。
-const CAP_DIR = join(REPO_ROOT, 'docs', 'src', 'modules', 'capabilities');
+//  capability ← 扫 `docs/src/capabilities/*.js` 里 `registerCapability({ … id: '…' })`。
+const CAP_DIR = join(REPO_ROOT, 'docs', 'src', 'capabilities');
 
 /** 契约 §二 允许的**显式例外**（每条须写理由；新块一律走注册三表，不得随手加例外） */
 const REGISTRY_EXCEPTIONS = {
@@ -170,7 +170,7 @@ const REGISTRY_EXCEPTIONS = {
     'taskforce-run': 'S1 试点块（2026-09-03 支书点名「专班运行」）：专班是**支部自创制度尝试**，三表均无同名 id；本批只登记、不动试点存量（改名与否见 `REVIEW_QUEUE H-10`）',
   },
   capabilityId: {
-    taskforce: '同上：专班能力尚未在 `core/registry.js` 注册（能力注册表当前无 `taskforce`）；其制度来源另由 `CAPABILITY_PROVENANCE` 登记',
+    taskforce: '同上：专班能力尚未在 `core/boot/registry.js` 注册（能力注册表当前无 `taskforce`）；其制度来源另由 `CAPABILITY_PROVENANCE` 登记',
   },
 };
 

@@ -1,22 +1,22 @@
 // role: [工程师]+[AI]
 // services/core/preferences.js — 个人偏好读写（设置中心批2，支书 2026-09-09 批准设计 v3）
 // ─────────────────────────────────────────────────────────────
-// 键空间沿用批1（core/theme.js 适配约定）：gsm1921-pref-<personId>-…；本模块新增：
+// 键空间沿用批1（core/boot/theme.js 适配约定）：gsm1921-pref-<personId>-…；本模块新增：
 //   tab 顺序键  gsm1921-pref-<personId>-tab-order-<workspaceKey>
 //   （workspaceKey = 工作台能力 scope，如 'workspace:secretary'；恢复默认 = 删该键）
 // 语义：
 //   · 个人顺序仅作用于业务 tab；核心组（注册表显式声明 coreTab: true，判定单一源 =
-//     core/constants.js::isCoreTab，services/branch/branch.js 同源共用——支书 2026-08-10 裁定全员必有）
+//     core/domain/constants.js::isCoreTab，services/branch/branch.js 同源共用——支书 2026-08-10 裁定全员必有）
 //     保持注册相对顺序置前，不可被个人隐藏或排序；默认声明序即核心置前，故无偏好时零 diff。
 //   · 无个人偏好 / 偏好与默认等效 → resolveTabOrder 原样返回（默认无 diff）。
 //   · 按 personId + workspaceKey 一次解析缓存（_orderMemo），避免逐帧重复读 localStorage；
 //     写入/清键同步失效缓存（顺序解析稳定，见 perf-render-guard/perf-todo-agg-cache 关注点）。
-// 纯模块（仅 import 无浏览器 API 的叶子 core/constants.js；不 import 任何浏览器模块）：
+// 纯模块（仅 import 无浏览器 API 的叶子 core/domain/constants.js；不 import 任何浏览器模块）：
 // resolveTabOrder/coreTabIdsOf/sameIdOrder 等纯函数
 // 可被 server/test/preferences.test.mjs 在 node 直接导入；存储函数对 localStorage 全程守卫
 // （node 无 localStorage 时安全返回；测试可注入 stub 测持久化往返）。
 
-import { isCoreTab } from '../../core/constants.js?v=20260929a';
+import { isCoreTab } from '../../core/domain/constants.js?v=20260929b';
 
 const PREF_PREFIX = 'gsm1921-pref-'; // person 键空间前缀（沿用批1 theme.js 约定）
 // 核心组判定（2026-09-14 支书裁定·tab 全盘重设）：原为本地常量比对 groupLabel，现共用注册表显式声明

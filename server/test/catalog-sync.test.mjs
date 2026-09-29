@@ -32,7 +32,7 @@ function grabExport(relPath, name) {
   return new Function(`return (${m[1]})`)();
 }
 
-const CATALOG = 'docs/src/core/function-catalog.js';
+const CATALOG = 'docs/src/core/domain/function-catalog.js';
 
 // ── T1（原 function-catalog）：功能目录结构审计 ────────────────────────────────
 test('T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验）', () => {
@@ -72,7 +72,7 @@ test('T1 FUNCTION_CATALOG 结构合法（id/group/kind/role/related 全量校验
 test('T2 FLOW_LINKS 键集 与 function-catalog flow id 键集双向一致（防止未同步的情况）', () => {
   const groups = grabExport(CATALOG, 'FUNCTION_GROUPS');
   const catalog = grabExport(CATALOG, 'FUNCTION_CATALOG');
-  const flowLinks = grabExport('docs/src/core/mermaid-sources.js', 'FLOW_LINKS');
+  const flowLinks = grabExport('docs/src/core/domain/mermaid-sources.js', 'FLOW_LINKS');
 
   const flowIds = catalog.filter((i) => i.kind === 'flow').map((i) => i.id);
   const linkKeys = Object.keys(flowLinks);
@@ -128,7 +128,7 @@ test('T4 server OPTION_ENUMS 与前端 vote-config OPTION_SETS 键集双向一�
 
 // ── T5（原 references-official-links）：官方制度链接与安全打开 ─────────────────
 test('T5 官方制度文件均链接至 12371 官方原文并在新标签页打开', () => {
-  const source = readFileSync(`${ROOT}docs/src/modules/references.js`, 'utf8');
+  const source = readFileSync(`${ROOT}docs/src/components/sections/references.js`, 'utf8');
   const officialDocs = ['official-01', 'official-02', 'official-03', 'official-04', 'official-05'];
 
   for (const id of officialDocs) {

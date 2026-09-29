@@ -85,7 +85,7 @@ function collectStamps(dir, exts, out) {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) {
-      if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
+      if (name === 'scripts' || name === 'assets' || name === 'node_modules') continue;
       collectStamps(full, exts, out);
       continue;
     }

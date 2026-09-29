@@ -27,21 +27,21 @@
 // 单测：server/test/member-confirmation.test.mjs
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20260929b';
 // 全站唯一实体 id 源（2026-09-13 Q-21-2 收敛：禁止再写「前缀 + Date.now()」）
-import { generateId } from '../../core/id.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
+import { generateId } from '../../core/base/id.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b'; // P0 域缓存失效（spec §二.3）
 // 批4（2026-09-09 支书批「域参数」）：滞留复核窗口单一源 = policy memberConfirmation.semesterDetainedWindows
 // （原本文件 :533 硬编码 615/715/1215 迁出；组织委员可经设置中心覆盖，判定随窗口变化）
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20260929a';
-import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260929a';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+import { PersonStore, findRemovedRecord, liveMembers } from './person.js?v=20260929b';
+import { getResidenceOf, saveResidenceChange, getDetainedMembers } from './roster.js?v=20260929b';
 // 发展阶段枚举单一源（静态种子派生，禁造新枚举）
-import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20260929a';
+import { DEVELOP_STAGE_OPTIONS } from '../branch/org-base-data-preview.js?v=20260929b';
 // 活动「未开始」口径单一源（2026-09-13 收敛）：替代本文件手写 archived || status==='completed'
 // 在册状态枚举 RESIDENCE 同源（2026-09-13 Q-21-3 收敛：原经 roster.js 转出，现直取单一源）
-import { isActivityNotStarted, RESIDENCE } from '../../core/constants.js?v=20260929a';
+import { isActivityNotStarted, RESIDENCE } from '../../core/domain/constants.js?v=20260929b';
 
 /** 成员变更确认请求队列的 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理） */
 export const MEMBER_CONFIRM_KEY = 'gsm1921-member-confirmations';
@@ -188,7 +188,7 @@ function _save() {
 /**
  * 请求 id（2026-09-13 Q-21-2 收敛）：原为本地手写的 `mc-<ts>` + 同毫秒序号自增防碰撞
  * （注释自称「与既有 generateId 风格兼容」，实为第二套实现 + 两个模块级可变变量）。
- * 现统一经 `core/id.js::generateId('mc', '-')`（连字符保持既有 `mc-` 前缀形态）。
+ * 现统一经 `core/base/id.js::generateId('mc', '-')`（连字符保持既有 `mc-` 前缀形态）。
  */
 const _nextId = () => generateId('mc', '-');
 
@@ -320,7 +320,7 @@ export function submitMemberChange({ personId, kind, to, note, by, entryDate } =
 // ── 提交：成员移出（引用清单化；安全引用一键解除 / 历史记录报支书确认转「已转出」）──
 
 /** 活动是否「未开始」（裁定字面：status ∉ {completed, archived} 且（无 date 或 date >= 今天））
- *  口径单一源 = core/constants.js::isActivityNotStarted（2026-09-13 收敛；空值兜底保持原语义） */
+ *  口径单一源 = core/domain/constants.js::isActivityNotStarted（2026-09-13 收敛；空值兜底保持原语义） */
 function _isNotStarted(a) {
   if (!a) return false;
   return isActivityNotStarted(a);

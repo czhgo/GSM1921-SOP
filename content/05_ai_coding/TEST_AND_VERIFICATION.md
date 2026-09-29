@@ -2,7 +2,7 @@
 title: "测试验证纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: active
 related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/OPERATIONS_GUIDE.md, docs/scripts/bump-version.mjs]
 ---
@@ -116,7 +116,7 @@ related_files: [CLAUDE.md, DATA_CONSISTENCY_CHECKLIST.md, content/03_doc_system/
 **根因机制**：前端在 API 模式下有防抖全量快照（`data-adapter.js` 800ms）+ `pagehide` 同步冲刷兜底（切页时把未发出的快照补发）。测试用原生 fetch 直写服务器时**绕过前端 mockDB 缓存**——前端缓存仍是写穿前的旧数据，页面卸载时 pagehide 冲刷以过期缓存整表覆盖服务器，恰好抹掉直写的数据。真实用户操作都经 `persist()`（改 mockDB 缓存 → 防抖快照），缓存与服务器始终一致，不会触发此问题。
 
 **规则（浏览器 e2e 写穿断言必守）**：
-1. **写穿必须走前端数据层真实路径**：在页面上下文 `import('/src/core/domain.js?v=…')` 取 mockDB → 改数据 → `import('/src/core/data-adapter.js?v=…').persist()`——与产品写路径同构，测试才有意义
+1. **写穿必须走前端数据层真实路径**：在页面上下文 `import('/src/core/domain/domain.js?v=…')` 取 mockDB → 改数据 → `import('/src/data/data-adapter.js?v=…').persist()`——与产品写路径同构，测试才有意义
 2. **写穿后显式等服务端落库**：防抖 800ms，需 `waitForFunction` 轮询 API 确认数据出现，再继续后续断言
 3. **禁止用原生 fetch 直写服务器代替 UI 写路径**（除非测试对象本身就是 API 端点）
 4. 动态 import 的版本戳须用全路径 `/src/…js?v=` 形式，随 bump-version.mjs 自动同步（防模块实例分裂，见 §17）
@@ -229,7 +229,7 @@ UI-2 通知点击响应修复时，首次基于"函数名直观判断"将 click 
 
 **根因**：
 1. **工具脚本按「字面形态」判定，不按「语法角色」判定**：`bump-version.mjs` 给 `server/test/*.mjs` 补戳用的判据是 `/(\/src\/[^'"?]*\.js)(\?[^'"]*)?(['"])/g`——**只要字符串里出现 `/src/….js` 且以引号收尾就补戳**，分不清「import 规格符」与「**数据**」。台账的 `file: 'docs/src/…'` 恰好命中。
-2. **这条判据的「宽」是必要的**：测试里既有 `import('/src/core/domain.js')`（绝对 URL）也有 `from '../../docs/src/…/x.js'`（相对路径，含 `/src/` 但不在串首）；若简单收紧成「`/src/` 必须紧跟 import/from」会**漏掉相对路径那一类** → 浏览器按 URL 分裂出第二个模块实例（正是该脚本存在的理由，见本文件 §17）。所以问题不是「太宽」，而是「没排除数据」。
+2. **这条判据的「宽」是必要的**：测试里既有 `import('/src/core/domain/domain.js')`（绝对 URL）也有 `from '../../docs/src/…/x.js'`（相对路径，含 `/src/` 但不在串首）；若简单收紧成「`/src/` 必须紧跟 import/from」会**漏掉相对路径那一类** → 浏览器按 URL 分裂出第二个模块实例（正是该脚本存在的理由，见本文件 §17）。所以问题不是「太宽」，而是「没排除数据」。
 3. **失败信息伪装**：被改写后的表现是「**文件不存在**」，与「文件被删/被改名」无法区分——**看不出是被谁改坏的**，排查成本高。
 
 **教训与对策（两条，缺一不可）**：

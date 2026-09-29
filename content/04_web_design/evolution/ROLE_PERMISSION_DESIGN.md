@@ -2,16 +2,16 @@
 title: "权限功能合一收敛设计"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: landed
 ---
 
 # 权限功能合一收敛设计
 
 > **本文负责**：**角色权限「四处分散声明 → 单一事实源」的收敛设计档案**——收敛前差异清单、收敛目标与派生关系、S1~S10 迁移与验收记录。
-> **本文不负责**：① **现行角色键 / 权限矩阵的权威清单** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（内容层）与 `docs/src/core/constants.js`（代码层）；② **角色分工的制度定义** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)；③ **色值的现行规范** → [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) §二。
+> **本文不负责**：① **现行角色键 / 权限矩阵的权威清单** → [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（内容层）与 `docs/src/core/domain/constants.js`（代码层）；② **角色分工的制度定义** → [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md)；③ **色值的现行规范** → [DESIGN_SYSTEM.md](../design-system/DESIGN_SYSTEM.md) §二。
 
-> **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
+> **已落地 2026-09-03**：本设计结论已实现（权威源：content/02_institution/SYSTEM_ROLE_PERMISSION.md §9a0 角色键全表 / §9b·§9c 权限矩阵 + 代码 docs/src/core/domain/constants.js ROLE_KEYS）；本文档继续承担设计论证档案，不再承担现行权威。
 
 > **权威源**：本文档为「角色权限四处分散声明 → 单一事实源」的收敛设计（支书 2026-08-29 全收敛裁定 + 2026-08-29 实施）。
 > 角色权限矩阵的**业务权威源**见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表与 §9b/9c 权限矩阵。
@@ -22,10 +22,10 @@ status: landed
 
 | 声明 | 位置 | 现状（收敛前） |
 |------|------|----------------|
-| 能力注册表 requiredRoles | `core/registry.js` + `modules/capabilities/*.js` | 全仓无任何非空值（死代码）；支书工作台无能力注册 |
+| 能力注册表 requiredRoles | `core/boot/registry.js` + `modules/capabilities/*.js` | 全仓无任何非空值（死代码）；支书工作台无能力注册 |
 | sidebar/导航可见性 | `components/shell/sidebar.js` | 读 `auth.js` ROLE_PAGE_MAP，不读能力清单 |
 | auth 角色判定 | `services/core/auth.js` | 无单一 ROLES 常量，4 表 1 集合散落 |
-| constants 角色色彩 | `core/constants.js` | 4 张表键集不一致，色值冲突 |
+| constants 角色色彩 | `core/domain/constants.js` | 4 张表键集不一致，色值冲突 |
 
 ## 2. 差异清单（收敛前审计结论）
 
@@ -44,7 +44,7 @@ status: landed
 
 ```
 ┌─────────────────────────────┐
-│  单一事实源（ROLE_KEYS 枚举）    │  core/constants.js ROLE_KEYS
+│  单一事实源（ROLE_KEYS 枚举）    │  core/domain/constants.js ROLE_KEYS
 │  + SYSTEM_ROLE_PERMISSION §9a0 │  内容层角色键全表
 └─────────────┬───────────────┘
               │ 派生（键集强制一致）

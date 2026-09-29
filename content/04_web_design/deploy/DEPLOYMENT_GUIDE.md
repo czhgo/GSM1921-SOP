@@ -3,9 +3,9 @@ title: "部署与对外对接"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-08-19
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: active
-related_files: [docs/src/core/data-adapter.js, docs/src/core/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
+related_files: [docs/src/data/data-adapter.js, docs/src/data/api-adapter.js, docs/src/services/core/runtime.js, docs/src/config/deploy.js, docs/src/core/boot/bootstrap.js, docs/src/components/shell/sidebar.js, docs/src/components/shell/header.js, docs/login.html, docs/src/services/core/auth.js, server/server.js, server/app.js, server/db.js, server/routes/auth.js, server/routes/resources.js, server/routes/uploads.js]
 ---
 
 # 部署与对外对接
@@ -246,17 +246,17 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 #### 3.7.1 演示与公开门面
 
 - **在线演示（路径 A）**：GitHub Pages 静态托管 `docs/` 即得演示版——含 50 人演示支部种子、演示登录账号模式，学校/评审可直接浏览系统全貌；`about.html` 为公开叙事页（「支部的故事」，静态托管专属，有后端时隐藏）。
-- **真实部署防污染开关**：正式上线（路径 B/C）须按附录 A.2「真实部署 checklist」执行——**设 `APP_ENV=production`（生产形态的主推做法：口令强校验 + 不认 `DISABLE_PASSWORD_CHECK` + 默认不播种）**，或显式 `DISABLE_SEED=1`（空库不导入演示种子），并关闭 services 层空表回退，防止演示种子混入真实账本。另有前端构建期常量 `SEED_FALLBACK`（`docs/src/config/deploy.js`）**自 2026-09-23 起已接线、改它生效**：置 `false` 时 `core/data-adapter.js::init()` 不再为**考勤/考察/待办**三域注入演示种子（默认 `true` 保持演示行为）。⚠ **两种托管形态都可关断**——**静态托管 / 直接以 `docs/` 为根**：改 `docs/src/config/deploy.js` 常量；**Node 托管（路径 B/C）**：`/src/config/deploy.js` 由 `server/app.js` 动态注入，注入值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`，缺省 `true`；见 `README-server.md` §5.3 第 20 项）。它**只覆盖那三处**，不替代服务端种子关断。
+- **真实部署防污染开关**：正式上线（路径 B/C）须按附录 A.2「真实部署 checklist」执行——**设 `APP_ENV=production`（生产形态的主推做法：口令强校验 + 不认 `DISABLE_PASSWORD_CHECK` + 默认不播种）**，或显式 `DISABLE_SEED=1`（空库不导入演示种子），并关闭 services 层空表回退，防止演示种子混入真实账本。另有前端构建期常量 `SEED_FALLBACK`（`docs/src/config/deploy.js`）**自 2026-09-23 起已接线、改它生效**：置 `false` 时 `data/data-adapter.js::init()` 不再为**考勤/考察/待办**三域注入演示种子（默认 `true` 保持演示行为）。⚠ **两种托管形态都可关断**——**静态托管 / 直接以 `docs/` 为根**：改 `docs/src/config/deploy.js` 常量；**Node 托管（路径 B/C）**：`/src/config/deploy.js` 由 `server/app.js` 动态注入，注入值由环境变量 `SEED_FALLBACK` 决定（置 `0` ⇒ 注入 `false`，缺省 `true`；见 `README-server.md` §5.3 第 20 项）。它**只覆盖那三处**，不替代服务端种子关断。
 
 #### 3.7.2 文档与代码交付清单（提供给计算中心的文档）
 
 | 文档 | 位置 | 内容 |
 |------|------|------|
 | 数据架构设计 | `content/04_web_design/data/DATA_MODEL.md` | 全部数据模型定义、字段规格、DataAdapter 接口规范、API 路由设计 |
-| API 适配器实现 | `docs/src/core/api-adapter.js` | REST API 完整路由映射（35 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
+| API 适配器实现 | `docs/src/data/api-adapter.js` | REST API 完整路由映射（35 资源分组 + 服务端点 auth/login/logout、snapshot、uploads、health、bootstrap，见 api-adapter.js 头部路由表），学校计算中心按此实现后端 |
 | 后端参考实现 | `server/` | Express + better-sqlite3 全栈：db.js 35 资源表结构、routes/resources.js CRUD 语义、auth.js 认证、uploads.js 附件上传——计算中心可对照实现或直接迁移 |
-| Mock 适配器实现 | `docs/src/core/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
-| 数据访问抽象层 | `docs/src/core/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
+| Mock 适配器实现 | `docs/src/data/mock-adapter.js` | DataAdapter 的 mock 实现，供参考数据结构和业务逻辑 |
+| 数据访问抽象层 | `docs/src/data/data-adapter.js` | 统一切换机制（setDataSource），学校计算中心无需修改 |
 | 运行时插槽 | `docs/src/services/core/runtime.js` | 初始化入口，注册适配器实例 |
 | 认证流程说明 | `docs/src/services/core/auth.js` + 本文件 §四 | 登录/注销/会话管理逻辑 + 5 场景部署认证模型 + 登录门控四层 |
 | 可见性规则说明 | 本文件 §3.2.5 | 多级可见性的过滤逻辑 |
@@ -474,7 +474,7 @@ AI_API_BASE_URL = 'https://<计算中心提供的域名>/ai/v1'
 
 - `docs/src/config/deploy.js`（新增）：`DEPLOY_MODE` 常量
 - `docs/src/components/shell/sidebar.js`：footer「关于」按 `DEPLOY_MODE` 显隐；「退出登录」按登录态显隐
-- `docs/src/core/bootstrap.js`：L1 页面门控（工作台强制跳登录）沿用，其余页面不强制
+- `docs/src/core/boot/bootstrap.js`：L1 页面门控（工作台强制跳登录）沿用，其余页面不强制
 - 各写入功能 / 身份组件：按 L2 / L3 / L4 补登录引导或隐藏（逐处实施）
 - `docs/src/components/shell/header.js`：身份标签在未登录时隐藏（已实现，复核）
 
@@ -981,9 +981,9 @@ WebView 套壳（短期）→ Taro 跨端（中期），与网页共用后端；
 
 1. **设 `APP_ENV=production`**：生产形态下 ① **未设 `LOGIN_PASSWORD` 启动即拒**（进程退出并打印原因）；② `DISABLE_PASSWORD_CHECK` **一律不认**；③ 空库**默认不播种**（不再依赖「记得加 `DISABLE_SEED=1`」）。等价显式做法：`DISABLE_SEED=1`（空库不导入 50 人演示支部种子，全新建库直接录入真实人员）。
 2. **设 `LOGIN_PASSWORD`**（所有账号共用的统一口令）；可改的其余项见 `server/.env.example`。
-3. **关断前端空域回退（防污染真实账本）**：路径 B/C 是 Node 托管，`/src/config/deploy.js` 由 `server/app.js` 动态注入（`DEPLOY_MODE` 恒为 `'server'`，**无需手改磁盘常量**）⇒ **设环境变量 `SEED_FALLBACK=0`**（注入串据此注入 `false`，见 `server/.env.example`）：置 `false` 后 `core/data-adapter.js::init()` **不再**为考勤 / 考察 / 待办三域回退注入演示种子（缺省 `true`＝演示形态）。若改用静态托管形态，则改 `docs/src/config/deploy.js` 的 `DEPLOY_MODE` 与 `SEED_FALLBACK` 常量即可。它**只管那三处**，不替代第 1 步/第 4 步。
+3. **关断前端空域回退（防污染真实账本）**：路径 B/C 是 Node 托管，`/src/config/deploy.js` 由 `server/app.js` 动态注入（`DEPLOY_MODE` 恒为 `'server'`，**无需手改磁盘常量**）⇒ **设环境变量 `SEED_FALLBACK=0`**（注入串据此注入 `false`，见 `server/.env.example`）：置 `false` 后 `data/data-adapter.js::init()` **不再**为考勤 / 考察 / 待办三域回退注入演示种子（缺省 `true`＝演示形态）。若改用静态托管形态，则改 `docs/src/config/deploy.js` 的 `DEPLOY_MODE` 与 `SEED_FALLBACK` 常量即可。它**只管那三处**，不替代第 1 步/第 4 步。
 4. 逐一关闭 **services 层 9 处空表回退**（`_loadX` 空则注入演示 seed：attendance/inspection/review/thought-report/activity/makeup/notice/todo/signup）。**原因**：空表回退只填前端缓存本无害，但用户任一后续写会触发快照上传，把回退的演示种子整体写到服务端，污染真实账本。
-5. **确认库内只有真人**：看启动日志的 `[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集）；若演示种子账号 > 0 而这是正式库 ⇒ 换空库重建（生产形态已默认不播种）。
+5. **确认库内只有真人**：看启动日志的 `[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/data/mock/people.js::PEOPLE` 的 id 集）；若演示种子账号 > 0 而这是正式库 ⇒ 换空库重建（生产形态已默认不播种）。
 
 **日常运维**
 
@@ -1066,7 +1066,7 @@ pm2 logs gsm1921              # 日志
 **已具备（本批判定：不必新增）**
 
 - **存活探针**：`GET /api/v1/health` → `{"ok":true}`（**公开、无门**，`server/app.js`）。接监控 / 负载均衡用：`curl -fsS http://127.0.0.1:<PORT>/api/v1/health`（反代后走域名）。
-- **启动自检**：`[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/mock/people.js::PEOPLE` 的 id 集；真实库应为 `演示种子账号=0`）。
+- **启动自检**：`[server] 自检 · users 计数=…；演示种子账号=…`（判据＝`docs/src/data/mock/people.js::PEOPLE` 的 id 集；真实库应为 `演示种子账号=0`）。
 - **库完整性 / 迁移纪律 / 备份恢复**：`server/test/db-integrity-guard.test.mjs`（`G1–G6`）· `db-migration.test.mjs`（`M1–M6`）· `backup-restore.test.mjs`——上线前跑一次作回归基线。
 
 **判定「不加」的三条理由**：① 已有公开 `/api/v1/health`，够做存活探针；② 「深度检查」（探库可写 / 队列积压）需改 `server/` 业务代码，超出「只补部署文档」的范围，且单进程 ＋ SQLite 形态下收益低；③ 真正的自检需求（库内是否只有真人、结构是否对齐）**已由启动日志与上述守卫覆盖**。若日后改多实例 / 多库，再按需加「就绪探针（readiness）」，代价＝新增一条只读路由 ＋ 一条守卫用例。

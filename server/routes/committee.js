@@ -6,10 +6,10 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from './auth.js';
-// P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
+// P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // 计票方式（ballotMode）同源（2026-09-12 支书裁定「正式表决无记名 + 匿名模式可选」）：
 //   强制/默认规则 = ballotModeOfActivity/isAnonymousForced，勿在本文件另写副本。
-import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/constants.js';
+import { SECRETARY_AND_DEPUTY_ROLES as SECRETARY_DEPUTY_ROLE_KEYS, COMMITTEE_IDS as BRANCH_COMMITTEE_IDS, ballotModeOfActivity } from '../../docs/src/core/domain/constants.js';
 
 // 支委白名单 = 旧活动回退白名单（保留不改行为；名单单一源 = constants.js COMMITTEE_IDS，与 member.js 同源），
 // 供无 voteConfig 的旧活动/回退场景兜底校验。

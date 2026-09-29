@@ -1,0 +1,345 @@
+// role: [工程师]+[AI]
+// ════════════════════════════════════════════════════════════════
+//  policy-defaults.js — 业务默认值集中单一源（P3c，2026-09-05；批4 域参数收编 2026-09-09）
+// ════════════════════════════════════════════════════════════════
+// 纯 ESM、零依赖，浏览器 / Node 双端可加载。
+// 默认=本科生党支部设计；开源部署可调；制度裁决固定项勿改。
+// 逐项标注 kind + 域负责人：
+//   - branch-default = 支部默认值（开源部署可按支部制度调整；登记于 POLICY_OVERRIDABLE 者为
+//     「域参数(L2)」——域负责人可经 config.policyOverrides 覆盖，读侧注入生效，全站判定随参数走。
+//     现行域节：纪检=考察超期/考勤与复盘时限/补课范围与时限；组织=滞留复核窗口/思想汇报篇幅；组长=学期提醒）
+//   - institutional  = 制度裁决固定项（勿改；改须支书裁决）
+//   - **「不能调」也有台账**（2026-09-28 批次 238 · G3-2）：不可经 UI 覆盖的叶键**逐项**列出在
+//     `POLICY_FIXED`（kind ＋ 为什么 ＋ 出处）⇒ 每个参数都恰属「白名单」或「固定台账」两类之一，
+//     不再有「未登记」的模糊态（守卫 `policy-config.test.mjs::R1`）。
+// 消费点只引用本文件派生，不在业务层新写字面量（批4 副本收编：inspection-tab 超期天数与文案、
+//   secretary-overview 考勤/复盘提醒阈值与 deadline、member-confirmation 滞留复核窗口与文案、
+//   组长学期提醒消费——一律改由本文件派生）。
+// ════════════════════════════════════════════════════════════════
+
+/** 深拷贝工具（policy 结构纯 JSON 数据；factory 基准深拷贝/复位用） */
+function _clone(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+/**
+ * 出厂基准（字面量）。POLICY_DEFAULTS 由此深拷贝；读侧注入（config.policyOverrides）只改
+ * POLICY_DEFAULTS 副本、本基准恒净（重置 = 从本基准整节回拷）。
+ */
+const _FACTORY = {
+  workforce: {
+    // 票决通过门槛（支委会从严：应到会人数超过 2/3 且无反对，弃权允许）
+    // kind 'branch-default'：2026-09-06 支书裁（附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md），
+    //   取代 2026-09-05 版「应到 2/3 且无异议」（出处 .ctx/ENGINEERING_ASSESSMENT.md 行动线 P3a）。
+    //   语义裁定：quorum=2/3 为「严格超过」——出席/应到 >2/3 才达出席门槛（2/3 整界不过，
+    //   如应到 3 出席 2 仍不足）；vetoOnObject=true 为「反对=0」——交流式 'object'（异议）与
+    //   正式 'oppose'（反对）同口径视为反对，任一即否决；'abstain'（弃权）计出席不计赞成与反对。
+    //   开源部署可按支部制度调整；消费点：services/branch/workforce.js evaluateWorkforceVotes（勿另写字面量）。
+    //   （制度默认展示位：设置中心·支部制度参数 只读列出；不在 policyOverrides 白名单 = 不可经 UI 覆盖。）
+    voteThreshold: { quorum: 2 / 3, vetoOnObject: true },
+  },
+  attendance: {
+    // 会议考勤的类型清单（＝**哪些会议类型设考勤**；上传位按类型分，见下方 recorderByType / noAttendanceTypes 与
+    //   services/activity/attendance.js::canUploadAttendance）。kind 'branch-default'：出处 CF §C.1a 会议考勤；导出去重冻结导出面
+    //   （MEETING_ATTENDANCE_TYPES 由此派生）。⚠ 2026-09-21 批次 132（支书口径一「三会，支委会规模小可以不考勤」，修正 `D-548` 的一刀切）：支委会不考勤 ⇒ 移出本表、入 `noAttendanceTypes`。
+    meetingTypes: ['党课', '支部党员大会', '组织生活会'],
+    // **不设考勤的会议类型**（口径一）：单源消费 = canUploadAttendance · 支书台「考勤待录入」提醒 · 设置中心
+    noAttendanceTypes: ['支委会'],
+    uploaderExceptions: {
+      // 支书/副支书例外承担上传位
+      // kind 'institutional'：出处 SYSTEM_ROLE_PERMISSION §9b 注——制度裁决固定，勿改。
+      secretaryDeputy: ['secretary', 'deputy-secretary'],
+    },
+    // 会议「应到名单」口径（S1–S4 滞留党员设计，2026-09-06 支书已批）
+    // kind 'branch-default'：开源部署可按支部制度调整（如支部大会仅正式党员计应到等）。
+    // 语义：应到 = 组织关系在本支部的党员（developStage ∈ partyStages）且非滞留；
+    //   滞留 = 组织关系保留但人不在校、不参加日常会议 → 成员身份保留、应到剔除、通知照发。
+    //   党课列席（积极分子/发展对象）不计应到；党小组会另按本组党员口径（范围=本组，规则同）。
+    // 消费点：services/member/roster.js getMeetingRoster（派生导出，勿在业务层新写字面量）。
+    roster: {
+      partyStages: ['正式党员', '预备党员'],
+      excludeDetained: true,
+    },
+    // 会议考勤的「记录人 / 上传位」按活动类型映射（R1-1，支书裁定 2026-09-06；**2026-09-21 批次 132 按支书口径一改准**）
+    // kind 'institutional'：出处 .ctx/REVIEW_QUEUE.md 附录⑩ S1 R1-1——制度裁决固定，改须支书裁决。
+    // ⚠ 2026-09-21 批次 132（支书原话：「三会，支委会规模小可以不考勤。主要就是党小组会 那就是 会议组织者；
+    //   如果是党员大会，那就是纪检委员。会议和活动不一样。」＋「考勤和补课的催办、上传主体主要还是纪检委员，
+    //   支书也有权上传。党课比较特殊，不属于三会的范畴」）：上传位**按会议类型分**（修正 `D-548` 的一刀切）——
+    //   党课 / 支部党员大会＝纪检（支书 / 副支书照例可代上传）；党小组会＝该场会议组织者（兼本组组长）；
+    //   组织生活会 / 主题党日 / 其余＝该场组织者；支委会＝不考勤（`noAttendanceTypes`，本表随之不含）。
+    // 本表只列「非组织者位」的会议类型（组织者位与不考勤类型不入表）；上传位门禁同源读本表（canUploadAttendance），
+    //   表值同时是设置中心「考勤记录人」的展示源 ⇒ 界面与默认值一致（批次 124 登记的缺口本批收口）。
+    recorderByType: {
+      支部党员大会: ['disc-commissioner'],
+      党课: ['secretary', 'deputy-secretary', 'disc-commissioner'],
+      党小组会: ['leader'],
+    },
+    // 未到（请假/缺席）标因固定枚举（附录⑩ A批·S1 · R1-2，支书裁定 2026-09-06）
+    // kind 'institutional'：出处 REVIEW_QUEUE 附录⑩ S1 R1-2——请假/缺席由纪检认定、系统标因=固定枚举，
+    //   禁造新枚举（新增须支书裁决）。key=英文（落 attendance.absenceReason 字段），label=中文标签（界面显示）。
+    // 2026-09-19 批次 94（SOP-B-16 ⑤「请假分事假 / 病假两档 + 请假时提示时效」）：
+    //   R1-2 要求「新增枚举须支书裁决」——支书本批指令已把 ⑤ 列入落地清单 ⇒ 视为该新增已裁决；
+    //   出处＝母本《常见工作场景快速指南》「事假必须提前 1 天申请，病假可以事后补假」。
+    //   `note` = 该档的时效要求（**界面提示用，不是校验、不拦提交**；消费点 = absenceReasonNote）。
+    //   ⚠ 旧键 `leave`（请假）**不再出现在可选枚举**，但标签保留为兼容别名
+    //     （存量记录 + 线上参会代记 `declareOnlineAttend` 仍用它，显示照旧「请假」）。
+    reasons: [
+      { key: 'leave_personal', label: '事假', note: '须提前 1 天申请' },
+      { key: 'leave_sick',     label: '病假', note: '可事后补' },
+      { key: 'unexcused',      label: '无故', note: '' },
+      { key: 'other',          label: '其它', note: '' },
+    ],
+    // 考勤录入提醒阈值（支书台自动提醒：活动结束 >entryRemindDays 天仍无考勤记录 → 提醒纪检录入）
+    // kind 'branch-default'：域=纪检监督侧（支书待办派生消费）。批4 副本收编（2026-09-09 支书批）：
+    //   secretary-overview _aggAttendanceRemind 由字面量 3 改引用本常量，勿在业务层另写字面量。
+    // ⚠ 2026-09-27 支书裁定（逐字「补入口，让它们真可调」）⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–30 天）。
+    // ⚠ 默认值＝母本数字（2026-09-20 批次 115 取齐，裁定 `D-536`；可调性依 §9l 通例「母本所写数字即默认值」）：
+    //   母本《纪检委员工作流程指南》检查清单「活动结束后」写「24h 内打包确认考勤数据（党小组活动）
+    //   或录入考勤（会议）」；本系统以**整日**表达 ⇒ 24h → **1 天**。此前默认 3 天与母本不同数，已取齐。
+    entryRemindDays: 1,
+    // 考勤明细录入期限（同一提醒项 deadline = 活动日 + summaryDeadlineDays）
+    // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggAttendanceRemind 消费；勿另写字面量）。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–30 天）。
+    // ⚠ 默认值＝母本数字（2026-09-20 批次 115 取齐，裁定 `D-536`）：母本该处相邻一条写「48h 内发出
+    //   补课通知」——两处时限同属 §9l 通例的**可调过程时限**，本项按「母本数字即默认值」取 48h → **2 天**
+    //   （整日表达）。此前默认 5 天与母本不同数，已取齐。
+    summaryDeadlineDays: 2,
+    // 出勤率偏低**提示线**（SOP-B-15 / SOP-B-7，2026-09-18 批次 85）
+    // kind 'branch-default'：**只作提示、不触发任何动作**（不生成补课 / 不影响评优 / 不生成处置）。
+    //   ⚠ 它是**提示线、不是制度门槛**——母本不设达标线（存量无出处的「学期出勤率低于 80%」已删）；
+    //   本参数只用来「让相关成员知道出勤率偏低这件事」，支部可自行调整（同 §9l 制度参数可调口径）。
+    //   ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，0–100）。
+    //   消费点：services/activity/attendance.js::listLowAttendanceSessions（勿在业务层另写字面量）。
+    lowRateHint: 80,
+  },
+  inspection: {
+    // 考察超期默认天数（待确认 + 超过 N 天判超期）
+    // kind 'branch-default'：域参数(L2) · 纪检确认位（支书 2026-09-09 批）；登记 POLICY_OVERRIDABLE，
+    //   可经 config.policyOverrides.inspection.overdueDays 覆盖（1..90，读侧注入生效）；
+    //   消费点：getOverdueRecords 缺省阈值 / 纪检台超期文案 / 支书台考察提醒 deadline（均勿另写字面量）。
+    overdueDays: 7,
+  },
+  memberConfirmation: {
+    // 学期末滞留集中复核窗口（每学期末一次；组织域 L2，支书 2026-09-09 批）
+    // kind 'branch-default'：语义=滞留集中复核 半年窗 起月日-止月日，每窗 [起月,起日,止月,止日]；
+    //   默认 [06-15..07-15] ∪ [12-15..次年01-15]（次窗跨年：止月<起月 → 止于次年）。
+    //   2026-09-09 从 services/member/member-confirmation.js shouldShowSemesterDetainedRemind 硬编码迁出，
+    //   消费点改派生（窗口判定 + 支书待办窗口文案）；登记 POLICY_OVERRIDABLE → 组织委员可经
+    //   config.policyOverrides.memberConfirmation.semesterDetainedWindows 覆盖，支书待办随窗口变化。
+    semesterDetainedWindows: [[6, 15, 7, 15], [12, 15, 1, 15]],
+  },
+  review: {
+    // 复盘提交提醒阈值（支书台自动提醒：活动结束 >overdueDays 天仍无复盘 → 提醒组织者提交）
+    // kind 'branch-default'：域=纪检监督侧。批4 副本收编（2026-09-09 支书批）：
+    //   secretary-overview _aggReviewRemind 由字面量 7 改引用本常量，勿在业务层另写字面量。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–90 天）。
+    overdueDays: 7,
+    // 复盘提交期限（同一提醒项 deadline = 活动日 + deadlineDays）
+    // kind 'branch-default'：域=纪检监督侧（secretary-overview _aggReviewRemind 消费；勿另写字面量）。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（纪检域，1–90 天）。
+    deadlineDays: 10,
+  },
+  leader: {
+    // 组长学期组员进展自动归集提醒（组长域 L2，支书 2026-09-09 批「域参数」新参数）
+    // kind 'branch-default'：默认开、学期制（每学期开学周提醒一次，组长台消费）；
+    //   登记 POLICY_OVERRIDABLE → 组长可经 config.policyOverrides.leader.semesterReportReminder.enabled
+    //   关闭；frequency 为展示口径（'semester'=每学期），不在覆盖白名单（固定学期制）。
+    semesterReportReminder: { enabled: true, frequency: 'semester' },
+  },
+  thoughtReport: {
+    // 思想汇报篇幅（`SOP-B-11`，2026-09-18 批次 86 落地；依支书 2026-09-17 裁定，
+    //   母本 `常见工作场景快速指南.md:342`·`:354` 逐字为：
+    //   「建议篇幅 1500 字以上；篇幅少于 1200 字触发警告审阅，不影响提交」）。
+    // kind 'branch-default'（**字数类**，与 §9l「简讯字数 / 活动照片张数」同族）：
+    //   属**支部可调**的制度参数，**母本所写数字即默认值**。
+    // ⚠ 2026-09-21 批次 124（`SOP-B-11` 待定项 ①：支书 2026-09-20 定案「**只给提交人本人**」）：
+    //   「警告审阅」的**提醒只给提交人本人**（提交页 / 重交页 / 阅读页的 isSelf）——**不在记录上留
+    //   组织侧可见的标记**、组织侧不经手篇幅这件事；「审阅由谁做」随之不再存在（无组织侧环节）。
+    // ⚠ 三个数各是各的，不得混用：
+    //   · wordHint    ＝ **建议**篇幅（1500）——只写在提示文案里，**不参与任何判定**；
+    //   · wordSoftMin ＝ **警告审阅线**（1200）——低于它触发「警告审阅」（**提醒提交人本人**），
+    //                     **≠ 门槛、≠ 达标线**；
+    //   · 「**不影响提交**」＝**硬约束**——低于任何数字都**照常提交、照常入库归档**，
+    //                     系统**不拦截、不自动退回、不自动打回**（见 services/governance/thought-report.js）。
+    // 消费点：services/governance/thought-report.js::wordCountHint（提交侧 / 重交侧 / 阅读侧字数提示唯一出口）。
+    //   ⚠ 2026-09-18 批次 86：`wordSoftMin` 由 800 跟到 1200（D-387 落地），
+    //     并补齐「警告审阅」语义；此前「组织初阅会据此把关」的措辞随初阅门取消一并删除。
+    // ⚠ 2026-09-27 支书裁定「补入口」⇒ 登记 POLICY_OVERRIDABLE（组织域，100–10000；
+    //   母本《组织委员工作流程指南》§二「思想汇报归档」= 思想汇报归口组织委员）。
+    wordHint: 1500,
+    wordSoftMin: 1200,
+  },
+  makeup: {
+    // 补课范围与时限（`SOP-B-6` / `D-293` / `D-545`；沿用「支部党员大会 + 党课」制度默认）。
+    // kind 'branch-default'：域=纪检·补课制度执行（母本《纪检委员工作流程指南》§1.4「补课制度」＋
+    //   「补课制度执行」表——「补课：补课制度执行」列于纪检职权；《常见工作场景快速指南》三会一课
+    //   考勤规则亦归纪检）。⚠ 2026-09-27 支书裁定「补入口，让它们真可调」⇒ 登记 POLICY_OVERRIDABLE（纪检域）。
+    // 语义（三层不混）：
+    //   · branchAssembly / partyClass ＝**制度硬要求类型**是否要求补课（默认均 true）；**支部级**可调，
+    //     但**单场活动**仍「只能加不能减」（硬要求刚性，见 services/activity/makeup.js 头注 `D-545`）；
+    //   · deadlineDays ＝补课闭环时限（活动后 N 天内；母本「活动后 7 天内」→ T+7 = 7）。
+    // 消费点：services/activity/makeup.js::makeupDefaultActivityTypes / makeupDeadlineDays（call-time 读本对象）。
+    branchAssembly: true,
+    partyClass: true,
+    deadlineDays: 7,
+  },
+  activityApproval: {
+    // 活动批准门（**支部可开关的制度参数**，默认关）——2026-09-22 批次 150 · 支书裁定（逐字）：
+    //   「把它做成一个可开关的支部制度参数（默认关），想要这道门的支部自己打开。」
+    // kind 'branch-default'：2026-09-22 批次 150 三态 mode = off（关闭，默认）/ 'secretary'（支书批准）/ 'branch-committee'（支委会批准）。
+    //   出处（2026-09-22 逐字核过）＝母本《常见工作场景快速指南》`:242-251`（共建活动八步流程）`:245`「必须经支书同意后方可推进；
+    //   不批准则终止」（2026-09-22 核）⇒ 开启时以「支书批准」为准（母本档）；支部若把这道门放到支委会，可改选支委会档。
+    //   ⚠ 默认关 ⇒ 关闭时活动写入链与全部行为与改动前完全一致（零行为变化）。
+    // 消费点：services/activity/decision-tree.js::writeActivityWithSOP（开启时写入即「待批」）·
+    //   services/activity/activity.js 的审批动作与判据（勿在页面另写第二份）。
+    mode: 'off',
+  },
+};
+
+/**
+ * 有效默认（对外单一源；默认 = factory 深拷贝）。
+ * ⚠️ 读侧注入（services/branch/config-clean.js applyBranchPolicyOverrides）会把当前支部
+ * config.policyOverrides 就地覆盖到本对象（白名单键）；跨支部切换先 resetPolicyDefaults() 再覆盖，
+ * 故本对象 = 「当前生效默认」。业务层一律 call-time 读本对象，勿缓存嵌套引用。
+ */
+export const POLICY_DEFAULTS = _clone(_FACTORY);
+
+/**
+ * config.policyOverrides 可覆盖白名单（域参数 L2，支书 2026-09-09 批；2026-09-27 支书「补入口」批扩表）。
+ * 全覆盖路径均在 POLICY_DEFAULTS 内，kind 均为 branch-default——institutional 键一律不在表内 = 制度裁决固定。
+ * 净化/钳制唯一实现 = services/branch/config-clean.js sanitizeConfigPolicyOverrides（本表唯一消费方，
+ * 覆盖写入（services/branch/branch.js savePolicyOverrides）与读侧注入共用，防止两套校验未同步的情况）。
+ * ⚠ `domain` = 域负责人角色键（谁能改）；一域可辖多节（如纪检域＝inspection/attendance/review/makeup）。
+ */
+export const POLICY_OVERRIDABLE = [
+  { path: ['inspection', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
+  { path: ['memberConfirmation', 'semesterDetainedWindows'], type: 'windows', domain: 'org-commissioner' },
+  { path: ['leader', 'semesterReportReminder', 'enabled'], type: 'boolean', domain: 'leader' },
+  // 活动批准门（2026-09-22 批次 150）：支部级可调制度参数，归支书域（支书/副支书/party-staff 可改）。
+  { path: ['activityApproval', 'mode'], type: 'enum', values: ['off', 'secretary', 'branch-committee'], domain: 'secretary' },
+  // ── 时限类（2026-09-27 支书裁定「补入口，让它们真可调」）——纪检域（母本《纪检委员工作流程指南》考勤 / 复盘检查清单）──
+  { path: ['attendance', 'entryRemindDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  { path: ['attendance', 'summaryDeadlineDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  { path: ['attendance', 'lowRateHint'], type: 'int', min: 0, max: 100, domain: 'disc-commissioner' },
+  { path: ['review', 'overdueDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
+  { path: ['review', 'deadlineDays'], type: 'int', min: 1, max: 90, domain: 'disc-commissioner' },
+  // ── 补课范围与时限（2026-09-27 同上）——纪检域（母本《纪检委员工作流程指南》§1.4 补课制度 / 「补课制度执行」表）──
+  { path: ['makeup', 'branchAssembly'], type: 'boolean', domain: 'disc-commissioner' },
+  { path: ['makeup', 'partyClass'], type: 'boolean', domain: 'disc-commissioner' },
+  { path: ['makeup', 'deadlineDays'], type: 'int', min: 1, max: 30, domain: 'disc-commissioner' },
+  // ── 篇幅字数类（2026-09-27 同上）——组织域（母本《组织委员工作流程指南》§二「思想汇报归档」归口组织委员）──
+  { path: ['thoughtReport', 'wordHint'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
+  { path: ['thoughtReport', 'wordSoftMin'], type: 'int', min: 100, max: 10000, domain: 'org-commissioner' },
+];
+
+/**
+ * **不可经 UI 覆盖**的参数台账（G3-2「全量 config 引擎」收口 · 2026-09-28 批次 238）。
+ *
+ * **为什么要有这份台账**：白名单（`POLICY_OVERRIDABLE`）之外此前是**一片模糊**——「未登记项」既可能是
+ *   「制度裁决固定」（本就不该放开），也可能只是「还没登记」（属于该放开）⇒ 无人能在代码近旁回答
+ *   「这个参数能不能调、为什么」。本台账把前一类**逐项写成数据**（原来只在注释里）：
+ * ```
+ *   每个叶键**恰属**两类之一：POLICY_OVERRIDABLE（可覆盖）｜ POLICY_FIXED（不可覆盖）
+ *   ⇒ 不再存在「未登记」的第三态（守卫 `policy-config.test.mjs::R1` 常驻断言该恒等式）
+ * ```
+ * **kind 取值**（与 `_FACTORY` 逐项注释的 kind 同义）：
+ *   · `'institutional'`        ＝ **制度裁决固定**（改须支书裁决；出处见 `src`）
+ *   · `'branch-default'`       ＝ **制度默认**（本可作支部默认值，但它是**制度口径**不是技参
+ *                                ⇒ 只作设置中心「支部制度参数」**只读展示**；**放开须走放行程序**）
+ *   · `'display'`              ＝ **展示口径**（不是阈值，仅用于界面表达，不参与覆盖）
+ * **放行程序**：把某项从本台账移入 `POLICY_OVERRIDABLE` 时，必须① 有支书裁决出处；② 补 `type/min/max` 与
+ *   `domain`；③ 同步设置页「域参数」节（`settings-entry.js`）与 `services/branch/config-clean.js` 的钳制。
+ * **本台账只许减**（某项真被裁决放开时移出 ⇒ 移入白名单）；**新增条目**只允许在「新参数入 `_FACTORY`」同批发生。
+ *
+ * ⚠ 2026-09-28 判定表结论（G3-2 第一步）：`POLICY_DEFAULTS` **26 叶键**中，**14 条已登记**（域参数，域负责人可改）、
+ *   **12 条入本台账**——其中 `institutional` **7** 条、`branch-default`（制度默认只读）**4** 条、`display` **1** 条。
+ *   **无一条是「技参」** ⇒ 白名单**本批不扩**；G3-2 的实质交付＝**把「为何不可调」从注释升为可机检数据**。
+ */
+export const POLICY_FIXED = [
+  // ── workforce（票决门槛；制度裁决）──
+  { path: ['workforce', 'voteThreshold', 'quorum'], kind: 'institutional',
+    why: '支委会票决通过门槛（应到 2/3 且无反对）＝制度裁决，非技参', src: 'REVIEW_QUEUE 附录⑩ S2 R2-3（支书 2026-09-06 裁）' },
+  { path: ['workforce', 'voteThreshold', 'vetoOnObject'], kind: 'institutional',
+    why: '「反对=0」的否决口径（异议与反对同口径）＝制度裁决', src: '同上（语义裁定见 `_FACTORY` 注释）' },
+  // ── attendance：制度口径（只读展示；放开须放行程序）──
+  { path: ['attendance', 'meetingTypes'], kind: 'branch-default',
+    why: '「哪些会议设考勤」是制度口径（母本所写即默认），不是可放任的技参', src: 'CF §C.1a ＋ 支书 2026-09-21 口径一（批次 132 改准）' },
+  { path: ['attendance', 'noAttendanceTypes'], kind: 'branch-default',
+    why: '同上（支委会规模小不考勤）——与 `meetingTypes` 互斥成对', src: '支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'roster', 'partyStages'], kind: 'branch-default',
+    why: '「应到名单」口径（组织关系在本支部的党员阶段）＝制度口径', src: 'S1–S4 滞留党员设计（支书 2026-09-06 已批）' },
+  { path: ['attendance', 'roster', 'excludeDetained'], kind: 'branch-default',
+    why: '同上（滞留剔除）——与 `partyStages` 同一口径的两个叶', src: 'S1–S4 滞留党员设计（2026-09-06 支书已批）' },
+  // ── attendance：制度裁决固定 ──
+  { path: ['attendance', 'uploaderExceptions', 'secretaryDeputy'], kind: 'institutional',
+    why: '支书/副支书例外承担上传位＝**角色**例外，属制度', src: 'SYSTEM_ROLE_PERMISSION §9b 注' },
+  { path: ['attendance', 'recorderByType', '支部党员大会'], kind: 'institutional',
+    why: '考勤「上传位」按会议类型分派＝制度（错派即越权）', src: 'REVIEW_QUEUE 附录⑩ S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'recorderByType', '党课'], kind: 'institutional',
+    why: '同上（党课＝纪检）', src: 'S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'recorderByType', '党小组会'], kind: 'institutional',
+    why: '同上（党小组会＝本组组长）', src: 'S1 R1-1 ＋ 支书 2026-09-21 口径一（批次 132）' },
+  { path: ['attendance', 'reasons'], kind: 'institutional',
+    why: '未到（请假/缺席）**标因固定枚举、禁造新枚举**（新增须支书裁决）', src: 'REVIEW_QUEUE 附录⑩ S1 R1-2' },
+  // ── leader：展示口径 ──
+  { path: ['leader', 'semesterReportReminder', 'frequency'], kind: 'display',
+    why: '学期制**展示口径**（不是阈值；开关 `enabled` 已可覆盖，频率固定学期制）', src: '`_FACTORY` 该节注释（支书 2026-09-09 批）' },
+];
+
+/** 活动批准门三态取值（单一源；校验与界面标签共用） */
+export const ACTIVITY_APPROVAL_MODES = ['off', 'secretary', 'branch-committee'];
+
+/** 活动批准门三态的界面标签（单一源） */
+export const ACTIVITY_APPROVAL_MODE_LABELS = {
+  off: '关闭（不设批准门）',
+  secretary: '支书批准（母本档）', // 2026-09-22 批次 150
+  'branch-committee': '支委会批准',
+};
+
+/** 活动批准门当前档位（call-time 读有效默认；缺省/非法 → 'off'＝关闭） */
+export function activityApprovalMode() {
+  const m = POLICY_DEFAULTS.activityApproval && POLICY_DEFAULTS.activityApproval.mode;
+  return ACTIVITY_APPROVAL_MODES.includes(m) ? m : 'off';
+}
+
+/** policyOverrides 顶层节白名单（由 POLICY_OVERRIDABLE 派生；写口校验/删除语义用） */
+export const POLICY_OVERRIDE_SECTIONS = [...new Set(POLICY_OVERRIDABLE.map(o => o.path[0]))];
+
+/** 复位全部有效默认为出厂基准（读侧注入/跨支部切换前调用；幂等） */
+export function resetPolicyDefaults() {
+  for (const k of Object.keys(_FACTORY)) {
+    POLICY_DEFAULTS[k] = _clone(_FACTORY[k]);
+  }
+}
+
+/**
+ * 按白名单把「已净化」的 overrides 就地 merge 进 POLICY_DEFAULTS（clean 须已过
+ * sanitizeConfigPolicyOverrides——本函数不再做类型校验，防两处校验口径分叉）。
+ * @param {Object} clean { 节: { 叶: 值 } }（仅白名单合法键）
+ * @returns {number} 实际覆盖的叶数
+ */
+export function applyPolicyOverrides(clean) {
+  let n = 0;
+  if (!clean || typeof clean !== 'object' || Array.isArray(clean)) return 0;
+  for (const spec of POLICY_OVERRIDABLE) {
+    const [s0, s1, s2] = spec.path;
+    const holder = clean[s0];
+    if (!holder || typeof holder !== 'object' || Array.isArray(holder)) continue;
+    const target = POLICY_DEFAULTS[s0];
+    if (!target || typeof target !== 'object' || Array.isArray(target)) continue;
+    if (s2 === undefined) {
+      if (!Object.prototype.hasOwnProperty.call(holder, s1)) continue;
+      target[s1] = _clone(holder[s1]); // 深拷贝防 config 对象别名穿透
+      n += 1;
+    } else {
+      const mid = holder[s1];
+      if (!mid || typeof mid !== 'object' || Array.isArray(mid)) continue;
+      if (!Object.prototype.hasOwnProperty.call(mid, s2)) continue;
+      const sub = target[s1];
+      if (!sub || typeof sub !== 'object' || Array.isArray(sub)) continue;
+      sub[s2] = _clone(mid[s2]);
+      n += 1;
+    }
+  }
+  return n;
+}

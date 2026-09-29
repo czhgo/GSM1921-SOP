@@ -2,7 +2,7 @@
 title: "文档治理与一改具改"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: 2026-09-29
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -65,7 +65,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/03
 - `content/03_doc_system/SERVICE_CATALOG.md` L183/L198/L213 `../sop/` 相对路径未在替换表
 - `content/02_institution/COMMISSIONER_FRAMEWORK.md` L378-L381 `../sop/` 4 处遗漏
 - `content/insights/党支部管理与实务经验沉淀.md` 任务描述说 2 处旧路径，实际 4 处
-- `docs/src/core/domain.js` 9 处路径分散在 JSDoc + 字符串字面量中
+- `docs/src/core/domain/domain.js` 9 处路径分散在 JSDoc + 字符串字面量中
 
 **预防机制**：
 1. 路径替换表生成时，必须扫描所有相对路径变体（`../xxx/`、`./xxx/`、`content/xxx/`）
@@ -228,7 +228,7 @@ setActiveRole 参数从 `setActiveRole(role)` 变为 `setActiveRole(module, role
 
 > **与权威源管理的关系**：权威源管理与变更传播讲原则与机制（见原 insights §5.7），本节是「搜索范围不全」这一具体失败模式的判例——两者互为补充。
 
-大规模术语替换（12+ 文件 ~40 处）完成后，仍发现 8 个文件遗漏——根因是搜索范围基于"术语出现在哪些文件"的主观判断，而非"全仓库扫描"的客观范围。术语不仅出现在文档中，也出现在代码注释（如 docs/src/core/domain.js）、UI 文案（如 ws-organizer-entry.js）、配置文件、mock 数据（如 docs/src/mock/seed.js）中——一改具改的搜索范围必须是全仓库，不能按主观判断缩小。
+大规模术语替换（12+ 文件 ~40 处）完成后，仍发现 8 个文件遗漏——根因是搜索范围基于"术语出现在哪些文件"的主观判断，而非"全仓库扫描"的客观范围。术语不仅出现在文档中，也出现在代码注释（如 docs/src/core/domain/domain.js）、UI 文案（如 ws-organizer-entry.js）、配置文件、mock 数据（如 docs/src/data/mock/seed.js）中——一改具改的搜索范围必须是全仓库，不能按主观判断缩小。
 
 **为什么不是"遗漏了再补就行"？** 遗漏的文件可能在后续使用中误导读者——DATA_CONSISTENCY_CHECKLIST.md 是检查清单，如果其中的术语未更新，下次执行检查时会引用过时术语。补丁修复的成本（单独执行一次修复任务）远高于初次搜索时多花几秒扫描全仓库的成本。
 

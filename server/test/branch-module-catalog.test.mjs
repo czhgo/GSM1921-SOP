@@ -6,11 +6,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const V = '?v=20260929a'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
+const V = '?v=20260929b'; // 与 docs/src 模块内部 import 版本一致（同一 query → 同一模块实例）；bump 时同步替换
 
 test('L2：支部可勾选能力目录含工作台能力与 tab 元数据（注册表派生，画布数据源）', async () => {
-  await import(`../../docs/src/modules/capabilities/secretary-workspace.js${V}`);
-  await import(`../../docs/src/modules/capabilities/party-committee-workspace.js${V}`);
+  await import(`../../docs/src/capabilities/secretary-workspace.js${V}`);
+  await import(`../../docs/src/capabilities/party-committee-workspace.js${V}`);
 
   const branchMod = await import(`../../docs/src/services/branch/branch.js${V}`);
   const catalog = branchMod.listBranchModuleCatalog();

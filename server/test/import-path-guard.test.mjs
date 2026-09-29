@@ -107,11 +107,11 @@ test('G3 非空转：扫描面与抽取量有下限，且判据真会判（内�
   // ⚠ 为什么不落盘造文件：本守卫扫的就是 `docs/src/**`，若在盘上临时造 `.js`，
   //   与 `module-load::E1`（它 import docs/src 全部模块）**并行跑时会互相干扰** ⇒ 用内存副本既证「判据真会判」、又零副作用。
   const base = join(SRC, '__probe__.js');
-  const fake = "import './no-such-dir/nope.js';\nconst m = await import(`./also-missing/${x}.js`);\nimport './core/utils.js';\n";
+  const fake = "import './no-such-dir/nope.js';\nconst m = await import(`./also-missing/${x}.js`);\nimport './core/base/utils.js';\n";
   const got = problemsFor('docs/src/__probe__.js', base, fake);
   assert.equal(got.length, 2, `反例应报 2 条（1 个坏文件 + 1 个坏模板前缀），实测 ${got.length}：${got.join(' | ')}`);
   assert.ok(got[0].includes('./no-such-dir/nope.js'), '坏文件反例未被抓出');
   assert.ok(got[1].includes('./also-missing/'), '坏模板前缀反例未被抓出');
-  // 对照组：同一次注入里的**好规格符**（`./core/utils.js`）不得被误报
-  assert.ok(!got.some((p) => p.includes('./core/utils.js')), '存在的好规格符被误报 ⇒ 判据过严');
+  // 对照组：同一次注入里的**好规格符**（`./core/base/utils.js`）不得被误报
+  assert.ok(!got.some((p) => p.includes('./core/base/utils.js')), '存在的好规格符被误报 ⇒ 判据过严');
 });

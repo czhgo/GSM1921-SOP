@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -25,7 +25,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 
 ### 2.1 活动数据 (ActivityRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L11-L33)（Activity typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L11-L33)（Activity typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -194,12 +194,12 @@ ActivityRecord (主记录)
 
 ### 2.2 角色与权限数据
 
-> 角色类型定义位于 [core/state.js](../../../docs/src/core/state.js#L18-L28)，标签/颜色位于 [core/constants.js](../../../docs/src/core/constants.js)
+> 角色类型定义位于 [core/base/state.js](../../../docs/src/core/base/state.js#L18-L28)，标签/颜色位于 [core/domain/constants.js](../../../docs/src/core/domain/constants.js)
 > 权限的详细解释见 [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（§9a0 角色键全表 / §9a~§9g 权限矩阵与赋权链）。本节为该权威源在数据层 ACL 中的切面视图，冲突时以权威源为准。
 
 #### 2.2.1 角色常量定义
 
-> **角色键权威见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（代码层单一事实源：13 键 = 11 业务键 + 2 遗留键），本表仅记录字段枚举与展示分组，冲突时以权威源为准。**
+> **角色键权威见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/domain/constants.js ROLE_KEYS`（代码层单一事实源：13 键 = 11 业务键 + 2 遗留键），本表仅记录字段枚举与展示分组，冲突时以权威源为准。**
 
 | 角色键 | 中文标签 | 首页日历角色分组 | 所属分类 |
 |---|---|---|---|
@@ -251,7 +251,7 @@ ActivityRecord (主记录)
 | members | `Array<{personId: string, role: 'organizer'\|'deep'\|'participant', contributions: string[]}>` | 否 | `[]` | 专班成员对象数组（项目角色主源之一：organizer/deep 在此登记，含工作量 contributions；非字符串 ID 列表） |
 | description | string | 否 | -- | 专班描述 |
 
-> **字段核对**：mock/seed 另含展示字段 `task`/`manager`/`initiator`/`capacity`/`deadline`（见 [mock/taskforces.js](../../../docs/src/mock/taskforces.js) 样本），未列为必填模型字段。
+> **字段核对**：mock/seed 另含展示字段 `task`/`manager`/`initiator`/`capacity`/`deadline`（见 [data/mock/taskforces.js](../../../docs/src/data/mock/taskforces.js) 样本），未列为必填模型字段。
 
 **项目角色赋权与审计**：遗留键 `sop_org_os_assigned_roles` 已删除（services/core/roles.js 启动时清理一次存储残留，无调用方）。项目角色（organizer/deep）以**主源**为准——活动挂 `activity.assignments`、专班挂 `members`；`AuthStore.authorize` / `revokeAuthorization` / `syncProjectRoles` 写主源 + 追加审计快照：
 
@@ -292,7 +292,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.5 考勤数据 (AttendanceRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L35-L46)（AttendanceRecord typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L35-L46)（AttendanceRecord typedef）
 > **字段命名说明**：`personId` 统一为人员标识字段。代码中仍使用 `userId`，待后续同步。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -329,7 +329,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 #### 2.5.1 考察数据 (InspectionRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见本文 §3.3）。
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L165-L177)（InspectionRecord typedef），持久化域 `mockDB.inspections`（`domain.js:245`，随全量键 `workflowos_branch_db_v1` 持久化）。考察记录为**工作量记录**（对象：组织者/深度参与者；适用：所有支部工作），与考勤（0-1 出席变量，对象：党员+预备党员）相区分（见本文 §3.3）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -348,7 +348,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.6 分工数据 (AssignmentRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -365,7 +365,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.7 产出物 (OutputRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）
 > 产出物定向路由（spec §5.5/§8）：投递去向由产出类型派生，系统自动执行，组织者只见「提交」不见「发送对象」。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
@@ -428,7 +428,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.10 经验沉淀 (ExperienceDeposit)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -443,7 +443,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.11 制度文件引用 (ComplianceReference)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -458,7 +458,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.12 任务数据 (Task)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js#L65-L72)（Task typedef）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js#L65-L72)（Task typedef）
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -470,7 +470,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.13 应用状态数据 (appState)
 
-> 定义位于 [core/state.js](../../../docs/src/core/state.js#L71-L93)（appState 对象）
+> 定义位于 [core/base/state.js](../../../docs/src/core/base/state.js#L71-L93)（appState 对象）
 
 | 字段名 | 类型 | 初始值 | 说明 |
 |---|---|---|---|
@@ -658,7 +658,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 ### 2.16.1 复盘数据 (ReviewRecord)
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain.js)（ReviewRecord typedef + ReviewStatus 枚举）
+> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)（ReviewRecord typedef + ReviewStatus 枚举）
 > **设计依据**：活动复盘模板系统内表单 + 复盘状态枚举
 > **数据流**：§3.1.2 第⑧步复盘监督（批注/打回/确认）+ 第⑨步补交/修改复盘
 
@@ -755,7 +755,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 
 > **设计依据**：最小三成本原则（见 [DESIGN_SYSTEM.md §一 第2条](../design-system/DESIGN_SYSTEM.md)）——任务流默认直接展示在工作台，不要求用户额外操作才能看到"我需要做什么"。
 > **派生来源**：通知派生（§2.19）+ 活动生命周期事件派生 + 专班生命周期事件派生 + 手动创建。
-> **类型定义将位于** [domain.js](../../../docs/src/core/domain.js)（待新增）。
+> **类型定义将位于** [domain.js](../../../docs/src/core/domain/domain.js)（待新增）。
 
 #### 2.18.1 字段定义
 
@@ -886,7 +886,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 > **定位**：宣传委员上传宣传材料（照片/新闻稿/视频等）落「文件空间」；文件元数据与文件实体分离存储。
 > **双模式**：mock 模式 `fileData`（base64 dataURL，本地存储）；server 模式 `filePath`（服务端磁盘路径，受保护静态下载 `/api/v1/uploads/:name`）。
-> **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../../docs/src/core/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
+> **读写闭环**：创建（`archive-tab` 上传）→ 读取（档案列表/产出物区渲染）→ 下载（mock 直下 / server 鉴权拉取）→ 删除（`DELETE /api/v1/fileSpaceRecords/:id` 联动删物理文件）。类型定义见 [domain.js](../../../docs/src/core/domain/domain.js) `FileSpaceRecord` / `ImageRecord` typedef。
 
 #### FileSpaceRecord
 
@@ -922,7 +922,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ---
 
-> **党委两级治理数据域**：支部多实例两级治理数据域为 §2.21~§2.24。设计定案见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)；服务端表/路由接线见 [db.js](../../../server/db.js) 与 [resources.js](../../../server/routes/resources.js)；类型定义位于 `docs/src/core/domain.js`（mockDB 成员）+ `docs/src/services/{branch,appointment,review-request}.js`。
+> **党委两级治理数据域**：支部多实例两级治理数据域为 §2.21~§2.24。设计定案见 [PARTY_COMMITTEE_DESIGN.md](../evolution/PARTY_COMMITTEE_DESIGN.md)；服务端表/路由接线见 [db.js](../../../server/db.js) 与 [resources.js](../../../server/routes/resources.js)；类型定义位于 `docs/src/core/domain/domain.js`（mockDB 成员）+ `docs/src/services/{branch,appointment,review-request}.js`。
 
 ### 2.21 支部实例数据 (BranchRecord)
 
@@ -930,7 +930,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
-| id | string | 是 | `'br-' + randomHex(4)` → `br-<8hex>` | 支部实例 ID（seed 为 `br-b1`；**形态 `/^br-[0-9a-f]{8}$/` 是测试断言契约**，随机段经唯一源 `core/id.js::randomHex`，勿改长度） |
+| id | string | 是 | `'br-' + randomHex(4)` → `br-<8hex>` | 支部实例 ID（seed 为 `br-b1`；**形态 `/^br-[0-9a-f]{8}$/` 是测试断言契约**，随机段经唯一源 `core/base/id.js::randomHex`，勿改长度） |
 | name | string | 是 | -- | 支部名称（党委命名） |
 | type | string | 否 | `''` | 类型类别标签（自由文本，不预设枚举：如 硕士/博士/本科生） |
 | config | object | 是 | 见下 | 支部配置档案 |
@@ -1004,7 +1004,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 2.25 思想汇报数据 (ThoughtReport)
 
-> 类型定义位于 `docs/src/services/governance/thought-report.js`；**期次纯函数单一源** `docs/src/core/period.js`。思想汇报为**面板数据**（同一 `personId` 名下可多期多篇），由独立阅读页 `docs/thought-report.html` 承载。
+> 类型定义位于 `docs/src/services/governance/thought-report.js`；**期次纯函数单一源** `docs/src/core/base/period.js`。思想汇报为**面板数据**（同一 `personId` 名下可多期多篇），由独立阅读页 `docs/thought-report.html` 承载。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -1031,10 +1031,10 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | studentId | string | 学号；**新增成员时采集**；支部内唯一；**同时作为登录账号** |
 | enrollYear | string | **届别/入学年份**；用于识别毕业批次，登记流入时采集 |
 | partyGroup | string | 党小组归属；**空字符串即「未分组」**（不属任何党小组） |
-| developStage | string | 发展阶段；枚举单一源见 `core/constants.js::DEVELOP_STAGES` |
-| role | string | 角色键；枚举单一源见 `core/constants.js::ROLE_KEYS` |
+| developStage | string | 发展阶段；枚举单一源见 `core/domain/constants.js::DEVELOP_STAGES` |
+| role | string | 角色键；枚举单一源见 `core/domain/constants.js::ROLE_KEYS` |
 | branchId | string | 所属支部 |
-| residenceStatus | string | 在册状态；枚举单一源见 `core/constants.js::RESIDENCE`（在校/滞留） |
+| residenceStatus | string | 在册状态；枚举单一源见 `core/domain/constants.js::RESIDENCE`（在校/滞留） |
 | residenceNote | string | 滞留备注（仅滞留态保留） |
 | residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
 
@@ -1125,15 +1125,15 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 单一源 | 位置 | 口径 |
 |---|---|---|
-| 期次 | `docs/src/core/period.js` | 期次纯函数（`PERIOD_RE` / `periodOf` / `periodLabel` / `comparePeriodDesc` / `periodOptions` / `isValidPeriod`） |
-| 检索条门槛 | `docs/src/core/constants.js::SEARCH_FILTER_MIN_ROWS` | = 8，人/活动表共用；动态行数 `> 8` 才出现检索条 |
-| 活动存储态判据 | `docs/src/core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive` | 活动「已结束/已归档/未开始/仍在办」判据；全站禁止手写 `status==='completed' \|\| archived` |
+| 期次 | `docs/src/core/base/period.js` | 期次纯函数（`PERIOD_RE` / `periodOf` / `periodLabel` / `comparePeriodDesc` / `periodOptions` / `isValidPeriod`） |
+| 检索条门槛 | `docs/src/core/domain/constants.js::SEARCH_FILTER_MIN_ROWS` | = 8，人/活动表共用；动态行数 `> 8` 才出现检索条 |
+| 活动存储态判据 | `docs/src/core/domain/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive` | 活动「已结束/已归档/未开始/仍在办」判据；全站禁止手写 `status==='completed' \|\| archived` |
 | 活动生命周期展示态 | `docs/src/components/record/inspector.js::ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` | 草稿/已发布/进行中/待归档/已执行/已归档/已取消（**本次确认唯一**） |
 | 统一名单检索引擎 | `docs/src/components/ui/list-filter.js` | 关键词 + 分面 chips + 门槛显隐 + 同 `stateKey` 跨重渲染保筛选（人/活动共用） |
 | 成员档案编辑模态 | `docs/src/components/governance/person-edit-modal.js` | 契约 `openPersonEditModal({personId, focusFields, sourceLabel, onSaved})`，每次打开按 `personId` 现取档案 |
 | 人员清单实时视图 | `docs/src/services/member/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
-| 思想汇报篇幅软提示 | `docs/src/core/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 1200 }`（界面显示字数，不作硬性拦截；**「少于 1200 字触发警告审阅」的提醒只给提交人本人看**——支书定案「只给提交人本人」） |
-| 实体 id 生成 | `docs/src/core/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
+| 思想汇报篇幅软提示 | `docs/src/core/domain/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 1200 }`（界面显示字数，不作硬性拦截；**「少于 1200 字触发警告审阅」的提醒只给提交人本人看**——支书定案「只给提交人本人」） |
+| 实体 id 生成 | `docs/src/core/base/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
 | 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
 | 成员流动台账 | `docs/src/services/member/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
 | 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/member/person.js` 字段白名单与档案编辑模态须同步） |
@@ -1169,10 +1169,10 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 7 个内置场景，驱动任务生成和工作流（内置清单见本文 §2.14） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
-| 应用状态 (appState) | core/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
-| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
+| 应用状态 (appState) | core/base/state.js (内存) | 页面生命周期内 | UI 视图状态，不持久化 |
+| 用户/角色预设 (users) | mockDB.users (内存) | 静态预设 | 11 个 `u_*` 系统账号（支书/副支书/支委/3 组长/执行组长/组织者/深度参与者）；登录账号另见 data/mock/accounts.js `MOCK_ACCOUNTS`（`p*`，含党委组织员 p_pc） |
 | 赋权审计 (AuthRecord) | localStorage `sop_org_os_auth_audit`（审计快照）+ 主源内嵌（活动 `assignments` / 专班 `members`） | 跨会话持久化 | AuthStore.authorize 写主源 + 追加快照（旧键 `sop_org_os_assigned_roles` 已删除） |
-| 角色常量 (ROLE_LABELS/COLORS) | core/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
+| 角色常量 (ROLE_LABELS/COLORS) | core/domain/constants.js (静态代码) | 静态，代码级维护 | 13 键角色（11 业务 + 2 遗留）的中文标签与视觉配色 |
 | 意见反馈 (IssueRecord) | `docs/data/issues.json` + localStorage `gsm1921-issue-drafts` | open->closed->reopened | GitHub Issue 风格开源讨论，双轨数据层，处置归支委会、由支书主持支委会（`issues.json` 权威源） |
 
 ### 1.3 端到端数据流交织图
@@ -1286,13 +1286,13 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 ### 3.4 登录态说明
 
-> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/core/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)。
+> **现状（已实现登录态）**：账号体系见 [accounts.js](../../../docs/src/data/mock/accounts.js)（`MOCK_ACCOUNTS`：`studentId`+口令映射 `p*` personId，演示口令 123456）；认证与登录实现见 [auth.js](../../../docs/src/services/core/auth.js) `AuthStore`——`verifyCredentials`（账号密码校验）/ `login`（本地角色判定 + 后端 `/api/v1/auth/login` 换 token，失败静默降级本地）/ `devLogin`（开发模式选身份直达对应工作台）/ `logout` / `getCurrentUser`（返回 `{ personId, role }`，A-11 多标签防串扰）。登录存储键见 §4.2.2。真实后端接入与登录门控设计见 [DEPLOYMENT_GUIDE.md §四](../deploy/DEPLOYMENT_GUIDE.md)。
 
 ---
 
 ## 四、前端数据流
 
-### 4.1 状态管理 (core/state.js)
+### 4.1 状态管理 (core/base/state.js)
 
 **架构模式：** 单向数据流 + Immutable State + 渲染回调注册
 
@@ -1334,7 +1334,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | leader / org-commissioner / prop-commissioner / disc-commissioner / organizer / deep / secretary | `'manager'` |
 | `global` | `'global'` |
 
-> 注：上表为 state.js `getViewTypeByRole` 对首页日历/参考指南角色（ROLE_TYPES + MANAGEMENT_ROLES）的实际推导行为。**角色键权威清单**（含 `deputy-secretary`/`party-staff` 等）见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/constants.js ROLE_KEYS`（13 键单一事实源）；state.js 为遗留展示枚举，新增角色以 ROLE_KEYS 为准，必要时回填 ROLE_TYPES。
+> 注：上表为 state.js `getViewTypeByRole` 对首页日历/参考指南角色（ROLE_TYPES + MANAGEMENT_ROLES）的实际推导行为。**角色键权威清单**（含 `deputy-secretary`/`party-staff` 等）见 [SYSTEM_ROLE_PERMISSION.md §9a0](../../02_institution/SYSTEM_ROLE_PERMISSION.md) / `core/domain/constants.js ROLE_KEYS`（13 键单一事实源）；state.js 为遗留展示枚举，新增角色以 ROLE_KEYS 为准，必要时回填 ROLE_TYPES。
 
 ### 4.2 localStorage 持久化
 
@@ -1344,7 +1344,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 
 | 键名 | 存储内容 | 格式 | 读写位置 |
 |---|---|---|---|
-| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [core/mock-adapter.js `_saveToStorage()`](../../../docs/src/core/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/core/mock.js 仅保留 API 模式扎口代理） |
+| `workflowos_branch_db_v1` | 完整 mockDB 状态（全量序列化） | JSON | [data/mock-adapter.js `_saveToStorage()`](../../../docs/src/data/mock-adapter.js#L48-L109)（saveDB/loadDB 已收敛至 MockAdapter，services/core/mock.js 仅保留 API 模式扎口代理） |
 
 **全量键字段清单**（`mock-adapter.js _saveToStorage()` 实际序列化的 35 个字段，按代码顺序）：
 
@@ -1399,14 +1399,14 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `sop_org_os_auth_audit` | localStorage | 赋权审计快照（只增不改；revoke 追加记录，判定取最新一条） | JSON `Array<{id, targetPersonId, role, scopeRef, authorizedBy, authorizedAt, action:'grant'\|'revoke'}>` | [services/core/auth.js](../../../docs/src/services/core/auth.js)（AUDIT_KEY）；主源=活动 assignments / 专班 members |
 | `gsm1921-issue-cache-v3` / `gsm1921-issue-cache-version` | localStorage | 意见反馈缓存 + 缓存版本号（v3 不匹配强制重拉） | JSON / string | [services/governance/issues.js](../../../docs/src/services/governance/issues.js) |
 | `gsm1921-issue-drafts` | localStorage | 意见反馈草稿（新建/评论/反应） | JSON | [services/governance/issues.js](../../../docs/src/services/governance/issues.js)（DRAFT_KEY） |
-| `sop_org_os_session` | sessionStorage | 跨页面会话状态 | JSON | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
-| `sop_org_os_data_version` | localStorage | 数据版本号（跨页面同步，写入自增） | number | [core/cross-page-state.js](../../../docs/src/core/cross-page-state.js) |
+| `sop_org_os_session` | sessionStorage | 跨页面会话状态 | JSON | [core/session/cross-page-state.js](../../../docs/src/core/session/cross-page-state.js) |
+| `sop_org_os_data_version` | localStorage | 数据版本号（跨页面同步，写入自增） | number | [core/session/cross-page-state.js](../../../docs/src/core/session/cross-page-state.js) |
 
 > 旧键清理说明：`gsm1921-auth-records` / `gsm1921-primary-role` / `gsm1921-auth-grants`（auth 域）、`sop_org_os_assigned_roles`（roles.js 赋权，启动时清除残留）、`gsm1921-feedback-submissions`（FeedbackStore 旧数据，迁移后删除）均无写入方，不再列为存储键。
 
 **持久化机制细节：**
 
-- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = false`（[core/mock-adapter.js](../../../docs/src/core/mock-adapter.js)，与 services/core/mock.js 对齐）——默认**跨刷新持久化**：localStorage 存在且 `_schema` 匹配的合法数据时全量恢复；无数据或数据被污染（核心数组为空）时回退加载初始 seed（`_seedInitialData`），并按种子基线增量同步（删除已移除种子/覆盖已变更种子/补齐缺失种子，保留用户运行时字段）
+- `workflowos_branch_db_v1`：当前 `SANDBOX_MODE = false`（[data/mock-adapter.js](../../../docs/src/data/mock-adapter.js)，与 services/core/mock.js 对齐）——默认**跨刷新持久化**：localStorage 存在且 `_schema` 匹配的合法数据时全量恢复；无数据或数据被污染（核心数组为空）时回退加载初始 seed（`_seedInitialData`），并按种子基线增量同步（删除已移除种子/覆盖已变更种子/补齐缺失种子，保留用户运行时字段）
 - Schema 版本校验：loadDB 检查 `_schema` 与当前 `SCHEMA_VERSION`（值为 1）是否匹配，不匹配则拒绝加载脏数据
 - 写入策略：CRUD 写操作后经 `persist()` / `MockAdapter.saveDB()` 将 mockDB 全量序列化到单一键；saveDB 含持久化守卫（`mockDB._loaded` 为 false 即 loadDB 完成前拒绝写入，防止加载早期空数据覆盖用户已存数据）
 - SANDBOX 清理（仅 `SANDBOX_MODE = true` 时启用，当前为 false 不触发）：`loadDB()` 不仅清理全量键，还清理旧版独立键（`assignment_records`/`attendance_records` 等 legacyKeys 兼容清理），随后重灌 seed
@@ -1420,7 +1420,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 |------|--------|----------|------|
 | 组件渲染（下拉框、查找、筛选） | `mockDB.activities` 或 `getAppState().activities` | `ACTIVITIES` | mockDB 是运行时数据源，ACTIVITIES 是静态初始数据 |
 | 数据加载 fallback | `fallbackData: () => ACTIVITIES` | — | 仅在 BranchService 失败时作为安全网（`_maybeError` 已禁用），极少触发 |
-| Mock 数据生成（seed 阶段） | `ACTIVITIES` | — | mock/index.js 中 `_activityTitle`/`_activityType` 辅助函数在 seed 阶段使用静态数据，正确 |
+| Mock 数据生成（seed 阶段） | `ACTIVITIES` | — | data/mock/index.js 中 `_activityTitle`/`_activityType` 辅助函数在 seed 阶段使用静态数据，正确 |
 | 服务层查找 | `mockDB.activities` | `ACTIVITIES` | auth.js/makeup.js/party.js 等服务层应读取运行时数据 |
 
 **`_maybeError` 随机错误模拟已禁用**：后端接入后真实错误由后端返回。
@@ -1540,7 +1540,7 @@ UI 层零改动。
 
 ### 4.5 数据写入模式
 
-> 实现细节见 `docs/src/` 对应文件（`services/core/mock.js`、`core/state.js`、`entries/pages/main-entry.js`）。
+> 实现细节见 `docs/src/` 对应文件（`services/core/mock.js`、`core/base/state.js`、`entries/pages/main-entry.js`）。
 > 写入数据验证设计见 §2.17。
 
 #### 4.5.1 成员流入/流出写路径
@@ -1552,7 +1552,7 @@ UI 层零改动。
 ### 4.6 写穿透缓存模式
 
 > **设计理念**：前端数据层采用"写穿透缓存"模式，实现零成本迁移到后端数据库。
-> **实现文件**：`docs/src/core/data-adapter.js`（`init()` + `persist()` 方法）
+> **实现文件**：`docs/src/data/data-adapter.js`（`init()` + `persist()` 方法）
 
 **核心机制**：
 
@@ -1609,7 +1609,7 @@ KANBAN\_MOCKS（mock/kanban.js）作为独立硬编码的看板数据，与正�
 | 不在此展开的内容 | 权威源 |
 |---|---|
 | 角色键与权限矩阵（含赋权链、模块可见性） | [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md)（代码键级权威）+ [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) |
-| 角色键的代码单一源 | `docs/src/core/constants.js`（`ROLE_KEYS` / `ROLE_LEGACY_KEYS`）、`docs/src/core/state.js`（首页日历角色枚举） |
+| 角色键的代码单一源 | `docs/src/core/domain/constants.js`（`ROLE_KEYS` / `ROLE_LEGACY_KEYS`）、`docs/src/core/base/state.js`（首页日历角色枚举） |
 | 考勤 / 考察 / 补课的制度规则 | [纪检委员工作流程指南.md](../../02_institution/sop/纪检委员工作流程指南.md) + [COMMISSIONER_DUTY_FRAMEWORK.md](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 三级管理架构与分工 | [COMMISSIONER_DUTY_FRAMEWORK.md §G（原 FLAT_ORGANIZATION_DESIGN.md）](../../02_institution/COMMISSIONER_DUTY_FRAMEWORK.md) |
 | 架构分层与目录结构 | [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) |

@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20260929a"></script>
+<script src="./src/theme-init.js?v=20260929b"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20260929a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20260929a">
+  <script src="./src/tailwind-config.js?v=20260929b"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20260929b">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -608,7 +608,7 @@
           <ul class="doc-list" style="margin-top:8px;">
             <li><strong>落点</strong>：情景① 按组织层级分两处——<strong>支委身份配置</strong>在支书 / 副支书台「支委会」tab 的<strong>「机构构成」段</strong>（2026-09-27 支委会迁移批由「党小组与活动」迁入；判据＝支部大会选举支委 → 支委会讨论分工）、<strong>组长指派</strong>在「党小组与活动」tab「党小组清单」卡内与「组 / 组长」同区（不再单设「赋权管理」页签）。</li>
             <li><strong>能做什么</strong>：设党小组组长（选人 + 选党小组 → 确认，可撤销）；配置支委身份（组织 / 宣传 / 纪检委员，在本支部在册成员中选人 → 选身份 → 确认授予 / 改派，可撤销）。</li>
-            <li><strong>身份边界</strong>：支书本人与副支书的身份由<strong>党委</strong>配置（不在本表）；可授予身份白名单单一源＝<code>docs/src/core/constants.js</code> 的 <code>BRANCH_COMMISSIONER_ASSIGNABLE_ROLES</code>；写口单一源＝<code>docs/src/services/branch/appointment.js</code>。</li>
+            <li><strong>身份边界</strong>：支书本人与副支书的身份由<strong>党委</strong>配置（不在本表）；可授予身份白名单单一源＝<code>docs/src/core/domain/constants.js</code> 的 <code>BRANCH_COMMISSIONER_ASSIGNABLE_ROLES</code>；写口单一源＝<code>docs/src/services/branch/appointment.js</code>。</li>
             <li><strong>谁能写</strong>：支书与副支书（副书同权）；界面按钮显隐只是提示，写没写成以服务层返回为准。</li>
             <li><strong>相关</strong>：§2.1 支书工作台「支委会」行（支委身份配置）与「党小组与活动」行（组长指派）；本页 #card-copy-party-group（组长派生口径）。</li>
           </ul>
@@ -1734,8 +1734,8 @@
             <thead><tr><th style="width:16%;">层</th><th style="width:42%;">位置</th><th>职责</th></tr></thead>
             <tbody>
               <tr><td>前台（页面）</td><td>docs/（根页面 + 工作台，页面清单以 docs/ 实测为准）</td><td>页面骨架，零硬编码逻辑</td></tr>
-              <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + modules/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
-              <tr><td>后台（服务层）</td><td>docs/src/services/ + mock/</td><td>数据 CRUD、权限计算、持久化</td></tr>
+              <tr><td>中台（逻辑）</td><td>docs/src/entries/ + components/ + core/ + capabilities/</td><td>角色面板路由、视图切换、DOM 渲染、能力注册</td></tr>
+              <tr><td>后台（服务层）</td><td>docs/src/services/ + data/（含 data/mock/）</td><td>数据 CRUD、权限计算、持久化</td></tr>
               <tr><td>后端（server/）</td><td>server/（Express + better-sqlite3 单进程）</td><td>同源托管静态页面 + /api/v1 REST（登录认证 / 资源表读写 / 附件上传 / 快照持久化）</td></tr>
               <tr><td>母本层</td><td>content/02_institution/sop/</td><td>所有代码逻辑的制度来源</td></tr>
             </tbody>
@@ -1775,6 +1775,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20260929a"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20260929b"></script>
 </body>
 </html>

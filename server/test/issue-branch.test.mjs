@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const V = '?v=20260929a';
+const V = '?v=20260929b';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SRC_DIR = join(ROOT, 'docs', 'src');
 const ISSUES_JSON = join(ROOT, 'docs', 'data', 'issues.json');
@@ -36,8 +36,8 @@ globalThis.sessionStorage = {
   removeItem: (k) => { _sess.delete(String(k)); },
 };
 
-const { mockDB } = await import(`../../docs/src/core/domain.js${V}`);
-const { setDataSource } = await import(`../../docs/src/core/data-adapter.js${V}`);
+const { mockDB } = await import(`../../docs/src/core/domain/domain.js${V}`);
+const { setDataSource } = await import(`../../docs/src/data/data-adapter.js${V}`);
 const { IssueStore } = await import(`../../docs/src/services/governance/issues.js${V}`);
 const { AuthStore } = await import(`../../docs/src/services/core/auth.js${V}`);
 
@@ -71,7 +71,7 @@ test('S1 docs/data/issues.json 存量 4 条 issue 均逐条携带 branchId（支
     assert.ok(typeof i.branchId === 'string' && /^br-/.test(i.branchId),
       `issue ${i.id} 须携带支部归属 branchId（实际：${JSON.stringify(i.branchId)}）`);
   }
-  // 存量迁移口径：本部署唯一支部 br-b1（mock/branches.js BRANCHES 基线）
+  // 存量迁移口径：本部署唯一支部 br-b1（data/mock/branches.js BRANCHES 基线）
   assert.ok(data.issues.every((i) => i.branchId === 'br-b1'), '存量 issue 应归部署默认支部 br-b1');
 });
 

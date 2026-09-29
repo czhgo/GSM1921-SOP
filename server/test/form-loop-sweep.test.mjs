@@ -40,7 +40,7 @@ import {
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
-/** 七个工作台 → 演示账号（与 docs/src/mock/accounts.js 一致；口令 123456） */
+/** 七个工作台 → 演示账号（与 docs/src/data/mock/accounts.js 一致；口令 123456） */
 const ACCOUNTS = {
   secretary: '2300010001',
   org: '2400012355',
@@ -140,9 +140,9 @@ async function createSession(studentId, pageName) {
   return { page, storage };
 }
 
-/** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = core/data-adapter.js::getRuntimeMode） */
+/** P0-2 形态断言：本文件真机用例必须在 API 形态下跑（单一源 = data/data-adapter.js::getRuntimeMode） */
 async function assertApiMode(page) {
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260929a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 等「上一态已清、本态已到」的**可判定条件**（替代原来的固定 `waitForTimeout(1500)`）。
@@ -156,7 +156,7 @@ async function assertApiMode(page) {
 async function waitShellSettled(page) {
   await page.waitForFunction(async () => {
     if (document.querySelectorAll('button[role="tab"]').length === 0) return false;
-    const { getAppState, STATE } = await import('/src/core/state.js?v=20260929a');
+    const { getAppState, STATE } = await import('/src/core/base/state.js?v=20260929b');
     const st = getAppState();
     // ⚠ 只判 `status === IDLE` **不够**：`status` 的初值就是 IDLE，而工作台壳层的 tab 条
     //   可能在 `loadWorkspaceData` 之前就已渲染 ⇒ 会「假就位」，此时切 tab 会被随后的
@@ -436,7 +436,7 @@ async function submitFlow(page, flow, override) {
 }
 
 /** 过渡态文案 —— **不是裁决**（2026-09-17 批次 49）。
- *  本批把成功提示改成「先等落库真正落地、再报成功」（`core/pending-writes.js` + `showToast` 的
+ *  本批把成功提示改成「先等落库真正落地、再报成功」（`core/session/pending-writes.js` + `showToast` 的
  *  success 分支），等待期间会先渲染一条过渡提示 ⇒ **「容器里有字」不再等于「已有裁决」**：
  *  过渡态会**抢在**裁决之前把「等到有字」这个条件满足掉，于是断言读到的是过渡文案。
  *  实测（批次 49 全量）：`leader-write-activity-save` 读到「i保存中…i保存中…」——

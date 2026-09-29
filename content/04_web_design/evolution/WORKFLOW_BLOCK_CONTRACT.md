@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: "2026-09-29"
+last_updated: 2026-09-29
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
@@ -11,7 +11,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 # 工作流块封装契约
 
 > **本文负责**：**工作流块封装契约（L3）**——块差异化的三个可组装维度、`block manifest v1` 字段规格与取值校验、与既有资产的映射表、两个示例块、编码落地拆分与进度。
-> **本文不负责**：① **L1~L5 愿景与目标分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；② **能力 / 场景注册表的现行实现** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 `docs/src/core/registry.js`；③ **表单字段渲染器的现行定义** → `docs/src/components/ui/forms.js` 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；④ **支部可组合配置的操作位与写权** → [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6。
+> **本文不负责**：① **L1~L5 愿景与目标分层** → [ARCHITECTURE_EVOLUTION.md](ARCHITECTURE_EVOLUTION.md) §八；② **能力 / 场景注册表的现行实现** → [ARCHITECTURE.md](../../03_doc_system/ARCHITECTURE.md) §十一 与 `docs/src/core/boot/registry.js`；③ **表单字段渲染器的现行定义** → `docs/src/components/ui/forms.js` 与 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md)；④ **支部可组合配置的操作位与写权** → [PARTY_COMMITTEE_DESIGN.md](PARTY_COMMITTEE_DESIGN.md) §2.5/§2.6。
 
 > **定位**：根 README 顶层愿景 L1→L5 的第 3 层（L3 块封装契约）。把一条 SOP 封装为一个「工作流块」：声明输入（fields，渲染器 = 既有 forms.js 字段积木）、阶段（引擎阶段序列）、产出（todo/notice/归档等既有联动）。契约与示例已随 S1~S4 编码落地（2026-09-03，见 §七）；本文档当前为契约定义 + 落地进度档案。
 > **受众**：[工程师]+[AI]（工作流/表单/能力注册三个面的维护者）+ 支书（交互与边界裁决人）
@@ -57,7 +57,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
   "provenance": "institution-common" | "branch-custom", // 通用制度 vs 支部自创制度尝试
 
   // ── 能力关联（capability）──────────────────────────────
-  "capabilityId": "activity-calendar",   // 注册表 id（core/registry.js 同源）
+  "capabilityId": "activity-calendar",   // 注册表 id（core/boot/registry.js 同源）
   "scope": ["workspace:secretary"],      // 可见/可拖的台面范围（复用既有 scope）
 
   // ── 输入声明（inputs → 渲染器 = forms.js 字段积木；表单条目可组装）──
@@ -119,7 +119,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 | provenance | 仅 2 值：`institution-common`（三会一课等全党通用）\| `branch-custom`（支部自创制度尝试）；通用块禁止声明为 branch-custom |
 | kind | 仅 4 值：`textField/textareaField/selectField/dateField`（新增字段类型 = forms.js 库扩，不是块特例） |
 | inputs.fields | fieldId 块内唯一；requiredConfigurable=true 时支部 config 可改必填；enabledDefault=false 的字段默认收起 |
-| participants | mode=`configurable` 时须提供 defaultRoles；**角色键 = [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表 / `docs/src/core/constants.js` `ROLE_KEYS` 之一**（两源同构对齐，见 ROLE_PERMISSION_DESIGN 收敛）；orgMode ∈ none \| organizer-deep（后者为支部自创组织模式，名单解析走 person 服务） |
+| participants | mode=`configurable` 时须提供 defaultRoles；**角色键 = [SYSTEM_ROLE_PERMISSION.md](../../02_institution/SYSTEM_ROLE_PERMISSION.md) §9a0 角色键全表 / `docs/src/core/domain/constants.js` `ROLE_KEYS` 之一**（两源同构对齐，见 ROLE_PERMISSION_DESIGN 收敛）；orgMode ∈ none \| organizer-deep（后者为支部自创组织模式，名单解析走 person 服务） |
 | outputs.entities | 仅 services 层已存在实体名；不存在即声明即错误 |
 | outputs.outputBlocks | 仅 OUTPUT_BLOCK_DEFS 目录内 id |
 | validation.initiatorRoles | 仅 ROLE 常量内角色键；块对不可见角色自动隐藏（不泄露） |
@@ -139,7 +139,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 - **depends 禁环**：`depends` 不允许成环——DFS（三色标记）检出并返回完整环路径。
 - **收集式体检**：`resolveConflicts(items)` 不抛错，一次返回 `{ missingRefs, mutual, cycles }` 三类问题全集；`assertComposeValid(items)` 任一非空即抛错——错误信息含缺失引用（`引用方 -> 缺失 id`）、互斥双方 id、环路径；全部干净返回 `true`。
 - **v0 边界**：前端纯校验，不进 server 路由与 `config-clean` 校验；服务端组合校验后续版本接入。
-- **实现**：`docs/src/core/module-compose.js`（纯 ESM、零依赖、浏览器/Node 双端可加载）；试点块已按本契约在 `docs/src/workflow/blocks/manifests.js` 声明 `depends: []` / `conflictsWith: []`，块清单模块加载自检 + `server/test/module-compose.test.mjs` 接线断言。
+- **实现**：`docs/src/core/base/module-compose.js`（纯 ESM、零依赖、浏览器/Node 双端可加载）；试点块已按本契约在 `docs/src/workflow/blocks/manifests.js` 声明 `depends: []` / `conflictsWith: []`，块清单模块加载自检 + `server/test/module-compose.test.mjs` 接线断言。
 
 ---
 
@@ -147,7 +147,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 | manifest 段 | 落地资产 | 现状 |
 |---|---|---|
-| identity/capability | `core/registry.js` 注册表 + `mock/branches.js config` | ✅ 已有（M1~M4 / 支部 config.modules） |
+| identity/capability | `core/boot/registry.js` 注册表 + `data/mock/branches.js config` | ✅ 已有（M1~M4 / 支部 config.modules） |
 | inputs.fields | `components/ui/forms.js` 字段积木 | ✅ 已有（B2 交付；本契约使 forms 成为块输入渲染器） |
 | workflow.stages | `WorkflowEngine` / scenario definitions | ✅ 已有（纯数据驱动，`docs/src/workflow/`） |
 | outputs.entities/outputBlocks | services 层写口 + `OUTPUT_BLOCK_DEFS` + config.blocks | ✅ 已有（2026-09-03 产出块目录与支部级启停） |
@@ -260,7 +260,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 
 **S3 扩展：① 流程组合的「顺序」面落地（2026-09-28 批次 246）**——支书同日裁定「**块差异＝流程组合**」（§〇 三轴取 ①）后：
 
-- `config.blocks.workflowBlocks` 增 **`blockOrder`**（与 `outputBlocks.blockOrder` 同口径；净化唯一实现 = `core/config-clean.js`，排序单一实现 = `services/branch/branch.js::orderByIds`，产出块 / 工作流块共用）。
+- `config.blocks.workflowBlocks` 增 **`blockOrder`**（与 `outputBlocks.blockOrder` 同口径；净化唯一实现 = `services/branch/config-clean.js`，排序单一实现 = `services/branch/branch.js::orderByIds`，产出块 / 工作流块共用）。
 - 换组织向导第②步「工作流块」由**只可启停**升为**可排序**（▲▼ 按钮 —— 键盘可达的按钮等价路径），并内联「**组合体检**」：消费 `workflow/blocks/orchestration.js::composePlan`（**编排内核首次进入生产路径**，此前仅测试 import）＋ 目录外 id 检测。
 - 同批修掉旧缺陷：向导保存第②步写死 `outputBlocks.blockOrder: []` ⇒ **静默抹掉已按其它入口设过的顺序**；现改为原样保留。
 - 测试：`server/test/workflow-block-config.test.mjs` 扩 `blockOrder` 纯函数 ＋ HTTP 往返断言（含「排序未接线即红」的反例）。

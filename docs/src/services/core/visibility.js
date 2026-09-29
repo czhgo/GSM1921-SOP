@@ -8,14 +8,14 @@
 //  数据源：
 //    auth.js AUTHORIZE_CHAIN（赋权链 → L1 条线可见性投影）
 //    SYSTEM_ROLE_PERMISSION.md §9b 常设角色权限矩阵（view_all → 数据维度投影）
-//    mock/people.js partyGroup（党小组 → 块块关系：组长看本组组员）
+//    data/mock/people.js partyGroup（党小组 → 块块关系：组长看本组组员）
 //  核心："看 ≠ 做"——可见性只决定"能看到什么维度"，不授予任何操作权。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../mock/people.js?v=20260929a';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20260929a';
-import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from '../activity/activity.js?v=20260929a';
-import { BRANCH_COMMISSION_ROLES } from '../../core/constants.js?v=20260929a';
+import { PEOPLE } from '../../data/mock/people.js?v=20260929b';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20260929b';
+import { loadActivities, isPendingApprovalActivity, isActivityOrganizerIn } from '../activity/activity.js?v=20260929b';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20260929b';
 
 // ── 可见维度（职责空间投影的最小充分信息）─────────────────────────
 //  progress    — 在办进度（待办/活动/专班聚合）
@@ -144,7 +144,7 @@ export function resolveVisibleTargets(viewerRole, viewerPersonId) {
 // 支书裁定（2026-09-22，逐字）：「待批的活动，只有支委层能看到；普通党员看不到（避免"还没批就传出去了"）。」
 // 支书裁定（2026-09-22，逐字，批次 152 补）：「给组织者本人开一个"我提交的待批"可见位。理由：他自己写的活动，
 //   批之前总得能看见吧。」
-// 口径（**三档**）：① **支委层**＝既有语义角色集 `core/constants.js::BRANCH_COMMISSION_ROLES`（支书/副支书/
+// 口径（**三档**）：① **支委层**＝既有语义角色集 `core/domain/constants.js::BRANCH_COMMISSION_ROLES`（支书/副支书/
 //   组织委员/宣传委员/纪检委员；**单一源，勿另写名单**）可见；② **组织者本人**（＝该场活动的组织者：顶层
 //   `activity.organizer` 或 `assignments[].role==='organizer'`，判据单一源 `services/activity/activity.js::isActivityOrganizerIn`，
 //   以**实际字段**为准、不另立"创建人"口径）**也可见**——即使他不在支委层（他自己写的活动，批之前看得见）；
@@ -195,5 +195,5 @@ export function filterActivitiesForViewer(activities, role, personId) {
 }
 
 // 当前登录人读口（置文件末尾：ESM import 声明提升，不影响语义，避免改动上文行号 ⇒ README-server.md 引用不漂移）
-import { AuthStore } from './auth.js?v=20260929a';
+import { AuthStore } from './auth.js?v=20260929b';
 

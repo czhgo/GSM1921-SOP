@@ -7,7 +7,7 @@
 //   「提交后立刻关页/刷新」可能提示成功却其实没存上。
 //
 // 判据分层（两层法，与本仓既有守卫同规）：
-//   W1–W4 **行为层**：直接跑 `core/pending-writes.js` 的等待语义（纯 node，无浏览器依赖）。
+//   W1–W4 **行为层**：直接跑 `core/session/pending-writes.js` 的等待语义（纯 node，无浏览器依赖）。
 //   W5–W9 **结构层**：断言「单一等待点」在位、且各写链都登记 —— 防的是「机制还在、接线被悄悄摘掉」
 //        （对照 R-67「同一病灶只修一处＝没修完」与 R-73「台账三缺一：漏登记时守卫全绿」）。
 //
@@ -16,7 +16,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/pending-writes.js?v=20260929a';
+import { trackWrite, settleWrites, hasPendingWrites } from '../../docs/src/core/session/pending-writes.js?v=20260929b';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
@@ -68,7 +68,7 @@ test('W4 登记失败但调用方不 await：不得产生 unhandledrejection', a
 // ── 结构层 ────────────────────────────────────────────────────────────
 
 test('W5 单一等待点在位：success 提示必须先等落库落地再渲染', () => {
-  const src = read('docs/src/core/utils.js');
+  const src = read('docs/src/core/base/utils.js');
   const fn = fnBody(src, 'export function showToast(');
   assert.match(fn, /settleWrites\(/, 'success 分支必须先等待落库');
   assert.match(fn, /hasPendingWrites\(/, '需据在途状态给过渡提示与超时判据');
@@ -79,8 +79,8 @@ test('W5 单一等待点在位：success 提示必须先等落库落地再渲染
   assert.match(fn, /_renderToast\('error'/, '等待失败/超时须改报失败，不得静默');
 });
 
-test('W6 Toast 渲染单一源：只允许 core/utils.js 建 toast 容器', () => {
-  const src = read('docs/src/core/utils.js');
+test('W6 Toast 渲染单一源：只允许 core/base/utils.js 建 toast 容器', () => {
+  const src = read('docs/src/core/base/utils.js');
   assert.match(src, /_toastContainer\.id = 'toast-container'/);
   // 其余文件不得各建一套浮层（否则新写口会绕过 W5 的等待）
   const others = ['docs/src/entries', 'docs/src/components', 'docs/src/services'];
@@ -91,8 +91,8 @@ test('W6 Toast 渲染单一源：只允许 core/utils.js 建 toast 容器', () =
 });
 
 test('W7 持久化层必须登记：persist 分支与快照排程都要 trackWrite', () => {
-  const src = read('docs/src/core/data-adapter.js');
-  assert.match(src, /import \{ trackWrite \} from '\.\/pending-writes\.js/, '等待点须静态可用（排程那一刻就要登记）');
+  const src = read('docs/src/data/data-adapter.js');
+  assert.match(src, /import \{ trackWrite \} from '\.\.\/core\/session\/pending-writes\.js/, '等待点须静态可用（排程那一刻就要登记）');
   const persistFn = fnBody(src, 'export function persist()');
   assert.match(persistFn, /trackWrite\(/, 'mock 落库失败也须登记（不得只抛给调用点）');
   const schedFn = fnBody(src, 'function _scheduleSnapshot()');
@@ -100,12 +100,12 @@ test('W7 持久化层必须登记：persist 分支与快照排程都要 trackWri
 });
 
 test('W8 快照失败必须能被等待方看见（不得只告警）', () => {
-  const fn = fnBody(read('docs/src/core/data-adapter.js'), 'async function _flushSnapshot()');
+  const fn = fnBody(read('docs/src/data/data-adapter.js'), 'async function _flushSnapshot()');
   assert.match(fn, /deferred\?\.reject\(/, '失败须结算本次排程的 deferred');
   assert.match(fn, /throw e;/, '失败须向上抛（原实现「仅告警不抛出」＝等待方看不见）');
   // pagehide 同步冲刷由浏览器接管、本上下文无法再观测 ⇒ 必须结算排程，
   // 否则 deferred 永远挂着、settleWrites 会在它上面空等（真机表现为成功提示不出）
-  const syncFn = fnBody(read('docs/src/core/data-adapter.js'), 'function _flushSnapshotSync()');
+  const syncFn = fnBody(read('docs/src/data/data-adapter.js'), 'function _flushSnapshotSync()');
   assert.match(syncFn, /_flushDeferred\?\.resolve\(\)/, 'pagehide 路径须结算排程，防悬挂');
 });
 

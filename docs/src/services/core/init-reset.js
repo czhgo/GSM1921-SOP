@@ -12,7 +12,7 @@
 //    · ?reset=preview= 仅清运行时 overlay/预览键（向导草稿 wizard-draft-*、成员基础数据预览），不动业务本体
 //    · ?reset=init   = 本文件：初始化档（从当前态清业务过程 → 可用新支部空业务态，白名单保留）
 //
-//  可改入口说明（mock-adapter.js 禁改）：core/mock-adapter.js 的 resolveResetTier 只认
+//  可改入口说明（mock-adapter.js 禁改）：data/mock-adapter.js 的 resolveResetTier 只认
 //  demo/preview 两档（未知值返回 null 不动作）——init 档无法并入该禁改文件，故本文件
 //  在「可改 reset 触发链」落地：services/core/mock.js loadDB() 在委派 MockAdapter.loadDB()
 //  之前先执行 handleInitResetIfRequested()（?reset=init 命中即清库并整页导航，未命中
@@ -25,7 +25,7 @@
 //  自动重种，或 DISABLE_SEED=1 空库起步）或走管理端，见 README 快速开始 reset 说明。
 // ════════════════════════════════════════════════════════════════
 
-/** 主库存储键（与 core/mock-adapter.js STORAGE_KEY 同值；mock-adapter 禁改 → 此处显式声明） */
+/** 主库存储键（与 data/mock-adapter.js STORAGE_KEY 同值；mock-adapter 禁改 → 此处显式声明） */
 export const INIT_BLOB_KEY = 'workflowos_branch_db_v1';
 
 /**
@@ -121,7 +121,7 @@ export const INIT_WHITELIST_STANDALONE_KEYS = [
 
 // ════════════════════════════════════════════════════════════════
 //  init 态哨兵与演示种子过滤（2026-09-08 C2 修复：?reset=init 浏览器形态稳态）
-//  背景：core/mock-adapter.js（禁改）_loadFromStorage 的 T174 判空保护把 init 后的
+//  背景：data/mock-adapter.js（禁改）_loadFromStorage 的 T174 判空保护把 init 后的
 //  「业务空态」误判为「首次/脏」→ 自动 _seedInitialData() + _mergeNewSeedRecords()
 //  把演示种子（activities/tasks/assignments/attendances/notices/archiveRecords/
 //  signups 七域）整体回填，且 services/notice|taskforce|signup 的 store 兜底与
@@ -158,7 +158,7 @@ export function isInitStateActive() {
 }
 
 /**
- * 演示种子 id 判定（与 core/mock-adapter.js merge/seed 的种子 id 空间同源：
+ * 演示种子 id 判定（与 data/mock-adapter.js merge/seed 的种子 id 空间同源：
  * 种子 = 「连字符 + 数字」；用户记录 = generateId 的「prefix_<uuid>」或时间戳下划线形态，
  * 二者正交——adapter 自身即以此区分种子同步与用户数据，本表复用同一判定零误伤）：
  *  - activities    act-\d+（ACTIVITIES，merge /^act-\d+$/）
@@ -185,7 +185,7 @@ const INIT_SEED_ID_PATTERNS = {
  * 仅当哨兵在场（init 已完成）时，把 mockDB 中被 mock-adapter 判空回填/种子增量合并
  * 引入的演示种子记录剔除（非种子用户记录与白名单原样保留）；返回是否有变更
  * （有则调用方应 saveDB 落盘，使空态跨刷新稳态）。
- * @param {Object} db mockDB（core/domain.js）
+ * @param {Object} db mockDB（core/domain/domain.js）
  * @returns {boolean} 是否剔除了种子记录
  */
 export function stripSeedRecordsIfInitState(db) {

@@ -8,24 +8,24 @@
 // 边界（支书口径，与换壳工作单一致）：预览只作用于「成员基础视图」五项基础字段，绝不写 mockDB /
 //   静态种子持久；业务历史（活动/考勤/议程/专班等）不迁移——仍关联演示成员，正式换数据
 //   请按「换壳工作单」落仓库文件（UI 已注明）。
-// 覆盖字段与 mock/people.js 档案字段同名：name/partyGroup/developStage/residenceStatus/residenceNote。
+// 覆盖字段与 data/mock/people.js 档案字段同名：name/partyGroup/developStage/residenceStatus/residenceNote。
 // 叠加点 = services/member/person.js（PersonStore 读取时套 overlayPreviewMembers）→ roster 应到链
 //   （getEffectiveMembers/getRosterStats/getMeetingRoster）与姓名解析自动吃到预览效果。
-// 依赖方向（防循环）：本模块只 import mock/people.js + core/policy-defaults.js，
+// 依赖方向（防循环）：本模块只 import data/mock/people.js + core/domain/policy-defaults.js，
 //   不 import services/member/person.js / services/member/roster.js（person.js → preview 单向依赖）；
-//   居住状态字面量 RESIDENCE 已收敛单一源 = core/constants.js（Q-21-3，2026-09-13；本模块 import 后自用，
+//   居住状态字面量 RESIDENCE 已收敛单一源 = core/domain/constants.js（Q-21-3，2026-09-13；本模块 import 后自用，
 //   不再对外重复导出——消费点一律直取 constants.js）。
 // 纯 ESM、无 DOM；localStorage 仅在函数内以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PEOPLE } from '../../mock/people.js?v=20260929a';
-// 2026-09-14 批次 25：党小组枚举改由 mock/party-groups.js 种子派生（该文件为无 import 的叶子数据模块，
+import { PEOPLE } from '../../data/mock/people.js?v=20260929b';
+// 2026-09-14 批次 25：党小组枚举改由 data/mock/party-groups.js 种子派生（该文件为无 import 的叶子数据模块，
 //   不会引入 person→preview→party-group 成环；运行时活组清单以 services/member/party-group.js::groupOptions() 为准）。
-import { PARTY_GROUPS } from '../../mock/party-groups.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/constants.js（本模块原先自写一份与 roster 同值的
+import { PARTY_GROUPS } from '../../data/mock/party-groups.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+// Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（本模块原先自写一份与 roster 同值的
 //   副本；constants.js 无 import → 可安全被本模块与 roster.js 双向共用，person→preview→roster 成环问题消解）。
-import { RESIDENCE } from '../../core/constants.js?v=20260929a';
+import { RESIDENCE } from '../../core/domain/constants.js?v=20260929b';
 
 /** 预览包类型标识（导入门槛，防误导入异类 JSON） */
 export const PREVIEW_KIND = 'gsm1921-base-data';
@@ -41,7 +41,7 @@ const ROSTER_CFG = POLICY_DEFAULTS.attendance.roster;
 const PARTY_STAGES = ROSTER_CFG.partyStages;
 const EXCLUDE_DETAINED = !!ROSTER_CFG.excludeDetained;
 
-// ── 静态种子成员与枚举（白名单单一源 = mock/people.js；p_pc 党委组织员 branchId=null 不属于支部）──
+// ── 静态种子成员与枚举（白名单单一源 = data/mock/people.js；p_pc 党委组织员 branchId=null 不属于支部）──
 const SEED_MEMBERS = PEOPLE.filter(p => p.branchId !== null && p.branchId !== undefined);
 const SEED_MAP = new Map(SEED_MEMBERS.map(p => [p.id, p]));
 /** 现有成员 id 白名单（id 在名单外 → 整条丢弃） */

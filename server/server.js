@@ -27,13 +27,13 @@ startScheduler(app.locals.db);
 // ════════════════════════════════════════════════════════════════
 // 生产形态已**默认不播种**（见上方 SEED_DISABLED），但**存量库**可能在上线前被灌过演示种子
 // ⇒ 启动时打印 users 计数与「演示种子账号」计数，让「库内是否只有真人」**可核对**（不必靠记忆）。
-// 判据 = 前端演示数据源 `docs/src/mock/people.js::PEOPLE` 的 id 集（与 `seedDatabase` 灌的是同一份）。
+// 判据 = 前端演示数据源 `docs/src/data/mock/people.js::PEOPLE` 的 id 集（与 `seedDatabase` 灌的是同一份）。
 // ⚠ 本段置于文件末尾：上方 `server.js:12-18`（DISABLE_SEED）/`:21`/`:22-23` 是 README-server.md 的取证靶点。
 {
   const userIds = app.locals.db.prepare('SELECT id FROM users').all().map((r) => r.id);
   let demoIds = null;
   try {
-    const { PEOPLE } = await import('../docs/src/mock/people.js');
+    const { PEOPLE } = await import('../docs/src/data/mock/people.js');
     demoIds = new Set(PEOPLE.map((p) => p.id));
   } catch (e) {
     console.warn('[server] 自检：演示账号标识不可得（跳过演示账号计数）：', e && e.message);

@@ -21369,3 +21369,54 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **未做（如实登记）**：`H-13` 的**改写执行**未在本批动手（本批只定方向）；第 3 条 `src/` 分层**另批**（先出判据化方案）。
 - **验证**：`npm run test:daily` **650/650 / 0 红**（含 `doc-consistency::S13` / `frontmatter-freshness` / `timestamps-note-guard`）——EA 的 frontmatter `last_updated` 与 `TIMESTAMPS` 行均已是 `2026-09-29`。**未改 `docs/src/**` / `server/**` ⇒ 不触发 bump 与收尾全量**。
 
+## 批次 267（2026-09-29）：**`docs/src` 目录分层再进一层**（支书第 3 条 · 点选「①+②+③ 全档」，`D-678`）
+
+> **来源**：支书第 3 条原话「**我们的src文件夹，在文件夹划分的意义上，还能不能更进一步地提升？我想要更加舒服、高效的文件夹划分系统，分得开又不冗杂！**」⇒ 本会话先作**判据化诊断**（`modules/` 是唯一「名字没有鉴别力」的层 · `core/` 是唯一没细分的层 · `mock/` 与 4 个 adapter 本是一个「数据形态」整体），再以 `AskUserQuestion` 呈三档，**支书点选「①+②+③ 全档」**。
+
+### 一、终态（`docs/src/`）
+
+```
+core/  base/(7) domain/(7) boot/(4) session/(4)      ← ② 四子域
+data/  data-adapter api-adapter mock-adapter(禁改) data-loader + mock/(15)   ← ③ 新立
+services/(5 域 49)  components/(7 域 53，新增 sections/)  capabilities/(顶层 11)  ← ① modules/ 消解
+entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
+```
+
+**① `modules/` 消解**：`modules/capabilities/`（11 件，**单一职责且同质**的「能力声明」）**上提为顶层 `capabilities/`**，与 `entries/` 成对称（**入口薄壳 ↔ 能力声明**）；余 3 件**按判据归位**——`branch-demo-nav`（身份／放行横切件，消费点跨 `core/boot` ＋ 两个 tab 域）⇒ `services/core/`；`references`／`help-catalog`（**页级板块渲染器**，两者有**共同判据**）⇒ **新建 `components/sections/`**。
+**② `core/` 27 件分四子域**：`base/`（零依赖基础件 7）· `domain/`（领域口径与单一源清单 7）· `boot/`（启动装配与页面骨架 4）· `session/`（会话级跨页轻量状态 4）；`config-clean.js` 归 `services/branch/`（支部配置域）。
+**③ 新立 `data/`**：4 个 adapter ＋ `mock/` 15 件；按 `D-677`（API 优先）让**「演示面」边界一眼可见**。
+
+**与 P5 / G2 原裁定的关系**：P5 只判过 `modules/`「**不再细分**」（不在 3 件内部再建子目录），**未裁过命名与归位** ⇒ 本批**不推翻** P5，而是补齐「命名与归位」这一层（`EA §六 G2` 已改写）。
+
+### 二、执行（codemod 三道 Pass，非手改）
+
+`56 件搬迁 · 723 处相对 specifier 重算 · 800 处 `docs/src/…` 全路径 ＋ 216 处裸路径 ＋ 106 处浏览器绝对路径`。工序与 `EA §六 G2` 的 codemod 六步一致：
+- **Pass A（相对 specifier 重算）**：一律按「**老目录解析 ⇒ 新目录重算**」（文件自身挪动后，连指向**未挪文件**的相对路径也要重算）。覆盖 `docs/src/**` ＋ `docs/scripts/**` ＋ `server/**`（含 `server/test/**`）。
+- **Pass B（文本引用）**：`docs/src/<旧>` 全路径 —— md / html / 注释 / 台账数据同批改（**故意不改 `CHANGELOG.md` 与 `.ctx/logs/**`**：那是历史记录，沿革以当时路径为准）。
+- **Pass B''（裸路径）**：只覆盖 `docs/src` 内注释／文案里**不带 `docs/src/` 前缀**的裸相对路径（如 `// modules/branch-demo-nav.js —`）；用负向后顾 `(?<![.\w/])` 排除 specifier 本体。
+- **Pass C（逐处改签）**：`join()` 分片（`block-manifest` / `doc-consistency` ×3 / `member-flow` ×2 / `party-group` / `page-sweep` / `id-uniqueness`）· 正则转义字面量（`capability-registry` · `person-consistency` · `todo-domain-view` · `pending-writes` 的 `core\/…\.js` 形态）· 跳表（`bump-version` ×2 · `release` ×1 · `localstorage-key-guard` ×1）· **模板字面量动态 import**（`settings-entry.js` —— 即 `H-15` 的同族，`import-path-guard` 首跑即抓出）。
+- **`?v=` 全链 bump**：`20260929a → 20260929b`（JS 216 / HTML 22 / CSS 2 / server-test 84；`CODE_VERSION` +1；陈旧戳自检 **0 处残留**）。
+
+**三类「既有 Pass 扫不到」的静默盲区（本批实测，均已写进 `EA §六 G2`「下一次搬迁前必读」→ `H-18`）**：
+1. **浏览器绝对路径 `/src/<旧>`**：E2E 测试大量以此加载（本批 **106 处**）——既不是相对 specifier、也不是 `docs/src/…` 文本 ⇒ **Pass A / Pass B 都扫不到**，静默 404、**只会在全量档暴露**。
+2. **目录名与既有「跳表」撞名**：新立的 `docs/src/data/` 撞上 `bump-version.mjs` / `release.mjs` / `localstorage-key-guard` 里**沿用的 `'data'` 跳过项**（原为防御性死项，此前无该目录）⇒ 该层**整层不被打戳 / 不被扫描**（`version-stamp` 会因出现两个活动戳判红、`localstorage-key-guard` 把该层定义的键判成「僵尸登记」）。**处置**：四处跳表去掉 `'data'`。
+3. **`core.autocrlf=true` 下裸 `git checkout`（真事故）**：为回收一次失败的首跑 codemod 用了 `git checkout -- .`，**把整棵工作树由 LF 写成 CRLF** ⇒ 守卫里用 `\n` 写死的正则（`issue-branch` 的 `branchId,\n\s*title,`）当场判红，而 **`git diff` 看不见**（autocrlf 把 EOL 差异归一化）⇒ 排查极费时。**处置**：按 `git ls-files --eol` 把「索引 LF、工作树 CRLF」的 **403 个**文件改回 LF。**新增纪律**：本仓工作树是 LF，**回收工作树不用裸 `git checkout -- .`**。
+
+### 三、守卫与文档同批改准
+
+- **守卫 / 脚本**：`block-manifest` · `doc-consistency` · `capability-registry` · `id-uniqueness` · `localstorage-key-guard` · `member-flow` · `page-sweep` · `party-group` · `todo-domain-view` · `pending-writes` · `person-consistency` · `import-path-guard`（G3 对照组） · `bump-version.mjs` · `release.mjs`。
+- **文档树 6 处**：`README.md`（§六 目录结构）· `content/03_doc_system/ARCHITECTURE.md`（repo 树）· `.ctx/SNAPSHOT.md`（物理拓扑）· `CONTRIBUTING.md`（代码归属表）· `.ctx/TIMESTAMPS.md`（**节标题改准**：`core/` 标四子域 ＋ 新立 `data/` · `modules/` 节改 `capabilities/`；**并把 7 行原有错位归位**——`core/boot/registry` ＋ 6 件 `capabilities` 原落在 `content/05` 表内）· `.ctx/ENGINEERING_ASSESSMENT.md`（§5.2 目录分层读数 · §四 P5 行 · §六 G2 残余与硬成本表）。
+- **`R-83` 刷行**：被搬迁文件的 `TIMESTAMPS` 表行日期 **34 行**刷为 `2026-09-29`（无 frontmatter 的 `.js` 行属该表「人工维护三块」之一）。
+
+### 四、验证（`R-85`）
+
+- **`npm run test:daily`：650 / 650 / 0 红**（过程中先 **635 / 15 红** ⇒ 逐条修净；最后一处＝`todo-domain-view::⑨` 的 `core\/utils\.js` 正则改签。收尾再复跑一次，仍 **650 / 650 / 0 红**）。
+- **读文档面五守卫复核：`doc-consistency` ＋ `frontmatter-freshness` ＋ `timestamps-note-guard` ＋ `doc-line-ref` ＋ `version-stamp` ＝ 50 / 50 / 0 红**。
+- **全量 `npm test`（先起 :3000）：862 项 / 861 通过 / 1 红**——唯一红项是**既有已知红** `b3-1-makeup-writeback.test.mjs`（`H-13`；`server/README.md`「已知既有红」本会话已收至只余此 1 项），**与基线（862 / 861 / 1）逐字一致 ⇒ 无新回归**。
+
+### 五、本批两处**自查纠正**（如实登记）
+
+1. **Pass B 误覆盖「历史留痕」**：`collectText` 的跳过判据只写了 `rel !== '.ctx/logs'`，故 `.ctx/logs/archive/**` 与其它月份日志（`.ctx/logs/2026-0{4,5,6,7,8}-*.md`）**被一并改写**，与本批声明的边界（「**故意不改历史日志**：沿革以当时路径为准」）不符 ⇒ **已按 `git show HEAD:<path>` 逐字节回退 10 件**（含 `.ctx/snapshots/INDEX.md` / `SNAPSHOT_v3_20260502.md` 两个历史快照）。**保留改写**的只有三本现行账：`2026-09-DECISION_LOG.md` / `2026-09-EXECUTION_LOG.md` / `logs/DECISION_LOG.md`。
+2. **`R-83` 欠账同批补刷**：Pass B 改动了 `content/**` 共 **26 份** md（＋根级 `README*.md` / `CONTRIBUTING.md` / `server/README.md`）⇒ 按 `R-83` 把它们一律刷为 **`2026-09-29`**：`content/**` **frontmatter 21 份** ＋ `TIMESTAMPS` 表行 **25 行**；另被搬迁的 `docs/src/**` 文件（无 frontmatter，属该表「人工维护三块」）**34 行**亦已于上节刷为该日。
+
+**未做（如实登记）**：`H-13` 的「API 级改写」仍待排批（本批只承接方向）；`H-18` 的三类盲区**本批只登记、未立机检**；本批**未 push**（支书口径：允许 commit、不允许 push）。

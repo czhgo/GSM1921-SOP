@@ -29,7 +29,7 @@ import { join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 const SRC = join(ROOT, 'docs', 'src');
-const CAP = join(SRC, 'modules', 'capabilities');
+const CAP = join(SRC, 'capabilities');
 const HELP = join(ROOT, 'docs', 'help.html');
 const CHECKLIST = join(ROOT, 'content', '05_ai_coding', 'DATA_CONSISTENCY_CHECKLIST.md');
 const SNAPSHOT = join(ROOT, '.ctx', 'SNAPSHOT.md');
@@ -178,8 +178,8 @@ test('S4 旧界面名黑名单零命中（考勤总表 / 按人浏览 / 公邮�
 test('S5 数据五数：文档声明与代码实测一致（分口径，严禁互相代入）', () => {
   const dbSrc = read(join(ROOT, 'server', 'db.js'));
   const resSrc = read(join(ROOT, 'server', 'routes', 'resources', 'store.js'));
-  const daSrc = read(join(SRC, 'core', 'data-adapter.js'));
-  const domSrc = read(join(SRC, 'core', 'domain.js'));
+  const daSrc = read(join(SRC, 'data', 'data-adapter.js'));
+  const domSrc = read(join(SRC, 'core', 'domain', 'domain.js'));
 
   const dbTables = (dbSrc.match(/const RESOURCE_TABLES = \[([\s\S]*?)\]/)[1].match(/'/g) || []).length / 2;
   const resNames = (resSrc.match(/const RESOURCE_TABLES = \{([\s\S]*?)\n\};/)[1].match(/^\s{2}\w+:/gm) || []).length;
@@ -610,9 +610,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/work-map.js?v=20260929a');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260929a');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/constants.js?v=20260929a');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20260929b');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260929b');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20260929b');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

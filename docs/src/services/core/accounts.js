@@ -5,23 +5,23 @@
 //  口径（DATA_CONSISTENCY_CHECKLIST「账号与成员档案同源」）：
 //   · 账号由学号派生（**账号即学号**）；成员新增/流出与账号建号/停用必须成对发生；
 //     禁出现「档案有此人、账号层没有」或反向的孤项。
-//   · 登录校验 = 「可持久化账号层 ∪ 静态种子表（mock/accounts.js::MOCK_ACCOUNTS）」：
+//   · 登录校验 = 「可持久化账号层 ∪ 静态种子表（data/mock/accounts.js::MOCK_ACCOUNTS）」：
 //       - 持久化账号层（localStorage 键 `gsm1921-accounts`，`gsm1921-` 前缀 → ?reset=demo 自动清除 = 回种子）
 //         承载运行时新建账号（成员流入自动建号）与「停用墓碑」（成员流出停用种子账号）；
 //       - 静态种子表 = 演示账号基线，运行时不变。
 //   · 停用不物理删除：写 active=false 留痕（登录校验拒绝停用账号）。
 //   · api 形态：账号承载 = server `users` 表行（personId 指向成员；登录口令校验见 server/routes/auth.js）——
 //     成员流入经 PersonStore.saveMember → server users 建行即完成建号；本文件仅服务 mock 形态登录校验。
-//  依赖：mock/accounts.js（叶子数据模块）——无 DOM；localStorage 惰性访问。
+//  依赖：data/mock/accounts.js（叶子数据模块）——无 DOM；localStorage 惰性访问。
 // ════════════════════════════════════════════════════════════════
 
-import { MOCK_ACCOUNTS } from '../../mock/accounts.js?v=20260929a';
+import { MOCK_ACCOUNTS } from '../../data/mock/accounts.js?v=20260929b';
 
 /** 可持久化账号层 localStorage 键（gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子） */
 export const ACCOUNTS_KEY = 'gsm1921-accounts'; // **mock 形态专属**（api 形态账号承载＝server users 表行，本层仅服务 mock 登录校验；白名单见 DATA_CONSISTENCY_CHECKLIST.md）
 const ACCOUNTS_VERSION = 1;
 
-/** 支部统一默认口令（与 mock/accounts.js 演示口令、server LOGIN_PASSWORD 缺省一致） */
+/** 支部统一默认口令（与 data/mock/accounts.js 演示口令、server LOGIN_PASSWORD 缺省一致） */
 export const DEFAULT_PASSWORD = '123456';
 
 /** 读取持久化账号层（不可用/损坏 → []） */

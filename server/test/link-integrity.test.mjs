@@ -111,7 +111,7 @@ test('L1 静态链接：全部 HTML href/src 目标存在 + 锚点存在', async
   console.log(`[L1] 静态链接检查: ${stats.checked} 个本地链接 + ${stats.anchors} 个锚点 + ${stats.external} 个外部URL`);
 
   // L1 内追加：JS 渲染型 href/src —— docs/src/**/*.js 模板字符串/字符串里渲染的 href="../…"、src="../…"
-  // 判据：docs/src/core/utils.js::getBasePath 约定——各 workspace/*.html 以 <base href="../"> 把基准 URL 调到
+  // 判据：docs/src/core/base/utils.js::getBasePath 约定——各 workspace/*.html 以 <base href="../"> 把基准 URL 调到
   //      docs/ 根（见 docs/workspace/*.html 第 5 行），JS 动态渲染内容同样受 <base> 解析，故渲染型路径须写 './xxx'。
   //      写 '../xxx' 在本地以 docs/ 为站点根时会被浏览器夹回根目录“恰好能跑”，但 docs/ 作为 GitHub Pages 项目站
   //      按子路径发布（docs/.nojekyll 正为此存在）时会跳出站点根 → 404。此前 L1 只扫静态 HTML、L2 只扫 location.href

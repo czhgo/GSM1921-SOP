@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { requireAuth, requireCommissioner } from './auth.js';
 // 党委角色单一源（勿手写）：下载做支部隔离时，党委（组织级、不属任何支部）跨支部可见
-import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/constants.js';
+import { PARTY_STAFF_ROLE as PARTY_STAFF_KEYS } from '../../docs/src/core/domain/constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 上传目录（2026-09-18 批次 80 · P1-③）：可由 env UPLOAD_DIR 配置；缺省值不变＝server/uploads。

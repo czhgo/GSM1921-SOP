@@ -4,7 +4,7 @@
 //  G3-3 / §四 P10，2026-09-28 批次 239
 // ════════════════════════════════════════════════════════════════
 // **承重臂＝O1**：用**反例**锁住「组合体检不是恒真」。这正对应批次 239 修掉的真缺陷——
-//   `docs/src/core/module-compose.js` 原来只认 `it.id`，而**块清单的键名是 `blockId`** ⇒
+//   `docs/src/core/base/module-compose.js` 原来只认 `it.id`，而**块清单的键名是 `blockId`** ⇒
 //   传入块清单时 `list` 被过滤成空集 ⇒ `missingRefs`/`mutual`/`cycles` 恒为空 ⇒
 //   `assertComposeValid(BLOCK_MANIFESTS)` **恒真**；而 `block-manifest.test.mjs::S3` 断言的正是
 //   「它不抛」⇒ **假绿**（「守卫只守表层」的又一实例）。修法＝`itemId()` 两种键名等价取用，
@@ -19,10 +19,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { assertComposeValid, resolveConflicts } from '../../docs/src/core/module-compose.js?v=20260929a';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929a';
-import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929a';
-import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929a';
+import { assertComposeValid, resolveConflicts } from '../../docs/src/core/base/module-compose.js?v=20260929b';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929b';
+import { blocksForScope, composePlan, compilePlan, blockCount } from '../../docs/src/workflow/blocks/orchestration.js?v=20260929b';
+import { THEME_PARTY_DAY_DEFINITION } from '../../docs/src/workflow/definitions.js?v=20260929b';
 
 test('O1 组合体检**不是恒真**（批次 239 修的真缺陷）：块清单键名 `blockId` 必须被认到', () => {
   // ① 反例：引用缺失必须真抛（修复前这里**不抛**——体检把整张清单过滤成了空集）

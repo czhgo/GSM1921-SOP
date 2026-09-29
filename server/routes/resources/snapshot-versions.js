@@ -12,7 +12,7 @@ import { RESOURCE_TABLES } from './store.js';
 // 病灶（丢数据）：`POST /snapshot` 逐集合 `DELETE + INSERT`（无事务）+ 无并发保护 ⇒
 //   ① 中途异常留下**半空集合**；② 两个在线会话**同集合**先后写，后写者以内存的落后快照**整表覆盖**
 //   前写者刚落库的数据（前写者数据静默消失）。
-// 协议（本段是判据单一源；前端消费点 = `docs/src/core/data-adapter.js` 的 `_flushSnapshot`）：
+// 协议（本段是判据单一源；前端消费点 = `docs/src/data/data-adapter.js` 的 `_flushSnapshot`）：
 //   · 请求：payload 内带 `_versions`（对象：集合名 → 该集合**基线版本**，＝前端上次同步到该集合时的服务端版本）。
 //   · 响应：带 `_versions` ⇒ 200 `{versions:{集合名:新版本}}`；payload 无集合（如 `{}`）⇒ 204（形状不变）。
 //   · 冲突：某集合 `_versions[name] !== 服务端当前版本` ⇒ **整批 409**（不写任何集合），

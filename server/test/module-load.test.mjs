@@ -15,7 +15,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260929a';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20260929b';
 
 let server;
 let BASE;
@@ -67,7 +67,7 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
       let done = 0;
       for (const rel of mods) {
         try {
-          await import(`/src/${rel}?v=20260929a`);
+          await import(`/src/${rel}?v=20260929b`);
         } catch (e) {
           failures.push(`${rel} :: ${String(e).slice(0, 140)}`);
         }
@@ -95,9 +95,9 @@ test('E1 编辑完整性：docs/src 全部模块可加载（无语法/重复声�
 //   **形甲（自装配）**：`registerApiAdapter` 且 `init(`（`D-485` 标准形）；
 //     ⚠ 标准形里 `init` 常按 `init as dataInit` 引入（`archive/feedback/notice/...` 皆是）⇒ 判据同时认
 //     `dataInit(` 与裸 `init(` 两种写法（**只认这两个装配名，认 `xxx.init()` 会把无关调用放进来**）。
-//   **形乙（经共享入口装配）**：`bootstrapPage(`（`core/bootstrap.js` 内即 `registerApiAdapter` + `init`，
+//   **形乙（经共享入口装配）**：`bootstrapPage(`（`core/boot/bootstrap.js` 内即 `registerApiAdapter` + `init`，
 //     首页 `main-entry.js` 走这一形）。
-//   **形丙（经 P0-2 收敛入口装配，2026-09-23 新增）**：`hydrateDataSource(`（`core/data-adapter.js` 的
+//   **形丙（经 P0-2 收敛入口装配，2026-09-23 新增）**：`hydrateDataSource(`（`data/data-adapter.js` 的
 //     P0-2 唯一收敛点：内部 `registerApiAdapter` + `setDataSource('api')` + `init()`，且**有 token 时
 //     init 失败即显式失败、不再静默回落 mock**）。11 个独立页由「形甲手写复制」改为调它一处——
 //     **判据不弱化**：这一形比形甲更强（装配 + 失败即失败 + 形态可断言 `getRuntimeMode`）。
@@ -132,7 +132,7 @@ test('E2 独立页数据源装配断言：每个 docs/*.html 的入口必须装�
     // 且失败即显式失败（不静默回落 mock）——比形甲更强，故与形甲/形乙并列受理。
     const viaHydrate = /\bhydrateDataSource\s*\(/.test(src);
     if (!selfHydrate && !viaBootstrap && !viaHydrate) {
-      problems.push(`${page} → ${entry}：既未自装配（registerApiAdapter + init），也未经 core/bootstrap.js 装配（bootstrapPage），也未走 P0-2 收敛入口（hydrateDataSource）`);
+      problems.push(`${page} → ${entry}：既未自装配（registerApiAdapter + init），也未经 core/boot/bootstrap.js 装配（bootstrapPage），也未走 P0-2 收敛入口（hydrateDataSource）`);
       continue;
     }
     checked.push(`${page}(${selfHydrate ? '自装配' : viaBootstrap ? '经 bootstrap' : '经 hydrateDataSource'})`);
@@ -174,11 +174,11 @@ test('E3 分层方向：服务层不得 import 组件（服务层不产 UI；组
 //    读**运行时写下的装配标记** `document.documentElement.dataset.dataSource` ⇔ 必须 === 'api'。
 //  为什么读 DOM 标记而不是在页里 import 模块调 `getDataSource()`：本模块的取值住在模块实例内部，
 //    守卫另用一条 URL import 会拿到**另一个实例**（默认 'mock'）⇒ 假红。标记写在
-//    `core/data-adapter.js::setDataSource`（**唯一漏斗**，mock/api 两条分支都写），跨实例可读。
+//    `data/data-adapter.js::setDataSource`（**唯一漏斗**，mock/api 两条分支都写），跨实例可读。
 //  ⚠ 非空转（本项的承重反证）：标记必须是**运行时写的**，不是 HTML 里的静态属性——
 //    故同时断言 `about.html` 的 HTML 源里没有静态 `data-source`，且该页实测标记 ≠ 'api'。
 test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器里真的装配成 api', async () => {
-  // 抽样取自 `docs/src/mock/accounts.js`（单一源）——personId 写在这里但**须真实存在**，否则红
+  // 抽样取自 `docs/src/data/mock/accounts.js`（单一源）——personId 写在这里但**须真实存在**，否则红
   const SAMPLES = [
     { label: '支书台', page: '/workspace/secretary.html', personId: 'p13' },
     { label: '纪检台', page: '/workspace/disc.html', personId: 'p10' },
@@ -186,7 +186,7 @@ test('E4 真机装配：登录后 3 类角色的工作台页在真实浏览器�
   ];
   for (const s of SAMPLES) {
     assert.ok(MOCK_ACCOUNTS.some((a) => a.personId === s.personId),
-      `抽样的 personId ${s.personId}（${s.label}）不在 mock/accounts.js 里——账号表已变，请同步本抽样`);
+      `抽样的 personId ${s.personId}（${s.label}）不在 data/mock/accounts.js 里——账号表已变，请同步本抽样`);
   }
 
   const browser = await chromium.launch({ headless: true });

@@ -46,7 +46,7 @@ const N3 = 15;   // 同屏复述：块长下限
 const R_RATIO = 12;   // 每屏比值上限（12 为 p75）
 const R_HARD = 20;    // 比值 >20 ⇒ 必须改造
 
-/** 七个工作台 × 登录账号（与 page-sweep / mock/accounts.js 同源） */
+/** 七个工作台 × 登录账号（与 page-sweep / data/mock/accounts.js 同源） */
 const WORKS = [
   { page: 'secretary', studentId: '2300010001', name: '支书 / 副支书台' },
   { page: 'org', studentId: '2400012355', name: '组织委员台' },

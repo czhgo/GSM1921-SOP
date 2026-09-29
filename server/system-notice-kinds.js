@@ -7,14 +7,14 @@
 //  本注册表把生成权收回服务端：
 //    · authorize(ctx) —— 服务端按「业务对象是否存在 + actor 与该对象的关系」自行复算，不信客户端；
 //    · build(ctx)     —— 标题/正文/受众/落点由服务端生成；模板单一源 =
-//                        docs/src/core/system-notice-templates.js（前端 mock 模式复用，两处文案不会未同步）。
+//                        docs/src/core/domain/system-notice-templates.js（前端 mock 模式复用，两处文案不会未同步）。
 //  端点：POST /api/v1/system-notices（server/routes/system-notices.js；未登录 401 / 未知 kind 400 /
 //        authorize 不通过 403 / 通过 201 并落库 notices 表）。
 //  ctx = { actor, sourceId, payload, db }
-//  角色集合单一源 = docs/src/core/constants.js（勿手写 5 支委授权列表，roles-sync 守卫会拦）。
+//  角色集合单一源 = docs/src/core/domain/constants.js（勿手写 5 支委授权列表，roles-sync 守卫会拦）。
 // ════════════════════════════════════════════════════════════════
-import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE } from '../docs/src/core/constants.js';
-import { buildSystemNotice } from '../docs/src/core/system-notice-templates.js';
+import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE } from '../docs/src/core/domain/constants.js';
+import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templates.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);

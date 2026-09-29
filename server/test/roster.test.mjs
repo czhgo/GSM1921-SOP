@@ -12,7 +12,7 @@
 //
 // 形态（提速批：**A 类（纯 node + mock 静态种子）→ B 类（起内存服务打 API）**，
 //   支书裁定「`roster.test.mjs` → 改成打 API」）：
-//   改造前断言对象是 `docs/src/mock/people.js` / `docs/src/mock/activities.js` 的**静态种子**；
+//   改造前断言对象是 `docs/src/data/mock/people.js` / `docs/src/data/mock/activities.js` 的**静态种子**；
 //   现改为：起 `:memory:` 服务 → `seedDatabase` → **真登录**取 token → `setDataSource('api')` → `init()`
 //   ⇒ 应到名单 / 候选+禁用集合 / 表决名单 / 滞留名单全部读**服务端 users**（init 灌入 mockDB 缓存）。
 //   体例照同批姊妹件 `group-view.test.mjs`，及既有 B 类先例 `permission-gate.test.mjs` / `server-base.test.mjs`。
@@ -30,7 +30,7 @@
 //   ② 表决 voterIds 与 roster 联动：resolveVoterIds 现时剔滞留（支部大会应到=formal-plus-prep
 //      与 roster 同集；线上支委会=支委名单，若支委滞留则剔）；历史快照 act-31 保持原值；
 //   ③ 党小组会组内候选 = 组内党员（非滞留入应到、滞留禁选），与纪检同口径。
-// 口径单一源 = core/policy-defaults.js attendance.roster（partyStages / excludeDetained）。
+// 口径单一源 = core/domain/policy-defaults.js attendance.roster（partyStages / excludeDetained）。
 // ⚠️ 对 docs/src 的相对 import 必须带与源码一致的 ?v= query（模块缓存键一致性，同 attendance-batch）——
 //   **api 形态下尤其致命**：少了 `?v=` 就是**两份 data-adapter 实例**，适配器注册不到、`init()` 直接抛
 //   「API 适配器尚未实现」（`group-view.test.mjs` 自述实测踩过一次）。
@@ -54,21 +54,21 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260929b';
 import {
   getMeetingRoster, getMeetingRosterIds, getMeetingRosterCandidates, getDetainedMembers,
   getRosterStats, getResidenceOf, saveResidenceChange, getRosterConfig, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20260929a';
-// Q-21-3（2026-09-13）：在册状态枚举单一源 = core/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/constants.js?v=20260929a';
-import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20260929a';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260929a';
+} from '../../docs/src/services/member/roster.js?v=20260929b';
+// Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20260929b';
+import { defaultVoteConfig, resolveVoterIds } from '../../docs/src/services/activity/vote-config.js?v=20260929b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20260929b';
 // mock 形态对照源（**仅 S1「两形态同源」断言用**；其余用例的断言对象一律是服务端数据）：
 //   前端静态种子 PEOPLE / ACTIVITIES 与服务端种子是同源两份，S1 即断言二者读数逐值一致。
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260929a';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260929a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260929b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20260929b';
 
 // ════════════════════════════════════════════════════════════════
 //  B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存
@@ -147,7 +147,7 @@ const BRANCH_PARTY = PARTY_MEMBERS.filter(p => p.branchId === 'br-b1' || p.branc
 // 支部党员大会会议应到（党员非滞留 19）与线上表决名单的关系：
 //   resolveVoterIds('formal-plus-prep') === getMeetingRosterIds({type:'支部党员大会'})（同集断言见 ②）
 const BRANCH_ROSTER = getMeetingRosterIds({ type: '支部党员大会' });
-// 历史快照 act-31（服务端 activities，与 mock/activities.js 同源）：voterIds = 12 名正式党员（含滞留 p5/p9）
+// 历史快照 act-31（服务端 activities，与 data/mock/activities.js 同源）：voterIds = 12 名正式党员（含滞留 p5/p9）
 const ACT31 = (mockDB.activities || []).find(a => a.id === 'act-31');
 const FORMAL_IDS = ['p1', 'p2', 'p3', 'p4', 'p5', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14'];
 

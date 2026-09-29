@@ -59,13 +59,13 @@ function seedMilestones() {
 
 export async function seedDatabase(db) {
   const [peopleMod, activitiesMod, noticesMod, taskforcesMod, seedMod, branchesMod, partyGroupsMod] = await Promise.all([
-    import('../docs/src/mock/people.js'),
-    import('../docs/src/mock/activities.js'),
-    import('../docs/src/mock/notices.js'),
-    import('../docs/src/mock/taskforces.js'),
-    import('../docs/src/mock/seed.js'),
-    import('../docs/src/mock/branches.js'),
-    import('../docs/src/mock/party-groups.js'),
+    import('../docs/src/data/mock/people.js'),
+    import('../docs/src/data/mock/activities.js'),
+    import('../docs/src/data/mock/notices.js'),
+    import('../docs/src/data/mock/taskforces.js'),
+    import('../docs/src/data/mock/seed.js'),
+    import('../docs/src/data/mock/branches.js'),
+    import('../docs/src/data/mock/party-groups.js'),
   ]);
 
   replaceCollection(db, 'users', peopleMod.PEOPLE);
@@ -85,12 +85,12 @@ export async function seedDatabase(db) {
   //   故与其它集合同走 replaceCollection 落库。
   replaceCollection(db, 'issues', seedIssues());
   // 批次 47-P（2026-09-16，支书「允许改种子」裁定）：支部上报审批基线。
-  // 与 mock 态**同源**（`docs/src/mock/seed.js::SEED_REVIEW_REQUESTS`，经 mock-adapter._seedInitialData 注入）
+  // 与 mock 态**同源**（`docs/src/data/mock/seed.js::SEED_REVIEW_REQUESTS`，经 mock-adapter._seedInitialData 注入）
   // ⇒ 两形态一致；补它的直接动因：党委台「驳回」只在 pending 行渲染，而本表原无种子
   // ⇒ api 形态下支书在党委台点不到该动作（批 47-M 实测入口计数 0）。
   replaceCollection(db, 'review_requests', seedMod.SEED_REVIEW_REQUESTS);
   // 批次 47-Y（2026-09-16，承 R-78 口径）：补课任务基线。
-  // 与 mock 态**同源**（`docs/src/mock/seed.js::SEED_MAKEUP_TASKS`，经 mock-adapter._seedInitialData 注入）
+  // 与 mock 态**同源**（`docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS`，经 mock-adapter._seedInitialData 注入）
   // ⇒ 两形态一致；补它的直接动因：成员台「考勤概况 · 去补课」入口只在「本人 pending 补课任务」存在时渲染，
   //   而该表原无种子（`data-adapter.js` 原注「由纪检操作生成，空属合理」）⇒ api 形态下该入口恒不存在。
   //   本条任务＝`att900`（p5 · act-31 · 缺勤 · 已确认）的派生结果（详见该常量注释；
@@ -113,7 +113,7 @@ export async function seedDatabase(db) {
   // 由来（支书逐字）：「我认为 db 中应当把**数据不全**，光有结构说明 mock 的数据是不足的！
   //   必须要补上，我们才能够更好地测试！」
   // 口径（三条，逐表见下方注释与 `SEED_*` 常量头注）：
-  //   ① 有**权威内容源**的（`docs/src/mock/**` 的具名导出）⇒ **一律从该源播种**，不在服务端另造第二份清单
+  //   ① 有**权威内容源**的（`docs/src/data/mock/**` 的具名导出）⇒ **一律从该源播种**，不在服务端另造第二份清单
   //      ⇒ mock / api 两形态同内容（与 `seedIssues()`／`seedMilestones()` 同一纪律）。
   //   ② 服务端**写入形状**已由语义端点 / 服务层固化的（交接 / 变更确认 / 申诉 / 未读 / 审计 / 任期 / 外发）
   //      ⇒ 按该形状造**最小演示行**（每表 1–2 行，不为凑数造量）。
@@ -125,26 +125,26 @@ export async function seedDatabase(db) {
   //   `db.js::SEMANTIC_TABLES`：`replaceCollection` 的白名单已同源放开（见 db.js），它们**不进快照写穿**，
   //   故首启播种后由 `init()` 逐域拉取填充缓存（与 agendaVotes 同一取法）。
   const [attendanceMod, inspectionMod, reviewMod, thoughtReportMod] = await Promise.all([
-    import('../docs/src/mock/attendance.js'),
-    import('../docs/src/mock/inspection.js'),
-    import('../docs/src/mock/review.js'),
-    import('../docs/src/mock/thought-reports.js'),
+    import('../docs/src/data/mock/attendance.js'),
+    import('../docs/src/data/mock/inspection.js'),
+    import('../docs/src/data/mock/review.js'),
+    import('../docs/src/data/mock/thought-reports.js'),
   ]);
-  // 考勤（内容单一源 = `mock/attendance.js::ATTENDANCE_RECORDS`：att1…att43 显式段 + att44… 8 月生成段 + att900）
+  // 考勤（内容单一源 = `data/mock/attendance.js::ATTENDANCE_RECORDS`：att1…att43 显式段 + att44… 8 月生成段 + att900）
   replaceCollection(db, 'attendances', attendanceMod.ATTENDANCE_RECORDS);
-  // 考察（内容单一源 = `mock/inspection.js::INSPECTION_RECORDS`）
+  // 考察（内容单一源 = `data/mock/inspection.js::INSPECTION_RECORDS`）
   replaceCollection(db, 'inspections', inspectionMod.INSPECTION_RECORDS);
-  // 活动复盘 / 专班复盘（内容单一源 = `mock/review.js` 的两个具名导出）
+  // 活动复盘 / 专班复盘（内容单一源 = `data/mock/review.js` 的两个具名导出）
   replaceCollection(db, 'activity_reviews', reviewMod.REVIEW_RECORDS);
   replaceCollection(db, 'taskforce_reviews', reviewMod.TASKFORCE_REVIEW_RECORDS);
-  // 思想汇报（内容单一源 = `mock/thought-reports.js::THOUGHT_REPORTS`；含 tr-5「已打回」过渡态样本）
+  // 思想汇报（内容单一源 = `data/mock/thought-reports.js::THOUGHT_REPORTS`；含 tr-5「已打回」过渡态样本）
   replaceCollection(db, 'thought_reports', thoughtReportMod.THOUGHT_REPORTS);
-  // 宣传周报 / 宣传任务（**2026-09-28 批次 234 去冗余**）：**内容单一源 = `docs/src/mock/prop.js`**——
+  // 宣传周报 / 宣传任务（**2026-09-28 批次 234 去冗余**）：**内容单一源 = `docs/src/data/mock/prop.js`**——
   //   原先这两个常量在宣传台 tab 内为**私有**（未导出、不可 import），本文件按之**逐字复刻**了一份
   //   ⇒ 两份字面量、须人工同步（该复刻块的原注释即写明「如后续把该常量导出，请改为 import 同源（勿留两份）」）。
   //   现该常量已收进单一源模块：UI 侧（`prop/weekly-tab.js` / `prop/tasks-tab.js`）与本节**同源 import 同一份**——
   //   UI 侧作 mockDB 空表兜底注入，本节作 api 形态首启播种 ⇒ 两形态同内容、且再无第二份可漂移。
-  const { WEEKLY_REPORTS_SEED, PROP_TASKS_SEED } = await import('../docs/src/mock/prop.js');
+  const { WEEKLY_REPORTS_SEED, PROP_TASKS_SEED } = await import('../docs/src/data/mock/prop.js');
   replaceCollection(db, 'weekly_reports', WEEKLY_REPORTS_SEED);
   replaceCollection(db, 'prop_tasks', PROP_TASKS_SEED);
   // 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch`；1 条待确认 + 1 条已确认）
@@ -191,7 +191,7 @@ export async function seedDatabase(db) {
 // ⚠ 置尾理由与 `db.js` / `server/routes/resources/` 同款：上文有大量 `文件:行号` 取证引用
 //   （`doc-line-ref.test.mjs` 逐条核 `README-server.md` 的引用）⇒ 新增一律追加在文件尾部。
 // 2026-09-28 批次 234：原在此的两个「逐字复刻」常量（宣传周报 `SEED_WEEKLY_REPORTS` / 宣传任务 `SEED_PROP_TASKS`）
-//   **已删** —— 二者与 `docs/src/mock/prop.js` 字面量完全重复，现改由该单一源同源 import（见 `seedDatabase()` 内）。
+//   **已删** —— 二者与 `docs/src/data/mock/prop.js` 字面量完全重复，现改由该单一源同源 import（见 `seedDatabase()` 内）。
 
 /**
  * 文件流外发确认（形状 = `services/activity/external-dispatch.js::addExternalDispatch` 的落库对象）。
@@ -290,7 +290,7 @@ const SEED_ISSUE_UNREAD = [
 /**
  * 授权审计留痕（形状 = `POST /auth-audit`；字段白名单 id/targetPersonId/role/scopeRef/authorizedBy/
  * authorizedAt/action）。记 `br-b1` 首任支书的任命（被授权人 p13 储子禾、授权人 p_pc 党委组织员、
- * 日期与 `mock/branches.js::BRANCHES[0].createdAt`（2026-09-01）一致）⇒ 与 `branches.secretaryId`
+ * 日期与 `data/mock/branches.js::BRANCHES[0].createdAt`（2026-09-01）一致）⇒ 与 `branches.secretaryId`
  * 及下方 `SEED_APPOINTMENT_RECORDS` **三处自洽**（同一个人、同一天、同一个支部）。
  */
 const SEED_AUTH_AUDIT = [
@@ -303,7 +303,7 @@ const SEED_AUTH_AUDIT = [
 /**
  * 支书任期记录（形状 = `appointmentRecords` 通用 CRUD / `services/branch/appointment.js::listAppointments`
  * 的排序键 `from`）。一条**现任**记录（`to: null`）：`branchId` = br-b1、`secretaryId` = p13
- * ⇒ 与 `branches.br-b1.secretaryId`（`mock/branches.js`）一致；后续换届由 `appointSecretary()`
+ * ⇒ 与 `branches.br-b1.secretaryId`（`data/mock/branches.js`）一致；后续换届由 `appointSecretary()`
  * 自行「封口现任 + 新建」⇒ 本行是**真实链路的起点**，不是终态伪造。
  */
 const SEED_APPOINTMENT_RECORDS = [

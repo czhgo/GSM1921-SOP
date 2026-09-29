@@ -163,7 +163,7 @@ const BASELINE = {
     '模块/块组合、角色分工与组织档案（页眉/自述/主题',            // 换组织向导表单标签（与 §5.2 向导说明同句）
     '；日常分工调整请走支书台「支部分工」的支委会议题流程',        // 向导内嵌分工说明（与 §5.2 同句）
   ],
-  'docs/src/core/system-notice-templates.js': [
+  'docs/src/core/domain/system-notice-templates.js': [
     '已报送支委会表决，表决通过后将开放招募（截止',                // 系统通知模板正文（与 §3.6 专班说明同句）
   ],
   'docs/src/entries/pages/about-entry.js': [
@@ -188,7 +188,7 @@ const BASELINE = {
   'docs/src/entries/tabs/secretary/report-up-tab.js': [
     '节点（确定积极分子/发展对象、接收预备党员、按期转正等',        // 上报党委事项类型（与 §3.7 同句）
   ],
-  'docs/src/modules/references.js': [
+  'docs/src/components/sections/references.js': [
     '该制度当前已停用，以下为最近版本正文（仅供查阅）',            // 资料查询停用提示（与 §0.1 同句）
   ],
 };

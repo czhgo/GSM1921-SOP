@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -38,7 +38,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [ ] 禁止**模块加载期人员快照**：`const X = PersonStore.getMembers();` 这类模块顶层一次性捕获一律改为 `liveMembers()`（实时视图，只读；写入走 `PersonStore` 写口）
 - [ ] 禁止**凭姓名认身份**：`.find(p => p.name === …)` 不得用作身份判定；姓名匹配只允许「**先按 id、姓名仅唯一命中才采纳**」，否则留空
-- [ ] 禁止**手写已成单一源的判据**：如活动存储态不得再写 `status==='completed' || archived`，一律走 `core/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
+- [ ] 禁止**手写已成单一源的判据**：如活动存储态不得再写 `status==='completed' || archived`，一律走 `core/domain/constants.js::isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
 - [ ] 禁止**把控件档位高度交给环境**（2026-09-14 批次 31，**批次 33 已并档**）：高度须由 `docs/src/styles.css` 的「上下内边距 + **显式行高** + 边框」算式决定——**自批次 33 起并为一档：`10+10+16+2 = 38px`，正文 13px**（批次 31 曾分「紧凑 `34px` / 标准 `42px`」两档，已废止）；靠 UA 默认或 Tailwind CDN 的 `text-*` 工具类提供行高时，环境一变同表单内会出现 42 / 43 / 47 三值并存。**同理：量尺规类真机复核必须在生产同构环境**（Tailwind / 字体 CDN 一律不得 abort——缺 preflight 会让行高退化，量出的尺寸全是伪证；本批曾据此误报「27 处 32px」，后经生产同构复测证伪）
 
 **数据层（以权威源为基准逐域断言）**
@@ -62,7 +62,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第三范本（2026-09-13 批次 23 新增）**：`server/test/notice-audience.test.mjs`——通知受众口径分裂的两层法（发布侧写入值与消费侧判定同源 + 取数口与可见性门分离），是「**同一类缺陷（口径分裂）在第二处实体的复现**」（前有活动生命周期展示态、人员字段，这里是通知受众）。
 
-> **第四范本（2026-09-14 批次 24 新增）**：`RESIDENCE` 枚举「两份同值定义」收敛（`services/member/roster.js` & `services/branch/org-base-data-preview.js` → `core/constants.js` 单一源），守卫落 `person-consistency.test.mjs` **S4**。要点三条：① **定义点放在依赖图的叶子**（无 import 的模块）——原先「为避免循环依赖只能两处维护」的说法，本质是把枚举放在了依赖图的中间层（`person → preview → roster` 成环），移到叶子即消解；② 原定义点**不保留 re-export 兼容层**（两条 import 路径＝隐性两源）；③ 守卫必须两层——旧的「两份同值断言」在单一源下**恒真＝假绿**，须替换为数据层**取值契约断言** + 结构层**唯一性静态扫描**（全仓只允许一处 `export const X =`，并断言原定义点仍在 import 它）。
+> **第四范本（2026-09-14 批次 24 新增）**：`RESIDENCE` 枚举「两份同值定义」收敛（`services/member/roster.js` & `services/branch/org-base-data-preview.js` → `core/domain/constants.js` 单一源），守卫落 `person-consistency.test.mjs` **S4**。要点三条：① **定义点放在依赖图的叶子**（无 import 的模块）——原先「为避免循环依赖只能两处维护」的说法，本质是把枚举放在了依赖图的中间层（`person → preview → roster` 成环），移到叶子即消解；② 原定义点**不保留 re-export 兼容层**（两条 import 路径＝隐性两源）；③ 守卫必须两层——旧的「两份同值断言」在单一源下**恒真＝假绿**，须替换为数据层**取值契约断言** + 结构层**唯一性静态扫描**（全仓只允许一处 `export const X =`，并断言原定义点仍在 import 它）。
 
 > **第五范本（2026-09-14 批次 24 新增·非实体类一致性）**：**版本戳（缓存键）同值**——同一模块被多处 import 时若 `?v=` 不一致，浏览器会按 URL **分裂出第二个模块实例**（注册表/共享状态读空）。守卫＝`docs/scripts/bump-version.mjs` 的**收尾自检**：改写后扫描全仓 `?v=`，报告与本版本不一致的残留（**要守的是「改完有无陈旧残留」，不是「本次改了几个」**）；自检须与改写**同源跳过注释行**（注释里的版本号是人工注记、不是缓存键），且 stamper 须覆盖全部动态导入形态（含**模板字符串** `` import(`…/${stem}-workspace.js?v=…`) ``）。**推广**：凡「同一 URL/键必须在全站同值」的口径（版本戳、资源戳、CSS `url()` 资源），都适用于「生成 → 自检残留」这一对动作。
 
@@ -88,7 +88,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第十六范本（2026-09-15 批次 47-G 开立·**样本学习中，尚未定稿**）**：**「辅助小字」的合规判据——治的是「讲背景信息」，不是「成句」**。
 > **来源**——支书 2026-09-15 第 3 项追问原话：「我认为有很多辅助小字都脱离了使用辅助的功能，而是**讲很多背景信息**，这是我所不喜欢的！！」；支书随后裁定**用 `sample-diff-learning` 学模式**（分层抽样 → 一次只给一个样本请支书裁 → 抽差集 → 泛化成**布尔条件** → 落库），**不做 100+ 处逐条人工**。
-> **S-1 样本**（`modules/references.js` 制度文本「上传新版」弹窗内，`class="text-xs"`）：「保存后即为『制度 · 现行版 v1』；之后再改正文请用列表上的『上传新版』，旧版自动归档可查。」
+> **S-1 样本**（`components/sections/references.js` 制度文本「上传新版」弹窗内，`class="text-xs"`）：「保存后即为『制度 · 现行版 v1』；之后再改正文请用列表上的『上传新版』，旧版自动归档可查。」
 > **AI 假设**：小字里出现成句（含句号/分号）＝讲背景信息＝违规。 → **支书裁定：正当（但可缩短）**。
 > **差集**：`scope_widening`——AI 把「辅助」的范围放得过宽（凡成句即判违规）；**本意是场景相关性**。
 > **布尔条件（待更多样本确认后固化为守卫）**：`小字文本 ∈「当前动作的直接后果 / 要求」→ 正当（应精简）；∈「与当前动作无关的制度背景 / 沿革 / 依据论述」→ 违规`。
@@ -124,7 +124,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 > **第二十六范本（2026-09-17 批次 47-Z 新增·「写下的前置条件本身是一条跨人假设」类）**：台账里最后一条 `machine:false`（支书台「待办·退回」的「请填写退回原因」，`secretary/todo-tab.js:672`）的 reason 写着「退回浮态只在**有 pending 成员变更确认**时挂载……纳入条件：**组织委员**在**某台**发起一次成员变更（名册报送）→ 该待办即出现」。**前半句是实测事实，后半句却是一条从没核过的跨人假设**——该队列是**纯客户端**的：`mockDB.pendingMemberConfirmations` ＋ 自管 localStorage 键 `gsm1921-member-confirmations`（`member-confirmation.js` **没有任何服务端表**，**mock / api 两态同源**）⇒ 请求**只存在于产生它的那个浏览器会话里**，组织委员在另一台发起、支书这边**根本看不到**。真正的前置是「**同一会话内先产生过一条请求**」——而支书本人也在该写权内（`person-entry.js::EDIT_ROLES = 支书/副支书/组织委员`）⇒ 可达链＝`person.html?id=p7` →「编辑档案」→ 改「发展阶段」→ 保存（报「已报送支书确认 1 项」）→ 回支书台「待办」→ 退回按钮在位。**判据**——① **登记里的「纳入条件」本身也要核**：凡出现「**某人 / 某角色**在**某处**先做一次」这类**跨人 · 跨会话**描述，必须先问「**这份数据是存在服务端，还是只在本会话**」——**存在哪里，决定了谁能看见它**（R-78 末句「登记的理由本身也要核」的最强实例：reason 写得越像结论，越容易免检）；② **「造可达前置」有两种形态**：**种子**（47-W/X/Y 走的路）或**真机动作链**（本条：不造任何数据，让产品自己走出来）——**能走出来的，就不要造**（造种子会引入「种子是否自洽」的新风险）；③ 判据的前置**可能不在同一张页面上** ⇒ 为它补 `{ goto }` / `{ openTab }` 两步能力（**跨页前置链**，与 `dialogAnswer` / `reopen[]` 同规：**形态逼出来的能力，不是为凑覆盖**）。**守卫**：`form-loop-sweep.test.mjs`（新增 `secretary-todo-reject-reason`；`FLOWS_BASELINE` 53 → 54；`machine:false` 3 → 2，**余 2 条均有裁定归属**）。
 
-> **第二十七范本（2026-09-17 批次 49 新增·「判据要落在『用户看到成功』的那一刻」类）**：全站 `showToast('success', …)` **175 处**，其中约 **113 处**是「**先弹成功、落库在后台跑**」——根因只有一条：持久化汇聚点 `persist()` 是**同步 void 函数**（api 形态只 `setTimeout` 排一次 800ms 防抖快照），**调用方无法 await**，而快照失败**只 `console.warn`** ⇒ 用户「提交后立刻关页 / 刷新」可能**提示成功、其实没存上**，且**无从察觉**。**最容易走错的路**是「把 113 个调用点逐个改成 `await persist()`」——那样每次新增写口都要人记得加 await，且服务层函数要集体改 async（波及所有同步消费返回值的调用点）。**正解＝换一个落点**：把判据收口到**「用户看到成功的那一刻」**——新增叶子件 `core/pending-writes.js`（`trackWrite` / `settleWrites`），`showToast` 的 success 分支先 `await settleWrites()`，失败或超时**改报失败**（等待期间给「保存中…」过渡态）⇒ **新增写口天然受约束，不会因遗忘而复发**（对照 R-67：**不是修 113 处，而是把 113 处变成同一个判断**）。**判据**——① 凡「先报结果、后台再干活」的地方，**判据要么落在结果那一刻，要么就别报**（「任何情况下都不许在未确认时声称成功」，超时也报超时而非成功）；② **登记要发生在「排程那一刻」，不能等真跑起来才登记**——否则等待方会在「**已排程、未 flush**」的空窗里看到「无在途写」而**放行**（判据白设，本条实做时差点踩到）；③ **异步空窗是隐形杀手**：凡由异步触发落库的链路（原 `services/core/mock.js::saveDB` 用**动态 import** `.then(persist)`）都必须在排程那一刻登记，否则等待方**看不见它**；④ **卸载路径要善后**：`pagehide` 同步冲刷由浏览器接管、本上下文无法再观测 ⇒ 必须**结算排程**，否则等待的 promise 永远挂着、成功提示**永不出**（**比不修更坏**）；⑤ **失败必须报出来**——「失败的证据不得被成功吞没」（同 R-77 精神），原实现把落库失败静默成 `console.warn`、用户照样看到「成功」。**⑥（本范本的第二半，2026-09-17 批次 49 收尾全量实做时补）新机制会造出新的判据干扰源**：本范本给等待期加了一条「保存中…」**过渡态**，于是**「提示容器里有字」不再等于「已有裁决」**——过渡态**抢在**裁决之前把成功路径守卫的等待条件满足掉了，全量首跑即读到「i保存中…i保存中…」，**被报成「成功提示不符」**（**方向最坏：它把人引去改断言字，而真问题一个字都没被说出来**）。**判据**——(a) 修法是**把判据从「有字」收紧为「有裁决」**，并**另立一条独立违规「一直停在过渡态」**（否则一个**永不结算**的在途写会被读成「文案不符」）；**不是**放宽判据，**也不是**把等待窗口调长——**等待条件本身被过渡态满足了，调窗口治不了**（这与「窗口不足」（R-74）是**两个不同方向**的病，别混为一谈）；(b) **推广**：**中间态是新的判据干扰源**——凡引入加载态 / 提交中 / 过渡提示，**同批内**扫一遍所有「等待其出现」的判据（含守卫与产品自身的 loading 判定），问一句「**等到的会不会是过渡态**」；(c) 顺带印证了本仓一条老纪律：**改一处机制，要连带审它改变的所有「别人的前提」**（本次被改变的前提是**守卫的等待条件**，而不是产品行为）。**守卫**：`pending-writes.test.mjs`（W1–W4 行为层 + W5–W9 接线层）· `form-loop-sweep.test.mjs`（`readToast` 只认裁决 + 「一直停在过渡态」独立违规）。
+> **第二十七范本（2026-09-17 批次 49 新增·「判据要落在『用户看到成功』的那一刻」类）**：全站 `showToast('success', …)` **175 处**，其中约 **113 处**是「**先弹成功、落库在后台跑**」——根因只有一条：持久化汇聚点 `persist()` 是**同步 void 函数**（api 形态只 `setTimeout` 排一次 800ms 防抖快照），**调用方无法 await**，而快照失败**只 `console.warn`** ⇒ 用户「提交后立刻关页 / 刷新」可能**提示成功、其实没存上**，且**无从察觉**。**最容易走错的路**是「把 113 个调用点逐个改成 `await persist()`」——那样每次新增写口都要人记得加 await，且服务层函数要集体改 async（波及所有同步消费返回值的调用点）。**正解＝换一个落点**：把判据收口到**「用户看到成功的那一刻」**——新增叶子件 `core/session/pending-writes.js`（`trackWrite` / `settleWrites`），`showToast` 的 success 分支先 `await settleWrites()`，失败或超时**改报失败**（等待期间给「保存中…」过渡态）⇒ **新增写口天然受约束，不会因遗忘而复发**（对照 R-67：**不是修 113 处，而是把 113 处变成同一个判断**）。**判据**——① 凡「先报结果、后台再干活」的地方，**判据要么落在结果那一刻，要么就别报**（「任何情况下都不许在未确认时声称成功」，超时也报超时而非成功）；② **登记要发生在「排程那一刻」，不能等真跑起来才登记**——否则等待方会在「**已排程、未 flush**」的空窗里看到「无在途写」而**放行**（判据白设，本条实做时差点踩到）；③ **异步空窗是隐形杀手**：凡由异步触发落库的链路（原 `services/core/mock.js::saveDB` 用**动态 import** `.then(persist)`）都必须在排程那一刻登记，否则等待方**看不见它**；④ **卸载路径要善后**：`pagehide` 同步冲刷由浏览器接管、本上下文无法再观测 ⇒ 必须**结算排程**，否则等待的 promise 永远挂着、成功提示**永不出**（**比不修更坏**）；⑤ **失败必须报出来**——「失败的证据不得被成功吞没」（同 R-77 精神），原实现把落库失败静默成 `console.warn`、用户照样看到「成功」。**⑥（本范本的第二半，2026-09-17 批次 49 收尾全量实做时补）新机制会造出新的判据干扰源**：本范本给等待期加了一条「保存中…」**过渡态**，于是**「提示容器里有字」不再等于「已有裁决」**——过渡态**抢在**裁决之前把成功路径守卫的等待条件满足掉了，全量首跑即读到「i保存中…i保存中…」，**被报成「成功提示不符」**（**方向最坏：它把人引去改断言字，而真问题一个字都没被说出来**）。**判据**——(a) 修法是**把判据从「有字」收紧为「有裁决」**，并**另立一条独立违规「一直停在过渡态」**（否则一个**永不结算**的在途写会被读成「文案不符」）；**不是**放宽判据，**也不是**把等待窗口调长——**等待条件本身被过渡态满足了，调窗口治不了**（这与「窗口不足」（R-74）是**两个不同方向**的病，别混为一谈）；(b) **推广**：**中间态是新的判据干扰源**——凡引入加载态 / 提交中 / 过渡提示，**同批内**扫一遍所有「等待其出现」的判据（含守卫与产品自身的 loading 判定），问一句「**等到的会不会是过渡态**」；(c) 顺带印证了本仓一条老纪律：**改一处机制，要连带审它改变的所有「别人的前提」**（本次被改变的前提是**守卫的等待条件**，而不是产品行为）。**守卫**：`pending-writes.test.mjs`（W1–W4 行为层 + W5–W9 接线层）· `form-loop-sweep.test.mjs`（`readToast` 只认裁决 + 「一直停在过渡态」独立违规）。
 
 > **第二十八范本（「出口脱敏 ≠ 写口脱敏」类）**：匿名反馈的读出口曾按「**读取时把身份字段从库里删掉**」脱敏；改口径后，`server/routes/resources.js::sanitizeIssue` 改成「**只剥不外泄、不回写**」——**出口这一层做对了**。但同一条记录上还有一个**整条回写**的写口：`PATCH /issues/:id`（支书处置：指派 / 关闭 / 回复）**先脱敏读出记录、再把整个对象写回** ⇒ 每处置一次，库里那条匿名反馈的真实提交人（`_realPersonId`）就被**永久擦掉**一次；前端 `_syncIssueToApi` 在每次处置都会走这条路，**而全程没有任何提示**（既不报错，也没有「有字段被改写」的迹象）。**这类缺陷的结构特征**——「**读时脱敏 + 整条回写**」并存：**只要这两件事落在同一条记录上，写口就会把「库里本该有的东西」当成「出口该剥的东西」一起擦掉**。**判据**——① **脱敏是出口的事，不是写口的事**：出口剥掉的字段**不得成为写回输入**（写口要拿**未脱敏**的原记录，或只写本次真正要改的字段）；② 「**有一个出口脱敏，就要有一个写口保证不顺手把库里的东西擦掉**」——两者**成对**成立（判例出处：`CLAUDE.md` R-24 的匿名口径改裁把「库里留真身、出口脱敏」定了下来，写口这一侧必须同步跟上）；③ **静默 + 不可逆是最坏的部分**：擦除不报错、不提示，且**每写一次擦一次**（不可逆，事后补不回来）⇒ 判据要**常驻**（修了不加守卫＝还会回来）。**为什么不是「写回时也一并剥掉更保险」**：因为「**库里存不存真身**」与「**出口给不给真身**」是两件事——脱敏的职责只有**出口**这一层；写口顺手剥掉＝把**存储**也当成出口用，换来的是**不可逆的数据损毁**，而出口剥掉是**可逆**的（改口径即可决定给不给）。**守卫**：`issue-anonymity.test.mjs`（「处置不清真身」：反复 PATCH 后库里仍含真身，且常规出口始终脱敏）。
 
@@ -184,9 +184,9 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 | 规则/口径 | 权威判据出处 | 守卫（文件::断言号） | 状态 | 详述处 |
 |---|---|---|---|---|
-| R33 **「数据源真装配」可机检**（运行时「页面真用上了服务端数据」必须可断言——防「源码里有装配调用」冒充「真装配成功」；装配标记＝DOM `data-source`，因模块取值在实例内部、另起 `import()` 会读到另一实例 ⇒ 假红） | 装配标记写入点 `docs/src/core/data-adapter.js::setDataSource` · 静态断言 `server/test/module-load.test.mjs::E2` · 真机断言 `::E4` | `module-load.test.mjs::E4`（真登录 → 3 页抽样断言 `dataset.dataSource==='api'`；非空转＝`about.html` 反证） | 已闭环（2026-09-28 批次 241 · 收 `H-3`） | `.ctx/REVIEW_QUEUE.md H-3` |
-| R32 **工作流块「可编排性」内核**（组合体检**必须真会判**——防「过滤成空集 ⇒ 恒真 ⇒ 假绿」）＋ 编排产物**是既有 definition 形状的纯数据**（不做第二套引擎） | `docs/src/workflow/blocks/orchestration.js`（`composePlan` / `compilePlan` / `blocksForScope`）· `docs/src/core/module-compose.js`（id 取 `id` **或** `blockId`）· 契约源 `WORKFLOW_BLOCK_CONTRACT.md` v1.1 | `block-orchestration.test.mjs::O1–O5` | 已闭环（2026-09-28 批次 239 · G3-3） | `.ctx/ENGINEERING_ASSESSMENT.md §四 P10` |
-| R31 **每个 policy 参数恰属「可覆盖白名单」或「不可覆盖固定台账」两类之一**（消灭「未登记」第三态；放行＝移出固定台账并入白名单） | `docs/src/core/policy-defaults.js`（`POLICY_OVERRIDABLE` / `POLICY_FIXED`；放行三条见 `POLICY_FIXED` 头注） | `policy-config.test.mjs::R1–R3` | 已闭环（2026-09-28 批次 238 · G3-2） | `.ctx/ENGINEERING_ASSESSMENT.md §四 P9` |
+| R33 **「数据源真装配」可机检**（运行时「页面真用上了服务端数据」必须可断言——防「源码里有装配调用」冒充「真装配成功」；装配标记＝DOM `data-source`，因模块取值在实例内部、另起 `import()` 会读到另一实例 ⇒ 假红） | 装配标记写入点 `docs/src/data/data-adapter.js::setDataSource` · 静态断言 `server/test/module-load.test.mjs::E2` · 真机断言 `::E4` | `module-load.test.mjs::E4`（真登录 → 3 页抽样断言 `dataset.dataSource==='api'`；非空转＝`about.html` 反证） | 已闭环（2026-09-28 批次 241 · 收 `H-3`） | `.ctx/REVIEW_QUEUE.md H-3` |
+| R32 **工作流块「可编排性」内核**（组合体检**必须真会判**——防「过滤成空集 ⇒ 恒真 ⇒ 假绿」）＋ 编排产物**是既有 definition 形状的纯数据**（不做第二套引擎） | `docs/src/workflow/blocks/orchestration.js`（`composePlan` / `compilePlan` / `blocksForScope`）· `docs/src/core/base/module-compose.js`（id 取 `id` **或** `blockId`）· 契约源 `WORKFLOW_BLOCK_CONTRACT.md` v1.1 | `block-orchestration.test.mjs::O1–O5` | 已闭环（2026-09-28 批次 239 · G3-3） | `.ctx/ENGINEERING_ASSESSMENT.md §四 P10` |
+| R31 **每个 policy 参数恰属「可覆盖白名单」或「不可覆盖固定台账」两类之一**（消灭「未登记」第三态；放行＝移出固定台账并入白名单） | `docs/src/core/domain/policy-defaults.js`（`POLICY_OVERRIDABLE` / `POLICY_FIXED`；放行三条见 `POLICY_FIXED` 头注） | `policy-config.test.mjs::R1–R3` | 已闭环（2026-09-28 批次 238 · G3-2） | `.ctx/ENGINEERING_ASSESSMENT.md §四 P9` |
 | R13 版本号推导单一源（同日只允许前进）+ server-test 补戳「缓存键语境」单一源 + **发版一致性**（CHANGELOG ↔ `server/package.json` ↔ tag 取齐；发版走单一入口 `docs/scripts/release.mjs`，默认预演） | `docs/scripts/version-next.mjs`（`nextVersionFor`/`isForward`/`isCommentLine`/`isCacheKeyLine`/`stampTestFileContent`/`cacheKeyStamps` ＋ 批次 236 新增 `nextSemver`/`isSemverForward`/`parseChangelog`/`classifyChanges`）· `docs/scripts/release.mjs` · `CHANGELOG.md` | `version-stamp.test.mjs::S1–S7 + D1–D11`（`S7` 真 spawn 预演并独立复算版本号逐字比对） | 已闭环 | `.ctx/ENGINEERING_ASSESSMENT.md §3.4 R13` |
 | R14/R21/R22 分页与翻页标记单一源（调用点不得私自关；手写 `<table>` 收敛台账） | `components/ui/list-filter.js`（引擎内置分页）· `components/ui/pager.js::pagerHtml` | `filter-row.test.mjs::S10–S12` | 已闭环 | `§3.4 R14 / R21 / R22` |
 | R17 表格类族与控件档位算式显式（单档 38px × 13px；**正文须直接声明到 th/td**、**数据格禁挂小字类**） | `docs/src/styles.css`（`.data-table` / `.data-table th,td` / `.lf-*` / `.page-btn`） | `filter-row.test.mjs::S1–S13 + D1–D3` | 已闭环 | `§3.4 R17` · `REVIEW_QUEUE Q-23-12 / Q-23-15 / Q-23-38` |
@@ -201,31 +201,31 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | R28 同一病灶只修一处＝没修完（须数同类规模 + 建台账 + 真机覆盖） | `server/test/form-loop-registry.mjs`（**95** 条校验点台账，**91** 条可自动化 / **4** 条逐条 reason，含「需跨页前置链」「服务层重复守卫」分列——批 47-W/47-X/47-Y/47-Z 由 84/9 升为 **91/2**；**批次 91 再增 2 条**（本组通知发布口，`services/governance/notice.js`）⇒ **现余 4 条＝服务层重复守卫 1 · 缺稳定前置待解锁 3**，各条归属均写在 reason 内） | `form-loop-sweep.test.mjs::S0–S5` + **54 条真机闭环** + **17 条真机成功路径**（每条另加「未捕获脚本错误」判据） | 已闭环 | `§3.4 R28` · `REVIEW_QUEUE Q-23-31 / Q-23-44 / 批次 47-W / 47-X / 47-Y / 47-Z` |
 | R73 台账完备性**三缺一**：规模不缩水（S0）/ 已登记项全覆盖（S2）/ **全站是否都已登记（无守卫）**——**漏登记时三条守卫全绿** | `server/test/form-loop-registry.mjs`（批 47-R 补登 1 处遗漏：`thought-report-entry.js:287`） | **暂无守卫**（如实登记，不假装已覆盖；第 ③ 缺靠人工按文案搜同类发现） | 半闭环（缺第 ③ 缺的守卫） | `CLAUDE.md R-73` · `REVIEW_QUEUE 批次 47-R` |
 | 内容单一源同时承载**可见性不同**的两类数据时，公开面必须显式过滤（且列表与统计同一口径） | `docs/data/issues.json`（公开匿名反馈 + 内部汇报同文件）· `docs/src/components/feedback/issue-list.js` · `server/seed.js::seedIssues()`（按 `kind` 分流脱敏） | `page-sweep.test.mjs`（公开反馈页）· 真机探针取证（公开页 4 行 / 无汇报标题） | 已闭环 | `REVIEW_QUEUE 批次 47-Q` · `范本第十九` |
-| 显示接口须按其**完整约定**逐维守卫（参数个数 / 顺序）——只守「见过的错误形态」＝守一半 | `docs/src/core/utils.js::showToast(type, message)`（两参） | `ux-guard.test.mjs::⑥`（两维：**参数顺序写反** + **参数个数不足**）· 真机侧 `form-loop-sweep.test.mjs::pc-review-reject-note` | 已闭环（3 处单参真实调用已修） | `CLAUDE.md R-72` · `范本第十八` · `§0.1 第十七问` · `REVIEW_QUEUE 批次 47-P` |
+| 显示接口须按其**完整约定**逐维守卫（参数个数 / 顺序）——只守「见过的错误形态」＝守一半 | `docs/src/core/base/utils.js::showToast(type, message)`（两参） | `ux-guard.test.mjs::⑥`（两维：**参数顺序写反** + **参数个数不足**）· 真机侧 `form-loop-sweep.test.mjs::pc-review-reject-note` | 已闭环（3 处单参真实调用已修） | `CLAUDE.md R-72` · `范本第十八` · `§0.1 第十七问` · `REVIEW_QUEUE 批次 47-P` |
 | R28-附 工具脚本会把「数据」当「代码」改写（补戳正则命中路径数据） | `docs/scripts/version-next.mjs::isCacheKeyLine`（缓存键语境单一源；`bump-version.mjs` 补戳与自检同判据） | `form-loop-sweep.test.mjs::S4`（防污染断言：数据里不得出现 `?v=`）· `version-stamp.test.mjs::S4–S6 / D7–D9` | 已闭环（批次 46 ① 根治 Q-23-33） | `范本第十四` · `REVIEW_QUEUE Q-23-33` |
 | R-74 「等信号出现」的判据**等待窗口必须覆盖真实耗时**——长链（串行多写口）窗口不足时，会把「**慢**」误判成「**没成**」并把排查方向带偏 | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].toastTimeoutMs`（缺省 4s 不动旧行为；长链显式声明） | `form-loop-sweep.test.mjs`（`leader-write-activity-save` 首用；`writeActivityWithSOP` 串行 16 个写口 × 600ms ⇒ 约 10s） | 已闭环 | `CLAUDE.md R-74` · `范本第二十一` · `§0.1 第二十问` · `REVIEW_QUEUE 批次 47-S` |
 | R-75 判据要落在**事实**上（页面形态 / 数据形态），不得落在**用来达成事实的手段**上；**口径写错会把病灶盖章为不存在**（发现即须同批更正并写明原结论是否仍成立）；**跨整页重载的断言须先把「页面形态」恢复到位**（详情面板/浮窗重载后收起 ⇒ 不重开会得到假红）；**写死的「今天」类锚点会过期，过期时表现为「误报」——处置是刷锚点不是改数据，且不可改用 `new Date()`** | `server/test/form-loop-registry.mjs`（`independent` 声明 + `open` 声明判据 + `reopen[]`）· 台账口径更正（`page-issue-detail-comment` 注释 · `REVIEW_QUEUE` 批次 47-M 段 · `data-adapter.js` 的 makeupTasks 旧注）· 锚点单一处（`mock-integrity.test.mjs` M2 规则 4） | `form-loop-sweep.test.mjs`（凡 `path` + `reload` 必显式声明 `independent`；`open[]` 按「有没有声明」判；`reopen[]` 首用 `org-taskforce-progress-add`）· `mock-integrity` M2（锚点 2026-09-05 → **2026-09-17**） | 已闭环（`Q-23-45`） | `CLAUDE.md R-75` · `范本第二十二` · `§0.1 第二十一问` · `REVIEW_QUEUE 批次 47-S / 47-V / 47-Y` |
 | R-76 **默认挑中的那一项可能是「不能写的那一项」**：凡动作需「从若干项里挑一项」，须显式声明「挑出来的那项要满足什么条件」（含**它的类型决定了会改变多少**），不得用「第一项」代过；**有成功提示 ≠ 动作生效**（提示可把空转写在脸上）；**判据判「改变了什么」（`countUp` 增量），不判「世界此刻正好等于什么」（绝对值会随种子与同批其它流程变动）** | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].fill[].selectOption = { selector, notText / text }` · `asserts[].countUp` | `form-loop-sweep.test.mjs`（`selectOption` 选步 + `countUp` 断言；`leader-attendance-upload-submit` 首用） | 已闭环 | `CLAUDE.md R-76` · `范本第二十三` · `§0.1 第二十二问` · `REVIEW_QUEUE 批次 47-T` |
 | R-77 **判据之间不得互相冒充**：同一条数据面上，写入的标记**不得是另一条判据断言语料的子串**（否则前者真写入会把后者顶替成立——**把红变成绿**，比假红更难发现） | `server/test/form-loop-registry.mjs::SUCCESS_FLOWS[].asserts[].text`（语料互不包含） | `form-loop-sweep.test.mjs::S5`（「标记子串」常驻断言；**上线前已在旧代码上证明它会红**：改「通知标题」⇒ 三条命中） | 已闭环 | `CLAUDE.md R-77` · `范本第二十四` · `§0.1 第二十三问` · `REVIEW_QUEUE 批次 47-U` |
-| R-78 **「判据不可达」只有两条出口**：造出**真机可达**的种子，或**如实登记**为不可达（无第三条路：放宽判据 / 改弱断言 / 改 `machine` 了事，都是「让守卫看起来在守」）；**造的种子必须自洽**（不得绕过产品自身校验造出「永远不可能出现」的状态），且**位置须不扰动既有判据**；顺手把靠偶然事实成立的入口**显式化**；**登记的理由本身也要核**（口径错了等于没登记） | `docs/src/mock/activities.js::act-35`（线下支委会·议程项 `result:'passed'`）· `docs/src/mock/taskforces.js::tf-001`（补演示账号成员 p5 + **一条待核产出**）· `docs/src/mock/seed.js::SEED_MAKEUP_TASKS` + `docs/src/mock/attendance.js::att900`（9 月缺勤＝补课任务的**派生源**，两形态同源注入；**id 须落在既有种子 id 空间**——初版 `att-sep-1` 不匹配 `/^att\d+$/` ⇒ `?reset=init` 剔不净，被 `reset-tier-init::C2` 当场抓住）· `server/test/form-loop-registry.mjs::secretary-inspector-resolution` / `visitor-insight-taskforce-contribution` / `org-taskforce-reject-reason` / `visitor-attendance-makeup-proof` / `secretary-todo-reject-reason`（**第 7 处＝无种子可造，改走「同一会话内的真机前链」**） | `form-loop-sweep.test.mjs`（四批共 7 处 `machine:false → true`；`FLOWS_BASELINE` 49 → **54**；新能力 **`dialogAnswer`**（原生 `window.prompt` 校验点须在触发步**之前**注册一次性应答器，否则 dismiss→`null` 连空值分支都到不了）与 **`{ goto }` / `{ openTab }`**（**跨页前置链**：有些校验点的前置**不在同一张页面上**，`open[]` 里先跳走造前置、跳回后切 tab））· `mock-integrity` M1/M2 · `agenda-flow` / `agenda-closure` / `today-summary` / `taskforce-lifecycle` / `workforce-gate` / `member-progress` / `b3-1-makeup-writeback` / `attendance-batch` / `async-vote` / `page-sweep` 复测全绿 | 已闭环（`Q-23-48` 为**换理由**后的待裁项） | `CLAUDE.md R-78` · `范本第二十五 / 第二十六` · `§0.1 第二十四 / 第二十五问` · `REVIEW_QUEUE 批次 47-W / 47-X / 47-Y / 47-Z` |
-| R-79 **「成功」是对用户的承诺**：不许在**未确认落库**时声称成功；判据要落在「**用户看到成功的那一刻**」（不逐调用点改 113 处，一处收口 ⇒ 新增写口天然受约束）；**登记须发生在排程那一刻**（否则等待方会在「已排程、未 flush」的空窗里放行）；**卸载路径须结算排程**（否则等待的 promise 永挂 ⇒ 提示永不出，**比不修更坏**）；**失败必须报出来**（不得 `console.warn` 了事——失败的证据不得被成功吞没）；走异步的写链（动态 import）与**外部写链**（REST / 本地缓存）都要登记 | `docs/src/core/pending-writes.js`（叶子件：`trackWrite` / `hasPendingWrites` / `settleWrites`）· `docs/src/core/utils.js::showToast`（success 分支先 `await settleWrites()`，失败或超时**改报失败**、等待期给「保存中…」过渡态）· `docs/src/core/data-adapter.js`（`persist()` 两分支登记 + **`_scheduleSnapshot` 排程即登记** + `_flushSnapshot` 失败结算并上抛 + `_flushSnapshotSync` 结算排程）· `docs/src/services/core/mock.js::saveDB`（去动态 import，改静态 `persist()`；该文件本就静态 import 同模块）· `docs/src/services/governance/issues.js::_syncIssueToApi` · `docs/src/components/feedback/issue-detail.js`（原**空 `catch`** 补登记）· `docs/src/entries/tabs/leader/attendance-tab.js`（「批量设状态」文案更正——**只改 DOM 不落库者不得写「已设为」**） | `server/test/pending-writes.test.mjs`（W1–W4 行为层：落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection；W5–W9 结构层：success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与快照**排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import）· `form-loop-sweep.test.mjs::leader-attendance-batch-status`（toast 文案同步改字）· `form-loop-sweep.test.mjs`（`readToast` **只认裁决**——过渡态「保存中…」不算数；并新增「**一直停在过渡态**」独立违规——R-79 ⑧） | 已闭环（⚠ **api 形态的端到端**——真服务端 + 失败注入——**尚无真机证据**，如实登记为缺口） | `CLAUDE.md R-79` · `范本第二十七` · `§0.1 第二十六问` · `REVIEW_QUEUE 批次 49` |
+| R-78 **「判据不可达」只有两条出口**：造出**真机可达**的种子，或**如实登记**为不可达（无第三条路：放宽判据 / 改弱断言 / 改 `machine` 了事，都是「让守卫看起来在守」）；**造的种子必须自洽**（不得绕过产品自身校验造出「永远不可能出现」的状态），且**位置须不扰动既有判据**；顺手把靠偶然事实成立的入口**显式化**；**登记的理由本身也要核**（口径错了等于没登记） | `docs/src/data/mock/activities.js::act-35`（线下支委会·议程项 `result:'passed'`）· `docs/src/data/mock/taskforces.js::tf-001`（补演示账号成员 p5 + **一条待核产出**）· `docs/src/data/mock/seed.js::SEED_MAKEUP_TASKS` + `docs/src/data/mock/attendance.js::att900`（9 月缺勤＝补课任务的**派生源**，两形态同源注入；**id 须落在既有种子 id 空间**——初版 `att-sep-1` 不匹配 `/^att\d+$/` ⇒ `?reset=init` 剔不净，被 `reset-tier-init::C2` 当场抓住）· `server/test/form-loop-registry.mjs::secretary-inspector-resolution` / `visitor-insight-taskforce-contribution` / `org-taskforce-reject-reason` / `visitor-attendance-makeup-proof` / `secretary-todo-reject-reason`（**第 7 处＝无种子可造，改走「同一会话内的真机前链」**） | `form-loop-sweep.test.mjs`（四批共 7 处 `machine:false → true`；`FLOWS_BASELINE` 49 → **54**；新能力 **`dialogAnswer`**（原生 `window.prompt` 校验点须在触发步**之前**注册一次性应答器，否则 dismiss→`null` 连空值分支都到不了）与 **`{ goto }` / `{ openTab }`**（**跨页前置链**：有些校验点的前置**不在同一张页面上**，`open[]` 里先跳走造前置、跳回后切 tab））· `mock-integrity` M1/M2 · `agenda-flow` / `agenda-closure` / `today-summary` / `taskforce-lifecycle` / `workforce-gate` / `member-progress` / `b3-1-makeup-writeback` / `attendance-batch` / `async-vote` / `page-sweep` 复测全绿 | 已闭环（`Q-23-48` 为**换理由**后的待裁项） | `CLAUDE.md R-78` · `范本第二十五 / 第二十六` · `§0.1 第二十四 / 第二十五问` · `REVIEW_QUEUE 批次 47-W / 47-X / 47-Y / 47-Z` |
+| R-79 **「成功」是对用户的承诺**：不许在**未确认落库**时声称成功；判据要落在「**用户看到成功的那一刻**」（不逐调用点改 113 处，一处收口 ⇒ 新增写口天然受约束）；**登记须发生在排程那一刻**（否则等待方会在「已排程、未 flush」的空窗里放行）；**卸载路径须结算排程**（否则等待的 promise 永挂 ⇒ 提示永不出，**比不修更坏**）；**失败必须报出来**（不得 `console.warn` 了事——失败的证据不得被成功吞没）；走异步的写链（动态 import）与**外部写链**（REST / 本地缓存）都要登记 | `docs/src/core/session/pending-writes.js`（叶子件：`trackWrite` / `hasPendingWrites` / `settleWrites`）· `docs/src/core/base/utils.js::showToast`（success 分支先 `await settleWrites()`，失败或超时**改报失败**、等待期给「保存中…」过渡态）· `docs/src/data/data-adapter.js`（`persist()` 两分支登记 + **`_scheduleSnapshot` 排程即登记** + `_flushSnapshot` 失败结算并上抛 + `_flushSnapshotSync` 结算排程）· `docs/src/services/core/mock.js::saveDB`（去动态 import，改静态 `persist()`；该文件本就静态 import 同模块）· `docs/src/services/governance/issues.js::_syncIssueToApi` · `docs/src/components/feedback/issue-detail.js`（原**空 `catch`** 补登记）· `docs/src/entries/tabs/leader/attendance-tab.js`（「批量设状态」文案更正——**只改 DOM 不落库者不得写「已设为」**） | `server/test/pending-writes.test.mjs`（W1–W4 行为层：落地 / 失败必抛且只报一次 / 长链期间新登记也等到 / 不产生 unhandledrejection；W5–W9 结构层：success 必先经 `settleWrites`、Toast 渲染单一源、`persist` 与快照**排程**都须登记、flush 失败须结算并上抛、外部写链须登记且 `saveDB` 不得再用动态 import）· `form-loop-sweep.test.mjs::leader-attendance-batch-status`（toast 文案同步改字）· `form-loop-sweep.test.mjs`（`readToast` **只认裁决**——过渡态「保存中…」不算数；并新增「**一直停在过渡态**」独立违规——R-79 ⑧） | 已闭环（⚠ **api 形态的端到端**——真服务端 + 失败注入——**尚无真机证据**，如实登记为缺口） | `CLAUDE.md R-79` · `范本第二十七` · `§0.1 第二十六问` · `REVIEW_QUEUE 批次 49` |
 | R-80 **台账里「没被核到的那一半」会自己走偏**：台账条目里**每一个字段都要有判据**（`file` 有、`msg` 有、`line` 没有 ⇒ 只守了一半）；判据取**精确命中**（声明的那一行本身须含该文案），**不给容差**——给容差＝放任它继续走偏 | `server/test/form-loop-registry.mjs`（93 处校验点的 `line` 逐条更正——实做时查出 **11 条行号未同步**：本批改动下移 5 条 + 历史跑偏 6 条） | `form-loop-sweep.test.mjs::S6`（**新增**；与 `S4` 合看＝「**文件在 → 文案在 → 位置对**」三层可核） | 已闭环 | `CLAUDE.md R-80` · `§0.1 第二十七问` · `REVIEW_QUEUE 批次 49` |
 | 出口脱敏 ≠ 写口脱敏：**读时脱敏 + 整条回写**并存的写口，会把库里只该在出口剥掉的东西顺手擦掉（**脱敏是出口的事，不是写口的事**；擦除静默且不可逆 ⇒ 判据须常驻） | `server/routes/resources.js::sanitizeIssue`（只剥不外泄、不回写）· `PATCH /issues/:id`（写回须拿**未脱敏的原记录**，或只写本次真要改的字段） | `issue-anonymity.test.mjs::处置不清真身`（支书反复 PATCH 后库里仍含真身，且常规出口始终脱敏） | 已闭环 | `CLAUDE.md R-81` · `范本第二十八` · `§0.1 第二十八问` |
 | R27 静态断言锁形态、真机全站普查锁体验（七台 × 全 tab，含真机尺规与**二级视图审次**、**自建列表分页**）+ **普查须与生产同环境** | `server/test/page-sweep.test.mjs` · `server/test/form-loop-sweep.test.mjs` | `page-sweep.test.mjs::S0–S3 + 七台真机普查` · `form-loop-sweep.test.mjs::S0–S6 + 54 条真机流程 + 17 条真机成功路径`（每条流程另加「**未捕获脚本错误**」判据） | 已闭环（`Q-23-40` 两处**已接引擎**、台账清空） | `§3.4 R27` · `CLAUDE.md R-68 / R-71` · `REVIEW_QUEUE Q-23-28 / Q-23-34 / Q-23-40 / Q-23-44`（⚠ **`machine:true` 只保证「必填校验分支」，成功路径另由 `SUCCESS_FLOWS` 覆盖**） |
 | R29 授权声明必须可核验：**功能不得随批次「一起进」**；注释里的「支书批 / 裁定」须**同行带日期**（防止给未逐项批准的功能伪造授权凭证） | 各源码注释（`docs/src` + `server`；判据**收窄**到「支书作为批准者的断言」，业务语汇如「报支书确认」不计） | `doc-consistency.test.mjs::S12` | 已闭环（13 条已**逐条回查补齐真实日期**、迁移台账**清空**＝此后零容忍；**日期能否指到问答记录机器查不了**，该半截靠支书复核） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41 / Q-23-42` |
 | R30 面向用户的「人工收集 / 归集 / 汇总」类要求，凡数据可由服务端算出者**须由服务端代劳**；聚合口径**单一源**（两端不得各写一套） | 纯聚合 `docs/src/services/member/member-progress.js::aggregateMemberProgress`（服务端同源 import）· 读接口 `server/routes/leader-progress.js` · 前端双态入口 `loadMemberProgress` | `member-progress.test.mjs::S1–S4`（S1＝**结构单一源**：接口源码不得出现自写判定） | 已闭环（`Q-23-41 ②`；47-I 已落 `today` 呈报实况 + 组长台改走载入器） | `CLAUDE.md R-70` · `REVIEW_QUEUE Q-23-41` |
-| 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/mock/people.js`（PEOPLE）· `services/member/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
-| 实体 id 唯一 + 生成单一源（第二范本） | `core/id.js::generateId / randomHex` | `id-uniqueness.test.mjs::S1–S3 + D1–D4` | 已闭环 | 本文件 §0 第二范本 · §跨类别同源校验 |
-| 通知受众写入值与判定同源（第三范本） | `core/constants.js::NOTICE_AUDIENCE_SENTINELS` | `notice-audience.test.mjs::N1–N8` | 已闭环 | 本文件 §0 第三范本 · §6 |
+| 人员字段两层法同源（首个范本：结构层 + 数据层） | `docs/src/data/mock/people.js`（PEOPLE）· `services/member/person.js::liveMembers` | `person-consistency.test.mjs::S1–S4 + D1–D5` | 已闭环 | 本文件 §0 / §1 · `§3.4 R16`（组清单） |
+| 实体 id 唯一 + 生成单一源（第二范本） | `core/base/id.js::generateId / randomHex` | `id-uniqueness.test.mjs::S1–S3 + D1–D4` | 已闭环 | 本文件 §0 第二范本 · §跨类别同源校验 |
+| 通知受众写入值与判定同源（第三范本） | `core/domain/constants.js::NOTICE_AUDIENCE_SENTINELS` | `notice-audience.test.mjs::N1–N8` | 已闭环 | 本文件 §0 第三范本 · §6 |
 | issue 支部归属（写入取本人支部、读侧单一源 `withinBranch`） | `services/branch/branch.js::getBranchIdOfPerson` | `issue-branch.test.mjs::S1–S4 + D1–D3` | 已闭环 | `REVIEW_QUEUE Q-23-27` |
 | 表单闭环真机普查台账（校验点不得漏 / 不得有僵尸条目） | `server/test/form-loop-registry.mjs` | `form-loop-sweep.test.mjs::S0–S4` | 已闭环 | `server/test/form-loop-registry.mjs` |
 | 编辑完整性：`docs/src` 全模块可加载 | 本文件 §编辑完整性校验 | `module-load.test.mjs::E1` | 已闭环 | 本文件 §编辑完整性校验 |
 | 链接完整性四层（静态 / JS 导航 / HTTP / 登录态） | 本文件 §链接完整性校验 | `link-integrity.test.mjs::L1–L5` | 已闭环 | 本文件 §链接完整性校验 |
-| 链接完整性·补：**JS 渲染型 href/src 的「裸文件名」**按所在页 `<base>` 规则解析后须指向真实文件（工作台页 `<base href="../">` ⇒ 裸 `x.html` 落到站点根 `docs/x.html`；两种页面基准都汇到 `docs/` ⇒ 与宿主页面无关） | `docs/workspace/*.html` 的 `<base href="../">` · `docs/src/core/utils.js::getBasePath` | `link-target-guard.test.mjs::L6–L7` | 已闭环 | 本文件 §链接完整性校验 |
-| 清单类同步（功能目录结构 / 链路键集 / 功能地图 / 表决枚举 / 官方制度链接） | `docs/src/core/function-catalog.js` · `mermaid-sources.js` · `vote-config.js` · `modules/references.js` | `catalog-sync.test.mjs::T1–T5`（批次 47-F 五件并一） | 已闭环 | `README.md` 顶部功能地图 · `REVIEW_QUEUE` 批次 47-F |
+| 链接完整性·补：**JS 渲染型 href/src 的「裸文件名」**按所在页 `<base>` 规则解析后须指向真实文件（工作台页 `<base href="../">` ⇒ 裸 `x.html` 落到站点根 `docs/x.html`；两种页面基准都汇到 `docs/` ⇒ 与宿主页面无关） | `docs/workspace/*.html` 的 `<base href="../">` · `docs/src/core/base/utils.js::getBasePath` | `link-target-guard.test.mjs::L6–L7` | 已闭环 | 本文件 §链接完整性校验 |
+| 清单类同步（功能目录结构 / 链路键集 / 功能地图 / 表决枚举 / 官方制度链接） | `docs/src/core/domain/function-catalog.js` · `mermaid-sources.js` · `vote-config.js` · `components/sections/references.js` | `catalog-sync.test.mjs::T1–T5`（批次 47-F 五件并一） | 已闭环 | `README.md` 顶部功能地图 · `REVIEW_QUEUE` 批次 47-F |
 | 高频操作点击成本（进入工作台 → 可执行事项 ≤2 跳） | 本文件 §编辑完整性校验 | `click-cost.test.mjs::C1–C5` | 已闭环 | 本文件 §编辑完整性校验 |
-| Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
-| 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
+| Mock 数据完整性（引用 / 字段 / id / 类型 / 生命周期） | `docs/src/data/mock/*` | `mock-integrity.test.mjs::M1–M2` | 已闭环 | 本文件 §1–§15 |
+| 前端持久化域 ↔ server 表对账口径（分五口径，严禁互相代入） | `docs/src/core/domain/domain.js::mockDB` · `server/db.js::RESOURCE_TABLES` | `doc-consistency.test.mjs::S5` | 已闭环 | 本文件 §跨类别同源校验 · `§3.4 R26` |
 | `README-server.md` 的「`文件:行号`」取证引用逐条指向真实位置（含短式 `:192` / 逗号续列 / md 区间不越节 / 「零命中」类关键词取证仍成立 / 行为词型引用须带可校验锚点） | `README-server.md` 的**383 处**引用 · `docs/src/**` 行为词 | `doc-line-ref.test.mjs::R1–R6` | 已闭环（**换说法机检不了** ⇒ 该半落 `CLAUDE.md R-87` 纪律） | `CLAUDE.md R-87` · 本文件 §链接完整性校验 |
 | `R-83`「改过文件必须刷 `frontmatter.last_updated`」的机检件（表行日期 ↔ frontmatter ↔ 该文件最后一次提交日） | `.ctx/TIMESTAMPS.md` · 各 `content/**` frontmatter | `frontmatter-freshness.test.mjs::F1–F3`（`F1` git-free · `F2` git〔浅克隆判红、无 git 只报不判〕） | 已闭环（⚠ **`F2` 现存 9 处红**——9 份 `content/**` 的 `last_updated` 早于其最后提交日，属 `content/**` 授权面外、待另路面收） | `CLAUDE.md R-83` · `.ctx/TIMESTAMPS.md` |
 | 界面文案与制度母本「**连续 ≥20 字重合即红**」（制度原文不进界面，改写成一行 ＋ `docs/help.html` 深链） | `DESIGN_SYSTEM.md §4.18 C7` · `docs/src/**` 界面文本 | `copy-master-guard.test.mjs::N1–N4` | 已闭环（基线 **11 条 / 9 文件**） | `DESIGN_SYSTEM.md §4.18` |
@@ -233,7 +233,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 同屏复述（归一化后 ≥15 字块出现 ≥2 次）与每屏「文案 ÷ 控件」比值（≤12；12–20 须登记；>20 记待改造） | `DESIGN_SYSTEM.md §4.18 C3/C4` | `copy-screen-guard.test.mjs::M1–M4` | 已闭环（**真机** 7 台 × 默认视图，自起自停） | `DESIGN_SYSTEM.md §4.18` |
 | 折叠区口径与 `help.html` 是否**同义**（C8）——**机器判不了「同义」⇒ 只登记不判红** | `DESIGN_SYSTEM.md §4.18 C8` · `docs/src/**` 折叠区 · `docs/help.html` | `copy-fold-guard.test.mjs::F1/F2`（**只报不判**） | 半闭环（如实登记：C8 落「纪律 ＋ 人检清单」，守卫不越界假装覆盖） | `DESIGN_SYSTEM.md §4.18` |
 | 口径定点锚点**真机可达 / 可检索**（深链直达且目标可见；搜索 → 点结果 → 卡片高亮） | `docs/help.html` 的 `card-copy-*` 定点卡片 · `help-catalog.js` 运行时索引 | `copy-anchor-guard-e2e.test.mjs::A1–A3` | 已闭环（CDN 一律 `route.abort`、不依赖外网） | `DESIGN_SYSTEM.md §4.18` |
-| mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/mock/**` 语料 · `server/seed.js` · `server/routes/resources.js` | `mock-api-parity.test.mjs::S0 / P1–P3` | 已闭环（表集合 5 张：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`） | `.ctx/logs/2026-09-DECISION_LOG.md`（`D-658`） |
+| mock 形态与 api 形态**读数一致** ＋ **服务端是否真按同源播种**（承重臂＝服务端 HTTP 原始行；只看前端缓存会被 `SEED_FALLBACK` 顶替 ⇒ 假绿） | `docs/src/data/mock/**` 语料 · `server/seed.js` · `server/routes/resources.js` | `mock-api-parity.test.mjs::S0 / P1–P3` | 已闭环（表集合 5 张：`todos` / `notices` / `attendances` / `inspections` / `makeupTasks`） | `.ctx/logs/2026-09-DECISION_LOG.md`（`D-658`） |
 | 数据库结构变更必须走**版本化迁移**（`PRAGMA user_version` ＋ 有序 `MIGRATIONS`；新建库 / 幂等可重入 / 既有库兼容 / 失败回滚 / 失败不吞） | `server/db.js`（`MIGRATIONS` / `SCHEMA_VERSION` / `applyMigrations`） | `db-migration.test.mjs::M1–M6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | SQLite 备份一律用 `db.backup()`、**绝不直接 `copy` 主文件**（WAL 尾部会丢）——备份 → 破坏 → 恢复到新路径演练 | `server/scripts/backup.mjs`（在线备份 API） | `backup-restore.test.mjs::B1` | 已闭环（真 spawn 备份脚本 ＋ 反证「只 `copy` 丢 WAL 尾」） | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
@@ -308,9 +308,9 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 1. 人员数据
 
-**存储**：`docs/src/mock/people.js` → `PEOPLE` 常量（50 条记录，p1~p50）
-**运行时**：`mockDB.users`（由 `docs/src/mock/people.js` PEOPLE 经 `seed.js` 注入）
-**登录映射**：`docs/src/mock/accounts.js` → `MOCK_ACCOUNTS`（17 条，studentId ↔ personId）
+**存储**：`docs/src/data/mock/people.js` → `PEOPLE` 常量（50 条记录，p1~p50）
+**运行时**：`mockDB.users`（由 `docs/src/data/mock/people.js` PEOPLE 经 `seed.js` 注入）
+**登录映射**：`docs/src/data/mock/accounts.js` → `MOCK_ACCOUNTS`（17 条，studentId ↔ personId）
 
 **展示页面**：
 
@@ -338,7 +338,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 - [ ] **S1 结构层**：禁止模块加载期人员快照——模块顶层 `const X = PersonStore.getMembers()` 一律改 `liveMembers()` 实时视图
 - [ ] **S2 结构层**：禁止凭姓名认身份——`.find(p => p.name === …)` 不得作身份判据，须「先按 id、姓名仅唯一命中才采纳」
-- [ ] **S3 结构层**：禁止手写已成单一源的活动存储态判据——一律走 `core/constants.js` 的 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
+- [ ] **S3 结构层**：禁止手写已成单一源的活动存储态判据——一律走 `core/domain/constants.js` 的 `isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`
 - [ ] **D1 数据层**：引用存在性——各域引用的 `personId` 均存在于权威人员源
 - [ ] **D2 数据层**：姓名快照一致——各域冗余 `personName` 与权威源姓名一致
 - [ ] **D3 数据层**：档案字段快照一致——各域冗余档案字段与权威档案值一致
@@ -349,7 +349,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 2. 活动数据
 
-**存储**：`docs/src/mock/activities.js` → `ACTIVITIES` 常量（**33 条记录，act-1~act-35（act-28 已删除）**；实测口径＝`mock-integrity` M1 打印 `ACTIVITIES`）
+**存储**：`docs/src/data/mock/activities.js` → `ACTIVITIES` 常量（**33 条记录，act-1~act-35（act-28 已删除）**；实测口径＝`mock-integrity` M1 打印 `ACTIVITIES`）
 **运行时**：`mockDB.activities`（由 `seed.js` 注入）
 **Service**：`docs/src/services/activity/activity.js`
 
@@ -380,7 +380,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 3. 专班数据
 
-**存储**：`docs/src/mock/taskforces.js` → `MOCK_TASKFORCES` 常量（8 条记录，tf-001~tf-008）
+**存储**：`docs/src/data/mock/taskforces.js` → `MOCK_TASKFORCES` 常量（8 条记录，tf-001~tf-008）
 **运行时**：`mockDB.taskforces`（由 `seed.js` 注入）
 **Service**：`docs/src/services/activity/taskforce.js` → `TaskForceRecordStore`
 
@@ -407,7 +407,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 4. 考勤数据
 
-**存储**：`docs/src/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（**152 条记录**：显式种子段 `att1`~`att43` ＋ 隔离段 `att900`，`att44`~`att151` 由 8 月活动生成器追加〔`_AUGUST_EVENTS`：act-26 全员 50 ＋ act-27 支委班子 8 ＋ act-29 全员 50 ＝ 108〕；**2026-09-26 批次 205 改准**：原写「151 条记录，att1~att151」——既漏计隔离段 `att900`，且批次 192/195 剔除党委组织员 `p_pc`〔`_ALL_PERSON_IDS` 按 `branchId` 过滤〕后实测为 **152**）
+**存储**：`docs/src/data/mock/attendance.js` → `ATTENDANCE_RECORDS` 常量（**152 条记录**：显式种子段 `att1`~`att43` ＋ 隔离段 `att900`，`att44`~`att151` 由 8 月活动生成器追加〔`_AUGUST_EVENTS`：act-26 全员 50 ＋ act-27 支委班子 8 ＋ act-29 全员 50 ＝ 108〕；**2026-09-26 批次 205 改准**：原写「151 条记录，att1~att151」——既漏计隔离段 `att900`，且批次 192/195 剔除党委组织员 `p_pc`〔`_ALL_PERSON_IDS` 按 `branchId` 过滤〕后实测为 **152**）
 **运行时**：`mockDB.attendances`（由 `seed.js` 注入）
 **Service**：`docs/src/services/activity/attendance.js`
 
@@ -432,7 +432,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 5. 考察数据
 
-**存储**：`docs/src/mock/inspection.js` → `INSPECTION_RECORDS` 常量（42 条记录，insp-1~insp-43（insp-17 已删除））
+**存储**：`docs/src/data/mock/inspection.js` → `INSPECTION_RECORDS` 常量（42 条记录，insp-1~insp-43（insp-17 已删除））
 **运行时**：`mockDB.inspections`（由 `seed.js` 注入）
 **Service**：`docs/src/services/activity/inspection.js`
 
@@ -457,7 +457,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 6. 通知数据
 
-**存储**：`docs/src/mock/notices.js` → `MOCK_NOTICES` 常量（12 条记录，notice-101~notice-108 + notice-110 + notice-001/notice-005/notice-011）
+**存储**：`docs/src/data/mock/notices.js` → `MOCK_NOTICES` 常量（12 条记录，notice-101~notice-108 + notice-110 + notice-001/notice-005/notice-011）
 **运行时**：`mockDB.notices`（由 `seed.js` 注入）
 **Service**：`docs/src/services/governance/notice.js` → `NoticeStore`
 
@@ -557,7 +557,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 11. 补课数据
 
-**存储**：`mockDB.makeupTasks`（`core/domain.js` 初始化 `[]`，经 `core/data-adapter.js` 持久化；服务端模式路由 `/api/v1/makeupTasks`）
+**存储**：`mockDB.makeupTasks`（`core/domain/domain.js` 初始化 `[]`，经 `data/data-adapter.js` 持久化；服务端模式路由 `/api/v1/makeupTasks`）
 **运行时**：`mockDB.makeupTasks`
 **Service**：`docs/src/services/activity/makeup.js`
 
@@ -582,7 +582,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 12. 复盘数据
 
-**存储**：`docs/src/mock/review.js` → `REVIEW_RECORDS`（11 条活动复盘）+ `TASKFORCE_REVIEW_RECORDS`（2 条专班复盘）
+**存储**：`docs/src/data/mock/review.js` → `REVIEW_RECORDS`（11 条活动复盘）+ `TASKFORCE_REVIEW_RECORDS`（2 条专班复盘）
 **运行时**：`mockDB.activityReviews` / `mockDB.taskforceReviews`（P1-4 修复后写入 mockDB + persist()，刷新不丢失）
 **Service**：`docs/src/services/governance/review.js`
 
@@ -606,9 +606,9 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ## 13. 分工数据
 
-**存储**：`docs/src/mock/seed.js` → `SEED_ASSIGNMENTS`（5 条种子数据）
+**存储**：`docs/src/data/mock/seed.js` → `SEED_ASSIGNMENTS`（5 条种子数据）
 **运行时**：`mockDB.assignments`
-**Service**：无独立 Service——分工数据经 `core/data-adapter.js`（adapter.assignments）读写，权限联动 `services/core/auth.js`（syncProjectRoles）
+**Service**：无独立 Service——分工数据经 `data/data-adapter.js`（adapter.assignments）读写，权限联动 `services/core/auth.js`（syncProjectRoles）
 
 **展示页面**：
 
@@ -627,7 +627,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ## 14. 图片数据
 
 **存储**：`mockDB.imageRecords`（运行时动态创建）
-**Service**：`docs/src/core/data-adapter.js`（imageRecords 聚合）
+**Service**：`docs/src/data/data-adapter.js`（imageRecords 聚合）
 
 **展示页面**：
 
@@ -665,7 +665,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > 认证与页面门控链路（设计权威源：AUTHENTICATION_MODEL.md §四 登录门控四层）。核心：登录态由 auth.js 单一判定，页面身份校验防错位。
 
 **存储**：`localStorage gsm1921-login-user`（`{personId, role, tabId}`）+ `sessionStorage gsm1921-tab-id` / `gsm1921-session-snap`
-**Service**：`docs/src/services/core/auth.js` → `AuthStore`（login / devLogin / logout / getCurrentUser）；`docs/src/core/bootstrap.js`（门控执行）
+**Service**：`docs/src/services/core/auth.js` → `AuthStore`（login / devLogin / logout / getCurrentUser）；`docs/src/core/boot/bootstrap.js`（门控执行）
 
 **同源校验点**：
 
@@ -691,23 +691,23 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动写入→日历/统计联动：支书/组长写入活动后，首页日历和统计卡片同步更新
 - [ ] 首页统计卡口径（main-entry `_renderStats`）：本月活动=未归档且属本月 / 活跃专班=active+recruiting / 未读通知=activeOnly 且未读 / 个人考勤率=(present+made_up)/total（90/70 阈值三色）
 - [ ] 活动生命周期展示态（deriveActivityLifecycleStatus）：草稿→已发布→进行中→已执行/待归档→已归档（+已取消）；全站徽章统一按此展示，不直接读 status 字面值（**单一源位置＝`components/record/inspector.js` 的 `ACTIVITY_LIFECYCLE` + `deriveActivityLifecycleStatus` + `activityLifecycleBadgeHtml`，2026-09-13 确认唯一**）
-- [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
+- [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/domain/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
-  - **mockDB 顶层业务域** ＝ `docs/src/core/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 35**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`）
-  - **localStorage 持久化域** ＝ `docs/src/core/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 34**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域）
+  - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 35**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`）
+  - **localStorage 持久化域** ＝ `docs/src/data/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 34**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域）
   - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 35**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 为 2026-09-17 支书裁定「查看匿名的权限只有党委有」的留痕表，仅 `GET /api/v1/issues/reveal` 命中时写入）
   - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 30**
-  - **快照 payload 键** ＝ `docs/src/core/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 25**
+  - **快照 payload 键** ＝ `docs/src/data/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 25**
   - 四数之差有据：资源名 30 ＋ 语义端点表 5 ＝ server 表 35；持久化域 34 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 25。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。
 - [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 **25** 个键，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
   > **口径维护**：实测值以本节上列五行为唯一口径；此后新增域须同步更新这五个值，勿只改其中一处。
   > **迁出去向说明**：本处原有三条批次注（批次 25 新增 `partyGroups` / `memberFlows` 两域、2026-09-15 收口替换并列旧数、2026-09-17 由 34 改为 35）已于 2026-09-17 **逐字迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本手册是现行判据，批次史与「本注不改上文历史记载」类元注记不属此处。**现在要查**：当前五数看本节上列五行（口径定义同处）；沿革去上述日志附节。
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称
-- [ ] 实体 id 生成单一源（`core/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
-- [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
+- [ ] 实体 id 生成单一源（`core/base/id.js::generateId(prefix, sep)` + `randomHex()`，降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random` 单一源）：全站实体 id 一律经此生成，禁止 `前缀 + Date.now()`、禁止 `Math.random()` 参与 id；**连字符前缀契约**——`tf-`/`notice-`（及 `cmt-`/`mc-`）必须显式传 `sep='-'`，否则打断 `sourceId.startsWith` 契约
+- [ ] 受众写入值与判定同源（`NOTICE_AUDIENCE_SENTINELS`，`core/domain/constants.js`）：发布侧写入的受众标识（sentinel）与消费侧可见性判定**必须取自同一注册表**；**语义维度不止角色**（还可能是发展阶段——`activists`/`candidates`＝入党积极分子/发展对象），勿假设「受众＝角色键」
 - [ ] 取数口与可见性门分离：按 id / 主键取数（`getById` 一类）**不得**复用「列表可见性过滤」；可见性判定须有**独立入口**（`canReadNotice`）并在消费点显式调用，否则会出现「详情打不开」与「拆门即泄露」两难
-- [ ] 成员档案枚举单一源（`RESIDENCE`，`core/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/member/roster.js` 与 `services/branch/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
+- [ ] 成员档案枚举单一源（`RESIDENCE`，`core/domain/constants.js`，2026-09-14 批次 24 收敛）：在册状态字面量全站**只允许一处定义**，消费点一律 import 该单一源（原 `services/member/roster.js` 与 `services/branch/org-base-data-preview.js` 各持一份同值副本已撤销）；**断言方式**＝结构层 `person-consistency.test.mjs::S4`（唯一性静态扫描）+ 数据层取值契约；**同类**：`DEVELOP_STAGES`、`SEARCH_FILTER_MIN_ROWS`、`NOTICE_AUDIENCE_SENTINELS` 一律同址单一源
 - [ ] 版本戳同值（缓存键一致性）：全站 `?v=<release>` 与本次发布版本**处处一致**——`docs/scripts/bump-version.mjs` 收尾自检须报「陈旧戳 0 处残留」；任一 `?v=` 落后即会让浏览器按 URL 分裂出第二个模块实例（注册表/共享状态读空）。**注意**：注释里的版本号是人工注记、不算缓存键（自检与改写同源跳过注释行）；**模板字符串动态 import**（`` import(`…/${stem}-workspace.js?v=…`) ``）也在覆盖范围内
 - [ ] 党小组清单单一源（2026-09-14 收敛，批次 29 加固）：全站「组清单」只允许来自党小组实体（活组取 `status === 'active'` 者、按 `seq` 排序，读口 `services/member/party-group.js::groupOptions()`）；禁再出现写死组名数组（原三处：支书台赋权管理的组清单、组长建活动承办组选项、演示用户域）；**且须防两类绕过「字面量扫描」的等价病灶**——① 模块加载期**派生快照**（`const X = [...new Set(PEOPLE.map(p => p.partyGroup))]`：展开 `liveMembers()` 的 Proxy 即把实时视图冻结，与 `const PEOPLE = getMembers()` 同病；实测病灶 `components/governance/person-picker.js`）；② 运行时用**种子枚举代跑**（`org-base-data-preview::PARTY_GROUP_OPTIONS` 只属预览种子期口径，运行时一律 `groupOptions()`；实测病灶 `services/member/branch-roster-import.js` 的导入行净化与按组应到统计、`entries/tabs/visitor/projects-tab.js` 的筛选项）。断言方式＝结构层 `party-group.test.mjs::S4`；「未分组」即 `partyGroup` 为空字符串，禁在各页自造别名判断
 - [ ] 账号与成员档案同源（2026-09-14）：账号由学号派生（账号即学号），成员新增/流出与账号建号/停用必须成对发生；禁出现「档案有此人、账号层没有」或反向的孤项
@@ -774,8 +774,8 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 > **2026-08-24 实测：6/6 全过**——API 级代码断言（无浏览器依赖；专项脚本已随 2026-08-30 脚本清理归档）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
 
 - [x] **表↔域映射**：资源名 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES **当前 30 名**全通；本条为 2026-08-24 当时的 **26 名**实测记录，口径详见 §跨类别同源校验）✅
-- [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
-- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/governance/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
+- [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `data/mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
+- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `data/mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/governance/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
 - [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅
 - [x] **聚合域 round-trip**：快照写穿 `[{id:'__root__', body}]` → 读回 `__root__` 单行 + body 深比较一致 → 清理写回空 ✅
 - [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项等；历史票证专项脚本已随 2026-08-30 清理归档），含 e2e-login 回归

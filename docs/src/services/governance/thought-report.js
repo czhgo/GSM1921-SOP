@@ -28,20 +28,20 @@
 //   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { persist, flushSnapshot, getDataSource } from '../../core/data-adapter.js?v=20260929a';
-import { THOUGHT_REPORTS } from '../../mock/index.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-// 期次纯函数单一源 = core/period.js（服务层与通知模板共用，避免 core→services 环依赖）
-import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../../core/period.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { persist, flushSnapshot, getDataSource } from '../../data/data-adapter.js?v=20260929b';
+import { THOUGHT_REPORTS } from '../../data/mock/index.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+// 期次纯函数单一源 = core/base/period.js（服务层与通知模板共用，避免 core→services 环依赖）
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../../core/base/period.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
 // 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
-import { BRANCH_COMMISSION_ROLES } from '../../core/constants.js?v=20260929a';
-import { NoticeStore } from './notice.js?v=20260929a';
-import { getPersonById } from '../member/person.js?v=20260929a';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20260929b';
+import { NoticeStore } from './notice.js?v=20260929b';
+import { getPersonById } from '../member/person.js?v=20260929b';
 
 /** 期次助手再导出（既有/新增消费方沿用 services/governance/thought-report.js 入口，勿另建第二份实现） */
-export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../../core/period.js?v=20260929a';
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../../core/base/period.js?v=20260929b';
 
 // ════════════════════════════════════════════════════════════════
 //  访问门（单一源，2026-09-13）
@@ -169,7 +169,7 @@ export function addThoughtReport({ personId, content, title, period }) {
   const submittedAt = new Date().toISOString();
   const periodValue = PERIOD_RE.test(String(period || '')) ? String(period) : periodOf(submittedAt);
   const rec = {
-    // 唯一 id 走 core/id.js（crypto.randomUUID）；原 `'tr_' + Date.now()` 在**同毫秒连提两篇**
+    // 唯一 id 走 core/base/id.js（crypto.randomUUID）；原 `'tr_' + Date.now()` 在**同毫秒连提两篇**
     // 时产生同 id（重复主键 → 归集指向错乱），2026-09-13 由面板数据用例实测暴露并根治。
     id: generateId('tr'),
     personId,

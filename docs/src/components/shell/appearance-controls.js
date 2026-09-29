@@ -3,12 +3,12 @@
 // 2026-09-09（设置中心批1）：原「侧边栏底部外观控件」迁入设置页外观区。
 // 控件 render+bind 抽成可复用函数供 settings-entry 使用（避免复制粘贴逻辑）；
 // 功能键位语义与迁移前一致：字号/主题即时生效，强调色选择后整页刷新生效（全站统一刷新机制）。
-// 读写统一走 core/theme.js 偏好适配层（R1-A：登录人 person 键空间 / 访客全局键，互不污染），
+// 读写统一走 core/boot/theme.js 偏好适配层（R1-A：登录人 person 键空间 / 访客全局键，互不污染），
 // 生效强调色 = resolveAppliedAccentRole（person-aware：覆盖仅取当前作用域键，绝不跨空间回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算。
 
-import { icon } from '../../core/icons.js?v=20260929a';
-import { ACCENT_COLORS, ACCENT_PALETTE } from '../../core/constants.js?v=20260929a';
+import { icon } from '../../core/base/icons.js?v=20260929b';
+import { ACCENT_COLORS, ACCENT_PALETTE } from '../../core/domain/constants.js?v=20260929b';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -16,7 +16,7 @@ import {
   setThemePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../../core/theme.js?v=20260929a';
+} from '../../core/boot/theme.js?v=20260929b';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
 const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';

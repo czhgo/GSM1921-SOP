@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  member-flow.js — 成员流入/流出登记服务层（2026-09-14 批次 25，支书裁定）
 // ════════════════════════════════════════════════════════════════
-//  产品口径（与 mock/member-flows.js 种子头注一致）：
+//  产品口径（与 data/mock/member-flows.js 种子头注一致）：
 //   · 复式记账：每次流入 / 流出各记一笔台账（mockDB.memberFlows）；表头对账行
 //     「期初在册 + 流入合计 − 流出合计 = 当前在册」（reconcile，自然语言表述）。
 //   · 流入 = 建成员档案（落 studentId/enrollYear）+ **自动建号**（账号 = 学号，口令 = 支部统一默认口令）
@@ -11,29 +11,29 @@
 //   · 撤销 = 台账行写 revokedAt/revokedBy 留痕并回滚成员在册状态（登错可纠正；不做物理删除）。
 //   · 批量：流入支持「粘贴多行」（一行一人，Tab/逗号分隔：姓名/学号/届别/党小组）；
 //     流出支持勾选多人。
-//   · 权限门（单一源 core/constants.js::MEMBER_FLOW_ROLES = 组织委员 + 支书/副支书）：
+//   · 权限门（单一源 core/domain/constants.js::MEMBER_FLOW_ROLES = 组织委员 + 支书/副支书）：
 //     UI 显隐与写口双重校验同源（canRegisterFlow）；server 写门（resources.js）同源。
 //   · 写口模式：成员档案走既有 PersonStore 写口、台账写 mockDB.memberFlows → persist() → bumpToken('memberFlows')。
 //  依赖：core(domain/data-adapter/id/version-token/constants) + services(person/member-confirmation/accounts)。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { persist, getDataSource } from '../../core/data-adapter.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { persist, getDataSource } from '../../data/data-adapter.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b';
 // 登记角色集单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { MEMBER_FLOW_ROLES } from '../../core/constants.js?v=20260929a';
-import { MEMBER_FLOWS } from '../../mock/index.js?v=20260929a';
-import { PersonStore } from './person.js?v=20260929a';
-import { submitTransferOut } from './member-confirmation.js?v=20260929a';
-import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20260929a';
+import { MEMBER_FLOW_ROLES } from '../../core/domain/constants.js?v=20260929b';
+import { MEMBER_FLOWS } from '../../data/mock/index.js?v=20260929b';
+import { PersonStore } from './person.js?v=20260929b';
+import { submitTransferOut } from './member-confirmation.js?v=20260929b';
+import { createAccount, deactivateAccount, reactivateAccount } from '../core/accounts.js?v=20260929b';
 
 /** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
 /** 无权限文案（UI 与服务层同源） */
 const DENY_REGISTER = '成员流入/流出登记仅限组织委员或支书/副支书';
 
-/** 是否可登记流入/流出（组织委员 + 支书/副支书）——角色名单单一源 = core/constants.js */
+/** 是否可登记流入/流出（组织委员 + 支书/副支书）——角色名单单一源 = core/domain/constants.js */
 export function canRegisterFlow(role) {
   return MEMBER_FLOW_ROLES.includes(role);
 }

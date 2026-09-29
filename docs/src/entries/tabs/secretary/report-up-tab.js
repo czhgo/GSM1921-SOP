@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain.js?v=20260929a';
-import { AuthStore } from '../../../services/core/auth.js?v=20260929a';
-import { getPersonName } from '../../../services/member/person.js?v=20260929a';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929a';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260929a';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/utils.js?v=20260929a';
+import { mockDB } from '../../../core/domain/domain.js?v=20260929b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260929b';
+import { getPersonName } from '../../../services/member/person.js?v=20260929b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260929b';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260929b';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260929b';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929a';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260929b';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -24,7 +24,7 @@ const STATUS_META = {
   rejected: { label: '已驳回', cls: 'bg-gray-100 text-gray-600' },
 };
 
-// HTML 转义/日期格式化统一走 core/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
+// HTML 转义/日期格式化统一走 core/base/utils.js（escHtml/fmtDt，2026-09-03 去重收口）
 
 export function renderContent() {
   const tc = document.getElementById('secretary-tab-content');

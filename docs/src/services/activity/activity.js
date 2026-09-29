@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain.js?v=20260929a';
-import { persist } from '../../core/data-adapter.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/constants.js?v=20260929a';
-import { ACTIVITIES } from '../../mock/index.js?v=20260929a';
-import { isInitStateActive } from '../core/init-reset.js?v=20260929a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20260929b';
+import { persist } from '../../data/data-adapter.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20260929b';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20260929b';
+import { isInitStateActive } from '../core/init-reset.js?v=20260929b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -230,13 +230,13 @@ export function listMyProjectTasks(personId) {
 }
 
 // ── 组织者兜底进入组长台的放行门（2026-09-19 批次 91）────────────────────
-// 与 `core/constants.js::isArchiveFallbackPage`（支书/副支书兜底进宣传台归档面）同款：
+// 与 `core/domain/constants.js::isArchiveFallbackPage`（支书/副支书兜底进宣传台归档面）同款：
 //   **这位组织者的「事」在组长台那两个上传位上**（考勤上传 / 考察上传——判据与表单都是现成的，
 //   见 `entries/tabs/leader/attendance-tab.js` 与 `inspection-tab.js`），故按「人」放行这一页；
-//   放行面由 `modules/capabilities/leader-workspace.js` 收窄到「我的职责」里的那两个 tab，
+//   放行面由 `capabilities/leader-workspace.js` 收窄到「我的职责」里的那两个 tab，
 //   **不放宽任何写权限**（写口仍按 `canUploadAttendance` / 组织者身份逐场判定）。
-// 放行判据需读活动数据，故本门落在服务层（`core/constants.js` 是无 import 的叶子模块，不入那侧）。
-// 消费点单一源：`core/bootstrap.js` 身份门 —— 勿手写第二份。
+// 放行判据需读活动数据，故本门落在服务层（`core/domain/constants.js` 是无 import 的叶子模块，不入那侧）。
+// 消费点单一源：`core/boot/bootstrap.js` 身份门 —— 勿手写第二份。
 export const ORGANIZER_FALLBACK_PAGE = 'leader.html';
 export function isOrganizerFallbackPage(personId, page) {
   if (!personId) return false;
@@ -557,7 +557,7 @@ export function completeMyProjectTask(personId, taskId) {
 //  活动批准门（**支部可开关的制度参数**，默认关）——2026-09-22 批次 150 · 支书裁定
 // ════════════════════════════════════════════════════════════════
 // 支书裁定（2026-09-22，逐字）：「把它做成一个可开关的支部制度参数（默认关），想要这道门的支部自己打开。」
-// 参数本体＝core/policy-defaults.js::activityApproval.mode（三态；默认 off ⇒ 关闭时零行为变化）。
+// 参数本体＝core/domain/policy-defaults.js::activityApproval.mode（三态；默认 off ⇒ 关闭时零行为变化）。
 // 三件（支书未答 ⇒ **依母本推**，出处 content/02_institution/sop/常见工作场景快速指南.md:242-251）：
 //   · **在哪一步**（2026-09-22 依母本推）——母本共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」＝门在
 //     **写入之后、推进之前** ⇒ 开启时写入即落「待批」，批准前不得推进（不自动发布）。
@@ -583,7 +583,7 @@ export function canApproveActivity(role, mode) {
 /**
  * 写入时的批准门改写（**纯函数**，判据唯一落点）：关闭/非法档 → null（**原样写入＝零行为变化**）；
  * 开启 → 返回写入补丁（`status` 待批 ＋ `approval` 轨迹）。
- * @param {string} mode 当前档位（调用方读 core/policy-defaults.js::activityApprovalMode()）
+ * @param {string} mode 当前档位（调用方读 core/domain/policy-defaults.js::activityApprovalMode()）
  * @param {string} [at] 时间戳（缺省＝当下）
  */
 export function pendingApprovalPatchOnWrite(mode, at) {
@@ -697,8 +697,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20260929a'),
-    import('../../core/id.js?v=20260929a'),
+    import('./vote-config.js?v=20260929b'),
+    import('../../core/base/id.js?v=20260929b'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

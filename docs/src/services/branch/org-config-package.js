@@ -8,14 +8,14 @@
 //   { kind, version:1, branchId, exportedAt, by?, org:{headerTitle,desc,themePreset},
 //     config:{modules,blocks,workforce} }
 //   org/config 各域保持 branch 服务既有存储结构；config.modules/blocks/workforce 为 null 即「默认」。
-// 净化唯一实现 = core/config-clean.js（与 branch 服务 / server resources.js 同源，防止未同步的情况）：
+// 净化唯一实现 = services/branch/config-clean.js（与 branch 服务 / server resources.js 同源，防止未同步的情况）：
 //   apply 逐域 sanitize → 非法 id/白名单外预设值丢弃，不写坏目标。
 // 落地写口 = services/branch/branch.js applyBranchConfig（一次覆盖多域 + 一条聚合留痕
 //   what:'config-package-import'、from 记录包来源）——浏览器 / Node 双端可载、可单测。
 // ════════════════════════════════════════════════════════════════
 
-import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20260929a';
-import { sanitizeConfigOrg } from '../../core/config-clean.js?v=20260929a';
+import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20260929b';
+import { sanitizeConfigOrg } from './config-clean.js?v=20260929b';
 
 /** 覆盖件类型标识（apply 校验门槛，防误导入异类 JSON） */
 export const PACKAGE_KIND = 'gsm1921-org-config';

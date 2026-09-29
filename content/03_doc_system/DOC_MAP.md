@@ -2,7 +2,7 @@
 title: "全局文档导航映射"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 version: "2.5"
 status: active
 related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUEUE.md, .ctx/ENGINEERING_ASSESSMENT.md]
@@ -113,7 +113,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | 文件 | 受众 | 内容 | 被引用方 |
 |------|------|------|---------|
 | `content/04_web_design/data/DATA_MODEL.md` | [工程师]+[AI] | 数据模型与数据流（数据权威：§2.x 静态模型 20 类字段定义 + §写入数据验证 + 待办/通知派生 + 归档扩展字段；§1.x·§3.x·§4.x 数据流：数据架构总览 + 参与者数据流 + 前端数据流：状态管理/持久化/数据源边界/DataAdapter/写穿透） | SECRETARY_DIRECTIVES.md、ARCHITECTURE.md、CLAUDE.md |
-| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
+| `content/04_web_design/design-system/DESIGN_SYSTEM.md` | [工程师]+[AI] | 设计系统（§一 设计哲学/§二 色彩系统/§三 排版/§四 组件规范/§五 交互反馈/§六 响应式/§七 深色模式/§八 设计资产/§十 点击落点映射） | docs/src/styles.css、docs/src/components/*、docs/src/core/session/cross-page-state.js（buildURL 统一出口）、docs/src/services/governance/notice.js（resolveNoticeUrl） |
 | `content/04_web_design/module/ABOUT_PAGE_DESIGN.md` | [工程师]+[AI] | About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线） | docs/src/about.css、docs/src/entries/pages/about-entry.js |
 | `content/04_web_design/module/AGENDA_AND_REFERENCE_DESIGN.md` | [工程师]+[AI] | 会议议程与资料查询联动设计（会前草案关联/会后少重复录入/单一数据源） | —（草案·待实施 2026-08-31） |
 | `content/04_web_design/module/MODULE_UI_DESIGN.md`（已落地 2026-09-03） | [工程师]+[AI] | 模块界面设计（合并原 PAFFAIRS_UI/CALENDAR：「党建」Tab 分组+日历功能，已落地、设计论证档案） | docs/src/components/record/calendar.js |
@@ -126,7 +126,7 @@ related_files: [OPERATIONS_GUIDE.md, CLAUDE.md, ARCHITECTURE.md, .ctx/REVIEW_QUE
 | `content/04_web_design/evolution/WORKFLOW_BLOCK_CONTRACT.md` | [工程师]+[AI] | L3 工作流块封装契约 v1.1（块差异化三维度 + 契约总则 + manifest 字段定义；2026-09-03 定稿） | docs/src/workflow/blocks/*、server/test/block-*（契约源） |
 | `content/04_web_design/evolution/BRANCH_WORK_MAP.md`（已落地 2026-09-04） | [工程师]+[AI] | L4 支部工作地图设计稿 v2.1（平铺模块清单 + 按人双视图，已落地、设计论证档案；支书 2026-09-03 放行编码） | docs/src/entries/tabs/secretary/work-map-tab.js + workforce-panel.js（server/test/work-map.test.mjs） |
 | `content/04_web_design/evolution/DESIGN_METHODOLOGY.md` | [工程师]+[AI] | 设计理念与方法论承接（设计论证与方法档案：系统/工作台/前端实现方法论与判例、打卡化底线、叙述性人读方法论；2026-09-04 承接自 insights [4] 标签小节，出处注记保留） | DESIGN_SYSTEM.md（论证档案去向）；规范权威源 = DESIGN_SYSTEM / DATA_MODEL / SOP_WEBSITE_GUIDE |
-| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发；支书逐段批准） | docs/src/modules/capabilities/party-committee-workspace.js |
+| `content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md` | [工程师]+[AI] | 院系党委后台设计定案（支部多实例两级治理：P1 支部实例+台账 / P2 支书任命 / P3 上报审批+下发；支书逐段批准） | docs/src/capabilities/party-committee-workspace.js |
 | `content/04_web_design/README.md` | [工程师]+[AI] | 网站设计层目录索引 | — |
 
 ### 知识类型 5：网站系统的 AI coding 技术方法（content/05_ai_coding/）

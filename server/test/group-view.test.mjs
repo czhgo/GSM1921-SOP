@@ -1,7 +1,7 @@
 // role: [工程师]+[AI]
 // server/test/group-view.test.mjs — 党小组分组只读聚合口径单测（支书台「党小组进展」D8，2026-09-08）
 // 形态（2026-09-23 提速批 · 任务二第 1 批：**A 类（纯 node+mock）→ B 类（起内存服务打 API）**）：
-//   改造前是纯 mock 形态，`PersonStore.getMembers()` 读的是 `docs/src/mock/people.js` **静态种子**。
+//   改造前是纯 mock 形态，`PersonStore.getMembers()` 读的是 `docs/src/data/mock/people.js` **静态种子**。
 //   而本仓已坐实的架构缺口恰恰是「**api 形态下前端部分读链仍返回静态种子**」——
 //   `server/test/form-loop-registry.mjs` 47-S 自纠处点名：`org-roster-member-add-save` 那条缺口的成因。
 //   故本文件改为：起 `:memory:` 服务 → `seedDatabase` → **真登录**取 token → `setDataSource('api')` → `init()`。
@@ -32,14 +32,14 @@ globalThis.localStorage = makeStorage();
 
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929a';
-import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20260929a';
-import { ReviewStatus } from '../../docs/src/core/domain.js?v=20260929a';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20260929b';
+import { isPartyMember } from '../../docs/src/services/member/roster.js?v=20260929b';
+import { ReviewStatus } from '../../docs/src/core/domain/domain.js?v=20260929b';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   isGroupActivity, groupActivitiesOf, reviewBucketOf,
-} from '../../docs/src/services/member/group-view.js?v=20260929a';
-import { getRuntimeMode, init, setDataSource } from '../../docs/src/core/data-adapter.js?v=20260929a';
+} from '../../docs/src/services/member/group-view.js?v=20260929b';
+import { getRuntimeMode, init, setDataSource } from '../../docs/src/data/data-adapter.js?v=20260929b';
 
 // ── B 类现场（api 形态）：内存服务 + 真登录取 token + init() 把服务端全量灌进 mockDB 缓存 ──
 const _app = createApp({ dbPath: ':memory:' });

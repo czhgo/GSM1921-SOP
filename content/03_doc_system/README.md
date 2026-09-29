@@ -2,7 +2,7 @@
 title: "文档系统管理层索引——全仓库文档系统管理的技术方法"
 type: index
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: 2026-09-29
 status: active
 ---
 
@@ -19,7 +19,7 @@ status: active
 - [OPERATIONS_GUIDE.md](OPERATIONS_GUIDE.md) — **《运行与协作规范》**（§1–§14 运行标准·文档规范 ＋ §15–§18 运行标准·流程机制 ＋ §19–§23 使用规范〔术语 §19 / AI 展开 §20 / Emoji §21 / 决策记录 §22 / 词典 §23，P0〕＋ §24–§31 文件角色分类体系；**2026-09-26 批次 202 四份合一**：原 `PROCESS_GUIDE` / `USAGE_POLICY` / `02_institution/ROLE_CLASSIFICATION` 已并入本文件并删除）
 - [DOC_MAP.md](DOC_MAP.md) — 全局文档导航（按 5 类知识类型）——**全仓库导航唯一权威**
 
-> FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/function-catalog.js` 与 ARCHITECTURE.md §十一 为准。
+> FUNCTION_MAP.md 已删除（2026-09-03）：原为自动生成的功能地图派生稿，功能清单以 `docs/src/core/domain/function-catalog.js` 与 ARCHITECTURE.md §十一 为准。
 
 ### 二、项目架构与母本注册
 

@@ -1,11 +1,11 @@
 // server/test/agenda-votes.test.mjs — 线上表态 API 单元测试（AV3：voteConfig 泛化）
-// 登录以代码实际为准：/api/v1/auth/login 的 personId 为 people id（docs/src/mock/people.js），
+// 登录以代码实际为准：/api/v1/auth/login 的 personId 为 people id（docs/src/data/mock/people.js），
 // 账号密码（studentId）由前端 mockLogin 映射后再调后端，测试直接传 people id：
 //   p13=支书（secretary，studentId 2300010001）
 //   p11=组织委员（org-commissioner，studentId 2400012355）
 //   p3=正式党员（participant，studentId 2400012347）
 //   p14=副支书（deputy-secretary，studentId 2300010002）
-// 旧活动回退用例用 act-27（8月支委会：新学期筹备，真实存在且含 agenda，见 docs/src/mock/activities.js）；
+// 旧活动回退用例用 act-27（8月支委会：新学期筹备，真实存在且含 agenda，见 docs/src/data/mock/activities.js）；
 // agendaItemId 'ai-1' 为测试虚构值——agenda 项无 id 字段，后端不校验议程存在性为有意设计。
 // AV3 formal 用例用 act-formal-test（before 中直接 db 写入含 voteConfig 的党员大会 fixture）。
 import { test, before, after } from 'node:test';
@@ -330,8 +330,8 @@ test('formal 活动：voteConfig.voterIds 空数组：400（fail-closed，不回
 
 // ===== mock 形态同口径（与 server 双形态一致；纯前端模块直调，不起服务）=====
 test('mock 形态：无记名只落参与记录 + tally、无逐人选项；记名保持逐人可见', async () => {
-  const { mockDB } = await import('../../docs/src/core/domain.js?v=20260929a');
-  const { MockAdapter } = await import('../../docs/src/core/mock-adapter.js?v=20260929a');
+  const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20260929b');
+  const { MockAdapter } = await import('../../docs/src/data/mock-adapter.js?v=20260929b');
   const originActs = mockDB.activities;
   const originVotes = mockDB.agendaVotes;
   const originLoaded = mockDB._loaded;

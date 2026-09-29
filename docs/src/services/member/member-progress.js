@@ -8,7 +8,7 @@
 //
 // 本文件两部分：
 //   · `aggregateMemberProgress` / `blockersOf` —— **纯函数**（不碰 DOM / localStorage / fetch），
-//     故**服务端可直接 import**（与 `core/constants.js` / `core/config-clean.js` 同一惯例，
+//     故**服务端可直接 import**（与 `core/domain/constants.js` / `services/branch/config-clean.js` 同一惯例，
 //     见 `server/routes/leader-progress.js`）→ 由服务端做汇总；
 //   · `loadMemberProgress` —— **IO 载入器**（api 态走服务端汇总接口、mock 态读本地 store 后调纯函数），
 //     **仅前端使用，服务端不调用它**（服务端只用纯函数部分）。
@@ -17,14 +17,14 @@
 // 四项判据的**单一源**（禁止在本文件重写判定逻辑）：
 //   · 超期        = `services/governance/todo.js::isTodoExpired`（与域 expiredCount / 红点同口径）
 //   · 在办        = `TodoStatus.COMPLETED` 之外
-//   · 缺勤        = `core/domain.js::AttendanceStatus.ABSENT`
+//   · 缺勤        = `core/domain/domain.js::AttendanceStatus.ABSENT`
 //   · 考察待确认  = 考察记录 `status === 'pending'`
 // ════════════════════════════════════════════════════════════════
 
-import { isTodoExpired, TodoStatus } from '../governance/todo.js?v=20260929a';
-import { AttendanceStatus } from '../../core/domain.js?v=20260929a';
-import { isApiMode } from '../core/runtime.js?v=20260929a';
-import { getAuthToken, getApiBaseUrl } from '../../core/data-adapter.js?v=20260929a';
+import { isTodoExpired, TodoStatus } from '../governance/todo.js?v=20260929b';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20260929b';
+import { isApiMode } from '../core/runtime.js?v=20260929b';
+import { getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20260929b';
 
 /** 汇报态 → 稳定判别键（渲染文案随时可改，键不动；与 members-tab 原口径逐条对齐） */
 export const REPORT_KIND = {
@@ -151,10 +151,10 @@ export async function loadMemberProgress({ personIds = [], today } = {}) {
   // mock 态：动态引入各 store（保持服务端静态依赖图不被撑大）→ 调**同一个**纯函数
   const [{ TodoStore }, { loadAttendanceRecords }, { loadActiveInspectionRecords }, { IssueStore }] =
     await Promise.all([
-      import('../governance/todo.js?v=20260929a'),
-      import('../activity/attendance.js?v=20260929a'),
-      import('../activity/inspection.js?v=20260929a'),
-      import('../governance/issues.js?v=20260929a'),
+      import('../governance/todo.js?v=20260929b'),
+      import('../activity/attendance.js?v=20260929b'),
+      import('../activity/inspection.js?v=20260929b'),
+      import('../governance/issues.js?v=20260929b'),
     ]);
   if (typeof IssueStore.loadAll === 'function') await IssueStore.loadAll();
   const rows = aggregateMemberProgress({

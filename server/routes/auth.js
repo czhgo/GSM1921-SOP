@@ -1,8 +1,8 @@
 // server/routes/auth.js — token 会话认证
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
-// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
-import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/constants.js';
+// P2c（2026-09-03）：授权语义角色集单一源 = docs/src/core/domain/constants.js（前端 AuthStore.isCommissioner 同源，勿另写）
+import { BRANCH_COMMISSION_ROLES } from '../../docs/src/core/domain/constants.js';
 
 // ── 登录口令校验（2026-09-03 P1b 运行安全；2026-09-23 P0-3 生产硬挡）────────────────
 // 原状：POST /login 仅凭 personId 发 token——多人/计算中心部署时任何知道学号者可冒名登录。

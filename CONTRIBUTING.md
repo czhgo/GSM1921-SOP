@@ -13,11 +13,12 @@
 | 目录 | 内容 |
 |---|---|
 | `docs/src/` | 前端（纯静态 ESM + `?v=` 版本戳裸 import，无 npm 依赖） |
-| `docs/src/core/` | 纯数据/纯函数：constants、work-map、config-clean、tab-nav、utils（**双端可加载**） |
-| `docs/src/components/` + `forms.js/badges.js/reporting.js` | 组件与对外库出口（调用只认库，不直连内部实现文件） |
-| `docs/src/services/` | 业务服务（数据域接线：UI 不直连 `mock/*`） |
+| `docs/src/core/` | 内核（**2026-09-29 批次 267 分四子域**）：`base/` 纯数据/纯函数（id/utils/icons/period/state/version-token/module-compose，**双端可加载**）· `domain/` 领域口径与单一源清单（constants/work-map/policy-defaults…）· `boot/` 启动装配 · `session/` 跨页轻量状态 |
+| `docs/src/components/` + `forms.js/badges.js/reporting.js` | 组件与对外库出口（调用只认库，不直连内部实现文件）；`sections/` 为页级板块渲染器 |
+| `docs/src/data/` | 数据形态层（`data-adapter` 门面 · `api-adapter` · `mock-adapter` · `data-loader` · `mock/` 演示种子） |
+| `docs/src/services/` | 业务服务（数据域接线：UI 不直连 `data/mock/*`） |
 | `docs/src/entries/` | 页面/工作台 tab 入口（懒加载） |
-| `docs/src/modules/capabilities/` | capability 注册（tab 清单唯一声明处） |
+| `docs/src/capabilities/` | capability 注册（tab 清单唯一声明处） |
 | `docs/src/workflow/` | SOP 数据 + L3 block manifest |
 | `server/` | Express + better-sqlite3 API（前端 API 模式的同一后端） |
 | `content/` | 文档体系（制度/使用规范/设计演进） |
@@ -38,7 +39,7 @@ npm test             # 全量测试（node --test 并发 1；自动带 DISABLE_P
 
 ## 四、工程纪律（改代码前必读）
 
-1. **统一扎口**：同一业务事实只允许一份可编辑副本。新增/发现重复 → 先在库/单一源出口收敛（如 `components/ui/forms.js`、`core/constants.js`、`core/config-clean.js`），再删第二份。判据：同一事实出现第二份即扎口。
+1. **统一扎口**：同一业务事实只允许一份可编辑副本。新增/发现重复 → 先在库/单一源出口收敛（如 `components/ui/forms.js`、`core/domain/constants.js`、`services/branch/config-clean.js`），再删第二份。判据：同一事实出现第二份即扎口。
 2. **数据域接线**：人员/名单/种子一律经 `services/*` 获取，UI 层不得从 `mock/*` 直接 import 数据常量。
 3. **跨端共享**：server 与前端要共用的净化/校验/清单 → 放 `docs/src/core/`（零依赖纯 ESM），server 直接 import；**不得在两端各写一份**。
 4. **用于防止未同步的情况的测试**：任何"双端/多处同义清单"收敛后，补键集双向断言测试（示例：`server/test/catalog-sync.test.mjs`（T2 链路键集 / T4 表决枚举）、`roles-sync`、`scene-write-sync`）。

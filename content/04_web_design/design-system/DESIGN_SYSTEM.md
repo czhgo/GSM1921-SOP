@@ -2,7 +2,7 @@
 title: "设计系统"
 type: design
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: active
 related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data/DATA_MODEL.md]
 ---
@@ -173,7 +173,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 > - 紫/蓝/琥珀系 → 支委三类（组织/宣传/纪检，横向协作）
 > - 青/绿/灰系 → 项目执行层（组织者/深度参与者/普通参与者）
 >
-> ⚠️ **本表是身份标识场景的默认识别色，不是"主题色硬编码"**（2026-08-10 补充）：主题色已演进为一套**可选择的色盘**——侧边栏「主题选择」中所有角色均可从色盘自选主题色（2026-08-06 起），`resolveAccentRole` 优先读 localStorage 个性化覆盖（`docs/src/core/constants.js`）。本表仅约束**身份标识场景**（关系网络节点/角色卡片/日历图例的辨识色）；**主题色场景**（tab 激活态/按钮/标签/选中项/chips 等强调色）由个人自选色盘决定（见 §2.7 规则 + §2.8 ② 角色识别层）。2026-08-14 裁决强化：身份不再保留既有固定颜色设定——本表色值为默认识别色，任何角色均可经侧边栏「主题选择」自选覆盖，工作台强调一律走主题色。
+> ⚠️ **本表是身份标识场景的默认识别色，不是"主题色硬编码"**（2026-08-10 补充）：主题色已演进为一套**可选择的色盘**——侧边栏「主题选择」中所有角色均可从色盘自选主题色（2026-08-06 起），`resolveAccentRole` 优先读 localStorage 个性化覆盖（`docs/src/core/domain/constants.js`）。本表仅约束**身份标识场景**（关系网络节点/角色卡片/日历图例的辨识色）；**主题色场景**（tab 激活态/按钮/标签/选中项/chips 等强调色）由个人自选色盘决定（见 §2.7 规则 + §2.8 ② 角色识别层）。2026-08-14 裁决强化：身份不再保留既有固定颜色设定——本表色值为默认识别色，任何角色均可经侧边栏「主题选择」自选覆盖，工作台强调一律走主题色。
 
 | Token | 色值 | 色块 | 角色 | 色相 | 说明 |
 |-------|------|------|------|------|------|
@@ -183,7 +183,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | `--accent-prop-commissioner` | `#2563EB` | ██ | 宣传委员 | 海蓝系 | 宣传传播 |
 | `--accent-disc-commissioner` | `#C2410C` | ██ | 纪检委员 | 深橙系 | 监督警示 |
 | `--accent-organizer` | `#7DD3FC` | ██ | 组织者 | 亮天蓝系 | 执行核心，分工记录 |
-| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（雾紫系，与语义色 `#7C3AED` 同源提亮——见 `docs/src/core/constants.js` `ACCENT_COLORS.deep`；`styles.css :root` 的 `--accent-deep`/`--accent-deep-light` 同步雾紫系） |
+| `--accent-deep` | `#A78BFA` | ██ | 深度参与者 | 雾紫系 | 承担分工（雾紫系，与语义色 `#7C3AED` 同源提亮——见 `docs/src/core/domain/constants.js` `ACCENT_COLORS.deep`；`styles.css :root` 的 `--accent-deep`/`--accent-deep-light` 同步雾紫系） |
 | `--accent-participant` | `#A16207`（三件套即主题党日胶囊） | ██ | 普通参与者 | 金色系（金黄） | 「金」主题色即主题党日胶囊：亮金底 `rgba(255,215,0,0.12)` + 金黄字 `#A16207` + 亮金边框 `rgba(255,215,0,0.35)`（2026-08-10 裁定"再黄一点"） |
 
 **使用约束**：
@@ -333,7 +333,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 强调文字 | `.text-accent` | 步骤指示/重要文字 |
 | hover 卡片 | `.tip-trigger[data-tip]` | CSS 零 JS 轻量 tooltip（提交人悬停等） |
 
-**兜底规则**：7 个工作台经 `bootstrapPage`（`docs/src/core/bootstrap.js`）/ `theme.js` 在 `<html>` 上注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档 / 反馈 / 通知 / 帮助 / 关于等**非工作台页不注入**。自 2026-09-28 起，`--app-accent` 三件套已在 `docs/src/styles.css :root` 给出**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）⇒ 组件此后可直接写 `var(--app-accent)`，**不必再带硬编码兜底**（旧写法 `var(--app-accent, #B91C1C)` 属存量，逐步收敛）。保证任何页面可渲染。
+**兜底规则**：7 个工作台经 `bootstrapPage`（`docs/src/core/boot/bootstrap.js`）/ `theme.js` 在 `<html>` 上注入 `--app-accent` 三件套（`--app-accent/-bg/-border`）随侧边栏自选主题色；归档 / 反馈 / 通知 / 帮助 / 关于等**非工作台页不注入**。自 2026-09-28 起，`--app-accent` 三件套已在 `docs/src/styles.css :root` 给出**正式默认值**（＝党建红三件套，与旧兜底逐字等值 ⇒ 观感零变化）⇒ 组件此后可直接写 `var(--app-accent)`，**不必再带硬编码兜底**（旧写法 `var(--app-accent, #B91C1C)` 属存量，逐步收敛）。保证任何页面可渲染。
 
 ### 2.9 颜色角色 → 令牌 映射（2026-09-28 立 · 补「标准缺档」）
 
@@ -352,14 +352,14 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | 颜色角色 | 令牌（写法） | 什么时候用 | 什么时候**不许**用 | 依据 |
 |---|---|---|---|---|
 | **主题色 / 强调色** | `--app-accent` / `--app-accent-bg` / `--app-accent-border`（三件套；`styles.css :root` 有正式默认值，工作台由 `bootstrapPage` 覆盖） | tab 激活态、主按钮、次级按钮描边、选中项（chip / 列表行 / 卡片）、强调文字、强调卡边框、行内「主题色首字块」 | 状态语义（完成 / 告警 / 待处理 / 进行中）；品牌合规视觉（党徽金）；正文与边框的中性层级 | §2.7 规则1 · §2.8 ② · §2.8 兜底规则 |
-| ↳ 主题色·深色态派生 | `--acc-bg-dark` / `--acc-text-dark` / `--acc-border-dark` / `--acc-dot-dark`（**元素内联**变量；由 `styles.css` 的 `html.theme-dark [style*="--acc-*-dark"]` 规则消费；构造函数 `applyDark` / `accDarkVars` / `accDarkParts` / `dotDarkVars` 见 `docs/src/core/constants.js`） | 主题色浅底块在**深色模式**下的同色系提亮（底 = 提亮色 @16%，字 = 提亮色，边框 = 提亮色 @35%；圆点 = 实色提亮）。**本批（2026-09-28）补登记**——此前只在代码注释里，规范未载 | 日间态；非主题色的状态块；**不得自造**本四件套之外的私有派生名（新增须先登记进本表） | §2.8 ② · §7.1 |
+| ↳ 主题色·深色态派生 | `--acc-bg-dark` / `--acc-text-dark` / `--acc-border-dark` / `--acc-dot-dark`（**元素内联**变量；由 `styles.css` 的 `html.theme-dark [style*="--acc-*-dark"]` 规则消费；构造函数 `applyDark` / `accDarkVars` / `accDarkParts` / `dotDarkVars` 见 `docs/src/core/domain/constants.js`） | 主题色浅底块在**深色模式**下的同色系提亮（底 = 提亮色 @16%，字 = 提亮色，边框 = 提亮色 @35%；圆点 = 实色提亮）。**本批（2026-09-28）补登记**——此前只在代码注释里，规范未载 | 日间态；非主题色的状态块；**不得自造**本四件套之外的私有派生名（新增须先登记进本表） | §2.8 ② · §7.1 |
 | **语义动作类**（推荐的落法） | `.btn-accent`（主操作）· `.btn-accent-soft`（次级）· `.chip-accent-on`（chip 选中）· `.sel-accent-on`（行选中）· `.text-accent`（强调文字）· `.radio-accent` / `.checkbox-accent`（选择器）· `.accent-avatar`（主题色首字块） | 上表「主题色」各场景**优先用这些类**（类内已含日 / 夜两套与兜底） | 另写一份等价内联样式；另造同义类 | §2.8 语义动作类与选择器表 |
 | **功能色（状态层）** | `--functional-success` / `--functional-warning` / `--functional-error` / `--functional-info`；语义 Tailwind 类（`bg-amber-50` / `text-amber-700` / `bg-green-50` …）作日间落点 | 只表语义状态：完成 / 待处理 / 告警超期 / 进行中 / API 模式（Badge、状态指示器、表单校验提示） | 身份归属、装饰、大面积背景；与品牌红 / 品牌金 / 主题色互换 | §2.5 · §2.7 规则3 · §2.8 ③ |
 | ↳ 功能色·深色态 | `styles.css` 的 `html.theme-dark .bg-{red,orange,green,blue,amber}-{50,100}` 段（**已登记**映射） | 上列 Tailwind 状态类在深色模式的提亮映射 | 未登记的自造映射 | §7.2 |
 | **中性阶** | `--neutral-0…900` | 文字层级（`--neutral-700/800` 正文标题）、边框（`--neutral-200`）、分割线、占位（`--neutral-400`）、辅助文字（`--neutral-500`） | 任何身份 / 状态 / 强调语义（§2.7 规则5「灰只做中性」） | §2.4 · §2.7 规则5 · §2.8 ④ |
 | **表面 / 背景** | `--surface-page`（页面底）· `--surface-card`（卡片）· `--surface-elevated`（浮层）· `--surface-header` · `--surface-sidebar` · `--surface-hover` · `--surface-active` | 组件层级深度：页面 / 卡片 / 浮层 / 悬停 / 激活 | 文字色；作强调语义；`--neutral-50` **不作页面底色** | §2.6 · §2.7 规则4 |
 | **品牌统一层** | `--party-red`(`#CE1126`) · `--party-gold`(`#FFD700`) / `--party-gold-light` / 金黄字 `#A16207` | 主 CTA、党务标签、强调卡边框、主题党日类别、待办行动按钮、通知徽章 | 角色识别（色条 / 标签）、状态指示、正文、任何「个人可选的强调 / 选中语义」 | §2.2 · §2.3.1 |
-| **角色识别色** | `ROLE_COLORS`（`docs/src/core/constants.js`，角色键 → `{bg,text,border}`）· `--accent-<role>`（`styles.css`） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.7「角色色系与活动色系彻底分离」 |
+| **角色识别色** | `ROLE_COLORS`（`docs/src/core/domain/constants.js`，角色键 → `{bg,text,border}`）· `--accent-<role>`（`styles.css`） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.7「角色色系与活动色系彻底分离」 |
 | **活动类别色** | `ACTIVITY_CAT_COLOR` / `getActivityTypeColors()`（`constants.js`） | 活动类型维度：日历圆点、类型徽章、主题党日系 | 角色身份维度 | §2.7 同上 |
 
 **「同一角色只用一种令牌」的可判口径**：上表任一行内，同一语义层**不得混用**其它行的令牌，也不得用裸 hex / rgba
@@ -841,7 +841,7 @@ li + li { margin-top: 0.25em; }
 > - §4.10 视图表：「**执行层仪表盘｜支书「全局概况」**」列为独立视图模式；
 > - `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md:368`（§F.6）：「做与看……**支书工作台全局概况"按维度/按人"双视图**」。
 >
-> **现状速查（实读 2026-09-27）**：跨台同名 tab 中，`知情查看`（`tf-view`，6 台）与 `我的处置`（`my-dispatch`，5 台）**均系同一组件、同一职责 ⇒ 同名保留**；支书台与其余五台的 `overview` 位置**系 L2 与 L0 / L1 两层 ⇒ 按本口径保留两套名**（键同为 `overview`，`docs/src/modules/capabilities/secretary-workspace.js:43` ＝「全局概况」，其余五台 ＝「工作概况」）。同名但语义两分者（支书台 `活动管理`＝全支部 L2 / 组长台 `活动管理`＝本组 L1；组织台 / 组长台 `考察上传`＝专班 / 本组活动两数据域；组织台 `思想汇报`＝台账 L1 / 成员台 `思想汇报`＝本人提交 L0）如需副标区分，属**待裁文案**、不在本口径内（方案见 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) §四.4）。
+> **现状速查（实读 2026-09-27）**：跨台同名 tab 中，`知情查看`（`tf-view`，6 台）与 `我的处置`（`my-dispatch`，5 台）**均系同一组件、同一职责 ⇒ 同名保留**；支书台与其余五台的 `overview` 位置**系 L2 与 L0 / L1 两层 ⇒ 按本口径保留两套名**（键同为 `overview`，`docs/src/capabilities/secretary-workspace.js:43` ＝「全局概况」，其余五台 ＝「工作概况」）。同名但语义两分者（支书台 `活动管理`＝全支部 L2 / 组长台 `活动管理`＝本组 L1；组织台 / 组长台 `考察上传`＝专班 / 本组活动两数据域；组织台 `思想汇报`＝台账 L1 / 成员台 `思想汇报`＝本人提交 L0）如需副标区分，属**待裁文案**、不在本口径内（方案见 [MODULE_UI_DESIGN.md](../module/MODULE_UI_DESIGN.md) §四.4）。
 >
 > **同批改准**：上方「工作台分组主轴」表原写「今天 / 待办 / 工作概况（各台同构的核心三件套）」——该句与支书台实况不符（支书台该位置为「全局概况」），本批按本口径**改准为「六台中的五台同构、支书台该位置为 L2 变体『全局概况』」**。这是**改准既有瑕疵、不是新立**（母本依据即上引 §一 原则9）。
 
@@ -1334,7 +1334,7 @@ li + li { margin-top: 0.25em; }
 ## 七、深色模式设计规范
 
 > **确立背景（2026-08-09 指令）**："每一个色块的设计，请都要考虑【深色模式】。只要是主题色，每一个颜色都必须平行——如果一个在深色模式下是淡色的底深色的字，别的也应该是淡色的底深色的字（总之是一致的，且易用的）。对于功能色，因为不随主题色变化而变化，也要记得去做好深色模式下可见度、可分辨率的评估。"
-> **实现机制**：[theme.js](../../../docs/src/core/theme.js) — `<html class="theme-dark">` 前缀驱动三态（浅色/深色/跟随系统，默认跟随系统）；CSS 侧深色规则统一 `html.theme-dark` 前缀（2026-08-07 替代 @media prefers-color-scheme）。
+> **实现机制**：[theme.js](../../../docs/src/core/boot/theme.js) — `<html class="theme-dark">` 前缀驱动三态（浅色/深色/跟随系统，默认跟随系统）；CSS 侧深色规则统一 `html.theme-dark` 前缀（2026-08-07 替代 @media prefers-color-scheme）。
 > **分层覆盖**：CSS 变量反向 + 高频 Tailwind 类 `!important` 提权 + 硬编码组件逐一覆盖；`--party-red` 系不变 / `--surface-header` 深红保持 / 角色识别色不变。
 
 ### 7.1 色块平行性总则（主题色）
@@ -1435,7 +1435,7 @@ li + li { margin-top: 0.25em; }
 | 通知内的活动/专班链接 | 独立详情页（`activity.html?id=` / `taskforce.html?id=`） | 通知直达详情（`resolveNoticeUrl` 统一出口） |
 | 归档库条目 | 弹窗展示归档详情 | 档案浏览场景（archive-entry） |
 
-**统一出口**：跨页跳转统一经 `core/cross-page-state.js` 的 `buildURL`；通知链接统一经 `services/governance/notice.js` 的 `resolveNoticeUrl`（杜绝多入口逻辑分叉）。
+**统一出口**：跨页跳转统一经 `core/session/cross-page-state.js` 的 `buildURL`；通知链接统一经 `services/governance/notice.js` 的 `resolveNoticeUrl`（杜绝多入口逻辑分叉）。
 
 ### 10.2 活动条目落点映射表
 

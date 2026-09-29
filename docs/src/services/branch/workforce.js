@@ -9,25 +9,25 @@
 //   议题 extras 记 voteOutcome {status,tally,needed,evaluatedAt}；会前草稿=支书台暂存。
 // R2-3（2026-09-06 支书裁，附录⑩ S2）：门槛改「应到会人数超过 2/3 且无反对」——
 //   出席须严格超过应到 2/3（整界不过），反对=0（'object' 异议与 'oppose' 反对同口径），弃权允许。
-import { BranchService } from '../core/runtime.js?v=20260929a';
-import { NoticeStore } from '../governance/notice.js?v=20260929a';
-import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20260929a';
-import { ROLE_LABELS } from '../../core/constants.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/work-map.js?v=20260929a';
-import { getPersonName } from '../member/person.js?v=20260929a';
-import { AuthStore } from '../core/auth.js?v=20260929a';
-import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260929a';
-import { fetchVotesStrict } from '../activity/committee-vote.js?v=20260929a';
-import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20260929a';
+import { BranchService } from '../core/runtime.js?v=20260929b';
+import { NoticeStore } from '../governance/notice.js?v=20260929b';
+import { defaultVoteConfig, resolveVoterIds } from '../activity/vote-config.js?v=20260929b';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+import { WORK_MAP_MODULES, mergeWorkforceSnapshot, canDisableModule, ORG_SUBJECT_LABELS } from '../../core/domain/work-map.js?v=20260929b';
+import { getPersonName } from '../member/person.js?v=20260929b';
+import { AuthStore } from '../core/auth.js?v=20260929b';
+import { getBranchWorkforce, updateBranchWorkforce } from './branch.js?v=20260929b';
+import { fetchVotesStrict } from '../activity/committee-vote.js?v=20260929b';
+import { TodoStore, TodoCategory, TodoSourceType, WORK_DOMAIN } from '../governance/todo.js?v=20260929b';
 // 2026-09-28 修（去表决 dogfood）：议题议程项须带 id，线上表态位（.vote-widget-slot / .vote-panel-slot
 //   仅在议程项含 id 时渲染）才成立；原实现无 id ⇒ 表决入口页「该条无表决编号」，谁也投不了票。
-import { generateId } from '../../core/id.js?v=20260929a';
+import { generateId } from '../../core/base/id.js?v=20260929b';
 
 export const WORKFORCE_PROPOSAL_KIND = 'workforce-proposal';
 
 /**
- * 支部默认票决门槛（P3c 单一源 = core/policy-defaults.js，派生导出保持名/形状不变）
+ * 支部默认票决门槛（P3c 单一源 = core/domain/policy-defaults.js，派生导出保持名/形状不变）
  * 默认值 = 本科生党支部 2026-09-06 支书裁决「支委会从严：应到超过 2/3 且无反对，弃权允许」
  *   （附录⑩ S2 R2-3，出处 .ctx/REVIEW_QUEUE.md；取代 2026-09-05 版裁决）；
  * 开源部署如需调整改 policy-defaults.js，勿在本文件新写字面量。
@@ -197,7 +197,7 @@ export async function adoptWorkforceProposal(branchId, activityId) {
 
 /** 模块 → 业务域（履职待办归入对应域折组；缺省 ACTIVITY） */
 const DUTY_DOMAIN = {
-  // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/work-map.js 文件头），
+  // 2026-09-22 批次 145：原「三会一课」单模块按形式拆为 4 个模块（见 core/domain/work-map.js 文件头），
   //   四者均属会议域（`WORK_DOMAIN.MEETING`，与原 `three-meetings` 同域）。
   'branch-party-meeting': WORK_DOMAIN.MEETING,
   'branch-committee-meeting': WORK_DOMAIN.MEETING,
@@ -220,7 +220,7 @@ const DUTY_DOMAIN = {
  * 采纳后按**本次实际改派**的负责人逐条派生「履职」待办——
  *   · 到人（ownerType='person'）→ personId 命中该成员待办页；
  *   · 角色（ownerType='role'）→ 记 role，由该角色工作台待办页承接（并在通知侧 actionRoles 定向）；
- *   · 组织型主体（ownerType='org'，如支委会）→ **不派生到人待办**（它没有登录身份，见 core/work-map.js::ORG_SUBJECTS）。
+ *   · 组织型主体（ownerType='org'，如支委会）→ **不派生到人待办**（它没有登录身份，见 core/domain/work-map.js::ORG_SUBJECTS）。
  * 停用（'none'）不派生。幂等：sourceId = `<activityId>:<moduleId>`，重复采纳不重复派生。
  */
 function _deriveDutyTodos(activityId, proposal) {

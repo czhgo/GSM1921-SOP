@@ -68,7 +68,7 @@ export function _activityApprovalGateDeny(prevRow, body, actor) {
 //      自定「已发布」）；**档位关闭（默认）时一字不改**（原样写入，零行为变化）。
 // 档位／补丁怎么取（与写入链同源）：补丁形状单一源＝`docs/src/services/activity/activity.js::pendingApprovalPatchOnWrite`；
 //   档位取值＝该支部 `config.policyOverrides.activityApproval.mode`——与前端读侧注入 `applyBranchPolicyOverrides`
-//   落进 `POLICY_DEFAULTS` 的是**同一个白名单键**（`core/policy-defaults.js::POLICY_OVERRIDABLE`），
+//   落进 `POLICY_DEFAULTS` 的是**同一个白名单键**（`core/domain/policy-defaults.js::POLICY_OVERRIDABLE`），
 //   **不在服务端另造档位映射 / 阈值**。
 // ⚠ 本段（含上一行 import 的追加）置于文件末尾：不改动上文任何行号（理由同上一段）。
 

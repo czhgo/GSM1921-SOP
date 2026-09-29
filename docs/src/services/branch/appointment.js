@@ -6,19 +6,19 @@
 // 模式：adapter CRUD 实时写 server（API 模式）+ 本地 mockDB 同步（刷新不丢）；
 // mock 纯本地：users 演示行（u_*）无 person 档案 → role 同步静默跳过，记录/secretaryId 仍完整。
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { getAdapter, persist } from '../../core/data-adapter.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20260929b';
 // R5-1（2026-09-06）：就地任命需补齐 person.role（角色双链读链 = person 档案，见 appointInauguralOfficers 注释）
-import { PersonStore } from '../member/person.js?v=20260929a';
+import { PersonStore } from '../member/person.js?v=20260929b';
 // 2026-09-23 支书裁定（情景①）：支书自配本支部支委身份——留痕复用既有审计快照（AuthStore），判据与白名单
-// 单一源 = core/constants.js（勿在本文件另写角色名单；server/users 写门同源同一判据）
-import { AuthStore } from '../core/auth.js?v=20260929a';
+// 单一源 = core/domain/constants.js（勿在本文件另写角色名单；server/users 写门同源同一判据）
+import { AuthStore } from '../core/auth.js?v=20260929b';
 import {
   ROLE_LABELS,
   BRANCH_COMMISSIONER_ASSIGNABLE_ROLES,
   BRANCH_COMMISSIONER_FALLBACK_ROLE,
   branchCommissionerWriteDeny,
-} from '../../core/constants.js?v=20260929a';
+} from '../../core/domain/constants.js?v=20260929b';
 
 function _syncBranch(next) {
   const idx = (mockDB.branches || []).findIndex(b => b.id === next.id);
@@ -148,7 +148,7 @@ export async function appointInauguralOfficers({ branchId, secretaryId = null, o
 // ════════════════════════════════════════════════════════════════
 //  支书配置本支部支委身份（2026-09-23 支书裁定 · 情景① 写口落地；本文件追加导出，不改既有导出）
 // ════════════════════════════════════════════════════════════════
-// 语义（裁定逐字与白名单见 core/constants.js 的 BRANCH_COMMISSIONER_ASSIGNABLE_ROLES / 判据
+// 语义（裁定逐字与白名单见 core/domain/constants.js 的 BRANCH_COMMISSIONER_ASSIGNABLE_ROLES / 判据
 //   branchCommissionerWriteDeny）：可授予＝组织委员 / 宣传委员 / 纪检委员，撤销＝回落普通参与者；
 //   操作人＝本支部现任支书 ∨ 本支部现任副支书（副书同权，2026-09-23 支书追裁）；拒：支书本人与副支书的
 //   一把手层身份（归党委，`D-585`）· 跨支部成员 · 白名单外的角色键 · 支书 / 副支书以外的身份者。
@@ -195,7 +195,7 @@ export function listBranchCommissioners(branchId) {
 }
 
 /**
- * 配置 / 改派本支部支委身份（本支部现任支书 / 副支书；判据单一源见 core/constants.js::branchCommissionerWriteDeny）
+ * 配置 / 改派本支部支委身份（本支部现任支书 / 副支书；判据单一源见 core/domain/constants.js::branchCommissionerWriteDeny）
  * @param {{ branchId: string, personId: string, role: string, actorId?: string }} opts role ∈ 白名单（组织/宣传/纪检委员）
  * @returns {Promise<{ok: boolean, reason?: string, recordId?: string}>}
  */

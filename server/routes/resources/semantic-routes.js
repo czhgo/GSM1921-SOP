@@ -7,7 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole } from '../auth.js';
 import { HANDOFF_TYPES as HANDOFF_TYPES_SRC } from '../../../docs/src/services/governance/handoff.js';
-import { BRANCH_COMMISSION_ROLES } from '../../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
 
@@ -20,7 +20,7 @@ import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gate
 //   `gsm1921-issue-unread-<assigneeId>`；授权审计留痕只存 `sop_org_os_auth_audit`
 //   ⇒ 清缓存即队列/标记/留痕灭失、换设备读不到。现按**语义端点域**模板（同 handoffs / member_confirmations）
 //   落服务端表：`server/db.js::SEMANTIC_TABLES` 建表，前端 `init()` 拉取填缓存
-//   （`docs/src/core/data-adapter.js::_loadAuxCollections`），写口改经本组端点 ⇒ 服务器为权威。
+//   （`docs/src/data/data-adapter.js::_loadAuxCollections`），写口改经本组端点 ⇒ 服务器为权威。
 // 纪律（三条，同上批）：① **故意不进快照 payload**（写口是语义端点，走快照会被防抖窗口里的陈旧缓存覆盖）；
 //   ② 写门照既有 requireXxx 中间件、角色集取 constants.js 单一源；③ 表在 `SEMANTIC_TABLES`
 //   ⇒ 无通用 CRUD、不参与快照事务。

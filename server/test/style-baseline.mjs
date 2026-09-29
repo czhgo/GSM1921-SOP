@@ -83,7 +83,7 @@
  *    （无文件清零）；全站 distinct 值仍 168（被清的值仍存于令牌定义处）。**H5 不加条目**：本批是**同文件内
  *    字面量 → var()**，不是文件间搬移（`HEX_MOVE_LEDGER` 的 ①②③ 判据——值须已离开 `from`、已进入 `to`——不适用）。 */
 
-// ── 存量清理（2026-09-26 · `core/constants.js` 色值单一源批）：清 **70 处**（该文件 137→67）──
+// ── 存量清理（2026-09-26 · `core/domain/constants.js` 色值单一源批）：清 **70 处**（该文件 137→67）──
 // 口径＝「裸 hex 字面量 → **同文件内唯一色值表 `_C` 的语义令牌名**」（**不是**跨文件搬移 ⇒ `HEX_MOVE_LEDGER` 不登记）：
 //   · 映射键族 `_TEXT_DARK_MAP`（50 处）改为 `[_C.x]: _C.y`，由 `_C` 派生；
 //   · 值 / 入参 / 兜底字面量 63 处改 `_C.*`（ROLE_COLORS · ACTIVITY_CAT_COLOR · ACCENT_COLORS · ACCENT_PALETTE ·
@@ -218,7 +218,7 @@ export const HEX_BASELINE = {
       '#0ea5e9', '#16a34a', '#4f46e5', '#60a5fa', '#94a3b8', '#b91c1c',
       '#cbd5e1', '#ef4444', '#f59e0b'
   ] },
-  'docs/src/core/constants.js': { c: 67, v: [
+  'docs/src/core/domain/constants.js': { c: 67, v: [
       '#000', '#0369a1', '#047857', '#059669', '#0e7490', '#0ea5e9',
       '#10b981', '#16a34a', '#1d4ed8', '#22c55e', '#22d3ee', '#2563eb',
       '#34d399', '#38bdf8', '#3b82f6', '#4ade80', '#4b5563', '#4f46e5',
@@ -228,14 +228,14 @@ export const HEX_BASELINE = {
       '#dc2626', '#f87171', '#fb923c', '#fbbf24', '#fee2e2', '#fef2f2',
       '#fefce8', '#ffd700', '#fff'
   ] },
-  'docs/src/core/data-adapter.js': { c: 7, v: [
+  'docs/src/data/data-adapter.js': { c: 7, v: [
       '#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#f9fafb',
       '#fff'
   ] },
-  'docs/src/core/icons.js': { c: 1, v: [
+  'docs/src/core/base/icons.js': { c: 1, v: [
       '#fff'
   ] },
-  'docs/src/core/utils.js': { c: 15, v: [
+  'docs/src/core/base/utils.js': { c: 15, v: [
       '#16a34a', '#1e293b', '#1f2937', '#3b82f6', '#e2e8f0', '#ef4444',
       '#eff6ff', '#f0fdf4', '#fef2f2', '#fff'
   ] },
@@ -363,7 +363,7 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/visitor/todo-tab.js': { c: 3, v: [
       '#a16207', '#fbbf24', '#ffd700'
   ] },
-  'docs/src/modules/references.js': { c: 16, v: [
+  'docs/src/components/sections/references.js': { c: 16, v: [
       '#047857', '#1d4ed8', '#b45309', '#d1fae5', '#dbeafe', '#ecfdf5',
       '#fef3c7'
   ] },

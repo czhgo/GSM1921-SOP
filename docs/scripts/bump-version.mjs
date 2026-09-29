@@ -38,7 +38,7 @@ function collectExistingStamps() {
       const full = join(dir, name);
       const st = statSync(full);
       if (st.isDirectory()) {
-        if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
+        if (name === 'scripts' || name === 'assets' || name === 'node_modules') continue;
         scan(full, exts);
         continue;
       }
@@ -75,7 +75,7 @@ function collectFiles(dir, ext, out = []) {
     const full = join(dir, name);
     const st = statSync(full);
     if (st.isDirectory()) {
-      if (name === 'scripts' || name === 'assets' || name === 'data') continue;
+      if (name === 'scripts' || name === 'assets') continue;
       collectFiles(full, ext, out);
     } else if (name.endsWith(ext)) {
       out.push(full);
@@ -181,7 +181,7 @@ for (const file of collectFiles(SRC_DIR, '.css')) {
 // ── 同步 bump CODE_VERSION（cross-page-state.js 运行时自检常量）──
 // 使旧 tab 持有旧 ES 模块时自动刷新一次（与模块 URL 版本号双保险）
 let codeVersionChanged = false;
-const cpsFile = join(SRC_DIR, 'core', 'cross-page-state.js');
+const cpsFile = join(SRC_DIR, 'core', 'session', 'cross-page-state.js');
 const cpsContent = readFileSync(cpsFile, 'utf8');
 const cpsNext = cpsContent.replace(
   /const CODE_VERSION = (\d+);/,
@@ -244,7 +244,7 @@ function scanStale(dir, exts, stampsOf) {
     const full = join(dir, name);
     const st = statSync(full);
     if (st.isDirectory()) {
-      if (name === 'scripts' || name === 'assets' || name === 'data' || name === 'node_modules') continue;
+      if (name === 'scripts' || name === 'assets' || name === 'node_modules') continue;
       scanStale(full, exts, stampsOf);
       continue;
     }

@@ -5,7 +5,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth, requireRole, requireCommissioner } from './auth.js';
-// P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/constants.js（勿手写）
+// P2c（2026-09-03）：角色/支委名单单一源 = docs/src/core/domain/constants.js（勿手写）
 // Q-21-3（2026-09-13）：在册状态枚举 RESIDENCE 同源 = constants.js（原先经 org-base-data-preview 转出，
 //   而 preview 与 roster 各持一份同值字面量；现全站唯一源）
 import {
@@ -16,7 +16,7 @@ import {
   ORG_COMMISSIONER_ROLES as ORG_COMMISSIONER_ROLE_KEYS,
   // 2026-09-14 批次 30（支书裁定 Q-23-10）：成员流动登记角色集单一源 —— 承载「流入登记」一路写门
   MEMBER_FLOW_ROLES as MEMBER_FLOW_ROLE_KEYS,
-} from '../../docs/src/core/constants.js';
+} from '../../docs/src/core/domain/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/branch/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';
 

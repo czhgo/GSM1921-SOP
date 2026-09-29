@@ -2,34 +2,34 @@
 // ════════════════════════════════════════════════════════════════
 //  party-group.js — 党小组（一等实体）服务层（2026-09-14 批次 25，支书特批）
 // ════════════════════════════════════════════════════════════════
-//  口径（与 mock/party-groups.js 种子头注一致）：
+//  口径（与 data/mock/party-groups.js 种子头注一致）：
 //   · 党小组为一等实体（mockDB.partyGroups）：组有 id/seq/status/组级留痕 history。
 //   · **组长由成员档案派生**（role='leader' + partyGroup），组实体不落 leaderId——避免两处维护。
 //   · 组名唯一性：**同一支部内活组（status='active'）组名唯一**；解散组保留历史不复用判重。
 //   · 改组/解散/归组的成员侧改名一律走既有写口 PersonStore.saveMember（mock 形态落 members 覆盖层、
 //     api 形态落 server users），不直接改数组——与 person.js 的写链保持单一写口。
-//   · 权限门（单一源 core/constants.js::SECRETARY_AND_DEPUTY_ROLES）：建组/改组/解散/归组
+//   · 权限门（单一源 core/domain/constants.js::SECRETARY_AND_DEPUTY_ROLES）：建组/改组/解散/归组
 //     仅支书（含副支书）；UI 显隐与写口双重校验同源（canManagePartyGroups）。
 //   · 写口模式：写 mockDB.partyGroups → persist() → bumpToken('partyGroups')。
 //  依赖方向：可依赖 core/* 与 services/member/person.js；**不被 org-base-data-preview.js 依赖**
-//   （preview 的组枚举由 mock/party-groups.js 种子派生，保持其为叶子，防 person→preview→party-group 成环）。
+//   （preview 的组枚举由 data/mock/party-groups.js 种子派生，保持其为叶子，防 person→preview→party-group 成环）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { persist } from '../../core/data-adapter.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { persist } from '../../data/data-adapter.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
 // 支委层角色集合单一源（勿手写角色名单——roles-sync 守卫会拦）
-import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/constants.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a';
-import { PARTY_GROUPS } from '../../mock/index.js?v=20260929a';
-import { PersonStore } from './person.js?v=20260929a';
+import { SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b';
+import { PARTY_GROUPS } from '../../data/mock/index.js?v=20260929b';
+import { PersonStore } from './person.js?v=20260929b';
 
 /** 缺省支部（与 mock-adapter/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
 /** 无权限文案（UI 与服务层同源） */
 const DENY_MANAGE = '党小组管理仅限支书（含副支书）';
 
-/** 是否可管理党小组（支书含副支书）——角色名单单一源 = core/constants.js */
+/** 是否可管理党小组（支书含副支书）——角色名单单一源 = core/domain/constants.js */
 export function canManagePartyGroups(role) {
   return SECRETARY_AND_DEPUTY_ROLES.includes(role);
 }
@@ -110,7 +110,7 @@ export async function addGroup({ name, by, branchId, role } = {}) {
   }
   const at = new Date().toISOString();
   const group = {
-    id: generateId('pg', '-'), // pg-<uuid>（统一经 core/id.js，禁前缀+Date.now 撞号）
+    id: generateId('pg', '-'), // pg-<uuid>（统一经 core/base/id.js，禁前缀+Date.now 撞号）
     branchId: branch,
     name: finalName,
     seq,

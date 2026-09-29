@@ -13,8 +13,8 @@
 //   ⇒ 阈值 N1=60 / N2=80 / N5=3 / N6=30，全部取自上表，本守卫不改。
 //
 // 判红面与抽取口径（**源码静态近似**；与 copy-master-guard 的抽取同族，差异逐条写明）：
-//   · 面 ＝ `docs/src/**/*.js`，**减去** ① `docs/src/mock/**`（演示数据，非界面文案；§4.18.1 已认定
-//     「最重几屏的字数主要来自运行时数据」）② `docs/src/core/function-catalog.js`（功能总览数据源，
+//   · 面 ＝ `docs/src/**/*.js`，**减去** ① `docs/src/data/mock/**`（演示数据，非界面文案；§4.18.1 已认定
+//     「最重几屏的字数主要来自运行时数据」）② `docs/src/core/domain/function-catalog.js`（功能总览数据源，
 //     渲染在 `about.html` / `help.html` 两张**文档页**上——§4.18.1 明确文档页不受本节约束）。
 //   · 同族步骤（与 copy-master-guard 一致）：剥注释（`//` · `/* */` · `<!-- -->`）→ 解 HTML 实体 → 去空白（含全角空格）。
 //   · **差异（为什么必须加，见报告 ⑦）**：copy-master-guard 只需「整份文件的可见文本」做 ≥20 字重合搜索，
@@ -60,7 +60,7 @@ const N6 = 30;  // 空态/错误态
 
 /** 面：docs/src 下全部 .js，减去演示数据与文档页数据源（理由见文件头） */
 const SKIP_DIRS = ['mock', 'vendor', 'node_modules'];
-const SKIP_FILES = ['docs/src/core/function-catalog.js'];
+const SKIP_FILES = ['docs/src/core/domain/function-catalog.js'];
 
 /** 块级标签（切段边界；单一源，L1–L4 共用） */
 const BLOCK_TAGS = ['p', 'div', 'li', 'ul', 'ol', 'section', 'article', 'aside', 'header', 'footer', 'main',
@@ -304,7 +304,7 @@ const BASELINE_C6 = {
   'docs/src/entries/tabs/secretary/report-up-tab.js': [
     '暂无上报记录·支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里',
   ],
-  'docs/src/modules/references.js': [
+  'docs/src/components/sections/references.js': [
     '暂无制度文本——可在「写入文件」中选择「制度文本」发布（支书/副支书）',
   ],
 };

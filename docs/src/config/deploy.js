@@ -13,7 +13,7 @@ export const DEPLOY_MODE = 'static';
 // - false = 真实部署（server 形态 + 真实账本）务必改 false：
 //   否则用户任何一次写触发快照上传时，会把先前空表回退注入的演示种子一并写到服务端，污染真实账本。
 // ⚠ **2026-09-23 批次 163 起：本常量「已接线」，改它生效**（此前登记过「全仓无消费点、改它不生效」——已不成立）。
-//   唯一消费点 = `docs/src/core/data-adapter.js::init()` 的三域空表回退判据（**命名空间读取**，缺该导出时按 `true`）：
+//   唯一消费点 = `docs/src/data/data-adapter.js::init()` 的三域空表回退判据（**命名空间读取**，缺该导出时按 `true`）：
 //     `if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length))`（考勤/考察）
 //     `if (SEED_FALLBACK && !mockDB.todos.length)`（待办）
 //   ⇒ false 时不注入演示数据（三域保持服务器返回的空态）。
@@ -37,7 +37,7 @@ export const SEED_FALLBACK = true;
 //  显式失败并提示「需要连接服务器」——数据不再落到浏览器本地（避免用户以为
 //  存上了，登录后被服务端数据覆盖的「静默丢单」形态）。
 //
-//  单一源：本常量。消费点 = `core/data-adapter.js::isDemoReadOnly()`（唯一判据函数）
+//  单一源：本常量。消费点 = `data/data-adapter.js::isDemoReadOnly()`（唯一判据函数）
 //    → `persist()`（mockDB 系全部业务写的汇聚点）与 `services/governance/issues.js`（反馈域独立写链）。
 //
 //  唯一逃逸门：环境变量 `DEMO_READONLY=0`（照 `DISABLE_PASSWORD_CHECK=1` 先例——

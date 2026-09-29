@@ -20,7 +20,7 @@ MIT · Node ≥ 22 · 原生 ESM（无打包器/无构建步骤）· 纯本地�
 
 ## 功能地图
 
-> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。
+> 通用能力与组织特有能力以（通用）/（特有）文本标注区分；本图由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 docs/src/core/domain/function-catalog.js 生成，勿手改（完整四章含业务链路/架构分层/服务依赖用同脚本 stdout 打印）。
 
 <!--FUNC-MAP:START-->
 
@@ -169,21 +169,21 @@ mindmap
 
 | 要换什么 | 替换入口 |
 |---------|---------|
-| 组织数据（人员/活动/通知/专班/考勤/档案） | [docs/src/mock/](docs/src/mock/) 数据文件整体替换；服务端种子 [server/seed.js](server/seed.js) 复用同一份数据 |
-| 角色与权限 | 角色清单单一事实源 [docs/src/core/constants.js](docs/src/core/constants.js)；权限矩阵 [content/02_institution/SYSTEM_ROLE_PERMISSION.md](content/02_institution/SYSTEM_ROLE_PERMISSION.md)；部署形态 [docs/src/config/deploy.js](docs/src/config/deploy.js) |
+| 组织数据（人员/活动/通知/专班/考勤/档案） | [docs/src/data/mock/](docs/src/data/mock/) 数据文件整体替换；服务端种子 [server/seed.js](server/seed.js) 复用同一份数据 |
+| 角色与权限 | 角色清单单一事实源 [docs/src/core/domain/constants.js](docs/src/core/domain/constants.js)；权限矩阵 [content/02_institution/SYSTEM_ROLE_PERMISSION.md](content/02_institution/SYSTEM_ROLE_PERMISSION.md)；部署形态 [docs/src/config/deploy.js](docs/src/config/deploy.js) |
 | 主题配色 | 色彩令牌 [docs/src/styles.css](docs/src/styles.css) + constants.js（禁改，须支书特批）；固定/可调口径见 [DESIGN_SYSTEM.md §二 色彩系统](content/04_web_design/design-system/DESIGN_SYSTEM.md) |
 | 术语与制度 | 术语权威源 [OPERATIONS_GUIDE.md §19](content/03_doc_system/OPERATIONS_GUIDE.md)（《运行与协作规范》）；制度母本 [content/02_institution/](content/02_institution/) |
-| 业务默认（阈值/名单） | [docs/src/core/policy-defaults.js](docs/src/core/policy-defaults.js)（`branch-default`=支部可调 / `institutional`=制度固定须支书裁决） |
-| 功能模块组合 | 能力注册表 + 支部 config.modules/blocks 启停排序（模块声明契约 [docs/src/core/module-compose.js](docs/src/core/module-compose.js)） |
+| 业务默认（阈值/名单） | [docs/src/core/domain/policy-defaults.js](docs/src/core/domain/policy-defaults.js)（`branch-default`=支部可调 / `institutional`=制度固定须支书裁决） |
+| 功能模块组合 | 能力注册表 + 支部 config.modules/blocks 启停排序（模块声明契约 [docs/src/core/base/module-compose.js](docs/src/core/base/module-compose.js)） |
 | 后端与部署 | [server/README.md](server/README.md)；数据源 adapter（本地 mock ↔ REST API）见 [docs/src/core/](docs/src/core/) |
 
-**30 分钟换壳**：clone 并 `cd server && npm install && npm start` → 换 `docs/src/mock/`（人员/账号/活动/考勤/专班等，[accounts.js](docs/src/mock/accounts.js) 账号可登录）→ 换角色/权限/术语/配色/policy-defaults → 换支部名与分支配置（[branches.js](docs/src/mock/branches.js) 或向导可视化配置）→ `cd server && npm test` 验证（应到口径派生自 policy-defaults，替换数据后按需改 `partyStages/excludeDetained`）。组织内部逐项替换示例见 [README-members.md 九](README-members.md#九复用与二次开发给其他组织)。
+**30 分钟换壳**：clone 并 `cd server && npm install && npm start` → 换 `docs/src/data/mock/`（人员/账号/活动/考勤/专班等，[accounts.js](docs/src/data/mock/accounts.js) 账号可登录）→ 换角色/权限/术语/配色/policy-defaults → 换支部名与分支配置（[branches.js](docs/src/data/mock/branches.js) 或向导可视化配置）→ `cd server && npm test` 验证（应到口径派生自 policy-defaults，替换数据后按需改 `partyStages/excludeDetained`）。组织内部逐项替换示例见 [README-members.md 九](README-members.md#九复用与二次开发给其他组织)。
 
 ---
 
 ## 五、快速开始
 
-**公网演示**：打开 <https://czhgo.github.io/GSM1921-SOP/>，用演示账号（[accounts.js](docs/src/mock/accounts.js)，密码 `123456`）登录。该地址是**示例组织的一个部署**，仅用于试用。
+**公网演示**：打开 <https://czhgo.github.io/GSM1921-SOP/>，用演示账号（[accounts.js](docs/src/data/mock/accounts.js)，密码 `123456`）登录。该地址是**示例组织的一个部署**，仅用于试用。
 
 > 演示数据可随时恢复初始态：地址后加 `?reset=demo`（回种子初始态）；`?reset=preview` 只清运行时预览/草稿（如向导草稿 `wizard-draft-*`、成员基础数据预览）不动演示本体；正式投入使用前用 `?reset=init` 一键初始化为「新支部初始态」——清业务过程数据（活动/考勤/考察/专班/通知/汇报/议程决议跟进/归档/交接/意见反馈等），**保留组织骨架**（账号与角色结构、成员档案、支部配置/分工/术语、在册状态与主题外观）。登录后端（API 模式）后三档均不生效——数据以服务器为权威，不清登录会话与远端数据；API 模式的「重置/初始化」= 删除 `server/data.db` 重启自动重种，或 `DISABLE_SEED=1` 空库起步。
 
@@ -200,7 +200,7 @@ npm start
 
 > ⚠ **为什么在浏览器里「只看到 HTML 文档、不是网页」**：本系统是原生 ESM 模块应用——页面必须**经 HTTP 服务**提供，浏览器才会把它当网页（加载 `<script type="module">`、发起 `/api/v1` 请求）。若用 `file://` 打开（双击 `docs/index.html`，或在编辑器里预览该文件），浏览器只按「文档」渲染：模块被跨源策略拦下、接口无从发起 ⇒ 看到的就只是一份 HTML 文本。**正确入口＝从服务访问**：`http://127.0.0.1:3000/login.html`（`npm start` 后），或把 `docs/` 交给任意静态服务器（如 `npx serve docs`）。路径不要用 `file:///...`。
 >
-> ⚠ **只读演示**：**没有 API 会话时**（静态托管 / 未登录 / 本机演示），系统按**只读演示**运行——可浏览、可点开，一切写操作会提示「当前为只读演示：数据不会保存到本机，请登录后使用服务器数据」，**不再把数据存在浏览器本地**（避免「以为存上了、登录后被服务端数据覆盖」）。登录（[accounts.js](docs/src/mock/accounts.js) 演示账号，密码 `123456`）后即切到服务器数据形态。本地开发需临时放行本机可写时，置环境变量 `DEMO_READONLY=0` 启动（仅本地/测试用）。
+> ⚠ **只读演示**：**没有 API 会话时**（静态托管 / 未登录 / 本机演示），系统按**只读演示**运行——可浏览、可点开，一切写操作会提示「当前为只读演示：数据不会保存到本机，请登录后使用服务器数据」，**不再把数据存在浏览器本地**（避免「以为存上了、登录后被服务端数据覆盖」）。登录（[accounts.js](docs/src/data/mock/accounts.js) 演示账号，密码 `123456`）后即切到服务器数据形态。本地开发需临时放行本机可写时，置环境变量 `DEMO_READONLY=0` 启动（仅本地/测试用）。
 
 ---
 
@@ -214,19 +214,26 @@ npm start
 
 ```
 docs/src/
-  core/       常量/主题/能力注册表/版本令牌/数据适配（mock-adapter 禁改）
+  core/       内核（**2026-09-29 批次 267 分四子域**）
+              base/（零依赖基础件：id/utils/icons/period/state/version-token/module-compose）
+              domain/（领域口径与单一源清单：constants/domain/policy-defaults/work-map/function-catalog/mermaid-sources/system-notice-templates）
+              boot/（启动装配与页面骨架：bootstrap/registry/tab-nav/theme）
+              session/（会话级 / 跨页轻量状态：cross-page-state/pending-target/pending-writes/login-snapshot）
+  data/       数据形态层（**2026-09-29 批次 267 新立**）：data-adapter（门面）· api-adapter · mock-adapter（禁改）· data-loader
+              mock/（演示数据 15 件；整体替换即换组织）
   services/   数据 CRUD 与权限计算（UI 层禁止直改数据源）；**按域分子目录**
               core/（底座与横切）· member/（人与名册）· activity/（活动与会务）
               governance/（治理与反馈）· branch/（支部组织与配置）
-  components/ 视图组件；**按角色分子目录**
+  components/ 视图组件；**按性质 / 角色分子目录**
               ui/（基础件与库里：badges/forms/modal/pager/list-filter/relation-matrix…）
-              shell/（页面外壳）· feedback/（反馈域）· record/（实体视图）
-              governance/（治理与人员面板）· dashboard/（首页面板）
-  modules/capabilities/  工作台能力注册（每台一张 tab 清单声明）
+              shell/（页面外壳）· sections/（页级板块：help-catalog/references；批次 267 新立）
+              feedback/（反馈域）· record/（实体视图）· governance/（治理与人员面板）· dashboard/（首页面板）
+  capabilities/  能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**）
+              —— 与 `entries/` 对称：入口薄壳 ↔ 能力声明（每台一张 tab 清单）
   entries/    页面入口；**按判据分三类**——pages/（独立页入口 15 个）· workspace/（角色工作台薄壳入口 7 个）
               · tabs/{各台 tab}（早已按台分组；today 共享「今天」渲染）
-  modules/    能力注册表与跨页件（capabilities/ 已分组；余 3 件各成一类，见 §六 G2 残余结算）
-  mock/       演示数据（整体替换即换组织）
+  workflow/   工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约与编排内核）
+  config/     部署配置（deploy.js）
 content/      分层权威源：01_strategy（支书战略与批改）/ 02_institution（制度母本）
               / 03_doc_system（文档治理）/ 04_web_design（设计档案）/ 05_ai_coding（协作方法论）/ insights（经验沉淀）
 .ctx/         过程记录：logs（执行/决策日志）、REVIEW_QUEUE、SNAPSHOT、TIMESTAMPS、ENGINEERING_ASSESSMENT（工程化评估与改造行动线）
@@ -269,11 +276,11 @@ content/ 文档是**支书批改的权威源**（制度先改文本、后同步�
 
 ### 开发纪律
 
-- **禁改清单**：`content/`（支书批改层）、`docs/src/styles.css`、`docs/src/core/mock-adapter.js`、`inspector.js`、`roster.js`、`work-overview.js`、`secretary/overview-tab.js` 等须**支书特批**才内改（读链可只读复用其导出）
+- **禁改清单**：`content/`（支书批改层）、`docs/src/styles.css`、`docs/src/data/mock-adapter.js`、`inspector.js`、`roster.js`、`work-overview.js`、`secretary/overview-tab.js` 等须**支书特批**才内改（读链可只读复用其导出）
 - **测试节奏（2026-09-15 支书定）**：**日常只跑与改动面相关的定向守卫**（如 `node --test test/filter-row.test.mjs test/relation-matrix.test.mjs`，秒级到分钟级）；**只在交付/提交前**跑一次全量 `npm test`（真机普查 `page-sweep` / `form-loop` 耗时最长，受机器负载影响可到数十分钟——本机若开着大量浏览器进程会致 e2e 超时，须以「单独复跑」取证区分「环境负载」与「回归」）
 - **提交节奏（2026-09-15 支书定）**：**小步提交**——每完成一个可独立验证的小步即提交（守卫绿 → 提交 → 再下一步），不积压；**AI 侧不能写 `.git`（沙箱权限），提交命令由 AI 给出、支书本机执行**；每批交付报告**第一屏**须给「提交命令 + HEAD 哈希 + 未提交规模」（未提交＝支书看不见＝等于没做，见 `CLAUDE.md` R-66）
 - **push 须支书批准**（分支 ahead 待批时不得自行推送）
-- **README 功能说明随功能同步**：功能/页面/机制变更须同步本文档与 [README-members.md](README-members.md)；**功能地图位于本文顶部**（`<!--FUNC-MAP:ANCHOR-->` 锚点后的标记块），由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 [function-catalog.js](docs/src/core/function-catalog.js) 生成，勿手改
+- **README 功能说明随功能同步**：功能/页面/机制变更须同步本文档与 [README-members.md](README-members.md)；**功能地图位于本文顶部**（`<!--FUNC-MAP:ANCHOR-->` 锚点后的标记块），由 `node docs/scripts/gen-function-mermaid.mjs --write` 从 [function-catalog.js](docs/src/core/domain/function-catalog.js) 生成，勿手改
 - 更多工程纪律见 [CONTRIBUTING.md](CONTRIBUTING.md)、[CLAUDE.md](CLAUDE.md)（AI 协作治理）、[TEST_AND_VERIFICATION.md](content/05_ai_coding/TEST_AND_VERIFICATION.md)
 
 ---

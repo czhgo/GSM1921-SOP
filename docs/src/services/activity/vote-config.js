@@ -1,16 +1,16 @@
 // role: [工程师]+[AI]
 // vote-config.js — 线上异步表决配置（voteConfig）解析与场景默认
 // 泛化：支委会 deliberative / 支部党员大会 formal+硬校验；optionSet/voterScope/quorumCheck 参数化
-// ── voterIds 与「应到名单」联动（支书 2026-09-06 ②批，出处见 mock/activities.js act-31 注释）──
+// ── voterIds 与「应到名单」联动（支书 2026-09-06 ②批，出处见 data/mock/activities.js act-31 注释）──
 //   新活动创建线上表决时固化的 voterIds = 按 voterScope 取现时「应到表决人」：
 //     仅党员/支委范围 + 剔除滞留成员（运行期「在校/滞留」覆盖优先，缺省静态在校），
 //   实现同型最小改：范围规则沿用本文件（formal-only/formal-plus-prep/committee），
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20260929a';
-import { AuthStore } from '../core/auth.js?v=20260929a';
-import { isDetained } from '../member/roster.js?v=20260929a';
+import { PersonStore } from '../member/person.js?v=20260929b';
+import { AuthStore } from '../core/auth.js?v=20260929b';
+import { isDetained } from '../member/roster.js?v=20260929b';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -25,9 +25,9 @@ export const OPTION_SETS = {
   },
 };
 
-// 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/constants.js
+// 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/constants.js?v=20260929a';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260929b';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 

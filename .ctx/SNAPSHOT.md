@@ -56,10 +56,12 @@ GSM1921-SOP/
 │   └── src/                    ← ESM 模块化源码
 │       ├── entries/            ← 页面入口（**2026-09-28 按判据分三类**：`pages/` 独立页入口 15 · `workspace/` 角色工作台薄壳入口 7 · `tabs/` 各台业务 tab）
 │       ├── components/         ← 共享组件（**2026-09-28 目录分层**：`dashboard/` · `ui/`（基础件与库：badges/forms/modal/custom-select/pager/list-filter/relation-matrix…）· `shell/`（页面外壳：header/sidebar/tab-bar/workspace-shell…）· `feedback/`（反馈域）· `record/`（实体视图：activity-view/taskforce-view/insight-view/todo-*/report-*/inspector…）· `governance/`（治理与人员面板：person-picker/vote-*/member-change-panel/work-overview…））
-│       ├── core/               ← 核心工具（constants/registry/domain/theme/data-adapter/mock-adapter/policy-defaults/module-compose 等）
-│       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/org-config-package/appointment/workforce…））
-│       ├── mock/               ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
-│       ├── modules/            ← 业务模块（capabilities/ 能力注册 12 件 + 跨页件 3 件：help-catalog/references/branch-demo-nav；后者各成一类，不再细分——见 ENGINEERING_ASSESSMENT §六 G2 残余结算）
+│       ├── core/               ← 内核（**2026-09-29 批次 267 分四子域**：`base/` 零依赖基础件 · `domain/` 领域口径与单一源清单 · `boot/` 启动装配与页面骨架 · `session/` 会话级跨页轻量状态）
+│       ├── data/               ← 数据形态层（**2026-09-29 批次 267 新立**）：`data-adapter`（门面）· `api-adapter` · `mock-adapter`（禁改）· `data-loader` ＋ `mock/`（演示数据种子）
+│       ├── services/           ← 服务层（**2026-09-28 目录分层**：`core/`（底座与横切：auth/roles/runtime/mock/preferences/visibility/init-reset/accounts）· `member/`（person/roster/member-flow/member-confirmation/party-group…）· `activity/`（activity/attendance/inspection/makeup/signup/taskforce/agenda-*/vote-config/decision-tree…）· `governance/`（issues/review/handoff/thought-report/notice/todo…）· `branch/`（branch/branch-doc/config-clean/org-config-package/appointment/workforce…））
+│       ├── data/mock/          ← Mock 演示数据（people/branches/activities/attendance 等种子文件 + index；数据窗口 2026-07~09；**`prop.js`＝周报 / 宣传任务种子单一源，UI 侧与服务端同源导入**，2026-09-28 批次 234）
+│       ├── capabilities/       ← 能力声明（**2026-09-29 批次 267 由 `modules/capabilities/` 上提为顶层**，11 件；与 `entries/` 对称：入口薄壳 ↔ 能力声明）
+│       ├── components/sections/ ← 页级板块渲染器（**2026-09-29 批次 267 新立**：`help-catalog` help 页目录树/章节卡片 · `references` 资料查询板块）
 │       ├── workflow/           ← 工作流引擎（engine/renderer/sop/sopData + blocks/ 块契约 manifests〔**6 块**：试点 2 ＋ 2026-09-29 批次 248 铺开的三会一课 4〕 + **`blocks/orchestration.js`＝通用编排内核**：范围过滤 / 组合校验 / 稳定拓扑序 / 编译为既有 definition 形状的纯数据；2026-09-28 批次 239）
 │       └── styles.css          ← 全局样式
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
@@ -180,7 +182,7 @@ GSM1921-SOP/
 | 参与者（普通参与者） | 成员工作台（个人视角：查看支委工作成果+个人考勤+思想汇报+待办） |
 | 党委组织员（党委级·不属于支部） | 党委工作台（全院支部台账+支部管理（新建/改名/任命）+上报审批+下发通知+支部配置） |
 
-> 角色键/矩阵全量权威：`docs/src/core/constants.js` ROLE_KEYS/ROLE_LABELS/ROLE_PAGE_MAP + SYSTEM_ROLE_PERMISSION.md + `ARCHITECTURE.md §十一（统一服务目录与角色-服务权限矩阵）`（原 `SERVICE_CATALOG.md`；2026-09-25 批次 179 并入）；可见性/操作权按赋权链计算（P-015 按人视图），支书工作台中文一律「支书」。
+> 角色键/矩阵全量权威：`docs/src/core/domain/constants.js` ROLE_KEYS/ROLE_LABELS/ROLE_PAGE_MAP + SYSTEM_ROLE_PERMISSION.md + `ARCHITECTURE.md §十一（统一服务目录与角色-服务权限矩阵）`（原 `SERVICE_CATALOG.md`；2026-09-25 批次 179 并入）；可见性/操作权按赋权链计算（P-015 按人视图），支书工作台中文一律「支书」。
 
 ## VI. 版本里程碑
 

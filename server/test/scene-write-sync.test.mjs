@@ -1,5 +1,5 @@
 // server/test/scene-write-sync.test.mjs — P2b 防止未同步的情况：写活动场景目录单一源自洽（2026-09-03）
-// 校验 core/constants.js 的 SCENARIO_WRITE_IDS/SCENARIO_LABELS：
+// 校验 core/domain/constants.js 的 SCENARIO_WRITE_IDS/SCENARIO_LABELS：
 //   ① 与 ACTIVITY_CLASSIFICATION.subtypes 中文名逐序一致（四子会）；
 //   ② 平铺 id 全集 == SCENARIO_LABELS 键集（决策树/日历模板只派生这两者，无第二份手写清单）；
 //   ③ 全部写入 id ∈ SCENARIO_TO_CATEGORY（主题党日/四子会归类有效）；
@@ -10,14 +10,14 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   SCENARIO_WRITE_IDS, SCENARIO_LABELS, ACTIVITY_CLASSIFICATION,
-} from '../../docs/src/core/constants.js?v=20260929a';
-import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929a';
+} from '../../docs/src/core/domain/constants.js?v=20260929b';
+import { BLOCK_MANIFESTS } from '../../docs/src/workflow/blocks/manifests.js?v=20260929b';
 
 const root = fileURLToPath(new URL('../..', import.meta.url)); // 仓库根
 
 // SCENARIO_TO_CATEGORY 为模块内私有常量（非导出），文本求值其纯字面量
 function grabScenarioToCategory() {
-  const src = readFileSync(`${root}docs/src/core/constants.js`, 'utf8');
+  const src = readFileSync(`${root}docs/src/core/domain/constants.js`, 'utf8');
   const m = /const SCENARIO_TO_CATEGORY = ([\s\S]*?);\s*\/\*\*/.exec(src);
   assert.ok(m, 'constants.js 未找到 SCENARIO_TO_CATEGORY');
   return new Function(`return (${m[1]})`)();

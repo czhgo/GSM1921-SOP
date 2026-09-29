@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { requireAuth, requireCommissioner } from '../auth.js';
-import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/constants.js';
+import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
 import { RESOURCE_TABLES } from './store.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
@@ -110,7 +110,7 @@ export function _ballotModeReject(voteConfig) {
 //   **本支部、支委身份（组织 / 宣传 / 纪检委员）** 这一格写权；**2026-09-23 支书追裁「副支书也可配」**
 //   ⇒ 同权扩到本支部现任副支书（`SECRETARY_AND_DEPUTY_ROLES` 同页同权，与本仓通例一致）；
 //   **党委侧口径一字未收窄**（`party-staff` 仍全量可写）。
-// 判据**单一源**＝`docs/src/core/constants.js::branchCommissionerWriteDeny`（本函数只把「靶行 / 靶支部 /
+// 判据**单一源**＝`docs/src/core/domain/constants.js::branchCommissionerWriteDeny`（本函数只把「靶行 / 靶支部 /
 //   现任支书 / 现任副支书」从库里取出来喂给它，**不另写第二套**）。被拒的几类（该函数注释为权威，此处摘要）：
 //   · 非本支部现任支书 / 副支书者（组织 / 宣传 / 纪检委员 / 普通成员等）→ 403；
 //   · 靶标与操作人不同支部 → 403；靶标即支书本人 / 现任主席位（`secretary` / `deputy-secretary`）→ 403

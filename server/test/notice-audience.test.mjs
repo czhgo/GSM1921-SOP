@@ -11,7 +11,7 @@
 //      把「消费端可见性过滤」套在「按 id 取数」上 → 连发布者都取不到自己发的通知。
 //
 //  修复契约（本守卫锁死）：
-//    · 受众判定单一源 = core/constants.js 的 NOTICE_AUDIENCE_SENTINELS（发布侧↔消费端同源）；
+//    · 受众判定单一源 = core/domain/constants.js 的 NOTICE_AUDIENCE_SENTINELS（发布侧↔消费端同源）；
 //    · list() 受众门按 sentinel 判定，并对历史裸角色键回退直比；
 //    · canReadNotice(notice, viewer) = 详情页读取权限单一源；
 //    · getById(id) 只按 id 取数，不再套可见性门。
@@ -30,12 +30,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260929a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260929a';
-import { MOCK_NOTICES } from '../../docs/src/mock/index.js?v=20260929a';
-import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/constants.js?v=20260929a';
-import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20260929b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20260929b';
+import { MOCK_NOTICES } from '../../docs/src/data/mock/index.js?v=20260929b';
+import { NOTICE_AUDIENCE_OPTIONS } from '../../docs/src/core/domain/constants.js?v=20260929b';
+import { NoticeStore, canReadNotice } from '../../docs/src/services/governance/notice.js?v=20260929b';
 
 // ── localStorage 内存桩 + sessionStorage 空桩（与 thought-report-panel.test.mjs 同做法）──
 // getCurrentUser 走 localStorage；A-11 防串扰仅在登录对象带 tabId 时才校验，本桩不带 tabId → 直取。

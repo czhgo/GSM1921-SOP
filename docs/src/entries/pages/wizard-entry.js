@@ -5,20 +5,20 @@
 //   · 党委（party-staff）→ 任意支部可选（canSwitchBranch）
 //   · 未登录 / 其它角色 / 非现任支书 → 提示卡（无权限不渲染向导）
 // 主体共用 components/governance/org-setup-wizard.js（party-config tab 同源）。
-import { BranchService } from '../../services/core/runtime.js?v=20260929a'; // 副作用注册适配器 + BranchService 绑定（loadDB）
-import { hydrateDataSource } from '../../core/data-adapter.js?v=20260929a';
-import { ApiAdapter } from '../../core/api-adapter.js?v=20260929a';
-import { AuthStore } from '../../services/core/auth.js?v=20260929a';
-import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20260929a';
-import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20260929a';
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929a';
-import { renderHeader } from '../../components/shell/header.js?v=20260929a';
-import { escHtml as esc } from '../../core/utils.js?v=20260929a';
+import { BranchService } from '../../services/core/runtime.js?v=20260929b'; // 副作用注册适配器 + BranchService 绑定（loadDB）
+import { hydrateDataSource } from '../../data/data-adapter.js?v=20260929b';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260929b';
+import { AuthStore } from '../../services/core/auth.js?v=20260929b';
+import { getBranchById, getBranchIdOfPerson } from '../../services/branch/branch.js?v=20260929b';
+import { mountOrgSetupWizard } from '../../components/governance/org-setup-wizard.js?v=20260929b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260929b';
+import { renderHeader } from '../../components/shell/header.js?v=20260929b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260929b';
 
 renderSidebar('wizard');
 renderHeader('wizard');
 
-// 数据层初始化（P0-2 2026-09-23 收敛）：判定唯一源＝core/data-adapter.js::hydrateDataSource——
+// 数据层初始化（P0-2 2026-09-23 收敛）：判定唯一源＝data/data-adapter.js::hydrateDataSource——
 // 有 token 走 api、**失败即失败**（「无法连接服务器」错误态 + 重试，不再静默回退可写 mock＝静默丢单）；
 // 无 token（同 search/notice 等独立页）走本地 mock。本地 mock 仍统一走 BranchService.loadDB()
 // （可改 reset/init 触发链 + init 态种子过滤；不再直连 data-adapter.init() mock 分支，2026-09-08 C2 收口）。

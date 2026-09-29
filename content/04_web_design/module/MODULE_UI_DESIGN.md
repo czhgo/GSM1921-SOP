@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: "2026-09-28"
+last_updated: 2026-09-29
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -366,11 +366,11 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 > - 赋权三情景：`COMMISSIONER_DUTY_FRAMEWORK.md:210`（§D.1）「① **常设赋权**（党小组组长 / 支委身份）：本位＝支书…② 活动项目赋权…③ 专班赋权」；`:220`（§D.1.1 表）常设赋权「入口位置＝**支书工作台→常设赋权 tab**」（⚠ 制度原文本写「常设赋权 tab」）。
 > - 信息密度分层：`content/04_web_design/design-system/DESIGN_SYSTEM.md §一 原则9`「信息密度分层：**L0 个人视角 / L1 条线视角 / L2 全局视角**…设计落点：支书工作台全局概况"按维度/按人"双视图」；`§4.10 视图清单`单列「**执行层仪表盘｜支书「全局概况」**」为独立视图模式；`§4.10 执行层仪表盘`展开该仪表盘四要素（KPI 顶栏 / 异常优先队列 / 叙事行 / 趋势 sparkline）。
 > - 同源：`COMMISSIONER_DUTY_FRAMEWORK.md:368`（§F.6）「做与看…支书工作台全局概况"按维度/按人"双视图」。
-> - 组织型主体「支委会」：`docs/src/core/work-map.js:43-46`（`ORG_SUBJECTS['branch-committee']＝支委会`）、`:93`（工作地图模块「支委会」`defaultOwner:'secretary'`、`desc:'研究支部日常工作（支委会不考勤）'`）。
+> - 组织型主体「支委会」：`docs/src/core/domain/work-map.js:43-46`（`ORG_SUBJECTS['branch-committee']＝支委会`）、`:93`（工作地图模块「支委会」`defaultOwner:'secretary'`、`desc:'研究支部日常工作（支委会不考勤）'`）。
 
 ### 四.1 全站 tab 总方案（8 角色 × 逐 tab ＝ 77 条）
 
-**普查口径**：8 角色 ＝ `docs/src/core/constants.js:305-317` `ROLE_PAGE_MAP.workspace` 的 8 个键（`secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `participant` / `party-staff`）；tab 数按各台能力注册数组实读：11 / 11 / 11 / 9 / 8 / 9 / 11 / 7 ＝ **77**。
+**普查口径**：8 角色 ＝ `docs/src/core/domain/constants.js:305-317` `ROLE_PAGE_MAP.workspace` 的 8 个键（`secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `participant` / `party-staff`）；tab 数按各台能力注册数组实读：11 / 11 / 11 / 9 / 8 / 9 / 11 / 7 ＝ **77**。
 ⚠ **两处共享关系**：① `deputy-secretary` 与 `secretary` **共用 `secretary.html`、tab 完全相同**（`constants.js:307-308`）；② `deputy-leader`（副组长）**共用 `leader.html`**（`constants.js:819-821`，本表按其列在 `leader` 行内、不另计 11 条）。
 
 **码表（本节全表通用）**
@@ -396,7 +396,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 #### 四.1.2 副支书（`secretary.html`，11 条 — **与支书同款**）
 
-> 注册单一源同 `docs/src/modules/capabilities/secretary-workspace.js`（副支书共台，`constants.js:307-308`）；逐条判定与支书**完全相同**，此处只列名：
+> 注册单一源同 `docs/src/capabilities/secretary-workspace.js`（副支书共台，`constants.js:307-308`）；逐条判定与支书**完全相同**，此处只列名：
 
 | # | tab 名 | 判定 |
 |---|---|---|
@@ -545,7 +545,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 
 ### 四.3 「支委会」界面专项（裁定① ＋ 支书"支委会的界面也非常混乱"）
 
-**实读对象**：`docs/party-committee-meeting.html`（37 行外壳）＋ `docs/src/entries/pages/party-committee-meeting-entry.js`（761 行）＋ 支书台「支委会会议」tab（`docs/src/entries/tabs/secretary/committee-meeting-tab.js`，38 行）＋ 工作地图 `scenarioId='branch-committee'`（`docs/src/core/work-map.js:43-46` / `:93`）。
+**实读对象**：`docs/party-committee-meeting.html`（37 行外壳）＋ `docs/src/entries/pages/party-committee-meeting-entry.js`（761 行）＋ 支书台「支委会会议」tab（`docs/src/entries/tabs/secretary/committee-meeting-tab.js`，38 行）＋ 工作地图 `scenarioId='branch-committee'`（`docs/src/core/domain/work-map.js:43-46` / `:93`）。
 
 #### ① 它现在为什么"混乱"（逐条 · 引 `文件:行` 与母本原文）
 

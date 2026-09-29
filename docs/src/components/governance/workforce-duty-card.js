@@ -4,13 +4,13 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../../services/core/auth.js?v=20260929a';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20260929a';
-import { WORK_MAP_MODULES } from '../../core/work-map.js?v=20260929a';
-import { escHtml as esc } from '../../core/utils.js?v=20260929a';
+import { AuthStore } from '../../services/core/auth.js?v=20260929b';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20260929b';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260929b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260929b';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
- *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/work-map.js），
+ *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/domain/work-map.js），
  *  三台各补 4 条同 tab 映射。
  *  2026-09-22 批次 149：`joint-event`（共建活动）缺省主责改归**本组组长** ⇒ 组长台补 1 条同 tab 映射
  *  （按主题党日承载 ⇒ 与 `theme-party` 同落 `write`）；支书台那一条保留（改派回头仍要用）。

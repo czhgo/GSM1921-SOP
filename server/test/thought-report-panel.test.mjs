@@ -7,16 +7,16 @@
 //   ④ 存量/脏值归一：无 period、非法 period 的记录读取时按 submittedAt 推导
 //   ⑤ 篇幅口径（`SOP-B-11`）：**三个数各是各的**——建议 1500（wordHint）· 警告审阅线 1200
 //      （wordSoftMin）· **一律不影响提交**（过短照常提交并入库归档）
-//   ⑥ 期次标签/选项（单一源 core/period.js）
+//   ⑥ 期次标签/选项（单一源 core/base/period.js）
 // 运行：node --test test/thought-report-panel.test.mjs（server 目录）
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
-import { MockAdapter } from '../../docs/src/core/mock-adapter.js?v=20260929a';
-import { setDataSource, registerMockAdapter } from '../../docs/src/core/data-adapter.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260929a';
-import * as TR from '../../docs/src/services/governance/thought-report.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20260929b';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260929b';
+import * as TR from '../../docs/src/services/governance/thought-report.js?v=20260929b';
 
 // ── localStorage 内存桩（与 thought-review.test.mjs 同做法）──
 const _store = new Map();
@@ -93,7 +93,7 @@ test('③ 按期次归集：组内多篇、组间期次倒序', () => {
 
   const groups = TR.listThoughtReportsByPersonGrouped('p6');
   assert.equal(groups[0].period, '2026-Q2', '组间按期次倒序（新期次在前）');
-  assert.equal(groups[0].label, '2026年第二季度', '期次中文标签（单一源 core/period.js）');
+  assert.equal(groups[0].label, '2026年第二季度', '期次中文标签（单一源 core/base/period.js）');
   assert.ok(groups[0].items.some(r => r.id === q2a.id) && groups[0].items.some(r => r.id === q2b.id),
     'Q2 组内含正稿与补充稿两篇');
   const g1 = groups.find(g => g.period === '2026-Q1');

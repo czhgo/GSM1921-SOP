@@ -16,21 +16,21 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../docs/src/core/policy-defaults.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260929b';
 import {
   upsertMeetingAttendance,
   MEETING_ATTENDANCE_TYPES,
   canUploadAttendance,
   loadAttendanceRecords,
-} from '../../docs/src/services/activity/attendance.js?v=20260929a';
+} from '../../docs/src/services/activity/attendance.js?v=20260929b';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 被操作人 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在
 //   docs/src/entries/tabs/disc/_shared.js = 'p10'，该文件依赖浏览器组件不可直导 → 字面量 + 锚定出处）。
 //   2026-09-21 批次 132 起党课 / 支部党员大会的上传位＝纪检委员，故 freshState() 造党课并设其为组织者。
 const DISC = 'p10';
-// 他人权威（非本人所录，用于拒盖用例；亦用于「非组织者不可上传」用例）：组织委员 'p11'（role 'org-commissioner'，docs/src/mock/people.js）
+// 他人权威（非本人所录，用于拒盖用例；亦用于「非组织者不可上传」用例）：组织委员 'p11'（role 'org-commissioner'，docs/src/data/mock/people.js）
 const OTHER_AUTH = 'p11';
 
 // 会议考勤类型的活动类型（policy-defaults 单一源，取首个「党课」造活动；用例 f 再整表深等校验）

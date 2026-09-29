@@ -28,7 +28,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 维度 | 得分 | 一句话结论（**当前**） |
 |------|------|-----------|
 | 模块化 | **99 / 100** | 五层分层（`core` / `services` / `components` / `modules(capabilities)` / `entries(tabs)`）+ 组件积木 + tab 动态 import 懒加载 + capability 自注册为真；域内出口收敛有样板与纪律（见 §3.1）；工作台 tab **分组单一轴**；说明文件口径已**守卫化**（`doc-consistency::S1–S16`）。**残项＝徽章 / 选择器等组件出口仍散** |
-| 插件化 | **75 / 100** | registry 自注册 + 按 scope 组装 + `config.modules/blocks/workforce`「配置即组合」（净化单一源 `core/config-clean.js`，server 单向权威）+ L3 block manifest 契约 + `module-compose` v0 纯校验（depends / conflictsWith，测试 6/6 绿）。**残项＝`module-compose` 仍只做前端纯校验**（服务端 config 校验留 v1；「插件安装 / 卸载」概念未立） |
+| 插件化 | **75 / 100** | registry 自注册 + 按 scope 组装 + `config.modules/blocks/workforce`「配置即组合」（净化单一源 `services/branch/config-clean.js`，server 单向权威）+ L3 block manifest 契约 + `module-compose` v0 纯校验（depends / conflictsWith，测试 6/6 绿）。**残项＝`module-compose` 仍只做前端纯校验**（服务端 config 校验留 v1；「插件安装 / 卸载」概念未立） |
 | 开源化 | **80 / 100** | 全程中文可读的设计 / 规范文档 + 代码 `role` 标注与设计源链接 + 测试覆盖厚；根 README 以「复用与二次开发（给其他组织）」为核心章节且含 **30 分钟换壳指南** + 演示数据一键重置 `?reset=1`；数据可整体替换（`people` / `accounts` + `.env.example`）；LICENSE(MIT) + `CONTRIBUTING.md` + **语义化 release / 发布工作流**（`docs/scripts/release.mjs`；守卫 `version-stamp::S7`）。**残项＝无**（English 版经支书裁定「不做」，属产品边界、非工程缺陷） |
 | 超参数可调性 | **86 / 100** | `policy-defaults.js` 集中默认单一源，逐项标注「`branch-default` 可调 / `institutional` 固定」+ 出处 + 消费点；`POLICY_OVERRIDABLE` 白名单经**设置 → 支部治理「域参数」卡**可覆盖（域负责人仅本域），「支部制度参数」卡只读展示制度默认；**26 叶键 100% 有归属**（白名单 14 ＋ `POLICY_FIXED` 12，守卫 `policy-config::R1–R3` ⇒ 「未登记」第三态被消灭）。**残项＝无**（新增参数须同批入两类之一） |
 | 组合能力（二开视角） | **83 / 100** | 「配置即组合」：模块 / 块 / 分工的**启停 ＋ 排序**（支部默认层与个人偏好层分离、互不覆盖）＋ `configChangeHistory` 逐键留痕与单键回滚；L3 块契约（**6 块**）＋ 通用编排内核（范围过滤 / 组合校验 / 稳定拓扑序）＋ 换组织向导第②步内联「**组合体检**」。**残项＝画布 UI（L4 编辑器形态）· 运行时面（写口 / 任务派生是否消费组合产物——**口径待支书裁**）· ② 表单条目 / ③ 参与人范围两轴** |
@@ -128,7 +128,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 ### 3.2 数据域接线契约 v1（person 域试点确立）
 
-**背景**：曾盘点出全站 68 处直连 `mock`；`mock/index.js` 实为「旧兼容中转」（person 函数早已落到 `services/member/person.js` 又被 re-export 回 mock）。债根 = **UI / 服务层 import 面挂在 `mock`，而非真正实现所在的 service**。**收官态 = UI 层（`entries` / `components` / `modules`）对 `mock` 的 import 直连清零**——全仓 `mock` 引用仅存于 `services/core` 数据层（种子接入点，契约允许）。**已达成**（逐批过程见 `.ctx/logs/2026-09-EXECUTION_LOG.md`；行动项 §四 P0·数据域接线）。
+**背景**：曾盘点出全站 68 处直连 `mock`；`data/mock/index.js` 实为「旧兼容中转」（person 函数早已落到 `services/member/person.js` 又被 re-export 回 mock）。债根 = **UI / 服务层 import 面挂在 `mock`，而非真正实现所在的 service**。**收官态 = UI 层（`entries` / `components` / `modules`）对 `mock` 的 import 直连清零**——全仓 `mock` 引用仅存于 `services/core` 数据层（种子接入点，契约允许）。**已达成**（逐批过程见 `.ctx/logs/2026-09-EXECUTION_LOG.md`；行动项 §四 P0·数据域接线）。
 
 **契约条款（长期有效）**：
 1. **人名与人员对象获取**（`getPersonById` / `getPersonName` / `PersonStore`）唯一出口 = `services/member/person.js`；**任何层禁止从 `mock/*` 获取人名**。
@@ -142,13 +142,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 
 | 组 | 重复事实 | **收敛去向（单一源；现状）** |
 |----|---------|------------------|
-| R1 | HTML 转义 `esc` 至少 10 个文件各写一份；`fmtDt` 双份 | ✅ `core/utils.js::escHtml` / `fmtDt` 唯一出口（各文件 import 别名 `esc`，调用面零改动） |
+| R1 | HTML 转义 `esc` 至少 10 个文件各写一份；`fmtDt` 双份 | ✅ `core/base/utils.js::escHtml` / `fmtDt` 唯一出口（各文件 import 别名 `esc`，调用面零改动） |
 | R2 | 三会四子类清单三份；阶段枚举另见 `CANDIDATE_STAGES` 与各 seed | ✅ `MEETING_TYPES` → `ACTIVITY_CLASSIFICATION['three-meetings'].subtypes` 派生；**2 项复核保留**（见下「复核保留」） |
 | R3 | 产出块 id 消费端手写（write-tab 4 个 id / calendar-tab 手写 blockId） | ✅ → `OUTPUT_BLOCK_DEFS` / `THEME_PARTY_DAY_MANIFEST.blockId` 派生 |
 | R4 | 活动场景 id + label + 颜色三处手写 | ✅ `constants.js::SCENARIO_WRITE_IDS` / `SCENARIO_LABELS` 派生（全集唯一源 = `sopData.js`）；守卫 `scene-write-sync` |
 | R5 | 业务链路 flow 语义三写、无键集比对测试 | ✅ 新增 `catalog-sync::T2` 键集**双向**断言（任一侧增删即红） |
-| R6 | tab id 散落导航侧、隐藏后静默 no-op | ✅ `core/tab-nav.js` 纯决策 + `tab-bar` 守卫（隐藏 tab 回退首个可见 tab）；`tab-nav` 4 态测试 |
-| R7 | 支部 config 净化规则 server / 前端各一份 | ✅ 共享纯模块 `core/config-clean.js`，**server 严格口径单向权威**、两端同源引用 |
+| R6 | tab id 散落导航侧、隐藏后静默 no-op | ✅ `core/boot/tab-nav.js` 纯决策 + `tab-bar` 守卫（隐藏 tab 回退首个可见 tab）；`tab-nav` 4 态测试 |
+| R7 | 支部 config 净化规则 server / 前端各一份 | ✅ 共享纯模块 `services/branch/config-clean.js`，**server 严格口径单向权威**、两端同源引用 |
 | R8 | 表决规则（optionSet 枚举 + 异议附言）跨层重复 | ✅ `OPTION_ENUMS` 单一源 + `catalog-sync::T4` 键集双向断言 |
 | R9 | 支委 / 支书 / 党委组织员角色 `Set` ≥5 份 | ✅ `constants.js` 四常量单一源；守卫 `roles-sync` 4 断言 |
 | R10 | 删除 / 归档级联 server 与前端同构实现 | **观察**（未列入去重队列） |
@@ -213,9 +213,9 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | 8.7-①~④ | 支书台分工面板保态 / 多议题票决并行 / 考勤录入保态 / deploy 文档口径风化修正 | ✅ 全部完成 |
 | P4a–P4c | 模板型最小包（换壳指南 + `?reset=1`）/ 换组织向导页 / 演示数据与空组织模板分离 | ✅ 完成（详见 `.ctx/REVIEW_QUEUE.md` 附录⑧；阶段三候选「数据层覆盖预览 / 党委默认模板抽象」登记后续） |
 | P4d | 组合能力补强：`policy-defaults` 接 config 驱动 / `requiredRoles` 门禁消费 / 拖拽编排推广全站 | ✅ **三项均已完成**（域参数 config 驱动 · 门禁消费 · 见 P9 / P10）；**余下**＝画布 UI（L4）· 运行时面〔待裁〕· ②③ 两轴 |
-| P5 | **物理目录分层**：`services/` → **5 域** · `components/` → **6 域** · `entries/` → **3 类**（`pages` / `workspace` / `tabs`）；`modules/` 经判据核验**不再细分**（余 3 件各成一类） | ✅ 完成。**落地方式与「下一次搬迁前必读」的三条硬成本 ⇒ 见 §六 G2**（本行不重复） |
+| P5 | **物理目录分层**：`services/` → **5 域** · `components/` → **6 域** · `entries/` → **3 类**（`pages` / `workspace` / `tabs`）；`modules/` 经判据核验**不再细分**（余 3 件各成一类） | ✅ 完成；**2026-09-29 批次 267 再进一层**（支书点选「①+②+③」）——`modules/` 消解 · `core/` 分 4 子域 · 新立 `data/`；**落地方式与「下一次搬迁前必读」硬成本 ⇒ 见 §六 G2**（本行不重复） |
 | P6 | **数据服务端化收尾**：唯一「暂留本机·未服务端化」的业务事实改挂成员档案字段 | ✅ 完成（写口与 `developStage` 同一笔落档、读口形状不变；本机键降级为遗留键）。**未上调任何维度分**——属「数据形态」，五维无对应量尺 |
-| P7 | **服务端按内聚切分 ＋ mock / server 双份种子收成单一源** | ✅ 完成：`server/routes/resources.js`（1301 行）→ `routes/resources/` **六件**（`index` / `gates` / `approval-gates` / `snapshot-versions` / `store` / `semantic-routes`，逐字搬迁、口径零改写）；`docs/src/mock/prop.js` 收 `WEEKLY_REPORTS_SEED` / `PROP_TASKS_SEED`，UI 侧与 `server/seed.js` **同源 import**。⚠ **越权项（如实登记 · 待支书核可）**：`doc-line-ref::R5` 短式引用下限 **40 → 30**（切分后同一行多条短式落到不同新文件、短式无从表达 ⇒ 一律改写为全式；其余三条基线一字未动）。**切分成本的实测 ⇒ 见 §六 G2 末段** |
+| P7 | **服务端按内聚切分 ＋ mock / server 双份种子收成单一源** | ✅ 完成：`server/routes/resources.js`（1301 行）→ `routes/resources/` **六件**（`index` / `gates` / `approval-gates` / `snapshot-versions` / `store` / `semantic-routes`，逐字搬迁、口径零改写）；`docs/src/data/mock/prop.js` 收 `WEEKLY_REPORTS_SEED` / `PROP_TASKS_SEED`，UI 侧与 `server/seed.js` **同源 import**。⚠ **越权项（如实登记 · 待支书核可）**：`doc-line-ref::R5` 短式引用下限 **40 → 30**（切分后同一行多条短式落到不同新文件、短式无从表达 ⇒ 一律改写为全式；其余三条基线一字未动）。**切分成本的实测 ⇒ 见 §六 G2 末段** |
 | P8 | **G3-1 语义化 release / 发布工作流** | ✅ 完成（现状见 §二 2.3；纪律 `CLAUDE.md R-90` · `CONTRIBUTING.md §六`） |
 | P9 | **G3-2 全量 config 引擎** | ✅ 完成：`POLICY_DEFAULTS` 26 叶键 100% 有归属（白名单 14 ＋ `POLICY_FIXED` 12），守卫 `policy-config::R1–R3` 断言「每个叶键恰属两类之一」⇒ **「未登记」第三态被消灭**；白名单本批**不扩**（未登记项全属制度 / 展示口径，无技参）。现状见 §二 2.4 |
 | P10 | **G3-3 拖拽编排 L1→L5**（组合能力主残项；块目录已由 2 块铺开至 **6 块**） | 🟢 **前三层已落**：L1 通用编排内核（纯 ESM、零依赖；守卫 `block-orchestration::O1–O5`）· L2 配置面（`workflowBlocks.blockOrder` ⇒ 顺序支部可配；向导第②步可排序 ＋ 内联「组合体检」）· L3 同类场景铺开（三会一课四块入册 ＋ 入口守卫 ＋ 机检 `scene-write-sync ④`）。**余下**＝① **运行时面**（写口 / 任务派生是否消费组合产物——**口径待支书裁**）② **画布 UI**（L4 编辑器形态）③ **② 表单条目 / ③ 参与人范围两轴**（待口径，见 `.ctx/REVIEW_QUEUE.md` `H-11`） |
@@ -235,7 +235,7 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 ### 5.2 当前值（一屏看现状）
 
 - **五维（当前）**：模块化 **99** · 插件化 **75** · 开源化 **80** · 超参数可调性 **86** · 组合能力 **83** ⇒ **综合 ≈ 85**（均值 84.6）。残项与依据见 §一 / §二。
-- **目录分层（当前）**：`services/` **5 域**（core 8 · member 9 · activity 12 · governance 11 · branch 7 = 47 件）· `components/` **6 域**（ui 13 · shell 6 · feedback 4 · record 11 · governance 13 · dashboard 4 = 51 件）· `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）。**不再细分**：`modules/` 余 3 件各成一类（见 §六 G2 残余）。
+- **目录分层（当前 · 2026-09-29 批次 267 收官）**：`core/` **4 子域**（base 7 · domain 7 · boot 4 · session 4 = 22 件）· `data/` **新立**（4 适配器 ＋ `mock/` 15 件）· `services/` **5 域**（core 9 · member 9 · activity 12 · governance 11 · branch 8 = 49 件）· `components/` **7 域**（ui 13 · shell 6 · sections 2 · feedback 4 · record 11 · governance 13 · dashboard 4 = 53 件）· `capabilities/` **顶层 11 件** · `entries/` **3 类**（pages 15 · workspace 7 · tabs 68）· `workflow/` 8 件 · `config/` 1 件。**`modules/` 已消解**（能力声明上提顶层；3 件跨页件按判据归位：`branch-demo-nav` → `services/core/` · `references`/`help-catalog` → `components/sections/`）。落地方式与硬成本 ⇒ 见 §六 G2。
 - **测试规模**：**动态口径，不写死**——以 `server/test/` 实测为准（分档见 `server/README.md`「测试耗时台账」）。
 - **纪律与判据索引（当前）**：`§3.4` 收敛台账 **R13–R30 共 19 行**（含 `R28-附` / `R29` / `R30`）；`CLAUDE.md` 现行纪律 **R-68 ~ R-80**（真机同环境量测 · 不得以「等裁定」结束回合 · 授权声明可核验 · 异常面下沉动作级 · 守卫覆盖按接口逐维数 · 台账完备性三缺一 · 等待窗口须覆盖真实耗时 · 判据落在事实上而非手段上 · 增量而非绝对值 · 判据之间不得互相冒充 · 「不可达」只有两条出口 · 「成功」须确认落库 · 每个字段都要有判据）；自查问句 = `DATA_CONSISTENCY_CHECKLIST §0.1`（**现到二十七问**）；范本 = 同文件（**第六–第二十七**）；判例集 = `content/05_ai_coding/TEST_AND_VERIFICATION.md`。**逐条「哪一批增了哪一问 / 哪一范本」属沿革 ⇒ 见日志**。
 - **浏览器本地业务数据（当前）**：**已无「暂留本机·未服务端化」的业务事实**。其余本机键按性质三类（草稿 / 预览 · 本机令牌 / 运行态 · 偏好与会话），判定与逐条理由 = `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.3`（机检镜像 = `localstorage-key-guard`）。
@@ -290,10 +290,13 @@ related_files: [content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md, conte
 | **守卫的「相对深度」断言** | **2026-09-29 新增**：有守卫把相对路径深度写死在断言里 ⇒ 文件一挪即红。**已改 `(\.\.\/)+` 深度无关写法**；**「文件名写死在断言里」这一类仍在**（下次搬迁仍会红，只是能一眼定位） |
 | 说明文件行号引用 | `README-server.md` 的 `文件:行号` 极敏感——**只动一个文件三行即触发 6 处**瞬时失效（`doc-line-ref` 当场判红）⇒ **等同批改签，或对注释改动改用「净零行」** |
 | **动态 import 的模板字面量** | **2026-09-29 新增（真事故）**：一处 `` import(`../x/${y}.js`) `` 漏改深度 ⇒ **运行时 404**、真机才暴露（见 `.ctx/REVIEW_QUEUE.md` `H-15`）⇒ **搬迁后必须扫这一类，已补 `import-path-guard`** |
-| 禁改面 | `docs/src/core/mock-adapter.js` 等在**禁改清单**内：只随全站 stamp 动 `?v=`（零代码改动） |
+| **浏览器绝对路径 `/src/<…>`** | **2026-09-29 批次 267 实测**：E2E 测试大量用 `import('/src/core/x.js?v=…')` 这种**浏览器绝对路径**——它既不是相对 specifier、也不是 md/html 的 `docs/src/…` ⇒ **Pass A / Pass B 都扫不到**，静默 404（只在全量档暴露）。搬迁后必须**另跑一遍 `/src/<旧>` → `/src/<新>`**。 |
+| **目录名与既有「跳表」撞名** | **2026-09-29 批次 267 实测**：新立的 `docs/src/data/` 撞上 `bump-version.mjs` / `release.mjs` / `localstorage-key-guard` 里**沿用的 `'data'` 跳过项**（原为防御性死项，此前无此目录）⇒ 该目录**整层不被打戳 / 不被扫描**（`version-stamp` 会因出现两个活动戳判红、`localstorage-key-guard` 会把该层定义的键判成「僵尸登记」）。**立新目录前必须先 grep 全仓跳表**。 |
+| **`core.autocrlf=true` 下的 `git checkout`** | **2026-09-29 批次 267 实测（真事故）**：`git checkout -- .` 把整棵工作树由 LF 写成 CRLF；守卫里用 `\n` 写死的正则（如 `branchId,\n\s*title,`）**当场判红**，且 `git diff` **看不见**（autocrlf 把 EOL 差异归一化）⇒ 排查极费时。**处置**：按 `git ls-files --eol` 把「索引为 LF、工作树成 CRLF」的文件改回 LF（403 个）。**教训**：本仓工作树是 LF；回收工作树不要用裸 `git checkout -- .`。 |
+| 禁改面 | `docs/src/data/mock-adapter.js` 等在**禁改清单**内：只随全站 stamp 动 `?v=`（零代码改动） |
 
 - **服务端那一半（同线）**：`server/routes/resources.js`（1301 行）→ `routes/resources/` 六件。**教训**：① **import 深度不可一律 +1**（该文件依赖横跨三档 ⇒ 必须逐条按「老目录解析 ⇒ 新目录重算」）；② 守卫与测试里**把该路径写死**的多处须同批改签；③ `doc-line-ref` 短式引用在「同一行多条落到不同新文件」时无从表达 ⇒ 改写为全式（`R5` 短式下限 40 → 30，**越权项、待支书核可**）。
-- **残余（如实登记）**：`modules/` 余 3 件（`help-catalog` / `references` / `branch-demo-nav`）**各成一类、无共同判据** ⇒ 强行归组即「无差别搬家」（本仓明令禁止），**如实收口、不再挂账**。
+- **残余（如实登记）**：**2026-09-29 批次 267 已消解**——支书点选「①+②+③ 全档」后：① `modules/capabilities/` 上提为顶层 `capabilities/`，余 3 件**按判据**归位（`branch-demo-nav` 是身份/放行横切件 ⇒ `services/core/`；`references`/`help-catalog` 是页级板块渲染器 ⇒ 新建 `components/sections/`——两者有**共同判据**，不再是 P5 时判的「各成一类」）；② `core/` 27 件分四子域（base/domain/boot/session）；③ `mock/` 与 4 个 adapter 合成顶层 `data/`（按 `D-677` 让「数据形态」边界一眼可见）。**改判理由**：P5 只判过 `modules/`「**不再细分**」（不在 3 件内部再建子目录），**未裁过命名与归位**；支书本轮明确要求「更舒服、高效的划分」。**累计 56 件搬迁 / 723 处 specifier 重算 / 800 处全路径引用 + 216 处裸路径 + 106 处 `/src/` 绝对路径**。
 
 ### G3 · 已获支书点选 / 裁决（三项）
 - **G3-1 语义化 release / 发布工作流**：✅ 已交付（→ §四 **P8**；纪律 `CLAUDE.md R-90` · `CONTRIBUTING.md §六`）。

@@ -12,7 +12,7 @@
 //  base-data-preview 只查「口径单一源」——全仓**没有任何断言「同一 personId 的字段在各表之间取值一致」**。
 //  本文件补上这个空档，并把「数据一致性评议」固化为可复用的两层方法（可推广到活动/记录等实体）。
 //
-//  数据层（D）——以 users 档案（mock/people.js）为唯一权威：
+//  数据层（D）——以 users 档案（data/mock/people.js）为唯一权威：
 //    D1 引用存在性：各域 personId 均存在于档案（防孤儿；比"人不在表里却在表中被引用"）
 //    D2 姓名快照一致：记录内 personName 必须等于档案姓名（防陈旧快照——改名/覆盖层更新后表里还是旧名）
 //    D3 字段快照一致：记录内 studentId/developStage/partyGroup 快照必须等于档案对应字段
@@ -34,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/mock/people.js?v=20260929a';
-import { MOCK_ACCOUNTS } from '../../docs/src/mock/accounts.js?v=20260929a';
-import { ACTIVITIES } from '../../docs/src/mock/activities.js?v=20260929a';
-import { ATTENDANCE_RECORDS } from '../../docs/src/mock/attendance.js?v=20260929a';
-import { INSPECTION_RECORDS } from '../../docs/src/mock/inspection.js?v=20260929a';
-import { THOUGHT_REPORTS } from '../../docs/src/mock/thought-reports.js?v=20260929a';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/mock/review.js?v=20260929a';
-import { MOCK_TASKFORCES } from '../../docs/src/mock/taskforces.js?v=20260929a';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/mock/seed.js?v=20260929a';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260929b';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20260929b';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20260929b';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20260929b';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20260929b';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20260929b';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20260929b';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20260929b';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/data/mock/seed.js?v=20260929b';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -281,11 +281,11 @@ test('S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落�
   assert.match(src, /export function liveMembers\s*\(/, 'services/member/person.js 必须导出 liveMembers()（人员清单实时视图）');
 });
 
-test('S4 RESIDENCE 单一源：全站只允许 core/constants.js 一处定义（Q-21-3 防回潮）', () => {
+test('S4 RESIDENCE 单一源：全站只允许 core/domain/constants.js 一处定义（Q-21-3 防回潮）', () => {
   // 病灶（2026-09-13 收敛前）：services/member/roster.js 与 services/branch/org-base-data-preview.js 各写一份同值
   //   { CAMPUS:'在校', DETAINED:'滞留' }——preview 不能 import roster（person→preview→roster 成环），
   //   于是「为避免循环依赖」长期默认两处维护、仅靠单测断言同值。现收敛至无 import 的叶子模块
-  //   core/constants.js，本守卫拦「再长出第二份定义」。
+  //   core/domain/constants.js，本守卫拦「再长出第二份定义」。
   const defs = [];
   for (const file of walkJs(SRC_DIR)) {
     const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
@@ -294,13 +294,13 @@ test('S4 RESIDENCE 单一源：全站只允许 core/constants.js 一处定义（
       if (/^\s*export\s+const\s+RESIDENCE\s*=/.test(line)) defs.push(rel);
     });
   }
-  assert.deepEqual(defs, ['core/constants.js'],
-    'RESIDENCE 只允许在 core/constants.js 定义一次；roster.js / org-base-data-preview.js 等一律 import 该单一源'
+  assert.deepEqual(defs, ['core/domain/constants.js'],
+    'RESIDENCE 只允许在 core/domain/constants.js 定义一次；roster.js / org-base-data-preview.js 等一律 import 该单一源'
     + '（防循环依赖说明见 constants.js 该常量注释）');
   // 两个原定义点必须仍在消费（防「守卫绿了但模块不认这个枚举」的假绿）
   for (const rel of ['services/member/roster.js', 'services/branch/org-base-data-preview.js']) {
     const src = readFileSync(join(SRC_DIR, rel), 'utf8');
-    assert.match(src, /import \{[^}]*\bRESIDENCE\b[^}]*\} from '(\.\.\/)+core\/constants\.js/,
-      `${rel} 必须从 core/constants.js 导入 RESIDENCE（2026-09-28 目录分层后两文件均在二级目录 ⇒ 相对路径为 ../../core/constants.js）`);
+    assert.match(src, /import \{[^}]*\bRESIDENCE\b[^}]*\} from '(\.\.\/)+core\/domain\/constants\.js/,
+      `${rel} 必须从 core/domain/constants.js 导入 RESIDENCE（2026-09-28 目录分层后两文件均在二级目录 ⇒ 相对路径为 ../../core/constants.js）`);
   }
 });

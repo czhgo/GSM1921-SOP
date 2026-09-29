@@ -17,17 +17,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain.js?v=20260929a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929b';
 import {
   MockAdapter,
-} from '../../docs/src/core/mock-adapter.js?v=20260929a';
-import { setDataSource } from '../../docs/src/core/data-adapter.js?v=20260929a';
+} from '../../docs/src/data/mock-adapter.js?v=20260929b';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20260929b';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, DOMAIN_ORDER,
   TodoStore, TodoCategory, TodoStatus,
   realtimeGroupDomainOf,
   urgeRolesOf,
-} from '../../docs/src/services/governance/todo.js?v=20260929a';
+} from '../../docs/src/services/governance/todo.js?v=20260929b';
 // A① 通知对象级深链守卫（2026-09-10）：静态扫描 docs/src 全部通知生产点（纯 fs，无需浏览器）
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -430,10 +430,10 @@ test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 
     }
   }
   // R-22（2026-09-13）：系统派生 actionable 通知的文案/锚点已迁至共享模板单一源
-  // （core/system-notice-templates.js，无 NoticeStore.add → 按 pick( 对象字面量抽取）。
+  // （core/domain/system-notice-templates.js，无 NoticeStore.add → 按 pick( 对象字面量抽取）。
   // 守卫同步覆盖模板，防止对象级锚点随迁移失效。
-  const tplRel = 'core/system-notice-templates.js';
-  const tplSrc = readFileSync(join(root, 'core/system-notice-templates.js'), 'utf8');
+  const tplRel = 'core/domain/system-notice-templates.js';
+  const tplSrc = readFileSync(join(root, 'core/domain/system-notice-templates.js'), 'utf8');
   for (const call of _extractAddCalls(tplSrc, /pick\s*\(/g)) {
     if (!/actionable\s*:\s*true/.test(call)) continue;
     actionableCount++;
@@ -452,24 +452,24 @@ test('⑧ A① 对象级深链守卫：所有 actionable 通知携带 targetUrl 
 // 背景：① 党委「进入支部（演示）」下钻（secretary.html?branch=<id>）时，bootstrap 身份门调用
 //   未定义函数 _partyStaffBranchDemoAllowed → ReferenceError/白屏；② 演示横幅用 escHtml 未导入，
 //   同路径再次 ReferenceError；③ 支书「代提交复盘」须复用既有复盘表单，不得另写一套字段。
-// 口径：演示放行门单一源 = modules/branch-demo-nav.js；复盘表单单一源 = services/governance/review.js。
+// 口径：演示放行门单一源 = services/core/branch-demo-nav.js；复盘表单单一源 = services/governance/review.js。
 test('⑨ 演示下钻放行门 + 代提交复盘表单复用（防未定义引用/字段分叉回归）', () => {
   const root = fileURLToPath(new URL('../../docs/src/', import.meta.url));
   const read = (rel) => readFileSync(join(root, rel), 'utf8');
 
   // ① 放行门单一源导出；bootstrap 引用导入项（不再调用未定义函数）
-  const nav = read('modules/branch-demo-nav.js');
+  const nav = read('services/core/branch-demo-nav.js');
   assert.match(nav, /export function isPartyStaffBranchDemoAllowed\(/, 'branch-demo-nav 应导出演示放行门');
-  const bootstrap = read('core/bootstrap.js');
-  assert.match(bootstrap, /import \{ isPartyStaffBranchDemoAllowed \} from '\.\.\/modules\/branch-demo-nav\.js/,
+  const bootstrap = read('core/boot/bootstrap.js');
+  assert.match(bootstrap, /import \{ isPartyStaffBranchDemoAllowed \} from '(\.\.\/)+services\/core\/branch-demo-nav\.js/,
     'bootstrap 应导入放行门（单一源）');
   assert.doesNotMatch(bootstrap, /[^.\w]_partyStaffBranchDemoAllowed\s*\(/,
     'bootstrap 不得再调用未定义的 _partyStaffBranchDemoAllowed（演示下钻 ReferenceError 回归）');
 
-  // ② 演示横幅用 escHtml：workspace-shell 使用时须自 core/utils.js 导入
+  // ② 演示横幅用 escHtml：workspace-shell 使用时须自 core/base/utils.js 导入
   const shell = read('components/shell/workspace-shell.js');
   if (/\bescHtml\(/.test(shell)) {
-    assert.match(shell, /import \{[^}]*\bescHtml\b[^}]*\} from '(\.\.\/)+core\/utils\.js/,
+    assert.match(shell, /import \{[^}]*\bescHtml\b[^}]*\} from '(\.\.\/)+core\/base\/utils\.js/,
       'workspace-shell 使用 escHtml 须导入（党委演示横幅 ReferenceError 回归）');
   }
 

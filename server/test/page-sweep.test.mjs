@@ -35,7 +35,7 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
-/** 七个工作台 × 登录账号（与 docs/src/mock/accounts.js 的演示账号一致） */
+/** 七个工作台 × 登录账号（与 docs/src/data/mock/accounts.js 的演示账号一致） */
 const WORKS = [
   { page: 'secretary', studentId: '2300010001', name: '支书 / 副支书台' },
   { page: 'org', studentId: '2400012355', name: '组织委员台' },
@@ -62,7 +62,7 @@ after(async () => {
   }
 });
 
-/** 引擎「检索条出现门槛」的单一源（docs/src/core/constants.js::SEARCH_FILTER_MIN_ROWS）——见下方 S0 断言 */
+/** 引擎「检索条出现门槛」的单一源（docs/src/core/domain/constants.js::SEARCH_FILTER_MIN_ROWS）——见下方 S0 断言 */
 const MIN_ROWS = 8;
 
 /** 单档取值（来源＝docs/src/styles.css，见 filter-row D1/D2/D3 的算式断言；此处只做真机复核） */
@@ -239,10 +239,10 @@ const SWEEP_KEYS = Object.keys(SWEEP).filter((k) => k !== 'tabs' && k !== 'views
 const PENDING_SEEN = new Set();
 
 // S0：普查口径的单一源守卫——普查用的门槛值必须是引擎单一源的值（改门槛须同步本普查，防止口径未同步的情况）
-test('S0 普查门槛取值来自单一源（core/constants.js::SEARCH_FILTER_MIN_ROWS）', () => {
-  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'core', 'constants.js'), 'utf8');
+test('S0 普查门槛取值来自单一源（core/domain/constants.js::SEARCH_FILTER_MIN_ROWS）', () => {
+  const src = readFileSync(join(import.meta.dirname, '..', '..', 'docs', 'src', 'core', 'domain', 'constants.js'), 'utf8');
   const m = /SEARCH_FILTER_MIN_ROWS\s*=\s*(\d+)/.exec(src);
-  assert.ok(m, 'core/constants.js 须定义 SEARCH_FILTER_MIN_ROWS');
+  assert.ok(m, 'core/domain/constants.js 须定义 SEARCH_FILTER_MIN_ROWS');
   assert.equal(Number(m[1]), MIN_ROWS, `普查门槛 ${MIN_ROWS} 与单一源 ${m[1]} 不一致（改门槛须同步本普查）`);
 });
 
@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260929a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);

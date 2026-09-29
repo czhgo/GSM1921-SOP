@@ -116,7 +116,7 @@ test('S6 思想汇报台账＝人 × 期次宽表（单一源矩阵；不得回�
   const src = read(join(SRC_DIR, 'entries', 'tabs', 'org', 'thought-review-tab.js'));
   assert.match(src, /renderRelationMatrix\(/, '思想汇报台账须接入单一源矩阵');
   assert.match(src, /itemLabel: '期次'/, '列维须为期次');
-  assert.match(src, /comparePeriodDesc/, '期次倒序须走单一源（core/period.js → services 再导出，勿另写比较规则）');
+  assert.match(src, /comparePeriodDesc/, '期次倒序须走单一源（core/base/period.js → services 再导出，勿另写比较规则）');
   assert.match(src, /liveMembers\(\)/, '行＝支部在册成员须取实时视图（不得加载期快照，见 person-consistency S1）');
   // 批次 43：本域补「按期次」转置视图（与考勤 / 考察 / 支部分工 / 专班报名 同款转置口径：只换视角）
   assert.match(src, /data-trview="period"/, '台账须提供「按期次」转置视图钮');
@@ -157,7 +157,7 @@ async function loginDisc() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260929a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }
@@ -181,7 +181,7 @@ async function loginOrg() {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/core/data-adapter.js?v=20260929a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260929b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.waitForTimeout(600);
   return { page, errs };
 }

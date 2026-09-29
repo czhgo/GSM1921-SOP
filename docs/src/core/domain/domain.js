@@ -1,0 +1,411 @@
+// role: [工程师]+[AI]
+// ════════════════════════════════════════════════════════════════
+//  domain.js — 领域层 (Domain Layer)
+//  光华管理学院本科生党支部 SOP 引擎 v10.0
+//  单向依赖链的最底层：不依赖任何其他模块
+// ════════════════════════════════════════════════════════════════
+
+/** 当前数据库 Schema 版本（持久化防御用） */
+export const SCHEMA_VERSION = 1;
+
+/**
+ * @typedef {Object} Activity
+ * @property {string}  id          - 唯一标识符（由 id.js 生成）
+ * @property {string}  title       - 活动标题
+ * @property {string}  type        - 活动类型（如 '组织生活会'、'主题党日'）
+ * @property {'draft'|'pending-approval'|'published'|'ongoing'|'completed'|'cancelled'} status - 活动状态（`pending-approval`＝待批，2026-09-22 批次 150 活动批准门开启时写入，默认关） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {'branch'|'group'} visibility - 可见范围：全支部 or 党小组 - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#一、人员结构与双重身份体系
+ * @property {string}  date        - 活动日期 ISO 字符串（YYYY-MM-DD）
+ * @property {string}  executor    - 执行角色 - Source: knowledge/SOP/组织委员工作流程指南.md#一、工作职责总览
+ * @property {string|null} supervisor - 督办角色（可为 null） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {string}  createdBy   - 创建者用户 ID
+ * @property {string}  createdAt   - 创建时间 ISO 字符串
+ * @property {'normal'|'urgent'} [priority] - 优先级（工作流引擎用） - Source: knowledge/SOP/常见工作场景快速指南.md#我要组织一次党小组活动
+ * @property {string}  [dueDate]   - 截止日期 ISO 字符串（自动化提醒锚点）
+ * @property {boolean} [archived]  - 软删除标记（true 表示已归档）
+ * @property {string}  [domain]    - 领域：'activity' | 'organization' - Source: knowledge/SOP/支委与党小组定人定责定岗说明.md#二、"条条"与"块块"双线管理体系
+ * @property {string}  [scenarioId] - 关联的场景 ID（对应 sopDatabase）* - Source: knowledge/SOP/常见工作场景快速指南.md#目录
+ * @property {string}  [description] - 活动描述
+ * @property {string}  [targetDate]  - 目标日期 ISO 字符串（T-0，兼容旧字段）
+ * @property {boolean} [isBrand]  - 品牌属性标签（**认定＝支委/党小组组长提案 → 支委会审议通过后确定**，2026-09-21 批次 132 · 支书口径二；不影响工作流选择） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md
+ * @property {OutputRecord[]} [outputs] - 产出物记录（T-224 §5.5/§8 数据结构预留）：
+ *   `{ type: OutputType, title, submittedBy, submittedAt, status: 'pending'|'submitted', routedTo: deriveOutputRoute(type).route }`
+ *   `routedTo` 由类型派生（非人工录入），组织者上传时只见「提交」不见「发送对象」。
+ */
+
+/**
+ * @typedef {Object} AttendanceRecord
+ * @property {string}  id          - 唯一标识符（由 id.js 生成）
+ * @property {string}  activityId  - 所属活动 ID
+ * @property {string}  personId    - 参会成员人员 ID
+ * @property {'present'|'absent'|'leave'} status - 出勤状态
+ * @property {string}  recordedBy  - 记录人用户 ID（纪检委员）
+ * @property {string}  recordedAt  - 记录时间 ISO 字符串
+ * @property {string}  [studentId] - 学号 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
+ * @property {'积极分子'|'发展对象'|'预备党员'|'正式党员'} [developStage] - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】） - Source: content/02_institution/sop/纪检委员工作流程指南.md#二考勤管理三会一课 + content/04_web_design/data/DATA_ARCHITECTURE.md §2.5
+ * @property {string}  [partyGroup] - 所属党小组 - Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
+ */
+
+/**
+ * @typedef {Object} Person
+ * @property {string}  id          - 人员 ID（如 'p5'）
+ * @property {string}  name        - 姓名
+ * @property {string}  studentId   - 学号
+ * @property {string}  partyGroup  - 所属党小组（如 '第一党小组'）
+ * @property {'正式党员'|'预备党员'|'发展对象'|'积极分子'} developStage - 发展阶段（四阶段，2026-08-01 支书决策移除【入党申请人】）
+ * @property {string}  role        - 角色键（secretary/org-commissioner/participant…，与 core/domain/constants.js ROLE_KEYS 对齐）
+ * @property {string}  [branchId]  - 所属支部（缺省 br-b1；p_pc 党委组织员=null 不属于支部）
+ * @property {'在校'|'滞留'} [residenceStatus] - 居住/在册状态（S1–S4 滞留党员设计，2026-09-06 支书已批）：
+ *   滞留 = 组织关系在本支部但人不在校、不参加日常会议；成员身份保留、应到剔除、通知照发。
+ *   未标注 = 默认「在校」。
+ * @property {string}  [residenceNote] - 状态备注（原因/起止文字；组织委员维护）
+ * @property {Array<{from:'在校'|'滞留', to:'在校'|'滞留', updatedBy:string, updatedAt:string, note?:string}>} [residenceHistory]
+ *   - 状态变更留痕（组织委员维护时追加，支书可复核查看；运行期覆盖存 services/member/roster.js RESIDENCE_KEY）
+ */
+
+/**
+ * @typedef {Object} Task
+ * @property {string}  id          - 唯一标识符（由 id.js 生成）
+ * @property {string}  activityId  - 所属活动 ID
+ * @property {string}  title       - 任务标题
+ * @property {'pending'|'in_progress'|'completed'} status - 任务状态 - Source: knowledge/SOP/组织委员工作流程指南.md#四大工作场景
+ * @property {string}  createdAt   - 创建时间 ISO 字符串（审计字段）
+ */
+
+/**
+ * 参与层级枚举 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
+ * organize = 组织者，deep = 深度参与者，attend = 出勤
+ */
+export const ParticipationLevel = {
+  ORGANIZE: 'organize',
+  DEEP_PARTICIPATE: 'deep',
+  ATTEND: 'attend',
+};
+
+/** 参与层级中文标签 */
+export const PARTICIPATION_LEVEL_LABELS = {
+  [ParticipationLevel.ORGANIZE]: '组织',
+  [ParticipationLevel.DEEP_PARTICIPATE]: '深度参与',
+  [ParticipationLevel.ATTEND]: '出勤',
+};
+
+/**
+ * 考勤状态枚举 — Source: domain.js AttendanceRecord.status
+ */
+export const AttendanceStatus = {
+  PRESENT: 'present',
+  ABSENT: 'absent',
+  LEAVE: 'leave',
+  MADE_UP: 'made_up',
+};
+
+/** 考勤状态中文标签 */
+export const ATTENDANCE_STATUS_LABELS = {
+  [AttendanceStatus.PRESENT]: '出勤',
+  [AttendanceStatus.ABSENT]: '缺勤',
+  [AttendanceStatus.LEAVE]: '请假',
+  [AttendanceStatus.MADE_UP]: '已补',
+};
+
+/**
+ * 考察来源类型枚举 — Source: D-198
+ */
+export const SourceType = {
+  ACTIVITY: 'activity',
+  TASKFORCE: 'taskforce',
+};
+
+/** 考察来源类型中文标签 */
+export const SOURCE_TYPE_LABELS = {
+  [SourceType.ACTIVITY]: '活动',
+  [SourceType.TASKFORCE]: '专班',
+};
+
+/**
+ * 复盘状态枚举 — Source: D-242（本轮补建）
+ * 支持复盘状态流转：未提交→已上传→批注中→确认/打回
+ */
+export const ReviewStatus = {
+  NOT_SUBMITTED: '未提交',
+  UPLOADED: '已上传',
+  ANNOTATING: '批注中',
+  CONFIRMED: '已确认',
+  REJECTED: '已打回',
+};
+
+/** 复盘状态中文标签（与枚举值一致，保持中文显示） */
+export const REVIEW_STATUS_LABELS = {
+  [ReviewStatus.NOT_SUBMITTED]: '未提交',
+  [ReviewStatus.UPLOADED]: '已上传',
+  [ReviewStatus.ANNOTATING]: '批注中',
+  [ReviewStatus.CONFIRMED]: '已确认',
+  [ReviewStatus.REJECTED]: '已打回',
+};
+
+/**
+ * 复盘记录 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.1.2 数据流第⑧步 + D-242
+ * 活动或专班完成后，组织者提交复盘报告，纪检委员批注/打回/确认
+ * @typedef {Object} ReviewRecord
+ * @property {string}  id            - 唯一标识符
+ * @property {string}  activityId    - 关联活动 ID（活动复盘时必填）
+ * @property {string}  [sourceType]  - 来源类型：'activity' | 'taskforce'（专班复盘时为 'taskforce'）
+ * @property {string}  [sourceName]  - 来源名称（专班复盘时为专班名称）
+ * @property {string}  organizerId   - 组织者人员 ID（须为活动/专班的实际 organizer）
+ * @property {string}  progress      - 进度状态（如 '已完成'/'进行中'/'超时'）
+ * @property {boolean} overdue       - 是否超时
+ * @property {ReviewStatus} reviewStatus - 复盘状态（D-242 枚举）
+ * @property {string}  reviewContent - 复盘内容
+ * @property {string}  [annotation]  - 批注内容（reviewStatus='批注中'/'已打回'时填写）
+ * @property {string}  [annotatedBy] - 批注人 personId（纪检委员）
+ * @property {string}  [annotatedAt] - 批注时间 ISO 字符串
+ * @property {string}  [submittedAt] - 提交时间 ISO 字符串（reviewStatus 非'未提交'时填写）
+ * @property {string}  [confirmedAt] - 确认时间 ISO 字符串（reviewStatus='已确认'时填写）
+ */
+
+/**
+ * @typedef {Object} InspectionRecord
+ * @property {string}  id            - 唯一标识符（由 id.js 生成）
+ * @property {'activity'|'taskforce'} sourceType - 考察来源类型（活动 or 专班）— Source: D-198
+ * @property {string}  activityId    - 关联活动 ID（sourceType='activity'时必填）
+ * @property {string}  sourceName    - 来源名称（sourceType='taskforce'时为专班名称）
+ * @property {string}  personId      - 人员 ID（引用 people.js）
+ * @property {'organize'|'deep'} level - 考察层级（仅组织者和深度参与者有考察记录） - Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
+ * @property {string}  role          - 分工角色+描述（如：策划+全流程统筹、视频制作、PPT设计）
+ * @property {string}  recordedBy    - 记录人 personId
+ * @property {string}  recordedAt    - 记录时间 ISO 字符串
+ * @property {'pending'|'confirmed'} [status] - 考察确认状态（纪检委员确认后录入考察总表）
+ */
+
+/**
+ * 文件空间记录 — Source: CLAUDE.md 乙部 P2-1
+ * 纯前端无法真正上传文件，以"文件记录"模式管理文件元数据
+ * @typedef {Object} FileSpaceRecord
+ * @property {string}  id            - 唯一标识符 `fs_{timestamp}`
+ * @property {string}  fileName      - 文件名
+ * @property {'experience'|'raw'|'publicity'} category - 文件分类：经验沉淀/原始文件/宣传素材
+ * @property {string}  description   - 文件描述
+ * @property {string}  sourceType    - 关联来源类型：'activity' | 'taskforce' | 'standalone'
+ * @property {string}  sourceId      - 关联来源 ID（standalone 时为空）
+ * @property {string}  sourceName    - 关联来源名称（冗余字段，方便展示）
+ * @property {string}  uploadedBy    - 上传人 personId
+ * @property {string}  uploadedAt    - 上传时间 ISO 字符串
+ * @property {string}  [tags]        - 标签（逗号分隔）
+ * @property {number}  [fileSize]    - 文件大小（字节，可选）
+ */
+
+/**
+ * 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则
+ * 宣传委员上传的活动图片，含标注信息；文件存上传接口 URL（`filePath`）或旧形态 Base64
+ * @typedef {Object} ImageRecord
+ * @property {string}  id            - 唯一标识符 `img_{timestamp}`
+ * @property {string}  date          - 拍摄日期 YYYY-MM-DD
+ * @property {string}  title         - 图片标题
+ * @property {string}  subject       - 拍摄主体（如人物/场景/物件）
+ * @property {string}  [activityId]  - 关联活动 ID（可选）
+ * @property {string}  [base64]      - Base64 图片数据（旧形态）；照片墙取上传接口 `filePath`（批次 120）
+ * @property {string}  uploadedBy    - 上传人
+ * @property {string}  uploadedAt    - 上传时间 ISO 字符串
+ */
+
+/**
+ * 内存数据库（Mock 层写入此处）
+ * 使用 Immutable 原则：所有更新必须用展开符替换整个数组，禁止 push/splice
+ */
+export const mockDB = {
+  _schema: SCHEMA_VERSION,
+  // 持久化守卫标记：mockDB 尚未从存储/后端恢复（loadDB/init 完成）前，
+  // 禁止 saveDB/persist 写入——防止加载早期以空数据覆盖用户已保存的数据（2026-08-05 修复）
+  _loaded: false,
+  users: [
+    { id: 'u_sec',  role: 'secretary',         name: '支书' },
+    { id: 'u_dep',  role: 'deputy-secretary',  name: '副支书' },
+    { id: 'u_org',  role: 'org-commissioner',  name: '组织委员' },
+    { id: 'u_prop', role: 'prop-commissioner', name: '宣传委员' },
+    { id: 'u_disc', role: 'disc-commissioner', name: '纪检委员' },
+    // 演示账号（mockDB users 种子）：下列 name 为演示文案，**不是组清单判定源**——
+    // 名册/赋权等处的组数/组名一律以 services/member/party-group.js::groupOptions() 为准；
+    // 新增/解散党小组不改动本演示账号（保持演示账号登录稳定，勿改为动态派生）。
+    { id: 'u_leader_1', role: 'leader',        name: '第一党小组组长' },
+    { id: 'u_leader_2', role: 'leader',        name: '第二党小组组长' },
+    { id: 'u_leader_3', role: 'leader',        name: '第三党小组组长' },
+    { id: 'u_exec', role: 'leader',            name: '党小组组长' },
+    { id: 'u_orgz', role: 'organizer',         name: '组织者' },
+    { id: 'u_deep', role: 'deep',              name: '深度参与者' },
+  ],
+  /** @type {Activity[]} */
+  activities: [],
+  /** @type {Task[]} */
+  tasks: [],
+  /** @type {AttendanceRecord[]} */
+  // Fields: studentId（学号）, developStage（发展阶段）, partyGroup（所属党小组）are required for 组织生活会 attendance summary
+  // Source: content/02_institution/sop/常见工作场景快速指南.md#三会一课通用流程
+  attendances: [],
+  /** @type {InspectionRecord[]} */
+  // 考察记录（仅组织者和深度参与者的工作量记录）— Source: content/04_web_design/data/DATA_ARCHITECTURE.md §3.3
+  inspections: [],
+  /** @type {Object[]} 活动复盘记录 */
+  activityReviews: [],
+  /** @type {Object[]} 专班复盘记录 */
+  taskforceReviews: [],
+  // ── 以下为存储层统一后从独立键归并的业务数据 ──
+  /** @type {Object[]} 分工记录 */
+  assignments: [],
+  /** @type {Object[]} 补课任务 */
+  makeupTasks: [],
+  /** @type {Object} 活动子记录（actId → subRecords） */
+  actSubRecords: {},
+  /** @type {Object} 专班子记录（tfId → subRecords） */
+  tfSubRecords: {},
+  /** @type {Object[]} 合规引用 */
+  complianceReferences: [],
+  /** @type {Object[]} 文件空间记录 */
+  fileSpaceRecords: [],
+  /** @type {Object[]} 经验沉淀 */
+  experienceDeposits: [],
+  /** @type {Object[]} 三委数据交接记录（T-304 C2 §E.2 数据交接协议） */
+  handoffs: [],
+  /** @type {Object[]} 专班数据 */
+  taskforces: [],
+  /** @type {Object[]} 通知数据 */
+  notices: [],
+  /** @type {Object[]} 待办任务数据 — Source: content/04_web_design/data/DATA_ARCHITECTURE.md §2.18 */
+  todos: [],
+  /** @type {Object[]} 报名记录（活动/专班统一报名渠道） */
+  signups: [],
+  /** @type {ImageRecord[]} 图片记录 — Source: content/02_institution/sop/宣传委员工作流程指南.md#图片管理规则 */
+  imageRecords: [],
+  // ── 2026-08-05 假操作修复新增持久化域 ──
+  /** @type {Object[]} 宣传任务（prop-commissioner 工作台） */
+  propTasks: [],
+  /** @type {Object[]} 宣传周报记录（prop-commissioner 工作台） */
+  weeklyReports: [],
+  /** @type {Object[]} 档案归档记录（prop-commissioner 工作台） */
+  archiveRecords: [],
+  // ── 2026-08-10 文件流内控新增持久化域 ──
+  /** @type {Object[]} 文件流外发确认记录（ExternalDispatch，支书 2026-08-10 裁定） */
+  externalDispatches: [],
+  // ── 2026-08-18 支部文件新增持久化域 ──
+  /** @type {Object[]} 支部文件（资料查询页，支委写入/全员下载） */
+  branchDocs: [],
+  // ── 2026-09-01 成员变更审批链路（支书点验链路 ③④ 落地）──
+  /** @type {Object[]} 成员变更申请（议程记录通过 → 组织委员审批 → 支书确认 → 更新阶段） */
+  memberChangeRequests: [],
+  /** @type {Object[]} 支委广播记录（组织委员审批通过后广播全体支委确认收到） */
+  committeeBroadcasts: [],
+  // ── 2026-09-01 线上支委会表态（异步表态闭环）──
+  /** @type {Object[]} 支委表态记录（委员异步表态：agree 同意 / object 异议 / comment 附言；支书截止后 votesLocked 锁定） */
+  agendaVotes: [],
+  // ── 2026-08-30 思想汇报数字化（支书决策，算法归档原则）──
+  /** @type {Object[]} 思想汇报（党员/发展对象系统内提交，算法自动归集至个人档案，组织委员查看调用） */
+  thoughtReports: [],
+  // ── 2026-09-14 批次 25 党小组一等实体（支书特批；组长由成员档案派生）──
+  /** @type {Object[]} 党小组（{ id, branchId, name, seq, status:'active'|'dissolved',
+   *  createdAt, createdBy, note, history[], dissolvedAt?, dissolvedBy? }） */
+  partyGroups: [],
+  // ── 2026-09-14 批次 25：成员流动台账（流入/流出复式记账，支书裁定）──
+  /** @type {Object[]} 成员流动台账（{ id, branchId, direction:'in'|'out', personId, name,
+   *  studentId, enrollYear, partyGroup, date, note, by, at, revokedAt, revokedBy }） */
+  memberFlows: [],
+  // ── 2026-09-02 党委后台 P1：支部多实例 ──
+  /** @type {Object[]} 支部实例（br-b1 本科生党支部；硕博等由党委动态创建不预设名字）
+   *  config.headerTitle=header 软编码；config.enabledModules=null 表示启用全部已注册能力；
+   *  config.fileSpaceIsolated=支部文件（branchDocs）/附件一支部一独立存储空间 */
+  branches: [],
+  // ── 2026-09-02 党委后台 P2：支书任命与任期 ──
+  /** @type {Object[]} 支书任期记录（党委任命/撤换；换届改选档案）
+   *  { id, branchId, secretaryId, appointedBy, note, from, to(null=现任) } */
+  appointmentRecords: [],
+  // ── 2026-09-02 党委后台 P3：支部上报审批 ──
+  /** @type {Object[]} 支部上报记录（发展党员关键节点/重要活动报备 → 党委逐项批/驳）
+   *  { id, branchId, type:'develop-node'|'activity-report', title, content,
+   *    status:'pending'|'approved'|'rejected', submittedBy, decidedBy, decidedAt, decisionNote, createdAt } */
+  reviewRequests: [],
+  // ── 2026-09-06 附录⑩ S4 名册生命周期·成员变更确认复核（C 批）：成员变更/移出确认请求队列 ──
+  // 组织委员发起（发展阶段 / 在册滞留 / 移出）→ 支书确认生效或退回（双层留痕、可退回）；
+  // 终态（approved/rejected）保留供审计追溯。mock-adapter 域清单禁改 → 本数组仅承载内存读链；
+  // 跨刷新持久化由 member-confirmation 服务自管 localStorage 键 gsm1921-member-confirmations
+  // （gsm1921- 前缀 → ?reset=demo 自动清理 = 回种子）。
+  /** @type {Object[]} 成员变更确认请求（{ id, kind:'change'|'transferOut', action:'developStage'|'residence'|'transferOut',
+   *  personId, name, from, to, note, by, at, status:'pending'|'approved'|'rejected',
+   *  decidedBy, decidedAt, rejectNote, refsSummary? }） */
+  pendingMemberConfirmations: [],
+};
+
+// ════════════════════════════════════════════════════════════════
+//  产出物定向路由表 — T-224 §5.5（数据模型固化，非人工录入）
+//  投递去向由产出类型决定、系统自动执行；组织者只见「提交」，不见「发送对象」。
+//  术语：端/区（执行端/确认端/归档端/消费端），避免「层」式表达。
+// ════════════════════════════════════════════════════════════════
+
+/** 产出物类型枚举 */
+export const OutputType = {
+  ATTENDANCE: 'attendance',                 // 考勤数据（主题党日/三会一课）
+  INSPECTION: 'inspection',                 // 工作考察记录（主题党日）
+  TASKFORCE_INSPECTION: 'taskforce_inspection', // 专班考察
+  PUBLICITY: 'publicity',                   // 宣传材料（照片/简讯/报送）
+  REVIEW: 'review',                         // 复盘总结（主题党日）
+  WORKLOAD: 'workload',                     // 专班工作量
+  THOUGHT_REPORT: 'thought_report',         // 思想汇报（党务）
+};
+
+/**
+ * 产出物定向路由表 — 来源：docs/superpowers/specs/2026-08-06-activity-upstream-downstream-and-data-handover-design.md §5.5
+ * 每条产出物：上游生产 → 系统定向投递 → 最终沉淀。
+ * @typedef {Object} OutputRoute
+ * @property {string} label     - 产出物名称
+ * @property {string} route     - 系统定向投递说明（自动执行，非人工选择）
+ * @property {string} [owner]   - 接收/确认方角色
+ * @property {string} sink      - 最终沉淀位置
+ */
+const OUTPUT_ROUTES = {
+  [OutputType.ATTENDANCE]: {
+    label: '考勤数据',
+    route: '纪检确认 → 考勤明细',
+    owner: '纪检委员',
+    sink: '考勤明细（组织/宣传只读同源）',
+  },
+  [OutputType.INSPECTION]: {
+    label: '工作考察记录',
+    route: '纪检确认 → 考察总表',
+    owner: '纪检委员',
+    sink: '考察总表（组织委员建档）',
+  },
+  [OutputType.TASKFORCE_INSPECTION]: {
+    label: '专班考察',
+    route: '纪检确认 → 考察总表',
+    owner: '纪检委员',
+    sink: '考察总表（组织委员建档）',
+  },
+  [OutputType.PUBLICITY]: {
+    label: '宣传材料',
+    route: '宣传委员归档',
+    owner: '宣传委员',
+    sink: '产出物查看区',
+  },
+  [OutputType.REVIEW]: {
+    label: '复盘总结',
+    route: '纪检批注/确认',
+    owner: '纪检委员',
+    sink: '活动关闭前置',
+  },
+  [OutputType.WORKLOAD]: {
+    label: '专班工作量',
+    route: '系统自动记录',
+    sink: '解散报告 → 个人档案',
+  },
+  [OutputType.THOUGHT_REPORT]: {
+    label: '思想汇报',
+    route: '系统自动归档（算法归集至个人档案）',
+    owner: '组织委员',
+    sink: '个人档案（不经纪检/宣传）',
+  },
+};
+
+/**
+ * 按产出类型取路由（派生，非人工录入）
+ * @param {string} type - OutputType 枚举值
+ * @returns {OutputRoute|null}
+ */
+export function deriveOutputRoute(type) {
+  return OUTPUT_ROUTES[type] || null;
+}

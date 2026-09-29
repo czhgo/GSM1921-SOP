@@ -3,18 +3,18 @@
 //  inspection.js — 考察记录 CRUD 服务
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain.js?v=20260929a';
-import { POLICY_DEFAULTS } from '../../core/policy-defaults.js?v=20260929a';
-import { persist, getDataSource, getAdapter } from '../../core/data-adapter.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
-import { INSPECTION_RECORDS } from '../../mock/index.js?v=20260929a';
-import { isInitStateActive } from '../core/init-reset.js?v=20260929a'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
-import { getPersonById, getPersonName } from '../member/person.js?v=20260929a';
-import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20260929a';
-import { loadActivities, isActivityOrganizer } from './activity.js?v=20260929a';
+import { mockDB, SourceType, SOURCE_TYPE_LABELS, PARTICIPATION_LEVEL_LABELS, ParticipationLevel } from '../../core/domain/domain.js?v=20260929b';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20260929b';
+import { persist, getDataSource, getAdapter } from '../../data/data-adapter.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b'; // P0 域缓存失效（spec §二.3）
+import { INSPECTION_RECORDS } from '../../data/mock/index.js?v=20260929b';
+import { isInitStateActive } from '../core/init-reset.js?v=20260929b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { getPersonById, getPersonName } from '../member/person.js?v=20260929b';
+import { TodoStore, TodoSourceType } from '../governance/todo.js?v=20260929b';
+import { loadActivities, isActivityOrganizer } from './activity.js?v=20260929b';
 // 专班「组织者」判据单一源（2026-09-23 · 专班考察上传位的本位判据要读它）
-import { isTaskforceOrganizer } from './taskforce.js?v=20260929a';
+import { isTaskforceOrganizer } from './taskforce.js?v=20260929b';
 
 export function loadInspectionRecords() {
   if (mockDB.inspections.length > 0) return [...mockDB.inspections];
@@ -113,7 +113,7 @@ export function confirmInspectionRecord(id) {
 /**
  * 获取超期未确认的考察记录
  * 超期标准：待确认状态 + 录入时间超过默认天数（默认 7；P3c 单一源 =
- * core/policy-defaults.js inspection.overdueDays，可经 daysThreshold 覆盖，行为与既有调用兼容）
+ * core/domain/policy-defaults.js inspection.overdueDays，可经 daysThreshold 覆盖，行为与既有调用兼容）
  */
 export function getOverdueRecords(daysThreshold = POLICY_DEFAULTS.inspection.overdueDays) {
   const records = loadInspectionRecords();
@@ -142,7 +142,7 @@ export function getRecordsBySource(sourceType, sourceId) {
   });
 }
 
-// ── 展示格式化（2026-09-03 数据域接线批次二：自 mock/inspection.js 原样提升）──
+// ── 展示格式化（2026-09-03 数据域接线批次二：自 data/mock/inspection.js 原样提升）──
 const _personName = (id) => getPersonName(id);
 // R-16（2026-09-13）：改从 loadActivities()（mockDB 优先）取（API 模式新建活动的标题此前回退成 id）
 const _activityTitle = (id) => loadActivities().find(a => a.id === id)?.title || id;

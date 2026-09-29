@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { generateId } from '../../core/id.js?v=20260929a';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../core/data-adapter.js?v=20260929a';
-import { buildSystemNotice } from '../../core/system-notice-templates.js?v=20260929a';
-import { bumpToken } from '../../core/version-token.js?v=20260929a'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../mock/index.js?v=20260929a';
-import { isInitStateActive } from '../core/init-reset.js?v=20260929a'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import {  getBasePath } from '../../core/utils.js?v=20260929a';
-import { AuthStore } from '../core/auth.js?v=20260929a';
-import {  getPersonById } from '../member/person.js?v=20260929a';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { generateId } from '../../core/base/id.js?v=20260929b';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20260929b';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20260929b';
+import { bumpToken } from '../../core/base/version-token.js?v=20260929b'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20260929b';
+import { isInitStateActive } from '../core/init-reset.js?v=20260929b'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import {  getBasePath } from '../../core/base/utils.js?v=20260929b';
+import { AuthStore } from '../core/auth.js?v=20260929b';
+import {  getPersonById } from '../member/person.js?v=20260929b';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20260929b';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20260929a';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20260929b';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/constants.js?v=20260929a';
+} from '../../core/domain/constants.js?v=20260929b';
 
 function _loadNotices() {
   try {
@@ -67,7 +67,7 @@ function _noticeFromTodo(todo, id) {
 
 // ════════════════════════════════════════════════════════════════
 //  受众判定单一源（Q-22-1，2026-09-13）
-//  发布侧写入 NOTICE_AUDIENCE_SENTINELS（core/constants.js）的 sentinel 值，
+//  发布侧写入 NOTICE_AUDIENCE_SENTINELS（core/domain/constants.js）的 sentinel 值，
 //  消费端可见性判定（list() 受众门 / canReadNotice() 详情页读取权限）必须走这里，
 //  杜绝「发布侧写 sentinel / 消费端比角色键」的口径分裂（`['all']` 永不命中 → 无人可见）。
 // ════════════════════════════════════════════════════════════════
@@ -331,7 +331,7 @@ export const NoticeStore = {
    *   · mock 模式（无 API 会话）：复用与应用同一模板的本地 add()，演示/离线不受影响；
    *   · API 模式：POST /api/v1/system-notices，由服务端按 kind 注册表复算授权并生成文案/落点。
    * 失败时 console.warn 明确原因，不静默吞掉。
-   * @param {string} kind 注册表 kind（见 docs/src/core/system-notice-templates.js）
+   * @param {string} kind 注册表 kind（见 docs/src/core/domain/system-notice-templates.js）
    * @param {string|null} sourceId 业务对象 id（服务端据此复算授权与落点）
    * @param {Object} [payload] 动态展示值（标题/正文/名称/计数等；不影响服务端安全判定）
    * @returns {Promise<Object|null>|Object|null} 新通知（失败返回 null）

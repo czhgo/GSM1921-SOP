@@ -1,25 +1,25 @@
 // role: [工程师]+[AI]
 // services/branch/branch.js — 支部服务（P1 党委后台，2026-09-02）
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
-// 单一数据源：mockDB.branches（首启 seed 自 mock/branches.js BRANCHES）
+// 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain.js?v=20260929a';
-import { getPersonById } from '../member/person.js?v=20260929a';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../mock/branches.js?v=20260929a';
-import { getAdapter, persist, getDataSource } from '../../core/data-adapter.js?v=20260929a';
-import { listCapabilities } from '../../core/registry.js?v=20260929a';
-// P1a 单向权威（2026-09-03）：config 净化唯一实现 = core/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from '../../core/config-clean.js?v=20260929a';
+import { mockDB } from '../../core/domain/domain.js?v=20260929b';
+import { getPersonById } from '../member/person.js?v=20260929b';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20260929b';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20260929b';
+import { listCapabilities } from '../../core/boot/registry.js?v=20260929b';
+// P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20260929b';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from '../../core/config-clean.js?v=20260929a';
-// L4（2026-09-03）：支部工作地图模块目录单一源 = core/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/work-map.js?v=20260929a';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20260929b';
+// L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20260929b';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../../core/policy-defaults.js?v=20260929a';
-import { randomHex } from '../../core/id.js?v=20260929a';
+import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20260929b';
+import { randomHex } from '../../core/base/id.js?v=20260929b';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/constants.js?v=20260929a';
+import { isCoreTab } from '../../core/domain/constants.js?v=20260929b';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -29,7 +29,7 @@ export function getBranchById(branchId) {
 // config.modules = { hiddenTabIds: string[], tabOrder: string[] }；null = 默认全开（兼容现有演示）。
 // 核心组 tab（注册表显式声明 coreTab: true：今天/待办/概况等，支书 2026-08-10 裁定全员必有）固定显示、
 // 不可隐藏、不参与排序；业务组（我的职责/知情查看/制度与答复…）可隐藏、可按画布顺序调整。
-// （2026-09-14 前以「显示标签 groupLabel 内容为『工作台』」反推，现改显式声明，见 core/constants.js::isCoreTab）
+// （2026-09-14 前以「显示标签 groupLabel 内容为『工作台』」反推，现改显式声明，见 core/domain/constants.js::isCoreTab）
 
 /** 支部可勾选的工作流能力目录（派生自能力注册表 workspace:* 能力 + 其 tab 元数据；画布/清单数据源） */
 export function listBranchModuleCatalog() {
@@ -153,7 +153,7 @@ export function applyWorkflowBlockPolicy(defIds, blocks) {
   return orderByIds(defIds.filter(id => !hidden.has(id)), order);
 }
 
-/** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认）——单一实现 = core/config-clean.js sanitizeConfigBlocks（2026-09-03 P1a 收口，勿另写） */
+/** 产出块配置净化（outputBlocks/workflowBlocks；null=恢复默认）——单一实现 = services/branch/config-clean.js sanitizeConfigBlocks（2026-09-03 P1a 收口，勿另写） */
 function _sanitizeBlocks(blocks) {
   return sanitizeConfigBlocks(blocks);
 }
@@ -306,7 +306,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../core/api-adapter.js?v=20260929a');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20260929b');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -344,7 +344,7 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks, 
     if (modules === null) {
       payload.modules = null;
     } else {
-      // 核心 tab 不可隐藏/不参与排序（配置 UI 只读展示）；限长与严格字符串口径见 core/config-clean.js
+      // 核心 tab 不可隐藏/不参与排序（配置 UI 只读展示）；限长与严格字符串口径见 services/branch/config-clean.js
       const coreIds = new Set(getCoreTabIds(tabs));
       payload.modules = sanitizeConfigModules(modules, { coreIds });
     }
@@ -355,7 +355,7 @@ export async function updateBranchModules(branchId, modules, tabs = [], blocks, 
 
 // ── L4 支部分工（workforce）───────────────────────────────────
 // config.workforce = { [moduleId]: { ownerType:'role'|'person', ownerId } }；null=缺省分工。
-// 模块目录单一源 = core/work-map.js（WORK_MAP_MODULES 14 项）；分工调整走支委会议题（M2）。
+// 模块目录单一源 = core/domain/work-map.js（WORK_MAP_MODULES 14 项）；分工调整走支委会议题（M2）。
 
 /** 读取支部分工快照（纯）：config.workforce 覆盖 + 未覆盖模块按缺省主责（expandWorkforce 兜底） */
 export function getBranchWorkforce(branchId) {
@@ -373,7 +373,7 @@ export async function updateBranchWorkforce(branchId, workforce, opts = {}) {
 
 // ── 批4 域参数 policyOverrides（2026-09-09 支书批「域参数」L2 下放；config 独立域）────────
 // config.policyOverrides = { 节: { 叶: 值 } }（节/叶白名单单一源 = policy-defaults POLICY_OVERRIDABLE；
-// 净化唯一实现 = core/config-clean.js sanitizeConfigPolicyOverrides，与 server PATCH /branches/:id/config 同源）。
+// 净化唯一实现 = services/branch/config-clean.js sanitizeConfigPolicyOverrides，与 server PATCH /branches/:id/config 同源）。
 // 角色守卫（批3 副书同权谓词同口径扩展）：
 //   · party-staff / 本支部现任支书 / 本副支书 → 全量 policyOverrides；
 //   · 本支部域负责人（纪检=inspection/attendance/review/makeup · 组织=memberConfirmation/thoughtReport ·
@@ -501,7 +501,7 @@ export function getBranchIdOfPerson(personId) {
 }
 
 // 静态壳兜底名：分支数据尚未加载时的兜底（时序竞态用）——**单一源派生，不再复制字面量**：
-// 取自 mock/branches.js 演示支部 br-b1 的档案名（DEFAULT_BRANCH_DISPLAY_NAME）。
+// 取自 data/mock/branches.js 演示支部 br-b1 的档案名（DEFAULT_BRANCH_DISPLAY_NAME）。
 // ⚠ 段②（真实归属：支部 config.headerTitle / name）与段③（本兜底）在本演示实例下取到**同一个字面量**，
 //   但来源不同：段②读 mockDB.branches 里的支部数据（改支部名/页眉名即变），段③是模块加载期固化的兜底
 //   （数据未加载时根本读不到支部记录）。肉眼分辨不了时看 getAffiliationShape().segment（1–5 段号 + 业务语言）。
@@ -615,7 +615,7 @@ export function withinBranch(rows, personId) {
 // 因此「空支部业务为空」落实为：新建动作只写 branches 集合，记录本身不产生业务引用（验收 1/2 可达）；
 // 全域 branch 分区属 spec 风险段登记缺口，不在本立项重架构——新建支部先用于配置/模板，业务数据待分区能力落地。
 
-/** 新建支部名长度上限（与 core/config-clean.js ORG_MAX.name 对齐） */
+/** 新建支部名长度上限（与 services/branch/config-clean.js ORG_MAX.name 对齐） */
 const NEW_BRANCH_NAME_MAX = 80;
 
 /**
@@ -712,7 +712,7 @@ export function buildNewBranchRecord({ id, name, mode = 'empty', sourceBranch = 
   // 支部 id 形态 `br-<8hex>` 是**既有契约**（server/test/empty-template.test.mjs 与
   //   branch-roster-import.test.mjs 均断言 /^br-[0-9a-f]{8}$/；支部 id 还会出现在
   //   `?branch=br-…` URL 与配置留痕里）——故保留 8 位十六进制，随机段仍经唯一源
-  //   core/id.js::randomHex(4)（4 字节 → 8 位 hex）。**勿改长度**。
+  //   core/base/id.js::randomHex(4)（4 字节 → 8 位 hex）。**勿改长度**。
   //   2026-09-13 Q-21-2：原 `_newBranchId()` 自建「randomUUID→Math.random」降级链，
   //   已删除并收敛到 randomHex（同一降级链，且保证所有分支路径都产出真十六进制）。
   record.id = id || ('br-' + randomHex(4));
@@ -853,7 +853,7 @@ export function getBranchThemePreset(branchId) {
 // ── 配置覆盖写（2026-09-06 立项④阶段二：JSON 配置包导入 / 复制配置到支部 共用落地）────────
 // domains = { org?: { headerTitle?, desc?, themePreset? }, modules?, blocks?, workforce? }
 //   域显式提供才处理；null = 该域恢复默认（与 updateBranchModules 等 null 语义一致）；缺省 = 不改。
-//   逐域净化唯一实现 = core/config-clean.js（sanitizeConfigOrg/sanitizeConfigModules/
+//   逐域净化唯一实现 = services/branch/config-clean.js（sanitizeConfigOrg/sanitizeConfigModules/
 //   sanitizeConfigBlocks/sanitizeConfigWorkforce）——非法 id / 白名单外值丢弃，不写坏。
 //   一次调用 = 一次 adapter 写 + 一条聚合留痕 { by, at, what, from, to: fields }
 //   （批量/覆盖类操作一操作一痕可读；逐 key 明细可从 config 现读核对）。

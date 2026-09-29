@@ -2,7 +2,7 @@
 title: "文件操作纪律"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: "2026-09-26"
+last_updated: 2026-09-29
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04_web_design/data/DATA_MODEL.md]
 ---
@@ -81,7 +81,7 @@ related_files: [CLAUDE.md, content/03_doc_system/OPERATIONS_GUIDE.md, content/04
 | 疑问 | 是 / 不是 | 为什么 |
 |---|---|---|
 | 函数、运算逻辑每次都在变吗？ | **不是** | 全站 bump 只替换上述三类 URL 串；同一份逻辑换个 URL 取值仍是同一份逻辑 |
-| 数据能切换，函数也一起切换吗？ | **不是** | 数据文件（`docs/src/mock/*.js`）里的**数据字面量**从不被改写；被改的只有它自己 import 规格符那一行，与别处 import 它的那一行 |
+| 数据能切换，函数也一起切换吗？ | **不是** | 数据文件（`docs/src/data/mock/*.js`）里的**数据字面量**从不被改写；被改的只有它自己 import 规格符那一行，与别处 import 它的那一行 |
 | 数据与函数的变化频率一样吗？ | **不一样** | 函数只在有实质改动时才变；戳是**每次发版都换**的缓存键，与内容变没变无关 |
 
 **为什么频率不同却仍要全站同戳**：无构建的 ESM 部署下，`?v=` 就是模块 URL 的缓存键——**同一次发版内全站必须同值**。同一模块若按两个不同 URL 被加载，浏览器即视为**两个模块实例**，各自的模块级状态（注册表 / 共享状态）互不可见 → 页面静默空白（判例见 [TEST_AND_VERIFICATION.md](TEST_AND_VERIFICATION.md)「共享状态模块版本分裂」节）。故「函数没改就不换戳」在这套部署形态下不成立：**换戳的单位是发版，不是单个文件的改动**。

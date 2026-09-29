@@ -7,7 +7,7 @@
 //  （`'ed_' / 'ho_' / 'cmt-' / 'notice-' / `mk_` + personId …），其中「时间戳是唯一区分因子」
 //  者在批量写入、连点、同毫秒两次调用时**必撞**。
 //
-//  裁定（2026-09-13 支书批「A+B+C 全改」）：**所有实体 id 一律经 `core/id.js` 生成**，
+//  裁定（2026-09-13 支书批「A+B+C 全改」）：**所有实体 id 一律经 `core/base/id.js` 生成**，
 //  禁止再写 `前缀 + Date.now()`；禁止用 `Math.random()` 参与 id 生成。
 //  前缀契约：连字符前缀（`tf-` / `notice-` / `cmt-` / `mc-` …）必须传 `sep='-'`——
 //    `sourceId.startsWith('tf-')` 用于区分专班/活动（activity-entry.js、todo-jump.js），
@@ -16,13 +16,13 @@
 //  两层法（与 `person-consistency.test.mjs` 同构，见 DATA_CONSISTENCY_CHECKLIST §0）：
 //    结构层 S1：禁止「前缀 + Date.now()」生成实体 id（回潮即红）
 //    结构层 S2：禁止 Math.random() 参与实体 id 生成
-//    结构层 S3：`core/id.js` 单一源在位（导出 generateId + randomHex，含降级链）
+//    结构层 S3：`core/base/id.js` 单一源在位（导出 generateId + randomHex，含降级链）
 //    数据层 D1：种子集合内 id 唯一、非空、同集合口径不分裂
 //    数据层 D2：同一 id 不得跨集合出现（id 维度上的「张冠李戴」）
 //    数据层 D3：id 形态不与前缀契约冲突（tf-/notice- 类连字符前缀不得被改成下划线形态）
 //    数据层 D4：唯一源本身可用（连续生成的 id 互不相同）
 //
-//  说明：数据层以**种子语料**（docs/src/mock 的具名导出）为准，而非 mockDB——
+//  说明：数据层以**种子语料**（docs/src/data/mock 的具名导出）为准，而非 mockDB——
 //    MockAdapter.loadDB() 只按需水合部分业务域，不能代表种子全量（D1 首版误用 mockDB
 //    只查到 70 条，即此因；已改为遍历 mock 命名空间）。
 //
@@ -35,14 +35,14 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import * as MOCK from '../../docs/src/mock/index.js?v=20260929a';
-import { generateId, randomHex } from '../../docs/src/core/id.js?v=20260929a';
+import * as MOCK from '../../docs/src/data/mock/index.js?v=20260929b';
+import { generateId, randomHex } from '../../docs/src/core/base/id.js?v=20260929b';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
 
 /**
- * 种子语料里的全部「数组型集合」（按**数组引用**去重——mock/index.js 可能把同一数组
+ * 种子语料里的全部「数组型集合」（按**数组引用**去重——data/mock/index.js 可能把同一数组
  * 以两个名字导出，别名会造成 D2 的假阳性）
  * @returns {Array<[string, Array]>}
  */
@@ -172,7 +172,7 @@ test('S1 禁止「前缀 + Date.now()」生成实体 id（回潮即红）', () =
   const offenders = [];
   for (const file of walkJs(SRC_DIR)) {
     const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
-    if (rel === 'core/id.js') continue; // 唯一 id 源的末级兜底（授权处）
+    if (rel === 'core/base/id.js') continue; // 唯一 id 源的末级兜底（授权处）
     const src = readFileSync(file, 'utf8');
     src.split(/\r?\n/).forEach((line, i) => {
       if (isCommentLine(line)) return;
@@ -182,14 +182,14 @@ test('S1 禁止「前缀 + Date.now()」生成实体 id（回潮即红）', () =
   }
   assert.deepEqual(offenders, [],
     '发现用 Date.now() 生成实体 id（同毫秒连提/批量写入必撞 id）。'
-    + "请改用 core/id.js 的 generateId(prefix, sep?)——连字符前缀必须传 '-'。");
+    + "请改用 core/base/id.js 的 generateId(prefix, sep?)——连字符前缀必须传 '-'。");
 });
 
 test('S2 禁止 Math.random() 参与实体 id 生成', () => {
   const offenders = [];
   for (const file of walkJs(SRC_DIR)) {
     const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
-    if (rel === 'core/id.js') continue; // 降级链末级兜底（授权处）
+    if (rel === 'core/base/id.js') continue; // 降级链末级兜底（授权处）
     const src = readFileSync(file, 'utf8');
     src.split(/\r?\n/).forEach((line, i) => {
       if (isCommentLine(line)) return;
@@ -199,13 +199,13 @@ test('S2 禁止 Math.random() 参与实体 id 生成', () => {
   }
   assert.deepEqual(offenders, [],
     '发现用 Math.random() 参与实体 id 生成（非加密强随机且无唯一性保证）。'
-    + '请改用 core/id.js 的 generateId()。');
+    + '请改用 core/base/id.js 的 generateId()。');
 });
 
-test('S3 单一源在位：core/id.js 导出 generateId + randomHex（含降级链）', () => {
-  const src = readFileSync(join(SRC_DIR, 'core', 'id.js'), 'utf8');
-  assert.match(src, /export function generateId\s*\(/, 'core/id.js 必须导出 generateId()');
-  assert.match(src, /export function randomHex\s*\(/, 'core/id.js 必须导出 randomHex()（降级链单一源）');
+test('S3 单一源在位：core/base/id.js 导出 generateId + randomHex（含降级链）', () => {
+  const src = readFileSync(join(SRC_DIR, 'core', 'base', 'id.js'), 'utf8');
+  assert.match(src, /export function generateId\s*\(/, 'core/base/id.js 必须导出 generateId()');
+  assert.match(src, /export function randomHex\s*\(/, 'core/base/id.js 必须导出 randomHex()（降级链单一源）');
   assert.match(src, /randomUUID/, '降级链首级应为 crypto.randomUUID');
   assert.match(src, /getRandomValues/, '降级链次级应为 crypto.getRandomValues');
 });
