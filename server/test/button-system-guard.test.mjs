@@ -49,6 +49,9 @@ const TIERS = [
   { id: '档3/34px', hit: (c) => /\btext-xs\b/.test(c) && /\bpy-2\b/.test(c) },
   { id: '档4/34px', hit: (c) => /\btext-sm\b/.test(c) && (/\bpy-1\.5\b/.test(c) || /py-\[7px\]/.test(c)) },
   { id: '命名族', hit: (c) => /\b(btn-md|btn-tab|btn-accent)\b/.test(c) },
+  // 档5＝**U5b（2026-09-07 支书批准）**：**低频操作钮**（导出 / 打印 / 分页）统一 **32px**，
+  //   与分页钮 / 下拉**同高同 border 家族**（见 `disc/attendance-tab.js` 同处注释）。**在force，勿归位**。
+  { id: '档5/32px 低频', hit: (c) => /\bh-8\b/.test(c) },
 ];
 
 /**
@@ -65,7 +68,7 @@ const isExempt = (c) => /\bsr-only\b/.test(c)
   || (/\bw-full\b/.test(c) && /\btext-left\b/.test(c));
 
 /** 棘轮上限（越轨数，只许降） */
-const BUTTON_OFF_BUDGET_CEILING = 103;
+const BUTTON_OFF_BUDGET_CEILING = 86;
 
 function walkJs(dir, out = []) {
   for (const name of readdirSync(dir)) {

@@ -630,11 +630,12 @@ li + li { margin-top: 0.25em; }
 > | 档2 默认 | 30px | `text-xs px-3 py-1.5`（或 `.btn-md`） | 卡片内 / 模态内独立按钮 |
 > | 档3 行内对齐 | 34px | `text-xs px-3 py-2` | 与 `input-flat` / `select` 同一 flex 行 |
 > | 档4 主 CTA | 34px | `text-sm px-4 py-1.5`（带边框）/ `py-[7px]`（无边框） | 表单主提交 / 页面主操作 |
+> | 档5 低频操作 | 32px | `h-8 px-3` ＋ `text-xs` | 导出 / 打印 / 分页等低频钮（**U5b 2026-09-07 支书批准**：与分页钮、下拉**同高同 border 家族**） |
 >
-> **机检判据**（守卫 `button-system-guard` B2）：每个 `<button>` 的 `class` **须命中四档之一或命名族**（`.btn-action*` / `.btn-md*` / `.btn-tab*` / `.btn-accent*`）；否则＝**第五种高度**，判红。
+> **机检判据**（守卫 `button-system-guard` B2）：每个 `<button>` 的 `class` **须命中五档之一或命名族**（`.btn-action*` / `.btn-md*` / `.btn-tab*` / `.btn-accent*`）；否则＝**第六种高度**，判红。
 > **例外**（非按钮，不判）：① `sr-only` 隐藏语义按钮；② **纯文字动作**（无 `px-`/`py-`/`btn`，如「全部 ›」）；③ **行式载体**（`w-full` ＋ `text-left` 的整行可点条目，归 `§4.19`）。
-> **⚠ 口径更正（批次 288）**：本节早前曾写作「`.btn` ＋ 四变体（primary / secondary / ghost / danger）、40px / 36px 两档」——经查 **`.btn` 与 `.btn--*` 在 `styles.css` 中并不存在**，该表指向**未实现的类名**，故**按在force四档更正**（上表）。同因，早前「316 个／147 个越轨」系**错口径 ＋ 正则缺陷（`py-\[7px\]\b` 的 `\b` 永不成立）**所致，**真值＝103 个**（2026-09-29 实测）。
-> **执行**：三屏（成员流动 / 首页 / 登录页）**已归零**；其余 103 个按逐文件台账分批归位，**每批同步下调棘轮上限**。
+> **⚠ 口径更正（批次 288）**：本节早前曾写作「`.btn` ＋ 四变体（primary / secondary / ghost / danger）、40px / 36px 两档」——经查 **`.btn` 与 `.btn--*` 在 `styles.css` 中并不存在**，该表指向**未实现的类名**，故**按在force四档＋档5更正**（上表）。同因，早前「316 个／147 个越轨」系**错口径 ＋ 正则缺陷（`py-\[7px\]\b` 的 `\b` 永不成立）**所致；补入 U5b 档5 后**真值＝86 个**（2026-09-29 实测）。
+> **执行**：三屏（成员流动 / 首页 / 登录页）**已归零**；`disc/attendance-tab` 10→2；其余 86 个按逐文件台账分批归位，**每批同步下调棘轮上限**。
 
 > CSS 实现见 `docs/src/styles.css`。**装饰性禁令**：禁止 `linear-gradient`（纯色优于渐变）、`box-shadow`（扁平化不需要）、`transform: translateY(-Npx)`（上浮效果违反扁平原则）、`transform: scale()` 过大值（缩放反馈过于花哨）。**功能性允许**：`transform: scale(1.02)` 等微交互反馈、`transform` 用于 SVG 动画绘制（如 stroke-dashoffset 渐进绘制）。区分标准：transform 不得用于"装饰性动画"（如装饰性弹跳、缩放重影），但允许用于"功能性反馈"（如按钮点击微缩、SVG 动画绘制方向）。
 
