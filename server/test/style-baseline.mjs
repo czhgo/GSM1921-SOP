@@ -560,7 +560,9 @@ export const SMALL_TEXT_BY_VALUE_BASELINE = {"text-[11px]":362,"text-[10px]":0};
  *
  *  本批处置（**从标准层统一，只改实报面**）：支书实报面＝「党小组与活动」tab ⇒
  *  `entries/tabs/secretary/group-progress-tab.js` 的 6 处 `<p>` 11px 已改到 `text-xs`（收基线删条目）；
- *  其余 28 文件 / 84 处为**存量台账**（不是正当例外），逐批收敛、新增即红。
+ *  其余 27 文件 / 83 处为**存量台账**（不是正当例外），逐批收敛、新增即红。
+ *  ⚠ 2026-09-29 批次 294：`entries/pages/settings-entry.js` 的 1 处 `<p>` 11px 随「此地无银」自明句删除而清零
+ *    ⇒ 按收基线纪律删条目（总/文件数 84→83 · 28→27）。
  *  ⚠ 收基线＝删条目 / 减 c；不得为变绿补条目。 */
 export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/ui/form-field.js': { c: 2, v: [11] },
@@ -571,7 +573,6 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/components/governance/signup-panel.js': { c: 1, v: [11] },
   'docs/src/entries/pages/notice-entry.js': { c: 1, v: [11] },
   'docs/src/entries/pages/party-committee-meeting-entry.js': { c: 9, v: [11] },
-  'docs/src/entries/pages/settings-entry.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/disc/attendance-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
@@ -594,10 +595,10 @@ export const P_TEXT_TIER_BASELINE = {
 };
 
 /** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线） */
-export const P_TEXT_TIER_TOTAL_BASELINE = 84;
-export const P_TEXT_TIER_FILE_BASELINE = 28;
+export const P_TEXT_TIER_TOTAL_BASELINE = 83;
+export const P_TEXT_TIER_FILE_BASELINE = 27;
 /** 按值台账（只报不判；9/10px 是禁止档，恒为 0） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 84, 10: 0, 9: 0 };
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 83, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

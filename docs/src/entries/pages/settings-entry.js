@@ -185,7 +185,6 @@ function shapeCardHtml() {
         <h2 class="font-title-cn text-base font-bold text-gray-800">当前形态 · 归属判定</h2>
         ${badgeHtml('自查', 'neutral')}
       </div>
-      <p class="text-[13px] leading-relaxed text-gray-500 mb-4">「顶栏那个组织名从哪来」在这里摊开：数据源与依据、命中的归属段、所属支部、当前登录人与角色、代码版本戳，无需调试器即可自查。</p>
       <dl class="kv-list">${rows}</dl>
       <div class="hint-box mt-3.5">
         <span class="hint-dot"></span>
@@ -213,7 +212,6 @@ function renderGroups(container) {
       </div>
     </div>
   `).join('') + `
-    <p class="mx-1 text-[11px] leading-relaxed text-gray-500">分区随登录身份显示——你只会看到与本人身份相关的区。</p>
     ${location.hash ? '<a href="#" id="settings-back-link" class="mx-1 text-xs text-[var(--app-accent)] underline">← 返回上一页</a>' : ''}`;
   container.querySelectorAll('.settings-group-item').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1247,13 +1245,10 @@ function domainCardHtml(meta, branch, P) {
       </div>`;
   }
   if (meta.role === 'org-commissioner') {
-    const def = P.memberConfirmation.semesterDetainedWindows;
     const cur = Array.isArray(po.memberConfirmation?.semesterDetainedWindows) && po.memberConfirmation.semesterDetainedWindows.length
-      ? po.memberConfirmation.semesterDetainedWindows : def;
+      ? po.memberConfirmation.semesterDetainedWindows : P.memberConfirmation.semesterDetainedWindows;
     const win = (idx) => cur[idx] || [6, 15, 7, 15];
     const w1 = win(0); const w2 = win(1);
-    const pad = (v) => String(v).padStart(2, '0');
-    const winLabel = (w, cross) => `${pad(w[0])}-${pad(w[1])} ～ ${cross ? '次年 ' : ''}${pad(w[2])}-${pad(w[3])}`;
     const num = (v, id) => `<input type="number" id="${id}" class="input-flat text-xs w-16 text-center" min="1" max="31" value="${v}" inputmode="numeric">`;
     const cHint = (Number.isInteger(po.thoughtReport?.wordHint) ? po.thoughtReport.wordHint : P.thoughtReport.wordHint);
     const cSoft = (Number.isInteger(po.thoughtReport?.wordSoftMin) ? po.thoughtReport.wordSoftMin : P.thoughtReport.wordSoftMin);
@@ -1263,51 +1258,40 @@ function domainCardHtml(meta, branch, P) {
           <h2 class="font-title-cn text-base font-bold text-gray-800">组织职责参数</h2>
           ${badgeHtml(`${esc(meta.roleLabel)} 可调`, 'info')}
         </div>
-        <p class="text-[13px] leading-relaxed text-gray-500 mb-4">学期末滞留集中复核窗口、思想汇报篇幅建议与警告审阅线。保存后：支书台提醒窗口与提交页字数提示同源生效。</p>
         <div class="space-y-3">
           <div class="kv-row">
-            <dt>区间 1</dt>
-            <dd class="flex items-center gap-1.5 flex-wrap">
-              ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>
-              ${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
-              <span class="text-[11px] text-gray-500">默认 ${winLabel(def[0] || w1, false)}</span>
+            <dt>复核窗口</dt>
+            <dd class="space-y-1.5">
+              <div class="flex items-center gap-1 flex-wrap">
+                <span class="text-xs text-gray-500 w-9 shrink-0">第一段</span>
+                ${num(w1[0], 'pol-org-1-sm')}<span class="text-xs text-gray-500">月</span>${num(w1[1], 'pol-org-1-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w1[2], 'pol-org-1-em')}<span class="text-xs text-gray-500">月</span>${num(w1[3], 'pol-org-1-ed')}<span class="text-xs text-gray-500">日</span>
+              </div>
+              <div class="flex items-center gap-1 flex-wrap">
+                <span class="text-xs text-gray-500 w-9 shrink-0">第二段</span>
+                ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-500">月</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span><span class="text-[11px] text-gray-400">（跨年）</span>
+              </div>
             </dd>
           </div>
           <div class="kv-row">
-            <dt>区间 2</dt>
-            <dd class="flex items-center gap-1.5 flex-wrap">
-              ${num(w2[0], 'pol-org-2-sm')}<span class="text-xs text-gray-500">月</span>${num(w2[1], 'pol-org-2-sd')}<span class="text-xs text-gray-500">日 ～</span>
-              ${num(w2[2], 'pol-org-2-em')}<span class="text-xs text-gray-500">月（次年）</span>${num(w2[3], 'pol-org-2-ed')}<span class="text-xs text-gray-500">日</span>
-              <span class="text-[11px] text-gray-500">默认 ${winLabel(def[1] || w2, true)}（止月小于起月 = 跨年）</span>
-            </dd>
-          </div>
-          <div class="kv-row">
-            <dt>思想汇报建议篇幅</dt>
-            <dd>
-              <label class="flex items-center gap-2">
-                <span class="text-xs text-gray-600">建议</span>
-                <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cHint}" inputmode="numeric">
-                <span class="text-xs text-gray-600">字以上</span>
-              </label>
-              <div class="text-[11px] text-gray-500 mt-1">范围 100–10000；默认 ${P.thoughtReport.wordHint} 字。只写在提示文案里。</div>
+            <dt>篇幅建议</dt>
+            <dd class="flex items-center gap-2">
+              <input type="number" id="pol-org-word-hint" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cHint}" inputmode="numeric">
+              <span class="text-xs text-gray-600">字以上</span>
             </dd>
           </div>
           <div class="kv-row">
             <dt>警告审阅线</dt>
-            <dd>
-              <label class="flex items-center gap-2">
-                <span class="text-xs text-gray-600">少于</span>
-                <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cSoft}" inputmode="numeric">
-                <span class="text-xs text-gray-600">字触发警告审阅</span>
-              </label>
-              <div class="text-[11px] text-gray-500 mt-1">范围 100–10000；默认 ${P.thoughtReport.wordSoftMin} 字。提醒只给提交人本人，不影响提交。</div>
+            <dd class="flex items-center gap-2">
+              <span class="text-xs text-gray-600">少于</span>
+              <input type="number" id="pol-org-word-soft" class="input-flat text-xs w-24 text-center" min="100" max="10000" value="${cSoft}" inputmode="numeric">
+              <span class="text-xs text-gray-600">字</span>
             </dd>
           </div>
         </div>
-        <div class="text-[11px] text-gray-500 mt-1">月 1–12、日 1–31；共两段窗口。${curState}</div>
         <div class="pt-3 border-t border-gray-100 flex items-center gap-2">
           <button type="button" class="btn-accent text-xs px-3 py-1.5" data-pol-save="domain-org">保存</button>
           <button type="button" class="btn-accent-soft text-xs px-3 py-1.5 disabled:opacity-45" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-pol-reset="domain-org" ${hasOverride ? '' : 'disabled'}>恢复默认</button>
+          <span class="text-[11px] text-gray-500 ml-auto">${curState}</span>
         </div>
         ${statusHtml}
       </div>`;

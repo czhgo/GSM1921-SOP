@@ -11,7 +11,7 @@ import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260929z';
 import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260929z';
 import { mockDB } from '../../../core/domain/domain.js?v=20260929z';
 import { bumpToken } from '../../../core/base/version-token.js?v=20260929z'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS } from '../../../services/activity/activity.js?v=20260929z';
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, isGalleryFeatured } from '../../../services/activity/activity.js?v=20260929z';
 import { isApiMode } from '../../../services/core/runtime.js?v=20260929z';
 import { AuthStore } from '../../../services/core/auth.js?v=20260929z';
 import { getPersonName } from '../../../services/member/person.js?v=20260929z';
@@ -79,6 +79,8 @@ export function renderContent(ctx) {
 
     ${_renderPublicityDraftSection(listPublicityDrafts())}
 
+    ${_renderGallerySection()}
+
     ${_renderPendingArchiveSection(pendingArchives)}
 
     <div class="flex items-center gap-2 mb-2">
@@ -106,6 +108,17 @@ export function renderContent(ctx) {
       </div>
     </div>
   `;
+
+  // 活动风采收录 / 撤下（2026-09-29 批次 294；写口单一源 = services/activity/activity.js::setGalleryFeatured）
+  container.querySelector('#prop-gallery-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.gallery-feature-btn');
+    if (!btn) return;
+    const me = AuthStore.getCurrentUser() || {};
+    const res = setGalleryFeatured({ activityId: btn.dataset.activityId, on: btn.dataset.on !== 'true', by: me.personId, role: me.role });
+    if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
+    showToast('success', btn.dataset.on === 'true' ? '已从活动风采撤下' : '已收录到活动风采');
+    renderContent(ctx);
+  });
 
   // 归档记录列表：统一检索引擎（关键词 活动名/材料名 + 分面 类别/状态；≤8 行自动不渲染检索条）
   renderFilteredList(container.querySelector('#archive-list'), {
@@ -275,6 +288,45 @@ export function renderContent(ctx) {
   container.querySelector('#archive-upload-btn')?.addEventListener('click', () => {
     _showArchiveUploadModal(ctx);
   });
+}
+
+/** 活动风采「收录」管理（2026-09-29 批次 294 · 支书裁：「活动是否上传到活动风采」＝宣传委员之权）。
+ *  收录 / 撤下写主源 `galleryFeatured`；候选与判据单一源 = services/activity/activity.js
+ *  （`listGalleryCandidates` / `isGalleryFeatured` / `setGalleryFeatured`）——本页不另写判据。 */
+function _renderGallerySection() {
+  const all = listGalleryCandidates();
+  if (!all.length) return '';
+  const featured = all.filter(isGalleryFeatured);
+  const rows = [...featured, ...all.filter(a => !isGalleryFeatured(a))];
+  return `
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-1.5">
+        <h4 class="text-sm font-bold text-gray-700">活动风采</h4>
+        <span class="text-xs px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">已收录 ${featured.length} 项</span>
+      </div>
+      <div class="space-y-2" id="prop-gallery-list">${rows.map(_galleryRowHtml).join('')}</div>
+    </div>`;
+}
+
+/** 收录行（收 / 撤一枚开关；判据单源见 _renderGallerySection） */
+function _galleryRowHtml(a) {
+  const on = isGalleryFeatured(a);
+  const btnCls = on
+    ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+    : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
+  return `
+      <div class="p-3 rounded-xl bg-white border border-gray-100 flex items-center justify-between gap-3">
+        <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
+          <div class="flex items-center gap-2 mb-0.5">
+            <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
+            ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : ''}
+            ${on ? '<span class="text-xs px-1.5 py-0.5 rounded-full border bg-sky-50 text-sky-700 border-sky-200 shrink-0">已收录</span>' : ''}
+          </div>
+          <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
+        </a>
+        <button type="button" class="gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
+                data-activity-id="${escHtml(a.id)}" data-on="${on ? 'true' : 'false'}">${on ? '撤下' : '收录到活动风采'}</button>
+      </div>`;
 }
 
 /** 归档兜底横幅（A② 2026-09-10）：支书/副支书进入宣传台仅用于「代归档」兜底，只呈现归档面 */

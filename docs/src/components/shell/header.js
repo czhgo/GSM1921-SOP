@@ -80,11 +80,14 @@ async function _renderNotificationBadge() {
     const badge = document.createElement('span');
     badge.id = 'notif-badge';
     badge.textContent = unread > 9 ? '9+' : String(unread);
-    // 2026-09-29 批次 285（支书裁定：「有时候红色，参考微信消息提醒的做法，用数字小圆放在一角，是很有效的！」）：
-    //   未读数＝**提醒语义**（`§2.5` 功能色「只表语义状态」）⇒ 由党徽黄改为**红底白字数字圆角标**（微信范式）。
-    //   仍走令牌（`var(--party-red)`）与 Tailwind 工具类（`text-white`），**不落 hex 字面量**。
-    badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-red);font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;';
-    badge.classList.add('text-xs', 'text-white');
+    // 2026-09-29 批次 285 立「红底数字小圆」（支书：「参考微信消息提醒的做法」）；
+    //   **批次 294 支书复议**：「我更喜欢金色，因为背景是党建红了对比不明显」——顶栏是**深红底**
+    //   （本文件 `_roleLabelHTML` 注：「整个 header（深红底白字）」）⇒ 红角标与底同色系、对比不足。
+    //   ⇒ 改**党徽金底 + 深字**（金 `--party-gold` / 深字 `text-amber-800`，与 `badgeHtml(..., 'gold')` 同源字色）。
+    //   口径升为「**计数小圆底色随宿主背景**」：**深红底 ⇒ 金**；**白 / 浅底（如首页卡片内那些） ⇒ 红**（沿用 `--party-red`）。
+    //   仍走令牌与 Tailwind 工具类，**不落 hex 字面量**。
+    badge.style.cssText = 'position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:9999px;background:var(--party-gold);font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;';
+    badge.classList.add('text-xs', 'text-amber-800');
     bell.appendChild(badge);
   }
 }

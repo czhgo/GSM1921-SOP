@@ -292,6 +292,45 @@ export function listBrandProposals() {
     .map((a) => ({ id: a.id, title: a.title || a.id, proposal: brandProposalOf(a) }));
 }
 
+// ════════════════════════════════════════════════════════════════
+//  活动风采「收录」单一源（2026-09-29 批次 294 · 支书评议裁定）
+//  「活动**是否上传到活动风采**」＝**宣传委员的权限**（支书 2026-09-29 逐字：
+//   「我认为活动是否 上传到 活动风采 应该是 宣传委员等一系列同志的权限！！」）。
+//  ⇒ 首页「活动风采」**不再自动派生**（原判据＝品牌 ∪ 已结束），改由**人工收录**：
+//      主源字段 `galleryFeatured`（布尔）；候选池＝「有展示价值」的活动（品牌 ∪ 已结束 / 已归档）。
+//  写口只有这一个（`setGalleryFeatured`），**勿在页面另写状态**。
+// ════════════════════════════════════════════════════════════════
+
+/** 可决定「收录 / 撤下」的角色（宣传委员；支书 / 副支书同权） */
+export const GALLERY_FEATURED_BY_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, 'prop-commissioner'];
+
+/** 该活动是否被收录进首页「活动风采」（主源字段 `galleryFeatured`） */
+export function isGalleryFeatured(activity) {
+  return !!(activity && activity.galleryFeatured === true);
+}
+
+/** 收录候选池：「有展示价值」的活动——品牌活动、或已结束 / 已归档的活动 */
+export function listGalleryCandidates() {
+  return loadActivities()
+    .filter((a) => a && (a.isBrand === true || a.archived === true || ['completed', 'cancelled'].includes(a.status)));
+}
+
+/**
+ * 收录 / 撤下首页「活动风采」（宣传委员之权）。写主源字段 `galleryFeatured`。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function setGalleryFeatured({ activityId, on, by, role } = {}) {
+  if (!GALLERY_FEATURED_BY_ROLES.includes(role)) return { ok: false, reason: '仅宣传委员（或支书 / 副支书）可收录到活动风采' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  _writeActivityField(activityId, {
+    galleryFeatured: on === true,
+    galleryFeaturedBy: by || null,
+    galleryFeaturedAt: new Date().toISOString(),
+  });
+  return { ok: true };
+}
+
 /** 活动主源单点改写（Immutable 替换 + 域缓存失效 + 落库；与 saveDB 同一落盘口） */
 function _writeActivityField(id, patch) {
   const idx = mockDB.activities.findIndex((a) => a.id === id);

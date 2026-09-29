@@ -112,12 +112,16 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
     const countCircle = (n) => '<span class="text-xs text-white font-semibold rounded-full flex items-center justify-center"'
       + ' style="min-width:16px;height:16px;padding:0 4px;background:var(--party-red);">'
       + `${n > 9 ? '9+' : n}</span>`;
-    summaryHtml = `<div class="flex flex-wrap items-center gap-1.5 pb-3 mb-2 border-b border-gray-100">${byClassList.map(([label, list]) => `
-      <details class="rounded-lg border border-gray-200 bg-white">
-        <summary class="flex items-center gap-1.5 px-2 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
+    // 2026-09-29 批次 294（支书评议：「summary 展开后好丑…宽度有一定规则…收拢时两个 summary 要舒服」）：
+    //   收拢＝**并排小胶囊**（等距 `gap` + 等内边距，不再随内容挤）；展开＝**整行铺开**
+    //   （`.notice-group-chip[open]{ flex:1 0 100% }`，见 styles.css）⇒ 展开内容**不再挤在胶囊宽度里**；
+    //   展开态与收起态之间加一条分隔线（`[open] > summary` 的下边框）。
+    summaryHtml = `<div class="notice-group-bar">${byClassList.map(([label, list]) => `
+      <details class="notice-group-chip">
+        <summary class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg cursor-pointer text-sm text-gray-800 hover:bg-gray-50 transition-colors">
           <span class="font-medium">${label}</span>${countCircle(list.length)}
         </summary>
-        <div class="px-1 pb-1">${list.map(rowHtml).join('')}</div>
+        <div class="notice-group-body">${list.map(rowHtml).join('')}</div>
       </details>`).join('')}</div>`;
   }
 

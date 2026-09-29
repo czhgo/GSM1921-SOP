@@ -9,8 +9,8 @@ import { getAppState } from '../../core/base/state.js?v=20260929z';
 import { _fmtDate } from '../../core/base/utils.js?v=20260929z';
 import { getPersonName } from '../../services/member/person.js?v=20260929z';
 import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260929z';
-// 活动「已结束 / 已归档」口径单一源（2026-09-13 收敛）：替代手写 status==='completed' || archived、!archived
-import { isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20260929z';
+// 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
+import { isGalleryFeatured } from '../../services/activity/activity.js?v=20260929z';
 import { badgeHtml } from '../ui/badges.js?v=20260929z';
 import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260929z';
 
@@ -32,9 +32,11 @@ export function renderGallery(activities) {
   const container = document.getElementById('dashboard-gallery');
   if (!container) return;
 
-  // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）
+  // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）。
+  // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：**收录＝人工**（活动主源 `galleryFeatured`），
+  //   **不再自动派生**（原判据＝品牌 ∪ 已结束）——收录 / 撤下入口在宣传台「档案归档 · 活动风采」。
   const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
-  const candidates = activities.filter(a => (a.isBrand && !isActivityArchived(a)) || (isActivityEnded(a) && !a.isBrand));
+  const candidates = activities.filter(a => isGalleryFeatured(a));
   const sortByDate = (arr) => [...arr].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const display = [...sortByDate(candidates.filter(a => !isDone(a))), ...sortByDate(candidates.filter(a => isDone(a)))].slice(0, 6);
 

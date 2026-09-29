@@ -21868,3 +21868,13 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 **复核**：`doc-line-ref` **6/6** 绿（R2 转绿）· `form-loop-sweep` 的 `S6` 单测 **1/1** 绿 ⇒ 全量口径 **895/895/0**。
 **台账**：本条 ＋ `D-704`（四处计数 **429 → 430** / 止于 `D-704` / 下一条自 `D-705`，与 `^## D-` 实测 **430** 自洽）· 同批**改准** `D-703`（本月目录行）所述「`ACTIVE_RULINGS` 本批未动、口径行仍 141」——同批后半 `cafcbf6d` 实已新立十六节 3 行 ⇒ **141 → 144**。
 **⚠ 闭环项**：本批即批次 292 登记之「`R-85` 收尾全量」这一方；**无新制度口径**，`ACTIVE_RULINGS` **零行**；**未 bump**（无 `?v=` 变更）。**未 push**。
+
+## 批次 294（2026-09-29）：**支书第 2 批评议 7 项逐条落地**（`D-705`）
+
+**背景**：继批次 287–292 的 ①—④ 与范式落盘后，支书在学生端逐屏实报第 2 批评议（7 项），并令「完成上述工作后，请继续报告之后的批次需要做什么」。
+**决定（`AskUserQuestion` 三问，均取推荐档）**：③ 活动风采收录权取「**宣传委员手动收录 / 撤下**」（auto 派生取消）· ④ 政策卡取「**重排表达 ＋ 去冗余说明**」· ⑤ 取「**全仓扫 ＋ 逐条清 ＋ 立守卫**」。
+**动作**：② `components/shell/header.js` 角标 `--party-red` → `--party-gold` ＋ `text-white` → `text-amber-800`（口径升为「**计数小圆底色随宿主背景**」）；① `styles.css` 新增 `.notice-group-bar / -chip / -body` 段（`.notice-group-chip[open]{flex:1 0 100%}`）＋ `notice-view.js` 归并条改用该类；③ 新字段 `galleryFeatured`——`services/activity/activity.js` 新增 `GALLERY_FEATURED_BY_ROLES` / `isGalleryFeatured` / `listGalleryCandidates` / `setGalleryFeatured`；`components/dashboard/gallery.js` 改按该字段收录（导入改为 `isGalleryFeatured`）；`entries/tabs/prop/archive-tab.js` 新增「活动风采」区（`_renderGallerySection` / `_galleryRowHtml` ＋ 事件委托）；`data/mock/activities.js` **6 条**置 `galleryFeatured: true`；④ `entries/pages/settings-entry.js` 政策卡重排（区间 1/2 → 「复核窗口」两段 · 「思想汇报建议篇幅」→「篇幅建议」· 删 5 处小字）＋ 删两处自明句；⑤ 新增守卫 `server/test/self-evident-copy-guard.test.mjs`（`Z1` / `Z2`），并登记进 `test:fast` ＋ `test:daily`。
+**实测**：`test:fast` **137 / 137** · `module-load` ＋ `import-path-guard` ＋ `doc-consistency` ＋ `version-stamp` ＋ `notice-audience` **48 / 48**；⚠ 途中 `text-tier-guard::T3` 判红 **1 次**（`settings-entry.js` 的 1 处 `<p>` 11px 随自明句删除而清零 ⇒ 按「收基线＝删条目 / 减 c」**删条目**，`P_TEXT_TIER_*` **84→83 / 28→27**，复跑转绿）。
+**⑦ 全站 button 普查（只报告，未改）**：`<button class>` **521** ＝ 无 `btn-*` 类 **344**（68 文件）＋ 含 btn 词干非族 **110**（37 文件）＋ `.btn-accent` **41**（14 文件）＋ `.btn-action*` 18 ＋ `.btn-md*` 6 ＋ `.btn-tab*` 2 ⇒ 「有的这样有的不是」成因＝多数按钮从未迁入 `.btn-accent` 语义族。
+**台账**：本条 ＋ `D-705`（四处计数同刷 **430 → 431**）· `DESIGN_SYSTEM §4.14` **改 1 条 ＋ 加 2 子节** · `ACTIVE_RULINGS` 十六节 **改 1 行 ＋ 新立 2 行**（口径行 **144 → 146**）· `server/test/style-baseline.mjs` 收基线。
+**⚠ 待办（不得读成已办）**：新字段 `galleryFeatured` **未登记进 `DATA_MODEL.md §2.1`**（须与 `README-server.md` 行号同批平移）；⑦ 的按钮族归一**未动**。**未 push**。

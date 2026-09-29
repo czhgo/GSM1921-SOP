@@ -3363,6 +3363,27 @@ html.theme-dark .agg-count-badge {
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── 键值对列表（只读「键 → 值」展示；体例同原 settings-kv-row） ── */
+/* ── 首页通知「同类归并条」（2026-09-29 批次 294 · 支书评议：「宽度有一定规则，收拢时两个 summary 要舒服」）──
+   收拢＝并排小胶囊（等距 `gap` ＋ 等内边距，不随内容挤）；展开＝**整行铺开**
+   （`flex: 1 0 100%` ⇒ 展开内容不再挤在胶囊宽度里），展开态与收拢态之间以 `summary` 下边框分隔。 */
+.notice-group-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--neutral-100);
+}
+.notice-group-chip {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  background: var(--neutral-0);
+}
+.notice-group-chip[open] { flex: 1 0 100%; }
+.notice-group-chip[open] > summary { border-bottom: 1px solid var(--neutral-100); }
+.notice-group-body { padding: 2px 12px 6px; }
+
 .kv-list { margin: 2px 0 4px; }
 .kv-row {
   display: flex;
