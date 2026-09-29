@@ -21334,3 +21334,15 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **修法（零副作用）**：把判据实现抽成 `problemsFor(rel, file, text)` 单一函数（`G1` 对全量文件调它、`G3` 对**内存副本**调它）⇒ `G3` 用**注入内存的字符串副本**证「判据真会判」，**全程不落盘、无临时文件、无清理分支**；并把反例加严为**两条**（坏文件 ＋ 坏模板前缀）＋ **一条对照组**（同批注入的**好**规格符 `./core/utils.js` 不得被误报 ⇒ 同时证「不过严」）。同时删去随之无用的 `writeFileSync` / `rmSync` / `fileURLToPath` 三个 import。
 - **验证**：`node --test test/import-path-guard.test.mjs` **2/2 绿**；`Get-ChildItem docs/src -Recurse -Filter *probe*` **实测 0 个残留**（证「不落盘」）。**本批验证（`R-85④` 收尾全量，因本批改了 `server/test/**`）**：起 :3000 → `npm test` ＝ **`tests 862 / pass 861 / fail 1`**——**唯一红仍＝`b3-1`**（`H-13`，待裁）；`form-loop-sweep` 全段 / `page-sweep` 全绿，**`import-path-guard` 两断言在全量档内亦绿**（证它与 `module-load::E1` 同档串行运行无互扰）。本批**未改 `docs/src/**` / `server/*.js` / `server/routes/**` ⇒ 不触发 `bump-version`**（`20260929a` 戳系批次 262 所推、本批无新增缓存键）。
 
+---
+
+## 批次 264（2026-09-29）：**任务 ③ 续作 —— 把「README / SNAPSHOT」的**内容陈旧**再扫一遍**（改 2 处 ＋ 立 `H-16` ＋ 补刷 3 行时间戳）
+
+> **来源**：支书第 3 条「请更新好**所有**的 README 和 SNAPSHOT 等文件」。批次 260 只覆盖了根 `README.md` / `README-server.md` / `server/README.md` / `SNAPSHOT.md` 的**结构性一致性**（守卫绿）与 2 处代码↔文档不符；本批把**其余 README（`README-members.md`）与 `SNAPSHOT.md` 的现状陈述**逐条实读。
+
+- **改准 ①（`README-members.md` §八 迭代路线图）**：「长期演进」一行原写「**规划中** | 工作流块化 → 界面拖拽编排 → 跨组织分享复用」。**实况**：块封装契约（L3）**已落地**（块目录 **6 块** · 支部可配启停**与顺序** · 同类场景已铺开）⇒ 状态由「规划中」改「🔄 分批进行」，并把链路按**官方 L1→L5 术语**写清（哪层已落、哪层未启），层级号定义指向 `OPERATIONS_GUIDE.md` 术语表（避免与本会话内部叫的「L1 内核 / L2 配置面 / L3 铺开」混为一谈）。
+- **改准 ②（`.ctx/SNAPSHOT.md` §IV 理论表·能力注册表行）**：该行量化指针原写「**2026-09-06 v4 综合≈76**」——**严重过时**（现 ≈85）。改为「**综合分 2026-09-29 实测 ≈85**——原记『2026-09-06 v4 ≈76』已过时」。
+- **新查出并登记 `H-16`（只登记、不在授权面）**：`content/03_doc_system/OPERATIONS_GUIDE.md:1634`（术语表「L1-L4 阶段号」条）写「…愿景总述见根 `README.md`『**开源项目目标**』」——**实读根 `README.md` 现无该章节**（全 33 个标题已逐一列出；`grep -n '开源' README.md` **0 命中**）⇒ **悬空指针**。该类「章节名指针」**当时无任何机检**（`doc-line-ref` 只核 `README-server.md` 的文件:行号、`link-integrity` 只核**链接可达**，而它是纯文本章节名）⇒ 与 `H-15` 同族。`content/**` ＝支书批改层 ⇒ **只登记**，建议改指 `README-members.md §八`。
+- **R-83 补刷（本会话前几批的欠账，一处不落）**：本轮把**因本会话编辑而应刷、却仍是旧日期**的 3 行补齐——`README.md`（批次 262 加 `import-path-guard` 入测试清单）· `server/package.json`（同批加该守卫入 `test:daily`）· `docs/src/entries/pages/settings-entry.js`（批次 262 修路径）⇒ 三行均由 `2026-09-28` 刷为 `2026-09-29`；另 `README-members.md` 由 `2026-09-27` 刷为 `2026-09-29`。**新文件 `server/test/import-path-guard.test.mjs` 无需单行**（`server/test/*.test.mjs` **通配行**已覆盖，其日期已为 `2026-09-29`）。
+- **验证**：`npm run test:daily` **650/650 / 0 红**（含 `doc-consistency::S13` ／ `frontmatter-freshness::F1` ／ `timestamps-note-guard::N1–N7`——**仅改日期与行内文字、未增删表行**）。本批**未改 `docs/src/**` / `server/**` 代码 ⇒ 不触发 bump 与收尾全量**。
+
