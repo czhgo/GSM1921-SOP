@@ -119,6 +119,9 @@ cat <<EOF
  1. **填口令**：编辑 $ENV_FILE 的 LOGIN_PASSWORD，然后 systemctl restart ${SVC_NAME}
  2. **确认库内只有真人**：journalctl -u ${SVC_NAME} | grep 自检
     （应看到「演示种子账号=0」；>0 说明库是从演示库来的，按 A.2 第 1 条用空库起步）
+    · 首启（空库）会自动建立**最小组织基线**：**党委账号 1 名 ＋ 支部「光华管理学院本科生党支部」(br-b1)**
+      —— **零成员名单**（支书 2026-09-29 令）。名单请走「IAAA 登录 + 支部确认」（规划中）或党委台
+       「支部管理 → 导入成员名册」。党委账号**学号**可用环境变量 `BASELINE_PARTY_STAFF_ID` 指定。
  3. **接反代**：按 deploy/nginx.sample.conf 起 nginx（⚠ 其中
     `location = /src/config/deploy.js` 必须**单独放行到 Node**，否则「关于」门面与部署形态判定会错）
 
