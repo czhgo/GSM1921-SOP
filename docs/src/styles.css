@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260930a');
+@import url('components/person-picker.css?v=20260930b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -631,6 +631,53 @@ button:disabled { cursor: not-allowed; }
   transition: background-color var(--transition-fast), filter var(--transition-fast);
 }
 .btn-accent-soft:hover { filter: brightness(0.96); }
+
+/* ── 按钮族谱补全（2026-09-30 批次 297-1 · 支书裁「**新立 4 族**：中性 / 描边 / 文字 / 危险」）──
+   目标：**全站按钮只准用这 8 族**——主操作 `.btn-accent` · 次主操作 `.btn-accent-soft` ·
+   微操作 `.btn-action*` · **中性 `.btn-neutral`** · **描边 `.btn-outline`** · **文字 `.btn-ghost`** ·
+   **危险 `.btn-danger`** · 命名族 `.btn-md*` / `.btn-tab*`。
+   本组只管**语义外观**；**尺寸**仍由各页按 `DESIGN_SYSTEM §4.1` 四档/五档给出。**色一律走令牌**（不落 hex）。
+   ⚠ 本批只立**族谱基线**（类已入 CSS ＋ 进 `DYNAMIC_SELECTOR_WHITELIST` 并写明理由「待迁移启用」），
+   实际逐屏迁移见批次 297-2…；迁移时如需变体（如「危险·实底」）**按需增补、同受 `button-system-guard` 族棘轮约束**。 */
+.btn-neutral {
+  background: var(--neutral-100);
+  color: var(--neutral-700);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+.btn-neutral:hover { background: var(--neutral-200); }
+.btn-neutral:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-outline {
+  background: var(--neutral-0);
+  color: var(--app-accent);
+  border: 1px solid var(--app-accent-border);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+.btn-outline:hover { background: var(--surface-hover); }
+.btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--neutral-700);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+.btn-ghost:hover { background: var(--neutral-100); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-danger {
+  background: color-mix(in srgb, var(--functional-error) 10%, var(--neutral-0));
+  color: var(--functional-error);
+  border: 1px solid color-mix(in srgb, var(--functional-error) 35%, var(--neutral-0));
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--functional-error) 16%, var(--neutral-0)); }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .chip-option {
   border: 1px solid var(--neutral-200);

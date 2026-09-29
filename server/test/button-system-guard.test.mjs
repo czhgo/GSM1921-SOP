@@ -27,6 +27,13 @@
  *     早前 316＝错口径、147＝正则缺陷 `py-\[7px\]\b` 的 `\b` 永不成立 ⇒ 均已修）。
  *
  * B3【台账】打印**逐文件越轨清单**，供 ③-c「先三屏、再铺开」归位使用。
+ *
+ * B4【按钮族棘轮】未入**语义族**的 `<button>` 数**只许降不许升**（2026-09-30 批次 297-1 立）。
+ *   来源：支书 2026-09-30 裁「⑦ 按钮族＝**全面归一**」＋「**新立 4 族**（中性 / 描边 / 文字 / 危险）」。
+ *   目标族谱（**全站按钮只准用这 8 族**，单一源＝`styles.css`「按钮族谱补全」段 ＋ `DESIGN_SYSTEM §4.1`）：
+ *     主操作 `.btn-accent` · 次主操作 `.btn-accent-soft` · 微操作 `.btn-action*` · **中性 `.btn-neutral`** ·
+ *     **描边 `.btn-outline`** · **文字 `.btn-ghost`** · **危险 `.btn-danger`** · 命名族 `.btn-md*` / `.btn-tab*`。
+ *   基线＝**批次 297-1 实测 454**（手写 344 ＋ 含 btn 词干非族 110）；**每迁完一屏一并下调基线**（收基线纪律）。
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -150,5 +157,45 @@ test('B2 按钮尺寸档：<button> 必须命中四档之一（或命名族）',
   assert.ok(
     total <= BUTTON_OFF_BUDGET_CEILING,
     `未命中四档的 <button> 由 ${BUTTON_OFF_BUDGET_CEILING} 升到 ${total} 个 ⇒ 新按钮须落在 styles.css「按钮尺寸规范」四档之一。`,
+  );
+});
+
+/** 语义族令牌（B4 判据单一源；与 `styles.css`「按钮族谱补全」段、`DESIGN_SYSTEM §4.1` 三处同源） */
+const FAMILY_TOKENS = [
+  'btn-accent-soft', 'btn-accent', 'btn-action', 'btn-md', 'btn-tab',
+  'btn-neutral', 'btn-outline', 'btn-ghost', 'btn-danger',
+];
+/** B4 棘轮基线（批次 297-1 实测；**只许下调**） */
+const HANDWRITTEN_BUTTON_BASELINE = 454;
+
+test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
+  const walk = (dir, out = []) => {
+    for (const n of readdirSync(dir)) {
+      const p = join(dir, n);
+      if (statSync(p).isDirectory()) walk(p, out);
+      else if (n.endsWith('.js')) out.push(p);
+    }
+    return out;
+  };
+  let handwritten = 0;
+  const perFile = new Map();
+  const re = /<button[^>]*\bclass="([^"]*)"/g;
+  for (const f of walk(SRC)) {
+    const src = readFileSync(f, 'utf8');
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      const cls = m[1];
+      if (FAMILY_TOKENS.some((t) => new RegExp(`(^|\\s)${t}`).test(cls))) continue;
+      handwritten += 1;
+      if (!perFile.has(f)) perFile.set(f, 0);
+      perFile.set(f, perFile.get(f) + 1);
+    }
+  }
+  const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
+    .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
+  console.log(`[button-system-guard] 未入语义族的 <button> 共 ${handwritten} 个（棘轮上限 ${HANDWRITTEN_BUTTON_BASELINE}）：\n${ledger.join('\n')}`);
+  assert.ok(
+    handwritten <= HANDWRITTEN_BUTTON_BASELINE,
+    `未入语义族的 <button> 由 ${HANDWRITTEN_BUTTON_BASELINE} 升到 ${handwritten} 个 ⇒ 新按钮须走 8 族之一（${FAMILY_TOKENS.join(' / ')}）；每迁完一屏请一并下调基线。`,
   );
 });
