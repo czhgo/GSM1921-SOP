@@ -21285,3 +21285,15 @@ POST /api/v1/activities  body = { title:"批次152直建待批-…", type:"主�
 - **连带改准**：`H-13` 卡点 ②（「装配标记不可靠 ⇒ 不得以标记断言 api」）**撤销** ⇒ `H-13` 其余唯一卡点＝**UI 可见性（疑夹具日期过期）**；`REVIEW_QUEUE H-14` 由 `P2` 降 `P3`、标「已办（自纠闭环）」，本节规模 **`P2` 5 → 4 · `P3` 3 → 4 · 已收/已裁 7 → 8 条**。
 - **验证**：`E4`（`node --test test/module-load.test.mjs`）**4/4 全绿**；`doc-line-ref` R1–R6 全绿；净零 ⇒ 行号引用面零漂移。**收尾全量（R-85）**：先起 :3000 服务再 `npm test` ⇒ **860 项 / 858 通过 / 2 红**——红的**恰是** `H-12/H-13` 那两项（`b3-1-makeup-writeback` ＋ `preferences` 真实拖拽），**无第三条** ⇒ 本批注释改动**零回归**。**纪律动作**：改了 `docs/src/core/data-adapter.js` ⇒ 需跑 `bump-version.mjs`（R-83/R-90）——**本批判断为「不必 bump」并说明理由**：批 258 已推至 `20260928u`，本批仅改注释、**未新增 / 未改动任何 `?v=` 缓存键**，`version-stamp::S3`「活戳取值集合规模为 1」仍成立（`test:daily` 实测绿）⇒ 强行 bump 只会**空转改写 300＋ 文件**、净增历史负担（与「净零行」同理）。临时探针 `server/_probe_h14.mjs` 与全量日志 `server/.tmp-full-test.log` **用完即删、不留盘**。
 
+---
+
+## 批次 260（2026-09-29）：**任务 ③ 文档同步**（`README-server.md` 两处代码↔文档不符改准 ＋ `TIMESTAMPS` 该行备注按 `R-89` 收口）
+
+> **来源**：支书第 3 条「请更新好所有的 README 和 SNAPSHOT 等文件」。本批**先机检后人工**：`test:daily`（含 `doc-consistency::S1–S16` / `frontmatter-freshness` / `timestamps-note-guard`）全绿 ⇒ 结构性一致性已达标；再**逐条实读**根 `README.md` / `README-server.md` / `SNAPSHOT.md` 里**跟批次 241–259 改动相关**的陈述，抓出两处**代码 ↔ 文档不符**。
+
+- **改准 ①（字段规格）**：`README-server.md` 的 `branches.blocks` 字段一行原写 `workflowBlocks?:{hiddenBlockIds}`，而 `config-clean.js` 实做**已含** `blockOrder`（`cleanIdList(blocks.workflowBlocks.blockOrder, …)`，批次 246）＝**净化器接受、文档未写**。改为 `{hiddenBlockIds,blockOrder}` 并注明「工作流块的 `blockOrder` 已可配（向导第②步 ▲▼）」；`outputBlocks.blockOrder` 仍标「无 UI 写入口」（**该旧陈述属实，未动**）。
+- **改准 ②（已知限制 #11）**：原文写「…拖拽排序画布已撤销，**向导保存时恒写 `[]`**」——**后半句已不成立**：`org-setup-wizard.js:1148-1149` 现按 `S.bOrder` / `S.wbOrder` **原样保存**（批次 246 修的就是「写死 `[]` ⇒ 静默抹掉已设顺序」这一缺陷）。改为「① 不再恒写空数组（批次 246 已修）；② 工作流块顺序已有 UI 写入口——本行『无写入口』只指 `outputBlocks`」。
+- **`TIMESTAMPS` 该行按 `R-89` 收口**：`README-server.md` 行备注原有两段**过期的「（本批：…）」沿革**（一为 §5.5#1 issues 口径，一为 `data-adapter.js` 行号 +11 改签），与该行自述「本列只写**现状 / 边界 / 为什么**」相矛盾 ⇒ 换成一句**现状 + 边界**（外部对接说明书 · 正文 ≥370 处 `文件:行号` 引用由 `doc-line-ref` 常驻核对、随位移同批改签），沿革指针（批次 236 迁出）保留。**`N1–N7` 预算只降不升**：该行「批次 N」由 2 → 1 次（`BATCH_MENTION_MAX`=3），未触碰任何基线清单。
+- **未动（如实登记）**：`SNAPSHOT.md` 已随批次 248/239 更新到位（其 §III 已写「`blocks/` 6 块 ＋ `orchestration.js`」，v56）；根 `README.md` 的 `### 测试` 清单已含 `S1–S16` / `block-orchestration O1–O5` / `policy-config R1–R3` / `version-stamp S1–S7+D1–D11` / `R-83` 机检，且 `doc-consistency::S10` 常驻断言二者一致（实测绿）⇒ **无需改**。
+- **验证**：`npm run test:daily` **648/648 / 0 红**（含 `doc-line-ref` R1–R6：本批只改行内文字、**未增删行** ⇒ 410 处引用零漂移）；`timestamps-note-guard` N1–N7 绿。**未改 `docs/src/**` ⇒ 按 `R-85④` 不触发收尾全量**（该跑已在批次 259 完成：860/858/2）。
+

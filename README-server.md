@@ -1109,7 +1109,7 @@
 | desc | string | 否 | 支部自述（≤500 截断，默认空串） |
 | themePreset | string \| null | 否 | 主题预设 id（白名单 `red/green/sky/blue`；null＝默认党建红） |
 | modules | object \| null | 否 | 工作流模块配置：`{hiddenTabIds:[], tabOrder:[]}`——**null＝全开**；核心页签固定不可关、不参与排序 |
-| blocks | object \| null | 否 | 产出块 / 工作流块显隐：`{outputBlocks?:{hiddenBlockIds,blockOrder}, workflowBlocks?:{hiddenBlockIds}}`——null＝全开。⚠ `outputBlocks.blockOrder` **当前无 UI 写入口**（能力在、入口无） |
+| blocks | object \| null | 否 | 产出块 / 工作流块**显隐与顺序**：`{outputBlocks?:{hiddenBlockIds,blockOrder}, workflowBlocks?:{hiddenBlockIds,blockOrder}}`——null＝全开。⚠ `outputBlocks.blockOrder` **当前无 UI 写入口**（能力在、入口无）；**工作流块**的 `blockOrder` **已可配**（换组织向导第②步 ▲▼ 排序，2026-09-28 批次 246） |
 | workforce | object \| null | 否 | 模块分工归属：`{[moduleId]:{ownerType:'role'\|'person'\|'none', ownerId}}`——null＝缺省分工（按制度责任人列） |
 | policyOverrides | object \| null | 否 | 域参数覆盖：`{节:{叶:值}\|null}`——节白名单共 8 节：`inspection` / `memberConfirmation` / `leader` / `activityApproval` / `attendance` / `review` / `makeup` / `thoughtReport`（白名单单一源＝`docs/src/core/policy-defaults.js::POLICY_OVERRIDABLE`，共 14 条叶项）；null＝恢复默认 |
 | configChangeHistory | array | 否 | 配置写留痕：`{by,at,what,from?,to?,why?}`——逐键 diff 追加，**保留最近 100 条**；单键可回滚、回滚再留一痕、历史不改写 |
@@ -1826,7 +1826,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 |---|---|---|---|
 | 9 | **系列活动（SeriesRecord）无实现** | 数据模型有完整字段定义，但**前端 mockDB 无该域、服务端无该表、无任何读写入口** | `content/04_web_design/data/DATA_MODEL.md:269-291`（定义）；`docs/src/core/domain.js:215-333`（mockDB 全部域，**无 series 键**）；`server/db.js:9-42`（35 张资源表，无 series） |
 | 10 | **`timeOffset: null` 的任务永不实例化** | `sopData.js` 中确有 **6 条**任务的 `timeOffset` 为 `null`（组织类场景：`attendance-check` 2 条 + `feedback-handling` 4 条）；而**两个消费口都显式过滤掉 null**：（a）SOP 推演 `instantiateSOP` 里 `if (task.timeOffset === null) return;`；（b）决策树时间轴展示 `scenario.tasks.filter(t => t.timeOffset !== null)`。⇒ 这 6 条任务**在系统内不会被实例化为任务/待办** | `docs/src/workflow/sopData.js:95-96,103-106`（6 处 `timeOffset: null`）、`docs/src/workflow/sop.js:20`、`docs/src/services/activity/decision-tree.js:243` |
-| 11 | **`outputBlocks.blockOrder` 无 UI 写入口** | 产出块的排序能力（纯函数侧）存在，但**没有界面可写**——原设计里的拖拽排序画布已于 2026-09-03 裁定撤销，向导保存时恒写 `[]`。「能力在、入口无」 | `content/04_web_design/data/DATA_MODEL.md:949`（原文标注） |
+| 11 | **`outputBlocks.blockOrder` 无 UI 写入口** | 产出块的排序能力（纯函数侧）存在，但**没有界面可写**——原设计里的拖拽排序画布已于 2026-09-03 裁定撤销。「能力在、入口无」。⚠ **2026-09-29 改准两处**：① 向导保存**不再**恒写空数组（原缺陷＝静默抹掉已按其它入口设过的顺序，批次 246 已修）；② **工作流块**的顺序**已有** UI 写入口（向导第②步 ▲▼）——本行的「无写入口」只指 `outputBlocks` | `content/04_web_design/data/DATA_MODEL.md:949`（原文标注） |
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
 | 13 | **归档材料 `url` 字段当前恒为 null** | 模型写明「阶段 2 后端支持时填充，mock 阶段为 null」 | `content/04_web_design/data/DATA_MODEL.md:877` |
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
