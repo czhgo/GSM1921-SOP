@@ -230,7 +230,7 @@
 | 能做什么 | 在**该项目内**派任务、改分工、标完成、填复盘、导入考察、赋权深度参与者 |
 | 不能做什么 | 不获得项目之外的任何权限；不改支部级配置 |
 | 任务 | **同一项目内，组织者与深度参与者各持「自己的那份任务」**——不是同一份任务清单发给两个人。主口径是「**我的任务**」（分类依据＝「我」），「**项目分工**」是同一事实的转置（分类依据＝「项目」），**一体两面、允许视图切换**——**同一份事实、两种切法，不是两套数据**。组织者那份含**「分配工作给深度参与者」并逐项选择是否系统内完成**、改分工、打包提交与上传；深度参与者那份是宣传产出、材料整理一类**不含上传**的活——**系统内完成的产出由系统在后台同步**，深度参与者未闭环的**由组织者优先推动闭环**（口径见母本 `content/02_institution/sop/常见工作场景快速指南.md`，与 `SOP-B-17`「组织者＝信息流与任务流」· `SOP-B-10`「以人为第一列」· `SOP-A-5`「上传只认组织者」相接）。**现状：系统已按项目内身份给任务**（成员台「项目分工 → 我的任务」按项目内身份读取；2026-09-19 批次 93 落地，裁定 `D-500`）；**「逐项选择是否在系统内完成」已落**（2026-09-23 批次 156：组长台写入表单在「深度参与者」下方多一排勾选——项＝该场景任务链里 `executor==='deep'` 的节点，选择落**活动主源字段 `deepWorkMode`**，「我的任务」据此标「系统内完成 / 线下完成·由组织者确认」，裁定 `D-601`）；尚余「深参那份由组织者**自行分配**（新增项）」未做，见 `.ctx/REVIEW_QUEUE.md` `SOP-B-31`） |
-| 依据 | `docs/src/services/core/auth.js:90-93`、`:474-493`（`canDo` 项目上下文并集判定）、`content/04_web_design/data/DATA_MODEL.md:181-193`（参与人双入口边界：**勾参与人 ≠ 赋项目角色**） |
+| 依据 | `docs/src/services/core/auth.js:90-93`、`:494-513`（`canDo` 项目上下文并集判定）、`content/04_web_design/data/DATA_MODEL.md:181-193`（参与人双入口边界：**勾参与人 ≠ 赋项目角色**） |
 
 #### 2.2.10 `deep` 深度参与者（项目角色）
 
@@ -285,7 +285,7 @@
 | 意见反馈基础键（7） | Y | Y | Y | Y | Y | Y | Y |
 | 意见反馈**处置键（8）**〔支委会职权·`D-550`〕 | **Y** | **Y** | **Y** | **Y** | **Y** | -- | -- |
 
-**依据**：`docs/src/services/core/auth.js:68-84`（逐角色数组）、`:474-493`（`canDo`）。上表「Y/--」为**代码实际集合**；制度文档 §9b 的表格带中文限定语（审阅/建档/导入/汇总/配合等），两者**列的键集不同**（§9b 还有一列 `record_attendance` 等但带限定语），后端实现请以本节键集为准。
+**依据**：`docs/src/services/core/auth.js:68-84`（逐角色数组）、`:494-513`（`canDo`）。上表「Y/--」为**代码实际集合**；制度文档 §9b 的表格带中文限定语（审阅/建档/导入/汇总/配合等），两者**列的键集不同**（§9b 还有一列 `record_attendance` 等但带限定语），后端实现请以本节键集为准。
 
 #### 2.3.2 赋权链（谁能赋权谁）
 
@@ -604,13 +604,13 @@
 
 > **2026-09-23 批次 156 补**：新增活动字段 `deepWorkMode`（深参分工「系统内做 / 去线下做」逐项勾选）——有母本依据（《常见工作场景快速指南》:120）；该字段**已补入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A，计入 §4.0 的来源 A 行）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:534,600,664`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1163-1181`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
+> **2026-09-19 批次 98 补（来源 C）**：上表最后 7 行（`organizer`→`voteConfig`）原为**代码确实写入/读取、而 DATA_MODEL.md 字段表未列**的字段——**2026-09-20 批次 111 已把这 7 个字段连同 `isOutdoor` 一并补入 `DATA_MODEL.md` §2.1（现同属来源 A）**，本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:554,620,684`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1163-1181`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
 **活动分类（制度口径）**：顶层两大类＝**三会一课**（固定 4 子类，颜色党建红）与**主题党日**（正交维度：共建性质 / 是否外出 / 活动载体）。**组织生活会是「会议内容」而非子类**——由三会之一召开，不单独成类、不进写入表单。
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:174`）、`docs/src/core/domain/constants.js:596-704`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:174`）、`docs/src/core/domain/constants.js:616-724`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
 **2026-09-19 批次 97 改准**：① 删去 `attendanceQROwner` 一行（该字段**已从代码删除**，见 `.ctx/ACTIVE_RULINGS.md`「考勤二维码是与网页无关的线下动作」，裁定 `D-329` / `D-463`）；② `isBrand` 认定方由「支书」改准为「**支委会认定、支书在系统上完成标记**」（裁定 `D-414`）；③ 补 `isOutdoor` 一行（该维度本就存在于活动主源，此前漏列）。
 **2026-09-20 批次 105 补**：`agenda[]` 一行补 `id` / `sourceRef` 两个子字段（线上支委会表决按 `id` 关联表态、按 `sourceRef` 回指提取来源）。本批**未新增任何表、未新增任何活动字段**——支委会会议页全部复用既有实体与既有写口（活动 + `voteConfig` + `agenda` + `agendaVotes` + `votesLocked`），裁定 `D-526`。
 **2026-09-21 批次 132 / 133 改准**：① `isBrand` 的认定路径由「支委会认定、支书在系统上完成标记」（裁定 `D-414`）改准为「**支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**」——**取消「点一下即认定」**，认定唯一入口＝支委会议程项「记录结果 · 通过」（裁定 `D-559`）；② 新增 `brandProposal` 与品牌认定 / 取消留痕 7 个字段（本批补入本表，属**来源 C**——`DATA_MODEL.md` 字段表未列）；③ 新增 `signupClosed`（2026-09-21 批次 123 落地，同属来源 C）；④ `agenda[]` 一行补 `kinds` / `branchDocId` / `brandActivityId` / `personIds` / `fromStage` / `toStage` / `personStages` 子字段（批次 127 / 129 / 132 的议程提取与「拟上会」清单落点）。
