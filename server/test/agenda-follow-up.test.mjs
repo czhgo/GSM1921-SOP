@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { recordAgendaResult } from '../../docs/src/services/activity/agenda-follow-up.js?v=20260929m';
+import { recordAgendaResult } from '../../docs/src/services/activity/agenda-follow-up.js?v=20260929n';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据与状态迁移的单一源
-import { applyBrandDesignationResult } from '../../docs/src/services/activity/activity.js?v=20260929m';
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929m';
+import { applyBrandDesignationResult } from '../../docs/src/services/activity/activity.js?v=20260929n';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260929n';
 
 function createHarness() {
   const db = {
