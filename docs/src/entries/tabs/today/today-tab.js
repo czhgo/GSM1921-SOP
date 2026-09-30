@@ -23,29 +23,29 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930i';
-import { icon } from '../../../core/base/icons.js?v=20260930i';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930i';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930j';
+import { icon } from '../../../core/base/icons.js?v=20260930j';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930j';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930i';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930i';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930i';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260930i'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930i'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930i'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930i'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930j';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930j';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930j';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260930j'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930j'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930j'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930j'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930i';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930j';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930i';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930i';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930j';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930j';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930i';
-import { badgeHtml } from '../../../components/ui/badge.js?v=20260930i';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930j';
+import { badgeHtml } from '../../../components/ui/badge.js?v=20260930j';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';

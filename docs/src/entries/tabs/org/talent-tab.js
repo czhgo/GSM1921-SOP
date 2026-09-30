@@ -7,18 +7,18 @@
 //   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
 // 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930i';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20260930i';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930i';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930j';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20260930j';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930j';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20260930i';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20260930j';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20260930i';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20260930j';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20260930i';
-import { escHtml as esc, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20260930i';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20260930j';
+import { escHtml as esc, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20260930j';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930i';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930j';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];

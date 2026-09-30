@@ -14,33 +14,33 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260930i';
-import { getCapabilities } from '../../core/boot/registry.js?v=20260930i';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20260930i';
-import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/domain/work-map.js?v=20260930i';
+import { mockDB } from '../../core/domain/domain.js?v=20260930j';
+import { getCapabilities } from '../../core/boot/registry.js?v=20260930j';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20260930j';
+import { ORG_SUBJECT_LABELS, isBranchOrgSubject, ownerSubjectType } from '../../core/domain/work-map.js?v=20260930j';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20260930i';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260930i';
+import '../../capabilities/secretary-workspace.js?v=20260930j';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260930j';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260930i';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20260930i';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930i';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260930j';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20260930j';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930j';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20260930i';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260930i';
+} from '../../services/branch/branch.js?v=20260930j';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260930j';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20260930i';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260930i';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260930i';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930i';
+} from '../../services/branch/org-base-data-preview.js?v=20260930j';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260930j';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260930j';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930j';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260930i';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260930j';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -695,7 +695,11 @@ function _step3Html(S, branch) {
     // 当前为「组织主体位」时附一项保留显示（如缺省主责＝支委会；见 core/domain/work-map.js::ORG_SUBJECTS）
     // ——它**不是**可新指派的下拉候选（本批未扩派单面），只保证现值正确回显、不被误显示成某个角色位。
     const orgOpt = assign.ownerType === 'org'
-      ? `<option value="org:${esc(assign.ownerId)}" selected>${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（组织主体 · 保留现指定）</option>` : '';
+      ? isBranchOrgSubject(assign.ownerId)
+        ? `<option value="org:${esc(assign.ownerId)}" selected>${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（组织主体 · 保留现指定）</option>`
+        // 2026-09-30 批次 302（支书裁「我们支部就是支部内务，不涉及党委」）：**上级组织**不占支部承担方位，
+        //   只作客观回显（不可当支部内务的负责人指派）；对象本身仍在 ORG_SUBJECTS（换届选举主责未撤销）。
+        : `<option value="org:${esc(assign.ownerId)}" selected>上级${esc(ORG_SUBJECT_LABELS[assign.ownerId] || assign.ownerId)}（非支部分工项 · 保留现状）</option>` : '';
     const sub = m.sub && m.sub.length ? `<span class="text-[11px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return `<div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-center py-1.5 border-b border-gray-50 last:border-0">
       <div class="min-w-0">

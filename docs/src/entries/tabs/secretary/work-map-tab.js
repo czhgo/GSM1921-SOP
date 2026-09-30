@@ -11,16 +11,16 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260930i';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20260930i';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930i';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930i';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930i';
-import { getPersonName } from '../../../services/member/person.js?v=20260930i';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930j';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20260930j';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930j';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930j';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930j';
+import { getPersonName } from '../../../services/member/person.js?v=20260930j';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930i';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930j';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260930i';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260930j';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
@@ -37,12 +37,24 @@ function _ownerLabel(assign) {
   return ROLE_LABELS[assign.ownerId] || assign.ownerId;
 }
 
+/** 主责是否为**上级组织**（如党委）——2026-09-30 批次 302 支书裁定：
+ *  支部就是支部内务、不涉及党委 ⇒ 上级组织**不作为支部承担方**呈现（降级为中性「上级党委」标注）。 */
+function _isSuperiorOwner(assign) {
+  return !!assign && assign.ownerType === 'org' && !isBranchOrgSubject(assign.ownerId);
+}
+
 /** 视图 A：14 模块平铺卡（无分组、无泳道、无连线） */
 function _modulesHtml(workforce) {
   return `
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       ${WORK_MAP_MODULES.map(m => {
         const assign = workforce[m.id];
+        const superior = _isSuperiorOwner(assign);
+        const ownerCls = superior
+          ? 'bg-neutral-100 text-neutral-600'
+          : (assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' || assign.ownerType === 'org' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700');
+        const ownerText = superior ? `上级${_ownerLabel(assign)}` : _ownerLabel(assign);
+        const ownerTitle = superior ? '非支部分工：该事项由上级组织主导（支部侧按上级渠道对接），故不占支部承担方位' : `负责人：${_ownerLabel(assign)}`;
         const chips = (m.sub || []).map(s => `
           <span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">${esc(s)}</span>`).join('');
         const outputs = (m.outputs || []).map(o => `
@@ -51,7 +63,7 @@ function _modulesHtml(workforce) {
         <div class="rounded-lg border border-gray-200 bg-white p-3.5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-2">
             <p class="font-title-cn text-sm font-bold text-gray-800">${esc(m.name)}</p>
-            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${assign.ownerId === 'secretary' || assign.ownerId === 'deputy-secretary' || assign.ownerType === 'org' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}">${esc(_ownerLabel(assign))}</span>
+            <span class="shrink-0 text-[11px] px-2 py-0.5 rounded-full ${ownerCls}" title="${esc(ownerTitle)}">${esc(ownerText)}</span>
           </div>
           ${chips ? `<div class="flex flex-wrap gap-1">${chips}</div>` : ''}
           <p class="text-xs text-gray-500 leading-5">${esc(m.desc)}</p>
@@ -73,13 +85,16 @@ function _renderMatrix(workforce) {
     // 停用项（ownerType:'none'）无负责人 → 不入人维（其工作项在矩阵中整列/整行渲染为「—」）；
     // 组织型主体（'org'，如支委会）**要入维**——它是承担方（不是人，但「谁负责」的答案可以是它）
     if (assign.ownerType !== 'role' && assign.ownerType !== 'person' && assign.ownerType !== 'org') continue;
+    // 2026-09-30 批次 302（支书裁「我们支部就是支部内务，不涉及党委」）：**上级组织（党委）不入支部人维**
+    //   ——支部内务视图不把它当作支部承担方；对象仍在 `ORG_SUBJECTS`（换届选举主责不变，见 work-map.js 注）。
+    if (assign.ownerType === 'org' && !isBranchOrgSubject(assign.ownerId)) continue;
     const key = `${assign.ownerType}:${assign.ownerId}`;
     if (!ownerMap.has(key)) ownerMap.set(key, assign);
   }
   const order = [
     'role:secretary', 'role:deputy-secretary',
     'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
-    'org:branch-committee', 'org:party-committee',
+    'org:branch-committee',
   ];
   const persons = [...ownerMap.entries()]
     .sort((a, b) => {

@@ -13,7 +13,7 @@
 //
 // 注意：专班是**支部自创制度尝试**（`provenance: 'branch-custom'`），
 // 其制度来源与通用/自创的对照另由 `manifests.js::CAPABILITY_PROVENANCE` 登记（两处不可谎报）。
-import { registerCapability } from '../core/boot/registry.js?v=20260930i';
+import { registerCapability } from '../core/boot/registry.js?v=20260930j';
 
 registerCapability({
   id: 'taskforce',

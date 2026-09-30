@@ -2,15 +2,15 @@
 // ws-secretary-entry.js — 支书工作台入口（T-279 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20260930i';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260930i';
-import { _currentYearMonth } from '../../core/base/utils.js?v=20260930i';
-import { loadActivities } from '../../services/activity/activity.js?v=20260930i';
-import { BranchService } from '../../services/core/runtime.js?v=20260930i';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930i';
-import { SignupStore } from '../../services/activity/signup.js?v=20260930i';
+import { getAppState, setState } from '../../core/base/state.js?v=20260930j';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260930j';
+import { _currentYearMonth } from '../../core/base/utils.js?v=20260930j';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930j';
+import { BranchService } from '../../services/core/runtime.js?v=20260930j';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930j';
+import { SignupStore } from '../../services/activity/signup.js?v=20260930j';
 // T-304 Q3 权限收敛：副作用导入触发支书工作台能力注册（tab 清单，与其余 5 工作台对齐）
-import '../../capabilities/secretary-workspace.js?v=20260930i';
+import '../../capabilities/secretary-workspace.js?v=20260930j';
 
 await createWorkspaceShell({
   accentRole: 'secretary',

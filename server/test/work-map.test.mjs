@@ -8,10 +8,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
-  ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, isOrgSubject,
-} from '../../docs/src/core/domain/work-map.js?v=20260930i';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20260930i';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20260930i';
+  ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
+} from '../../docs/src/core/domain/work-map.js?v=20260930j';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20260930j';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20260930j';
 
 let server, base, token;
 
@@ -80,6 +80,14 @@ test('组织型主体＝「类似法人」不是自然人（批次 141）：取�
   assert.deepEqual(dflt['rule-making'], { ownerType: 'org', ownerId: 'branch-committee' });
   // 批次 149：换届选举＝党委（同为组织型主体）
   assert.deepEqual(dflt['election'], { ownerType: 'org', ownerId: 'party-committee' });
+  // 2026-09-30 批次 302（支书裁·逐字「**我们支部就是支部内务，不涉及党委**…党委向支部、支部向党委
+  //   都有特定的对话渠道」）：党委标 `scope:'superior'` ⇒ **支部内务组织型主体**只剩支委会 / 支委扩大会；
+  //   党委**对象仍保留**（`isOrgSubject` 仍 true、`election` 主责不变），只是**支部内务视图不列它为主体行**。
+  assert.deepEqual(BRANCH_ORG_SUBJECT_IDS, ['branch-committee', 'expanded-committee']);
+  assert.equal(isBranchOrgSubject('party-committee'), false, '党委＝上级，非支部内务承担方');
+  assert.equal(isBranchOrgSubject('branch-committee'), true);
+  assert.equal(isBranchOrgSubject('expanded-committee'), true);
+  assert.equal(isOrgSubject('party-committee'), true, '对象仍保留（仅支部内务视图不渲染为主体行）');
 });
 
 test('expandWorkforce：null → 全缺省（role / org）；覆盖 person 项保留、其余兜底缺省', () => {

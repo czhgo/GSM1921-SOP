@@ -41,14 +41,30 @@
 //   「活动报备」一条；标签在 `workflow/renderer.js`）是**渲染层标签**（执行者标签），**不是主体**、
 //   不进本注册表；本注册表的 `expanded-committee` 是**组织型主体 id**——**同名但不是一回事**。
 export const ORG_SUBJECTS = {
-  'branch-committee': { label: '支委会' },
-  'party-committee': { label: '党委' },
-  'expanded-committee': { label: '支委扩大会' },
+  'branch-committee': { label: '支委会', scope: 'branch' },
+  'party-committee': { label: '党委', scope: 'superior' },
+  'expanded-committee': { label: '支委扩大会', scope: 'branch' },
 };
 export const ORG_SUBJECT_IDS = Object.keys(ORG_SUBJECTS);
 export const ORG_SUBJECT_LABELS = Object.fromEntries(
   Object.entries(ORG_SUBJECTS).map(([id, s]) => [id, s.label]),
 );
+
+// ── 支部内务口径（2026-09-30 批次 302 支书裁定，逐字）────────────────────────────
+// 「**这里不应该出现 党委这个角色，这是支部内部的分工视图**【这也是个全局问题，**我们支部就是支部内务，
+//  不涉及党委**，**党委向支部、支部向党委 都有特定的对话渠道！**】」
+// ⇒ `party-committee`（党委）标 `scope: 'superior'`（**上级**，非本支部承担方）：
+//   · **对象仍保留**——换届选举的主责确实是党委（批次 149 裁定未撤销，`defaultOwner` 一字不动）；
+//   · 但**支部内务视图（支部分工 / 分工矩阵 / 组织设置）一律不把它当「支部承担方」渲染**：
+//     矩阵不列该主体行；平铺模块处降级为中性「上级党委」标注（不占支部主体位）。
+//   反向硬约束：`isBranchOrgSubject('party-committee') === false`（由 server/test/work-map.test.mjs 守住）。
+/** 支部内务组织型主体 id（`scope !== 'superior'`）——**支部内务视图只认这些承担方** */
+export const BRANCH_ORG_SUBJECT_IDS = ORG_SUBJECT_IDS.filter((id) => ORG_SUBJECTS[id].scope !== 'superior');
+
+/** 该 id 是否「支部内务」组织型主体（是组织型主体、且非上级） */
+export function isBranchOrgSubject(id) {
+  return isOrgSubject(id) && ORG_SUBJECTS[id].scope !== 'superior';
+}
 
 /** 该 id 是否组织型主体（非自然人） */
 export function isOrgSubject(id) {
