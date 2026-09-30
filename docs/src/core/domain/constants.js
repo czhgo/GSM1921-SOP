@@ -747,6 +747,22 @@ export function getActivityTypeColors({ withLabel = false, useGradient = false }
   return result;
 }
 
+/**
+ * 活动类型 → **徽章变体**（单一源，2026-09-30 批次 301）。
+ * 依据：支书 2026-09-30「这些 span 仍然是灰色。**颜色是最好的信息展示方式！没有之一**」＋
+ *   「我们在写活动的时候 **三会一课 用的 红色；主题党日 用的 金色**。这种视觉设计也要尝试复现」。
+ * 口径：三会一课系（含「组织生活会」——内容维度、以三会形式召开）＝ `brand`（党建红）；
+ *   主题党日系（含共建 / 参访 / 座谈）＝ `gold`（党徽金）；其余未登记类型 ＝ `neutral`。
+ * 变体语义与渲染唯一源见 `components/ui/badge.js::badgeHtml`（本函数**只判变体、不产 HTML**，勿在此另写色值）。
+ * @param {string} type — 活动类型（可为 '大类·子类'，内部先 `normalizeActivityType`）
+ * @returns {'brand'|'gold'|'neutral'}
+ */
+export function activityTypeBadgeVariant(type) {
+  const base = _ACTIVITY_TYPE_BASE[normalizeActivityType(type)];
+  if (!base) return 'neutral';
+  return base.dot === _C.partyRedBrand ? 'brand' : 'gold';
+}
+
 /** 将 #FEF2F2 这种浅色再加深一档，用于渐变终点（RGB 各通道 -16，与 HSL 版 _darken 区分） */
 function _shadeDarker(hex) {
   const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - 16);

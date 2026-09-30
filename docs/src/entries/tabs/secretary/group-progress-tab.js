@@ -39,34 +39,38 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930h';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930h';
-import { IssueStore } from '../../../services/governance/issues.js?v=20260930h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930h';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20260930h';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930h';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930h';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260930h';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930i';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930i';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930i';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260930i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930i';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20260930i';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930i';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930i';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260930i';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930h';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930i';
+// 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
+//   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930i';
+import { badgeHtml } from '../../../components/ui/badge.js?v=20260930i';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930i';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20260930h';
+} from '../../../services/member/party-group.js?v=20260930i';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20260930h';
+} from '../../../services/member/group-view.js?v=20260930i';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
 //   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260930h';
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260930i';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -573,7 +577,7 @@ function _activityAttendanceCardHtml(group, members, branchId, activities, attRe
     : recentActs.map(a => `
         <div class="flex items-center gap-2.5 py-1.5">
           <span class="text-xs text-gray-500 w-20 shrink-0">${esc(a.date || '')}</span>
-          <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">${esc(a.type || '活动')}</span>
+          ${badgeHtml(esc(a.type || '活动'), activityTypeBadgeVariant(a.type))}
           <span class="text-xs text-gray-700 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
         </div>`).join('');
 
@@ -865,7 +869,7 @@ function _renderGroupActivities(container, activities) {
     rowHtml: (a) => `
       <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors" style="text-decoration:none;color:inherit;" title="查看活动详情">
         <span class="text-xs text-gray-500 w-20 shrink-0 tabular-nums">${esc(a.date || '—')}</span>
-        <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 shrink-0">${esc(a.type || '活动')}</span>
+        ${badgeHtml(esc(a.type || '活动'), activityTypeBadgeVariant(a.type))}
         <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
         ${a.organizer ? `<span class="text-xs text-gray-500 shrink-0">${esc(getPersonName(a.organizer))}</span>` : ''}
         <span class="text-xs text-gray-500 shrink-0">›</span>

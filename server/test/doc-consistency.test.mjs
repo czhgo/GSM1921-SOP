@@ -610,9 +610,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20260930h');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260930h');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20260930h');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20260930i');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20260930i');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20260930i');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

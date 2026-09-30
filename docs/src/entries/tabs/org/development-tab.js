@@ -5,24 +5,24 @@
 //   发展阶段变更一律经「成员名册 → 发起变更」（submitMemberChange）→ 支书确认后生效
 //   （符合 S4 R4-1「看≠做」与唯一写位）。每张卡提供「去名册发起变更」深链（?tab=roster&highlight=）。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930h';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930i';
 // IA-C3 收敛只读展开 2026-09-06：思想汇报只读展开移除，仅留「已归档 N 篇」计数（计数沿用既有读口
 // loadThoughtReports 派生 reportCount；详细查看仍去 组织台「思想汇报」tab / 成员档案）。
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20260930h';
-import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930h';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20260930i';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930i';
 // S-1（2026-09-09 支书批）：成员发展档案「来源会议」溯源（只读）——从活动议程（待讨论名单）派生
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930i';
 // C①-补（2026-09-10）：进入当前阶段日期与「发展节点提醒」同源读口（既有覆盖存储，非新模型）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930h';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930i';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930h';
-import { getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20260930h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930i';
+import { getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20260930i';
 // SOP-B-30 / D-396：活动参与汇总（以人为第一列）——数据与考勤同源（services/activity/attendance.js 单一读口）
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20260930h';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20260930i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：候选人列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930i';
 
 // ════════════════════════════════════════════════════════════════
 //  发展党员追踪 — Mock 数据（模块私有，随模块自持）

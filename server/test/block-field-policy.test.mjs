@@ -46,7 +46,7 @@ async function patchConfig(token, body) {
   });
 }
 
-const V = '?v=20260930h';
+const V = '?v=20260930i';
 const BLOCK = 'theme-party-day';
 
 test('② 净化 + 读侧：cleanFieldPolicies 正/反样例（去重/丢非串/只收布尔/空壳不保留）', async () => {

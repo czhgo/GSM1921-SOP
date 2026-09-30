@@ -23,25 +23,29 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930h';
-import { icon } from '../../../core/base/icons.js?v=20260930h';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930h';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930i';
+import { icon } from '../../../core/base/icons.js?v=20260930i';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930i';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930h';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930h';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930h';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260930h'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930h'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930h'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930h'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930i';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930i';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930i';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260930i'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930i'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930i'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930i'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930h';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930i';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930h';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930h';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930i';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930i';
+// 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
+//   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930i';
+import { badgeHtml } from '../../../components/ui/badge.js?v=20260930i';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -122,10 +126,18 @@ function _row(bar, inner, attrs = '') {
     </button>`;
 }
 
-/** 类型 / 角色胶囊（分类标签：**只上标签形**，§2.9.3 U3） */
+/** 角色胶囊（分类标签：**只上标签形**，§2.9.3 U3）——只服务**项目角色**（组织者 / 深度参与者）；
+ *  活动**类型**一律走 `_typeChip`（类别色），两者语义不同、色不得混。 */
 function _chip(text) {
   if (!text) return '';
   return `<span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0" style="--acc-text-dark:${ACCENT};background:${ACCENT_BG};color:color-mix(in srgb, ${ACCENT} 60%, #000);">${esc(text)}</span>`;
+}
+
+/** **活动类型**胶囊（批次 301）：走类别色单一源 —— 三会一课＝党建红（brand）· 主题党日系＝党徽金（gold）·
+ *  其余＝中性灰。**不再与「角色」共用主题色胶囊**（角色≠活动类别，两者语义不同、色不得混）。 */
+function _typeChip(type) {
+  if (!type) return '';
+  return badgeHtml(esc(type), activityTypeBadgeVariant(type));
 }
 
 // ── 左卡：需要我今天动手 ─────────────────────────────────────────
@@ -242,7 +254,7 @@ function _meetingRow(m) {
   return _row(ACCENT,
     `<span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
      <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${esc(m.title || '未命名会议')}</span>
-     ${_chip(m.type)}
+     ${_typeChip(m.type)}
      <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
     `data-go="activity" data-act-id="${esc(m.activityId)}" title="${esc(m.title || '')}"`);
 }
@@ -271,7 +283,7 @@ function _upcomingBlock(s) {
   const rows = items.map(u => _row('var(--neutral-400)',
     `<span class="text-[11px] tabular-nums text-gray-500 w-9 flex-shrink-0">${esc(_shortDate(u.date))}</span>
      <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(u.title || '未命名活动')}</span>
-     ${_chip(u.type)}`,
+     ${_typeChip(u.type)}`,
     `data-go="activity" data-act-id="${esc(u.activityId)}" title="${esc(u.title || '')}"`)).join('');
   return `
     ${_segHead('近期安排', items.length)}

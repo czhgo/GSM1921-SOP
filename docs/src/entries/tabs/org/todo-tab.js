@@ -6,21 +6,21 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20260930h';
-import { generateId } from '../../../core/base/id.js?v=20260930h';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930h';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930h';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260930h';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930h';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930h';
-import { PersonStore } from '../../../services/member/person.js?v=20260930h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930h';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930h';
-import { openFormModal } from '../../../components/ui/modal.js?v=20260930h';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930h';
+import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20260930i';
+import { generateId } from '../../../core/base/id.js?v=20260930i';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930i';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930i';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260930i';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930i';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930i';
+import { PersonStore } from '../../../services/member/person.js?v=20260930i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930i';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930i';
+import { openFormModal } from '../../../components/ui/modal.js?v=20260930i';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930i';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930h';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930i';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），

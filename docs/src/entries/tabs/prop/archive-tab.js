@@ -2,27 +2,29 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20260930h';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260930h';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260930h';
+import { icon } from '../../../core/base/icons.js?v=20260930i';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930i';
+// 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
+import { badgeHtml } from '../../../components/ui/badge.js?v=20260930i';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260930i';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260930h';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930h';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930h';
-import { bumpToken } from '../../../core/base/version-token.js?v=20260930h'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20260930h';
-import { isApiMode } from '../../../services/core/runtime.js?v=20260930h';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
-import { getPersonName } from '../../../services/member/person.js?v=20260930h';
-import { generateId } from '../../../core/base/id.js?v=20260930h';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260930h';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260930i';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930i';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930i';
+import { bumpToken } from '../../../core/base/version-token.js?v=20260930i'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20260930i';
+import { isApiMode } from '../../../services/core/runtime.js?v=20260930i';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930i';
+import { getPersonName } from '../../../services/member/person.js?v=20260930i';
+import { generateId } from '../../../core/base/id.js?v=20260930i';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260930i';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260930h';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260930i';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20260930h';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930i';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930i';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -391,7 +393,7 @@ function _endedUnarchivedCardHtml(a) {
         <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
           <div class="flex items-center gap-2 mb-0.5">
             <span class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</span>
-            ${a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : ''}
+            ${a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : ''}
             <span class="text-xs px-1.5 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 shrink-0">已结束·待归档</span>
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
@@ -436,7 +438,7 @@ function _renderPendingArchiveSection(activities) {
   if (!activities || activities.length === 0) return '';
   const items = activities.map(a => {
     const dateLabel = a.archivedAt || a.date || '—';
-    const typeLabel = a.type ? `<span class="text-xs px-1.5 py-0.5 rounded-full bg-white text-gray-500 border border-gray-200 shrink-0">${escHtml(a.type)}</span>` : '';
+    const typeLabel = a.type ? badgeHtml(escHtml(a.type), activityTypeBadgeVariant(a.type)) : '';
     return `
       <div class="p-3 rounded-xl bg-amber-50/60 border border-dashed border-amber-200 flex items-center justify-between gap-3" data-archive-id="${escHtml(a.id)}">
         <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex-1 min-w-0" style="text-decoration:none;color:inherit;" title="查看活动详情">
