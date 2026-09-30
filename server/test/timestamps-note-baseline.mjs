@@ -15,11 +15,16 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
-export const NOTE_TOTAL_BUDGET = 65000;
+export const NOTE_TOTAL_BUDGET = 57000;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
-// 高水位沿革（只许下调）：2026-09-30 批次 308 第三轮收敛（再迁 5 格：docs/help.html / CLAUDE.md /
-//   server/README.md / .ctx/ENGINEERING_ASSESSMENT.md / server/test/form-loop-registry.mjs）后实测 60,898，
+// 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
+//   content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md / content/04_web_design/data/DATA_MODEL.md /
+//   content/04_web_design/module/MODULE_UI_DESIGN.md / docs/src/styles.css）后实测 53,708，
+//   预算随之下调 65,000 → 57,000（**只降不升**）。四份清单同批共删 13 处（与批次 308 同形：
+//   5 个 path 在四份清单里的出现次数之和）。
+//   2026-09-30 批次 308 第三轮收敛（迁 5 格：docs/help.html / CLAUDE.md / server/README.md /
+//   .ctx/ENGINEERING_ASSESSMENT.md / server/test/form-loop-registry.mjs）后实测 60,898，
 //   预算随之下调 75,000 → 65,000（**只降不升**）。
 //   2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
 //   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」）后实测 93,008，
@@ -34,15 +39,10 @@ export const ROWS_MIN = 245;
 /** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
 export const OVERLONG_BASELINE = [
   '.ctx/SNAPSHOT.md',
-  'README.md',
-  'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/03_doc_system/OPERATIONS_GUIDE.md',
-  'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
-  'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'docs/src/core/domain/work-map.js',
-  'docs/src/styles.css',
   'server/routes/resources.js',
 ];
 
@@ -51,7 +51,6 @@ export const WITH_TID_BASELINE = [
   '.ctx/logs/2026-08-EXECUTION_LOG.md',
   'content/03_doc_system/PROCESS_GUIDE.md',
   'content/04_web_design/data/DATA_FLOW.md',
-  'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/AUTHENTICATION_MODEL.md',
   'content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md',
   'content/04_web_design/deploy/WECHAT_INTEGRATION.md',
@@ -128,9 +127,7 @@ export const WITH_DATE_ECHO_BASELINE = [
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/INDEX.md',
   'content/03_doc_system/OPERATIONS_GUIDE.md',
-  'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md',
-  'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'docs/src/components/governance/org-setup-wizard.js',
   'docs/src/components/shell/header.js',
   'docs/src/entries/pages/activity-entry.js',
@@ -149,8 +146,6 @@ export const WITH_DATE_ECHO_BASELINE = [
 export const WITH_BATCH_MENTION_BASELINE = [
   '.ctx/SNAPSHOT.md',
   'README-members.md',
-  'README.md',
-  'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/宣传委员工作流程指南.md',
   'content/02_institution/sop/常见工作场景快速指南.md',
@@ -160,10 +155,8 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'content/03_doc_system/SERVICE_CATALOG.md',
   'content/03_doc_system/USAGE_POLICY.md',
   'content/04_web_design/data/DATA_FLOW.md',
-  'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
-  'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'content/insights/README.md',
   'docs/src/components/governance/org-setup-wizard.js',
   'docs/src/components/record/inspector.js',
@@ -179,6 +172,5 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'docs/src/entries/tabs/secretary/calendar-tab.js',
   'docs/src/entries/tabs/secretary/work-map-tab.js',
   'docs/src/services/activity/activity.js',
-  'docs/src/styles.css',
   'server/routes/resources.js',
 ];
