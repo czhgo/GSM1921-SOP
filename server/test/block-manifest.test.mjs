@@ -13,10 +13,10 @@ import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 import {
   BLOCK_MANIFESTS, validateBlockManifest, CAPABILITY_PROVENANCE,
-} from '../../docs/src/workflow/blocks/manifests.js?v=20260930m';
-import { assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20260930m';
-import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260930m';
-import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260930m';
+} from '../../docs/src/workflow/blocks/manifests.js?v=20260930n';
+import { assertComposeValid } from '../../docs/src/core/base/module-compose.js?v=20260930n';
+import { sopDatabase } from '../../docs/src/workflow/sopData.js?v=20260930n';
+import * as DEF_MODULE from '../../docs/src/workflow/definitions.js?v=20260930n';
 
 let server;
 let BASE;
@@ -44,7 +44,7 @@ test('S1 块 manifest：试点清单合规 + 校验器正/反样例', async () =
     await page.waitForFunction(() => document.readyState === 'complete', null, { timeout: 10000 });
 
     const result = await page.evaluate(async () => {
-      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260930m');
+      const { BLOCK_MANIFESTS, validateBlockManifest } = await import('/src/workflow/blocks/manifests.js?v=20260930n');
       const out = { ids: [], allOk: true, invalidCount: 0, antiExamples: {} };
 
       // 正向：全部试点清单合规

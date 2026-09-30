@@ -11,16 +11,16 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260930m';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20260930m';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930m';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930m';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930m';
-import { getPersonName } from '../../../services/member/person.js?v=20260930m';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930n';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20260930n';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930n';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930n';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930n';
+import { getPersonName } from '../../../services/member/person.js?v=20260930n';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930m';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930n';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260930m';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260930n';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
@@ -77,8 +77,15 @@ function _modulesHtml(workforce) {
 function _renderMatrix(workforce) {
   const host = document.getElementById('work-map-matrix');
   if (!host) return;
-  // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN` / `org:branch-committee`）；顺序沿用原「按人」卡视图的排序意图：
-  // 支书/副支书/组织/宣传/纪检 在前，**组织型主体（支委会 / 党委）紧随支委层**，其余（党小组组长、到人负责人等）按 99 排后
+  // 人维 = 负责人（独特集合，键 `role:xxx` / `person:pN` / `org:branch-committee`）；
+  // **顺序＝支委会置顶，再支委层个人**（支书 2026-09-30 裁定「支委会置顶，再支委层个人」）：支委会是集体领导主体
+  //   （类似法人，`ORG_SUBJECTS['branch-committee']`）⇒ 排在「支书 → 副支书 → 组织 → 宣传 → 纪检」这些**个人身份**之前；
+  //   其余（党小组组长、到人负责人等）按 99 排后。
+  const order = [
+    'org:branch-committee',
+    'role:secretary', 'role:deputy-secretary',
+    'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
+  ];
   const ownerMap = new Map();
   for (const m of WORK_MAP_MODULES) {
     const assign = workforce[m.id];
@@ -91,11 +98,6 @@ function _renderMatrix(workforce) {
     const key = `${assign.ownerType}:${assign.ownerId}`;
     if (!ownerMap.has(key)) ownerMap.set(key, assign);
   }
-  const order = [
-    'role:secretary', 'role:deputy-secretary',
-    'role:org-commissioner', 'role:prop-commissioner', 'role:disc-commissioner',
-    'org:branch-committee',
-  ];
   const persons = [...ownerMap.entries()]
     .sort((a, b) => {
       const ia = order.indexOf(a[0]); const ib = order.indexOf(b[0]);
