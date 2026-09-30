@@ -8,9 +8,9 @@
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20260930o';
-import { AuthStore } from '../core/auth.js?v=20260930o';
-import { isDetained } from '../member/roster.js?v=20260930o';
+import { PersonStore } from '../member/person.js?v=20260930p';
+import { AuthStore } from '../core/auth.js?v=20260930p';
+import { isDetained } from '../member/roster.js?v=20260930p';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -27,7 +27,7 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260930o';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260930p';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
@@ -97,6 +97,9 @@ export function resolveParticipantIds(voterScope, policy, assignedIds) {
  *   `components/record/inspector.js` 的表态位**多挂了一道 `isCommittee` 角色门** ⇒ 同一件事两种口径
  *   （**应到名单内的普通党员在支书台看不到表态位**，而活动详情页看得到）。本函数把口径收回一处，
  *   两个调用点同批改成消费它。
+ * ⚠ **批次 304 收得不全**（2026-09-30 批次 312 查实并补齐）：`inspector.js` 当时只改了「表态位是否挂」，
+ *   而**表态面板的动作门（`!locked && isCommittee`）与填充循环（`if (isCommittee)`）仍是角色门** ⇒
+ *   应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮、循环根本不填）。批次 312 把这两处一并改 `canVote`。
  * @param {{voteConfig?:{voterIds?:string[]}}} activity 活动（取固化应到名单）
  * @param {string|null|undefined} personId 当前登录人
  * @returns {boolean}

@@ -3,20 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20260930o';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930o';
-import { flashHighlight } from '../../../core/base/utils.js?v=20260930o';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20260930o';
+import { icon } from '../../../core/base/icons.js?v=20260930p';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930p';
+import { flashHighlight } from '../../../core/base/utils.js?v=20260930p';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20260930p';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20260930o';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20260930o';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930o';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20260930p';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20260930p';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930p';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20260930o';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20260930o';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20260930p';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20260930p';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20260930o';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260930p';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 

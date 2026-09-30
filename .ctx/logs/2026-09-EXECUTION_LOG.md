@@ -22316,3 +22316,35 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 
 > **（2026-09-28 批次 227 ＋ 批次 226：CSS 减负两批——**5049 → 4165 行 / 171,511 → 150,778 B**（批次 226 冲突 / 冗余清理：删死码 **121 条规则 / 35 组块**、规则数 842 → 717）＋ **4165 → 3497 行 / 150,778 → 133,129 B**（批次 227 零引用类全删：**65 个类**含 `.role-card` 整族 ~213 行）；**两批合计 5049 → 3497 行 / 171,511 → 133,129 B**；`.badge` 等价合并 ＋ 删 `.header-content{max-width:7xl}` 无效声明；`D-675`）** **（2026-09-28 批次 225：存量兜底全清——`var(--tok, 硬编码)` → `var(--tok)`〔浅 / 深两态逐字等值 ⇒ 观感零变化；基线 c 307→304〕＋ 套 A `#EF4444` 4 处改走 `var(--functional-error)`（值等）；`D-674`）** **（2026-09-28 批次 223：存量硬编码兜底清理（低风险部分）——`var(--app-accent, #B91C1C)` ×21 / `var(--app-accent-bg, …)` ×~7 / `var(--app-accent-border, …)` ×~4 与 `var(--surface-card, #FFFFFF)` ×1（`.ov-sub-tab-active`）去兜底〔该令牌已在 `:root` 有正式默认值〕；浅 / 深两态零观感变化、`oldHit=0`；基线 c 329→307）** **（2026-09-28 批次 221：① 输入框黄框修〔`D-671`〕——全局组去 `input`、输入族聚焦改 `outline:none;box-shadow:none` 且边框变金〔原误用 `outline:2px solid var(--party-gold)`＝#FFD700 品牌基准金 ＋ `box-shadow:0 0 0 6px rgba(0,0,0,.55)` 外发光〕；② 颜色章法〔`D-672`〕——`:root` 补 `--app-accent` / `-bg` / `-border` 正式默认值〔取既有令牌、零新增 hex〕＋ 新增 `.accent-avatar`〔含深色提亮〕＋ `.sel-accent-on` 去兜底；日期由 `2026-09-27` 刷 `2026-09-28`）** 全局样式（D3 深色主题/按钮四档/主题色选择器/ab-* 拆出至 about.css；2026-08-23 新增 .ws-tab-scroll 单行滚动样式；**2026-09-25 批次 184 ＋147 行**：`settings.html` 的 **7 个钩子名**样式**并回本文件**（被 `preferences.test.mjs` 选择器锁定）＋ **新落 5 个类** `.kv-list` `.kv-row` `.status-line` `.hint-box` `.hint-dot`；该页页面级 `<style>` 归零 ⇒ **单一样式源**，`D-647`）**（2026-09-26 批次 209：深色覆盖段 token 化——**实做 138 处**〔16 组令牌、纯按值对齐、令牌深色值逐字节等于原字面量〕；本文件自身 **`c: 467 → 329`**；`H4` 本路 **1891 → 1753（↓272）**；判「不换」**80 处**〔36 值确不相等〕· `H5` 搬移例外**不加条目**〔同文件内字面量 → `var()` 非跨文件搬移〕；**首跑 `S12` 红**〔新写头注未带可核验日期〕⇒ **补 `2026-09-26` 后复绿**）**
 
+
+---
+
+## 批次 312（2026-09-30 · `D-728`）：**表态面板的通行证由「角色」收回「本场应到名单」（补齐批次 304 未收完的那两处门）**
+
+**来源**：objective 第 7 条（支书原话逐字）「**即使是支部书记/其他支委 投票，在投票的时候也就是普通党员**」。
+
+**先量后动（逐行复核）**：`docs/src/components/record/inspector.js` 里表态链路共 4 处判断——
+1. `renderVotePanel` 的按钮门 `!locked && isCommittee`（旧 `:547`）；
+2. 表态位挂载条件 `(isCommittee || isVoterOf(activity, currentUserId)) && a.id`（旧 `:750`，**批次 304 已改过这一处**）；
+3. 填充循环门 `if (isCommittee) {`（旧 `:879`）；
+4. 调用点传参 `{ …, isCommittee, currentUserId }`（旧 `:885`）。
+⇒ 批次 304 只改了第 2 处 ⇒ **应到名单内的普通党员在支书台挂得出空槽**（面板无按钮、循环不填），同一人在活动详情页却看得到——同一件事两种口径。
+
+**落地（4 处）**：① 面板签名 `isCommittee` → `canVote`；② 按钮门 `!locked && canVote`；③ 挂载条件收为纯 `isVoterOf(activity, currentUserId) && a.id`；④ 填充循环 `const canVote = isVoterOf(activity, currentUserId); if (canVote) {` 并传 `canVote`。**未动**：品牌三态动作 / 待批块 / 议程结果记录权 `canRecord` / 汇总矩阵 `per-person-tally`（**管理权 ≠ 表决权**）。净 **+5 行**。
+
+**判据单一源注**：`docs/src/services/activity/vote-config.js` 的 `isVoterOf` JSDoc 补一段「批次 304 收得不全 ⇒ 批次 312 补齐」的沿革（**无行为改动**）。
+
+**真机（新增 2 条断言 · 改前对照）**：`server/test/async-vote.test.mjs` 第 4 步——
+- 断言 A：`.vote-panel-slot[data-vote-agenda-id=…]` 内文含「我的表态」（应到名单内的支书可见）；
+- 断言 B（**本批的判据证据，改动前必红**）：把本场 `voteConfig.voterIds` 清空 → `renderInspectorFromState()` 重渲染 → **不再挂表态位**（断言后立即还原 state，后续「应到 12」基数不受影响）。
+实跑：`tests 1 / pass 1 / fail 0`；另 `agenda-votes.test.mjs` **22 / 22**。
+
+**行号改签（本批自身引发的位移）**：净 +5 行（顶部注释 +2、填充循环块 +3）⇒ `README-server.md` 4 处引用同批改签：`:616` → `:618` · `:622` → `:624` · `:826-845` → `:828-847` · `:1078-1092` → `:1083-1097`。**由 `doc-line-ref::R2` 当场判红抓出**（先红后绿，按纪律**改行号不改判据**）。
+
+**守卫**：`doc-consistency` / `doc-line-ref` / `link-integrity` / `link-target-guard` / `version-stamp` / `module-load` / `import-path-guard` / `timestamps-note-guard` / `frontmatter-freshness` / `button-system-guard` / `hex-hardcode-guard` / `text-tier-guard` / `small-text-guard` / `dead-selector-guard` / `self-evident-copy-guard` 合跑 **85 / 85 / 0 红**；`timestamps-note-guard` 四份基线**一字未动**（`N3` 仍 6 · `N4` 72 · `N5` 16 · `N6` 29）。
+
+**台账**：`TIMESTAMPS.md` 两行改注（`docs/src/components/record/inspector.js` 日期 2026-09-27 → 2026-09-30 ＋ 本批沿革；`README-server.md` 备注补这 4 处改签）；决策日志**四处计数同刷 454 条（D-275~D-728）**。
+
+**版本戳**：`20260930o → 20260930p`（JS 217 / HTML 22 / CSS 2 / server-test 87 文件；陈旧戳 0 处残留）。
+
+⚠ **如实登记**：① 本批**未跑全量**（守卫合跑 ＋ 两个表决类真机件），**收尾全量由收尾人另跑**；② 未新增表格 / 未改权限门 / 未改服务端；③ 结论**只到「门已归一」**——「名单外者是否该看到只读提示（如公共页那句『仅应到表决人可表态』）」**本批未做**，如实留作待定。

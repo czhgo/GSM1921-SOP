@@ -5,44 +5,46 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930o';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930o';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930o';
-import { icon } from '../../core/base/icons.js?v=20260930o';
-import { openModal, closeModal } from '../ui/modal.js?v=20260930o';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930p';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930p';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930p';
+import { icon } from '../../core/base/icons.js?v=20260930p';
+import { openModal, closeModal } from '../ui/modal.js?v=20260930p';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20260930o';
-import { BranchService } from '../../services/core/runtime.js?v=20260930o';
-import { AuthStore } from '../../services/core/auth.js?v=20260930o';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930o';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930o';
-// 表态权判据单一源（2026-09-30 批次 304）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
+import { getPersonById } from '../../services/member/person.js?v=20260930p';
+import { BranchService } from '../../services/core/runtime.js?v=20260930p';
+import { AuthStore } from '../../services/core/auth.js?v=20260930p';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930p';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930p';
+// 表态权判据单一源（2026-09-30 批次 304 立 · 批次 312 补齐）：`isVoterOf` —— **角色无关**，只看本场固化应到名单。
 // 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20260930o';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930o';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930o';
+// ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
+//   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20260930p';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930p';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930p';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930o';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930p';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930o';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930p';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930o';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930p';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930o';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930p';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20260930o';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930o';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930o';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930o';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930o';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930o';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20260930o';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930o';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260930p';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930p';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930p';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930p';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930p';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930p';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20260930p';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930p';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -527,7 +529,7 @@ async function _recordAgendaResult(activity, agendaItemId, outcome) {
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
-function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, currentUserId }) {
+function renderVotePanel(container, { activity, agendaItem, votes, canVote, currentUserId }) {
   const locked = activity.votesLocked === true;
   const os = optionSetOf(activity);
   const labelOf = (pos) => (os.labels && os.labels[pos]) || pos;
@@ -544,7 +546,7 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
       ${mine ? (anonymous
         ? '<div class="vote-current">已表态（无记名，已计入汇总，不展示个人选项）</div>'
         : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>`) : ''}
-      ${!locked && isCommittee ? `
+      ${!locked && canVote ? `
         <div class="vote-actions">
           ${options.map((pos) => `<button type="button" class="btn-ghost vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
         </div>
@@ -747,7 +749,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
           </div>
           <div class="text-gray-500 mt-0.5">${a.host ? `（主持人：${a.host}）` : ''}${recordInfo}${a.reportToPartyMeeting ? ' · 已定：报送党员大会表决' : ''}</div>${_reportPartyToggleHtml(a, canRecord)}
           ${perPersonTally}
-          ${(isCommittee || isVoterOf(activity, currentUserId)) && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
+          ${isVoterOf(activity, currentUserId) && a.id ? `<div class="vote-panel-slot" data-vote-agenda-id="${a.id}"></div>` : ''}
           ${personPanel}
         </div>
         ${canRecord && !perPerson ? `
@@ -873,16 +875,19 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (!cardsEl) return;
   cardsEl.innerHTML = html;
 
-  // 委员端表态面板（2026-09-01 线上支委会 Task3）
+  // 委员/党员端表态面板（2026-09-01 线上支委会 Task3）
   // 加载后 fetchVotes → 逐条议程渲染表态区；vote-submitted 冒泡刷新（重新拉取重绘，支持覆盖表态）。
   // 监听挂在 #agenda-block 上（每次内渲染重建，闭包捕获本次 activity，避免跨活动串态）。
-  if (isCommittee) {
+  // 批次 312 收口：门由 `isCommittee` 改为 `canVote`（＝`isVoterOf`，角色无关）——否则应到名单内的
+  //   普通党员在支书台只挂得出空槽（批次 304 只改了 slot、漏了这里）。
+  const canVote = isVoterOf(activity, currentUserId);
+  if (canVote) {
     const actId = activity.id;
     const renderAllVotePanels = async () => {
       const votes = await fetchVotes(actId);
       cardsEl.querySelectorAll('.vote-panel-slot').forEach(slot => {
         const agendaItem = (activity.agenda || []).find(a => a.id === slot.dataset.voteAgendaId);
-        if (agendaItem) renderVotePanel(slot, { activity, agendaItem, votes, isCommittee, currentUserId });
+        if (agendaItem) renderVotePanel(slot, { activity, agendaItem, votes, canVote, currentUserId });
       });
     };
     renderAllVotePanels().catch(e => console.warn('[inspector] 表态数据加载失败：', e));
