@@ -11,7 +11,7 @@
 //   · 样式单一源 = styles.css 的 .page-btn / .page-num（本文件只产出标记，不写样式）；
 //   · 页数 ≤1 返回空串 —— 小表零负担（不渲染控件）；
 //   · 计数文案统一「共 N <单位> · 第 x / y 页」。
-import { escHtml as esc } from '../../core/base/utils.js?v=20260930e';
+
 
 /**
  * 渲染翻页区 HTML（唯一产出点）
@@ -25,12 +25,14 @@ export function pagerHtml({ page, pages, total, unit }) {
   const end = Math.min(pages, Math.max(cur, 3) + 2);
   for (let i = Math.max(1, end - 4); i <= end; i++) nums.push(i);
   return `
-      <div class="flex items-center justify-between pt-3">
-        <span class="lf-count">共 ${total} ${esc(unit)} · 第 ${cur} / ${pages} 页</span>
+      <div class="flex items-center justify-end pt-3">
         <div class="flex items-center gap-1.5">
           <button type="button" class="page-btn btn-tab" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
           ${nums.map(n => `<button type="button" class="page-num btn-tab${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
           <button type="button" class="page-btn btn-tab" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
         </div>
       </div>`;
+  // 2026-09-30 批次 297-2 续③：原先此处另有一行 `.lf-count`「共 N … · 第 X / Y 页」，
+  //   与 `list-filter.js` 的计数行重复（同一屏出现两遍「共 16 场」）⇒ **本文件只出翻页钮**，
+  //   计数与分页文案统一由 `list-filter.js` 的 `.lf-count[role=status][aria-live=polite]` 一处产出。
 }

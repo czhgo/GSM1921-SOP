@@ -35,16 +35,16 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20260930e';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260930f';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20260930e';
+} from '../../core/domain/constants.js?v=20260930f';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930f';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20260930e';
+import { pagerHtml } from './pager.js?v=20260930f';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -238,9 +238,13 @@ export function renderFilteredList(container, cfg) {
     countEl.hidden = !visible;
     if (visible) {
       const active = !!st.q || Object.values(st.facets).some(Boolean);
-      countEl.textContent = active
+      // 2026-09-30 批次 297-2 续③（支书裁「`div` `span` 这两个信息是不是就冗余啰嗦了」）：
+      //   **计数只此一处** —— 分页信息并入本行（`role="status" aria-live="polite"` 保留在本元素上），
+      //   `components/ui/pager.js` 不再重复输出「共 N …」（原先两处各写一遍「共 16 场」）。
+      countEl.textContent = (active
         ? `筛选出 ${filtered.length} / ${data.length} ${config.countUnit}`
-        : `共 ${data.length} ${config.countUnit}`;
+        : `共 ${data.length} ${config.countUnit}`)
+        + (pages > 1 ? ` · 第 ${Math.min(Math.max(1, st.page), pages)} / ${pages} 页` : '');
     }
     renderPager(pages, filtered.length);
   }

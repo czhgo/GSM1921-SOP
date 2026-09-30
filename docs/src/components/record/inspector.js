@@ -5,41 +5,41 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930e';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930e';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930e';
-import { icon } from '../../core/base/icons.js?v=20260930e';
-import { openModal, closeModal } from '../ui/modal.js?v=20260930e';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930f';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930f';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930f';
+import { icon } from '../../core/base/icons.js?v=20260930f';
+import { openModal, closeModal } from '../ui/modal.js?v=20260930f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20260930e';
-import { BranchService } from '../../services/core/runtime.js?v=20260930e';
-import { AuthStore } from '../../services/core/auth.js?v=20260930e';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930e';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930e';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930e';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930e';
+import { getPersonById } from '../../services/member/person.js?v=20260930f';
+import { BranchService } from '../../services/core/runtime.js?v=20260930f';
+import { AuthStore } from '../../services/core/auth.js?v=20260930f';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930f';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930f';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930f';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930f';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930e';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930f';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930e';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930f';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930e';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930f';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930e';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930f';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20260930e';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930e';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930e';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930e';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930e';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930e';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20260930e';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930e';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260930f';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930f';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930f';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930f';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930f';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930f';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20260930f';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930f';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
