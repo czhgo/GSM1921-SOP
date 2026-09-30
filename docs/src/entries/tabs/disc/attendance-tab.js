@@ -12,38 +12,38 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930g';
-import { generateId } from '../../../core/base/id.js?v=20260930g';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20260930g';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260930g';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930h';
+import { generateId } from '../../../core/base/id.js?v=20260930h';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20260930h';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260930h';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20260930g';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20260930g';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930g';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20260930h';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20260930h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930h';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20260930g';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20260930g';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260930g';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930g';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930g';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930g';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20260930h';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20260930h';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260930h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930h';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930h';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930g';
-import { pagerHtml } from '../../../components/ui/pager.js?v=20260930g';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930h';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260930h';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930g';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930g';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260930g';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930g';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930g';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930g';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930h';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930h';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20260930h';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930h';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20260930g';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260930h';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260930g';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20260930h';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -163,7 +163,7 @@ export function renderContent(ctx) {
   const filterBanner = filterActivityId
     ? `<div class="mb-3 p-2.5 rounded-lg border border-blue-200 flex items-center justify-between">
         <span class="text-xs text-blue-700">已聚焦：${(actById.get(filterActivityId)?.title || '该活动')}（${actById.get(filterActivityId)?.date || ''}）的考勤</span>
-        <button class="btn-ghost text-xs disc-clear-filter" style="cursor:pointer;">清除聚焦</button>
+        <button class="btn-ghost text-xs disc-clear-filter">清除聚焦</button>
       </div>`
     : '';
 
@@ -547,7 +547,7 @@ function _buildQueueHTML(items, returnedRecs, leaveCount, absentCount, overdueCo
       </div>`
     : `<div class="space-y-1.5">${visible.map(rowHtml).join('')}
       ${total > QUEUE_VISIBLE ? `
-        <button id="att-queue-more" class="btn-ghost w-full text-xs py-2" style="cursor:pointer;">
+        <button id="att-queue-more" class="btn-ghost w-full text-xs py-2">
           ${_queueExpanded ? '收起' : `展开全部（${total} 条）`}
         </button>` : ''}
       <div class="flex items-center justify-between flex-wrap gap-2 pt-2 mt-1 border-t border-gray-100">
@@ -736,8 +736,8 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
       <div id="disc-meet-makeup-strip" class="mb-3"></div>
       <div id="disc-meet-status-rows" class="space-y-2 mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="disc-meet-submit" class="btn-ghost text-sm px-4 py-[7px]" style="${accentStyle}cursor:pointer;">提交录入</button>
-        <button id="disc-meet-cancel" class="btn-outline text-sm px-4 py-1.5" style="cursor:pointer;">取消</button>
+        <button id="disc-meet-submit" class="btn-accent text-sm px-4 py-[7px]">提交录入</button>
+        <button id="disc-meet-cancel" class="btn-outline text-sm px-4 py-1.5">取消</button>
       </div>
       <div class="mt-3 text-[11px] text-gray-500">录入即确认（录入人本人记名；缺勤 / 请假须选标因）。<a href="./help.html#card-copy-attendance-record" class="text-sky-600 hover:underline">见帮助 · 考勤录入口径</a>
         <details class="mt-1">

@@ -34,6 +34,14 @@
  *     主操作 `.btn-accent` · 次主操作 `.btn-accent-soft` · 微操作 `.btn-action*` · **中性 `.btn-neutral`** ·
  *     **描边 `.btn-outline`** · **文字 `.btn-ghost`** · **危险 `.btn-danger`** · 命名族 `.btn-md*` / `.btn-tab*`。
  *   基线＝**批次 297-1 实测 454**（手写 344 ＋ 含 btn 词干非族 110）；**每迁完一屏一并下调基线**（收基线纪律）。
+ *
+ * B5【族·语义一致】`.btn-ghost` **不得带内联实底**（2026-09-30 批次 300 立）。
+ *   来源：支书 2026-09-30 原话「**button 还有漏网之鱼？请全面检查，所有的角色！**」——实测全站
+ *   55+ 处 `class="btn-ghost…"` ＋ 内联 `background:var(--party-red)` 等**实底**＝「**借文字族的
+ *   形状伪装主操作实底**」。`B4` 只查「类名是否入族」（`btn-ghost` 在族内 ⇒ 不报），故这整类
+ *   **用错族**长期隐形。判据见 `DESIGN_SYSTEM §4.1 何时用哪族`：主操作→`.btn-accent` ·
+ *   危险→`.btn-danger(-solid)` · 中性→`.btn-neutral` · 次主操作→`.btn-accent-soft`。
+ *   基线＝**批次 300 归一后实测 0**（棘轮：只许降不许升）。
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -212,5 +220,36 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
   assert.ok(
     handwritten <= HANDWRITTEN_BUTTON_BASELINE,
     `未入语义族的 <button> 由 ${HANDWRITTEN_BUTTON_BASELINE} 升到 ${handwritten} 个 ⇒ 新按钮须走 8 族之一（${FAMILY_TOKENS.join(' / ')}）；每迁完一屏请一并下调基线。`,
+  );
+});
+
+/** B5 棘轮基线（批次 300 归一后实测 **0**；只许下调） */
+const GHOST_SOLID_BASELINE = 0;
+
+test('B5 族·语义一致：.btn-ghost 不得带内联实底（借文字族形状伪装实底）', () => {
+  const offenders = [];
+  const tagRe = /<button\b[^>]*>/g;
+  for (const f of FILES) {
+    const src = readFileSync(f, 'utf8');
+    let m;
+    while ((m = tagRe.exec(src)) !== null) {
+      const tag = m[0];
+      const cls = (/class="([^"]*)"/.exec(tag) || [null, ''])[1];
+      if (!/(^|\s)btn-ghost(?![\w-])/.test(cls)) continue;
+      const style = (/style="([^"]*)"/.exec(tag) || [null, ''])[1];
+      // 运行期动态样式（含模板表达式）⇒ 豁免：此类＝**组件自带状态**（选中态/色板等），
+      //   正是 `D-712` 收窄口径「组件自带强调色的控件豁免」所指（如 `${brandBtnStyle}` / `${accent.hex}`）。
+      if (style.includes('${')) continue;
+      const bg = (/background\s*:\s*([^;"]+)/.exec(style) || [null, ''])[1].trim();
+      if (!bg) continue;
+      if (/^(none|transparent)$/i.test(bg)) continue;   // 本就不是实底
+      const line = src.slice(0, m.index).split('\n').length;
+      offenders.push(`  ${relative(join(__dirname, '..', '..'), f)}:${line} → ${bg}`);
+    }
+  }
+  console.log(`[button-system-guard] .btn-ghost 带内联实底的 <button> 共 ${offenders.length} 个（棘轮上限 ${GHOST_SOLID_BASELINE}）：\n${offenders.join('\n')}`);
+  assert.ok(
+    offenders.length <= GHOST_SOLID_BASELINE,
+    `'.btn-ghost' 带内联实底的 <button> 有 ${offenders.length} 个（上限 ${GHOST_SOLID_BASELINE}）⇒ 实底须归主操作 / 危险 / 中性族，勿借文字族形状。`,
   );
 });

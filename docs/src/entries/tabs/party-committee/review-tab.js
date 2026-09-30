@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930g';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930g';
-import { getPersonName } from '../../../services/member/person.js?v=20260930g';
-import { getBranchById } from '../../../services/branch/branch.js?v=20260930g';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930g';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930g';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
+import { getPersonName } from '../../../services/member/person.js?v=20260930h';
+import { getBranchById } from '../../../services/branch/branch.js?v=20260930h';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930h';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930h';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930g';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930h';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -143,7 +143,7 @@ function cardHtml(r) {
         <textarea class="rq-decision input-flat w-full resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>
         <div class="flex justify-end gap-2 mt-2">
           <button data-rq-act="reject" class="btn-outline text-xs px-3 py-1.5">驳回</button>
-          <button data-rq-act="approve" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">批准</button>
+          <button data-rq-act="approve" class="btn-accent text-xs px-3 py-1.5 font-medium">批准</button>
         </div>
       </div>` : `
       <div class="mt-2.5 rounded-lg ${r.status === 'approved' ? 'bg-green-50/60' : 'bg-gray-50'} p-2.5">

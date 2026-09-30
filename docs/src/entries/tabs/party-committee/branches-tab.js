@@ -5,18 +5,18 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930g';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930h';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930g';
-import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch/branch.js?v=20260930g';
-import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20260930g';
-import { getRosterStats } from '../../../services/member/roster.js?v=20260930g';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930h';
+import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch/branch.js?v=20260930h';
+import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20260930h';
+import { getRosterStats } from '../../../services/member/roster.js?v=20260930h';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20260930g';
-import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20260930g';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20260930h';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20260930h';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20260930g';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20260930h';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -50,7 +50,7 @@ export async function renderContent() {
           <p class="font-title-cn text-base font-bold text-gray-800">支部实例</p>
           <p class="text-xs text-gray-500 mt-0.5">支部不预设名字——由党委按实际情况创建/改名（硕博等支部随时可加）</p>
         </div>
-        <button id="branch-add-toggle" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">+ 新建支部</button>
+        <button id="branch-add-toggle" class="btn-accent text-xs px-3 py-1.5 font-medium">+ 新建支部</button>
       </div>
       <div id="branch-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -65,7 +65,7 @@ export async function renderContent() {
         </div>
         <div class="flex justify-end gap-2">
           <button id="branch-form-cancel" class="btn-outline text-xs px-3 py-1.5">取消</button>
-          <button id="branch-form-submit" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">创建支部</button>
+          <button id="branch-form-submit" class="btn-accent text-xs px-3 py-1.5 font-medium">创建支部</button>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,14 +90,14 @@ export async function renderContent() {
               <button class="btn-outline branch-rename-toggle text-xs px-2.5 py-1">改名</button>
               <button class="btn-outline branch-appoint-toggle text-xs px-2.5 py-1">任命支书</button>
               ${isEmpty
-                ? `<button type="button" class="btn-ghost text-xs px-2.5 py-1 font-medium" style="background:var(--party-red);" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
+                ? `<button type="button" class="btn-accent text-xs px-2.5 py-1 font-medium" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
                 : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
               <button type="button" class="btn-outline branch-demo-enter text-xs px-2.5 py-1 shrink-0" data-branch-id="${esc(bid)}"
                 title="打开该支部监控只读视图（演示形态，只读；不授予支部内部事务权限）">进入支部</button>
             </div>
             <div class="branch-rename-row hidden mt-2 flex gap-2">
               <input class="branch-rename-input input-flat w-full" value="${esc(b.config?.headerTitle || b.name)}" placeholder="支部全称" />
-              <button class="btn-ghost branch-rename-save text-xs px-3 py-1.5 font-medium shrink-0" style="background:var(--party-red);">保存</button>
+              <button class="btn-accent branch-rename-save text-xs px-3 py-1.5 font-medium shrink-0">保存</button>
             </div>
             <div class="branch-appoint-row hidden mt-2 space-y-2">
               <select class="branch-appoint-select input-flat w-full">
@@ -107,7 +107,7 @@ export async function renderContent() {
               </select>
               <div class="flex items-center justify-between gap-2">
                 <input class="branch-appoint-note input-flat w-full" placeholder="任命说明（可选，如 换届选举 2026-09）" />
-                <button class="btn-ghost branch-appoint-save text-xs px-3 py-1.5 font-medium shrink-0" style="background:var(--party-red);">确认任命</button>
+                <button class="btn-accent branch-appoint-save text-xs px-3 py-1.5 font-medium shrink-0">确认任命</button>
               </div>
             </div>
             ${(() => { const h = listAppointments(bid); return h.length ? `
@@ -234,7 +234,7 @@ function _rosterDraftHtml(branchId) {
         <p class="text-[11px] text-gray-500">确认导入后：上述成员整体成为本支部成员（原属支部相应减员），成员名册与应到统计即时保存；「放弃」不写入。</p>
         <div class="flex gap-2">
           <button type="button" class="btn-outline text-xs px-3 py-1.5" data-branch-roster-act="discard" data-branch-id="${esc(branchId)}">放弃</button>
-          <button type="button" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入保存</button>
+          <button type="button" class="btn-accent px-3 py-1.5 text-xs font-medium" data-branch-roster-act="confirm" data-branch-id="${esc(branchId)}">确认导入保存</button>
         </div>
       </div>
     </div>`;

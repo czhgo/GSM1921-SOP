@@ -7,12 +7,12 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930g';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930g';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20260930g';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930g';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20260930g';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930g';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20260930h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930h';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20260930h';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930h';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -75,7 +75,7 @@ export function renderContent() {
           </div>
         </div>
         <div class="flex justify-end gap-2">
-          <button id="dispatch-submit" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">下发</button>
+          <button id="dispatch-submit" class="btn-accent text-xs px-3 py-1.5 font-medium">下发</button>
         </div>
       </div>
 

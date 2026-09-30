@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20260930g';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930g';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20260930g';
-import { AuthStore } from '../../services/core/auth.js?v=20260930g';
-import { loadActivities } from '../../services/activity/activity.js?v=20260930g';
-import { PEOPLE } from '../../data/mock/people.js?v=20260930g';
+import { icon } from '../../core/base/icons.js?v=20260930h';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930h';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20260930h';
+import { AuthStore } from '../../services/core/auth.js?v=20260930h';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930h';
+import { PEOPLE } from '../../data/mock/people.js?v=20260930h';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20260930g';
+} from '../../services/branch/branch-doc.js?v=20260930h';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930g';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930h';
 
 const SITE_GROUPS = [
   {
@@ -724,8 +724,8 @@ export class ReferencesModule {
         <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-modal-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5" style="color:var(--neutral-500);">取消</button>
-        <button id="ref-modal-confirm" type="button" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--primary-700);">${editing ? '保存' : '写入'}</button>
+        <button id="ref-modal-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-modal-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">${editing ? '保存' : '写入'}</button>
       </div>
     `;
 
@@ -872,8 +872,8 @@ export class ReferencesModule {
         <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-pub-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5" style="color:var(--neutral-500);">取消</button>
-        <button id="ref-pub-confirm" type="button" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--primary-700);">发布新版</button>
+        <button id="ref-pub-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ref-pub-confirm" type="button" class="btn-accent text-xs px-3 py-1.5">发布新版</button>
       </div>
     `;
 

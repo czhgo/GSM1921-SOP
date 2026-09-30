@@ -14,33 +14,33 @@
 // 草稿：localStorage `wizard-draft-<branchId>`（当前步 + 每步完成标记 + 完成态），中断可续走。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260930g';
-import { getCapabilities } from '../../core/boot/registry.js?v=20260930g';
-import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20260930g';
-import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/domain/work-map.js?v=20260930g';
+import { mockDB } from '../../core/domain/domain.js?v=20260930h';
+import { getCapabilities } from '../../core/boot/registry.js?v=20260930h';
+import { OUTPUT_BLOCK_DEFS, BRANCH_COMMISSION_ROLES, ROLE_LABELS, getAccentColors } from '../../core/domain/constants.js?v=20260930h';
+import { ORG_SUBJECT_LABELS, ownerSubjectType } from '../../core/domain/work-map.js?v=20260930h';
 // 副作用：注册支委层工作台能力（配置目录=其 tab 清单，单一源）
-import '../../capabilities/secretary-workspace.js?v=20260930g';
-import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260930g';
+import '../../capabilities/secretary-workspace.js?v=20260930h';
+import { BLOCK_MANIFESTS } from '../../workflow/blocks/manifests.js?v=20260930h';
 // L3 流程组合（2026-09-28 批次 246）：把编排内核接进**生产路径**——配置面用它做「组合体检」
-import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260930g';
-import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20260930g';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930g';
+import { composePlan } from '../../workflow/blocks/orchestration.js?v=20260930h';
+import { escHtml as esc, showToast, downloadBlob } from '../../core/base/utils.js?v=20260930h';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930h';
 import {
   getBranchById, getBranchOrg, getBranchTabPolicy, getCoreTabIds,
   getBranchOutputBlocks, getOutputBlockPolicy, getWorkflowBlockPolicy, orderByIds,
   updateBranchModules, getBranchWorkforce, updateBranchWorkforce, updateBranchOrg,
   applyConfigCopy, createBranch, getBranchIdOfPerson,
-} from '../../services/branch/branch.js?v=20260930g';
-import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260930g';
+} from '../../services/branch/branch.js?v=20260930h';
+import { buildConfigPackage, applyConfigPackage } from '../../services/branch/org-config-package.js?v=20260930h';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION,
-} from '../../services/branch/org-base-data-preview.js?v=20260930g';
-import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260930g';
-import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260930g';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930g';
+} from '../../services/branch/org-base-data-preview.js?v=20260930h';
+import { getRosterStats, isDetained } from '../../services/member/roster.js?v=20260930h';
+import { buildOrgWizardReport } from '../../services/branch/org-wizard-report.js?v=20260930h';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930h';
 // R5-1（2026-09-06）：建空支部「就地任命首任骨干」——任命编排在 appointment.js 收口（含数据边界登记）
-import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260930g';
+import { appointInauguralOfficers } from '../../services/branch/appointment.js?v=20260930h';
 
 // ── 步骤元信息（支书已批口径）────────────────────────────────────
 export const WIZARD_STEPS = [
@@ -319,7 +319,7 @@ function _headHtml(S, branch, org, isStaff) {
           <p class="text-xs text-gray-500">分步引导式支部配置（吸收合并原「支部配置」）；部署期/调整期使用，改动即时生效并记录变更</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="btn-ghost px-2.5 py-1.5" style="background:var(--party-red);">新建支部…</button>` : ''}
+          ${isStaff ? `<button type="button" data-wz-act="toggle-create" class="btn-accent px-2.5 py-1.5">新建支部…</button>` : ''}
           ${S.embed ? `<a href="./wizard.html?branch=${esc(S.branchId)}" class="text-[13px] text-blue-600 hover:text-blue-800 shrink-0" title="在新页面打开向导（独立 URL 直达）">独立页直达 ↗</a>` : ''}
         </div>
       </div>
@@ -409,7 +409,7 @@ function _createPanelHtml(S, isStaff) {
       <p class="text-[11px] text-gray-500">新支部为空：config 默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。<span class="text-gray-500">记录变更：config.configChangeHistory 追加 <code class="text-[11px] bg-white px-1 py-0.5 rounded border border-blue-100">branch-created</code>。</span></p>
       <div class="flex items-center justify-end gap-2">
         <button type="button" data-wz-act="toggle-create" class="btn-outline ${subtle}">取消</button>
-        <button type="button" data-wz-act="do-create" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">创建支部</button>
+        <button type="button" data-wz-act="do-create" class="btn-accent px-3 py-1.5 text-xs font-medium">创建支部</button>
       </div>
     </div>`;
 }
@@ -492,7 +492,7 @@ function _baseDraftHtml(S, draft) {
         <p class="text-[11px] text-gray-500">确认应用后：成员名册 / 应到名单 / 发展阶段分布按上表变化（本地预览，可「清除预览」回种子）；「放弃」不写入。</p>
         <div class="flex gap-2">
           <button type="button" data-wz-act="discard-base" class="btn-outline text-xs px-3 py-1.5">放弃</button>
-          <button type="button" data-wz-act="apply-base" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">确认应用</button>
+          <button type="button" data-wz-act="apply-base" class="btn-accent px-3 py-1.5 text-xs font-medium">确认应用</button>
         </div>
       </div>
     </div>`;
@@ -599,7 +599,7 @@ function _step1Html(S, branch, org, isStaff) {
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${presetCards}</div>
       </div>
       <div class="flex justify-end pt-1">
-        <button type="button" data-wz-act="save-step" data-step="1" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">保存本步（即时生效）</button>
+        <button type="button" data-wz-act="save-step" data-step="1" class="btn-accent px-3 py-1.5 text-xs font-medium">保存本步（即时生效）</button>
       </div>
     </div>`;
 }
@@ -675,7 +675,7 @@ function _step2Html(S, branch) {
       </div>
       <div class="flex gap-2 justify-end pt-2 border-t border-gray-100">
         <button type="button" data-wz-act="reset-modules" class="btn-outline text-xs px-3 py-1.5">恢复默认（全开）</button>
-        <button type="button" data-wz-act="save-step" data-step="2" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">保存本步</button>
+        <button type="button" data-wz-act="save-step" data-step="2" class="btn-accent px-3 py-1.5 text-xs font-medium">保存本步</button>
       </div>
     </div>`;
 }
@@ -721,7 +721,7 @@ function _step3Html(S, branch) {
       <div class="rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2">${rows}</div>
       <div class="flex gap-2 justify-end pt-1 border-t border-gray-100">
         <button type="button" data-wz-act="reset-workforce" class="btn-outline text-xs px-3 py-1.5">恢复默认分工</button>
-        <button type="button" data-wz-act="save-step" data-step="3" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">保存本步</button>
+        <button type="button" data-wz-act="save-step" data-step="3" class="btn-accent px-3 py-1.5 text-xs font-medium">保存本步</button>
       </div>
     </div>`;
 }
@@ -752,7 +752,7 @@ function _step4Html(S, branch) {
       <div class="rounded-xl border border-dashed border-red-200 bg-red-50/40 p-3.5">
         <p class="text-xs font-semibold text-gray-700">生成「换壳工作单」（Markdown 下载）</p>
         <p class="text-[11px] text-gray-500 mt-1">汇总：已完成配置摘要（①②③现读数）+ 待手动替换文件清单 + 检查项（应到名单 / ?reset=1 / npm test）。</p>
-        <button type="button" data-wz-act="download-report" class="btn-ghost mt-2 px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">生成并下载工作单</button>
+        <button type="button" data-wz-act="download-report" class="btn-accent mt-2 px-3 py-1.5 text-xs font-medium">生成并下载工作单</button>
       </div>
     </div>`;
 }
@@ -833,7 +833,7 @@ function _completeHtml(S, branch, org) {
         </div>
       </div>
       <div class="flex flex-wrap gap-2 pt-1">
-        <button type="button" data-wz-act="download-report" class="btn-ghost px-3 py-1.5 text-xs font-medium" style="background:var(--party-red);">下载换壳工作单</button>
+        <button type="button" data-wz-act="download-report" class="btn-accent px-3 py-1.5 text-xs font-medium">下载换壳工作单</button>
         <button type="button" data-wz-act="goto-verify" class="btn-outline px-3 py-1.5 text-xs">去验证 / 重置（⑤）</button>
         <button type="button" data-wz-act="restart" class="btn-outline px-3 py-1.5 text-xs">重走向导</button>
       </div>
@@ -847,7 +847,7 @@ function _footerHtml(S, isStaff) {
   return `
     <div class="flex items-center justify-between">
       <button type="button" data-wz-act="prev" ${S.step > 1 ? '' : 'disabled'} class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors ${S.step <= 1 ? 'opacity-40 cursor-not-allowed' : ''}">← 上一步</button>
-      <button type="button" data-wz-act="next" class="btn-ghost px-4 py-1.5 text-xs font-medium" style="background:var(--party-red);">${nextLabel}</button>
+      <button type="button" data-wz-act="next" class="btn-accent px-4 py-1.5 text-xs font-medium">${nextLabel}</button>
     </div>`;
 }
 

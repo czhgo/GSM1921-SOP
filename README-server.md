@@ -147,7 +147,7 @@
 | 支部身份 | 与支书**同页共台**（`secretary.html`）；示例组织中为 `p14` |
 | 权限键 | 与支书**完全一致**（含意见反馈基础键 7 个 ＋ **处置键 8 个**——2026-09-21 批次 126 · `D-550` 由「仅支书」放开，两角色同持） |
 | 副书同权范围（制度与代码均已确认） | 成员变更确认、在册状态镜像、发展阶段推进、移出/撤销流出确认、议程结果区与编辑议程、支部 config（modules/blocks/workforce/组织档案/域参数全量）、线上表决截止、党小组管理、成员流动登记、**支委身份配置**（本支部支委身份＝组织 / 宣传 / 纪检委员，2026-09-23 支书裁定·情景① ＋ 追裁「副支书也可配」） |
-| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:620`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
+| 不能做什么 | ① 改支部官方名 `name`（仅 `party-staff`）；② 不持 `record_attendance` / `summarize_inspection` / `assign_project_role`；③ 不越权「仍专属支书」的前端动作——**活动信息编辑**按钮（`docs/src/components/record/inspector.js:619`（`SECRETARY_ROLES`），前端按它判）与**全支部通知发布**（`docs/src/components/governance/notice-view.js:182`） |
 | 特例 | 代码里「副书同权」实现为常量 `SECRETARY_AND_DEPUTY_ROLES = ['secretary','deputy-secretary']`，被成员变更确认、党小组管理、表决截止等多处写门引用 |
 | 依据 | `docs/src/services/core/auth.js:79`、`docs/src/core/domain/constants.js:204`、`server/routes/member.js:125`、`server/routes/committee.js:161`、`server/routes/resources/gates.js:21,63` |
 

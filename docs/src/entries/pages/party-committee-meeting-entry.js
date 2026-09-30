@@ -19,34 +19,34 @@
 //
 // 数据源装配：与 activity-entry.js / notice-entry.js 同款——有 API 会话时先切数据源并 init() 拉全量
 //   再渲染（`module-load.test.mjs::E2` 独立页装配断言要求）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260930g';
-import { renderHeader } from '../../components/shell/header.js?v=20260930g';
-import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20260930g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20260930g';
-import { mockDB } from '../../core/domain/domain.js?v=20260930g';
-import { AuthStore } from '../../services/core/auth.js?v=20260930g';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930g';
-import { BranchService } from '../../services/core/runtime.js?v=20260930g';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930g';
-import { IssueStore } from '../../services/governance/issues.js?v=20260930g';
-import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930g';
-import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20260930g';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260930g';
-import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20260930g';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260930h';
+import { renderHeader } from '../../components/shell/header.js?v=20260930h';
+import { hydrateDataSource, notifyDataLoaded, getAdapter, persist } from '../../data/data-adapter.js?v=20260930h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260930h';
+import { mockDB } from '../../core/domain/domain.js?v=20260930h';
+import { AuthStore } from '../../services/core/auth.js?v=20260930h';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20260930h';
+import { BranchService } from '../../services/core/runtime.js?v=20260930h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930h';
+import { IssueStore } from '../../services/governance/issues.js?v=20260930h';
+import { resolveVoterIds, defaultVoteConfig, optionSetOf, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930h';
+import { fetchVotes, tallyForItem } from '../../services/activity/committee-vote.js?v=20260930h';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260930h';
+import { renderVoteSummary } from '../../components/governance/vote-summary-panel.js?v=20260930h';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930h';
 // 「拟上会」清单单一源（2026-09-21 批次 127 · `SOP-B-33` 取（乙）档）：本页的「提取议程」
 // 与写入活动的议程区块共用**同一张清单**（agenda-form.js::buildAgendaCandidates）——
 // 原按来源分两块的呈现（专班报送 / 意见反馈）已按乙档收为一张清单（不按来源各做导入口）。
-import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20260930g';
-import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930g';
+import { buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from '../tabs/secretary/agenda-form.js?v=20260930h';
+import { listDocs as listBranchDocs, isAgendaDraftDoc, isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930h';
 // 党小组组长（含代组长）清单单一源——2026-09-23 支书裁定甲「支委扩大会…党小组组长（代组长）是可以
 //   打包的」；**不另造组长名单**（同 services/member/party-group.js 的组清单同源；组内无组长时由该源回落次选身份）
-import { listPartyGroups } from '../../services/member/group-view.js?v=20260930g';
-import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20260930g';
+import { listPartyGroups } from '../../services/member/group-view.js?v=20260930h';
+import { loadStageEntryDates } from '../../services/member/member-confirmation.js?v=20260930h';
 // 品牌认定提案（2026-09-21 批次 132 · 支书口径二「提案 → 支委会通过后确定」）——判据单一源
-import { listBrandProposals } from '../../services/activity/activity.js?v=20260930g';
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930g';
-import { generateId } from '../../core/base/id.js?v=20260930g';
+import { listBrandProposals } from '../../services/activity/activity.js?v=20260930h';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930h';
+import { generateId } from '../../core/base/id.js?v=20260930h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -180,7 +180,7 @@ function selectSectionHtml() {
         <label class="text-xs text-gray-500">新建线上支委会名称（可留空）
           <input id="pcm-new-title" class="input-flat text-xs mt-1 block" style="min-width:240px" placeholder="如：9 月支委会（线上）">
         </label>
-        <button id="pcm-create" type="button" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">新建线上支委会</button>` : ''}
+        <button id="pcm-create" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">新建线上支委会</button>` : ''}
       </div>
       <p class="text-[11px] text-gray-500 mt-2">${committeeViewer
         ? '「线上召开」＝沿用既有活动的异步表决配置（支委为应到名单，委员线上表态）。本页不改动活动本身的线下流程设置。'
@@ -246,7 +246,7 @@ function scopeSectionHtml(act) {
         <div class="mt-1">${leaderRows}</div>
       </div>
       <div class="mt-3 flex items-center gap-3 flex-wrap">
-        <button id="pcm-save-scope" type="button" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">保存本场参会范围</button>
+        <button id="pcm-save-scope" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">保存本场参会范围</button>
         <span class="text-[11px] text-gray-500">${esc(rangeText)}</span>
       </div>` : `
       <p class="text-xs text-gray-600">${esc(rangeText)}</p>
@@ -313,7 +313,7 @@ function extractSectionHtml(act, candidates = []) {
       <p class="text-[11px] text-gray-500 mb-3">一张「拟上会」清单（不按来源各做入口）：勾选后加入本场议程，只在议程项上留回指，不改动来源本身。</p>
       <div class="space-y-3">${groupsHtml}</div>
       <div class="mt-3 flex items-center gap-3">
-        <button id="pcm-extract" type="button" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">加入本场议程</button>
+        <button id="pcm-extract" type="button" class="btn-accent text-xs px-3 py-1.5 font-medium">加入本场议程</button>
         <span class="text-[11px] text-gray-500">勾选后可一次加入多条</span>
       </div>
     </div>`;

@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260930g';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930g';
-import { getPersonName } from '../../../services/member/person.js?v=20260930g';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930h';
+import { getPersonName } from '../../../services/member/person.js?v=20260930h';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20260930g';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930g';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930g';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930g';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260930h';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930h';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930h';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930g';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930h';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20260930g';
+} from '../../../services/member/member-flow.js?v=20260930h';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930g';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930h';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930g';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930h';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -307,7 +307,7 @@ function _openIntakeModal() {
       <div data-intake-errors class="hidden mt-3 text-xs text-red-700"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
         <button type="button" data-intake-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-intake-submit class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:${accent};cursor:pointer;">登记</button>
+        <button type="button" data-intake-submit class="btn-accent text-sm px-4 py-[7px] font-medium">登记</button>
       </div>`,
     onMount: (panel) => {
       const errEl = panel.querySelector('[data-intake-errors]');
@@ -402,7 +402,7 @@ function _openOutflowModal() {
       <div data-outflow-errors class="hidden mt-3 text-xs text-red-700"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
         <button type="button" data-outflow-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-outflow-submit class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:${accent};cursor:pointer;">登记流出</button>
+        <button type="button" data-outflow-submit class="btn-accent text-sm px-4 py-[7px] font-medium">登记流出</button>
       </div>`,
     onMount: (panel) => {
       const errEl = panel.querySelector('[data-outflow-errors]');
@@ -459,7 +459,7 @@ function _askRevoke(flowId) {
         : '撤销流出 → 该成员恢复在册、账号恢复'}。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button type="button" data-flow-revoke-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-flow-revoke-ok class="btn-ghost text-xs px-3 py-1.5" style="background:var(--functional-error);cursor:pointer;">确认撤销</button>
+        <button type="button" data-flow-revoke-ok class="btn-danger-solid text-xs px-3 py-1.5">确认撤销</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-flow-revoke-cancel]')?.addEventListener('click', () => closeModal('flow-revoke-confirm'));

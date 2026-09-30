@@ -19,10 +19,10 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930g';
-import { AuthStore } from '../../services/core/auth.js?v=20260930g';
-import { showToast } from '../../core/base/utils.js?v=20260930g';
-import { getPersonName } from '../../services/member/person.js?v=20260930g';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930h';
+import { AuthStore } from '../../services/core/auth.js?v=20260930h';
+import { showToast } from '../../core/base/utils.js?v=20260930h';
+import { getPersonName } from '../../services/member/person.js?v=20260930h';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {
@@ -90,7 +90,7 @@ async function openReportModal() {
       <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
       <div class="flex justify-end gap-2 mt-3">
         <button type="button" class="btn-outline report-modal-close text-xs px-3 py-2">取消</button>
-        <button id="report-modal-submit" class="btn-ghost text-xs px-4 py-2" style="background:var(--app-accent);">发出汇报</button>
+        <button id="report-modal-submit" class="btn-accent text-xs px-4 py-2">发出汇报</button>
       </div>
     </div>
   `;

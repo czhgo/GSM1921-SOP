@@ -3,20 +3,20 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930g';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930g';
-import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20260930g';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930g';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930g';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930h';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930h';
+import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20260930h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930h';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930h';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930g';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930h';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20260930g';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20260930h';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930g';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930h';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930g';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930h';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
@@ -250,7 +250,7 @@ function renderNotificationList() {
       const writeBtns = isReadonlyBranchDrilldown() ? '' : `
           <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-ghost text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
-          <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-ghost text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-outline text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知">编辑</button>`;
       return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
@@ -329,8 +329,8 @@ function _openNoticeEditModal(notice) {
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button id="ne-cancel" class="btn-ghost text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button id="ne-save" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--party-red);cursor:pointer;">保存</button>
+        <button id="ne-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+        <button id="ne-save" class="btn-accent text-xs px-3 py-1.5">保存</button>
       </div>
     `,
     onMount: (panel) => {
