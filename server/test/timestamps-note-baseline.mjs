@@ -15,10 +15,13 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
-export const NOTE_TOTAL_BUDGET = 75000;
+export const NOTE_TOTAL_BUDGET = 65000;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
-// 高水位沿革（只许下调）：2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
+// 高水位沿革（只许下调）：2026-09-30 批次 308 第三轮收敛（再迁 5 格：docs/help.html / CLAUDE.md /
+//   server/README.md / .ctx/ENGINEERING_ASSESSMENT.md / server/test/form-loop-registry.mjs）后实测 60,898，
+//   预算随之下调 75,000 → 65,000（**只降不升**）。
+//   2026-09-28 批次 235 首建时实测 157,952；同批按 R-89 收敛路径迁出 5 格
 //   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」）后实测 93,008，
 //   人工下调上限至 95,000（留 ≈2,000 字供「改了必须刷卡」的短注）。**再上调＝放宽守卫＝越权项。**
 /** 单格字数硬顶（超过即入清单） */
@@ -30,9 +33,7 @@ export const ROWS_MIN = 245;
 
 /** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
 export const OVERLONG_BASELINE = [
-  '.ctx/ENGINEERING_ASSESSMENT.md',
   '.ctx/SNAPSHOT.md',
-  'CLAUDE.md',
   'README.md',
   'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
@@ -40,18 +41,14 @@ export const OVERLONG_BASELINE = [
   'content/04_web_design/data/DATA_MODEL.md',
   'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
   'content/04_web_design/module/MODULE_UI_DESIGN.md',
-  'docs/help.html',
   'docs/src/core/domain/work-map.js',
   'docs/src/styles.css',
-  'server/README.md',
   'server/routes/resources.js',
-  'server/test/form-loop-registry.mjs',
 ];
 
 /** 备注含 `T-\d*` 编号（75 行 · T-编号是执行日志的键，台账不应承载） */
 export const WITH_TID_BASELINE = [
   '.ctx/logs/2026-08-EXECUTION_LOG.md',
-  'CLAUDE.md',
   'content/03_doc_system/PROCESS_GUIDE.md',
   'content/04_web_design/data/DATA_FLOW.md',
   'content/04_web_design/data/DATA_MODEL.md',
@@ -128,8 +125,6 @@ export const WITH_TID_BASELINE = [
 
 /** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 行） */
 export const WITH_DATE_ECHO_BASELINE = [
-  '.ctx/ENGINEERING_ASSESSMENT.md',
-  'CLAUDE.md',
   'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/INDEX.md',
   'content/03_doc_system/OPERATIONS_GUIDE.md',
@@ -152,9 +147,7 @@ export const WITH_DATE_ECHO_BASELINE = [
 
 /** 单格「批次 N」罗列 > BATCH_MENTION_MAX 次（49 行 · 沿革应进 `.ctx/logs/**`） */
 export const WITH_BATCH_MENTION_BASELINE = [
-  '.ctx/ENGINEERING_ASSESSMENT.md',
   '.ctx/SNAPSHOT.md',
-  'CLAUDE.md',
   'README-members.md',
   'README.md',
   'content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md',
@@ -172,7 +165,6 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
   'content/04_web_design/module/MODULE_UI_DESIGN.md',
   'content/insights/README.md',
-  'docs/help.html',
   'docs/src/components/governance/org-setup-wizard.js',
   'docs/src/components/record/inspector.js',
   'docs/src/components/ui/modal.js',
@@ -188,7 +180,5 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'docs/src/entries/tabs/secretary/work-map-tab.js',
   'docs/src/services/activity/activity.js',
   'docs/src/styles.css',
-  'server/README.md',
   'server/routes/resources.js',
-  'server/test/form-loop-registry.mjs',
 ];
