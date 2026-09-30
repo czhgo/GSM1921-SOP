@@ -50,7 +50,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   ]);
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930n')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930o')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 async function activateTab(page, tabLabel) {

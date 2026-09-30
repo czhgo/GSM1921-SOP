@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20260930n';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20260930n';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20260930n';
-import { tokenOf } from '../../core/base/version-token.js?v=20260930n'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20260930n';
+import { getAppState, setState } from '../../core/base/state.js?v=20260930o';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20260930o';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20260930o';
+import { tokenOf } from '../../core/base/version-token.js?v=20260930o'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20260930o';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -727,8 +727,10 @@ function _getWeekNumber(date) {
 // ════════════════════════════════════════════════════════════════
 //  月份选择器：提取活动月份并填充 #month-selector
 // ════════════════════════════════════════════════════════════════
-let _monthSelectorBound = false;
-
+// 绑定标记挂在**元素自己**身上（`sel.dataset.bound`），不用模块级布尔——页签切换会整体重建容器
+// （`#month-selector` 是新元素），模块级布尔让「重建出来的那个选择器」永远绑不上 change。
+// （2026-09-30 批次 310 立共享日历页签时按代码路径复核发现；同批 `today-tab.js` 已有同款教训登记：
+//   容器标记失配会留下「切走再切回、控件失效」的残留病。）
 export function populateMonthSelector(activities, targetMonth) {
   const sel = document.getElementById('month-selector');
   const currentMonth = _currentYearMonth();
@@ -768,8 +770,8 @@ export function populateMonthSelector(activities, targetMonth) {
     sel.value = targetMonth;
   }
 
-  if (!_monthSelectorBound) {
-    _monthSelectorBound = true;
+  if (!sel.dataset.bound) {
+    sel.dataset.bound = '1';
     sel.addEventListener('change', () => {
       const selectedMonth = sel.value || currentMonth;
       if (sel.value) {

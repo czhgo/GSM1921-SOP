@@ -3,7 +3,7 @@ title: "模块界面设计"
 type: design
 role: "[工程师]+[AI]"
 version: "2.0"
-last_updated: 2026-09-29
+last_updated: 2026-09-30
 status: landed
 merged_from: [content/design/PAFFAIRS_UI.md, content/design/CALENDAR.md]
 related_files: [content/04_web_design/design-system/DESIGN_SYSTEM.md, content/04_web_design/data/DATA_MODEL.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md]
@@ -371,6 +371,7 @@ calendarView: 'month',  // 'month' | 'week' | 'day' | 'list'
 ### 四.1 全站 tab 总方案（8 角色 × 逐 tab ＝ 77 条）
 
 **普查口径**：8 角色 ＝ `docs/src/core/domain/constants.js:305-317` `ROLE_PAGE_MAP.workspace` 的 8 个键（`secretary` / `deputy-secretary` / `org-commissioner` / `prop-commissioner` / `disc-commissioner` / `leader` / `participant` / `party-staff`）；tab 数按各台能力注册数组实读：11 / 11 / 11 / 9 / 8 / 9 / 11 / 7 ＝ **77**。
+⚠ **本行与下面逐台清单是 2026-09-27 体检当日的快照**（本节=规划稿，不是活计数）：**活口径的单一源是各台能力注册数组**（`docs/src/capabilities/*-workspace.js`），门控对账在 `server/test/doc-consistency.test.mjs::S1`（读 `docs/help.html`）。此后已发生两项增量，本表未回溯：① 组织台 / 支书台各拆出「成员流动」（`member-flow`，2026-09-28 批次 220）；② **五台（组织 / 宣传 / 纪检 / 组长 / 成员）各新增只读「活动日历」页签**（`calendar`，2026-09-30 批次 310，共享件 `docs/src/entries/tabs/shared/activity-calendar-tab.js`）⇒ 当前实读为 12 / 12 / 13 / 10 / 9 / 10 / 12 / 7 ＝ **85**。
 ⚠ **两处共享关系**：① `deputy-secretary` 与 `secretary` **共用 `secretary.html`、tab 完全相同**（`constants.js:307-308`）；② `deputy-leader`（副组长）**共用 `leader.html`**（`constants.js:819-821`，本表按其列在 `leader` 行内、不另计 11 条）。
 
 **码表（本节全表通用）**

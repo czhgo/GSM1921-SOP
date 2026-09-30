@@ -370,11 +370,11 @@
 
 **依据**：`docs/` 目录实况（15 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
 
-### 3.2 各工作台页签（共 67 个）
+### 3.2 各工作台页签（共 73 个）
 
 > 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝工作台 / 我的职责 / 知情查看 / 制度与答复**；**党委台＝首页 / 全院治理 / 支部治理**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
 
-#### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 11 个
+#### 3.2.1 支书工作台（`secretary.html`，支书与副支书共台）— 12 个
 
 | # | 页签（id / 名称） | 分组 | 谁用 | 做什么 |
 |---|---|---|---|---|
@@ -386,11 +386,12 @@
 | 6 | `notification` / 通知发布 | 我的职责 | 同上 | 发布通知、受众定向、催读 |
 | 7 | `report-up` / 上报党委 | 我的职责 | 同上 | 向党委上报发展节点 / 活动报备，查看批复结论 |
 | 8 | `group-progress` / 党小组与活动 | 我的职责 | 同上 | 党小组清单 + 新增 / 改名 / 解散；未分组行内归组；2026-09-25 赋权按对象归位后并入 **组长指派 / 支委身份配置**（常设赋权）与「党小组活动」分区内的**活动项目赋权**；原独立 `assign` / 赋权管理页签已删除（情景①② 并此、情景③ 归组织委员台「专班管理」） |
-| 9 | `tf-view` / 知情查看 | 知情查看 | 同上 | 活动 / 专班分段**只读**（知情权：无职责亦有知情权） |
-| 10 | `work-map` / 支部分工 | 知情查看 | 同上 | 工作地图：平铺模块 / 按人 / 按项目三视图 |
-| 11 | `feedback` / 反馈管理 | 制度与答复 | 同上 | 意见反馈处置（指派 / 关闭 / 隐藏 / 合并 / 里程碑 / 终审） |
+| 9 | `member-flow` / 成员流动 | 我的职责 | 同上 | 与组织台「成员流动」**同源组件**（`entries/tabs/org/member-flow-tab.js`，一处实现两处入口）；支书 / 副支书本就有流入 / 流出登记权，此页是其入口（2026-09-29 批次 281） |
+| 10 | `tf-view` / 知情查看 | 知情查看 | 同上 | 活动 / 专班分段**只读**（知情权：无职责亦有知情权） |
+| 11 | `work-map` / 支部分工 | 知情查看 | 同上 | 工作地图：平铺模块 / 按人 / 按项目三视图 |
+| 12 | `feedback` / 反馈管理 | 制度与答复 | 同上 | 意见反馈处置（指派 / 关闭 / 隐藏 / 合并 / 里程碑 / 终审） |
 
-#### 3.2.2 组织委员工作台（`org.html`）— 11 个
+#### 3.2.2 组织委员工作台（`org.html`）— 13 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -400,13 +401,15 @@
 | 4 | `inspection` / 考察上传 | 我的职责 | 上传/导入考察记录并建档 |
 | 5 | `thought-review` / 思想汇报 | 我的职责 | 台账宽表（人 × 期次，行＝人 / 行＝期次互为转置），逐条进独立阅读页看正文、行内**打回**（事后反馈）。**篇幅提醒只在提交人本人侧出现**——组织侧**不留「篇幅不足」标记**、也不经手（2026-09-21 批次 124 · `D-547`） |
 | 6 | `taskforce` / 专班管理 | 我的职责 | 专班发起、招募统筹、成员与工作量；报名总表（人 × 专班，可转置）；2026-09-25 赋权按对象归位后并入**专班赋权**（情景③：选人 + 选专班 + 选角色 → 确认，可撤销） |
-| 7 | `roster` / 成员名册 | 我的职责 | 名册增删改 + 成员流动面板（流入/流出登记 + 台账 + 对账行） |
-| 8 | `talent` / 人才库 | 我的职责 | 发展观察视图（只读画像） |
-| 9 | `development` / 发展数据 | 我的职责 | 发展党员进程统计与档案 |
-| 10 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 11 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈 / 汇报的收件处理位 |
+| 7 | `roster` / 成员名册 | 我的职责 | 名册增删改（答「在册成员有谁、档案状态如何」） |
+| 8 | `member-flow` / 成员流动 | 我的职责 | 成员「怎么变」的复式台账：流入 / 流出登记、对账行、撤销（2026-09-28 批次 220 从名册拆出） |
+| 9 | `talent` / 人才库 | 我的职责 | 发展观察视图（只读画像） |
+| 10 | `development` / 发展数据 | 我的职责 | 发展党员进程统计与档案 |
+| 11 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图 + 类别图例），点条目进活动详情；**五台共用同一只读件**（`entries/tabs/shared/activity-calendar-tab.js`，2026-09-30 批次 310） |
+| 12 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
+| 13 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈 / 汇报的收件处理位 |
 
-#### 3.2.3 宣传委员工作台（`prop.html`）— 9 个
+#### 3.2.3 宣传委员工作台（`prop.html`）— 10 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -415,12 +418,13 @@
 | 5 | `kanban` / 项目看板 | 我的职责 | 项目（活动/专班）看板：活跃区 → 归档区 |
 | 6 | `weekly` / 周报报送 | 我的职责 | 按周次新建草稿 + 报送（含报送历史）；**可按本周活动一键自动生成草稿**；报送即系统通知支书 / 副支书，进入**支书审核位**（通过 / 退回）；已报送行可「标记已上报智慧党建平台」（只留痕） |
 | 7 | `archive` / 档案归档 | 我的职责 | 归档活动/专班、上传宣传材料（文件空间 / 图片记录）、删除时联动删物理文件 |
-| 8 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
+| 8 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图），点条目进活动详情；五台共用同一只读件（2026-09-30 批次 310） |
+| 9 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
+| 10 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
 > **特例**：支书 / 副支书**可进入本工作台，但只呈现「档案归档」一个页签**（代归档兜底），不启用其它页签、不扩大任何写权限。
 
-#### 3.2.4 纪检委员工作台（`disc.html`）— 8 个
+#### 3.2.4 纪检委员工作台（`disc.html`）— 9 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -428,10 +432,11 @@
 | 4 | `attendance` / 考勤管理 | 我的职责 | 考勤矩阵宽表 + 明细；考勤 / 补课分段（确认缺勤标因、生成补课任务） |
 | 5 | `review` / 活动监督复盘 | 我的职责 | 活动与专班复盘：批注 / 打回 / 确认 |
 | 6 | `inspection` / 考察管理 | 我的职责 | 考察宽表 + 明细确认（确认后录入考察档案）+ 打回 / 申诉核实 + **考察代录位**（代上传方录入；本位＝该场活动组织者，非本位代录提交前弹确认） |
-| 7 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 8 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
+| 7 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图），点条目进活动详情；五台共用同一只读件（2026-09-30 批次 310） |
+| 8 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
+| 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
-#### 3.2.5 党小组组长工作台（`leader.html`）— 9 个
+#### 3.2.5 党小组组长工作台（`leader.html`）— 10 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -440,12 +445,13 @@
 | 5 | `attendance` / 考勤上传 | 我的职责 | 上传**该场组织者位**会议类型的考勤（党小组会 / 组织生活会 / 主题党日；**党课与支部党员大会不在本页**——那两类归纪检委员，**支委会不考勤**，见 3.4）；追加提交、改/删走纪检确认流程 |
 | 6 | `inspection` / 考察上传 | 我的职责 | 上传本组活动考察 |
 | 7 | `members` / 组员进展 | 我的职责 | 本组组员进展：由**服务端汇总接口**返回（在办/超期/缺勤/考察待确认/汇报态） |
-| 8 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
+| 8 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图），点条目进活动详情；五台共用同一只读件（2026-09-30 批次 310） |
+| 9 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
+| 10 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
-> **特例（组织者兜底入口，2026-09-19 批次 91 落地，裁定 `D-494`）**：**非组长**的人被指定为某场活动的组织者时，也可进入本台——但**只呈现「考勤上传」「考察上传」这两个页签**（该场活动上传位 + 纪检打回后的「待你确认」区），其余页签是组长身份的职责、不开放；**判据与表单零口径复制、不放宽任何写权限**。判定单一源 `docs/src/capabilities/leader-workspace.js:17-23,69-72`（`ORGANIZER_FALLBACK_TAB_IDS`），身份门与归档兜底同款（`docs/src/core/boot/bootstrap.js:19-20,181-187`）。
+> **特例（组织者兜底入口，2026-09-19 批次 91 落地，裁定 `D-494`）**：**非组长**的人被指定为某场活动的组织者时，也可进入本台——但**只呈现「考勤上传」「考察上传」这两个页签**（该场活动上传位 + 纪检打回后的「待你确认」区），其余页签是组长身份的职责、不开放；**判据与表单零口径复制、不放宽任何写权限**。判定单一源 `docs/src/capabilities/leader-workspace.js:17-23,73-76`（`ORGANIZER_FALLBACK_TAB_IDS`），身份门与归档兜底同款（`docs/src/core/boot/bootstrap.js:19-20,181-187`）。
 
-#### 3.2.6 成员工作台（`visitor.html`，普通参与者）— 11 个
+#### 3.2.6 成员工作台（`visitor.html`，普通参与者）— 12 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
@@ -456,8 +462,9 @@
 | 7 | `inspection` / 我的考察 | 我的职责 | 本人考察记录 |
 | 8 | `thought-report` / 思想汇报 | 我的职责 | 本人提交思想汇报（**提交即入库归档**；少于 1200 字触发警告审阅、不影响提交），可跨期多篇 |
 | 9 | `review` / 我的复盘 | 我的职责 | 本人作为组织者时的复盘提交；若被支委会**追加要求**复盘，卡上带「支委会要求」来源标记，要求**只判到「交回」**（不设「交回后自行更新」入口，见 `D-562`） |
-| 10 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 11 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈答复入口（认领依据＝本机浏览器里的随机标识，**只答「这台设备提交过什么」**，换设备或清浏览器数据则认不回） |
+| 10 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图 + 类别图例），点条目进活动详情；五台共用同一只读件（2026-09-30 批次 310）——**活动日历不再只挂支书台** |
+| 11 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
+| 12 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈答复入口（认领依据＝本机浏览器里的随机标识，**只答「这台设备提交过什么」**，换设备或清浏览器数据则认不回） |
 
 #### 3.2.7 党委工作台（`party-committee.html`）— 7 个
 
@@ -1505,7 +1512,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
 - **测试**：`npm test`（全量）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。测试脚本自带 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0` 注入（后者放行本机可写；手跑 `node --test` 时须自行设置，否则按只读演示运行、写路径用例会红）。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**2026-09-23 P0-2 改（不许静默降级）**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/data/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
-- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:201-207`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1006`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1043`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1197` / `:1208`）。
+- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1006`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1043`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1197` / `:1208`）。
 - 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 保持 `DEPLOY_MODE = 'static'`；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
 - ⚠ **反向代理的约束（2026-09-23 P0-6 核对项）**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` 附录 A.2。
 - ⚠ **上传目录与请求体上限（2026-09-23 P0-6 核对项）**：反向代理须允许 `client_max_body_size ≥ 10m`（`server/routes/uploads.js:52` 的上传上限；另有 `/snapshot` 4MB 与 JSON 体 2MB），并保证 `UPLOAD_DIR`（缺省 `server/uploads/`）**对 Node 进程可写**，否则上传 500/413。
@@ -1579,7 +1586,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:517,606`、`server/routes/member.js:176,203` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
-| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:201-207`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:201-207`（`visibilitychange`）、`server/routes/resources/index.js:663`（versions 读口） |
+| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`）、`server/routes/resources/index.js:663`（versions 读口） |
 | 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/data/data-adapter.js:1022`（`REMOTE_PROBE_AUX`）、`:1066`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
 
 ### 5.6 部署到真实环境需要替换的东西
