@@ -114,7 +114,7 @@ export function openModal({ id, title, bodyHtml, onMount, width = '480px', accen
   // dismissable=false（「本位」nudge 专用，见 confirmNudge）：**不渲染右上角 ×**——
   // 那种弹窗只给两个动作按钮（主 / 次），不给第二条退出路径（2026-09-23 支书裁定）。
   const closeBtnHTML = dismissable
-    ? `<button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
+    ? `<button data-modal-close="${id}" style="background:none;border:none;cursor:pointer;color:var(--neutral-400);line-height:1;padding:4px 8px;border-radius:var(--radius-sm);transition:all 0.15s;" class="btn-ghost text-xl" onmouseover="this.style.background='var(--neutral-100)';this.style.color='var(--neutral-600)'" onmouseout="this.style.background='none';this.style.color='var(--neutral-400)'">&times;</button>`
     : '';
 
   panel.innerHTML = `
@@ -215,8 +215,8 @@ export function openFormModal({ id, title, fields, onSubmit, submitLabel = '提�
     <form data-modal-form="${id}">
       ${fieldsHtml}
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-        <button type="button" data-modal-cancel="${id}" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accentColor};cursor:pointer;">${submitLabel}</button>
+        <button type="button" data-modal-cancel="${id}" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="submit" class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:${accentColor};cursor:pointer;">${submitLabel}</button>
       </div>
     </form>
   `;
@@ -343,8 +343,8 @@ export function confirmNudge({ nudgeKey, who, why, context = '' }) {
         <p style="margin:0 0 10px;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>写入。${_nudgeEsc(whyText)}</p>
         <p style="margin:0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-          <button type="button" data-nudge-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-          <button type="button" data-nudge-confirm class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:var(--app-accent);cursor:pointer;">仍由我继续</button>
+          <button type="button" data-nudge-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+          <button type="button" data-nudge-confirm class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:var(--app-accent);cursor:pointer;">仍由我继续</button>
         </div>`,
       onMount: (p) => {
         p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));

@@ -2,14 +2,14 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { persist } from '../../../data/data-adapter.js?v=20260930b';
-import { showToast, downloadCSV, _fmtDate } from '../../../core/base/utils.js?v=20260930b';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { persist } from '../../../data/data-adapter.js?v=20260930c';
+import { showToast, downloadCSV, _fmtDate } from '../../../core/base/utils.js?v=20260930c';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20260930b';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20260930c';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -101,7 +101,7 @@ function _renderTaskCard(task) {
   const isFinal = task.status === 'submitted';
   const advanceLabel = task.status === 'pending' ? '接收' : '提交';
   const advanceBtn = !isFinal
-    ? `<button class="task-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
+    ? `<button class="btn-accent-soft task-advance-btn text-xs px-3 py-1.5 mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];

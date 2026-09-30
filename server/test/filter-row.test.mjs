@@ -236,8 +236,11 @@ test('S11 翻页标记单一源：page-btn / page-num 只允许由 components/ui
   assert.deepEqual(offenders, [],
     `翻页标记须由 components/ui/pager.js 单一源产出（消费方只读 [data-lf-page]）：\n${offenders.join('\n')}`);
   // 防僵尸：单一源本身须仍在产出标记
+  //   2026-09-30 批次 297-2 改准判据：族谱归一后「按钮必须带族类」（`button-system-guard::B4`）
+  //   ⇒ 标记类不再独占 class 属性（现形如 `class="page-btn btn-tab"`）。**判据本意不变**
+  //   （`page-btn` 仍须由本文件产出），只把「紧跟引号」放宽为「后接空白或引号」。
   const pager = read(join(SRC_DIR, 'components', 'ui', 'pager.js'));
-  assert.match(pager, /class="page-btn"/, 'pager.js 须仍产出翻页标记（否则白名单掩盖了回潮）');
+  assert.match(pager, /class="page-btn[\s"]/, 'pager.js 须仍产出翻页标记（否则白名单掩盖了回潮）');
 });
 
 // S12（2026-09-14 批次 39）

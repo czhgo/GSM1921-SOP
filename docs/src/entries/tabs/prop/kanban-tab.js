@@ -2,16 +2,16 @@
 // 宣传委员工作台 Tab：项目看板（T-279 M3 拆分，照 M2 样板）
 // 活动/专班合并看板（活动+专班分桶）+ 专班工作量区块；从 TaskForceRecordStore 动态派生（H-1 数据断裂修复）。
 
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { BranchService } from '../../../services/core/runtime.js?v=20260930b';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260930b';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260930b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { persist } from '../../../data/data-adapter.js?v=20260930b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
-import { setState } from '../../../core/base/state.js?v=20260930b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930c';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260930c';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20260930c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { persist } from '../../../data/data-adapter.js?v=20260930c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
+import { setState } from '../../../core/base/state.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：三桶各接一个实例（keyword null + facets [] → 仅分页，保持三桶观感）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 
 export function renderContent(ctx) {
   const container = document.getElementById('prop-tab-content');
@@ -151,8 +151,8 @@ function _renderKanbanItem(item, showCompleteBtn = false) {
     : '';
   const completeBtn = showCompleteBtn
     ? (isTf
-      ? `<button class="tf-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
-      : `<button class="activity-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
+      ? `<button class="btn-accent-soft tf-complete-btn text-xs px-3 py-1.5 mt-1" data-tf-id="${item.id}" onclick="event.stopPropagation();">归档专班</button>`
+      : `<button class="btn-accent-soft activity-complete-btn text-xs px-3 py-1.5 mt-1" data-act-id="${item.id}" onclick="event.stopPropagation();">确认完成</button>`)
     : '';
   return `
     <div class="kanban-card p-3 rounded-xl bg-white hover:bg-gray-200 transition-colors cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#CE1126]" role="button" tabindex="0" aria-label="查看 ${esc(item.title || '未命名')} 详情" data-kt="${item._type}" data-ki="${item.id}">

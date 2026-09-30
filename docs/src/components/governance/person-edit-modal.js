@@ -28,14 +28,14 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20260930b';
-import { PersonStore } from '../../services/member/person.js?v=20260930b';
-import { getBranchById } from '../../services/branch/branch.js?v=20260930b';
+import { openModal, closeModal } from '../ui/modal.js?v=20260930c';
+import { PersonStore } from '../../services/member/person.js?v=20260930c';
+import { getBranchById } from '../../services/branch/branch.js?v=20260930c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20260930b';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20260930b';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20260930c';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20260930c';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -199,7 +199,7 @@ export function openPersonEditModal(opts = {}) {
         <p class="text-[11px] text-gray-400 mt-1.5 ml-0">治理字段（角色 / 所属支部），不在本处修改</p>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" data-modal-cancel="${MODAL_ID}" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">取消</button>
+        <button type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
         <button type="submit" class="btn-accent text-xs px-4 py-2 rounded-lg">保存</button>
       </div>
     </form>`;

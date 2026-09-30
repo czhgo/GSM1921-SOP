@@ -2,24 +2,24 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20260930b';
-import { showToast } from '../../../core/base/utils.js?v=20260930b';
-import { persist } from '../../../data/data-adapter.js?v=20260930b';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { generateId } from '../../../core/base/id.js?v=20260930b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20260930b';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20260930c';
+import { showToast } from '../../../core/base/utils.js?v=20260930c';
+import { persist } from '../../../data/data-adapter.js?v=20260930c';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { generateId } from '../../../core/base/id.js?v=20260930c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20260930c';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20260930b';
+import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20260930c';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
 function _loadWeeklyReports() {
@@ -103,7 +103,7 @@ export function renderContent(ctx) {
             <h4 class="text-sm font-bold text-gray-700">填写周报</h4>
             ${draftReport ? `<span class="text-xs px-1.5 py-0.5 rounded-full border ${WEEKLY_STATUS_STYLE.draft}">${draftReport.week}</span>` : ''}
           </div>
-          <button id="weekly-add-btn" class="text-xs px-3 py-1.5 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">+ 新增周次</button>
+          <button id="weekly-add-btn" class="btn-outline text-xs px-3 py-1.5">+ 新增周次</button>
         </div>
         <!-- T-209 改进项②：新建周次内联表单（周次标签 + 日期范围） -->
         <div id="weekly-add-form" class="hidden mb-3 p-3 rounded-lg bg-blue-50/50 border border-blue-100" style="--acc-bg-dark:rgba(96,165,250,0.10);">
@@ -113,8 +113,8 @@ export function renderContent(ctx) {
             <input id="weekly-add-range" type="text" value="${weekDefaults.range}" placeholder="日期范围，如：2026-08-04 ~ 2026-08-08" class="input-flat w-full" />
           </div>
           <div class="flex gap-2 justify-end">
-            <button id="weekly-add-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-            <button id="weekly-add-save" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">保存</button>
+            <button id="weekly-add-cancel" type="button" class="btn-outline text-xs px-3 py-1.5">取消</button>
+            <button id="weekly-add-save" type="button" class="btn-accent-soft text-xs px-3 py-1.5" >保存</button>
           </div>
         </div>
         <div class="space-y-3">
@@ -130,10 +130,10 @@ export function renderContent(ctx) {
           </div>
           <!-- SOP-B-40 ②：基于活动数据自动生成报送内容（生成后可手改，是草稿起点不是结论） -->
           <div class="flex items-center justify-between gap-2">
-            <button id="weekly-gen-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">按本周活动自动生成</button>
+            <button id="weekly-gen-btn" type="button" class="btn-outline text-xs px-3 py-1.5">按本周活动自动生成</button>
             <span class="text-[11px] text-gray-400">生成后仍可手改</span>
           </div>
-          <button id="weekly-submit-btn" class="w-full text-sm px-4 py-[7px] font-medium text-white rounded-lg transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">报送</button>
+          <button id="weekly-submit-btn" class="btn-accent w-full text-sm px-4 py-[7px] font-medium" >报送</button>
           <div class="text-[11px] text-gray-500 leading-5">报送后系统会<b>站内通知支书</b>，支书在支书台「全局概况」审核（通过 / 退回）。</div>
         </div>
       </div>
@@ -269,7 +269,7 @@ function _renderWeeklyReportItem(report) {
   const platformHtml = isSubmitted
     ? (report.platformReportedAt
         ? `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200" title="上报留痕：${(report.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`
-        : `<button class="weekly-platform-btn text-xs px-2.5 py-1 rounded-lg bg-white text-violet-700 border border-violet-200 hover:bg-violet-50 transition-colors" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
+        : `<button class="btn-outline weekly-platform-btn text-xs px-2.5 py-1" data-id="${report.id}" style="cursor:pointer;">标记已上报党建平台</button>`)
     : '';
   return `
     <div class="weekly-report-item p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors">
@@ -283,7 +283,7 @@ function _renderWeeklyReportItem(report) {
         <div class="flex items-center gap-2">
           ${platformHtml}
           ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-500">报送于 ${report.submittedAt}</span>` : ''}
-          ${report.content ? `<button class="weekly-detail-toggle text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">展开</button>` : ''}
+          ${report.content ? `<button class="btn-neutral weekly-detail-toggle text-xs px-3 py-1.5">展开</button>` : ''}
         </div>
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}

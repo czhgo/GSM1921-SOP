@@ -5,14 +5,14 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20260930b';
-import { _fmtDate } from '../../core/base/utils.js?v=20260930b';
-import { getPersonName } from '../../services/member/person.js?v=20260930b';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930b';
+import { getAppState } from '../../core/base/state.js?v=20260930c';
+import { _fmtDate } from '../../core/base/utils.js?v=20260930c';
+import { getPersonName } from '../../services/member/person.js?v=20260930c';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930c';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured } from '../../services/activity/activity.js?v=20260930b';
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930b';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20260930c';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930c';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',
@@ -32,13 +32,17 @@ export function renderGallery(activities) {
   const container = document.getElementById('dashboard-gallery');
   if (!container) return;
 
-  // T223 排序统一：未完成在前、已完成在后，组内均按 date 降序（新者在前）。
-  // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：**收录＝人工**（活动主源 `galleryFeatured`），
-  //   **不再自动派生**（原判据＝品牌 ∪ 已结束）——收录 / 撤下入口在宣传台「档案归档 · 活动风采」。
+  // 2026-09-30 批次 298（支书裁「排序＝加『置顶』」）：排序权重 **置顶 ＞ 未完成 ＞ 已完成**，
+  //   组内均按 date 降序（新者在前）。置顶写口单一源 ＝ activity.js::setGalleryPinned。
   const isDone = a => a.archived || ['completed', 'cancelled'].includes(a.status);
   const candidates = activities.filter(a => isGalleryFeatured(a));
   const sortByDate = (arr) => [...arr].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  const display = [...sortByDate(candidates.filter(a => !isDone(a))), ...sortByDate(candidates.filter(a => isDone(a)))].slice(0, 6);
+  const pinned = candidates.filter(a => isGalleryPinned(a));
+  const rest = candidates.filter(a => !isGalleryPinned(a));
+  const display = [
+    ...sortByDate(pinned.filter(a => !isDone(a))), ...sortByDate(pinned.filter(a => isDone(a))),
+    ...sortByDate(rest.filter(a => !isDone(a))), ...sortByDate(rest.filter(a => isDone(a))),
+  ].slice(0, 6);
 
   if (display.length === 0) {
     // 过拟合修正（2026-09-13）：活动风采为支部自创展示位（品牌活动），首页不为其保留常驻空卡

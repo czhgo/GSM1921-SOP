@@ -7,8 +7,8 @@
 // 生效强调色 = resolveAppliedAccentRole（person-aware：覆盖仅取当前作用域键，绝不跨空间回落），
 // 由 settings 页调用方传入 accentFallbackRole（当前常设角色，访客 ''）计算。
 
-import { icon } from '../../core/base/icons.js?v=20260930b';
-import { ACCENT_COLORS, ACCENT_PALETTE } from '../../core/domain/constants.js?v=20260930b';
+import { icon } from '../../core/base/icons.js?v=20260930c';
+import { ACCENT_COLORS, ACCENT_PALETTE } from '../../core/domain/constants.js?v=20260930c';
 import {
   getFontSizePreference,
   setFontSizePreference,
@@ -16,13 +16,13 @@ import {
   setThemePreference,
   setAccentRolePreference,
   resolveAppliedAccentRole,
-} from '../../core/boot/theme.js?v=20260930b';
+} from '../../core/boot/theme.js?v=20260930c';
 
 // ── 按钮态样式（与迁移前侧边栏一致；gray 系类随 html.theme-dark 自动翻转）──
-const _base = 'px-2.5 py-1 rounded-lg text-xs font-medium border transition-all duration-200 ';
-// 选中态强调色字：同色系加深（60% 主题色 + 黑）保证浅底 AA；夜间由内联 --acc-text-dark 还原亮色
-const _on = 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]';
-const _off = 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50';
+const _base = 'btn-tab px-2.5 py-1 text-xs ';
+// 选中态由 `.btn-tab.active` 提供（同色系浅底 ＋ 主题色字，深色经 `html.theme-dark` 派生）
+const _on = 'active';
+const _off = '';
 
 function _btnCls(active) {
   return _base + (active ? _on : _off);
@@ -64,11 +64,11 @@ export function appearanceControlsHTML(opts = {}) {
   const accent = _effectiveAccent(accentFallbackRole);
 
   const fontBtns = FONT_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(font === o.value)}"${font === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-font-size="${o.value}" title="${o.title}">${o.label}</button>
+    <button type="button" class="btn-tab ${_btnCls(font === o.value)}"${font === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-font-size="${o.value}" title="${o.title}">${o.label}</button>
   `).join('');
 
   const themeBtns = THEME_OPTIONS.map(o => `
-    <button type="button" class="${_btnCls(theme === o.value)}"${theme === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
+    <button type="button" class="btn-tab ${_btnCls(theme === o.value)}"${theme === o.value ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-theme-mode="${o.value}" title="${o.title}">${icon(o.icon, { className: 'w-3.5 h-3.5' })}</button>
   `).join('');
 
   return `
@@ -94,7 +94,7 @@ export function appearanceControlsHTML(opts = {}) {
       <div class="appearance-row">
         <div class="appearance-row-label">强调色</div>
         <div class="flex items-center gap-2">
-          <button type="button" id="appearance-accent-swatch" class="accent-swatch" style="width:24px;height:24px;background:${accent.hex}" data-current-role="${accentFallbackRole || ''}" data-label="主题：${accent.label}" title="主题：${accent.label}（点击更换）"></button>
+          <button type="button" id="appearance-accent-swatch" class="btn-ghost accent-swatch" style="width:24px;height:24px;background:${accent.hex}" data-current-role="${accentFallbackRole || ''}" data-label="主题：${accent.label}" title="主题：${accent.label}（点击更换）"></button>
           <span class="text-xs text-gray-500">全站按钮/标签/选中态的强调颜色 · 当前：${accent.label}</span>
         </div>
       </div>
@@ -150,7 +150,7 @@ function _toggleAccentPalette(swatch) {
     <div class="accent-palette-title">点击色块更换主题</div>
     <div class="accent-palette-grid">
       ${ACCENT_PALETTE.map(c => `
-        <button type="button" class="accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="主题：${c.label}" title="主题：${c.label}" style="background:${c.hex}"></button>
+        <button type="button" class="btn-tab accent-swatch-opt ${c.key === currentKey ? 'active' : ''}" data-key="${c.key}" data-label="主题：${c.label}" title="主题：${c.label}" style="background:${c.hex}"></button>
       `).join('')}
     </div>
   `;

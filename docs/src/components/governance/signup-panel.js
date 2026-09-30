@@ -4,16 +4,16 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20260930b';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20260930b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930b';
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20260930c';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20260930c';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930c';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20260930b';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20260930b';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20260930c';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -79,7 +79,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填，如可承担的角色）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
+        <button id="signup-submit-btn" class="btn-ghost inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium" style="background:var(--party-red);">
           报名
         </button>
       </div>`;
@@ -87,13 +87,13 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
     body = `
       <div class="flex items-center gap-2.5 flex-wrap">
         ${badgeHtml('已报名 · ' + roleLabel(mySignup.role), 'success')}
-        <button id="signup-cancel-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors">取消报名</button>
+        <button id="signup-cancel-btn" class="btn-outline text-xs px-3 py-1.5">取消报名</button>
       </div>`;
   } else if (mySignup.status === SignupStatus.PENDING) {
     body = `
       <div class="flex items-center gap-2.5">
         ${badgeHtml('待审核 · ' + roleLabel(mySignup.role), 'warning')}
-        <button id="signup-cancel-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors">撤回申请</button>
+        <button id="signup-cancel-btn" class="btn-outline text-xs px-3 py-1.5">撤回申请</button>
       </div>`;
   } else if (mySignup.status === SignupStatus.REJECTED) {
     body = `
@@ -104,7 +104,7 @@ export function renderSignupSection({ sourceType, sourceId, title, signups, myId
         </select>
         <input id="signup-note-input" type="text" placeholder="附加说明（选填）"
           class="input-flat flex-1 min-w-[200px]">
-        <button id="signup-submit-btn" class="inline-flex items-center gap-1 text-sm px-4 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" style="background:var(--party-red);">
+        <button id="signup-submit-btn" class="btn-ghost inline-flex items-center gap-1 text-sm px-4 py-1.5 font-medium" style="background:var(--party-red);">
           重新申请
         </button>
       </div>`;
@@ -143,8 +143,8 @@ export function renderSignupList({ sourceType, sourceId, signups, myId }) {
           <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[140px]">${s.note}</span>` : ''}
           <span class="ml-auto flex items-center gap-2">
-            <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium text-white transition-colors hover:opacity-90" data-signup-id="${s.id}" data-approve="1" style="background:var(--functional-success);">通过</button>
-            <button class="signup-review-btn text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${s.id}" data-approve="0">拒绝</button>
+            <button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="${s.id}" data-approve="1" style="background:var(--functional-success);">通过</button>
+            <button class="btn-tab signup-review-btn text-xs px-3 py-1.5 font-medium" data-signup-id="${s.id}" data-approve="0">拒绝</button>
           </span>
         </div>`).join('')}
     </div>` : '';

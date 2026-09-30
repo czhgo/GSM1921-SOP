@@ -3,17 +3,17 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20260930b';
-import { showToast } from '../../../core/base/utils.js?v=20260930b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930b';
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { PersonStore } from '../../../services/member/person.js?v=20260930b';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20260930b';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20260930c';
+import { showToast } from '../../../core/base/utils.js?v=20260930c';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930c';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { PersonStore } from '../../../services/member/person.js?v=20260930c';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20260930c';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20260930b';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260930c';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->
@@ -55,7 +55,7 @@ const FEEDBACK_TAB_HTML = `
         <option value="disc-commissioner">纪检委员</option>
         <option value="leader">党小组组长</option>
       </select>
-      <button id="issue-filter-clear" type="button" class="lf-btn">清除</button>
+      <button id="issue-filter-clear" type="button" class="btn-tab lf-btn">清除</button>
     </div>
 
     <!-- 全部反馈 -->
@@ -63,8 +63,8 @@ const FEEDBACK_TAB_HTML = `
 
     <!-- 工具区 -->
     <div class="pt-3 mt-3 border-t border-gray-100 text-right space-x-2">
-      <button id="btn-export-issues-json" class="text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">导出反馈数据</button>
-      <button id="btn-clear-issue-cache" class="text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">清除缓存</button>
+      <button id="btn-export-issues-json" class="btn-outline text-xs px-3 py-1.5">导出反馈数据</button>
+      <button id="btn-clear-issue-cache" class="btn-outline text-xs px-3 py-1.5">清除缓存</button>
     </div>
   </div>
 
@@ -341,7 +341,7 @@ function renderIssueDetail(issueId) {
   // ── Header：返回按钮 + 编号 + 状态徽章 + 操作按钮 ──
   html += `<div class="flex items-center justify-between mb-4">`;
   html += `<div class="flex items-center gap-2">`;
-  html += `<button data-detail-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1">`;
+  html += `<button data-detail-action="back" class="btn-ghost text-xs flex items-center gap-1">`;
   html += icon('chevronLeft', { className: 'w-3.5 h-3.5' });
   html += `返回列表</button>`;
   html += `<span class="text-xs text-gray-500 font-mono">#${issue.number}</span>`;
@@ -375,7 +375,7 @@ function renderIssueDetail(issueId) {
   html += `<div class="flex items-center justify-between mb-2">`;
   html += `<span class="text-xs font-medium text-gray-700">指派</span>`;
   if (issue.status === 'open') {
-    html += `<button data-detail-action="show-assign" class="text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">指派</button>`;
+    html += `<button data-detail-action="show-assign" class="btn-accent-soft text-xs px-3 py-1.5">指派</button>`;
   }
   html += `</div>`;
   // 指派历史时间线
@@ -398,7 +398,7 @@ function renderIssueDetail(issueId) {
   html += `<div class="flex flex-wrap gap-2">`;
   _assigneeOptions().forEach(opt => {
     const isCurrent = issue.assignee === opt.personId && issue.assigneeRole === opt.role;
-    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="text-xs px-3 py-1.5 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
+    html += `<button data-detail-action="assign" data-assignee-id="${opt.personId}" data-assignee-role="${opt.role}" class="btn-tab text-xs px-3 py-1.5 rounded-lg transition-all ${isCurrent ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'}">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `<div class="mt-2 flex items-center gap-2">`;
@@ -411,16 +411,16 @@ function renderIssueDetail(issueId) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">操作</span>`;
     html += `<div class="flex flex-wrap gap-2">`;
-    html += `<button data-detail-action="close" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">关闭反馈</button>`;
-    html += `<button data-detail-action="hide" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">隐藏</button>`;
-    html += `<button data-detail-action="show-merge" class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">合并到…</button>`;
+    html += `<button data-detail-action="close" class="btn-neutral text-xs px-3 py-1.5">关闭反馈</button>`;
+    html += `<button data-detail-action="hide" class="btn-neutral text-xs px-3 py-1.5">隐藏</button>`;
+    html += `<button data-detail-action="show-merge" class="btn-neutral text-xs px-3 py-1.5">合并到…</button>`;
     html += `</div>`;
     // 关闭理由选择器（默认隐藏）
     html += `<div id="issue-close-selector" class="hidden mt-2 p-3 rounded-lg bg-gray-50 border border-gray-200">`;
     html += `<p class="text-xs text-gray-600 mb-2">选择关闭理由</p>`;
     html += `<div class="flex flex-wrap gap-2 mb-2">`;
     CLOSE_REASONS.forEach(r => {
-      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:border-gray-300 transition-all">${r.label}</button>`;
+      html += `<button data-detail-action="confirm-close" data-reason="${r.value}" class="btn-outline text-xs px-3 py-1.5">${r.label}</button>`;
     });
     html += `</div>`;
     html += `<input type="text" id="close-note-input" class="input-flat w-full" placeholder="关闭备注（选填）">`;
@@ -432,7 +432,7 @@ function renderIssueDetail(issueId) {
     if (mergeTargets.length > 0) {
       html += `<div class="space-y-1 max-h-32 overflow-y-auto">`;
       mergeTargets.forEach(t => {
-        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">${t.title} <span class="text-gray-600">#${t.number}</span></button>`;
+        html += `<button data-detail-action="confirm-merge" data-target-id="${t.id}" class="btn-ghost w-full text-xs px-3 py-1.5">${t.title} <span class="text-gray-600">#${t.number}</span></button>`;
       });
       html += `</div>`;
     } else {
@@ -445,7 +445,7 @@ function renderIssueDetail(issueId) {
     html += `<div class="mb-4 pb-4 border-b border-gray-100">`;
     html += `<span class="text-xs font-medium text-gray-700 block mb-2">操作</span>`;
     html += `<div class="flex flex-wrap gap-2">`;
-    html += `<button data-detail-action="reopen" class="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors">重新开放</button>`;
+    html += `<button data-detail-action="reopen" class="btn-accent-soft text-xs px-3 py-1.5">重新开放</button>`;
     html += `</div></div>`;
   }
 
@@ -616,8 +616,8 @@ function renderDraftRow(d) {
         <p class="text-sm font-medium text-gray-800">${p.title}</p>
         <p class="text-xs text-gray-600 mt-1 line-clamp-2">${p.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-accent-soft btn-approve-draft text-xs px-3 py-1.5" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-outline btn-reject-draft text-xs px-3 py-1.5" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;
@@ -631,8 +631,8 @@ function renderDraftRow(d) {
         </div>
         <p class="text-sm text-gray-700">${d.payload.body}</p>
         <div class="flex gap-1 mt-2">
-          <button class="btn-approve-draft text-xs px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700" data-draft-id="${d.draftId}">通过</button>
-          <button class="btn-reject-draft text-xs px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50" data-draft-id="${d.draftId}">驳回</button>
+          <button class="btn-accent-soft btn-approve-draft text-xs px-3 py-1.5" data-draft-id="${d.draftId}">通过</button>
+          <button class="btn-outline btn-reject-draft text-xs px-3 py-1.5" data-draft-id="${d.draftId}">驳回</button>
         </div>
       </div>
     `;

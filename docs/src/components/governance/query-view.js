@@ -15,7 +15,7 @@
  */
 
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../ui/pager.js?v=20260930b';
+import { pagerHtml } from '../ui/pager.js?v=20260930c';
 
 /** 属性/文本转义（子类下拉选项由配置派生，仍统一转义） */
 function _esc(s) {
@@ -88,7 +88,7 @@ export function renderQueryView(container, config) {
         ${filtersHtml}
         ${categoryHtml}
         ${brandHtml}
-        <button id="${uid}-clear" class="lf-btn">清除</button>
+        <button id="${uid}-clear" class="btn-tab lf-btn">清除</button>
       </div>
       <div id="${uid}-results" class="space-y-1"></div>
       <div id="${uid}-count" class="text-xs text-gray-500 mt-2"></div>

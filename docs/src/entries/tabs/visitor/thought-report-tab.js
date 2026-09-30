@@ -10,14 +10,14 @@
 //  · 提交表单新增期次（period）手填下拉（缺省 = 当前期次）；
 //  · 「我的汇报」按期次分组，逐篇点击跳**独立阅读页** docs/thought-report.html——
 //    只读正文与「修改重交」均收敛到该页，本 tab 不再行内展开/就地编辑。
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
 import {
   addThoughtReport, listThoughtReportsByPersonGrouped,
   wordCountHint, wordHint, wordSoftMin, periodOf, periodOptions,
-} from '../../../services/governance/thought-report.js?v=20260930b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
+} from '../../../services/governance/thought-report.js?v=20260930c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
 // 统一检索引擎（支书 2026-09-14 裁定）：按期次分组子列表复用其分页（无 keyword/facets → 不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 
 // ── 状态徽标（与服务层 _effective 同语义：无状态 / 状态非法 / 旧 'pending' → 已入库）──
 const STATUS_META = {
@@ -79,7 +79,7 @@ export function renderContent(ctx) {
           <p class="text-[11px] text-gray-500">提交即入库归档至个人档案；建议 ${wordHint()} 字以上，少于 ${wordSoftMin()} 字将触发警告审阅（不影响提交；<b>此提醒只给你本人看</b>）</p>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span id="tr-count" class="text-[11px] text-gray-500 tabular-nums">0 字</span>
-            <button id="tr-submit" class="text-xs px-4 py-1.5 rounded-lg bg-sky-700 text-white hover:bg-sky-800 transition-colors">提交</button>
+            <button id="tr-submit" class="btn-accent-soft text-xs px-4 py-1.5">提交</button>
           </div>
         </div>
       </div>

@@ -12,14 +12,14 @@
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { PersonStore } from '../../../services/member/person.js?v=20260930b';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930b';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20260930b';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260930b'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930b'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930b'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { PersonStore } from '../../../services/member/person.js?v=20260930c';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930c';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20260930c';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260930c'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930c'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）
@@ -103,7 +103,7 @@ function _renderGovernance(el, branches, noticeCount) {
         </span>
       </div>
       <p class="text-xs text-gray-500">
-        <button type="button" id="gov-monitor-jump" class="text-blue-700 hover:text-blue-900 underline decoration-dotted" style="cursor:pointer;">支部级明细统一见「支部监控台账」→</button>
+        <button type="button" id="gov-monitor-jump" class="btn-ghost" style="cursor:pointer;">支部级明细统一见「支部监控台账」→</button>
       </p>
     </div>
   `;

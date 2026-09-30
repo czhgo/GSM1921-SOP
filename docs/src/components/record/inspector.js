@@ -5,41 +5,41 @@
 //        renderInspectorList, renderInspectorDetail
 // ════════════════════════════════════════════════════════════════
 
-import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930b';
-import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930b';
-import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930b';
-import { icon } from '../../core/base/icons.js?v=20260930b';
-import { openModal, closeModal } from '../ui/modal.js?v=20260930b';
+import { setState, STATE, getAppState } from '../../core/base/state.js?v=20260930c';
+import { ROLE_COLORS, ROLE_LABELS, ROLE_THEME_CLASS, COMMISSIONER_ROLES, SECRETARY_ROLES, ACTIVITY_CLASSIFICATION } from '../../core/domain/constants.js?v=20260930c';
+import { _fmtChinese, showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930c';
+import { icon } from '../../core/base/icons.js?v=20260930c';
+import { openModal, closeModal } from '../ui/modal.js?v=20260930c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById } from '../../services/member/person.js?v=20260930b';
-import { BranchService } from '../../services/core/runtime.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930b';
-import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930b';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930b';
-import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930b';
+import { getPersonById } from '../../services/member/person.js?v=20260930c';
+import { BranchService } from '../../services/core/runtime.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { liveMembers, PersonStore, getPersonName } from '../../services/member/person.js?v=20260930c';
+import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=20260930c';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20260930c';
+import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20260930c';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
 // 判据单一源在 branch-doc.js（勿在界面另写一份 purpose/status 判断）。
-import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930b';
+import { isInstitutionDraftAgendaItem } from '../../services/branch/branch-doc.js?v=20260930c';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：判据与写口单一源 = services/activity/activity.js；
 // 本处只渲染「提案 / 撤回 / 取消认定」三种动作，**不再有「点一下即认定」**；同源另取三项（2026-09-21 批次 135）：追加复盘要求进关闭判据。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930b';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation, reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, PENDING_APPROVAL_STATUS, canApproveActivity, approveActivity, rejectActivity, activityApprovalVoteOf, openCommitteeVoteForActivity } from '../../services/activity/activity.js?v=20260930c';
 // 活动批准门当前档位（2026-09-22 批次 150）：参数本体单一源 = core/domain/policy-defaults.js::activityApproval.mode
-import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930b';
+import { activityApprovalMode, ACTIVITY_APPROVAL_MODE_LABELS } from '../../core/domain/policy-defaults.js?v=20260930c';
 // 议程行内编辑纯函数（2026-09-06 复用激活）：createEditableAgenda 整对象投影随行保留扩展字段；
 // normalizeEditedAgenda 保存时 {...原对象, item/host} 重建并剔空行——修复编辑丢 id/配置/结果的数据安全事故
-import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930b';
+import { createEditableAgenda, normalizeEditedAgenda } from '../../services/activity/agenda-editing.js?v=20260930c';
 // 议程更新后通知全员（活动锚定，targetType/targetId 供归档联动）
-import { NoticeStore } from '../../services/governance/notice.js?v=20260930b';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930b';
-import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930b';
-import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20260930b';
-import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930b';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260930c';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930c';
+import { optionSetOf, resolveVoterIds, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930c';
+import { renderVoteSummary } from '../governance/vote-summary-panel.js?v=20260930c';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20260930c';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20260930c';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20260930c';
+import { mockDB, OutputType, deriveOutputRoute, ReviewStatus, AttendanceStatus } from '../../core/domain/domain.js?v=20260930c';
 
 // T-217 §2.4：任务状态定义（status-badge 用，色点 + 文字）
 const TASK_STATUSES = {
@@ -168,7 +168,7 @@ function _showParticipantModal(act) {
     + extraHtml
     + '<p class=" text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2 leading-relaxed">'
     + '如需查看任务详情，请前往对应的工作台页面。</p>'
-    + '<button class=" text-sm text-white px-4 py-[7px] rounded-lg mt-4 w-full transition-colors" '
+    + '<button class="btn-ghost text-sm px-4 py-[7px] mt-4 w-full" '
     + 'style="background:var(--party-red);">关闭</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
@@ -352,7 +352,7 @@ function _buildOutputsSectionHTML(activity) {
             <div class="flex items-center justify-between text-[11px] text-gray-600 py-0.5">
               <span class="truncate pr-2">${it.title}</span>
               <span class="text-gray-500 flex-shrink-0">${it.meta ? it.meta + ' · ' : ''}${it.status}</span>
-              ${it.fileName ? `<button type="button" class="insp-pub-dl text-blue-600 hover:text-blue-800 pl-2 flex-shrink-0" data-arc-id="${it.arcId}" title="下载 ${it.fileName}" style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;">下载</button>` : ''}
+              ${it.fileName ? `<button type="button" class="btn-ghost insp-pub-dl pl-2 flex-shrink-0" data-arc-id="${it.arcId}" title="下载 ${it.fileName}" style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;">下载</button>` : ''}
             </div>`).join('')}
           ${pubItems.length > 5 ? `<div class="text-[11px] text-gray-500">…另有 ${pubItems.length - 5} 项</div>` : ''}
         </div>` : ''}
@@ -430,7 +430,7 @@ function _showCloseBlockModal(activity, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-sm text-white px-4 py-[7px] rounded-lg w-full transition-colors" style="background:var(--party-red);">知道了</button>';
+    + '<button class="btn-ghost text-sm px-4 py-[7px] w-full" style="background:var(--party-red);">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -544,10 +544,10 @@ function renderVotePanel(container, { activity, agendaItem, votes, isCommittee, 
         : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}</div>`) : ''}
       ${!locked && isCommittee ? `
         <div class="vote-actions">
-          ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
+          ${options.map((pos) => `<button type="button" class="btn-ghost vote-btn" data-pos="${pos}">${labelOf(pos)}</button>`).join('')}
         </div>
         ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
-        <button type="button" class="vote-submit">提交表态</button>` : ''}
+        <button type="button" class="btn-ghost vote-submit">提交表态</button>` : ''}
     </div>`;
 
   container.querySelectorAll('.vote-btn').forEach(btn => {
@@ -628,7 +628,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   let html = '';
 
   html += '<button id="inspector-back-btn"'
-    + ' class=" text-xs text-red-700 hover:text-red-900 mb-3'
+    + ' class="btn-ghost  text-xs text-red-700 hover:text-red-900 mb-3'
     + ' flex items-center gap-1 transition-colors"'
     + ' style="background:none;border:none;cursor:pointer;padding:0;">'
     + '← 返回列表</button>';
@@ -703,7 +703,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '<div class="flex items-center justify-between mb-1.5">';
     html += '<p class="text-xs text-gray-500">会议议程</p>';
     if (isSecretaryOrDeputy && !isArchived) {
-      html += '<button id="inspector-agenda-edit-btn" class="text-xs text-blue-600 hover:text-blue-800 transition-colors" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
+      html += '<button id="inspector-agenda-edit-btn" class="btn-ghost text-xs" style="background:none;border:none;cursor:pointer;padding:0;">编辑议程</button>';
     }
     html += '</div>';
     html += '<ol class="space-y-1.5">';
@@ -733,7 +733,7 @@ function renderInspectorDetail(activity, tasks, managementRole) {
               <span class="text-gray-700 w-14 shrink-0 truncate">${esc(getPersonById(pid)?.name || pid)}</span>
               <input type="text" class="ap-note input-flat flex-1 text-xs" data-person-id="${esc(pid)}" placeholder="备注（选填）">
             </label>`).join('')}
-          <button type="button" class="ap-submit text-[13px] px-2.5 py-1 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
+          <button type="button" class="btn-ghost ap-submit px-2.5 py-1 font-medium" style="background:#16A34A;cursor:pointer;">记录结果</button>
         </div>` : '';
       html += `<li class="flex items-start gap-2 text-xs">
         <span class="text-gray-500 flex-shrink-0 w-4">${i + 1}.</span>
@@ -750,8 +750,8 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         </div>
         ${canRecord && !perPerson ? `
           <div class="flex gap-1 shrink-0">
-            <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[13px] px-2 py-0.5 rounded-lg text-white font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
-            <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="inspector-agenda-result text-[13px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">未通过</button>
+            <button type="button" data-agenda-result="passed" data-agenda-item-id="${a.id}" class="btn-ghost inspector-agenda-result px-2 py-0.5 font-medium" style="background:#16A34A;cursor:pointer;">通过</button>
+            <button type="button" data-agenda-result="rejected" data-agenda-item-id="${a.id}" class="btn-outline inspector-agenda-result px-2 py-0.5" style="cursor:pointer;">未通过</button>
           </div>` : ''}
       </li>`;
     });
@@ -808,13 +808,13 @@ function renderInspectorDetail(activity, tasks, managementRole) {
     html += '<div class="mt-3 flex items-center gap-2 flex-wrap">';
     if (isBrandActive) {
       html += `<span class=" text-xs text-gray-500">本场已由支委会认定为品牌活动${activity.brandDesignatedAt ? `（${String(activity.brandDesignatedAt).slice(0, 10)}）` : ''}</span>`;
-      if (isCommittee) html += `<button id="inspector-brand-revoke-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starFilled', { className: 'w-3 h-3' })} 取消品牌认定</button>`;
+      if (isCommittee) html += `<button id="inspector-brand-revoke-btn" class="btn-ghost text-xs px-3 py-1.5 inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starFilled', { className: 'w-3 h-3' })} 取消品牌认定</button>`;
     } else if (brandProposal) {
       const proposerName = brandProposal.by ? (getPersonName(brandProposal.by) || brandProposal.by) : '—';
       html += `<span class=" text-xs text-gray-500">品牌认定提案待支委会审议（提案人 ${esc(brandProposal.by ? proposerName : '—')}${brandProposal.reviewResult === 'rejected' ? ' · 上次未通过' : ''}）</span>`;
-      if (isCommittee || brandProposal.by === _user?.personId) html += `<button id="inspector-brand-withdraw-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">撤回提案</button>`;
+      if (isCommittee || brandProposal.by === _user?.personId) html += `<button id="inspector-brand-withdraw-btn" class="btn-ghost text-xs px-3 py-1.5 inline-flex items-center gap-1" style="${brandBtnStyle}">撤回提案</button>`;
     } else if (canProposeBrand(_user?.role)) {
-      html += `<button id="inspector-brand-propose-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starOutline', { className: 'w-3 h-3' })} 提议认定为品牌活动</button>`;
+      html += `<button id="inspector-brand-propose-btn" class="btn-ghost text-xs px-3 py-1.5 inline-flex items-center gap-1" style="${brandBtnStyle}">${icon('starOutline', { className: 'w-3 h-3' })} 提议认定为品牌活动</button>`;
       html += '<span class=" text-xs text-gray-500">提案后进支委会「拟上会」清单，通过后才认定</span>';
     }
     html += '</div>';
@@ -834,14 +834,14 @@ function renderInspectorDetail(activity, tasks, managementRole) {
       if (aprMode === 'branch-committee') {
         const aprVote = activityApprovalVoteOf(activity);
         if (!aprVote) {
-          html += '<button id="inspector-committee-vote-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="--acc-bg-dark:rgba(34,197,94,0.16);--acc-text-dark:#4ADE80;--acc-border-dark:rgba(34,197,94,0.35);background:rgba(22,163,74,0.10);color:#15803D;border:1px solid rgba(22,163,74,0.40);">提请支委会表决</button>';
+          html += '<button id="inspector-committee-vote-btn" class="btn-accent-soft text-xs px-3 py-1.5 inline-flex items-center gap-1" style="--acc-bg-dark:rgba(34,197,94,0.16);--acc-text-dark:#4ADE80;--acc-border-dark:rgba(34,197,94,0.35);background:rgba(22,163,74,0.10);color:#15803D;border:1px solid rgba(22,163,74,0.40)">提请支委会表决</button>';
           html += '<span class=" text-xs text-gray-500">提请后由支委层在本场表态；记录「通过」才发布</span>';
         } else {
           html += `<span class=" text-xs text-gray-500">已提请支委会表决（${aprVote.decided ? '已记录结果' : '待支委表态'}）——在本场议程「审议活动…的批准」处表态 / 记录结果</span>`;
         }
       } else {
-        html += '<button id="inspector-approve-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="--acc-bg-dark:rgba(34,197,94,0.16);--acc-text-dark:#4ADE80;--acc-border-dark:rgba(34,197,94,0.35);background:rgba(22,163,74,0.10);color:#15803D;border:1px solid rgba(22,163,74,0.40);">批准发布</button>';
-        html += '<button id="inspector-reject-btn" class=" text-xs px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1" style="background:rgba(220,38,38,0.08);color:#B91C1C;border:1px solid rgba(220,38,38,0.35);">不批准（终止）</button>';
+        html += '<button id="inspector-approve-btn" class="btn-accent-soft text-xs px-3 py-1.5 inline-flex items-center gap-1" style="--acc-bg-dark:rgba(34,197,94,0.16);--acc-text-dark:#4ADE80;--acc-border-dark:rgba(34,197,94,0.35);background:rgba(22,163,74,0.10);color:#15803D;border:1px solid rgba(22,163,74,0.40)">批准发布</button>';
+        html += '<button id="inspector-reject-btn" class="btn-ghost text-xs px-3 py-1.5 inline-flex items-center gap-1" style="background:rgba(220,38,38,0.08);color:#B91C1C;border:1px solid rgba(220,38,38,0.35);">不批准（终止）</button>';
       }
     }
     html += '</div>';
@@ -851,21 +851,21 @@ function renderInspectorDetail(activity, tasks, managementRole) {
   if (isSecretary && !isArchived) {
     // B 档 CRUD 补全：活动信息编辑（支书持有 create_activity，含编辑权）
     html += '<button id="inspector-edit-btn"'
-      + ' class=" text-xs text-blue-700 hover:text-blue-900 px-3 py-1.5 rounded-lg transition-colors"'
-      + ' style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.35);background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.40);">编辑信息</button>';
+      + ' class="btn-accent-soft text-xs px-3 py-1.5"'
+      + ' style="--acc-bg-dark:rgba(96,165,250,0.16);--acc-text-dark:#60A5FA;--acc-border-dark:rgba(96,165,250,0.35);background:rgba(59,130,246,0.10);border:1px solid rgba(59,130,246,0.40)">编辑信息</button>';
   }
   if (isArchived) {
     html += '<button id="inspector-restore-btn"'
-      + ' class=" text-xs text-green-700 hover:text-green-900 px-3 py-1.5 rounded-lg transition-colors"'
-      + ' style="--acc-bg-dark:rgba(52,211,153,0.16);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40);">恢复活动</button>';
+      + ' class="btn-accent-soft text-xs px-3 py-1.5"'
+      + ' style="--acc-bg-dark:rgba(52,211,153,0.16);--acc-text-dark:#34D399;--acc-border-dark:rgba(52,211,153,0.35);background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.40)">恢复活动</button>';
   } else {
     html += '<button id="inspector-archive-btn"'
-      + ' class=" text-xs text-orange-700 hover:text-orange-900 px-3 py-1.5 rounded-lg transition-colors"'
-      + ' style="--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40);">归档活动</button>';
+      + ' class="btn-accent-soft text-xs px-3 py-1.5"'
+      + ' style="--acc-bg-dark:rgba(251,191,36,0.16);--acc-text-dark:#FBBF24;--acc-border-dark:rgba(251,191,36,0.35);background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.40)">归档活动</button>';
   }
   html += '<button id="inspector-delete-btn"'
-    + ' class=" text-xs text-red-700 hover:text-red-900 px-3 py-1.5 rounded-lg transition-colors"'
-    + ' style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40);">删除活动</button>';
+    + ' class="btn-accent-soft text-xs px-3 py-1.5"'
+    + ' style="--acc-bg-dark:rgba(248,113,113,0.16);--acc-text-dark:#F87171;--acc-border-dark:rgba(248,113,113,0.35);background:rgba(239,68,68,0.10);border:1px solid rgba(239,68,68,0.40)">删除活动</button>';
   html += '</div>';
 
   if (!cardsEl) return;
@@ -1216,9 +1216,9 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
     let html = '<div class="flex items-center justify-between mb-1.5"><p class="text-xs text-gray-500">编辑会议议程</p></div>';
     html += '<div id="agenda-edit-list" class="space-y-1.5"></div>';
     html += '<div class="flex items-center gap-2 mt-2">';
-    html += '<button id="agenda-edit-add" class="text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors" style="cursor:pointer;">+ 添加议程</button>';
-    html += '<button id="agenda-edit-save" class="text-xs px-3 py-1 rounded-lg text-white font-medium" style="background:var(--acc, #CE1126);cursor:pointer;">保存</button>';
-    html += '<button id="agenda-edit-cancel" class="text-xs px-2.5 py-1 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors" style="cursor:pointer;">取消</button>';
+    html += '<button id="agenda-edit-add" class="btn-outline text-xs px-2.5 py-1" style="cursor:pointer;">+ 添加议程</button>';
+    html += '<button id="agenda-edit-save" class="btn-ghost text-xs px-3 py-1 font-medium" style="background:var(--acc, #CE1126);cursor:pointer;">保存</button>';
+    html += '<button id="agenda-edit-cancel" class="btn-ghost text-xs px-2.5 py-1" style="cursor:pointer;">取消</button>';
     html += '</div>';
     block.innerHTML = html;
 
@@ -1246,7 +1246,7 @@ function _startAgendaEdit(activity, cardsEl, tasks, managementRole) {
           <div class="flex items-center gap-1.5">
             <input type="text" class="agenda-edit-item input-flat w-full text-xs" value="${a.item}" placeholder="议题">
             <input type="text" class="agenda-edit-host input-flat w-24 text-xs" value="${a.host}" placeholder="主持人">
-            <button type="button" class="agenda-edit-del text-gray-500 hover:text-red-600 text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
+            <button type="button" class="btn-ghost agenda-edit-del text-sm px-1 shrink-0" style="cursor:pointer;" title="删除该议程（连同其讨论文件/待讨论名单配置）">✕</button>
           </div>
           ${_hasStructuredCfg(a) ? '<div class="agenda-edit-ext text-[11px] text-amber-700 pl-1 mt-0.5 leading-snug" title="该议程的讨论文件/待讨论名单配置及已记录结果将原样保留，本次仅可修改议题/主持人文本">该议程含讨论文件/待讨论名单配置，将原样保留</div>' : ''}
         </div>`).join('');
@@ -1334,8 +1334,8 @@ function _openActivityEditModal(activity, tasks, managementRole) {
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button id="ae-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button id="ae-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">保存</button>
+        <button id="ae-cancel" class="btn-ghost text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button id="ae-save" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>
     `,
     onMount: (panel) => {

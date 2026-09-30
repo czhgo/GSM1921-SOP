@@ -45,7 +45,7 @@ export const ACTIVITIES = [
   // ── 原 6 月批次（重排 → 7/21~7/24）────────────────────────────
   { id: 'act-14', title: '7月参访：中关村科技企业', date: '2026-07-21', type: '主题党日', organizer: 'p3', direction: 'bottom-up', location: '中关村软件园', status: 'completed', scenarioId: 'theme-party', domain: 'party-building', carriers: ['实践参访'], isOutdoor: true, assignments: [{ personId: 'p3', role: 'organizer' }] },
   { id: 'act-15', title: '7月共建：光华 x 人大商学院', date: '2026-07-22', type: '主题党日', organizer: 'p11', direction: 'top-down', location: '中国人民大学商学院', status: 'published', scenarioId: 'theme-party', domain: 'party-building', isJoint: true, assignments: [{ personId: 'p11', role: 'organizer' }] },
-  { id: 'act-16', galleryFeatured: true, title: '7月主题党日：建党105周年', date: '2026-07-23', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'ongoing', isBrand: true, brandName: '建党105周年', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p3', role: 'deep' }] },
+  { id: 'act-16', galleryFeatured: true, galleryPinned: true, title: '7月主题党日：建党105周年', date: '2026-07-23', type: '主题党日', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼101报告厅', status: 'ongoing', isBrand: true, brandName: '建党105周年', scenarioId: 'theme-party', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }, { personId: 'p3', role: 'deep' }] },
   { id: 'act-17', title: '7月党小组会', date: '2026-07-24', type: '党小组会', organizer: 'p1', direction: 'bottom-up', location: '光华1号楼203会议室', status: 'completed', scenarioId: 'party-group-meeting', domain: 'party-building', assignments: [{ personId: 'p1', role: 'organizer' }] },
 
   // ── 7 月活动（与 notices.js 保持数据协调）──────────────────────

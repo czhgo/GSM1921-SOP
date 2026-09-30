@@ -8,45 +8,45 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20260930b';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20260930c';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20260930b';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20260930c';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930c';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20260930b';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20260930b';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20260930b';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20260930b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { persist } from '../../../data/data-adapter.js?v=20260930b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20260930b'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20260930b';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20260930b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260930c';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20260930c';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20260930c';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20260930c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { persist } from '../../../data/data-adapter.js?v=20260930c';
+import { bumpToken } from '../../../core/base/version-token.js?v=20260930c'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20260930c';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20260930c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20260930b';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20260930b';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20260930b';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20260930b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20260930b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260930c';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20260930c';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20260930c';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20260930c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20260930c';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930b';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20260930b';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930c';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930c';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20260930c';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20260930b';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20260930c';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20260930b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930b';
+import { setState } from '../../../core/base/state.js?v=20260930c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930c';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -375,7 +375,7 @@ function renderConfirmDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button class="secretary-todo-detail-confirm text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">一键确认 ${group.count} 条</button>
+        <button class="btn-accent-soft secretary-todo-detail-confirm text-xs px-3 py-1.5" >一键确认 ${group.count} 条</button>
       </div>
     </div>
   `;
@@ -407,9 +407,9 @@ function renderRemindDetail(group) {
         ${more}
       </div>
       <div class="pt-3 border-t border-gray-100 flex flex-wrap gap-2">
-        <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">去活动管理</button>
-        ${isArchiveGap ? `<button type="button" class="secretary-todo-detail-archive text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">代归档</button>` : ''}
-        ${isReviewGap ? `<button type="button" class="secretary-todo-detail-review text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">代提交复盘</button>` : ''}
+        <button class="btn-accent-soft secretary-todo-detail-action text-xs px-3 py-1.5" >去活动管理</button>
+        ${isArchiveGap ? `<button type="button" class="btn-outline secretary-todo-detail-archive text-xs px-3 py-1.5">代归档</button>` : ''}
+        ${isReviewGap ? `<button type="button" class="btn-outline secretary-todo-detail-review text-xs px-3 py-1.5">代提交复盘</button>` : ''}
       </div>
     </div>
   `;
@@ -428,7 +428,7 @@ function renderSeedDetail(todo) {
         ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
         ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          <button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">去处理</button>
+          <button class="btn-accent-soft secretary-todo-detail-action text-xs px-3 py-1.5" >去处理</button>
         </div>
       </div>
     `;
@@ -461,7 +461,7 @@ function renderSeedDetail(todo) {
       ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
       <div class="text-xs text-gray-500">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        ${todo.actionType ? `<button class="secretary-todo-detail-action text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+        ${todo.actionType ? `<button class="btn-outline secretary-todo-detail-action text-xs px-3 py-1.5">处理</button>` : ''}
       </div>
     </div>
   `;
@@ -593,8 +593,8 @@ function _mcReqCard(req) {
              _mcRefsSummaryHtml 一并保留（与 member-confirmation 存量分支同源）。 */
         (req.kind === 'transferOut' && req.refsSummary) ? _mcRefsSummaryHtml(req.refsSummary) : ''}
       <div class="flex items-center gap-2 pt-1">
-        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-mc-id="${esc(req.id)}" data-decision="approved" style="${solidAccentStyle(_accentColors().accent, _accentColors().accentBorder)}">确认生效</button>
-        <button type="button" class="mc-decide text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" data-mc-id="${esc(req.id)}" data-decision="rejected">退回</button>
+        <button type="button" class="btn-accent-soft mc-decide text-xs px-2.5 py-1" data-mc-id="${esc(req.id)}" data-decision="approved" >确认生效</button>
+        <button type="button" class="btn-outline mc-decide text-xs px-2.5 py-1" data-mc-id="${esc(req.id)}" data-decision="rejected">退回</button>
       </div>
     </div>`;
 }
@@ -640,7 +640,7 @@ function renderSemesterDetainedDetail(group) {
         ${rows || '<div class="text-xs text-gray-500">当前无在册滞留成员</div>'}
       </div>
       <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button type="button" class="mc-semester-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">知道了</button>
+        <button type="button" class="btn-outline mc-semester-close text-xs px-3 py-1.5">知道了</button>
       </div>
     </div>
   `;
@@ -680,8 +680,8 @@ function _askMcReject(reqId, api) {
       <p class="text-sm text-gray-700 mb-1">确认退回${name ? `「${esc(name)}」` : '该成员'}的变更请求？退回后不生效，组织委员可在名册重新发起。</p>
       <textarea id="mc-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="退回原因（必填）"></textarea>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-mc-reject-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-mc-reject-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--neutral-500);cursor:pointer;">确认退回</button>
+        <button type="button" data-mc-reject-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-mc-reject-ok class="btn-ghost text-xs px-3 py-1.5" style="background:var(--neutral-500);cursor:pointer;">确认退回</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-mc-reject-cancel]')?.addEventListener('click', () => closeModal('mc-reject-modal'));
@@ -855,8 +855,8 @@ function _committeeTfRowHtml(req, act) {
   const atText = String(req.at || '').slice(0, 16).replace('T', ' ');
   const ops = act
     ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 flex-shrink-0">已排入表决</span>
-       <button type="button" class="tf-cr-result text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:var(--accent-indigo);" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
-    : `<button type="button" class="tf-cr-arrange text-xs px-2.5 py-1.5 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" style="background:var(--party-red);" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
+       <button type="button" class="btn-ghost tf-cr-result text-xs px-2.5 py-1.5 flex-shrink-0" style="background:var(--accent-indigo);" data-tf-id="${req.id}" data-activity-id="${act.id}">查看表决结果并生效</button>`
+    : `<button type="button" class="btn-ghost tf-cr-arrange text-xs px-2.5 py-1.5 flex-shrink-0" style="background:var(--party-red);" data-tf-id="${req.id}" data-kind="${req.kind}">排入支委会表决</button>`;
   return `
     <div class="rounded-xl border border-gray-100 bg-gray-50/40 p-3">
       <div class="flex items-start gap-2">
@@ -938,10 +938,10 @@ async function _openTfDecisionModal(req, activityId, api) {
             : (req.kind === 'initiate' ? '退回草稿（可修改后重新报送）' : '专班继续运行')) + '。</p>'}
     </div>
     ${status === 'pending'
-      ? '<button type="button" class="tf-modal-close text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:var(--accent-indigo);">知道了</button>'
+      ? '<button type="button" class="btn-ghost tf-modal-close text-xs px-3 py-1.5 w-full" style="background:var(--accent-indigo);">知道了</button>'
       : `<div style="display:flex;gap:12px;justify-content:flex-end;">
-          <button type="button" class="tf-modal-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-          <button type="button" id="tf-decision-apply" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="background:var(--party-red);">按表决结果生效</button>
+          <button type="button" class="btn-outline tf-modal-close text-xs px-3 py-1.5">取消</button>
+          <button type="button" id="tf-decision-apply" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--party-red);">按表决结果生效</button>
         </div>`}
   `;
   const close = () => overlay.remove();

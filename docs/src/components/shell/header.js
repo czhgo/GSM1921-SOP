@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260930b';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260930c';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260930b';
-import { getBasePath } from '../../core/base/utils.js?v=20260930b';
-import { icon } from '../../core/base/icons.js?v=20260930b';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260930b';
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260930b';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260930c';
+import { getBasePath } from '../../core/base/utils.js?v=20260930c';
+import { icon } from '../../core/base/icons.js?v=20260930c';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260930c';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260930c';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930b';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930c';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,11 +22,11 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930b';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260930b');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260930c');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260930b');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260930c');
   return _noticeModule;
 }
 
@@ -182,7 +182,7 @@ export async function renderHeader(activeModule, opts = {}) {
 
   header.innerHTML = `
     <div class="header-content">
-      <button id="hamburger-btn" aria-label="打开导航菜单" class="hamburger-btn">
+      <button id="hamburger-btn" aria-label="打开导航菜单" class="btn-ghost hamburger-btn">
         <span></span><span></span><span></span>
       </button>
       <div class="party-emblem-wrapper">
@@ -281,7 +281,7 @@ function _bindNotificationBell(header) {
             ${priorityBadge[n.priority] || ''}
             ${n.source === 'committee' ? '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>' : ''}
             <p style="color:var(--neutral-700);margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="text-body-sm">${n.title || n.content}</p>
-            ${!n.read ? `<button class="notif-mark-read text-xs" data-notice-id="${n.id}" style="color:var(--functional-info);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='var(--surface-hover)'" onmouseleave="this.style.background='none'">已读</button>` : ''}
+            ${!n.read ? `<button class="btn-ghost notif-mark-read text-xs" data-notice-id="${n.id}" style="color:var(--functional-info);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;transition:background 0.15s;flex-shrink:0;" onmouseenter="this.style.background='var(--surface-hover)'" onmouseleave="this.style.background='none'">已读</button>` : ''}
           </div>
           <p style="color:var(--neutral-500);margin:0;" class="text-[12px]">${n.publishDate || n.date || ''}</p>
         </div>

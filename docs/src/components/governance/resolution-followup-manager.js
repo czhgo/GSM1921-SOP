@@ -8,14 +8,14 @@
 //  责任人候选 = 支委角色 + 具体成员（与 workforce-panel 发起分工的负责人下拉同口径）。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20260930b';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20260930b';
-import { PersonStore } from '../../services/member/person.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
+import { escHtml as esc, showToast } from '../../core/base/utils.js?v=20260930c';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../core/domain/constants.js?v=20260930c';
+import { PersonStore } from '../../services/member/person.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
 import {
   saveFollowups, completeFollowup, reopenFollowup,
   FOLLOWUP_STATUS, ownerLabelOf,
-} from '../../services/governance/resolution-followup.js?v=20260930b';
+} from '../../services/governance/resolution-followup.js?v=20260930c';
 
 /** 责任人下拉选项（value 编码 type:id，与 workforce-panel 同口径） */
 function _ownerOptionsHtml() {
@@ -32,8 +32,8 @@ function _rowHtml(f, { canManage }) {
   const done = f.status === FOLLOWUP_STATUS.COMPLETED;
   const act = canManage
     ? (done
-      ? `<button type="button" class="fu-act shrink-0 text-[13px] px-2 py-0.5 rounded-lg border border-gray-200 text-gray-500 hover:text-amber-700 hover:border-amber-200" data-act="reopen" data-fid="${esc(f.id)}" title="误销项可恢复为待落实">恢复</button>`
-      : `<button type="button" class="fu-act shrink-0 text-[13px] px-2 py-0.5 rounded-lg text-white font-medium bg-green-600 hover:bg-green-700" data-act="complete" data-fid="${esc(f.id)}" title="确认该项已落实（销项，责任人跟进待办同步完成）">销项</button>`)
+      ? `<button type="button" class="btn-outline fu-act shrink-0 px-2 py-0.5" data-act="reopen" data-fid="${esc(f.id)}" title="误销项可恢复为待落实">恢复</button>`
+      : `<button type="button" class="btn-accent-soft fu-act shrink-0 px-2 py-0.5 font-medium" data-act="complete" data-fid="${esc(f.id)}" title="确认该项已落实（销项，责任人跟进待办同步完成）">销项</button>`)
     : '';
   return `
     <div class="fu-row flex items-start gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 mb-1.5 text-xs">
@@ -62,7 +62,7 @@ function _cardHtml(activity, item, { canManage }) {
         <input class="fu-new-item input-flat text-xs min-w-[180px] flex-1" placeholder="待落实事项，如：补充××材料" />
         <select class="fu-new-owner input-flat text-xs min-w-[140px]"><option value="">责任人…</option>${_ownerOptionsHtml()}</select>
         <input type="date" class="fu-new-deadline input-flat text-xs" title="落实时限" />
-        <button type="button" class="fu-add px-2.5 py-1.5 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">添加待落实</button>
+        <button type="button" class="btn-danger-solid fu-add px-2.5 py-1.5 text-xs font-medium">添加待落实</button>
       </div>
       <p class="text-[11px] text-gray-500">保存即生成责任人跟进待办：到期当天可见（催办），逾期自动进支书工作台待办督办。</p>
     </div>` : '';

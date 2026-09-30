@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20260930b';
-import { escHtml } from '../../core/base/utils.js?v=20260930b';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20260930c';
+import { escHtml } from '../../core/base/utils.js?v=20260930c';
 
 // 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
 //   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。
@@ -59,7 +59,7 @@ function _renderDevCards() {
         <!-- 2026-09-24 无障碍：9 张身份卡的按钮可访问名原为清一色「登录」（身份名「组织委员」等
              只在兄弟 <span> 里、不进可访问名）⇒ 读屏分不出身份。此处把身份名并入按钮的可访问名；
              视觉与点击行为不变（点击仍由外层 .login-card 的委托处理）。 -->
-        <button class="login-btn w-full text-sm px-4 py-[7px] rounded-lg text-white font-medium" aria-label="以 ${card.label} 身份登录" style="${solidAccentStyle(accent, accentBorder)};">登录</button>
+        <button class="btn-accent login-btn w-full text-sm px-4 py-[7px] font-medium" aria-label="以 ${card.label} 身份登录" >登录</button>
       </div>
     `;
   }).join('');
@@ -193,7 +193,7 @@ async function _loadBranches() {
     const body = await r.json();
     const rows = Array.isArray(body) ? body : (body && body.data) || [];
     if (!rows.length) { list.innerHTML = '<p class="text-xs text-gray-500">暂无可用支部，请联系党委组织员。</p>'; return; }
-    list.innerHTML = rows.map((b) => `<button type="button" class="login-btn w-full text-left text-sm px-3 py-2 rounded-lg border border-gray-300 bg-white font-medium hover:bg-gray-50" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
+    list.innerHTML = rows.map((b) => `<button type="button" class="btn-outline login-btn w-full text-sm px-3 py-2 font-medium" data-branch="${escHtml(b.id)}">${escHtml(b.name || b.id)}</button>`).join('');
     list.querySelectorAll('[data-branch]').forEach((btn) => {
       btn.addEventListener('click', () => _bindBranch(btn.dataset.branch, btn.textContent.trim()));
     });

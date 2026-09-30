@@ -10,12 +10,12 @@
 //  打回（事后反馈）、正文阅读均在该页完成，本 tab 不再行内展开。
 // 角色自 AuthStore.getCurrentUser() 取（勿自由传参）；非组织委员（org-commissioner）防御：仅提示无权限。
 
-import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20260930b';
-import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
+import { listAllThoughtReports, comparePeriodDesc } from '../../../services/governance/thought-report.js?v=20260930c';
+import { getPersonName, liveMembers } from '../../../services/member/person.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
 // 人×期次矩阵单一源（2026-09-14 批次 35/38；批次 41 本域接入）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930c';
 
 // ── 审阅状态：徽标样式 + 中文标签 + 就高不就低的优先级 ──
 // 读取侧归一由服务层 _effective 保证（无状态 / 状态非法 / 旧 'pending' → 已入库）
@@ -89,8 +89,8 @@ export function renderContent(ctx) { // ctx 对齐 org 其它 tab（accent 等�
         <div class="flex items-center justify-between mb-3">
           <h3 class="font-title-cn text-base font-semibold text-gray-800">思想汇报台账（人 × 期次）</h3>
           <div class="flex items-center gap-2">
-            <button type="button" class="tr-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200" data-trview="person">按人</button>
-            <button type="button" class="tr-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200" data-trview="period">按期次</button>
+            <button type="button" class="btn-tab tr-view-btn px-3 py-1.5 text-xs font-medium" data-trview="person">按人</button>
+            <button type="button" class="btn-tab tr-view-btn px-3 py-1.5 text-xs font-medium" data-trview="period">按期次</button>
             <span class="text-xs text-gray-500">${members.length} 人 · ${periods.length} 期</span>
           </div>
         </div>

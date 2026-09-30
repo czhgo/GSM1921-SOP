@@ -10,30 +10,30 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书 2026-08-10 裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../../core/base/utils.js?v=20260930b';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20260930b';
-import { TodoStore, seedTodos, TodoStatus } from '../../services/governance/todo.js?v=20260930b';
-import { IssueStore } from '../../services/governance/issues.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20260930b';
-import { loadActivities } from '../../services/activity/activity.js?v=20260930b';
+import { showToast, flashHighlight } from '../../core/base/utils.js?v=20260930c';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20260930c';
+import { TodoStore, seedTodos, TodoStatus } from '../../services/governance/todo.js?v=20260930c';
+import { IssueStore } from '../../services/governance/issues.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20260930c';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930c';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「工作概况」的在办/条线计数
 // 同样按查看者角色收窄（非支委层不算入还没批的活动）。
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260930b';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20260930b';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20260930b';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260930c';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20260930c';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20260930c';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/activity/makeup.js）
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20260930b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20260930b';
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260930b';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20260930c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20260930c';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260930c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonName } from '../../services/member/person.js?v=20260930b';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20260930b';
+import { getPersonName } from '../../services/member/person.js?v=20260930c';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：「请我汇报」行接入（关键词 汇报人/事项 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -115,12 +115,12 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span>
       <span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">文件待确认</span>
       <span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${d.refLabel} · ${d.senderName} 已微信外发</span>
-      <button type="button" class="ed-confirm-btn text-[13px] px-2.5 py-1 rounded-lg text-white flex-shrink-0" data-ed-id="${d.id}" style="background:#16A34A;">确认收到</button>
+      <button type="button" class="btn-ghost ed-confirm-btn px-2.5 py-1 flex-shrink-0" data-ed-id="${d.id}" style="background:#16A34A;">确认收到</button>
     </div>`);
 
   const blockerRows = [];
   dispatchRows.forEach(r => blockerRows.push(r));
-  myBlockers.forEach(b => blockerRows.push(`<button type="button" class="wo-inline-item flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full text-left" data-wo-jump="todo-all" title="前往待办查看该超期项"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></button>`));
+  myBlockers.forEach(b => blockerRows.push(`<button type="button" class="btn-ghost wo-inline-item flex items-center gap-3 py-2.5 px-3 w-full" data-wo-jump="todo-all" title="前往待办查看该超期项"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-error);"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">我的待办</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b.title} 超期</span><span class="text-[11px] tabular-nums text-red-600 font-medium flex-shrink-0">${b.deadline}</span></button>`));
   lineBlockers.forEach(b => blockerRows.push(`<div class="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-warning);"></span><span class="text-sm font-medium text-gray-700 w-20 flex-shrink-0">条线缺口</span><span class="text-xs text-gray-600 flex-1 min-w-0 truncate">${b}</span></div>`));
 
   const blockerBody = blockerRows.length
@@ -158,7 +158,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       overdue: hasOverdue,
       deadline: g.deadline || '',
       html: `
-        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
+        <button type="button" class="btn-ghost wo-inline-item flex items-center gap-3 py-2 px-3 w-full" data-wo-jump="todo" data-todo-key="${g.groupKey}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="${dotDarkVars(hasOverdue ? '#EF4444' : accent)}background:${hasOverdue ? '#EF4444' : accent};"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${g.title}</span>
           ${g.count > 1 ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 tabular-nums flex-shrink-0">${g.count}</span>` : ''}
@@ -175,7 +175,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       overdue: false,
       deadline: a.date || '',
       html: `
-        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="activity" data-act-id="${a.id}">
+        <button type="button" class="btn-ghost wo-inline-item flex items-center gap-3 py-2 px-3 w-full" data-wo-jump="activity" data-act-id="${a.id}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:var(--functional-info);"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${a.title}</span>
           <span class="text-[11px] text-gray-500 flex-shrink-0">活动</span>
@@ -191,7 +191,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
       overdue: false,
       deadline: tf.deadline || '',
       html: `
-        <button type="button" class="wo-inline-item flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors text-left w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
+        <button type="button" class="btn-ghost wo-inline-item flex items-center gap-3 py-2 px-3 w-full" data-wo-jump="taskforce" data-tf-id="${tf.id}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#4F46E5;"></span>
           <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${tf.name}</span>
           <span class="text-[11px] text-gray-500 flex-shrink-0">专班</span>
@@ -218,7 +218,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
   const overflowOther = (myActs.length + myTfs.length) - (shownItems.length - shownTodoCount);
   const moreRows = [];
   if (overflowTodo > 0) {
-    moreRows.push(`<button type="button" class="wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 hover:text-gray-600 transition-colors w-full text-left" data-wo-jump="todo-all">共 ${myTodoItems.length} 项待办 · 前往待办 tab 查看全部 →</button>`);
+    moreRows.push(`<button type="button" class="btn-ghost wo-inline-item flex items-center gap-2 py-1.5 px-3 text-xs w-full" data-wo-jump="todo-all">共 ${myTodoItems.length} 项待办 · 前往待办 tab 查看全部 →</button>`);
   }
   if (overflowOther > 0) {
     moreRows.push(`<div class="flex items-center gap-2 py-1.5 px-3 text-xs text-gray-500 w-full text-left"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#CBD5E1;"></span>另有 ${overflowOther} 项活动/专班在办（在对应 tab 查看）</div>`);
@@ -281,7 +281,7 @@ export async function renderWorkOverview(container, { role, personId, accent = '
           ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
           <div class="flex gap-2 mt-2">
             <input type="text" id="wo-req-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…" aria-label="汇报内容">
-            <button type="button" class="wo-req-submit text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-issue-id="${r.id}" style="${solidAccentStyle(accent)};">汇报</button>
+            <button type="button" class="btn-accent-soft wo-req-submit text-xs px-3 py-2 flex-shrink-0" data-issue-id="${r.id}" >汇报</button>
           </div>
         </div>`,
     });
@@ -441,7 +441,7 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   container.innerHTML = `
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-3">
-        <button type="button" class="wo-detail-back text-xs px-3 py-1.5 rounded-lg transition-colors hover:bg-gray-100" style="background:var(--neutral-100);color:var(--neutral-700);">← 返回工作概况</button>
+        <button type="button" class="btn-ghost wo-detail-back text-xs px-3 py-1.5" style="background:var(--neutral-100);color:var(--neutral-700);">← 返回工作概况</button>
         <span class="text-xs text-gray-500">${detail.kind === 'activity' ? '活动详情 · 只读知情' : '专班详情 · 只读知情'}</span>
       </div>
       <div id="wo-detail-host"></div>
@@ -453,10 +453,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20260930b');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20260930c');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20260930b');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20260930c');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

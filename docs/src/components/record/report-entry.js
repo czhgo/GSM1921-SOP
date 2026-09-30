@@ -9,11 +9,11 @@
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { showToast } from '../../core/base/utils.js?v=20260930b';
-import { getPersonName } from '../../services/member/person.js?v=20260930b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930b';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { showToast } from '../../core/base/utils.js?v=20260930c';
+import { getPersonName } from '../../services/member/person.js?v=20260930c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930c';
 
 /**
  * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）
@@ -58,19 +58,19 @@ async function openReportModal() {
     <div class="card rounded-xl p-5 w-full" style="max-width:480px;margin:16px;">
       <div class="flex items-center justify-between mb-4">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">一键汇报</h3>
-        <button type="button" class="report-modal-close text-xs text-gray-500 hover:text-gray-600 transition-colors">关闭</button>
+        <button type="button" class="btn-ghost report-modal-close text-xs">关闭</button>
       </div>
       <p class="text-xs text-gray-500 mb-3">汇报将发往支书，答复后发回给你。请选择分类并填写内容。</p>
       <div class="flex items-center gap-2 mb-3">
         ${Object.entries(REPORT_CATEGORIES).map(([key, label]) => `
-          <button type="button" class="report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
+          <button type="button" class="btn-tab report-cat-btn text-xs px-3 py-1.5 rounded-lg transition-all ${key === 'progress' ? 'report-cat-active' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}"
             data-category="${key}">${label}</button>
         `).join('')}
       </div>
       <textarea id="report-modal-body" class="input-flat w-full h-24 resize-none" placeholder="填写汇报内容（进度 / 难点卡点 / 请示事项）…"></textarea>
       <div class="flex justify-end gap-2 mt-3">
-        <button type="button" class="report-modal-close text-xs px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">取消</button>
-        <button id="report-modal-submit" class="text-xs px-4 py-2 rounded-lg text-white" style="background:var(--app-accent);">发出汇报</button>
+        <button type="button" class="btn-outline report-modal-close text-xs px-3 py-2">取消</button>
+        <button id="report-modal-submit" class="btn-ghost text-xs px-4 py-2" style="background:var(--app-accent);">发出汇报</button>
       </div>
     </div>
   `;

@@ -11,9 +11,9 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫：issue-branch.test.mjs（结构层）。
 // ════════════════════════════════════════════════════════════════
 
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
-import { escHtml, showToast } from '../../core/base/utils.js?v=20260930b';
-import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
+import { escHtml, showToast } from '../../core/base/utils.js?v=20260930c';
+import { IssueStore, IssueNotify, deriveIssueDisplayState, REPORT_CATEGORIES, displayNameOf as _displayName } from '../../services/governance/issues.js?v=20260930c';
 
 // ════════════════════════════════════════════════════════════════
 //  「我的处置」Tab 渲染工具（各角色工作台复用）
@@ -132,7 +132,7 @@ export function bindMyDispatchEvents(container, role, userId) {
           ${r.body && r.body !== r.title ? `<p class="text-xs text-gray-600 mt-1">${r.body}</p>` : ''}
           <div class="flex gap-2 mt-2">
             <input type="text" id="report-req-input-${r.id}" class="input-flat flex-1" placeholder="填写汇报内容…">
-            <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors flex-shrink-0">汇报</button>
+            <button data-mydispatch-action="submit-report" data-issue-id="${r.id}" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0">汇报</button>
           </div>
         </div>`,
     });
@@ -260,7 +260,7 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   const hasReply = (issue.comments || []).some(c => c.kind === 'reply');
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -296,11 +296,11 @@ function _renderMyReportDetail(issueId, role, userId, container) {
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100 space-y-2">`;
     if (hasReply) {
-      html += `<button data-mydispatch-action="confirm-received" class="text-xs px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">确认已收到答复</button>`;
+      html += `<button data-mydispatch-action="confirm-received" class="btn-accent-soft text-xs px-4 py-2">确认已收到答复</button>`;
     }
     html += `<div class="flex items-center gap-2">`;
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
+    html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
     html += `</div></div>`;
   }
   html += `</div>`;
@@ -340,7 +340,7 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -376,8 +376,8 @@ function _renderMyDispatchDetail(issueId, role, userId, container) {
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="添加评论…">`;
-    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">评论</button>`;
-    html += `<button data-mydispatch-action="submit-result" class="text-xs px-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors">提交处置结果</button>`;
+    html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">评论</button>`;
+    html += `<button data-mydispatch-action="submit-result" class="btn-accent-soft text-xs px-3 py-2">提交处置结果</button>`;
     html += `</div></div>`;
   }
   html += `</div>`;
@@ -423,7 +423,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   const ds = deriveIssueDisplayState(issue);
 
   let html = `<div class="card rounded-xl p-5">`;
-  html += `<button data-mydispatch-action="back" class="text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1 mb-4">← 返回列表</button>`;
+  html += `<button data-mydispatch-action="back" class="btn-ghost text-xs flex items-center gap-1 mb-4">← 返回列表</button>`;
   html += `<div class="flex items-center gap-2 mb-2">`;
   html += `<h3 class="text-base font-semibold text-gray-800">${issue.title}</h3>`;
   html += `<span class="text-xs px-2 py-0.5 rounded-full ${ds.badgeClass}">${ds.label}</span>`;
@@ -457,7 +457,7 @@ function _renderMyIssueDetail(issueId, role, userId, container) {
   if (issue.status === 'open') {
     html += `<div class="pt-3 border-t border-gray-100"><div class="flex items-center gap-2">`;
     html += `<input type="text" id="mydispatch-comment-input" class="input-flat text-xs flex-1" placeholder="补充说明…">`;
-    html += `<button data-mydispatch-action="comment" class="text-xs px-3 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition-colors">提交说明</button>`;
+    html += `<button data-mydispatch-action="comment" class="btn-neutral text-xs px-3 py-2">提交说明</button>`;
     html += `</div></div>`;
   }
   html += `</div>`;

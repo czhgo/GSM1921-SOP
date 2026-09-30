@@ -8,11 +8,11 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20260930b';
+import { accDarkParts } from '../../core/domain/constants.js?v=20260930c';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20260930b';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20260930c';
 
 
 
@@ -280,7 +280,7 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
     }
 
-    return `${groupHtml}<button type="button" role="tab" aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? 0 : -1}" class="${btnClass}${activeClass} shrink-0 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
+    return `${groupHtml}<button type="button" role="tab" aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? 0 : -1}" class="btn-tab ${btnClass}${activeClass} shrink-0 px-4 py-2 text-xs font-medium rounded-lg transition-colors" ${dataAttr}="${id}"${activeStyle}>${label}</button>`;
 
   }).join('\n');
 

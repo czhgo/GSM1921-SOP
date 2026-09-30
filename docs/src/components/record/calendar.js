@@ -5,11 +5,11 @@
 //  视图模式：月/周/日/列表 四种切换
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState, setState } from '../../core/base/state.js?v=20260930b';
-import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20260930b';
-import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20260930b';
-import { tokenOf } from '../../core/base/version-token.js?v=20260930b'; // P2 视图渲染守卫数据版本（spec §四.2）
-import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20260930b';
+import { getAppState, setState } from '../../core/base/state.js?v=20260930c';
+import { ROLE_COLORS, getActivityColor, ACTIVITY_CATEGORY_COLORS, ACTIVITY_TYPE_LABELS, ACTIVITY_TYPE_SHORT } from '../../core/domain/constants.js?v=20260930c';
+import { _fmtDate, _currentYearMonth } from '../../core/base/utils.js?v=20260930c';
+import { tokenOf } from '../../core/base/version-token.js?v=20260930c'; // P2 视图渲染守卫数据版本（spec §四.2）
+import { filterTasksByManagementRole, activityLifecycleBadgeHtml } from './inspector.js?v=20260930c';
 
 // ── 内联标签深色变量对（与 constants.js _applyDark 生成的 bgDark/textDark/borderDark 配套）──
 // 标签/卡片：三件套（bg/text/border）；纯文字：仅 text；圆点：仅实色提亮（--acc-dot-dark）
@@ -185,7 +185,7 @@ function _renderViewSwitcher(currentView) {
   switcher.innerHTML = `
     <div class="flex items-center gap-1.5">
       ${Object.entries(VIEW_LABELS).map(([key, label]) => `
-        <button class="cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
+        <button class="btn-tab cal-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${key === currentView ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"${key === currentView ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''} data-view="${key}">${label}</button>
       `).join('')}
     </div>
   `;
@@ -327,8 +327,8 @@ function _renderWeekView(grid, activeActivities, tasks, month, state) {
   html += `<span class=" text-sm font-bold text-gray-700">${weekStart.getFullYear()}年 第${_getWeekNumber(weekStart)}周</span>`;
   // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-week-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">上一周</button>`;
-  html += `<button id="cal-week-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">下一周</button>`;
+  html += `<button id="cal-week-prev" class="btn-outline h-8 px-3.5 rounded-l-lg text-xs font-medium">上一周</button>`;
+  html += `<button id="cal-week-next" class="btn-outline h-8 px-3.5 rounded-r-lg text-xs font-medium">下一周</button>`;
   html += `</div></div>`;
 
   html += `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">`;
@@ -395,8 +395,8 @@ function _renderDayView(grid, activeActivities, tasks, month, state) {
   html += `<span class=" text-sm font-bold text-gray-700">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
   // UI-A（2026-09-07）：成对导航连体按钮回退圆角档（保留 h-8 同高、中缝 1px；rounded-l/r-full→lg）
   html += `<div class="inline-flex items-center">`;
-  html += `<button id="cal-day-prev" class="h-8 px-3.5 rounded-l-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">前一天</button>`;
-  html += `<button id="cal-day-next" class="h-8 px-3.5 rounded-r-lg border border-gray-200 border-l-0 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">后一天</button>`;
+  html += `<button id="cal-day-prev" class="btn-outline h-8 px-3.5 rounded-l-lg text-xs font-medium">前一天</button>`;
+  html += `<button id="cal-day-next" class="btn-outline h-8 px-3.5 rounded-r-lg text-xs font-medium">后一天</button>`;
   html += `</div></div>`;
 
   if (dayActivities.length === 0 && allTasks.length === 0) {
@@ -676,7 +676,7 @@ function _showMobileDayDetail(dateKey, activeActivities, tasks, state) {
 
   let html = `<div class="cal-mobile-detail-header">`;
   html += `<span class=" text-sm font-bold text-gray-700">${d.getMonth()+1}月${d.getDate()}日 周${WEEKDAY[d.getDay()]}</span>`;
-  html += `<button id="cal-mobile-detail-close" class="cal-mobile-detail-close">&times;</button>`;
+  html += `<button id="cal-mobile-detail-close" class="btn-ghost cal-mobile-detail-close">&times;</button>`;
   html += `</div>`;
 
   if (dayActivities.length === 0 && filteredTasks.length === 0) {

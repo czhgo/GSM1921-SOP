@@ -11,7 +11,7 @@
 //   · 样式单一源 = styles.css 的 .page-btn / .page-num（本文件只产出标记，不写样式）；
 //   · 页数 ≤1 返回空串 —— 小表零负担（不渲染控件）；
 //   · 计数文案统一「共 N <单位> · 第 x / y 页」。
-import { escHtml as esc } from '../../core/base/utils.js?v=20260930b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260930c';
 
 /**
  * 渲染翻页区 HTML（唯一产出点）
@@ -28,9 +28,9 @@ export function pagerHtml({ page, pages, total, unit }) {
       <div class="flex items-center justify-between pt-3">
         <span class="lf-count">共 ${total} ${esc(unit)} · 第 ${cur} / ${pages} 页</span>
         <div class="flex items-center gap-1.5">
-          <button type="button" class="page-btn" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
-          ${nums.map(n => `<button type="button" class="page-num${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
-          <button type="button" class="page-btn" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
+          <button type="button" class="page-btn btn-tab" data-lf-page="${cur - 1}" ${cur <= 1 ? 'disabled' : ''}>上一页</button>
+          ${nums.map(n => `<button type="button" class="page-num btn-tab${n === cur ? ' is-current' : ''}" data-lf-page="${n}">${n}</button>`).join('')}
+          <button type="button" class="page-btn btn-tab" data-lf-page="${cur + 1}" ${cur >= pages ? 'disabled' : ''}>下一页</button>
         </div>
       </div>`;
 }

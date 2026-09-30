@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20260930b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930b';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260930c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930c';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930c';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20260930b';
+} from '../../../services/member/member-flow.js?v=20260930c';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930c';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -117,8 +117,8 @@ function _flowCardHtml(canRegister) {
         </div>
         ${canRegister ? `
         <div class="flex items-center gap-2">
-          <button id="flow-intake-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 登记流入</button>
-          <button id="flow-outflow-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors whitespace-nowrap" style="cursor:pointer;">登记流出</button>
+          <button id="flow-intake-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 登记流入</button>
+          <button id="flow-outflow-btn" type="button" class="btn-danger text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">登记流出</button>
         </div>` : `
         <span class="text-[11px] text-gray-500">流入 / 流出登记仅限组织委员与支书/副支书；此处只读查看台账</span>`}
       </div>
@@ -164,8 +164,8 @@ async function _loadIaaaPending() {
       <div class="flex items-center justify-between flex-wrap gap-2 text-xs border border-gray-200 rounded-lg px-3 py-2">
         <span class="text-gray-700">${esc(u.name)} <span class="text-gray-500">${esc(u.studentId || '')}</span></span>
         <span class="flex items-center gap-2">
-          <button type="button" class="iaaa-approve text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100" data-person="${esc(u.personId)}" style="cursor:pointer;">确认入站</button>
-          <button type="button" class="iaaa-reject text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100" data-person="${esc(u.personId)}" style="cursor:pointer;">驳回</button>
+          <button type="button" class="btn-accent-soft iaaa-approve text-xs px-3 py-1.5" data-person="${esc(u.personId)}" style="cursor:pointer;">确认入站</button>
+          <button type="button" class="btn-danger iaaa-reject text-xs px-3 py-1.5" data-person="${esc(u.personId)}" style="cursor:pointer;">驳回</button>
         </span>
       </div>`).join('')}</div>`;
   } catch (e) {
@@ -268,8 +268,8 @@ function _openIntakeModal() {
   const groupOpts = ['<option value="">未分组</option>', ...groupOptions().map(g => `<option value="${esc(g)}">${esc(g)}</option>`)].join('');
   const inputStyle = '--acc-text-dark:#CBD5E1;color:var(--neutral-700);';
   const labelStyle = 'display:block;font-weight:500;color:var(--neutral-700);margin-bottom:4px;';
-  const MODE_ON = 'text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200';
-  const MODE_OFF = 'text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50';
+  const MODE_ON = 'btn-tab active text-xs px-3 py-1.5';
+  const MODE_OFF = 'btn-tab text-xs px-3 py-1.5';
   openModal({
     id: 'flow-intake',
     title: '登记流入',
@@ -279,8 +279,8 @@ function _openIntakeModal() {
     settingsLink: { href: `${getBasePath()}settings.html#domain-org`, text: '组织职责参数（学期末滞留集中复核窗口）→ 设置' },
     bodyHtml: `
       <div class="flex items-center gap-2 mb-4">
-        <button type="button" data-intake-mode="single" class="${MODE_ON}" style="cursor:pointer;">单人登记</button>
-        <button type="button" data-intake-mode="batch" class="${MODE_OFF}" style="cursor:pointer;">粘贴多行</button>
+        <button type="button" data-intake-mode="single" class="btn-tab ${MODE_ON}" style="cursor:pointer;">单人登记</button>
+        <button type="button" data-intake-mode="batch" class="btn-tab ${MODE_OFF}" style="cursor:pointer;">粘贴多行</button>
       </div>
       <div data-intake-pane="single">
         <div style="margin-bottom:14px;">
@@ -306,8 +306,8 @@ function _openIntakeModal() {
       </div>
       <div data-intake-errors class="hidden mt-3 text-xs text-red-700"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-        <button type="button" data-intake-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-intake-submit class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accent};cursor:pointer;">登记</button>
+        <button type="button" data-intake-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-intake-submit class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:${accent};cursor:pointer;">登记</button>
       </div>`,
     onMount: (panel) => {
       const errEl = panel.querySelector('[data-intake-errors]');
@@ -401,8 +401,8 @@ function _openOutflowModal() {
       </div>
       <div data-outflow-errors class="hidden mt-3 text-xs text-red-700"></div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-        <button type="button" data-outflow-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-outflow-submit class="text-sm px-4 py-[7px] rounded-lg text-white transition-colors hover:opacity-90 font-medium" style="background:${accent};cursor:pointer;">登记流出</button>
+        <button type="button" data-outflow-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-outflow-submit class="btn-ghost text-sm px-4 py-[7px] font-medium" style="background:${accent};cursor:pointer;">登记流出</button>
       </div>`,
     onMount: (panel) => {
       const errEl = panel.querySelector('[data-outflow-errors]');
@@ -458,8 +458,8 @@ function _askRevoke(flowId) {
         ? '撤销流入 → 该成员移出名册、账号停用'
         : '撤销流出 → 该成员恢复在册、账号恢复'}。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" data-flow-revoke-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-flow-revoke-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--functional-error);cursor:pointer;">确认撤销</button>
+        <button type="button" data-flow-revoke-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-flow-revoke-ok class="btn-ghost text-xs px-3 py-1.5" style="background:var(--functional-error);cursor:pointer;">确认撤销</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-flow-revoke-cancel]')?.addEventListener('click', () => closeModal('flow-revoke-confirm'));

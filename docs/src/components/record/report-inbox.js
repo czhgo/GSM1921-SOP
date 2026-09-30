@@ -8,13 +8,13 @@
 //  本组件禁用 SVG 图标（支书 2026-08-10 裁定），类别用色点+文字标签区分
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { showToast, escHtml } from '../../core/base/utils.js?v=20260930b';
-import { getPersonName } from '../../services/member/person.js?v=20260930b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930b';
+import { IssueStore, deriveIssueDisplayState, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20260930c';
+import { getPersonName } from '../../services/member/person.js?v=20260930c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：待答复汇报列表接入（关键词 事项/汇报人 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
 
 // ── E-3（2026-09-09 · H60.7 面板保态复查③）：列表瞬态草稿互扰兜底 ──────
 // 某行正式答复成功 → onAnswered → 调用方整块重渲染（支书待办/组长组员汇报），
@@ -132,7 +132,7 @@ function _renderInboxDetail(r, accent, draft = '') {
     ${r.status === 'open' ? `
       <div class="flex gap-2 mt-2">
         <input type="text" id="rep-inbox-input-${r.id}" class="input-flat flex-1" value="${escHtml(draft)}" placeholder="添加答复…" aria-label="答复内容">
-        <button type="button" class="rep-inbox-reply text-xs px-3 py-2 rounded-lg text-white hover:opacity-90 transition-opacity flex-shrink-0" data-report-id="${r.id}" style="${solidAccentStyle(accent)};">正式答复</button>
+        <button type="button" class="btn-accent-soft rep-inbox-reply text-xs px-3 py-2 flex-shrink-0" data-report-id="${r.id}" >正式答复</button>
       </div>` : ''}
   `;
 }
@@ -182,7 +182,7 @@ export function bindReportInbox(container, { role = 'secretary', onAnswered = ()
         const rowOpen = !!(ui && ui.open);
         return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
-        <button type="button" class="rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}">
+        <button type="button" class="btn-ghost rep-inbox-toggle w-full flex items-center gap-3 px-3 py-2.5" data-report-id="${r.id}">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>

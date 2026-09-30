@@ -165,8 +165,8 @@ const FAMILY_TOKENS = [
   'btn-accent-soft', 'btn-accent', 'btn-action', 'btn-md', 'btn-tab',
   'btn-neutral', 'btn-outline', 'btn-ghost', 'btn-danger',
 ];
-/** B4 棘轮基线（批次 297-1 实测；**只许下调**） */
-const HANDWRITTEN_BUTTON_BASELINE = 454;
+/** B4 棘轮基线（批次 297-2 全站归一后实测 **0**；**只许下调**） */
+const HANDWRITTEN_BUTTON_BASELINE = 0;
 
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
   const walk = (dir, out = []) => {

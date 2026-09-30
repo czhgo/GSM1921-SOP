@@ -39,34 +39,34 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20260930b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20260930b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930b';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930b';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260930b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20260930c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20260930c';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930c';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930c';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20260930c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930c';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20260930b';
+} from '../../../services/member/party-group.js?v=20260930c';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20260930b';
+} from '../../../services/member/group-view.js?v=20260930c';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
 //   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260930b';
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20260930c';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -214,7 +214,7 @@ function _manageCardHtml(entities, statOf, canManage) {
         <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组清单</h4>
         <div class="flex items-center gap-2">
           <span class="text-xs text-gray-500">${canManage ? '支书/副支书可管理' : '只读查看'}</span>
-          ${canManage ? '<button type="button" class="gp-add-group text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">+ 新增党小组</button>' : ''}
+          ${canManage ? '<button type="button" class="btn-ghost gp-add-group text-xs px-3 py-1.5" style="background:var(--party-red);cursor:pointer;">+ 新增党小组</button>' : ''}
         </div>
       </div>
       <p class="text-xs text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
@@ -243,8 +243,8 @@ function _manageRowHtml(g, stat, canManage) {
   const leader = stat && stat.leaderId ? getPersonName(stat.leaderId) : '—';
   const actions = (canManage && active)
     ? `<div class="flex items-center gap-2">
-        <button type="button" class="gp-rename text-gray-600 hover:text-gray-800 transition-colors" style="cursor:pointer;" data-id="${esc(g.id)}">改名</button>
-        <button type="button" class="gp-dissolve text-red-600 hover:text-red-700 transition-colors" style="cursor:pointer;" data-id="${esc(g.id)}">解散</button>
+        <button type="button" class="btn-ghost gp-rename" style="cursor:pointer;" data-id="${esc(g.id)}">改名</button>
+        <button type="button" class="btn-ghost gp-dissolve" style="cursor:pointer;" data-id="${esc(g.id)}">解散</button>
       </div>`
     : '<span class="text-gray-500">—</span>';
   return `
@@ -266,7 +266,7 @@ function _historyCardHtml(history) {
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">变更留痕 <span class="text-xs text-gray-500 font-normal">${history.length} 条</span></h4>
-        <button type="button" class="gp-history-toggle text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;">${_historyOpen ? '收起' : '展开最近 10 条'}</button>
+        <button type="button" class="btn-ghost gp-history-toggle text-xs" style="cursor:pointer;">${_historyOpen ? '收起' : '展开最近 10 条'}</button>
       </div>
       ${_historyOpen ? `<div class="mt-2.5 pt-2.5 border-t border-gray-100 divide-y divide-gray-50">
         ${rows.map(_historyRowHtml).join('')}
@@ -300,7 +300,7 @@ function _progressSectionHtml(viewGroups, group, members, activities, reviews, a
     <div class="card rounded-xl p-4">
       <div class="flex items-center justify-between mb-1">
         <h4 class="font-title-cn text-sm font-bold text-gray-700">跨组进展（只读知情）</h4>
-        <button type="button" class="gp-progress-toggle text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;">${_progressOpen ? '收起' : '展开跨组进展'}</button>
+        <button type="button" class="btn-ghost gp-progress-toggle text-xs" style="cursor:pointer;">${_progressOpen ? '收起' : '展开跨组进展'}</button>
       </div>
       <p class="text-xs text-gray-500 mb-2.5">支书跨组只读掌握（知情≠操作）：组员汇报 / 复盘状态 / 活动与考勤。点右上「展开跨组进展」查看。</p>
       ${_progressOpen ? `<div class="space-y-4">
@@ -339,7 +339,7 @@ function _groupCardHtml(g, activeGroup, issues) {
   const isActive = g.groupName === activeGroup.groupName;
   const openCount = _issuesLoaded ? countOpenReportsByGroup(issues, g) : null;
   return `
-    <button type="button" class="gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
+    <button type="button" class="btn-ghost gp-group-card text-left rounded-xl border p-3 transition-colors ${isActive ? '' : 'bg-white hover:bg-gray-50'}"
       data-group="${esc(g.groupName)}"
       style="${isActive ? 'border-color:var(--app-accent-border);background:var(--app-accent-bg);' : 'border-color:var(--neutral-100);'}">
       <div class="flex items-center justify-between gap-2">
@@ -423,7 +423,7 @@ function _renderReportsList(hostEl, group, allIssues) {
       const st = _reportRowState(r);
       const submitterName = getPersonName(r.submittedBy) || '匿名';
       const askBtn = _canAskLeader(r, group)
-        ? `<button type="button" class="gp-ask-leader text-xs px-2.5 py-1 rounded-lg shrink-0 bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+        ? `<button type="button" class="btn-accent-soft gp-ask-leader text-xs px-2.5 py-1 shrink-0"
              data-note="${esc(`本组组员汇报待跟进：${submitterName} · ${r.title}`)}">请组长关注</button>`
         : '';
       return `
@@ -704,8 +704,8 @@ function _onAskLeader(container, btn) {
 }
 
 // ── 管理动作（新增 / 改名 / 解散；权限门 = canManagePartyGroups 单一源） ──
-const BTN_CANCEL = 'text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors';
-const BTN_PRIMARY = 'text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90';
+const BTN_CANCEL = 'btn-neutral text-xs px-3 py-1.5 transition-colors';
+const BTN_PRIMARY = 'btn-accent text-xs px-3 py-1.5 transition-colors';
 
 function _openAddGroupModal(container) {
   const defName = defaultGroupName(nextGroupSeq()); // 默认名与服务层同源（第 N 党小组）
@@ -723,8 +723,8 @@ function _openAddGroupModal(container) {
         <p class="text-xs text-gray-500">同一支部内活组组名不得重复；成立后可在清单行「改名」，成员在页面顶部「未分组」一行逐个归组。</p>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-add-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-add-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">新增</button>
+        <button type="button" id="gp-add-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-add-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">新增</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-add-cancel')?.addEventListener('click', () => closeModal('gp-add-group'));
@@ -758,8 +758,8 @@ function _openRenameModal(container, id) {
         <p class="text-xs text-gray-500">改名将同步改写该组全部成员的档案归属（原「${esc(g.name)}」下的成员一并改为新组名），相关活动与考勤口径随之对齐。</p>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-rename-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-rename-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">保存</button>
+        <button type="button" id="gp-rename-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-rename-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-rename-cancel')?.addEventListener('click', () => closeModal('gp-rename'));
@@ -798,8 +798,8 @@ function _openDissolveModal(container, id) {
         <input type="text" id="gp-dissolve-note" class="input-flat w-full" placeholder="如：并入其它党小组 / 成员重新分组">
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" id="gp-dissolve-cancel" class="${BTN_CANCEL}" style="cursor:pointer;">取消</button>
-        <button type="button" id="gp-dissolve-confirm" class="${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">确认解散</button>
+        <button type="button" id="gp-dissolve-cancel" class="btn-neutral ${BTN_CANCEL}" style="cursor:pointer;">取消</button>
+        <button type="button" id="gp-dissolve-confirm" class="btn-accent ${BTN_PRIMARY}" style="background:var(--party-red);cursor:pointer;">确认解散</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('#gp-dissolve-cancel')?.addEventListener('click', () => closeModal('gp-dissolve'));

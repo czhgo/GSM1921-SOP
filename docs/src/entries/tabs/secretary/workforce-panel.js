@@ -7,15 +7,15 @@
 //      已通过=可采纳；未达出席门槛/有反对=采纳禁用（去表决再议）。
 // 表决 UI 复用既有 agenda-votes 资产；本面板不重复实现投票。
 
-import { escHtml as esc, showToast, getBasePath } from '../../../core/base/utils.js?v=20260930b';
-import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20260930b';
-import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930b';
-import { PersonStore } from '../../../services/member/person.js?v=20260930b';
+import { escHtml as esc, showToast, getBasePath } from '../../../core/base/utils.js?v=20260930c';
+import { WORK_MAP_MODULES, WORK_MAP_TIER_LABELS, canDisableModule } from '../../../core/domain/work-map.js?v=20260930c';
+import { BRANCH_COMMISSION_ROLES, ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930c';
+import { PersonStore } from '../../../services/member/person.js?v=20260930c';
 import {
   createWorkforceProposalActivity, listWorkforceProposals, adoptWorkforceProposal,
   getWorkforceVoteOutcome, ownerDisplay,
-} from '../../../services/branch/workforce.js?v=20260930b';
-import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930b';
+} from '../../../services/branch/workforce.js?v=20260930c';
+import { getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930c';
 
 const DRAFT_KEY = 'gsm1921-workforce-draft'; // 本机草稿（**仅本机·不上服务端**：未提交的拟定分工，属该设备上未完成的工作；白名单见 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md）
 
@@ -75,7 +75,7 @@ function _rowHtml(branchId, workforce, moduleId, ownerVal) {
     <div class="wf-row flex items-center gap-2">
       <select class="wf-module input-flat text-xs min-w-[200px]">${moduleOpts}</select>
       <select class="wf-owner input-flat text-xs min-w-[160px]"><option value="">新负责人…</option>${_ownerOptionsHtml()}</select>
-      <button type="button" class="wf-row-del px-2 py-1 rounded-lg text-xs text-gray-500 hover:text-red-700 hover:bg-red-50" title="删除此行">删除</button>
+      <button type="button" class="btn-ghost wf-row-del px-2 py-1 text-xs" title="删除此行">删除</button>
     </div>`;
 }
 // ownerVal 回填：在 _fillRow 中以 JS 赋值（避免模板注入）
@@ -154,8 +154,8 @@ function _proposalCards(proposals, outcomesByAct) {
         <div class="shrink-0 flex flex-col gap-1.5 items-end">
           <a href="./party-committee-meeting.html?id=${a.id}" class="px-2.5 py-1 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50">去表决</a>
           ${!adopted ? (adoptable
-            ? `<button type="button" class="wf-adopt px-2.5 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700" data-id="${a.id}">采纳生效</button>`
-            : `<button type="button" class="wf-adopt-disabled px-2.5 py-1 rounded-lg text-xs text-gray-500 border border-gray-200 cursor-not-allowed" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
+            ? `<button type="button" class="btn-danger-solid wf-adopt px-2.5 py-1 text-xs font-medium" data-id="${a.id}">采纳生效</button>`
+            : `<button type="button" class="btn-outline wf-adopt-disabled px-2.5 py-1 text-xs" data-id="${a.id}" title="票决通过（应到超过 2/3 出席且无反对）后方可采纳">采纳生效</button>`) : ''}
         </div>
       </div>`;
   }).join('');
@@ -171,7 +171,7 @@ export async function mountWorkforcePanel(branchId, hostEl) {
   header.className = 'flex items-center gap-2 mb-2 mt-4';
   header.innerHTML = `
     <p class="font-title-cn text-sm font-bold text-gray-800">分工调整（走支委会议题）</p>
-    <button type="button" id="wf-open" class="ml-auto px-3 py-1 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">＋ 发起调整</button>`;
+    <button type="button" id="wf-open" class="btn-danger-solid ml-auto px-3 py-1 text-xs font-medium">＋ 发起调整</button>`;
   const body = document.createElement('div');
   body.id = 'workforce-panel-body';
   // 发起表单区独立于议题列表容器：renderBody 重建列表时不触碰表单 DOM——
@@ -198,13 +198,13 @@ export async function mountWorkforcePanel(branchId, hostEl) {
         </div>
         ${draft ? `<div class="flex items-center gap-2 text-[11px] text-gray-500 bg-white/70 rounded-lg px-2.5 py-1.5">
             <span>有草稿（${new Date(draft.updatedAt || Date.now()).toLocaleString('zh-CN', { hour12: false }).slice(0, 16)} 保存）：</span>
-            <button type="button" id="wf-load-draft" class="px-2 py-0.5 rounded-lg text-red-700 border border-red-200 hover:bg-red-50">载入编辑</button>
-            <button type="button" id="wf-del-draft" class="px-2 py-0.5 rounded-lg text-gray-500 hover:text-red-600">删除草稿</button>
+            <button type="button" id="wf-load-draft" class="btn-outline px-2 py-0.5">载入编辑</button>
+            <button type="button" id="wf-del-draft" class="btn-ghost px-2 py-0.5">删除草稿</button>
           </div>` : ''}
         <div id="wf-rows" class="flex flex-col gap-2">
           ${draftRows.length ? '' : '<div class="wf-empty-note text-[11px] text-gray-500">至少一行（模块 → 新负责人）</div>'}
         </div>
-        <button type="button" id="wf-add-row" class="self-start text-[13px] px-2.5 py-1 rounded-lg border border-red-200 text-red-700 hover:bg-red-50">＋ 加一行</button>
+        <button type="button" id="wf-add-row" class="btn-outline self-start px-2.5 py-1">＋ 加一行</button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           <label class="flex flex-col gap-1 text-xs text-gray-500">支委会日期
             <input id="wf-date" type="date" value="${esc(date)}" class="input-flat text-xs">
@@ -214,9 +214,9 @@ export async function mountWorkforcePanel(branchId, hostEl) {
           </label>
         </div>
         <div class="flex justify-end gap-2">
-          <button type="button" id="wf-save-draft" class="px-3 py-1.5 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-100">存草稿</button>
-          <button type="button" id="wf-cancel" class="px-3 py-1.5 rounded-lg text-xs text-gray-600 hover:bg-gray-100">收起</button>
-          <button type="button" id="wf-submit" class="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-red-600 hover:bg-red-700">直接发起支委会议题</button>
+          <button type="button" id="wf-save-draft" class="btn-outline px-3 py-1.5 text-xs">存草稿</button>
+          <button type="button" id="wf-cancel" class="btn-ghost px-3 py-1.5 text-xs">收起</button>
+          <button type="button" id="wf-submit" class="btn-danger-solid px-3 py-1.5 text-xs font-medium">直接发起支委会议题</button>
         </div>
       </div>`;
 

@@ -1,21 +1,21 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20260930b';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930b';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { loadActivities } from '../../services/activity/activity.js?v=20260930b';
-import { PEOPLE } from '../../data/mock/people.js?v=20260930b';
+import { icon } from '../../core/base/icons.js?v=20260930c';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20260930c';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930c';
+import { PEOPLE } from '../../data/mock/people.js?v=20260930c';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20260930b';
+} from '../../services/branch/branch-doc.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
 
 const SITE_GROUPS = [
   {
@@ -434,8 +434,8 @@ export class ReferencesModule {
     const downloadAttr = downloadable ? `download="${_esc(d.fileName || d.title || '文件')}"` : '';
     const fileTarget = d.filePath ? 'target="_blank" rel="noopener noreferrer"' : '';
     const actions = ReferencesModule._isCommissioner ? `
-      <button type="button" class="ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
-      <button type="button" class="ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
+      <button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改</button>
+      <button type="button" class="btn-ghost ref-doc-action-btn ref-doc-action-danger" data-action="delete" data-id="${_esc(d.id)}">删除</button>
     ` : '';
     return `
       <div class="ref-doc-item" data-id="${_esc(d.id)}">
@@ -472,12 +472,12 @@ export class ReferencesModule {
     let actions = '';
     if (ReferencesModule._isInstitutionManager) {
       if (isDraft) {
-        actions += `<button type="button" class="ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
+        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="edit" data-id="${_esc(d.id)}">修改草案</button>`;
       } else if (isCurrent) {
-        actions += `<button type="button" class="ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
-        actions += `<button type="button" class="ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
+        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="publish-version" data-id="${_esc(d.id)}">上传新版</button>`;
+        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="disable" data-id="${_esc(d.id)}">停用</button>`;
       } else if (d.status === 'disabled') {
-        actions += `<button type="button" class="ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
+        actions += `<button type="button" class="btn-ghost ref-doc-action-btn" data-action="enable" data-id="${_esc(d.id)}">重新启用</button>`;
       }
       // 「待党员大会表决」态不出操作：下一步在支部党员大会议程上（既有会议议程），本列表不另开入口
     }
@@ -521,9 +521,9 @@ export class ReferencesModule {
           </div>
         </div>
         <div style="display:flex;gap:6px;margin-top:6px;">
-          <button type="button" class="ref-doc-action-btn" data-toggle-panel="ref-read-${uid}" data-label-close="阅读正文" data-label-open="收起正文">阅读正文</button>
+          <button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-read-${uid}" data-label-close="阅读正文" data-label-open="收起正文">阅读正文</button>
           ${histCount > 0
-            ? `<button type="button" class="ref-doc-action-btn" data-toggle-panel="ref-hist-${uid}" data-label-close="历史版本 (${histCount})" data-label-open="收起历史">历史版本 (${histCount})</button>`
+            ? `<button type="button" class="btn-ghost ref-doc-action-btn" data-toggle-panel="ref-hist-${uid}" data-label-close="历史版本 (${histCount})" data-label-open="收起历史">历史版本 (${histCount})</button>`
             : ''}
         </div>
         <div id="ref-read-${uid}" class="hidden" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--neutral-100);">
@@ -724,8 +724,8 @@ export class ReferencesModule {
         <div id="ref-modal-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-modal-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg transition-colors" style="color:var(--neutral-500);">取消</button>
-        <button id="ref-modal-confirm" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--primary-700);">${editing ? '保存' : '写入'}</button>
+        <button id="ref-modal-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5" style="color:var(--neutral-500);">取消</button>
+        <button id="ref-modal-confirm" type="button" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--primary-700);">${editing ? '保存' : '写入'}</button>
       </div>
     `;
 
@@ -872,8 +872,8 @@ export class ReferencesModule {
         <div id="ref-pub-status" class="hidden text-xs rounded-lg px-3 py-2"></div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3" style="border-top:1px solid var(--neutral-200);">
-        <button id="ref-pub-cancel" type="button" class="text-xs px-3 py-1.5 rounded-lg transition-colors" style="color:var(--neutral-500);">取消</button>
-        <button id="ref-pub-confirm" type="button" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--primary-700);">发布新版</button>
+        <button id="ref-pub-cancel" type="button" class="btn-ghost text-xs px-3 py-1.5" style="color:var(--neutral-500);">取消</button>
+        <button id="ref-pub-confirm" type="button" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--primary-700);">发布新版</button>
       </div>
     `;
 

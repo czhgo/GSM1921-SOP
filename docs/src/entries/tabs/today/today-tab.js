@@ -12,20 +12,20 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930b';
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930b';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930c';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930c';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930b';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930b';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260930b'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930b'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930b'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930b'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930c';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930c';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260930c'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930c'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930c'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930c'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930c';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -72,13 +72,13 @@ function _count(n) {
 
 /** 每块右上「全部」小链接（点击经 onNav 跳对应 tab；onNav 未提供时为空操作，便于独立预览） */
 function _allBtn(kind) {
-  return `<button type="button" class="today-all text-[13px] text-gray-500 hover:text-gray-600 transition-colors flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
+  return `<button type="button" class="btn-ghost today-all flex-shrink-0" data-today-all="${kind}">全部 ›</button>`;
 }
 
 /** 今天有会（左大块 C 排法）：时间 / 名称 / 类型 行；点击 → activity.html */
 function _meetingRows(items) {
   return items.map(m => `
-    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 px-3 py-2"
       data-go="activity" data-act-id="${esc(m.activityId)}" title="${esc(m.title || '')}">
       <span class="text-[11px] tabular-nums text-gray-500 w-11 flex-shrink-0">${esc(m.start || '—')}</span>
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
@@ -105,7 +105,7 @@ function _todoRows(items, overdue) {
   const dot = overdue ? 'background:var(--functional-error);' : 'background:#9CA3AF;';
   const dateCls = overdue ? 'text-red-600 font-medium' : 'text-gray-500';
   return items.map(t => `
-    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 px-3 py-2"
       data-go="todo" title="${esc(t.title || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="${dot}"></span>
       <span class="text-sm flex-1 min-w-0 truncate ${titleCls}">${esc(t.title || '未命名待办')}</span>
@@ -136,7 +136,7 @@ function _dueBlock(s) {
  *  今天的活动里我负责的分工；点击 → 所在活动详情 activity.html */
 function _dutyRows(items) {
   return items.map(d => `
-    <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+    <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 px-3 py-2"
       data-go="activity" data-act-id="${esc(d.activityId)}" title="${esc(d.activityTitle || '')}">
       <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>
       <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(d.activityTitle || '未命名活动')}</span>
@@ -166,7 +166,7 @@ function _todoSummaryBlock(s) {
         <h3 class="font-title-cn text-sm font-bold text-gray-700">本岗待办${_count(t.total)}</h3>
         ${_allBtn('todo')}
       </div>
-      <button type="button" class="today-go w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-left cursor-pointer"
+      <button type="button" class="btn-ghost today-go w-full flex items-center gap-2 px-3 py-2"
         data-go="todo" title="前往待办处理">
         <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${t.overdue ? 'var(--functional-error)' : 'var(--neutral-400)'};"></span>
         <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">逾期 ${t.overdue} · 今日到期 ${t.dueToday} · 待办合计 ${t.total}</span>
@@ -192,17 +192,17 @@ function _allEmptyHtml(activityEntry = '') {
  *  （同 _dutyBlock：h3 ＋ 带圆点的行按钮，点击复用既有 `.today-go` 约定），不新造第三种视觉；
  *  文案「建活动 / 看日历」共 6 字（≤60 字，DESIGN_SYSTEM §4.18 C1）。 */
 function _activityEntryBlock() {
-  const rowBtn = 'today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm text-gray-800 cursor-pointer';
+  const rowBtn = 'btn-ghost today-go flex-1 flex items-center justify-center gap-1.5 px-3 py-2 transition-colors text-sm';
   return `
     <div>
       <div class="flex items-center justify-between mb-2">
         <h3 class="font-title-cn text-sm font-bold text-gray-700">活动管理</h3>
       </div>
       <div class="flex items-center gap-2">
-        <button type="button" class="${rowBtn}" data-go="create-activity" title="新建活动（打开既有「写入活动」表单）">
+        <button type="button" class="btn-ghost ${rowBtn}" data-go="create-activity" title="新建活动（打开既有「写入活动」表单）">
           <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${ACCENT};"></span>建活动
         </button>
-        <button type="button" class="${rowBtn}" data-go="activities" title="打开活动日历（日历仍显示全部活动）">
+        <button type="button" class="btn-ghost ${rowBtn}" data-go="activities" title="打开活动日历（日历仍显示全部活动）">
           <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-gray-400"></span>看日历
         </button>
       </div>
@@ -272,8 +272,8 @@ function _leaderSemesterRemindHtml(personId) {
           <p class="text-xs text-gray-600 leading-relaxed mt-1">本组组员本学期进展由系统汇总（思想汇报 / 考察 / 复盘 / 在办事项），无需逐人手工归集；缺漏项以「需跟进」人数示出，进「组员进展」可看逐人明细。</p>
           <p class="text-xs text-gray-700 mt-1.5" data-lsr-facts>正在汇总…</p>
           <div class="flex flex-wrap items-center gap-2 mt-2.5">
-            <button type="button" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium transition-colors hover:opacity-90" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」看汇总</button>
-            <button type="button" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-lsr-act="later">本学期已处理，不再提醒</button>
+            <button type="button" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:${ACCENT};" data-lsr-act="go">去「组员进展」看汇总</button>
+            <button type="button" class="btn-outline text-xs px-3 py-1.5" data-lsr-act="later">本学期已处理，不再提醒</button>
             <!-- 就近深链（2026-09-17 支书已裁）：本条提醒的开关就是本域可调参数，就地给去设置该分区的入口 -->
             <a href="./settings.html#domain-leader" class="text-xs text-gray-500 hover:text-gray-700 underline transition-colors">本条提醒开关 → 组长职责参数（设置）</a>
           </div>

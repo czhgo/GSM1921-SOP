@@ -16,10 +16,10 @@
 //     人维无论落在行（byPerson）还是列（byItem）都按同一页切片——转置只换视角，不换分页口径。
 //   · 视图与「是否展开全部列」按 stateKey 持久（跨重渲染不丢，与统一检索引擎同一状态纪律）。
 //   · 载体单一源：表格用 .data-table；切换/展开钮用 .lf-btn；不为矩阵新造一套样式（styles.css 是禁改文件）。
-import { escHtml as esc } from '../../core/base/utils.js?v=20260930b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260930c';
 // 翻页控件单一源（批次 38）：矩阵的人维分页与统一检索引擎共用同一套 .page-btn / .page-num 标记
 // （叶子件 pager.js——不经 list-filter 引入，避免 list-filter→inspector→vote-summary-panel 与本节成环）
-import { pagerHtml } from './pager.js?v=20260930b';
+import { pagerHtml } from './pager.js?v=20260930c';
 
 /** 项目维缺省列上限（最近 N 项） */
 export const MATRIX_COL_LIMIT = 6;
@@ -126,7 +126,7 @@ export function renderRelationMatrix(host, cfg) {
       ${(overLimit || hint) ? `
         <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
           <span class="text-xs text-gray-500">${esc(hint)}</span>
-          ${overLimit ? `<button type="button" class="lf-btn rm-toggle" data-rm-toggle="1">
+          ${overLimit ? `<button type="button" class="btn-tab lf-btn rm-toggle" data-rm-toggle="1">
             ${st.showAll ? `只看最近 ${colLimit} 项` : `显示全部 ${items.length} 项`}
           </button>` : ''}
         </div>` : ''}

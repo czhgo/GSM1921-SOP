@@ -65,8 +65,8 @@ export function renderInsightView(container, opts = {}) {
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs text-gray-500">全支部一览 · 点击条目查看详情（只读）</span>
         <div class="flex items-center gap-2">
-          <button type="button" class="insight-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200" data-iview="activity">活动</button>
-          <button type="button" class="insight-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200" data-iview="taskforce">专班</button>
+          <button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="activity">活动</button>
+          <button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="taskforce">专班</button>
         </div>
       </div>
       <div id="insight-seg-body"></div>`;
@@ -87,12 +87,12 @@ export function renderInsightView(container, opts = {}) {
   container.querySelector('#insight-seg-body').replaceWith(body);
 
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20260930b').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20260930c').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20260930b').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20260930c').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

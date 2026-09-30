@@ -21910,3 +21910,22 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 **⚠ 环境说明（如实登记）**：全量跑到收尾时，Playwright 的 `chrome-headless-shell` 会往 `C:\Users\…\AppData\Local\ms-playwright\…\chrome-headless-shell-win64\debug.log` 落笔，被本机沙箱判 **restricted** ⇒ **外层 shell 退出码 1**；但**测试本体已跑完且逐条全绿**（日志 TAP 尾行 `# tests 899` / `# pass 899` / `# fail 0`）。**判据取「TAP 尾行」而非「退出码」**；若要退出码干净，须在「设置 → 权限与审批 → 自定义配置」放行该路径。
 **戳**：`20260930a → 20260930b`（实测 `JS 217 / HTML 22 / CSS 2 / server-test 87`，陈旧戳 **0**）。
 **提交**：`9ae30123`（**未 push**）。**下一批**：`297-2` 逐屏迁移（454 → 0，迁一屏即下调基线 ＋ 删白名单对应条目）。
+
+## 批次 297-2（2026-09-30）：**按钮「全面归一」完成（454 → 0）＋ 界面四问四裁落地**（`D-709`）
+
+**来源**：支书令「执行批次 297-2 和 298！！」＋ 界面四问的 `AskUserQuestion` 四答 ⇒ ① **主操作底色：实底只给页面唯一主 CTA，行内 / 重复动作走淡底或文字族**；② **页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位**；③ **减负路线：先按母本查可合并 tab、出候选清单再裁**（本轮不落地界面改动）；④ **节奏：本批一次迁完 454 处**。
+**侦查（提问前先取准）**：`docs/src/**` 有 class 的 `<button>` 共 **521** 枚 ＝ 已入族 **67** ＋ 未入族 **454**（＝ B4 基线）；未入族者 **317 个不同 class 串**、分布于 9 个目录（`entries/tabs` 271 · `components/governance` 60 · `components/record` 52 · `entries/pages` 20 · `components/feedback` 16 · `components/sections` 13 · `components/ui` 13 · `components/shell` 8 · `services/governance` 1）。
+**执行（三步走，脚本均一次性、跑完即删）**：① 机械迁移（`.btn-normalize.mjs`）——按「先分层再定族」表把彩色实底 / 灰底 / 白底灰描边 / 纯文字 / 分段页签分别归 `btn-accent(-soft)` / `btn-neutral` / `btn-outline` / `btn-ghost` / `btn-tab`（**hook 类与尺寸类逐字保留**），一次落 **394** 处；② 定点修补（`.btn-inline-fix.mjs`）——把 **41** 处「外观由内联 `solidAccentStyle` 驱动」者由误判的 `btn-ghost` **纠正为 `btn-accent-soft` / `btn-accent` 并抽掉内联强调色**；③ 收口补字面族令牌（`.btn-insert.mjs`）——剩余 **58** 处「模板变量 / 状态分支 / 私有控件」按表在 class 属性上补**字面**族名（`B4` 只看字面文本）。
+**结果**：`B4` 未入族 **454 → 0**（棘轮基线随后由 `454` 下调为 **0** 并锁死）；`B2` 尺寸档保持 **0**；**82 文件 / +433 −433 行**（对称改写 class 串）。
+**成文**：`DESIGN_SYSTEM §4.1` 新增 **`#### 何时用哪族`**（一屏对比度最高者只允许一枚 / 同 class 同屏 ≥2 次不得实底 / 页头编排 / **rule H** / 不动 hook 与尺寸类）；改准两处族定义——**`.btn-outline` 由「白底＋主题色描边」改准为「中性描边」**（全站最常见的一类原先无族可归）、**新增 `.btn-danger-solid`**（族 7 实底变体）；族类统一补 `cursor: pointer`（迁移把 `cursor-pointer` 工具类并入族，避免指针丢失）。
+**⚑ 自纠（本批最重要的教训）**：首轮机械迁移把 **39 处**「外观由内联 `solidAccentStyle` 驱动」的按钮误判为 `btn-ghost` —— 属**「为过守卫而加类」**（类在、观感却来自内联）。**⇒ 立判据：凡 `<button>` 的 `style` 带 `solidAccentStyle` / `--acc-bg` 者，只加族类不算迁移，必须同时抽内联。**
+**⚑ 另修两处自伤**：迁移致 `todo-list.js` 出现 `${actionBtnStyle ||}` **语法错**（`module-load::E1` 红）已修；**10 条深色 hover 覆盖**（`hover:text-gray-800` 等）因全部引用消失成死码 ⇒ 按「死码应删」删掉该 10 行；**4 条族谱白名单条目**已能字面命中 ⇒ 删除（`Z2`/`Z3` 复绿）。
+**⚠ 未做（如实，不得读成已办）**：① **`galleryFeatured` / `galleryPinned` 尚未登记进 `DATA_MODEL.md §2.1`**（须与 `README-server.md` 行号同批平移）；② ③ 的**可合并 tab 候选清单未出**。
+
+## 批次 298（2026-09-30）：**活动风采「置顶」**（`D-710`）
+
+**来源**：支书 2026-09-30 裁定「排序＝**加『置顶』**」（批次 296 三答之一）。
+**改动**：① 主源新增字段 **`galleryPinned`**（＋ `galleryPinnedBy` / `galleryPinnedAt` 留痕）；② 写口**单一源** ＝ `docs/src/services/activity/activity.js::setGalleryPinned`（**与收录同一道门** `GALLERY_FEATURED_BY_ROLES` ＝ 宣传委员 ＋ 支书 / 副支书；**未收录者不许置顶**）；③ `docs/src/entries/tabs/prop/archive-tab.js` 的「档案归档 · 活动风采」**已收录行新增「置顶 / 取消置顶」开关**（容器委托、列表重绘后仍有效），并把该列表 sort 改为 **置顶 ＞ 已收录 ＞ 日期倒序**；④ `docs/src/components/dashboard/gallery.js` 首页风采 sort 改为 **置顶 ＞ 未完成 ＞ 已完成**（组内按日期倒序）——**两处同判据**；⑤ **撤下收录时一并清掉置顶**（`setGalleryFeatured({on:false})` 同步写 `galleryPinned:false` / `By:null` / `At:null`），避免「未收录却挂着置顶」的悬空态；⑥ 演示种子 `docs/src/data/mock/activities.js` 的 `act-16` 置顶一条（静态只读演示下亦可见排序效果）。
+**验证**：`module-load`（E1/E2）＋ `dead-selector`（Z1–Z4）＋ `button-system`（B1/B2/B4）＋ `doc-consistency`（S1–S16）＋ `version-stamp` ＋ `hex-hardcode` ＋ `control-font` ＋ `small-text` ＋ `text-tier` ＋ `timestamps-note` —— **合计 100/100 绿**（含本批新增口径行的 `S14` 四处同刷对账）。
+**戳**：`20260930b → 20260930c`。
+**提交**：待提交（**未 push**）。

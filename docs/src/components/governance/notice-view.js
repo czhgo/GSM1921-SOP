@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
-import { openFormModal } from '../ui/modal.js?v=20260930b';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20260930b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260930b';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260930b';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260930b';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
+import { openFormModal } from '../ui/modal.js?v=20260930c';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20260930c';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260930c';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260930c';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260930c';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';
@@ -95,7 +95,7 @@ export function renderNoticeList(containerId, limit = 5, opts = {}) {
         <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">${n.content}</p>
       </div>
       <div class="flex items-center gap-1 whitespace-nowrap mt-0.5">
-        ${!n.read ? `<button class="notice-confirm-read text-xs px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors" data-notice-id="${n.id}">确认读取</button>` : ''}
+        ${!n.read ? `<button class="btn-outline notice-confirm-read text-xs px-2.5 py-1" data-notice-id="${n.id}">确认读取</button>` : ''}
         <span class="text-xs text-gray-500">${n.publishDate}</span>
       </div>
     </div>`;
@@ -180,7 +180,7 @@ function _showNoticePopover(notice, triggerBtn) {
           ${notice.source === 'committee' ? committeeSourceChip() : ''}
           <h3 class="font-title-cn text-sm font-semibold text-gray-800">${notice.title}</h3>
         </div>
-      <button id="notice-popover-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="notice-popover-close" class="btn-ghost text-sm leading-none">&times;</button>
     </div>
     <div class="text-xs text-gray-500 mb-3">${notice.publishDate || ''}</div>
     <div class="text-sm text-gray-700 leading-relaxed mb-4 whitespace-pre-wrap">${notice.content || '无内容'}</div>
@@ -190,8 +190,8 @@ function _showNoticePopover(notice, triggerBtn) {
       ? '<div class="text-[11px] text-gray-500 mb-3 leading-5">本次会议可申报<b>能否线上参会</b>——请点通知标题打开详情页，在「确认读取」时填写（线上参会记请假、不计出席、不补课）。</div>'
       : ''}
     <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-      <button id="notice-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="notice-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">确认已读</button>
+      <button id="notice-popover-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="notice-popover-confirm" class="btn-accent-soft text-xs px-3 py-1.5">确认已读</button>
     </div>
   `;
 

@@ -2,18 +2,18 @@
 // 参与者工作台 Tab：我的考察（T-279 M3 拆分，照 M2 样板）
 // 个人考察记录查询视图（spec §五 数据访问规则：支部成员对自己的历次活动参与考察情况有查询视图）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：成员台非支委层 ⇒ 待批活动
 // 不在本页「考察申诉选活动」下拉里出现。
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260930b';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20260930b';
-import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20260930b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { ROLE_COLORS } from '../../../core/domain/constants.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260930c';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20260930c';
+import { inspectionToDisplay, createInspectionAppeal, loadInspectionAppeals } from '../../../services/activity/inspection.js?v=20260930c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { ROLE_COLORS } from '../../../core/domain/constants.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260930c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -65,7 +65,7 @@ export function renderContent(ctx) {
           ${_acts.map(a => `<option value="${a.id}">${esc(a.title)}（${a.date}）</option>`).join('')}
         </select>
         <input type="text" id="visitor-insp-appeal-note" class="input-flat text-xs flex-1" style="min-width:200px;" placeholder="说明（什么情况）">
-        <button type="button" id="visitor-insp-appeal-submit" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" style="cursor:pointer;">提交给纪检委员</button>
+        <button type="button" id="visitor-insp-appeal-submit" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer;">提交给纪检委员</button>
       </div>
       ${myAppealsHtml}
     </div>

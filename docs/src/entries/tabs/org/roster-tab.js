@@ -42,30 +42,30 @@
 //    支书确认生效时先 roster.saveResidenceChange（RESIDENCE_KEY 覆盖 + 留痕）→ 再 saveMember 镜像进档案。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20260930b';
-import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20260930b';
-import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20260930b';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { getRosterStats, getResidenceOf } from '../../../services/member/roster.js?v=20260930c';
+import { listPendingConfirmations } from '../../../services/member/member-confirmation.js?v=20260930c';
+import { DEVELOP_STAGE_OPTIONS } from '../../../services/branch/org-base-data-preview.js?v=20260930c';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）
-import { groupOptions } from '../../../services/member/party-group.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
+import { groupOptions } from '../../../services/member/party-group.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20260930b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930b';
-import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20260930b';
+import { ROLE_LABELS, RESIDENCE } from '../../../core/domain/constants.js?v=20260930c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930c';
+import { openModal, closeModal, openFormModal } from '../../../components/ui/modal.js?v=20260930c';
 // 统一成员档案编辑模态（成员名册行内「编辑」入口；模态内按字段分流：档案属性立即生效 / 制度变更报支书确认）
-import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20260930b';
+import { openPersonEditModal } from '../../../components/governance/pickers.js?v=20260930c';
 // 纯逻辑（可单测）：新增表单校验
-import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20260930b';
+import { validateMemberForm } from '../../../services/member/roster-ui-logic.js?v=20260930c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：名册列表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930c';
 // 成员流出登记（行内「移出」＝登记即生效）：2026-09-28 批次 220 · R10 拆分后，本 tab 只留「移出」这一
 //   行操作；「成员流动」面板（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）已拆到独立 tab（org/member-flow-tab.js）。
-import { registerOutflow } from '../../../services/member/member-flow.js?v=20260930b';
+import { registerOutflow } from '../../../services/member/member-flow.js?v=20260930c';
 // 支部归属解析（当前操作人 → 支部 id）：台账/对账/登记同支部口径
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930b';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930c';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930b';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20260930c';
 
 // 模块级 ctx 缓存：行内保存/删除/新增后整页刷新复用首次渲染的 accent
 let _ctx = null;
@@ -136,7 +136,7 @@ export function renderContent(ctx) {
             <span class="text-xs text-gray-500" title="统计范围：本支部在册成员（branchId 非空），不含党委组织员等非本支部人员">${members.length} 人 · 本支部在册</span>
           </div>
           <div class="flex items-center gap-2">
-            <button id="roster-add-btn" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
+            <button id="roster-add-btn" type="button" class="btn-accent-soft text-xs px-3 py-1.5 whitespace-nowrap" style="cursor:pointer;">＋ 新增成员</button>
           </div>
         </div>
         <p class="text-xs text-gray-500 mb-3">成员名册逐人「新增 / 编辑 / 移出」：点行内「编辑」打开档案编辑模态——姓名 / 学号 / 党小组立即生效，发展阶段 / 在册状态变更报支书确认后生效。</p>
@@ -223,9 +223,9 @@ function _rowHtml(p, pend) {
       </div>
       <div class="text-xs text-gray-600 truncate" title="${esc(rs.residenceNote || '')}">${esc(rs.residenceNote || '—')}</div>
       <div class="flex items-center justify-end gap-1.5">
-        <button type="button" class="roster-edit text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">编辑</button>
+        <button type="button" class="btn-accent-soft roster-edit text-xs px-2.5 py-1 whitespace-nowrap" data-person-id="${esc(p.id)}" style="cursor:pointer;">编辑</button>
         <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.id)}" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors whitespace-nowrap" style="text-decoration:none;">档案</a>
-        <button type="button" class="roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送支书确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
+        <button type="button" class="btn-danger roster-del text-xs px-2.5 py-1 rounded-lg ${outPend ? 'bg-gray-50 text-gray-500 border border-gray-100' : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'} transition-colors whitespace-nowrap" data-person-id="${esc(p.id)}" title="${outPend ? '已报送支书确认移出，处理完成前不可重复发起' : ''}" ${outPend ? 'disabled' : ''} style="cursor:${outPend ? 'not-allowed' : 'pointer'};">${outPend ? '移出待确认' : '移出'}</button>
       </div>
     </div>`;
 }
@@ -338,8 +338,8 @@ function _askRemove(personId) {
       <p class="text-sm text-gray-700 mb-2">确认将「${esc(name)}」移出成员名册？</p>
       <p class="text-xs text-gray-500 mb-4">登记即生效：该成员移出名册、账号停用，不再出现在成员名单与应到统计中。原考勤与考察历史保留（不删不匿名），可在「成员流动」台账中查看并撤销纠正。</p>
       <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" data-roster-del-cancel class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button type="button" data-roster-del-ok class="text-xs px-3 py-1.5 rounded-lg text-white hover:opacity-90 transition-opacity" style="background:var(--functional-error);cursor:pointer;">确认登记流出</button>
+        <button type="button" data-roster-del-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-roster-del-ok class="btn-ghost text-xs px-3 py-1.5" style="background:var(--functional-error);cursor:pointer;">确认登记流出</button>
       </div>`,
     onMount: (panel) => {
       panel.querySelector('[data-roster-del-cancel]')?.addEventListener('click', () => closeModal('roster-del-confirm'));

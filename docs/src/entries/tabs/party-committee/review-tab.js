@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { getBranchById } from '../../../services/branch/branch.js?v=20260930b';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930b';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930b';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { getBranchById } from '../../../services/branch/branch.js?v=20260930c';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -142,8 +142,8 @@ function cardHtml(r) {
       <div class="mt-2.5 pt-2.5 border-t border-gray-100">
         <textarea class="rq-decision input-flat w-full resize-none" rows="2" placeholder="审批意见（驳回必填；批准可选填写指导意见）"></textarea>
         <div class="flex justify-end gap-2 mt-2">
-          <button data-rq-act="reject" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-600">驳回</button>
-          <button data-rq-act="approve" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">批准</button>
+          <button data-rq-act="reject" class="btn-outline text-xs px-3 py-1.5">驳回</button>
+          <button data-rq-act="approve" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">批准</button>
         </div>
       </div>` : `
       <div class="mt-2.5 rounded-lg ${r.status === 'approved' ? 'bg-green-50/60' : 'bg-gray-50'} p-2.5">

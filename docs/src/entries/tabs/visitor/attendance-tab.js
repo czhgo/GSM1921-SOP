@@ -6,17 +6,17 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20260930b';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20260930b';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930b';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { openFormModal } from '../../../components/ui/modal.js?v=20260930b';
-import { showToast } from '../../../core/base/utils.js?v=20260930b';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20260930c';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20260930c';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20260930c';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { openFormModal } from '../../../components/ui/modal.js?v=20260930c';
+import { showToast } from '../../../core/base/utils.js?v=20260930c';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20260930b';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20260930c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20260930c';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -77,9 +77,9 @@ export function renderContent(ctx) {
           <div class="text-xs font-medium ${rateCls}">${rateText}</div>
         </div>
         <div class="flex items-center gap-2 px-3 pb-3">
-          <button type="button" class="visitor-att-detail-btn text-xs px-2.5 py-1 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>
-          ${myMakeup ? `<button type="button" class="visitor-att-makeup-btn text-xs px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
-          ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="visitor-att-appeal-btn text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
+          <button type="button" class="btn-neutral visitor-att-detail-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">查看个人明细</button>
+          ${myMakeup ? `<button type="button" class="btn-accent-soft visitor-att-makeup-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">${myMakeup.proofContent ? '修改补课说明' : '去补课 · 提交补课说明'}</button>` : ''}
+          ${(!myRecord || myRecord.status === AttendanceStatus.ABSENT) ? `<button type="button" class="btn-accent-soft visitor-att-appeal-btn text-xs px-2.5 py-1" data-act-id="${act.id}" style="cursor:pointer;">我参加了但没记上</button>` : ''}
         </div>
         <div class="visitor-att-detail hidden px-3 pb-3 pt-1 border-t border-gray-50" data-att-detail="${act.id}">
           <div class="text-[12px] text-gray-600 space-y-0.5">

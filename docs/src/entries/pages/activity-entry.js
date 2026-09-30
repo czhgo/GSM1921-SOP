@@ -2,41 +2,41 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20260930b';
-import { renderHeader } from '../../components/shell/header.js?v=20260930b';
-import { BranchService } from '../../services/core/runtime.js?v=20260930b';
-import { mockDB } from '../../core/domain/domain.js?v=20260930b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930b';
-import { NoticeStore } from '../../services/governance/notice.js?v=20260930b';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { getPersonById } from '../../services/member/person.js?v=20260930b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20260930c';
+import { renderHeader } from '../../components/shell/header.js?v=20260930c';
+import { BranchService } from '../../services/core/runtime.js?v=20260930c';
+import { mockDB } from '../../core/domain/domain.js?v=20260930c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260930c';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { getPersonById } from '../../services/member/person.js?v=20260930c';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20260930b';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20260930c';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20260930b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20260930b';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20260930b';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930b';
-import { getAppState } from '../../core/base/state.js?v=20260930b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20260930b';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20260930c';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20260930c';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20260930c';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930c';
+import { getAppState } from '../../core/base/state.js?v=20260930c';
+import { badgeHtml } from '../../components/ui/badges.js?v=20260930c';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20260930b';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20260930c';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20260930b';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20260930b';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20260930b';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20260930b';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260930b';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20260930b';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20260930c';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20260930c';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20260930c';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20260930c';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20260930c';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20260930c';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20260930b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20260930b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20260930c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20260930c';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../../core/session/pending-writes.js?v=20260930b';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20260930c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -172,10 +172,10 @@ function renderActivity(id) {
         ? `品牌认定（支委会）：提案待审议（提案人 ${esc(proposerName || '—')}）`
         : '品牌认定（支委会）：本场尚未认定为品牌活动——须由支委 / 党小组组长提案，经支委会审议通过后认定');
     const action = isBrandActive
-      ? (isCommittee ? '<button id="brand-revoke-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">取消品牌认定</button>' : '')
+      ? (isCommittee ? '<button id="brand-revoke-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消品牌认定</button>' : '')
       : (brandProposal
-        ? ((isCommittee || brandProposal.by === myId) ? '<button id="brand-withdraw-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">撤回提案</button>' : '')
-        : (canProposeBrand(myRole) ? '<button id="brand-propose-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">提议认定为品牌活动</button>' : ''));
+        ? ((isCommittee || brandProposal.by === myId) ? '<button id="brand-withdraw-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">撤回提案</button>' : '')
+        : (canProposeBrand(myRole) ? '<button id="brand-propose-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">提议认定为品牌活动</button>' : ''));
     brandCardHtml = `
     <!-- 品牌认定（支委会事项；2026-09-21 批次 132）：提案 → 支委会审议通过后确定。
          本块是给**不在支书台**的支委（组织/宣传/纪检委员）与党小组组长的落点；普通成员与访客看不到该动作。 -->
@@ -200,8 +200,8 @@ function renderActivity(id) {
       ? `追加复盘（支委会要求）：已要求组织者完成复盘（${reqAt || '—'} · 发起人 ${esc(reqByName || '—')}）· 交回状态：${returned ? '已交回' : '尚未交回'}`
       : '追加复盘（支委会要求）：本场未追加要求——支委会可额外要求组织者完成复盘（进关闭判据，只判到「交回」）';
     const action = !reviewRequest
-      ? (isCommittee ? '<button id="review-request-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">要求组织者复盘</button>' : '')
-      : ((isCommittee || reviewRequest.by === myId) ? '<button id="review-request-withdraw-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-amber-700 hover:border-amber-200 transition-colors" style="cursor:pointer;">撤回要求</button>' : '');
+      ? (isCommittee ? '<button id="review-request-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">要求组织者复盘</button>' : '')
+      : ((isCommittee || reviewRequest.by === myId) ? '<button id="review-request-withdraw-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">撤回要求</button>' : '');
     reviewRequestCardHtml = `
     <!-- 追加复盘要求（2026-09-21 批次 135 · 裁定二）：支委会额外要求组织者复盘 ⇒ 进活动关闭判据，
          只判到「交回」不到「确认」；三会一课不适用；组织者仍走成员端「我的复盘」那张既有表单。 -->
@@ -318,7 +318,7 @@ function renderActivity(id) {
     <!-- 报名管理（批次 123）：只对本场组织者 / 支书呈现，非组织者看不到该动作 -->
     <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-5 py-3 mb-6">
       <span class="text-xs text-gray-500">报名管理：关闭后成员不能再新报（已报名者仍可自行取消）</span>
-      <button id="signup-close-btn" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:text-red-600 hover:border-red-200 transition-colors" style="cursor:pointer;">关闭报名</button>
+      <button id="signup-close-btn" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">关闭报名</button>
     </div>` : ''}
 
     ${brandCardHtml}

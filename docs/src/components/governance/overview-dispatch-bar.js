@@ -19,7 +19,7 @@
 //  本组件仅处理展示与跳转；计数语义由调用方（外壳）按角色注入。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore } from '../../services/governance/issues.js?v=20260930b'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
+import { IssueStore } from '../../services/governance/issues.js?v=20260930c'; // 计数依赖（U3 前置计数须显式引用；勿裸依赖全局）
 
 /** 等高骨架卡（内容容器为空/仍为壳骨架时的兜底占位；min-height 防 0 高弹跳） */
 export function overviewSkeletonHtml(text = '工作概况加载中…') {
@@ -104,7 +104,7 @@ export function mountOverviewDispatchBar(el, { count, prefix, jumpTab, accent = 
   }
   slot.style.minHeight = '';
   slot.innerHTML = `
-    <button type="button" class="overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-left mb-3"
+    <button type="button" class="btn-ghost overview-dispatch-bar w-full flex items-center justify-between gap-3 px-4 py-2.5 mb-3"
       style="background:${accent}1A;border:1px solid ${accent}40;color:${accent};cursor:pointer;transition:opacity .15s;"
       aria-label="待答复 ${count} 条，去处理">
       <span class="text-xs font-medium">待答复 <b class="tabular-nums">${count}</b></span><span class="text-xs font-semibold">去处理 →</span>

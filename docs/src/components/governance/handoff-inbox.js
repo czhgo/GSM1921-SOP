@@ -6,11 +6,11 @@
 //  挂载点：宣传/组织工作台待办列表顶部、纪检补课 tab 顶部。
 // ════════════════════════════════════════════════════════════════
 
-import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20260930b';
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930b';
+import { HandoffStore, HANDOFF_TYPES, HANDOFF_ROLE_LABELS } from '../../services/governance/handoff.js?v=20260930c';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：待确认交接待办列表接入（关键词 事项/类型 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930c';
 
 // 引擎行样式交接（2026-09-14 批次 37）：行由统一检索引擎渲染，而引擎须 DOM 就位后才可挂载
 //（render 出 HTML 串 → 调用方 innerHTML → bind 才拿到容器）；bind 侧调用方只传 to，拿不到强调色，
@@ -70,7 +70,7 @@ export function bindHandoffInbox(container, { to, onDone }) {
           </div>
           <div class="text-xs text-gray-500 truncate">${h.note || `${HANDOFF_ROLE_LABELS[h.from] || h.from} → ${HANDOFF_ROLE_LABELS[h.to] || h.to}`} · ${(h.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
         </div>
-        <button type="button" class="handoff-confirm-btn text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-handoff-id="${h.id}" style="${solidAccentStyle(accent)};cursor:pointer;">确认接收</button>
+        <button type="button" class="btn-accent-soft handoff-confirm-btn text-xs px-3 py-1.5 flex-shrink-0" data-handoff-id="${h.id}" style="cursor:pointer">确认接收</button>
       </div>
     `;
       },

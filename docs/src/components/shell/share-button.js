@@ -4,13 +4,13 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  实现「便于长期共享」的最小操作成本：一键复制当前页直达链接（支书 2026-08-11 裁定增强共享形态）。
 // ════════════════════════════════════════════════════════════════
-import { showToast } from '../../core/base/utils.js?v=20260930b';
+import { showToast } from '../../core/base/utils.js?v=20260930c';
 
 /** 复制链接按钮 HTML（置于详情页标题区右侧） */
 export function renderShareButtonHtml() {
   return `
     <button id="detail-share-btn" type="button"
-      class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors flex-shrink-0">
+      class="btn-outline inline-flex items-center gap-1 text-xs px-2.5 py-1 flex-shrink-0">
       复制链接
     </button>`;
 }

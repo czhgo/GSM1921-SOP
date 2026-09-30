@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930b';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930b';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930b';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20260930c';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20260930c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -42,7 +42,7 @@ export function renderContent() {
           <div class="min-w-0">
             <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
           </div>
-          <button id="rq-submit-toggle" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium shrink-0" style="background:var(--party-red);">+ 发起上报</button>
+          <button id="rq-submit-toggle" class="btn-ghost text-xs px-3 py-1.5 font-medium shrink-0" style="background:var(--party-red);">+ 发起上报</button>
         </div>
         <div id="rq-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4"></div>
         <div id="rq-list" class="space-y-3"></div>
@@ -98,8 +98,8 @@ function renderForm(branchId, me, tc) {
       <textarea id="rq-content" rows="4" class="input-flat w-full resize-none" placeholder="请说明关键信息，便于党委审批"></textarea>
     </div>
     <div class="flex justify-end gap-2">
-      <button id="rq-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200">取消</button>
-      <button id="rq-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);">提交上报</button>
+      <button id="rq-form-cancel" class="btn-outline text-xs px-3 py-1.5">取消</button>
+      <button id="rq-form-submit" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);">提交上报</button>
     </div>`;
   wrap.querySelector('#rq-form-cancel')?.addEventListener('click', () => {
     wrap.classList.add('hidden');

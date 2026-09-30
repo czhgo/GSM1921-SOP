@@ -14,18 +14,18 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20260930b';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20260930c';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20260930b';
-import { renderDomainTodoList } from './todo-list.js?v=20260930b';
-import { badgeHtml } from '../ui/badges.js?v=20260930b';
-import { showToast } from '../../core/base/utils.js?v=20260930b';
-import { solidAccentStyle, ROLE_LABELS } from '../../core/domain/constants.js?v=20260930b';
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { mockDB } from '../../core/domain/domain.js?v=20260930b';
-import { tokenOf } from '../../core/base/version-token.js?v=20260930b'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20260930b'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20260930c';
+import { renderDomainTodoList } from './todo-list.js?v=20260930c';
+import { badgeHtml } from '../ui/badges.js?v=20260930c';
+import { showToast } from '../../core/base/utils.js?v=20260930c';
+import { solidAccentStyle, ROLE_LABELS } from '../../core/domain/constants.js?v=20260930c';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { mockDB } from '../../core/domain/domain.js?v=20260930c';
+import { tokenOf } from '../../core/base/version-token.js?v=20260930c'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20260930c'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -156,7 +156,7 @@ export function createTodoTab(opts) {
           ${todo.flow ? `<p class="text-xs text-gray-600 leading-relaxed">${todo.flow}</p>` : ''}
           ${todo.deadline ? `<div class="text-xs text-gray-500">最早截止：${todo.deadline}</div>` : ''}
           <div class="pt-3 border-t border-gray-100 flex gap-2">
-            <button class="${detailBtnClass} text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${btnStyle}">去处理</button>
+            <button class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${btnStyle}">去处理</button>
           </div>
         </div>
       `;
@@ -189,7 +189,7 @@ export function createTodoTab(opts) {
         ${todo.deadline ? `<div class="text-xs text-gray-500">截止：${todo.deadline}</div>` : ''}
         <div class="text-xs text-gray-500">创建：${(todo.createdAt || '').slice(0, 16).replace('T', ' ')}</div>
         <div class="pt-3 border-t border-gray-100 flex gap-2">
-          ${todo.actionType ? `<button class="${detailBtnClass} text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
+          ${todo.actionType ? `<button class="btn-accent-soft ${detailBtnClass} text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">处理</button>` : ''}
         </div>
       </div>
     `;
@@ -207,13 +207,13 @@ export function createTodoTab(opts) {
             <span class="block text-sm text-gray-800 truncate">${n.title || '未命名通知'}</span>
             <span class="block text-[11px] text-gray-500">${timeText}</span>
           </span>
-          <button type="button" class="${prefix}-unread-open-btn text-xs px-2.5 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
-          <button type="button" class="${prefix}-unread-read-btn text-xs px-2.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
+          <button type="button" class="btn-outline ${prefix}-unread-open-btn text-xs px-2.5 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">阅读</button>
+          <button type="button" class="btn-accent-soft ${prefix}-unread-read-btn text-xs px-2.5 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors flex-shrink-0" data-notice-id="${n.id}" style="cursor:pointer;">标记已读</button>
         </div>`;
     }).join('');
     return `
       <div class="card rounded-xl px-4 py-2.5 mb-4">
-        <button type="button" class="${prefix}-unread-toggle w-full flex items-center justify-between text-left bg-transparent border-0 cursor-pointer px-1 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" style="cursor:pointer;">
+        <button type="button" class="btn-ghost ${prefix}-unread-toggle w-full flex items-center justify-between text-left bg-transparent border-0 cursor-pointer px-1 py-1.5 rounded-lg hover:bg-gray-50 transition-colors" style="cursor:pointer;">
           <span class="flex items-center gap-2">
             <svg class="${prefix}-unread-arrow w-3 h-3 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>

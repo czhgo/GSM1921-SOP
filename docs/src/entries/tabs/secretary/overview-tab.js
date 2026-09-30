@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20260930b';
-import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20260930b';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20260930c';
+import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20260930c';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/member/roster.js?v=20260930b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930b';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20260930b';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20260930b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20260930c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930c';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20260930c';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20260930c';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20260930b';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20260930c';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -58,7 +58,7 @@ function renderOverviewContent() {
     <div class="inline-flex items-center gap-1 p-1 rounded-full bg-neutral-100">
       ${subTabs.map(t => `
         <button type="button"
-          class="ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-600 hover:text-gray-700'} "
+          class="btn-tab ov-sub-tab px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${_overviewSubView === t.key ? 'ov-sub-tab-active' : 'text-gray-600 hover:text-gray-700'} "
           data-subview="${t.key}">${t.label}</button>
       `).join('')}
     </div>
@@ -143,7 +143,7 @@ function renderReportSection(reports) {
       : '';
     return `
       <div class="rounded-lg border ${r.reportCategory === 'blocked' ? 'border-red-200' : 'border-gray-100'} overflow-hidden">
-        <button type="button" class="sec-goto-report w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors text-left" data-report-id="${r.id}" title="去待办处理该答复">
+        <button type="button" class="btn-ghost sec-goto-report w-full flex items-center gap-3 px-3 py-2.5" data-report-id="${r.id}" title="去待办处理该答复">
           <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${catColor};"></span>
           <span class="text-xs font-medium flex-shrink-0" style="color:${catColor};">${cat}</span>
           <span class="text-sm text-gray-800 font-medium flex-1 min-w-0 truncate">${r.title}</span>
@@ -163,7 +163,7 @@ function renderReportSection(reports) {
       </div>
       <div class="space-y-2">${rows}</div>
       ${sorted.length > shown.length ? `
-        <button type="button" class="sec-goto-todo w-full mt-2 text-xs text-gray-500 hover:text-gray-600 text-left px-1 py-1 transition-colors">全部 ${sorted.length} 条 → 去待办处理</button>` : ''}
+        <button type="button" class="btn-ghost sec-goto-todo w-full mt-2 text-xs px-1 py-1">全部 ${sorted.length} 条 → 去待办处理</button>` : ''}
     </div>`;
 }
 

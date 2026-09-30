@@ -6,9 +6,9 @@
 //  仅复用既有样式类 .vote-panel/.vote-btn/.vote-note/.vote-submit/.vote-title/.vote-current
 //  （styles.css 已定义），本模块不新增任何样式。
 // ════════════════════════════════════════════════════════════════
-import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930b';
-import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930b';
-import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930b';
+import { showToast, escHtml as esc } from '../../core/base/utils.js?v=20260930c';
+import { fetchVotes, submitVote } from '../../services/activity/committee-vote.js?v=20260930c';
+import { optionSetOf, OPTION_SETS, isAnonymousActivity } from '../../services/activity/vote-config.js?v=20260930c';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -52,10 +52,10 @@ export function renderVoteWidget(container, { activity, agendaItem, votes, curre
         : `<div class="vote-current">已表态：${esc(labelOf(mine.position))}${mine.note ? '（' + esc(mine.note) + '）' : ''}${canInteract ? ' · 可改票（重新选择后再次提交）' : ''}</div>`) : ''}
       ${canInteract ? `
         <div class="vote-actions">
-          ${options.map((pos) => `<button type="button" class="vote-btn" data-pos="${pos}">${esc(labelOf(pos))}</button>`).join('')}
+          ${options.map((pos) => `<button type="button" class="btn-ghost vote-btn" data-pos="${pos}">${esc(labelOf(pos))}</button>`).join('')}
         </div>
         ${anonymous ? '' : `<textarea class="vote-note" rows="2" placeholder="${os.objectRequiresNote ? '附言/异议说明（异议必填）' : '附言说明（选填）'}"></textarea>`}
-        <button type="button" class="vote-submit">提交表态</button>` : ''}
+        <button type="button" class="btn-ghost vote-submit">提交表态</button>` : ''}
       ${!locked && !canInteract && !mine ? '<div class="vote-current" style="opacity:.8;">仅应到表决人可表态</div>' : ''}
     </div>`;
 

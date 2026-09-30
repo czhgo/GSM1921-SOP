@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20260930b';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930b';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260930b';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260930b';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260930b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930b';
-import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260930b';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260930b';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260930b';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930b';
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930b';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260930b';
+import { getAppState, setState } from '../../../core/base/state.js?v=20260930c';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930c';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260930c';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260930c';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260930c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930c';
+import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260930c';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260930c';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260930c';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930c';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930c';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260930c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { BranchService } from '../../../services/core/runtime.js?v=20260930b';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/domain/constants.js?v=20260930b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930c';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/domain/constants.js?v=20260930c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260930b';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20260930b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260930c';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20260930c';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260930b';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260930c';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260930b';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260930c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930c';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -124,12 +124,12 @@ function _agendaRowHTML({ item = '', host = '', kinds = [], branchDocId = '', to
       <div class="flex items-center gap-2">
         <input type="text" class="wp-agenda-item input-flat w-full text-xs" placeholder="议题，如：讨论关于 N 名发展对象转为预备党员" value="${item}">
         <input type="text" class="wp-agenda-host input-flat w-24 text-xs" placeholder="主持人" value="${host}">
-        <button type="button" data-action="agenda-remove" class="text-gray-500 hover:text-red-600 text-sm px-1 shrink-0" title="删除该条">✕</button>
+        <button type="button" data-action="agenda-remove" class="btn-ghost text-sm px-1 shrink-0" title="删除该条">✕</button>
       </div>
       <div class="flex items-center gap-1.5">
         <span class="text-[11px] text-gray-500 shrink-0">类型</span>
         ${AGENDA_KIND_CHIPS.map((c) => `
-          <button type="button" data-kind="${c.kind}" class="wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
+          <button type="button" data-kind="${c.kind}" class="btn-tab wp-agenda-kind text-xs px-3 py-1.5 rounded-lg border text-gray-600 transition-colors${kindOn(c.kind)}">${c.label}</button>
         `).join('')}
       </div>
       <div class="wp-agenda-doc-slot${docVisible}">
@@ -181,7 +181,7 @@ const CALENDAR_TAB_HTML = `
        纪检总表与全局概况 KPI 为专职读位不动；异常处理位 = 纪检考勤管理。 -->
   <!-- 活动查询（默认折叠，点击展开） -->
   <div class="card rounded-xl">
-    <button id="query-toggle" type="button" class="w-full px-6 py-3 text-left flex items-center justify-between hover:bg-gray-50 transition-colors rounded-xl">
+    <button id="query-toggle" type="button" class="btn-ghost w-full px-6 py-3 flex items-center justify-between">
       <h3 class="font-title-cn text-base font-semibold text-gray-800">活动查询</h3>
       <svg id="query-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
@@ -473,7 +473,7 @@ function renderWritePanel(container) {
 
   // 返回按钮（step 2 时显示，返回 step 1 重选模板）
   if (wp.step > 1) {
-    html += `<button data-action="wp-back" class="mt-4 text-xs text-gray-500 hover:text-gray-600 transition-colors flex items-center gap-1">`;
+    html += `<button data-action="wp-back" class="btn-ghost mt-4 text-xs flex items-center gap-1">`;
     html += icon('chevronLeft', { className: 'w-3 h-3' });
     html += `返回选模板</button>`;
   }
@@ -513,7 +513,7 @@ function renderTemplateStep() {
       // 主题党日无固定子类型，直接选择模板（正交维度在 Step 2 表单中填写）
       // 点击由 bindWritePanelEvents 委托（整卡 data-tpl-click；按钮自身 data-action 不受影响）
       const isSelected = wp.selections.L1 === tpl.category;
-      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
+      html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="" data-scenario-id="${tpl.scenarioId || 'theme-party'}" data-activity-type="" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
       html += `选择${tpl.categoryLabel}`;
       html += `</button>`;
     } else {
@@ -523,7 +523,7 @@ function renderTemplateStep() {
       }
       onSubs.forEach(sub => {
         const isSelected = wp.selections.L1 === tpl.category && wp.selections.L1Sub === sub.value;
-        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
+        html += `<button data-action="select-template" data-category="${tpl.category}" data-subtype="${sub.value}" data-scenario-id="${sub.scenarioId}" data-activity-type="${sub.activityType || ''}" data-color="${tpl.color}" class="btn-tab w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${isSelected ? 'sel-accent-on' : 'text-gray-700 hover:bg-gray-50'}"${isSelected ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>`;
         html += sub.label;
         html += `</button>`;
       });
@@ -651,13 +651,13 @@ function renderFormStep() {
   if (tpl.category === 'three-meetings') {
     html += `<div class="mb-3 card rounded-xl p-4">`;
     html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">会议议程 <span class="text-gray-500">（选填；类型可多选）</span></label>`;
-    html += `<button type="button" data-action="agenda-candidates-toggle" class="mb-2 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">从拟上会清单勾选</button>`;
+    html += `<button type="button" data-action="agenda-candidates-toggle" class="btn-outline mb-2 text-xs px-3 py-1.5">从拟上会清单勾选</button>`;
     html += `<div id="wp-agenda-candidates" class="hidden mb-2 rounded-lg border border-gray-100 bg-gray-50/60 p-2.5"></div>`;
     html += `<div id="wp-agenda-list" class="space-y-2">`;
     // 初始 1 行空议程（HTML 内嵌，减少首条输入点击；添加/删除由 bindWritePanelEvents 事件处理）
     html += _agendaRowHTML();
     html += `</div>`;
-    html += `<button type="button" data-action="agenda-add" class="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 transition-colors">+ 添加议程</button>`;
+    html += `<button type="button" data-action="agenda-add" class="btn-outline text-xs px-3 py-1.5">+ 添加议程</button>`;
     html += `</div>`;
   }
 
@@ -670,9 +670,9 @@ function renderFormStep() {
   html += `<div class="mb-3">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">品牌族名称 <span class="text-gray-500">（选填；品牌认定由支委会审议通过后确定，此处只填名称）</span></label>`;
   html += `<div class="flex gap-2">`;
-  html += `<button type="button" data-wp-brand="none" class="wp-brand-chip wp-brand-on text-xs px-3 py-1.5 rounded-lg border transition-colors">非品牌</button>`;
-  html += `<button type="button" data-wp-brand="inherit" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">延续已有品牌</button>`;
-  html += `<button type="button" data-wp-brand="create" class="wp-brand-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">创建新品牌</button>`;
+  html += `<button type="button" data-wp-brand="none" class="btn-tab wp-brand-chip wp-brand-on text-xs px-3 py-1.5">非品牌</button>`;
+  html += `<button type="button" data-wp-brand="inherit" class="btn-tab wp-brand-chip text-xs px-3 py-1.5">延续已有品牌</button>`;
+  html += `<button type="button" data-wp-brand="create" class="btn-tab wp-brand-chip text-xs px-3 py-1.5">创建新品牌</button>`;
   html += `</div>`;
   html += `<div id="wp-brand-inherit" class="hidden mt-2">`;
   html += `<select id="wp-brand-select" class="input-flat w-full">${brandNames.map(n => `<option value="${n}">${n}</option>`).join('')}</select>`;
@@ -741,7 +741,7 @@ function renderFormStep() {
   const btnText = wp.submitting ? '写入中...' : '创建活动';
   const btnDisabled = wp.submitting ? 'opacity-50 cursor-not-allowed' : '';
   html += `<div class="flex items-center justify-end gap-3">`;
-  html += `<button type="button" data-action="wp-cancel" class="text-sm px-4 py-[7px] rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>`;
+  html += `<button type="button" data-action="wp-cancel" class="btn-outline text-sm px-4 py-[7px]">取消</button>`;
   html += `<button type="button" data-action="wp-submit" class="btn-accent text-sm px-4 py-[7px] font-medium ${btnDisabled}">${btnText}</button>`;
   html += `</div>`;
 
@@ -760,7 +760,7 @@ function renderThemeDayDimensions() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">共建性质</label>`;
   html += `<div class="flex gap-2">`;
   dims.isJoint.forEach(opt => {
-    html += `<button type="button" data-wp-dim data-wp-group="isJoint" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+    html += `<button type="button" data-wp-dim data-wp-group="isJoint" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="btn-tab wp-dim-chip text-xs px-3 py-1.5">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -770,7 +770,7 @@ function renderThemeDayDimensions() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">是否外出</label>`;
   html += `<div class="flex gap-2">`;
   dims.isOutdoor.forEach(opt => {
-    html += `<button type="button" data-wp-dim data-wp-group="isOutdoor" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+    html += `<button type="button" data-wp-dim data-wp-group="isOutdoor" data-wp-dim-value="${opt.value}" data-wp-multi="false" class="btn-tab wp-dim-chip text-xs px-3 py-1.5">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -780,7 +780,7 @@ function renderThemeDayDimensions() {
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">活动载体 <span class="text-gray-500">（可多选）</span></label>`;
   html += `<div class="flex flex-wrap gap-2">`;
   dims.carriers.forEach(opt => {
-    html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="wp-dim-chip text-xs px-3 py-1.5 rounded-lg border transition-colors">${opt.label}</button>`;
+    html += `<button type="button" data-wp-dim data-wp-group="carriers" data-wp-dim-value="${opt.value}" data-wp-multi="true" class="btn-tab wp-dim-chip text-xs px-3 py-1.5">${opt.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -1369,9 +1369,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20260930b'),
-    import('../../../services/governance/issues.js?v=20260930b'),
-    import('../../../services/member/member-confirmation.js?v=20260930b'),
+    import('../../../services/activity/taskforce.js?v=20260930c'),
+    import('../../../services/governance/issues.js?v=20260930c'),
+    import('../../../services/member/member-confirmation.js?v=20260930c'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }

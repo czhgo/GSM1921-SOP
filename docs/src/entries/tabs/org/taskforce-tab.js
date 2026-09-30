@@ -3,38 +3,38 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/base/state.js?v=20260930b';
-import { BranchService } from '../../../services/core/runtime.js?v=20260930b';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20260930b';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20260930b';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930b'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20260930b';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain/domain.js?v=20260930b'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20260930b';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930b';
-import { generateId } from '../../../core/base/id.js?v=20260930b';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20260930b';
+import { setState } from '../../../core/base/state.js?v=20260930c';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930c';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20260930c';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20260930c';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930c'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20260930c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain/domain.js?v=20260930c'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20260930c';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930c';
+import { generateId } from '../../../core/base/id.js?v=20260930c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20260930c';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/domain/constants.js?v=20260930b';
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930b';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20260930b';
+import { isActivityEnded } from '../../../core/domain/constants.js?v=20260930c';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930c';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20260930c';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20260930b';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260930c';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930b';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20260930b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930c';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20260930c';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930c';
 // 情景③ 专班赋权（2026-09-25 支书裁「全按对象归位」：专班赋权归本台「专班管理」）——
 //   实现单一源＝entries/tabs/secretary/assign-tab.js::mountTaskforceProjectAuth（该模块已不注册为 tab，
 //   仅余分块渲染）⇒ 本 tab 只挂载，不新造第二套表单/视觉；权限判定仍在 assign-tab/AuthStore 一处。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20260930b';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20260930c';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;
@@ -67,8 +67,8 @@ export function renderContent(ctx) {
          形态沿用考勤矩阵/考察总表的互斥小圆角钮组（data-view 切换逻辑照旧） -->
     <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
       <div class="flex items-center gap-2" id="org-tf-view-btns">
-        <button type="button" class="org-tf-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="kanban">看板</button>
-        <button type="button" class="org-tf-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="matrix">报名总表</button>
+        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="kanban">看板</button>
+        <button type="button" class="btn-tab org-tf-view-btn px-3 py-1.5 text-xs font-medium" data-view="matrix">报名总表</button>
       </div>
     </div>
     <div class="lf-bar mb-3" id="org-tf-search-bar">
@@ -78,8 +78,8 @@ export function renderContent(ctx) {
     <div id="org-tf-matrix-area" class="hidden">
       <!-- 转置双视图钮（缺省「按人」＝宽表默认，与全站口径一致）：data-mode 直接映射矩阵 mode -->
       <div class="flex items-center gap-2 mb-3" id="org-tf-mode-btns">
-        <button type="button" class="org-tf-mode-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-mode="byPerson">按人</button>
-        <button type="button" class="org-tf-mode-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-mode="byItem">按项目</button>
+        <button type="button" class="btn-outline org-tf-mode-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-mode="byPerson">按人</button>
+        <button type="button" class="btn-outline org-tf-mode-btn px-3 py-1.5 text-xs font-medium" data-mode="byItem">按项目</button>
       </div>
       <div id="org-tf-signup-matrix"></div>
     </div>
@@ -448,7 +448,7 @@ function _tfRenderRolesBlock(panel, tf, ctx) {
     <div class="mt-4 pt-3 border-t border-gray-100">
       <div class="flex items-center justify-between mb-2">
         <h6 class="font-title-cn text-xs font-bold text-gray-600">成员角色</h6>
-        <button id="btn-save-tf-roles" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">保存角色</button>
+        <button id="btn-save-tf-roles" class="btn-accent-soft text-xs px-3 py-1.5" >保存角色</button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
@@ -606,8 +606,8 @@ function _tfRenderWorkBlock(panel, tf, ctx) {
       emptyMessage: '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
       rowHtml: (c) => {
         const actions = c.verifiedStatus ? '' : `
-              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:var(--functional-success);">同意入档</button>
-              <button class="tf-contrib-verify-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors flex-shrink-0" data-contrib-id="${c.id}" data-decision="reject">退回补料</button>`;
+              <button class="btn-ghost tf-contrib-verify-btn px-2.5 py-1 flex-shrink-0" data-contrib-id="${c.id}" data-decision="approve" style="background:var(--functional-success);">同意入档</button>
+              <button class="btn-outline tf-contrib-verify-btn px-2.5 py-1 flex-shrink-0" data-contrib-id="${c.id}" data-decision="reject">退回补料</button>`;
         return `
               <div class="flex items-start gap-2 rounded-lg bg-white px-2.5 py-1.5">
                 <div class="flex-1 min-w-0">
@@ -659,7 +659,7 @@ function _tfRenderContribBlock(panel, tf, ctx) {
       <div class="flex flex-col md:flex-row gap-2">
         <div id="tf-contrib-picker" class="w-48 flex-shrink-0"></div>
         <textarea id="tf-contrib-desc" rows="1" placeholder="贡献说明（必填），如：完成活动策划与执行排期…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
-        <button id="btn-add-tf-contrib" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">代录</button>
+        <button id="btn-add-tf-contrib" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0" >代录</button>
       </div>
     </div>`;
 
@@ -734,7 +734,7 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
     ...(isTfReviewer ? pendingSignups.map(s => ({ ...s, name: getPersonName(s.personId), role: _roleText(s.role), _pendingRow: true })) : []),
   ];
   const applyBtn = tfOpen && currentUserId && !myApplied
-    ? `<button id="tf-signup-apply-btn" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(accent, accentBorder)};">报名加入</button>`
+    ? `<button id="tf-signup-apply-btn" class="btn-accent-soft text-xs px-3 py-1.5" >报名加入</button>`
     : '';
 
   mount.innerHTML = `
@@ -763,8 +763,8 @@ function _tfRenderSignupBlock(panel, tf, ctx) {
         ${s.note ? `<span class="text-[11px] text-gray-500 truncate max-w-[120px]">${esc(s.note)}</span>` : ''}
         ${s._pendingRow
           ? `<span class="ml-auto flex items-center gap-1.5">
-              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg text-white hover:opacity-90 transition-colors" data-signup-id="${esc(s.id)}" data-approve="1" style="background:var(--functional-success);">通过</button>
-              <button class="tf-signup-review-btn text-[13px] px-2.5 py-1 rounded-lg border border-gray-200 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
+              <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="1" style="background:var(--functional-success);">通过</button>
+              <button class="btn-tab tf-signup-review-btn px-2.5 py-1" data-signup-id="${esc(s.id)}" data-approve="0">拒绝</button>
             </span>`
           : badgeHtml('已通过', 'success')}
       </div>`,
@@ -816,7 +816,7 @@ function _tfSubTableHtml(type, items, readOnly) {
         <h5 class="text-xs font-bold font-title-cn" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000)">${label} (${items.length})</h5>
         ${readOnly
           ? '<span class="text-[11px] text-amber-700 text-right">专班考察请统一到组织台『考察上传』录入</span>'
-          : `<button class="sub-add-btn text-xs px-3 py-1.5 rounded-lg border hover:bg-gray-50 transition-colors" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000);border-color:${color}40" data-type="${type}">+ 添加</button>`}
+          : `<button class="btn-outline sub-add-btn text-xs px-3 py-1.5" style="--acc-text-dark:${color};color:color-mix(in srgb, ${color} 60%, #000);border-color:${color}40" data-type="${type}">+ 添加</button>`}
       </div>
       <div id="tf-sub-host-${type}"></div>
     </div>`,
@@ -831,7 +831,7 @@ function _tfSubTableHtml(type, items, readOnly) {
     rowHtml: (item) => `
     <tr>
       ${fields.map(f => `<td class="text-gray-700">${cellOf(item, f.key)}</td>`).join('')}
-      ${readOnly ? '' : `<td class="text-center"><button class="sub-del-btn text-xs text-red-600 hover:text-red-700" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
+      ${readOnly ? '' : `<td class="text-center"><button class="btn-ghost sub-del-btn text-xs" data-type="${type}" data-idx="${items.indexOf(item)}">删除</button></td>`}
     </tr>`,
   };
 }
@@ -955,7 +955,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
     // 本人可删：仅填报人本人可见删除入口（旧数据无 by 时给组织委员兜底可删）
     const canDel = currentUserId && (!p.by || p.by === currentUserId);
     const delBtn = canDel
-      ? `<button class="tf-progress-del-btn text-[13px] text-red-600 hover:text-red-700" data-progress-id="${p.id}">删除</button>`
+      ? `<button class="btn-ghost tf-progress-del-btn" data-progress-id="${p.id}">删除</button>`
       : '';
     return `
       <div class="py-2 border-b border-gray-50 last:border-b-0 flex items-start gap-2">
@@ -980,7 +980,7 @@ function _tfRenderProgressBlock(panel, tf, ctx) {
           ${['筹备中', '执行中', '攻坚中', '收尾'].map(s => `<option>${s}</option>`).join('')}
         </select>
         <textarea id="tf-progress-note" rows="1" placeholder="进度说明（必填）…" class="input-flat flex-1 min-w-[160px] resize-none"></textarea>
-        <button id="btn-add-tf-progress" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">添加进度</button>
+        <button id="btn-add-tf-progress" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0" >添加进度</button>
       </div>
     </div>` : '';
 
@@ -1051,7 +1051,7 @@ function _tfRenderReviewBlock(panel, tf, ctx) {
       <textarea id="tf-review-content" rows="3" placeholder="专班任务完成情况、工作成果与不足..." class="input-flat w-full resize-none"></textarea>
       <div class="flex items-center gap-2 mt-2">
         <input id="tf-review-issues" type="text" placeholder="待改进问题（选填，多条用；分隔）" class="input-flat flex-1" />
-        <button id="btn-submit-tf-review" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" style="${solidAccentStyle(accent, accentBorder)};">提交复盘</button>
+        <button id="btn-submit-tf-review" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0" >提交复盘</button>
       </div>
     </div>`;
 
@@ -1096,7 +1096,7 @@ function _showDissolveBlockModal(tf, missing) {
         `<li class="text-xs text-red-600 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0"></span>${m}</li>`
       ).join('')
     + '</ul>'
-    + '<button class="text-xs text-white px-3 py-1.5 rounded-lg w-full transition-colors" style="background:var(--party-red);">知道了</button>';
+    + '<button class="btn-ghost text-xs px-3 py-1.5 w-full" style="background:var(--party-red);">知道了</button>';
   card.querySelector('button').addEventListener('click', () => overlay.remove());
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   card.addEventListener('click', e => e.stopPropagation());
@@ -1158,23 +1158,23 @@ function _renderTfCard(t, statusLabel, statusColor) {
   if (t.status === 'recruiting') {
     // B 档 CRUD 补全：招募中可撤销（彻底删除），误建/取消招募的专班可清理
     statusBtn = `<div class="flex gap-2 mt-2">
-      <button class="tf-start-btn text-xs px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
+      <button class="btn-accent-soft tf-start-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();">启动专班</button>
+      <button class="btn-danger tf-delete-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
     </div>`;
   } else if (t.status === 'pending_review') {
     // B批 R3-1：pending_review=已报送发起、待支委会表决；无启动按钮，可撤销删除
     statusBtn = `<div class="flex gap-2 mt-2">
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
+      <button class="btn-danger tf-delete-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">撤销并删除</button>
     </div>`;
   } else if (t.status === 'active') {
     // B批 R3-2：active 专班（含已报送解散表决）仍可归档；解散报送入口在专班详情内
-    statusBtn = `<button class="tf-archive-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
+    statusBtn = `<button class="btn-accent-soft tf-archive-btn text-xs px-3 py-1.5 mt-2" data-tf-id="${t.id}" onclick="event.stopPropagation();">归档专班</button>`;
   } else if (t.status === 'draft') {
     // B批 R3-1：draft=表决未通过退回草稿（可修改重报）；已重新报送等待审议时仅可撤销
-    const resubmitBtn = pendReq ? '' : `<button class="tf-resubmit-btn text-xs px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新报送支委会表决</button>`;
+    const resubmitBtn = pendReq ? '' : `<button class="btn-accent-soft tf-resubmit-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();">重新报送支委会表决</button>`;
     const deleteText = pendReq ? '撤销并删除' : '删除';
     statusBtn = `<div class="flex gap-2 mt-2">${resubmitBtn}
-      <button class="tf-delete-btn text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
+      <button class="btn-danger tf-delete-btn text-xs px-3 py-1.5" data-tf-id="${t.id}" onclick="event.stopPropagation();" style="cursor:pointer;">${deleteText}</button>
     </div>`;
   }
   return `
@@ -1285,8 +1285,8 @@ export function openRecruitForm(ctx) {
       </div>
 
       <div style="display:flex;gap:12px;justify-content:flex-end;">
-        <button type="button" id="recruit-form-cancel" class="text-sm px-4 py-[7px] rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-        <button type="submit" class="text-sm px-4 py-[7px] rounded-lg text-white hover:opacity-90 transition-opacity font-medium" style="${solidAccentStyle(accent, accentBorder)};">发布</button>
+        <button type="button" id="recruit-form-cancel" class="btn-outline text-sm px-4 py-[7px]">取消</button>
+        <button type="submit" class="btn-accent text-sm px-4 py-[7px] font-medium" >发布</button>
       </div>
     </form>
   `;
@@ -1452,7 +1452,7 @@ function _renderActivityProgress(activities, ctx) {
         ? badgeHtml('已归档', 'neutral')
         : badgeHtml('已发布', 'success');
       const completeBtn = !isArchived
-        ? `<button class="track-complete-btn text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" data-act-id="${a.id}">确认完成</button>`
+        ? `<button class="btn-accent-soft track-complete-btn text-xs px-3 py-1.5" data-act-id="${a.id}">确认完成</button>`
         : '';
       return `
         <div class="flex items-center justify-between p-3 rounded-xl bg-white transition-colors">

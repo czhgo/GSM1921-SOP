@@ -634,27 +634,6 @@ export const DEAD_SELECTOR_BASELINE = [
  *  ② 必须**仍存在于 CSS**（否则应删条目）；③ 必须带 ≥20 字理由。 */
 export const DYNAMIC_SELECTOR_WHITELIST = [
   {
-    name: 'btn-neutral',
-    reason: '**按钮族谱基线类**（2026-09-30 批次 297-1 立）：支书裁「新立 4 族（中性 / 描边 / 文字 / 危险）」，'
-      + '本批只把族谱**立起来**（类入 `docs/src/styles.css`、口径入 `DESIGN_SYSTEM §4.1`），'
-      + '逐屏迁移见批次 297-2…；**迁移推进时本条目随之删除**（守卫 `Z2` 僵尸检查会盯住）。',
-  },
-  {
-    name: 'btn-outline',
-    reason: '**按钮族谱基线类**（2026-09-30 批次 297-1 立）：同上「新立 4 族」之描边族，'
-      + '本批只立基线、未挂引用；逐屏迁移见批次 297-2…，迁移后删本条目。',
-  },
-  {
-    name: 'btn-ghost',
-    reason: '**按钮族谱基线类**（2026-09-30 批次 297-1 立）：同上「新立 4 族」之文字族，'
-      + '本批只立基线、未挂引用；逐屏迁移见批次 297-2…，迁移后删本条目。',
-  },
-  {
-    name: 'btn-danger',
-    reason: '**按钮族谱基线类**（2026-09-30 批次 297-1 立）：同上「新立 4 族」之危险族，'
-      + '本批只立基线、未挂引用；逐屏迁移见批次 297-2…，迁移后删本条目。',
-  },
-  {
     name: 'ab-edge--task',
     reason: '关于页工作流 SVG 连线：`docs/src/entries/pages/about-entry.js:637` 以 `` class: `ab-edge ab-edge--${e.type}` `` '
       + '按 `e.type ∈ {task, info, file}` 拼接（`.ab-edge--task` 走此路生成，非游离死类）。',

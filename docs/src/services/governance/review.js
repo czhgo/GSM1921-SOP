@@ -5,15 +5,15 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20260930b';
-import { persist } from '../../data/data-adapter.js?v=20260930b';
-import { bumpToken } from '../../core/base/version-token.js?v=20260930b'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20260930b';
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20260930b';
-import { getPersonName } from '../member/person.js?v=20260930b';
-import { loadActivities } from '../activity/activity.js?v=20260930b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930b';
-import { generateId } from '../../core/base/id.js?v=20260930b';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20260930c';
+import { persist } from '../../data/data-adapter.js?v=20260930c';
+import { bumpToken } from '../../core/base/version-token.js?v=20260930c'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20260930c';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20260930c';
+import { getPersonName } from '../member/person.js?v=20260930c';
+import { loadActivities } from '../activity/activity.js?v=20260930c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930c';
+import { generateId } from '../../core/base/id.js?v=20260930c';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {
@@ -122,7 +122,7 @@ export function renderActivityReviewFormHtml(act, rev, opts = {}) {
         <textarea id="review-issues-${act.id}" class="input-flat w-full text-xs resize-none" rows="2" placeholder="如：讨论时间不足，需预留更多…">${existingIssues.join('\n')}</textarea>
       </div>
       <div class="flex items-center gap-2 mt-2">
-        <button class="btn-review-submit text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" data-act-id="${act.id}" style="${solidAccentStyle(opts.accent, opts.accentBorder)};cursor:pointer;">提交复盘</button>
+        <button class="btn-accent-soft btn-review-submit text-xs px-3 py-1.5" data-act-id="${act.id}" style="cursor:pointer">提交复盘</button>
         <span class="text-xs text-gray-500">${footHint}</span>
       </div>
     </div>

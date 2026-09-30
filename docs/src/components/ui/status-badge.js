@@ -5,7 +5,7 @@
 //  用途：任务状态 / 考勤状态 / 交接状态等行内状态（替代原生 select 下拉）
 // ════════════════════════════════════════════════════════════════
 
-import { icon } from '../../core/base/icons.js?v=20260930b';
+import { icon } from '../../core/base/icons.js?v=20260930c';
 
 const VIEWPORT_PADDING = 8;
 
@@ -60,7 +60,7 @@ function _openStatusPopover(anchor, statuses, onChange) {
   popover.className = 'status-badge-popover';
   popover.setAttribute('role', 'menu');
   popover.innerHTML = Object.entries(statuses).map(([value, def]) => `
-    <button type="button" class="status-badge-option${value === current ? ' is-active' : ''}" data-value="${value}" role="menuitem" style="--sb-color:${def.color};">
+    <button type="button" class="btn-tab status-badge-option${value === current ? ' is-active' : ''}" data-value="${value}" role="menuitem" style="--sb-color:${def.color};">
       <span class="status-badge-dot"></span>
       <span>${def.label}</span>
       ${value === current ? icon('check', { className: 'w-3 h-3 status-badge-check' }) : ''}

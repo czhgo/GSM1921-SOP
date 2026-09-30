@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20260930b';
-import { persist } from '../../data/data-adapter.js?v=20260930b';
-import { bumpToken } from '../../core/base/version-token.js?v=20260930b';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20260930b';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20260930b';
-import { isInitStateActive } from '../core/init-reset.js?v=20260930b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20260930c';
+import { persist } from '../../data/data-adapter.js?v=20260930c';
+import { bumpToken } from '../../core/base/version-token.js?v=20260930c';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20260930c';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20260930c';
+import { isInitStateActive } from '../core/init-reset.js?v=20260930c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -327,6 +327,35 @@ export function setGalleryFeatured({ activityId, on, by, role } = {}) {
     galleryFeatured: on === true,
     galleryFeaturedBy: by || null,
     galleryFeaturedAt: new Date().toISOString(),
+    // 撤下时一并清掉置顶（避免「未收录却挂着置顶」的悬空态）
+    ...(on === true ? {} : { galleryPinned: false, galleryPinnedBy: null, galleryPinnedAt: null }),
+  });
+  return { ok: true };
+}
+
+// ── 活动风采「置顶」（2026-09-30 批次 298 · 支书裁「排序＝加『置顶』」）──────────
+//  与「收录」同一道门（宣传委员 ＋ 支书 / 副支书）；**只对已收录者有意义**。
+//  排序权重：置顶 ＞ 未完成 ＞ 已完成，组内均按活动日期倒序（单一源见首页 `dashboard/gallery.js`
+//  与宣传台「档案归档 · 活动风采」的 sort，两处同判据）。
+
+/** 该活动是否被置顶（且仍处于已收录状态） */
+export function isGalleryPinned(activity) {
+  return !!(activity && activity.galleryFeatured === true && activity.galleryPinned === true);
+}
+
+/**
+ * 置顶 / 取消置顶（宣传委员之权，与收录同门）。写主源字段 `galleryPinned`。
+ * @returns {{ok:boolean, reason?:string}}
+ */
+export function setGalleryPinned({ activityId, on, by, role } = {}) {
+  if (!GALLERY_FEATURED_BY_ROLES.includes(role)) return { ok: false, reason: '仅宣传委员（或支书 / 副支书）可置顶活动风采' };
+  const act = findActivityById(activityId);
+  if (!act) return { ok: false, reason: '活动不存在' };
+  if (on === true && !isGalleryFeatured(act)) return { ok: false, reason: '请先收录到活动风采，再置顶' };
+  _writeActivityField(activityId, {
+    galleryPinned: on === true,
+    galleryPinnedBy: by || null,
+    galleryPinnedAt: on === true ? new Date().toISOString() : null,
   });
   return { ok: true };
 }
@@ -736,8 +765,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20260930b'),
-    import('../../core/base/id.js?v=20260930b'),
+    import('./vote-config.js?v=20260930c'),
+    import('../../core/base/id.js?v=20260930c'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

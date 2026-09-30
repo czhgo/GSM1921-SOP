@@ -2,32 +2,32 @@
 // 纪检委员工作台 Tab：考察管理（T-279 M3 拆分）
 // 专班名单区（组织→纪检 自动同步，纪检只读同源）+ 考察总表（确认/删除）。
 
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260930b';
-import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20260930b';
-import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20260930b';
-import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20260930b';
-import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20260930b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain/domain.js?v=20260930b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20260930c';
+import { loadActiveInspectionRecords, getOverdueRecords, confirmInspectionRecord, deleteInspectionRecord, listInspectionSupervision } from '../../../services/activity/inspection.js?v=20260930c';
+import { loadInspectionRecords, saveInspectionRecords, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20260930c';
+import { returnInspectionRecord, loadInspectionAppeals, returnInspectionAppeal, closeInspectionAppeal } from '../../../services/activity/inspection.js?v=20260930c';
+import { inspectionToLong, inspectionToWide } from '../../../services/activity/inspection.js?v=20260930c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { SourceType, OutputType, deriveOutputRoute, ParticipationLevel } from '../../../core/domain/domain.js?v=20260930c';
 // P3c 单一源（批4 副本收编 2026-09-09）：超期天数与文案由 policy 派生，勿在此写字面量
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930b';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930b';
-import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260930b';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20260930c';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930c';
+import { DISC_COMMISSIONER_ID, getDiscCommissionerId } from './_shared.js?v=20260930c';
 // 统一检索引擎（支书 2026-09-13 裁定）：可搜索表一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20260930c';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广到其它二元关系域）
-import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20260930b';
+import { renderRelationMatrix, MATRIX_COL_LIMIT } from '../../../components/ui/relation-matrix.js?v=20260930c';
 // 考察代录位（2026-09-23 支书追裁「开一个代录位」）：写口与字段**完全复用**组长台「考察上传」，
 //   本位判据单一源 `services/activity/inspection.js::isInspectionHomePosition`，非本位代录走既有 nudge。
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930c';
 // 「本位」nudge 确认弹窗（单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20260930b';
-import { generateId } from '../../../core/base/id.js?v=20260930b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20260930c';
+import { generateId } from '../../../core/base/id.js?v=20260930c';
 
 // 考察代录表单状态（随模块自持，不污染入口；与组长 / 组织台考察上传同规）
 let _discInspFormVisible = false;
@@ -79,16 +79,16 @@ export function renderContent(ctx) {
           <!-- UI-A（2026-09-07）：互斥视图切换回退=独立小圆角钮组（去胶囊底衬；激活=主题浅底+主题色字/边框，data-view 切换逻辑照旧） -->
           <!-- 批次 35（2026-09-14 支书裁定）：宽表默认（按人）＋补「按项目」＝与「按人」互为转置；long form 降为「明细」下钻 -->
           <div class="flex items-center gap-2">
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="wide">按人</button>
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="wideItem">按项目</button>
-            <button class="insp-view-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="long">明细</button>
+            <button class="btn-tab insp-view-btn px-3 py-1.5 text-xs font-medium [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)" data-view="wide">按人</button>
+            <button class="btn-tab insp-view-btn px-3 py-1.5 text-xs font-medium" data-view="wideItem">按项目</button>
+            <button class="btn-tab insp-view-btn px-3 py-1.5 text-xs font-medium" data-view="long">明细</button>
           </div>
           <!-- 2026-08-28 T-304 A 档下载闭环：考察总表导出 CSV + 打印 -->
           <!-- U5b（2026-09-07）：低频操作钮统一 32px 圆角（与下拉/胶囊同 32px 档，hover 统一 bg-gray-50） -->
-          <button class="insp-export-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">导出 CSV</button>
-          <button class="insp-print-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">打印</button>
+          <button class="btn-outline insp-export-btn h-8 px-3 text-xs font-medium">导出 CSV</button>
+          <button class="btn-outline insp-print-btn h-8 px-3 text-xs font-medium">打印</button>
           <!-- 2026-08-29 T-304 C2 数据交接协议：纪检→组织 考察记录提交 -->
-          <button class="insp-handoff-btn h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">提交考察至支委会</button>
+          <button class="btn-outline insp-handoff-btn h-8 px-3 text-xs font-medium">提交考察至支委会</button>
           ${HandoffStore.hasPendingFor('inspection-report', 'inspection') ? '<span class="text-xs text-teal-600 font-medium">待组织接收</span>' : ''}
         </div>
       </div>
@@ -218,8 +218,8 @@ export function renderContent(ctx) {
               <td>${isReturned
                 ? '<span class="text-xs text-amber-700" title="已打回，待上传方重新确认（修改痕迹留存）">已打回 · 待上传方确认</span>'
                 : (isPending || isOverdue
-                  ? `<button class="text-xs px-3 py-1.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100 transition-colors btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`
-                  : `<span class="text-xs text-green-700 mr-2">已确认</span><button class="text-xs px-2.5 py-1 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition-colors btn-disc-return-insp" data-record-id="${i.id}" style="cursor:pointer;" title="打回后交上传方重新确认">打回</button>`)}</td>
+                  ? `<button class="btn-accent-soft text-xs px-3 py-1.5 btn-disc-confirm-insp" data-record-id="${i.id}" style="cursor:pointer;">确认</button> <button class="btn-danger text-xs px-3 py-1.5 btn-disc-delete-insp" data-record-id="${i.id}" style="cursor:pointer;">删除</button>`
+                  : `<span class="text-xs text-green-700 mr-2">已确认</span><button class="btn-outline text-xs px-2.5 py-1 btn-disc-return-insp" data-record-id="${i.id}" style="cursor:pointer;" title="打回后交上传方重新确认">打回</button>`)}</td>
             </tr>`;
       },
     });
@@ -446,15 +446,15 @@ function _buildInspectionProxyCardHTML(activities = []) {
       </div>
       <div id="disc-insp-content-rows" class="mb-3"></div>
       <div class="flex items-center gap-3">
-        <button id="disc-insp-form-submit" class="text-xs px-3 py-1.5 rounded-lg text-white font-medium" style="background:var(--party-red);cursor:pointer;">提交代录</button>
-        <button id="disc-insp-form-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 border border-gray-200 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
+        <button id="disc-insp-form-submit" class="btn-ghost text-xs px-3 py-1.5 font-medium" style="background:var(--party-red);cursor:pointer;">提交代录</button>
+        <button id="disc-insp-form-cancel" class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
       </div>
     </div>` : '';
   return `
     <div class="card rounded-xl p-4 mb-4">
       <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
         <h3 class="font-title-cn text-base font-semibold text-gray-800">考察代录（代上传方录入）</h3>
-        <button id="btn-disc-upload-insp" class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
+        <button id="btn-disc-upload-insp" class="btn-outline h-8 px-3 text-xs font-medium">${_discInspFormVisible ? '收起表单' : '代录考察表单'}</button>
       </div>
       <div class="text-[11px] text-gray-500 leading-5 mb-3">考察记录的写入本位是<strong>该场活动的组织者</strong>——上传方未到位时，纪检可在此代录；记录照常入下方考察总表「待确认」，确认权仍在本页。<strong>不是你本位时，提交前会先弹一次确认</strong>。</div>
       ${formHtml}
@@ -606,8 +606,8 @@ function _buildAppealCardHTML(pendingAppeals, returnedAppeals) {
           ${a.returnNote ? `<span class="block text-xs text-amber-700 truncate">打回说明：${esc(a.returnNote)}</span>` : ''}
         </span>
         ${actionable ? `
-          <button type="button" class="insp-appeal-return text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;background:#B45309;">核实属实，打回上传方</button>
-          <button type="button" class="insp-appeal-close text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;">不属实，关闭</button>`
+          <button type="button" class="btn-ghost insp-appeal-return text-xs px-3 py-1.5 flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;background:#B45309;">核实属实，打回上传方</button>
+          <button type="button" class="btn-outline insp-appeal-close text-xs px-3 py-1.5 flex-shrink-0" data-appeal-id="${a.id}" style="cursor:pointer;">不属实，关闭</button>`
         : badgeHtml('已打回 · 待上传方确认', 'warning')}
       </div>`;
   };
@@ -665,7 +665,7 @@ function _buildTaskforceRosterHTML() {
           <span class="${progressCls} font-medium whitespace-nowrap">考察确认 ${confirmed}/${total}${pending > 0 ? `（待确认 ${pending}）` : ''}</span>
         </div>
         <div class="mt-2 pt-2 border-t border-gray-100">
-          <button class="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1" onclick="this.nextElementSibling.classList.toggle('hidden')">
+          <button class="btn-ghost text-xs flex items-center gap-1" onclick="this.nextElementSibling.classList.toggle('hidden')">
             产出物 <span>▾</span>
           </button>
           <div class="hidden mt-2 space-y-1.5">

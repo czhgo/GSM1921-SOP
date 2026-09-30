@@ -11,16 +11,16 @@
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20260930b';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20260930b';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20260930c';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS } from '../../../core/domain/work-map.js?v=20260930c';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930b';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20260930c';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20260930b';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20260930c';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
@@ -122,7 +122,7 @@ function _toolFoldHtml() {
           <h3 class="font-title-cn text-sm font-bold text-gray-700">分工调整（写）</h3>
           <span class="text-xs text-gray-500">发起调整走支委会议题表决；跟踪与采纳亦在此</span>
         </div>
-        <button type="button" class="wm-tool-toggle text-xs text-gray-500 hover:text-gray-700 transition-colors" style="cursor:pointer;">${_toolOpen ? '收起' : '展开分工调整工具'}</button>
+        <button type="button" class="btn-ghost wm-tool-toggle text-xs" style="cursor:pointer;">${_toolOpen ? '收起' : '展开分工调整工具'}</button>
       </div>
       ${_toolOpen ? '<div id="workforce-panel-host" class="mt-2"></div>' : ''}
     </div>`;
@@ -154,7 +154,7 @@ export function renderContent() {
           { key: 'items', label: '按项目' },
         ].map(t => `
           <button type="button"
-            class="ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
+            class="btn-tab ov-sub-tab px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${_view === t.key ? 'bg-[var(--app-accent-bg)] border-[var(--app-accent)] [color:color-mix(in_srgb,var(--app-accent)_60%,#000)]' : 'bg-white border-neutral-200 text-gray-600 hover:bg-gray-50'}"
             ${_view === t.key ? 'style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}
             data-wm-view="${t.key}">${t.label}</button>`).join('')}
       </div>

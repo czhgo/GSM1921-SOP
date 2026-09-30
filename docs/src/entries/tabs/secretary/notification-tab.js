@@ -3,20 +3,20 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20260930b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20260930c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20260930c';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20260930b';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20260930c';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20260930c';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930b';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930c';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
@@ -77,7 +77,7 @@ function renderNotificationForm() {
   html += `<div class="flex flex-wrap gap-2">`;
   NOTICE_AUDIENCE_OPTIONS.forEach(a => {
     const on = _selectedAudience.includes(a.value);
-    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
+    html += `<button data-notif-action="select-audience" data-value="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
   });
   html += `</div>`;
   html += `</div>`;
@@ -248,9 +248,9 @@ function renderNotificationList() {
         : '';
       // B1（2026-09-12）：党委下钻只读视图 → 不渲染删除/编辑写入口
       const writeBtns = isReadonlyBranchDrilldown() ? '' : `
-          <button data-notif-action="delete" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-red-700 transition-colors ml-2 flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-red-50">删除</button>
+          <button data-notif-action="delete" data-notif-id="${n.id}" class="btn-ghost text-xs ml-2 flex-shrink-0 px-3 py-1.5">删除</button>
           <!-- B 档 CRUD 补全：通知编辑（复用 NoticeStore.update，同源写穿） -->
-          <button data-notif-action="edit" data-notif-id="${n.id}" class="text-xs text-gray-500 hover:text-blue-600 transition-colors flex-shrink-0 px-3 py-1.5 rounded-lg hover:bg-blue-50" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
+          <button data-notif-action="edit" data-notif-id="${n.id}" class="btn-ghost text-xs flex-shrink-0 px-3 py-1.5" title="编辑该通知" style="cursor:pointer;">编辑</button>`;
       return `
       <div class="py-3 px-4 rounded-xl bg-white transition-colors group cursor-pointer hover:bg-gray-50" data-notif-id="${n.id}" data-notif-row="1" title="查看通知详情">
         <div class="flex items-center justify-between mb-1">
@@ -298,7 +298,7 @@ function _openNoticeEditModal(notice) {
   const audienceValues = Array.isArray(notice.audience) ? notice.audience : (notice.audience ? [notice.audience] : []);
   const chips = NOTICE_AUDIENCE_OPTIONS.map(a => {
     const on = audienceValues.includes(a.value) ? ' chip-accent-on font-medium' : '';
-    return `<button type="button" data-notif-edit-aud="${a.value}" class="chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
+    return `<button type="button" data-notif-edit-aud="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
   }).join('');
 
   openModal({
@@ -329,8 +329,8 @@ function _openNoticeEditModal(notice) {
         </div>
       </div>
       <div class="flex justify-end gap-2 mt-4">
-        <button id="ne-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors" style="cursor:pointer;">取消</button>
-        <button id="ne-save" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="background:var(--party-red);cursor:pointer;">保存</button>
+        <button id="ne-cancel" class="btn-ghost text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button id="ne-save" class="btn-ghost text-xs px-3 py-1.5" style="background:var(--party-red);cursor:pointer;">保存</button>
       </div>
     `,
     onMount: (panel) => {

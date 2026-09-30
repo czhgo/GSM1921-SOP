@@ -4,10 +4,10 @@
 // （角色位 role 命中 / 到人位 personId 命中）名下负责的工作模块。
 // 行内「去履职」= 切到本工作台对应 tab（映射见 DUTY_TAB，tab id 须真实存在于该台能力清单；
 // 缺映射/被支部配置隐藏的模块仅展示，不硬跳）。
-import { AuthStore } from '../../services/core/auth.js?v=20260930b';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20260930b';
-import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930b';
-import { escHtml as esc } from '../../core/base/utils.js?v=20260930b';
+import { AuthStore } from '../../services/core/auth.js?v=20260930c';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../services/branch/branch.js?v=20260930c';
+import { WORK_MAP_MODULES } from '../../core/domain/work-map.js?v=20260930c';
+import { escHtml as esc } from '../../core/base/utils.js?v=20260930c';
 
 /** 模块 → 各工作台 tab 跳转（key = 页面 prefix：secretary/org/prop/disc/leader/visitor）
  *  2026-09-22 批次 145：原「three-meetings」单模块按形式拆为 4 个模块（见 core/domain/work-map.js），
@@ -79,7 +79,7 @@ export function dutyCardHtml(prefix) {
     const tab = landing[m.id] || '';
     const sub = m.sub && m.sub.length ? `<span class="text-[11px] text-gray-500">（${esc(m.sub.join('·'))}）</span>` : '';
     return tab
-      ? `<button type="button" class="wfd-duty inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-white border border-gray-200 text-gray-700 hover:border-red-300 hover:text-red-700" data-prefix="${esc(prefix)}" data-tab="${esc(tab)}" title="去履职">${esc(m.name)}${sub} · 去履职</button>`
+      ? `<button type="button" class="btn-outline wfd-duty inline-flex items-center gap-1 text-xs px-2 py-1" data-prefix="${esc(prefix)}" data-tab="${esc(tab)}" title="去履职">${esc(m.name)}${sub} · 去履职</button>`
       : `<span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-50 border border-gray-100 text-gray-500" title="对应工作页入口待建">${esc(m.name)}${sub}</span>`;
   }).join('');
 

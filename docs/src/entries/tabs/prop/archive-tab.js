@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20260930b';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260930b';
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260930b';
+import { icon } from '../../../core/base/icons.js?v=20260930c';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES } from '../../../core/domain/constants.js?v=20260930c';
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20260930c';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260930b';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930b';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20260930b'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, isGalleryFeatured } from '../../../services/activity/activity.js?v=20260930b';
-import { isApiMode } from '../../../services/core/runtime.js?v=20260930b';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930b';
-import { getPersonName } from '../../../services/member/person.js?v=20260930b';
-import { generateId } from '../../../core/base/id.js?v=20260930b';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260930b';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20260930c';
+import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20260930c';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930c';
+import { bumpToken } from '../../../core/base/version-token.js?v=20260930c'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20260930c';
+import { isApiMode } from '../../../services/core/runtime.js?v=20260930c';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
+import { getPersonName } from '../../../services/member/person.js?v=20260930c';
+import { generateId } from '../../../core/base/id.js?v=20260930c';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20260930c';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260930b';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20260930c';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20260930b';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20260930c';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -69,7 +69,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     ${_renderArchiveFallbackBanner()}
     <div class="mb-4 flex flex-col sm:flex-row gap-3 items-center justify-end">
-      <button id="archive-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">
+      <button id="archive-upload-btn" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0 flex items-center justify-center gap-1.5" >
         ${icon('upload', { className: 'w-3.5 h-3.5' })}
         <span>上传材料</span>
       </button>
@@ -102,7 +102,7 @@ export function renderContent(ctx) {
               <span class="text-xs font-medium text-gray-700">${t.name}</span>
               <span class="text-xs px-1.5 py-0.5 rounded-full ${ARCHIVE_CATEGORY_STYLE[t.category]} ml-1.5">${t.category}</span>
             </div>
-            <button class="archive-tpl-btn text-xs px-3 py-1.5 rounded-lg bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors" data-tpl-name="${t.name}">下载</button>
+            <button class="btn-outline archive-tpl-btn text-xs px-3 py-1.5" data-tpl-name="${t.name}">下载</button>
           </div>
         `).join('')}
       </div>
@@ -120,16 +120,25 @@ export function renderContent(ctx) {
       countUnit: '个',
       listClass: 'space-y-2',
       emptyMessage: '无可收录的活动',
-      // 已收录在前；组内按活动日期倒序
-      sort: (a, b) => ((isGalleryFeatured(b) ? 1 : 0) - (isGalleryFeatured(a) ? 1 : 0))
+      // 排序权重（2026-09-30 批次 298）：置顶 ＞ 已收录；组内按活动日期倒序
+      sort: (a, b) => ((isGalleryPinned(b) ? 1 : 0) - (isGalleryPinned(a) ? 1 : 0))
+        || ((isGalleryFeatured(b) ? 1 : 0) - (isGalleryFeatured(a) ? 1 : 0))
         || String(b.date || '').localeCompare(String(a.date || '')),
       rowHtml: _galleryRowHtml,
     });
-    // 收录 / 撤下（容器委托；列表重绘后仍有效）
+    // 置顶 / 收录 撤下（容器委托；列表重绘后仍有效）
     gHost.addEventListener('click', (e) => {
+      const me = AuthStore.getCurrentUser() || {};
+      const pinBtn = e.target.closest('.gallery-pin-btn');
+      if (pinBtn) {
+        const res = setGalleryPinned({ activityId: pinBtn.dataset.activityId, on: pinBtn.dataset.on !== 'true', by: me.personId, role: me.role });
+        if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
+        showToast('success', pinBtn.dataset.on === 'true' ? '已取消置顶' : '已置顶（首页排在最前）');
+        renderContent(ctx);
+        return;
+      }
       const btn = e.target.closest('.gallery-feature-btn');
       if (!btn) return;
-      const me = AuthStore.getCurrentUser() || {};
       const res = setGalleryFeatured({ activityId: btn.dataset.activityId, on: btn.dataset.on !== 'true', by: me.personId, role: me.role });
       if (!res.ok) { showToast('error', res.reason || '操作失败'); return; }
       showToast('success', btn.dataset.on === 'true' ? '已从活动风采撤下' : '已收录到活动风采');
@@ -329,6 +338,7 @@ function _renderGallerySection() {
  *  「活动日期：」前缀、以及「已收录」徽标（**按钮已说**：是「撤下」就说明已收录 ⇒ UI 自明）。 */
 function _galleryRowHtml(a) {
   const on = isGalleryFeatured(a);
+  const pinned = isGalleryPinned(a);
   const btnCls = on
     ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
     : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
@@ -338,7 +348,9 @@ function _galleryRowHtml(a) {
           <div class="text-sm font-medium text-gray-800 truncate">${escHtml(a.title || '未命名活动')}</div>
           <span class="text-xs text-gray-500">${escHtml(a.date || '—')}</span>
         </a>
-        <button type="button" class="gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
+        ${on ? `<button type="button" class="btn-outline gallery-pin-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${pinned ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}"
+                data-activity-id="${escHtml(a.id)}" data-on="${pinned ? 'true' : 'false'}">${pinned ? '取消置顶' : '置顶'}</button>` : ''}
+        <button type="button" class="btn-outline gallery-feature-btn text-xs px-3 py-1.5 rounded-lg border transition-colors flex-shrink-0 ${btnCls}"
                 data-activity-id="${escHtml(a.id)}" data-on="${on ? 'true' : 'false'}">${on ? '撤下' : '收录到活动风采'}</button>
       </div>`;
 }
@@ -384,7 +396,7 @@ function _endedUnarchivedCardHtml(a) {
           </div>
           <span class="text-xs text-gray-500">活动日期：${escHtml(a.date || '—')}</span>
         </a>
-        <button type="button" class="archive-activity-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors flex-shrink-0" data-activity-id="${escHtml(a.id)}" style="cursor:pointer;">归档</button>
+        <button type="button" class="btn-accent-soft archive-activity-btn text-xs px-3 py-1.5 flex-shrink-0" data-activity-id="${escHtml(a.id)}" style="cursor:pointer;">归档</button>
       </div>`;
 }
 
@@ -403,8 +415,8 @@ function _renderPublicityDraftSection(rows) {
           <span class="text-xs text-gray-500">${escHtml(r.activity.title || '未命名活动')} · 撰写人 ${escHtml(r.rec.author || '—')}${r.rec.channel ? ' · 渠道 ' + escHtml(r.rec.channel) : ''}</span>
         </a>
         <div class="flex items-center gap-2 flex-shrink-0">
-          <button type="button" class="pdraft-finalize text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">定稿</button>
-          <button type="button" class="pdraft-return text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">退回修改</button>
+          <button type="button" class="btn-accent-soft pdraft-finalize text-xs px-3 py-1.5" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">定稿</button>
+          <button type="button" class="btn-outline pdraft-return text-xs px-3 py-1.5" data-activity-id="${escHtml(r.activity.id)}" data-idx="${r.index}" style="cursor:pointer;">退回修改</button>
         </div>
       </div>`).join('');
   return `
@@ -456,7 +468,7 @@ function _archiveRowHtml(r) {
   const isInProgress = r.status === 'in_progress';
   const advanceLabel = r.status === 'pending' ? '开始归档' : '确认归档';
   const advanceBtn = !isFinal
-    ? `<button class="archive-advance-btn text-xs px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors" data-record-id="${r.id}" style="cursor:pointer;">${advanceLabel}</button>`
+    ? `<button class="btn-accent-soft archive-advance-btn text-xs px-3 py-1.5" data-record-id="${r.id}" style="cursor:pointer;">${advanceLabel}</button>`
     : '';
   // 归档中状态显示进度
   const progressHtml = isInProgress && r._checklistState
@@ -468,8 +480,8 @@ function _archiveRowHtml(r) {
     : '';
   // 已归档材料（上传过文件）显示下载按钮 + 行内外发按钮/状态徽标
   const fileBtn = r.fileName
-    ? `<button class="archive-file-dl-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${escHtml(r.fileName)}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
-      <button class="archive-file-del-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 transition-colors" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
+    ? `<button class="btn-outline archive-file-dl-btn text-xs px-2.5 py-1.5 inline-flex items-center gap-1" data-record-id="${r.id}" title="下载 ${escHtml(r.fileName)}" style="cursor:pointer;">${icon('download', { className: 'w-3 h-3' })} 下载</button>
+      <button class="btn-outline archive-file-del-btn text-xs px-2.5 py-1.5" data-record-id="${r.id}" title="删除该材料（连物理文件）" style="cursor:pointer;">删除</button>`
     : '';
   // C④ 2026-09-10 裁定：外发改行内可选——未外发显示「标记已发送」按钮，已外发以徽标呈现状态
   // B4（2026-09-12）：无材料文件时不再静默隐藏入口 → 给出可见依据提示（避免「入口完全不可见」）
@@ -534,7 +546,7 @@ function _renderPlatformCell(r) {
   if (rec) {
     return `<span class="text-xs px-1.5 py-0.5 rounded-full border bg-violet-50 text-violet-700 border-violet-200 shrink-0" title="上报留痕：${(rec.platformReportedAt || '').slice(0, 16).replace('T', ' ')}">已上报党建平台</span>`;
   }
-  return `<button class="archive-platform-btn text-xs px-2.5 py-1.5 rounded-lg bg-white text-violet-700 border border-violet-200 hover:bg-violet-50 transition-colors shrink-0" data-record-id="${r.id}" title="材料已报送北京大学智慧党建平台（党旗飘飘）时，在此留痕——只留痕、不对接" style="cursor:pointer;">标记已上报党建平台</button>`;
+  return `<button class="btn-outline archive-platform-btn text-xs px-2.5 py-1.5 shrink-0" data-record-id="${r.id}" title="材料已报送北京大学智慧党建平台（党旗飘飘）时，在此留痕——只留痕、不对接" style="cursor:pointer;">标记已上报党建平台</button>`;
 }
 
 /** 标记「已上报党建平台」：写该活动的**全部**归档记录（同活动多行同步）＋ persist 落库 */
@@ -650,7 +662,7 @@ function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
   html += `<div class="px-5 pt-4 pb-3 border-b border-gray-100">`;
   html += `<div class="flex items-center justify-between mb-1">`;
   html += `<h3 class="font-title-cn text-sm font-semibold text-gray-800">${isStart ? '开始归档' : '确认归档'}</h3>`;
-  html += `<button id="archive-popover-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>`;
+  html += `<button id="archive-popover-close" class="btn-ghost text-sm leading-none">&times;</button>`;
   html += `</div>`;
   html += `<div class="text-xs text-gray-500">${record.activityName} · <span class="px-1 py-0.5 rounded ${ARCHIVE_CATEGORY_STYLE[record.category] || ''}">${record.category}</span></div>`;
   html += `</div>`;
@@ -688,8 +700,8 @@ function _showArchiveAdvancePopover(record, triggerBtn, ctx) {
 
   // 操作按钮
   html += `<div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">`;
-  html += `<button id="archive-popover-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>`;
-  html += `<button id="archive-popover-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">${nextLabel}</button>`;
+  html += `<button id="archive-popover-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>`;
+  html += `<button id="archive-popover-confirm" class="btn-accent-soft text-xs px-3 py-1.5" >${nextLabel}</button>`;
   html += `</div>`;
 
   popover.innerHTML = html;
@@ -795,7 +807,7 @@ function _showArchiveUploadModal(ctx) {
   card.innerHTML = `
     <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传宣传材料</h3>
-      <button id="upload-modal-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="upload-modal-close" class="btn-ghost text-sm leading-none">&times;</button>
     </div>
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
       <div>
@@ -822,8 +834,8 @@ function _showArchiveUploadModal(ctx) {
       </div>
     </div>
     <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)}">上传</button>
+      <button id="upload-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="upload-confirm" class="btn-accent-soft text-xs px-3 py-1.5" >上传</button>
     </div>
     ${settingsLinkHTML({ href: './settings.html', text: '设置首页（宣传台无支部治理分区）' })}
   `;
@@ -852,7 +864,7 @@ function _showArchiveUploadModal(ctx) {
           <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
           <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
         </div>
-        <button class="upload-file-remove text-gray-500 hover:text-red-600 text-sm leading-none" data-idx="${i}">&times;</button>
+        <button class="btn-ghost upload-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
       </div>`;
     }).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择文件</p>';
   };
@@ -937,7 +949,7 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
     <div class="card rounded-xl w-full max-w-md" style="max-height:80vh;overflow-y:auto;">
       <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
         <h3 class="font-title-cn text-sm font-semibold text-gray-800">文件外发确认</h3>
-        <button id="ed-modal-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+        <button id="ed-modal-close" class="btn-ghost text-sm leading-none">&times;</button>
       </div>
       <div class="px-5 py-4 space-y-3.5">
         <div class="rounded-lg px-3 py-2 text-[11px] leading-relaxed bg-amber-50 text-amber-700 border border-amber-100">
@@ -956,8 +968,8 @@ function _promptExternalDispatch(activityId, activityName, ctx, onSent) {
         </div>
       </div>
       <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-        <button id="ed-skip" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">暂不外发</button>
-        <button id="ed-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">标记已通过微信发送</button>
+        <button id="ed-skip" class="btn-ghost text-xs px-3 py-1.5">暂不外发</button>
+        <button id="ed-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">标记已通过微信发送</button>
       </div>
     </div>
   `;
@@ -1107,10 +1119,10 @@ function _renderPhotoWallSection(ctx) {
   const groups = _groupPhotosByDate(records);
   const canUpload = isApiMode();
   const uploadBtn = canUpload
-    ? `<button id="photo-upload-btn" class="text-xs px-3 py-2 rounded-lg text-white transition-colors hover:opacity-90 flex-shrink-0 flex items-center justify-center gap-1.5" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">
+    ? `<button id="photo-upload-btn" class="btn-accent-soft text-xs px-3 py-2 flex-shrink-0 flex items-center justify-center gap-1.5" style="cursor:pointer">
          ${icon('upload', { className: 'w-3.5 h-3.5' })}<span>上传照片</span>
        </button>`
-    : `<button id="photo-upload-btn" class="text-xs px-3 py-2 rounded-lg bg-gray-100 text-gray-400 border border-gray-200 flex-shrink-0 flex items-center justify-center gap-1.5" disabled title="照片走服务端上传接口（multipart），本地模式无此接口——请在服务端模式使用" style="cursor:not-allowed;">
+    : `<button id="photo-upload-btn" class="btn-neutral text-xs px-3 py-2 flex-shrink-0 flex items-center justify-center gap-1.5" disabled title="照片走服务端上传接口（multipart），本地模式无此接口——请在服务端模式使用" style="cursor:not-allowed;">
          ${icon('upload', { className: 'w-3.5 h-3.5' })}<span>上传照片</span>
        </button>`;
   const hint = canUpload
@@ -1144,11 +1156,11 @@ function _photoGroupHtml(group) {
         <figcaption class="p-2">
           <p class="text-xs text-gray-800 truncate" title="${escHtml(r.title || '未命名照片')}">${escHtml(r.title || '未命名照片')}</p>
           <p class="text-[11px] text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
-          <button type="button" class="pw-annotate-btn text-[13px] px-2 py-1 rounded border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
+          <button type="button" class="btn-outline pw-annotate-btn px-2 py-1 mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
         </figcaption>
       </figure>`).join('');
   const more = (!expanded && group.rows.length > PHOTO_GROUP_INIT)
-    ? `<button type="button" class="pw-more-btn text-xs px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors mt-2" data-photo-date="${escHtml(group.date)}" style="cursor:pointer;">展开该日全部 ${group.rows.length} 张</button>`
+    ? `<button type="button" class="btn-outline pw-more-btn text-xs px-3 py-1.5 mt-2" data-photo-date="${escHtml(group.date)}" style="cursor:pointer;">展开该日全部 ${group.rows.length} 张</button>`
     : '';
   return `
     <div class="rounded-xl border border-gray-100 p-3" data-photo-group="${escHtml(group.date)}">
@@ -1209,7 +1221,7 @@ function _showPhotoUploadModal(ctx) {
   card.innerHTML = `
     <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">上传照片</h3>
-      <button id="photo-upload-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="photo-upload-close" class="btn-ghost text-sm leading-none">&times;</button>
     </div>
     <div class="px-5 py-4 space-y-3.5 overflow-y-auto">
       <div>
@@ -1239,8 +1251,8 @@ function _showPhotoUploadModal(ctx) {
       </div>
     </div>
     <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="photo-upload-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="photo-upload-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">上传</button>
+      <button id="photo-upload-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="photo-upload-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">上传</button>
     </div>
   `;
   overlay.appendChild(card);
@@ -1257,7 +1269,7 @@ function _showPhotoUploadModal(ctx) {
           <p class="text-xs text-gray-700 truncate">${escHtml(f.name)}</p>
           <p class="text-[11px] text-gray-500">${(f.size / 1024).toFixed(1)} KB</p>
         </div>
-        <button class="photo-file-remove text-gray-500 hover:text-red-600 text-sm leading-none" data-idx="${i}">&times;</button>
+        <button class="btn-ghost photo-file-remove text-sm leading-none" data-idx="${i}">&times;</button>
       </div>`).join('') || '<p class="text-xs text-gray-500 text-center py-3">尚未选择图片</p>';
   };
 
@@ -1373,7 +1385,7 @@ function _showPhotoAnnotateModal(record, ctx) {
   card.innerHTML = `
     <div class="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
       <h3 class="font-title-cn text-sm font-semibold text-gray-800">标注照片</h3>
-      <button id="photo-annotate-close" class="text-gray-500 hover:text-gray-600 text-sm leading-none">&times;</button>
+      <button id="photo-annotate-close" class="btn-ghost text-sm leading-none">&times;</button>
     </div>
     <div class="px-5 py-4 space-y-3.5">
       <p class="text-xs text-gray-500">${escHtml(record.fileName || '照片')}</p>
@@ -1395,8 +1407,8 @@ function _showPhotoAnnotateModal(record, ctx) {
       </div>
     </div>
     <div class="flex justify-end gap-2 px-5 py-3 border-t border-gray-100">
-      <button id="photo-annotate-cancel" class="text-xs px-3 py-1.5 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">取消</button>
-      <button id="photo-annotate-confirm" class="text-xs px-3 py-1.5 rounded-lg text-white transition-colors hover:opacity-90" style="${solidAccentStyle(ctx.accent, ctx.accentBorder)};cursor:pointer;">保存</button>
+      <button id="photo-annotate-cancel" class="btn-ghost text-xs px-3 py-1.5">取消</button>
+      <button id="photo-annotate-confirm" class="btn-accent-soft text-xs px-3 py-1.5" style="cursor:pointer">保存</button>
     </div>
   `;
   overlay.appendChild(card);
