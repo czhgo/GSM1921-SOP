@@ -2,7 +2,7 @@
 title: "Org OS — 系统路线图与 Harness"
 type: roadmap
 role: "[工程师]+[AI]"
-last_updated: "2026-09-28"
+last_updated: "2026-09-30"
 status: active
 related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC_MAP.md, content/01_strategy/SECRETARY_DIRECTIVES.md, content/01_strategy/, content/02_institution/, content/03_doc_system/, content/04_web_design/, content/05_ai_coding/, content/insights/, server/, .ctx/logs/]
 ---
@@ -324,7 +324,7 @@ related_files: [content/03_doc_system/ARCHITECTURE.md, content/03_doc_system/DOC
 
 **决策归属边界（2026-09-17 支书重申 · 判定「该不该入丙部」的第一道闸）**：
 
-> 支书原话：「**支书不是决断代码的，而是决断 strategy、product、marketing 的。** AI 负责代码与工程方案。凡需支书裁决的事项，一律先翻译成『战略/产品/运营叙事』层的选项与建议（附上下文、取舍、推荐档），禁止拿代码实现细节、字段命名、技术参数、内部机制等『代码层选择题』去问支书。做一个好秘书：**把决策做薄、把问题做厚**——能由 AI 消化执行的不上报。」
+> 支书原话（2026-09-06 定稿、2026-09-17 重申）：见 **H60「向支书提问/请裁的准则」**——同一纪律只在一处展开（2026-09-30 批次 305 去重，避免同一段原话在本文件出现两次）。
 
 | 事项性质 | 归属 | 判据 |
 | --- | --- | --- |

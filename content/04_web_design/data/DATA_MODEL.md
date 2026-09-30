@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: 2026-09-29
+last_updated: 2026-09-30
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -184,8 +184,8 @@ ActivityRecord (主记录)
 
 | 入口 | 数据载体 | 写入时机 | 语义 | 派生影响 |
 |---|---|---|---|---|
-| **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 支书/组长创建活动表单勾选参与人 | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
-| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | 支书工作台「项目赋权」Tab 单独操作 | 授予"组织者/深度参与者"项目角色权限（活动/专班共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
+| **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 创建活动表单勾选参与人（支书台 / 组长台） | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
+| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | **在写入路径上顺带赋权**（2026-09-30 `D-718`／`D-719`）：支书台「写入活动」表单、组长台写入活动、专班详情与发布招募的「初始成员」均**内嵌**赋权字段组，与独立赋权记录块共用**同一写口** `AuthStore.authorize`（不新造第二套机制） | 授予"组织者/深度参与者"项目角色权限（活动与专班统称「项目」，共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
 
 **边界规则**：
 1. 活动参与人是**活动级事实**，只回答"谁参加"；项目角色授权是**权限级事实**，只回答"谁能管这个项目"。
