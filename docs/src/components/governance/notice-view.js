@@ -10,14 +10,14 @@
 //  依赖方向正确：组件 → 服务（不是服务 → 组件）。守卫见 notice-audience / doc-consistency。
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20260930j';
-import { openFormModal } from '../ui/modal.js?v=20260930j';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20260930j';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260930j';
-import { AuthStore } from '../../services/core/auth.js?v=20260930j';
-import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260930j';
-import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260930j';
-import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260930j';
+import { badgeHtml } from '../ui/badges.js?v=20260930k';
+import { openFormModal } from '../ui/modal.js?v=20260930k';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20260930k';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20260930k';
+import { AuthStore } from '../../services/core/auth.js?v=20260930k';
+import { getPersonById, liveMembers } from '../../services/member/person.js?v=20260930k';
+import { isActivityOrganizer } from '../../services/activity/activity.js?v=20260930k';
+import { NoticeStore, NoticePermission, resolveNoticeUrl } from '../../services/governance/notice.js?v=20260930k';
 
 function committeeSourceChip() {
   return '<span style="display:inline-flex;align-items:center;padding:0 6px;border-radius:9999px;background:var(--party-red);color:#fff;font-size:10px;line-height:16px;flex-shrink:0;">党委下发</span>';

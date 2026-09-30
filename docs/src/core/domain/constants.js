@@ -285,6 +285,12 @@ export function ballotModeOfActivity(activity) {
 }
 export function isAnonymousActivity(activity) { return ballotModeOfActivity(activity) === 'anonymous'; }
 
+/** **项目角色**（可被赋的项目身份）——单一源：`organizer`（组织者）/ `deep`（深度参与者）。
+ *  「项目」是**活动 ∪ 专班**的合称（支书 2026-09-30 原话：「请允许我纠正你：**活动与专班 我们都统称为
+ *  项目**，而不是「活动项目」这么并提。**活动和专班是并列的**」）⇒ 写「项目角色」即同时涵盖两者，
+ *  不得再写「活动项目」这类并提。写口＝`AuthStore.authorize(actor, personId, role, { projectId })`。 */
+export const PROJECT_ROLES = ['organizer', 'deep'];
+
 export const ROLE_LABELS = {
   'secretary':         '支书',
   'deputy-secretary':  '副支书',

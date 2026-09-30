@@ -3,39 +3,39 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分：统计条 + 活动日历 + 写入活动悬浮表单 + 活动查询。
 // D4 裁决批二（2026-09-08）：「考勤概况」独立卡移除 → 考勤作为活动字段入「活动查询」行内只读摘要。
 
-import { getAppState, setState } from '../../../core/base/state.js?v=20260930j';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930j';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930j';
-import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260930j';
-import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260930j';
-import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260930j';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930j';
-import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260930j';
-import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260930j';
-import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260930j';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930j';
-import { icon } from '../../../core/base/icons.js?v=20260930j';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930j';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20260930j';
+import { getAppState, setState } from '../../../core/base/state.js?v=20260930k';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20260930k';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930k';
+import { populateMonthSelector, renderCalendarByActivities } from '../../../components/record/calendar.js?v=20260930k';
+import { renderInspectorFromState, _draftMaterialCount } from '../../../components/record/inspector.js?v=20260930k';
+import { computeSecretaryStats } from '../../../services/core/roles.js?v=20260930k';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20260930k';
+import { openModal, closeModal, confirmNudge } from '../../../components/ui/modal.js?v=20260930k';
+import { DecisionTreeState, renderWorkflowPanel, writeActivityWithSOP } from '../../../services/activity/decision-tree.js?v=20260930k';
+import { loadActivities, listBrandProposals } from '../../../services/activity/activity.js?v=20260930k';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20260930k';
+import { icon } from '../../../core/base/icons.js?v=20260930k';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20260930k';
+import { liveMembers, PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { NoticeStore } from '../../../services/governance/notice.js?v=20260930j';
-import { BranchService } from '../../../services/core/runtime.js?v=20260930j';
-import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS } from '../../../core/domain/constants.js?v=20260930j';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20260930k';
+import { BranchService } from '../../../services/core/runtime.js?v=20260930k';
+import { ACTIVITY_CLASSIFICATION, classifyActivityType, normalizeActivityType, dotDarkVars, SCENARIO_WRITE_IDS, SCENARIO_LABELS, ROLE_LABELS, PROJECT_ROLES } from '../../../core/domain/constants.js?v=20260930k';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930j';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20260930j';
-import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260930j';
-import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260930j';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930j';
-import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20260930j';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20260930k';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930k';
+import { collectAgendaRows, buildAgendaCandidates, AGENDA_CANDIDATE_GROUPS } from './agenda-form.js?v=20260930k';
+import { defaultVoteConfig, isDecisionScenario, resolveVoterIds, resolveParticipantIds, isAnonymousForced } from '../../../services/activity/vote-config.js?v=20260930k';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930k';
+import { getBranchIdOfPerson, getBranchById, applyWorkflowBlockPolicy, getWorkflowBlockFieldPolicy, getWorkflowBlockParticipantPolicy } from '../../../services/branch/branch.js?v=20260930k';
 // 支部文件读侧收敛点（2026-09-10）：会前草案下拉经 branch-doc 服务读取（按归属支部过滤，跨支部不可见）
-import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260930j';
+import { listDocs as listBranchDocs, isAgendaDraftDoc } from '../../../services/branch/branch-doc.js?v=20260930k';
 // L3 S4（2026-09-03）：主题党日工作流块 manifest 驱动试点（入口守卫 + 表单元数据单一源）
-import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260930j';
+import { BLOCK_MANIFESTS, THEME_PARTY_DAY_MANIFEST, THREE_MEETINGS_MANIFESTS } from '../../../workflow/blocks/manifests.js?v=20260930k';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930j';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20260930k';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -452,6 +452,28 @@ function openWriteModal() {
   });
 }
 
+/** 写入表单内「项目赋权」待提交名单（`wp.pendingAuth`）的 chips 渲染 —— 2026-09-30 批次 303 内嵌赋权。
+ *  名单只暂存，**写入活动成功后才逐条落库**（见 `handleWritePanelAction` 的 wp-submit 分支）。
+ *  ⚠ 删除按钮**就地绑定**（chips 每次都重建），不走容器级委托——容器可能被重复 bind，委托会累积重复监听。 */
+function _renderPendingAuth(container) {
+  const host = container.querySelector('#wp-auth-list');
+  if (!host) return;
+  const list = wp.pendingAuth || [];
+  host.innerHTML = list.length
+    ? `<div class="flex flex-wrap gap-1.5">${list.map((x, i) => `
+        <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+          ${esc(getPersonName(x.personId) || x.personId)} · ${esc(ROLE_LABELS[x.role] || x.role)}
+          <button type="button" data-wp-auth-del="${i}" class="btn-ghost text-gray-400 hover:text-red-600 leading-none" aria-label="从名单移除">✕</button>
+        </span>`).join('')}</div>`
+    : '';
+  host.querySelectorAll('[data-wp-auth-del]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.wpAuthDel);
+      if (Number.isInteger(i)) { (wp.pendingAuth || []).splice(i, 1); _renderPendingAuth(container); }
+    });
+  });
+}
+
 /** 主渲染入口（2 步：模板选择 → 表单填写）*/
 function renderWritePanel(container) {
   let html = '';
@@ -694,6 +716,22 @@ function renderFormStep() {
   html += `<div class="mb-3">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">参与人 <span class="text-gray-500">（选填，可多选）</span></label>`;
   html += `<div id="wp-participants-slot"></div>`;
+  html += `</div>`;
+
+  // 项目赋权（组织者 / 深度参与者）——2026-09-30 批次 303 支书裁定：
+  //   「**在写入的时候直接就可以进行赋权了**，也就是 这个信息应该是**内嵌在 活动/专班 字段中的**！
+  //    **单独把赋权拎出来未必高效**！」⇒ 写入活动时即可赋项目角色（写入后逐条落 `AuthStore.authorize`，
+  //   与独立赋权块**同一写口**；不新造第二套赋权机制）。
+  html += `<div class="mb-3">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">项目赋权 <span class="text-gray-500">（选填：组织者 / 深度参与者）</span></label>`;
+  html += `<div class="flex flex-wrap items-center gap-2">`;
+  html += `<div class="flex-1 min-w-[200px]" id="wp-auth-slot"></div>`;
+  html += `<div class="flex items-center gap-3 shrink-0">`;
+  html += PROJECT_ROLES.map(r => `<label class="flex items-center gap-2 text-xs whitespace-nowrap"><input type="radio" name="wp-auth-role" value="${r}" class="radio-accent"><span>${ROLE_LABELS[r] || r}</span></label>`).join('');
+  html += `</div>`;
+  html += `<button type="button" data-action="wp-auth-add" class="btn-outline text-xs px-3 py-1.5 shrink-0">+ 加入名单</button>`;
+  html += `</div>`;
+  html += `<div id="wp-auth-list" class="mt-2"></div>`;
   html += `</div>`;
 
   // 自动发布通知（选填，2026-08-05 支书裁决「表单内预拟通知·只跑一次」）
@@ -965,6 +1003,32 @@ function bindWritePanelEvents(container) {
     });
     wp.personPicker.render(participantsSlot);
   }
+  // 项目赋权（内嵌）：被赋权人选择器（单选）＋ 名单 chips 回显 ＋「加入名单」/「移除」
+  const authSlot = container.querySelector('#wp-auth-slot');
+  if (authSlot) {
+    if (wp.authPicker) wp.authPicker.destroy();
+    wp.authPicker = new PersonPicker({
+      mode: 'single',
+      placeholder: '搜索姓名或学号选择被赋权人',
+      accentColor: _accentHex(),
+      onSelect: () => {},
+    });
+    wp.authPicker.render(authSlot);
+  }
+  _renderPendingAuth(container);
+  container.querySelector('[data-action="wp-auth-add"]')?.addEventListener('click', () => {
+    const personId = (wp.authPicker?.getSelected() || [])[0] || '';
+    const role = container.querySelector('input[name="wp-auth-role"]:checked')?.value;
+    if (!personId) { showToast('error', '请选择被赋权人'); return; }
+    if (!role) { showToast('error', '请选择项目角色'); return; }
+    wp.pendingAuth = wp.pendingAuth || [];
+    if (wp.pendingAuth.some(x => x.personId === personId && x.role === role)) {
+      showToast('warn', '该同志在此角色已在名单中'); return;
+    }
+    wp.pendingAuth.push({ personId, role });
+    showToast('success', `已加入名单：${getPersonName(personId) || personId} · ${ROLE_LABELS[role] || role}`);
+    _renderPendingAuth(container);
+  });
   // 主题党日正交维度按钮（单选组互斥 / 载体多选）
   container.querySelectorAll('[data-wp-dim]').forEach(el => {
     el.addEventListener('click', () => {
@@ -1265,6 +1329,18 @@ async function handleSubmitActivity() {
     const { activity, taskCount } = await writeActivityWithSOP(activityData, scenarioId, date);
     showToast('success', `活动写入成功，已生成 ${taskCount} 项后续待办`);
 
+    // 3.5 项目赋权（内嵌写入，批次 303）：活动创建成功后逐条落库——写口与独立赋权块同源
+    const _pendingAuth = wp.pendingAuth || [];
+    if (_pendingAuth.length && activity?.id) {
+      let _okCount = 0;
+      for (const _a of _pendingAuth) {
+        const _r = await AuthStore.authorize(AuthStore.getCurrentUser()?.personId, _a.personId, _a.role, { projectId: activity.id });
+        if (_r?.ok) _okCount += 1;
+      }
+      if (_okCount) showToast('success', `已随活动写入项目赋权 ${_okCount} 条`);
+      wp.pendingAuth = [];
+    }
+
     // 4. 渲染工作流可视化面板
     const definitionId = wp.mapToDefinitionId();
     renderWorkflowPanel('secretary-workflow', 'secretary-write', definitionId, title);
@@ -1369,9 +1445,9 @@ document.addEventListener('click', (e) => { if (e.target?.closest?.('#wp-agenda-
 async function _loadAgendaCandidateSources() {
   const out = { taskforceProposals: [], issues: [], draftDocs: [], members: [], stageEntries: {} };
   const [{ TaskForceRecordStore }, { IssueStore }, { loadStageEntryDates }] = await Promise.all([
-    import('../../../services/activity/taskforce.js?v=20260930j'),
-    import('../../../services/governance/issues.js?v=20260930j'),
-    import('../../../services/member/member-confirmation.js?v=20260930j'),
+    import('../../../services/activity/taskforce.js?v=20260930k'),
+    import('../../../services/governance/issues.js?v=20260930k'),
+    import('../../../services/member/member-confirmation.js?v=20260930k'),
   ]);
   try { out.taskforceProposals = TaskForceRecordStore.listCommitteeRequests(); }
   catch (e) { console.warn('[calendar] 专班待议加载失败：', e); }
