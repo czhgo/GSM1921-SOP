@@ -20,23 +20,23 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20260930k';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20260930l';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20260930k';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260930k';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20260930k';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260930k';
-import { getCapabilities } from '../../core/boot/registry.js?v=20260930k';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20260930k';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20260930l';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20260930l';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20260930l';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260930l';
+import { getCapabilities } from '../../core/boot/registry.js?v=20260930l';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20260930l';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260930k';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20260930l';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20260930k';
-import { AuthStore } from '../../services/core/auth.js?v=20260930k';
-import { BranchService } from '../../services/core/runtime.js?v=20260930k';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260930k';
+import { TodoStore } from '../../services/governance/todo.js?v=20260930l';
+import { AuthStore } from '../../services/core/auth.js?v=20260930l';
+import { BranchService } from '../../services/core/runtime.js?v=20260930l';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20260930l';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260930k';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20260930l';
 
 
 
