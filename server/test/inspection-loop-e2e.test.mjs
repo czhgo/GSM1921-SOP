@@ -45,7 +45,7 @@ async function loginAs(sid, ws) {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930f')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20260930g')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();

@@ -9,8 +9,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260930f';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260930f';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20260930g';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20260930g';
 import {
   upsertMeetingAttendance,
   loadAttendanceRecords,
@@ -22,12 +22,12 @@ import {
   absenceReasonNote,
   countExpectedWithMakeup,
   listGroupMeetingAttendance,
-} from '../../docs/src/services/activity/attendance.js?v=20260930f';
+} from '../../docs/src/services/activity/attendance.js?v=20260930g';
 import {
   getRosterStats,
   getMeetingRosterIds,
   getMeetingRosterCandidates,
-} from '../../docs/src/services/member/roster.js?v=20260930f';
+} from '../../docs/src/services/member/roster.js?v=20260930g';
 
 // ── 测试身份（demo 单源）────────────────────────────────────
 // 纪检委员 = 'p10'（role 'disc-commissioner'；DISC_COMMISSIONER_ID 单源在

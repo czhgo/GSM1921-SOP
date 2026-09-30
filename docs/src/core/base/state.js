@@ -4,7 +4,7 @@
 //  使用 registerRenderCallback 模式避免循环依赖
 // ════════════════════════════════════════════════════════════════
 
-import { _currentYearMonth } from './utils.js?v=20260930f';
+import { _currentYearMonth } from './utils.js?v=20260930g';
 
 export const STATE = {
   IDLE:       0,

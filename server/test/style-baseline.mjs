@@ -339,8 +339,8 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/secretary/work-map-tab.js': { c: 3, v: [
       '#000', '#cbd5e1', '#fff'
   ] },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 4, v: [
-      '#000', '#9ca3af'
+  'docs/src/entries/tabs/today/today-tab.js': { c: 2, v: [
+      '#000'
   ] },
   'docs/src/entries/tabs/visitor/activities-tab.js': { c: 11, v: [
       '#6b7280', '#ce1126', '#f9fafb', '#fca5a5'

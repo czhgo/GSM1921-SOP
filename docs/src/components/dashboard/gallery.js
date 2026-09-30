@@ -5,14 +5,14 @@
 //  职责单一：品牌/已归档活动风采卡片（前 6 条，类型渐变底）。
 // ════════════════════════════════════════════════════════════════
 
-import { getAppState } from '../../core/base/state.js?v=20260930f';
-import { _fmtDate } from '../../core/base/utils.js?v=20260930f';
-import { getPersonName } from '../../services/member/person.js?v=20260930f';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930f';
+import { getAppState } from '../../core/base/state.js?v=20260930g';
+import { _fmtDate } from '../../core/base/utils.js?v=20260930g';
+import { getPersonName } from '../../services/member/person.js?v=20260930g';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930g';
 // 2026-09-29 批次 294（支书裁：收录权归宣传委员）：本页收录改**人工**——判据单一源 = 活动主源 `galleryFeatured`。
-import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20260930f';
-import { badgeHtml } from '../ui/badges.js?v=20260930f';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930f';
+import { isGalleryFeatured, isGalleryPinned } from '../../services/activity/activity.js?v=20260930g';
+import { badgeHtml } from '../ui/badges.js?v=20260930g';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930g';
 
 const GALLERY_TYPE_GRADIENTS = {
   '主题党日': 'linear-gradient(135deg, #FEF2F2, #FECACA)',

@@ -17,18 +17,27 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20260930f';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20260930f';
-import { TodoStore } from './todo.js?v=20260930f';
+import { mockDB } from '../../core/domain/domain.js?v=20260930g';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20260930g';
+import { TodoStore } from './todo.js?v=20260930g';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20260930f';
-import { tokenOf } from '../../core/base/version-token.js?v=20260930f'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20260930g';
+import { tokenOf } from '../../core/base/version-token.js?v=20260930g'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20260930f';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20260930g';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
+
+/** 本地时区日期键 + n 天（纯字符串/Date 运算；用于「近期安排」窗口上界） */
+function _addDays(dateKey, n) {
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(dateKey || ''));
+  if (!m) return dateKey;
+  const d = new Date(+m[1], +m[2] - 1, +m[3] + n);
+  const pad = (x) => String(x).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 /** 本地时区 YYYY-MM-DD（pad 于 _fmtDate 同式；勿用 UTC 偏移错误） */
 function _localDateKey(now) {
@@ -97,11 +106,12 @@ export function approvedSignupHit(index, activityId, personId) {
  * @param {string} params.personId 当前登录人成员档案 id（如 p1/p13）
  * @param {string} params.role     待办角色键（TodoStore.getGroupedByAction 用；如 secretary/leader）
  * @param {Date}   [params.now]    可注入的"现在"（缺省=系统当前时间；测试注入固定日期）
- * @returns {{date:string, hasMeeting:Array, overdue:Array, dueToday:Array, myDuties:Array, todoSummary:{total:number,overdue:number,dueToday:number}}}
+ * @returns {{date:string, hasMeeting:Array, overdue:Array, dueToday:Array, myDuties:Array, todoSummary:{total:number,overdue:number,dueToday:number}, upcoming:Array}}
  *   hasMeeting 项：{activityId, title, type, start}（start=活动 extras.time，无则 ''）
  *   overdue/dueToday 项：{id, title, deadline, action}（action=actionKey||actionType||''）
  *   myDuties 项：{activityId, activityTitle, role}
  *   todoSummary：本岗未完成待办摘要（total=总数含无截止项；overdue/dueToday=按 deadline 划分）
+ *   upcoming 项：{activityId, title, type, start, date}（未来 7 天，不含今天；按日期+时间升序）
  */
 export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   const dateKey = _localDateKey(now);
@@ -189,5 +199,24 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
     dueToday: dueToday.length,
   };
 
-  return { date: dateKey, hasMeeting, overdue, dueToday, myDuties, todoSummary };
+  // ── 近期安排（2026-09-30 批次 299，支书裁「未来 7 天」）──────────────────────────
+  //   本支部近 7 日（**不含今天**，今天另由 hasMeeting 承载）可见活动，按日期 + 时间升序。
+  //   口径 = 与今日会议同一可见性单一源（filterActivitiesForViewer）；**只读列示**，点击进活动详情。
+  const upcoming = [];
+  const windowEnd = _addDays(dateKey, 7);
+  for (const act of filterActivitiesForViewer(mockDB.activities, role)) {
+    if (!act || !act.date) continue;
+    if (act.date <= dateKey || act.date > windowEnd) continue;
+    upcoming.push({
+      activityId: act.id,
+      title: act.title || '',
+      type: act.type || '',
+      start: (act.extras && act.extras.time) || '',
+      date: act.date,
+    });
+  }
+  upcoming.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1
+    : a.start < b.start ? -1 : a.start > b.start ? 1 : 0));
+
+  return { date: dateKey, hasMeeting, overdue, dueToday, myDuties, todoSummary, upcoming };
 }
