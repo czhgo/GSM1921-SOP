@@ -3,17 +3,17 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // GitHub Issue 风格反馈管理面板：草稿审核（通过/驳回）全部反馈列表 + 导出/清除 + 详情处置（指派/状态/评论/隐藏/合并）。
 
-import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20260930c';
-import { showToast } from '../../../core/base/utils.js?v=20260930c';
-import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930c';
-import { icon } from '../../../core/base/icons.js?v=20260930c';
-import { AuthStore } from '../../../services/core/auth.js?v=20260930c';
-import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20260930c';
-import { getPersonName } from '../../../services/member/person.js?v=20260930c';
-import { PersonStore } from '../../../services/member/person.js?v=20260930c';
-import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20260930c';
+import { IssueStore, deriveIssueDisplayState, IssueNotify, issueDomainLabel, issueDomainSuggest, issueDomainReplyHint } from '../../../services/governance/issues.js?v=20260930d';
+import { showToast } from '../../../core/base/utils.js?v=20260930d';
+import { scrollDetailIntoView } from '../../../components/ui/detail-anchor.js?v=20260930d';
+import { icon } from '../../../core/base/icons.js?v=20260930d';
+import { AuthStore } from '../../../services/core/auth.js?v=20260930d';
+import { ROLE_LABELS, DRAFT_TYPE_LABELS } from '../../../core/domain/constants.js?v=20260930d';
+import { getPersonName } from '../../../services/member/person.js?v=20260930d';
+import { PersonStore } from '../../../services/member/person.js?v=20260930d';
+import { badgeHtml, badgeVariantClass } from '../../../components/ui/badges.js?v=20260930d';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20260930c';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20260930d';
 
 const FEEDBACK_TAB_HTML = `
   <!-- 列表面板 -->

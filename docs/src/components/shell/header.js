@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260930c';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20260930d';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260930c';
-import { getBasePath } from '../../core/base/utils.js?v=20260930c';
-import { icon } from '../../core/base/icons.js?v=20260930c';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260930c';
-import { badgeHtml } from '../ui/badges.js?v=20260930c';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260930c';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20260930d';
+import { getBasePath } from '../../core/base/utils.js?v=20260930d';
+import { icon } from '../../core/base/icons.js?v=20260930d';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20260930d';
+import { badgeHtml } from '../ui/badges.js?v=20260930d';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20260930d';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930c';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930d';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,12 +22,19 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20260930c';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260930c');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20260930d');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260930c');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20260930d');
   return _noticeModule;
+}
+// 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
+// （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
+let _reportEntryModule = null;
+function loadReportEntry() {
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20260930d');
+  return _reportEntryModule;
 }
 
 // ── 浏览器标签页标题（2026-09-23 支书批「判别依据可感」）────────────────────────
@@ -55,6 +62,19 @@ if (typeof document !== 'undefined' && typeof document.addEventListener === 'fun
   document.addEventListener(DATA_LOADED_EVENT, _renderNotificationBadge);
   document.addEventListener(DATA_CHANGED_EVENT, _refreshHeaderTitle);
   document.addEventListener(DATA_LOADED_EVENT, _refreshHeaderTitle);
+  // 2026-09-30 批次 297-2：顶栏「一键汇报」角标同刷（与铃铛角标同一路径）
+  document.addEventListener(DATA_CHANGED_EVENT, _refreshReportEntryBadge);
+  document.addEventListener(DATA_LOADED_EVENT, _refreshReportEntryBadge);
+}
+
+/** 刷新顶栏「一键汇报」角标（未挂载 / 未加载数据链时静默） */
+async function _refreshReportEntryBadge() {
+  const slot = document.getElementById('report-entry-slot');
+  if (!slot || !slot.firstElementChild) return;
+  try {
+    const { refreshReportEntryBadge } = await loadReportEntry();
+    refreshReportEntryBadge();
+  } catch (e) { /* 静态壳页未加载数据链：静默 */ }
 }
 
 /**
@@ -194,6 +214,7 @@ export async function renderHeader(activeModule, opts = {}) {
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
+        <span id="report-entry-slot"></span>
         ${_notificationBellHTML()}
       </div>
     </div>
@@ -205,6 +226,16 @@ export async function renderHeader(activeModule, opts = {}) {
   // app 模式：渲染后立即按需加载通知模块 → 计算未读角标（模块缓存后即时、无感知）
   if (!staticShell) {
     loadNotice().then(() => _renderNotificationBadge()).catch(() => {});
+    // 2026-09-30 批次 297-2（支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）：
+    //   「一键汇报」由「常驻 5 台页头」收成**全站唯一固定位**＝本顶栏；未登录（无 personId）不渲染。
+    loadReportEntry()
+      .then((m) => {
+        const slot = header.querySelector('#report-entry-slot');
+        if (!slot || !personId) return;
+        slot.innerHTML = m.renderReportEntryHtml();
+        m.bindReportEntry(slot);
+      })
+      .catch(() => {});
   }
 }
 

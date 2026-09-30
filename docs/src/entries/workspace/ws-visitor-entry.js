@@ -2,20 +2,19 @@
 // ws-visitor-entry.js — 参与者工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260930c';
-import { renderReportEntryHtml, bindReportEntry } from '../../components/record/reporting.js?v=20260930c';
-import { loadActivities } from '../../services/activity/activity.js?v=20260930c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930c';
-import { NoticeStore } from '../../services/governance/notice.js?v=20260930c';
-import { SignupStore } from '../../services/activity/signup.js?v=20260930c';
-import { AuthStore } from '../../services/core/auth.js?v=20260930c';
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260930c';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20260930d';
+import { loadActivities } from '../../services/activity/activity.js?v=20260930d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930d';
+import { NoticeStore } from '../../services/governance/notice.js?v=20260930d';
+import { SignupStore } from '../../services/activity/signup.js?v=20260930d';
+import { AuthStore } from '../../services/core/auth.js?v=20260930d';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20260930d';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20260930c';
+import { TodoStore, seedTodos, VisitorTodoDeriver } from '../../services/governance/todo.js?v=20260930d';
 // 副作用导入触发参与者工作台能力注册（tab 清单）
-import '../../capabilities/visitor-workspace.js?v=20260930c';
+import '../../capabilities/visitor-workspace.js?v=20260930d';
 
 await createWorkspaceShell({
   accentRole: 'participant',
@@ -63,9 +62,8 @@ await createWorkspaceShell({
       VisitorTodoDeriver.deriveFromTaskforceSignups({ personId: currentUser.personId, taskforces, signups });
     }
   },
-  // 一键汇报入口（支书 2026-08-10 裁定：复用 Issue 体系）
-  extraRightHtml: ({ accent, accentRgba }) => renderReportEntryHtml({ accent, accentRgba }),
-  bindExtras: (container) => bindReportEntry(container),
+  // 2026-09-30 批次 297-2（支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）：
+  //   「一键汇报」已收进**顶栏全局固定位** ⇒ 本台页头不再挂重复入口。
   // ── 首页跳转落点（支书 2026-08-08 裁定）：tfId → 项目分工 tab 定位高亮专班卡片；actId/view → 活动动态 tab 定位高亮活动
   onNavTarget: (nav, state, shell) => {
     if (nav.tfId) {

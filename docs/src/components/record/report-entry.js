@@ -7,42 +7,62 @@
 //  ③ 界面措辞温和："了解进展"请求来自支书时直接展示，不使用"要求"字样
 //  角标来源：IssueNotify.getUnreadCount(当前用户) = 支书请我汇报 + 支书答复发回
 //  最小三成本：按钮常驻顶部（零搜寻），弹窗两步完成（选分类+填正文）
+//
+//  2026-09-30 批次 297-2 **改位**（支书裁「页头只留 1 枚本台主 CTA；**跨台通用动作收进全局固定位**」）：
+//    「一键汇报」原**常驻 5 个台的页头**（各台 tab-bar 的 extraRight）——同一动作 5 个入口＝重复入口，
+//    且各台页头因此常驻两枚彩色按钮（org 台更与「发布招募」并排）⇒ 收成**全站唯一固定位**＝
+//    顶栏 `components/shell/header.js` 的 `.header-actions`（`id="btn-report-entry"` **不变**，
+//    表单台账与真机守卫照旧命中原 id）。
+//    外观＝既有**顶栏动作口径** `.header-action-btn`（白透底 / 细边 / 浅字，与铃铛、登录入口同源）
+//    ＋族类 `.btn-ghost`（**族为基线、私有为身份**，见 `DESIGN_SYSTEM §4.1 rule H`）；
+//    角标**底色随宿主背景**（顶栏＝深红底）⇒ **党徽金底 ＋ 深字**（同批次 294 对顶栏铃铛角标的裁定），
+//    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930c';
-import { AuthStore } from '../../services/core/auth.js?v=20260930c';
-import { showToast } from '../../core/base/utils.js?v=20260930c';
-import { getPersonName } from '../../services/member/person.js?v=20260930c';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20260930c';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20260930d';
+import { AuthStore } from '../../services/core/auth.js?v=20260930d';
+import { showToast } from '../../core/base/utils.js?v=20260930d';
+import { getPersonName } from '../../services/member/person.js?v=20260930d';
 
-/**
- * 一键汇报按钮 HTML（挂在 tab-bar extraRightHtml 右侧）
- * @param {{ accent?: string, accentRgba?: string }} opts
- * @returns {string}
- */
-export function renderReportEntryHtml({ accent = '#B91C1C', accentRgba = 'rgba(185,28,28,0.1)' } = {}) {
-  let unread = 0;
+/** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
+function _unreadCount() {
   try {
     const me = AuthStore.getCurrentUser();
-    if (me) unread = IssueNotify.getUnreadCount(me.personId) || 0;
+    if (me) return IssueNotify.getUnreadCount(me.personId) || 0;
   } catch {}
-  const badge = unread > 0
-    ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:var(--functional-error);color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>`
-    : '';
-  return `
-    <button id="btn-report-entry" type="button"
-      style="position:relative;display:inline-flex;align-items:center;gap:4px;${solidAccentStyle(accent)};border:none;padding:6px 16px;border-radius:var(--radius-sm);font-size:0.75rem;font-weight:500;cursor:pointer;transition:opacity 0.15s;"
-      onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-      一键汇报${badge}
-    </button>`;
+  return 0;
+}
+
+/** 角标 HTML（**深红底 ⇒ 党徽金底 ＋ 深字**，与顶栏铃铛角标同一口径；`≥10` 收敛 `9+`） */
+function _badgeHtml(unread) {
+  if (!(unread > 0)) return '';
+  return `<span class="report-entry-badge text-amber-800" aria-label="待处理汇报 ${unread} 条">${unread > 9 ? '9+' : unread}</span>`;
 }
 
 /**
- * 绑定一键汇报按钮（在 tab-bar bindEvents 后调用）
- * @param {HTMLElement} container — 工作台根容器
+ * 一键汇报入口 HTML（**全站唯一位**＝顶栏 `.header-actions`）
+ * @returns {string}
  */
-export function bindReportEntry(container) {
-  container.querySelector('#btn-report-entry')?.addEventListener('click', () => openReportModal());
+export function renderReportEntryHtml() {
+  return `
+    <button id="btn-report-entry" type="button" class="btn-ghost header-action-btn report-entry-btn" aria-haspopup="dialog" aria-label="一键汇报">一键汇报${_badgeHtml(_unreadCount())}</button>`;
+}
+
+/** 刷新角标（数据变更 / 发出汇报后调用；与顶栏铃铛角标同一刷新路径） */
+export function refreshReportEntryBadge() {
+  const btn = document.getElementById('btn-report-entry');
+  if (!btn) return;
+  btn.querySelector('.report-entry-badge')?.remove();
+  const unread = _unreadCount();
+  if (unread > 0) btn.insertAdjacentHTML('beforeend', _badgeHtml(unread));
+}
+
+/**
+ * 绑定一键汇报按钮（顶栏渲染后调用）
+ * @param {ParentNode} [root=document]
+ */
+export function bindReportEntry(root = document) {
+  root.querySelector('#btn-report-entry')?.addEventListener('click', () => openReportModal());
 }
 
 /** 打开汇报弹窗（预加载 issues 权威源，避免覆盖本地缓存） */
@@ -101,14 +121,7 @@ async function openReportModal() {
     if (!issue) { showToast('error', '汇报发送失败'); return; }
     showToast('success', '汇报已发出，等待支书答复');
     close();
-    try {
-      const me = AuthStore.getCurrentUser();
-      const btn = document.getElementById('btn-report-entry');
-      if (me && btn) {
-        const unread = IssueNotify.getUnreadCount(me.personId) || 0;
-        btn.innerHTML = `一键汇报${unread > 0 ? `<span class="report-entry-badge" style="position:absolute;top:-5px;right:-6px;min-width:16px;height:16px;line-height:16px;padding:0 4px;border-radius:9999px;background:var(--functional-error);color:#fff;font-size:10px;text-align:center;">${unread > 9 ? '9+' : unread}</span>` : ''}`;
-      }
-    } catch {}
+    refreshReportEntryBadge();
   });
 }
 

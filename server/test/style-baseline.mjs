@@ -197,9 +197,6 @@ export const HEX_BASELINE = {
       '#000', '#059669', '#1e293b', '#334155', '#3b82f6', '#6b7280',
       '#cbd5e1', '#d97706', '#dc2626', '#f3f4f6'
   ] },
-  'docs/src/components/record/report-entry.js': { c: 3, v: [
-      '#b91c1c', '#fff'
-  ] },
   'docs/src/components/record/report-inbox.js': { c: 5, v: [
       '#16a34a', '#b91c1c', '#ef4444', '#f59e0b', '#f87171'
   ] },
@@ -458,7 +455,10 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `#cbd5e1`（2 处，均在流入/流出登记浮窗的 `--acc-text-dark` 内联覆盖里）**随代码整体搬入新文件**
 //   ⇒ 按收基线纪律**删 `org/roster-tab.js` 条目**（该文件 hex 清零）＋ 文件数声明 **80→79**（与实况同值）；
 //   搬移合法性由 `HEX_MOVE_LEDGER` 逐值对照（H5）；全站 distinct 值数不变（167，无新值）。
-export const HEX_FILE_BASELINE = 79;
+//   2026-09-30 批次 297-2（「一键汇报」由各台页头收进顶栏全局固定位）：`components/record/report-entry.js`
+//   的内联强调色与角标 `#fff` 全部改走令牌 / 语义类 ⇒ **该文件 hex 清零**，按收基线纪律删其条目、
+//   文件数声明 **79→78**（与实况同值）；被清的两值（`#b91c1c` / `#fff`）在其它文件仍存 ⇒ distinct 值仍 167。
+export const HEX_FILE_BASELINE = 78;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

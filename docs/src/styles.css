@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20260930c');
+@import url('components/person-picker.css?v=20260930d');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -1177,6 +1177,16 @@ html.theme-dark .accent-avatar {
 .header-action-btn:hover {
   background-color: rgba(255,255,255,0.18);
   color: var(--neutral-0);
+}
+
+/* 顶栏「一键汇报」（2026-09-30 批次 297-2 立：跨台通用动作收进全局固定位）
+   外观复用既有顶栏动作口径 `.header-action-btn`（白透底/细边/浅字）＋ 族类 `.btn-ghost`；
+   角标**底色随宿主背景**（顶栏＝深红底）⇒ **党徽金底 ＋ 深字**（同批次 294 对铃铛角标的裁定），不落 hex。 */
+.report-entry-btn { position: relative; display: inline-flex; align-items: center; }
+.report-entry-badge {
+  position: absolute; top: -5px; right: -6px; min-width: 16px; height: 16px; line-height: 16px;
+  padding: 0 4px; border-radius: 9999px; font-size: 10px; font-weight: 600; text-align: center;
+  background: var(--party-gold);
 }
 
 .hamburger-btn {

@@ -198,7 +198,7 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   //   声明 80→79 ⇒ 本「防呆下限」随实况由 80 降到 **79**（与声明同值）。**不是放宽**：真正的判红项是 H1（新增值）/
   //   H2（处数上涨）/ 下方僵尸登记——本下限只防「台账被悄悄删空」，它随存量同步下沉。
   const files = Object.keys(HEX_BASELINE);
-  assert.ok(HEX_FILE_BASELINE >= 79 && files.length >= 79, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 79）`);
+  assert.ok(HEX_FILE_BASELINE >= 78 && files.length >= 78, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 78）`);
   assert.ok(HEX_TOTAL_BASELINE >= 1700, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1700）`);
   assert.ok(HEX_VALUE_BASELINE >= 140, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 140）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

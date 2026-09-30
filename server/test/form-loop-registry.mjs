@@ -278,7 +278,7 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 398, field: '评论内容', flow: 'service/议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 404, field: '处置结果内容', flow: 'service/议题处置', machine: true, msg: '请输入处置结果内容' },
   { file: SRC + 'components/feedback/issue-dispatch-view.js', line: 478, field: '说明内容', flow: 'service/议题说明', machine: false, msg: '请输入说明内容', reason: '【批 47-X 真机+接口双取证·**口径更正**】原 reason 写「纳入条件：种子把某条议题的 reporterId/participants 指向演示账号」——**这是不够的、且方向错了**。实测事实：① 种子 `docs/data/issues.json` 里 issue-001 本就 `submittedBy:p5`、issue-002/003 的 `participants` 含 p11/p1/p13，**认人字段本来就在**；② 但 api 形态 `GET /api/v1/issues` 实测返回 **6 条**：4 条公开反馈**一律** `submittedBy:\'匿名\' / participants:[] / anonymous:true`（服务端按「真匿名」口径脱敏，见 `server/seed.js::seedIssues`）、2 条 `kind:\'report\'` 保留真名；③ 而 `IssueStore.getMyIssues` **排除 `kind===\'report\'`** 且靠 `submittedBy`/`participants` 认人 ⇒ **api 形态下该区结构上恒为空**（不是「种子没挂上」）。真机复核：成员台(p5)/组织台(p11)/组长台(p1)/宣传台(p12) 逐台打开「我的处置」，④区标题均为「我提交 / 参与的反馈 · 0」、宿主显「暂无我提交或参与的反馈」。**⇒ 这不是种子问题，是两形态口径不一致的产品缺口**（mock 形态直读 issues.json 带真名 ⇒ 有行；api 形态脱敏 ⇒ 恒空），而 help/README-members 都把该区写成了功能。**已立 `Q-23-48` 待支书裁定（2026-09-16 登记）**。**⇒ 批次 48（2026-09-17 支书裁定 `Q-23-48`：**接受缺口 + 改文案**）**已按裁定落地**：① **不改服务端隐私口径**（真匿名是公开反馈页的承诺）；② **不造种子**（④区的数据来源是「服务端按人回认」，只种 mock 等于**只在演示形态显形＝假绿**）；③ **改文案说清口径**——`services/governance/issues.js` ④区标题下新增说明行「仅本地演示模式可见：正式部署下公开反馈按「真匿名」口径脱敏，无法按人回认」+ `help.html` 两处（§角色 tab 说明行 / 「我的处置」卡）+ `README-members.md` 成员能力行；④ 故本条**保留 `machine:false`**，reason 由「**待裁**」改为「**已裁定为产品接受的缺口**」（不再是悬而未决项，也不再是「纳入条件」）。**⇒ 批次 49（2026-09-17）该缺口的「根因」被修掉**：支书改裁走**不可反查的本人标识**——`IssueStore.getMyIssues` 新增第 ③ 条判据（本浏览器提交令牌的哈希 `tokenHash` 相符即算「我的」），④区在**正式部署下也能列出本机提交过的反馈**，且任何人都无法由数据反推是谁。**本条仍保留 `machine:false`**：真机要跑到这处校验，须先**在同一会话内用公开反馈页提交一条反馈**（令牌落本地 → ④区出现该行 → 进详情 → 空提交触发本校验），与批 47-Z「让产品自己把前置走出来」同法，**留作下一批的解锁动作**（本批不动台账判据，只如实改写 reason + 更正行号）。' },
-  { file: SRC + 'components/record/report-entry.js', line: 99, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
+  { file: SRC + 'components/record/report-entry.js', line: 119, field: '汇报内容', flow: 'component/一键汇报', machine: true, msg: '请填写汇报内容' },
   { file: SRC + 'components/record/report-inbox.js', line: 217, field: '答复内容', flow: 'component/汇报收件箱·答复', machine: true, msg: '请填写答复内容' },
   { file: SRC + 'components/governance/work-overview.js', line: 380, field: '汇报内容', flow: 'component/工作概况·汇报', machine: true, msg: '请填写汇报内容' },
   { file: SRC + 'components/record/taskforce-view.js', line: 290, field: '产出说明', flow: 'component/专班查看·产出', machine: true, msg: '请填写产出说明' },
@@ -516,10 +516,13 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
-    // 批次 47-L（2026-09-16）：**顶栏常驻「一键汇报」浮态**（各工作台 tab-bar extraRight 上的 `#btn-report-entry`）。
-    // 台账原挂 machine:false 的理由是「一键汇报浮态由各台 extra 入口打开，需先进入浮态」——**这不是障碍**：
-    //   它就是**顶栏常驻按钮**，任何 tab 上点一下即开（`report-entry.js:45`）。**同批第五次「理由写的是假设」**。
-    // 选 `visitor` 台是因为其入口已由 `ws-visitor-entry.js` 显式绑定；浮态与 tab 无关，切 tab 失效也不影响本流程。
+    // 批次 47-L（2026-09-16）立；**2026-09-30 批次 297-2 改位**：「一键汇报」原在**各工作台 tab-bar 的
+    //   extraRight**（5 个台各一枚＝重复入口），现收成**全站唯一固定位 ＝ 顶栏 `.header-actions`**
+    //   （支书裁「页头只留 1 枚本台主 CTA；跨台通用动作收进全局固定位」）⇒ 仍是**顶栏常驻按钮**，
+    //   任何页面任何 tab 点一下即开（`report-entry.js::renderReportEntryHtml` / `bindReportEntry`）。
+    //   台账原挂 machine:false 的理由是「一键汇报浮态由各台 extra 入口打开，需先进入浮态」——**这不是障碍**。
+    //   **同批第五次「理由写的是假设」**。
+    // 改位后本流程**与具体工作台无关**：`page: 'visitor'` 仅作落点（顶栏在所有页面都在），浮态与 tab 无关。
     id: 'report-entry-one-click',
     page: 'visitor',
     tab: '今天',
