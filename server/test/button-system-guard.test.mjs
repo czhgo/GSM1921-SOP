@@ -168,6 +168,15 @@ const FAMILY_TOKENS = [
 /** B4 棘轮基线（批次 297-2 全站归一后实测 **0**；**只许下调**） */
 const HANDWRITTEN_BUTTON_BASELINE = 0;
 
+/**
+ * B4 **豁免清单**（判据改准 · 2026-09-30 批次 297-2 收窄；支书裁「组件自带强调色的控件豁免并回退」）
+ * ——**组件自带选中态强调色**（用自己的 `--xxx-accent` 变量）的控件不并入 8 族：它们各自即「命名族」。
+ * 每条须写明「哪个组件 / 选中态从哪来」，**不得按名字猜**（受 `D-668` 结构性判据须自实况归纳约束）。
+ */
+const COMPONENT_STATE_EXEMPT = [
+  '-tab-btn', // 页头 tab（`components/shell/tab-bar.js` 单一源）：选中态＝`.tab-btn-active` ＋ 内联 `--tab-accent`
+];
+
 test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「全面归一」的进度表）', () => {
   const walk = (dir, out = []) => {
     for (const n of readdirSync(dir)) {
@@ -178,6 +187,7 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
     return out;
   };
   let handwritten = 0;
+  let exempt = 0;
   const perFile = new Map();
   const re = /<button[^>]*\bclass="([^"]*)"/g;
   for (const f of walk(SRC)) {
@@ -185,6 +195,11 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
     let m;
     while ((m = re.exec(src)) !== null) {
       const cls = m[1];
+      // ⚑ 2026-09-30 批次 297-2 **收窄判据**（支书裁「**组件自带强调色的控件豁免并回退**」＋
+      //   「把这些页头 tab 恢复到之前的模式」）：**组件自带选中态强调色**（用自己的 `--xxx-accent`
+      //   变量，不随通用主题族走）的控件**不并入 8 族**——它们各自就是「命名族」。
+      //   判据＝class 串命中组件自有类（字面可见，不按名字猜：`tab-bar.js` 已把 `${prefix}-tab-btn` 内联）。
+      if (COMPONENT_STATE_EXEMPT.some((t) => cls.includes(t))) { exempt += 1; continue; }
       if (FAMILY_TOKENS.some((t) => new RegExp(`(^|\\s)${t}`).test(cls))) continue;
       handwritten += 1;
       if (!perFile.has(f)) perFile.set(f, 0);
@@ -193,7 +208,7 @@ test('B4 按钮族棘轮：未入语义族的 <button> 只许降不许升（「�
   }
   const ledger = [...perFile.entries()].sort((a, b) => b[1] - a[1])
     .map(([f, n]) => `  ${String(n).padStart(3)}  ${relative(join(__dirname, '..', '..'), f)}`);
-  console.log(`[button-system-guard] 未入语义族的 <button> 共 ${handwritten} 个（棘轮上限 ${HANDWRITTEN_BUTTON_BASELINE}）：\n${ledger.join('\n')}`);
+  console.log(`[button-system-guard] 未入语义族的 <button> 共 ${handwritten} 个（棘轮上限 ${HANDWRITTEN_BUTTON_BASELINE}）；组件自有类豁免 ${exempt} 个（${COMPONENT_STATE_EXEMPT.join(' / ')}）：\n${ledger.join('\n')}`);
   assert.ok(
     handwritten <= HANDWRITTEN_BUTTON_BASELINE,
     `未入语义族的 <button> 由 ${HANDWRITTEN_BUTTON_BASELINE} 升到 ${handwritten} 个 ⇒ 新按钮须走 8 族之一（${FAMILY_TOKENS.join(' / ')}）；每迁完一屏请一并下调基线。`,
