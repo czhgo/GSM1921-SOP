@@ -34,15 +34,15 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260930l';
-import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20260930l';
-import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20260930l';
-import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20260930l';
-import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20260930l';
-import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20260930l';
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20260930l';
-import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20260930l';
-import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/data/mock/seed.js?v=20260930l';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20260930m';
+import { MOCK_ACCOUNTS } from '../../docs/src/data/mock/accounts.js?v=20260930m';
+import { ACTIVITIES } from '../../docs/src/data/mock/activities.js?v=20260930m';
+import { ATTENDANCE_RECORDS } from '../../docs/src/data/mock/attendance.js?v=20260930m';
+import { INSPECTION_RECORDS } from '../../docs/src/data/mock/inspection.js?v=20260930m';
+import { THOUGHT_REPORTS } from '../../docs/src/data/mock/thought-reports.js?v=20260930m';
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../docs/src/data/mock/review.js?v=20260930m';
+import { MOCK_TASKFORCES } from '../../docs/src/data/mock/taskforces.js?v=20260930m';
+import { SEED_ASSIGNMENTS, SEED_SIGNUPS } from '../../docs/src/data/mock/seed.js?v=20260930m';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC_DIR = join(__dirname, '..', '..', 'docs', 'src');
@@ -274,6 +274,34 @@ test('S5 选人域唯一出口：除 governance/pickers.js 外全站不得直连
     'pickers.js 须重导出 PersonPicker（防空壳库）');
   assert.match(lib, /export \{ openPersonEditModal \} from '\.\/person-edit-modal\.js/,
     'pickers.js 须重导出 openPersonEditModal（防空壳库）');
+});
+
+test('S6 徽章域唯一出口：除 ui/badges.js 外全站不得直连 badge.js / status-badge.js（§3.1 扎口纪律）', () => {
+  // 2026-09-30 批次 304 立。同 S5 的纪律，只是换域——S5 的注释把 ui/badges.js 点名为**样板**，
+  // 但当时只对选人域立了判据 ⇒ 徽章域长期「有纪律无守卫」。
+  // 实证（本批自查）：批次 301 我在 3 个调用点直连了实现文件 badge.js（today-tab / group-progress-tab /
+  //   archive-tab），全套测试**一处未报**——因为 badges.js 文件头那句「调用方一律 import badges.js」
+  //   只是注释。本守卫把该句变成机检判据。
+  const LIB_REL = 'components/ui/badges.js';
+  const offenders = [];
+  for (const file of walkJs(SRC_DIR)) {
+    const rel = file.slice(SRC_DIR.length + 1).replace(/\\/g, '/');
+    if (rel === LIB_REL) continue; // 库自身（它就该重导出实现文件）
+    const src = readFileSync(file, 'utf8');
+    // 只看 import/export 语句（注释里用反引号引用路径做说明不算直连）
+    if (/from\s+['"][^'"]*components\/ui\/(badge|status-badge)\.js/.test(src)) {
+      offenders.push(rel);
+    }
+  }
+  assert.deepEqual(offenders, [],
+    `以下文件直连徽章域**实现文件**（须改从 ${LIB_REL} 导入——只改 import 来源一行，导入名不变）：\n  ${offenders.join('\n  ')}`);
+
+  // 防空壳：库确把两个实现文件重导出（照 S5 的同一体例）
+  const lib = readFileSync(join(SRC_DIR, LIB_REL), 'utf8');
+  assert.match(lib, /export \{ badgeHtml, badgeVariantClass \} from '\.\/badge\.js/,
+    'badges.js 须重导出 badgeHtml / badgeVariantClass（防空壳库）');
+  assert.match(lib, /export \{ statusBadgeHtml, bindStatusBadge \} from '\.\/status-badge\.js/,
+    'badges.js 须重导出 statusBadgeHtml / bindStatusBadge（防空壳库）');
 });
 
 test('S3 单一解析源在位：person.js 导出 liveMembers（S1 规则的落点）', () => {

@@ -23,29 +23,39 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930l';
-import { icon } from '../../../core/base/icons.js?v=20260930l';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930l';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20260930m';
+import { icon } from '../../../core/base/icons.js?v=20260930m';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20260930m';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930l';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930l';
-import { mockDB } from '../../../core/domain/domain.js?v=20260930l';
-import { tokenOf } from '../../../core/base/version-token.js?v=20260930l'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930l'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930l'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930l'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20260930m';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20260930m';
+import { mockDB } from '../../../core/domain/domain.js?v=20260930m';
+import { tokenOf } from '../../../core/base/version-token.js?v=20260930m'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20260930m'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20260930m'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20260930m'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930l';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20260930m';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930l';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930l';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20260930m';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20260930m';
+// 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
+//   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
+//   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
+//   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
+import { AuthStore } from '../../../services/core/auth.js?v=20260930m';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20260930m';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20260930m';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930l';
-import { badgeHtml } from '../../../components/ui/badge.js?v=20260930l';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20260930m';
+// 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
+//   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
+//   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
+import { badgeHtml } from '../../../components/ui/badges.js?v=20260930m';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -75,6 +85,9 @@ function _todayMemoKey(personId, role) {
     `attendance=${tokenOf('attendance')}+${_arrLen(mockDB.attendances)}`,
     `notice=${tokenOf('notice')}`,
     `issue=${tokenOf('issue')}`,
+    // 批次 304 补 agendaVotes：今天页「待我表态」读该集合 ⇒ 我表态 / 支书截止后须重算
+    //   （bump 点在源写口 services/activity/committee-vote.js；length 兜底覆盖幂等 upsert 情形）
+    `votes=${tokenOf('agendaVotes')}+${_arrLen(mockDB.agendaVotes)}`,
     `person=${personId || ''}|role=${role || ''}`,
   ].join('|');
 }
@@ -198,8 +211,35 @@ function _dutyBlock(s) {
 }
 
 /**
- * 待我处理（**只列实体、不计数**）：未读通知实体（同步，与顶栏铃铛同源）＋ 待处理汇报实体（异步填充）。
- * 空则整段移除（不留空壳）。计数已在顶栏，故此处一律不写数字。
+ * **待我表态**（同步，2026-09-30 批次 304 立）：我在本场**固化应到名单**内、活动为线上异步表决、
+ *   尚未锁定、且我对它的议程**还没表态** ⇒ 列为待办。
+ * 依据：支书 2026-09-30 原话「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」
+ *   ⇒ **表态权与角色无关**（判据单一源＝`vote-config.js::isVoterOf`），且**每个人的清单各不相同**
+ *   （「我不知道 每个人的 div 是否有所区别？」——正是此意：由名单决定，不由角色决定）。
+ * 呈现：**每场只报一行**（进活动详情页逐条表态，不在桌面重复列议程明细）；点击复用既有
+ *   `data-go="activity"` → `activity.html?id=`（不新增跳转机制）。
+ */
+function _myVoteRows(personId) {
+  if (!personId) return '';
+  const votes = mockDB.agendaVotes || [];
+  const rows = [];
+  for (const a of (mockDB.activities || [])) {
+    if (!a || !isVoterOf(a, personId)) continue;
+    if (a.voteConfig?.mode !== 'async' || a.votesLocked) continue;
+    const pending = (Array.isArray(a.agenda) ? a.agenda : [])
+      .filter(it => it && it.id && !hasVoted(votes, personId, it.id));
+    if (!pending.length) continue;
+    rows.push(_row('var(--app-accent)',
+      `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名活动')}</span>
+       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
+      `data-go="activity" data-act-id="${esc(a.id)}" title="前往活动详情页表态"`));
+  }
+  return rows.slice(0, 3).join('');
+}
+
+/**
+ * 待我处理（**只列实体、不计数**）：**待我表态**（同步）＋ 未读通知实体（同步，与顶栏铃铛同源）
+ * ＋ 待处理汇报实体（异步填充）。空则整段移除（不留空壳）。计数已在顶栏，故此处一律不写数字。
  */
 function _pendingBlock() {
   let notices = [];
@@ -211,8 +251,11 @@ function _pendingBlock() {
     `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(n.title || n.content || '未命名通知')}</span>
      <span class="text-[11px] tabular-nums text-gray-500 flex-shrink-0">${esc(n.publishDate || '')}</span>`,
     `data-go="notice" data-notice-id="${esc(n.id)}" title="${esc(n.title || '')}"`)).join('');
+  let voteRows = '';
+  try { voteRows = _myVoteRows(AuthStore.getCurrentUser()?.personId); } catch (_) { voteRows = ''; }
   return `
     <div data-today-pending="1" class="space-y-5">
+      ${voteRows ? `<div>${_segHead('待我表态')}<div class="space-y-1.5">${voteRows}</div></div>` : ''}
       ${noticeRows ? `<div>${_segHead('未读通知')}<div class="space-y-1.5">${noticeRows}</div></div>` : ''}
       <div data-today-pending-reports></div>
     </div>`;

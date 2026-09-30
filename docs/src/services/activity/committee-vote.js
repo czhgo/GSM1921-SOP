@@ -2,11 +2,13 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../../core/domain/domain.js?v=20260930l';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20260930l';
-import { AuthStore } from '../core/auth.js?v=20260930l';
-import { NoticeStore } from '../governance/notice.js?v=20260930l';
-import { resolveVoterIds } from './vote-config.js?v=20260930l';
+import { mockDB } from '../../core/domain/domain.js?v=20260930m';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20260930m';
+import { AuthStore } from '../core/auth.js?v=20260930m';
+import { NoticeStore } from '../governance/notice.js?v=20260930m';
+import { resolveVoterIds } from './vote-config.js?v=20260930m';
+// 域写版本戳（2026-09-30 批次 304）：表态 / 截止都是**源写**，须 bump 供消费方（今天页「待我表态」等）失效重算。
+import { bumpToken } from '../../core/base/version-token.js?v=20260930m';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')
@@ -167,6 +169,8 @@ export async function submitVote({ activityId, agendaItemId, position, note = ''
     const row = await getAdapter().agendaVotes.create({ activityId, agendaItemId, position, note });
     // 通知闭环：委员表态成功后提醒支书查看汇总（人数 = 该活动已表态 distinct 委员数）
     await notifySecretaryProgress(activityId);
+    bumpToken('agendaVotes'); // 2026-09-30 批次 304：表态是**源写**，须 bump 域版本戳 ——
+    //   否则消费方（今天页「待我表态」）的渲染 memo 命中旧 key、投完票那一行不消失（须手动刷新）。
     return row;
   }
   // mock 模式：adapter 幂等 upsert + 落盘（personId 取当前登录用户，见 AuthStore.getCurrentUser）
@@ -188,6 +192,7 @@ export async function submitVote({ activityId, agendaItemId, position, note = ''
   persist();
   // mock 模式同发支书汇总提醒（UI 反馈一致）
   await notifySecretaryProgress(activityId);
+  bumpToken('agendaVotes'); // 同 API 分支：表态落库后 bump（批次 304）
   return row;
 }
 
@@ -224,6 +229,7 @@ export async function lockVotes({ activityId, votesLocked, voteDeadline }) {
     if (voteDeadline) act.voteDeadline = voteDeadline;
   }
   persist();
+  bumpToken('agendaVotes'); // 截止（锁定）同样是源写：今天页「待我表态」须随之消失（批次 304）
   // mock 模式同发记录决议提醒（仅新锁触发）
   if (act?.votesLocked && !wasLocked) remindRecordDecision(act.id);
   return act || { id: activityId };

@@ -7,10 +7,10 @@
 //   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起支书（带结论/意见）。
 //   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
-import { mockDB } from '../../core/domain/domain.js?v=20260930l';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20260930l';
-import { NoticeStore } from './notice.js?v=20260930l';
-import { getPersonName } from '../member/person.js?v=20260930l';
+import { mockDB } from '../../core/domain/domain.js?v=20260930m';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20260930m';
+import { NoticeStore } from './notice.js?v=20260930m';
+import { getPersonName } from '../member/person.js?v=20260930m';
 
 const TYPE_LABEL = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
 

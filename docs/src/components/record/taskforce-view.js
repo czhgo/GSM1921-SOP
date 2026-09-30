@@ -4,16 +4,16 @@
 // 专班列表（状态分组）+ 只读详情（成员/角色/贡献）。依据支书第五轮裁定「新建专班查看组件（列表+详情）」。
 // 支书设计原则：「无职责 不代表 没有知情权」。
 
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930l';
-import { getPersonName } from '../../services/member/person.js?v=20260930l';
-import { AuthStore } from '../../services/core/auth.js?v=20260930l';
-import { badgeHtml } from '../ui/badges.js?v=20260930l';
-import { dotDarkVars } from '../../core/domain/constants.js?v=20260930l';
-import { flashHighlight, showToast } from '../../core/base/utils.js?v=20260930l';
-import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20260930l';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20260930m';
+import { getPersonName } from '../../services/member/person.js?v=20260930m';
+import { AuthStore } from '../../services/core/auth.js?v=20260930m';
+import { badgeHtml } from '../ui/badges.js?v=20260930m';
+import { dotDarkVars } from '../../core/domain/constants.js?v=20260930m';
+import { flashHighlight, showToast } from '../../core/base/utils.js?v=20260930m';
+import { anchorDetailToTrigger } from '../ui/detail-anchor.js?v=20260930m';
 // 统一检索引擎（2026-09-14 裁定）：只读详情「成员贡献」（第一列是人 → 配姓名关键词）与
 // 「中间进度」（时间线 → 只给分页：keyword null + facets []）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20260930l';
+import { renderFilteredList } from '../ui/list-filter.js?v=20260930m';
 
 // 附录⑩ B批：状态词对齐「支委会表决」语义（pending_review=待支委会表决；dissolved=表决通过解散）
 const STATUS_LABEL = { draft: '草稿', pending_review: '待支委会表决', recruiting: '招募中', active: '运行中', completed: '已完结', archived: '已归档', dissolved: '已解散' };

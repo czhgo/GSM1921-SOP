@@ -8,9 +8,9 @@
 //   滞留剔除复用 services/member/roster.js isDetained（口径单一源 = core/policy-defaults attendance.roster）。
 //   历史快照语义：已创建活动（如 mock act-31）的 voteConfig.voterIds 为创建时固化的名单快照，
 //   不随成员后续滞留状态变更回改——存量数据不动，仅新创建默认值走现时 roster。
-import { PersonStore } from '../member/person.js?v=20260930l';
-import { AuthStore } from '../core/auth.js?v=20260930l';
-import { isDetained } from '../member/roster.js?v=20260930l';
+import { PersonStore } from '../member/person.js?v=20260930m';
+import { AuthStore } from '../core/auth.js?v=20260930m';
+import { isDetained } from '../member/roster.js?v=20260930m';
 
 export const OPTION_SETS = {
   deliberative: {
@@ -27,7 +27,7 @@ export const OPTION_SETS = {
 
 // 计票方式（ballotMode）单一源转出：常量与强制/默认规则定义在 core/domain/constants.js
 // （server 写侧校验与 mock 形态共用同一文件，勿另写规则副本）。
-export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260930l';
+export { BALLOT_MODES, BALLOT_MODE_LABELS, isAnonymousForced, defaultBallotMode, ballotModeOfActivity, isAnonymousActivity } from '../../core/domain/constants.js?v=20260930m';
 
 const DECISION_SCENARIOS = new Set(['branch-committee', 'branch-party-meeting']);
 
@@ -86,6 +86,25 @@ export function resolveParticipantIds(voterScope, policy, assignedIds) {
     if (typeof id === 'string' && id && !seen.has(id)) { seen.add(id); out.push(id); }
   }
   return out;
+}
+
+/**
+ * **我是否是本场表决的「应到表决人」（单一源）**——2026-09-30 批次 304 立。
+ * 依据（支书 2026-09-30 原话）：「**即使是支部书记 / 其他支委 投票，在投票的时候也就是普通党员**」
+ *   ⇒ **表态权与角色无关**，只看本场活动**创建时固化的应到名单** `voteConfig.voterIds`（快照，不回改）。
+ * 为什么必须单一源：此前该判据在仓库里**有三份各写一遍**——`entries/pages/activity-entry.js` 内联一份、
+ *   `components/governance/vote-widget.js` 靠调用方传 `canVote`（自身不判）、而
+ *   `components/record/inspector.js` 的表态位**多挂了一道 `isCommittee` 角色门** ⇒ 同一件事两种口径
+ *   （**应到名单内的普通党员在支书台看不到表态位**，而活动详情页看得到）。本函数把口径收回一处，
+ *   两个调用点同批改成消费它。
+ * @param {{voteConfig?:{voterIds?:string[]}}} activity 活动（取固化应到名单）
+ * @param {string|null|undefined} personId 当前登录人
+ * @returns {boolean}
+ */
+export function isVoterOf(activity, personId) {
+  if (!personId) return false;
+  const ids = activity?.voteConfig?.voterIds;
+  return Array.isArray(ids) && ids.includes(personId);
 }
 
 export function optionSetOf(activity) {
