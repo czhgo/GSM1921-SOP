@@ -2,8 +2,8 @@
 // 纪检委员工作台 Tab：我的处置（T-279 M3 拆分，照 M2 样板）
 // 过程性汇报/问题处置：纪检委员答复提交人，支书仍全局可见。
 
-import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261001l';
-import { AuthStore } from '../../../services/core/auth.js?v=20261001l';
+import { renderMyDispatchTab, bindMyDispatchEvents } from '../../../components/feedback/issue-dispatch-view.js?v=20261001m';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001m';
 
 export function renderContent() {
   const el = document.getElementById('disc-tab-content');

@@ -310,22 +310,20 @@ function _nudgeEsc(s) {
 }
 
 /**
- * 「本位」nudge 确认弹窗（2026-09-23 支书裁定）：**只在操作人不是本位时**由调用点调用。
- * 三个动作语义：点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
+ * 「必须点按钮才能关」的确认浮窗（内部共用机制 · 2026-10-01 批次 326 抽出）：
+ * `confirmNudge`（本位 nudge）与 `confirmWriteWithoutGrant`（未赋权软提示）走同一套动作语义——
+ * 点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
  * 弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；关闭一律走 `closeModal`（不留监听）。
- * @param {Object} options
- * @param {'activity-write'|'inspection-upload'|'attendance-upload'|'taskforce-upload'} options.nudgeKey
- *   nudge 场景键（**单一源**：文案取自 `NUDGE_TEXTS`；同时落到弹窗 DOM 供统计 / 测试锚定）
- * @param {string} [options.who] 本位承担人（不传取 `NUDGE_TEXTS[nudgeKey].who`）
- * @param {string} [options.why] 「为什么」（不传取 `NUDGE_TEXTS[nudgeKey].why`）
- * @param {string} [options.context] 具体对象名（活动 / 专班名称），用于正文点名
- * @returns {Promise<boolean>} true＝仍由我继续；false＝取消
+ * @param {Object} o
+ * @param {string} o.id 浮窗 id
+ * @param {string} o.title 标题
+ * @param {string} o.bodyHtml 正文 HTML（按钮行由本函数追加）
+ * @param {string} [o.confirmLabel] 主按钮文案（缺省「仍由我继续」）
+ * @param {string} [o.cancelLabel] 次按钮文案（缺省「取消」）
+ * @param {(panel:HTMLElement)=>void} [o.onPanel] 拿到面板后的锚定回调（如写 `dataset.nudgeKey`）
+ * @returns {Promise<boolean>}
  */
-export function confirmNudge({ nudgeKey, who, why, context = '' }) {
-  const text = NUDGE_TEXTS[nudgeKey] || { who: '本位承担人', why: '' };
-  const whoText = who || text.who;
-  const whyText = why || text.why;
-  const id = `nudge-${nudgeKey}`;
+function _mustPressConfirm({ id, title, bodyHtml, confirmLabel = '仍由我继续', cancelLabel = '取消', onPanel }) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (ok) => {
@@ -336,22 +334,86 @@ export function confirmNudge({ nudgeKey, who, why, context = '' }) {
     };
     const panel = openModal({
       id,
-      title: `本步一般由${whoText}写入`,
+      title,
       width: '460px',
       dismissable: false,
-      bodyHtml: `
-        <p style="margin:0 0 10px;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>写入。${_nudgeEsc(whyText)}</p>
-        <p style="margin:0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>
+      bodyHtml: `${bodyHtml}
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
-          <button type="button" data-nudge-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-          <button type="button" data-nudge-confirm class="btn-accent text-sm px-4 py-[7px] font-medium">仍由我继续</button>
+          <button type="button" data-nudge-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">${_nudgeEsc(cancelLabel)}</button>
+          <button type="button" data-nudge-confirm class="btn-accent text-sm px-4 py-[7px] font-medium">${_nudgeEsc(confirmLabel)}</button>
         </div>`,
       onMount: (p) => {
         p.querySelector('[data-nudge-confirm]')?.addEventListener('click', () => finish(true));
         p.querySelector('[data-nudge-cancel]')?.addEventListener('click', () => finish(false));
       },
     });
-    panel.dataset.nudgeKey = nudgeKey; // 统计 / 测试锚定（`#modal-overlay-nudge-<key>` 亦可定位）
+    onPanel?.(panel);
+  });
+}
+
+/**
+ * 「写入未赋权」提示正文（**单一源**：折进 `confirmNudge` 的 `noGrant` 与独立弹窗 `confirmWriteWithoutGrant`
+ * 共用同一份措辞 —— 2026-10-01 批次 326 · 支书裁定 `SOP-G-2-①` ＝ **乙：软提示**）。
+ * 母本依据：《常见工作场景快速指南》「写入活动时同时指定该次活动的组织者——指定即完成该次活动的赋权」。
+ * @param {string} subject 对象称谓（活动 / 专班）
+ * @param {string} [context] 具体对象名
+ */
+function _noGrantNoteHtml(subject, context = '') {
+  const s = _nudgeEsc(subject);
+  const who = context ? `本${s}（${_nudgeEsc(context)}）` : `本${s}`;
+  return `<p style="margin:10px 0 0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">另外，${who}尚未指定<b>组织者</b>（也就是还没有完成赋权）。</p>
+        <p style="margin:6px 0 0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">按支部惯例，<b>写入时同时指定组织者</b>——指定即完成本${s}的赋权，任务与通知发布随之归到组织者；如确需先写入、稍后补指定，确认继续即可。</p>`;
+}
+
+/**
+ * 「本位」nudge 确认弹窗（2026-09-23 支书裁定）：**只在操作人不是本位时**由调用点调用。
+ * 三个动作语义：点主按钮 ⇒ resolve(true)（继续执行原动作）；点次按钮 ⇒ resolve(false)（放弃本次动作）。
+ * 弹窗**必须点按钮才能关**（不点遮罩 / 不按 Esc / 不自动超时）；关闭一律走 `closeModal`（不留监听）。
+ * @param {Object} options
+ * @param {'activity-write'|'inspection-upload'|'attendance-upload'|'taskforce-upload'} options.nudgeKey
+ *   nudge 场景键（**单一源**：文案取自 `NUDGE_TEXTS`；同时落到弹窗 DOM 供统计 / 测试锚定）
+ * @param {string} [options.who] 本位承担人（不传取 `NUDGE_TEXTS[nudgeKey].who`）
+ * @param {string} [options.why] 「为什么」（不传取 `NUDGE_TEXTS[nudgeKey].why`）
+ * @param {string} [options.context] 具体对象名（活动 / 专班名称），用于正文点名
+ * @param {{subject?:string, context?:string}} [options.noGrant] 同时**未赋权**时传入 ⇒ 本窗**追加一段**
+ *   「尚未指定组织者」提示（避免同一次提交连弹两个窗；`SOP-G-2-①` 软提示的落法）
+ * @returns {Promise<boolean>} true＝仍由我继续；false＝取消
+ */
+export function confirmNudge({ nudgeKey, who, why, context = '', noGrant = null }) {
+  const text = NUDGE_TEXTS[nudgeKey] || { who: '本位承担人', why: '' };
+  const whoText = who || text.who;
+  const whyText = why || text.why;
+  const grantNote = noGrant ? _noGrantNoteHtml(noGrant.subject || '活动', noGrant.context || '') : '';
+  return _mustPressConfirm({
+    id: `nudge-${nudgeKey}`,
+    title: `本步一般由${whoText}写入`,
+    bodyHtml: `
+        <p style="margin:0;font-size:0.8rem;line-height:1.75;color:var(--neutral-700);">${context ? `本场（${_nudgeEsc(context)}）` : '这一步'}一般由<b>${_nudgeEsc(whoText)}</b>写入。${_nudgeEsc(whyText)}</p>${grantNote}
+        <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">确需由您经办时，点「仍由我继续」即可——这只表示本次按例外办法办，不改动任何权限。</p>`,
+    onPanel: (panel) => { panel.dataset.nudgeKey = nudgeKey; }, // 统计 / 测试锚定（`#modal-overlay-nudge-<key>` 亦可定位）
+  });
+}
+
+/**
+ * 「写入未赋权」软提示（2026-10-01 批次 326 · 支书裁定 `SOP-G-2-①` ＝ **乙：软提示**）：
+ * 写入活动 / 专班时**未指定组织者（＝尚未完成赋权）**即偏离母本《常见工作场景快速指南》
+ * 「写入活动时同时指定该次活动的组织者——指定即完成该次活动的赋权」⇒ **提交前弹一次软提示**，
+ * **可继续提交**（不阻断写入 —— 母本未禁止「先写后补指定」）。
+ * ⚠ 若同一次提交**另有「本位」nudge**（写入人不是本位），调用点应改用 `confirmNudge({ noGrant })`
+ *   把本段**折进那一窗**，避免连弹两个窗。机制同「本位」nudge。
+ * @param {Object} o
+ * @param {string} [o.subject='活动'] 对象称谓（活动 / 专班）
+ * @param {string} [o.context=''] 具体对象名（活动 / 专班名称）
+ * @returns {Promise<boolean>} true＝仍然提交；false＝返回补指定
+ */
+export function confirmWriteWithoutGrant({ subject = '活动', context = '' } = {}) {
+  return _mustPressConfirm({
+    id: 'write-without-grant',
+    title: `尚未指定${subject}组织者`,
+    confirmLabel: '仍然提交',
+    cancelLabel: '返回指定',
+    bodyHtml: `${_noGrantNoteHtml(subject, context)}
+        <p style="margin:10px 0 0;font-size:0.72rem;line-height:1.7;color:var(--neutral-500);">点「仍然提交」＝本次先写入、稍后补指定；点「返回指定」＝回到表单先指定组织者。这不改动任何权限。</p>`,
   });
 }
 

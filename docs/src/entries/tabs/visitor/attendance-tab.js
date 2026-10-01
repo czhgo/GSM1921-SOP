@@ -6,17 +6,17 @@
 // SOP-B-15 当事人可见侧（2026-09-20 批次 116 支书定案「支委会 ＋ 当事人本人」）：顶部一块
 //   「本月我的出勤率」——只算当前登录人（当事人只能看到自己的），偏低时按同一提示线给一句提示。
 
-import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261001l';
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001l';
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261001l';
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001l';
-import { AuthStore } from '../../../services/core/auth.js?v=20261001l';
-import { openFormModal } from '../../../components/ui/modal.js?v=20261001l';
-import { showToast } from '../../../core/base/utils.js?v=20261001l';
+import { loadActiveAttendanceRecords, absenceReasonLabel, createAttendanceAppeal, summarizePersonAttendance } from '../../../services/activity/attendance.js?v=20261001m';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001m';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261001m';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001m';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001m';
+import { openFormModal } from '../../../components/ui/modal.js?v=20261001m';
+import { showToast } from '../../../core/base/utils.js?v=20261001m';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../../core/domain/constants.js?v=20261001l';
+import { isActivityArchived } from '../../../core/domain/constants.js?v=20261001m';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261001l';
+import { renderFilteredList, activityKeyword, activityFacets } from '../../../components/ui/list-filter.js?v=20261001m';
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -25,7 +25,17 @@ export function renderContent(ctx) {
   const meId = AuthStore.getCurrentUser()?.personId || '';
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const monthActs = activities.filter(a => (a.date || '').startsWith(thisMonth) && !isActivityArchived(a));
+  // 2026-10-01 批次 326 实跑修（**存量红**，`form-loop-sweep` 的 `visitor-attendance-makeup-proof` 在原基线上同样复现）：
+  //   本列表原**只列本月活动**（`a.date.startsWith(thisMonth)`），而「去补课 · 提交补课说明」按钮长在活动行上
+  //   ⇒ 一旦补课任务**跨月**（种子 `mk-seed-1` 挂 9 月的 `act-31`，时钟到 10 月），本人待补课的**唯一提交入口
+  //   就消失**——变成**未完成义务的死链**（补课任务本身仍是 `pending`，`disc` 台仍在等它闭环）。
+  //   修法取最小对症面：**仍待补课的往期活动一并列入**（新增一项、不缩小原有面）。
+  const myPendingMakeupActIds = new Set(
+    loadMakeupTasks().filter(t => t.personId === meId && t.status === 'pending').map(t => t.activityId),
+  );
+  const monthActs = activities.filter(a =>
+    !isActivityArchived(a) && ((a.date || '').startsWith(thisMonth) || myPendingMakeupActIds.has(a.id)),
+  );
   tc.innerHTML = `
     <div id="visitor-att-mine"></div>
     <div id="visitor-att-list"></div>

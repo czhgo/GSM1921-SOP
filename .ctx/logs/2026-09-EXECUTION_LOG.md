@@ -22511,3 +22511,72 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **未逐条核**：第二章「意见建议处理流程」的**逐环节时限**（`:439-444`）——系统里 `replyHint` **只是展示口径、不改流转**（已在 #51 说明）。
 - **5 条「未找到对应物」均按纪律标注了检索关键字**，并一律判 `上报待裁`（**未擅判 `改系统`**）：母本**未写「须进系统」**，且多为线下协作 / 人工观察 ⇒ **须支书先给产品取向**。
 - **本批未改任何代码 / 母本 / 配置**（**只读比对 ＋ 落账**）⇒ **未 bump 任何 `?v=`（仍 `20261001l`）**、**未跑全量**（纯 md 改动，走 `test:fast` 守卫）。
+
+***
+
+## 批次 326（2026-10-01）：`SOP-G-2` 五条待裁命题获裁（四条答复）＋ `①` 落地为「写入未赋权」**软提示** ＋ 连带修一处存量红
+
+> **决议 / 过程判据（`R-84`）**：本批**因裁而作**——支书 2026-10-01 对批次 325 送裁的 `SOP-G-2-①`–`⑤` 与乙部 `V-6` 遗留项一并给了取向（**四条答复，逐字见「一」**）。**裁定进决策日志**（`D-733`），**实现过程与实测进本节**。
+
+### 一、支书 2026-10-01 四条答复（逐字）
+
+| # | 送裁问题（批次 325 提出） | 支书裁定（逐字） |
+| --- | --- | --- |
+| 1 | `SOP-G-2-①`「赋权前置」要不要做成硬门 | **「乙 软提示」** |
+| 2 | `SOP-G-2-②`「组织者退出 / 接手」要不要系统承载 | **「乙 承载『转交组织者』」** |
+| 3 | `SOP-G-2-③④⑤` 三条「母本有、系统无对应物」的线下协作类，哪些进系统 | **「暂无」** |
+| 4 | 乙部 `V-6` 遗留：九业务域是否各配一色 | **「丙 只给重点域配色」** |
+
+⇒ **本批落 `①`**；`②` 与 `V-6` 丙 **转后续批次**；`③④⑤` **定案＝暂不进系统**（见「五」）。
+
+### 二、`①` 的落法（**不改裁定、只择落法**）
+
+- **判据（条件）**：写入活动时**内嵌赋权名单为空**（`wp.pendingAuth.length === 0`）＝本场**尚未指定组织者**（＝尚未完成赋权）；发起专班时**初始成员里无 `role:'organizer'`** 同理。
+- **动作**：**提交前弹一次软提示**，点主按钮**继续提交**（**不阻断写入** —— 母本未禁止「先写后补指定」）；点次按钮回表单。
+- **单一源**：`docs/src/components/ui/modal.js` 新增 `confirmWriteWithoutGrant({subject, context})`；提示正文由内部 `_noGrantNoteHtml(subject, context)` **一处生成**（折进 nudge 与独立窗**共用同一份措辞**）。
+- **不连弹两窗**：写入人**不是本位**（支书 / 其他支委）时，本段**折进既有「本位」nudge 那一窗**（`confirmNudge({ noGrant })` 新增可选参数）⇒ 同一次提交**只出现一个确认窗**；写入人**恰是本位**时无 nudge，才走**独立窗**。为此把「必须点按钮才能关」的机制从 `confirmNudge` 抽出为**共用内部件** `_mustPressConfirm`（两窗同一套语义，DOM 锚点 `[data-nudge-confirm]` / `[data-nudge-cancel]` 与 `panel.dataset.nudgeKey` **一字未改** ⇒ 既有真机件零改签）。
+- **落点**：`docs/src/entries/tabs/secretary/calendar-tab.js::handleSubmitActivity`（**全部校验之后、真正写链之前** —— 与「本位」nudge 同位，保证既有的校验闭环普查不受影响）＋ `docs/src/entries/tabs/org/taskforce-tab.js::_submitRecruitForm`（该函数**改 `async`**、调用点加 `void`）。
+- **为什么组长台（`leader/write-tab.js`）不加**：该链 `const organizerIds = _dtOrgPicker ? getSelected() : [currentLeaderId]` —— **缺省即组长本人** ⇒ 「未赋权」这一态在该链**结构上不成立**（组长写入时组织者已定）。如实登记，不重复加提示。
+
+### 三、真机证据（**新立定向件**，`S12`）
+
+`server/test/write-grant-prompt-e2e.test.mjs`（**已登记进 `test:daily`**）—— **双向证据**（不是「跑绿了」就算）：
+
+- **正例**：支书**未指定组织者** ⇒ 确认窗（`#modal-overlay-nudge-activity-write`）**含「尚未指定组织者」**，点主按钮后**写入真落库**（日历出现该标题）；
+- **反例**：经「＋ 加入名单」**指定组织者** ⇒ **同一窗不含该段** —— 证明它是**条件渲染**、不是恒显（否则本判据无区分度、且用户会当噪音）；
+- **不连弹两窗**：两次提交实测**确认类浮窗均恰为 1 个**。
+
+实测：`pass 1 / fail 0`（19.7s）。另：`form-loop-sweep` 台账侧 **`82 / 82` 全绿**（含为**专班发起成功路径**补的一步确认点击，见「六」）。
+
+### 四、连带修一处**存量红**：`visitor-attendance-makeup-proof`
+
+- **怎么发现的**：本批实跑 `form-loop-sweep` 全量，该条**唯一判红**；为区分「本批引入 / 存量」，用 `git stash push -u` 在**未含本批改动的基线**上复跑 ⇒ **同样判红** ⇒ **非本批引入，属存量**（如实登记，不掩饰）。
+- **根因**：成员台「考勤概况」列表**只列本月活动**（`visitor/attendance-tab.js`：`a.date.startsWith(thisMonth)`），而「去补课 · 提交补课说明」按钮**长在活动行上**；种子 `mk-seed-1` 挂的是 **9 月**的 `act-31` ⇒ 时钟跨到 **10 月**后，**本人待补课的唯一提交入口消失** —— 补课任务仍是 `pending`、纪检台仍在等它闭环 ⇒ 属**未完成义务的死链**（**不是「测试抖动」**，可稳定复现）。
+- **修法（最小对症面）**：**仍待补课的往期活动一并列入**（新增 `myPendingMakeupActIds`）—— **只新增、不缩小**原有面。
+- **连带改签**：`form-loop-registry.mjs` 该文件三处行号 **142 → 152 · 167 → 177**（`S6` 行号台账同批改准）。
+- **复跑**：`form-loop-sweep` 定向 `考勤概况` **9 / 9**；**全量 82 / 82**。
+
+### 五、`SOP-G-2-③④⑤` 定案：**暂不进系统**
+
+支书答「**暂无**」⇒ 三条**维持现状（线下协作）**：`③` 党小组组长日常观察、向支书反馈考察意见 · `④` 组织委员据个人自述反向核对考察档案 · `⑤` 向委员提信息支持需求。**本批只落裁定、不动代码**；`.ctx/REVIEW_QUEUE.md` 的 `SOP-G-2` 表内三条状态标注改「**已裁：暂不进系统（2026-10-01）**」。
+
+### 六、改动清单
+
+| # | 文件 | 改前 | 改后 |
+| --- | --- | --- | --- |
+| 1 | `docs/src/components/ui/modal.js` | 只有 `confirmNudge` 一个「必须点按钮才能关」的窗 | 抽出共用 `_mustPressConfirm` ＋ `_noGrantNoteHtml`；`confirmNudge` 新增 `noGrant` 可选参数；**新增导出** `confirmWriteWithoutGrant` |
+| 2 | `docs/src/entries/tabs/secretary/calendar-tab.js` | 只有「本位」nudge | 提交前＋未赋权判据：非本位**折进 nudge**、本位走独立窗 |
+| 3 | `docs/src/entries/tabs/org/taskforce-tab.js` | `_submitRecruitForm` 同步、「初始成员无组织者」无提示 | 改 `async`；初始成员无 `organizer` ⇒ 提交前软提示 |
+| 4 | `docs/help.html` | 「创建会议活动」卡只写「本位」nudge；「发起专班」卡无相关句 | 两卡各补一段（未指定组织者时会弹软提示、可继续；专班组织者亦可后续指定） |
+| 5 | `docs/src/entries/tabs/visitor/attendance-tab.js` | 列表只含本月活动 | 未赋权存量红修（见「四」） |
+| 6 | `server/test/write-grant-prompt-e2e.test.mjs` | ——（新文件） | 定向真机件（正例 / 反例 / 不连弹两窗） |
+| 7 | `server/test/form-loop-registry.mjs` | 专班发起成功路径 `act` 只有 `dispatchSubmit`；补课三处行号 142/167 | ＋`waitFor`＋`click` 确认按钮；行号改准 152/177 |
+| 8 | `server/package.json` | `test:daily` 无本件 | ＋`test/write-grant-prompt-e2e.test.mjs` |
+| 9 | `server/test/copy-master-guard.test.mjs` | 未记僵尸 | **只登记、本批不动**：实跑发现 `settings-entry.js` 一条已不在代码中（见「七」） |
+| 10 | 全站 `?v=` | `20261001l` | **`20261001m`**（改了 `docs/src/**` ⇒ 必须 bump） |
+
+### 七、如实登记（未做 / 异常 / 只登记不动的）
+
+- **只登记、本批不动**：`copy-master-guard` 实跑发现 `settings-entry.js` 的「档案/职责参数等）每次保存自动留痕…」一条**已不在该文件中**（该句现只在 `docs/help.html`）⇒ 属**存量僵尸条目**（某历史批改写了该句却未同批收基线）。**本批不下调基线**，因 `N3` 对 `BASELINE_TOTAL` 设了**硬下限 `>= 11`**（「台账被删减」防线）—— 要收它须**同一批同时下调该下限并说明**，属独立取证件。已在守卫内**原位加注**留痕。
+- **未跑全量**（`npm test` / `test:precommit`）—— 本批实跑：`test:fast` **140 / 140** · `doc-consistency` ＋ `ux-guard` ＋ `list-filter-chip-e2e` ＋ `attendance-batch` **31 / 31** · `form-loop-sweep` 全量 **82 / 82** · `click-cost` ＋ `agenda-flow` ＋ `agenda-closure` **11 / 11** · `page-sweep` ＋ `help-e2e` **12 / 12** · 新件 **1 / 1**。**收尾全量由 `R-85` 全量口把关。**
+- **`②` 与 `V-6` 丙 未落**：支书已裁（「乙 承载『转交组织者』」/「丙 只给重点域配色」），**转后续批次**（`②` 涉及活动 / 专班两处写入面 ＋ 支委会确定接手人的制度语义；`V-6` 丙需先定**哪几个域算「重点」**）。
