@@ -22392,3 +22392,39 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 ```
 支部工作地图模块目录（**2026-09-21 批次 135 补登**——本表原先无此行；批次 135**仅 `:76` 描述一句**改准：「意见建议反馈处理（纪检委员主责）」→「处置归支委会，支书主持支委会」，依 `D-301` / `D-412`〔**改后该 `desc` 落在 `:81`**〕；`defaultOwner` **未动**）；**2026-09-22 批次 141 改注**——**新增「组织型主体」注册表**（`ORG_SUBJECTS`＝`{ 'branch-committee': '支委会' }` ＋ `isOrgSubject` / `ownerSubjectType`，`:18-36`）＋ `defaultOwner` 由「只接受 role key」**扩为「主体引用」**（`expandWorkforce` 兜底走 `ownerSubjectType`）＋「意见反馈处理」「制度制定与迭代」两模块 `defaultOwner` 改准为 `'branch-committee'`（`D-573`）；**2026-09-22 批次 144 改注**——模块「发展党员」`defaultOwner` 由 `'org-commissioner'` 改准为 **`'branch-committee'`**（`desc` 由「（组织委员主责）」→「（责任在支委会，集体决策；考察与材料准备归组织委员）」，＋6 行注释），依母本 §5.1 定人表 ＋ `D-300`（`D-576`；**该文件内插 6 行 ⇒ `README-server.md:529` 的 `work-map.js` 行号引用机械平移为 `57-160`**）；**2026-09-22 批次 145 改注**——**「三会一课」按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-lecture`＝`secretary`，`party-group-meeting` 党小组会＝`leader`）＋ **`theme-party` `defaultOwner` 由 `'secretary'` 改准为 `'leader'`** ⇒ **模块目录 11 → 14 项**（`D-577`；**同批连带**：`workforce-duty-card.js` 模块→tab 映射、`workforce.js` 的 `DUTY_DOMAIN`、5 个测试文件、`README-server.md §3.5` 表）；**2026-09-22 批次 149 改注**——`ORG_SUBJECTS` **增 `'party-committee'`（党委）**（第二个组织型主体，`D-585`）＋ 模块改准四处：`joint-event` 缺省主责 `secretary → leader`（`D-583`）· `rule-making` 注释 ＋ `desc` 写清「支委会主责，可指定个人起草 / 修改、报支委会审议」（**主责维持 `branch-committee`**，`D-584`）· `democratic-review` `desc` 补承载（党员大会 / 党小组会）与「上传任务归支书」（`D-585`）· `election` 缺省主责 `secretary → party-committee` ＋ `desc` 改准（`D-585`）· `info-platform` 缺省主责 `prop-commissioner → branch-committee` ＋ `desc` 改准（`D-586`）
 ```
+
+***
+
+## 批次 323（2026-10-01）：`R-73` 第 ③ 缺落成守卫 ＋ 连带补齐 `form-loop-sweep` 两处存量红 ＋ `R-70`/`R-73` 复核删行 ＋ `R-84` 归位复核改准
+
+> **落点判据（`R-84`）**：本批**未新立裁定**——`R-73` 第 ③ 缺（「漏登记无守卫」）与 `H50.1 §3`（「乙部闭环即删行」）**均已裁定在先**，本批是**执行** ⇒ 本条**只进执行日志**，不占 `D-` 编号。
+
+### 一、`R-73` 第 ③ 缺：新守卫 `validation-site-coverage.test.mjs`（`V1` 漏登记增量检测）
+
+- **判据来源**＝`form-loop-registry.mjs` 开篇登记的**同一套「登记判据」**（① `showToast('error'|'warn'|'warning', '…')` ② `showStatus('error', …)` ③ `return { ok:false, error|message: … }`，且文案**点名字段 / 选择项**）。
+- **形态**：扫 `docs/src/**` 得候选 → 与 `VALIDATION_SITES` 按 `(file, 文案)` 比对 → 未登记者落进 `UNREGISTERED_BASELINE`（**只降不升**；含「已登记却未撤基线」的反向断言）。
+- **★ 落成当天即揪出 5 处真漏登记**（此前 `S0–S4` **全绿**，正是 ③ 缺所描述的「漏登记＝漏发现」）：
+  1. `components/feedback/issue-form.js:106`「请选择事项领域」（2026-09-21 批次 126 新立第二根轴，当时未登记）
+  2. `entries/tabs/leader/inspection-tab.js:209`「请填写考察内容」（组长台·驳回考察申诉分支）
+  3. `entries/tabs/visitor/attendance-tab.js:167`「请填写说明」（成员台「我参加了但没记上」申诉浮窗——与 `:142` 补课申请是**两个不同浮窗**）
+  4. `entries/tabs/visitor/inspection-tab.js:79`「请选择活动」（成员台·考察申诉——**整条链路此前无登记**）
+  5. `entries/tabs/visitor/inspection-tab.js:80`「请填写说明」（同上）
+- **处置**：5 条**同批登记**（均 `machine:false` ＋ 逐条 reason，不造数据）；台账 **实有 103 → 108**、`SITES_BASELINE` 103 → 108。另有 **4 处「状态守卫」**（不点名字段）留在基线里——**按台账判据本就不该登记**，非缺口。
+
+### 二、连带补齐 `form-loop-sweep` 的**两处存量红**（本批实跑发现）
+
+- **`S2`**：批次 303 把「写入活动 · 内嵌项目赋权」两处登记为 `machine:true`，却**从未纳入任何 `MACHINE_FLOWS.expect`** ⇒ 判据长期红。**补一条真机流程** `secretary-calendar-write-inline-grant`（open＝写入活动表单；submit＝点 `[data-action="wp-auth-add"]`；**只点「+ 加入名单」、不提交表单 ⇒ 不写库**）⇒ **真机实测通过**；`FLOWS_BASELINE` 56 → 57。
+- **`S6`**：**19 处行号漂移**（其中 6 处系批次 317 把「写入活动」按钮移出 `calendar-tab.js` 模板所致，其余系历批累积）⇒ 逐处改准；实测 `S0–S6` **13/13 绿**。
+
+### 三、乙部表复核（`H50.1 §3`）
+
+- **删 `R-70`**：`Q-23-42` 已于 **2026-09-16 批次 47-J 闭环**（`doc-consistency::S12` 迁移台账**清空＝零容忍**）——本表旧记「基线 13 条 → `Q-23-42` 待补证」**系陈数**。
+- **删 `R-73`**：③ 缺已由本批守卫落成 ⇒ 三缺全闭环。
+- **`R-84` 改准**：`REVIEW_QUEUE` 过程叙述已于 2026-09-19 批次 101 迁出；本表旧记「**41 处 `Q-23-*` 待迁**」**系陈数**（「41 处」原为**批次 61 一次对账的口径**）；全仓 `Q-23-*` 本批实测 **745 处 / 40 文件**（执行日志 425 · 决策日志 161 · `DATA_CONSISTENCY_CHECKLIST` 26 · `form-loop-registry` 25 · `REVIEW_QUEUE` 21 …）。**仍留一条**：`REVIEW_QUEUE` 内若干「已迁出」区块仍是**多行**（`R-86` 要求只留一行指针）⇒ 续批压缩。
+- 乙部表 **9 → 7 行**。
+
+### 四、同步改动与守卫实测
+
+- `README.md`（4 个可数事实：校验点 103 → 108 · `machine:false` 6 → 11 · 真机闭环 56 → 57 · 新守卫登记）· `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2`（`R73` 行改「已闭环」）· `server/package.json`（新件入 `test:fast` / `test:daily`）· `CLAUDE.md`（乙部表删 2 行 / 改 1 行 ＋ 删除记录 ＋ 合并推进图 `323` 行）+ `server/test/form-loop-registry.mjs`（5 条登记 ＋ 1 条流程 ＋ 19 处行号）。
+- **守卫实测（本批）**：`doc-consistency` **S1–S16 全绿** · `validation-site-coverage::V1` 绿 · `form-loop-sweep` **S0–S6 13/13** ＋ 真机 `活动管理` **8/8** · `doc-line-ref` / `version-stamp` / `timestamps-note-guard` / `frontmatter-freshness` / `link-integrity` / `link-target-guard` 同批绿（合跑 **58/58**）。
+- **未跑全量**（`npm test`）——如实登记，收尾由 `R-85` 全量口把关；**本批未改 `docs/src/**` ⇒ 未 bump 任何 `?v=`（仍 `20261001k`）**；改动随批次 323 提交（**不 push**）。
