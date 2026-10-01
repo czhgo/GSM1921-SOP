@@ -12,14 +12,14 @@
 //   · 全院通知 = mockDB.notices 计数
 // 消费方：party-committee-workspace.js tabs 清单首项；ws-party-committee-entry defaultTab。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261001g';
-import { PersonStore } from '../../../services/member/person.js?v=20261001g';
-import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001g';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261001g';
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261001g';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261001g'; // P0 域写版本戳（spec §二.4）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001g'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001g'; // P2 渲染守卫（spec §四.1）
+import { mockDB } from '../../../core/domain/domain.js?v=20261001h';
+import { PersonStore } from '../../../services/member/person.js?v=20261001h';
+import { getRosterStats, RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001h';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261001h';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261001h';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261001h'; // P0 域写版本戳（spec §二.4）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001h'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001h'; // P2 渲染守卫（spec §四.1）
 
 // ── P2 渲染守卫 key（2026-09-07 · spec §四.1）─────────────────────
 // 全院汇总数字的数据版本 = member token（PersonStore.getMembers / getRosterStats 口径）

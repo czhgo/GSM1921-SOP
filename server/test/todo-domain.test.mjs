@@ -16,14 +16,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001g';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001h';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261001g';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261001g';
+} from '../../docs/src/data/mock-adapter.js?v=20261001h';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261001h';
 import {
   WORK_DOMAIN, WORK_DOMAIN_LABELS, inferDomain, TodoStore,
-} from '../../docs/src/services/governance/todo.js?v=20261001g';
+} from '../../docs/src/services/governance/todo.js?v=20261001h';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -72,7 +72,9 @@ test('① WORK_DOMAIN：9 业务域 + NONE（通知/未分类），WORK_DOMAIN_L
   // 中文标签（域序同 spec 一：①会务…⑨汇报与反馈 + NONE 通知/未分类）
   const labels = Object.values(WORK_DOMAIN_LABELS);
   assert.equal(labels.length, 10, 'labels 与枚举一一对应');
-  for (const l of ['会务', '活动/项目', '考勤纪律', '考察', '成员发展', '专班',
+  // ⚠ 2026-10-01 批次 320：活动域标签**由「活动/项目」改为「活动」**（支书裁定「甲：改成『活动』」；
+  //   概念纪律＝**活动与专班并列**、同属上位词「项目」，且「专班」另有自己的域）⇒ 期望值随之改准。
+  for (const l of ['会务', '活动', '考勤纪律', '考察', '成员发展', '专班',
     '决议上报', '归档宣传', '汇报反馈', '通知/未分类']) {
     assert.ok(labels.includes(l), `WORK_DOMAIN_LABELS 含「${l}」`);
   }

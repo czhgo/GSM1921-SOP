@@ -6,13 +6,13 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261001g';
-import { persist } from '../../data/data-adapter.js?v=20261001g';
-import { generateId } from '../../core/base/id.js?v=20261001g';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261001g';
+import { mockDB } from '../../core/domain/domain.js?v=20261001h';
+import { persist } from '../../data/data-adapter.js?v=20261001h';
+import { generateId } from '../../core/base/id.js?v=20261001h';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261001h';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261001g';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261001h';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -53,7 +53,10 @@ export const WORK_DOMAIN = {
 /** 业务域中文标签（域序同 spec 一 ①→⑨ + NONE） */
 export const WORK_DOMAIN_LABELS = {
   [WORK_DOMAIN.MEETING]: '会务',
-  [WORK_DOMAIN.ACTIVITY]: '活动/项目',
+  // ⚠ 2026-10-01 批次 320（支书裁定「甲：改成『活动』」）——**概念纪律**：**活动与专班并列**
+  //   （同属上位概念「项目」），故本域标签**只写「活动」**；原「活动/项目」把并列的两级混成一个标签，
+  //   且「专班」另有自己的域（`WORK_DOMAIN.TASKFORCE`）。「项目」是上位词，**不单独作域标签**。
+  [WORK_DOMAIN.ACTIVITY]: '活动',
   [WORK_DOMAIN.ATTENDANCE]: '考勤纪律',
   [WORK_DOMAIN.INSPECTION]: '考察',
   [WORK_DOMAIN.MEMBER_DEV]: '成员发展',
