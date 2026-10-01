@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261001k';
+import { periodLabel } from '../base/period.js?v=20261001l';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -232,6 +232,25 @@ const TEMPLATES = {
     targetModule: 'workspace',
     targetType: 'taskforce',
     targetId: sourceId,
+    read: false,
+  }),
+
+  // ── 补课材料催办（V-7 · 2026-10-01 批次 324；纪检委员催当事人） ──────
+  // V-7 裁定（甲＋丙）：**当事人本人是补课主体** · **纪检是补课闭环责任人（由纪检催当事人）** ·
+  //   **组织委员不承担该链任何动作**。故本通知：
+  //   · 受众＝**到人定向**（`audiencePersons`＝当事人一人），**不发角色广播**——全支部不该看到「催某人」；
+  //   · **不设** `actionable`/`actionRoles`：待办派生是按**角色**建的（`NoticeTodoDeriver`），
+  //     当事人是普通成员、无对应角色；当事人侧的「补课待办」走 `VisitorTodoDeriver` 的**通知阅读**待办
+  //     （故**刻意不设** `targetModule: 'attendance'`——该值在 `deriveFromNotices` 里被显式跳过）。
+  //   · 落点＝成员台「考勤概况」（当事人提交补课材料处）。
+  'makeup-remind': ({ sourceId, personId, personName, activityName, deadline }) => pick({
+    title: '补课材料待补齐',
+    content: `你缺席的「${activityName}」须于 ${deadline} 前完成补课（自学＋心得），请尽快补交材料；纪检委员确认后该次缺勤才闭环。`,
+    priority: 'urgent',
+    audiencePersons: personId ? [personId] : undefined,
+    targetType: 'makeup',
+    targetId: sourceId,
+    targetUrl: 'workspace/visitor.html?tab=attendance',
     read: false,
   }),
 

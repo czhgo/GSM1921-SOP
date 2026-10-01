@@ -286,6 +286,51 @@ test('系统派生通知端点：合法 kind 201（服务端生成文案/落点�
   assert.equal(anon.status, 401, '未登录 → 401');
 });
 
+// V-7（2026-10-01 批次 324 · 支书裁甲）：纪检侧「催当事人」——服务端 kind `makeup-remind`
+//   · 授权＝**仅纪检委员**（补课闭环责任人）＋ 补课任务存在（表 `makeup_tasks`）；展示值按表复算；
+//   · 受众＝**到人定向**（`audiencePersons`=当事人一人）——不发角色广播（全支部不该看到「催某人」），
+//     与 V-7 裁定「当事人本人是补课主体」一致。
+test('补课催办通知（V-7 裁甲）：纪检委员可触发且受众到人定向；非纪检 403；任务不存在 403', async () => {
+  const { token: discTok } = await login('p10');   // 纪检委员（补课闭环责任人）
+  const { token: secTok } = await login('p13');    // 支书（非纪检——V-7 裁定该链责任在纪检）
+
+  const mkId = 'mk-v7-1';
+  const createMk = await fetch(`${base}/api/v1/makeupTasks`, {
+    method: 'POST', headers: authHeaders(discTok),
+    body: JSON.stringify({
+      id: mkId, personId: 'p3', personName: '普通成员', activityId: 'act-31',
+      activityName: '支部党员大会', deadline: '2026-10-08', status: 'pending',
+    }),
+  });
+  assert.equal(createMk.status, 201, '补课任务落服务端表 makeup_tasks');
+
+  // ① 纪检 + 任务存在 → 201；标题/受众/正文由服务端 build（不采信 payload 同名伪造值）
+  const okRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(discTok),
+    body: JSON.stringify({ kind: 'makeup-remind', sourceId: mkId, payload: { personId: 'p99', title: '伪造标题' } }),
+  });
+  assert.equal(okRes.status, 201, '纪检委员可催当事人（补课任务存在）');
+  const notice = await okRes.json();
+  assert.equal(notice.title, '补课材料待补齐', '标题来自服务端 build（不采信 payload 的 title）');
+  assert.deepEqual(notice.audiencePersons, ['p3'], '受众＝到人定向（当事人一人，取表内 personId，不采信 payload）');
+  assert.equal(notice.audience, undefined, '不设角色广播（该通知只给当事人）');
+  assert.ok(String(notice.content).includes('支部党员大会'), '正文按表复算缺席活动名');
+
+  // ② 非纪检（支书）→ 403（V-7：组织委员不承担该链任何动作、支书也不代发）
+  const denyRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secTok),
+    body: JSON.stringify({ kind: 'makeup-remind', sourceId: mkId, payload: {} }),
+  });
+  assert.equal(denyRes.status, 403, '非纪检委员不得触发补课催办');
+
+  // ③ 服务端无该补课任务 → 403（杜绝凭空催办）
+  const ghostRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(discTok),
+    body: JSON.stringify({ kind: 'makeup-remind', sourceId: 'mk-does-not-exist', payload: {} }),
+  });
+  assert.equal(ghostRes.status, 403, '服务端无该补课任务 → 403');
+});
+
 // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅支书（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
 test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 400', async () => {

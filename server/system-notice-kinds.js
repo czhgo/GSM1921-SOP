@@ -282,6 +282,29 @@ const KINDS = {
     },
   },
 
+  // ── 补课材料催办（V-7 · 2026-10-01 批次 324）──────────────────────
+  // V-7 裁定（甲）：**当事人本人是补课主体 · 纪检是补课闭环责任人（由纪检催当事人）· 组织委员不承担该链任何动作**。
+  // 对象：补课任务必须存在（表 `makeup_tasks`——README-server.md §3.2 的资源表，随快照写穿同步）；
+  // 授权＝**仅纪检委员**（补课闭环责任人；本通知就是「纪检催当事人」这一动作的留痕）。
+  // 展示值（当事人 / 缺席活动 / 截止日）一律由服务端**按表复算**，不信客户端自述；
+  // 受众＝到人定向（模板内 `audiencePersons`），故**不会**广播给全支部。
+  'makeup-remind': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || actor.role !== 'disc-commissioner') return false;
+      return !!rowOf(db, 'makeup_tasks', sourceId);
+    },
+    build(ctx) {
+      const row = rowOf(ctx.db, 'makeup_tasks', ctx.sourceId) || {};
+      return buildSystemNotice('makeup-remind', {
+        sourceId: ctx.sourceId,
+        personId: row.personId,
+        personName: row.personName,
+        activityName: row.activityName,
+        deadline: row.deadline,
+      });
+    },
+  },
+
   // ── 党委下发（党委组织员人工下发至支部委员会） ──────────────────
   // 对象：目标支部必须存在；仅党委组织员可下发。
   'committee-dispatch': {

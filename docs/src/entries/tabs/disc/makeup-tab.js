@@ -6,17 +6,19 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001k';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001k';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261001k';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261001k';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001k';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261001k';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261001k';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001l';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001l';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261001l';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261001l';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001l';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261001l';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261001l';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261001k';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261001l';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001k';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001l';
+// V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261001l';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -62,7 +64,7 @@ export function renderContent(containerEl) {
                 <td class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td class="text-gray-600">${t.deadline || '—'}</td>
                 <td>${statusBadge(t)}</td>
-                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
+                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button> <button class="btn-action btn-disc-urge-makeup" data-task-id="${t.id}" title="向当事人发送补课提醒（V-7：纪检催当事人）">催当事人</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
               </tr>`;
   };
 
@@ -116,8 +118,25 @@ export function renderContent(containerEl) {
     rowHtml,
   });
 
-  // 绑定"确认完成"按钮事件（事件委托：引擎筛选重渲染行后仍可点）
+  // 绑定操作按钮（事件委托：引擎筛选重渲染行后仍可点）
   container.querySelector('#disc-makeup-host')?.addEventListener('click', (e) => {
+    // V-7（2026-10-01 批次 324 · 支书裁甲）：**纪检催当事人**——纪检是补课闭环责任人，
+    //   当事人本人是补课主体。通知走服务端 kind 注册表（`makeup-remind`）复算授权与文案，
+    //   受众＝**到人定向**（当事人一人），不广播给全支部。
+    const urgeBtn = e.target.closest('.btn-disc-urge-makeup');
+    if (urgeBtn) {
+      const task = loadMakeupTasks().find((t) => t.id === urgeBtn.dataset.taskId);
+      if (task) {
+        NoticeStore.addSystem('makeup-remind', task.id, {
+          personId: task.personId,
+          personName: task.personName,
+          activityName: task.activityName,
+          deadline: task.deadline,
+        });
+        showToast('success', `已向 ${getPersonName(task.personId)} 发出补课提醒`);
+      }
+      return;
+    }
     const btn = e.target.closest('.btn-disc-confirm-makeup');
     if (!btn) return;
     {

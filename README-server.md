@@ -1727,8 +1727,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 |---|---|---|---|
 | POST | `/api/v1/system-notices` | 按 `kind` 注册表生成系统通知：body `{kind, sourceId, payload}`。未知 kind 400；`authorize` 不通过 403；成功 201 落 `notices` 表 | 需登录 + **按 kind 的业务对象关系复算授权** |
 
-**已注册的 kind（共 20 种；2026-09-19 批次 98 逐条核过、改准）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`weekly-report-submitted`（**周报已报送、待支书审核**，2026-09-19 批次 94 新增，裁定 `D-507`）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`committee-dispatch`（党委下发）。
-**依据**：`server/system-notice-kinds.js:57-293`（`KINDS` 注册表，20 个键）、`:205-212`（`weekly-report-submitted`）。
+**已注册的 kind（共 21 种；2026-09-19 批次 98 逐条核过、改准）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`weekly-report-submitted`（**周报已报送、待支书审核**，2026-09-19 批次 94 新增，裁定 `D-507`）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`makeup-remind`（**补课材料催办**——2026-10-01 批次 324 新增，`V-7` 裁甲「纪检催当事人」；受众**到人定向**、仅纪检委员可触发）、`committee-dispatch`（党委下发）。
+**依据**：`server/system-notice-kinds.js:57-316`（`KINDS` 注册表，21 个键）、`:205-212`（`weekly-report-submitted`）。
 
 ### 6.8 组长台聚合读（`server/routes/leader-progress.js`）
 
@@ -1874,7 +1874,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | `server/routes/resources/index.js` | 通用资源 CRUD、写角色门、活动写门、快照、支部配置、意见反馈语义端点 | §2.3.3、§2.4、§4.16、§5.5、§6.2-6.4、§6.9 |
 | `server/routes/member.js` | 成员变更链路、名册语义端点、移出/撤销 | §2.2.3、§4.30、§4.34、§4.35、§6.5 |
 | `server/routes/committee.js` | 线上表决：选项枚举、名单校验、无记名两段式、截止 | §4.36、§6.6 |
-| `server/routes/system-notices.js` + `server/system-notice-kinds.js` | 系统派生通知：20 种 kind 的授权复算与文案生成 | §6.7 |
+| `server/routes/system-notices.js` + `server/system-notice-kinds.js` | 系统派生通知：21 种 kind 的授权复算与文案生成 | §6.7 |
 | `server/routes/leader-progress.js` | 组长台「组员进展」服务端汇总 | §3.2.5、§6.8 |
 | `server/routes/uploads.js` | 附件上传/下载、类型与大小限制、物理文件删除 | §4.38、§5.5、§6.10 |
 | `server/routes/report.js` + `server/services/reporting.js` | 四域数据上报（拉取/导出/推送）、定时任务、会议提醒 | §5.3、§6.11 |

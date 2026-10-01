@@ -16,25 +16,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001k';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001l';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261001k';
+} from '../../docs/src/data/mock-adapter.js?v=20261001l';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/member/person.js?v=20261001k';
+} from '../../docs/src/services/member/person.js?v=20261001l';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20261001k';
+} from '../../docs/src/services/member/roster.js?v=20261001l';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261001k';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261001l';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, loadStageEntryDates,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261001k';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261001k';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261001k';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261001l';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261001l';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261001l';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();

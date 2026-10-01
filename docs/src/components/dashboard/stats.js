@@ -5,11 +5,11 @@
 //  职责单一：统计卡渲染 + 考勤明细弹窗（点击统计卡查看本月考勤）。
 // ════════════════════════════════════════════════════════════════
 
-import { NoticeStore } from '../../services/governance/notice.js?v=20261001k';
-import { _fmtDate } from '../../core/base/utils.js?v=20261001k';
-import { icon } from '../../core/base/icons.js?v=20261001k';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261001l';
+import { _fmtDate } from '../../core/base/utils.js?v=20261001l';
+import { icon } from '../../core/base/icons.js?v=20261001l';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261001k';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261001l';
 
 const ATTENDANCE_STATUS_DOT = {
   present:  { text: '出勤', cls: 'text-green-700', dot: 'var(--functional-success)' },
