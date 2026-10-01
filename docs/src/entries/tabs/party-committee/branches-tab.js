@@ -5,18 +5,18 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20260930p';
+import { mockDB } from '../../../core/domain/domain.js?v=20261001a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20260930p';
-import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch/branch.js?v=20260930p';
-import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20260930p';
-import { getRosterStats } from '../../../services/member/roster.js?v=20260930p';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261001a';
+import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch/branch.js?v=20261001a';
+import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261001a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261001a';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20260930p';
-import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20260930p';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261001a';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261001a';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20260930p';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261001a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 

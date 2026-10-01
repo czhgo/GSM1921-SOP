@@ -5,7 +5,7 @@
 //   docs/src/components/sections/help-catalog.js（浏览器：help 页功能地图/业务链路 mermaid 源）
 // 数据源：docs/src/core/domain/function-catalog.js（单一事实源；纯数据表达式，node 可直接 import）
 // 约定：本文件为纯 ESM，不依赖任何 node API / 浏览器 API，双端可加载
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20260930p';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20261001a';
 
 function tag(it) {
   return it.generic ? '通用' : '特有';

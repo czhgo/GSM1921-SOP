@@ -5,18 +5,18 @@
 //  职责单一：日历/列表双视图切换 + ?view=?month= URL 同步 + 活动列表（前 10 条）。
 // ════════════════════════════════════════════════════════════════
 
-import { setState, getAppState } from '../../core/base/state.js?v=20260930p';
-import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20260930p';
-import { getPersonName } from '../../services/member/person.js?v=20260930p';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20260930p';
-import { AuthStore } from '../../services/core/auth.js?v=20260930p';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20260930p';
+import { setState, getAppState } from '../../core/base/state.js?v=20261001a';
+import { _fmtDate, getBasePath } from '../../core/base/utils.js?v=20261001a';
+import { getPersonName } from '../../services/member/person.js?v=20261001a';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261001a';
+import { AuthStore } from '../../services/core/auth.js?v=20261001a';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261001a';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 !a.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20260930p';
-import { badgeHtml } from '../ui/badges.js?v=20260930p';
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20260930p';
-import { populateMonthSelector } from '../record/calendar.js?v=20260930p';
-import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20260930p';
+import { isActivityArchived } from '../../core/domain/constants.js?v=20261001a';
+import { badgeHtml } from '../ui/badges.js?v=20261001a';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261001a';
+import { populateMonthSelector } from '../record/calendar.js?v=20261001a';
+import { getCapabilities, mountCapability, getRuntimeEnv } from '../../core/boot/registry.js?v=20261001a';
 
 const DASHBOARD_DEFAULT_VIEW = 'calendar';
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors({ withLabel: true });

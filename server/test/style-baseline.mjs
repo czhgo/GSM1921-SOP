@@ -299,9 +299,6 @@ export const HEX_BASELINE = {
   'docs/src/entries/tabs/org/thought-review-tab.js': { c: 1, v: [
       '#000'
   ] },
-  'docs/src/entries/tabs/org/todo-tab.js': { c: 1, v: [
-      '#3b82f6'
-  ] },
   'docs/src/entries/tabs/prop/archive-tab.js': { c: 2, v: [
       '#60a5fa', '#999'
   ] },
@@ -458,7 +455,11 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   2026-09-30 批次 297-2（「一键汇报」由各台页头收进顶栏全局固定位）：`components/record/report-entry.js`
 //   的内联强调色与角标 `#fff` 全部改走令牌 / 语义类 ⇒ **该文件 hex 清零**，按收基线纪律删其条目、
 //   文件数声明 **79→78**（与实况同值）；被清的两值（`#b91c1c` / `#fff`）在其它文件仍存 ⇒ distinct 值仍 167。
-export const HEX_FILE_BASELINE = 78;
+//   2026-09-30 批次 313（支书裁定「提醒机制」取甲+丙 ⇒ 撤「补课材料缺失 → 通知纪检」页顶小操作条）：
+//   `entries/tabs/org/todo-tab.js` 唯一一处硬编码（浮窗入参 `accentColor: '#3B82F6'`）**随笔随删除的调用一并消失**
+//   ⇒ **该文件 hex 清零**，按收基线纪律删其条目、文件数声明 **78→77**（与实况同值）；
+//   `#3b82f6` 在其它 10+ 文件仍存（`utils.js` / `stats.js` / `notice-view.js` 等）⇒ distinct 值仍 167。
+export const HEX_FILE_BASELINE = 77;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

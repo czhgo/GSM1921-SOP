@@ -6,21 +6,19 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20260930p';
-import { generateId } from '../../../core/base/id.js?v=20260930p';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20260930p';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20260930p';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20260930p';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20260930p';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20260930p';
-import { PersonStore } from '../../../services/member/person.js?v=20260930p';
-import { loadActivities } from '../../../services/activity/activity.js?v=20260930p';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20260930p';
-import { openFormModal } from '../../../components/ui/modal.js?v=20260930p';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20260930p';
+import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20261001a';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261001a';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261001a';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261001a';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261001a';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261001a';
+import { PersonStore } from '../../../services/member/person.js?v=20261001a';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261001a';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001a';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261001a';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20260930p';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261001a';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -150,43 +148,19 @@ export const { renderContent } = createTodoTab({
   onBeforeRender: async () => {
     await preloadMemberChangeRequests();
   },
-  // 2026-09-08 裁决批一（D3/D6）：org 无队列顶卡（member 审批卡/交接箱移除）——
-  // 仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
+  // 2026-09-08 裁决批一（D3/D6）：org 无队列顶卡（member 审批卡/交接箱移除）。
   // 2026-09-29 批次 295（支书裁「**需要自动交接的 都要实现自动交接才对！不需要额外费口舌**」）：
   //   考察/考勤两类数据交接**发起即落定**（见 services/governance/handoff.js::AUTO_CONFIRM_TYPES）
   //   ⇒ 本条**不再有**「有待接收 —— 去点确认接收」的指路、也不再写「纪检提交后此处给出指路」那类空态解释
-  //   （那两段都是**替界面说话**）；本条只剩它真正的职责：**补课材料缺失 → 通知纪检**。
-  extraTopHtml: () => `
-    <div class="card rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between gap-3">
-      <span class="font-title-cn text-sm font-bold text-gray-800">补课材料缺失</span>
-      <button id="org-shortage-btn" class="btn-danger text-xs px-3 py-1.5 flex-shrink-0" style="cursor:pointer;">通知纪检</button>
-    </div>`,
+  //   （那两段都是**替界面说话**）。
+  // ⚠ 2026-09-30 批次 313（支书逐字裁定 · 提醒机制取「甲 + 丙」）：**「补课材料缺失 → 通知纪检」页顶小操作条已撤除**。
+  //   正确链条＝**当事人本人是补课主体**（系统提醒本人）＋ **纪检是补课闭环责任人**（由纪检催当事人）；
+  //   **组织委员不承担这条链的任何动作**——它只是「考勤统计交支委会」的接收建档方（事实留痕，不设回执动作）。
+  //   ⇒ 本处**不再渲染任何补课类卡片 / 按钮**（`extraTopHtml` 已撤）。
+  //   `handoff` 的 `material-shortage` 类型定义与纪检侧消费端**暂留原状**（服务端仍可接收该型；
+  //   `records-endpoints` 用它当「仍 pending 的交接」夹具）⇒ **「纪检侧催办位」的改造列入下一批待办**，与本次同裁定一起做。
   bindExtras: (container, ctx) => {
     // 2026-09-08 裁决批一（D1/D3）：成员变更批量块（勾选 → 「通过 N 项」 → 广播全体支委 + 重渲染）
     bindMcBulk(container, { mode: 'org-approve', onDone: () => renderContent(ctx) });
-    // T-304 C2 数据交接：组织标记补课材料缺失 → 纪检补课制度高亮（回执机制；
-    // 2026-09-08 裁决批一：入口随顶卡收敛为页顶小操作条，非队列卡）
-    container.querySelector('#org-shortage-btn')?.addEventListener('click', () => {
-      openFormModal({
-        id: 'shortage',
-        title: '标记补课材料缺失',
-        fields: [
-          { key: 'source', label: '关联活动/专班', type: 'input', required: true, placeholder: '如：7月主题党日：五四精神传承' },
-          { key: 'note', label: '缺失说明', type: 'textarea', required: true, placeholder: '如：某成员缺勤补课材料（心得）未提交' },
-        ],
-        onSubmit: (values) => {
-          HandoffStore.create({
-            type: 'material-shortage',
-            refType: 'activity',
-            refLabel: values.source,
-            refId: generateId('shortage'),
-            note: values.note,
-          });
-          showToast('success', '补课需求回执已发送至纪检委员');
-          renderContent(ctx);
-        },
-        accentColor: ctx.accent || '#3B82F6',
-      });
-    });
   },
 });
