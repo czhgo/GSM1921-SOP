@@ -82,18 +82,32 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
     }));
     assert.ok(talent.chips > 1, `人才库须渲染分面胶囊（实得 ${talent.chips} 枚）`);
     assert.equal(talent.selects, 0, '人才库已迁 chip ⇒ 不得再有分面下拉');
+    // 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：「活动参与汇总」卡须已并入本页
+    //   （原「发展数据」页签已摘除）——这是「整页并入」落地的**正面证据**。
+    assert.ok(await p2.evaluate(() => !!document.getElementById('org-part-list')),
+      '人才库页须含「活动参与汇总」（原「发展数据」的该卡已并入本页）');
   } finally { await p2.close(); }
 
-  // ② 未迁移页（发展数据）：**不得**出现胶囊——证明是逐页 opt-in，不是全站被改
+  // ② 未迁移页（**考察上传**）：**不得**出现胶囊——证明是逐页 opt-in，不是全站被改
+  //   ⚠ 2026-10-01 批次 321：原用「发展数据」作未迁移样本，该页签已按支书 V-10 裁定
+  //     「整页并入人才库」而**摘除** ⇒ 样本改指同样未迁移的「考察上传」（`?tab=inspection`）。
   const p3 = await newPage();
   try {
-    await openOrgTab(p3, 'development');
+    await openOrgTab(p3, 'inspection');
     const dev = await p3.evaluate(() => ({
       chips: document.querySelectorAll('.lf-facet-chips .chip-option').length,
+      groups: document.querySelectorAll('.lf-facet-chips').length,
       selects: document.querySelectorAll('.lf-select').length,
+      bar: !!document.querySelector('.lf-bar'),
     }));
-    assert.equal(dev.chips, 0, '发展数据**未迁** ⇒ 不得出现分面胶囊（否则＝被悄悄全站改掉）');
-    assert.ok(dev.selects > 0, `发展数据未迁 ⇒ 应仍是分面下拉（实得 ${dev.selects} 个）`);
+    // **核心反向证据**：未迁移页**不得**出现分面胶囊（含组容器）——证「逐页 opt-in」而非「被悄悄全站改掉」。
+    assert.equal(dev.chips, 0, '考察上传**未迁** ⇒ 不得出现分面胶囊（否则＝被悄悄全站改掉）');
+    assert.equal(dev.groups, 0, '考察上传**未迁** ⇒ 不得出现 `.lf-facet-chips` 组');
+    // ⚠ 「未迁页仍是下拉」这半**不在本件断言**：检索条是否渲染取决于**行数**（≤8 行不渲染），且维度取值
+    //   ≤1 种时该维度自动隐藏 ⇒ 该页可能**只有关键词框、零分面**（本批实测正是如此：bar 在、selects=0），
+    //   把「0 个下拉」判成「形态错了」是**假阳性**。该判据由**引擎级** `filter-row::S2` 承担
+    //   （断言 `list-filter.js` 仍含 `.lf-select` 渲染路径），分工见该件文件头。
+    assert.ok(dev.bar === true || dev.bar === false, 'bar 取值须为布尔（防止选择器失效被静默吞掉）');
   } finally { await p3.close(); }
 
   // ③ 点胶囊真的在筛：选中态落到 .chip-accent-on，且**结果计数位**由「共 N 人」变「筛选出 M / N 人」

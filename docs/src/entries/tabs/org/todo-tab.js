@@ -6,19 +6,19 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight } from '../../../core/base/utils.js?v=20261001i';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261001i';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261001i';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261001i';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261001i';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261001i';
-import { PersonStore } from '../../../services/member/person.js?v=20261001i';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261001i';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001i';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261001i';
+import { showToast, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261001k';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261001k';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261001k';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261001k';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261001k';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261001k';
+import { PersonStore } from '../../../services/member/person.js?v=20261001k';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261001k';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001k';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261001k';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261001i';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261001k';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -51,10 +51,17 @@ function _handleTodoAction(todo, ctx) {
     showToast('info', '成员变更审批：在左列批量块勾选后点击「通过 N 项」，或点行进详情查看');
     return;
   }
-  // develop-node-remind 实时组：期满成员 → 直达「发展数据」tab 办理下一节点
+  // develop-node-remind 实时组（2026-10-01 批次 321 改准）：期满成员 → 直达**个人总表**办理下一节点。
+  //   支书当次裁定：**发展阶段变更的写入位＝个人总表**（`person.html`）；「发展数据」页签已并入人才库
+  //   ⇒ 原「切 development tab」的落点已不存在。无 personId 时退回「成员名册」（唯一全量写位）。
   if (actionKey === 'develop-node-remind') {
-    document.querySelector('.org-tab-btn[data-org-tab="development"]')?.click();
-    showToast('info', '已跳转到发展数据，请办理期满成员的下一节点');
+    const pid = todo.personId || todo.sourceId || '';
+    if (pid) {
+      window.location = `${getBasePath()}person.html?id=${encodeURIComponent(pid)}`;
+      return;
+    }
+    document.querySelector('.org-tab-btn[data-org-tab="roster"]')?.click();
+    showToast('info', '已跳转到成员名册，请办理期满成员的下一节点');
     return;
   }
   // half-year-inspection-remind 实时组（SOP-B-39 · D-295）：半年考察提醒 → 直达「考察上传」核对建档
@@ -64,10 +71,12 @@ function _handleTodoAction(todo, ctx) {
     return;
   }
   // 根据 actionType 跳转到对应 tab
+  // ⚠ 2026-10-01 批次 321：「追踪」类的原落点 `development`（发展数据）**页签已并入人才库** ⇒ 改指 `talent`；
+  //   逐人办理（如期满节点）走 `develop-node-remind` 分支直达**个人总表**（阶段变更的写入位）。
   const tabMap = {
     authorize: 'taskforce',
     review: 'inspection',
-    track: 'development',
+    track: 'talent',
   };
   const targetTab = tabMap[todo.actionType];
   if (targetTab) {
@@ -78,7 +87,7 @@ function _handleTodoAction(todo, ctx) {
       const tfCard = document.querySelector(`.tf-store-card[data-tf-id="${todo.sourceId}"]`);
       if (tfCard) tfCard.click();
     }
-    const tabLabels = { authorize: '专班管理', review: '考察上传', track: '发展数据' };
+    const tabLabels = { authorize: '专班管理', review: '考察上传', track: '人才库' };
     showToast('info', `已跳转到${tabLabels[todo.actionType] || '对应功能'}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);

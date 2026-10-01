@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261001i';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261001i';
-import { escHtml } from '../../core/base/utils.js?v=20261001i';
+import { AuthStore } from '../../services/core/auth.js?v=20261001k';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261001k';
+import { escHtml } from '../../core/base/utils.js?v=20261001k';
 
 // 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
 //   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。
@@ -33,7 +33,7 @@ const DEV_CARDS = [
   { role: 'party-staff',       label: '党委组织员',   desc: '党务老师 · 治理总览·监控全院支部' },
   { role: 'secretary',         label: '支书',   desc: '组织统筹决策' },
   { role: 'deputy-secretary',  label: '副支书', desc: '协助支书工作' },
-  { role: 'org-commissioner',  label: '组织委员',     desc: '发展数据' },
+  { role: 'org-commissioner',  label: '组织委员',     desc: '人才库' },
   { role: 'prop-commissioner', label: '宣传委员',     desc: '宣传档案' },
   { role: 'disc-commissioner', label: '纪检委员',     desc: '考勤考察' },
   { role: 'leader',            label: '党小组组长',   desc: '活动统筹' },

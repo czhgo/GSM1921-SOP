@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261001i"></script>
+<script src="./src/theme-init.js?v=20261001k"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261001i"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261001i">
+  <script src="./src/tailwind-config.js?v=20261001k"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261001k">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -286,7 +286,7 @@
               <tr><td><a href="./settings.html">设置</a></td><td>设置中心：外观（字号 / 明暗主题 / 强调色）、我的工作台页签顺序、支部治理（按登录角色分区，见本表下方说明）</td><td>公共可进；分区随登录角色显隐</td><td>侧边栏右下角「设置」</td></tr>
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任支书、副支书（本支部，副书同权）</td><td>直接访问 wizard.html；党委台「支部配置」与 设置→支部治理（支书 / 副支书）为同源内嵌入口（分步说明见第 6 章 6.2）</td></tr>
               <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（12 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
-              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（13 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（12 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（10 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（9 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -306,7 +306,7 @@
             <tbody>
               <tr><td>支书</td><td>全局统筹：活动、支部分工、赋权、通知、反馈、上报党委</td><td><a href="./workspace/secretary.html">支书工作台</a></td></tr>
               <tr><td>副支书</td><td>与支书<strong>共用一个支书工作台</strong>（同台同权）</td><td><a href="./workspace/secretary.html">支书工作台</a></td></tr>
-              <tr><td>组织委员</td><td>组织线：专班统筹、名册与成员流动、人才库、发展数据、思想汇报查看调用（必要时打回要求补充）</td><td><a href="./workspace/org.html">组织委员工作台</a></td></tr>
+              <tr><td>组织委员</td><td>组织线：专班统筹、名册与成员流动、人才库、思想汇报查看调用（必要时打回要求补充）</td><td><a href="./workspace/org.html">组织委员工作台</a></td></tr>
               <tr><td>宣传委员</td><td>宣传线：宣传任务、项目看板、周报、档案归档</td><td><a href="./workspace/prop.html">宣传委员工作台</a></td></tr>
               <tr><td>纪检委员</td><td>纪检线：考勤管理（含「考勤 / 补课」分段）、监督复盘、考察管理</td><td><a href="./workspace/disc.html">纪检委员工作台</a></td></tr>
               <tr><td>党小组组长</td><td>块块：本组活动管理、考勤 / 考察上传、组员进展（含本组复盘状态只读）</td><td><a href="./workspace/leader.html">党小组组长工作台</a></td></tr>
@@ -439,7 +439,7 @@
         <p class="doc-note">支部治理（换组织向导 / 模块组合 / 工作台默认顺序等）不在支书工作台内：入口收口于侧边栏右下角「设置」→ 支部治理（支书 / 副支书共台，副书同权；含「支部信息与向导 / 工作台默认顺序 / 支部制度参数 / 配置变更记录」四卡，说明见第 4 章「设置逐项」）。</p>
 
         <!-- 2.2 组织委员工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（13 tab）</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（12 tab）</h3>
         <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/org.html">org.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -453,8 +453,10 @@
               <tr><td>专班管理</td><td>组织委员</td><td>专班日常统筹节点（支书 / 副支书 / 组织委员均可管理）：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「我的职责」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
               <tr><td>成员名册</td><td>组织委员</td><td>成员档案管理：新增 / 行内编辑 / 移出 / 分组（本页答「支部在册成员有谁、档案状态如何」）</td><td>「我的职责」段；「+ 新增成员」录入；行内点编辑改档案、点移出登记流出</td></tr>
               <tr><td>成员流动</td><td>组织委员</td><td>成员「怎么变」的复式台账：流入 / 流出登记（登记即生效）、对账行、台账表、撤销（本页答「成员怎么变」，与「成员名册」分问）。流入 / 流出登记仅限组织委员与支书 / 副支书；行内「移出」在「成员名册」页，留痕与撤销在此</td><td>「我的职责」段；「＋ 登记流入」（单人 / 粘贴多行）/「登记流出」（选人）→ 台账行「撤销」可留痕回滚</td></tr>
-              <tr><td>人才库</td><td>组织委员</td><td>积极分子 / 发展对象档案与考察画像视图</td><td>「我的职责」段；点人看画像与考察材料归集</td></tr>
-              <tr><td>发展数据</td><td>组织委员</td><td>发展党员各阶段名单与推进（每人的思想汇报篇数与期次，点进独立阅读页）</td><td>「我的职责」段；按阶段/党小组/发展分面筛选；点查看 / 推进</td></tr>
+              <!-- 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：以下「人才库」行**已吸收**
+                     原「发展数据」tab 的内容（「活动参与汇总」并入该页）；**发展阶段变更的写入位＝个人总表**
+                     （`person.html`）⇒ 原「发展数据」行**删除、不再单列**。 -->
+                <tr><td>人才库</td><td>组织委员</td><td>全量在册成员只读画像（发展阶段徽标 / 最近考察 / 思想汇报已归档 / 发展提示）＋「活动参与汇总」（参与＝出勤 / 已补；请假缺勤不计）</td><td>「我的职责」段；搜索 ＋ 胶囊筛选（党小组 / 发展阶段 / 角色 / 在册）；点姓名或提示行进个人总表</td></tr>
               <tr><td>活动日历</td><td>组织委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「知情查看」段；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
               <tr><td>知情查看</td><td>组织委员</td><td>全支部活动与专班只读知情查看（无职责亦有知情权），内部分段切换「活动 / 专班」，默认「活动」分段</td><td>「知情查看」段；切「活动」分段点活动卡看详情 / 议程；切「专班」分段看专班卡</td></tr>
               <tr><td>我的处置</td><td>组织委员</td><td>经手反馈的处理记录</td><td>「制度与答复」段</td></tr>
@@ -954,7 +956,7 @@
 
         <!-- 3.5 成员发展 -->
         <h3 class="doc-h3" style="margin-top:34px;"><span class="doc-h3-badge">3.5</span>成员发展</h3>
-        <p class="doc-p">发展党员工作的三个动作面：<strong>发展管线推进（组织台「发展数据」）、思想汇报提交即入库归档（成员提交 ↔ 组织委员查看调用、必要时打回）、成员名册与变更确认（阶段 / 在册滞留变更与移出均须支书确认）</strong>。支部党员大会「待讨论名单」记录通过后自动生成的成员变更申请链（组织审批 → 支书确认 → 阶段更新）也从这里看进度（详见 3.1 议程与记录）。</p>
+        <p class="doc-p">发展党员工作的三个动作面：<strong>阶段变更（在个人总表办理，支书确认后生效）、思想汇报提交即入库归档（成员提交 ↔ 组织委员查看调用、必要时打回）、成员名册与变更确认（阶段 / 在册滞留变更与移出均须支书确认）</strong>。支部党员大会「待讨论名单」记录通过后自动生成的成员变更申请链（组织审批 → 支书确认 → 阶段更新）也从这里看进度（详见 3.1 议程与记录）。</p>
 
         <div class="help-card" id="card-dom35-pipeline" data-search="成员发展 发展党员 发展数据 管线 积极分子 发展对象 预备党员 正式党员 推进 转正">
           <h4 class="help-card-title">发展管线推进</h4>
@@ -979,7 +981,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员：从台账点格进入<strong>独立阅读页</strong>（或从列表点某篇）→ 必要时「<strong>打回（要求本人补充）</strong>」（打回必填意见）。<strong>没有「待初阅 / 通过才归档」这道门</strong>。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">被打回后：提交人在列表见「已打回 · 待补充」，点进独立阅读页 →「修改并重新提交」→ <strong>重交即入库归档</strong>（历史留痕保留）。</li>
           </ol>
-          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后自动通知组织委员（该篇已入库归档，供归口知会）；提交即自动归集至个人档案（人才库 / 发展数据归档计数同步）；组织侧「思想汇报台账（人 × 期次）」可切「按人 / 按期次」两个互转的视图（按人＝看某人各期交了没有；按期次＝看这一期谁交了、谁漏交），格内为该期状态徽标，未提交显示「—」；打回与重交记录保留。</p>
+          <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后自动通知组织委员（该篇已入库归档，供归口知会）；提交即自动归集至个人档案（人才库与思想汇报归档计数同步）；组织侧「思想汇报台账（人 × 期次）」可切「按人 / 按期次」两个互转的视图（按人＝看某人各期交了没有；按期次＝看这一期谁交了、谁漏交），格内为该期状态徽标，未提交显示「—」；打回与重交记录保留。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>打回必填意见（否则拦截）；仅提交人本人可修改重交；已打回、待本人补充的篇目不得重复打回；仅组织委员角色可打回（其它角色打开仅提示无权限）。<strong>篇幅提示只提示、不拦提交，且只给提交人本人看</strong>。</p>
         </div>
 
@@ -1561,7 +1563,7 @@
           <h4 class="help-card-title">管线推进 / 名册变更 → 支书确认（材料自动归集）</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">素材积累（自动）：思想汇报归档（5.6）与考察确认建档（5.4）自动归集到人，发展卡片上的考察条数 / 汇报归档数同步刷新。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">管线追踪：组织台「发展数据」按积极分子 → 发展对象 → 预备党员 → 正式党员四段查看与「推进至下一阶段」（日常追踪；正式变更确认以名册为准）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">管线追踪：组织台「人才库」按积极分子 → 发展对象 → 预备党员 → 正式党员四段只读呈现（**阶段变更在个人总表办理**，经支书确认后生效）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">变更来源一 · 会议名单：大会 / 支委会「待讨论名单」记录通过 → 每人自动生成成员变更申请 → 组织台待办「成员变更审批」通过 → 广播全体支委 → 支书确认 → 阶段更新（5.1 第 3 步）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">变更来源二 · 名册行内：组织台「成员名册」改发展阶段 / 在册滞留或发起移出 → 支书台待办「成员变更待确认」确认生效或退回 → 应到名单联动（滞留剔除、通知照发）；有历史的移出经支书确认转「已转出」标注。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 节点上报：确定积极分子 / 发展对象、接收预备、转正等关键节点按 5.9 上报党委，获批后继续推进。</li>
@@ -1576,7 +1578,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 提交：成员台「思想汇报」选期次 + 写正文提交（<strong>提交即入库归档</strong>，没有「等审」这一步），自动通知组织委员（含期次）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">查看：组织台「思想汇报」台账（人 × 期次）→ 点进<strong>独立阅读页</strong>长文阅读；篇幅不足只提示（<strong>警告审阅</strong>，只给提交人本人看），不影响提交与归档。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">打回重交（事后、非必经）：组织委员认为需要补充时「打回」（必填意见）→ 提交人见打回原因 → 在阅读页修改后重新提交 → <strong>重交即入库归档</strong>（历史留痕保留）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点：入库即自动归集至个人档案（人才库 / 发展数据归档计数同步），供 5.4 考察与 5.5 发展调用。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点：入库即自动归集至个人档案（人才库与思想汇报归档计数同步），供 5.4 考察与 5.5 发展调用。</li>
           </ol>
         </div>
 
@@ -1781,6 +1783,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261001i"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261001k"></script>
 </body>
 </html>

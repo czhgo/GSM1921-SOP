@@ -1,24 +1,29 @@
 // role: [工程师]+[AI]
-// 组织委员工作台 Tab：人才库 = 发展观察（D9 裁决批二 2026-09-08 支书裁定收敛）
-// 原「全量成员档案平铺 + 点击展开考察记录汇总」双视图与「成员名册」重复 → 收敛为发展观察视角：
-//   · 不再平铺全量成员档案——成员档案维护（新增/编辑/删除/阶段/在册/滞留报送成员变更确认）=「成员名册」唯一全量写位；
-//   · 本页 = 按发展阶段分组的只读发展观察卡（每人：姓名/阶段徽标/考察摘要 N 条/思想汇报已归档 N/发展提示）；
-//   · 发展提示按 member-confirmation（待支书确认/已确认阶段变更留痕）+ thought-report + inspection 数据推算；
-//   · 读侧数据不动写（无任何保存/报送控件）；「发展数据」页维持管线推进（不重复建设）。
-// 保留「人才库=发展观察、名册=档案维护」页内注释与引导文案。
+// 组织委员工作台 Tab：**人才库**（2026-10-01 批次 321 改准：原「发展数据」整页并入本页）
+//   · 支书 2026-10-01 裁「发展数据**整页并入人才库**」＋「**考察就是维护人才库的过程！！**」
+//     ＋「人才库是**长期维护**的系统（以考察数据为主）」⇒ 本页＝人才库卡片（全量在册成员、只读）
+//     ＋ **活动参与汇总**（＝参与工作情况，考察主体）。
+//   · **发展阶段变更的写入位＝个人总表（`person.html`）**（同批裁定）⇒ 卡片提示行直达个人总表；
+//     「发展数据」页签已摘除，其候选卡/管线概览不再保留（逐人明细仍可在名册与个人总表查）。
+//   · 不在本页平铺全量成员档案维护：成员档案写入仍以「成员名册」为唯一全量写位。
+//   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
+// 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001i';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261001i';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261001i';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001k';
+// ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
+//   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261001k';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261001k';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261001k';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261001i';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261001k';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261001i';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261001k';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261001i';
-import { escHtml as esc, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261001i';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261001k';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261001k';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001i';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001k';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -92,6 +97,49 @@ function _devTip(person, counts, ctx) {
   return null;
 }
 
+// ════════════════════════════════════════════════════════════════
+//  活动参与汇总（自 `development-tab.js` 迁入 · 原 SOP-B-30 / D-396 · 2026-10-01 批次 321）
+//  口径（**原样不带改**）：参与＝出勤 / 已补（线上参会只免补课、不计入出席，故不计入）；请假 / 缺勤不计。
+//  列＝数据里出现过的活动类别（动态）；行＝有考勤记录的人（按参与次数降序）。
+//  ⚠ 为什么并入这里：支书 2026-10-01 裁「发展数据**整页并入人才库**」＋「考察**就是**维护人才库的过程」
+//    ⇒ 参与汇总属**考察数据**，理应与人才库同屏（其余「发展数据」候选卡不再保留：阶段/推进的
+//    **写入位已移个人总表**，逐人明细仍可在名册与个人总表查）。
+// ════════════════════════════════════════════════════════════════
+
+function _participationCardHtml(part) {
+  return `
+    <div class="card rounded-xl p-5 mt-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">活动参与汇总</h3>
+        <span class="text-xs text-gray-500">${part.rows.length} 人 · 以人为第一列（写工作总结可直接引用）</span>
+      </div>
+      <p class="text-xs text-gray-500 mb-3">参与＝出勤 / 已补（线上参会只免补课、不计入出席，故不计入）；请假 / 缺勤不计。</p>
+      <div class="overflow-x-auto"><div id="org-part-list"></div></div>
+    </div>
+  `;
+}
+
+function _participationHeadHtml(types) {
+  return `<tr>
+            <th>姓名</th>
+            <th>学号</th>
+            <th>所属党小组</th>
+            ${types.map(t => `<th>${esc(t)}</th>`).join('')}
+            <th>合计</th>
+          </tr>`;
+}
+
+function _participationRowHtml(p, types) {
+  return `
+          <tr>
+            <td class="font-medium text-gray-800"><a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(p.name)}</a></td>
+            <td class="text-gray-600">${esc(p.studentId || '—')}</td>
+            <td class="text-gray-600">${esc(p.partyGroup || '—')}</td>
+            ${types.map(t => `<td class="text-gray-600">${p.counts[t] || 0}</td>`).join('')}
+            <td class="text-gray-800 font-medium">${p.total}</td>
+          </tr>`;
+}
+
 export function renderContent(ctx) {
   const container = document.getElementById('org-tab-content');
   if (!container) return;
@@ -130,6 +178,9 @@ export function renderContent(ctx) {
   for (const p of people) tipByPerson.set(p.id, _devTip(p, { insp: inspCount, thought: thoughtCount }, { pendingByPerson }));
   const tipCount = [...tipByPerson.values()].filter(Boolean).length;
 
+  // 活动参与汇总（自「发展数据」并入，见上方注释块）：与考勤同源，随记录即时更新
+  const part = listActivityParticipationByPerson();
+
   // 统一检索引擎行渲染（关键词 + 分面；≤8 行引擎自动不渲染检索条）
   const rowHtml = (p) => {
         const badgeCls = STAGE_BADGE[p.developStage] || 'bg-gray-50 text-gray-500 border border-gray-100';
@@ -158,7 +209,7 @@ export function renderContent(ctx) {
               ${tip && !tip.jump ? `<div class="mt-1.5 text-[11px] px-2 py-1 rounded-lg border ${tip.cls}">${esc(tip.text)}</div>` : ''}
             </div>
             ${tip && tip.jump
-              ? `<button type="button" class="btn-outline talent-dev-jump mt-1.5 text-[13px] px-2 py-1 rounded-lg border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去发展数据 →</button>`
+              ? `<button type="button" class="btn-outline talent-person-jump mt-1.5 text-[13px] px-2 py-1 rounded-lg border w-full text-left ${tip.cls} hover:opacity-90 transition-opacity" data-person-id="${p.id}" style="cursor:pointer;">${esc(tip.text)} · 去个人总表 →</button>`
               : ''}
           </div>`;
   };
@@ -180,9 +231,10 @@ export function renderContent(ctx) {
            同批（支书 V-11）：「† 口径」里删去「不含党委组织员等非本支部人员」一句——本仓即**支部系统**，
            在册成员的取值本不含非本支部人员，多这一句只是把界面上本已成立的事再讲一遍。 -->
 
-      <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员；「发展数据」仅统计尚在发展阶段的成员（不含正式党员）。</p>
+      <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员（全量列出，不按发展阶段筛）；**发展阶段变更的写入位＝个人总表**（点姓名或提示行直达）。</p>
       <div id="talent-list"></div>
-    </div>`;
+    </div>
+    ${_participationCardHtml(part)}`;
 
   // 统一检索引擎：关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）——≤8 行引擎自动不渲染检索条
   // ⚠ 2026-10-01 批次 319（支书 V-12 取「丁：先改最重的两处」）：本页为**首批迁移页之一** ⇒
@@ -199,26 +251,29 @@ export function renderContent(ctx) {
     rowHtml,
   });
 
-  // 「转正提示」→ 切「发展数据」tab 并定位该成员卡片（T-279 development-tab 定位）
+  // 活动参与汇总（自「发展数据」并入）：同一张表接统一检索引擎；stateKey 沿用原键 ⇒ 状态保持不丢。
+  // ⚠ 形态与上方人才库卡列表**同页同形**（chip）——一页之内不得混用两种筛选形态（2026-10-01 批次 321）。
+  renderFilteredList(container.querySelector('#org-part-list'), {
+    stateKey: 'org-participation-summary',
+    rows: part.rows,
+    keyword: personKeyword(),
+    facets: personFacets({ roleLabel: roleLabelOf }),
+    facetStyle: 'chip',
+    countUnit: '人',
+    emptyMessage: '暂无可汇总的活动参与记录',
+    table: { colSpan: 4 + part.types.length, headHtml: _participationHeadHtml(part.types) },
+    rowHtml: (p) => _participationRowHtml(p, part.types),
+  });
+
+  // ⚠ 2026-10-01 批次 321（支书 V-10 取「甲：阶段变更移到个人总表」）：原「去发展数据 →」跳转已废——
+  //   「发展数据」页签并入本页，**阶段推进的写入位＝个人总表（`person.html`）** ⇒ 该按钮改为直达个人总表。
   // 事件委托（容器持久）：引擎筛选重渲染后行内按钮仍可点；dataset 守卫防重复绑定
   if (!container.dataset.talentJumpBound) {
     container.dataset.talentJumpBound = '1';
     container.addEventListener('click', (e) => {
-      const btn = e.target.closest('.talent-dev-jump');
-      if (btn) {
-        const pid = btn.dataset.personId;
-        const tabBtn = document.querySelector('.org-tab-btn[data-org-tab="development"]');
-        if (!tabBtn) return;
-        tabBtn.click();
-        let attempts = 0;
-        const tryLocate = () => {
-          const card = document.querySelector(`[data-dev-person-id="${pid}"]`);
-          if (card) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            flashHighlight(card);
-          } else if (attempts < 20) { attempts++; setTimeout(tryLocate, 200); }
-        };
-        setTimeout(tryLocate, 100);
+      const btn = e.target.closest('.talent-person-jump');
+      if (btn && btn.dataset.personId) {
+        window.location = getBasePath() + 'person.html?id=' + encodeURIComponent(btn.dataset.personId);
         return;
       }
       // 成员卡整体深链名册（原 <a> 直链）：卡内真实链接（姓名 → 档案页）优先，不与其抢跳

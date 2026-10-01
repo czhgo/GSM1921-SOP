@@ -281,10 +281,8 @@ export const HEX_BASELINE = {
       '#475569', '#6b7280', '#94a3b8', '#cbd5e1', '#ce1126', '#d1d5db',
       '#d97706', '#e5e7eb'
   ] },
-  'docs/src/entries/tabs/org/development-tab.js': { c: 8, v: [
-      '#000', '#06b6d4', '#10b981', '#334155', '#3b82f6', '#e5e7eb',
-      '#f59e0b'
-  ] },
+  // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目**已删**——该文件按支书 V-10 裁定
+  //   「整页并入人才库」而**删除**（其样式随之消失）⇒ 按收基线纪律**同批删条目**（不得留着指向不存在的文件）。
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 1, v: [
       '#000'
   ] },
@@ -459,7 +457,9 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `entries/tabs/org/todo-tab.js` 唯一一处硬编码（浮窗入参 `accentColor: '#3B82F6'`）**随笔随删除的调用一并消失**
 //   ⇒ **该文件 hex 清零**，按收基线纪律删其条目、文件数声明 **78→77**（与实况同值）；
 //   `#3b82f6` 在其它 10+ 文件仍存（`utils.js` / `stats.js` / `notice-view.js` 等）⇒ distinct 值仍 167。
-export const HEX_FILE_BASELINE = 77;
+// ⚠ 2026-10-01 批次 321：`docs/src/entries/tabs/org/development-tab.js` 按支书 V-10 裁定「整页并入人才库」
+//   **删除** ⇒ 其 hex 条目一并删、**文件数声明 77 → 76**（与实况同值；`H3` 的非空转下限同步下沉到 76）。
+export const HEX_FILE_BASELINE = 76;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。
@@ -577,7 +577,7 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/tabs/disc/attendance-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/review-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/leader/write-tab.js': { c: 1, v: [11] },
-  'docs/src/entries/tabs/org/development-tab.js': { c: 2, v: [11] },
+  // ⚠ 2026-10-01 批次 321：`org/development-tab.js` 条目已删（文件随「并入人才库」删除）。
   'docs/src/entries/tabs/org/inspection-tab.js': { c: 2, v: [11] },
   'docs/src/entries/tabs/org/roster-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/org/talent-tab.js': { c: 1, v: [11] },
@@ -595,11 +595,13 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/pages/wizard-entry.js': { c: 1, v: [11] },
 };
 
-/** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线） */
-export const P_TEXT_TIER_TOTAL_BASELINE = 83;
-export const P_TEXT_TIER_FILE_BASELINE = 27;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 83, 10: 0, 9: 0 };
+/** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线）
+ *  ⚠ 2026-10-01 批次 321：`org/development-tab.js`（原 c:2）随「整页并入人才库」**删除** ⇒
+ *    文件数 **27 → 26**、处数 **83 → 81**（同批收基线；其 11px 站点随之消失）。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 81;
+export const P_TEXT_TIER_FILE_BASELINE = 26;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档随上条同批 83 → 81（2026-10-01 批次 321） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 81, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *
