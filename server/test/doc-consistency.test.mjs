@@ -623,7 +623,8 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
     }
     if (got !== real) problems.push(`【${fact}】${where} 写 ${got}，实然 ${real}${hint ? `（${hint}）` : ''}`);
   };
-  const claude = read(join(ROOT, 'CLAUDE.md'));
+  // 支部分工模块数**第 4 读**的锚点＝母本 `BRANCH_WORK_MAP.md`（2026-10-01 批次 314 改锚，理由见下方 `eq`）
+  const bwm = read(join(ROOT, 'content', '04_web_design', 'evolution', 'BRANCH_WORK_MAP.md'));
   const rs = read(README_SERVER);
   const help = read(HELP);
   const snap = read(SNAPSHOT);
@@ -634,7 +635,10 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   eq('支部分工模块数', 'README-server.md §3.5 标题「共 N 个」', cn(m(lineWith(s35, /^### 3\.5 /), /共\s*([\d一二两三四五六七八九十]+)\s*个/)), modReal);
   eq('支部分工模块数', 'README-server.md §3.5 正文「下列 N 个模块 id」', cn(m(lineWith(s35, /^> 后端若要写支部配置/), /只能是下列\s*([\d一二两三四五六七八九十]+)\s*个/)), modReal);
   eq('支部分工模块数', 'README-server.md §3.5 表体行数', (s35.match(/^\| \d+ \| `/gm) || []).length, modReal);
-  eq('支部分工模块数', 'CLAUDE.md R-58「支部工作地图 N 项固定模块目录」', cn(m(lineWith(claude, /支部工作地图/), /支部工作地图 \*\*(\d+) 项\*\*固定模块目录/)), modReal);
+  // ⚠ 2026-10-01 批次 314：原锚点为 `CLAUDE.md` 的 `R-58` 行；`R-58` 已按 `H50.1 §3`「完成即从乙部删去」**整行删除**
+  //   （支书令「乙部已完成/闭环 应该清除掉！保证上下文干净！」）。**改判据不改制度**——锚点**上移到母本**
+  //   `BRANCH_WORK_MAP.md` 的「模块数现为 N 项」（该处是**模块数现状的唯一声明点**，比原锚点＝派生物更可靠）。
+  eq('支部分工模块数', 'BRANCH_WORK_MAP.md「模块数现为 N 项」', cn(m(lineWith(bwm, /模块数现为/), /模块数现为\s*(\d+)\s*项/)), modReal);
 
   // ② 内置 SOP 场景数（权威＝`sopData.js` 的 scenarios 长度）
   eq('内置 SOP 场景数', 'README-server.md §4.15「内置场景共 N 个」', cn(m(lineWith(rs, /\*\*内置场景共/), /内置场景共\s*([\d一二两三四五六七八九十]+)\s*个/)), sopDatabase.scenarios.length);
@@ -822,11 +826,26 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   assert.ok(histN >= 10, `ACTIVE_RULINGS 只解析到 ${histN} 句「现行有效 N 条」（下限 10）：沿革句被删或写法变了`);
   assert.match(ar, /不是行数/, 'ACTIVE_RULINGS 文首未写明「各批累加数**不是行数**」——读者会把沿革串数当现况');
 
-  // ② CLAUDE.md 的纪律条数（`R-NN`）：**无别处转引 ⇒ 没有「文档声称值」可比** ⇒ 只登记编号自洽。
+  // ② CLAUDE.md 的「评议待办 · 执行型」表（`R-NN`）：**只留在办项**——`H50.1 §3`＝完成即**整行删除**（禁仅标 ✅）。
+  //   2026-10-01 批次 314 按此把 **60 行已闭环 / 已立**删去（**69 → 9 行**）；**全文不丢** ⇒ 迁出附节
+  //   （`.ctx/logs/2026-09-EXECUTION_LOG.md`「附：乙部「评议待办 · 执行型」`R-23`…`R-91` 迁出全文」）。
+  //   本判据两条：① **在办表 ∪ 迁出附节**的 `R-NN` 并集须仍覆盖 `R-23`…`R-91` 全集（防「删表＝丢编号」）；
+  //              ② **在办表自身不得再出现「已闭环 / 已立」注记**（防退回「仅标 ✅ 不删除」）。
+  //   **无别处转引 ⇒ 不判「文档声称值」**（弱清单；下限 5 防「正则失效 ⇒ 一条也解析不到 ⇒ 断言恒真」）。
   const claude = read(join(ROOT, 'CLAUDE.md'));
-  const rIds = [...claude.matchAll(/^\| (R-\d+) \|/gm)].map((x) => x[1]);
-  assert.ok(rIds.length >= 55, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 纪律行（下限 55）：解析失效或行被删`);
+  const rRows = [...claude.matchAll(/^\| (R-\d+) \|(.+)$/gm)].map((x) => [x[1], x[2]]);
+  const rIds = rRows.map((r) => r[0]);
+  assert.ok(rIds.length >= 5, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 行（下限 5）：解析失效或整表被清空`);
   assert.equal(new Set(rIds).size, rIds.length, `CLAUDE.md 的 R-NN 编号有重复：${rIds.filter((id, i) => rIds.indexOf(id) !== i).join(' / ')}`);
+  const closedRows = rRows.filter(([, tail]) => /已闭环|已立/.test(tail)).map((r) => r[0]);
+  assert.deepEqual(closedRows, [], `乙部「评议待办 · 执行型」表出现「已闭环 / 已立」注记（H50.1 §3 禁「仅标 ✅ 不删除」）：${closedRows.join(' / ')}`);
+  const migrated = read(join(ROOT, '.ctx', 'logs', '2026-09-EXECUTION_LOG.md'));
+  const migratedIds = [...migrated.matchAll(/^\| (R-\d+) \|/gm)].map((x) => x[1]);
+  const rAll = new Set([...rIds, ...migratedIds]);
+  assert.ok(rAll.size >= 65, `R-NN 全集只解析到 ${rAll.size} 个（乙部在办表 ∪ 迁出附节；下限 65）：迁出附节被删或写法变了`);
+  const rNums = [...rAll].map((s) => Number(s.slice(2))).sort((a, b) => a - b);
+  assert.ok(rNums[0] === 23 && rNums[rNums.length - 1] === 91,
+    `R-NN 编号区间应为 23…91，实为 ${rNums[0]}…${rNums[rNums.length - 1]}：编号被删或被改`);
 
   // ③ 角色键「列举式」说明（括注写「含 …」＝非穷举）：**不判穷举**，只登记处数（防被当成穷举清单读）。
   const rs = read(README_SERVER);
