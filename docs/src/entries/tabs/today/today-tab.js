@@ -27,39 +27,39 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261001m';
-import { icon } from '../../../core/base/icons.js?v=20261001m';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20261001m';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261001n';
+import { icon } from '../../../core/base/icons.js?v=20261001n';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20261001n';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261001m';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261001m';
-import { mockDB } from '../../../core/domain/domain.js?v=20261001m';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261001m'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001m'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001m'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001m'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261001n';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261001n';
+import { mockDB } from '../../../core/domain/domain.js?v=20261001n';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261001n'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001n'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001n'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001n'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001m';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001n';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261001m';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261001m';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261001n';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261001n';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261001m';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261001m';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261001m';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001n';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261001n';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261001n';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261001m';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261001n';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001m';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001n';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -181,12 +181,18 @@ function _todoRow(t, overdue) {
 }
 
 /** **业务域**胶囊（九域）：**只上标签形**（§2.9.3 U3）——域是**分类**不是状态、也不是「活动类别」，
- *  故不占语义色（不借用例色 / 功能色）；色只留给「行左 3px 条」的紧迫度自陈。
+ *  故不占功能色；色只留给「行左 3px 条」的紧迫度自陈。
  *  ⚠ 2026-10-01 批次 320 如实登记：九域**是否应各配一色**属**新色系**，我未自设 ⇒ 已列为待裁项
- *    （不新造分类与色板；§2.9「颜色角色 → 令牌」表内当前没有「业务域」这一行）。 */
-function _domainChip(label) {
+ *    （不新造分类与色板；§2.9「颜色角色 → 令牌」表内当前没有「业务域」这一行）。
+ *  ✅ 2026-10-01 **批次 327 落定**：支书裁 **`V-6` 丙 ＝ 只给重点域配色**、并圈定**重点 ＝ 项目线三域
+ *    （会务 / 活动 / 专班）** ⇒ **三域上色、其余六域保持中性**（不配色＝不强调；单一源
+ *    `constants.js::WORK_DOMAIN_COLORS`，体例同 `ACTIVITY_CAT_COLOR`）。带色胶囊加 `data-domain`
+ *    供真机锚定；深色态走 `--acc-*-dark`（与全站内联色同一套机制）。 */
+function _domainChip(domain, label) {
   if (!label) return '';
-  return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(label)}</span>`;
+  const c = WORK_DOMAIN_COLORS[domain];
+  if (!c) return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(label)}</span>`;
+  return `<span class="text-[11px] px-1.5 py-0.5 rounded-full flex-shrink-0" data-domain="${esc(domain)}" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};${accDarkVars(c.text)}">${esc(label)}</span>`;
 }
 
 /**
@@ -212,7 +218,7 @@ function _actionGroupsBlock(s) {
       const bar = dueToday ? 'var(--functional-warning)' : 'var(--neutral-400)';
       return _row(bar,
         `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(it.title || '未命名待办')}</span>
-         ${_domainChip(it.domainLabel)}
+         ${_domainChip(it.domain, it.domainLabel)}
          <span class="text-[11px] tabular-nums text-gray-500 flex-shrink-0">${esc(it.deadline || '')}</span>`,
         `data-go="todo" title="${esc(it.title || '')}"`);
     }).join('');

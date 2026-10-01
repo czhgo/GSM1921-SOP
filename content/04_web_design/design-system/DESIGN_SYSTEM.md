@@ -361,6 +361,7 @@ related_files: [docs/src/styles.css, ../evolution/DESIGN_METHODOLOGY.md, ../data
 | **品牌统一层** | `--party-red`(`#CE1126`) · `--party-gold`(`#FFD700`) / `--party-gold-light` / 金黄字 `#A16207` | 主 CTA、党务标签、强调卡边框、主题党日类别、待办行动按钮、通知徽章 | 角色识别（色条 / 标签）、状态指示、正文、任何「个人可选的强调 / 选中语义」 | §2.2 · §2.3.1 |
 | **角色识别色** | `ROLE_COLORS`（`docs/src/core/domain/constants.js`，角色键 → `{bg,text,border}`）· `--accent-<role>`（`styles.css`） | 身份标识场景：SVG 关系网络节点、角色卡片、日历图例、成员 chips、色条 | 主题色场景（tab 激活 / 按钮 / chips 选中——那归 `--app-accent`）；活动类别维度 | §2.3.2 · §2.7「角色色系与活动色系彻底分离」 |
 | **活动类别色** | `ACTIVITY_CAT_COLOR` / `getActivityTypeColors()`（`constants.js`） | 活动类型维度：日历圆点、类型徽章、主题党日系 | 角色身份维度 | §2.7 同上 |
+| **业务域识别色（限「重点三域」）** | `WORK_DOMAIN_COLORS`（`docs/src/core/domain/constants.js`，**只三键**：`meeting` 会务 / `activity` 活动 / `taskforce` 专班） | 待办「业务域」胶囊（今天页行内）——**2026-10-01 批次 327 落定**（`V-6` 丙：支书裁「**只给重点域配色**」、圈定重点＝**项目线三域**）；色**不新造**——会务 / 活动与「三会一课红 / 主题党日金」**同族**，专班取 `_C.indigo600` | 其余六域**不配色**（保持中性胶囊＝不强调）；状态语义（完成 / 告警 / 超期）——那归功能色行 | §2.9 本表 ＋ §2.7 规则5（灰只做中性） |
 
 **「同一角色只用一种令牌」的可判口径**：上表任一行内，同一语义层**不得混用**其它行的令牌，也不得用裸 hex / rgba
 替代（除本表另行登记的 `--acc-*-dark` 内联派生）。守卫：`server/test/hex-hardcode-guard.test.mjs`（H1/H2 挡

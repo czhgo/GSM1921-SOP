@@ -51,10 +51,10 @@
 // 批次 323（2026-10-01）：`R-73` 第 ③ 缺落成常驻守卫 `validation-site-coverage.test.mjs::V1`（漏登记增量检测），
 //   实测立刻揪出 **5 处真漏登记**（议题「事项领域」· 组长驳回申诉 · 成员考勤申诉 · 成员考察申诉 ×2）⇒
 //   台账 **实有 103 → 108**（5 条均 `machine:false` 并逐条写明理由）；基线常量同批改准为 **108**（原 103）。
-export const SITES_BASELINE = 108;
+export const SITES_BASELINE = 109;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
-export const FLOWS_BASELINE = 57;
+export const FLOWS_BASELINE = 58;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -186,16 +186,16 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 268, field: '考察内容（逐人）', flow: 'org/考察上传', machine: true, msg: '的考察内容' },
   // 2026-09-25（赋权按对象归位）：本台 `taskforce` tab 追加「情景③ 专班赋权」分区 ⇒ 该文件上文行号整体 +8
   //   （新增 import / 挂载宿主 / 挂载调用），下列行号按新实况改准（S6：行号须落在文案那一行）。
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1344, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1345, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1346, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1347, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 636, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 684, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 686, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 904, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1003, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
-  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1062, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1362, field: '专班名称', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写专班名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1363, field: '任务描述', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写任务描述' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1364, field: '所需人数', flow: 'org/专班管理·发起专班', machine: true, msg: '请填写有效的所需人数' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1365, field: '截止日期', flow: 'org/专班管理·发起专班', machine: true, msg: '请选择截止日期' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 654, field: '退回原因', flow: 'org/专班·退回补料', machine: true, msg: '请填写退回原因' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 702, field: '贡献说明', flow: 'org/专班管理·代录贡献', machine: true, msg: '请填写贡献说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 704, field: '要代录的成员', flow: 'org/专班管理·代录贡献', machine: true, msg: '请选择要代录的成员' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 922, field: '材料名称', flow: 'org/专班管理·材料', machine: true, msg: '请填写材料名称' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1021, field: '进度说明', flow: 'org/专班管理·添加进度', machine: true, msg: '请填写进度说明' },
+  { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1080, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
   { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 163, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
@@ -250,6 +250,12 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 129, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
   { file: SRC + 'entries/tabs/visitor/review-tab.js', line: 184, field: '复盘总结', flow: 'visitor/活动复盘', machine: true, msg: '请填写复盘总结' },
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 152, field: '补课说明', flow: 'visitor/考勤概况·补课申请', machine: true, msg: '请填写补课说明' },
+
+  // 批次 327（2026-10-01 · `SOP-G-2-②`「转交组织者」· 支书裁「乙：直接转交 ＋ 留痕」）：
+  //   独立页活动详情的**专用「转交组织者」浮窗**内未选接手人即点「转交」。
+  //   ⚠ 与批次 323 登记的「成员角色内联编辑 → `请选择被赋权人`」**是两处不同调用点**（那条在表单内联编辑、
+  //     这条在专用转交浮窗）⇒ 分别登记、各配一条真机流程（不为「同义」而合并）。
+  { file: SRC + 'components/governance/organizer-transfer.js', line: 117, field: '接手人', flow: 'secretary/活动详情·转交组织者', machine: true, msg: '请选择接手人' },
 
   // ── 跨台组件 / 服务 ──
   { file: SRC + 'components/feedback/issue-form.js', line: 100, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
@@ -701,6 +707,25 @@ export const MACHINE_FLOWS = [
     ],
   },
   {
+    // 批次 327（2026-10-01 · `SOP-G-2-②`「转交组织者」· 支书裁「乙：直接转交 ＋ 留痕」）：
+    //   同一独立页 `docs/activity.html?id=act-31` 的**专用「转交组织者」浮窗**——不选接手人即点「转交」。
+    //   ⚠ 前置：`act-31` 的 `assignments` 含 `role:'organizer'`（p11）⇒ 「本场有组织者」成立；
+    //     发起人取支书（属四类可发起之一：支书 / 副支书 / 组织委员 / 现任组织者本人）。
+    id: 'page-activity-organizer-transfer',
+    page: 'secretary',
+    tab: '独立页 /activity.html',
+    path: '/activity.html?id=act-31',
+    open: [
+      { waitFor: '#organizer-transfer-btn' },
+      { click: '#organizer-transfer-btn' },
+      { waitFor: '[data-ot-confirm]' },
+    ],
+    submit: [{ click: '[data-ot-confirm]' }],
+    expect: [
+      { file: SRC + 'components/governance/organizer-transfer.js', field: '接手人', msg: '请选择接手人', carrier: '#ot-picker-slot .person-picker-trigger' },
+    ],
+  },
+  {
     // 批次 47-D 续（2026-09-16）：**独立页 `docs/search.html` · 制度参考 · 写入支部文件浮窗**——一条流程覆盖**三处**校验点。
     // 入口 `#ref-branch-doc-add-btn`（文书=支书/副支书，登录账号符合）；浮窗 `#ref-branch-doc-modal`。
     // 校验序＝标题 →（用途分支）→ 制度正文 / 要上传的文件：
@@ -914,7 +939,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '.tf-contrib-verify-btn[data-decision="reject"]' }],
     expect: [
-      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 634, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
+      { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 652, field: '退回原因', msg: '请填写退回原因', carrier: '.tf-contrib-verify-btn[data-decision="reject"]' },
     ],
   },
   {

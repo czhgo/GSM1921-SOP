@@ -22580,3 +22580,105 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **只登记、本批不动**：`copy-master-guard` 实跑发现 `settings-entry.js` 的「档案/职责参数等）每次保存自动留痕…」一条**已不在该文件中**（该句现只在 `docs/help.html`）⇒ 属**存量僵尸条目**（某历史批改写了该句却未同批收基线）。**本批不下调基线**，因 `N3` 对 `BASELINE_TOTAL` 设了**硬下限 `>= 11`**（「台账被删减」防线）—— 要收它须**同一批同时下调该下限并说明**，属独立取证件。已在守卫内**原位加注**留痕。
 - **未跑全量**（`npm test` / `test:precommit`）—— 本批实跑：`test:fast` **140 / 140** · `doc-consistency` ＋ `ux-guard` ＋ `list-filter-chip-e2e` ＋ `attendance-batch` **31 / 31** · `form-loop-sweep` 全量 **82 / 82** · `click-cost` ＋ `agenda-flow` ＋ `agenda-closure` **11 / 11** · `page-sweep` ＋ `help-e2e` **12 / 12** · 新件 **1 / 1**。**收尾全量由 `R-85` 全量口把关。**
 - **`②` 与 `V-6` 丙 未落**：支书已裁（「乙 承载『转交组织者』」/「丙 只给重点域配色」），**转后续批次**（`②` 涉及活动 / 专班两处写入面 ＋ 支委会确定接手人的制度语义；`V-6` 丙需先定**哪几个域算「重点」**）。
+
+***
+
+## 批次 327（2026-10-01）：`SOP-G-2-②`「转交组织者」落地（支书裁**乙：直接转交 ＋ 留痕**）＋ `V-6` 丙「只给重点域配色」（重点＝**项目线三域**）
+
+> **决议 / 过程判据（`R-84`）**：本批**因裁而作** —— 支书 2026-10-01 就批次 326 末尾送裁的两条各给一取向（**三条答复，逐字见「一」**）。**裁定进决策日志**（`D-734`），**实现过程与实测进本节**。
+
+### 一、支书 2026-10-01 答复（逐字）
+
+| # | 送裁问题 | 支书裁定（逐字） |
+| --- | --- | --- |
+| 1 | `SOP-G-2-②`「转交组织者」怎么生效 | **「乙 直接转交 ＋ 留痕」** |
+| 2 | 由谁发起 / 生效 | **「丙 上面三者 ＋ 现任组织者本人」** |
+| 3 | `V-6` 遗留：九业务域里哪几个算「重点」 | **「乙 项目线三域」** |
+
+### 二、`②` 的落法（**不改裁定、只择落法**）
+
+- **判据 ＋ 写口 ＋ 弹窗 三合一单一源**：新增 `docs/src/components/governance/organizer-transfer.js`
+  —— `canTransferOrganizer()`（可发起人判据）· `transferOrganizer()`（写）· `openOrganizerTransfer()`（浮窗）。
+  **各宿主面只挂入口**，不复制第二份实现。
+- **写**：期望角色表 ＝ 原非组织者行**保留**（deep 等，且新人若原为 deep 则去其 deep 行——一人只占一格）
+  ＋ **旧组织者整行去掉（＝退出，不降级）** ＋ 新人接 `organizer`；走**既有**
+  `AuthStore.syncProjectRoles`（写主源 ＋ 追加审计快照 `revoke`(旧) / `grant`(新) ＋ 通知被赋权人）
+  ⇒ **「退出与接手人」两者都在既有审计链里**（谁转给谁 / 何时），**不新造第二套台账**。
+- **两个宿主面**：`entries/pages/activity-entry.js`（**活动详情页** — 全角色可达，含现任组织者本人）
+  ＋ `entries/tabs/org/taskforce-tab.js`（**专班详情** — 「成员角色」块内与「保存角色」并列）。
+- **为什么与既有「保存角色」并存而非合并**：后者是**多角色整表编辑**（组织者 ＋ 深度参与者）；
+  前者**语义更窄**——只换组织者，且带母本「退出 / 交接」这条语义。两处**写口同一个**（`syncProjectRoles`），
+  只是入口语义不同 ⇒ 不合并、不互相替代。
+- **做事即销待办**：转交成功即销该对象的赋权待办（`TodoSourceType.ACTIVITY` / `TASKFORCE`）——
+  **口径同两处既有「保存角色」**（若不加，会出现「角色已改、赋权待办仍悬空」的不一致）。
+
+### 三、`V-6` 丙 的落法
+
+- **单一源** `docs/src/core/domain/constants.js::WORK_DOMAIN_COLORS`（**只三键**：`meeting` 会务 /
+  `activity` 活动 / `taskforce` 专班），体例同既有 `ACTIVITY_CAT_COLOR`（`_applyDark` 补深色三件套，
+  键就是 `WORK_DOMAIN` 的取值字符串 ⇒ 该文件**不** import `todo.js`，避免 `constants ↔ todo` 循环依赖）。
+- **不新造色**：会务 / 活动沿用与「三会一课红 / 主题党日金」**同族**的色调（同一件事不在两处出现两套色）；
+  专班取 `_C.indigo600`（**既非任何角色识别色、也非功能色四态** ⇒ 不与 §2.9 上两行抢语义）。
+- **消费点唯一**：今天页行内域胶囊 `entries/tabs/today/today-tab.js::_domainChip(domain, label)`；
+  **其余六域保持中性胶囊**（不配色＝不强调）。带色胶囊加 `data-domain` 供真机锚定。
+- **文档**：`content/04_web_design/design-system/DESIGN_SYSTEM.md §2.9` 角色-令牌表**新增一行**
+  「业务域识别色（限重点三域）」（写清令牌 / 什么时候用 / 什么时候不许用 / 依据）。
+
+### 四、真机证据
+
+- **新增台账校验点 ＋ 真机流程**：`page-activity-organizer-transfer`（独立页 `docs/activity.html?id=act-31`
+  的「转交组织者」浮窗内**未选接手人即点「转交」** ⇒ 报「请选择接手人」且**载体（人选器）在位**）；
+  `VALIDATION_SITES` **108 → 109** / `MACHINE_FLOWS` **57 → 58**（基线同批改准）。
+  定向跑（`FORM_LOOP_TABS=独立页 /activity.html`）：**10 / 10**（含 `S0`–`S7` 台账守卫）。
+- **今天页定向件扩断言**（`today-action-groups-e2e`，`V-6` 丙）：① 凡带 `data-domain` 的域胶囊**必有内联底色**、
+  域键**只许三域之一**；② 不带者**不得**有内联底色（其余六域中性）；③ **非空转**——单一源**恰三键**、
+  每键 `bg / text / border` 齐备（**不依赖演示数据**，防「碰巧一条重点域都没有」也判绿）。实测 **通过**。
+- `test:fast` **140 / 140** · `ux-guard` ＋ `list-filter-chip-e2e` ＋ 今天页定向件 **9 / 9** ·
+  `form-loop-sweep` **全量 83 / 83**（含 `S0`–`S7` 台账守卫 ＋ 本批新增的 `page-activity-organizer-transfer`；见「六」）。
+- **台账四处计数同刷（本批补做）**：`DECISION_LOG.md` 月度索引 · `2026-09-DECISION_LOG.md` 本月目录末条 · 根 `README.md` 真机台账三数
+  —— 初稿只改了文首 / 文末两处 ⇒ `doc-consistency` ⑥ 与「真机台账四断言」判红 6 条，本批一并改准（`459→460` / `D-733→D-734` /
+  `108→109` · `97→98` · `57→58`）；改后 `doc-consistency` 绿。
+
+### 五、改动清单
+
+| # | 文件 | 改前 | 改后 |
+| --- | --- | --- | --- |
+| 1 | `docs/src/components/governance/organizer-transfer.js` | ——（新文件） | `②` 的判据 / 写口 / 浮窗**三合一单一源** |
+| 2 | `docs/src/entries/pages/activity-entry.js` | 无转交入口 | 活动详情页加「转交组织者」一枚 ＋ 挂点 |
+| 3 | `docs/src/entries/tabs/org/taskforce-tab.js` | 「成员角色」块只有「保存角色」 | 同块加「转交组织者」（**按四类人判定是否渲染**）＋ 挂点 |
+| 4 | `docs/src/core/domain/constants.js` | 无「业务域色」 | 新增 `WORK_DOMAIN_COLORS`（**只三键** · 不新造色 · 固定不随主题）；**置于文件末尾**（避免中段插入位移 `README-server.md` 的 10 处行号引用 —— 先例 `D-544`） |
+| 5 | `docs/src/entries/tabs/today/today-tab.js` | `_domainChip(label)` 一律中性灰 | `_domainChip(domain, label)`：三域上色（带 `data-domain` ＋ `--acc-*-dark` 深色态）、其余中性 |
+| 6 | `content/04_web_design/design-system/DESIGN_SYSTEM.md` | §2.9 表无「业务域」行 | 新增一行「业务域识别色（限重点三域）」 |
+| 7 | `server/test/form-loop-registry.mjs` | `SITES 108 / FLOWS 57`；`taskforce-tab.js` 10 + 1 处行号 | `SITES 109 / FLOWS 58`（＋新校验点＋新流程）；`taskforce-tab.js` 各行号 **+18 改准** |
+| 8 | `server/test/today-action-groups-e2e.test.mjs` | 只断言「行带业务域胶囊」 | ＋ `V-6` 丙 三条断言（含**非空转**：单一源恰三键） |
+| 9 | 全站 `?v=` | `20261001m` | **`20261001n`**（改了 `docs/src/**` ⇒ 必须 bump） |
+| 10 | `.ctx/logs/2026-09-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · `README.md` | 本月目录末条 `D-733` · 月度索引 `459 条（D-275~D-733）` · README 真机台账 `108 / 97 / 57` | 四处计数同刷：`D-734` · `460 条（D-275~D-734）` · `109 / 98 / 58`（`doc-consistency` ⑥ ＋ 真机台账四断言复绿） |
+| 11 | `server/test/copy-screen-guard.test.mjs` | C4_BASELINE **12 屏**（含已漂到 ≤12 的 `secretary::全局概况` / `org::人才库`）；`org::我的处置` 未登记 | 收基线 **11 屏**：删两个 ≤12 条目 ＋ 复升的 `org::我的处置`（12.2）登记并给理由（**存量红 · 连带**） |
+
+### 六、如实登记（未做 / 异常 / 只登记不动的）
+
+- **支书台的活动详情面板未加同款入口**：`components/record/inspector.js`（支书台「活动管理」点活动后展开的详情面板）
+  **本批未加**「转交组织者」——同一动作若在**三处**各写一遍入口会分叉；本批先在**活动详情页**
+  （`activity.html` · 全角色可达，含现任组织者本人）＋**专班详情**落。**支书从活动管理进详情面板这条路径留待后续批次**
+  （或在支书台加一枚指向活动详情页的跳转）——**如实登记，不写成「已全覆盖」**。
+- **收尾全量已跑（`R-85`）**：`npm test` 首跑 **909 项 / 906 过 / 3 红**（另 `test:fast` **140 / 140** ·
+  `form-loop-sweep` **全量 83 / 83** · `ux-guard` ＋ `list-filter-chip-e2e` ＋ 今天页定向件 **9 / 9**）。
+  **三条红的归属与处置（用 `git stash push -u` 在未含本批改动的 HEAD 上对照复跑判定，非猜测）**：
+  ① `doc-line-ref::R2` —— **本批自致**：`constants.js` **中段插入 20 行** ⇒ `README-server.md` 的 10 处
+     行号引用（`ROLE_KEYS:185-191,819-821` 等）**整体 +20 漂移**；处置＝**把 `WORK_DOMAIN_COLORS` 移到文件末尾**
+     （零位移；先例＝批次 122 `D-544`）⇒ 复绿（本项属**实现方式调整**，非放宽判据）；
+  ② `copy-screen-guard::M2` / `M3` —— **存量红**（基线对照复跑**同样判红** ⇒ 非本批引入）：
+     `secretary::全局概况` / `org::人才库` 已漂到 ≤12（应删条目）、`org::我的处置` 复升 >12（应登记）；
+     处置＝**连带收基线**（删 2 ＋ 登记 1 并给理由）⇒ 复绿（`C4_BASELINE` 12 → 11 屏）。
+  **三条结清后复跑全量：见「七」。**
+- **`SOP-G-2-②` 落地后 `SOP-G-2` 整条可迁出**（`R-86`：① 已落、③④⑤ 已裁、② 已落 ⇒ 本项**在册待办清零**）——
+  **本批未迁**（迁出属台账操作，留待台账批统一做；现状态已在 `REVIEW_QUEUE` 表内标「② 在办 → 已落」）。
+
+### 七、收尾全量（`R-85`）
+
+- **`npm test`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`，`:3000` 服务在跑）：909 项 / 909 过 / 0 红 / 0 跳过** ·
+  **耗时 1,344 s（≈22.4 分钟）** · `exit=0`。三条红（见「六」）**全部结清后复跑所得**，非「未见新红」。
+- 同批其余实跑：`test:fast` **140 / 140** · `form-loop-sweep` **全量 83 / 83**（含 `S0`–`S7` 台账守卫）·
+  `copy-screen-guard` **11 / 11**（收基线后）· `doc-line-ref` ＋ `hex-hardcode-guard` ＋ `module-load` ＋
+  `import-path-guard` **17 / 17** · `doc-consistency` **16 / 16**。
+- ⚠ **`.tmp-batch327-full.log` / `.tmp-b327b.log` 两份诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。
