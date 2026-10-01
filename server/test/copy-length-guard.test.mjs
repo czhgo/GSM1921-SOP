@@ -244,8 +244,10 @@ const BASELINE_C1 = {};
  *  `leader/attendance-tab` / `group-progress-tab` 的既有长说明；`init-reset.js` 一条是控制台初始化提示
  *  （模板串，非界面文案——静态口径的已知噪声，如实登记待收）。⇒ 只为「新增」判红，待各自批次收。 */
 const BASELINE_C2 = {
+  // 2026-10-01 批次 315（支书 V-11「党委组织员本来不是我们支部的，为什么要强调」取甲）：
+  //   `org-setup-wizard.js` 的「换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；…」一条
+  //   已随该句改写而**不再超 80 字** ⇒ **按收基线纪律同批删条目**、`BASE_C2_TOTAL` 12 → 11（文件数不变）。
   'docs/src/components/governance/org-setup-wizard.js': [
-    '换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；本支部现任支书/副支书（副书同权）仅可配置自己的支部（config写口校验同branch服务既有语义）。',
     '新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。',
     '新支部为空：config默认全开、业务域为空、支书席位空缺——勾选上方「就地任命首任骨干」时随创建一并任命（已就地任命首任支书/组织委员者，创建后即建册、支书登录即可接管新支部）；不勾选则按原路径：创建后在下方分步填入组织信息/模块/分工，或按「换壳工作单」补数据。记录变更：config.configChangeHistory追加branch-created。',
     '下载「成员名单模板」→按真实名册改JSON→「导入名单(JSON)预览」：应到人数/党员分布即时可见变化（⑤验证与重置、纪检考勤等的应到名单来源一致）；「清除预览」一键回种子。',
@@ -280,8 +282,9 @@ const BASELINE_C2 = {
 /** C5：单句括注 ≥3 的现存命中。`org-setup-wizard` / `settings-entry` 属授权面外的长说明；
  *  `leader/attendance-tab` 一条是真界面文案；`branch-doc.js` 一条是**代码串**（静态口径已知噪声）。 */
 const BASELINE_C5 = {
+  // 2026-10-01 批次 315（支书 V-11 取甲）：`org-setup-wizard.js` 原「党委组织员…（party-staff）…（副书同权）…（config…）」
+  //   一句有 ≥3 个括注；改写后**括注降到 2** ⇒ 按收基线纪律同批删条目、`BASE_C5_TOTAL` 4 → 3（文件数不变）。
   'docs/src/components/governance/org-setup-wizard.js': [
-    '换组织向导的配置权限：党委组织员（party-staff）可配置任意支部；本支部现任支书/副支书（副书同权）仅可配置自己的支部（config写口校验同branch服务既有语义）。',
     '新支部为空、支书席位空缺：勾选后创建时一并就地任命首任骨干——新任支书凭本人账号登录即可接管该支部（组织信息/模块/名册可在支书工作台与支部配置中继续完善）。任命对象来自现有成员（演示=跨支部兼任/调任）：若其在原支部任支委/组长，原支部对应席位将空缺（界面明示）；人员后续也可在成员管理/名单导入中补入新支部后再次调整。',
   ],
   'docs/src/entries/tabs/leader/attendance-tab.js': [
@@ -317,9 +320,9 @@ const BASELINE_C6 = {
 const BASE_C1_FILES = 0;
 const BASE_C1_TOTAL = 0;
 const BASE_C2_FILES = 8;
-const BASE_C2_TOTAL = 12;
+const BASE_C2_TOTAL = 11;
 const BASE_C5_FILES = 3;
-const BASE_C5_TOTAL = 4;
+const BASE_C5_TOTAL = 3;
 const BASE_C6_FILES = 4;
 const BASE_C6_TOTAL = 4;
 
