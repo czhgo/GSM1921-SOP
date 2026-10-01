@@ -15,16 +15,16 @@
 //  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与支书台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../../core/base/id.js?v=20261001c';
-import { mockDB } from '../../core/domain/domain.js?v=20261001c';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261001c'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../../core/base/id.js?v=20261001e';
+import { mockDB } from '../../core/domain/domain.js?v=20261001e';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261001e'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20261001c';
-import { BranchService } from '../core/runtime.js?v=20261001c';
-import { loadActivities } from '../activity/activity.js?v=20261001c';
-import { PersonStore } from '../member/person.js?v=20261001c';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261001c';
+} from './todo.js?v=20261001e';
+import { BranchService } from '../core/runtime.js?v=20261001e';
+import { loadActivities } from '../activity/activity.js?v=20261001e';
+import { PersonStore } from '../member/person.js?v=20261001e';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261001e';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {

@@ -39,38 +39,38 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261001c';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261001c';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261001c';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261001c';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261001c';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261001c';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001c';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261001c';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261001c';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261001c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001e';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261001e';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261001e';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261001e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261001e';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261001e';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001e';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261001e';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261001e';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261001e';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001c';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001e';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261001c';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001c'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261001c';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261001e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001e'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261001e';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261001c';
+} from '../../../services/member/party-group.js?v=20261001e';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
   groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20261001c';
+} from '../../../services/member/group-view.js?v=20261001e';
 // 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
 //   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20261001c';
+import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20261001e';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -877,16 +877,10 @@ function _renderGroupActivities(container, activities) {
   });
 }
 
-/** 复用既有「写入活动」入口（**不新造表单**）：切到「活动管理」tab → 待其渲染后点既有「写入活动」按钮开浮窗。
- *  ⚠ 写入浮窗定义在 calendar-tab.js（本批不改它）⇒ 只能经既有按钮入口触发；下方 2s 兜底覆盖
- *    「党委下钻只读视图已移除该入口 / 渲染失败」两种点不到的情形（静默收手，不抛错）。 */
+/** 本台「写入活动」入口（**不新造表单**，复用 `calendar-tab.js::openActivityWriteForm`）。
+ *  ⚠ 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：按钮 `#ws-sec-write-btn` 已由
+ *    「活动管理 tab 的日历卡头部」**提到顶栏** ⇒ 本函数**不再需要「切 tab ＋ 轮询等按钮出现」**
+ *    （原实现即为此），直接点既有按钮即可；选择器一字未改，台账 / 真机守卫照旧命中。 */
 export function openActivityWriteEntry() {
-  const tabBtn = document.querySelector('.secretary-tab-btn[data-secretary-tab="calendar"]');
-  if (tabBtn) tabBtn.click();
-  let tries = 0;
-  const timer = setInterval(() => {
-    const writeBtn = document.getElementById('ws-sec-write-btn');
-    if (writeBtn) { clearInterval(timer); writeBtn.click(); return; }
-    if (++tries >= 40) clearInterval(timer);
-  }, 50);
+  document.getElementById('ws-sec-write-btn')?.click();
 }

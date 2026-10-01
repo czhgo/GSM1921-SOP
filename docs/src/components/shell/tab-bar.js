@@ -8,11 +8,11 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261001c';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261001e';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261001c';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261001e';
 
 
 
@@ -157,46 +157,6 @@ const FALLBACK_ACCENT = {
  *   - tabs: Tab 定义数组（懒加载场景下供外部按 id 查找并渲染当前 Tab）
 
  */
-
-// 单行滚动提示（2026-08-23 支书裁定）：溢出时两侧渐隐遮罩，滚动到边缘自动消失。
-
-// 元素级标记防重复绑定（单体式入口每次 setState 重建 tabBar 会多次调用 bindEvents）。
-
-// ResizeObserver：Tailwind CDN 异步注入 shrink-0/flex-nowrap 后布局才稳定，须监听尺寸变化补算溢出。
-
-function _bindScrollHints(scroller) {
-
-  if (!scroller || scroller.dataset.wsScrollHint === '1') return;
-
-  scroller.dataset.wsScrollHint = '1';
-
-  const update = () => {
-
-    const canL = scroller.scrollLeft > 2;
-
-    const canR = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 2;
-
-    scroller.dataset.overflow = canR ? (canL ? 'both' : 'right') : (canL ? 'left' : 'none');
-
-  };
-
-  scroller.addEventListener('scroll', update, { passive: true });
-
-  window.addEventListener('resize', update);
-
-  if (typeof ResizeObserver !== 'undefined') {
-
-    const ro = new ResizeObserver(update);
-
-    ro.observe(scroller);
-
-  }
-
-  update();
-
-}
-
-
 
 export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRightHtml, renderCtx, storageKey, onTabChange, priorityTab }) {
 
@@ -435,7 +395,6 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
   function bindEvents(container) {
     boundContainer = container;
-    _bindScrollHints(container.querySelector('.ws-tab-scroll'));
     container.querySelectorAll(`.${btnClass}`).forEach(btn => {
       btn.addEventListener('click', () => {
         // 重置所有 Tab 样式（移除 active 类 + 清空 inline style）

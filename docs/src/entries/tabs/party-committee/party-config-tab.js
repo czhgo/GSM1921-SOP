@@ -7,9 +7,9 @@
 // 权限：党委台仅 party-staff 进入（canSwitchBranch 任意支部）；现任支书走独立页 wizard.html?branch=
 // 写口：branch 服务既有校验语义（config 写口 = party-staff / 本支部现任支书）+ 即时生效留痕。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261001c';
-import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261001c';
-import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261001c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001e';
+import { mountOrgSetupWizard } from '../../../components/governance/org-setup-wizard.js?v=20261001e';
+import { getAuthToken, getApiBaseUrl, getDataSource } from '../../../data/data-adapter.js?v=20261001e';
 
 // ════════════════════════════════════════════════════════════════
 //  「部署与对接」面板（2026-09-29 批次 273 新增）

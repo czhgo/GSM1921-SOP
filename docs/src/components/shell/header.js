@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261001c';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261001e';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261001c';
-import { getBasePath } from '../../core/base/utils.js?v=20261001c';
-import { icon } from '../../core/base/icons.js?v=20261001c';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261001c';
-import { badgeHtml } from '../ui/badges.js?v=20261001c';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261001c';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261001e';
+import { getBasePath } from '../../core/base/utils.js?v=20261001e';
+import { icon } from '../../core/base/icons.js?v=20261001e';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261001e';
+import { badgeHtml } from '../ui/badges.js?v=20261001e';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261001e';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261001c';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261001e';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,19 +22,53 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261001c';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261001c');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261001e');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261001c');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261001e');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261001c');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261001e');
   return _reportEntryModule;
+}
+
+// ── 本台主 CTA 槽位（2026-10-01 批次 317 · 支书 V-3「功能钮提台顶栏全局固定位」）──────────
+//   支书原话：「不仅是 tab，还有一些单纯的功能 button，比如写入活动」。裁定取「甲：提到台顶栏
+//   全局固定位」——与该台「一键汇报」同排（`.header-actions`），**任何 tab 下都够得着**，
+//   不必先切到承载它的 tab、再在卡内找。
+//   **为什么做成槽位＋挂载 API 而不是写死**：顶栏是壳级、工作台 CTA 是台级，两者渲染顺序
+//   （`bootstrap.js` 先 import 入口、入口 await `createWorkspaceShell`，随后才 `renderHeader`）
+//   不保证 ⇒ 未渲染时**暂存**、渲染后补挂，调用方不必关心次序。
+let _pendingHeaderCta = null;
+
+/** 填充槽位（内部） */
+function _fillHeaderCta(slot, html, bind) {
+  slot.innerHTML = html || '';
+  if (typeof bind === 'function') bind(slot);
+}
+
+/**
+ * 挂载本台主 CTA（顶栏 `.header-actions` 首位）。
+ * @param {string} html — 按钮 HTML（**族类须走按钮族**，顶栏用 `.header-action-btn` 同款外观）
+ * @param {(slot:HTMLElement)=>void} [bind] — 绑定回调，入参＝槽位元素
+ */
+export function mountHeaderCta(html, bind) {
+  const slot = (typeof document !== 'undefined' && document) ? document.getElementById('header-cta-slot') : null;
+  if (!slot) { _pendingHeaderCta = { html, bind }; return; }  // 顶栏尚未渲染 ⇒ 暂存
+  _fillHeaderCta(slot, html, bind);
+}
+
+/** 渲染收尾补挂（挂载早于渲染时用） */
+function _applyPendingHeaderCta(header) {
+  if (!_pendingHeaderCta || !header) return;
+  const slot = header.querySelector('#header-cta-slot');
+  if (slot) _fillHeaderCta(slot, _pendingHeaderCta.html, _pendingHeaderCta.bind);
+  _pendingHeaderCta = null;
 }
 
 // ── 浏览器标签页标题（2026-09-23 支书批「判别依据可感」）────────────────────────
@@ -214,6 +248,7 @@ export async function renderHeader(activeModule, opts = {}) {
       </div>
       <div class="header-actions" style="display:flex;align-items:center;gap:8px;">
         ${role ? _roleLabelHTML(role) : _loginEntryHTML()}
+        <span id="header-cta-slot"></span>
         <span id="report-entry-slot"></span>
         ${_notificationBellHTML()}
       </div>
@@ -222,6 +257,7 @@ export async function renderHeader(activeModule, opts = {}) {
 
   _bindHamburger(header);
   _bindNotificationBell(header);
+  _applyPendingHeaderCta(header);
 
   // app 模式：渲染后立即按需加载通知模块 → 计算未读角标（模块缓存后即时、无感知）
   if (!staticShell) {
