@@ -9,9 +9,15 @@
 //
 //  设计裁决（2026-09-13 grill-me 面谈定案，共 15 问；2026-09-14 批次 27 修订筛选行载体）：
 //   ① 单一引擎：28 张按人表 + 32 张活动表共用本组件，勿各页手写搜索（现状：按人表 0 复用）。
-//   ② 能力 = 关键词（多字段模糊）+ 分面下拉 + 结果计数 + **分页**；
-//      分面**一律下拉**（.lf-select，首项「全部」，走全局 enhanceSelects 圆角增强），
-//      **筛选行禁用 chip**（支书 2026-09-14 裁定）——chip 只属表单多选；
+//   ② 能力 = 关键词（多字段模糊）+ 分面 + 结果计数 + **分页**；
+//      分面**两种形态**（2026-10-01 支书裁定「推翻筛选行禁 chip」后新增 chip 形态）：
+//        · `facetStyle: 'dropdown'`（**默认**，未迁移页原样）＝ `.lf-select` 下拉，首项「全部」，
+//          走全局 enhanceSelects 圆角增强；自身即状态显示位 ⇒ 改动无需重绘。
+//        · `facetStyle: 'chip'`＝**搜索框 ＋ span 小胶囊**（值平铺可见、少一次展开点击），
+//          选中态走 `.chip-accent-on`（判据·甲「选中态随主题色」）；平铺 ⇒ 改动须重绘。
+//      ⚠ 支书 2026-10-01 原话：「这个筛选器请全面移除。我 prefer div 这种格式。但是可以用 span 这样的小胶囊。
+//        搜索 姓名/学号/角色 即可」，同时裁「**具体问题一定要具体分析**」⇒ **默认不翻**、**逐页迁移**
+//        （先 人才库 · 成员名册），全部迁完再翻默认。
 //      分面取值可 auto 派生（免各表手写枚举），取值 ≤1 种时该维度自动隐藏（空维度不占位）。
 //   ③ 出现门槛：当前视图行数 ≤ SEARCH_FILTER_MIN_ROWS（单一源 constants.js）→ **不渲染检索条**；
 //      行数变化自动出现/隐藏（动态，非静态按表判定）。
@@ -35,16 +41,16 @@
 //  数据变化后：同 stateKey 再调用一次，或 hold 返回值调 .update(newRows)。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc } from '../../core/base/utils.js?v=20261001e';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261001g';
 import {
   SEARCH_FILTER_MIN_ROWS, ROLE_LABELS, ACTIVITY_CLASSIFICATION,
   classifyActivityType, normalizeActivityType,
-} from '../../core/domain/constants.js?v=20261001e';
+} from '../../core/domain/constants.js?v=20261001g';
 // 活动生命周期**展示态**单一源 = components/record/inspector.js（草稿/已发布/进行中/待归档/已执行/已归档/已取消）
 // ——勿在本组件另写一套中文标签（constants.js 里曾短暂加过的副本已撤除）
-import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261001e';
+import { deriveActivityLifecycleStatus, ACTIVITY_LIFECYCLE } from '../record/inspector.js?v=20261001g';
 // 翻页控件单一源（批次 38 下沉为叶子件 pager.js）：本引擎与关系矩阵共用，勿另写翻页标记
-import { pagerHtml } from './pager.js?v=20261001e';
+import { pagerHtml } from './pager.js?v=20261001g';
 
 /** 每个 stateKey 的筛选状态（跨重渲染保持；键集合有界 = 全站表格数，不做回收） */
 const _states = new Map();
@@ -174,9 +180,23 @@ export function renderFilteredList(container, cfg) {
              placeholder="${esc(config.keyword.placeholder || '搜索…')}"
              aria-label="${esc(config.keyword.placeholder || '搜索')}" value="${esc(st.q)}" />`
       : '';
-    // 分面 = 下拉（首项「全部」承载维度名，自身即状态显示位，故改动无需重绘）
+    // 分面形态见文件头「② 能力」：默认 dropdown；chip 形态＝搜索框 ＋ span 小胶囊（逐页 opt-in）。
+    const facetStyle = config.facetStyle || 'dropdown';
     const facetsHtml = facetDefs.map(f => {
       const sel = st.facets[f.key] || '';
+      if (facetStyle === 'chip') {
+        // 平铺：值全部可见（下拉要先展开才知道有哪些值）；选中态走 .chip-accent-on（单一源）
+        // ⚠ 族类 `btn-tab` **必须在前**（`button-system-guard::B4` 棘轮：`<button>` 须入 8 族之一；
+        //   与表单内合规胶囊同款写法见 `notification-tab.js`「btn-tab chip-option …」）。
+        //   类名后**必须留空格**再接插值——否则 B4 把 `chip-option${…}` 当成一个非法类名 token。
+        const opts = [{ value: '', label: '全部' }].concat(f.options.map(o => ({ value: o.value, label: o.label })));
+        return `<div class="lf-facet-chips" role="group" aria-label="${esc(f.label)}筛选">
+          <span class="lf-facet-chips-label">${esc(f.label)}</span>
+          ${opts.map(o => `<button type="button" class="btn-tab chip-option text-xs px-2.5 py-1 rounded-full${sel === o.value ? ' chip-accent-on' : ''}"
+            data-facet="${esc(f.key)}" data-value="${esc(o.value)}"
+            aria-pressed="${sel === o.value ? 'true' : 'false'}">${esc(o.label)}</button>`).join('')}
+        </div>`;
+      }
       return `<select id="${uid}-f-${esc(f.key)}" class="input-flat text-xs lf-select"
                 data-facet="${esc(f.key)}" aria-label="${esc(f.label)}筛选">
         <option value="">${esc(f.label)}：全部</option>
@@ -195,6 +215,15 @@ export function renderFilteredList(container, cfg) {
       sel.addEventListener('change', () => {
         st.facets[sel.dataset.facet] = sel.value || '';
         st.page = 1;
+        renderList();
+      });
+    });
+    // chip 形态：平铺态即状态显示位 ⇒ 改动**须重绘**（下拉「自身即显示位、改动无需重绘」不适用）
+    barEl.querySelectorAll('.lf-facet-chips .chip-option').forEach(chip => {
+      chip.addEventListener('click', () => {
+        st.facets[chip.dataset.facet] = chip.dataset.value || '';
+        st.page = 1;
+        renderBar();
         renderList();
       });
     });

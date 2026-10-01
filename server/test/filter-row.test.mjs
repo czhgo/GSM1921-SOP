@@ -56,11 +56,18 @@ test('S1 筛选行与表格类族在 styles.css 单一源在位', () => {
   }
 });
 
-test('S2 统一检索引擎的分面已是下拉（不得再出现 chip 分面）', () => {
+test('S2 统一检索引擎的分面：两形态（默认下拉；chip 须走 .chip-option 单一源）', () => {
+  // ⚠ 2026-10-01 批次 319（支书裁定「这个筛选器请全面移除。我 prefer div 这种格式。但是可以用 span
+  //   这样的小胶囊」＋「**具体问题一定要具体分析**」）：**本条取代**原「分面一律下拉、引擎不得引用
+  //   chip 类」（2026-09-14 批次 27 裁定）。引擎现按 `facetStyle` 渲染两形态：`dropdown`（**默认**，
+  //   未迁移页原样）与 `chip`（**逐页 opt-in**）。本条**仍守**的边界：① 形态开关必须在位（防「悄悄
+  //   改默认」无人察觉）；② 不得自造第二套胶囊类名——胶囊本体统一复用表单多选的 `.chip-option` /
+  //   `.chip-accent-on`（＝判据·甲 的「选中态随主题色」）。
   const src = read(join(SRC_DIR, 'components', 'ui', 'list-filter.js'));
-  assert.ok(!/chip-option|chip-accent-on|lf-chip/.test(src),
-    'list-filter.js 不得再引用 chip 类（分面一律下拉，2026-09-14 批次 27 裁定）');
-  assert.match(src, /class="input-flat text-xs lf-select"/, '分面渲染须为 .lf-select 下拉');
+  assert.match(src, /facetStyle/, '分面须有形态开关 facetStyle（默认 dropdown；chip 逐页 opt-in）');
+  assert.match(src, /class="input-flat text-xs lf-select"/, 'dropdown 形态须仍为 .lf-select 下拉');
+  assert.match(src, /class="btn-tab chip-option/, 'chip 形态须复用 .chip-option 单一源类（且族类 btn-tab 在前，B4 棘轮）');
+  assert.ok(!/lf-chip/.test(src), '不得自造第二套胶囊类名（lf-chip）；胶囊统一复用 .chip-option');
   assert.match(src, /\.lf-bar/, '检索条容器须用 .lf-bar 单一源');
   assert.match(src, /<table class="data-table/, '结果区表格须用 .data-table 单一源');
 });
@@ -108,8 +115,12 @@ test('S5 控件档位唯一：清 10px 下拉死规则 + 触发器不再补 32px
     '下拉触发器不得再补 h-8（32px）——须与 input-flat 同为 38px，否则同排底部错位');
 });
 
-test('S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）', () => {
-  // chip 只属表单内多选/正交维度（支书裁定 2026-09-14）。
+test('S6 筛选行分面胶囊只许经引擎 opt-in（页面不得自写 .chip-option）', () => {
+  // ⚠ 2026-10-01 批次 319（支书裁定「推翻筛选行禁 chip」）**取代**原「筛选行一律下拉、禁止分面 chip」
+  //   （2026-09-14 批次 27 裁定）。**新边界**：chip 只能由 `ui/list-filter.js` 按 `facetStyle: 'chip'`
+  //   渲染（引擎＝单一源，**豁免本检查**）；**页面侧仍不得自写** `.chip-option`——自写即绕过引擎，
+  //   等于回到「各页手写筛选」。表单内多选仍归 `FORM_ALLOW` 两处（那属**表单域**，不属筛选行）。
+  const ENGINE = 'components/ui/list-filter.js';
   const FORM_ALLOW = new Set([
     'entries/tabs/secretary/assign-tab.js',       // 赋权管理：工作程序/工作方法多选
     'entries/tabs/secretary/notification-tab.js', // 通知受众多选
@@ -119,12 +130,12 @@ test('S6 筛选行禁 chip（声明 .lf-bar 的文件不得用 .chip-option）',
     const r = rel(f);
     const src = read(f);
     if (!src.includes('lf-bar')) continue;
-    if (FORM_ALLOW.has(r)) continue;
+    if (FORM_ALLOW.has(r) || r === ENGINE) continue;
     lines(f).forEach((line, i) => {
       if (/chip-option/.test(line)) offenders.push(`${r}:${i + 1}`);
     });
   }
-  assert.deepEqual(offenders, [], '筛选行（.lf-bar）内一律下拉，禁止分面 chip');
+  assert.deepEqual(offenders, [], '筛选行内的分面胶囊须经引擎 facetStyle: chip 渲染，页面不得自写 .chip-option');
 });
 
 test('S7 自写搜索框须落在 .lf-kw（筛选行载体单一源）', () => {
@@ -202,7 +213,12 @@ test('S10 分页内置统一引擎（翻页控件单一源；调用点不得私�
   assert.match(pager, /data-lf-page/, '翻页控件单一源（pager.js）须渲染翻页控件（data-lf-page）');
   assert.match(pager, /class="page-btn"|class="page-num/, '翻页控件须走 .page-btn / .page-num 单一源（批次 28）');
   assert.ok(pager.includes('if (pages <= 1)'), '页数 ≤1 须不渲染翻页控件（小表零负担）');
-  assert.ok(!/chip-accent-on/.test(src), '引擎不得借 .chip-accent-on 表当前页');
+  // ⚠ 2026-10-01 批次 319：原断言「引擎不得出现 .chip-accent-on」是**筛选行禁 chip 时代的产物**——
+  //   该禁令已由支书同日推翻（分面胶囊＝合法用途）⇒ 本断言的**真实意图收窄为「分页位不得借它」**
+  //   （同 S8 口径）。引擎内该类的唯一合法落点＝分面胶囊的选中态（`facetStyle: 'chip'`）。
+  assert.ok(!/chip-accent-on/.test(pager), '翻页控件不得借 .chip-accent-on 表当前页（应写 .page-num.is-current）');
+  assert.ok(!/page[^\n]{0,60}chip-accent-on|chip-accent-on[^\n]{0,60}page/.test(src),
+    '引擎不得把 .chip-accent-on 用于分页位（该类只许用于分面胶囊选中态）');
   // 调用点不得私自关掉分页：全站 renderFilteredList 调用点零 `pageSize: 0`
   const optOut = [];
   for (const f of walkJs(SRC_DIR)) {

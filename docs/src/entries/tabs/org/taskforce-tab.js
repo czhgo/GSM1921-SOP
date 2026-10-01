@@ -3,38 +3,38 @@
 // 看板式专班全生命周期管理 + 发布招募表单 + 活动进度追踪（原追踪看板融入）。
 // 私有状态（PersonPicker 实例）随模块自持；共享数据（taskforce 分类/activities）经 ctx 传入。
 
-import { setState } from '../../../core/base/state.js?v=20261001e';
-import { BranchService } from '../../../services/core/runtime.js?v=20261001e';
-import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261001e';
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261001e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261001e';
-import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261001e';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001e'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
-import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261001e';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261001e';
-import { mockDB, SourceType, ReviewStatus } from '../../../core/domain/domain.js?v=20261001e'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
-import { persist } from '../../../data/data-adapter.js?v=20261001e';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261001e';
-import { generateId } from '../../../core/base/id.js?v=20261001e';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261001e';
+import { setState } from '../../../core/base/state.js?v=20261001g';
+import { BranchService } from '../../../services/core/runtime.js?v=20261001g';
+import { TaskForceRecordStore, isTaskforceOrganizer } from '../../../services/activity/taskforce.js?v=20261001g';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS, SIGNUP_STATUS_LABELS } from '../../../services/activity/signup.js?v=20261001g';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001g';
+import { loadTaskforceReviews, addTaskforceReview } from '../../../services/governance/review.js?v=20261001g';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261001g'; // IA-C3 收敛单写入口 2026-09-06：saveInspectionRecords 已随考察写入口移除
+import { TodoStore, TodoSourceType, TodoCategory, TodoActionType } from '../../../services/governance/todo.js?v=20261001g';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261001g';
+import { mockDB, SourceType, ReviewStatus } from '../../../core/domain/domain.js?v=20261001g'; // IA-C3 收敛单写入口 2026-09-06：ParticipationLevel 随考察写入口移除
+import { persist } from '../../../data/data-adapter.js?v=20261001g';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261001g';
+import { generateId } from '../../../core/base/id.js?v=20261001g';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261001g';
 // 活动「已结束/已归档」判据单一源（2026-09-13 收敛）：替代手写 `status === 'completed'`
-import { isActivityEnded } from '../../../core/domain/constants.js?v=20261001e';
-import { icon } from '../../../core/base/icons.js?v=20261001e';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261001e';
-import { recordFormShell } from '../../../components/ui/forms.js?v=20261001e';
+import { isActivityEnded } from '../../../core/domain/constants.js?v=20261001g';
+import { icon } from '../../../core/base/icons.js?v=20261001g';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261001g';
+import { recordFormShell } from '../../../components/ui/forms.js?v=20261001g';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261001e';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261001e';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001e';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261001g';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261001g';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001g';
 // 人×项目矩阵单一源（支书 2026-09-14 裁定：把宽表推广到其它二元关系域 → 本批「专班报名」域）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261001e';
-import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261001e';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261001g';
+import { getPersonName, PersonStore } from '../../../services/member/person.js?v=20261001g';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：报名名单等按人段落接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001e';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001g';
 // 情景③ 专班赋权（2026-09-25 支书裁「全按对象归位」：专班赋权归本台「专班管理」）——
 //   实现单一源＝entries/tabs/secretary/assign-tab.js::mountTaskforceProjectAuth（该模块已不注册为 tab，
 //   仅余分块渲染）⇒ 本 tab 只挂载，不新造第二套表单/视觉；权限判定仍在 assign-tab/AuthStore 一处。
-import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261001e';
+import { mountTaskforceProjectAuth } from '../secretary/assign-tab.js?v=20261001g';
 
 // 私有状态（随模块自持，不污染入口）
 let _recruitPersonPicker = null;

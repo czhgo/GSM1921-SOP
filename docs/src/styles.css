@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261001e');
+@import url('components/person-picker.css?v=20261001g');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -858,6 +858,20 @@ html.theme-dark .accent-avatar {
   flex: 0 0 auto;
   width: auto;
   min-width: 104px;
+}
+/* 分面胶囊组（2026-10-01 批次 319 · 支书裁定「推翻筛选行禁 chip」后新增的 chip 形态）：
+   与 `.lf-select` 二选一（`facetStyle`），由 `list-filter.js` 按形态渲染；胶囊本体样式复用
+   `.chip-option` / `.chip-accent-on`（表单多选同一套，**不另造外观**），此处只管「组」的排布。 */
+.lf-facet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.lf-facet-chips-label {
+  font-size: 0.6875rem;      /* 11px：维度名是**标签**不是数据（与 em 档同族） */
+  color: var(--neutral-500);
+  margin-right: 2px;
 }
 /* 筛选行按钮（清除/重置等）：与同排输入框精确同高（单档 38px） */
 .lf-btn {
