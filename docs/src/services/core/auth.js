@@ -10,20 +10,20 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261001h';
-import { PEOPLE } from '../../data/mock/index.js?v=20261001h';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261001i';
+import { PEOPLE } from '../../data/mock/index.js?v=20261001i';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261001h';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261001h';
-import { mockDB } from '../../core/domain/domain.js?v=20261001h';
-import { NoticeStore } from '../governance/notice.js?v=20261001h';
-import { updateActivity } from './mock.js?v=20261001h';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261001h';
-import { persist } from '../../data/data-adapter.js?v=20261001h';
-import { enableApiMode } from './runtime.js?v=20261001h';
-import { generateId } from '../../core/base/id.js?v=20261001h';
+import { verifyLogin } from './accounts.js?v=20261001i';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261001i';
+import { mockDB } from '../../core/domain/domain.js?v=20261001i';
+import { NoticeStore } from '../governance/notice.js?v=20261001i';
+import { updateActivity } from './mock.js?v=20261001i';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261001i';
+import { persist } from '../../data/data-adapter.js?v=20261001i';
+import { enableApiMode } from './runtime.js?v=20261001i';
+import { generateId } from '../../core/base/id.js?v=20261001i';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -803,7 +803,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261001h').then(async ({ getDataSource, getAdapter }) => {
+  import('../../data/data-adapter.js?v=20261001i').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;

@@ -7,8 +7,12 @@
 // 本组件只读：不内建任何处理能力，全部点击直达对应处理处（≤1 跳）——
 //   会议/分工行 → activity.html?id=…；到期/逾期行 → onNav('todo')（onNav 未提供则空操作）。
 //
-// 版式（2026-09-30 批次 299 · 支书裁定「B 行动 / 日程双卡」· 规则「先实现后立规」）：
-//   左 2/3「需要我今天动手」＝ 逾期（红底区）→ 今天到期 → 本岗待办 → 今日分工 → 待我处理；
+// 版式（2026-09-30 批次 299 · 支书裁定「B 行动 / 日程双卡」· 规则「先实现后立规」；
+//   **2026-10-01 批次 320 按支书「工作类型＝动作性质」裁定改准左卡分组**）：
+//   左 2/3「需要我今天动手」＝ 逾期（红底区，跨动作性质、最高紧迫）→ **按动作性质分组（`TodoActionType` 七类：
+//     审核 / 提交 / 赋权 / 参与 / 归档 / 阅读 / 追踪）** → 今日分工 → 待我处理；
+//     每组**组标题＝动作性质＋计数**、**行内右端＝业务域小胶囊**（九域降为胶囊）——原「今天到期 / 本岗待办」
+//     两段已由分组取代（支书评「信息量居然这么少…第一次进入的界面居然只是一个花瓶」）。
 //   右 1/3「我的日程」＝ 今天的会议 ＋ 活动管理入口；其下「近期安排」（未来 7 天）。
 //   **信息自陈（形轴）**：状态由**行左 3px 竖色条**自陈（红＝逾期 / 金＝今日到期 / 灰＝随时 /
 //   主题色＝分工），取代旧「圆点」点缀；分类走胶囊；有时间者走「时间轴行」（时间 ＋ 标题 ＋ 类型胶囊）。
@@ -23,39 +27,39 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261001h';
-import { icon } from '../../../core/base/icons.js?v=20261001h';
-import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20261001h';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261001i';
+import { icon } from '../../../core/base/icons.js?v=20261001i';
+import { buildTodaySummary } from '../../../services/governance/today-summary.js?v=20261001i';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261001h';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261001h';
-import { mockDB } from '../../../core/domain/domain.js?v=20261001h';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261001h'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001h'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001h'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001h'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261001i';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261001i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261001i';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261001i'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261001i'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261001i'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261001i'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001h';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261001i';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261001h';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261001h';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261001i';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261001i';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261001h';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261001h';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261001h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001i';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261001i';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261001i';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261001h';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261001i';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001i';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
@@ -176,26 +180,46 @@ function _todoRow(t, overdue) {
     `data-go="todo" title="${esc(t.title || '')}"`);
 }
 
-/** 今天到期（金条）：逾期在上（红区），下列今天到期 */
-function _dueBlock(s) {
-  const dueRows = s.dueToday.map(t => _todoRow(t, false)).join('');
-  const empty = s.overdue.length === 0 && s.dueToday.length === 0;
-  return `
-    ${_segHead('今天到期', s.dueToday.length, 'todo')}
-    ${empty ? '<p class="text-xs text-gray-500 px-1 py-1.5">今日无到期</p>'
-      : `${_overdueZone(s)}${dueRows ? `<div class="space-y-1.5">${dueRows}</div>` : ''}`}`;
+/** **业务域**胶囊（九域）：**只上标签形**（§2.9.3 U3）——域是**分类**不是状态、也不是「活动类别」，
+ *  故不占语义色（不借用例色 / 功能色）；色只留给「行左 3px 条」的紧迫度自陈。
+ *  ⚠ 2026-10-01 批次 320 如实登记：九域**是否应各配一色**属**新色系**，我未自设 ⇒ 已列为待裁项
+ *    （不新造分类与色板；§2.9「颜色角色 → 令牌」表内当前没有「业务域」这一行）。 */
+function _domainChip(label) {
+  if (!label) return '';
+  return `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(label)}</span>`;
 }
 
-/** 本岗待办（灰条）：本岗未完成待办概况，点击直达待办 tab */
-function _todoSummaryBlock(s) {
-  const t = s.todoSummary || { total: 0, overdue: 0, dueToday: 0 };
-  if (!t.total) return '';
-  return `
-    ${_segHead('本岗待办', t.total, 'todo')}
-    ${_row('var(--neutral-400)',
-      `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">逾期 ${t.overdue} · 今日到期 ${t.dueToday} · 待办合计 ${t.total}</span>
-       <span class="text-xs text-gray-500 flex-shrink-0">›</span>`,
-      'data-go="todo" title="前往待办处理"')}`;
+/**
+ * **按动作性质分组**（2026-10-01 批次 320 · 支书裁定「甲：直接用 `TodoActionType` 七类」）：
+ *   **为什么改**：支书评今天页「**信息量居然这么少…这个第一次进入的界面居然只是一个花瓶**」，
+ *   并要求「按照**工作类型**划分，而不是按照 活动/专班分」，且明示工作类型＝**动作性质**——
+ *   原话「我提的工作类型更多想说的是 **审核类、提交类、表决类** 等等！！」。
+ *   **做法**：首屏把「我要做的事」按七类摊开——**组标题 ＝ 动作性质 ＋ 计数**，
+ *   **行内右端 ＝ 业务域小胶囊**（九业务域**降为胶囊**、不再另占段位）；行左 3px 条仍自陈紧迫度。
+ *   ⚠ **不与上方逾期区重复列示**：`deadline < 今天` 的行已在红底区出现 ⇒ 本组只收
+ *     「今天到期 ＋ 无截止」两种；**组计数按本组实收行数**给（不是 `byAction.count`，那是全量）。
+ *   ⚠ 计数只在组标题出现一次（§4.14）；空组不渲染（空维度不占位）。
+ */
+function _actionGroupsBlock(s) {
+  const groups = Array.isArray(s.byAction) ? s.byAction : [];
+  const today = s.date || '';
+  const blocks = [];
+  for (const g of groups) {
+    const items = (g.items || []).filter((it) => !(it.deadline && it.deadline < today));
+    if (!items.length) continue;
+    const rows = items.map((it) => {
+      const dueToday = !!it.deadline && it.deadline === today;
+      const bar = dueToday ? 'var(--functional-warning)' : 'var(--neutral-400)';
+      return _row(bar,
+        `<span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(it.title || '未命名待办')}</span>
+         ${_domainChip(it.domainLabel)}
+         <span class="text-[11px] tabular-nums text-gray-500 flex-shrink-0">${esc(it.deadline || '')}</span>`,
+        `data-go="todo" title="${esc(it.title || '')}"`);
+    }).join('');
+    blocks.push(`<div>${_segHead(g.label, items.length)}<div class="space-y-1.5">${rows}</div></div>`);
+  }
+  if (!blocks.length) return '';
+  return `<div class="space-y-5">${blocks.join('')}</div>`;
 }
 
 /** 今日分工（主题色条）：今天活动里我负责的分工，点击进活动详情 */
@@ -513,13 +537,22 @@ export function renderTodayTab(container, { personId, role, onNav, onCreateActiv
     // 活动管理快捷入口（2026-09-30 批次 310：全角色呈现「看日历」；「建活动」只在接线了写入表单的台出现）
     const activityEntry = _activityEntryBlock(typeof onCreateActivity === 'function');
 
-    // 左卡「需要我今天动手」＝ 逾期/到期 → 本岗待办 → 今日分工 → 待我处理
-    const todoSummaryHtml = _todoSummaryBlock(summary);
+    // 左卡「需要我今天动手」＝ 逾期（红区，跨动作性质、最高紧迫）→ **按动作性质分组（七类）**
+    //   → 今日分工 → 待我处理。
+    //   ⚠ 2026-10-01 批次 320（支书裁「甲：直接用 TodoActionType 七类」）：原「今天到期」「本岗待办」
+    //     两段**已被动作性质分组取代**——后者正是支书所斥的「只有概率没有事项」的概括行（「花瓶」的一部分）。
+    //   ⚠ 「全部 ›」上提到**卡标题行**：分组后段头不再只有一个，链接留在任一段头都会显得只属于那一段。
+    const overdueHtml = _overdueZone(summary);
+    const actionGroupsHtml = _actionGroupsBlock(summary);
     const leftCard = `
       <section class="lg:col-span-2 card rounded-xl p-5 space-y-5 min-w-0">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">需要我今天动手</h3>
-        <div>${_dueBlock(summary)}</div>
-        ${todoSummaryHtml ? `<div>${todoSummaryHtml}</div>` : ''}
+        <div class="flex items-center justify-between">
+          <h3 class="font-title-cn text-base font-semibold text-gray-800">需要我今天动手</h3>
+          <button type="button" class="btn-ghost today-all flex-shrink-0 text-xs" data-today-all="todo">全部 ›</button>
+        </div>
+        ${overdueHtml ? `<div>${overdueHtml}</div>` : ''}
+        ${actionGroupsHtml}
+        ${(!overdueHtml && !actionGroupsHtml) ? '<p class="text-xs text-gray-500 px-1 py-1.5">今日无到期 · 本岗无在办待办</p>' : ''}
         <div>${_dutyBlock(summary)}</div>
         ${_pendingBlock()}
       </section>`;

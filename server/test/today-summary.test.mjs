@@ -17,11 +17,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001h';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261001h';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261001h';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001i';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261001i';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261001i';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261001h';
+import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261001i';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();
@@ -189,4 +189,37 @@ test('⑥ 跨日边界：now 注入 → 明天活动不出现；now 切到明天
   assert.equal(tomorrow.date, '2026-09-11');
   assert.ok(tomorrow.hasMeeting.some(x => x.activityId === 'act-f'), 'now=明天 → 该活动进入 hasMeeting');
   assert.ok(!tomorrow.hasMeeting.some(x => x.activityId === 'act-31'), '切日 → 昨日活动退出');
+});
+
+// ── ⑦ 按动作性质分组（2026-10-01 批次 320 立 · 支书裁定「甲：直接用 TodoActionType 七类」）──────
+//   判据出处：支书原话「按照**工作类型**划分，而不是按照 活动/专班分」＋「我提的工作类型更多想说的是
+//   **审核类、提交类、表决类** 等等！！」⇒ 顶层分组＝**动作性质**（`TodoActionType`），九业务域降为行内胶囊。
+test('⑦ byAction：按动作性质七类分组（空组不出现 / 组序固定 / 每行带业务域 / 无截止殿后）', () => {
+  beginMockCase();
+  // ⚠ 本用例**刻意换角色键**（`org` 而非前面各例的 `secretary`）：`TodoStore` 的聚合缓存以
+  //   `byAction:<role>:<今日>` 为键、以内部写版本校验，而本文件的 fixture 是**直改 mockDB**、
+  //   不经写口 ⇒ 同角色同日的缓存会命中旧值（这是既有的测试手法约束，不是产品缺陷）。
+  //   换角色 = 换缓存键，既不动产品代码也不改其他用例。
+  pushTodo({ id: 't-a1', title: '审核发展对象材料', role: 'org', actionType: 'review', category: 'review', deadline: '2026-09-10' });
+  pushTodo({ id: 't-a2', title: '审核思想汇报', role: 'org', actionType: 'review', category: 'review' });
+  pushTodo({ id: 't-s1', title: '提交支委会纪要', role: 'org', actionType: 'submit', category: 'submit' });
+  const s = TS.buildTodaySummary({ personId: 'p6', role: 'org', now: D0910 });
+  assert.ok(Array.isArray(s.byAction), 'byAction 须存在（批次 320 新增字段）');
+  // ⚠ 种子本岗另有待办 ⇒ 不断言「全集恰为两类」，而断言**呈现契约**：组键只许七类之一、
+  //   且组序＝ACTION_ORDER 的过滤子序列（顺序固定、不随数据抖动）。
+  const ORDER = ['review', 'submit', 'authorize', 'participate', 'archive', 'read', 'track'];
+  const seq = s.byAction.map(g => g.actionType);
+  assert.ok(seq.every(k => ORDER.includes(k)), '组键只许是 TodoActionType 七类之一（不得自造分类）');
+  assert.deepEqual(seq, ORDER.filter(k => seq.includes(k)), '组序＝ACTION_ORDER（固定呈现顺序）');
+  const review = s.byAction.find(g => g.actionType === 'review');
+  assert.ok(review, `本批推入的「审核」须成组；实得组=${JSON.stringify(seq)}`);
+  assert.ok(seq.indexOf('review') < seq.indexOf('submit') || !seq.includes('submit'),
+    '审核 组须排在 提交 组之前（ACTION_ORDER 口径）');
+  assert.equal(review.label, '审核', '组标题＝动作性质中文标签');
+  const mine = review.items.filter(i => /^t-a/.test(i.id)).map(i => i.id);
+  assert.deepEqual(mine, ['t-a1', 't-a2'], '组内截止升序、**无截止者殿后**');
+  assert.ok(review.items.every(i => typeof i.domainLabel === 'string' && i.domainLabel.length > 0),
+    '每行须带业务域标签（九域降为行内胶囊）——由 inferDomain + WORK_DOMAIN_LABELS 单一源给');
+  const submit = s.byAction.find(g => g.actionType === 'submit');
+  assert.ok(submit && submit.items.some(i => i.id === 't-s1'), '无截止的「提交」项也须入组（旧版只统计不列示）');
 });
