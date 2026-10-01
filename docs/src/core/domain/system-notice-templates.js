@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261001o';
+import { periodLabel } from '../base/period.js?v=20261001p';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -267,6 +267,22 @@ const TEMPLATES = {
     read: false,
     publisher: '院党委（组织员）',
     recipients: '支部委员会（支委层）',
+  }),
+
+  // ── 组织者已转交（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）──────────
+  // 场景：「转交组织者」**生效后**通知**被退出的原组织者**（谁接手 / 谁办理 / 去哪看）。
+  // 受众＝**到人定向**（`audiencePersons`＝被退出的原组织者一人）——**不发角色广播**（不该让全支部
+  //   看到「某人被换下」）；文案＝**知会 ＋ 交接提示**（支书 2026-10-01 裁），**不派生待办**。
+  // 落点＝成员工作台（与 `project-auth-granted` 同款的「外部页」URL 形态）。
+  'organizer-transferred': ({ sourceId, removedPersonId, projectName, fromName, toName, byName, label, targetType }) => pick({
+    title: '组织者已变更',
+    content: `「${projectName}」的组织者已由 ${fromName} 转交 ${toName}${byName ? `（办理：${byName}）` : ''}，你已退出该${label || '项目'}；如有未了事项，请与接手人交接。`,
+    priority: 'normal',
+    audiencePersons: removedPersonId ? [removedPersonId] : undefined,
+    targetType,
+    targetId: sourceId,
+    targetUrl: 'workspace/visitor.html',
+    read: false,
   }),
 };
 

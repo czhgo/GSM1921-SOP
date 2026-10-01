@@ -331,6 +331,56 @@ test('补课催办通知（V-7 裁甲）：纪检委员可触发且受众到人�
   assert.equal(ghostRes.status, 403, '服务端无该补课任务 → 403');
 });
 
+// 批次 330（2026-10-01 · 支书裁「补：通知原组织者」）：转交组织者**生效后**知会被退出的原组织者
+//   —— 服务端 kind `organizer-transferred`
+//   · 授权：① **支委层**（转交可发起人＝支书 / 副支书 / 组织委员）；
+//           ② **被退出的原组织者本人**（`payload.removedPersonId === actor.id`）⇒ 受众＝他自己，
+//              只可能伤及本人 ⇒ 不构成「给任意人发『你被换下了』」的面；
+//   · 展示值：**项目名按表复算**（`activities.title`）——不采信 payload 同名伪造值；
+//   · 受众：**到人定向**（`audiencePersons`＝被退出的原组织者一人），**不设角色广播**。
+test('转交组织者通知（批次 330 裁）：支委层可触发且项目名按表复算；非支委且非本人 403；对象不存在 403', async () => {
+  const { token: secTok } = await login('p13');  // 支书（支委层 → 可触发）
+  const { token: memTok } = await login('p3');   // 普通成员（非支委）
+
+  // ① 支委层 + 活动存在 → 201；标题/受众/正文由服务端 build（不采信 payload 同名伪造值）
+  const okRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secTok),
+    body: JSON.stringify({
+      kind: 'organizer-transferred', sourceId: 'act-6',
+      payload: { removedPersonId: 'p1', projectName: '伪造项目名', fromName: '甲', toName: '乙' },
+    }),
+  });
+  assert.equal(okRes.status, 201, '支委层可发「组织者已转交」知会');
+  const notice = await okRes.json();
+  assert.equal(notice.title, '组织者已变更');
+  assert.deepEqual(notice.audiencePersons, ['p1'], '受众＝到人定向（被退出的原组织者一人）');
+  assert.equal(notice.audience, undefined, '不设角色广播（不该让全支部看到「某人被换下」）');
+  assert.ok(String(notice.content).includes('7月党课：新时代青年担当'),
+    '项目名按表复算（不采信 payload 的伪造 projectName）');
+  assert.equal(notice.targetType, 'activity', '活动 → targetType=activity');
+
+  // ② 普通成员 + 把「被退出者」写成别人 → 403（非支委且非本人）
+  const denyRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(memTok),
+    body: JSON.stringify({ kind: 'organizer-transferred', sourceId: 'act-6', payload: { removedPersonId: 'p1' } }),
+  });
+  assert.equal(denyRes.status, 403, '普通成员不得给他人生成该知会');
+
+  // ③ 普通成员 + 被退出者＝自己 → 201（受众＝他自己）
+  const selfRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(memTok),
+    body: JSON.stringify({ kind: 'organizer-transferred', sourceId: 'act-6', payload: { removedPersonId: 'p3' } }),
+  });
+  assert.equal(selfRes.status, 201, '原组织者本人可触发（受众＝本人）');
+
+  // ④ 服务端无该活动 → 403（杜绝凭空知会）
+  const ghostRes = await fetch(`${base}/api/v1/system-notices`, {
+    method: 'POST', headers: authHeaders(secTok),
+    body: JSON.stringify({ kind: 'organizer-transferred', sourceId: 'act-does-not-exist', payload: { removedPersonId: 'p1' } }),
+  });
+  assert.equal(ghostRes.status, 403, '服务端无该活动 → 403');
+});
+
 // C-2 方案 B（2026-09-11 支书批）：名册成员变更确认链「支书阶段写入」语义端点权限边界
 // POST /api/v1/members/:id/develop-stage —— 仅支书（SECRETARY_ROLES）+ 同支部；字段仅 developStage。
 test('成员变更确认链阶段端点：支书/副支书本支部 200 且落库；非支书侧 403；跨支部 403；白名单/枚举 400', async () => {

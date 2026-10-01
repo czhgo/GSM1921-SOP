@@ -313,6 +313,38 @@ const KINDS = {
       return !!rowOf(db, 'branches', sourceId);
     },
   },
+
+  // ── 组织者已转交（2026-10-01 批次 330 · 支书裁「补：通知原组织者」）──────────
+  // 对象：来源项目（活动 / 专班）必须存在。
+  // 授权：① **支委层**（转交可发起人＝支书 / 副支书 / 组织委员，皆支委层——见 organizer-transfer.js）；
+  //      ② **被退出的原组织者本人**（`payload.removedPersonId === actor.id`）——此时受众（模板内
+  //         `audiencePersons`）取的是**同一个 payload 字段**，故该通知**只可能发给他本人** ⇒
+  //         不构成「借他人名义给别人发『你被换下了』」的面（R-22：不自述可信，此处自述只会伤及本人）。
+  // 展示值：**项目名按表复算**（`activities.title` / `taskforces.name`，不采信客户端）；人名沿用 payload
+  //         （同 `project-auth-granted` 的既有做法——人名不在本服务端可读表内）。
+  'organizer-transferred': {
+    authorize({ actor, sourceId, payload, db }) {
+      if (!actor) return false;
+      if (!rowOf(db, 'activities', sourceId) && !rowOf(db, 'taskforces', sourceId)) return false;
+      const removed = payloadOf({ payload }).removedPersonId;
+      return COMMITTEE_ROLE_SET.has(actor.role) || (!!removed && removed === actor.id);
+    },
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId);
+      const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
+      if (act) {
+        vars.label = '活动';
+        vars.targetType = 'activity';
+        if (act.title) vars.projectName = act.title;   // 项目名按表复算（不采信客户端同名值）
+      } else if (tf) {
+        vars.label = '专班';
+        vars.targetType = 'taskforce';
+        if (tf.name) vars.projectName = tf.name;
+      }
+      return buildSystemNotice('organizer-transferred', vars);
+    },
+  },
 };
 
 // 统一 build 包装：sourceId 由服务端注入并置于末位，杜绝客户端 payload 覆盖落点锚点。

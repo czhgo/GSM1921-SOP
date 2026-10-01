@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261001o')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261001p')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);

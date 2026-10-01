@@ -255,7 +255,7 @@ export const VALIDATION_SITES = [
   //   独立页活动详情的**专用「转交组织者」浮窗**内未选接手人即点「转交」。
   //   ⚠ 与批次 323 登记的「成员角色内联编辑 → `请选择被赋权人`」**是两处不同调用点**（那条在表单内联编辑、
   //     这条在专用转交浮窗）⇒ 分别登记、各配一条真机流程（不为「同义」而合并）。
-  { file: SRC + 'components/governance/organizer-transfer.js', line: 117, field: '接手人', flow: 'secretary/活动详情·转交组织者', machine: true, msg: '请选择接手人' },
+  { file: SRC + 'components/governance/organizer-transfer.js', line: 132, field: '接手人', flow: 'secretary/活动详情·转交组织者', machine: true, msg: '请选择接手人' },
 
   // ── 跨台组件 / 服务 ──
   { file: SRC + 'components/feedback/issue-form.js', line: 100, field: '标题', flow: 'component/议题提交', machine: true, msg: '请输入标题' },
@@ -312,9 +312,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/governance/resolution-followup-manager.js', line: 145, field: '落实时限', flow: 'component/决议落实', machine: true, msg: '请选择落实时限' },
   { file: SRC + 'components/governance/vote-widget.js', line: 79, field: '表态', flow: 'component/表决控件', machine: true, msg: '请先选择表态' },
   { file: SRC + 'components/record/inspector.js', line: 572, field: '表态', flow: 'component/活动巡查·表决', machine: true, msg: '请先选择表态' },
-  { file: SRC + 'components/record/inspector.js', line: 1354, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'components/record/inspector.js', line: 1355, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
-  { file: SRC + 'components/record/inspector.js', line: 1356, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'components/record/inspector.js', line: 1360, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'components/record/inspector.js', line: 1361, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
+  { file: SRC + 'components/record/inspector.js', line: 1362, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
   { file: SRC + 'components/governance/person-edit-modal.js', line: 272, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/wizard.html` · 「新建支部…」面板**——一条流程覆盖该面板**两处**校验点。
   // ⚠ 原 reason「需进入支部配置向导的对应步（多步向导）」/「同上：多步向导」**两条都错**：

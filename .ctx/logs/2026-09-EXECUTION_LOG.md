@@ -22796,3 +22796,59 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **`npm test`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：909 项 / 909 过 / 0 红 / 0 跳过** · **耗时 1,353,419 ms（≈22.6 分钟）**。
 - ⚠ **如实登记**：末条进程退出码为 `1`，**非测试失败**——测试汇总已打印 `pass 909 / fail 0`，`exit=1` 系 Playwright 收尾时其自身 `debug.log` 写入被沙箱拦截（`TRAE Sandbox Error: hit restricted`）；**与测试内容无关**。
 - ⚠ **`.tmp-b329.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。
+
+
+## 批次 330（2026-10-01）：转交组织者补两项（通知被退出的原组织者 ＋ 支书台活动详情面板加跳转）
+
+> **决议 / 过程判据（`R-84`）**：本批**因裁而作**——批次 328 送裁的两条「在办」项获支书逐字裁定（**逐字见「一」**）。**裁定进决策日志**（`D-737`），**实现与实测进本节**。
+
+### 一、支书 2026-10-01 裁定（逐字）
+
+| # | 送问 | 支书裁定（逐字） |
+| --- | --- | --- |
+| 1 | 通知口径（只知会 / 知会 ＋ 交接提示 / 知会 ＋ 派生待办） | **「知会 ＋ 交接提示（推荐）」** |
+| 2 | 跳转入口位置（顶部徽章行右侧 / 活动信息卡内 / 面板底部动作区） | **「顶部徽章行右侧（推荐）」** |
+| 3 | 本批是否现在开做 | **「现在就做！！你必须规划好你要做什么，不能让目标永远不能收敛！！」** |
+
+### 二、本批实现
+
+- **① 通知被退出的原组织者**：新增系统派生通知 kind **`organizer-transferred`**——客户端模板（`docs/src/core/domain/system-notice-templates.js`）＋ 服务端注册表（`server/system-notice-kinds.js`）；受众＝**到人定向**（`audiencePersons`＝被退出的原组织者一人）、**不发角色广播**；文案＝**知会 ＋ 交接提示**、**不派生待办**；`organizer-transfer.js::transferOrganizer` 转交成功后 `NoticeStore.addSystem(...)`（失败只告警、**不回滚转交**）。
+  - 服务端 `authorize`＝**支委层 或 被退出的原组织者本人**（`payload.removedPersonId === actor.id` ⇒ 受众＝他自己，只可能伤及本人）＋ **对象存在**；`build` **项目名按表复算**（`activities.title` / `taskforces.name`，不采信客户端同名值）。
+- **② 支书台活动详情面板加跳转**：`docs/src/components/record/inspector.js` 顶部徽章行右侧加 `./activity.html?id=` 一枚「活动详情页 ›」（**只给支书 / 副支书**，`SECRETARY_ROLES`；`<base href="../">` 故写 `./`）；**不在面板内写第二份「转交」实现**。
+
+### 三、同批改准的台账（**不是放宽**）
+
+- `README-server.md` §6.7：kind 数 **21 → 22**（三处：清单标题 / 依据行「22 个键」/ 文件表「22 种 kind」）＋ 注册表区间 `:57-316 → :57-348` ＋ 补 `:325-347`（新 kind）引用。
+- `server/test/form-loop-registry.mjs`：两处 `line` 随本批插入行同步——`inspector.js` 信息编辑 3 条 **1354/1355/1356 → 1360/1361/1362**（跳转段 +6 行）；`organizer-transfer.js` 接手人 **117 → 132**（import 注释 +3 ＋ 通知段 +12）。
+- `server/test/permission-gate.test.mjs`：新增「转交组织者通知」用例（支委层 201 ＋ 受众到人 ＋ 项目名按表复算；非支委且非本人 403；本人 201；对象不存在 403）。
+
+### 四、守卫实跑（本批定向）
+
+- `permission-gate`（含新用例）· `doc-consistency`（`S5`/`S14` kind 数对账）· `doc-line-ref`（`R1–R6`）· `link-integrity`（`L1` 渲染型 `./activity.html` ＋ `L2`/`L3`/`L4`/`L5`）· `import-path-guard` · `module-load` · `button-system-guard` —— **49 / 49 / 0 红**。
+
+### 五、改动清单
+
+| 文件 | 改什么 |
+| --- | --- |
+| `docs/src/core/domain/system-notice-templates.js` | 新增模板 `organizer-transferred` |
+| `server/system-notice-kinds.js` | 新增 kind（authorize 支委层 / 本人；build 按表复算项目名） |
+| `docs/src/components/governance/organizer-transfer.js` | 转交成功后通知原组织者 |
+| `docs/src/components/record/inspector.js` | 支书台徽章行右侧加「活动详情页 ›」跳转 |
+| `README-server.md` | §6.7 kind 数 22（三处）＋ 注册表区间 |
+| `server/test/form-loop-registry.mjs` · `server/test/permission-gate.test.mjs` | 行号同步 ＋ 新用例 |
+| `.ctx/logs/2026-09-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · 本节 | `D-737` ＋ 四处计数 `462 → 463` |
+| 全站 `?v=` | `20261001o → 20261001p`（JS 217 / HTML 22 / CSS 2 / server-test 88；陈旧戳自检 0 残留） |
+
+### 六、如实登记
+
+- **不动** `AuthStore.syncProjectRoles` 的既有通知面（接手人那条 `project-auth-granted` 一字未动）。
+- 转交由**现任组织者本人**发起时，接手人那条既有通知在 api 模式仍受其 authorize 的支委层限制（**先于本批的既有边界**，只登记、不动）。
+- `ACTIVE_RULINGS.md` **0 行**（两项皆属既有裁定的落地，不产生新口径）。
+- 真机（`http://127.0.0.1:3001`，演示种子）已交支书目验。
+
+### 七、收尾全量（`R-85`）
+
+- **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,346,832 ms（≈22.4 分钟）**（本批新增 `permission-gate` 用例 ⇒ 909 → 910）。
+- ⚠ **如实登记（三跑才绿）**：首跑 `fail 1`——`form-loop-sweep::S6` 抓到本批插入行致 `inspector.js` 信息编辑 3 条行号漂移（1354/1355/1356 → 1360/1361/1362）；改准后第二跑又 `fail 1`——`organizer-transfer.js` 接手人 117 → 132。两处**均先直接实读目标行核对、再改**，第三跑 **910 / 910 / 0**。
+- ⚠ **如实登记（退出码）**：末条进程退出码为 `1`，**非测试失败**——测试汇总已打印 `pass 910 / fail 0`，`exit=1` 系 Playwright 收尾时其自身 `debug.log` 写入被沙箱拦截（`TRAE Sandbox Error: hit restricted`）；**与测试内容无关**。
+- ⚠ **`.tmp-b330*.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。
