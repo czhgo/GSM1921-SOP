@@ -17,11 +17,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001n';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261001n';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261001n';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261001o';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261001o';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261001o';
 // namespace 导入：红阶段（新 API 未实现）以 per-test 失败呈现而非整文件链接失败
-import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261001n';
+import * as TS from '../../docs/src/services/governance/today-summary.js?v=20261001o';
 
 // ── localStorage 内存桩（含 key/length）──
 const _store = new Map();

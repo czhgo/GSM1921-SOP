@@ -17,15 +17,15 @@
 // 时间口径：dateKey 由 now 按【本地时区】取 YYYY-MM-DD（勿用 toISOString——UTC 偏移跨日错位）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261001n';
-import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261001n';
-import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261001n';
+import { mockDB } from '../../core/domain/domain.js?v=20261001o';
+import { getMeetingRosterIds, getEffectiveMembers, RESIDENCE_KEY } from '../member/roster.js?v=20261001o';
+import { TodoStore, TodoActionType, inferDomain, WORK_DOMAIN_LABELS } from './todo.js?v=20261001o';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「今天」的今日会议/我的分工
 // 同样按查看者角色收窄——待批活动不进非支委层的今日摘要（与各台列表同一判据）。
-import { filterActivitiesForViewer } from '../core/visibility.js?v=20261001n';
-import { tokenOf } from '../../core/base/version-token.js?v=20261001n'; // P1 消费方会话缓存失效（spec §三.4）
+import { filterActivitiesForViewer } from '../core/visibility.js?v=20261001o';
+import { tokenOf } from '../../core/base/version-token.js?v=20261001o'; // P1 消费方会话缓存失效（spec §三.4）
 // 成员基础数据预览键（仅作 raw 源指纹；person.js 读链叠加预览，见 org-base-data-preview）
-import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261001n';
+import { PREVIEW_KEY } from '../branch/org-base-data-preview.js?v=20261001o';
 
 /** 按 roster 应到口径判定的会议类型（R6-3 支书 2026-09-06 裁定：今天有会 = 我应出席/参与） */
 const ROSTER_MEETING_TYPES = new Set(['支部党员大会', '党课', '组织生活会', '党小组会']);
@@ -99,6 +99,18 @@ export function approvedSignupHit(index, activityId, personId) {
   if (!bucket || bucket.length === 0) return false;
   return bucket.some(s => s && s.personId === personId);
 }
+
+/** 动作性质七类的**组序**（唯一源）：审核 → 提交 → 赋权 → 参与 → 归档 → 阅读 → 追踪。
+ *  2026-10-01 批次 320 立；批次 329 提升为**导出**（「今天」页左卡分组与本节自用同源，不再各留一份）。 */
+export const TODO_ACTION_ORDER = [
+  TodoActionType.REVIEW, TodoActionType.SUBMIT, TodoActionType.AUTHORIZE,
+  TodoActionType.PARTICIPATE, TodoActionType.ARCHIVE, TodoActionType.READ, TodoActionType.TRACK,
+];
+/** 七类动作性质的**中文组名**（唯一源，与 `TODO_ACTION_ORDER` 同源） */
+export const TODO_ACTION_LABELS = {
+  review: '审核', submit: '提交', authorize: '赋权',
+  participate: '参与', archive: '归档', read: '阅读', track: '追踪',
+};
 
 /**
  * 今日聚合（六角色工作台「今天」tab 数据源；只读、返回项不含敏感字段）
@@ -211,14 +223,8 @@ export function buildTodaySummary({ personId, role, now = new Date() } = {}) {
   //   **审核类、提交类、表决类** 等等」正是 `actionType` 这一层；**九业务域降为行内小胶囊**。
   //   **口径**：与 overdue/dueToday 吃**同一份** `groups`（`getGroupedByAction`）⇒ 不新增取数；
   //   **含无截止项**（挂起待办的大多数，旧版只统计不列示 ⇒ 正是「信息量少」的根源之一）。
-  const ACTION_ORDER = [
-    TodoActionType.REVIEW, TodoActionType.SUBMIT, TodoActionType.AUTHORIZE,
-    TodoActionType.PARTICIPATE, TodoActionType.ARCHIVE, TodoActionType.READ, TodoActionType.TRACK,
-  ];
-  const ACTION_LABELS = {
-    review: '审核', submit: '提交', authorize: '赋权',
-    participate: '参与', archive: '归档', read: '阅读', track: '追踪',
-  };
+  const ACTION_ORDER = TODO_ACTION_ORDER;
+  const ACTION_LABELS = TODO_ACTION_LABELS;
   const byAction = [];
   {
     const buckets = new Map(ACTION_ORDER.map((k) => [k, []]));

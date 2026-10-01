@@ -19,7 +19,7 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `V-6` 丙（2026-10-01 批次 327）：业务域**重点三域**识别色的单一源 —— 非空转断言用它（不依赖演示数据）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261001n';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261001o';
 
 let server, base, browser;
 
@@ -58,12 +58,12 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
     // 登录默认落点即「今天」页；等本卡渲染完成
     await page.waitForFunction(() => {
       const w = document.querySelector('[data-ws-memo="today"]');
-      return !!w && w.textContent.includes('需要我今天动手');
+      return !!w && w.textContent.includes('今天要办');
     }, null, { timeout: 15000 });
 
     const probe = await page.evaluate(([labels, domainLabels]) => {
       const wrap = document.querySelector('[data-ws-memo="today"]');
-      const card = [...wrap.querySelectorAll('section')].find((s) => s.textContent.includes('需要我今天动手'));
+      const card = [...wrap.querySelectorAll('section')].find((s) => s.textContent.includes('今天要办'));
       const headRow = card?.querySelector(':scope > div');
       const headBtn = headRow?.querySelector('button[data-today-all="todo"]');
       const rows = [...wrap.querySelectorAll('.today-go[data-go="todo"]')];
@@ -93,9 +93,14 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
 
     // ① 新结构：卡标题行收编「全部 ›」
     assert.ok(probe.hasHeadBtn, '左卡标题行须有「全部 ›」（data-today-all="todo"）——分组后链接上提到卡标题行');
-    // ② 反向证据：被斥为「花瓶」的旧概括行已移除
+    // ② 反向证据：被斥为「花瓶」/「四轴混排」的旧段头/概括行已移除
     assert.ok(!probe.text.includes('本岗待办'), '旧「本岗待办」概括行须已移除（其职责由动作性质分组取代）');
     assert.ok(!probe.text.includes('今天到期'), '旧「今天到期」段头须已移除（同批并入动作性质分组）');
+    // ②′（2026-10-01 批次 329 · 支书裁「甲 单一轴＝动作性质」）：原「四轴混排」的另四个段头也须已并入七类组——
+    //    判据只认 **h4 组标题**（不受行内文案干扰）：不得再出现「今日分工 / 待我表态 / 未读通知 / 待我处理的汇报」。
+    const OLD_SEG_HEADS = ['今日分工', '待我表态', '未读通知', '待我处理的汇报'];
+    assert.deepEqual(probe.h4s.filter((t) => OLD_SEG_HEADS.includes(t)), [],
+      `旧段头（${OLD_SEG_HEADS.join(' / ')}）须已收进动作性质七类组；实得 h4＝${JSON.stringify(probe.h4s)}`);
     // ③ 种子里本岗确有在办待办 ⇒ **必须**见到动作性质组（不用 if 兜底：兜底会让「一条待办都没有」
     //    这种退化也判绿，等于没证）
     assert.ok(probe.rowCount > 0, `支书台今天页须有本岗在办待办行；实得 ${probe.rowCount} 行`);

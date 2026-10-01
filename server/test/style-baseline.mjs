@@ -590,18 +590,20 @@ export const P_TEXT_TIER_BASELINE = {
   'docs/src/entries/tabs/secretary/overview-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/todo-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/secretary/workforce-panel.js': { c: 4, v: [11] },
-  'docs/src/entries/tabs/today/today-tab.js': { c: 1, v: [11] },
   'docs/src/entries/tabs/visitor/thought-report-tab.js': { c: 1, v: [11] },
   'docs/src/entries/pages/wizard-entry.js': { c: 1, v: [11] },
 };
 
 /** 段落/导语档规模（非空转下限；防台账被悄悄删空 ⇒ 与 P_TEXT_TIER_BASELINE 同批收基线）
  *  ⚠ 2026-10-01 批次 321：`org/development-tab.js`（原 c:2）随「整页并入人才库」**删除** ⇒
- *    文件数 **27 → 26**、处数 **83 → 81**（同批收基线；其 11px 站点随之消失）。 */
-export const P_TEXT_TIER_TOTAL_BASELINE = 81;
-export const P_TEXT_TIER_FILE_BASELINE = 26;
-/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档随上条同批 83 → 81（2026-10-01 批次 321） */
-export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 81, 10: 0, 9: 0 };
+ *    文件数 **27 → 26**、处数 **83 → 81**（同批收基线；其 11px 站点随之消失）。
+ *  ⚠ 2026-10-01 批次 329：`today/today-tab.js` 的**唯一** 11px `<p>`（旧「逾期区」段头）随
+ *    「今天页收成单一轴」（逾期不再单开段）**清零** ⇒ 收基线删条目（`c:1`）：
+ *    文件数 **26 → 25**、处数 **81 → 80**。 */
+export const P_TEXT_TIER_TOTAL_BASELINE = 80;
+export const P_TEXT_TIER_FILE_BASELINE = 25;
+/** 按值台账（只报不判；9/10px 是禁止档，恒为 0）——11 档随上条同批 83 → 81 → 80（2026-10-01 批次 329） */
+export const P_TEXT_TIER_BY_VALUE_BASELINE = { 11: 80, 10: 0, 9: 0 };
 
 /** 「零引用类」台账（2026-09-28 死码清理批，给 `server/test/dead-selector-guard.test.mjs` 消费）
  *

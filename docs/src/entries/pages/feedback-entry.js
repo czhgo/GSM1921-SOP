@@ -1,23 +1,23 @@
 // role: [工程师]+[AI]
 // feedback-entry.js — 意见反馈入口（GitHub Issue 风格）
 
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261001n';
-import { renderHeader } from '../../components/shell/header.js?v=20261001n';
-import { BranchService } from '../../services/core/runtime.js?v=20261001n';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261001o';
+import { renderHeader } from '../../components/shell/header.js?v=20261001o';
+import { BranchService } from '../../services/core/runtime.js?v=20261001o';
 // D-486（2026-09-18 批次 88）：本页必须先 hydrate API 数据源再取数——与 activity / archive 独立页同款标准形。
 // 此前本页连 runtime.js 都未 import ⇒ api 形态下 getDataSource() 仍是 mock，意见列表读的是本地
 // issues.json / localStorage（种子能开、服务端新数据打不开）。本批与评论写链（issue-detail.js 改走
 // 服务层）一并处置——只补 hydrate 而写链没接，会把「评论落本机、自见」变成「评论静默丢失」。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261001n';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261001n';
-import { IssueStore } from '../../services/governance/issues.js?v=20261001n';
-import { MilestoneStore } from '../../services/governance/milestones.js?v=20261001n';
-import { showToast, getBasePath } from '../../core/base/utils.js?v=20261001n';
-import { AuthStore } from '../../services/core/auth.js?v=20261001n';
-import { renderIssueList } from '../../components/feedback/issue-list.js?v=20261001n';
-import { renderIssueDetail } from '../../components/feedback/issue-detail.js?v=20261001n';
-import { scrollDetailIntoView } from '../../components/ui/detail-anchor.js?v=20261001n';
-import { renderIssueForm } from '../../components/feedback/issue-form.js?v=20261001n';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261001o';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261001o';
+import { IssueStore } from '../../services/governance/issues.js?v=20261001o';
+import { MilestoneStore } from '../../services/governance/milestones.js?v=20261001o';
+import { showToast, getBasePath } from '../../core/base/utils.js?v=20261001o';
+import { AuthStore } from '../../services/core/auth.js?v=20261001o';
+import { renderIssueList } from '../../components/feedback/issue-list.js?v=20261001o';
+import { renderIssueDetail } from '../../components/feedback/issue-detail.js?v=20261001o';
+import { scrollDetailIntoView } from '../../components/ui/detail-anchor.js?v=20261001o';
+import { renderIssueForm } from '../../components/feedback/issue-form.js?v=20261001o';
 
 renderSidebar('feedback');
 renderHeader('feedback');

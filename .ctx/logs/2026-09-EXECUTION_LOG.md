@@ -22736,3 +22736,63 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **`npm test`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`，`:3000` 服务在跑）：909 项 / 909 过 / 0 红 / 0 跳过** · **耗时 1,399 s（≈23.3 分钟）** · `exit=0`（含本批修好的 `frontmatter-freshness::F2`）。
 - 同批其余实跑：`doc-consistency` ＋ `timestamps-note-guard` ＋ `frontmatter-freshness` ＋ `link-integrity` **31 / 31**。
 - ⚠ **`.tmp-b328.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。
+
+
+## 批次 329（2026-10-01）：今天页左卡收成「单一轴」（动作性质 · 卡名 · 色条语义 三条再裁）＋ 落地
+
+> **决议 / 过程判据（`R-84`）**：本批**因裁而作**——支书 2026-10-01 就批次 328 送裁的「今天页三处视觉返工」**逐处给三档并点选**（**逐字见「一」**）。**裁定进决策日志**（`D-736`），**实现与实测进本节**。
+
+### 一、支书 2026-10-01 再裁（逐字）
+
+| # | 送问（三档） | 支书裁定（逐字） |
+| --- | --- | --- |
+| 1 | 今天页左卡**分节轴**收成哪种 | **「甲 单一轴＝动作性质（推荐）」** |
+| 2 | 左卡标题「需要我今天动手」**换成哪个** | **「甲 「今天要办」（推荐）」** |
+| 3 | 条目左侧 3px **色条只承担哪种含义** | **「甲 只表紧迫度（推荐）」** |
+
+（初判「不通过 · 须返工」的原话见本日志**批次 328「一」第 3 行**。）
+
+### 二、本批实现（今天页左卡重写）
+
+- **卡名**：`需要我今天动手` → **`今天要办`**（`leftCard` 与 `_allEmptyHtml` 两处）。
+- **单一轴＝动作性质七类**：删 `_overdueZone`（逾期不再单开红底段，降为**行内红条**）· 删 `_dutyBlock` / `_pendingBlock` 两段头；**今日分工 / 待我表态 / 未读通知 / 待我处理的汇报**按**单一源映射** `SOURCE_ACTION`（duty / vote → `participate` · notice → `read` · report → `review`）**并入七类组**。
+- **行左 3px 条只表紧迫度**：`_todoEntry` 统一给 红（`--functional-error`，逾期）/ 金（`--functional-warning`，今天到期）/ 灰（`--neutral-400`，随时）；分工 / 表态 / 通知 / 汇报行一律灰（无截止）；**分类走胶囊**（业务域 / 角色），不再用主题色 / info 蓝条。
+- **统一行模型**：`_todoEntry` / `_dutyEntry` / `_voteEntry` / `_noticeEntry` / `_reportEntry` → `{key, bar, inner, attrs}`，经 `_entryRow` 落 `_row`；`_actionGroupsBlock` 组内**按紧迫度排序**（无截止殿后）。
+- **汇报为异步**：`_fillPendingReports(container, personId, onNav)` 改为**注入「审核」组**——无该组则动态建组（`review` 在 `TODO_ACTION_ORDER` 首位 ⇒ `afterbegin` 前置），有则该组计数同步 +n；新注入行**单独绑定点击**（主渲染的 `.today-go` 循环已跑过）。
+- **单一源提升**：`today-summary.js` 的 `ACTION_ORDER` / `ACTION_LABELS` 提升为**导出** `TODO_ACTION_ORDER` / `TODO_ACTION_LABELS`（左卡与生成侧同源，不再各留一份）。
+- **头部版式注释同批改准**（版式段 ＋ 信息自陈段 ＋ 紧迫度 / 位轴 ＋ 计数行）。
+
+### 三、同批改准的守卫 / 基线（**不是放宽**）
+
+- `server/test/today-action-groups-e2e.test.mjs`：卡名断言两处改「今天要办」；**新增 ②′ 反向证据**——「旧段头（今日分工 / 待我表态 / 未读通知 / 待我处理的汇报）**须已并入七类组**」，判据只认 **h4 组标题**（不受行内文案干扰）。
+- `server/test/style-baseline.mjs`：`P_TEXT_TIER_BASELINE` **删** `today-tab.js` 条目（其**唯一** 11px `<p>` ＝旧「逾期区」段头随删）⇒ `P_TEXT_TIER_TOTAL_BASELINE` / `FILE_BASELINE` **81 / 26 → 80 / 25**、按值 `11: 81 → 80`（收基线＝删条目，非放宽）。
+
+### 四、守卫实跑（本批定向）
+
+- `text-tier-guard`（段落口径 80 / 25 持平）· `hex-hardcode-guard` · `dead-selector-guard` · `button-system-guard` · `today-summary`（七项含 `byAction`）· `today-action-groups-e2e` —— **全绿**。
+- `doc-consistency`（S13 TIMESTAMPS↔frontmatter · S14 四处计数）· `timestamps-note-guard` · `frontmatter-freshness`（F1 / F2 / F3）· `link-integrity` · `version-stamp` · `import-path-guard` · `module-load` —— **62 / 62 / 0 红**。
+- `form-loop-sweep` ＋ `page-sweep` ＋ `ux-guard` ＋ `tab-nav` —— **105 / 105 / 0 红**（含 `form-loop-sweep`：`VALIDATION_SITES=109` / `MACHINE_FLOWS=58` / `SUCCESS_FLOWS=17`，与基线持平）。
+
+### 五、改动清单
+
+| 文件 | 改什么 |
+| --- | --- |
+| `docs/src/entries/tabs/today/today-tab.js` | 左卡重写（卡名 / 单一轴 / 色条语义 / 统一行模型 / 汇报异步注入「审核」组） |
+| `docs/src/services/governance/today-summary.js` | `TODO_ACTION_ORDER` / `TODO_ACTION_LABELS` 提升为导出 |
+| `server/test/today-action-groups-e2e.test.mjs` | 卡名断言改准 ＋ 新增 ②′ 反向证据 |
+| `server/test/style-baseline.mjs` | 段落 11px 台账删 `today-tab.js`（81 / 26 → 80 / 25） |
+| `.ctx/logs/2026-09-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · 本节 | `D-736` ＋ 四处计数 `461 → 462` |
+| 全站 `?v=` | `20261001n → 20261001o`（`bump-version`：JS 217 个 / HTML 22 个 / CSS 2 个 / server-test 88 个；陈旧戳自检 0 残留） |
+
+### 六、如实登记
+
+- **只改今天页左卡**（依 `D-736` / `D-735`「须逐处对应三点、不得顺手改其它」）；**右卡 / 其它页一字未动**。
+- `_fillPendingReports` 由「独立子段」改为「注入审核组」⇒ 该组**计数随注入同步 +n**（§4.14 计数只留一处）。
+- `ACTIVE_RULINGS.md` **0 行**（纯视觉收束，不产生新口径）。
+- 真机（`http://127.0.0.1:3001`，演示种子）已交支书目验。
+
+### 七、收尾全量（`R-85`）
+
+- **`npm test`（`DISABLE_PASSWORD_CHECK=1` / `DEMO_READONLY=0`）：909 项 / 909 过 / 0 红 / 0 跳过** · **耗时 1,353,419 ms（≈22.6 分钟）**。
+- ⚠ **如实登记**：末条进程退出码为 `1`，**非测试失败**——测试汇总已打印 `pass 909 / fail 0`，`exit=1` 系 Playwright 收尾时其自身 `debug.log` 写入被沙箱拦截（`TRAE Sandbox Error: hit restricted`）；**与测试内容无关**。
+- ⚠ **`.tmp-b329.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。

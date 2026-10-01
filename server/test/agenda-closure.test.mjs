@@ -42,7 +42,7 @@ async function loginAs(browser, role) {
   ]);
   await page.waitForTimeout(1200);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261001n')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261001o')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   return page;
 }
 
