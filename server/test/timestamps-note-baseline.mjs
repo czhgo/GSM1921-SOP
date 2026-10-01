@@ -15,7 +15,8 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
-export const NOTE_TOTAL_BUDGET = 57000;
+// ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
+export const NOTE_TOTAL_BUDGET = 50000;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
@@ -37,13 +38,9 @@ export const BATCH_MENTION_MAX = 3;
 export const ROWS_MIN = 245;
 
 /** 单格 > NOTE_LONG_MAX 字（26 行 · 待专项批把沿革迁 `.ctx/logs/**`） */
+// ⚠ 2026-10-01 批次 322：**已清零**——原 6 格 >1000 字的备注**整段迁出**到 `.ctx/logs/2026-09-EXECUTION_LOG.md`
+//   「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」，原位换短注 ⇒ 本清单合法为空（**达标态**，非「删空即变绿」，见 `N7` 例外条）。
 export const OVERLONG_BASELINE = [
-  '.ctx/SNAPSHOT.md',
-  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
-  'content/03_doc_system/OPERATIONS_GUIDE.md',
-  'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
-  'docs/src/core/domain/work-map.js',
-  'server/routes/resources.js',
 ];
 
 /** 备注含 `T-\d*` 编号（75 行 · T-编号是执行日志的键，台账不应承载） */
@@ -124,9 +121,7 @@ export const WITH_TID_BASELINE = [
 
 /** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 行） */
 export const WITH_DATE_ECHO_BASELINE = [
-  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/INDEX.md',
-  'content/03_doc_system/OPERATIONS_GUIDE.md',
   'content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md',
   'docs/src/components/governance/org-setup-wizard.js',
   'docs/src/components/shell/header.js',
@@ -144,9 +139,7 @@ export const WITH_DATE_ECHO_BASELINE = [
 
 /** 单格「批次 N」罗列 > BATCH_MENTION_MAX 次（49 行 · 沿革应进 `.ctx/logs/**`） */
 export const WITH_BATCH_MENTION_BASELINE = [
-  '.ctx/SNAPSHOT.md',
   'README-members.md',
-  'content/02_institution/SYSTEM_ROLE_PERMISSION.md',
   'content/02_institution/sop/宣传委员工作流程指南.md',
   'content/02_institution/sop/常见工作场景快速指南.md',
   'content/02_institution/sop/支委与党小组定人定责定岗说明.md',
@@ -155,14 +148,12 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'content/03_doc_system/SERVICE_CATALOG.md',
   'content/03_doc_system/USAGE_POLICY.md',
   'content/04_web_design/data/DATA_FLOW.md',
-  'content/04_web_design/deploy/DEPLOYMENT_GUIDE.md',
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
   'content/insights/README.md',
   'docs/src/components/governance/org-setup-wizard.js',
   'docs/src/components/record/inspector.js',
   'docs/src/components/ui/modal.js',
   'docs/src/data/data-adapter.js',
-  'docs/src/core/domain/work-map.js',
   'docs/src/entries/pages/party-committee-meeting-entry.js',
   'docs/src/entries/pages/settings-entry.js',
   'docs/src/entries/tabs/disc/attendance-tab.js',
@@ -172,5 +163,4 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'docs/src/entries/tabs/secretary/calendar-tab.js',
   'docs/src/entries/tabs/secretary/work-map-tab.js',
   'docs/src/services/activity/activity.js',
-  'server/routes/resources.js',
 ];

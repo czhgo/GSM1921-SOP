@@ -22348,3 +22348,47 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 **版本戳**：`20260930o → 20260930p`（JS 217 / HTML 22 / CSS 2 / server-test 87 文件；陈旧戳 0 处残留）。
 
 ⚠ **如实登记**：① 本批**未跑全量**（守卫合跑 ＋ 两个表决类真机件），**收尾全量由收尾人另跑**；② 未新增表格 / 未改权限门 / 未改服务端；③ 结论**只到「门已归一」**——「名单外者是否该看到只读提示（如公共页那句『仅应到表决人可表态』）」**本批未做**，如实留作待定。
+
+---
+
+## 附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）
+
+> **为什么有这一节**：`CLAUDE.md R-89` —— 台账备注列**只写「现状 / 边界 / 为什么」**，逐批沿革一律进 `.ctx/logs/**`。
+> 本批（2026-10-01 批次 322）把 `TIMESTAMPS.md` 中**仍超 1000 字**的 6 格**整段逐字迁出**于此，原位换一行短注；
+> **编号与条数不变**（`N1` 行数 / `N7` 四份清单互异均未动）。以下为**原全文**（迁出时逐字保留）。
+
+### .ctx/SNAPSHOT.md
+
+```
+**（本批：`v54 → v55`——§I `workflow/` 补 `orchestration.js`；标题 v53 → v55 改准）** **（批次 236：`v53 → v54`——§I 目录树新增 `CHANGELOG.md`、`scripts/` 补 `release.mjs`、`mock/` 补 `prop.js`、`server/routes/` 标注六件切分；`CONTRIBUTING.md` 标注新增 §六 发版）** **（2026-09-26 批次 202：`:75/:76/:151` 引用改准——02/03 目录树两行改准〔`FLAT_ORGANIZATION_DESIGN` 已并入 `COMMISSIONER_DUTY_FRAMEWORK` §G、`ROLE_CLASSIFICATION` 迁入 `03_doc_system/OPERATIONS_GUIDE.md` §24–§31〕＋ 关键文件表「组织性」一行术语指向改准为 `OPERATIONS_GUIDE.md §19`）** 当前基线（v55；2026-09-20 批次 106 补 `thought-report.html` / `person.html` 两行与 `scripts/version-next.mjs`；**2026-09-21 批次 138 角色表两行改准**——纪检台补「党课 / 党员大会上传位在此、支委会不考勤」· 组长台「考勤上传（该场组织者位：党小组会 / 组织生活会 / 主题党日）」，`D-558`）；**2026-09-25 批次 179**（`D-644`）：`§I` 目录树行（`:76`）＋ `§II` 宪章层（`:94`）＋ 关键文件表两行（`:114` / `:115`）＋ 角色键权威源句（`:180`）四处**随 `content/03_doc_system/` 三份合一改准**（`SSOT_INDEX.md` / `SERVICE_CATALOG.md` 已并入 `ARCHITECTURE.md`），frontmatter 与本报行同批刷为 **2026-09-25**；**2026-09-25 批次 181**（`D-645`）：`§I` 目录树行（`:77`）的 `04_web_design/` 括注补「**`deploy/` 2026-09-25 批次 181 四份合一后只剩 `DEPLOYMENT_GUIDE.md`**（原 `AUTHENTICATION_MODEL` / `PKU_PARTY_INTEGRATION` / `WECHAT_INTEGRATION` 已并入）」；frontmatter 与本报行**仍为 `2026-09-25`**）；**2026-09-25 批次 190**（`D-652`）：`§I` 拓扑（`db.js` / `data.db` 两行一带，`:67` / `:72`）之后新增「**数据表现状（台账标注）**」一段——记 `server/data.db` **45 张表 / 317 行 / 30 张空表**（逐表清单）＋ 写明**性质＝台账标注、不代表功能不可用**（同批另两条「单写者」「附件走磁盘」一并说明）；**未新增小节、落 `§I` 既有小节内**、**未改 `server/**`**；frontmatter 与本报行**仍为 `2026-09-25`**）
+```
+
+### content/02_institution/SYSTEM_ROLE_PERMISSION.md
+
+```
+**（2026-09-27 支书裁定「补入口，让它们真可调」：本文件 §9l 新增「现已开放入口」小节——时限类 / 补课范围与时限归纪检域、篇幅字数类归组织域，均已登记 `POLICY_OVERRIDABLE` 并落到设置页各域「职责参数」卡；frontmatter 与本报行同步刷为 2026-09-27）** **（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔迁出的 `ROLE_CLASSIFICATION.md` → `OPERATIONS_GUIDE.md §24–§31`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** 系统角色权限矩阵（2026-09-05 自 ROLE_CLASSIFICATION.md §九 拆出：角色键全表 9a0 + 权限矩阵/赋权链 + 双轨约定 §9f；2026-09-17 增 §9j 匿名反馈查看真身权限；2026-09-20 批次 115 §9l 加「系统默认值的取齐记录」（考勤确认 / 汇总：24h→1 天、48h→2 天）与「对照项（二）：上级规定的时限下限不属支部可调」＋ 变更历史 1 行，frontmatter 同步；2026-09-21 批次 124 §9l「同族登记项（一）」补登**思想汇报字数**（1500 / 1200，系依族例登记的推导——支书未就本数字逐条明答，`D-547`）＋ 变更历史 1 行；**2026-09-22 批次 143**：§9a0 角色键全表**撤 `all` 一行**（10 业务键 + **2** 遗留键 = **12** 键全表）＋ 语义约定补 1 条说明 `all` 非角色、「全体党员」由通知受众 sentinel 承载，frontmatter 与本报行同步刷为 2026-09-22）；**2026-09-22 批次 154**：**§9a0 角色键全表改准为 13 键**（11 业务 + 2 遗留，补批次 139 的 `deputy-leader` 行 —— 表后整体 +1，`README-server.md` 12 处行号引用同批平移、`:24-38` 不变，`docs/src/components/record/inspector.js:699` 的 `:141` → `:142`）＋ **正文沿革注记降级 20 处**（各节标题的日期/裁定号 · `:22` 的「2026-09 自 auth.js 迁入常量层」· `:40` 的「批次 143 · 按支书…裁定」· `:43` 的增补与改裁日期 · `:118` `:120` `:122` 的落代码日期 · `:142` `:148` `:152` `:161` `:163` `:178` 的沿革半句 · `:219` `:232` `:236` 的批次号），**规则一字未删**；⚠ **「变更历史」节判为「文档自身台账」⇒ 保留未动**（与 `ROLE_CLASSIFICATION.md §八` 同族，理由见执行日志批次 154），`D-597`
+```
+
+### content/03_doc_system/OPERATIONS_GUIDE.md
+
+```
+**（2026-09-27 批次 213：§23 内部代号词典「域参数（L2）」词条改准——由旧口径「现状三键」改准为「现行 8 个节 / 14 条叶项」并逐域列出（与 `docs/src/core/domain/policy-defaults.js::POLICY_OVERRIDABLE` 实读一致）；frontmatter 与本报行同步刷为 2026-09-27）** **（2026-09-26 批次 202：`P.16` 第六批——03《运行与协作规范》合并 · 第六份交付）** 运行与协作规范（**文件保留 `OPERATIONS_GUIDE.md`、标题改《运行与协作规范》**）：§1–§14 文档规范（权威层级/术语/关系/角色/YAML/编码/排版/有机性/编号/日志/反论/命名/面向用户/角色操作）＋ **§15–§18 流程机制**（原 `PROCESS_GUIDE.md` 并入）＋ **§19–§23 使用规范**（原 `USAGE_POLICY.md` 并入：术语/AI 展开/Emoji/决策记录/词典）＋ **§24–§31 文件角色分类体系**（原 `content/02_institution/ROLE_CLASSIFICATION.md` 迁入）；三份源文件已删除；同批沿革瘦身＝四份源文件的记账式沿革注记逐字迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md` 批次 202 附节（含「原句 → 去向」对照）；**本行日期已刷为 `2026-09-26`**（与 frontmatter 实读同值 ⇒ `S13` 绿）；⚠ **其余被本批改引用 / 加注的 `content/**` 文件（ARCHITECTURE / DOC_MAP / 03 README / 02 README / SYSTEM_ROLE_PERMISSION / COMMISSIONER_DUTY_FRAMEWORK / SECRETARY_DIRECTIVES / DESIGN_SYSTEM / DEPLOYMENT_GUIDE / MODULE_UI_DESIGN / SOP_WEBSITE_GUIDE / ROLE_PERMISSION_DESIGN / PARTY_COMMITTEE_DESIGN / DOCUMENT_GOVERNANCE / TEST_AND_VERIFICATION / insights README）的 frontmatter `last_updated` 本批未刷**（沿用已交付 5 批先例「另一路」口径：只改引用 / 加注、日期不刷，属 `R-83`「提交后必刷」债务、本表行按 `S13` 口径随 frontmatter ⇒ `S13` 绿）
+```
+
+### content/04_web_design/deploy/DEPLOYMENT_GUIDE.md
+
+```
+**（2026-09-27 批次 213：清偿 `R-83` 债务——frontmatter `last_updated` 由 `2026-09-26` 刷为 `2026-09-27`（HEAD 提交日 2026-09-27 后 `F2` 判红；仅刷元数据、正文未改）；与本报行同值 ⇒ `S13` 绿）** **（2026-09-26 批次 202：03《运行与协作规范》合并后引用改准〔`:942` → `OPERATIONS_GUIDE.md`〕；只改引用、`last_updated` 未刷〔`R-83` 债务〕；由同一批「另一路」落地）** 部署与对外对接（**2026-09-25 批次 181**：**四份合一**——`AUTHENTICATION_MODEL.md` / `PKU_PARTY_INTEGRATION.md` / `WECHAT_INTEGRATION.md` 三份**并入本文件并删除**、**标题改《部署与对外对接》**〔原 DG 主体作 **§一–§三**〔编号一字未改〕、原 AUTH 作 **§四 认证与登录门控**〔`4.1–4.8`〕、原 WECHAT 作 **§五 微信协同与小程序设计**〔`5.1–5.8`〕、原 PKU 作 **§六 北大党校对接**〔`6.1–6.11`〕、新增 **§七 边界与引用**、附录作 **附录 A.1–A.4**；删原「§四 专项细节指针」〕，行数 **1053 → 1017** · 字节 **81,601 → 77,099** · 沿革注记 **6 → 0** · 表格行 **276 → 287**，`D-645`；⚠ **本行日期仍为 `2026-09-20`**——**本文件 frontmatter 的 `last_updated` 实读亦即 `2026-09-20`、与表行同值 ⇒ `S13` 绿**；其 frontmatter **未随本批改动刷新**，属 `R-83`「提交后必刷」纪律范畴、**授权面外只登记**）（原总案沿革：2026-09-04 按阅读对象重构为对外总案：系统形态速览/四路径与决策矩阵/学校党校对接总叙事与决策矩阵/专项细节指针+附录；原计算中心对接全案并入 §三；SCHOOL_IT_DEPLOYMENT 2026-08-24 并入历史；2026-09-20 批次 110 改准资源表 32 → 35〔5 处〕与 Node「18+」→「≥22」，批次 113 刷本行日期）
+```
+
+### server/routes/resources.js
+
+```
+🗑️ **已拆分（2026-09-28 批次 234）**：1301 行单文件按**内聚**拆为 `server/routes/resources/` 六件——`index.js`（路由器装配 + 通用资源 CRUD + bootstrap / snapshot + 支部与配置 + 意见反馈语义端点）· `gates.js`（资源写门 + 活动写门 + `users` 支委身份靶向判据）· `approval-gates.js`（活动批准门：PATCH 状态转移门 + 快照口 / 直建口两条绕行收口）· `snapshot-versions.js`（快照集合版本号协议）· `store.js`（资源表访问原语：资源名→表映射 / ID 前缀 / 单表单行读写）· `semantic-routes.js`（语义端点六组：三委交接 / 成员变更确认 / 里程碑 / 申诉 / 未读标记 / 授权审计）；**逐字搬迁、口径零改写**，`README-server.md` 行号引用同批改签到具体文件。**（2026-09-27 批次 211–212：路二 setting 可调性——`DOMAIN_SECTION_BY_ROLE` 由**单节字符串改数组**（域→节映射前后端两侧同改；否则部署形态域负责人写不进新节）；改**净零行**（+11/−11）以免顶偏 `README-server.md:336` 的行引用）** 25 资源 list/create/update + bootstrap + snapshot（2026-09-21 批次 120：`COMMISSIONER_WRITE` 加 `fileSpaceRecords` / `imageRecords`——上传口元数据写口收进支委层，回应 `D-448` ④；**批次 132：`POST /activities/:id/brand` 由「任一登录用户可翻转」收为「支委层 + 只能取消」**——取消「点一下即认定」的后门，`D-559`）；**2026-09-22 批次 151：活动 `PATCH` 加一道「批准门状态转移门」**——待批行离开待批态须带批准语义（`approval.state='approved'/'rejected'`）且角色符合该活动固化的档位（`_activityApprovalGateDeny`，判据单一源复用 `canApproveActivity`），**叠加在既有活动角色门之后**；`POST /activities` 创建口**未加门**（另造已发布活动可绕，如实登记），`D-591`）
+```
+
+### docs/src/core/domain/work-map.js
+
+```
+支部工作地图模块目录（**2026-09-21 批次 135 补登**——本表原先无此行；批次 135**仅 `:76` 描述一句**改准：「意见建议反馈处理（纪检委员主责）」→「处置归支委会，支书主持支委会」，依 `D-301` / `D-412`〔**改后该 `desc` 落在 `:81`**〕；`defaultOwner` **未动**）；**2026-09-22 批次 141 改注**——**新增「组织型主体」注册表**（`ORG_SUBJECTS`＝`{ 'branch-committee': '支委会' }` ＋ `isOrgSubject` / `ownerSubjectType`，`:18-36`）＋ `defaultOwner` 由「只接受 role key」**扩为「主体引用」**（`expandWorkforce` 兜底走 `ownerSubjectType`）＋「意见反馈处理」「制度制定与迭代」两模块 `defaultOwner` 改准为 `'branch-committee'`（`D-573`）；**2026-09-22 批次 144 改注**——模块「发展党员」`defaultOwner` 由 `'org-commissioner'` 改准为 **`'branch-committee'`**（`desc` 由「（组织委员主责）」→「（责任在支委会，集体决策；考察与材料准备归组织委员）」，＋6 行注释），依母本 §5.1 定人表 ＋ `D-300`（`D-576`；**该文件内插 6 行 ⇒ `README-server.md:529` 的 `work-map.js` 行号引用机械平移为 `57-160`**）；**2026-09-22 批次 145 改注**——**「三会一课」按形式拆为 4 个模块**（`branch-party-meeting` / `branch-committee-meeting` / `party-lecture`＝`secretary`，`party-group-meeting` 党小组会＝`leader`）＋ **`theme-party` `defaultOwner` 由 `'secretary'` 改准为 `'leader'`** ⇒ **模块目录 11 → 14 项**（`D-577`；**同批连带**：`workforce-duty-card.js` 模块→tab 映射、`workforce.js` 的 `DUTY_DOMAIN`、5 个测试文件、`README-server.md §3.5` 表）；**2026-09-22 批次 149 改注**——`ORG_SUBJECTS` **增 `'party-committee'`（党委）**（第二个组织型主体，`D-585`）＋ 模块改准四处：`joint-event` 缺省主责 `secretary → leader`（`D-583`）· `rule-making` 注释 ＋ `desc` 写清「支委会主责，可指定个人起草 / 修改、报支委会审议」（**主责维持 `branch-committee`**，`D-584`）· `democratic-review` `desc` 补承载（党员大会 / 党小组会）与「上传任务归支书」（`D-585`）· `election` 缺省主责 `secretary → party-committee` ＋ `desc` 改准（`D-585`）· `info-platform` 缺省主责 `prop-commissioner → branch-committee` ＋ `desc` 改准（`D-586`）
+```
