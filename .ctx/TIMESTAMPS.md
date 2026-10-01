@@ -124,7 +124,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-09-30 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-01 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 **2.1–2.8 一字未改**〕⇒ **四份 → 一份**；`D-638`）（原：色彩系统规范——T-282 自 DESIGN_SYSTEM 拆分 §二：色盘/主色/辅助色/中性色/功能色/表面色/配色规则；2026-09-20 批次 110 改准「6 → 7 个工作台」，批次 113 刷本行日期） |
 | content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——T-282 自 DESIGN_SYSTEM 拆分 §四：按钮/卡片/输入/侧边栏/导航/日历图例/数据展示/图标/选人/状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句、批次 41 沿革句原样保留，批次 113 刷本行日期） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 233：`related_files` 里的入口路径随「entries/ 按判据分三类」改准〔`docs/src/entries/about-entry.js` → `docs/src/entries/pages/about-entry.js`〕⇒ 按 R-83 刷卡；frontmatter 与本报行同批刷为 `2026-09-28`）** **（2026-09-26 批次 201：`D-660` 加「本文负责 / 本文不负责 → 去哪找」边界头〔本组判「分而治之」、未合并未删文件〕；由「另一路」落地，本表行日期按 `S13` 口径不刷）**  About 页面设计系统（超参数设定原则/防风格疲劳/无竖线红线，新建 T-272；T-278 无人称修缮） |
