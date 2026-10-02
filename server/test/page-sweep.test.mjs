@@ -301,6 +301,18 @@ for (const w of WORKS) {
         }, label);
         await page.waitForTimeout(1100);
         SWEEP.tabs += 1;
+        // 「加载不出来」体检（2026-10-02 批次 334 · 支书 #7「tab 在切换和加载中存在加载不出来的问题」）：
+        //   每台每个 tab **必须渲染出非空产物**——「静默空白」此前无任何守卫覆盖
+        //   （本文件原只查分页/宽表/检索/脚本错误；`render` 里 `if (!el) return` 一类的静默失败不会被发现）。
+        //   容器 id 的单一源＝`components/shell/tab-bar.js::renderTabBar`（`#<prefix>-tab-content`）。
+        const rendered = await page.evaluate((pid) => {
+          const el = document.getElementById(pid);
+          return { has: !!el, len: el ? el.innerHTML.trim().length : -1 };
+        }, `${w.page}-tab-content`);
+        assert.ok(rendered.has,
+          `${w.name} · tab「${label}」：容器 #${w.page}-tab-content 不存在 ⇒ 结构漂移（renderTabBar 口径变了？）`);
+        assert.ok(rendered.len > 10,
+          `${w.name} · tab「${label}」：渲染产物为空（#${w.page}-tab-content innerHTML 长度 ${rendered.len}）⇒ 「加载不出来」`);
         await audit(label, '默认', true);
         // 二级视图（批次 47-C）：点开「矩阵显示全部 N 项」后再审一遍
         for (const t of SUBVIEW_TRIGGERS) {
