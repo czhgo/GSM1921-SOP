@@ -562,8 +562,18 @@ test('S13 TIMESTAMPS 表行日期必须等于文件 frontmatter 的 last_updated
 // ⚠ 边界（不假装覆盖）：只核「文档明写了一个数 ↔ 代码实然」这一对；**文档没写数、只列几项**
 //   的地方（角色键列举式说明等）不判——那一半只能靠人读。
 // ─────────────────────────────────────────────────────────────────────────────
-const DECISION_LOG = join(ROOT, '.ctx', 'logs', '2026-09-DECISION_LOG.md');
-const MONTH_INDEX = join(ROOT, '.ctx', 'logs', 'DECISION_LOG.md');
+// 2026-10-02 批次 335（支书裁「甲 真换月：迁入＋改判据」）：**活跃决策日志由 `status: active` 指认**，
+//   不再硬编码月份文件——否则每次换月都要改判据、且旧月文件一旦冻结，四处同源判据就会对着错的文件跑。
+//   `2026-09` 冻结后，本组判据自动指向 `2026-10`；下方另加「各月文件 × 月度索引行」交叉核对（**只增不减**）。
+const LOGS_DIR = join(ROOT, '.ctx', 'logs');
+const _dlFiles = readdirSync(LOGS_DIR).filter((f) => /^\d{4}-\d{2}-DECISION_LOG\.md$/.test(f)).sort();
+// ⚠ 取**最新**的 active 文件：历史月（如 2026-07）冻结时可能仍留着 `status: active` 未改，
+//   若取「第一个命中的」会把判据指到旧月上（2026-10-02 批次 335 首跑实测）。
+const _dlActives = _dlFiles.filter((f) => /^status:\s*active\s*$/m.test(read(join(LOGS_DIR, f))));
+const DECISION_LOG_NAME = _dlActives.length ? _dlActives[_dlActives.length - 1] : _dlFiles[_dlFiles.length - 1];
+const DECISION_LOG = join(LOGS_DIR, DECISION_LOG_NAME);
+const DL_LABEL = DECISION_LOG_NAME.replace(/\.md$/, '');
+const MONTH_INDEX = join(LOGS_DIR, 'DECISION_LOG.md');
 const RULINGS = join(ROOT, '.ctx', 'ACTIVE_RULINGS.md');
 const QUEUE = join(ROOT, '.ctx', 'REVIEW_QUEUE.md');
 const README_SERVER = join(ROOT, 'README-server.md');
@@ -688,23 +698,39 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   eq('ACTIVE_RULINGS 口径行数', '同文件文首「实有 N 行」', cn(m(arHead, /实有\s*([\d一二两三四五六七八九十]+)\s*行/)), arLines);
   eq('ACTIVE_RULINGS 口径行数', '同文件文首「一律以 N 为准」', cn(m(arHead, /一律以\s*([\d一二两三四五六七八九十]+)\s*为准/)), arLines);
 
-  // ⑥ 决策日志条目数（权威＝`^## D-` 实测；文首 / 文末续编说明 / 本月目录 / 月度索引四处同源）
+  // ⑥ 决策日志条目数（权威＝**活跃月文件**的 `^## D-` 实测；文首 / 文末续编说明 / 本月目录 / 月度索引四处同源）
   const dl = read(DECISION_LOG);
   const dNums = [...dl.matchAll(/^## D-(\d+)/gm)].map((x) => Number(x[1]));
   const dReal = dNums.length;
   const dMax = Math.max(...dNums);
+  const dMin = Math.min(...dNums);
   const dlHead = lineWith(dl, /\*\*条目编号起止\*\*/);
-  eq('决策日志条目数', '2026-09-DECISION_LOG 文首「共 N 条」', cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-\d+`，共 (\d+) 条\*\*/)), dReal);
-  eq('决策日志末条编号', '2026-09-DECISION_LOG 文首', cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-(\d+)`/)), dMax);
-  eq('决策日志下一条编号', '2026-09-DECISION_LOG 文首「下一条自」', cn(m(dlHead, /下一条自 \*\*`D-(\d+)`\*\*/)), dMax + 1);
+  eq('决策日志条目数', `${DL_LABEL} 文首「共 N 条」`, cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-\d+`，共 (\d+) 条\*\*/)), dReal);
+  eq('决策日志末条编号', `${DL_LABEL} 文首`, cn(m(dlHead, /本文件当前 \*\*`D-\d+` … `D-(\d+)`/)), dMax);
+  eq('决策日志下一条编号', `${DL_LABEL} 文首「下一条自」`, cn(m(dlHead, /下一条自 \*\*`D-(\d+)`\*\*/)), dMax + 1);
   const dlCont = lineWith(dl, /\*\*本文件续编说明\*\*/);
-  eq('决策日志条目数', '2026-09-DECISION_LOG 文末「续编说明」段', cn(m(dlCont, /当前止于 `D-\d+`\*\*（共 \*\*(\d+)\*\* 条/)), dReal);
-  eq('决策日志末条编号', '2026-09-DECISION_LOG 文末「续编说明」段', cn(m(dlCont, /当前止于 `D-(\d+)`/)), dMax);
+  eq('决策日志条目数', `${DL_LABEL} 文末「续编说明」段`, cn(m(dlCont, /当前止于 `D-\d+`\*\*（共 \*\*(\d+)\*\* 条/)), dReal);
+  eq('决策日志末条编号', `${DL_LABEL} 文末「续编说明」段`, cn(m(dlCont, /当前止于 `D-(\d+)`/)), dMax);
   const tocNums = [...section(dl, /^## 本月目录/).matchAll(/`D-(\d+)`/g)].map((x) => Number(x[1]));
-  eq('决策日志末条编号', '2026-09-DECISION_LOG 本月目录末条', tocNums.length ? Math.max(...tocNums) : null, dMax);
-  const miCells = lineWith(read(MONTH_INDEX), /^\| 2026-09 \|/).split('|').map((s) => s.trim());
-  eq('决策日志条目数', '.ctx/logs/DECISION_LOG.md 月度索引', cn(m(miCells[3] || '', /^(\d+) 条（D-275~/)), dReal);
-  eq('决策日志末条编号', '.ctx/logs/DECISION_LOG.md 月度索引', cn(m(miCells[3] || '', /D-275~D-(\d+)）$/)), dMax);
+  eq('决策日志末条编号', `${DL_LABEL} 本月目录末条`, tocNums.length ? Math.max(...tocNums) : null, dMax);
+  const miRows = read(MONTH_INDEX).split(/\r?\n/).filter((l) => /^\| \d{4}-\d{2} \|/.test(l));
+  const miCells = (miRows.find((l) => l.startsWith(`| ${DL_LABEL.slice(0, 7)} |`)) || '').split('|').map((s) => s.trim());
+  eq('决策日志条目数', `.ctx/logs/DECISION_LOG.md 月度索引（${DL_LABEL.slice(0, 7)}）`, cn(m(miCells[3] || '', /^(\d+) 条/)), dReal);
+  eq('决策日志起始编号', `.ctx/logs/DECISION_LOG.md 月度索引（${DL_LABEL.slice(0, 7)}）`, cn(m(miCells[3] || '', /（D-(\d+)~/)), dMin);
+  eq('决策日志末条编号', `.ctx/logs/DECISION_LOG.md 月度索引（${DL_LABEL.slice(0, 7)}）`, cn(m(miCells[3] || '', /D-(\d+)）$/)), dMax);
+  // ⑥-2（**只增不减**）：**每一份**月文件 × 其月度索引行 交叉核对（换月后旧月自动纳入；缺行＝红）
+  //   ⚠ 边界（不假装覆盖）：只覆盖索引行采用**现行格式**（`N 条（D-a~D-b）`）的月份；
+  //     2026-06/07 等历史月的索引行是旧写法（无区间），不在此判据面内——**不假装**覆盖它们。
+  for (const f of _dlFiles) {
+    const nums = [...read(join(LOGS_DIR, f)).matchAll(/^## D-(\d+)/gm)].map((x) => Number(x[1]));
+    if (!nums.length) continue;
+    const cells = (miRows.find((l) => l.startsWith(`| ${f.slice(0, 7)} |`)) || '').split('|').map((s) => s.trim());
+    if (!/^\d+ 条（D-\d+~D-\d+）$/.test(cells[3] || '')) continue;
+    const where = `.ctx/logs/DECISION_LOG.md 月度索引（${f.slice(0, 7)}）× ${f}`;
+    eq('决策日志条目数', where, cn(m(cells[3], /^(\d+) 条/)), nums.length);
+    eq('决策日志起始编号', where, cn(m(cells[3], /（D-(\d+)~/)), Math.min(...nums));
+    eq('决策日志末条编号', where, cn(m(cells[3], /D-(\d+)）$/)), Math.max(...nums));
+  }
 
   // ⑦ 页面数（权威＝`docs/` 实况）
   const rootsN = readdirSync(join(ROOT, 'docs')).filter((f) => f.endsWith('.html')).length;
