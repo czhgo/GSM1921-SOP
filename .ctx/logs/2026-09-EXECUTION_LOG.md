@@ -22887,3 +22887,52 @@ entries/(3 类 90)   workflow/(8)   config/(1)   + 顶层 4 散件（不动）
 - **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,357,486 ms（≈22.6 分钟）**。
 - ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**——测试汇总已打印 `pass 910 / fail 0`；`exit=1` 系 Playwright 收尾时其自身 `debug.log` 写入被沙箱拦截（**与测试内容无关**）。
 - ⚠ **`.tmp-b331.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。
+
+## 批次 332（2026-10-02）：`V-12` 余项收口 —— 筛选行 chip 形态「余下各页」按判据迁移
+
+> **决议 / 过程判据（`R-84`）**：本批**因裁而作**——承支书 2026-10-01 `V-12` 裁定（取**甲**：推翻 `R-41`，改「搜索框 ＋ `span` 小胶囊」）＋ 执行取**丁**「**具体问题一定要具体分析**」；批次 319 只落**首批两页** ⇒ 本批做**余项**。**裁定（判据）进决策日志**（`D-738`），**实现与实测进本节**。
+
+### 一、判据（把「具体分析」收成一条可判句）
+
+- **人维表（`personFacets`）→ chip**：值集**小且稳定**（党小组 ~4 / 发展阶段 ~5 / 角色 ~6 / 在册 ~3）⇒ 平铺一次看全、少一次展开点击。
+- **活动类表（`activityFacets`）→ 保持 `dropdown`**：含**月份 / 类别 / 类型 / 状态**（类型近十种）⇒ 平铺成「胶囊墙」反不如一次展开。
+- ⚠ 引擎**两形态并存**、`facetStyle` 仍**逐页 opt-in**（默认不翻）；本批动的是**表类**这一层，**页级例外仍可另裁**。
+
+### 二、本批实现
+
+- **共迁 13 处**（10 个文件）加 `facetStyle: 'chip',`：`disc/makeup-tab`（104）· `disc/inspection-tab`（113）· `leader/attendance-tab`（210）· `leader/inspection-tab`（159）· `leader/members-tab`（159）· `org/inspection-tab`（137）· `org/taskforce-tab`（773）· `org/member-flow-tab`（224，**方向：流入 / 流出 2 值**）· `secretary/assign-tab`（192 / 385 / 619 / 759，**4 处**）· `secretary/group-progress-tab`（424）。
+- **终止自检（写进脚本、跑过）**：`docs/src` 内**每一处** `facets: personFacets(` 的下一行**必有** `facetStyle` ⇒ 人维表侧**全量迁移、无漏网**（唯一命中例外是引擎文件头注释里的示例行，非调用点）。
+- **定向件改样本**：`list-filter-chip-e2e::S11②` 的「未迁移样本」原为「考察上传」（**人维表** ⇒ 按新判据已迁，旧样本失效）⇒ 改指**活动类表页**（成员台「我的考察」，`visitor/inspection-tab` 用 `activityFacets()`）；新增成员登录助手（`p5` 2400012349）。新样本**恰落在判据线另一侧**，比原样本更贴题。
+
+### 三、同批改准的台账（**不是放宽**）
+
+- `server/test/form-loop-registry.mjs`：**29 处** `line` 随本批插入行同步（插 1 行的文件 +1；`assign-tab` 因 4 处插入，按插入位置分别 +1 / +2 / +3；`taskforce-tab` 1 处插入在其全部登记点之前 ⇒ 全 +1）。**先取 S6 实报的失配清单、再按位置差改，未凭猜**。
+- `CLAUDE.md`：乙部在办表 `V-12` 行状态改「**余下各页已按判据迁移**（批次 332 · `D-738`）」。
+
+### 四、守卫实跑
+
+- `list-filter-chip-e2e`（S11 三条，含改样本后的反向证据）· `filter-row`（S2/S6/S7/S8/S10/S11）· `button-system-guard`（B4）· `module-load`（E1–E4）· `doc-consistency` —— **41 / 41 / 0 红**。
+- `doc-consistency` ＋ `doc-line-ref` ＋ `timestamps-note-guard` ＋ `frontmatter-freshness` —— **32 / 32 / 0 红**（四处计数 464 一致 · `README-server.md` 侧行号引用未受影响）。
+
+### 五、改动清单
+
+| 文件 | 改什么 |
+| --- | --- |
+| `docs/src/entries/tabs/**`（10 个文件） | 13 处加 `facetStyle: 'chip',` |
+| `server/test/list-filter-chip-e2e.test.mjs` | 新增成员登录助手 ＋ ② 反向样本改指活动类表页 ＋ 文件头补判据 |
+| `server/test/form-loop-registry.mjs` | 29 处 `line` 同步 |
+| `CLAUDE.md` | `V-12` 行状态改准 |
+| `.ctx/logs/2026-09-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · 本节 | `D-738` ＋ 四处计数 `463 → 464` |
+| 全站 `?v=` | `20261001p → 20261001q`（JS 217 / HTML 22 / CSS 2 / server-test 88；陈旧戳自检 0 残留） |
+
+### 六、如实登记（**两跑才绿**）
+
+- **首跑 `fail 1`**：`form-loop-sweep::S6` 抓到本批插入行致 **29 处** `line` 漂移（7 个文件的检查点台账）；**按 S6 实报清单改准后**第二跑 **910 / 910 / 0**。
+- ⚠ `personFacets` 侧**全量迁**（终止自检已跑）；**活动类表一律未动**——若支书认为某页活动表也该平铺，属**页级另裁**（本批不代裁）。
+- ⚠ `docs/src/entries/tabs/**` 之外**未动任何文件**（引擎 `list-filter.js` 两形态并存、一字未改）。
+
+### 七、收尾全量（`R-85`）
+
+- **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,343,613 ms（≈22.4 分钟）**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 910 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。
+- ⚠ **`.tmp-b332*.log` 诊断日志**已按「`.tmp*` 不留盘」纪律**删除**（不随提交）。

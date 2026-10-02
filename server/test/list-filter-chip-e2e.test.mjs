@@ -5,9 +5,13 @@
 //   ⇒ 统一引擎 `ui/list-filter.js` 新增 `facetStyle` 两形态（`dropdown` 默认 / `chip` 逐页 opt-in），
 //   **首批迁移页＝人才库 · 成员名册**。**推翻**原「筛选行禁用 chip」（2026-09-14 批次 27）。
 //
+// **判据已收敛（2026-10-02 批次 332 · 余下各页逐页迁移）**：**人维表（`personFacets`，值集小且稳定）
+//   → chip**；**活动类表（`activityFacets`，含月份 / 类别 / 类型 / 状态等长值集）→ 保持 dropdown**
+//   （flat 成墙反而不如一次展开）。本件 ① 取人维表页、② 取活动类表页，正是这条线两侧的样本。
+//
 // **本件给的是正面证据**（不是「跑绿了」就算）：
-//   ① 两首批页在真机上**确实渲染** `.lf-facet-chips .chip-option`，且同页**不再有**分面下拉 `.lf-select`；
-//   ② **未迁移页**（发展数据）**不得**出现分面胶囊——证明这是**逐页 opt-in**，不是被悄悄全站改掉；
+//   ① 人维表页在真机上**确实渲染** `.lf-facet-chips .chip-option`，且同页**不再有**分面下拉 `.lf-select`；
+//   ② **活动类表页**（成员台「我的考察」）**不得**出现分面胶囊——证明这条线**没有被越界套用**；
 //   ③ 点一枚胶囊 → **选中态落上 `.chip-accent-on`** 且结果计数随之变化（胶囊真的在筛，不只是画出来的）。
 //
 // 自包含：createApp(:memory:) + seedDatabase + 真登录（组织委员 2400012355 / 123456）。
@@ -57,6 +61,18 @@ async function openOrgTab(page, tab) {
   await page.waitForFunction(() => !!document.querySelector('.lf-bar'), null, { timeout: 15000 });
 }
 
+/** 成员登录（`p5` 宋佳宁，正式党员）→ 直达成员台指定 tab（后批新增：用于「保持 dropdown」的反向样本） */
+async function openVisitorTab(page, tab) {
+  await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+  await page.fill('#student-id', '2400012349');
+  await page.fill('#password', '123456');
+  await Promise.all([
+    page.waitForURL('**/workspace/visitor.html', { timeout: 12000 }),
+    page.click('button[type="submit"]'),
+  ]);
+  await page.goto(`${base}/workspace/visitor.html?tab=${tab}`, { waitUntil: 'domcontentloaded' });
+}
+
 test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁移页无胶囊；点胶囊即筛', async () => {
   // ① 成员名册（首批迁移）
   const p1 = await newPage();
@@ -88,26 +104,22 @@ test('S11 筛选行 chip 形态：首批两页渲染胶囊且无下拉；未迁�
       '人才库页须含「活动参与汇总」（原「发展数据」的该卡已并入本页）');
   } finally { await p2.close(); }
 
-  // ② 未迁移页（**考察上传**）：**不得**出现胶囊——证明是逐页 opt-in，不是全站被改
-  //   ⚠ 2026-10-01 批次 321：原用「发展数据」作未迁移样本，该页签已按支书 V-10 裁定
-  //     「整页并入人才库」而**摘除** ⇒ 样本改指同样未迁移的「考察上传」（`?tab=inspection`）。
+  // ② **保持 dropdown 的对照页**（批次 332 改样本）：**活动类表**按判据**不迁** chip——
+  //   反样本改用**成员台「我的考察」**（`visitor/inspection-tab` 用 `activityFacets()`：月份 / 类别 / 类型 / 状态，
+  //   值集长 ⇒ 平铺成墙）⇒ 该页**不得**出现分面胶囊。**这才是「逐页 opt-in」的干净证据**：
+  //   原样本「考察上传」是人维表、按新判据**已迁** chip（旧样本失效）。
+  //   ⚠ 与原样本同款边界：检索条是否渲染取决于行数、且维度取值 ≤1 种时自动隐藏 ⇒ 不断言 `.lf-select` 个数。
   const p3 = await newPage();
   try {
-    await openOrgTab(p3, 'inspection');
-    const dev = await p3.evaluate(() => ({
+    await openVisitorTab(p3, 'inspection');
+    const act = await p3.evaluate(() => ({
       chips: document.querySelectorAll('.lf-facet-chips .chip-option').length,
       groups: document.querySelectorAll('.lf-facet-chips').length,
-      selects: document.querySelectorAll('.lf-select').length,
       bar: !!document.querySelector('.lf-bar'),
     }));
-    // **核心反向证据**：未迁移页**不得**出现分面胶囊（含组容器）——证「逐页 opt-in」而非「被悄悄全站改掉」。
-    assert.equal(dev.chips, 0, '考察上传**未迁** ⇒ 不得出现分面胶囊（否则＝被悄悄全站改掉）');
-    assert.equal(dev.groups, 0, '考察上传**未迁** ⇒ 不得出现 `.lf-facet-chips` 组');
-    // ⚠ 「未迁页仍是下拉」这半**不在本件断言**：检索条是否渲染取决于**行数**（≤8 行不渲染），且维度取值
-    //   ≤1 种时该维度自动隐藏 ⇒ 该页可能**只有关键词框、零分面**（本批实测正是如此：bar 在、selects=0），
-    //   把「0 个下拉」判成「形态错了」是**假阳性**。该判据由**引擎级** `filter-row::S2` 承担
-    //   （断言 `list-filter.js` 仍含 `.lf-select` 渲染路径），分工见该件文件头。
-    assert.ok(dev.bar === true || dev.bar === false, 'bar 取值须为布尔（防止选择器失效被静默吞掉）');
+    assert.equal(act.chips, 0, '活动类表**不迁** ⇒ 不得出现分面胶囊（否则＝判据被越界套用）');
+    assert.equal(act.groups, 0, '活动类表**不迁** ⇒ 不得出现 `.lf-facet-chips` 组');
+    assert.ok(act.bar === true || act.bar === false, 'bar 取值须为布尔（防止选择器失效被静默吞掉）');
   } finally { await p3.close(); }
 
   // ③ 点胶囊真的在筛：选中态落到 .chip-accent-on，且**结果计数位**由「共 N 人」变「筛选出 M / N 人」

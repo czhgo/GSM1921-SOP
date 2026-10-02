@@ -15,12 +15,12 @@
 // 不自创样式（docs/src/styles.css 为禁改清单文件，未改动）。
 // 真身数据出口单一源：services/governance/issues.js::IssueStore.getIssuesForPartyReview（两形态同构）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261001p';
-import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261001p';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261001p';
-import { getPersonName } from '../../../services/member/person.js?v=20261001p';
-import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261001p';
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261001p';
+import { AuthStore } from '../../../services/core/auth.js?v=20261001q';
+import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261001q';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261001q';
+import { getPersonName } from '../../../services/member/person.js?v=20261001q';
+import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261001q';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261001q';
 
 const SUBMIT_META = {
   anonymous: { label: '匿名提交', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },

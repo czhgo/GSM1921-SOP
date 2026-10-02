@@ -6,19 +6,19 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001p';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001p';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261001p';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261001p';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261001p';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261001p';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261001p';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261001q';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261001q';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261001q';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261001q';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261001q';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261001q';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261001q';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261001p';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261001q';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001p';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261001q';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261001p';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261001q';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -102,6 +102,7 @@ export function renderContent(containerEl) {
     rows: makeupRows,
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
+    facetStyle: 'chip',
     countUnit: '人',
     emptyMessage: '暂无补课任务',
     table: {

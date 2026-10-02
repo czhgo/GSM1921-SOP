@@ -48,7 +48,7 @@ async function login(page, sid) {
   await page.waitForTimeout(1500);
   // P0-2（2026-09-23 支书裁定「形态必须可断言」）：本文件全部真机用例都走真后端 API 会话——
   // 断言单一源 = data/data-adapter.js::getRuntimeMode（此前只能靠「有没有 token」旁证，形态不可断言）。
-  const mode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261001p')).getRuntimeMode());
+  const mode = await page.evaluate(async () => (await import('/src/data/data-adapter.js?v=20261001q')).getRuntimeMode());
   assert.equal(mode.source, 'api', `真机用例须确为 api 形态（实测 ${JSON.stringify(mode)}）`);
   assert.equal(mode.hasToken, true, 'api 形态应存在会话 token');
 }
@@ -56,8 +56,8 @@ async function login(page, sid) {
 /** 以正式写路径（mockDB 变更 → persist → 防抖快照写穿）写入一条记录 */
 async function pushAndPersist(page, collection, row) {
   await page.evaluate(async ({ collection, row }) => {
-    const { mockDB } = await import('/src/core/domain/domain.js?v=20261001p');
-    const { persist } = await import('/src/data/data-adapter.js?v=20261001p');
+    const { mockDB } = await import('/src/core/domain/domain.js?v=20261001q');
+    const { persist } = await import('/src/data/data-adapter.js?v=20261001q');
     mockDB[collection].push(row);
     persist();
   }, { collection, row });
@@ -174,7 +174,7 @@ test('同集合双写（P0-1 乐观锁）：后写者 409，先写者数据不�
     { timeout: 10000 }
   );
   const bAdoptedServerRow = await pageB.evaluate(async (id) => {
-    const { mockDB } = await import('/src/core/domain/domain.js?v=20261001p');
+    const { mockDB } = await import('/src/core/domain/domain.js?v=20261001q');
     return (mockDB.notices || []).some((n) => n.id === id);
   }, 'mw-notice-A3');
   assert.equal(bAdoptedServerRow, true, 'B 遇 409 后应重拉冲突集合并采用服务端数据（不得继续拿本地旧集合）');
