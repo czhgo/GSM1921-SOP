@@ -857,3 +857,66 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **`node --test --test-concurrency=1`（全量）：923 项 / 923 过 / 0 红 / 0 取消** · **耗时 1424572 ms（≈23.7 分钟）** · **`EXITCODE=0`**（先在 3000 端口起 `node server.js`；跑完停服）。
 - 中间两跑如实登记：① 未起 3000 服务 ⇒ **8 红**、**全部是 `ECONNREFUSED localhost:3000`**（`b3-1-makeup-writeback` / `click-cost` C1–C5 / `mock-integrity` M1–M2）＝**环境类**；② 起服务后单跑该三件 **8 / 8 绿**，最终全量 **923 / 923**。
 - ⚠ 末条进程另报一次 `TRAE Sandbox Error`（Playwright `chrome-headless-shell .../debug.log` 写入被沙箱拦截）——**非测试失败**（摘要已打印 `pass 923 / fail 0`、`EXITCODE=0`）。
+
+## 批次 341（2026-10-02）：支书评议批 `#2` —— **全域 CRUD 探查**（30 张资源表 × C/R/U/D × 界面入口 × 权限门）
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 `#2`「全栈开发一定要关心 CRUD 的问题！一定要做一次 **全域的探查**！」⇒ 本批**只做探查与取证**（零代码），结论进本节；**待支书圈定**的修复项进 `.ctx/REVIEW_QUEUE.md`。
+
+### 一、服务端口径（**已确认为全**，非本批缺口）
+
+- `server/routes/resources/store.js:7-44` 的 `RESOURCE_TABLES` 实为 **30 个键**（⚠ 更正：此前 `.ctx/SNAPSHOT.md` 口径称「32 张」，本批以代码实然为准）。
+- `server/routes/resources/index.js:40-162` 为**每张表统一注册** `GET /:name`（列表）/ `POST /:name`（创建，缺 id 服务端补）/ `PATCH /:name/:id`（局部合并）/ `DELETE /:name/:id`（删除）；外加 `POST /api/v1/snapshot` 全量快照写穿（逐集合乐观锁）。
+- **权限门两层**：读口 `PUBLIC_READ`（现仅 `issues`，其余 `requireAuth`）· 写口 `COMMISSIONER_WRITE`（`branchDocs` / `fileSpaceRecords` / `imageRecords` 需支委层，其余 `requireAuth`）＋ 逐表 `RESOURCE_WRITE_GATE` ＋ 活动专有门（`_assertActivityWrite` / 批准门 / 计票方式 / 停用块）。
+- **结论：服务端 CRUD 完整**；「CRUD 闭环」的缺口**全在前端界面入口**。
+
+### 二、界面入口矩阵（`C` 创建 / `R` 读 / `U` 改 / `D` 删·作废·归档·停用；「—」＝无入口）
+
+| 实体 | C | R | U | D | 缺口 |
+|---|---|---|---|---|---|
+| activities | 组长台「写入活动」/ 支书台「写入活动」 | 活动详情页 / 活动管理 / 日历 / 首页活动卡 | 活动管理（议程·状态·品牌）/ 支委会会议页 | 归档 ＋ 彻底删除（含子记录级联） | 无 |
+| tasks | 随活动写入派生 | 活动详情「任务清单」/ 日历 | 任务状态 | — | **D 缺** |
+| attendances | 组长台上传 / 纪检台会议录入 | 纪检台 / 组长台 / 成员台 | 确认·打回·补录 | **无任何清理入口**（只有打回） | **D 缺** |
+| inspections | 纪检代录 / 组长上传 / 组织台补录 | 纪检台 / 组织台 / 组长台 | 确认·打回 | 删除（**仅 `pending` 可删**） | 无（限 pending） |
+| taskforces | 组织台「发布招募」 | 专班页 / 组织台 / 项目看板 | 启动·进度·报送·解散 | 撤销并删除（软删留痕）/ 归档 | 无 |
+| notices | 支书台通知发布 / 各台发布口 | 通知页 / 通知 tab / 顶栏铃铛 | 编辑浮窗 | 删除键 / 随源归档 | 无 |
+| todos | **无手动建表单**（全派生） | 各台待办 tab | 完成·进行·激活 | **作废（审批门）＋ 支委层硬删**（批次 340） | 无 |
+| assignments（独立表） | — | — | — | — | **整表无界面入口（死表）** |
+| makeupTasks | 自动派生 | 纪检「补课」/ 成员台「去补课」 | 完成·回执 | **无任何清理入口** | **D 缺** |
+| users | 组织台「新增成员」 | 成员名册 / 个人总表 | 编辑浮窗（api 走 `/members/*`） | **软移除**（改名册＋停用账号，可撤销） | 无硬删（软移除可接受） |
+| experienceDeposits | 纪检台「记录经验沉淀」 | 仅作交叉引用（**无沉淀清单页**） | — | **无任何清理入口** | **D 缺（R 亦弱）** |
+| complianceReferences | — | — | — | — | **整表无界面入口（死表）** |
+| fileSpaceRecords | 宣传台「上传材料」 | 间接（无独立列表页） | — | 删除（联动删物理文件） | **U 缺** |
+| imageRecords | 宣传台照片墙上传 | 照片墙 | 标注（PATCH） | **无删除入口** | **D 缺** |
+| signups | 报名面板 / 组织台代报 | 报名面板 / 活动页 / 专班页 | 取消 / 审核 | 仅「取消报名」（改 status） | D 缺（有软取消） |
+| activityReviews | 成员台「我的复盘」提交 | 纪检「复盘」/ 成员台 / 支书台 | 批注·打回·确认 | **无删除入口** | **D 缺** |
+| taskforceReviews | 组织台「复盘」 | 纪检台（合并展示） | 同上 | **无删除入口** | **D 缺** |
+| propTasks | **无新建入口**（仅种子兜底） | 宣传台「宣传任务」看板 | 状态推进 | **无删除入口** | **C、D 缺** |
+| weeklyReports | 宣传台新增周次 | 宣传台报送历史 | 报送·内容·支书审核 | **无删除入口** | **D 缺** |
+| archiveRecords | 宣传台「上传材料」 | 归档库 / 活动管理 | 状态推进 · 支书复核 | 删除 | 无 |
+| externalDispatches | 宣传台「材料外发」 | 工作总览 / 各台「我的处置」 | 确认接收 | **无删除入口** | **D 缺** |
+| actSubRecords | 组长台「写入活动」子记录 | 活动管理「子记录」 | 同上（宣传初稿状态） | 子记录表内联删除键 | 无 |
+| tfSubRecords | 组织台专班「材料记录」 | 专班详情「子记录」 | 同上 | 内联删除键（考察只读） | 无 |
+| branchDocs | 资料查询「新建文件」 | 资料查询页 | 上传新版 / 停用·启用 | 删除（制度文本只停用不删） | 无 |
+| branches | 党委台「新建支部」/ 换组织向导 | 支部管理 / 监控台账 / 支部配置 | 改名 · 配置 · 组织档案 | **无删除 / 无停用·解散入口**（`ApiAdapter.branches.delete` 有接口无 UI） | **D 缺** |
+| appointmentRecords | 党委台「任命支书」 | 支部管理「任期档案」 | 撤换封口（写 `to`） | **无删除入口**（历史档案，合理） | D 缺（合理） |
+| reviewRequests | 支书台「上报党委」 | 党委台「上报审批」 | 批准 / 驳回 | **无删除入口** | **D 缺** |
+| thoughtReports | 成员台「思想汇报」/ 独立页 | 组织台「思想汇报」/ 人才库 | 审阅 · 打回重提 | **无删除入口**（提交即归档） | **D 缺** |
+| partyGroups | 支书台「新增党小组」 | 支书台「党小组与活动」/ 成员名册 | 改名 · 指派组员 | 解散（软：留痕） | 无 |
+| memberFlows | 组织台「成员流动」登记（入/出/批量） | 组织台「成员流动」台账 | 对账 | 撤销（软：留痕） | 无 |
+
+### 三、三个特别问题（支书 `#1`/`#2` 的直接答复）
+
+1. **「有表、有服务端 CRUD、前端完全无入口」＝死表 2 张**：`complianceReferences`（合规引用）、`assignments`（**独立**分工表——⚠ 与界面里的 `activity.assignments` / `taskforce.members` **内联数组不是同一数据**）。
+2. **「界面能创建、但界面上永远删不掉」**：
+   - **完全无清理入口（12 张）**：`attendances` · `makeupTasks` · `experienceDeposits` · `imageRecords` · `activityReviews` · `taskforceReviews` · `weeklyReports` · `externalDispatches` · `tasks` · `branches` · `reviewRequests` · `thoughtReports`。
+   - **仅软处理（2 张）**：`signups`（只能取消报名）· `propTasks`（有状态推进无删除）。
+   - **对照（已有真删除/归档/软删）**：activities · inspections(限 pending) · taskforces · notices · todos · archiveRecords · fileSpaceRecords · branchDocs · actSubRecords · tfSubRecords · partyGroups · memberFlows · users(软移出)。
+3. **绕过统一写口的直写点（典型 3 例，共约 10 余处，多数紧跟 `persist()` 属规范）**：
+   - `entries/tabs/org/taskforce-tab.js:304-305`：直接改 `SignupStore._signups` 私有字段（绕过其 `bumpToken` 写口）。
+   - `entries/tabs/prop/archive-tab.js:1356-1364 / :1447-1454`（照片）：api 形态直接 `fetch /api/v1/imageRecords` 后**就地改内存、不调 `persist()`**（注释：避免覆盖他人并发写）。
+   - `entries/tabs/prop/archive-tab.js:1020-1033 / :615-634`（文件空间元数据）：直接 `fetch /api/v1/fileSpaceRecords` ＋ 就地改内存。
+
+### 四、本批范围与后续
+
+- **本批零代码**（只做探查与落账）⇒ **未改任何文件、未 bump `?v=`、未跑全量**（无代码改动；全量最近一次绿＝批次 340 的 **923 / 923 / 0**）。
+- **修复项分三类，全部属产品取向 ⇒ 已进 `.ctx/REVIEW_QUEUE.md` 请支书圈**（判据：删不删是**制度**问题，不是工程问题——如考勤/复盘/思想汇报**故意不可删**以保审计完整性）。
