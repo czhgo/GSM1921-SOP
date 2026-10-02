@@ -514,7 +514,7 @@
 
 **依据**：`README.md:172-186`（§3.5 关键机制）、`docs/src/core/domain/policy-defaults.js:36`（票决门槛 `quorum: 2/3`、`vetoOnObject: true`）、`docs/src/core/domain/policy-defaults.js:60-73`（会议考勤的「记录人 / 不设考勤类型」：`recorderByType` / `noAttendanceTypes`）、`docs/src/services/activity/attendance.js:85-111`（`canUploadAttendance`）、`server/routes/committee.js:161-177`（截止不可逆）、`server/routes/resources/index.js:141-159`（删除活动的级联清理）。
 
-> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:266` 的 `handoffs` 域）。**2026-09-23 批次 163 已补服务端对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
+> **说明**：制度文本里还有「数据交接」一项（`docs/src/core/domain/domain.js:264` 的 `handoffs` 域）。**2026-09-23 批次 163 已补服务端对源**：服务端建表 `handoffs`（`server/db.js::SEMANTIC_TABLES`）＋ 语义端点 `GET/POST /api/v1/handoffs`、`POST /api/v1/handoffs/:id/confirm`（见 §6.13），前端 api 形态改经端点读写、mock 形态维持本地路径。
 
 ### 3.5 支部分工模块目录（`config.workforce` 的键集，共 14 个）
 
@@ -558,7 +558,7 @@
 - **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 447 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
 - **通用约定**：`id` 形如 `前缀-随机`（服务端缺 id 时自动补，前缀表见 §6.2）；时间字段统一 ISO 字符串；`YYYY-MM-DD` 为日期；枚举值未注明时即「有且仅有」所列取值。
 
-> **服务端表全表清单（共 35 张资源表 + 2 张关系表）**：35 张资源表的表名见 `server/db.js:9-42`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:45-57`）。其中 **30 张**在 `server/routes/resources/index.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
+> **服务端表全表清单（共 34 张资源表 + 2 张关系表）**：34 张资源表的表名见 `server/db.js:9-41`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:44-56`）。其中 **29 张**在 `server/routes/resources/index.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
 
 ### 4.1 活动（ActivityRecord）
 
@@ -769,7 +769,7 @@
 | 专班工作量 | 系统自动记录 | 解散报告 → 个人档案 |
 | 思想汇报 | 系统自动归档 | 个人档案（不经纪检 / 宣传） |
 
-**依据**：`content/04_web_design/data/DATA_MODEL.md:366-392`、`docs/src/core/domain/domain.js:342-412`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:366-392`、`docs/src/core/domain/domain.js:340-410`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
 
 ### 4.9 补课任务（MakeupTask）
 
@@ -828,22 +828,9 @@
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:429-441`。
 
-### 4.12 制度文件引用（ComplianceReference）
+### 4.12 制度文件引用（ComplianceReference）—— **已于 2026-10-02 删除**
 
-**对应服务端表**：`compliance_references`
-
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `cr` |
-| title | string | 是 | 文件标题 |
-| description | string | 否 | 文件描述 |
-| category | `'institutional'\|'sop'\|'internal'` | 是 | 分类：制度性文件 / SOP / 内部规范 |
-| sourceType | string | 是 | 来源类型 |
-| path | string | 否 | 文件路径 |
-| referencedAt | string（ISO） | 是 | 引用时间 |
-| referrer | string | 是 | 引用者 ID |
-
-**依据**：`content/04_web_design/data/DATA_MODEL.md:443-456`。
+> **该表已删除**（2026-10-02 批次 342 · 支书裁「甲」· 全域 CRUD 探查 `CRUD-1`）。原表 `compliance_references` 经查为**死表**：全仓**无 UI 消费方、无写口、无字段契约**（该判定首见 2026-09-19 批次 192/193 `D-653`）⇒ 删表走 `server/db.js` 的 **`v2` `DROP TABLE` 迁移**（`drop-compliance-references`），并同批从 `RESOURCE_TABLES`（资源名 ↔ 表名映射 30 → **29**）、`ID_PREFIX`（前缀 `cr` 撤）、前端数据层（`mockDB` 域 / 快照键 / `MockAdapter` / `ApiAdapter` / `reset` 清单）中一并移除。**本节编号保留**（不重排后续 §4.13+，避免行号引用位移）。
 
 ### 4.13 任务（Task）
 
@@ -1391,7 +1378,7 @@
 | createdAt | string（YYYY-MM-DD） | 是 | 创建日期 |
 
 **服务端有种子**（`server/seed.js` 播种 **8 条**；该常量与前端**同源**——**内容单一源 = `docs/src/data/mock/prop.js::PROP_TASKS_SEED`**〔2026-09-28 批次 234 去冗余前为「UI 私有常量 ＋ 服务端逐字复刻」两份，现 UI 侧与 `server/seed.js` 同源 import 同一份〕，两形态读数一致）。⚠ 2026-09-26 更正：2026-09-25 批次 189 起本表**已播种**，原「服务端无种子 ⇒ API 形态首启本表为空」的记录**已过期**（本轮种子真实性审计实读 `server/seed.js` 与真库计数 `prop_tasks = 8` 后改准）。
-**依据**：`docs/src/data/mock/prop.js:28-41`（`PROP_TASKS_SEED` 单一源）、`docs/src/entries/tabs/prop/tasks-tab.js:12,22-29,92`、`docs/src/core/domain/domain.js:279`、`server/routes/resources/store.js:25,54`。
+**依据**：`docs/src/data/mock/prop.js:28-41`（`PROP_TASKS_SEED` 单一源）、`docs/src/entries/tabs/prop/tasks-tab.js:12,22-29,92`、`docs/src/core/domain/domain.js:277`、`server/routes/resources/store.js:24,53`。
 
 ### 4.41 文件外发确认（ExternalDispatch，**来源 C·2026-09-19 批次 98 补**）
 
@@ -1410,7 +1397,7 @@
 | confirmedAt | string（ISO）\| null | 否 | 接收方「确认收到」时间（默认 null＝待确认） |
 
 **语义**：走微信外发的材料由发送方在系统里留痕、接收方系统内确认，形成可审计闭环（系统不对接微信）。**是「标记 + 确认」，不是文件传输**。
-**依据**：`docs/src/services/activity/external-dispatch.js:31-42,61-69,72-74`、`docs/src/core/domain/domain.js:286`、`server/routes/resources/store.js:28,55`。
+**依据**：`docs/src/services/activity/external-dispatch.js:31-42,61-69,72-74`、`docs/src/core/domain/domain.js:284`、`server/routes/resources/store.js:27,54`。
 
 ### 4.42 支部文件（BranchDoc，**来源 C·2026-09-19 批次 98 补**）
 
@@ -1456,7 +1443,7 @@
 | body | object | 是 | 整域数据：`{ [主记录id]: { attendance?:[], materials?:[], publicity?:[] } }`（子记录树三种类型见 §4.2） |
 
 **存储形态（后端须照做）**：这两张表**整域只存一行**——`{id:'__root__', body:<原对象>}`；前端 `init()` 拉取时按 `id==='__root__'` 解包回 `mockDB.actSubRecords` / `tfSubRecords` 对象，全量快照写穿时再包回单行。⚠ **不能按「一主记录一行」拆表而不改前端**——前端契约就是 `__root__` 单行。
-**依据**：`server/routes/resources/store.js:29-30,56`、`docs/src/data/data-adapter.js:53-54,444-454,516-517,546-547`。
+**依据**：`server/routes/resources/store.js:28-29,55`、`docs/src/data/data-adapter.js:52-53,440-450,512-513,542-543`。
 
 ### 4.44 归档记录（archive_records，**来源 C·2026-09-19 批次 98 补**）
 
@@ -1511,7 +1498,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 - 启动后访问 `http://127.0.0.1:3000/login.html`。
 - **测试**：`npm test`（全量）/ `npm run test:core` / `npm run test:fast` / `npm run clean:tmp`。测试脚本自带 `DISABLE_PASSWORD_CHECK=1` 与 `DEMO_READONLY=0` 注入（后者放行本机可写；手跑 `node --test` 时须自行设置，否则按只读演示运行、写路径用例会红）。
 - **前端 API 形态启用路径**：登录表单 → 本地 Mock 校验（学号 → personId）→ `POST /api/v1/auth/login`（**传 personId + password**）→ 拿到 token → 写入 `sessionStorage['gsm1921-api-token']` → 切换为 API 数据源。**2026-09-23 P0-2 改（不许静默降级）**：**有 token 时**若 `init()` 拉不到服务端数据，页面**显式报错**（「无法连接服务器」+ 重试按钮），**不再**回退可写的本地 mock（旧行为＝用户以为在真系统里操作、实际只写浏览器，下次登录被服务端覆盖 ⇒ **静默丢单**）；**无 token 的本地演示形态保持原样**。运行时形态可用 `docs/src/data/data-adapter.js::getRuntimeMode()` 查（返回 `{source, hasToken, branchId, stage}`）。
-- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1006`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1043`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1197` / `:1208`）。
+- **远端变更探测（P1-1，2026-09-24 批次 164）——多标签 / 多设备「不整页重载也能看见别人刚写的」**：前端 `init()` 只在**页面加载那一刻**拉一次数据、之后读内存缓存 ⇒ 补一条**低频探测**（`docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`））：① 页面由隐藏转可见时探测一次（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），**复用既有监听器**、不另挂第二个）；② 可见态下的低频定时器（缺省 **60 秒**，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`）；隐藏态不探测）。动作＝取既有 `GET /api/v1/snapshot/versions`（**未新增任何接口**）与本机基线 `_versions` **逐集合比对**，**只对版本不一致的集合**重拉（与 409 冲突恢复共用同一份 `_refreshCollections`）。同源多标签另加 `BroadcastChannel`（频道 `gsm1921-data-changed`）：写成功后广播一次，**零网络**，收信侧只把它当「去探测一次」的唤醒信号（数据一律从服务端取）。**避让**（防把本机未提交的改动当「远端更新」回滚）：本机有在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除在重拉清单之外。**失败静默**：探测只读，失败只 `console.warn`，**不弹错误、不影响使用**（写链 fail-fast 行为一字未改）。**开关**：`localStorage['gsm1921-remote-probe'] = 'off'`（键名见 `docs/src/data/data-adapter.js:1002`（`REMOTE_PROBE_PREF_KEY`））关闭，也可在页面内调 `docs/src/data/data-adapter.js:1039`（`setRemoteProbeEnabled`）；**默认开**。**mock / 静态托管形态零网络、自动不启用**（`DATA_SOURCE !== 'api'` 直接返回）。定时器可手动 `startRemoteChangeProbe()` / `stopRemoteChangeProbe()`（`:1193` / `:1204`）。
 - 静态托管形态（无后端）：把 `docs/` 当 Web 根目录即可，`docs/src/config/deploy.js` 保持 `DEPLOY_MODE = 'static'`；**Node 形态下由服务端动态注入**该文件为 `DEPLOY_MODE = "server"`（见 §6.12）。
 - ⚠ **反向代理的约束（2026-09-23 P0-6 核对项）**：`/src/config/deploy.js` 是 **Node 动态注入**路由（不是磁盘上的静态文件），`/api/v1/**` 也由 Node 提供。若用 nginx 直接托管 `docs/` 静态资源，必须为 **`/src/config/deploy.js` 单独放行到 Node**（`location = /src/config/deploy.js { proxy_pass ...; }`），否则该文件会以磁盘版（`DEPLOY_MODE='static'`）返回 ⇒ **「关于」门面与部署形态判定会错**；或者把该文件静态写死为 `'server'` 并接受「不再由 Node 注入」。同源代理示例见 §5.1 / `DEPLOYMENT_GUIDE.md` 附录 A.2。
 - ⚠ **上传目录与请求体上限（2026-09-23 P0-6 核对项）**：反向代理须允许 `client_max_body_size ≥ 10m`（`server/routes/uploads.js:52` 的上传上限；另有 `/snapshot` 4MB 与 JSON 体 2MB），并保证 `UPLOAD_DIR`（缺省 `server/uploads/`）**对 Node 进程可写**，否则上传 500/413。
@@ -1560,7 +1547,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 前端静态文件 | `docs/` | 由 Express 静态托管（**强制 `Cache-Control: no-cache, must-revalidate`**） | `server/app.js:63-66` |
 | 备份 | `server/backups/<时间戳>/` | **用脚本备，不要手拷库文件**（2026-09-23 P0-5）：`scripts/backup.mjs`（Windows 可调 `scripts/backup.ps1`）→ 数据库走 SQLite **在线备份**（better-sqlite3 `db.backup()`，**含 WAL 内容的一致性快照，不需停服**）+ 附件目录整体复制 + 备份当场校验（`integrity_check`）；**只拷 `data.db` 会丢最近写入**（WAL 未并回）**且会丢附件物理文件**（表里只存元数据） | `server/scripts/backup.mjs`、`server/README.md`「备份与恢复」一节；WAL 见 `server/db.js:62`；附件目录见 §5.4 上一行 |
 | 重置 | —— | **API 形态下 `?reset=` 三档不生效**；服务端重置＝删除 `server/data.db` 后重启自动重种，或 `DISABLE_SEED=1` 空库起步 | `server/README.md:19` |
-| 库结构版本 | 库内 `PRAGMA user_version`（**2026-09-25 起**） | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**基线迁移**（幂等重放既有建表 ⇒ 既有真库首启即登记为 v1、**数据一行不动**），今后新增/变更结构一律走 `v2+`；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:207-221`（`MIGRATIONS`）、`server/db.js:224`（`SCHEMA_VERSION`）、`server/db.js:68`（启动接入点） |
+| 库结构版本 | 库内 `PRAGMA user_version`（**2026-09-25 起**） | **有版本化迁移**：`server/db.js` 末尾「最小可用迁移机制」段以 `user_version` 记 schema 版本，启动（`initDb`）时把未应用的迁移**按序、在一个事务内**执行、**失败即抛**（不静默）；`v1` 为**基线迁移**（幂等重放既有建表 ⇒ 既有真库首启即登记为 v1、**数据一行不动**），今后新增/变更结构一律走 `v2+`；验收见 `server/test/db-migration.test.mjs` / `server/test/db-integrity-guard.test.mjs` / `server/test/backup-restore.test.mjs` | `server/db.js:207-232`（`MIGRATIONS`）、`server/db.js:235`（`SCHEMA_VERSION`）、`server/db.js:68`（启动接入点） |
 
 ### 5.5 服务器侧注意事项 / 限制（**请逐条核对**）
 
@@ -1585,8 +1572,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 17 | **默认支部 id 硬编码兜底** | 大量读写在 `branchId` 缺省时回退常量 `'br-b1'`（示例支部 id）；真实部署若用别的 id，须保证所有写入都带 `branchId` | `server/routes/resources/gates.js:50`、`server/routes/resources/index.js:517,606`、`server/routes/member.js:176,203` |
 | 18 | **快照写穿的残余口（P0-1）** | `POST /api/v1/snapshot` 的乐观锁只对**带了 `_versions` 的集合**生效；未带该键的集合**按无条件整表写**（兼容旧客户端与直连调用，如 `server-base.test.mjs`）。真实写路径只有前端一条（`data-adapter.js::_flushSnapshot` 恒定带 `_versions`）⇒ 生产链路不暴露；对外直连写库须自行带 `_versions`（先 `GET /api/v1/snapshot/versions` 取基线） | `server/routes/resources/index.js` 末尾「快照写穿的集合版本号协议」段、`docs/src/data/data-adapter.js` 末尾「P0-1 乐观锁」段 |
 | 19 | **pagehide 兜底写撞 409 时无法当场自愈** | 页面卸载瞬间的同步冲刷（`_flushSnapshotSync`）同样带 `_versions`（不会退化成无条件覆盖），但**该上下文已无法再观测响应** ⇒ 撞 409 时只 `console.warn`，本地改动靠 `localStorage` 备份保留、不会进服务端（下次打开页面以服务端为准） | `docs/src/data/data-adapter.js`（`_flushSnapshotSync` / `_recoverFromConflict`） |
-| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:1003`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1140`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`）、`server/routes/resources/index.js:663`（versions 读口） |
-| 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/data/data-adapter.js:1022`（`REMOTE_PROBE_AUX`）、`:1066`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
+| 20 | **远端变更探测（P1-1）：多标签 / 多设备不必整页重载** | 前端读的是内存缓存（`init()` 只在页面加载时拉一次）⇒ 现加**低频探测**：触发＝①「页面转可见」（`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`），复用既有监听器）② 可见态低频定时器（缺省 60s，`docs/src/data/data-adapter.js:999`（`REMOTE_PROBE_INTERVAL_MS`））；动作＝取既有 `GET /api/v1/snapshot/versions` 与本机基线**逐集合比对**、**只重拉版本不一致的集合**（与 409 冲突恢复共用 `_refreshCollections`）；同源多标签另有 `BroadcastChannel`（频道 `gsm1921-data-changed`）**零网络**唤醒——它只是「去探测一次」的信号，数据一律从服务端取。**避让**：本机在途写 / `init()` 未完成 ⇒ 整次跳过；该集合本机仍脏 ⇒ 逐个排除（防回滚本机未提交的改动）。**失败静默**（探测只读；失败仅 `console.warn`，不弹错误、不影响使用——与写链 fail-fast 是两件事）。**开关**：`localStorage['gsm1921-remote-probe']='off'`（或 `setRemoteProbeEnabled(false)`）关闭，**默认开**；**mock / 静态托管形态零网络、不启用**。**未新增任何服务端路由** | `docs/src/data/data-adapter.js:1136`（`probeRemoteChanges`）、`docs/src/entries/pages/main-entry.js:211-217`（`visibilitychange`）、`server/routes/resources/index.js:663`（versions 读口） |
+| 21 | **探测的边界（残余，如实登记）** | ① **不是实时推送**：最坏等一个探测周期（缺省 60s）——同源多标签由 `BroadcastChannel` 缩短到近实时，**跨设备仍按周期**；② 只覆盖 **api 形态的已登录页面**（mock / 静态托管不启用）；③ `handoffs` / 成员变更确认队列 / `milestones` **三域不带集合版本号**（它们不进快照集合，见 §6 末「语义端点」段）⇒ 每次探测**直接重拉这三个小集合**并按内容比对（体量小、代价低；**未改**「语义端点域不进快照集合」这条既有纪律）；④ 探测**不写任何数据**（不做离线队列、不做冲突合并）——写链仍是「脏集合增量快照 ＋ `_versions` 乐观锁」 | `docs/src/data/data-adapter.js:1018`（`REMOTE_PROBE_AUX`）、`:1062`（`_refreshCollections`）、`server/test/records-endpoints.test.mjs:182-190`（三域不进集合版本基线） |
 
 ### 5.6 部署到真实环境需要替换的东西
 
@@ -1621,7 +1608,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 ## §6 接口一览
 
 > **基础路径**：`/api/v1`（认证路由挂在 `/api/v1/auth`）。**认证方式**：`Authorization: Bearer <token>`（token 由登录接口签发）。
-> **数量口径（2026-09-24 批次 169 重核；新增 10 条语义端点路由——出勤/考察申诉队列（3＋3）· 反馈未读标记 · 授权审计留痕，见 §6.14 ⇒ 声明 48→58、显式 46→56、合计 165→175；**2026-09-29 批次 271 再核：新增 **IAAA 入站 5 条**（`/api/v1/auth/iaaa/*`，见**文末「附」**）⇒ 声明 58→63、显式 56→61、合计 175→180**；**2026-09-29 批次 273 三核：新增**部署与对接自检 1 条**（`GET /api/v1/setup/setup-status`，见**文末「附」**）⇒ 声明 63→64、显式 61→62、合计 180→181**）**：**显式声明的路由 62 条**——＝各路由文件的 `router.*` 声明 **64 条**（`server/routes/` 实测 64，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **60 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（30 个资源名，见 §6.2），**循环展开 119 条**（GET 30 ＋ POST 29〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 30 ＋ DELETE 30）。**展开后总路由数＝62 ＋ 119 ＝ 181 条**。
+> **数量口径（2026-09-24 批次 169 重核；新增 10 条语义端点路由——出勤/考察申诉队列（3＋3）· 反馈未读标记 · 授权审计留痕，见 §6.14 ⇒ 声明 48→58、显式 46→56、合计 165→175；**2026-09-29 批次 271 再核：新增 **IAAA 入站 5 条**（`/api/v1/auth/iaaa/*`，见**文末「附」**）⇒ 声明 58→63、显式 56→61、合计 175→180**；**2026-09-29 批次 273 三核：新增**部署与对接自检 1 条**（`GET /api/v1/setup/setup-status`，见**文末「附」**）⇒ 声明 63→64、显式 61→62、合计 180→181**）**：**显式声明的路由 62 条**——＝各路由文件的 `router.*` 声明 **64 条**（`server/routes/` 实测 64，其中 **4 条在通用资源循环里**）**减去那 4 条循环声明** 得 **60 条**，**再加 `server/app.js` 的 2 条**（`GET /api/v1/health`、`GET /src/config/deploy.js`，见 §6.12）；其中「通用资源 CRUD」是**循环注册**的（29 个资源名，见 §6.2），**循环展开 115 条**（GET 29 ＋ POST 28〔跳过 `branches`，它的 POST 走 §6.3 语义端点〕＋ PATCH 29 ＋ DELETE 29）。**展开后总路由数＝62 ＋ 115 ＝ 177 条**。（⚠ 2026-10-02 批次 342 删死表 `compliance_references` ⇒ 资源名 30 → 29、循环展开 119 → 115、合计 181 → 177。）
 
 ### 6.1 认证（`server/routes/auth.js`）
 
@@ -1640,7 +1627,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | PATCH | `/api/v1/<资源名>/:id` | 局部合并更新 | 同上 |
 | DELETE | `/api/v1/<资源名>/:id` | 删除（文件类资源联动删物理文件；删活动级联删子记录） | 同上 |
 
-**资源名 ↔ 表名 ↔ id 前缀（30 个）**：
+**资源名 ↔ 表名 ↔ id 前缀（29 个）**：
 
 | # | 资源名（URL 段） | 服务端表 | 新建 id 前缀 |
 |---|---|---|---|
@@ -1655,28 +1642,28 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 9 | `makeupTasks` | `makeup_tasks` | `mk` |
 | 10 | `users` | `users` | （未列，服务端按 `x` 兜底） |
 | 11 | `experienceDeposits` | `experience_deposits` | `xp` |
-| 12 | `complianceReferences` | `compliance_references` | `cr` |
-| 13 | `fileSpaceRecords` | `file_space_records` | `fs` |
-| 14 | `imageRecords` | `image_records` | `img` |
-| 15 | `signups` | `signups` | `su` |
-| 16 | `activityReviews` | `activity_reviews` | `arw` |
-| 17 | `taskforceReviews` | `taskforce_reviews` | `tfr` |
-| 18 | `propTasks` | `prop_tasks` | `ppt` |
-| 19 | `weeklyReports` | `weekly_reports` | `wr` |
-| 20 | `archiveRecords` | `archive_records` | `ar` |
-| 21 | `externalDispatches` | `external_dispatches` | `ed` |
-| 22 | `actSubRecords` | `act_sub_records` | `asr` |
-| 23 | `tfSubRecords` | `tf_sub_records` | `tfs` |
-| 24 | `branchDocs` | `branch_docs` | `bd` |
-| 25 | `branches` | `branches` | `br`（**POST 不走本条，见 §6.3**） |
-| 26 | `appointmentRecords` | `appointment_records` | `appt` |
-| 27 | `reviewRequests` | `review_requests` | `rq` |
-| 28 | `thoughtReports` | `thought_reports` | `tr` |
-| 29 | `partyGroups` | `party_groups` | `pg` |
-| 30 | `memberFlows` | `member_flows` | `mf` |
+| 12 | `fileSpaceRecords` | `file_space_records` | `fs` |
+| 13 | `imageRecords` | `image_records` | `img` |
+| 14 | `signups` | `signups` | `su` |
+| 15 | `activityReviews` | `activity_reviews` | `arw` |
+| 16 | `taskforceReviews` | `taskforce_reviews` | `tfr` |
+| 17 | `propTasks` | `prop_tasks` | `ppt` |
+| 18 | `weeklyReports` | `weekly_reports` | `wr` |
+| 19 | `archiveRecords` | `archive_records` | `ar` |
+| 20 | `externalDispatches` | `external_dispatches` | `ed` |
+| 21 | `actSubRecords` | `act_sub_records` | `asr` |
+| 22 | `tfSubRecords` | `tf_sub_records` | `tfs` |
+| 23 | `branchDocs` | `branch_docs` | `bd` |
+| 24 | `branches` | `branches` | `br`（**POST 不走本条，见 §6.3**） |
+| 25 | `appointmentRecords` | `appointment_records` | `appt` |
+| 26 | `reviewRequests` | `review_requests` | `rq` |
+| 27 | `thoughtReports` | `thought_reports` | `tr` |
+| 28 | `partyGroups` | `party_groups` | `pg` |
+| 29 | `memberFlows` | `member_flows` | `mf` |
 
-> `users` 的 `POST` / `DELETE` 门＝**仅 `party-staff`**；`PATCH` 门＝**仅 `party-staff`**，另开**本支部现任支书 / 副支书**的「支委身份配置」一格（组织 / 宣传 / 纪检委员；撤销位 `participant`；跨支部 / 白名单外角色键 / 支书·副支书身份一律 403——2026-09-23 支书裁定，判据 `docs/src/core/domain/constants.js::branchCommissionerWriteDeny`）；`branches`/`appointmentRecords` 同理仅党委。**依据**：`server/routes/resources/index.js:21`、`server/routes/resources/store.js:8-44`（映射）、`server/routes/resources/gates.js:24-36`（写门）、`server/routes/resources/store.js:48-66`（id 前缀）。
-> **GET 读口（2026-09-18 批次 81 收紧）**：30 个资源名**默认要登录**，**唯一留白名单的是「有明确裁定公开」的 `issues`**（且它不在这 30 个里，是独立语义端点）；**`branches` 不放行**（2026-09-18 裁定：批次 80 对它的判断标注为「存疑」⇒ 按「不放行」处理，宁严勿松）。**依据**：`server/routes/resources/index.js:30-43`。
+> ⚠ **原第 12 项 `complianceReferences`（`compliance_references`，前缀 `cr`）已于 2026-10-02 批次 342 删除**（支书裁「甲」；死表——无 UI 消费方 / 无写口 / 无字段契约，`CRUD-1`），删表走 `server/db.js` 的 `v2` `DROP TABLE` 迁移。
+> `users` 的 `POST` / `DELETE` 门＝**仅 `party-staff`**；`PATCH` 门＝**仅 `party-staff`**，另开**本支部现任支书 / 副支书**的「支委身份配置」一格（组织 / 宣传 / 纪检委员；撤销位 `participant`；跨支部 / 白名单外角色键 / 支书·副支书身份一律 403——2026-09-23 支书裁定，判据 `docs/src/core/domain/constants.js::branchCommissionerWriteDeny`）；`branches`/`appointmentRecords` 同理仅党委。**依据**：`server/routes/resources/index.js:21`、`server/routes/resources/store.js:8-43`（映射）、`server/routes/resources/gates.js:24-36`（写门）、`server/routes/resources/store.js:48-65`（id 前缀）。
+> **GET 读口（2026-09-18 批次 81 收紧）**：29 个资源名**默认要登录**，**唯一留白名单的是「有明确裁定公开」的 `issues`**（且它不在这 29 个里，是独立语义端点）；**`branches` 不放行**（2026-09-18 裁定：批次 80 对它的判断标注为「存疑」⇒ 按「不放行」处理，宁严勿松）。**依据**：`server/routes/resources/index.js:30-43`。
 
 ### 6.3 支部与配置（`server/routes/resources/index.js`）
 
@@ -1815,9 +1802,9 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 项 | 现状 | 依据 |
 |---|---|---|---|
-| 1 | **资源列表读口已收紧（需登录）** | `GET /api/v1/<资源名>`（30 个）与 `/bootstrap` **默认要登录**（未登录 401）；**唯一公开的资源读口＝`GET /api/v1/issues`**（出口脱敏）。**2026-09-18 批次 81 前**为「不需要登录、直接返回全表 JSON」——那时 `users`（含姓名与学号）等可被未登录者全量列举。**仍留的读侧缺口是跨支部**（见第 2 条） | `server/routes/resources/index.js:30-43`、`server/routes/resources/index.js:268`（bootstrap）、`server/routes/resources/index.js:547`（issues 公开） |
-| 2 | **服务端不做支部级读取过滤** | 列表读是「整表返回」；支部归属过滤（`withinBranch`）由**前端**做。同一台服务器上若存在多个支部，任一**已登录**读者可拿到全部支部的数据 | `server/routes/resources/store.js:45-47`（`listTable` 全表）、`server/routes/resources/index.js:517`（注释原文：「支部归属（2026-09-15 裁定）：写入取 actor.branchId；**读取过滤在前端 withinBranch**」）、`docs/src/services/core/visibility.js`（可见性在前端计算） |
-| 3 | **多数资源写口只要求登录** | 30 类资源中仅 `branchDocs` / `fileSpaceRecords` / `imageRecords` 使用支委门（后两张 2026-09-21 批次 120 起）；`activities` 有专门活动写门；其余（`tasks`/`attendances`/`inspections`/`taskforces`/`todos`/`signups`/`weeklyReports`…）**任意登录成员均可 POST/PATCH/DELETE**。代码注释称「未设门：由既有 writeAuth 把关」，而 `writeAuth` 对它们就是 `requireAuth` | `server/routes/resources/gates.js:39-41`、`server/routes/resources/index.js:54-56` |
+| 1 | **资源列表读口已收紧（需登录）** | `GET /api/v1/<资源名>`（29 个）与 `/bootstrap` **默认要登录**（未登录 401）；**唯一公开的资源读口＝`GET /api/v1/issues`**（出口脱敏）。**2026-09-18 批次 81 前**为「不需要登录、直接返回全表 JSON」——那时 `users`（含姓名与学号）等可被未登录者全量列举。**仍留的读侧缺口是跨支部**（见第 2 条） | `server/routes/resources/index.js:30-43`、`server/routes/resources/index.js:268`（bootstrap）、`server/routes/resources/index.js:547`（issues 公开） |
+| 2 | **服务端不做支部级读取过滤** | 列表读是「整表返回」；支部归属过滤（`withinBranch`）由**前端**做。同一台服务器上若存在多个支部，任一**已登录**读者可拿到全部支部的数据 | `server/routes/resources/store.js:44-46`（`listTable` 全表）、`server/routes/resources/index.js:517`（注释原文：「支部归属（2026-09-15 裁定）：写入取 actor.branchId；**读取过滤在前端 withinBranch**」）、`docs/src/services/core/visibility.js`（可见性在前端计算） |
+| 3 | **多数资源写口只要求登录** | 29 类资源中仅 `branchDocs` / `fileSpaceRecords` / `imageRecords` 使用支委门（后两张 2026-09-21 批次 120 起）；`activities` 有专门活动写门；其余（`tasks`/`attendances`/`inspections`/`taskforces`/`todos`/`signups`/`weeklyReports`…）**任意登录成员均可 POST/PATCH/DELETE**。代码注释称「未设门：由既有 writeAuth 把关」，而 `writeAuth` 对它们就是 `requireAuth` | `server/routes/resources/gates.js:39-41`、`server/routes/resources/index.js:54-56` |
 | 4 | **活动写门是有意留白** | 活动写门已拒「非支委层」，但**支委层的既有功能位（宣传归档、议程/结果编辑、状态更新）保持放行**——注释明确写「是否进一步收紧为『仅支书/副支书/党小组组长』列入待支书裁（避免误伤归档/议程链路）」 | `server/routes/resources/gates.js:83-97`（尤其 141-142 行） |
 | 5 | **token 无过期 / 无刷新机制** | 会话表无过期时间字段；仅显式 logout 或账号流出时失效 | `server/db.js:45-49`、`server/routes/auth.js:74-77` |
 | 6 | **口令是「全支部统一口令」** | 所有账号共用 `LOGIN_PASSWORD`（缺省 `123456`）；系统**没有个人密码**概念。「新增成员自动建号」也是用这个统一口令 | `server/routes/auth.js:15-18`、`content/04_web_design/data/DATA_MODEL.md:1043` |
@@ -1830,7 +1817,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 | # | 项 | 现状 | 依据 |
 |---|---|---|---|
-| 9 | **系列活动（SeriesRecord）无实现** | 数据模型有完整字段定义，但**前端 mockDB 无该域、服务端无该表、无任何读写入口** | `content/04_web_design/data/DATA_MODEL.md:269-291`（定义）；`docs/src/core/domain/domain.js:215-333`（mockDB 全部域，**无 series 键**）；`server/db.js:9-42`（35 张资源表，无 series） |
+| 9 | **系列活动（SeriesRecord）无实现** | 数据模型有完整字段定义，但**前端 mockDB 无该域、服务端无该表、无任何读写入口** | `content/04_web_design/data/DATA_MODEL.md:269-291`（定义）；`docs/src/core/domain/domain.js:215-333`（mockDB 全部域，**无 series 键**）；`server/db.js:9-41`（34 张资源表，无 series） |
 | 10 | **`timeOffset: null` 的任务永不实例化** | `sopData.js` 中确有 **6 条**任务的 `timeOffset` 为 `null`（组织类场景：`attendance-check` 2 条 + `feedback-handling` 4 条）；而**两个消费口都显式过滤掉 null**：（a）SOP 推演 `instantiateSOP` 里 `if (task.timeOffset === null) return;`；（b）决策树时间轴展示 `scenario.tasks.filter(t => t.timeOffset !== null)`。⇒ 这 6 条任务**在系统内不会被实例化为任务/待办** | `docs/src/workflow/sopData.js:95-96,103-106`（6 处 `timeOffset: null`）、`docs/src/workflow/sop.js:20`、`docs/src/services/activity/decision-tree.js:243` |
 | 11 | **`outputBlocks.blockOrder` 无 UI 写入口** | 产出块的排序能力（纯函数侧）存在，但**没有界面可写**——原设计里的拖拽排序画布已于 2026-09-03 裁定撤销。「能力在、入口无」。⚠ **2026-09-29 改准两处**：① 向导保存**不再**恒写空数组（原缺陷＝静默抹掉已按其它入口设过的顺序，批次 246 已修）；② **工作流块**的顺序**已有** UI 写入口（向导第②步 ▲▼）——本行的「无写入口」只指 `outputBlocks` | `content/04_web_design/data/DATA_MODEL.md:949`（原文标注） |
 | 12 | **活动字段 `deliverableIds` 已废弃** | 字段仍在模型中（标注为废弃），交付物实际由「文件空间记录」覆盖 | `content/04_web_design/data/DATA_MODEL.md:50` |
@@ -1851,7 +1838,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 22 | AI 本地推理（经验提炼 / 通知智能路由 / 活动建议） | **规划，无代码**；部署文档里写的 `AI_API_BASE_URL` 在代码中**检索不到消费点（未取证）** | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:217-240` |
 | 23 | 北大 IAAA 单点登录 | **未接入**：当前登录落点是本地 `login.html`；门控层已把 IAAA 预留为「换登录落点、不改门控条件」 | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:454`、`DEPLOYMENT_GUIDE.md:215` |
 | 24 | API 形态下的「一键重置」 | 前端 `?reset=` 三档**只在无 token 的 mock 形态生效**；API 形态没有对应接口，重置需运维手工删 `data.db` | `server/README.md:19` |
-| 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐（批次 110）**：部署文档原写「32 资源表」，现与代码一致为 **35 张**——后端按 **35 张**实现（本条保留记录，便于比对旧版文档） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:100,158,178,257,962` vs `server/db.js:9-42` |
+| 25 | 数据模型文档与部署文档的表数口径过期 | **已对齐（批次 110）**：部署文档原写「32 资源表」，现与代码一致为 **34 张**——后端按 **34 张**实现（本条保留记录，便于比对旧版文档；**2026-10-02 批次 342 删死表 `compliance_references` ⇒ 35 → 34**） | `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:100,158,178,257,962` vs `server/db.js:9-41` |
 
 > **另有一处需要说明的「未取证」**：`server/test/` 下的测试套件规模（文件数/断言数）本文件不写具体数字——它随开发持续增长，`server/README.md:37` 明确「本文件不维护固定计数，以 `server/test/` 实际目录为准」。
 

@@ -51,9 +51,9 @@ export const INIT_BLOB_CLEAR_DEFAULTS = {
   taskforces: [], notices: [], todos: [], signups: [],
   // 汇报与复盘：活动复盘/专班复盘/思想汇报/宣传任务/宣传周报
   activityReviews: [], taskforceReviews: [], thoughtReports: [], propTasks: [], weeklyReports: [],
-  // 归档/文件/资料：档案归档/支部文件/文件空间/图片/经验沉淀/合规引用
+  // 归档/文件/资料：档案归档/支部文件/文件空间/图片/经验沉淀
   archiveRecords: [], branchDocs: [], fileSpaceRecords: [], imageRecords: [],
-  experienceDeposits: [], complianceReferences: [],
+  experienceDeposits: [],
   // 党小组（2026-09-14 批次 25 一等实体）：清空回种子（loadPartyGroups 空集合回退 PARTY_GROUPS）
   partyGroups: [],
   // 成员流动台账（2026-09-14 批次 25）：业务过程数据，随初始化清空

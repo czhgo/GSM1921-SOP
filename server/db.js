@@ -9,7 +9,7 @@ import Database from 'better-sqlite3';
 const RESOURCE_TABLES = [
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
-  'experience_deposits', 'compliance_references', 'file_space_records', 'image_records',
+  'experience_deposits', 'file_space_records', 'image_records',
   'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports',
   'archive_records', 'external_dispatches',
   'act_sub_records', 'tf_sub_records',
@@ -216,6 +216,17 @@ export const MIGRATIONS = [
         db.exec(`CREATE TABLE IF NOT EXISTS ${t} (id TEXT PRIMARY KEY, data TEXT NOT NULL)`);
       }
       db.exec(`CREATE TABLE IF NOT EXISTS ${COLLECTION_VERSIONS_TABLE} (name TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0)`);
+    },
+  },
+  {
+    // v2（2026-10-02 批次 342 · 支书裁「甲」· 全域 CRUD 探查 `CRUD-1`）：
+    //   **删死表 `compliance_references`**——该表全仓**无 UI 消费方、无写口、无字段契约**（批次 192/193 `D-653`
+    //   即已查实），支书 2026-10-02 圈定「删表」。**只 DROP、不迁数据**（表内既有数据即无意义数据）。
+    version: 2,
+    name: 'drop-compliance-references',
+    tables: [],
+    up(db) {
+      db.exec('DROP TABLE IF EXISTS compliance_references');
     },
   },
 ];

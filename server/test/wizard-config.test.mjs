@@ -30,15 +30,15 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261002g';
-import { registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261002g';
-import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261002g';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261002h';
+import { registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261002h';
+import { applyConfigCopy, getBranchById } from '../../docs/src/services/branch/branch.js?v=20261002h';
 import {
   buildConfigPackage,
   applyConfigPackage,
   PACKAGE_KIND,
   PACKAGE_VERSION,
-} from '../../docs/src/services/branch/org-config-package.js?v=20261002g';
+} from '../../docs/src/services/branch/org-config-package.js?v=20261002h';
 
 // ── localStorage 内存桩（import 之后建立；branch 服务在函数体内惰性访问）──
 const _store = new Map();

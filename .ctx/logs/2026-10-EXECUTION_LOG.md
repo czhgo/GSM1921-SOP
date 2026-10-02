@@ -920,3 +920,38 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **本批零代码**（只做探查与落账）⇒ **未改任何文件、未 bump `?v=`、未跑全量**（无代码改动；全量最近一次绿＝批次 340 的 **923 / 923 / 0**）。
 - **修复项分三类，全部属产品取向 ⇒ 已进 `.ctx/REVIEW_QUEUE.md` 请支书圈**（判据：删不删是**制度**问题，不是工程问题——如考勤/复盘/思想汇报**故意不可删**以保审计完整性）。
+
+## 批次 342（2026-10-02）：支书四条裁定全取甲 ⇒ 落**第一件：删死表 `compliance_references`**
+
+> **决议（`R-84`）**：裁定进决策日志（`D-744`），实现与实测进本节。
+
+### 一、删表全链（`D-744` 第 1 条前半）
+
+| 层 | 改动 |
+| --- | --- |
+| 服务端 | `server/db.js`：`RESOURCE_TABLES` 去掉 `compliance_references`（35 → **34**）；**`MIGRATIONS` 新增 `v2 drop-compliance-references`**（`DROP TABLE IF EXISTS`，只删不迁数据）⇒ `SCHEMA_VERSION` 1 → **2**（启动日志实见 `[db] schema v2（本次应用 2 项）`） |
+| 服务端 | `server/routes/resources/store.js`：资源名映射去一项（30 → **29**）、`ID_PREFIX` 撤 `cr` |
+| 前端数据层 | `mock-adapter.js`（`_saveToStorage` / `loadDB` ×2 / 适配器接口）· `api-adapter.js`（接口 + 路径表注释）· `data-adapter.js`（init 三处 + 快照 payload，**25 → 24**）· `domain.js`（`mockDB` 域）· `init-reset.js`（重置清单） |
+| **有意保留** | `mock-adapter.js::LEGACY_STORAGE_KEYS` 与 `init-reset.js` 的「旧版独立存储键」清单**仍留 `compliance_references`**——它们是**历史 localStorage 键的清理名单**，与实体是否存在无关 |
+
+### 二、守卫与文档同批改准（首跑抓到 8 处红，逐条处置）
+
+| 守卫 | 红因 | 处置 |
+| --- | --- | --- |
+| `db-migration::M6` | v1 基线规模下限 45（实得 44） | 下限 45 → **44**（＋文件头注改准） |
+| `db-integrity-guard::G4` | `AD_HOC`（db.js 自建表）与冻结基线 `LEGACY_TABLES` 逐项相等 ⇒ 差 1 | 基线删该行（45 → 44）＋**注释写明「删表是『不改基线』的唯一例外」三条动作** |
+| `doc-consistency::S5` 数据五数 | 34 / 33 / 29 / 24 | `DATA_CONSISTENCY_CHECKLIST.md` 五数同批改准（含「四数之差有据」算式） |
+| `doc-consistency::S14` | 资源名 30→29、循环展开 119→115、合计 181→177 | `README-server.md §6 数量口径` 改准 |
+| `doc-line-ref::R1` | README 指向 `domain.js` / `data-adapter.js` 的引用随删行漂移 | **12 处行号改准**（`domain.js:264/277/284/340-410` · `data-adapter.js:52-53,440-450,512-513,542-543,998/999,1001/1002,1039,1136,1193,1204,1018,1062` · `store.js:24,27,28-29,44-46,53,54,55` · `db.js:235`） |
+| `doc-line-ref::R2` | 两处锚点漂移（`SCHEMA_VERSION` / `listTable`） | 同上同批改准 |
+| `reset-tier-init` | 测试夹具含该域 | 删夹具行 |
+| `doc-consistency::S6/S13`·`link-integrity`·`catalog-sync`·`mock-api-parity` 等 | — | 复跑绿 |
+
+- **文档**：`README-server.md`（§4.12 改**删除登记**（**保编号**、不重排 §4.13+）· §4 全表清单 35/30 → 34/29 · §6.2 资源表 30 → 29（**并保留原第 12 项一行删除说明**）· §7.3#1/#3/#9/#25 计数）· `.ctx/SNAPSHOT.md`（资源表 35 → 34；空表清单 30 → 29）· `content/04_web_design/data/DATA_MODEL.md`（**原位改注、保行数**——该文件被 README 引用 45 处行号，删行会位移）· `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md`。
+
+### 三、收尾全量（`R-85`）
+
+- **`node --test --test-concurrency=1`（全量）：923 项 / 923 过 / 0 红 / 0 取消** · **耗时 1344132 ms（≈22.4 分钟）** · **`EXITCODE=0`**（先在 3000 端口起 `node server.js`；跑完停服）。
+- ⚠ **如实登记**：中途一次未起服务的重跑有 **8 处 `ECONNREFUSED localhost:3000`**（`b3-1-makeup-writeback` / `click-cost` C1–C5 / `mock-integrity` M1–M2 / `empty-template` B1）＝**环境类**；起服务后逐件单跑均绿。
+- 戳 `?v=20261002g → 20261002h`。
+- **余项**（`D-744` 第 1 条后半 ＋ 第 2–4 条）待分批：`assignments` 补界面入口 · B 档两类 · `branches` 补「停用（软）」 · D 档写口纪律统一。

@@ -24,14 +24,17 @@ const DB_JS = path.join(ROOT, 'server', 'db.js');
 const SRC = fs.readFileSync(DB_JS, 'utf8');
 
 /**
- * v1 冻结基线：迁移机制落地（2026-09-25）时 db.js 自建的**全部**表（45 张）。
+ * v1 冻结基线：迁移机制落地（2026-09-25）时 db.js 自建的**全部**表。
  * ⚠ 只增不改版本——**新增表一律走 `v2+` 迁移**（并在其 `tables` 里登记），**不得**改写这份基线。
+ * ⚠ **删表是唯一例外**（2026-10-02 批次 342 · `CRUD-1`）：**删表**必须同批① 从 `db.js` 的 `RESOURCE_TABLES`
+ *   移除、② 追加 `v2+` 的 `DROP TABLE` 迁移、③ **同步删除本基线里的那一行**（因为本清单与 `AD_HOC` 抽取集
+ *   逐项相等，见 G4）——本批据此删去 `compliance_references`（**44 张**，原 45）。
  */
 const LEGACY_TABLES = [
-  // 35 张资源表（RESOURCE_TABLES）
+  // 34 张资源表（RESOURCE_TABLES）
   'users', 'activities', 'tasks', 'attendances', 'inspections',
   'taskforces', 'notices', 'todos', 'assignments', 'makeup_tasks',
-  'experience_deposits', 'compliance_references', 'file_space_records', 'image_records',
+  'experience_deposits', 'file_space_records', 'image_records',
   'signups', 'activity_reviews', 'taskforce_reviews', 'prop_tasks', 'weekly_reports',
   'archive_records', 'external_dispatches',
   'act_sub_records', 'tf_sub_records',

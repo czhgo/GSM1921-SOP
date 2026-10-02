@@ -9,9 +9,9 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
-} from '../../docs/src/core/domain/work-map.js?v=20261002g';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261002g';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261002g';
+} from '../../docs/src/core/domain/work-map.js?v=20261002h';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261002h';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261002h';
 
 let server, base, token;
 

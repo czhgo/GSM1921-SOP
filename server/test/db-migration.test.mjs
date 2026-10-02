@@ -1,6 +1,6 @@
 // server/test/db-migration.test.mjs — 最小可用迁移机制验收（2026-09-25）
 //
-// 背景：`server/db.js` 此前**没有版本化迁移**——45 张表全由 `CREATE TABLE IF NOT EXISTS` 建，
+// 背景：`server/db.js` 此前**没有版本化迁移**——44 张表（原 45，2026-10-02 批次 342 删 `compliance_references`）全由 `CREATE TABLE IF NOT EXISTS` 建，
 //   `PRAGMA user_version` 恒为 0、无 `ALTER TABLE`（头号技术债：改了结构线上库不跟）。
 // 本件验收 `db.js` 末尾「最小可用迁移机制」段：
 //   M1 **全新库**：`initDb` 自动应用 → `user_version` = `SCHEMA_VERSION`，并打印一条启动日志
@@ -133,6 +133,6 @@ test('M6 非空转：迁移列表规模基线（防列表被清空导致守卫�
   assert.ok(MIGRATIONS.length >= 1, `迁移列表为空（基线 ≥1）`);
   assert.ok(SCHEMA_VERSION >= 1, `SCHEMA_VERSION=${SCHEMA_VERSION}（基线 ≥1）`);
   assert.equal(SCHEMA_VERSION, Math.max(...MIGRATIONS.map((m) => m.version)), 'SCHEMA_VERSION 须＝列表最大版本');
-  assert.ok(MIGRATIONS[0].tables && MIGRATIONS[0].tables.length >= 45,
-    `v1 基线应登记 ≥45 张现状表（实得 ${MIGRATIONS[0].tables ? MIGRATIONS[0].tables.length : 0}）`);
+  assert.ok(MIGRATIONS[0].tables && MIGRATIONS[0].tables.length >= 44,
+    `v1 基线应登记 ≥44 张现状表（实得 ${MIGRATIONS[0].tables ? MIGRATIONS[0].tables.length : 0}）`);
 });

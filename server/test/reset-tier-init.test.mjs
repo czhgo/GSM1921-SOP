@@ -27,11 +27,11 @@ const {
   INIT_BLOB_KEY, INIT_BLOB_CLEAR_DEFAULTS, INIT_WHITELIST_STANDALONE_KEYS,
   INIT_STATE_KEY, stripSeedRecordsIfInitState,
   collectInitKeys, trimInitBlob, handleInitResetIfRequested,
-} = await import('../../docs/src/services/core/init-reset.js?v=20261002g');
+} = await import('../../docs/src/services/core/init-reset.js?v=20261002h');
 // 接线冒烟（⑤）：走 services/core/mock.js loadDB 可改 reset 链（数据源默认 mock）
-const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261002g');
+const { loadDB, saveDB } = await import('../../docs/src/services/core/mock.js?v=20261002h');
 // C2 修复（⑥）：浏览器加载链多轮 loadDB 稳态断言（内存 mockDB 与浏览器同源单例）
-const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261002g');
+const { mockDB } = await import('../../docs/src/core/domain/domain.js?v=20261002h');
 
 // ── 内存桩（与 reset-tier.test.mjs 同构）────────────────────────
 function makeStorage(seed = {}) {
@@ -93,7 +93,6 @@ const BLOB = {
   makeupTasks: [{ id: 'mkp1', activityId: 'act-26', personId: 'p9' }],
   actSubRecords: { 'act-31': { outputs: [] } },
   tfSubRecords: { 'tf-1': { progress: [] } },
-  complianceReferences: [{ id: 'cmp1', title: '中国共产党章程' }],
   fileSpaceRecords: [{ id: 'fs1', fileName: '活动照片.zip' }],
   experienceDeposits: [{ id: 'exp1', title: '复盘经验' }],
   imageRecords: [{ id: 'img1', title: '活动合影' }],
@@ -458,7 +457,7 @@ test('C2 修复：stripSeedRecordsIfInitState——有哨兵只剔种子留用�
 });
 
 test('C2 修复：loadActivities 读兜底——init 态空态返回 []（不回退演示种子）；无哨兵保持原回退', async () => {
-  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261002g');
+  const { loadActivities } = await import('../../docs/src/services/activity/activity.js?v=20261002h');
   const { ls } = stubGlobals({ search: '', href: 'http://127.0.0.1:3000/index.html', store: { page_pref: 'x' } });
   // 无哨兵（正常演示态）：mockDB 空 → 回退演示种子（首屏早期/未加载语义不变）
   mockDB.activities = [];

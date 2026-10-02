@@ -256,8 +256,6 @@ export const mockDB = {
   actSubRecords: {},
   /** @type {Object} 专班子记录（tfId → subRecords） */
   tfSubRecords: {},
-  /** @type {Object[]} 合规引用 */
-  complianceReferences: [],
   /** @type {Object[]} 文件空间记录 */
   fileSpaceRecords: [],
   /** @type {Object[]} 经验沉淀 */

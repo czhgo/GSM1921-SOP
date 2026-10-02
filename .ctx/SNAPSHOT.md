@@ -67,7 +67,7 @@ GSM1921-SOP/
 ├── server/                     ← Node 一体化后端（Express + better-sqlite3，同源静态 + /api/v1 REST）
 │   ├── server.js               ← 启动入口（DISABLE_SEED=1 env 支持）
 │   ├── app.js                  ← createApp 工厂 + JSON 错误中间件
-│   ├── db.js                   ← 资源表 35（以 RESOURCE_TABLES 单一事实源为准；含 2026-09-17 匿名核查留痕表 issue_reveals）+ sessions/attachments
+│   ├── db.js                   ← 资源表 34（以 RESOURCE_TABLES 单一事实源为准；含 2026-09-17 匿名核查留痕表 issue_reveals；2026-10-02 批次 342 删死表 compliance_references）+ sessions/attachments
 │   ├── seed.js                 ← 复用前端 mock 导入种子
 │   ├── routes/                 ← auth / **resources/**（2026-09-28 批次 234 按内聚切分为**六件**：`index` 装配+通用 CRUD / `gates` 写门 / `approval-gates` 批准门 / `snapshot-versions` 版本协议 / `store` 表访问原语 / `semantic-routes` 语义端点）/ uploads / report / member / committee
 │   ├── services/               ← mailer.js（SMTP 双通道）+ mailer-hooks.js（事件钩子）+ reporting.js（四域上报）
@@ -92,7 +92,7 @@ GSM1921-SOP/
 
 > **数据表现状（台账标注 · 2026-09-25 批次 190，系 `.ctx` 侧登记、**未改 `server/**`**）**：`server/data.db` 实有 **45 张表**、全库 **317 行**；其中 **30 张为空表**——**仅结构先行、数据尚未落地**（逐表清单见下句）。**⚠ 本注记的性质＝台账标注**：这些表**有结构、有读写口**（多为既有上传 / 留痕 / 申诉 / 服务端化链的承载位），**不代表功能不可用**——**这不是缺陷、也未被「修复」**（**只是把结构现状写清**）。同批另两条**本就建议不动**，一并说明：**单写者**（better-sqlite3 同步、单进程；WAL 只救读、不救写）· **附件走磁盘**（`uploads/` 落文件、库里只存路径，当前方向正确）。
 >
-> **30 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `compliance_references` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports` · `weekly_reports`。
+> **29 张「结构先行、暂无数据」的表（逐表清单，照录上一批后端实测；2026-10-02 批次 342 删 `compliance_references` ⇒ 30 → 29）**：`act_sub_records` · `activity_reviews` · `agenda_votes` · `appointment_records` · `attachments` · `attendance_appeals` · `attendances` · `auth_audit` · `branch_docs` · `collection_versions` · `committee_broadcasts` · `experience_deposits` · `external_dispatches` · `file_space_records` · `handoffs` · `image_records` · `inspection_appeals` · `inspections` · `issue_reveals` · `issue_unread` · `member_change_requests` · `member_confirmations` · `member_flows` · `milestones` · `prop_tasks` · `taskforce_reviews` · `tf_sub_records` · `thought_reports` · `weekly_reports`。
 
 ## II. 分层架构（D-218 正交维度模型）
 

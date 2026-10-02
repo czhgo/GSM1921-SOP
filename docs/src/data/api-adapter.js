@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261002g';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261002h';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -148,7 +148,6 @@ function _delete(path) {
 //  | 文件空间    | /api/v1/fileSpaceRecords | GET/POST |
 //  | 图片        | /api/v1/imageRecords      | GET/POST |
 //  | 经验沉淀    | /api/v1/experienceDeposits | GET/POST |
-//  | 合规引用    | /api/v1/complianceReferences | GET/POST |
 //  | 认证登录    | /api/v1/auth/login      | POST      |
 //  | 认证注销    | /api/v1/auth/logout     | POST      |
 //  ─────────────────────────────────────────────────────────
@@ -398,18 +397,6 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/experienceDeposits', data);
-    },
-  },
-
-  complianceReferences: {
-    list(params = {}) {
-      const query = new URLSearchParams(params).toString();
-      // T-218：路径统一为 /api/v1/{name}（原 /compliance-refs 未实现）
-      return _get(`/api/v1/complianceReferences${query ? '?' + query : ''}`);
-    },
-
-    create(data) {
-      return _post('/api/v1/complianceReferences', data);
     },
   },
 

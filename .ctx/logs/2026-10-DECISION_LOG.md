@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 > 本文件记录 2026 年 10 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-10-02 批次 336 换月 · 支书裁「甲 真换月：迁入 ＋ 改判据」）**：① 2026-10-01/02 已落在 `2026-09-DECISION_LOG.md` 的 **11 条**（`D-729`…`D-739`）**逐字迁入**本文件；② 此后新决议一律记于本文件。**边界**：判据由 `server/test/doc-consistency.test.mjs::S14⑤⑥` 把守（活跃月文件按 `status: active` 指认）。
 
-> **条目编号起止**：本文件当前 **`D-729` … `D-743`，共 15 条**；下一条自 **`D-744`**。**最近一批（2026-10-02 批次 340）**＝`#1` 待办「作废」实现（落 `D-742` 规格 ＋ 支书两处追加裁定）。
+> **条目编号起止**：本文件当前 **`D-729` … `D-744`，共 16 条**；下一条自 **`D-745`**。**最近一批（2026-10-02 批次 342）**＝全域 CRUD 探查（`#2`）四条裁定的**第一件**：删死表 `compliance_references`。
 
 ## 本月目录（2026-10）
 
@@ -20,6 +20,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 
 | 主题 | 条目 | 日期 | 状态 |
 |---|---|---|---|
+| 全域 CRUD 探查（`#2`）四条裁定 ＋ **删死表 `compliance_references`** | `D-744` | 2026-10-02 | 已裁（全取甲）· **A 档前半已落**（批次 342）；余项待分批 |
 | 待办「作废」实现（审批门 ＋ 硬删只留支委 ＋ 裁决站内知会）（`#1`） | `D-743` | 2026-10-02 | 已闭环（批次 340） |
 | 待办手续 · 「作废」（审批门·报支委会）与硬删收口（`#1`） | `D-742` | 2026-10-02 | 已裁 · **已实现**（`D-743` 落地） |
 | 授权口径 · `project-auth-granted` 与前端放行对齐（`SOP-G-1`） | `D-741` | 2026-10-02 | 已闭环（支书取甲） |
@@ -818,7 +819,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 - ⚠ **遗留在案**：`2026-07-DECISION_LOG.md` 冻结时 `status: active` 未改（本批已发现的同类问题）⇒ 第二步一并改正。
 
 
-> **本文件续编说明**：条目编号**自 `D-729` 起、当前止于 `D-743`**（共 **15** 条；**2026-10-02 批次 340** 新增 `D-743`；**2026-10-02 批次 336 换月迁入**——自 `2026-09-DECISION_LOG.md` 逐字迁入 11 条，含批次 335 的 `D-739`；**2026-10-02 批次 332**……沿革见 9 月文件的同名段）。
+> **本文件续编说明**：条目编号**自 `D-729` 起、当前止于 `D-744`**（共 **16** 条；**2026-10-02 批次 342** 新增 `D-744`；**2026-10-02 批次 340** 新增 `D-743`；**2026-10-02 批次 336 换月迁入**——自 `2026-09-DECISION_LOG.md` 逐字迁入 11 条，含批次 335 的 `D-739`；**2026-10-02 批次 332**……沿革见 9 月文件的同名段）。
 
 ## D-740 2026-10-02 — 批次 337：支书评议批 `#9` —— **徽章红/金分色**（含 `styles.css` 特批）
 
@@ -980,3 +981,38 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 - ⚠ **如实登记**：本批**未**做「已作废」回看入口（支书裁定「暂不做」）；「站内信」此处**复用既有系统通知链路**（`addSystem`）——`#4`「站内信」作为**独立形式**的设计仍待另批（本批只满足「作废裁决要让相关委员知情」这一点）。
 - ⚠ **支书台保留「不渲染硬删」**：`secretary/todo-tab.js` 早已显式传 `onDeleteTodo: null`（「以实时组为主，销项走一键确认/业务联动」）⇒ 支书台**只出「作废」、不出「✕ 删除」**。口径「**硬删只留支委**」读作「**只有支委层可以留硬删**」，**不**要求每个支委台都开——故**未改**该处显式覆盖（少开一个口子，不违裁定）。
 - ⚠ **`todo-list.js` 同批收紧一处旧行为**：硬删键原按 `onDeleteTodo` 真值渲染（实时组也渲染、点了空转）⇒ 现并加 `g.persisted` 条件（作废键同）。
+
+## D-744 2026-10-02 — 批次 342：全域 CRUD 探查（`#2`）**四条裁定**（全取甲）＋ **删死表 `compliance_references`**
+
+> **一句话结论：** 批次 341 出「30 张资源表 × C/R/U/D × 界面入口」矩阵后，支书就**四个分叉**逐条圈定，**四条全部取 AI 推荐档（甲）**；本批先落**第一件**（删死表），余三项按批排入。
+
+### 支书四条裁定（2026-10-02 · 逐条）
+
+| # | 命题 | 支书圈定 |
+| --- | --- | --- |
+| 1 | **A 档 死表两张**（`complianceReferences` / 独立 `assignments`） | **甲：删 `complianceReferences`；`assignments` 补界面入口** |
+| 2 | **B 档「能建不能删」12 张**的处置口径 | **甲：按 AI 分档**——审计类（`attendances` / `activityReviews` / `taskforceReviews` / `thoughtReports` / `reviewRequests`）**保持不可删 ＋ 界面补一句说明**；业务过程类（`makeupTasks` / `imageRecords` / `weeklyReports` / `externalDispatches` / `experienceDeposits` / `tasks`）**补「作废·停用」软入口**（走审批门，同 `#1` 已落口径） |
+| 3 | `branches`（支部实例）**无停用 / 解散入口** | **甲：补「停用（软）」入口**（党委台；留任期档、不物理删） |
+| 4 | **D 档 写口纪律**（绕过统一写口的直写点，约 10 余处） | **甲：排批直接修**（统一收进 `ApiAdapter` / `persist()`；属工程口径、无需制度裁定） |
+
+### 本批已落（`D-744` 的第 1 条前半：**删死表**）
+
+- **删表口径**：`compliance_references` 经查为**死表**（全仓**无 UI 消费方 / 无写口 / 无字段契约**；该判定首见批次 192/193 `D-653`）⇒ **删表**，走 `server/db.js` 的 **`v2` `DROP TABLE` 迁移**（`drop-compliance-references`，**只 DROP 不迁数据**）。
+- **同批清理面**：`db.js::RESOURCE_TABLES`（35 → **34**）· `store.js`（资源名映射 30 → **29**、`ID_PREFIX` 撤 `cr`）· 前端数据层（`mockDB` 域 / 快照 payload 键 25 → **24** / `MockAdapter` 接口 / `ApiAdapter` 接口 / `reset` 清单）· `init-reset` 重置清单。
+  - **不动的两处（有意保留）**：`mock-adapter.js::LEGACY_STORAGE_KEYS` 与 `init-reset.js` 的「旧版独立存储键」清单**仍留 `compliance_references`**——它们是**历史 localStorage 键的清理名单**（旧客户端可能写过），与「实体是否存在」无关。
+- **守卫同批改准**：`db-integrity-guard::LEGACY_TABLES`（45 → **44**，并在注释里写明「**删表是『不改基线』的唯一例外**：须同批改 `RESOURCE_TABLES` ＋ 加 `DROP` 迁移 ＋ 删基线那一行」）· `db-migration::M6` 规模下限 45 → **44** · `doc-consistency::S5` 四数（34 / 33 / 29 / 24）· `S14`（路由数：循环展开 119 → **115**、合计 181 → **177**）· `doc-line-ref` 12 处行号引用改准。
+- **文档同批改准**：`README-server.md`（§4.12 改**删除登记**、§4 全表清单 35/30 → 34/29、§6.2 资源表 30 → 29、§6 数量口径、§7.3 若干）· `.ctx/SNAPSHOT.md`（资源表 35 → 34、空表清单 30 → 29）· `content/.../DATA_MODEL.md`（**原位改注、保行数**——该文件被 README 引用 45 处行号）· `DEPLOYMENT_GUIDE.md`。
+  - **为什么 DATA_MODEL 不删行**：删行会**位移** README-server 指向它的 45 处 `文件:行号` 引用；「**原位改写保行数**」是本仓既定做法（见批次 154）。
+
+### 余项（`D-744` 第 1 条后半 ＋ 第 2–4 条）——**待分批**
+
+- **`assignments` 补界面入口**：该表＝**「分工记录」**（`{activityId, workName, workDescription, ddl, assigneeId, status, createdBy, createdAt, completedAt}`），语义＝「**谁负责哪项工作**」（**与活动对象内联的 `activity.assignments` 项目角色数组不是同一数据**）；现全仓仅种子与引用检查，**无任何界面**。
+- **B 档两类**（审计类补说明 / 业务类补「作废·停用」软入口）· **`branches` 补「停用（软）」** · **D 档写口纪律统一**。
+
+### 影响范围
+
+- 服务端：`server/db.js`（`RESOURCE_TABLES` ＋ `MIGRATIONS` 新增 **v2**）· `server/routes/resources/store.js`。
+- 前端：`data/mock-adapter.js` · `data/api-adapter.js` · `data/data-adapter.js` · `core/domain/domain.js` · `services/core/init-reset.js`。
+- 守卫/测试：`db-integrity-guard` · `db-migration` · `reset-tier-init`。
+- 文档：`README-server.md` · `.ctx/SNAPSHOT.md` · `content/04_web_design/data/DATA_MODEL.md` · `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` · `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md`（数据五数）。
+- 戳：`?v=20261002g → 20261002h`。

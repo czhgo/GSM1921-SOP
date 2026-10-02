@@ -656,13 +656,13 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 - [ ] 活动存储态判据单一源（`isActivityEnded / isActivityArchived / isActivityNotStarted / isActivityLive`，`core/domain/constants.js`）：活动「已结束/已归档/未开始/仍在办」判据全站禁止手写 `status==='completed' || archived`，一律引用该单一源
 - [ ] 按人视图口径（SecretaryOverviewStore.getPersonOverview）：4 角色（org/prop/disc/leader，副支书除外）；todoCount=聚合卡 count 求和；在办活动/专班按职责关系投影（manager=统筹/initiator=发起/member=成员）
 - [ ] **前端持久化域 ↔ server 表对账（B5-2 2026-08-24 立；2026-09-15 收敛为实测口径，Q-23-1 结案）**——**口径定义**（下列五个数各自统计什么，严禁混用/互相代入）：
-  - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 35**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`）
-  - **localStorage 持久化域** ＝ `docs/src/data/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 34**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域）
-  - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 35**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 为 2026-09-17 支书裁定「查看匿名的权限只有党委有」的留痕表，仅 `GET /api/v1/issues/reveal` 命中时写入）
-  - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 30**
-  - **快照 payload 键** ＝ `docs/src/data/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 25**
-  - 四数之差有据：资源名 30 ＋ 语义端点表 5 ＝ server 表 35；持久化域 34 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 25。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。
-- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 **25** 个键，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
+  - **mockDB 顶层业务域** ＝ `docs/src/core/domain/domain.js::mockDB` 的顶层非 `_` 键数 → **实测 34**（含 `users` 与仅内存读链的 `pendingMemberConfirmations`；2026-10-02 批次 342 删 `complianceReferences` ⇒ 35 → 34）
+  - **localStorage 持久化域** ＝ `docs/src/data/mock-adapter.js::_saveToStorage()` 序列化字段数 → **实测 33**（含 `users`；users 在 mock 形态走「members 持久覆盖层」子域；同上批删 `complianceReferences` ⇒ 34 → 33）
+  - **server 表** ＝ `server/db.js::RESOURCE_TABLES` 长度 → **实测 34**（含 `issues` / `member_change_requests` / `committee_broadcasts` / `agenda_votes` / `issue_reveals` 五张语义端点表——不进通用资源名映射；`issue_reveals` 为 2026-09-17 支书裁定「查看匿名的权限只有党委有」的留痕表，仅 `GET /api/v1/issues/reveal` 命中时写入）
+  - **资源名映射** ＝ `server/routes/resources.js::RESOURCE_TABLES` 键数 → **实测 29**
+  - **快照 payload 键** ＝ `docs/src/data/data-adapter.js::_buildSnapshotPayload()` 键数 → **实测 24**
+  - 四数之差有据：资源名 29 ＋ 语义端点表 5 ＝ server 表 34；持久化域 33 − 快照排除的 9 域（`users` / `branchDocs` ＋ `memberChangeRequests` / `committeeBroadcasts` / `agendaVotes` / `handoffs` / `branches` / `appointmentRecords` / `reviewRequests`）＝ 快照 24。**结论：三者非「一一映射」，须按上述分口径读**（旧文件「27 域 / 28 表一一映射」的表述已作废）。
+- [ ] 快照写穿边界（B5-1/B5-3 2026-08-24）：全量快照（`_buildSnapshotPayload`）覆盖 **24** 个键，**不含 users 与 branchDocs**；branchDocs 走 per-item CRUD（POST/PATCH/DELETE `/api/v1/branchDocs`）且仅支委可写（COMMISSIONER_WRITE）——**严禁将 branchDocs 加入快照 payload**，否则 references.js 本地缓存与 server 会产生覆盖竞态
   > **口径维护**：实测值以本节上列五行为唯一口径；此后新增域须同步更新这五个值，勿只改其中一处。
   > **迁出去向说明**：本处原有三条批次注（批次 25 新增 `partyGroups` / `memberFlows` 两域、2026-09-15 收口替换并列旧数、2026-09-17 由 34 改为 35）已于 2026-09-17 **逐字迁出**至 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的「**附：稳定文档迁出的逐批沿革（2026-09-17 批次 58）**」节。**为什么迁**：本手册是现行判据，批次史与「本注不改上文历史记载」类元注记不属此处。**现在要查**：当前五数看本节上列五行（口径定义同处）；沿革去上述日志附节。
 - [ ] 聚合域存储模式（B5 对账 2026-08-24）：actSubRecords/tfSubRecords 服务端以「__root__ 单行」存储（`{id:'__root__', body:<原对象>}`），init() 拉取解包、快照写穿包装，round-trip 对称

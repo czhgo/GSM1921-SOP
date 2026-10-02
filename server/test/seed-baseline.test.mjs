@@ -18,7 +18,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { initDb } from '../db.js';
 import { seedBaseline } from '../seed-baseline.js';
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261002g';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261002h';
 
 const rows = (db, t) => db.prepare(`SELECT data FROM ${t}`).all().map((r) => JSON.parse(r.data));
 const count = (db, t) => db.prepare(`SELECT COUNT(*) c FROM ${t}`).get().c;
@@ -41,8 +41,8 @@ test('B1 生产空库能自举：支部 1 个（br-b1 · 光华管理学院本�
   const u = rows(real, 'users')[0];
   assert.equal(u.role, 'party-staff', '必须是党委组织员角色，否则没人能建支部（POST /branches 的门）');
   assert.equal(u.branchId, null, '组织级：不属于任一支部');
-  assert.equal(real.prepare("SELECT COUNT(*) c FROM sqlite_master WHERE type='table'").get().c >= 45, true,
-    '物理表应齐（≥45：35 资源 + 7 语义 + 2 关系 + collection_versions）');
+  assert.equal(real.prepare("SELECT COUNT(*) c FROM sqlite_master WHERE type='table'").get().c >= 44, true,
+    '物理表应齐（≥44：34 资源 + 7 语义 + 2 关系 + collection_versions；2026-10-02 批次 342 删 `compliance_references` ⇒ 45 → 44）');
 
   // ③ **其余业务表全空**（本系统的核心约束：部署不带名单）
   const skip = new Set(['branches', 'users', 'collection_versions', 'sessions', 'attachments']);

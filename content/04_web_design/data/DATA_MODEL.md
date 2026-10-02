@@ -441,9 +441,9 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 
-### 2.11 制度文件引用 (ComplianceReference)
+### 2.11 制度文件引用 (ComplianceReference) —— **已于 2026-10-02 删除**
 
-> 类型定义位于 [domain.js](../../../docs/src/core/domain/domain.js)
+> ⚠ **本表已删除**（批次 342 · 支书裁「甲」· `CRUD-1`：死表——无 UI 消费方 / 无写口 / 无字段契约；删表走 `server/db.js` 的 `v2` `DROP TABLE` 迁移）。**下表为删除前的历史字段契约，留档不删**（原位改注以**保行数**——`README-server.md` 有 45 处行号引用指向本文件）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -1165,7 +1165,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
 | 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
-| 制度文件引用 (ComplianceReference) | mockDB.complianceReferences + localStorage | 引用->持久化 | 组织委员引用的制度文件 |
+| ~~制度文件引用 (ComplianceReference)~~ | **已删（2026-10-02 批次 342 · `CRUD-1`）** | 死表：无 UI 消费方 / 无写口 / 无字段契约 |
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 7 个内置场景，驱动任务生成和工作流（内置清单见本文 §2.14） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
@@ -1360,7 +1360,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `makeupTasks` | MakeupTask[] | 补课任务 |
 | `actSubRecords` | Object | 活动子记录（按活动 ID 索引） |
 | `tfSubRecords` | Object | 专班子记录（按专班 ID 索引） |
-| `complianceReferences` | ComplianceReference[] | 制度文件引用 |
+| ~~`complianceReferences`~~ | ~~ComplianceReference[]~~ | **已删（2026-10-02 批次 342）** |
 | `fileSpaceRecords` | FileSpaceRecord[] | 文件空间记录 |
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
 | `imageRecords` | ImageRecord[] | 图片记录 |
@@ -1501,7 +1501,7 @@ UI 层零改动。
 | fileSpaceRecords | list/create | 文件空间 |
 | imageRecords | list/create | 图片记录 |
 | experienceDeposits | list/create | 经验沉淀 |
-| complianceReferences | list/create | 合规引用 |
+| ~~complianceReferences~~ | **已删（2026-10-02 批次 342）** | 合规引用（死表已删） |
 
 #### 4.4.5 API 路由设计
 
@@ -1528,7 +1528,7 @@ UI 层零改动。
 | 文件空间 | `/api/v1/fileSpaceRecords` | GET/POST |
 | 图片 | `/api/v1/imageRecords` | GET/POST |
 | 经验沉淀 | `/api/v1/experienceDeposits` | GET/POST |
-| 合规引用 | `/api/v1/complianceReferences` | GET/POST |
+| ~~合规引用~~ | ~~`/api/v1/complianceReferences`~~ | **已删（2026-10-02 批次 342）** |
 | 认证登录 | `/api/v1/auth/login` | POST |
 | 认证注销 | `/api/v1/auth/logout` | POST |
 
