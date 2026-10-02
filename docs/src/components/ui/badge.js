@@ -4,17 +4,20 @@
 // variant ∈ success | warning | danger | info | neutral | brand | gold
 
 // 覆盖类（Tailwind 工具类晚于 styles.css 注入 → 覆盖 badge--* 的字色）：
-// warning/brand 底 #FEF3C7、gold 底 #FDE68A 上原字色 #A16207 对比不足 4.5（4.42/5.69 边界），
-// neutral 底 #F3F4F6 上 #6B7280 仅 4.39 —— 统一加深一档至 AA。深色模式由
-// html.theme-dark .badge--* 高优先级规则接管，不受此覆盖影响。
+// warning / neutral 两个变体的原字色对比不足 4.5（≈4.4 边界）⇒ 各自再加深一档至 AA。
+// ⚠ 2026-10-02 批次 337（支书评 `#9`「为什么没有复用日历中的红色和金色」）：**brand / gold 不再挂内联字色**——
+//   `brand` 已按语义改回**党建红**（`styles.css`：浅红底 ＋ `var(--party-red)` 字，对比 ≥ AA）；
+//   `gold` 用其自身底 ＋ 深琥珀字（同样 ≥ AA）；**原先两者都挂 `text-amber-800`**
+//   ⇒ 把红 / 金两色**盖成同一色**（这正是支书看到「另起炉灶」的直接原因）。
+//   深色模式由 html.theme-dark .badge--* 高优先级规则接管，不受此覆盖影响。
 const BADGE_VARIANT_CLASS = {
   success: 'badge--success',
   warning: 'badge--warning text-amber-800',
   danger: 'badge--danger',
   info: 'badge--info',
   neutral: 'badge--neutral text-gray-600',
-  brand: 'badge--brand text-amber-800',
-  gold: 'badge--gold text-amber-800',
+  brand: 'badge--brand',
+  gold: 'badge--gold',
 };
 
 export function badgeHtml(text, variant = 'neutral', opts = {}) {

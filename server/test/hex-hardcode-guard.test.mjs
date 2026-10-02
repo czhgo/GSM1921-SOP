@@ -200,7 +200,11 @@ test('H3 非空转：抽取口径可用 + 基线规模达标 + 无僵尸登记',
   const files = Object.keys(HEX_BASELINE);
   // ⚠ 2026-10-01 批次 321：下限随 `HEX_FILE_BASELINE` 同步下沉 77 → 76（`org/development-tab.js` 随
   //   「整页并入人才库」删除 ⇒ 文件数合法减少；**收基线不是放宽**——核的是「抽取口径仍可用」而非「数量不减」）。
-  assert.ok(HEX_FILE_BASELINE >= 76 && files.length >= 76, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 76）`);
+  // ⚠ 2026-10-02 批次 337（支书评 `#9`·徽章红/金字色）：`components/ui/badge.js` 的 5 处 hex
+  //   （全在该文件注释里）随「brand/gold 不再挂内联字色 ＋ brand 改回党建红用 `var(--party-red)`」**清零**
+  //   ⇒ 按收基线纪律删该文件条目、声明 76 → **75**，本「防呆下限」随实况同步下沉。
+  //   **不是放宽**：真正的判红项是 H1（新增值）/ H2（处数上涨）/ 僵尸登记——本下限只防「台账被悄悄删空」。
+  assert.ok(HEX_FILE_BASELINE >= 75 && files.length >= 75, `hex 基线文件数过少（实测 ${files.length} / 声明 ${HEX_FILE_BASELINE}，下限 75）`);
   assert.ok(HEX_TOTAL_BASELINE >= 1700, `hex 基线处数过少（声明 ${HEX_TOTAL_BASELINE}，下限 1700）`);
   assert.ok(HEX_VALUE_BASELINE >= 140, `hex 基线值数过少（声明 ${HEX_VALUE_BASELINE}，下限 140）`);
   assert.equal(files.length, HEX_FILE_BASELINE, '基线条目数与声明的文件数不一致（台账被改动须同步声明值）');

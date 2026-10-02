@@ -130,9 +130,6 @@ export const HEX_BASELINE = {
   'docs/src/components/shell/appearance-controls.js': { c: 5, v: [
       '#000', '#b91c1c', '#fff'
   ] },
-  'docs/src/components/ui/badge.js': { c: 5, v: [
-      '#6b7280', '#a16207', '#f3f4f6', '#fde68a', '#fef3c7'
-  ] },
   'docs/src/components/record/calendar.js': { c: 11, v: [
       '#000', '#fff'
   ] },
@@ -459,7 +456,7 @@ export const HEX_TOTAL_BASELINE = 2025;
 //   `#3b82f6` 在其它 10+ 文件仍存（`utils.js` / `stats.js` / `notice-view.js` 等）⇒ distinct 值仍 167。
 // ⚠ 2026-10-01 批次 321：`docs/src/entries/tabs/org/development-tab.js` 按支书 V-10 裁定「整页并入人才库」
 //   **删除** ⇒ 其 hex 条目一并删、**文件数声明 77 → 76**（与实况同值；`H3` 的非空转下限同步下沉到 76）。
-export const HEX_FILE_BASELINE = 76;
+export const HEX_FILE_BASELINE = 75;
 export const HEX_VALUE_BASELINE = 167;
 
 /** 搬移例外台账（**人工填写**；守卫**不自动放宽**）——2026-09-25 支书裁定「开搬移例外」。

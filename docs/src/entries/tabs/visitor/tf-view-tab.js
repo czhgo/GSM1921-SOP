@@ -6,7 +6,7 @@
 export function renderContent(ctx) {
   const el = document.getElementById('visitor-tab-content');
   if (!el) return null;
-  return import('../../../components/record/insight-view.js?v=20261001q').then(m => m.renderInsightView(el, {
+  return import('../../../components/record/insight-view.js?v=20261002b').then(m => m.renderInsightView(el, {
     defaultView: 'activity',
     highlightActId: ctx?.highlightActId || null,
     highlightTfId: ctx?.highlightTfId || null,

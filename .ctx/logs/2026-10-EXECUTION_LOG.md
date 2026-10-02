@@ -727,3 +727,39 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,402,241 ms（≈23.4 分钟）**。
 - ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 910 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。
+
+## 批次 337（2026-10-02）：支书评议批 `#9` —— **徽章红/金分色**（含 `styles.css` 特批）
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02 评「为什么没有复用日历中的**红色和金色**呢，而要自己另起炉灶？」并圈选**甲**「改 `styles.css`（党建红）——需特批」。**裁定与特批登记进决策日志**（`D-740`），**过程进本节**。
+
+### 一、根因（有据）
+
+- `components/ui/badge.js:14-17` 的 `BADGE_VARIANT_CLASS` 给 `brand` / `gold` **各挂一个内联 `text-amber-800`** ⇒ 把 `.badge--brand`（琥珀）与 `.badge--gold`（金）**盖成同一色**；而 `constants.js:760` 的语义是**三会一课＝党建红（`brand`）/ 主题党日＝党徽金（`gold`）**。
+
+### 二、本批实现
+
+| 文件 | 改什么 |
+| --- | --- |
+| `docs/src/styles.css`（**本轮特批**） | `.badge--brand` 浅色 / 深色两条 → **党建红**：浅色 `background: #FEE2E2; color: var(--party-red); border: 1px solid rgba(206, 17, 38, 0.25)`；深色 `rgba(206, 17, 38, 0.18)` 底 ＋ `var(--functional-error)` 字。**用现成 token、零新增色值** |
+| `docs/src/components/ui/badge.js` | `brand` / `gold` **去内联字色**（`warning` 保留：其 4.42 仍需加深）＋ 头注改写 |
+
+### 三、同批收基线（**不是放宽**）
+
+- `server/test/style-baseline.mjs`：**删** `ui/badge.js` 条目（该文件 hex 由 5 → **0**）· `HEX_FILE_BASELINE` 76 → **75**。
+- `server/test/hex-hardcode-guard.test.mjs`：防呆下限随实况 76 → **75**（附理由注）。
+- ⚠ **首跑抓到自伤（如实登记）**：头注里写了 hex 字面量 ⇒ `H2 处数 ratchet` 5 → 7 **红** ⇒ 改写为**不含 hex** 的表述后复绿（hex 实测 **0**）。
+
+### 四、守卫实跑
+
+- `test:fast` **140 / 140**（含 `hex-hardcode-guard` H1–H5）· `doc-consistency`（含 ⑤/⑥/⑥-2）＋ `link-integrity` ＋ `timestamps-note-guard` —— **28 / 28 / 0 红**。
+
+### 五、如实登记
+
+- ⚠ **变体判据 `activityTypeBadgeVariant` 未改**（本批只修**渲染层色值**）；若支书认为「三会一课」不该用 `brand` 之名，属**另裁**。
+- ⚠ **未动** `header.js:144` 那处自加 `text-amber-800` 的**金徽章**（其语义＝党徽金，与本次红/金分色不冲突）；如需一并对齐，另批。
+- ⚠ 全站 `?v=` 戳 `20261002a → b`（JS 217 / HTML 22 / CSS 2 / server-test 88；陈旧戳 **0 残留**）。
+
+### 六、收尾全量（`R-85`）
+
+- **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,413,657 ms（≈23.6 分钟）**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 910 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。

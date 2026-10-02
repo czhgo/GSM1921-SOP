@@ -1,5 +1,5 @@
 /* 组件样式（@import 必须位于文件顶部） */
-@import url('components/person-picker.css?v=20261001q');
+@import url('components/person-picker.css?v=20261002b');
 
 /* ═══════════════════════════════════════════════════════════════
    GSM1921-SOP DESIGN SYSTEM v11.0 — Matte Flat
@@ -3244,7 +3244,7 @@ input.login-input:focus-visible,
 .badge--danger  { background: #FEE2E2; color: #B91C1C; }
 .badge--info    { background: #DBEAFE; color: #1D4ED8; }
 .badge--neutral { background: #F3F4F6; color: #6B7280; }
-.badge--brand   { background: #FEF3C7; color: #A16207; border: 1px solid #FDE68A; }
+.badge--brand   { background: #FEE2E2; color: var(--party-red); border: 1px solid rgba(206, 17, 38, 0.25); }
 .badge--gold    { background: #FDE68A; color: #A16207; font-weight: 600; }
 
 /* ── 内联色块统一基础类（T231 第二轮）：内联样式只带 --tint，深浅两套由 CSS 计算 ──
@@ -3309,7 +3309,7 @@ html.theme-dark [style*="--acc-dot-dark"] {
   html.theme-dark .badge--danger  { background: rgba(248, 113, 113, 0.16); color: var(--functional-error); }
   html.theme-dark .badge--info    { background: rgba(96, 165, 250, 0.16); color: var(--functional-info); }
   html.theme-dark .badge--neutral { background: var(--neutral-100); color: var(--neutral-600); }
-  html.theme-dark .badge--brand   { background: rgba(251, 191, 36, 0.16); color: var(--functional-warning); border-color: rgba(251, 191, 36, 0.35); }
+  html.theme-dark .badge--brand   { background: rgba(206, 17, 38, 0.18); color: var(--functional-error); border-color: rgba(206, 17, 38, 0.35); }
   html.theme-dark .badge--gold    { background: rgba(251, 191, 36, 0.20); color: #FDE68A; }
   /* 裸 .badge（无变体类）：基础类硬编码浅灰底 #F3F4F6 + 深灰字 #6B7280 未反转（深色下残留浅块），
      与 badge--neutral 同构覆盖。
