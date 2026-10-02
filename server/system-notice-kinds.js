@@ -180,11 +180,24 @@ const KINDS = {
   },
 
   // ── 赋权通知 ──────────────────────────────────────────────────
-  // 对象：来源项目（活动/专班）必须存在；赋权动作属支委层（支书/副支书/组织/宣传/纪检）。
+  // 对象：来源项目（活动 / 专班）必须存在。
+  // 授权（2026-10-02 批次 338 · 支书裁「甲」· `SOP-G-1` 授权口径收口）：
+  //   ① **支委层**（支书 / 副支书 / 组织 / 宣传 / 纪检——赋权动作的原授权面）；
+  //   ② **党小组组长（role key ＝ `leader`）**——支书 2026-10-02 圈定「放宽至**该场组织者本人 ＋ 组长**」，
+  //      与前端「能看见『确认赋权』即能提交」的放行面**对齐**（两端口径同一份，`D-741`）；
+  //   ③ **该场现任组织者本人**——项目角色行（活动＝`activity.assignments[]` / 专班＝`taskforce.members[]`
+  //      内 `role === 'organizer'`）的 `personId` ＝ actor.id；**形状与判据同** `organizer-transfer.js::organizerOf`（单一源）。
+  //   ⚠ 病灶（`SOP-G-1`）：旧判据只看「支委层 ＋ 对象存在」⇒ 前端放行、服务端 **403 静默丢弃**；本批收口。
   'project-auth-granted': {
     authorize({ actor, sourceId, db }) {
-      if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
-      return !!rowOf(db, 'activities', sourceId) || !!rowOf(db, 'taskforces', sourceId);
+      if (!actor) return false;
+      const act = rowOf(db, 'activities', sourceId);
+      const tf = rowOf(db, 'taskforces', sourceId);
+      if (!act && !tf) return false;
+      if (COMMITTEE_ROLE_SET.has(actor.role)) return true;
+      if (actor.role === 'leader') return true;
+      const proj = act ? (act.assignments || []) : ((tf && tf.members) || []);
+      return proj.some((x) => x && x.role === 'organizer' && x.personId === actor.id);
     },
   },
 

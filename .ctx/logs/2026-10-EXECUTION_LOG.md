@@ -763,3 +763,41 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - **`npm test`：910 项 / 910 过 / 0 红 / 0 跳过** · **耗时 1,413,657 ms（≈23.6 分钟）**。
 - ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 910 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。
+
+## 批次 338（2026-10-02）：`SOP-G-1` **授权口径收口**（支书取甲：放宽至「该场组织者本人 ＋ 组长」）
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02「**按这个方案推进 V-3 页签建议序和 SOP-G-1 授权口径**」⇒ **裁定进决策日志**（`D-741`），**实现与实测进本节**。
+
+### 一、病灶（登记于 `.ctx/REVIEW_QUEUE.md` `### SOP-G-1`，2026-09-23 批次 157 新立）
+
+- `server/system-notice-kinds.js::project-auth-granted.authorize` 旧判据＝「**支委层**（`COMMITTEE_ROLE_SET`）＋ **来源对象存在**」⇒ **组长 / 该场组织者本人在前端能看见「确认赋权」并提交，服务端 403 静默丢弃**（同一动作两端口径不一致）。
+
+### 二、本批实现（甲：与前端对齐，不新增角色）
+
+| 档 | 判据 |
+| --- | --- |
+| ① | `COMMITTEE_ROLE_SET.has(actor.role)`（原面不变） |
+| ② | `actor.role === 'leader'`（**党小组组长**；role key 实读自 `constants.js:187` `ROLE_KEYS`） |
+| ③ | 该场**现任组织者本人**：活动＝`activity.assignments[]` / 专班＝`taskforce.members[]` 内 `role === 'organizer'` 行的 `personId === actor.id`（**形状与判据同** `organizer-transfer.js::organizerOf`） |
+
+- ⚠ **开工前先实读、未猜**：`rowOf()`（`:26-34`）对行的 `data` 列**做 JSON 解包** ⇒ `assignments` / `members` 取出来即**数组**，`.some()` 安全。
+
+### 三、正面证据（**新定向件**）
+
+- `server/test/system-notice-project-auth-authorize.test.mjs`（**A1–A8 · 8 / 8 绿**）：A1 支委层五角色放行 · A2 组长放行（活动 / 专班双侧）· A3 / A4 **该场组织者本人**放行（活动 `assignments` / 专班 `members`）· **A5 无关成员仍拒** · **A6 `deep` 行不放行** · A7 对象不存在一律拒 · A8 无 actor 一律拒。
+- ⇒ 既证「对齐了」，也证「**没有放宽到人人可发**」（A5 / A6 为反向证据）。
+
+### 四、守卫实跑
+
+- 新定向件 **8 / 8** · `test:fast` **140 / 140**；收尾全量见第六节。
+
+### 五、如实登记
+
+- ⚠ **只改服务端判据**；前端放行面**未动**（本就允许）⇒ 不改界面、**未 bump `?v=`**（无前端资产变化）。
+- ⚠ **队列改法**：`SOP-G-1` 状态行**原位改准**（`待支书定` → `已裁 … 已落`），**不删行**——保 `doc-consistency` ⑫「`与在册计数的关系` ≥5 处」的基线；`SOP-G-*` 仍不计入 `SOP-B-*` 在册计数。
+
+### 六、收尾全量（`R-85`）
+
+- **`npm test`：918 项 / 918 过 / 0 红 / 0 跳过** · **耗时 1409825 ms（≈23.5 分钟）**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 918 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。
+- ⚠ **首跑抓到一处自伤（如实登记）**：新定向件用例号用 `A1..` 仍被 `doc-consistency::S16`（「S 类测试文件必须全数列入 `test:daily`」）判为**守卫孤儿** ⇒ 按守卫指示把该件**入档 `server/package.json` 的 `test:daily`** 后复绿（`doc-consistency` **16 / 16**）。
