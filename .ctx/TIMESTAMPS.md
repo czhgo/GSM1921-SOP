@@ -59,7 +59,7 @@ dynamic_role:
 | .ctx/REVIEW_QUEUE.md | 2026-10-02 | — | [工程师]+[AI] | **（本批：`H-1`／`H-2` 已裁）** **（本批：`H-3` 收讫）** **（批次 237：新增一节「**代码健康综合评审**」＝8 条发现 `H-1`…`H-8`（`P0` 1 / `P1` 4 / `P2` 1 / `P3` 2；**待支书定 3 条**）；**不进「（一）逐条归组」表** ⇒ 队列在册数不受影响，`S14` 复跑全绿）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（5967 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」E 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
-| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-09-19 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
+| .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-10-02 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
 | .ctx/logs/DECISION_LOG.md | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -73,8 +73,10 @@ dynamic_role:
 | .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
-| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-09-28 | — | [工程师]+[AI] | **（本批与上一批：新增两节——上一节＝G3-1 release 的过程与脚手架实测 · 本批＝代码健康评审的取数与核对过程（含 8 条发现的实测读数表与「未做 / 边界」）；另本轮两次备注列迁出的正文亦落在本文件尾部两段「附」节）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（8059 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」C 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
-| .ctx/logs/2026-09-DECISION_LOG.md | 2026-09-28 | — | [工程师]+[AI] | **（批次 235：沿革已整段迁出**——本行的逐批沿革（6427 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」D 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
+| .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（本批与上一批：新增两节——上一节＝G3-1 release 的过程与脚手架实测 · 本批＝代码健康评审的取数与核对过程（含 8 条发现的实测读数表与「未做 / 边界」）；另本轮两次备注列迁出的正文亦落在本文件尾部两段「附」节）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（8059 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」C 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
+| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | 10 月执行日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335 共 12 节） |
+| .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | 10 月决策日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 D-729~D-739 共 11 条） |
+| .ctx/logs/2026-09-DECISION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（批次 235：沿革已整段迁出**——本行的逐批沿革（6427 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」D 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
 
