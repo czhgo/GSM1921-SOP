@@ -955,3 +955,46 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **如实登记**：中途一次未起服务的重跑有 **8 处 `ECONNREFUSED localhost:3000`**（`b3-1-makeup-writeback` / `click-cost` C1–C5 / `mock-integrity` M1–M2 / `empty-template` B1）＝**环境类**；起服务后逐件单跑均绿。
 - 戳 `?v=20261002g → 20261002h`。
 - **余项**（`D-744` 第 1 条后半 ＋ 第 2–4 条）待分批：`assignments` 补界面入口 · B 档两类 · `branches` 补「停用（软）」 · D 档写口纪律统一。
+
+## 批次 343（2026-10-02）：`#2` `D-744` 第 4 条 —— **写口纪律统一**（D 档，支书裁「甲 排批直接修」）
+
+> **决议（`R-84`）**：裁定进决策日志（`D-745`），实现与实测进本节。
+
+### 一、四处真偏离的收回（逐处取证 → 逐处改）
+
+| # | 位置（改前） | 病 | 改后 |
+| --- | --- | --- | --- |
+| 1 | `entries/tabs/org/taskforce-tab.js:303-307` | 伸手改 `SignupStore._signups` 私有字段 ＋ 手写 `mockDB.signups = […]` ＋ `persist()` ⇒ **绕过了 `SignupStore` 的写口 `_saveSignups()`，其中的 `bumpToken('signup')` 没跑**（报名域缓存不失效） | 新增 `services/activity/signup.js::SignupStore.deleteBySource(sourceType, sourceId)`（内部 `_saveSignups` ＋ 返回删除条数）⇒ 调用点一行 |
+| 2 | `entries/tabs/prop/archive-tab.js`（照片上传） | 直连 `fetch POST /api/v1/imageRecords` ＋ 就地改内存（不 `persist()`） | `getAdapter().imageRecords.create(row)` |
+| 3 | 同上（照片标注 `_savePhotoAnnotation`） | api 直连 `fetch PATCH`；mock 就内存 ＋ `persist()` ⇒ **两形态两套写法** | 统一 `getAdapter().imageRecords.update(id, patch)`（两形态同码） |
+| 4 | 同上（文件空间元数据 POST / DELETE） | 直连 `fetch` 两处 ＋ 就地改内存 | `getAdapter().fileSpaceRecords.create(...)` / `.delete(id)` |
+
+- **使能改动**：`imageRecords` / `fileSpaceRecords` 在**两个适配器**里补齐**四件套**（`api-adapter.js` 加 `update`/`delete` 走 `_patch`/`_delete`；`mock-adapter.js` 加 `update`/`delete` 走「就内存 ＋ `_saveToStorage`」，体例照 `branchDocs`）。**语义未变**：api 形态仍是**逐条端点**（不触发整表快照写穿、不覆盖他人并发写）；mock 形态仍是本机持久化。
+
+### 二、新守卫 `server/test/write-path-guard.test.mjs`（W1–W4）
+
+- **W1** 通用资源端点不得被 `docs/src/**`（排除 `data/**`）直连 `fetch`；**W2** `services/**` 之外不得 `XxxStore._私有字段 =`；**W3** 语义端点白名单**不得命中资源名、不得被掏空**；**W4** **会话引导期例外清单 ≤2 文件且只能只读**。
+- **首跑抓出 1 条真红**：`entries/pages/login-entry.js:191` 直连 `GET /api/v1/branches`。**处置＝判为「会话引导期例外」**（该页刻意不引数据层：会话建立前运行、直读 `sessionStorage` token、自建 `Authorization` 头），并**由 W4 把例外锁死为「≤2 文件 ＋ 只读」**——不是整类放行。
+- **反例自检（不留盘）**：① W1 把 `login-entry` 从例外清单移除 ⇒ 判红并指名该行；② W3 把白名单加一条 `/\/api\/v1\/branches\b/` ⇒ 判红「命中了通用资源端点」（证明 W3 真能拦住「顺手放行资源」）。
+- 入档：`server/package.json` 的 **`test:daily`（`S16`）＋ `test:fast`** 各加 1 条（与同族守卫 `dead-selector-guard` 并列）。
+
+### 三、收尾全量（`R-85`）
+
+- **全量首跑（发现 2 红）**：`925 / 927 / 2 红`（详见下节「四」；两红**均非本批设计缺陷**，是**行号/日期台账未随改动同批改准**）。
+- **全量复跑（本批最终读数）**：**`ℹ tests 927` / `pass 927` / `fail 0`** / cancelled 0 / skipped 0 / todo 0，`duration_ms 1337635.078`（**≈22.3 分钟**），**`EXITCODE=1`**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（测试汇总已打印 `pass 927 / fail 0`）；系 Playwright 收尾时其自身 `debug.log` 写入被沙箱拦截（**与测试内容无关**，同批次 331 / 334 的如实登记）。
+- 守卫子集中间态：`doc-consistency`（含 `S16`）＋ `write-path-guard` ＋ `version-stamp` ＋ `catalog-sync` ＋ `mock-api-parity` ＋ `id-uniqueness` ＋ `taskforce-lifecycle` ＋ `scene-write-sync` ＋ `import-path-guard` **73 / 73 / 0 红**。
+- 戳 `?v=20261002h → 20261002i`。
+
+### 四、全量首跑抓出的两处连带（**同批改准**）
+
+> **口径**：这两处**不是本批引入的设计缺陷**，而是「**动了会连带改准的台账**」——正是本仓既有纪律（`doc-line-ref` / `S6` / `F2`）在**全量**里起了作用。**不推给续批，同批改准**。
+
+| # | 红项 | 病灶 | 改准 | 复跑证据 |
+| --- | --- | --- | --- | --- |
+| 1 | `form-loop-sweep::S6`（台账行号未同步） | 本批改 `org/taskforce-tab.js`（`.taskforce` 私有字段手术改走 `SignupStore.deleteBySource()`）与 `prop/archive-tab.js`（四处直连 fetch 收回 `getAdapter()`）⇒ **两文件行数位移**，而 `server/test/form-loop-registry.mjs::VALIDATION_SITES` 的 `line` 未同批改准（13 条：taskforce 10 条 ＋ archive 3 条） | 13 条 `line` 按实况改准 ＋ **顺带改准同址** `SUCCESS_FLOWS` 里 `退回原因` 的 `line`（`652 → 655`，该字段不被守卫消费、纯台账诚实性）＋ 加两行批次沿革注 | 单跑（`FORM_LOOP_TABS=专班管理` 降频）：**S6 复绿**，`16 / 16 / 0`；ORG 专班 6 条闭环 ＋ 2 条成功路径**真机全过** |
+| 2 | `frontmatter-freshness::F2`（改了没刷卡） | **批次 342 的存量债**：`DATA_MODEL.md` / `DEPLOYMENT_GUIDE.md` / `DATA_CONSISTENCY_CHECKLIST.md` 三份 `content/**` 被批 342 改过并提交，但**提交时未刷 frontmatter**——F2 在**提交后**才暴露（提交前工作树 dirty ⇒ 判据不成立） | 三份 frontmatter `last_updated` → **2026-10-03**（＝各自 `git log -1 --date=short` 实读）＋ `.ctx/TIMESTAMPS.md` **三行同值同步**（过 `S13`） | 单跑 `doc-consistency` ＋ `frontmatter-freshness` ＋ `timestamps-note-guard`：**26 / 26 / 0 红** |
+
+- **教训（入执行日志，供续批）**：**「提交」是 F2 的触发点**——某批改 `content/**` 后若**只跑全量、随后才提交**，则 F2 在**那一批**是绿的、在**下一批**才红。故凡改 `content/**` 者，**提交前**必须刷 frontmatter ＋ TIMESTAMPS（`R-83`）；**追加本批已按此改准**。
+- ⚠ **如实登记（全量之后的台账微调）**：全量复跑**之后**又改了**纯 `.ctx/**` 台账**（`.ctx/REVIEW_QUEUE.md` 按 `D-744` 收口「全域 CRUD 缺口」节 ＋ `.ctx/TIMESTAMPS.md` 的 `REVIEW_QUEUE.md` 行日期同步）——**不涉 `docs/src/**` 与 `server/**` 逻辑**，故另跑受影响文档守卫 `doc-consistency` ＋ `frontmatter-freshness` ＋ `timestamps-note-guard` ＋ `link-integrity` ＋ `doc-line-ref` **37 / 37 / 0 红**复绿（全量读数 **927 / 927 / 0** 仍成立）。
+- **余项**（`D-744` 第 1 条后半 ＋ 第 2–3 条）：`assignments` 补界面入口（批 345）· B 档两类 ＋ `branches` 补「停用（软）」（批 344）。

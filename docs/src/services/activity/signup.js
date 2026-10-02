@@ -9,18 +9,18 @@
 //            organizer/deep = 报名 + 发起人审核（pending → 通过/拒绝）。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261002h';
-import { generateId } from '../../core/base/id.js?v=20261002h';
-import { persist } from '../../data/data-adapter.js?v=20261002h';
-import { bumpToken } from '../../core/base/version-token.js?v=20261002h'; // P0 域缓存失效（spec §二.3）
-import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261002h';
-import { isInitStateActive } from '../core/init-reset.js?v=20261002h'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import { getPersonById } from '../member/person.js?v=20261002h';
-import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261002h';
-import { AuthStore } from '../core/auth.js?v=20261002h';
-import { TaskForceRecordStore } from './taskforce.js?v=20261002h';
+import { mockDB } from '../../core/domain/domain.js?v=20261002i';
+import { generateId } from '../../core/base/id.js?v=20261002i';
+import { persist } from '../../data/data-adapter.js?v=20261002i';
+import { bumpToken } from '../../core/base/version-token.js?v=20261002i'; // P0 域缓存失效（spec §二.3）
+import { SEED_SIGNUPS } from '../../data/mock/seed.js?v=20261002i';
+import { isInitStateActive } from '../core/init-reset.js?v=20261002i'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import { getPersonById } from '../member/person.js?v=20261002i';
+import { TodoStore, TodoSourceType, TodoActionType, TodoCategory, TodoStatus } from '../governance/todo.js?v=20261002i';
+import { AuthStore } from '../core/auth.js?v=20261002i';
+import { TaskForceRecordStore } from './taskforce.js?v=20261002i';
 // 组织者身份判据单一源（2026-09-19 批次 91 · SOP-B-17）——「谁能关本场报名」读它，勿另写一份
-import { isActivityOrganizer } from './activity.js?v=20261002h';
+import { isActivityOrganizer } from './activity.js?v=20261002i';
 
 // ── 枚举 ────────────────────────────────────────────────────────
 const SignupRole = {
@@ -198,7 +198,7 @@ async function _writeSource(sourceType, sourceId, personId, role) {
       await AuthStore.syncProjectRoles({ scopeRef: sourceId, assignments: merged, actorId: personId });
     } else {
       // participant：直接并入 assignments（保留既有条目）
-      const { updateActivity } = await import('../core/mock.js?v=20261002h');
+      const { updateActivity } = await import('../core/mock.js?v=20261002i');
       await updateActivity(sourceId, { assignments: [...cur, { personId, role }] });
     }
   } else {
@@ -268,6 +268,24 @@ export const SignupStore = {
 
   getBySource(sourceType, sourceId) {
     return this._signups.filter(s => s.sourceType === sourceType && s.sourceId === sourceId);
+  },
+
+  /**
+   * 按来源删除报名（来源对象被删除 / 撤销时的联动清理）。
+   * 2026-10-02 批次 343（`D-744` D 档写口纪律）：**本方法取代调用方对 `_signups` 私有字段的原地改写**
+   *   ——原先 `org/taskforce-tab.js` 直接 `SignupStore._signups = ...` ＋ `mockDB.signups = ...` ＋ `persist()`，
+   *   **绕过了本店写口**（`_saveSignups` 里的 `bumpToken('signup')` 没跑 ⇒ 报名域缓存不失效）。
+   *   现统一走 `_saveSignups`，行为与 `apply` / `cancel` / `review` 同源。
+   * @param {string} sourceType
+   * @param {string} sourceId
+   * @returns {number} 删除条数
+   */
+  deleteBySource(sourceType, sourceId) {
+    const before = this._signups.length;
+    this._signups = this._signups.filter(s => !(s.sourceType === sourceType && s.sourceId === sourceId));
+    const removed = before - this._signups.length;
+    if (removed > 0) _saveSignups(this._signups);
+    return removed;
   },
 
   getMySignups(personId) {
@@ -375,7 +393,7 @@ export const SignupStore = {
         const act = mockDB.activities.find(a => a.id === s.sourceId);
         if (act && Array.isArray(act.assignments) && act.assignments.some(x => x.personId === personId)) {
           const remaining = act.assignments.filter(x => x.personId !== personId);
-          import('../core/mock.js?v=20261002h').then(({ updateActivity }) => {
+          import('../core/mock.js?v=20261002i').then(({ updateActivity }) => {
             updateActivity(s.sourceId, { assignments: remaining });
             persist(); // updateActivity 不自动落盘，须显式 persist
           });
@@ -454,7 +472,7 @@ export async function closeActivitySignup(activityId, actorId) {
   if (!act) return { ok: false, reason: '活动不存在' };
   if (!canCloseActivitySignup(actorId, act)) return { ok: false, reason: '仅本场组织者或支书可关闭报名' };
   if (act.signupClosed === true) return { ok: false, reason: '本场报名已关闭' };
-  const { updateActivity } = await import('../core/mock.js?v=20261002h');
+  const { updateActivity } = await import('../core/mock.js?v=20261002i');
   await updateActivity(activityId, { signupClosed: true });
   return { ok: true };
 }

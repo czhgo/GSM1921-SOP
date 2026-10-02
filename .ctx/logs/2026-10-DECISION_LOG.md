@@ -12,7 +12,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 > 本文件记录 2026 年 10 月所有非显而易见的决策。每条决策包含背景/选项/决定/理由/影响范围/一改具改检查。
 > **来源（2026-10-02 批次 336 换月 · 支书裁「甲 真换月：迁入 ＋ 改判据」）**：① 2026-10-01/02 已落在 `2026-09-DECISION_LOG.md` 的 **11 条**（`D-729`…`D-739`）**逐字迁入**本文件；② 此后新决议一律记于本文件。**边界**：判据由 `server/test/doc-consistency.test.mjs::S14⑤⑥` 把守（活跃月文件按 `status: active` 指认）。
 
-> **条目编号起止**：本文件当前 **`D-729` … `D-744`，共 16 条**；下一条自 **`D-745`**。**最近一批（2026-10-02 批次 342）**＝全域 CRUD 探查（`#2`）四条裁定的**第一件**：删死表 `compliance_references`。
+> **条目编号起止**：本文件当前 **`D-729` … `D-745`，共 17 条**；下一条自 **`D-746`**。**最近一批（2026-10-02 批次 343）**＝全域 CRUD 探查（`#2`）四条裁定的**第四件：写口纪律统一**（新增守卫 ＋ 补适配器四件套 ＋ 两处调用点收回）。
 
 ## 本月目录（2026-10）
 
@@ -20,6 +20,7 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 
 | 主题 | 条目 | 日期 | 状态 |
 |---|---|---|---|
+| **写口纪律统一**（`#2` `D-744` 第 4 条）＋ 新守卫 `write-path-guard` ＋ **会话引导期例外口径** | `D-745` | 2026-10-02 | 已落（批次 343） |
 | 全域 CRUD 探查（`#2`）四条裁定 ＋ **删死表 `compliance_references`** | `D-744` | 2026-10-02 | 已裁（全取甲）· **A 档前半已落**（批次 342）；余项待分批 |
 | 待办「作废」实现（审批门 ＋ 硬删只留支委 ＋ 裁决站内知会）（`#1`） | `D-743` | 2026-10-02 | 已闭环（批次 340） |
 | 待办手续 · 「作废」（审批门·报支委会）与硬删收口（`#1`） | `D-742` | 2026-10-02 | 已裁 · **已实现**（`D-743` 落地） |
@@ -819,7 +820,36 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 - ⚠ **遗留在案**：`2026-07-DECISION_LOG.md` 冻结时 `status: active` 未改（本批已发现的同类问题）⇒ 第二步一并改正。
 
 
-> **本文件续编说明**：条目编号**自 `D-729` 起、当前止于 `D-744`**（共 **16** 条；**2026-10-02 批次 342** 新增 `D-744`；**2026-10-02 批次 340** 新增 `D-743`；**2026-10-02 批次 336 换月迁入**——自 `2026-09-DECISION_LOG.md` 逐字迁入 11 条，含批次 335 的 `D-739`；**2026-10-02 批次 332**……沿革见 9 月文件的同名段）。
+> **本文件续编说明**：条目编号**自 `D-729` 起、当前止于 `D-745`**（共 **17** 条；**2026-10-02 批次 343** 新增 `D-745`；**2026-10-02 批次 342** 新增 `D-744`；**2026-10-02 批次 340** 新增 `D-743`；**2026-10-02 批次 336 换月迁入**——自 `2026-09-DECISION_LOG.md` 逐字迁入 11 条，含批次 335 的 `D-739`；**2026-10-02 批次 332**……沿革见 9 月文件的同名段）。
+
+## D-745 2026-10-02 — 批次 343：**写口纪律统一**（`D-744` 第 4 条落地）＋ 新守卫 `write-path-guard` ＋「**会话引导期例外**」口径
+
+> **一句话结论：** 前端对**通用资源**的读写从此**只有一条合法路径**（`getAdapter().<资源名>.*`，或经 `services/**` 的写口函数），两处真偏离已收回；并立一条**新的、可自检的例外口径**——**会话引导期页面**（登录页这类「数据层还没接上」的页）允许**只读**直连，且**清单 ≤2 个文件**。
+
+### 一、落地内容（`D-744` 第 4 条：支书裁「甲 排批直接修」）
+
+| # | 原偏离 | 现在 |
+| --- | --- | --- |
+| 1 | `entries/tabs/org/taskforce-tab.js` 注销专班时**伸手改服务层私有字段**：`SignupStore._signups = …` ＋ 手写 `mockDB.signups = […]` ＋ `persist()` —— 绕过了 `SignupStore` 的写口 `_saveSignups()`，**其中 `bumpToken('signup')` 没跑 ⇒ 报名域缓存不失效** | 新增 `services/activity/signup.js::SignupStore.deleteBySource(sourceType, sourceId)`（内部走 `_saveSignups`，与 `apply`/`cancel`/`review` 同源；返回删除条数），调用点改为一行 |
+| 2 | `entries/tabs/prop/archive-tab.js` **四处直连 `fetch`** 打通用资源端点（照片 POST/PATCH · 文件空间元数据 POST/DELETE），自己拼 `baseUrl`、自己带 token，并**就地改内存不落 `persist()`** | 两个资源在**两个适配器**补齐**四件套**（`imageRecords` / `fileSpaceRecords` 各加 `update` / `delete`；api＝`_patch` / `_delete`，mock＝就内存 ＋ `_saveToStorage`）⇒ 四个调用点一律 `getAdapter().<资源名>.create/update/delete`；**两形态由「两套写法」收为一套** |
+
+- **口径**（本批确立）：**通用资源**（`store.js::RESOURCE_TABLES` 的 29 个资源名）的读写一律经适配器；**语义端点**（`/uploads`、`/snapshot`、`/system-notices`、`/agenda-votes`、`/leader/member-progress`、`/auth/*`、`/setup/*`、`/issues/reveal`、`/members/*`、`/branches/:id/config`、`/versions`）形状各异、**没有也不该有**四件套 ⇒ 允许直连，清单在守卫里逐一列明。
+
+### 二、新守卫 `server/test/write-path-guard.test.mjs`（W1–W4，已入 `test:daily` 与 `test:fast`）
+
+- **W1**：`docs/src/**`（排除 `data/**`＝数据层本身）不得直连**通用资源**端点；命中即列 `文件:行号`。
+- **W2**：`services/**` 之外不得出现 `XxxStore._私有字段 = …`（伸手改私有字段＝绕过那个店的写口）。
+- **W3**：白名单自检——**语义端点白名单不得命中任何资源名**（防「把资源 CRUD 也放行」）、且**不得被掏空**（≥8 条）。用正则而非前缀字符串，因为 `/api/v1/branches` **本身是资源名**、只有其子路由 `…/config` 才算语义端点。
+- **W4**：**会话引导期例外自检**——清单**≤2 个文件**，且**只允许只读**（邻近行不得出现 `method: 'POST'/'PATCH'/'PUT'/'DELETE'`）。
+- **首跑即抓出一条真红**：`entries/pages/login-entry.js` 直连 `GET /api/v1/branches`（支部清单）。**处置＝判为例外并写清理由**（该页**刻意不引数据层**——会话建立前运行、直读 `sessionStorage` token、自建 `Authorization` 头；为它引 `getAdapter()` 会把整套适配器与种子拖进登录页），并**由 W4 把例外约束成「≤2 文件 ＋ 只读」**（不是「整类放行」）。
+
+### 三、影响范围与验证
+
+- 前端：`services/activity/signup.js` · `entries/tabs/org/taskforce-tab.js` · `entries/tabs/prop/archive-tab.js` · `data/api-adapter.js` · `data/mock-adapter.js`；`server/package.json`（`test:daily` / `test:fast` 各加 1 条）。
+- 戳：`?v=20261002h → 20261002i`。
+- 守卫：`write-path-guard` **4 / 4** 绿（含 W3/W4 自检）；`doc-consistency`（含 `S16`）＋ 相关件 **73 / 73 / 0 红**；**收尾全量见执行日志批次 343**。
+- **余项**（`D-744` 第 1 条后半 ＋ 第 2–3 条）待分批：`assignments` 补界面入口 · B 档两类（审计类补说明 / 业务类补「作废·停用」软入口）· `branches` 补「停用（软）」。
+
 
 ## D-740 2026-10-02 — 批次 337：支书评议批 `#9` —— **徽章红/金分色**（含 `styles.css` 特批）
 

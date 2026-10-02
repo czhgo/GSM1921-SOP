@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: 2026-09-30
+last_updated: 2026-10-03
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---

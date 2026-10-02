@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-10-02"
+last_updated: "2026-10-03"
 status: active
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 ---
@@ -25,29 +25,31 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 > **生命周期（2026-09-17 更正）**：原写「评议完成后即清空」——**该声明与事实不符**（从未执行、曾积到约 1000 行）。现更正为：**已闭环即迁出，本体只留未闭环**（未闭环项会长期存在，故**不是**「清空」而是「收口」）。
 > **附录语义**（支书 2026-08-10 裁定）：仅评议相关工作进入本队列；评议中的「支书特别要求」作为**附录**存在（W4 专项承接），不影响主队列的收口。
 
-## 全域 CRUD 缺口 · 待支书圈（2026-10-02 批次 341 探查 · 支书 `#2`）
+## 全域 CRUD 缺口 · 支书已圈 · 待落（2026-10-02 批次 341 探查 · 支书 `#2`）
 
-> **来源**：支书 `#2`「全栈开发一定要关心 CRUD 的问题！一定要做一次**全域的探查**！」⇒ 批次 341 出 **30 张资源表 × C/R/U/D × 界面入口**矩阵（**取证全文见** `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 341 节）。**服务端 CRUD 已确认完整**；缺口全在**前端界面入口**。
-> **判据**：**删不删是制度问题、不是工程问题**——故本清单**只登记、不代选**，逐条请支书圈。
+> **来源**：支书 `#2`「全栈开发一定要关心 CRUD 的问题！一定要做一次**全域的探查**！」⇒ 批次 341 出「30 张资源表 × C/R/U/D × 界面入口」矩阵（**取证全文见** `.ctx/logs/2026-10-EXECUTION_LOG.md` 批次 341 节）。**服务端 CRUD 已确认完整**；缺口全在**前端界面入口**。
+> **支书 2026-10-02 已圈四条**（裁定全文见 `D-744`）：① A 档＝**删 `complianceReferences` ＋ `assignments` 补入口**；② B 档＝**按 AI 分档**（审计类保持不可删＋补说明 / 业务类补「作废·停用」软入口）；③ `branches` **补「停用（软）」**；④ D 档写口纪律＝**排批直接修**。
+> **本清单只留在办项**（未落者 / 未裁者）；已闭环者**迁出、只留一行去向指针**（`R-86`）。
 
-**A 档 · 死表（有表 ＋ 有服务端 CRUD，前端零入口）——建议：二选一（裁定「补入口」或「删表」）**
+**A 档 · 死表（有表 ＋ 有服务端 CRUD，前端零入口）**
 
-- `CRUD-1` `complianceReferences`（合规引用）：全仓除数据层/初始化外**零引用**。→ 待裁：补入口 / 删表。
-- `CRUD-2` `assignments`（**独立**分工表）：仅种子与快照搬运；⚠ 与界面里的 `activity.assignments` / `taskforce.members` **内联数组不是同一数据**。→ 待裁：补入口 / 删表。
+- `CRUD-1` `complianceReferences`：**✅ 已闭环**——支书裁「删」⇒ 批次 342 走 `v2 DROP TABLE` 删表（`D-744`；取证见执行日志批次 342）。
+- `CRUD-2` `assignments`（**独立**「分工记录」表）：支书裁「**补界面入口**」（`D-744`①）⇒ **排批次 345**（落点待支书圈三档）。
+  - ⚠ 与活动对象内联的 `activity.assignments` / `taskforce.members` **不是同一数据**（后者＝项目角色数组）。
 
-**B 档 · 能建不能删（12 张完全无清理入口）——建议：按「制度是否允许删」分两类处置**
+**B 档 · 能建不能删（12 张 ＋ `branches`）——支书裁「按 AI 分档」＋「`branches` 补停用」（`D-744`②③）⇒ 排批次 344**
 
-- `CRUD-3` 建议**保持不可删**（审计完整性优先，界面**补一句说明**即可）：`attendances`（考勤）· `activityReviews` / `taskforceReviews`（复盘）· `thoughtReports`（思想汇报）· `reviewRequests`（上报）。
-- `CRUD-4` 建议**补「作废/停用」软入口**（走审批门，同 `#1` 已落的口径）：`makeupTasks`（补课）· `imageRecords`（照片）· `weeklyReports`（周报）· `externalDispatches`（外发）· `experienceDeposits`（经验沉淀）· `tasks`（活动任务）。
-- `CRUD-5` `branches`：党委台**可建支部但无停用/解散入口**（`ApiAdapter.branches.delete` 有接口无 UI）。→ 待裁：补「停用（软）」/ 维持。
+- `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。
+- `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。
+- `CRUD-5` `branches`：党委台**可建支部但无停用/解散入口**（`ApiAdapter.branches.delete` 有接口无 UI）⇒ 支书裁「**补「停用（软）」入口**」（留任期档、不物理删）。
 
 **C 档 · 仅软处理（2 张）**
 
-- `CRUD-6` `signups`（只能取消报名）· `propTasks`（有状态推进、**且无新建入口**）→ 待裁：是否需要硬删 / 周报任务是否要手建。
+- `CRUD-6` `signups`（只能取消报名）· `propTasks`（有状态推进、**且无新建入口**）→ **待裁**：是否需要硬删 / 周报任务是否要手建。（**未在 `D-744` 四条内**）
 
-**D 档 · 写口纪律（工程面，建议直接修）**
+**D 档 · 写口纪律（工程面）**
 
-- `CRUD-7` 绕过统一写口的直写点（典型 3 例，共约 10 余处）：`org/taskforce-tab.js:304-305`（改 `SignupStore` 私有字段）· `prop/archive-tab.js:1356-1364 / :1447-1454`（照片：fetch 后就地改内存、不 `persist()`）· 同文件 `:1020-1033 / :615-634`（文件空间元数据同理）。→ 建议：**统一收进 `ApiAdapter`/`persist()`**（属工程口径，不需支书裁，待批次排入）。
+- `CRUD-7` 绕过统一写口的直写点：**✅ 已闭环**——批次 343 统一收进 `ApiAdapter` / 服务层写口，并落新守卫 `write-path-guard`（`D-745`；取证见执行日志批次 343）。
 
 ## 附录：W4 专项评议循环承接区
 

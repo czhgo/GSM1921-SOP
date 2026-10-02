@@ -28,20 +28,20 @@
 //   ④ 承载：只读查阅走**独立阅读页**（docs/thought-report.html），不再行内展开。
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261002h';
-import { persist, flushSnapshot, getDataSource } from '../../data/data-adapter.js?v=20261002h';
-import { THOUGHT_REPORTS } from '../../data/mock/index.js?v=20261002h';
-import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261002h';
+import { mockDB } from '../../core/domain/domain.js?v=20261002i';
+import { persist, flushSnapshot, getDataSource } from '../../data/data-adapter.js?v=20261002i';
+import { THOUGHT_REPORTS } from '../../data/mock/index.js?v=20261002i';
+import { POLICY_DEFAULTS } from '../../core/domain/policy-defaults.js?v=20261002i';
 // 期次纯函数单一源 = core/base/period.js（服务层与通知模板共用，避免 core→services 环依赖）
-import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../../core/base/period.js?v=20261002h';
-import { generateId } from '../../core/base/id.js?v=20261002h';
+import { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc } from '../../core/base/period.js?v=20261002i';
+import { generateId } from '../../core/base/id.js?v=20261002i';
 // 支委层角色集合单一源（勿手写 5 支委名单——roles-sync 守卫会拦）
-import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261002h';
-import { NoticeStore } from './notice.js?v=20261002h';
-import { getPersonById } from '../member/person.js?v=20261002h';
+import { BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261002i';
+import { NoticeStore } from './notice.js?v=20261002i';
+import { getPersonById } from '../member/person.js?v=20261002i';
 
 /** 期次助手再导出（既有/新增消费方沿用 services/governance/thought-report.js 入口，勿另建第二份实现） */
-export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../../core/base/period.js?v=20261002h';
+export { PERIOD_RE, periodOf, periodLabel, comparePeriodDesc, periodOptions } from '../../core/base/period.js?v=20261002i';
 
 // ════════════════════════════════════════════════════════════════
 //  访问门（单一源，2026-09-13）

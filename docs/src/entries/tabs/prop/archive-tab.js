@@ -2,29 +2,29 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261002h';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261002h';
+import { icon } from '../../../core/base/icons.js?v=20261002i';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261002i';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261002h'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20261002h';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261002i'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20261002i';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261002h';
-import { persist, getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261002h';
-import { mockDB } from '../../../core/domain/domain.js?v=20261002h';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261002h'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261002h';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261002h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261002h';
-import { getPersonName } from '../../../services/member/person.js?v=20261002h';
-import { generateId } from '../../../core/base/id.js?v=20261002h';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261002h';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261002i';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261002i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261002i';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261002i'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261002i';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261002i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261002i';
+import { getPersonName } from '../../../services/member/person.js?v=20261002i';
+import { generateId } from '../../../core/base/id.js?v=20261002i';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261002i';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261002h';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261002i';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261002h';
+import { BranchService } from '../../../services/core/runtime.js?v=20261002i';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261002h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261002i';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），
@@ -615,18 +615,16 @@ async function _downloadArchiveFile(record) {
 /** 材料删除（D 档文件闭环）：mock 删本地记录；server 先调 DELETE 接口（联动删物理文件）再删内存记录 */
 async function _deleteArchiveFile(record) {
   if (record.filePath) {
-    const baseUrl = getApiBaseUrl();
-    const token = getAuthToken();
     // server 上传时 fileSpaceRecords 记录 id 由服务端生成，按 filePath 匹配后删除
     const fsRec = (mockDB.fileSpaceRecords || []).find(f => f.filePath === record.filePath);
     if (fsRec) {
       try {
-        await fetch(`${baseUrl}/api/v1/fileSpaceRecords/${fsRec.id}`, {
-          method: 'DELETE',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        // 2026-10-02 批次 343（`D-744` D 档写口纪律）：**统一走适配器写口**（原为直连 `fetch` DELETE）；
+        //   api 形态＝`DELETE /api/v1/fileSpaceRecords/:id`（服务端联动删物理文件），
+        //   mock 形态＝`MockAdapter` 就内存 + `_saveToStorage`。
+        await getAdapter().fileSpaceRecords.delete(fsRec.id);
       } catch (e) {
-        console.warn('[archive] 服务端删除失败：', e);
+        console.warn('[archive] 文件空间记录删除失败：', e);
       }
       mockDB.fileSpaceRecords = mockDB.fileSpaceRecords.filter(f => f.id !== fsRec.id);
     }
@@ -1017,17 +1015,12 @@ async function _handleArchiveUpload(files, activityId, activityName, category) {
         if (!resp.ok) throw new Error(`上传失败(${resp.status})`);
         const { path } = await resp.json();
         // 元数据 → fileSpaceRecords（server RESOURCE_TABLES 无 archiveRecords 表）
-        const metaResp = await fetch(`${baseUrl}/api/v1/fileSpaceRecords`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify({
-            activityId, activityName, category,
-            fileName: file.name, fileSize: file.size, filePath: path,
-            status: 'archived', archiveDate: today, uploadedBy: 'p12',
-          }),
+        // 2026-10-02 批次 343（`D-744` D 档写口纪律）：**统一走适配器写口**（原为直连 `fetch` POST）
+        const metaRow = await getAdapter().fileSpaceRecords.create({
+          activityId, activityName, category,
+          fileName: file.name, fileSize: file.size, filePath: path,
+          status: 'archived', archiveDate: today, uploadedBy: 'p12',
         });
-        if (!metaResp.ok) throw new Error(`元数据写入失败(${metaResp.status})`);
-        const metaRow = await metaResp.json();
         // 同步写入内存 fileSpaceRecords：persist() 的全量快照会按 mockDB 状态整表覆盖
         // server 端表（快照写穿清表缺口），不 push 则刚落库的元数据被空数组擦除
         mockDB.fileSpaceRecords.push(metaRow);
@@ -1353,13 +1346,8 @@ async function _handlePhotoUpload(files, meta) {
         uploadedBy: (me && me.personId) || '',
         uploadedAt: new Date().toISOString(),
       };
-      const metaResp = await fetch(`${baseUrl}/api/v1/imageRecords`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify(row),
-      });
-      if (!metaResp.ok) throw new Error(`图片记录写入失败(${metaResp.status})`);
-      const savedRow = await metaResp.json();
+      // 2026-10-02 批次 343（`D-744` D 档写口纪律）：**统一走适配器写口**（原为直连 `fetch` POST）
+      const savedRow = await getAdapter().imageRecords.create(row);
       // 立即上屏：服务端已落库，此处只同步内存（不触发整表快照写穿，避免覆盖他人并发写）
       mockDB.imageRecords = [...mockDB.imageRecords, savedRow];
       saved++;
@@ -1439,22 +1427,11 @@ function _showPhotoAnnotateModal(record, ctx) {
   card.addEventListener('click', e => e.stopPropagation());
 }
 
-/** 标注写口：服务端 PATCH（局部合并）／本地模式写内存 + persist */
+/** 标注写口：2026-10-02 批次 343（`D-744` D 档）起**两形态统一走 `getAdapter().imageRecords.update`**
+ *  （api＝`PATCH /api/v1/imageRecords/:id` 局部合并；mock＝就内存 + `_saveToStorage`）；
+ *  原为「api 直连 `fetch` ＋ mock 就内存 + `persist()`」两套写法。 */
 async function _savePhotoAnnotation(id, patch) {
-  if (isApiMode()) {
-    const baseUrl = getApiBaseUrl();
-    const token = getAuthToken();
-    const resp = await fetch(`${baseUrl}/api/v1/imageRecords/${encodeURIComponent(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify(patch),
-    });
-    if (!resp.ok) throw new Error(`保存失败(${resp.status})`);
-    const merged = await resp.json();
-    mockDB.imageRecords = mockDB.imageRecords.map(r => (r.id === id ? merged : r));
-  } else {
-    mockDB.imageRecords = mockDB.imageRecords.map(r => (r.id === id ? { ...r, ...patch } : r));
-    persist();
-  }
+  const merged = await getAdapter().imageRecords.update(id, patch);
+  mockDB.imageRecords = mockDB.imageRecords.map(r => (r.id === id ? merged : r));
   bumpToken('imageRecord'); // P0：照片标注写口
 }

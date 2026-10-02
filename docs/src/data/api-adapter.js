@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261002h';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261002i';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -374,6 +374,16 @@ export const ApiAdapter = {
     create(data) {
       return _post('/api/v1/fileSpaceRecords', data);
     },
+
+    // 2026-10-02 批次 343（`D-744` D 档写口纪律）：补 `update` / `delete` 两件——
+    //   使本资源与 `branchDocs` 同形（四件套），调用点不再**直连 `fetch`**（原 `prop/archive-tab.js`）。
+    update(id, patch) {
+      return _patch(`/api/v1/fileSpaceRecords/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/fileSpaceRecords/${id}`);
+    },
   },
 
   imageRecords: {
@@ -385,6 +395,15 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/imageRecords', data);
+    },
+
+    // 同上（批次 343 · `D-744` D 档）：补 `update` / `delete` 两件（照片标注 / 删除照片走写口）。
+    update(id, patch) {
+      return _patch(`/api/v1/imageRecords/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/imageRecords/${id}`);
     },
   },
 
