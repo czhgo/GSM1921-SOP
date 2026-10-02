@@ -13,7 +13,7 @@
 // ════════════════════════════════════════════════════════════════
 
 // 期次标签单一源（core/base/period.js）——勿在本文件另写季度格式化
-import { periodLabel } from '../base/period.js?v=20261002b';
+import { periodLabel } from '../base/period.js?v=20261002g';
 
 /** 组装返回对象（跳过 undefined，保持通知结构精简；与原前端 add() 落库形态一致） */
 function pick(obj) {
@@ -282,6 +282,23 @@ const TEMPLATES = {
     targetType,
     targetId: sourceId,
     targetUrl: 'workspace/visitor.html',
+    read: false,
+  }),
+
+  // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340 · 支书裁「支书如果不认为能取消 /
+  //    即使取消也要让相关委员知情，知道管理上可以优化」）─────────────────────────────
+  // 场景：责任人 `requestVoid` → 支书/副支书在支书台待办**确认**或**驳回**该作废申请后的**知会**。
+  // 受众＝该待办**原属角色**（服务端按 `todos` 行复算，不信客户端自述）——归口委员得知「该事项
+  //   作废了 / 被驳回仍须办结」，据此判断管理环节是否可优化。
+  // **非行动性**（不设 `actionable`/`actionRoles`）⇒ 不派生待办，纯站内知会。
+  'todo-void-decided': ({ sourceId, todoTitle, decision, reason, audience }) => pick({
+    title: decision === 'rejected' ? '待办作废被驳回' : '待办作废已确认',
+    content: decision === 'rejected'
+      ? `「${todoTitle}」的作废申请已被驳回：该事项仍须办结，请予跟进${reason ? `（驳回意见：${reason}）` : ''}。`
+      : `「${todoTitle}」的作废申请已获支委会确认，该待办已出列（原因：${reason || '未填'}）。若这是流程本身可优化的信号，请留意相应环节。`,
+    priority: 'normal',
+    audience,
+    targetUrl: 'workspace/secretary.html?tab=todo',
     read: false,
   }),
 };

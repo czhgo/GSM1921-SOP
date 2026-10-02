@@ -14,18 +14,19 @@
 // 视觉沿用 card/rounded/折叠既有体系（域折组渲染在 components/record/todo-list.js renderDomainTodoList）。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §六 M6（共性抽象净减）
 
-import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261002b';
+import { TodoStore, urgeRolesOf, WORK_DOMAIN, WORK_DOMAIN_LABELS, realtimeGroupDomainOf } from '../../services/governance/todo.js?v=20261002g';
 // S3②（2026-09-12）：未读通知计数单一来源——与顶栏角标/首页同源（NoticeStore activeOnly+read 过滤），
 // 不再用「通知类待办」现算（口径不同致三处不一致）。
-import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261002b';
-import { renderDomainTodoList } from './todo-list.js?v=20261002b';
-import { badgeHtml } from '../ui/badges.js?v=20261002b';
-import { showToast } from '../../core/base/utils.js?v=20261002b';
-import { solidAccentStyle, ROLE_LABELS } from '../../core/domain/constants.js?v=20261002b';
-import { AuthStore } from '../../services/core/auth.js?v=20261002b';
-import { mockDB } from '../../core/domain/domain.js?v=20261002b';
-import { tokenOf } from '../../core/base/version-token.js?v=20261002b'; // P0 域写版本戳（spec §二.4）
-import { memoizeRender } from '../ui/memoize-render.js?v=20261002b'; // P2 渲染守卫（spec §四.1）
+import { NoticeStore, NOTICE_MODULE_ROLE_PAGES } from '../../services/governance/notice.js?v=20261002g';
+import { renderDomainTodoList } from './todo-list.js?v=20261002g';
+import { badgeHtml } from '../ui/badges.js?v=20261002g';
+import { showToast, escHtml } from '../../core/base/utils.js?v=20261002g';
+import { solidAccentStyle, ROLE_LABELS, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261002g';
+import { openModal, closeModal } from '../ui/modal.js?v=20261002g';
+import { AuthStore } from '../../services/core/auth.js?v=20261002g';
+import { mockDB } from '../../core/domain/domain.js?v=20261002g';
+import { tokenOf } from '../../core/base/version-token.js?v=20261002g'; // P0 域写版本戳（spec §二.4）
+import { memoizeRender } from '../ui/memoize-render.js?v=20261002g'; // P2 渲染守卫（spec §四.1）
 
 // ── P0 组合数据复合键（2026-09-07 · spec §二.4）──────────────────
 // 组合点（buildRealtimeGroups + mergeRealtimeDomains + getUnreadNotices）以
@@ -90,7 +91,10 @@ function _comboKeyOf(role) {
  * @param {string} [opts.detailBtnClass]    内置详情按钮 class（缺省=prefix-todo-detail-action）
  * @param {string} [opts.detailBtnStyle]    内置详情按钮内联样式（缺省=solidAccentStyle 主题色）
  * @param {null|(todo:Object, ctx:Object)=>void} [opts.onDeleteTodo] null=不渲染删除键（支书等实时组台）；
- *        函数=自定义；缺省=内置确认删除（聚合组删整组）
+ *        函数=自定义；缺省=**仅支委层**内置硬删（`#1`/`D-742`：硬删只留支委层；非支委层不再渲染硬删）
+ * @param {null|(todo:Object, ctx:Object)=>void} [opts.onVoidTodo] 作废入口（`#1`/`D-742`）；
+ *        null=不渲染；函数=自定义；缺省=内置「作废」流程——**支委层**直接生效（`confirmVoid`），
+ *        **其余**填原因后走**审批门**（`requestVoid` → 报支委会确认）。仅落库待办组渲染本键。
  * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
  *        逐条「催办」入口状态（2026-09-10 支书/副支书待办页；opt-in，缺省不渲染）；
  *        null=该条无催办入口（无责任人或责任人即本人）
@@ -115,7 +119,12 @@ export function createTodoTab(opts) {
     detailBtnClass = `${prefix}-todo-detail-action`,
     detailBtnStyle,
     onDeleteTodo,
+    onVoidTodo,
   } = opts;
+
+  // 是否支委层（支书 / 副支书 / 组织 / 宣传 / 纪检）——决定「作废」是直接生效还是走审批门，
+  // 以及是否保留硬删（`#1`/`D-742`）。集合单一源 = constants.js::BRANCH_COMMISSION_ROLES。
+  const isCommittee = BRANCH_COMMISSION_ROLES.includes(role);
 
   // 私有状态（随壳实例自持，不污染入口——与原模块级私有状态等价）
   let _selectedTodoId = null;
@@ -295,13 +304,14 @@ export function createTodoTab(opts) {
 
     /** 整卡重建（仅守卫未命中时执行；产物含 data-ws-memo="todo-shell" 标记防跨 tab 误命中） */
     const rebuild = () => {
-      // 删除处理：opts.onDeleteTodo=null → 禁删（实时组台）；函数 → 自定义；缺省 → 内置确认删除
+      // 删除处理：`#1`/`D-742` 起——**硬删只留支委层**；opts.onDeleteTodo=null → 禁删；函数 → 自定义；
+      // 缺省 → 支委层内置确认硬删，**非支委层不再渲染硬删**（改走下面的「作废」审批门）
       let deleteHandler = null;
       if (onDeleteTodo === null) {
         deleteHandler = null;
       } else if (typeof onDeleteTodo === 'function') {
         deleteHandler = (todo) => onDeleteTodo(todo, ctx);
-      } else {
+      } else if (isCommittee) {
         deleteHandler = (todo) => {
           const items = todo.items && todo.items.length ? todo.items : [todo];
           const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
@@ -310,6 +320,16 @@ export function createTodoTab(opts) {
           showToast('success', '待办已删除');
           renderContent(ctx);
         };
+      }
+
+      // 作废处理（`#1`/`D-742`）：缺省＝支委层直接生效（confirmVoid）／其余走审批门（requestVoid）
+      let voidHandler = null;
+      if (onVoidTodo === null) {
+        voidHandler = null;
+      } else if (typeof onVoidTodo === 'function') {
+        voidHandler = (todo) => onVoidTodo(todo, ctx);
+      } else {
+        voidHandler = (todo) => _openVoidModal(todo, { isCommittee, onDone: () => renderContent(ctx) });
       }
 
       const { html: domainListHtml, bindEvents } = renderDomainTodoList({
@@ -325,6 +345,7 @@ export function createTodoTab(opts) {
           onAction(todo, ctx);
         },
         onDeleteTodo: deleteHandler,
+        onVoidTodo: voidHandler,
         urgeStateOf,
         onUrgeTodo: typeof onUrgeTodo === 'function' ? (g) => onUrgeTodo(g, ctx) : null,
         emptyHint,
@@ -416,6 +437,57 @@ export function createTodoTab(opts) {
   }
 
   return { renderContent };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  作废流程（`#1` 支书 2026-10-02 三条答复 · `D-742`；本批 `D-743` 落地）
+//  手续：**作废为主 · 硬删只留支委**；**责任人可作废但需报支委会**（取**甲 审批门**）。
+//   · 支委层（`isCommittee`）：填原因 → `TodoStore.confirmVoid` **直接生效**（落 `voided`、留痕、出列）；
+//   · 其余：填原因 → `TodoStore.requestVoid` **先不消失**、标 `voidPending`（挂「待支委会确认」胶囊）
+//     ＋派生一条到支书台待办 → **支委确认后才 `voided`**（同族先例＝成员变更申请 → 确认）。
+//  原因必填（无原因不得作废——这是与「完成」的分野）。
+// ════════════════════════════════════════════════════════════════
+
+/** 打开作废原因弹窗并执行（聚合组=逐条；单条=1 条）。 */
+function _openVoidModal(group, { isCommittee, onDone } = {}) {
+  const items = (group && group.items && group.items.length) ? group.items : (group ? [group] : []);
+  if (!items.length) return;
+  const me = AuthStore.getCurrentUser() || {};
+  const label = items.length === 1 ? items[0].title : `${items[0].title} 等 ${items.length} 条`;
+  const pend = items.length === 1 ? items[0].voidPending : null;
+  const prefill = (pend && pend.reason) || '';
+  openModal({
+    id: 'todo-void-modal',
+    title: isCommittee ? '作废待办' : '申请作废（报支委会）',
+    accentColor: 'var(--functional-error)',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-1">${isCommittee
+        ? `确认作废「${escHtml(label)}」？作废＝不办了（留痕、可追溯），与「完成」不同。`
+        : `申请作废「${escHtml(label)}」？须填写原因；提交后报支委会确认，确认前该待办仍在。`}</p>
+      <textarea id="todo-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）">${escHtml(prefill)}</textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button type="button" data-todo-void-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-todo-void-ok class="btn-neutral text-xs px-3 py-1.5">${isCommittee ? '确认作废' : '提交申请'}</button>
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-todo-void-cancel]')?.addEventListener('click', () => closeModal('todo-void-modal'));
+      panel.querySelector('[data-todo-void-ok]')?.addEventListener('click', () => {
+        const reason = (panel.querySelector('#todo-void-reason')?.value || '').trim();
+        if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
+        closeModal('todo-void-modal');
+        let ok = 0;
+        for (const t of items) {
+          const r = isCommittee
+            ? TodoStore.confirmVoid(t.id, { byPersonId: me.personId, note: reason })
+            : TodoStore.requestVoid(t.id, { reason, byPersonId: me.personId });
+          if (r) ok++;
+        }
+        if (ok) showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已提交作废申请，报支委会确认');
+        else showToast('error', isCommittee ? '作废失败：请填写原因' : '提交失败：原因必填');
+        if (typeof onDone === 'function') onDone();
+      });
+    },
+  });
 }
 
 // ════════════════════════════════════════════════════════════════

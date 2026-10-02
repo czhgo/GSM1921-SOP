@@ -6,13 +6,13 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261002b';
-import { persist } from '../../data/data-adapter.js?v=20261002b';
-import { generateId } from '../../core/base/id.js?v=20261002b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261002b';
+import { mockDB } from '../../core/domain/domain.js?v=20261002g';
+import { persist } from '../../data/data-adapter.js?v=20261002g';
+import { generateId } from '../../core/base/id.js?v=20261002g';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261002g';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261002b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261002g';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -191,6 +191,9 @@ export const REALTIME_GROUP_DOMAIN = {
   'semester-detained-remind': WORK_DOMAIN.MEMBER_DEV,
   'develop-node-remind': WORK_DOMAIN.MEMBER_DEV, // 发展节点期满提醒（组织委员流程指南附录A）
   'half-year-inspection-remind': WORK_DOMAIN.MEMBER_DEV, // 半年考察提醒（SOP-B-39 · D-295）
+  // 待办作废待确认（`#1`/`D-742`）：责任人 `requestVoid` 后派生到支书台的实时组 →
+  // 「报支委会」＝一次上报/请示，归「汇报反馈」域（`D-743` 登记：域归属为落地时裁定，非支书专门圈定）。
+  'todo-void-confirm': WORK_DOMAIN.REPORT,
 };
 
 /** 实时组对象 → 业务域标注（供 T4 域折组展示；先查 actionKey，未收录回退 inferDomain 兼容） */
@@ -602,6 +605,10 @@ function _aggregateByAction(role, todos, today) {
         actionData: t.actionData,
         deadline: t.deadline,
         flow: t.flow,
+        // 持久化组标记（`#1`/`D-742`）：本聚合只可能由落库待办产出 ⇒ `persisted:true`。
+        // 渲染层据此判定「行尾『作废/删除』只对落库待办有意义」（实时组无 id、无 voidPending，
+        // 现按此隐藏其硬删键——修正了实时组点删除恒空转的旧观感）。
+        persisted: true,
         count: 0,
         items: [],
       });
@@ -731,10 +738,16 @@ export const TodoStore = {
     return _loadTodos().find(t => t.id === id) || null;
   },
 
-  /** 按角色查询待办（可选状态过滤） */
+  /** 按角色查询待办（可选状态过滤）
+   *  `includeVoided`（缺省 false）：**已作废（`voided`）一律不出列**——作废＝不办了、从待办面消失；
+   *  回看入口支书 2026-10-02 裁「暂不做」（`D-743`），故各处读默认即过滤（`#1`/`D-742`）。 */
   getByRole(role, options = {}) {
-    const { status, includeCompleted = false } = options;
+    const { status, includeCompleted = false, includeVoided = false } = options;
     let todos = _loadTodos().filter(t => t.role === role);
+
+    if (!includeVoided) {
+      todos = todos.filter(t => !t.voided);
+    }
 
     if (!includeCompleted) {
       todos = todos.filter(t => t.status !== TodoStatus.COMPLETED);
@@ -755,6 +768,12 @@ export const TodoStore = {
   /** 按来源查询待办（用于来源删除时联动） */
   getBySource(sourceType, sourceId) {
     return _loadTodos().filter(t => t.sourceType === sourceType && t.sourceId === sourceId);
+  },
+
+  /** 待支委会确认的作废申请（支书台实时组数据源；`#1`/`D-742`）
+   *  口径：已 `requestVoid`（有 `voidPending`）**且**尚未 `voided`；支委确认/驳回后该条即出列。 */
+  getVoidPending() {
+    return _loadTodos().filter(t => t.voidPending && !t.voided);
   },
 
   /** 按角色查询待办并按分类分组 */
@@ -864,6 +883,68 @@ export const TodoStore = {
       t => !(t.sourceType === sourceType && t.sourceId === sourceId)
     );
     _saveTodos(todos);
+  },
+
+  // ── 作废（`#1` 支书 2026-10-02 三条答复 · `D-742`）──────────────
+  // 手续：**作废为主 · 硬删只留支委**；**责任人可作废但需报支委会** ⇒ 取**审批门**：
+  //   责任人 `requestVoid` → 该待办**先不消失**、标 `voidPending`（列表照常显示、带「待支委会确认」），
+  //   支委层在自己的待办面确认（`confirmVoid` → 落 `voided`）或驳回（`rejectVoid`）；
+  //   **支委层**可直接 `confirmVoid`（＝直接作废，跳过申请）。**全程不硬删**、各档皆留痕。
+
+  /** 责任人发起作废申请（审批门第一段；`reason` 必填） */
+  requestVoid(id, { reason, byPersonId } = {}) {
+    const why = String(reason || '').trim();
+    if (!why) return null; // 原因必填——无原因不得作废（与「完成」的分野）
+    return this.update(id, {
+      voidPending: { reason: why, byPersonId: byPersonId || '', at: new Date().toISOString() },
+    });
+  },
+
+  /** 确认作废（支委层；可直接对未申请的待办调用＝直接作废） */
+  confirmVoid(id, { byPersonId, note } = {}) {
+    const todos = _loadTodos();
+    const idx = todos.findIndex(t => t.id === id);
+    if (idx < 0) return null;
+    const pend = todos[idx].voidPending || null;
+    const reason = String((pend && pend.reason) || note || '').trim();
+    if (!reason) return null; // 同理：无原因不作废
+    const row = {
+      ...todos[idx],
+      voided: {
+        reason,
+        byPersonId: (pend && pend.byPersonId) || '',
+        at: (pend && pend.at) || new Date().toISOString(),
+        confirmedBy: byPersonId || '',
+        confirmedAt: new Date().toISOString(),
+      },
+    };
+    delete row.voidPending;
+    todos[idx] = row;
+    _saveTodos(todos);
+    return row;
+  },
+
+  /** 驳回作废申请（支委层）：撤销 `voidPending`，待办回到原状并留一行驳回记录 */
+  rejectVoid(id, { byPersonId, note } = {}) {
+    const todos = _loadTodos();
+    const idx = todos.findIndex(t => t.id === id);
+    if (idx < 0) return null;
+    const pend = todos[idx].voidPending || null;
+    const row = { ...todos[idx] };
+    delete row.voidPending;
+    if (pend) {
+      row.voidRejected = {
+        reason: pend.reason,
+        byPersonId: pend.byPersonId,
+        at: pend.at,
+        rejectedBy: byPersonId || '',
+        rejectedAt: new Date().toISOString(),
+        note: String(note || ''),
+      };
+    }
+    todos[idx] = row;
+    _saveTodos(todos);
+    return row;
   },
 
   // ── 聚合查询与批量销项（2026-08-07 待办闭环化） ─────────────

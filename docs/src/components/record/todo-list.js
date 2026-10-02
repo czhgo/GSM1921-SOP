@@ -14,11 +14,11 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261002b';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261002b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261002b';
+import { badgeHtml } from '../ui/badges.js?v=20261002g';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261002g';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261002g';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261002b';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261002g';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -38,6 +38,10 @@ import { isTodoExpired } from '../../services/governance/todo.js?v=20261002b';
  * @param {Function} [opts.onSelectTodo]— 点击组行回调 (group) => void（进详情）
  * @param {Function} [opts.onActionTodo]— 行动按钮回调 (group) => void
  * @param {Function|null} [opts.onDeleteTodo] — 删除组回调（null=不渲染删除键；实时组台禁用）
+ * @param {Function|null} [opts.onVoidTodo] — 作废组回调（`#1`/`D-742`；null=不渲染作废键）。
+ *        仅**落库待办组**（`g.persisted`）渲染「作废 / 删除」——实时组无 id、无 `voidPending`，
+ *        渲染了也只是空转（硬删键按此收口，见 todo.js `_aggregateByAction` 的 `persisted` 标记）。
+ *        「删除」是否出现由调用方（壳）按角色决定：**硬删只留支委层**。
  * @param {(group:Object)=>({state:'available'|'urged',label:string,title?:string}|null)} [opts.urgeStateOf]
  *        — 催办入口状态解析（2026-09-10 支书/副支书待办页逐条催办）：返回 null 不渲染；
  *          仅支书台传入（opt-in），其余工作台缺省 undefined → 无催办入口。
@@ -55,6 +59,7 @@ export function renderDomainTodoList(opts) {
     onSelectTodo = () => {},
     onActionTodo = () => {},
     onDeleteTodo = null,
+    onVoidTodo = null,
     urgeStateOf = null,
     onUrgeTodo = null,
     actionBtnStyle = '',
@@ -143,7 +148,7 @@ export function renderDomainTodoList(opts) {
         rowHtml: (g) => {
           // 2026-09-08 裁决批一（D6/D1 接入点）：组带 bulkHtml（成员变更域内批量块等）→ 组行下直接内嵌
           // （勾选批量与逐项详情并行：组行点击仍进详情逐项确认/退回，bulk 块负责批量确认/通过）。
-          const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf);
+          const row = _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf, onVoidTodo);
           return g.bulkHtml
             ? `${row}<div class="${prefix}-todo-bulk rounded-b-lg bg-gray-50/40 border-t border-gray-50">${g.bulkHtml}</div>`
             : row;
@@ -171,6 +176,16 @@ export function renderDomainTodoList(opts) {
         e.stopPropagation();
         const g = _findGroupInDomains(list, actionBtn.dataset.groupKey);
         if (g) onActionTodo(g);
+        return;
+      }
+
+      // 作废按钮（`#1`/`D-742`：落库待办组；支书／非支书两种口径由壳注入的回调决定）
+      const voidBtn = e.target.closest(`.${prefix}-todo-void-btn[data-group-key]`);
+      if (voidBtn) {
+        e.stopPropagation();
+        if (typeof onVoidTodo !== 'function') return;
+        const g = _findGroupInDomains(list, voidBtn.dataset.groupKey);
+        if (g) onVoidTodo(g);
         return;
       }
 
@@ -206,9 +221,14 @@ function _findGroupInDomains(domains, groupKey) {
 }
 
 // ── 渲染单个聚合卡（同跳转目标合并，数量角标 + 处理按钮）──
-function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf) {
+function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBtnStyle, onDeleteTodo, urgeStateOf, onVoidTodo) {
   const isSelected = g.groupKey === selectedTodoId;
   const hasExpired = g.items.some(t => isTodoExpired(t, today));
+  // 待支委会确认（`#1`/`D-742`）：责任人已 `requestVoid`、支委尚未裁决 ⇒ 照常出列并挂胶囊。
+  const voidPending = Array.isArray(g.items) && g.items.some(t => t && t.voidPending);
+  // 作废 / 删除只对**落库待办组**有意义（实时组无 id、无 voidPending；见 todo.js `persisted`）。
+  const canVoid = g.persisted && typeof onVoidTodo === 'function';
+  const canDelete = g.persisted && typeof onDeleteTodo === 'function';
 
   // 2026-08-07 闭环化：actionKey 优先决定按钮文案（同 actionType 不同业务域区分），actionType 兜底
   // 无生产者死键（IA-C1 Task5 登记 2026-09-06）：
@@ -249,6 +269,7 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
         <span class="flex flex-col items-start gap-0.5 min-w-0 flex-1">
           <span class="flex items-center gap-1.5 min-w-0 w-full">
             ${hasExpired ? badgeHtml('含过期', 'danger') : ''}
+            ${voidPending ? badgeHtml('待支委会确认', 'warning') : ''}
             <span class="text-sm font-medium text-gray-800 truncate">${g.title}</span>
             <span class="agg-count-badge text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums flex-shrink-0">${g.count}</span>
           </span>
@@ -261,7 +282,8 @@ function _renderAggregateItem(prefix, g, accent, today, selectedTodoId, actionBt
       <div class="flex items-center gap-1.5 ml-2 pr-3 flex-shrink-0">
         ${urgeBtn}
         ${g.hideActionBtn ? '' : `<button type="button" class="btn-accent-soft ${prefix}-todo-action-btn text-xs px-3 py-1.5 rounded-lg transition-colors hover:opacity-90" data-group-key="${g.groupKey}" style="${actionBtnStyle || ''}">${actionLabel}</button>`}
-        ${onDeleteTodo ? `<button type="button" class="btn-danger ${prefix}-todo-del-btn text-xs px-1.5 py-1" data-group-key="${g.groupKey}" title="删除该组待办">✕</button>` : ''}
+        ${canVoid ? `<button type="button" class="btn-outline ${prefix}-todo-void-btn text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" data-group-key="${g.groupKey}" title="作废该待办（不办了；需填原因）">作废</button>` : ''}
+        ${canDelete ? `<button type="button" class="btn-danger ${prefix}-todo-del-btn text-xs px-1.5 py-1" data-group-key="${g.groupKey}" title="删除该组待办（不可恢复，仅支委层）">✕</button>` : ''}
       </div>
     </div>
   `;

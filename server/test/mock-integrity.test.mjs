@@ -12,9 +12,9 @@ const BASE = 'http://localhost:3000';
 // 浏览器内收集全部 mock 数据（结构化克隆返回）
 async function collectAll(page) {
   return page.evaluate(async () => {
-    const mock = await import('/src/data/mock/index.js?v=20261002b');
-    const seed = await import('/src/data/mock/seed.js?v=20261002b');
-    const accounts = await import('/src/data/mock/accounts.js?v=20261002b');
+    const mock = await import('/src/data/mock/index.js?v=20261002g');
+    const seed = await import('/src/data/mock/seed.js?v=20261002g');
+    const accounts = await import('/src/data/mock/accounts.js?v=20261002g');
     return {
       PEOPLE: mock.PEOPLE,
       ACTIVITIES: mock.ACTIVITIES,

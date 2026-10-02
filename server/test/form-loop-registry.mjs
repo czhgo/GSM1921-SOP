@@ -51,7 +51,10 @@
 // 批次 323（2026-10-01）：`R-73` 第 ③ 缺落成常驻守卫 `validation-site-coverage.test.mjs::V1`（漏登记增量检测），
 //   实测立刻揪出 **5 处真漏登记**（议题「事项领域」· 组长驳回申诉 · 成员考勤申诉 · 成员考察申诉 ×2）⇒
 //   台账 **实有 103 → 108**（5 条均 `machine:false` 并逐条写明理由）；基线常量同批改准为 **108**（原 103）。
-export const SITES_BASELINE = 109;
+// 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
+//   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
+//   基线常量同批改准为 **111**；真机流程条数不变。
+export const SITES_BASELINE = 111;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 58;
@@ -143,7 +146,14 @@ export const VALIDATION_SITES = [
   //     `[data-mc-id][data-decision="rejected"]` 即在位。**无需造种子、无需改产品、无需跨角色会话**。
   // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 691, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
+  // 2026-10-02（批次 340 · `#1`/`D-742` 作废落地）：同文件新增作废裁决区（约 +65 行）⇒ 本条再下移 `691` → `756`。
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 756, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
+  // 2026-10-02 批次 340（`#1`/`D-742` 待办「作废」落地）：新增两处「原因必填」校验点，均 `machine:false`
+  //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
+  //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；
+  //   同批新定向件 `todo-void-flow.test.mjs` 已在**服务层**覆盖状态机（含「无原因不得作废」/确认/驳回）。
+  { file: SRC + 'components/record/todo-tab-shell.js', line: 476, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 806, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。', msg: '请填写驳回意见（必填）' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 559, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 570, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 580, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },

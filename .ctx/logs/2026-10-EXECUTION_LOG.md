@@ -801,3 +801,59 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **`npm test`：918 项 / 918 过 / 0 红 / 0 跳过** · **耗时 1409825 ms（≈23.5 分钟）**。
 - ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 918 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截）。
 - ⚠ **首跑抓到一处自伤（如实登记）**：新定向件用例号用 `A1..` 仍被 `doc-consistency::S16`（「S 类测试文件必须全数列入 `test:daily`」）判为**守卫孤儿** ⇒ 按守卫指示把该件**入档 `server/package.json` 的 `test:daily`** 后复绿（`doc-consistency` **16 / 16**）。
+
+## 批次 340（2026-10-02）：`#1` 待办「作废」**实现**（落 `D-742` 六件规格 ＋ 支书两处追加裁定）＋ 裁决**站内知会**
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02 三条答复（`D-742`）＋ 就实现分叉的两处**追加裁定** ⇒ **裁定进决策日志**（`D-743`），**实现与实测进本节**。
+
+### 一、支书两处追加裁定（本批开工前以 AskUserQuestion 问定）
+
+| 命题 | 裁定 |
+| --- | --- |
+| 「待支委会确认」派生待办落**哪个台** | **支书台单点**；并补一句「其实要有一个**站内信**的功能——支书如果不认为这个待办能取消，或者说即使取消也要让**某个委员知情**，让他知道管理上可以优化」 |
+| 作废后**回看**入口 | **暂不做** |
+
+### 二、本批实现（`D-742` 规格 #1–#6 逐条）
+
+| # | 文件 | 关键动作 |
+| --- | --- | --- |
+| 1 | `docs/src/services/governance/todo.js` | `requestVoid`（原因必填 → `voidPending`）· `confirmVoid`（→ `voided` 并清 `voidPending`，同样原因必填）· `rejectVoid`（清 `voidPending` 留 `voidRejected`）；`getByRole` 增 `includeVoided`（**缺省过滤 `voided`**）；新增读口 `getVoidPending()`；`_aggregateByAction` 的聚合组加 `persisted: true` 标记；`REALTIME_GROUP_DOMAIN` 增 `'todo-void-confirm' → WORK_DOMAIN.REPORT` |
+| 2 | `docs/src/entries/tabs/secretary/todo-tab.js` | 新增 `_voidConfirmAgg()` 实时组（`groupKey='secretary:todo-void-confirm'`）＋ `renderVoidConfirmDetail` 逐条「确认作废 / 驳回」＋ `_onVoidDecide` / `_askVoidReject` / `_notifyVoidDecision` |
+| 3 | `docs/src/components/record/todo-tab-shell.js` | 壳体据 `BRANCH_COMMISSION_ROLES` 算 `isCommittee`：**缺省硬删只在支委层**（非支委层 `deleteHandler=null`）；缺省「作废」＝支委层 `confirmVoid` / 其余 `requestVoid`；`_openVoidModal` 原因弹窗（原因必填） |
+| 4 | `docs/src/components/record/todo-list.js` | 「作废」键 ＋ `voidPending` 行挂「**待支委会确认**」胶囊；**硬删/作废键并加 `g.persisted` 条件**（实时组不再渲染——修正「点了空转」的旧观感） |
+| 5 | `server/system-notice-kinds.js` ＋ `docs/src/core/domain/system-notice-templates.js` | 新 kind `'todo-void-decided'`（授权＝支委层 ＋ 待办行存在；**受众＝该待办原属角色、按 `todos` 行复算**；**非行动性**纯知会） |
+| 6 | `server/test/todo-void-flow.test.mjs`（新） | **V1–V5**（见第三节） |
+
+### 三、正面证据（新定向件 `todo-void-flow.test.mjs` · V1–V5 · 5 / 5 绿）
+
+- **V1** 无原因不得作废：`requestVoid({reason:'   '})` 返 `null`、不落 `voidPending`；未申请且无 `note` 的 `confirmVoid` 亦拒 ⇒「**作废 ≠ 完成**」（须有原因）。
+- **V2** 申请（审批门第一段）：落 `voidPending`、`voided` 仍假、**列表照常可见**、进 `getVoidPending()`；域折组仍出该组且 `persisted===true`、组内条目带 `voidPending`。
+- **V3** 确认：落 `voided`（`reason` 沿用申请原因、`confirmedBy` 记人）、清 `voidPending`、**默认列表出列**、`includeVoided:true` 可回看。
+- **V4** 驳回：清 `voidPending`（`voided` 仍假）＋ 留 `voidRejected`（`note` / 原 `reason`）、**回到列表**。
+- **V5** 防回潮（源码级）：壳体 `const isCommittee = BRANCH_COMMISSION_ROLES.includes(role)` ＋ 缺省硬删被 `else if (isCommittee)` 守住；列表 `canDelete = g.persisted && …` / `canVoid = g.persisted && …`。
+
+### 四、守卫实跑
+
+- 新定向件 **5 / 5**；`doc-consistency`（含 ⑤/⑥/⑥-2）＋ `link-integrity` ＋ `timestamps-note-guard` ＋ `frontmatter-freshness` ＋ `doc-line-ref` ＋ `import-path-guard` **39 / 39 / 0 红**；`version-stamp` ＋ `hex-hardcode-guard` ＋ `validation-site-coverage` **40 / 40**；`form-loop-sweep` **S0–S7 · 9 / 9**（含 `S6` 行号改准）。
+
+### 五、首跑抓到的三处自伤（如实登记）
+
+1. `hex-hardcode-guard`（H1 ＋ H2）：两处新弹窗原写 `accentColor: '#6B7280'`（壳体新值 ＋ 支书台处数 1 → 2）⇒ 改 `var(--functional-error)`（**用现成令牌、不新增硬编码值**）后复绿。
+2. `validation-site-coverage::V1`：两处「原因必填」校验点未登记 ⇒ 同批登记进 `form-loop-registry.mjs`（**均 `machine:false` ＋ 写明理由**：演示种子无「待支委会确认的作废申请」过渡态 ⇒ 弹窗真机不可达；状态机由 V1–V5 在服务层覆盖），`SITES_BASELINE` **109 → 111**，同步 `README.md` 台账数。
+3. `form-loop-sweep::S6`：`secretary/todo-tab.js` 中段插行（+65）致既有登记 `691` 漂移 ⇒ 改准为 `756`。
+
+### 六、如实登记（口径与边界）
+
+- **域归属自裁**：`todo-void-confirm` 归「汇报反馈」域（`D-743` 已登记，**非支书圈定**）。
+- **知会不采信 `voided` 作判据**：前端快照写穿是**防抖**的（`data-adapter::_scheduleSnapshot`）⇒ 裁决后立刻发通知时服务端未必已收到 `voided`；故授权只取「**支委层 ＋ 待办行存在**」，标题/受众仍**按行复算**（若以 `voided` 为判据会**误 403**）。
+- **支书台不开硬删**：该台既有 `onDeleteTodo: null` 未动（「硬删只留支委」读作「只有支委层可以留」，不要求每个支委台都开）。
+- **未做**：「已作废」回看入口（支书裁「暂不做」）；`#4`「站内信」作为**独立形式**的设计仍待另批。
+- 戳 `?v=20261002b → 20261002g`（JS 217 / HTML 22 / CSS 2 / server-test 89；陈旧戳 0 残留）。
+- ⚠ **本批最重的一处自伤（如实登记 · 供后人）**：首跑 `npm test` 时 **真机（Playwright）全域挂起**——工作台骨架「加载中…」永不消解、无 `pageerror`、无 4xx；单跑一条**未受本批改动影响**的旧 e2e（`visitor/今天`）由 **4.3 s 退化到 619 s** 再超时。**根因＝版本戳「混戳」**：`docs/` 下 **82 个文件停在 `?v=20261002b`**、另 159 个已到 `c` ⇒ 同一模块按两个 URL 被加载成**两个实例**（`auth.js` / `tab-bar.js` / `ws-*-entry.js` / `login.html` 等），会话与注册表读空 ⇒ 页面挂死。**混戳的来历**：本批中途做「回退-验证」实验时用了 `git stash push/pop`，其中一次 `pop` 被中断（工具报 `exit -1`），**部分文件退回 HEAD（`b`）而其余保持工作树（`c`）**。**处置**：重跑 `bump-version.mjs` → **全站统一到 `20261002d`**（`git grep -l 'v=20261002b' -- docs` ＝ **0**），复测探针 `.lf-bar` **914 ms** 出现（改前 40 s 超时）。**其后本批为「定位是否本批代码所致」又做了两次「暂退-验证-还原」**（5 个前端文件先全退、再只退壳体），每轮都**重新 bump 成全站同戳**；最终确认**本批代码无责**（当前最终戳 `20261002g`，六个工作台真机复测 **12 / 10 / 12 / … 个 tab 全渲染**）。
+  **教训（建议）：① `bump-version.mjs` 的「陈旧戳自检 0 处残留」只在**它自己那一跑**成立——**任何其后对工作树的回退/还原（`stash` / `checkout` / 编辑器撤销）都必须重跑该自检**；② 判「页面挂起 / tab 渲染不出来」时，**先核版本戳是否单一源**，再怀疑业务代码（本次险些把环境事故误记成功能回归，浪费了数轮排查）。
+
+### 七、收尾全量（`R-85`）
+
+- **`node --test --test-concurrency=1`（全量）：923 项 / 923 过 / 0 红 / 0 取消** · **耗时 1424572 ms（≈23.7 分钟）** · **`EXITCODE=0`**（先在 3000 端口起 `node server.js`；跑完停服）。
+- 中间两跑如实登记：① 未起 3000 服务 ⇒ **8 红**、**全部是 `ECONNREFUSED localhost:3000`**（`b3-1-makeup-writeback` / `click-cost` C1–C5 / `mock-integrity` M1–M2）＝**环境类**；② 起服务后单跑该三件 **8 / 8 绿**，最终全量 **923 / 923**。
+- ⚠ 末条进程另报一次 `TRAE Sandbox Error`（Playwright `chrome-headless-shell .../debug.log` 写入被沙箱拦截）——**非测试失败**（摘要已打印 `pass 923 / fail 0`、`EXITCODE=0`）。

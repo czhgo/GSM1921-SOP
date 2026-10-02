@@ -358,6 +358,33 @@ const KINDS = {
       return buildSystemNotice('organizer-transferred', vars);
     },
   },
+
+  // ── 待办作废已裁决（`#1`/`D-742`；2026-10-02 批次 340）────────────────────
+  // 场景：责任人 `requestVoid` → 支书/副支书在支书台确认或驳回该作废申请后的**站内知会**
+  //   （支书 2026-10-02 语：「支书如果不认为这个待办能取消，或者说即使取消也要让某个委员知情，
+  //   让他知道管理上可以优化」）⇒ **两个分支都发**。
+  // 授权：① actor 为**支委层**（确认/驳回动作的功能位）；② 被裁决的待办行必须存在。
+  //   ⚠ **不**要求行上已带 `voided/voidRejected`：前端全量快照写穿是**防抖**的（`data-adapter::_scheduleSnapshot`），
+  //   裁决后立即发通知时服务端往往尚未收到该字段——若以此判据会误 403（如实登记，见 `D-743`）。
+  // 展示值：**待办标题 / 受众一律按 `todos` 行复算**（不采信客户端）；`decision/reason` 取 payload
+  //   （裁决事实由前端在授权门内自述，属知会文案，不改变任何落库字段）。
+  'todo-void-decided': {
+    authorize({ actor, sourceId, db }) {
+      if (!actor || !COMMITTEE_ROLE_SET.has(actor.role)) return false;
+      return !!rowOf(db, 'todos', sourceId);
+    },
+    build(ctx) {
+      const row = rowOf(ctx.db, 'todos', ctx.sourceId) || {};
+      const p = payloadOf(ctx);
+      return buildSystemNotice('todo-void-decided', {
+        sourceId: ctx.sourceId,
+        todoTitle: row.title || p.todoTitle || '该待办',
+        decision: p.decision === 'rejected' || row.voidRejected ? 'rejected' : 'confirmed',
+        reason: p.reason || (row.voided && row.voided.reason) || (row.voidRejected && row.voidRejected.reason) || '',
+        audience: row.role ? [row.role] : undefined,
+      });
+    },
+  },
 };
 
 // 统一 build 包装：sourceId 由服务端注入并置于末位，杜绝客户端 payload 覆盖落点锚点。
