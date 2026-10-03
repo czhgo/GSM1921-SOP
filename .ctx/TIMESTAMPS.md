@@ -279,7 +279,7 @@ dynamic_role:
 | docs/src/entries/pages/login-entry.js | 2026-09-21 | — | [工程师]+[AI] | 登录页入口（按钮主 CTA 档；**2026-09-21 批次 139：开发身份卡加「党小组副组长」**——同一套组长工作台、任务优先给组长，`D-571`） |
 | docs/src/entries/pages/about-entry.js | 2026-08-19 | — | [工程师]+[AI] | 关于页入口（支部的故事；静态壳 + 死代码清理；T-272 对话三段角速度统一 PLATEAU 0.55） |
 | docs/src/entries/pages/archive-entry.js | 2026-08-06 | — | [工程师]+[AI] | 归档页入口 |
-| docs/src/entries/pages/activity-entry.js | 2026-09-21 | — | [工程师]+[AI] | 活动/专班统一详情页入口（**2026-09-21 批次 132 补登**——本表原先无此行；本批品牌认定块由「一键切换」改为**提案 / 撤回 / 取消认定**三态，`D-559`；**2026-09-21 批次 135：新增「追加复盘（支委会要求）」卡与两个动作**（要求组织者复盘 / 撤回要求；给不在支书台的支委一个落点），`D-562`）；**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（11→10）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-21`→刷为 `2026-09-25`）） |
+| docs/src/entries/pages/activity-entry.js | 2026-10-03 | — | [工程师]+[AI] | 活动/专班统一详情页入口（**2026-09-21 批次 132 补登**——本表原先无此行；本批品牌认定块由「一键切换」改为**提案 / 撤回 / 取消认定**三态，`D-559`；**2026-09-21 批次 135：新增「追加复盘（支委会要求）」卡与两个动作**（要求组织者复盘 / 撤回要求；给不在支书台的支委一个落点），`D-562`）；**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（11→10）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-21`→刷为 `2026-09-25`）） |
 | docs/src/entries/pages/settings-entry.js | 2026-09-29 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档；支部制度参数卡可调项与各域职责参数）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）」。 |
 | docs/src/entries/pages/feedback-entry.js | 2026-07-31 | — | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/pages/help-entry.js | 2026-09-27 | — | [工程师]+[AI] | **（2026-09-27 批次 211–212：路一——左目录 `TOC_ITEMS` **10 → 11**（写死数组，随第 4 章「设置逐项」独立而 +1））** 帮助页入口（系统说明书；静态壳模式） |
@@ -394,6 +394,7 @@ dynamic_role:
 | docs/src/services/core/runtime.js | 2026-07-31 | — | [工程师]+[AI] | 运行时插槽 |
 | docs/src/services/activity/signup.js | 2026-10-03 | — | [工程师]+[AI] | 报名记录服务（活动 / 专班统一报名渠道；分级审批 · 审核待办派生）。 |
 | docs/src/services/activity/taskforce.js | 2026-07-31 | — | [工程师]+[AI] | 专班服务（含专班→待办派生） |
+| docs/src/services/activity/work-assignment.js | 2026-10-03 | — | [工程师]+[AI] | 活动「工作分工」（服务端表 assignments）统一读写口；全 CRUD。 |
 | docs/src/services/governance/today-summary.js | 2026-10-03 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
 | docs/src/services/governance/todo.js | 2026-08-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注） |
 | docs/src/services/branch/branch-doc.js | 2026-09-21 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |

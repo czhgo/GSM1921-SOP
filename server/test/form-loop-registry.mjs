@@ -54,7 +54,7 @@
 // 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
 //   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
 //   基线常量同批改准为 **111**；真机流程条数不变。
-export const SITES_BASELINE = 115;
+export const SITES_BASELINE = 116;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 60;
@@ -386,6 +386,11 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/pages/messages-entry.js', line: 169, field: '标题', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写标题' },
   { file: SRC + 'entries/pages/messages-entry.js', line: 170, field: '正文', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写正文' },
   { file: SRC + 'entries/pages/messages-entry.js', line: 171, field: '收件人', flow: 'messages/我的私信·写私信', machine: true, msg: '请选择收件人' },
+  // ── 活动详情页「工作分工」（批次 359 · `D-750` 续答「全 CRUD」）────────────────
+  //   新增 / 编辑共用表单的字段级必填校验一处（`#wa-work-name`）。
+  //   ⚠ **本批未加真机流**：`D-753`（支书令「测试套件压到 ≤10 分钟 · 择其精要」）⇒ **不为新校验点新增慢件**；
+  //   该分支已由**一次性真机探针**取证（批次 359 执行日志）。
+  { file: SRC + 'entries/pages/activity-entry.js', line: 693, field: '工作名称', flow: 'activity/工作分工·新增', machine: false, msg: '请填写工作名称', reason: '【批次 359 新立】**本批未加真机流**（`D-753`：测试套件压到 ≤10 分钟、择其精要 ⇒ 不新增慢件）；已由一次性真机探针取证（批次 359 执行日志「真机取证」节）。' },
 ];
 
 // ── 真机闭环流程清单 ────────────────────────────────────────────────────

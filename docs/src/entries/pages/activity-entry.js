@@ -2,49 +2,57 @@
 // activity-entry.js — 活动/专班统一详情页入口（T233 报名渠道）
 //  URL 前缀分流：act-* 渲染活动详情，tf-* 渲染专班详情。
 //  报名区仅在「可报名」时展示（活动 published/ongoing 且日期未过、专班 recruiting 且未截止）。
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003g';
-import { renderHeader } from '../../components/shell/header.js?v=20261003g';
-import { BranchService } from '../../services/core/runtime.js?v=20261003g';
-import { mockDB } from '../../core/domain/domain.js?v=20261003g';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003g';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261003g';
-import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261003g';
-import { AuthStore } from '../../services/core/auth.js?v=20261003g';
-import { getPersonById } from '../../services/member/person.js?v=20261003g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003h';
+import { renderHeader } from '../../components/shell/header.js?v=20261003h';
+import { BranchService } from '../../services/core/runtime.js?v=20261003h';
+import { mockDB } from '../../core/domain/domain.js?v=20261003h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003h';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261003h';
+import { SignupStore, canCloseActivitySignup, closeActivitySignup, SignupStatus } from '../../services/activity/signup.js?v=20261003h';
+import { AuthStore } from '../../services/core/auth.js?v=20261003h';
+import { getPersonById } from '../../services/member/person.js?v=20261003h';
 // 品牌认定（2026-09-21 批次 132 · 支书口径二「支委/党小组组长均可以提案，支委会通过后确定」）：
 // 判据与写口单一源 = services/activity/activity.js；本页**不再有「点一下即认定」**（提案 / 撤回 / 取消认定三种动作）。
-import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261003g';
+import { canProposeBrand, brandProposalOf, proposeBrandDesignation, withdrawBrandProposal, revokeBrandDesignation } from '../../services/activity/activity.js?v=20261003h';
 // 转交组织者（SOP-G-2-② · 2026-10-01 批次 327 · 支书裁「乙：直接转交 ＋ 留痕」）：
 //   母本《常见工作场景快速指南》`:125`「组织者退出需经支委会确定好接手的组织者并负责地完成工作交接
 //   后方可退出」；可发起＝支书 / 副支书 / 组织委员 / **该场现任组织者本人**。判据与写口单一源＝
 //   `components/governance/organizer-transfer.js`（本页只挂入口）。
-import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261003g';
+import { canTransferOrganizer, openOrganizerTransfer } from '../../components/governance/organizer-transfer.js?v=20261003h';
 // 追加复盘要求（2026-09-21 批次 135 · 裁定二「按推荐档落」）：支委会可额外要求本场组织者完成复盘；
 // 判据与写口单一源 = services/activity/activity.js；另有「交回状态」须读该场复盘记录（services/governance/review.js）。
-import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261003g';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261003g';
-import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261003g';
-import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261003g';
-import { getAppState } from '../../core/base/state.js?v=20261003g';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261003g';
+import { reviewRequestOf, isReviewReturned, isReviewRequestEligibleActivity, requestOrganizerReview, withdrawReviewRequest } from '../../services/activity/activity.js?v=20261003h';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261003h';
+import { getBasePath, escHtml as esc, showToast } from '../../core/base/utils.js?v=20261003h';
+import { getActivityTypeColors } from '../../core/domain/constants.js?v=20261003h';
+import { getAppState } from '../../core/base/state.js?v=20261003h';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261003h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：详情页**直按 id 打开**也要守同一判据
 // （列表里不出现、但链接/历史记录可直达 ⇒ 只靠列表过滤不够）。
-import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261003g';
+import { isActivityVisibleTo } from '../../services/core/visibility.js?v=20261003h';
 // 活动生命周期展示态单一源（2026-09-13 收敛）：徽章/文案不得本地另写一套中文状态映射
-import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261003g';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261003g';
-import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261003g';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261003g';
-import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261003g';
-import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261003g';
+import { activityLifecycleBadgeHtml } from '../../components/record/inspector.js?v=20261003h';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261003h';
+import { canSignup as _canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261003h';
+// 工作分工（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）：落点＝**活动详情页新增一块**；
+//   ⚠ 与活动内联的「参与人员」（`act.assignments`＝**项目角色数组**）**不是同一份数据**；术语用「项目分工 / 事上见」，
+//   **不得**称「常备性分工」（支书明令禁用）。判据与写口单一源＝`services/activity/work-assignment.js`。
+import { canManageWorkAssignments, listWorkAssignments, createWorkAssignment, updateWorkAssignment, removeWorkAssignment, WORK_ASSIGNMENT_STATUS, WORK_ASSIGNMENT_STATUS_LABELS } from '../../services/activity/work-assignment.js?v=20261003h';
+// 选人载体单一源（`DESIGN_SYSTEM §4.13` · `filter-row::S9`）：**「选名单成员」一律 PersonPicker**，
+//   **不得**用自建 `<select>` 罗列人名（`S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处）——
+//   本块「负责人」属「选名单成员」⇒ 走 PersonPicker（唯一出口 `components/governance/pickers.js`）。
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261003h';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261003h';
+import { renderVoteWidget } from '../../components/governance/vote-widget.js?v=20261003h';
+import { fetchVotes } from '../../services/activity/committee-vote.js?v=20261003h';
 // 表态权判据单一源（2026-09-30 批次 304）：本页此前**内联**判过一遍 `voterIds.includes(me)`，
 //   与 inspector.js 的 `isCommittee` 角色门形成两种口径；现统一消费 `isVoterOf`（角色无关）。
-import { isVoterOf } from '../../services/activity/vote-config.js?v=20261003g';
+import { isVoterOf } from '../../services/activity/vote-config.js?v=20261003h';
 // SOP-B-2（批次 83）：本页必须先 hydrate API 数据源再渲染——见 _hydrateData 注释
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261003g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261003h';
 // 批次 123：「关闭报名」后按批次 49「存好了才报成功」同一口径——先结算在途落库再刷新
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261003g';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261003h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -171,6 +179,9 @@ function renderActivity(id) {
   const isBrandActive = act.isBrand === true;
   const brandProposal = brandProposalOf(act);
   const myRole = currentUser?.role || '';
+  // 工作分工（`assignments` 表 · 批次 359 · `D-750` 续答「全 CRUD」）：与上面「参与人员」不是同一份数据
+  const workRows = listWorkAssignments(act.id);
+  const canManageWork = canManageWorkAssignments(act, myId, myRole);
   let brandCardHtml = '';
   if (isCommittee || canProposeBrand(myRole)) {
     const proposerName = brandProposal && brandProposal.by ? (getPersonById(brandProposal.by)?.name || brandProposal.by) : '';
@@ -364,12 +375,26 @@ function renderActivity(id) {
               <span class="text-[11px] text-gray-500">${roleLabel(x.role)}</span>
             </span>`).join('')}</div>`}
     </div>
+
+    <!-- 工作分工（服务端表 assignments · 2026-10-03 批次 359 · D-750 续答「全 CRUD」）：
+         与上面「参与人员」（活动内联的**项目角色数组**）**不是同一份数据**——本块列**一件件具体工作**。
+         可见性＝全员；增 / 改 / 删键按「本场组织者 ∪ 支委层」显隐（判据单一源在服务层）。 -->
+    <div class="mt-6" id="work-assignments-host"></div>
   `;
 
   // 报名区 select 增强为统一自定义下拉（本页无 bootstrap 全局 MutationObserver）
   enhanceSelects(cardEl);
   bindSignupEvents({ sourceType: 'activity', sourceId: act.id, title: act.title, myId, cardEl });
   bindShareButton(cardEl);
+
+  // 工作分工块（批次 359 · `D-750` 续答）：块内**局部重渲染**（编辑态一变只重画本块，不动页面其余部分）
+  const waHost = cardEl.querySelector('#work-assignments-host');
+  if (waHost) {
+    waHost.innerHTML = _renderWorkAssignments(workRows, canManageWork);
+    enhanceSelects(waHost);
+    _mountWaPicker(waHost, null); // 初始只读态无表单 ⇒ 空转；留着以备将来默认展开新增表单
+  }
+  _bindWorkAssignments(cardEl, act, myId, myRole);
 
   // 「关闭报名」（批次 123）：二次确认（关闭后无「重新开放」入口，属不可逆动作）→ 落库 → 结算 → 刷新。
   // 放行判据在 closeActivitySignup 内复算一次（呈现/动作同源 canCloseActivitySignup），点了没反应＝放行被挡。
@@ -534,4 +559,152 @@ function renderTaskforce(tf) {
   enhanceSelects(cardEl);
   bindSignupEvents({ sourceType: 'taskforce', sourceId: tf.id, title: tf.name, myId, cardEl });
   bindShareButton(cardEl);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  工作分工块（`assignments` 表 · 2026-10-03 批次 359 · `D-750` 续答「全 CRUD」）
+//  ⚠ 与「参与人员」（活动内联的**项目角色数组** `act.assignments`）**不是同一份数据**：
+//    本块列的是**一件件具体工作**（工作名 / 说明 / 截止 / 负责人 / 状态），服务端表 `assignments`（`README-server.md §4.7`）。
+//  ⚠ 术语（`D-750` 术语禁令）：本面＝「**项目分工 / 事上见**」；**不得**称「常备性分工」。
+//  编辑态由 `_waEditing` 驱动（`null`＝只读态 | `'new'`＝新增表单 | 某行 id＝该行编辑表单）⇒ **整块局部重渲染**。
+// ════════════════════════════════════════════════════════════════
+let _waEditing = null;
+/** 负责人选人器（每次渲染重建一份；`PersonPicker` 是「选名单成员」的单一源 —— `filter-row::S9`） */
+let _waPicker = null;
+
+/** 新增 / 编辑共用表单（`row` 为空＝新增态；否则为编辑态且多一格「状态」）
+ *  ⚠ 负责人**不用下拉**：`filter-row::S9` 只放行「任命 / 指派到人」四处例外、且明禁新代码长出第 5 处 ⇒ 走 `PersonPicker`。 */
+function _waFormHtml(row) {
+  const r = row || {};
+  const statusCell = row
+    ? `<select class="input-flat text-xs" data-wa-field="status">${Object.entries(WORK_ASSIGNMENT_STATUS_LABELS)
+      .map(([v, t]) => `<option value="${v}"${r.status === v ? ' selected' : ''}>${t}</option>`).join('')}</select>`
+    : '<span></span>';
+  return `
+    <div class="rounded-xl border border-neutral-200 bg-white p-3 mb-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <input id="wa-work-name" class="input-flat text-xs" placeholder="工作名称（必填）" value="${esc(r.workName || '')}" data-wa-field="workName">
+        <input type="date" class="input-flat text-xs" value="${esc(r.ddl || '')}" data-wa-field="ddl">
+        <input class="input-flat text-xs md:col-span-2" placeholder="工作说明（选填）" value="${esc(r.workDescription || '')}" data-wa-field="workDescription">
+        <div class="wa-assignee-host" style="min-height:38px;"></div>
+        ${statusCell}
+      </div>
+      <div class="flex items-center justify-end gap-2 mt-2">
+        <button type="button" class="btn-outline wa-cancel-btn text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" class="btn-accent wa-save-btn text-xs px-3 py-1.5" data-row-id="${row ? esc(row.id) : ''}">${row ? '保存' : '新增'}</button>
+      </div>
+    </div>`;
+}
+
+/** 把「负责人」选人器挂进当前表单（表单不在位时清空引用） */
+function _mountWaPicker(scope, row) {
+  _waPicker = null;
+  const box = scope?.querySelector('.wa-assignee-host');
+  if (!box) return;
+  _waPicker = new PersonPicker({
+    mode: 'single',
+    placeholder: '负责人（选名单成员）',
+    initialIds: (row && row.assigneeId) ? [row.assigneeId] : [],
+  });
+  _waPicker.render(box);
+}
+
+/** 只读行（工作名 / 负责人 · 截止 · 说明 / 状态；管理键按 `canManage` 显隐） */
+function _waRowHtml(row, canManage) {
+  const who = row.assigneeId ? (getPersonById(row.assigneeId)?.name || row.assigneeId) : '未指定';
+  const st = WORK_ASSIGNMENT_STATUS_LABELS[row.status] || row.status;
+  const stClass = row.status === WORK_ASSIGNMENT_STATUS.COMPLETED ? 'text-green-700 bg-green-50'
+    : (row.status === WORK_ASSIGNMENT_STATUS.IN_PROGRESS ? 'text-blue-700 bg-blue-50' : 'text-amber-700 bg-amber-50');
+  return `
+    <div class="flex items-start gap-2.5 py-2 border-b border-gray-50" data-wa-row="${esc(row.id)}">
+      <span class="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${stClass}">${esc(st)}</span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-gray-800 truncate">${esc(row.workName)}</p>
+        <p class="text-xs text-gray-500 truncate">${esc(who)}${row.ddl ? ' · 截止 ' + esc(String(row.ddl).slice(0, 10)) : ''}${row.workDescription ? ' · ' + esc(row.workDescription) : ''}</p>
+      </div>
+      ${canManage ? `
+      <span class="flex items-center gap-1.5 flex-shrink-0">
+        ${row.status !== WORK_ASSIGNMENT_STATUS.COMPLETED ? `<button type="button" class="btn-outline wa-advance-btn text-xs px-2 py-0.5" data-row-id="${esc(row.id)}" style="cursor:pointer;">${row.status === WORK_ASSIGNMENT_STATUS.PENDING ? '开工' : '完成'}</button>` : ''}
+        <button type="button" class="btn-ghost wa-edit-btn text-xs px-2 py-0.5" data-row-id="${esc(row.id)}" style="cursor:pointer;">编辑</button>
+        <button type="button" class="btn-ghost wa-del-btn text-xs px-2 py-0.5" data-row-id="${esc(row.id)}" style="cursor:pointer;">删除</button>
+      </span>` : ''}
+    </div>`;
+}
+
+/** 整块 HTML（宿主为 `#work-assignments-host`） */
+function _renderWorkAssignments(rows, canManage) {
+  const formOpen = _waEditing === 'new';
+  return `
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold text-gray-700">工作分工（${rows.length}）</h3>
+      ${canManage && !formOpen ? '<button type="button" class="btn-tab wa-new-btn text-xs px-3 py-1.5" style="cursor:pointer;">新增分工</button>' : ''}
+    </div>
+    ${formOpen ? _waFormHtml(null) : ''}
+    ${rows.length === 0 && !formOpen ? '<p class="text-sm text-gray-500">本场尚未安排工作分工。</p>' : ''}
+    ${rows.map((r) => (_waEditing === r.id ? _waFormHtml(r) : _waRowHtml(r, canManage))).join('')}
+  `;
+}
+
+/** 事件委托（宿主上的 `dataset.waBound` 防重复绑定；块内重渲染不影响委托） */
+function _bindWorkAssignments(cardEl, act, myId, role) {
+  const host = cardEl.querySelector('#work-assignments-host');
+  if (!host || host.dataset.waBound) return;
+  host.dataset.waBound = '1';
+  const rerender = () => {
+    const rows = listWorkAssignments(act.id);
+    host.innerHTML = _renderWorkAssignments(rows, canManageWorkAssignments(act, myId, role));
+    enhanceSelects(host);
+    // 「负责人」选人器随表单重建（`_waEditing` 为某行 id 时预选该行现有负责人）
+    _mountWaPicker(host, rows.find((r) => r.id === _waEditing) || null);
+  };
+  const rowOf = (id) => listWorkAssignments(act.id).find((r) => r.id === id);
+  host.addEventListener('click', async (e) => {
+    if (e.target.closest('.wa-new-btn')) { _waEditing = 'new'; rerender(); return; }
+    if (e.target.closest('.wa-cancel-btn')) { _waEditing = null; rerender(); return; }
+    const editBtn = e.target.closest('.wa-edit-btn');
+    if (editBtn) { _waEditing = editBtn.dataset.rowId; rerender(); return; }
+    const advBtn = e.target.closest('.wa-advance-btn');
+    if (advBtn) {
+      const row = rowOf(advBtn.dataset.rowId);
+      if (!row) return;
+      const next = row.status === WORK_ASSIGNMENT_STATUS.PENDING
+        ? WORK_ASSIGNMENT_STATUS.IN_PROGRESS : WORK_ASSIGNMENT_STATUS.COMPLETED;
+      await updateWorkAssignment(row.id, { status: next });
+      showToast('success', `「${row.workName}」已标记为「${WORK_ASSIGNMENT_STATUS_LABELS[next]}」`);
+      rerender();
+      return;
+    }
+    const delBtn = e.target.closest('.wa-del-btn');
+    if (delBtn) {
+      const row = rowOf(delBtn.dataset.rowId);
+      if (!row) return;
+      if (!window.confirm(`删除工作「${row.workName}」？删除后不可恢复。`)) return;
+      await removeWorkAssignment(row.id);
+      showToast('success', '已删除该条工作分工');
+      rerender();
+      return;
+    }
+    const saveBtn = e.target.closest('.wa-save-btn');
+    if (saveBtn) {
+      const form = saveBtn.closest('div.rounded-xl');
+      const val = (k) => form?.querySelector(`[data-wa-field="${k}"]`)?.value ?? '';
+      const workName = String(val('workName') || '').trim();
+      if (!workName) {
+        showToast('error', '请填写工作名称');
+        form?.querySelector('#wa-work-name')?.focus();
+        return;
+      }
+      const payload = { workName, workDescription: val('workDescription'), ddl: val('ddl'), assigneeId: (_waPicker?.getSelected() || [])[0] || '' };
+      const rowId = saveBtn.dataset.rowId;
+      if (rowId) {
+        await updateWorkAssignment(rowId, { ...payload, status: val('status') });
+        showToast('success', '已保存该条工作分工');
+      } else {
+        await createWorkAssignment({ activityId: act.id, ...payload, createdBy: myId });
+        showToast('success', '已新增一条工作分工');
+      }
+      _waEditing = null;
+      rerender();
+    }
+  });
 }

@@ -3,13 +3,13 @@
 //  data-loader.js — 数据加载统一入口
 // ════════════════════════════════════════════════════════════════
 
-import { BranchService } from '../services/core/runtime.js?v=20261003g';
-import { getAppState, setState, STATE } from '../core/base/state.js?v=20261003g';
-import { notifyDataLoaded } from './data-adapter.js?v=20261003g';
-import { AuthStore } from '../services/core/auth.js?v=20261003g';
+import { BranchService } from '../services/core/runtime.js?v=20261003h';
+import { getAppState, setState, STATE } from '../core/base/state.js?v=20261003h';
+import { notifyDataLoaded } from './data-adapter.js?v=20261003h';
+import { AuthStore } from '../services/core/auth.js?v=20261003h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：`state.activities` 是仪表盘与各
 // 工作台 tab 的主读口 ⇒ 在本口按查看者角色收窄一次，覆盖首页活动日历/列表、成员台「活动动态」等全部消费点。
-import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261003g';
+import { filterActivitiesForViewer } from '../services/core/visibility.js?v=20261003h';
 
 /**
  * 将 mock ACTIVITIES 映射为带完整字段的 fallback 数据

@@ -14,7 +14,7 @@
 //         content/04_web_design/data/DATA_ARCHITECTURE.md §8.4
 // ════════════════════════════════════════════════════════════════
 
-import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261003g';
+import { getApiBaseUrl, getAuthToken } from './data-adapter.js?v=20261003h';
 
 // ── HTTP 工具函数 ──────────────────────────────────────────────
 
@@ -345,6 +345,16 @@ export const ApiAdapter = {
 
     create(data) {
       return _post('/api/v1/assignments', data);
+    },
+
+    // 批次 359（`D-750` 续答「全 CRUD」）：补 `update` / `delete`（服务端「通用资源 CRUD」对 29 个资源名
+    //   本就有 `PATCH /<资源名>/:id` 与 `DELETE /<资源名>/:id` ⇒ 前端补齐即可，**服务端零改动**）。
+    update(id, patch) {
+      return _patch(`/api/v1/assignments/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/assignments/${id}`);
     },
   },
 

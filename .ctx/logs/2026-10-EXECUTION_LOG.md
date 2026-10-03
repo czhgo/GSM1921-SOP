@@ -1680,3 +1680,73 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **未新增常驻真机流**：沿用本族既有做法（批次 346 的 `disc-makeup-void-reason` 是唯一常驻件，批次 352 / 352b 的另三张亦只做一次性探针 ＋ `V6`/`V7` 定向件）⇒ 本批两张同样**探针 ＋ V7**，**不假装**「每张都有常驻真机守卫」。
 - **未动**：`hasApplied`（已作废的报名**仍**挡住重复报名——语义未裁，**不代裁**）· 报名总表（人×专班**矩阵**无行级动作槽 ⇒ 落点改「记录产生地」＝两个详情页；如实登记该偏离）。
 - 戳：**`20261003f → 20261003g`**（全站 220 JS / 23 HTML / 2 CSS / 92 server-test 已刷，陈旧戳自检 0 残留）。
+
+---
+
+## 批次 359（2026-10-03）：`D-750` **续答落地** —— 活动详情页新增「**工作分工**」块（`assignments` **全 CRUD**）＋ `D-753` **落账**（测试套件 ≤10 分钟 · 待实现）
+
+### 一、裁定
+
+- **`D-750` 续答**（支书逐字）：「**活动详情页新增一块（推荐）**」＋「**我认为 全CRUD！**」⇒ 落点＝**活动详情页**；程度＝**增 / 改 / 删 ＋ 列表**（不是只读）；术语禁令不变（`常备性分工` 禁用）。
+- **`D-753` 新立**（支书逐字）：「辛苦你花一点时间 **精简一下我们的test，每一次的时间都太长了，控制到10分钟以内！！择其精要！**」⇒ 全量 `npm test` 墙钟 **≈23 分钟 → ≤10 分钟**。**本批只落账**（含四处同源计数改准），**实现另批**。
+
+### 二、落地（`assignments` 全 CRUD · 落点＝活动详情页新增一块）
+
+| 件 | 内容 |
+|---|---|
+| **新服务** | `docs/src/services/activity/work-assignment.js`（**统一读写口**）：`canManageWorkAssignments`（判据单一源＝`isActivityOrganizerIn` ∪ `BRANCH_COMMISSION_ROLES`；**呈现与放行共用**）· `listWorkAssignments` · `createWorkAssignment`（**C**）· `updateWorkAssignment`（**U**，**只收白名单字段**、工作名不得改成空、`completedAt` 随状态位落）· `removeWorkAssignment`（**D**，**真删**——本表是「排错了就该删」的**安排性记录**，与另一族「作废（软）」无关）；写口形态同 `soft-void.js`（adapter → `mockDB` → `persist()`，**不假设适配器返回形状**） |
+| **活动详情页** | `docs/src/entries/pages/activity-entry.js`：在「参与人员」**之后**新增宿主 `#work-assignments-host` **一整块**（**不新开页面 / 不新开一级入口**）——列表（工作名 / 负责人 · 截止 · 说明 / 状态）＋ 行内「开工 / 完成 · 编辑 · 删除」＋「新增分工」表单；**块内局部重渲染**（编辑态 `_waEditing` 一变只重画本块） |
+| **可见性** | 列表**全员可见**；**管理键按「本场组织者 ∪ 支委层」显隐**（非管理者看不到任何增 / 改 / 删键） |
+| **⚠ 不是同一份数据** | 本块＝服务端表 `assignments`（**一件件具体工作**，`README-server.md §4.7`）；页面上方「参与人员」＝**活动内联的 `activity.assignments`**（**项目角色数组**，`§4.1`）——两处**并列呈现、互不改写** |
+
+### 三、★ 补两适配器缺口：`assignments` 缺 `update` / `delete`
+
+**实读教训（第 5、6 例）**：`MockAdapter` 与 `ApiAdapter` 的 `assignments` 域**此前只有 `list` / `create`** ⇒ 「全 CRUD」一调就抛（同批次 352 `weeklyReports`、352b `externalDispatches`、358 `signups` / `propTasks`）。本批按四件套补齐两域的 `update` / `delete`（Mock 侧走 `mockDB` ＋ `_saveToStorage`；Api 侧走既有 `_patch` / `_delete` 打**服务端本就有的**通用资源 CRUD ⇒ **服务端零改动**）。
+
+### 四、真机取证（一次性探针 · 跑完即删 · `createApp({dbPath:':memory:'})` ＋ `seedDatabase` ⇒ **不碰真库**）
+
+| 面 | 取证（逐条实测） |
+|---|---|
+| 块在位（支书 `2300010001` · `act-30`） | `#work-assignments-host` 在位 ✓ · 初始 **0 行** · 「新增分工」键 **1 枚** ✓ |
+| **C** | 空工作名 ⇒ toast「请填写工作名称」且**表单仍在** ✓ → 填名 ＋ 选负责人 ＋ 填截止 ⇒ **0 → 1 行** ✓ · 服务端命中 `asgn_…` / `status=pending` / `ddl=2026-10-20` ✓ |
+| **U** | 改名 ⇒ 服务端 `workName` 随之改准 ✓ · 「开工 / 完成」连点两次 ⇒ `completed` 且 **`completedAt` 落** ✓ |
+| **D** | 点删除（二次确认）⇒ **1 → 0 行** ✓ · 服务端已无该行 ✓ |
+| **反向** | 普通成员 `2400012349`：块**可见** ✓ · 管理键 **0 枚** ✓（只读态） |
+| 全程 | `pageErrors` **0** |
+
+### 五、★★ 如实登记：一处**自伤缺陷**——模板字面量里的反引号（**静态守卫抓不到**）
+
+- **经过**：首次真机探针 `#work-assignments-host` 恒缺；`pageerror` 报 `Unexpected identifier 'assignments'`。
+- **根因**：在**模板字面量内**的 HTML 注释里写了反引号包住的 `assignments` ⇒ **反引号提前终止模板字面量**，其后 `assignments` 成了裸标识符 ⇒ **整个 `activity-entry.js` 解析失败**（整页不渲染）。
+- **★ 为什么守卫没拦住**：`module-load::E1` 的 `collectJsFiles` **明写跳过 `entries/`**（页面入口不在静态装配面；`E2` 只核「该页入口被 import」、不核「它能跑」）⇒ **一次真机探针才逮到**。（同族已知：批次 262 的模板字面量动态 import 路径少一个 `../` 也只有真机才逮到 ⇒ 再次证明「入口层必须有真机面」。）
+- **修法**：注释内反引号改为直书（`服务端表 assignments`）。**修后真机全绿**。
+- ⚠ **本批未新增守卫**（补一个「模板字面量内反引号」静态检查属新增守卫、且与 `D-753`「压时长」相左）⇒ **只登记**。
+
+### 五之补、★ 收尾全量**首跑 1 红**：`filter-row::S9`「选人载体」——**负责人不得用自建 `<select>` 罗列人名**
+
+- **红**：S9「select 列人名只允许 §4.13 登记的**四处例外**；新代码请改用 `PersonPicker`（选名单成员）或先登记例外」。
+- **我的错**：初版把「负责人」做成自建 `<select>`（成员名 `<option>`）⇒ 撞上 S9（该守卫明写「**禁新代码再长出第 5 处**」）。
+- **修法（取守卫指的路，不登记第 5 处例外）**：改用**选人载体单一源** `components/governance/pickers.js::PersonPicker`（`mode:'single'` ＋ `initialIds` 预选现有负责人；读值走 `getSelected()[0]`）；表单里原 `<select>` 位置换 `.wa-assignee-host` 宿主。
+- **复验**：`filter-row::S9` 绿；**重跑真机探针** ⇒ 「负责人载体＝PersonPicker（非下拉）✓」· 新增落库 `assignee=p1` ✓ · **编辑态预选生效**（改名后 `assignee` 仍为 `p1`，未丢）✓ · 其余四段与反向全绿 · `pageErrors` 0；`SITES` 台账行号随插行 **677 → 693** 同批改准。
+
+### 六、守卫实跑
+
+- `validation-site-coverage`（`V1` **候选 114 → 115 · 未登记 4 ＝ 基线**）＋ `module-load`（`E1`/`E2`）＋ `import-path-guard`（`G1`–`G3`）＋ `button-system-guard`（`B4`：新键走 `btn-tab` / `btn-accent` / `btn-outline` / `btn-ghost` 四族）＋ `dead-selector-guard` / `small-text-guard` / `text-tier-guard` / `doc-consistency` / `hex-hardcode-guard` / `style-baseline` ⇒ **43 / 43 · 0 红**。
+- `form-loop-sweep`（`S0` 规模不缩水 · `S2` `machine:true` 全覆盖 · `S4` 出处文案在 · **`S6` 台账行号精确命中**）⇒ **85 / 85 · 0 红**。
+- `timestamps-note-guard`（`N1`–`N7`）＋ `doc-consistency` ⇒ **23 / 23 · 0 红**。
+
+### 七、台账（同批改准）
+
+- `form-loop-registry.mjs`：**新登记 1 处**校验点（`activity-entry.js:677`「请填写工作名称」）⇒ `SITES_BASELINE` **115 → 116**；该点标 **`machine:false` ＋ 写明理由**（**本批不为新校验点新增慢件**——`D-753` 正令压时长）。
+- 根 `README.md`：台账段 **`共 115 处校验点` → `116`** · **`machine:false` 13 → 14 条**。
+- `.ctx/TIMESTAMPS.md`：**补登 1 行**（新文件 `activity/work-assignment.js`）＋ **3 行刷日期**（`activity-entry.js` / `api-adapter.js` / `mock-adapter.js`）⇒ 备注列 **45,645 → 45,684**（预算 45,900 未破）。
+- `2026-10-DECISION_LOG.md`：`D-750` **加「续答」**节（落点＋全 CRUD）· **新立 `D-753`**（测试套件 ≤10 分钟）＋ 四处同源计数 **24 → 25 条**（`D-729`…`D-753`，下一条自 `D-754`）· 本月目录 ＋ 文末「续编说明」· `.ctx/logs/DECISION_LOG.md` 月度索引 2026-10 行 **24 → 25 条**。
+- 戳：**`20261003g → 20261003h`**（221 JS / 23 HTML / 2 CSS / 92 server-test，陈旧戳自检 0 残留）。
+
+### 八、收尾全量（`R-85`）
+
+- **首跑 940 / 941 · 1 红** ⇒ 如「五之补」所述，红＝`filter-row::S9`（选人载体）**真回归**（我自建 `<select>` 罗列人名）⇒ **改走 `PersonPicker` 后复跑**。
+- **复跑：941 项 / 941 过 / 0 红 / 0 跳过**（起 3000 服务 → 跑完停服）；**墙钟 ≈22.9 分钟**（两次实测：首跑 **1391 s** · 复跑 **1374 s**）——**该值即 `D-753`「测试套件压到 ≤10 分钟」的「改前」基线**（已记入 `D-753` 背景）。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 941 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截——同批次 331/334/343–358）。
+- **用例数不变 941**（本批未新增常驻真机流）。
+
