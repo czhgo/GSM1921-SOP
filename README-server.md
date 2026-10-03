@@ -2,7 +2,7 @@
 
 > **本文是什么**：面向**外部后端对接团队**（学校计算中心 / 承建方 / 后续接手维护者）的**一站式说明书**——把系统的**背景、角色、功能板块、字段、部署、接口、已知限制**逐项讲清，不需要先读本仓其它文件就能看懂。
 >
-> **本文不是什么**：不是产品宣传页，也不是「未来规划书」。文中所有「现状」均可按文件名与行号回查（见文末 **§8 取证索引**）；凡取不到出处的，一律写明「未取证」，**不做推测性表述**。
+> **本文不是什么**：不是产品宣传页，也不是「未来规划书」。文中所有「现状」均在**各节末**给出 `文件:行号` 供回查（**权威源**清单见 §8）；凡取不到出处的，一律写明「未取证」，**不做推测性表述**。
 >
 > **读者须知（三个易混词）**：
 > - **母本**：指制度文本（本仓 `content/` 目录下的支部制度与 SOP 文档）；系统是母本的「子本」——制度怎么写，系统就怎么跑。
@@ -10,21 +10,6 @@
 > - **mock / api 两种形态**：同一套前端代码，数据源可以在「浏览器本地假数据（mock）」与「后端接口（api）」之间切换，**界面零改动**。
 
 **依据**：`server/README.md`（后端自述）、`README.md`（根说明）、`content/04_web_design/deploy/DEPLOYMENT_GUIDE.md`（部署与对外对接，唯一权威源）。
-
----
-
-## 目录
-
-| 节 | 内容 |
-|---|---|
-| §1 | 系统背景与当前阶段（这是一套什么系统、给谁用、和制度母本的关系、示例与真实部署的区别） |
-| §2 | 角色（角色键全表 + 逐个角色说明 + 权限矩阵 + 服务端鉴权门） |
-| §3 | 功能 / 板块（页面清单 + 全部工作台页签 + 设置中心 + 关键机制 + 支部分工模块目录） |
-| §4 | 字段说明（**数据模型字段级清单**，逐实体逐字段） |
-| §5 | 部署环节（依赖 / 环境变量 / 启动构建 / 存储 / 服务器侧注意 / 真实部署需替换项） |
-| §6 | 接口一览（全部 HTTP 路由） |
-| §7 | 已知限制与未实现项（如实列出） |
-| §8 | 取证索引 |
 
 ---
 
@@ -1717,6 +1702,8 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 **已注册的 kind（共 23 种；2026-09-19 批次 98 逐条核过、改准；2026-10-01 批次 330 增 1；2026-10-02 批次 340 增 1）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`weekly-report-submitted`（**周报已报送、待支书审核**，2026-09-19 批次 94 新增，裁定 `D-507`）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`makeup-remind`（**补课材料催办**——2026-10-01 批次 324 新增，`V-7` 裁甲「纪检催当事人」；受众**到人定向**、仅纪检委员可触发）、`committee-dispatch`（党委下发）、`organizer-transferred`（**组织者已转交**——2026-10-01 批次 330 新增，支书裁「补：通知原组织者」；受众**到人定向**＝被退出的原组织者，文案＝知会＋交接提示）、`todo-void-decided`（**待办作废已裁决**——2026-10-02 批次 340 新增，`#1`/`D-742`；受众＝该待办原属角色，**非行动性**纯站内知会）。
 **依据**：`server/system-notice-kinds.js:57-388`（`KINDS` 注册表，23 个键）、`:205-212`（`weekly-report-submitted`）、`:325-347`（`organizer-transferred`，2026-10-01 批次 330 新增）、`:362-387`（`todo-void-decided`，2026-10-02 批次 340 新增）。
 
+**权威源**：`server/routes/system-notices.js` ＋ `server/system-notice-kinds.js`——系统派生通知：23 种 kind 的授权复算与文案生成（逐 kind 清单见上行，端点见本节表）。
+
 ### 6.8 组长台聚合读（`server/routes/leader-progress.js`）
 
 | 方法 | 路径 | 用途 | 权限门 |
@@ -1844,53 +1831,11 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 
 ---
 
-## §8 取证索引
+## §8 权威源与自我约束
 
-> 本文**每一节都在节末给出「依据：文件:行号」**。本节汇总**主要取证源**及其在本文中的作用，便于后端按图索骥。
+> 本文**每一节都在节末给出「依据：文件:行号」**。本节只列**权威源**（「谁是谁的唯一源」），便于后端按图索骥；**逐文件索引不另维护**——要查某文件在本文何处被引用，直接在全文检索该文件名即可。
 
-### 8.1 后端（`server/`）
-
-| 文件 | 作用 | 本文引用处 |
-|---|---|---|
-| `server/README.md` | 后端自述：安装/启动/环境变量/数据与文件/部署对接 | §1.3、§5 |
-| `server/server.js` | 入口：端口、DB 路径、种子开关、定时任务 | §5.2、§5.5 |
-| `server/app.js` | 应用装配：中间件、路由挂载、静态托管、错误处理、`deploy.js` 注入 | §5.5、§6.12 |
-| `server/db.js` | 建表：35 张资源表 + `sessions`/`attachments`；键值表结构；WAL | §4.0、§4.37、§4.38、§7.2 |
-| `server/seed.js` | 播种：从 `docs/src/data/mock/*` 导入、反馈种子按 kind 分流脱敏 | §1.3、§5.6 |
-| `server/routes/auth.js` | 登录/注销/me；`requireAuth`/`requireRole`/`requireCommissioner` | §2.4、§5.3、§6.1 |
-| `server/routes/resources/index.js` | 通用资源 CRUD、写角色门、活动写门、快照、支部配置、意见反馈语义端点 | §2.3.3、§2.4、§4.16、§5.5、§6.2-6.4、§6.9 |
-| `server/routes/member.js` | 成员变更链路、名册语义端点、移出/撤销 | §2.2.3、§4.30、§4.34、§4.35、§6.5 |
-| `server/routes/committee.js` | 线上表决：选项枚举、名单校验、无记名两段式、截止 | §4.36、§6.6 |
-| `server/routes/system-notices.js` + `server/system-notice-kinds.js` | 系统派生通知：23 种 kind 的授权复算与文案生成 | §6.7 |
-| `server/routes/leader-progress.js` | 组长台「组员进展」服务端汇总 | §3.2.5、§6.8 |
-| `server/routes/uploads.js` | 附件上传/下载、类型与大小限制、物理文件删除 | §4.38、§5.5、§6.10 |
-| `server/routes/report.js` + `server/services/reporting.js` | 四域数据上报（拉取/导出/推送）、定时任务、会议提醒 | §5.3、§6.11 |
-| `server/services/mailer.js` + `mailer-hooks.js` | 邮件通道（SMTP）与触发钩子 | §5.3、§5.5、§7.2 |
-| `server/.env.example` | 环境变量模板（**注意：服务端不读 .env 文件**） | §5.3、§5.6 |
-| `server/package.json` | 依赖与脚本 | §5.1、§5.2 |
-
-### 8.2 前端核心（`docs/src/`）
-
-| 文件 | 作用 | 本文引用处 |
-|---|---|---|
-| `docs/src/core/domain/constants.js` | **角色/枚举/权限集合/活动类型/通知受众/计票方式**等常量的单一源 | §2.1-2.3、§4.1、§4.10、§4.30、§5.5#16 |
-| `docs/src/core/domain/domain.js` | 领域 typedef 与 mockDB 全部持久化域清单 | §4.30、§7.2 |
-| `docs/src/core/domain/policy-defaults.js` | **制度参数与默认值**（可调 / 固定逐项标注）+ 域参数白名单 | §1.2、§3.4、§5.6 |
-| `docs/src/core/base/state.js` | 前端 appState 与枚举 | §4.14 |
-| `docs/src/services/branch/config-clean.js` | config 净化（modules/blocks/workforce/org/policyOverrides）唯一实现 | §4.25 |
-| `docs/src/data/mock-adapter.js` | mock 形态数据适配（含 `handoffs` 等域的本地持久化） | §7.2#15 |
-| `docs/src/data/data-adapter.js` | 数据源 mock/api 切换抽象层 | §1.1、§5.2 |
-| `docs/src/data/api-adapter.js` | REST API 适配器与路由映射（35 个资源分组） | §1.1、§5.6 |
-| `docs/src/services/core/auth.js` | **权限键集 `ROLE_PERMISSIONS` / 项目角色 `PROJECT_PERMISSIONS` / 赋权链 `AUTHORIZE_CHAIN` / `canDo`** | §2.2、§2.3 |
-| `docs/src/services/core/visibility.js` | 「谁能看谁」可见性矩阵（L0/L1/L2、块块） | §2.2.6、§7.1#2、§7.2#18 |
-| `docs/src/services/{attendance,makeup,issues,thought-report,branch}.js` 等 | 各业务域服务（写层业务守卫落点） | §2.2、§7.1 |
-| `docs/src/workflow/sopData.js` / `sop.js` / `decision-tree.js` | SOP 场景定义与推演、决策树 | §4.15、§7.2#10 |
-| `docs/src/config/deploy.js` | 部署形态常量 `DEPLOY_MODE` 与空域回退开关 `SEED_FALLBACK` | §1.3、§5.2、§5.6 |
-| `docs/src/data/mock/*.js` | 示例组织数据（成员/账号/支部/党小组/活动/通知/专班/种子） | §1.3、§5.6 |
-| `docs/src/capabilities/*-workspace.js` | **七台工作台的页签清单声明（单一源）** | §3.2 |
-| `docs/data/issues.json` | 意见反馈的内容单一种子源 | §5.6 |
-
-### 8.3 设计与制度文档（`content/`）与根说明
+### 8.1 设计与制度文档（`content/`）与根说明
 
 | 文件 | 作用 | 本文引用处 |
 |---|---|---|
@@ -1903,7 +1848,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | `README-members.md` | 成员视角的角色工作台一览（与代码口径互校） | §3.2、§3.3 |
 | `.ctx/` 目录 | 过程记录（执行/决策日志、快照、审查队列）——**审计底座，本文未据其断言现状** | — |
 
-### 8.4 本文的自我约束（如实声明）
+### 8.2 本文的自我约束（如实声明）
 
 1. **不做无出处的断言**：本文所有「现状」均给出 `文件:行号`；凡证据不足者写明「未取证」（§5.1 编译工具、§5.3 `AI_API_BASE_URL`、§7.3#22）。
 2. **不合并冲突口径**：文档与代码不一致处**并列呈现**。此前并列过的两例——部署文档「32 资源表」对代码 35 张、部署文档「Node 18+」对根说明 ≥ 22——**已由批次 110 把文档侧改准、不再并列**；**新发现的冲突仍按本条并列登记于 §7.3**。
