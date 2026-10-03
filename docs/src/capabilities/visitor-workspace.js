@@ -36,12 +36,15 @@ registerCapability({
     // 工作概况（支书 2026-08-10 裁定：全部角色新增——汇报/卡点/在办三区总览，参与者仅自我聚合）
     { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/visitor/overview-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一；本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」
-    { id: 'projects', label: '项目分工', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/projects-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
+    // 2026-10-02 批次 351（支书 `D-741`「按这个方案推进 V-3 页签建议序」）：**组内按「第一问 / 节律」重排**——
+    //   「最近有什么活动」是成员第一问 ⇒ **活动动态前置**；思想汇报有节律（季度）⇒ **前移到「我的考察」之前**。
+    //   （原序：项目分工 · 活动动态 · 考勤概况 · 我的考察 · 思想汇报 · 我的复盘；**组序与条数一律不动**。）
     { id: 'activities', label: '活动动态', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/activities-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
+    { id: 'projects', label: '项目分工', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/projects-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     { id: 'attendance', label: '考勤概况', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/attendance-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
-    { id: 'inspection', label: '我的考察', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/inspection-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // 2026-08-30 思想汇报数字化：参与者系统内提交，算法自动归档
     { id: 'thought-report', label: '思想汇报', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/thought-report-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
+    { id: 'inspection', label: '我的考察', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/inspection-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // T-304 C1 组织者承载面：复盘提交归组织者（组织者/深度参与者在自己工作台提交）
     { id: 'review', label: '我的复盘', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/visitor/review-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // 活动日历（2026-09-30 批次 310 支书裁定「每个人应该都有这样的活动日历界面，可以从桌面的

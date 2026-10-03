@@ -40,7 +40,7 @@ dynamic_role:
 | README.md | 2026-09-30 | — | [用户]+[AI] | 全站门面（定位 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。**为什么**：守卫清单列在此处是 `doc-consistency::S10` 的硬要求（§0.2 引用的守卫必须登记进本清单）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 311）」。 |
 | README-members.md | 2026-09-29 | — | [用户]+[AI] | **（2026-09-27 批次 211–212：路一 help 引用改准——`README-members.md` 1 处随第 4 章「设置逐项」独立而改准）** **（2026-09-26 批次 202：`:137` / `:198` 引用改准；只改引用、未改口径）** 支部成员版（2026-09-20 批次 106 补登；**2026-09-21 批次 138 三处改准**：思想汇报篇幅提醒「只给你本人看」（`D-547`）· 组长台考勤上传位按会议类型分（`D-558`）· 组织委员不再「篇幅不足看一眼」（`D-547`）；**新增**：意见反馈「事项领域 + 建议归口 + 处置归支委会」（`D-551` / `D-550`）· 匿名口径改「含支委层看不到真身」） |
 | README-server.md | 2026-10-03 | — | [用户]+[AI] | 面向**外部后端对接团队**的一站式说明书（背景 / 角色 / 板块 / 字段 / 部署 / 接口 / 已知限制）；正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**——本批即按此改准 `blocks` 字段与 §5.5#11 两处口径；**批次 312 又随 `inspector.js` 插行改签 4 处**：`:616`/`:622`/`:826-845`/`:1078-1092` → `:618`/`:624`/`:828-847`/`:1083-1097`）。本行的逐批沿革（4726 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」——本列只写**现状 / 边界 / 为什么**。 |
-| CLAUDE.md | 2026-10-02 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，H10–H100）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`R-84` / `R-86` / `R-89`），本表不复述；乙部「评议待办 · 执行型」自本批起**只留一句话索引**，69 条原文全量入 `.ctx/logs/**`。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| CLAUDE.md | 2026-10-03 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，H10–H100）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`R-84` / `R-86` / `R-89`），本表不复述；乙部「评议待办 · 执行型」自本批起**只留一句话索引**，69 条原文全量入 `.ctx/logs/**`。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -74,7 +74,7 @@ dynamic_role:
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
 | .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（本批与上一批：新增两节——上一节＝G3-1 release 的过程与脚手架实测 · 本批＝代码健康评审的取数与核对过程（含 8 条发现的实测读数表与「未做 / 边界」）；另本轮两次备注列迁出的正文亦落在本文件尾部两段「附」节）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（8059 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」C 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
-| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | 10 月执行日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335 共 12 节） |
+| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-03 | — | [工程师]+[AI] | 10 月执行日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335 共 12 节） |
 | .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | 10 月决策日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 D-729~D-739 共 11 条） |
 | .ctx/logs/2026-09-DECISION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（批次 235：沿革已整段迁出**——本行的逐批沿革（6427 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」D 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
@@ -210,7 +210,7 @@ dynamic_role:
 | docs/about.html | 2026-08-12 | — | [用户]+[AI] | 关于页（支部的故事；静态壳模式 + about.css 独立引用） |
 | docs/archive.html | 2026-09-24 | — | [用户]+[AI] | 归档页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-6` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/feedback.html | 2026-07-31 | — | [用户]+[AI] | 反馈页 |
-| docs/help.html | 2026-09-30 | — | [用户]+[AI] | 全站使用说明页（面向使用者的「帮助」：页面 / 页签 / 设置逐项 / 术语口径）。**边界**：口径以代码与裁定为准，本表不复述；改结构必同批改本页并过 `doc-consistency` 守卫（`R-61`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| docs/help.html | 2026-10-03 | — | [用户]+[AI] | 全站使用说明页（面向使用者的「帮助」：页面 / 页签 / 设置逐项 / 术语口径）。**边界**：口径以代码与裁定为准，本表不复述；改结构必同批改本页并过 `doc-consistency` 守卫（`R-61`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | docs/notice.html | 2026-09-24 | — | [用户]+[AI] | 通知页；**2026-09-24**：批次 171 skip link，**批次 177** 卡片内边距 `p-8` → `p-5`（`.card` 收敛，`D-643`） |
 | docs/search.html | 2026-07-31 | — | [用户]+[AI] | 搜索页 |
 | docs/workspace/secretary.html | 2026-07-31 | — | [用户]+[AI] | 支书工作台 |
@@ -411,11 +411,12 @@ dynamic_role:
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
 | docs/src/capabilities/activity-calendar.js | 2026-09-29 | — | [工程师]+[AI] | 首页活动日历能力声明（自注册模式，T-279 M1 新建） |
+| docs/src/capabilities/secretary-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 支书工作台能力声明（tab 清单自注册，scope='workspace:secretary'；本行 2026-10-03 批次 351 **补登**——本表原先无此行） |
 | docs/src/capabilities/leader-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 组长工作台能力声明（tab 清单自注册，scope='workspace:leader'，T-279 M2e 新建） |
-| docs/src/capabilities/org-workspace.js | 2026-09-30 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（组织台 **11 → 12**）；`D-675`）** 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'，T-279 M3 新建） |
+| docs/src/capabilities/org-workspace.js | 2026-10-03 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（组织台 **11 → 12**）；`D-675`）** 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'，T-279 M3 新建） |
 | docs/src/capabilities/prop-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建） |
 | docs/src/capabilities/disc-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建） |
-| docs/src/capabilities/visitor-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
+| docs/src/capabilities/visitor-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/references.js | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步） |
 

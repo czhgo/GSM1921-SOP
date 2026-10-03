@@ -39,19 +39,22 @@ registerCapability({
     { id: 'overview', label: '工作概况', groupLabel: '工作台', coreTab: true, render: (ctx) => import('../entries/tabs/org/overview-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // 分组「我的职责」= 2026-09-14 裁定按行为性质四组之一（工作台/我的职责/知情查看/制度与答复）；
     //   本轮（2026-09-15）五台统一：原「党建」组改名「我的职责」（与支书台同名，组名不再按业务域分）。
+    // 2026-10-02 批次 351（支书 `D-741`「按这个方案推进 V-3 页签建议序」）：**组内按「维护主次」重排**——
+    //   支书令「**考察就是维护人才库的过程**」⇒ **名册 / 人才库＝长期维护主表前置**，考察上传 / 思想汇报为随之的登记动作。
+    //   （原序：考察上传 · 思想汇报 · 专班管理 · 成员名册 · 成员流动 · 人才库；**组序与条数一律不动**。）
+    // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库=发展观察视图=只读画像，分工不重复建设）
+    { id: 'roster', label: '成员名册', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/roster-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
+    { id: 'talent', label: '人才库', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/talent-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     { id: 'inspection', label: '考察上传', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/inspection-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // D8 裁决批二（2026-09-08）：思想汇报（初阅为组织委员高频每日动作）前移至考察上传之后——
     // 与成员发展域族（名册/人才库/发展数据）聚拢，且初阅高频前置（表 C 调序裁定）。
     { id: 'thought-review', label: '思想汇报', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/thought-review-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     { id: 'taskforce', label: '专班管理', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/taskforce-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
-    // 成员名册（立项⑥ B波 2026-09-06：新增/行内编辑/删除 双形态持久；人才库=发展观察视图=只读画像，分工不重复建设）
-    { id: 'roster', label: '成员名册', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/roster-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // 成员流动（2026-09-28 批次 220 · R10：从「成员名册」拆出的独立 tab）——判据＝一 tab 一问：
     //   名册答「支部在册成员有谁、档案状态如何」；本 tab 答「成员怎么变（流入 / 流出）」——原二者同装
     //   「成员名册」属两个语义域混装（MODULE_UI_DESIGN.md §四.1.3「成员名册」行判定）。承原「成员流动」面板
     //   全部功能（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销）；行内「移出」仍在名册 tab。
     { id: 'member-flow', label: '成员流动', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/member-flow-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
-    { id: 'talent', label: '人才库', groupLabel: '我的职责', render: (ctx) => import('../entries/tabs/org/talent-tab.js?v=20261003f').then(m => m.renderContent(ctx)) },
     // ⚠ 原 `development`（发展数据）页签已于 2026-10-01 批次 321 摘除（支书 V-10 取「乙：整页并入人才库」）
     //   —— 其「活动参与汇总」并入上方 `talent`；阶段推进写入位改**个人总表**。此处**不得**再注册回来。
     // 知情查看（支书 2026-09-14 裁定：同质薄壳合并——原「活动查看（只读）」+「专班查看」并入本 tab 分段切换；
