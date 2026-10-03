@@ -14,6 +14,8 @@
 //   V3 待确认映射：`listVoidPending()` 给出 `"<资源>:<记录id>"` 形状，`parseRecordVoidId` 可回解
 //   V4 确认：`voided` 落上（原因取申请）、`voidPending` 清空、`filterActive` **不再含该行**、行数不变
 //   V5 驳回：`voidPending` 清空 ＋ `voidRejected` 留痕、该行**回到默认列表**
+//   V6（批次 352）登记表扩容：第二张表走同一套语义（申请 → 确认 → 出列；行数不变）
+//   V7（批次 352b）登记表 × 适配器**完备性**：每张登记表两适配器都有 `update`（防「忘了补适配器」同型缺口）
 // 运行：node --test test/soft-void.test.mjs（server 目录）
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -144,4 +146,25 @@ test('V6 注册表扩容（批次 352）：第二张表（weeklyReports）走同
   assert.ok(r2 && r2.voided, '确认落 voided');
   assert.equal(filterActive(R2, mockDB.weeklyReports).some((x) => x.id === target), false, '确认后出列');
   assert.equal(mockDB.weeklyReports.length, count0, '行数不变（软作废 ≠ 删除）');
+});
+
+// 批次 352b（`D-746`）：**登记表 × 适配器「可写」完备性**——把本批连撞两次的同型缺口钉成判据。
+//   批次 352 实跑抓到：`api-adapter.experienceDeposits` 只有 list/create、`MockAdapter` 干脆没有
+//   `weeklyReports` 域 ⇒ 作废写口在那些资源上抛 `... is not a function` / `Cannot read properties of undefined`，
+//   **而当时一件静态守卫都没拦住**。本判据＝对每张登记表逐面核「两个适配器都有 `update`」＋「mockDB 有该域」
+//   ＋「注册项四要素齐」——新增登记表忘了补适配器时**立刻红**。
+test('V7 登记表 × 适配器完备性：每张登记表在两个适配器上都必须可写（防同型缺口复发）', async () => {
+  const { ApiAdapter } = await import('../../docs/src/data/api-adapter.js?v=20261003f');
+  const problems = [];
+  const res = Object.keys(SOFT_VOID_RESOURCES);
+  assert.ok(res.length >= 6, `登记表只剩 ${res.length} 张（基线 6）：登记面被掏空`);
+  for (const [name, d] of Object.entries(SOFT_VOID_RESOURCES)) {
+    if (typeof MockAdapter[name]?.update !== 'function') problems.push(`MockAdapter.${name}.update 缺失`);
+    if (typeof ApiAdapter[name]?.update !== 'function') problems.push(`ApiAdapter.${name}.update 缺失`);
+    if (!(d.storeKey in mockDB)) problems.push(`mockDB 缺域 ${d.storeKey}`);
+    for (const f of ['storeKey', 'label', 'ownerRole', 'titleOf']) {
+      if (!d[f]) problems.push(`${name}.${f} 缺失`);
+    }
+  }
+  assert.deepEqual(problems, [], `登记表 × 适配器面不完备：\n  ${problems.join('\n  ')}`);
 });

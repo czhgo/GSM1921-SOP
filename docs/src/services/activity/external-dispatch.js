@@ -12,10 +12,20 @@ import { mockDB } from '../../core/domain/domain.js?v=20261003f';
 import { persist } from '../../data/data-adapter.js?v=20261003f';
 import { NoticeStore } from '../governance/notice.js?v=20261003f';
 import { generateId } from '../../core/base/id.js?v=20261003f';
+import * as SoftVoid from '../governance/soft-void.js?v=20261003f';
 
-/** 读取外发确认记录（mockDB 持久化） */
+/** 读取外发确认记录（mockDB 持久化）
+ *  ⚠ **写路径专用**——返回值会被 `mockDB.externalDispatches = list` 写回 ⇒ **不得在此过滤**
+ *    （否则作废行会被静默丢掉）。读侧请用 `loadActiveDispatches()`。 */
 export function loadExternalDispatches() {
   return Array.isArray(mockDB.externalDispatches) ? mockDB.externalDispatches : [];
+}
+
+/** 批次 352b（`D-746`）：**有效**外发记录＝未作废的（作废＝出列、留痕仍可回查）。
+ *  读侧统一走它 ⇒ 作废一次，**发送方（宣传台档案归档）与接收方（各台「我的处置」/ 概况，含禁改面）
+ *  同时不再显示**——不必去改禁改文件（`secretary/overview-tab.js` · `work-overview.js`）。 */
+export function loadActiveDispatches() {
+  return SoftVoid.filterActive('externalDispatches', loadExternalDispatches());
 }
 
 /**
@@ -68,7 +78,7 @@ export function confirmExternalDispatch(id) {
   return true;
 }
 
-/** 某角色待确认收到的外发记录（闭环：已发送未确认） */
+/** 某角色待确认收到的外发记录（闭环：已发送未确认；批次 352b：**已作废的不计**） */
 export function listPendingByReceiver(receiverRole) {
-  return loadExternalDispatches().filter(r => r.receiverRole === receiverRole && !r.confirmedAt);
+  return loadActiveDispatches().filter(r => r.receiverRole === receiverRole && !r.confirmedAt);
 }

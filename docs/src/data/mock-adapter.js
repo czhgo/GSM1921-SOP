@@ -899,6 +899,34 @@ export const MockAdapter = {
     },
   },
 
+  // 批次 352b（`D-746`）：补 `externalDispatches` 域——与 `weeklyReports` **同型缺口**（api-adapter 早有该域、
+  //   MockAdapter 一直缺）；否则演示（mock）形态的外发记录「作废（软）」会抛
+  //   「Cannot read properties of undefined (reading 'update')」。
+  externalDispatches: {
+    list() { return _withDelay(() => [...mockDB.externalDispatches]); },
+    create(data) {
+      return _withDelay(() => {
+        const rec = { ...data, id: generateId('ed'), sentAt: new Date().toISOString(), confirmedAt: null };
+        mockDB.externalDispatches = [...mockDB.externalDispatches, rec];
+        _saveToStorage();
+        return rec;
+      });
+    },
+    update(id, patch) {
+      return _withDelay(() => {
+        const idx = mockDB.externalDispatches.findIndex(r => r.id === id);
+        if (idx === -1) throw Object.assign(new Error(`外发记录 ${id} 不存在`), { type: 'NotFoundError' });
+        mockDB.externalDispatches = [
+          ...mockDB.externalDispatches.slice(0, idx),
+          { ...mockDB.externalDispatches[idx], ...patch },
+          ...mockDB.externalDispatches.slice(idx + 1),
+        ];
+        _saveToStorage();
+        return mockDB.externalDispatches[idx];
+      });
+    },
+  },
+
   experienceDeposits: {
     list() { return _withDelay(() => [...mockDB.experienceDeposits]); },
     create(data) {

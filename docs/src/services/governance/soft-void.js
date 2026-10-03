@@ -50,6 +50,25 @@ export const SOFT_VOID_RESOURCES = {
     ownerRole: 'disc-commissioner',
     titleOf: (r) => r.title || r.id,
   },
+  // ── 批次 352b（`D-746` · 余 2 张之一）──
+  //   `externalDispatches` 的既有列表面（「文件流外发确认」）在**禁改文件**（概况侧）⇒ 本批**不改它**，
+  //   改由**服务层读口** `loadActiveDispatches()` 统一出列（发送方与接收方同时不再显示），
+  //   作废键落在**记录产生地**＝宣传台「档案归档」行内外发单元。
+  externalDispatches: {
+    storeKey: 'externalDispatches',
+    label: '外发记录',
+    ownerRole: 'prop-commissioner',
+    titleOf: (r) => r.refLabel || r.id,
+  },
+  // 批次 352b（`D-746` · 余 2 张之二）：文书台/组长台可见的那条 SOP 派生任务「作废（软）」。
+  //   支书 2026-10-03 取「**活动详情页行内作废**」⇒ 读面＝活动详情页「任务清单」（`components/record/inspector.js`），
+  //   读侧出列点＝`services/core/mock.js::listTasks()`（voided 不进 `state.tasks`）⇒ 活动进度推导随之外列。
+  tasks: {
+    storeKey: 'tasks',
+    label: '任务',
+    ownerRole: 'secretary',
+    titleOf: (r) => r.title || r.id,
+  },
 };
 
 function _def(resource) {
@@ -100,12 +119,17 @@ export function parseRecordVoidId(id) {
   return { resource, id: s.slice(i + 1) };
 }
 
-/** 统一写口：改记录 → 同步 `mockDB` → `persist()`（`null` 返回＝记录不存在，不动本地） */
+/** 统一写口：改记录 → 同步 `mockDB` → `persist()`（`null` 返回＝记录不存在，不动本地）
+ *  ⚠ **不假设适配器 `update` 的返回形状**（批次 352b 实读教训）：`MockAdapter.tasks.update` 历史上返回
+ *    **整个数组**（与旧 `mock.js` 同款），若照抄返回值回填就会把该行替换成一个数组；故**先判**返回值是否为
+ *    「该记录对象」，不是则**按 patch 在本地合成**（mock 形态 mockDB 即源；api 形态服务端已落 patch）。 */
 async function _write(resource, id, patch) {
-  const next = await getAdapter()[resource].update(id, patch);
-  if (!next) return null;
+  const res = await getAdapter()[resource].update(id, patch);
   const rows = _rowsOf(resource);
   const idx = rows.findIndex((r) => r.id === id);
+  const isRecord = res && typeof res === 'object' && !Array.isArray(res) && res.id === id;
+  const next = isRecord ? res : (idx >= 0 ? { ...rows[idx], ...patch } : null);
+  if (!next) return null;
   if (idx >= 0) mockDB[_def(resource).storeKey] = [...rows.slice(0, idx), next, ...rows.slice(idx + 1)];
   persist();
   return next;

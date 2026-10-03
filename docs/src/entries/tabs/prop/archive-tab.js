@@ -21,7 +21,7 @@ import { getPersonName } from '../../../services/member/person.js?v=20261003f';
 import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003f';
 import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003f';
 import { generateId } from '../../../core/base/id.js?v=20261003f';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261003f';
+import { addExternalDispatch, loadExternalDispatches, loadActiveDispatches } from '../../../services/activity/external-dispatch.js?v=20261003f';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
 import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261003f';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
@@ -256,6 +256,18 @@ export function renderContent(ctx) {
       const record = _loadArchiveRecords().find(r => r.id === dispatchBtn.dataset.recordId);
       if (!record) return;
       _promptExternalDispatch(record.activityId, record.activityName, ctx, () => renderContent(ctx));
+      return;
+    }
+    // 批次 352b（`D-746`）：外发记录「作废（软）」——支委直接作废 / 其余人报支委会（单一源弹窗）
+    const dispatchVoidBtn = e.target.closest('.archive-dispatch-void-btn');
+    if (dispatchVoidBtn) {
+      const rec = loadExternalDispatches().find(d => d.id === dispatchVoidBtn.dataset.edId);
+      if (!rec) return;
+      openVoidModal({
+        resource: 'externalDispatches', id: rec.id, label: '外发记录',
+        subject: rec.refLabel || rec.id,
+        onDone: () => renderContent(ctx),
+      });
       return;
     }
     // 2026-09-22 批次 145（支书裁定二）：党建平台上报留痕——与「标记已发送」并列的第二枚（只留痕、不对接）
@@ -530,16 +542,22 @@ function _archiveRowHtml(r) {
     </div>`;
 }
 
-/** 行内外发单元（C④ 2026-09-10）：未外发 → 行内微操作按钮；已外发 → 状态徽标。
- *  状态语义与 externalDispatches（refType=publicity，refLabel=宣传材料：<活动名>）一致，不改数据模型。 */
+/** 行内外发单元（C④ 2026-09-10）：未外发 → 行内微操作按钮；已外发 → 状态徽标 ＋ 作废键。
+ *  状态语义与 externalDispatches（refType=publicity，refLabel=宣传材料：<活动名>）一致，不改数据模型。
+ *  批次 352b（`D-746`）：读侧改走 `loadActiveDispatches()`（已作废的出列）；有记录时并列一枚「作废」。 */
 function _renderDispatchCell(r) {
   const label = `宣传材料：${r.activityName || '未命名活动'}`;
-  const recs = loadExternalDispatches().filter(d => d.refType === 'publicity' && d.refLabel === label);
+  const recs = loadActiveDispatches().filter(d => d.refType === 'publicity' && d.refLabel === label);
   if (recs.length === 0) {
     return `<button class="btn-action btn-action-amber archive-dispatch-btn" data-record-id="${r.id}" title="材料如已通过微信/对外发出，点击标记已外发" style="cursor:pointer;">标记已发送（微信/对外）</button>`;
   }
+  const latest = recs[recs.length - 1];
   const confirmed = recs.some(d => d.confirmedAt);
-  return `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
+  const badge = `<span class="text-xs px-1.5 py-0.5 rounded-full border shrink-0 ${confirmed ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">${confirmed ? '已确认收到' : '已外发·待确认'}</span>`;
+  const voidKey = latest.voidPending && !latest.voided
+    ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+    : `<button class="btn-action btn-action-gray archive-dispatch-void-btn" data-ed-id="${escHtml(latest.id)}" title="软作废：该外发记录出列（发送方与接收方同时不再显示）、留痕可回查；支委可直接作废，其余人报支委会确认" style="cursor:pointer;">作废</button>`;
+  return `${badge}${voidKey}`;
 }
 
 // ── 党建平台上报留痕（2026-09-22 批次 145 · 支书裁定二「归档页补一个（推荐）」）─────────────

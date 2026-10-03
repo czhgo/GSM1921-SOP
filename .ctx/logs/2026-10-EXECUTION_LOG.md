@@ -1363,3 +1363,55 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **`D-746` 括注一处速记更正**：实测只有 `experienceDeposits` 无「列出行」表面（`tasks` / `externalDispatches` **有**读面）。
 - ⚠ **戳不变**（`?v=20261003f`；新增文件与改文件均在该链上，`version-stamp` S3 复跑绿）。
 - ⚠ **台账**：`TIMESTAMPS.md` 10 行日期刷 `2026-10-03` ＋ **补登 2 行**（`services/governance/soft-void.js` · `components/ui/void-record.js`；备注列合计 **47,460 / 预算 47,500**，仍在只降不升面内）· `docs/help.html` 三处补「作废」口径（照片墙 / 报送历史 / 复盘交接链）。
+
+## 批次 352b（2026-10-03）：`#2` `CRUD-4` **余 2 张收口** —— `externalDispatches` · `tasks` ⇒ **该条闭环**
+
+> **决议（`R-84`）**：承 `D-746`（支书 2026-10-03 取「甲 排批直接修」）；本批为**收口批** ⇒ 不另立 `D-` 条。**其中 `tasks` 的清理口径**经我 `AskUserQuestion` 请示，**支书 2026-10-03 取「甲：活动详情页行内作废（推荐）」**——该取向按 `R-84` 亦并入 `D-746` 的射程（同一命题的续答），**不另立条目**。
+
+### 一、本批落地（余 2 张）
+
+| 表 | 承载面 | 读侧出列点 | 行内键 |
+| --- | --- | --- | --- |
+| `externalDispatches` | 宣传台「档案归档」**行内那枚外发单元**（＝记录产生地；**未改禁改的概况面**） | **服务层** `external-dispatch.js::loadActiveDispatches()`（`listPendingByReceiver` 同批改走它）⇒ **发送方与接收方（含禁改的 `overview-tab.js` / `work-overview.js`）同时不再显示** | `.archive-dispatch-void-btn` |
+| `tasks` | **活动管理内「活动巡查」面板的任务清单**（组长台/支书台同件 `components/record/inspector.js`） | `services/core/mock.js::listTasks()`（`state.tasks` 消费方全出列）⇒ **活动进度推导随之外列** | `.task-void-btn` |
+
+- ⚠ **`externalDispatches` 的「禁改面」难题用服务层读口化解**（**未申请特批、未改概况文件**）：原唯一列表面在概况侧（`CLAUDE.md` 禁改）⇒ 本批**不动它**，把出列做在**服务层读口**上——一处改、两个界面同时生效。
+
+### 二、**本批又抓到两处同型缺口 ＋ 一处旧契约坑（全部先实跑后修）**
+
+| # | 现象 | 根因 | 处置 |
+| --- | --- | --- | --- |
+| ① | mock 形态作废外发记录抛 `Cannot read properties of undefined (reading 'update')` | `MockAdapter` **没有 `externalDispatches` 域**（api-adapter 早有）——与批次 352 的 `weeklyReports` **同型** | 补该域（list/create/update） |
+| ② | mock 形态作废任务会把该行**替换成一个数组** | `MockAdapter.tasks.update` 历史契约**返回整个 tasks 数组**（同旧 `mock.js`） | 把 `soft-void::_write` 改为**不假设适配器返回形状**：返回值不是「该记录对象」时按 patch 本地合成 |
+| ③ | 上两类的**守卫空白** | 批次 352 已登记「无适配器四件套完备性判据」 | 新增 **`soft-void.test.mjs::V7`**：逐张登记表核「两适配器都有 `update`」＋「`mockDB` 有该域」＋「注册项四要素齐」 |
+
+### 三、真机取证（一次性探针 · 跑完即删 · api 形态真登录）
+
+| 面 | 证据（逐条实测） |
+| --- | --- |
+| ① 任务作废（支书 2300010001） | 活动管理 → **月份切到 2026-07**（月份选择器 `#month-selector`）→ 点活动条目 `act-1` ⇒ 任务清单 **2 枚**作废键 → 空原因提交报「请填写作废原因（必填）」且载体在位 → 填原因确认 ⇒ 键 **2 → 1**、服务端 `tasks.voided.reason` ＝ 所填原因 |
+| ② 外发记录作废（宣传委员 2400012356） | 先经 API 造一条 `refType:'publicity'` 外发记录（**并补一条带材料的归档记录**——该单元仅在**有材料文件**的行渲染）⇒ 行内出现 **1 枚**作废键 → 点开弹窗 → 填原因确认 ⇒ 键 **→ 0**、服务端 `voided` **1**；**发送方与接收方读口同步出列** |
+
+- **`pageerrors` ＝ 0**；探针自造记录（外发 / 归档记录）**跑完删除**、已作废者**恢复** ⇒ 演示库复原（`remainingVoided` 两项 0 · `probeRowsLeft` 0 · `archiveRecords` 回到 6）。
+
+### 四、守卫实跑
+
+- `test:fast` 全套 ＋ `module-load` / `import-path-guard` / `doc-consistency` / `version-stamp` ⇒ **184 / 184 / 0 红**。
+- `form-loop-sweep::S6`（台账行号精确命中）单跑 ⇒ 绿：本批连带改签 **7 处**——`prop/archive-tab.js` 919/923/1316 → **937/941/1334** · `components/record/inspector.js` 572/1360/1361/1362 → **574/1395/1396/1397**。
+- `soft-void`（**V1–V7**）＋ `mock-api-parity` ＋ `module-load` ⇒ **15 / 15 / 0 红**。
+- `timestamps-note-guard`（N1–N7）＋ `frontmatter-freshness`（F1–F3）⇒ 绿。
+- **收尾全量见第五节。**
+
+### 五、收尾全量（`R-85`）
+
+- **`npm test`：940 项 / 940 过 / 0 红 / 0 跳过** · **耗时 1,484,578 ms（≈24.7 分钟）**（较上批 ＋1：本批新增 `soft-void::V7`）。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 940 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截——同批次 331/334/343–352）。
+- ⚠ **首跑 1 红 ＝ 陈旧断言（已改准）**：`doc-line-ref::R2`（引用后括注符号须落在声明区间内）报 **2 处行号漂移**——`README-server.md:135` 的 `inspector.js:624` → **626** · `:1456` 的 `archive-tab.js:544-581` → **570-600**；**同批顺带改签另 3 处**（`:126` 的 `inspector.js:618` → **626**、`:615` 的 `inspector.js:828-847 / :1083-1097` → **840-861 / 1126-1139**、`:1456` 的 `archive-tab.js:998-1065` → **1033-1096**）；改后 `doc-line-ref` ＋ `doc-consistency` ＋ `version-stamp` 复跑 **40 / 40 / 0**，**第二跑全量 940/940/0**。
+- 戳**不变**（`?v=20261003f`；`version-stamp` S3·S6 复跑绿）。
+
+### 六、如实登记
+
+- ⚠ **`CRUD-4` 判定为 ✅ 已闭环**（6 张全部具备「原因必填 → 支委直接作废 / 其余人报支委会 → 读侧出列 ＋ 留痕可回查」）；队列该条已改准。
+- ⚠ **站内知会缺口仍未补**（「业务记录作废裁决」无派生通知 kind）⇒ **单列余项**，不影响闭环判定（裁决入口已在支书台待作废面）。
+- ⚠ **`tasks` 作废影响面已如实登记**：`listTasks()` 出列 ⇒ 活动**进度推导/生命周期徽标**同步变化（探针未逐面核徽标差异，留待后续批若需要再取）。
+- ⚠ **戳不变**（`?v=20261003f`）。

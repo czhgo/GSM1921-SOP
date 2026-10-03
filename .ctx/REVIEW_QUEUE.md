@@ -41,14 +41,12 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 - `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。→ **✅ 已闭环**（批次 346：四个台账面——考勤矩阵 / 活动复盘监督 / 思想汇报台账 / 上报审批——各补一句「留痕台账 · 不提供删除」，**取最短形、附在既有副题行**；与批次 294 支书裁「UI 自明」相权后落此形）。
 - `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。
-  - **机制层 ✅ 已落**（批次 346）：新写口 `services/governance/soft-void.js`（`requestVoid` / `confirmVoid` / `rejectVoid` / `filterActive` / `listVoidPending`）＋ 支书台「待办作废待确认」组**并收**业务记录申请（`id` 前缀 `"<资源>:"` 路由）；定向件 `soft-void.test.mjs` V1–V6。
+  - **机制层 ✅ 已落**（批次 346）：新写口 `services/governance/soft-void.js`（`requestVoid` / `confirmVoid` / `rejectVoid` / `filterActive` / `listVoidPending`）＋ 支书台「待办作废待确认」组**并收**业务记录申请（`id` 前缀 `"<资源>:"` 路由）；定向件 `soft-void.test.mjs` V1–V7（V7＝登记表 × 适配器完备性）。
   - **弹窗单一源 ✅**（批次 352）：`components/ui/void-record.js`（「原因必填」＝**唯一实现处**）；批次 346 的补课板块**同批改为调用它**（沿用其既有 id ⇒ 真机流 `disc-makeup-void-reason` 选择器零改）。
-  - **逐表进度（6 张，已落 4）**：`makeupTasks`（纪检台「考勤管理 → 补课」）**✅ 批次 346**；`imageRecords`（宣传台「档案归档 → 照片墙」）· `weeklyReports`（宣传台「周报报送 → 报送历史」）· `experienceDeposits`（纪检台「活动监督复盘 → **已沉淀清单**」——**本批新补的「列出行」**）**✅ 批次 352**（真机三面各证到：作废 → 出列 → 服务端落 `voided`；沉淀作废后该活动**回到督促清单**）。
-  - ⚠ **余 2 张（`externalDispatches` / `tasks`）⇒ 排批次 352b**。支书已裁「**排批直接修**」（`D-746`）⇒ **不再回问**，按下列已探明的先决条件推进：
-    - **`externalDispatches`**：**读面受限**——唯一列表面（「文件流外发确认」）落在**禁改文件** `docs/src/entries/tabs/secretary/overview-tab.js`（`CLAUDE.md`：概况侧禁改，涉其改动须支书特批）；批次 352 **未动它**。可行落点＝① 走特批改概况面；或 ② 改由**宣传台「档案归档」**行内那枚外发单元承载作废（记录产生地、非禁改面）——**352b 开工先定这一处**。
-    - **`tasks`**：**语义待定**——任务由 SOP 场景派生（读面＝活动详情「任务清单」/ 日历），「作废一条派生任务」是否成立、与「确认完成」如何分野须先定；另 **MockAdapter 无 `tasks` 域**（与 `weeklyReports` 同型缺口，批次 352 已补 `weeklyReports` 域）。
-  - ⚠ **站内知会缺口（如实登记 · 仍待余项）**：未为「业务记录作废裁决」新建通知 kind（`#1` 待办作废有 `todo-void-decided`）——待 352b 一并补（届时才有「非支委申请人」需要被知会）。
-  - ⚠ **同批抓到的真缺陷（已修 · 如实登记）**：`experienceDeposits` 在 **api-adapter 缺 `update`/`delete`** 且 **MockAdapter 缺 `weeklyReports` 域** ⇒ 作废写口在这些域上抛 `... is not a function` / `Cannot read properties of undefined`；批次 352 按四件套口径**两处补齐**（真机取证发现：api 形态 `experienceDeposits` 抛错）。
+  - **逐表进度（6 张 → ✅ 全落）**：`makeupTasks`（纪检台「考勤管理 → 补课」）**✅ 批次 346**；`imageRecords`（宣传台「档案归档 → 照片墙」）· `weeklyReports`（宣传台「周报报送 → 报送历史」）· `experienceDeposits`（纪检台「活动监督复盘 → **已沉淀清单**」——批次 352 新补的「列出行」）**✅ 批次 352**；`externalDispatches`（宣传台「档案归档」行内外发单元；**读侧改由服务层 `loadActiveDispatches()` 统一出列 ⇒ 发送方与接收方（含禁改的概况面）同时不再显示**）· `tasks`（**活动管理内活动巡查面板「任务清单」行内**；支书 2026-10-03 取「活动详情页行内作废」；读侧出列点＝`mock.js::listTasks()` ⇒ 活动进度推导随之外列）**✅ 批次 352b**（真机两面各证到：作废 → 出列 → 服务端落 `voided`）。
+  - **⇒ `CRUD-4` ✅ 已闭环**（6 张全部具备「原因必填 → 支委直接作废 / 其余人报支委会 → 读侧出列 ＋ 留痕可回查」）。
+  - ⚠ **同批抓到的真缺陷（已修 · 如实登记）**：① `api-adapter.experienceDeposits` **缺 `update`/`delete`**、② `MockAdapter` **缺 `weeklyReports` 域**、③ `MockAdapter` **缺 `externalDispatches` 域**、④ `MockAdapter.tasks.update` **返回整个数组**（旧契约）⇒ 作废写口在这些域上抛 `... is not a function` / `Cannot read properties of undefined` / 把该行替换成数组；批次 352 / 352b **四处一并补齐**（前两处补四件套、第三处补域、第四处把 `soft-void::_write` 改为**不假设返回形状**）；并新增 **`soft-void.test.mjs::V7`「登记表 × 适配器完备性」** 把这类缺口钉成判据（新增登记表忘了补适配器 ⇒ 立刻红）。
+  - ⚠ **站内知会缺口（如实登记 · 仍未补）**：未为「业务记录作废裁决」新建通知 kind（`#1` 待办作废有 `todo-void-decided`）⇒ 单列余项（不影响 `CRUD-4` 闭环判定：作废**裁决**入口已在支书台「待办 → 待作废待确认」面，只是**申请人不收派生通知**）。
 - `CRUD-5` `branches`：**✅ 已闭环**——批次 344 落「**停用（软）**」：新写口 `services/branch/branch.js::setBranchActive` ＋ 党委台「停用 / 恢复」键（`D-744`③；取证见执行日志批次 344）。
 
 **C 档 · 仅软处理（2 张）**

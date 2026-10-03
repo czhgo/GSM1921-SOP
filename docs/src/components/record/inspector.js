@@ -23,6 +23,8 @@ import { statusBadgeHtml, bindStatusBadge, badgeHtml } from '../ui/badges.js?v=2
 // ⚠ 批次 304 只改了「表态位是否挂」（下方 slot 那行）；**表态面板的动作门与填充循环仍是 `isCommittee`**
 //   ⇒ 应到名单内的普通党员在支书台**挂得出空槽**（面板无按钮 / 循环根本不填）。批次 312 把这两处一并收口。
 import { isVoterOf } from '../../services/activity/vote-config.js?v=20261003f';
+// 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——单一源弹窗
+import { openVoidModal } from '../ui/void-record.js?v=20261003f';
 import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../data/data-adapter.js?v=20261003f';
 import { recordAgendaResultForActivity } from '../../services/activity/agenda-follow-up.js?v=20261003f';
 // 制度链（2026-09-21 批次 129）：制度草案议程项在「记录结果」旁给一个「报送党员大会表决」勾选位——
@@ -798,6 +800,11 @@ function renderInspectorDetail(activity, tasks, managementRole) {
         disabled: isArchived,
         attrs: `data-task-id="${t.id}"`,
       });
+      // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——
+      //   支委可直接作废 / 其余人报支委会确认；作废后该步从任务清单与活动进度推导里出列（留痕可回查）。
+      if (!isArchived) {
+        html += `<button class="btn-action btn-action-gray task-void-btn" data-task-id="${t.id}" title="软作废：该步从任务清单出列（活动进度推导随之外列）、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`;
+      }
       html += '</div>';
       html += '</div>';
     });
@@ -1046,6 +1053,34 @@ function renderInspectorDetail(activity, tasks, managementRole) {
           });
           persist();
         },
+      });
+    });
+  }
+
+  // 批次 352b（`D-746` · 支书取「活动详情页行内作废」）：任务「作废（软）」——支委直接作废 / 其余人报支委会
+  //   （弹窗＝单一源 `components/ui/void-record.js`）；作废后 `listTasks()` 出列 ⇒ 任务清单与**活动进度推导**
+  //   同步更新（此处显式重算活动执行态并落库，与状态徽标那条同款）。
+  if (!isArchived) {
+    cardsEl.querySelectorAll('.task-void-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const t = ((getAppState() || {}).tasks || []).find(x => x.id === btn.dataset.taskId);
+        openVoidModal({
+          resource: 'tasks', id: btn.dataset.taskId, label: '任务',
+          subject: (t && t.title) || btn.dataset.taskId,
+          onDone: async () => {
+            const reloaded = await BranchService.listTasks();
+            const newActStatus = deriveActivityExecutionStatus(activity, reloaded);
+            if (newActStatus !== activity.status) {
+              await BranchService.updateActivity(activity.id, { status: newActStatus });
+            }
+            setState({
+              tasks: reloaded,
+              activities: getAppState().activities.map(a => (a.id === activity.id ? { ...a, status: newActStatus } : a)),
+            });
+            persist();
+          },
+        });
       });
     });
   }

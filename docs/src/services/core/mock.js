@@ -327,11 +327,14 @@ export function createTask(data) {
 
 /**
  * 列出所有任务（只读，无副作用）
+ * 批次 352b（`D-746`）：**已作废（`voided`）的任务不出列**（作废＝这一步不作数了、留痕仍可回查）
+ *  ⇒ 活动详情页「任务清单」与活动进度推导（`state.tasks` 消费方）随之外列。
+ *  ⚠ 过滤只在此读口做——`updateTask` 保持原始访问（否则状态写回会丢掉作废行）。
  * @returns {Promise<import('../../core/domain/domain.js').Task[]>}
  */
 export function listTasks() {
   return _withDelay(() => {
-    return [...mockDB.tasks];
+    return [...mockDB.tasks].filter((t) => !t.voided);
   });
 }
 
