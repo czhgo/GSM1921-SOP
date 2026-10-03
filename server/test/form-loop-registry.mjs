@@ -54,10 +54,10 @@
 // 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
 //   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
 //   基线常量同批改准为 **111**；真机流程条数不变。
-export const SITES_BASELINE = 111;
+export const SITES_BASELINE = 112;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
-export const FLOWS_BASELINE = 58;
+export const FLOWS_BASELINE = 59;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -149,13 +149,13 @@ export const VALIDATION_SITES = [
   // 2026-09-27（本位 nudge 两处增设批）：`secretary/todo-tab.js` 接入催办 nudge（import 1 行 ＋ 外层包装 15 行）
   //   令本文件既有登记下移 ⇒ `672` → `691`（S6：行号须落在文案那一行；file/field/msg 不变）。
   // 2026-10-02（批次 340 · `#1`/`D-742` 作废落地）：同文件新增作废裁决区（约 +65 行）⇒ 本条再下移 `691` → `756`。
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 756, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 760, field: '退回原因', flow: 'secretary/待办·退回', machine: true, msg: '请填写退回原因' },
   // 2026-10-02 批次 340（`#1`/`D-742` 待办「作废」落地）：新增两处「原因必填」校验点，均 `machine:false`
   //   ——**演示种子下无「待支委会确认的作废申请」过渡态**（须先由非支委 `requestVoid` 生成 `voidPending`，
   //   再由支书台确认/驳回；跨角色两步、无种子）⇒ 这两处弹窗在真机演示数据下结构性不可达；
   //   同批新定向件 `todo-void-flow.test.mjs` 已在**服务层**覆盖状态机（含「无原因不得作废」/确认/驳回）。
   { file: SRC + 'components/record/todo-tab-shell.js', line: 476, field: '作废原因', flow: 'shell/待办·作废', machine: false, reason: '演示种子下无「待支委会确认的作废申请」过渡态（须先由非支委 requestVoid 生成 voidPending）⇒ 作废弹窗在真机演示数据下不可达；状态机由新定向件在服务层覆盖。', msg: '请填写作废原因（必填）' },
-  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 806, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。', msg: '请填写驳回意见（必填）' },
+  { file: SRC + 'entries/tabs/secretary/todo-tab.js', line: 824, field: '驳回意见', flow: 'secretary/待办·驳回作废', machine: false, reason: '同壳体作废弹窗：驳回入口只在「存在 voidPending 申请」时渲染，演示种子无该过渡态 ⇒ 真机不可达；驳回落库由新定向件在服务层覆盖。（批次 346 起「记录作废驳回」复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处弹窗。）', msg: '请填写驳回意见（必填）' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 559, field: '评论内容', flow: 'secretary/反馈管理·议题评论', machine: true, msg: '请输入评论内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 570, field: '批复内容', flow: 'secretary/反馈管理·议题批复', machine: true, msg: '请输入批复内容' },
   { file: SRC + 'entries/tabs/secretary/feedback-tab.js', line: 580, field: '正式答复内容', flow: 'secretary/反馈管理·正式答复', machine: true, msg: '请输入正式答复内容' },
@@ -167,6 +167,11 @@ export const VALIDATION_SITES = [
   //   **同形态的两条校验未失覆盖**：组织者上传位（组长台「考勤上传」）的「活动 / 参会人员」两条仍 machine:true。
   { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 304, field: '会议活动', flow: 'disc/考勤管理·建考勤', machine: false, reason: '上传位已收归该场会议组织者（批次 124 定案）；演示数据下纪检不持任何会议场次的上传位 ⇒ 该表单为空态、本分支不可达。同形态校验由 leader/考勤上传 覆盖。', msg: '请选择会议活动' },
   { file: SRC + 'entries/tabs/disc/attendance-tab.js', line: 308, field: '参会人员', flow: 'disc/考勤管理·建考勤', machine: false, reason: '同上（同一表单空态 ⇒ 两条校验同源不可达）。', msg: '请选择参会人员' },
+  // 2026-10-02 批次 346（`D-744`② 业务过程类补「作废·停用」软入口）：**纪检台 · 考勤管理 ·「补课」分段 · 作废弹窗**——
+  //   原因必填（软作废、不硬删；支委层可直接作废、其余人报支委会确认）。服务端有 `makeup_tasks` 种子
+  //   （`SEED_MAKEUP_TASKS`）⇒ 该行在演示态**可达** ⇒ 按 `machine:true` 纳入真机（弹窗由 `openModal` 生成，
+  //   判据载体＝文本域自身；提交后弹窗不关、仅弹 toast ⇒ 载体仍在位）。
+  { file: SRC + 'entries/tabs/disc/makeup-tab.js', line: 205, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
   // 2026-09-23 支书追裁「开一个代录位」：纪检台「考察管理」新增**考察代录位**（写口与字段全部复用组长台
   //   「考察上传」；本位＝该场活动的组织者 ⇒ 纪检代录属非本位 ⇒ 提交前带既有 nudge）。校验点 3 处。
   { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 490, field: '代录活动', flow: 'disc/考察代录', machine: true, msg: '请选择要代录的活动' },
@@ -982,6 +987,25 @@ export const MACHINE_FLOWS = [
     submit: [{ click: '[data-modal-form="visitor-makeup-proof"] button[type="submit"]' }],
     expect: [
       { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 152, field: '补课说明', msg: '请填写补课说明', carrier: '[data-field="proof"]' },
+    ],
+  },
+  {
+    // 2026-10-02 批次 346（`D-744`②）：**纪检台 · 考勤管理 ·「补课」分段 · 作废弹窗**。
+    //   前置：先切一级分段「补课」（`.att-seg-btn[data-seg="makeup"]`；该分段**非默认** ⇒ 不切则补课表格不在位），
+    //   再点行内「作废」开弹窗；空原因提交 ⇒ 报「请填写作废原因（必填）」，弹窗不关、载体（文本域）在位。
+    id: 'disc-makeup-void-reason',
+    page: 'disc',
+    tab: '考勤管理',
+    open: [
+      { waitFor: '.att-seg-btn[data-seg="makeup"]' },
+      { click: '.att-seg-btn[data-seg="makeup"]' },
+      { waitFor: '.btn-disc-void-makeup' },
+      { click: '.btn-disc-void-makeup' },
+      { waitFor: '#makeup-void-reason' },
+    ],
+    submit: [{ click: '[data-makeup-void-ok]' }],
+    expect: [
+      { file: SRC + 'entries/tabs/disc/makeup-tab.js', line: 205, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
     ],
   },
   // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——

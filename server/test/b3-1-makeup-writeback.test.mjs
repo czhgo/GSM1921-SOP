@@ -9,7 +9,7 @@
 //      `persist()`——而 **mock 形态的 `persist()` 不落库**（`isDemoReadOnly()`/mock-adapter 只写本机）；
 //    · 而「补课」列表 `loadMakeupTasks()` 在**服务端形态**下读的是 `GET /api/v1/makeupTasks` ⇒
 //      **服务端压根没有这条任务** ⇒ 列表里点不到 ⇒ 连带 3 项断言全红。
-//      （实证：`docs/src/entries/tabs/disc/makeup-tab.js:29-30` 取全表、**无日期窗过滤**
+//      （实证：`docs/src/entries/tabs/disc/makeup-tab.js:37-38` 取全表、**无日期窗过滤**
 //        ⇒ 所以「夹具过期」不是本条的根因，「任务不在服务端」才是。）
 //    · 口径（`D-677` 数据形态冲突取 **API 优先**）：本用例**只在 api 态成立即可**，不再要求 mock 态同过。
 //

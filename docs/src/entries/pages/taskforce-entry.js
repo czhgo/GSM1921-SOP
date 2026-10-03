@@ -5,24 +5,24 @@
 //  数据源 TaskForceRecordStore（独立持久化 workflowos_taskforces_v1），
 //  报名面板复用 signup-panel.js 组件（与活动详情页共用，避免重复散落）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003b';
-import { renderHeader } from '../../components/shell/header.js?v=20261003b';
-import { BranchService } from '../../services/core/runtime.js?v=20261003b';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003b';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261003b';
-import { SignupStore } from '../../services/activity/signup.js?v=20261003b';
-import { AuthStore } from '../../services/core/auth.js?v=20261003b';
-import { getPersonById } from '../../services/member/person.js?v=20261003b';
-import { getBasePath } from '../../core/base/utils.js?v=20261003b';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261003b';
-import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261003b';
-import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261003b';
-import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261003b';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003c';
+import { renderHeader } from '../../components/shell/header.js?v=20261003c';
+import { BranchService } from '../../services/core/runtime.js?v=20261003c';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003c';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261003c';
+import { SignupStore } from '../../services/activity/signup.js?v=20261003c';
+import { AuthStore } from '../../services/core/auth.js?v=20261003c';
+import { getPersonById } from '../../services/member/person.js?v=20261003c';
+import { getBasePath } from '../../core/base/utils.js?v=20261003c';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261003c';
+import { enhanceSelects } from '../../components/ui/custom-select.js?v=20261003c';
+import { canSignup, renderSignupSection, renderSignupList, bindSignupEvents, roleLabel } from '../../components/governance/signup-panel.js?v=20261003c';
+import { renderShareButtonHtml, bindShareButton } from '../../components/shell/share-button.js?v=20261003c';
 // 批次 87：本页必须先 hydrate API 数据源再渲染/报名——与 activity.html（批次 83 修好后的标准形）同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下专班与报名都退回本地 mock 读，
 // 报名只写进本机备份、服务端 `/signups` 为空。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003b';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261003b';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003c';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261003c';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');

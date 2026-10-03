@@ -19,7 +19,7 @@ import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 // `V-6` 丙（2026-10-01 批次 327）：业务域**重点三域**识别色的单一源 —— 非空转断言用它（不依赖演示数据）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261003b';
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261003c';
 
 let server, base, browser;
 

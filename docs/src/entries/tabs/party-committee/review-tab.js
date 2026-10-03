@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261003b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003b';
-import { getPersonName } from '../../../services/member/person.js?v=20261003b';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261003b';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261003b';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261003b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003c';
+import { getPersonName } from '../../../services/member/person.js?v=20261003c';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261003c';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261003c';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261003c';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003b';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003c';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -47,7 +47,7 @@ export function renderContent() {
       <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
         <div class="min-w-0">
           <p class="font-title-cn text-base font-bold text-gray-800">上报审批</p>
-          <p class="text-xs text-gray-500 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部</p>
+          <p class="text-xs text-gray-500 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部 · 留痕台账不提供删除</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">待批复 ${n('pending')}</span>

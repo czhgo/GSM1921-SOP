@@ -6,19 +6,24 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261003b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261003b';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261003b';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261003b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261003b';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261003b';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261003b';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261003c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261003c';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261003c';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261003c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261003c';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261003c';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261003c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003c';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261003b';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261003c';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261003b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261003c';
+// 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003c';
+import { BRANCH_COMMISSION_ROLES } from '../../../core/domain/constants.js?v=20261003c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003c';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -29,11 +34,14 @@ export function renderContent(containerEl) {
   const container = containerEl || document.getElementById('disc-tab-content');
   if (!container) return;
 
-  const tasks = loadMakeupTasks();
+  // 批次 346：默认列表把已作废（`voided`）挡在外面（作废＝不办了、从列表消失；留痕仍可回查）
+  const tasks = SoftVoid.filterActive('makeupTasks', loadMakeupTasks());
   const pendingTasks = tasks.filter(t => t.status === 'pending');
   const overdueTasks = pendingTasks.filter(t => new Date(t.deadline) < new Date());
 
   const statusBadge = (task) => {
+    // 批次 346（`D-744`②）：软作废的过渡态在状态格可见——「待支委会确认」＝已申请、尚未裁决
+    if (task.voidPending && !task.voided) return badgeHtml('待支委会确认', 'warning');
     if (task.status === 'completed') return badgeHtml('已完成', 'success');
     if (new Date(task.deadline) < new Date()) return badgeHtml('已超期', 'danger');
     return badgeHtml('待补课', 'warning');
@@ -64,7 +72,7 @@ export function renderContent(containerEl) {
                 <td class="text-gray-600">${t.isMandatory ? badgeHtml('必修', 'danger') + ' 自学+心得' : badgeHtml('选修', 'info') + ' 自学'}</td>
                 <td class="text-gray-600">${t.deadline || '—'}</td>
                 <td>${statusBadge(t)}</td>
-                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button> <button class="btn-action btn-disc-urge-makeup" data-task-id="${t.id}" title="向当事人发送补课提醒（V-7：纪检催当事人）">催当事人</button>` : '<span class="text-xs text-gray-500">—</span>'}</td>
+                <td>${t.status === 'pending' ? `<button class="btn-action btn-action-green btn-disc-confirm-makeup" data-task-id="${t.id}">确认完成</button> <button class="btn-action btn-disc-urge-makeup" data-task-id="${t.id}" title="向当事人发送补课提醒（V-7：纪检催当事人）">催当事人</button>` : ''}${t.voidPending ? '<span class="text-xs text-gray-500">待支委会确认</span>' : `<button class="btn-action btn-action-gray btn-disc-void-makeup" data-task-id="${t.id}" title="软作废：默认列表出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}</td>
               </tr>`;
   };
 
@@ -138,6 +146,9 @@ export function renderContent(containerEl) {
       }
       return;
     }
+    // 批次 346（`D-744`②）：软作废——支委层直接作废、其余人走审批门（申请→支委在支书台确认）
+    const voidBtn = e.target.closest('.btn-disc-void-makeup');
+    if (voidBtn) { _askMakeupVoid(voidBtn.dataset.taskId, container); return; }
     const btn = e.target.closest('.btn-disc-confirm-makeup');
     if (!btn) return;
     {
@@ -168,4 +179,40 @@ export function renderContent(containerEl) {
 
   // T-304 C2 数据交接：纪检确认补课需求回执（组织标记材料缺失 → 纪检收到并闭环）
   bindHandoffInbox(container, { to: 'disc-commissioner', onDone: () => { showToast('success', '补课需求回执已确认'); renderContent(container); } });
+}
+
+// ── 补课任务「作废（软）」入口（批次 346 · `D-744`②；审批门同 `#1` 口径） ─────────────
+/** 作废原因必填的弹窗 → 支委层直接作废（`confirmVoid`）／其余人报支委会（`requestVoid`，待支书台确认）。 */
+function _askMakeupVoid(taskId, container) {
+  const task = loadMakeupTasks().find((t) => t.id === taskId);
+  if (!task) return;
+  const who = getPersonName(task.personId) || task.personName || task.personId;
+  openModal({
+    id: 'makeup-void-modal',
+    title: '作废补课任务',
+    accentColor: 'var(--functional-error)',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-1">作废「${esc(who)} · ${esc(task.activityName || '补课')}」这条补课任务？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。</p>
+      <textarea id="makeup-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button type="button" data-makeup-void-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-makeup-void-ok class="btn-neutral text-xs px-3 py-1.5">确认作废</button>
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-makeup-void-cancel]')?.addEventListener('click', () => closeModal('makeup-void-modal'));
+      panel.querySelector('[data-makeup-void-ok]')?.addEventListener('click', async () => {
+        const reason = (panel.querySelector('#makeup-void-reason')?.value || '').trim();
+        if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
+        closeModal('makeup-void-modal');
+        const me = AuthStore.getCurrentUser() || {};
+        const isCommittee = BRANCH_COMMISSION_ROLES.includes(me.role);
+        const r = isCommittee
+          ? await SoftVoid.confirmVoid('makeupTasks', taskId, { byPersonId: me.personId || '', note: reason })
+          : await SoftVoid.requestVoid('makeupTasks', taskId, { reason, byPersonId: me.personId || '' });
+        if (r) showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已报支委会确认——确认后该条出列');
+        else showToast('error', '作废失败：请确认原因已填且该记录存在');
+        renderContent(container);
+      });
+    },
+  });
 }

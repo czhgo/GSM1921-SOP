@@ -39,8 +39,12 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 **B 档 · 能建不能删（12 张 ＋ `branches`）——支书裁「按 AI 分档」＋「`branches` 补停用」（`D-744`②③）⇒ 余项排下批**
 
-- `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。→ **排下批**。
-- `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。→ **排下批**。
+- `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。→ **✅ 已闭环**（批次 346：四个台账面——考勤矩阵 / 活动复盘监督 / 思想汇报台账 / 上报审批——各补一句「留痕台账 · 不提供删除」，**取最短形、附在既有副题行**；与批次 294 支书裁「UI 自明」相权后落此形）。
+- `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。
+  - **机制层 ✅ 已落**（批次 346）：新写口 `services/governance/soft-void.js`（`requestVoid` / `confirmVoid` / `rejectVoid` / `filterActive` / `listVoidPending`）＋ 支书台「待办作废待确认」组**并收**业务记录申请（`id` 前缀 `"<资源>:"` 路由）；定向件 `soft-void.test.mjs` V1–V5。
+  - **逐表进度**：`makeupTasks`（纪检台 ·「考勤管理 → 补课」）**✅ 已落**（行内作废键 ＋ 原因必填弹窗 ＋ 读侧出列 ＋ 真机流 `disc-makeup-void-reason`）。
+  - ⚠ **余 5 张待落、落点须先与支书定**：`imageRecords` / `weeklyReports` / `externalDispatches` / `experienceDeposits` / `tasks`——其中 **`externalDispatches` / `experienceDeposits` / `tasks` 当前没有「列出行」的表面**（只有发起 / 确认 / 状态位），硬挂作废键无处可放。
+  - ⚠ **站内知会缺口（如实登记）**：批次 346 未为「业务记录作废裁决」新建通知 kind（`#1` 待办作废有 `todo-void-decided`）——**待余 5 张落时一并补**（届时才有「非支委申请人」需要被知会）。
 - `CRUD-5` `branches`：**✅ 已闭环**——批次 344 落「**停用（软）**」：新写口 `services/branch/branch.js::setBranchActive` ＋ 党委台「停用 / 恢复」键（`D-744`③；取证见执行日志批次 344）。
 
 **C 档 · 仅软处理（2 张）**

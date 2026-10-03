@@ -1052,3 +1052,45 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 守卫子集中间态：`version-stamp` ＋ `doc-consistency` ＋ `doc-line-ref` ＋ `import-path-guard` ＋ `text-tier-guard` ＋ `button-system-guard` ＋ `dead-selector-guard` ＋ `small-text-guard` ＋ `hex-hardcode-guard` ＋ `control-font-guard` ＋ `party-group` ＋ `mock-api-parity` ＋ `id-uniqueness` ＋ `catalog-sync` ＋ `localstorage-key-guard` ＋ `copy-master-guard` ＋ `self-evident-copy-guard` **101 / 101 / 0 红**。
 - 戳 `?v=20261003a → 20261003b`（JS 217 / HTML 22 / CSS 2 / server-test 90；陈旧戳 **0 残留**）。
 - **余项**：`D-744` 第 1 条后半（`assignments` 补入口）· 第 2 条（B 档两类）· `#10` 命名归属（待支书圈）。
+
+## 批次 346（2026-10-02）：`D-744`② **B 档两类** —— 审计类「保持不可删」口径 ＋ 业务类「作废·停用」软入口（**机制层 ＋ 样板一张**）
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02 就 `D-744`② 裁「**甲：按 AI 分档**」：审计类（考勤 / 复盘 / 思想汇报 / 上报）**保持不可删 ＋ 界面补说明**；业务过程类（补课 / 照片 / 周报 / 外发 / 经验沉淀 / 活动任务）**补「作废·停用」软入口**（走审批门，同 `#1` 口径）。**无新裁定** ⇒ 按 `R-84` **不另立 `D-` 条**。
+
+### 一、`CRUD-3` 审计类「保持不可删 ＋ 界面补一句说明」（5 张 · 4 个落点）
+
+- 四处台账面各补**一句极短**说明（**附在既有副题行、不另起段落**，尽量零位移）：
+  - `disc/attendance-tab.js`（考勤矩阵）：`留痕台账 · 不提供删除（更正 / 打回走状态）`
+  - `disc/review-tab.js`（活动复盘监督）：副题行尾接 `· 留痕台账不提供删除`
+  - `org/thought-review-tab.js`（思想汇报台账）：`留痕台账 · 不提供删除（打回 / 重交走状态）`
+  - `party-committee/review-tab.js`（上报审批）：副题行尾接 `· 留痕台账不提供删除`
+- **与批次 294 支书裁相权**：支书 2026-09-29 裁「**你的显示、功能已经是最好的说明了。干嘛多此一举？**」⇒ 本批**不写段落级解释**，只留一句说明**政策**（为什么不给删除）——该句**不是**替 UI 复述自明事。
+
+### 二、`CRUD-4` 业务类「作废·停用」软入口 —— **机制层 ＋ `makeupTasks` 样板**
+
+- **新写口** `docs/src/services/governance/soft-void.js`：`SOFT_VOID_RESOURCES` 注册表（store 键 / 显示名 / 责任人角色 / 标题取法）＋ `requestVoid`（**原因必填**；写 `voidPending`、记录**仍不出列**）· `confirmVoid`（支委层可达、可直接作废；落 `voided`{原因 / 申请人 / 时间 / 确认人}、清 `voidPending`）· `rejectVoid`（回原状 ＋ `voidRejected` 留痕）· `filterActive`（读侧出列）· `listVoidPending`（映射成支书台可消费形状，`id` ＝ `"<资源>:<记录id>"`）· `parseRecordVoidId`。写口形态同 `services/branch/branch.js::renameBranch`（`getAdapter()[resource].update` → `mockDB` 同步 → `persist()`）。
+- **支书台并入同一裁决面**（`secretary/todo-tab.js`）：`_voidConfirmAgg()` 由「只收待办」改为 **待办 ＋ 业务记录两类并收**；`_onVoidDecide` 按 `parseRecordVoidId` 路由到 `_onRecordVoidDecide`（确认＝`SoftVoid.confirmVoid`；驳回＝`_askRecordVoidReject` 弹窗填意见）。**与 `#1` 待办作废同一组、同一裁决入口。**
+- **样板表 `makeupTasks`**（`disc/makeup-tab.js`）：读侧 `SoftVoid.filterActive` 出列；行尾新增「作废」键（**支委层直接作废 / 其余人报支委会**，判据 `BRANCH_COMMISSION_ROLES`）；作废原因必填弹窗；状态格新增「待支委会确认」过渡态。
+- **定向件** `server/test/soft-void.test.mjs`（V1 申请（「申请 ≠ 出列」）· V2 原因必填非恒真 · V3 `"<资源>:<id>"` 映射与回解 · V4 确认（原因取申请、出列、行数不变）· V5 驳回（回列表、留痕）），入档 `test:daily`。
+- **真机流** `disc-makeup-void-reason`（新）：切「补课」分段 → 点行内「作废」→ 空原因提交 ⇒ 报「请填写作废原因（必填）」且载体在位。**真机实跑通过。**
+
+### 三、首跑抓出的连带（**同批改准**）
+
+| # | 红项 | 病灶 | 改准 |
+| --- | --- | --- | --- |
+| 1 | `validation-site-coverage::V1` | 新写「作废原因必填」是**新字段级必填校验点**而**未登台账** | 按 `machine:true` 登记进 `form-loop-registry.mjs`（服务端有 `makeup_tasks` 种子 ⇒ 演示态**可达** ⇒ 不许挂 `machine:false` 搪塞）＋ **同批补真机流** |
+| 2 | `form-loop-sweep::S6` | `todo-tab.js` / `makeup-tab.js` 行数位移 ⇒ 既有登记行号漂移 | 改准（`756→760` · `806→824`〔记录作废驳回复用同一文案，登记只此一条、按 (file, 文案) 覆盖两处〕· 新登记 `makeup-tab.js:205`） |
+| 3 | `doc-consistency::S14` | 「真机台账」三数随新增校验点变化 | `SITES_BASELINE 111→112` · `FLOWS_BASELINE 58→59` · `README.md` 三数（112 / 99 / 59）同批改准 |
+
+### 四、如实登记
+
+- ⚠ **本批只落 `CRUD-4` 的机制层 ＋ `makeupTasks` 一张样板**；**余 5 张待落**，且其中 **`externalDispatches` / `experienceDeposits` / `tasks` 当前没有「列出行」的表面**（只有发起 / 确认 / 状态位）⇒ 落点须**先与支书定**（已入 `.ctx/REVIEW_QUEUE.md`）。
+- ⚠ **站内知会缺口**：未为「业务记录作废裁决」新建通知 kind（`#1` 有 `todo-void-decided`）——待余 5 张落时一并补（届时才有「非支委申请人」需要被知会）。
+
+### 五、收尾全量（`R-85`）
+
+- **`npm test`：936 项 / 936 过 / 0 红 / 0 跳过**（930 → **936**：本批新增 `soft-void` V1–V5 ＋ 真机流 1 条）· **耗时 1,334,203 ms（≈22.2 分钟）**。
+- ⚠ **如实登记**：本批**跑了两轮全量**——首轮 **935 / 936 / 1 红**（唯一红＝上表 `S14`，属**计数同批改准**类，非行为缺陷）；三数改准后**复跑受影响 5 件守卫 37 / 37 / 0**，再**跑最终全量 936 / 936 / 0**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 936 / fail 0`；系 Playwright 收尾 `debug.log` 写入被沙箱拦截——与测试内容无关，同批次 331/334/343/344/345）。
+- 戳 `?v=20261003b → 20261003c`（JS 218 / HTML 22 / CSS 2 / server-test 91；陈旧戳 **0 残留**）。
+- **余项**：`CRUD-4` 余 5 张（落点待圈）· `D-744` 第 1 条后半（`assignments` 补入口）· `#10` 命名归属（待支书圈）。

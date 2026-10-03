@@ -8,48 +8,50 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261003b';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261003c';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261003b';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261003b';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261003c';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261003c';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261003b';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261003b';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261003c';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261003c';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261003b';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261003b';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261003b';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261003b';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261003b';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261003b';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261003b';
-import { mockDB } from '../../../core/domain/domain.js?v=20261003b';
-import { persist } from '../../../data/data-adapter.js?v=20261003b';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261003b'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261003b';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20261003b';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261003c';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261003c';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261003c';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261003c';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261003c';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261003c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261003c';
+// 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003c';
+import { persist } from '../../../data/data-adapter.js?v=20261003c';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261003c'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261003c';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20261003c';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003b';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261003b';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261003b';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261003b';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261003b';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261003b';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003c';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261003c';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261003c';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261003c';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261003c';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261003c';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261003b';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261003b';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261003b';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261003c';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261003c';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261003c';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261003b';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261003b';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003b';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261003c';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261003c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003c';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261003b';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003b';
+import { setState } from '../../../core/base/state.js?v=20261003c';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003c';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -540,7 +542,9 @@ function _committeeTfAgg() {
  *  支委**确认**＝`confirmVoid`（落 `voided`、出列）/ **驳回**＝`rejectVoid`（回原状）后本组自动解散。
  *  ⚠ 本组**由实时派生**（不落库）⇒ 无 `persisted` 标记 ⇒ 行尾不渲染「作废/删除」，动作承载于详情。 */
 function _voidConfirmAgg() {
-  const pend = TodoStore.getVoidPending();
+  // 2026-10-02 批次 346（`D-744`②）：本组**同时**收「待办作废」与「业务记录软作废」两类申请——
+  //   后者经 `SoftVoid.listVoidPending()` 映射成**同形 item**（`id` 带 `"<资源>:"` 前缀 ⇒ 裁决时路由回业务写口）。
+  const pend = [...TodoStore.getVoidPending(), ...SoftVoid.listVoidPending()];
   if (!pend.length) return null;
   return {
     groupKey: 'secretary:todo-void-confirm',
@@ -566,7 +570,7 @@ function renderVoidConfirmDetail(group) {
     const atText = String(vp.at || '').slice(0, 16).replace('T', ' ');
     const roleLabel = ROLE_LABELS[t.role] || t.role || '';
     return `
-      <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-void-card="${esc(t.id)}">
+      <div class="rounded-lg border border-gray-100 bg-gray-50/40 p-2.5 space-y-1.5" data-void-card="${esc(t.id)}" data-void-label="${esc(t.title || '未命名待办')}">
         <div class="flex items-center gap-1.5 flex-wrap">
           <span class="text-sm font-medium text-gray-800">${esc(t.title || '未命名待办')}</span>
           ${roleLabel ? `<span class="text-[11px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">${esc(roleLabel)}</span>` : ''}
@@ -770,6 +774,9 @@ function _askMcReject(reqId, api) {
  *  两分支皆发「待办作废已裁决」站内知会（受众＝该待办原属角色）——支书 2026-10-02 语。 */
 function _onVoidDecide(btn, api) {
   const id = btn.dataset.voidId;
+  // 批次 346：业务记录软作废的 item id 形如 `"<资源>:<记录id>"` ⇒ 先路由回 `SoftVoid` 写口（不查待办表）
+  const rv = SoftVoid.parseRecordVoidId(id);
+  if (rv) { void _onRecordVoidDecide(btn, api, rv); return; }
   const t = TodoStore.getById(id);
   if (!t) { showToast('error', '该待办已不存在'); api.renderContent(); return; }
   if (btn.dataset.decision === 'reject') { _askVoidReject(t, api); return; }
@@ -783,6 +790,47 @@ function _onVoidDecide(btn, api) {
   }
   api.clearSelection();
   api.renderContent();
+}
+
+// ── 业务记录软作废裁决（批次 346 · `D-744`②；与上方「待办作废裁决」同口径） ──────
+/** 记录作废裁决：确认＝`SoftVoid.confirmVoid`（落 `voided`、出列）；驳回＝弹窗填意见后 `SoftVoid.rejectVoid`。 */
+async function _onRecordVoidDecide(btn, api, rv) {
+  if (btn.dataset.decision === 'reject') { _askRecordVoidReject(btn, api, rv); return; }
+  const r = await SoftVoid.confirmVoid(rv.resource, rv.id, { byPersonId: _secActorId() });
+  if (r) showToast('success', '已作废（留痕、已出列）');
+  else showToast('error', '作废失败：该记录无作废原因（原因必填）');
+  api.clearSelection();
+  api.renderContent();
+}
+
+/** 记录作废驳回弹窗（原因必填；文案与待办作废驳回同款） */
+function _askRecordVoidReject(btn, api, rv) {
+  const label = btn.closest('[data-void-card]')?.dataset?.voidLabel || '该记录';
+  openModal({
+    id: 'record-void-reject-modal',
+    title: '驳回报废申请',
+    accentColor: 'var(--functional-error)',
+    bodyHtml: `
+      <p class="text-sm text-gray-700 mb-1">确认驳回「${esc(label)}」的作废申请？驳回后该记录回到原状（仍按原流程办结）。</p>
+      <textarea id="record-void-reject-note" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="驳回意见（必填）"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button type="button" data-record-void-reject-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
+        <button type="button" data-record-void-reject-ok class="btn-neutral text-xs px-3 py-1.5">确认驳回</button>
+      </div>`,
+    onMount: (panel) => {
+      panel.querySelector('[data-record-void-reject-cancel]')?.addEventListener('click', () => closeModal('record-void-reject-modal'));
+      panel.querySelector('[data-record-void-reject-ok]')?.addEventListener('click', async () => {
+        const note = (panel.querySelector('#record-void-reject-note')?.value || '').trim();
+        if (!note) { showToast('error', '请填写驳回意见（必填）'); return; }
+        closeModal('record-void-reject-modal');
+        const r = await SoftVoid.rejectVoid(rv.resource, rv.id, { byPersonId: _secActorId(), note });
+        if (r) showToast('success', '已驳回（记录回原状）');
+        else showToast('error', '驳回失败，请重试');
+        api.clearSelection();
+        api.renderContent();
+      });
+    },
+  });
 }
 
 /** 驳回弹窗（原因必填，与成员变更退回同款口径） */

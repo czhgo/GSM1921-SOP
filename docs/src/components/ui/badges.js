@@ -5,5 +5,5 @@
 // 改造纪律：聚合重导出、实现不搬运、零行为变化、回归后验收（见 .ctx/ENGINEERING_ASSESSMENT.md 三-3.1 统一扎口做法）。
 // 设计源：ARCHITECTURE_EVOLUTION.md（组件化）+ DESIGN_SYSTEM §4.3
 
-export { badgeHtml, badgeVariantClass } from './badge.js?v=20261003b';
-export { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20261003b';
+export { badgeHtml, badgeVariantClass } from './badge.js?v=20261003c';
+export { statusBadgeHtml, bindStatusBadge } from './status-badge.js?v=20261003c';
