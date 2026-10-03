@@ -9,29 +9,29 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003c';
-import { renderHeader } from '../../components/shell/header.js?v=20261003c';
-import { BranchService } from '../../services/core/runtime.js?v=20261003c';
-import { AuthStore } from '../../services/core/auth.js?v=20261003c';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261003c';
-import { getBranchById } from '../../services/branch/branch.js?v=20261003c';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261003c';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261003d';
+import { renderHeader } from '../../components/shell/header.js?v=20261003d';
+import { BranchService } from '../../services/core/runtime.js?v=20261003d';
+import { AuthStore } from '../../services/core/auth.js?v=20261003d';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261003d';
+import { getBranchById } from '../../services/branch/branch.js?v=20261003d';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261003d';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/domain/constants.js?v=20261003c';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261003c';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261003c';
-import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261003c';
-import { loadActivities } from '../../services/activity/activity.js?v=20261003c';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/domain/constants.js?v=20261003d';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261003d';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261003d';
+import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261003d';
+import { loadActivities } from '../../services/activity/activity.js?v=20261003d';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：关联概览的「参与活动」计数同样收窄
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261003c';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003c';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261003c';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261003c';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261003d';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003d';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261003d';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261003d';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003c';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261003c';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261003d';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261003d';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -58,8 +58,12 @@ backBtn?.addEventListener('click', () => {
 });
 
 const params = new URLSearchParams(window.location.search);
-const personId = params.get('id') || '';
 const viewer = AuthStore.getCurrentUser();
+// 2026-10-02 批次 347（支书 `#5`「我们是否落地一个 profile 界面【自己看自己】……和既有的 person 界面
+//   可以共用一些代码脚手架」）：**无 `?id=` ⇒ 自己**——复用本页同一套脚手架与只读档案版式；
+//   带 `?id=` 仍是「查阅他人档案」（名册 / 各处链接照旧，行为一字未改）。
+const personId = params.get('id') || (viewer?.personId || '');
+const isSelf = !params.get('id') && !!personId;
 
 /** 可编辑档案的角色（支书 / 副支书 / 组织委员——与名册写口授权口径一致） */
 const EDIT_ROLES = [...SECRETARY_AND_DEPUTY_ROLES, 'org-commissioner'];
@@ -151,6 +155,7 @@ function render() {
       <div class="flex items-center gap-2.5 mb-2 flex-wrap">
         ${badgeHtml(member.developStage || '—', 'info')}
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">${esc(ROLE_LABELS[member.role] || member.role || '—')}</span>
+        ${isSelf ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700" title="这是你自己的档案（无 ?id= 即本人）">本人</span>' : ''}
         ${isDetained ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium text-amber-700 bg-amber-50">${esc(RESIDENCE.DETAINED)}</span>` : ''}
         <span class="ml-auto text-xs text-gray-400">${esc(member.id)}</span>
       </div>
