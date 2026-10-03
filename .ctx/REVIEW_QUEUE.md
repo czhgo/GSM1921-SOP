@@ -1034,10 +1034,12 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 
 > **✅ `#3`「页签太多」的减量结论已裁（2026-10-03 · `D-747`）**：支书就 `#3`「目前页首的 tab 我觉得也还是太多了！这对我们降低使用成本非常不利！」的**减量**命题取「**甲 接受 `H-25`「无一组可合并」结论**」（否决「为减法改母本」一档）⇒ **页签数维持 72**、**不再为减法动母本 / 注册数组**；**减负只走三条既有手段**：① **重排**（`V-3` 建议序，本节 · 批次 351 已落）· ② **折叠下沉**（`D-669`/`D-675`「一 tab 一问」）· ③ **功能钮提台顶栏**（批次 317 已落）。**实现即本台账**（`R-84`：因裁而作，不另立 `D-` 条）——本批只落「结论 ＋ 依据 ＋ 边界」，**无代码改动**（`tab` 数 72 为现状、非新增）。
 
-## `TIMESTAMPS.md` 备注列**预算已顶格** ⇒ 先收敛、后补登（2026-10-03 批次 353 登记 · **AI 域，非待裁**）
+## `TIMESTAMPS.md` 备注列**收敛 ＋ 补登已完成**（批次 356 收口 · **AI 域，非待裁**）
 
-> **现状（实测）**：备注列合计 **47,480 / 预算 47,500**（`timestamps-note-guard::N2` **只降不升**）⇒ 批次 353 的两个**新文件**（`docs/messages.html` · `docs/src/entries/pages/messages-entry.js`）**无法补登表行**，暂沿用本表既有的「**只登记不补行**」做法。
->
-> **待办（两拍）**：① **收敛**——按 `R-89` 清掉存量备注里的**沿革式内容**（典型＝「批次 223 那类『日期由 X 刷为 Y』的日期复述」＋ 单格内 「本批：…」 的多段沿革）；收敛须同批撤 `timestamps-note-guard` 的 N4/N5/N6 命中清单条目（**收敛未撤条目亦红**）。② **补登**——腾出预算后补登上述两行（＋顺带补 `docs/src/capabilities/secretary-workspace.js` 等既有缺口行）。
->
-> **为什么不在批次 353 顺手做**：收敛会动到 N4/N5/N6 三份基线清单（逐条撤条目），与「站内信余三项」不是同一主题，混批会让**归因**变脏（`R-84`）。
+> **背景（2026-10-03 批次 353 登记）**：备注列合计 **47,480 / 预算 47,500**（`timestamps-note-guard::N2` **只降不升**）⇒ 批次 353 的两个**新文件**（`docs/messages.html` · `docs/src/entries/pages/messages-entry.js`）**无法补登表行**，暂沿用「**只登记不补行**」。
+
+> **✅ 已办（2026-10-03 批次 356 · 备注列第七轮）**：
+> ① **收敛**——按 `R-89` 把 3 格长备注的**逐批沿革整段迁入** `.ctx/logs/2026-10-EXECUTION_LOG.md`「**附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）**」，原位换一行短注：`docs/src/components/record/inspector.js`（906 → 短注）· `docs/src/entries/pages/settings-entry.js`（855 → 短注）· `docs/src/services/activity/activity.js`（796 → 短注）⇒ **同批撤** `WITH_BATCH_MENTION_BASELINE` 3 条（**23 → 20** 条，`N6` 实测 20）。
+> ② **补登**——腾出预算后补登 **3 行**：`docs/messages.html` · `docs/src/entries/pages/messages-entry.js` · `docs/src/entries/tabs/secretary/notification-tab.js`。
+> ③ **预算同批下调**（只降不升）：**47,500 → 45,900**（实测 **45,549** / 285 行，留 ≈350 字供「改了必须刷卡」的短注）。
+> ④ 守卫实跑：`timestamps-note-guard`（`N1`–`N7`）＋ `doc-consistency`（`S13` 表行日期 ↔ frontmatter）＋ `frontmatter-freshness`（`F1`–`F3`）⇒ **26 / 26 · 0 红**。

@@ -15,10 +15,12 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
+// ⚠ 2026-10-03 批次 356（备注列第七轮）：实测 47,480（282 行）→ **收 3 格长备注（沿革迁日志附节）＋ 补登 3 行新文件（`docs/messages.html` / `entries/pages/messages-entry.js` / `entries/tabs/secretary/notification-tab.js`）** 后 **45,549**（285 行）
+//   ⇒ 预算 47,500 → **45,900**（**只降不升**；留 ≈350 字供「改了必须刷卡」的短注）。**同批撤 3 条**：`N6` 清单 23 → 20 条（3 格「批次 N」罗列已随沿革迁出而 ≤ 3 次）。
 // ⚠ 2026-10-02 批次 333（备注列第六轮）：实测 47,744（守卫口径，275 行）→ **迁出 2 格 ＋ 修一处「8 段被跳过」结构缺陷** 后 **47,136**（276 行）
 //   ⇒ 预算 50,000 → **47,500**（**只降不升**）。**修缺陷说明**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 那格含未转义竖线 ⇒ 整行 8 段、被守卫跳过。
 // ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
-export const NOTE_TOTAL_BUDGET = 47500;
+export const NOTE_TOTAL_BUDGET = 45900;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
@@ -153,15 +155,12 @@ export const WITH_BATCH_MENTION_BASELINE = [
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
   'content/insights/README.md',
   'docs/src/components/governance/org-setup-wizard.js',
-  'docs/src/components/record/inspector.js',
   'docs/src/components/ui/modal.js',
   'docs/src/entries/pages/party-committee-meeting-entry.js',
-  'docs/src/entries/pages/settings-entry.js',
   'docs/src/entries/tabs/disc/attendance-tab.js',
   'docs/src/entries/tabs/leader/write-tab.js',
   'docs/src/entries/tabs/org/taskforce-tab.js',
   'docs/src/entries/tabs/prop/archive-tab.js',
   'docs/src/entries/tabs/secretary/calendar-tab.js',
   'docs/src/entries/tabs/secretary/work-map-tab.js',
-  'docs/src/services/activity/activity.js',
 ];
