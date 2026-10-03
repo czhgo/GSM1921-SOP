@@ -54,10 +54,10 @@
 // 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
 //   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
 //   基线常量同批改准为 **111**；真机流程条数不变。
-export const SITES_BASELINE = 112;
+export const SITES_BASELINE = 115;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
-export const FLOWS_BASELINE = 59;
+export const FLOWS_BASELINE = 60;
 
 // ── 全站字段级必填校验点台账 ────────────────────────────────────────────
 // 字段：{ file, line, field, flow, machine, msg, reason? }
@@ -73,8 +73,8 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 212, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 213, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
   { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 218, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 412, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 413, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 405, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 406, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
   // 批次 91（2026-09-19 · SOP-B-17）：**本组通知的组织者发布口**（服务层单实现的浮窗，
   //   入口在成员台「活动动态」/ 组长台「活动管理」的活动行上，只对该场组织者本人出现）。
   //   `machine:false` 的原因是**前置数据随赋权而变**：要跑到这处校验，须先在同一演示库里造出
@@ -379,6 +379,13 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/visitor/attendance-tab.js', line: 177, field: '说明（考勤申诉）', flow: 'visitor/考勤概况·申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】成员台「考勤概况」的「我参加了但没记上」浮窗（`visitor-att-appeal`）；与本文件 `:152`「补课申请」是**两个不同浮窗、两条不同判据**（此前台账只登了补课那条）。要达本分支须有一条**未记考勤**的当月活动 ⇒ 随演示库当月数据变化，缺稳定前置。' },
   { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 79, field: '申诉活动', flow: 'visitor/考察申诉', machine: false, msg: '请选择活动', reason: '【批次 323 补登记】成员台「考察」页的「申诉」表单（`#visitor-insp-appeal-act`）。**该文件此前不在台账内**（整条链路无登记）。要达本分支须先有可申诉的考察记录 ⇒ 缺稳定前置。' },
   { file: SRC + 'entries/tabs/visitor/inspection-tab.js', line: 80, field: '申诉说明', flow: 'visitor/考察申诉', machine: false, msg: '请填写说明', reason: '【批次 323 补登记】同上一条（同一表单：活动格通过后才走到说明这一格）。' },
+  // ── 独立页：「我的私信」（批次 353 · 支书 `D-748`）────────────────────────
+  //   三处均为「写私信」表单的字段级必填校验，**可机测**（真机流 `messages-compose-validate` 逐支验到）；
+  //   校验次序刻意排为 **标题 → 正文 → 收件人** ⇒ 前两支**不依赖选人器**（真机流不需 openPicker）。
+  //   回复区的「正文必填」**复用同一条文案**（同一口径，不另立第二处校验点）。
+  { file: SRC + 'entries/pages/messages-entry.js', line: 169, field: '标题', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写标题' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 170, field: '正文', flow: 'messages/我的私信·写私信', machine: true, msg: '请填写正文' },
+  { file: SRC + 'entries/pages/messages-entry.js', line: 171, field: '收件人', flow: 'messages/我的私信·写私信', machine: true, msg: '请选择收件人' },
 ];
 
 // ── 真机闭环流程清单 ────────────────────────────────────────────────────
@@ -1588,6 +1595,26 @@ export const MACHINE_FLOWS = [
     submit: [{ click: '#tr-reject-confirm' }],
     expect: [
       { file: SRC + 'entries/pages/thought-report-entry.js', field: '打回意见', msg: '打回须填写意见', carrier: '#tr-reject-note' },
+    ],
+  },
+  {
+    // 2026-10-03 批次 353（支书 `D-748` · 站内信「收件箱页」）：**独立页 `/messages.html` · 写私信三段必填**。
+    //   断言次序＝标题 → 正文 → 收件人（与源码校验次序一致）；前两支用 `setValue` 满足，**不触选人器**。
+    //   页面前置：侧边栏「我的私信」直达；「写私信」按钮按 `canSendDirectMessage(role)` 显隐（支书＝支委层 ⇒ 在位）。
+    id: 'messages-compose-validate',
+    page: 'secretary',
+    tab: '独立页 /messages.html',
+    path: '/messages.html',
+    open: [
+      { waitFor: '#msg-compose-btn' },
+      { click: '#msg-compose-btn' },
+      { waitFor: '#msg-compose-send' },
+    ],
+    submit: [{ click: '#msg-compose-send' }],
+    expect: [
+      { file: SRC + 'entries/pages/messages-entry.js', line: 169, field: '标题', msg: '请填写标题', carrier: '#msg-compose-title', satisfy: { setValue: { selector: '#msg-compose-title', value: '（真机流程）标题' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 170, field: '正文', msg: '请填写正文', carrier: '#msg-compose-content', satisfy: { setValue: { selector: '#msg-compose-content', value: '（真机流程）正文' } } },
+      { file: SRC + 'entries/pages/messages-entry.js', line: 171, field: '收件人', msg: '请选择收件人', carrier: '#msg-composer-host .person-picker-trigger' },
     ],
   },
 ];

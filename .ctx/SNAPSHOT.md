@@ -2,7 +2,7 @@
 title: "系统快照"
 type: snapshot
 role: "[AI]"
-last_updated: "2026-09-29"
+last_updated: "2026-10-03"
 status: "ACTIVE"
 date: "2026-09-15"
 version: "v56"
@@ -28,7 +28,7 @@ GSM1921-SOP/
 ├── LICENSE / CONTRIBUTING.md   ← 开源 License + 贡献指南（**2026-09-28 批次 236 新增 §六「发版（语义化 release）」**）
 ├── CHANGELOG.md                ← 变更日志（Keep a Changelog 体例；**只记「对使用者可见的变更」**——逐批沿革归 `.ctx/logs/**`；起点＝首次语义化发版 `0.1.0` 2026-09-28、不回溯补记）
 ├── CLAUDE.md                   ← 上下文入口（甲部 H10-H100 约束力三层 + H60 提问准则 + 乙部执行 + 丙部待决策）
-├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 22=15 根+7 工作台，清单见 §III，以 docs/ 实况为准）
+├── docs/                       ← 前端代码层（根 HTML + workspace/ 工作台 + ESM 模块化源码；页面实测 23=16 根+7 工作台，清单见 §III，以 docs/ 实况为准）
 │   ├── index.html              ← 主页入口（通知/招募/日历/待办四组件）
 │   ├── notice.html             ← 通知独立页（含「党委下发」红标）
 │   ├── about.html              ← 支部的故事
@@ -126,6 +126,7 @@ GSM1921-SOP/
 |------|------|------|
 | `index.html` | 入口 | 主页（通知/招募/日历/待办） |
 | `notice.html` | 独立 | 通知独立页（含「党委下发」红标） |
+| `messages.html` | 独立 | 我的私信（站内信收件箱：收件 ＋ 发件一屏、就地回复成线；**仅收发双方可见**） |
 | `help.html` | 独立 | 系统说明书（功能地图+搜索） |
 | `login.html` | 独立 | 登录页（演示卡直达角色工作台） |
 | `about.html` | 独立 | 支部的故事（角色体系+发展路径可视化） |

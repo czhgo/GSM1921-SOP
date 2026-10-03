@@ -3,7 +3,7 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261003f';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261003f';
 import { AuthStore } from '../../../services/core/auth.js?v=20261003f';
 import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20261003f';
 import { badgeHtml } from '../../../components/ui/badges.js?v=20261003f';
@@ -221,27 +221,20 @@ function handlePublishNotification() {
 
   const _me = AuthStore.getCurrentUser() || {};
 
-  // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：逐人 **fan-out**（每人一条、`audiencePersons:[该人]`）——
-  //   ① 未读 / 已读沿用既有全局 `read` 语义（**不误灭他人未读**，无需改读侧与角标）；
-  //   ② 可见性由 `canReadNotice` 的私信判据收口（**仅发件人 ＋ 收件人**，见 services/governance/notice.js ⑥）。
+  // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」；批次 353 改走**服务层单一写口**）：
+  //   逐人 **fan-out**（每人一条、`audiencePersons:[该人]`）——① 未读 / 已读沿用既有全局 `read` 语义
+  //   （**不误灭他人未读**，无需改读侧与角标）；② 可见性由 `canReadNotice` 的私信判据收口
+  //   （**仅发件人 ＋ 收件人**，见 services/governance/notice.js ⑥）；③ 发送权口径与服务层同源
+  //   （`D-748`：支委层 ∪ 党小组组长）。
   if (_directMode) {
-    let sent = 0;
-    for (const pid of _directRecipients) {
-      NoticeStore.add({
-        title,
-        content,
-        priority: 'normal',
-        publishDate: new Date().toISOString().slice(0, 10),
-        expireDate: null,
-        targetModule: 'workspace',
-        read: false,
-        noticeType: 'message',
-        fromPersonId: _me.personId || null,
-        audiencePersons: [pid],
-        audienceLabel: '指定人（私发）',
-      }, _me.role || 'secretary', _me.personId || null);
-      sent++;
-    }
+    const sent = sendDirectMessage({
+      title,
+      content,
+      toPersonIds: _directRecipients,
+      actorRole: _me.role || 'secretary',
+      actorPersonId: _me.personId || null,
+    });
+    if (!sent) { showToast('error', '站内信未发出：请确认正文与收件人（发送权＝支委层 / 党小组组长）'); return; }
     showToast('success', `站内信「${title}」已发送给 ${sent} 人（仅你与收件人可见）`);
     _selectedAudience = [];
     _directMode = false;

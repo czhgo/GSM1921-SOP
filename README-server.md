@@ -326,7 +326,7 @@
 
 ## §3 功能 / 板块
 
-### 3.1 页面清单（共 22 个静态页）
+### 3.1 页面清单（共 23 个静态页）
 
 | 类型 | 页面文件 | 用途 | 登录门控 |
 |---|---|---|---|
@@ -339,6 +339,7 @@
 | | `docs/party-committee-meeting.html` | 支委会会议页（线上召开：提取议程 / 委员线上表态 / 汇总截止 / 留存并查阅讨论结果） | 需登录 **且** （登录人在本支部支委名单内（支书 / 副支书 / 组织委员 / 宣传委员 / 纪检委员）**或**被任一场支委会 `voteConfig.voterIds` 包含）——支委看**全部**场次；**被扩大的人只看得到扩大到他的那些场次**（其余场次不进下拉、经 URL 直指被拒并给根因提示）；两者皆非者页面只呈现「你在支委会会议页没有可见的会议」，不渲染任何会议数据与操作 |
 | | `docs/taskforce.html` | 专班详情 | 需登录 |
 | | `docs/notice.html` | 通知详情 | 需登录 |
+| | `docs/messages.html` | 我的私信（站内信收件箱：收件 ＋ 发件一屏，可就地回复成线；**只显示站内信，不含支部公告**） | 需登录（未登录只呈现登录提示） |
 | | `docs/wizard.html` | 换组织/支部配置分步向导 | 需登录 |
 | | `docs/help.html` | 帮助手册 | 公开 |
 | | `docs/about.html` | 「支部的故事」公开门面 | 公开（**仅静态托管形态显示**；有后端时侧边栏隐藏入口） |
@@ -353,7 +354,7 @@
 | | `docs/workspace/visitor.html` | 成员工作台（普通参与者） | 强制登录 |
 | | `docs/workspace/party-committee.html` | 党委工作台（组织级） | 强制登录 |
 
-**依据**：`docs/` 目录实况（15 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
+**依据**：`docs/` 目录实况（16 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
 
 ### 3.2 各工作台页签（共 73 个）
 

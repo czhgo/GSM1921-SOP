@@ -39,13 +39,15 @@ function loadAuth() {
 // ROLE_PAGE_MAP 直达 party-committee.html 党委工作台。判定依据：party-staff 登录直达
 // 党委工作台（login-entry），首页 dashboard 无其治理内容（均为支部运行区块），非落点必需。
 // 支部层各角色（支书/副支书/三委员/组长/成员）导航行为不变。
-const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive']);
+const PARTY_STAFF_HIDDEN_NAV = new Set(['dashboard', 'search', 'feedback', 'archive', 'messages']);
 
 function getNavItems() {
   const base = getBasePath();
   return [
     { module: 'dashboard', label: '首页', href: base + 'index.html', icon: icon('home') },
     { module: 'workspace', label: '工作台', icon: icon('calendar') },
+    // 「我的私信」（2026-10-03 批次 353 · 支书 `D-748`）：站内信收件箱（点对点私信聚合面）
+    { module: 'messages', label: '我的私信', href: base + 'messages.html', icon: icon('message') },
     { module: 'search', label: '资料查询', href: base + 'search.html', icon: icon('search') },
     { module: 'feedback', label: '意见反馈', href: base + 'feedback.html', icon: icon('message') },
     { module: 'archive', label: '归档库', href: base + 'archive.html', icon: icon('archive') },

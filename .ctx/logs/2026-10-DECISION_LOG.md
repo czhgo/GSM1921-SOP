@@ -1121,6 +1121,10 @@ related_files: [CLAUDE.md, .ctx/logs/2026-10-EXECUTION_LOG.md, .ctx/logs/2026-09
 - 前端：`components/shell/header.js`（通知下拉加「私信」筛选入口）· `entries/tabs/secretary/notification-tab.js`（发件权判据）· `services/governance/notice.js`（`canReadNotice` 的 ⑥ 站内信分支扩到回复链）· 若新增字段则 `data/**` 快照 payload 与 `_buildSnapshotPayload`。
 - 守卫/测试：`notice-message.test.mjs`（扩 N 用例）· 若新增校验点则台账 ＋ 真机流同批。
 
+### 续答（2026-10-03 · 批次 353 开工时请示，**同题并入本条目**，`R-84` 不另立）
+
+> 本条目原写「收件箱页（私信聚合面）」但**未钉形态**（「并入既有通知列表加筛选」与「独立分区」两写法并列）。批次 353 开工前以 `AskUserQuestion` 请示，**支书取「乙：独立『我的私信』页」**（否决另两档）⇒ 已按独立页落地：新增 `docs/messages.html` ＋ `entries/pages/messages-entry.js` ＋ 侧边栏「我的私信」入口（党委视图隐藏）；**代价已同批付清**——页面计数 **22 → 23**（`README-server.md §3.1` · `.ctx/SNAPSHOT.md` · `docs/help.html §0.1` 三处同源改准）。
+
 ## D-749 2026-10-03 — 批次 354：`#8` README-server 瘦身**指针口径** —— 只留个把个指针，且**只指 active file、绝不指 log**
 
 > **一句话结论：** 就 `#8`「README 为什么这么大」的**余三档**，支书 2026-10-03 给出**口径**（逐字）：「**如果日志记录了相关的执行细节，那么我认为 README 只能留个把个指针！指针也必须指向 active file，绝不能是 log。**」⇒ `README-server.md` 的**沿革注记（`批次 N` / 纯日期 / `D-xxx`）属「日志已记的执行细节」⇒ 一律清出**，最多留**个把个指针**；且**指针的落点必须是现行生效文件**（如 `content/04_web_design/data/DATA_MODEL.md` 等母本 / 代码），**不得**以 `.ctx/logs/**` 为指针终点（log 是留痕，不是权威现行源）。

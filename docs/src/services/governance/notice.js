@@ -301,8 +301,15 @@ export const NoticeStore = {
   },
 
   add(notice, actorRole = null, actorPersonId = null) {
-    if (actorRole && !NoticePermission.check(actorRole, 'add', actorPersonId)) {
-      console.warn(`[NoticeStore] 权限不足：角色 ${actorRole}（${actorPersonId || '未带 personId'}）无权发布通知`);
+    // 批次 353（`D-748`）：**站内信（`noticeType:'message'`）的发送权单列**——「支委层 ∪ 党小组组长」
+    //   （`canSendDirectMessage`），与「全支部通知发布权」分列：私信不广播、不进支委层兜底可读，
+    //   若沿用通用发布门，组长会被「本组通知＝本人是该场组织者」的判据挡在外面。
+    const _isDirect = !!(notice && notice.noticeType === 'message');
+    const _gate = _isDirect
+      ? canSendDirectMessage(actorRole)
+      : NoticePermission.check(actorRole, 'add', actorPersonId);
+    if (actorRole && !_gate) {
+      console.warn(`[NoticeStore] 权限不足：角色 ${actorRole}（${actorPersonId || '未带 personId'}）无权${_isDirect ? '发站内信' : '发布通知'}`);
       return null;
     }
     // 人工发布路径（通知发布表单等）必传 actorRole，仍受白名单约束；
@@ -574,6 +581,89 @@ export function canReadNotice(notice, viewer) {
   return _audiencePersonsHit(n, ctx)                            // ⑤ 命中受众可读
     || _audienceHit(n, ctx)
     || _audienceActionRolesHit(n, ctx);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  站内信（点对点私信）读写口 —— 2026-10-03 批次 353 · 支书 `D-748`
+//  · **发送权单列**：支委层 ∪ 党小组组长（`canSendDirectMessage`）——与通用发布权分列，见 `add()` 注。
+//  · **可见性**：仅发件人与收件人（`canReadNotice` ⑥，批次 348 已立；此处**复用、不另写规则**）。
+//  · **回复线程**：回信＝一条新私信 ＋ `replyTo` 指向原信 ⇒ 「一来一往」成线（不新造实体）。
+// ════════════════════════════════════════════════════════════════
+
+/** 站内信发送权（`D-748`：支委层 ∪ 党小组组长）——单一源，供页面与 `add()` 同判 */
+export function canSendDirectMessage(role) {
+  return BRANCH_COMMISSION_ROLES.includes(role) || role === 'leader';
+}
+
+/** 我的私信（**收件 ＋ 发件**两条线，按时间倒序）。
+ *  取数走 `getAll()`（不过消费端受众门）＋ 逐条 `canReadNotice`（私信＝仅收发双方）——
+ *  单一源判可见性，**不另写一套规则**；`direction` / `counterpartId` 供页面直接消费。 */
+export function listMyMessages() {
+  const me = AuthStore.getCurrentUser() || {};
+  if (!me.role) return [];
+  const ctx = _noticeViewerCtx(me);
+  return NoticeStore.getAll({ includeArchived: false })
+    .filter((n) => n.noticeType === 'message' && canReadNotice(n, me))
+    .map((n) => {
+      const inbound = _audiencePersonsHit(n, ctx);
+      return {
+        ...n,
+        direction: inbound ? 'in' : 'out',
+        counterpartId: inbound ? (n.fromPersonId || null) : ((n.audiencePersons || [])[0] || null),
+      };
+    })
+    .sort((a, b) => String(b.createdAt || b.publishDate || '').localeCompare(String(a.createdAt || a.publishDate || '')));
+}
+
+/** 发私信（逐人 fan-out：每人一条、`audiencePersons:[该人]`；`D-748` 发送权＝支委层 ∪ 组长）。
+ *  与批次 348 支书台「指定人（私发）」**同一写形**（含 `createdAt` 供同日内排序）。返回生成的条数。 */
+export function sendDirectMessage({ title, content, toPersonIds, actorRole, actorPersonId, replyTo = null } = {}) {
+  const me = AuthStore.getCurrentUser() || {};
+  const role = actorRole || me.role;
+  const pid = actorPersonId || me.personId || null;
+  const ids = (Array.isArray(toPersonIds) ? toPersonIds : []).filter(Boolean);
+  const _title = String(title || '').trim();
+  const _content = String(content || '').trim();
+  if (!canSendDirectMessage(role) || !_title || !_content || ids.length === 0) return 0;
+  let sent = 0;
+  for (const to of ids) {
+    const made = NoticeStore.add({
+      title: _title,
+      content: _content,
+      priority: 'normal',
+      publishDate: new Date().toISOString().slice(0, 10),
+      expireDate: null,
+      targetModule: 'workspace',
+      read: false,
+      noticeType: 'message',
+      fromPersonId: pid,
+      audiencePersons: [to],
+      audienceLabel: '指定人（私发）',
+      createdAt: new Date().toISOString(),
+      ...(replyTo ? { replyTo } : {}),
+    }, role, pid);
+    if (made) sent++;
+  }
+  return sent;
+}
+
+/** 回复一条私信（`D-748` 回复线程）：回信＝我 → 原信对方的一条新私信，`replyTo` 指向原信。
+ *  原信收件人（inbound）回复 → 对方＝发件人；原信发件人（outbound）回复 → 对方＝收件人。 */
+export function replyToMessage(originalId, { title, content, actorRole, actorPersonId } = {}) {
+  const me = AuthStore.getCurrentUser() || {};
+  const role = actorRole || me.role;
+  const pid = actorPersonId || me.personId || null;
+  const orig = NoticeStore.getById(originalId);
+  if (!orig || orig.noticeType !== 'message' || !canReadNotice(orig, me)) return 0;
+  const ctx = _noticeViewerCtx(me);
+  const counterpartId = _audiencePersonsHit(orig, ctx)
+    ? (orig.fromPersonId || null)
+    : ((orig.audiencePersons || [])[0] || null);
+  if (!counterpartId) return 0;
+  const _title = String(title || '').trim() || (orig.title ? `回复：${orig.title}` : '回复');
+  return sendDirectMessage({
+    title: _title, content, toPersonIds: [counterpartId], actorRole: role, actorPersonId: pid, replyTo: originalId,
+  });
 }
 
 // ════════════════════════════════════════════════════════════════
