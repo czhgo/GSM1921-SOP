@@ -191,7 +191,7 @@ dynamic_role:
 | server/test/*.test.mjs | 2026-09-29 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言；**2026-09-24 批次 176：补 1 行 CDN `route.abort`**〔`:17`〕，`D-642`） |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
-| server/test/form-loop-registry.mjs | 2026-09-29 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| server/test/form-loop-registry.mjs | 2026-10-03 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-09-30 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，并承载**测试耗时台账**与**前端 DOM 结构基线（div 普查）**两张实测表。**边界**：对外接口与字段以 `README-server.md` 为准，本件只管「怎么跑、跑多久」。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | server/package.json | 2026-09-29 | — | [工程师]+[AI] | **（本批：`test:daily`／`test:fast` 补 `block-orchestration.test.mjs`）** **（批次 235：`test:daily` / `test:fast` 补入 `timestamps-note-guard.test.mjs`；**未 bump `?v=`**）** better-sqlite3 ^12.0.0、playwright 1.60.0；**（2026-09-26 批次 209：`scripts` 补登——`test:daily` **71 → 84**、`test:fast` **6 → 19**〔补入 13 个守卫〕，`test:core` **8 不变**；执行＝批次 208、口径由 `D-665` 统一收录；**未 bump 任何 `?v=`**〔仍 `20260924a`〕）** |
@@ -231,8 +231,8 @@ dynamic_role:
 | docs/src/data/data-loader.js | 2026-09-29 | — | [工程师]+[AI] | 数据加载 |
 | docs/src/data/data-adapter.js | 2026-09-29 | — | [工程师]+[AI] | **（现状）** 数据源切换与装配（mock / api 双形态同一契约）。**边界**：装配标记 / 回退块的口径以源码注释为准，本列不复述。**为什么**：沿革入 `.ctx/logs/`（`R-89`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 333）」。 |
 | docs/src/core/session/login-snapshot.js | 2026-09-29 | — | [工程师]+[AI] | 登录快照轻量读取（零依赖，静态页登录态感知壳用） |
-| docs/src/data/api-adapter.js | 2026-09-29 | — | [工程师]+[AI] | API 模式适配器（10 资源 + snapshot） |
-| docs/src/data/mock-adapter.js | 2026-09-29 | — | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections） |
+| docs/src/data/api-adapter.js | 2026-10-03 | — | [工程师]+[AI] | API 模式适配器（10 资源 + snapshot） |
+| docs/src/data/mock-adapter.js | 2026-10-03 | — | [工程师]+[AI] | Mock 模式适配器（restoreNicheCollections） |
 | docs/src/core/domain/domain.js | 2026-09-29 | — | [工程师]+[AI] | 领域模型（2026-09-21 批次 120：`ImageRecord` typedef 按现状改准——文件存上传接口 `filePath` 或旧形态 `base64`，**行数守恒**） |
 | docs/src/core/base/icons.js | 2026-09-29 | — | [工程师]+[AI] | 图标系统（含 upload 上传图标） |
 | docs/src/core/base/id.js | 2026-09-29 | — | [工程师]+[AI] | UUID 发生器 |
@@ -260,6 +260,7 @@ dynamic_role:
 | docs/src/components/feedback/issue-detail.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 13→12〕；`D-674`）** 事项详情组件（**2026-09-23 批次 155**：事项领域块补一行「**反馈时间**」——消费 `issueDomainReplyHint`，逐条照母本 `常见工作场景快速指南.md:439-444` 第 3 列，`D-598`） |
 | docs/src/components/feedback/issue-form.js | 2026-09-24 | — | [工程师]+[AI] | 事项表单组件（提交按钮主 CTA 档）（**2026-09-23 批次 155**：事项领域实时提示由「建议归口」扩为「**建议归口 ＋ 反馈时间**」，消费 `issueDomainReplyHint`，`D-598`） |
 | docs/src/components/feedback/issue-list.js | 2026-09-25 | — | [工程师]+[AI] | 事项列表组件（**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（15→14；只清 `style=` 内与 `:root` 令牌值逐字相等者）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
+| docs/src/components/ui/void-record.js | 2026-10-03 | — | [工程师]+[AI] | 作废（软）通用弹窗（2026-10-03 批次 352 新建） |
 | docs/src/components/ui/custom-select.js | 2026-09-14 | — | [工程师]+[AI] | 自定义下拉组件（阈值内嵌搜索+智能定位翻转） |
 | docs/src/components/governance/person-picker.js | 2026-07-31 | — | [工程师]+[AI] | 人员选择器组件 |
 | docs/src/components/person-picker.css | 2026-09-25 | — | [工程师]+[AI] | **2026-09-25 批次 196：hex 清 20 处（24 → 4）**——**只清「与 `styles.css :root` 令牌值逐字相等、且处在纯 CSS 值语境」的**（替换前后肉眼等效；不新造色 / 不碰 Tailwind 任意值类）；人员选择器样式 |
@@ -333,8 +334,8 @@ dynamic_role:
 | docs/src/entries/tabs/prop/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员工作概况 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/prop/tasks-tab.js | 2026-09-25 | — | [工程师]+[AI] | 宣传任务 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（9→6）；该文件内 `PROP_TASKS_SEED` 即服务端 `SEED_PROP_TASKS` 的单一源；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/entries/tabs/prop/kanban-tab.js | 2026-09-25 | — | [工程师]+[AI] | 项目看板 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（8→5）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
-| docs/src/entries/tabs/prop/weekly-tab.js | 2026-08-23 | — | [工程师]+[AI] | 周报报送 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/prop/archive-tab.js | 2026-09-25 | — | [工程师]+[AI] | **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:1081`；**只改字号档、padding 一字未动**）；档案归档 tab（T-279 M3 新建；2026-09-21 批次 120：**新增照片墙**——上传（走上传接口）/ 标注 / 按拍摄日期分组展示 ＋ 缩略图鉴权取 blob；**不新开 tab / 页面**；**2026-09-21 批次 139：「上传宣传材料」自建浮层页脚加相关设置深链**——用 `modal.js` 导出的 `settingsLinkHTML()` 插同款一条〔宣传台无支部治理分区 ⇒ 指设置首页〕，`D-570`）；**2026-09-22 批次 145 改注**——**归档行内补第二枚留痕位「标记已上报党建平台」**（与既有「标记已发送（微信/对外）」并列、两个动作分开记；与周报页**同款**字段 `platformReportedAt` / `platformReportedBy`、`persist()` 落库、**只留痕不对接**；同一活动多行 ⇒ 留痕**按活动聚合**；真机两枚按钮逐个真点、`pageerror` 0，`D-577`）；**2026-09-25 批次 199（`D-659`）：hex 清 2 处**（4→2）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
+| docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-03 | — | [工程师]+[AI] | 周报报送 tab（T-279 M3 新建） |
+| docs/src/entries/tabs/prop/archive-tab.js | 2026-10-03 | — | [工程师]+[AI] | **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:1081`；**只改字号档、padding 一字未动**）；档案归档 tab（T-279 M3 新建；2026-09-21 批次 120：**新增照片墙**——上传（走上传接口）/ 标注 / 按拍摄日期分组展示 ＋ 缩略图鉴权取 blob；**不新开 tab / 页面**；**2026-09-21 批次 139：「上传宣传材料」自建浮层页脚加相关设置深链**——用 `modal.js` 导出的 `settingsLinkHTML()` 插同款一条〔宣传台无支部治理分区 ⇒ 指设置首页〕，`D-570`）；**2026-09-22 批次 145 改注**——**归档行内补第二枚留痕位「标记已上报党建平台」**（与既有「标记已发送（微信/对外）」并列、两个动作分开记；与周报页**同款**字段 `platformReportedAt` / `platformReportedBy`、`persist()` 落库、**只留痕不对接**；同一活动多行 ⇒ 留痕**按活动聚合**；真机两枚按钮逐个真点、`pageerror` 0，`D-577`）；**2026-09-25 批次 199（`D-659`）：hex 清 2 处**（4→2）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
 | docs/src/entries/tabs/prop/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员我的处置 tab（T-279 M3 新建） |
 
 ### docs/src/entries/tabs/disc/ (纪检委员工作台 Tab 模块层)
@@ -345,9 +346,9 @@ dynamic_role:
 | docs/src/entries/tabs/disc/todo-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员待办 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员工作概况 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/attendance-tab.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 19→13；含 Tailwind 任意值类与 `classList.toggle` 成对去兜底〕；`D-674`）** **（2026-09-26 批次 205–207：hex 1 处清；收基线 `c` 20→19）** **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 4 处**（`:556` / `:557` / `:728` / `:729`；**只改字号档、padding 一字未动**；**本文件控件小字清零 ⇒ 按收基线纪律删条目**）；考勤管理 tab（T-279 M3 新建；**2026-09-21 批次 132：会议卡标题 / 说明 / 空态 / 表单脚注 / 应到提示改准**——党课·党员大会＝纪检上传位，`D-558`；**2026-09-25 批次 193：空态 107 字 ＋ modal 说明段 177 字 → 空态摘要 26 字 ＋ modal 摘要 30 字 ＋ `<details>`**，本守卫实测 **≤12**；新增 `card-copy-attendance-record` 定点，`D-654`） |
-| docs/src/entries/tabs/disc/review-tab.js | 2026-09-24 | — | [工程师]+[AI] | 活动监督复盘 tab（T-279 M3 新建；**2026-09-21 批次 139：「记录经验沉淀」浮窗加页脚深链**——纪检职责参数，`D-570`） |
+| docs/src/entries/tabs/disc/review-tab.js | 2026-10-03 | — | [工程师]+[AI] | 活动监督复盘 tab（T-279 M3 新建；**2026-09-21 批次 139：「记录经验沉淀」浮窗加页脚深链**——纪检职责参数，`D-570`） |
 | docs/src/entries/tabs/disc/inspection-tab.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 11→6；含 Tailwind 任意值类与 `classList.toggle` 成对去兜底〕；`D-674`）** **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:449` 提交代录主 CTA）；`:471` 的 JS 入参 `accentColor:'#C8102E'` 因参与 `hexToRgba()`/`darkenHex()` 运算 ⇒ **删显式覆盖、回落组件默认 `#CE1126`**；基线 c 12→11；日期由 `2026-09-24` 刷为 `2026-09-28`）** 考察管理 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/disc/makeup-tab.js | 2026-09-25 | — | [工程师]+[AI] | 补课制度 tab（T-279 M3 新建 + T-280 B3-1 确认完成回写考勤 made_up；**2026-09-25 批次 193：范围段 87 ＋ 归档段 90 ＝ 177 字 → 摘要 38 字 ＋ `<details>`**，本守卫实测 **≤12**；新增 `card-copy-makeup-scope` 定点，`D-654`） |
+| docs/src/entries/tabs/disc/makeup-tab.js | 2026-10-03 | — | [工程师]+[AI] | 补课制度 tab（T-279 M3 新建 + T-280 B3-1 确认完成回写考勤 made_up；**2026-09-25 批次 193：范围段 87 ＋ 归档段 90 ＝ 177 字 → 摘要 38 字 ＋ `<details>`**，本守卫实测 **≤12**；新增 `card-copy-makeup-scope` 定点，`D-654`） |
 | docs/src/entries/tabs/disc/tf-view-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员专班查看 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/disc/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 纪检委员我的处置 tab（T-279 M3 新建） |
 
@@ -381,6 +382,7 @@ dynamic_role:
 | docs/src/services/governance/milestones.js | 2026-08-11 | — | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/governance/notice.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`，1 处〔党委下发标签〕；基线 c 3→2；日期由 `2026-08-12` 刷为 `2026-09-28`）** 通知服务（含通知→待办派生） |
 | docs/src/services/member/person.js | 2026-08-03 | — | [工程师]+[AI] | 人员数据抽象服务（PersonStore，T-142 阶段2） |
+| docs/src/services/governance/soft-void.js | 2026-10-03 | — | [工程师]+[AI] | 业务记录「作废（软）」统一写口（2026-10-02 批次 346 新建；本行 2026-10-03 批次 352 **补登**——本表原先无此行） |
 | docs/src/services/governance/secretary-overview.js | 2026-09-21 | — | [工程师]+[AI] | 支书全局概况服务（T-143，E2 派生待办 flow；**2026-09-21 批次 132：`_aggAttendanceRemind` 排除不考勤类型**〔支委会〕——单源 `policy attendnoAttendanceTypes`，`D-558`） |
 | docs/src/services/governance/review.js | 2026-07-31 | — | [工程师]+[AI] | 审查服务 |
 | docs/src/services/core/roles.js | 2026-07-31 | — | [工程师]+[AI] | 角色服务 |

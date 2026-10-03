@@ -13,6 +13,9 @@ import { loadActivities } from '../../../services/activity/activity.js?v=2026100
 import { NoticeStore } from '../../../services/governance/notice.js?v=20261003f';
 import { getPersonName } from '../../../services/member/person.js?v=20261003f';
 import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261003f';
+// 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003f';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003f';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
@@ -35,9 +38,12 @@ function _weekNo(r) {
   return m ? Number(m[1]) : 0;
 }
 
-/** 周次降序（新周在前）——下拉与「报送历史」同一口径，避免旧实现按录入顺序（28→29→30→31）错乱 */
+/** 周次降序（新周在前）——下拉与「报送历史」同一口径，避免旧实现按录入顺序（28→29→30→31）错乱
+ *  批次 352（`D-746`）：已作废（`voided`）的周报不进下拉、也不在历史里显示（留痕仍可回查）；
+ *  ⚠ 过滤只在此处做——`_loadWeeklyReports()` 保持原样，否则写回 `mockDB.weeklyReports` 时会丢掉已作废行。 */
 function _sortedReports() {
-  return [..._loadWeeklyReports()].sort((a, b) => _weekNo(b) - _weekNo(a));
+  return SoftVoid.filterActive('weeklyReports', _loadWeeklyReports())
+    .sort((a, b) => _weekNo(b) - _weekNo(a));
 }
 
 const WEEKLY_STATUS_LABEL = { draft: '草稿', submitted: '已报送' };
@@ -244,6 +250,20 @@ export function renderContent(ctx) {
     });
   });
 
+  // 批次 352（`D-746`）：周报「作废（软）」——支委直接作废 / 其余人报支委会（单一源弹窗）
+  container.querySelectorAll('.weekly-void-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const report = _loadWeeklyReports().find(r => r.id === btn.dataset.id);
+      if (!report) return;
+      openVoidModal({
+        resource: 'weeklyReports', id: report.id, label: '周报',
+        subject: `${report.week || ''}（${report.weekRange || ''}）`,
+        onDone: () => renderContent(ctx),
+      });
+    });
+  });
+
   // 展开/折叠历史详情
   container.querySelectorAll('.weekly-detail-toggle').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -284,6 +304,9 @@ function _renderWeeklyReportItem(report) {
           ${platformHtml}
           ${isSubmitted && report.submittedAt ? `<span class="text-xs text-gray-500">报送于 ${report.submittedAt}</span>` : ''}
           ${report.content ? `<button class="btn-neutral weekly-detail-toggle text-xs px-3 py-1.5">展开</button>` : ''}
+          ${report.voidPending && !report.voided
+            ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+            : `<button class="btn-action btn-action-gray weekly-void-btn text-xs" data-id="${report.id}" title="软作废：周报从报送历史出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
         </div>
       </div>
       ${report.content ? `<div class="weekly-detail-content hidden mt-2 p-2.5 rounded-lg bg-gray-50 text-xs text-gray-600 whitespace-pre-line">${report.content}</div>` : '<p class="text-xs text-gray-500 mt-1">暂无内容</p>'}

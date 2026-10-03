@@ -13,9 +13,12 @@
 //  写口形态与 `services/branch/branch.js::renameBranch` / `services/governance/todo.js` 同款：
 //    `getAdapter()[resource].update` → 本地 `mockDB` 同步 → `persist()`（mock 与 api 两形态同码）。
 //
-//  ⚠ **落点逐批开**：本批（346）只开 **`makeupTasks`（纪检台「考勤管理 → 补课」）** 一张样板；
-//    其余 5 张（`imageRecords` / `weeklyReports` / `externalDispatches` / `experienceDeposits` / `tasks`）
-//    按同一注册表逐批加——**部分表当前没有「列出行」的表面**，落点须先与支书定，见 `.ctx/REVIEW_QUEUE.md`。
+//  ⚠ **落点逐批开**：批次 346 开 **`makeupTasks`**（纪检台「考勤管理 → 补课」）样板；
+//    批次 352（`D-746`）续开 **`imageRecords`（宣传台照片墙）· `weeklyReports`（宣传台报送历史）·
+//    `experienceDeposits`（纪检台复盘台「已沉淀」清单）** 三张；
+//    **余 2 张（`externalDispatches` / `tasks`）** 的读面受限随批次 352b 另办——
+//    `externalDispatches` 的既有读面落在**禁改文件**（支书台「全局概况」）须特批或另择承载，
+//    `tasks` 须先定「作废一条 SOP 派生任务」的语义（见 `.ctx/REVIEW_QUEUE.md`）。
 // ════════════════════════════════════════════════════════════════
 import { mockDB } from '../../core/domain/domain.js?v=20261003f';
 import { getAdapter, persist } from '../../data/data-adapter.js?v=20261003f';
@@ -27,6 +30,25 @@ export const SOFT_VOID_RESOURCES = {
     label: '补课任务',
     ownerRole: 'disc-commissioner',       // 责任人角色（支书台待确认组行上的角色胶囊）
     titleOf: (r) => r.activityName || r.id,
+  },
+  // ── 批次 352（`D-746` · `D-744`② 业务过程类余项）──
+  imageRecords: {
+    storeKey: 'imageRecords',
+    label: '照片',
+    ownerRole: 'prop-commissioner',
+    titleOf: (r) => r.title || r.fileName || r.id,
+  },
+  weeklyReports: {
+    storeKey: 'weeklyReports',
+    label: '周报',
+    ownerRole: 'prop-commissioner',
+    titleOf: (r) => r.week || r.id,
+  },
+  experienceDeposits: {
+    storeKey: 'experienceDeposits',
+    label: '经验沉淀',
+    ownerRole: 'disc-commissioner',
+    titleOf: (r) => r.title || r.id,
   },
 };
 

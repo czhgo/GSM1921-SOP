@@ -417,6 +417,17 @@ export const ApiAdapter = {
     create(data) {
       return _post('/api/v1/experienceDeposits', data);
     },
+
+    // 批次 352（`D-746`）：补 `update` / `delete` 两件（经验沉淀「作废（软）」走统一写口；
+    //   四件套口径同批次 343 `D-745`——此前该域只有 list/create，作废会抛
+    //   「getAdapter(...)[resource].update is not a function」）
+    update(id, patch) {
+      return _patch(`/api/v1/experienceDeposits/${id}`, patch);
+    },
+
+    delete(id) {
+      return _delete(`/api/v1/experienceDeposits/${id}`);
+    },
   },
 
   // ════════════════════════════════════════════════════════════════

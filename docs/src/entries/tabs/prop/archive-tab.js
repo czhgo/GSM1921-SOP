@@ -17,6 +17,9 @@ import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY
 import { isApiMode } from '../../../services/core/runtime.js?v=20261003f';
 import { AuthStore } from '../../../services/core/auth.js?v=20261003f';
 import { getPersonName } from '../../../services/member/person.js?v=20261003f';
+// 批次 352（`D-746` · `D-744`② 业务过程类余项）：照片记录「作废（软）」——统一写口 ＋ 支委层判据
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003f';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003f';
 import { generateId } from '../../../core/base/id.js?v=20261003f';
 import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261003f';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
@@ -307,6 +310,20 @@ export function renderContent(ctx) {
         e.stopPropagation();
         const rec = _loadImageRecords().find(r => r.id === annoBtn.dataset.photoId);
         if (rec) _showPhotoAnnotateModal(rec, ctx);
+        return;
+      }
+      // 批次 352（`D-746`）：照片「作废（软）」——支委直接作废 / 其余人报支委会（单一源弹窗）
+      const voidBtn = e.target.closest('.pw-void-btn');
+      if (voidBtn) {
+        e.stopPropagation();
+        const rec = _loadImageRecords().find(r => r.id === voidBtn.dataset.photoId);
+        if (rec) {
+          openVoidModal({
+            resource: 'imageRecords', id: rec.id, label: '照片',
+            subject: rec.title || rec.fileName || '未命名照片',
+            onDone: () => renderContent(ctx),
+          });
+        }
       }
     });
     _hydratePhotoThumbs(photoHost);
@@ -1080,9 +1097,10 @@ function _readFileAsDataURL(file) {
 //  data-adapter 拉取清单），本批补的是**界面消费者**（此前 `imageRecords` 无任何读渲染点）。
 // ════════════════════════════════════════════════════════════════
 
-/** 图片记录读口（API 模式由 data-adapter init() 按域拉取填充，与其它域同源） */
+/** 图片记录读口（API 模式由 data-adapter init() 按域拉取填充，与其它域同源）
+ *  批次 352（`D-746`）：默认列表把已作废（`voided`）挡在外面（作废＝从墙上下架；留痕仍可回查）。 */
 function _loadImageRecords() {
-  return mockDB.imageRecords || [];
+  return SoftVoid.filterActive('imageRecords', mockDB.imageRecords || []);
 }
 
 /** 每个日期组默认展示张数（超出给「展开该日全部」）——分组内同构块不无限增长 */
@@ -1151,7 +1169,12 @@ function _photoGroupHtml(group) {
         <figcaption class="p-2">
           <p class="text-xs text-gray-800 truncate" title="${escHtml(r.title || '未命名照片')}">${escHtml(r.title || '未命名照片')}</p>
           <p class="text-[11px] text-gray-500 truncate">拍摄主体：${escHtml(r.subject || '—')}</p>
-          <button type="button" class="btn-outline pw-annotate-btn px-2 py-1 mt-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
+          <div class="flex items-center gap-1.5 mt-1">
+            <button type="button" class="btn-outline pw-annotate-btn px-2 py-1" data-photo-id="${escHtml(r.id)}" style="cursor:pointer;">标注</button>
+            ${r.voidPending && !r.voided
+              ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+              : `<button type="button" class="btn-action btn-action-gray pw-void-btn" data-photo-id="${escHtml(r.id)}" title="软作废：照片从墙上出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
+          </div>
         </figcaption>
       </figure>`).join('');
   const more = (!expanded && group.rows.length > PHOTO_GROUP_INIT)

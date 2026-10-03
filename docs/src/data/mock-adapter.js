@@ -861,6 +861,44 @@ export const MockAdapter = {
     },
   },
 
+  // 批次 352（`D-746`）：补 `weeklyReports` 域（四件套）——此前 **MockAdapter 缺该域**（api-adapter 已有），
+  //   周报既有写法是 `mockDB.weeklyReports` ＋ `persist()` 直写，故一直没暴露；
+  //   本批「作废（软）」走统一写口 `getAdapter()[resource].update` ⇒ 演示（mock）形态必须同面，否则抛
+  //   「Cannot read properties of undefined (reading 'update')」（真机取证在 api 形态下抓到的同类缺陷）。
+  weeklyReports: {
+    list() { return _withDelay(() => [...mockDB.weeklyReports]); },
+    create(data) {
+      return _withDelay(() => {
+        const report = { ...data, id: generateId('wr'), createdAt: new Date().toISOString() };
+        mockDB.weeklyReports = [...mockDB.weeklyReports, report];
+        _saveToStorage();
+        return report;
+      });
+    },
+    update(id, patch) {
+      return _withDelay(() => {
+        const idx = mockDB.weeklyReports.findIndex(r => r.id === id);
+        if (idx === -1) throw Object.assign(new Error(`周报 ${id} 不存在`), { type: 'NotFoundError' });
+        mockDB.weeklyReports = [
+          ...mockDB.weeklyReports.slice(0, idx),
+          { ...mockDB.weeklyReports[idx], ...patch },
+          ...mockDB.weeklyReports.slice(idx + 1),
+        ];
+        _saveToStorage();
+        return mockDB.weeklyReports[idx];
+      });
+    },
+    delete(id) {
+      return _withDelay(() => {
+        const prev = mockDB.weeklyReports.length;
+        mockDB.weeklyReports = mockDB.weeklyReports.filter(r => r.id !== id);
+        if (mockDB.weeklyReports.length === prev) throw Object.assign(new Error(`周报 ${id} 不存在`), { type: 'NotFoundError' });
+        _saveToStorage();
+        return { id };
+      });
+    },
+  },
+
   experienceDeposits: {
     list() { return _withDelay(() => [...mockDB.experienceDeposits]); },
     create(data) {
@@ -869,6 +907,29 @@ export const MockAdapter = {
         mockDB.experienceDeposits = [...mockDB.experienceDeposits, deposit];
         _saveToStorage();
         return deposit;
+      });
+    },
+    // 批次 352（`D-746`）：补 `update` / `delete` 两件（经验沉淀「作废（软）」走统一写口；四件套同批次 343）
+    update(id, patch) {
+      return _withDelay(() => {
+        const idx = mockDB.experienceDeposits.findIndex(d => d.id === id);
+        if (idx === -1) throw Object.assign(new Error(`经验沉淀 ${id} 不存在`), { type: 'NotFoundError' });
+        mockDB.experienceDeposits = [
+          ...mockDB.experienceDeposits.slice(0, idx),
+          { ...mockDB.experienceDeposits[idx], ...patch },
+          ...mockDB.experienceDeposits.slice(idx + 1),
+        ];
+        _saveToStorage();
+        return mockDB.experienceDeposits[idx];
+      });
+    },
+    delete(id) {
+      return _withDelay(() => {
+        const prev = mockDB.experienceDeposits.length;
+        mockDB.experienceDeposits = mockDB.experienceDeposits.filter(d => d.id !== id);
+        if (mockDB.experienceDeposits.length === prev) throw Object.assign(new Error(`经验沉淀 ${id} 不存在`), { type: 'NotFoundError' });
+        _saveToStorage();
+        return { id };
       });
     },
   },

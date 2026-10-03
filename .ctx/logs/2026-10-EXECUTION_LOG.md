@@ -1303,3 +1303,63 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - ⚠ **本次只落账、未实现**：四条裁定的实现分别排在批次 352–355；**未改任何 `docs/**` 或 `server/**` 代码** ⇒ **未 bump `?v=`**（仍 `20261003f`）。
 - ⚠ **`D-746` 括注里「其中 3 张无『列出行』表面」系我在写条目时的速记**——批次 341 矩阵实读是：`tasks` 的 R＝活动详情「任务清单」/ 日历（**有读面**）· `externalDispatches` 的 R＝工作总览 / 各台「我的处置」（**有读面**）· **只有 `experienceDeposits` 无沉淀清单页** ⇒ **实现批以矩阵为准**，且**在 352 节更正该句**（不假装当初就对）。
+
+## 批次 352（2026-10-03）：`#2` `CRUD-4` 余项（第一批）—— **作废（软）**扩至 3 张（照片 / 周报 / 经验沉淀）＋ 弹窗**单一源** ＋ 两处适配器缺口修复
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-03 就 `CRUD-4` 余 5 张取「**甲 排批直接修**」（`D-746`）。本批＝执行 ⇒ 不另立 `D-` 条。**组批口径**：余项**排批**⇒ 本批落**读面在普通 tab 页的 3 张**，**余 2 张（`externalDispatches` / `tasks`）排批次 352b**（先决条件已入队列，见第七节）。
+
+### 一、本批落地（3 张，各补「读侧出列 ＋ 行内作废键」）
+
+| 表 | 承载面（读面） | 读侧过滤 | 行内键 |
+| --- | --- | --- | --- |
+| `imageRecords` | 宣传台「档案归档 → **照片墙**」每张照片卡片 | `_loadImageRecords()` 走 `SoftVoid.filterActive` | `.pw-void-btn`（旁「待支委会确认」过渡态） |
+| `weeklyReports` | 宣传台「周报报送 → **报送历史**」每行（**同时收住周次下拉**） | `_sortedReports()` 走 `filterActive`——⚠ **不在 `_loadWeeklyReports()` 过滤**（该函数结果会被 `mockDB.weeklyReports = reports` 写回，过滤即**丢行**） | `.weekly-void-btn` |
+| `experienceDeposits` | 纪检台「活动监督复盘 → **已沉淀清单**」——**本批新补的「列出行」**（此前只有「督促清单」＝缺沉淀的活动，没有沉淀记录本身的列表） | `_activeDeposits()`；**交叉引用同步改** ⇒ 作废后该活动**回到督促清单** | `.rv-void-deposit` |
+
+- 注册表（`services/governance/soft-void.js::SOFT_VOID_RESOURCES`）按同款**逐张加**（`storeKey` / `label` / `ownerRole` / `titleOf`），未另写第二套写口。
+
+### 二、弹窗**单一源**（重构 · 一并收掉批次 346 的内联实现）
+
+- 新增 `docs/src/components/ui/void-record.js::openVoidModal()`：**「作废原因必填」＝全站唯一实现处**；支委层直接 `confirmVoid` / 其余人 `requestVoid`（审批门口径同 `#1` · `D-742`）。
+- 批次 346 的补课板块**同批改为调用它**（传入其既有 id：`makeup-void-modal` / `#makeup-void-reason` / `[data-makeup-void-ok]`）⇒ **真机流 `disc-makeup-void-reason` 的选择器一字未改**；台账两处随实现改签（`file` → `components/ui/void-record.js:61`）。
+
+### 三、真机取证（一次性探针 · 跑完即删 · api 形态真登录）
+
+| 面 | 证据（逐条实测） |
+| --- | --- |
+| ① 宣传委员（2400012356）· 周报报送 | 作废键 **4 枚** → 点开弹窗（`#void-reason` 在位）→ **空原因**提交 ⇒ toast「请填写作废原因（必填）」且**载体仍在位** → 填原因确认 ⇒ 报送历史 **4 → 3**；服务端 `GET /api/v1/weeklyReports` 命中 `voided.reason` ＝ 所填原因 |
+| ② 照片墙 | 演示库**无照片**（`imageRecords` 0）⇒ 先用服务端上传接口造一张（`POST /api/v1/uploads` → `POST /api/v1/imageRecords` **201**）⇒ 卡片 **1**、作废键 **1** → 作废 ⇒ 卡片 **0**、服务端 `voided` **1** |
+| ③ 纪检委员（2400012354）· 活动监督复盘 | 督促清单 **2** 条 → 经「督促沉淀」表单记 1 条 ⇒ **「已沉淀清单」卡出现**（**1** 条）· 督促剩 **1** → 作废该沉淀 ⇒ 已沉淀 **1**、服务端 `voided` **1**、**督促清单回到 3**（＝作废后该活动**重新回到督促清单** ✓ 语义要点） |
+
+- **`pageerrors` ＝ 0**；探针自造记录（照片 / 沉淀）**跑完删除**、已作废者**恢复未作废** ⇒ 演示库复原（`remainingVoided` 三项全 0、`probeRowsLeft` 0）。
+
+### 四、**首跑抓出两处真缺陷（已修 · 本批最重要）**
+
+| # | 现象（真机/定向件实抛） | 根因 | 处置 |
+| --- | --- | --- | --- |
+| ① | api 形态作废 `experienceDeposits` 抛 `getAdapter(...)[resource].update is not a function` | **`api-adapter` 该域只有 `list` / `create`**（批次 343 `D-745` 四件套未覆盖到它） | 补 `update` / `delete` 两件 |
+| ② | mock 形态作废 `weeklyReports` 抛 `Cannot read properties of undefined (reading 'update')` | **`MockAdapter` 根本没有 `weeklyReports` 域**（周报既有写法是 `mockDB.weeklyReports` ＋ `persist()` 直写，从未经适配器 ⇒ 长期潜伏） | 补该域四件套 |
+
+- 两处均为**先实跑、后修**（①由真机探针抛出；②由新增定向件 `V6` 抛出）——**静态守卫一件都没拦住**（无「适配器四件套完备性」判据），如实登记为**守卫空白**。
+
+### 五、守卫实跑
+
+- 直接面：`npm run test:fast` 全套 ＋ `module-load` / `import-path-guard` / `doc-consistency` / `version-stamp` / `timestamps-note-guard` / `frontmatter-freshness` ⇒ **184 / 184 / 0 红**。
+- 真机面：`copy-screen-guard`（M1–M4，**未收基线**）＋ `soft-void.test.mjs`（**V1–V6**，V6＝本批新增「第二张表走同一套语义」）⇒ **16 / 16 / 0 红**。
+- 适配器/一致性面：`soft-void` / `mock-api-parity` / `module-load` / `import-path-guard` / `write-path-guard` / `doc-consistency` / `catalog-sync` / `seed-baseline` ⇒ **44 / 44 / 0 红**。
+- **收尾全量见第六节。**
+
+### 六、收尾全量（`R-85`）
+
+- **`npm test`：939 项 / 939 过 / 0 红 / 0 跳过** · **耗时 1,438,119 ms（≈24.0 分钟）**（本批新增用例 ＋1：`soft-void` 的 V6 ⇒ 938 → **939**）。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 939 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截——同批次 331/334/343–351）。
+- ⚠ **首跑 1 红 ＝ 陈旧断言（已改准）**：`form-loop-sweep::S6`（台账行号必须精确命中）报 **6 处漂移**——`prop/weekly-tab.js` 163/164/204 → **169/170/210** · `prop/archive-tab.js` 902/906/1293 → **919/923/1316**（本批在这两个文件里插了行）；改准后 `S6` 单跑复绿，**第二跑全量 939/939/0**。⇒ 与「环境类 / 真回归」三分类无涉（属**计划内的同批改签**，只是首跑漏做）。
+- 戳**不变**（`?v=20261003f`；本批新增 / 改动的前端文件均在该链上，`version-stamp` S3·S6 复跑绿）。
+
+### 七、如实登记
+
+- ⚠ **余 2 张排批次 352b**：`externalDispatches`（**读面落在禁改文件** `entries/tabs/secretary/overview-tab.js` ⇒ 须特批或改由宣传台档案归档行内那枚外发单元承载）· `tasks`（**「作废派生任务」语义待定** ＋ MockAdapter 无 `tasks` 域）。**已入 `.ctx/REVIEW_QUEUE.md`**。
+- ⚠ **未为「业务记录作废裁决」新建通知 kind**（`#1` 待办作废有 `todo-void-decided`）⇒ 352b 一并补。
+- ⚠ **`D-746` 括注一处速记更正**：实测只有 `experienceDeposits` 无「列出行」表面（`tasks` / `externalDispatches` **有**读面）。
+- ⚠ **戳不变**（`?v=20261003f`；新增文件与改文件均在该链上，`version-stamp` S3 复跑绿）。
+- ⚠ **台账**：`TIMESTAMPS.md` 10 行日期刷 `2026-10-03` ＋ **补登 2 行**（`services/governance/soft-void.js` · `components/ui/void-record.js`；备注列合计 **47,460 / 预算 47,500**，仍在只降不升面内）· `docs/help.html` 三处补「作废」口径（照片墙 / 报送历史 / 复盘交接链）。

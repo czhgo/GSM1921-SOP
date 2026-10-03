@@ -171,7 +171,7 @@ export const VALIDATION_SITES = [
   //   原因必填（软作废、不硬删；支委层可直接作废、其余人报支委会确认）。服务端有 `makeup_tasks` 种子
   //   （`SEED_MAKEUP_TASKS`）⇒ 该行在演示态**可达** ⇒ 按 `machine:true` 纳入真机（弹窗由 `openModal` 生成，
   //   判据载体＝文本域自身；提交后弹窗不关、仅弹 toast ⇒ 载体仍在位）。
-  { file: SRC + 'entries/tabs/disc/makeup-tab.js', line: 205, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
+  { file: SRC + 'components/ui/void-record.js', line: 61, field: '作废原因', flow: 'disc/考勤管理·补课作废', machine: true, msg: '请填写作废原因（必填）' },
   // 2026-09-23 支书追裁「开一个代录位」：纪检台「考察管理」新增**考察代录位**（写口与字段全部复用组长台
   //   「考察上传」；本位＝该场活动的组织者 ⇒ 纪检代录属非本位 ⇒ 提交前带既有 nudge）。校验点 3 处。
   { file: SRC + 'entries/tabs/disc/inspection-tab.js', line: 490, field: '代录活动', flow: 'disc/考察代录', machine: true, msg: '请选择要代录的活动' },
@@ -217,9 +217,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1082, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 163, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 164, field: '日期范围', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写日期范围' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 204, field: '周报内容', flow: 'prop/周报报送', machine: true, msg: '请填写周报内容' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 169, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 170, field: '日期范围', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写日期范围' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 210, field: '周报内容', flow: 'prop/周报报送', machine: true, msg: '请填写周报内容' },
   // 批次 47-M（2026-09-16）：**宣传委员台 · 档案归档 · 上传宣传材料浮窗**——一条流程覆盖该浮窗**两处**校验点。
   // ⚠ 台账原挂 machine:false 的两条理由都被真机证伪，且**证伪方式与 47-K「制度参考写入」完全同款**：
   //   ①「文件（文件选择器不可脚本设值）」——**把手段当成了结论**：该支只需文件**为空**即报，
@@ -228,13 +228,13 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 902, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 906, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 919, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 923, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
   // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
   //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
   //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
   //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1293, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1316, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
   { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 142, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
@@ -1005,7 +1005,7 @@ export const MACHINE_FLOWS = [
     ],
     submit: [{ click: '[data-makeup-void-ok]' }],
     expect: [
-      { file: SRC + 'entries/tabs/disc/makeup-tab.js', line: 205, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
+      { file: SRC + 'components/ui/void-record.js', line: 61, field: '作废原因', msg: '请填写作废原因（必填）', carrier: '#makeup-void-reason' },
     ],
   },
   // 批次 124（2026-09-21）**退役**：原 `disc-meeting-attendance`（纪检台 · 考勤管理 · 建考勤）流程——

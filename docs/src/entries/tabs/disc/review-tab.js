@@ -7,8 +7,11 @@ import { persist } from '../../../data/data-adapter.js?v=20261003f';
 import { reviewToDisplay } from '../../../services/governance/review.js?v=20261003f';
 import { loadActiveActivityReviews, loadTaskforceReviews, updateReviewById } from '../../../services/governance/review.js?v=20261003f';
 import { loadActivities } from '../../../services/activity/activity.js?v=20261003f';
-import { showToast } from '../../../core/base/utils.js?v=20261003f';
+import { showToast, escHtml } from '../../../core/base/utils.js?v=20261003f';
 import { openFormModal } from '../../../components/ui/modal.js?v=20261003f';
+// 批次 352（`D-746` · `D-744`② 业务过程类余项）：经验沉淀「作废（软）」——统一写口 ＋ 支委层判据
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003f';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003f';
 import { NoticeStore } from '../../../services/governance/notice.js?v=20261003f';
 import { generateId } from '../../../core/base/id.js?v=20261003f';
 import { getPersonById } from '../../../services/member/person.js?v=20261003f';
@@ -52,9 +55,31 @@ function _loadDeposits() {
   return mockDB.experienceDeposits.length > 0 ? [...mockDB.experienceDeposits] : [];
 }
 
+/** 批次 352（`D-746`）：**有效**沉淀＝未作废的（作废＝出列、留痕仍可回查）。
+ *  ⚠ 过滤只在此处做——`_loadDeposits()` 保持原样，否则 `_saveDeposits` 写回时会丢掉已作废行。 */
+function _activeDeposits() {
+  return SoftVoid.filterActive('experienceDeposits', _loadDeposits());
+}
+
 function _saveDeposits(deposits) {
   mockDB.experienceDeposits = [...deposits];
   persist();
+}
+
+/** 已沉淀清单行（批次 352 · `D-746`）：行尾「作废（软）」——支委可直接作废、其余人报支委会 */
+function depositRecordRowHtml(d) {
+  return `
+    <div class="p-3 rounded-xl bg-white hover:bg-gray-50 transition-colors flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-gray-800 truncate">${escHtml(d.title || '未命名沉淀')}</p>
+        <p class="text-xs text-gray-500 mt-0.5 truncate">来源活动：${escHtml(d.sourceName || '—')} · 记录于 ${escHtml((d.createdAt || '').slice(0, 10) || '—')}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        ${d.voidPending && !d.voided
+          ? '<span class="text-[11px] text-gray-500">待支委会确认</span>'
+          : `<button class="btn-action btn-action-gray rv-void-deposit" data-deposit-id="${escHtml(d.id)}" title="软作废：沉淀从清单出列、留痕可回查；支委可直接作废，其余人报支委会确认">作废</button>`}
+      </div>
+    </div>`;
 }
 
 export function renderContent(ctx) {
@@ -72,9 +97,9 @@ export function renderContent(ctx) {
     [..._batchCheckedIds].forEach(id => { if (!confirmableIds.has(id)) _batchCheckedIds.delete(id); });
   }
 
-  // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀
-  const deposits = _loadDeposits();
-  const depositedSources = new Set(deposits.map(d => d.sourceName));
+  // 经验沉淀交叉引用：判断已完成复盘的活动是否已有沉淀（批次 352：**已作废的不算已沉淀**）
+  const activeDeposits = _activeDeposits();
+  const depositedSources = new Set(activeDeposits.map(d => d.sourceName));
   function hasDeposit(reviewItem) {
     const name = reviewItem.sourceName || reviewItem.activity;
     return depositedSources.has(name);
@@ -190,6 +215,13 @@ export function renderContent(ctx) {
         <div id="disc-review-deposit-list"></div>
       </div>
       ` : ''}
+      ${activeDeposits.length > 0 ? `
+      <div class="card rounded-xl p-5">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-3">已沉淀清单</h3>
+        <div class="text-xs text-gray-500 mb-3">已记录的经验沉淀（${activeDeposits.length} 条）；作废＝软作废（出列、留痕可回查）</div>
+        <div id="disc-review-deposit-record-list"></div>
+      </div>
+      ` : ''}
     </div>
   `;
 
@@ -228,6 +260,38 @@ export function renderContent(ctx) {
       rowHtml: depositRowHtml,
     });
   }
+  // 批次 352（`D-746`）：已沉淀清单（行尾可作废）——第一列是活动 ⇒ 同接入统一检索引擎
+  if (container.querySelector('#disc-review-deposit-record-list')) {
+    renderFilteredList(container.querySelector('#disc-review-deposit-record-list'), {
+      stateKey: 'disc-review-deposit-record',
+      rows: activeDeposits.map(d => ({
+        ...d,
+        activity: d.sourceName || d.title || '',
+        date: (d.createdAt || '').slice(0, 10),
+        type: d.scenario || '',
+      })),
+      keyword: _rvKeyword,
+      facets: _rvFacets,
+      countUnit: '条',
+      listClass: 'space-y-2',
+      emptyMessage: '无匹配经验沉淀',
+      rowHtml: depositRecordRowHtml,
+    });
+  }
+
+  // 批次 352（`D-746`）：经验沉淀「作废（软）」——支委直接作废 / 其余人报支委会（单一源弹窗）
+  container.querySelectorAll('.rv-void-deposit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dep = activeDeposits.find(d => d.id === btn.dataset.depositId);
+      if (!dep) return;
+      openVoidModal({
+        resource: 'experienceDeposits', id: dep.id, label: '经验沉淀',
+        subject: dep.title || dep.sourceName || dep.id,
+        onDone: () => renderContent(ctx),
+      });
+    });
+  });
 
   // ── 复盘真操作（2026-08-05 修复：批注/打回/确认/邮件提醒均落库，不再只弹 toast） ──
   // 事件委托：引擎筛选会重渲染行，故把监听挂在各列表宿主上（宿主随整页 innerHTML 重建，无监听堆积）

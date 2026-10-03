@@ -123,3 +123,25 @@ test('V5 驳回作废：清 voidPending ＋ 落 voidRejected 留痕 ＋ 该行**
   assert.equal(filterActive(RES, mockDB.makeupTasks).some((t) => t.id === other.id), true, '回到默认列表');
   assert.equal(listVoidPending().some((x) => x.id === `${RES}:${other.id}`), false, '不再出现在待确认组');
 });
+
+// 批次 352（`D-746` · `D-744`② 业务过程类余项）：注册表扩容后**同一套语义**对第二张表照旧成立
+//   ——钉住「扩表＝只加注册项、不另写一套写口」，也钉住 `listVoidPending` 的多资源聚合与回解。
+test('V6 注册表扩容（批次 352）：第二张表（weeklyReports）走同一套语义（申请 → 确认 → 出列；行数不变）', async () => {
+  const R2 = 'weeklyReports';
+  assert.ok(SOFT_VOID_RESOURCES[R2], '批次 352 须登记 weeklyReports（否则承载页的作废键会抛「未登记的资源」）');
+  if (!(mockDB.weeklyReports || []).length) {
+    mockDB.weeklyReports = [{ id: 'wr-test-v6', week: '（测试）第 0 周', weekRange: '（测试）', status: 'draft' }];
+  }
+  const target = mockDB.weeklyReports[0].id;
+  const count0 = mockDB.weeklyReports.length;
+
+  const r1 = await requestVoid(R2, target, { reason: '（测试）内容并入下一期', byPersonId: 'p12' });
+  assert.ok(r1 && r1.voidPending, '申请落 voidPending');
+  assert.equal(filterActive(R2, mockDB.weeklyReports).some((x) => x.id === target), true, '申请阶段仍在列表');
+  assert.ok(listVoidPending().some((x) => x.id === `${R2}:${target}`), '待确认组按资源名聚合（多资源同组）');
+
+  const r2 = await confirmVoid(R2, target, { byPersonId: 'p13' });
+  assert.ok(r2 && r2.voided, '确认落 voided');
+  assert.equal(filterActive(R2, mockDB.weeklyReports).some((x) => x.id === target), false, '确认后出列');
+  assert.equal(mockDB.weeklyReports.length, count0, '行数不变（软作废 ≠ 删除）');
+});

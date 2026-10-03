@@ -21,9 +21,9 @@ import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '..
 import { NoticeStore } from '../../../services/governance/notice.js?v=20261003f';
 // 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
 import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261003f';
-import { BRANCH_COMMISSION_ROLES } from '../../../core/domain/constants.js?v=20261003f';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003f';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003f';
+// 批次 352（`D-746`）：作废弹窗改走**单一源**（`components/ui/void-record.js`）——本板块沿用既有 id，
+//   故真机流 `disc-makeup-void-reason` 的选择器一字未改
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003f';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。
@@ -182,37 +182,22 @@ export function renderContent(containerEl) {
 }
 
 // ── 补课任务「作废（软）」入口（批次 346 · `D-744`②；审批门同 `#1` 口径） ─────────────
-/** 作废原因必填的弹窗 → 支委层直接作废（`confirmVoid`）／其余人报支委会（`requestVoid`，待支书台确认）。 */
+/** 作废原因必填的弹窗 → 支委层直接作废（`confirmVoid`）／其余人报支委会（`requestVoid`，待支书台确认）。
+ *  弹窗实现＝**单一源** `components/ui/void-record.js`（批次 352 抽出；本板块沿用其既有 id，
+ *  故真机流 `disc-makeup-void-reason` 的选择器一字未改）。 */
 function _askMakeupVoid(taskId, container) {
   const task = loadMakeupTasks().find((t) => t.id === taskId);
   if (!task) return;
   const who = getPersonName(task.personId) || task.personName || task.personId;
-  openModal({
-    id: 'makeup-void-modal',
-    title: '作废补课任务',
-    accentColor: 'var(--functional-error)',
-    bodyHtml: `
-      <p class="text-sm text-gray-700 mb-1">作废「${esc(who)} · ${esc(task.activityName || '补课')}」这条补课任务？作废＝<b>软作废</b>（留痕、默认列表出列），<b>不硬删</b>；支委可直接作废，其余人需报支委会确认。</p>
-      <textarea id="makeup-void-reason" class="input-flat text-xs w-full mt-2" rows="3" maxlength="200" placeholder="作废原因（必填）"></textarea>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-        <button type="button" data-makeup-void-cancel class="btn-outline text-xs px-3 py-1.5" style="cursor:pointer;">取消</button>
-        <button type="button" data-makeup-void-ok class="btn-neutral text-xs px-3 py-1.5">确认作废</button>
-      </div>`,
-    onMount: (panel) => {
-      panel.querySelector('[data-makeup-void-cancel]')?.addEventListener('click', () => closeModal('makeup-void-modal'));
-      panel.querySelector('[data-makeup-void-ok]')?.addEventListener('click', async () => {
-        const reason = (panel.querySelector('#makeup-void-reason')?.value || '').trim();
-        if (!reason) { showToast('error', '请填写作废原因（必填）'); return; }
-        closeModal('makeup-void-modal');
-        const me = AuthStore.getCurrentUser() || {};
-        const isCommittee = BRANCH_COMMISSION_ROLES.includes(me.role);
-        const r = isCommittee
-          ? await SoftVoid.confirmVoid('makeupTasks', taskId, { byPersonId: me.personId || '', note: reason })
-          : await SoftVoid.requestVoid('makeupTasks', taskId, { reason, byPersonId: me.personId || '' });
-        if (r) showToast('success', isCommittee ? '已作废（留痕、已出列）' : '已报支委会确认——确认后该条出列');
-        else showToast('error', '作废失败：请确认原因已填且该记录存在');
-        renderContent(container);
-      });
-    },
+  openVoidModal({
+    resource: 'makeupTasks',
+    id: taskId,
+    label: '补课任务',
+    subject: `${who} · ${task.activityName || '补课'}`,
+    modalId: 'makeup-void-modal',
+    reasonId: 'makeup-void-reason',
+    okAttr: 'data-makeup-void-ok',
+    cancelAttr: 'data-makeup-void-cancel',
+    onDone: () => renderContent(container),
   });
 }
