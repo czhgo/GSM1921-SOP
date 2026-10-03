@@ -2,29 +2,29 @@
 // 宣传委员工作台 Tab：档案归档（T-279 M3 拆分，照 M2 样板）
 // 归档记录纯读 + 材料标准/模板 + 归档推进浮窗（材料确认清单）+ 上传宣传材料（attachments 双模式）。
 
-import { icon } from '../../../core/base/icons.js?v=20261002i';
-import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261002i';
+import { icon } from '../../../core/base/icons.js?v=20261003a';
+import { solidAccentStyle, ARCHIVE_FALLBACK_ROLES, activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261003a';
 // 活动类型胶囊（批次 301）：类别色走单一源（三会一课＝brand 红 / 主题党日＝gold 金），渲染唯一源 badge.js
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261002i'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20261002i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261003a'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { showToast, downloadCSV, downloadBlob, downloadUrl, _fmtDate, escHtml } from '../../../core/base/utils.js?v=20261003a';
 // 2026-09-21 批次 139：本 tab 的浮层是**自建浮层**（不走 components/ui/modal.js），页脚那条「相关设置」
 //   深链用 modal.js 导出的同一段标记（`settingsLinkHTML`）——不落第二份 HTML（仍是单一源）。
-import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261002i';
-import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261002i';
-import { mockDB } from '../../../core/domain/domain.js?v=20261002i';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261002i'; // P0 域缓存失效（spec §二.3）
-import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261002i';
-import { isApiMode } from '../../../services/core/runtime.js?v=20261002i';
-import { AuthStore } from '../../../services/core/auth.js?v=20261002i';
-import { getPersonName } from '../../../services/member/person.js?v=20261002i';
-import { generateId } from '../../../core/base/id.js?v=20261002i';
-import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261002i';
+import { settingsLinkHTML } from '../../../components/ui/modal.js?v=20261003a';
+import { persist, getAuthToken, getApiBaseUrl, getAdapter } from '../../../data/data-adapter.js?v=20261003a';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003a';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261003a'; // P0 域缓存失效（spec §二.3）
+import { loadActivities, listPublicityDrafts, setPublicityDraftStatus, PUBLICITY_DRAFT_STATUS, listGalleryCandidates, setGalleryFeatured, setGalleryPinned, isGalleryFeatured, isGalleryPinned } from '../../../services/activity/activity.js?v=20261003a';
+import { isApiMode } from '../../../services/core/runtime.js?v=20261003a';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003a';
+import { getPersonName } from '../../../services/member/person.js?v=20261003a';
+import { generateId } from '../../../core/base/id.js?v=20261003a';
+import { addExternalDispatch, loadExternalDispatches } from '../../../services/activity/external-dispatch.js?v=20261003a';
 // A② 归档缺口判据单一源（支书台「宣传材料待归档」实时组同源）：已归档但无归档记录的活动
-import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261002i';
+import { getArchiveGapActivities, getEndedUnarchivedActivities } from '../../../services/governance/secretary-overview.js?v=20261003a';
 // 活动归档写口（与支书台活动管理同源：软删 archived=true + 级联完成下属任务）
-import { BranchService } from '../../../services/core/runtime.js?v=20261002i';
+import { BranchService } from '../../../services/core/runtime.js?v=20261003a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是活动的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261002i';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003a';
 
 // ── 档案归档 ─────────────────────────────────────────────
 // 种子数据已提升为全局（data/mock/seed.js SEED_ARCHIVE_RECORDS，loadDB 时注入），

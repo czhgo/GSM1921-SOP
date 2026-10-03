@@ -37,11 +37,11 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 - `CRUD-2` `assignments`（**独立**「分工记录」表）：支书裁「**补界面入口**」（`D-744`①）⇒ **排批次 345**（落点待支书圈三档）。
   - ⚠ 与活动对象内联的 `activity.assignments` / `taskforce.members` **不是同一数据**（后者＝项目角色数组）。
 
-**B 档 · 能建不能删（12 张 ＋ `branches`）——支书裁「按 AI 分档」＋「`branches` 补停用」（`D-744`②③）⇒ 排批次 344**
+**B 档 · 能建不能删（12 张 ＋ `branches`）——支书裁「按 AI 分档」＋「`branches` 补停用」（`D-744`②③）⇒ 余项排下批**
 
-- `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。
-- `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。
-- `CRUD-5` `branches`：党委台**可建支部但无停用/解散入口**（`ApiAdapter.branches.delete` 有接口无 UI）⇒ 支书裁「**补「停用（软）」入口**」（留任期档、不物理删）。
+- `CRUD-3` **保持不可删 ＋ 界面补一句说明**（审计完整性优先）：`attendances` · `activityReviews` · `taskforceReviews` · `thoughtReports` · `reviewRequests`。→ **排下批**。
+- `CRUD-4` **补「作废·停用」软入口**（走审批门，同 `#1` 已落口径）：`makeupTasks` · `imageRecords` · `weeklyReports` · `externalDispatches` · `experienceDeposits` · `tasks`。→ **排下批**。
+- `CRUD-5` `branches`：**✅ 已闭环**——批次 344 落「**停用（软）**」：新写口 `services/branch/branch.js::setBranchActive` ＋ 党委台「停用 / 恢复」键（`D-744`③；取证见执行日志批次 344）。
 
 **C 档 · 仅软处理（2 张）**
 

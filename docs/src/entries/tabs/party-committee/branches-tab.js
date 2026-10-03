@@ -5,18 +5,18 @@
 //   统计卡预览 → 确认 → PersonStore.replaceBranchMembers 落库（mock/api 双形态由服务保证），
 //   导入后成员/应到统计即时可见（读链自动）；仅空支部可整表替换（非空支部提示逐人编辑，不提供动作）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261002i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）；
 // 每次渲染现读（members 覆盖层即时吃到），不缓存在模块顶层
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261002i';
-import { createBranch, renameBranch, getCommitteeName } from '../../../services/branch/branch.js?v=20261002i';
-import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261002i';
-import { getRosterStats } from '../../../services/member/roster.js?v=20261002i';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261003a';
+import { createBranch, renameBranch, getCommitteeName, setBranchActive } from '../../../services/branch/branch.js?v=20261003a';
+import { appointSecretary, listAppointments } from '../../../services/branch/appointment.js?v=20261003a';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261003a';
 // 立项⑥ B波：空支部名册导入服务（模板/净化/统计；确认落库直接走 PersonStore.replaceBranchMembers）
-import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261002i';
-import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261002i';
+import { buildBranchRosterTemplate, sanitizeBranchRoster } from '../../../services/member/branch-roster-import.js?v=20261003a';
+import { showToast, escHtml as esc, downloadBlob, getBasePath } from '../../../core/base/utils.js?v=20261003a';
 // 立项⑦ B波：支部卡「进入支部（演示）」按钮绑定（与 governance-overview-tab 同源）
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261002i';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261003a';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -74,6 +74,7 @@ export async function renderContent() {
           const inBranch = members.filter(p => p.branchId === bid);
           const rStats = getRosterStats({ branchId: bid });
           const isEmpty = inBranch.length === 0;
+          const isActive = (b.status || 'active') === 'active';
           return `
           <div class="card rounded-xl p-4" data-branch-card="${esc(bid)}">
             <div class="flex items-start justify-between gap-2 flex-wrap mb-2">
@@ -84,11 +85,13 @@ export async function renderContent() {
                   ? '<p class="text-[11px] text-amber-700 mt-1">空支部 · 成员 0 名——可整表导入成员名册（导入后成员/应到统计即时可见）</p>'
                   : `<p class="text-[11px] text-gray-500 mt-1">成员 ${inBranch.length} 名 · 在册党员 ${rStats.partyTotal} · 支部党员大会应到 ${rStats.expected} 人</p>`}
               </div>
-              <span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 shrink-0">运行中</span>
+              <span class="text-xs px-2 py-0.5 rounded-full ${isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'} shrink-0">${isActive ? '运行中' : '已停用'}</span>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <button class="btn-outline branch-rename-toggle text-xs px-2.5 py-1">改名</button>
               <button class="btn-outline branch-appoint-toggle text-xs px-2.5 py-1">任命支书</button>
+              <button type="button" class="btn-outline branch-status-toggle text-xs px-2.5 py-1" data-branch-id="${esc(bid)}" data-next="${isActive ? 'inactive' : 'active'}"
+                title="${isActive ? '软停用：支部实例与任期 / 成员档案全部保留，可随时恢复；不物理删除' : '恢复为运行中'}">${isActive ? '停用' : '恢复'}</button>
               ${isEmpty
                 ? `<button type="button" class="btn-accent text-xs px-2.5 py-1 font-medium" data-branch-roster-act="toggle" data-branch-id="${esc(bid)}">导入成员名册</button>`
                 : `<span class="text-[11px] text-gray-500">已有成员/历史：不可整表替换，成员调整请逐人编辑（成员档案）</span>`}
@@ -175,6 +178,11 @@ export async function renderContent() {
       showToast('success', `已任命 ${name.split('（')[0]} 为支书（原支书已降回成员，任期档案已记录）`);
       renderContent();
     });
+    // 停用 / 恢复（**软停用** · 2026-10-02 批次 344 · 支书裁 `D-744`③）：只改顶层 status，不物理删
+    card.querySelector('.branch-status-toggle')?.addEventListener('click', () => {
+      const next = card.querySelector('.branch-status-toggle')?.dataset.next === 'inactive' ? 'inactive' : 'active';
+      void _toggleBranchStatus(branchId, next);
+    });
   });
 
   // 立项⑦ B波：支部卡「进入支部（演示）」→ 支部层工作台（branch 上下文；本地回环主机放行，本地示例 / API 会话同口径只读）
@@ -182,6 +190,22 @@ export async function renderContent() {
 
   // 名册导入（容器级委托：面板/草稿为动态区，重挂前先摘旧监听防叠加）
   _bindRosterDelegation(el);
+}
+
+// ── 支部软停用（2026-10-02 批次 344 · 支书裁 `D-744`③「补『停用（软）』入口」）──
+
+/** 停用 / 恢复支部（**软停用**）：只把顶层 `status` 置 `inactive`——支部实例与任期 / 成员档案**全部保留**、
+ *  可随时「恢复」、**不物理删**。停用前二次确认（软动作、可逆，与「任命」同族用内置 confirm）；恢复零打扰。 */
+async function _toggleBranchStatus(branchId, next) {
+  const b = (mockDB.branches || []).find(x => x.id === branchId);
+  const label = b?.config?.headerTitle || b?.name || branchId;
+  if (next === 'inactive') {
+    const ok = window.confirm(`确认停用「${label}」？\n\n停用＝软停用：支部实例、任期档案与成员名册全部保留，可随时「恢复」；仅状态标记为「已停用」，不做物理删除。`);
+    if (!ok) return;
+  }
+  await setBranchActive(branchId, next === 'active');
+  showToast('success', next === 'active' ? `支部「${label}」已恢复为运行中` : `支部「${label}」已停用（软停用，档案保留、可恢复）`);
+  renderContent();
 }
 
 // ── 空支部名册导入面板（仅空支部渲染；模板行 = 现有成员档案，确认 = replaceBranchMembers 落库）──

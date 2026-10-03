@@ -3,23 +3,23 @@
 // 支部边界收敛点（防止未同步的情况）：人→支部归属、支部配置档案读取（header 软编码/主题/启停模块）
 // 单一数据源：mockDB.branches（首启 seed 自 data/mock/branches.js BRANCHES）
 
-import { mockDB } from '../../core/domain/domain.js?v=20261002i';
-import { getPersonById } from '../member/person.js?v=20261002i';
-import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261002i';
-import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261002i';
-import { listCapabilities } from '../../core/boot/registry.js?v=20261002i';
+import { mockDB } from '../../core/domain/domain.js?v=20261003a';
+import { getPersonById } from '../member/person.js?v=20261003a';
+import { PARTY_COMMITTEE, DEFAULT_BRANCH_DISPLAY_NAME } from '../../data/mock/branches.js?v=20261003a';
+import { getAdapter, persist, getDataSource } from '../../data/data-adapter.js?v=20261003a';
+import { listCapabilities } from '../../core/boot/registry.js?v=20261003a';
 // P1a 单向权威（2026-09-03）：config 净化唯一实现 = services/branch/config-clean.js（server PATCH /branches/:id/config 同源）
-import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20261002i';
+import { sanitizeConfigBlocks, sanitizeConfigModules, sanitizeConfigWorkforce, sanitizeConfigOrg, sanitizeConfigPolicyOverrides, applyBranchPolicyOverrides } from './config-clean.js?v=20261003a';
 // 审计内核共享常量（2026-09-09 支书批）：why 透传/单键回滚白名单/历史上限单一源 = config-clean
 // （server resources.js 同源 import，双形态防止未同步的情况）
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261002i';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT, CONFIG_ROLLBACK_KEYS } from './config-clean.js?v=20261003a';
 // L4（2026-09-03）：支部工作地图模块目录单一源 = core/domain/work-map.js（14 模块/缺省分工/快照展开）
-import { expandWorkforce } from '../../core/domain/work-map.js?v=20261002i';
+import { expandWorkforce } from '../../core/domain/work-map.js?v=20261003a';
 // 批4（2026-09-09 支书批「域参数」）：policyOverrides 顶层节白名单（覆盖写口校验用）
-import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261002i';
-import { randomHex } from '../../core/base/id.js?v=20261002i';
+import { POLICY_OVERRIDE_SECTIONS } from '../../core/domain/policy-defaults.js?v=20261003a';
+import { randomHex } from '../../core/base/id.js?v=20261003a';
 // 核心组判定单一源（2026-09-14 支书裁定·tab 全盘重设）：由「显示标签反推」改为「注册表 coreTab 显式声明」
-import { isCoreTab } from '../../core/domain/constants.js?v=20261002i';
+import { isCoreTab } from '../../core/domain/constants.js?v=20261003a';
 
 export function getBranchById(branchId) {
   return (mockDB.branches || []).find(b => b.id === branchId) || null;
@@ -352,7 +352,7 @@ export async function rollbackBranchConfig(branchId, { by = null, targetEntryAt,
   // api 形态：语义交服务端 /branches/:id/config/rollback（服务端角色门+同规则回滚，返回权威分支）
   if (getDataSource() === 'api') {
     try {
-      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261002i');
+      const { ApiAdapter } = await import('../../data/api-adapter.js?v=20261003a');
       const updated = await ApiAdapter.branches.rollbackConfig(branchId, {
         ...(typeof targetEntryAt === 'string' && targetEntryAt ? { targetEntryAt } : {}),
         ...(Number.isInteger(index) ? { index } : {}),
@@ -821,6 +821,20 @@ export async function createBranch({ mode = 'empty', sourceId, name, type, by, a
 /** 党委改支部名（同步 config.headerTitle——header 软编码随之变化） */
 export async function renameBranch(id, name) {
   const next = await getAdapter().branches.update(id, { name: String(name || '').trim() });
+  const idx = (mockDB.branches || []).findIndex(b => b.id === id);
+  if (idx >= 0) {
+    mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];
+  }
+  persist();
+  return next;
+}
+
+/** 党委**停用 / 恢复**支部（软停用 · 2026-10-02 批次 344 · 支书裁 `D-744`③「补『停用（软）』入口」）：
+ *  只改顶层 `status`（`active` ↔ `inactive`），**不物理删**——支部实例仍可被读（监控台账 / 进去只读），
+ *  任期档案（`appointment_records`）与成员档案**全部保留**；与 `renameBranch` 同一写口
+ *  （`getAdapter().branches.update` → 本地 mockDB 同步 → `persist()`；服务端通用 branches PATCH 为 party-staff 门控）。 */
+export async function setBranchActive(id, active) {
+  const next = await getAdapter().branches.update(id, { status: active ? 'active' : 'inactive' });
   const idx = (mockDB.branches || []).findIndex(b => b.id === id);
   if (idx >= 0) {
     mockDB.branches = [...mockDB.branches.slice(0, idx), next, ...mockDB.branches.slice(idx + 1)];

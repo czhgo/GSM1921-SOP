@@ -230,9 +230,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1293, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 139, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 157, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 168, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 142, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 160, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 171, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
   { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 96, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择目标支部' },
   { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 97, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
   // 批次 47-P（2026-09-16）：**党委台 · 上报审批 · 驳回意见**——本条是「**改种子解锁一条**」的首个样本。

@@ -4,8 +4,8 @@
 // 改造前 main-entry.js 直接调用 renderCalendarForDashboard(state, targetMonth)；
 // 改造后经注册表 mountCapability('activity-calendar', null, { state, targetMonth }) —— 同一函数、同一参数。
 
-import { registerCapability } from '../core/boot/registry.js?v=20261002i';
-import { renderCalendarForDashboard } from '../components/record/calendar.js?v=20261002i';
+import { registerCapability } from '../core/boot/registry.js?v=20261003a';
+import { renderCalendarForDashboard } from '../components/record/calendar.js?v=20261003a';
 
 registerCapability({
   id: 'activity-calendar',

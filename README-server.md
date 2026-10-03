@@ -1090,7 +1090,7 @@
 | type | string | 否 | 类型类别标签（**自由文本、不预设枚举**，如 本科生/硕士/博士） |
 | config | object | 是 | 支部配置档案（见下） |
 | secretaryId | string \| null | 否 | 现任支书 personId（由任命链维护；**访问支书工作台以本值为准**） |
-| status | `'active'` | 是 | 支部状态（默认 `active`） |
+| status | `'active'` \| `'inactive'` | 是 | 支部状态（默认 `active`；**软停用＝`inactive`**——党委台「支部管理」可停用 / 恢复，**不物理删**、任期与成员档案保留） |
 | createdAt | string（ISO） | 是 | 创建时间 |
 
 **config 配置档案（子结构）**：

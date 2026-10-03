@@ -998,3 +998,28 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **教训（入执行日志，供续批）**：**「提交」是 F2 的触发点**——某批改 `content/**` 后若**只跑全量、随后才提交**，则 F2 在**那一批**是绿的、在**下一批**才红。故凡改 `content/**` 者，**提交前**必须刷 frontmatter ＋ TIMESTAMPS（`R-83`）；**追加本批已按此改准**。
 - ⚠ **如实登记（全量之后的台账微调）**：全量复跑**之后**又改了**纯 `.ctx/**` 台账**（`.ctx/REVIEW_QUEUE.md` 按 `D-744` 收口「全域 CRUD 缺口」节 ＋ `.ctx/TIMESTAMPS.md` 的 `REVIEW_QUEUE.md` 行日期同步）——**不涉 `docs/src/**` 与 `server/**` 逻辑**，故另跑受影响文档守卫 `doc-consistency` ＋ `frontmatter-freshness` ＋ `timestamps-note-guard` ＋ `link-integrity` ＋ `doc-line-ref` **37 / 37 / 0 红**复绿（全量读数 **927 / 927 / 0** 仍成立）。
 - **余项**（`D-744` 第 1 条后半 ＋ 第 2–3 条）：`assignments` 补界面入口（批 345）· B 档两类 ＋ `branches` 补「停用（软）」（批 344）。
+
+## 批次 344（2026-10-02）：`CRUD-5` —— **`branches` 补「停用（软）」入口**（支书 `D-744`③）
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02 就 `D-744`③ 裁「**甲：补「停用（软）」入口**（党委台；**留任期档、不物理删**）」。本批**无新裁定**（只是执行既有裁定）⇒ 按 `R-84` **不另立 `D-` 条**；**实现与实测进本节**。
+
+### 一、本批做了什么
+
+- **服务层新写口**：`docs/src/services/branch/branch.js::setBranchActive(id, active)`——**只改顶层 `status`**（`active` ↔ `inactive`）；与 `renameBranch` **同一写口形态**（`getAdapter().branches.update` → 本地 `mockDB` 同步 → `persist()`）。**不物理删**：支部实例仍可被读（监控台账 / 进去只读），`appointment_records`（任期档案）与成员档案**全部保留**。
+- **党委台 UI**（`docs/src/entries/tabs/party-committee/branches-tab.js`）：① 卡片状态徽章由**硬编码「运行中」**改为 **status 感知**（`运行中` / `已停用`）；② 动作行新增 **「停用」/「恢复」** 键（`data-next` 决定方向）；③ 新增 `_toggleBranchStatus()`——**停用前二次确认**（软动作、可逆，与「任命」同族用内置 `window.confirm`；确认文案写明「档案保留、可恢复、不物理删除」），**恢复零打扰**。
+- **文档改准**：`README-server.md` §4.25 的 `status` 行由 `'active'` → `'active' | 'inactive'`，注明「软停用＝`inactive`，党委台可停用/恢复，**不物理删**、任期与成员档案保留」（**原位改、行数零增减**）。
+- **新增定向件** `server/test/branch-status.test.mjs`（B1–B3，已入 `test:daily`）：**B1** 停用后 `status=inactive`、**支部数量不变**、**任期档案序列化前后逐字相同**、`name`/`secretaryId`/`createdAt`/`config` 一字不改；**B2** 恢复回 `active`；**B3**（反例·非恒真）停用后 `getBranchById` **仍取得到**该支部（证「软停用不是删除」）。
+- **台账同批改准**：`server/test/form-loop-registry.mjs` 里 `branches-tab.js` 的 3 条校验点行号随本批行数位移（+3）改准（`142` / `160` / `171`）。
+
+### 二、如实登记
+
+- ⚠ 本批**只落 `CRUD-5`**。`D-744`② 的 **B 档两类尚未落**——**审计类 5 张「保持不可删＋界面补说明」**与**业务过程类 6 张「作废·停用」软入口**（`makeupTasks`/`imageRecords`/`weeklyReports`/`externalDispatches`/`experienceDeposits`/`tasks`）**顺延下一批**（两者共享「留痕 vs 可作废」同一口径，合并落更一致）。
+- ⚠ **真机覆盖面如实登记**：本批**未新增** `pc-branch-deactivate` 成功路径流——与既有 `pc-branch-appoint` **同款**（后者的 `window.confirm` **接受分支**亦未被成功路径流覆盖，只覆盖「空提交」校验分支）。**现有覆盖**＝定向件 B1–B3（写口）＋ 全量 `page-sweep`（该 tab 渲染非空、零脚本错误）＋ `pc-branch-rename`/`pc-branch-appoint` 两条真机流（同 tab，证渲染与绑定未坏）。
+
+### 三、收尾全量（`R-85`）
+
+- **`npm test`：930 项 / 930 过 / 0 红 / 0 跳过**（927 → **930**，本批新增 3）· **耗时 1,337,498 ms（≈22.3 分钟）**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 930 / fail 0`；系 Playwright 收尾 `debug.log` 写入被沙箱拦截——与测试内容无关，同批次 331/334/343）。
+- 守卫子集中间态：`import-path-guard` ＋ `mock-api-parity` ＋ `id-uniqueness` ＋ `branch-status` ＋ `branch-module-catalog` ＋ `branch-doc` ＋ `branch-config-audit` ＋ `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `text-tier-guard` ＋ `button-system-guard` ＋ `dead-selector-guard` ＋ `catalog-sync` **100 / 100 / 0 红**。
+- 戳 `?v=20261002i → 20261003a`（JS 217 / HTML 22 / CSS 2 / server-test 90；陈旧戳 **0 残留**）。
+- **余项**：`D-744` 第 1 条后半（`assignments` 补入口 → 批 345）· 第 2 条（B 档两类 → 下批）。
