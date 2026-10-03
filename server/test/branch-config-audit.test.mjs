@@ -12,15 +12,15 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261003d';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261003d';
-import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261003d';
-import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261003d';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261003e';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261003e';
+import { setDataSource, registerMockAdapter } from '../../docs/src/data/data-adapter.js?v=20261003e';
+import { CONFIG_HISTORY_MAX, CONFIG_ROLLBACK_WHAT } from '../../docs/src/services/branch/config-clean.js?v=20261003e';
 import {
   getBranchById, updateBranchModules, updateBranchBlocks, updateBranchWorkforce,
   savePolicyOverrides, updateBranchOrg, createBranch,
   canRollbackBranchConfig, rollbackBranchConfig,
-} from '../../docs/src/services/branch/branch.js?v=20261003d';
+} from '../../docs/src/services/branch/branch.js?v=20261003e';
 // HTTP 域
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
@@ -171,7 +171,7 @@ test('② rollback：跨键/聚合留痕（branch-created/config-copied 等）�
   // 注入聚合留痕场景：复制配置到 br-b1 前先建一个源支部（applyConfigCopy 会写 config-copied 聚合行）
   const src = await createBranch({ name: '源支部（复制）', by: 'p_pc', actorRole: 'party-staff' });
   assert.equal(src.ok, true);
-  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261003d');
+  const { applyConfigCopy } = await import('../../docs/src/services/branch/branch.js?v=20261003e');
   const rCopy = await applyConfigCopy(src.branch.id, ['br-b1'], { by: 'p13' });
   assert.equal(rCopy[0].ok, true);
   const copiedRow = lastRow();

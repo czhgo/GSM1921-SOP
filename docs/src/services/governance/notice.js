@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261003d';
-import { generateId } from '../../core/base/id.js?v=20261003d';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261003d';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261003d';
-import { bumpToken } from '../../core/base/version-token.js?v=20261003d'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261003d';
-import { isInitStateActive } from '../core/init-reset.js?v=20261003d'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import {  getBasePath } from '../../core/base/utils.js?v=20261003d';
-import { AuthStore } from '../core/auth.js?v=20261003d';
-import {  getPersonById } from '../member/person.js?v=20261003d';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261003d';
+import { mockDB } from '../../core/domain/domain.js?v=20261003e';
+import { generateId } from '../../core/base/id.js?v=20261003e';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261003e';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261003e';
+import { bumpToken } from '../../core/base/version-token.js?v=20261003e'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261003e';
+import { isInitStateActive } from '../core/init-reset.js?v=20261003e'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import {  getBasePath } from '../../core/base/utils.js?v=20261003e';
+import { AuthStore } from '../core/auth.js?v=20261003e';
+import {  getPersonById } from '../member/person.js?v=20261003e';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261003e';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261003d';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261003e';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261003d';
+} from '../../core/domain/constants.js?v=20261003e';
 
 function _loadNotices() {
   try {
@@ -145,6 +145,8 @@ function _isBroadcastAudience(n) {
 /** 观看者是否该通知的发布者（签发人恒可读自己的通知） */
 function _isPublisher(n, ctx) {
   if (!ctx || !ctx.role) return false;
+  // 站内信（批次 348）：**发件人到人**（`fromPersonId`）——先判，不与角色标签口径混用
+  if (n.fromPersonId && ctx.personId && n.fromPersonId === ctx.personId) return true;
   // UI 发布口径：publishedBy 存角色标签（ROLE_LABELS[角色]），无 personId；按其比对
   if (n.publishedBy && ROLE_LABELS[ctx.role] && n.publishedBy === ROLE_LABELS[ctx.role]) return true;
   // 显式签发人 id（数据若带则优先）
@@ -557,6 +559,14 @@ export function canReadNotice(notice, viewer) {
   const n = notice;
   if (!n) return false;
   const ctx = _noticeViewerCtx(viewer === undefined ? AuthStore.getCurrentUser() : viewer);
+  // ⑥ **站内信（`noticeType:'message'`，点对点 / 点对多人 私信）——批次 348**：
+  //    可见性＝**仅发件人 ＋ 收件人**。此判**必须先于**下面的「支委层可读任意通知」兜底——
+  //    否则一条两人私信会被全体支委读到，与私信语义直接冲突。
+  //    私信以 `audiencePersons` 承载收件人（发送时**逐人 fan-out**成每人一条，故 `read` 全局标量语义仍正确）。
+  if (n.noticeType === 'message') {
+    if (!ctx.role) return false;                       // 无会话 → 不可读（私信不广播）
+    return _isPublisher(n, ctx) || _audiencePersonsHit(n, ctx);
+  }
   if (!_hasAudience(n) || _isBroadcastAudience(n)) return true; // ① 无受众 / 广播 → 人人可读
   if (!ctx.role) return false;                                  // ② 无登录会话：仅广播/无受众
   if (_isPublisher(n, ctx)) return true;                        // ③ 发布者恒可读

@@ -17,8 +17,8 @@
 //    其余 5 张（`imageRecords` / `weeklyReports` / `externalDispatches` / `experienceDeposits` / `tasks`）
 //    按同一注册表逐批加——**部分表当前没有「列出行」的表面**，落点须先与支书定，见 `.ctx/REVIEW_QUEUE.md`。
 // ════════════════════════════════════════════════════════════════
-import { mockDB } from '../../core/domain/domain.js?v=20261003d';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261003d';
+import { mockDB } from '../../core/domain/domain.js?v=20261003e';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261003e';
 
 /** 登记「可软作废」的资源：key ＝ 资源名（**同时是 `getAdapter()` 的键与 `mockDB` 的域键**，六张业务表三者同名） */
 export const SOFT_VOID_RESOURCES = {

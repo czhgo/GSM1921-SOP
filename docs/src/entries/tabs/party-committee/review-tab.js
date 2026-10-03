@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261003d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003d';
-import { getPersonName } from '../../../services/member/person.js?v=20261003d';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261003d';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261003d';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261003d';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003e';
+import { getPersonName } from '../../../services/member/person.js?v=20261003e';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261003e';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261003e';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261003e';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003e';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },

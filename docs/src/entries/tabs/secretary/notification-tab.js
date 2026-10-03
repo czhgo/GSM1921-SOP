@@ -3,20 +3,23 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261003d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003d';
-import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20261003d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261003d';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003d';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261003e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003e';
+import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20261003e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261003e';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261003e';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003d';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261003e';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261003d';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261003e';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261003d';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261003e';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261003d';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261003e';
+// 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
+//（选人规范 §2.2：姓名/学号搜索，不手写名单）
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261003e';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
@@ -80,7 +83,17 @@ function renderNotificationForm() {
     html += `<button data-notif-action="select-audience" data-value="${a.value}" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${on ? ' chip-accent-on font-medium' : ''}"${on ? ' style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)"' : ''}>${a.label}</button>`;
   });
   html += `</div>`;
+  // 站内信（批次 348 · 支书 `#4`）：与「群体受众」并列的一档——**指定人（私发）**（点对点 / 点对多人）
+  html += `<div class="mt-2 flex flex-wrap gap-2">`;
+  html += `<button data-notif-action="toggle-direct" class="btn-tab chip-option text-sm px-4 py-2 rounded-lg${_directMode ? ' chip-accent-on font-medium' : ''}">指定人（私发 · 站内信）</button>`; // 选中态只借 `.chip-accent-on`（其 color 走主题变量）——**不写内联色**（`hex-hardcode-guard::H1` 禁新增硬编码）
   html += `</div>`;
+  html += `</div>`;
+  if (_directMode) {
+    html += `<div class="mb-5 rounded-lg border border-gray-200 bg-white p-3">`;
+    html += `<p class="text-xs text-gray-500 mb-2">收件人（可多选）——站内信<b>仅你与收件人可见</b>，不进支部公告。</p>`;
+    html += `<div id="notif-direct-host"></div>`;
+    html += `</div>`;
+  }
 
   // 关联三会一课活动（选填，SOP-B-5）
   html += `<div class="mb-5">`;
@@ -103,10 +116,22 @@ function renderNotificationForm() {
   formArea.querySelectorAll('[data-notif-action]').forEach(el => {
     el.addEventListener('click', handleNotifAction);
   });
+
+  // 站内信（批次 348）：指定人档的选人器（每次重渲染重建；destroy 防叠加）
+  if (_directMode) {
+    _directPicker?.destroy();
+    _directPicker = new PersonPicker({ mode: 'multi', placeholder: '搜索姓名或学号选择收件人' });
+    const host = document.getElementById('notif-direct-host');
+    if (host) _directPicker.render(host);
+  }
 }
 
 /** 通知表单状态（2026-08-08 多选改造：受众支持同时选择多个群体） */
 let _selectedAudience = [];
+
+/** 站内信（私发）状态（批次 348）：是否切到「指定人」档 ＋ 选人器实例 */
+let _directMode = false;
+let _directPicker = null;
 
 /** 处理通知面板操作 */
 function handleNotifAction(e) {
@@ -132,6 +157,13 @@ function handleNotifAction(e) {
           else b.style.removeProperty('--acc-text-dark');
         });
       }
+      break;
+    }
+
+    case 'toggle-direct': {
+      // 站内信（批次 348）：切「指定人（私发）」档（重渲染以显示 / 隐藏选人器）
+      _directMode = !_directMode;
+      renderNotificationForm();
       break;
     }
 
@@ -179,7 +211,44 @@ function handlePublishNotification() {
 
   if (!title) { showToast('error', '请填写通知标题'); titleEl?.focus(); return; }
   if (!content) { showToast('error', '请填写通知内容'); contentEl?.focus(); return; }
-  if (_selectedAudience.length === 0) { showToast('error', '请选择目标受众'); return; }
+  // 站内信（批次 348）：指定人档的「受众」＝已选收件人；未选人**沿用同一条既有校验文案**
+  //（「请选择目标受众」——不新增字段级校验点，台账 / 真机流零改签）
+  const _directRecipients = _directMode ? (_directPicker?.getSelected() || []) : [];
+  if (_directMode ? _directRecipients.length === 0 : _selectedAudience.length === 0) {
+    showToast('error', '请选择目标受众');
+    return;
+  }
+
+  const _me = AuthStore.getCurrentUser() || {};
+
+  // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：逐人 **fan-out**（每人一条、`audiencePersons:[该人]`）——
+  //   ① 未读 / 已读沿用既有全局 `read` 语义（**不误灭他人未读**，无需改读侧与角标）；
+  //   ② 可见性由 `canReadNotice` 的私信判据收口（**仅发件人 ＋ 收件人**，见 services/governance/notice.js ⑥）。
+  if (_directMode) {
+    let sent = 0;
+    for (const pid of _directRecipients) {
+      NoticeStore.add({
+        title,
+        content,
+        priority: 'normal',
+        publishDate: new Date().toISOString().slice(0, 10),
+        expireDate: null,
+        targetModule: 'workspace',
+        read: false,
+        noticeType: 'message',
+        fromPersonId: _me.personId || null,
+        audiencePersons: [pid],
+        audienceLabel: '指定人（私发）',
+      }, _me.role || 'secretary', _me.personId || null);
+      sent++;
+    }
+    showToast('success', `站内信「${title}」已发送给 ${sent} 人（仅你与收件人可见）`);
+    _selectedAudience = [];
+    _directMode = false;
+    renderNotificationForm();
+    renderNotificationList();
+    return;
+  }
 
   // 关联会议活动（选填，SOP-B-5）：关联后该通知的「确认读取」可填「能否线上参会」，落该场考勤
   const meetingActivityId = document.getElementById('notif-meeting-activity')?.value || null;
@@ -204,7 +273,6 @@ function handlePublishNotification() {
 
   // 2026-09-19 批次 91（SOP-B-17）：发布权判定一并带 personId——白名单角色不变，
   //   本组通知另按「此人是否该场组织者」放行（支书台的发布口仍是全支部通知主位）。
-  const _me = AuthStore.getCurrentUser() || {};
   NoticeStore.add(notification, _me.role || 'secretary', _me.personId || null);
 
   showToast('success', `通知「${title}」已发布至${audienceLabels.join('、')}`);
