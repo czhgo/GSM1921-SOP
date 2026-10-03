@@ -14,8 +14,8 @@
 //   what:'config-package-import'、from 记录包来源）——浏览器 / Node 双端可载、可单测。
 // ════════════════════════════════════════════════════════════════
 
-import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20261003f';
-import { sanitizeConfigOrg } from './config-clean.js?v=20261003f';
+import { getBranchById, getBranchOrg, applyBranchConfig } from './branch.js?v=20261003g';
+import { sanitizeConfigOrg } from './config-clean.js?v=20261003g';
 
 /** 覆盖件类型标识（apply 校验门槛，防误导入异类 JSON） */
 export const PACKAGE_KIND = 'gsm1921-org-config';

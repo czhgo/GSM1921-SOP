@@ -256,6 +256,7 @@ dynamic_role:
 | docs/src/components/ui/modal.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化〕；`D-674`）** **（2026-09-27 批次 211–212：路三——`NUDGE_TEXTS` **新增 4 键**（`todo-urge` / `assign-leader` / `assign-activity` / `assign-taskforce`；**文案全部引母本原文**）；⚠ **只登记未做**：`confirmNudge` 的 JSDoc `@param` 只列原 4 键、未补）** **2026-09-25 批次 196：hex 清 9 处（17 → 8）**（同一「等价令牌」选面原则）；模态框组件（**2026-09-21 批次 138**：新增可选 `settingsLink`——浮窗页脚「相关设置」深链的**单一源**，`openModal` / `openFormModal` 均可传；位置固定在 `.modal-body` 之外的页脚，不传者不渲染（确认 / 删除类浮窗不加）；**2026-09-21 批次 139：把页脚那段标记抽成导出 `settingsLinkHTML()`**——自建浮层（如宣传台上传浮层）用它插同款一条，**仍是单一源、不落第二份 HTML**，`D-570`） |
 | docs/src/components/shell/tab-bar.js | 2026-09-25 | — | [工程师]+[AI] | 标签栏组件（**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（5→4）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/components/record/todo-list.js | 2026-08-06 | — | [工程师]+[AI] | 待办列表组件（E2 flow 内嵌小字） |
+| docs/src/components/governance/signup-panel.js | 2026-10-03 | — | [工程师]+[AI] | 报名面板组件（活动 / 专班详情页共用；报名区 ＋ 报名名单）。 |
 | docs/src/components/governance/work-overview.js | 2026-09-27 | — | [工程师]+[AI] | **（2026-09-26 批次 205–207：本表原无其行，本批补行；日期＝该批次落点日。hex 4 处清 ＋ 控件 11px 1 处（`:118`）→ `text-[13px]`、padding 一字未动；收基线 `c` 16→12）** 工作台首页「概况 / 今天」卡组件 |
 | docs/src/components/commissioner-matrix.js | 2026-08-04 | — | [工程师]+[AI] | 🗑️ 已删除（三委员矩阵组件删除） |
 | docs/src/components/feedback/issue-detail.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 13→12〕；`D-674`）** 事项详情组件（**2026-09-23 批次 155**：事项领域块补一行「**反馈时间**」——消费 `issueDomainReplyHint`，逐条照母本 `常见工作场景快速指南.md:439-444` 第 3 列，`D-598`） |
@@ -335,7 +336,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | docs/src/entries/tabs/prop/todo-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员待办 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/prop/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员工作概况 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/prop/tasks-tab.js | 2026-09-25 | — | [工程师]+[AI] | 宣传任务 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（9→6）；该文件内 `PROP_TASKS_SEED` 即服务端 `SEED_PROP_TASKS` 的单一源；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
+| docs/src/entries/tabs/prop/tasks-tab.js | 2026-10-03 | — | [工程师]+[AI] | 宣传任务 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（9→6）；该文件内 `PROP_TASKS_SEED` 即服务端 `SEED_PROP_TASKS` 的单一源；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/entries/tabs/prop/kanban-tab.js | 2026-09-25 | — | [工程师]+[AI] | 项目看板 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（8→5）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-03 | — | [工程师]+[AI] | 周报报送 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/prop/archive-tab.js | 2026-10-03 | — | [工程师]+[AI] | **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:1081`；**只改字号档、padding 一字未动**）；档案归档 tab（T-279 M3 新建；2026-09-21 批次 120：**新增照片墙**——上传（走上传接口）/ 标注 / 按拍摄日期分组展示 ＋ 缩略图鉴权取 blob；**不新开 tab / 页面**；**2026-09-21 批次 139：「上传宣传材料」自建浮层页脚加相关设置深链**——用 `modal.js` 导出的 `settingsLinkHTML()` 插同款一条〔宣传台无支部治理分区 ⇒ 指设置首页〕，`D-570`）；**2026-09-22 批次 145 改注**——**归档行内补第二枚留痕位「标记已上报党建平台」**（与既有「标记已发送（微信/对外）」并列、两个动作分开记；与周报页**同款**字段 `platformReportedAt` / `platformReportedBy`、`persist()` 落库、**只留痕不对接**；同一活动多行 ⇒ 留痕**按活动聚合**；真机两枚按钮逐个真点、`pageerror` 0，`D-577`）；**2026-09-25 批次 199（`D-659`）：hex 清 2 处**（4→2）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
@@ -391,7 +392,9 @@ dynamic_role:
 | docs/src/services/governance/review.js | 2026-07-31 | — | [工程师]+[AI] | 审查服务 |
 | docs/src/services/core/roles.js | 2026-07-31 | — | [工程师]+[AI] | 角色服务 |
 | docs/src/services/core/runtime.js | 2026-07-31 | — | [工程师]+[AI] | 运行时插槽 |
+| docs/src/services/activity/signup.js | 2026-10-03 | — | [工程师]+[AI] | 报名记录服务（活动 / 专班统一报名渠道；分级审批 · 审核待办派生）。 |
 | docs/src/services/activity/taskforce.js | 2026-07-31 | — | [工程师]+[AI] | 专班服务（含专班→待办派生） |
+| docs/src/services/governance/today-summary.js | 2026-10-03 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
 | docs/src/services/governance/todo.js | 2026-08-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注） |
 | docs/src/services/branch/branch-doc.js | 2026-09-21 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |
 | docs/src/services/activity/agenda-follow-up.js | 2026-09-21 | — | [工程师]+[AI] | 议程跟办服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批「讨论文件」分支按 `purpose:'institution'` 分流到制度链，`recordAgendaResult` 增 `reportToPartyMeeting`，非制度文件仍走原归档；**批次 132 再加 `brand-designation` 分流**⇒ 品牌认定「通过才置 `isBrand`」，`D-559`） |

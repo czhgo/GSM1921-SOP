@@ -2,14 +2,17 @@
 // 宣传委员工作台 Tab：宣传任务（T-279 M3 拆分，照 M2 样板）
 // 任务状态流转：待接收 → 进行中 → 已提交（seed 常量 + mockDB 持久化，刷新不再丢失）。
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261003f';
-import { persist } from '../../../data/data-adapter.js?v=20261003f';
-import { showToast, downloadCSV, _fmtDate } from '../../../core/base/utils.js?v=20261003f';
+import { mockDB } from '../../../core/domain/domain.js?v=20261003g';
+import { persist } from '../../../data/data-adapter.js?v=20261003g';
+import { showToast, downloadCSV, _fmtDate } from '../../../core/base/utils.js?v=20261003g';
+// 2026-10-03 批次 358（`D-751`）：宣传任务「作废（软）」——弹窗**单一源**（原因必填那句校验只此一处）
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261003g';
+import { filterActive } from '../../../services/governance/soft-void.js?v=20261003g';
 
 // ── 宣传任务 mock 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261003f';
+import { PROP_TASKS_SEED } from '../../../data/mock/prop.js?v=20261003g';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.propTasks 后调用 persist()
 function _loadPropTasks() {
@@ -17,6 +20,12 @@ function _loadPropTasks() {
     mockDB.propTasks = PROP_TASKS_SEED.map(t => ({ ...t }));
   }
   return mockDB.propTasks;
+}
+
+// 读侧出列（2026-10-03 批次 358 · `D-751`）：被「作废（软）」的宣传任务不进列表 / 分组计数 / 导出；
+//   写路径（`_loadPropTasks()` 的 seed 兜底与行内状态推进）仍用**原始数组**，故另立本读口。
+function _activePropTasks() {
+  return filterActive('propTasks', _loadPropTasks());
 }
 
 // 任务状态流转：待接收 → 进行中 → 已提交
@@ -39,9 +48,9 @@ export function renderContent() {
   if (!container) return;
 
   // 按状态分组
-  const pending = _loadPropTasks().filter(t => t.status === 'pending');
-  const inProgress = _loadPropTasks().filter(t => t.status === 'in_progress');
-  const submitted = _loadPropTasks().filter(t => t.status === 'submitted');
+  const pending = _activePropTasks().filter(t => t.status === 'pending');
+  const inProgress = _activePropTasks().filter(t => t.status === 'in_progress');
+  const submitted = _activePropTasks().filter(t => t.status === 'submitted');
 
   container.innerHTML = `
     <div class="flex items-center justify-between mb-4">
@@ -75,7 +84,7 @@ export function renderContent() {
 
   // T-304 A 档下载闭环：宣传任务导出 CSV
   container.querySelector('.prop-task-export-btn')?.addEventListener('click', () => {
-    const rows = _loadPropTasks().map(t => [t.source, t.type, t.summary, TASK_STATUS_LABEL[t.status] || t.status, t.createdAt]);
+    const rows = _activePropTasks().map(t => [t.source, t.type, t.summary, TASK_STATUS_LABEL[t.status] || t.status, t.createdAt]);
     downloadCSV(`宣传任务_${_fmtDate(new Date())}.csv`, ['来源', '类型', '任务内容', '状态', '创建日期'], rows);
     showToast('success', '宣传任务已导出');
   });
@@ -95,6 +104,27 @@ export function renderContent() {
       renderContent();
     });
   });
+
+  // 作废（软）——2026-10-03 批次 358（`D-751`）：弹窗走单一源 `components/ui/void-record.js`；
+  //   支委层直接作废、其余人报支委会；作废后读侧即出列（`_activePropTasks()`）⇒ 就地重渲染。
+  container.querySelectorAll('.prop-task-void-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const task = _activePropTasks().find(t => t.id === btn.dataset.taskId);
+      if (!task) return;
+      openVoidModal({
+        resource: 'propTasks',
+        id: task.id,
+        subject: task.summary || task.id,
+        label: '宣传任务',
+        modalId: 'prop-task-void-modal',
+        reasonId: 'prop-task-void-reason',
+        okAttr: 'data-prop-task-void-ok',
+        cancelAttr: 'data-prop-task-void-cancel',
+        onDone: () => renderContent(),
+      });
+    });
+  });
 }
 
 function _renderTaskCard(task) {
@@ -103,6 +133,8 @@ function _renderTaskCard(task) {
   const advanceBtn = !isFinal
     ? `<button class="btn-accent-soft task-advance-btn text-xs px-3 py-1.5 mt-1" data-task-id="${task.id}" onclick="event.stopPropagation();">${advanceLabel}</button>`
     : '';
+  // 批次 358（`D-751`）：行内「作废（软）」键（软作废 · 留痕 · 默认列表出列；原因必填在弹窗单一源里）
+  const voidBtn = `<button class="btn-ghost prop-task-void-btn text-xs px-2 py-1 mt-1" data-task-id="${task.id}" title="作废（软 · 留痕）">作废</button>`;
   const typeStyle = TASK_TYPE_STYLE[task.type] || 'bg-gray-50 text-gray-700';
   const statusStyle = TASK_STATUS_STYLE[task.status];
 
@@ -115,7 +147,7 @@ function _renderTaskCard(task) {
       <div class="text-sm font-medium text-gray-800 mt-1">${task.summary}</div>
       <div class="flex items-center justify-between mt-1.5">
         <span class="text-xs text-gray-500">来自：${task.source} · ${task.createdAt}</span>
-        ${advanceBtn}
+        <span class="inline-flex items-center gap-1.5">${advanceBtn}${voidBtn}</span>
       </div>
     </div>`;
 }

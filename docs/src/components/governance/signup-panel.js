@@ -4,16 +4,19 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261003f';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261003f';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261003f';
-import { badgeHtml } from '../ui/badges.js?v=20261003f';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261003g';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261003g';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261003g';
+import { badgeHtml } from '../ui/badges.js?v=20261003g';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived } from '../../core/domain/constants.js?v=20261003f';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261003g';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261003f';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261003g';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261003f';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261003g';
+// 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
+import { openVoidModal } from '../ui/void-record.js?v=20261003g';
+import { AuthStore } from '../../services/core/auth.js?v=20261003g';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）
@@ -202,6 +205,11 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
 
   // 报名名单（已通过）接统一检索引擎：需在 DOM 就位后挂载，故放在本函数（entry 侧均先 innerHTML 再调用）。
   // 行内无按钮；待审核申请的「通过 / 拒绝」在引擎宿主之外，不受翻页重绘影响，绑定保持原样。
+  // ⚠ 2026-10-03 批次 358（`D-751`）修正：**已通过行现有一枚「作废」键**——它由引擎按 `rowHtml` 重绘
+  //   ⇒ 不能用直接绑定（翻页即失效），故走 `cardEl` 上的**事件委托**（见下方 `signup-void-btn`）。
+  const isReviewer2 = myId && resolveSignupReviewer(sourceType, sourceId) === myId;
+  const isCommittee = BRANCH_COMMISSION_ROLES.includes((AuthStore.getCurrentUser() || {}).role);
+  const canVoidSignup = !!(myId && (isReviewer2 || isCommittee));
   const signupListHost = cardEl?.querySelector('[data-signup-list-host]');
   if (signupListHost) {
     const approvedRows = SignupStore.getAll()
@@ -224,8 +232,33 @@ export function bindSignupEvents({ sourceType, sourceId, title, myId, cardEl }) 
           <a href="${getBasePath()}person.html?id=${encodeURIComponent(s.personId)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${getPersonName(s.personId)}</a>
           <span class="text-xs text-gray-500">${roleLabel(s.role)}</span>
           ${s.note ? `<span class="text-xs text-gray-500 truncate max-w-[160px]">${s.note}</span>` : ''}
-          <span class="ml-auto">${badgeHtml('已通过', 'success')}</span>
+          <span class="ml-auto inline-flex items-center gap-2">${badgeHtml('已通过', 'success')}${canVoidSignup ? `<button class="btn-ghost signup-void-btn text-xs px-2 py-0.5" data-signup-id="${s.id}" title="作废（软 · 留痕）">作废</button>` : ''}</span>
         </div>`,
+    });
+  }
+
+  // 作废（软）——2026-10-03 批次 358（`D-751`）：**事件委托**（已通过名单由引擎重绘，直接绑定会随翻页失效）；
+  //   弹窗走单一源 `components/ui/void-record.js`（原因必填 · 支委层直接作废 / 其余人报支委会）；
+  //   作废后读侧即出列（`SignupStore.getAll()` 过滤 `voided`）⇒ 沿用本组件既有的「先结算、再刷新」。
+  if (cardEl && !cardEl.dataset.signupVoidBound) {
+    cardEl.dataset.signupVoidBound = '1';
+    cardEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.signup-void-btn');
+      if (!btn) return;
+      e.preventDefault();
+      const signupId = btn.dataset.signupId;
+      const rec = SignupStore.getAll().find(s => s.id === signupId);
+      openVoidModal({
+        resource: 'signups',
+        id: signupId,
+        subject: rec ? `${getPersonName(rec.personId)}（${roleLabel(rec.role)}）` : signupId,
+        label: '报名记录',
+        modalId: 'signup-void-modal',
+        reasonId: 'signup-void-reason',
+        okAttr: 'data-signup-void-ok',
+        cancelAttr: 'data-signup-void-cancel',
+        onDone: () => _reloadAfterSettle(),
+      });
     });
   }
 

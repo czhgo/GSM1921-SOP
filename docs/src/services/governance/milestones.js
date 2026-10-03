@@ -9,8 +9,8 @@
 //     · mock 形态 → 现有本地路径（localStorage 缓存 → 静态文件），一字未改。
 //   单一源不变：内容仍以 `docs/data/milestones.json` 为准（服务端只是把它搬到库里）。
 
-import { getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261003f';
-import { mockDB } from '../../core/domain/domain.js?v=20261003f';
+import { getDataSource, getAdapter } from '../../data/data-adapter.js?v=20261003g';
+import { mockDB } from '../../core/domain/domain.js?v=20261003g';
 
 const MILESTONES_JSON_PATH = './data/milestones.json';
 const CACHE_KEY = 'gsm1921-milestone-cache';

@@ -20,8 +20,8 @@
 //    `externalDispatches` 的既有读面落在**禁改文件**（支书台「全局概况」）须特批或另择承载，
 //    `tasks` 须先定「作废一条 SOP 派生任务」的语义（见 `.ctx/REVIEW_QUEUE.md`）。
 // ════════════════════════════════════════════════════════════════
-import { mockDB } from '../../core/domain/domain.js?v=20261003f';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261003f';
+import { mockDB } from '../../core/domain/domain.js?v=20261003g';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261003g';
 
 /** 登记「可软作废」的资源：key ＝ 资源名（**同时是 `getAdapter()` 的键与 `mockDB` 的域键**，六张业务表三者同名） */
 export const SOFT_VOID_RESOURCES = {
@@ -68,6 +68,25 @@ export const SOFT_VOID_RESOURCES = {
     label: '任务',
     ownerRole: 'secretary',
     titleOf: (r) => r.title || r.id,
+  },
+  // ── 批次 358（`D-751` · C 档 2 张）──
+  //   支书 2026-10-03 取「**补「作废（软）」**」⇒ 两张各补一条，**口径完全沿用本表既有机制**。
+  //   落点＝**记录产生地 / 管理面**：
+  //     · `signups` ⇒ 活动详情页与专班详情页**共用组件** `components/governance/signup-panel.js`
+  //       的「**已通过名单**」行内（待审核行已有「通过 / 拒绝」，语义已覆盖 ⇒ 不另加键；
+  //       读侧出列点＝`services/activity/signup.js::SignupStore.getAll()` 与 `today-summary.js`）。
+  //     · `propTasks` ⇒ 宣传台「宣传任务」卡行内（读侧出列点＝该 tab 的 `_activePropTasks()`）。
+  signups: {
+    storeKey: 'signups',
+    label: '报名记录',
+    ownerRole: 'org-commissioner',
+    titleOf: (r) => `${r.sourceType === 'taskforce' ? '专班' : '活动'}报名 · ${r.sourceId || r.id}`,
+  },
+  propTasks: {
+    storeKey: 'propTasks',
+    label: '宣传任务',
+    ownerRole: 'prop-commissioner',
+    titleOf: (r) => r.summary || r.id,
   },
 };
 

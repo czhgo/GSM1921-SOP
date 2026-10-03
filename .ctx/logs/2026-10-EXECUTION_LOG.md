@@ -1626,3 +1626,57 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 **守卫实跑**：`doc-consistency`（`S14` ⑥ 四处同源 ＋ ⑥-2 各月×索引交叉核对 · `S13` 台账 · `S15`）＋ `timestamps-note-guard`（`N1`–`N7`）＋ `frontmatter-freshness`（`F1`–`F3`）⇒ **32 / 32 · 0 红**。
 
 **本批只落账、未改任何 `docs/**` / `server/**` 代码 ⇒ 未 bump `?v=`**（仍 `20261003f`）。
+
+---
+
+## 批次 358（2026-10-03）：`D-751` **实现** —— `signups` · `propTasks` 两张补「作废（软）」⇒ **`CRUD-6` 闭环**
+
+承支书 2026-10-03 裁定（`D-751`：`CRUD-6` C 档 2 张取「**补「作废（软）」**」）⇒ 本批＝执行（`R-84` 不另立 `D-` 条），**口径完全沿用 `CRUD-4` 的既有机制，不新造第二套**。
+
+### 一、落地（作废键落点 ＋ 读侧出列点）
+
+| 张 | 作废键落点（**记录产生地 / 管理面**） | 读侧出列点 |
+|---|---|---|
+| `propTasks` | 宣传台「宣传任务」卡行内（`entries/tabs/prop/tasks-tab.js`，与「接收 / 提交」同排） | 该 tab 新增读口 `_activePropTasks()`（分组计数 ＋ CSV 导出**同源**）；**写路径**（seed 兜底 / 状态推进）仍用原始数组 |
+| `signups` | 活动详情页与专班详情页**共用组件** `components/governance/signup-panel.js` 的「**已通过名单**」行内（**待审核行已有「通过 / 拒绝」⇒ 不另加键**） | `services/activity/signup.js::getAll()` 过滤 `voided`（**纯读口**——写口 `apply`/`review`/`cancel`/`deleteBySource` 一律走 `this._signups`，不经它）＋ `today-summary.js` 的「是否算参与」判定同口径 |
+
+- **弹窗单一源**＝`components/ui/void-record.js::openVoidModal`（「原因必填」那句校验**全站只此一处**）；支委层直接作废、其余人报支委会（落支书台「待办 → 待作废待确认」组）。
+- `signups` 的作废键**按管理面显隐**——`resolveSignupReviewer(...)===本人` **或** 支委层（`BRANCH_COMMISSION_ROLES`）：已通过名单面本身对全员可见，故不把键发给无关读者（**实测**：以支书登录活动详情页 2 枚、专班详情页 1 枚）。
+- `soft-void.js::SOFT_VOID_RESOURCES`：**6 张 → 8 张**。
+
+### 二、★ 本批抓到并补齐**同型缺口（第 3、4 例）**：`MockAdapter` 缺 `signups` / `propTasks` 两域
+
+**实读教训**：这两张此前**只有 `mockDB` 域与持久化列表**、**没有适配器域** ⇒ `getAdapter().signups` 为 `undefined` ⇒ 统一写口一调就抛
+`Cannot read properties of undefined (reading 'update')`（**同批次 352 的 `weeklyReports`、批次 352b 的 `externalDispatches`**）。本批**先实跑后修**，按四件套补两域（`list`/`create`/`update`，id 前缀 `su` / `ppt`）；`soft-void.test.mjs::V7`（登记表 × 适配器完备性）**现自动覆盖 8 张**。
+
+### 三、真机取证（一次性探针 · 跑完即删 · `createApp({dbPath:':memory:'})` ＋ `seedDatabase` ⇒ **不碰真库、无需复原** · `pageErrors` **0**）
+
+| 面 | 取证（逐条实测） |
+|---|---|
+| 宣传任务（宣传委员 2400012356） | 作废键 **8 枚** → 点开弹窗 → **空原因**⇒ toast「请填写作废原因（必填）」且**弹窗仍在** ✓ → 填原因确认 ⇒ 作废键 **8 → 7** ✓ · 服务端 `prop_tasks` 该行 `voided.reason` 命中（`pt1`）✓ |
+| 活动详情页（支书 2300010001 · `act-30`） | 「已通过名单」作废键 **2 枚** → 空原因拦截 ✓ → 确认 ⇒ **2 → 1** ✓ · 服务端 `signups` 该行 `voided.reason` 命中（`su-006`）✓ |
+| 专班详情页（同组件 · `tf-005`） | 作废键 **1 枚**（`su-001`）✓（证明**同一组件两源同码**） |
+| 复核 | `signups` 带 `voided` 的 **1 行** · `prop_tasks` 带 `voided` 的 **1 行** ⇒ **软作废落库、行数守恒** ✓ |
+
+### 四、守卫实跑
+
+- `soft-void`（`V1`–`V7`，含 **V7 现覆盖 8 张**）＋ `mock-api-parity`（`P1`–`P3`）＋ `button-system-guard`（`B4`：新键走 `btn-ghost` 族）＋ `import-path-guard`（`G1`–`G3`）＋ `validation-site-coverage`（候选 114 / 未登记 4 ＝ 基线）⇒ **18 / 18 · 0 红**。
+- `test:fast` 全套（含 `write-path-guard` `W1`–`W4`）⇒ **144 / 144 · 0 红**。
+- `module-load`（`E1` 全模块可加载 ＋ `E2` 受检页装配）＋ `copy-master-guard` / `copy-length-guard` / `copy-fold-guard` / `dead-selector-guard` / `small-text-guard` / `text-tier-guard` ⇒ **27 / 27 · 0 红**。
+- `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `link-integrity` ＋ `link-target-guard` ＋ `catalog-sync` ⇒ **52 / 52 · 0 红**。
+- `form-loop-sweep`（真机全量台账，含 `S0` 规模不缩水 ＋ **`S6` 台账行号必须真落在该文案那一行**）⇒ **85 / 85 · 0 红**。
+- `timestamps-note-guard`（`N1`–`N7`）＋ `doc-consistency` ＋ `frontmatter-freshness` ⇒ **26 / 26 · 0 红**。
+
+### 五、收尾全量（`R-85`）
+
+- **`npm test`：941 项 / 941 过 / 0 红 / 0 跳过**（起 3000 服务 → 跑完停服）。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 941 / fail 0`；系 Playwright `debug.log`（本次另含 `C:\WINDOWS\FONTS\ARIAL.TTF`）写入被沙箱拦截——同批次 331/334/343–357）。
+- **本批全量 1 轮即绿**（用例数不变 941：本批**未新增常驻真机流 / 未新增校验点**）。
+
+### 六、如实登记
+
+- **改判签一处（非本批引入、因本批而位移）**：`README-server.md §4.40` 依据行 `prop/tasks-tab.js:12,22-29,92` → **`:15,32-44,86-88`**（本批在该文件顶部插了 3 行 import ＋ 5 行读口，行号整体下移；**该引用无锚点 ⇒ `doc-line-ref` 机检查不到位移**，按纪律**人工改准**）。**顺带复核**：`§4.39` 的 `signup.js:4-8,73-86` 因插入点在其后 ⇒ **未位移、一字未改**。
+- **`TIMESTAMPS.md`**：本批动过的 6 个文件——**3 个原有表行刷日期**（`mock-adapter.js` / `prop/tasks-tab.js` / `soft-void.js`）＋ **3 个原先无表行的补登**（`activity/signup.js` / `governance/today-summary.js` / `governance/signup-panel.js`，**最短形备注**）；备注列 **45,549 → 45,645**（预算 45,900，**只降不升**未破）。
+- **未新增常驻真机流**：沿用本族既有做法（批次 346 的 `disc-makeup-void-reason` 是唯一常驻件，批次 352 / 352b 的另三张亦只做一次性探针 ＋ `V6`/`V7` 定向件）⇒ 本批两张同样**探针 ＋ V7**，**不假装**「每张都有常驻真机守卫」。
+- **未动**：`hasApplied`（已作废的报名**仍**挡住重复报名——语义未裁，**不代裁**）· 报名总表（人×专班**矩阵**无行级动作槽 ⇒ 落点改「记录产生地」＝两个详情页；如实登记该偏离）。
+- 戳：**`20261003f → 20261003g`**（全站 220 JS / 23 HTML / 2 CSS / 92 server-test 已刷，陈旧戳自检 0 残留）。

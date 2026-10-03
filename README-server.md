@@ -1363,7 +1363,7 @@
 | createdAt | string（YYYY-MM-DD） | 是 | 创建日期 |
 
 **服务端有种子**（`server/seed.js` 播种 **8 条**；该常量与前端**同源**——**内容单一源 = `docs/src/data/mock/prop.js::PROP_TASKS_SEED`**，两形态读数一致）。
-**依据**：`docs/src/data/mock/prop.js:28-41`（`PROP_TASKS_SEED` 单一源）、`docs/src/entries/tabs/prop/tasks-tab.js:12,22-29,92`、`docs/src/core/domain/domain.js:277`、`server/routes/resources/store.js:24,53`。
+**依据**：`docs/src/data/mock/prop.js:28-41`（`PROP_TASKS_SEED` 单一源）、`docs/src/entries/tabs/prop/tasks-tab.js:15,32-44,86-88`、`docs/src/core/domain/domain.js:277`、`server/routes/resources/store.js:24,53`。
 
 ### 4.41 文件外发确认（ExternalDispatch，**来源 C**）
 
