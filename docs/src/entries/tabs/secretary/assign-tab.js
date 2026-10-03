@@ -26,30 +26,30 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261003a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261003a';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261003a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261003b';
+import { AuthStore } from '../../../services/core/auth.js?v=20261003b';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261003b';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261003a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261003b';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261003a';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261003a';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261003a';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261003b';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261003b';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261003b';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261003a';
-import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261003a';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261003b';
+import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261003b';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261003a';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261003b';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261003a';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261003a';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261003a';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261003b';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261003b';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261003b';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261003b';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261003a';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261003b';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -104,18 +104,25 @@ const COMMISSIONER_ASSIGN_HTML = `
     <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
     <div id="bc-assign-area"></div>`;
 
-/** 情景② 分块（活动侧项目赋权）——落点＝支书台「党小组与活动」tab（跟活动走）
- *  2026-09-30 批次 303：① 卡壳改**与全站卡同族**（原 `rounded-lg border-gray-100 bg-gray-50/40` 是嵌在
- *  card 里的**第二层灰底**，支书裁「视觉上格格不入」）；② 术语统称「**项目**」——「活动和专班是并列的」
- *  ⇒ 标题写「项目赋权 · 活动」，不再写「活动项目」这类并提。 */
-const ACTIVITY_AUTH_HTML = `
+/** 情景② ／ 情景③ 的**合并卡**（支书台「党小组与活动」tab 用）——2026-10-02 批次 345 · 支书 `#10`：
+ *  支书原话「这两个我认为首先没有上下关系，现在的排布让我觉得很罗嗦，我情愿**两者合并，加一个选择题**，
+ *  给 活动/专班 赋权」⇒ 两块（情景② 活动 / 情景③ 专班）合为**一张卡**，顶部一个「活动 / 专班」选择题
+ *  决定赋权对象；**两块的既有钩子 id 一字未改**（`#project-auth-panel` / `#tf-auth-panel` 及块内 id），
+ *  台账 / 深链（`todo-tab.js::expandAssignPanelForTodo`）/ 真机流（`secretary-assign-project-auth`）照旧可取。
+ *  ⚠ 2026-09-30 批次 303 口径保留：卡壳与全站卡同族（不再「第二层灰底」）；术语统称「**项目**」。 */
+const PROJECT_AUTH_MERGED_HTML = `
   <div class="card rounded-xl p-4">
-    <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">项目赋权 · 活动（组织者 / 深度参与者）</h4>
-    <p class="text-[11px] text-gray-500 mb-3">为某一场活动给同志赋项目角色（组织者 / 深度参与者）；新建活动可在「写入活动」表单里一并赋权。<a href="./help.html#card-copy-assign-activity" class="text-sky-600 hover:underline" title="见帮助：项目赋权 · 活动（本位 / 赋权口径）">见帮助 · 活动赋权</a></p>
+    <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">项目赋权（组织者 / 深度参与者）</h4>
+    <p class="text-[11px] text-gray-500 mb-3">给某一场<b>活动</b>或某一个<b>专班</b>的同志赋项目角色（组织者 / 深度参与者）；新建活动可在「写入活动」表单里一并赋权。<a href="./help.html#card-copy-assign-activity" class="text-sky-600 hover:underline" title="见帮助：项目赋权（本位 / 赋权口径）">见帮助 · 项目赋权</a></p>
+    <div class="flex gap-2 mb-4">
+      <button type="button" class="project-auth-kind-btn btn-accent text-sm px-4 py-[7px]" data-kind="activity">活动</button>
+      <button type="button" class="project-auth-kind-btn btn-outline text-sm px-4 py-[7px]" data-kind="taskforce">专班</button>
+    </div>
     <div id="project-auth-panel"></div>
+    <div id="tf-auth-panel" class="hidden"></div>
   </div>`;
 
-/** 情景③ 分块（专班侧项目赋权）——本位落点＝组织委员台「专班管理」；支书台「党小组与活动」为同项入口（母本 §D.1.1） */
+/** 情景③ 分块（专班侧项目赋权）——本位落点＝组织委员台「专班管理」（该台单块渲染，故仍自带卡壳） */
 const TF_AUTH_HTML = `
   <div class="card rounded-xl p-4">
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">项目赋权 · 专班（组织者 / 深度参与者）</h4>
@@ -148,9 +155,41 @@ export function mountCommissionerAssign(host) {
  *  （活动项目赋权）与情景③（专班赋权，支书亦可）；情景③ 在此台属**非本位操作** ⇒ 写入前弹本位 nudge。 */
 export function mountActivityProjectAuth(host) {
   if (!host) return;
-  host.innerHTML = ACTIVITY_AUTH_HTML + TF_AUTH_HTML;
+  host.innerHTML = PROJECT_AUTH_MERGED_HTML;
   _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'activity'));
   _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'taskforce'));
+  _bindProjectAuthKindSelector(host);
+}
+
+/** 当前选中的赋权对象（模块自持：重渲染后按它恢复，与 `authPanel.open` 同款做法） */
+let _projectAuthKind = 'activity';
+
+/** 切到指定赋权对象（内部用；跨模块深链走 `.project-auth-kind-btn[data-kind=…].click()`，与
+ *  `todo-tab.js` 既有 `#ws-sec-assign-btn` 同款做法——不新增跨文件 import 依赖） */
+function selectProjectAuthKind(kind) {
+  if (kind !== 'activity' && kind !== 'taskforce') return;
+  _projectAuthKind = kind;
+  _applyProjectAuthKind();
+}
+
+/** 「活动 / 专班」选择题（批次 345 · 支书 `#10` 「两者合并，加一个选择题」）：
+ *  切换两颗按钮的选中态 ＋ 只显示对应面板——**两块都留在 DOM 里、钩子 id 不变**，
+ *  故台账 / 深链 / 真机流取到的东西与合并前逐字相同。 */
+function _bindProjectAuthKindSelector(host) {
+  for (const b of host.querySelectorAll('.project-auth-kind-btn')) {
+    b.addEventListener('click', () => selectProjectAuthKind(b.dataset.kind));
+  }
+  _applyProjectAuthKind();
+}
+
+function _applyProjectAuthKind() {
+  for (const b of document.querySelectorAll('.project-auth-kind-btn')) {
+    const on = b.dataset.kind === _projectAuthKind;
+    b.classList.toggle('btn-accent', on);
+    b.classList.toggle('btn-outline', !on);
+  }
+  document.getElementById('project-auth-panel')?.classList.toggle('hidden', _projectAuthKind !== 'activity');
+  document.getElementById('tf-auth-panel')?.classList.toggle('hidden', _projectAuthKind !== 'taskforce');
 }
 
 /** 情景③ 挂载（组织委员台「专班管理」调用；本台即本位 ⇒ 操作人不弹 nudge） */

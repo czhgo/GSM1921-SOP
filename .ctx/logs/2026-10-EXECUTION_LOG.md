@@ -1023,3 +1023,32 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - 守卫子集中间态：`import-path-guard` ＋ `mock-api-parity` ＋ `id-uniqueness` ＋ `branch-status` ＋ `branch-module-catalog` ＋ `branch-doc` ＋ `branch-config-audit` ＋ `doc-consistency` ＋ `doc-line-ref` ＋ `version-stamp` ＋ `text-tier-guard` ＋ `button-system-guard` ＋ `dead-selector-guard` ＋ `catalog-sync` **100 / 100 / 0 红**。
 - 戳 `?v=20261002i → 20261003a`（JS 217 / HTML 22 / CSS 2 / server-test 90；陈旧戳 **0 残留**）。
 - **余项**：`D-744` 第 1 条后半（`assignments` 补入口 → 批 345）· 第 2 条（B 档两类 → 下批）。
+
+## 批次 345（2026-10-02）：支书评议批 `#10` —— **支书台「项目赋权 · 活动 / 专班」两卡合并＋选择题**
+
+> **决议（`R-84`）**：本批**因裁而作**——支书 2026-10-02 评「这两个我认为首先没有上下关系，现在的排布让我觉得很罗嗦，**我情愿两者合并，加一个选择题，给 活动/专班 赋权**」（`#10`）。本批**无新裁定**（只是执行支书的取向）⇒ 按 `R-84` **不另立 `D-` 条**；**实现与实测进本节**。
+
+### 一、本批做了什么
+
+- **合并为一张卡**（`docs/src/entries/tabs/secretary/assign-tab.js`）：新增 `PROJECT_AUTH_MERGED_HTML`——一张卡承载「项目赋权（组织者 / 深度参与者）」，卡内**顶部一个「活动 / 专班」选择题**（两颗 `btn-accent`/`btn-outline` 互斥按钮），下方按选择只显示对应面板。`mountActivityProjectAuth` 由「两块 HTML 相加」改为「一张合并卡 ＋ 逐个渲染两块 ＋ 绑选择题」。
+- **钩子 id 一字未改（关键约束）**：`#project-auth-panel` / `#tf-auth-panel` 及其**块内全部 id**（`#project-id-select` / `#tf-project-select` / `#confirm-project-auth-btn` / `#confirm-tf-auth-btn` / 两个 picker 容器 / 两个已赋权记录列表）**逐字保留** ⇒ 台账（`form-loop-registry`）· 深链（`todo-tab.js::expandAssignPanelForTodo`）· 真机流（`secretary-assign-project-auth`）**取到的东西与合并前逐字相同**。
+- **深链同步**：`todo-tab.js::expandAssignPanelForTodo` 在滚动前先 `document.querySelector('.project-auth-kind-btn[data-kind=…]').click()` 切到该块——**不新增跨文件 import**（与该函数既有的 `#ws-sec-assign-btn.click()` 同款做法）；不先切会滚到一个 `hidden` 面板上（如实登记该耦合）。
+- **选择题状态自持**：`_projectAuthKind` 模块级（重渲染按它恢复，与 `authPanel.open` 同款）；切块即时改按钮族与面板显隐。
+- **组织委员台不动**：`mountTaskforceProjectAuth`（「专班管理」）仍按**单块**渲染（那台即本位、无「活动」侧），`TF_AUTH_HTML` 原样保留。
+- **台账同批改准**：`form-loop-registry` 里 `assign-tab.js` 的 6 条校验点行号随本批行数位移（**+39**）改准（`365/366/367` · `582/586` · `772/773`）；`todo-tab.js` 的 2 条登记行在其**之前**（`756`/`806`）⇒ 不受影响（已核）。
+
+### 二、`#10` 的「命名与归属」思考（**待支书圈**，未擅自改）
+
+- 支书追问（逐字）：「**既然叫 党小组与活动 为什么 专班在这里？** 党小组与活动与 **活动管理** 的关系是什么？**这值得思考，并在各个工作台思考改进！！**」
+- **实读现状**：支书台「**党小组与活动**」（`group-progress-tab.js`）现含三件——① 党小组清单＋组长指派（组层）· ② 党小组活动分区 · ③ **项目赋权**（情景② 活动 ＋ 情景③ 专班，本批已合并成一张卡）；「**活动管理**」（`calendar-tab.js`）＝活动的建 / 改 / 查（活动台账与本位写入）。
+- **冲突点**：**专班与「党小组」无组织关系**（专班是跨组的临时编制）⇒ 情景③ 挂在「党小组与活动」名不符实；而「项目赋权」是**活动与专班的公共动作**，与「活动管理」又确有上下关系。
+- **三档处置已登记** `.ctx/REVIEW_QUEUE.md`「`#10` 命名与归属 · 待支书圈」节（**甲** 项目赋权整块迁「活动管理」· **乙** 只把「党小组与活动」改名 · **丙** 情景③ 支书台只留深链）。**本批只出选项与影响面，不动 IA**（改落点会牵动 tab 名 / `help.html` / 台账 tab 字段 / 多条真机流）。
+
+### 三、收尾全量（`R-85`）
+
+- **`npm test`：930 项 / 930 过 / 0 红 / 0 跳过**（与本批前同数：**无新增用例**，改动由既有真机流 ＋ 守卫覆盖）· **耗时 1,334,713 ms（≈22.2 分钟）**。
+- ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 930 / fail 0`；系 Playwright 收尾 `debug.log` 写入被沙箱拦截——与测试内容无关，同批次 331/334/343/344）。
+- ⚠ **覆盖面如实登记**：本批**未新增**定向件——「选择题切到专班」这一步**无专门真机断言**；现有覆盖＝`secretary-assign-project-auth` 真机流（活动面板默认可见、`#project-id-select`/`#confirm-project-auth-btn` 在位）＋ `page-sweep`（该 tab 渲染非空、零脚本错误）＋ 静态守卫（`dead-selector-guard` 等）。**缺口留待续批补一条 `secretary-assign-kind-switch` 真机流**。
+- 守卫子集中间态：`version-stamp` ＋ `doc-consistency` ＋ `doc-line-ref` ＋ `import-path-guard` ＋ `text-tier-guard` ＋ `button-system-guard` ＋ `dead-selector-guard` ＋ `small-text-guard` ＋ `hex-hardcode-guard` ＋ `control-font-guard` ＋ `party-group` ＋ `mock-api-parity` ＋ `id-uniqueness` ＋ `catalog-sync` ＋ `localstorage-key-guard` ＋ `copy-master-guard` ＋ `self-evident-copy-guard` **101 / 101 / 0 红**。
+- 戳 `?v=20261003a → 20261003b`（JS 217 / HTML 22 / CSS 2 / server-test 90；陈旧戳 **0 残留**）。
+- **余项**：`D-744` 第 1 条后半（`assignments` 补入口）· 第 2 条（B 档两类）· `#10` 命名归属（待支书圈）。

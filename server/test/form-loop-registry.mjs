@@ -120,18 +120,20 @@ export const VALIDATION_SITES = [
   //   `537,541` → `541,545`）；`calendar-tab.js` 新增写入表单内嵌「项目赋权」字段组（净下移 66 行）⇒
   //   （`1132` → `1196`；`1170,1171,1172` → `1234,1235,1236`）＋**新增 2 处校验点**（内嵌赋权：人选 → 角色）。
   //   file/field/msg **均不变**（写口与 DOM ID 一字未改，真机流程载体不失配）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 326, field: '被赋权人', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 327, field: '项目', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 328, field: '角色', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 543, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 547, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-10-02 批次 345（支书 `#10` 两卡合并＋选择题）：`assign-tab.js` 头部新增合并卡常量与选择题函数
+  //   ⇒ 该文件下文行号整体 +39，下列行号按实况改准（S6：行号须落在文案那一行）。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 365, field: '被赋权人', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 366, field: '项目', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 367, field: '角色', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 582, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 586, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
   //   2026-09-27（支委会迁移批）：支委身份配置**整体迁入支书台「支委会」tab 的「机构构成」段**
   //   （判据＝支部大会选举支委 → 支委会讨论分工）⇒ 落点 tab 名改准（`file/field/msg` 与行号均不变，
   //   写口与 DOM ID 一字未改）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 733, field: '支委人选', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 734, field: '支委身份', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 772, field: '支委人选', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 773, field: '支委身份', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
   // 2026-09-27（支委会迁移批）：`group-progress-tab.js` 删去「支委身份配置」宿主与挂载、进展区四卡改折叠下沉
   //   ⇒ 该文件既有登记下移 ⇒ `746` → `768`（S6：行号须落在文案那一行；file/field/msg 不变）。
   { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 775, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
