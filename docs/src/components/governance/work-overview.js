@@ -10,30 +10,30 @@
 //  职责空间最小充分信息（P-011 知情边界）；本页禁用 SVG 图标（支书 2026-08-10 裁定）
 // ════════════════════════════════════════════════════════════════
 
-import { showToast, flashHighlight } from '../../core/base/utils.js?v=20261003e';
-import { dutyCardHtml } from './workforce-duty-card.js?v=20261003e';
-import { TodoStore, seedTodos, TodoStatus } from '../../services/governance/todo.js?v=20261003e';
-import { IssueStore } from '../../services/governance/issues.js?v=20261003e';
-import { AuthStore } from '../../services/core/auth.js?v=20261003e';
-import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20261003e';
-import { loadActivities } from '../../services/activity/activity.js?v=20261003e';
+import { showToast, flashHighlight } from '../../core/base/utils.js?v=20261003f';
+import { dutyCardHtml } from './workforce-duty-card.js?v=20261003f';
+import { TodoStore, seedTodos, TodoStatus } from '../../services/governance/todo.js?v=20261003f';
+import { IssueStore } from '../../services/governance/issues.js?v=20261003f';
+import { AuthStore } from '../../services/core/auth.js?v=20261003f';
+import { solidAccentStyle, dotDarkVars, isActivityEnded, isActivityArchived } from '../../core/domain/constants.js?v=20261003f';
+import { loadActivities } from '../../services/activity/activity.js?v=20261003f';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：「工作概况」的在办/条线计数
 // 同样按查看者角色收窄（非支委层不算入还没批的活动）。
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261003e';
-import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261003e';
-import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261003e';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261003f';
+import { loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261003f';
+import { loadInspectionRecords, getOverdueRecords } from '../../services/activity/inspection.js?v=20261003f';
 // S3③（2026-09-12）：补课口径统一——概况补课缺口与「补课制度」表同源（services/activity/makeup.js）
-import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261003e';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003e';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261003e';
-import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261003e';
+import { loadMakeupTasks } from '../../services/activity/makeup.js?v=20261003f';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261003f';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../services/activity/external-dispatch.js?v=20261003f';
+import { liveMembers, PersonStore } from '../../services/member/person.js?v=20261003f';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getPersonName } from '../../services/member/person.js?v=20261003e';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261003e';
+import { getPersonName } from '../../services/member/person.js?v=20261003f';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261003f';
 // 统一检索引擎（2026-09-14 批次 37）：「请我汇报」行接入（关键词 汇报人/事项 + 引擎内置分页）
-import { renderFilteredList } from '../ui/list-filter.js?v=20261003e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261003f';
 
 // 在办下钻详情目标（支书 2026-08-10 裁定：概况「在办」可下钻到活动/专班只读详情）
 let _woDetail = null; // { kind: 'activity' | 'taskforce', id } | null
@@ -458,10 +458,10 @@ async function _renderOverviewDetail(container, detail, accent, onBack) {
   const host = container.querySelector('#wo-detail-host');
   if (!host) return;
   if (detail.kind === 'activity') {
-    const { renderActivityView } = await import('../record/activity-view.js?v=20261003e');
+    const { renderActivityView } = await import('../record/activity-view.js?v=20261003f');
     renderActivityView(host, { highlightId: detail.id, accent });
   } else {
-    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261003e');
+    const { renderTaskforceView } = await import('../record/taskforce-view.js?v=20261003f');
     renderTaskforceView(host, { highlightId: detail.id });
   }
 }

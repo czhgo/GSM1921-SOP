@@ -18,13 +18,13 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261003e';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261003e';
-import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261003e';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261003f';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261003f';
+import { registerMockAdapter, setDataSource } from '../../docs/src/data/data-adapter.js?v=20261003f';
 import {
   SOFT_VOID_RESOURCES, filterActive, listPending, listVoidPending, parseRecordVoidId,
   requestVoid, confirmVoid, rejectVoid,
-} from '../../docs/src/services/governance/soft-void.js?v=20261003e';
+} from '../../docs/src/services/governance/soft-void.js?v=20261003f';
 
 // ── localStorage 内存桩（member-persist 同款）──
 const _store = new Map();
