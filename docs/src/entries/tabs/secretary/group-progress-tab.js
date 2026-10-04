@@ -25,10 +25,14 @@
 // 规范：筛选一律用下拉（禁 chip 筛选）；表格样式单一源（styles.css::.data-table 提供表头/行线/悬停/内边距，
 //   数据格与表头一律由该 CSS 类族提供，各表勿再重复声明）；弹窗走 components/ui/modal.js；
 //   提示走 showToast(type, message)。本页禁用 SVG 图标（支书台裁定），类别用色点+文字区分。
-// 区块顺序（2026-09-27 · 支委会迁移批：支书裁「支委配置归支委会」＋本 tab 减负）——自上而下：
-//   ① 未分组归组条（组层·待分配；异常提醒置顶）→ ② 党小组清单（组层实体：新增 / 改名 / 解散）＋ 组长指派
-//   （组层人事，同一张卡内 `#gp-leader-assign-host`）→ ③ 党小组活动（组层活动，只读归集）→ ④ 变更留痕
-//   → ⑤ 进展区（跨组只读知情，**默认折叠**：首屏只 load 组管理，点开才渲染跨组进展）。
+// 区块顺序（2026-10-04 批次 373 · 支书 `#10`「本页只留『组』，其余按对象归位」）——自上而下：
+//   ① 未分组归组条（组层·待分配；异常提醒置顶）→ ② 党小组清单（组层实体：新增 / 改名 / 解散
+//   ＋ 组长 / 副组长赋权，同一张卡内 `#gp-leader-assign-host`）→ ③ 变更留痕
+//   → ④ 进展区（跨组只读知情，**默认折叠**：首屏只 load 组管理，点开才渲染跨组进展）。
+//   **2026-10-04 批次 373 按对象归位**：原「党小组活动」分区与「项目赋权」整卡（含 已赋权记录·活动/专班）
+//   ⇒ 迁「活动管理」页（`calendar-tab.js`，`mountActivityProjectAuth`）——本页只留「组」。
+//   沿革：2026-09-25 曾按支书裁「按『党小组与活动』这个名落地」收编「党小组活动」分区；本批按
+//   2026-10-04 支书裁「既然叫 党小组与活动 为什么 专班在这里？按对象归位」**撤出**（活动/赋权跟活动走）。
 //   **沿革/判据**：2026-09-27 批次 215 曾把「支委身份配置」拆为支部层独立卡置于党小组清单之前
 //   （母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A「支委会领导党小组」）；**本批（2026-09-27）按支书裁定**
 //   「支委配置归支委会」——「支部大会选举支委 → 支委会讨论分工」⇒ 支委身份配置（情景①b）整体迁入支书台
@@ -39,38 +43,41 @@
 //   ⚠ **只动渲染顺序 / 分层与落点**，不改任何功能、权限判定与写口——DOM ID 全保留，真机流程不失配。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261004h';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004h';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261004h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004h';
-import { loadActivityReviews } from '../../../services/governance/review.js?v=20261004h';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004h';
-import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261004h';
-import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261004h';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261004i';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004i';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261004i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004i';
+import { loadActivityReviews } from '../../../services/governance/review.js?v=20261004i';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004i';
+import { AttendanceStatus, ReviewStatus, REVIEW_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261004i';
+import { getMeetingRosterIds } from '../../../services/member/roster.js?v=20261004i';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：组员进展摘要（按人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004i';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**不在本文件手写色值**（支书 2026-09-30：颜色是最好的信息展示方式）。
-import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261004h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004h'; // 扎口出口（批次 304 收回，勿直连 badge.js）
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004h';
+import { activityTypeBadgeVariant } from '../../../core/domain/constants.js?v=20261004i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004i'; // 扎口出口（批次 304 收回，勿直连 badge.js）
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004i';
 // 党小组一等实体服务层（组清单 / 写口 / 权限门 / 留痕——组名唯一来源，禁本文件手写组名数组）
 import {
   loadPartyGroups, groupOptions, defaultGroupName, nextGroupSeq,
   addGroup, renameGroup, dissolveGroup, assignMemberToGroup, ungroupedMembers,
   canManagePartyGroups, listGroupHistory,
-} from '../../../services/member/party-group.js?v=20261004h';
+} from '../../../services/member/party-group.js?v=20261004i';
 import {
   listPartyGroups, memberScopeOfGroup, countOpenReportsByGroup,
-  groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR,
-} from '../../../services/member/group-view.js?v=20261004h';
-// 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长）+ 情景②（活动项目赋权）+ 情景③
-//   （专班赋权·支书台同项入口）由本 tab 承载；**情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**。
+  groupActivitiesOf, reviewBucketOf, GROUP_REVIEW_COLOR, groupLeadershipOf,
+  groupReportRowsOf, reportRowStateOf,
+} from '../../../services/member/group-view.js?v=20261004i';
+// 赋权分块（2026-09-25 支书裁「全按对象归位」）：情景①a（设党小组组长 / 副组长）由本 tab「党小组清单」卡内
+//   行内管理（2026-10-04 批次 373 去冗余：撤独立「组长指派」块，改由清单行内「设/改」开同一面板）；
+//   **情景①b 支委身份配置已按 2026-09-27 支书裁定迁「支委会」**；**情景②③ 项目赋权整卡按 2026-10-04
+//   批次 373 迁「活动管理」页**（`calendar-tab.js`）。
 //   实现单一源＝entries/tabs/secretary/assign-tab.js（该文件已不注册为 tab，仅余 mount* 分块）
 //   ⇒ **不新造第二套视觉/表单**，只把既有分块挂到本 tab 的落点。
-import { mountLeaderAssign, mountActivityProjectAuth } from './assign-tab.js?v=20261004h';
+import { mountLeaderAssign, openLeaderAssignPanel } from './assign-tab.js?v=20261004i';
 
 /** 缺省支部（与 services/member/party-group.js / mock/domain 既有兼容口径一致：老数据无 branchId 视为 br-b1） */
 const DEFAULT_BRANCH_ID = 'br-b1';
@@ -123,18 +130,19 @@ function _renderAll(container) {
   const group = viewGroups.find(g => g.groupName === _selectedGroup) || null;
 
   const history = listGroupHistory();
-  // 区块顺序＝① 未分组条 → ② 党小组清单＋组长指派（组层）→ ③ 党小组活动 → ④ 变更留痕
-  //   → ⑤ 进展区（只读知情，默认折叠）；判据与沿革见文件头「区块顺序」。
+  const leaderAssign = _leaderAssignMap(branchId); // 组长 / 副组长：档案派生 ＋ 审计赋权叠加（2026-10-04 批次 373）
+  // 区块顺序＝① 未分组条 → ② 党小组清单（＋组长/副组长赋权，行内管理）→ ③ 变更留痕
+  //   → ④ 进展区（只读知情，默认折叠）；判据与沿革见文件头「区块顺序」。
   container.innerHTML = `
     <div class="space-y-4">
       ${_ungroupedBarHtml(ungrouped, canManage)}
-      ${_manageCardHtml(entities, statOf, canManage)}${_groupActivitySectionHtml()}
+      ${_manageCardHtml(entities, statOf, leaderAssign, canManage)}
       ${history.length ? _historyCardHtml(history) : ''}
       ${group ? _progressSectionHtml(viewGroups, group, members, activities, reviews, attRecords, branchId, issues) : _noGroupHintHtml()}
     </div>`;
 
-  _bindEvents(container); _renderGroupActivities(container, activities);
-  _mountAssignBlocks(container); // 情景①a 组长指派（组层）＋ 情景②③ 项目赋权分块挂载
+  _bindEvents(container);
+  _mountAssignBlocks(container); // 组长 / 副组长赋权面板宿主（清单行内「设/改」触发）
   // 进展区默认折叠（R7）：展开态才渲染四卡并填汇报（未展开不 load，减负首屏）
   if (group && _progressOpen) {
     if (_issuesLoaded) _renderReportsList(container.querySelector('#gp-reports'), group, issues);
@@ -162,12 +170,13 @@ function _statMap(viewGroups) {
   return map;
 }
 
-/** 赋权分块挂载（情景①a 组长指派 · 情景②③ 项目赋权）：宿主随本 tab 渲染，
- *  实现单一源＝assign-tab.js——本文件只给落点宿主，不新造第二套视觉/表单。挂载序＝页面区块序。
- *  （情景①b 支委身份配置已按 2026-09-27 支书裁定迁支书台「支委会」tab，宿主改由 committee-meeting-tab 提供。） */
+/** 组长 / 副组长赋权面板挂载（2026-10-04 批次 373 去冗余）：宿主随本 tab 渲染，**面板由清单行内「设/改」触发**
+ *  （不再单设「组长指派」块与其列表——清单表即唯一列表＋管理面）；实现单一源＝assign-tab.js
+ *  ——本文件只给落点宿主，不新造第二套视觉/表单。
+ *  （情景①b 支委身份配置已按 2026-09-27 支书裁定迁支书台「支委会」tab；情景②③ 项目赋权整卡按
+ *    2026-10-04 批次 373 迁「活动管理」页。） */
 function _mountAssignBlocks(container) {
   mountLeaderAssign(container.querySelector('#gp-leader-assign-host'));
-  mountActivityProjectAuth(container.querySelector('#gp-activity-auth-host'));
 }
 
 // ── ① 未分组归组条（写；无权限只读） ──────────────────────────
@@ -208,9 +217,9 @@ function _ungroupedRowHtml(p, options, canAssign) {
 }
 
 // ── ② 党小组清单（管理区；写口显隐与校验同源 canManagePartyGroups） ──
-function _manageCardHtml(entities, statOf, canManage) {
+function _manageCardHtml(entities, statOf, leaderAssign, canManage) {
   const rows = entities.length
-    ? entities.map(g => _manageRowHtml(g, statOf.get(g.name), canManage)).join('')
+    ? entities.map(g => _manageRowHtml(g, statOf.get(g.name), leaderAssign.get(g.name), canManage)).join('')
     : `<tr><td colspan="7" class="py-2 px-3 text-gray-500">支部暂无党小组，点右上「新增党小组」建立第一组</td></tr>`;
   return `
     <div class="card rounded-xl p-4">
@@ -221,14 +230,14 @@ function _manageCardHtml(entities, statOf, canManage) {
           ${canManage ? '<button type="button" class="btn-accent gp-add-group text-xs px-3 py-1.5">+ 新增党小组</button>' : ''}
         </div>
       </div>
-      <p class="text-xs text-gray-500 mb-2.5">组长由成员档案派生（任命入口见「组长指派」）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
+      <p class="text-xs text-gray-500 mb-2.5">组长 / 副组长由成员档案派生，行内「设 / 改」就地任命、行内「撤销」回收（同一套赋权写口）；改名同步成员归属；解散非空组后成员转「未分组」。<a href="./help.html#card-copy-party-group" class="text-sky-600 hover:underline" title="见帮助：党小组与组长（组长派生 / 改名 / 解散的完整口径与边界）">见帮助 · 党小组与组长</a></p>
       <div class="overflow-x-auto">
         <table class="data-table">
           <thead>
             <tr>
               <th>组名</th>
               <th>序号</th>
-              <th>组长</th>
+              <th>组长 / 副组长</th>
               <th>人数</th>
               <th>党员数</th>
               <th>状态</th>
@@ -242,9 +251,8 @@ function _manageCardHtml(entities, statOf, canManage) {
     </div>`;
 }
 
-function _manageRowHtml(g, stat, canManage) {
+function _manageRowHtml(g, stat, assign, canManage) {
   const active = g.status === 'active';
-  const leader = stat && stat.leaderId ? getPersonName(stat.leaderId) : '—';
   // 2026-09-30 批次 297-2 续③（支书裁「这些有操作能力的字段应该有一定的设计，如果不是边框，
   //   就应该用一定的颜色」）：行内实体操作**不得裸文字** —— 改名＝中性描边、解散＝功能红软底。
   const actions = (canManage && active)
@@ -253,16 +261,72 @@ function _manageRowHtml(g, stat, canManage) {
         <button type="button" class="btn-danger gp-dissolve text-xs px-3 py-1.5" data-id="${esc(g.id)}">解散</button>
       </div>`
     : '<span class="text-gray-500">—</span>';
+  const leaderCell = active ? _leaderCellHtml(g, assign, canManage) : '<span class="text-gray-500">—</span>';
   return `
     <tr>
       <td class="text-gray-800 font-medium">${esc(g.name)}</td>
       <td class="text-gray-600 tabular-nums">${Number(g.seq) || 0}</td>
-      <td class="text-gray-600">${esc(leader)}</td>
+      <td>${leaderCell}</td>
       <td class="text-gray-600 tabular-nums">${stat ? stat.memberCount : 0}</td>
       <td class="text-gray-600 tabular-nums">${stat ? stat.partyCount : 0}</td>
       <td><span class="text-xs px-1.5 py-0.5 rounded-full ${active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">${active ? '在册' : '已解散'}</span></td>
       <td>${actions}</td>
     </tr>`;
+}
+
+/** 组长 / 副组长行内展示（同列双身份；副组长 0..N 人）＋「设 / 改」入口。
+ *  2026-10-04 批次 373（支书 `#10`「清单已展示组长，为何还有组长指派？应当一并管理」＋「还有副组长赋权」）：
+ *  清单表即**唯一列表＋管理面**——独立「组长指派」块与其列表**已撤**（去冗余）。
+ *  **撤销入口**（支书圈甲）：行内「撤销」直接回收该身份的审计赋权记录；仅对**运行时赋权**（有 recordId）
+ *  显示——档案预设的组长 / 副组长无此按钮（与既有「预设」口径一致）。 */
+function _leaderCellHtml(g, assign, canManage) {
+  const leaders = (assign && assign.leaders) || [];
+  const deputies = (assign && assign.deputies) || [];
+  const chips = (persons) => persons.length
+    ? persons.map(p => `<span class="inline-flex items-center gap-1">
+        <a href="${getBasePath()}person.html?id=${encodeURIComponent(p.personId)}" class="text-xs text-gray-800 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(getPersonName(p.personId))}</a>
+        ${canManage && p.recordId ? `<button type="button" class="gp-revoke-leader btn-ghost text-xs px-1.5 py-0.5 text-red-600" data-record-id="${esc(p.recordId)}" data-group="${esc(g.name)}" title="撤销该赋权（回落普通成员）">撤销</button>` : ''}
+      </span>`).join('')
+    : '<span class="text-xs text-gray-500">未设</span>';
+  const btn = canManage
+    ? `<button type="button" class="gp-assign-leader btn-outline text-xs px-2 py-0.5" data-group="${esc(g.name)}" title="设 / 改本组组长或副组长">设 / 改</button>`
+    : '';
+  return `
+    <div class="space-y-1.5 min-w-[180px]">
+      <div class="flex items-center gap-2 flex-wrap"><span class="text-[11px] text-gray-500 shrink-0 w-8">组长</span>${chips(leaders)}</div>
+      <div class="flex items-center gap-2 flex-wrap"><span class="text-[11px] text-gray-500 shrink-0 w-8">副组长</span>${chips(deputies)}</div>
+      ${btn ? `<div>${btn}</div>` : ''}
+    </div>`;
+}
+
+/** 各党小组「组长 / 副组长」名单（档案派生 ＋ 审计赋权叠加）——
+ *  判据单一源：档案侧＝`group-view.js::groupLeadershipOf`（与 listPartyGroups 同分组口径）；
+ *  审计侧＝`AuthStore.getAuthorizations()`（`role ∈ {leader, deputy-leader}`，按 (人,角色,组) 取最新一条、
+ *  排除 revoke）——**授权只写审计快照、不改成员档案**（`auth.js::authorize` 注释），故须两源合并才完整。
+ *  @returns {Map<string, {leaders:Array<{personId,recordId}>, deputies:Array<{personId,recordId}>}>} */
+function _leaderAssignMap(branchId) {
+  const map = new Map();
+  const push = (groupName, key, personId, recordId) => {
+    if (!map.has(groupName)) map.set(groupName, { leaders: [], deputies: [] });
+    const arr = map.get(groupName)[key];
+    if (arr.some(x => x.personId === personId)) return;
+    arr.push({ personId, recordId });
+  };
+  for (const e of groupLeadershipOf({ members: PersonStore.getMembers(), branchId }).values()) {
+    e.leaderIds.forEach(id => push(e.groupName, 'leaders', id, null));
+    e.deputyLeaderIds.forEach(id => push(e.groupName, 'deputies', id, null));
+  }
+  const latest = new Map(); // `${personId}|${role}|${group}` → 最新一条（数组顺序即时间序）
+  for (const r of AuthStore.getAuthorizations()) {
+    if ((r.role === 'leader' || r.role === 'deputy-leader') && r.scopeRef) {
+      latest.set(`${r.targetPersonId}|${r.role}|${r.scopeRef}`, r);
+    }
+  }
+  for (const r of latest.values()) {
+    if (r.action === 'revoke') continue;
+    push(r.scopeRef, r.role === 'leader' ? 'leaders' : 'deputies', r.targetPersonId, r.id);
+  }
+  return map;
 }
 
 // ── ③ 组级变更留痕（可折叠；服务层 history 汇总） ──────────────
@@ -383,30 +447,8 @@ function _reportsLoadingHtml() {
     </div>`;
 }
 
-/** 组员相关汇报行集合（含组长向组员发起的「了解进展」请求行） */
-function _groupReportRows(allIssues, group) {
-  const scope = new Set(memberScopeOfGroup(group));
-  const leaderId = group.leaderId;
-  return allIssues
-    .filter(i =>
-      i && i.kind === 'report' && !i.hidden && !i.mergedInto &&
-      (scope.has(i.submittedBy) || (leaderId && i.requestedBy === leaderId && scope.has(i.assignee)))
-    )
-    .sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')))
-    .slice(0, 8);
-}
-
-/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已办结） */
-function _reportRowState(issue) {
-  if (issue.status === 'closed') return { label: '已办结', cls: 'bg-gray-100 text-gray-600' };
-  const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
-  if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
-  // 上级（支书/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
-  if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', cls: 'bg-blue-100 text-blue-700' };
-  if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
-  if (issue.reportCategory === 'blocked') return { label: '卡点上报', cls: 'bg-red-100 text-red-700' };
-  return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
-}
+// 组员相关汇报行集合 / 行状态 / 色点 —— 2026-10-04 批次 373 判据**上移** `services/member/group-view.js`
+//   （`groupReportRowsOf` / `reportRowStateOf` / `REPORT_DOT_COLOR`）⇒ 支书台「跨组进展」与组长台「其他组」复用同一份。
 
 /** 汇报行是否可「请组长关注」（组长存在 + open + 非组长自身发起 + 组长尚未答复） */
 function _canAskLeader(issue, group) {
@@ -419,7 +461,7 @@ function _renderReportsList(hostEl, group, allIssues) {
   if (!hostEl) return;
   renderFilteredList(hostEl, {
     stateKey: `secretary-group-progress-reports-${group.groupName}`,
-    rows: _groupReportRows(allIssues, group),
+    rows: groupReportRowsOf(allIssues, group),
     keyword: personKeyword(),
     facets: personFacets({ roleLabel: roleLabelOf }),
     facetStyle: 'chip',
@@ -427,7 +469,7 @@ function _renderReportsList(hostEl, group, allIssues) {
     listClass: 'space-y-1.5',
     emptyMessage: '暂无本组组员汇报，组员汇报答复在组长台完成',
     rowHtml: (r) => {
-      const st = _reportRowState(r);
+      const st = reportRowStateOf(r);
       const submitterName = getPersonName(r.submittedBy) || '匿名';
       const askBtn = _canAskLeader(r, group)
         ? `<button type="button" class="btn-accent-soft gp-ask-leader text-xs px-2.5 py-1 shrink-0"
@@ -450,7 +492,8 @@ function _renderReportsList(hostEl, group, allIssues) {
   });
 }
 
-/** 类别色点（progress/blocked/ask，同汇报收件箱） */
+/** 类别色点（progress/blocked/ask，同汇报收件箱）——**留本文件**（色值为既有硬编码存量，随本文件在 `hex-hardcode-guard` 基线内；
+ *  `group-view.js` 属纯逻辑域、**不引入色值**）。 */
 function _reportDot(issue) {
   const color = issue.reportCategory === 'blocked' ? '#EF4444'
     : issue.reportCategory === 'ask' ? '#F59E0B' : '#16A34A';
@@ -659,6 +702,12 @@ function _bindDelegated(container) {
   container.addEventListener('click', (e) => {
     const ask = e.target.closest('.gp-ask-leader');
     if (ask) { _onAskLeader(container, ask); return; }
+    // 组长 / 副组长：行内「设 / 改」开同一面板（2026-10-04 批次 373 去冗余）
+    const assignBtn = e.target.closest('.gp-assign-leader');
+    if (assignBtn) { openLeaderAssignPanel({ groupName: assignBtn.dataset.group }); return; }
+    // 组长 / 副组长：行内「撤销」直接回收审计赋权记录（支书圈甲）
+    const revokeBtn = e.target.closest('.gp-revoke-leader');
+    if (revokeBtn) { _onRevokeLeader(container, revokeBtn); return; }
     if (e.target.closest('.gp-add-group')) { _openAddGroupModal(container); return; }
     const ren = e.target.closest('.gp-rename');
     if (ren) { _openRenameModal(container, ren.dataset.id); return; }
@@ -708,6 +757,17 @@ function _onAskLeader(container, btn) {
   IssueStore.requestReport(group.leaderId, 'leader', note);
   showToast('success', `已请组长「${getPersonName(group.leaderId)}」关注本组进展`);
   _fillReports(container, group, PersonStore.getMembers()); // 刷新徽标/行
+}
+
+/** 行内撤销组长 / 副组长赋权（2026-10-04 批次 373 · 支书圈甲「行内撤销」）——
+ *  写口单一源＝`AuthStore.revokeAuthorization(recordId)`（只回收审计赋权记录；档案预设无撤销入口）。 */
+async function _onRevokeLeader(container, btn) {
+  const recordId = btn.dataset.recordId;
+  if (!recordId) return;
+  const ok = await AuthStore.revokeAuthorization(recordId);
+  if (!ok) { showToast('error', '撤销失败'); return; }
+  showToast('success', '已撤销该党小组组长 / 副组长赋权');
+  _renderAll(container);
 }
 
 // ── 管理动作（新增 / 改名 / 解散；权限门 = canManagePartyGroups 单一源） ──
@@ -825,63 +885,15 @@ function _openDissolveModal(container, id) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  收编分区：党小组活动（2026-09-25 支书裁「按『党小组与活动』这个名落地」·只收编党小组活动）
+//  本台「写入活动」入口（**不新造表单**）
 // ════════════════════════════════════════════════════════════════
-// 判据**单一源** ＝ 活动 `direction === 'bottom-up'`——即活动详情页「活动方向」显示的「自下而上（党小组发起）」
-//   （`entries/pages/activity-entry.js:306`；仓内把活动标成「党小组发起」的**唯一展示口径**）。**不引入第二判据**：
-//   `hostGroup`（承办党小组，README-server §4.20）只用于考勤「应到」推导、且多数活动为空，不是收编依据。
-// 呈现：只读列表（行点进 `activity.html?id=` 详情）＋「+ 新建党小组活动」——新建**复用既有写入入口**
-//   （calendar-tab.js 的「写入活动」浮窗，见下方 openActivityWriteEntry），**不新造表单**。
-// 重复渲染边界：本分区只给**只读展示**，不提供任何**按活动**的可写入口 ⇒ 与「活动管理」tab 不存在同一场活动的
-//   两份可写入口（日历仍显示全部活动、仍保留通用「写入活动」入口；两处新建都落同一个既有浮窗，口径一致）。
-// 列表走统一检索引擎（renderFilteredList）：大数目自动分页（page-sweep P11「自建列表未分页」不适用于本分区）。
-// ⚠ 本段位于文件末尾区——`form-loop-sweep` 按 `group-progress-tab.js:768` 取证（2026-09-27 支委会迁移批
-//   因顶部删「支委配置」宿主与挂载、进展区改折叠，既有登记行号随实况由 `:746` 改准为 `:768`）。
-
-/** 党小组活动分区骨架（列表由 _renderGroupActivities 经统一检索引擎填入 #gp-group-activities） */
-function _groupActivitySectionHtml() {
-  return `
-    <div class="card rounded-xl p-4">
-      <div class="flex items-center justify-between mb-1">
-        <h4 class="font-title-cn text-sm font-bold text-gray-700">党小组活动</h4>
-        <button type="button" class="gp-new-activity btn-accent-soft text-xs px-3 py-1.5 rounded-lg shrink-0">+ 新建党小组活动</button>
-      </div>
-      <p class="text-xs text-gray-500 mb-2.5">党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；支部部署的活动见「活动管理」。新建走既有「写入活动」，填表时在「高级选项 · 发起方向」选「自下而上」。</p>
-      <div id="gp-group-activities"></div>
-      <div id="gp-activity-auth-host" class="mt-3.5"></div>
-    </div>`;
-}
-
-/** 党小组活动（判据＝direction==='bottom-up'，date 降序）——只读，经统一检索引擎渲染（分页/空态由引擎提供） */
-function _renderGroupActivities(container, activities) {
-  const host = container.querySelector('#gp-group-activities');
-  // 新建入口（元素随 innerHTML 重建 → 逐次绑定即幂等）
-  container.querySelector('.gp-new-activity')?.addEventListener('click', openActivityWriteEntry);
-  if (!host) return;
-  const rows = (activities || [])
-    .filter(a => a && a.direction === 'bottom-up')
-    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
-  renderFilteredList(host, {
-    stateKey: 'secretary-group-activities',
-    rows,
-    countUnit: '场',
-    listClass: 'space-y-1.5',
-    emptyMessage: '暂无党小组发起的活动（方向「自下而上」）——新建时选「自下而上」即在此归集',
-    rowHtml: (a) => `
-      <a href="./activity.html?id=${encodeURIComponent(a.id || '')}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors" style="text-decoration:none;color:inherit;" title="查看活动详情">
-        <span class="text-xs text-gray-500 w-20 shrink-0 tabular-nums">${esc(a.date || '—')}</span>
-        ${badgeHtml(esc(a.type || '活动'), activityTypeBadgeVariant(a.type))}
-        <span class="text-sm text-gray-800 flex-1 min-w-0 truncate">${esc(a.title || '未命名')}</span>
-        ${a.organizer ? `<span class="text-xs text-gray-500 shrink-0">${esc(getPersonName(a.organizer))}</span>` : ''}
-        <span class="text-xs text-gray-500 shrink-0">›</span>
-      </a>`,
-  });
-}
-
-/** 本台「写入活动」入口（**不新造表单**，复用 `calendar-tab.js::openActivityWriteForm`）。
- *  ⚠ 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：按钮 `#ws-sec-write-btn` 已由
- *    「活动管理 tab 的日历卡头部」**提到顶栏** ⇒ 本函数**不再需要「切 tab ＋ 轮询等按钮出现」**
- *    （原实现即为此），直接点既有按钮即可；选择器一字未改，台账 / 真机守卫照旧命中。 */
+// 沿革：2026-09-25 支书裁「按『党小组与活动』这个名落地」时曾收编「党小组活动」分区于此
+//   （判据＝活动 `direction === 'bottom-up'`）；**2026-10-04 批次 373 按对象归位**——该分区与「项目赋权」
+//   整卡**迁「活动管理」页**（`calendar-tab.js`，判据与渲染随迁），本页只留「组」。
+// 本函数仅保留「写入活动」入口供**今日页**（`secretary-workspace.js::onCreateActivity`）等既有消费方复用。
+// ⚠ 2026-10-01 批次 317（支书 V-3「功能钮提台顶栏全局固定位」）：按钮 `#ws-sec-write-btn` 已由
+//   「活动管理 tab 的日历卡头部」**提到顶栏** ⇒ 本函数**不再需要「切 tab ＋ 轮询等按钮出现」**
+//   （原实现即为此），直接点既有按钮即可；选择器一字未改，台账 / 真机守卫照旧命中。
 export function openActivityWriteEntry() {
   document.getElementById('ws-sec-write-btn')?.click();
 }

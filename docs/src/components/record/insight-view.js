@@ -4,6 +4,7 @@
 // 合并后：每组一个「知情查看」tab，内部分段（互斥视图切换允许分段钮，仅筛选行禁 chip）：
 //   · 活动 = 复用 activity-view.js（只读 readonly 形态，组织台原 readonly:true 不变）
 //   · 专班 = 复用 taskforce-view.js
+//   · 其他组 = 复用 other-groups-view.js（2026-10-04 批次 373 · 仅组长台；只读别组的组员进展 / 复盘 / 考勤 / 考察）
 // 分段钮沿用既有互斥视图笔法（照 disc/inspection-tab.js:41-44 + 204-216 的 data-view 钮组，不自造 chip）。
 // 设计原则沿用支书原裁定：「无职责 不代表 没有知情权」。
 // 2026-10-03 批次 366（`D-755` 支书口径「**知情查看 查看的是 他的赋权下游**」）：
@@ -42,7 +43,7 @@ function _syncSegBtns(container, view) {
  * @param {string} [opts.highlightActId] — URL 携带的 activityId（命中则切到「活动」分段并定位+高亮）
  * @param {string} [opts.highlightTfId]  — URL 携带的 taskforceId（命中则切到「专班」分段并定位+高亮）
  * @param {boolean} [opts.readonly] — 活动分段只读（缺省 true，知情查看=只读形态）
- * @param {Array<'activity'|'taskforce'>} [opts.views] — **允许的分段集合**（缺省＝两段都有；由「赋权下游」派生时只出命中段）
+ * @param {Array<'activity'|'taskforce'|'group'>} [opts.views] — **允许的分段集合**（缺省＝活动/专班两段；由「赋权下游」派生时只出命中段；组长台额外并入 `group`「其他组」，见 2026-10-04 批次 373）
  * @param {Function} [opts.onLocated] — 定位完成后回调（调用方据此清除导航目标）
  * @returns {Promise} 分段内容懒加载完成的 Promise（供 tab-bar 占位收尾）
  */
@@ -57,7 +58,8 @@ export function renderInsightView(container, opts = {}) {
   // 已消费过的同一目标不再强制，避免重渲染把用户手切的分段顶回去。
   const hlKey = opts.highlightActId ? `a:${opts.highlightActId}` : (opts.highlightTfId ? `t:${opts.highlightTfId}` : null);
   // 允许的分段集合（2026-10-03 批次 366 · `D-755`）：缺省＝两段；**由「赋权下游」派生时只出命中段**。
-  const _want = Array.isArray(opts.views) ? opts.views.filter((v) => v === 'activity' || v === 'taskforce') : [];
+  //   2026-10-04 批次 373：新增 `group`「其他组」段（支书 Q3 圈甲——组长可见别组只读一览）。
+  const _want = Array.isArray(opts.views) ? opts.views.filter((v) => v === 'activity' || v === 'taskforce' || v === 'group') : [];
   const ALLOWED = _want.length ? _want.slice() : ['activity', 'taskforce'];
   if (hlKey && hlKey !== _consumedHighlight) {
     _consumedHighlight = hlKey;
@@ -82,7 +84,7 @@ export function renderInsightView(container, opts = {}) {
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs text-gray-500">全支部一览 · 点击条目查看详情（只读）</span>
         <div class="flex items-center gap-2">
-          ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="${v}">${v === 'activity' ? '活动' : '专班'}</button>`).join('')}
+          ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="${v}">${v === 'activity' ? '活动' : v === 'taskforce' ? '专班' : '其他组'}</button>`).join('')}
         </div>
       </div>
       <div id="insight-seg-body"></div>`;
@@ -102,13 +104,17 @@ export function renderInsightView(container, opts = {}) {
   body.id = 'insight-seg-body';
   container.querySelector('#insight-seg-body').replaceWith(body);
 
+  if (view === 'group') {
+    // 「其他组」只读一览（组长台；见组件头注：看≠做、判据单一源＝group-view.js）
+    return import('./other-groups-view.js?v=20261004i').then(m => m.renderOtherGroupsView(body));
+  }
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20261004h').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20261004i').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20261004h').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20261004i').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

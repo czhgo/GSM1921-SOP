@@ -8,50 +8,50 @@
 //   buildRealtimeGroups 一次 merge 进对应域（考勤纪律/考察/活动项目/归档宣传/成员发展/决议上报）；
 //   种子行动类（设党小组组长）由壳按域聚合；自定义详情/专班待议/待答复收件箱/成员变更面板照旧挂载。
 
-import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261004h';
+import { showToast, escHtml as esc, flashHighlight } from '../../../core/base/utils.js?v=20261004i';
 // D2 裁决批二（2026-09-08）：概况汇报区只读摘要「去待办处理」→ 定位消费（展开该答复详情并滚动到视口）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261004h';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261004h';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261004i';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261004i';
 // 本位 nudge 单一源（2026-09-27：材料催办 → 组织委员为本位；支书 / 副支书催办属例外代办）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261004h';
-import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261004h';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261004i';
+import { TodoStore, seedTodos, TodoCategory, REALTIME_GROUP_DOMAIN, WORK_DOMAIN } from '../../../services/governance/todo.js?v=20261004i';
 // `#1`/`D-742`：作废裁决后的**站内知会**（知会「相关委员管理上可优化」）——走系统派生通知单一源
 // （`addSystem` → 服务端按 `todo-void-decided` kind 复算授权与受众；mock 模式本地同模板镜像）。
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004h';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261004h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004h';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004h';
-import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261004h';
-import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261004h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004h';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261004i';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261004i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004i';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004i';
+import { loadInspectionRecords, saveInspectionRecords } from '../../../services/activity/inspection.js?v=20261004i';
+import { updateActivityReview, loadActivityReviews, renderActivityReviewFormHtml, submitActivityReviewForm } from '../../../services/governance/review.js?v=20261004i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004i';
 // 批次 346（`D-744`②）：业务记录「作废（软）」统一写口——待确认申请并入**同一个**「作废待确认」组
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261004h';
-import { mockDB } from '../../../core/domain/domain.js?v=20261004h';
-import { persist } from '../../../data/data-adapter.js?v=20261004h';
-import { bumpToken } from '../../../core/base/version-token.js?v=20261004h'; // P0 域缓存失效（spec §二.3）
-import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261004h';
-import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20261004h';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261004i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004i';
+import { persist } from '../../../data/data-adapter.js?v=20261004i';
+import { bumpToken } from '../../../core/base/version-token.js?v=20261004i'; // P0 域缓存失效（spec §二.3）
+import { getPersonById, getPersonName, PersonStore } from '../../../services/member/person.js?v=20261004i';
+import { solidAccentStyle, ROLE_LABELS, isArchiveFallbackPage } from '../../../core/domain/constants.js?v=20261004i';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261004h';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261004h';
-import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261004h';
-import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261004h';
-import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261004h';
-import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261004h';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261004i';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261004i';
+import { TaskForceRecordStore, createTaskforceVoteActivity, findTaskforceVoteActivity } from '../../../services/activity/taskforce.js?v=20261004i';
+import { fetchVotes } from '../../../services/activity/committee-vote.js?v=20261004i';
+import { resolveVoterIds } from '../../../services/activity/vote-config.js?v=20261004i';
+import { renderReportInboxHtml, bindReportInbox } from '../../../components/record/reporting.js?v=20261004i';
 // 2026-09-08 裁决批一（D1/D3）：成员变更=域内确认+批量去顶卡——顶卡面板移除，
 // 确认位唯一化 = 「成员发展」域实时组内批量块（buildMcBulkRows/renderMcBulkRowsHtml/bindMcBulk）。
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261004h';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261004h';
-import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261004h';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261004i';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261004i';
+import { buildOverdueRemindGroupNow } from '../../../services/governance/resolution-followup.js?v=20261004i';
 // C 批 附录⑩ S4：名册成员变更确认复核（组织委员发起 → 支书确认/退回）+ 学期末滞留集中复核提醒
 // 批4（2026-09-09）：窗口判定与窗口文案单一源 = policy（memberConfirmation.semesterDetainedWindows）
-import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261004h';
-import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261004h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
+import { listPendingConfirmations, decideConfirmation, shouldShowSemesterDetainedRemind, semesterDetainedWindowsLabel, MC_ACTION_LABEL } from '../../../services/member/member-confirmation.js?v=20261004i';
+import { getDetainedMembers, getResidenceOf } from '../../../services/member/roster.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
 // 逐条催办（2026-09-10 支书裁定；2026-09-18 批次 88 抽到共享壳 createUrgeController，
 // 与组织委员台共用同一实现；判据仍在 services/governance/todo.js::urgeRolesOf，未改）
-import { setState } from '../../../core/base/state.js?v=20261004h';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004h';
+import { setState } from '../../../core/base/state.js?v=20261004i';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004i';
 
 // 生效强调色三件套（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -969,20 +969,23 @@ function handleTodoAction(todo, ctx) {
   }
   // 根据 actionType 跳转到对应 tab（renderTabBar 统一按钮类名）
   // 2026-09-25（赋权按对象归位）：authorize 原落「赋权管理」tab（已删）⇒ 落收编赋权①②的「党小组与活动」
+  // 2026-10-04 批次 373（按对象归位 · 支书圈乙）：情景②③ 项目赋权整卡迁「活动管理」页 ⇒ authorize 待办
+  //   按 scope 分流——leader（组长 / 副组长）落「党小组与活动」；activity / taskforce 落「活动管理」。
+  const authScope = todo.actionData?.scope;
   const tabMap = {
     authorize: 'group-progress',
     write: 'calendar',
     review: 'feedback',
     notify: 'notification',
   };
-  const targetTab = tabMap[todo.actionType];
+  const targetTab = (todo.actionType === 'authorize' && (authScope === 'activity' || authScope === 'taskforce'))
+    ? 'calendar'
+    : tabMap[todo.actionType];
   if (targetTab) {
     const btn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${targetTab}"]`);
     if (btn) btn.click();
     // t5c：切 tab 后自动展开目标面板（最小三成本——行动按钮一次直达可操作状态）
-    if (targetTab === 'group-progress' && todo.actionType === 'authorize') {
-      expandAssignPanelForTodo(todo);
-    }
+    if (todo.actionType === 'authorize') expandAssignPanelForTodo(todo);
     showToast('info', `已跳转，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
@@ -997,29 +1000,41 @@ function jumpToCalendar(group) {
   showToast('info', `已跳转到活动管理，请跟进：${group.title}${first && first.name ? `（${first.name}）` : ''}`);
 }
 
-/** t5c：赋权分块落地「党小组与活动」tab 后，按待办 scope 自动展开对应赋权面板（情景①② 在本台；情景③ 已按对象归位组织委员台） */
+/** t5c：赋权分块按对象归位后，按待办 scope 自动展开对应赋权面板——
+ *  2026-10-04 批次 373：`leader`（组长 / 副组长）在「党小组与活动」清单行内面板（`openLeaderAssignPanel`）；
+ *  `activity` / `taskforce`（项目赋权整卡）在「活动管理」页（`selectProjectAuthKind` + 预选项目）。
+ *  两处写口均走 `assign-tab.js` 单一源；只用动态 import（不新增静态跨文件依赖）。 */
 function expandAssignPanelForTodo(todo) {
   const scope = todo.actionData?.scope;
   const sourceId = todo.actionData?.sourceId;
   if (scope === 'leader') {
-    // 常设赋权（设党小组组长）：若面板未展开则自动展开
-    const assignBtn = document.getElementById('ws-sec-assign-btn');
-    if (assignBtn && assignBtn.textContent.includes('设党小组组长')) assignBtn.click();
+    // 组长 / 副组长赋权：置模块态后由 group-progress 挂载时补渲（tab 异步渲染也能落到位）
+    import('./assign-tab.js?v=20261004i').then(m => m.openLeaderAssignPanel({}));
   } else if (scope === 'activity' || scope === 'taskforce') {
-    // 项目赋权（2026-09-23 裁定乙后分两块：情景② 活动 / 情景③ 专班）：先把「活动 / 专班」选择题切到该块
-    //（2026-10-02 批次 345 · 支书 `#10`「两者合并，加一个选择题」——两块合为一张卡，未选中块默认 `hidden`
-    // ⇒ 若不先切，`scrollIntoView` 会滚到一个隐藏面板上），再预选项目并滚到该块表单。
-    document.querySelector(`.project-auth-kind-btn[data-kind="${scope}"]`)?.click();
+    // 项目赋权（整卡在「活动管理」页）：先按模块态切到该块，等宿主就位后再预选项目 + 滚到该块表单
+    import('./assign-tab.js?v=20261004i').then(m => m.selectProjectAuthKind(scope));
     const cfg = scope === 'taskforce'
       ? { selectId: 'tf-project-select', panelId: 'tf-auth-panel' }
       : { selectId: 'project-id-select', panelId: 'project-auth-panel' };
-    const idSelect = document.getElementById(cfg.selectId);
-    if (idSelect) {
+    _waitForEl(`#${cfg.selectId}`).then((idSelect) => {
+      if (!idSelect) return;
       const opt = [...idSelect.options].find(o => o.value === sourceId);
       if (opt) idSelect.value = sourceId;
-    }
-    document.getElementById(cfg.panelId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById(cfg.panelId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
   }
+}
+
+/** 等元素出现（tab 懒加载异步渲染；最多约 1.2s）——仅供待办深链「切 tab → 落点」使用 */
+function _waitForEl(selector, tries = 12) {
+  return new Promise((resolve) => {
+    const tick = (n) => {
+      const el = document.querySelector(selector);
+      if (el || n <= 0) { resolve(el || null); return; }
+      setTimeout(() => tick(n - 1), 100);
+    };
+    tick(tries);
+  });
 }
 
 // ════════════════════════════════════════════════════════════════

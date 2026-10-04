@@ -266,8 +266,14 @@ test('R4 「零命中 / 检索不到消费点」类关键词取证仍成立（�
   //    名单就是下面这份白名单（**不多不少**：多一处说明有人在别处又写了一份身份载体，少一处说明载体被删）。
   //    （README-server.md:1757 那一行原与实况相左；**2026-09-22 批次 143 已按授权改准**——该行现写「载体名单见 R4 白名单、不再主张零命中」。）
   const DOC_DEPUTY_LEADER_HITS = [
+    'docs/help.html',                                        // 帮助：党小组行 + 常设赋权卡（2026-10-04 批次 373 副组长赋权落地）
+    'docs/src/capabilities/secretary-workspace.js',           // 支书台 tab 注册（组长 / 副组长行内管理）
     'docs/src/core/domain/constants.js',        // 身份键 / 标签 / 页面映射 / 颜色三处（文件末集中挂载）
+    'docs/src/core/domain/function-catalog.js',               // 工作台目录（组长 / 副组长；2026-10-04 批次 373）
     'docs/src/entries/pages/login-entry.js',   // 开发身份卡「党小组副组长」
+    'docs/src/entries/tabs/secretary/assign-tab.js',           // 常设赋权面板「身份」选择（组长 / 副组长）
+    'docs/src/entries/tabs/secretary/group-progress-tab.js',   // 清单行内双身份展示 + 行内撤销
+    'docs/src/entries/tabs/secretary/todo-tab.js',             // 待办深链（组长 / 副组长赋权面板）
     'docs/src/services/core/auth.js',         // 权限集 / 赋权链挂载 + 角色读回
     'docs/src/services/member/group-view.js',   // 「本组组长」解析：组长优先、无组长时才回落副组长
   ].sort();

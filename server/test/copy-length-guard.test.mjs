@@ -272,9 +272,9 @@ const BASELINE_C2 = {
   'docs/src/entries/tabs/party-committee/branches-tab.js': [
     '仅空支部可整体替换：下载「成员名册模板(JSON)」→保留要迁入本支部的成员行、删去其余→「选择名册文件」导入：净化后先核对下方统计卡，确认后一次保存——成员/应到统计即时更新。有成员/历史的支部不可整表替换，成员调整由本支部组织委员在「成员名册」逐人维护。',
   ],
-  'docs/src/entries/tabs/secretary/group-progress-tab.js': [
-    '党小组发起或承办的活动（活动方向「自下而上」）在此归集，点行看详情；支部部署的活动见「活动管理」。新建走既有「写入活动」，填表时在「高级选项·发起方向」选「自下而上」。',
-  ],
+  // 2026-10-04 批次 373（`#10` 按对象归位 · 支书圈乙）：「党小组活动」分区整段自 `group-progress-tab.js`
+  //   迁 `calendar-tab.js`，原长说明**改写为本页卡片一行导语 + 条目空态**（均 ≤80）⇒ 该文件 C2 归零、
+  //   条目移除（收基线）；`BASE_C2_FILES` 8 → 7、`BASE_C2_TOTAL` 11 → 10。
   'docs/src/services/core/init-reset.js': [
     '[InitReset]?reset=init已初始化为「新支部初始态」：业务过程数据已清空（个独立业务键移除+主库业务域置空），白名单保留（账号/成员档案/支部配置/在册状态/主题/登录会话），正在刷新',
   ],
@@ -301,9 +301,9 @@ const BASELINE_C6 = {
   'docs/src/entries/tabs/org/taskforce-tab.js': [
     '暂无待核条目——专班成员在本专班详情「我的产出填报」提交产出后，此处逐条核验',
   ],
-  'docs/src/entries/tabs/secretary/group-progress-tab.js': [
-    '暂无党小组发起的活动（方向「自下而上」）——新建时选「自下而上」即在此归集',
-  ],
+  // 2026-10-04 批次 373：原 `group-progress-tab.js` 的「党小组活动」空态**随分区迁 `calendar-tab.js`**
+  //   并改短为 ≤30（`暂无党小组发起的活动（新建时选「自下而上」）`）⇒ 该命中不再成立、条目移除（收基线）；
+  //   `BASE_C6_FILES` 4 → 3、`BASE_C6_TOTAL` 4 → 3。
   'docs/src/entries/tabs/secretary/report-up-tab.js': [
     '暂无上报记录·支部关键事项（发展节点/重要活动）上报后，党委批/驳结论将显示在这里',
   ],
@@ -319,12 +319,12 @@ const BASELINE_C6 = {
  *    两处 C2 命中 ⇒ C2 14→12（文件 8 不变）。 */
 const BASE_C1_FILES = 0;
 const BASE_C1_TOTAL = 0;
-const BASE_C2_FILES = 8;
-const BASE_C2_TOTAL = 11;
+const BASE_C2_FILES = 7;
+const BASE_C2_TOTAL = 10;
 const BASE_C5_FILES = 3;
 const BASE_C5_TOTAL = 3;
-const BASE_C6_FILES = 4;
-const BASE_C6_TOTAL = 4;
+const BASE_C6_FILES = 3;
+const BASE_C6_TOTAL = 3;
 
 /** 「导语候选」下限（非空转：L1 若一个卡片都认不出 ⇒ 恒真） */
 const LEAD_CANDIDATE_FLOOR = 100;

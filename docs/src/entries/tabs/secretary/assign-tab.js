@@ -2,22 +2,29 @@
 // entries/tabs/secretary/assign-tab.js — 赋权「三情景」分块渲染模块（**2026-09-25 起不再注册为 tab**）
 // 2026-08-07 自 ws-secretary-entry.js 拆分：常设赋权（设党小组组长）+ 项目赋权（organizer/deep）。
 //
-// 内容已按对象归位（2026-09-25 支书裁「全按对象归位」）＋ 2026-09-27 批次 213 按母本补齐非本位入口：
-//   · 情景①（设党小组组长 / 支委身份）⇒ **本位入口**＝支书台（2026-09-27 支委会迁移批按支书裁定拆落点）：
-//     ①a 组长指派（组层）：宿主 `#gp-leader-assign-host`（「党小组与活动」tab「党小组清单」卡内），
-//        import `mountLeaderAssign`；
+// 内容已按对象归位（2026-09-25 支书裁「全按对象归位」）＋ 2026-09-27 批次 213 按母本补齐非本位入口
+// ＋ **2026-10-04 批次 373 二次归位**（支书 `#10`「既然叫 党小组与活动 为什么 专班在这里？按对象归位」
+//    ＋「清单已展示组长，为何还有组长指派？应当一并管理」）：
+//   · 情景①（设党小组组长 / 副组长 / 支委身份）⇒ **本位入口**＝支书台：
+//     ①a 组长 / 副组长（组层）：宿主 `#gp-leader-assign-host`（「党小组与活动」tab「党小组清单」卡内），
+//        import `mountLeaderAssign`；**2026-10-04 批次 373 去冗余**——撤独立「组长指派」块与其列表，
+//        面板改由清单行内「设 / 改」触发（`openLeaderAssignPanel`），**清单表即唯一列表＋管理面**；
+//        身份可选**组长 / 副组长**（支书新诉求：副组长赋权，1..N 人）
 //     ①b 支委身份配置（**支部层**）：宿主 `#cm-commissioner-host`（**支书台「支委会」tab 的「机构构成」段**，
 //        由 committee-meeting-tab.js 提供），import `mountCommissionerAssign`——同一写口与 ID 不变，仅落点迁移
-//   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「活动管理」内联（`entries/tabs/leader/write-tab.js`）
-//     ＋ **支书台「党小组与活动」** 同项入口（`group-progress-tab.js` import `mountActivityProjectAuth`）
+//   · 情景②（活动项目赋权）⇒ **本位入口**＝组长台「本组活动」内联（`entries/tabs/leader/write-tab.js`）
+//     ＋ **支书台「活动管理」** 同项入口（`calendar-tab.js` import `mountActivityProjectAuth`——
+//     **2026-10-04 批次 373 整卡由「党小组与活动」迁入**，支书圈乙）
 //   · 情景③（专班赋权）⇒ **本位入口**＝组织委员台「专班管理」
-//     （`entries/tabs/org/taskforce-tab.js:240` import `mountTaskforceProjectAuth`）
-//     ＋ **支书台「党小组与活动」** 同项入口（同上 `mountActivityProjectAuth` 一并挂载）
+//     （`entries/tabs/org/taskforce-tab.js` import `mountTaskforceProjectAuth`）
+//     ＋ **支书台「活动管理」** 同项入口（同上 `mountActivityProjectAuth` 一并挂载**含 已赋权记录·专班**；
+//     2026-10-04 批次 373 随整卡迁移——**支书台仍可介入**，母本「支书亦可」不破）
 // 母本口径（`content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §D.1.1 赋权入口表；`.ctx/ACTIVE_RULINGS.md`
 //   「一、角色与分工」`D-434`/`D-614`）：「**支书在三个情景里都可介入**」——②③ 均写「支书亦可 / 支书台『赋权管理』
 //   同项入口」⇒ 支书台是**统一入口**（不是唯一入口）。2026-09-25「按对象归位」只搬了「本位落点」、③ 的支书台
 //   同项入口一度漏挂（`secretary/todo-tab.js::expandAssignPanelForTodo` 对 `scope==='taskforce'` 找的
-//   `#tf-auth-panel` 在支书台并不存在 ⇒ 曾是死分支）⇒ 本批按母本补回（`mountActivityProjectAuth` 一并渲染情景③）。
+//   `#tf-auth-panel` 在支书台并不存在 ⇒ 曾是死分支）⇒ 彼时按母本补回（`mountActivityProjectAuth` 一并渲染情景③）；
+//   2026-10-04 批次 373 该整卡迁「活动管理」页，**母本「支书亦可」继续成立**（入口仍在支书台、只换页签）。
 // ⚠ **情景① 无「非本位入口」**（母本只写「赋权者＝支书 / 副支书」，未写「他人亦可」）⇒ `assign-leader` nudge
 //   在现形态下**不可达**（操作人恒为本位）——**如实标注、不假装可达**，见 `_isAuthHomeRole` 注释。
 // 故本文件**不再注册为 tab**：`capabilities/secretary-workspace.js` 已删 `assign` 行、
@@ -26,30 +33,27 @@
 // 制度口径（各情景「本位＝谁」与 2 处折叠说明）已搬入 `docs/help.html` 定点（`#card-copy-assign-*`），
 //   界面只留一行 + 深链（DESIGN_SYSTEM §4.18 C7：制度原文不进界面）。
 
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261004h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261004h';
-// 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-// 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
-const PEOPLE = liveMembers();
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004h';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
+// 成员档案读链（2026-09-03 数据域接线收口）：一律经 services/member/person.js（原直连 mock PEOPLE 已收口）
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004i';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——禁再手写组名数组
-import { groupOptions } from '../../../services/member/party-group.js?v=20261004h';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261004h';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004h';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261004i';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261004i';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004i';
 // 本位 nudge 单一源（2026-09-27：赋权三情景各自本位不同——非本位操作人写库前弹确认）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261004h';
-import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261004h';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261004i';
+import { ROLE_LABELS, PROJECT_ROLES, BRANCH_COMMISSIONER_ASSIGNABLE_ROLES } from '../../../core/domain/constants.js?v=20261004i';
 // 2026-09-23 支书裁定（情景①）：支委身份配置写口单一源 = services/branch/appointment.js
 //（本 tab 只做表单/列表渲染，不直接改 mockDB；白名单与写门判据同源 core/domain/constants.js）
-import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261004h';
+import { appointBranchCommissioner, revokeBranchCommissioner, listBranchCommissioners } from '../../../services/branch/appointment.js?v=20261004i';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代模块级 resolveAccentRole 快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261004h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004h';
-import { TodoStore } from '../../../services/governance/todo.js?v=20261004h';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261004i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004i';
+import { TodoStore } from '../../../services/governance/todo.js?v=20261004i';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：赋权记录列表（第一列是人）接入关键词 + 分面
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004i';
 
 // 生效强调色 hex（R1-A 点⑤：登录人强调色=person 键覆盖，禁止模块加载期快照写死——
 // 一律渲染时经 getAppliedAccentColors 动态解析，改色后随重渲染/刷新生效，与 --app-accent 同源）
@@ -81,30 +85,31 @@ function _isAuthHomeRole(key) {
 //   情景①a 落「党小组与活动」（组层）、①b 落「支委会」（支部层）、情景② 落「党小组与活动」、情景③ 落组织委员台「专班管理」；
 //   搬入 `docs/help.html` 定点（C7），界面各留一行 + 深链。**权限判定不变**（写口仍是既有服务层）。
 
-/** 情景①a 分块（设党小组组长）——落点＝支书台「党小组与活动」tab 的「党小组清单」卡内（**组层**，与「组 / 组长」同区）。
+/** 情景①a 分块（设党小组组长 / 副组长）——落点＝支书台「党小组与活动」tab 的「党小组清单」卡内（**组层**，与「组 / 组长」同区）。
  *  2026-09-27 批次 215：原「组长指派与支委身份」一块按组织层级**拆为两块**（支委身份＝支部层，见下）——
- *  判据＝母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A「组织关系上，支委会领导党小组」。 */
-const LEADER_ASSIGN_HTML = `
-  <div class="border-t border-gray-100 mt-4 pt-3.5">
-    <div class="flex items-center justify-between mb-1">
-      <h4 class="font-title-cn text-sm font-bold text-gray-700">组长指派</h4>
-      <button id="ws-sec-assign-btn" class="btn-accent-soft text-xs px-3 py-1.5" style="--acc-text-dark:color-mix(in srgb, var(--app-accent) 55%, #fff)">设党小组组长</button>
-    </div>
-    <p class="text-[11px] text-gray-500 mb-2.5">设党小组组长（组长身份由成员档案派生，可改派、可撤销）。<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a></p>
-    <div id="assign-area"></div>
-    <div id="assign-leaders-list" class="mt-3"></div>
-  </div>`;
+ *  判据＝母本 `content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md` §A「组织关系上，支委会领导党小组」。
+ *  2026-10-04 批次 373（支书 `#10`「清单已展示组长，为何还有组长指派？应当一并管理」＋「还有副组长赋权」）：
+ *  撤独立「组长指派」块与其列表 ⇒ 本 HTML 只出**面板宿主** `#assign-area`，面板由清单行内「设 / 改」触发
+ *  （`openLeaderAssignPanel`）；**清单表即唯一列表＋管理面**（组长 / 副组长同列双身份、行内撤销）。 */
+const LEADER_ASSIGN_HTML = `<div id="assign-area" class="mt-3.5"></div>`;
+
+/** 组长 / 副组长两个身份（可赋权；副组长 0..N 人）。文案单一源＝`ROLE_LABELS`；可赋权集合＝`AUTHORIZE_CHAIN.secretary`。 */
+const GROUP_LEADER_IDENTITIES = [
+  { value: 'leader', label: '党小组组长' },
+  { value: 'deputy-leader', label: '党小组副组长' },
+];
 
 /** 情景①b 分块（支委身份配置）——落点＝支书台「支委会」tab 的**机构构成段**（2026-09-27 支书裁定
  *  「支委配置归支委会」，由「党小组与活动」迁入；宿主由 committee-meeting-tab.js 提供）。**卡壳由落点提供**
  *  （宿主 `#cm-commissioner-host` 所在的机构构成卡自带卡壳，故本块只出卡内容，不另包纯包裹 div——
- *  同 `#gp-activity-auth-host` 既有形态）。 */
+ *  同 `#cal-activity-auth-host` 既有形态）。 */
 const COMMISSIONER_ASSIGN_HTML = `
     <h4 class="font-title-cn text-sm font-bold text-gray-700 mb-1">支委身份配置（组织 / 宣传 / 纪检委员）</h4>
     <p class="text-xs text-gray-500 mb-1">选本支部在册成员 → 选身份 → 保存，可改派、可撤销。</p>
     <div id="bc-assign-area"></div>`;
 
-/** 情景② ／ 情景③ 的**合并卡**（支书台「党小组与活动」tab 用）——2026-10-02 批次 345 · 支书 `#10`：
+/** 情景② ／ 情景③ 的**合并卡**（**支书台「活动管理」tab 用**——2026-10-04 批次 373 由「党小组与活动」迁入，支书圈乙）
+ *  ——2026-10-02 批次 345 · 支书 `#10`：
  *  支书原话「这两个我认为首先没有上下关系，现在的排布让我觉得很罗嗦，我情愿**两者合并，加一个选择题**，
  *  给 活动/专班 赋权」⇒ 两块（情景② 活动 / 情景③ 专班）合为**一张卡**，顶部一个「活动 / 专班」选择题
  *  决定赋权对象；**两块的既有钩子 id 一字未改**（`#project-auth-panel` / `#tf-auth-panel` 及块内 id），
@@ -130,16 +135,22 @@ const TF_AUTH_HTML = `
     <div id="tf-auth-panel"></div>
   </div>`;
 
-/** 情景①a 挂载（支书台「党小组与活动」tab 调用；宿主＝「党小组清单」卡内）：组长指派 */
+/** 情景①a 挂载（支书台「党小组」tab 调用；宿主＝「党小组清单」卡内）：组长 / 副组长赋权面板宿主 */
 export function mountLeaderAssign(host) {
   if (!host) return;
   host.innerHTML = LEADER_ASSIGN_HTML;
-  const assignArea = document.getElementById('assign-area');
-  const btn = document.getElementById('ws-sec-assign-btn');
-  btn?.addEventListener('click', () => toggleAuthPanel(assignArea));
-  // 面板展开态随模块自持：重渲染时按当前态对齐按钮文案并重建面板（避免「文案/面板」不同步）
-  if (authPanel.open && assignArea) { if (btn) btn.textContent = '收起面板'; renderAuthPanel(assignArea); }
-  renderAssignLeaders();
+  // 面板展开态随模块自持：宿主重渲染后按当前态重建面板（避免「面板消失」）
+  if (authPanel.open) renderAuthPanel(document.getElementById('assign-area'));
+}
+
+/** 开「组长 / 副组长」赋权面板（清单行内「设 / 改」与待办深链 `todo-tab.js::expandAssignPanelForTodo` 共用）——
+ *  设置模块态后尝试就地渲染；宿主未挂（tab 正异步渲染）**不报错**——`mountLeaderAssign` 挂载时按
+ *  `authPanel.open` 补渲（与「重渲染恢复展开态」同款做法）。 */
+export function openLeaderAssignPanel({ groupName = null } = {}) {
+  authPanel.open = true;
+  authPanel.selectedGroup = groupName || authPanel.selectedGroup || groupOptions()[0] || null;
+  const area = document.getElementById('assign-area');
+  if (area) renderAuthPanel(area);
 }
 
 /** 情景①b 挂载（支书台「支委会」tab 调用；宿主＝「机构构成」段内 `#cm-commissioner-host`）：
@@ -150,7 +161,7 @@ export function mountCommissionerAssign(host) {
   renderCommissionerAssign();
 }
 
-/** 情景② ＋ 情景③ 挂载（支书台「党小组与活动」tab 调用）——
+/** 情景② ＋ 情景③ 挂载（**支书台「活动管理」tab 调用**；2026-10-04 批次 373 由「党小组与活动」迁入）——
  *  支书台＝赋权「统一入口」（母本 CDF §D.1.1 / `D-434`：「支书在三个情景里都可介入」）：本台同时挂情景②
  *  （活动项目赋权）与情景③（专班赋权，支书亦可）；情景③ 在此台属**非本位操作** ⇒ 写入前弹本位 nudge。 */
 export function mountActivityProjectAuth(host) {
@@ -164,9 +175,9 @@ export function mountActivityProjectAuth(host) {
 /** 当前选中的赋权对象（模块自持：重渲染后按它恢复，与 `authPanel.open` 同款做法） */
 let _projectAuthKind = 'activity';
 
-/** 切到指定赋权对象（内部用；跨模块深链走 `.project-auth-kind-btn[data-kind=…].click()`，与
- *  `todo-tab.js` 既有 `#ws-sec-assign-btn` 同款做法——不新增跨文件 import 依赖） */
-function selectProjectAuthKind(kind) {
+/** 切到指定赋权对象（2026-10-04 批次 373 起导出：待办深链 `todo-tab.js::expandAssignPanelForTodo` 在 tab
+ *  渲染前先置模块态 ⇒ `mountActivityProjectAuth` 挂载时按它选对面板；dom 已在位时同步刷新选中态）。 */
+export function selectProjectAuthKind(kind) {
   if (kind !== 'activity' && kind !== 'taskforce') return;
   _projectAuthKind = kind;
   _applyProjectAuthKind();
@@ -197,60 +208,6 @@ export function mountTaskforceProjectAuth(host) {
   if (!host) return;
   host.innerHTML = TF_AUTH_HTML;
   _renderAuthBlock(PROJECT_AUTH_BLOCKS.find(c => c.key === 'taskforce'));
-}
-
-/** 渲染当前党小组组长列表（数字一致性审计 2026-08-07：主源 = PEOPLE 预设 + 审计快照运行时授予，与 renderAuthRecords 同源） */
-function renderAssignLeaders() {
-  const listEl = document.getElementById('assign-leaders-list');
-  if (!listEl) return;
-  const presetLeaders = PEOPLE.filter(p => p.role === 'leader');
-  const granted = AuthStore.getAuthorizations().filter(r => r.role === 'leader' && r.action !== 'revoke');
-  const grantedById = {};
-  granted.forEach(g => { grantedById[g.targetPersonId] = g; }); // 按人去重（后写覆盖）
-
-  const rows = [];
-  presetLeaders.forEach(p => rows.push({ person: p, record: null, preset: true, name: getPersonName(p.id) || p.name || p.id }));
-  Object.values(grantedById).forEach(g => {
-    const person = getPersonById(g.targetPersonId);
-    // 已预设组长不重复列出（与 renderAuthRecords 一致）
-    if (!person || person.role !== 'leader') {
-      rows.push({
-        person: person || { id: g.targetPersonId, name: g.targetPersonId },
-        record: g,
-        preset: false,
-        name: getPersonName(g.targetPersonId) || (person && person.name) || g.targetPersonId,
-      });
-    }
-  });
-
-  // 统一检索引擎（按人；≤8 行引擎自动不渲染检索条）
-  renderFilteredList(listEl, {
-    stateKey: 'secretary-assign-leaders',
-    rows,
-    keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
-    countUnit: '人',
-    listClass: 'space-y-1',
-    emptyMessage: '暂无党小组组长记录',
-    rowHtml: ({ person, record, preset, name }) => {
-      const personName = name;
-      const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
-      return `
-      <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-white transition-colors group">
-        <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">${personName.charAt(0)}</div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-sm font-medium text-gray-700">${personName}</span>
-            ${badgeHtml('党小组组长', 'danger')}
-            ${preset ? '<span class="text-xs text-gray-500" title="预设＝该组长身份出厂即随成员档案、非本次系统内赋权；系统内赋权的组长列在「设党小组组长」面板内并带「撤销」">预设</span>' : ''}
-          </div>
-          <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + record.authorizedAt : ''}</p>
-        </div>
-      </div>
-    `;
-    },
-  });
 }
 
 // ── 项目角色赋权（organizer/deep，2026-08-02 自 members.html 迁入支书工作台） ──
@@ -455,59 +412,56 @@ function renderProjectAuthRecords(cfg) {
 }
 
 // ════════════════════════════════════════════════════════════════
-//  常设赋权面板
-//  功能：设党小组组长 — 选择人员 → 选择党小组 → 确认赋权
-//  当前党小组组长列表（只读）
+//  常设赋权面板（组长 / 副组长）
+//  功能：设党小组组长 / 副组长 —— 选择同志 → 选择身份 → 选择党小组 → 确认赋权
+//  2026-10-04 批次 373：面板改由清单行内「设 / 改」触发（`openLeaderAssignPanel`）；**不再附「当前组长」列表**
+//    （清单表已是唯一列表＋管理面，撤销入口在行内）。
 // ════════════════════════════════════════════════════════════════
 
-/** 赋权面板状态 */
+/** 赋权面板状态（随模块自持：重渲染后按它恢复） */
 const authPanel = {
   open: false,
   selectedPersonId: null,
   selectedGroup: null,
+  role: null,
   personPicker: null,
 };
 
-/** 切换赋权面板展开/收起 */
-function toggleAuthPanel(assignArea) {
-  authPanel.open = !authPanel.open;
-  const btn = document.getElementById('ws-sec-assign-btn');
-  if (authPanel.open) {
-    if (btn) btn.textContent = '收起面板';
-    renderAuthPanel(assignArea);
-  } else {
-    if (btn) btn.textContent = '设党小组组长';
-    const panel = document.getElementById('auth-panel-container');
-    if (panel) panel.remove();
-    if (authPanel.personPicker) {
-      authPanel.personPicker.destroy();
-      authPanel.personPicker = null;
-    }
-  }
-}
-
-/** 渲染常设赋权面板 */
+/** 渲染常设赋权面板（组长 / 副组长）：人员 → 身份 → 党小组 → 确认 */
 function renderAuthPanel(assignArea) {
+  if (!assignArea) return;
   const oldPanel = document.getElementById('auth-panel-container');
   if (oldPanel) oldPanel.remove();
 
+  // 党小组选择（组清单渲染时现取 groupOptions()，新增/改名的组立刻可见；此处属表单字段选择，保留 chip 形态）
+  const partyGroups = groupOptions();
+  if (!partyGroups.includes(authPanel.selectedGroup)) authPanel.selectedGroup = partyGroups[0] || null;
+
   const panel = document.createElement('div');
   panel.id = 'auth-panel-container';
-  panel.className = 'rounded-xl p-6 mt-4 bg-white';
+  panel.className = 'rounded-xl p-5 mt-3.5 bg-gray-50/60 border border-gray-100';
 
   let html = '';
-
   // 1. 人员选择
   html += `<div class="mb-4">`;
   html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">选择同志 <span class="text-red-600">*</span></label>`;
   html += `<div id="auth-person-picker-slot"></div>`;
   html += `</div>`;
 
-  // 2. 党小组选择（组清单渲染时现取 groupOptions()，新增/改名的组立刻可见；此处属表单字段选择，保留 chip 形态）
-  const partyGroups = groupOptions();
+  // 2. 身份（组长 / 副组长；**不预设默认** ⇒ 空提交有校验点）
+  html += `<div class="mb-4">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">身份 <span class="text-red-600">*</span></label>`;
+  html += `<div class="flex gap-5 pt-0.5">`;
+  GROUP_LEADER_IDENTITIES.forEach(({ value, label }) => {
+    html += `<label class="flex items-center gap-2 text-xs cursor-pointer"><input type="radio" name="assign-role" value="${value}" class="radio-accent"${authPanel.role === value ? ' checked' : ''}><span>${label}</span></label>`;
+  });
+  html += `</div>`;
+  html += `</div>`;
+
+  // 3. 党小组选择（chip；由清单行内「设 / 改」触发时预设该组）
   html += `<div class="mb-5">`;
-  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">指定为党小组组长 <span class="text-red-600">*</span></label>`;
-  html += `<div class="flex gap-2">`;
+  html += `<label class="text-xs text-gray-500 mb-1.5 block font-medium">所在党小组 <span class="text-red-600">*</span></label>`;
+  html += `<div class="flex flex-wrap gap-2">`;
   partyGroups.forEach(group => {
     const isSelected = authPanel.selectedGroup === group;
     const cls = `chip-option text-sm px-4 py-2 rounded-lg ${isSelected ? 'chip-accent-on font-medium' : ''}`;
@@ -516,19 +470,16 @@ function renderAuthPanel(assignArea) {
   html += `</div>`;
   html += `</div>`;
 
-  // 3. 确认按钮
-  html += `<button data-auth-action="confirm" class="btn-accent text-sm px-4 py-[7px] font-medium">确认设为党小组组长</button>`;
-
-  // ── 分隔线 ──
-  html += `<div class="border-t border-gray-100 mt-6 pt-4">`;
-  html += `<h4 class="font-title-cn text-sm font-bold text-gray-700 mb-3">当前党小组组长</h4>`;
-  html += `<div id="auth-records-list"></div>`;
+  // 4. 确认按钮（＋制度深链）
+  html += `<div class="flex items-center gap-3">`;
+  html += `<button data-auth-action="confirm" class="btn-accent text-sm px-4 py-[7px] font-medium">确认赋权（组长 / 副组长）</button>`;
+  html += `<a href="./help.html#card-copy-assign-leader" class="text-sky-600 hover:underline text-xs" title="见帮助：设党小组组长与支委身份（本位 / 身份边界 / 可改派可撤销）">见帮助 · 常设赋权</a>`;
   html += `</div>`;
 
   panel.innerHTML = html;
   assignArea.appendChild(panel);
 
-  // 初始化 PersonPicker
+  // PersonPicker（重渲染时销毁旧实例防泄漏；保留已选）
   const pickerSlot = document.getElementById('auth-person-picker-slot');
   if (pickerSlot) {
     if (authPanel.personPicker) authPanel.personPicker.destroy();
@@ -536,22 +487,21 @@ function renderAuthPanel(assignArea) {
       mode: 'single',
       placeholder: '选择同志',
       accentColor: _accentHex(),
-      onSelect: (ids) => {
-        authPanel.selectedPersonId = ids[0] || null;
-      },
+      onSelect: (ids) => { authPanel.selectedPersonId = ids[0] || null; },
     });
-    if (authPanel.selectedPersonId) {
-      authPanel.personPicker.setSelected([authPanel.selectedPersonId]);
-    }
+    if (authPanel.selectedPersonId) authPanel.personPicker.setSelected([authPanel.selectedPersonId]);
     authPanel.personPicker.render(pickerSlot);
   }
 
-  // 绑定事件
+  // 身份单选：随模块态记忆（切组重渲染后不丢）
+  panel.querySelectorAll('input[name="assign-role"]').forEach(r => {
+    r.addEventListener('change', () => { authPanel.role = r.value; });
+  });
+
+  // 事件绑定
   panel.querySelectorAll('[data-auth-action]').forEach(el => {
     el.addEventListener('click', handleAuthAction);
   });
-
-  renderAuthRecords();
 }
 
 /** 处理常设赋权面板操作 */
@@ -576,10 +526,15 @@ function handleAuthAction(e) {
   if (assignArea) renderAuthPanel(assignArea);
 }
 
-/** 确认设为党小组组长 */
+/** 确认设为党小组组长 / 副组长（写口单一源＝`AuthStore.authorize`，role ∈ {leader, deputy-leader}） */
 async function handleConfirmLeader() {
   if (!authPanel.selectedPersonId) {
     showToast('error', '请选择同志');
+    return;
+  }
+  const role = document.querySelector('input[name="assign-role"]:checked')?.value || authPanel.role;
+  if (!role) {
+    showToast('error', '请选择身份');
     return;
   }
   if (!authPanel.selectedGroup) {
@@ -593,18 +548,17 @@ async function handleConfirmLeader() {
     if (!_homeOk) return;
   }
 
-  // 调用 AuthStore，role='leader', scope='group', scopeRef=党小组名
   const result = await AuthStore.authorize(
     AuthStore.getCurrentUser()?.personId,
     authPanel.selectedPersonId,
-    'leader',
+    role,
     { projectId: authPanel.selectedGroup },
   );
 
+  const roleLabel = ROLE_LABELS[role] || role;
+  const personName = getPersonName(authPanel.selectedPersonId) || authPanel.selectedPersonId;
   if (result.ok) {
-    const person = getPersonById(authPanel.selectedPersonId);
-    const personName = person ? person.name : authPanel.selectedPersonId;
-    showToast('success', `已将 ${personName} 设为 ${authPanel.selectedGroup} 组长`);
+    showToast('success', `已将 ${personName} 设为「${authPanel.selectedGroup}」${roleLabel}`);
 
     // 做事即销待办：常设赋权完成 → 销支书「设置党小组组长」待办（按 scope=leader 匹配）
     TodoStore.getAll()
@@ -612,97 +566,14 @@ async function handleConfirmLeader() {
       .forEach(t => TodoStore.complete(t.id));
 
     authPanel.selectedPersonId = null;
-    authPanel.selectedGroup = null;
+    authPanel.role = null;
 
     const assignArea = document.getElementById('assign-area');
     if (assignArea) renderAuthPanel(assignArea);
+  } else if (result.id) {
+    showToast('warn', `该同志已是「${authPanel.selectedGroup}」${roleLabel}`);
   } else {
-    if (result.id) {
-      showToast('warn', '该同志已是该党小组组长');
-    } else {
-      showToast('error', '设置失败，请检查参数');
-    }
-  }
-}
-
-/** 渲染当前党小组组长列表（主源 = PEOPLE 预设 role:'leader' + 审计快照运行时授予） */
-function renderAuthRecords() {
-  const listEl = document.getElementById('auth-records-list');
-  if (!listEl) return;
-
-  // 常设组长主源 = PEOPLE role:'leader'（预设）；运行时授予 = 审计快照 role:'leader'
-  const presetLeaders = PEOPLE.filter(p => p.role === 'leader');
-  const granted = AuthStore.getAuthorizations().filter(r => r.role === 'leader' && r.action !== 'revoke');
-  const grantedById = {};
-  granted.forEach(g => { grantedById[g.targetPersonId] = g; });
-  const grantedUnique = Object.values(grantedById); // 按人去重（grant→revoke→grant 周期后取最新一条）
-
-  const rows = [];
-  presetLeaders.forEach(p => {
-    rows.push({ person: p, record: null, name: getPersonName(p.id) || p.name || p.id });
-  });
-  grantedUnique.forEach(g => {
-    const person = getPersonById(g.targetPersonId);
-    if (!person || person.role !== 'leader') {
-      rows.push({
-        person: person || { id: g.targetPersonId, name: g.targetPersonId },
-        record: g,
-        name: getPersonName(g.targetPersonId) || (person && person.name) || g.targetPersonId,
-      });
-    }
-  });
-
-  // 统一检索引擎（按人；≤8 行引擎自动不渲染检索条）
-  renderFilteredList(listEl, {
-    stateKey: 'secretary-assign-leaders-panel',
-    rows,
-    keyword: personKeyword(),
-    facets: personFacets({ roleLabel: roleLabelOf }),
-    facetStyle: 'chip',
-    countUnit: '人',
-    listClass: 'space-y-1',
-    emptyMessage: '暂无党小组组长记录',
-    rowHtml: ({ person, record, name }) => {
-      const personName = name;
-      const groupName = record ? (record.scopeRef || '未指定') : (person.partyGroup || '未指定');
-      const revokeBtn = record
-        ? `<button type="button" data-auth-action="revoke" data-record-id="${record.id}" class="btn-ghost text-xs ml-2 flex-shrink-0 px-3 py-1.5">撤销</button>`
-        : '<span class="text-xs text-gray-500 ml-2 flex-shrink-0">预设</span>';
-
-      return `
-      <div class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-white transition-colors group">
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-          <div class="accent-avatar w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold">
-            ${personName.charAt(0)}
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <a href="${getBasePath()}person.html?id=${encodeURIComponent(person.id)}" class="text-sm font-medium text-gray-700 hover:underline hover:text-sky-700 transition-colors" title="查看完整档案">${esc(personName)}</a>
-              ${badgeHtml('党小组组长', 'danger')}
-            </div>
-            <p class="text-xs text-gray-500 mt-0.5">${groupName}${record ? ' · ' + (record.authorizedAt || '') : ''}</p>
-          </div>
-        </div>
-        ${revokeBtn}
-      </div>
-    `;
-    },
-  });
-
-  // 撤销事件委托（引擎筛选重渲染后仍可点）；dataset 守卫防重复绑定
-  if (!listEl.dataset.revokeBound) {
-    listEl.dataset.revokeBound = '1';
-    listEl.addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-auth-action="revoke"]');
-      if (!btn) return;
-      const recordId = btn.dataset.recordId;
-      if (await AuthStore.revokeAuthorization(recordId)) {
-        showToast('success', '已撤销党小组组长');
-        renderAuthRecords();
-      } else {
-        showToast('error', '撤销失败');
-      }
-    });
+    showToast('error', '设置失败，请检查参数');
   }
 }
 

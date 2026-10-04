@@ -3,27 +3,32 @@
 // 2026-08-07 自 ws-secretary-entry.js 拆分。
 // 数据源：NoticeStore（与首页/全局概况/visitor 同源，消除双数据源脱节）。
 
-import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261004h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
-import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20261004h';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004h';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004h';
+import { NoticeStore, sendDirectMessage } from '../../../services/governance/notice.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
+import { showToast, getBasePath, _fmtDate } from '../../../core/base/utils.js?v=20261004i';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004i';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004i';
 // 统一检索引擎（2026-09-14 批次 37）：已发布通知列表接入关键词（标题/正文）+ 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004i';
 // Q-22-1（2026-09-13）：受众选项改引 core/domain/constants.js 单一源（NOTICE_AUDIENCE_SENTINELS）——
 // 发布侧写入值必须与消费端可见性判定同源，勿再本地手写 sentinel 列表（否则 ['all'] 永不命中）。
-import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261004h';
+import { NOTICE_AUDIENCE_OPTIONS, ACTIVITY_CLASSIFICATION } from '../../../core/domain/constants.js?v=20261004i';
 // SOP-B-5（D-293）：发布三会一课通知时选定本次活动 —— 被通知人在「确认读取」时填「能否线上参会」
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004h';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004i';
 // B1（2026-09-12）：党委下钻支部的演示只读视图判定（单一源 = services/core/branch-demo-nav.js）
-import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261004h';
+import { isReadonlyBranchDrilldown } from '../../../services/core/branch-demo-nav.js?v=20261004i';
 // 站内信（批次 348 · 支书 `#4`「站内信是一个很重要的形式」）：受众「指定人（私发）」——选人用 PersonPicker
 //（选人规范 §2.2：姓名/学号搜索，不手写名单）
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004h';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004i';
 
 const NOTIFICATION_TAB_HTML = `
   <div class="card rounded-xl p-5 mb-6">
-    <h3 class="font-title-cn text-base font-semibold text-gray-800 mb-4">发布通知</h3>
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-title-cn text-base font-semibold text-gray-800">发布通知</h3>
+      <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
+    </div>
+    <!-- 2026-10-04 批次 373 · 支书 #10「页内导语写明动作属性」：本页保名，页内点明它是「动作」而非对象台账 -->
+    <p class="text-xs text-gray-500 mb-4">本页是<strong>动作</strong>页：一次性向选定受众发布通知 / 站内信（发出即入下方「已发布通知」台账），不承载对象管理。</p>
     <div id="notification-form-area"></div>
   </div>
   <div class="card rounded-xl p-5">

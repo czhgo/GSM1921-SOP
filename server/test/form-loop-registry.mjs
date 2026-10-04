@@ -54,7 +54,7 @@
 // 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
 //   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
 //   基线常量同批改准为 **111**；真机流程条数不变。
-export const SITES_BASELINE = 116;
+export const SITES_BASELINE = 117;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 60;
@@ -70,11 +70,11 @@ export const FLOWS_BASELINE = 60;
 export const SRC = 'docs/src/';
 export const VALIDATION_SITES = [
   // ── 支书台 ──
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 212, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 213, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 218, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 405, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
-  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 406, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 217, field: '通知标题', flow: 'secretary/通知发布', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 218, field: '通知内容', flow: 'secretary/通知发布', machine: true, msg: '请填写通知内容' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 223, field: '目标受众', flow: 'secretary/通知发布', machine: true, msg: '请选择目标受众' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 410, field: '通知标题', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知标题' },
+  { file: SRC + 'entries/tabs/secretary/notification-tab.js', line: 411, field: '通知内容', flow: 'secretary/通知编辑浮窗', machine: true, msg: '请填写通知内容' },
   // 批次 91（2026-09-19 · SOP-B-17）：**本组通知的组织者发布口**（服务层单实现的浮窗，
   //   入口在成员台「活动动态」/ 组长台「活动管理」的活动行上，只对该场组织者本人出现）。
   //   `machine:false` 的原因是**前置数据随赋权而变**：要跑到这处校验，须先在同一演示库里造出
@@ -82,19 +82,19 @@ export const VALIDATION_SITES = [
   //   故本批只登记、不造数据（同 `components/governance/resolution-followup-manager.js` 由「造出真机可达且自洽的前置」解锁的前例）。
   { file: SRC + 'components/governance/notice-view.js', line: 293, field: '通知标题（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知标题', reason: '【批次 91 新增 · 待解锁】入口是「发布本组通知」浮窗，只对**本人为该场活动组织者**的活动行出现（`services/activity/activity.js::isActivityOrganizer` 实时判）；演示库里该条件随赋权数据变化，7 个演示账号不保证命中 ⇒ 造不出稳定前置。**这不是「结构性不可达」**（只要有一条该账号为组织者的活动即达），属「缺稳定数据」，与 `machine:false` 白名单里「需先造复杂前置数据」同类。' },
   { file: SRC + 'components/governance/notice-view.js', line: 294, field: '通知内容（本组通知）', flow: 'service/本组通知发布', machine: false, msg: '请填写通知内容', reason: '同上：与本条同属一个浮窗（标题通过后才会走到内容这一格），入口条件相同（本人为该场组织者），本批只登记、不造数据。' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1232, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1233, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1234, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1291, field: '活动名称', flow: 'secretary/写入活动', machine: true, msg: '请填写活动名称' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1292, field: '日期', flow: 'secretary/写入活动', machine: true, msg: '请选择日期' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1293, field: '活动地点', flow: 'secretary/写入活动', machine: true, msg: '请填写活动地点' },
   // 2026-09-30 批次 303（支书裁「在写入的时候直接就可以进行赋权了…内嵌在 活动/专班 字段中的」）：
   //   「写入活动」表单内嵌**项目赋权**字段组（人选 → 项目角色 →「+ 加入名单」），新增 2 处校验点。
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1020, field: '被赋权人', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1021, field: '项目角色', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择项目角色' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1079, field: '被赋权人', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1080, field: '项目角色', flow: 'secretary/写入活动·内嵌项目赋权', machine: true, msg: '请选择项目角色' },
   // 批次 47-M（2026-09-16）：原 reason「前置交互复杂」**又一次是读起来复杂**——真机实测三段全可脚本化：
   //   ① 议程行**出厂即有一条**（模板选中后 `#wp-agenda-list` 内已有 `.wp-agenda-row`）；
   //   ② 「待讨论名单」只是行内一个 chip（`.wp-agenda-kind[data-kind="attendee-list"]`，点一下即亮）；
   //   ③ 多选人员走通用 `openPicker`（复用考察上传同一步骤）。三字段（名称/日期/地点）用 satisfy 顺序放行即可达。
-  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1194, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
-  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 122, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
+  { file: SRC + 'entries/tabs/secretary/calendar-tab.js', line: 1253, field: '目标阶段', flow: 'secretary/写入活动·议程待讨论名单', machine: true, msg: '待讨论名单请选择目标阶段' },
+  { file: SRC + 'entries/tabs/secretary/report-up-tab.js', line: 126, field: '事项类型、标题与说明', flow: 'secretary/上报党委', machine: true, msg: '请填写事项类型、标题与说明' },
   // 2026-09-23（裁定乙）：支书台「赋权管理」按三个情景分块（情景② 活动 / 情景③ 专班各一套表单，
   //   校验共用一个实现）⇒ 台账行号随块位移（`:217,218,219` → `:243,244,245`；`:419,423` → `:447,451`）。
   //   校验实现只有一处（同一 `bindConfirmProjectAuth` 两处绑）⇒ **校验点条数与流程条数均不变**（不加新条目）。
@@ -122,21 +122,30 @@ export const VALIDATION_SITES = [
   //   file/field/msg **均不变**（写口与 DOM ID 一字未改，真机流程载体不失配）。
   // 2026-10-02 批次 345（支书 `#10` 两卡合并＋选择题）：`assign-tab.js` 头部新增合并卡常量与选择题函数
   //   ⇒ 该文件下文行号整体 +39，下列行号按实况改准（S6：行号须落在文案那一行）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 365, field: '被赋权人', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择被赋权人' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 366, field: '项目', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择项目' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 367, field: '角色', flow: 'secretary/党小组与活动·项目赋权', machine: true, msg: '请选择角色' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 582, field: '同志', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择同志' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 586, field: '党小组', flow: 'secretary/党小组与活动·常设赋权', machine: true, msg: '请选择党小组' },
+  // 2026-10-04 批次 373（支书 `#10`「按对象归位」＋「组长指派去冗余」＋「副组长赋权」）：
+  //   ① 情景②③ 项目赋权整卡迁「活动管理」页（flow 名与落点 tab 改准；实现仍在 `assign-tab.js`）
+  //      ⇒ 该文件**上部删「组长指派」块/列表**（净上移）⇒ 项目赋权三处 line 由 `365,366,367` 改准 `321,322,323`；
+  //   ② 常设赋权面板加「身份」选择、撤面板内列表 ⇒ 「同志」line 改准 `532`；**第二条由「党小组」改为「身份」**
+  //      （`请选择身份`，`537`）——空提交序＝同志 → 身份（党小组由清单行内「设 / 改」预设，不再空）；
+  //   ③ 支委身份配置 2 处 line 改准 `643,644`。
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 322, field: '被赋权人', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择被赋权人' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 323, field: '项目', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择项目' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 324, field: '角色', flow: 'secretary/活动管理·项目赋权', machine: true, msg: '请选择角色' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 532, field: '同志', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择同志' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 537, field: '身份', flow: 'secretary/党小组·常设赋权', machine: true, msg: '请选择身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 541, field: '党小组', flow: 'secretary/党小组·常设赋权', machine: false, msg: '请选择党小组', reason: '【批次 373 新增登记 · 待解锁】党小组由清单行内「设 / 改」预设（`openLeaderAssignPanel({ groupName })`）⇒ 空党小组分支只在「支部无在册党小组」（`groupOptions()` 为空 ⇒ `selectedGroup = null`）时可达，演示库恒有在册组 ⇒ 造不出稳定前置。**非结构性不可达**（空支部即达），属「缺稳定数据」类，故登记为 `machine:false`。' },
   // 2026-09-23（支书裁定 · 情景①「最初只有党委给支书配置，剩下的身份由书记配置」）：情景① 卡内新增
   //   「支委身份配置」写口的 2 处校验点（人选 → 身份）。 2026-09-25：随情景① 并入「党小组与活动」。
   //   2026-09-27（支委会迁移批）：支委身份配置**整体迁入支书台「支委会」tab 的「机构构成」段**
   //   （判据＝支部大会选举支委 → 支委会讨论分工）⇒ 落点 tab 名改准（`file/field/msg` 与行号均不变，
   //   写口与 DOM ID 一字未改）。
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 772, field: '支委人选', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
-  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 773, field: '支委身份', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 643, field: '支委人选', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择本支部在册成员' },
+  { file: SRC + 'entries/tabs/secretary/assign-tab.js', line: 644, field: '支委身份', flow: 'secretary/支委会·支委身份配置', machine: true, msg: '请选择要授予的支委身份' },
   // 2026-09-27（支委会迁移批）：`group-progress-tab.js` 删去「支委身份配置」宿主与挂载、进展区四卡改折叠下沉
   //   ⇒ 该文件既有登记下移 ⇒ `746` → `768`（S6：行号须落在文案那一行；file/field/msg 不变）。
-  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 775, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
+  // 2026-10-04 批次 373：删「党小组活动」分区 + 撤独立「组长指派」块（该文件尾段缩短、上部加组长/副组长行内管理）
+  //   ⇒ 「组名不能为空」再按实况改准 `775` → `833` → `835`（file/field/msg 不变）。
+  { file: SRC + 'entries/tabs/secretary/group-progress-tab.js', line: 835, field: '组名', flow: 'secretary/党小组·改名', machine: true, msg: '组名不能为空' },
   // 批次 47-Z（2026-09-17）：**由 `machine:false` 转 `machine:true`**。原 reason 两句话各有问题，逐句更正：
   //   · 对的一半：「退回浮态（`#mc-reject-note`）只在**有 pending 成员变更确认**时挂载」——实测计数 0 属实。
   //   · 错的一半：「纳入条件：**组织委员**在某台发起一次成员变更」——**跨人不成立**。该队列是
@@ -1182,7 +1191,7 @@ export const MACHINE_FLOWS = [
     //   宣传台周次/日期按当日派生 · 宣传台周次流程 ⑧）。同一解法：`open[]` 里先 `setValue` 清空。
     id: 'leader-write-activity',
     page: 'leader',
-    tab: '活动管理',
+    tab: '本组活动',
     open: [
       { click: '#btn-leader-create' },
       { waitFor: '#dt-submit' },
@@ -1232,7 +1241,7 @@ export const MACHINE_FLOWS = [
     //   是把「读起来复杂」当成了「跑不通」（同批第三例：见批 ⑨/⑫ 的同类教训）。
     id: 'secretary-assign-project-auth',
     page: 'secretary',
-    tab: '党小组与活动',
+    tab: '活动管理',
     open: [
       { waitFor: '#confirm-project-auth-btn' },
       { setValue: { selector: '#project-id-select', value: '' } },
@@ -1246,20 +1255,22 @@ export const MACHINE_FLOWS = [
   },
   {
     // 批次 47-D 续（2026-09-16）：**支书台 · 党小组与活动 · 常设赋权（设党小组组长）**——同一 tab 的另一个浮态，**一处 2 个校验点**。
-    // 入口 `#ws-sec-assign-btn` → `#auth-panel-container`；提交口 `[data-auth-action="confirm"]`。
-    // 校验序＝同志 → 党小组；两处都**不需要预先点组**（`selectedGroup` 初值 null），
+    // 2026-10-04 批次 373（支书 `#10`「组长指派去冗余」）：撤独立「组长指派」块 ⇒ 入口由 `#ws-sec-assign-btn`
+    //   改指**清单行内** `.gp-assign-leader`（开同一面板 `#auth-panel-container`）；面板加「身份」选择
+    //   ⇒ 空提交校验序＝同志 → 身份（党小组由行内预设，不再空）；提交口仍 `[data-auth-action="confirm"]`。
+    // 校验序＝同志 → 身份；党小组由清单行内「设 / 改」预设、**不再空** ⇒ 无需预先点组，
     // 故 satisfy 只选人即可让第二条可达（与反馈详情的「共载体」坑不同：这里两个判据各读各的状态）。
     id: 'secretary-assign-group-leader',
     page: 'secretary',
-    tab: '党小组与活动',
+    tab: '党小组',
     open: [
-      { click: '#ws-sec-assign-btn' },
+      { click: '.gp-assign-leader' },
       { waitFor: '[data-auth-action="confirm"]' },
     ],
     submit: [{ click: '[data-auth-action="confirm"]' }],
     expect: [
       { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '同志', msg: '请选择同志', carrier: '#auth-panel-container .person-picker-trigger', satisfy: { openPicker: { trigger: '#auth-panel-container .person-picker-trigger', count: 1 } } },
-      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '党小组', msg: '请选择党小组', carrier: '#auth-panel-container [data-auth-action="select-group"]' },
+      { file: SRC + 'entries/tabs/secretary/assign-tab.js', field: '身份', msg: '请选择身份', carrier: 'input[name="assign-role"]' },
     ],
   },
   {
@@ -1381,7 +1392,7 @@ export const MACHINE_FLOWS = [
     //   一个证「文案出处存在」，一个证「真机报出来的那一句」。
     id: 'leader-act-subrecord',
     page: 'leader',
-    tab: '活动管理',
+    tab: '本组活动',
     open: [
       { click: '.leader-act-item' },
       { waitFor: '.act-sub-add-btn[data-type="publicity"]' },
@@ -2045,7 +2056,7 @@ export const SUCCESS_FLOWS = [
     //   点一次 `#btn-leader-create` 才展开；`open[]` 已按阶段一的同一链展开并清掉日期预填。
     id: 'leader-write-activity-save',
     page: 'leader',
-    tab: '活动管理',
+    tab: '本组活动',
     open: [
       { click: '#btn-leader-create' },
       { waitFor: '#dt-submit' },

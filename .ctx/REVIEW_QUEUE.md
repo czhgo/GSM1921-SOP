@@ -2,7 +2,7 @@
 title: "支书评议队列"
 type: audit_report
 role: "[工程师]+[AI]"
-last_updated: "2026-10-03"
+last_updated: "2026-10-04"
 status: active
 related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 ---
@@ -374,7 +374,7 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
 > ⚠ **两处如实登记**：**`view` 参数名撞壳协议**（壳把 `view` 当旧协议参数消费掉 ⇒ 改用 `subview` ＋ 一次性消费粘住，两轮真机才证实）· 本批戳**连跳三档**（先 bump 后修正）。
 > **下一台**：**批次 372 支书台**（`通知发布` / `上报党委` 属**动作** ＋ `党小组与活动` 页内混轴）→ 党委台 → 全站收口；**（丁）归属可转移＝架构级 · 单独立项**。
 
-## 乙部 `#10` 全站分期 · **批次 372：支书台** · **出表 ＋ 立据（2026-10-04 · `D-764`）· 落地待 373 起**
+## 乙部 `#10` 全站分期 · **批次 372：支书台** · **出表 ＋ 立据（2026-10-04 · `D-764`）· 已落（批次 373）**
 
 > **真机取证（起 3000 服务 ＋ 内置 Chromium · `?dev=secretary&tab=group-progress`）**：支书台 **12 页签**（今天 / 待办 / 全局概况 · **活动管理 / 支委会 / 党小组与活动 / 通知发布 / 上报党委 / 成员流动** · 支部分工 / 知情查看 · 反馈管理）。
 > 「党小组与活动」**页内 7 块**：`党小组清单` · **`组长指派`** · **`党小组活动`** · **`项目赋权（组织者 / 深度参与者）`** · **`已赋权记录 · 活动`** · **`已赋权记录 · 专班`**（← **支书 `#10` 原话「为什么专班在这里」的字面落点**）· `跨组进展（只读知情）`。
@@ -404,6 +404,18 @@ related_files: [CLAUDE.md, .ctx/ENGINEERING_ASSESSMENT.md, .ctx/logs/]
   ⇒ 落地清单 ④ 定稿：`leader/tf-view-tab.js`（或 `insight-view` 的分段机制）增「其他组」面；**判据单一源**优先复用**支书台 `group-progress-tab.js` 的「跨组进展（只读知情）」**（`listPartyGroups` / `memberScopeOfGroup` / `countOpenReportsByGroup`），**不做第二实现**（呼应 `D-764` ④ 组件复用纪律）。
 
 > ⚠ **本批（372）未改任何代码**（出表 ＋ 立据批）；Q3 已圈 ⇒ **施工单完整（①–⑤）**，**批次 373 起落地**。
+
+## 乙部 `#10` 全站分期 · **批次 373：支书台 ＋ 组长台 ＋ 组件复用纪律** · **已落（2026-10-04 · `D-765`）**
+
+> **施工前上呈三处「施工单与母本 / 既有设计相抵」的拿不准项（支书两轮 5 问圈定）**：① **乙**——「项目赋权（含 活动 / 专班 选择题）」整卡**搬「活动管理」**（既解「专班在党小组与活动」之疑，又**保住母本 CDF §D.1.1「支书在三个情景里都可介入」**；组织台「专班管理」本位入口一字未动）② **乙＋甲＋甲**——组长指派改**清单行内「设 / 改」**开同一面板（PersonPicker，预设该组）＋ **新增「副组长赋权」**（**同列双身份**、副组长 **1–2 名不定**）＋ **撤销入口在行内**（撤面板内那份与清单重复的「当前组长」列表）③ **甲**——组长台「知情查看」**加「其他组」只读分段钮**（支书重申「**我们的组件要学会调用！！**」）。
+
+> **① 按对象归位**：`group-progress-tab.js` 撤「党小组活动」分区（`#gp-group-activities` / `.gp-new-activity` / `#gp-activity-auth-host`）与 `_renderGroupActivities`；`calendar-tab.js` 增设「党小组活动」卡（**判据随迁＝`direction === 'bottom-up'`，未引入第二判据**）＋ 项目赋权整卡宿主 `#cal-activity-auth-host`（`mountActivityProjectAuth` 单一源不变）；页签名 **`党小组与活动` → `党小组`**（**id 仍 `group-progress`**）；`overview-tab.js`「赋权待审批」直达改 `calendar`；`todo-tab.js::expandAssignPanelForTodo` **按 scope 分流**（`leader` → 党小组 / `activity`·`taskforce` → 活动管理，并新增 `_waitForEl` 等懒加载）。
+> **② 组长 / 副组长行内管理**：`assign-tab.js` 撤 `LEADER_ASSIGN_HTML` 块头 / 按钮 / 列表与 `renderAssignLeaders` / `renderAuthRecords`；面板加**身份单选**（`input[name="assign-role"]`，组长 / 副组长，**不预设默认** ⇒ 留校验点）；新增导出 `openLeaderAssignPanel()`；`handleConfirmLeader` 按身份 `authorize`（`AUTHORIZE_CHAIN.secretary` 本就含 `deputy-leader`）。`group-progress-tab.js` 清单新增 `_leaderCellHtml`（同列双身份 ＋ **行内撤销**）与 `_leaderAssignMap`（**档案派生 ＋ 审计赋权叠加**——`AuthStore.authorize('leader')` **只写审计快照、不改成员档案**）；`group-view.js` 新增纯函数 `groupLeadershipOf`（与 `listPartyGroups` 同分组口径）。
+> **④ 组长台「其他组」**：`insight-view.js` 分段集合扩为 `activity | taskforce | group`；新增共享件 `components/record/other-groups-view.js`（只读别组 组员进展 / 复盘 / 考勤 / 考察；**无任何写入口**）；`leader/tf-view-tab.js` 由「只出活动段」改 `[...derived, 'group']`。**判据单一源**：`group-view.js` 新增 `groupReportRowsOf` / `reportRowStateOf` / `REPORT_DOT_COLOR`（自 `group-progress-tab.js` **上移**，两处复用、**不做第二实现**）。
+> **③ 两动作名保名 ＋ 导语**：`notification-tab.js` / `report-up-tab.js` 各加「动作」胶囊 ＋ 一句导语。**⑤ 组件复用立纪律**：`CLAUDE.md` `#10` 节「全站纪律 · 组件复用」（范式＝批次 371 日历）。
+> **判据 / 台账面同源改准**：`help.html`（§2.1 表 ＋ 活动管理行 ＋ doc-note ＋ 五卡 ＋ §2.5 行长）· `README-server.md`（§3.2.1 / §3.2.5 ＋ §7.3#17 ＋ §4.20 `voteConfig` 行号）· `function-catalog.js`（`assign` / `ws-secretary` / `ws-leader`）· `form-loop-registry.mjs`（7 处行号 ＋ 常设赋权第二条改「身份」＋ 新增 1 条 `machine:false`〔请选择党小组〕⇒ **`SITES_BASELINE 116 → 117`** ＋ README 计数同步）· `doc-line-ref` R4「副组长」载体名单 +6 · `copy-length`（C2 8/11 → 7/10 · C6 4/4 → 3/3）· `copy-screen`（`secretary::党小组与活动` 收基线）。
+> **戳** `20261004h → 20261004i`；**收尾** 按 `R-85` ④ 跑覆盖分片（secretary 在 `SHARD_PAGES[1]`、leader 在 `[3]`）＋ 真机取证。
+> ⚠ **三处如实登记**：① 页签名 `党小组与活动` → `党小组` 系**施工单的直接推论**（名实须符），**施工单未逐字写改名** ⇒ 若要求保名一行可回退（id 不变）② 「项目赋权」整卡落「活动管理」**含专班选项**系圈乙的直接结果（代价如实）③ **母本 `content/**` 未动**（`CDF §D.1.1` 赋权入口表仍写「党小组与活动 同项入口」，**表述已过时**、只登记不改）。
 
 ## `#4` 站内信 · **v1 ＋ 余三项均已落地**（2026-10-02 支书点名「站内信 是一个 很重要的形式！！请一定要思考落地！！」）
 

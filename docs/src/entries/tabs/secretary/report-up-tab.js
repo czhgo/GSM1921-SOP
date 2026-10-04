@@ -5,14 +5,14 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261004h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
-import { getPersonName } from '../../../services/member/person.js?v=20261004h';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004h';
-import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004h';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004h';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
+import { getPersonName } from '../../../services/member/person.js?v=20261004i';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004i';
+import { submitReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004i';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004i';
 // 统一检索引擎（2026-09-14 批次 37）：上报记录列表接入关键词 + 状态分面 + 分页
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004h';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004i';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点', desc: '发展党员关键节点（确定积极分子/发展对象、接收预备党员、按期转正等）' },
@@ -38,11 +38,15 @@ export function renderContent() {
       <div class="space-y-4">
         <!-- 统计条（页首内联一行：待批复/已批准/已驳回；沿用活动管理内联统计条样式） -->
         <div id="rq-stats" class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500 py-2 border-b border-gray-100"></div>
-        <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
+        <div class="rounded-lg border border-gray-200 bg-white p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0 flex items-center gap-2">
+              <p class="font-title-cn text-base font-bold text-gray-800">上报党委</p>
+              <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
+            </div>
+            <button id="rq-submit-toggle" class="btn-accent text-xs px-3 py-1.5 font-medium shrink-0">+ 发起上报</button>
           </div>
-          <button id="rq-submit-toggle" class="btn-accent text-xs px-3 py-1.5 font-medium shrink-0">+ 发起上报</button>
+          <p class="text-xs text-gray-500 mt-1">本页是<strong>动作</strong>页：一次性地向院党委发起上报（发展节点 / 活动报备），并在此跟批复回执；不承载对象台账。</p>
         </div>
         <div id="rq-form-wrap" class="hidden rounded-lg border border-gray-200 bg-white p-4"></div>
         <div id="rq-list" class="space-y-3"></div>

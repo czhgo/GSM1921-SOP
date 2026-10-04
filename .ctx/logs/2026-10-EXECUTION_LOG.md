@@ -2,7 +2,7 @@
 title: "2026年10月执行日志"
 type: execution_log
 role: "[工程师]+[AI]"
-last_updated: "2026-10-03"
+last_updated: "2026-10-04"
 status: active
 related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTION_LOG_INDEX.md]
 ---
@@ -2163,3 +2163,57 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **（丁）归属可转移一行未动**（`D-761` ③ 架构级，单独立项待认方向）。
 - ⚠ **母本 / 职责表述未动**（本次未涉 `content/**`）。
 - ⇒ **批次 372 起继续**（支书台 → 党委台 → 全站收口）。
+
+## 批次 373（2026-10-04 · `D-765`）**支书台 ＋ 组长台 ＋ 组件复用纪律 · 落地**（`#10` 按对象归位 · 组长/副组长行内管理 · 「其他组」只读分段）
+
+> **来源**：`D-764`（批次 372 出表 ＋ 立据）的五条施工单 ＋ `D-764` Q3 已圈。**开工前三处拿不准项上呈**（`D-764` 施工单文字与母本 / 既有设计相抵）⇒ 支书两轮 5 问圈定：① **乙**（项目赋权整卡搬「活动管理」）② **乙**（清单行内「设 / 改」开同一面板）＋ **新诉求「副组长赋权」圈甲**（同列双身份、1–2 名不定）＋ **撤销圈甲**（行内）③ **甲**（组长台加「其他组」只读分段）。
+
+### 一、落地明细（逐项）
+
+1. **① 支书台按对象归位**：`group-progress-tab.js` 撤「党小组活动」分区（`_groupActivitySectionHtml` / `_renderGroupActivities` / `#gp-group-activities` / `.gp-new-activity` / `#gp-activity-auth-host`）；`calendar-tab.js` 增设「党小组活动」卡（判据随迁＝`direction === 'bottom-up'`；`renderFilteredList` 分页）＋ 项目赋权整卡宿主 `#cal-activity-auth-host`（`mountActivityProjectAuth` 单一源不变）。**页签名 `党小组与活动` → `党小组`**（`secretary-workspace.js`；**id 仍 `group-progress`**）。`overview-tab.js`「赋权待审批」直达 `group-progress → calendar`、`tabLabels` 同步；`todo-tab.js::expandAssignPanelForTodo` **按 scope 分流** ＋ 新增 `_waitForEl`。
+2. **② 组长 / 副组长行内管理**：`assign-tab.js` 撤 `LEADER_ASSIGN_HTML` 的块头 / 按钮 / 列表与 `renderAssignLeaders` / `renderAuthRecords` / `toggleAuthPanel`；`LEADER_ASSIGN_HTML` 收为 `#assign-area`；面板加**身份单选**（`input[name="assign-role"]`；**不预设默认** ⇒ 保留校验点）；新增导出 `openLeaderAssignPanel({ groupName })`；`handleConfirmLeader` 按身份 `authorize`；`selectProjectAuthKind` 改为导出。`group-progress-tab.js` 清单新增 `_leaderCellHtml`（**同列双身份** ＋ **行内撤销**）与 `_leaderAssignMap`；`mountAssignBlocks` 只挂 `mountLeaderAssign`。
+3. **③ 两动作名保名 ＋ 导语**：`notification-tab.js` / `report-up-tab.js` 各加「动作」胶囊 ＋ 一句导语。
+4. **④ 组长台「其他组」**：`insight-view.js` 分段集合扩为 `activity | taskforce | group`（段名「其他组」）；新增 `docs/src/components/record/other-groups-view.js`（只读别组 组员进展 / 复盘 / 考勤 / 考察，**无写入口**）；`leader/tf-view-tab.js` 改 `views = [...activityViews, 'group']`、`defaultView = activityViews[0]`。
+5. **⑤ 组件复用纪律**：`CLAUDE.md` `#10` 节新增「全站纪律 · 组件复用」（范式＝批次 371 日历）。
+6. **判据单一源（上移）**：`group-view.js` 新增 `groupLeadershipOf`（纯函数，分开列组长 / 副组长）＋ `groupReportRowsOf` / `reportRowStateOf` / `REPORT_DOT_COLOR`（自 `group-progress-tab.js` 上移，两处复用）；`group-progress-tab.js::_reportDot` 改用 `REPORT_DOT_COLOR`。
+
+### 二、判据 / 台账面同源改准（8 类）
+
+- `docs/help.html`：§2.1 表「党小组与活动」行 → **「党小组」行**（重写）＋ 活动管理行 ＋ `doc-note` 重写 ＋ `card-copy-party-group` / `card-copy-review-submit` / `card-copy-assign-leader` / `card-copy-assign-activity` / `card-copy-assign-taskforce` 五卡 ＋ §2.5 组长台「知情查看」行。
+- `README-server.md`：§3.2.1 活动管理 / 党小组两行 ＋ §3.2.5 `tf-view` 行 ＋ §7.3#17 载体名单（「恰好四处」→ 十处、指针改 `:268-275`）＋ §4.20 `voteConfig` 行号 `:1241-1263 → :1304-1320`。
+- `function-catalog.js`：`assign` / `ws-secretary`（顺带把页签数 **11 → 12**、补「成员流动」）/ `ws-leader`。
+- `server/test/form-loop-registry.mjs`：**7 处行号**改准（`assign-tab` 321/322/323 · 531/536 · 642/643；`group-progress-tab` 833；`calendar-tab` 1291/1292/1293 · 1079/1080 · 1253；`notification-tab` 217/218/223 · 410/411；`report-up-tab` 126）＋ 常设赋权第二条 **「党小组」→「身份」** ＋ `MACHINE_FLOWS` 两条流程（`tab` 改准 / `open` 改 `.gp-assign-leader`）＋ **新增 1 条 `machine:false`〔请选择党小组〕** ⇒ `SITES_BASELINE 116 → 117`。
+- `README.md`：真机台账计数 **117 处 / 15 条非自动化**。
+- `server/test/doc-line-ref.test.mjs`：`R4`「副组长」载体名单 **+6** 处。
+- `server/test/copy-length-guard.test.mjs`：C2 收基线（8/11 → **7/10**）· C6 收基线（4/4 → **3/3**）。
+- `server/test/copy-screen-guard.test.mjs`：`secretary::党小组与活动` 从 C4_BASELINE / C4_REASON / C3_BASELINE **收基线**（屏键已不存在、两屏实测均 ≤12）。
+
+### 三、收尾与真机
+
+- **戳**：`20261004h → 20261004i`（bump 实测：JS **222** 个 / HTML 23 个 / CSS 2 个 / server-test 92 个）。
+- **守卫**：静态守护卫子集全绿（`doc-consistency` / `doc-line-ref` / `catalog-sync` / `version-stamp` / `import-path-guard` / `dead-selector-guard` / `validation-site-coverage` / `group-view` / `timestamps-note-guard` / `copy-master` / `copy-length` / `frontmatter-freshness` / `module-load` / `hex-hardcode-guard`）＋ `copy-screen-guard` **真机 7 台逐 tab 全绿**（M1–M4）。
+- **收尾（覆盖分片 · 起 3000 服务）**：`SWEEP_SHARD=1`（secretary 所在片）**773 / 773 / 0 红**；`SWEEP_SHARD=3`（leader 所在片）**806 / 806 / 0 红**。
+- **真机**：支书台 **12 页签**（第 6 枚＝**「党小组」**）· 组长台 **10 页签**「知情查看」**两段＝活动 / 其他组**。
+
+### 三之二、**顺带收口批次 371 遗留**（如实登记）
+
+- ⚠ **`form-loop-registry.mjs` 三条 leader 真机流的 `tab` 仍写「活动管理」**（批次 371 已把该页签改名「**本组活动**」，但**该批收尾只跑了 `SWEEP_SHARD=4`**〔visitor ＋ party-committee〕、**未覆盖 leader** ⇒ **漏网**）。
+- **本批被 `SWEEP_SHARD=3` 抓出**（真机报「切 tab『活动管理』超时：该按钮未进入激活态；当前 tab 条=[…,「本组活动」,…]」）⇒ 三条 `tab` 改准为 `本组活动`（`leader-write-activity` / `leader-act-subrecord` / `leader-write-activity-save`）。
+- **教训**：改名/换台那批的**收尾分片必须覆盖被改台所在片**（本批即是）。
+
+### 三之三、三处「收基线」（均为进度前进 · 非放宽）
+
+- `copy-length-guard`：C2（`group-progress-tab` 长说明随分区迁出／改写）8 文件 11 条 → **7 / 10**；C6（原空态迁 `calendar-tab.js` 并改短 ≤30）4 文件 4 条 → **3 / 3**。
+- `copy-screen-guard`：`secretary::党小组与活动`（屏键已不存在、两屏实测均 ≤12）从 C4_BASELINE / C4_REASON / C3_BASELINE **删条目**。
+- `hex-hardcode-guard`：**未新增**——`REPORT_DOT_COLOR` 一度上移 `group-view.js` 被判「新文件不得硬编码色值」⇒ **改回**：色点仍留 `group-progress-tab.js`（既有基线内），`group-view.js` **不引色值**（纯逻辑域）。
+
+
+### 四、如实登记
+
+- ⚠ **页签名 `党小组与活动` → `党小组` 系施工单的直接推论**（本页只留「组」⇒ 名实须符），**施工单未逐字写改名**；若支书要求保名，一行可回退（id 始终 `group-progress`）。
+- ⚠ **「项目赋权」整卡落在「活动管理」页、含「专班」选项**：系支书圈**乙**的直接结果（代价如实；换来母本「支书亦可」不破）。组织台「专班管理」的**本位**入口一字未动。
+- ⚠ **`AuthStore.authorize('leader' / 'deputy-leader')` 只写审计快照、不改成员档案**（本批实读）：故清单表组长 / 副组长须**两源合并**（`groupLeadershipOf` 档案侧 ＋ `getAuthorizations()` 审计侧）；**预设（档案）无撤销入口、运行时赋权有**。
+- ⚠ **`请选择党小组` 降为 `machine:false`**：党小组由行内「设 / 改」预设 ⇒ 空分支只在「支部无在册党小组」时可达（**非结构性不可达**）。
+- ⚠ **母本 `content/**` 未动**：`CDF §D.1.1` 赋权入口表仍写「支书台『党小组与活动』同项入口」——**表述已过时**（入口现于「活动管理」页），只登记不改（循既有惯例）。
+- ⚠ **「其他组」卡内「考察」聚合判据**用 `groupActivitiesOf`（organizer 属本组），与 `inspection.js::_activityPartyGroup`（优先 `hostGroup`）**略有差异**。
+- ⇒ **批次 374–375 起继续**（党委台 → 全站收口）；**（丁）归属可转移＝架构级 · 单独立项**。

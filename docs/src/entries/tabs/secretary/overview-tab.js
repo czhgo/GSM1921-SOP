@@ -8,22 +8,22 @@
 // 重设计要点：单列进度总览，取消 2x2 四色卡片与四色左边条，主体色统一党建红。
 // 2026-08-10 支书裁定：本页禁用 SVG 图标（不再引入 icon），类别用色点+文字标签区分。
 
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261004h';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004h';
-import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261004h';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
-import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261004h';
-import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261004h';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261004i';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261004i';
+import { ROLE_LABELS, ROLE_COLORS } from '../../../core/domain/constants.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
+import { dutyCardHtml } from '../../../components/governance/workforce-duty-card.js?v=20261004i';
+import { SecretaryOverviewStore, listWeeklyReportsPendingReview, reviewWeeklyReport, WEEKLY_REVIEW_STATUS } from '../../../services/governance/secretary-overview.js?v=20261004i';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：支书复核卡（只读查看徽标/备注/变更留痕）
-import { getRosterStats } from '../../../services/member/roster.js?v=20261004h';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004h';
-import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004h';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261004h';
-import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261004h';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261004i';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004i';
+import { loadAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004i';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261004i';
+import { IssueStore, REPORT_CATEGORIES } from '../../../services/governance/issues.js?v=20261004i';
 // D2 裁决批二（2026-09-08 支书特批）：按人视图汇报区降级只读摘要 → 「去待办处理」定位跳转（pendingTarget 一次性消费）
-import { PendingTarget } from '../../../core/session/pending-target.js?v=20261004h';
-import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261004h';
-import { getPersonName } from '../../../services/member/person.js?v=20261004h';
+import { PendingTarget } from '../../../core/session/pending-target.js?v=20261004i';
+import { listPendingByReceiver, confirmExternalDispatch } from '../../../services/activity/external-dispatch.js?v=20261004i';
+import { getPersonName } from '../../../services/member/person.js?v=20261004i';
 
 const OVERVIEW_TAB_HTML = `
   <div id="secretary-overview-content"></div>
@@ -329,7 +329,8 @@ function renderDimensionView(container) {
   if (inspection.overdueInspections) pushEx(3, '考察超期', `${inspection.overdueInspections} 条`, '纪检委员', { urge: 'inspection-overdue' });
   if (inspection.pendingInspections) pushEx(2, '考察待确认', `${inspection.pendingInspections} 条`, '纪检委员', { urge: 'inspection-pending' });
   // 2026-09-25（赋权按对象归位）：原直达「赋权管理」tab 已删 ⇒ 直达收编赋权①②的「党小组与活动」
-  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'group-progress' });
+  // 2026-10-04 批次 373（按对象归位 · 支书圈乙）：情景②③ 项目赋权整卡迁「活动管理」页 ⇒ 直达改指 calendar
+  if (activity.pendingAuth) pushEx(1, '赋权待审批', `${activity.pendingAuth} 个活动`, '支书', { direct: 'calendar' });
   if (propaganda.pendingArchive) pushEx(1, '待归档', `${propaganda.pendingArchive} 个活动`, '宣传委员', { urge: 'archive-pending' });
   exceptions.sort((a, b) => b.level - a.level);
 
@@ -472,7 +473,7 @@ function renderDimensionView(container) {
       const tabId = btn.dataset.direct;
       const tabBtn = document.querySelector(`.secretary-tab-btn[data-secretary-tab="${tabId}"]`);
       if (tabBtn) tabBtn.click();
-      const tabLabels = { calendar: '活动管理', 'group-progress': '党小组与活动', notification: '通知发布' };
+      const tabLabels = { calendar: '活动管理', 'group-progress': '党小组', notification: '通知发布' };
       showToast('info', `已直达${tabLabels[tabId] || '对应功能'}`);
     });
   });

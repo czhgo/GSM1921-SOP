@@ -367,9 +367,9 @@
 | 1 | `today` / 今天 ★ | 工作台 | 支书·副支书 | 只读速览：今天有会 / 今天到期 / 今日分工，点击 ≤1 跳直达处理处 |
 | 2 | `todo` / 待办 ★ | 工作台 | 同上 | 工作域折组（会务/活动项目/考勤纪律/考察/成员发展/专班/决议上报/归档宣传/汇报反馈），域内批量确认 |
 | 3 | `overview` / 全局概况 ★ | 工作台 | 同上 | 按维度 / 按人两视图的全局汇报-卡点-在办总览 |
-| 4 | `calendar` / 活动管理 | 我的职责 | 同上 | 会务日历；决策树引导式创建活动（含议程、表决配置写入面板） |
+| 4 | `calendar` / 活动管理 | 我的职责 | 同上 | 会务日历；决策树引导式创建活动（含议程、表决配置写入面板）；**2026-10-04 批次 373 按对象归位**：承接自「党小组与活动」迁入的**「党小组活动」只读列示**（direction `bottom-up`）与**「项目赋权」整卡**（情景② 活动 ＋ 情景③ 专班，含 已赋权记录·活动/专班；支书圈乙「整卡搬去活动管理」） |
 | 5 | `committee-meeting` / 支委会会议 | 我的职责 | 同上（页签入口）；支委（会议页内表态） | 线上召开支委会的入口与统计（场次 / 线上召开数 / 未截止数）；进独立页 `party-committee-meeting.html`：选线上召开 → **从「拟上会」清单提取议程**（6 类：专班报送 / 意见反馈 / 制度草案 / 待报送党员大会表决的制度 / 发展对象推荐 / 品牌认定提案）→ 支委在线表态 → 汇总截止 → 留存并查阅讨论结果 |
-| 6 | `group-progress` / 党小组与活动 | 我的职责 | 同上 | 党小组清单 + 新增 / 改名 / 解散；未分组行内归组；并入 **组长指派 / 支委身份配置**（常设赋权）与「党小组活动」分区内的**活动项目赋权**（无独立赋权页签） |
+| 6 | `group-progress` / 党小组 | 我的职责 | 同上 | 党小组清单 + 新增 / 改名 / 解散；未分组行内归组；**清单行内「设 / 改」设组长 / 副组长**（同列双身份、副组长 1–2 名、行内撤销，2026-10-04 批次 373 去冗余：原独立「组长指派」块已撤）、**支委身份配置**（在「支委会」tab 的「机构构成」段）。**2026-10-04 批次 373：页签名由「党小组与活动」改「党小组」；「党小组活动」与「项目赋权」整卡按对象归位「活动管理」页** |
 | 7 | `notification` / 通知发布 | 我的职责 | 同上 | 发布通知、受众定向、催读 |
 | 8 | `report-up` / 上报党委 | 我的职责 | 同上 | 向党委上报发展节点 / 活动报备，查看批复结论 |
 | 9 | `member-flow` / 成员流动 | 我的职责 | 同上 | 与组织台「成员流动」**同源组件**（`entries/tabs/org/member-flow-tab.js`，一处实现两处入口）；支书 / 副支书本就有流入 / 流出登记权，此页是其入口 |
@@ -429,7 +429,7 @@
 | 6 | `attendance` / 考勤管理 | 我的职责 | 上传**该场组织者位**会议类型的考勤（党小组会 / 组织生活会 / 主题党日；**党课与支部党员大会不在本页**——那两类归纪检委员，**支委会不考勤**，见 3.4）；追加提交、改/删走纪检确认流程。**2026-10-04 批次 369：页签名由「考勤上传」改「考勤管理」**（对象轴，与纪检台同名同轴） |
 | 7 | `inspection` / 考察管理 | 我的职责 | 上传本组活动考察。**2026-10-04 批次 369：页签名由「考察上传」改「考察管理」** |
 | 8 | `members` / 组员进展 | 我的职责 | 本组组员进展：由**服务端汇总接口**返回（在办/超期/缺勤/考察待确认/汇报态） |
-| 9 | `tf-view` / 知情查看 | 知情查看 | 分段集合由「赋权下游」派生（`D-755`）；本台下游＝党小组会 / 主题党日 / 共建活动 ⇒ **只出「活动」段**（2026-10-04 批次 369） |
+| 9 | `tf-view` / 知情查看 | 知情查看 | 分段集合由「赋权下游」派生（`D-755`）；本台下游＝党小组会 / 主题党日 / 共建活动 ⇒ **出「活动」段**（2026-10-04 批次 369）＋ **2026-10-04 批次 373 额外并入「其他组」段**（支书 Q3 圈甲：组长可见别组只读一览——组员进展 / 复盘 / 考勤 / 考察；看≠做、写口仍只本组） |
 | 10 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
 > **特例（组织者兜底入口）**：**非组长**的人被指定为某场活动的组织者时，也可进入本台——但**只呈现「考勤管理」「考察管理」这两个页签**（该场活动上传位 + 纪检打回后的「待你确认」区），其余页签是组长身份的职责、不开放；**判据与表单零口径复制、不放宽任何写权限**。判定单一源 `docs/src/capabilities/leader-workspace.js:17-23,81-83`（`ORGANIZER_FALLBACK_TAB_IDS`），身份门与归档兜底同款（`docs/src/core/boot/bootstrap.js:19-20,181-187`）。
@@ -549,7 +549,7 @@
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:554,620,684`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1241-1263`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:554,620,684`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1304-1320`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -1449,7 +1449,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | 14 | **邮件通道实际不会发出任何邮件** | 三重原因叠加：① 收件人从成员档案 `email` 读取，而**示例数据无该字段**；② 需 `MAIL_ENABLED=true` 且 `SMTP_*` 齐备；③ 即便发出，也只覆盖「通知发布 / 待办提醒 / 汇报」三类触发点，受众解析**只实现了 activity 定向与全体两种**（党小组/角色定向统一按全体处理） | `server/services/mailer.js:93-106`、`server/services/mailer-hooks.js:19-37` |
 | 15 | **`handoffs`（三委数据交接记录）：服务端已有表** | 前端 mockDB 有 `handoffs` 域；**服务端现有同名表 `handoffs`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`，写读口见 §6 末「语义端点」段）⇒ API 形态下该域**已落库**，且 `init()` 会拉取填充 | `docs/src/core/domain/domain.js:266`、`server/db.js:152-159`（`SEMANTIC_TABLES`）、`server/routes/resources/semantic-routes.js:153-192`（handoffs 三端点：列表 / 发起 / 接收确认） |
 | 16 | **`pendingMemberConfirmations`：服务端已有表** | 前端 mockDB 数组承载内存读链；**服务端现有表 `member_confirmations`**（语义端点组 = `server/db.js::SEMANTIC_TABLES`）⇒ API 形态下该队列**已落库**、清浏览器缓存不丢（写读口见 §6 末「语义端点」段）；浏览器 localStorage 键 `gsm1921-member-confirmations` 仍作 mock 形态的持久化通道，两形态并存 | `docs/src/core/domain/domain.js:324-332`（`pendingMemberConfirmations`）、`server/db.js:152-159`、`server/routes/resources/semantic-routes.js:196-233`（入队 / 支书决策两端点） |
-| 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，恰好四处）见 `server/test/doc-line-ref.test.mjs:235-240` |
+| 17 | **「副组长」身份已落地** | 制度文本规定「每个党小组设 1 名组长 + 1-2 名副组长，副组长可共享同组组长工作台的相关内容」；系统已把 `deputy-leader` 落成**可与组长区分的第二个身份**——**同页同台、同权限集，任务优先给组长、不硬切分正副职责**；**2026-10-04 批次 373 起支书台「党小组」清单行内可赋权 / 撤销副组长（与组长同列双身份）** | `content/02_institution/SYSTEM_ROLE_PERMISSION.md:46`、`content/02_institution/sop/支委与党小组定人定责定岗说明.md:40`、`content/02_institution/sop/党小组组长工作手册.md:46-48`；载体名单（`docs/` 内「副组长」命中集，2026-10-04 批次 373 因副组长赋权 UI / 文档落地扩至十处）见 `server/test/doc-line-ref.test.mjs:268-275` |
 | 18 | **`party-staff` 无可见性配置** | 「谁能看谁」（`ROLE_VISIBILITY`）表中**没有 `party-staff` 键** ⇒ 该角色的可见目标投影恒为空 | `docs/src/services/core/visibility.js:48-56`、`:99-101` |
 
 ### 7.3 未接入 / 无代码类（规划中）

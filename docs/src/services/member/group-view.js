@@ -23,9 +23,9 @@
 //   localStorage 仅在成员档案读链内部以 typeof 守卫惰性访问 → 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { PersonStore } from './person.js?v=20261004h';
-import { isPartyMember } from './roster.js?v=20261004h';
-import { ReviewStatus } from '../../core/domain/domain.js?v=20261004h';
+import { PersonStore } from './person.js?v=20261004i';
+import { isPartyMember } from './roster.js?v=20261004i';
+import { ReviewStatus } from '../../core/domain/domain.js?v=20261004i';
 
 /**
  * 支部内党小组清单（数据驱动：成员档案 partyGroup 聚合，缺省走 PersonStore 当前档案）
@@ -70,6 +70,59 @@ export function listPartyGroups({ members, branchId } = {}) {
       partyCount: partyMemberIds.length,
     };
   });
+}
+
+/**
+ * 支部内各组「组长 / 副组长」名单（**分开、可多人**；纯档案派生——审计赋权由调用方叠加）。
+ * 分组口径与 `listPartyGroups` 逐字同源（成员档案 partyGroup 去重 + 支部过滤）；区别只在
+ *   `listPartyGroups` 的 `leaderId` 是「组长优先、无组长才回落副组长」的**单一格位**，
+ *   本函数把两个身份**分开列全**，供「党小组清单」行内管理（2026-10-04 批次 373 · `D-765`）。
+ * @param {Object} [opts]
+ * @param {Array}  [opts.members]
+ * @param {string} [opts.branchId]
+ * @returns {Map<string, {groupName:string, leaderIds:string[], deputyLeaderIds:string[]}>} 组名 → 名单
+ */
+export function groupLeadershipOf({ members, branchId } = {}) {
+  const list = (members || PersonStore.getMembers())
+    .filter(p => p && String(p.partyGroup || '').trim())
+    .filter(p => !branchId || (p.branchId || 'br-b1') === branchId);
+  const map = new Map();
+  for (const p of list) {
+    const g = String(p.partyGroup).trim();
+    if (!map.has(g)) map.set(g, { groupName: g, leaderIds: [], deputyLeaderIds: [] });
+    const e = map.get(g);
+    if (p.role === 'leader') e.leaderIds.push(p.id);
+    else if (p.role === 'deputy-leader') e.deputyLeaderIds.push(p.id);
+  }
+  return map;
+}
+
+/** 组员相关汇报行集合（含组长向组员发起的「了解进展」请求行）——判据单一源。
+ *  2026-10-04 批次 373 自 `group-progress-tab.js::_groupReportRows` **上移**（供支书台「跨组进展」与
+ *  组长台「其他组」两处复用，**不第二实现**——`D-765` ⑤ 组件复用纪律）。 */
+export function groupReportRowsOf(allIssues, group, limit = 8) {
+  if (!Array.isArray(allIssues) || !group) return [];
+  const scope = new Set(memberScopeOfGroup(group));
+  const leaderId = group.leaderId;
+  return allIssues
+    .filter(i =>
+      i && i.kind === 'report' && !i.hidden && !i.mergedInto &&
+      (scope.has(i.submittedBy) || (leaderId && i.requestedBy === leaderId && scope.has(i.assignee)))
+    )
+    .sort((a, b) => String(b.submittedAt || '').localeCompare(String(a.submittedAt || '')))
+    .slice(0, limit);
+}
+
+/** 汇报行派生状态（组长已答复 / 待答复 / 待汇报 / 卡点 / 已办结）——判据单一源（同上，随批次 373 上移）。 */
+export function reportRowStateOf(issue) {
+  if (issue.status === 'closed') return { label: '已办结', cls: 'bg-gray-100 text-gray-600' };
+  const hasLeaderReply = (issue.comments || []).some(c => !c.hidden && c.kind === 'reply' && c.authorRole === 'leader');
+  if (hasLeaderReply) return { label: '组长已答复', cls: 'bg-green-100 text-green-700' };
+  // 上级（支书/组长）「了解进展」请求行：尚未回应 → 待汇报；组员/被请人已回应(resultPending) → 待答复
+  if (issue.requestedBy && !issue.resultPending) return { label: '待汇报', cls: 'bg-blue-100 text-blue-700' };
+  if (issue.resultPending) return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
+  if (issue.reportCategory === 'blocked') return { label: '卡点上报', cls: 'bg-red-100 text-red-700' };
+  return { label: '待答复', cls: 'bg-amber-100 text-amber-700' };
 }
 
 /** 取组内「组员」id 集（组长视角口径：组长看本组其他成员；无组长组 = 全组成员） */

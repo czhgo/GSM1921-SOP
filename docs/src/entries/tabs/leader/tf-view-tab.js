@@ -12,20 +12,23 @@ export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
   return Promise.all([
-    import('../../../components/record/insight-view.js?v=20261004h'),
-    import('../../../core/domain/work-map.js?v=20261004h'),
-    import('../../../services/branch/branch.js?v=20261004h'),
-    import('../../../services/core/auth.js?v=20261004h'),
+    import('../../../components/record/insight-view.js?v=20261004i'),
+    import('../../../core/domain/work-map.js?v=20261004i'),
+    import('../../../services/branch/branch.js?v=20261004i'),
+    import('../../../services/core/auth.js?v=20261004i'),
   ]).then(([iv, wm, br, auth]) => {
     const me = auth.AuthStore.getCurrentUser() || {};
     // 支部实际分工（`config.workforce` 覆盖 ＋ 缺省兜底）——「下游可配置」的落点
     const snapshot = br.getBranchWorkforce(me.branchId);
     const derived = wm.downstreamViewSegments(me.role, snapshot);
     // 空集（本角色无该类下游视图）⇒ 按支书甲档口径回退「活动」段（全支部通用知情面）
-    const views = derived.length ? derived : ['activity'];
+    const activityViews = derived.length ? derived : ['activity'];
+    // 2026-10-04 批次 373 · 支书 `#10` Q3 圈**甲**（「党小组组长是否可以看到别组的情况，我认为是应该
+    //   可以看到的！！」）：组长台额外并入 `group`「其他组」只读一览（看≠做、写口仍只本组）。
+    const views = activityViews.includes('group') ? activityViews : [...activityViews, 'group'];
     return iv.renderInsightView(el, {
       views,
-      defaultView: views[0],
+      defaultView: activityViews[0],
       highlightActId: ctx?.highlightActId || null,
       highlightTfId: ctx?.highlightTfId || null,
       // 知情查看 = 只读形态
