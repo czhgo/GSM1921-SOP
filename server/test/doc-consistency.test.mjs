@@ -119,9 +119,11 @@ test('S2 各台 tab 名称齐备；已删 tab 名不得在帮助页复现', () =
   assert.ok(!/<td>制度与文本<\/td>/.test(help), 'help.html 仍把「制度与文本」列为独立 tab（已随公邮废止撤除）');
 });
 
-test('S3 分组名只有一套轴：支部角色台四组、党委台三组（且「党建 / 反馈」组名不得回潮）', () => {
+test('S3 分组名只有一套轴：支部角色台四组、党委台两组（且「党建 / 反馈」组名不得回潮）', () => {
   const BRANCH_GROUPS = new Set(['工作台', '我的职责', '知情查看', '制度与答复']);
-  const PC_GROUPS = new Set(['首页', '全院治理', '支部治理']);
+  // 2026-10-04 批次 374（支书圈乙：「支部配置」并入「支部管理」页内区）⇒ 党委台 **3 → 2 组**
+  //   （原「支部治理」组随之撤销：其唯一成员 `party-config` 已并入「全院治理」段的「支部管理」页）。
+  const PC_GROUPS = new Set(['首页', '全院治理']);
   const problems = [];
   for (const w of WORKS) {
     const allowed = w.page === 'party-committee' ? PC_GROUPS : BRANCH_GROUPS;
@@ -620,9 +622,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261004i');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261004i');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261004i');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261004j');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261004j');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261004j');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */

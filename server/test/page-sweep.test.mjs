@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004i')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004j')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
@@ -359,8 +359,10 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   //   七台 tab 数 **66 → 65**（宣传台 10 → 9）⇒ 门槛按实测值下调为 **65**（**范围未缩水**：七台全部 tab 仍逐一进页面）。
   // 2026-10-04 批次 371（`D-762` 落地：成员台「活动日历」独立页签**撤**——日历＝「活动动态」的一个视图）：
   //   七台 tab 数 **65 → 64**（成员台 12 → 11）⇒ 门槛按实测值下调为 **64**（**范围未缩水**：七台全部 tab 仍逐一进页面）。
+  // 2026-10-04 批次 374（`#10` 单一轴 党委台：支书圈乙「支部配置」并入「支部管理」页内区）：
+  //   七台 tab 数 **64 → 63**（党委台 7 → 6）⇒ 门槛按实测值下调为 **63**（**范围未缩水**：七台全部 tab 仍逐一进页面）。
   console.log(`[普查覆盖] tab=${SWEEP.tabs} 引擎列表=${SWEEP.lists}（其中总数>10 的 ${SWEEP.listsOverPage}）矩阵=${SWEEP.matrices} 手写表格=${SWEEP.tables}`);
-  assert.ok(SWEEP.tabs >= 64, `普查 tab 数少于基线 64（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
+  assert.ok(SWEEP.tabs >= 63, `普查 tab 数少于基线 63（实测 ${SWEEP.tabs}）：普查范围缩水或某台 tab 未渲染`);
   assert.ok(SWEEP.listsOverPage >= 12, `「总数 > 10 的引擎列表」样本少于基线 12（实测 ${SWEEP.listsOverPage}）：分页断言可能恒真`);
   assert.ok(SWEEP.matrices >= 4, `矩阵样本少于基线 4（实测 ${SWEEP.matrices}）：人维分页断言可能恒真`);
   assert.ok(SWEEP.tables >= 2, `手写表格样本少于基线 2（实测 ${SWEEP.tables}）：P3 断言恒真`);

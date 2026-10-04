@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // 党委工作台 Tab：支部监控台账（P1 党委后台，2026-09-02）
 // 党委见全院：各支部运行概览（支部名/支书/成员规模/在册党员/滞留/发展阶段/组织生活台账/近期活动/进入支部）
 // C⑤（2026-09-10 支书裁定）：支部级明细单一源=本台账（治理总览只留全院级汇总数字）。
@@ -8,21 +8,26 @@
 //   折叠体例＝本仓既有 `<details>`（同 makeup-tab「补课范围与归档口径」）；折叠只分层、不减字段与功能。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261004i';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261004i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004j';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261004j';
 // C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
 // 复用 services/member/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/member/roster.js?v=20261004i';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261004j';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261004i';
-import { getPersonName } from '../../../services/member/person.js?v=20261004i';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261004j';
+import { getPersonName } from '../../../services/member/person.js?v=20261004j';
 // P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/branch/appointment.js?v=20261004i';
+import { listAppointments } from '../../../services/branch/appointment.js?v=20261004j';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（services/core/branch-demo-nav.js）：
 // 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261004i';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261004j';
+// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——四页复用同一件，不各写一份
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004j';
+
+/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
+const BRANCH_FILTER_STATE = 'pc-monitor';
 
 const STAGE_ORDER = ['正式党员', '预备党员', '发展对象', '积极分子'];
 
@@ -31,7 +36,10 @@ export async function renderContent(ctx) {
   if (!el) return;
   el.dataset.currentTab = 'monitor'; // 跨 tab 共享容器约定（同 today/group-progress/insight-view 体例）：登记当前 tab，防 party-config 守卫读到陈旧标记而残留
   const activities = ctx?.activities || mockDB.activities || [];
-  const branches = mockDB.branches || [];
+  // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）：卡片按所选支部收窄；
+  //   页首「支部实例」计数仍取**全部**支部（它是院系规模口径，不随筛选变）。
+  const allBranches = mockDB.branches || [];
+  const branches = filterByBranch(allBranches, BRANCH_FILTER_STATE);
 
   const cards = branches.map(b => {
     const members = PEOPLE.filter(p => p.branchId === b.id);
@@ -66,10 +74,11 @@ export async function renderContent(ctx) {
           <p class="font-title-cn text-lg font-bold text-gray-800">${getCommitteeName()}</p>
         </div>
         <div class="text-right">
-          <p class="text-2xl font-bold text-red-600">${branches.length}</p>
+          <p class="text-2xl font-bold text-red-600">${allBranches.length}</p>
           <p class="text-xs text-gray-500">支部实例</p>
         </div>
       </div>
+      <div id="pc-monitor-branch-filter"></div>
       ${cards.map(({ b, members, partyTotal, detained, stageRows, typeCounts, recent, secretaryName, termText }) => `
         <div class="card rounded-xl p-4">
           <div class="flex items-center justify-between mb-3">
@@ -128,5 +137,11 @@ export async function renderContent(ctx) {
         </div>`).join('')}
     </div>
   `;
+  // 支部筛选（共用件；变更即重渲本页 ⇒ 卡片按所选支部收窄）
+  renderBranchFilter(el.querySelector('#pc-monitor-branch-filter'), {
+    stateKey: BRANCH_FILTER_STATE,
+    onChange: () => renderContent(ctx),
+  });
   bindBranchDemoButtons(el);
 }
+

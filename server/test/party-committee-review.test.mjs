@@ -1,7 +1,7 @@
 // server/test/party-committee-review.test.mjs — P3 党委后台「支部上报审批」E2E（2026-09-02）
 // 验收（设计 §5 P3 双向通道闭环）：
 //   ① 支书登录支书工作台「上报党委」发起上报（发展节点）→ 待党委批复
-//   ② 党委组织员登录党委工作台「上报审批」逐项批准（带意见）→ 支部侧可见批准结论
+//   ② 党委组织员登录党委工作台「支部上报」逐项批准（带意见）→ 支部侧可见批准结论
 //   ③ 活动报备驳回路径：驳回须填意见（空意见不生效）；带意见驳回 → 支部侧可见驳回与意见
 //
 // 自包含：createApp(:memory:) + seedDatabase；双账号双浏览器上下文（互不干扰登录会话）。
@@ -67,7 +67,7 @@ async function loginAs(page, { studentId, expectUrlPart }) {
   // 等 app header 渲染（工作台引导登录完成信号）
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004i')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004j')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 
 /** 切到指定 tab（workspace-shell 周期重绘 → evaluate 直接点 DOM，避免 actionability flaky） */
@@ -142,7 +142,7 @@ async function waitForServerNotice(title, contains, timeout = 8000) {
 /** 页面内 NoticeStore 是否含目标通知（标题精确 + 内容子串） */
 async function pageHasNotice(page, title, contains) {
   return page.evaluate(async ({ t, c }) => {
-    const { NoticeStore } = await import('/src/services/governance/notice.js?v=20261004i');
+    const { NoticeStore } = await import('/src/services/governance/notice.js?v=20261004j');
     NoticeStore.init();
     return (NoticeStore.getAll() || []).some((n) => n.title === t && String(n.content || '').includes(c));
   }, { t: title, c: contains });
@@ -167,10 +167,10 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
     // ① 提交通知（节点①）：server 落库党委待批复通知（快照防抖 → 轮询等待）
     assert.ok(await waitForServerNotice('支部上报待批复', titleA), '提交上报应生成党委待批复通知');
 
-    // ── ② 党委组织员（p_pc）登录党委工作台 → 上报审批 tab → 批准并带意见 ──
+    // ── ② 党委组织员（p_pc）登录党委工作台 → 支部上报 tab → 批准并带意见 ──
     await loginAs(partyPage, { studentId: '9000000001', expectUrlPart: 'party-committee.html' });
-    await activateTab(partyPage, '上报审批');
-    await waitForBodyText(partyPage, '上报关键事项'); // 上报审批面板帧已渲染（副标题）
+    await activateTab(partyPage, '支部上报');
+    await waitForBodyText(partyPage, '各支部上报的关键事项'); // 支部上报面板帧已渲染（副标题；2026-10-04 批次 374 改名后同批改签）
     await waitForBodyText(partyPage, titleA); // 待批复队列出现该上报
     await waitForBodyText(partyPage, '批准');
     // ①′ 党委侧站内可见该通知（带事项标题定位）
@@ -197,7 +197,7 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
 
     await partyPage.reload({ waitUntil: 'domcontentloaded' });
     await page_waitHeader(partyPage);
-    await activateTab(partyPage, '上报审批');
+    await activateTab(partyPage, '支部上报');
     await waitForBodyText(partyPage, titleB);
 
     // 空意见驳回：守卫提示、状态不变（仍在待批复卡内）
@@ -233,3 +233,4 @@ test('P3 支部上报审批闭环：发展节点批准 + 活动报备驳回（�
 async function page_waitHeader(page) {
   await page.waitForFunction(() => Boolean(document.getElementById('app-header')), { timeout: 15000 });
 }
+

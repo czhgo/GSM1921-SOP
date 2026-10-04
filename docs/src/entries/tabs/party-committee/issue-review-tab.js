@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // 党委工作台 Tab：匿名反馈核查（2026-09-17 支书裁定，本次改裁）
 //
 // 依据（支书 2026-09-17 原话）：「**后台记录真实情况，匿名是前端的。但是我们也强调清楚，
@@ -15,12 +15,17 @@
 // 不自创样式（docs/src/styles.css 为禁改清单文件，未改动）。
 // 真身数据出口单一源：services/governance/issues.js::IssueStore.getIssuesForPartyReview（两形态同构）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
-import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261004i';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261004i';
-import { getPersonName } from '../../../services/member/person.js?v=20261004i';
-import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004i';
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004i';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004j';
+import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261004j';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261004j';
+import { getPersonName } from '../../../services/member/person.js?v=20261004j';
+import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004j';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004j';
+// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004j';
+
+/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
+const BRANCH_FILTER_STATE = 'pc-issue-review';
 
 const SUBMIT_META = {
   anonymous: { label: '匿名提交', cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
@@ -76,12 +81,19 @@ export async function renderContent() {
           </div>
         </details>
       </div>
+      <div id="pc-issue-branch-filter"></div>
       <div>
         <p class="text-xs text-gray-500 mb-2">反馈清单</p>
         <div id="pc-issue-review-host"></div>
       </div>
     </div>
   `;
+
+  // 支部筛选（共用件；变更即重渲本页）
+  renderBranchFilter(el.querySelector('#pc-issue-branch-filter'), {
+    stateKey: BRANCH_FILTER_STATE,
+    onChange: () => renderContent(),
+  });
 
   const host = el.querySelector('#pc-issue-review-host');
   if (!host) return;
@@ -104,7 +116,8 @@ export async function renderContent() {
 
   renderFilteredList(host, {
     stateKey: 'party-committee-issue-review',
-    rows,
+    // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——留痕仍记**本次核查**（全量），列表按所选支部收窄
+    rows: filterByBranch(rows, BRANCH_FILTER_STATE),
     keyword: { keys: ['title', 'body'], placeholder: '搜索反馈标题 / 正文…' },
     facets: [
       { key: 'anonymous', label: '提交方式', get: (r) => (r.anonymous ? 'anonymous' : 'real'), format: (v) => (v === 'anonymous' ? '匿名提交' : '实名提交') },
@@ -134,3 +147,4 @@ function cardHtml(r) {
       <p class="text-xs text-gray-500 mt-1">真实提交人：<b class="text-gray-800">${esc(who.name)}</b>（${esc(who.id)}）</p>
     </div>`;
 }
+

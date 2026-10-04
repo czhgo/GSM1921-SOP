@@ -1,4 +1,4 @@
-// role: [工程师]+[AI]
+﻿// role: [工程师]+[AI]
 // 党委工作台 Tab：下发通知（P3 党委后台，2026-09-02）
 // 党委侧发起点（双向通道下发半侧）：选目标支部（可全选/单选，支部动态创建后自动可选）→
 // 下发「党委通知」到目标支部的支委层（送达=通知流 audience='committee' 过滤 + 来源徽标）。
@@ -7,12 +7,17 @@
 // 故本 tab 每次渲染前先读取表单现值、渲染后回填——工作台数据变更重绘不丢撰写内容。
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261004i';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261004i';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004i';
-import { textField, textareaField } from '../../../components/ui/forms.js?v=20261004i';
-import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261004i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004j';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004j';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261004j';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261004j';
+import { textField, textareaField } from '../../../components/ui/forms.js?v=20261004j';
+import { showToast, escHtml as esc } from '../../../core/base/utils.js?v=20261004j';
+// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004j';
+
+/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
+const BRANCH_FILTER_STATE = 'pc-dispatch';
 
 // HTML 转义统一走 core/base/utils.js escHtml（2026-09-03 去重收口）
 
@@ -44,8 +49,9 @@ export function renderContent() {
     <div class="space-y-4">
       <div class="rounded-lg border border-gray-200 bg-white p-4">
         <div class="flex items-center justify-between gap-3 mb-1">
-          <div>
+          <div class="flex items-center gap-2">
             <p class="font-title-cn text-base font-bold text-gray-800">下发通知</p>
+            <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">动作</span>
           </div>
           <div class="text-right shrink-0">
             <p class="text-xs text-gray-500">送达范围</p>
@@ -81,10 +87,17 @@ export function renderContent() {
 
       <div>
         <p class="text-xs text-gray-500 mb-2">下发历史（${esc(getCommitteeName())}）</p>
+        <div id="pc-dispatch-branch-filter" class="mb-2"></div>
         <div id="dispatch-history" class="space-y-3"></div>
       </div>
     </div>
   `;
+
+  // 支部筛选（共用件；变更即重渲本页 ⇒ 下发历史按所选支部收窄）
+  renderBranchFilter(el.querySelector('#pc-dispatch-branch-filter'), {
+    stateKey: BRANCH_FILTER_STATE,
+    onChange: () => renderContent(),
+  });
 
   bindBranches(el, prev.branchIds);
   bindPriority(el, prev.pri);
@@ -169,13 +182,14 @@ function markChips(box) {
   });
 }
 
-/** 下发历史：本院系党委下发的全部记录（按发布时间倒序；支部后续改名以记录快照 branchName 展示） */
+/** 下发历史：本院系党委下发的全部记录（按发布时间倒序；支部后续改名以记录快照 branchName 展示）。
+ *  2026-10-04 批次 374：受页首「支部筛选」收窄（`branchId` 字段同源）。 */
 function renderHistory(el) {
   const wrap = el.querySelector('#dispatch-history');
   if (!wrap) return;
-  const rows = (mockDB.notices || [])
+  const rows = filterByBranch((mockDB.notices || [])
     .filter(n => n.source === 'committee')
-    .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || '')));
+    .sort((a, b) => String(b.publishDate || '').localeCompare(String(a.publishDate || ''))), BRANCH_FILTER_STATE);
   if (!rows.length) {
     wrap.innerHTML = `<div class="rounded-lg border border-gray-200 bg-white p-6 text-center">
       <p class="text-sm text-gray-500">暂无下发记录</p>
@@ -194,3 +208,4 @@ function renderHistory(el) {
       <p class="text-xs text-gray-500 mt-1 leading-5 whitespace-pre-wrap">${esc(n.content)}</p>
     </div>`).join('');
 }
+

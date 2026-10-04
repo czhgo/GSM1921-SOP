@@ -248,11 +248,11 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1384, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 142, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 160, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
-  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 171, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 96, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择目标支部' },
-  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 97, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 153, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 171, field: '支部名称', flow: 'party-committee/支部管理·改名', machine: true, msg: '支部名称不能为空' },
+  { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 182, field: '新任支书', flow: 'party-committee/支部管理·任命', machine: true, msg: '请选择新任支书' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 109, field: '目标支部', flow: 'party-committee/下发通知', machine: true, msg: '请选择目标支部' },
+  { file: SRC + 'entries/tabs/party-committee/dispatch-tab.js', line: 110, field: '标题与正文', flow: 'party-committee/下发通知', machine: true, msg: '请填写标题与正文' },
   // 批次 47-P（2026-09-16）：**党委台 · 上报审批 · 驳回意见**——本条是「**改种子解锁一条**」的首个样本。
   // ⚠ 原 reason 是这样写的：「实测 `[data-rq-act="reject"]` 计数 **0**——驳回按钮只在**待批复**的支部上报事项上渲染，
   //   而种子无『支部上报党委』条目」。**这句实测是对的，但停在「现象」就下了结论**——
@@ -274,7 +274,7 @@ export const VALIDATION_SITES = [
   //   **(c)** 唯一抓住它的是「**把提示文案本身当断言对象**」的真机判据——**机器读到的是空文本，人才会说「怎么只弹了个 i」**。
   //   ⇒ 已有静态守卫 `ux-guard ⑥`（showToast 调用约定，防「参数写反」）**只匹配两参形态**，单参从它眼皮下走过；
   //     本批已**在同一守卫里补上「参数个数」这一维**（原判据的盲区）。三处已修（补 type）。
-  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 105, field: '意见', flow: 'party-committee/上报审批·驳回', machine: true, msg: '驳回请填写意见' },
+  { file: SRC + 'entries/tabs/party-committee/review-tab.js', line: 121, field: '意见', flow: 'party-committee/支部上报·驳回', machine: true, msg: '驳回请填写意见' },
 
   // ── 成员（visitor）台 ──
   { file: SRC + 'entries/tabs/visitor/thought-report-tab.js', line: 129, field: '思想汇报内容', flow: 'visitor/思想汇报', machine: true, msg: '请填写思想汇报内容' },
@@ -548,7 +548,7 @@ export const MACHINE_FLOWS = [
     //   这一形态；它与「面板级共用输入框」不同，故断言载体必须指到**该卡内**的 `.rq-decision`。
     id: 'pc-review-reject-note',
     page: 'party-committee',
-    tab: '上报审批',
+    tab: '支部上报',
     open: [],
     submit: [{ click: '[data-rq-act="reject"]' }],
     expect: [

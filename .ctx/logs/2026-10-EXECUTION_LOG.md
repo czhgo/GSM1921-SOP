@@ -2217,3 +2217,30 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **母本 `content/**` 未动**：`CDF §D.1.1` 赋权入口表仍写「支书台『党小组与活动』同项入口」——**表述已过时**（入口现于「活动管理」页），只登记不改（循既有惯例）。
 - ⚠ **「其他组」卡内「考察」聚合判据**用 `groupActivitiesOf`（organizer 属本组），与 `inspection.js::_activityPartyGroup`（优先 `hostGroup`）**略有差异**。
 - ⇒ **批次 374–375 起继续**（党委台 → 全站收口）；**（丁）归属可转移＝架构级 · 单独立项**。
+
+## 批次 374（2026-10-04 · `D-766`）**党委台**（单一轴 · 按下设支部筛选 · 7 → 6）＋ 甲部立 `H26.1 日志精简纪律`
+
+> **本条起按 `H26.1` 执行**：过程与 diff **只留指针**（见 `8024106da` 之后这一笔提交），本地只留「为什么 / 拿不准 / 边界 / 量测」。
+
+### 一、裁定与落地（指针）
+
+- **裁定四问**（原文与含义见 `D-766`）：① **圈丙**「党委不上报，只接收 + 回复支部」⇒ `上报审批` → **`支部上报`**（`下发通知` 保名）② **圈甲** 全院治理组各页加「支部筛选」③ **圈乙** `支部配置` 并入 `支部管理` ⇒ **7 → 6** ④ **附令** 立 `H26.1`。
+- **落地**：`party-committee-workspace.js`（撤 `party-config` 页签 ＋ review 改名）· **新共用件** `components/governance/branch-filter.js`（四页复用）· `review-tab.js` / `issue-review-tab.js` / `dispatch-tab.js` / `monitor-tab.js`（筛选接线）· `party-config-tab.js`（改 `mountPartyConfig()` 段落挂载）· `branches-tab.js`（页底「支部配置」卡 ＋ 两宿主 id 不变）· `CLAUDE.md`（`H26.1`）。
+
+### 二、判据 / 台账面（指针）
+
+见 `D-766`「判据 / 台账面同源改准（指针）」段（help · README-server · `S3` · `page-sweep` · `form-loop-registry` · `copy-screen` · e2e 3 件 · 戳 `20261004i → 20261004j`）。
+
+### 三、量测读数
+
+- **`SWEEP_SHARD=4`（visitor ＋ party-committee）782 / 782 / 0 红**（exit=1 仍是 Playwright `debug.log` 沙箱拦截，非测试失败）。
+- `copy-screen-guard` M1–M4 **11 / 11 绿**（`party-committee::支部管理` 14.36 已登记；`::支部配置` 已收基线）。
+- `page-sweep` **绿**，实测 `[普查覆盖] tab=68 引擎列表=68（其中总数>10 的 17）矩阵=4 手写表格=2`。
+- 三件党委台 e2e **全绿**（`party-committee-review` 11.9s · `block-config-ui-e2e` 6.5s · `module-config-e2e` 10.0s）。
+- 静态守护卫子集 ＋ `form-loop-sweep`（含真机流）**全绿**；`doc-consistency::S6/S14` 绿。
+- bump `20261004i → 20261004j`（JS **223** 个 / HTML 23 / CSS 2 / server-test 92；陈旧戳 0）。
+
+### 四、如实登记
+
+见 `D-766` 末段四条（`page-sweep` 门槛长期低于实测〔登记为 375 单独立项〕· `BRANCH_FILTER_KEY` 被 `localstorage-key-guard` 误判为存储键故改名 `BRANCH_FILTER_STATE` · 母本 `PARTY_COMMITTEE_DESIGN.md` 仍称「上报审批」只登记不改 · 旧 `party-config` 注释字样已同步改准）。**另**：本批**首次照 `H26.1` 落盘**——执行日志不再逐项抄 diff。
+

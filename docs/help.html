@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261004i"></script>
+<script src="./src/theme-init.js?v=20261004j"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261004i"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261004i">
+  <script src="./src/tailwind-config.js?v=20261004j"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261004j">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -292,7 +292,7 @@
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（9 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/visitor.html">成员工作台</a></td><td>成员全部工作视图（11 个 tab，见 2.6）</td><td>普通成员；组织者 / 深度参与者被赋权后在本台承担对应操作</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（7 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/party-committee.html">党委工作台</a></td><td>全院支部治理视图（6 个 tab，见 2.7）——组织级，不属于任一支部</td><td>党委组织员（party-staff）</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
             </tbody>
           </table>
         </div>
@@ -392,7 +392,7 @@
               <tr><td>活动写入（需赋权）</td><td>支书 / 组长赋权</td><td>组织者 / 深度参与者（在成员台被赋权后操作）</td></tr>
               <tr><td>专班发起 / 招募统筹</td><td>天然权限 / 日常统筹</td><td>发起：支书 / 组长 / 三委员；招募统筹：组织委员（专班管理节点之一，支书 / 副支书 / 组织委员均可管理）</td></tr>
               <tr><td>思想汇报归档</td><td>提交即入库（算法归集）</td><td>无需人工归档；组织委员查看调用，必要时打回要求补充（附意见）</td></tr>
-              <tr><td>支部配置 / 模块启停</td><td>部署期职责</td><td>党委组织员（党委台「支部配置」）；支书 / 副支书经 设置→支部治理 进入（同源内嵌，副书同权）</td></tr>
+              <tr><td>支部配置 / 模块启停</td><td>部署期职责</td><td>党委组织员（党委台「支部管理 → 支部配置」）；支书 / 副支书经 设置→支部治理 进入（同源内嵌，副书同权）</td></tr>
               <tr><td>通知发布</td><td>天然权限</td><td>支书（通知自动派生成员待办）；党委组织员（下发通知，标「党委下发」）</td></tr>
             </tbody>
           </table>
@@ -558,19 +558,18 @@
         </div>
 
         <!-- 2.7 党委工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.7</span>党委工作台（7 tab · 党委组织员）</h3>
-        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/party-committee.html">party-committee.html</a>。组织级角色（party-staff）专用，监控全院各支部，不属于任一支部。tab 条分段：首页 / 全院治理 / 支部治理。</p>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.7</span>党委工作台（6 tab · 党委组织员）</h3>
+        <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/party-committee.html">party-committee.html</a>。组织级角色（party-staff）专用，监控全院各支部，不属于任一支部。tab 条分段：首页 / 全院治理。<strong>「全院治理」段的信息页页首带「支部筛选」下拉</strong>（支部监控台账 / 支部上报 / 匿名反馈核查 / 下发通知——选中后只出该支部的行）。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
             <thead><tr><th style="width:15%;">tab</th><th style="width:14%;">给谁用</th><th style="width:43%;">这页做什么</th><th>怎么做（点哪里）</th></tr></thead>
             <tbody>
               <tr><td>治理总览</td><td>党委组织员</td><td>登录落点 / 全院治理首页：支部概览列表（成员 / 党员 / 滞留实时统计 + 近期动态摘要）</td><td>打开工作台即此页；支部卡「进入支部（演示）」下钻</td></tr>
-              <tr><td>支部监控台账</td><td>党委组织员</td><td>全院各支部台账监控（跨支部看板）</td><td>「全院治理」段；按支部 / 维度查看台账</td></tr>
-              <tr><td>上报审批</td><td>党委组织员</td><td>支部上报事项（发展节点 / 活动报备）逐项审批，结论回传支部</td><td>「全院治理」段；点开上报 → 「批准 / 批驳」并附意见</td></tr>
-              <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理</td><td>「全院治理」段；增删改支部实例</td></tr>
-              <tr><td>匿名反馈核查</td><td>党委组织员</td><td>列出反馈的真实提交人（含匿名项真身）· 仅党委可见 · 每次查看留痕</td><td>「全院治理」段；逐条核对真实提交人（实名项显其本名，匿名项显真身并标「匿名提交」）；党支部内部（含支书）看不到本页</td></tr>
-              <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（标「党委下发」来源）</td><td>「全院治理」段；「+ 下发」选送达支部 → 发布</td></tr>
-              <tr><td>支部配置</td><td>党委组织员</td><td>支部工作流模块配置（模块启停 / 分组开关，部署期职责）</td><td>「支部治理」段；选支部 → 开关模块 → 保存</td></tr>
+              <tr><td>支部监控台账</td><td>党委组织员</td><td>全院各支部台账监控（跨支部看板）；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；按支部 / 维度查看台账</td></tr>
+              <tr><td>支部上报</td><td>党委组织员</td><td>各支部上报的关键事项（发展节点 / 活动报备）——党委<b>接收</b>后逐项批复（批准 / 批驳并附意见），结论<b>回复支部</b>；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；点开上报 → 「批准 / 批驳」并附意见</td></tr>
+              <tr><td>支部管理</td><td>党委组织员</td><td>支部实例管理（新建 / 改名 / 停用恢复 / 支书任命 / 空支部名册导入）＋ 页内「<b>支部配置</b>」（换组织向导：「模块 / 分工 / 向导配置」，部署期职责）</td><td>「全院治理」段；增删改支部实例；页底「支部配置」区选支部 → 走换组织向导 → 保存</td></tr>
+              <tr><td>匿名反馈核查</td><td>党委组织员</td><td>列出反馈的真实提交人（含匿名项真身）· 仅党委可见 · 每次查看留痕；页首「支部筛选」可按支部收窄</td><td>「全院治理」段；逐条核对真实提交人（实名项显其本名，匿名项显真身并标「匿名提交」）；党支部内部（含支书）看不到本页</td></tr>
+              <tr><td>下发通知</td><td>党委组织员</td><td>面向支部支委层下发通知（标「党委下发」来源）· 页首「支部筛选」可按支部收窄下发历史</td><td>「全院治理」段；「+ 下发」选送达支部 → 发布</td></tr>
             </tbody>
           </table>
         </div>
@@ -1413,7 +1412,7 @@
         <div class="help-card" id="card-set-branch-info" data-search="支部治理 支部信息与向导 支部名称 类别 页眉显示名 支部自述 只读 党委管理 换组织向导 内嵌 五步 组织信息 模块与块组合 角色分工 术语制度 验证与重置 主题预设 工作单">
           <h4 class="help-card-title">支部档案（只读）+ 换组织向导（内嵌打开）</h4>
           <p class="help-card-desc" style="margin-top:6px;"><strong>它管什么</strong>：只读摆出本支部档案四项——支部名称、类别、页眉显示名、支部自述。名称一类治理字段归党委管理，本页不直接改。</p>
-          <p class="help-card-desc"><strong>谁能改 · 在哪改</strong>：要动支部信息 / 模块组合 / 分工 / 术语，点本页「打开换组织向导（内嵌）」——它与党委台「支部配置」、独立页 <a href="./wizard.html">wizard.html</a> 共用同一个渲染器与同一份支部配置，任一处改动另两处看到一致结果。支书 / 副支书限本支部；党委组织员可切任意支部（见 6.2 三入口）。</p>
+          <p class="help-card-desc"><strong>谁能改 · 在哪改</strong>：要动支部信息 / 模块组合 / 分工 / 术语，点本页「打开换组织向导（内嵌）」——它与党委台「支部管理 → 支部配置」、独立页 <a href="./wizard.html">wizard.html</a> 共用同一个渲染器与同一份支部配置，任一处改动另两处看到一致结果。支书 / 副支书限本支部；党委组织员可切任意支部（见 6.2 三入口）。</p>
           <p class="help-card-desc"><strong>改与不改</strong>：向导分五步——① 组织信息（支部名 / 页眉显示名 / 自述 / 主题预设）② 模块与块组合 ③ 角色分工 ④ 术语制度指引 + 换壳工作单 ⑤ 验证与重置。每步保存即时生效并记录变更，中断可续走（草稿存档）。不改＝沿用现有支部档案与模块组合。</p>
         </div>
 
@@ -1676,7 +1675,7 @@
         <div class="help-card" id="card-admin-wizard-entries" data-search="支部配置 换组织向导 入口 权限 党委台 支书台 wizard.html 独立页 现任支书 党委组织员 同源">
           <h4 class="help-card-title">三个入口：从哪进、谁能进</h4>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">党委工作台「支部治理」段「支部配置」tab：党委组织员可用，任意支部可切换（默认首支部）——建空支部后补组织信息 / 模块 / 分工的主入口。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">党委工作台「全院治理」段「支部管理」页内的「支部配置」区（换组织向导）：党委组织员可用，任意支部可切换（默认首支部）——建空支部后补组织信息 / 模块 / 分工的主入口。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">设置中心（侧边栏右下角「设置」）→ 支部治理 → 支部信息与向导：现任支书 / 副支书（副书同权）可用，固定本人所属支部内嵌（纯点击可达，无需记 URL）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">独立页 <a href="./wizard.html">wizard.html</a>：直接访问；党委组织员任意支部（?branch=目标支部直达）、现任支书 / 副支书本支部（?branch=本支部，副书同权）；无权限时显示提示卡、不渲染向导。</li>
           </ol>
@@ -1793,6 +1792,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261004i"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261004j"></script>
 </body>
 </html>

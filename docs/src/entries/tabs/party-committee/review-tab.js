@@ -1,18 +1,26 @@
-// role: [工程师]+[AI]
-// 党委工作台 Tab：上报审批（P3 党委后台，2026-09-02）
+﻿// role: [工程师]+[AI]
+// 党委工作台 Tab：支部上报（P3 党委后台，2026-09-02；**2026-10-04 批次 374 由「上报审批」改名**）
 // 党委侧处理端（双向通道党委半侧）：各支部上报（发展节点/活动报备）在此逐项批/驳，
 // 意见随结论回传支部侧；已处理历史可查。
+// **名实**（2026-10-04 批次 374 · 支书圈丙）：支书逐字「**党委不上报，而是接收信息，回复支部信息！**」
+//   ⇒ 页签名按**对象**（**支部上报事项台账**），**批 / 驳是页内动作**（原「上报审批」＝对象＋动作混名）。
+// **支部筛选**（同批 · 支书圈甲「按下设支部筛选信息」）：页首共用件 `components/governance/branch-filter.js`。
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261004i';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004i';
-import { getPersonName } from '../../../services/member/person.js?v=20261004i';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261004i';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004i';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004i';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004j';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004j';
+import { getPersonName } from '../../../services/member/person.js?v=20261004j';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261004j';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004j';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004j';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004i';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004j';
+// 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004j';
+
+/** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
+const BRANCH_FILTER_STATE = 'pc-review';
 
 const TYPE_META = {
   'develop-node': { label: '发展节点' },
@@ -37,7 +45,8 @@ export function renderContent() {
   const me = AuthStore.getCurrentUser();
   if (!me) return;
 
-  const rows = listReviewRequests({});
+  // 支部筛选（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）：过滤后待批复 / 已处理两区与页首计数同步收窄
+  const rows = filterByBranch(listReviewRequests({}), BRANCH_FILTER_STATE);
   const n = s => rows.filter(r => r.status === s).length;
   const pending = rows.filter(r => r.status === 'pending');
   const done = rows.filter(r => r.status !== 'pending');
@@ -46,8 +55,8 @@ export function renderContent() {
     <div class="space-y-4">
       <div class="rounded-lg border border-gray-200 bg-white p-4 flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="font-title-cn text-base font-bold text-gray-800">上报审批</p>
-          <p class="text-xs text-gray-500 mt-0.5">上报关键事项（发展节点/活动报备），党委逐项批复并反馈支部 · 留痕台账不提供删除</p>
+          <p class="font-title-cn text-base font-bold text-gray-800">支部上报</p>
+          <p class="text-xs text-gray-500 mt-0.5">各支部上报的关键事项（发展节点 / 活动报备）；党委<b>接收后逐项批复</b>并把结论<b>回复支部</b> · 留痕台账不提供删除</p>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">待批复 ${n('pending')}</span>
@@ -55,6 +64,7 @@ export function renderContent() {
           <span class="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">已驳回 ${n('rejected')}</span>
         </div>
       </div>
+      <div id="pc-review-branch-filter"></div>
       <div>
         <p class="text-xs text-gray-500 mb-2">待批复（${pending.length}）</p>
         <div id="pc-review-pending-host"></div>
@@ -65,6 +75,12 @@ export function renderContent() {
       </div>
     </div>
   `;
+
+  // 支部筛选（共用件；变更即重渲本页，计数与两区同步收窄）
+  renderBranchFilter(el.querySelector('#pc-review-branch-filter'), {
+    stateKey: BRANCH_FILTER_STATE,
+    onChange: () => renderContent(),
+  });
 
   // 两区各接一个引擎实例（stateKey 各异；行内「批准/驳回」改事件委托，挂在待批复宿主上）
   const pendingHost = el.querySelector('#pc-review-pending-host');
@@ -155,3 +171,4 @@ function cardHtml(r) {
       </div>`}
     </div>`;
 }
+

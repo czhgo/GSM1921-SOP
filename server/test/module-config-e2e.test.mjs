@@ -47,7 +47,7 @@ async function login(page, sid, urlPart) {
     page.click('button[type="submit"]'),
   ]);
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004i')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004j')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 }
 async function clickTab(page, sel, text) {
   await page.waitForFunction(({ s, t }) => {
@@ -61,7 +61,7 @@ async function clickTab(page, sel, text) {
 
 /** 进党委台「支部配置」tab → 换组织向导步骤②「模块/块组合」（目标支部 br-b1） */
 async function gotoWizardStep2(page) {
-  await clickTab(page, '.ws-tab-scroll button', '支部配置');
+  await clickTab(page, '.ws-tab-scroll button', '支部管理');
   // 向导挂载点（#pc-wizard-host）；党委组织员可切目标支部（#wz-branch-select）
   await page.waitForSelector('#pc-wizard-host', { timeout: 15000 });
   await page.waitForSelector('#wz-branch-select', { timeout: 15000 });

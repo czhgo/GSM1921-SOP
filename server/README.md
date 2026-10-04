@@ -268,4 +268,4 @@ node --input-type=module -e "import Database from 'better-sqlite3'; import { PEO
 **首启（空库）自动建立组织基线**（`server/seed-baseline.js`，幂等、不覆盖）：**党委账号 1 名**（`role: party-staff`；学号可用 `BASELINE_PARTY_STAFF_ID` 指定）＋ **支部 1 个：光华管理学院本科生党支部**（id `br-b1`，支书席位空缺待任命）；**其余业务表全空、零成员名单**。
 理由：生产形态默认不播种，空库若不建这两样 ⇒ **谁都登不进来，也没人能建支部**（`POST /branches` 的门是 `party-staff`）。
 
-**部署与对接自检**：`GET /api/v1/setup/setup-status`（**仅党委组织员**）——党委台「支部配置」的「部署与对接」面板即由此驱动；**只回「有没有」，绝不回值**。详见 `README-server.md` 文末「附 4」。
+**部署与对接自检**：`GET /api/v1/setup/setup-status`（**仅党委组织员**）——党委台「支部管理 → 支部配置」的「部署与对接」面板即由此驱动；**只回「有没有」，绝不回值**。详见 `README-server.md` 文末「附 4」。
