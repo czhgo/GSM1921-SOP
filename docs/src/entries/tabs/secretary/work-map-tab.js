@@ -7,25 +7,25 @@
 // 模块目录单一源 = core/domain/work-map.js（14 项既有工作形式；「三会一课」已于 2026-09-22 批次 145 按形式
 //   拆为 4 个模块）；分工快照 = config.workforce（缺省按 SOP 责任人列）。
 // M2（2026-09-03）：分工调整走支委会议题（panel = workforce-panel.js）——发起改派议题/跟踪表决/采纳生效。
-// R5（2026-09-28 批次 220，MODULE_UI_DESIGN §四.5）：读（看分工：平铺模块 / 按人 / 按项目）与写（分工调整工具）
+// R5（2026-09-28 批次 220）：读（看分工：平铺模块 / 按人 / 按项目）与写（分工调整工具）
 //   分区——**写侧默认折叠**（`_toolOpen`，同 group-progress `_progressOpen` 体例），首屏只留读侧；展开后功能一字不减。
 // 2026-09-03 裁定沿用：本页禁 SVG 图标，类别/视图用文字与色点区分。
 
-import { escHtml as esc } from '../../../core/base/utils.js?v=20261004j';
-import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261004j';
-import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261004j';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004j';
-import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261004j';
-import { getPersonName } from '../../../services/member/person.js?v=20261004j';
+import { escHtml as esc } from '../../../core/base/utils.js?v=20261004k';
+import { WORK_MAP_MODULES, ORG_SUBJECT_LABELS, isBranchOrgSubject } from '../../../core/domain/work-map.js?v=20261004k';
+import { ROLE_LABELS } from '../../../core/domain/constants.js?v=20261004k';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004k';
+import { getBranchIdOfPerson, getBranchWorkforce } from '../../../services/branch/branch.js?v=20261004k';
+import { getPersonName } from '../../../services/member/person.js?v=20261004k';
 // 人×工作项矩阵单一源（2026-09-14 批次 35）：按人 / 按项目 互为转置，勿自造表格与翻页
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261004j';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261004k';
 // L4 M2（2026-09-03）：分工调整工具（发起支委会议题 / 跟踪 / 采纳生效），仅支书/副支书可见
-import { mountWorkforcePanel } from './workforce-panel.js?v=20261004j';
+import { mountWorkforcePanel } from './workforce-panel.js?v=20261004k';
 
 let _view = 'persons'; // 视图：平铺模块 / 按人 / 按项目（宽表默认「按人」；同一会话内保持）
 // R5（2026-09-28 批次 220）：分工调整工具（写）默认折叠——本 tab 主问「每项工作归谁负责？」＝看分工（读），
-//   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定见 MODULE_UI_DESIGN.md §四.1.3「支部分工」行
-//   「③折叠为按钮」）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
+//   分工调整（发起议题/跟踪/采纳）属「偶尔要用的工具」（判定＝一 tab 一问：「支部分工」混装读/写两件事，
+//   写侧折叠为按钮；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/2026-09-DECISION_LOG.md）。折叠体例照本仓既有 `_progressOpen`（group-progress-tab.js）：模块级布尔 + 卡片 + 单钮，
 //   展开态才挂载工具（未展开不 load，减负首屏）；功能不删（展开后 DOM/事件一字不减）。
 let _toolOpen = false;
 

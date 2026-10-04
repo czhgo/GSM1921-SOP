@@ -2,7 +2,7 @@
 title: "架构与单一事实源"
 type: architecture
 role: "[工程师]+[AI]"
-last_updated: 2026-09-29
+last_updated: 2026-10-05
 version: "7.3"
 status: active
 related_files: [CLAUDE.md, content/03_doc_system/DOC_MAP.md, content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/04_web_design/]
@@ -122,13 +122,13 @@ Layer 7: 审计参考层（审计与参考）
 │   ├── wizard.html                    [用户]+[AI] 换组织向导独立页（支书/副支书本支部、党委任意支部；5 步换壳）
 │   ├── settings.html                  [用户]+[AI] 设置中心（外观/我的工作台/支部治理·域参数，按登录角色分区）
 │   ├── workspace/                     [用户]+[AI] 角色工作台页面（HTML，清单见下）
-│   │   ├── secretary.html             [用户]+[AI] 支书工作台（工作台+赋权管理+issue管理+通知发布+待办）
-│   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤上传+考察上传+复盘提交+待办）
-│   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察上传+专班管理+人才库+发展党员+待办）
-│   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+周报报送+待办）
-│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+监督复盘+考察管理+知情查看+待办）
+│   │   ├── secretary.html             [用户]+[AI] 支书工作台（工作台+赋权+issue管理+通知发布+待办）
+│   │   ├── leader.html                [用户]+[AI] 党小组组长工作台（活动写入+考勤管理+考察管理+复盘提交+待办）
+│   │   ├── org.html                   [用户]+[AI] 组织委员工作台（考察管理+专班管理+人才库+发展党员+待办）
+│   │   ├── prop.html                  [用户]+[AI] 宣传委员工作台（宣传任务+项目看板+档案归档+待办）
+│   │   ├── disc.html                  [用户]+[AI] 纪检委员工作台（考勤管理（含补课分段）+复盘+考察管理+知情查看+待办）
 │   │   ├── visitor.html               [用户]+[AI] 成员工作台（含待办）
-│   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+支书任命+上报审批，P1-P3）
+│   │   └── party-committee.html       [工程师]+[AI] 党委后台工作台（支部实例+支书任命+支部上报，P1-P3）
 │   └── src/                           [工程师]+[AI] ESM 模块化源码
 │       ├── entries/                   [工程师]+[AI] 页面入口（基础页 entry + ws-* 工作台入口 + tabs/ 角色 Tab，非全量）
 │       ├── components/                [工程师]+[AI] 共享组件（ui/shell/sections/feedback/record/governance/dashboard，非全量）
@@ -505,7 +505,7 @@ content/02_institution/sop/ → docs/src/workflow/ → core/constants/utils → 
 | 线上支委会表态 | `services/activity/committee-vote.js` | 活动详情（表决区块）、`party-committee-meeting.html`（支委会会议页） | 委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）；线上与线下完全同等效力 | — |
 | 支部服务 | `services/branch/branch.js` | `workspace/party-committee.html` | 支部边界收敛点：人→支部归属、支部配置档案（header/主题/启停模块/工作地图/产出块策略） | PC（P1 支部实例） |
 | 支书任命 | `services/branch/appointment.js` | `workspace/party-committee.html` | 任命 + 任期记录闭环（现任记录封口 → 新建现任；换届档案可查），双方 users.role 同步 | PC（P2 支书任命） |
-| 支部上报审批 | `services/governance/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 上报审批） |
+| 支部上报审批 | `services/governance/review-request.js` | `workspace/party-committee.html`（党委审批侧） | 支书上报（发展党员关键节点/重要活动报备）→ 党委逐项审批（approve/reject + 意见）→ 支部侧可见结果 | PC（P3 支部上报） |
 | 报名登记 | `services/activity/signup.js` | 活动/专班详情（报名区块） | 统一报名渠道：participant 报名即加入；organizer/deep 报名 + 发起人审核（pending → 通过/拒绝） | — |
 | 外发确认 | `services/activity/external-dispatch.js` | 各工作台（任务/材料外发） | 发送方标记「已通过微信发送给 XX」→ 接收方工作台「确认收到」→ 可审计闭环（谁/何时/发给谁/何时确认） | — |
 | 三委数据交接 | `services/governance/handoff.js` | disc/org 工作台 | 交接生成 → 自动为接收方派生待办 → 确认 → 待办销项 + 状态落库（双向可追溯）；协议三条＝纪检→组织（考勤统计、考察记录）· 组织→纪检（补课需求回执） | CF §E.2（数据交接协议） |

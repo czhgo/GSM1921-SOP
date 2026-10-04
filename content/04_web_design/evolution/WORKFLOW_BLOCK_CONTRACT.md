@@ -3,7 +3,7 @@ title: "工作流块封装契约"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-09-29
+last_updated: 2026-10-05
 status: active
 related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md, PARTY_COMMITTEE_DESIGN.md, ../../03_doc_system/ARCHITECTURE.md]
 ---
@@ -236,7 +236,7 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 |----|------|------|
 | S1 | `docs/src/workflow/blocks/manifests.js`：首批块 manifest + `validateBlockManifest` 纯校验器 | 校验器单测绿（合法/非法样例）；无 DOM 依赖 |
 | S2 | 表单渲染桥（**2026-09-09 撤回 · 历史**）：原「manifest → forms.js 积木」独立桥 `blocks/form-renderer.js` 随代码减负删除——表单渲染由 forms.js 积木 + 消费方直读 manifest 元数据承担（S4 试点为存活路径） | 独立桥与单测已随撤回删除；存活验收 = S4 表单元数据单一源 E2E |
-| S3 | 配置面接线：党委台「支部配置」按 manifest 目录展示块级启停与字段级收拢（config.blocks 语义不变） | E2E：停某块 → 对应入口消失 → 恢复回归 |
+| S3 | 配置面接线：党委台「支部管理 → 支部配置」按 manifest 目录展示块级启停与字段级收拢（config.blocks 语义不变） | E2E：停某块 → 对应入口消失 → 恢复回归 |
 | S4 | 迁移试点：把一个既有 tab 的「新建表单 + 产出联动」改为由 manifest 驱动（行为零变化对比） | 前后 E2E 同一套全绿 |
 
 **不做（YAGNI 边界）**：图形化条件分支连线（L4 部分）、块导出/市场（L5）、多版本回滚 UI。S1~S4 全部落地后，L4 画布仅剩"拖拽 → 写 config"的编辑器形态。
@@ -248,12 +248,12 @@ related_files: [ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.
 **已裁决（2026-09-03）**：
 - ✅ 差异框架：块差异化 = 流程组合 + 表单条目 + 参与人范围（三维正交）；制度来源分层 institution-common / branch-custom（§〇）。
 - ✅ manifest 数据栖身：`docs/src/workflow/blocks/manifests.js`（与引擎数据同目录）。
-- ✅ S3 配置面：党委台「支部配置」内展示块级启停与字段级收拢（不另设页面）。
+- ✅ S3 配置面：党委台「支部管理 → 支部配置」内展示块级启停与字段级收拢（不另设页面）。
 
 **S1~S4 落地进度（2026-09-03，按支书裁定路线图）**：
 - ✅ S1 已完成（支书点名 主题党日+专班，2026-09-03）：`docs/src/workflow/blocks/manifests.js`（THEME_PARTY_DAY_MANIFEST + TASKFORCE_RUN_MANIFEST + `validateBlockManifest` 纯校验器 + capability→provenance 权威对照防谎报）；单测 `server/test/block-manifest.test.mjs`（正/反 5 样例）+ module-load 全绿。
 - ⚪ S2 独立渲染桥（2026-09-03 曾落地）已于 **2026-09-09 代码减负撤回**（支书批）：`blocks/form-renderer.js` 及其单测 `server/test/block-form-renderer.test.mjs` 删除——表单渲染回归「forms.js 积木 + 消费方直读 manifest 元数据」（S4 试点为存活路径，见下），字段语义（kind 映射 / enabledDefault 收拢）不变。
-- ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，支书裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。
+- ✅ S3 已完成（2026-09-03）：config.blocks 增 `workflowBlocks.hiddenBlockIds`（与 outputBlocks 平级，支书裁定）；branch.js 增 getWorkflowBlockPolicy/applyWorkflowBlockPolicy 纯策略；server config 校验兼容 { outputBlocks?, workflowBlocks? }；党委台「支部管理 → 支部配置」新增「工作流块」区（manifest 目录 chips + 制度来源标签 通用制度/支部自创，启停/保存/恢复默认）；测试 workflow-block-config（HTTP+纯函数）+ block-config-ui-e2e 全绿。
 - ✅ S4 已完成（2026-09-03，支书裁定挂载 主题党日创建侧）：calendar-tab（支书台写入面板）接入 manifest 驱动试点——①入口守卫：支部停用 theme-party-day → Step1 主题党日模板卡消失 + 停用提示（三会一课模板不受影响）；②表单元数据单一源：主题党日 Step2 标题字段 label/required/hint 读 THEME_PARTY_DAY_MANIFEST.inputs.fields.title（默认态渲染与既有完全一致）。测试 block-entry-guard-e2e（停用→消失+提示→恢复→回归）+ write-hover 回归（默认态整卡可点语义不变）全绿。
 
 > L3 契约面 S1~S4 已落地（2026-09-03）；S2 独立渲染桥已于 2026-09-09 代码减负撤回（见上），S4 manifest 驱动为存活路径。**§六 S2 行声明的「存活验收 ＝ S4 表单元数据单一源 E2E」曾长期缺失（实测全仓 0 处断言）——已于 2026-09-29 批次 252 补上**：`server/test/block-entry-guard-e2e.test.mjs` 第四段＝**真机断言**（主题党日 Step2 标题字段渲染出 manifest 声明的 hint）＋**源码反证**（该 hint 不得硬编码在写面板源码 ⇒ 只能来自 manifest）＋**三会一课对照**（该 hint 不出现）。L4 画布编辑器形态（拖拽→写 config.blocks.workflowBlocks）此前 YAGNI 排除，待后续批次。

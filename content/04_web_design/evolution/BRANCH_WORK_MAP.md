@@ -3,7 +3,7 @@ title: "支部工作地图设计稿（平铺模块 + 按人双视图）"
 type: design
 role: "[工程师]+[AI]"
 created: 2026-09-03
-last_updated: 2026-09-29
+last_updated: 2026-10-05
 status: landed
 related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../.ctx/ENGINEERING_ASSESSMENT.md]
 ---
@@ -110,7 +110,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 - **定位（2026-09-13 支书裁定）**：分工 = 「工作事项 → 负责人」的**运行编排**，**不等于对组织的实际配置**（组织实际配置＝名称/架构/名册/制度，另行）。它是「线上调整一次，信息与任务自动传下去」的机制。
 - **入口（双端，同一数据）**：
   · **支部日常**＝支书台「支部分工」（支部书记/副书记可编排，属支部自治）；
-  · **党委/部署期**＝党委台「支部配置 → 换组织向导」**第③步「角色分工」**（换壳/新建支部时定基线）。
+  · **党委/部署期**＝党委台「支部管理 → 支部配置 → 换组织向导」**第③步「角色分工」**（换壳/新建支部时定基线）。
   > 修订说明：原稿 §三/§六 写「党委台不提供分工编排」，2026-09-13 支书裁定「这个不仅党委有这个权限，支部也要有」——两道口并存，均落同一 `config.workforce`。
 - **生效路径**：分工变更 = 支委会议题（议题类型：班子分工/模块归属）→ 表决通过 → 落 `config.workforce`（`{ [moduleId]: { ownerType: 'role'|'person', ownerId } }`；缺省按 SOP 责任人列）。支书可先会前拟稿（草稿态）。
 - **落点（自动传递，2026-09-13 补）**：采纳后按本次实际改派的负责人**逐条派生「履职」待办**（到人 → `personId`；角色 → `role`，并写入同域折组），同时系统通知 `workforce-proposal-adopted` 由服务端按 `extras.proposal` **复算 actionRoles/actionable** → 角色负责人另获定向待办；到人负责人的入口由各工作台概况「支部安排·我的分工」履职卡承载。

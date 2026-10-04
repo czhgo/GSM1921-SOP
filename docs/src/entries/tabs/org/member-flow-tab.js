@@ -2,7 +2,7 @@
 // ════════════════════════════════════════════════════════════════
 //  组织委员工作台 Tab：成员流动（2026-09-28 批次 220 · R10 从「成员名册」拆出的独立 tab）
 // ════════════════════════════════════════════════════════════════
-//  拆分判据（一 tab 一问，MODULE_UI_DESIGN.md §四.1.3「成员名册」行判定「混装 ⇒ 拆独立 tab 或折叠」）：
+//  拆分判据（一 tab 一问：「混装 ⇒ 拆独立 tab 或折叠」；原 MODULE_UI_DESIGN.md §四 规划稿已清出，出处见 .ctx/logs/2026-09-DECISION_LOG.md）：
 //   · 「成员名册」答「支部在册成员有谁、档案状态如何」；  本 tab 答「成员怎么变（流入 / 流出）」——
 //     原二者同装「成员名册」tab，属两个语义域混装。拆后：名册只留在册名单与档案编辑；
 //     本 tab 承原「成员流动」面板全部功能（登记流入 / 登记流出 / 对账行 / 台账表 / 撤销），内部逻辑原样搬移。
@@ -15,25 +15,25 @@
 //   登记者角色门 = canRegisterFlow（组织委员 + 支书/副支书）。
 // ════════════════════════════════════════════════════════════════
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261004j';
-import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004j';
-import { getPersonName } from '../../../services/member/person.js?v=20261004j';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004k';
+import { getBranchIdOfPerson } from '../../../services/branch/branch.js?v=20261004k';
+import { getPersonName } from '../../../services/member/person.js?v=20261004k';
 // 党小组常态清单唯一来源（活组、按 seq 升序；新增/改名/解散后随渲染即时可见）——登记流入的「党小组」选项
-import { groupOptions } from '../../../services/member/party-group.js?v=20261004j';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004j';
-import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261004j';
-import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004j';
+import { groupOptions } from '../../../services/member/party-group.js?v=20261004k';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004k';
+import { getAuthToken, getApiBaseUrl } from '../../../data/data-adapter.js?v=20261004k';
+import { openModal, closeModal } from '../../../components/ui/modal.js?v=20261004k';
 // 统一检索引擎（表格统一化批次 A）：台账表接入关键词 + 分面（≤8 行引擎自动不渲染检索条）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004j';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004k';
 // 成员流入/流出登记服务层（2026-09-14 批次 25 支书裁定）：登记即生效 + 台账 + 对账 + 撤销
 import {
   loadMemberFlows, reconcile, registerIntake, registerIntakeBatch,
   registerOutflow, revokeFlow, canRegisterFlow,
-} from '../../../services/member/member-flow.js?v=20261004j';
+} from '../../../services/member/member-flow.js?v=20261004k';
 // 选人规范：凡选择具体人一律 PersonPicker（禁 select 罗列人名）——登记流出选人
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004j';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004k';
 // 自定义圆角下拉增强（select.input-flat.text-xs → cs-trigger；与全局 observer 幂等）
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261004j';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261004k';
 
 // 模块级 ctx 缓存：登记/撤销后整页刷新复用首次渲染的 accent
 let _ctx = null;

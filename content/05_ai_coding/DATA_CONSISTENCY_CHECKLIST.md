@@ -2,7 +2,7 @@
 title: "数据同源一致性校验手册"
 type: governance
 role: "[工程师]+[AI]"
-last_updated: 2026-10-03
+last_updated: 2026-10-05
 status: active
 related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 ---
@@ -680,106 +680,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 
 ---
 
-# 手动检查清单（浏览器实测）
+# 手动检查清单（浏览器实测）· **已收口**（2026-10-05 批次 377 按 `H50.1 §3` 清出）
 
-> 本章收录**电脑自动化检查难以覆盖、需人工浏览器实测**的检查项。按 URL 逐条实测，勾选验证结果。
-> 背景：T-235 首页跳转直达（J1/J2/J3/J4）已实施完毕，AI 冒烟验证 4/8 用例 PASS，其余 4 项修复后需人工复核（2026-08-09 搁置浏览器自动化验证，转人工）。
-
-## T-235 首页跳转直达（2026-08-09 追加）
-
-> 检查方式：按角色登录后，直接访问下列带参数 URL，观察是否直达目标 tab + 目标条目高亮 + 高亮约 3 秒后自动褪去。
-> 通用预期：① 落在目标 tab（不是默认「待办」）；② URL 参数被消费（地址栏参数消失）；③ 目标条目有蓝色高亮且自动褪去。
-
-| # | 角色 | 访问 URL | 预期行为 | 第2轮冒烟结果 | 第3轮实测（2026-08-24 Playwright） |
-|---|------|----------|----------|---------------|---------------|
-| 1 | 支书 | `/workspace/secretary.html?activityId=act-15` | 落「活动管理」tab + 月份切到 2026-06 + 详情面板打开 act-15「6月共建」 + 日历条目高亮褪去 | ❌ 修复后待人工复核（原死循环已修） | ✅ PASS（tab/月份/详情/参数消费） |
-| 2 | 支书 | `/workspace/secretary.html?taskforceId=tf-001` | 落「知情查看」tab + tf-001 卡片高亮褪去（不得被「待办」内容覆盖）〔2026-09-14 合并为知情查看（活动/专班分段），tab id 仍为 tf-view〕 | ❌ 修复后待人工复核（原懒加载竞态已修） | ✅ PASS（tab/高亮） |
-| 3 | 组织委员 | `/workspace/org.html?activityId=act-15` | 落「知情查看」tab（默认「活动」分段）+ 月份切到 2026-06 + 详情面板打开 act-15 + 日历条目高亮褪去〔2026-09-14 原「活动查看」并入知情查看（活动/专班分段），tab id 由 activity-view 改为 tf-view〕 | ❌ 修复后待人工复核（原月份未跟随已修） | ✅ PASS（tab/详情） |
-| 4 | 组织委员 | `/workspace/org.html?taskforceId=tf-002` | 落「专班管理」tab + tf-002 卡片高亮 + 详情展开 | ✅ PASS | ✅ PASS（卡片存在+高亮） |
-| 5 | 宣传委员 | `/workspace/prop.html?activityId=act-1` | 落「项目看板」tab + act-1 看板卡片高亮褪去 | ✅ PASS | ✅ PASS（卡片高亮） |
-| 6 | 纪检委员 | `/workspace/disc.html?taskforceId=tf-001` | 落「知情查看」tab + tf-001 卡片高亮褪去〔2026-09-14 合并为知情查看（活动/专班分段），tab id 仍为 tf-view〕 | ✅ PASS | ✅ PASS（高亮） |
-| 7 | 党小组组长 | `/workspace/leader.html?activityId=act-2` | 落「活动管理」tab + act-2 详情展开 + 条目高亮褪去（注：act-1 属 p3 bottom-up，组长不可见属正常权限） | ❌ 修复后待人工复核（原 SignupStore 未导入已修，改用 act-2） | ✅ PASS（条目存在+高亮） |
-| 8 | 访客 | `/workspace/visitor.html?activityId=act-1` | 落「活动动态」tab + act-1 条目高亮**自动褪去**（修复"一直亮着"） | ✅ PASS | ✅ PASS（条目存在+高亮+褪去） |
-
-> **2026-08-24 第 3 轮说明（T-280 B1-2/B1-5）**：8 用例 + 附加 4 项全部浏览器实测 PASS（34/34，专项脚本 `server/test/t235-browser-regression.mjs` 已随 2026-08-30 脚本清理归档）。
-> 实测中发现并修复 B1-5 缺陷：URL 直达高亮原被 `loadWorkspaceData` 二次 setState 重渲染冲掉（实际可见仅 ~300ms），已按方案 A 修复——
-> 各工作台入口导航落点后 3 秒条件抑制当前 tab 重渲染（仅当导航目标已在 DOM 时抑制，目标缺失放行延迟数据补渲染），高亮目标存活至抑制窗口结束，一次性定位改为轮询定位。
-
-### 附加检查项
-
-- [ ] **view=activities 参数**：`/workspace/secretary.html?view=activities` 落「活动管理」tab；`/workspace/org.html?view=activities` 落「知情查看」tab（默认「活动」分段）；其余角色同理
-- [ ] **首页日历条目点击**：首页日历中点击任一活动条目 → 跳转工作台并直达该活动（与活动列表卡片行为一致，J3）
-- [ ] **首页专班卡片点击**：首页招募区点击专班卡片 → 跳转工作台并直达该专班（J2）
-- [ ] **首页活动列表卡片点击**：点击「查看更多」外的活动卡片 → 跳转工作台直达该活动（J1）
-- [ ] **高亮褪去一致性**：所有直达场景高亮均为约 3 秒自动褪去，无一例"一直亮着"
-
-## T-280-B1 待办/通知直达跳转（2026-08-24 新增，B1-4）
-
-> 检查方式：登录各角色后进入「待办」tab，点击通知类/审核类待办的行动按钮或聚合卡「处理」按钮，观察是否直达对应处理页/详情页。
-> 背景：最小三成本 / 高频零跳转理念落地——待办行动按钮直达处理界面，减少中间跳转（DESIGN_SYSTEM.md 原则10）。
-> **2026-08-24 浏览器实测：29/29 全过**——7 条全部代码化断言验证（URL / tab 激活态 / 详情面板 DOM；专项脚本已随 2026-08-30 脚本清理归档）。实测修复 2 缺陷：
-> ① leader todo-tab 无 actionKey 级 tabMap → `review-submit` 复盘待办点「去提交」误跳考勤上传，已对齐 disc 的 actionKey 级映射；
-> ② 赋权待办聚合对象无 sourceId + 懒加载 tab 渲染异步 → 同步 querySelector 找不到活动条目、直达详情失效，已改为 items[0] 取 sourceId + 以「详情面板打开」为完成条件的轮询点击。
-
-- [x] **通知阅读待办**：点击「去阅读」→ 跳转 `notice.html?id=xxx` 打开对应通知详情（各角色 todo-tab 聚合时取首条 noticeId）——实测：leader 构造 actionable 通知 → 按钮「去阅读」→ URL=notice.html?id=ntc-b1test ✅
-- [x] **报名审核待办**（组织/组长）：点击「去审核」→ 跳转 `activity.html?id=xxx` 或 `taskforce.html?id=xxx`（sourceId 以 tf- 前缀判定专班）——实测：支书真实数据 signup-review→taskforce.html?id=tf-005；组织构造活动报名→activity.html?id=act-15 ✅
-- [x] **组长赋权待办**：点击「去赋权」→ 切到「活动管理」tab 并直达该活动详情内联编辑（≤2 跳，T-190 兜底）——实测：聚合卡「处理」→ write tab 激活 + act-2 详情面板自动打开 ✅
-- [x] **组长考勤上传待办**：点击「去提交」→ 切到「考勤上传」tab——实测：构造 submit 待办 → attendance tab 激活 ✅
-- [x] **组长复盘待办**：点击「去提交」→ 切到「复盘提交」tab——实测：构造 review-submit 待办 → review tab 激活（修复①后）✅
-- [x] **支书通知发布 tab**：点击通知条目 → 跳转 `notice.html?id=xxx` 直达详情——实测：notification tab 点击行 → notice.html?id=notice-110（id 与行一致）✅
-- [x] **聚合卡直达一致性**：聚合卡「处理」按钮与明细待办行动按钮跳转行为一致——实测：同 actionKey 聚合卡「处理」→ 与明细「去赋权」同一处理函数（onActionTodo → _handleTodoAction），行为一致 ✅
-
-## T-280-B5 前后端数据模型对账（2026-08-24 新增，B5-2）
-
-> 检查方式：对照 `server/db.js` / `server/routes/resources.js` / `server/seed.js` 与前端 `data-adapter.js` / `mock-adapter.js` 的持久化域，逐表核对映射与写穿边界。
-> 背景：T-280 B5 前后端对账——server 表 / 资源名 / 快照 payload 三者口径已于 2026-09-15 收敛（见 §跨类别同源校验「前端持久化域 ↔ server 表对账」：`db.js` 35 表（2026-09-17 起，含匿名核查留痕表 `issue_reveals`）/ 资源名 30 / 快照 25 / 持久化域 34 / `mockDB` 35）；snapshot 全量写穿与 per-item CRUD 两条写路径边界清晰。
-> **2026-08-24 实测：6/6 全过**——API 级代码断言（无浏览器依赖；专项脚本已随 2026-08-30 脚本清理归档）。实测说明：V2/V3 因 server seed 仅在空库执行（db 持久化），archiveRecords 等「初始有种子」与 attendances 等「初始为空」改代码级断言（读 seed.js/mock/seed.js 源码印证）；V4 验证 login 路由在 `/api/v1/auth/login`。
-
-- [x] **表↔域映射**：资源名 list 全部返回 200+数组（`resources.js` RESOURCE_TABLES **当前 30 名**全通；本条为 2026-08-24 当时的 **26 名**实测记录，口径详见 §跨类别同源校验）✅
-- [x] **seed 复用**：运行时 users 50/taskforces 8/activities 29+ 基线 + 代码级确认 `data/mock/seed.js` SEED_ARCHIVE_RECORDS/SEED_SIGNUPS 常量与 `server/seed.js` 的 archive_records/signups 注入 ✅
-- [x] **空表回退**：**2026-08-24 当时**代码级确认 `server/seed.js` 仅 seed 8 集合、**不覆盖 attendances/inspections/todos**（前端 init 空表回退本地种子的必要性印证；运行时回退行为由 b3-1/e2e-login 浏览器验证）✅ —— **2026-09-26 批次 205 改准**：`server/seed.js` 现 `replaceCollection` **30 个集合**，**已覆盖** `attendances`（152 条，同源 `data/mock/attendance.js::ATTENDANCE_RECORDS`）/ `inspections`（42 条）/ `todos`（2 条，同源 `docs/src/services/governance/todo.js::SEED_TODOS`），系批次 189（补 15 表）→ 192/195（考勤 / 考察 / 复盘 / 思想汇报）→ 198（todos）逐步补种；⇒ API 形态首启这些表**不再恒空**、`init()` 的空表回退分支**不再被走到**（守见 `mock-api-parity.test.mjs::P1`）
-- [x] **branchDocs 写权限**：未登录 POST→401；非支委（leader p1）POST→403；支委（secretary p13）POST→201 + 删除 204（COMMISSIONER_WRITE 强制支委身份）✅
-- [x] **聚合域 round-trip**：快照写穿 `[{id:'__root__', body}]` → 读回 `__root__` 单行 + body 深比较一致 → 清理写回空 ✅
-- [x] **auth 测试**：`server/test` 全量测试通过（2026-08-24：21/21，含 b3-1 回写 5 项等；历史票证专项脚本已随 2026-08-30 清理归档），含 e2e-login 回归
-
-## T223 活动排序统一（2026-08-09 追加）
-
-> 背景：曾发现党小组组长「活动写入」的已有关联活动按时间正序排列（旧在前），违反 T223「未完成在前、已完成在后，组内按 date 降序（新者在前）」统一基准。已修复 `_renderWriteContent` + 宣传委员「关联活动」下拉。
-> 2026-08-09 彻查补充（指令"必须彻查"）：全仓 53 处排序点逐一排查，新增修复 4 处——组长考勤上传「选择活动」下拉、组长考察上传「选择具体来源」下拉、组长复盘分桶列表、专班查看组件桶内排序，全部按 T223 基准落地。
-> 通用预期：所有活动/专班列表均为「未完成在前、已完成在后，组内新者在前」；活动按 date 降序、专班按 createdAt 降序。
-
-- [ ] **党小组组长「活动写入」已有关联活动**：未完成（草稿/已发布/进行中）在前、已完成（已执行/已取消）在后，组内按 date 降序（新者在前）
-- [ ] **党小组组长「考勤上传」选择活动下拉**：选项按 date 降序（新者在前）（ws-leader-entry L994-999，2026-08-09 修复）
-- [ ] **党小组组长「考察上传」选择具体来源下拉**：活动选项按 date 降序（ws-leader-entry L1238-1242，2026-08-09 修复）
-- [ ] **党小组组长「复盘提交」待复盘/已复盘分桶**：桶内按 date 降序（ws-leader-entry L1459-1465，2026-08-09 修复）
-- [ ] **知情查看组件（支书/组长「知情查看」的「专班」分段）**：各状态桶内按 createdAt 降序（taskforce-view.js，2026-08-09 修复；2026-09-14 原「专班查看」合并为知情查看（活动/专班分段）)
-- [ ] **宣传委员「上传宣传材料」关联活动下拉**：选项按 date 降序（新者在前）
-- [ ] **首页活动列表/日历**：未完成在前、已完成在后，组内 date 降序（main-entry L293-298 / calendar.js L352）
-- [ ] **访客「活动动态」**：date 降序且仅显示未取消未归档（ws-visitor-entry L324）
-- [ ] **各角色项目/专班看板**：宣传/组织委员看板桶内新者在前（ws-prop L369-383 / ws-org L92-93）
-- [ ] **支书「专班总览」**：专班按 createdAt 降序（新者在前）
-
-## 编辑完整性校验（T-283 新增，2026-08-27）
-
-> 背景：T-283 功能开发中多次出现「多轮 Edit 导致误删/重复」系统性损坏——重复声明（SyntaxError）、函数/绑定被误删（ReferenceError 或点击静默失效）、声明误删。支书指令：此类共性问题须成为 checklist 重要部分并全局检查。机制与判例详见 [FILE_OPERATION_RULES.md §14.1（同区域连续编辑覆盖）](FILE_OPERATION_RULES.md)。
-
-- [ ] **GetDiagnostics 全仓零错误**（每次多文件修改后的最低检查：语法错误/未定义引用/重复声明）
-- [ ] **模块加载完整性审计**：`node --test server/test/module-load.test.mjs`（浏览器 import 全部 docs/src 模块全量通过——模块数随演进变化，不在本文维护具体数值；已入 npm test 回归）
-- [ ] **新增功能浏览器回归**：功能路径实测（如三会一课议程：创建写入→详情显示→行内编辑→保存→持久化，server/test/agenda-flow.test.mjs A1-A3）
-- [ ] **点击成本回归**：进入工作台→可执行事项 ≤2 跳；高频操作点击次数达标（server/test/click-cost.test.mjs C1-C3）
-- [ ] **数据完整性回归**：Mock 数据引用/字段/id/类型 + 生命周期一致性（server/test/mock-integrity.test.mjs M1-M2）
-- [ ] **删除性 Edit 复核**：删除代码块后 Read 复核邻近区域，确认无连带误删
-
-## 链接完整性校验（T-284 新增，2026-08-27）
-
-> 支书指令「所有链接的审查，每一个都要查」。四层法：静态存在与跳转合理相区分。全量审计脚本 `server/test/link-integrity.test.mjs`（L1-L5，已入 npm test 回归）。
-
-- [ ] **L1 静态链接**：全部 HTML href/src 目标文件存在 + `#锚点` 有效（含 `<base href>` 解析与 `?v=` 剥离）
-- [ ] **L2 JS 导航**：`location.href`/`replace`/`assign` 目标存在（模板插值动态跳转抽取 `.html` 字面量片段校验）
-- [ ] **L3 HTTP 层**：自包含 server 下每个链接 200 + 工作台门控可达
-- [ ] **L4 登录态逻辑**：首页链接登录态感知——已登录直达角色工作台 / 未登录直达 login.html（不出现「公开页→工作台→门控踢→login」绕路）；登录页须有「返回主页」闭环
-- [ ] **版本戳同步**：测试内嵌 import 的 `?v=` 戳（evaluate 字符串内）bump 脚本不覆盖，bump 后须 grep 检查 `server/test` 残留旧戳
-
-
-
-
+> 本章原载 2026-08 的四组人工实测记录（T-235 首页跳转直达 / T-280-B1 待办直达 / T-280-B5 前后端对账 / T223 活动排序统一）＋「编辑完整性 / 链接完整性」两组检查项。
+> 其中**已常态化的检查一律以守卫为准**（`link-integrity` L1–L5 / `module-load` / `click-cost` / `mock-integrity` / `agenda-flow` / `version-stamp` 等，均在 `test:daily` 内）——**人类手抄版按 `H50.1 §3` 清出**；人工实测的逐条经过见 `.ctx/logs/2026-08-EXECUTION_LOG.md`。**空章不驻留。**

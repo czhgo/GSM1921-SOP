@@ -3,7 +3,7 @@ title: "数据模型与数据流"
 type: design
 role: "[工程师]+[AI]"
 version: "1.0"
-last_updated: 2026-10-03
+last_updated: 2026-10-05
 status: active
 related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_institution/COMMISSIONER_DUTY_FRAMEWORK.md, content/02_institution/sop/纪检委员工作流程指南.md, content/03_doc_system/ARCHITECTURE.md]
 ---
@@ -681,7 +681,7 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | submittedAt | string (ISO) | 否 | -- | 提交时间（reviewStatus 非'未提交'时填写） |
 | confirmedAt | string (ISO) | 否 | -- | 确认时间（reviewStatus='已确认'时填写） |
 
-> **专班复盘写入入口**：组织委员工作台·专班详情面板内联表单（专班状态 active 且未提交时显示）→ `addTaskforceReview()` 写入 `mockDB.taskforceReviews` + `persist()`，纪检委员工作台活动监督复盘 tab 经 `reviewToDisplay()` 合并展示与批注。写入型标签：organizerId/submittedAt/reviewContent/issues 均为用户表单写入，非系统派生。
+> **专班复盘写入入口**：组织委员工作台·专班详情面板内联表单（专班状态 active 且未提交时显示）→ `addTaskforceReview()` 写入 `mockDB.taskforceReviews` + `persist()`，纪检委员工作台「复盘」tab 经 `reviewToDisplay()` 合并展示与批注。写入型标签：organizerId/submittedAt/reviewContent/issues 均为用户表单写入，非系统派生。
 
 **复盘状态枚举：**
 
@@ -1067,8 +1067,8 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 2. **解散**：允许解散**非空**党小组 → 组内成员 `partyGroup` 批量置空（转为「未分组」）+ `status='dissolved'` + 留痕；已解散组不可再被选用、不出现在任何下拉与统计。
 3. **改名**：同步批量改写组内成员档案的 `partyGroup`（避免档案与清单脱节）。
 4. **未分组口径**：见 §2.26 行为口径 4；支书台「党小组」tab 顶部显示「未分组 N 人」并提供**行内下拉逐个归组**（名册中未分组成员显示「未分组」标注）。
-5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/member/group-view.js::listPartyGroups`）；指派入口维持既有「赋权管理」，本实体只展示组长。
-6. **硬编码收敛**：支书台赋权管理的组清单、组长建活动的承办党小组选项、演示用户域一律读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
+5. **组长绑定不落在本实体**：组长由成员档案 `role='leader'` + 党小组归属派生（`services/member/group-view.js::listPartyGroups`）；指派入口＝「党小组」tab 行内（组长 / 副组长），本实体只展示组长。
+6. **硬编码收敛**：支书台「党小组」tab 的组清单、组长建活动的承办党小组选项、演示用户域一律读取**活组清单**单一源（口径：`status='active'` 按 seq 排序）。
 7. **与工作地图的关系**：党小组管理**不新增**工作地图模块，按「职责有入口」原则（DESIGN_SYSTEM.md §4.6）落地为支书台一个 tab。
 
 ### 2.28 成员流动台账（MemberFlow）
@@ -1134,7 +1134,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 人员清单实时视图 | `docs/src/services/member/person.js::liveMembers` | 只读 Proxy；写入走 PersonStore 写口（根治模块加载期人员快照） |
 | 思想汇报篇幅软提示 | `docs/src/core/domain/policy-defaults.js::thoughtReport` | `{ wordHint: 1500, wordSoftMin: 1200 }`（界面显示字数，不作硬性拦截；**「少于 1200 字触发警告审阅」的提醒只给提交人本人看**——支书定案「只给提交人本人」） |
 | 实体 id 生成 | `docs/src/core/base/id.js` | **全站唯一实体 id 源**：`generateId(prefix, sep='_')` + `randomHex()`；降级链 `crypto.randomUUID` → `crypto.getRandomValues` → `Math.random`；**连字符前缀 `tf-`/`notice-`/`cmt-`/`mc-` 必须显式传 `sep='-'`**，否则打断 `startsWith` 契约 |
-| 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台赋权管理组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
+| 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台「党小组」tab 组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
 | 成员流动台账 | `docs/src/services/member/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
 | 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/member/person.js` 字段白名单与档案编辑模态须同步） |
 | 「未分组」口径 | `partyGroup === ''` | 未分组 = 党小组归属为空串；**禁在各页自行判断别名** |
@@ -1432,7 +1432,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 人员（学生+系统账号） | `PEOPLE`（people.js）+ `mockDB.users`（domain.js，u_* 系统账号） | 全部渲染层经 `PersonStore.getAll()/getName()` 解析 | 任何模块不得自行硬编码人员名单 |
 | 发展党员追踪 | `PEOPLE.developStage` + `developStage` 变更时落档的 **`developStageSince`**（进入当前阶段日期；**2026-09-28 起在成员档案上、服务端权威**，原为本机覆盖档案 `gsm1921-dev-stage-overrides`） | 组织委员工作台发展党员/人才库 | 候选人由 `_buildCandidates()` 从 PEOPLE 派生（非正式党员），推进落成员档案字段（读口 `loadStageEntryDates()`） |
 | 反馈系统人员 ID | 真实成员短 ID（`p*`，如 `p13`/`p11`/`p1`；不得用 `u_*` 占位） | issue-list/issue-detail/issues.js 渲染层统一 `getPersonName()`/`PersonStore.getName()` 转姓名 | 存储与渲染均不得出现 `u_org_commissioner` 等长 ID；`PersonStore.getName` 解析不到时回退返回 ID 本身 |
-| `partyGroups` | `docs/src/services/member/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab、赋权管理组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
+| `partyGroups` | `docs/src/services/member/party-group.js`（写口）+ `mockDB.partyGroups` / server 表 `party_groups` | 支书台「党小组」tab 组清单、组长建活动承办组选项、成员名册下拉、group-view 聚合 | 支部级清单，活组（`status='active'`，按 seq 排序）为唯一枚举来源；实体与解散口径见 §2.27 + 单一源登记见 §三 |
 | `memberFlows` | `docs/src/services/member/member-flow.js` + `mockDB.memberFlows` / server 表 `member_flows` | 名册「成员流动」面板（台账 + 对账行）、流入自动建号 | 复式记账台账，对账恒等式「期初 + 流入 − 流出 = 在册」；实体见 §2.28 + 单一源登记见 §三 |
 
 > 关联缓存版本链：`cross-page-state.js CODE_VERSION` + HTML `?v=` 参数 + `issues.js CACHE_VERSION` 三者任一升级都会强制用户浏览器丢弃旧 localStorage 缓存重新拉取，保证"数据干净、唯一数据源"落地。

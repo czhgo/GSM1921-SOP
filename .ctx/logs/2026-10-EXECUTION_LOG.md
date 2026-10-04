@@ -2284,5 +2284,31 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **`SOP 逐章评议 · 阶段 A/B` 两节约 600 行仍在**（内文已全是「`> **已闭环**：裁定 …」指针行，阶段 B 官方口径＝**全部已裁**）⇒ **可再清**，但 `S14` 的计数锚点在其中 ⇒ **须与计数口径同批改**，登记为下一批。
 - 母本就地改准 / `SOP-B-25` ② 派单 / （丁）归属可转移：**本批只立项登记**，实施留后续批（乙部已清到只剩这三件）。
 
+## 批次 377（2026-10-05 · `D-769`）**母本就地改准（甲）＋ content 历史负担清理（乙）**（＋（丁）三答立据）
 
+> **裁定与圈定全在 `D-769`**——本条只留**量测 + 边界**（照 `H26.1`）。
 
+### 一、量测读数
+
+- 母本改准：**11 份 `content/**`** 的 UI 旧页签名改准（**行数中性**）；`README-server.md` 对 `DATA_MODEL.md` 的 ~45 处行号引用**零位移**。
+- 历史负担清理：`MODULE_UI_DESIGN.md` **−328 行**（§四 规划稿整节）· `DATA_CONSISTENCY_CHECKLIST.md` **−104 行**（手动检查清单及其后）；两处原位留指针。
+- 指针重指：1 处文档（`DESIGN_SYSTEM.md` → §4.10.1）＋ 5 处代码注释（`org-workspace.js` · `org/member-flow-tab.js` · `party-committee/monitor-tab.js` · `secretary/work-map-tab.js` ×2）。
+- `R-83` 刷卡：11 份 frontmatter ＋ `.ctx/TIMESTAMPS.md` 11 表行 → `2026-10-05`。
+- 戳：`20261004j → 20261004k`（JS 223 / HTML 23 / CSS 2 / server-test 92）。
+
+### 二、守卫读数
+
+- `doc-consistency`（S1–S18）· `doc-line-ref`（R1–R6）· `frontmatter-freshness`（F1–F3）· `timestamps-note-guard`（N1–N7）· `link-integrity`（L1–L5）＝ **39/39 / 0 红**。
+- `test:fast` ＝ **144/144 / 0 红**（`V1` 候选 116 / 未登记 4 持平）。
+- `version-stamp` · `module-load` · `page-sweep`（阈值 68）＝ 全绿。
+
+### 三、一次性脚本（未留盘）
+
+- `%TEMP%\purge377.mjs`（**不入仓库**）：删 §四 / 手动清单；**EOL 按文件实测保留**（MODULE_UI_DESIGN＝LF · DATA_CONSISTENCY_CHECKLIST＝CRLF）。
+- `%TEMP%\stamp377.mjs`：11 份 frontmatter ＋ 11 表行同日刷。
+
+### 四、边界（如实）
+
+- 清理面**只限「已执行的规划稿 ＋ 已守卫覆盖的手抄清单」**；`MODULE_UI_DESIGN` 一/二/三节与 `DATA_CONSISTENCY_CHECKLIST` §0–§16 **一字未动**。
+- `REVIEW_QUEUE` 的 `SOP 逐章评议 · 阶段 A/B` 约 600 行**仍在** ⇒ 留批次 380。
+- （丁）归属可转移（甲/甲/乙）＝**本批只立方向**，实施另批（批次 379）。
