@@ -6,6 +6,10 @@
 //   · 专班 = 复用 taskforce-view.js
 // 分段钮沿用既有互斥视图笔法（照 disc/inspection-tab.js:41-44 + 204-216 的 data-view 钮组，不自造 chip）。
 // 设计原则沿用支书原裁定：「无职责 不代表 没有知情权」。
+// 2026-10-03 批次 366（`D-755` 支书口径「**知情查看 查看的是 他的赋权下游**」）：
+//   **分段集合可传入**（`opts.views`）——由「赋权下游」派生时只出命中段（判据单一源
+//   `core/domain/work-map.js::downstreamViewSegments`；**下游可配置** ⇒ 分段随之可配置）。
+//   缺省（不传）＝两段都有 ⇒ **既有 5 台行为零变化**，逐台分批再切。
 
 // 分段当前值（'activity' | 'taskforce'）；模块级记忆，同台内切换后保留（参照既有 tab 的 _view 模式）
 let _view = null;
@@ -38,6 +42,7 @@ function _syncSegBtns(container, view) {
  * @param {string} [opts.highlightActId] — URL 携带的 activityId（命中则切到「活动」分段并定位+高亮）
  * @param {string} [opts.highlightTfId]  — URL 携带的 taskforceId（命中则切到「专班」分段并定位+高亮）
  * @param {boolean} [opts.readonly] — 活动分段只读（缺省 true，知情查看=只读形态）
+ * @param {Array<'activity'|'taskforce'>} [opts.views] — **允许的分段集合**（缺省＝两段都有；由「赋权下游」派生时只出命中段）
  * @param {Function} [opts.onLocated] — 定位完成后回调（调用方据此清除导航目标）
  * @returns {Promise} 分段内容懒加载完成的 Promise（供 tab-bar 占位收尾）
  */
@@ -51,22 +56,33 @@ export function renderInsightView(container, opts = {}) {
   // 深链定位优先（仅首次）：定位目标属于哪一段就切到哪一段（对齐合并前「直达即落在该 tab」的行为）；
   // 已消费过的同一目标不再强制，避免重渲染把用户手切的分段顶回去。
   const hlKey = opts.highlightActId ? `a:${opts.highlightActId}` : (opts.highlightTfId ? `t:${opts.highlightTfId}` : null);
+  // 允许的分段集合（2026-10-03 批次 366 · `D-755`）：缺省＝两段；**由「赋权下游」派生时只出命中段**。
+  const _want = Array.isArray(opts.views) ? opts.views.filter((v) => v === 'activity' || v === 'taskforce') : [];
+  const ALLOWED = _want.length ? _want.slice() : ['activity', 'taskforce'];
   if (hlKey && hlKey !== _consumedHighlight) {
     _consumedHighlight = hlKey;
-    _view = opts.highlightActId ? 'activity' : 'taskforce';
+    // **深链目标优先**：定位目标所属段若不在允许集合内，临时并入——否则「URL 定位目标无处可显」
+    //   （台账 2026-08-08 支书裁定「activityId 必须消费」；本并入**只在该次定位**生效，如实登记）。
+    const target = opts.highlightActId ? 'activity' : 'taskforce';
+    if (!ALLOWED.includes(target)) ALLOWED.unshift(target);
+    _view = target;
   }
-  const view = _view || opts.defaultView || 'activity';
+  const view = (_view && ALLOWED.includes(_view))
+    ? _view
+    : (ALLOWED.includes(opts.defaultView) ? opts.defaultView : ALLOWED[0]);
   _view = view;
 
   // 骨架（含分段钮）。以 #insight-seg-body 是否存在为准而非 dataset 标志：
   // tab 内容容器跨 tab 切换复用，dataset 标志在「切走再切回」时会残留，导致骨架不再重建。
-  if (!container.querySelector('#insight-seg-body')) {
+  // 另：分段钮集合与 ALLOWED 不一致时（如深链并入后）也要重建，否则切不回去。
+  const _segBtns = [...container.querySelectorAll('.insight-view-btn')];
+  const _segSame = _segBtns.length === ALLOWED.length && _segBtns.every((b) => ALLOWED.includes(b.dataset.iview));
+  if (!container.querySelector('#insight-seg-body') || !_segSame) {
     container.innerHTML = `
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs text-gray-500">全支部一览 · 点击条目查看详情（只读）</span>
         <div class="flex items-center gap-2">
-          <button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="activity">活动</button>
-          <button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="taskforce">专班</button>
+          ${ALLOWED.map((v) => `<button type="button" class="btn-tab insight-view-btn px-3 py-1.5 text-xs font-medium" data-iview="${v}">${v === 'activity' ? '活动' : '专班'}</button>`).join('')}
         </div>
       </div>
       <div id="insight-seg-body"></div>`;
@@ -87,12 +103,12 @@ export function renderInsightView(container, opts = {}) {
   container.querySelector('#insight-seg-body').replaceWith(body);
 
   if (view === 'taskforce') {
-    return import('./taskforce-view.js?v=20261003h').then(m => m.renderTaskforceView(body, {
+    return import('./taskforce-view.js?v=20261004a').then(m => m.renderTaskforceView(body, {
       highlightId: opts.highlightTfId || null,
       onLocated: opts.onLocated,
     }));
   }
-  return import('./activity-view.js?v=20261003h').then(m => m.renderActivityView(body, {
+  return import('./activity-view.js?v=20261004a').then(m => m.renderActivityView(body, {
     highlightId: opts.highlightActId || null,
     // 知情查看 = 只读形态（组织台原「活动查看（只读）」的 readonly:true 合并后保持不变）
     readonly: opts.readonly !== false,

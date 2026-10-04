@@ -1958,3 +1958,44 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 - ⚠ 本批**只出表**：页签数 / 组名 / 判据**一字未改**；**戳不变**（`?v=20261003h`）；收尾依 `R-85` ④ 不触发，读台账的判据已实跑。
 - ⚠ **「知情查看」改判据会波及 5 台**（各台下游不同：**纪检台**下游含 `attendance-inspection`（考勤考察）⇒ 该台应出**考勤 / 考察**面而非专班面）⇒ **逐台分批**（批次 366 起）。
+
+## 批次 366（2026-10-04，`#10` 全站分期**第一台样板落地**：组织委员台 · 甲档三项都做）
+
+**任务**：支书就批次 365 对照表圈「**甲 三项都做**」＋就「知情查看」视图形态圈「**分段集合由下游决定**」⇒ 本批＝**首台落地**（样板 · 后七台照抄）。
+
+### 一、三项改动（全部落地）
+
+| # | 事项 | 改法 |
+| --- | --- | --- |
+| ① | `考察上传` 下沉 | 页签 **12 → 11**：删 `org-workspace.js` 的 `inspection` 注册；改 `org/inspection-tab.js` 的 `renderContent(ctx, container)` 可收宿主容器；`org/talent-tab.js` 页底加折叠区「录入考察」（`#talent-insp-toggle` ＋ `#talent-insp-body`，展开时懒 `import` 挂载） |
+| ② | `活动日历` 归组 | `org-workspace.js` 中 `calendar` 的 `groupLabel` 由 `知情查看` 改 **`工作台`**，并把注册行**上移到 `overview` 之后**（组按注册序分段渲染，不上移会出现**第二个「工作台」分节**——真机实测抓出） |
+| ③ | `知情查看` 按下游派生 | `work-map.js` 新增 `MODULE_VIEW_SEGMENT`（7 模块 → `activity` / `taskforce`）＋ `downstreamModulesOf` ＋ `downstreamViewSegments`；`insight-view.js` 新增 `opts.views`（分段钮**动态渲染**、深链目标优先并入、默认段回退 `ALLOWED[0]`）；`org/tf-view-tab.js` 载 `work-map` ＋ `branch` ＋ `auth` 派生 `views` ⇒ 组织委员下游＝专班 ⇒ **只出「专班」段** |
+
+### 二、台账 / 判据面同源改准（7 处）
+
+- `docs/help.html`：§0.1 计数 12 → 11 ／ §2.2 标题 12 → 11 ／ 删「考察上传」行 ／ 人才库行补「页底折叠区『录入考察』」／ 活动日历行改归「工作台」段 ／ 知情查看行改描述 ／ 帮助卡入口改准。
+- `README-server.md`：§3.2.2 标题 12 → 11 个 ＋ 整表重排（活动日历列第 4、删 inspection、知情查看描述改）。
+- `server/test/form-loop-registry.mjs`：`VALIDATION_SITES` 三条 `flow` 改 `org/人才库·录入考察`（行号 **265/269/275**）；`MACHINE_FLOWS.org-inspection` 改 `tab:'人才库'` 且 `open` 增 `{click:'#talent-insp-toggle'}, {waitFor:'#talent-insp-body'}`。
+- `server/test/inspection-loop-e2e.test.mjs`：`loginAs(sid, ws, tab='考察上传')` 的 org 用例改 tab `人才库` ＋ 先点 `#talent-insp-toggle` 再 `waitForFunction(!!document.getElementById('btn-org-upload-insp'))`。
+- `server/test/page-sweep.test.mjs`：门槛 `SWEEP.tabs >= 67` → **`>= 66`**。
+- `server/test/copy-screen-guard.test.mjs`：`C4_BASELINE` 增 `'org::知情查看': { copy:483, ctrls:28, ratio:17.3 }` ＋ `C4_REASON` 对应条目（判据 >12 须登记）。
+- `.ctx/TIMESTAMPS.md`：六行日期刷 `2026-10-04`。
+
+### 三、收尾三跑（全绿）
+
+- `npm run test:daily`：**728/728**。
+- shard 3（`SWEEP_SHARD=3; npm test`）：**806/806/0**（470.7 s）。
+- 全量（`npm run test:full`）：**942/942/0**（1337.6 s ≈ 22.3 min）。
+
+### 四、真机取证（起 3000 服务 ＋ 内置 Chromium · `?dev=` 免登）
+
+- 组织委员台页签 **11 个**、**无「考察上传」**；`活动日历` 位于「工作台」段（tab 序：今天 / 待办 / 工作概况 / **活动日历** / 成员名册 / 人才库 / 思想汇报 / 专班管理 / 成员流动 / 知情查看 / 我的处置）——**无第二个「工作台」分节**。
+- 「人才库」页底折叠区：点击 `#talent-insp-toggle` 后文案转「收起」、`#talent-insp-body` 显形（`bodyLen 2451`）、`#btn-org-upload-insp` 在位。
+- 「知情查看」仅出 **`['taskforce']`** 段、H3 为「**专班查看**」；`pageerror` **0**。
+
+### 五、如实登记
+
+- ⚠ **批次 366 系 `D-756` 立据**（支队 366 收尾本批未落 `D-756` 正文，已于同批补齐）；戳 `20261003h → 20261004a`。
+- ⚠ **`function-catalog.js` 第 27/34 行 `tab:'development'`** 系批次 321 遗留（不在本批授权面）⇒ 只登记、未改。
+- ⚠ **`ACTIVE_RULINGS` 未投影**：`D-744`…`D-756` 沿用 `D-755` 登记（待专批）。
+- ⇒ **批次 367 起逐台铺开**（宣传 → 纪检 → 组长 → 成员 → 支书 → 党委 → 全站收口）。

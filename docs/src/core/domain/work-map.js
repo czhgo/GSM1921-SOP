@@ -285,6 +285,55 @@ export function expandWorkforce(workforce) {
   return out;
 }
 
+// ── 「赋权下游」派生（2026-10-03 批次 366 · 支书口径「知情查看 查看的是 他的赋权下游」`D-755`）────
+// 判据单一源＝本文件的 14 模块主责（缺省 `defaultOwner`；支部可用 `config.workforce` 改派）⇒
+//   **对象集天然可配置**：改派后下游随之变，**不写死**。
+/** 模块 → 「知情查看」的只读视图段（**只列有对应只读视图的模块**；其余模块各有自己的页签，不在此列） */
+export const MODULE_VIEW_SEGMENT = {
+  'branch-party-meeting': 'activity',
+  'branch-committee-meeting': 'activity',
+  'party-group-meeting': 'activity',
+  'party-lecture': 'activity',
+  'theme-party': 'activity',
+  'joint-event': 'activity',
+  'taskforce': 'taskforce',
+};
+
+/**
+ * 某主体（角色键 / 组织型主体 id）当前的**赋权下游模块**（按实际主责取；**停用模块不计**）
+ * @param {string} subjectId 主体引用（角色键 或 组织型主体 id）
+ * @param {Record<string,{ownerType,ownerId}>|null} [snapshot] 分工快照（缺省＝`expandWorkforce(null)` 缺省分工）
+ * @returns {string[]} 模块 id 列表
+ */
+export function downstreamModulesOf(subjectId, snapshot = null) {
+  if (!subjectId) return [];
+  const snap = snapshot || expandWorkforce(null);
+  return WORK_MAP_MODULES
+    .filter((m) => {
+      const a = snap[m.id];
+      return !!a && a.ownerType !== 'none' && a.ownerId === subjectId;
+    })
+    .map((m) => m.id);
+}
+
+/**
+ * 「知情查看」的分段集合（**由赋权下游派生**）：只出本主体下游覆盖到的只读视图段
+ * @param {string|string[]} subjectIds 主体引用（可传数组：如「本人角色键 ＋ 所属组织型主体」）
+ * @param {Record<string,{ownerType,ownerId}>|null} [snapshot] 分工快照
+ * @returns {string[]} 视图段集合（如 `['taskforce']`）；**空数组＝本主体无该类下游视图**，兜底由调用方定
+ */
+export function downstreamViewSegments(subjectIds, snapshot = null) {
+  const ids = Array.isArray(subjectIds) ? subjectIds : [subjectIds];
+  const out = [];
+  for (const id of ids) {
+    for (const m of downstreamModulesOf(id, snapshot)) {
+      const seg = MODULE_VIEW_SEGMENT[m];
+      if (seg && !out.includes(seg)) out.push(seg);
+    }
+  }
+  return out;
+}
+
 /**
  * 按改派清单合并分工快照（纯；M2 议题通过后落库前用）
  * @param {Record<string,{ownerType,ownerId}>} snapshot expandWorkforce 展开后的当前快照

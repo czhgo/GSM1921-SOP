@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261003h"></script>
+<script src="./src/theme-init.js?v=20261004a"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261003h"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261003h">
+  <script src="./src/tailwind-config.js?v=20261004a"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261004a">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -287,7 +287,7 @@
               <tr><td><a href="./settings.html">设置</a></td><td>设置中心：外观（字号 / 明暗主题 / 强调色）、我的工作台页签顺序、支部治理（按登录角色分区，见本表下方说明）</td><td>公共可进；分区随登录角色显隐</td><td>侧边栏右下角「设置」</td></tr>
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任支书、副支书（本支部，副书同权）</td><td>直接访问 wizard.html；党委台「支部配置」与 设置→支部治理（支书 / 副支书）为同源内嵌入口（分步说明见第 6 章 6.2）</td></tr>
               <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（12 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
-              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（12 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（11 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（10 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（9 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -442,7 +442,7 @@
         <p class="doc-note">支部治理（换组织向导 / 模块组合 / 工作台默认顺序等）不在支书工作台内：入口收口于侧边栏右下角「设置」→ 支部治理（支书 / 副支书共台，副书同权；含「支部信息与向导 / 工作台默认顺序 / 支部制度参数 / 配置变更记录」四卡，说明见第 4 章「设置逐项」）。</p>
 
         <!-- 2.2 组织委员工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（12 tab）</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.2</span>组织委员工作台（11 tab）</h3>
         <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/org.html">org.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -451,19 +451,20 @@
               <tr><td>今天</td><td>组织委员</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
               <tr><td>待办</td><td>组织委员</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>工作概况</td><td>组织委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
-              <!-- 2026-10-02 批次 351（`D-741` 建议序）：本表＝注册序 ⇒ 同批改准（我的职责：成员名册 · 人才库 ·
-                   考察上传 · 思想汇报 · 专班管理 · 成员流动）。支书令「考察就是维护人才库的过程」⇒ 名册 / 人才库前置。 -->
+              <tr><td>活动日历</td><td>组织委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「<strong>工作台</strong>」段（2026-10-03 批次 366：本页＝人人有的通用面 ⇒ 由「知情查看」段改归「工作台」段）；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
+              <!-- 2026-10-02 批次 351（`D-741` 建议序）；2026-10-03 批次 366（`#10` 单一轴 甲档）：本表＝注册序
+                   ⇒ 同批改准（我的职责：成员名册 · 人才库 · 思想汇报 · 专班管理 · 成员流动＝**5 行**）。
+                   支书令「考察就是维护人才库的过程」⇒ 名册 / 人才库前置；**原「考察上传」页签已降为
+                   「人才库」页内折叠动作位** ⇒ 本台 12 → 11 tab。 -->
               <tr><td>成员名册</td><td>组织委员</td><td>成员档案管理：新增 / 行内编辑 / 移出 / 分组（本页答「支部在册成员有谁、档案状态如何」）</td><td>「我的职责」段；「+ 新增成员」录入；行内点编辑改档案、点移出登记流出</td></tr>
               <!-- 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：以下「人才库」行**已吸收**
                      原「发展数据」tab 的内容（「活动参与汇总」并入该页）；**发展阶段变更的写入位＝个人总表**
                      （`person.html`）⇒ 原「发展数据」行**删除、不再单列**。 -->
-                <tr><td>人才库</td><td>组织委员</td><td>全量在册成员只读画像（发展阶段徽标 / 最近考察 / 思想汇报已归档 / 发展提示）＋「活动参与汇总」（参与＝出勤 / 已补；请假缺勤不计）</td><td>「我的职责」段；搜索 ＋ 胶囊筛选（党小组 / 发展阶段 / 角色 / 在册）；点姓名或提示行进个人总表</td></tr>
-              <tr><td>考察上传</td><td>组织委员</td><td>考察材料上传 / 建档 / 归集（发展链条素材）</td><td>「我的职责」段；「+ 上传」选对象 → 传材料 → 保存</td></tr>
+                <tr><td>人才库</td><td>组织委员</td><td>全量在册成员只读画像（发展阶段徽标 / 最近考察 / 思想汇报已归档 / 发展提示）＋「活动参与汇总」（参与＝出勤 / 已补；请假缺勤不计）</td><td>「我的职责」段；搜索 ＋ 胶囊筛选（党小组 / 发展阶段 / 角色 / 在册）；点姓名或提示行进个人总表；<strong>页底折叠区「录入考察」</strong>＝原「考察上传」页签（考察＝维护人才库的过程）</td></tr>
               <tr><td>思想汇报</td><td>组织委员</td><td>成员思想汇报<strong>提交即入库归档</strong>（算法归集至个人档案），组织委员查看调用、必要时打回要求本人补充（篇幅提示<strong>只给提交人本人</strong>看，组织侧不设「篇幅不足」一览）。<strong>台账宽表（人 × 期次）</strong>：行＝支部在册成员、列＝期次（新→旧，最近 6 期可展开），格内为状态徽标（多篇标「N 篇」），<strong>「—」＝该期未提交</strong>（漏交一眼可见）</td><td>「我的职责」段；点某条 → 跳<strong>独立阅读页</strong> → 必要时「打回要求本人补充」；点台账格子 → 单篇直达该篇、多篇进该人按人视图</td></tr>
               <tr><td>专班管理</td><td>组织委员</td><td>专班日常统筹节点（支书 / 副支书 / 组织委员均可管理）：发起 / 招募统筹 / 定人定责定岗 / 工作量</td><td>「我的职责」段；「+ 专班」发起 → 在专班内做招募与定岗</td></tr>
               <tr><td>成员流动</td><td>组织委员</td><td>成员「怎么变」的复式台账：流入 / 流出登记（登记即生效）、对账行、台账表、撤销（本页答「成员怎么变」，与「成员名册」分问）。流入 / 流出登记仅限组织委员与支书 / 副支书；行内「移出」在「成员名册」页，留痕与撤销在此</td><td>「我的职责」段；「＋ 登记流入」（单人 / 粘贴多行）/「登记流出」（选人）→ 台账行「撤销」可留痕回滚</td></tr>
-              <tr><td>活动日历</td><td>组织委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「知情查看」段；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
-              <tr><td>知情查看</td><td>组织委员</td><td>全支部活动与专班只读知情查看（无职责亦有知情权），内部分段切换「活动 / 专班」，默认「活动」分段</td><td>「知情查看」段；切「活动」分段点活动卡看详情 / 议程；切「专班」分段看专班卡</td></tr>
+              <tr><td>知情查看</td><td>组织委员</td><td><strong>该角色的「赋权下游」只读视图</strong>（支书 2026-10-03 口径：「知情查看 查看的是他的赋权下游」）：<strong>分段由下游决定</strong>——组织委员当前下游含「专班」⇒ 本台只出「专班」段（判据单一源＝支部分工表 `work-map`，<strong>支部改派主责后下游随之变</strong>）。活动（通用面）见「活动日历」</td><td>「知情查看」段；点专班卡看详情</td></tr>
               <tr><td>我的处置</td><td>组织委员</td><td>经手反馈的处理记录</td><td>「制度与答复」段</td></tr>
             </tbody>
           </table>
@@ -919,7 +920,7 @@
 
         <div class="help-card" id="card-dom34-upload" data-search="考察 上传 考察上传 党小组 专班 组织委员 组长 考察内容 待确认">
           <h4 class="help-card-title">考察上传（组长 · 活动侧 / 组织 · 专班侧）+ 纪检代录</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组长台「我的职责」段「考察上传」；组织台「我的职责」段「考察上传」（专班侧）；<strong>纪检台「我的职责」段「考察管理」的「考察代录」位</strong>（代上传方录入）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组长台「我的职责」段「考察上传」；组织台「我的职责」段<strong>「人才库」页底折叠区「录入考察」</strong>（专班侧 · 2026-10-03 批次 366 起由原「考察上传」页签并入）；<strong>纪检台「我的职责」段「考察管理」的「考察代录」位</strong>（代上传方录入）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>党小组组长（活动侧上传位：本组党小组会 / 本人组织的活动）；组织委员 / 专班负责人（专班侧上传位）；<strong>纪检委员（代录位）</strong>——纪检一般只确认，上传方未到位时可代录（表单与字段同组长台考察上传，记录照常入「待确认」）。</p>
           <p class="help-card-desc"><strong>一般由谁上传：</strong>考察的一般承担人是<strong>该场活动的组织者</strong>。上传人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步（组长 · 活动侧）：</strong></p>
@@ -1792,6 +1793,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261003h"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261004a"></script>
 </body>
 </html>

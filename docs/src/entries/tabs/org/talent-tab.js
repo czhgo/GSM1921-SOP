@@ -9,21 +9,21 @@
 //   · 读侧数据不动写（除页面跳转外无任何保存/报送控件）。
 // 保留「人才库=只读画像、名册=档案维护」页内注释与引导文案。
 
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261003h';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261004a';
 // ⚠ 2026-10-01 批次 321（支书 V-10 取「乙：整页并入人才库」）：原「发展数据」tab 的**活动参与汇总**卡
 //   并入本页——「参与工作情况」正是**考察**的主体，支书原话「**考察就是维护人才库的过程！！**」。
-import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261003h';
-import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261003h';
-import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261003h';
+import { listActivityParticipationByPerson } from '../../../services/activity/attendance.js?v=20261004a';
+import { loadThoughtReports } from '../../../services/governance/thought-report.js?v=20261004a';
+import { PersonStore, getPersonName } from '../../../services/member/person.js?v=20261004a';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
-import { getResidenceOf } from '../../../services/member/roster.js?v=20261003h';
+import { getResidenceOf } from '../../../services/member/roster.js?v=20261004a';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../../core/domain/constants.js?v=20261003h';
+import { RESIDENCE } from '../../../core/domain/constants.js?v=20261004a';
 // B5（2026-09-12）：搜索 + 阶段/党小组筛选已统一接入 components/ui/list-filter.js（分面枚举由引擎 auto 派生）
-import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261003h';
-import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261003h';
+import { listPendingConfirmations, lastApprovedStageChange } from '../../../services/member/member-confirmation.js?v=20261004a';
+import { escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004a';
 // 统一检索引擎（2026-09-13 表格统一化批次 A）：成员卡列表接入关键词 + 分面（替代原手写三控件显隐过滤）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261003h';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004a';
 
 // 发展阶段顺序（发展流程正向：入党申请人 → 积极分子 → 发展对象 → 预备党员 → 正式党员）
 const STAGE_ORDER = ['积极分子', '发展对象', '预备党员', '正式党员'];
@@ -234,7 +234,8 @@ export function renderContent(ctx) {
       <p class="text-[11px] text-gray-400 mb-1">† 口径：本支部在册成员（全量列出，不按发展阶段筛）；**发展阶段变更的写入位＝个人总表**（点姓名或提示行直达）。</p>
       <div id="talent-list"></div>
     </div>
-    ${_participationCardHtml(part)}`;
+    ${_participationCardHtml(part)}
+    <div id="talent-insp-host" class="mt-4"></div>`;
 
   // 统一检索引擎：关键词（姓名/学号）+ 分面（党小组/发展阶段/角色/在册）——≤8 行引擎自动不渲染检索条
   // ⚠ 2026-10-01 批次 319（支书 V-12 取「丁：先改最重的两处」）：本页为**首批迁移页之一** ⇒
@@ -283,5 +284,32 @@ export function renderContent(ctx) {
         window.location.href = getBasePath() + 'workspace/org.html?tab=roster&highlight=' + encodeURIComponent(card.dataset.rosterJump);
       }
     });
+  }
+
+  // 「录入考察」页内动作位（2026-10-03 批次 366 · `#10` 单一轴 甲档）：原独立「考察上传」页签
+  //   （本台 12 → 11）降为本页动作位——**折叠区展开时才挂载**既有实现 `inspection-tab.js`
+  //   （**实现单一源，不复制表单**）；支书依据＝V-10 原话「**考察就是维护人才库的过程！！**」。
+  _renderInspectionSlot(container, ctx);
+}
+
+let _inspSlotOpen = false;
+
+function _renderInspectionSlot(container, ctx) {
+  const host = container.querySelector('#talent-insp-host');
+  if (!host) return;
+  host.innerHTML = `
+    <div class="card rounded-xl p-5">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">录入考察</h3>
+        <button type="button" class="btn-outline px-3 py-1.5 text-xs" id="talent-insp-toggle">${_inspSlotOpen ? '收起' : '展开'}</button>
+      </div>
+      <div id="talent-insp-body" class="${_inspSlotOpen ? 'mt-3' : 'hidden'}"></div>
+    </div>`;
+  host.querySelector('#talent-insp-toggle')?.addEventListener('click', () => {
+    _inspSlotOpen = !_inspSlotOpen;
+    _renderInspectionSlot(container, ctx);
+  });
+  if (_inspSlotOpen) {
+    import('./inspection-tab.js?v=20261004a').then((m) => m.renderContent(ctx, host.querySelector('#talent-insp-body')));
   }
 }

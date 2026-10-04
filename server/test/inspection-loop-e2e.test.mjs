@@ -31,7 +31,7 @@ after(async () => {
   }
 });
 
-async function loginAs(sid, ws) {
+async function loginAs(sid, ws, tab = '考察上传') {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -45,11 +45,11 @@ async function loginAs(sid, ws) {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261003h')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
-  }, '考察上传');
+  }, tab);
   await page.waitForFunction(() => document.querySelector('button[role="tab"].tab-btn-active'), { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(800);
   return page;
@@ -141,8 +141,12 @@ test('组长台·考察上传：点选后「关面板即已选」也必须出现
 });
 
 test('组织台·专班考察上传：同一条闭环（选专班 + 点选人员 → 关面板即有填写框 → 提交成功）', async () => {
-  const page = await loginAs('2400012355', 'org');
+  const page = await loginAs('2400012355', 'org', '人才库');
   try {
+    // 2026-10-03 批次 366（`#10` 单一轴 甲档）：原组织台「考察上传」页签已降为「人才库」页底折叠动作位
+    //   ⇒ 先展开折叠区，再点原「+ 上传」钮（选择器 `#btn-org-upload-insp` 一字未改）。
+    await page.click('#talent-insp-toggle');
+    await page.waitForFunction(() => !!document.getElementById('btn-org-upload-insp'), { timeout: 40000 });
     await page.evaluate(() => document.getElementById('btn-org-upload-insp')?.click());
     // 批次 48（2026-09-17，支书裁定 Q-23-47「只按需放宽这两处」）：**满载下等待窗口不足**——
     //   47-Z 的收尾全量里本条超时（实测耗时 33.5s），而**单文件独立跑绿（2/2，4.2s / 6.2s）**。

@@ -198,9 +198,11 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/leader/write-tab.js', line: 1041, field: '活动名称', flow: 'leader/活动管理·发起活动', machine: true, msg: '请填写活动名称' },
 
   // ── 组织委员台 ──
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 259, field: '专班', flow: 'org/考察上传', machine: true, msg: '请选择专班' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 263, field: '人员', flow: 'org/考察上传', machine: true, msg: '请选择人员' },
-  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 269, field: '考察内容（逐人）', flow: 'org/考察上传', machine: true, msg: '的考察内容' },
+  // 2026-10-03 批次 366（`#10` 单一轴 甲档）：原独立「考察上传」页签降为「人才库」页内折叠动作位
+  //   ⇒ `flow` 改「org/人才库·录入考察」；该文件顶部新增 JSDoc（+6 行）⇒ 下列 `line` 同批 +6（`S6` 精确命中）。
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 265, field: '专班', flow: 'org/人才库·录入考察', machine: true, msg: '请选择专班' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 269, field: '人员', flow: 'org/人才库·录入考察', machine: true, msg: '请选择人员' },
+  { file: SRC + 'entries/tabs/org/inspection-tab.js', line: 275, field: '考察内容（逐人）', flow: 'org/人才库·录入考察', machine: true, msg: '的考察内容' },
   // 2026-09-25（赋权按对象归位）：本台 `taskforce` tab 追加「情景③ 专班赋权」分区 ⇒ 该文件上文行号整体 +8
   //   （新增 import / 挂载宿主 / 挂载调用），下列行号按新实况改准（S6：行号须落在文案那一行）。
   // 2026-10-02 批次 343（D 档写口纪律）：该文件 `.taskforce` 私有字段手术改走 `SignupStore.deleteBySource()` ⇒
@@ -913,8 +915,12 @@ export const MACHINE_FLOWS = [
   {
     id: 'org-inspection',
     page: 'org',
-    tab: '考察上传',
+    // 2026-10-03 批次 366：原「考察上传」页签已降为「人才库」页内折叠动作位 ⇒ tab 改「人才库」，
+    //   `open` 增一步「展开页底折叠区」（`#talent-insp-toggle`）后再点原「+ 上传」钮（选择器一字未改）。
+    tab: '人才库',
     open: [
+      { click: '#talent-insp-toggle' },
+      { waitFor: '#talent-insp-body' },
       { click: '#btn-org-upload-insp' },
       { waitFor: '#org-insp-form-panel' },
     ],
