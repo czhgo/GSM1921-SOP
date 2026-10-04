@@ -4,27 +4,27 @@
 // 各区块渲染已拆至 components/dashboard/：stats（统计卡+考勤弹窗）/ activity-panel（活动日历+列表）/ taskforce-list / gallery。
 // 本文件仅保留：bootstrap、工作台链接修正、renderUI 调度、renderDashboard 组装+导航委托、数据变更即时刷新。
 
-import { BranchService } from '../../services/core/runtime.js?v=20261004e';
-import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261004e';
-import { NoticeStore } from '../../services/governance/notice.js?v=20261004e';
+import { BranchService } from '../../services/core/runtime.js?v=20261004h';
+import { STATE, setState, registerRenderCallback, getAppState } from '../../core/base/state.js?v=20261004h';
+import { NoticeStore } from '../../services/governance/notice.js?v=20261004h';
 // 视图层独立：renderNoticeList 属「通知视图层」（G1 第③项服务层不产 UI，2026-09-28 迁出）
-import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261004e';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261004e';
-import { getBasePath } from '../../core/base/utils.js?v=20261004e';
-import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261004e';
-import { loadActivities } from '../../services/activity/activity.js?v=20261004e';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261004e';
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261004e';
-import { AuthStore } from '../../services/core/auth.js?v=20261004e';
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261004e';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261004e';
-import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261004e';
-import '../../capabilities/activity-calendar.js?v=20261004e'; // 副作用导入：注册首页活动日历能力
+import { renderNoticeList } from '../../components/governance/notice-view.js?v=20261004h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261004h';
+import { getBasePath } from '../../core/base/utils.js?v=20261004h';
+import { loadAttendanceRecords, loadActiveAttendanceRecords } from '../../services/activity/attendance.js?v=20261004h';
+import { loadActivities } from '../../services/activity/activity.js?v=20261004h';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261004h';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261004h';
+import { AuthStore } from '../../services/core/auth.js?v=20261004h';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261004h';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261004h';
+import { DATA_CHANGED_EVENT, probeRemoteChanges } from '../../data/data-adapter.js?v=20261004h';
+import '../../capabilities/activity-calendar.js?v=20261004h'; // 副作用导入：注册首页活动日历能力
 // ── 方案 B 入口拆分：dashboard 区块渲染模块 ──
-import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261004e';
-import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261004e';
-import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20261004e';
-import { renderGallery } from '../../components/dashboard/gallery.js?v=20261004e';
+import { renderDashboardStats } from '../../components/dashboard/stats.js?v=20261004h';
+import { renderActivityList, renderActivityCalendar, initActivityTabs, getInitialActivityView } from '../../components/dashboard/activity-panel.js?v=20261004h';
+import { renderTaskforceList } from '../../components/dashboard/taskforce-list.js?v=20261004h';
+import { renderGallery } from '../../components/dashboard/gallery.js?v=20261004h';
 
 // ── 时序修复（2026-09-10「归属显示不一致」；正确先例 settings-entry.js:1236-1244）──
 // header 品牌标题经 getHeaderTitle 读 mockDB.branches，必须先完成 BranchService.loadDB()
@@ -47,15 +47,20 @@ if (user) {
 
 // 根据用户角色更新 dashboard 中的 workspace 链接
 // T-284：未登录统一直达登录页，消除「公开页→工作台→门控踢→login」的绕路跳转
-// 2026-09-30 批次 310：带 `data-ws-tab` 的入口落**该工作台的指定页签**（首页「完整日历 →」→
-//   只读「活动日历」tab）。页签 id 在该台不存在时由壳的 R6 守卫回退首个可见 tab（不新增协议，
-//   复用既有的 `?tab=` 深链通道）。
+// 2026-09-30 批次 310：带 `data-ws-tab` 的入口落**该工作台的指定页签**（复用既有 `?tab=` 深链通道，
+//   不新增协议）；页签 id 在该台不存在时由壳的 R6 守卫回退首个可见 tab。
+// 2026-10-04 批次 371（支书裁「**活动日历 应该放在 活动动态中 作为一个 视图**」）：再加一档
+//   `data-ws-view` —— 「完整日历 →」落「活动动态」的**日历视图**（`?tab=activities&subview=calendar`）。
+//   ⚠ **参数名用 `subview` 而非 `view`**：`view` 是**工作台壳的既有协议参数**（`view=activities` 表示
+//   「旧导航落点」，见 `components/shell/workspace-shell.js:512-522`，壳会**消费并清掉**它）——
+//   用 `view` 会被壳吃掉、承载页读不到。视图名由承载页自行消费（`visitor/activities-tab.js`）。
 const wsLinks = document.querySelectorAll('a[href*="workspace/"]');
 if (user) {
   const wsPage = AuthStore.getPageForRole('workspace', user.role) || 'visitor.html';
   const wsBase = getBasePath() + 'workspace/' + wsPage;
   wsLinks.forEach(a => {
-    a.href = a.dataset.wsTab ? `${wsBase}?tab=${encodeURIComponent(a.dataset.wsTab)}` : wsBase;
+    const view = a.dataset.wsView ? `&subview=${encodeURIComponent(a.dataset.wsView)}` : '';
+    a.href = a.dataset.wsTab ? `${wsBase}?tab=${encodeURIComponent(a.dataset.wsTab)}${view}` : wsBase;
   });
 } else {
   wsLinks.forEach(a => { a.href = getBasePath() + 'login.html'; });

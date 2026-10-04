@@ -277,7 +277,7 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| docs/src/entries/pages/main-entry.js | 2026-09-30 | — | [工程师]+[AI] | 首页入口（含日历+通知待办） |
+| docs/src/entries/pages/main-entry.js | 2026-10-04 | — | [工程师]+[AI] | 首页入口（含日历+通知待办） |
 | docs/src/entries/pages/login-entry.js | 2026-09-21 | — | [工程师]+[AI] | 登录页入口（按钮主 CTA 档；**2026-09-21 批次 139：开发身份卡加「党小组副组长」**——同一套组长工作台、任务优先给组长，`D-571`） |
 | docs/src/entries/pages/about-entry.js | 2026-08-19 | — | [工程师]+[AI] | 关于页入口（支部的故事；静态壳 + 死代码清理；T-272 对话三段角速度统一 PLATEAU 0.55） |
 | docs/src/entries/pages/archive-entry.js | 2026-08-06 | — | [工程师]+[AI] | 归档页入口 |
@@ -317,7 +317,7 @@ dynamic_role:
 | docs/src/entries/tabs/secretary/overview-tab.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 27→19，含 `overview-tab.js:516` 死兜底随删消除〕；`D-674`）** **（2026-09-26 批次 205–207：本表原无其行，本批补行；日期＝该批次落点日。hex 3 处清；收基线 `c` 30→27）** 支书工作台·概况 tab |
 | docs/src/entries/tabs/secretary/notification-tab.js | 2026-10-03 | — | [工程师]+[AI] | 通知发布 tab（全支部通知 / 指定人私发；私信 fan-out 走服务层单一写口 —— 批次 353）。 |
 
-| docs/src/entries/tabs/shared/activity-calendar-tab.js | 2026-09-30 | — | [工程师]+[AI] | **2026-09-30 批次 310 新建**——全角色共用的**只读「活动日历」页签**（支书台之外五台挂载）。**边界**：只渲四视图 ＋ 图例 ＋ 月份选择（引擎单一源 `components/record/calendar.js`），**不带**写入 / 统计 / 活动查询 / inspector；点条目 → `activity.html?id=`。**为什么**：此前「活动日历」只长在支书台（本表 `secretary/calendar-tab.js` 行），支书裁定「每个人应该都有这样的活动日历界面」。 |
+| docs/src/entries/tabs/shared/activity-calendar-tab.js | 2026-10-04 | — | [工程师]+[AI] | **2026-09-30 批次 310 新建**——全角色共用的**只读「活动日历」页签**（支书台之外五台挂载）。**边界**：只渲四视图 ＋ 图例 ＋ 月份选择（引擎单一源 `components/record/calendar.js`），**不带**写入 / 统计 / 活动查询 / inspector；点条目 → `activity.html?id=`。**为什么**：此前「活动日历」只长在支书台（本表 `secretary/calendar-tab.js` 行），支书裁定「每个人应该都有这样的活动日历界面」。 |
 
 ### docs/src/entries/tabs/org/ (组织委员工作台 Tab 模块层)
 
@@ -428,7 +428,7 @@ dynamic_role:
 | docs/src/capabilities/org-workspace.js | 2026-10-04 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（组织台 **11 → 12**）；`D-675`）** 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'，T-279 M3 新建） |
 | docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建）。**边界**：tab 数 9；改 tab 结构须同批改 `help.html §0.1/§2.3` 与 `README-server.md §3.2.3`。 |
 | docs/src/capabilities/disc-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建；tab 数 9） |
-| docs/src/capabilities/visitor-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
+| docs/src/capabilities/visitor-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
 | docs/src/components/sections/references.js | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步） |
 

@@ -2123,4 +2123,43 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **母本 / 职责表述未动**（组长侧 `党小组组长工作手册` 的「组织者上传」等）。
 - ⚠ **`copy-screen-guard` 收基线 1 条**（`leader::知情查看`）：进度前进、非放宽。
 - ⚠ **戳 `20261004d → 20261004e`**；`ACTIVE_RULINGS` 未投影（`D-744`…`D-759`，待专批）。
-- ⇒ **批次 370 起继续**（成员 → 支书 → 党委 → 全站收口）。
+- ⇒ **批次 371 起继续**（成员 → 支书 → 党委 → 全站收口）。
+
+## 批次 371（2026-10-04，按 `D-762` 清单落地 · `D-763` 执行批）
+
+**任务**：批次 370 三轮出表 ＋ 立口径后，支书圈定 `D-762` 落地清单 ⇒ 本批**照单施工**（**无新裁定**）。四项：① 统一日历组件改两栏 ② 成员台撤「活动日历」页签 ＋ 首页深链改落 ③ 成员台「知情查看」改名「专班动态」 ④ 组长台「活动管理」→「本组活动」。
+
+### 一、四项落地
+
+| # | 事项 | 改法 |
+| --- | --- | --- |
+| ① | **统一日历改「左日历 / 右详情」两栏、取消全屏** | `shared/activity-calendar-tab.js`：`TAB_HTML` 改 `grid-cols-1 lg:grid-cols-5` —— 左 `lg:col-span-3`（月选择 ＋ 视图钮 ＋ `#cal-main-grid` ＋ 图例）、右 `lg:col-span-2`（`#inspector-container` ＋ `#inspector-default`/`#inspector-content`/`#inspector-date-title`/`#inspector-cards`）；渲染末调 `renderInspectorFromState({...st, activities, viewType:'participant'})`（**只读分支**，不引入支委侧写侧能力）。**与支书台 `secretary/calendar-tab.js::calendar-view-section` 既有样板逐字同构**；**单一源改一次、四台生效**（支书纠偏：**不逐台做**） |
+| ② | 成员台**撤「活动日历」独立页签**（12 → 11） | `visitor-workspace.js` 删 `calendar` 注册；`docs/index.html` 首页「完整日历 →」改 `data-ws-tab="activities" data-ws-view="calendar"`；`main-entry.js` 支持 `data-ws-view` → `&subview=`；`visitor/activities-tab.js` **一次性消费 `?subview=` ＋ 粘住**（壳会清 URL 参数）并**复用既有视图钮**切到日历视图 |
+| ③ | 成员台「知情查看」→ **「专班动态」** | `visitor-workspace.js` 的 `tf-view` `label` 改「专班动态」；`visitor/tf-view-tab.js` 改 `views: ['taskforce']`（**只出专班段**）；**「我的产出填报」写口原地保留** |
+| ④ | 组长台「活动管理」→ **「本组活动」** | `leader-workspace.js` 的 `write` `label` 按范围改名（支书台「活动管理」＝全支部写入） |
+
+### 二、判据面 / 台账 6 处同源改准
+
+`docs/help.html`（§0.1 成员台 12 → 11 ＋ 组长台块块文案 ＋ §2.5「本组活动」行 ＋ §2.6 标题 11 tab 与整表重排〔撤「活动日历」行、`活动动态` 行补三视图与深链、新增「专班动态」行〕）· `README-server.md`（§3.2.5「本组活动」行 ＋ §3.2.6 整表 12 → 11 ＋ **四台共用同一只读件** ＋ 两栏口径）· `docs/workspace/leader.html` 副标题 · `function-catalog.js`（`ws-leader` / `ws-visitor`）· `form-loop-registry.mjs`（`visitor-insight-taskforce-contribution.tab` → 专班动态）· `page-sweep.test.mjs`（门槛 **65 → 64**）· `copy-screen-guard.test.mjs`（**登记 `visitor::专班动态` 17.6**）· `.ctx/TIMESTAMPS.md` 四行。
+
+### 三、收尾（覆盖分片）
+
+- `SWEEP_SHARD=4`（成员台所在片）**782 / 782 / 0 红（`EXIT=0`，472.7 s）**。
+- `copy-screen-guard` 单件实跑：**首跑 1 红** ＝ `M2`「`visitor::专班动态` 比值 17.6 未登记」⇒ 按 M2 判据**同批登记**（＋ `C4_REASON`）后 **11 / 11 绿**。
+- 收尾前 doc 守卫子集（`doc-consistency` / `doc-line-ref` / `timestamps-note-guard` / `version-stamp` / `catalog-sync` / `link-integrity`）**57 / 57 绿**。
+
+### 四、真机取证（起 3000 服务 ＋ 内置 Chromium）
+
+- 成员台（`?dev=participant`）：**11 页签**（今天 / 待办 / 工作概况 / 活动动态 / 项目分工 / 考勤概况 / 思想汇报 / 我的考察 / 我的复盘 / **专班动态** / 我的处置）——**无「活动日历」** ✓
+- 组长台（`?dev=leader`）：**10 页签**，第 5 枚 ＝ **「本组活动」** ✓；其「活动日历」页实测 `#calendar-view-section = grid grid-cols-1 lg:grid-cols-5 gap-4` ＋ 左 `lg:col-span-3` ＋ 右 `#inspector-container`（`lg:col-span-2`，默认文案「点击日历日期查看活动」）✓
+- 深链：`?dev=participant&tab=activities&subview=calendar` ⇒ **视图钮 `calendar` 高亮**（＝落在日历视图）✓
+- `pageerror` **0**（仅 CDN 字体请求被拦，非页面错误）。
+
+### 五、如实登记
+
+- ⚠ **`view` 参数名撞壳协议**：初版用 `?tab=activities&view=calendar`，真机测得**壳把 `view` 当旧协议参数消费掉**（`components/shell/workspace-shell.js:512-522`，`view=activities` 是既有语义）⇒ 承载页读不到；**改用 `subview`**。**两轮真机才证实**（第一版还踩到「壳清 URL ⇒ 页签后续重渲染读不到」⇒ 补「一次性消费 ＋ 粘住」）。
+- ⚠ **本批戳连跳三档**（`20261004e → f → g → h`）：系「先 bump、后修正」所致，非三次独立改动。
+- ⚠ **`活动日历` 现为四台共用**（org / prop / disc / leader）；成员台撤页签后，**「每人都有活动日历」的承载改由「活动动态 → 日历视图」满足**——与 2026-09-30 裁定**不矛盾、是细化**（`D-762` ①）。
+- ⚠ **（丁）归属可转移一行未动**（`D-761` ③ 架构级，单独立项待认方向）。
+- ⚠ **母本 / 职责表述未动**（本次未涉 `content/**`）。
+- ⇒ **批次 372 起继续**（支书台 → 党委台 → 全站收口）。

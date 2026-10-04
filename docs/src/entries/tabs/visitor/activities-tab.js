@@ -3,20 +3,20 @@
 // 三视图：列表（分页）/ 日历 / 查询；列表与日历为纯展示，查询复用全局查询组件。
 // URL 落点高亮（?activityId=）经 ctx.highlightId 一次性消费（对齐单体版参数清除后的行为）。
 
-import { icon } from '../../../core/base/icons.js?v=20261004e';
-import { renderQueryView } from '../../../components/governance/query-view.js?v=20261004e';
-import { flashHighlight } from '../../../core/base/utils.js?v=20261004e';
-import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261004e';
+import { icon } from '../../../core/base/icons.js?v=20261004h';
+import { renderQueryView } from '../../../components/governance/query-view.js?v=20261004h';
+import { flashHighlight } from '../../../core/base/utils.js?v=20261004h';
+import { getActivityTypeColors } from '../../../core/domain/constants.js?v=20261004h';
 // 活动「仍在办」口径单一源（2026-09-13 收敛）：替代手写 !archived && status!=='cancelled'
-import { isActivityLive } from '../../../core/domain/constants.js?v=20261004e';
-import { canSignup } from '../../../components/governance/signup-panel.js?v=20261004e';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004e';
+import { isActivityLive } from '../../../core/domain/constants.js?v=20261004h';
+import { canSignup } from '../../../components/governance/signup-panel.js?v=20261004h';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004h';
 // 组织者按活动身份读（2026-09-19 批次 91 · SOP-B-17）：本人被指定为某场活动的组织者时，
 // 该场的发布口与上传位从该行可达——「组织者是这场事上被指定的人」，不是静态角色。
-import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261004e';
-import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261004e';
+import { isActivityOrganizer, findActivityById } from '../../../services/activity/activity.js?v=20261004h';
+import { openGroupNoticeComposer } from '../../../components/governance/notice-view.js?v=20261004h';
 // 翻页控件单一源（批次 38：全站手写翻页一律并轨 pagerHtml）
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261004e';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261004h';
 
 const ACTIVITY_TYPE_COLORS = getActivityTypeColors();
 
@@ -73,6 +73,12 @@ function _activityRowHtml(a) {
 // 活动动态列表分页（支书 2026-08-08 决策：活动页分页，每页 10 条）
 const ACTIVITY_PAGE_SIZE = 10;
 let _visitorActPage = 1; // 当前页（模块级，切换 列表/日历/查询 视图后保留）
+// 2026-10-04 批次 371：`?view=` 深链（首页「完整日历 →」落**日历视图**）。
+//   ⚠ 壳会在导航时**消费并清掉 URL 参数**（`history.replaceState`）⇒ 页签的**后续重渲染**读不到 `view`
+//   ⇒ 故**一次性消费、粘住**（`_pendingView`）：只在本次加载首次渲染时读参数；用户手动切视图即清除。
+let _pendingView = null;
+let _viewParamConsumed = false;
+let _programmaticViewClick = false;
 
 export function renderContent(ctx) {
   const tc = document.getElementById('visitor-tab-content');
@@ -81,6 +87,12 @@ export function renderContent(ctx) {
   const activities = ctx.activities || [];
   const highlightId = ctx.highlightId || null;
   const sorted = [...activities].filter(a => a.date && isActivityLive(a)).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  if (!_viewParamConsumed) {
+    _viewParamConsumed = true;
+    const v = new URLSearchParams(location.search).get('subview');
+    if (v && ['list', 'calendar', 'query'].includes(v)) _pendingView = v;
+  }
 
   tc.innerHTML = `
     <div class="flex items-center justify-between mb-3">
@@ -102,6 +114,8 @@ export function renderContent(ctx) {
 
   tc.querySelectorAll('.visitor-view-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      // 用户手动切视图 ⇒ 深链粘住的视图让位（见 `_pendingView` 说明）
+      if (!_programmaticViewClick) _pendingView = null;
       tc.querySelectorAll('.visitor-view-btn').forEach(b => {
         b.style.background = 'var(--surface-card)'; b.style.color = 'var(--neutral-500)'; b.style.border = '1px solid var(--neutral-200)';
       });
@@ -113,7 +127,16 @@ export function renderContent(ctx) {
     });
   });
 
-  _renderActListView(sorted, highlightId);
+  // 2026-10-04 批次 371（支书裁「**活动日历 应该放在 活动动态中 作为一个 视图**」）：
+  //   深链 `?view=calendar`（首页「完整日历 →」）⇒ **复用下面这套视图切换钮**，
+  //   **不另写一份日历渲染**（日历仍是本页三视图之一）；参数被壳清掉后靠 `_pendingView` 粘住。
+  if (_pendingView) {
+    _programmaticViewClick = true;
+    tc.querySelector(`.visitor-view-btn[data-vview="${_pendingView}"]`)?.click();
+    _programmaticViewClick = false;
+  } else {
+    _renderActListView(sorted, highlightId);
+  }
   // 一次性消费高亮目标（对齐单体版 URL 参数清除后的行为，防 setState 重渲染重复滚动定位）
   if (typeof ctx.onNavLocated === 'function') ctx.onNavLocated();
 

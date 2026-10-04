@@ -697,7 +697,8 @@ export const MACHINE_FLOWS = [
     //   与该形态不冲突（只读指的是「活动分段不可编辑」）。
     id: 'visitor-insight-taskforce-contribution',
     page: 'visitor',
-    tab: '知情查看',
+    // 2026-10-04 批次 371：成员台页签名由「知情查看」改「**专班动态**」（只出专班段；id 仍 `tf-view`）
+    tab: '专班动态',
     open: [
       { click: '.insight-view-btn[data-iview="taskforce"]' },
       { waitFor: '.tfv-card[data-tf-id="tf-001"]' },

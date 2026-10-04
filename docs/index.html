@@ -3,7 +3,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261004e"></script>
+<script src="./src/theme-init.js?v=20261004h"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>首页 — GSM1921-SOP</title>
@@ -15,9 +15,9 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261004e"></script>
+  <script src="./src/tailwind-config.js?v=20261004h"></script>
 
-  <link rel="stylesheet" href="./src/styles.css?v=20261004e">
+  <link rel="stylesheet" href="./src/styles.css?v=20261004h">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -59,9 +59,12 @@
                   <button class="activity-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 bg-white border-neutral-200 text-gray-600 hover:bg-gray-50" data-view="list">列表</button>
                 </div>
                 <a href="./workspace/visitor.html" class="text-xs text-blue-600 hover:text-blue-800">工作台 →</a>
-                <!-- 2026-09-30 批次 310：桌面日历的「完整日历」入口（href 由 main-entry.js 按登录角色改写，
-                     并带 data-ws-tab 落到该台「活动日历」页签） -->
-                <a href="./workspace/visitor.html" data-ws-tab="calendar" class="text-xs text-blue-600 hover:text-blue-800">完整日历 →</a>
+                <!-- 2026-09-30 批次 310：桌面日历的「完整日历」入口（href 由 main-entry.js 按登录角色改写）。
+                     2026-10-04 批次 371（支书裁「**活动日历 应该放在 活动动态中 作为一个 视图才对**」）：
+                     成员台**已撤「活动日历」独立页签** ⇒ 本入口改落「活动动态」的**日历视图**
+                     （`data-ws-tab=\"activities\"` ＋ `data-ws-view=\"calendar\"` → `?tab=activities&subview=calendar`；
+                      **参数名用 `subview`**：`view` 是工作台壳的既有协议参数、会被它消费清掉） -->
+                <a href="./workspace/visitor.html" data-ws-tab="activities" data-ws-view="calendar" class="text-xs text-blue-600 hover:text-blue-800">完整日历 →</a>
               </div>
             </div>
             <div id="activity-calendar-view">
@@ -119,7 +122,7 @@
 
 
 
-<script type="module" src="./src/entries/pages/main-entry.js?v=20261004e"></script>
+<script type="module" src="./src/entries/pages/main-entry.js?v=20261004h"></script>
 
 </body>
 </html>
