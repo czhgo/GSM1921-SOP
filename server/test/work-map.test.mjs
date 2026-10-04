@@ -10,9 +10,10 @@ import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
-} from '../../docs/src/core/domain/work-map.js?v=20261004l';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261004l';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261004l';
+  transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
+} from '../../docs/src/core/domain/work-map.js?v=20261004p';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261004p';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261004p';
 
 let server, base, token;
 
@@ -205,4 +206,36 @@ test('制度派单判据：领域 → 主体（角色键 ∪ 组织型主体）�
   }
   assert.equal(institutionSubjectOfDomain('nope'), null);
   assert.equal(institutionSubjectOfDomain(undefined), null);
+});
+
+// ── tab 归属「真转移」（2026-10-05 批次 379 · `D-771`）────────────────────────────
+test('归属可转移：复合键（模块 × 台 × id）单一源；缺省＝granted；改派后原台 revoked / 新主责 granted；组织型主体 pinned', () => {
+  const row = transferRowOf('org', 'taskforce');
+  assert.ok(row && row.modules.includes('taskforce'), '组织台「专班管理」应在表内');
+  assert.equal(transferRowOf('leader', 'attendance'), null, '组长台「考勤管理」＝本组上传位，不得入表');
+  assert.equal(transferRowOf('disc', 'attendance').modules[0], 'attendance-inspection');
+  // 转移表的每个 page 都必须落在工作台壳的「原台能力自注册导入」名单内（迁入时才能取到同一份页签定义）
+  assert.ok(TRANSFERABLE_TAB_ROWS.every((r) => ['org', 'disc', 'leader'].includes(r.page)),
+    'TRANSFERABLE_TAB_ROWS 的 page 须 ∈ {org, disc, leader}；新增页须同批在 workspace-shell.js 补原台能力导入');
+  assert.ok(TRANSFERABLE_TAB_ROWS.every((r) => r.id && Array.isArray(r.modules) && r.modules.length), '每行须有 id 与 modules');
+
+  // 缺省（workforce=null）：主责＝defaultOwner，与原台一致 ⇒ 查看者即主责 ⇒ granted
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner' }), 'granted');
+  assert.equal(transferTabDecision(row, { role: 'secretary' }), 'revoked', '支部未改派时，专班管理不属支书');
+
+  // 改派给支书（role）⇒ 支书 granted、组织委员 revoked
+  const movedToSecretary = expandWorkforce({ taskforce: { ownerType: 'role', ownerId: 'secretary' } });
+  assert.equal(transferTabDecision(row, { role: 'secretary' }, movedToSecretary), 'granted');
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner' }, movedToSecretary), 'revoked');
+
+  // 改派给具体人（person）⇒ 只该人 granted
+  const movedToPerson = expandWorkforce({ taskforce: { ownerType: 'person', ownerId: 'p5' } });
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: 'p5' }, movedToPerson), 'granted');
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner', personId: 'p6' }, movedToPerson), 'revoked');
+
+  // 主责为组织型主体 / 停用 ⇒ 无人可承接 ⇒ pinned（只留原台）
+  const orgOwner = expandWorkforce({ taskforce: { ownerType: 'org', ownerId: 'branch-committee' } });
+  assert.equal(transferTabDecision(row, { role: 'secretary' }, orgOwner), 'pinned');
+  const disabled = expandWorkforce({ taskforce: { ownerType: 'none', ownerId: '' } });
+  assert.equal(transferTabDecision(row, { role: 'org-commissioner' }, disabled), 'pinned');
 });

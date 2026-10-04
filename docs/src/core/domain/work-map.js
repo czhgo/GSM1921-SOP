@@ -405,3 +405,51 @@ export function institutionSubjectOfDomain(domainId) {
   return hit ? hit.subject : null;
 }
 
+// ── tab 归属「真转移」：**模块 × 台**复合键单一源（2026-10-05 批次 379 · `D-771`）────────────────
+// 支书口径（逐字）：「**主责 / 赋权一变，tab 随之转移到别人那里**」（`D-761` ③「这种调用关系是要
+//   **server 学习**的！」）；形式三答（2026-10-05）＝判据源**全走本文件单一源** · **真转移** · **一次推全站**。
+// 语义：**谁的模块，写侧页签就长在谁的工作台、原台不再显示**。
+// 判据：模块主责取**分工快照**（`config.workforce` 命中即支部实际改派；缺省＝`defaultOwner`）。
+// ⚠ **复合键＝（模块 × 台 × 页签 id）**（支书圈丙）：**同 id 在多台各按自己的模块归属判**——
+//   本表**只列「该页签就是该模块的主责写侧承接位」的 triples**；未入表的页签（各台的职责/上传位，
+//   如组长台「考勤管理」＝本组上传位、各台「我的处置」＝答复位）**一律不受转移影响**。
+// ⚠ **主责为组织型主体**（支委会等，非登录身份）**或已停用** ⇒ 无人可承接 ⇒ `pinned`（只留原台）。
+export const TRANSFERABLE_TAB_ROWS = [
+  // 专班：主责位＝组织台「专班管理」（缺省主责 org-commissioner，与 home 台一致 ⇒ 缺省零变化）
+  { page: 'org', id: 'taskforce', modules: ['taskforce'] },
+  // 考勤考察：主责位＝纪检台「考勤管理 / 考察管理」（缺省主责 disc-commissioner）
+  //   ⚠ 组长台的「考勤管理 / 考察管理」是**本组上传位**（职责位）、不入表 ⇒ 不受转移影响
+  { page: 'disc', id: 'attendance', modules: ['attendance-inspection'] },
+  { page: 'disc', id: 'inspection', modules: ['attendance-inspection'] },
+  // 活动写入：组长台「本组活动」（缺省主责 leader；主题党日 / 共建活动 / 党小组会 三模块同承一位）
+  { page: 'leader', id: 'write', modules: ['theme-party', 'joint-event', 'party-group-meeting'] },
+];
+
+/** 该台（`pageKey`）上的某页签是否入转移表（入表返回该行，否则 null） */
+export function transferRowOf(pageKey, tabId) {
+  return TRANSFERABLE_TAB_ROWS.find((r) => r.page === pageKey && r.id === tabId) || null;
+}
+
+/**
+ * 可转移页签的归属判定（纯）
+ * @param {object} row `TRANSFERABLE_TAB_ROWS` 的一行
+ * @param {{role?:string|null, personId?:string|null}} viewer 查看者（角色键 / personId）
+ * @param {Record<string,{ownerType,ownerId}>|null} [snapshot] 分工快照（缺省＝缺省分工）
+ * @returns {'granted'|'revoked'|'pinned'}
+ *   `granted`＝查看者即该模块主责 ⇒ 页签归其所在台（**含原台**）
+ *   `revoked`＝主责另有登录主体 ⇒ **原台撤下**、也不在查看者台出现
+ *   `pinned` ＝主责为组织型主体 / 已停用（无人可承接）⇒ **只留原台**
+ */
+export function transferTabDecision(row, viewer = {}, snapshot = null) {
+  const snap = snapshot || expandWorkforce(null);
+  const owners = (row && Array.isArray(row.modules) ? row.modules : [])
+    .map((m) => snap[m]).filter(Boolean);
+  if (!owners.length) return 'pinned';
+  if (owners.some((o) => o.ownerType === 'org' || o.ownerType === 'none')) return 'pinned';
+  const granted = owners.some((o) =>
+    (o.ownerType === 'role' && !!viewer.role && o.ownerId === viewer.role)
+    || (o.ownerType === 'person' && !!viewer.personId && o.ownerId === viewer.personId));
+  return granted ? 'granted' : 'revoked';
+}
+
+

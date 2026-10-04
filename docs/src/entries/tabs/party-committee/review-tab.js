@@ -8,16 +8,16 @@
 // 数据源：reviewRequests（services/governance/review-request.js，mock 与 API 双引擎同源）
 // 设计权威源：content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md §5 P3
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261004l';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004l';
-import { getPersonName } from '../../../services/member/person.js?v=20261004l';
-import { getBranchById } from '../../../services/branch/branch.js?v=20261004l';
-import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004l';
-import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004l';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004p';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004p';
+import { getPersonName } from '../../../services/member/person.js?v=20261004p';
+import { getBranchById } from '../../../services/branch/branch.js?v=20261004p';
+import { decideReviewRequest, listReviewRequests } from '../../../services/governance/review-request.js?v=20261004p';
+import { showToast, escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004p';
 // 统一检索引擎（2026-09-14 批次 37）：待批复 / 已处理两区各接一个实例（关键词 + 类型/状态分面 + 分页）
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004l';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004p';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004l';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004p';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-review';

@@ -20,23 +20,40 @@
 
 
 
-import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261004l';
+import { STATE, getAppState, setState, registerRenderCallback } from '../../core/base/state.js?v=20261004p';
 
-import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261004l';
-import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261004l';
-import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261004l';
-import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261004l';
-import { getCapabilities } from '../../core/boot/registry.js?v=20261004l';
-import { loadWorkspaceData } from '../../data/data-loader.js?v=20261004l';
+import { bootstrapPage } from '../../core/boot/bootstrap.js?v=20261004p';
+import { renderTabBar, tabContentSkeletonHtml } from './tab-bar.js?v=20261004p';
+import { flashHighlight, escHtml } from '../../core/base/utils.js?v=20261004p';
+import { CrossPageState } from '../../core/session/cross-page-state.js?v=20261004p';
+import { getCapabilities } from '../../core/boot/registry.js?v=20261004p';
+import { loadWorkspaceData } from '../../data/data-loader.js?v=20261004p';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：种子兜底路径同样按查看者角色收窄（与 data-loader 同判据）
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261004l';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261004p';
 
-import { TodoStore } from '../../services/governance/todo.js?v=20261004l';
-import { AuthStore } from '../../services/core/auth.js?v=20261004l';
-import { BranchService } from '../../services/core/runtime.js?v=20261004l';
-import { applyTabPolicy, getBranchIdOfPerson, getBranchById } from '../../services/branch/branch.js?v=20261004l';
+import { TodoStore } from '../../services/governance/todo.js?v=20261004p';
+import { AuthStore } from '../../services/core/auth.js?v=20261004p';
+import { BranchService } from '../../services/core/runtime.js?v=20261004p';
+import { applyTabPolicy, getBranchIdOfPerson, getBranchById, getBranchWorkforce } from '../../services/branch/branch.js?v=20261004p';
 // 设置中心批2（2026-09-09 支书批准 v3）：个人 tab 顺序覆盖（个人层；支部层=applyTabPolicy 之上叠加）
-import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261004l';
+import { applyPersonalTabOrder } from '../../services/core/preferences.js?v=20261004p';
+// （丁）归属可转移：可转移页签的**判据单一源**（2026-10-05 批次 379 · `D-771`）——模块主责快照派生，
+//   禁前端写死「哪个 tab 长在哪个台」。
+import { TRANSFERABLE_TAB_ROWS, transferRowOf, transferTabDecision, expandWorkforce } from '../../core/domain/work-map.js?v=20261004p';
+// 「归属可转移」**原台页签声明单一源**（迁入时取**同一份声明**，勿在本处复制 render）：
+//   ⚠ 台账：`TRANSFERABLE_TAB_ROWS` 的每个 `page` 都必须在此有对应声明（新增行时同批补），
+//     由 `server/test/work-map.test.mjs` 断言 `page ∈ {org, disc, leader}` 守住。
+//   ⚠ 统一取**声明常量**而非各台 `tabs()`：后者是**查看者上下文相关**的（如组长台按「组织者兜底进入」过滤）。
+import { ORG_WORKSPACE_TAB_DECLS } from '../../capabilities/org-workspace.js?v=20261004p';
+import { DISC_WORKSPACE_TAB_DECLS } from '../../capabilities/disc-workspace.js?v=20261004p';
+import { LEADER_WORKSPACE_TAB_DECLS } from '../../capabilities/leader-workspace.js?v=20261004p';
+
+/** 台 → 页签声明（归属可转移迁入取用；单一源＝各台能力模块的声明常量） */
+const TRANSFER_HOME_DECLS = {
+  org: ORG_WORKSPACE_TAB_DECLS,
+  disc: DISC_WORKSPACE_TAB_DECLS,
+  leader: LEADER_WORKSPACE_TAB_DECLS,
+};
 
 
 
@@ -109,6 +126,58 @@ function _renderCapabilityDenied(containerId, { capId, scope, role }) {
       <p class="text-xs text-gray-500">如需访问，请联系管理员调整你的身份或工作台组合。</p>
     </div>`;
   console.warn(`[ws-shell] 能力 ${capId}（scope=${scope}）未对角色 ${role || '(未登录)'} 开放——已渲染显式提示卡`);
+}
+
+/**
+ * （丁）归属可转移 · 真转移：按**模块主责快照**派生「本台该不该有这个页签」（2026-10-05 批次 379 · `D-771`）。
+ * 判据单一源＝`core/domain/work-map.js`（`TRANSFERABLE_TAB_ROWS` ＋ `transferTabDecision`）；
+ *   **只作用于已入表的 triples（模块 × 台 × 页签 id）**——未入表的页签一律原样保留。
+ * ① 撤下：本台已注册、但该模块主责已改派给**别的登录主体** ⇒ 本台撤下；
+ * ② 迁入：它台的可转移页签、本查看者**已是主责** ⇒ 追加到本台（页签定义**取自其原台的能力注册**＝同一份，不复制实现）；
+ *    ⚠ 同 id 已在本台在位时**不追加**（如组长台自有「考勤管理」上传位）。
+ * @param {Array} tabs 注册表页签（已过 config.modules / 个人顺序）
+ * @param {string} pageKey 本台（`workspace:<page>` 的 `<page>`）
+ * @param {string} scope 原始 scope（仅用于取能力注册）
+ * @returns {Array} 定稿后的页签
+ */
+function applyTabTransfer(tabs, pageKey) {
+  if (!pageKey || !Array.isArray(tabs) || !TRANSFERABLE_TAB_ROWS.length) return tabs;
+  const me = (() => {
+    try { return (typeof AuthStore?.getCurrentUser === 'function' && AuthStore.getCurrentUser()) || null; } catch (_) { return null; }
+  })();
+  const viewer = { role: (me && me.role) || null, personId: (me && (me.personId || me.id)) || null };
+  let snapshot = null;
+  try {
+    const branchId = viewer.personId ? getBranchIdOfPerson(viewer.personId) : null;
+    if (branchId) snapshot = expandWorkforce(getBranchWorkforce(branchId));
+  } catch (_) { snapshot = null; }
+  const decide = (row) => transferTabDecision(row, viewer, snapshot);
+
+  // ① 撤下
+  let out = tabs.filter((t) => {
+    const row = t && transferRowOf(pageKey, t.id);
+    return !row || decide(row) !== 'revoked';
+  });
+
+  // ② 迁入（页签定义取自其原台的能力注册；同 id 已在位则不追加）
+  for (const row of TRANSFERABLE_TAB_ROWS) {
+    if (row.page === pageKey) continue;
+    if (decide(row) !== 'granted') continue;
+    if (out.some((t) => t && t.id === row.id)) continue;
+    const def = _homeTabDef(row);
+    if (def) out = [...out, def];
+  }
+  return out;
+}
+
+/** 取该行「原台」的**同一份**页签声明（单一源复用，勿在本处另写 render） */
+function _homeTabDef(row) {
+  const decls = TRANSFER_HOME_DECLS[row.page];
+  if (!Array.isArray(decls)) {
+    console.warn(`[ws-shell] 归属可转移：未登记原台「${row.page}」的页签声明（须同批补 TRANSFER_HOME_DECLS）`);
+    return null;
+  }
+  return decls.find((t) => t && t.id === row.id) || null;
 }
 
 export async function createWorkspaceShell(opts) {
@@ -366,6 +435,17 @@ export async function createWorkspaceShell(opts) {
       if (personId) tabs = applyPersonalTabOrder(tabs, personId, scope);
     } catch (e) {
       console.warn('[ws-shell] 个人 tab 顺序偏好读取失败，按默认顺序渲染', e);
+    }
+
+    // （丁）归属可转移 · 真转移（2026-10-05 批次 379 · `D-771`）：
+    //   支书口径「**主责 / 赋权一变，tab 随之转移到别人那里**」（`D-761` ③「这种调用关系是要 server 学习的！」）。
+    //   **谁的模块，写侧页签就长在谁的工作台、原台不再显示**；判据**单一源＝core/domain/work-map.js**
+    //   （`TRANSFERABLE_TAB_ROWS` 复合键（模块 × 台 × 页签 id）＋ `transferTabDecision` 按分工快照判），**前端不写死**。
+    //   ⚠ 只在**已入表**的页签上生效；未入表者（各台职责/上传位）一律不受影响（缺省分工下零变化）。
+    try {
+      tabs = applyTabTransfer(tabs, (scope || '').replace(/^workspace:/, ''));
+    } catch (e) {
+      console.warn('[ws-shell] 归属可转移派生失败，按原注册渲染', e);
     }
 
     // tab 合并/改名后的旧深链兼容（2026-09-15 纪检台：「补课」并入「考勤管理」）：

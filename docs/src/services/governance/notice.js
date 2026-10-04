@@ -5,23 +5,23 @@
 //  独立于 mockDB 内存结构，通过 mockDB.notices 统一持久化
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261004l';
-import { generateId } from '../../core/base/id.js?v=20261004l';
-import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261004l';
-import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261004l';
-import { bumpToken } from '../../core/base/version-token.js?v=20261004l'; // P0 域缓存失效（spec §二.3）
-import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261004l';
-import { isInitStateActive } from '../core/init-reset.js?v=20261004l'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
-import {  getBasePath } from '../../core/base/utils.js?v=20261004l';
-import { AuthStore } from '../core/auth.js?v=20261004l';
-import {  getPersonById } from '../member/person.js?v=20261004l';
-import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261004l';
+import { mockDB } from '../../core/domain/domain.js?v=20261004p';
+import { generateId } from '../../core/base/id.js?v=20261004p';
+import { persist, getDataSource, getApiBaseUrl, getAuthToken } from '../../data/data-adapter.js?v=20261004p';
+import { buildSystemNotice } from '../../core/domain/system-notice-templates.js?v=20261004p';
+import { bumpToken } from '../../core/base/version-token.js?v=20261004p'; // P0 域缓存失效（spec §二.3）
+import { MOCK_NOTICES } from '../../data/mock/index.js?v=20261004p';
+import { isInitStateActive } from '../core/init-reset.js?v=20261004p'; // C2 修复（2026-09-08）：init 态跳过演示种子兜底
+import {  getBasePath } from '../../core/base/utils.js?v=20261004p';
+import { AuthStore } from '../core/auth.js?v=20261004p';
+import {  getPersonById } from '../member/person.js?v=20261004p';
+import { NoticeTodoDeriver, TodoStore, TodoSourceType, TodoStatus } from './todo.js?v=20261004p';
 // 组织者身份读取单一源（2026-09-19 批次 91 · SOP-B-17）——发布权随「被指定为该场组织者」动态获得
-import {  getOrganizedActivities } from '../activity/activity.js?v=20261004l';
+import {  getOrganizedActivities } from '../activity/activity.js?v=20261004p';
 import {
   NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, BRANCH_COMMISSION_ROLES,
   NOTICE_AUDIENCE_SENTINELS, ROLE_LABELS,
-} from '../../core/domain/constants.js?v=20261004l';
+} from '../../core/domain/constants.js?v=20261004p';
 
 function _loadNotices() {
   try {

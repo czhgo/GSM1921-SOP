@@ -113,6 +113,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
   · **党委/部署期**＝党委台「支部管理 → 支部配置 → 换组织向导」**第③步「角色分工」**（换壳/新建支部时定基线）。
   > 修订说明：原稿 §三/§六 写「党委台不提供分工编排」，2026-09-13 支书裁定「这个不仅党委有这个权限，支部也要有」——两道口并存，均落同一 `config.workforce`。
 - **生效路径**：分工变更 = 支委会议题（议题类型：班子分工/模块归属）→ 表决通过 → 落 `config.workforce`（`{ [moduleId]: { ownerType: 'role'|'person', ownerId } }`；缺省按 SOP 责任人列）。支书可先会前拟稿（草稿态）。
+- **tab 归属随之转移（2026-10-05 批次 379 · `D-771` · 支书 `D-761` ③「这种调用关系是要 server 学习的！」）**：**谁的模块，写侧页签就长在谁的工作台、原台不再显示**——判据**单一源**＝`docs/src/core/domain/work-map.js`（`TRANSFERABLE_TAB_ROWS` 复合键〔模块 × 台 × 页签 id〕＋ `transferTabDecision` 按**分工快照**判），由**工作台壳**（`components/shell/workspace-shell.js`）派生，**前端不写死**。⚠ 只作用于已入表的页签；未入表者（各台职责 / 上传位）不受影响；主责为**组织型主体**或已停用 ⇒ 不转移。
 - **落点（自动传递，2026-09-13 补）**：采纳后按本次实际改派的负责人**逐条派生「履职」待办**（到人 → `personId`；角色 → `role`，并写入同域折组），同时系统通知 `workforce-proposal-adopted` 由服务端按 `extras.proposal` **复算 actionRoles/actionable** → 角色负责人另获定向待办；到人负责人的入口由各工作台概况「支部安排·我的分工」履职卡承载。
 
 ---

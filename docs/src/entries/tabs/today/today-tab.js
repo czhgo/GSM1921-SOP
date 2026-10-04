@@ -32,39 +32,39 @@
 // 注入防护：标题/内容/截止等用户可控数据一律经 escHtml 后入 innerHTML。
 // ════════════════════════════════════════════════════════════════
 
-import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261004l';
-import { icon } from '../../../core/base/icons.js?v=20261004l';
-import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261004l';
+import { escHtml as esc, _fmtDate } from '../../../core/base/utils.js?v=20261004p';
+import { icon } from '../../../core/base/icons.js?v=20261004p';
+import { buildTodaySummary, TODO_ACTION_ORDER, TODO_ACTION_LABELS } from '../../../services/governance/today-summary.js?v=20261004p';
 // 批次 47-I（Q-23-41 ②，支书 2026-09-15 裁定）：本组组员进展**由服务端汇总**——
 // api 态打服务端汇总接口、mock 态调同一纯函数（单一入口 `loadMemberProgress`）。
-import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261004l';
-import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261004l';
-import { mockDB } from '../../../core/domain/domain.js?v=20261004l';
-import { tokenOf } from '../../../core/base/version-token.js?v=20261004l'; // P0 域写版本戳（spec §二.4）
-import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261004l'; // 滞留覆盖 raw 源（roster 禁改不内改）
-import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261004l'; // 基础数据预览 raw 源
-import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261004l'; // P2 渲染守卫（spec §四.1）
+import { loadMemberProgress } from '../../../services/member/member-progress.js?v=20261004p';
+import { resolveVisibleTargets } from '../../../services/core/visibility.js?v=20261004p';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004p';
+import { tokenOf } from '../../../core/base/version-token.js?v=20261004p'; // P0 域写版本戳（spec §二.4）
+import { RESIDENCE_KEY } from '../../../services/member/roster.js?v=20261004p'; // 滞留覆盖 raw 源（roster 禁改不内改）
+import { PREVIEW_KEY } from '../../../services/branch/org-base-data-preview.js?v=20261004p'; // 基础数据预览 raw 源
+import { memoizeRender } from '../../../components/ui/memoize-render.js?v=20261004p'; // P2 渲染守卫（spec §四.1）
 // 批4（2026-09-09 支书批「域参数」）：组长学期组员进展归集提醒开关（读侧注入后 = 当前支部有效默认）
-import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261004l';
+import { POLICY_DEFAULTS } from '../../../core/domain/policy-defaults.js?v=20261004p';
 // 批次 299「待我处理」两源——**单一源复用**，不另立取数口径：
 //   · 未读通知 ＝ 顶栏铃铛同一取数（NoticeStore.list retention:'visible'）＋ 同一跳转解析（resolveNoticeUrl）
 //   · 待处理汇报 ＝ 顶栏「一键汇报」角标同一集合（IssueNotify.getUnread(我)）
-import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261004l';
-import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261004l';
+import { NoticeStore, resolveNoticeUrl } from '../../../services/governance/notice.js?v=20261004p';
+import { IssueStore, IssueNotify } from '../../../services/governance/issues.js?v=20261004p';
 // 批次 304「待我表态」三件——**判据与读口皆单一源**，不在本文件重写投票规则：
 //   · 我是否应到表决人 ＝ `vote-config.js::isVoterOf`（角色无关，只看固化名单）
 //   · 我是否已对某议程项表态 ＝ `committee-vote.js::hasVoted`
 //   · 当前登录人 ＝ `AuthStore.getCurrentUser()`
-import { AuthStore } from '../../../services/core/auth.js?v=20261004l';
-import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261004l';
-import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261004l';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004p';
+import { isVoterOf } from '../../../services/activity/vote-config.js?v=20261004p';
+import { hasVoted } from '../../../services/activity/committee-vote.js?v=20261004p';
 // 活动类型胶囊（批次 301）：变体判据＝单一源 `activityTypeBadgeVariant`（三会一课＝brand 红 / 主题党日＝gold 金），
 //   渲染唯一源＝`components/ui/badge.js`；**本文件不手写类型色值**。
-import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261004l';
+import { activityTypeBadgeVariant, WORK_DOMAIN_COLORS, accDarkVars } from '../../../core/domain/constants.js?v=20261004p';
 // 徽章扎口出口（2026-09-30 批次 304 改准）：`components/ui/badges.js` 是**唯一调用口**
 //   （其文件头明写「调用方一律 import badges.js；内部实现文件 badge.js / status-badge.js 可各自演进」）；
 //   批次 301 我直连了实现文件 `badge.js` ⇒ 本批收回归口，**零行为变化**。
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004l';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004p';
 
 // 工作台主题色走 CSS 变量（各台 bootstrap 已按 accent 注入；缺省兜底党建红），同 overview/统计卡用法
 const ACCENT = 'var(--app-accent)';
