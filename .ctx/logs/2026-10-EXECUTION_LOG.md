@@ -2509,3 +2509,25 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 2. **指得住的「一致」证据均标层级**：任务级——`:432`(`issues.js:410`/`:447` ＋ `issue-detail.js:219`-`:258` ＋ `agenda-form.js:110` ＋ `vote-config.js:16`-`:20`) · `:450`(`agenda-form.js:111`·`:181`-`:188` ＋ `party-committee-meeting-entry.js:391`-`:405` ＋ `vote-config.js:21`-`:25`) · `:497`(`feedback-tab.js:282`-`:288` ＋ `issues.js:599`·`:627`-`:629` ＋ `issue-dispatch-view.js:115`-`:219`)。制度源 / 单一源——`:441`-`:444`(`issues.js:1244`-`:1249`，注释 `:1230`-`:1242` 明写照母本) · `:474`-`:481`(`work-map.js:134`·`:212`·`:164`·`:197`·`:394` ＋ `domain.js:30`)。展示层——`:460`-`:468`(`help.html:302`/`:411` · `:418`-`:558`)。
 3. **守卫**：`node --test test/doc-consistency.test.mjs test/link-integrity.test.mjs test/timestamps-note-guard.test.mjs`（cwd `server`）→ **全绿**（读数见本批收尾）。
 4. **本批改动文件**：`.ctx/logs/2026-10-EXECUTION_LOG.md` · `.ctx/REVIEW_QUEUE.md` · `.ctx/logs/2026-10-DECISION_LOG.md` · `.ctx/logs/DECISION_LOG.md` · `CLAUDE.md`（丙部 `P.15` 进度行）——**`content/**` / 代码 / 测试一字未动**；母本只读。
+
+## 批次 382（2026-10-05 · `D-774`）**`README-server §3.2.x` 页签台账立机器判据（`S19`）＋ 两处陈旧计数改准**
+
+> **裁定与落地全在 `D-774`**——本条只留**量测 + 判据 + 边界**（照 `H26.1`）。
+
+### 一、量测读数
+
+- 新守卫 **`S19`**（`server/test/page-sweep.test.mjs`）：`SWEEP.byPage` 记七台逐台实测页签数；断言「七台逐台 == `README-server §3.2.x` 台账」＋「各台之和 == 标题『共 N 个』」＋「真机合计 == 标题」＋「根 `README.md` 第二处引用 == 标题」；**非空转**＝实解析 **7** 台。
+- 陈旧计数改准 **2 处**：`README-server.md:359`（73 → **68**）· `README.md:142`（73 → **68**）。
+- 实测：七台 **12 / 11 / 9 / 9 / 10 / 11 / 6 ＝ 68** · `SWEEP.tabs=68`。
+- 戳：**不 bump**〔只改 `.md` ＋ `server/test/**`〕。
+
+### 二、守卫读数
+
+- `page-sweep`（真机）：`S0` / `S1` / **`S19`** / `S2` / `S3` ＋ 七台真机普查 ＝ **12/12 / 0 红**。
+- **反例自检**：`§3.2` 标题 68 → 67 ⇒ **`S19` 判红**（`§3.2.x 各台计数之和 68 ≠ 标题「共 67 个」`）；撤回 ⇒ **12/12 复绿**；反例不留盘。
+
+### 三、边界（如实）
+
+- `S19` **只守「计数」**；`§3.2.x` 四列（页签名 / 分组 / 谁用 / 做什么）与注册内容的一致性**仍未立判据**（写法差异大：★ 标记 / `1-3` 合并行 / 特例段）。
+- 两处计数自批次 371–374 起**长期漂移未回改**（本批改准 ＋ 上守卫）。
+- 本批**未改任何页签 / 业务代码**。

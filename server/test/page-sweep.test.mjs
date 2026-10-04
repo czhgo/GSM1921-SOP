@@ -233,8 +233,8 @@ const AUDIT = (cfg) => {
 };
 
 /** 普查覆盖统计（跨工作台累加；用于最后断言「普查没有空转」） */
-const SWEEP = { tabs: 0, views: 0, lists: 0, listsOverPage: 0, matrices: 0, matrixTransposed: 0, tables: 0, ctrls: 0, cells: 0, bareCtrl: 0, pagers: 0, probe: 0 };
-const SWEEP_KEYS = Object.keys(SWEEP).filter((k) => k !== 'tabs' && k !== 'views' && k !== 'probe');
+const SWEEP = { tabs: 0, views: 0, lists: 0, listsOverPage: 0, matrices: 0, matrixTransposed: 0, tables: 0, ctrls: 0, cells: 0, bareCtrl: 0, pagers: 0, probe: 0, byPage: {} };
+const SWEEP_KEYS = Object.keys(SWEEP).filter((k) => k !== 'tabs' && k !== 'views' && k !== 'probe' && k !== 'byPage');
 /** 待修台账命中集合（跨工作台累积；用于断言「台账不僵尸」） */
 const PENDING_SEEN = new Set();
 
@@ -280,6 +280,8 @@ for (const w of WORKS) {
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
+      // 逐台实测页签数（供 `S19` 与 `README-server §3.2.x` 台账对账；单一源＝各台能力注册）
+      SWEEP.byPage[w.page] = labels.length;
 
       const report = [];
       const probeLog = [];
@@ -380,6 +382,38 @@ test('S1 普查非空转：确实覆盖到「本该分页的列表 / 矩阵人�
   const zombie = CARD_LIST_PENDING.filter((p) => !PENDING_SEEN.has(p.sig));
   assert.deepEqual(zombie.map((p) => p.where), [],
     `P11 待修台账僵尸：以下条目在真机里再也命中不到——已修好则应删条目，否则说明选择器失配：\n  ${zombie.map((p) => `${p.where} [${p.sig}]`).join('\n  ')}`);
+});
+
+// S19（2026-10-05 批次 382）：**台账对账**——`README-server.md §3.2` 标题的「共 N 个」与各台
+//   `#### 3.2.x …— N 个` 必须等于**真机逐台实测的页签数**（判据单一源＝各台能力注册）。
+// 来源：批次 375 登记的「`README-server §3.2.x` 三张表**未立机器判据**」——本批机械化，
+//   防「改一个台、忘了改 README 台账」这类漂移（S17/S18 只守 `help.html` 侧，README 侧此前是空白）。
+// ⚠ **只对「计数」对账**：表内页签名逐字比照因写法而异（★ 标记 / `1-3` 合并行 / 特例段）⇒ 另计、不在本断言内。
+// ⚠ 依赖顶层串行（本仓 `npm test` 固定 `--test-concurrency=1`），故能读到上一跑累积的 `SWEEP.byPage`。
+test('S19 台账对账：README-server §3.2 各台页签数与真机实测一致（计数同源）', () => {
+  const doc = readFileSync(join(import.meta.dirname, '..', '..', 'README-server.md'), 'utf8');
+  const totalM = /^### 3\.2 各工作台页签（共 (\d+) 个）/m.exec(doc);
+  assert.ok(totalM, 'README-server §3.2 标题未解析到「共 N 个」（解析失效？台账格式变了）');
+  const declared = {};
+  for (const m of doc.matchAll(/^#### 3\.2\.\d [^\n]*?`([a-z-]+)\.html`[^\n]*?— (\d+) 个/gm)) declared[m[1]] = Number(m[2]);
+  assert.equal(Object.keys(declared).length, 7,
+    `§3.2.x 应登记七台，实解析到 ${Object.keys(declared).length} 台（解析失效或台账漏台）`);
+  assert.deepEqual(Object.keys(SWEEP.byPage).sort(), Object.keys(declared).sort(),
+    `§3.2.x 登记的台与真机普查的台不一致：台账 ${JSON.stringify(declared)} · 实测 ${JSON.stringify(SWEEP.byPage)}`);
+  for (const p of Object.keys(SWEEP.byPage)) {
+    assert.equal(SWEEP.byPage[p], declared[p],
+      `${p} 台：§3.2.x 台账写 ${declared[p]} 个 · 真机实测 ${SWEEP.byPage[p]} 个（改页签须同批改 README-server §3.2.x 计数）`);
+  }
+  const declSum = Object.values(declared).reduce((a, b) => a + b, 0);
+  const realSum = Object.values(SWEEP.byPage).reduce((a, b) => a + b, 0);
+  assert.equal(declSum, Number(totalM[1]), `§3.2.x 各台计数之和 ${declSum} ≠ 标题「共 ${totalM[1]} 个」`);
+  assert.equal(realSum, Number(totalM[1]), `真机七台合计 ${realSum} ≠ 标题「共 ${totalM[1]} 个」`);
+  // 根 `README.md` 同一事实的第二处引用（「各工作台逐枚页签（共 N 个）见其 §3.2」）——同批对账
+  const rootDoc = readFileSync(join(import.meta.dirname, '..', '..', 'README.md'), 'utf8');
+  const rootM = /逐枚页签\*\*（共 (\d+) 个）/.exec(rootDoc);
+  assert.ok(rootM, 'README.md 未解析到「各工作台逐枚页签（共 N 个）」（解析失效或该句已改写法）');
+  assert.equal(Number(rootM[1]), Number(totalM[1]),
+    `根 README.md 写「共 ${rootM[1]} 个」· README-server §3.2 标题写「共 ${totalM[1]} 个」⇒ 两处同源须同改`);
 });
 
 // S2（2026-09-15 批次 47-B 新增）：**普查环境自检**——真机 ≠ 真环境。

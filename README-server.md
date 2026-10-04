@@ -356,7 +356,7 @@
 
 **依据**：`docs/` 目录实况（16 个根 `.html` + `docs/workspace/` 7 个 `.html`）；门控四层模型见 `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md:443-454`（L1 工作台强制跳登录）。`party-committee-meeting.html` 的角色门为**页面内自检**（`docs/src/entries/pages/party-committee-meeting-entry.js`）：进页＝本支部支委名单（单一源 `docs/src/services/activity/vote-config.js::resolveVoterIds('committee')`）**或**被任一场支委会 `voteConfig.voterIds` 包含，页内场次再经 `visibleMeetingsFor` 按同判据过滤；服务端写口另有既有门（`server/routes/committee.js`）。
 
-### 3.2 各工作台页签（共 73 个）
+### 3.2 各工作台页签（共 68 个）
 
 > 登记方式：每台由「能力注册表」声明页签清单（单一源 `docs/src/capabilities/*-workspace.js`）。分组轴只有一套：**支部角色台＝工作台 / 我的职责 / 知情查看 / 制度与答复**；**党委台＝首页 / 全院治理 / 支部治理**。带 ★ 的为核心页签（固定显示、不可隐藏、不参与排序）。
 
