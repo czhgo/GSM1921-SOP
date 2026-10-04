@@ -63,7 +63,7 @@ async function openWriteStep1(page) {
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('.secretary-tab-btn')].some(b => b.textContent.includes('活动')), null, { timeout: 12000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004c')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate(() => [...document.querySelectorAll('.secretary-tab-btn')].find(b => b.textContent.includes('活动'))?.click());
   await page.waitForFunction(() => document.getElementById('ws-sec-write-btn'), null, { timeout: 10000 });
   await page.evaluate(() => document.getElementById('ws-sec-write-btn')?.click());

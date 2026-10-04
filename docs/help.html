@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261004c"></script>
+<script src="./src/theme-init.js?v=20261004d"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261004c"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261004c">
+  <script src="./src/tailwind-config.js?v=20261004d"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261004d">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -501,10 +501,10 @@
               <tr><td>待办</td><td>纪检委员</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>工作概况</td><td>纪检委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
               <tr><td>考勤管理</td><td>纪检委员</td><td>全支部考勤管理与活动签到数据（与组织侧同源共享）；内部分段切换「考勤 / 补课」——补课为缺勤成员补课任务管理（生成任务 → 成员完成 → 考勤回写 / 逾期处理）</td><td>「我的职责」段；切「考勤」分段按活动 / 人员查考勤 → 缺勤记录生成补课；切「补课」分段对缺勤记录「发起补课」→ 跟进完成回写</td></tr>
-              <tr><td>活动监督复盘</td><td>纪检委员</td><td>活动监督（纪检视角）与复盘评议记录</td><td>「我的职责」段；点开活动 → 记录监督结论 / 评议</td></tr>
+              <tr><td>复盘</td><td>纪检委员</td><td>活动 / 专班复盘的评议记录（批注 / 打回 / 确认）＋ 超期提醒 ＋ 经验沉淀督促（页签名 2026-10-04 批次 368 由「活动监督复盘」改「<strong>复盘</strong>」——原名「监督」是动作、「复盘」是对象，混轴）</td><td>「我的职责」段；点开活动 / 专班 → 记录评议 / 批注 / 打回 / 确认</td></tr>
               <tr><td>考察管理</td><td>纪检委员</td><td>考察材料在纪检线的查看 / 汇总 / 确认 / 打回 / 申诉核实；另有「<strong>考察代录</strong>」位（上传方未到位时代其录入，不是本位时提交前弹确认）</td><td>「我的职责」段；按对象查看考察记录；「代录考察表单」选活动 + 人员 → 逐人考察内容 → 提交</td></tr>
-              <tr><td>活动日历</td><td>纪检委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「知情查看」段；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
-              <tr><td>知情查看</td><td>纪检委员</td><td>活动与专班进展只读知情查看，内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
+              <tr><td>活动日历</td><td>纪检委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「工作台」段第 4 位；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
+              <tr><td>知情查看</td><td>纪检委员</td><td>全支部<strong>活动</strong>只读知情查看（无职责亦有知情权）；分段集合由「赋权下游」派生，本台名下仅 `attendance-inspection`（不在只读视图映射内）⇒ <strong>只出「活动」段</strong></td><td>「知情查看」段；点活动卡查看</td></tr>
               <tr><td>我的处置</td><td>纪检委员</td><td>经手反馈的处理记录</td><td>「制度与答复」段</td></tr>
             </tbody>
           </table>
@@ -826,13 +826,13 @@
 
         <div class="help-card" id="card-dom32-review" data-search="活动 复盘 我的复盘 组织者 深度参与者 真问题 批注 打回 确认 复盘提交">
           <h4 class="help-card-title">复盘提交（组织者 / 深度参与者 → 纪检复核）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>成员工作台 →「我的职责」段「我的复盘」（复盘统一提交入口 = 活动组织者 / 深度参与者）；纪检在纪检台「活动监督复盘」复核；组长台「组员进展」页「本组活动复盘状态」区块只读查看本组情况。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>成员工作台 →「我的职责」段「我的复盘」（复盘统一提交入口 = 活动组织者 / 深度参与者）；纪检在纪检台「复盘」复核；组长台「组员进展」页「本组活动复盘状态」区块只读查看本组情况。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>担任活动组织者 / 深度参与者（含组长兼组织者）的成员提交；纪检批注 / 打回 / 确认；普通成员无提交权（只读参与活动的复盘）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">成员台「我的复盘」→ 待复盘区（未提交 / 已打回）列出本人任组织者 / 深度参与者的活动 → 点开活动卡。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">填「复盘总结」+ 「提出的真问题」（每行一条，便于汇总改进）→ 提交。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「活动监督复盘」对「已上传」复盘行：批注（转「批注中」）/ 打回 / 确认（可开「批量确认」多选一次确认）——确认后复盘办结、活动结束。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「复盘」对「已上传」复盘行：批注（转「批注中」）/ 打回 / 确认（可开「批量确认」多选一次确认）——确认后复盘办结、活动结束。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交后状态 =「已上传」并自动进入纪检监督列表；组长台「组员进展」页「本组活动复盘状态」同步可见；复盘确认后若未沉淀经验，纪检台出现「经验沉淀督促」清单（已确认未沉淀 → 督促深度参与者提交沉淀）。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>被纪检打回（附批注）→ 复盘回待提交、按批注修改后重新提交（原批注展示在表单上方）；主题党日复盘底线 T+7，超期由纪检提醒督促；批量确认只作用于「已上传」行，其余状态置灰不可勾。</p>
@@ -1078,7 +1078,7 @@
 
         <div class="help-card" id="card-dom36-contrib" data-search="专班 产出 填报 贡献 逐条核验 同意入档 退回补料 待核 代录 工作量">
           <h4 class="help-card-title">运行中：成员产出填报与组织逐条核验（同意入档 / 退回补料）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台知情查看（专班分段）展开详情，条件为运行中且本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>填报 = 专班成员在运行中专班详情「我的产出填报」区（成员经其可打开的专班详情进入：工作概况专班行 / 待办「参与专班」/ 各台知情查看的「专班」分段展开详情，条件为运行中且本人为专班成员）；核验 = 组织台专班详情「逐条核验 · 待核条目」区。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>专班成员本人逐条填报本人产出（by = 填报人）；组织委员逐条核验（同意入档 / 退回补料，全程记录），另有「组织委员代录（备用入口）」位（单条代录后仍须逐条核）。</p>
           <p class="help-card-desc"><strong>一般由谁写入：</strong>专班材料与贡献记录的一般承担人是<strong>该专班的组织者</strong>。代录人不是他时，提交前弹确认窗——必须点按钮才能关闭，点「仍由我继续」才放行。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
@@ -1093,12 +1093,12 @@
 
         <div class="help-card" id="card-dom36-review" data-search="专班 复盘 提交复盘 组织委员 纪检 批注 打回 确认 批量确认 待改进问题 经验沉淀">
           <h4 class="help-card-title">专班复盘（组织侧提交 → 纪检批注收尾）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台专班详情「专班复盘」区（运行中专班未提交时显示表单）；纪检台「我的职责」段「活动监督复盘」复核（活动与专班复盘同列流转）。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>组织台专班详情「专班复盘」区（运行中专班未提交时显示表单）；纪检台「我的职责」段「复盘」复核（活动与专班复盘同列流转）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>组织委员提交（专班复盘提交位 = 组织侧，区别于活动复盘归组织者 / 深度参与者，见 3.2）；纪检委员批注 / 打回 / 确认（可批量确认）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">组织委员在专班详情填「专班复盘内容」（任务完成情况 / 成果 / 不足）+「待改进问题」（选填，多条用；分隔）→「提交复盘」→ 提示「待纪检委员批注」。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「活动监督复盘」对专班复盘行：批注（转批注中）/ 打回 / 确认（可开「批量确认」多选一次确认）——确认后复盘办结。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">纪检台「复盘」对专班复盘行：批注（转批注中）/ 打回 / 确认（可开「批量确认」多选一次确认）——确认后复盘办结。</li>
           </ol>
           <p class="help-card-desc" style="margin-top:8px;"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#047857;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">自动</span>提交即入纪检监督列表并同步组长台「组员进展」页「本组活动复盘状态」；复盘已确认而未沉淀经验 → 纪检台出现「经验沉淀督促」清单（督促深度参与者提交沉淀）；复盘流转：已上传 → 批注中 → 确认 / 打回。</p>
           <p class="help-card-desc"><span style="display:inline-block;font-size:0.68rem;font-weight:600;line-height:1.6;letter-spacing:0.04em;color:#B91C1C;background:#FEF2F2;border:1px solid #FECACA;border-radius:999px;padding:1px 8px;margin-right:6px;vertical-align:1px;">退回 / 注意</span>纪检打回（附批注）后组织侧可修改重新提交；批量确认只作用于「已上传」行，其余状态置灰不可勾。</p>
@@ -1119,8 +1119,8 @@
         </div>
 
         <div class="help-card" id="card-dom36-view" data-search="专班 查看 知情 只读 支书 组长 纪检 撤销招募 归档 删除草稿 状态分组">
-          <h4 class="help-card-title">知情查看（支书 / 组长 / 纪检只读知情 · 分段切换「活动 / 专班」）与归档撤销（组织台）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 组长 / 纪检台「知情查看」段「知情查看」切「专班」分段；组织台「专班管理」看板卡（启动 / 归档 / 撤销按钮）。</p>
+          <h4 class="help-card-title">知情查看（支书 / 组长 / 纪检只读知情 · 分段由「赋权下游」派生）与归档撤销（组织台）</h4>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>支书 / 组长台「知情查看」段切「专班」分段（纪检台 2026-10-04 批次 368 起「知情查看」只出「活动」段——其赋权下游不含专班）；组织台「专班管理」看板卡（启动 / 归档 / 撤销按钮）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>支书 / 副支书、党小组组长、纪检委员只读（无职责亦有知情权，见 1.3）；组织委员（管理主位）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1536,7 +1536,7 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 选型创建：支书 / 组长在「写入活动」点主题党日模板卡（整卡可点），按共建 / 内外 / 载体三维选型填表；自动按场景排 SOP 节点（T-7 支委扩大群报备 → T-2 通知 + 纪检对接考勤与复盘底线 → T0 实施 → T+1 复盘提醒 → T+7 材料归档）；支部停用「主题党日组织块」时模板卡隐藏（见 6.2）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">报名与分工：成员在详情页报名——普通参与即通过并写入分工名单，申请深度参与 / 组织者待发起人审核（3.2）；创建时未选参与人 → 自动派生赋权待办，组长 / 组织委员选人后即定人定责定岗。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">实施与监督：现场签到 / 拍照 / 关键发言记录收齐（3.2）；纪检按弹性考勤规则核对，并监督复盘底线（超期由纪检提醒督促）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘交接：组织者 / 深度参与者在成员台「我的复盘」提交 → 纪检「活动监督复盘」批注 / 打回 / 确认 → 复盘办结；已确认未沉淀 → 纪检台自动出现「经验沉淀督促」清单。已沉淀的可在同页「已沉淀清单」回看，并点行内「作废」（<strong>软作废</strong>：出列、留痕可回查；作废后该活动会重新回到督促清单）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘交接：组织者 / 深度参与者在成员台「我的复盘」提交 → 纪检「复盘」批注 / 打回 / 确认 → 复盘办结；已确认未沉淀 → 纪检台自动出现「经验沉淀督促」清单。已沉淀的可在同页「已沉淀清单」回看，并点行内「作废」（<strong>软作废</strong>：出列、留痕可回查；作废后该活动会重新回到督促清单）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 宣传归档：复盘办结后宣传侧按项目看板 / 档案归档收口（摘要 + 配图等产出，见 3.8）。</li>
           </ol>
         </div>
@@ -1599,8 +1599,8 @@
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">起点 · 发起：组织台「发布招募」填名称 / 任务 / 人数 / 截止（可带初始成员与预拟通知）→ 创建即自动报送支委会表决（不派生单人审批待办）。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">支委会表决：支书台待办「专班待议（支委会）」排入线上支委会 → 固化名单支委表态 → 支书「查看表决结果并生效」——通过转「招募中」，未通过退草稿可改后重新报送。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">招募与分工：成员在专班详情页报名（普通即通过；深度参与 / 组织者待发起人审核）；组织启动专班转「运行中」→ 配置成员角色（组织者 / 深度参与者），保存即同步赋权链并通知本人。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（记录）；中间进度由组织侧填时间线；支书 / 组长 / 纪检「知情查看」的「专班」分段只读知情（看与做分开）。</li>
-            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘：组织侧在专班详情提交复盘 → 纪检「活动监督复盘」批注 / 打回 / 确认，确认后办结。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">执行与核验：成员逐条填报本人产出 → 组织「逐条核验」同意入档 / 退回补料（记录）；中间进度由组织侧填时间线；支书 / 组长「知情查看」的「专班」分段只读知情（看与做分开）。</li>
+            <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">复盘：组织侧在专班详情提交复盘 → 纪检「复盘」批注 / 打回 / 确认，确认后办结。</li>
             <li style="font-size:0.86rem;line-height:1.85;color:#4B5563;margin:2px 0;">终点 · 解散表决：组织「报送解散表决」（前置：成员考察已确认 + 有工作量报告）→ 支书排入支委会表决 → 通过置「已解散」并落日期、未通过继续运行（历次表决 append-only 记录）。</li>
           </ol>
         </div>
@@ -1792,6 +1792,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261004c"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261004d"></script>
 </body>
 </html>
