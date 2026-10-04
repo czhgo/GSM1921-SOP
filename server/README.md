@@ -8,7 +8,8 @@ Node ESM + Express + better-sqlite3 单进程服务：同时托管前端静态�
 cd server
 npm install            # 安装依赖（含 devDependency playwright，用于 E2E）
 npm start              # 启动服务，默认端口 3000（可用 PORT 环境变量覆盖）
-npm test               # 全量（等价 npm run test:full / test:precommit，含两个真机普查；需先 npm start）；改代码时改跑 npm run test:daily（**S 类 88 文件 ＝ 该档显式清单全量**，约 2.4 分钟，见「测试说明」）
+npm test               # **分片档**：默认跑片 1（`SWEEP_SHARD` 选片 1–4），单片墙钟 ≤10 分钟，需先 npm start；改代码时改跑 npm run test:daily（**S 类 88 文件 ＝ 该档显式清单全量**，约 2.4 分钟，见「测试说明」）
+npm run test:full      # **全量档**（`SWEEP_SHARD=all`，等价 test:precommit，含两个真机普查；发布前 / 大批改动跑）
 npm run test:core      # 核心流程子集回归（议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等，文件清单见 server/package.json）
 npm run test:fast      # 快速回归子集（基础单元 + 目录/链接审计等，文件清单见 server/package.json）
 npm run clean:tmp      # 清理测试残留目录 .tmp（脚本非正常中止时使用）
@@ -75,12 +76,13 @@ node scripts/backup.mjs --out /srv/bak/20260923
 ## 测试说明
 
 - **套件规模（动态口径）**：测试文件随 `server/test/` 目录增长（`.test.js` / `.test.mjs` 混合，含单元/集成、审计守护、E2E 等），本文件不维护固定计数，以 `server/test/` 实际目录为准。
-- **全量跑**：`npm test`（等价 `npm run test:full`）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。
+- **分片跑（默认）**：`npm test` —— 经 `run-suite.mjs` 分片：**非 e2e 文件每片全跑 ＋ e2e 按片切分**（单源 `sweep-shard.mjs`：片 1＝secretary · 片 2＝org/prop · 片 3＝disc/leader · 片 4＝visitor/party-committee）。默认**片 1**，`$env:SWEEP_SHARD=<1|2|3|4>` 选片；**单片墙钟 ≤10 分钟**。**四片并集 ≡ 全量**（由 `server/test/suite-shard.test.mjs` 钉死：`G1` 双向核「片池并集 ≡ 磁盘全部 e2e」）。⚠ **单次默认不覆盖全部 e2e** ⇒ **改到某台 / 某线必须选覆盖它的片**。
+- **全量跑**：`npm run test:full`（等价 `npm run test:precommit`，＝`SWEEP_SHARD=all`）——脚本注入 `DISABLE_PASSWORD_CHECK=1` 后执行 `node --test --test-concurrency=1`，自动发现 `server/test/` 下全部 `*.test.{js,mjs}`。纯 node 部分沙箱环境即可运行；浏览器类/E2E（Playwright）需在常规终端运行（依赖见下文 Playwright 条）。**发布前 / 大批改动跑。**
 - **子集回归**：`npm run test:core`（核心流程：议程/表决、成员变更、多端写入、模块加载、帮助 E2E 等）与 `npm run test:fast`（基础单元 + 目录/链接审计等快速项）按子集加速回归，文件清单见 `server/package.json` 的 scripts。
 - **两条日常命令（2026-09-23 提速批·刀③ 拆档）**——回答「改代码时跑什么 / 提交前跑什么」：
   - **日常（改代码时）**：`npm run test:daily` —— **S 类 ＝ 不 `import 'playwright'` 的纯 node 文件，当前 84 个**（判据可复核：`node --test` 前不必起服务、不驱动浏览器）；**该命令的显式清单现 84 个 ＝ 全部 S 类**（`server/package.json` 的 `test:daily`）——**2026-09-26 批次 208 补全**（批次 205 时清单 **71**、S 类 **83**、**其余 12 个 S 类未入清单**；本批按「S 类〔不 `import 'playwright'` 的纯 node 测试文件〕总数 − 清单已列数」机械复核＝漏 **13** 个〔批次 205 后又新增 `small-text-guard` ⇒ 84 − 71 ＝ 13〕，**全部补入**，两数取齐 ⇒ **不再有「S 类却不在清单」者**）。**含全部守卫子集**（下节 8 文件）。实测 **617 项 / 617 通过 / 0 红 / 144.1 秒（2026-09-26 本机实测，84 文件；批次 205 为 71 文件 / 567 项 / 144.1 秒）**；**项数随测试增长、耗时随机器负载浮动，均以实跑输出为准**。另：**13 个纯 node 守卫同时补入 `test:fast`**（见下）；**真机件**（`copy-screen-guard` / `copy-anchor-guard-e2e`）**不进** `test:daily`（该档定义＝S 类）也**不进** `test:fast`（会拖慢）。
     - ⚠ **日常档不含「形态断言」那几项**：`getRuntimeMode()` 形态断言落在 **P 类真机文件**（`form-loop-sweep` / `page-sweep` / `multi-user-write`），都不在 test:daily 里。改到**真机交互 / 数据源形态 / 登录会话**时，别只跑日常档——用下面的**降频开关**定向跑真机，或直接跑提交前档。
-  - **提交前（交付 / 收尾）**：`npm run test:precommit` —— 等价全量（自动发现 `server/test/` 全部 `*.test.{js,mjs}`）；**先 `npm start` 起服务**（`click-cost` / `mock-integrity` / `b3-1-makeup-writeback` 要连 3000），跑完停服。
+  - **提交前（交付 / 收尾）**：跑**覆盖本批改动面**的那一片 —— `$env:SWEEP_SHARD=<k>; npm test`（≤10 分钟）；**先 `npm start` 起服务**（`click-cost` / `mock-integrity` / `b3-1-makeup-writeback` 要连 3000），跑完停服。**发布前 / 大批改动**跑 `npm run test:precommit`（＝`SWEEP_SHARD=all`，全量）。
 - **真机普查降频开关（2026-09-23 提速批·刀②，支书已放行「按 tab 降频」）**——只跑关心的 tab，不改任何判据、不缩任何台账基线：
   ```bash
   # 只跑「活动管理」「通知发布」两个 tab 的真机流程（阶段一 + 成功路径一起过滤）；不设＝全跑
@@ -88,25 +90,27 @@ node scripts/backup.mjs --out /srv/bak/20260923
   FORM_LOOP_TABS=活动管理,通知发布 node --test --test-concurrency=1 test/form-loop-sweep.test.mjs
   ```
   口径：`FORM_LOOP_TABS` 按 **tab 名子串**匹配（与 `openTab` 定位 tab 的口径一致），逗号分隔；**S0–S6 台账守卫照跑、规模基线不缩水**（它断言的是台账数据，与「跑几条」无关）。另有 **S7** 专门守「tab 名打错 ⇒ 真机用例静默归零而全绿」——本次实测：`FORM_LOOP_TABS=支部管理` ⇒ 阶段一 3 条（跳过 53 条）· 成功路径 1 条（跳过 16 条），**12 项全绿 / 37.5 秒**（同 tab 全跑 4 条真机）。
+  **工作台降频开关 `FORM_LOOP_PAGES`（2026-10-03 批次 360 随分片引入）**：按 `flow.page` 过滤（取值域＝`secretary` / `org` / `prop` / `disc` / `leader` / `visitor` / `party-committee`），逗号分隔，**由 `run-suite.mjs` 按 `SWEEP_SHARD` 自动注入**；`S7` 同批扩展——**页名写错（一条 flow 都没命中）即红灯**，防「分片把真机用例静默归零」。
 - **运行形态**：大多数测试自包含——测试内 `createApp({ dbPath: ':memory:' })` + 种子起真实服务并监听随机端口（如 `e2e-login.test.js`）；部分审计/E2E 需先 `npm start` 起外部 server 于 3000 端口（**三个**：`click-cost` / `mock-integrity` / `b3-1-makeup-writeback`，各自文件头注释有运行说明）。**纯 node 但跑 api 形态**（自己起内存服务 + 真登录取 token，故**必须 `DISABLE_PASSWORD_CHECK=1`**，否则登录 401 ⇒ 该文件整体报错）：`test/member-persist.test.mjs`（api 段）、`test/branch-roster-import.test.mjs`（api 段）、`test/group-view.test.mjs`（2026-09-23 提速批由 mock 形态改造为 api 形态，并带 `getRuntimeMode()` 形态断言）、`test/roster.test.mjs`（2026-09-24 由「纯 node 静态种子」改造为 api 形态：内存服务 + 真登录 + `init()`，与 `group-view.test.mjs` 同形，并加 S0 形态断言 / S1 两形态同源）。这四项在 `npm test` / `test:daily` 的 scripts 里已自动注入该变量；**手跑记得先设**。
 - **P1-1 判据 A–D 验收（2026-09-24 批次 164）**：`test/multi-tab-sync.test.mjs` —— **自包含**（测试内 `createApp({ dbPath: ':memory:' })` + 随机端口 + Playwright 真机，**不需要 3000 端口的常驻服务**，与 `page-sweep` 同款自起自停）。五条用例＝**判据 A**（跨标签：`visibilitychange` 骨架与低频定时器两条触发面各验一次，B 标签不重载即看到 A 的记录）· **判据 B**（跨设备：全新 context 重进即可见 ＋ `GET /api/v1/snapshot/versions` 上该集合版本**严格 +1**）· **判据 C-①**（防抖窗口内探测**整次跳过**、本机改动不被吞、随后仍正常落库）· **判据 C-②**（本机未 persist 的脏集合不重拉、其它集合照常刷新）· **判据 D**（停服后探测静默：无 `#data-source-error` 浮层、无 `pageerror`、页面仍可用）。
 - **版本戳**：`node docs/scripts/bump-version.mjs` 会同步 `server/test/*.mjs` 内的 `?v=` 版本戳；bump 后跑一次全量测试。**注意**：该脚本按「字符串含 `/src/….js` 且以引号收尾」判定（宽是必要的——测试里有 `from '../../docs/src/…js'` 这类相对路径 import），因此会命中**数据字符串**：凡把 `docs/src/…js` 路径当**数据**存的文件，请写成 `SRC + '相对路径'`（见 `test/form-loop-registry.mjs`），否则补戳会把数据改坏（2026-09-15 批次 44 真实事故，见 `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 范本第十四与 `REVIEW_QUEUE Q-23-33`）。
-- **测试节奏（2026-09-15 支书定；2026-09-23 提速批按支书「任务执行要提速」重排）**：**日常只跑与改动面相关的定向守卫**（或直接 `npm run test:daily`，实测约 2.3 分钟）；**全量只在交付/提交前跑**（`npm run test:precommit`）。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 56 条真机闭环 ＋ 17 条成功路径）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」；**只关心某几个 tab 时用上面的 `FORM_LOOP_TABS` 降频开关**（支书 2026-09-23 放行「按 tab 降频」，不必整份跑完）。
+- **测试节奏（2026-09-15 支书定；2026-09-23 提速批按支书「任务执行要提速」重排；2026-10-03 批次 360 按支书「控制到 10 分钟以内」加分片）**：**日常只跑与改动面相关的定向守卫**（或直接 `npm run test:daily`，实测约 2.3 分钟）；**收尾只在交付/提交前跑**——默认跑**覆盖本批改动面的那一片**（`$env:SWEEP_SHARD=<k>; npm test`，**≤10 分钟**），**发布前 / 大批改动**跑 `npm run test:full`（全量）。真机普查（`page-sweep` 七台 × 全 tab、`form-loop-sweep` 56 条真机闭环 ＋ 17 条成功路径）耗时最长，且本机若开着大量浏览器进程会导致 e2e 超时——此时以**单独复跑**取证，区分「环境负载」与「真回归」；**只关心某几个 tab 时用上面的 `FORM_LOOP_TABS` 降频开关**（支书 2026-09-23 放行「按 tab 降频」，不必整份跑完）。
 - **测试耗时台账（2026-09-21 支书定；2026-09-23 批次 159 按实测重数）**：下表是**本机实测**（2026-09-21，开发机常规终端，`--test-concurrency=1` 串行；项数与守卫子集耗时于 2026-09-23 复核），用来回答三件事——**改代码时跑什么、收尾跑什么、怎么跑最省时间**。**口径**：耗时给的是**量级与量程**，不是承诺（同一项两次取样可差一到七个百分点——`link-integrity` 9.5 / 10.6 秒；机器忙起来还会更长）；**「有多少文件、多少项」仍以上一句「套件规模（动态口径）」为准**（会随开发增长的计数不写死，相对稳定的耗时才值得记）。
 
-  **⓪ 四档套件实测（2026-09-27 本机实测；`--test-concurrency=1` 串行）**——把「各档跑多久、跑什么」集中一处，供**按改动面选跑哪档**：
+  **⓪ 各档套件实测（2026-09-27 本机实测；2026-10-03 批次 360 补**分片档**；`--test-concurrency=1` 串行）**——把「各档跑多久、跑什么」集中一处，供**按改动面选跑哪档**：
 
   | 命令 | 文件 / 项 | 实测耗时（本批） | 覆盖 / 何时跑 |
   |---|---|---|---|
   | `npm run test:fast` | 23 文件 / **102 项** | **≈35 秒** | 基础单元 ＋ 全站目录 / 链接 / 文案 / 数据库守卫；改文档或小改后先跑 |
   | `npm run test:core` | 8 文件 / **36 项** | **≈96 秒** | 议程 / 表决、成员变更、多端写入、模块加载、帮助 E2E；改核心流程 |
-  | `npm run test:daily` | 89 文件 / **650 项** | **≈148 秒（约 2.5 分钟）** | 全部 S 类纯 node（含全部守卫）；**改代码时的日常档**（2026-09-29 批次 262 新增 `import-path-guard` 1 文件 / 2 项：88 → 89 文件 · 648 → 650 项） |
-  | `npm test`（全量 / `test:precommit`） | 全目录 / **862 项** | **≈20 分钟** | 含 **25 个只在全量档跑的 P 类真机文件**（含两个真机普查）＋ 三个需 3000 服务的文件；**收尾 / 交付前跑**。**2026-09-29 实测**：`tests 862 / pass 861 / fail 1`（1 红＝下表「已知既有红」，已 A/B 归因） |
+  | `npm run test:daily` | 89 文件 / **650 项** | **≈148 秒（约 2.5 分钟）** | 全部 S 类纯 node（含全部守卫）；**改代码时的日常档** |
+  | `npm test`（**分片档**） | 非 e2e 全量 ＋ 本片 e2e | **425–510 秒（≈7–8.5 分钟）** | **单片墙钟 ≤10 分钟**；默认片 1，`SWEEP_SHARD` 选片；**收尾按改动面选片**。**2026-10-03 四片实测**：773 / 780 / 806 / 782 项，**全绿** |
+  | `npm run test:full`（全量 / `test:precommit`） | 全目录 / **941 项** | **≈23 分钟** | 含 **34 个 e2e 文件**（含两个真机普查）＋ 三个需 3000 服务的文件；**发布前 / 大批改动跑**。**2026-10-03 实测**：`tests 941 / pass 941 / fail 0` |
 
   **单文件最慢（2026-09-27 单跑实测）**：`form-loop-sweep` **81 项 / 539.8 秒（约 9 分钟）** · `page-sweep` **11 项 / 114.6 秒** · `multi-tab-sync` **6 项 / 24.7 秒** · `link-integrity` **5 项 / 9.9 秒**；`click-cost` ≈50 秒 · `agenda-flow` ≈40 秒 · `branch-doc` ≈36 秒（后三者 2026-09-23 提速批实测、本批未重测；`click-cost` 需 3000 常驻服务）。
 
-  > ⚠ **已知既有红 1 项（2026-09-29 全量实测 862/861/1 · 已 A/B 归因，**非本会话代码回归**）**：`b3-1-makeup-writeback.test.mjs`（补课回写 4 条断言红）——**根因已定**（`.ctx/REVIEW_QUEUE.md` `H-13`）：该件**直接读写页面 `mockDB`**，而按现行架构**两种模式各缺一半**（mock 态 `persist()` **不落库** ⇒ 注入活不过重载；api 态 `mockDB.attendances` **本为空**、页面经 adapter 按需读 API ⇒ 注入进 `mockDB` 的 UI 不读）⇒ **该件按构造不可能通过**（**不是**环境噪声，是**测试与架构脱节 ＋ 死守卫**；它本该守的「补课完成 ⇒ 考勤回写 `made_up`」**当前无守卫**，处置待裁）。**↳ 2026-09-29 批次 262 已消除第二项**：`preferences.test.mjs`「真实拖拽」原超时 —— 根因＝**P5 目录分层漏改一处模板字面量动态 import 的路径深度**（`entries/pages/settings-entry.js` 少一个 `../` ⇒ 404 ⇒「设置 → 我的工作台」面板恒显「加载失败」）⇒ **真回归、已修**（该件 16/16 绿）；同批补 `import-path-guard.test.mjs` 堵住该类。**⚠ 判据不得放宽**：**这一项之外**出现任何新红，一律**按真回归处理**（不以「环境类」为由放过）。
-  **怎么用（据上表规划跑测时机）**：改文档 / 文案 → `test:fast`（**秒级，约 35 秒**）；改核心流程 / 数据源形态 → `test:core`（约 96 秒）或直接 `test:daily`（**分钟级，约 2.5 分钟**）；改真机交互 / 登录会话 → 按 tab 定向跑 `form-loop-sweep`（单 tab ≈40 秒，见下方降频开关）；**收尾 / 提交前** → 起服务后 `npm run test:precommit`（＝全量，**约 20 分钟**，最贵的一步就是它本身）。
+  > ⚠ **两处「已知既有红」均已消除**（2026-09-29）：`b3-1-makeup-writeback`（`H-13`：原按 `mockDB` 直读直写、与现行架构不相容 ⇒ 批次 274 改为「API 造前置态 ＋ 真 API 登录 ＋ 读回断言 ＋ 自清」）与 `preferences`「真实拖拽」（`H-15`：P5 分层漏改一处模板字面量动态 import 的路径深度 ⇒ 批次 262 已修）**现均绿**。**⚠ 判据不得放宽**：此后出现任何新红，一律**按真回归处理**（不以「环境类」为由放过）。
+  **怎么用（据上表规划跑测时机）**：改文档 / 文案 → `test:fast`（**秒级，约 35 秒**）；改核心流程 / 数据源形态 → `test:core`（约 96 秒）或直接 `test:daily`（**分钟级，约 2.5 分钟**）；改真机交互 / 登录会话 → 按 tab 定向跑 `form-loop-sweep`（单 tab ≈40 秒，见下方降频开关）；**收尾 / 提交前** → 起服务后跑**覆盖本批改动面的那一片**（`$env:SWEEP_SHARD=<k>; npm test`，**≤10 分钟**）；**发布前 / 大批改动** → `npm run test:precommit`（＝全量，**≈23 分钟**）。
 
   **① 过程中（每批改代码、落盘后即跑）：守卫子集 —— 一条命令约 30 秒（8 文件 / 66 项，2026-09-23 批次 161 实测 29.6 秒；批次 159 同一命令 64 项时四次取样 25.3–29.1 秒；2026-09-21 同一命令 63 项时实测 20.9–22.1 秒 ⇒ **项数随守卫增长，以实跑输出为准**）**
   > 2026-09-23 提速批：**日常更推荐直接 `npm run test:daily`**（约 2.4 分钟）——它**已包含上述 8 个文件中的 6 个**（`link-integrity` / `module-load` 两个真机件**不在**该档——`test:daily` 定义＝S 类〔不 `import 'playwright'`〕，二者分别在 `test:fast` / `test:core`），并额外覆盖全部 S 类纯 node 测试（含 api 形态的 `permission-gate` / `server-base` / `group-view` 等）。本守卫子集仍是「只想跑最少的几条」时的最快选择。

@@ -856,19 +856,35 @@ test('S6 台账行号未同步即红灯：每条登记项的 line 必须真的�
 const TAB_FILTER = String(process.env.FORM_LOOP_TABS || '')
   .split(',').map((s) => s.trim()).filter(Boolean);
 const matchTab = (flow) => TAB_FILTER.length === 0 || TAB_FILTER.some((t) => flow.tab.includes(t));
-const MACHINE_IN_SCOPE = MACHINE_FLOWS.filter(matchTab);
-const SUCCESS_IN_SCOPE = SUCCESS_FLOWS.filter(matchTab);
+
+// ── 分片开关（2026-10-03 批次 360 · `D-753`「择其精要」）─────────────────────
+// `FORM_LOOP_PAGES=secretary,org`（逗号分隔，**精确匹配 `flow.page`**）⇒ 只跑这些工作台的真机流程。
+// ⚠ 与 `FORM_LOOP_TABS` **同时生效**（取交集）；不设＝全跑（默认行为一字不变）。
+// ⚠ 为什么要有它（与刀① 的关系）：刀①（会话复用）已把「重复登录 + 白等」压掉，剩下的 12.7 分钟是
+//   **真机流程本身的真实工作量**（77 条 flow 各开一次页面 + 走到校验点）。`D-753` 令「全量 ≤10 分钟」
+//   且「不得以删判据面换时间」⇒ 唯一不改判据面的出路＝**按分片轮跑**（每次跑一个分片、逐批轮转覆盖）。
+//   分片单源＝`server/test/sweep-shard.mjs`；本文件只消费它注入的 `FORM_LOOP_PAGES`。
+// ⚠ 同 `FORM_LOOP_TABS` 的教训：写错工作台名会**一条 flow 都不跑而全绿**（比红更坏）⇒ S7 同批把
+//   「请求的 page 名必须至少命中一条流程」也钉成判据。
+const PAGE_FILTER = String(process.env.FORM_LOOP_PAGES || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+const matchPage = (flow) => PAGE_FILTER.length === 0 || PAGE_FILTER.includes(flow.page);
+const matchScope = (flow) => matchTab(flow) && matchPage(flow);
+const MACHINE_IN_SCOPE = MACHINE_FLOWS.filter(matchScope);
+const SUCCESS_IN_SCOPE = SUCCESS_FLOWS.filter(matchScope);
 
 test('S7 降频开关不得让真机用例静默归零：每个请求的 tab 名必须至少命中一条流程', () => {
-  if (TAB_FILTER.length === 0) {
-    console.log(`[降频] 未设 FORM_LOOP_TABS ⇒ 全跑：阶段一 ${MACHINE_FLOWS.length} 条 · 成功路径 ${SUCCESS_FLOWS.length} 条`);
+  if (TAB_FILTER.length === 0 && PAGE_FILTER.length === 0) {
+    console.log(`[降频] 未设 FORM_LOOP_TABS / FORM_LOOP_PAGES ⇒ 全跑：阶段一 ${MACHINE_FLOWS.length} 条 · 成功路径 ${SUCCESS_FLOWS.length} 条`);
     return;
   }
   const miss = TAB_FILTER.filter((t) => !MACHINE_FLOWS.some((f) => f.tab.includes(t)) && !SUCCESS_FLOWS.some((f) => f.tab.includes(t)));
   assert.deepEqual(miss, [], `FORM_LOOP_TABS 里有 tab 名一条流程都没命中（真机用例会静默归零、全绿无证据，请核对 tab 名）：${miss.join(' / ')}`);
+  const missPage = PAGE_FILTER.filter((p) => !MACHINE_FLOWS.some((f) => f.page === p) && !SUCCESS_FLOWS.some((f) => f.page === p));
+  assert.deepEqual(missPage, [], `FORM_LOOP_PAGES 里有工作台名一条流程都没命中（真机用例会静默归零、全绿无证据，请核对工作台名）：${missPage.join(' / ')}`);
   const skippedM = MACHINE_FLOWS.length - MACHINE_IN_SCOPE.length;
   const skippedS = SUCCESS_FLOWS.length - SUCCESS_IN_SCOPE.length;
-  console.log(`[降频] FORM_LOOP_TABS=${TAB_FILTER.join(',')} ⇒ 阶段一 ${MACHINE_IN_SCOPE.length} 条（跳过 ${skippedM} 条）· 成功路径 ${SUCCESS_IN_SCOPE.length} 条（跳过 ${skippedS} 条）`);
+  console.log(`[降频] FORM_LOOP_TABS=${TAB_FILTER.join(',') || '（未设）'} · FORM_LOOP_PAGES=${PAGE_FILTER.join(',') || '（未设）'} ⇒ 阶段一 ${MACHINE_IN_SCOPE.length} 条（跳过 ${skippedM} 条）· 成功路径 ${SUCCESS_IN_SCOPE.length} 条（跳过 ${skippedS} 条）`);
 });
 
 /** 真机闭环普查（逐流程）────────────────────────────────────────────── */

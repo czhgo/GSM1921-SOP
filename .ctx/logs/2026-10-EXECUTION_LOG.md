@@ -1750,3 +1750,60 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **如实登记**：末条进程退出码 `1`，**非测试失败**（已打印 `pass 941 / fail 0`；系 Playwright `debug.log` 写入被沙箱拦截——同批次 331/334/343–358）。
 - **用例数不变 941**（本批未新增常驻真机流）。
 
+
+
+## 批次 360（2026-10-03，`D-753` **实现**：测试套件压到 ≤10 分钟 ＝ **分片轮跑**）
+
+**任务**：承支书 2026-10-03「**精简一下我们的test，每一次的时间都太长了，控制到10分钟以内！！择其精要！**」（`D-753`）⇒ 本批＝执行（`R-84` 不另立 `D-` 条，`D-753` 加「续答」）。**路径＝分片轮跑**（支书对此定向征询两次跳过 ⇒ AI 按「择其精要」自决，已在 `D-753` 续答声明「可回退」）。
+
+### 一、改前基线（本批先实测，不猜）
+
+- 全量 **941 项 / 墙钟 1374 s（≈22.9 分钟）**。分族：**真机普查 14 件 221.7 s** · **form-loop 阶段一 60 件 389.6 s** · **阶段二 17 件 148.4 s** · 其余 850 件 502.3 s（其中 **57 件 ≥3 s 的散件 e2e 占 404.7 s**；**<0.5 s 的 743 件仅 29 s**）。
+- ⇒ **纯「等价合并」到不了 10 分钟**（≥5 s 的 **112 件 ＝ 1042.7 s ＝ 83%**，同型循环省不下主体）；**并行已被 2026-08 实测否决**（浏览器回归争抢资源、失败项漂移）。
+
+### 二、落成（新增 3 件 ＋ 改 2 件）
+
+- **新建 `server/test/sweep-shard.mjs`（分片单源）**：`SHARD_COUNT=4` · `SHARD_PAGES`（1 secretary / 2 org+prop / 3 disc+leader / 4 visitor+party-committee）· `SHARD_E2E_FILES`（本片其它 e2e 文件）· `ALWAYS_E2E=[form-loop-sweep.test.mjs]` · `discoverTestFiles`（按 `from 'playwright'` 分 e2e / 非 e2e，与 `node --test` 发现规则同形）· `parseShard`（`1..4` | `all`，缺省 `1`，非法值显式抛错）。
+- **新建 `server/run-suite.mjs`（启动器）**：非 e2e **每片全跑** ＋ 本片 e2e（`ALWAYS_E2E` ＋ 本片登记）→ `spawn(node --test --test-concurrency=1 …)`，注入 `FORM_LOOP_PAGES`，透传退出码，头注打印「分片档 k/4 · 工作台 · 本片 e2e k/34 · 未跑件数」。
+- **新建 `server/test/suite-shard.test.mjs`（防漏网，`G1`–`G4`）**：`G1` 片池并集 **≡ 磁盘全部 e2e（双向）** · `G2` 片内文件存在且确为 e2e · `G3` 无重叠 · `G4` 片数 ≥2 / 每片非空 / `SHARD_PAGES` 值域 ≡ 真机 `flow.page` 出现过的页名（与 `form-loop-sweep::S7` 两处同拦）。**实测 4/4 绿**。
+- **改 `server/test/form-loop-sweep.test.mjs`**：新增 `FORM_LOOP_PAGES`（按 `flow.page` 过滤，与既有 `FORM_LOOP_TABS` 叠加）＋ `S7` 同批扩展（**页名写错 ⇒ 一条 flow 都没命中 ⇒ 红灯**，防「分片把真机用例静默归零」）。
+- **改 `server/package.json`**：`test`＝分片（`node run-suite.mjs`）· `test:full`／`test:precommit`＝`SWEEP_SHARD=all` · `test:daily` 补入 `suite-shard.test.mjs`。
+
+### 三、判据面（一条用例未删）
+
+- **只改「这一次跑哪些」**，未删任何用例 / 未动任何断言（`H30` 明禁静默摘除守卫）。
+- **非 e2e 每片全跑**（快判据一片不漏）；**e2e 四片并集 ≡ 全量**（`suite-shard::G1` 双向机检）。
+
+### 四、改后实测（四片 · 各起 3000 服务 · 跑完停服）
+
+| 片 | 工作台 | 项数 | 结果 | 墙钟 |
+|---|---|---|---|---|
+| 1/4 | secretary | 773 | 773 过 / 0 红 | **510 s（8.5 min）** |
+| 2/4 | org · prop | 780 | 780 过 / 0 红 | **503 s（8.4 min）** |
+| 3/4 | disc · leader | 806 | 806 过 / 0 红 | **471.7 s（7.9 min）** |
+| 4/4 | visitor · party-committee | 782 | 782 过 / 0 红 | **425.2 s（7.1 min）** |
+
+⇒ **每片 ≤10 分钟 ✅**（改前 1374 s）。⚠ **末条 `exit=1` 系 Playwright `debug.log` 被沙箱拦截、非测试失败**（四片皆然，同批次 331/334/343–359）。
+
+### 五、代价（如实）
+
+- 单次默认**不覆盖全部 e2e** ⇒ 某批若破坏**别片**的 e2e，本批可能绿、轮转到那一片才红。缓解两条：**① 按改动面选片**（改到某台 / 某线必须选覆盖它的片）· **② `npm run test:full` 在发布前 / 大批改动跑**。
+- 四片合计 ≈32 分钟 > 改前 23 分钟（**分片换的是「单次时长」，不是「总时长」**）。
+
+### 六、台账同批改准
+
+- `CLAUDE.md`：**无 `R-85` 正文**（2026-09-30 批次 307 已迁出）⇒ 改准落**迁出全文**（`.ctx/logs/2026-09-EXECUTION_LOG.md` 的 `R-85` 行加「2026-10-03 批次 360 改准」句）。
+- 根 `README.md` `### 测试`：补分片说明（单源 / 启动器 / `SWEEP_SHARD` / `test:full`）＋ 测试节奏改写 ＋ 新增「测试机制守卫 `suite-shard`」一条。
+- `server/README.md` 测试说明：「分片跑（默认）」＋「全量跑」两条拆开 · 提交前口径改「按改动面选片」 · 新增 `FORM_LOOP_PAGES` 段 · 耗时台账加「分片档」行、全量行改 **941 项 / ≈23 分钟** · 「已知既有红」块改准（**两处均已消除**，`H-13` 批次 274 / `H-15` 批次 262）。
+- `.ctx/TIMESTAMPS.md`：补登 2 行（`server/run-suite.mjs` · `server/test/sweep-shard.mjs`）＋ `server/package.json` 行改准（脚本现况）。
+- ⚠ **未补** `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2` 索引（`content/**` ＝支书批改层 ⇒ 需特批；同批次 262/263 先例）——`suite-shard.test.mjs` 现只在根 `README.md` 与 `test:daily` 可见。
+
+### 七、戳
+
+- **不变**（`?v=20261003h`）——本批**未动 `docs/src/**`**（只动 `server/test/**` / `server/package.json` / 台账）。
+
+### 八、收尾（`R-85` 改准后）
+
+- **按改准后的口径**：收尾＝**跑覆盖本批改动面的片**——本批改动面在 `server/test/**`（非 e2e）⇒ **四片皆全跑非 e2e**，故四片**全部实跑**（即「四片轮跑 ＝ 一次全量覆盖」，且逐片给时长）。**四片全绿 / 每片 ≤10 分钟**（见四）。
+- **文档改准后复跑（收尾片）**：`$env:SWEEP_SHARD='1'; npm test` ⇒ **773 项 / 773 过 / 0 红 / 墙钟 494.1 s（8.2 分钟）**✅（非 e2e 全跑 ＝ 本批改动面；末条 `exit=1` 同上）。
+- **守卫定向实跑（57 项）**：`doc-consistency`（`S1`–`S16`）· `timestamps-note-guard`（`N1`–`N7`）· `frontmatter-freshness`（`F1`–`F3`）· `doc-line-ref`（`R1`–`R6`）· `version-stamp`（`S1`–`S7` ＋ `D1`–`D11`）· `catalog-sync`（`T1`–`T5`）· `suite-shard`（`G1`–`G4`）⇒ **59/59 · 0 红**。

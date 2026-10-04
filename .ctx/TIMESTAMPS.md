@@ -192,9 +192,11 @@ dynamic_role:
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言；**2026-09-24 批次 176：补 1 行 CDN `route.abort`**〔`:17`〕，`D-642`） |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/form-loop-registry.mjs | 2026-10-03 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
+| server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
 | server/README.md | 2026-09-30 | — | [工程师]+[AI] | 后端安装 / 启动 / 测试 / 部署对接说明，并承载**测试耗时台账**与**前端 DOM 结构基线（div 普查）**两张实测表。**边界**：对外接口与字段以 `README-server.md` 为准，本件只管「怎么跑、跑多久」。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
-| server/package.json | 2026-09-29 | — | [工程师]+[AI] | **（本批：`test:daily`／`test:fast` 补 `block-orchestration.test.mjs`）** **（批次 235：`test:daily` / `test:fast` 补入 `timestamps-note-guard.test.mjs`；**未 bump `?v=`**）** better-sqlite3 ^12.0.0、playwright 1.60.0；**（2026-09-26 批次 209：`scripts` 补登——`test:daily` **71 → 84**、`test:fast` **6 → 19**〔补入 13 个守卫〕，`test:core` **8 不变**；执行＝批次 208、口径由 `D-665` 统一收录；**未 bump 任何 `?v=`**〔仍 `20260924a`〕）** |
+| server/package.json | 2026-10-03 | — | [工程师]+[AI] | 依赖 better-sqlite3 ^12.0.0 · express ^4.19.0 · multer ^1.4.5-lts.1 · nodemailer ^9.0.6 · playwright 1.60.0。**测试档位**：`test`＝分片（默认片 1，`SWEEP_SHARD` 选片）· `test:full`／`test:precommit`＝全量（`SWEEP_SHARD=all`）· `test:daily`＝S 类日常档 · `test:fast`／`test:core`＝快速子集。**边界**：脚本为 Windows 专有语法（`set X=1&&`）。 |
 | server/package-lock.json | 2026-08-30 | — | [工具] | 依赖锁文件 |
 | server/.gitignore | 2026-09-01 | — | [工具] | 忽略 data.db/uploads 等运行时产物 |
 | server/data.db | — | — | — | 🗑️ 运行时产物（不入库，.gitignore 忽略） |
