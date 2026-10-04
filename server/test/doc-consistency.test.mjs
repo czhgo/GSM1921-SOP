@@ -22,6 +22,8 @@
 //   S12 授权声明必须同行带可核验日期（防「注释伪造支书批」——Q-23-41）
 //   S14 可数事实对账（枚举 / 计数类数字，文档声称值 == 代码实然值）＋ S15 弱清单（2026-09-23 批次 161）
 //   S16 守卫注册完整性：S 类测试文件必须全数列入 `test:daily`（防守卫孤儿化；2026-09-28 批次 243）
+//   S17 真机流 `tab` 名必须命中该台注册页签（改页签名漏改 `flow.tab` 即红；带 `path` 者豁免）——2026-10-04 批次 375
+//   S18 help.html §2.x 表行**序**必须等于台注册**序**（`S1`/`S2` 只核名齐备与计数、**不核序**）——2026-10-04 批次 375
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -99,7 +101,7 @@ test('S1 各台 tab 数与代码注册数组一致（help.html §0.1 表 + §2.x
   assert.deepEqual(problems, [], `说明文件 tab 数与代码不一致：\n${problems.join('\n')}`);
 });
 
-test('S2 各台 tab 名称齐备；已删 tab 名不得在帮助页复现', () => {
+test('S2 各台 tab 名称齐备；已删 / 已改名 tab 名不得在帮助页复现（§2.x 逐名 ＋ 全篇 `<td>` 旧名黑名单）', () => {
   const help = read(HELP);
   // 按 §2.x 标题切块，逐块核对本台 tab 名
   const marks = [...help.matchAll(/doc-h3-badge">(2\.\d)<\/span>/g)].map((m) => ({ sec: m[1], at: m.index }));
@@ -115,8 +117,26 @@ test('S2 各台 tab 名称齐备；已删 tab 名不得在帮助页复现', () =
   }
   assert.deepEqual(problems, [], `帮助页 tab 名与代码不一致：\n${problems.join('\n')}`);
   // 已删 tab 名不得以表格行形式复现（复盘状态已并入「组员进展」；制度与文本随公邮废止撤除）
-  assert.ok(!/<td>复盘状态<\/td>/.test(help), 'help.html 仍把「复盘状态」列为独立 tab（已并入「组员进展」）');
-  assert.ok(!/<td>制度与文本<\/td>/.test(help), 'help.html 仍把「制度与文本」列为独立 tab（已随公邮废止撤除）');
+  // 已删 / 已改名的页签**不得以 `<td>…</td>` 形式回潮**（本判据**全篇扫**，不限 §2.x 块）——
+  //   上面正向上的「逐名核对」只覆盖 §2.x 区块，而**同一张 tab 表在别章再列一遍**正是漂移温床：
+  //   2026-10-04 批次 375 实测抓到 §6.1（党委侧操作）那张表仍写 `上报审批` / `支部配置`（批次 374 已改 / 已并）。
+  const RENAMED_TABS = [
+    { name: '复盘状态', why: '已并入「组员进展」' },
+    { name: '制度与文本', why: '已随公邮废止撤除' },
+    { name: '党小组与活动', why: '已改名「党小组」（批次 373）' },
+    { name: '上报审批', why: '已改名「支部上报」（批次 374）' },
+    { name: '支部配置', why: '已并入「支部管理」页内区（批次 374，不再独立成页签）' },
+    { name: '支委会会议', why: '已改名「支委会」（批次 218 R8）' },
+    { name: '考勤上传', why: '已改名「考勤管理」（批次 369）' },
+    { name: '考察上传', why: '已改名「考察管理」（批次 369）' },
+    { name: '活动监督复盘', why: '已改名「复盘」（批次 368）' },
+    { name: '周报报送', why: '已并入「档案归档」页内区（批次 367）' },
+    { name: '赋权管理', why: '页签已撤（批次 190；赋权按对象归位）' },
+  ];
+  for (const { name, why } of RENAMED_TABS) {
+    assert.ok(!help.includes(`<td>${name}</td>`),
+      `help.html 仍以 \`<td>${name}</td>\` 列出**旧页签名**（${why}）——改页签名 / 撤页签必须同批把**全篇**该名清掉`);
+  }
 });
 
 test('S3 分组名只有一套轴：支部角色台四组、党委台两组（且「党建 / 反馈」组名不得回潮）', () => {
@@ -905,5 +925,80 @@ test('S16 守卫注册完整性：S 类测试文件必须全数列入 test:daily
   assert.deepEqual(missing, [],
     `以下 S 类测试文件**不在 test:daily 清单**（守卫孤儿化 ⇒ 从不自动运行）：\n  ${missing.join('\n  ')}\n` +
     '  处置：加进 `server/package.json` 的 `test:daily`（S 类应全数入档，见 `CLAUDE.md R-85`）。');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S17 真机流 `tab` 名 ↔ 台注册页签（2026-10-04 批次 375 · `#10` 全站收口）
+//   病灶（本批前实测）：`form-loop-registry.mjs` 的 `MACHINE_FLOWS[].tab` **长期没有任何静态校验**——
+//     该字段只在真机跑时被 `openTab()` 按**文案**点击；**页签改名后若漏改 `flow.tab`**，该 flow
+//     要么「切 tab 超时」，要么（**该分片未被跑到时**）**静默全绿**。判例（批次 373 实测）：
+//     批次 371 把组长台「活动管理」改名「本组活动」，**leader 三条 flow 的 `tab` 漏改**，
+//     直到批次 373 跑 `SWEEP_SHARD=3` 才暴露——**该批收尾只跑了 shard 4**。
+//     ⇒ 单靠「逐批轮跑分片」会长期漏；本断言把它变成**每次 test:daily 都跑**的常驻判据。
+//   判据（单一源）：`tabsOf()`（本文件既有解析，与 `S1` / `S3` 同源）取各台注册 `label`；
+//     **带 `path` 的 flow 豁免**——其 `tab` 只是显示用标签（如「独立页 /messages.html」
+//     「成员名册（?tab=roster）」），真机按 `path` 直达、不点 tab。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S17 真机流 tab 名必须命中该台注册页签（漏改即红；带 path 者豁免）', async () => {
+  const { MACHINE_FLOWS } = await import('./form-loop-registry.mjs');
+  const labelsOf = new Map(WORKS.map((w) => [w.page, new Set([...tabsOf(w.file).values()].map((t) => t.label))]));
+  const problems = [];
+  let checked = 0;
+  let exempt = 0;
+  for (const fl of MACHINE_FLOWS) {
+    if (!fl.tab) continue;
+    if (fl.path) { exempt++; continue; }
+    checked++;
+    const labels = labelsOf.get(fl.page);
+    if (!labels) { problems.push(`${fl.id}：未知台 \`${fl.page}\``); continue; }
+    if (!labels.has(fl.tab)) {
+      problems.push(`${fl.page} / ${fl.id}：flow.tab=${JSON.stringify(fl.tab)} 不在该台注册页签 {${[...labels].join(' / ')}}`);
+    }
+  }
+  // 非空转：受检 flow 数与页签总量都要有规模（解析写坏 ⇒ 判据恒真 ⇒ 漏改也绿）
+  const labelTotal = [...labelsOf.values()].reduce((n, s) => n + s.size, 0);
+  assert.ok(checked >= 45 && exempt >= 10 && labelTotal >= 60,
+    `解析面不足（受检 ${checked} / 豁免 ${exempt} / 页签总量 ${labelTotal}，下限 45 / 10 / 60）：台账或注册解析被写坏`);
+  assert.deepEqual(problems, [],
+    '真机流 `tab` 名与该台注册页签不一致（**改页签名必须同批改 `flow.tab`**，否则该 flow 切 tab 超时或静默归零）：\n'
+    + `  ${problems.join('\n  ')}`);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// S18 help.html §2.x 表行**序** == 台注册**序**（2026-10-04 批次 375 · `#10` 全站收口）
+//   病灶（本批实测）：`S1` 只核「表行数 == 注册数组长度」、`S2` 只核「每个 label 在节内出现」——
+//     **两者都不核序**。于是「注册序改了、help 表没跟着排」这类**纯顺序漂移**长期无人管。
+//     本批实测抓到一处真漂移：纪检台 §2.4 的「活动日历」行停在第 8 位，而注册序是第 4 位
+//     （批次 368 把该页签归「工作台」组并上移注册序，help 表未同步）⇒ 本批同批改准并立本条。
+//   判据：逐台取 `tabsOf()`（与 `S1`/`S3` 同源）的**注册序**，与 help §2.x **该节第一张表的
+//     `<tbody>` 行首列**逐位比较。⚠ **已知覆盖缺口（只登记不判）**：`README-server.md §3.2.x`
+//     的表把前 3 枚核心页签**并成一行**（`| 1-3 | … ★ / … ★ / … ★ |`），序不宜逐位比 ⇒ 本断言
+//     只覆盖 help.html（用户面说明书）；README-server 侧仍是人工对账。
+// ─────────────────────────────────────────────────────────────────────────────
+test('S18 help.html §2.x 表行序必须等于台注册序（V-3 页签序；只核序）', () => {
+  const help = read(HELP);
+  const problems = [];
+  let checked = 0;
+  for (const w of WORKS) {
+    const regOrder = [...tabsOf(w.file).values()].map((t) => t.label);
+    const secAt = help.indexOf(`doc-h3-badge">${w.sec}<`);
+    if (secAt < 0) { problems.push(`${w.sec}（${w.name}）未找到小节标题`); continue; }
+    const tbAt = help.indexOf('<tbody>', secAt);
+    const tbEnd = help.indexOf('</tbody>', tbAt);
+    if (tbAt < 0 || tbEnd < 0) { problems.push(`${w.sec}（${w.name}）未找到表体`); continue; }
+    const rows = [...help.slice(tbAt, tbEnd).matchAll(/<tr><td>([^<]+)<\/td>/g)].map((m) => m[1].trim());
+    checked += rows.length;
+    if (rows.length !== regOrder.length) {
+      problems.push(`${w.sec} 表行数 ${rows.length} ≠ 注册 ${regOrder.length}（注册序：${regOrder.join(' / ')}）`);
+      continue;
+    }
+    const diff = rows
+      .map((r, i) => (r === regOrder[i] ? null : `第 ${i + 1} 位 表「${r}」vs 注册「${regOrder[i]}」`))
+      .filter(Boolean);
+    if (diff.length) problems.push(`${w.sec}（${w.name}）行序与注册序不一致：${diff.join('；')}`);
+  }
+  assert.ok(checked >= 60, `解析面不足（累计表行 ${checked}，下限 60）：判据或解析被写坏`);
+  assert.deepEqual(problems, [],
+    `help.html §2.x 表行**序**与台注册**序**不一致（V-3 页签序；**改注册序必须同批排本表**）：\n  ${problems.join('\n  ')}`);
 });
 
