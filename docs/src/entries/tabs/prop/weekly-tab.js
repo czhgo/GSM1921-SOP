@@ -2,27 +2,27 @@
 // 宣传委员工作台 Tab：周报报送（T-279 M3 拆分，照 M2 样板）
 // 周报 seed 常量 + mockDB 持久化，刷新不再丢失；T-209 改进项②：新建周次内联表单。
 
-import { icon } from '../../../core/base/icons.js?v=20261004a';
-import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261004a';
-import { showToast } from '../../../core/base/utils.js?v=20261004a';
-import { persist } from '../../../data/data-adapter.js?v=20261004a';
-import { mockDB } from '../../../core/domain/domain.js?v=20261004a';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004a';
-import { generateId } from '../../../core/base/id.js?v=20261004a';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004a';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004a';
-import { getPersonName } from '../../../services/member/person.js?v=20261004a';
-import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261004a';
+import { icon } from '../../../core/base/icons.js?v=20261004c';
+import { solidAccentStyle } from '../../../core/domain/constants.js?v=20261004c';
+import { showToast } from '../../../core/base/utils.js?v=20261004c';
+import { persist } from '../../../data/data-adapter.js?v=20261004c';
+import { mockDB } from '../../../core/domain/domain.js?v=20261004c';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004c';
+import { generateId } from '../../../core/base/id.js?v=20261004c';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004c';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261004c';
+import { getPersonName } from '../../../services/member/person.js?v=20261004c';
+import { WEEKLY_REVIEW_STATUS, WEEKLY_REVIEW_LABELS, weeklyReviewStatusOf } from '../../../services/governance/secretary-overview.js?v=20261004c';
 // 批次 352（`D-746` · `D-744`② 业务过程类余项）：周报「作废（软）」——统一写口 ＋ 支委层判据
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261004a';
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261004a';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261004c';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261004c';
 
 // ── 周报报送 seed 数据（2026-08-05：seed 常量 + mockDB 持久化，刷新不再丢失）──
 // 2026-09-12 修正：起止原整体晚一天（第30周误记 07-21~07-25 等）→ 按 ISO 周「周一~周五」口径校准
 //（第30周=2026-07-20~07-24 / 第31周=2026-07-27~07-31），与 _weekDefaults 派生同口径。
 // 2026-09-28 批次 234：常量**搬到内容单一源** `docs/src/data/mock/prop.js`（服务端 `server/seed.js` 同源 import，
 //   原先此处私有常量被服务端逐字复刻一份 ⇒ 两份字面量，本批收成一份；取值与顺序一字未改）。
-import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20261004a';
+import { WEEKLY_REPORTS_SEED } from '../../../data/mock/prop.js?v=20261004c';
 
 // 从 mockDB 读取（seed 兜底注入一次）；写操作须更新 mockDB.weeklyReports 后调用 persist()
 function _loadWeeklyReports() {
@@ -90,8 +90,11 @@ function _weekDefaults(now = new Date()) {
   return { week: `第${_isoWeek(now)}周`, range: `${fmt(monday)} ~ ${fmt(friday)}` };
 }
 
-export function renderContent(ctx) {
-  const container = document.getElementById('prop-tab-content');
+// 批次 367（`#10` 单一轴 · 支书 2026-10-04 裁「**周报作为 归档的一个 特例即可！！**」）：
+//   原独立「周报报送」页签**降为「档案归档」页内折叠区**（页签 10 → 9）——故本函数改收**宿主容器**，
+//   实现单一源仍是本文件（**不复制表单**，由 `archive-tab.js` 的 `#archive-weekly-host` 挂载）。
+export function renderContent(ctx, host = null) {
+  const container = host || document.getElementById('prop-tab-content');
   if (!container) return;
 
   // 默认填写对象 = 待填写草稿（按周次降序取最新草稿）；无草稿回退最新周次（下拉已排序，最新周在前）
@@ -183,7 +186,7 @@ export function renderContent(ctx) {
     mockDB.weeklyReports = reports;
     persist();
     showToast('success', '已新建周次，自动选中待填写');
-    renderContent(ctx);
+    renderContent(ctx, container);
   });
 
   // 自动生成（SOP-B-40 ②）：按当前所选周次的起止区间，从活动数据拼出草稿内容
@@ -233,7 +236,7 @@ export function renderContent(ctx) {
       weekRange: report.weekRange,
       submitterName: getPersonName(report.submittedBy) || '',
     })).catch((e) => console.warn('[weekly-tab] 周报已报送，但通知支书未发出：', e));
-    renderContent(ctx);
+    renderContent(ctx, container);
   });
 
   // 「标记已上报北京大学智慧党建平台」（SOP-B-40 ③）：只做**留痕**（对接方为外部，系统不代办）
@@ -246,7 +249,7 @@ export function renderContent(ctx) {
       report.platformReportedBy = AuthStore.getCurrentUser()?.personId || '';
       persist();
       showToast('success', '已留痕：该周报标记为已上报北京大学智慧党建平台');
-      renderContent(ctx);
+      renderContent(ctx, container);
     });
   });
 
@@ -259,7 +262,7 @@ export function renderContent(ctx) {
       openVoidModal({
         resource: 'weeklyReports', id: report.id, label: '周报',
         subject: `${report.week || ''}（${report.weekRange || ''}）`,
-        onDone: () => renderContent(ctx),
+        onDone: () => renderContent(ctx, container),
       });
     });
   });

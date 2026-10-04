@@ -219,9 +219,9 @@ export const VALIDATION_SITES = [
   { file: SRC + 'entries/tabs/org/taskforce-tab.js', line: 1082, field: '专班复盘内容', flow: 'org/专班管理·提交复盘', machine: true, msg: '请填写专班复盘内容' },
 
   // ── 宣传委员台 ──
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 169, field: '周次标签', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写周次标签' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 170, field: '日期范围', flow: 'prop/周报报送·新增周次', machine: true, msg: '请填写日期范围' },
-  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 210, field: '周报内容', flow: 'prop/周报报送', machine: true, msg: '请填写周报内容' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 172, field: '周次标签', flow: 'prop/档案归档·周报·新增周次', machine: true, msg: '请填写周次标签' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 173, field: '日期范围', flow: 'prop/档案归档·周报·新增周次', machine: true, msg: '请填写日期范围' },
+  { file: SRC + 'entries/tabs/prop/weekly-tab.js', line: 213, field: '周报内容', flow: 'prop/档案归档·周报', machine: true, msg: '请填写周报内容' },
   // 批次 47-M（2026-09-16）：**宣传委员台 · 档案归档 · 上传宣传材料浮窗**——一条流程覆盖该浮窗**两处**校验点。
   // ⚠ 台账原挂 machine:false 的两条理由都被真机证伪，且**证伪方式与 47-K「制度参考写入」完全同款**：
   //   ①「文件（文件选择器不可脚本设值）」——**把手段当成了结论**：该支只需文件**为空**即报，
@@ -230,13 +230,13 @@ export const VALIDATION_SITES = [
   //     点一下浮窗即在位，`#upload-activity` 出厂首项即空值「请选择关联活动」⇒ **空提交就报**，无需先选定。
   //   ⚠ 注意与 47-K 的差别：**这条也是 47-K 那条教训的第二次犯**（同一类理由、同一类证伪）——
   //     「理由即解法」若只在个案上纠正、不升格成普查项，就会一条条复发。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 937, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 941, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 987, field: '关联活动', flow: 'prop/档案归档', machine: true, msg: '请先选择关联活动' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 991, field: '文件', flow: 'prop/档案归档', machine: true, msg: '请先选择文件' },
   // 批次 120（2026-09-21）：**照片墙 · 上传照片浮窗**（支书定案「建，并入档案归档」）。
   //   取齐决定＝文件走既有上传接口（不在记录内放 base64）⇒ 该浮窗只有**一处**必填校验点：
   //   图片为空即报（日期出厂即今天、标题/主体可空，故无第二处）。行号随本批在 `renderContent`
   //   插入照片墙区块而整体下移，**同批同步**（批次 49 立的 S6 判据：行号必须精确命中）。
-  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1334, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
+  { file: SRC + 'entries/tabs/prop/archive-tab.js', line: 1384, field: '图片', flow: 'prop/照片墙', machine: true, msg: '请先选择图片' },
 
   // ── 党委台 ──
   { file: SRC + 'entries/tabs/party-committee/branches-tab.js', line: 142, field: '支部名称', flow: 'party-committee/支部管理·新建', machine: true, msg: '请填写支部名称' },
@@ -487,8 +487,13 @@ export const MACHINE_FLOWS = [
   {
     id: 'prop-weekly',
     page: 'prop',
-    tab: '周报报送',
-    open: [],
+    // 批次 367（2026-10-04 · `#10` 单一轴）：周报降为「档案归档」页内折叠区 ⇒ tab 改指本页，
+    //   `open` 先展开折叠区（`#archive-weekly-toggle` → 等周报表单就位）。
+    tab: '档案归档',
+    open: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-content' },
+    ],
     submit: [{ click: '#weekly-submit-btn' }],
     expect: [
       { file: SRC + 'entries/tabs/prop/weekly-tab.js', field: '周报内容', msg: '请填写周报内容', carrier: '#weekly-content' },
@@ -1126,8 +1131,11 @@ export const MACHINE_FLOWS = [
     // 触发 `#weekly-add-btn` → 表单就位 → 清空两输入 → 提交 `#weekly-add-save`。
     id: 'prop-weekly-add-week',
     page: 'prop',
-    tab: '周报报送',
+    // 批次 367（2026-10-04）：周报降为「档案归档」页内折叠区 ⇒ tab 改指本页，`open` 先展开折叠区。
+    tab: '档案归档',
     open: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-add-btn' },
       { click: '#weekly-add-btn' },
       { waitFor: '#weekly-add-save' },
       { setValue: { selector: '#weekly-add-week', value: '' } },
@@ -1714,8 +1722,11 @@ export const SUCCESS_FLOWS = [
     // 填入的周次用定值（**不依赖当天日期**），否则「重载后断言」会随时钟变动而假红。
     id: 'prop-weekly-add-week-save',
     page: 'prop',
-    tab: '周报报送',
+    // 批次 367（2026-10-04）：周报降为「档案归档」页内折叠区 ⇒ tab 改指本页，`open` 先展开折叠区。
+    tab: '档案归档',
     open: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-add-btn' },
       { click: '#weekly-add-btn' },
       { waitFor: '#weekly-add-save' },
     ],
@@ -1727,6 +1738,11 @@ export const SUCCESS_FLOWS = [
     act: [{ click: '#weekly-add-save' }],
     toast: '已新建周次',
     reload: true,
+    // 批次 367（2026-10-04）：重载后周报折叠区回到收起态 ⇒ 断言前需再展开（形态同 open[]）。
+    reopen: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-week' },
+    ],
     // 落库窗口：本写口是 `mockDB.weeklyReports = …; persist(); showToast(…)` —— persist 不 await，
     // 提示先于落库；不给窗口则重载会打断在途写（详见 form-loop-sweep 的 ⓪ 说明）。
     settleMs: 1500,
@@ -2133,8 +2149,12 @@ export const SUCCESS_FLOWS = [
     //   来自本次写入的复盘/正文落库 + 重渲染），只是把「谁可见」和「谁含这段文本」两件事分开。
     id: 'prop-weekly-submit-report',
     page: 'prop',
-    tab: '周报报送',
-    open: [],
+    // 批次 367（2026-10-04）：周报降为「档案归档」页内折叠区 ⇒ tab 改指本页，`open` 先展开折叠区。
+    tab: '档案归档',
+    open: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-content' },
+    ],
     ready: '#weekly-content',
     fill: [
       { setValue: { selector: '#weekly-content', value: '（成功路径普查）本周完成的工作条目——本条由真机成功路径写入。' } },
@@ -2143,6 +2163,11 @@ export const SUCCESS_FLOWS = [
     toast: '周报已报送',
     settleMs: 1500,
     reload: true,
+    // 批次 367（2026-10-04）：重载后周报折叠区回到收起态 ⇒ 断言前需再展开（形态同 open[]）。
+    reopen: [
+      { click: '#archive-weekly-toggle' },
+      { waitFor: '#weekly-content' },
+    ],
     asserts: [
       { text: '（成功路径普查）本周完成的工作条目', carrier: '#prop-tab-content' },
     ],

@@ -13,7 +13,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261004a';
+import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261004c';
 
 const MSG = {
   id: 'ntc-msg-1',

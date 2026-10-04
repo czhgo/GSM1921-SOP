@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   
-<script src="./src/theme-init.js?v=20261004a"></script>
+<script src="./src/theme-init.js?v=20261004c"></script>
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>帮助 — GSM1921-SOP</title>
@@ -13,8 +13,8 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=Noto+Serif+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="./src/tailwind-config.js?v=20261004a"></script>
-  <link rel="stylesheet" href="./src/styles.css?v=20261004a">
+  <script src="./src/tailwind-config.js?v=20261004c"></script>
+  <link rel="stylesheet" href="./src/styles.css?v=20261004c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -288,7 +288,7 @@
               <tr><td><a href="./wizard.html">换组织向导</a></td><td>换组织 / 初始化：组织信息、模块组合、角色分工、换壳工作单、验证与重置（30 分钟跑起来）</td><td>党委组织员（任意支部）/ 现任支书、副支书（本支部，副书同权）</td><td>直接访问 wizard.html；党委台「支部配置」与 设置→支部治理（支书 / 副支书）为同源内嵌入口（分步说明见第 6 章 6.2）</td></tr>
               <tr><td><a href="./workspace/secretary.html">支书工作台</a></td><td>支书 / 副支书共台的全部工作视图（12 个 tab，见 2.1）</td><td>支书 / 副支书</td><td>登录后自动直达；侧边栏「工作台」按身份直达</td></tr>
               <tr><td><a href="./workspace/org.html">组织委员工作台</a></td><td>组织委员全部工作视图（11 个 tab，见 2.2）</td><td>组织委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
-              <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（10 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
+              <tr><td><a href="./workspace/prop.html">宣传委员工作台</a></td><td>宣传委员全部工作视图（9 个 tab，见 2.3）</td><td>宣传委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/disc.html">纪检委员工作台</a></td><td>纪检委员全部工作视图（9 个 tab，见 2.4）</td><td>纪检委员</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/leader.html">党小组组长工作台</a></td><td>组长全部工作视图（10 个 tab，见 2.5）</td><td>党小组组长</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
               <tr><td><a href="./workspace/visitor.html">成员工作台</a></td><td>成员全部工作视图（12 个 tab，见 2.6）</td><td>普通成员；组织者 / 深度参与者被赋权后在本台承担对应操作</td><td>登录后自动直达；侧边栏「工作台」</td></tr>
@@ -471,7 +471,7 @@
         </div>
 
         <!-- 2.3 宣传委员工作台 -->
-        <h3 class="doc-h3"><span class="doc-h3-badge">2.3</span>宣传委员工作台（10 tab）</h3>
+        <h3 class="doc-h3"><span class="doc-h3-badge">2.3</span>宣传委员工作台（9 tab）</h3>
         <p class="doc-p">入口：登录直达或侧边栏「工作台」→ <a href="./workspace/prop.html">prop.html</a>。tab 条分段：工作台 / 我的职责 / 知情查看 / 制度与答复。</p>
         <div class="doc-table-wrap">
           <table class="doc-table">
@@ -480,12 +480,11 @@
               <tr><td>今天</td><td>宣传委员</td><td>登录落点速览（1.2）</td><td>打开工作台即此页</td></tr>
               <tr><td>待办</td><td>宣传委员</td><td>未读通知条 + 工作域折组（1.2）</td><td>「工作台」段第 2 位；卡片「去处理」直达</td></tr>
               <tr><td>工作概况</td><td>宣传委员</td><td>汇报 / 卡点 / 在办三区总览</td><td>「工作台」段第 3 位</td></tr>
+              <tr><td>活动日历</td><td>宣传委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「工作台」段第 4 位；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
               <tr><td>宣传任务</td><td>宣传委员</td><td>宣传任务分配与推进</td><td>「我的职责」段；「+ 任务」指派 → 跟进完成</td></tr>
               <tr><td>项目看板</td><td>宣传委员</td><td>宣传项目看板化管理（活动宣传卡承载）</td><td>「我的职责」段；看板列间拖动卡片改状态</td></tr>
-              <tr><td>周报报送</td><td>宣传委员</td><td>每周工作周报报送</td><td>「我的职责」段；「+ 报送」填本周工作 → 提交</td></tr>
-              <tr><td>档案归档</td><td>宣传委员</td><td>档案与支部文件管理：草案上传、会前分发，会议讨论通过后归档并展示来源</td><td>「我的职责」段；「+ 归档 / 上传草案」→ 关联议程 → 通过后归档</td></tr>
-              <tr><td>活动日历</td><td>宣传委员及本台全部使用者</td><td>全支部活动日历（月 / 周 / 日 / 列表四视图 + 类别图例），<strong>只读</strong>：看清哪几天有事、点条目进活动详情。各角色工作台都有本页（不再只挂支书台）；首页「近期活动」卡右上角「完整日历 →」也落到这里</td><td>「知情查看」段；切月 / 周 / 日 / 列表视图、换月份，点活动条目进详情页</td></tr>
-              <tr><td>知情查看</td><td>宣传委员</td><td>全支部活动与专班只读知情查看（无职责亦有知情权），内部分段切换「活动 / 专班」</td><td>「知情查看」段；切「活动 / 专班」分段，点活动卡 / 专班卡查看</td></tr>
+              <tr><td>档案归档</td><td>宣传委员</td><td>档案与支部文件管理：草案上传、会前分发，会议讨论通过后归档并展示来源；<strong>页内「周报」折叠区＝归档特例</strong>（周报视为一类归档材料，原独立「周报报送」页签并入本页）</td><td>「我的职责」段；「+ 归档 / 上传草案」→ 关联议程 → 通过后归档；展开页内「周报」折叠区填周报 → 报送</td></tr>
+              <tr><td>知情查看</td><td>宣传委员</td><td>全支部<strong>活动</strong>只读知情查看（无职责亦有知情权）；分段集合由「赋权下游」派生，本台名下无专属下游 ⇒ <strong>只出「活动」段</strong>（「活动」＝全支部通用知情面；「专班」只给有专班下游的台）</td><td>「知情查看」段；点活动卡查看</td></tr>
               <tr><td>我的处置</td><td>宣传委员</td><td>经手反馈的处理记录</td><td>「制度与答复」段</td></tr>
             </tbody>
           </table>
@@ -1211,7 +1210,7 @@
 
         <div class="help-card" id="card-dom38-weekly" data-search="归档宣传 周报报送 周报 宣传委员 第几周 报送 草稿 已报送 新增周次 报送历史">
           <h4 class="help-card-title">周报报送（宣传例行周报）</h4>
-          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>宣传委员台「我的职责」段「周报报送」。</p>
+          <p class="help-card-desc" style="margin-top:6px;"><strong>入口：</strong>宣传委员台「我的职责」段「档案归档」→ 页内「周报」折叠区（周报＝归档的一个特例，原独立页签并入本页）。</p>
           <p class="help-card-desc"><strong>谁来用：</strong>宣传委员（周报报送方；周报属宣传线例行汇报，汇报反馈域的其它汇报见 3.9）。</p>
           <p class="help-card-desc" style="margin-top:10px;"><strong>几步：</strong></p>
           <ol style="list-style:decimal;margin:4px 0 6px;padding-left:1.5em;">
@@ -1793,6 +1792,6 @@
   </main>
 </div>
 
-<script type="module" src="./src/entries/pages/help-entry.js?v=20261004a"></script>
+<script type="module" src="./src/entries/pages/help-entry.js?v=20261004c"></script>
 </body>
 </html>

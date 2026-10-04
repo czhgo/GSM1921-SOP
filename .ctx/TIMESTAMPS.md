@@ -340,8 +340,8 @@ dynamic_role:
 | docs/src/entries/tabs/prop/overview-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员工作概况 tab（T-279 M3 新建） |
 | docs/src/entries/tabs/prop/tasks-tab.js | 2026-10-03 | — | [工程师]+[AI] | 宣传任务 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（9→6）；该文件内 `PROP_TASKS_SEED` 即服务端 `SEED_PROP_TASKS` 的单一源；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
 | docs/src/entries/tabs/prop/kanban-tab.js | 2026-09-25 | — | [工程师]+[AI] | 项目看板 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（8→5）；**由「另一路」落地，本表行刷为 `2026-09-25`**） |
-| docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-03 | — | [工程师]+[AI] | 周报报送 tab（T-279 M3 新建） |
-| docs/src/entries/tabs/prop/archive-tab.js | 2026-10-03 | — | [工程师]+[AI] | **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:1081`；**只改字号档、padding 一字未动**）；档案归档 tab（T-279 M3 新建；2026-09-21 批次 120：**新增照片墙**——上传（走上传接口）/ 标注 / 按拍摄日期分组展示 ＋ 缩略图鉴权取 blob；**不新开 tab / 页面**；**2026-09-21 批次 139：「上传宣传材料」自建浮层页脚加相关设置深链**——用 `modal.js` 导出的 `settingsLinkHTML()` 插同款一条〔宣传台无支部治理分区 ⇒ 指设置首页〕，`D-570`）；**2026-09-22 批次 145 改注**——**归档行内补第二枚留痕位「标记已上报党建平台」**（与既有「标记已发送（微信/对外）」并列、两个动作分开记；与周报页**同款**字段 `platformReportedAt` / `platformReportedBy`、`persist()` 落库、**只留痕不对接**；同一活动多行 ⇒ 留痕**按活动聚合**；真机两枚按钮逐个真点、`pageerror` 0，`D-577`）；**2026-09-25 批次 199（`D-659`）：hex 清 2 处**（4→2）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
+| docs/src/entries/tabs/prop/weekly-tab.js | 2026-10-04 | — | [工程师]+[AI] | 周报报送 tab 实现（T-279 M3 新建）。**边界**：已非独立页签——由「档案归档」页内折叠区挂载。 |
+| docs/src/entries/tabs/prop/archive-tab.js | 2026-10-04 | — | [工程师]+[AI] | **2026-10-04 批次 367：承接原「周报报送」页签（页内折叠区＝归档特例）**；**2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:1081`；**只改字号档、padding 一字未动**）；档案归档 tab（T-279 M3 新建；2026-09-21 批次 120：**新增照片墙**——上传（走上传接口）/ 标注 / 按拍摄日期分组展示 ＋ 缩略图鉴权取 blob；**不新开 tab / 页面**；**2026-09-21 批次 139：「上传宣传材料」自建浮层页脚加相关设置深链**——用 `modal.js` 导出的 `settingsLinkHTML()` 插同款一条〔宣传台无支部治理分区 ⇒ 指设置首页〕，`D-570`）；**2026-09-22 批次 145 改注**——**归档行内补第二枚留痕位「标记已上报党建平台」**（与既有「标记已发送（微信/对外）」并列、两个动作分开记；与周报页**同款**字段 `platformReportedAt` / `platformReportedBy`、`persist()` 落库、**只留痕不对接**；同一活动多行 ⇒ 留痕**按活动聚合**；真机两枚按钮逐个真点、`pageerror` 0，`D-577`）；**2026-09-25 批次 199（`D-659`）：hex 清 2 处**（4→2）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`）） |
 | docs/src/entries/tabs/prop/my-dispatch-tab.js | 2026-08-23 | — | [工程师]+[AI] | 宣传委员我的处置 tab（T-279 M3 新建） |
 
 ### docs/src/entries/tabs/disc/ (纪检委员工作台 Tab 模块层)
@@ -426,7 +426,7 @@ dynamic_role:
 | docs/src/capabilities/secretary-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 支书工作台能力声明（tab 清单自注册，scope='workspace:secretary'；本行 2026-10-03 批次 351 **补登**——本表原先无此行） |
 | docs/src/capabilities/leader-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 组长工作台能力声明（tab 清单自注册，scope='workspace:leader'，T-279 M2e 新建） |
 | docs/src/capabilities/org-workspace.js | 2026-10-04 | — | [工程师]+[AI] | **（2026-09-28 批次 227：R10「成员流动」拆 tab——在 `roster` 后注册 `{ id:'member-flow', label:'成员流动' }`（组织台 **11 → 12**）；`D-675`）** 组织委员工作台能力声明（tab 清单自注册，scope='workspace:org'，T-279 M3 新建） |
-| docs/src/capabilities/prop-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建） |
+| docs/src/capabilities/prop-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 宣传委员工作台能力声明（tab 清单自注册，scope='workspace:prop'，T-279 M3 新建）。**边界**：tab 数 9；改 tab 结构须同批改 `help.html §0.1/§2.3` 与 `README-server.md §3.2.3`。 |
 | docs/src/capabilities/disc-workspace.js | 2026-09-30 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建） |
 | docs/src/capabilities/visitor-workspace.js | 2026-10-03 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |

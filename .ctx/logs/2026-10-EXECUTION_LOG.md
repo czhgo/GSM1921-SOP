@@ -1999,3 +1999,43 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **`function-catalog.js` 第 27/34 行 `tab:'development'`** 系批次 321 遗留（不在本批授权面）⇒ 只登记、未改。
 - ⚠ **`ACTIVE_RULINGS` 未投影**：`D-744`…`D-756` 沿用 `D-755` 登记（待专批）。
 - ⇒ **批次 367 起逐台铺开**（宣传 → 纪检 → 组长 → 成员 → 支书 → 党委 → 全站收口）。
+
+## 批次 367（2026-10-04，`#10` 全站分期**第二台**：宣传委员台 · 支书两条答复）
+
+**任务**：承批次 366「逐台铺开」⇒ 本批＝宣传委员台。出表前实况核查抓到**两处与既定口径相抵**（详见 `D-757` 背景）⇒ 按「拿不准的必须 ask user question」送支书，获**两条答复**：① 「知情查看」分段派生**空集**时**只出「活动」段**（甲）；② 逐字「**周报作为 归档的一个 特例即可！！**」。
+
+### 一、两处落地
+
+| # | 事项 | 改法 |
+| --- | --- | --- |
+| ① | `周报报送` 并入 `档案归档` | 页签 **10 → 9**：删 `prop-workspace.js` 的 `weekly` 注册；`prop/archive-tab.js` 页首加折叠区（`#archive-weekly-toggle` ＝ **`btn-outline` 族** ＋ `#archive-weekly-host`，模块态 `_weeklyOpen`，展开时懒 `import` 挂载；**归档兜底身份〔支书 / 副支书〕不呈现本折叠区**——按 `ARCHIVE_FALLBACK_ROLES` 短路，守「不扩大任何写权限」）；`prop/weekly-tab.js` 的 `renderContent(ctx, host)` 改收**宿主容器**（4 处递归调用同步传 `container`）——**不复制表单、不另写状态** |
+| ② | `活动日历` 归「工作台」组 | `prop-workspace.js` 中 `calendar` 的 `groupLabel` 由 `知情查看` 改 **`工作台`**，并把注册行**上移到 `overview` 之后** |
+| ③ | `知情查看` 按下游派生 | `prop/tf-view-tab.js` 载 `insight-view` ＋ `work-map` ＋ `branch` ＋ `auth`，`downstreamViewSegments` 派生；**空集回退 `['activity']`**（甲档）⇒ 本台只出「活动」段 |
+
+### 二、台账 / 判据面同源改准（5 处）
+
+- `docs/help.html`：§0.1 计数 10 → 9 ／ §2.3 标题 10 → 9 tab ／ 整表重排（活动日历列「工作台」段第 4 位、删「周报报送」行、档案归档行补「页内『周报』折叠区＝归档特例」、知情查看行改「只出『活动』段」）／ 周报帮助卡入口改指「档案归档 → 页内『周报』折叠区」。
+- `README-server.md`：§3.2.3 标题 10 → 9 个 ＋ 整表重排；§2.2.4「职责位」句改准；两处 `文件:行号` 依据随 `archive-tab.js` 位移改签（`1033-1096 → 1083-1145`（`_handleArchiveUpload`）· `570-600 → 631-650`（党建平台留痕位））＋ `weekly-tab.js` 依据行号 `54-64,211-244 → 57-67,214-247`。
+- `server/test/form-loop-registry.mjs`：四条 `prop-weekly*` 流程 `tab` 改 **「档案归档」** ＋ `open` 增「展开折叠区」步（`{click:'#archive-weekly-toggle'}` ＋ `waitFor`）；两条 `reload:true` 的流程**同批加 `reopen[]`**（重载后折叠区回收起态）；`VALIDATION_SITES` 三条 `weekly-tab.js` 行号 +3（172/173/213）、三条 `archive-tab.js` 行号随位移改准（**987/991/1384**）。
+- `server/test/page-sweep.test.mjs`：门槛 `SWEEP.tabs >= 66` → **`>= 65`**（宣传台 10 → 9）。
+- `server/test/copy-screen-guard.test.mjs`：**收基线**——删 `C3_BASELINE` 里已不存在的 `prop::周报报送`（M2/M4 另跑实测：各组比值**只降不升**、无新增 >12 屏）。
+- `server/test/button-system-guard.test.mjs`（`B4` 棘轮，未改判据）：折叠钮初版写成裸 Tailwind ⇒ 未入语义族 `<button>` 由 0 升到 1 **判红** ⇒ **改走 `btn-outline` 族**（与批次 366 组织台 `#talent-insp-toggle` 同族）**复绿**。
+
+### 三、收尾（覆盖分片）
+
+- `SWEEP_SHARD=2; npm test`（prop 所在片）：**终跑 780 / 780 / 0 红**（`EXIT=0`）。过程中两次首跑红，均**同批改准**：① `form-loop-sweep::S6`「台账行号未同步」——`archive-tab.js` 三条 `VALIDATION_SITES` 行号随本批插入位移（937/941/1334 → 983/987/1380 → **987/991/1384**）；② `button-system-guard::B4`（见上）。尾条 `exit=1` 系 Playwright `debug.log` 被沙箱拦截、**非测试失败**。
+- `npm run test:daily`：**首跑 2 红**（`doc-line-ref::R2` 一条符号锚点随位移失效 ＋ `timestamps-note-guard::N2` 备注超预算 75 字）⇒ **同批改准 / 收字**后 **doc 四件套 29/29 绿 · daily 728/728 绿**。
+
+### 四、真机取证（起 3000 服务 ＋ 内置 Chromium）
+
+- 宣传委员（`?dev=prop-commissioner`）：页签 **9 个**（今天 / 待办 / 工作概况 / **活动日历** / 宣传任务 / 项目看板 / 档案归档 / 知情查看 / 我的处置）、**无「周报报送」**；`活动日历` 位于「工作台」段第 4 位；「档案归档」页首「**周报 · 归档特例**」折叠区点击后文案转「收起」、`#weekly-content` / `#weekly-submit-btn` / `#weekly-add-btn` 在位；「知情查看」**只出 `['活动']` 段**（H3「活动查看」）；**新标签页 `pageerror` 0**。
+- **支书（`?dev=secretary`）进本台＝归档兜底盘**：页签仅 **`档案归档`** 一个，**且 `#archive-weekly-toggle` 不在**（写面未扩）。
+
+### 五、如实登记
+
+- ⚠ **`档案归档` 名未改**（支书只令「周报作为 归档的一个 特例」）——轴残留登记，如要改按对象命名另行一批。
+- ⚠ **归档兜底不自伤**：本批主动给 `_renderWeeklySlot()` 加了 `ARCHIVE_FALLBACK_ROLES` 短路（支书未要求；理由＝该面自述「不扩大任何写权限」），已真机取证。
+- ⚠ **`page-sweep` 门槛 66 → 65**：按实测值改准，**范围未缩水**。
+- ⚠ **戳 `20261004a → 20261004c`**：因新写的 `?v=20261004b` 字面量被 `bump-version` 计入「现有最大戳」，同日续号跳至 `c`（陈旧戳自检 0 残留）。
+- ⚠ **`ACTIVE_RULINGS` 未投影**：`D-744`…`D-757`（同 `D-755` / `D-756` 登记）。
+- ⇒ **批次 368 起继续**（纪检 → 组长 → 成员 → 支书 → 党委 → 全站收口）。

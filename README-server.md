@@ -154,7 +154,7 @@
 | 支部身份 | 宣传条线负责人（宣传任务、素材归档、周报）；示例组织中为 `p12` |
 | 权限键 | `view_all`、`manage_taskforce`、`initiate_taskforce`、`archive`、`dispatch_line` + 意见反馈基础键 7 个 ＋ **处置键 8 个** |
 | 不能做什么 | **不能创建活动**（不持 `create_activity`）——制度原话是「宣传委员不可创建活动，但任何活动创建后应自动出现在宣传委员的视图中」；不持考勤/考察相关键；不持 `authorize*`（不赋权） |
-| 职责位（在其工作台） | 宣传任务、项目看板、周报报送、档案归档（含上传宣传材料、删除记录时联动删物理文件） |
+| 职责位（在其工作台） | 宣传任务、项目看板、档案归档（含页内「周报」折叠区＝归档特例，2026-10-04 批次 367 由原「周报报送」页签并入；含上传宣传材料、删除记录时联动删物理文件） |
 | 特例 | 通知**发布**权在宣传委员（发布角色集＝支委层除纪检）；通知**编辑/删除**（管理位）＝支委层全体（含纪检） |
 | 依据 | `docs/src/services/core/auth.js:81`、`content/04_web_design/data/DATA_MODEL.md:234`、`docs/src/core/domain/constants.js:259-260`、`server/routes/resources/gates.js:31` |
 
@@ -393,18 +393,17 @@
 | 10 | `tf-view` / 知情查看 | 知情查看 | **该角色的「赋权下游」只读视图**（2026-10-03 批次 366 · `D-755` 支书口径「知情查看 查看的是他的赋权下游」）：**分段集合由下游派生**（判据单一源 `docs/src/core/domain/work-map.js::downstreamViewSegments`；组织委员当前下游只含 `taskforce` ⇒ 本台**只出「专班」段**；**支部改派主责后随之变**＝「下游可配置」）。活动（通用面）见同台「活动日历」 |
 | 11 | `my-dispatch` / 我的处置 | 制度与答复 | 意见反馈 / 汇报的收件处理位 |
 
-#### 3.2.3 宣传委员工作台（`prop.html`）— 10 个
+#### 3.2.3 宣传委员工作台（`prop.html`）— 9 个
 
 | # | 页签 | 分组 | 做什么 |
 |---|---|---|---|
 | 1-3 | `today` ★ / `todo` ★ / `overview` ★ | 工作台 | 同前 |
-| 4 | `tasks` / 宣传任务 | 我的职责 | 宣传任务台账与推进 |
-| 5 | `kanban` / 项目看板 | 我的职责 | 项目（活动/专班）看板：活跃区 → 归档区 |
-| 6 | `weekly` / 周报报送 | 我的职责 | 按周次新建草稿 + 报送（含报送历史）；**可按本周活动一键自动生成草稿**；报送即系统通知支书 / 副支书，进入**支书审核位**（通过 / 退回）；已报送行可「标记已上报智慧党建平台」（只留痕） |
-| 7 | `archive` / 档案归档 | 我的职责 | 归档活动/专班、上传宣传材料（文件空间 / 图片记录）、删除时联动删物理文件 |
-| 8 | `calendar` / 活动日历 | 知情查看 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图），点条目进活动详情；五台共用同一只读件 |
-| 9 | `tf-view` / 知情查看 | 知情查看 | 活动 / 专班只读分段 |
-| 10 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
+| 4 | `calendar` / 活动日历 | 工作台 | 全支部活动日历只读（月 / 周 / 日 / 列表四视图），点条目进活动详情；六台共用同一只读件。**2026-10-04 批次 367：由「知情查看」组改归「工作台」组**（人人有的通用面，与今天/待办/概况同类） |
+| 5 | `tasks` / 宣传任务 | 我的职责 | 宣传任务台账与推进 |
+| 6 | `kanban` / 项目看板 | 我的职责 | 项目（活动/专班）看板：活跃区 → 归档区 |
+| 7 | `archive` / 档案归档 | 我的职责 | 归档活动/专班、上传宣传材料（文件空间 / 图片记录）、删除时联动删物理文件；**页内「周报」折叠区＝归档特例**（**2026-10-04 批次 367：原 `weekly`／周报报送页签并入本页**，页签 10 → 9）——按周次新建草稿 + 报送（含报送历史）；可按本周活动一键生成草稿；报送即通知支书 / 副支书并进支书审核位（通过 / 退回） |
+| 8 | `tf-view` / 知情查看 | 知情查看 | 分段集合由「赋权下游」派生（`D-755`）；宣传委员名下无专属下游 ⇒ **只出「活动」段**（「活动」＝全支部通用知情面） |
+| 9 | `my-dispatch` / 我的处置 | 制度与答复 | 同上 |
 
 > **特例**：支书 / 副支书**可进入本工作台，但只呈现「档案归档」一个页签**（代归档兜底），不启用其它页签、不扩大任何写权限。
 
@@ -747,7 +746,7 @@
 > 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **报送内容可自动生成**：按所选周次的起止区间，从活动数据（活动主源 `date`）拼出「活动名（类型）· 日期」草稿，**生成后仍可手改**（单一源 `docs/src/entries/tabs/prop/weekly-tab.js::_autoWeeklyContent`）。
-**依据**：`content/04_web_design/data/DATA_MODEL.md:697-711`、`docs/src/services/governance/secretary-overview.js:409-443`（审核状态与写口）、`docs/src/entries/tabs/prop/weekly-tab.js:54-64,211-244`、`server/system-notice-kinds.js`（`weekly-report-submitted` 通知）。
+**依据**：`content/04_web_design/data/DATA_MODEL.md:697-711`、`docs/src/services/governance/secretary-overview.js:409-443`（审核状态与写口）、`docs/src/entries/tabs/prop/weekly-tab.js:57-67,214-247`、`server/system-notice-kinds.js`（`weekly-report-submitted` 通知）。
 
 ### 4.19 待办（Todo）
 
@@ -1092,7 +1091,7 @@
 | platformReportedBy | string | 否 | 上报留痕·操作人 personId（与 `platformReportedAt` 同步写入） |
 
 **服务端种子**：**有**（`server/seed.js:61` 从 `docs/src/data/mock/seed.js::SEED_ARCHIVE_RECORDS` 播种 6 条）。
-**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1033-1096`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:570-600`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
+**依据**：`docs/src/data/mock/seed.js:37-44`、`docs/src/entries/tabs/prop/archive-tab.js:1083-1145`（运行时新建：`_handleArchiveUpload`）、`docs/src/entries/tabs/prop/archive-tab.js:631-650`（党建平台留痕位：`_markPlatformReported` 写、`_renderPlatformCell` 读）、`docs/src/services/governance/secretary-overview.js:594`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:737`（写）、`server/seed.js:61`、`server/routes/resources/store.js:30,56`。
 
 ---
 

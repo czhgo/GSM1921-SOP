@@ -13,16 +13,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261004a';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261004a';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261004a';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261004c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261004c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261004c';
 // 日历日索引纯分组 helper（calendar.js 现为 node 可导：resize 监听已 typeof 守卫）
-import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261004a';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261004a';
+import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261004c';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261004c';
 import {
   buildApprovedSignupIndex, approvedSignupHit,
-} from '../../docs/src/services/governance/today-summary.js?v=20261004a';
-import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261004a';
+} from '../../docs/src/services/governance/today-summary.js?v=20261004c';
+import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261004c';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
