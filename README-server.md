@@ -1,6 +1,6 @@
 # README-server · 后端对接说明书（GSM1921-SOP）
 
-> **本文是什么**：面向**外部后端对接团队**（学校计算中心 / 承建方 / 后续接手维护者）的**一站式说明书**——把系统的**背景、角色、功能板块、字段、部署、接口、已知限制**逐项讲清，不需要先读本仓其它文件就能看懂。
+> **本文是什么**：面向**外部后端对接团队**（学校计算中心 / 承建方 / 后续接手维护者）的**对接说明书**——把系统的**背景、角色、功能板块、字段（指针）、部署、接口、已知限制**逐项讲清，**基本**不需要先读本仓其它文件就能看懂。⚠ **一处例外**：**字段级清单**（字段名 / 类型 / 必填 / 说明）的**唯一权威源是母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 自 2026-10-03 批次 361（`D-752`）起不再逐表复刻，只留**指针 ＋ 后端增量**（见 §4.0）。
 >
 > **本文不是什么**：不是产品宣传页，也不是「未来规划书」。文中所有「现状」均在**各节末**给出 `文件:行号` 供回查（**权威源**清单见 §8）；凡取不到出处的，一律写明「未取证」，**不做推测性表述**。
 >
@@ -527,21 +527,19 @@
 
 ---
 
-## §4 字段说明（数据模型字段级清单）
+## §4 字段说明（**指针 ＋ 后端增量**）
 
-### 4.0 计数口径与来源（**请先读这一节**）
+### 4.0 怎么读这一节（来源口径 · **请先读**）
 
-| 来源 | 内容 | 字段（行）数 |
+> **2026-10-03 批次 361（`D-752`）改准**：本节**不再逐表复刻母本字段表**——各实体的**字段级清单（字段名 / 类型 / 必填 / 说明）一律以母本 `content/04_web_design/data/DATA_MODEL.md`（§2.1–§2.29，**34 张字段表**）为唯一权威源**。本文只留后端对接**必需**的四类内容：**① 落库形态与通用约定**（见下）· **② 服务端专有表**字段（§4.34–§4.38）· **③ 来源 C 增量**（母本字段表**未列**、而代码确实读写的字段：§4.39–§4.44 · §4.43 · §4.16 的 `domain` · §4.1 的 `signupClosed` 与品牌留痕 8 字段 · §4.5 / §4.6 / §4.17 的 `secretaryConfirmedAt`）· **④ 各实体的行为口径 / 写门 / 枚举例外 / 依据**（保留在对应小节）。**代价如实**：本节不再「一站式」——查字段名请开母本。
+
+| 来源 | 内容 | 本文是否列字段 |
 |---|---|---|
-| **来源 A**：`content/04_web_design/data/DATA_MODEL.md` §2.1–§2.29 | 系统**静态数据模型唯一权威源**的字段表（**34 张字段表**） | **332** |
-| **来源 B**：`server/db.js` / `server/routes/*.js` | **服务端专有表**（数据模型文档未列的 5 张）：`sessions`、`attachments`、`member_change_requests`、`committee_broadcasts`、`agenda_votes` | **39** |
-| **来源 C**：`docs/src/**` 的实际读写点（`core/domain/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources/index.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：**5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` **24**〔含制度链 3 个字段〕 · `archive_records` 13）**62** 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17）＝ **67** 条；**另新纳入 9 条**——意见反馈「事项领域」`domain` 1 条（§4.16）· 活动主源 `signupClosed` 与「品牌认定」留痕 8 个字段（§4.1）（**共 9 条，`DATA_MODEL.md` 字段表未列**） | **76** |
-| **合计** | 本文写入字段条目数 | **447** |
+| **来源 A**：`content/04_web_design/data/DATA_MODEL.md` §2.1–§2.29 | 系统**静态数据模型唯一权威源**的字段表（**34 张字段表 / 332 行**） | **否** —— 指向母本 |
+| **来源 B**：`server/db.js` / `server/routes/*.js` | **服务端专有表**（母本未列的 5 张）：`sessions` · `attachments` · `member_change_requests` · `committee_broadcasts` · `agenda_votes` —— **39 条** | **是**（§4.34–§4.38） |
+| **来源 C**：`docs/src/**` 的实际读写点（`core/domain/domain.js` 之外的 seed / services / entries）＋ `server/routes/resources/index.js` 的资源名映射 | **代码确实在读写、但来源 A 字段表未列的字段**：**5 张通用资源表**（§4.39–§4.42、§4.44：`signups` 10 · `prop_tasks` 6 · `external_dispatches` 9 · `branch_docs` **24**〔含制度链 3 个字段〕 · `archive_records` 13）**62** 条 ＋ 子记录聚合域 2 条（§4.43）＋ 支书复核标记 `secretaryConfirmedAt` 3 条（§4.5 / §4.6 / §4.17）＝ **67** 条；**另 9 条**——意见反馈「事项领域」`domain`（§4.16）· 活动主源 `signupClosed` 与「品牌认定」留痕 8 个字段（§4.1） | **是**（逐条给代码出处，**后端建模时不得漏**） |
 
-- **来源 A 的粒度**＝DATA_MODEL.md 中「字段表」的**数据行数**（表头首列为「字段名」或「字段」的表）。源文档中有若干行把两个字段合写在一行（例如 `id / number`、`name / studentId / enrollYear`、`filePath / fileData`），本文**保持同样的行粒度**，故 `332` 可直接对上。
-- **来源 B 的 39 条**取自代码实际落库对象的字段并集（含各状态分支追加的字段）。
-- **来源 C 的 76 条**＝**以代码为准穷举 `db.js` 的 35 张资源表后，发现来源 A/B 两处都没有字段级说明的那几块**：**在资源名映射内、却一直没有字段节的 5 张表**（`signups` / `prop_tasks` / `external_dispatches` / `branch_docs` / `archive_records`，见 §4.39–§4.42 与 §4.44）；**子记录聚合表的存储外壳**（`act_sub_records` / `tf_sub_records`，见 §4.43）；**支书复核标记 `secretaryConfirmedAt`**（落在考勤 / 考察 / 复盘三个实体上，见 §4.5 / §4.6 / §4.17）；以及 **`DATA_MODEL.md` 未列的字段**（意见反馈 `domain` §4.16 · 制度链 `reviewResult` / `reviewNote` / `reportToPartyMeeting` §4.42 · 活动 `signupClosed` 与品牌认定留痕 §4.1）。**这 76 条都逐条给了代码出处**，后端建模时不能漏。
-- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，需要把这 447 条字段各自建列/建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
+- **数据落库形态（关键）**：服务端所有业务表都是 **`id TEXT PRIMARY KEY` + `data TEXT`（整条 JSON 字符串）** 的键值表——**字段本身不在 SQL 列里**，而是在 JSON 内部。后端若要换成关系型表，须按**母本字段表**（来源 A）＋ **本文来源 B / C** 逐条建列 / 建 JSON 列。**依据**：`server/db.js:44-58`（`SCHEMA`：`sessions`、`attachments` 为关系表）、`server/db.js:64-66`（业务表统一 `(id TEXT PRIMARY KEY, data TEXT NOT NULL)`）。
 - **通用约定**：`id` 形如 `前缀-随机`（服务端缺 id 时自动补，前缀表见 §6.2）；时间字段统一 ISO 字符串；`YYYY-MM-DD` 为日期；枚举值未注明时即「有且仅有」所列取值。
 
 > **服务端表全表清单（共 34 张资源表 + 2 张关系表）**：34 张资源表的表名见 `server/db.js:9-41`；另外 `sessions` / `attachments` 两张为关系表（`server/db.js:44-56`）。其中 **29 张**在 `server/routes/resources/index.js` 里映射为「资源名」（可走通用 CRUD，见 §6.2）；**另 5 张不在通用映射内**（只有语义端点或只有内部写入）：`issues`、`issue_reveals`、`member_change_requests`、`committee_broadcasts`、`agenda_votes`。
@@ -550,53 +548,11 @@
 
 **对应服务端表**：`activities`　**依据**：`content/04_web_design/data/DATA_MODEL.md:30-63`、`docs/src/core/domain/domain.js:11-35`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `act` |
-| title | string | 是 | 活动标题 |
-| type | string | 是 | 活动类型（中文取值，权威集＝三会一课 4 子类「支部党员大会/支委会/党小组会/党课」+「主题党日」+「组织生活会」；历史「大类·子类」写法读取时归一） |
-| status | `'draft'\|'published'\|'ongoing'\|'completed'\|'cancelled'` | 是 | 活动**存储状态**（默认 `draft`）；页面展示态另由生命周期派生，不直接读本字段 |
-| visibility | `'branch'\|'group'` | 是 | 可见范围：全支部 / 党小组（默认 `group`） |
-| date | string（YYYY-MM-DD） | 是 | 活动日期 |
-| location | string \| null | 否 | 活动地点（线下场地 / 线上会议链接） |
-| executor | string | 是 | 执行角色标识 |
-| supervisor | string \| null | 是 | 督办角色（可为 null） |
-| createdBy | string | 是 | 创建者用户 ID |
-| createdAt | string（ISO） | 是 | 创建时间 |
-| priority | `'low'\|'normal'\|'urgent'` | 否 | 工作流引擎优先级 |
-| dueDate | string（ISO） | 否 | 截止日期（自动化提醒锚点） |
-| archived | boolean | 否 | 软删除标记（true＝已归档；默认 false） |
-| domain | `'activity'\|'organization'` | 否 | 领域分类 |
-| scenarioId | string | 否 | 关联 SOP 场景 ID |
-| description | string | 否 | 活动描述 |
-| targetDate | string（ISO） | 否 | 目标日期 T-0（兼容旧字段） |
-| deliverableIds | string[] | 否 | **已废弃**（交付物由「文件空间记录」覆盖） |
-| isBrand | boolean | 否 | 品牌属性标签（**认定＝支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**；仅作筛选展示）。**系统内无「点一下即认定」入口**——唯一置位路径＝支委会会议议程项「记录结果 · 通过」 |
-| brandName | string | 否 | 品牌族名称（isBrand 后补录） |
-| signupClosed | boolean | 否 | 本场报名是否已**手动关闭**：置 `true` 后成员不能**新报**，**已报名者仍可自行取消**；可关者＝本场组织者 ＋ 支书 / 副支书。**不设「报名截止时点」字段** |
-| brandProposal | object \| null | 否 | **品牌认定提案留痕**：`{by, at, note, reviewResult?, reviewedBy?, reviewedAt?, reviewActivityId?, reviewAgendaItemId?, reviewNote?}`。提案权＝支委层 ＋ 党小组组长；通过后置 `null`（已议决），未通过则保留提案 ＋ 退回意见（可再议） |
-| brandDesignatedBy | string \| null | 否 | 品牌**认定**留痕·认定人 personId（只由支委会议程项记录「通过」写入） |
-| brandDesignatedAt | string（ISO）\| null | 否 | 品牌认定时间 |
-| brandDesignationActivityId | string \| null | 否 | 认定回指：承载该议程项的支委会活动 ID |
-| brandDesignationAgendaItemId | string \| null | 否 | 认定回指：该议程项 ID |
-| brandRevokedBy | string \| null | 否 | **取消认定**留痕·操作人 personId（取消限支委层；重新认定仍须支委会审议通过） |
-| brandRevokedAt | string（ISO）\| null | 否 | 取消认定时间 |
-| isOutdoor | boolean | 否 | 是否外出（校外）活动；写入活动时勾选，判据「本次为外出活动」→ 写入后弹外出提醒清单（**是提醒、非必填、不作校验**） |
-| carriers | string[] | 否 | 主题党日载体（理论学习 / 实践参访 / 交流座谈 / 其他，多选） |
-| isJoint | boolean | 否 | 共建性质（共建开展为 true） |
-| agenda | `Array<{id?, item, host?, kinds?, sourceRef?, branchDocId?, brandActivityId?, personIds?, fromStage?, toStage?, personStages?, result?, recordedBy?, recordedAt?}>` | 否 | 会议议程（逐条议题 + 可选主持人），会后可改。`id`＝表决/结果关联键（`agendaVotes.agendaItemId`、`recordAgendaResult` 均按它匹配）；`sourceRef`＝议程提取来源回指（**只回指，不复制来源数据**）；`kinds`＝议程项类型标记（`discussion-file` 讨论文件 / `attendee-list` 待讨论名单 / `brand-designation` 品牌认定审议）——随类型另带引用字段：讨论文件带 `branchDocId`、品牌认定带 `brandActivityId`、待讨论名单带 `personIds` ＋ `toStage`（另有 `fromStage` / `personStages`）（单一源 `docs/src/entries/tabs/secretary/agenda-form.js:21-49`） |
-| organizer | string | 否 | 该场活动**组织者** personId——写入活动时「同时指定」即完成赋权、解除指定即收回 |
-| direction | `'top-down'\|'bottom-up'` | 否 | 发起方向：自上而下（支部部署）/ 自下而上（党小组发起） |
-| hostGroup | string | 否 | 承办党小组（组长写入时固化）；考勤「应到」判据优先取它、缺省回退组织者所属小组 |
-| assignments | `Array<{personId, role:'organizer'\|'deep'\|'participant'}>` | 否 | **项目内角色**的内联登记（写入活动时随指定写入；`auth.js` 按它判项目身份）。⚠ 与 §4.7「分工记录」不是一回事——后者是「谁负责哪项工作」 |
-| signupEnabled | boolean | 否 | 是否开放报名（写入活动时勾选）；**草稿活动只有它为 `true` 才可报名**（否则报名入口报「该活动当前不可报名」） |
-| requireMakeup | boolean | 否 | 本次活动是否要求补课（活动级勾选，仅党小组会等「按该次情形定」的场合用；主题党日不强制、支委会不补课） |
-| voteConfig | object \| null | 否 | 线上异步表决配置，写入活动时固化：`{mode:'async', optionSet:'deliberative'│'formal', ballotMode:'named'│'anonymous', voterScope, voterIds:string[], quorumCheck:boolean}`。**线下开会不写本字段**（读侧无此字段＝旧活动/线下；`formal` 场景读侧一律按无记名处理） |
-| deepWorkMode | object | 否 | **深参分工的完成方式**：`{ [taskId]: 'in-system' \| 'offline' }`——写入活动时组织者**逐项勾选**「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（当前只有主题党日链有）。**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）；标 `offline` 的不进系统产出链（「我的任务」不给「勾掉」） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 > **`deepWorkMode` 补充说明**：该字段有母本依据（《常见工作场景快速指南》:120）；**已列入 `DATA_MODEL.md` §2.1 字段表**（同属来源 A）。**依据**：`docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf` 单一源）、`docs/src/services/activity/decision-tree.js`（`DecisionTreeState.deepItems` 项清单）、`docs/src/entries/tabs/leader/write-tab.js` 的勾选排、`docs/src/entries/tabs/visitor/projects-tab.js` 的「我的任务」完成方式位。
 
-> **来源 C · 上表尾行补充**：上表最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；本文保留其字段说明与代码出处，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:554,620,684`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1241-1263`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
+> **来源 C · 原字段表尾行补充**：本节**原字段表**最后 7 行（`organizer`→`voteConfig`）与 `isOutdoor` 同属「代码确实写入 / 读取」的字段，**现均已列入 `DATA_MODEL.md` §2.1**（同属来源 A）；其代码出处保留如下，后端建模不得漏。**依据**：`docs/src/data/mock/activities.js:12-14,61-66`（`organizer` / `direction` / `hostGroup` / `assignments` 的实存形态）、`docs/src/services/activity/decision-tree.js:359`（`organizer` 写入）、`docs/src/services/core/auth.js:554,620,684`（`assignments` 写读）、`docs/src/entries/tabs/leader/write-tab.js:1092,1094`（`signupEnabled` / `requireMakeup` 写入）、`docs/src/entries/tabs/secretary/calendar-tab.js:1241-1263`（`voteConfig` 写入）、`docs/src/services/activity/vote-config.js:41,44`（`voteConfig` 取值）、`docs/src/services/activity/attendance.js:59-64`（`hostGroup` 判据）、`server/routes/resources/gates.js:98-104`、`server/routes/resources/index.js:69-105`（`voteConfig` 写侧校验）。
 
 **活动存储状态取值**：`draft` 草稿 / `pending-approval` 待批（**仅活动批准门开启时出现**，默认关不写入） / `published` 已发布 / `ongoing` 进行中 / `completed` 已结束 / `cancelled` 已取消。
 **活动生命周期展示态（派生，不落库）**：`draft` / `pending_approval`（待批） / `published` / `ongoing` / `pending_archive`（待归档，悬停显示缺项）/ `executed`（已执行）/ `archived` / `cancelled`。
@@ -605,6 +561,20 @@
 **依据**：`content/04_web_design/data/DATA_MODEL.md:69-93`、`:130-179`（`isOutdoor` 见 `:174`）、`docs/src/core/domain/constants.js:616-724`（`ACTIVITY_CLASSIFICATION` / `normalizeActivityType`）、`docs/src/services/activity/activity.js:71-83`（外出提醒清单与 `isOutdoor` 判据）。
 **`agenda[]` 说明**：`id` 用于线上支委会表决关联表态、`sourceRef` 用于回指提取来源；支委会会议页全部复用既有实体与既有写口（活动 + `voteConfig` + `agenda` + `agendaVotes` + `votesLocked`），未新增任何表 / 活动字段。
 **品牌认定与议程子字段说明**：① `isBrand` 认定路径＝「**支委 / 党小组组长提案 → 支委会（或支委扩大会）通过后确定**」，唯一入口＝支委会议程项「记录结果 · 通过」（**无「点一下即认定」**）；② `brandProposal` 与品牌认定 / 取消留痕 7 个字段属**来源 C**（`DATA_MODEL.md` 字段表未列）；③ `signupClosed` 同属来源 C；④ `agenda[]` 的 `kinds` / `branchDocId` / `brandActivityId` / `personIds` / `fromStage` / `toStage` / `personStages` 子字段＝议程提取与「拟上会」清单的落点。
+**来源 C · `signupClosed` 与品牌认定 / 取消留痕 9 个字段（母本字段表未列 · 后端不得漏）**：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| signupClosed | boolean（缺省不写＝未关） | 本场报名是否已**手动关闭**：置 `true` 后成员不能**新报**、**已报名者仍可自行取消**；可关者＝本场组织者 ＋ 支书 / 副支书。**不设「报名截止时点」字段** |
+| brandName | string | 品牌族名称（认定后补录） |
+| brandProposal | object \| null | **品牌认定提案留痕**：`{by, at, note, reviewResult?, reviewedBy?, reviewedAt?, reviewActivityId?, reviewAgendaItemId?, reviewNote?}`；提案权＝支委层 ＋ 党小组组长；通过后置 `null`（已议决），未通过则保留提案 ＋ 退回意见（可再议） |
+| brandDesignatedBy | string \| null | 品牌**认定**留痕 · 认定人 personId（只由支委会议程项「记录结果 · 通过」写入） |
+| brandDesignatedAt | string（ISO）\| null | 品牌认定时间 |
+| brandDesignationActivityId | string \| null | 认定回指：承载该议程项的支委会活动 ID |
+| brandDesignationAgendaItemId | string \| null | 认定回指：该议程项 ID |
+| brandRevokedBy | string \| null | **取消认定**留痕 · 操作人 personId（取消限支委层；重新认定仍须支委会审议通过） |
+| brandRevokedAt | string（ISO）\| null | 取消认定时间 |
+
 **依据**：`docs/src/services/activity/activity.js:269-280`（`BRAND_PROPOSER_ROLES` / `canProposeBrand`）、`docs/src/services/activity/activity.js:415-453`（`applyBrandDesignationResult`：通过才置 `isBrand`）、`docs/src/services/activity/activity.js:493-503`（`commitBrandDesignationResult` 落库口）、`server/routes/resources/index.js:255`（`POST /activities/:id/brand` **只能取消、不能认定**）、`docs/src/entries/pages/activity-entry.js:154-177`（`signupClosed` 与品牌三动作）。
 
 **活动批准门（支部可开关的制度参数，默认关）**：办活动要不要先过一道批准门，做成支部可调制度参数 `activityApproval.mode`（三态 `off` / `secretary` / `branch-committee`，默认 `off`）。**关闭（默认）时活动写入链与全部行为与改动前完全一致**（写入照常、状态链不多一态）；开启后**写入即落「待批」**（`status='pending-approval'` ＋ `approval` 轨迹字段 `{required,mode,state,at,by,note?}`），批准前不推进、批准后转 `published`、不批准转 `cancelled`。门在写入之后、推进之前（依母本《常见工作场景快速指南》共建活动八步流程 `:245`「必须经支书同意后方可推进；不批准则终止」）；默认档支书批准（可改支委会档）；**待批活动的可见性＝只支委层可见 ＋ 组织者本人可见**（详见下方）。界面落点：设置中心·支部制度参数区「活动批准门」卡（支书 / 副支书可改，写口 `docs/src/services/branch/branch.js` 的 `savePolicyOverrides`）；活动详情页对「待批」活动给「批准发布 / 不批准（终止）」两动作。**未新增表 / 未新增页面**，`approval` 字段落在活动主源。
@@ -618,11 +588,7 @@
 
 > ⚠ **说明**：这是**概念模型**，不是独立字段表。实现层由「考勤记录 / 文件空间记录」等实体承载（见 §4.6 / §4.23）。
 
-| type 值 | 中文 | items 内容 | 对应实现层数据 | 写入角色 |
-|---|---|---|---|---|
-| `attendance` | 考勤子记录 | 出勤记录列表 | 考勤记录（§4.6） | 纪检委员 |
-| `materials` | 材料子记录 | 交付物列表 | 文件空间记录（非 publicity 类） | **组织者（打包提交）**——**代码中不设「深度参与者」写口**，现行承载位＝组长台「考勤 / 考察上传」与宣传台「档案归档」 |
-| `publicity` | 宣传子记录 | 宣传素材列表 | 文件空间记录（category 为 publicity 类） | 撰写人（提交初稿）→ 宣传委员（定稿 / 退回），见下方初稿状态位 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **`publicity` 子记录的初稿状态位**：撰写人侧「提交审核」、宣传委员侧在宣传台「档案归档」区**定稿 / 退回**。状态取值 `draft` 初稿 / `reviewing` 待审核 / `finalized` 已定稿（退回即回 `draft` 并带一句退回说明）；附加字段 `draftStatusAt` / `draftStatusBy` / `draftReturnNote?` / `finalizedAt?`。**不新开对象、不加 tab、不新增表**；定稿后仍走既有宣传材料归档链。单一源 `docs/src/services/activity/activity.js:100-153`（`PUBLICITY_DRAFT_STATUS` / `setPublicityDraftStatus`）。
 
@@ -632,17 +598,7 @@
 
 **对应服务端表**：`taskforces`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `tf` |
-| name | string | 是 | 专班名称 |
-| type | string | 是 | 专班类型 |
-| status | `'recruiting'\|'active'\|'archived'\|'dissolved'` | 是 | 状态（默认 `recruiting`；状态机 recruiting → active → archived / dissolved） |
-| activityId | string \| null | 否 | 关联活动 ID（专班与活动互斥，通常为 null） |
-| createdBy | string | 是 | 创建者 ID |
-| createdAt | string（ISO） | 是 | 创建时间 |
-| members | `Array<{personId, role:'organizer'\|'deep'\|'participant', contributions:string[]}>` | 否 | 成员对象数组（**项目角色 organizer/deep 的主源之一**，含工作量；非字符串 ID 列表） |
-| description | string | 否 | 专班描述 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 > 示例数据另含展示字段 `task` / `manager` / `initiator` / `capacity` / `deadline`，**未列为模型必填字段**。
 
@@ -652,20 +608,7 @@
 
 > ⚠ **未实现**：本实体在数据模型中有定义，但**代码中无持久化域、无读写入口**（详见 §7）。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | `series-{timestamp}` |
-| title | string | 是 | 系列活动名称 |
-| scenario | string | 是 | 组织场景 |
-| activityType | string | 是 | 活动形式 |
-| direction | `'top-down'\|'bottom-up'` | 是 | 发起方向 |
-| hostGroup | string | 否 | 承办党小组 |
-| recurrenceRule | object | 是 | `{frequency, interval, startDate, endDate?}` |
-| subActivityIds | string[] | 是 | 展开后的子活动 ID 列表 |
-| organizerName | string | 否 | 组织者 |
-| deepParticipantName | string | 否 | 深度参与者 |
-| archived | boolean | 否 | 全部子活动完成后置 true 并归档 |
-| createdAt | string（ISO） | 是 | 创建时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:269-291`。
 
@@ -673,59 +616,26 @@
 
 **对应服务端表**：`attendances`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符 |
-| activityId | string | 是 | 所属活动 ID |
-| personId | string | 是 | 参会成员人员 ID |
-| status | `'present'\|'absent'\|'leave'` | 是 | 出勤状态（**另有补课完成后置 `made_up`「已补」**） |
-| absenceReason | `'leave_personal'\|'leave_sick'\|'unexcused'\|'other'` | 否 | 未到（请假 / 缺勤）标因，由纪检认定；`leave_personal` 事假（须提前 1 天申请）/ `leave_sick` 病假（可事后补）/ `unexcused` 无故 / `other` 其它。**旧键 `leave` 仅作读取兼容别名**（存量记录与「线上参会代记」仍用它，显示「请假」），**不再出现在可选枚举** |
-| recordedBy | string | 是 | 记录人用户 ID（纪检委员或该活动组织者） |
-| recordedAt | string（ISO） | 是 | 记录时间 |
-| studentId | string | 否 | 学号（冗余快照） |
-| developStage | `'积极分子'\|'发展对象'\|'预备党员'\|'正式党员'` | 否 | 发展阶段（冗余快照） |
-| partyGroup | string | 否 | 所属党小组（冗余快照） |
-| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（来源 C）：支书台待办「一键确认」写入即销项；无此字段＝未复核 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **出勤状态枚举**：`present` 出席 / `absent` 缺席（触发补课机制）/ `leave` 请假 / `made_up` 已补。**请假分事假 / 病假两档在 `absenceReason` 上区分**（时效（事假提前 1 天 / 病假可事后补）**只提示、不校验、不拦提交**）。标因可选项单一源 `docs/src/core/domain/policy-defaults.js:82-87`（`attendance.reasons`，新增须支书裁决）。
+**来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：**支书复核标记**——支书台待办「一键确认」写入即销项；**无此字段＝未复核**（§4.6 / §4.17 同名同义）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:293-328`、`docs/src/core/domain/domain.js:92-108`、`docs/src/core/domain/policy-defaults.js:73-87`、`docs/src/services/governance/secretary-overview.js:573`（`secretaryConfirmedAt` 读）、`docs/src/entries/tabs/secretary/todo-tab.js:720`（写）。
 
 ### 4.6 考察记录（InspectionRecord）
 
 **对应服务端表**：`inspections`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `ins` |
-| sourceType | `'activity'\|'taskforce'` | 是 | 考察来源类型（活动 / 专班） |
-| activityId | string | 是 | 关联活动 ID（sourceType=activity 时必填） |
-| sourceName | string | 否 | 来源名称（专班时为专班名称） |
-| personId | string | 是 | 人员 ID |
-| level | `'organize'\|'deep'` | 是 | 考察层级（**仅组织者与深度参与者有考察记录**） |
-| role | string | 是 | 分工角色 + 描述（如「策划+全流程统筹」） |
-| recordedBy | string | 是 | 记录人 personId |
-| recordedAt | string（ISO） | 是 | 记录时间 |
-| status | `'pending'\|'confirmed'` | 否 | 考察确认状态（默认 `pending`；纪检确认后录入考察档案） |
-| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（来源 C）：支书台「一键确认」对「已纪检确认」的考察写此销项 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
+**来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：见 §4.5（对「已纪检确认」的考察写此销项）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:330-347`、`docs/src/core/domain/domain.js:166-178`、`docs/src/services/governance/secretary-overview.js:580`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:727`（写）。
 
 ### 4.7 分工记录（AssignmentRecord）
 
 **对应服务端表**：`assignments`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `asg` |
-| activityId | string | 是 | 所属活动 ID |
-| workName | string | 是 | 工作名称 |
-| workDescription | string | 是 | 工作描述 |
-| ddl | string（ISO） | 是 | 截止日期 |
-| assigneeId | string | 是 | 被分配人 ID |
-| status | `'pending'\|'in_progress'\|'completed'` | 是 | 分工状态（默认 `pending`） |
-| createdBy | string | 是 | 创建者 ID |
-| createdAt | string（ISO） | 是 | 创建时间 |
-| completedAt | string \| null（ISO） | 否 | 完成时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:349-364`。
 
@@ -733,26 +643,9 @@
 
 > **性质**：系统按「产出类型」**自动定向投递**的记录，投递去向由类型派生、**非人工录入**；组织者只见「提交」不见「发送对象」。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| type | OutputType | 是 | 产出物类型（见下表枚举） |
-| title | string | 是 | 产出物名称 |
-| submittedBy | string | 是 | 提交人 ID |
-| submittedAt | string（ISO） | 是 | 提交时间 |
-| status | `'pending'\|'submitted'` | 是 | 提交状态（默认 `pending`） |
-| routedTo | string | 是 | 系统定向投递去向（由 `deriveOutputRoute(type)` 派生） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **产出类型枚举（7 种）与定向路由**：
-
-| 产出物 | 系统定向投递 | 最终沉淀 |
-|---|---|---|
-| 考勤数据 | 纪检确认 → 考勤明细 | 考勤明细（组织/宣传只读同源） |
-| 工作考察记录 | 纪检确认 → 考察档案 | 考察总表（组织委员建档） |
-| 专班考察 | 纪检确认 → 考察档案 | 考察总表（组织委员建档） |
-| 宣传材料 | 宣传委员归档 | 产出物查看区 |
-| 复盘总结 | 纪检批注 / 确认 | 活动关闭前置 |
-| 专班工作量 | 系统自动记录 | 解散报告 → 个人档案 |
-| 思想汇报 | 系统自动归档 | 个人档案（不经纪检 / 宣传） |
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:366-392`、`docs/src/core/domain/domain.js:340-410`（`OutputType` / `OUTPUT_ROUTES` / `deriveOutputRoute`）。
 
@@ -760,21 +653,7 @@
 
 **对应服务端表**：`makeup_tasks`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `mk` |
-| personId | string | 是 | 需补课人员 ID |
-| activityId | string | 是 | 关联活动 ID |
-| attendanceRecordId | string | 是 | 关联考勤记录 ID |
-| activityName | string | 是 | 活动名称（冗余快照） |
-| personName | string | 是 | 人员姓名（冗余快照） |
-| absentDate | string（YYYY-MM-DD） | 是 | 缺勤日期 |
-| deadline | string（YYYY-MM-DD） | 是 | 补课截止日期（缺勤后 T+7） |
-| status | `'pending'\|'completed'` | 是 | 补课状态（默认 `pending`） |
-| isMandatory | boolean | 是 | 是否刚性考勤（三会一课 / 主题党日为刚性） |
-| proofContent | string \| null | 否 | 补课证明内容 |
-| createdAt | string（ISO） | 是 | 创建时间 |
-| completedAt | string \| null（ISO） | 否 | 完成时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:394-412`、`docs/src/services/activity/makeup.js`（`autoGenerateMakeupTask`）。
 
@@ -782,16 +661,7 @@
 
 **对应服务端表**：`notices`（本节为基础字段；扩展字段见 §4.20 与 §4.28）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `ntc` |
-| title | string | 是 | 通知标题 |
-| content | string | 是 | 通知内容 |
-| priority | `'urgent'\|'normal'\|'low'` | 是 | 优先级（默认 `normal`） |
-| publishDate | string（YYYY-MM-DD） | 是 | 发布日期（服务端生成时强制覆盖为当日） |
-| expireDate | string \| null（YYYY-MM-DD） | 否 | 过期日期（过期后不展示） |
-| targetModule | string | 否 | 目标模块（点击跳转用） |
-| read | boolean | 否 | 是否已读（默认 false） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **通知受众 sentinel（发布侧写入值 ↔ 可见性判定必须同源）**：`all`＝全体党员（**broadcast，含未登录可见**）/ `leaders`＝党小组组长 / `activists`＝入党积极分子 / `candidates`＝发展对象。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:414-427`、`docs/src/core/domain/constants.js:792-800`、`server/routes/system-notices.js:53-58`。
@@ -800,16 +670,7 @@
 
 **对应服务端表**：`experience_deposits`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `xp` |
-| title | string | 是 | 经验总结标题 |
-| content | string | 是 | 经验内容 |
-| category | string | 是 | 分类 |
-| sourceType | `'activity'\|'taskforce'\|'standalone'` | 是 | 来源类型 |
-| sourceId | string | 否 | 来源 ID |
-| createdBy | string | 是 | 创建者 ID |
-| createdAt | string（ISO） | 是 | 创建时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:429-441`。
 
@@ -821,13 +682,7 @@
 
 **对应服务端表**：`tasks`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `tsk` |
-| activityId | string | 是 | 所属活动 ID |
-| title | string | 是 | 任务标题 |
-| status | `'pending'\|'in_progress'\|'completed'` | 是 | 任务状态（默认 `pending`） |
-| createdAt | string（ISO） | 是 | 创建时间（审计字段） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:458-468`、`docs/src/core/domain/domain.js:68-74`。
 
@@ -835,22 +690,7 @@
 
 > 这是**前端运行时状态对象**，不进入任何后端表；后端不需要为该实体建模，仅需了解前端会缓存哪些上下文。
 
-| 字段 | 类型 | 初始值 | 说明 |
-|---|---|---|---|
-| status | STATE 枚举 | `IDLE`(0) | 服务层状态：IDLE / LOADING / SUBMITTING / SUCCESS / ERROR |
-| activities | Activity[] | `[]` | 内存活动列表快照 |
-| tasks | Task[] | `[]` | 内存任务列表快照 |
-| error | string \| null | null | 错误信息 |
-| domain | string | `'activity'` | 当前域：activity / organization |
-| role | string | `'all'` | 参考指南当前角色（由 selectedRole 推导） |
-| activeModule | string | `'dashboard'` | 当前活动模块 |
-| viewMode | string | `'list'` | 列表 / 详情双视图：list / detail |
-| selectedActivityId | string \| null | null | 选中活动 ID |
-| selectedDate | string \| null | null | 选中日期 |
-| displayMonth | string | 当前年月 | 显示月份（YYYY-MM） |
-| selectedRole | string \| null | null | 核心角色状态（null＝未选择 / 默认参与者） |
-| viewType | `'participant'\|'manager'\|'global'` | `'participant'` | 视图类型（由 selectedRole 推导） |
-| viewArchived | boolean | false | 归档库独立视图标志 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **STATE 枚举**：`IDLE`=0 空闲 / `LOADING`=1 加载中 / `SUBMITTING`=2 提交中 / `SUCCESS`=3 成功 / `ERROR`=4 出错。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:470-499`、`docs/src/core/base/state.js:71-93`。
@@ -884,77 +724,28 @@
 
 **对应服务端表**：`issues`（**语义端点域**：不走通用 CRUD、不进快照写穿）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id / number | string / number | 唯一标识符（前缀 `issue-`）/ 自增序号（`#N` 展示） |
-| title / body | string | 标题 / 正文 |
-| scope | `'permanent'\|'global'\|'role'\|'scenario'` | 影响范围：底层架构 / 全局规则 / 支委分工 / 特定场景 |
-| types | string[] | 类型标签（对现状的性质：`bug` 缺陷 / `enhancement` 增强 / `proposal` 提案 / `question` 疑问；多选、必填） |
-| domain | string | **事项领域**（**来源 C：`DATA_MODEL.md` 字段表未列**）：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）。单一源 `docs/src/services/governance/issues.js:1244-1249`（`ISSUE_DOMAINS`）；落库见 `server/routes/resources/index.js:582` 与 `server/routes/resources/index.js:616` |
-| status | `'open'\|'closed'` | 开放 / 关闭 |
-| closedReason / closedAt | 枚举 / string \| null | 关闭原因（`completed` 已解决 / `duplicate` 重复 / `wontfix` 不修复 / `not_planned` 暂不计划）/ 关闭时间 |
-| submittedBy / submittedAt | string | 提交人**对外展示值**（匿名时恒为字符串 `'匿名'`，实名时为成员短 ID）/ 提交日期 |
-| _realPersonId | string（仅匿名提交时落库） | **真实提交人 personId**。任何常规读出口一律脱敏；唯一可见出口＝党委核查端点（**每次查看留痕**）。**支部内部含支书不可见** |
-| assignee / assigneeRole | string \| null | 指派对象（personId / 角色键） |
-| dispatchHistory | `{from,to,by,at,note}[]` | 指派历史时间线 |
-| milestone | string \| null | 里程碑 |
-| reactions | `{thumbsUp[],thumbsDown[],eyes[],hooray[]}` | 表态反应（按人列表） |
-| mentions / references | string[] | 提及 / 引用 |
-| participants / commentCount | string[] / number | 参与人 / 评论数 |
-| hidden / mergedInto | boolean / string \| null | 隐藏（不在公开列表显示）/ 合并去向 |
-| comments | `{id,author,authorRole,body,createdAt,kind,hidden,hiddenBy,hiddenReason,hiddenAt}[]` | 评论时间线；`kind`＝`comment` 普通评论 / `reply` 支书正式答复 / `dispatch` 指派事件 / `result` 处置结果 / `verdict` 终审·合并事件 |
-| resultPending / resultSubmittedAt | boolean / string \| null | 待终审标记 / 处置结果提交时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **落库时由服务端追加的字段（文档未列，见代码）**：`branchId`（支部归属，服务端取登录人所属支部，缺省 `br-b1`）、`tokenHash`（防刷判重/限频，**与 personId 无关、不可反推人**）、`createdAt`（ISO 时间戳）。另有 `kind`（内部汇报型反馈自身为 `'report'`）——**该字段不在服务端 `POST /issues` 的落库对象里**，而来自种子文件 `docs/data/issues.json` 与前端写入，见 §4.16 说明与 §5.6 第 4 条。
 **匿名口径（重要）**：`anonymous !== false` 即匿名（**缺省匿名**）；匿名＝**前端展示层匿名**，后台记真身；**「处置」与「查看真身」是两项分开的权限**。
+**来源 C · `domain`（事项领域，母本字段表未列）**：`institution` 制度建设建议 / `activity` 活动组织建议 / `workflow` 工作流程建议 / `other` 其他建议——照母本《常见工作场景快速指南》「意见建议类型」表四类；随附**建议归口**（只给建议、**不自动派单**）。⚠ **服务端选填、表单侧必填**（不对称，如实登记）；单一源 `docs/src/services/governance/issues.js` 的 `ISSUE_DOMAINS`，落库白名单见下「依据」。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:610-656`、`server/routes/resources/index.js:607-641`（落库白名单与追加字段，含 `domain`）、`server/routes/resources/index.js:525-537`（脱敏 / 留痕序列化）。
 
 ### 4.17 复盘记录（ReviewRecord）
 
 **对应服务端表**：`activity_reviews` / `taskforce_reviews`（两域）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符 |
-| activityId | string | 否 | 关联活动 ID（活动复盘时必填） |
-| sourceType | `'activity'\|'taskforce'` | 否 | 来源类型（默认 `activity`） |
-| sourceName | string | 否 | 来源名称（专班时为专班名称） |
-| taskforceId | string | 否 | 关联专班 ID（专班复盘时填写，与 sourceName 双保险定位） |
-| organizerId | string | 是 | 组织者人员 ID（须为实际 organizer） |
-| progress | string | 是 | 进度状态（如 已完成 / 进行中 / 超时） |
-| overdue | boolean | 是 | 是否超时（默认 false） |
-| reviewStatus | ReviewStatus | 是 | 复盘状态（默认 `未提交`） |
-| reviewContent | string | 否 | 复盘内容（默认空串） |
-| issues | string[] | 否 | 待改进问题清单（默认空数组） |
-| annotation | string | 否 | 批注内容（批注中 / 已打回时填写） |
-| annotatedBy | string | 否 | 批注人 personId（纪检委员） |
-| annotatedAt | string（ISO） | 否 | 批注时间 |
-| submittedAt | string（ISO） | 否 | 提交时间 |
-| confirmedAt | string（ISO） | 否 | 确认时间 |
-| secretaryConfirmedAt | string（ISO） | 否 | **支书复核标记**（来源 C）：支书台「一键确认」对「已确认」的复盘写此销项 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **复盘状态枚举（中文值，落库即中文）**：`未提交` → `已上传` → `批注中` → `已确认` / `已打回`（打回后可重新提交回 `已上传`）。
+**来源 C · `secretaryConfirmedAt`**（`string`（ISO），可选）：见 §4.5（支书台「一键确认」对「已确认 / 已打回」之外的待办销项）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:660-693`、`docs/src/core/domain/domain.js:125-144`、`docs/src/services/governance/secretary-overview.js:587`（读）、`docs/src/entries/tabs/secretary/todo-tab.js:732`（写）。
 
 ### 4.18 周报（WeeklyReport）
 
 **对应服务端表**：`weekly_reports`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符（种子为 `wrN`，新建为 `wr_时间戳`） |
-| week | string | 是 | 周次标签（如「第32周」，同标签唯一） |
-| weekRange | string | 是 | 日期范围（如 `2026-08-04 ~ 2026-08-08`） |
-| content | string | 否 | 周报内容（每条一行，默认空串） |
-| status | `'draft'\|'submitted'` | 是 | 报送状态（默认 `draft`） |
-| submittedAt | string（日期） | 否 | 报送日期（默认 null） |
-| submittedBy | string | 否 | 报送人 personId（宣传委员；报送时写入） |
-| reviewStatus | `'pending'\|'approved'\|'returned'` | 否 | **支书审核位**：新报送即回 `pending`；读取侧归一——`submitted` 而无值 / 非法值一律按 `pending`（**存量不回填**），`draft` 为空 |
-| reviewNote | string | 否 | 支书退回说明（`returned` 时填写） |
-| reviewedAt / reviewedBy | string（ISO）/ string | 否 | 审核时间 / 审核人（支书 personId） |
-| platformReportedAt / platformReportedBy | string（ISO）/ string | 否 | 「**标记已上报北京大学智慧党建平台**」留痕（**只留痕、不对接**；对接方为外部系统） |
-| createdAt | string（ISO） | 否 | 新建时间 |
-| createdBy | string | 否 | 创建人短 ID（宣传委员 personId） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **报送内容可自动生成**：按所选周次的起止区间，从活动数据（活动主源 `date`）拼出「活动名（类型）· 日期」草稿，**生成后仍可手改**（单一源 `docs/src/entries/tabs/prop/weekly-tab.js::_autoWeeklyContent`）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:697-711`、`docs/src/services/governance/secretary-overview.js:409-443`（审核状态与写口）、`docs/src/entries/tabs/prop/weekly-tab.js:54-64,211-244`、`server/system-notice-kinds.js`（`weekly-report-submitted` 通知）。
@@ -963,41 +754,18 @@
 
 **对应服务端表**：`todos`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `td` |
-| title | string | 是 | 待办标题 |
-| description | string | 否 | 待办描述（默认空串） |
-| role | string | 是 | 目标角色键（含 secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner / leader / participant / party-staff / organizer / deep） |
-| personId | string \| null | 否 | 目标人员 ID（**null＝该角色所有人**） |
-| category | `'auth'\|'archive'\|'review'\|'notice'\|'submit'\|'track'` | 是 | 分类（赋权 / 归档 / 审核 / 通知 / 提交 / 追踪） |
-| priority | `'urgent'\|'normal'` | 是 | 优先级（默认 `normal`） |
-| status | `'pending'\|'in_progress'\|'completed'\|'expired'` | 是 | 状态（默认 `pending`；`expired` 非终态，可再激活） |
-| deadline | string（ISO）\| null | 否 | 截止日期（默认 null） |
-| createdAt | string（ISO） | 是 | 创建时间 |
-| completedAt | string（ISO）\| null | 否 | 完成时间（默认 null） |
-| sourceType | `'notice'\|'activity'\|'taskforce'\|'manual'` | 是 | 来源类型 |
-| sourceId | string \| null | 否 | 来源 ID（通知/活动/专班 ID） |
-| actionType | `'authorize'\|'archive'\|'review'\|'read'\|'submit'\|'track'\| null` | 否 | 行动类型（决定点击后的跳转/弹出面板，默认 null） |
-| actionData | object \| null | 否 | 行动数据（如赋权参数 `{scope, sourceId, sourceName}`，默认 null） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **分类默认展开态**：赋权类 / 审核类默认展开；归档类 / 通知类 / 提交类 / 追踪类默认折叠。**派生规则**：通知 `actionable=true` 时，系统为 `actionRoles` 中每个角色自动生成一条待办。
-**两种来源**：①**运行时派生**是常态——通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/ 成员台参与（`VisitorTodoDeriver`）在业务动作发生时派生，**不落种子**；②**独立台账型种子**——`server/seed.js` 从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**（宣传委员「提交七一活动新闻稿」· 支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，不引用活动/任务/人员实体 ⇒ 零孤立引用）。⚠ 本表**曾未播种**（API 形态首启「待办」恒空、靠前端空表回退 `SEED_FALLBACK` 顶替）；现与 mock 形态逐值一致（守卫 `server/test/mock-api-parity.test.mjs`）。
+**枚举（后端**不得漏**）——`role` 字段取值＝角色键（含 secretary / deputy-secretary / org-commissioner / prop-commissioner / disc-commissioner / leader / participant / party-staff / organizer / deep）**。
+**两种来源**：①**运行时派生**是常态——通知（`NoticeTodoDeriver`）/ 活动·专班生命周期（`LifecycleTodoDeriver`）/ 成员台参与（`VisitorTodoDeriver`）在业务动作发生时派生，**不落种子**；②**独立台账型种子**——`server/seed.js` 从 `docs/src/services/governance/todo.js::SEED_TODOS` **同源**播种 **2 条**（宣传委员「提交七一活动新闻稿」· 支书「设置第三党小组组长」；`sourceType:'manual'`、`sourceId:null`，不引用活动/任务/人员实体 ⇒ 零孤立引用）。⚠ `todos` 表**曾未播种**（API 形态首启「待办」恒空、靠前端空表回退 `SEED_FALLBACK` 顶替）；现与 mock 形态逐值一致（守卫 `server/test/mock-api-parity.test.mjs`）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:755-814`、`:818-856`。
 
 ### 4.20 通知扩展字段（通知 → 待办派生机制）
 
 > 在 §4.10 通知基础字段之上**追加**；`actionable=true` 时系统按 `actionRoles` 自动派生待办。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| actionable | boolean | 是 | 是否为行动性通知（默认 false） |
-| actionRoles | string[] | 否 | 需要执行的角色列表（actionable=true 时必填） |
-| actionTask | string | 否 | 待办任务标题（actionable=true 时必填） |
-| actionDeadline | string（YYYY-MM-DD） | 否 | 行动截止日期 |
-| readBy | string[] | 是 | 已读人员 ID 列表（用于未读名单查看，默认空数组） |
-| reminderDays | number | 是 | 自动提醒触发天数（默认 3） |
-| reminders | `Array<{type, sentAt, sentBy, targetPersonIds}>` | 是 | 提醒记录（auto / manual，默认空数组） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:822-832`。
 
@@ -1005,26 +773,13 @@
 
 > 活动 `archived=true` 时追加。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| archivedBy | string | 是 | 归档人 personId |
-| archivedAt | string（ISO） | 是 | 归档时间 |
-| materials | `Array<Material>` | 是 | 已归档材料清单（默认空数组） |
-| checklistResult | object \| null | 否 | 归档检查清单结果（默认 null） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:860-871`。
 
 ### 4.22 归档材料子结构（Material）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 材料 ID |
-| name | string | 是 | 文件名 |
-| type | `'image'\|'document'\|'video'\|'other'` | 是 | 文件类型 |
-| url | string \| null | 是 | 文件 URL（**阶段 2 后端支持时填充，当前示例形态为 null**） |
-| uploadedAt | string（ISO） | 是 | 上传时间 |
-| uploadedBy | string | 是 | 上传人 personId |
-| size | number \| null | 否 | 文件大小（字节） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:873-882`。
 
@@ -1032,20 +787,7 @@
 
 **对应服务端表**：`file_space_records`　**双模式**：mock 模式用 `fileData`（base64 本地）；server 模式用 `filePath`（磁盘路径，受保护静态下载 `/api/v1/uploads/:name`）。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 记录 ID |
-| activityId | string \| null | 否 | 关联活动 ID |
-| activityName | string | 否 | 关联活动名（快照冗余） |
-| category | `'新闻稿'\|'照片'\|'视频'\|'其他'` | 否 | 材料类别 |
-| fileName | string | 是 | 原始文件名（下载命名） |
-| fileSize | number | 是 | 文件字节数 |
-| filePath | string | 否 | server 模式下载路径（`/api/v1/uploads/xxx`） |
-| fileData | string | 否 | mock 模式 base64 dataURL（≤2MB 本地容量约束） |
-| status | `'archived'\|'in_progress'\|'pending'` | 否 | 归档状态 |
-| archiveDate | string（YYYY-MM-DD） | 否 | 归档日期 |
-| uploadedBy | string | 否 | 上传人 personId |
-| createdAt | string（ISO） | 否 | 创建时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **删除语义（防孤儿文件）**：server 模式删记录前会先删物理文件；mock 模式只删记录。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:885-906`、`:920-923`、`server/routes/resources/index.js:125-133`。
@@ -1054,13 +796,7 @@
 
 **对应服务端表**：`image_records`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 记录 ID |
-| filePath / fileData | string | 二选一 | 同 FileSpaceRecord 双模式 |
-| fileName | string | 是 | 文件名 |
-| fileSize | number | 是 | 字节数 |
-| uploadedBy / uploadedAt | string | 是 | 上传人 / 上传时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:910-915`。
 
@@ -1068,30 +804,9 @@
 
 **对应服务端表**：`branches`（**支部不预设名字**，由党委动态创建 / 改名）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 支部实例 ID。**形态 `/^br-[0-9a-f]{8}$/` 是测试断言契约**（示例种子为 `br-b1`），随机段长度勿改 |
-| name | string | 是 | 支部名称（党委命名；**仅 `party-staff` 可改**） |
-| type | string | 否 | 类型类别标签（**自由文本、不预设枚举**，如 本科生/硕士/博士） |
-| config | object | 是 | 支部配置档案（见下） |
-| secretaryId | string \| null | 否 | 现任支书 personId（由任命链维护；**访问支书工作台以本值为准**） |
-| status | `'active'` \| `'inactive'` | 是 | 支部状态（默认 `active`；**软停用＝`inactive`**——党委台「支部管理」可停用 / 恢复，**不物理删**、任期与成员档案保留） |
-| createdAt | string（ISO） | 是 | 创建时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **config 配置档案（子结构）**：
-
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| headerTitle | string | 是 | 页头品牌软编码（= name，改名自动同步） |
-| accent | string \| null | 否 | 支部主题色（默认 null＝党建红） |
-| desc | string | 否 | 支部自述（≤500 截断，默认空串） |
-| themePreset | string \| null | 否 | 主题预设 id（白名单 `red/green/sky/blue`；null＝默认党建红） |
-| modules | object \| null | 否 | 工作流模块配置：`{hiddenTabIds:[], tabOrder:[]}`——**null＝全开**；核心页签固定不可关、不参与排序 |
-| blocks | object \| null | 否 | 产出块 / 工作流块**显隐与顺序**：`{outputBlocks?:{hiddenBlockIds,blockOrder}, workflowBlocks?:{hiddenBlockIds,blockOrder}}`——null＝全开。⚠ `outputBlocks.blockOrder` **当前无 UI 写入口**（能力在、入口无）；**工作流块**的 `blockOrder` **已可配**（换组织向导第②步 ▲▼ 排序） |
-| workforce | object \| null | 否 | 模块分工归属：`{[moduleId]:{ownerType:'role'\|'person'\|'none', ownerId}}`——null＝缺省分工（按制度责任人列） |
-| policyOverrides | object \| null | 否 | 域参数覆盖：`{节:{叶:值}\|null}`——节白名单共 8 节：`inspection` / `memberConfirmation` / `leader` / `activityApproval` / `attendance` / `review` / `makeup` / `thoughtReport`（白名单单一源＝`docs/src/core/domain/policy-defaults.js::POLICY_OVERRIDABLE`，共 14 条叶项）；null＝恢复默认 |
-| configChangeHistory | array | 否 | 配置写留痕：`{by,at,what,from?,to?,why?}`——逐键 diff 追加，**保留最近 100 条**；单键可回滚、回滚再留一痕、历史不改写 |
-| fileSpaceIsolated | boolean | 是 | 支部文件 / 附件是否按支部隔离存储空间（默认 true） |
 
 **配置写权分层**见 §2.3.3；**配置写留痕上限** `CONFIG_HISTORY_MAX = 100`。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:929-953`、`server/routes/resources/index.js:12,306-444`、`docs/src/services/branch/config-clean.js`。
@@ -1100,15 +815,7 @@
 
 **对应服务端表**：`appointment_records`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 任期记录 ID，前缀 `appt` |
-| branchId | string | 是 | 所属支部 |
-| secretaryId | string | 是 | 被任命人 personId |
-| appointedBy | string | 是 | 任命方 personId（默认 `party-staff`） |
-| note | string | 否 | 任命说明（默认空串） |
-| from | string（ISO） | 是 | 任期开始时间 |
-| to | string（ISO）\| null | 是 | 任期结束时间（**null＝现任**；撤换时旧记录封口） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **任命即三写**：`branches.secretaryId` + 双方 `users.role` 同步 + 本记录封口/新建。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:958-967`。
@@ -1117,19 +824,7 @@
 
 **对应服务端表**：`review_requests`
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 上报记录 ID，前缀 `rq` |
-| branchId | string | 是 | 上报支部 |
-| type | `'develop-node'\|'activity-report'` | 是 | 上报类型：发展节点 / 活动报备 |
-| title | string | 是 | 事项标题 |
-| content | string | 是 | 事项说明（时间/对象/依据等） |
-| status | `'pending'\|'approved'\|'rejected'` | 是 | 审批状态（默认 `pending`） |
-| submittedBy | string | 是 | 提交人 personId（支书/副支书） |
-| decidedBy | string \| null | 否 | 审批人 personId（党委组织员，默认 null） |
-| decidedAt | string（ISO）\| null | 否 | 审批时间（默认 null） |
-| decisionNote | string | 否 | 审批意见（**驳回必填**；批准可附指导意见，默认空串） |
-| createdAt | string（ISO） | 是 | 提交时间 |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:972-985`、`server/routes/resources/gates.js:28,47-53`。
 
@@ -1137,14 +832,7 @@
 
 > 复用通知实体（**不新建「下发箱」领域**）；仅目标支部**支委层成员**可见。
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| source | `'committee'` | 是 | 来源标记：`committee`＝党委下发；缺省＝支部自发通知 |
-| audience | `'committee'` | 是 | 下发专用可见性过滤常量（**字符串**，表示「本支部支委层」；注意与 `actionRoles` 数组区分） |
-| branchId | string | 是 | 目标支部 |
-| branchName | string | 否 | 目标支部名快照（改名不使历史下发失联） |
-| publisher | string | 否 | 展示覆盖（如「院党委（组织员）」） |
-| recipients | string | 否 | 展示覆盖（如「支部委员会（支委层）」） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:990-1002`。
 
@@ -1152,17 +840,7 @@
 
 **对应服务端表**：`thought_reports`（**在通用资源映射内**，随快照写穿同步；建表动因之一是让系统通知能据表复算提交人）
 
-| 字段 | 类型 | 必填 | 说明 |
-|---|---|---|---|
-| id | string | 是 | 唯一标识符，前缀 `tr`（底层 `crypto.randomUUID()`） |
-| personId | string | 是 | 提交人 ID |
-| personName | string | 是 | 人员姓名**冗余快照**（展示一律现取权威源姓名，快照仅作历史留痕、不参与身份判定） |
-| title | string | 否 | 标题（默认「思想汇报」） |
-| period | string | 是 | **期次（季度）**，格式 `YYYY-Qn`；提交时手填、缺省或非法按 `submittedAt` 推导；同一人同一期次**允许多篇** |
-| content | string | 是 | 正文（trim 后存储） |
-| submittedAt | string（ISO） | 是 | 提交时间 |
-| reviewStatus | `'needs_revision'\|'archived'` | 是 | 审阅状态（**新提交即 `archived`**——提交即入库归档；`needs_revision` ＝被组织委员打回、待本人补充；读取侧归一：无此字段 / 非法值 / 旧的 `'pending'` 一律归 `archived`） |
-| reviewHistory | array | 否 | 审阅留痕（打回记录：`{decision:'reject',note,by,at}`；读取侧归一为数组，默认空数组） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **依据**：`content/04_web_design/data/DATA_MODEL.md:1007-1020`、`server/system-notice-kinds.js:63-80`。
 
@@ -1170,19 +848,7 @@
 
 **对应服务端表**：`users`（**支部成员主数据实体**：名册、应到、考勤、表决、通知受众、党小组归组的共同上游）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id | string | 主键（`p_<hex>` 或示例中 `p1`…`p50`） |
-| name | string | 姓名（**必填**） |
-| studentId | string | 学号；支部内唯一；**同时作为登录账号** |
-| enrollYear | string | 届别 / 入学年份（识别毕业批次；登记流入时采集） |
-| partyGroup | string | 党小组归属；**空字符串即「未分组」**（不属任何党小组） |
-| developStage | string | 发展阶段（枚举单一源 `DEVELOP_STAGES`＝积极分子 / 发展对象 / 预备党员 / 正式党员） |
-| role | string | 角色键（枚举单一源 `ROLE_KEYS`，见 §2.1） |
-| branchId | string | 所属支部 |
-| residenceStatus | string | 在册状态（枚举单一源 `RESIDENCE`＝`在校` / `滞留`；**未标注＝默认在校**） |
-| residenceNote | string | 滞留备注（仅滞留态保留） |
-| residenceHistory | array | 在册状态变更留痕（`{from,to,updatedBy,updatedAt,note?}`） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **服务端「移出」流程追加的字段（代码为准）**：`transferOut`（true＝已转出软标记，**登录与在途会话一律拒绝**）、`transferredOutAt`、`removedAt`、`removedBy`、`transferOutNote`；另有 `email`（**字段预留，示例数据中没有**，用于邮件通知收件人）。
 **行为口径（4 条）**：① 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`；② **新增成员即自动建号**（账号＝学号，口令＝支部统一默认口令），成员流出一并停用；③ 变更分流——姓名/学号/党小组**立即生效**，发展阶段/在册状态须走「组织委员发起 → 支书确认」确认链，**流出登记登记即生效、不走确认链**（其中「**积极分子 → 发展对象**」另设**支委会讨论前置门**：须先上会讨论通过才可发起，判据见 §3.4）；④ `partyGroup` 为空即未分组：党小组会应到**不含**，支部大会应到**照计**，表决名单**照计**。
@@ -1192,17 +858,7 @@
 
 **对应服务端表**：`party_groups`（由「成员档案字段的取值集合」升为**一等实体**）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id | string | 主键（服务端生成前缀 `pg`） |
-| branchId | string | 所属支部（**支部级清单**，各支部各一份） |
-| name | string | 组名；新增默认「第 N 党小组」（N 由 seq 派生），可改名；**同一支部内唯一** |
-| seq | number | 序号（排序与默认命名用） |
-| status | string | `active` / `dissolved` |
-| createdAt / createdBy | string | 成立时间与经手人 |
-| dissolvedAt / dissolvedBy | string | 解散时间与经手人 |
-| note | string | 备注（解散原因等） |
-| history | array | 变更留痕（新增 / 改名 / 解散 / 组长变更） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **行为口径**：写权＝支书 + 副支书；**解散**允许解散非空组（组内成员 `partyGroup` 批量置空 + status 置 dissolved + 留痕）；**改名**同步批量改写组内成员档案；**组长不落本实体**（由成员档案 `role='leader'` + 党小组归属派生）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:1050-1071`、`server/routes/resources/gates.js:33`。
@@ -1211,17 +867,7 @@
 
 **对应服务端表**：`member_flows`（**流入 / 流出的复式记账**）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id | string | 主键（服务端生成前缀 `mf`） |
-| branchId | string | 所属支部 |
-| direction | string | `in`（流入）/ `out`（流出） |
-| personId | string | 关联成员档案 id |
-| name / studentId / enrollYear | string | 登记时快照（人档案变更后仍可回看当时口径） |
-| date | string | 流动发生日期 |
-| operatorId | string | 登记人 |
-| note | string | 备注（毕业去向、转入来源等自由文本） |
-| revokedAt / revokedBy | string | 撤销留痕（撤销后不计入对账） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **对账恒等式**：期初在册 + 流入合计 − 流出合计 ＝ 当前在册（台账页表头固定展示该对账行）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:1074-1098`、`server/routes/resources/gates.js:35`。
@@ -1230,13 +876,7 @@
 
 **对应服务端表**：`issue_reveals`（**仅服务端表**：无前端持久化域、不进快照写穿、**无通用 CRUD**）
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| id | string | 主键（`reveal-<8 位随机>`） |
-| by | string | 查看人 personId |
-| byRole | string | 查看人角色键（**恒为 `party-staff`**；非党委请求在路由层已 403，不会留下记录） |
-| at | string | 查看时间（ISO） |
-| revealedIds | string[] | 本次查看命中的**匿名**反馈 id 列表（实名条目真身本就公开，不计入） |
+> 字段级清单见母本 `content/04_web_design/data/DATA_MODEL.md`（本文不复刻）。
 
 **表只增不改**：写入唯一入口＝`GET /api/v1/issues/reveal`（命中即写一条，与返回值同一次发生）。
 **依据**：`content/04_web_design/data/DATA_MODEL.md:1102-1120`、`server/routes/resources/index.js:552-573`、`server/db.js:37-41`。
@@ -1853,7 +1493,7 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 1. **不做无出处的断言**：本文所有「现状」均给出 `文件:行号`；凡证据不足者写明「未取证」（§5.1 编译工具、§5.3 `AI_API_BASE_URL`、§7.3#22）。
 2. **不合并冲突口径**：文档与代码不一致处**并列呈现**。此前并列过的两例——部署文档「32 资源表」对代码 35 张、部署文档「Node 18+」对根说明 ≥ 22——**已把文档侧改准、不再并列**；**新发现的冲突仍按本条并列登记于 §7.3**。
 3. **区分「制度要求」与「系统实际」**：如「副组长」（§7.2#17）、「系列活动」（§7.2#9）、「数据交接」（§7.2#15）。
-4. **本文档为说明件，不是契约**：接口与字段的最终判定以**代码与测试**为准（守卫见 `server/test/doc-consistency.test.mjs`、`server/test/link-integrity.test.mjs`、`server/test/catalog-sync.test.mjs`）。
+4. **本文档为说明件，不是契约**：接口与字段的最终判定以**代码与测试**为准（守卫见 `server/test/doc-consistency.test.mjs`、`server/test/link-integrity.test.mjs`、`server/test/catalog-sync.test.mjs`）。**字段级清单的唯一权威源是母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 只作**指针 ＋ 后端增量**（§4.0：服务端专有表 ＋ 来源 C 字段 ＋ 行为口径）。
 
 ---
 
