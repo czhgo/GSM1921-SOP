@@ -10,20 +10,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261004d';
-import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261004d';
+import { PEOPLE } from '../../docs/src/data/mock/people.js?v=20261004e';
+import { POLICY_DEFAULTS } from '../../docs/src/core/domain/policy-defaults.js?v=20261004e';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原分别在 roster.js 与
 //   org-base-data-preview.js 各写一份同值字面量；现全站唯一源，结构层唯一性守卫见
 //   person-consistency.test.mjs S4）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261004d';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261004d';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261004e';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261004e';
 import {
   getMeetingRosterIds, getRosterStats,
-} from '../../docs/src/services/member/roster.js?v=20261004d';
+} from '../../docs/src/services/member/roster.js?v=20261004e';
 import {
   buildPreviewTemplate, sanitizePreview, applyPreview, clearPreview, getPreviewState,
   PREVIEW_KIND, PREVIEW_VERSION, PREVIEW_KEY, BASE_FIELDS, MEMBER_IDS,
-} from '../../docs/src/services/branch/org-base-data-preview.js?v=20261004d';
+} from '../../docs/src/services/branch/org-base-data-preview.js?v=20261004e';
 
 // ── localStorage 内存桩（import 之后、用例之前建立即可：两服务均在函数体内 typeof 守卫惰性访问）──
 const _store = new Map();

@@ -65,9 +65,9 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004d');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004e');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -80,16 +80,16 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await openActivityDetail(lead);
   const types = await addBtnTypes(lead);
   // D7 裁决批二（2026-09-08）：考勤/考察子记录只读化（无 + 添加/删除，双写口消除——
-  // 统一走「考勤上传」「考察上传」页；专班详情只读化先例同款），仅宣传/材料保留写口。
+  // 统一走「考勤管理」「考察管理」页；专班详情只读化先例同款），仅宣传/材料保留写口。
   assert.ok(!types.includes('publicity'), '宣传块已隐藏');
   assert.ok(types.includes('materials'), '材料块保留添加');
   assert.ok(!types.includes('attendance') && !types.includes('inspection'), '考勤/考察已只读（无添加按钮）');
-  const roHint = await lead.evaluate(() => document.body.textContent.includes('考勤请到「考勤上传」录入'));
-  assert.ok(roHint, '考勤只读引导文案可见（去「考勤上传」录入）');
+  const roHint = await lead.evaluate(() => document.body.textContent.includes('考勤请到「考勤管理」录入'));
+  assert.ok(roHint, '考勤只读引导文案可见（去「考勤管理」录入）');
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004d');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004e');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

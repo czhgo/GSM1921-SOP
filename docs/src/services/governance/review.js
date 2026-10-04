@@ -5,15 +5,15 @@
 //  P1-4 修复（2026-08-02）：复盘记录接入 mockDB 持久化层，刷新不再丢失
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261004d';
-import { persist } from '../../data/data-adapter.js?v=20261004d';
-import { bumpToken } from '../../core/base/version-token.js?v=20261004d'; // P0 域缓存失效（spec §二.3）
-import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261004d';
-import { ACTIVITIES } from '../../data/mock/activities.js?v=20261004d';
-import { getPersonName } from '../member/person.js?v=20261004d';
-import { loadActivities } from '../activity/activity.js?v=20261004d';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261004d';
-import { generateId } from '../../core/base/id.js?v=20261004d';
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261004e';
+import { persist } from '../../data/data-adapter.js?v=20261004e';
+import { bumpToken } from '../../core/base/version-token.js?v=20261004e'; // P0 域缓存失效（spec §二.3）
+import { REVIEW_RECORDS, TASKFORCE_REVIEW_RECORDS } from '../../data/mock/index.js?v=20261004e';
+import { ACTIVITIES } from '../../data/mock/activities.js?v=20261004e';
+import { getPersonName } from '../member/person.js?v=20261004e';
+import { loadActivities } from '../activity/activity.js?v=20261004e';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261004e';
+import { generateId } from '../../core/base/id.js?v=20261004e';
 
 /** 读取活动复盘记录（mock 常量兜底，写入后以 mockDB 为准） */
 export function loadActivityReviews() {

@@ -2081,3 +2081,46 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - ⚠ **`copy-screen-guard` 收基线 1 条**（`disc::知情查看`）：进度前进、非放宽（M2 的 >12 判红与 M3 僵尸检查一字未动）。
 - ⚠ **戳 `20261004c → 20261004d`**；`ACTIVE_RULINGS` 未投影（`D-744`…`D-758`，待专批）。
 - ⇒ **批次 369 起继续**（组长 → 成员 → 支书 → 党委 → 全站收口）。
+
+## 批次 369（2026-10-04，`#10` 全站分期**第四台**：党小组长台 · 支书圈甲）
+
+**任务**：承批次 368「逐台铺开」⇒ 本批＝党小组长台。出表前核查出三处待办：**(a)** 「考勤上传」/「考察上传」＝**动作轴**（与同组「活动管理 / 组员进展」对象轴混轴）· **(b)** 与纪检台「考勤管理 / 考察管理」＝**同域两轴两名**（`D-754` 体检表体检出）· **(c)** `活动日历` 仍挂「知情查看」组。⇒ 把 **(a)(b)** 合成一题送支书，获**甲：组长台改名「考勤管理 / 考察管理」**。
+
+### 一、三项落地（＋ 批次 366 遗留收口）
+
+| # | 事项 | 改法 |
+| --- | --- | --- |
+| ① | 两个页签改名 | `leader-workspace.js` 的 `attendance` / `inspection` 两个 `label` 由「考勤上传 / 考察上传」改 **「考勤管理 / 考察管理」**（对象轴；**与纪检台逐字同名**）；**页内 h3 同步改名**；**「上传」作为页内动作保留**（表单 / 按钮 / toast 一字未动）；两文件头注改准 |
+| ② | `活动日历` 归「工作台」组 | `leader-workspace.js` 中 `calendar` 的 `groupLabel` 由 `知情查看` 改 **`工作台`**，把注册行**上移到 `overview` 之后** |
+| ③ | `知情查看` 按下游派生 | `leader/tf-view-tab.js` 载 `insight-view` ＋ `work-map` ＋ `branch` ＋ `auth`，`downstreamViewSegments` 派生（组长下游＝党小组会 / 主题党日 / 共建活动 ⇒ **全映射 `activity`**）＋ 空集回退 ⇒ 本台只出「活动」段（默认段由「专班」变「活动」） |
+| ④ | **批次 366 遗留三处＋一处真缺陷** | `org/taskforce-tab.js` 引导句改「组织台『人才库』页底『录入考察』」；`org/todo-tab.js` 的 `-org-tab="inspection"` → `talent`（**原为空操作**：该页签已并入人才库）、toast 与 `tabLabels.review` 同步改准 |
+
+### 二、台账 / 判据面同源改准（5 处 ＋ 两件 e2e）
+
+- `docs/help.html`：§0.1 角色行（「考勤 / 考察上传」→「考勤 / 考察管理」）＋ §2.5 标题与**整表重排**（`活动日历` 列「工作台」段第 4 位、两个页签改名、知情查看行改「只出『活动』段」）＋ **6 处**引用／卡片标题改准（含「考勤管理 · 上传」「考察管理 · 上传」两枚卡片标题）＋ 一处「支书 / 组长 / 纪检『知情查看』的『专班』分段」**去掉组长**。
+- `README-server.md`：§3.2.5 **整表重排** ＋ 特例段「两个页签」改名 ＋ `leader-workspace.js:17-23,73-76` → **`81-83`** 行号改签。
+- `docs/workspace/leader.html`：页头副标题「活动管理 · 考勤管理 · 考察管理 · 组员进展」。
+- `docs/src/core/domain/function-catalog.js`：`ws-leader` 描述（10 tab 清单）。
+- `docs/src/entries/tabs/**` 另 4 处引用改准（`leader/write-tab.js` 只读引导 · `visitor/activities-tab.js` 组织者入口标签 · `disc/attendance-tab.js` 上传位说明 · `org/inspection-tab.js` 导语）。
+- `server/test/form-loop-registry.mjs`：**5 条** `MACHINE_FLOWS.tab` 改「考勤管理 / 考察管理」；`inspection-loop-e2e.test.mjs`（`loginAs` 默认页签 ＋ 用例名）与 `block-canvas-e2e.test.mjs`（只读引导断言文案）同批改准。
+- `server/test/copy-screen-guard.test.mjs`：屏幕键随标签改；**收基线**——删 `leader::知情查看`（其分段改后实测**已 ≤12**）。
+- `.ctx/TIMESTAMPS.md` 九行日期（`leader-workspace` · `leader/attendance-tab` · `leader/inspection-tab` · `leader/tf-view-tab` · `leader/write-tab` · `visitor/activities-tab` · `org/todo-tab` · `org/taskforce-tab` · `disc/attendance-tab`）。
+
+### 三、收尾（覆盖分片）
+
+- `SWEEP_SHARD=3; npm test`（leader 所在片，与 disc 同片）：**806 / 806 / 0 红**（`EXIT=0`）。
+- `copy-screen-guard` 另**单件实跑**：**首跑 1 红** ＝ `M3` 僵尸检查「`leader::知情查看` 已 ≤12 应从基线删条目」⇒ **同批删条目**后 **11/11 绿**。
+
+### 四、真机取证（起 3000 服务 ＋ 内置 Chromium · `?dev=leader`）
+
+- 组长台页签 **10 个**（今天 / 待办 / 工作概况 / **活动日历**（「工作台」段第 4 位）/ 活动管理 / **考勤管理** / **考察管理** / 组员进展 / 知情查看 / 我的处置）；页头副标题同名。
+- 「考勤管理」页 h3 ＝「考勤管理」；「知情查看」**只出 `['活动']` 段**（H3「活动查看」）。
+- **新标签页 `pageerror` 0**（仅 CDN 字体请求被拦，非页面错误）。
+
+### 五、如实登记
+
+- ⚠ **页内动作文案保留「上传」**：toast（`考勤上传：新增 N 条…` / `考察上传成功…`）与按钮一字未动——页名管对象、页内管动作。
+- ⚠ **母本 / 职责表述未动**（组长侧 `党小组组长工作手册` 的「组织者上传」等）。
+- ⚠ **`copy-screen-guard` 收基线 1 条**（`leader::知情查看`）：进度前进、非放宽。
+- ⚠ **戳 `20261004d → 20261004e`**；`ACTIVE_RULINGS` 未投影（`D-744`…`D-759`，待专批）。
+- ⇒ **批次 370 起继续**（成员 → 支书 → 党委 → 全站收口）。

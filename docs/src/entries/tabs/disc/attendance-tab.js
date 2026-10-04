@@ -12,38 +12,38 @@
 //   - 活动无上限 → 必须提供活动筛选（含时间区间）便于考察
 //   - 条目不得使用浅色底板（支书反感）→ 白底 + 左侧状态色条
 
-import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261004d';
-import { generateId } from '../../../core/base/id.js?v=20261004d';
-import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20261004d';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004d';
+import { AttendanceStatus, ATTENDANCE_STATUS_LABELS } from '../../../core/domain/domain.js?v=20261004e';
+import { generateId } from '../../../core/base/id.js?v=20261004e';
+import { attendanceToLong, loadAttendanceRecords, loadActiveAttendanceRecords, saveAttendanceRecords, canUploadAttendance, upsertMeetingAttendance, MEETING_ATTENDANCE_TYPES as MEETING_TYPES, ABSENCE_REASONS, absenceReasonLabel, absenceReasonNote, recorderRolesOf, listGroupMeetingAttendance, loadAttendanceAppeals, returnAttendanceAppeal, closeAttendanceAppeal, returnAttendanceRecord, summarizeAttendanceByActivity, isAttendanceHomePosition } from '../../../services/activity/attendance.js?v=20261004e';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004e';
 // S1–S4 滞留党员设计（2026-09-06 支书已批）：会议考勤「应到清点/全选范围」= 应到名单口径
 // （党员 正式+预备 且非滞留；滞留者「可见但禁用」、党课列席不计应到），不再全支部 50 人候选
 // 附录⑩ A批·S1（2026-09-06 支书裁定）：滞留线下到场可「到场补录」计入到席（实际应到=预应到 K + 补录 L）
-import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261004d';
-import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261004d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004d';
+import { getMeetingRoster, getRosterStats, getMeetingRosterCandidates } from '../../../services/member/roster.js?v=20261004e';
+import { solidAccentStyle, ROLE_LABELS, isActivityArchived, isActivityLive } from '../../../core/domain/constants.js?v=20261004e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004e';
 // SOP-B-2（D-288）：考勤候选默认选中「已通过报名者」——报名名单的来源单一源 = SignupStore
-import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261004d';
-import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261004d';
-import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261004d';
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004d';
-import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261004d';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004d';
+import { getApprovedSignupPersonIds } from '../../../services/activity/signup.js?v=20261004e';
+import { autoGenerateMakeupTask } from '../../../services/activity/makeup.js?v=20261004e';
+import { TodoStore, TodoSourceType } from '../../../services/governance/todo.js?v=20261004e';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261004e';
+import { enhanceSelects } from '../../../components/ui/custom-select.js?v=20261004e';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261004e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
 // pagerHtml = 翻页控件单一源（批次 38：全站手写翻页一律并轨；叶子件，避免与矩阵相互成环）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004d';
-import { pagerHtml } from '../../../components/ui/pager.js?v=20261004d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004e';
+import { pagerHtml } from '../../../components/ui/pager.js?v=20261004e';
 // 人×项目矩阵单一源（支书 2026-09-14 批次 35 裁定：宽表默认 + 矩阵推广）
-import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261004d';
-import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004d';
-import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261004d';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261004d';
-import { AuthStore } from '../../../services/core/auth.js?v=20261004d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004d';
+import { renderRelationMatrix } from '../../../components/ui/relation-matrix.js?v=20261004e';
+import { showToast, downloadCSV, triggerPrint, _fmtDate, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004e';
+import { DISC_COMMISSIONER_ID } from './_shared.js?v=20261004e';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261004e';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004e';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261004d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261004e';
 // 「补课」分段整段复用原独立 tab 的渲染（2026-09-15 支书裁定：补课并入考勤管理，内部逻辑不改写）
-import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261004d';
+import { renderContent as renderMakeupContent } from './makeup-tab.js?v=20261004e';
 
 const PAGE_SIZE = 20; // 分页铁律：全量总表每页 20 条
 let _page = 1;        // 模块级分页状态（随模块自持）
@@ -754,7 +754,7 @@ function _buildMeetingCardHTML(ctx, accent, accentBorder, actById) {
         <h3 class="font-title-cn text-base font-semibold text-gray-800">会议考勤录入（党课 / 支部党员大会：纪检上传位）</h3>
         ${toggleBtn}
       </div>
-      <p class="text-xs text-gray-500 mb-1"><b>上传位按会议类型分</b>：<b>党课 / 支部党员大会＝纪检委员</b>（本卡即其承载面）· <b>党小组会 / 组织生活会 / 主题党日＝该场活动组织者</b>（组长台「考勤上传」）· <b>支委会不考勤</b>。</p>
+      <p class="text-xs text-gray-500 mb-1"><b>上传位按会议类型分</b>：<b>党课 / 支部党员大会＝纪检委员</b>（本卡即其承载面）· <b>党小组会 / 组织生活会 / 主题党日＝该场活动组织者</b>（组长台「考勤管理」）· <b>支委会不考勤</b>。</p>
       <details class="mb-3">
         <summary class="text-xs text-gray-500 cursor-pointer select-none">上传位口径与应到计算规则 ▾</summary>
         <div class="text-[11px] text-gray-500 leading-5 mt-1.5 space-y-1">

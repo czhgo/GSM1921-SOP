@@ -31,7 +31,7 @@ after(async () => {
   }
 });
 
-async function loginAs(sid, ws, tab = '考察上传') {
+async function loginAs(sid, ws, tab = '考察管理') {
   const page = await browser.newPage();
   await page.route('**://fonts.googleapis.com/**', (r) => r.abort());
   await page.route('**://fonts.gstatic.com/**', (r) => r.abort());
@@ -45,7 +45,7 @@ async function loginAs(sid, ws, tab = '考察上传') {
   ]);
   await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 20000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004d')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004e')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await page.evaluate((label) => {
     const b = [...document.querySelectorAll('button[role="tab"]')].find((x) => x.textContent.includes(label));
     b?.click();
@@ -70,7 +70,7 @@ const READ_TOTAL = () => {
   return document.querySelectorAll('#insp-list-host tbody tr').length;
 };
 
-test('组长台·考察上传：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
+test('组长台·考察管理：点选后「关面板即已选」也必须出现逐人填写框；改选不丢已填内容；提交落库', async () => {
   const page = await loginAs('2400012345', 'leader');
   try {
     await page.evaluate(() => document.getElementById('btn-leader-upload-insp')?.click());

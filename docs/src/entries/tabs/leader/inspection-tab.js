@@ -1,25 +1,25 @@
 // role: [工程师]+[AI]
-// 组长工作台 Tab：考察上传（T-279 M2 拆分）
+// 组长工作台 Tab：考察管理（T-279 M2 拆分；2026-10-04 批次 369 页签名由「考察上传」改「考察管理」——对象轴，与纪检台同名同轴）
 // 党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。
 
-import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261004d';
-import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261004d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004d';
+import { loadInspectionRecords, saveInspectionRecords, canUploadInspection } from '../../../services/activity/inspection.js?v=20261004e';
+import { loadInspectionAppeals, reconfirmReturnedInspectionRecord, resolveInspectionAppeal, isInspectionHomePosition } from '../../../services/activity/inspection.js?v=20261004e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004e';
 // 待批活动的可见性单一源（2026-09-22 批次 151）：组长台为非支委层 ⇒ 待批活动不进本页来源下拉
-import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261004d';
-import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261004d';
-import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004d';
+import { filterActivitiesForViewer } from '../../../services/core/visibility.js?v=20261004e';
+import { TaskForceRecordStore } from '../../../services/activity/taskforce.js?v=20261004e';
+import { PersonPicker } from '../../../components/governance/pickers.js?v=20261004e';
 // 「本位」nudge 确认弹窗（2026-09-23 支书裁定 · 单一源 = components/ui/modal.js::confirmNudge）
-import { confirmNudge } from '../../../components/ui/modal.js?v=20261004d';
-import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261004d';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004d';
-import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261004d';
-import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004d';
-import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261004d';
-import { currentLeaderGroup } from './_shared.js?v=20261004d';
-import { generateId } from '../../../core/base/id.js?v=20261004d';
+import { confirmNudge } from '../../../components/ui/modal.js?v=20261004e';
+import { inspectionToLong } from '../../../services/activity/inspection.js?v=20261004e';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004e';
+import { SourceType, ParticipationLevel } from '../../../core/domain/domain.js?v=20261004e';
+import { showToast, escHtml as esc, getBasePath } from '../../../core/base/utils.js?v=20261004e';
+import { solidAccentStyle, accDarkVars } from '../../../core/domain/constants.js?v=20261004e';
+import { currentLeaderGroup } from './_shared.js?v=20261004e';
+import { generateId } from '../../../core/base/id.js?v=20261004e';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004d';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004e';
 
 // 私有状态（随模块自持，不污染入口）
 let _inspFormVisible = false;
@@ -116,7 +116,7 @@ export function renderContent(ctx) {
   container.innerHTML = `
     <div class="card rounded-xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察上传</h3>
+        <h3 class="font-title-cn text-base font-semibold text-gray-800">考察管理</h3>
         <button class="btn-md" id="btn-leader-upload-insp" style="${_accVars}background:${accentRgba};color:color-mix(in srgb, ${accent} 60%, #000);border:1px solid ${accentBorder};">${_inspFormVisible ? '收起表单' : '上传考察表单'}</button>
       </div>
       <div class="text-xs text-gray-500 mb-3">党小组活动考察：组织者上传 → 纪检委员确认 → 录入考察总表。只列本组党小组会与本人组织的活动（其余归该活动组织者上传，组长为监督位）。专班考察见组织台「考察上传」。</div>

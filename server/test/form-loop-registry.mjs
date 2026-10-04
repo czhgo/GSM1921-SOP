@@ -885,7 +885,8 @@ export const MACHINE_FLOWS = [
   {
     id: 'leader-inspection',
     page: 'leader',
-    tab: '考察上传',
+    // 2026-10-04 批次 369（`#10` 单一轴 · 支书圈甲）：页签名由「考察上传」改「考察管理」（对象轴，与纪检台同名同轴）
+    tab: '考察管理',
     open: [
       { click: '#btn-leader-upload-insp' },
       { waitFor: '#insp-form-panel' },
@@ -942,7 +943,8 @@ export const MACHINE_FLOWS = [
     // 47-D 侦察确认「进入表单态」有确定的真机路径：点 `#btn-leader-upload-att` → `#att-form-panel` 入 DOM。
     id: 'leader-attendance-upload',
     page: 'leader',
-    tab: '考勤上传',
+    // 2026-10-04 批次 369：页签名由「考勤上传」改「考勤管理」
+    tab: '考勤管理',
     open: [
       { click: '#btn-leader-upload-att' },
       { waitFor: '#att-form-panel' },
@@ -1157,7 +1159,7 @@ export const MACHINE_FLOWS = [
     //   只要「选了活动 + 选了人」逐人状态行就会渲染出批量工具栏（`_renderAttStatusRows` 由 onSelect 驱动）。
     id: 'leader-attendance-batch-status-empty',
     page: 'leader',
-    tab: '考勤上传',
+    tab: '考勤管理',
     open: [
       { click: '#btn-leader-upload-att' },
       { waitFor: '#att-form-panel' },
@@ -1693,7 +1695,7 @@ export const SUCCESS_FLOWS = [
     // 判据：点「应用到全部」后，**逐人下拉真的被改写**（不是只弹个 toast）。
     id: 'leader-attendance-batch-status',
     page: 'leader',
-    tab: '考勤上传',
+    tab: '考勤管理',
     open: [
       { click: '#btn-leader-upload-att' },
       { waitFor: '#att-form-panel' },
@@ -2112,7 +2114,7 @@ export const SUCCESS_FLOWS = [
     //   取 2 人必在本组内 ⇒ 本组可见明细**稳定 +2**。**「涨了几」由产品语义决定，选哪一项要按这个语义去选。**
     id: 'leader-attendance-upload-submit',
     page: 'leader',
-    tab: '考勤上传',
+    tab: '考勤管理',
     open: [
       { click: '#btn-leader-upload-att' },
       { waitFor: '#att-form-panel' },

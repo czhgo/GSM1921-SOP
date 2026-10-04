@@ -6,19 +6,19 @@
 //     （org-commissioner:member-approve，议程派生审批=通过）+ 「考察」域交接行「确认接收」；
 //   · org 无队列顶卡：仅保留页顶补课发起小操作条（非队列卡，发起闭环不丢）。
 
-import { showToast, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261004d';
-import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261004d';
-import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261004d';
-import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261004d';
-import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261004d';
-import { HandoffStore } from '../../../services/governance/handoff.js?v=20261004d';
-import { PersonStore } from '../../../services/member/person.js?v=20261004d';
-import { loadActivities } from '../../../services/activity/activity.js?v=20261004d';
-import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261004d';
-import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261004d';
+import { showToast, flashHighlight, getBasePath } from '../../../core/base/utils.js?v=20261004e';
+import { createTodoTab, createUrgeController } from '../../../components/record/todo-tab-shell.js?v=20261004e';
+import { tryDirectJump } from '../../../components/record/todo-jump.js?v=20261004e';
+import { REALTIME_GROUP_DOMAIN, buildDevelopNodeRemindGroup, buildHalfYearInspectionRemindGroup } from '../../../services/governance/todo.js?v=20261004e';
+import { SecretaryTodoDeriver } from '../../../services/governance/secretary-overview.js?v=20261004e';
+import { HandoffStore } from '../../../services/governance/handoff.js?v=20261004e';
+import { PersonStore } from '../../../services/member/person.js?v=20261004e';
+import { loadActivities } from '../../../services/activity/activity.js?v=20261004e';
+import { loadInspectionRecords } from '../../../services/activity/inspection.js?v=20261004e';
+import { preloadMemberChangeRequests, getCachedMemberChangeRequests, buildMcBulkRows, renderMcBulkRowsHtml, bindMcBulk } from '../../../components/governance/member-change-panel.js?v=20261004e';
 // 发展推进「进入当前阶段日期」读口：单一源＝成员档案字段 `developStageSince`（2026-09-28 服务端化，
 // 原为本机键 gsm1921-dev-stage-overrides；读口形状不变）
-import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261004d';
+import { loadStageEntryDates } from '../../../services/member/member-confirmation.js?v=20261004e';
 
 // ── 逐条催办（SOP-B-29 / D-391 · 2026-09-18 批次 88）────────────────────────
 // **主位在组织委员**：材料催缴与审核督办归组织委员（母本《常见工作场景快速指南》:369），
@@ -64,10 +64,12 @@ function _handleTodoAction(todo, ctx) {
     showToast('info', '已跳转到成员名册，请办理期满成员的下一节点');
     return;
   }
-  // half-year-inspection-remind 实时组（SOP-B-39 · D-295）：半年考察提醒 → 直达「考察上传」核对建档
+  // half-year-inspection-remind 实时组（SOP-B-39 · D-295）：半年考察提醒 → 直达「人才库」页底折叠区「录入考察」核对建档
+  // ⚠ 2026-10-04 批次 369：原指向 `inspection` 页签——该页签已由**批次 366（`#10` 甲档）并入「人才库」页底折叠区**
+  //   ⇒ 该跳转此前为**空操作**（selector 找不到按钮）＋ toast 文案仍写旧页签名，同批改准。
   if (actionKey === 'half-year-inspection-remind') {
-    document.querySelector('.org-tab-btn[data-org-tab="inspection"]')?.click();
-    showToast('info', '已跳转到考察上传，请核对本半年考察意见（建档与核对归组织委员）');
+    document.querySelector('.org-tab-btn[data-org-tab="talent"]')?.click();
+    showToast('info', '已跳转到人才库，请在页底「录入考察」核对本半年考察意见（建档与核对归组织委员）');
     return;
   }
   // 根据 actionType 跳转到对应 tab
@@ -75,7 +77,7 @@ function _handleTodoAction(todo, ctx) {
   //   逐人办理（如期满节点）走 `develop-node-remind` 分支直达**个人总表**（阶段变更的写入位）。
   const tabMap = {
     authorize: 'taskforce',
-    review: 'inspection',
+    review: 'talent', // ⚠ 批次 369 改准：原 `inspection` 页签已由批次 366 并入「人才库」（页底「录入考察」折叠区）
     track: 'talent',
   };
   const targetTab = tabMap[todo.actionType];
@@ -87,7 +89,7 @@ function _handleTodoAction(todo, ctx) {
       const tfCard = document.querySelector(`.tf-store-card[data-tf-id="${todo.sourceId}"]`);
       if (tfCard) tfCard.click();
     }
-    const tabLabels = { authorize: '专班管理', review: '考察上传', track: '人才库' };
+    const tabLabels = { authorize: '专班管理', review: '人才库', track: '人才库' };
     showToast('info', `已跳转到${tabLabels[todo.actionType] || '对应功能'}，请处理：${todo.title}`);
   } else {
     showToast('info', `请处理：${todo.title}`);
