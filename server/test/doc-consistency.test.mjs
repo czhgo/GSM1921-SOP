@@ -896,8 +896,10 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   const rAll = new Set([...rIds, ...migratedIds]);
   assert.ok(rAll.size >= 65, `R-NN 全集只解析到 ${rAll.size} 个（乙部在办表 ∪ 迁出附节；下限 65）：迁出附节被删或写法变了`);
   const rNums = [...rAll].map((s) => Number(s.slice(2))).sort((a, b) => a - b);
-  assert.ok(rNums[0] === 23 && rNums[rNums.length - 1] === 91,
-    `R-NN 编号区间应为 23…91，实为 ${rNums[0]}…${rNums[rNums.length - 1]}：编号被删或被改`);
+  // 上限 91 → 92：2026-10-05 批次 384 在乙部在办表**新增一条 `R-92`**（「去重先于续跑」）⇒ 上限随实况改准。
+  // ⚠ 属「追实况」而非放宽语义：下限 23 与「全集 ≥65」未动，编号被删/被改仍会判红。
+  assert.ok(rNums[0] === 23 && rNums[rNums.length - 1] === 92,
+    `R-NN 编号区间应为 23…92，实为 ${rNums[0]}…${rNums[rNums.length - 1]}：编号被删或被改`);
 
   // ③ 角色键「列举式」说明（括注写「含 …」＝非穷举）：**不判穷举**，只登记处数（防被当成穷举清单读）。
   const rs = read(README_SERVER);
