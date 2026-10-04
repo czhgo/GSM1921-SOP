@@ -19,10 +19,10 @@
 //    **不落 hex**。
 // ════════════════════════════════════════════════════════════════
 
-import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261004k';
-import { AuthStore } from '../../services/core/auth.js?v=20261004k';
-import { showToast } from '../../core/base/utils.js?v=20261004k';
-import { getPersonName } from '../../services/member/person.js?v=20261004k';
+import { IssueStore, IssueNotify, REPORT_CATEGORIES } from '../../services/governance/issues.js?v=20261004l';
+import { AuthStore } from '../../services/core/auth.js?v=20261004l';
+import { showToast } from '../../core/base/utils.js?v=20261004l';
+import { getPersonName } from '../../services/member/person.js?v=20261004l';
 
 /** 当前用户未读汇报数（「支书请我汇报」＋「支书答复发回」） */
 function _unreadCount() {

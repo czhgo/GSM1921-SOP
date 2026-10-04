@@ -642,9 +642,9 @@ function enumCount(line) {
 
 test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代码 / 数据的实然值', async () => {
   const problems = [];
-  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261004k');
-  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261004k');
-  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261004k');
+  const { WORK_MAP_MODULES } = await import('../../docs/src/core/domain/work-map.js?v=20261004l');
+  const { sopDatabase } = await import('../../docs/src/workflow/sopData.js?v=20261004l');
+  const { ROLE_KEYS, ROLE_LEGACY_KEYS } = await import('../../docs/src/core/domain/constants.js?v=20261004l');
   const { SYSTEM_NOTICE_KIND_NAMES } = await import('../system-notice-kinds.js');
 
   /** 对账一条：`got` 为文档里抽出的数（null＝抽不出，判红并提示是判据失效而非「文档错」） */
@@ -853,12 +853,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   assert.deepEqual(problems, [],
     `文档里的「枚举 / 计数」与代码 / 数据实然值不符（口径：**以代码 / 数据实然值为准**）：\n  ${problems.join('\n  ')}`);
   // 非空转：实然值本身不得为 0 / NaN（否则公式写坏，断言会变成恒真）
+  // ⚠ 例外（2026-10-05 批次 378）：**「队列在册」的真值现在就是 0**——`SOP-B-*` 系列已全清
+  //   （末条 `SOP-B-25` 落地、移出在册）⇒ 该项**允许 0**（`allowZero`）。解析式写坏仍会被上方
+  //   `rowSums.length >= 10`（逐条归组表行数下限）与 `sumLine` 抽不出数 两种方式判红，
+  //   故此处不靠 `> 0` 防恒真。**属「改判据以追真实值」、非放宽语义**——⏳ **待支书核可**。
   [['支部分工模块数', modReal], ['内置场景数', sopDatabase.scenarios.length], ['角色键数', totalReal],
     ['拟上会类数', agendaReal], ['ACTIVE_RULINGS 口径行', arLines], ['决策日志条目', dReal],
     ['页面数', rootsN + wsN], ['资源表数', dbTables], ['通知 kind 数', kindReal],
-    ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列在册', qReal],
+    ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列在册', qReal, true],
     ['真机台账校验点', vEntries.length], ['真机台账真机流程', flowsReal],
-  ].forEach(([k, v]) => assert.ok(Number.isFinite(v) && v > 0, `S14 的实然值「${k}」＝${v}：解析式写坏了，断言会变成恒真`));
+  ].forEach(([k, v, allowZero]) => assert.ok(Number.isFinite(v) && (allowZero ? v >= 0 : v > 0), `S14 的实然值「${k}」＝${v}：解析式写坏了，断言会变成恒真`));
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

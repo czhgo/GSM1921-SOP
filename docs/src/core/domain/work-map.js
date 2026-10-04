@@ -357,3 +357,51 @@ export function mergeWorkforceSnapshot(snapshot, changes) {
   }
   return next;
 }
+
+// ── 「制度内容 → 对应主体」派单判据（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项 · `D-341`/`D-343`）────
+// 来源：批次 135 起草、2026-10-04 支书圈甲「**按已出草案落地**」的那张表
+//   （「制度内容（领域） | 对应【主体】 | 该主体承担什么 | 依据」；表在 `.ctx/REVIEW_QUEUE.md` `SOP-B-25` 节）。
+// 语义（照草案逐字）：**给定制度内容所属领域 ⇒ 找到对应主体 ⇒ 该主体承担这条制度的「起草与监督落实」**；
+//   **定稿与生效**走另一格（支委会审议认定，见下方 `INSTITUTION_COLLECTIVE_SUBJECTS`）。
+// ⚠ 两条硬口径（草案逐字）：
+//   · 「支委会」在表内是一个能承担责任的**独立【主体】**（＝`ORG_SUBJECTS['branch-committee']`，法人性质），
+//     **不是「由哪些人组成」的集合**；
+//   · **同一件事不会同时挂到「支委会」与某个委员两条上**——委员＝起草与监督落实，支委会＝审议认定。
+// ⚠ 与 `config.workforce` 的分工：本表是**静态口径**（源自 SOP / 职责表），**不是**支部可改派的那一层；
+//   它回答「这个领域的制度该谁起草与监督」，支部改派仍走模块级 `config.workforce`。
+/** 制度内容（领域）→ 起草与监督落实的对应【主体】 */
+export const INSTITUTION_DOMAINS = [
+  { id: 'organization', label: '组织建设类', subject: 'org-commissioner',
+    scope: '发展党员各环节、名册与阶段管理、专班与赋权、党小组设置',
+    basis: '定人定责 §2.1 / §3.2「发展党员的考察与材料准备、考察档案体系建立」' },
+  { id: 'propaganda', label: '宣传与档案类', subject: 'prop-commissioner',
+    scope: '宣传材料产出与归档、档案合规、模板管理、周报',
+    basis: '定人定责 §2.1 / §3.2「宣传与档案制度建设及队伍建设」' },
+  { id: 'discipline', label: '纪检类', subject: 'disc-commissioner',
+    scope: '考勤、补课、考察、活动监督复盘、意见渠道维护',
+    basis: '定人定责 §2.1「考勤管理（含补课分段）· 考察管理 · 活动监督复盘」/ §3.2' },
+  { id: 'general', label: '支部全局与综合类', subject: 'secretary',
+    scope: '支部工作计划、支委会议事与工作规则、上级部署的落实办法',
+    basis: '定人定责 §3.1 支书「制定支部工作计划、检查工作执行情况」/ §5.1「召集支委会 → 支书」' },
+];
+export const INSTITUTION_DOMAIN_IDS = INSTITUTION_DOMAINS.map((d) => d.id);
+export const INSTITUTION_DOMAIN_LABELS = Object.fromEntries(INSTITUTION_DOMAINS.map((d) => [d.id, d.label]));
+
+/** 制度内容（领域）统一项 → 【支委会】审议认定类的对应主体（草案表下半部分；全部＝支委会） */
+export const INSTITUTION_COLLECTIVE_SUBJECTS = [
+  { id: 'institution-review', label: '制度审议与认定', subject: 'branch-committee',
+    basis: '《常见工作场景快速指南》§制度制定与迭代 步骤 5 / 7 · `D-555`' },
+  { id: 'brand-designation', label: '品牌认定', subject: 'branch-committee',
+    basis: '定人定责 §2.2「支委 / 党小组组长提案、支委会通过后确定」· `D-559`' },
+  { id: 'issue-disposition', label: '意见建议处置', subject: 'branch-committee',
+    basis: '`COMMISSIONER_DUTY_FRAMEWORK.md` §C.1b 注 · `D-301` / `D-412`' },
+  { id: 'develop-party-member', label: '发展党员（集体决策事项）', subject: 'branch-committee',
+    basis: '定人定责 §5.1 定人表「发展党员 → 主责人＝支委会」' },
+];
+
+/** 制度内容（领域）→ 对应【主体】（**判据单一源**）：角色键 / 组织型主体 id；未知 / 缺省 → null */
+export function institutionSubjectOfDomain(domainId) {
+  const hit = INSTITUTION_DOMAINS.find((d) => d.id === domainId);
+  return hit ? hit.subject : null;
+}
+

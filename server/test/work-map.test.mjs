@@ -9,9 +9,10 @@ import { seedDatabase } from '../seed.js';
 import {
   WORK_MAP_MODULES, WORK_MAP_IDS, WORK_MAP_DEFAULT, expandWorkforce, mergeWorkforceSnapshot,
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
-} from '../../docs/src/core/domain/work-map.js?v=20261004k';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261004k';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261004k';
+  INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
+} from '../../docs/src/core/domain/work-map.js?v=20261004l';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261004l';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261004l';
 
 let server, base, token;
 
@@ -186,4 +187,22 @@ test('HTTP：支书 PATCH config.workforce 落库（净化生效），null 恢�
   });
   assert.equal(reset.status, 200);
   assert.equal((await reset.json()).config.workforce, null);
+});
+
+// ── 制度内容（领域）→ 对应【主体】（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按已出草案落地」）──────
+test('制度派单判据：领域 → 主体（角色键 ∪ 组织型主体）；id 唯一；未知领域 → null', () => {
+  const subjects = new Set([...ROLE_KEYS, ...ORG_SUBJECT_IDS]);
+  assert.equal(INSTITUTION_DOMAINS.length, 4, '草案表＝组织建设 / 宣传与档案 / 纪检 / 支部全局与综合 四类');
+  assert.equal(new Set(INSTITUTION_DOMAIN_IDS).size, INSTITUTION_DOMAINS.length, '领域 id 不得重复');
+  for (const d of INSTITUTION_DOMAINS) {
+    assert.ok(subjects.has(d.subject), `领域 ${d.id} 的对应主体 ${d.subject} 须是角色键或组织型主体`);
+    assert.equal(institutionSubjectOfDomain(d.id), d.subject);
+    assert.ok(d.label && d.scope && d.basis, `领域 ${d.id} 须有 label / scope / basis`);
+  }
+  // 「同一件事不会同时挂到『支委会』与某个委员两条上」——草案硬口径（下半部分全部＝支委会）
+  for (const c of INSTITUTION_COLLECTIVE_SUBJECTS) {
+    assert.equal(c.subject, 'branch-committee', `${c.id} 的对应主体＝支委会（审议认定类）`);
+  }
+  assert.equal(institutionSubjectOfDomain('nope'), null);
+  assert.equal(institutionSubjectOfDomain(undefined), null);
 });

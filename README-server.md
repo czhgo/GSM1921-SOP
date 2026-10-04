@@ -1033,6 +1033,7 @@
 | title | string | 是 | 标题 |
 | desc | string | 否 | 描述（默认空串） |
 | cat | string | 否 | 分类（普通文件 `party-doc` / 制度文本 `institution`） |
+| domain | `'organization'\|'propaganda'\|'discipline'\|'general'` | 否 | **制度内容（领域）**：决定本条制度的**起草与监督**归哪个【主体】（判据单一源 `docs/src/core/domain/work-map.js::INSTITUTION_DOMAINS`：组织建设→组织委员 / 宣传与档案→宣传委员 / 纪检→纪检委员 / 支部全局与综合→支书）；**定稿与生效**另走支委会审议认定（`INSTITUTION_COLLECTIVE_SUBJECTS`）。写入浮窗**必选**；普通文件无此字段（旧数据亦无，视为未登记）。（2026-10-05 批次 378 · `SOP-B-25` ②） |
 | status | `'draft'\|'pending-party-meeting'\|'current'\|'disabled'\|'archived'` | 否 | 状态：**制度文本** = `draft` 草案（待支委会审议，尚不是现行版）/ `pending-party-meeting` 支委会已审议通过、**待支部党员大会表决**（仍不是现行版）/ `current` 现行版 / `disabled` 停用；**普通文件**缺省 `draft`（会前草案）；历史版本 `superseded` **只出现在 `versions` 内、不驻留顶层**（制度链口径见 §3.4） |
 | fileName | string \| null | 否 | 附件文件名（制度文本可无附件） |
 | fileSize | number | 否 | 附件字节数 |

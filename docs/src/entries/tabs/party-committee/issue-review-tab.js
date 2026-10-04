@@ -15,14 +15,14 @@
 // 不自创样式（docs/src/styles.css 为禁改清单文件，未改动）。
 // 真身数据出口单一源：services/governance/issues.js::IssueStore.getIssuesForPartyReview（两形态同构）。
 
-import { AuthStore } from '../../../services/core/auth.js?v=20261004k';
-import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261004k';
-import { IssueStore } from '../../../services/governance/issues.js?v=20261004k';
-import { getPersonName } from '../../../services/member/person.js?v=20261004k';
-import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004k';
-import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004k';
+import { AuthStore } from '../../../services/core/auth.js?v=20261004l';
+import { PARTY_STAFF_ROLE } from '../../../core/domain/constants.js?v=20261004l';
+import { IssueStore } from '../../../services/governance/issues.js?v=20261004l';
+import { getPersonName } from '../../../services/member/person.js?v=20261004l';
+import { escHtml as esc, fmtDt } from '../../../core/base/utils.js?v=20261004l';
+import { renderFilteredList } from '../../../components/ui/list-filter.js?v=20261004l';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——三页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004k';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261004l';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-issue-review';

@@ -37,10 +37,10 @@ dynamic_role:
 
 | 文件路径 | last_updated | 移入归档日 | 角色 | 备注 |
 |---------|-------------|--------|------|------|
-| README.md | 2026-10-03 | — | [用户]+[AI] | 全站门面（定位 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。**为什么**：守卫清单列在此处是 `doc-consistency::S10` 的硬要求（§0.2 引用的守卫必须登记进本清单）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 311）」。 |
+| README.md | 2026-10-05 | — | [用户]+[AI] | 全站门面（定位 / 页面与页签清单 / 支部分工覆盖面 / 测试与发版清单）。**边界**：逐枚页面与逐枚页签的权威源是 `README-server.md` §3.1–§3.2 与 `docs/help.html` §0 / §2，本件只给概览与入口。**为什么**：守卫清单列在此处是 `doc-consistency::S10` 的硬要求（§0.2 引用的守卫必须登记进本清单）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 311）」。 |
 | README-members.md | 2026-09-29 | — | [用户]+[AI] | **（2026-09-27 批次 211–212：路一 help 引用改准——`README-members.md` 1 处随第 4 章「设置逐项」独立而改准）** **（2026-09-26 批次 202：`:137` / `:198` 引用改准；只改引用、未改口径）** 支部成员版（2026-09-20 批次 106 补登；**2026-09-21 批次 138 三处改准**：思想汇报篇幅提醒「只给你本人看」（`D-547`）· 组长台考勤上传位按会议类型分（`D-558`）· 组织委员不再「篇幅不足看一眼」（`D-547`）；**新增**：意见反馈「事项领域 + 建议归口 + 处置归支委会」（`D-551` / `D-550`）· 匿名口径改「含支委层看不到真身」） |
-| README-server.md | 2026-10-04 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 自批次 361（`D-752`）起只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。逐批沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」。 |
-| CLAUDE.md | 2026-10-04 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，H10–H100）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`R-84` / `R-86` / `R-89`），本表不复述；乙部「评议待办 · 执行型」自本批起**只留一句话索引**，69 条原文全量入 `.ctx/logs/**`。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| README-server.md | 2026-10-05 | — | [用户]+[AI] | 面向**外部后端对接团队**的对接说明书（背景 / 角色 / 板块 / 字段〔**指针**〕/ 部署 / 接口 / 已知限制）。**边界**：**字段级清单的唯一权威源＝母本 `content/04_web_design/data/DATA_MODEL.md`**——§4 自批次 361（`D-752`）起只留「**指针 ＋ 后端增量**」（服务端专有表 ＋ 来源 C 字段 ＋ 行为口径），**不再逐表复刻**。正文 **≥370 处 `文件:行号` 引用**由 `doc-line-ref` 守卫常驻核对（行号随代码位移须**同批改签**）。逐批沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」。 |
+| CLAUDE.md | 2026-10-05 | — | [工程师]+[AI] | AI 协作总纲：甲部（通用流程 / 指导思想，H10–H100）＋ 乙部（具体执行事项）＋ 丙部（待决策事项）。**边界**：过程 / 沿革 / 决议**各有其位**（`R-84` / `R-86` / `R-89`），本表不复述；乙部「评议待办 · 执行型」自本批起**只留一句话索引**，69 条原文全量入 `.ctx/logs/**`。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | CHECKLIST.md | — | — | — | 🗑️ 已删除（迁移至 content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md） |
 | LICENSE | 2026-05-18 | — | [用户] | 开源许可 |
 | .gitignore | 2026-09-10 | — | [工具] | Git 忽略 |
@@ -56,11 +56,11 @@ dynamic_role:
 | .ctx/SNAPSHOT.md | 2026-10-03 | — | [AI] | 全仓**目录树与版本号**快照（现 `v55`）。**边界**：目录与版本号的权威源是仓库实况 ＋ `docs/scripts/bump-version.mjs`，本件是**抄本**——与实况不一致即为过期。**为什么**：让「结构 / 版本变化」一眼可见（免每次全树 diff）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
 | .ctx/ACTIVE_RULINGS.md | 2026-09-29 | — | [工程师]+[AI] | **（本批：新立 1 行〔口径行 → 130〕＋ `H-2` 队列行改准）** **（本批：加不入表增量句〔口径行仍 129〕）** **（批次 236：文末加 `R-90` 不入表增量句；口径行仍 129）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（11089 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」B 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/ENGINEERING_ASSESSMENT.md | 2026-09-29 | — | [工程师]+[AI] | 工程评估台账（对 harness / 测试 / 文档 / 代码健康的**打分与评估**）。**边界**：只承载「打分与评估」，决议 / 过程 / 沿革分别归月度决策日志与执行日志（`R-84` / `R-86`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
-| .ctx/REVIEW_QUEUE.md | 2026-10-04 | — | [工程师]+[AI] | **（本批：`H-1`／`H-2` 已裁）** **（本批：`H-3` 收讫）** **（批次 237：新增一节「**代码健康综合评审**」＝8 条发现 `H-1`…`H-8`（`P0` 1 / `P1` 4 / `P2` 1 / `P3` 2；**待支书定 3 条**）；**不进「（一）逐条归组」表** ⇒ 队列在册数不受影响，`S14` 复跑全绿）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（5967 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」E 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
+| .ctx/REVIEW_QUEUE.md | 2026-10-05 | — | [工程师]+[AI] | **（本批：`H-1`／`H-2` 已裁）** **（本批：`H-3` 收讫）** **（批次 237：新增一节「**代码健康综合评审**」＝8 条发现 `H-1`…`H-8`（`P0` 1 / `P1` 4 / `P2` 1 / `P3` 2；**待支书定 3 条**）；**不进「（一）逐条归组」表** ⇒ 队列在册数不受影响，`S14` 复跑全绿）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（5967 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」E 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/snapshots/INDEX.md | 2026-07-11 | — | [工程师]+[AI] | 快照历史索引 |
 | .ctx/snapshots/SNAPSHOT_v3_20260502.md | 2026-08-05 | — | [工程师]+[AI] | v3 快照 |
 | .ctx/logs/EXECUTION_LOG_INDEX.md | 2026-10-02 | — | [工程师]+[AI] | 日志索引（2026-09-19 补 2026年08月 / 09月 T 条目表） |
-| .ctx/logs/DECISION_LOG.md | 2026-10-04 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
+| .ctx/logs/DECISION_LOG.md | 2026-10-05 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3828 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | .ctx/logs/archive/2026-02-EXECUTION_LOG.md | 2026-02-28 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-03-EXECUTION_LOG.md | 2026-03-02 | 2026-07-31 | [工程师]+[AI] | 已归档 |
 | .ctx/logs/archive/2026-04-EXECUTION_LOG.md | 2026-04-01 | 2026-07-31 | [工程师]+[AI] | 已归档 |
@@ -74,8 +74,8 @@ dynamic_role:
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
 | .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（本批与上一批：新增两节——上一节＝G3-1 release 的过程与脚手架实测 · 本批＝代码健康评审的取数与核对过程（含 8 条发现的实测读数表与「未做 / 边界」）；另本轮两次备注列迁出的正文亦落在本文件尾部两段「附」节）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（8059 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」C 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
-| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-04 | — | [工程师]+[AI] | 10 月执行日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335 共 12 节） |
-| .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-04 | — | [工程师]+[AI] | 10 月决策日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 D-729~D-739 共 11 条） |
+| .ctx/logs/2026-10-EXECUTION_LOG.md | 2026-10-05 | — | [工程师]+[AI] | 10 月执行日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件迁入批次 323、325–335 共 12 节） |
+| .ctx/logs/2026-10-DECISION_LOG.md | 2026-10-05 | — | [工程师]+[AI] | 10 月决策日志（当前活跃；2026-10-02 批次 336 换月建，自 9 月文件逐字迁入 D-729~D-739 共 11 条） |
 | .ctx/logs/2026-09-DECISION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（批次 235：沿革已整段迁出**——本行的逐批沿革（6427 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」D 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
 | .ctx/logs/archive/2026-05-early-EXECUTION_LOG.md | 2026-05-21 | 2026-05-21 | [工程师]+[AI] | 5月早期条目归档 |
 | .ctx/logs/archive/2026-07-early-entries.md | 2026-07-31 | 2026-07-18 | [工程师]+[AI] | T22-T90 早期条目归档（母本：2026-07-EXECUTION_LOG.md） |
@@ -191,7 +191,7 @@ dynamic_role:
 | server/test/*.test.mjs | 2026-09-29 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（5729 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」；**2026-09-29 批次 253 二次迁出**：本会话各批新增的 5 条短注一并迁入同节（`R-89` 只降不升）；本列只写**现状 / 边界 / 为什么**）** |
 | server/test/b3-1-makeup-writeback.test.mjs | 2026-09-24 | — | [工程师]+[AI] | B3-1 补课完成→考勤回写验证（T-280 新建，5 项断言；**2026-09-24 批次 176：补 1 行 CDN `route.abort`**〔`:17`〕，`D-642`） |
 | server/test/style-baseline.mjs | 2026-09-28 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（3832 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
-| server/test/form-loop-registry.mjs | 2026-10-03 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
+| server/test/form-loop-registry.mjs | 2026-10-05 | — | [工程师]+[AI] | 表单闭环台账（全站「提交动作的字段级必填校验点」逐条登记 `file` / `msg` / `line` / `machine` / 理由）。**边界**：本件只登记，真机覆盖在 `form-loop-sweep.test.mjs`（台账三层可核见 `R-80`）。沿革见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 308）」。 |
 | server/run-suite.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片启动器：按 `SWEEP_SHARD` 选片（非 e2e 每片全跑 ＋ 本片 e2e），透传退出码。 |
 | server/test/sweep-shard.mjs | 2026-10-03 | — | [工程师]+[AI] | 测试分片单源（片数 / 各片工作台 / 各片 e2e 文件）；四片并集 ≡ 全量由 `suite-shard` 守卫钉死。 |
 | server/test/probe*.mjs | — | — | — | 🗑️ 已删除（T-280 B1 临时探针，定位完成清理） |
@@ -242,8 +242,8 @@ dynamic_role:
 | docs/src/core/domain/policy-defaults.js | 2026-09-29 | — | [工程师]+[AI] | **（本批：G3-2 收口——新增 `POLICY_FIXED` 台账（12 条不可覆盖项：kind ＋ why ＋ src），消灭「未登记」第三态；26 叶键 ＝ 白名单 14 ＋ 固定台账 12，判据 `policy-config.test.mjs::R1–R3`）** **（2026-09-27 批次 211–212：路二 setting 可调性真缺陷修复——`POLICY_OVERRIDABLE` 白名单 **4 → 12 条**（新增 `attendance×3` / `review×2` / `makeup×3` / `thoughtReport×2`）；**域归属按母本**（时限类 / 补课范围与时限 → 纪检域、篇幅字数 → 组织域））** 业务默认值集中单一源（**2026-09-21 批次 132 补登**——本表原先无此行；本批 `attendance` 块：**新增 `noAttendanceTypes = ['支委会']`**、`meetingTypes` 去掉支委会、`recorderByType` 改准为「只列非组织者位类型」——**考勤上传位按会议类型分**，`D-558`） |
 | docs/src/core/base/state.js | 2026-09-29 | — | [工程师]+[AI] | 全局状态 |
 | docs/src/core/base/utils.js | 2026-09-29 | — | [工程师]+[AI] | 通用工具 |
-| docs/src/core/domain/work-map.js | 2026-09-29 | — | [工程师]+[AI] | 支部工作地图的**代码单一源**：`WORK_MAP_MODULES`（**14 个模块**）＋ 组织型主体注册表（`ORG_SUBJECTS`）。**边界**：**模块数的现状声明点在 `BRANCH_WORK_MAP.md`**（`doc-consistency::S14` 第 4 读的锚点，2026-10-01 批次 314 由乙部行改锚至此）；本文件**只出数据、不出声明**。**为什么**：模块目录是「支部有哪些必办」的单一源。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
-| server/test/work-map.test.mjs | 2026-09-23 | — | [工程师]+[AI] | **2026-09-22 批次 144 补登**（本表原先无此行；批次 141 曾改过本文件但未补登）——本批改 2 处断言 ＋ 1 处用例标题（`expandWorkforce` 缺省：`develop-party-member` 由 `role`/`org-commissioner` 改 `org`/`branch-committee`），**改测试不改制度**（`D-576`）；**2026-09-22 批次 149 改注**——逐键断言补 `joint-event`（`leader`）/ `info-platform`（`branch-committee`）/ `rule-making`（`branch-committee`）/ `democratic-review`（`secretary`）/ `election`（`party-committee`）五条 ＋ `ORG_SUBJECT_IDS` 断言改 `['branch-committee', 'party-committee']` ＋ `ORG_SUBJECT_LABELS['party-committee']` ＝「党委」＋ `expandWorkforce` 的 `election` 展开断言（`D-583`…`D-586`） |
+| docs/src/core/domain/work-map.js | 2026-10-05 | — | [工程师]+[AI] | 支部工作地图的**代码单一源**：`WORK_MAP_MODULES`（**14 个模块**）＋ 组织型主体注册表（`ORG_SUBJECTS`）。**边界**：**模块数的现状声明点在 `BRANCH_WORK_MAP.md`**（`doc-consistency::S14` 第 4 读的锚点，2026-10-01 批次 314 由乙部行改锚至此）；本文件**只出数据、不出声明**。**为什么**：模块目录是「支部有哪些必办」的单一源。沿革见执行日志「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 322）」。 |
+| server/test/work-map.test.mjs | 2026-10-05 | — | [工程师]+[AI] | **2026-09-22 批次 144 补登**（本表原先无此行；批次 141 曾改过本文件但未补登）——本批改 2 处断言 ＋ 1 处用例标题（`expandWorkforce` 缺省：`develop-party-member` 由 `role`/`org-commissioner` 改 `org`/`branch-committee`），**改测试不改制度**（`D-576`）；**2026-09-22 批次 149 改注**——逐键断言补 `joint-event`（`leader`）/ `info-platform`（`branch-committee`）/ `rule-making`（`branch-committee`）/ `democratic-review`（`secretary`）/ `election`（`party-committee`）五条 ＋ `ORG_SUBJECT_IDS` 断言改 `['branch-committee', 'party-committee']` ＋ `ORG_SUBJECT_LABELS['party-committee']` ＝「党委」＋ `expandWorkforce` 的 `election` 展开断言（`D-583`…`D-586`） |
 | docs/src/services/branch/config-clean.js | 2026-09-29 | — | [工程师]+[AI] | 支部 config 净化唯一实现（**2026-09-22 批次 141 补登**——本表原先无此行；本批 `sanitizeConfigWorkforce` 的 ownerType 白名单由 `{role,person}` 扩为 `{role,person,org}`——**组织型主体位可落库**，`D-573`） |
 
 ### docs/src/components/ (组件层)
@@ -399,7 +399,7 @@ dynamic_role:
 | docs/src/services/activity/work-assignment.js | 2026-10-03 | — | [工程师]+[AI] | 活动「工作分工」（服务端表 assignments）统一读写口；全 CRUD。 |
 | docs/src/services/governance/today-summary.js | 2026-10-03 | — | [工程师]+[AI] | 「今天」页今日聚合服务（纯逻辑可测；今日活动参与判定）。 |
 | docs/src/services/governance/todo.js | 2026-08-06 | — | [工程师]+[AI] | 待办服务（TodoStore+NoticeTodoDeriver+LifecycleTodoDeriver，E2 flow 标注） |
-| docs/src/services/branch/branch-doc.js | 2026-09-21 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |
+| docs/src/services/branch/branch-doc.js | 2026-10-05 | — | [工程师]+[AI] | 支部文件服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批新增「制度链」段：草案 / 待党员大会表决两态 ＋ 支委会审议结果应用 ＋ 草案修改，`saveDoc` 增 `asDraft`） |
 | docs/src/services/activity/agenda-follow-up.js | 2026-09-21 | — | [工程师]+[AI] | 议程跟办服务（2026-09-21 批次 129 **补登**——本表原先无此行；本批「讨论文件」分支按 `purpose:'institution'` 分流到制度链，`recordAgendaResult` 增 `reportToPartyMeeting`，非制度文件仍走原归档；**批次 132 再加 `brand-designation` 分流**⇒ 品牌认定「通过才置 `isBrand`」，`D-559`） |
 | docs/src/services/member/group-view.js | 2026-09-21 | — | [工程师]+[AI] | 党小组分组只读聚合（2026-09-21 批次 139 **补登**——本表原先无此行；本批「本组组长」这一格的解析改为**组长优先**〔`leader`〕、**组内无组长时才回落副组长**〔`deputy-leader`，次选〕——即「任务优先打给组长」，`D-571`） |
 
@@ -430,7 +430,7 @@ dynamic_role:
 | docs/src/capabilities/disc-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建；tab 数 9） |
 | docs/src/capabilities/visitor-workspace.js | 2026-10-04 | — | [工程师]+[AI] | 成员工作台能力声明（tab 清单自注册，scope='workspace:visitor'，T-279 M3 新建） |
 | docs/src/capabilities/taskforce.js | 2026-09-29 | — | [工程师]+[AI] | 专班运行能力声明（自注册；**2026-09-29 批次 268：解析 `REVIEW_QUEUE H-10` 推荐档 ①——把 `taskforce` 落成真能力 ⇒ 契约 §二「blockId 与 capability / scenario id 一一对应」恢复唯一口径，`block-manifest::S5` 的例外台账**清零**） |
-| docs/src/components/sections/references.js | 2026-09-29 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步） |
+| docs/src/components/sections/references.js | 2026-10-05 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步） |
 
 ### docs/src/workflow/ (工作流层)
 

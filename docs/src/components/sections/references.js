@@ -1,21 +1,32 @@
 // role: [工程师]+[AI]
 // 参考资料板块 — 网站群展示 + 官方文件（党内法规位阶排序）+ 支部文件（支委写入/全员下载）
 
-import { icon } from '../../core/base/icons.js?v=20261004k';
-import { getBasePath, showToast } from '../../core/base/utils.js?v=20261004k';
-import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261004k';
-import { AuthStore } from '../../services/core/auth.js?v=20261004k';
-import { loadActivities } from '../../services/activity/activity.js?v=20261004k';
-import { PEOPLE } from '../../data/mock/people.js?v=20261004k';
+import { icon } from '../../core/base/icons.js?v=20261004l';
+import { getBasePath, showToast } from '../../core/base/utils.js?v=20261004l';
+import { getAdapter, getDataSource, getAuthToken, getApiBaseUrl } from '../../data/data-adapter.js?v=20261004l';
+import { AuthStore } from '../../services/core/auth.js?v=20261004l';
+import { loadActivities } from '../../services/activity/activity.js?v=20261004l';
+import { PEOPLE } from '../../data/mock/people.js?v=20261004l';
 // 立项⑧（E 批）：支部文件增强——制度文本（版本化 + 现行/停用态 + 网页读正文）纯逻辑服务
 // 2026-09-21 批次 129：制度链（草案 → 支委会审议 → 现行版 / 退回修改）——草案态与修改口同源于该服务
 import {
   isInstitutionManager, saveDoc, publishNewVersion, setDocStatus,
   updateInstitutionDraft, INSTITUTION_DRAFT, INSTITUTION_PENDING_PARTY_MEETING,
   buildDocVersionsView, renderDocBody, listDocs,
-} from '../../services/branch/branch-doc.js?v=20261004k';
+} from '../../services/branch/branch-doc.js?v=20261004l';
 // 统一检索引擎（2026-09-14 批次 37）：本页三处列表（站点网格 / 官方文件 / 支部文件）各接一个实例
-import { renderFilteredList } from '../ui/list-filter.js?v=20261004k';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261004l';
+// 制度内容（领域）→ 对应【主体】：判据单一源（2026-10-05 批次 378 · `SOP-B-25` 第 ② 项「按草案落地」）
+import {
+  INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_LABELS, institutionSubjectOfDomain, ORG_SUBJECT_LABELS,
+} from '../../core/domain/work-map.js?v=20261004l';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261004l';
+
+/** 主体引用 → 显示名（角色键 → 角色名；组织型主体 id → 组织名，如「支委会」） */
+function _subjectLabelOf(subjectId) {
+  if (!subjectId) return '';
+  return ORG_SUBJECT_LABELS[subjectId] || ROLE_LABELS[subjectId] || subjectId;
+}
 
 const SITE_GROUPS = [
   {
@@ -490,6 +501,11 @@ export class ReferencesModule {
     else if (d.status === INSTITUTION_PENDING_PARTY_MEETING) metaParts.push(`制度文本 · v${versionNo}（支委会审议通过，待党员大会表决）`);
     else metaParts.push(`制度文本 · 已停用（最近版本 v${versionNo}）`);
     if (isDraft && d.reviewResult === 'rejected' && d.reviewNote) metaParts.push(`退回意见：${_esc(d.reviewNote)}`);
+    // 制度内容（领域）→ 起草与监督主体（2026-10-05 批次 378 · 判据单一源 `work-map.js::INSTITUTION_DOMAINS`）
+    const domLabel = d.domain && INSTITUTION_DOMAIN_LABELS[d.domain];
+    metaParts.push(domLabel
+      ? `制度内容领域：${domLabel} · 起草与监督：${_subjectLabelOf(institutionSubjectOfDomain(d.domain))}`
+      : '制度内容领域未登记（未定起草与监督主体）');
     if (d.desc) metaParts.push(_esc(d.desc));
     const updTime = _fmtDateTime(d.updatedAt || d.uploadedAt);
     if (updTime) metaParts.push(`更新于 ${updTime}`);
@@ -682,6 +698,13 @@ export class ReferencesModule {
     const instBoxHtml = (editing && !editingDraft) ? '' : `
       <div id="ref-modal-inst-box" class="${editingDraft ? 'space-y-3.5' : 'hidden space-y-3.5'}">
         <div>
+          <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-domain">制度内容（领域） <span style="color:var(--functional-error);">*</span></label>
+          <select id="ref-modal-domain" class="input-flat w-full">
+            <option value="">请选择制度内容（领域）</option>
+            ${INSTITUTION_DOMAINS.map((dm) => `<option value="${dm.id}"${(editingDraft && editing.domain === dm.id) ? ' selected' : ''}>${dm.label} —— 起草与监督：${_subjectLabelOf(dm.subject)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
           <label class="text-xs font-medium mb-1.5 block" style="color:var(--neutral-500);" for="ref-modal-body">正文（文本 / Markdown）</label>
           <textarea id="ref-modal-body" class="input-flat w-full" rows="10"
             placeholder="输入制度正文。支持简单 Markdown：# 标题、**加粗**、- 列表、1. 列表、行内 code、代码块">${editingDraft ? _esc(editing.bodyText || '') : ''}</textarea>
@@ -772,8 +795,12 @@ export class ReferencesModule {
       const file = fileInput.files && fileInput.files[0];
       // 2026-09-21 批次 129：新建制度时可勾「先存为草案」（编辑路径无此勾选位）
       const asDraft = card.querySelector('#ref-modal-as-draft')?.checked === true;
+      // 制度内容（领域）：2026-10-05 批次 378（`SOP-B-25` ②）——决定「起草与监督」归哪个主体
+      const domainEl = card.querySelector('#ref-modal-domain');
+      const domain = domainEl ? domainEl.value : '';
 
       if (!title) { showStatus('error', '请填写标题'); return; }
+      if (purpose === 'institution' && !domain) { showStatus('error', '请选择制度内容（领域）'); return; }
       if (!editing) {
         if (purpose === 'institution') {
           if (!bodyText.trim() && !file) { showStatus('error', '请填写制度正文（文本/Markdown），或上传附件'); return; }
@@ -786,7 +813,7 @@ export class ReferencesModule {
       const confirmBtn = card.querySelector('#ref-modal-confirm');
       confirmBtn.disabled = true;
       try {
-        await ReferencesModule._saveDoc({ docId, purpose, title, desc, bodyText, note, file, asDraft });
+        await ReferencesModule._saveDoc({ docId, purpose, title, desc, bodyText, note, file, asDraft, domain });
         // 批次 48（2026-09-17，支书裁定 Q-23-46「补一条成功提示」）：**原先成功分支只有 `closeModal()`**
         //   ——浮窗一关，用户**没有任何「存成了」的反馈**（而失败分支有 `showStatus`，形成单边）。
         //   这是**用户可见**的静默：本仓的「成功路径」三段判据里第 ① 段（成功提示）在此**结构上不可能满足**。
@@ -806,7 +833,7 @@ export class ReferencesModule {
   /** 保存统一走 services/branch/branch-doc.js（含用途/状态/版本语义 + 支书权限校验）；
    *  2026-09-21 批次 129：**编辑制度草案**走 `updateInstitutionDraft`（起草人修改，不升版本号），
    *  其余（新建制度／新建·编辑普通文件）仍走 `saveDoc`。 */
-  static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file, asDraft = false }) {
+  static async _saveDoc({ docId, purpose = 'doc', title, desc, bodyText = '', note = '', file, asDraft = false, domain = '' }) {
     const by = ReferencesModule._currentUser ? ReferencesModule._currentUser.personId : null;
     const role = ReferencesModule._currentUser ? ReferencesModule._currentUser.role : null;
     let fileMeta = {};
@@ -824,9 +851,9 @@ export class ReferencesModule {
       }
       : {};
     const res = editingInstitutionDraft
-      ? await updateInstitutionDraft({ id: docId, title, desc, bodyText, note, by, role, ...fileFields })
+      ? await updateInstitutionDraft({ id: docId, title, desc, bodyText, note, by, role, domain, ...fileFields })
       : await saveDoc({
-        id: docId || undefined, purpose, title, desc, bodyText, note, by, role, asDraft, ...fileFields,
+        id: docId || undefined, purpose, title, desc, bodyText, note, by, role, asDraft, domain, ...fileFields,
       });
     if (!res.ok || !res.doc) throw new Error(res.reason || '保存失败');
     ReferencesModule._branchDocs = docId

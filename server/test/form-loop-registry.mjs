@@ -54,7 +54,10 @@
 // 批次 340（2026-10-02）：`#1`/`D-742` 待办「作废」落地 ⇒ 新增两处「原因必填」校验点
 //   （壳体作废弹窗 ＋ 支书台驳回作废弹窗，均 `machine:false` 并写明理由）⇒ 台账 **实有 109 → 111**，
 //   基线常量同批改准为 **111**；真机流程条数不变。
-export const SITES_BASELINE = 117;
+// 批次 378（2026-10-05）：`SOP-B-25` ②「制度内容（领域）」必选 ⇒ 新增 1 处 `machine:true` 校验点
+//   （`references.js` 写入浮窗；真机流程 `page-refs-doc-write` 同批加一步）⇒ 台账 **实有 117 → 118**，
+//   基线同批改准为 **118**；真机流程条数不变（`FLOWS_BASELINE` 仍 60）。
+export const SITES_BASELINE = 118;
 // 批次 323（2026-10-01）：补 `secretary-calendar-write-inline-grant`（覆盖批次 303 登记却漏纳入流程的
 //   「写入活动·内嵌项目赋权」两处 `machine:true`）⇒ 真机流程 **实有 56 → 57**，基线同批改准为 **57**。
 export const FLOWS_BASELINE = 60;
@@ -357,11 +360,14 @@ export const VALIDATION_SITES = [
   //   校验序：① 模式切「复制现有」后源支部为空 →「请选择源支部」；② 放行后 →「请选择首任支书…」。
   { file: SRC + 'components/governance/org-setup-wizard.js', line: 1352, field: '源支部', flow: 'component/组织配置向导', machine: true, msg: '请选择源支部' },
   { file: SRC + 'components/governance/org-setup-wizard.js', line: 1363, field: '首任支书', flow: 'component/组织配置向导', machine: true, msg: '请选择首任支书' },
-  { file: SRC + 'components/sections/references.js', line: 776, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
-  { file: SRC + 'components/sections/references.js', line: 779, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
-  { file: SRC + 'components/sections/references.js', line: 781, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
-  { file: SRC + 'components/sections/references.js', line: 900, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
-  { file: SRC + 'components/sections/references.js', line: 901, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
+  { file: SRC + 'components/sections/references.js', line: 802, field: '标题', flow: 'module/制度参考·写入', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 806, field: '制度正文', flow: 'module/制度参考·写入', machine: true, msg: '请填写制度正文' },
+  { file: SRC + 'components/sections/references.js', line: 808, field: '要上传的文件', flow: 'module/制度参考·写入', machine: true, msg: '请选择要上传的文件' },
+  // 2026-10-05 批次 378（`SOP-B-25` ②「按草案落地」）：**制度内容（领域）必选**——决定「起草与监督」主体
+  //   （判据单一源 `core/domain/work-map.js::INSTITUTION_DOMAINS`）；真机流程同 `page-refs-doc-write`（新增一步）。
+  { file: SRC + 'components/sections/references.js', line: 803, field: '制度内容（领域）', flow: 'module/制度参考·写入', machine: true, msg: '请选择制度内容（领域）' },
+  { file: SRC + 'components/sections/references.js', line: 927, field: '标题', flow: 'module/制度参考·新版本', machine: true, msg: '请填写标题' },
+  { file: SRC + 'components/sections/references.js', line: 928, field: '新版正文', flow: 'module/制度参考·新版本', machine: true, msg: '请填写新版正文' },
   // 批次 47-M（2026-09-16）：**服务层与 UI 层的重复守卫**——这一条**不是「没去做」，也不是「种子不够」**，
   //   而是**结构上到不了**：`visitor/review-tab.js:181` 在**调它之前**就有一份同文案判据（`if (!content)` → return），
   //   故从任何 UI 入口都不可能让这份服务层守卫成为**第一个**报出来的那一个。
@@ -796,6 +802,8 @@ export const MACHINE_FLOWS = [
     expect: [
       { file: SRC + 'components/sections/references.js', field: '标题', msg: '请填写标题', carrier: '#ref-modal-title', satisfy: { setValue: { selector: '#ref-modal-title', value: '（真机普查）制度标题' } } },
       { file: SRC + 'components/sections/references.js', field: '要上传的文件', msg: '请选择要上传的文件', carrier: '#ref-modal-file', satisfy: { selectValue: { selector: '#ref-modal-purpose', value: 'institution' } } },
+      // 2026-10-05 批次 378：切到 institution 后**先**报「制度内容（领域）」（必选，决定起草与监督主体），后报制度正文
+      { file: SRC + 'components/sections/references.js', field: '制度内容（领域）', msg: '请选择制度内容（领域）', carrier: '#ref-modal-domain', satisfy: { selectValue: { selector: '#ref-modal-domain', value: 'general' } } },
       { file: SRC + 'components/sections/references.js', field: '制度正文', msg: '请填写制度正文', carrier: '#ref-modal-body' },
     ],
   },
@@ -819,6 +827,8 @@ export const MACHINE_FLOWS = [
       { waitFor: '#ref-modal-title' },
       { setValue: { selector: '#ref-modal-title', value: '（真机普查）前置制度文本' } },
       { selectValue: { selector: '#ref-modal-purpose', value: 'institution' } },
+      // 2026-10-05 批次 378：制度内容（领域）为必选 ⇒ 前置写入须一并选（否则确认被领域校验拦下，后续 waitFor 超时）
+      { selectValue: { selector: '#ref-modal-domain', value: 'general' } },
       { setValue: { selector: '#ref-modal-body', value: '（真机普查）前置制度正文，用于让「上传新版」入口成立。' } },
       { click: '#ref-modal-confirm' },
       // 前置②：等列表真的刷出「上传新版」按钮（此步即「写口落库 + 列表刷新」的实证）

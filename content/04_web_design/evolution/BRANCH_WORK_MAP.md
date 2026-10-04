@@ -42,7 +42,7 @@ related_files: [WORKFLOW_BLOCK_CONTRACT.md, ARCHITECTURE_EVOLUTION.md, ../../../
 | 换届选举 | norm | appointment 任命机制 + 票决 |
 | 考勤考察 | norm | attendance/inspection 记录域（产出环节，附于活动/专班） |
 | 意见反馈处理 | norm | 场景 feedback-handling + 反馈管理 |
-| 制度制定与迭代 | norm | 支部文件（`purpose:'institution'`）+ 会议议程；**不单开场景**（`new-system` 已清，`D-464`） |
+| 制度制定与迭代 | norm | 支部文件（`purpose:'institution'`）+ 会议议程；**不单开场景**（`new-system` 已清，`D-464`）；**起草与监督按「制度内容（领域）」归对应主体**（判据单一源 `docs/src/core/domain/work-map.js::INSTITUTION_DOMAINS`，2026-10-05 批次 378 · `SOP-B-25` ②） |
 | 信息平台支持 | **method** | 支部分工模块 + 宣传台周报；**不单开场景**（`info-platform` 已清，`D-510`） |
 
 > 考勤/考察/宣传等为**活动/专班运行中的产出环节**（卡内"产出交接"标签），不单列大类。
