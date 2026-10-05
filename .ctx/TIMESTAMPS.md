@@ -70,7 +70,7 @@ dynamic_role:
 | .ctx/logs/archive/2026-06-DECISION_LOG.md | 2026-07-01 | 2026-07-31 | [工程师]+[AI] | 6月决策日志 |
 | .ctx/logs/2026-07-EXECUTION_LOG.md | 2026-07-31 | — | [工程师]+[AI] | 7月执行日志（当前活跃） |
 | .ctx/logs/2026-07-DECISION_LOG.md | 2026-07-31 | — | [工程师]+[AI] | 7月决策日志 |
-| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月执行日志（当前活跃；T-279 + T-280 B1~B6 实测 + T-281 论断 refinement 讨论 + T-282 content 体系优化归档，L4777~5208） |
+| .ctx/logs/2026-08-EXECUTION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8 月执行日志（该月存档）。沿革见 `.ctx/logs/`。 |
 | .ctx/PLAN_网页逻辑梳理.md | — | — | [工程师]+[AI] | 已删除（2026-08-24 T-280 B1~B6 全部完成，规划已归档至 8月执行日志） |
 | .ctx/logs/2026-08-DECISION_LOG.md | 2026-08-31 | — | [工程师]+[AI] | 8月决策日志（D-270~D-272 丙部退出归档） |
 | .ctx/logs/2026-09-EXECUTION_LOG.md | 2026-10-02 | — | [工程师]+[AI] | **（本批与上一批：新增两节——上一节＝G3-1 release 的过程与脚手架实测 · 本批＝代码健康评审的取数与核对过程（含 8 条发现的实测读数表与「未做 / 边界」）；另本轮两次备注列迁出的正文亦落在本文件尾部两段「附」节）** **（批次 235：沿革已整段迁出**——本行的逐批沿革（8059 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革」C 节；本列自本批起只写**现状 / 边界 / 为什么**，判据＝`CLAUDE.md R-89` ＋ `timestamps-note-guard.test.mjs::N1–N7`）** |
@@ -128,7 +128,7 @@ dynamic_role:
 |---------|-------------|--------|------|------|
 | content/04_web_design/design-system/DESIGN_SYSTEM.md | 2026-10-05 | — | [工程师]+[AI] | **（批次 236：沿革已整段迁出**——本行的逐批沿革（4192 字）见 `.ctx/logs/2026-09-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 236）」；本列只写**现状 / 边界 / 为什么**）** |
 | content/04_web_design/design-system/COLOR_SYSTEM.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§二 色彩系统**〔编号 2.1–2.8 一字未改〕⇒ **四份 → 一份**。（原：自 DESIGN_SYSTEM 拆分的 §二：色盘 / 主色 / 辅助色 / 中性色 / 功能色 / 表面色 / 配色规则。）沿革见 `.ctx/logs/`。 |
-| content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句、批次 41 沿革句原样保留，批次 113 刷本行日期） |
+| content/04_web_design/design-system/COMPONENT_SPEC.md | 2026-09-24 | — | [工程师]+[AI] | 🗑️ **已删除**（**2026-09-24 批次 172**：正文**整体并入** `content/04_web_design/design-system/DESIGN_SYSTEM.md` 的 **§四 组件规范**〔编号 **4.1–4.17 一字未改**〕；`D-638`）（原：组件规范——自 DESIGN_SYSTEM 拆分 §四：按钮 / 卡片 / 输入 / 侧边栏 / 导航 / 日历图例 / 数据展示 / 图标 / 选人 / 状态徽章；2026-09-20 批次 110 改准「待初阅队列」现状句） |
 | content/04_web_design/module/ABOUT_PAGE_DESIGN.md | 2026-09-28 | — | [工程师]+[AI] | About 页面设计系统（超参数设定原则 / 防风格疲劳 / 无竖线红线；无人称文体）。**边界**：入口路径以 `docs/src/entries/pages/about-entry.js` 为准。沿革见 `.ctx/logs/`。 |
 | content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md | 2026-09-20 | — | [工程师]+[AI] | 🗑️ **已删除**：正文**整体并入** `content/04_web_design/deploy/DEPLOYMENT_GUIDE.md` 的 **§六 北大党校对接**〔内部 §一–§十一 → 6.1–6.11〕⇒ **四份 → 一份**。（原：北大党校与智慧党建对接设计：党校单向爬取 ＋ 智慧党建双向同步 ＋ 数据映射 ＋ 小程序归位 ＋ 待确认清单；对接授权＝党委组织部支持。）沿革见 `.ctx/logs/`。 |
 | content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md | 2026-09-27 | — | [工程师]+[AI] | 架构演进（组件化落地评估 ＋ 轻量插件化「能力注册表」设计 ＋ 迭代机制 ＋ 实施路径；无人称文体）。**边界**：「操作位收口」细节以 `PARTY_COMMITTEE_DESIGN.md` §2.5/§2.6 为准（本件只留一行指针）。沿革见 `.ctx/logs/`。 |
@@ -285,7 +285,7 @@ dynamic_role:
 | docs/src/entries/pages/settings-entry.js | 2026-09-29 | — | [工程师]+[AI] | 设置页入口（外观 / 我的工作台 / 支部治理三档；支部制度参数卡可调项与各域职责参数）。沿革见 `.ctx/logs/2026-10-EXECUTION_LOG.md`「附：TIMESTAMPS 备注列迁出的逐批沿革（批次 356）」。 |
 | docs/src/entries/pages/feedback-entry.js | 2026-07-31 | — | [工程师]+[AI] | 反馈页入口 |
 | docs/src/entries/pages/help-entry.js | 2026-09-27 | — | [工程师]+[AI] | **（2026-09-27 批次 211–212：路一——左目录 `TOC_ITEMS` **10 → 11**（写死数组，随第 4 章「设置逐项」独立而 +1））** 帮助页入口（系统说明书；静态壳模式） |
-| docs/src/entries/pages/notice-entry.js | 2026-09-28 | — | [工程师]+[AI] | **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`，1 处〔党委下发党务标签〕；hex 清零 ⇒ 基线删条目；日期由 `2026-08-06` 刷为 `2026-09-28`）** 通知页入口 |
+| docs/src/entries/pages/notice-entry.js | 2026-09-28 | — | [工程师]+[AI] | 通知页入口（党委下发党务标签用主题令牌 `var(--party-red)`；本件无硬编码 hex）。沿革见 `.ctx/logs/`。 |
 | docs/src/entries/pages/messages-entry.js | 2026-10-03 | — | [工程师]+[AI] | 私信页入口（状态管理 ＋ 渲染；读走服务层 `notice.js::listMyMessages`、写走 `sendDirectMessage` / `replyToMessage` 单一写口 —— 批次 353）。 |
 | docs/src/entries/pages/search-entry.js | 2026-07-31 | — | [工程师]+[AI] | 搜索页入口 |
 | docs/src/entries/pages/party-committee-meeting-entry.js | 2026-10-05 | — | [工程师]+[AI] | 支委会会议页入口（制度草案可在审议时勾「报送党员大会表决」；「← 返回我的工作台」入口；效力口径提示条不占流程步序号）。沿革见 `.ctx/logs/`。 |
