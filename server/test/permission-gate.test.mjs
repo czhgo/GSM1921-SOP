@@ -583,11 +583,17 @@ test('R-10 名册写链端点：授权 200 落库；越权 403；注入 400；�
   });
   assert.equal(secMemberStill.status, 403, '名册新增 /members 仍为组织委员专属（R-10 未被放宽）');
 
-  // ⑥ 越权 403
-  const denyPart = await fetch(`${base}/api/v1/members/p1/profile`, {
+  // ⑥ 越权 403 —— ⚠ 2026-10-05 `D-788`：`PATCH /members/:id/profile` 增设「**本人自填**」靶向例外
+  //   （靶标＝本人 ⇒ 仅可写 `selfProfile`）⇒ 普通成员对**自己**的非 `selfProfile` 字段为 **400**（非 403），
+  //   对**别人**的档案仍 **403**。两条分别断言，避免「例外」被误读为「放宽了名册维护」。
+  const denyPartSelf = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(partToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
   });
-  assert.equal(denyPart.status, 403, '普通成员不得维护名册');
+  assert.equal(denyPartSelf.status, 400, '普通成员对自己：非 selfProfile 字段 400（本人仅可写「自我描述」· D-788）');
+  const denyPartOther = await fetch(`${base}/api/v1/members/p2/profile`, {
+    method: 'PATCH', headers: authHeaders(partToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
+  });
+  assert.equal(denyPartOther.status, 403, '普通成员对别人的档案：403（名册维护未放宽）');
   const denyPc = await fetch(`${base}/api/v1/members/p1/profile`, {
     method: 'PATCH', headers: authHeaders(pcToken), body: JSON.stringify({ partyGroup: '第一党小组' }),
   });

@@ -3182,3 +3182,37 @@ $body
 - 判据同批：`today-action-groups-e2e::S12` ④/⑤ 由「现空」改为「**恰一键 `project`** 且色键 ∈ `DOMAIN_ORDER`、`bg/text/border` 齐备」（**非空转**：防「碰巧无项目域待办」假绿）。实跑该件 ＋ 域相关 / 结构守卫 **80 / 80 / 0**。
 - 文档一改具改：`content/04_web_design/design-system/DESIGN_SYSTEM.md §2.9`（业务域识别色＝只给「项目」）· `CLAUDE.md` `V-6` 行（**配色已落**）。
 - 版本戳 `20261005e → 20261005f`（JS 224 / HTML 23 / CSS 2 / server-test 92，陈旧 0）。
+
+
+***
+
+## 批次 400（2026-10-05 · `D-788` / `V-10b` 第一批）成员「**自我描述**」字段模型 ＋ 双端写口（含**本人自填靶向例外**）
+
+> **来源**：本轮 AskUserQuestion —— 支书提供**问卷导出字段清单**（~24 列）＋ 圈**甲「扩 `people.js`」**（落点）· **甲「本人可填 ＋ 支委层代录」**（录入主体）· **甲「粘贴/CSV ＋ 预览」**（导入形态）。本批＝**字段模型 ＋ 写口**（表单 / 导入链另批）。
+
+### 一、字段模型（**零依赖叶子** ＝ 单一源）
+
+- 新建 `docs/src/core/domain/self-profile.js`：**15 字段 · 四类形态**（`text` / `bool` / `multi` / `list`），含 `SELF_PROFILE_FIELDS`（定义表）· `emptySelfProfile()` · `sanitizeSelfProfile()`（白名单键 / 类型归一 / 去空去重 / 限长 500 / 子表 ≤20 行 / 坏输入不崩）· `isSelfProfileEmpty()`。
+- **不重复存**档案已有字段（姓名 / 学号 / 发展阶段）；问卷 ~24 列去重为 **15 字段**。
+
+### 二、写口（双端单一源 ＋ 靶向判据）
+
+- 前端 `services/member/person.js`：`MEMBER_FIELDS` / `API_PROFILE_FIELDS` 增 `selfProfile`；`_cleanMemberRecord` 按叶子净化（全空 ⇒ 不落字段）。
+- 服务端 `routes/member.js`：`PROFILE_FIELDS` 增 `selfProfile`；`PATCH /members/:id/profile` 由 `requireRole(ORG_COMMISSIONER_ROLES)` 改 `requireAuth` ＋ **靶向判据**（组织委员 ⇒ 全白名单；**靶标＝本人 ⇒ 仅 `selfProfile`**；其余 403），并**服务端净化**（不采信客户端键集，同 `R-22`）。
+
+### 三、判据
+
+- 新建 `server/test/self-profile.test.mjs`（**A** 叶子 3 件 · **B** mock 写链 · **C** api 写链 2 件；含**反例自检**：把门改回组织委员专属 ⇒ `C1` 判红）。
+- **同批改准**：`permission-gate` R-10 ⑥（本人对**自己**的非 `selfProfile` 字段 ⇒ **400**；对**别人** ⇒ **403**，两条分别断言）。
+- **实跑**：`npm run test:daily` **753 / 753 / 0**（含新增 6 件；文件 111 → 112）；S16 守卫注册同步入档。
+
+### 四、文档 / 台账同批
+
+- `DATA_MODEL.md §2.26`（`selfProfile` 行 ＋ **15 字段子表** ＋ 行为口径②靶向判据）· `§三 单一源` 加行；`README-server.md §4.30` 加段。
+- **`文件:行号` 改签**：用 **LCS 行映射**（HEAD ↔ 现版）改准 README-server 的 **15 处**引用（`DATA_MODEL.md` / `member.js` / `person.js`）；另**手工改准 2 处**（LCS 对「新增行 → 空行」不敏感）；`§7.1#8` 的「前后端门不一致」注**保留**并补「本人自填例外**不影响**支书 / 副支书 403 口径」。
+- 版本戳 `20261005f → 20261005g`；`TIMESTAMPS`：`person.js` 刷 2026-10-05、新件补行。
+
+### 五、边界（如实）
+
+- **表单（模态字段）与导入链（粘贴 / CSV ＋ 预览）** 尚未落 ⇒ 另批（`D-788` 在办）。
+- 演示种子 `people.js` **未加 `selfProfile` 样例**（展示面随表单批）；`person-entry.js` / `member.js` **无 TIMESTAMPS 表行**（既有覆盖缺口，只登记）。

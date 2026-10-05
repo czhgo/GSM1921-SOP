@@ -1037,13 +1037,37 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | residenceStatus | string | 在册状态；枚举单一源见 `core/domain/constants.js::RESIDENCE`（在校/滞留） |
 | residenceNote | string | 滞留备注（仅滞留态保留） |
 | residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
+| selfProfile | object | **成员「自我描述」**（2026-10-05 `D-788` / `V-10b`：支书提供问卷字段清单 ⇒ 落点＝扩本实体）。**字段模型单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态：`text` / `bool` / `multi` / `list`）；详见下表 |
+
+**`selfProfile` 子表（字段模型单一源＝`docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS`）：**
+
+| 字段 | 形态 | 说明 |
+|---|---|---|
+| phone | text | 手机号 |
+| grade | text | 所属年级 |
+| major | text | 专业 |
+| hasStudentWork | bool | 承担学生工作或担任班干部 |
+| studentWorks | list | 担任的学生工作（子列：类别 / 所任部门·班级 / 职务） |
+| familiarWorks | multi | 比较熟悉的学生工作 |
+| familiarWorksOther | text | 比较熟悉的学生工作 · 其他补充 |
+| volunteered | bool | 参加过志愿服务 |
+| volunteerHours | text | 累计志愿服务时长（大致） |
+| ledProject | bool | 独立负责过较大型活动或项目 |
+| keyProjects | list | 负责过的重要活动或项目（子列：活动名称 / 工作内容） |
+| futureDirections | multi | 未来发展方向 |
+| futureDirectionsOther | text | 未来发展方向 · 其他补充 |
+| honors | list | 奖项或荣誉（子列：级别 / 级别·补充 / 奖项·荣誉名称） |
+| extraNote | text | 其他希望支部了解的经历或特长 |
+
+（**不重复存**已有档案字段：姓名 / 学号 / 发展阶段即本实体的 `name` / `studentId` / `developStage`。）
 
 **行为口径：**
 
-1. 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`（新增 `enrollYear` 须同步两处 + 前端 `docs/src/services/member/person.js` 的字段白名单与档案编辑模态）。
-2. **账号联动**：新增成员即**自动建号**——**账号取学号**，口令取支部统一默认口令（沿用既有登录口令机制），不需人工另行注册；账号层为**可持久化账号层（种子账号 + 成员账号）**，成员加入支部即可登录该支部；账号随学号变更而变更，随成员流出一并停用。
-3. 变更分流：姓名/学号/党小组**立即生效**；发展阶段/在册状态须走成员变更确认链（组织委员发起 → 支书确认）。**流出登记（§2.28）登记即生效，不再走确认链。**
-4. `partyGroup` 为空即「未分组」：不属任何党小组——党小组会应到名单**不含**（按组名精确匹配），支部大会应到**照计**（党员且非滞留口径不变），表决名单**照计**（按发展阶段口径不变）。
+1. 写口白名单见 `server/routes/member.js` 的 `PROFILE_FIELDS` / `CREATE_FIELDS`（新增 `enrollYear` 须同步两处 + 前端 `docs/src/services/member/person.js` 的字段白名单与档案编辑模态）；**`selfProfile` 亦须同步这两处 + 前端 `MEMBER_FIELDS` / `API_PROFILE_FIELDS`**。
+2. **`selfProfile` 的录入主体**（2026-10-05 支书圈甲「**本人可填 ＋ 支委层代录**」）：`PATCH /members/:id/profile` 采用**靶向判据**——组织委员 ⇒ 全白名单（口径不变）；**靶标＝本人**（`actor.id === :id`）⇒ **仅 `selfProfile` 一键**；其余 ⇒ 403。**不放宽任何其他档案字段**；服务端按叶子 `sanitizeSelfProfile` 净化（白名单外键丢弃、类型归一、有限长）。
+3. **账号联动**：新增成员即**自动建号**——**账号取学号**，口令取支部统一默认口令（沿用既有登录口令机制），不需人工另行注册；账号层为**可持久化账号层（种子账号 + 成员账号）**，成员加入支部即可登录该支部；账号随学号变更而变更，随成员流出一并停用。
+4. 变更分流：姓名/学号/党小组**立即生效**；发展阶段/在册状态须走成员变更确认链（组织委员发起 → 支书确认）。**流出登记（§2.28）登记即生效，不再走确认链。**
+5. `partyGroup` 为空即「未分组」：不属任何党小组——党小组会应到名单**不含**（按组名精确匹配），支部大会应到**照计**（党员且非滞留口径不变），表决名单**照计**（按发展阶段口径不变）。
 
 ### 2.27 党小组（PartyGroup）
 
@@ -1137,6 +1161,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台「党小组」tab 组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
 | 成员流动台账 | `docs/src/services/member/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
 | 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/member/person.js` 字段白名单与档案编辑模态须同步） |
+| 成员「自我描述」字段模型（`selfProfile`） | `docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS` | 15 字段 · 四类形态单一源（**零依赖叶子**：前端表单 / 导入链与服务端写口净化同引一处；`D-788` / `V-10b`） |
 | 「未分组」口径 | `partyGroup === ''` | 未分组 = 党小组归属为空串；**禁在各页自行判断别名** |
 | 账号与学号同值 | 账号层服务（成员新增/流出时同步） | 账号派生单一源：账号 = 学号 |
 

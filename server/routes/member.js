@@ -19,6 +19,8 @@ import {
 } from '../../docs/src/core/domain/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/branch/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';
+// `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——服务端按它净化，不采信客户端键集
+import { sanitizeSelfProfile } from '../../docs/src/core/domain/self-profile.js';
 // R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
 import { today as todayLocal } from '../services/reporting.js';
 
@@ -205,14 +207,18 @@ export function createMemberRouter(db) {
   // （不扩大越权面），统一纪律：requireRole + 同支部校验 + 字段白名单（注入 role/branchId → 400；
   // 枚举非法 → 400；成员不存在 → 404；跨支部 → 403）。
   //   · 在册状态镜像  POST  /members/:id/residence-status  支书/副支书（副书同权）+ 仅在册字段
-  //   · 名册档案维护  PATCH /members/:id/profile           组织委员（支书/副支书不越权；口径不变）+ 在册属性白名单
+  //   · 名册档案维护  PATCH /members/:id/profile           组织委员（支书/副支书不越权；口径不变）+ 在册属性白名单；**`D-788` 增设「本人自填」靶向例外**（仅 `selfProfile` 一键、仅靶标＝本人）
   //   · 名册新增      POST  /members                       组织委员（同上；支书/副支书不越权）；强制归本支部、默认普通成员角色
   //   · 流入登记      POST  /members/intake                组织委员 + 支书/副支书（§9i 成员流动登记写权；批次 30 裁定 Q-23-10）
   //   · 移出（软标记）POST  /members/:id/transfer-out      组织委员发起 or 支书/副支书确认；原行保留不删不匿名
   //   · 撤销流出      POST  /members/:id/undo-transfer-out  同 ③ 角色集；清除软标记使账号恢复（Q-23-5 批次 29）
   const RESIDENCE_FIELDS = ['residenceStatus', 'residenceNote', 'residenceHistory'];
-  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', ...RESIDENCE_FIELDS];
+  // `D-788`（2026-10-05 · `V-10b` · 支书圈甲「本人可填 ＋ 支委层代录」）：`selfProfile`（成员「自我描述」）
+  //   并入**档案属性**白名单；**本人自填**另走「②′ 例外」——仅 `selfProfile` 一键、仅靶标＝本人（不放宽其他字段）。
+  const PROFILE_FIELDS = ['name', 'studentId', 'enrollYear', 'partyGroup', 'selfProfile', ...RESIDENCE_FIELDS];
   const CREATE_FIELDS = ['id', 'name', 'studentId', 'enrollYear', 'partyGroup', 'developStage', ...RESIDENCE_FIELDS];
+  /** 本人自填**仅可写**的字段集（`D-788`：边界＝只此一键；其余档案字段仍归组织委员） */
+  const SELF_WRITE_FIELDS = ['selfProfile'];
   const RESIDENCE_VALUES = [RESIDENCE.CAMPUS, RESIDENCE.DETAINED];
   const TRANSFER_OUT_ROLES = new Set(['org-commissioner', ...SECRETARY_DEPUTY_ROLE_KEYS]);
   const branchOf = (u) => (u && u.branchId) || 'br-b1';
@@ -240,13 +246,27 @@ export function createMemberRouter(db) {
     res.json(merged);
   });
 
-  // ② 名册档案维护：组织委员行内编辑（姓名/学号/党小组/在册属性）
-  //   阶段字段不在白名单 → 400（唯一写位 = develop-stage，不得由本端点改写）
-  router.patch('/members/:id/profile', requireRole(db, ORG_COMMISSIONER_ROLES), (req, res) => {
+  // ② 名册档案维护：组织委员行内编辑（姓名/学号/党小组/自我描述/在册属性）
+  //    ②′ **本人自填例外**（`D-788` · 2026-10-05 支书圈甲「本人可填 ＋ 支委层代录」）：`requireAuth` 后**靶向判据**——
+  //      ① 组织委员 ⇒ 全白名单（口径不变）；② 靶标＝本人（`actor.id === :id`）⇒ **仅** `selfProfile` 一键；
+  //      ③ 其余 ⇒ 403。**不放宽任何其他档案字段**（与「②b 新增仍组织委员专属」同一纪律）。
+  router.patch('/members/:id/profile', requireAuth(db), (req, res) => {
     const body = (req.body && typeof req.body === 'object' && !Array.isArray(req.body)) ? req.body : {};
-    const bad = firstOutside(body, PROFILE_FIELDS);
-    if (bad) return res.status(400).json({ error: `字段 ${bad} 不在白名单（本端点仅可写 ${PROFILE_FIELDS.join(' / ')}；发展阶段请走 develop-stage）` });
-    if (PROFILE_FIELDS.every((k) => body[k] === undefined)) {
+    const isOrg = !!req.actor && ORG_COMMISSIONER_ROLES.has(req.actor.role);
+    const isSelf = !!req.actor && String(req.actor.id) === String(req.params.id);
+    if (!isOrg && !isSelf) {
+      return res.status(403).json({ error: '无权限：名册档案维护仅组织委员；本人仅可填自己的「自我描述」' });
+    }
+    const allowed = isOrg ? PROFILE_FIELDS : SELF_WRITE_FIELDS;
+    const bad = firstOutside(body, allowed);
+    if (bad) {
+      return res.status(400).json({
+        error: `字段 ${bad} 不在白名单（${isOrg
+          ? `本端点仅可写 ${PROFILE_FIELDS.join(' / ')}；发展阶段请走 develop-stage`
+          : `本人自填仅可写 ${SELF_WRITE_FIELDS.join(' / ')}`}）`,
+      });
+    }
+    if (allowed.every((k) => body[k] === undefined)) {
       return res.status(400).json({ error: '无可更新字段' });
     }
     const user = readUser(req.params.id);
@@ -260,7 +280,10 @@ export function createMemberRouter(db) {
     if (body.residenceStatus !== undefined && !RESIDENCE_VALUES.includes(body.residenceStatus)) {
       return res.status(400).json({ error: `residenceStatus 须为：${RESIDENCE_VALUES.join(' / ')}` });
     }
-    const merged = { ...user, ...body };
+    // `D-788`：自我描述**服务端净化**（白名单键 / 类型归一 / 有限长）——不采信客户端键集（同 `R-22` 口径）
+    const patch = { ...body };
+    if (patch.selfProfile !== undefined) patch.selfProfile = sanitizeSelfProfile(patch.selfProfile);
+    const merged = { ...user, ...patch };
     writeRow(db, 'users', merged);
     res.json(merged);
   });

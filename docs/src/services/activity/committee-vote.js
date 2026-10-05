@@ -2,13 +2,13 @@
 // committee-vote.js — 线上支委会表态服务
 // 数据源：mockDB.agendaVotes（本地）或 /api/v1/agenda-votes（API 模式）
 // 闭环：委员异步表态（同意/异议/附言）→ 支书汇总 → 截止锁定（votesLocked 写入活动）
-import { mockDB } from '../../core/domain/domain.js?v=20261005f';
-import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20261005f';
-import { AuthStore } from '../core/auth.js?v=20261005f';
-import { NoticeStore } from '../governance/notice.js?v=20261005f';
-import { resolveVoterIds } from './vote-config.js?v=20261005f';
+import { mockDB } from '../../core/domain/domain.js?v=20261005g';
+import { persist, getAdapter, getAuthToken, getApiBaseUrl, getDataSource } from '../../data/data-adapter.js?v=20261005g';
+import { AuthStore } from '../core/auth.js?v=20261005g';
+import { NoticeStore } from '../governance/notice.js?v=20261005g';
+import { resolveVoterIds } from './vote-config.js?v=20261005g';
 // 域写版本戳（2026-09-30 批次 304）：表态 / 截止都是**源写**，须 bump 供消费方（今天页「待我表态」等）失效重算。
-import { bumpToken } from '../../core/base/version-token.js?v=20261005f';
+import { bumpToken } from '../../core/base/version-token.js?v=20261005g';
 
 // 支委总数（通知文案「已有 N/M 位委员表态」的分母）
 // 单一源化（2026-09-02）：改引权威名单 vote-config.js resolveVoterIds('committee')

@@ -2,17 +2,17 @@
 // ws-org-commissioner-entry.js — 组织委员工作台入口（T-279 M3 拆分；T-304 代码减负 2026-08-30：骨架并入 workspace-shell）
 // 入口职责：壳配置（注册表 tab 清单 + 导航落点 + 数据加载），角色特有逻辑仅保留。
 
-import { getAppState, setState } from '../../core/base/state.js?v=20261005f';
-import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261005f';
-import { flashHighlight } from '../../core/base/utils.js?v=20261005f';
-import { loadActivities } from '../../services/activity/activity.js?v=20261005f';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261005f';
-import { SignupStore } from '../../services/activity/signup.js?v=20261005f';
-import { seedTodos } from '../../services/governance/todo.js?v=20261005f';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005f';
-import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261005f';
+import { getAppState, setState } from '../../core/base/state.js?v=20261005g';
+import { createWorkspaceShell } from '../../components/shell/workspace-shell.js?v=20261005g';
+import { flashHighlight } from '../../core/base/utils.js?v=20261005g';
+import { loadActivities } from '../../services/activity/activity.js?v=20261005g';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261005g';
+import { SignupStore } from '../../services/activity/signup.js?v=20261005g';
+import { seedTodos } from '../../services/governance/todo.js?v=20261005g';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005g';
+import { openRecruitForm } from '../tabs/org/taskforce-tab.js?v=20261005g';
 // 副作用导入触发组织委员工作台能力注册（tab 清单；含 立项⑥B波 成员名册 tab）
-import '../../capabilities/org-workspace.js?v=20261005f';
+import '../../capabilities/org-workspace.js?v=20261005g';
 
 await createWorkspaceShell({
   accentRole: 'org-commissioner',

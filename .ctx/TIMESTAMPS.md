@@ -388,7 +388,8 @@ dynamic_role:
 | docs/src/services/activity/makeup.js | 2026-09-27 | — | [工程师]+[AI] | **（2026-09-27 批次 211–212：路二——「补课范围」由**编译期常量**（`MAKEUP_DEFAULT_ACTIVITY_TYPES` 模块级字面量 ＋ `+7` 硬编码）改为 call-time 读 `POLICY_DEFAULTS`（`makeupDefaultActivityTypes()` / `makeupDeadlineDays()`）；真机纪检改 6 项后 `makeupDefaultActivityTypes()=['支部党员大会']` / `isMakeupRequired({type:'党课'})=false` / `makeupDeadlineDays()=14`）** 补课服务 |
 | docs/src/services/governance/milestones.js | 2026-08-11 | — | [工程师]+[AI] | 里程碑服务 |
 | docs/src/services/governance/notice.js | 2026-10-05 | — | [工程师]+[AI] | 通知服务（含通知 → 待办派生）。沿革见 `.ctx/logs/`。 |
-| docs/src/services/member/person.js | 2026-08-03 | — | [工程师]+[AI] | 人员数据抽象服务（PersonStore）。沿革见 `.ctx/logs/`。 |
+| docs/src/services/member/person.js | 2026-10-05 | — | [工程师]+[AI] | 人员数据抽象服务（PersonStore）。沿革见 `.ctx/logs/`。 |
+| docs/src/core/domain/self-profile.js | 2026-10-05 | — | [工程师]+[AI] | 成员「自我描述」字段模型（15 字段 · 四类形态 text/bool/multi/list；**零依赖叶子**——前端表单 / 导入链与服务端写口净化**同引一处**，`D-788` / `V-10b`）。沿革见 `.ctx/logs/`。 |
 | docs/src/services/governance/soft-void.js | 2026-10-03 | — | [工程师]+[AI] | 业务记录「作废（软）」统一写口（2026-10-02 批次 346 新建；本行 2026-10-03 批次 352 **补登**——本表原先无此行） |
 | docs/src/services/governance/secretary-overview.js | 2026-10-05 | — | [工程师]+[AI] | 支书全局概况服务（E2 派生待办 flow）。**边界**：`_aggAttendanceRemind` 排除不考勤类型（支委会）——单一源 `policy attendnoAttendanceTypes`。沿革见 `.ctx/logs/`。 |
 | docs/src/services/governance/review.js | 2026-07-31 | — | [工程师]+[AI] | 审查服务 |
