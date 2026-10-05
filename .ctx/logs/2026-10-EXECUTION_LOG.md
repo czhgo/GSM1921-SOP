@@ -1863,3 +1863,10 @@ $body
 
 - **只减叙述**：`D-xxx` 裁定全文在**决策日志**、过程流水在 **`git`**——`H26.1`/`H26.2` 的落点分工未变。
 - 只改 `.ctx/**` ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
+
+## 批次 417 收尾 · 降频窗（批次 413–417 · 5 commit）· **全量 probe**
+
+- **全量**（`SWEEP_SHARD=all`）：**981 / 981 / 0 红**（`duration_ms 1,423,918 ≈ 23.7 min`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**（`TRAE Sandbox Error: hit restricted`），**非测试失败**（pass 981 / fail 0），如实登记。
+- **服务起停**：先 `npm start`（`http://localhost:3000`）→ 跑完 `StopCommand` 停服。
+- **降频窗口径（依 `D-795`）**：本窗＝批次 **413 / 414 / 415 / 416 / 417 共 5 个 commit** ⇒ 达阈跑一次全量；**下一窗自批次 418 起重新累计**。
+- 本窗内每批已跑的定向档：`doc-consistency`（S1–S18）· `timestamps-note-guard` · `link-integrity` · `frontmatter-freshness` · `catalog-sync` · `doc-line-ref` · `version-stamp` **全绿**；`test:fast` **146 / 146**（批次 414 / 416）。
