@@ -15,12 +15,15 @@
 // ⚠ 本文件**只许减**：任何一次「删条目」都是收敛；任何一次「加条目」都要在批注里写明理由与裁定出处。
 
 /** 备注列**总字符预算**（当前生效值；只许人工下调，上调＝越权） */
+// ⚠ 2026-10-05 批次 392（备注列第八轮）：实测 44,343（291 行）→ **收敛 `N5`/`N6` 两条清单并集 31 格**（沿革逐字迁 `.ctx/logs/2026-10-EXECUTION_LOG.md` 附节）后 **32,729**（291 行）
+//   ⇒ 预算 44,700 → **33,100**（**只降不升**；留 ≈370 字供「改了必须刷卡」的短注）。
+//   ⚠ 按 `N7`（四份清单**互不相同**）约束：`OVERLONG` 已为空 ⇒ `N5`/`N6` **不得同时清空**（两条空表相撞即红）⇒ 各**保留 1 格**作「清单非空下限」——保留格 `docs/src/entries/pages/notice-entry.js`（`N5`）· `content/04_web_design/design-system/COMPONENT_SPEC.md`（`N6`，其备注含 `T-282` ⇒ `N4` 亦保留）。
 // ⚠ 2026-10-03 批次 356（备注列第七轮）：实测 47,480（282 行）→ **收 3 格长备注（沿革迁日志附节）＋ 补登 3 行新文件（`docs/messages.html` / `entries/pages/messages-entry.js` / `entries/tabs/secretary/notification-tab.js`）** 后 **45,549**（285 行）
 //   ⇒ 预算 47,500 → **45,900**（**只降不升**；留 ≈350 字供「改了必须刷卡」的短注）。**同批撤 3 条**：`N6` 清单 23 → 20 条（3 格「批次 N」罗列已随沿革迁出而 ≤ 3 次）。
 // ⚠ 2026-10-02 批次 333（备注列第六轮）：实测 47,744（守卫口径，275 行）→ **迁出 2 格 ＋ 修一处「8 段被跳过」结构缺陷** 后 **47,136**（276 行）
 //   ⇒ 预算 50,000 → **47,500**（**只降不升**）。**修缺陷说明**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 那格含未转义竖线 ⇒ 整行 8 段、被守卫跳过。
 // ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
-export const NOTE_TOTAL_BUDGET = 44700;
+export const NOTE_TOTAL_BUDGET = 33100;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
@@ -47,28 +50,19 @@ export const ROWS_MIN = 245;
 export const OVERLONG_BASELINE = [
 ];
 
-/** 备注含 `T-\d*` 编号（71 → **29 行**；2026-10-05 批次 389 收敛 42 格 · T-编号是执行日志的键，台账不应承载） */
+/** 备注含 `T-\d*` 编号（74 → **21 行**；2026-10-05 批次 389 收敛 42 格 ＋ 批次 392 再收敛 9 格 · T-编号是执行日志的键，台账不应承载） */
 export const WITH_TID_BASELINE = [
   '.ctx/logs/2026-08-EXECUTION_LOG.md',
   'content/03_doc_system/PROCESS_GUIDE.md',
-  'content/04_web_design/data/DATA_FLOW.md',
   'content/04_web_design/deploy/AUTHENTICATION_MODEL.md',
   'content/04_web_design/deploy/PKU_PARTY_INTEGRATION.md',
   'content/04_web_design/deploy/WECHAT_INTEGRATION.md',
   'content/04_web_design/design-system/COLOR_SYSTEM.md',
-  'content/04_web_design/design-system/COMPONENT_SPEC.md',
   'content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md',
   'content/04_web_design/module/ABOUT_PAGE_DESIGN.md',
   'content/04_web_design/module/SOP_WEBSITE_GUIDE.md',
   'docs/src/about.css',
   'docs/src/core/session/cross-page-state.js',
-  'docs/src/entries/tabs/disc/attendance-tab.js',
-  'docs/src/entries/tabs/disc/inspection-tab.js',
-  'docs/src/entries/tabs/leader/write-tab.js',
-  'docs/src/entries/tabs/org/taskforce-tab.js',
-  'docs/src/entries/tabs/prop/archive-tab.js',
-  'docs/src/entries/tabs/visitor/projects-tab.js',
-  'docs/src/entries/workspace/ws-secretary-entry.js',
   'docs/src/entries/workspace/ws-visitor-entry.js',
   'docs/src/capabilities/activity-calendar.js',
   'docs/src/capabilities/leader-workspace.js',
@@ -78,46 +72,15 @@ export const WITH_TID_BASELINE = [
   'docs/src/services/governance/secretary-overview.js',
   'docs/src/services/member/person.js',
   'server/test/b3-1-makeup-writeback.test.mjs',
-];
-
-/** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 行） */
-export const WITH_DATE_ECHO_BASELINE = [
-  'content/02_institution/sop/INDEX.md',
-  'content/04_web_design/evolution/PARTY_COMMITTEE_DESIGN.md',
-  'docs/src/components/governance/org-setup-wizard.js',
-  'docs/src/components/shell/header.js',
-  'docs/src/entries/pages/activity-entry.js',
-  'docs/src/entries/pages/notice-entry.js',
-  'docs/src/entries/pages/party-committee-meeting-entry.js',
-  'docs/src/entries/tabs/disc/inspection-tab.js',
-  'docs/src/entries/tabs/leader/write-tab.js',
-  'docs/src/entries/tabs/visitor/projects-tab.js',
-  'docs/src/entries/tabs/visitor/review-tab.js',
-  'docs/src/entries/workspace/ws-secretary-entry.js',
-  'docs/src/components/sections/references.js',
-  'docs/src/services/governance/notice.js',
-];
-
-/** 单格「批次 N」罗列 > BATCH_MENTION_MAX 次（49 行 · 沿革应进 `.ctx/logs/**`） */
-export const WITH_BATCH_MENTION_BASELINE = [
-  'README-members.md',
-  'content/02_institution/sop/宣传委员工作流程指南.md',
-  'content/02_institution/sop/常见工作场景快速指南.md',
-  'content/02_institution/sop/支委与党小组定人定责定岗说明.md',
-  'content/02_institution/sop/纪检委员工作流程指南.md',
-  'content/02_institution/sop/组织委员工作流程指南.md',
-  'content/03_doc_system/SERVICE_CATALOG.md',
-  'content/03_doc_system/USAGE_POLICY.md',
-  'content/04_web_design/data/DATA_FLOW.md',
   'content/04_web_design/design-system/COMPONENT_SPEC.md',
-  'content/insights/README.md',
-  'docs/src/components/governance/org-setup-wizard.js',
-  'docs/src/components/ui/modal.js',
-  'docs/src/entries/pages/party-committee-meeting-entry.js',
-  'docs/src/entries/tabs/disc/attendance-tab.js',
-  'docs/src/entries/tabs/leader/write-tab.js',
-  'docs/src/entries/tabs/org/taskforce-tab.js',
-  'docs/src/entries/tabs/prop/archive-tab.js',
-  'docs/src/entries/tabs/secretary/calendar-tab.js',
-  'docs/src/entries/tabs/secretary/work-map-tab.js',
+];
+
+/** 备注含「日期由 X 刷 Y / 刷为 YYYY-MM-DD / 日期不变」复述（24 → **1 行**；2026-10-05 批次 392 收敛本清单 13 格、**保留 1 格**为「清单非空下限」〔`N7`：四份清单互不相同，`OVERLONG` 已空〕） */
+export const WITH_DATE_ECHO_BASELINE = [
+  'docs/src/entries/pages/notice-entry.js',
+];
+
+/** 单格「批次 N」罗列 > BATCH_MENTION_MAX 次（49 → **1 行**；2026-10-05 批次 392 收敛 19 格、**保留 1 格**为「清单非空下限」〔`N7`〕） */
+export const WITH_BATCH_MENTION_BASELINE = [
+  'content/04_web_design/design-system/COMPONENT_SPEC.md',
 ];
