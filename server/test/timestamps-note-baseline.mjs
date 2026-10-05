@@ -106,7 +106,6 @@ export const WITH_TID_BASELINE = [
   'docs/src/entries/tabs/visitor/todo-tab.js',
   'docs/src/entries/workspace/ws-disc-commissioner-entry.js',
   'docs/src/entries/workspace/ws-leader-entry.js',
-  'docs/src/entries/workspace/ws-org-commissioner-entry.js',
   'docs/src/entries/workspace/ws-prop-commissioner-entry.js',
   'docs/src/entries/workspace/ws-secretary-entry.js',
   'docs/src/entries/workspace/ws-visitor-entry.js',

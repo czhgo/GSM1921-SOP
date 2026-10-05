@@ -2667,3 +2667,31 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - `S20` 的**注入延迟**只作用于该用例页面，**不改产品**；本地同速环境下原竞态窗口不稳，注入延迟用于稳定复现。
 - **本批不新增页面 / 表 / 字段 / 权限**；只改「切换时的渲染落定顺序」。
 - **`#7` 的另一半**（tab 功能边界）已由 `D-755` / `V-3` / `#10` 处理，本批只收「加载不出来」这半边。
+
+***
+
+## 批次 387（2026-10-05 · `D-779`）**组织台活动深链改落「活动日历」＋定位**（批次 366 登记的后续项落地）
+
+> **来源**：批次 385 补录表第 5 条（`#10` 样板台后续项）＋ `org/tf-view-tab.js` 头注自陈「『把活动深链改落『活动日历』并为其加定位』登记为后续项」。
+
+### 一、口径与改动
+
+- **判据**（承 `D-755`「知情查看＝该角色的赋权下游」）：组织委员下游只含 `taskforce` ⇒ 活动深链**不该**落「知情查看」；「活动日历」（六台单一源 `entries/tabs/shared/activity-calendar-tab.js`）是活动的**通用承载面**。
+- `docs/src/entries/workspace/ws-org-commissioner-entry.js`：`nav.actId || nav.view` 分支由 `activate('tf-view')` 改为 `activate('calendar')`；`nav.actId` 时 `setHighlight(actId, '[data-act-id="…"]')` ＋ `setState({ displayMonth: 活动所在月, selectedActivityId })`；返回 `{ tabId:'calendar', highlightId: actId }`。
+- `docs/src/entries/tabs/org/tf-view-tab.js`：头注「⚠ 登记为后续项」→「✅ 深链兜底已收口」。
+- 版本戳 `20261005a → 20261005b`（JS 223 / HTML 23 / CSS 2 / server-test 92；陈旧戳 0）。
+
+### 二、守卫与反例
+
+- `server/test/page-sweep.test.mjs` 新增 **`S21`**（组织台 `?activityId=` / `?view=activities` ⇒ 活动页签名 == 活动日历 ＋ `#cal-main-grid` 在位 ＋ 目标条目在月历 ＋ 月份切到该活动所在月）。
+- **正向**（真机探针，跑完即删）：`?activityId=act-1`（活动在 2026-07、非当前月）⇒ 活动日历 · 命中 1 条 · `month-selector=2026-07` · 0 pageerror；`?view=activities` ⇒ 活动日历。
+- **反例自检**：`git stash push -- docs/src/entries/workspace/ws-org-commissioner-entry.js` ⇒ `S21` **判红**（`?activityId= 应落「活动日历」（原落「知情查看」）`）⇒ pop 复绿。
+- `page-sweep` ＝ **14/14 / 0 红**（含 `S20` / `S21`；`tab=68`）；静态族 ＝ **65/65 / 0 红**。
+- **收尾全量（`R-85`）**：`npm run test:full`（`SWEEP_SHARD=all`）＝ 见本批提交说明。
+
+### 三、边界（如实）
+
+- **只动组织台**；其余台活动落点各有其承载，未逐一改。
+- `?view=activities` **一并**改落「活动日历」（如实登记为「顺带」）：该参数由首页活动面板发出，而组织台「知情查看」现只出专班段 ⇒ 原落点会显示专班，与「查看全部活动」语义不符。
+- 未改 `insight-view` 兜底代码（共享件）——只让组织台**不再走**那条兜底。
+- `TIMESTAMPS.md` 的本文件行刷 `2026-10-05`，并按 `R-89`／`N4` 去掉备注里的 `T-编号` ⇒ 同批从 `timestamps-note-baseline.mjs::WITH_TID_BASELINE` 删该条（`N7` 双向一致；备注字数**净减**、仍在 `N2` 预算内）。

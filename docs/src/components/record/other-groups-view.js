@@ -13,18 +13,18 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261005a';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005a';
-import { AuthStore } from '../../services/core/auth.js?v=20261005a';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261005a';
-import { IssueStore } from '../../services/governance/issues.js?v=20261005a';
-import { loadActivities } from '../../services/activity/activity.js?v=20261005a';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261005a';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005a';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005a';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261005a';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261005a';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261005a';
+} from '../../services/member/group-view.js?v=20261005b';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005b';
+import { AuthStore } from '../../services/core/auth.js?v=20261005b';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261005b';
+import { IssueStore } from '../../services/governance/issues.js?v=20261005b';
+import { loadActivities } from '../../services/activity/activity.js?v=20261005b';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261005b';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005b';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005b';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261005b';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261005b';
+import { escHtml as esc } from '../../core/base/utils.js?v=20261005b';
 
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。

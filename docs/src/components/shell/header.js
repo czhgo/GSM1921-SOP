@@ -3,17 +3,17 @@
 // 变化: 去掉 mode 标签与只读视角切换；2026-08-10 支书裁定（原则12 工作台集成制）：
 // 「切换工作台」下拉为冗余要素（每个人就是每个人，任务集成在工作台，跨台经待办/通知直达）→ 删除
 
-import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261005a';
+import { getAccentColors, ROLE_LABELS, relativeLuminance } from '../../core/domain/constants.js?v=20261005b';
 // R1-A 点⑤（2026-09-09）：身份标签取色走 person-aware 解析（登录 person 覆盖 / 访客全局键 / 角色默认），
 // 替代 constants resolveAccentRole（只读全局键=旧残留/默认）——支书改强调色后 header 角色标签同金。
-import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261005a';
-import { getBasePath } from '../../core/base/utils.js?v=20261005a';
-import { icon } from '../../core/base/icons.js?v=20261005a';
-import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261005a';
-import { badgeHtml } from '../ui/badges.js?v=20261005a';
-import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261005a';
+import { resolveAppliedAccentRole } from '../../core/boot/theme.js?v=20261005b';
+import { getBasePath } from '../../core/base/utils.js?v=20261005b';
+import { icon } from '../../core/base/icons.js?v=20261005b';
+import { DATA_CHANGED_EVENT, DATA_LOADED_EVENT } from '../../data/data-adapter.js?v=20261005b';
+import { badgeHtml } from '../ui/badges.js?v=20261005b';
+import { readLoginSnapshot } from '../../core/session/login-snapshot.js?v=20261005b';
 // P1 党委后台（2026-09-02）：header 品牌软编码——标题随支部配置档案更换（person→branchId→branches.config.headerTitle）
-import { getHeaderTitle } from '../../services/branch/branch.js?v=20261005a';
+import { getHeaderTitle } from '../../services/branch/branch.js?v=20261005b';
 
 // ── 数据层按需加载（静态页隔离，2026-08-12）──
 // about/help 等纯静态文档页以 staticShell 渲染 header：不加载 auth/notice 数据链
@@ -22,18 +22,18 @@ import { getHeaderTitle } from '../../services/branch/branch.js?v=20261005a';
 let _authModule = null;
 let _noticeModule = null;
 function loadAuth() {
-  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261005a');
+  if (!_authModule) _authModule = import('../../services/core/auth.js?v=20261005b');
   return _authModule;
 }
 function loadNotice() {
-  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261005a');
+  if (!_noticeModule) _noticeModule = import('../../services/governance/notice.js?v=20261005b');
   return _noticeModule;
 }
 // 2026-09-30 批次 297-2：跨台通用动作「一键汇报」收进顶栏唯一固定位 ⇒ 顶栏按需加载其入口模块
 // （与 auth / notice 同一策略：静态壳页不加载，app 模式渲染后加载，模块缓存后即时）
 let _reportEntryModule = null;
 function loadReportEntry() {
-  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261005a');
+  if (!_reportEntryModule) _reportEntryModule = import('../record/report-entry.js?v=20261005b');
   return _reportEntryModule;
 }
 

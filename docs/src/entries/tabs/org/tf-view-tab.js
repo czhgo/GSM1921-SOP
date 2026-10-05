@@ -6,17 +6,19 @@
 //   判据单一源＝`core/domain/work-map.js` 的模块主责（缺省 `defaultOwner`；**支部可用 `config.workforce` 改派**
 //   ⇒ **对象集天然可配置、不写死**）。组织委员当前下游只含 `taskforce`（专班）⇒ **只出「专班」分段**
 //   （与组长 / 纪检台现状同名同形）；`activity`（活动）属**通用面** ⇒ 由「活动日历」（已按本批移入「工作台」组）承载。
-// ⚠ 深链兜底：台账 2026-08-08 支书裁定「activityId 必须消费」⇒ 若 URL 带 `activityId`，`insight-view` 会
-//   把 `activity` 段**临时并入**（否则定位目标无处可显）；「把活动深链改落『活动日历』并为其加定位」登记为后续项。
+// ✅ 深链兜底已收口（2026-10-05 批次 387）：台账 2026-08-08 支书裁定「activityId 必须消费」——原由
+//   `insight-view` 把 `activity` 段**临时并入**兜底（否则定位目标无处可显）；现 `?activityId=` /
+//   `?view=activities` 一律由 `ws-org-commissioner-entry.js::onNavTarget` **改落「活动日历」并定位**
+//   （本页只承载该角色的赋权下游＝专班）。`highlightActId` 入参保留（缺省 null、不再有兜底触发）。
 
 export function renderContent(ctx) {
   const el = document.getElementById('org-tab-content');
   if (!el) return null;
   return Promise.all([
-    import('../../../components/record/insight-view.js?v=20261005a'),
-    import('../../../core/domain/work-map.js?v=20261005a'),
-    import('../../../services/branch/branch.js?v=20261005a'),
-    import('../../../services/core/auth.js?v=20261005a'),
+    import('../../../components/record/insight-view.js?v=20261005b'),
+    import('../../../core/domain/work-map.js?v=20261005b'),
+    import('../../../services/branch/branch.js?v=20261005b'),
+    import('../../../services/core/auth.js?v=20261005b'),
   ]).then(([iv, wm, br, auth]) => {
     const me = auth.AuthStore.getCurrentUser() || {};
     // 支部实际分工（`config.workforce` 覆盖 ＋ 缺省兜底）——「下游可配置」的落点

@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005b')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
@@ -403,6 +403,68 @@ test('S20 tab 快速切换竞态：冷上下文连点全部 tab，内容不得�
       + '陈旧渲染覆盖了当前 tab（objective #7「tab 在切换和加载中存在加载不出来」）。\n'
       + `  连点后前 60 字：${rendered.slice(0, 60)}\n  应为前 60 字：${settled.slice(0, 60)}`);
     assert.deepEqual(errs, [], `${w.name} 快速切换出现脚本错误：\n${errs.join('\n')}`);
+  } finally {
+    await page.close();
+  }
+});
+
+// S21（2026-10-05 批次 387）：**组织台活动深链落点**——`?activityId=` / `?view=activities` 必须落
+//   「活动日历」并定位（批次 366 登记的后续项）。原实现落「知情查看」并把 `activity` 段**临时并入**兜底
+//   （`org/tf-view-tab.js` 头注）；「活动日历」才是活动的通用承载面（六台单一源）。
+//   判据＝① 活动 tab 名 == 「活动日历」；② 日历骨架在位；③ 目标活动条目在月历里（**且月份切到该活动所在月**，
+//   否则旧月活动不在当前视图、高亮落空）。
+test('S21 组织台活动深链：?activityId / ?view=activities 落「活动日历」并定位', async () => {
+  const w = WORKS[1]; // 组织委员台
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  const activeLabel = () => page.evaluate(() => {
+    const b = [...document.querySelectorAll('button[role="tab"]')].find((e) => e.getAttribute('aria-selected') === 'true');
+    return b ? b.textContent.trim() : null;
+  });
+  const tabReady = () => page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });
+  try {
+    for (const m of MUTED_EXTERNALS) await page.route(m.pattern, (r) => r.abort());
+    let loggedIn = false;
+    for (let attempt = 0; attempt < 2 && !loggedIn; attempt += 1) {
+      await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('#student-id', { timeout: 30000 });
+      await page.fill('#student-id', w.studentId);
+      await page.fill('#password', '123456');
+      await Promise.all([
+        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.click('button[type="submit"]'),
+      ]);
+      try { await tabReady(); loggedIn = true; } catch (e) { if (attempt === 1) throw e; }
+    }
+    await page.waitForTimeout(800);
+    // 取一个真实活动（优先「非当前月」者，顺带验证切月）
+    const acts = await page.evaluate(async () => {
+      const m = await import('/src/core/base/state.js?v=20261005b');
+      return ((m.getAppState() || {}).activities || []).map((x) => ({ id: x.id, date: x.date }));
+    });
+    assert.ok(acts.length > 0, '组织台活动深链用例：未取到任何活动（样本不足）');
+    const cur = new Date().toISOString().slice(0, 7);
+    const act = acts.find((x) => String(x.date || '').slice(0, 7) !== cur) || acts[0];
+    // ① ?activityId=
+    await page.goto(`${base}/workspace/${w.page}.html?activityId=${encodeURIComponent(act.id)}`, { waitUntil: 'domcontentloaded' });
+    await tabReady();
+    await page.waitForTimeout(2000);
+    assert.equal(await activeLabel(), '活动日历', '?activityId= 应落「活动日历」（原落「知情查看」）');
+    assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '活动日历骨架未渲染');
+    const cnt = await page.evaluate((id) => document.querySelectorAll(`.cal-activity-item[data-act-id="${id}"]`).length, act.id);
+    assert.ok(cnt >= 1, `定位失败：月历里找不到目标活动条目（${act.id}）——月份未切到该活动所在月？`);
+    if (String(act.date || '').slice(0, 7) !== cur) {
+      assert.equal(await page.evaluate(() => document.getElementById('month-selector')?.value || null), String(act.date).slice(0, 7),
+        '旧月活动的深链应把月份切到该活动所在月（否则高亮落空）');
+    }
+    // ② ?view=activities（首页「查看全部活动」同款）
+    await page.goto(`${base}/workspace/${w.page}.html?view=activities`, { waitUntil: 'domcontentloaded' });
+    await tabReady();
+    await page.waitForTimeout(1500);
+    assert.equal(await activeLabel(), '活动日历', '?view=activities 应落「活动日历」');
+    assert.ok(await page.evaluate(() => !!document.querySelector('#cal-main-grid')), '?view=activities：活动日历骨架未渲染');
+    assert.deepEqual(errs, [], `组织台活动深链出现脚本错误：\n${errs.join('\n')}`);
   } finally {
     await page.close();
   }
