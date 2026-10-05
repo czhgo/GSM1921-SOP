@@ -4,19 +4,19 @@
 //  活动详情页（activity-entry.js）与专班详情页（taskforce-entry.js）共用，
 //  避免「活动/专班统一报名逻辑」在两处重复散落（C-2 一改具改巡检，支书 2026-08-11 裁定专班独立页面）。
 // ════════════════════════════════════════════════════════════════
-import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261005e';
-import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261005e';
-import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261005e';
-import { badgeHtml } from '../ui/badges.js?v=20261005e';
+import { SignupStore, resolveSignupReviewer, SignupStatus, SIGNUP_ROLE_LABELS } from '../../services/activity/signup.js?v=20261005f';
+import { getPersonById, getPersonName } from '../../services/member/person.js?v=20261005f';
+import { getBasePath, showToast, todayLocal } from '../../core/base/utils.js?v=20261005f';
+import { badgeHtml } from '../ui/badges.js?v=20261005f';
 // 活动「已归档」口径单一源（2026-09-13 收敛）：替代手写 source.archived
-import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005e';
+import { isActivityArchived, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005f';
 // 统一检索引擎（2026-09-14 批次 37）：报名名单（已通过）接入关键词 + 分页
-import { renderFilteredList } from '../ui/list-filter.js?v=20261005e';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261005f';
 // 批次 49 口径（「存好了才报成功」）：刷新前先等在途落库结算，见 _reloadAfterSettle
-import { settleWrites } from '../../core/session/pending-writes.js?v=20261005e';
+import { settleWrites } from '../../core/session/pending-writes.js?v=20261005f';
 // 2026-10-03 批次 358（`D-751`）：报名记录「作废（软）」——弹窗**单一源** ＋ 支委层判据单一源
-import { openVoidModal } from '../ui/void-record.js?v=20261005e';
-import { AuthStore } from '../../services/core/auth.js?v=20261005e';
+import { openVoidModal } from '../ui/void-record.js?v=20261005f';
+import { AuthStore } from '../../services/core/auth.js?v=20261005f';
 
 /**
  * 落库结算后再整页刷新（2026-09-18 批次 83 · SOP-B-2）

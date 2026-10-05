@@ -3170,3 +3170,15 @@ $body
 - **配色未定**（`WORK_DOMAIN_COLORS` 空表）⇒ 今天页各域胶囊**中性**；待支书指色后逐键补入（`today-action-groups-e2e::S12` 已留「定色后同批复用」的条件断言，非恒真）。
 - `TIMESTAMPS`：`today-summary.js` 行日期刷 `2026-10-05`、`TIMESTAMPS.md` 自身 `last_updated` 两处刷 `2026-10-05`；`today-tab.js` / `todo-tab.js` / `todo-tab-shell.js` **无表行**（既有覆盖缺口，只登记）。
 - 全量 probe：本批为降频窗内**第 6 个 commit**（上一窗批次 397 已跑 `964/964/0`）⇒ 顺延；本批以 `test:daily` ＋ `test:fast` 覆盖。
+
+
+***
+
+## 批次 399（2026-10-05 · `D-787` 续 · 配色）业务域 **只给「项目」配红金**
+
+> **来源**：本轮 AskUserQuestion —— 支书圈**乙「只给『项目』配红金」**。
+
+- `constants.js::WORK_DOMAIN_COLORS` 由**空表**改为**恰一键 `project`**（取**会务红族**：`rgba(206, 17, 38, 0.08)` / `_C.red800` / `rgba(206, 17, 38, 0.25)`）；其余五类**中性**。**金族留给活动类别色**（主题党日金），**不重复占用**。
+- 判据同批：`today-action-groups-e2e::S12` ④/⑤ 由「现空」改为「**恰一键 `project`** 且色键 ∈ `DOMAIN_ORDER`、`bg/text/border` 齐备」（**非空转**：防「碰巧无项目域待办」假绿）。实跑该件 ＋ 域相关 / 结构守卫 **80 / 80 / 0**。
+- 文档一改具改：`content/04_web_design/design-system/DESIGN_SYSTEM.md §2.9`（业务域识别色＝只给「项目」）· `CLAUDE.md` `V-6` 行（**配色已落**）。
+- 版本戳 `20261005e → 20261005f`（JS 224 / HTML 23 / CSS 2 / server-test 92，陈旧 0）。

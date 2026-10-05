@@ -2,9 +2,9 @@
 // login-entry.js — 登录页入口（重构版）
 // 支持: 账号密码 Mock 校验 + 开发模式直接选身份
 
-import { AuthStore } from '../../services/core/auth.js?v=20261005e';
-import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261005e';
-import { escHtml } from '../../core/base/utils.js?v=20261005e';
+import { AuthStore } from '../../services/core/auth.js?v=20261005f';
+import { getAccentColors, solidAccentStyle, dotDarkVars, isBranchPendingUser } from '../../core/domain/constants.js?v=20261005f';
+import { escHtml } from '../../core/base/utils.js?v=20261005f';
 
 // 2026-09-29 批次 277（IAAA 入站）：带 `#iaaa=<会话 token>` 回跳时先走落地流程，
 //   不走「已登录直接跳工作台」；**待归属支部**者也不跳（由选支部面板承接）。

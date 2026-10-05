@@ -18,8 +18,10 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
-// `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**空**：配色待支书指色）
-import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261005e';
+// `D-787`（2026-10-05 · 9 → 6 合并）：业务域识别色的单一源 —— 非空转断言用它（现行**恰一键 `project`**）
+import { WORK_DOMAIN_COLORS } from '../../docs/src/core/domain/constants.js?v=20261005f';
+// `D-787`：6 类域值（色键须落其中）
+import { DOMAIN_ORDER } from '../../docs/src/services/governance/todo.js?v=20261005f';
 
 let server, base, browser;
 
@@ -111,20 +113,22 @@ test('S12 今天页左卡＝动作性质分组（七类）；旧「本岗待办�
       assert.ok(probe.withDomainChip >= 1, '分组行须带业务域小胶囊（九域降为行内胶囊）');
     }
 
-    // ④ `D-787`（2026-10-05 · 支书「九类 可以再 合并合并 同类项！」＋ 圈乙「9 → 6 类 · 单一源统一改」）：
-    //    **合并后 `WORK_DOMAIN_COLORS` 暂空**（配色随 6 类再议、待支书指色）⇒ 今天页各域胶囊**一律中性**。
-    //    本断言写成**条件式**：凡带 `data-domain` 的域胶囊须带内联底色、且域键只许 6 类域值之一；
-    //    不带 `data-domain` 的域胶囊不得有内联底色（现行全部如此 ⇒ 即「全部中性」）。
+    // ④ `D-787` 续（2026-10-05 · 支书圈乙「**只给『项目』配红金**」）：**只有「项目」域上色**，其余五类中性。
+    //    条件式取数：凡带 `data-domain` 的域胶囊须带内联底色、且域键**只许 `project`**；不带者不得有底色。
     assert.ok(probe.chipsTotal >= 1, '分组行须带业务域小胶囊（合并后 6 类，降为行内胶囊）');
     assert.ok(probe.domainAllInlineBg, '若存在带 `data-domain` 的域胶囊则必须带内联底色');
-    assert.ok(probe.domainKeys.every((k) => Object.keys(DOMAIN_LABELS).includes(k)),
-      `上色的域键只许 6 类域值之一；实得 ${JSON.stringify(probe.domainKeys)}`);
-    assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（现行全部中性）');
+    assert.ok(probe.domainKeys.every((k) => k === 'project'),
+      `只许「项目」域上色；实得 ${JSON.stringify(probe.domainKeys)}`);
+    assert.ok(probe.neutralNoInlineBg, '未上色的域胶囊不得带内联底色（其余五类保持中性）');
 
-    // ⑤ 非空转（**不依赖演示数据**）：`WORK_DOMAIN_COLORS` **现为空**——`D-787`（9 → 6 合并）后
-    //    **配色随 6 类再议**（待支书指色）⇒ 断言「恰零键」。**若支书定色**，须同批改本断言，
-    //    并补「色键 ⊆ 6 类域值 且 `bg`/`text`/`border` 齐备」的非空转（否则本断言退化为恒真）。
-    assert.deepEqual(Object.keys(WORK_DOMAIN_COLORS), [],
-      '业务域识别色单一源现为空（`D-787` 合并后配色待支书指色）');
+    // ⑤ 非空转（**不依赖演示数据**）：`WORK_DOMAIN_COLORS` **恰一键 ＝ `project`**（支书 2026-10-05 圈乙
+    //    「只给『项目』配红金」）⇒ 证明「只有项目域配色」不是「碰巧演示库里没有项目域待办」。
+    assert.deepEqual(Object.keys(WORK_DOMAIN_COLORS).sort(), ['project'],
+      '业务域识别色单一源须恰一键（只给「项目」配色；`D-787` 续 · 支书圈乙）');
+    for (const k of Object.keys(WORK_DOMAIN_COLORS)) {
+      assert.ok(DOMAIN_ORDER.includes(k), `色键 ${k} 须是 6 类域值之一`);
+      const c = WORK_DOMAIN_COLORS[k];
+      assert.ok(c && c.bg && c.text && c.border, `域 ${k} 的色须齐备 bg / text / border（含深色三件套）`);
+    }
   } finally { await page.close(); }
 });
