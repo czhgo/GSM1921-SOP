@@ -1962,3 +1962,34 @@ $body
 - **`V-10b` 的数据回填仍待支书在页面上传**——那是**支书动作**、**不是 AI 待办** ⇒ 不再按「AI 待办」挂在乙部。
 - 只改 `CLAUDE.md` ＋ `.ctx/**` ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
 - **`D-803` ②③ 尚未落地**（`R-29⑤` 新功能 · `R-23` 服务端名册读口）——**不得读成已办**。
+
+## 批次 422（2026-10-06 · `D-803` ③）**立服务端人员名册读口**（`R-23` 余项）
+
+> **来源**：支书就 `R-23` 余项答「**我选择 立！**」（`D-803` ③）。
+
+### 一、实探（先核单一源）
+
+- 服务端**确有**人员主数据表 `users`（`RESOURCE_TABLES.users`；`README-server.md` 亦记其为「名册 / 应到 / 考勤 / 表决 / 通知受众的共同上游」）⇒ 「服务端无人员名册」这一旧判断**只对读口而言成立**（表在、**读口**缺）。
+
+### 二、动作
+
+1. **新建 `server/person-roster.js`**（读口三函数）：`personName(db, id)`（单人在册姓名，查无 ⇒ `null`）· `personNames(db, ids)` · **`applyRosterNames(db, vars)`**——凡 `vars` 里 `Id` 结尾的键**且同名 `Name` 键在**、**且该 id 在名册查得到人名**者，**覆写** `<x>Name`（三条件同时成立 ⇒ 非人名 id〔`activityId` / `sourceId` / `branchId` …〕**天然不误伤**）。
+2. **14 处 `build` 统一接线**：`server/system-notice-kinds.js` 的 `const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };` → `applyRosterNames(ctx.db, { ... })`；并把 8 处「人名沿用 payload（**服务端无人员名册**）」注释改准为「人名按**名册**复算；payload 不带 `<x>Id` 或名册查无者沿用 payload（已登记余项）」。
+3. **判据**：`system-notice-project-auth-authorize.test.mjs` 新增 **`D1`–`D4`**——`D1` 正例（伪造 `senderName` 被在册名覆盖）· `D2` 反例（名册查无 ⇒ 沿用 payload、**不空名**）· `D3` 端口（非人名 id 不误伤）· `D4` **如实登记余项**（payload 不带配对 id ⇒ 名册无从复算）；同批改准 `B6` 的措辞（「无服务端名册」→「payload 不带 `<x>Id`」）。
+4. **文档**：`README-server.md §6.7`——「人名沿用 payload（服务端无人员名册）」**改准**为「**服务端人员名册读口** ＝ `server/person-roster.js`（单一源＝`users` 表）＋ 未堵边界」；`依据` 行的 5 处行号引用**同批改签**（`system-notice-kinds.js:63-530` / `:277-296` / `:450-482` / `:483-508` / `:509-530`）并补读口落点；`CLAUDE.md` `R-23` 行**改准余项**。
+
+### 三、守卫读数
+
+- `system-notice-project-auth-authorize` **25 / 25 / 0**（含新 `D1`–`D4`）；`doc-line-ref`（R1–R6）**6 / 6**（行号引用同批改签后仍绿）；`doc-consistency`（S1–S18）**18 / 18**。
+
+### 四、边界（如实）
+
+- **未闭环余项**：payload **不带配对 id** 的场合（`member-change-approved` / `weekly-report-submitted` / `thought-report-submitted` 等）**仍沿用 payload** ⇒ 要堵须**前端补 id** 或**服务端逐 kind 按源行派生**（另批）；**角色标签 / 落点**仍沿用 payload。**不得读成已全堵**。
+- **未改授权口径**（只补读口）；只改 `server/system-notice-kinds.js` ＋ 新增 `server/person-roster.js` ＋ `server/test/system-notice-project-auth-authorize.test.mjs` ＋ `README-server.md` ＋ `CLAUDE.md` ＋ `.ctx/**` ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`；`docs/src/**` 一字未动）。
+
+## 批次 422 收尾 · 降频窗（批次 418–422 · 5 commit）· **全量 probe（两跑）**
+
+- **首跑**（`SWEEP_SHARD=all`）：**987 例 / 986 pass / 1 fail**（`duration_ms 1,419,355 ≈ 23.7 min`）——唯一失败＝**`doc-consistency::S15` ②**：`CLAUDE.md` 乙部表 `R-23` 行出现「**已立**」注记（`H50.1 §3` 禁「仅标 ✅ 不删除」）。**根因＝本批改准 `R-23` 措辞时写了「已立服务端人员名册读口」** ⇒ **当场改正**（「已立…」→「**服务端人员名册读口**（…）**已建**」），复跑 `doc-consistency` ＋ `doc-line-ref` ＋ `timestamps-note-guard` **31 / 31 / 0** 绿。
+- **次跑**（修后重跑全量）：**987 / 987 / 0 绿**（`duration_ms 1,420,792 ≈ 23.7 min`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**，**非测试失败**。
+- **时序如实（不替首跑辩解）**：本批内 `test:fast` 曾报 **148 / 148 绿**（该跑**含** `doc-consistency`），而**全量首跑**在 `S15` ② 判红（`R-23` 行含「已立」）⇒ **两读数不一致，以「全量跑（读盘最新态）」为权威**、**首跑如实记红**。**处置**＝当场改准措辞 ＋ 复跑（绿）；**教训**：**改乙部表措辞后必须复跑 `doc-consistency`**（本批即以此收口）。
+- **降频窗口径（依 `D-795`）**：本窗＝批次 **418 / 419 / 420 / 421 / 422 共 5 个 commit** ⇒ 达阈跑全量；**下一窗自批次 423 起重新累计**。

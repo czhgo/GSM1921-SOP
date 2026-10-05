@@ -19,6 +19,8 @@ import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templat
 import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain/review-request-labels.js';
 // 补录#1（2026-10-05 批次 407）：`payload.resource` → 服务端表名的单一源（勿另写一张名表）
 import { RESOURCE_TABLES } from './routes/resources/store.js';
+// R-23 余项（2026-10-06 批次 422 · `D-803`③）：服务端**人员名册读口**——通知里的人名不再无条件采信 payload
+import { applyRosterNames } from './person-roster.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -95,9 +97,9 @@ const KINDS = {
         || SECRETARY_DEPUTY_SET.has(actor.role);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
       if (act.title !== undefined) vars.activityTitle = act.title;
       return buildSystemNotice('attendance-confirmed', vars);
@@ -112,9 +114,9 @@ const KINDS = {
       return !!rowOf(db, 'activities', sourceId) && COMMITTEE_ROLE_SET.has(actor.role);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
       if (act.title !== undefined) vars.activityTitle = act.title;
       return buildSystemNotice('activity-agenda-updated', vars);
@@ -129,9 +131,9 @@ const KINDS = {
       return !!rowOf(db, 'member_change_requests', sourceId);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const row = rowOf(ctx.db, 'member_change_requests', ctx.sourceId) || {};
       if (row.fromStage !== undefined) vars.fromStage = row.fromStage;
       if (row.toStage !== undefined) vars.toStage = row.toStage;
@@ -147,9 +149,9 @@ const KINDS = {
       return !!rowOf(db, 'activities', sourceId);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
       if (act.title !== undefined) vars.activityTitle = act.title;
       return buildSystemNotice('workforce-proposal-created', vars);
@@ -164,7 +166,7 @@ const KINDS = {
     // **复算**（不信客户端自述）——取变更后由「角色」承担的负责人 → actionRoles 定向派生
     // 「履职」待办；到人（person）负责人的待办由前端 workforce.js 直接派生。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       const proposal = act && act.extras && Array.isArray(act.extras.proposal) ? act.extras.proposal : [];
       const roles = [...new Set(proposal
@@ -197,7 +199,7 @@ const KINDS = {
     },
     // 计数由服务端复算（读 agenda_votes 去重 personId；分母取该活动应到名单）
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       if (act) {
         const votes = rowsOf(ctx.db, 'agenda_votes').filter((v) => v.activityId === ctx.sourceId && v.personId);
@@ -240,7 +242,7 @@ const KINDS = {
     //   口径与 `organizer-transferred` 同一份）。**人名 / 角色标签 / 落点沿用 payload**：服务端无人员名册，
     //   且「进谁的台」取决于被赋权人身份（前端口径 `services/core/auth.js::_notifyProjectAuth`）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
       if (act && act.title) vars.projectName = act.title;
@@ -259,9 +261,9 @@ const KINDS = {
       return !!senderId && actor.id === senderId;
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const row = rowOf(ctx.db, 'external_dispatches', ctx.sourceId) || {};
       if (row.refLabel !== undefined) vars.refLabel = row.refLabel;
       if (row.receiverRole !== undefined) vars.receiverRole = row.receiverRole;
@@ -280,9 +282,9 @@ const KINDS = {
       return row.submittedBy === actor.id || actor.role === 'prop-commissioner';
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const row = rowOf(ctx.db, 'weekly_reports', ctx.sourceId) || {};
       if (row.week !== undefined) vars.week = row.week;
       if (row.weekRange !== undefined) vars.weekRange = row.weekRange;
@@ -303,7 +305,7 @@ const KINDS = {
     //   `docs/src/core/domain/review-request-labels.js`（前端 `review-request.js` 同引一处）。
     //   行缺失时回落默认包装（与改动前同形）；**姓名沿用 payload**（服务端无人员名册）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const row = rowOf(ctx.db, 'review_requests', ctx.sourceId);
       if (row) {
         vars.branchLabel = branchDisplayName(row.branchId, rowOf(ctx.db, 'branches', row.branchId));
@@ -321,7 +323,7 @@ const KINDS = {
     // R-23②（同批次）：支部名 / 事项摘要 / **结论 / 意见**按表复算——`approved` 由 `review_requests.status`
     //   复算（不采信 payload 的自述结论）。行缺失时回落默认包装。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const row = rowOf(ctx.db, 'review_requests', ctx.sourceId);
       if (row) {
         vars.branchLabel = branchDisplayName(row.branchId, rowOf(ctx.db, 'branches', row.branchId));
@@ -344,9 +346,9 @@ const KINDS = {
       return actor.role === 'leader' && LEADER_ACTIVITY_TYPES.has(act.type);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
       if (act.title !== undefined) vars.activityTitle = act.title;
       if (act.date !== undefined) vars.date = act.date;
@@ -363,9 +365,9 @@ const KINDS = {
       return !!rowOf(db, 'activities', sourceId);
     },
     // R-23②（2026-10-05 批次 390）：展示值**按表复算**——对象字段不采信客户端 payload；
-    //   人名沿用 payload（服务端无人员名册；口径同 `organizer-transferred`）。
+    //   人名按**名册**复算（`server/person-roster.js`）；payload 不带 `<x>Id` 或名册查无者**沿用 payload**（已登记余项）。
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId) || {};
       if (act.title !== undefined) vars.activityTitle = act.title;
       if (act.date !== undefined) vars.date = act.date;
@@ -453,7 +455,7 @@ const KINDS = {
       return COMMITTEE_ROLE_SET.has(actor.role) || (!!removed && removed === actor.id);
     },
     build(ctx) {
-      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const vars = applyRosterNames(ctx.db, { ...payloadOf(ctx), sourceId: ctx.sourceId });
       const act = rowOf(ctx.db, 'activities', ctx.sourceId);
       const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
       if (act) {

@@ -7,6 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
+// R-23 余项（2026-10-06 批次 422 · `D-803`③）：服务端**人员名册读口**（D 组的端口单测）
+import { applyRosterNames } from '../person-roster.js';
 
 /** 最小 db 桩：只实现 `prepare().get()`，返回与真库同形的 `{ data: JSON }`（`rowOf` 会 JSON 解包） */
 const dbStub = (rows) => ({
@@ -110,12 +112,12 @@ test('B5 材料外发：refLabel/receiverRole 按表复算', () => {
   assert.ok(!t.includes('伪造材料') && !t.includes('伪造角色'), t);
 });
 
-test('B6 宣传周报：week/weekRange 按表复算；人名（无服务端名册）沿用 payload', () => {
+test('B6 宣传周报：week/weekRange 按表复算；人名（payload 不带 `<x>Id`）沿用 payload', () => {
   const rows = { weekly_reports: { 'w-1': { id: 'w-1', week: '第 41 周', weekRange: '2026-10-05 ~ 10-11', submittedBy: 'p1' } } };
   const t = TEXT(BUILD('weekly-report-submitted', 'w-1', rows, { week: '伪造周次', weekRange: '伪造区间', submitterName: '张三' }));
   assert.ok(t.includes('第 41 周') && t.includes('2026-10-05 ~ 10-11'), t);
   assert.ok(!t.includes('伪造周次') && !t.includes('伪造区间'), t);
-  assert.ok(t.includes('张三'), `人名为 payload 口径（如实边界）：${t}`);
+  assert.ok(t.includes('张三'), `payload 不带 \`submitterName\` 的配对 id ⇒ 名册无从复算、沿用 payload（如实边界）：${t}`);
 });
 
 test('B7 非空转：11 个 kind 都真有 `build`（防判据被写成恒真）', () => {
@@ -208,5 +210,48 @@ test('C3 记录作废裁决（驳回）：受众＝原申请人（`voidRejected.
     payload: { resource: 'makeupTasks', label: 'L', decision: 'confirmed' },
   });
   assert.equal(blank.audiencePersons, undefined, '无申请人 ⇒ 不设受众（不广播给任何人）');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// D 组：服务端**人员名册读口**（`R-23` 余项 · 2026-10-06 批次 422 · `D-803`③）
+//   来源：通知里的**人名**此前无条件沿用客户端 payload（服务端无名册读口）⇒ 可在通知里写别人的名字。
+//   判据＝① payload 同时带 `<x>Id` 与 `<x>Name` 者，`<x>Name` 以**名册在册者**为准（正例）；
+//           ② 名册**查无此人** ⇒ 沿用 payload（不产生空名 · 反例）；③ 非人名 id **天然不误伤**；
+//           ④ payload **不带配对 id** 者仍沿用 payload —— **如实登记为余项**（见 D4）。
+test('D1 人名按名册复算：payload 伪造 senderName 被在册名覆盖（external-dispatch-created）', () => {
+  const rows = {
+    users: { p3: { id: 'p3', name: '在册真名' } },
+    external_dispatches: { 'ed-1': { id: 'ed-1', senderId: 'p3', refLabel: '表内材料', receiverRole: '宣传委员' } },
+  };
+  const t = TEXT(BUILD('external-dispatch-created', 'ed-1', rows,
+    { senderId: 'p3', senderName: '伪造名', refLabel: '伪造材料', receiverRole: '伪造角色' }));
+  assert.ok(t.includes('在册真名'), `人名未按名册复算（R-23 余项未堵）：${t}`);
+  assert.ok(!t.includes('伪造名'), `伪造人名不得出现：${t}`);
+});
+
+test('D2 反例：名册查无此人 ⇒ 沿用 payload（不得产出空名）', () => {
+  const rows = { users: {}, external_dispatches: { 'ed-2': { id: 'ed-2', refLabel: '材料', receiverRole: '宣传委员' } } };
+  const t = TEXT(BUILD('external-dispatch-created', 'ed-2', rows, { senderId: 'p-none', senderName: '未知发送人' }));
+  assert.ok(t.includes('未知发送人'), `查无此人时沿用 payload（不空名）：${t}`);
+});
+
+test('D3 端口：`applyRosterNames` 只覆写「名册查得到」的 `<x>Id` —— 非人名 id 不误伤', () => {
+  const db = dbStub({ users: { p3: { id: 'p3', name: '在册真名' } } });
+  const vars = applyRosterNames(db, {
+    personId: 'p3', personName: '伪造',
+    activityId: 'act-9', activityName: '活动名', sourceId: 'act-9',
+  });
+  assert.equal(vars.personName, '在册真名', '在册者 ⇒ 覆盖');
+  assert.equal(vars.activityName, '活动名', '`activityId` 不在 `users` 表 ⇒ 不得覆写 `activityName`');
+});
+
+test('D4 余项（如实）：payload 不带配对 id 者仍沿用 payload —— 本批**未堵**', () => {
+  // `member-change-approved` 的 payload 只有 `personName`（无 `personId`）⇒ 名册无从复算。
+  const rows = {
+    users: { p7: { id: 'p7', name: '在册真名' } },
+    member_change_requests: { 'mc-1': { id: 'mc-1', personId: 'p7', fromStage: '积极分子', toStage: '发展对象' } },
+  };
+  const t = TEXT(BUILD('member-change-approved', 'mc-1', rows, { personName: 'payload 名' }));
+  assert.ok(t.includes('payload 名'), `**如实**：源行虽有 personId，但本批未做「按源行派生 id」⇒ 仍沿用 payload：${t}`);
 });
 
