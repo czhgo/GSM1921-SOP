@@ -3542,3 +3542,26 @@ $body
 
 - 戳 `20261005l → 20261005m`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94；陈旧戳 0）。
 - **全量 probe 本批未跑**（降频窗内：批次 408/409/410 ＝ **3 个 commit**，按 `D-795`「5–6」门槛继续累计）。
+
+## 批次 411（2026-10-05 · `D-798`）补录#4 `SOP-B-40` **母本改准**——两处「未实现」改准为「设计方向」
+
+> **来源**：支书就补录#4 圈**甲「母本改准：把『未实现』改为设计方向 / 删缺口表述」**（`D-798`）。**不落系统实现**。
+
+### 一、动作（母本 3 处 / 1 文件）
+
+- `content/02_institution/sop/宣传委员工作流程指南.md`：`:57`「「拖拽至宣传子任务」交互**尚未实现**」→「为**后续交互设计方向**（现阶段宣传子任务按既有归档流程承载）」；`:111`「「最佳展示 / 档案备份」分级**尚未实现**」→「为**设计方向**」；`:121`「「最佳展示/档案备份分级」**尚未实现**」→「为**设计方向**」。
+- frontmatter `last_updated: "2026-09-22" → "2026-10-05"` ＋ `.ctx/TIMESTAMPS.md` 表行同步（`S13` 日期一致 ＋ `F2` 改后刷卡）。
+
+### 二、守卫读数
+
+- `doc-consistency`（S1–S18）· `timestamps-note-guard`（N1–N7）· `frontmatter-freshness`（F1–F3）· `link-integrity`（L1–L5）· `copy-length-guard` · `copy-master-guard` · `copy-fold-guard` ＝ **45 / 45 / 0**。
+
+### 三、边界（如实）
+
+- **只改 `content/**` ＋ `.ctx/**`**（母本措辞正准、无新口径）⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
+- **补录表 8 条至此全部闭环·余 0**（#1 / #2 / #3 / #4 / #5 / #6 / #7 / #8）。
+
+## 批次 411 收尾 · 降频窗（批次 408–411 · 4 commit）· 全量 probe
+
+- 本窗累计 **4 个 commit**（408 / 409 / 410 / 411）⇒ 按 `D-795`「**5–6**」门槛**继续累计**（未到阈；下一窗自批次 412 起）。
+- 其间每批已跑：`test:fast` **146/146**（批次 408 / 410）· `module-load` **4/4** · 真机 `help-e2e`＋`copy-anchor-guard-e2e` **4/4** · `copy-screen-guard` **11/11** · 静态族（`doc-consistency` / `timestamps-note-guard` / `frontmatter-freshness` / `link-integrity` / `doc-line-ref` / `catalog-sync`）**全绿**。
