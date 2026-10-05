@@ -19,6 +19,8 @@ import {
 } from '../../docs/src/core/domain/constants.js';
 // 发展阶段枚举单一源 = docs/src/services/branch/org-base-data-preview.js（静态种子派生，勿另写枚举）
 import { DEVELOP_STAGE_OPTIONS } from '../../docs/src/services/branch/org-base-data-preview.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
+import { today as todayLocal } from '../services/reporting.js';
 
 // 全体支委（广播对象：支书/副支书/组织/宣传/纪检，与 member-change-flow 测试断言一致）
 // P2c：名单单一源 = constants.js COMMITTEE_IDS（勿手写）
@@ -148,7 +150,7 @@ export function createMemberRouter(db) {
       const merged = { ...user, developStage: existing.toStage || user.developStage };
       if (existing.toStage) {
         const d = String(existing.entryDate || '').slice(0, 10);
-        merged.developStageSince = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : new Date().toISOString().slice(0, 10);
+        merged.developStageSince = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : todayLocal();
       }
       db.prepare('INSERT OR REPLACE INTO users (id, data) VALUES (?, ?)').run(existing.personId, JSON.stringify(merged));
     }

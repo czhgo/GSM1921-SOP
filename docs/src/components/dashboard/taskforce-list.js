@@ -5,7 +5,8 @@
 //  职责单一：活跃/招募中专班列表（前 5 条，进度条 + 状态徽章）。
 // ════════════════════════════════════════════════════════════════
 
-import { getPersonName } from '../../services/member/person.js?v=20261005b';
+import { getPersonName } from '../../services/member/person.js?v=20261005c';
+import { todayLocal } from '../../core/base/utils.js?v=20261005c';
 
 const TF_STATUS_BADGE = {
   recruiting: { text: '招募中', cls: 'bg-orange-100 text-orange-700' },
@@ -16,7 +17,7 @@ const TF_STATUS_BADGE = {
 
 /** 状态徽章（C3 2026-09-12：状态由截止日派生——招募中但已过截止日显示「报名已截止」，与报名入口可达性一致） */
 function tfBadge(status, deadline) {
-  if (status === 'recruiting' && deadline && deadline < new Date().toISOString().slice(0, 10)) {
+  if (status === 'recruiting' && deadline && deadline < todayLocal()) {
     return { text: '报名已截止', cls: 'bg-gray-100 text-gray-600' };
   }
   return TF_STATUS_BADGE[status] || TF_STATUS_BADGE.draft;

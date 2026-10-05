@@ -16,25 +16,27 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005c';
 import {
   MockAdapter,
-} from '../../docs/src/data/mock-adapter.js?v=20261005b';
+} from '../../docs/src/data/mock-adapter.js?v=20261005c';
 import {
   PersonStore, getPersonName, MEMBER_OVERLAY_KEY,
-} from '../../docs/src/services/member/person.js?v=20261005b';
+} from '../../docs/src/services/member/person.js?v=20261005c';
 import {
   getResidenceOf, saveResidenceChange, getDetainedMembers, RESIDENCE_KEY,
-} from '../../docs/src/services/member/roster.js?v=20261005b';
+} from '../../docs/src/services/member/roster.js?v=20261005c';
 // Q-21-3（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 roster.js 转出）
-import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261005b';
+import { RESIDENCE } from '../../docs/src/core/domain/constants.js?v=20261005c';
 import {
   submitMemberChange, submitTransferOut, listPendingConfirmations,
   decideConfirmation, isTransferredOut, shouldShowSemesterDetainedRemind,
   MEMBER_CONFIRM_KEY, loadStageEntryDates,
-} from '../../docs/src/services/member/member-confirmation.js?v=20261005b';
-import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261005b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005b';
+} from '../../docs/src/services/member/member-confirmation.js?v=20261005c';
+import { buildDevelopNodeRemindGroup } from '../../docs/src/services/governance/todo.js?v=20261005c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005c';
+// R-26③（2026-10-05 批次 388）：测试的「今天 / 相对日」与生产同口径＝**本地**（服务端单一源）
+import { today as todayLocal, daysAgo } from '../services/reporting.js';
 
 // ── localStorage 内存桩 ──
 const _store = new Map();
@@ -66,9 +68,9 @@ function beginMockCase() {
   MockAdapter.loadDB();
 }
 
-/** 相对今天的日期串（YYYY-MM-DD） */
+/** 相对今天的日期串（YYYY-MM-DD；**本地口径**，与生产一致） */
 function _dateOffset(days) {
-  return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
+  return daysAgo(-days);
 }
 
 /** 往 mockDB 追加一条「未开始」活动（status/date 可调；未来日期默认） */
@@ -189,7 +191,7 @@ test('C①-补（2026-09-28 服务端化）：阶段变更 entryDate 确认生�
 
 test('C①-补：entryDate 缺省 → 今日；退回不落档；非阶段变更不携带/不落档', async () => {
   beginMockCase();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const r = submitMemberChange({ personId: 'p6', kind: 'developStage', to: '预备党员', by: 'p11' });
   assert.equal(r.request.entryDate, today, '缺省默认今日');
   await decideConfirmation(r.request.id, { decision: 'rejected', by: 'p13' });

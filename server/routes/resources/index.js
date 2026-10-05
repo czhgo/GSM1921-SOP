@@ -6,6 +6,8 @@ import { requireAuth, requireCommissioner, requireRole } from '../auth.js';
 import { replaceCollectionsAtomic, readCollectionVersions } from '../../db.js';
 import { deleteUploadedFile } from '../uploads.js';
 import { afterResourceWrite } from '../../services/mailer-hooks.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
+import { fmtLocal } from '../../services/reporting.js';
 // P1a 单向权威（2026-09-03）：config（modules/blocks）净化唯一实现 = docs/src/services/branch/config-clean.js（前端 branch.js 同源，勿在 server 另写 clean）
 // 2026-09-06 换组织向导：config 组织档案字段（headerTitle/desc/themePreset）净化同源
 // 2026-09-09 审计内核：历史上限/单键回滚白名单/回滚标记单一源同 import（与前端 branch.js 防止未同步的情况）
@@ -620,7 +622,7 @@ export function createResourcesRouter(db) {
       submittedBy: anonymous ? '匿名' : actor.id,
       anonymous,
       ...(anonymous ? { _realPersonId: actor.id } : {}),
-      submittedAt: now.toISOString().slice(0, 10),
+      submittedAt: fmtLocal(now),
       createdAt: now.toISOString(),
       assignee: null,
       assigneeRole: null,

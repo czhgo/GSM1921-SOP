@@ -2,6 +2,10 @@
 // ════════════════════════════════════════════════════════════════
 //  constants.js — 纯静态常量（角色颜色 / 活动类别颜色 / 标签）
 // ════════════════════════════════════════════════════════════════
+// R-26③（2026-10-05 批次 388）：本件**只引一个零依赖叶子** `core/base/date.js`（取本地「今天」）——
+//   不成环、双端可载；**不得**引 `core/base/utils.js`（那会牵 `core/session/pending-writes.js`）。
+
+import { todayLocal } from '../base/date.js?v=20261005c';
 
 // ── 内联标签深色适配：深色三件套自动生成 ──────────────────────────
 // 深色模式下内联样式（background/color/border 浅底深字）不随主题反转，按「同色系提亮一档」为每个颜色条目
@@ -234,8 +238,9 @@ export const DEVELOP_STAGES = ['积极分子', '发展对象', '预备党员', '
 // 语义：组织关系在本支部、人是否在校（成员档案 residenceStatus；缺省=在校）。
 // 原 services/member/roster.js 与 services/branch/org-base-data-preview.js 各写一份同值字面量
 // （roster 的语义主场在 roster，而 preview 不能 import roster——person.js → preview 是单向依赖，
-//   preview 反向 import 即成环），属「同一口径两处维护」。本项目统一收敛至本文件（无任何 import 的
-//   叶子模块，双端可载），roster / preview 与全部消费点一律 import 本文件，防循环依赖问题自然消解。
+//   preview 反向 import 即成环），属「同一口径两处维护」。本项目统一收敛至本文件（**只引一个零依赖叶子
+//   `core/base/date.js`**、不成环，**双端可载**——见本文件头注 R-26③），roster / preview 与全部消费点
+//   一律 import 本文件，防循环依赖问题自然消解。
 export const RESIDENCE = {
   CAMPUS: '在校',
   DETAINED: '滞留',
@@ -697,7 +702,7 @@ export function isActivityNotStarted(activity) {
   const a = activity || {};
   if (isActivityEnded(a)) return false;
   if (!a.date) return true;
-  return String(a.date) >= new Date().toISOString().slice(0, 10);
+  return String(a.date) >= todayLocal();
 }
 
 // ════════════════════════════════════════════════════════════════

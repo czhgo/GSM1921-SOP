@@ -13,18 +13,18 @@
 import {
   listPartyGroups, countOpenReportsByGroup, groupReportRowsOf, reportRowStateOf,
   groupActivitiesOf, reviewBucketOf,
-} from '../../services/member/group-view.js?v=20261005b';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005b';
-import { AuthStore } from '../../services/core/auth.js?v=20261005b';
-import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261005b';
-import { IssueStore } from '../../services/governance/issues.js?v=20261005b';
-import { loadActivities } from '../../services/activity/activity.js?v=20261005b';
-import { loadActivityReviews } from '../../services/governance/review.js?v=20261005b';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005b';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005b';
-import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261005b';
-import { AttendanceStatus } from '../../core/domain/domain.js?v=20261005b';
-import { escHtml as esc } from '../../core/base/utils.js?v=20261005b';
+} from '../../services/member/group-view.js?v=20261005c';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005c';
+import { AuthStore } from '../../services/core/auth.js?v=20261005c';
+import { getBranchIdOfPerson } from '../../services/branch/branch.js?v=20261005c';
+import { IssueStore } from '../../services/governance/issues.js?v=20261005c';
+import { loadActivities } from '../../services/activity/activity.js?v=20261005c';
+import { loadActivityReviews } from '../../services/governance/review.js?v=20261005c';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005c';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005c';
+import { getMeetingRosterIds } from '../../services/member/roster.js?v=20261005c';
+import { AttendanceStatus } from '../../core/domain/domain.js?v=20261005c';
+import { escHtml as esc, todayLocal } from '../../core/base/utils.js?v=20261005c';
 
 /**
  * 渲染「其他组」只读一览（本支部内除「我所属组」外的所有组，逐组一卡）。
@@ -70,7 +70,7 @@ function _cardHtml(g, ctx) {
   const { pending, completed } = reviewBucketOf(groupActs, reviews);
 
   // 已发生党小组会 应到 / 实到（口径与支书台「本组活动与考勤概览」同源：roster 应到 + attendance 实到）
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const metActs = groupActs.filter(a => a.type === '党小组会' && a.date <= today);
   let expected = 0;
   let present = 0;

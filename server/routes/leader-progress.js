@@ -15,6 +15,8 @@
 import { Router } from 'express';
 import { requireAuth } from './auth.js';
 import { aggregateMemberProgress } from '../../docs/src/services/member/member-progress.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
+import { today as todayLocal } from '../services/reporting.js';
 
 /** 取整表全量（键值表：id 主键 + data JSON） */
 const allOf = (db, table) => db.prepare(`SELECT data FROM ${table}`).all().map((r) => JSON.parse(r.data));
@@ -33,7 +35,7 @@ export function createLeaderProgressRouter(db) {
     if (!personIds.length) {
       return res.status(400).json({ error: 'personIds 必填（逗号分隔的人员 id）' });
     }
-    const today = String(req.query.today || '').trim() || new Date().toISOString().slice(0, 10);
+    const today = String(req.query.today || '').trim() || todayLocal();
 
     const rows = aggregateMemberProgress({
       persons: personIds.map((personId) => ({ personId })),

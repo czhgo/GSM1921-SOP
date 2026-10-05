@@ -10,6 +10,8 @@ import { HANDOFF_TYPES as HANDOFF_TYPES_SRC, AUTO_CONFIRM_TYPES } from '../../..
 import { BRANCH_COMMISSION_ROLES } from '../../../docs/src/core/domain/constants.js';
 import { listTable, getRow, writeRow } from './store.js';
 import { ORG_COMMISSIONER_ROLE_SET, SECRETARY_AND_DEPUTY_ROLE_SET } from './gates.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
+import { today as todayLocal } from '../../services/reporting.js';
 
 // ════════════════════════════════════════════════════════════════
 //  语义端点：申诉队列 / 反馈未读标记 / 授权审计留痕（2026-09-24 批次 169）
@@ -129,7 +131,7 @@ export function registerExtraSemanticRoutes(router, db) {
       role: body.role ? String(body.role) : null,
       scopeRef: body.scopeRef !== undefined && body.scopeRef !== null ? String(body.scopeRef) : '',
       authorizedBy: body.authorizedBy ? String(body.authorizedBy) : (req.actor ? req.actor.id : null),
-      authorizedAt: body.authorizedAt || new Date().toISOString().slice(0, 10),
+      authorizedAt: body.authorizedAt || todayLocal(),
       action: body.action === 'revoke' ? 'revoke' : 'grant',
     };
     writeRow(db, 'auth_audit', row);

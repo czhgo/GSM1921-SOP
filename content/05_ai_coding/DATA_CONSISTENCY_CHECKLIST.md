@@ -201,6 +201,7 @@ related_files: [DATA_MODEL.md, content/03_doc_system/ARCHITECTURE.md, CLAUDE.md]
 | 数据库完整性 / 版本自检 ＋ 「**新增结构须写 migration**」纪律（`ALTER TABLE` 只许出现在 migration 段内） | `server/db.js`（`validateMigrations` · v1 冻结基线 45 表） | `db-integrity-guard.test.mjs::G1–G6` | 已闭环 | `.ctx/ACTIVE_RULINGS.md`（`D-650`） |
 | 浏览器存储键必须登记（键 ⊆ 三档白名单：服务端权威 / 本机临时 / UI 偏好与会话；**新键未登记即红**） | 本文件 **§0.3 浏览器存储键白名单**（守卫的镜像；**改表即改守卫映射、两处同批动**） | `localstorage-key-guard.test.mjs::L1–L3` | 已闭环 | 本文件 §0.3 |
 | **台账备注列预算**（备注只写「现状 / 边界 / 为什么」；逐批沿革一律进 `.ctx/logs/**`——**新增即红、只降不升**） | `.ctx/TIMESTAMPS.md` 备注列 · 存量台账 `server/test/timestamps-note-baseline.mjs` · 纪律 `CLAUDE.md R-89` | `timestamps-note-guard.test.mjs::N1–N7` | 已闭环（存量 **174 条**待专项批收敛；放宽基线＝越权项） | `CLAUDE.md R-89` |
+| **日期口径统一到本地**（应用面不得用「`new Date()` ＋ `toISOString()` 切前 10 位」取「今天」——那是 **UTC**，Asia/Shanghai 00:00–08:00 会把「今天」判成昨天） | 前端零依赖叶子 `docs/src/core/base/date.js`（`todayLocal`）· 服务端单一源 `server/services/reporting.js`（`today` / `fmtLocal`）· 纪律 `CLAUDE.md R-26`③ | `date-canon-guard.test.mjs::D1–D2` | 已闭环（**应用面归零**；`docs/scripts/**` / `deploy/**` 发版工具链**不在射程**、如实登记） | `CLAUDE.md R-26` |
 
 **使用说明**
 

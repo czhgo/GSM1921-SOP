@@ -14,11 +14,12 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { badgeHtml } from '../ui/badges.js?v=20261005b';
-import { renderFilteredList } from '../ui/list-filter.js?v=20261005b';
-import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005b';
+import { badgeHtml } from '../ui/badges.js?v=20261005c';
+import { renderFilteredList } from '../ui/list-filter.js?v=20261005c';
+import { solidAccentStyle } from '../../core/domain/constants.js?v=20261005c';
 // P1（2026-09-07）：渲染层过期红点收敛于 todo.js isTodoExpired（单一过期判定实现 · spec §三.6）
-import { isTodoExpired } from '../../services/governance/todo.js?v=20261005b';
+import { isTodoExpired } from '../../services/governance/todo.js?v=20261005c';
+import { todayLocal } from '../../core/base/utils.js?v=20261005c';
 
 /**
  * 渲染「9 业务域折组」待办列表（IA 收敛 C1 Task4 六台待办页主列；替代旧按分类/actionType 大列表）。
@@ -66,7 +67,7 @@ export function renderDomainTodoList(opts) {
     emptyHint = '当前暂无待办。有新的活动、通知或待审事项时，会第一时间出现在这里。',
   } = opts;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const list = Array.isArray(domains) ? domains : [];
 
   // 默认展开域：含逾期 → 全部展开；否则 count 最大 1-2 个域（count 并列取 2）

@@ -8,23 +8,23 @@
 //   折叠体例＝本仓既有 `<details>`（同 makeup-tab「补课范围与归档口径」）；折叠只分层、不减字段与功能。
 // 数源：mockDB.branches（支部实例）+ PEOPLE（成员档案，已挂 branchId）+ ctx.activities（工作台已加载）
 
-import { mockDB } from '../../../core/domain/domain.js?v=20261005b';
-import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261005b';
+import { mockDB } from '../../../core/domain/domain.js?v=20261005c';
+import { liveMembers, PersonStore } from '../../../services/member/person.js?v=20261005c';
 // C⑤（2026-09-10 支书裁定）：治理总览不再呈支部明细 → 支部党员数/滞留收归本台账，
 // 复用 services/member/roster.js getRosterStats（与治理总览上卷、会议「应到名单」同口径）。
-import { getRosterStats } from '../../../services/member/roster.js?v=20261005b';
+import { getRosterStats } from '../../../services/member/roster.js?v=20261005c';
 // 数据域接线收口（2026-09-03）：支部成员名单经 services/member/person.js 获取（原直连 mock PEOPLE）
 // 实时视图（非快照）：成员增删即时可见——见 services/member/person.js liveMembers 说明
 const PEOPLE = liveMembers();
-import { getCommitteeName } from '../../../services/branch/branch.js?v=20261005b';
-import { getPersonName } from '../../../services/member/person.js?v=20261005b';
+import { getCommitteeName } from '../../../services/branch/branch.js?v=20261005c';
+import { getPersonName } from '../../../services/member/person.js?v=20261005c';
 // P2（2026-09-10）：监控卡补「支书任期」只读行——复用 appointment.js 任期档案（起止/现任）
-import { listAppointments } from '../../../services/branch/appointment.js?v=20261005b';
+import { listAppointments } from '../../../services/branch/appointment.js?v=20261005c';
 // 支部监控卡「进入支部」→ 复用党委既有支部入口（services/core/branch-demo-nav.js）：
 // 只读监控视图（演示形态；本地回环主机放行，本地示例 / API 会话同口径只读），不授予党支部内部事务权限。
-import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261005b';
+import { bindBranchDemoButtons } from '../../../services/core/branch-demo-nav.js?v=20261005c';
 // 支部筛选共用件（2026-10-04 批次 374 · 支书「按下设支部筛选信息」）——四页复用同一件，不各写一份
-import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261005b';
+import { renderBranchFilter, filterByBranch } from '../../../components/governance/branch-filter.js?v=20261005c';
 
 /** 本页支部筛选的 stateKey（选择随模块自持，页内重绘不丢） */
 const BRANCH_FILTER_STATE = 'pc-monitor';

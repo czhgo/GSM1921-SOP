@@ -35,6 +35,8 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
 import { SECRETARY_AND_DEPUTY_ROLES, ORG_COMMISSIONER_ROLES, PARTY_STAFF_ROLE } from '../../docs/src/core/domain/constants.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（`services/reporting.js` 是服务端单一源；禁 UTC 切串）
+import { today as todayLocal } from '../services/reporting.js';
 
 // ════════════════════════════════════════════════════════════════
 //  ★★★ 你要改的，就下面这 5 行（其余整份文件不用动） ★★★
@@ -74,7 +76,7 @@ function audit(db, { targetPersonId, branchId, actorId, action }) {
     role: 'participant',            // 入站者按成员（participant）归入支部
     scopeRef: String(branchId),     // 「归入哪个支部」
     authorizedBy: actorId ? String(actorId) : null,
-    authorizedAt: new Date().toISOString().slice(0, 10),
+    authorizedAt: todayLocal(),
     action,                         // 'join-approve' / 'join-reject'
   };
   db.prepare('INSERT OR REPLACE INTO auth_audit (id, data) VALUES (?, ?)').run(row.id, JSON.stringify(row));

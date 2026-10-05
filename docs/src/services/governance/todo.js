@@ -6,13 +6,14 @@
 //         content/04_web_design/design-system/DESIGN_SYSTEM.md §一 第6条
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005b';
-import { persist } from '../../data/data-adapter.js?v=20261005b';
-import { generateId } from '../../core/base/id.js?v=20261005b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261005b';
+import { mockDB } from '../../core/domain/domain.js?v=20261005c';
+import { persist } from '../../data/data-adapter.js?v=20261005c';
+import { generateId } from '../../core/base/id.js?v=20261005c';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261005c';
 // 待批活动状态值单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：待批活动**不是**「待参与」的活动
 // ——它还没获批（与 `draft` 同待遇），不为它派生「参与活动」待办（也免得从待办标题把没批的活动漏出去）。
-import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261005b';
+import { PENDING_APPROVAL_STATUS } from '../activity/activity.js?v=20261005c';
+import { todayLocal, _fmtDate } from '../../core/base/utils.js?v=20261005c';
 
 // ── 待办分类枚举 ──────────────────────────────────────────────
 export const TodoCategory = {
@@ -277,7 +278,7 @@ function _addDays(dateStr, days) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr || ''));
   if (!m) return null;
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]) + Number(days)));
-  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  return Number.isNaN(d.getTime()) ? null : _fmtDate(d);
 }
 
 /**
@@ -520,7 +521,7 @@ function _withAggCache(key, compute) {
 
 /** 今日 YYYY-MM-DD（聚合排序用） */
 function _todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return todayLocal();
 }
 
 /**
@@ -1072,7 +1073,7 @@ export const TodoStore = {
   refreshExpiredStatus() {
     const todos = _loadTodos();
     let changed = false;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocal();
     const updated = todos.map(t => {
       if (t.status === TodoStatus.PENDING && isTodoExpired(t, today)) {
         changed = true;
@@ -1300,7 +1301,7 @@ export const VisitorTodoDeriver = {
    */
   deriveFromNotices({ personId, person, notices }) {
     if (!personId) return [];
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocal();
     const items = [];
     for (const n of notices || []) {
       if (n.archived) continue; // 2026-08-08 归档闭环：已归档通知不派生阅读待办
@@ -1335,7 +1336,7 @@ export const VisitorTodoDeriver = {
    */
   deriveFromActivities({ personId, activities, signups = [] }) {
     if (!personId) return [];
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocal();
     const applicableIds = new Set();
     const items = [];
     for (const a of activities || []) {
@@ -1396,7 +1397,7 @@ export const VisitorTodoDeriver = {
    */
   deriveFromTaskforceSignups({ personId, taskforces, signups = [] }) {
     if (!personId) return [];
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayLocal();
     const applicableIds = new Set();
     const items = [];
     for (const tf of taskforces || []) {

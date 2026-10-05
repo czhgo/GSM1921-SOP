@@ -4,12 +4,12 @@
 //  与 attendance.js / inspection.js 同构：mockDB 优先 + mock 常量 fallback
 // ════════════════════════════════════════════════════════════════
 
-import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261005b';
-import { persist } from '../../data/data-adapter.js?v=20261005b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261005b';
-import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261005b';
-import { ACTIVITIES } from '../../data/mock/index.js?v=20261005b';
-import { isInitStateActive } from '../core/init-reset.js?v=20261005b'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
+import { mockDB, ReviewStatus } from '../../core/domain/domain.js?v=20261005c';
+import { persist } from '../../data/data-adapter.js?v=20261005c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261005c';
+import { BRANCH_COMMISSION_ROLES, ACTIVITY_CLASSIFICATION, SECRETARY_AND_DEPUTY_ROLES } from '../../core/domain/constants.js?v=20261005c';
+import { ACTIVITIES } from '../../data/mock/index.js?v=20261005c';
+import { isInitStateActive } from '../core/init-reset.js?v=20261005c'; // C2 修复（2026-09-08）：init 态空态不回退演示种子
 
 /** 读取全部活动（同步接口，供 UI 层使用） */
 export function loadActivities() {
@@ -235,7 +235,7 @@ export function listMyProjectTasks(personId) {
 //   见 `entries/tabs/leader/attendance-tab.js` 与 `inspection-tab.js`），故按「人」放行这一页；
 //   放行面由 `capabilities/leader-workspace.js` 收窄到「我的职责」里的那两个 tab，
 //   **不放宽任何写权限**（写口仍按 `canUploadAttendance` / 组织者身份逐场判定）。
-// 放行判据需读活动数据，故本门落在服务层（`core/domain/constants.js` 是无 import 的叶子模块，不入那侧）。
+// 放行判据需读活动数据，故本门落在服务层（`core/domain/constants.js` 只引零依赖叶子、不成环，不入那侧）。
 // 消费点单一源：`core/boot/bootstrap.js` 身份门 —— 勿手写第二份。
 export const ORGANIZER_FALLBACK_PAGE = 'leader.html';
 export function isOrganizerFallbackPage(personId, page) {
@@ -765,8 +765,8 @@ export async function openCommitteeVoteForActivity({ activityId, by, role, mode 
   if (existing) return { ok: true, already: true, agendaItemId: existing.id };
   // 动态引入（不改本文件行号；表决配置与 id 生成的单一源仍在各自模块，不在此另写一套）
   const [{ defaultVoteConfig, resolveVoterIds }, { generateId }] = await Promise.all([
-    import('./vote-config.js?v=20261005b'),
-    import('../../core/base/id.js?v=20261005b'),
+    import('./vote-config.js?v=20261005c'),
+    import('../../core/base/id.js?v=20261005c'),
   ]);
   const agendaItemId = generateId('ag');
   const at = new Date().toISOString();

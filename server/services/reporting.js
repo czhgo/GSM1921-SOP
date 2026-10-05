@@ -22,7 +22,8 @@ function listTable(db, table) {
   return db.prepare(`SELECT data FROM ${table}`).all().map(r => JSON.parse(r.data));
 }
 
-function fmtLocal(d) {
+/** 本地日历日 `YYYY-MM-DD`（服务端日期口径单一源；R-26③：禁再用 UTC 切串取「今天」） */
+export function fmtLocal(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

@@ -10,20 +10,21 @@
 //   - party 页面已移除，organizer/deep 内容落在成员工作台（workspace/visitor.html）——
 //     首页并无"我的角色"区块（2026-09-17 批次 64 dogfood 实测）
 
-import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005b';
-import { PEOPLE } from '../../data/mock/index.js?v=20261005b';
+import { ROLE_LABELS, ROLE_PAGE_MAP, BRANCH_COMMISSION_ROLES } from '../../core/domain/constants.js?v=20261005c';
+import { PEOPLE } from '../../data/mock/index.js?v=20261005c';
 // 账号登录校验（认证域收口：UI 不直连 mock 账号仓；真实后端接入时此处替换校验实现）
 // 2026-09-14 批次 25：改为「可持久化账号层 ∪ 静态种子表」校验（成员流入自动建号 / 流出停用；
 //   见 services/core/accounts.js），支撑「账号与成员档案同源」口径。
-import { verifyLogin } from './accounts.js?v=20261005b';
-import { getPersonById, getPersonName } from '../member/person.js?v=20261005b';
-import { mockDB } from '../../core/domain/domain.js?v=20261005b';
-import { NoticeStore } from '../governance/notice.js?v=20261005b';
-import { updateActivity } from './mock.js?v=20261005b';
-import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261005b';
-import { persist } from '../../data/data-adapter.js?v=20261005b';
-import { enableApiMode } from './runtime.js?v=20261005b';
-import { generateId } from '../../core/base/id.js?v=20261005b';
+import { verifyLogin } from './accounts.js?v=20261005c';
+import { getPersonById, getPersonName } from '../member/person.js?v=20261005c';
+import { mockDB } from '../../core/domain/domain.js?v=20261005c';
+import { NoticeStore } from '../governance/notice.js?v=20261005c';
+import { updateActivity } from './mock.js?v=20261005c';
+import { TaskForceRecordStore } from '../activity/taskforce.js?v=20261005c';
+import { persist } from '../../data/data-adapter.js?v=20261005c';
+import { enableApiMode } from './runtime.js?v=20261005c';
+import { generateId } from '../../core/base/id.js?v=20261005c';
+import { todayLocal } from '../../core/base/utils.js?v=20261005c';
 
 // ── 登录状态 ─────────────────────────────────────
 const LOGIN_KEY = 'gsm1921-login-user';   // localStorage: { personId, role, tabId }
@@ -233,7 +234,7 @@ function _appendAuditEntries(scopeRef, actorId, entries, action) {
       role: e.role || null,
       scopeRef,
       authorizedBy: actorId || null,
-      authorizedAt: new Date().toISOString().slice(0, 10),
+      authorizedAt: todayLocal(),
       action, // 'grant' | 'revoke'
     });
   });
@@ -584,7 +585,7 @@ export const AuthStore = {
       role,
       scopeRef,
       authorizedBy: authorizerId,
-      authorizedAt: new Date().toISOString().slice(0, 10),
+      authorizedAt: todayLocal(),
       action: 'grant',
     });
     _saveAuthRecords(records);
@@ -734,7 +735,7 @@ export const AuthStore = {
         role: a.role,
         scopeRef,
         authorizedBy: actorId || null,
-        authorizedAt: new Date().toISOString().slice(0, 10),
+        authorizedAt: todayLocal(),
         action: 'grant',
       });
       _notifyProjectAuth(scopeRef, actorId, a.personId, a.role);
@@ -803,7 +804,7 @@ function _syncAuthAuditToServer(records) {
   const fresh = rows.filter((r) => r && r.id && !_auditSyncedIds.has(r.id));
   if (!fresh.length) return;
   fresh.forEach((r) => _auditSyncedIds.add(r.id));
-  import('../../data/data-adapter.js?v=20261005b').then(async ({ getDataSource, getAdapter }) => {
+  import('../../data/data-adapter.js?v=20261005c').then(async ({ getDataSource, getAdapter }) => {
     if (getDataSource() !== 'api') return; // mock 形态：不发（本机键即权威）
     const a = getAdapter();
     if (!a.authAudit || typeof a.authAudit.create !== 'function') return;

@@ -15,16 +15,17 @@
 //  BOM/纯 ESM 零依赖 DOM；扫描/派生为纯函数（activities 数组入参），供 node 单测与支书台聚合共用。
 // ════════════════════════════════════════════════════════════════
 
-import { generateId } from '../../core/base/id.js?v=20261005b';
-import { mockDB } from '../../core/domain/domain.js?v=20261005b';
-import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261005b'; // P0 域缓存失效（spec §二.3/§二.4）
+import { generateId } from '../../core/base/id.js?v=20261005c';
+import { mockDB } from '../../core/domain/domain.js?v=20261005c';
+import { bumpToken, tokenOf } from '../../core/base/version-token.js?v=20261005c'; // P0 域缓存失效（spec §二.3/§二.4）
 import {
   TodoStore, TodoStatus, TodoCategory, TodoActionType, TodoSourceType, REALTIME_GROUP_DOMAIN,
-} from './todo.js?v=20261005b';
-import { BranchService } from '../core/runtime.js?v=20261005b';
-import { loadActivities } from '../activity/activity.js?v=20261005b';
-import { PersonStore } from '../member/person.js?v=20261005b';
-import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261005b';
+} from './todo.js?v=20261005c';
+import { BranchService } from '../core/runtime.js?v=20261005c';
+import { loadActivities } from '../activity/activity.js?v=20261005c';
+import { PersonStore } from '../member/person.js?v=20261005c';
+import { ROLE_LABELS } from '../../core/domain/constants.js?v=20261005c';
+import { todayLocal } from '../../core/base/utils.js?v=20261005c';
 
 /** 待落实跟进状态 */
 export const FOLLOWUP_STATUS = {
@@ -274,7 +275,7 @@ export function buildOverdueRemindGroup(activities, today) {
  *  变化经写口 bump（mock.js 活动写口 / 本文件 resolution 写口）或源数组长度指纹触发重算。 */
 const _overdueMemo = new Map();
 export function buildOverdueRemindGroupNow() {
-  const day = new Date().toISOString().slice(0, 10);
+  const day = todayLocal();
   const key = `${tokenOf('activity')}:${mockDB.activities.length}:${tokenOf('resolution')}:${day}`;
   if (_overdueMemo.has(key)) return _overdueMemo.get(key);
   const value = buildOverdueRemindGroup(loadActivities(), day);

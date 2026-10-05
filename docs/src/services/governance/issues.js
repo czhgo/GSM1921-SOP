@@ -6,16 +6,16 @@
 //   见 server/routes/resources.js 末「反馈未读标记」段），`init()` 拉取填 `mockDB.issueUnread` 供同步读；
 //   mock 形态原路径（本机键）一字未改。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005b';
-import { AuthStore } from '../core/auth.js?v=20261005b';
-import { PersonStore } from '../member/person.js?v=20261005b';
-import { bumpToken } from '../../core/base/version-token.js?v=20261005b'; // P2 渲染守卫失效（spec §四.1）
-import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261005b';
-import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261005b';
+import { mockDB } from '../../core/domain/domain.js?v=20261005c';
+import { AuthStore } from '../core/auth.js?v=20261005c';
+import { PersonStore } from '../member/person.js?v=20261005c';
+import { bumpToken } from '../../core/base/version-token.js?v=20261005c'; // P2 渲染守卫失效（spec §四.1）
+import { getDataSource, getAdapter, isDemoReadOnly, demoReadOnlyMessage } from '../../data/data-adapter.js?v=20261005c';
+import { hashSubmitterToken, BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE } from '../../core/domain/constants.js?v=20261005c';
 // 2026-09-17 批次 49：处置写链（REST 直连，不走 persist）须自登记进成功提示的统一等待点
-import { trackWrite } from '../../core/session/pending-writes.js?v=20261005b';
-import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261005b';
-import { generateId, randomHex } from '../../core/base/id.js?v=20261005b';
+import { trackWrite } from '../../core/session/pending-writes.js?v=20261005c';
+import { withinBranch, getBranchIdOfPerson } from '../branch/branch.js?v=20261005c';
+import { generateId, randomHex } from '../../core/base/id.js?v=20261005c';
 // 批次 47-M（2026-09-16）：**补上缺失的 showToast 导入**——本文件有 11 处 `showToast(...)`，
 //   却从未 import 它，页面也没有任何地方把它挂到 window 上 ⇒ 真机跑到这些行时**一律抛
 //   `ReferenceError: showToast is not defined`**。后果（正是支书实报的那类「非闭环」）：
@@ -26,7 +26,7 @@ import { generateId, randomHex } from '../../core/base/id.js?v=20261005b';
 //       **写已经落库，提示却抛在写之后**，于是「事情办成了，但界面一声不吭」，用户会以为没生效而重复提交。
 //   之所以长期没被发现：这五处校验点的「载体不在位」旧理由（「需先有议题并进入评论态」等）把它们
 //   一直挂在 machine:false 白名单里，**真机从未跑到这些行**（见批 47-M 台账注释）。
-import { showToast } from '../../core/base/utils.js?v=20261005b';
+import { showToast, todayLocal } from '../../core/base/utils.js?v=20261005c';
 // 统一检索引擎（2026-09-14 批次 37）：本 tab 三区各接一个实例（关键词 + 引擎内置分页）
 
 /** 解析人员 ID → 姓名（反馈系统统一走 PersonStore 唯一解析源） */
@@ -390,7 +390,7 @@ export const IssueStore = {
       targetIssueId: draft.targetIssueId || null,
       payload: draft.payload,
       author: authorOverride || _currentPersonId(),
-      createdAt: new Date().toISOString().slice(0, 10),
+      createdAt: todayLocal(),
       status: 'pending', // pending | approved | rejected
       reviewNote: null,
     };
@@ -408,7 +408,7 @@ export const IssueStore = {
    * @returns {Promise<Object>} API 形态返回落库记录（服务端已脱敏）；mock 形态返回新建草稿（出口亦已脱敏）
    */
   async submitIssue({ title, body, scope, types = [], domain = '', anonymous = true } = {}) {
-    const now = new Date().toISOString().slice(0, 10);
+    const now = todayLocal();
     const token = _getSubmitterToken();
     // 支部归属：登录=本人所属支部，未登录（公共反馈页）=部署默认支部（写入口径单一源 _writeBranchId）
     const branchId = _writeBranchId();
@@ -464,7 +464,7 @@ export const IssueStore = {
         status: 'open',
         closedReason: null,
         closedAt: null,
-        submittedAt: new Date().toISOString().slice(0, 10),
+        submittedAt: todayLocal(),
         reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },
         mentions: [],
         references: [],
@@ -500,7 +500,7 @@ export const IssueStore = {
           id: generateId('cmt', '-'),
           author: d.author,
           body: d.payload.body,
-          createdAt: new Date().toISOString().slice(0, 10),
+          createdAt: todayLocal(),
           hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
         });
         if (!issue.participants.includes(d.author)) issue.participants.push(d.author);
@@ -543,7 +543,7 @@ export const IssueStore = {
     issue.status = status;
     if (status === 'closed') {
       issue.closedReason = closedReason || 'completed';
-      issue.closedAt = new Date().toISOString().slice(0, 10);
+      issue.closedAt = todayLocal();
     } else {
       issue.closedReason = null;
       issue.closedAt = null;
@@ -563,7 +563,7 @@ export const IssueStore = {
     c.hidden = true;
     c.hiddenBy = _currentPersonId();
     c.hiddenReason = reason;
-    c.hiddenAt = new Date().toISOString().slice(0, 10);
+    c.hiddenAt = todayLocal();
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：评论隐藏 → 写版本 +1
     _syncIssueToApi(issue); // API 形态：处置写回服务端
@@ -601,7 +601,7 @@ export const IssueStore = {
     if (!issue) return null;
     const prevAssignee = issue.assignee || null;
     const by = _currentPersonId();
-    const at = new Date().toISOString().slice(0, 10);
+    const at = todayLocal();
     issue.assignee = assigneeId;
     issue.assigneeRole = assigneeRole || null;
     // 指派历史时间线
@@ -643,7 +643,7 @@ export const IssueStore = {
     const issue = _rawById(issueId);
     if (!issue) return null;
     if (!Array.isArray(issue.comments)) issue.comments = [];
-    const at = new Date().toISOString().slice(0, 10);
+    const at = todayLocal();
     issue.comments.push({
       id: generateId('cmt', '-'),
       author,
@@ -683,7 +683,7 @@ export const IssueStore = {
     if (!issue) return null;
     issue.status = 'closed';
     issue.closedReason = reason;
-    issue.closedAt = new Date().toISOString().slice(0, 10);
+    issue.closedAt = todayLocal();
     issue.resultPending = false;
     // 关闭后清除「待终审」未读标记
     IssueNotify.markSecretaryReviewRead(issueId);
@@ -721,7 +721,7 @@ export const IssueStore = {
   submitReport({ category = 'progress', body = '' } = {}) {
     if (!body.trim()) return null;
     const by = _currentPersonId();
-    const now = new Date().toISOString().slice(0, 10);
+    const now = todayLocal();
     const issue = {
       id: generateId('report', '-'),
       number: this.nextNumber(),
@@ -767,7 +767,7 @@ export const IssueStore = {
   requestReport(targetPersonId, targetRole = null, note = '') {
     if (!targetPersonId) return null;
     const by = _currentPersonId();
-    const now = new Date().toISOString().slice(0, 10);
+    const now = todayLocal();
     const noteText = (note || '').trim();
     const issue = {
       id: generateId('report-req', '-'),
@@ -816,13 +816,13 @@ export const IssueStore = {
       author: _currentPersonId(),
       authorRole: null,
       body: '已收到答复',
-      createdAt: new Date().toISOString().slice(0, 10),
+      createdAt: todayLocal(),
       kind: 'verdict',
       hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
     });
     issue.status = 'closed';
     issue.closedReason = 'completed';
-    issue.closedAt = new Date().toISOString().slice(0, 10);
+    issue.closedAt = todayLocal();
     issue.resultPending = false;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(_issuesCache)); } catch {}
     _noteIssueChange(); // P2：汇报闭环确认 → 写版本 +1
@@ -881,14 +881,14 @@ export const IssueStore = {
     source.hidden = true;
     source.status = 'closed';
     source.closedReason = 'duplicate';
-    source.closedAt = new Date().toISOString().slice(0, 10);
+    source.closedAt = todayLocal();
     if (!Array.isArray(target.comments)) target.comments = [];
     target.comments.push({
       id: generateId('cmt-merge', '-'),
       author: _currentPersonId(),
       authorRole: _currentRole(),
       body: `合并自 #${source.number || source.id}：${source.title || ''}`,
-      createdAt: new Date().toISOString().slice(0, 10),
+      createdAt: todayLocal(),
       kind: 'verdict',
       hidden: false, hiddenBy: null, hiddenReason: null, hiddenAt: null,
     });
@@ -956,7 +956,7 @@ export const IssueStore = {
   exportJSON() {
     return JSON.stringify({
       version: 1,
-      updatedAt: new Date().toISOString().slice(0, 10),
+      updatedAt: todayLocal(),
       issues: _sanitizeIssues(_issuesCache || []),
     }, null, 2);
   },
@@ -1053,7 +1053,7 @@ export const IssueStore = {
           closedReason: f.status === 'done' ? 'completed' : null,
           closedAt: f.status === 'done' ? f.submittedAt : null,
           submittedBy: f.submittedBy || '匿名',
-          submittedAt: f.submittedAt || new Date().toISOString().slice(0, 10),
+          submittedAt: f.submittedAt || todayLocal(),
           assignee: null,
           milestone: null,
           reactions: { thumbsUp: [], thumbsDown: [], eyes: [], hooray: [] },

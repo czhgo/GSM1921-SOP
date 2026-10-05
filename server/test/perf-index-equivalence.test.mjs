@@ -13,16 +13,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005b';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005b';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005b';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005c';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005c';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005c';
 // 日历日索引纯分组 helper（calendar.js 现为 node 可导：resize 监听已 typeof 守卫）
-import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261005b';
-import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261005b';
+import { buildCalendarDayIndex } from '../../docs/src/components/record/calendar.js?v=20261005c';
+import { SecretaryTodoDeriver } from '../../docs/src/services/governance/secretary-overview.js?v=20261005c';
 import {
   buildApprovedSignupIndex, approvedSignupHit,
-} from '../../docs/src/services/governance/today-summary.js?v=20261005b';
-import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261005b';
+} from '../../docs/src/services/governance/today-summary.js?v=20261005c';
+import { TodoStatus, isTodoExpired } from '../../docs/src/services/governance/todo.js?v=20261005c';
+// R-26③（2026-10-05 批次 388）：与生产同口径＝**本地**「今天」（服务端单一源）
+import { today as todayLocal } from '../services/reporting.js';
 
 // ── localStorage 内存桩（member-persist 同款）─────────────────────
 const _store = new Map();
@@ -130,7 +132,7 @@ test('② 考勤缺口（_aggAttendanceRemind Map 化）：缺口活动序与旧
   ];
 
   // 旧嵌套对偶实现（改造前逻辑逐字）
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocal();
   const daysBetween = (from, to) => Math.floor((new Date(to) - new Date(from)) / (24 * 60 * 60 * 1000));
   const refGapIds = activities
     .filter(a => (a.status === 'completed' || a.archived) && a.date)

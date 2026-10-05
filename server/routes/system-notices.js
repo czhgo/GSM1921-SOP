@@ -10,6 +10,8 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { requireAuth } from './auth.js';
 import { SYSTEM_NOTICE_KINDS } from '../system-notice-kinds.js';
+// R-26③（2026-10-05 批次 388）：日期口径统一到**本地**（服务端单一源 `services/reporting.js`）
+import { today as todayLocal } from '../services/reporting.js';
 
 export function createSystemNoticesRouter(db) {
   const router = Router();
@@ -54,7 +56,7 @@ export function createSystemNoticesRouter(db) {
     const notice = {
       ...built,
       id,
-      publishDate: new Date().toISOString().slice(0, 10),
+      publishDate: todayLocal(),
     };
     db.prepare('INSERT OR REPLACE INTO notices (id, data) VALUES (?, ?)').run(id, JSON.stringify(notice));
     res.status(201).json(notice);

@@ -2695,3 +2695,39 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - `?view=activities` **一并**改落「活动日历」（如实登记为「顺带」）：该参数由首页活动面板发出，而组织台「知情查看」现只出专班段 ⇒ 原落点会显示专班，与「查看全部活动」语义不符。
 - 未改 `insight-view` 兜底代码（共享件）——只让组织台**不再走**那条兜底。
 - `TIMESTAMPS.md` 的本文件行刷 `2026-10-05`，并按 `R-89`／`N4` 去掉备注里的 `T-编号` ⇒ 同批从 `timestamps-note-baseline.mjs::WITH_TID_BASELINE` 删该条（`N7` 双向一致；备注字数**净减**、仍在 `N2` 预算内）。
+
+***
+
+## 批次 388（2026-10-05 · `D-780`）**`R-26`③ 日期口径统一到本地**（应用面 81 处）＋ 立守卫 `date-canon-guard`
+
+> **来源**：`CLAUDE.md R-26` 的 **③ 待办**（「UTC 与本地日期口径混用（`toISOString().slice(0,10)` vs `_currentYearMonth()`）须统一到本地口径」）＋ 批次 385 补录表外的乙部在办项。
+> **病灶**：`new Date()` ＋ `toISOString()` 切前 10 位取「今天」是 **UTC** ⇒ Asia/Shanghai（UTC+8）的 **00:00–08:00** 把「今天」判成**昨天**（逾期 / 待办 / 发布日 / 归档日偏一天）——支部系统**早上用得多**，属真错判。
+
+### 一、口径与落法（零依赖叶子）
+
+- **前端**：新建 `docs/src/core/base/date.js`（**零依赖叶子**，导出 `_fmtDate` / `todayLocal`）；`core/base/utils.js` **转出**（`export { _fmtDate, todayLocal } from './date.js'`）⇒ 既有 `from '…/utils.js'` 调用点**一处未动**。**为什么不放 `utils.js`**：`core/domain/constants.js` 被全站 import 且要求**双端可载**（`services/activity/activity.js` 有明文「constants 不入服务层，以避循环」）⇒ 它只能引**零依赖**件，而 `utils.js` 牵 `core/session/pending-writes.js`。
+- **服务端**：`server/services/reporting.js` 早有本地 `today()` / `daysAgo()`（`fmtLocal` 原为私有 ⇒ 本批**导出**）；6 处路由改用之。
+- **两处 doc 口径同步改准**（原写「无 import 的叶子模块」）：`core/domain/constants.js` 头注 ＋ §RESIDENCE 注、`services/activity/activity.js` 放行注。
+
+### 二、落地（应用面 81 处 ＋ 引用一改具改）
+
+- `docs/src/**`：**39 文件 75 处**（UTC 取「今天」72 → `todayLocal()`；`X.toISOString()` 3 → `_fmtDate(X)`）＋ 按相对路径接线 import。
+- `server/**`：**6 处**（`routes/iaaa.js` · `leader-progress.js` · `member.js` · `resources/index.js` · `resources/semantic-routes.js` · `system-notices.js`）。
+- **测试口径对齐**：`member-confirmation.test.mjs`（`_dateOffset` → `daysAgo(-days)`；「缺省今日」→ `todayLocal()`）· `perf-index-equivalence.test.mjs`（参照实现同日）——防「测试用 UTC、生产用本地」在窗口内 flaky。
+- **`README-server.md` 引用一改具改**：插入 import 使 24 个被引文件行位移 ⇒ 用 **LCS 行映射**（`git show HEAD:` ↔ 现版）逐号改准，**改写 108 条引用**（含短式续列 `:NN` 与逗号续列）。
+- 版本戳 **`20261005b → 20261005c`**（JS 224 / HTML 23 / CSS 2 / server-test 92；陈旧戳 0）。
+- `.ctx/TIMESTAMPS.md`：本批**实际编辑过**的 27 个（有表行）文件刷 `2026-10-05`（**只改日期列**）。
+
+### 三、守卫与反例（判据确会抓）
+
+- 新守卫 `server/test/date-canon-guard.test.mjs`：**`D1`** 应用面不得出现 UTC 切串取日（命中即红并指名；**非空转下限 200 文件**）；**`D2`** 本地口径单一源在位（前端叶子导出 `todayLocal` 且**零 import**；服务端导出 `today` / `fmtLocal`；`constants.js` **只许 1 条 import** 且指向 `../base/date.js`；`utils.js` 确有转出）。
+- **登记**：`server/package.json` 的 **`test:daily`**（`S16` 硬要求）＋ `test:fast` · 根 `README.md` 汇总清单 · `server/README.md` 守卫清单 · `content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md §0.2` 索引行。
+- **反例自检**：首跑 `D1` 即**判红**——抓的是本批自己的临时 codemod 文件（`server/.tmp-datefix.mjs`，已删）。
+- **守卫读数**：`date-canon-guard` 2/2 · `doc-line-ref`（`R1`–`R6`）· `doc-consistency`（`S1`–`S18`，含 `S9`/`S10`/`S11`）· `module-load`（`E1`–`E4`）· `import-path-guard` · `version-stamp` · `frontmatter-freshness` · `timestamps-note-guard` · `link-integrity` · `link-target-guard` ＝ **67/67 / 0 红**。收尾全量见本批提交说明。
+
+### 四、边界（如实）
+
+- **射程＝应用面**：`docs/scripts/**`（`release.mjs` / `bump-version.mjs` 的 `TODAY`）与 `deploy/**` 属**发版 / 打包工具链**（日期只用于**版本戳与产物名**）⇒ **不在 `D1` 射程**、如实登记。
+- **服务端一并改**（非 `R-26`③ 字面要求）：只改前端会使窗口内**前后端「今天」分叉** ⇒ 同批改准服务端 6 处。
+- **`constants.js` 由「零 import」变「一条零依赖 import」**：破了原字面、**保住本意**（不成环、双端可载）；两处 doc 同批改准，`D2` 把守。
+- 本批**不新增页面 / 表 / 字段 / 权限**。
