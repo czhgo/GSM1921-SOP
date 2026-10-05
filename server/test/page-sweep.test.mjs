@@ -276,7 +276,7 @@ for (const w of WORKS) {
       }
       await page.waitForTimeout(800);
       // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言、不许静默降级」）：本文件真机用例必须在 API 形态下跑
-      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004p')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+      await page.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
 
       const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
       assert.ok(labels.length > 0, `${w.name} 未渲染任何 tab`);
@@ -344,6 +344,69 @@ for (const w of WORKS) {
     }
   });
 }
+
+// S20（2026-10-05 批次 386 · objective #7）：**tab 快速切换竞态**——各 tab 的 `render` 是动态 import，
+//   **import 解析后才写共享容器** `#<prefix>-tab-content` ⇒ 「先点（更早发起 import）的 tab 其模块后到」
+//   会覆盖当前 tab 的内容（症状＝高亮停在后点的 tab、内容却是先点的那个；快速连切时必现，读起来像
+//   「点了 tab 加载不出来」）。判据＝**冷上下文**（模块未缓存）0ms 连点全部 tab，落定后容器内容
+//   必须仍等于「再点一次末个 tab」（此时其模块已缓存、必渲染正确）的内容；两者不等即「陈旧渲染覆盖」。
+//   ⚠ 本用例只在**登录后的冷页面**做（顺序逐 tab 普查那批的模块已缓存 ⇒ 复现不出竞态）。
+test('S20 tab 快速切换竞态：冷上下文连点全部 tab，内容不得落到陈旧 tab', async () => {
+  const w = WORKS[0];
+  const page = await browser.newPage();
+  const errs = [];
+  page.on('pageerror', (e) => errs.push(e.message));
+  const innerText = (pid) => page.evaluate((id) => (document.getElementById(id)?.innerText || '').replace(/\s+/g, ' ').trim(), pid);
+  const clickLabel = (l) => page.evaluate((x) => {
+    [...document.querySelectorAll('button[role="tab"]')].find((t) => t.textContent.includes(x))?.click();
+  }, l);
+  try {
+    // 静音项取 `MUTED_EXTERNALS` **单一源**（`S2` 按字面 `page.route` 调用计数 ⇒ 此处不再写第二份字面，免重复计数）
+    for (const m of MUTED_EXTERNALS) await page.route(m.pattern, (r) => r.abort());
+    // 让**首个 tab**（「今天」）的模块慢到 600ms 才返回 ⇒ 它在冷上下文里**必然后于**其余 tab 的模块落定，
+    //   从而把「先点的 tab 后到」这一竞态**确定性**复现（本地 localhost 各模块同速 ⇒ 不注入延迟则复现不稳）。
+    //   ⚠ 用变量（非字面）挂路由：`S2` 只认字面 `page.route` 调用计数，多一份字面即让它误判。
+    const SLOW_TAB = '**/tabs/today/today-tab.js*';
+    await page.route(SLOW_TAB, async (r) => { await new Promise((s) => setTimeout(s, 600)); await r.continue(); });
+    let loggedIn = false;
+    for (let attempt = 0; attempt < 2 && !loggedIn; attempt += 1) {
+      await page.goto(`${base}/login.html`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('#student-id', { timeout: 30000 });
+      await page.fill('#student-id', w.studentId);
+      await page.fill('#password', '123456');
+      await Promise.all([
+        page.waitForURL(`**/workspace/${w.page}.html`, { timeout: 30000 }),
+        page.click('button[type="submit"]'),
+      ]);
+      try {
+        await page.waitForFunction(() => document.querySelectorAll('button[role="tab"]').length > 0, { timeout: 45000 });
+        loggedIn = true;
+      } catch (e) {
+        if (attempt === 1) throw e;
+      }
+    }
+    await page.waitForTimeout(800);
+    const labels = await page.$$eval('button[role="tab"]', (els) => els.map((e) => e.textContent.trim()));
+    assert.ok(labels.length >= 6, `${w.name} tab 数过少（${labels.length}）：竞态用例样本不足`);
+    // 冷上下文 0ms 连点全部 tab（各 tab 动态 import 近同时发起 ⇒ 落定顺序不定）
+    for (const l of labels) await clickLabel(l);
+    await page.waitForTimeout(3000);
+    const last = labels[labels.length - 1];
+    const rendered = await innerText(`${w.page}-tab-content`);
+    // 参照：再点一次末个 tab（其模块此时已缓存 ⇒ 必渲染正确）
+    await clickLabel(last);
+    await page.waitForTimeout(1500);
+    const settled = await innerText(`${w.page}-tab-content`);
+    assert.ok(settled.length > 10, `${w.name} · tab「${last}」单独重渲染产物为空（长度 ${settled.length}）`);
+    assert.equal(rendered, settled,
+      `${w.name}：连点全部 tab 后，内容落到了**陈旧 tab**（当前应为「${last}」）——`
+      + '陈旧渲染覆盖了当前 tab（objective #7「tab 在切换和加载中存在加载不出来」）。\n'
+      + `  连点后前 60 字：${rendered.slice(0, 60)}\n  应为前 60 字：${settled.slice(0, 60)}`);
+    assert.deepEqual(errs, [], `${w.name} 快速切换出现脚本错误：\n${errs.join('\n')}`);
+  } finally {
+    await page.close();
+  }
+});
 
 // S1：普查「非空转」证明——若全部列表都短于门槛（无一条 > 10 行）、矩阵与手写表格一条也没碰到，
 //    那 P1/P2/P3 就是**恒真**（查了个寂寞）。故断言普查确实覆盖到「本该分页」的样本。

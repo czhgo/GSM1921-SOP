@@ -47,10 +47,13 @@ async function addBtnTypes(page) {
 }
 
 async function openActivityDetail(page) {
-  // 切到「活动管理」tab（leader 台默认待办；活动列表在活动 tab 渲染）
+  // 切到「本组活动」tab（leader 台默认待办；活动列表与子记录写口在 `write-tab.js` 渲染）。
+  // ⚠ 2026-10-05 批次 386 改准（陈旧断言）：原按「**首个**含『活动』的 tab」点击 ⇒ `#10` 改版后该位被
+  //   「活动日历」占据（`.leader-act-item` 实际只由「本组活动」渲染）⇒ 旧写法恒超时。
+  //   取证：把我的改动 stash 掉（退回旧代码）仍复现同一 30s 超时 ⇒ 与本批无关、系 `#10` 改版遗留。
   await page.waitForFunction(() => document.querySelector('.leader-tab-btn'), { timeout: 10000 });
   await page.evaluate(() => {
-    const btn = [...document.querySelectorAll('.leader-tab-btn')].find(b => b.textContent.includes('活动'));
+    const btn = [...document.querySelectorAll('.leader-tab-btn')].find(b => b.textContent.includes('本组活动'));
     if (btn) btn.click();
   });
   await page.waitForFunction(() => document.querySelector('.leader-act-item'), { timeout: 10000 });
@@ -65,9 +68,9 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
   await login(sec, '2300010001');
   await sec.waitForURL('**/workspace/secretary.html', { timeout: 10000 });
   // P0-2 形态断言（2026-09-23 支书裁定「形态必须可断言」）：本文件真机用例必须在 API 形态下跑
-  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261004p')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
+  await sec.waitForFunction(async () => (await import('/src/data/data-adapter.js?v=20261005a')).getRuntimeMode().source === 'api', null, { timeout: 20000 });
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004p');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005a');
     await updateBranchBlocks('br-b1', { outputBlocks: { hiddenBlockIds: ['publicity'], blockOrder: [] } });
   });
   await new Promise((r) => setTimeout(r, 1200));
@@ -89,7 +92,7 @@ test('产出块：支书停用宣传 → 组长活动详情无 publicity 按钮 
 
   // ③ 支书恢复默认（产出块=null）→ 组长刷新详情 → publicity 回归（考勤/考察仍只读）
   await sec.evaluate(async () => {
-    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261004p');
+    const { updateBranchBlocks } = await import('/src/services/branch/branch.js?v=20261005a');
     await updateBranchBlocks('br-b1', null);
   });
   await new Promise((r) => setTimeout(r, 1000));

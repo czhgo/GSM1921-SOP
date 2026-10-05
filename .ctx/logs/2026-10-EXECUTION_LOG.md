@@ -2619,3 +2619,51 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **`R-93` 无机检**：「节内是否还有未办 ⚠ 行」目前**无机器判据**（需先有「⚠ 行 ↔ 办结状态」可读映射）⇒ 与 `R-92` 同为**待补机检**。
 - 补录 8 条**是否办结由支书定**：2 条（`SOP-B-40` / 批次 367 名）可由支书一句话在「落系统 / 母本改准」间收敛；2 条（通知 kind / `hasApplied`）涉**新能力或语义**，须支书圈后方可动；其余 4 条（`SOP-B-21` 扩授权面 · 批次 365/366 活动深链待落 · 批次 373 改名待确认 · `#7` 待复现证）各等支书一个动作。
 - 本批**只改 `.ctx` 两文件 ＋ `CLAUDE.md` ＋ `server/test/doc-consistency.test.mjs` 的 `S15` 上限一处**；**未改业务代码 / 母本**；**未 bump 版本戳**。
+
+***
+
+## 批次 386（2026-10-05 · `D-778`）**objective #7「tab 切换/加载 加载不出来」真机复现 → 修根因 ＋ 立守卫 `S20`**
+
+> **来源**：objective #7 支书反复点名「**tab 在切换和加载中存在 加载不出来的问题**」（批次 334 曾判「真机 72 页签全过、未复现、疑 `?v=` 混版」）；批次 385 补录表第 8 条仍标「待支书给复现证」。本批**自行真机复现、定位根因并修复**（非「混版」）。
+
+### 一、取证（真机）
+
+- 手段：Playwright ＋ 真起服务；**冷上下文**（模块未缓存）**0ms 连点**某台全部 tab ⇒ 落定后读 `#<prefix>-tab-content` 的 `innerText`，比「再点一次末个 tab（模块已缓存、必正确）」。
+- 读数：**连点 12 个 tab ⇒ 4/4 落到陈旧 tab**；**双 tab 极速切换**（「成员流动 → 支部分工」）**4/4 落到「成员流动」**；其余 5 对双 tab 为 0/4（说明复现依赖 import 落定倒挂的时机）。
+- ⚠ **探针文件 `.tmp-tabrepro.mjs` 跑完即删、未入库**。
+
+### 二、根因（四层）
+
+1. `renderTabBar` 只有**一个**共享内容容器 `#<prefix>-tab-content`；
+2. 各 tab `render:(ctx)=>import(...).then(m=>m.renderContent(...))` ⇒ **写 DOM 发生在 import 落定那一刻**，与点击顺序**可能倒挂**（先点的模块后到 ⇒ 覆盖后点的 tab）；
+3. `T-304` 的 `_renderInFlight` 只按 tabId 去重、**不表达「最新激活」**；
+4. 十余处 `container.dataset.currentTab` 守卫（`today` / `group-progress` / `insight-view` / `calendar` / `work-map` / `feedback` / `overview` / `notification` / `report-up` / 党委台各 tab …）语义＝「**标记符还在 ⇒ 我的骨架还在**」，而**陈旧 tab 的覆盖写入不改该标记** ⇒ 目标 tab 找不到自己的 root 而静默 `return`（即使有纠正也会被挡）。
+
+### 三、落地
+
+- `docs/src/components/shell/tab-bar.js`（两处）：
+  1. `_safeRender` 的 `done`：本次渲染落定后若 **`currentTab !== tab.id`**，**重渲染当前 tab**（`_renderInFlight` 去重 ⇒ 当前 tab 仍在渲染中则自然跳过，不重复 import）。
+  2. 由本模块发起的渲染**前** `delete container.dataset.currentTab` ⇒ 强制目标 tab **整段重渲染**、不留残影（状态变化重渲染走 `workspace-shell::_renderCurrentTab` 直调 `tab.render`，不经此处 ⇒ 优化仍在）。
+- `server/test/page-sweep.test.mjs`：新增真机守卫 **`S20`**（冷上下文连点全部 tab，内容不得落到陈旧 tab）；用**变量**挂「首 tab 模块慢 600ms」的路由把竞态**确定性化**（本地 localhost 各模块同速时窗口不稳），并**避免多一份字面 `page.route`** 触发 `S2` 计数。
+- 版本戳 **`20261004p → 20261005a`**（`node docs/scripts/bump-version.mjs`；实测改写 JS 223 / HTML 23 / CSS 2 / server-test 92；陈旧戳 0 残留；`CODE_VERSION` +1）。
+- `.ctx/REVIEW_QUEUE.md` 补录表第 8 条（`#7`）改「✅ 已闭环（批次 386）」；`.ctx/logs/2026-10-DECISION_LOG.md` `D-778` ＋ 计数/目录/续编说明；`.ctx/logs/DECISION_LOG.md` 月度索引 **49 → 50**；`.ctx/TIMESTAMPS.md` 的 `tab-bar.js` 行刷 `2026-10-05`。
+
+### 四、守卫读数与反例自检
+
+- `page-sweep` ＝ **13/13 / 0 红**（含 `S20`；实测 `tab=68` 不变、`S1` 非空转 / `S2` 环境自检 / `S19` 台账对账均绿）。
+- **反例自检（先在旧代码上证明会红）**：`git stash push -- docs/src/components/shell/tab-bar.js` ⇒ `S20` **判红**（`内容落到了陈旧 tab（当前应为「反馈管理」）`，实际＝「今天」）⇒ `git stash pop` 复绿。
+- 静态族：`doc-consistency`（S1–S18）/ `frontmatter-freshness` / `doc-line-ref` / `timestamps-note-guard` / `link-integrity` / `version-stamp` / `module-load` / `import-path-guard` ＝ **63/63 / 0 红**。
+- **收尾全量（`R-85`，起 3000 服务）**：`npm test`（缺省分片档）＝ **777/777 / 0**；`npm run test:full`（`SWEEP_SHARD=all`，140 个测试文件＝非 e2e 106 ＋ e2e 34）＝ **948/948 / 0**（含真实机 `page-sweep` 与 `S20`；`tab=68` 不变）。终局末尾 `exit=1` 系 Playwright `debug.log` 被沙箱拦截、**非测试失败**（日志落 `EXITCODE=0`）。
+
+### 五、同批顺手修一处陈旧断言（`block-canvas-e2e`）
+
+- 首跑 `SWEEP_SHARD=all` 时**唯一一红**＝`block-canvas-e2e.test.mjs` 的「支书停用宣传 → 组长活动详情无 publicity 按钮」：`openActivityDetail` 按「**首个**含『活动』的 tab」点击 ⇒ `#10` 改版后该位被「**活动日历**」占据（`.leader-act-item` 实际只由「**本组活动**」＝`write-tab.js` 渲染）⇒ **恒 30s 超时**。
+- **取证（先证陈旧）**：`git stash push -- docs/src/components/shell/tab-bar.js`（退回旧代码）**仍复现同一超时** ⇒ **与本批无关、系 `#10` 改版遗留**（该文件在**非缺省分片档**，此前未在收尾跑里暴露）。
+- **修法**：`openActivityDetail` 的匹配由 `'活动'` 改准为 `'本组活动'`（**改测试不改制度**）；复跑 **1/1 绿**（8.3s）。
+
+### 六、边界（如实）
+
+- **`S20` 只覆盖「支书台 × 连点全部 tab」一个样本**（七台未逐一跑竞态）——修法在壳层、对七台同源；**未逐一扩围**。
+- `S20` 的**注入延迟**只作用于该用例页面，**不改产品**；本地同速环境下原竞态窗口不稳，注入延迟用于稳定复现。
+- **本批不新增页面 / 表 / 字段 / 权限**；只改「切换时的渲染落定顺序」。
+- **`#7` 的另一半**（tab 功能边界）已由 `D-755` / `V-3` / `#10` 处理，本批只收「加载不出来」这半边。

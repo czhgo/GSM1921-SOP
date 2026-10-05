@@ -6,24 +6,24 @@
 // 请假且线上参会的**不补课**（判据单一源 = services/activity/makeup.js::shouldGenerateMakeupTask）。
 // B3-1 修复（T-280）：确认补课完成时回写考勤 status=made_up——完成必须对应真实产物（打卡化判定）。
 
-import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261004p';
-import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261004p';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261004p';
-import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261004p';
-import { badgeHtml } from '../../../components/ui/badges.js?v=20261004p';
-import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261004p';
-import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261004p';
+import { loadMakeupTasks, saveMakeupTasks } from '../../../services/activity/makeup.js?v=20261005a';
+import { loadAttendanceRecords, saveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261005a';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261005a';
+import { getPersonById, getPersonName } from '../../../services/member/person.js?v=20261005a';
+import { badgeHtml } from '../../../components/ui/badges.js?v=20261005a';
+import { showToast, getBasePath, escHtml as esc } from '../../../core/base/utils.js?v=20261005a';
+import { renderHandoffInboxHtml, bindHandoffInbox } from '../../../components/governance/handoff-inbox.js?v=20261005a';
 // R1-A 点⑤（2026-09-09）：强调色渲染统一 person-aware 动态解析（替代 resolveAccentRole 只读全局键快照）
-import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261004p';
+import { getAppliedAccentColors } from '../../../core/boot/theme.js?v=20261005a';
 // 统一检索引擎（支书 2026-09-13 裁定）：第一列是人的表格一律接入（关键词 + 分面；≤8 行自动不渲染检索条）
-import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261004p';
+import { renderFilteredList, personKeyword, personFacets, roleLabelOf } from '../../../components/ui/list-filter.js?v=20261005a';
 // V-7（2026-10-01 批次 324）：纪检「催当事人」走系统派生通知单一入口（服务端 kind 注册表复算授权）
-import { NoticeStore } from '../../../services/governance/notice.js?v=20261004p';
+import { NoticeStore } from '../../../services/governance/notice.js?v=20261005a';
 // 批次 346（`D-744`②）：补课任务「作废（软）」——统一写口 ＋ 支委层判据（支委可直接作废，其余报支委会）
-import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261004p';
+import * as SoftVoid from '../../../services/governance/soft-void.js?v=20261005a';
 // 批次 352（`D-746`）：作废弹窗改走**单一源**（`components/ui/void-record.js`）——本板块沿用既有 id，
 //   故真机流 `disc-makeup-void-reason` 的选择器一字未改
-import { openVoidModal } from '../../../components/ui/void-record.js?v=20261004p';
+import { openVoidModal } from '../../../components/ui/void-record.js?v=20261005a';
 
 /**
  * @param {HTMLElement} [containerEl] — 挂载容器（缺省本台 tab 内容容器）。

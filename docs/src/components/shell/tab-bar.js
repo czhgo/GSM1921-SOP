@@ -8,11 +8,11 @@
 
 
 
-import { accDarkParts } from '../../core/domain/constants.js?v=20261004p';
+import { accDarkParts } from '../../core/domain/constants.js?v=20261005a';
 
 // R6 导航守卫（2026-09-03 P2a）：初始/目标 tab 决策收敛到纯函数 tab-nav.js（防「被支部隐藏后静默白屏」）
 
-import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261004p';
+import { resolveInitialTab, resolveTargetTab } from '../../core/boot/tab-nav.js?v=20261005a';
 
 
 
@@ -351,6 +351,15 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
 
         _beginTabLoading();
 
+        // 跨 tab 共享容器约定 `dataset.currentTab`（见 today / group-progress / insight-view / calendar /
+        //   work-map / feedback / overview / notification / report-up 等十余处）＝「**标记符还在 ⇒ 我的骨架还在**」，
+        //   据此决定「是否重建骨架」。但**陈旧 tab 的覆盖写入不改该标记** ⇒ 上面那条「重渲染当前 tab」的纠正
+        //   会被该守卫挡住（标记仍指目标 tab、DOM 却已被换掉 ⇒ 目标 tab 找不到自己的 root 而静默 return，
+        //   残影照旧）。故：凡由本模块发起的渲染，先把该标记清掉，强制目标 tab 走**整段重渲染**、不留残影。
+        //   （状态变化重渲染走 `workspace-shell::_renderCurrentTab` → `tab.render` 直调，不经此处 ⇒ 该优化仍在。）
+        const _el0 = _tabContentEl();
+        if (_el0) delete _el0.dataset.currentTab;
+
         p = Promise.resolve(tab.render(ctx));
 
         const done = () => {
@@ -358,6 +367,17 @@ export function renderTabBar({ prefix, tabs, accentColor, defaultTab, extraRight
           if (seq === _renderSeq) _endTabLoading();
 
           if (_renderInFlight.get(tab.id) === p) _renderInFlight.delete(tab.id);
+
+          // 陈旧渲染纠正（2026-10-05 批次 386 · objective #7「tab 在切换和加载中存在加载不出来」）：
+          //   各 tab 的 render 由动态 import 驱动、**import 解析后才写共享容器** `#<prefix>-tab-content`
+          //   ⇒ 「先点（更早发起 import）的 tab 其模块后到」时，会把当前 tab 已渲染的内容覆盖掉
+          //   （症状＝高亮停在后点的 tab、内容却是先点的那个；快速连切时必现，读起来像「点了加载不出来」）。
+          //   故：本次渲染落定后若**已不是当前 tab**，则重渲染当前 tab 纠正之
+          //   （`_renderInFlight` 去重：当前 tab 若仍在渲染中则自然跳过，不会重复 import）。
+          if (currentTab !== tab.id) {
+            const cur = tabs.find((t) => t.id === currentTab);
+            if (cur) _safeRender(cur, ctx);
+          }
 
         };
 
