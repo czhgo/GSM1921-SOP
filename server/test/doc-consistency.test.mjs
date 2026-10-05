@@ -882,7 +882,11 @@ test('S15 弱清单：有正当沿革 / 取值定义不清的枚举数字只登�
   const claude = read(join(ROOT, 'CLAUDE.md'));
   const rRows = [...claude.matchAll(/^\| (R-\d+) \|(.+)$/gm)].map((x) => [x[1], x[2]]);
   const rIds = rRows.map((r) => r[0]);
-  assert.ok(rIds.length >= 5, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 行（下限 5）：解析失效或整表被清空`);
+  // 下限 5 → 1（2026-10-06 批次 418 · `D-802`）：原写死 5 是「**人手维护的整数**」，与 `D-663`「规模面须
+  //   推导式、不许写死整数」相抵；且乙部表按 `H50.1 §3` **本就随闭环而删行**（批次 418 删 `R-92`/`R-93`
+  //   后余 4 条）⇒ 改判「**非空**」。**真正的解析失效锚点**在下两条：全集 ≥65 与 编号区间 23…93。
+  //   ⚠ 属「追实况 ＋ 去写死整数」，**如实登记为须支书核可项**（`D-802`）。
+  assert.ok(rIds.length >= 1, `CLAUDE.md 只解析到 ${rIds.length} 条 R-NN 行（下限 1＝非空）：解析失效或整表被清空`);
   assert.equal(new Set(rIds).size, rIds.length, `CLAUDE.md 的 R-NN 编号有重复：${rIds.filter((id, i) => rIds.indexOf(id) !== i).join(' / ')}`);
   const closedRows = rRows.filter(([, tail]) => /已闭环|已立/.test(tail)).map((r) => r[0]);
   assert.deepEqual(closedRows, [], `乙部「评议待办 · 执行型」表出现「已闭环 / 已立」注记（H50.1 §3 禁「仅标 ✅ 不删除」）：${closedRows.join(' / ')}`);
