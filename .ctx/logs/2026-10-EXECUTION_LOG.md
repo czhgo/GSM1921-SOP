@@ -1912,3 +1912,28 @@ $body
 ### 三、边界（如实）
 
 - 只改 `.ctx/**` ＋ `CLAUDE.md` ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
+
+## 批次 420（2026-10-06 · `D-803` ①）**`R-49` `Q-23-9` 补回归判据 ⇒ 结项 · 删行**
+
+> **来源**：支书就 `R-49` `Q-23-9` 圈「**补回归判据并结项（推荐）**」（`D-803` ①）。
+
+### 一、实探（先核现况，不据旧注猜）
+
+- `docs/src/services/member/person.js::_baseMemberRecords()`：**api 形态已分支**读 `mockDB.users`（由 `data-adapter.init()` 自服务端灌入），mock 形态才走 `PEOPLE` ＋ members 覆盖层 ⇒ **读链代码路径本身已正确**。
+- 全仓检索确认：**此前没有**「api 形态下 `PersonStore.getMembers()` 含服务端新建成员」的用例 ⇒ **缺口＝判据，不是实现**。
+
+### 二、动作
+
+1. **新建** `server/test/member-roster-api-read.test.mjs`（纯 node · 2 例）：**`R1` 正例**——`setDataSource('api')` ＋ 往 `mockDB.users` 放「服务端新建成员」⇒ `getMembers()` **必须**读到它；**`R2` 反例**——`setDataSource('mock')` 时只改 `mockDB.users` ⇒ `getMembers()` **不得**读到（防「读链口径混用」，亦防 `R1` 因「碰巧为空」假绿）。用例内 `finally` 复位数据源与桩数据。
+2. **登记**：`server/package.json` 的 `test:fast` ＋ `test:daily` 显式清单各加该文件（`doc-consistency::S16`「S 类 ⊆ `test:daily`」要求）。
+3. **`R-49` 结项删行**：纪律正文逐字迁入 `.ctx/logs/2026-09-EXECUTION_LOG.md` 的 `R-` 表（`R-93` 之后）、状态列「已立（**结项** · 2026-10-06 批次 420）」；`CLAUDE.md` 乙部表删该行（**3 → 2**：余 `R-23` / `R-29`）＋删行注记。
+
+### 三、守卫读数
+
+- 新件单跑 **2 / 2 / 0**；`doc-consistency`（S1–S18）**18 / 18 / 0**（含 `S15` 表余 2 行 ≥ 下限 1、全集 / 区间锚点不动）。
+
+### 四、边界（如实）
+
+- **未改任何实现**（读链本就是对的）；本批**只补判据 ＋ 登记 ＋ 结项**。
+- 只改 `.ctx/**` ＋ `CLAUDE.md` ＋ `server/package.json` ＋ 新增 1 个测试件 ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
+- **`D-803` ②③④ 尚未落地**（`R-29⑤` 新功能 · `R-23` 服务端名册读口 · 【等数据】口径）——**不得读成已办**。
