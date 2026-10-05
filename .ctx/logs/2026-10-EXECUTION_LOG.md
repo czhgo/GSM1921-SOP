@@ -2971,3 +2971,38 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - `POST /notices` 的既有通用写门**不动**（私信不经该口）；「**删除**私信」**未设门**（沿用既有）；**跨支部**仍未在服务端过滤（§7.1 既有口径，另立项）。
 - 本批**只改 `server/**` ＋ `README-server.md` ＋ `.ctx/**`** ⇒ **未 bump 版本戳**（无 `docs/src/**` 改动）；`ACTIVE_RULINGS` 零行（`D-748` 口径未变，本批是其 api 面执行）。
 - **全量 probe（收尾实跑）**：批次 391→393 ＝ 降频窗内**第 3 个 commit** ⇒ 依 `D-784`「3–4 个 commit 全量一次」本批跑全量，**实读 `964 / 964 / 0 红`**（覆盖 391–393 改动面；较批次 390 全量 958 增 6 项）。⚠ 进程退出码非 0 系**沙箱拒绝写 Playwright `debug.log`**（`TRAE Sandbox Error: hit restricted`），**非测试失败**——判据以 `ℹ pass 964 / fail 0` 为准；临时日志 `.tmp-full-393.log` 未留盘、跑完已停服。
+
+
+***
+
+## 批次 394（2026-10-05 · `D-749`）README-server **沿革注记清零** —— `#8`「README 为什么这么大」收口
+
+> **来源**：objective #8（「我不理解为什么 README 文档会这么大！……一定要清理干净」）＋ `D-749`（支书 2026-10-03 口径：沿革注记一律清出，最多留个把指针，且**只指 active file、绝不指 log**）。
+
+### 一、做法
+
+- codemod（`server/.tmp-codemod394.mjs`，跑完即删）按 **28 条锚点** 逐处清 `批次 N` / 纯日期 / `D-xxx`，**保留现行口径正文与 `文件:行号` 引用**；每条锚点断言「恰好命中 1 次」才写盘（不唯一即中止）。
+- 清后复跑探针：`批次 N` **0 行** · `D-xxx` **0 行** · 纯日期剩 **1 行**（§7.1#2 表内**引用代码注释原文**的 `（2026-09-15 裁定）`——引用保真，**如实登记为口径例外**，不擅改）。
+- **无删行 / 无加行**（全部原位改写）⇒ 文件行数 **1563（不变）** ⇒ 全文 `文件:行号` **零位移**（`doc-line-ref` 无需「引用并入保留段」）。
+
+### 二、读数
+
+| 指标 | 前 | 后 |
+| --- | --- | --- |
+| 字节 | 195,852 | **192,586**（−3,266） |
+| 行数 | 1563 | 1563 |
+| `批次 N` 行 | 28 | **0** |
+| `D-xxx` 行 | 7 | **0** |
+| 纯日期行 | 29 | **1**（例外） |
+| `文件:行号` 引用行 | 201 | 201 |
+
+### 三、顺带收口（陈旧台账）
+
+- 同批发现并改准 **5 条**「已裁（待落）」实为**已落**的决策日志「本月目录」行：`D-752`（批次 361 · §4 已改「指针 ＋ 增量」，现 571 行）· `D-751`（批次 358 · `soft-void.js` 含 `signups`/`propTasks`）· `D-750`（批次 359 · `services/activity/work-assignment.js` 全 CRUD）· `D-746`（批次 352/352b · `SOFT_VOID_RESOURCES` 补 5 张）· `D-744`（CRUD 余项分批已全落）。
+- `D-749` / `D-752` 各补「落地」注；`.ctx/TIMESTAMPS.md` 的 `README-server.md` 备注列收为「现状 ＋ 沿革见 `.ctx/logs/`」。
+
+### 四、判据与边界
+
+- 守卫：`doc-consistency` · `doc-line-ref` · `link-integrity` · `version-stamp` · `timestamps-note-guard` · `date-canon-guard` · `frontmatter-freshness` · `catalog-sync` · `module-load` ＝ **68/68 / 0 红**（含 `doc-consistency::S14` 十一组定量锚点全在位）。
+- 边界：**只改 `README-server.md` ＋ `.ctx/**`** ⇒ **未 bump 版本戳**；`ACTIVE_RULINGS` 零行。
+- **全量 probe 未跑**：本批为降频窗内**第 4 个 commit**，而**上一个 commit（批次 393）刚跑过 `964/964/0`** ⇒ 依 `D-784`「3–4 个 commit 一次」**顺延至下一窗**（避免重复全量）。
