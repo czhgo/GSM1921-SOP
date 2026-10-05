@@ -808,24 +808,16 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   const govN = (secGov.match(/\{ id: '/g) || []).length;
   eq('支书可见设置分区数', 'docs/help.html §4.1「支书 / 副支书 N 区」', cn(m(lineWith(help, /支书 \/ 副支书 \d+ 区/), /支书 \/ 副支书 (\d+) 区/)), 2 + govN);
 
-  // ⑫ 队列在册条数（权威＝「实施批次计划 ·（一）逐条归组」表「条数」列之和）
+  // ⑫ 队列「在册」已退役（2026-10-06 批次 414 · 执行 `D-800` / `H26.2`）
+  //    背景：`SOP-B-*` 系列全清（末条 `SOP-B-25` 批次 378 落地）、阶段 A/B 命题全裁 ⇒ 原「在册计数」
+  //    那套**六处同源**对账（逐条归组表 ＋ 合计行 ＋ 阶段 A/B「在册 N 条」＋「机器判据提示」＋ 7 处
+  //    「与在册计数的关系」）**已无对象**，且该表与其 7 处副本本身即 `H26.2` 所禁的「历史包袱」⇒ **整段退役**。
+  //    代之以**非空转**：队列须有 (a) 机制/规则节（W4 承接区）与 (b) 未闭环节（防整份被清空 / 解析失效）。
   const q = read(QUEUE);
-  const qFrom = q.indexOf('（一）逐条归组');
-  const groupTable = q.slice(qFrom, q.indexOf('| **合计** |', qFrom));
-  const rowSums = [...groupTable.matchAll(/^\|\s[^|]*\|\s[^|]*\|\s*(\d+)\s*\|\s*$/gm)].map((x) => Number(x[1]));
-  assert.ok(rowSums.length >= 10, `REVIEW_QUEUE.md 逐条归组表只解析到 ${rowSums.length} 个「条数」格（基线 10）：表结构或判据变了`);
-  const qReal = rowSums.reduce((a, b) => a + b, 0);
-  const sumLine = lineWith(q, /^\| \*\*合计\*\* \|/);
-  eq('队列在册条数', 'REVIEW_QUEUE.md 合计行「N 条」', cn(m(sumLine, /\*\*(\d+) 条\*\*/)), qReal);
-  eq('队列在册条数', 'REVIEW_QUEUE.md 合计行「N ✓」', cn(m(sumLine, /\| \*\*(\d+)\*\* ✓ \|/)), qReal);
-  eq('队列在册条数', 'REVIEW_QUEUE.md 阶段 A「在册 N 条」', cn(m(lineWith(q, /^> \*\*在册 \d+ 条\*\*（/), /\*\*在册 (\d+) 条\*\*/)), qReal);
-  eq('队列在册条数', 'REVIEW_QUEUE.md「（一）逐条归组（现况：N 条在册）」', cn(m(lineWith(q, /逐条归组（现况/), /现况：\*\*([\d一二两三四五六七八九十]+) 条在册\*\*/)), qReal);
-  eq('队列在册条数', 'REVIEW_QUEUE.md 机器判据提示「现况＝N 条」', cn(m(lineWith(q, /机器判据提示/), /现况＝([\d一二两三四五六七八九十]+) 条/)), qReal);
-  eq('队列在册条数', 'REVIEW_QUEUE.md 阶段 B「在册 N 条」', cn(m(lineWith(q, /^> \*\*状态与现况/), /\*\*在册 (\d+) 条\*\*/)), qReal);
-  const relNums = q.split(/\r?\n/).filter((l) => /与在册计数的关系/.test(l))
-    .map((l) => cn(m(l, /阶段 B 在册\*\*仍 ([\d一二两三四五六七八九十]+) 条/)));
-  assert.ok(relNums.length >= 5, `REVIEW_QUEUE.md 只解析到 ${relNums.length} 处「与在册计数的关系」行（基线 5）：判据可能失效`);
-  relNums.forEach((n, i) => eq('队列在册条数', `REVIEW_QUEUE.md「与在册计数的关系」第 ${i + 1} 处`, n, qReal));
+  assert.match(q, /## 附录：W4 专项评议循环承接区/, 'REVIEW_QUEUE.md 缺「W4 专项评议循环承接区」（队列的 (a) 类：机制描述 ＋ 支书复用检查项）');
+  assert.match(q, /## 未闭环/, 'REVIEW_QUEUE.md 缺「未闭环」节（`H26.2`：队列只留未闭环）');
+  const qSections = (q.match(/^### SOP-/gm) || []).length;
+  assert.ok(qSections >= 8, `REVIEW_QUEUE.md 只解析到 ${qSections} 个 \`### SOP-*\` 命题节（下限 8）：解析失效或队列被误清空`);
 
   // ⑬ 真机台账规模（权威＝`server/test/form-loop-registry.mjs` 的**条目行**；2026-09-28 批次 240 · 收 `H-4`）
   //    病灶（`H-4`）：README 自述「95 处校验点 / 91 条可自动化 / 4 条非自动化」是**旧口径的定格**——
@@ -859,7 +851,7 @@ test('S14 可数事实对账：文档里的「枚举 / 计数」必须等于代�
   [['支部分工模块数', modReal], ['内置场景数', sopDatabase.scenarios.length], ['角色键数', totalReal],
     ['拟上会类数', agendaReal], ['ACTIVE_RULINGS 口径行', arLines], ['决策日志条目', dReal],
     ['页面数', rootsN + wsN], ['资源表数', dbTables], ['通知 kind 数', kindReal],
-    ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列在册', qReal, true],
+    ['路由数', routeExplicit + routeExpanded], ['设置分区数', secReal], ['队列未闭环命题节', qSections],
     ['真机台账校验点', vEntries.length], ['真机台账真机流程', flowsReal],
   ].forEach(([k, v, allowZero]) => assert.ok(Number.isFinite(v) && (allowZero ? v >= 0 : v > 0), `S14 的实然值「${k}」＝${v}：解析式写坏了，断言会变成恒真`));
 });
