@@ -15,6 +15,8 @@
 // ════════════════════════════════════════════════════════════════
 import { BRANCH_COMMISSION_ROLES, SECRETARY_AND_DEPUTY_ROLES, PARTY_STAFF_ROLE } from '../docs/src/core/domain/constants.js';
 import { buildSystemNotice } from '../docs/src/core/domain/system-notice-templates.js';
+// R-23②（2026-10-05 批次 391）：支部上报的「支部名 / 事项摘要」展示值单一源（**零依赖叶子**，前端同引一处）
+import { branchDisplayName, reviewRequestSubject } from '../docs/src/core/domain/review-request-labels.js';
 
 const COMMITTEE_ROLE_SET = new Set(BRANCH_COMMISSION_ROLES);
 const SECRETARY_DEPUTY_SET = new Set(SECRETARY_AND_DEPUTY_ROLES);
@@ -232,6 +234,17 @@ const KINDS = {
       const proj = act ? (act.assignments || []) : ((tf && tf.members) || []);
       return proj.some((x) => x && x.role === 'organizer' && x.personId === actor.id);
     },
+    // R-23②（2026-10-05 批次 391）：**项目名按表复算**（`activities.title` / `taskforces.name`，不采信客户端——
+    //   口径与 `organizer-transferred` 同一份）。**人名 / 角色标签 / 落点沿用 payload**：服务端无人员名册，
+    //   且「进谁的台」取决于被赋权人身份（前端口径 `services/core/auth.js::_notifyProjectAuth`）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const act = rowOf(ctx.db, 'activities', ctx.sourceId);
+      const tf = rowOf(ctx.db, 'taskforces', ctx.sourceId);
+      if (act && act.title) vars.projectName = act.title;
+      else if (tf && tf.name) vars.projectName = tf.name;
+      return buildSystemNotice('project-auth-granted', vars);
+    },
   },
 
   // ── 材料外发待确认 ────────────────────────────────────────────
@@ -284,12 +297,37 @@ const KINDS = {
       if (!row) return false;
       return row.submittedBy === actor.id || COMMITTEE_ROLE_SET.has(actor.role);
     },
+    // R-23②（2026-10-05 批次 391）：**支部名 / 事项摘要按表复算**——单一源＝零依赖叶子
+    //   `docs/src/core/domain/review-request-labels.js`（前端 `review-request.js` 同引一处）。
+    //   行缺失时回落默认包装（与改动前同形）；**姓名沿用 payload**（服务端无人员名册）。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const row = rowOf(ctx.db, 'review_requests', ctx.sourceId);
+      if (row) {
+        vars.branchLabel = branchDisplayName(row.branchId, rowOf(ctx.db, 'branches', row.branchId));
+        vars.subject = reviewRequestSubject(row);
+      }
+      return buildSystemNotice('review-request-submitted', vars);
+    },
   },
   // 批复：对象=上报记录存在；审批人为党委组织员。
   'review-request-decided': {
     authorize({ actor, sourceId, db }) {
       if (!actor || !PARTY_STAFF_SET.has(actor.role)) return false;
       return !!rowOf(db, 'review_requests', sourceId);
+    },
+    // R-23②（同批次）：支部名 / 事项摘要 / **结论 / 意见**按表复算——`approved` 由 `review_requests.status`
+    //   复算（不采信 payload 的自述结论）。行缺失时回落默认包装。
+    build(ctx) {
+      const vars = { ...payloadOf(ctx), sourceId: ctx.sourceId };
+      const row = rowOf(ctx.db, 'review_requests', ctx.sourceId);
+      if (row) {
+        vars.branchLabel = branchDisplayName(row.branchId, rowOf(ctx.db, 'branches', row.branchId));
+        vars.subject = reviewRequestSubject(row);
+        vars.approved = row.status === 'approved';
+        if (row.decisionNote !== undefined) vars.decisionNote = row.decisionNote;
+      }
+      return buildSystemNotice('review-request-decided', vars);
     },
   },
 

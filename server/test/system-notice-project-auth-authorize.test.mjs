@@ -118,10 +118,50 @@ test('B6 宣传周报：week/weekRange 按表复算；人名（无服务端名�
   assert.ok(t.includes('张三'), `人名为 payload 口径（如实边界）：${t}`);
 });
 
-test('B7 非空转：8 个 kind 都真有 `build`（防判据被写成恒真）', () => {
+test('B7 非空转：11 个 kind 都真有 `build`（防判据被写成恒真）', () => {
   const kinds = [...ACT_TITLE_KINDS, 'activity-created-broadcast', 'taskforce-vote-requested',
-    'member-change-approved', 'external-dispatch-created', 'weekly-report-submitted'];
-  assert.equal(kinds.length, 8);
+    'member-change-approved', 'external-dispatch-created', 'weekly-report-submitted',
+    'project-auth-granted', 'review-request-submitted', 'review-request-decided'];
+  assert.equal(kinds.length, 11);
   for (const k of kinds) assert.equal(typeof SYSTEM_NOTICE_KINDS[k].build, 'function', `${k} 缺 build`);
+});
+
+// ── `R-23`② 余项（2026-10-05 批次 391）：支部上报 / 赋权三 kind ─────────────────────────────
+//   这三条的展示值原由**前端纯函数**算好塞进 payload；本批把「支部名 / 事项摘要」下沉到零依赖叶子
+//   `docs/src/core/domain/review-request-labels.js`（前端同引一处），服务端据此**按表复算**。
+//   ⚠ 边界（如实）：**姓名 / 角色标签 / 落点**仍沿用 payload——服务端无人员名册，且「进谁的台」取决于被赋权人身份。
+test('B8 支部上报：支部名 / 事项摘要按表复算（伪造不得出现）', () => {
+  const rows = {
+    review_requests: { 'rq-1': { id: 'rq-1', branchId: 'br-b1', type: 'develop-node', title: '表内事项', status: 'pending' } },
+    branches: { 'br-b1': { id: 'br-b1', name: '表内支部名', config: { headerTitle: '表内支部抬头' } } },
+  };
+  const t = TEXT(BUILD('review-request-submitted', 'rq-1', rows,
+    { branchLabel: '伪造支部', subject: '伪造摘要', submitterName: '李四' }));
+  assert.ok(t.includes('表内支部抬头'), `抬头优先：${t}`);
+  assert.ok(t.includes('发展节点') && t.includes('表内事项') && t.includes('rq-1'), t);
+  assert.ok(!t.includes('伪造支部') && !t.includes('伪造摘要'), t);
+  assert.ok(t.includes('李四'), `姓名沿用 payload（如实边界）：${t}`);
+});
+
+test('B9 上报结论：approved 由 review_requests.status 复算（不采信 payload 自述）', () => {
+  const rows = {
+    review_requests: { 'rq-1': { id: 'rq-1', branchId: 'br-b1', type: 'activity-report', title: '表内事项', status: 'rejected', decisionNote: '请补充安全预案' } },
+    branches: { 'br-b1': { id: 'br-b1', name: '表内支部名' } },
+  };
+  const t = TEXT(BUILD('review-request-decided', 'rq-1', rows,
+    { approved: true, branchLabel: '伪造支部', subject: '伪造摘要', decisionNote: '伪造意见' }));
+  assert.ok(t.includes('驳回'), `应据 status='rejected' 判「驳回」：${t}`);
+  assert.ok(!t.includes('批准'), t);
+  assert.ok(t.includes('请补充安全预案'), `意见按表复算：${t}`);
+  assert.ok(!t.includes('伪造意见') && !t.includes('伪造摘要') && !t.includes('伪造支部'), t);
+});
+
+test('B10 赋权通知：项目名按表复算（活动 title / 专班 name）', () => {
+  const byAct = TEXT(BUILD('project-auth-granted', 'act-1',
+    { activities: { 'act-1': { id: 'act-1', title: '表内活动名' } } }, { projectName: '伪造项目名', roleLabel: '组织者' }));
+  assert.ok(byAct.includes('表内活动名') && !byAct.includes('伪造项目名'), byAct);
+  const byTf = TEXT(BUILD('project-auth-granted', 'tf-1',
+    { taskforces: { 'tf-1': { id: 'tf-1', name: '表内专班名' } } }, { projectName: '伪造项目名' }));
+  assert.ok(byTf.includes('表内专班名') && !byTf.includes('伪造项目名'), byTf);
 });
 

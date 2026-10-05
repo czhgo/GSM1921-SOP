@@ -7,22 +7,17 @@
 //   提交 → 定向通知党委（party-staff）；批准/驳回 → 回传通知发起支书（带结论/意见）。
 //   复用 NoticeStore 既有链路（站内信优先，辅以邮件）；文案带事项类型/标题/编号，可回溯定位该上报。
 
-import { mockDB } from '../../core/domain/domain.js?v=20261005c';
-import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005c';
-import { NoticeStore } from './notice.js?v=20261005c';
-import { getPersonName } from '../member/person.js?v=20261005c';
+import { mockDB } from '../../core/domain/domain.js?v=20261005d';
+import { getAdapter, persist } from '../../data/data-adapter.js?v=20261005d';
+import { NoticeStore } from './notice.js?v=20261005d';
+import { getPersonName } from '../member/person.js?v=20261005d';
+// R-23②（2026-10-05 批次 391）：展示值「支部名 / 事项摘要」下沉到**零依赖叶子** `core/domain/review-request-labels.js`
+//   ⇒ 服务端同引一处、可**按表复算**（不再整包采信客户端 payload），且**不落第二实现**（`H31`）。
+import { branchDisplayName, reviewRequestSubject } from '../../core/domain/review-request-labels.js?v=20261005d';
 
-const TYPE_LABEL = { 'develop-node': '发展节点', 'activity-report': '活动报备' };
-
-/** 支部显示名（通知定位用） */
+/** 支部显示名（通知定位用）——口径单一源＝`core/domain/review-request-labels.js` */
 function _branchLabel(branchId) {
-  const b = (mockDB.branches || []).find(x => x.id === branchId);
-  return (b && (b.config?.headerTitle || b.name)) || branchId || '本支部';
-}
-
-/** 上报事项摘要（含类型/标题/编号，供通知回溯定位） */
-function _subject(row) {
-  return `${TYPE_LABEL[row.type] || '上报'}「${row.title || '未命名'}」（编号 ${row.id}）`;
+  return branchDisplayName(branchId, (mockDB.branches || []).find(x => x.id === branchId));
 }
 
 /** 提交上报 → 定向通知党委（审批人） */
@@ -31,7 +26,7 @@ function _notifySubmit(row) {
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
     NoticeStore.addSystem('review-request-submitted', row.id, {
       branchLabel: _branchLabel(row.branchId),
-      subject: _subject(row),
+      subject: reviewRequestSubject(row),
       submitterName: getPersonName(row.submittedBy) || row.submittedBy || '支部',
     });
   } catch (e) { console.warn('[review-request] 上报通知失败（不影响上报）：', e); }
@@ -44,7 +39,7 @@ function _notifyDecision(row) {
     // R-22（2026-09-13）：系统派生通知改由服务端生成（kind 注册表复算授权 + 文案 + 落点）
     NoticeStore.addSystem('review-request-decided', row.id, {
       branchLabel: _branchLabel(row.branchId),
-      subject: _subject(row),
+      subject: reviewRequestSubject(row),
       approved,
       decisionNote: row.decisionNote,
     });

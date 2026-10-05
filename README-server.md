@@ -145,7 +145,7 @@
 | 不能做什么 | 不持 `create_activity`、`assign_task`、`modify_assignment`、`mark_complete`、`fill_review`、`record_attendance`、`summarize_inspection`、`authorize`、`manage_members`（**不能设/取消组长**）；不能增减党小组（只能看清单与未分组人数） |
 | 审批位 | ① 成员变更申请**审批**（`POST /api/v1/member-change-requests/:id/approve`，**组织委员专属**）；② 思想汇报**打回**（事后反馈，须附意见；提交即入库，不需要审批归档）；③ 名册**新增成员**与**档案行内编辑**（专属写门）；④ 成员流动（流入/流出）登记 |
 | 特例 | 域参数：可改**本域** `policyOverrides.memberConfirmation`（学期末滞留集中复核窗口）/ `thoughtReport`（思想汇报建议篇幅与警告审阅线） |
-| 依据 | `docs/src/services/core/auth.js:81`、`server/routes/member.js:93,232,282`、`server/routes/resources/index.js:322-325`、`server/system-notice-kinds.js:122-136`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:152-165`（§9i） |
+| 依据 | `docs/src/services/core/auth.js:81`、`server/routes/member.js:93,232,282`、`server/routes/resources/index.js:322-325`、`server/system-notice-kinds.js:124-138`、`content/02_institution/SYSTEM_ROLE_PERMISSION.md:152-165`（§9i） |
 
 #### 2.2.4 `prop-commissioner` 宣传委员
 
@@ -1339,9 +1339,9 @@ npm start                   # 启动服务，默认端口 3000（PORT 可覆盖�
 | POST | `/api/v1/system-notices` | 按 `kind` 注册表生成系统通知：body `{kind, sourceId, payload}`。未知 kind 400；`authorize` 不通过 403；成功 201 落 `notices` 表 | 需登录 + **按 kind 的业务对象关系复算授权** |
 
 **已注册的 kind（共 23 种）**：`thought-report-submitted`（思想汇报已提交）、`attendance-confirmed`（考勤已确认归档）、`activity-agenda-updated`（议程已更新）、`member-change-approved`（成员变更已审批）、`workforce-proposal-created` / `workforce-proposal-adopted`（支部分工议题待表决 / 已生效）、`committee-vote-progress` / `committee-vote-locked`（表态进度 / 表决截止）、`project-auth-granted`（赋权通知）、`external-dispatch-created`（材料外发待确认）、`weekly-report-submitted`（**周报已报送、待支书审核**）、`review-request-submitted` / `review-request-decided`（支部上报待批复 / 上报结论）、`activity-created-broadcast`（活动已创建请建核心群）、`taskforce-vote-requested`（专班议案排入待表态）、`review-overdue-reminder` / `review-resubmit-reminder`（复盘超期 / 重提提醒）、`activity-notice-draft` / `taskforce-notice-draft`（活动 / 专班预拟通知）、`makeup-remind`（**补课材料催办**——受众**到人定向**、仅纪检委员可触发）、`committee-dispatch`（党委下发）、`organizer-transferred`（**组织者已转交**——受众**到人定向**＝被退出的原组织者，文案＝知会＋交接提示）、`todo-void-decided`（**待办作废已裁决**——受众＝该待办原属角色，**非行动性**纯站内知会）。
-**依据**：`server/system-notice-kinds.js:57-458`（`KINDS` 注册表，23 个键）、`:260-276`（`weekly-report-submitted`）、`:408-430`（`organizer-transferred`）、`:441-457`（`todo-void-decided`）。
+**依据**：`server/system-notice-kinds.js:57-496`（`KINDS` 注册表，23 个键）、`:273-289`（`weekly-report-submitted`）、`:446-468`（`organizer-transferred`）、`:479-495`（`todo-void-decided`）。
 
-**权威源**：`server/routes/system-notices.js` ＋ `server/system-notice-kinds.js`——系统派生通知：23 种 kind 的授权复算与文案生成（逐 kind 清单见上行，端点见本节表）。**展示值亦按表复算**（2026-10-05 批次 390：**对象字段**〔活动名 / 日期 / 材料名 / 周次 / 阶段名等〕一律取自服务端可读表、**不采信客户端 payload**；**人名**沿用 payload——服务端无人员名册，同 `organizer-transferred` 既有口径；判据见 `server/test/system-notice-project-auth-authorize.test.mjs` 的 `B1`–`B7`）。
+**权威源**：`server/routes/system-notices.js` ＋ `server/system-notice-kinds.js`——系统派生通知：23 种 kind 的授权复算与文案生成（逐 kind 清单见上行，端点见本节表）。**展示值亦按表复算**（2026-10-05 批次 390 / 391：**对象字段**〔活动名 / 日期 / 地点 / 材料名 / 接收角色 / 周次 / 阶段名 / 事项摘要 / 支部名 / 项目名〕一律取自服务端可读表、**不采信客户端 payload**——**11 个 kind 已落**；其中「支部名 / 事项摘要」的**口径单一源**＝零依赖叶子 `docs/src/core/domain/review-request-labels.js`〔前端 `review-request.js` 与服务端 `build` 同引一处〕；**人名 / 角色标签 / 落点**沿用 payload——服务端无人员名册、且「进谁的台」取决于被赋权人身份；判据见 `server/test/system-notice-project-auth-authorize.test.mjs` 的 `B1`–`B10`）。
 
 ### 6.8 组长台聚合读（`server/routes/leader-progress.js`）
 

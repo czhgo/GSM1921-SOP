@@ -7,7 +7,7 @@
 // **组件复用律**（`D-765` ⑤）：三页（支部上报 / 匿名反馈核查 / 下发通知）**共用本件**——**不各写一份**。
 // 体例：筛选一律用**下拉**（禁 chip，规范 §筛选）；选择随模块自持（同 `list-filter` 的 `stateKey` 体例）
 //   ⇒ 页内重绘不丢选择。**豁免**：支部监控台账（本就是逐支部卡）与支部管理（它本身就是支部清单）。
-import { mockDB } from '../../core/domain/domain.js?v=20261005c';
+import { mockDB } from '../../core/domain/domain.js?v=20261005d';
 
 /** `stateKey` → 当前选中支部 id（''＝全部）。模块级自持。 */
 const _selected = new Map();

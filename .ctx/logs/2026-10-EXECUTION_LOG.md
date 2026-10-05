@@ -2796,6 +2796,36 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 
 ***
 
+## 批次 391（2026-10-05 · `D-783` / `D-784`）**`R-23`② 余项收口**（余 3 个 kind ⇒ 对象字段 11/11）＋ 抽零依赖叶子共用件 ＋ 支书令「全量降频」
+
+> **来源**：批次 390 如实登记的**余 3 个 kind**（其对象字段来自**前端纯函数**，服务端复算须先抽共用件、否则＝第二实现）。
+
+### 一、做法
+
+- **新件**：`docs/src/core/domain/review-request-labels.js`——**零依赖叶子**，导出 `REVIEW_REQUEST_TYPE_LABEL` / `branchDisplayName(branchId, branch)` / `reviewRequestSubject(row)`。
+- **前端**：`services/governance/review-request.js` 改引该件（本地 `TYPE_LABEL` / `_subject` 删除；`_branchLabel` 留为「取 `mockDB.branches` 行」的薄壳、口径下沉）。
+- **服务端** `system-notice-kinds.js`（**+38 行**）补 3 个 `build`：`review-request-submitted`（`branchLabel` ← `branches` 行〔`config.headerTitle` 优先〕· `subject` ← `review_requests` 行；**行缺失回落默认包装**）· `review-request-decided`（同上 ＋ **`approved` 由 `status` 复算** ＋ `decisionNote` 取表）· `project-auth-granted`（**项目名** ← `activities.title` / `taskforces.name`）。
+- `README-server.md` §2.2.3 / §6.7 **一改具改**（5 处行号）＋ 口径段改准（11 kind · `B1`–`B10` · 共用件）。版本戳 **`20261005c → 20261005d`**。
+
+### 二、判据与反例
+
+- **正向**：`A1`–`A8` ＋ `B1`–`B10`（`B7` 非空转改 **11**）绿；静态族 ＋ `permission-gate` ＋ `notice-*` ＝ **102/102 / 0 红**。
+- **反例自检**：`git checkout` 退回旧 `KINDS` ⇒ **`B8`/`B9`/`B10` 全红** ⇒ 从字节副本复原（`numstat +38/−0`）。
+- ⚠ **环境坑（如实登记）**：直接 `node --test test/permission-gate.test.mjs` 会**大面积假红**（`登录失败 p13` 401）——脚本档会注入 **`DISABLE_PASSWORD_CHECK=1`**（`server/package.json`），带变量后 102/102 全绿 ⇒ **判据面无损**。
+
+### 三、支书令：全量 probe 降频（`D-784`）
+
+- 支书原话逐字：「**跑全量probe一定要减少频率，否则效率太低！可以在3-4个commit基础上全量probe**」⇒ **全量档按 3–4 个 commit 累积一次**；其间每批只跑「覆盖改动面的分片 ＋ 相关守卫子集」。
+- 落点：`server/README.md` 测试章节两处（「全量跑」「提交前」）＋ `CLAUDE.md` 丙部说明行（引 `D-784`）。
+- **本批即按此执行：未跑全量**；全量由随后**第 3–4 个 commit 处**补跑（覆盖 391/392/393 的改动面）。
+
+### 四、边界（如实）
+
+- **`R-23`② 对象字段 11/11 全落**；**余项只剩「人名 / 角色标签 / 落点」**——服务端无人员名册、且 `project-auth-granted` 落点取决于被赋权人身份 ⇒ 要堵须先立**服务端人员名册读口**（另立项）。
+- 两条 `review-*-reminder` 无 `sourceId` 对象 ⇒ 不可复算；本批**未改授权门 / 表 / 字段 / 页面**。
+
+***
+
 ### 附：TIMESTAMPS 备注列迁出的逐批沿革（2026-10-05 批次 389 · `R-89` 续批）
 
 > 收敛路径＝把该格的历史沿革**逐字**迁入本日志、原位只留「现状 / 边界 ＋ 沿革指针」。本批共 **42** 格（皆只犯 `N4 T-编号`；`timestamps-note-baseline.mjs::WITH_TID_BASELINE` 同批删这 42 条）。
