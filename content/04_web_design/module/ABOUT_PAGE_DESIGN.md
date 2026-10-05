@@ -79,7 +79,7 @@ related_files: [docs/src/about.css, docs/src/entries/pages/about-entry.js, DESIG
 |--------|-----|---------|
 | 布局 | **左右分栏**：左 sticky 定格词区 + 右期待卡滚动驱动 | 支书 2026-08-28：「几个标题都不动，定格在左边，而右侧的卡片随着滚动移动」——`.ab-cognition-layout` grid（左 `minmax(220px,1fr)` / 右 `minmax(0,1.25fr)`）+ 左 `.ab-cognition-sticky` sticky |
 | 组织属性词 | 五个 h3：学生组织 / 政治组织 / 具体 / 方兴未艾 / 提供成长 | 支书 2026-08-28：「只要定语就可以，不要'一个……的'」；标签（span）与关键词（h3）**统一 h3 模式** |
-| 属性词字号 | `clamp(24px, 3vw, 32px)` 五词**等大** | 题眼感但收敛（T-272）；等大（支书「等大+排列散放」）；2026-08-28 T-300/T-301 左右分栏改版时随左侧定格收窄实测下调（原 `clamp(32px, 4vw, 44px)`，见 about.css `.ab-cognition-sticky .ab-keyword-word`） |
+| 属性词字号 | `clamp(24px, 3vw, 32px)` 五词**等大** | 题眼感但收敛；等大（支书「等大+排列散放」）；2026-08-28 T-300/T-301 左右分栏改版时随左侧定格收窄实测下调（原 `clamp(32px, 4vw, 44px)`，见 about.css `.ab-cognition-sticky .ab-keyword-word`） |
 | 属性词错落 | 0° 旋转位移散落：词1 flex-start；词2 上浮 -8px + 左移 24px（center）；词3 下沉 +10px + 左移 48px；词4 上浮 -12px + 左移 20px（center）；词5 下沉 +14px + 左移 44px（flex-end） | **全清歪斜（2026-08-28 支书裁定）**：错落=高低左右散落（scatter），**不是歪斜旋转**；偏移值按 about.css `.ab-cognition-sticky .ab-keyword-word:nth-of-type(n)` 实测回填（2026-08-28 T-300/T-301，原登记 -12/-16/+10/+18px 不精确） |
 | 属性词小字附注 | **删去** | 支书：「下面黑体的小字可以都删去」——只留大字 |
 | 属性词动画 | **无动画——左栏纯静态定格**（2026-08-28 T-300 改：去 view() 升起，见 about.css L525-526 注释「支书『左侧应当不动』：去 view() 升起动画，左栏纯静态定格」） | 2026-08-28 T-300 支书「左侧应当不动」——左侧词区 sticky 定格，滚动动画只保留给右侧期待卡（JS 驱动，T-299）；原 `ab-rise-in` 纯升起（全清歪斜后统一升起渐显）仅适用于右侧入场元素 |
@@ -131,7 +131,7 @@ related_files: [docs/src/about.css, docs/src/entries/pages/about-entry.js, DESIG
 | 角速度 `ROT_RATE` | `90° / ((1-PLATEAU)/4)` ≈ 800°/unit | **三段角速度统一**（进入/退出/正常转动同速率），滚动观感连续不突兀（T-272 反馈「三段速度不一样」） |
 | 轨迹 | 椭圆：长轴 `rx = 1.2R` / 短轴 `ry = R` | 「长轴稍微长一点」——横向扫过范围 +20% 更舒展 |
 | 半径 `R` | `min(S*0.56, S/2 - maxCardH/2 + 121)` | 环贴近舞台边缘；正午卡升起不遮章头 |
-| 卡宽 | 192px | 略窄更舒展（T-248） |
+| 卡宽 | 192px | 略窄更舒展 |
 | 亮度 | `b = angleH^1.5` | 正午 1 全亮、侧卡 ≈0.35 半透明、地下 <0.35 → 0 隐去（3 太阳模型） |
 | 比例 | `scale = lerp(0.92, 1.05, b)` | 正午放大近看、侧卡收缩 |
 | 进入/退出旋转 | 45° 线性，`θ = progress × ROT_RATE` | 旋转着进出（设计选择） |
@@ -140,7 +140,7 @@ related_files: [docs/src/about.css, docs/src/entries/pages/about-entry.js, DESIG
 
 | 超参数 | 值 | 设定原则 |
 |--------|-----|---------|
-| 三层小字 | 36px 墨色感谢 / 26px 红期待 / 16px 淡灰小字 | 由大到小自然收尾，去口号（T-271） |
+| 三层小字 | 36px 墨色感谢 / 26px 红期待 / 16px 淡灰小字 | 由大到小自然收尾，去口号 |
 
 ---
 

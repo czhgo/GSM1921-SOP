@@ -62,7 +62,7 @@ related_files: [content/02_institution/SYSTEM_ROLE_PERMISSION.md, content/02_ins
 | requireMakeup | boolean | 否 | `false` | 活动级「本次要求补课」（SOP-B-6）：党小组会等**不默认补课**的类型，勾选后才进补课名单（补课范围单一出口 `isMakeupRequired`） |
 | voteConfig | object\|null | 否 | null | 线上异步表决配置 `{mode, optionSet, ballotMode, voterScope, voterIds[], quorumCheck}`：决策类场景选「线上异步表决」时固化应到名单快照；**线下开会不写本字段**（读侧无此字段＝旧活动 / 线下） |
 | isOutdoor | boolean | 否 | `false` | 是否外出（校外）活动——主题党日正交维度之二（见 §2.1.2）。写入后弹「外出提醒清单」（**是提醒、非必填、不作校验**） |
-| deepWorkMode | object | 否 | -- | 深参分工的完成方式（2026-09-23 批次 156）：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
+| deepWorkMode | object | 否 | -- | 深参分工的完成方式：形状 `{ [taskId]: 'in-system' \| 'offline' }`——写入活动时由组织者**逐项**勾选「系统内做 / 去线下做」，项＝该场景 SOP 任务链里 `executor==='deep'` 的节点（无深参项的场景不写本字段）；**缺省 / 非法值读侧一律按 `in-system`**（＝既有行为零变化）。单一源 `docs/src/services/activity/activity.js`（`DEEP_WORK_MODE` / `DEEP_WORK_MODE_LABEL` / `deepWorkModeOf`），写入位 `docs/src/entries/tabs/leader/write-tab.js`。 |
 
 > **设计注记（活动写入表单必有地点字段，出处见 insights §6.6）**：活动写入表单不得只含日期而没有地点——"什么时候"和"在哪里"是参与者最基本的信息需求，缺少任何一个，表单就是不完整的。适用：任何活动写入/编辑表单设计，与字段表 `location` 行（含线上会议链接场景）配套阅读。
 
@@ -185,7 +185,7 @@ ActivityRecord (主记录)
 | 入口 | 数据载体 | 写入时机 | 语义 | 派生影响 |
 |---|---|---|---|---|
 | **活动参与人** | `activity.assignments: Array<{personId, role:'participant'}>`（活动创建时内联） | 创建活动表单勾选参与人（支书台 / 组长台） | 记录"谁参加本次活动"（参与层） | **非空时不再派生组长赋权待办**（calendar-tab.js 内联赋权）；不影响 organizer/deep 项目角色 |
-| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | **在写入路径上顺带赋权**（2026-09-30 `D-718`／`D-719`）：支书台「写入活动」表单、组长台写入活动、专班详情与发布招募的「初始成员」均**内嵌**赋权字段组，与独立赋权记录块共用**同一写口** `AuthStore.authorize`（不新造第二套机制） | 授予"组织者/深度参与者"项目角色权限（活动与专班统称「项目」，共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
+| **项目级授权** | `AuthStore.authorize` 写主源（活动 `assignments` / 专班 `members`）+ 审计快照键 `sop_org_os_auth_audit`（旧键 `gsm1921-auth-grants` 已废弃） | **在写入路径上顺带赋权**：支书台「写入活动」表单、组长台写入活动、专班详情与发布招募的「初始成员」均**内嵌**赋权字段组，与独立赋权记录块共用**同一写口** `AuthStore.authorize`（不新造第二套机制） | 授予"组织者/深度参与者"项目角色权限（活动与专班统称「项目」，共用全局授权体系） | 派生对应对应项目的管理权限，与参与人名单无关 |
 
 **边界规则**：
 1. 活动参与人是**活动级事实**，只回答"谁参加"；项目角色授权是**权限级事实**，只回答"谁能管这个项目"。
@@ -441,9 +441,9 @@ taskforce.members:    Array<{ personId, role: 'organizer' | 'deep' | 'participan
 | createdBy | string | 是 | -- | 创建者 ID |
 | createdAt | string (ISO) | 是 | -- | 创建时间 |
 
-### 2.11 制度文件引用 (ComplianceReference) —— **已于 2026-10-02 删除**
+### 2.11 制度文件引用 (ComplianceReference) —— **已删除**
 
-> ⚠ **本表已删除**（批次 342 · 支书裁「甲」· `CRUD-1`：死表——无 UI 消费方 / 无写口 / 无字段契约；删表走 `server/db.js` 的 `v2` `DROP TABLE` 迁移）。**下表为删除前的历史字段契约，留档不删**（原位改注以**保行数**——`README-server.md` 有 45 处行号引用指向本文件）。
+> ⚠ **本表已删除**（死表——无 UI 消费方 / 无写口 / 无字段契约；删表走 `server/db.js` 的 `v2` `DROP TABLE` 迁移）。**下表为删除前的历史字段契约，留档不删**（原位改注以**保行数**——`README-server.md` 有 45 处行号引用指向本文件）。
 
 | 字段名 | 类型 | 必填 | 默认值 | 说明 |
 |---|---|---|---|---|
@@ -1037,7 +1037,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | residenceStatus | string | 在册状态；枚举单一源见 `core/domain/constants.js::RESIDENCE`（在校/滞留） |
 | residenceNote | string | 滞留备注（仅滞留态保留） |
 | residenceHistory | array | 在册状态变更留痕（from/to/updatedBy/updatedAt/note） |
-| selfProfile | object | **成员「自我描述」**（2026-10-05 `D-788` / `V-10b`：支书提供问卷字段清单 ⇒ 落点＝扩本实体）。**字段模型单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态：`text` / `bool` / `multi` / `list`）；详见下表 |
+| selfProfile | object | **成员「自我描述」**（支书问卷字段清单落地 ⇒ 扩本实体）。**字段模型单一源＝`docs/src/core/domain/self-profile.js`**（15 字段 · 四类形态：`text` / `bool` / `multi` / `list`）；详见下表 |
 
 **`selfProfile` 子表（字段模型单一源＝`docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS`）：**
 
@@ -1068,7 +1068,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 3. **账号联动**：新增成员即**自动建号**——**账号取学号**，口令取支部统一默认口令（沿用既有登录口令机制），不需人工另行注册；账号层为**可持久化账号层（种子账号 + 成员账号）**，成员加入支部即可登录该支部；账号随学号变更而变更，随成员流出一并停用。
 4. 变更分流：姓名/学号/党小组**立即生效**；发展阶段/在册状态须走成员变更确认链（组织委员发起 → 支书确认）。**流出登记（§2.28）登记即生效，不再走确认链。**
 5. `partyGroup` 为空即「未分组」：不属任何党小组——党小组会应到名单**不含**（按组名精确匹配），支部大会应到**照计**（党员且非滞留口径不变），表决名单**照计**（按发展阶段口径不变）。
-6. **`selfProfile` 的两条录入链**（2026-10-05 `D-788` / `V-10b` 第三批）：
+6. **`selfProfile` 的两条录入链**：
    - **本人自助**：`person.html`（自己看自己）「填写我的自我描述」⇒ 档案模态 `selfOnly`（只出该组、只写 `selfProfile`）。
    - **支委层代录（批量）**：组织委员工作台「成员名册」页的**「导入自我描述（粘贴 / CSV）」**折叠区——解析服务单一源 `docs/src/services/member/self-profile-import.js`（纯函数：表头关键词映射 → `sanitizeSelfProfile` 净化 → 按**学号优先·姓名次之**匹配名册 → 预览）；**只导入 `matched` 行**，逐行走 `PersonStore.saveMember({ id, selfProfile })`（与本人自填同一写口）。
    - **子表文本格式单一源** = 叶子 `selfProfileListToText` / `selfProfileListFromText`（每行一条、子项以 `|` 分隔）：表单输入框、导入链、展示**同用这一格式**，勿各写一套。
@@ -1165,7 +1165,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 党小组清单 | `docs/src/services/member/party-group.js` | `partyGroups` 域（党小组清单）唯一源；支书台「党小组」tab 组清单、组长建活动承办党小组选项、演示用户域均由此派生 |
 | 成员流动台账 | `docs/src/services/member/member-flow.js` | `memberFlows` 域（流动台账）唯一源 |
 | 成员档案字段扩展 `enrollYear` | `server/routes/member.js::PROFILE_FIELDS` / `CREATE_FIELDS` | 成员档案写口白名单单一源（前端 `docs/src/services/member/person.js` 字段白名单与档案编辑模态须同步） |
-| 成员「自我描述」字段模型（`selfProfile`） | `docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS` | 15 字段 · 四类形态单一源（**零依赖叶子**：前端表单 / 导入链与服务端写口净化同引一处；`D-788` / `V-10b`） |
+| 成员「自我描述」字段模型（`selfProfile`） | `docs/src/core/domain/self-profile.js::SELF_PROFILE_FIELDS` | 15 字段 · 四类形态单一源（**零依赖叶子**：前端表单 / 导入链与服务端写口净化同引一处） |
 | 「未分组」口径 | `partyGroup === ''` | 未分组 = 党小组归属为空串；**禁在各页自行判断别名** |
 | 账号与学号同值 | 账号层服务（成员新增/流出时同步） | 账号派生单一源：账号 = 学号 |
 
@@ -1194,7 +1194,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | 通知 (Notice) | mockDB.notices + localStorage | 创建->持久化 | 系统通知，按类型分级（含行动性通知派生待办机制，见 §2.19） |
 | 待办任务 (Todo) | mockDB.todos + localStorage | 创建->pending->in_progress->completed/expired | 最小三成本原则落地——任务流默认直接展示在工作台（见 §2.18） |
 | 经验沉淀 (ExperienceDeposit) | mockDB.experienceDeposits + localStorage | 创建->持久化 | 深度参与者经验总结 |
-| ~~制度文件引用 (ComplianceReference)~~ | **已删（2026-10-02 批次 342 · `CRUD-1`）** | 死表：无 UI 消费方 / 无写口 / 无字段契约 |
+| ~~制度文件引用 (ComplianceReference)~~ | **已删** | 死表：无 UI 消费方 / 无写口 / 无字段契约 |
 | 任务 (Task) | mockDB.tasks + localStorage | 随活动创建->待办->进行中->已完成 | 活动子任务，由 SOP 模板生成 |
 | SOP 场景模板 (Scenario) | sopData.js (静态代码) | 静态，代码级维护 | 7 个内置场景，驱动任务生成和工作流（内置清单见本文 §2.14） |
 | 工作流定义 (Definition) | definitions.js (静态代码) | 静态，代码级维护 | 3 套流程定义模板（theme-party-day / short-term / long-term），驱动活动流转（与本文 §2.15 一致） |
@@ -1389,7 +1389,7 @@ pending ──用户开始处理──→ in_progress ──完成──→ comp
 | `makeupTasks` | MakeupTask[] | 补课任务 |
 | `actSubRecords` | Object | 活动子记录（按活动 ID 索引） |
 | `tfSubRecords` | Object | 专班子记录（按专班 ID 索引） |
-| ~~`complianceReferences`~~ | ~~ComplianceReference[]~~ | **已删（2026-10-02 批次 342）** |
+| ~~`complianceReferences`~~ | ~~ComplianceReference[]~~ | **已删** |
 | `fileSpaceRecords` | FileSpaceRecord[] | 文件空间记录 |
 | `experienceDeposits` | ExperienceDeposit[] | 经验沉淀记录 |
 | `imageRecords` | ImageRecord[] | 图片记录 |
@@ -1530,7 +1530,7 @@ UI 层零改动。
 | fileSpaceRecords | list/create | 文件空间 |
 | imageRecords | list/create | 图片记录 |
 | experienceDeposits | list/create | 经验沉淀 |
-| ~~complianceReferences~~ | **已删（2026-10-02 批次 342）** | 合规引用（死表已删） |
+| ~~complianceReferences~~ | **已删** | 合规引用（死表已删） |
 
 #### 4.4.5 API 路由设计
 
@@ -1557,7 +1557,7 @@ UI 层零改动。
 | 文件空间 | `/api/v1/fileSpaceRecords` | GET/POST |
 | 图片 | `/api/v1/imageRecords` | GET/POST |
 | 经验沉淀 | `/api/v1/experienceDeposits` | GET/POST |
-| ~~合规引用~~ | ~~`/api/v1/complianceReferences`~~ | **已删（2026-10-02 批次 342）** |
+| ~~合规引用~~ | ~~`/api/v1/complianceReferences`~~ | **已删** |
 | 认证登录 | `/api/v1/auth/login` | POST |
 | 认证注销 | `/api/v1/auth/logout` | POST |
 
