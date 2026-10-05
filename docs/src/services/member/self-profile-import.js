@@ -14,7 +14,7 @@
 //  纯 ESM、无 DOM ⇒ 浏览器 / Node 双端可载（单测直导）。
 // ════════════════════════════════════════════════════════════════
 
-import { SELF_PROFILE_FIELDS, sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261005i';
+import { SELF_PROFILE_FIELDS, sanitizeSelfProfile } from '../../core/domain/self-profile.js?v=20261005j';
 
 export const SELF_PROFILE_IMPORT_VERSION = 1;
 

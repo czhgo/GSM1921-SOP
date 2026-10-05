@@ -3319,3 +3319,27 @@ $body
 - **非零退出码**＝沙箱拒写 Playwright `debug.log`（`TRAE Sandbox Error: hit restricted`）——**非测试失败**（`pass 977 / fail 0 / cancelled 0`）。
 - **窗口内内容**：批次 401/402（`D-788` 自我描述表单 ＋ 本人自助入口 ＋ 批量导入链）· 批次 403/404（`P.16` 沿革瘦身误动 ⇒ **全还原** ＋ `D-790` 收口）。
 - 服务跑完即停（`StopCommand`）；窗口计数自本批清零重计。
+
+## 批次 405（2026-10-05 · `D-791` / `D-792`）支书四条裁定之一：`SOP-C-72` 改母本 ＋ `hasApplied` 不再挡
+
+> **来源**：objective「剩下的部分继续推进 / 拿不准的必须 ask user question」⇒ 本会话全域审计后上呈四条待裁命题；支书 2026-10-05 逐条划档（本批落其中两条：`SOP-C-72` ＝ **改母本**；补录#2 `hasApplied` ＝ **不再挡**）。另两条（`SOP-C-73` 改系统 / 补录#1 新建通知 kind）留批次 406。
+
+### 一、`D-791`：`SOP-C-72` 处置权口径 —— **改母本**
+
+- **病灶**：母本 `常见工作场景快速指南.md` 第 11 章 `:435` 末句写「其他支委（含纪检委员、组织委员）不干预处理过程，仅在支书明确安排下提供辅助」，而系统自 **`D-550`**（支书 2026-09-21「**都归支委会！支书主持支委会**」）后已把意见建议处置放开到**支委层五角色均可指派 / 关闭 / 终审**（`ISSUE_DISPOSITION_SET = BRANCH_COMMISSION_ROLES`，`server/routes/resources/index.js:519`）⇒ 母本与支书自己的裁定相左。
+- **落法**：母本 `:435` **原位改写、行数守恒**（1 行改 1 行）：末句 →「**支委层各委员（含纪检委员、组织委员）以委员身份在支委会内履职、共同处置；支书主持支委会**」。**系统一字未改**（`D-550` 现状＝判据面不动）。
+- frontmatter `last_updated: 2026-09-26 → 2026-10-05` ＋ `.ctx/TIMESTAMPS.md` 对应行同批刷（`R-83` / `frontmatter-freshness::F2`）。
+- `README-server.md` **无**指向本母本的 `文件:行号` 引用 ⇒ 零位移。
+
+### 二、`D-792`：`hasApplied` 语义 —— **已作废报名不再挡重复报名**
+
+- **病灶**：`docs/src/services/activity/signup.js::hasApplied` 原只看 `status ∈ {approved,pending}`；而「作废（软）」**不改 `status`、只加 `voided`**（`soft-void.js`）⇒ **作废行仍挡本人重新报名**（`apply` 走到 `:314` 判「您已报名，请勿重复提交」）。
+- **落法**：`hasApplied` 加 `!s.voided &&`（作废行不计；有效 `approved` / `pending` 行仍挡）。**判据**＝`server/test/soft-void.test.mjs::V8`（造 voided / approved / pending 三行 ⇒ 期望 `false / true / true`）。
+- **边界**：作废键未加在「报名总表」（人 × 专班矩阵无行级动作槽）**仍如实**（落点取「记录产生地」，非缺口）。
+
+### 三、实跑 / 台账 / 版本
+
+- **实跑**：`soft-void`（含新 `V8`）／`version-stamp`／`doc-consistency`／`frontmatter-freshness`／`import-path-guard` **49 / 49 / 0**；`npm run test:fast` **146 / 146 / 0**。
+- **台账**：`.ctx/REVIEW_QUEUE.md` —— 补录表第 2 行性质栏改「✅ 已裁（批次 405）」；`SOP-C-72` 节点标题加「✅ 已裁已落」＋ 补「裁定与落法」条；该节头「阶段 B 累计」**已裁 71 → 72 · 待裁 2 → 1**。
+- **版本戳** `20261005i → 20261005j`（bump：JS 225 / HTML 23 / CSS 2 / server-test 94）。
+- **全量 probe**：本批为降频窗内**第 1 个 commit**（上一窗批次 404 已跑 `977/977/0`）⇒ 累计中，未到窗（`D-784`）。
