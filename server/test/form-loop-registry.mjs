@@ -348,7 +348,7 @@ export const VALIDATION_SITES = [
   { file: SRC + 'components/record/inspector.js', line: 1395, field: '活动名称', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动名称' },
   { file: SRC + 'components/record/inspector.js', line: 1396, field: '日期', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请选择日期' },
   { file: SRC + 'components/record/inspector.js', line: 1397, field: '活动地点', flow: 'component/活动巡查·信息编辑', machine: true, msg: '请填写活动地点' },
-  { file: SRC + 'components/governance/person-edit-modal.js', line: 272, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
+  { file: SRC + 'components/governance/person-edit-modal.js', line: 334, field: '成员姓名', flow: 'component/人员编辑浮窗', machine: true, msg: '成员姓名不能为空' },
   // 批次 47-M（2026-09-16）：**独立页 `docs/wizard.html` · 「新建支部…」面板**——一条流程覆盖该面板**两处**校验点。
   // ⚠ 原 reason「需进入支部配置向导的对应步（多步向导）」/「同上：多步向导」**两条都错**：
   //   `_doCreate` 的两处守卫根本不在「多步向导的某一步」里，而在**页顶常驻的「新建支部…」小面板**上，

@@ -21,7 +21,7 @@
 // 2026-09-17 批次 49：成功提示的统一等待点。本文件刻意**全部使用动态 import** 以避开
 // 环依赖，此处是唯一静态 import —— 因 pending-writes 是**叶子模块**（零依赖），静态引入不成环，
 // 且必须同步可用（persist() 在排程那一刻就要登记，不能等一个 await）。
-import { trackWrite } from '../core/session/pending-writes.js?v=20261005g';
+import { trackWrite } from '../core/session/pending-writes.js?v=20261005h';
 
 /**
  * DataAdapter Interface — 统一数据访问接口
@@ -215,7 +215,7 @@ export async function init() {
       ]);
 
       // 填充 mockDB 缓存（供服务层同步读取）
-      const { mockDB } = await import('../core/domain/domain.js?v=20261005g');
+      const { mockDB } = await import('../core/domain/domain.js?v=20261005h');
       // 缓存引用：pagehide 同步冲刷时不能再 await 动态 import（文档卸载中挂起），
       // 必须直接同步读取（见 _flushSnapshotSync）
       _cachedMockDB = mockDB;
@@ -307,7 +307,7 @@ export async function init() {
       } catch (e) {
         console.warn('[DataAdapter] init: niche/新域集合拉取失败，回退本地备份：', e);
         try {
-          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261005g');
+          const { restoreNicheCollections } = await import('./mock-adapter.js?v=20261005h');
           restoreNicheCollections();
         } catch (e2) {
           console.warn('[DataAdapter] init: 本地 niche 备份恢复失败：', e2);
@@ -340,8 +340,8 @@ export async function init() {
       //   （批 47-X 真机实测入口计数 0，批 47-Y 按 R-78 造出可达且自洽的前置后转正）。
       if (SEED_FALLBACK && (!mockDB.attendances.length || !mockDB.inspections.length)) {
         try {
-          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261005g');
-          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261005g');
+          const { ATTENDANCE_RECORDS } = await import('./mock/attendance.js?v=20261005h');
+          const { INSPECTION_RECORDS } = await import('./mock/inspection.js?v=20261005h');
           const filled = ['attendances', 'inspections'].filter((k) => !mockDB[k].length); // 实际被回退注入的键
           for (const k of filled) mockDB[k] = (k === 'attendances' ? ATTENDANCE_RECORDS : INSPECTION_RECORDS).map(r => ({ ...r }));
           _commitBase(mockDB, filled); // 2026-09-26 批次 206：只登记实际注入的键（原先并列写死 ⇒ 未回退的键也被推基线 ⇒ 并发写丢）
@@ -352,7 +352,7 @@ export async function init() {
       }
       if (SEED_FALLBACK && !mockDB.todos.length) {
         try {
-          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261005g');
+          const { SEED_TODOS } = await import('../services/governance/todo.js?v=20261005h');
           mockDB.todos = SEED_TODOS.map(t => ({ ...t }));
           _commitBase(mockDB, ['todos']); // 回退值计入基线 ⇒ 不上传
           console.info('[DataAdapter] init: 待办空集合已回退本地 seed');
@@ -583,7 +583,7 @@ async function _flushSnapshot() {
   // flush 时若数据源已切回 mock（如服务器不可达回退），跳过写穿
   if (DATA_SOURCE !== 'api') { deferred?.resolve(); return; }
   try {
-    const { mockDB } = await import('../core/domain/domain.js?v=20261005g');
+    const { mockDB } = await import('../core/domain/domain.js?v=20261005h');
     _cachedMockDB = mockDB;
     const dirty = _collectDirty(mockDB);
     if (!dirty) { deferred?.resolve(); return; } // 无脏集合：跳过上传（2026-09-02 增量快照）
@@ -740,11 +740,11 @@ async function _recoverFromConflict(e) {
     console.warn('[DataAdapter] 409 冲突但未给出冲突集合清单，无法定向刷新');
     return;
   }
-  const { mockDB } = await import('../core/domain/domain.js?v=20261005g');
+  const { mockDB } = await import('../core/domain/domain.js?v=20261005h');
   await _refreshCollections(names, mockDB);
   // 业务语言提示（既有告警通道 + 支书要求的可读文案）
   try {
-    const { showToast } = await import('../core/base/utils.js?v=20261005g');
+    const { showToast } = await import('../core/base/utils.js?v=20261005h');
     showToast('info', '数据已被他人更新，已为你刷新');
   } catch (err) {
     console.warn('[DataAdapter] 冲突提示渲染失败：', err);
@@ -928,12 +928,12 @@ export async function hydrateDataSource({ apiAdapter, loadMock } = {}) {
 
 // 部署形态常量（`getRuntimeMode().stage` 的取值来源）：server=同源后端（Node 动态注入）/ static=静态托管。
 // ⚠ 同本文件既有纪律：**置尾**以保上文行号（README-server.md 的 `文件:行号` 取证引用）；import 声明被提升，置尾不影响语义。
-import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261005g';
+import { DEPLOY_MODE, DEMO_READONLY } from '../config/deploy.js?v=20261005h';
 // `SEED_FALLBACK`（空域 seed 回退开关）**用命名空间导入**：Node 托管形态下 `/src/config/deploy.js`
 //   由 `server/app.js` 注入，**已带上该常量**（值由 env `SEED_FALLBACK=0` 决定，缺省 `true`）。仍保持
 //   命名空间导入（不用命名导入）：托管形态不止一种，命名导入遇上缺导出的宿主会 **SyntaxError**
 //   ⇒ 取不到即按**默认 `true`**（＝既有行为）。完整语义见 `config/deploy.js` 与本文件 `_deployConfig`。
-import * as _deployConfig from '../config/deploy.js?v=20261005g';
+import * as _deployConfig from '../config/deploy.js?v=20261005h';
 const SEED_FALLBACK = _deployConfig.SEED_FALLBACK !== undefined ? _deployConfig.SEED_FALLBACK : true;
 
 // ════════════════════════════════════════════════════════════════

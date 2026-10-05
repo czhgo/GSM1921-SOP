@@ -77,6 +77,7 @@ export const SHARD_E2E_FILES = {
     'link-integrity.test.mjs',
     'list-filter-chip-e2e.test.mjs',
     'today-action-groups-e2e.test.mjs',
+    'self-profile-e2e.test.mjs',
     'write-grant-prompt-e2e.test.mjs',
     'write-hover-e2e.test.mjs',
     'copy-anchor-guard-e2e.test.mjs',

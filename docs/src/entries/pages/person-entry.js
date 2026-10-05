@@ -9,29 +9,29 @@
 //  纪律：人名与字段一律现取 PersonStore / getPersonName；**不得**使用任何记录内姓名快照，
 //        也不得在模块顶层做人员快照（跨表一致性守卫 S1/S2）。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261005g';
-import { renderHeader } from '../../components/shell/header.js?v=20261005g';
-import { BranchService } from '../../services/core/runtime.js?v=20261005g';
-import { AuthStore } from '../../services/core/auth.js?v=20261005g';
-import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005g';
-import { getBranchById } from '../../services/branch/branch.js?v=20261005g';
-import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261005g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261005h';
+import { renderHeader } from '../../components/shell/header.js?v=20261005h';
+import { BranchService } from '../../services/core/runtime.js?v=20261005h';
+import { AuthStore } from '../../services/core/auth.js?v=20261005h';
+import { PersonStore, getPersonName } from '../../services/member/person.js?v=20261005h';
+import { getBranchById } from '../../services/branch/branch.js?v=20261005h';
+import { openPersonEditModal } from '../../components/governance/pickers.js?v=20261005h';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/domain/constants.js?v=20261005g';
-import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261005g';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261005g';
-import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261005g';
-import { loadActivities } from '../../services/activity/activity.js?v=20261005g';
+import { ROLE_LABELS, SECRETARY_AND_DEPUTY_ROLES, RESIDENCE } from '../../core/domain/constants.js?v=20261005h';
+import { getBasePath, escHtml as esc, fmtDt } from '../../core/base/utils.js?v=20261005h';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261005h';
+import { countThoughtReportsByPerson } from '../../services/governance/thought-report.js?v=20261005h';
+import { loadActivities } from '../../services/activity/activity.js?v=20261005h';
 // 待批活动的可见性单一源（2026-09-22 批次 151 · 支书裁定「只支委层可见」）：关联概览的「参与活动」计数同样收窄
-import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261005g';
-import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261005g';
-import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005g';
-import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005g';
+import { filterActivitiesForViewer } from '../../services/core/visibility.js?v=20261005h';
+import { TaskForceRecordStore } from '../../services/activity/taskforce.js?v=20261005h';
+import { loadAttendanceRecords } from '../../services/activity/attendance.js?v=20261005h';
+import { loadInspectionRecords } from '../../services/activity/inspection.js?v=20261005h';
 // 批次 87：本页必须先 hydrate API 数据源再渲染（成员档案读 + 编辑写）——与 activity.html 标准形同款。
 // 此前本页只调 BranchService.loadDB()（API 模式直接 return）⇒ api 形态下档案读的是本地备份，
 // 且「编辑档案」按 mock 数据源落本机、服务端 users 表不更新。
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261005g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261005g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261005h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261005h';
 
 renderSidebar('dashboard');
 renderHeader('dashboard');
@@ -206,9 +206,10 @@ function render() {
       <div class="grid grid-cols-2 gap-3">${statsHtml}</div>
     </div>
 
-    ${canEdit ? `
-    <div class="pt-5 border-t border-gray-100 flex justify-end">
-      <button type="button" id="person-edit-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑档案</button>
+    ${(canEdit || isSelf) ? `
+    <div class="pt-5 border-t border-gray-100 flex justify-end gap-2">
+      ${isSelf ? '<button type="button" id="person-self-profile-btn" class="btn-outline text-sm px-4 py-2 rounded-lg">填写我的自我描述</button>' : ''}
+      ${canEdit ? '<button type="button" id="person-edit-btn" class="btn-accent-soft text-sm px-4 py-2 rounded-lg">编辑档案</button>' : ''}
     </div>` : ''}
   `;
 
@@ -216,6 +217,15 @@ function render() {
     openPersonEditModal({
       personId: member.id,
       sourceLabel: '成员档案页',
+      onSaved: () => render(),
+    });
+  });
+  // `D-788`（2026-10-05）：本人自助填「自我描述」（`selfOnly` ⇒ 模态只出该组、只写 `selfProfile`，其余档案字段归支委层）
+  cardEl.querySelector('#person-self-profile-btn')?.addEventListener('click', () => {
+    openPersonEditModal({
+      personId: member.id,
+      selfOnly: true,
+      sourceLabel: '我的档案（本人自填）',
       onSaved: () => render(),
     });
   });

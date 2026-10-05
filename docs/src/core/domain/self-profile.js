@@ -58,6 +58,31 @@ export const SELF_PROFILE_TEXT_MAX = 500;
 /** 子表最大行数（净化用；防无界增长） */
 export const SELF_PROFILE_LIST_MAX = 20;
 
+/**
+ * 子表 → 文本（**文本格式单一源**：每行一条、子项以 `|` 分隔）。
+ * 表单输入框与导入链（粘贴 / CSV）**同用本格式**，勿各写一套。
+ */
+export function selfProfileListToText(rows, itemFields) {
+  const cols = (itemFields || []).map((it) => it.key);
+  return (Array.isArray(rows) ? rows : [])
+    .map((r) => cols.map((k) => _str(r && r[k])).join(' | '))
+    .join('\n');
+}
+
+/** 文本 → 子表（`selfProfileListToText` 的逆；空行剔除，缺列补空串，列序＝`itemFields`） */
+export function selfProfileListFromText(text, itemFields) {
+  const cols = (itemFields || []).map((it) => it.key);
+  return String(text == null ? '' : text)
+    .split('\n')
+    .map((line) => line.split('|').map((s) => _str(s)))
+    .filter((cells) => cells.some((c) => c))
+    .map((cells) => {
+      const o = {};
+      cols.forEach((k, i) => { o[k] = cells[i] || ''; });
+      return o;
+    });
+}
+
 /** 空表单（表单初值 / 无自我描述时的占位）；每次返回新对象，避免共享引用 */
 export function emptySelfProfile() {
   const out = {};

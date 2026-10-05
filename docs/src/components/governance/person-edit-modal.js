@@ -28,14 +28,19 @@
 //      to ≠ from），明确提示随在册状态变更一并报送，不静默丢弃。
 // ════════════════════════════════════════════════════════════════
 
-import { openModal, closeModal } from '../ui/modal.js?v=20261005g';
-import { PersonStore } from '../../services/member/person.js?v=20261005g';
-import { getBranchById } from '../../services/branch/branch.js?v=20261005g';
+import { openModal, closeModal } from '../ui/modal.js?v=20261005h';
+import { PersonStore } from '../../services/member/person.js?v=20261005h';
+import { getBranchById } from '../../services/branch/branch.js?v=20261005h';
 // Q-21-3 收敛（2026-09-13）：在册状态枚举单一源 = core/domain/constants.js（原经 org-base-data-preview 转出）
-import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261005g';
-import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261005g';
-import { AuthStore } from '../../services/core/auth.js?v=20261005g';
-import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261005g';
+import { ROLE_LABELS, DEVELOP_STAGES, RESIDENCE } from '../../core/domain/constants.js?v=20261005h';
+import { submitMemberChange } from '../../services/member/member-confirmation.js?v=20261005h';
+import { AuthStore } from '../../services/core/auth.js?v=20261005h';
+import { showToast, escHtml as esc, getBasePath, todayLocal } from '../../core/base/utils.js?v=20261005h';
+// `D-788`（2026-10-05 · `V-10b`）：成员「自我描述」字段模型（**零依赖叶子**）——表单控件由它逐字段生成（单一源）
+import {
+  SELF_PROFILE_FIELDS, sanitizeSelfProfile,
+  selfProfileListToText, selfProfileListFromText,
+} from '../../core/domain/self-profile.js?v=20261005h';
 
 /** 模态 id（openModal / closeModal 定位键） */
 const MODAL_ID = 'person-edit-modal';
@@ -61,6 +66,7 @@ const FIELD_OWNER = {
   residenceStatus: '在册管理',
   residenceNote: '在册管理',
   residenceHistory: '在册管理',
+  selfProfile: '本人可填',
 };
 
 /** 归属小标签（灰色 chip，仅供识别，不是可点击控件） */
@@ -125,6 +131,56 @@ function _todayKey() {
 }
 
 /**
+ * 「自我描述」单字段控件（`D-788`）：按叶子的 `type` 生成——`bool`→三态下拉（未填/是/否）、
+ * `multi`→文本（多项以 `;` 分隔）、`list`→文本框（每行一条、子项以 `|` 分隔，格式单一源见叶子）、
+ * `text`→单行输入。**字段清单与标签都由叶子给**（不在此另写字段名）。
+ */
+function selfProfileControl(f, sp) {
+  const df = `selfProfile.${f.key}`;
+  const v = sp[f.key];
+  if (f.type === 'bool') {
+    const opts = [['', '未填'], ['true', '是'], ['false', '否']];
+    const sel = v === true ? 'true' : v === false ? 'false' : '';
+    return `<select data-field="${df}" class="input-flat text-xs w-full">${opts
+      .map(([val, lab]) => `<option value="${val}"${val === sel ? ' selected' : ''}>${esc(lab)}</option>`)
+      .join('')}</select>`;
+  }
+  if (f.type === 'multi') {
+    return `<input data-field="${df}" type="text" class="input-flat text-xs w-full"
+      value="${esc((Array.isArray(v) ? v : []).join('; '))}" placeholder="多项用 ; 分隔（可空）" />`;
+  }
+  if (f.type === 'list') {
+    const ph = `每行一条，子项用 | 分隔：${(f.itemFields || []).map((it) => it.label).join(' | ')}`;
+    return `<textarea data-field="${df}" rows="2" class="input-flat text-xs w-full"
+      placeholder="${esc(ph)}">${esc(selfProfileListToText(v, f.itemFields))}</textarea>`;
+  }
+  return `<input data-field="${df}" type="text" class="input-flat text-xs w-full"
+    value="${esc(v == null ? '' : v)}" placeholder="${esc(f.label)}（可空）" />`;
+}
+
+/** 「自我描述」整组（逐字段按叶子渲染；`owner` 决定 groupBox 标题后的归属说明） */
+function selfProfileGroup(sp) {
+  return groupBox({
+    title: '自我描述',
+    desc: '成员自我描述（问卷字段）——本人可填自己的，支委层可代录；留空即不填。',
+    rows: SELF_PROFILE_FIELDS.map((f) => formRow(f.label, selfProfileControl(f, sp), { tag: ownerTag('selfProfile') })).join(''),
+  });
+}
+
+/** 从模态里读「自我描述」控件 → 净化后的 `selfProfile`（`list` 走叶子的文本 ⇄ 子表单一源） */
+function readSelfProfile(panelEl) {
+  const raw = {};
+  for (const f of SELF_PROFILE_FIELDS) {
+    const el = panelEl?.querySelector(`[data-field="selfProfile.${f.key}"]`);
+    if (!el) continue;
+    if (f.type === 'bool') raw[f.key] = el.value === '' ? null : el.value === 'true';
+    else if (f.type === 'list') raw[f.key] = selfProfileListFromText(el.value, f.itemFields);
+    else raw[f.key] = el.value; // text / multi（multi 由叶子按分隔符拆）
+  }
+  return sanitizeSelfProfile(raw);
+}
+
+/**
  * 打开成员档案编辑模态
  * @param {Object} opts
  * @param {string} opts.personId        — 目标成员 id（唯一权威键）
@@ -143,6 +199,9 @@ export function openPersonEditModal(opts = {}) {
 
   const focusFields = Array.isArray(opts.focusFields) ? opts.focusFields : [];
   const hits = (f) => focusFields.includes(f);
+  // `D-788`：`selfOnly`（本人自助填写）——只出「自我描述」一组、只写 `selfProfile`（其余档案字段归支委层）
+  const selfOnly = opts.selfOnly === true;
+  const spCurrent = sanitizeSelfProfile(member.selfProfile);
   const branch = getBranchById(member.branchId);
   const branchLabel = branch?.name || member.branchId || '—';
   const isDetained = member.residenceStatus === RESIDENCE.DETAINED;
@@ -166,10 +225,11 @@ export function openPersonEditModal(opts = {}) {
     archiveRow({ label: '在册变更留痕', valueHtml: `<span class="text-gray-800">${history.length} 条</span>`, field: 'residenceHistory', highlight: hits('residenceHistory') }),
   ].join('');
 
-  // ③ 下区「可改字段」（按写路径分两组：档案属性立即生效 / 制度变更报支书确认）
+  // ③ 下区「可改字段」（按写路径分组：档案属性立即生效 / 自我描述本人可填 / 制度变更报支书确认）
+  //    ⚠ `selfOnly`（本人自助）：只出「自我描述」一组；其余组与治理字段说明不出（本人无权写）。
   const formHtml = `
     <form id="${MODAL_ID}-form">
-      ${groupBox({
+      ${selfOnly ? '' : groupBox({
         title: '档案资料 · 立即生效',
         desc: '组织委员维护的成员档案属性，保存后即时写入档案。',
         rows: [
@@ -178,7 +238,8 @@ export function openPersonEditModal(opts = {}) {
           formRow('党小组', `<input data-field="partyGroup" type="text" class="input-flat text-xs w-full" value="${esc(member.partyGroup || '')}" placeholder="党小组归属（可空）" />`, { tag: TAG_INSTANT }),
         ].join(''),
       })}
-      ${groupBox({
+      ${selfProfileGroup(spCurrent)}
+      ${selfOnly ? '' : groupBox({
         title: '制度变更 · 报支书确认',
         desc: '提交后由支书确认才生效，确认前保持现值，成员名册显示「待确认」。',
         rows: [
@@ -187,7 +248,7 @@ export function openPersonEditModal(opts = {}) {
           formRow('在册备注', `<textarea data-field="residenceNote" rows="3" class="input-flat text-xs w-full" placeholder="在册变更原因 / 起止等（可空；随在册状态变更一并报确认）">${esc(member.residenceNote || '')}</textarea>`, { tag: TAG_CONFIRM }),
         ].join(''),
       })}
-      <div class="mt-3 pt-3 border-t border-gray-50">
+      ${selfOnly ? `<p class="text-xs text-gray-400 mt-1.5">其他档案字段（姓名 / 学号 / 党小组 / 发展阶段 / 在册状态）由支委层维护。</p>` : `<div class="mt-3 pt-3 border-t border-gray-50">
         <div class="flex items-center gap-2 text-xs">
           <span class="text-gray-500 w-24 flex-shrink-0">角色</span>
           <span class="text-gray-800 flex-1 min-w-0">${esc(ROLE_LABELS[member.role] || member.role || '—')}</span>
@@ -197,7 +258,7 @@ export function openPersonEditModal(opts = {}) {
           <span class="text-gray-800 flex-1 min-w-0">${esc(branchLabel)}</span>
         </div>
         <p class="text-[11px] text-gray-400 mt-1.5 ml-0">治理字段（角色 / 所属支部），不在本处修改</p>
-      </div>
+      </div>`}
       <div class="flex justify-end gap-2 mt-4">
         <button type="button" data-modal-cancel="${MODAL_ID}" class="btn-outline text-xs px-3 py-1.5">取消</button>
         <button type="submit" class="btn-accent text-xs px-4 py-2 rounded-lg">保存</button>
@@ -224,7 +285,7 @@ export function openPersonEditModal(opts = {}) {
 
   const panel = openModal({
     id: MODAL_ID,
-    title: `成员档案 · ${esc(member.name || personId)} <a href="${archiveHref}" class="text-xs font-normal text-gray-500 hover:text-gray-700 ml-2 whitespace-nowrap">查看完整档案 →</a>`,
+    title: `${selfOnly ? '我的自我描述' : '成员档案'} · ${esc(member.name || personId)} <a href="${archiveHref}" class="text-xs font-normal text-gray-500 hover:text-gray-700 ml-2 whitespace-nowrap">查看完整档案 →</a>`,
     bodyHtml,
     width: '560px',
     onMount: (panelEl) => {
@@ -260,7 +321,8 @@ export function openPersonEditModal(opts = {}) {
     const btn = panelEl?.querySelector(`#${MODAL_ID}-form button[type="submit"]`);
     const read = (f) => panelEl?.querySelector(`[data-field="${f}"]`)?.value ?? '';
 
-    const next = {
+    // `selfOnly`（本人自助）：无档案控件 ⇒ 跳过姓名校验与档案差异，只算「自我描述」
+    const next = selfOnly ? null : {
       name: String(read('name')).trim(),
       studentId: String(read('studentId')).trim(),
       partyGroup: String(read('partyGroup')).trim(),
@@ -268,7 +330,7 @@ export function openPersonEditModal(opts = {}) {
       residenceStatus: read('residenceStatus'),
       residenceNote: String(read('residenceNote')).trim(),
     };
-    if (!next.name) {
+    if (next && !next.name) {
       showToast('error', '成员姓名不能为空');
       return;
     }
@@ -276,9 +338,14 @@ export function openPersonEditModal(opts = {}) {
     // 与档案真值逐字段比对 → 只提交有变更的字段（在册状态缺失 ≡ 在校，避免伪变更）
     const truthOf = (f) => (f === 'residenceStatus' && !member.residenceStatus ? RESIDENCE.CAMPUS : (member[f] ?? ''));
     const patch = {};
-    for (const f of Object.keys(next)) {
-      if (String(next[f]) !== String(truthOf(f))) patch[f] = next[f];
+    if (next) {
+      for (const f of Object.keys(next)) {
+        if (String(next[f]) !== String(truthOf(f))) patch[f] = next[f];
+      }
     }
+    // 自我描述（`D-788`）：整对象比对，变了才提交（空对象 = 清空自我描述）
+    const nextSp = readSelfProfile(panelEl);
+    if (JSON.stringify(nextSp) !== JSON.stringify(spCurrent)) patch.selfProfile = nextSp;
     if (Object.keys(patch).length === 0) {
       showToast('info', '没有需要保存的变更');
       closeModal(MODAL_ID);
@@ -289,6 +356,7 @@ export function openPersonEditModal(opts = {}) {
     const INSTANT_FIELDS = ['name', 'studentId', 'partyGroup'];
     const instantPatch = {};
     for (const f of INSTANT_FIELDS) if (f in patch) instantPatch[f] = patch[f];
+    if ('selfProfile' in patch) instantPatch.selfProfile = patch.selfProfile; // `D-788`：自我描述同走成员档案写口
     const stageChanged = 'developStage' in patch;
     const resStatusChanged = 'residenceStatus' in patch;
     const noteOnly = 'residenceNote' in patch && !resStatusChanged; // 状态未动、仅备注变化

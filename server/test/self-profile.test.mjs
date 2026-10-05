@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 
 import {
   SELF_PROFILE_FIELDS, SELF_PROFILE_KEYS, emptySelfProfile, sanitizeSelfProfile, isSelfProfileEmpty,
-} from '../../docs/src/core/domain/self-profile.js?v=20261005g';
+} from '../../docs/src/core/domain/self-profile.js?v=20261005h';
 import { createApp } from '../app.js';
 import { seedDatabase } from '../seed.js';
 
@@ -83,10 +83,10 @@ test('A3 净化不崩 ＋ 空值判定：非对象输入 → 空表单；全空 
 
 // ═════════════════ B mock 写链 ═════════════════
 
-import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005g';
-import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005g';
-import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005g';
-import { PersonStore } from '../../docs/src/services/member/person.js?v=20261005g';
+import { mockDB } from '../../docs/src/core/domain/domain.js?v=20261005h';
+import { MockAdapter } from '../../docs/src/data/mock-adapter.js?v=20261005h';
+import { setDataSource } from '../../docs/src/data/data-adapter.js?v=20261005h';
+import { PersonStore } from '../../docs/src/services/member/person.js?v=20261005h';
 
 const _store = new Map();
 globalThis.localStorage = {
@@ -98,7 +98,7 @@ globalThis.localStorage = {
   get length() { return _store.size; },
 };
 
-test('B1 mock 写链：saveMember 落 selfProfile（净化后）；全空 ⇒ 不落该字段', async () => {
+test('B1 mock 写链：saveMember 落 selfProfile（净化后）；显式空对象 ⇒ 落空（支持「清空」）', async () => {
   _store.clear();
   setDataSource('mock');
   await MockAdapter.loadDB();
@@ -108,10 +108,16 @@ test('B1 mock 写链：saveMember 落 selfProfile（净化后）；全空 ⇒ �
   assert.ok(got && got.selfProfile, '档案带 selfProfile');
   assert.equal(got.selfProfile.major, '计算机');
   assert.ok(!('__evil' in got.selfProfile), '白名单外键被净化剔除');
-  // 全空 ⇒ 不落该字段（保持档案干净）
-  const r2 = await PersonStore.saveMember({ id: 'p2', selfProfile: { major: '   ' } });
+  // 显式传空 ⇒ 落为空对象（＝清空：不把旧值留在档案里）
+  const r2 = await PersonStore.saveMember({ id: 'p1', selfProfile: { major: '   ' } });
   assert.equal(r2.ok, true);
-  assert.equal(PersonStore.getById('p2').selfProfile, undefined, '全空自我描述不落字段');
+  const got2 = PersonStore.getById('p1');
+  assert.ok(got2.selfProfile, '显式传入空自我描述 ⇒ 字段仍在（空对象）');
+  assert.equal(got2.selfProfile.major, '', '原值被清空（不再残留「计算机」）');
+  // 未提供该字段 ⇒ 不改动（缺省不覆盖）
+  const r3 = await PersonStore.saveMember({ id: 'p2', name: '新成员' });
+  assert.equal(r3.ok, true);
+  assert.equal(PersonStore.getById('p2').selfProfile, undefined, '未提供 ⇒ 不落该字段');
 });
 
 // ═════════════════ C api 写链（内存服务） ═════════════════

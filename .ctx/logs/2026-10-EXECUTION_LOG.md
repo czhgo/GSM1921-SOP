@@ -3224,3 +3224,34 @@ $body
 
 - 本窗＝批次 **398–400**（3 个 commit：业务域 9→6 合并 · 只给「项目」配红金 · 成员「自我描述」字段模型 ＋ 写口）⇒ 跑全量，**实读 `970 / 970 / 0 红`**（较批次 397 的 964 增 **6**，＝新件 `self-profile.test.mjs`）。
 - ⚠ 退出码非 0 仍系**沙箱拒绝写 Playwright `debug.log`**（`TRAE Sandbox Error: hit restricted`），**非测试失败**；临时日志未留盘、跑完已停服。
+
+
+***
+
+## 批次 401（2026-10-05 · `D-788` / `V-10b` 第二批）成员「自我描述」**表单** ＋ 本人自助填写入口
+
+> **来源**：`D-788` 在办续（支书圈「**本人可填 ＋ 支委层代录**」）。
+
+### 一、做法
+
+- **表单**：`components/governance/person-edit-modal.js` 新增「**自我描述**」一组——**逐字段按叶子渲染**（`text`→单行、`bool`→三态「未填 / 是 / 否」、`multi`→多项以 `;` 分隔、`list`→文本框「每行一条、子项以 `|` 分隔」）；**字段清单与标签都由叶子给**（不另写字段名）。
+- **本人自助模式**：模态新增 `selfOnly` 选项——**只出「自我描述」一组**、**只写 `selfProfile`**（其余档案字段归支委层），标题改「我的自我描述」。
+- **入口**：`entries/pages/person-entry.js` 在 `isSelf`（无 `?id=` ＝ 自己看自己）时出「**填写我的自我描述**」按钮 ⇒ `openPersonEditModal({ selfOnly: true })`。
+- **叶子新增** `selfProfileListToText` / `selfProfileListFromText`（**子表 ⇄ 文本格式单一源**；表单与后续导入链同用）；`person.js::_cleanMemberRecord` 改为「**显式传入即保留**（含空对象）」⇒ 支持**清空**自我描述。
+
+### 二、判据（真机 ＋ 单元）
+
+- 新建 **真机件** `self-profile-e2e.test.mjs`（自包含 `createApp(:memory:)` ＋ 真登录 p1 / 2400012345）：① 本人档案页有该入口；② 模态**只**出自我描述控件（**无**「姓名」等）；③ 填「专业」＋子表提交 ⇒ 模态关闭 ⇒ **再次打开值仍在**（落库 → 读回闭环）。**实跑 1/1**。
+- `self-profile.test.mjs` `B1` 改准（显式空 ⇒ 落空对象 ＝ 清空；未提供 ⇒ 不落）。
+- 同批改签：`form-loop-registry.mjs` 里 `person-edit-modal.js` 的校验点行号（272 → 334）；`sweep-shard.mjs` 分片池新增该 e2e（`suite-shard::G1` 要求）；`package.json` `test:daily` 增该件。
+- **实跑**：`npm run test:daily` **754 / 754 / 0**；`test:fast` **146 / 146 / 0**。
+
+### 三、文档 / 台账
+
+- `docs/help.html` §功能地图「成员档案」行补「本人可填 / 改自我描述 ＋ 支委层可代录」。
+- 版本戳 `20261005g → 20261005h`；TIMESTAMPS **无新增行**（`person-edit-modal.js` / `person-entry.js` **无表行**，既有覆盖缺口，只登记）。
+
+### 四、边界（如实）
+
+- **导入链（粘贴 / CSV ＋ 预览）** 未落 ⇒ 第三批（`D-788` 在办）。
+- 「自我描述」**未进快照字段白名单**（`person-consistency::SNAPSHOT_FIELDS` 不列它）——不参与快照等价断言；亦**未加演示种子样例**。

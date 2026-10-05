@@ -9,20 +9,20 @@
 //   · **回复线程**：`replyToMessage()` 生成「我 → 对方」的新私信并带 `replyTo` ⇒ 一来一往成线。
 //  ⚠ 与通知（公告）分列：本页**只**显示 `noticeType:'message'`，不含支部公告/系统派生通知。
 // ════════════════════════════════════════════════════════════════
-import { renderSidebar } from '../../components/shell/sidebar.js?v=20261005g';
-import { renderHeader } from '../../components/shell/header.js?v=20261005g';
+import { renderSidebar } from '../../components/shell/sidebar.js?v=20261005h';
+import { renderHeader } from '../../components/shell/header.js?v=20261005h';
 import {
   listMyMessages, sendDirectMessage, replyToMessage, canSendDirectMessage, NoticeStore,
-} from '../../services/governance/notice.js?v=20261005g';
-import { AuthStore } from '../../services/core/auth.js?v=20261005g';
-import { getPersonName } from '../../services/member/person.js?v=20261005g';
-import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261005g';
-import { badgeHtml } from '../../components/ui/badges.js?v=20261005g';
-import { PersonPicker } from '../../components/governance/pickers.js?v=20261005g';
+} from '../../services/governance/notice.js?v=20261005h';
+import { AuthStore } from '../../services/core/auth.js?v=20261005h';
+import { getPersonName } from '../../services/member/person.js?v=20261005h';
+import { showToast, escHtml as esc, getBasePath } from '../../core/base/utils.js?v=20261005h';
+import { badgeHtml } from '../../components/ui/badges.js?v=20261005h';
+import { PersonPicker } from '../../components/governance/pickers.js?v=20261005h';
 // S1（2026-09-12 通知详情页同款）：必须先完成数据 hydrate（loadDB / API init）再取数
-import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261005g';
-import { ApiAdapter } from '../../data/api-adapter.js?v=20261005g';
-import { BranchService } from '../../services/core/runtime.js?v=20261005g';
+import { hydrateDataSource, notifyDataLoaded } from '../../data/data-adapter.js?v=20261005h';
+import { ApiAdapter } from '../../data/api-adapter.js?v=20261005h';
+import { BranchService } from '../../services/core/runtime.js?v=20261005h';
 
 renderSidebar('messages');
 renderHeader('messages');

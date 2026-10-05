@@ -11,9 +11,9 @@ import {
   ORG_SUBJECT_IDS, ORG_SUBJECT_LABELS, BRANCH_ORG_SUBJECT_IDS, isOrgSubject, isBranchOrgSubject,
   INSTITUTION_DOMAINS, INSTITUTION_DOMAIN_IDS, INSTITUTION_COLLECTIVE_SUBJECTS, institutionSubjectOfDomain,
   transferRowOf, transferTabDecision, TRANSFERABLE_TAB_ROWS,
-} from '../../docs/src/core/domain/work-map.js?v=20261005g';
-import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261005g';
-import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261005g';
+} from '../../docs/src/core/domain/work-map.js?v=20261005h';
+import { sanitizeConfigWorkforce } from '../../docs/src/services/branch/config-clean.js?v=20261005h';
+import { ROLE_KEYS, ROLE_PAGE_MAP } from '../../docs/src/core/domain/constants.js?v=20261005h';
 
 let server, base, token;
 
