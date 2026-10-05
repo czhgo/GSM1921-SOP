@@ -62,7 +62,7 @@ export const FUNCTION_CATALOG = [
   // 活动型链路（党建）：
   { id: 'flow-branch-committee', name: '支委会链路', group: '党建', desc: '支书定议题通知 → 纪检考勤 → 支支书录决议 → 宣传归档 → 补课跟进', related: ['three-meetings', 'agenda', 'branch-doc'], generic: true, kind: 'flow' },
   { id: 'flow-online-committee', name: '线上支委会链路', group: '党建', desc: '支书定稿议程 → 委员异步表态（同意/异议/附言）→ 汇总截止 → 记录决议', related: ['three-meetings', 'online-vote', 'agenda'], generic: true, kind: 'flow' },
-  { id: 'flow-group-meeting', name: '党小组会链路', group: '党建', desc: '组长统筹通知 → 组长发布二维码 → 纪检考勤 → 自评互评 → 组长总结汇总 → 宣传归档', related: ['three-meetings', 'activity-create'], generic: true, kind: 'flow' },
+  { id: 'flow-group-meeting', name: '党小组会链路', group: '党建', desc: '组长统筹通知 → 组长现场按应到名单录入考勤 → 纪检考勤 → 自评互评 → 组长总结汇总 → 宣传归档', related: ['three-meetings', 'activity-create'], generic: true, kind: 'flow' },
   { id: 'flow-party-lecture', name: '党课链路', group: '党建', desc: '支书发布党课通知与学习材料 → 提醒缺席党员补课', related: ['three-meetings'], generic: true, kind: 'flow' },
   { id: 'flow-theme-party', name: '主题党日链路', group: '党建', desc: '组织者发起策划 → 支委扩大群报备 → 筹备对接 → 实施 → 纪检考勤复盘 → 组织者复盘 → 宣传归档', related: ['theme-party', 'activity-create', 'review'], generic: true, kind: 'flow' },
   { id: 'flow-general-meeting', name: '支部党员大会链路', group: '党建', desc: '组长统筹 → 支书发布 → 纪检考勤 → 议题讨论表决 → 记录决议 → 宣传归档', related: ['three-meetings', 'agenda', 'development'], generic: true, kind: 'flow' },

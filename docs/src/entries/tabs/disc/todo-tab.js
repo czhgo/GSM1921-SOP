@@ -7,13 +7,13 @@
 // 文案由 components/record/todo-list.js actionLabels 收敛为「去考勤管理/去考察管理」（跳管理页队列，
 // 确认唯一位=考勤管理/考察管理页），补课回执交接行=「去补课制度」跳转——本文件无逻辑改动。
 
-import { showToast } from '../../../core/base/utils.js?v=20261005l';
-import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261005l';
-import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261005l';
-import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261005l';
-import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261005l';
-import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261005l';
-import { getPersonName } from '../../../services/member/person.js?v=20261005l';
+import { showToast } from '../../../core/base/utils.js?v=20261005m';
+import { TodoSourceType, TodoCategory, TodoActionType, seedTodos, REALTIME_GROUP_DOMAIN } from '../../../services/governance/todo.js?v=20261005m';
+import { createTodoTab } from '../../../components/record/todo-tab-shell.js?v=20261005m';
+import { loadActiveAttendanceRecords } from '../../../services/activity/attendance.js?v=20261005m';
+import { AttendanceStatus } from '../../../core/domain/domain.js?v=20261005m';
+import { loadActiveInspectionRecords } from '../../../services/activity/inspection.js?v=20261005m';
+import { getPersonName } from '../../../services/member/person.js?v=20261005m';
 
 // ── 纪检实时聚合组（2026-08-07 闭环化） ────────────────────────
 // 真实闭环：考勤/考察待确认数量由业务数据实时计算，确认后数量自动下降，
@@ -82,7 +82,7 @@ function _handleTodoAction(todo) {
     };
     if (target.segment) {
       // 先置一级分段再切 tab（分段由 attendance-tab 模块级记忆，见其 focusSegment 导出）
-      import('../../../entries/tabs/disc/attendance-tab.js?v=20261005l')
+      import('../../../entries/tabs/disc/attendance-tab.js?v=20261005m')
         .then(m => { m.focusSegment(target.segment); go(); })
         .catch(go);
     } else {

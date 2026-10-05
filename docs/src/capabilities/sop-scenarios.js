@@ -6,8 +6,8 @@
 // 行为零变化：list/get 返回的仍是 sopDatabase.scenarios 的同一数据源。
 // 设计权威源：content/04_web_design/evolution/ARCHITECTURE_EVOLUTION.md §四.3（场景作为能力注册）
 
-import { registerCapability } from '../core/boot/registry.js?v=20261005l';
-import { sopDatabase } from '../workflow/sopData.js?v=20261005l';
+import { registerCapability } from '../core/boot/registry.js?v=20261005m';
+import { sopDatabase } from '../workflow/sopData.js?v=20261005m';
 
 registerCapability({
   id: 'sop-scenarios',

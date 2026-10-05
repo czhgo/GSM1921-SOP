@@ -37,7 +37,7 @@ export const sopDatabase = {
         // 全支部会议由支书承担会前与会中主持环节。
         { taskId: '1c-1', title: '确定会议主题',      executor: 'secretary',        supervisor: null,      timeOffset: -7, desc: '根据支委会部署确定会议主题与议程。' },
         { taskId: '1c-2', title: '通知到人',          executor: 'secretary',        supervisor: null,      timeOffset: -5, desc: '提前至少5天发送正式会议通知，确认收到时即确认能否线上参会。' },
-        { taskId: '1c-3', title: '二维码签到',        executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场组织扫码签到并汇总签到结果。' },
+        { taskId: '1c-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
         { taskId: '1c-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '刚性考勤；请假/缺勤留档并跟进补课。' },
         { taskId: '1c-5', title: '按议程开会',        executor: 'secretary',        supervisor: null,      timeOffset:  0, desc: '按会议性质推进议程，主持人作总结发言。' },
         { taskId: '1c-6', title: '摄影留存宣传底稿',  executor: 'leader',           supervisor: null,      timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
@@ -54,7 +54,7 @@ export const sopDatabase = {
         // 党小组会由党小组组长承担会前、会中主持与会议记录环节。
         { taskId: '1d-1', title: '确定会议主题',      executor: 'leader',           supervisor: null,      timeOffset: -7, desc: '按支委会部署确定会议主题与议程。' },
         { taskId: '1d-2', title: '通知到人',          executor: 'leader',           supervisor: null,      timeOffset: -5, desc: '提前至少5天群发正式会议通知，确认收到时即确认能否线上参会。' },
-        { taskId: '1d-3', title: '二维码签到',        executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场组织扫码签到并汇总签到结果。' },
+        { taskId: '1d-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
         { taskId: '1d-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'leader',  timeOffset:  0, desc: '刚性考勤；请假/缺勤留档并跟进补课。' },
         { taskId: '1d-5', title: '按议程开会',        executor: 'leader',           supervisor: null,      timeOffset:  0, desc: '按会议性质推进议程，主持人作总结发言。' },
         { taskId: '1d-6', title: '摄影留存宣传底稿',  executor: 'leader',           supervisor: null,      timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },
@@ -79,7 +79,7 @@ export const sopDatabase = {
         // 支委会由支书承担会前、会中主持与会议记录环节（督办位＝支书）。
         { taskId: '1e-1', title: '确定会议主题',      executor: 'secretary',        supervisor: null,        timeOffset: -7, desc: '支书定议题与议程。' },
         { taskId: '1e-2', title: '通知到人',          executor: 'secretary',        supervisor: null,        timeOffset: -5, desc: '提前至少5天通知支委（时间/地点/议题）。' },
-        { taskId: '1e-3', title: '二维码签到',        executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  0, desc: '现场组织扫码签到并汇总签到结果。' },
+        { taskId: '1e-3', title: '现场签到',          executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  0, desc: '现场按应到名单录入签到并汇总签到结果。' },
         { taskId: '1e-4', title: '签到考勤',          executor: 'disc-commissioner',supervisor: 'secretary', timeOffset:  0, desc: '纪检记录支委到场情况；请假/缺勤留档。' },
         { taskId: '1e-5', title: '按议程开会',        executor: 'secretary',        supervisor: null,        timeOffset:  0, desc: '支书主持，按议程研究支部日常工作并作总结。' },
         { taskId: '1e-6', title: '摄影留存宣传底稿',  executor: 'secretary',        supervisor: null,        timeOffset:  3, desc: '摄影留存，形成宣传底稿交宣传委员。' },

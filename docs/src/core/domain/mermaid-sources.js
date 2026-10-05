@@ -5,7 +5,7 @@
 //   docs/src/components/sections/help-catalog.js（浏览器：help 页功能地图/业务链路 mermaid 源）
 // 数据源：docs/src/core/domain/function-catalog.js（单一事实源；纯数据表达式，node 可直接 import）
 // 约定：本文件为纯 ESM，不依赖任何 node API / 浏览器 API，双端可加载
-import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20261005l';
+import { FUNCTION_GROUPS, FUNCTION_CATALOG } from './function-catalog.js?v=20261005m';
 
 function tag(it) {
   return it.generic ? '通用' : '特有';
@@ -42,7 +42,7 @@ export const FLOW_LINKS = {
     'C --> D[支书: 记录会议决议]',
   ],
   'flow-group-meeting': [
-    'A[党小组组长: 统筹时间·确定主题·提前通知] --> B[党小组组长: 现场发布考勤二维码]',
+    'A[党小组组长: 统筹时间·确定主题·提前通知] --> B[党小组组长: 现场按应到名单录入考勤]',
     'B --> C[纪检委员: 签到考勤]',
     'C --> D[党员: 述职自评与互相批评]',
     'D --> E[党小组组长: 总结·汇总会议记录]',

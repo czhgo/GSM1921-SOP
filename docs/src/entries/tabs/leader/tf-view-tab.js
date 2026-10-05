@@ -12,10 +12,10 @@ export function renderContent(ctx) {
   const el = document.getElementById('leader-tab-content');
   if (!el) return null;
   return Promise.all([
-    import('../../../components/record/insight-view.js?v=20261005l'),
-    import('../../../core/domain/work-map.js?v=20261005l'),
-    import('../../../services/branch/branch.js?v=20261005l'),
-    import('../../../services/core/auth.js?v=20261005l'),
+    import('../../../components/record/insight-view.js?v=20261005m'),
+    import('../../../core/domain/work-map.js?v=20261005m'),
+    import('../../../services/branch/branch.js?v=20261005m'),
+    import('../../../services/core/auth.js?v=20261005m'),
   ]).then(([iv, wm, br, auth]) => {
     const me = auth.AuthStore.getCurrentUser() || {};
     // 支部实际分工（`config.workforce` 覆盖 ＋ 缺省兜底）——「下游可配置」的落点
