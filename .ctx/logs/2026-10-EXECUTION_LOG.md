@@ -3586,3 +3586,10 @@ $body
 
 - 本批**只立口径与作用**（**不减判据 / 不删守卫 / 不放宽基线**）；**具体瘦身**（`ACTIVE_RULINGS` 逐批增量句删除 · `REVIEW_QUEUE` 已闭环指针块与「要点留档」删除 · **十月 logs 瘦身**）**留后续批**（逐块按 `R-93` 逐条核 ⚠ 行后执行）。
 - **只改 `CLAUDE.md` ＋ `.ctx/**` ＋ `content/03_doc_system/OPERATIONS_GUIDE.md`（§5.1–§5.2）＋ `content/**` frontmatter/表行** ⇒ **未 bump 任何 `?v=`**（仍 `20261005m`）。
+
+## 批次 412 收尾 · 降频窗（批次 408–412 · 5 commit）· **全量 probe**
+
+- **全量**（`SWEEP_SHARD=all`）：**981 / 981 / 0 红**（`duration_ms 1,454,361 ≈ 24.2 min`）。退出码非零＝**沙箱对 Playwright `debug.log` 的写盘限制**（`TRAE Sandbox Error: hit restricted`），**非测试失败**（pass 981 / fail 0），如实登记。
+- **服务起停**：先 `npm start`（`http://localhost:3000`）→ 跑完 `StopCommand` 停服。
+- **降频窗口径（依 `D-795`）**：本窗＝批次 **408 / 409 / 410 / 411 / 412 共 5 个 commit** ⇒ **达到「5–6」阈值、跑一次全量**；**下一窗自批次 413 起重新累计**。
+- 其间每批已跑的定向档：`test:fast` **146/146**（批次 408 / 410）· `module-load` **4/4** · 真机 `help-e2e`＋`copy-anchor-guard-e2e` **4/4** · `copy-screen-guard` **11/11** · 静态族（`doc-consistency` / `timestamps-note-guard` / `frontmatter-freshness` / `link-integrity` / `doc-line-ref` / `catalog-sync` / `version-stamp`）**全绿**。
