@@ -2731,3 +2731,82 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - **服务端一并改**（非 `R-26`③ 字面要求）：只改前端会使窗口内**前后端「今天」分叉** ⇒ 同批改准服务端 6 处。
 - **`constants.js` 由「零 import」变「一条零依赖 import」**：破了原字面、**保住本意**（不成环、双端可载）；两处 doc 同批改准，`D2` 把守。
 - 本批**不新增页面 / 表 / 字段 / 权限**。
+
+
+***
+
+## 批次 389（2026-10-05 · `D-781`）**`R-89` 续批**：TIMESTAMPS 备注列收敛 42 格（`T-编号` 71→29、合计 45,960→44,343、预算同批下调）
+
+> **来源**：支书「**裁定时间戳 非常浪费内存**」＋ `CLAUDE.md R-89`（台账备注列只写「现状 / 边界 / 为什么」、逐批沿革一律进 `.ctx/logs/**`、预算只降不升）。
+
+### 一、选面（先量后动）
+
+- 逐格**实读**四份存量清单的备注原文，只取「**除 `N4 T-编号` 外无其它违规**」的格子（不同时命中 `N5 日期复述` / `N6 批次号罗列` / `N3 超长`）——否则一处收敛要同时改多份清单、极易漏。⇒ 命中 **42 格**：`docs/src/entries/tabs/**` 34 · `entries/workspace/*-entry.js` 3 · `entries/pages/about-entry.js` · `core/boot/registry.js` · `components/role-hierarchy.js` · `docs/workspace/*.html` 2 · `capabilities/disc-workspace.js`。
+- 收敛形态：删「`T-279 Mx 新建` / `T-280 …` / `T-304 …`」这类**执行日志键**，保留**现状描述**（含 `tab 数 9` 等可数事实与 `scope='workspace:disc'` 等边界），统一加「沿革见 `.ctx/logs/`。」指针。
+
+### 二、落地与读数
+
+- `.ctx/TIMESTAMPS.md`：42 格备注换为「现状 / 边界 ＋ 沿革指针」；**备注列合计 45,960 → 44,343**（↓1,617）。
+- `server/test/timestamps-note-baseline.mjs`：`WITH_TID_BASELINE` **删这 42 条**（71 → 29，`N7` 双向一致）＋ `NOTE_TOTAL_BUDGET` **45,900 → 44,700**（只降不升）＋ 注释计数改准。
+- **旧备注逐字留档**：42 条落本文件**附节**「TIMESTAMPS 备注列迁出的逐批沿革（2026-10-05 批次 389）」（可复原、不丢信息）。
+- `server/README.md`：该守卫的**实测数**改准（登记 **291 行** / 备注合计 **44,343 字** / 最长单格 **937 字** / `T-编号` **29** / 日期复述 **14** / 批次号罗列 **20** / 单格 >1000 字 **0**）。
+- 版本戳**不 bump**（判据：只改 `.ctx/**` ＋ `server/test/*.mjs` 数据文件 ＋ `server/README.md`，无 `docs/src/**`）；`ACTIVE_RULINGS` 零行。
+
+### 三、守卫读数
+
+- `timestamps-note-guard` **7/7**（`N2` 预算下调后仍绿 · `N4` 命中集 ≡ 新基线 **29** · `N3` 仍 **0** · `N5` **14** · `N6` **20** · `N7` 非空转）；同批静态族（`doc-consistency` `S1`–`S18` · `frontmatter-freshness` · `doc-line-ref` · `link-integrity` · `version-stamp` · `date-canon-guard`）**59/59 / 0 红**。收尾全量见本批提交说明。
+
+### 四、边界（如实）
+
+- **只做「只犯 T-编号」的 42 格**；**同时犯多类**的格子（`disc/attendance-tab.js` · `leader/write-tab.js` · `visitor/projects-tab.js` · `prop/archive-tab.js` · `secretary/calendar-tab.js` · `org/taskforce-tab.js` 等）**本批未动** ⇒ 属**下一批**（`R-89` 仍在办；`N5` / `N6` 两条清单本批一字未动）。
+- **`R-93` 的机检经本批实探「不成立」**：曾想以「已闭环节内不得含未办 ⚠ 行」立守卫 ⇒ 实测该形态 **49 处**命中，而绝大多数是体例允许的「**⚠ 仍未做（如实登记）**」（**留在已闭环节内是既定写法**）⇒ **判据会大面积误报、不予立**（与 `R-92` 同：**未硬凑守卫**）。
+- 本批**未改任何业务代码 / 母本 / 页面**。
+
+***
+
+### 附：TIMESTAMPS 备注列迁出的逐批沿革（2026-10-05 批次 389 · `R-89` 续批）
+
+> 收敛路径＝把该格的历史沿革**逐字**迁入本日志、原位只留「现状 / 边界 ＋ 沿革指针」。本批共 **42** 格（皆只犯 `N4 T-编号`；`timestamps-note-baseline.mjs::WITH_TID_BASELINE` 同批删这 42 条）。
+
+- docs/workspace/org.html :: 组织委员工作台（T-279 M3 入口版本 bump 20260823d）
+- docs/workspace/leader.html :: 党小组组长工作台（T-279 M2 入口版本 20260822e；2026-08-23 styles.css 引用 bump 20260823a）
+- docs/src/core/boot/registry.js :: 能力注册表三原语（registerCapability/getCapabilities/getCapability/mountCapability，T-279 M1 新建）
+- docs/src/components/role-hierarchy.js :: 🗑️ 已删除（T-304 死代码清理）
+- docs/src/entries/pages/about-entry.js :: 关于页入口（支部的故事；静态壳 + 死代码清理；T-272 对话三段角速度统一 PLATEAU 0.55）
+- docs/src/entries/workspace/ws-prop-commissioner-entry.js :: 宣传委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+轮询定位）
+- docs/src/entries/workspace/ws-disc-commissioner-entry.js :: 纪检委员工作台入口（T-279 M3 薄壳化 + T-280 B1-5 条件抑制+高亮存活）
+- docs/src/entries/workspace/ws-leader-entry.js :: 党小组组长工作台入口（T-279 M2 薄壳化 + T-280 B1-5 条件抑制+轮询定位）
+- docs/src/entries/tabs/leader/_shared.js :: 组长工作台共享上下文（纯函数 currentLeaderGroup/filterByRole，T-279 M2 新建）
+- docs/src/entries/tabs/leader/todo-tab.js :: 组长待办 tab（T-279 M2 新建）
+- docs/src/entries/tabs/leader/overview-tab.js :: 组长工作概况 tab（T-279 M2 新建）
+- docs/src/entries/tabs/leader/attendance-tab.js :: **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:128`；**只改字号档、padding 一字未动**）；组长考勤上传 tab（T-279 M2 新建；**2026-09-21 批次 132：卡面与头注改准**——党课 / 党员大会上传位在纪检、支委会不考勤，`D-558`）
+- docs/src/entries/tabs/leader/inspection-tab.js :: **（2026-09-27 批次 219：R2 页内导语——「考察上传」卡导语同批改写保值至 80 字〔补「专班考察见组织台「考察上传」」；同行改写 ⇒ 行号零位移〕）** 组长考察上传 tab（T-279 M2 新建）
+- docs/src/entries/tabs/leader/review-tab.js :: 组长复盘提交 tab（T-279 M2 新建；**2026-09-25 批次 185 说明行迁移**——「复盘由活动组织者 / 深度参与者提交…本区仅展示状态，不提供提交」→ **一行 ＋ 深链** `./help.html#card-copy-review-submit`（被删语义见 `help.html:589`），`D-648`）
+- docs/src/entries/tabs/leader/members-tab.js :: **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 5→3〕；`D-674`）** 组长组员进展 tab（三区：卡点/进度/汇报，T-279 M2 新建；**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（6→5）；**由「另一路」落地，本表行刷为 `2026-09-25`**）
+- docs/src/entries/tabs/leader/tf-view-tab.js :: 组长专班查看 tab（URL 直达高亮，T-279 M2 新建）
+- docs/src/entries/tabs/leader/my-dispatch-tab.js :: 组长我的处置 tab（T-279 M2 新建）
+- docs/src/entries/tabs/org/todo-tab.js :: **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:159`；**只改字号档、padding 一字未动**）；组织委员待办 tab（T-279 M3 新建）
+- docs/src/entries/tabs/org/overview-tab.js :: 组织委员工作概况 tab（T-279 M3 新建）
+- docs/src/entries/tabs/org/inspection-tab.js :: **（2026-09-27 批次 219：R2 页内导语——「专班考察上传」卡导语补「。本页只收专班考察；组长台「考察上传」收本组活动考察。」〔同行改写 ⇒ 行号零位移〕）** 组织委员考察上传 tab（T-279 M3 新建）
+- docs/src/entries/tabs/org/talent-tab.js :: **2026-09-25 批次 196：控件小字 `text-[11px]` → `text-[13px]` 1 处**（`:161`；**只改字号档、padding 一字未动**）；组织委员人才库 tab（T-279 M3 新建）
+- docs/src/entries/tabs/org/development-tab.js :: 🗑️ **已删除**（**2026-10-01 批次 321** · 支书 V-10 取「乙：整页并入人才库」：「活动参与汇总」卡**并入** `docs/src/entries/tabs/org/talent-tab.js`；**发展阶段变更的写入位改个人总表** `person.html`）——本行按纪律留**删除抄录**，不再指向活文件（原：组织委员发展数据 tab，T-279 M3 新建）
+- docs/src/entries/tabs/org/my-dispatch-tab.js :: 组织委员我的处置 tab（T-279 M3 新建）
+- docs/src/entries/tabs/prop/todo-tab.js :: 宣传委员待办 tab（T-279 M3 新建）
+- docs/src/entries/tabs/prop/overview-tab.js :: 宣传委员工作概况 tab（T-279 M3 新建）
+- docs/src/entries/tabs/prop/tasks-tab.js :: 宣传任务 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（9→6）；该文件内 `PROP_TASKS_SEED` 即服务端 `SEED_PROP_TASKS` 的单一源；**由「另一路」落地，本表行刷为 `2026-09-25`**）
+- docs/src/entries/tabs/prop/kanban-tab.js :: 项目看板 tab（T-279 M3 新建；**2026-09-25 批次 199（`D-659`）：hex 清 3 处**（8→5）；**由「另一路」落地，本表行刷为 `2026-09-25`**）
+- docs/src/entries/tabs/prop/weekly-tab.js :: 周报报送 tab 实现（T-279 M3 新建）。**边界**：已非独立页签——由「档案归档」页内折叠区挂载。
+- docs/src/entries/tabs/prop/my-dispatch-tab.js :: 宣传委员我的处置 tab（T-279 M3 新建）
+- docs/src/entries/tabs/disc/_shared.js :: 纪检委员共享上下文（DISC_COMMISSIONER_ID，T-279 M3 新建）
+- docs/src/entries/tabs/disc/todo-tab.js :: 纪检委员待办 tab（T-279 M3 新建）
+- docs/src/entries/tabs/disc/overview-tab.js :: 纪检委员工作概况 tab（T-279 M3 新建）
+- docs/src/entries/tabs/disc/review-tab.js :: 复盘 tab（T-279 M3 新建；2026-10-04 批次 368 名由「活动监督复盘」改「复盘」）
+- docs/src/entries/tabs/disc/makeup-tab.js :: 补课制度 tab（T-279 M3 新建 + T-280 B3-1 确认完成回写考勤 made_up；**2026-09-25 批次 193：范围段 87 ＋ 归档段 90 ＝ 177 字 → 摘要 38 字 ＋ `<details>`**，本守卫实测 **≤12**；新增 `card-copy-makeup-scope` 定点，`D-654`）
+- docs/src/entries/tabs/disc/tf-view-tab.js :: 纪检委员知情查看 tab（T-279 M3 新建；批次 368 起只出「活动」段）
+- docs/src/entries/tabs/disc/my-dispatch-tab.js :: 纪检委员我的处置 tab（T-279 M3 新建）
+- docs/src/entries/tabs/visitor/todo-tab.js :: 成员待办 tab（T-279 M3 新建）
+- docs/src/entries/tabs/visitor/overview-tab.js :: 成员工作概况 tab（T-279 M3 新建）
+- docs/src/entries/tabs/visitor/activities-tab.js :: 活动动态 tab（T-279 M3 新建；**2026-09-25 批次 183**：`_organizerEntryHtml` 的入口 href `leader.html?tab=attendance` → `./workspace/leader.html?tab=attendance`〔**裸文件名会经 `<base href="../">` 解析到站点根 ⇒ 404**〕，`D-646`）；**2026-09-25 批次 199（`D-659`）：hex 清 1 处**（12→11）；**由「另一路」落地，本表行改注**（日期仍 `2026-09-25`））
+- docs/src/entries/tabs/visitor/attendance-tab.js :: 考勤概况 tab（T-279 M3 新建；**2026-09-21 批次 139：「补课说明」浮窗加页脚深链**——成员台无支部治理分区 ⇒ 指设置首页〔外观 / 我的工作台〕，`D-570`）
+- docs/src/entries/tabs/visitor/inspection-tab.js :: **（2026-09-28 批次 225：存量色彩清理——`var(--tok, <硬编码>)` → `var(--tok)`〔该令牌已在 `:root`/`html.theme-dark` 有正式默认值、逐字等值 ⇒ 观感零变化；基线 c 2→1〕；`D-674`）** 我的考察 tab（T-279 M3 新建）
+- docs/src/capabilities/disc-workspace.js :: 纪检委员工作台能力声明（tab 清单自注册，scope='workspace:disc'，T-279 M3 新建；tab 数 9）

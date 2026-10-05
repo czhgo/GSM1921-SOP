@@ -20,7 +20,7 @@
 // ⚠ 2026-10-02 批次 333（备注列第六轮）：实测 47,744（守卫口径，275 行）→ **迁出 2 格 ＋ 修一处「8 段被跳过」结构缺陷** 后 **47,136**（276 行）
 //   ⇒ 预算 50,000 → **47,500**（**只降不升**）。**修缺陷说明**：`content/05_ai_coding/DATA_CONSISTENCY_CHECKLIST.md` 那格含未转义竖线 ⇒ 整行 8 段、被守卫跳过。
 // ⚠ 2026-10-01 批次 322（备注列第五轮）：实测 53,708 → **49,750** ⇒ 预算 57,000 → 50,000（**只降不升**）。
-export const NOTE_TOTAL_BUDGET = 45900;
+export const NOTE_TOTAL_BUDGET = 44700;
 /** 历史冻结高水位（机检 NOTE_TOTAL_BUDGET ≤ 本值 ⇒ 预算不可能被悄悄调大） */
 export const NOTE_TOTAL_HARD_CEIL = 95000;
 // 高水位沿革（只许下调）：2026-09-30 批次 311 第四轮收敛（再迁 5 格：README.md /
@@ -47,7 +47,7 @@ export const ROWS_MIN = 245;
 export const OVERLONG_BASELINE = [
 ];
 
-/** 备注含 `T-\d*` 编号（75 行 · T-编号是执行日志的键，台账不应承载） */
+/** 备注含 `T-\d*` 编号（71 → **29 行**；2026-10-05 批次 389 收敛 42 格 · T-编号是执行日志的键，台账不应承载） */
 export const WITH_TID_BASELINE = [
   '.ctx/logs/2026-08-EXECUTION_LOG.md',
   'content/03_doc_system/PROCESS_GUIDE.md',
@@ -61,64 +61,22 @@ export const WITH_TID_BASELINE = [
   'content/04_web_design/module/ABOUT_PAGE_DESIGN.md',
   'content/04_web_design/module/SOP_WEBSITE_GUIDE.md',
   'docs/src/about.css',
-  'docs/src/components/role-hierarchy.js',
   'docs/src/core/session/cross-page-state.js',
-  'docs/src/core/boot/registry.js',
-  'docs/src/entries/pages/about-entry.js',
-  'docs/src/entries/tabs/disc/_shared.js',
   'docs/src/entries/tabs/disc/attendance-tab.js',
   'docs/src/entries/tabs/disc/inspection-tab.js',
-  'docs/src/entries/tabs/disc/makeup-tab.js',
-  'docs/src/entries/tabs/disc/my-dispatch-tab.js',
-  'docs/src/entries/tabs/disc/overview-tab.js',
-  'docs/src/entries/tabs/disc/review-tab.js',
-  'docs/src/entries/tabs/disc/tf-view-tab.js',
-  'docs/src/entries/tabs/disc/todo-tab.js',
-  'docs/src/entries/tabs/leader/_shared.js',
-  'docs/src/entries/tabs/leader/attendance-tab.js',
-  'docs/src/entries/tabs/leader/inspection-tab.js',
-  'docs/src/entries/tabs/leader/members-tab.js',
-  'docs/src/entries/tabs/leader/my-dispatch-tab.js',
-  'docs/src/entries/tabs/leader/overview-tab.js',
-  'docs/src/entries/tabs/leader/review-tab.js',
-  'docs/src/entries/tabs/leader/tf-view-tab.js',
-  'docs/src/entries/tabs/leader/todo-tab.js',
   'docs/src/entries/tabs/leader/write-tab.js',
-  'docs/src/entries/tabs/org/development-tab.js',
-  'docs/src/entries/tabs/org/inspection-tab.js',
-  'docs/src/entries/tabs/org/my-dispatch-tab.js',
-  'docs/src/entries/tabs/org/overview-tab.js',
-  'docs/src/entries/tabs/org/talent-tab.js',
   'docs/src/entries/tabs/org/taskforce-tab.js',
-  'docs/src/entries/tabs/org/todo-tab.js',
   'docs/src/entries/tabs/prop/archive-tab.js',
-  'docs/src/entries/tabs/prop/kanban-tab.js',
-  'docs/src/entries/tabs/prop/my-dispatch-tab.js',
-  'docs/src/entries/tabs/prop/overview-tab.js',
-  'docs/src/entries/tabs/prop/tasks-tab.js',
-  'docs/src/entries/tabs/prop/todo-tab.js',
-  'docs/src/entries/tabs/prop/weekly-tab.js',
-  'docs/src/entries/tabs/visitor/activities-tab.js',
-  'docs/src/entries/tabs/visitor/attendance-tab.js',
-  'docs/src/entries/tabs/visitor/inspection-tab.js',
-  'docs/src/entries/tabs/visitor/overview-tab.js',
   'docs/src/entries/tabs/visitor/projects-tab.js',
-  'docs/src/entries/tabs/visitor/todo-tab.js',
-  'docs/src/entries/workspace/ws-disc-commissioner-entry.js',
-  'docs/src/entries/workspace/ws-leader-entry.js',
-  'docs/src/entries/workspace/ws-prop-commissioner-entry.js',
   'docs/src/entries/workspace/ws-secretary-entry.js',
   'docs/src/entries/workspace/ws-visitor-entry.js',
   'docs/src/capabilities/activity-calendar.js',
-  'docs/src/capabilities/disc-workspace.js',
   'docs/src/capabilities/leader-workspace.js',
   'docs/src/capabilities/org-workspace.js',
   'docs/src/capabilities/prop-workspace.js',
   'docs/src/capabilities/visitor-workspace.js',
   'docs/src/services/governance/secretary-overview.js',
   'docs/src/services/member/person.js',
-  'docs/workspace/leader.html',
-  'docs/workspace/org.html',
   'server/test/b3-1-makeup-writeback.test.mjs',
 ];
 
