@@ -2940,3 +2940,34 @@ related_files: [CLAUDE.md, .ctx/logs/2026-09-EXECUTION_LOG.md, .ctx/logs/EXECUTI
 - docs/src/entries/tabs/visitor/review-tab.js :: 成员台「我的复盘」tab（**2026-09-21 批次 135 补登**——本表原先无此行；本批卡片加「支委会要求」来源标记 ＋ 头注写明**不开「交回后自行更新」入口**，`D-562`）；**2026-09-25 批次 199（`D-659`）：hex 清 4 处**（5→1）；**由「另一路」落地，本表行改注**（日期刷为 `2026-09-25`））
 - docs/src/services/governance/notice.js :: **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`，1 处〔党委下发标签〕；基线 c 3→2；日期由 `2026-08-12` 刷为 `2026-09-28`）** 通知服务（含通知→待办派生）
 - docs/src/components/sections/references.js :: **（2026-09-28 批次 223：`#C8102E` → `var(--party-red)`（`:361` 去登录主 CTA）；基线 c 17→16；日期由 `2026-09-25` 刷为 `2026-09-28`）** **2026-09-25 批次 196：hex 清 6 处（23 → 17）**（同一「等价令牌」选面原则；**不碰 JS 颜色函数入参 / 映射键 / alpha 拼接**）；资料查询模块（2026-09-21 批次 129 制度行按状态分档——草案 / 已退回 / 待党员大会表决 / 现行版 / 停用；草案行补「修改草案」操作、成员侧只见现行版；随行位移台账 5 条行号同步）
+
+
+***
+
+## 批次 393（2026-10-05 · `D-748` 补记）站内信**服务端写门** —— 快照口复算「支委层 ∪ 组长 ＋ 发件人须本人」＋ api 面实证
+
+> **来源**：objective #4（「站内信 是一个很重要的形式！！请一定要思考落地！！」）＋ #2（「全栈开发一定要关心 CRUD 的问题！一定要做一次全域的探查」）。`D-748` 三项（收件箱页 / 发件权 / 回复线程）已在**批次 353 落地**；本批补的是**唯一实质缺口** —— 发件权**只在前端**强制。
+
+### 一、缺口（探查结论）
+
+- 私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth` ⇒ **任一登录成员直连即可伪造一条私信**（冒充发件人 / 塞给任意收件人）；`POST /notices` 的通用写门（`NOTICE_PUBLISH_ROLES` 不含 `leader`）**管不到私信**（私信不经该口）。
+- 前端判据单一源已存在（`services/governance/notice.js::canSendDirectMessage` ＝ 支委层 ∪ leader），但服务端**无对应复算**（违 `D-677`「判据须落在 api 面的真实行为上」）。
+
+### 二、做法
+
+- 在 `server/routes/resources/gates.js` **文件末尾**追加 `_snapshotNoticeMessageGateDeny(db, payload, actor)`（**不改动上文任何行号**；角色集同源 `constants.js::BRANCH_COMMISSION_ROLES`，与既有 `ACTIVITY_WRITE_ROLES` 同法）＋ `NOTICE_MESSAGE_DENY_MSG`；`import { RESOURCE_TABLES, listTable }`（同为一行）。
+- `server/routes/resources/index.js` 快照口 **等行数**接入：`_snapshotActivityApprovalGateDeny(...) || _snapshotNoticeMessageGateDeny(...)` ⇒ **行号零位移**（`README-server` / `doc-line-ref` 无改签）。
+- **只拦「新增 / 篡改」**（同快照口批准门口径）：新增私信须「有发送权 ＋ `fromPersonId` ＝ 本人」；既有私信 `fromPersonId` 不可改、非作者不得改 `audiencePersons`；**未变行照旧放行**（快照整表写穿，正常同步必带收发双方在库私信）。
+- `README-server.md §2.3` 写门表加一行（含 `gates.js:235` / `index.js:301` 引用）；`.ctx/logs/2026-10-DECISION_LOG.md` `D-748` 加**补记**，并把「本月目录」状态由「已裁（待落）」改准为**已落**。
+
+### 三、判据与反例
+
+- **单元件** `notice-message.test.mjs` 新增 `N3`／`N4`（发送权矩阵 · 代发拦截 · 非私信放行 · 未变行放行 · 篡改作者 / 收件人拦截）；**反例自检**：把该门改恒 `null` ⇒ **`N3`／`N4` 判红（2 fail）**，复原后 4/4 绿。
+- **api 面实证**（`permission-gate.test.mjs` 新增一件，自包含 `createApp(:memory:)` ＋ `seedDatabase`）：普通成员（p7）直连 `POST /snapshot` 伪造私信 ⇒ **403**；支书（p13）本人发 ⇒ **200**。
+- 守卫子集（14 文件）**105/105 / 0 红**。
+
+### 四、边界（如实）
+
+- `POST /notices` 的既有通用写门**不动**（私信不经该口）；「**删除**私信」**未设门**（沿用既有）；**跨支部**仍未在服务端过滤（§7.1 既有口径，另立项）。
+- 本批**只改 `server/**` ＋ `README-server.md` ＋ `.ctx/**`** ⇒ **未 bump 版本戳**（无 `docs/src/**` 改动）；`ACTIVE_RULINGS` 零行（`D-748` 口径未变，本批是其 api 面执行）。
+- **全量 probe（收尾实跑）**：批次 391→393 ＝ 降频窗内**第 3 个 commit** ⇒ 依 `D-784`「3–4 个 commit 全量一次」本批跑全量，**实读 `964 / 964 / 0 红`**（覆盖 391–393 改动面；较批次 390 全量 958 增 6 项）。⚠ 进程退出码非 0 系**沙箱拒绝写 Playwright `debug.log`**（`TRAE Sandbox Error: hit restricted`），**非测试失败**——判据以 `ℹ pass 964 / fail 0` 为准；临时日志 `.tmp-full-393.log` 未留盘、跑完已停服。

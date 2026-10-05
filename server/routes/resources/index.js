@@ -21,7 +21,7 @@ import { BRANCH_COMMISSION_ROLES, hashSubmitterToken } from '../../../docs/src/c
 // T-218：新增 4 张 niche 表（键名与前端快照 payload 键名完全一致）
 // T-209 全栈同步：补齐前端 mockDB 全部持久化域，使 API 模式全链路可用
 import { RESOURCE_TABLES, ID_PREFIX, listTable, getRow, writeRow } from './store.js';
-import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, activityBlockDisabledMsg } from './gates.js';
+import { RESOURCE_WRITE_GATE, _assertResourceWrite, _writeDenyMsg, ACTIVITY_WRITE_DENY_MSG, _assertActivityWrite, _ballotModeReject, BRANCH_COMMITTEE_ROLES, PARTY_STAFF_ROLE, _assertActivityBlockEnabled, activityBlockDisabledMsg, _snapshotNoticeMessageGateDeny } from './gates.js';
 import { _activityApprovalGateDeny, _snapshotActivityApprovalGateDeny, _activityCreateGatePatch } from './approval-gates.js';
 import { _snapshotBaseVersions, _snapshotWrites, _snapshotMissingVersions, _allCollectionVersions, _snapshotVersionConflicts } from './snapshot-versions.js';
 import { registerExtraSemanticRoutes } from './semantic-routes.js';
@@ -298,7 +298,7 @@ export function createResourcesRouter(db) {
     if (!payload || typeof payload !== 'object') {
       return res.status(400).json({ error: '快照 payload 必须是 JSON 对象' });
     }
-    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, payload, req.actor);
+    const snapshotDeny = _snapshotActivityApprovalGateDeny(db, payload, req.actor) || _snapshotNoticeMessageGateDeny(db, payload, req.actor);
     if (snapshotDeny) return res.status(403).json({ error: snapshotDeny });
     const baseVersions = _snapshotBaseVersions(payload);
     const missing = _snapshotMissingVersions(payload, baseVersions); if (missing.length) return res.status(428).json({ error: '快照被拒：payload 里的集合未随 `_versions` 给出基线版本（见本文件末「快照写穿的集合版本号协议」）', missingVersions: missing });

@@ -901,3 +901,25 @@ test('支委身份写门：本支部现任支书 / 副支书可配本支部成�
   }); // 复原演示种子，避免影响同文件后续用例
   assert.equal(await roleOf('p3'), 'participant', '演示种子角色已复原');
 });
+
+// ── 2026-10-05 批次 393：站内信（私信）**服务端写门**的 api 面实证（`D-748`）──────────────────────────
+// 判据落点：`server/routes/resources/gates.js::_snapshotNoticeMessageGateDeny`（快照口复算）；纯判定另有
+//   单元件 `notice-message.test.mjs::N3/N4`。本件证「接线」——直连 `POST /snapshot` 伪造私信须 403。
+test('站内信写门（api 面）：普通成员直连快照伪造私信 → 403；支委层本人发 → 放行', async () => {
+  const { token: secToken } = await login('p13');   // br-b1 支书
+  const { token: memToken } = await login('p7');    // br-b1 普通成员（participant）
+  const forged = { id: 'ntc-forge-1', title: '越权私信', content: 'x', noticeType: 'message', fromPersonId: 'p7', audiencePersons: ['p5'], read: false };
+  // ① 普通成员伪造一条私信 → 该门在版本校验之前命中 ⇒ 403（而非 428）
+  const r1 = await fetch(`${base}/api/v1/snapshot`, {
+    method: 'POST', headers: authHeaders(memToken), body: JSON.stringify({ notices: [forged] }),
+  });
+  assert.equal(r1.status, 403, '普通成员不得写入私信（服务端复算，非仅前端）');
+  // ② 支委层（本人）发私信 → 放行（带基线版本，整表写穿 notices）
+  const baseVersions = await (await fetch(`${base}/api/v1/snapshot/versions`, { headers: authHeaders(secToken) })).json();
+  const mine = { ...forged, id: 'ntc-mine-1', fromPersonId: 'p13' };
+  const r2 = await fetch(`${base}/api/v1/snapshot`, {
+    method: 'POST', headers: authHeaders(secToken),
+    body: JSON.stringify({ notices: [mine], _versions: { notices: baseVersions.versions.notices } }),
+  });
+  assert.equal(r2.status, 200, '支委层本人发私信 → 放行');
+});

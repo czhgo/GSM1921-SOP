@@ -303,6 +303,7 @@
 | 信息公开的实名/匿名与真身核查 | 见 §9j：处置＝**支委会（支委层）**，看真身＝仅 `party-staff` | `server/routes/resources/index.js:509-575` |
 | 支部文件（`branchDocs`）资源写口 | 支委层（含支书/副支书） | `server/routes/resources/index.js:56` |
 | 通知发布 / 通知管理 | 发布＝支委层除纪检；管理（编辑/删除）＝支委层全体 | `server/routes/resources/gates.js:31` |
+| **站内信**（私信；`notices` 的 `noticeType:'message'`）写门 | **服务端快照口复算**：「支委层 ∪ 党小组组长」才可发，且 `fromPersonId` 须为本人；既有私信的作者不可改、非作者不得改收件人 ⇒ 否则 **403**。注：上一行的 `notices` 发布/管理门只管**普通通知**；私信不经 `POST /notices`（落库走 `POST /snapshot`） | `server/routes/resources/gates.js:235`（`_snapshotNoticeMessageGateDeny`）、`server/routes/resources/index.js:301` |
 
 **依据**：上表逐行已在「落点」列给出文件行号。
 

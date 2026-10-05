@@ -14,6 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { canReadNotice } from '../../docs/src/services/governance/notice.js?v=20261005d';
+import { _snapshotNoticeMessageGateDeny, NOTICE_MESSAGE_DENY_MSG } from '../routes/resources/gates.js';
 
 const MSG = {
   id: 'ntc-msg-1',
@@ -47,4 +48,38 @@ test('N2 对照：普通通知的既有可见性口径未被误伤', () => {
     '④「支委层可读任意通知」既有口径未改（普通通知仍可被支委层读到）');
   assert.equal(canReadNotice({ id: 'n5', title: '给组长', audience: ['leader'], read: false }, BYSTANDER), false,
     '非受众、非支委 → 仍不可读（非恒真）');
+});
+
+// ── N3 / N4（2026-10-05 批次 393）：服务端**快照口私信写门**（`D-748` 发件权＝支委层 ∪ 组长）──────────
+// 由来：私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth` ⇒ 任一登录成员直连即可
+//   伪造一条私信。判据落服务端复算（`server/routes/resources/gates.js::_snapshotNoticeMessageGateDeny`）。
+// 反例锁死：若把该门写成恒 `null`（或不接入快照 handler），`N3` 的三条「应拦」与 `N4` 的两条「应拦」立刻变红。
+const fakeDb = (rows) => ({ prepare: () => ({ all: () => rows.map((r) => ({ data: JSON.stringify(r) })) }) });
+
+test('N3 服务端私信写门：新增私信须「有发送权 ＋ 发件人为本人」', () => {
+  const db = fakeDb([]);
+  const mk = (from) => ({ id: 'ntc-new', title: 't', content: 'c', noticeType: 'message', fromPersonId: from, audiencePersons: ['p5'] });
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p13')] }, { role: 'secretary', id: 'p13' }), null,
+    '支书发本人私信 → 放行');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p4')] }, { role: 'leader', id: 'p4' }), null,
+    '党小组组长（∪ 支委层）发本人私信 → 放行');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p7')] }, { role: 'participant', id: 'p7' }), NOTICE_MESSAGE_DENY_MSG,
+    '普通成员发私信 → 拦截（前端只在前端判，服务端须复算）');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [mk('p5')] }, { role: 'secretary', id: 'p13' }), NOTICE_MESSAGE_DENY_MSG,
+    '支委层**代他人**发私信（fromPersonId ≠ 本人）→ 拦截');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ id: 'n9', title: 'x', content: 'y', noticeType: undefined }] }, { role: 'participant', id: 'p7' }), null,
+    '非私信（普通通知）未受本门影响 → 放行');
+});
+
+test('N4 服务端私信写门：既有私信「作者不可改 / 非作者不得改收件人 / 未变行放行」', () => {
+  const prev = { id: 'ntc-old', title: 't', content: 'c', noticeType: 'message', fromPersonId: 'p13', audiencePersons: ['p5'] };
+  const db = fakeDb([prev]);
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev }] }, { role: 'participant', id: 'p5' }), null,
+    '收件人回传未变行（整表写穿必带）→ 放行');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, fromPersonId: 'p6' }] }, { role: 'secretary', id: 'p13' }), NOTICE_MESSAGE_DENY_MSG,
+    '篡改作者（fromPersonId 被改）→ 拦截');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['p6'] }] }, { role: 'participant', id: 'p5' }), NOTICE_MESSAGE_DENY_MSG,
+    '非作者改收件人（把私下一条改成发给别人）→ 拦截');
+  assert.equal(_snapshotNoticeMessageGateDeny(db, { notices: [{ ...prev, audiencePersons: ['p5', 'p6'] }] }, { role: 'secretary', id: 'p13' }), null,
+    '作者改收件人 → 放行（本门不越权管作者本人）');
 });

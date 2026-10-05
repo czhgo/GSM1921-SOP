@@ -6,7 +6,7 @@
 
 import { requireAuth, requireCommissioner } from '../auth.js';
 import { BRANCH_COMMISSION_ROLES, PARTY_STAFF_ROLE as PARTY_STAFF_KEYS, SECRETARY_AND_DEPUTY_ROLES, NOTICE_PUBLISH_ROLES, NOTICE_MANAGE_ROLES, MEMBER_FLOW_ROLES, ORG_COMMISSIONER_ROLES, branchCommissionerWriteDeny, isAnonymousForced } from '../../../docs/src/core/domain/constants.js';
-import { RESOURCE_TABLES } from './store.js';
+import { RESOURCE_TABLES, listTable } from './store.js';
 
 // ── P3 上线前收紧（2026-09-03，design §7 登记项落地）：资源级写角色门 ──────────
 // 默认仍 requireAuth；以下资源写权限按角色收紧（防支部成员自批/篡改治理档案）：
@@ -204,4 +204,56 @@ export function _assertActivityBlockEnabled(db, actor, effectiveType) {
     && cfg.config.blocks.workflowBlocks.hiddenBlockIds;
   if (!Array.isArray(hidden) || hidden.length === 0) return true;   // 缺省全开
   return !hidden.includes(blockId);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  站内信（`noticeType:'message'`）**服务端写门**（2026-10-05 批次 393 · 支书 `D-748`）
+//
+//  · 为什么：`D-748` 圈定「发件权＝支委层 ∪ 党小组组长」——**前端**已实现（`services/governance/notice.js::
+//    canSendDirectMessage`），但私信落库走 `POST /api/v1/snapshot`（整表写穿），该口此前仅 `requireAuth`
+//    ⇒ 任一登录成员直连即可**伪造一条私信**（冒充发件人 / 塞给任意收件人）。按 `D-677`（判据须落在 api 面
+//    的真实行为上），须在服务端复算同一口径。
+//  · 单一源＝角色集取自 `constants.js::BRANCH_COMMISSION_ROLES`（与前端 `canSendDirectMessage` 同源），
+//    此处只做「支委层 ∪ leader」的同一表达（与既有 `ACTIVITY_WRITE_ROLES` 同法），不另造第二套角色表。
+//  · 只拦「**新增 / 篡改私信**」这一面（同快照口批准门口径）：既有私信的**未变行照旧放行**——快照是整表写穿，
+//    正常同步里 payload 必然带着收发双方的其它在库私信。篡改面只锁两件：`fromPersonId` 不可改；非作者不得改
+//    收件人 `audiencePersons`（防把私下一条改成发给别人 / 群发）。
+//  · 边界（如实）：`POST /api/v1/notices` 的既有通用写门不动（私信不经该口）；「删除私信」未设门（沿用既有）。
+// ⚠ 本段置于文件末尾：不改动上文任何行号（README-server 有 `文件:行号` 引用指向本文件，`doc-line-ref` 逐条核）。
+// ════════════════════════════════════════════════════════════════
+const DIRECT_MESSAGE_ROLE_SET = new Set([...BRANCH_COMMISSION_ROLES, 'leader']);
+export const NOTICE_MESSAGE_DENY_MSG = '无权限：站内信（私信）仅支委层与党小组组长可发，且发件人须为本人';
+
+/**
+ * 快照口的**站内信写门**（纯判定）：允许 → null；拦截 → 403 文案。
+ * 只管「新增私信（或把既有通知改成私信）」与「篡改既有私信的作者 / 收件人」；未变行 / 非私信行一律放行。
+ * @param {import('better-sqlite3').Database} db better-sqlite3 实例
+ * @param {Object} payload 快照 payload
+ * @param {{role?:string,id?:string}} actor 写者（requireAuth 注入）
+ * @returns {string|null}
+ */
+export function _snapshotNoticeMessageGateDeny(db, payload, actor) {
+  const rows = (payload && Array.isArray(payload.notices)) ? payload.notices : null;
+  if (!rows) return null;
+  const prevById = new Map(listTable(db, 'notices').map((r) => [r.id, r]));
+  for (const row of rows) {
+    if (!row || typeof row !== 'object' || row.noticeType !== 'message') continue;
+    const prev = prevById.get(row.id);
+    const wasMessage = !!prev && prev.noticeType === 'message';
+    if (!wasMessage) {
+      // 新增私信（或把既有通知改成私信）：写者须有发送权，且发件人须为本人（不得代发）
+      if (!actor || !DIRECT_MESSAGE_ROLE_SET.has(actor.role)) return NOTICE_MESSAGE_DENY_MSG;
+      if (row.fromPersonId !== actor.id) return NOTICE_MESSAGE_DENY_MSG;
+      continue;
+    }
+    // 既有私信：作者不可被改
+    if (row.fromPersonId !== prev.fromPersonId) return NOTICE_MESSAGE_DENY_MSG;
+    // 非作者不得改收件人（防把私下一条改成发给别人 / 群发）
+    if (actor && actor.id !== prev.fromPersonId) {
+      if (JSON.stringify(row.audiencePersons || []) !== JSON.stringify(prev.audiencePersons || [])) {
+        return NOTICE_MESSAGE_DENY_MSG;
+      }
+    }
+  }
+  return null;
 }
